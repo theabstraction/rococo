@@ -11,7 +11,7 @@ namespace Rococo
 		virtual void Free() = 0;
 	};
 
-	IMeshLoader* CreateMeshLoader(IRenderer& renderer, IOS& os);
+	IMeshLoader* CreateMeshLoader(IRenderer& renderer, IInstallation& installation);
 }
 
 #endif

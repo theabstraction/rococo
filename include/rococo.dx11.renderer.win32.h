@@ -4,8 +4,8 @@
 namespace Rococo
 {
 	struct IAppFactory;
-	struct IOS;
-	void CALLBACK RendererMain(HANDLE hInstanceLock, IOS& os, IAppFactory& factory);
+	struct IInstallation;
+	void CALLBACK RendererMain(HANDLE hInstanceLock, IInstallation& installation, IAppFactory& factory);
 }
 
 #endif

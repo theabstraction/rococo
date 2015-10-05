@@ -2,48 +2,6 @@ namespace
 {
 	using namespace Rococo;
 
-	struct DX11Exception : public IException
-	{
-		wchar_t msg[256];
-		int32 errorCode;
-
-		virtual const wchar_t* Message() const
-		{
-			return msg;
-		}
-
-		virtual int32 ErrorCode() const
-		{
-			return errorCode;
-		}
-	};
-}
-
-namespace Rococo
-{
-	void Throw(int32 errorCode, const wchar_t* format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-
-		DX11Exception ex;
-		SafeVFormat(ex.msg, _TRUNCATE, format, args);
-
-		ex.errorCode = errorCode;
-
-		if (IsDebuggerPresent())
-		{
-			__debugbreak();
-		}
-
-		throw ex;
-	}
-}
-
-namespace
-{
-	using namespace Rococo;
-
 	template<class T> class AutoRelease
 	{
 	private:

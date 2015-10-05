@@ -7,9 +7,9 @@ namespace
 	class MeshLoader : public IMeshLoader
 	{
 		IRenderer& renderer;
-		IOS& os;
+		IInstallation& installation;
 	public:
-		MeshLoader(IRenderer& _renderer, IOS& _os): renderer(_renderer), os(_os)
+		MeshLoader(IRenderer& _renderer, IInstallation& _installation): renderer(_renderer), installation(_installation)
 		{
 
 		}
@@ -17,7 +17,7 @@ namespace
 		virtual ID_MESH LoadMesh(const wchar_t* resourcePath)
 		{
 			AutoFree<IExpandingBuffer> meshFileImage(CreateExpandingBuffer(64 + 1024));
-			os.LoadResource(resourcePath, *meshFileImage, 64 * 1024);
+			installation.LoadResource(resourcePath, *meshFileImage, 64 * 1024);
 			return (size_t)-1;
 		}
 
@@ -30,8 +30,8 @@ namespace
 
 namespace Rococo
 {
-	IMeshLoader* CreateMeshLoader(IRenderer& renderer, IOS& os)
+	IMeshLoader* CreateMeshLoader(IRenderer& renderer, IInstallation& installation)
 	{
-		return new MeshLoader(renderer, os);
+		return new MeshLoader(renderer, installation);
 	}
 }

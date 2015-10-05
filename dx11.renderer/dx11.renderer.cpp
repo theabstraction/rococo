@@ -381,7 +381,7 @@ namespace
 		AutoRelease<ID3D11Buffer> instanceBuffer;
 		enum { INSTANCE_BUFFER_CAPACITY = 1024 };
 	public:
-		DX11AppRenderer(ID3D11Device& _device, ID3D11DeviceContext& _dc, IDXGIFactory& _factory, IOS& os) :
+		DX11AppRenderer(ID3D11Device& _device, ID3D11DeviceContext& _dc, IDXGIFactory& _factory, IInstallation& installation) :
 			device(_device), dc(_dc), factory(_factory), fonts(nullptr), clipRect(-10000.0f, -10000.0f, 10000.0f, 10000.0f), hRenderWindow(0)
 		{
 			static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
@@ -457,7 +457,7 @@ namespace
 
 			AutoFree<IExpandingBuffer> fontFile(CreateExpandingBuffer(64 * 1024 * 1024));
 			const wchar_t* fontName = L"!font1.tif";
-			os.LoadResource(fontName, *fontFile, 64 * 1024 * 1024);
+			installation.LoadResource(fontName, *fontFile, 64 * 1024 * 1024);
 
 			if (fontFile->GetData() == nullptr) Throw(0, L"The font file %s was blank", fontName);
 
@@ -520,7 +520,7 @@ namespace
 			VALIDATEDX11(device.CreateShaderResourceView(fontTexture, &desc, &fontBinding));
 
 			const wchar_t* csvName = L"!font1.csv";
-			os.LoadResource(csvName, *fontFile, 256 * 1024);
+			installation.LoadResource(csvName, *fontFile, 256 * 1024);
 
 			fonts = Fonts::LoadFontCSV(csvName, (const char*)fontFile->GetData(), fontFile->Length());
 
@@ -534,16 +534,16 @@ namespace
 
 			matrix4x4Buffer = CreateConstantBuffer<Matrix4x4>(device);
 
-			os.LoadResource(L"!gui.vs", *shaderCode, 64 * 1024);
+			installation.LoadResource(L"!gui.vs", *shaderCode, 64 * 1024);
 			idGuiVS = CreateGuiVertexShader(L"gui.vs", shaderCode->GetData(), shaderCode->Length());
 
-			os.LoadResource(L"!gui.ps", *shaderCode, 64 * 1024);
+			installation.LoadResource(L"!gui.ps", *shaderCode, 64 * 1024);
 			idGuiPS = CreatePixelShader(L"gui.ps", shaderCode->GetData(), shaderCode->Length());
 
-			os.LoadResource(L"!object.vs", *shaderCode, 64 * 1024);
+			installation.LoadResource(L"!object.vs", *shaderCode, 64 * 1024);
 			idObjVS = CreateObjectVertexShader(L"object.vs", shaderCode->GetData(), shaderCode->Length());
 
-			os.LoadResource(L"!object.ps", *shaderCode, 64 * 1024);
+			installation.LoadResource(L"!object.ps", *shaderCode, 64 * 1024);
 			idObjPS = CreatePixelShader(L"object.ps", shaderCode->GetData(), shaderCode->Length());
 
 			instanceBuffer = CreateDynamicVertexBuffer<ObjectInstance>(device, INSTANCE_BUFFER_CAPACITY);
@@ -1138,12 +1138,12 @@ namespace
 
 namespace Rococo
 {
-	void CALLBACK RendererMain(HANDLE hInstanceLock, IOS& os, IAppFactory& appFactory)
+	void CALLBACK RendererMain(HANDLE hInstanceLock, IInstallation& installation, IAppFactory& appFactory)
 	{
 		DX11Host host;
 		Create_DX11_0_DebugHost(0, host);
 
-		DX11AppRenderer renderer(*host.device, *host.dc, *host.factory, os);
+		DX11AppRenderer renderer(*host.device, *host.dc, *host.factory, installation);
 
 		struct : IAppEventHandler
 		{

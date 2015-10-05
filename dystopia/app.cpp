@@ -157,7 +157,7 @@ namespace
 	{
 	private:
 		IRenderer& renderer;
-		IOS& os;
+		IInstallation& installation;
 
 		int globalScale;
 		Degrees viewTheta;
@@ -169,8 +169,8 @@ namespace
 
 		AutoFree<IMeshLoader> meshLoader;
 	public:
-		DystopiaApp(IRenderer& _renderer, IOS& _os) : 
-			renderer(_renderer), os(_os), globalScale(4), viewTheta{ 30.0f }, rbuttonDown(false) , meshLoader(CreateMeshLoader(_renderer, _os))
+		DystopiaApp(IRenderer& _renderer, IInstallation& _installation) : 
+			renderer(_renderer), installation(_installation), globalScale(4), viewTheta{ 30.0f }, rbuttonDown(false) , meshLoader(CreateMeshLoader(_renderer, _installation))
 		{
 		}
 
@@ -183,7 +183,7 @@ namespace
 		{
 			cubeMesh = CreateCubeMesh(renderer);
 			roadMesh = CreateRoadMesh(renderer);
-			humanMesh = meshLoader->LoadMesh(L"!mesh\\human.sxy");
+			humanMesh = meshLoader->LoadMesh(L"!mesh/human.sxy");
 		}
 
 		virtual uint32 OnTick(const IUltraClock& clock)
@@ -231,7 +231,7 @@ namespace
 				Vec4{ 0,0,0,1 }
 			};
 
-			rc.Draw(humanMesh, &identity, 1);
+	//		rc.Draw(humanMesh, &identity, 1);
 		}
 
 		virtual void RenderObjects(IRenderContext& rc)
@@ -306,8 +306,8 @@ namespace
 
 namespace Dystopia
 {
-	IApp* CreateDystopiaApp(IRenderer& renderer, IOS& os)
+	IApp* CreateDystopiaApp(IRenderer& renderer, IInstallation& installatiion)
 	{
-		return new DystopiaApp(renderer, os);
+		return new DystopiaApp(renderer, installatiion);
 	}
 }

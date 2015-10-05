@@ -184,6 +184,8 @@ namespace Rococo
 		virtual const T* end() const = 0;
 		virtual size_t size() const = 0;
 	};
+
+	void Throw(int32 errorCode, const wchar_t* format, ...);
 }
 
 #endif

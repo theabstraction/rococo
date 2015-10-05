@@ -6,10 +6,16 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.windows", "rococo.windows\rococo.windows.vcxproj", "{997A007C-24B0-44FE-A27E-0EE006D74128}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "window.test", "window.test\window.test.vcxproj", "{039F8FD0-0C62-46D0-AC97-F16177E33272}"
+	ProjectSection(ProjectDependencies) = postProject
+		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.fonts", "rococo.fonts\fonts.vcxproj", "{31024025-C99F-45A4-A4EA-BCEB32794477}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dx11.renderer", "dx11.renderer\dx11.renderer.vcxproj", "{151FC7F0-2D21-40F1-AD39-AEED3924CCC3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dystopia", "dystopia\dystopia.vcxproj", "{808DA513-B032-4192-8628-B0568EE43BF1}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -17,6 +23,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dystopia", "dystopia\dystop
 		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
 		{151FC7F0-2D21-40F1-AD39-AEED3924CCC3} = {151FC7F0-2D21-40F1-AD39-AEED3924CCC3}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.os.win32", "rococo.os.win32\rococo.os.win32.vcxproj", "{0C635B64-083B-4490-9100-BDB4A4CA6941}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,6 +66,14 @@ Global
 		{808DA513-B032-4192-8628-B0568EE43BF1}.Release|x64.Build.0 = Release|x64
 		{808DA513-B032-4192-8628-B0568EE43BF1}.Release|x86.ActiveCfg = Release|Win32
 		{808DA513-B032-4192-8628-B0568EE43BF1}.Release|x86.Build.0 = Release|Win32
+		{0C635B64-083B-4490-9100-BDB4A4CA6941}.Debug|x64.ActiveCfg = Debug|x64
+		{0C635B64-083B-4490-9100-BDB4A4CA6941}.Debug|x64.Build.0 = Debug|x64
+		{0C635B64-083B-4490-9100-BDB4A4CA6941}.Debug|x86.ActiveCfg = Debug|Win32
+		{0C635B64-083B-4490-9100-BDB4A4CA6941}.Debug|x86.Build.0 = Debug|Win32
+		{0C635B64-083B-4490-9100-BDB4A4CA6941}.Release|x64.ActiveCfg = Release|x64
+		{0C635B64-083B-4490-9100-BDB4A4CA6941}.Release|x64.Build.0 = Release|x64
+		{0C635B64-083B-4490-9100-BDB4A4CA6941}.Release|x86.ActiveCfg = Release|Win32
+		{0C635B64-083B-4490-9100-BDB4A4CA6941}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
