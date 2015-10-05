@@ -1,0 +1,65 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.windows", "rococo.windows\rococo.windows.vcxproj", "{997A007C-24B0-44FE-A27E-0EE006D74128}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "window.test", "window.test\window.test.vcxproj", "{039F8FD0-0C62-46D0-AC97-F16177E33272}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.fonts", "rococo.fonts\fonts.vcxproj", "{31024025-C99F-45A4-A4EA-BCEB32794477}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dx11.renderer", "dx11.renderer\dx11.renderer.vcxproj", "{151FC7F0-2D21-40F1-AD39-AEED3924CCC3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dystopia", "dystopia\dystopia.vcxproj", "{808DA513-B032-4192-8628-B0568EE43BF1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{31024025-C99F-45A4-A4EA-BCEB32794477} = {31024025-C99F-45A4-A4EA-BCEB32794477}
+		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
+		{151FC7F0-2D21-40F1-AD39-AEED3924CCC3} = {151FC7F0-2D21-40F1-AD39-AEED3924CCC3}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{997A007C-24B0-44FE-A27E-0EE006D74128}.Debug|x64.ActiveCfg = Debug|x64
+		{997A007C-24B0-44FE-A27E-0EE006D74128}.Debug|x64.Build.0 = Debug|x64
+		{997A007C-24B0-44FE-A27E-0EE006D74128}.Debug|x86.ActiveCfg = Debug|x64
+		{997A007C-24B0-44FE-A27E-0EE006D74128}.Release|x64.ActiveCfg = Release|x64
+		{997A007C-24B0-44FE-A27E-0EE006D74128}.Release|x64.Build.0 = Release|x64
+		{997A007C-24B0-44FE-A27E-0EE006D74128}.Release|x86.ActiveCfg = Release|x64
+		{039F8FD0-0C62-46D0-AC97-F16177E33272}.Debug|x64.ActiveCfg = Debug|x64
+		{039F8FD0-0C62-46D0-AC97-F16177E33272}.Debug|x64.Build.0 = Debug|x64
+		{039F8FD0-0C62-46D0-AC97-F16177E33272}.Debug|x86.ActiveCfg = Debug|x64
+		{039F8FD0-0C62-46D0-AC97-F16177E33272}.Release|x64.ActiveCfg = Release|x64
+		{039F8FD0-0C62-46D0-AC97-F16177E33272}.Release|x64.Build.0 = Release|x64
+		{039F8FD0-0C62-46D0-AC97-F16177E33272}.Release|x86.ActiveCfg = Release|x64
+		{31024025-C99F-45A4-A4EA-BCEB32794477}.Debug|x64.ActiveCfg = Debug|x64
+		{31024025-C99F-45A4-A4EA-BCEB32794477}.Debug|x64.Build.0 = Debug|x64
+		{31024025-C99F-45A4-A4EA-BCEB32794477}.Debug|x86.ActiveCfg = Debug|x64
+		{31024025-C99F-45A4-A4EA-BCEB32794477}.Release|x64.ActiveCfg = Release|x64
+		{31024025-C99F-45A4-A4EA-BCEB32794477}.Release|x64.Build.0 = Release|x64
+		{31024025-C99F-45A4-A4EA-BCEB32794477}.Release|x86.ActiveCfg = Release|x64
+		{151FC7F0-2D21-40F1-AD39-AEED3924CCC3}.Debug|x64.ActiveCfg = Debug|x64
+		{151FC7F0-2D21-40F1-AD39-AEED3924CCC3}.Debug|x64.Build.0 = Debug|x64
+		{151FC7F0-2D21-40F1-AD39-AEED3924CCC3}.Debug|x86.ActiveCfg = Debug|x64
+		{151FC7F0-2D21-40F1-AD39-AEED3924CCC3}.Release|x64.ActiveCfg = Release|x64
+		{151FC7F0-2D21-40F1-AD39-AEED3924CCC3}.Release|x64.Build.0 = Release|x64
+		{151FC7F0-2D21-40F1-AD39-AEED3924CCC3}.Release|x86.ActiveCfg = Release|x64
+		{808DA513-B032-4192-8628-B0568EE43BF1}.Debug|x64.ActiveCfg = Debug|x64
+		{808DA513-B032-4192-8628-B0568EE43BF1}.Debug|x64.Build.0 = Debug|x64
+		{808DA513-B032-4192-8628-B0568EE43BF1}.Debug|x86.ActiveCfg = Debug|Win32
+		{808DA513-B032-4192-8628-B0568EE43BF1}.Debug|x86.Build.0 = Debug|Win32
+		{808DA513-B032-4192-8628-B0568EE43BF1}.Release|x64.ActiveCfg = Release|x64
+		{808DA513-B032-4192-8628-B0568EE43BF1}.Release|x64.Build.0 = Release|x64
+		{808DA513-B032-4192-8628-B0568EE43BF1}.Release|x86.ActiveCfg = Release|Win32
+		{808DA513-B032-4192-8628-B0568EE43BF1}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
