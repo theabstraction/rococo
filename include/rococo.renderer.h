@@ -16,17 +16,6 @@ namespace Rococo
 
 	void ShowErrorBox(IException& ex, const wchar_t* caption);
 
-	struct RGBAb
-	{
-		uint8 red;
-		uint8 green;
-		uint8 blue;
-		uint8 alpha;
-
-		RGBAb(uint32 x) { RGBAb* pCol = (RGBAb*)&x; *this = *pCol; }
-		RGBAb(uint8 _red, uint8 _green, uint8 _blue, uint8 _alpha = 255) : red(_red), green(_green), blue(_blue), alpha(_alpha) {}
-	};
-
 	struct GuiVertex
 	{
 		float x;
@@ -154,6 +143,7 @@ namespace Rococo
 		virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
 		
 		virtual ID_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
+		virtual void UpdateMesh(ID_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices) = 0;
 	};
 
 	struct IAppFactory

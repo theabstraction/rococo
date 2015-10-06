@@ -21,6 +21,9 @@
 # pragma comment(lib, "rococo.os.win32.lib")
 #endif
 
+#include <sexy.lib.s-parser.h>
+#include <sexy.lib.util.h>
+
 using namespace Rococo;
 using namespace Rococo::Windows;
 
@@ -33,6 +36,30 @@ namespace Rococo
 {
 	IOSSupervisor* GetWin32OS(HINSTANCE hAppInstance);
 }
+
+struct FileHandle
+{
+	HANDLE hFile;
+
+	FileHandle(HANDLE _hFile) : hFile(_hFile)
+	{
+	}
+
+	bool IsValid() const
+	{
+		return hFile != INVALID_HANDLE_VALUE;
+	}
+
+	~FileHandle()
+	{
+		if (IsValid()) CloseHandle(hFile);
+	}
+
+	operator HANDLE()
+	{
+		return hFile;
+	}
+};
 
 int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -55,6 +82,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
 		AutoFree<IOSSupervisor> os = GetWin32OS(_hInstance);
 		AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
+		os->Monitor(installation->Content());
 
 		struct : IAppFactory
 		{

@@ -183,11 +183,24 @@ namespace
 		{
 			cubeMesh = CreateCubeMesh(renderer);
 			roadMesh = CreateRoadMesh(renderer);
-			humanMesh = meshLoader->LoadMesh(L"!mesh/human.sxy");
+			meshLoader->LoadMeshes(L"!mesh/human.sxy", false);
+			humanMesh = meshLoader->GetRendererId(1);
 		}
 
 		virtual uint32 OnTick(const IUltraClock& clock)
 		{
+			struct : ITextCallback
+			{
+				DystopiaApp* app;
+				virtual void OnItem(const wchar_t* sysFilename)
+				{
+					app->meshLoader->UpdateMesh(sysFilename);
+				}
+			} monitor;
+			monitor.app = this;
+
+			installation.OS().EnumerateModifiedFiles(monitor);
+
 			renderer.Render(*this);
 			return 5;
 		}
@@ -231,7 +244,7 @@ namespace
 				Vec4{ 0,0,0,1 }
 			};
 
-	//		rc.Draw(humanMesh, &identity, 1);
+			rc.Draw(humanMesh, &identity, 1);
 		}
 
 		virtual void RenderObjects(IRenderContext& rc)

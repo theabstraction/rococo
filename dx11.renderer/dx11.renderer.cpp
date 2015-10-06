@@ -66,6 +66,12 @@ namespace
 		{
 		}
 
+		virtual const uint8* GetData() const
+		{
+			if (internalBuffer.empty()) return nullptr;
+			else return &internalBuffer[0];
+		}
+
 		virtual uint8* GetData()
 		{
 			if (internalBuffer.empty()) return nullptr;
@@ -753,6 +759,19 @@ namespace
 			return meshBuffers.size() - 1;
 		}
 
+		virtual void UpdateMesh(ID_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices)
+		{
+			if (rendererId >= meshBuffers.size())
+			{
+				Throw(E_INVALIDARG, L"renderer.UpdateMesh(ID_MESH id, ....) - Bad id ");
+			}
+
+			ID3D11Buffer* newMesh = CreateImmutableVertexBuffer(device, vertices, nVertices);
+			meshBuffers[rendererId].numberOfVertices = nVertices;
+			meshBuffers[rendererId].dx11Buffer->Release();
+			meshBuffers[rendererId].dx11Buffer = newMesh;
+		}
+
 		virtual void Draw(ID_MESH id, const ObjectInstance* instances, uint32 nInstances)
 		{
 			if (id >= meshBuffers.size()) Throw(E_INVALIDARG, L"renderer.DrawObject(ID_MESH id) - Bad id ");
@@ -1181,7 +1200,7 @@ namespace Rococo
 		eventSink.renderer = &renderer;
 		eventSink.app = nullptr;
 
-		AutoFree<MainWindowHandler> mainWindowHandler(MainWindowHandler::Create(eventSink));
+		AutoFree<MainWindowHandler> mainWindowHandler = MainWindowHandler::Create(eventSink);
 		SetWindowText(mainWindowHandler->Window(), L"Dystopia, By Mark Anthony Taylor");
 		VALIDATEDX11(host.factory->MakeWindowAssociation(mainWindowHandler->Window(), 0));
 

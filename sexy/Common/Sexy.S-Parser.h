@@ -121,8 +121,14 @@ namespace Sexy { namespace Sex
 		T* instance;
 
 	public:
-		Auto(T* _instance): instance(_instance) {}
-		~Auto() { instance->Release(); }
+		Auto(T* _instance = nullptr): instance(_instance) {}
+		~Auto() { if (instance) instance->Release(); }
+		Auto<T>& operator = (T* _instance)
+		{
+			if (instance) instance->Release();
+			instance = _instance;
+			return *this;
+		}
 
 		T& operator()()
 		{

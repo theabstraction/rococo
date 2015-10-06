@@ -66,6 +66,7 @@ namespace Rococo
 	struct NO_VTABLE IBuffer
 	{
 		virtual uint8* GetData() = 0;
+		virtual const uint8* GetData() const = 0;
 		virtual size_t Length() const = 0;
 	};
 
@@ -77,18 +78,28 @@ namespace Rococo
 
 	IExpandingBuffer* CreateExpandingBuffer(size_t initialCapacity);
 
+	struct ITextCallback
+	{
+		virtual void OnItem(const wchar_t* filename) = 0;
+	};
+
 	struct NO_VTABLE IOS
 	{
 		virtual void ConvertUnixPathToSysPath(const wchar_t* unixPath, wchar_t* sysPath, size_t bufferCapacity) const = 0;
+		virtual void EnumerateModifiedFiles(ITextCallback& cb) = 0;
 		virtual void GetBinDirectoryAbsolute(wchar_t* binDirectory, size_t capacityChars) const = 0;
 		virtual bool IsFileExistant(const wchar_t* absPath) const = 0;
 		virtual void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const = 0;
 		virtual size_t MaxPath() const = 0;
+		virtual void Monitor(const wchar_t* absPath) = 0;
+		virtual void UTF8ToUnicode(const char* s, wchar_t* unicode, size_t unicodeCapacity) = 0;
 	};
 
 	struct NO_VTABLE IInstallation
 	{
+		virtual const wchar_t* Content() const = 0;
 		virtual void LoadResource(const wchar_t* resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
+		virtual IOS& OS() = 0;
 	};
 
 	struct NO_VTABLE IInstallationSupervisor: public IInstallation

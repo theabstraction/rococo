@@ -119,9 +119,16 @@ namespace Rococo
 	private:
 		T* t;
 		AutoFree(const AutoFree& src) = delete;
-		AutoFree& operator = (const AutoFree& src) = delete;
 	public:
-		AutoFree(T* _t) : t(_t) {}
+		AutoFree(T* _t = nullptr) : t(_t) {}
+
+		AutoFree& operator = (T* src)
+		{
+			if (t) t->Free();
+			t = src;
+			return *this;
+		}
+
 		~AutoFree()
 		{
 			Free(t);
@@ -185,7 +192,20 @@ namespace Rococo
 		virtual size_t size() const = 0;
 	};
 
+	void TripDebugger();
 	void Throw(int32 errorCode, const wchar_t* format, ...);
+	bool DoesModifiedFilenameMatchResourceName(const wchar_t* modifiedFilename, const wchar_t* resourceName);
+
+	struct RGBAb
+	{
+		uint8 red;
+		uint8 green;
+		uint8 blue;
+		uint8 alpha;
+
+		RGBAb(uint32 x) { RGBAb* pCol = (RGBAb*)&x; *this = *pCol; }
+		RGBAb(uint8 _red, uint8 _green, uint8 _blue, uint8 _alpha = 255) : red(_red), green(_green), blue(_blue), alpha(_alpha) {}
+	};
 }
 
 #endif
