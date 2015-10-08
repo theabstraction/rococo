@@ -20,6 +20,10 @@ namespace Rococo
 	inline bool operator == (const Vec2i& a, const Vec2i& b) { return a.x == b.x && a.y == b.y; }
 	inline bool operator != (const Vec2i& a, const Vec2i& b) { return !(a == b); }
 
+	inline Vec3 operator + (const Vec3& a, const Vec3& b) { return Vec3(a.x + b.x, a.y + b.y, a.z + b.z); }
+	inline Vec3 operator * (const Vec3& q, float f) { return Vec3(q.x * f, q.y * f, q.z * f); }
+	inline Vec3 operator * (float f, const Vec3& q) { return Vec3(q.x * f, q.y * f, q.z * f); }
+
 	inline Vec2i Quantize(const Vec2& v)
 	{
 		return Vec2i((int32)v.x, (int32)v.y);

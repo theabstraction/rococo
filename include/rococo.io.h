@@ -83,10 +83,19 @@ namespace Rococo
 		virtual void OnItem(const wchar_t* filename) = 0;
 	};
 
+	struct SysUnstableArgs {};
+
+	template<class T> struct IEventCallback
+	{
+		virtual void OnEvent(T& arg) = 0;
+	};
+
 	struct NO_VTABLE IOS
 	{
 		virtual void ConvertUnixPathToSysPath(const wchar_t* unixPath, wchar_t* sysPath, size_t bufferCapacity) const = 0;
 		virtual void EnumerateModifiedFiles(ITextCallback& cb) = 0;
+		virtual void FireUnstable() = 0;
+		virtual void SetUnstableHandler(IEventCallback<SysUnstableArgs>* cb) = 0;
 		virtual void GetBinDirectoryAbsolute(wchar_t* binDirectory, size_t capacityChars) const = 0;
 		virtual bool IsFileExistant(const wchar_t* absPath) const = 0;
 		virtual void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const = 0;

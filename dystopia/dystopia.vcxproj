@@ -155,7 +155,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="app.cpp" />
+    <ClCompile Include="dialogs.cpp" />
     <ClCompile Include="dystopia.text.cpp" />
+    <ClCompile Include="Environment.cpp" />
+    <ClCompile Include="keyboard.cpp" />
+    <ClCompile Include="level.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="meshes.cpp" />
     <ClCompile Include="scripts.cpp" />
@@ -165,11 +169,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.io.h" />
+    <ClInclude Include="..\include\rococo.maths.h" />
     <ClInclude Include="..\include\rococo.renderer.h" />
     <ClInclude Include="..\include\rococo.types.h" />
+    <ClInclude Include="dystopia.h" />
     <ClInclude Include="dystopia.text.h" />
     <ClInclude Include="meshes.h" />
     <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="controls.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -5,6 +5,8 @@
 
 #include <unordered_map>
 
+#include "dystopia.h"
+
 namespace Dystopia
 {
 	using namespace Rococo;
@@ -17,6 +19,7 @@ namespace Dystopia
 	Vec3 GetVec3Value(cr_sex x, cr_sex y, cr_sex z);
 	float GetValue(cr_sex s, float minValue, float maxValue, const wchar_t* hint);
 	RGBAb GetColourValue(cr_sex s);
+	void ExecuteSexyScript(size_t nMegabytesCapacity);
 }
 
 namespace
@@ -130,16 +133,15 @@ namespace
 
 	class MeshLoader : public IMeshLoader
 	{
-		IRenderer& renderer;
-		IInstallation& installation;
+		Environment& e;
 		AutoFree<IExpandingBuffer> meshFileImage;
 		AutoFree<IExpandingBuffer> unicodeFileImage;
 		TMeshes meshes;
 
 		enum { MAX_MESH_FILE_SIZE = 256 * 1024 };
 	public:
-		MeshLoader(IRenderer& _renderer, IInstallation& _installation): 
-			renderer(_renderer), installation(_installation), 
+		MeshLoader(Environment& _e):
+			e(_e), 
 			meshFileImage(CreateExpandingBuffer(MAX_MESH_FILE_SIZE)),
 			unicodeFileImage(CreateExpandingBuffer(0))
 		{
@@ -158,31 +160,65 @@ namespace
 
 		virtual void LoadMeshes(const wchar_t* resourcePath, bool isReloading)
 		{
-			installation.LoadResource(resourcePath, *meshFileImage, MAX_MESH_FILE_SIZE - 2);
+			using namespace Dystopia;
 
-			if (meshFileImage->Length() < 2)
+			while (true)
+			{
+				try
+				{
+					ProtectedLoadMeshes(resourcePath, isReloading);
+					return;
+				}
+				catch (IException& ex)
+				{
+					GetOS(e).FireUnstable();
+					CMD_ID id = ShowContinueBox(e.renderer.Window(), ex.Message());
+					switch (id)
+					{
+					case CMD_ID_EXIT:
+						Throw(ex.ErrorCode(), L"%s", ex.Message());
+						break;
+					case CMD_ID_RETRY:
+						break;
+					case CMD_ID_IGNORE:
+						return;
+					}
+				}
+			}
+		}
+
+		void ProtectedLoadMeshes(const wchar_t* resourcePath, bool isReloading)
+		{
+			e.installation.LoadResource(resourcePath, *meshFileImage, MAX_MESH_FILE_SIZE - 2);
+
+			size_t len = meshFileImage->Length();
+
+			if (len < 2)
 			{
 				Throw(0, L"Mesh file was too small: %s", resourcePath);
 			}
 
-			meshFileImage->GetData()[MAX_MESH_FILE_SIZE - 2] = 0;
-			meshFileImage->GetData()[MAX_MESH_FILE_SIZE - 1] = 0;
+			char* data = (char*) meshFileImage->GetData();
+			data[len] = 0;
+			data[len+1] = 0;
 
 			CSParserProxy pp;
 			ISParser& parser = pp();
 
-			Auto<ISourceCode> source = DuplicateSourceCode(installation.OS(), parser, *meshFileImage, resourcePath);
+			Auto<ISourceCode> source = DuplicateSourceCode(GetOS(e), parser, *meshFileImage, resourcePath);
 
 			csexstr code = source->SourceStart();
 
 			try
 			{
 				Auto<ISParserTree> tree = parser.CreateTree(*source);
-				ParseMeshScript(meshes, *tree, renderer, resourcePath, isReloading);
+				ParseMeshScript(meshes, *tree, e.renderer, resourcePath, isReloading);
 			}
 			catch (Sexy::Sex::ParseException& pex)
 			{
-				Throw(pex.ErrorCode(), L"Error parsering %s\n%s: %s", resourcePath, pex.Name(), pex.Message());
+				SourcePos p = pex.Start();
+				SourcePos q = pex.End();
+				Throw(pex.ErrorCode(), L"Error parsering %s\n%s: %s\n(%d,%d) to (%d,%d)", resourcePath, pex.Name(), pex.Message(), p.X, p.Y, q.X, q.Y);
 			}
 		}
 
@@ -206,10 +242,10 @@ namespace
 	};
 }
 
-namespace Rococo
+namespace Dystopia
 {
-	IMeshLoader* CreateMeshLoader(IRenderer& renderer, IInstallation& installation)
+	IMeshLoader* CreateMeshLoader(Environment& e)
 	{
-		return new MeshLoader(renderer, installation);
+		return new MeshLoader(e);
 	}
 }

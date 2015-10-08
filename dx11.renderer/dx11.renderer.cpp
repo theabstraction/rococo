@@ -15,7 +15,6 @@
 #pragma comment(lib, "rococo.fonts.lib")
 #endif
 
-
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "d3d11.lib")
@@ -386,9 +385,13 @@ namespace
 
 		AutoRelease<ID3D11Buffer> instanceBuffer;
 		enum { INSTANCE_BUFFER_CAPACITY = 1024 };
+
 	public:
+		Windows::IWindow* window;
+
 		DX11AppRenderer(ID3D11Device& _device, ID3D11DeviceContext& _dc, IDXGIFactory& _factory, IInstallation& installation) :
-			device(_device), dc(_dc), factory(_factory), fonts(nullptr), clipRect(-10000.0f, -10000.0f, 10000.0f, 10000.0f), hRenderWindow(0)
+			device(_device), dc(_dc), factory(_factory), fonts(nullptr), clipRect(-10000.0f, -10000.0f, 10000.0f, 10000.0f), hRenderWindow(0),
+			window(nullptr)
 		{
 			static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
 			guiBuffer = CreateDynamicVertexBuffer<GuiVertex>(device, GUI_BUFFER_VERTEX_CAPACITY);
@@ -714,7 +717,7 @@ namespace
 			dc.PSSetShader(nullptr, nullptr, 0);
 		}
 
-		bool OnClose()
+		void SwitchToWindowMode()
 		{
 			BOOL isFullScreen;
 			AutoRelease<IDXGIOutput> output;
@@ -725,7 +728,6 @@ namespace
 					mainSwapChain->SetFullscreenState(false, nullptr);
 				}
 			}
-			return true;
 		}
 
 		void OnMouseEvent(const RAWMOUSE& m)
@@ -794,6 +796,11 @@ namespace
 				dc.DrawInstanced(buffer.numberOfVertices, nInstances, 0, 0);
 				instancesLeft -= chunk;
 			}
+		}
+
+		virtual Windows::IWindow& Window()
+		{
+			return *window;
 		}
 
 		virtual void Render(IScene& scene)
@@ -1164,10 +1171,16 @@ namespace Rococo
 
 		DX11AppRenderer renderer(*host.device, *host.dc, *host.factory, installation);
 
-		struct : IAppEventHandler
+		struct ANON : IAppEventHandler, IEventCallback<SysUnstableArgs>
 		{
 			DX11AppRenderer* renderer;
 			IApp* app;
+			IOS* os;
+
+			~ANON()
+			{
+				os->SetUnstableHandler(nullptr);
+			}
 
 			virtual void BindMainWindow(HWND hWnd) 
 			{
@@ -1176,7 +1189,8 @@ namespace Rococo
 
 			virtual bool OnClose()
 			{
-				return renderer->OnClose();
+				renderer->SwitchToWindowMode();
+				return true;
 			}
 
 			virtual void OnKeyboardEvent(const RAWKEYBOARD& k)
@@ -1195,14 +1209,24 @@ namespace Rococo
 				renderer->OnSize(hWnd, span, type);
 			}
 
+			virtual void OnEvent(SysUnstableArgs& arg)
+			{
+				renderer->SwitchToWindowMode();
+			}
+
 		} eventSink;
 
 		eventSink.renderer = &renderer;
 		eventSink.app = nullptr;
+		eventSink.os = &installation.OS();
 
 		AutoFree<MainWindowHandler> mainWindowHandler = MainWindowHandler::Create(eventSink);
 		SetWindowText(mainWindowHandler->Window(), L"Dystopia, By Mark Anthony Taylor");
 		VALIDATEDX11(host.factory->MakeWindowAssociation(mainWindowHandler->Window(), 0));
+
+		renderer.window = &mainWindowHandler->Window();
+
+		installation.OS().SetUnstableHandler(&eventSink);
 
 		AutoFree<IApp> app = appFactory.CreateApp(renderer);
 		app->OnCreated();

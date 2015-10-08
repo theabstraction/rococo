@@ -35,6 +35,8 @@ namespace Rococo
 			virtual void AddRow(const wchar_t* values[]) = 0; // values is null terminated array
 			virtual void ClearRows() = 0;
 			virtual void SetColumns(const wchar_t* columnNames[], int widths[]) = 0; // columnNames is null terminated array, and every non-null member is matched in widths
+			virtual int NumberOfRows() const = 0;
+			virtual void DeleteRow(int rowIndex) = 0;
 		};
 	}
 }

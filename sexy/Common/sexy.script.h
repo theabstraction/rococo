@@ -350,7 +350,7 @@ namespace Sexy { namespace Script
 
 		~CScriptSystemProxy()
 		{
-			instance->Free();
+			if (instance) instance->Free();
 		}
 	};	
 }}

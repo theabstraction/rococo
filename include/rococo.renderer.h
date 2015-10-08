@@ -87,6 +87,11 @@ namespace Rococo
 		uint32 ulRawButtons;
 		int32 dx;
 		int32 dy;
+
+		enum Flags { MouseWheel = 0x0400, RDown = 0x0004, RUp = 0x0008, LDown = 0x0001, LUp = 0x0002 };
+
+		bool HasFlag(Flags flag) const { return (buttonFlags & flag) != 0; }
+		bool IsRelative() const { return (flags & 0x0001) == 0; }
 	};
 
 	struct KeyboardEvent
@@ -96,6 +101,8 @@ namespace Rococo
 		uint16 Reserved;
 		uint16 VKey;
 		uint32 Message;
+
+		bool IsUp() const { return (Flags & 0x0001) != 0;  }
 	};
 
 	struct ObjectInstance
@@ -132,12 +139,18 @@ namespace Rococo
 		Vec2i screenSpan;
 	};
 
+	namespace Windows
+	{
+		struct IWindow;
+	}
+
 	struct IRenderer
 	{
 		virtual ID_VERTEX_SHADER CreateGuiVertexShader(const wchar_t* name, const uint8* shaderCode, size_t shaderLength) = 0;
 		virtual ID_VERTEX_SHADER CreateObjectVertexShader(const wchar_t* name, const uint8* shaderCode, size_t shaderLength) = 0;
 		virtual ID_PIXEL_SHADER CreatePixelShader(const wchar_t* name, const uint8* shaderCode, size_t shaderLength) = 0;
 
+		virtual Windows::IWindow& Window() = 0;
 		virtual void Render(IScene& scene) = 0;
 		virtual void UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid) = 0;
 		virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;

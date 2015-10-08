@@ -160,6 +160,16 @@ namespace
 			ListView_DeleteAllItems(hWndListView);
 		}
 
+		virtual int NumberOfRows() const
+		{
+			return (int) ListView_GetItemCount(hWndListView);
+		}
+
+		virtual void DeleteRow(int rowIndex)
+		{
+			ListView_DeleteItem(hWndListView, rowIndex);
+		}
+
 		virtual void SetColumns(const wchar_t* columnNames[], int widths[])
 		{
 			while (ListView_DeleteColumn(hWndListView, 0));

@@ -1,0 +1,117 @@
+(struct Vec3i
+	(Int32 x y z)
+)
+
+(struct Vec2f
+	(Float32 x y)
+)
+
+(struct Rectf
+	(Vec2f bottomLeft topRight)
+)
+
+(struct Vec3f
+	(Float32 x y z)
+)
+
+(struct Linef
+	(Vec3f a b)
+)
+
+(struct Trianglef
+	(Vec3f a b c)
+)
+
+(struct Quadf
+	(Vec3f a b c d)
+)
+
+(struct Vec4f
+	(Float32 x y z w)
+)
+
+(struct Matrix4x4f
+	(Vec4f r0 r1 r2 r3)
+)
+
+(struct Quatf
+	(Float32 s)
+	(Vec3f v)
+)
+
+(struct Vec2lf
+	(Float64 x y)
+)
+
+(struct Rectlf
+	(Vec2lf bottomLeft topRight)
+)
+
+(struct Vec3lf
+	(Float64 x y z)
+)
+
+(struct Linelf
+	(Vec3lf a b)
+)
+
+(struct Trianglelf
+	(Vec3lf a b c)
+)
+
+(struct Quadlf
+	(Vec3lf a b c d)
+)
+
+(struct Vec4lf
+	(Float64 x y z w)
+)
+
+(struct Quatlf
+	(Float64 s)
+	(Vec3lf v)
+)
+
+(alias Vec3i Sys.Maths.Vec3i)
+
+(alias Vec2f Sys.Maths.Vec2)
+(alias Rectf Sys.Maths.Rectf)
+(alias Vec3f Sys.Maths.Vec3)
+(alias Linef Sys.Maths.Linef)
+(alias Trianglef Sys.Maths.Trianglef)
+(alias Quadf Sys.Maths.Quadf)
+(alias Vec4f Sys.Maths.Vec4)
+(alias Matrix4x4f Sys.Maths.Matrix4x4)
+(alias Quatf Sys.Maths.Quat)
+
+(alias Vec2lf Sys.Maths.Vec2lf)
+(alias Rectlf Sys.Maths.Rectlf)
+(alias Vec3lf Sys.Maths.Vec3lf)
+(alias Linelf Sys.Maths.Linelf)
+(alias Trianglelf Sys.Maths.Trianglelf)
+(alias Quadlf Sys.Maths.Quadlf)
+(alias Vec4lf Sys.Maths.Vec4lf)
+(alias Quatlf Sys.Maths.Quatlf)
+
+(struct Vec2i 
+	(Int32 x y)
+)
+
+(function SetVec2i (Vec2i v) (Int32 x) (Int32 y)  -> :
+	(v.x = x)
+	(v.y = y)
+)
+
+(struct Recti // when used for gui (0,0) is the top left of the screen and hence bottom > top
+	(Vec2i bottomLeft topRight)
+)
+
+(function GetRectiSpan (Recti r) -> (Vec2i ds):
+	(ds.x = ((r.topRight.x - r.bottomLeft.x) + 1))
+	(ds.y = ((r.bottomLeft.y - r.topRight.y) + 1))
+)
+
+(alias Vec2i Sys.Maths.Vec2i)
+(alias Recti Sys.Maths.Recti)
+
+(macro Sys.Maths.e in out (out.AddAtomic "2.7182818284590452353602874713527"))

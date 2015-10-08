@@ -23,6 +23,7 @@
 
 #include <sexy.lib.s-parser.h>
 #include <sexy.lib.util.h>
+#include <sexy.lib.script.h>
 
 using namespace Rococo;
 using namespace Rococo::Windows;
@@ -83,6 +84,10 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		AutoFree<IOSSupervisor> os = GetWin32OS(_hInstance);
 		AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
 		os->Monitor(installation->Content());
+
+		wchar_t srcpath[_MAX_PATH];
+		SecureFormat(srcpath, L"%sscripts\\native\\", installation->Content());
+		SetEnvironmentVariable(L"SEXY_NATIVE_SRC_DIR", srcpath);
 
 		struct : IAppFactory
 		{

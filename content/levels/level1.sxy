@@ -1,0 +1,9 @@
+(' file.type rococo.dystopia.level)
+
+(namespace EntryPoint)
+
+(function Main (Int32 arg) -> (Int32 exitCode): 
+	(exitCode = 0)
+)
+
+(alias Main EntryPoint.Main)

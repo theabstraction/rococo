@@ -3,8 +3,12 @@
 
 #include <rococo.renderer.h>
 
-namespace Rococo
+namespace Dystopia
 {
+	using namespace Rococo;
+
+	struct Environment;
+
 	struct IMeshLoader
 	{
 		virtual ID_MESH GetRendererId(int32 editorId) = 0;
@@ -13,7 +17,7 @@ namespace Rococo
 		virtual void UpdateMesh(const wchar_t* sysFilename) = 0;
 	};
 
-	IMeshLoader* CreateMeshLoader(IRenderer& renderer, IInstallation& installation);
+	IMeshLoader* CreateMeshLoader(Environment& e);
 }
 
 #endif

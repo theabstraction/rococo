@@ -1,15 +1,12 @@
 #include <rococo.renderer.h>
 #include <rococo.io.h>
-
 #include <vector>
-
 #include "dystopia.text.h"
-
 #include "rococo.geometry.inl"
-
 #include <DirectXMath.h>
-
 #include "meshes.h"
+#include "dystopia.h"
+#include "controls.inl"
 
 using namespace Dystopia;
 using namespace Rococo;
@@ -23,107 +20,6 @@ namespace
 		renderer.GetGuiMetrics(metrics);
 		float aspectRatio = metrics.screenSpan.y / float(metrics.screenSpan.x);
 		return aspectRatio;
-	}
-
-	ID_MESH CreateCubeMesh(IRenderer& renderer)
-	{
-		Vec3 upperSW{ -0.5f, -0.5f, 0.5f };
-		Vec3 upperNW{ -0.5f,  0.5f, 0.5f };
-		Vec3 upperNE{ 0.5f,  0.5f, 0.5f };
-		Vec3 upperSE{ 0.5f, -0.5f, 0.5f };
-
-		Vec3 lowerSW{ -0.5f, -0.5f, -0.5f };
-		Vec3 lowerNW{ -0.5f,  0.5f, -0.5f };
-		Vec3 lowerNE{ 0.5f,  0.5f, -0.5f };
-		Vec3 lowerSE{ 0.5f, -0.5f, -0.5f };
-
-		Vec3 up{ 0, 0, 1 }, down{ 0, 0, -1 }, west{ -1, 0, 0 }, east{ 1, 0, 0 }, south{ 0, -1, 0 }, north{ 0, 1, 0 };
-		RGBAb magenta(0xFF, 0x00, 0xFF);
-		RGBAb white(0xFF, 0xFF, 0xFF);
-		RGBAb cyan(0x00, 0xFF, 0xFF);
-		RGBAb yellow(0xFF, 0xFF, 0x00);
-		RGBAb blue(0x00, 0x00, 0xFF);
-		RGBAb green(0x00, 0xFF, 0x00);
-		RGBAb red(0xFF, 0x00, 0x00);
-
-		ObjectVertex unitCube[] =
-		{
-			// Top face
-			ObjectVertex{ upperSW, up, magenta,  white },
-			ObjectVertex{ upperNW, up, magenta,  white },
-			ObjectVertex{ upperSE, up, magenta,  white },
-			ObjectVertex{ upperNW, up, magenta,  white },
-			ObjectVertex{ upperNE, up, magenta,  white },
-			ObjectVertex{ upperSE, up, magenta,  white },
-
-			// Bottom face	
-			ObjectVertex{ lowerNW, down, cyan, white },
-			ObjectVertex{ lowerSW, down, cyan, white },
-			ObjectVertex{ lowerSE, down, cyan, white },
-			ObjectVertex{ lowerSE, down, cyan, white },
-			ObjectVertex{ lowerNE, down, cyan, white },
-			ObjectVertex{ lowerNW, down, cyan, white },
-
-			// West face
-			ObjectVertex{ upperNW, west, yellow, white },
-			ObjectVertex{ upperSW, west, yellow, white },
-			ObjectVertex{ lowerNW, west, yellow, white },
-			ObjectVertex{ upperSW, west, yellow, white },
-			ObjectVertex{ lowerSW, west, yellow, white },
-			ObjectVertex{ lowerNW, west, yellow, white },
-
-			// East face
-			ObjectVertex{ upperSE, east, blue, white },
-			ObjectVertex{ upperNE, east, blue, white },
-			ObjectVertex{ lowerNE, east, blue, white },
-			ObjectVertex{ lowerSE, east, blue, white },
-			ObjectVertex{ upperSE, east, blue, white },
-			ObjectVertex{ lowerNE, east, blue, white },
-
-			// South face
-			ObjectVertex{ upperSW, south, green, white },
-			ObjectVertex{ upperSE, south, green, white },
-			ObjectVertex{ lowerSW, south, green, white },
-			ObjectVertex{ lowerSW, south, green, white },
-			ObjectVertex{ upperSE, south, green, white },
-			ObjectVertex{ lowerSE, south, green, white },
-
-			// North face
-			ObjectVertex{ upperNE, north, red, white },
-			ObjectVertex{ upperNW, north, red, white },
-			ObjectVertex{ lowerNW, north, red, white },
-			ObjectVertex{ upperNE, north, red, white },
-			ObjectVertex{ lowerNW, north, red, white },
-			ObjectVertex{ lowerNE, north, red, white }
-		};
-
-		return renderer.CreateTriangleMesh(unitCube, sizeof(unitCube) / sizeof(ObjectVertex));
-	}
-
-	ID_MESH CreateRoadMesh(IRenderer& renderer)
-	{
-		Vec3 SW{ -3.0f, -100.0f, 0.01f };
-		Vec3 NW{ -3.0f,  100.0f, 0.01f };
-		Vec3 NE{  3.0f,  100.0f, 0.01f };
-		Vec3 SE{  3.0f, -100.0f, 0.01f };
-
-		Vec3 up{ 0, 0, 1 };
-		
-		RGBAb tarmac(128, 128, 128);
-		RGBAb white(255, 255, 255);
-
-		ObjectVertex roadVertices[] =
-		{
-			// Top face
-			ObjectVertex{ SW, up, tarmac,  white },
-			ObjectVertex{ NW, up, tarmac,  white },
-			ObjectVertex{ SE, up, tarmac,  white },
-			ObjectVertex{ NW, up, tarmac,  white },
-			ObjectVertex{ NE, up, tarmac,  white },
-			ObjectVertex{ SE, up, tarmac,  white }
-		};
-
-		return renderer.CreateTriangleMesh(roadVertices, sizeof(roadVertices) / sizeof(ObjectVertex));
 	}
 
 	void DrawTestTriangles(IGuiRenderContext& rc)
@@ -156,22 +52,26 @@ namespace
 	class DystopiaApp : public IApp, private IScene
 	{
 	private:
-		IRenderer& renderer;
-		IInstallation& installation;
+		AutoFree<IDebuggerWindow> debuggerWindow;
+		Environment* e;	
+		AutoFree<ILevelSupervisor> level;
+		AutoFree<ILevelLoader> levelLoader;
 
-		int globalScale;
-		Degrees viewTheta;
-		bool rbuttonDown;
-
-		ID_MESH cubeMesh;
-		ID_MESH roadMesh;
-		ID_MESH humanMesh;
-
-		AutoFree<IMeshLoader> meshLoader;
+		GameControls controls;
+	
+		
 	public:
 		DystopiaApp(IRenderer& _renderer, IInstallation& _installation) : 
-			renderer(_renderer), installation(_installation), globalScale(4), viewTheta{ 30.0f }, rbuttonDown(false) , meshLoader(CreateMeshLoader(_renderer, _installation))
+			debuggerWindow(CreateDebuggerWindow(nullptr)),
+			e(ConstructEnvironment(_installation, _renderer, *debuggerWindow)),
+			level(CreateLevel(*e)),
+			levelLoader(CreateLevelLoader(*e, *level))
 		{
+		}
+		
+		~DystopiaApp()
+		{
+			Dystopia::Free(e);
 		}
 
 		virtual void Free()
@@ -181,27 +81,33 @@ namespace
 
 		virtual void OnCreated()
 		{
-			cubeMesh = CreateCubeMesh(renderer);
-			roadMesh = CreateRoadMesh(renderer);
-			meshLoader->LoadMeshes(L"!mesh/human.sxy", false);
-			humanMesh = meshLoader->GetRendererId(1);
+			levelLoader->Load(L"!levels/level1.sxy", false);
+		}
+
+		void AdvanceGame(float dt)
+		{
+			auto id = level->GetPlayerId();
+
+			Vec3 pos;
+			level->GetPosition(pos, id);
+
+			float speed = 4.0f;
+			Vec3 newPos = pos + dt * speed * Vec3(controls.GetImpulse().x, controls.GetImpulse().y, 0);
+			
+			level->SetPosition(newPos, id);
 		}
 
 		virtual uint32 OnTick(const IUltraClock& clock)
 		{
-			struct : ITextCallback
-			{
-				DystopiaApp* app;
-				virtual void OnItem(const wchar_t* sysFilename)
-				{
-					app->meshLoader->UpdateMesh(sysFilename);
-				}
-			} monitor;
-			monitor.app = this;
+			levelLoader->SyncWithModifiedFiles();
 
-			installation.OS().EnumerateModifiedFiles(monitor);
+			float dt = clock.TickDelta() / (float) clock.Hz();
+			if (dt < 0.0f) dt = 0.0f;
+			if (dt > 0.1f) dt = 0.1f;
 
-			renderer.Render(*this);
+			AdvanceGame(dt);
+
+			e->renderer.Render(*this);
 			return 5;
 		}
 
@@ -214,15 +120,22 @@ namespace
 		{
 			using namespace DirectX;
 
+			auto id = level->GetPlayerId();
+
+			Vec3 playerPosition;
+			level->GetPosition(playerPosition, id);
+
 			Degrees phi{ -45.0f };
 
-			float g = 0.04f * powf(1.25f, (float)globalScale);
+			float g = 0.04f * powf(1.25f, controls.GlobalScale());
 
-			XMMATRIX aspectCorrect = XMMatrixScaling(g * GetAspectRatio(renderer), g, g);
-			XMMATRIX rotZ = XMMatrixRotationZ(ToRadians(viewTheta));
+			XMMATRIX aspectCorrect = XMMatrixScaling(g * GetAspectRatio(e->renderer), g, g);
+			XMMATRIX rotZ = XMMatrixRotationZ(ToRadians(controls.ViewTheta()));
 			XMMATRIX rotX = XMMatrixRotationX(ToRadians(phi));
+			XMMATRIX origin = XMMatrixTranslation(-playerPosition.x, -playerPosition.y, 0.0f);
+			XMMATRIX totalRot = XMMatrixMultiply(rotZ, rotX);
 
-			XMMATRIX t = XMMatrixMultiply(XMMatrixMultiply(rotZ, rotX), aspectCorrect);
+			XMMATRIX t = XMMatrixMultiply(XMMatrixMultiply(origin, totalRot), aspectCorrect);
 
 			XMStoreFloat4x4((DirectX::XMFLOAT4X4*) &worldMatrix, t);
 		}
@@ -234,49 +147,9 @@ namespace
 			DrawGuiMetrics(gr);
 		}
 
-		void RenderPlayer(IRenderContext& rc)
-		{
-			ObjectInstance identity
-			{
-				Vec4{ 1,0,0,0 },
-				Vec4{ 0,1,0,0 },
-				Vec4{ 0,0,1,0 },
-				Vec4{ 0,0,0,1 }
-			};
-
-			rc.Draw(humanMesh, &identity, 1);
-		}
-
 		virtual void RenderObjects(IRenderContext& rc)
 		{
-			ObjectInstance identity
-			{
-				Vec4{ 1,0,0,0 },
-				Vec4{ 0,1,0,0 }, 
-				Vec4{ 0,0,1,0 }, 
-				Vec4{ 0,0,0,1 }
-			};
-
-			ObjectInstance offroad[]
-			{
-				{
-					Vec4{ 1.0f, 0.0f, 0.0f, -3.5f },
-					Vec4{ 0.0f, 1.0f, 0.0f,  0.0f },
-					Vec4{ 0.0f, 0.0f, 1.0f,  0.5f },
-					Vec4{ 0.0f, 0.0f, 0.0f,  1.0f }
-				},
-				{
-					Vec4{ 2.0f, 0.0f, 0.0f,  4.0f },
-					Vec4{ 0.0f, 2.0f, 0.0f,  0.0f },
-					Vec4{ 0.0f, 0.0f, 2.0f,  1.0f },
-					Vec4{ 0.0f, 0.0f, 0.0f,  1.0f }
-				}
-			};
-
-			rc.Draw(roadMesh, &identity, 1);
-			rc.Draw(cubeMesh, offroad, sizeof(offroad)/ sizeof(ObjectInstance));
-
-			RenderPlayer(rc);
+			level->RenderObjects(rc);
 		}
 
 		MouseEvent lastEvent;
@@ -284,35 +157,12 @@ namespace
 		virtual void OnMouseEvent(const MouseEvent& me)
 		{
 			lastEvent = me;
-
-			enum { MouseEvent_MouseWheel = 0x0400, MouseEvent_RDown = 0x0004, MouseEvent_RUp = 0x0008 };
-
-			if ((me.buttonFlags & MouseEvent_MouseWheel) != 0)
-			{
-				int32 delta = (int32)(int16)me.buttonData;
-				globalScale += delta > 0 ? 1 : -1;
-				if (globalScale < 0) globalScale = 0;
-				if (globalScale > 10) globalScale = 10;
-			}
-
-			if ((me.buttonFlags == MouseEvent_RDown) != 0)
-			{
-				rbuttonDown = true;
-			}
-			else if ((me.buttonFlags == MouseEvent_RUp) != 0)
-			{
-				rbuttonDown = false;
-			}
-
-			if (rbuttonDown)
-			{
-				viewTheta.quantity += me.dx;
-			}
+			controls.AppendMouseEvent(me);
 		}
 
 		virtual void OnKeyboardEvent(const KeyboardEvent& k)
 		{
-
+			controls.AppendKeyboardEvent(k);
 		}
 	};
 }

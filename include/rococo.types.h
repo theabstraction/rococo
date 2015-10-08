@@ -137,6 +137,9 @@ namespace Rococo
 		operator T* () { return t; }
 		T* operator -> () { return t; }
 		T& operator * () { return *t; }
+		operator const T* () const { return t; }
+		const T* operator -> () const { return t; }
+		const T& operator * () const { return *t; }
 	};
 
 	template<class T> inline T max(T a, T b) 
