@@ -1,0 +1,14 @@
+// Getter method test
+
+(config $config.xc)
+
+(interface
+	(as.sxy Sys.Animals.ITiger "ITiger") // This gives the fully qualified interface as published in the scripting language
+	(as.cpp Sys.Animals.ITiger "ITiger") // This gives the fully qualified struct name as published in the C++ header	
+	(context api Sys.Animals.ITiger) 
+	(methods
+		(Advance (Float32 dt) -> (Int32 id)) // method that has one input and has one output
+	)
+	
+	(factory Sys.Animals.GetTiger)
+)

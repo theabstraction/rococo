@@ -1,8 +1,63 @@
 (' file.type rococo.dystopia.level)
 
+(' #include "!scripts/dystopia.sxh.sxy")
+
 (namespace EntryPoint)
 
+(using Sys.Maths)
+
 (function Main (Int32 arg) -> (Int32 exitCode): 
+	(Dystopia.Meshes.IMeshes meshes (Dystopia.Meshes.GetMeshes))
+	(meshes.Load "!mesh/cube.sxy" 1)
+	(meshes.Load "!mesh/road.sxy" 2)
+	(meshes.Load "!mesh/human.sxy" 3)
+	
+	(Dystopia.Levels.ILevel level (Dystopia.Levels.GetLevel))
+	(level.Clear)
+	
+	(Matrix4x4 road =
+		( 1 0 0    0)
+		( 0 1 0    0)
+		( 0 0 1    0)
+		( 0 0 0    1)
+	)
+	
+	(level.AddEntity road 2)
+
+	(Matrix4x4 offroad1 =
+		( 1 0 0    -3.5)
+		( 0 1 0     0.0)
+		( 0 0 1     0.5)
+		( 0 0 0     1.0)
+	)
+	(level.AddEntity offroad1 1)
+		
+	(Matrix4x4 offroad2 =
+		( 2 0 0     4.0)
+		( 0 2 0     0.0)
+		( 0 0 2     1.0)
+		( 0 0 0     1.0)
+	)
+	(level.AddEntity offroad2 1)
+	
+	(Matrix4x4 mrSmithLoc =
+		( 1 0 0     0.0 )
+		( 0 1 0     5.0 )
+		( 0 0 1     0.0 )
+		( 0 0 0     1.0 )
+	)
+	(level.AddEntity mrSmithLoc 3)
+		
+	(Matrix4x4 playerLoc =
+		( 1 0 0    0)
+		( 0 1 0    0)
+		( 0 0 1    0)
+		( 0 0 0    1)
+	)
+	
+	(Int64 playerId = (level.AddEntity playerLoc 3))
+	(level.SetPlayerId playerId)
+			
 	(exitCode = 0)
 )
 

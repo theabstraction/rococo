@@ -3,9 +3,10 @@
 
 #include <windows.h>
 
+#include "dystopia.h"
+
 #include "resource.h"
 
-#include <rococo.types.h>
 #include <rococo.renderer.h>
 #include <rococo.dx11.renderer.win32.h>
 #include <rococo.window.h>
@@ -64,6 +65,8 @@ struct FileHandle
 
 int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+	using namespace Dystopia;
+
 	HANDLE hInstanceLock = CreateEvent(nullptr, TRUE, FALSE, L"Dystopia_InstanceLock");
 
 	if (GetLastError() == ERROR_ALREADY_EXISTS)
@@ -92,6 +95,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		struct : IAppFactory
 		{
 			IInstallation* installation;
+
 			virtual IApp* CreateApp(IRenderer& renderer)
 			{
 				return Dystopia::CreateDystopiaApp(renderer, *installation);

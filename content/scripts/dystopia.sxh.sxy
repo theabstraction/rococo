@@ -1,0 +1,30 @@
+(interface Dystopia.Meshes.IMeshes
+	(Load (Sys.Type.IString resourceName)(Int32 editorId) -> )
+)
+
+(class ProxyIMeshes (implements Dystopia.Meshes.IMeshes) (Pointer hObject))
+	(method ProxyIMeshes.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIMeshes.Load (Sys.Type.IString resourceName)(Int32 editorId) ->  : (Dystopia.Meshes.Native.IMeshesLoad this.hObject resourceName editorId))
+
+(factory Dystopia.Meshes.GetMeshes Dystopia.Meshes.IMeshes  :
+	(Pointer pObject = (Dystopia.Meshes.Native.GetHandleForIMeshes0 ))
+	(construct ProxyIMeshes pObject)
+)
+
+(interface Dystopia.Levels.ILevel
+	(AddEntity (Sys.Maths.Matrix4x4 transform)(Int32 editorId) -> (Int64 entityId))
+	(Clear  -> )
+	(SetPlayerId (Int64 playerId) -> )
+)
+
+(class ProxyILevel (implements Dystopia.Levels.ILevel) (Pointer hObject))
+	(method ProxyILevel.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyILevel.AddEntity (Sys.Maths.Matrix4x4 transform)(Int32 editorId) -> (Int64 entityId) : (Dystopia.Levels.Native.ILevelAddEntity this.hObject transform editorId -> entityId))
+	(method ProxyILevel.Clear  ->  : (Dystopia.Levels.Native.ILevelClear this.hObject ))
+	(method ProxyILevel.SetPlayerId (Int64 playerId) ->  : (Dystopia.Levels.Native.ILevelSetPlayerId this.hObject playerId))
+
+(factory Dystopia.Levels.GetLevel Dystopia.Levels.ILevel  :
+	(Pointer pObject = (Dystopia.Levels.Native.GetHandleForILevel0 ))
+	(construct ProxyILevel pObject)
+)
+

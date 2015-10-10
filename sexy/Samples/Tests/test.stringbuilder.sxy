@@ -1,0 +1,13 @@
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(using Sys.Type)
+(using Sys.Type.Formatters)
+	
+(function Main -> (Int32 result):
+	(IStringBuilder s (CreateStringBuilder 256))
+	(#build s "Hello world!" NewLine)
+	(#build s "I am " 25 " years old. And in hex I am 0x" Hex 25 " years old" NewLine)
+	(cast s -> IString str)
+	(Sys.Print str)
+)

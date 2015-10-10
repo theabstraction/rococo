@@ -1,0 +1,14 @@
+// Setter method test
+
+(config $config.xc)
+
+(interface
+	(as.sxy Sys.Animals.ITiger "ITiger") // This gives the fully qualified interface as published in the scripting language
+	(as.cpp Sys.Animals.ITiger "ITiger") // This gives the fully qualified struct name as published in the C++ header
+	(context factory Sys.Animals.ITiger)
+	(methods
+		(Eat (Int32 beefKilos)) // method that has one input and no output
+	)
+	
+	(factory Sys.Animals.GetTiger)
+)

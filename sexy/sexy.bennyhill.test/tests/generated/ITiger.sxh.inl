@@ -10,8 +10,9 @@ namespace
 		Sexy::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 
-		struct _IString { uintptr_t vTable; Sexy::int32 length; Sexy::csexstr buffer; };
-
+		#pragma pack(push,1)
+		struct _IString { Sexy::Compiler::VirtualTable* vTable; Sexy::int32 length; Sexy::csexstr buffer; };
+		#pragma pack(pop)
 		_offset += sizeof(void*);
 
 		_IString* _text;
@@ -32,8 +33,9 @@ namespace
 		Sexy::uint8* sf = _nce.cpu.SF();
 		ptrdiff_t offset = 2 * sizeof(size_t);
 
-		struct _IString { uintptr_t vTable; Sexy::int32 length; Sexy::csexstr buffer; };
-
+		#pragma pack(push,1)
+		struct _IString { Sexy::Compiler::VirtualTable* vTable; Sexy::int32 length; Sexy::csexstr buffer; };
+		#pragma pack(pop)
 		_offset += sizeof(void*);
 
 		_IString* _tigerName;
@@ -54,7 +56,7 @@ namespace Sys::Animals
 	void AddNativeCalls_SysAnimalsITiger(Sexy::Script::IPublicScriptSystem& ss, Sys::IZoo* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Sys.Animals.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForSysAnimalsGetTigerByName, nceContext, SEXTEXT("GetHandleForITiger0 (Sys.Type.IString tigerName) -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeGetHandleForSysAnimalsGetTigerByName, _nceContext, SEXTEXT("GetHandleForITiger0 (Sys.Type.IString tigerName) -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeSysAnimalsITigerWrite, nullptr, SEXTEXT("ITigerWrite (Pointer hObject)(Sys.Type.IString text) -> "));
 	}
 

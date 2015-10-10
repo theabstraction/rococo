@@ -85,11 +85,6 @@ namespace Rococo
 
 	struct SysUnstableArgs {};
 
-	template<class T> struct IEventCallback
-	{
-		virtual void OnEvent(T& arg) = 0;
-	};
-
 	struct NO_VTABLE IOS
 	{
 		virtual void ConvertUnixPathToSysPath(const wchar_t* unixPath, wchar_t* sysPath, size_t bufferCapacity) const = 0;
@@ -101,7 +96,7 @@ namespace Rococo
 		virtual void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const = 0;
 		virtual size_t MaxPath() const = 0;
 		virtual void Monitor(const wchar_t* absPath) = 0;
-		virtual void UTF8ToUnicode(const char* s, wchar_t* unicode, size_t unicodeCapacity) = 0;
+		virtual void UTF8ToUnicode(const char* s, wchar_t* unicode, size_t cbUtf8count, size_t unicodeCapacity) = 0;
 	};
 
 	struct NO_VTABLE IInstallation

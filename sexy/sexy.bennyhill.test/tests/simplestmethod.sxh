@@ -1,0 +1,13 @@
+// Simplest method test
+
+(config $config.xc)
+
+(interface
+	(as.sxy Sys.Animals.ITiger "ITiger") // This gives the fully qualified interface as published in the scripting language
+	(as.cpp Sys.Animals.ITiger "ITiger") // This gives the fully qualified struct name as published in the C++ header	
+	(context factory Sys.Animals.ITiger)
+	(methods
+		(Awaken) // method that has no input and no output, can't get much simpler than that
+	)
+	(factory Sys.Animas.GetTiger)
+)

@@ -1,5 +1,5 @@
 namespace Sys { namespace Animals { 
-	struct Sys::Animals::ITiger
+	struct ITiger
 	{
 		virtual void Write(Sys::SexString text) = 0;
 	};

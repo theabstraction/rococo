@@ -228,16 +228,16 @@ void CopyCharToSEXCHAR(SEXCHAR* dest, const char* src, size_t capacity)
 
 void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods, cr_sex interfaceDef)
 {
-	FileDelete(ic.appendSexyFile);
+	FileDeleteOnceOnly(ic.appendSexyFile);
 	FileAppender sexyFileAppender(ic.appendSexyFile);		
 	DeclareSexyInterface(sexyFileAppender, ic, methods, pc);
 	ImplementSexyInterface(sexyFileAppender, ic, methods, s, pc);
 
-	FileDelete(ic.appendCppHeaderFile);
+	FileDeleteOnceOnly(ic.appendCppHeaderFile);
 	FileAppender cppFileAppender(ic.appendCppHeaderFile);
 	DeclareCppInterface(cppFileAppender, ic, interfaceDef, methods, pc);
 
-	FileDelete(ic.appendCppImplFile);
+	FileDeleteOnceOnly(ic.appendCppImplFile);
 	FileAppender cppFileImplAppender(ic.appendCppImplFile);
 	ImplementNativeFunctions(cppFileImplAppender, ic, methods, pc);
 }
@@ -429,7 +429,7 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 	SEXCHAR sexyFile[_MAX_PATH];
 	StringPrint(sexyFile, _MAX_PATH, SEXTEXT("%s%s.inl"), pc.cppRoot, filePrefix->Buffer);
 
-	FileDelete(sexyFile);
+	FileDeleteOnceOnly(sexyFile);
 
 	FileAppender sexyAppender(sexyFile);
 

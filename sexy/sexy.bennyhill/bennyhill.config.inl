@@ -344,10 +344,10 @@ namespace
 			if (*pc.sexyTypes == 0) Throw(configDef, SEXTEXT("sexy.types was not defined"));
 			if (*pc.cppException == 0) Throw(configDef, SEXTEXT("cpp.exception was not defined"));
 
-			FileDelete(pc.cppTypes);
+			FileDeleteOnceOnly(pc.cppTypes);
 			FileAppender cppTypeAppender(pc.cppTypes);
 
-			FileDelete(pc.sexyTypes);
+			FileDeleteOnceOnly(pc.sexyTypes);
 			FileAppender sexyTypeAppender(pc.sexyTypes);
 
 			for(int i = 0; i < configDef.NumberOfElements(); ++i)

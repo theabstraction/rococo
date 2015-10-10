@@ -75,6 +75,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IntDir>..\intermediate\$(ProjectName)\$(Configuration)\</IntDir>
+    <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -82,6 +83,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IntDir>..\intermediate\$(ProjectName)\$(Configuration)\</IntDir>
+    <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -113,6 +115,21 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\lib,..\sexy\libs\</AdditionalLibraryDirectories>
       <StackCommitSize>1048576</StackCommitSize>
     </Link>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>
+      </Message>
+    </PreBuildEvent>
+    <CustomBuildStep>
+      <Command>..\sexy\Bin\x64Debug\sexy.bennyhill.exe $(ProjectDir) dystopia.sxh null</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>dystopia.sxh.h;dystopia.sxh.inl</Outputs>
+      <Inputs>dystopia.sxh;config.xc</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -152,6 +169,21 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\lib,..\sexy\libs\</AdditionalLibraryDirectories>
       <StackCommitSize>1048576</StackCommitSize>
     </Link>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>
+      </Message>
+    </PreBuildEvent>
+    <CustomBuildStep>
+      <Command>..\sexy\Bin\x64Debug\sexy.bennyhill.exe $(ProjectDir) dystopia.sxh null</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>dystopia.sxh.h;dystopia.sxh.inl</Outputs>
+      <Inputs>dystopia.sxh;config.xc</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="app.cpp" />
@@ -162,6 +194,7 @@
     <ClCompile Include="level.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="meshes.cpp" />
+    <ClCompile Include="script.natives.cpp" />
     <ClCompile Include="scripts.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -178,7 +211,14 @@
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="dystopia.sxh">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
+    </None>
+    <None Include="config.xc" />
     <None Include="controls.inl" />
+    <None Include="generate.native.libs.bat" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

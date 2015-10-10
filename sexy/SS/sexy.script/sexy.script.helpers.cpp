@@ -618,15 +618,14 @@ namespace Sexy { namespace Script
 		csexstr lastPseudoName;
 
 		VariableDesc variable;
-		AddReturnAddressToVarEnum(variable, sf);
-		variableEnum.OnVariable(0, variable);
-
-		AddOldSFToVarEnum(variable, sf);
-		variableEnum.OnVariable(1, variable);
-
+		
 		AddSFToVarEnum(variable, sf);
+		variableEnum.OnVariable(0, variable);
+		AddReturnAddressToVarEnum(variable, sf);
+		variableEnum.OnVariable(1, variable);
+		AddOldSFToVarEnum(variable, sf);
 		variableEnum.OnVariable(2, variable);
-						
+				
 		size_t count = 3;
 
 		for(int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)

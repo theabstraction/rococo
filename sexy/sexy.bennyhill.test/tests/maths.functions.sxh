@@ -1,0 +1,17 @@
+(config $config.xc)
+
+(functions Sys.Maths "sys.maths"
+	(Sind (Float64 x)->(Float64 y): sin)
+	(Cosd (Float64 x)->(Float64 y): cos)
+	(Tand (Float64 x)->(Float64 y): tan)
+	(Sinhd (Float64 x)->(Float64 y): sinh)
+	(Coshd (Float64 x)->(Float64 y): cosh)
+	(Tanhd (Float64 x)->(Float64 y): tanh)
+	
+	(Sin (Float32 x)->(Float32 y): sinf)
+	(Cos (Float32 x)->(Float32 y): cosf)
+	(Tan (Float32 x)->(Float32 y): tanf)
+	(Sinh (Float32 x)->(Float32 y): sinhf)
+	(Cosh (Float32 x)->(Float32 y): coshf)
+	(Tanh (Float32 x)->(Float32 y): tanhf)
+)

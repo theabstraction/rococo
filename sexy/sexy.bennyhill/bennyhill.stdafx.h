@@ -59,7 +59,7 @@ namespace Rococo
 		void FileAppender::Append(char c);
 	};
 
-	void FileDelete(csexstr name);
+	void FileDeleteOnceOnly(csexstr name);
 	void TripDebugger();
 	void WriteStandardErrorCode(int errorCode);
 	int64 GetLastModifiedDate(const char* path);

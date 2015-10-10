@@ -1,3 +1,4 @@
+#include "dystopia.h"
 #include "meshes.h"
 
 #include <sexy.types.h>
@@ -5,13 +6,11 @@
 
 #include <unordered_map>
 
-#include "dystopia.h"
 
 namespace Dystopia
 {
 	using namespace Rococo;
 	using namespace Sexy::Sex;
-	ISourceCode* DuplicateSourceCode(IOS& os, ISParser& parser, const IBuffer& rawData, const wchar_t* resourcePath);
 	void ThrowSex(cr_sex s, const wchar_t* format, ...);
 	void ScanExpression(cr_sex s, const wchar_t* hint, const char* format, ...);
 	void ValidateArgument(cr_sex s, const wchar_t* arg);
@@ -49,9 +48,9 @@ namespace
 		v.diffuseColour = GetColourValue(*sdiffuse);
 	}
 
-	void ParseMeshVertices(TMeshes& meshes, int32 id, IRenderer& renderer, cr_sex meshDef, const wchar_t* resourcePath, bool isReloading)
+	void ParseMeshVertices(TMeshes& meshes, int32 id, IRenderer& renderer, cr_sex meshDef, const wchar_t* resourcePath)
 	{
-		size_t nVertices = meshDef.NumberOfElements() - 2;
+		size_t nVertices = meshDef.NumberOfElements() - 1;
 		std::vector<ObjectVertex> vertices;
 		vertices.reserve(nVertices);
 
@@ -64,33 +63,25 @@ namespace
 
 		for (int i = 0; i < nVertices; ++i)
 		{
-			cr_sex sv = meshDef[i + 2];
+			cr_sex sv = meshDef[i + 1];
 			ParseVertex(v, sv);
 			vertices.push_back(v);
 		}
 
-		if (isReloading)
+		auto i = meshes.find(id);
+		if (i != meshes.end())
 		{
-			auto i = meshes.find(id);
-			if (i != meshes.end())
-			{
-				if (wcscmp(resourcePath, i->second.resourceName.c_str()) == 0)
-				{
-					renderer.UpdateMesh(i->second.rendererId, &vertices[0], (uint32)vertices.size());
-				}
-				else
-				{
-					Throw(0, L"Cannot update mesh %d from %s - it is already defined by another mesh file %s", id, resourcePath, i->second.resourceName.c_str());
-				}
-				return;
-			}
+			renderer.UpdateMesh(i->second.rendererId, &vertices[0], (uint32)vertices.size());
+			i->second.resourceName = resourcePath;
 		}
-
-		auto rendererId = renderer.CreateTriangleMesh(&vertices[0], (uint32) vertices.size());
-		meshes.insert(std::make_pair(id, MeshDesc{ rendererId, id, resourcePath }));
+		else
+		{
+			auto rendererId = renderer.CreateTriangleMesh(&vertices[0], (uint32)vertices.size());
+			meshes.insert(std::make_pair(id, MeshDesc{ rendererId, id, resourcePath }));
+		}
 	}
 
-	void ParseMeshScript(TMeshes& meshes, ISParserTree& tree, IRenderer& renderer, const wchar_t* resourcePath, bool isReloading)
+	void ParseMeshScript(TMeshes& meshes, ISParserTree& tree, IRenderer& renderer, const wchar_t* resourcePath, int32 editorId)
 	{
 		cr_sex root = tree.Root();
 		
@@ -108,40 +99,36 @@ namespace
 		ValidateArgument(*category, L"file.type");
 		ValidateArgument(*filetype, L"rococo.dystopia.mesh");
 
-		for (int i = 1; i < root.NumberOfElements(); ++i)
+		if (root.NumberOfElements() != 2)
 		{
-			cr_sex meshDef = root[i];
-			const ISExpression* meshconfirm, *meshId;
-			ScanExpression(meshDef, L"(mesh <mesh_id> (vertices))", "a a", &meshconfirm, &meshId);
-
-			ValidateArgument(*meshconfirm, L"mesh");
-
-			int32 id = GetValue(*meshId, 1, 0x7FFFFFFF, L"mesh_id");
-
-			if (!isReloading)
-			{
-				auto& m = meshes.find(id);
-				if (m != meshes.end())
-				{
-					ThrowSex(*meshId, L"A mesh with id is already defined", id);
-				}
-			}
-
-			ParseMeshVertices(meshes, id, renderer, meshDef, resourcePath, isReloading);
+			ThrowSex(root, L"Only two elements are allowed in a mesh script - the version expression and the mesh definition");
 		}
+
+		cr_sex meshDef = root[1];
+		const ISExpression* meshconfirm;
+		ScanExpression(meshDef, L"(mesh (vertices ...))", "a", &meshconfirm);
+
+		ValidateArgument(*meshconfirm, L"mesh");
+
+		ParseMeshVertices(meshes, editorId, renderer, meshDef, resourcePath);
 	}
 
 	class MeshLoader : public IMeshLoader
 	{
-		Environment& e;
+		IInstallation& installation;
+		ISourceCache& sourceCache;
+		IRenderer& renderer;
+
 		AutoFree<IExpandingBuffer> meshFileImage;
 		AutoFree<IExpandingBuffer> unicodeFileImage;
 		TMeshes meshes;
 
 		enum { MAX_MESH_FILE_SIZE = 256 * 1024 };
 	public:
-		MeshLoader(Environment& _e):
-			e(_e), 
+		MeshLoader(IInstallation& _installation, IRenderer& _renderer, ISourceCache& _sourceCache):
+			installation(_installation),
+			renderer(_renderer),
+			sourceCache(_sourceCache),
 			meshFileImage(CreateExpandingBuffer(MAX_MESH_FILE_SIZE)),
 			unicodeFileImage(CreateExpandingBuffer(0))
 		{
@@ -158,7 +145,12 @@ namespace
 			return i->second.rendererId;
 		}
 
-		virtual void LoadMeshes(const wchar_t* resourcePath, bool isReloading)
+		virtual void Load(fstring resourcePath, ID_MESH editorId)
+		{
+			Load(resourcePath, editorId, false);
+		}
+
+		void Load(fstring resourcePath, ID_MESH editorId, bool isReloading)
 		{
 			using namespace Dystopia;
 
@@ -166,13 +158,13 @@ namespace
 			{
 				try
 				{
-					ProtectedLoadMeshes(resourcePath, isReloading);
+					ProtectedLoadMesh(resourcePath.buffer, editorId);
 					return;
 				}
 				catch (IException& ex)
 				{
-					GetOS(e).FireUnstable();
-					CMD_ID id = ShowContinueBox(e.renderer.Window(), ex.Message());
+					installation.OS().FireUnstable();
+					CMD_ID id = ShowContinueBox(renderer.Window(), ex.Message());
 					switch (id)
 					{
 					case CMD_ID_EXIT:
@@ -187,32 +179,12 @@ namespace
 			}
 		}
 
-		void ProtectedLoadMeshes(const wchar_t* resourcePath, bool isReloading)
+		void ProtectedLoadMesh(const wchar_t* resourcePath, ID_MESH editorId)
 		{
-			e.installation.LoadResource(resourcePath, *meshFileImage, MAX_MESH_FILE_SIZE - 2);
-
-			size_t len = meshFileImage->Length();
-
-			if (len < 2)
-			{
-				Throw(0, L"Mesh file was too small: %s", resourcePath);
-			}
-
-			char* data = (char*) meshFileImage->GetData();
-			data[len] = 0;
-			data[len+1] = 0;
-
-			CSParserProxy pp;
-			ISParser& parser = pp();
-
-			Auto<ISourceCode> source = DuplicateSourceCode(GetOS(e), parser, *meshFileImage, resourcePath);
-
-			csexstr code = source->SourceStart();
-
 			try
 			{
-				Auto<ISParserTree> tree = parser.CreateTree(*source);
-				ParseMeshScript(meshes, *tree, e.renderer, resourcePath, isReloading);
+				auto tree = sourceCache.GetSource(resourcePath);
+				ParseMeshScript(meshes, *tree, renderer, resourcePath, editorId);
 			}
 			catch (Sexy::Sex::ParseException& pex)
 			{
@@ -234,7 +206,8 @@ namespace
 				auto& mesh = i.second;
 				if (DoesModifiedFilenameMatchResourceName(filename, mesh.resourceName.c_str()))
 				{
-					LoadMeshes(mesh.resourceName.c_str(), true);
+					fstring resource = { mesh.resourceName.c_str(), (int32) mesh.resourceName.length() };
+					Load(resource, i.first, true);
 					return;
 				}
 			}
@@ -244,8 +217,8 @@ namespace
 
 namespace Dystopia
 {
-	IMeshLoader* CreateMeshLoader(Environment& e)
+	IMeshLoader* CreateMeshLoader(IInstallation& _installation, IRenderer& _renderer, ISourceCache& _sourceCache)
 	{
-		return new MeshLoader(e);
+		return new MeshLoader(_installation, _renderer, _sourceCache);
 	}
 }

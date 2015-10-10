@@ -739,7 +739,7 @@ namespace
 
 		virtual void Append_SetSFMemberRefFromSFValue(int32 targetSFOffset, int32 targetMemberOffset, int32 SFSourceValueOffset, size_t nBytesSource)
 		{
-			if (IsToInt8Lossless(targetSFOffset) && IsToInt8Lossless(targetMemberOffset && IsToInt8Lossless(SFSourceValueOffset) && nBytesSource == 4))
+			if (IsToInt8Lossless(targetSFOffset) && IsToInt8Lossless(targetMemberOffset) && IsToInt8Lossless(SFSourceValueOffset) && nBytesSource == 4)
 			{
 				AddFourByteInstruction(Opcodes::SetSFMemberByRefFromSFByValue32, (int8)targetSFOffset, (int8) targetMemberOffset, (int8) SFSourceValueOffset);
 			}

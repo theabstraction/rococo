@@ -1,3 +1,4 @@
+#include "dystopia.h"
 #include <rococo.renderer.h>
 #include <rococo.io.h>
 #include <vector>
@@ -5,7 +6,7 @@
 #include "rococo.geometry.inl"
 #include <DirectXMath.h>
 #include "meshes.h"
-#include "dystopia.h"
+
 #include "controls.inl"
 
 using namespace Dystopia;
@@ -53,7 +54,9 @@ namespace
 	{
 	private:
 		AutoFree<IDebuggerWindow> debuggerWindow;
-		Environment* e;	
+		AutoFree<ISourceCache> sourceCache;
+		AutoFree<IMeshLoader> meshes;
+		Environment e;
 		AutoFree<ILevelSupervisor> level;
 		AutoFree<ILevelLoader> levelLoader;
 
@@ -62,16 +65,17 @@ namespace
 		
 	public:
 		DystopiaApp(IRenderer& _renderer, IInstallation& _installation) : 
-			debuggerWindow(CreateDebuggerWindow(nullptr)),
-			e(ConstructEnvironment(_installation, _renderer, *debuggerWindow)),
-			level(CreateLevel(*e)),
-			levelLoader(CreateLevelLoader(*e, *level))
+			debuggerWindow(CreateDebuggerWindow(&_renderer.Window())),
+			sourceCache(CreateSourceCache(_installation)),
+			meshes(CreateMeshLoader(_installation, _renderer, *sourceCache)),
+			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes },
+			level(CreateLevel(e)),
+			levelLoader(CreateLevelLoader(e, *level))
 		{
 		}
 		
 		~DystopiaApp()
 		{
-			Dystopia::Free(e);
 		}
 
 		virtual void Free()
@@ -107,7 +111,7 @@ namespace
 
 			AdvanceGame(dt);
 
-			e->renderer.Render(*this);
+			e.renderer.Render(*this);
 			return 5;
 		}
 
@@ -129,7 +133,7 @@ namespace
 
 			float g = 0.04f * powf(1.25f, controls.GlobalScale());
 
-			XMMATRIX aspectCorrect = XMMatrixScaling(g * GetAspectRatio(e->renderer), g, g);
+			XMMATRIX aspectCorrect = XMMatrixScaling(g * GetAspectRatio(e.renderer), g, g);
 			XMMATRIX rotZ = XMMatrixRotationZ(ToRadians(controls.ViewTheta()));
 			XMMATRIX rotX = XMMatrixRotationX(ToRadians(phi));
 			XMMATRIX origin = XMMatrixTranslation(-playerPosition.x, -playerPosition.y, 0.0f);

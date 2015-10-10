@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Implementation">
+      <UniqueIdentifier>{2ae21e99-e8a6-4a9a-96d2-1f34748b336b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="sexy.compiler.stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexy.compiler.os.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexy.compiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexy.codebuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="sexy.validators.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sexy.compiler.stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sexy.Compiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\sexy.compiler.public.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sexy.compiler.inl">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="sexy.compiler.helpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="sexy.compiler.symbols.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.compiler.structures.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.compiler.namespaces.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.compiler.modules.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.compiler.functions.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.compiler.attributes.inl">
+      <Filter>Implementation</Filter>
+    </None>
+  </ItemGroup>
+</Project>

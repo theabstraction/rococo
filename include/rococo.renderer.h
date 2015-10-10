@@ -50,7 +50,7 @@ namespace Rococo
 
 	typedef size_t ID_VERTEX_SHADER;
 	typedef size_t ID_PIXEL_SHADER;
-	typedef size_t ID_MESH;
+	typedef int32 ID_MESH;
 
 	typedef int64 ticks;
 

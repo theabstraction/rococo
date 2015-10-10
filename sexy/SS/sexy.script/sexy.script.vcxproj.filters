@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Implementation">
+      <UniqueIdentifier>{05fbc351-3a3f-4699-9f19-843040eef86d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="sexy.script.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexy.script.os.win32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexy.script.stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexy.script.helpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="sexy.script.stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\sexy.compiler.public.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\sexy.vm.cpu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\sexy.debug.types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\sexy.stdstrings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="sexy.script.asserts.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.modules.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="ReadMe.txt" />
+    <None Include="sexy.script.expression.parser.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.conditional.expression.parser.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.predicates.expression.parser.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.arithmetic.expression.parser.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.exceptions.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.exception.logic.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.casts.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="..\..\Common\sexy.variants.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="..\..\Common\sexy.s-parser.util.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.matching.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.functions.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.factory.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.closure.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.util.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.macro.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.JIT.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.stringbuilders.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.array.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.list.inl">
+      <Filter>Implementation</Filter>
+    </None>
+    <None Include="sexy.script.map.inl">
+      <Filter>Implementation</Filter>
+    </None>
+  </ItemGroup>
+</Project>

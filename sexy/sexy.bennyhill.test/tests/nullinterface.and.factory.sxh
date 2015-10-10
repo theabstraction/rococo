@@ -1,0 +1,16 @@
+// Null interface test
+
+(config $config.xc)
+
+(interface
+	(as.sxy Sys.Animals.ITiger "ITiger") // This gives the fully qualified interface as published in the scripting language, target is ITiger.sxh.cpp
+	(as.cpp Sys.Animals.ITiger "ITiger") // This gives the fully qualified struct name as published in the C++ header, target is ITiger.sxh.sxy
+	(methods
+		
+	)
+	
+	(context Sys::Zoo) // Gives the context to be passed to AddNativeCalls_ITiger, which is used by the factory methods to create tigers
+
+	(factory Sys.Animals.GetDefaultTiger) // factory that initializes ITiger to the default tiger
+	(factory Sys.Animals.GetTigerById (Int32 id)) // factory that initializes ITiger to the tiger with a given ID.
+)

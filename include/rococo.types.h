@@ -152,6 +152,11 @@ namespace Rococo
 		return a < b ? a : b; 
 	}
 
+	template<class T> struct IEventCallback
+	{
+		virtual void OnEvent(T& arg) = 0;
+	};
+
 	struct Quad
 	{
 		float left;
@@ -209,6 +214,37 @@ namespace Rococo
 		RGBAb(uint32 x) { RGBAb* pCol = (RGBAb*)&x; *this = *pCol; }
 		RGBAb(uint8 _red, uint8 _green, uint8 _blue, uint8 _alpha = 255) : red(_red), green(_green), blue(_blue), alpha(_alpha) {}
 	};
+
+		struct IException;
+	struct IRenderer;
+	struct IInstallation;
+	struct IOS;
+	struct IRenderContext;
+	struct IBuffer;
+
+	namespace Windows
+	{
+		struct IWindow;
+	}
+
+	namespace Visitors
+	{
+		struct IUIList;
+		struct IUITree;
+	}
+}
+
+namespace Sexy
+{
+	namespace Script
+	{
+		struct IPublicScriptSystem;
+	}
+
+	namespace Sex
+	{
+		struct ISParserTree;
+	}
 }
 
 #endif

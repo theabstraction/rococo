@@ -1,0 +1,13 @@
+// Null interface test
+
+(config $config.xc)
+
+(interface
+	(as.both Sys.Animals.ITiger "ITiger")
+	(context factory Sys.Animals.ITigerPen)
+	(methods
+		
+	)
+	
+	(factory Sys.Animals.GetTigerById (Int32 tigerId))
+)

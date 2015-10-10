@@ -43,6 +43,10 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
+#include <unordered_set>
+
+#include "sexy.stdstrings.h"
+
 namespace Rococo
 {
 	using namespace Sexy;
@@ -86,9 +90,15 @@ namespace Rococo
 		fwrite(&c, sizeof(char), 1, hFile);
 	}
 
-	void FileDelete(csexstr name)
+	void FileDeleteOnceOnly(csexstr name)
 	{
-		_wunlink(name);
+		static std::unordered_set<stdstring> knownFiles;
+
+		if (knownFiles.find(name) == knownFiles.end())
+		{
+			_wunlink(name);
+			knownFiles.insert(name);
+		}
 	}
 
 	void TripDebugger()

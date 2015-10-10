@@ -1,0 +1,23 @@
+(config $config.xc)
+
+(interface
+	(as.sxy Dystopia.Meshes.IMeshes "../content/scripts/dystopia") // This gives the fully qualified interface as published in the scripting language
+	(as.cpp Dystopia.IMeshes "dystopia") // This gives the fully qualified struct name as published in the C++ header	
+	(context factory Dystopia.IMeshes)
+	(methods
+		(Load (IString resourceName) (IdMesh editorId) ->)
+	)
+	(factory Dystopia.Meshes.GetMeshes)
+)
+
+(interface
+	(as.sxy Dystopia.Levels.ILevel "../content/scripts/dystopia") 
+	(as.cpp Dystopia.ILevelBuilder "dystopia")
+	(context factory Dystopia.ILevel)
+	(methods
+		(AddEntity (Matrix4x4 transform) (IdMesh editorId) -> (IdEntity entityId))
+		(Clear ->)
+		(SetPlayerId (IdEntity playerId) ->)
+	)
+	(factory Dystopia.Levels.GetLevel)
+)

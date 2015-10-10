@@ -1,0 +1,8 @@
+(typemap char* Pointer)
+(typemap float Float32)
+(typemap double Float64)
+(typemap int Int32)
+(typemap int32 Int32)
+(typemap int64 Int64)
+
+// (parseflags skipcalltype)

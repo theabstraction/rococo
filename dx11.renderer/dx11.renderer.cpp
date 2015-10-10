@@ -758,7 +758,8 @@ namespace
 		{
 			ID3D11Buffer* meshBuffer = CreateImmutableVertexBuffer(device, vertices, nVertices);
 			meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST });
-			return meshBuffers.size() - 1;
+			int32 index = (int32) meshBuffers.size();
+			return index-1;
 		}
 
 		virtual void UpdateMesh(ID_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices)

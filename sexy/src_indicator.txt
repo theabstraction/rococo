@@ -1,0 +1,1 @@
+Do not delete this file, it is used to pinpoint the sexy native source directory when the envrionment variable SEXY_NATIVE_SRC_DIR is missing.

@@ -1,0 +1,17 @@
+Sexy Task List
+
+Full closures must not be persisted.
+Exhaustive string library.
+Exhaustive reflection library.
+Top level macro invocation.
+Exhaustive file library.
+Coroutines / multiple execution instances per compilation object
+Exhaustive SSE3 vector library.
+Mimic intellisense in the IDE.
+Pre-compile top level items, or hash items
+Function/method overloading.
+Exhaustive algorithm library.
+
+Limit natives to particular module.
+
+kalamata2014

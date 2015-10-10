@@ -1,0 +1,12 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SexyDotNet.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="ThirdPartyEditor" Type="System.String" Scope="User">
+      <Value Profile="(Default)">notepad++</Value>
+    </Setting>
+    <Setting Name="ThirdPartyEditorArgs" Type="System.String" Scope="User">
+      <Value Profile="(Default)">-n{2} {0}</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

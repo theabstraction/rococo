@@ -227,13 +227,18 @@ namespace
 
 		NamespaceSplitter nsSplitter(ic.asCppInterface.SexyName());
 		csexstr ns, shortName;
-		splitter.SplitTail(ns, shortName);
+		if (!splitter.SplitTail(ns, shortName))
+		{
+			sexstringstream s;
+			s << SEXTEXT("Cpp interface ") << ic.asCppInterface.SexyName() << SEXTEXT("needs a namespace prefix.") << std::ends;
+			Throw(interfaceDef, s.str().c_str());
+		}
 
 		SEXCHAR cppCompressedNSName[256];
 		SEXCHAR cppNSName[256];
 		GetFQCppStructName(cppCompressedNSName, cppNSName, 256, ns);
 
-		appender.Append(SEXTEXT("\n\nnamespace %s\n{\n\tvoid AddNativeCalls_%s(Sexy::Script::IPublicScriptSystem& ss, %s* nceContext);\n}\n"), cppNSName, ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
+		appender.Append(SEXTEXT("\n\nnamespace %s\n{\n\tvoid AddNativeCalls_%s(Sexy::Script::IPublicScriptSystem& ss, %s* nceContext);\n}\n\n"), cppNSName, ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
 	}
 
 	typedef std::unordered_map<stdstring,int> TAttributeMap;
@@ -288,7 +293,9 @@ namespace
 					if (!hasInitializedStringStruct)
 					{
 						hasInitializedStringStruct = true;
-						appender.Append(SEXTEXT("\n\t\tstruct _IString { Sexy::Compiler::VirtualTable* vTable; Sexy::int32 length; Sexy::csexstr buffer; };\n\n"));
+						appender.Append(SEXTEXT("\n\t\t#pragma pack(push,1)\n"));
+						appender.Append(SEXTEXT("\t\tstruct _IString { Sexy::Compiler::VirtualTable* vTable; Sexy::int32 length; Sexy::csexstr buffer; };\n"));
+						appender.Append(SEXTEXT("\t\t#pragma pack(pop)\n"));
 					}
 				}
 			
@@ -616,7 +623,7 @@ namespace
 		nsType.Set(ns);
 
 		appender.Append(SEXTEXT("}\nnamespace %s\n{\n\tvoid AddNativeCalls_%s(Sexy::Script::IPublicScriptSystem& ss, %s* _nceContext)\n"), nsType.FQName(), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
-		appender.Append(SEXTEXT("\t{\n"));
+		appender.Append(SEXTEXT("\t{\n\n"));
 
 		if (methods != NULL)
 		{
