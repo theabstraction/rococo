@@ -10,6 +10,7 @@ namespace
 		uint32 SCANCODE_BACKWARD;
 		uint32 SCANCODE_STRAFFELEFT;
 		uint32 SCANCODE_STRAFFERIGHT;
+		uint32 SCANCODE_FIRE;
 
 		bool isForward;
 		bool isBackward;
@@ -22,6 +23,8 @@ namespace
 		int globalScale;
 
 		AutoFree<IKeyboardSupervisor> keyboard;
+
+		int fireCount;
 	public:
 		GameControls() :
 			keyboard(CreateKeyboardMap()),
@@ -31,12 +34,19 @@ namespace
 			isBackward(false),
 			isLeft(false),
 			isRight(false),
-			globalScale(4)
+			globalScale(4),
+			fireCount(0)
 		{
 			SCANCODE_FORWARD = keyboard->GetScanCode(L"W");
 			SCANCODE_BACKWARD = keyboard->GetScanCode(L"S");
 			SCANCODE_STRAFFELEFT = keyboard->GetScanCode(L"A");
 			SCANCODE_STRAFFERIGHT = keyboard->GetScanCode(L"D");
+			SCANCODE_FIRE = keyboard->GetScanCode(L"SPACE");
+		}
+
+		int& GetFireCount()
+		{
+			return fireCount;
 		}
 
 		void AppendMouseEvent(const MouseEvent& me)
@@ -107,6 +117,10 @@ namespace
 				else if (k.scanCode == SCANCODE_STRAFFERIGHT)
 				{
 					isRight = true;
+				}
+				else if (k.scanCode == SCANCODE_FIRE)
+				{
+					fireCount++;
 				}
 			}
 		}

@@ -62,7 +62,8 @@ namespace
 
 		GameControls controls;
 	
-		
+		float gameTime;
+		float lastFireTime;
 	public:
 		DystopiaApp(IRenderer& _renderer, IInstallation& _installation) : 
 			debuggerWindow(CreateDebuggerWindow(&_renderer.Window())),
@@ -70,7 +71,9 @@ namespace
 			meshes(CreateMeshLoader(_installation, _renderer, *sourceCache)),
 			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes },
 			level(CreateLevel(e)),
-			levelLoader(CreateLevelLoader(e, *level))
+			levelLoader(CreateLevelLoader(e, *level)),
+			gameTime(0.0f),
+			lastFireTime(0.0f)
 		{
 		}
 		
@@ -90,6 +93,8 @@ namespace
 
 		void AdvanceGame(float dt)
 		{
+			
+
 			auto id = level->GetPlayerId();
 
 			Vec3 pos;
@@ -99,6 +104,23 @@ namespace
 			Vec3 newPos = pos + dt * speed * Vec3(controls.GetImpulse().x, controls.GetImpulse().y, 0);
 			
 			level->SetPosition(newPos, id);
+
+			gameTime += dt;
+			level->UpdateObjects(gameTime, dt);
+
+			if (gameTime > lastFireTime + 0.25f)
+			{
+				int& fireCount = controls.GetFireCount();
+				if (fireCount > 2) fireCount = 2;
+				if (fireCount > 0)
+				{
+					fireCount--;
+					lastFireTime = gameTime;
+
+					ProjectileDef def = { level->GetPlayerId(), newPos, Vec3(0,10.0f,10.0f), 2.0f };
+					level->AddProjectile(def, lastFireTime);
+				}
+			}
 		}
 
 		virtual uint32 OnTick(const IUltraClock& clock)

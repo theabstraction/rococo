@@ -25,6 +25,15 @@ namespace Sexy
 namespace Dystopia
 {
 	typedef int64 ID_ENTITY;
+	typedef int32 ID_PROJECTILE;
+
+	struct ProjectileDef
+	{
+		ID_ENTITY attacker;
+		Vec3 origin;
+		Vec3 velocity;
+		float lifeTime;
+	};
 
 	struct fstring
 	{
@@ -55,11 +64,13 @@ namespace Dystopia
 
 	struct ILevel
 	{
+		virtual ID_PROJECTILE AddProjectile(const ProjectileDef& def, float currentTime) = 0;
+		virtual ILevelBuilder& Builder() = 0;
 		virtual ID_ENTITY GetPlayerId() const = 0;
 		virtual void GetPosition(Vec3& pos, ID_ENTITY id) const = 0;
 		virtual void SetPosition(const Vec3& pos, ID_ENTITY id) = 0;
 		virtual void SetTransform(ID_ENTITY id, const Matrix4x4& transform) = 0;
-		virtual ILevelBuilder& Builder() = 0;
+		virtual void UpdateObjects(float gameTime, float dt) = 0;
 	};
 
 	struct ILevelSupervisor: public ILevel

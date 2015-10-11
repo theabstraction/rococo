@@ -3,12 +3,17 @@
 #include <rococo.io.h>
 #include "meshes.h"
 #include <vector>
+#include <unordered_map>
 
 #include <sexy.types.h>
 #include <sexy.compiler.public.h>
 #include <sexy.debug.types.h>
 #include <sexy.script.h>
 #include <sexy.vm.cpu.h>
+
+#include <rococo.maths.h>
+
+#include <rococo.maths.inl>
 
 using namespace Dystopia;
 using namespace Rococo;
@@ -21,15 +26,40 @@ namespace
 		ID_MESH meshId;
 	};
 
+	struct Projectile
+	{
+		ID_ENTITY attacker;
+		Vec3 position;
+		Vec3 direction;
+		Vec3 velocity;
+		float lifeTime;
+		float creationTime;
+	};
+
+	void Advance(Projectile& p, float dt)
+	{
+		Vec3 g = { 0, 0, -9.81f };
+		Vec3 newPos = dt * p.velocity + p.position + g * dt * dt * 0.5f;
+		Vec3 newVelocity = p.velocity + g * dt;
+		p.velocity = newVelocity;
+		p.position = newPos;
+
+		if (!TryNormalize(p.velocity, p.direction))
+		{
+			p.direction = Vec3(0, 0, 1);
+		}
+	}
+
 	class Level : public ILevelSupervisor, public ILevelBuilder
 	{
 		Environment& e;
 		Vec2 playerPosition;
 		ID_ENTITY idPlayer;
 		std::vector<Entity> entities;
-		
+		std::unordered_map<ID_PROJECTILE, Projectile> projectiles;
+		ID_PROJECTILE nextProjectileId;
 	public:
-		Level(Environment& _e): e(_e), playerPosition(0,0), idPlayer(0) {}
+		Level(Environment& _e) : e(_e), playerPosition(0, 0), idPlayer(0), nextProjectileId(0){}
 
 		virtual ILevelBuilder& Builder()
 		{
@@ -48,6 +78,17 @@ namespace
 			ID_MESH sysId = e.meshes.GetRendererId(meshId);
 			entities.push_back(Entity{ transform, sysId });
 			return entities.size();
+		}
+
+		virtual ID_PROJECTILE AddProjectile(const ProjectileDef& def, float currentTime)
+		{
+			auto id = nextProjectileId++;
+
+			Vec3 direction = Normalize(def.velocity);
+
+			projectiles.insert(std::make_pair(id, Projectile{ def.attacker, def.origin, direction, def.velocity, def.lifeTime, currentTime }));
+
+			return id;
 		}
 
 		virtual void SetTransform(ID_ENTITY id, const Matrix4x4& transform)
@@ -92,6 +133,41 @@ namespace
 			for (auto& entity : entities)
 			{
 				rc.Draw(entity.meshId, &entity.instance, 1);
+			}
+
+			for (auto& i : projectiles)
+			{
+				auto& p = i.second;
+				auto meshId = entities[p.attacker-1].meshId;
+
+				ObjectInstance pi;
+				pi.orientation = Matrix4x4
+				{
+					Vec4(1, 0, 0, p.position.x),
+					Vec4(0, 1, 0, p.position.y),
+					Vec4(0, 0, 1, p.position.z),
+					Vec4(0, 0, 0, 1)
+				};
+
+				rc.Draw(meshId, &pi, 1);
+			}
+		}
+
+		virtual void UpdateObjects(float gameTime, float dt)
+		{
+			auto i = projectiles.begin();
+			while (i != projectiles.end())
+			{
+				auto& p = i->second;
+				if (p.creationTime + p.lifeTime < gameTime)
+				{
+					i = projectiles.erase(i);
+				}
+				else
+				{
+					Advance(p, dt);
+					i++;
+				}
 			}
 		}
 
