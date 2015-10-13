@@ -32,6 +32,7 @@ namespace Dystopia
 		Vec3 origin;
 		Vec3 velocity;
 		float lifeTime;
+		ID_MESH bulletMesh;
 	};
 
 	struct fstring
@@ -61,6 +62,47 @@ namespace Dystopia
 	struct IMeshLoader;
 	struct ILevelBuilder;
 
+	struct IInventory
+	{
+		virtual void SetRangedWeapon(float muzzleVelocity, float flightTime) = 0;
+		virtual void GetRangedWeapon(float& muzzleVelocity, float& flightTime) const = 0;
+	};
+
+	struct IInventorySupervisor: public IInventory
+	{
+		virtual void Free() = 0;
+	};
+
+	IInventorySupervisor* CreateInventory();
+
+	struct IIntent
+	{
+		virtual int32 GetFireCount() const = 0;
+		virtual Vec2 GetImpulse() const = 0;
+		virtual void SetFireCount(int32 count) = 0;
+	};
+
+	struct IHuman
+	{
+		virtual bool IsAlive() const = 0;
+		virtual void OnHit(ID_ENTITY attackerId) = 0;
+		virtual const Vec3& Velocity() const = 0;
+		
+	};
+
+	enum HumanType : int32;
+
+	struct IHumanSupervisor : public IHuman
+	{
+		virtual void Update(float gameTime, float dt) = 0;
+		virtual void Free() = 0;
+	};
+
+	struct IHumanFactory
+	{
+		virtual IHumanSupervisor* CreateHuman(ID_ENTITY id, IInventory& inventory, HumanType typeId) = 0;
+	};
+
 	struct ILevel
 	{
 		virtual ID_ENTITY AddProjectile(const ProjectileDef& def, float currentTime) = 0;
@@ -69,14 +111,15 @@ namespace Dystopia
 		virtual void GetPosition(Vec3& pos, ID_ENTITY id) const = 0;
 		virtual void SetPosition(const Vec3& pos, ID_ENTITY id) = 0;
 		virtual void SetTransform(ID_ENTITY id, const Matrix4x4& transform) = 0;
-		virtual void UpdateObjects(float gameTime, float dt) = 0;
-		virtual bool TryGetWeapon(ID_ENTITY id, float& muzzleVelocity, float& flightTime) = 0;
+		
+		virtual IInventory* GetInventory(ID_ENTITY id) = 0;
 	};
 
 	struct ILevelSupervisor: public ILevel
 	{
 		virtual void Free() = 0;
 		virtual void RenderObjects(IRenderContext& rc) = 0;
+		virtual void UpdateObjects(float gameTime, float dt) = 0;
 	};
 
 	struct ILevelLoader
@@ -130,7 +173,7 @@ namespace Dystopia
 	void Free(Environment* e);
 
 	ILevelLoader* CreateLevelLoader(Environment& e, ILevel& level);
-	ILevelSupervisor* CreateLevel(Environment& e);
+	ILevelSupervisor* CreateLevel(Environment& e, IHumanFactory& humanFactory);
 	IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow* parent);
 
 	struct ScriptCompileArgs

@@ -17,6 +17,8 @@
 
 #include "component.system.inl"
 
+#include "human.types.h"
+
 using namespace Dystopia;
 using namespace Rococo;
 
@@ -29,13 +31,6 @@ namespace
 		float boundingRadius;
 	};
 
-	struct RangedWeapon
-	{
-		float flightTime;
-		float muzzleVelocity;
-		std::wstring name;
-	};
-
 	struct Projectile
 	{
 		ID_ENTITY attacker;
@@ -44,14 +39,14 @@ namespace
 		Vec3 velocity;
 		float lifeTime;
 		float creationTime;
+		ID_MESH bulletMesh;
 	};
 
 	struct Human
 	{
-		bool isAlive;
-		Vec3 velocity;
 		float nextAIcheck;
-		RangedWeapon weapon;
+		AutoFree<IInventorySupervisor> inventory;
+		AutoFree<IHumanSupervisor> ai;
 	};
 
 	Sphere BoundingSphere(const Solid& solid)
@@ -100,19 +95,32 @@ namespace
 		return false;
 	}
 
+	struct RangedWeaponCrate
+	{
+		float flightTime;
+		float muzzleVelocity;
+		std::wstring name;
+	};
+
 	class Level : public ILevelSupervisor, public ILevelBuilder
 	{
 		Environment& e;
-		Vec2 playerPosition;
+		IHumanFactory& hf;
 		ID_ENTITY idPlayer;
 		EntityTable<Solid> solids;
 		EntityTable<Projectile> projectiles;
-		EntityTable<Human> enemies;
-		EntityTable<Human> allies;
-		EntityTable<RangedWeapon> weapons;
+		EntityTable<Human*> enemies;
+		EntityTable<Human*> allies;
+		EntityTable<RangedWeaponCrate> weapons;
 
 	public:
-		Level(Environment& _e) : e(_e), playerPosition{ 0, 0 }, idPlayer(0) {}
+		Level(Environment& _e, IHumanFactory& _hf) : e(_e), hf(_hf), idPlayer(0) {}
+
+		~Level()
+		{
+			FreeTable(allies);
+			FreeTable(enemies);
+		}
 
 		virtual ILevelBuilder& Builder()
 		{
@@ -129,7 +137,7 @@ namespace
 		virtual ID_ENTITY AddRangedWeapon(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, float muzzleVelocity, float flightTime)
 		{
 			auto id = AddSolid(transform, editorId);
-			weapons.insert(id, RangedWeapon{ flightTime, muzzleVelocity, name.buffer });
+			weapons.insert(id, RangedWeaponCrate{ flightTime, muzzleVelocity, name.buffer });
 			return id;
 		}
 
@@ -145,14 +153,20 @@ namespace
 		virtual ID_ENTITY AddAlly(const Matrix4x4& transform, ID_MESH meshId)
 		{
 			ID_ENTITY id = AddSolid(transform, meshId);
-			allies.insert(id, Human{ true, Vec3{ 1,0,0 }, 0.0f, RangedWeapon{ 4.0f, 10.0f } });
+			auto* inv = CreateInventory();
+			auto h = new Human { 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Vigilante ) };
+			h->inventory->SetRangedWeapon(10.0f, 4.0f);
+			allies.insert(id, h);
 			return id;
 		}
 
 		virtual ID_ENTITY AddEnemy(const Matrix4x4& transform, ID_MESH meshId)
 		{
 			ID_ENTITY id = AddSolid(transform, meshId);
-			enemies.insert(id, Human{ true, Vec3{1,0,0}, 0.0f, RangedWeapon { 4.0f, 10.0f } });
+			auto* inv = CreateInventory();
+			auto h = new Human{  0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Bobby) };
+			h->inventory->SetRangedWeapon(10.0f, 4.0f);
+			enemies.insert(id, h);
 			return id;
 		}
 
@@ -162,7 +176,7 @@ namespace
 
 			Vec3 direction = Normalize(def.velocity);
 
-			projectiles.insert(id, Projectile{ def.attacker, def.origin, direction, def.velocity, def.lifeTime, currentTime });
+			projectiles.insert(id, Projectile{ def.attacker, def.origin, direction, def.velocity, def.lifeTime, currentTime, def.bulletMesh });
 
 			return id;
 		}
@@ -215,7 +229,6 @@ namespace
 			for (auto& i : projectiles)
 			{
 				auto& p = i.second;
-				auto meshId = solids[0].meshId;
 
 				ObjectInstance pi;
 				pi.orientation = Matrix4x4
@@ -226,7 +239,7 @@ namespace
 					Vec4{0,     0,     0,     1}
 				};
 
-				rc.Draw(meshId, &pi, 1);
+				rc.Draw(p.bulletMesh, &pi, 1);
 			}
 		}
 
@@ -254,7 +267,7 @@ namespace
 				ID_ENTITY idEnemy = GetFirstIntersect(oldPos, newPos, enemies, solids);
 				if (idEnemy)
 				{
-					enemies[idEnemy].isAlive = false;
+					enemies[idEnemy]->ai->OnHit(idPlayer);
 				}
 			}
 			else
@@ -266,62 +279,33 @@ namespace
 			}
 		}
 
-		void UpdateEnemyAI(Human& enemy, ID_ENTITY id, float gameTime, float dt)
+		void UpdatePosition(ID_ENTITY id, float dt, EntityTable<Human*>& humans)
 		{
-			enemy.nextAIcheck = gameTime + 1.0f;
+			Vec3 pos;
+			GetPosition(pos, id);
 
-			int r = rand() % 6;
-			switch (r)
+			auto i = humans.find(id);
+			if (i == humans.end())
 			{
-			case 0:
-				enemy.velocity = Vec3{ 1, 0, 0 };
-				break;
-			case 1:
-				enemy.velocity = Vec3{ -1, 0, 0 };
-				break;
-			case 2:
-				enemy.velocity = Vec3{ 0, 1, 0 };
-				break;
-			case 3:
-				enemy.velocity = Vec3{ 0, -1, 0 };
-				break;
-			case 4:
-				{
-					ProjectileDef def;
-					def.attacker = id;
-					def.lifeTime = enemy.weapon.flightTime;
-					def.origin = ::GetPosition(solids[id].instance.orientation);
-					Vec3 enemyToPlayer = ::GetPosition(solids[idPlayer].instance.orientation) - def.origin;
-					enemyToPlayer.z = Length(enemyToPlayer);
-
-					Vec3 dir;
-					if (TryNormalize(enemyToPlayer, dir))
-					{
-						def.velocity = enemy.weapon.muzzleVelocity * dir;
-						AddProjectile(def, gameTime);
-					}	
-				}
-				break;
-			default:
-				enemy.velocity = Vec3{ 0, 0, 0 };
-				break;
+				return;
 			}
+
+			Vec3 newPos = pos + i->second->ai->Velocity() * dt;
+			SetPosition(newPos, id);
 		}
 
 		void UpdateEnemy(Human& enemy, ID_ENTITY id, float gameTime, float dt)
 		{
-			auto& entity = solids[id];
-			Vec3 pos = ::GetPosition(entity.instance.orientation);
-			pos = pos + enemy.velocity * dt;
-			::SetPosition(entity.instance.orientation, pos);
+			UpdatePosition(id, dt, enemies);
 
 			if (enemy.nextAIcheck < gameTime)
 			{
-				UpdateEnemyAI(enemy, id, gameTime, dt);
+				enemy.ai->Update(gameTime, dt);
+				enemy.nextAIcheck = gameTime + 1.0f;
 			}
 		}
 
-		virtual bool TryGetWeapon(ID_ENTITY id, float& muzzleVelocity, float& flightTime)
+		virtual IInventory* GetInventory(ID_ENTITY id)
 		{
 			auto i = enemies.find(id);
 			if (i == enemies.end())
@@ -329,13 +313,11 @@ namespace
 				i = allies.find(id);
 				if (i == allies.end())
 				{
-					return false;
+					return nullptr;
 				}
 			}
 
-			muzzleVelocity = i->second.weapon.muzzleVelocity;
-			flightTime = i->second.weapon.flightTime;
-			return true;
+			return i->second->inventory;
 		}
 
 		virtual void UpdateObjects(float gameTime, float dt)
@@ -359,20 +341,25 @@ namespace
 			while (j != enemies.end())
 			{
 				auto& enemy = j->second;
-				if (enemy.isAlive)
+				if (enemy->ai->IsAlive())
 				{
-					UpdateEnemy(enemy, j->first, gameTime, dt);
+					UpdateEnemy(*enemy, j->first, gameTime, dt);
 					j++;
 				}
 				else
 				{
 					solids.erase(j->first);
+					delete j->second;
 					j = enemies.erase(j);		
 				}
 			}
 
+			allies[idPlayer]->ai->Update(gameTime, dt);
+
 			Vec3 playerPos;
 			GetPosition(playerPos, idPlayer);
+
+			UpdatePosition(idPlayer, dt, allies);
 
 			auto w = weapons.begin(); 
 			while (w != weapons.end())
@@ -382,7 +369,7 @@ namespace
 				float lenSq = LengthSq(boxPos - playerPos);
 				if (lenSq < Square(k->second.boundingRadius))
 				{
-					allies[idPlayer].weapon = w->second;
+					allies[idPlayer]->inventory->SetRangedWeapon(w->second.muzzleVelocity, w->second.flightTime);
 					solids.erase(w->first);
 					weapons.erase(w);
 					break;
@@ -459,8 +446,8 @@ namespace Dystopia
 		return new LevelLoader(e, level);
 	}
 
-	ILevelSupervisor* CreateLevel(Environment& e)
+	ILevelSupervisor* CreateLevel(Environment& e, IHumanFactory& hf)
 	{
-		return new Level(e);
+		return new Level(e, hf);
 	}
 }

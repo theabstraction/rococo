@@ -8,6 +8,7 @@
 #include "meshes.h"
 
 #include "controls.inl"
+#include "human.types.h"
 
 using namespace Dystopia;
 using namespace Rococo;
@@ -50,6 +51,39 @@ namespace
 		RenderHorizontalCentredText(rc, info, RGBAb{ 255, 255, 255, 255 }, 1, Vec2i{ 25, 25 });
 	}
 
+	struct HumanFactory: public IHumanFactory
+	{
+		ILevel* level;
+		IIntent* controls;
+
+		virtual IHumanSupervisor* CreateHuman(ID_ENTITY id, IInventory& inventory, HumanType typeId)
+		{
+			switch (typeId)
+			{
+			case HumanType_Bobby:
+				return CreateBobby(id, inventory, *level);
+			case HumanType_Vigilante:
+				return CreateVigilante(id, *controls, *level);
+			}
+			return nullptr;
+		}
+	};
+
+	void GetIsometricWorldMatrix(Matrix4x4& worldMatrix, float scale, float aspectRatio, const Vec3& centre, Degrees phi, Degrees viewTheta)
+	{
+		using namespace DirectX;
+
+		XMMATRIX aspectCorrect = XMMatrixScaling(scale * aspectRatio, scale, scale);
+		XMMATRIX rotZ = XMMatrixRotationZ(ToRadians(viewTheta));
+		XMMATRIX rotX = XMMatrixRotationX(ToRadians(phi));
+		XMMATRIX origin = XMMatrixTranslation(-centre.x, -centre.y, 0.0f);
+		XMMATRIX totalRot = XMMatrixMultiply(rotZ, rotX);
+
+		XMMATRIX t = XMMatrixMultiply(XMMatrixMultiply(origin, totalRot), aspectCorrect);
+
+		XMStoreFloat4x4((DirectX::XMFLOAT4X4*) &worldMatrix, t);
+	}
+
 	class DystopiaApp : public IApp, private IScene
 	{
 	private:
@@ -57,6 +91,7 @@ namespace
 		AutoFree<ISourceCache> sourceCache;
 		AutoFree<IMeshLoader> meshes;
 		Environment e;
+		HumanFactory humanFactory;
 		AutoFree<ILevelSupervisor> level;
 		AutoFree<ILevelLoader> levelLoader;
 
@@ -70,11 +105,13 @@ namespace
 			sourceCache(CreateSourceCache(_installation)),
 			meshes(CreateMeshLoader(_installation, _renderer, *sourceCache)),
 			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes },
-			level(CreateLevel(e)),
+			level(CreateLevel(e, humanFactory)),
 			levelLoader(CreateLevelLoader(e, *level)),
 			gameTime(0.0f),
 			lastFireTime(0.0f)
 		{
+			humanFactory.level = level;
+			humanFactory.controls = &controls;
 		}
 		
 		~DystopiaApp()
@@ -91,42 +128,6 @@ namespace
 			levelLoader->Load(L"!levels/level1.sxy", false);
 		}
 
-		void AdvanceGame(float dt)
-		{
-			auto id = level->GetPlayerId();
-
-			Vec3 pos;
-			level->GetPosition(pos, id);
-
-			float speed = 4.0f;
-			Vec3 newPos = pos + dt * speed * Vec3{ controls.GetImpulse().x, controls.GetImpulse().y, 0 };
-			
-			level->SetPosition(newPos, id);
-
-			gameTime += dt;
-			level->UpdateObjects(gameTime, dt);
-
-			if (gameTime > lastFireTime + 0.25f)
-			{
-				int& fireCount = controls.GetFireCount();
-				if (fireCount > 2) fireCount = 2;
-				if (fireCount > 0)
-				{
-					fireCount--;
-					lastFireTime = gameTime;
-
-					float muzzleVelocity, flightTime;
-					if (level->TryGetWeapon(level->GetPlayerId(), muzzleVelocity, flightTime))
-					{
-						float dz = 10.0f / muzzleVelocity;
-						Vec3 dir{ 0, 1, dz };
-						ProjectileDef def = { level->GetPlayerId(), newPos, dir * muzzleVelocity, flightTime };
-						level->AddProjectile(def, lastFireTime);
-					}
-				}
-			}
-		}
-
 		virtual uint32 OnTick(const IUltraClock& clock)
 		{
 			levelLoader->SyncWithModifiedFiles();
@@ -135,7 +136,9 @@ namespace
 			if (dt < 0.0f) dt = 0.0f;
 			if (dt > 0.1f) dt = 0.1f;
 
-			AdvanceGame(dt);
+			gameTime += dt;
+
+			level->UpdateObjects(gameTime, dt);
 
 			e.renderer.Render(*this);
 			return 5;
@@ -148,26 +151,13 @@ namespace
 
 		virtual void GetWorldMatrix(Matrix4x4& worldMatrix) const
 		{
-			using namespace DirectX;
-
 			auto id = level->GetPlayerId();
 
 			Vec3 playerPosition;
 			level->GetPosition(playerPosition, id);
 
-			Degrees phi{ -45.0f };
-
 			float g = 0.04f * powf(1.25f, controls.GlobalScale());
-
-			XMMATRIX aspectCorrect = XMMatrixScaling(g * GetAspectRatio(e.renderer), g, g);
-			XMMATRIX rotZ = XMMatrixRotationZ(ToRadians(controls.ViewTheta()));
-			XMMATRIX rotX = XMMatrixRotationX(ToRadians(phi));
-			XMMATRIX origin = XMMatrixTranslation(-playerPosition.x, -playerPosition.y, 0.0f);
-			XMMATRIX totalRot = XMMatrixMultiply(rotZ, rotX);
-
-			XMMATRIX t = XMMatrixMultiply(XMMatrixMultiply(origin, totalRot), aspectCorrect);
-
-			XMStoreFloat4x4((DirectX::XMFLOAT4X4*) &worldMatrix, t);
+			GetIsometricWorldMatrix(worldMatrix, g, GetAspectRatio(e.renderer), playerPosition, Degrees{ -45.0f }, controls.ViewTheta());
 		}
 
 

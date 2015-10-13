@@ -3,7 +3,7 @@ namespace
 	using namespace Dystopia;
 	using namespace Rococo;
 
-	class GameControls
+	class GameControls: public IIntent
 	{
 	private:
 		uint32 SCANCODE_FORWARD;
@@ -44,9 +44,14 @@ namespace
 			SCANCODE_FIRE = keyboard->GetScanCode(L"SPACE");
 		}
 
-		int& GetFireCount()
+		int32 GetFireCount() const
 		{
 			return fireCount;
+		}
+
+		void SetFireCount(int32 count)
+		{
+			fireCount = count;
 		}
 
 		void AppendMouseEvent(const MouseEvent& me)
@@ -129,7 +134,7 @@ namespace
 
 		Degrees ViewTheta() const { return viewTheta; }
 
-		Vec2 GetImpulse() const
+		virtual Vec2 GetImpulse() const
 		{
 			float Fx = (isLeft ? -1.0f : 0.0f) + (isRight ? 1.0f : 0.0f);
 			float Fy = (isForward ? 1.0f : 0.0f) + (isBackward ? -1.0f : 0.0f);

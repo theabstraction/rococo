@@ -19,4 +19,14 @@ namespace Dystopia
 			return std::unordered_map<ID_ENTITY, ROW>::insert(std::make_pair(id, row));
 		}
 	};
+
+	template<class ROW> void FreeTable(EntityTable<ROW>& table)
+	{
+		for (auto i : table)
+		{
+			delete i.second;
+		}
+
+		table.clear();
+	}
 }

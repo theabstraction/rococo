@@ -45,6 +45,15 @@
     <ClCompile Include="script.natives.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="inventory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="human.bobby.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="human.vigilante.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dx11.renderer.rc">
@@ -74,6 +83,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\rococo.maths.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="human.types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
