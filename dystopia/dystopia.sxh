@@ -5,7 +5,7 @@
 	(as.cpp Dystopia.IMeshes "dystopia") // This gives the fully qualified struct name as published in the C++ header	
 	(context factory Dystopia.IMeshes)
 	(methods
-		(Load (IString resourceName) (IdMesh editorId) ->)
+		(Load (const IString resourceName) (IdMesh editorId) ->)
 	)
 	(factory Dystopia.Meshes.GetMeshes)
 )
@@ -15,7 +15,10 @@
 	(as.cpp Dystopia.ILevelBuilder "dystopia")
 	(context factory Dystopia.ILevel)
 	(methods
-		(AddEntity (Matrix4x4 transform) (IdMesh editorId) -> (IdEntity entityId))
+		(AddEnemy (const Matrix4x4 transform) (IdMesh editorId) -> (IdEntity entityId))
+		(AddAlly (const Matrix4x4 transform) (IdMesh editorId) -> (IdEntity entityId))
+		(AddRangedWeapon  (const Matrix4x4 transform) (IdMesh editorId) (const IString name) (Float32 muzzleVelocity)(Float32 flightTime) -> (IdEntity entityId))
+		(AddSolid (const Matrix4x4 transform) (IdMesh editorId) -> (IdEntity entityId))
 		(Clear ->)
 		(SetPlayerId (IdEntity playerId) ->)
 	)

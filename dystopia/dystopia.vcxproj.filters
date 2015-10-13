@@ -81,13 +81,16 @@
     <None Include="controls.inl">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="generate.native.libs.bat">
+    <None Include="dystopia.sxh">
       <Filter>Source Files</Filter>
     </None>
     <None Include="config.xc">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="component.system.inl">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="dystopia.sxh">
+    <None Include="..\include\rococo.maths.inl">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

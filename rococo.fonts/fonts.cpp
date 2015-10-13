@@ -236,7 +236,7 @@ namespace
 
 		virtual void SetCursor(const Vec2& cursor)
 		{
-			this->cursor = Vec2(floorf(cursor.x), floorf(cursor.y));;
+			this->cursor = Vec2{ floorf(cursor.x), floorf(cursor.y) };
 		}
 
 		virtual void SetTextColour(FontColour colour)
@@ -288,7 +288,7 @@ namespace
 
 		virtual void OnGlyph(int column, const Quad* clipRect, const Glyph& g, float height, FontColour colour, bool isShadowed, Quad& outputRect)
 		{
-			bool isVisible = clipRect == NULL || (IsPointIn(*clipRect, builder->cursor) || IsPointIn(*clipRect, builder->cursor + Vec2(g.A + g.B, height)));
+			bool isVisible = clipRect == NULL || (IsPointIn(*clipRect, builder->cursor) || IsPointIn(*clipRect, builder->cursor + Vec2{ g.A + g.B, height }));
 			Quad glyphClipRect = clipRect == NULL ? Quad(0, 0, 16384.0f, 16384.0f) : *clipRect;
 
 			// Since it is visible the lowest line in the glyph must be below the top line in the clip rect, and the top line in the glyph above the bottom line in the clip rect

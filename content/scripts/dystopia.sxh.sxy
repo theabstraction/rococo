@@ -12,14 +12,20 @@
 )
 
 (interface Dystopia.Levels.ILevel
-	(AddEntity (Sys.Maths.Matrix4x4 transform)(Int32 editorId) -> (Int64 entityId))
+	(AddEnemy (Sys.Maths.Matrix4x4 transform)(Int32 editorId) -> (Int64 entityId))
+	(AddAlly (Sys.Maths.Matrix4x4 transform)(Int32 editorId) -> (Int64 entityId))
+	(AddRangedWeapon (Sys.Maths.Matrix4x4 transform)(Int32 editorId)(Sys.Type.IString name)(Float32 muzzleVelocity)(Float32 flightTime) -> (Int64 entityId))
+	(AddSolid (Sys.Maths.Matrix4x4 transform)(Int32 editorId) -> (Int64 entityId))
 	(Clear  -> )
 	(SetPlayerId (Int64 playerId) -> )
 )
 
 (class ProxyILevel (implements Dystopia.Levels.ILevel) (Pointer hObject))
 	(method ProxyILevel.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyILevel.AddEntity (Sys.Maths.Matrix4x4 transform)(Int32 editorId) -> (Int64 entityId) : (Dystopia.Levels.Native.ILevelAddEntity this.hObject transform editorId -> entityId))
+	(method ProxyILevel.AddEnemy (Sys.Maths.Matrix4x4 transform)(Int32 editorId) -> (Int64 entityId) : (Dystopia.Levels.Native.ILevelAddEnemy this.hObject transform editorId -> entityId))
+	(method ProxyILevel.AddAlly (Sys.Maths.Matrix4x4 transform)(Int32 editorId) -> (Int64 entityId) : (Dystopia.Levels.Native.ILevelAddAlly this.hObject transform editorId -> entityId))
+	(method ProxyILevel.AddRangedWeapon (Sys.Maths.Matrix4x4 transform)(Int32 editorId)(Sys.Type.IString name)(Float32 muzzleVelocity)(Float32 flightTime) -> (Int64 entityId) : (Dystopia.Levels.Native.ILevelAddRangedWeapon this.hObject transform editorId name muzzleVelocity flightTime -> entityId))
+	(method ProxyILevel.AddSolid (Sys.Maths.Matrix4x4 transform)(Int32 editorId) -> (Int64 entityId) : (Dystopia.Levels.Native.ILevelAddSolid this.hObject transform editorId -> entityId))
 	(method ProxyILevel.Clear  ->  : (Dystopia.Levels.Native.ILevelClear this.hObject ))
 	(method ProxyILevel.SetPlayerId (Int64 playerId) ->  : (Dystopia.Levels.Native.ILevelSetPlayerId this.hObject playerId))
 

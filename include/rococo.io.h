@@ -78,17 +78,13 @@ namespace Rococo
 
 	IExpandingBuffer* CreateExpandingBuffer(size_t initialCapacity);
 
-	struct ITextCallback
-	{
-		virtual void OnItem(const wchar_t* filename) = 0;
-	};
-
 	struct SysUnstableArgs {};
+	struct FileModifiedArgs { const wchar_t* resourceName; };
 
 	struct NO_VTABLE IOS
 	{
 		virtual void ConvertUnixPathToSysPath(const wchar_t* unixPath, wchar_t* sysPath, size_t bufferCapacity) const = 0;
-		virtual void EnumerateModifiedFiles(ITextCallback& cb) = 0;
+		virtual void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs>& cb) = 0;
 		virtual void FireUnstable() = 0;
 		virtual void SetUnstableHandler(IEventCallback<SysUnstableArgs>* cb) = 0;
 		virtual void GetBinDirectoryAbsolute(wchar_t* binDirectory, size_t capacityChars) const = 0;
@@ -117,6 +113,8 @@ namespace Rococo
 	};
 
 	IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os);
+
+	bool DoesModifiedFilenameMatchResourceName(const wchar_t* modifiedFilename, const wchar_t* resourceName);
 }
 
 #endif

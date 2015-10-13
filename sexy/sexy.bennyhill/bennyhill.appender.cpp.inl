@@ -249,8 +249,6 @@ namespace
 
 	void AddNativeInputs(TAttributeMap& attributes, FileAppender& appender, cr_sex methodArgs, int inputStart, int inputEnd, const ParseContext& pc)
 	{
-		bool hasInitializedStringStruct = false;
-
 		for(int i = inputEnd; i >= inputStart; --i)
 		{
 			cr_sex s = methodArgs.GetElement(i);		
@@ -290,13 +288,6 @@ namespace
 				if (AreEqual(sxhtype, SEXTEXT("IString")) || AreEqual(sxhtype, SEXTEXT("Sys.Text.IString")))
 				{
 					isString = true;
-					if (!hasInitializedStringStruct)
-					{
-						hasInitializedStringStruct = true;
-						appender.Append(SEXTEXT("\n\t\t#pragma pack(push,1)\n"));
-						appender.Append(SEXTEXT("\t\tstruct _IString { Sexy::Compiler::VirtualTable* vTable; Sexy::int32 length; Sexy::csexstr buffer; };\n"));
-						appender.Append(SEXTEXT("\t\t#pragma pack(pop)\n"));
-					}
 				}
 			
 				if (!isString) 
@@ -321,7 +312,7 @@ namespace
 					appender.Append(SEXTEXT("\t\t_offset += sizeof(%s);\n\n"), fieldName);
 				}
 
-				if (isString) appender.Append(SEXTEXT("\t\t_IString* _%s;\n"), fieldName);
+				if (isString) appender.Append(SEXTEXT("\t\tIString* _%s;\n"), fieldName);
 
 				appender.Append(isString ? SEXTEXT("\t\tReadInput(_%s, _sf, -_offset);\n") : SEXTEXT("\t\tReadInput(%s, _sf, -_offset);\n"), fieldName);
 
@@ -329,8 +320,8 @@ namespace
 				{
 					appender.Append(SEXTEXT("\t\t"));
 					AppendCppType(appender, stype, sxhtype, pc);
-					appender.Append(SEXTEXT(" %s;\n"), fieldName);	
-					appender.Append(SEXTEXT("\t\t%s.buffer = _%s->buffer;\n\t\t%s.length = _%s->length;\n\n"), fieldName, fieldName, fieldName, fieldName);
+					appender.Append(SEXTEXT(" %s {"), fieldName);	
+					appender.Append(SEXTEXT(" _%s->buffer, _%s->length };\n\n"), fieldName, fieldName);
 				}
 			}
 		}

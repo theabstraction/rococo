@@ -47,7 +47,7 @@ namespace
 		wchar_t info[256];
 		SafeFormat(info, _TRUNCATE, L"Mouse: (%d,%d). Screen(%d,%d)", metrics.cursorPosition.x, metrics.cursorPosition.y, metrics.screenSpan.x, metrics.screenSpan.y);
 
-		RenderHorizontalCentredText(rc, info, RGBAb{ 255, 255, 255, 255 }, 1, Vec2i(25, 25));
+		RenderHorizontalCentredText(rc, info, RGBAb{ 255, 255, 255, 255 }, 1, Vec2i{ 25, 25 });
 	}
 
 	class DystopiaApp : public IApp, private IScene
@@ -93,15 +93,13 @@ namespace
 
 		void AdvanceGame(float dt)
 		{
-			
-
 			auto id = level->GetPlayerId();
 
 			Vec3 pos;
 			level->GetPosition(pos, id);
 
 			float speed = 4.0f;
-			Vec3 newPos = pos + dt * speed * Vec3(controls.GetImpulse().x, controls.GetImpulse().y, 0);
+			Vec3 newPos = pos + dt * speed * Vec3{ controls.GetImpulse().x, controls.GetImpulse().y, 0 };
 			
 			level->SetPosition(newPos, id);
 
@@ -117,8 +115,14 @@ namespace
 					fireCount--;
 					lastFireTime = gameTime;
 
-					ProjectileDef def = { level->GetPlayerId(), newPos, Vec3(0,10.0f,10.0f), 2.0f };
-					level->AddProjectile(def, lastFireTime);
+					float muzzleVelocity, flightTime;
+					if (level->TryGetWeapon(level->GetPlayerId(), muzzleVelocity, flightTime))
+					{
+						float dz = 10.0f / muzzleVelocity;
+						Vec3 dir{ 0, 1, dz };
+						ProjectileDef def = { level->GetPlayerId(), newPos, dir * muzzleVelocity, flightTime };
+						level->AddProjectile(def, lastFireTime);
+					}
 				}
 			}
 		}

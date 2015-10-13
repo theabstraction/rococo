@@ -34,9 +34,6 @@ namespace Rococo
 	{
 		float x;
 		float y;
-
-		Vec2() {}
-		Vec2(float _x, float _y) : x(_x), y(_y) {}
 	};
 
 	struct Vec3
@@ -44,9 +41,6 @@ namespace Rococo
 		float x;
 		float y;
 		float z;
-
-		Vec3() {}
-		Vec3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
 	};
 
 	struct Vec4
@@ -55,9 +49,6 @@ namespace Rococo
 		float y;
 		float z;
 		float w;
-
-		Vec4() {}
-		Vec4(float _x, float _y, float _z, float _w) : x(_x), y(_y), z(_z), w(_w) {}
 	};
 
 	struct Matrix4x4
@@ -72,9 +63,12 @@ namespace Rococo
 	{
 		int32 x;
 		int32 y;
+	};
 
-		Vec2i() {}
-		Vec2i(int _x, int _y) : x(_x), y(_y) {}
+	struct Sphere
+	{
+		Vec3 centre;
+		float radius;
 	};
 
 	struct GuiRect
@@ -201,8 +195,6 @@ namespace Rococo
 	};
 
 	void TripDebugger();
-	void Throw(int32 errorCode, const wchar_t* format, ...);
-	bool DoesModifiedFilenameMatchResourceName(const wchar_t* modifiedFilename, const wchar_t* resourceName);
 
 	struct RGBAb
 	{
@@ -215,7 +207,6 @@ namespace Rococo
 		RGBAb(uint8 _red, uint8 _green, uint8 _blue, uint8 _alpha = 255) : red(_red), green(_green), blue(_blue), alpha(_alpha) {}
 	};
 
-		struct IException;
 	struct IRenderer;
 	struct IInstallation;
 	struct IOS;

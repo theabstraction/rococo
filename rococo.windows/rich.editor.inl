@@ -28,7 +28,7 @@ namespace
 							  {
 								  if (mf->msg == WM_NCRBUTTONUP)
 								  {
-									  Vec2i pos(GET_X_LPARAM(mf->lParam), GET_Y_LPARAM(mf->lParam));
+									  Vec2i pos{ GET_X_LPARAM(mf->lParam), GET_Y_LPARAM(mf->lParam) };
 									  eventHandler.OnRightButtonUp(pos);
 									  return 0L;
 								  }

@@ -505,7 +505,7 @@ namespace Rococo
 					return 0L;
 				}
 			case WM_SIZE:
-				OnSize(hWnd, Vec2i(LOWORD(lParam), HIWORD(lParam)), (RESIZE_TYPE)wParam);
+				OnSize(hWnd, Vec2i{ LOWORD(lParam), HIWORD(lParam) }, (RESIZE_TYPE)wParam);
 				return 0L;
 			case WM_GETMINMAXINFO:
 				OnGetMinMaxInfo(hWnd, *reinterpret_cast<MINMAXINFO*>(lParam));

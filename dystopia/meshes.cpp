@@ -59,7 +59,7 @@ namespace
 			ThrowSex(meshDef, L"Expecting 3 vertices per triangle");
 		}
 
-		ObjectVertex v{ Vec3(0,0,0), Vec3(0,0,0), RGBAb(0,0,0), RGBAb(0,0,0) };
+		ObjectVertex v{ Vec3{0,0,0}, Vec3{ 0,0,0 }, RGBAb(0,0,0), RGBAb(0,0,0) };
 
 		for (int i = 0; i < nVertices; ++i)
 		{
@@ -145,12 +145,12 @@ namespace
 			return i->second.rendererId;
 		}
 
-		virtual void Load(fstring resourcePath, ID_MESH editorId)
+		virtual void Load(const fstring& resourcePath, ID_MESH editorId)
 		{
 			Load(resourcePath, editorId, false);
 		}
 
-		void Load(fstring resourcePath, ID_MESH editorId, bool isReloading)
+		void Load(const fstring& resourcePath, ID_MESH editorId, bool isReloading)
 		{
 			using namespace Dystopia;
 

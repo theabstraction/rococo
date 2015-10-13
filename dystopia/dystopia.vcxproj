@@ -211,6 +211,8 @@
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\include\rococo.maths.inl" />
+    <None Include="component.system.inl" />
     <None Include="dystopia.sxh">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
       <FileType>Document</FileType>
@@ -218,7 +220,6 @@
     </None>
     <None Include="config.xc" />
     <None Include="controls.inl" />
-    <None Include="generate.native.libs.bat" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

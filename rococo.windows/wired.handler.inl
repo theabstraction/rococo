@@ -138,7 +138,7 @@ namespace
 
 		void OnSize(HWND hWnd, WPARAM wParam, LPARAM lParam)
 		{
-			bindOnSize.type(bindOnSize.context, hWnd, Vec2i(LOWORD(lParam), HIWORD(lParam)), (RESIZE_TYPE)wParam);
+			bindOnSize.type(bindOnSize.context, hWnd, Vec2i{ LOWORD(lParam), HIWORD(lParam) }, (RESIZE_TYPE)wParam);
 		}
 
 		virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

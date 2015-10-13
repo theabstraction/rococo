@@ -157,7 +157,7 @@ namespace Dystopia
 		float x = GetValue(sx, -1.0e10f, 1e10f, L"x component");
 		float y = GetValue(sy, -1.0e10f, 1e10f, L"y component");
 		float z = GetValue(sz, -1.0e10f, 1e10f, L"z component");
-		return Vec3(x, y, z);
+		return Vec3{ x, y, z };
 	}
 
 	int32 GetValue(cr_sex s, int32 minValue, int32 maxValue, csexstr hint)

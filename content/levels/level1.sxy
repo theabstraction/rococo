@@ -11,6 +11,7 @@
 	(meshes.Load "!mesh/cube.sxy" 1)
 	(meshes.Load "!mesh/road.sxy" 2)
 	(meshes.Load "!mesh/human.sxy" 3)
+	(meshes.Load "!mesh/rifle.sxy" 4)
 	
 	(Dystopia.Levels.ILevel level (Dystopia.Levels.GetLevel))
 	(level.Clear)
@@ -22,7 +23,7 @@
 		( 0 0 0    1)
 	)
 	
-	(level.AddEntity road 2)
+	(level.AddSolid road 2)
 
 	(Matrix4x4 offroad1 =
 		( 1 0 0    -3.5)
@@ -30,7 +31,7 @@
 		( 0 0 1     0.5)
 		( 0 0 0     1.0)
 	)
-	(level.AddEntity offroad1 1)
+	(level.AddSolid offroad1 1)
 		
 	(Matrix4x4 offroad2 =
 		( 2 0 0     4.0)
@@ -38,7 +39,7 @@
 		( 0 0 2     1.0)
 		( 0 0 0     1.0)
 	)
-	(level.AddEntity offroad2 1)
+	(level.AddSolid offroad2 1)
 	
 	(Matrix4x4 mrSmithLoc =
 		( 1 0 0     0.0 )
@@ -46,7 +47,31 @@
 		( 0 0 1     0.0 )
 		( 0 0 0     1.0 )
 	)
-	(level.AddEntity mrSmithLoc 3)
+	(level.AddEnemy mrSmithLoc 3)
+	
+	(Matrix4x4 mrSmithLoc2 =
+		( 1 0 0     1.0 )
+		( 0 1 0     2.0 )
+		( 0 0 1     0.0 )
+		( 0 0 0     1.0 )
+	)
+	(level.AddEnemy mrSmithLoc2 3)
+	
+	(Matrix4x4 mrSmithLoc3 =
+		( 1 0 0     0.0 )
+		( 0 1 0     2.0 )
+		( 0 0 1     0.0 )
+		( 0 0 0     1.0 )
+	)
+	(level.AddEnemy mrSmithLoc3 3)
+	
+	(Matrix4x4 mrSmithLoc4 =
+		( 1 0 0     1.0 )
+		( 0 1 0     3.0 )
+		( 0 0 1     0.0 )
+		( 0 0 0     1.0 )
+	)
+	(level.AddEnemy mrSmithLoc4 3)
 		
 	(Matrix4x4 playerLoc =
 		( 1 0 0    0)
@@ -55,8 +80,17 @@
 		( 0 0 0    1)
 	)
 	
-	(Int64 playerId = (level.AddEntity playerLoc 3))
+	(Int64 playerId = (level.AddAlly playerLoc 3))
 	(level.SetPlayerId playerId)
+	
+	(Matrix4x4 powerupLoc =
+		( 0.2      0	0    3)
+		( 0      0.2    0    3)
+		( 0        0  0.2  0.1)
+		( 0        0    0    1)
+	)
+	
+	(level.AddRangedWeapon powerupLoc 4 "rifle" 330.0 0.2)
 			
 	(exitCode = 0)
 )

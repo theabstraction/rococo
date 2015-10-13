@@ -246,8 +246,8 @@ namespace
 
 		virtual void DrawGlyph(const Vec2& t0, const Vec2& p, float dx, float dy, Fonts::FontColour colour)
 		{
-			ExpandZoneToContain(renderZone, Vec2(p.x, p.y));
-			ExpandZoneToContain(renderZone, Vec2(p.x + dx, p.y + dy));
+			ExpandZoneToContain(renderZone, Vec2{ p.x, p.y });
+			ExpandZoneToContain(renderZone, Vec2{ p.x + dx, p.y + dy });
 		}
 
 		Vec2 Span() const
@@ -741,7 +741,7 @@ namespace
 			GetCursorPos(&p);
 			ScreenToClient(hRenderWindow, &p);
 
-			metrics.cursorPosition = Vec2i(p.x, p.y);
+			metrics.cursorPosition = Vec2i{ p.x, p.y };
 			metrics.screenSpan = screenSpan;
 		}
 
@@ -977,7 +977,7 @@ namespace
 		void PostConstruct()
 		{
 			WindowConfig config;
-			SetOverlappedWindowConfig(config, Vec2i(800, 600), SW_SHOWMAXIMIZED, nullptr, L"DX11 64-bit Rococo API Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0);
+			SetOverlappedWindowConfig(config, Vec2i{ 800, 600 }, SW_SHOWMAXIMIZED, nullptr, L"DX11 64-bit Rococo API Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0);
 			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
 			eventHandler.BindMainWindow(*window);
 

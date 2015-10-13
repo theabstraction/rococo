@@ -90,7 +90,7 @@ namespace
 		void PostConstruct()
 		{
 			WindowConfig config;
-			SetOverlappedWindowConfig(config, Vec2i(800, 600), SW_SHOW, nullptr, L"Test Modal Dialog", WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU, 0);
+			SetOverlappedWindowConfig(config, Vec2i{ 800, 600 }, SW_SHOW, nullptr, L"Test Modal Dialog", WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU, 0);
 			dialogWindow = Windows::CreateDialogWindow(config, this);
 			AddPushButton(*dialogWindow, GuiRect(10, 10, 200, 34), L"OK", IDOK, 0);
 		}
@@ -132,7 +132,7 @@ namespace
 		void PostConstruct()
 		{
 			WindowConfig config;
-			SetOverlappedWindowConfig(config, Vec2i(800, 600), SW_SHOWMAXIMIZED, nullptr, L"64-bit Rococo API Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0);
+			SetOverlappedWindowConfig(config, Vec2i{ 800, 600 }, SW_SHOWMAXIMIZED, nullptr, L"64-bit Rococo API Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0);
 
 			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
 			AddPushButton(*window, GuiRect(10, 10, 200, 34), L"Close", IDCANCEL, 0); // Child window is auto freed when the parent is deleted

@@ -133,7 +133,7 @@ namespace
 		{
 			float Fx = (isLeft ? -1.0f : 0.0f) + (isRight ? 1.0f : 0.0f);
 			float Fy = (isForward ? 1.0f : 0.0f) + (isBackward ? -1.0f : 0.0f);
-			return Vec2(Fx, Fy);
+			return Vec2{ Fx, Fy };
 		}
 	};
 }

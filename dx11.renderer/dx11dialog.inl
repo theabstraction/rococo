@@ -126,7 +126,7 @@ namespace
 		void PostConstruct()
 		{
 			WindowConfig config;
-			SetOverlappedWindowConfig(config, Vec2i(800, 435), SW_SHOW, nullptr, L"Choose screen resolution", WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU, 0);
+			SetOverlappedWindowConfig(config, Vec2i{800, 435}, SW_SHOW, nullptr, L"Choose screen resolution", WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU, 0);
 			dialogWindow = Windows::CreateDialogWindow(config, this);
 			adapterList = AddListbox(*dialogWindow, GuiRect(10, 10, 390, 150), L"Graphics Adapter", *this, LBS_NOTIFY, WS_BORDER, 0);
 			outputList = AddListbox(*dialogWindow, GuiRect(410, 10, 770, 150), L"Screens", *this, WS_VSCROLL | LBS_NOTIFY, WS_BORDER, 0);
@@ -348,7 +348,7 @@ namespace
 		void PostConstruct()
 		{
 			WindowConfig config;
-			SetOverlappedWindowConfig(config, Vec2i(500, 350), SW_SHOW, nullptr, L"Confirm Title", WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU, 0);
+			SetOverlappedWindowConfig(config, Vec2i{ 500, 350 }, SW_SHOW, nullptr, L"Confirm Title", WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU, 0);
 			dialogWindow = Windows::CreateDialogWindow(config, this);
 			RECT rect;
 			GetClientRect(*dialogWindow, &rect);

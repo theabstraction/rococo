@@ -49,7 +49,7 @@ namespace
 		void PostConstruct()
 		{
 			WindowConfig config;
-			SetOverlappedWindowConfig(config, Vec2i(520, 350), SW_SHOW, nullptr, L"Confirm Title", WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU, 0);
+			SetOverlappedWindowConfig(config, Vec2i{ 520, 350 }, SW_SHOW, nullptr, L"Confirm Title", WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU, 0);
 			dialogWindow = Windows::CreateDialogWindow(config, this);
 
 			RECT rect;
@@ -171,7 +171,7 @@ namespace
 		{
 			WindowConfig config;
 			HWND hParentWnd = parent ? (HWND) *parent : nullptr;
-			SetOverlappedWindowConfig(config, Vec2i(800, 600), SW_SHOWMAXIMIZED, hParentWnd, L"Dystopia Script Debugger", WS_OVERLAPPEDWINDOW, 0, *menu);
+			SetOverlappedWindowConfig(config, Vec2i{ 800, 600 }, SW_SHOWMAXIMIZED, hParentWnd, L"Dystopia Script Debugger", WS_OVERLAPPEDWINDOW, 0, *menu);
 			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
 
 			logLines = Windows::AddListView(*window, GuiRect(0,0,0,0), L"", listEventHandler, LVS_REPORT, WS_BORDER, 0);

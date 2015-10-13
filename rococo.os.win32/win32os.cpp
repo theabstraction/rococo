@@ -301,7 +301,7 @@ namespace
 			}
 		}
 
-		virtual void EnumerateModifiedFiles(ITextCallback& cb)
+		virtual void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs> &cb)
 		{
 			while (!modifiedFiles.empty())
 			{
@@ -310,7 +310,7 @@ namespace
 				modifiedFiles.pop_back();
 				threadLock.Unlock();
 
-				cb.OnItem(f.c_str());
+				cb.OnEvent(FileModifiedArgs{ f.c_str() });
 			}
 		}
 

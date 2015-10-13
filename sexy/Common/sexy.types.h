@@ -138,6 +138,19 @@ namespace Sexy
 		int32 Length;
 		SEXCHAR Buffer[1];
 	};
+
+	namespace Compiler
+	{
+		struct VirtualTable;
+	}
+
+	struct IString
+	{
+		Compiler::VirtualTable* vTable;
+		int32 length; 
+		csexstr buffer;
+	};
+
 #pragma pack(pop)
 
 	typedef sexstring_header* sexstring;
