@@ -3,24 +3,24 @@
 
 namespace Rococo
 {
-	struct NO_VTABLE ISelection
+	ROCOCOAPI ISelection
 	{
 		virtual size_t Count() const = 0;
 		virtual const wchar_t* GetElement(size_t index) const = 0;
 		virtual const wchar_t* GetDefaultItem() const = 0;
 	};
 
-	struct NO_VTABLE IStringValidator
+	ROCOCOAPI IStringValidator
 	{
 		virtual bool ValidateAndReportErrors(const wchar_t* text) = 0;
 	};
 
-	struct NO_VTABLE IVariableEditorEventHandler
+	ROCOCOAPI IVariableEditorEventHandler
 	{
 		virtual void OnButtonClicked(LPCWSTR variableName) = 0;
 	};
 
-	struct NO_VTABLE IVariableEditor
+	ROCOCOAPI IVariableEditor
 	{
 		virtual void AddIntegerEditor(LPCWSTR variableName, LPCWSTR variableDesc, int minimum, int maximum, int defaultValue) = 0;
 		virtual void AddPushButton(LPCWSTR variableName, LPCWSTR variableDesc) = 0;

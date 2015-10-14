@@ -43,6 +43,8 @@ namespace Rococo
 		float z;
 	};
 
+	typedef const Vec3& cr_vec3;
+
 	struct Vec4
 	{
 		float x;
@@ -94,7 +96,19 @@ namespace Rococo
 		operator float() const { return quantity; }
 	};
 
-	struct NO_VTABLE IException
+	struct Gravity
+	{
+		float g; // generally negative, and in metres per second per second
+		operator float() const { return g; }
+	};
+
+	struct Metres
+	{
+		float value;
+		operator float() const { return value; }
+	};
+
+	ROCOCOAPI IException
 	{
 		virtual const wchar_t* Message() const = 0;
 		virtual int32 ErrorCode() const = 0;
@@ -185,7 +199,7 @@ namespace Rococo
 		virtual CALLBACK_CONTROL operator()(const wchar_t* value) = 0;
 	};
 
-	template<class T> struct NO_VTABLE IVectorEnumerator
+	template<class T> ROCOCOAPI IVectorEnumerator
 	{
 		virtual T* begin() = 0;
 		virtual T* end() = 0;

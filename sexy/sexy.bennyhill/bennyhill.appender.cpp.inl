@@ -198,7 +198,7 @@ namespace
 			appender.Append(SEXTEXT("\t"));
 		}
 
-		appender.Append(SEXTEXT("struct "));
+		appender.Append(SEXTEXT("struct NO_VTABLE "));
 		AppendStructShortName(appender, ic.asCppInterface.SexyName());
 		appender.Append(nsDepth > 0 ? SEXTEXT("\n\t{\n") : SEXTEXT("\n{\n"));
 

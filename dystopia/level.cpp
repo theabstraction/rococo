@@ -44,6 +44,7 @@ namespace
 
 	struct Human
 	{
+		HumanType type;
 		float nextAIcheck;
 		AutoFree<IInventorySupervisor> inventory;
 		AutoFree<IHumanSupervisor> ai;
@@ -54,7 +55,7 @@ namespace
 		return Sphere{ GetPosition(solid.instance.orientation) , solid.boundingRadius };
 	}
 
-	template<class ROW> ID_ENTITY GetFirstIntersect(const Vec3& start, const Vec3& end, const EntityTable<ROW>& table, const EntityTable<Solid>& solids)
+	template<class ROW> ID_ENTITY GetFirstIntersect(cr_vec3 start, cr_vec3 end, const EntityTable<ROW>& table, const EntityTable<Solid>& solids)
 	{
 		float leastT = 2.0f;
 		ID_ENTITY firstTarget = 0;
@@ -78,7 +79,7 @@ namespace
 		return firstTarget;
 	}
 
-	bool Intersects(const Vec3& start, const Vec3& end, ID_ENTITY id, const EntityTable<Solid>& solids)
+	bool Intersects(cr_vec3 start, cr_vec3 end, ID_ENTITY id, const EntityTable<Solid>& solids)
 	{
 		const Solid& solid = solids.find(id)->second;
 		auto sphere = BoundingSphere(solid);
@@ -154,7 +155,7 @@ namespace
 		{
 			ID_ENTITY id = AddSolid(transform, meshId);
 			auto* inv = CreateInventory();
-			auto h = new Human { 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Vigilante ) };
+			auto h = new Human { HumanType_Vigilante, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Vigilante ) };
 			h->inventory->SetRangedWeapon(10.0f, 4.0f);
 			allies.insert(id, h);
 			return id;
@@ -164,7 +165,7 @@ namespace
 		{
 			ID_ENTITY id = AddSolid(transform, meshId);
 			auto* inv = CreateInventory();
-			auto h = new Human{  0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Bobby) };
+			auto h = new Human{ HumanType_Bobby, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Bobby) };
 			h->inventory->SetRangedWeapon(10.0f, 4.0f);
 			enemies.insert(id, h);
 			return id;
@@ -179,6 +180,26 @@ namespace
 			projectiles.insert(id, Projectile{ def.attacker, def.origin, direction, def.velocity, def.lifeTime, currentTime, def.bulletMesh });
 
 			return id;
+		}
+
+		virtual HumanType GetHuman(ID_ENTITY id, IInventory** ppInventory, IHuman** ppHuman)
+		{
+			auto i = enemies.find(id);
+			if (i == enemies.end())
+			{
+				i = allies.find(id);
+				if (i == allies.end())
+				{
+					if (ppInventory) *ppInventory = nullptr;
+					if (ppHuman) *ppHuman = nullptr;
+					return HumanType_None;
+				}
+			}
+
+			auto& h = *i->second;
+			if (ppInventory) *ppInventory = h.inventory;
+			if (ppHuman) *ppHuman = h.ai;
+			return h.type;
 		}
 
 		virtual void SetTransform(ID_ENTITY id, const Matrix4x4& transform)
@@ -204,7 +225,7 @@ namespace
 			pos = ::GetPosition(t);
 		}
 
-		virtual void SetPosition(const Vec3& pos, ID_ENTITY id)
+		virtual void SetPosition(cr_vec3 pos, ID_ENTITY id)
 		{
 			auto i = solids.find(id);
 			if (i == solids.end())
@@ -274,7 +295,7 @@ namespace
 			{
 				if (Intersects(oldPos, newPos, idPlayer, solids))
 				{
-					Throw(0, L"Player died");
+					allies[idPlayer]->ai->OnHit(p.attacker);
 				}
 			}
 		}
@@ -296,12 +317,14 @@ namespace
 
 		void UpdateEnemy(Human& enemy, ID_ENTITY id, float gameTime, float dt)
 		{
+			const float oorMax = 1.0f / (float)RAND_MAX;
+
 			UpdatePosition(id, dt, enemies);
 
 			if (enemy.nextAIcheck < gameTime)
 			{
 				enemy.ai->Update(gameTime, dt);
-				enemy.nextAIcheck = gameTime + 1.0f;
+				enemy.nextAIcheck = gameTime + GenRandomFloat(0.2f, 1.0f);
 			}
 		}
 
@@ -414,6 +437,7 @@ namespace
 		{
 			AddNativeCalls_DystopiaIMeshes(args.ss, &e.meshes);
 			AddNativeCalls_DystopiaILevelBuilder(args.ss, &level);
+			AddNativeCalls_DystopiaIGui(args.ss, &e.gui);
 		}
 
 		virtual void Load(const wchar_t* resourceName, bool isReloading)

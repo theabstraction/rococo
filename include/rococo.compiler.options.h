@@ -11,6 +11,7 @@
 #ifndef NO_VTABLE // Use on pure interfaces, which have no implementation
 # ifdef _WIN32
 #  define NO_VTABLE __declspec(novtable)
+#  define ROCOCOAPI struct NO_VTABLE
 # else
 #  define NO_VTABLE
 # endif

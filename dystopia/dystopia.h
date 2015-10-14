@@ -47,12 +47,12 @@ namespace Dystopia
 
 	CMD_ID ShowContinueBox(Rococo::Windows::IWindow& renderWindow, const wchar_t* message);
 
-	struct IKeyboard
+	ROCOCOAPI IKeyboard
 	{
 		virtual uint32 GetScanCode(const wchar_t* keyName) const = 0;
 	};
 
-	struct IKeyboardSupervisor : public IKeyboard
+	ROCOCOAPI IKeyboardSupervisor : public IKeyboard
 	{
 		virtual void Free() = 0;
 	};
@@ -62,67 +62,42 @@ namespace Dystopia
 	struct IMeshLoader;
 	struct ILevelBuilder;
 
-	struct IInventory
-	{
-		virtual void SetRangedWeapon(float muzzleVelocity, float flightTime) = 0;
-		virtual void GetRangedWeapon(float& muzzleVelocity, float& flightTime) const = 0;
-	};
-
-	struct IInventorySupervisor: public IInventory
-	{
-		virtual void Free() = 0;
-	};
-
-	IInventorySupervisor* CreateInventory();
-
-	struct IIntent
-	{
-		virtual int32 GetFireCount() const = 0;
-		virtual Vec2 GetImpulse() const = 0;
-		virtual void SetFireCount(int32 count) = 0;
-	};
-
-	struct IHuman
-	{
-		virtual bool IsAlive() const = 0;
-		virtual void OnHit(ID_ENTITY attackerId) = 0;
-		virtual const Vec3& Velocity() const = 0;
-		
-	};
+	struct IInventory;
+	struct IInventorySupervisor;
+	struct IIntent;
+	struct IHuman;
 
 	enum HumanType : int32;
+	struct IHumanSupervisor;
+	struct IHumanFactory;
 
-	struct IHumanSupervisor : public IHuman
-	{
-		virtual void Update(float gameTime, float dt) = 0;
-		virtual void Free() = 0;
-	};
+	enum StatIndex : int32;
 
-	struct IHumanFactory
-	{
-		virtual IHumanSupervisor* CreateHuman(ID_ENTITY id, IInventory& inventory, HumanType typeId) = 0;
-	};
-
-	struct ILevel
+	ROCOCOAPI ILevel
 	{
 		virtual ID_ENTITY AddProjectile(const ProjectileDef& def, float currentTime) = 0;
 		virtual ILevelBuilder& Builder() = 0;
 		virtual ID_ENTITY GetPlayerId() const = 0;
 		virtual void GetPosition(Vec3& pos, ID_ENTITY id) const = 0;
-		virtual void SetPosition(const Vec3& pos, ID_ENTITY id) = 0;
+		virtual void SetPosition(cr_vec3 pos, ID_ENTITY id) = 0;
 		virtual void SetTransform(ID_ENTITY id, const Matrix4x4& transform) = 0;
+
+		// Get references to a human's inventory and AI control object. 
+		// Null can be supplied to an output if that output is not desired
+		// Do not cache these references, they are invalidated when the human deleted from level
+		virtual HumanType GetHuman(ID_ENTITY id, IInventory** ppInventory, IHuman** ppHuman) = 0;
 		
 		virtual IInventory* GetInventory(ID_ENTITY id) = 0;
 	};
 
-	struct ILevelSupervisor: public ILevel
+	ROCOCOAPI ILevelSupervisor: public ILevel
 	{
 		virtual void Free() = 0;
 		virtual void RenderObjects(IRenderContext& rc) = 0;
 		virtual void UpdateObjects(float gameTime, float dt) = 0;
 	};
 
-	struct ILevelLoader
+	ROCOCOAPI ILevelLoader
 	{
 		virtual void Free() = 0;
 		virtual void Load(const wchar_t* resourceName, bool isReloading) = 0;
@@ -131,7 +106,7 @@ namespace Dystopia
 
 	struct Environment;
 
-	struct IDebugControl
+	ROCOCOAPI IDebugControl
 	{
 		virtual void Continue() = 0;
 		virtual void StepOut() = 0;
@@ -140,7 +115,7 @@ namespace Dystopia
 		virtual void StepNext() = 0;
 	};
 
-	struct IDebuggerWindow
+	ROCOCOAPI IDebuggerWindow
 	{
 		virtual void AddDisassembly(bool clearFirst, const wchar_t* text) = 0;
 		virtual void Free() = 0;
@@ -152,21 +127,14 @@ namespace Dystopia
 		virtual Visitors::IUIList& RegisterList() = 0;
 	};
 
-	struct ISourceCache
+	ROCOCOAPI ISourceCache
 	{
 		virtual Sexy::Sex::ISParserTree* GetSource(const wchar_t* resourceName) = 0;
 		virtual void Free() = 0;
 		virtual void Release(const wchar_t* resourceName) = 0;
 	};
 
-	struct Environment
-	{
-		IInstallation& installation;
-		IRenderer& renderer;
-		IDebuggerWindow& debuggerWindow;
-		ISourceCache& sourceCache;
-		IMeshLoader& meshes;
-	};
+	struct Environment;
 
 	IOS& GetOS(Environment& e);
 
@@ -185,3 +153,34 @@ namespace Dystopia
 }
 
 #include "dystopia.sxh.h"
+
+namespace Rococo
+{
+	struct IGuiRenderContext;
+	struct KeyboardEvent;
+	struct MouseEvent;
+}
+
+namespace Dystopia
+{
+	ROCOCOAPI IGuiSupervisor : public IGui
+	{
+		virtual void AppendKeyboardEvent(const KeyboardEvent& ke) = 0;
+		virtual void AppendMouseEvent(const MouseEvent& me) = 0;
+		virtual void Free() = 0;
+		virtual bool HasFocus() const = 0;
+		virtual void Render(IGuiRenderContext& rc) = 0;
+	};
+
+	IGuiSupervisor* CreateGui(IRenderer& renderer);
+
+	struct Environment
+	{
+		IInstallation& installation;
+		IRenderer& renderer;
+		IDebuggerWindow& debuggerWindow;
+		ISourceCache& sourceCache;
+		IMeshLoader& meshes;
+		IGui& gui;
+	};
+}

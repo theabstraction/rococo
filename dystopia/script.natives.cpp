@@ -21,6 +21,11 @@ namespace Dystopia
 	{
 		return &_level->Builder();
 	}
+
+	IGui* FactoryConstructDystopiaGuiGetGui(IGui* _gui)
+	{
+		return _gui;
+	}
 }
 
 #include "dystopia.sxh.inl"

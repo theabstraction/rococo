@@ -190,6 +190,7 @@
     <ClCompile Include="dialogs.cpp" />
     <ClCompile Include="dystopia.text.cpp" />
     <ClCompile Include="Environment.cpp" />
+    <ClCompile Include="gui.cpp" />
     <ClCompile Include="human.bobby.cpp" />
     <ClCompile Include="human.vigilante.cpp" />
     <ClCompile Include="inventory.cpp" />

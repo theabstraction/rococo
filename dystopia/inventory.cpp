@@ -1,6 +1,8 @@
 #include "dystopia.h"
 #include <string>
 
+#include "human.types.h"
+
 namespace
 {
 	using namespace Rococo;

@@ -9,7 +9,7 @@ namespace Rococo
 		return Vec3{ m.row0.w, m.row1.w, m.row2.w };
 	}
 
-	inline void SetPosition(Matrix4x4& m, const Vec3& pos)
+	inline void SetPosition(Matrix4x4& m, cr_vec3 pos)
 	{
 		m.row0.w = pos.x;
 		m.row1.w = pos.y;

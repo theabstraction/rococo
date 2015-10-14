@@ -14,15 +14,22 @@ namespace
 		IIntent& intent;
 		ILevel& level;
 		float lastFireTime;
+		Stat stats[StatIndex_Count];
 
 		virtual bool IsAlive() const
 		{
-			return true;
+			return stats[StatIndex_Health].current > 0;
 		}
 
 		virtual void OnHit(ID_ENTITY attackerId)
 		{
+			stats[StatIndex_Health].current -= 10;
+		}
 
+		virtual Stat GetStat(StatIndex index) const
+		{
+			if (index < 0 || index >= StatIndex_Count) Throw(0, L"Bad stat index");
+			return stats[index];
 		}
 
 		void UpdateViaIntent(float gameTime, float dt)
@@ -60,7 +67,13 @@ namespace
 	public:
 		HumanVigilante(ID_ENTITY _id, IIntent& _intent, ILevel& _level) :
 			id(_id), velocity{ 0, 0, 0 }, intent(_intent), level(_level), lastFireTime(0)
-		{}
+		{
+			for (int i = 0; i < StatIndex_Count; ++i)
+			{
+				stats[i].cap = 200;
+				stats[i].current = 200;
+			}
+		}
 
 		virtual void Free()
 		{ 
@@ -79,7 +92,7 @@ namespace
 			}
 		}
 
-		virtual const Vec3& Velocity() const
+		virtual cr_vec3 Velocity() const
 		{
 			return velocity;
 		}

@@ -5,39 +5,39 @@ namespace Rococo
 {
 	namespace IO
 	{
-		struct NO_VTABLE IStreamer
+		ROCOCOAPI IStreamer
 		{
 			virtual void Close() = 0; // Closes the IO object responsible for the stream
 			virtual const wchar_t* Name() const = 0; // Gives a resource identifier for the stream, such as a filename
-			virtual void Free() = 0; // Delete the object that implements the streamer. Free will call Close before deleting the object to which the interface refers
+			virtual void Free() = 0; // Delete the object that implements the streamer. Free will call Close before deleting the object to which the ROCOCOAPI refers
 		};
 
-		struct NO_VTABLE IReader : public IStreamer
+		ROCOCOAPI IReader : public IStreamer
 		{
 			virtual size_t Read(char* buffer, size_t capacity) = 0;
 		};
 
-		struct NO_VTABLE IFixedLengthReader : public IReader
+		ROCOCOAPI IFixedLengthReader : public IReader
 		{
 			virtual int64 Length() const = 0;
 		};
 
-		struct NO_VTABLE IBinaryWriter : public IStreamer
+		ROCOCOAPI IBinaryWriter : public IStreamer
 		{
 			virtual void Write(const uint8* buffer, uint32 nBytes) = 0;
 		};
 
-		struct NO_VTABLE IUnicode16Writer
+		ROCOCOAPI IUnicode16Writer
 		{
 			virtual void Append(const wchar_t* format, ...) = 0;
 		};
 
-		struct NO_VTABLE IUnicode16WriterSupervisor : public IUnicode16Writer
+		ROCOCOAPI IUnicode16WriterSupervisor : public IUnicode16Writer
 		{
 			virtual void Free() = 0;
 		};
 
-		struct NO_VTABLE IScriptGenerator
+		ROCOCOAPI IScriptGenerator
 		{
 			virtual void AppendStringLiteral(IUnicode16Writer& writer, const wchar_t* text) = 0;
 		};
@@ -63,14 +63,14 @@ namespace Rococo
 		void Print(IBinaryWriter& writer, const char* format, ...);
 	}
 
-	struct NO_VTABLE IBuffer
+	ROCOCOAPI IBuffer
 	{
 		virtual uint8* GetData() = 0;
 		virtual const uint8* GetData() const = 0;
 		virtual size_t Length() const = 0;
 	};
 
-	struct NO_VTABLE IExpandingBuffer: public IBuffer
+	ROCOCOAPI IExpandingBuffer: public IBuffer
 	{
 		virtual void Resize(size_t length) = 0;
 		virtual void Free() = 0;
@@ -81,7 +81,7 @@ namespace Rococo
 	struct SysUnstableArgs {};
 	struct FileModifiedArgs { const wchar_t* resourceName; };
 
-	struct NO_VTABLE IOS
+	ROCOCOAPI IOS
 	{
 		virtual void ConvertUnixPathToSysPath(const wchar_t* unixPath, wchar_t* sysPath, size_t bufferCapacity) const = 0;
 		virtual void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs>& cb) = 0;
@@ -95,19 +95,19 @@ namespace Rococo
 		virtual void UTF8ToUnicode(const char* s, wchar_t* unicode, size_t cbUtf8count, size_t unicodeCapacity) = 0;
 	};
 
-	struct NO_VTABLE IInstallation
+	ROCOCOAPI IInstallation
 	{
 		virtual const wchar_t* Content() const = 0;
 		virtual void LoadResource(const wchar_t* resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
 		virtual IOS& OS() = 0;
 	};
 
-	struct NO_VTABLE IInstallationSupervisor: public IInstallation
+	ROCOCOAPI IInstallationSupervisor: public IInstallation
 	{
 		virtual void Free() = 0;
 	};
 
-	struct NO_VTABLE IOSSupervisor: public IOS
+	ROCOCOAPI IOSSupervisor: public IOS
 	{
 		virtual void Free() = 0;
 	};

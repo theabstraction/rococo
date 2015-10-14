@@ -205,3 +205,65 @@ namespace Dystopia
 	}
 
 }
+// BennyHill generated Sexy native functions for Dystopia::IGui 
+namespace
+{
+	using namespace Sexy;
+	using namespace Sexy::Sex;
+	using namespace Sexy::Script;
+	using namespace Sexy::Compiler;
+	void NativeDystopiaIGuiShowDialogBox(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(void*);
+
+		IString* _buttons;
+		ReadInput(_buttons, _sf, -_offset);
+		fstring buttons { _buttons->buffer, _buttons->length };
+
+		_offset += sizeof(void*);
+
+		IString* _message;
+		ReadInput(_message, _sf, -_offset);
+		fstring message { _message->buffer, _message->length };
+
+		_offset += sizeof(void*);
+
+		IString* _title;
+		ReadInput(_title, _sf, -_offset);
+		fstring title { _title->buffer, _title->length };
+
+		Vec2* span;
+		_offset += sizeof(span);
+
+		ReadInput(span, _sf, -_offset);
+		Dystopia::IGui* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ShowDialogBox(*span, title, message, buttons);
+	}
+
+	void NativeGetHandleForDystopiaGuiGetGui(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* sf = _nce.cpu.SF();
+		ptrdiff_t offset = 2 * sizeof(size_t);
+		Dystopia::IGui* nceContext = reinterpret_cast<Dystopia::IGui*>(_nce.context);
+		// Uses: Dystopia::IGui* FactoryConstructDystopiaGuiGetGui(Dystopia::IGui* _context);
+		Dystopia::IGui* pObject = FactoryConstructDystopiaGuiGetGui(nceContext);
+		offset += sizeof(void*);
+		WriteOutput(pObject, sf, -offset);
+	}
+}
+namespace Dystopia
+{
+	void AddNativeCalls_DystopiaIGui(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IGui* _nceContext)
+	{
+
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.Gui.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForDystopiaGuiGetGui, _nceContext, SEXTEXT("GetHandleForIGui0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeDystopiaIGuiShowDialogBox, nullptr, SEXTEXT("IGuiShowDialogBox (Pointer hObject)(Sys.Maths.Vec2 span)(Sys.Type.IString title)(Sys.Type.IString message)(Sys.Type.IString buttons) -> "));
+	}
+
+}

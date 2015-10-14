@@ -38,7 +38,7 @@ namespace Rococo
 
 	struct IRenderer;
 
-	struct IGuiRenderContext
+	ROCOCOAPI IGuiRenderContext
 	{
 		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
 		virtual void FlushLayer() = 0;
@@ -54,7 +54,7 @@ namespace Rococo
 
 	typedef int64 ticks;
 
-	struct IUltraClock
+	ROCOCOAPI IUltraClock
 	{
 		virtual ticks Hz() const = 0;			// Number of ticks per seconds
 		virtual ticks TickStart() const = 0;	// The time of the current tick
@@ -110,13 +110,13 @@ namespace Rococo
 		Matrix4x4 orientation;
 	};
 
-	struct IRenderContext
+	ROCOCOAPI IRenderContext
 	{
 		virtual void Draw(ID_MESH id, const ObjectInstance* instance, uint32 nInstances) = 0;
 		virtual IRenderer& Renderer() = 0;
 	};
 
-	struct IScene
+	ROCOCOAPI IScene
 	{
 		virtual RGBA GetClearColour() const = 0;
 		virtual void GetWorldMatrix(Matrix4x4& worldMatrix) const = 0;
@@ -124,7 +124,7 @@ namespace Rococo
 		virtual void RenderObjects(IRenderContext& rc) = 0;
 	};
 
-	struct IApp
+	ROCOCOAPI IApp
 	{
 		virtual uint32 OnTick(const IUltraClock& clock) = 0;
 		virtual void Free() = 0;
@@ -144,7 +144,7 @@ namespace Rococo
 		struct IWindow;
 	}
 
-	struct IRenderer
+	ROCOCOAPI IRenderer
 	{
 		virtual ID_VERTEX_SHADER CreateGuiVertexShader(const wchar_t* name, const uint8* shaderCode, size_t shaderLength) = 0;
 		virtual ID_VERTEX_SHADER CreateObjectVertexShader(const wchar_t* name, const uint8* shaderCode, size_t shaderLength) = 0;
@@ -159,7 +159,7 @@ namespace Rococo
 		virtual void UpdateMesh(ID_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices) = 0;
 	};
 
-	struct IAppFactory
+	ROCOCOAPI IAppFactory
 	{
 		virtual IApp* CreateApp(IRenderer& renderer) = 0;
 	};

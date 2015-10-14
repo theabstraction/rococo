@@ -22,7 +22,7 @@ namespace Rococo
 		void SetControlFont(HWND hControlWindow); // Sets the font of the window to the default control font specified in InitRococoWindows
 		void SetTitleFont(HWND hTitleBar);  // Sets the font of the window to the default title font specified in InitRococoWindows
 		
-		struct NO_VTABLE IWin32Menu
+		ROCOCOAPI IWin32Menu
 		{
 			virtual operator HMENU () = 0;
 			virtual IWin32Menu& AddPopup(LPCWSTR name) = 0; // Returns the popup with the given name, or creates a new one if it was not found
@@ -32,7 +32,7 @@ namespace Rococo
 
 		IWin32Menu* CreateMenu();
 
-		struct NO_VTABLE ICommandTarget
+		ROCOCOAPI ICommandTarget
 		{
 			virtual void OnAcceleratorCommand(DWORD id) = 0;
 			virtual void OnMenuCommand(DWORD id) = 0;
@@ -40,7 +40,7 @@ namespace Rococo
 
 		typedef DWORD ControlId;
 
-		struct NO_VTABLE IControlCommandTarget
+		ROCOCOAPI IControlCommandTarget
 		{
 			virtual LRESULT OnControlCommand(HWND hWnd, DWORD notificationCode, ControlId id, HWND hControlCode) = 0;
 		};
@@ -86,7 +86,7 @@ namespace Rococo
 
 		void ShowEditorError(HWND parent, const wchar_t* format, ...);
 
-		struct NO_VTABLE IItemRenderer
+		ROCOCOAPI IItemRenderer
 		{
 			virtual void OnDrawItem(DRAWITEMSTRUCT& dis) = 0;
 			virtual void OnMeasureItem(MEASUREITEMSTRUCT& mis) = 0;
@@ -94,7 +94,7 @@ namespace Rococo
 
 		struct IListWindowSupervisor;
 
-		struct NO_VTABLE IListItemHandler : public IItemRenderer
+		ROCOCOAPI IListItemHandler : public IItemRenderer
 		{
 			virtual void OnItemSelectionChanged(IListWindowSupervisor& listWindow) = 0;
 		};
@@ -122,7 +122,7 @@ namespace Rococo
 		void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& span, int32 showWindowCommand, HWND hWndOwner, LPCWSTR name, DWORD style, DWORD exStyle, HMENU hPopupMenu = nullptr);
 		void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& topLeft, const Vec2i& span, HWND hWndOwner, LPCWSTR name, DWORD style, DWORD exStyle, HMENU hPopupMenu = nullptr);
 
-		struct NO_VTABLE IWindowHandler
+		ROCOCOAPI IWindowHandler
 		{
 			virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
 		};
@@ -161,7 +161,7 @@ namespace Rococo
 		typedef void(*FN_OnSize)(void* context, HWND hWnd, const Vec2i& span, RESIZE_TYPE type);
 		typedef DWORD(*FN_OnIdle)(void* context);
 
-		struct NO_VTABLE IWiredWindowHandler : public IWindowHandler
+		ROCOCOAPI IWiredWindowHandler : public IWindowHandler
 		{
 			virtual void Free() = 0;
 			virtual DWORD OnIdle() = 0;
@@ -185,7 +185,7 @@ namespace Rococo
 			operator IWiredWindowHandler*() { return inner; }
 		};
 
-		struct NO_VTABLE IModalControl
+		ROCOCOAPI IModalControl
 		{
 			virtual void OnEnterModal() = 0; // Called when a BlockModal call begins
 			virtual DWORD OnExitModal() = 0; // Called when a BlockModal call quits, and returns the exit code of the BlockModal call
@@ -225,24 +225,24 @@ namespace Rococo
 		GuiRect ClientArea(HWND hWnd);
 		GuiRect WindowArea(HWND hWnd);
 
-		struct NO_VTABLE IWindow
+		ROCOCOAPI IWindow
 		{
 			virtual operator HWND () const = 0;
 		};
 
-		struct NO_VTABLE IWindowSupervisor : public IWindow
+		ROCOCOAPI IWindowSupervisor : public IWindow
 		{
 			virtual void Free() = 0;
 			virtual IWindowHandler& Handler() = 0;	
 		};
 
-		struct NO_VTABLE IButton : public IWindowSupervisor
+		ROCOCOAPI IButton : public IWindowSupervisor
 		{
 			virtual void Free() = 0;
 			virtual IWindowHandler& Handler() = 0;
 		};
 
-		struct NO_VTABLE ICheckbox : public IWindowSupervisor
+		ROCOCOAPI ICheckbox : public IWindowSupervisor
 		{
 			virtual void Free() = 0;
 			virtual IWindowHandler& Handler() = 0;
@@ -250,12 +250,12 @@ namespace Rococo
 			virtual void SetCheckState(Visitors::CheckState state) = 0;
 		};
 
-		struct NO_VTABLE IRichEditorEvents
+		ROCOCOAPI IRichEditorEvents
 		{
 			virtual void OnRightButtonUp(const Vec2i& clientPosition) = 0;
 		};
 
-		struct NO_VTABLE IRichEditor : public IWindowSupervisor
+		ROCOCOAPI IRichEditor : public IWindowSupervisor
 		{
 			virtual void AppendText(COLORREF foreground, COLORREF background, const wchar_t* text, size_t nChars = (size_t) -1) = 0;
 			virtual HWND EditorHandle() const = 0;
@@ -267,32 +267,32 @@ namespace Rococo
 		void SetDlgCtrlID(HWND hWnd, DWORD id);
 		void SetText(HWND hWnd, size_t capacity, const wchar_t* format, ...);
 
-		struct NO_VTABLE IParentWindowSupervisor : public IWindowSupervisor
+		ROCOCOAPI IParentWindowSupervisor : public IWindowSupervisor
 		{
 			virtual IWindowSupervisor* AddChild(const WindowConfig& childConfig, LPCWSTR className, ControlId id) = 0;
 			virtual IParentWindowSupervisor* AddChild(const WindowConfig& childConfig, ControlId id, IWindowHandler* windowHandler) = 0;
 		};
 
-		struct NO_VTABLE IDialogSupervisor : public IParentWindowSupervisor
+		ROCOCOAPI IDialogSupervisor : public IParentWindowSupervisor
 		{
 			virtual DWORD BlockModal(IModalControl& control, HWND ownerWindow, IWindowHandler* subHandler) = 0;
 		};
 
-		struct NO_VTABLE ITreeControlHandler
+		ROCOCOAPI ITreeControlHandler
 		{
 		};
 
-		struct NO_VTABLE IListViewEvents: public IItemRenderer
+		ROCOCOAPI IListViewEvents: public IItemRenderer
 		{
 		};
 
-		struct NO_VTABLE ITreeControlSupervisor : public IWindowSupervisor
+		ROCOCOAPI ITreeControlSupervisor : public IWindowSupervisor
 		{
 			virtual Visitors::IUITree& Tree() = 0;
 			virtual Visitors::CheckState GetCheckState(Visitors::TREE_NODE_ID id) const = 0;
 		};
 
-		struct NO_VTABLE IListWindowSupervisor : public IWindowSupervisor
+		ROCOCOAPI IListWindowSupervisor : public IWindowSupervisor
 		{
 			virtual int AddString(LPCWSTR data) = 0;
 			virtual int GetCurrentSelection() = 0;
@@ -303,14 +303,14 @@ namespace Rococo
 			virtual HWND ListBoxHandle() const = 0;
 		};
 
-		struct NO_VTABLE IListViewSupervisor : public IWindowSupervisor
+		ROCOCOAPI IListViewSupervisor : public IWindowSupervisor
 		{
 			virtual HWND ListViewHandle() const = 0;
 			virtual Visitors::IUIList& UIList() = 0;
 			virtual operator Visitors::IUIList& () = 0;
 		};
 
-		struct NO_VTABLE IComboBoxSupervisor : public IWindowSupervisor
+		ROCOCOAPI IComboBoxSupervisor : public IWindowSupervisor
 		{
 			virtual int AddString(LPCWSTR text) = 0;
 			virtual int FindString(LPCWSTR text) = 0;
@@ -319,7 +319,7 @@ namespace Rococo
 			virtual void SetCurrentSelection(int index) = 0;
 		};
 
-		struct NO_VTABLE ITrackBarSupervisor : public IWindowSupervisor
+		ROCOCOAPI ITrackBarSupervisor : public IWindowSupervisor
 		{
 			virtual void SetRange(int mininma, int maxima) = 0;
 			virtual void SetPageSize(int pageSize) = 0;
@@ -327,17 +327,17 @@ namespace Rococo
 			virtual HWND TrackerHandle() const = 0;
 		};
 
-		struct NO_VTABLE ITrackBarHandler
+		ROCOCOAPI ITrackBarHandler
 		{
 			virtual void OnMove(int position) = 0;
 		};
 
-		struct NO_VTABLE ITabControlEvents
+		ROCOCOAPI ITabControlEvents
 		{
 			virtual void OnSelectionChanged(int index) = 0;
 		};
 
-		struct NO_VTABLE ITabControl : public IWindowSupervisor
+		ROCOCOAPI ITabControl : public IWindowSupervisor
 		{
 			virtual int AddTab(LPCWSTR data, LPCWSTR tooltip) = 0;
 			virtual IParentWindowSupervisor& ClientSpace() = 0;

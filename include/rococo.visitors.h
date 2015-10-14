@@ -5,7 +5,7 @@
 # error include <rococo.types.h> before including this file
 #endif
 
-// Define some visitor interfaces, makes component development easier to share the same interfaces
+// Define some visitor ROCOCOAPIs, makes component development easier to share the same ROCOCOAPIs
 
 namespace Rococo
 {
@@ -23,14 +23,14 @@ namespace Rococo
 			size_t value;
 		};
 
-		struct NO_VTABLE IUITree
+		ROCOCOAPI IUITree
 		{
 			virtual TREE_NODE_ID AddChild(TREE_NODE_ID parentId, const wchar_t* text, CheckState state) = 0;
 			virtual TREE_NODE_ID AddRootItem(const wchar_t* text, CheckState state) = 0;
 			virtual void ResetContent() = 0;
 		};
 
-		struct NO_VTABLE IUIList
+		ROCOCOAPI IUIList
 		{
 			virtual void AddRow(const wchar_t* values[]) = 0; // values is null terminated array
 			virtual void ClearRows() = 0;

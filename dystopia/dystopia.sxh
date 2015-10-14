@@ -1,7 +1,7 @@
-(config $config.xc)
+(config $config.xc) 
 
 (interface
-	(as.sxy Dystopia.Meshes.IMeshes "../content/scripts/dystopia") // This gives the fully qualified interface as published in the scripting language
+	(as.sxy Dystopia.Meshes.IMeshes "../content/scripts/dystopia") // This gives the fully qualified ROCOCOAPI as published in the scripting language
 	(as.cpp Dystopia.IMeshes "dystopia") // This gives the fully qualified struct name as published in the C++ header	
 	(context factory Dystopia.IMeshes)
 	(methods
@@ -23,4 +23,14 @@
 		(SetPlayerId (IdEntity playerId) ->)
 	)
 	(factory Dystopia.Levels.GetLevel)
+)
+
+(interface
+	(as.sxy Dystopia.Gui.IGui "../content/scripts/dystopia") 
+	(as.cpp Dystopia.IGui "dystopia")
+	(context factory Dystopia.IGui)
+	(methods
+		(ShowDialogBox (const Vec2 span) (const IString title)(const IString message)(const IString buttons) -> )
+	)
+	(factory Dystopia.Gui.GetGui)
 )

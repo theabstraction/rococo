@@ -5,6 +5,8 @@
 
 #include <stdlib.h>
 
+#include <math.h>
+
 using namespace Dystopia;
 using namespace Rococo;
 
@@ -24,11 +26,16 @@ namespace
 
 		virtual void Free() { delete this; }
 
-		virtual const Vec3& Velocity() const { return velocity; }
+		virtual cr_vec3 Velocity() const { return velocity; }
 
 		virtual bool IsAlive() const
 		{
 			return isAlive;
+		}
+
+		virtual Stat GetStat(StatIndex index) const
+		{
+			return Stat{ 1, 1 };
 		}
 
 		virtual void OnHit(ID_ENTITY attackerId)
@@ -62,21 +69,38 @@ namespace
 				inventory.GetRangedWeapon(muzzleSpeed, def.lifeTime);
 				level.GetPosition(def.origin, id);
 
+				const Metres shoulderHeight{ 1.5f };
+				def.origin.z += shoulderHeight;
+
 				auto playerId = level.GetPlayerId();
 
 				Vec3 playerPos;
 				level.GetPosition(playerPos, playerId);
 
-				Vec3 enemyToPlayer = playerPos - def.origin;
-				enemyToPlayer.z = Length(enemyToPlayer);
+				Radians elevation = ComputeWeaponElevation(def.origin, playerPos, muzzleSpeed, Degrees{ 45.0f }, Gravity{ -9.81f }, Metres{ 2.0f });
 
-				Vec3 dir;
-				if (TryNormalize(enemyToPlayer, dir))
+				Vec3 enemyToPlayer = playerPos - def.origin;
+
+				if (elevation > 0.0f)
 				{
-					def.velocity = muzzleSpeed * dir;
+					def.velocity.z = muzzleSpeed * sinf(elevation);
+					float lateralSpeed = muzzleSpeed * cosf(elevation);
+
+					if (enemyToPlayer.y == 0)
+					{
+						def.velocity.y = 0;
+						def.velocity.x = enemyToPlayer.x > 0 ? lateralSpeed : -lateralSpeed;
+					}
+					else
+					{
+						Radians theta{ atan2f(enemyToPlayer.y, enemyToPlayer.x) };
+						def.velocity.y = sinf(theta) * lateralSpeed;
+						def.velocity.x = cosf(theta) * lateralSpeed;
+					}
+					
 					def.bulletMesh = 0;
 					level.AddProjectile(def, gameTime);
-				}
+				}	
 			}
 			break;
 			default:

@@ -20,14 +20,14 @@ namespace Rococo
 	inline bool operator == (const Vec2i& a, const Vec2i& b) { return a.x == b.x && a.y == b.y; }
 	inline bool operator != (const Vec2i& a, const Vec2i& b) { return !(a == b); }
 
-	inline Vec3 operator + (const Vec3& a, const Vec3& b) { return Vec3{ a.x + b.x, a.y + b.y, a.z + b.z }; }
-	inline Vec3 operator * (const Vec3& q, float f) { return Vec3{ q.x * f, q.y * f, q.z * f }; }
-	inline Vec3 operator * (float f, const Vec3& q) { return Vec3{ q.x * f, q.y * f, q.z * f }; }
-	inline Vec3 operator - (const Vec3& a, const Vec3& b) { return Vec3{ a.x - b.x, a.y - b.y, a.z - b.z }; }
+	inline Vec3 operator + (cr_vec3 a, cr_vec3 b) { return Vec3{ a.x + b.x, a.y + b.y, a.z + b.z }; }
+	inline Vec3 operator * (cr_vec3 q, float f) { return Vec3{ q.x * f, q.y * f, q.z * f }; }
+	inline Vec3 operator * (float f, cr_vec3 q) { return Vec3{ q.x * f, q.y * f, q.z * f }; }
+	inline Vec3 operator - (cr_vec3 a, cr_vec3 b) { return Vec3{ a.x - b.x, a.y - b.y, a.z - b.z }; }
 
-	inline float Dot(const Vec3& a, const Vec3& b) { return a.x*b.x + a.y*b.y + a.z*b.z; }
+	inline float Dot(cr_vec3 a, cr_vec3 b) { return a.x*b.x + a.y*b.y + a.z*b.z; }
 
-	inline float operator * (const Vec3& a, const Vec3& b) { return Dot(a, b); }
+	inline float operator * (cr_vec3 a, cr_vec3 b) { return Dot(a, b); }
 
 	inline Vec2i Quantize(const Vec2& v)
 	{
@@ -67,7 +67,7 @@ namespace Rococo
 	}
 
 	bool TryGetRealRoots(float& x0, float& x1, float a /* x^2 */, float b /* x */, float c);
-	bool TryGetIntersectionLineAndSphere(float& t0, float& t1, const Vec3& start, const Vec3& end, const Sphere& sphere);
+	bool TryGetIntersectionLineAndSphere(float& t0, float& t1, cr_vec3 start, cr_vec3 end, const Sphere& sphere);
 
 	inline GuiRect operator + (const GuiRect& rect, const Vec2i& delta)
 	{
@@ -94,12 +94,16 @@ namespace Rococo
 	inline Vec2i TopRight(const GuiRect& q) { return Vec2i{ q.right, q.top }; }
 	inline Vec2i BottomLeft(const GuiRect& q) { return Vec2i{ q.left, q.bottom }; }
 
-	inline float LengthSq(const Vec3& v) { return v * v; }
+	inline float LengthSq(cr_vec3 v) { return v * v; }
 	inline float Square(float x) { return x * x; }
-	float Length(const Vec3& v);
+	float Length(cr_vec3 v);
 	void swap(float& a, float &b);
-	Vec3 Normalize(const Vec3& v);
-	bool TryNormalize(const Vec3& v, Vec3& nv);
+	Vec3 Normalize(cr_vec3 v);
+	bool TryNormalize(cr_vec3 v, Vec3& nv);
+
+	Radians ComputeWeaponElevation(cr_vec3 origin, cr_vec3 target, float projectileSpeed, Degrees maxElevation, Gravity g, Metres largestError);
+
+	float GenRandomFloat(float minValue, float maxValue);
 }
 
 #endif // ROCOCO_MATHS_H
