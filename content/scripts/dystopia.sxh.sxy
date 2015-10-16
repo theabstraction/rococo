@@ -35,12 +35,12 @@
 )
 
 (interface Dystopia.Gui.IGui
-	(ShowDialogBox (Sys.Maths.Vec2 span)(Sys.Type.IString title)(Sys.Type.IString message)(Sys.Type.IString buttons) -> )
+	(ShowDialogBox (Sys.Maths.Vec2i span)(Int32 retzone)(Int32 hypzone)(Sys.Type.IString title)(Sys.Type.IString message)(Sys.Type.IString buttons) -> )
 )
 
 (class ProxyIGui (implements Dystopia.Gui.IGui) (Pointer hObject))
 	(method ProxyIGui.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyIGui.ShowDialogBox (Sys.Maths.Vec2 span)(Sys.Type.IString title)(Sys.Type.IString message)(Sys.Type.IString buttons) ->  : (Dystopia.Gui.Native.IGuiShowDialogBox this.hObject span title message buttons))
+	(method ProxyIGui.ShowDialogBox (Sys.Maths.Vec2i span)(Int32 retzone)(Int32 hypzone)(Sys.Type.IString title)(Sys.Type.IString message)(Sys.Type.IString buttons) ->  : (Dystopia.Gui.Native.IGuiShowDialogBox this.hObject span retzone hypzone title message buttons))
 
 (factory Dystopia.Gui.GetGui Dystopia.Gui.IGui  :
 	(Pointer pObject = (Dystopia.Gui.Native.GetHandleForIGui0 ))

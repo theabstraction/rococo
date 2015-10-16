@@ -84,7 +84,53 @@ namespace
 		XMStoreFloat4x4((DirectX::XMFLOAT4X4*) &worldMatrix, t);
 	}
 
-	class DystopiaApp : public IApp, private IScene
+	void DrawHealthBar(IGuiRenderContext& gr, IHuman& human)
+	{
+		Stat health = human.GetStat(StatIndex_Health);
+
+		if (health.cap <= 0 || health.current <= 0) return;
+
+		GuiMetrics metrics;
+		gr.Renderer().GetGuiMetrics(metrics);
+
+		float left = 0.985f * (float)metrics.screenSpan.x;
+		float bottom = 0.125f * (float)metrics.screenSpan.y;
+
+		float healthRatio = (float)health.current / (float)health.cap;
+
+		bool overLoad = false;
+		if (healthRatio > 1.0f)
+		{
+			overLoad = true;
+			healthRatio = 1.0f;
+		}
+
+		float height = 0.1f * (float)metrics.screenSpan.y * healthRatio;
+
+		float right = left + 0.005f * (float)metrics.screenSpan.x;
+		float top = bottom - height;
+
+		int redness = 63 + (int)(192.0f * healthRatio);
+
+		uint8 yellow = overLoad ? 0xFF : 0x00;
+
+		RGBAb healthColour{ (uint8)redness, yellow, 0, 0xFF };
+
+		GuiVertex q0[6] =
+		{
+			{ left,   bottom, 1.0f, 0.0f, healthColour, 0.0f, 0.0f, 0 }, // bottom left
+			{ right,  bottom, 1.0f, 0.0f, healthColour, 0.0f, 0.0f, 0 }, // bottom right
+			{ left,      top, 1.0f, 0.0f, healthColour, 0.0f, 0.0f, 0 }, // top left
+			{ left,      top, 1.0f, 0.0f, healthColour, 0.0f, 0.0f, 0 }, // top left
+			{ right,  bottom, 1.0f, 0.0f, healthColour, 0.0f, 0.0f, 0 }, // bottom right
+			{ right,     top, 1.0f, 0.0f, healthColour, 0.0f, 0.0f, 0 }  // top right
+		};
+
+		gr.AddTriangle(q0);
+		gr.AddTriangle(q0 + 3);
+	}
+
+	class DystopiaApp : public IApp, private IScene, public IEventCallback<GuiEventArgs>
 	{
 	private:
 		AutoFree<IGuiSupervisor> gui;
@@ -114,10 +160,17 @@ namespace
 		{
 			humanFactory.level = level;
 			humanFactory.controls = &controls;
+
+			gui->SetEventHandler(this);
 		}
 		
 		~DystopiaApp()
 		{
+		}
+
+		virtual void OnEvent(GuiEventArgs& args)
+		{
+
 		}
 
 		virtual void Free()
@@ -163,52 +216,6 @@ namespace
 
 			float g = 0.04f * powf(1.25f, controls.GlobalScale());
 			GetIsometricWorldMatrix(worldMatrix, g, GetAspectRatio(e.renderer), playerPosition, Degrees{ -45.0f }, controls.ViewTheta());
-		}
-
-		void DrawHealthBar(IGuiRenderContext& gr, IHuman& human)
-		{
-			Stat health = human.GetStat(StatIndex_Health);
-
-			if (health.cap <= 0 || health.current <= 0) return;
-
-			GuiMetrics metrics;
-			gr.Renderer().GetGuiMetrics(metrics);
-
-			float left = 0.985f * (float)metrics.screenSpan.x;
-			float bottom = 0.125f * (float) metrics.screenSpan.y;
-
-			float healthRatio = (float)health.current / (float)health.cap;
-			
-			bool overLoad = false;
-			if (healthRatio > 1.0f)
-			{
-				overLoad = true;
-				healthRatio = 1.0f;
-			}
-
-			float height = 0.1f * (float)metrics.screenSpan.y * healthRatio;
-
-			float right = left + 0.005f * (float) metrics.screenSpan.x;
-			float top = bottom - height;
-
-			int redness = 63 + (int)(192.0f * healthRatio);
-
-			uint8 yellow = overLoad ? 0xFF : 0x00;
-
-			RGBAb healthColour{ (uint8) redness, yellow, 0, 0xFF };
-
-			GuiVertex q0[6] =
-			{
-				{ left,   bottom, 1.0f, 0.0f, healthColour, 0.0f, 0.0f, 0 }, // bottom left
-				{ right,  bottom, 1.0f, 0.0f, healthColour, 0.0f, 0.0f, 0 }, // bottom right
-				{ left,      top, 1.0f, 0.0f, healthColour, 0.0f, 0.0f, 0 }, // top left
-				{ left,      top, 1.0f, 0.0f, healthColour, 0.0f, 0.0f, 0 }, // top left
-				{ right,  bottom, 1.0f, 0.0f, healthColour, 0.0f, 0.0f, 0 }, // bottom right
-				{ right,     top, 1.0f, 0.0f, healthColour, 0.0f, 0.0f, 0 }  // top right
-			};
-
-			gr.AddTriangle(q0);
-			gr.AddTriangle(q0 + 3);
 		}
 
 		virtual void RenderGui(IGuiRenderContext& gr)

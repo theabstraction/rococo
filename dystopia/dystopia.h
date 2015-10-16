@@ -163,6 +163,18 @@ namespace Rococo
 
 namespace Dystopia
 {
+	enum GuiEventType
+	{
+		GuiEventType_CURSOR_BUTTON1_HELD,
+		GuiEventType_CURSOR_BUTTON1_RELEASED
+	};
+
+	struct GuiEventArgs
+	{
+		const wchar_t* controlScript;
+		GuiEventType type;
+	};
+
 	ROCOCOAPI IGuiSupervisor : public IGui
 	{
 		virtual void AppendKeyboardEvent(const KeyboardEvent& ke) = 0;
@@ -170,6 +182,7 @@ namespace Dystopia
 		virtual void Free() = 0;
 		virtual bool HasFocus() const = 0;
 		virtual void Render(IGuiRenderContext& rc) = 0;
+		virtual void SetEventHandler(IEventCallback<GuiEventArgs>* guiEventHandler) = 0;
 	};
 
 	IGuiSupervisor* CreateGui(IRenderer& renderer);

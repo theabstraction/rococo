@@ -94,8 +94,8 @@
 	
 	(Dystopia.Gui.IGui gui (Dystopia.Gui.GetGui))
 	
-	(Vec2 span = 800 600)
-	(gui.ShowDialogBox span "Introduction" "Once upon a time there was a really nice bloke, until he lost his job... " "OK|Cancel" )
+	(Vec2i span = 800 600)
+	(gui.ShowDialogBox span 100 30 "Introduction" "&tNot a good day - I just lost my job, and I have been made bankrupt. Not fun." ">Continue...=Sys.Events.Continue" )
 			
 	(exitCode = 0)
 )

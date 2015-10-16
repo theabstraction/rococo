@@ -224,6 +224,11 @@ namespace
 			}
 		}
 
+		virtual Vec2 GetCursor()
+		{
+			return cursor;
+		}
+
 		virtual void SetClipRect(const Quad& clipRect)
 		{
 			this->clipRect = clipRect;

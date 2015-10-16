@@ -30,7 +30,7 @@
 	(as.cpp Dystopia.IGui "dystopia")
 	(context factory Dystopia.IGui)
 	(methods
-		(ShowDialogBox (const Vec2 span) (const IString title)(const IString message)(const IString buttons) -> )
+		(ShowDialogBox (const Vec2i span) (Int32 retzone)(Int32 hypzone)(const IString title)(const IString message)(const IString buttons) -> )
 	)
 	(factory Dystopia.Gui.GetGui)
 )

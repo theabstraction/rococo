@@ -26,6 +26,7 @@
 // (struct <name> <sexy-name> <cpp-name>)  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files
 // Arguments that are struct are passed by reference in the script system. They may not be used as output arguments. It is assumed that the structures are defined elsewhere.
 
+(struct Vec2i Sys.Maths.Vec2i Vec2i)
 (struct Vec2 Sys.Maths.Vec2 Vec2)
 (struct Vec3 Sys.Maths.Vec3 Vec3)
 (struct Vec4 Sys.Maths.Vec4 Vec4)
