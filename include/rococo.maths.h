@@ -104,6 +104,11 @@ namespace Rococo
 	Radians ComputeWeaponElevation(cr_vec3 origin, cr_vec3 target, float projectileSpeed, Degrees maxElevation, Gravity g, Metres largestError);
 
 	float GenRandomFloat(float minValue, float maxValue);
+
+	void GetIsometricWorldMatrix(Matrix4x4& worldMatrix, float scale, float aspectRatio, cr_vec3 centre, Degrees phi, Degrees viewTheta);
+	void InverseMatrix(const Matrix4x4& matrix, Matrix4x4& inverseMatrix);
+
+	Vec4 Transform(const Matrix4x4& matrix, const Vec4& p);
 }
 
 #endif // ROCOCO_MATHS_H

@@ -65,13 +65,13 @@ namespace
 		}
 	};
 
-	void ValidateDX11(HRESULT hr, const char* function, const char* file, int lineNumber)
+	void ValidateDX11(HRESULT hr, const char* badcall, const char* function, const char* file, int lineNumber)
 	{
 		if FAILED(hr)
 		{
-			Throw(hr, L"DX11 call failed. %S in %S line %d", function, file, lineNumber);
+			Throw(hr, L"DX11 call failed: %S. %S in %S line %d.", badcall, function, file, lineNumber);
 		}
 	}
 }
 
-#define VALIDATEDX11(hr) ValidateDX11(hr, __FUNCTION__, __FILE__, __LINE__);
+#define VALIDATEDX11(hr) ValidateDX11(hr, #hr, __FUNCTION__, __FILE__, __LINE__);

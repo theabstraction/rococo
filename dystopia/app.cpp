@@ -4,11 +4,10 @@
 #include <vector>
 #include "dystopia.text.h"
 #include "rococo.geometry.inl"
-#include <DirectXMath.h>
 #include "meshes.h"
 #include "human.types.h"
+#include "rococo.ui.h"
 #include "controls.inl"
-
 
 using namespace Dystopia;
 using namespace Rococo;
@@ -51,6 +50,22 @@ namespace
 		RenderHorizontalCentredText(rc, info, RGBAb{ 255, 255, 255, 255 }, 1, Vec2i{ 25, 25 });
 	}
 
+	void DrawVector(IGuiRenderContext& grc, const Vec4& v, const Vec2i& pos)
+	{
+		wchar_t info[256];
+		SafeFormat(info, _TRUNCATE, L"(%f) (%f) (%f) (%f)\n", v.x, v.y, v.z, v.w);
+
+		RenderHorizontalCentredText(grc, info, RGBAb{ 255, 255, 255, 255 }, 3, pos);
+	}
+
+	void DrawVector(IGuiRenderContext& grc, const Vec3& v, const Vec2i& pos)
+	{
+		wchar_t info[256];
+		SafeFormat(info, _TRUNCATE, L"(%f) (%f) (%f) ", v.x, v.y, v.z);
+
+		RenderHorizontalCentredText(grc, info, RGBAb{ 255, 255, 255, 255 }, 3, pos);
+	}
+
 	struct HumanFactory: public IHumanFactory
 	{
 		ILevel* level;
@@ -68,21 +83,6 @@ namespace
 			return nullptr;
 		}
 	};
-
-	void GetIsometricWorldMatrix(Matrix4x4& worldMatrix, float scale, float aspectRatio, cr_vec3 centre, Degrees phi, Degrees viewTheta)
-	{
-		using namespace DirectX;
-
-		XMMATRIX aspectCorrect = XMMatrixScaling(scale * aspectRatio, scale, scale);
-		XMMATRIX rotZ = XMMatrixRotationZ(ToRadians(viewTheta));
-		XMMATRIX rotX = XMMatrixRotationX(ToRadians(phi));
-		XMMATRIX origin = XMMatrixTranslation(-centre.x, -centre.y, 0.0f);
-		XMMATRIX totalRot = XMMatrixMultiply(rotZ, rotX);
-
-		XMMATRIX t = XMMatrixMultiply(XMMatrixMultiply(origin, totalRot), aspectCorrect);
-
-		XMStoreFloat4x4((DirectX::XMFLOAT4X4*) &worldMatrix, t);
-	}
 
 	void DrawHealthBar(IGuiRenderContext& gr, IHuman& human)
 	{
@@ -130,6 +130,15 @@ namespace
 		gr.AddTriangle(q0 + 3);
 	}
 
+	Vec2 PixelSpaceToScreenSpace(const Vec2i& v, IRenderer& renderer)
+	{
+		GuiMetrics metrics;
+		renderer.GetGuiMetrics(metrics);
+
+		return{  (2.0f * (float)metrics.cursorPosition.x - metrics.screenSpan.x) / metrics.screenSpan.x,
+				-(2.0f * (float)metrics.cursorPosition.y - metrics.screenSpan.y) / metrics.screenSpan.y };
+	}
+
 	class DystopiaApp : public IApp, private IScene, public IEventCallback<GuiEventArgs>
 	{
 	private:
@@ -146,6 +155,8 @@ namespace
 	
 		float gameTime;
 		float lastFireTime;
+
+		Matrix4x4 worldMatrix;
 	public:
 		DystopiaApp(IRenderer& _renderer, IInstallation& _installation) : 
 			gui(CreateGui(_renderer)),
@@ -183,13 +194,17 @@ namespace
 			levelLoader->Load(L"!levels/level1.sxy", false);
 		}
 
-		virtual uint32 OnTick(const IUltraClock& clock)
+		Vec3 xCursor;
+		Vec3 selectionPoint;
+		Vec4 cursorPos;
+
+		virtual uint32 OnFrameUpdated(const IUltraClock& clock)
 		{
 			levelLoader->SyncWithModifiedFiles();
 
 			if (!gui->HasFocus())
 			{
-				float dt = clock.TickDelta() / (float)clock.Hz();
+				float dt = clock.FrameDelta() / (float)clock.Hz();
 				if (dt < 0.0f) dt = 0.0f;
 				if (dt > 0.1f) dt = 0.1f;
 
@@ -197,6 +212,43 @@ namespace
 
 				level->UpdateObjects(gameTime, dt);
 			}
+
+			auto id = level->GetPlayerId();
+
+			Vec3 playerPosition;
+			level->GetPosition(playerPosition, id);
+
+			float g = 0.04f * powf(1.25f, controls.GlobalScale());
+
+			Degrees phi{ -45.0f };
+			Degrees theta{ controls.ViewTheta() };
+			GetIsometricWorldMatrix(worldMatrix, g, GetAspectRatio(e.renderer), playerPosition, phi, theta);
+
+			GuiMetrics metrics;
+			e.renderer.GetGuiMetrics(metrics);
+
+			Matrix4x4 inverseWorldMatrix;
+			InverseMatrix(worldMatrix, inverseWorldMatrix);
+
+			Vec2 C = PixelSpaceToScreenSpace(metrics.cursorPosition, e.renderer);
+
+			Vec4 xCursor = Vec4 { C.x, C.y, 0.0f, 1.0f };
+
+			cursorPos = Transform(inverseWorldMatrix, xCursor);
+			Vec3 cursorPos3{ cursorPos.x, cursorPos.y, cursorPos.z };
+
+			Vec4 k = { 0, 0, 1.0f, 0.0f };
+
+			Vec4 worldDir = Transform(inverseWorldMatrix, k);
+			Vec3 worldDir3{ worldDir.x, worldDir.y, worldDir.z };
+
+			// We now have all the information to specify cursor probe. Point on probe are P(t) = cursorPos + t.worldDir.
+			// We want intersection with earth z = 0
+			// t0.worldDir.z + cursorPos.z = 0
+			// t0 = -cursorPos.z / worldDir.z, giving P(t0), intersection with cursor and earth
+
+			float t0 = -cursorPos.z / worldDir.z;
+			selectionPoint = cursorPos3 + t0 * worldDir3;
 
 			e.renderer.Render(*this);
 			return 5;
@@ -209,17 +261,13 @@ namespace
 
 		virtual void GetWorldMatrix(Matrix4x4& worldMatrix) const
 		{
-			auto id = level->GetPlayerId();
-
-			Vec3 playerPosition;
-			level->GetPosition(playerPosition, id);
-
-			float g = 0.04f * powf(1.25f, controls.GlobalScale());
-			GetIsometricWorldMatrix(worldMatrix, g, GetAspectRatio(e.renderer), playerPosition, Degrees{ -45.0f }, controls.ViewTheta());
+			worldMatrix = this->worldMatrix;
 		}
 
 		virtual void RenderGui(IGuiRenderContext& gr)
 		{
+			// DrawTestTriangles(gr);
+
 			if (gui->HasFocus())
 			{
 				gui->Render(gr);
@@ -235,6 +283,9 @@ namespace
 				DrawHealthBar(gr, *human);
 			}
 
+			DrawVector(gr, cursorPos, Vec2i{ 25, 25 });
+			DrawVector(gr, selectionPoint, Vec2i{ 25, 75 });
+
 			// DrawGuiMetrics(gr);
 		}
 
@@ -243,12 +294,8 @@ namespace
 			level->RenderObjects(rc);
 		}
 
-		MouseEvent lastEvent;
-
 		virtual void OnMouseEvent(const MouseEvent& me)
 		{
-			lastEvent = me;
-
 			if (gui->HasFocus())
 			{
 				gui->AppendMouseEvent(me);

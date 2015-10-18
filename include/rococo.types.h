@@ -132,14 +132,14 @@ namespace Rococo
 
 		AutoFree& operator = (T* src)
 		{
-			if (t) t->Free();
+			Rococo::Free(t);
 			t = src;
 			return *this;
 		}
 
 		~AutoFree()
 		{
-			Free(t);
+			Rococo::Free(t);
 		}
 
 		operator T* () { return t; }
@@ -221,6 +221,16 @@ namespace Rococo
 		RGBAb(uint8 _red, uint8 _green, uint8 _blue, uint8 _alpha = 255) : red(_red), green(_green), blue(_blue), alpha(_alpha) {}
 	};
 
+	struct RGBA
+	{
+		float red;
+		float green;
+		float blue;
+		float alpha;
+
+		RGBA(float _r, float _g, float _b, float _a = 1.0f) : red(_r), green(_g), blue(_b), alpha(_a) {}
+	};
+
 	struct IRenderer;
 	struct IInstallation;
 	struct IOS;
@@ -237,6 +247,9 @@ namespace Rococo
 		struct IUIList;
 		struct IUITree;
 	}
+
+	struct KeyboardEvent;
+	struct MouseEvent;
 }
 
 namespace Sexy

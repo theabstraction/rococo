@@ -2,6 +2,7 @@
 #include <string>
 
 #include "rococo.renderer.h"
+#include "rococo.ui.h"
 #include "rococo.fonts.h"
 
 using namespace Dystopia;

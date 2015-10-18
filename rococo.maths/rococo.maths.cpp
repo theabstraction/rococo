@@ -6,8 +6,46 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include <DirectXMath.h>
+
+#include <rococo.geometry.inl>
+
 namespace Rococo
 {
+	void GetIsometricWorldMatrix(Matrix4x4& worldMatrix, float scale, float aspectRatio, cr_vec3 centre, Degrees phi, Degrees viewTheta)
+	{
+		using namespace DirectX;
+
+		XMMATRIX aspectCorrect = XMMatrixScaling(scale * aspectRatio, scale, scale);
+		XMMATRIX rotZ = XMMatrixRotationZ(ToRadians(viewTheta));
+		XMMATRIX rotX = XMMatrixRotationX(ToRadians(phi));
+		XMMATRIX origin = XMMatrixTranslation(-centre.x, -centre.y, 0.0f);
+		XMMATRIX totalRot = XMMatrixMultiply(rotZ, rotX);
+		XMMATRIX xortho = XMMatrixOrthographicLH(2.0f, 2.0f, 1.0f, 1000.0f);
+
+		XMMATRIX t = XMMatrixMultiply(XMMatrixMultiply(XMMatrixMultiply(origin, totalRot), aspectCorrect), xortho);
+
+		XMStoreFloat4x4((DirectX::XMFLOAT4X4*) &worldMatrix, t);
+	}
+
+	void InverseMatrix(const Matrix4x4& matrix, Matrix4x4& inverseMatrix)
+	{
+		using namespace DirectX;
+		XMMATRIX m = XMLoadFloat4x4((DirectX::XMFLOAT4X4*) &matrix);
+		XMMATRIX im = XMMatrixInverse(nullptr, m);
+		XMStoreFloat4x4((DirectX::XMFLOAT4X4*) &inverseMatrix, im);
+	}
+
+	float Dot(const Vec4& a, const Vec4& b)
+	{
+		return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+	}
+
+	Vec4 Transform(const Matrix4x4& matrix, const Vec4& p)
+	{
+		return Vec4{ Dot(matrix.row0, p), Dot(matrix.row1, p), Dot(matrix.row2, p),Dot(matrix.row3, p) };
+	}
+
 	bool TryGetRealRoots(float& x0, float& x1, float a /* x^2 */, float b /* x */, float c)
 	{
 		// Solve quadratic equation ax^2 + bx + c = 0 using formula

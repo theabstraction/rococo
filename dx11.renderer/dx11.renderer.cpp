@@ -35,6 +35,28 @@ namespace
 {
 	using namespace Rococo;
 
+	D3D11_TEXTURE2D_DESC GetDepthDescription(HWND hWnd)
+	{
+		RECT rect;
+		GetClientRect(hWnd, &rect);
+
+		D3D11_TEXTURE2D_DESC depthStencilDesc;
+		depthStencilDesc.Width = rect.right - rect.left;
+		depthStencilDesc.Height = rect.bottom - rect.top;
+		depthStencilDesc.MipLevels = 1;
+		depthStencilDesc.ArraySize = 1;
+		depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		depthStencilDesc.SampleDesc.Count = 1;
+		depthStencilDesc.SampleDesc.Quality = 0;
+		depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+		depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+		depthStencilDesc.CPUAccessFlags = 0;
+		depthStencilDesc.MiscFlags = 0;
+		return depthStencilDesc;
+	}
+
+	
+
 	DXGI_SWAP_CHAIN_DESC GetSwapChainDescription(HWND hWnd)
 	{
 		RECT rect;
@@ -133,9 +155,9 @@ namespace
 	struct UltraClock : public IUltraClock
 	{
 		ticks hz;
-		ticks tickStart;
+		ticks frameStart;
 		ticks start;
-		ticks tickDelta;
+		ticks frameDelta;
 
 		UltraClock()
 		{
@@ -148,9 +170,9 @@ namespace
 		}
 
 		virtual ticks Hz() const { return hz; }
-		virtual ticks TickStart() const { return tickStart; }
+		virtual ticks FrameStart() const { return frameStart; }
 		virtual ticks Start() const { return start; }
-		virtual ticks TickDelta() const { return tickDelta; }
+		virtual ticks FrameDelta() const { return frameDelta; }
 	};
 
 	D3D11_INPUT_ELEMENT_DESC guiVertexDesc[] =
@@ -349,6 +371,7 @@ namespace
 
 		AutoRelease<IDXGISwapChain> mainSwapChain;
 		AutoRelease<ID3D11RenderTargetView> mainBackBufferView;
+		AutoRelease<ID3D11DepthStencilView> depthStencilView;
 
 		std::vector<DX11VertexShader*> vertexShaders;
 		std::vector<DX11PixelShader*> pixelShaders;
@@ -386,6 +409,8 @@ namespace
 		AutoRelease<ID3D11Buffer> instanceBuffer;
 		enum { INSTANCE_BUFFER_CAPACITY = 1024 };
 
+		AutoRelease<ID3D11DepthStencilState> guiDepthState;
+		AutoRelease<ID3D11DepthStencilState> objDepthState;
 	public:
 		Windows::IWindow* window;
 
@@ -408,6 +433,21 @@ namespace
 				spriteSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 				VALIDATEDX11(device.CreateSamplerState(&spriteSamplerDesc, &spriteSampler));
+			}
+
+			{
+				D3D11_DEPTH_STENCIL_DESC desc;
+				ZeroMemory(&desc, sizeof(desc));
+				desc.DepthEnable = TRUE;
+				desc.DepthFunc = D3D11_COMPARISON_LESS;
+				desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+				VALIDATEDX11(device.CreateDepthStencilState(&desc, &objDepthState));
+			}
+
+			{
+				D3D11_DEPTH_STENCIL_DESC desc;
+				ZeroMemory(&desc, sizeof(desc));
+				VALIDATEDX11(device.CreateDepthStencilState(&desc, &guiDepthState));
 			}
 
 			{
@@ -621,6 +661,12 @@ namespace
 
 			VALIDATEDX11(device.CreateRenderTargetView(backBuffer, nullptr, &mainBackBufferView));
 
+			auto depthDesc = GetDepthDescription(hRenderWindow);
+
+			AutoRelease<ID3D11Texture2D> depthBuffer;
+			VALIDATEDX11(device.CreateTexture2D(&depthDesc, nullptr, &depthBuffer));
+			VALIDATEDX11(device.CreateDepthStencilView(depthBuffer, nullptr, &depthStencilView));
+
 			SyncViewport();
 		}
 
@@ -808,15 +854,15 @@ namespace
 		{
 			if (mainBackBufferView.IsNull()) return;
 
-			dc.OMSetRenderTargets(1, &mainBackBufferView, nullptr);
+			dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
 
 			RGBA clearColour = scene.GetClearColour();
 
 			if (clearColour.alpha > 0)
 			{
 				dc.ClearRenderTargetView(mainBackBufferView, (const FLOAT*)&clearColour);
+				dc.ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 			}
-
 
 			FLOAT blendFactorUnused[] = { 0,0,0,0 };
 			dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
@@ -829,6 +875,7 @@ namespace
 
 			dc.VSSetConstantBuffers(0, 1, &matrix4x4Buffer);
 			dc.RSSetState(objectRaterizering);
+			dc.OMSetDepthStencilState(objDepthState, 0);
 
 			scene.RenderObjects(*this);
 
@@ -852,6 +899,7 @@ namespace
 			dc.VSSetConstantBuffers(0, 1, &vector4Buffer);
 			dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+			dc.OMSetDepthStencilState(guiDepthState, 0);
 			scene.RenderGui(*this);
 
 			FlushLayer();
@@ -861,6 +909,7 @@ namespace
 
 			mainSwapChain->Present(1, 0);
 
+			dc.OMSetDepthStencilState(nullptr, 0);
 			dc.OMSetRenderTargets(0, nullptr, nullptr);
 			dc.IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
 		}
@@ -926,6 +975,14 @@ namespace
 			AutoRelease<ID3D11Texture2D> backBuffer;
 			VALIDATEDX11(mainSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
 			VALIDATEDX11(device.CreateRenderTargetView(backBuffer, nullptr, &mainBackBufferView));
+
+			depthStencilView.Detach();
+
+			AutoRelease<ID3D11Texture2D> depthBuffer;
+
+			auto depthDesc = GetDepthDescription(hRenderWindow);
+			VALIDATEDX11(device.CreateTexture2D(&depthDesc, nullptr, &depthBuffer));
+			VALIDATEDX11(device.CreateDepthStencilView(depthBuffer, nullptr, &depthStencilView));
 
 			SyncViewport();
 		}
@@ -1152,13 +1209,13 @@ namespace
 				}
 			}
 
-			QueryPerformanceCounter((LARGE_INTEGER*)&uc.tickStart);
+			QueryPerformanceCounter((LARGE_INTEGER*)&uc.frameStart);
 
-			uc.tickDelta = uc.tickStart - lastTick;
+			uc.frameDelta = uc.frameStart - lastTick;
 
-			sleepMS = app.OnTick(uc);
+			sleepMS = app.OnFrameUpdated(uc);
 
-			lastTick = uc.tickStart;
+			lastTick = uc.frameStart;
 		}
 	}
 } // anon
