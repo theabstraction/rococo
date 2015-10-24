@@ -25,6 +25,7 @@ namespace
 		AutoFree<IKeyboardSupervisor> keyboard;
 
 		int fireCount;
+		int activateCount;
 	public:
 		GameControls() :
 			keyboard(CreateKeyboardMap()),
@@ -35,13 +36,21 @@ namespace
 			isLeft(false),
 			isRight(false),
 			globalScale(4),
-			fireCount(0)
+			fireCount(0),
+			activateCount(0)
 		{
 			SCANCODE_FORWARD = keyboard->GetScanCode(L"W");
 			SCANCODE_BACKWARD = keyboard->GetScanCode(L"S");
 			SCANCODE_STRAFFELEFT = keyboard->GetScanCode(L"A");
 			SCANCODE_STRAFFERIGHT = keyboard->GetScanCode(L"D");
 			SCANCODE_FIRE = keyboard->GetScanCode(L"SPACE");
+		}
+
+		virtual int32 PollActivateCount()
+		{
+			auto count = activateCount;
+			activateCount = 0;
+			return count;
 		}
 
 		int32 GetFireCount() const
@@ -73,14 +82,14 @@ namespace
 				rbuttonDown = false;
 			}
 
-			if (rbuttonDown && me.IsRelative())
-			{
-				viewTheta.quantity += me.dx;
-			}
-
 			if (me.HasFlag(MouseEvent::LUp))
 			{
+				activateCount++;
+			}
 
+			if (rbuttonDown && me.IsRelative())
+			{
+				viewTheta.quantity += 0.5f * me.dx;
 			}
 		}
 

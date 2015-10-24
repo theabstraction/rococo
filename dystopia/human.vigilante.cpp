@@ -7,7 +7,7 @@ using namespace Rococo;
 
 namespace
 {
-	class HumanVigilante : public IHumanSupervisor
+	class HumanVigilante : public IHumanAISupervisor
 	{
 		ID_ENTITY id;
 		Vec3 velocity;
@@ -35,7 +35,7 @@ namespace
 		void UpdateViaIntent(float gameTime, float dt)
 		{
 			Vec3 pos;
-			level.GetPosition(pos, id);
+			level.GetPosition(id, pos);
 
 			float speed = 4.0f;
 			Vec2 impulse = intent.GetImpulse();
@@ -75,6 +75,12 @@ namespace
 			}
 		}
 
+		virtual void Describe(IStringBuilder& sb, Language language)
+		{
+			sb.AppendFormat(L"Vigilante.\n\n");
+			sb.AppendFormat(L"Health: %d of %d", stats[StatIndex_Health].current, stats[StatIndex_Health].cap);
+		}
+
 		virtual void Free()
 		{ 
 			delete this;
@@ -101,7 +107,7 @@ namespace
 
 namespace Dystopia
 {
-	IHumanSupervisor* CreateVigilante(ID_ENTITY id, IIntent& intent, ILevel& level)
+	IHumanAISupervisor* CreateVigilante(ID_ENTITY id, IIntent& intent, ILevel& level)
 	{
 		return new HumanVigilante(id, intent, level);
 	}

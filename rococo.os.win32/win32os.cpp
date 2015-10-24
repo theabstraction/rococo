@@ -204,12 +204,6 @@ namespace
 		}
 	};
 
-	struct ILock
-	{
-		virtual void Lock() = 0;
-		virtual void Unlock() = 0;
-	};
-
 	class CriticalSection: public ILock
 	{
 		CRITICAL_SECTION sysCS;
@@ -233,21 +227,6 @@ namespace
 		void Unlock()
 		{
 			LeaveCriticalSection(&sysCS);
-		}
-	};
-
-	class Sync
-	{
-		ILock& lock;
-	public:
-		Sync(ILock& _lock) : lock(_lock)
-		{
-			lock.Lock();
-		}
-
-		~Sync()
-		{
-			lock.Unlock();
 		}
 	};
 

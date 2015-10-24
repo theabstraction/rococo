@@ -27,6 +27,7 @@ namespace Dystopia
 		virtual int32 GetFireCount() const = 0;
 		virtual Vec2 GetImpulse() const = 0;
 		virtual void SetFireCount(int32 count) = 0;
+		virtual int32 PollActivateCount() = 0; // returns number of activations since last call and sets to count to zero
 	};
 
 	typedef int32 StatValue;
@@ -43,15 +44,21 @@ namespace Dystopia
 		StatIndex_Count
 	};
 
-	ROCOCOAPI IHuman
+	enum Language
 	{
+		Language_English
+	};
+
+	ROCOCOAPI IHumanAI
+	{
+		virtual void Describe(IStringBuilder& sb, Language = Language_English) = 0;
 		virtual bool IsAlive() const = 0;
 		virtual void OnHit(ID_ENTITY attackerId) = 0;
 		virtual cr_vec3 Velocity() const = 0;
 		virtual Stat GetStat(StatIndex index) const = 0;
 	};
 
-	ROCOCOAPI IHumanSupervisor : public IHuman
+	ROCOCOAPI IHumanAISupervisor : public IHumanAI
 	{
 		virtual void Update(float gameTime, float dt) = 0;
 		virtual void Free() = 0;
@@ -59,9 +66,9 @@ namespace Dystopia
 
 	ROCOCOAPI IHumanFactory
 	{
-		virtual IHumanSupervisor* CreateHuman(ID_ENTITY id, IInventory& inventory, HumanType typeId) = 0;
+		virtual IHumanAISupervisor* CreateHuman(ID_ENTITY id, IInventory& inventory, HumanType typeId) = 0;
 	};
 
-	IHumanSupervisor* CreateBobby(ID_ENTITY id, IInventory& inventory, ILevel& level);
-	IHumanSupervisor* CreateVigilante(ID_ENTITY id, IIntent& intent, ILevel& level);
+	IHumanAISupervisor* CreateBobby(ID_ENTITY id, IInventory& inventory, ILevel& level);
+	IHumanAISupervisor* CreateVigilante(ID_ENTITY id, IIntent& intent, ILevel& level);
 }

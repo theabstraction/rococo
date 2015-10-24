@@ -44,7 +44,7 @@
 	(Matrix4x4 mrSmithLoc =
 		( 1 0 0     0.0 )
 		( 0 1 0     5.0 )
-		( 0 0 1     0.0 )
+		( 0 0 1     0.2 )
 		( 0 0 0     1.0 )
 	)
 	(level.AddEnemy mrSmithLoc 3)
@@ -52,7 +52,7 @@
 	(Matrix4x4 mrSmithLoc2 =
 		( 1 0 0     1.0 )
 		( 0 1 0     2.0 )
-		( 0 0 1     0.0 )
+		( 0 0 1     0.2 )
 		( 0 0 0     1.0 )
 	)
 	(level.AddEnemy mrSmithLoc2 3)
@@ -60,7 +60,7 @@
 	(Matrix4x4 mrSmithLoc3 =
 		( 1 0 0     0.0 )
 		( 0 1 0     2.0 )
-		( 0 0 1     0.0 )
+		( 0 0 1     0.2 )
 		( 0 0 0     1.0 )
 	)
 	(level.AddEnemy mrSmithLoc3 3)
@@ -68,7 +68,7 @@
 	(Matrix4x4 mrSmithLoc4 =
 		( 1 0 0     1.0 )
 		( 0 1 0     3.0 )
-		( 0 0 1     0.0 )
+		( 0 0 1     0.2 )
 		( 0 0 0     1.0 )
 	)
 	(level.AddEnemy mrSmithLoc4 3)
@@ -76,7 +76,7 @@
 	(Matrix4x4 playerLoc =
 		( 1 0 0    0)
 		( 0 1 0    0)
-		( 0 0 1    0)
+		( 0 0 1  0.3)
 		( 0 0 0    1)
 	)
 	
@@ -86,7 +86,7 @@
 	(Matrix4x4 powerupLoc =
 		( 0.2      0	0    3)
 		( 0      0.2    0    3)
-		( 0        0  0.2  0.1)
+		( 0        0  0.2  0.4)
 		( 0        0    0    1)
 	)
 	

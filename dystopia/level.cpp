@@ -13,7 +13,6 @@
 
 #include <rococo.maths.h>
 
-#include <rococo.maths.inl>
 
 #include "component.system.inl"
 
@@ -47,12 +46,12 @@ namespace
 		HumanType type;
 		float nextAIcheck;
 		AutoFree<IInventorySupervisor> inventory;
-		AutoFree<IHumanSupervisor> ai;
+		AutoFree<IHumanAISupervisor> ai;
 	};
 
 	Sphere BoundingSphere(const Solid& solid)
 	{
-		return Sphere{ GetPosition(solid.instance.orientation) , solid.boundingRadius };
+		return Sphere{ solid.instance.orientation.GetPosition() , solid.boundingRadius };
 	}
 
 	template<class ROW> ID_ENTITY GetFirstIntersect(cr_vec3 start, cr_vec3 end, const EntityTable<ROW>& table, const EntityTable<Solid>& solids)
@@ -96,11 +95,9 @@ namespace
 		return false;
 	}
 
-	struct RangedWeaponCrate
+	struct Equipment
 	{
-		float flightTime;
-		float muzzleVelocity;
-		std::wstring name;
+		IInventorySupervisor* inventory;
 	};
 
 	class Level : public ILevelSupervisor, public ILevelBuilder
@@ -112,15 +109,15 @@ namespace
 		EntityTable<Projectile> projectiles;
 		EntityTable<Human*> enemies;
 		EntityTable<Human*> allies;
-		EntityTable<RangedWeaponCrate> weapons;
-
+		EntityTable<Equipment> equipment;
+		Vec3 groundZeroCursor;
+		ID_ENTITY selectedId;
 	public:
-		Level(Environment& _e, IHumanFactory& _hf) : e(_e), hf(_hf), idPlayer(0) {}
+		Level(Environment& _e, IHumanFactory& _hf) : e(_e), hf(_hf), idPlayer(0), groundZeroCursor{ 0,0,0 } {}
 
 		~Level()
 		{
-			FreeTable(allies);
-			FreeTable(enemies);
+			Clear();
 		}
 
 		virtual ILevelBuilder& Builder()
@@ -130,7 +127,14 @@ namespace
 
 		virtual void Clear()
 		{
+			FreeTable(allies);
+			FreeTable(enemies);
 			solids.clear();
+			for (auto i : equipment)
+			{
+				i.second.inventory->Free();
+			}
+			equipment.clear();
 		}
 
 		virtual void Free() { delete this; }
@@ -138,16 +142,44 @@ namespace
 		virtual ID_ENTITY AddRangedWeapon(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, float muzzleVelocity, float flightTime)
 		{
 			auto id = AddSolid(transform, editorId);
-			weapons.insert(id, RangedWeaponCrate{ flightTime, muzzleVelocity, name.buffer });
+			auto inv = CreateInventory();
+			inv->SetRangedWeapon(muzzleVelocity, flightTime);
+			equipment.insert(id, Equipment{ inv });
 			return id;
+		}
+
+		virtual bool TryGetEquipment(ID_ENTITY id, EquipmentDesc& desc) const
+		{
+			auto x = equipment.find(id);
+			if (x != equipment.end())
+			{
+				auto& solid = solids.find(id);
+				desc.worldPosition = solid->second.instance.orientation.GetPosition();
+				desc.inventory = x->second.inventory;
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		virtual void DeleteEquipment(ID_ENTITY id)
+		{
+			auto eq = equipment.find(id);
+			if (eq != equipment.end())
+			{
+				eq->second.inventory->Free();
+			}
+			equipment.erase(id);
+			solids.erase(id);
 		}
 
 		virtual ID_ENTITY AddSolid(const Matrix4x4& transform, ID_MESH meshId)
 		{
 			auto id = GenerateEntityId();
 			ID_MESH sysId = e.meshes.GetRendererId(meshId);
-
-			solids.insert(id, Solid{ transform, sysId, 1.0f });
+			solids.insert(id, Solid{ {transform, {0,0,0,0}}, sysId, 1.0f });
 			return id;
 		}
 
@@ -182,7 +214,7 @@ namespace
 			return id;
 		}
 
-		virtual HumanType GetHuman(ID_ENTITY id, IInventory** ppInventory, IHuman** ppHuman)
+		virtual HumanSpec GetHuman(ID_ENTITY id)
 		{
 			auto i = enemies.find(id);
 			if (i == enemies.end())
@@ -190,16 +222,22 @@ namespace
 				i = allies.find(id);
 				if (i == allies.end())
 				{
-					if (ppInventory) *ppInventory = nullptr;
-					if (ppHuman) *ppHuman = nullptr;
-					return HumanType_None;
+					return{ HumanType_None, nullptr, nullptr };
 				}
 			}
 
 			auto& h = *i->second;
-			if (ppInventory) *ppInventory = h.inventory;
-			if (ppHuman) *ppHuman = h.ai;
-			return h.type;
+			return{ h.type, h.inventory, h.ai };
+		}
+
+		virtual void SetGroundCursorPosition(cr_vec3 groundZero)
+		{
+			groundZeroCursor = groundZero;
+		}
+
+		virtual ID_ENTITY SelectedId()
+		{
+			return selectedId;
 		}
 
 		virtual void SetTransform(ID_ENTITY id, const Matrix4x4& transform)
@@ -213,7 +251,7 @@ namespace
 			i->second.instance.orientation = transform;
 		}
 
-		virtual void GetPosition(Vec3& pos, ID_ENTITY id) const
+		virtual void GetPosition(ID_ENTITY id, Vec3& pos) const
 		{
 			auto i = solids.find(id);
 			if (i == solids.end())
@@ -222,10 +260,10 @@ namespace
 			}
 
 			auto& t = i->second.instance.orientation;
-			pos = ::GetPosition(t);
+			pos = t.GetPosition();
 		}
 
-		virtual void SetPosition(cr_vec3 pos, ID_ENTITY id)
+		virtual void SetPosition(ID_ENTITY id, cr_vec3 pos)
 		{
 			auto i = solids.find(id);
 			if (i == solids.end())
@@ -236,28 +274,55 @@ namespace
 			auto& entity = i->second;
 			auto& t = i->second.instance.orientation;
 
-			::SetPosition(t, pos);
+			t.SetPosition(pos);
+		}
+
+		virtual ID_ENTITY SelectedId() const
+		{
+			return selectedId;
 		}
 
 		virtual void RenderObjects(IRenderContext& rc)
 		{
+			selectedId = 0;
+
+			bool foundItem = false;
 			for (auto& i : solids)
 			{
 				auto& entity = i.second;
-				rc.Draw(entity.meshId, &entity.instance, 1);
+				
+				Vec3 pos = entity.instance.orientation.GetPosition();
+				Vec3 delta = pos - groundZeroCursor;
+
+				float DS2 = Square(delta.x) + Square(delta.y);
+				bool isHighlighted = DS2 < Square(entity.boundingRadius);
+
+				if (isHighlighted && !foundItem)
+				{
+					selectedId = i.first;
+					foundItem = true;
+					ObjectInstance instance{ entity.instance.orientation, { 1.0f, 1.0f, 1.0f, 0.5f } };
+					rc.Draw(entity.meshId, &instance, 1);
+				}
+				else
+				{
+					rc.Draw(entity.meshId, &entity.instance, 1);
+				}
 			}
 
 			for (auto& i : projectiles)
 			{
 				auto& p = i.second;
 
-				ObjectInstance pi;
-				pi.orientation = Matrix4x4
-				{
-					Vec4{0.25f, 0,     0,     p.position.x},
-					Vec4{0,     0.25f, 0,     p.position.y},
-					Vec4{0,     0,     0.25f, p.position.z},
-					Vec4{0,     0,     0,     1}
+				ObjectInstance pi{
+					Matrix4x4
+					{
+						Vec4{0.25f,		0,		0,  p.position.x},
+						Vec4{0,		0.25f,		0,  p.position.y},
+						Vec4{0,			0,	0.25f,  p.position.z},
+						Vec4{0,			0,		0,			   1}
+					},
+					RGBA(0,0,0,0)
 				};
 
 				rc.Draw(p.bulletMesh, &pi, 1);
@@ -303,7 +368,7 @@ namespace
 		void UpdatePosition(ID_ENTITY id, float dt, EntityTable<Human*>& humans)
 		{
 			Vec3 pos;
-			GetPosition(pos, id);
+			GetPosition(id, pos);
 
 			auto i = humans.find(id);
 			if (i == humans.end())
@@ -312,7 +377,7 @@ namespace
 			}
 
 			Vec3 newPos = pos + i->second->ai->Velocity() * dt;
-			SetPosition(newPos, id);
+			SetPosition(id, newPos);
 		}
 
 		void UpdateEnemy(Human& enemy, ID_ENTITY id, float gameTime, float dt)
@@ -380,28 +445,9 @@ namespace
 			allies[idPlayer]->ai->Update(gameTime, dt);
 
 			Vec3 playerPos;
-			GetPosition(playerPos, idPlayer);
+			GetPosition(idPlayer, playerPos);
 
 			UpdatePosition(idPlayer, dt, allies);
-
-			auto w = weapons.begin(); 
-			while (w != weapons.end())
-			{
-				auto& k = solids.find(w->first);
-				Vec3 boxPos = ::GetPosition(k->second.instance.orientation);
-				float lenSq = LengthSq(boxPos - playerPos);
-				if (lenSq < Square(k->second.boundingRadius))
-				{
-					allies[idPlayer]->inventory->SetRangedWeapon(w->second.muzzleVelocity, w->second.flightTime);
-					solids.erase(w->first);
-					weapons.erase(w);
-					break;
-				}
-				else
-				{
-					++w;
-				}
-			}
 		}
 
 		virtual ID_ENTITY GetPlayerId() const

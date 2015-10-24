@@ -63,18 +63,25 @@ namespace Rococo
 	struct ObjectInstance
 	{
 		Matrix4x4 orientation;
+		RGBA highlightColour;
+	};	
+	
+	struct GlobalState
+	{
+		Matrix4x4 worldMatrixAndProj;
+		Matrix4x4 worldMatrix;
 	};
 
 	ROCOCOAPI IRenderContext // Provides draw calls - do not cache
 	{
 		virtual void Draw(ID_MESH id, const ObjectInstance* instance, uint32 nInstances) = 0;
 		virtual IRenderer& Renderer() = 0;
+		virtual void SetGlobalState(const GlobalState& gs) = 0;
 	};
 
 	ROCOCOAPI IScene
 	{
 		virtual RGBA GetClearColour() const = 0;
-		virtual void GetWorldMatrix(Matrix4x4& worldMatrix) const = 0;
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
 		virtual void RenderObjects(IRenderContext& rc) = 0;
 	};
@@ -83,7 +90,7 @@ namespace Rococo
 	{
 		virtual void Free() = 0;
 		virtual void OnCreated() = 0; // called just after construction - a 'post-constructor'
-		virtual uint32 OnFrameUpdated(const IUltraClock& clock) = 0;
+		virtual auto OnFrameUpdated(const IUltraClock& clock) -> uint32 = 0; // returns number of ms to sleep per frame as hint
 		virtual void OnKeyboardEvent(const KeyboardEvent& k) = 0;
 		virtual void OnMouseEvent(const MouseEvent& me) = 0;
 	};

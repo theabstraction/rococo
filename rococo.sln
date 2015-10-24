@@ -35,6 +35,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.maths.test", "rococo
 		{426AEC64-C529-4ADF-9A49-B4E7A3D6C710} = {426AEC64-C529-4ADF-9A49-B4E7A3D6C710}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.util", "rococo.util\rococo.util.vcxproj", "{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -99,6 +101,14 @@ Global
 		{9A70BF9A-D77A-4934-86AE-A429A25CB2C2}.Release|x64.Build.0 = Release|x64
 		{9A70BF9A-D77A-4934-86AE-A429A25CB2C2}.Release|x86.ActiveCfg = Release|Win32
 		{9A70BF9A-D77A-4934-86AE-A429A25CB2C2}.Release|x86.Build.0 = Release|Win32
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Debug|x64.ActiveCfg = Debug|x64
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Debug|x64.Build.0 = Debug|x64
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Debug|x86.ActiveCfg = Debug|Win32
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Debug|x86.Build.0 = Debug|Win32
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Release|x64.ActiveCfg = Release|x64
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Release|x64.Build.0 = Release|x64
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Release|x86.ActiveCfg = Release|Win32
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

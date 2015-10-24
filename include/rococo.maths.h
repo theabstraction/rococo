@@ -5,8 +5,110 @@
 # error "#include <rococo.types.h> before including this file"
 #endif
 
+#include <intrin.h>
+#include <math.h>
+
 namespace Rococo
 {
+	struct alignas(16) Vec4
+	{
+		float x;
+		float y;
+		float z;
+		float w;
+
+		inline static Vec4 FromVec3(cr_vec3& v, float w)
+		{
+			return{ v.x, v.y, v.z, w };
+		}
+
+		inline operator DirectX::XMFLOAT4* () { return reinterpret_cast<DirectX::XMFLOAT4*> (this); }
+		inline operator const DirectX::XMFLOAT4* () const { return reinterpret_cast<const DirectX::XMFLOAT4*> (this); }
+
+		inline operator const Vec3& () const { return *reinterpret_cast<const Vec3*> (this); }
+		inline operator Vec3& () { return *reinterpret_cast<Vec3*> (this); }
+	};
+
+	struct alignas(16) Matrix4x4
+	{
+		Vec4 row0;
+		Vec4 row1;
+		Vec4 row2;
+		Vec4 row3;
+
+		inline operator DirectX::XMFLOAT4X4* () { return reinterpret_cast<DirectX::XMFLOAT4X4*> (this); }
+		inline operator const DirectX::XMFLOAT4X4* () const { return reinterpret_cast<const DirectX::XMFLOAT4X4*> (this); }
+
+		static const Matrix4x4& Identity();
+		static const Matrix4x4& Null();
+		static Matrix4x4 Translate(cr_vec3 v);
+		static Matrix4x4 Scale(float Sx, float Sy, float Sz);
+
+		// Given a right handed co-ordinate system, with X towards the observer, phi gives the rotation in radians anticlockwise about the axis
+		// The matrx rotates vectors by pre multiplying the vector: MP -> P'
+		static Matrix4x4 RotateRHAnticlockwiseX(Radians phi);
+
+		// Given a right handed co-ordinate system, with Z towards the observer, phi gives the rotation in radians anticlockwise about the axis
+		// The matrx rotates vectors by pre multiplying the vector: MP -> P'
+		static Matrix4x4 RotateRHAnticlockwiseZ(Radians theta);
+
+		Vec3 GetPosition() const
+		{
+			return Vec3{ row0.w, row1.w, row2.w };
+		}
+
+		void SetPosition(cr_vec3 pos)
+		{
+			row0.w = pos.x;
+			row1.w = pos.y;
+			row2.w = pos.z;
+		}
+	};
+
+	// Multiply matrix Ra x Rb to make RaRb. This has the property that Ra X Rb x v = (Ra x Rb) x v = Ra x (Rb x v)
+	void Multiply(Matrix4x4& product, const Matrix4x4& Ra, const Matrix4x4& Rb);
+
+	Matrix4x4 operator * (const Matrix4x4& a, const Matrix4x4& b);
+	Vec4 operator * (const Vec4& v, const Matrix4x4& R);
+	Vec4 operator * (const Matrix4x4& R, const Vec4& v);
+
+	inline constexpr float PI() { return 3.14159265358979323846f; }
+
+	inline constexpr float DEGREES_TO_RADIANS_QUOTIENT()
+	{
+		return PI() / 180.0f;
+	}
+
+	struct Radians
+	{
+		float quantity;
+		operator float() const { return quantity; }
+	};
+
+	struct Degrees
+	{
+		float quantity;
+		operator float() const { return quantity; }
+
+		operator Radians () const { return Radians{ DEGREES_TO_RADIANS_QUOTIENT() * quantity }; }
+		Radians ToRadians() const { return Radians{ DEGREES_TO_RADIANS_QUOTIENT() * quantity }; }
+	};
+
+	inline float Sin(Radians radians) { return sinf(radians.quantity); }
+	inline float Cos(Radians radians) { return cosf(radians.quantity); }
+
+	struct Gravity
+	{
+		float g; // generally negative, and in metres per second per second
+		operator float() const { return g; }
+	};
+
+	struct Metres
+	{
+		float value;
+		operator float() const { return value; }
+	};
+
 	inline Vec2 operator - (const Vec2& a, const Vec2& b) { return Vec2{ a.x - b.x, a.y - b.y }; }
 	inline Vec2 operator + (const Vec2& a, const Vec2& b) { return Vec2{ a.x + b.x, a.y + b.y }; }
 	inline float Dot(const Vec2& a, const Vec2& b) { return a.x * b.x + a.y * b.y; }
@@ -96,6 +198,7 @@ namespace Rococo
 
 	inline float LengthSq(cr_vec3 v) { return v * v; }
 	inline float Square(float x) { return x * x; }
+	inline bool IsInRange(cr_vec3 v, const Metres range) { return LengthSq(v) < Square(range); }
 	float Length(cr_vec3 v);
 	void swap(float& a, float &b);
 	Vec3 Normalize(cr_vec3 v);
@@ -105,10 +208,18 @@ namespace Rococo
 
 	float GenRandomFloat(float minValue, float maxValue);
 
-	void GetIsometricWorldMatrix(Matrix4x4& worldMatrix, float scale, float aspectRatio, cr_vec3 centre, Degrees phi, Degrees viewTheta);
-	void InverseMatrix(const Matrix4x4& matrix, Matrix4x4& inverseMatrix);
+	// Create matrices for isometric rendering. The origin is relocated to the world centre, the world rotated by elevation and heading, and then scaled up
+	// The camera is vertically above the scene, with y up, x right and looking directly downwards
+	// heading is the angle that the world is rotated anticlockwise
+	void GetIsometricTransforms(Matrix4x4& worldMatrix, Matrix4x4& inverseWorldMatrixProj, Matrix4x4& worldMatrixAndProj, float scale, float aspectRatio, cr_vec3 centre, Degrees phi, Degrees viewTheta, Metres cameraHeight);
 
-	Vec4 Transform(const Matrix4x4& matrix, const Vec4& p);
+	void InvertMatrix(const Matrix4x4& matrix, Matrix4x4& inverseMatrix);
+	void TransposeMatrix(const Matrix4x4& matrix, Matrix4x4& transposeOfMatrix);
+
+	Matrix4x4 InvertMatrix(const Matrix4x4& matrix);
+	Matrix4x4 TransposeMatrix(const Matrix4x4& matrix);
+
+	inline Degrees operator - (Degrees theta) { return Degrees{ -theta.quantity }; }
 }
 
 #endif // ROCOCO_MATHS_H

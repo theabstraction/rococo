@@ -203,15 +203,11 @@ namespace
 		{ "normal",		0, DXGI_FORMAT_R32G32B32_FLOAT,	0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "color",		0, DXGI_FORMAT_R8G8B8A8_UNORM,	0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "color",		1, DXGI_FORMAT_R8G8B8A8_UNORM,	0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "texcoord",	0, DXGI_FORMAT_R32G32B32A32_FLOAT,	1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-		{ "texcoord",	1, DXGI_FORMAT_R32G32B32A32_FLOAT,	1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-		{ "texcoord",	2, DXGI_FORMAT_R32G32B32A32_FLOAT,	1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-		{ "texcoord",	3, DXGI_FORMAT_R32G32B32A32_FLOAT,	1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
 	};
 
 	const uint32 NumberOfObjectVertexElements()
 	{
-		static_assert(sizeof(objectVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC) == 8, "Vertex data was not 8 fields");
+		static_assert(sizeof(objectVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC) == 4, "Vertex data was not 4 fields");
 		return sizeof(objectVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC);
 	}
 
@@ -393,7 +389,7 @@ namespace
 		Quad clipRect;
 
 		AutoRelease<ID3D11Buffer> vector4Buffer;
-		AutoRelease<ID3D11Buffer> matrix4x4Buffer;
+		AutoRelease<ID3D11Buffer> globalStateBuffer;
 
 		RAWMOUSE lastMouseEvent;
 		Vec2i screenSpan;
@@ -407,7 +403,6 @@ namespace
 		ID_PIXEL_SHADER idObjPS;
 
 		AutoRelease<ID3D11Buffer> instanceBuffer;
-		enum { INSTANCE_BUFFER_CAPACITY = 1024 };
 
 		AutoRelease<ID3D11DepthStencilState> guiDepthState;
 		AutoRelease<ID3D11DepthStencilState> objDepthState;
@@ -581,7 +576,7 @@ namespace
 			GuiScale nullVector{ 0,0,0,0 };
 			CopyStructureToBuffer(dc, vector4Buffer, nullVector);
 
-			matrix4x4Buffer = CreateConstantBuffer<Matrix4x4>(device);
+			globalStateBuffer = CreateConstantBuffer<GlobalState>(device);
 
 			installation.LoadResource(L"!gui.vs", *shaderCode, 64 * 1024);
 			idGuiVS = CreateGuiVertexShader(L"gui.vs", shaderCode->GetData(), shaderCode->Length());
@@ -595,7 +590,7 @@ namespace
 			installation.LoadResource(L"!object.ps", *shaderCode, 64 * 1024);
 			idObjPS = CreatePixelShader(L"object.ps", shaderCode->GetData(), shaderCode->Length());
 
-			instanceBuffer = CreateDynamicVertexBuffer<ObjectInstance>(device, INSTANCE_BUFFER_CAPACITY);
+			instanceBuffer = CreateConstantBuffer<ObjectInstance>(device);
 		}
 
 		~DX11AppRenderer()
@@ -827,27 +822,35 @@ namespace
 
 			auto& buffer = meshBuffers[id];
 
-			ID3D11Buffer* buffers[2] = { buffer.dx11Buffer, instanceBuffer };
+			ID3D11Buffer* buffers[] = { buffer.dx11Buffer };
 
 			dc.IASetPrimitiveTopology(buffer.topology);
 			
-			UINT strides[] = { sizeof(ObjectVertex), sizeof(ObjectInstance) };
-			UINT offsets[]{ 0,0 };
-			dc.IASetVertexBuffers(0, 2, buffers, strides, offsets);
+			UINT strides[] = { sizeof(ObjectVertex) };
+			UINT offsets[]{ 0 };
+			dc.IASetVertexBuffers(0, 1, buffers, strides, offsets);
 
-			for(uint32 instancesLeft = nInstances; instancesLeft > 0; )
+			for (uint32 i = 0; i < nInstances; i++ )
 			{
-				uint32 chunk = std::min((uint32) INSTANCE_BUFFER_CAPACITY, nInstances);
-				uint32 start = nInstances - instancesLeft;
-				CopyStructureToBuffer(dc, instanceBuffer, instances + start, chunk * sizeof(ObjectInstance));
-				dc.DrawInstanced(buffer.numberOfVertices, nInstances, 0, 0);
-				instancesLeft -= chunk;
+				// dc.DrawInstances crashed the debugger, replace with single instance render call for now
+				CopyStructureToBuffer(dc, instanceBuffer, instances + i, sizeof(ObjectInstance));
+				dc.VSSetConstantBuffers(1, 1, &instanceBuffer);
+				dc.Draw(buffer.numberOfVertices, 0);
+				dc.VSSetConstantBuffers(0, 0, nullptr);
 			}
 		}
 
 		virtual Windows::IWindow& Window()
 		{
 			return *window;
+		}
+
+		GlobalState g;
+
+		virtual void SetGlobalState(const GlobalState& gs)
+		{
+			CopyStructureToBuffer(dc, globalStateBuffer, gs);
+			dc.VSSetConstantBuffers(0, 1, &globalStateBuffer);
 		}
 
 		virtual void Render(IScene& scene)
@@ -868,12 +871,6 @@ namespace
 			dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
 			UseShaders(idObjVS, idObjPS);
 
-			Matrix4x4 worldMatrix;
-			scene.GetWorldMatrix(worldMatrix);
-
-			CopyStructureToBuffer(dc, matrix4x4Buffer, worldMatrix);
-
-			dc.VSSetConstantBuffers(0, 1, &matrix4x4Buffer);
 			dc.RSSetState(objectRaterizering);
 			dc.OMSetDepthStencilState(objDepthState, 0);
 

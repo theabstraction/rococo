@@ -13,6 +13,12 @@
 #define SecureCat wcscat_s // Needs include <wchar.h>.  If the output buffer is exhausted it will throw an exception
 #define SafeCat wcsncat_s // Needs include <wchar.h>.  With _TRUNCATE in the MaxCount position, it will truncate buffer overruns, rather than throw
 
+namespace DirectX
+{
+	struct XMFLOAT4X4;
+	struct XMFLOAT4;
+}
+
 namespace Rococo
 {
 	typedef __int8 int8;
@@ -45,21 +51,8 @@ namespace Rococo
 
 	typedef const Vec3& cr_vec3;
 
-	struct Vec4
-	{
-		float x;
-		float y;
-		float z;
-		float w;
-	};
-
-	struct Matrix4x4
-	{
-		Vec4 row0;
-		Vec4 row1;
-		Vec4 row2;
-		Vec4 row3;
-	};
+	struct Vec4;
+	struct Matrix4x4;
 
 	struct Vec2i
 	{
@@ -73,6 +66,15 @@ namespace Rococo
 		float radius;
 	};
 
+	ROCOCOAPI IStringBuilder
+	{
+		virtual int AppendFormat(const wchar_t* format, ...) = 0;
+		virtual operator const wchar_t* () const = 0;
+		virtual void Free() = 0;
+	};
+
+	IStringBuilder* CreateSafeStringBuilder(size_t capacity);
+
 	struct GuiRect
 	{
 		int32 left;
@@ -84,29 +86,10 @@ namespace Rococo
 		GuiRect(int32 _left, int32 _top, int32 _right, int32 _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
 	};
 
-	struct Degrees
-	{
-		float quantity;
-		operator float() const { return quantity; }
-	};
-
-	struct Radians
-	{
-		float quantity;
-		operator float() const { return quantity; }
-	};
-
-	struct Gravity
-	{
-		float g; // generally negative, and in metres per second per second
-		operator float() const { return g; }
-	};
-
-	struct Metres
-	{
-		float value;
-		operator float() const { return value; }
-	};
+	struct Degrees;
+	struct Radians;
+	struct Gravity;
+	struct Metres;
 
 	ROCOCOAPI IException
 	{
@@ -236,6 +219,28 @@ namespace Rococo
 	struct IOS;
 	struct IRenderContext;
 	struct IBuffer;
+	struct IUltraClock;
+
+	struct ILock
+	{
+		virtual void Lock() = 0;
+		virtual void Unlock() = 0;
+	};
+
+	class Sync
+	{
+		ILock& lock;
+	public:
+		Sync(ILock& _lock) : lock(_lock)
+		{
+			lock.Lock();
+		}
+
+		~Sync()
+		{
+			lock.Unlock();
+		}
+	};
 
 	namespace Windows
 	{

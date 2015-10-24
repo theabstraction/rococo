@@ -12,7 +12,7 @@ using namespace Rococo;
 
 namespace
 {
-	class HumanBobby : public IHumanSupervisor
+	class HumanBobby : public IHumanAISupervisor
 	{
 		ID_ENTITY id;
 		Vec3 velocity;
@@ -23,6 +23,12 @@ namespace
 		HumanBobby(ID_ENTITY _id, IInventory& _inventory, ILevel& _level) :
 			id(_id), velocity{ 0,0,0 }, inventory(_inventory), level(_level), isAlive(true)
 		{}
+
+		virtual void Describe(IStringBuilder& sb, Language language)
+		{
+			sb.AppendFormat(L"Bobby.\n\n");
+			sb.AppendFormat(L"Health: good");
+		}
 
 		virtual void Free() { delete this; }
 
@@ -67,7 +73,7 @@ namespace
 
 				float muzzleSpeed;
 				inventory.GetRangedWeapon(muzzleSpeed, def.lifeTime);
-				level.GetPosition(def.origin, id);
+				level.GetPosition(id, def.origin);
 
 				const Metres shoulderHeight{ 1.5f };
 				def.origin.z += shoulderHeight;
@@ -75,7 +81,7 @@ namespace
 				auto playerId = level.GetPlayerId();
 
 				Vec3 playerPos;
-				level.GetPosition(playerPos, playerId);
+				level.GetPosition(playerId, playerPos);
 
 				Radians elevation = ComputeWeaponElevation(def.origin, playerPos, muzzleSpeed, Degrees{ 45.0f }, Gravity{ -9.81f }, Metres{ 2.0f });
 
@@ -113,7 +119,7 @@ namespace
 
 namespace Dystopia
 {
-	IHumanSupervisor* CreateBobby(ID_ENTITY id, IInventory& inventory, ILevel& level)
+	IHumanAISupervisor* CreateBobby(ID_ENTITY id, IInventory& inventory, ILevel& level)
 	{
 		return new HumanBobby(id, inventory, level);
 	}

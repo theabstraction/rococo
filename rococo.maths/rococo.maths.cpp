@@ -2,38 +2,141 @@
 #include <rococo.maths.h>
 
 #include <wchar.h>
-
-#include <math.h>
 #include <stdlib.h>
 
 #include <DirectXMath.h>
 
-#include <rococo.geometry.inl>
+namespace // globals
+{
+	using namespace Rococo;
+
+	const Matrix4x4 const_identity4x4
+	{
+		{ 1, 0, 0, 0 },
+		{ 0, 1, 0, 0 },
+		{ 0, 0, 1, 0 },
+		{ 0, 0, 0, 1 }
+	};
+
+	const Matrix4x4 const_null4x4
+	{
+		{ 0, 0, 0, 0 },
+		{ 0, 0, 0, 0 },
+		{ 0, 0, 0, 0 },
+		{ 0, 0, 0, 0 }
+	};
+}
 
 namespace Rococo
 {
-	void GetIsometricWorldMatrix(Matrix4x4& worldMatrix, float scale, float aspectRatio, cr_vec3 centre, Degrees phi, Degrees viewTheta)
+	const Matrix4x4& Matrix4x4::Identity()
+	{
+		return const_identity4x4;
+	}
+
+	const Matrix4x4& Matrix4x4::Null()
+	{
+		return const_null4x4;
+	}
+
+	Matrix4x4 Matrix4x4::Translate(cr_vec3 v)
+	{
+		return Matrix4x4{
+			{1.0f, 0,      0,   v.x},
+			{0,    1.0f,   0,   v.y },
+			{0,    0,   1.0f,   v.z },
+			{0,    0,      0,  1.0f }
+		};
+	}
+
+	Matrix4x4 Matrix4x4::Scale(float Sx, float Sy, float Sz)
+	{
+		return Matrix4x4{
+			{ Sx,    0,    0,     0},
+			{ 0,    Sy,    0,     0},
+			{ 0,     0,   Sz,     0},
+			{ 0,     0,    0,  1.0f}
+		};
+	}
+
+	Matrix4x4 Matrix4x4::RotateRHAnticlockwiseX(Radians phi)
+	{
+		float s = Sin(phi);
+		float c = Cos(phi);
+
+		return Matrix4x4{
+			{ 1.0f, 0,     0,    0 },
+			{ 0,    c,    -s,    0 },
+			{ 0,    s,     c,    0 },
+			{ 0,    0,     0,  1.0f }
+		};
+	}
+
+	Matrix4x4 Matrix4x4::RotateRHAnticlockwiseZ(Radians theta)
+	{
+		float s = Sin(theta);
+		float c = Cos(theta);
+
+		return Matrix4x4{
+			{ c,   -s,     0,        0 },
+			{ s,    c,     0,        0 },
+			{ 0,    0,     1.0f,     0 },
+			{ 0,    0,     0,     1.0f }
+		};
+	}
+
+	void GetIsometricTransforms(Matrix4x4& worldMatrix, Matrix4x4& inverseWorldMatrixProj, Matrix4x4& worldMatrixAndProj, float scale, float aspectRatio, cr_vec3 centre, Degrees phi, Degrees viewTheta, Metres cameraHeight)
 	{
 		using namespace DirectX;
 
-		XMMATRIX aspectCorrect = XMMatrixScaling(scale * aspectRatio, scale, scale);
-		XMMATRIX rotZ = XMMatrixRotationZ(ToRadians(viewTheta));
-		XMMATRIX rotX = XMMatrixRotationX(ToRadians(phi));
-		XMMATRIX origin = XMMatrixTranslation(-centre.x, -centre.y, 0.0f);
-		XMMATRIX totalRot = XMMatrixMultiply(rotZ, rotX);
-		XMMATRIX xortho = XMMatrixOrthographicLH(2.0f, 2.0f, 1.0f, 1000.0f);
+		Matrix4x4 Rx = Matrix4x4::RotateRHAnticlockwiseX(phi);
+		Matrix4x4 Rz = Matrix4x4::RotateRHAnticlockwiseZ(viewTheta);
+		Matrix4x4 centreToOrigin = Matrix4x4::Translate(-1.0f * centre);
+		Matrix4x4 Sxyz = Matrix4x4::Scale(scale * aspectRatio, scale, -scale);
 
-		XMMATRIX t = XMMatrixMultiply(XMMatrixMultiply(XMMatrixMultiply(origin, totalRot), aspectCorrect), xortho);
+		Matrix4x4 verticalShift = Matrix4x4::Translate(Vec3{ 0, 0, cameraHeight });
 
-		XMStoreFloat4x4((DirectX::XMFLOAT4X4*) &worldMatrix, t);
+		worldMatrix = verticalShift * Sxyz * Rx * Rz * centreToOrigin;
+
+		XMMATRIX xortho = XMMatrixOrthographicLH(2.0f, 2.0f, 0.0f, 1000.0f);
+		XMMatrixTranspose(xortho);
+
+		Matrix4x4 ortho;
+		XMStoreFloat4x4(ortho, xortho);
+
+		worldMatrixAndProj = ortho * worldMatrix;
+
+		inverseWorldMatrixProj = InvertMatrix(worldMatrixAndProj);
 	}
 
-	void InverseMatrix(const Matrix4x4& matrix, Matrix4x4& inverseMatrix)
+	void TransposeMatrix(const Matrix4x4& matrix, Matrix4x4& transposeOfMatrix)
+	{
+		using namespace DirectX;
+		XMMATRIX t = XMLoadFloat4x4((DirectX::XMFLOAT4X4*) &matrix);
+		XMStoreFloat4x4((DirectX::XMFLOAT4X4*) &transposeOfMatrix, XMMatrixTranspose(t));
+	}
+
+	void InvertMatrix(const Matrix4x4& matrix, Matrix4x4& inverseMatrix)
 	{
 		using namespace DirectX;
 		XMMATRIX m = XMLoadFloat4x4((DirectX::XMFLOAT4X4*) &matrix);
-		XMMATRIX im = XMMatrixInverse(nullptr, m);
+		XMVECTOR det;
+		XMMATRIX im = XMMatrixInverse(&det, m);
 		XMStoreFloat4x4((DirectX::XMFLOAT4X4*) &inverseMatrix, im);
+	}
+
+	Matrix4x4 InvertMatrix(const Matrix4x4& matrix)
+	{
+		Matrix4x4 invMatrix;
+		InvertMatrix(matrix, invMatrix);
+		return invMatrix;
+	}
+
+	Matrix4x4 TransposeMatrix(const Matrix4x4& matrix)
+	{
+		Matrix4x4 tMatrix;
+		TransposeMatrix(matrix, tMatrix);
+		return tMatrix;
 	}
 
 	float Dot(const Vec4& a, const Vec4& b)
@@ -41,9 +144,44 @@ namespace Rococo
 		return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 	}
 
-	Vec4 Transform(const Matrix4x4& matrix, const Vec4& p)
+	void Multiply(Matrix4x4& product, const Matrix4x4& Ra, const Matrix4x4& Rb)
 	{
-		return Vec4{ Dot(matrix.row0, p), Dot(matrix.row1, p), Dot(matrix.row2, p),Dot(matrix.row3, p) };
+		using namespace DirectX;
+		auto XRa = XMLoadFloat4x4(Ra);
+		auto XRb = XMLoadFloat4x4(Rb);
+		auto XRaRb = XMMatrixMultiply(XRa, XRb);
+
+		XMStoreFloat4x4(product, XRaRb);
+	}
+
+	Matrix4x4 operator * (const Matrix4x4& a, const Matrix4x4& b)
+	{
+		Matrix4x4 result;
+		Multiply(result, a, b);
+		return result;
+	}
+
+	Vec4 operator * (const Matrix4x4& R, const Vec4& v)
+	{
+		return Vec4{
+			Dot(R.row0, v),
+			Dot(R.row1, v),
+			Dot(R.row2, v),
+			Dot(R.row3, v),
+		};
+	}
+
+	Vec4 operator * (const Vec4& v, const Matrix4x4& R)
+	{
+		using namespace DirectX;
+		auto XR = XMLoadFloat4x4(R);
+		auto XV = XMLoadFloat4(v);
+
+		auto vprimed = XMVector4Transform(XV, XR);
+
+		Vec4 u;
+		XMStoreFloat4(u, vprimed);
+		return u;
 	}
 
 	bool TryGetRealRoots(float& x0, float& x1, float a /* x^2 */, float b /* x */, float c)

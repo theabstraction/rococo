@@ -5,6 +5,7 @@
 namespace Rococo
 {
 	typedef int32 ID_MESH;
+	struct IScene;
 }
 
 using namespace Rococo;
@@ -65,29 +66,42 @@ namespace Dystopia
 	struct IInventory;
 	struct IInventorySupervisor;
 	struct IIntent;
-	struct IHuman;
+	struct IHumanAI;
 
 	enum HumanType : int32;
-	struct IHumanSupervisor;
+	struct IHumanAISupervisor;
 	struct IHumanFactory;
 
 	enum StatIndex : int32;
+
+	struct HumanSpec
+	{
+		HumanType type;
+		IInventory* inventory;
+		IHumanAI* ai;
+	};
+
+	struct EquipmentDesc
+	{
+		Vec3 worldPosition;
+		IInventory* inventory;
+	};
 
 	ROCOCOAPI ILevel
 	{
 		virtual ID_ENTITY AddProjectile(const ProjectileDef& def, float currentTime) = 0;
 		virtual ILevelBuilder& Builder() = 0;
-		virtual ID_ENTITY GetPlayerId() const = 0;
-		virtual void GetPosition(Vec3& pos, ID_ENTITY id) const = 0;
-		virtual void SetPosition(cr_vec3 pos, ID_ENTITY id) = 0;
-		virtual void SetTransform(ID_ENTITY id, const Matrix4x4& transform) = 0;
-
-		// Get references to a human's inventory and AI control object. 
-		// Null can be supplied to an output if that output is not desired
-		// Do not cache these references, they are invalidated when the human deleted from level
-		virtual HumanType GetHuman(ID_ENTITY id, IInventory** ppInventory, IHuman** ppHuman) = 0;
-		
+		virtual HumanSpec GetHuman(ID_ENTITY id) = 0;
 		virtual IInventory* GetInventory(ID_ENTITY id) = 0;
+		virtual ID_ENTITY GetPlayerId() const = 0;
+		virtual void GetPosition(ID_ENTITY id, Vec3& pos) const = 0;
+		virtual void SetPosition(ID_ENTITY id, cr_vec3 pos) = 0;
+		virtual void SetTransform(ID_ENTITY id, const Matrix4x4& transform) = 0;
+		virtual void SetGroundCursorPosition(cr_vec3 groundZero) = 0;
+		virtual ID_ENTITY SelectedId() = 0;
+
+		virtual void DeleteEquipment(ID_ENTITY id) = 0;
+		virtual bool TryGetEquipment(ID_ENTITY id, EquipmentDesc& desc) const = 0;
 	};
 
 	ROCOCOAPI ILevelSupervisor: public ILevel
@@ -163,10 +177,13 @@ namespace Rococo
 
 namespace Dystopia
 {
+	struct IUIStack;
+
 	enum GuiEventType
 	{
 		GuiEventType_CURSOR_BUTTON1_HELD,
-		GuiEventType_CURSOR_BUTTON1_RELEASED
+		GuiEventType_CURSOR_BUTTON1_RELEASED,
+		GuiEventType_CONTEXT_POLL
 	};
 
 	struct GuiEventArgs
@@ -175,17 +192,93 @@ namespace Dystopia
 		GuiEventType type;
 	};
 
+	struct ContextMenuItem
+	{
+		const wchar_t* buttonName;
+		int32 commandId;
+		int64 context;
+		bool isActive;
+	};
+
 	ROCOCOAPI IGuiSupervisor : public IGui
 	{
-		virtual void AppendKeyboardEvent(const KeyboardEvent& ke) = 0;
-		virtual void AppendMouseEvent(const MouseEvent& me) = 0;
 		virtual void Free() = 0;
-		virtual bool HasFocus() const = 0;
-		virtual void Render(IGuiRenderContext& rc) = 0;
 		virtual void SetEventHandler(IEventCallback<GuiEventArgs>* guiEventHandler) = 0;
 	};
 
-	IGuiSupervisor* CreateGui(IRenderer& renderer);
+	IGuiSupervisor* CreateGui(Environment& e, IUIStack& stack);
+
+	enum PaneModality
+	{
+		PaneModality_Modal,
+		PaneModality_Modeless,
+	};
+
+	ROCOCOAPI IUIPane
+	{
+		virtual PaneModality OnFrameUpdated(const IUltraClock& clock) = 0;
+		virtual PaneModality OnKeyboardEvent(const KeyboardEvent& ke) = 0;
+		virtual PaneModality OnMouseEvent(const MouseEvent& me) = 0;
+		virtual void RenderGui(IGuiRenderContext& grc) = 0;
+		virtual void RenderObjects(IRenderContext& rc) = 0;
+	};
+
+	ROCOCOAPI IUIPaneSupervisor: public IUIPane
+	{
+		virtual void Free() = 0;
+	};
+
+	ROCOCOAPI IUIControlPane: IUIPaneSupervisor
+	{
+		virtual IIntent* PlayerIntent() = 0;
+	};
+
+	IUIControlPane* CreatePaneIsometric(Environment& e, ILevelSupervisor& level);
+	IUIPaneSupervisor* CreateGuiWorldInterface(Environment& e, ILevelSupervisor& level);
+
+	IUIPaneSupervisor* CreateDialogBox(Environment& e, IEventCallback<GuiEventArgs>& _handler,
+		const wchar_t* _title,
+		const wchar_t* _message,
+		const wchar_t* _buttons,
+		Vec2i _span,
+		int32 _retzone,
+		int32 _hypzone);
+
+	IUIPaneSupervisor* CreateContextMenu(Environment& e, Vec2i topLeft, ContextMenuItem newMenu[], IEventCallback<ContextMenuItem>& onClick);
+	
+	enum ID_PANE;
+
+	ROCOCOAPI IUIPaneFactory
+	{
+		virtual void FreeInstance(ID_PANE id, IUIPaneSupervisor* pane) = 0;
+		virtual IUIPaneSupervisor* GetOrCreatePane(ID_PANE id) = 0; // Either construct or retrieve pane
+	};
+
+	struct PaneBind
+	{
+		IUIPaneSupervisor& pane;
+		ID_PANE id;
+	};
+
+	ROCOCOAPI IUIStack
+	{
+		virtual PaneBind PopTop() = 0;
+		virtual PaneBind PushTop(ID_PANE id) = 0;
+		virtual PaneBind PushTop(IUIPaneSupervisor* pane, ID_PANE id) = 0;
+		virtual PaneBind Top() = 0;
+	};
+
+	ROCOCOAPI IUIStackSupervisor : public IUIStack
+	{
+		virtual void Free() = 0;
+		virtual void OnFrameUpdated(const IUltraClock& clock) = 0;
+		virtual void OnKeyboardEvent(const KeyboardEvent& ke) = 0;
+		virtual void OnMouseEvent(const MouseEvent& me) = 0;
+		virtual void SetFactory(IUIPaneFactory& factory) = 0;
+		virtual IScene& Scene() = 0;
+	};
+
+	IUIStackSupervisor* CreateUIStack();
 
 	struct Environment
 	{
@@ -195,5 +288,14 @@ namespace Dystopia
 		ISourceCache& sourceCache;
 		IMeshLoader& meshes;
 		IGui& gui;
+		IUIStack& uiStack;
+	};
+
+	enum ID_PANE
+	{
+		ID_PANE_ISOMETRIC_GAME_VIEW,
+		ID_PANE_GUI_WORLD_INTERFACE,
+		ID_PANE_GENERIC_DIALOG_BOX,
+		ID_PANE_GENERIC_CONTEXT_MENU
 	};
 }

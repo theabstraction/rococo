@@ -18,10 +18,12 @@
 # pragma comment(lib, "dx11.renderer.debug.lib")
 # pragma comment(lib, "rococo.os.win32.debug.lib")
 # pragma comment(lib, "rococo.maths.debug.lib")
+# pragma comment(lib, "rococo.util.debug.lib")
 #else
 # pragma comment(lib, "dx11.renderer.lib")
 # pragma comment(lib, "rococo.os.win32.lib")
 # pragma comment(lib, "rococo.maths.lib")
+# pragma comment(lib, "rococo.util.lib")
 #endif
 
 #include <sexy.lib.s-parser.h>
