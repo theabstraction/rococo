@@ -206,6 +206,21 @@ namespace Dystopia
 		virtual void SetEventHandler(IEventCallback<GuiEventArgs>* guiEventHandler) = 0;
 	};
 
+	struct TimestepEvent
+	{
+		const ticks appStartTicks;
+		const ticks now;
+		const ticks deltaTicks;
+		const ticks hz;
+	};
+
+	struct AdvanceTimestepEvent
+	{
+		TimestepEvent cpuTime;
+		float dt;
+		float gameTime;
+	};
+
 	IGuiSupervisor* CreateGui(Environment& e, IUIStack& stack);
 
 	enum PaneModality
@@ -216,7 +231,7 @@ namespace Dystopia
 
 	ROCOCOAPI IUIPane
 	{
-		virtual PaneModality OnFrameUpdated(const IUltraClock& clock) = 0;
+		virtual PaneModality OnTimestep(const TimestepEvent& timestep) = 0;
 		virtual PaneModality OnKeyboardEvent(const KeyboardEvent& ke) = 0;
 		virtual PaneModality OnMouseEvent(const MouseEvent& me) = 0;
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
@@ -271,14 +286,12 @@ namespace Dystopia
 	ROCOCOAPI IUIStackSupervisor : public IUIStack
 	{
 		virtual void Free() = 0;
-		virtual void OnFrameUpdated(const IUltraClock& clock) = 0;
-		virtual void OnKeyboardEvent(const KeyboardEvent& ke) = 0;
-		virtual void OnMouseEvent(const MouseEvent& me) = 0;
+		virtual void OnCreated() = 0;
 		virtual void SetFactory(IUIPaneFactory& factory) = 0;
 		virtual IScene& Scene() = 0;
 	};
 
-	IUIStackSupervisor* CreateUIStack();
+	IUIStackSupervisor* CreateUIStack(Post::IPostbox& postbox);
 
 	struct Environment
 	{
@@ -289,6 +302,7 @@ namespace Dystopia
 		IMeshLoader& meshes;
 		IGui& gui;
 		IUIStack& uiStack;
+		Post::IPostbox& postbox;
 	};
 
 	enum ID_PANE
@@ -298,4 +312,26 @@ namespace Dystopia
 		ID_PANE_GENERIC_DIALOG_BOX,
 		ID_PANE_GENERIC_CONTEXT_MENU
 	};
+}
+
+namespace Rococo
+{
+	namespace Post
+	{
+		using namespace Dystopia;
+
+		enum POST_TYPE : int64
+		{
+			POST_TYPE_INVALID = 0,
+			POST_TYPE_MOUSE_EVENT,
+			POST_TYPE_KEYBOARD_EVENT,
+			POST_TYPE_TIMESTEP,
+			POST_TYPE_ADVANCE_TIMESTEP // sent when the game/simulation advances by dt
+		};
+
+		inline POST_TYPE GetPostType(const MouseEvent& t) { return POST_TYPE_MOUSE_EVENT; }
+		inline POST_TYPE GetPostType(const KeyboardEvent& t) { return POST_TYPE_KEYBOARD_EVENT; }
+		inline POST_TYPE GetPostType(const TimestepEvent& t) { return POST_TYPE_TIMESTEP; }
+		inline POST_TYPE GetPostType(const AdvanceTimestepEvent& t) { return POST_TYPE_ADVANCE_TIMESTEP; }
+	}
 }

@@ -459,7 +459,7 @@ namespace
 			delete this;
 		}
 
-		virtual PaneModality OnFrameUpdated(const IUltraClock& clock)
+		virtual PaneModality OnTimestep(const TimestepEvent& clock)
 		{
 			return PaneModality_Modal;
 		}

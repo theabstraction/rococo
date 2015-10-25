@@ -81,6 +81,7 @@ namespace
 	class DystopiaApp : public IApp, public IEventCallback<GuiEventArgs>, public IUIPaneFactory
 	{
 	private:
+		AutoFree<Post::IPostboxSupervisor> postbox;
 		AutoFree<IUIStackSupervisor> uiStack;
 		AutoFree<IGuiSupervisor> gui;
 		AutoFree<IDebuggerWindow> debuggerWindow;
@@ -97,13 +98,13 @@ namespace
 	
 	public:
 		DystopiaApp(IRenderer& _renderer, IInstallation& _installation) :
-			uiStack(CreateUIStack()),
+			postbox(Post::CreatePostbox()),
+			uiStack(CreateUIStack(*postbox)),
 			gui(CreateGui(e, *uiStack)),
 			debuggerWindow(CreateDebuggerWindow(&_renderer.Window())),
 			sourceCache(CreateSourceCache(_installation)),
-			meshes(CreateMeshLoader(_installation, _renderer, *sourceCache)),
-			
-			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes, *gui, *uiStack },
+			meshes(CreateMeshLoader(_installation, _renderer, *sourceCache)),		
+			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes, *gui, *uiStack, *postbox},
 			level(CreateLevel(e, humanFactory)),
 			levelLoader(CreateLevelLoader(e, *level)),
 			isometricGameWorldView(CreatePaneIsometric(e, *level)),
@@ -155,6 +156,7 @@ namespace
 
 		virtual void OnCreated()
 		{
+			uiStack->OnCreated();
 			uiStack->PushTop(ID_PANE_ISOMETRIC_GAME_VIEW);
 			uiStack->PushTop(ID_PANE_GUI_WORLD_INTERFACE);
 			levelLoader->Load(L"!levels/level1.sxy", false);	
@@ -162,7 +164,10 @@ namespace
 
 		virtual auto OnFrameUpdated(const IUltraClock& clock) -> uint32 // outputs ms sleep for next frame
 		{
-			uiStack->OnFrameUpdated(clock);
+			e.postbox.Deliver();
+
+			TimestepEvent timestep{ clock.Start(), clock.FrameStart(), clock.FrameDelta(), clock.Hz() };
+			e.postbox.SendDirect(timestep);
 
 			levelLoader->SyncWithModifiedFiles();
 
@@ -172,12 +177,12 @@ namespace
 
 		virtual void OnMouseEvent(const MouseEvent& me)
 		{
-			uiStack->OnMouseEvent(me);
+			e.postbox.PostForLater(me);
 		}
 
 		virtual void OnKeyboardEvent(const KeyboardEvent& ke)
 		{
-			uiStack->OnKeyboardEvent(ke);
+			e.postbox.PostForLater(ke);
 		}
 	};
 }

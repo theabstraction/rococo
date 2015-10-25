@@ -50,8 +50,6 @@ namespace Rococo
 	typedef size_t ID_PIXEL_SHADER;
 	typedef int32 ID_MESH;
 
-	typedef int64 ticks;
-
 	ROCOCOAPI IUltraClock
 	{
 		virtual ticks Hz() const = 0;			// Number of ticks per seconds

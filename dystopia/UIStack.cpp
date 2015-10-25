@@ -1,8 +1,10 @@
 #include "dystopia.h"
 #include <vector>
 #include "rococo.renderer.h"
+#include "rococo.ui.h"
 
 using namespace Rococo;
+using namespace Rococo::Post;
 using namespace Dystopia;
 
 namespace
@@ -12,15 +14,17 @@ namespace
 		IUIPaneFactory& factory;
 	};
 
-	class UIStack: public IUIStackSupervisor, public ILock, public IScene
+	using namespace Rococo::Post;
+
+	class UIStack: public IUIStackSupervisor, public ILock, public IScene, public IPostRecipient
 	{
 	private:
 		IUIPaneFactory* factory;
 		std::vector<PaneBind> panes;
 		bool isEnumerating;
-
+		Post::IPostbox& postbox;
 	public:
-		UIStack(): factory(nullptr), isEnumerating(false)
+		UIStack(Post::IPostbox& _postbox): postbox(_postbox), factory(nullptr), isEnumerating(false)
 		{
 		}
 
@@ -51,19 +55,19 @@ namespace
 			delete this;
 		}
 
-		virtual void OnFrameUpdated(const IUltraClock& clock)
+		void OnTimestep(const TimestepEvent& timestep)
 		{
 			Sync sync(*this);
 			for (auto i = panes.rbegin(); isEnumerating &&  i != panes.rend(); ++i)
 			{
-				if (i->pane.OnFrameUpdated(clock) == PaneModality_Modal)
+				if (i->pane.OnTimestep(timestep) == PaneModality_Modal)
 				{
 					break;
 				}
 			}
 		}
 
-		virtual void OnKeyboardEvent(const KeyboardEvent& ke)
+		void OnKeyboardEvent(const KeyboardEvent& ke)
 		{
 			if (panes.empty()) return;
 			Sync sync(*this);
@@ -76,7 +80,7 @@ namespace
 			}
 		}
 
-		virtual void OnMouseEvent(const MouseEvent& me)
+		void OnMouseEvent(const MouseEvent& me)
 		{
 			if (panes.empty()) return;
 			Sync sync(*this);
@@ -161,13 +165,45 @@ namespace
 		{
 			return *this;
 		}
+
+		virtual void OnCreated()
+		{
+			postbox.Subscribe(POST_TYPE_KEYBOARD_EVENT, this);
+			postbox.Subscribe(POST_TYPE_MOUSE_EVENT, this);
+			postbox.Subscribe(POST_TYPE_TIMESTEP, this);
+		}
+
+		virtual void OnPost(POST_TYPE id, const void* buffer, uint64 nBytes)
+		{
+			switch (id)
+			{
+			case POST_TYPE_KEYBOARD_EVENT:
+				{
+					auto& k = Post::InterpretAs<KeyboardEvent>(id, buffer, nBytes);
+					OnKeyboardEvent(k);
+				}
+				break;
+			case POST_TYPE_MOUSE_EVENT:
+				{
+					auto& m = Post::InterpretAs<MouseEvent>(id, buffer, nBytes);
+					OnMouseEvent(m);
+				}
+				break;
+			case POST_TYPE_TIMESTEP:
+				{
+					auto& t = Post::InterpretAs<TimestepEvent>(id, buffer, nBytes);
+					OnTimestep(t);
+				}
+			break;
+			}
+		}
 	};
 }
 
 namespace Dystopia
 {
-	IUIStackSupervisor* CreateUIStack()
+	IUIStackSupervisor* CreateUIStack(IPostbox& postbox)
 	{
-		return new UIStack();
+		return new UIStack(postbox);
 	}
 }

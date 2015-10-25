@@ -21,5 +21,8 @@
     <ClCompile Include="rococo.strings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rococo.postbox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

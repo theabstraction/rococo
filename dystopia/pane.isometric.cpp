@@ -151,15 +151,19 @@ namespace
 			return &controls;
 		}
 
-		virtual PaneModality OnFrameUpdated(const IUltraClock& clock)
+		virtual PaneModality OnTimestep(const TimestepEvent& clock)
 		{
-			float dt = clock.FrameDelta() / (float)clock.Hz();
+			float dt = clock.deltaTicks / (float)clock.hz;
 			if (dt < 0.0f) dt = 0.0f;
 			if (dt > 0.1f) dt = 0.1f;
 
-			gameTime += dt;
-
-			level.UpdateObjects(gameTime, dt);
+			if (dt > 0)
+			{
+				gameTime += dt;
+				AdvanceTimestepEvent ate{ clock, dt, gameTime };
+				e.postbox.SendDirect(ate);
+				level.UpdateObjects(gameTime, dt);
+			}
 
 			GuiMetrics metrics;
 			e.renderer.GetGuiMetrics(metrics);
