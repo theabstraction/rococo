@@ -72,41 +72,47 @@ namespace
 				def.attacker = id;
 
 				float muzzleSpeed;
-				inventory.GetRangedWeapon(muzzleSpeed, def.lifeTime);
-				level.GetPosition(id, def.origin);
-
-				const Metres shoulderHeight{ 1.5f };
-				def.origin.z += shoulderHeight;
-
-				auto playerId = level.GetPlayerId();
-
-				Vec3 playerPos;
-				level.GetPosition(playerId, playerPos);
-
-				Radians elevation = ComputeWeaponElevation(def.origin, playerPos, muzzleSpeed, Degrees{ 45.0f }, Gravity{ -9.81f }, Metres{ 2.0f });
-
-				Vec3 enemyToPlayer = playerPos - def.origin;
-
-				if (elevation > 0.0f)
+				auto* item = inventory.GetItem(0);
+				auto* ranged = item ? item->GetRangedWeaponData() : nullptr;
+				if (ranged)
 				{
-					def.velocity.z = muzzleSpeed * sinf(elevation);
-					float lateralSpeed = muzzleSpeed * cosf(elevation);
+					def.lifeTime = ranged->flightTime;
+					muzzleSpeed = ranged->muzzleVelocity;
+					level.GetPosition(id, def.origin);
 
-					if (enemyToPlayer.y == 0)
+					const Metres shoulderHeight{ 1.5f };
+					def.origin.z += shoulderHeight;
+
+					auto playerId = level.GetPlayerId();
+
+					Vec3 playerPos;
+					level.GetPosition(playerId, playerPos);
+
+					Radians elevation = ComputeWeaponElevation(def.origin, playerPos, muzzleSpeed, Degrees{ 45.0f }, Gravity{ -9.81f }, Metres{ 2.0f });
+
+					Vec3 enemyToPlayer = playerPos - def.origin;
+
+					if (elevation > 0.0f)
 					{
-						def.velocity.y = 0;
-						def.velocity.x = enemyToPlayer.x > 0 ? lateralSpeed : -lateralSpeed;
+						def.velocity.z = muzzleSpeed * sinf(elevation);
+						float lateralSpeed = muzzleSpeed * cosf(elevation);
+
+						if (enemyToPlayer.y == 0)
+						{
+							def.velocity.y = 0;
+							def.velocity.x = enemyToPlayer.x > 0 ? lateralSpeed : -lateralSpeed;
+						}
+						else
+						{
+							Radians theta{ atan2f(enemyToPlayer.y, enemyToPlayer.x) };
+							def.velocity.y = sinf(theta) * lateralSpeed;
+							def.velocity.x = cosf(theta) * lateralSpeed;
+						}
+
+						def.bulletMesh = 0;
+						level.AddProjectile(def, gameTime);
 					}
-					else
-					{
-						Radians theta{ atan2f(enemyToPlayer.y, enemyToPlayer.x) };
-						def.velocity.y = sinf(theta) * lateralSpeed;
-						def.velocity.x = cosf(theta) * lateralSpeed;
-					}
-					
-					def.bulletMesh = 0;
-					level.AddProjectile(def, gameTime);
-				}	
+				}
 			}
 			break;
 			default:

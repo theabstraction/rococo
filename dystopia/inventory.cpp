@@ -3,34 +3,106 @@
 
 #include "human.types.h"
 
+#include <vector>
+
 namespace
 {
 	using namespace Rococo;
 	using namespace Dystopia;
 
-	struct RangedWeapon
+	struct InventoryItemSlot
 	{
-		float flightTime;
-		float muzzleVelocity;
+		IItem* item;
+
+		InventoryItemSlot(): item(nullptr)
+		{
+		}
+	};
+
+	struct RangedWeaponItem : public IItem
+	{
+		RangedWeapon data;
 		std::wstring name;
+
+		virtual ITEM_TYPE Type() const 
+		{ 
+			return ITEM_TYPE_RANGED_WEAPON;
+		}
+
+		virtual void Free()
+		{ 
+			delete this;
+		}
+
+		virtual const wchar_t* Name() const 
+		{
+			return name.c_str();
+		}
+
+		virtual RangedWeapon* GetRangedWeaponData()
+		{
+			return &data;
+		}
+
+		virtual IInventory* GetContents() 
+		{
+			return nullptr;
+		}
 	};
 
 	class Inventory : public IInventorySupervisor
 	{
-		RangedWeapon activeWeapon;
+		std::vector<InventoryItemSlot> items;
+		TableSpan span;
 	public:
 		virtual void Free() { delete this; }
 
-		virtual void SetRangedWeapon(float muzzleVelocity, float flightTime)
+		Inventory(TableSpan _span): span(_span), items(_span.rows * _span.columns)
 		{
-			activeWeapon.muzzleVelocity = muzzleVelocity;
-			activeWeapon.flightTime = flightTime;
 		}
 
-		virtual void GetRangedWeapon(float& muzzleVelocity, float& flightTime) const
+		~Inventory()
 		{
-			muzzleVelocity = activeWeapon.muzzleVelocity;
-			flightTime = activeWeapon.flightTime;
+			DeleteContents();
+		}
+
+		virtual void DeleteContents()
+		{
+			for (auto& i : items)
+			{
+				if (i.item)
+				{
+					i.item->Free();
+					i.item = nullptr;
+				}
+			}
+		}
+
+		virtual IItem* Swap(uint32 index, IItem* item)
+		{
+			if (index >= items.size())
+			{
+				Throw(0, L"Bad inventory index");
+			}
+
+			auto old = items[index].item;
+			items[index].item = item;
+			return old;
+		}
+
+		virtual IItem* GetItem(uint32 index)
+		{
+			if (index >= items.size())
+			{
+				return nullptr;
+			}
+
+			return items[index].item;
+		}
+
+		virtual TableSpan Span() const
+		{
+			return span;
 		}
 	};
 }
@@ -39,8 +111,16 @@ namespace Dystopia
 {
 	using namespace Rococo;
 
-	IInventorySupervisor* CreateInventory()
+	IInventorySupervisor* CreateInventory(TableSpan span)
 	{
-		return new Inventory();
+		return new Inventory(span);
+	}
+
+	IItem* CreateRangedWeapon(const RangedWeapon& data, const wchar_t* name)
+	{
+		auto* item = new RangedWeaponItem();
+		item->data = data;
+		item->name = name;
+		return item;
 	}
 }

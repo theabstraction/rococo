@@ -142,8 +142,8 @@ namespace
 		virtual ID_ENTITY AddRangedWeapon(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, float muzzleVelocity, float flightTime)
 		{
 			auto id = AddSolid(transform, editorId);
-			auto inv = CreateInventory();
-			inv->SetRangedWeapon(muzzleVelocity, flightTime);
+			auto inv = CreateInventory({ 1,1 });
+			inv->Swap(0, CreateRangedWeapon({ muzzleVelocity, flightTime }, name.buffer));
 			equipment.insert(id, Equipment{ inv });
 			return id;
 		}
@@ -186,9 +186,9 @@ namespace
 		virtual ID_ENTITY AddAlly(const Matrix4x4& transform, ID_MESH meshId)
 		{
 			ID_ENTITY id = AddSolid(transform, meshId);
-			auto* inv = CreateInventory();
+			auto* inv = CreateInventory({ 5, 8 });
 			auto h = new Human { HumanType_Vigilante, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Vigilante ) };
-			h->inventory->SetRangedWeapon(10.0f, 4.0f);
+			h->inventory->Swap(0, CreateRangedWeapon({ 10.0f, 2.5f }, L"Bag of stones"));
 			allies.insert(id, h);
 			return id;
 		}
@@ -196,9 +196,9 @@ namespace
 		virtual ID_ENTITY AddEnemy(const Matrix4x4& transform, ID_MESH meshId)
 		{
 			ID_ENTITY id = AddSolid(transform, meshId);
-			auto* inv = CreateInventory();
+			auto* inv = CreateInventory({ 3,4 });
 			auto h = new Human{ HumanType_Bobby, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Bobby) };
-			h->inventory->SetRangedWeapon(10.0f, 4.0f);
+			h->inventory->Swap(0, CreateRangedWeapon({ 10.0f, 2.5f }, L"Bag of stones"));
 			enemies.insert(id, h);
 			return id;
 		}

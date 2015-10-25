@@ -2,10 +2,39 @@
 
 namespace Dystopia
 {
+	struct RangedWeapon
+	{
+		float flightTime;
+		float muzzleVelocity;
+	};
+
+	enum ITEM_TYPE
+	{
+		ITEM_TYPE_RANGED_WEAPON
+	};
+
+	struct IItem
+	{
+		virtual ITEM_TYPE Type() const = 0;
+		virtual void Free() = 0;
+		virtual const wchar_t* Name() const = 0;
+		virtual RangedWeapon* GetRangedWeaponData() = 0;
+		virtual IInventory* GetContents() = 0;
+	};
+
+	IItem* CreateRangedWeapon(const RangedWeapon& data, const wchar_t* name);
+	
+	struct TableSpan
+	{
+		uint32 rows;
+		uint32 columns;
+	};
+
 	ROCOCOAPI IInventory
 	{
-		virtual void SetRangedWeapon(float muzzleVelocity, float flightTime) = 0;
-		virtual void GetRangedWeapon(float& muzzleVelocity, float& flightTime) const = 0;
+		virtual IItem* Swap(uint32 index, IItem* item) = 0;
+		virtual IItem* GetItem(uint32 index) = 0;
+		virtual TableSpan Span() const = 0;
 	};
 
 	ROCOCOAPI IInventorySupervisor : public IInventory
@@ -13,7 +42,7 @@ namespace Dystopia
 		virtual void Free() = 0;
 	};
 
-	IInventorySupervisor* CreateInventory();
+	IInventorySupervisor* CreateInventory(TableSpan capacity);
 
 	enum HumanType : int32
 	{

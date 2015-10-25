@@ -51,15 +51,18 @@ namespace
 					intent.SetFireCount(fireCount);
 					lastFireTime = gameTime;
 
-					float muzzleVelocity, flightTime;
 					auto inv = level.GetInventory(id);
 					if (inv)
 					{
-						inv->GetRangedWeapon(muzzleVelocity, flightTime);
-						float dz = 10.0f / muzzleVelocity;
-						Vec3 dir{ 0, 1, dz };
-						ProjectileDef def = { id, pos, dir * muzzleVelocity, flightTime, 0 };
-						level.AddProjectile(def, lastFireTime);
+						auto* item = inv->GetItem(0);
+						auto* ranged = item ? item->GetRangedWeaponData() : nullptr;
+						if (ranged)
+						{
+							float dz = 10.0f / ranged->muzzleVelocity;
+							Vec3 dir{ 0, 1, dz };
+							ProjectileDef def = { id, pos, dir * ranged->muzzleVelocity, ranged->flightTime, 0 };
+							level.AddProjectile(def, lastFireTime);
+						}
 					}
 				}
 			}

@@ -35,9 +35,9 @@ namespace
 			{
 				if (IsInRange(collectorPos - desc.worldPosition, maxPickupRange))
 				{
-					float muzzleVel, flightTime;
-					desc.inventory->GetRangedWeapon(muzzleVel, flightTime);
-					h.inventory->SetRangedWeapon(muzzleVel, flightTime);
+					IItem* item = desc.inventory->Swap(0, nullptr);
+					IItem* oldItem = h.inventory->Swap(0, item);
+					desc.inventory->Swap(0, oldItem);
 					level.DeleteEquipment(itemId);
 				}
 			}
@@ -57,9 +57,12 @@ namespace
 			EquipmentDesc desc;
 			if (level.TryGetEquipment(id, desc))
 			{
-				float muzzleVel, flightTime;
-				desc.inventory->GetRangedWeapon(muzzleVel, flightTime);
-				description->AppendFormat(L"Equipment:\n\tmuzzle velocity: %3.0f m/s", muzzleVel);
+				auto* item = desc.inventory->GetItem(0);
+				auto* ranged = item ? item->GetRangedWeaponData() : nullptr;
+				if (ranged)
+				{
+					description->AppendFormat(L"Equipment:\n\tmuzzle velocity: %3.0f m/s", ranged->muzzleVelocity);
+				}
 			}
 			else
 			{
@@ -205,6 +208,8 @@ namespace
 
 			if (controls.PollActivateCount() % 2 == 1)
 			{	
+				e.uiStack.PushTop(ID_PANE_INVENTORY_SELF);
+				/*
 				auto playerId = level.GetPlayerId();
 
 				Vec3 playerPosition;
@@ -214,6 +219,7 @@ namespace
 				e.renderer.GetGuiMetrics(metrics);
 
 				ActivateContextMenu(playerPosition, metrics.cursorPosition);
+				*/
 			}
 
 			return PaneModality_Modal;

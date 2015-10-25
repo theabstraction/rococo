@@ -94,6 +94,7 @@ namespace
 		
 		AutoFree<IUIControlPane> isometricGameWorldView;
 		AutoFree<IUIPaneSupervisor> guiWorldInterface;
+		AutoFree<IUIPaneSupervisor> inventoryPaneSelf;
 	
 	public:
 		DystopiaApp(IRenderer& _renderer, IInstallation& _installation) :
@@ -107,7 +108,8 @@ namespace
 			level(CreateLevel(e, humanFactory)),
 			levelLoader(CreateLevelLoader(e, *level)),
 			isometricGameWorldView(CreatePaneIsometric(e, *level)),
-			guiWorldInterface(CreateGuiWorldInterface(e,*level))
+			guiWorldInterface(CreateGuiWorldInterface(e,*level)),
+			inventoryPaneSelf(CreateInventoryPane(e, *level))
 		{
 			uiStack->SetFactory(*this);
 			humanFactory.level = level;
@@ -138,6 +140,8 @@ namespace
 				return isometricGameWorldView;
 			case ID_PANE_GUI_WORLD_INTERFACE:
 				return guiWorldInterface;
+			case ID_PANE_INVENTORY_SELF:
+				return inventoryPaneSelf;
 			default:
 				return nullptr;
 			}
