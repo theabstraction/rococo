@@ -220,6 +220,9 @@ namespace Rococo
 	Matrix4x4 TransposeMatrix(const Matrix4x4& matrix);
 
 	inline Degrees operator - (Degrees theta) { return Degrees{ -theta.quantity }; }
+
+	Vec2i TopCentre(const GuiRect& rect);
+	bool IsPointInRect(const Vec2i& p, const GuiRect& rect);
 }
 
 #endif // ROCOCO_MATHS_H

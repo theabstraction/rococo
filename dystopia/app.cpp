@@ -2,7 +2,6 @@
 #include <rococo.renderer.h>
 #include <rococo.io.h>
 #include <vector>
-#include "dystopia.text.h"
 #include "meshes.h"
 #include "human.types.h"
 #include "rococo.ui.h"
@@ -41,7 +40,7 @@ namespace
 		wchar_t info[256];
 		SafeFormat(info, _TRUNCATE, L"Mouse: (%d,%d). Screen(%d,%d)", metrics.cursorPosition.x, metrics.cursorPosition.y, metrics.screenSpan.x, metrics.screenSpan.y);
 
-		RenderHorizontalCentredText(rc, info, RGBAb{ 255, 255, 255, 255 }, 1, Vec2i{ 25, 25 });
+		Graphics::RenderHorizontalCentredText(rc, info, RGBAb{ 255, 255, 255, 255 }, 1, Vec2i{ 25, 25 });
 	}
 
 	void DrawVector(IGuiRenderContext& grc, const Vec4& v, const Vec2i& pos)
@@ -49,7 +48,7 @@ namespace
 		wchar_t info[256];
 		SafeFormat(info, _TRUNCATE, L"(%f) (%f) (%f) (%f)\n", v.x, v.y, v.z, v.w);
 
-		RenderHorizontalCentredText(grc, info, RGBAb{ 255, 255, 255, 255 }, 3, pos);
+		Graphics::RenderHorizontalCentredText(grc, info, RGBAb{ 255, 255, 255, 255 }, 3, pos);
 	}
 
 	void DrawVector(IGuiRenderContext& grc, const Vec3& v, const Vec2i& pos)
@@ -57,7 +56,7 @@ namespace
 		wchar_t info[256];
 		SafeFormat(info, _TRUNCATE, L"(%f) (%f) (%f) ", v.x, v.y, v.z);
 
-		RenderHorizontalCentredText(grc, info, RGBAb{ 255, 255, 255, 255 }, 3, pos);
+		Graphics::RenderHorizontalCentredText(grc, info, RGBAb{ 255, 255, 255, 255 }, 3, pos);
 	}
 
 	struct HumanFactory: public IHumanFactory

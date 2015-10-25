@@ -94,6 +94,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11.renderer.cpp" />
+    <ClCompile Include="renderer.utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dx11dialog.inl" />

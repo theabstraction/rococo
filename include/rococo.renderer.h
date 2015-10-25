@@ -123,6 +123,25 @@ namespace Rococo
 	{
 		virtual IApp* CreateApp(IRenderer& renderer) = 0;
 	};
+
+	namespace Graphics
+	{
+		Vec2i GetScreenCentre(const GuiMetrics& metrics);
+		void RenderHorizontalCentredText(IGuiRenderContext& gr, const wchar_t* txt, RGBAb colour, int fontSize, const Vec2i& topLeft);
+		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, int32 x, int32 top, RGBAb colour, const wchar_t* text, int fontIndex);
+		void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag);
+		void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag);
+
+		struct alignas(16) StackSpaceGraphics
+		{
+			char opaque[256];
+		};
+
+		Fonts::IDrawTextJob& CreateHorizontalCentredText(StackSpaceGraphics& ss, int fontIndex, const wchar_t* text, RGBAb _colour);
+		Fonts::IDrawTextJob& CreateLeftAlignedText(StackSpaceGraphics& ss, const GuiRect& targetRect, int retzone, int hypzone, int fontIndex, const wchar_t* text, RGBAb colour);
+		float GetAspectRatio(const IRenderer& renderer);
+		Vec2 PixelSpaceToScreenSpace(const Vec2i& v, IRenderer& renderer);
+	}
 }
 
 #endif

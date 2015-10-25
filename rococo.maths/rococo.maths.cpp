@@ -386,4 +386,14 @@ namespace Rococo
 		float q = rand() * ooMax;
 		return minValue + q * (maxValue - minValue);
 	}
+
+	Vec2i TopCentre(const GuiRect& rect)
+	{
+		return Vec2i{ (rect.left + rect.right) >> 1, rect.top };
+	}
+
+	bool IsPointInRect(const Vec2i& p, const GuiRect& rect)
+	{
+		return (p.x > rect.left && p.x < rect.right && p.y > rect.top && p.y < rect.bottom);
+	}
 }

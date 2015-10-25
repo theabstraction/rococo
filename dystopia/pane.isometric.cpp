@@ -12,23 +12,6 @@ using namespace Dystopia;
 
 namespace
 {
-	float GetAspectRatio(const IRenderer& renderer)
-	{
-		GuiMetrics metrics;
-		renderer.GetGuiMetrics(metrics);
-		float aspectRatio = metrics.screenSpan.y / float(metrics.screenSpan.x);
-		return aspectRatio;
-	}
-
-	Vec2 PixelSpaceToScreenSpace(const Vec2i& v, IRenderer& renderer)
-	{
-		GuiMetrics metrics;
-		renderer.GetGuiMetrics(metrics);
-
-		return{ (2.0f * (float)metrics.cursorPosition.x - metrics.screenSpan.x) / metrics.screenSpan.x,
-			-(2.0f * (float)metrics.cursorPosition.y - metrics.screenSpan.y) / metrics.screenSpan.y };
-	}
-
 	enum
 	{
 		MENU_ITEM_NONE,
@@ -103,7 +86,7 @@ namespace
 
 		void UpdateGroundCursorPosition(const Vec2i screenPosition)
 		{
-			Vec2 C = PixelSpaceToScreenSpace(screenPosition, e.renderer);
+			Vec2 C = Graphics::PixelSpaceToScreenSpace(screenPosition, e.renderer);
 
 			Vec4 xCursor = Vec4{ C.x, C.y, 0.0f, 1.0f };
 
@@ -132,7 +115,7 @@ namespace
 
 			Degrees phi{ -45.0f };
 			Degrees theta{ controls.ViewTheta() };
-			GetIsometricTransforms(globalState.worldMatrix, inverseWorldMatrixProj, globalState.worldMatrixAndProj, g, GetAspectRatio(e.renderer), playerPosition, phi, theta, Metres{ 100.0f });
+			GetIsometricTransforms(globalState.worldMatrix, inverseWorldMatrixProj, globalState.worldMatrixAndProj, g, Graphics::GetAspectRatio(e.renderer), playerPosition, phi, theta, Metres{ 100.0f });
 		}
 	public:
 		PaneIsometric(Environment& _e, ILevelSupervisor& _level):

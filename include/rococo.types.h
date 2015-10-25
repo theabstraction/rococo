@@ -150,6 +150,11 @@ namespace Rococo
 		virtual void OnEvent(T& arg) = 0;
 	};
 
+	template<> struct IEventCallback<const wchar_t*>
+	{
+		virtual void OnEvent(const wchar_t* arg) = 0;
+	};
+
 	struct Quad
 	{
 		float left;
@@ -257,6 +262,8 @@ namespace Rococo
 
 	struct KeyboardEvent;
 	struct MouseEvent;
+
+	void SplitString(const wchar_t* text, size_t length, const wchar_t* seperators, IEventCallback<const wchar_t*>& onSubString);
 
 	namespace Post
 	{

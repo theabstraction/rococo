@@ -1,6 +1,7 @@
 #include <rococo.types.h>
 #include <wchar.h>
 #include <stdarg.h>
+#include <malloc.h>
 
 namespace
 {
@@ -59,5 +60,38 @@ namespace Rococo
 	IStringBuilder* CreateSafeStringBuilder(size_t capacity)
 	{
 		return new SafeStringBuilder(capacity);
+	}
+
+	void SplitString(const wchar_t* text, size_t length, const wchar_t* seperators, IEventCallback<const wchar_t*>& onSubString)
+	{
+		if (length == 0) length = wcslen(text);
+		size_t bytecount = sizeof(wchar_t) * (length + 1);
+		wchar_t* buf = (wchar_t*)_alloca(bytecount);
+		memcpy_s(buf, bytecount, text, bytecount);
+		buf[length] = 0;
+
+		wchar_t* next_token = nullptr;
+		wchar_t* token = wcstok_s(buf, L"|", &next_token);
+		while (token != nullptr)
+		{
+			onSubString.OnEvent(token);
+			token = wcstok_s(nullptr, L"|", &next_token);
+		}
+	}
+
+	size_t CountSubStrings(const wchar_t* text, size_t length, const wchar_t* seperators)
+	{
+		struct : IEventCallback<const wchar_t*>
+		{
+			size_t count;
+			virtual void OnEvent(const wchar_t* text)
+			{
+				count++;
+			}
+		} cb;
+
+		cb.count = 0;
+		SplitString(text, length, seperators, cb);
+		return cb.count;
 	}
 }
