@@ -200,6 +200,8 @@ namespace Dystopia
 
 				cr_sex child = **ppExpr;
 
+				const auto s = child.String();
+
 				if (!IsAtomic(child))
 				{
 					ThrowSex(child, L"Expecting atomic element in expression. Format is : %s", hint);

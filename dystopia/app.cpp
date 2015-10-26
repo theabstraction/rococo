@@ -86,6 +86,7 @@ namespace
 		AutoFree<IDebuggerWindow> debuggerWindow;
 		AutoFree<ISourceCache> sourceCache;
 		AutoFree<IMeshLoader> meshes;
+		AutoFree<IControlsSupervisor> controls;
 		
 		Environment e;
 		HumanFactory humanFactory;
@@ -103,8 +104,9 @@ namespace
 			gui(CreateGui(e, *uiStack)),
 			debuggerWindow(CreateDebuggerWindow(&_renderer.Window())),
 			sourceCache(CreateSourceCache(_installation)),
-			meshes(CreateMeshLoader(_installation, _renderer, *sourceCache)),		
-			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes, *gui, *uiStack, *postbox},
+			meshes(CreateMeshLoader(_installation, _renderer, *sourceCache)),
+			controls(CreateControlMapper(_installation, *sourceCache)),
+			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes, *gui, *uiStack, *postbox, *controls},
 			level(CreateLevel(e, humanFactory)),
 			levelLoader(CreateLevelLoader(e, *level)),
 			isometricGameWorldView(CreatePaneIsometric(e, *level)),
@@ -162,6 +164,9 @@ namespace
 			uiStack->OnCreated();
 			uiStack->PushTop(ID_PANE_ISOMETRIC_GAME_VIEW);
 			uiStack->PushTop(ID_PANE_GUI_WORLD_INTERFACE);
+
+			InitControlMap(*controls);
+			controls->LoadMapping(L"!controls.cfg");
 			levelLoader->Load(L"!levels/level1.sxy", false);	
 		}
 

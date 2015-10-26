@@ -72,6 +72,12 @@
     <ClCompile Include="pane.inventory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="controls.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="actions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dx11.renderer.rc">
@@ -108,9 +114,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="controls.inl">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="dystopia.sxh">
       <Filter>Source Files</Filter>
     </None>

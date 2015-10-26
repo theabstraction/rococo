@@ -3,7 +3,6 @@
 #include "human.types.h"
 
 #include "rococo.ui.h"
-#include "controls.inl"
 
 #include <vector>
 
@@ -73,19 +72,85 @@ namespace
 		gui.ShowDialogBox({ 640, 480 }, 100, 50, fstring{ L"Examine..." , -1 }, fstring{ *description, -1 }, fstring{ L">Continue=null", -1 });
 	}
 
+	struct XPlayerIntent: public IIntent
+	{
+		float forward;
+		float left;
+		float right;
+		float backward;
 
-	class PaneIsometric : public IUIControlPane, public IEventCallback<ContextMenuItem>
+		int32 fireCount;
+		int32 activateCount;
+
+		XPlayerIntent(): left(0), right(0), forward(0), backward(0)
+		{
+
+		}
+
+		void SetPlayerIntent(ActionMap& map)
+		{
+			switch (map.type)
+			{
+			case ActionMapTypeForward:
+				forward = map.isActive ? 1.0f : 0;
+				break;
+			case ActionMapTypeBackward:
+				backward = map.isActive ? -1.0f : 0;
+				break;
+			case ActionMapTypeLeft:
+				left = map.isActive ? -1.0f : 0;
+				break;
+			case ActionMapTypeRight:
+				right = map.isActive ? 1.0f : 0;
+				break;
+			case ActionMapTypeFire:
+				if (map.isActive) fireCount++;
+				break;
+			case ActionMapTypeSelect:
+				if (map.isActive) activateCount++;
+				break;
+			}
+		}
+
+		virtual int32 GetFireCount() const
+		{
+			return fireCount;
+		}
+
+		virtual Vec2 GetImpulse() const
+		{
+			return Vec2{ left + right, forward + backward };
+		}
+
+		virtual void SetFireCount(int32 count)
+		{
+			fireCount = count;
+		}
+
+		virtual int32 PollActivateCount()
+		{
+			return activateCount;
+		}
+	};
+
+	class PaneIsometric : public IUIControlPane, public IEventCallback<ContextMenuItem>, IEventCallback<ActionMap>
 	{
 		Environment& e;
 		ILevelSupervisor& level;
 		float gameTime;
-		
-		GameControls controls;
 
 		Vec3 groundCursorProjection;
 		Matrix4x4 inverseWorldMatrixProj;
 
 		GlobalState globalState;
+
+		float globalScale;
+
+		Degrees viewTheta;
+
+		bool isRotateLocked;
+
+		XPlayerIntent intent;
 
 		void UpdateGroundCursorPosition(const Vec2i screenPosition)
 		{
@@ -109,7 +174,7 @@ namespace
 
 		void UpdateGlobalState()
 		{
-			float g = 0.04f * powf(1.25f, controls.GlobalScale());
+			float g = 0.04f * powf(1.25f, globalScale);
 
 			auto playerId = level.GetPlayerId();
 
@@ -117,12 +182,11 @@ namespace
 			level.GetPosition(playerId, playerPosition);
 
 			Degrees phi{ -45.0f };
-			Degrees theta{ controls.ViewTheta() };
-			GetIsometricTransforms(globalState.worldMatrix, inverseWorldMatrixProj, globalState.worldMatrixAndProj, g, Graphics::GetAspectRatio(e.renderer), playerPosition, phi, theta, Metres{ 100.0f });
+			GetIsometricTransforms(globalState.worldMatrix, inverseWorldMatrixProj, globalState.worldMatrixAndProj, g, Graphics::GetAspectRatio(e.renderer), playerPosition, phi, viewTheta, Metres{ 100.0f });
 		}
 	public:
 		PaneIsometric(Environment& _e, ILevelSupervisor& _level):
-			e(_e), level(_level), gameTime(0.0f)
+			e(_e), level(_level), gameTime(0.0f), globalScale(4.0f), viewTheta { 45.0f }, isRotateLocked(true)
 		{
 
 		}
@@ -134,7 +198,7 @@ namespace
 
 		virtual IIntent* PlayerIntent()
 		{
-			return &controls;
+			return &intent;
 		}
 
 		virtual PaneModality OnTimestep(const TimestepEvent& clock)
@@ -159,10 +223,36 @@ namespace
 			return PaneModality_Modal;
 		}
 
-		virtual PaneModality OnKeyboardEvent(const KeyboardEvent& ke)
+		virtual void OnEvent(ActionMap& map)
 		{
-			controls.AppendKeyboardEvent(ke);
-			return PaneModality_Modal;
+			switch (map.type)
+			{
+			case ActionMapTypeScale:
+				{
+					if (map.vector.y > 0)
+					{
+						globalScale += 0.5f;
+						globalScale = min(globalScale, 10.0f);
+					}
+					else if (map.vector.y < 0)
+					{
+						globalScale -= 0.5f;
+						globalScale = max(globalScale, 3.5f);
+					}
+				}break;
+			case ActionMapTypeRotate:
+				isRotateLocked = !map.isActive;
+				break;
+			case ActionMapTypeInventory:
+				if (!map.isActive)
+				{
+					e.uiStack.PushTop(ID_PANE_INVENTORY_SELF);
+				}
+				break;
+			default:
+				intent.SetPlayerIntent(map);
+				break;
+			}
 		}
 
 		void ActivateContextMenu(cr_vec3 origin, const Vec2i topLeftPosition)
@@ -202,26 +292,20 @@ namespace
 			}
 		}
 
+		virtual PaneModality OnKeyboardEvent(const KeyboardEvent& key)
+		{
+			e.controls.MapKeyboardEvent(key, *this);
+			return PaneModality_Modal;
+		}
+
 		virtual PaneModality OnMouseEvent(const MouseEvent& me)
 		{
-			controls.AppendMouseEvent(me);
-
-			if (controls.PollActivateCount() % 2 == 1)
-			{	
-				e.uiStack.PushTop(ID_PANE_INVENTORY_SELF);
-				/*
-				auto playerId = level.GetPlayerId();
-
-				Vec3 playerPosition;
-				level.GetPosition(playerId, playerPosition);
-
-				GuiMetrics metrics;
-				e.renderer.GetGuiMetrics(metrics);
-
-				ActivateContextMenu(playerPosition, metrics.cursorPosition);
-				*/
+			if (me.dx != 0 && !isRotateLocked)
+			{
+				float newTheta = fmodf(viewTheta + 0.25f * me.dx, 360.0f);
+				viewTheta = { newTheta };
 			}
-
+			e.controls.MapMouseEvent(me, *this);
 			return PaneModality_Modal;
 		}
 

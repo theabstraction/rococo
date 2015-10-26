@@ -48,18 +48,6 @@ namespace Dystopia
 
 	CMD_ID ShowContinueBox(Rococo::Windows::IWindow& renderWindow, const wchar_t* message);
 
-	ROCOCOAPI IKeyboard
-	{
-		virtual uint32 GetScanCode(const wchar_t* keyName) const = 0;
-	};
-
-	ROCOCOAPI IKeyboardSupervisor : public IKeyboard
-	{
-		virtual void Free() = 0;
-	};
-
-	IKeyboardSupervisor* CreateKeyboardMap();
-
 	struct IMeshLoader;
 	struct ILevelBuilder;
 
@@ -71,6 +59,8 @@ namespace Dystopia
 	enum HumanType : int32;
 	struct IHumanAISupervisor;
 	struct IHumanFactory;
+	struct ISourceCache;
+	struct Environment;
 
 	enum StatIndex : int32;
 
@@ -86,6 +76,18 @@ namespace Dystopia
 		Vec3 worldPosition;
 		IInventory* inventory;
 	};
+
+	ROCOCOAPI IKeyboard
+	{
+		virtual uint32 GetScanCode(const wchar_t* keyName) const = 0;
+	};
+
+	ROCOCOAPI IKeyboardSupervisor : public IKeyboard
+	{
+		virtual void Free() = 0;
+	};
+
+	IKeyboardSupervisor* CreateKeyboardMap(IInstallation& installation, ISourceCache& sourceCache);
 
 	ROCOCOAPI ILevel
 	{
@@ -117,8 +119,6 @@ namespace Dystopia
 		virtual void Load(const wchar_t* resourceName, bool isReloading) = 0;
 		virtual void SyncWithModifiedFiles() = 0;
 	};
-
-	struct Environment;
 
 	ROCOCOAPI IDebugControl
 	{
@@ -164,6 +164,34 @@ namespace Dystopia
 	};
 	void ExecuteSexyScriptLoop(size_t maxBytes, Environment& e, const wchar_t* resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile);
 	ISourceCache* CreateSourceCache(IInstallation& installation);
+
+	enum ActionMapType : int32;
+
+	struct ActionMap
+	{
+		ActionMapType type;
+
+		union
+		{
+			Vec2i vector;
+			bool isActive;
+		};
+	};
+
+	struct IControls
+	{
+		virtual void LoadMapping(const wchar_t* resourceName) = 0;
+		virtual void MapKeyboardEvent(const KeyboardEvent& ke, IEventCallback<ActionMap>& onAction) = 0;
+		virtual void MapMouseEvent(const MouseEvent& me, IEventCallback<ActionMap>& onAction) = 0;
+	};
+
+	struct IControlsSupervisor : public IControls
+	{
+		virtual void AddAction(const wchar_t* name, ActionMapType type, bool isVector) = 0;
+		virtual void Free() = 0;
+	};
+
+	IControlsSupervisor* CreateControlMapper(IInstallation& installation, ISourceCache& sourceCache);
 }
 
 #include "dystopia.sxh.h"
@@ -304,6 +332,7 @@ namespace Dystopia
 		IGui& gui;
 		IUIStack& uiStack;
 		Post::IPostbox& postbox;
+		IControls& controls;
 	};
 
 	enum ID_PANE
@@ -314,6 +343,23 @@ namespace Dystopia
 		ID_PANE_GENERIC_CONTEXT_MENU,
 		ID_PANE_INVENTORY_SELF
 	};
+
+	enum ActionMapType
+	{
+		ActionMapTypeWait = 0,
+		ActionMapTypeForward,
+		ActionMapTypeBackward,
+		ActionMapTypeLeft,
+		ActionMapTypeRight,
+		ActionMapTypeSelect,
+		ActionMapTypeInventory,
+		ActionMapTypeFire,
+		ActionMapTypeRotate,
+		ActionMapTypeScale,
+		ActionMapType_TypeCount
+	};
+
+	void InitControlMap(IControlsSupervisor& controls);
 }
 
 namespace Rococo

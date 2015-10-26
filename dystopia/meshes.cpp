@@ -93,11 +93,11 @@ namespace
 		cr_sex version = root[0];
 
 		const ISExpression* quote, *category, *filetype;
-		ScanExpression(version, L"(' file.type rococo.dystopia.mesh)", "a a a", &quote, &category, &filetype);
+		ScanExpression(version, L"(' file.type dystopia.mesh)", "a a a", &quote, &category, &filetype);
 
 		ValidateArgument(*quote, L"'");
 		ValidateArgument(*category, L"file.type");
-		ValidateArgument(*filetype, L"rococo.dystopia.mesh");
+		ValidateArgument(*filetype, L"dystopia.mesh");
 
 		if (root.NumberOfElements() != 2)
 		{
