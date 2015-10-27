@@ -126,7 +126,6 @@ namespace
 
 		virtual PaneBind Top()
 		{
-			Sync sync(*this);
 			if (panes.empty()) Throw(0, L"UIStack::Top failed. No UI panes.");
 			return panes.back();
 		}

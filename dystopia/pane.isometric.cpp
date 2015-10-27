@@ -82,12 +82,18 @@ namespace
 		int32 fireCount;
 		int32 activateCount;
 
-		XPlayerIntent(): left(0), right(0), forward(0), backward(0)
+		void Clear()
 		{
-
+			left = right = forward = backward = 0;
+			fireCount = activateCount = 0;
 		}
 
-		void SetPlayerIntent(ActionMap& map)
+		XPlayerIntent()
+		{
+			Clear();
+		}
+
+		void OnEvent(ActionMap& map)
 		{
 			switch (map.type)
 			{
@@ -213,6 +219,12 @@ namespace
 				AdvanceTimestepEvent ate{ clock, dt, gameTime };
 				e.postbox.SendDirect(ate);
 				level.UpdateObjects(gameTime, dt);
+
+				auto id = e.uiStack.Top().id;
+				if (id != ID_PANE_GUI_WORLD_INTERFACE)
+				{
+					intent.Clear();
+				}
 			}
 
 			GuiMetrics metrics;
@@ -244,13 +256,10 @@ namespace
 				isRotateLocked = !map.isActive;
 				break;
 			case ActionMapTypeInventory:
-				if (!map.isActive)
-				{
-					e.uiStack.PushTop(ID_PANE_INVENTORY_SELF);
-				}
+				if (map.isActive) e.uiStack.PushTop(ID_PANE_INVENTORY_SELF);
 				break;
 			default:
-				intent.SetPlayerIntent(map);
+				intent.OnEvent(map);
 				break;
 			}
 		}

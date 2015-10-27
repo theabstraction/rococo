@@ -156,7 +156,7 @@ namespace
 		return renderBox.icon;
 	}
 
-	class InventoryPane : public IUIPaneSupervisor
+	class InventoryPane : public IUIPaneSupervisor, public IEventCallback<ActionMap>
 	{
 		Environment& e;
 		ILevel& level;
@@ -187,18 +187,25 @@ namespace
 			return PaneModality_Modeless;
 		}
 
+		virtual void OnEvent(ActionMap& map)
+		{
+			switch (map.type)
+			{
+			case ActionMapTypeInventory:
+				if (map.isActive) e.uiStack.PopTop();
+				break;
+			}
+		}
+
 		virtual PaneModality OnKeyboardEvent(const KeyboardEvent& ke)
 		{
-			return PaneModality_Modeless;
+			e.controls.MapKeyboardEvent(ke, *this);
+			return PaneModality_Modal;
 		}
 
 		virtual PaneModality OnMouseEvent(const MouseEvent& me)
 		{
-			if (me.HasFlag(MouseEvent::LUp))
-			{
-				e.uiStack.PopTop();
-			}
-
+			e.controls.MapMouseEvent(me, *this);
 			return PaneModality_Modal;
 		}
 

@@ -11,6 +11,7 @@ namespace
 	{
 		POST_TYPE id;
 		uint64 nBytes;
+		bool isLossy;
 		char opaquedata[LARGEST_MESSAGE_SIZE];
 	};
 
@@ -37,14 +38,34 @@ namespace
 			}
 		}
 
-		virtual void PostForLater(POST_TYPE id, const void* buffer, uint64 nBytes)
+		virtual void PostForLater(POST_TYPE id, const void* buffer, uint64 nBytes, bool isLossy)
 		{
 			if (nBytes > LARGEST_MESSAGE_SIZE) Throw(0, L"Postbox message too long");
-			if (items.size() > CAPACITY) Throw(0, L"Postbox buffer exhausted. Failed to deliver #%d", id); // Don't let postbox expand to infinity
+			if (items.size() > CAPACITY)
+			{
+				auto i = items.begin();
+				while (i != items.end())
+				{
+					if (i->isLossy)
+					{
+						i = items.erase(i);
+					}
+					else
+					{
+						++i;
+					}
+				}
+
+				if (items.size() > CAPACITY)
+				{
+					Throw(0, L"Postbox buffer exhausted. Failed to deliver #%d", id);
+				}
+			}
 
 			PostItem item;
 			item.id = id;
 			item.nBytes = nBytes;
+			item.isLossy = isLossy;
 			memcpy_s(item.opaquedata, LARGEST_MESSAGE_SIZE, buffer, nBytes);
 			items.push_back(item);
 		}

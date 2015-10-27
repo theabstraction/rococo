@@ -185,12 +185,12 @@ namespace
 
 		virtual void OnMouseEvent(const MouseEvent& me)
 		{
-			e.postbox.PostForLater(me);
+			e.postbox.PostForLater(me, true);
 		}
 
 		virtual void OnKeyboardEvent(const KeyboardEvent& ke)
 		{
-			e.postbox.PostForLater(ke);
+			e.postbox.PostForLater(ke, true);
 		}
 	};
 }

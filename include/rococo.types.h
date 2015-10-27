@@ -291,7 +291,7 @@ namespace Rococo
 		ROCOCOAPI IPostbox
 		{
 			virtual void Deliver() = 0;
-			virtual void PostForLater(POST_TYPE id, const void* buffer, uint64 nBytes) = 0;
+			virtual void PostForLater(POST_TYPE id, const void* buffer, uint64 nBytes, bool isLossy) = 0;
 			virtual void SendDirect(POST_TYPE id, const void* buffer, uint64 nBytes) = 0;
 			virtual void Subscribe(POST_TYPE id, IPostRecipient* recipient) = 0;
 			virtual void Unsubscribe(POST_TYPE id, IPostRecipient* recipient) = 0;
@@ -301,9 +301,9 @@ namespace Rococo
 				SendDirect(GetPostType(t), (const void*)&t, sizeof(T));
 			}
 
-			template<class T> void PostForLater(const T& t)
+			template<class T> void PostForLater(const T& t, bool isLossy)
 			{
-				PostForLater(GetPostType(t), (const void*)&t, sizeof(T));
+				PostForLater(GetPostType(t), (const void*)&t, sizeof(T), isLossy);
 			}
 		};
 
