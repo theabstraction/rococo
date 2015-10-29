@@ -12,6 +12,14 @@ using namespace Dystopia;
 using namespace Rococo;
 using namespace Rococo::Fonts;
 
+namespace Dystopia
+{
+	namespace Verb
+	{
+		void Examine(const VerbExamine& target, Environment& e);
+	}
+}
+
 namespace
 {
 	struct HumanFactory: public IHumanFactory
@@ -109,49 +117,10 @@ namespace
 
 		}
 
-		void Examine(const VerbExamine& target)
+		virtual void OnPost(const Mail& mail)
 		{
-			auto* inv = level->GetInventory(target.entityId);
-			if (inv)
-			{
-				auto* item = inv->GetItem(target.inventoryIndex);
-				if (item)
-				{
-					AutoFree<IStringBuilder> sb(CreateSafeStringBuilder(4096));
-					
-					auto* rwd = item->GetRangedWeaponData();
-					if (rwd)
-					{
-						if (rwd->muzzleVelocity < 300.0f)
-						{
-							sb->AppendFormat(L"Ranged Weapon:\n\t\t\tMuzzle Velocity: %.0f m/s", rwd->muzzleVelocity);
-						}
-						else if (rwd->muzzleVelocity < 3000)
-						{
-							sb->AppendFormat(L"Ranged Weapon:\n\t\t\tMuzzle Velocity: MACH %.2f", rwd->muzzleVelocity / 330.0f);
-						}
-						else if (rwd->muzzleVelocity < 100000000)
-						{
-							sb->AppendFormat(L"Ranged Weapon:\n\t\t\tMuzzle Velocity: %.2f km/s", rwd->muzzleVelocity / 1000.0f);
-						}
-						else
-						{
-							sb->AppendFormat(L"Ranged Weapon:\n\t\t\tParticle beam");
-						}
-					}
-
-					uiStack->PushTop(CreateDialogBox(e, *this, L"Examine...", *sb, L"", { 640, 480 }, 100, 50), ID_PANE_GENERIC_DIALOG_BOX);
-				}
-			}
-		}
-
-		virtual void OnPost(Post::POST_TYPE id, const void* buffer, uint64 nBytes)
-		{
-			if (id == Post::POST_TYPE_EXAMINE)
-			{
-				auto& target = Post::InterpretAs<VerbExamine>(id, buffer, nBytes);
-				Examine(target);
-			}
+			auto* target = Post::InterpretAs<VerbExamine>(mail);
+			if (target)	Verb::Examine(*target, e);
 		}
 
 		virtual void Free()

@@ -203,6 +203,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="meshes.cpp" />
     <ClCompile Include="pane.dialog.box.cpp" />
+    <ClCompile Include="player.verbs.cpp" />
     <ClCompile Include="script.natives.cpp" />
     <ClCompile Include="scripts.cpp" />
     <ClCompile Include="UIStack.cpp" />

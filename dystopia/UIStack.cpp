@@ -174,29 +174,16 @@ namespace
 			postbox.Subscribe(POST_TYPE_TIMESTEP, this);
 		}
 
-		virtual void OnPost(POST_TYPE id, const void* buffer, uint64 nBytes)
+		virtual void OnPost(const Mail& mail)
 		{
-			switch (id)
-			{
-			case POST_TYPE_KEYBOARD_EVENT:
-				{
-					auto& k = Post::InterpretAs<KeyboardEvent>(id, buffer, nBytes);
-					OnKeyboardEvent(k);
-				}
-				break;
-			case POST_TYPE_MOUSE_EVENT:
-				{
-					auto& m = Post::InterpretAs<MouseEvent>(id, buffer, nBytes);
-					OnMouseEvent(m);
-				}
-				break;
-			case POST_TYPE_TIMESTEP:
-				{
-					auto& t = Post::InterpretAs<TimestepEvent>(id, buffer, nBytes);
-					OnTimestep(t);
-				}
-			break;
-			}
+			auto* k = Post::InterpretAs<KeyboardEvent>(mail);
+			if (k) OnKeyboardEvent(*k);
+			
+			auto* m = Post::InterpretAs<MouseEvent>(mail);
+			if (m) OnMouseEvent(*m);
+			
+			auto* t = Post::InterpretAs<TimestepEvent>(mail);
+			if (t) OnTimestep(*t);
 		}
 	};
 }

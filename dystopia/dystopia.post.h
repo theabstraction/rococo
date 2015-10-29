@@ -28,11 +28,11 @@ namespace Rococo
 			POST_TYPE_EXAMINE
 		};
 
-		inline POST_TYPE GetPostType(const MouseEvent& t) { return POST_TYPE_MOUSE_EVENT; }
-		inline POST_TYPE GetPostType(const KeyboardEvent& t) { return POST_TYPE_KEYBOARD_EVENT; }
-		inline POST_TYPE GetPostType(const TimestepEvent& t) { return POST_TYPE_TIMESTEP; }
-		inline POST_TYPE GetPostType(const AdvanceTimestepEvent& t) { return POST_TYPE_ADVANCE_TIMESTEP; }
-		inline POST_TYPE GetPostType(const VerbExamine& e) { return POST_TYPE_EXAMINE; }
+		template<> inline POST_TYPE GetPostType<MouseEvent>() { return POST_TYPE_MOUSE_EVENT; }
+		template<> inline POST_TYPE GetPostType<KeyboardEvent>() { return POST_TYPE_KEYBOARD_EVENT; }
+		template<> inline POST_TYPE GetPostType<TimestepEvent>() { return POST_TYPE_TIMESTEP; }
+		template<> inline POST_TYPE GetPostType<AdvanceTimestepEvent>() { return POST_TYPE_ADVANCE_TIMESTEP; }
+		template<> inline POST_TYPE GetPostType<VerbExamine>() { return POST_TYPE_EXAMINE; }
 	}
 }
 

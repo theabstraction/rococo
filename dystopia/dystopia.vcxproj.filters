@@ -78,6 +78,9 @@
     <ClCompile Include="actions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="player.verbs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dx11.renderer.rc">

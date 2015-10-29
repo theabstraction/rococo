@@ -34,16 +34,16 @@ namespace
 			while (!items.empty())
 			{
 				auto item = items.front();
-				SendDirectUnchecked(item.id, item.opaquedata, item.nBytes);
+				SendDirectUnchecked(Mail{ item.id, item.opaquedata, item.nBytes });
 				items.pop_front();
 
 				if (i++ == MAX_ITEMS_PER_DELIVERY) Throw(0, L"Postbox delivery failed. MAX_ITEMS_PER_DELIVERY exceeded");
 			}
 		}
 
-		virtual void PostForLater(POST_TYPE id, const void* buffer, uint64 nBytes, bool isLossy)
+		virtual void PostForLater(const Mail& mail, bool isLossy)
 		{
-			if (nBytes > LARGEST_MESSAGE_SIZE) Throw(0, L"Postbox message too long");
+			if (mail.nBytes > LARGEST_MESSAGE_SIZE) Throw(0, L"Postbox message too long");
 			if (items.size() > CAPACITY)
 			{
 				auto i = items.begin();
@@ -61,35 +61,35 @@ namespace
 
 				if (items.size() > CAPACITY)
 				{
-					Throw(0, L"Postbox buffer exhausted. Failed to deliver #%d", id);
+					Throw(0, L"Postbox buffer exhausted. Failed to deliver #%d", mail.id);
 				}
 			}
 
 			PostItem item;
-			item.id = id;
-			item.nBytes = nBytes;
+			item.id = mail.id;
+			item.nBytes = mail.nBytes;
 			item.isLossy = isLossy;
-			memcpy_s(item.opaquedata, LARGEST_MESSAGE_SIZE, buffer, nBytes);
+			memcpy_s(item.opaquedata, LARGEST_MESSAGE_SIZE, mail.buffer, mail.nBytes);
 			items.push_back(item);
 		}
 
-		void SendDirectUnchecked(POST_TYPE id, const void* buffer, uint64 nBytes)
+		void SendDirectUnchecked(const Mail& mail)
 		{
-			auto i = subscribers.find(id);
+			auto i = subscribers.find(mail.id);
 			if (i != subscribers.end())
 			{
 				auto recipients = i->second;
 				for (auto r : recipients)
 				{
-					r->OnPost(id, buffer, nBytes);
+					r->OnPost(mail);
 				}
 			}
 		}
 
-		virtual void SendDirect(POST_TYPE id, const void* buffer, uint64 nBytes)
+		virtual void SendDirect(const Mail& mail)
 		{
-			if (nBytes > LARGEST_MESSAGE_SIZE) Throw(0, L"Postbox message too long");
-			SendDirectUnchecked(id, buffer, nBytes);
+			if (mail.nBytes > LARGEST_MESSAGE_SIZE) Throw(0, L"Postbox message too long");
+			SendDirectUnchecked(mail);
 		}
 
 		virtual void Subscribe(POST_TYPE id, IRecipient* recipient)

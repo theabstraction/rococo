@@ -113,7 +113,7 @@ namespace
 		Vec3 groundZeroCursor;
 		ID_ENTITY selectedId;
 	public:
-		Level(Environment& _e, IHumanFactory& _hf) : e(_e), hf(_hf), idPlayer{ 0 }, groundZeroCursor{ 0,0,0 } {}
+		Level(Environment& _e, IHumanFactory& _hf) : e(_e), hf(_hf), groundZeroCursor{ 0,0,0 } {}
 
 		~Level()
 		{
