@@ -7,6 +7,8 @@
 
 #include <string>
 
+#include "dystopia.ui.h"
+
 using namespace Rococo;
 using namespace Dystopia;
 
@@ -196,17 +198,17 @@ namespace
 			delete this;
 		}
 
-		virtual PaneModality OnTimestep(const TimestepEvent& clock)
+		virtual Relay OnTimestep(const TimestepEvent& clock)
 		{
-			return PaneModality_Modal;
+			return Relay_None;
 		}
 
-		virtual PaneModality OnKeyboardEvent(const KeyboardEvent& ke)
+		virtual Relay OnKeyboardEvent(const KeyboardEvent& ke)
 		{
-			return PaneModality_Modal;
+			return Relay_None;
 		}
 
-		virtual PaneModality OnMouseEvent(const MouseEvent& me)
+		virtual Relay OnMouseEvent(const MouseEvent& me)
 		{
 			if (me.HasFlag(MouseEvent::LUp) && lastHighlight >= 0)
 			{
@@ -214,8 +216,13 @@ namespace
 				e.uiStack.PopTop();
 				Free();
 			}
+			else if (me.HasFlag(MouseEvent::LUp) && buttons.empty())
+			{
+				e.uiStack.PopTop();
+				Free();
+			}
 
-			return PaneModality_Modal;
+			return Relay_None;
 		}
 
 		virtual void RenderObjects(IRenderContext& rc)
@@ -247,19 +254,25 @@ namespace
 
 			const wchar_t* buttonText = buttons.c_str();
 			size_t len = buttons.length();
-
-			bool rightToLeft = false;
-			int32 buttonPos = rect.left + 20;
-
-			if (*buttonText == L'>')
+			if (len != 0)
 			{
-				rightToLeft = true;
-				len--;
-				buttonText++;
-				buttonPos = rect.right - 20;
-			}
+				bool rightToLeft = false;
+				int32 buttonPos = rect.left + 20;
 
-			lastHighlight = DrawHorzButtons(buttonText, len, L"|", Vec2i{ buttonPos, rect.bottom - 40 }, grc, rightToLeft);
+				if (*buttonText == L'>')
+				{
+					rightToLeft = true;
+					len--;
+					buttonText++;
+					buttonPos = rect.right - 20;
+				}
+
+				lastHighlight = DrawHorzButtons(buttonText, len, L"|", Vec2i{ buttonPos, rect.bottom - 40 }, grc, rightToLeft);
+			}
+			else
+			{
+				lastHighlight = -1;
+			}
 		}
 	};
 }

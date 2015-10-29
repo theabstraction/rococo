@@ -31,6 +31,8 @@
 #include <rococo.maths.h>
 #include <rococo.io.h>
 
+#include <unordered_map>
+
 namespace
 {
 	using namespace Rococo;
@@ -54,8 +56,6 @@ namespace
 		depthStencilDesc.MiscFlags = 0;
 		return depthStencilDesc;
 	}
-
-	
 
 	DXGI_SWAP_CHAIN_DESC GetSwapChainDescription(HWND hWnd)
 	{
@@ -406,12 +406,29 @@ namespace
 
 		AutoRelease<ID3D11DepthStencilState> guiDepthState;
 		AutoRelease<ID3D11DepthStencilState> objDepthState;
+
+		struct TextureBind
+		{
+			ID3D11Texture2D* texture;
+			ID3D11ShaderResourceView* textureView;
+		};
+
+		std::vector<TextureBind> textures;
+		std::unordered_map<std::wstring, ID_TEXTURE> mapNameToTexture;
+
+		struct Cursor
+		{
+			ID_TEXTURE bitmapId;
+			Vec2 uvTopLeft;
+			Vec2 uvBottomRight;
+			Vec2i hotspotOffset;
+		} cursor;
 	public:
 		Windows::IWindow* window;
 
 		DX11AppRenderer(ID3D11Device& _device, ID3D11DeviceContext& _dc, IDXGIFactory& _factory, IInstallation& installation) :
 			device(_device), dc(_dc), factory(_factory), fonts(nullptr), clipRect(-10000.0f, -10000.0f, 10000.0f, 10000.0f), hRenderWindow(0),
-			window(nullptr)
+			window(nullptr), cursor{ 0, {0,0}, {1,1}, {0,0} }
 		{
 			static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
 			guiBuffer = CreateDynamicVertexBuffer<GuiVertex>(device, GUI_BUFFER_VERTEX_CAPACITY);
@@ -616,11 +633,116 @@ namespace
 			{
 				delete x;
 			}
+
+			for (auto& t : textures)
+			{
+				t.texture->Release();
+				t.textureView->Release();
+			}
 		}
 
 		virtual IRenderer& Renderer()
 		{
 			return *this;
+		}
+
+		virtual ID_TEXTURE LoadTexture(IBuffer& buffer, const wchar_t* uniqueName)
+		{
+			auto i = mapNameToTexture.find(uniqueName);
+			if (i != mapNameToTexture.end())
+			{
+				return i->second;
+			}
+
+			struct ANON : public Imaging::IImageLoadEvents
+			{
+				ID3D11Device* device;
+				ID3D11Texture2D* texture;
+
+				ANON()  {}
+
+				virtual void OnError(const char* message)
+				{
+					Throw(0, L"Could not parse image: %s", message);
+				}
+
+				virtual void OnARGBImage(const Vec2i& span, const Imaging::F_A8R8G8B8* data)
+				{
+					D3D11_TEXTURE2D_DESC alphaImmutableSprite;
+					alphaImmutableSprite.Width = span.x;
+					alphaImmutableSprite.Height = span.y;
+					alphaImmutableSprite.MipLevels = 1;
+					alphaImmutableSprite.ArraySize = 1;
+					alphaImmutableSprite.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+					alphaImmutableSprite.SampleDesc.Count = 1;
+					alphaImmutableSprite.SampleDesc.Quality = 0;
+					alphaImmutableSprite.Usage = D3D11_USAGE_IMMUTABLE;
+					alphaImmutableSprite.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+					alphaImmutableSprite.CPUAccessFlags = 0;
+					alphaImmutableSprite.MiscFlags = 0;
+
+					D3D11_SUBRESOURCE_DATA level0Def;
+					level0Def.pSysMem = data;
+					level0Def.SysMemPitch = span.x * sizeof(RGBAb);
+					level0Def.SysMemSlicePitch = 0;
+
+					VALIDATEDX11(device->CreateTexture2D(&alphaImmutableSprite, &level0Def, &texture));
+				}
+
+				virtual void OnAlphaImage(const Vec2i& span, const uint8* data)
+				{
+					Throw(0, L"Alpha images are not supported");
+				}
+			} anon;
+
+			anon.device = &device;
+			anon.texture = nullptr;
+
+			Rococo::Imaging::DecompressTiff(anon, buffer.GetData(), buffer.Length());
+
+			if (anon.texture == nullptr)
+			{
+				Throw(0, L"Could not parse Tiff file");
+			}
+
+			D3D11_SHADER_RESOURCE_VIEW_DESC desc;
+			ZeroMemory(&desc, sizeof(desc));
+
+			desc.Texture2D.MipLevels = 1;
+			desc.Texture2D.MostDetailedMip = 0;
+
+			desc.Format = DXGI_FORMAT_UNKNOWN;
+			desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+
+			ID3D11ShaderResourceView* textureView;
+			HRESULT hr = device.CreateShaderResourceView(anon.texture, &desc, &textureView);
+			if (FAILED(hr))
+			{
+				Throw(0, L"device.CreateShaderResourceView failed.");
+				anon.texture->Release();
+			}
+			
+			textures.push_back({ anon.texture, textureView });
+			mapNameToTexture.insert(std::make_pair(uniqueName, textures.size()));
+			return textures.size();
+		}
+
+		virtual auto SelectTexture(ID_TEXTURE id) -> Vec2i
+		{
+			size_t index = id - 1;
+			if (index >= textures.size())
+			{
+				Throw(0, L"Bad texture id");
+			}
+
+			auto& t = textures[index];
+
+			D3D11_TEXTURE2D_DESC desc;
+			t.texture->GetDesc(&desc);
+
+			dc.PSSetShaderResources(1, 1, &t.textureView);
+
+			return Vec2i{ (int32) desc.Width, (int32) desc.Height };
 		}
 
 		void SyncViewport()
@@ -756,6 +878,7 @@ namespace
 			dc.IASetInputLayout(nullptr);
 			dc.VSSetShader(nullptr, nullptr, 0);
 			dc.PSSetShader(nullptr, nullptr, 0);
+			dc.PSSetShaderResources(0, 0, nullptr);
 		}
 
 		void SwitchToWindowMode()
@@ -853,6 +976,48 @@ namespace
 			dc.VSSetConstantBuffers(0, 1, &globalStateBuffer);
 		}
 
+		void DrawCursor()
+		{
+			if (cursor.bitmapId)
+			{
+				GuiMetrics metrics;
+				GetGuiMetrics(metrics);
+
+				Vec2i span = SelectTexture(cursor.bitmapId);
+
+				float u0 = cursor.uvTopLeft.x;
+				float u1 = cursor.uvBottomRight.x;
+				float v0 = cursor.uvTopLeft.y;
+				float v1 = cursor.uvBottomRight.y;
+
+				Vec2 p { (float) metrics.cursorPosition.x, (float) metrics.cursorPosition.y };
+
+				float x0 = p.x + cursor.hotspotOffset.x;
+				float x1 = x0 + (float)span.x;
+				float y0 = p.y + cursor.hotspotOffset.y;
+				float y1 = y0 + (float)span.y;
+
+				GuiVertex quad[6]
+				{
+					GuiVertex{ x0, y0, 0.0f, 0.0f, RGBAb(128,0,0), u0, v0, 0.0f },
+					GuiVertex{ x1, y0, 0.0f, 0.0f, RGBAb(0,128,0), u1, v0, 0.0f },
+					GuiVertex{ x1, y1, 0.0f, 0.0f, RGBAb(0,0,128), u1, v1, 0.0f },
+					GuiVertex{ x1, y1, 0.0f, 0.0f, RGBAb(128,0,0), u1, v1, 0.0f },
+					GuiVertex{ x0, y1, 0.0f, 0.0f, RGBAb(0,128,0), u0, v1, 0.0f },
+					GuiVertex{ x0, y0, 0.0f, 0.0f, RGBAb(0,0,128), u0, v0, 0.0f }
+				};
+
+				AddTriangle(quad);
+				AddTriangle(quad + 3);
+
+				SetCursor(0);
+			}
+			else
+			{
+				SetCursor(LoadCursor(nullptr, IDC_ARROW));
+			}
+		}
+
 		virtual void Render(IScene& scene)
 		{
 			if (mainBackBufferView.IsNull()) return;
@@ -898,6 +1063,10 @@ namespace
 
 			dc.OMSetDepthStencilState(guiDepthState, 0);
 			scene.RenderGui(*this);
+
+			FlushLayer();
+
+			DrawCursor();
 
 			FlushLayer();
 
@@ -1000,6 +1169,14 @@ namespace
 					ResizeBuffers(span);
 				}
 			}
+		}
+
+		void SetCursorBitmap(ID_TEXTURE idBitmap, Vec2i hotspotOffset, Vec2 uvTopLeft, Vec2 uvBottomRight)
+		{
+			cursor.bitmapId = idBitmap;
+			cursor.uvTopLeft = uvTopLeft;
+			cursor.uvBottomRight = uvBottomRight;
+			cursor.hotspotOffset = hotspotOffset;
 		}
 	};
 

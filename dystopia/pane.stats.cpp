@@ -3,6 +3,7 @@
 #include "human.types.h"
 
 #include "rococo.ui.h"
+#include "dystopia.ui.h"
 
 using namespace Rococo;
 using namespace Dystopia;
@@ -72,14 +73,13 @@ namespace
 		gr.AddTriangle(q0 + 3);
 	}
 
-	class GuiWorldInterface : public IUIPaneSupervisor
+	class StatsPane : public IUIPaneSupervisor
 	{
 		Environment& e;
-		ILevelSupervisor& level;
 
 	public:
-		GuiWorldInterface(Environment& _e, ILevelSupervisor& _level) :
-			e(_e), level(_level)
+		StatsPane(Environment& _e) :
+			e(_e)
 		{
 
 		}
@@ -89,19 +89,19 @@ namespace
 			delete this;
 		}
 
-		virtual PaneModality OnTimestep(const TimestepEvent& clock)
+		virtual Relay OnTimestep(const TimestepEvent& clock)
 		{
-			return PaneModality_Modeless;
+			return Relay_Next;
 		}
 
-		virtual PaneModality OnKeyboardEvent(const KeyboardEvent& ke)
+		virtual Relay OnKeyboardEvent(const KeyboardEvent& ke)
 		{
-			return PaneModality_Modeless;
+			return Relay_Next;
 		}
 
-		virtual PaneModality OnMouseEvent(const MouseEvent& me)
+		virtual Relay OnMouseEvent(const MouseEvent& me)
 		{
-			return PaneModality_Modeless;
+			return Relay_Next;
 		}
 
 		virtual void RenderObjects(IRenderContext& rc)
@@ -110,9 +110,9 @@ namespace
 
 		virtual void RenderGui(IGuiRenderContext& grc)
 		{
-			auto id = level.GetPlayerId();
+			auto id = e.level.GetPlayerId();
 
-			auto spec = level.GetHuman(id);
+			auto spec = e.level.GetHuman(id);
 			if (spec.type)
 			{
 				DrawHealthBar(grc, *spec.ai);
@@ -123,8 +123,8 @@ namespace
 
 namespace Dystopia
 {
-	IUIPaneSupervisor* CreateGuiWorldInterface(Environment& e, ILevelSupervisor& level)
+	IUIPaneSupervisor* CreatePaneStats(Environment& e)
 	{
-		return new GuiWorldInterface(e, level);
+		return new StatsPane(e);
 	}
 }

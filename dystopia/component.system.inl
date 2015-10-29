@@ -6,17 +6,17 @@ namespace Dystopia
 {
 	ID_ENTITY GenerateEntityId()
 	{
-		static ID_ENTITY nextId = 0;
-		nextId += 1;
+		static ID_ENTITY nextId = ID_ENTITY{ 0 };
+		nextId.value += 1;
 		return nextId;
 	}
 
-	template<class ROW> class EntityTable : public std::unordered_map<ID_ENTITY, ROW>
+	template<class ROW> class EntityTable : public std::unordered_map<ID_ENTITY, ROW, ID_ENTITY>
 	{
 	public:
 		std::pair<iterator, bool> insert(ID_ENTITY id, const ROW& row)
 		{
-			return std::unordered_map<ID_ENTITY, ROW>::insert(std::make_pair(id, row));
+			return std::unordered_map<ID_ENTITY, ROW, ID_ENTITY>::insert(std::make_pair(id, row));
 		}
 	};
 

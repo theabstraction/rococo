@@ -6,6 +6,7 @@
 #include <string>
 
 #include <vector>
+#include "dystopia.ui.h"
 
 using namespace Rococo;
 using namespace Dystopia;
@@ -45,17 +46,17 @@ namespace
 			delete this;
 		}
 
-		virtual PaneModality OnTimestep(const TimestepEvent& clock)
+		virtual Relay OnTimestep(const TimestepEvent& clock)
 		{
-			return PaneModality_Modeless;
+			return Relay_Next;
 		}
 
-		virtual PaneModality OnKeyboardEvent(const KeyboardEvent& ke)
+		virtual Relay OnKeyboardEvent(const KeyboardEvent& ke)
 		{
-			return PaneModality_Modeless;
+			return Relay_Next;
 		}
 
-		virtual PaneModality OnMouseEvent(const MouseEvent& me)
+		virtual Relay OnMouseEvent(const MouseEvent& me)
 		{
 			if (me.HasFlag(MouseEvent::LUp))
 			{
@@ -68,7 +69,7 @@ namespace
 				}	
 			}
 
-			return PaneModality_Modal;
+			return Relay_None;
 		}
 
 		virtual void RenderObjects(IRenderContext& rc)

@@ -112,6 +112,15 @@
     <ClInclude Include="..\include\rococo.ui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\rococo.post.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dystopia.post.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dystopia.ui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="dystopia.sxh">

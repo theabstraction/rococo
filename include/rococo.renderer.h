@@ -36,6 +36,11 @@ namespace Rococo
 
 	struct IRenderer;
 
+	typedef size_t ID_VERTEX_SHADER;
+	typedef size_t ID_PIXEL_SHADER;
+	typedef int32 ID_MESH;
+	typedef size_t ID_TEXTURE;
+	
 	ROCOCOAPI IGuiRenderContext // Provides draw calls - do not cache
 	{
 		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
@@ -44,11 +49,8 @@ namespace Rococo
 		virtual Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job) = 0;
 		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job) = 0;
 		virtual IRenderer& Renderer() = 0;
+		virtual auto SelectTexture(ID_TEXTURE id) -> Vec2i = 0; // select texture and returns span
 	};
-
-	typedef size_t ID_VERTEX_SHADER;
-	typedef size_t ID_PIXEL_SHADER;
-	typedef int32 ID_MESH;
 
 	ROCOCOAPI IUltraClock
 	{
@@ -117,6 +119,9 @@ namespace Rococo
 		
 		virtual ID_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
 		virtual void UpdateMesh(ID_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices) = 0;
+
+		virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, const wchar_t* uniqueName) = 0;
+		virtual void SetCursorBitmap(ID_TEXTURE bitmapId, Vec2i hotspotOffset, Vec2 uvTopLeft, Vec2 uvBottomRight) = 0;
 	};
 
 	ROCOCOAPI IAppFactory

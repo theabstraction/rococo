@@ -5,60 +5,15 @@
 #include "meshes.h"
 #include "human.types.h"
 #include "rococo.ui.h"
+#include "dystopia.post.h"
+#include "dystopia.ui.h"
 
 using namespace Dystopia;
 using namespace Rococo;
 using namespace Rococo::Fonts;
 
-namespace Dystopia
-{
-}
-
 namespace
 {
-	void DrawTestTriangles(IGuiRenderContext& rc)
-	{
-		GuiVertex q0[6] =
-		{
-			{ 0.0f,600.0f, 1.0f, 0.0f,{ 255,0,0,255 }, 0.0f, 0.0f, 0 }, // bottom left
-			{ 800.0f,600.0f, 1.0f, 0.0f,{ 0,255,0,255 }, 0.0f, 0.0f, 0 }, // bottom right
-			{ 0.0f,  0.0f, 1.0f, 0.0f,{ 0,0,255,255 }, 0.0f, 0.0f, 0 }, // top left
-			{ 0.0f,  0.0f, 1.0f, 0.0f,{ 255,255,0,255 }, 0.0f, 0.0f, 0 }, // top left
-			{ 800.0f,600.0f, 1.0f, 0.0f,{ 0,255,255,255 }, 0.0f, 0.0f, 0 }, // bottom right
-			{ 800.0f,  0.0f, 1.0f, 0.0f,{ 255,0,255,255 }, 0.0f, 0.0f, 0 }  // top right
-		};
-
-		rc.AddTriangle(q0);
-		rc.AddTriangle(q0 + 3);
-	}
-
-	void DrawGuiMetrics(IGuiRenderContext& rc)
-	{
-		GuiMetrics metrics;
-		rc.Renderer().GetGuiMetrics(metrics);
-
-		wchar_t info[256];
-		SafeFormat(info, _TRUNCATE, L"Mouse: (%d,%d). Screen(%d,%d)", metrics.cursorPosition.x, metrics.cursorPosition.y, metrics.screenSpan.x, metrics.screenSpan.y);
-
-		Graphics::RenderHorizontalCentredText(rc, info, RGBAb{ 255, 255, 255, 255 }, 1, Vec2i{ 25, 25 });
-	}
-
-	void DrawVector(IGuiRenderContext& grc, const Vec4& v, const Vec2i& pos)
-	{
-		wchar_t info[256];
-		SafeFormat(info, _TRUNCATE, L"(%f) (%f) (%f) (%f)\n", v.x, v.y, v.z, v.w);
-
-		Graphics::RenderHorizontalCentredText(grc, info, RGBAb{ 255, 255, 255, 255 }, 3, pos);
-	}
-
-	void DrawVector(IGuiRenderContext& grc, const Vec3& v, const Vec2i& pos)
-	{
-		wchar_t info[256];
-		SafeFormat(info, _TRUNCATE, L"(%f) (%f) (%f) ", v.x, v.y, v.z);
-
-		Graphics::RenderHorizontalCentredText(grc, info, RGBAb{ 255, 255, 255, 255 }, 3, pos);
-	}
-
 	struct HumanFactory: public IHumanFactory
 	{
 		ILevel* level;
@@ -77,7 +32,7 @@ namespace
 		}
 	};
 
-	class DystopiaApp : public IApp, public IEventCallback<GuiEventArgs>, public IUIPaneFactory
+	class DystopiaApp : public IApp, public IEventCallback<GuiEventArgs>, public IUIPaneFactory, public Post::IRecipient
 	{
 	private:
 		AutoFree<Post::IPostboxSupervisor> postbox;
@@ -87,14 +42,13 @@ namespace
 		AutoFree<ISourceCache> sourceCache;
 		AutoFree<IMeshLoader> meshes;
 		AutoFree<IControlsSupervisor> controls;
-		
-		Environment e;
-		HumanFactory humanFactory;
+		AutoFree<IBitmapCacheSupervisor> bitmaps;
 		AutoFree<ILevelSupervisor> level;
+		Environment e; // N.B some instances use e in constructor before e is initialized - this is to create a reference for internal use.
+		HumanFactory humanFactory;	
 		AutoFree<ILevelLoader> levelLoader;
-		
 		AutoFree<IUIControlPane> isometricGameWorldView;
-		AutoFree<IUIPaneSupervisor> guiWorldInterface;
+		AutoFree<IUIPaneSupervisor> statsPaneSelf;
 		AutoFree<IUIPaneSupervisor> inventoryPaneSelf;
 	
 	public:
@@ -106,12 +60,13 @@ namespace
 			sourceCache(CreateSourceCache(_installation)),
 			meshes(CreateMeshLoader(_installation, _renderer, *sourceCache)),
 			controls(CreateControlMapper(_installation, *sourceCache)),
-			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes, *gui, *uiStack, *postbox, *controls},
+			bitmaps(CreateBitmapCache(_installation, _renderer)),
 			level(CreateLevel(e, humanFactory)),
-			levelLoader(CreateLevelLoader(e, *level)),
-			isometricGameWorldView(CreatePaneIsometric(e, *level)),
-			guiWorldInterface(CreateGuiWorldInterface(e,*level)),
-			inventoryPaneSelf(CreateInventoryPane(e, *level))
+			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes, *gui, *uiStack, *postbox, *controls, *bitmaps, *level },
+			levelLoader(CreateLevelLoader(e)),
+			isometricGameWorldView(CreatePaneIsometric(e)),
+			statsPaneSelf(CreatePaneStats(e)),
+			inventoryPaneSelf(CreateInventoryPane(e))
 		{
 			uiStack->SetFactory(*this);
 			humanFactory.level = level;
@@ -140,8 +95,8 @@ namespace
 			{
 			case ID_PANE_ISOMETRIC_GAME_VIEW:
 				return isometricGameWorldView;
-			case ID_PANE_GUI_WORLD_INTERFACE:
-				return guiWorldInterface;
+			case ID_PANE_STATS:
+				return statsPaneSelf;
 			case ID_PANE_INVENTORY_SELF:
 				return inventoryPaneSelf;
 			default:
@@ -154,6 +109,51 @@ namespace
 
 		}
 
+		void Examine(const VerbExamine& target)
+		{
+			auto* inv = level->GetInventory(target.entityId);
+			if (inv)
+			{
+				auto* item = inv->GetItem(target.inventoryIndex);
+				if (item)
+				{
+					AutoFree<IStringBuilder> sb(CreateSafeStringBuilder(4096));
+					
+					auto* rwd = item->GetRangedWeaponData();
+					if (rwd)
+					{
+						if (rwd->muzzleVelocity < 300.0f)
+						{
+							sb->AppendFormat(L"Ranged Weapon:\n\t\t\tMuzzle Velocity: %.0f m/s", rwd->muzzleVelocity);
+						}
+						else if (rwd->muzzleVelocity < 3000)
+						{
+							sb->AppendFormat(L"Ranged Weapon:\n\t\t\tMuzzle Velocity: MACH %.2f", rwd->muzzleVelocity / 330.0f);
+						}
+						else if (rwd->muzzleVelocity < 100000000)
+						{
+							sb->AppendFormat(L"Ranged Weapon:\n\t\t\tMuzzle Velocity: %.2f km/s", rwd->muzzleVelocity / 1000.0f);
+						}
+						else
+						{
+							sb->AppendFormat(L"Ranged Weapon:\n\t\t\tParticle beam");
+						}
+					}
+
+					uiStack->PushTop(CreateDialogBox(e, *this, L"Examine...", *sb, L"", { 640, 480 }, 100, 50), ID_PANE_GENERIC_DIALOG_BOX);
+				}
+			}
+		}
+
+		virtual void OnPost(Post::POST_TYPE id, const void* buffer, uint64 nBytes)
+		{
+			if (id == Post::POST_TYPE_EXAMINE)
+			{
+				auto& target = Post::InterpretAs<VerbExamine>(id, buffer, nBytes);
+				Examine(target);
+			}
+		}
+
 		virtual void Free()
 		{ 
 			delete this;
@@ -163,7 +163,9 @@ namespace
 		{
 			uiStack->OnCreated();
 			uiStack->PushTop(ID_PANE_ISOMETRIC_GAME_VIEW);
-			uiStack->PushTop(ID_PANE_GUI_WORLD_INTERFACE);
+			uiStack->PushTop(ID_PANE_STATS);
+
+			postbox->Subscribe(Post::POST_TYPE_EXAMINE, this);
 
 			InitControlMap(*controls);
 			controls->LoadMapping(L"!controls.cfg");
@@ -172,25 +174,22 @@ namespace
 
 		virtual auto OnFrameUpdated(const IUltraClock& clock) -> uint32 // outputs ms sleep for next frame
 		{
-			e.postbox.Deliver();
-
-			TimestepEvent timestep{ clock.Start(), clock.FrameStart(), clock.FrameDelta(), clock.Hz() };
-			e.postbox.SendDirect(timestep);
-
 			levelLoader->SyncWithModifiedFiles();
-
+			TimestepEvent timestep{ clock.Start(), clock.FrameStart(), clock.FrameDelta(), clock.Hz() };
+			postbox->PostForLater(timestep, true);	
+			postbox->Deliver();
 			e.renderer.Render(uiStack->Scene());
 			return 5;
 		}
 
 		virtual void OnMouseEvent(const MouseEvent& me)
 		{
-			e.postbox.PostForLater(me, true);
+			postbox->PostForLater(me, true);
 		}
 
 		virtual void OnKeyboardEvent(const KeyboardEvent& ke)
 		{
-			e.postbox.PostForLater(ke, true);
+			postbox->PostForLater(ke, true);
 		}
 	};
 }

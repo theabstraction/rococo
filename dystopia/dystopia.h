@@ -6,9 +6,10 @@ namespace Rococo
 {
 	typedef int32 ID_MESH;
 	struct IScene;
+	struct IGuiRenderContext;
+	struct KeyboardEvent;
+	struct MouseEvent;
 }
-
-using namespace Rococo;
 
 namespace Sexy
 {
@@ -25,28 +26,7 @@ namespace Sexy
 
 namespace Dystopia
 {
-	typedef int64 ID_ENTITY;
-
-	struct ProjectileDef
-	{
-		ID_ENTITY attacker;
-		Vec3 origin;
-		Vec3 velocity;
-		float lifeTime;
-		ID_MESH bulletMesh;
-	};
-
-	struct fstring
-	{
-		const wchar_t* buffer;
-		const int32 length;
-	};
-
 	using namespace Rococo;
-
-	enum CMD_ID { CMD_ID_RETRY = 101, CMD_ID_IGNORE = 102, CMD_ID_EXIT = 103 };
-
-	CMD_ID ShowContinueBox(Rococo::Windows::IWindow& renderWindow, const wchar_t* message);
 
 	struct IMeshLoader;
 	struct ILevelBuilder;
@@ -63,6 +43,38 @@ namespace Dystopia
 	struct Environment;
 
 	enum StatIndex : int32;
+
+	struct ID_ENTITY
+	{
+		ID_ENTITY() : value(0) {}
+		explicit ID_ENTITY(size_t _value) : value(_value) {}
+		size_t value;
+		operator size_t() const { return value; }
+		operator bool() const { return value != 0; }
+		size_t operator()(const ID_ENTITY& k) const { return *this; }
+		static ID_ENTITY Invalid() { return ID_ENTITY(); }
+	};
+
+	inline bool operator == (ID_ENTITY a, ID_ENTITY b) { return a.value == b.value; }
+
+	struct ProjectileDef
+	{
+		ID_ENTITY attacker;
+		Vec3 origin;
+		Vec3 velocity;
+		float lifeTime;
+		ID_MESH bulletMesh;
+	};
+
+	struct fstring
+	{
+		const wchar_t* buffer;
+		const int32 length;
+	};
+
+	enum CMD_ID { CMD_ID_RETRY = 101, CMD_ID_IGNORE = 102, CMD_ID_EXIT = 103 };
+
+	CMD_ID ShowContinueBox(Rococo::Windows::IWindow& renderWindow, const wchar_t* message);
 
 	struct HumanSpec
 	{
@@ -104,13 +116,14 @@ namespace Dystopia
 
 		virtual void DeleteEquipment(ID_ENTITY id) = 0;
 		virtual bool TryGetEquipment(ID_ENTITY id, EquipmentDesc& desc) const = 0;
+
+		virtual void RenderObjects(IRenderContext& rc) = 0;
+		virtual void UpdateObjects(float gameTime, float dt) = 0;
 	};
 
 	ROCOCOAPI ILevelSupervisor: public ILevel
 	{
 		virtual void Free() = 0;
-		virtual void RenderObjects(IRenderContext& rc) = 0;
-		virtual void UpdateObjects(float gameTime, float dt) = 0;
 	};
 
 	ROCOCOAPI ILevelLoader
@@ -148,13 +161,11 @@ namespace Dystopia
 		virtual void Release(const wchar_t* resourceName) = 0;
 	};
 
-	struct Environment;
-
 	IOS& GetOS(Environment& e);
 
 	void Free(Environment* e);
 
-	ILevelLoader* CreateLevelLoader(Environment& e, ILevel& level);
+	ILevelLoader* CreateLevelLoader(Environment& e);
 	ILevelSupervisor* CreateLevel(Environment& e, IHumanFactory& humanFactory);
 	IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow* parent);
 
@@ -196,17 +207,10 @@ namespace Dystopia
 
 #include "dystopia.sxh.h"
 
-namespace Rococo
-{
-	struct IGuiRenderContext;
-	struct KeyboardEvent;
-	struct MouseEvent;
-}
-
 namespace Dystopia
 {
 	struct IUIStack;
-
+	
 	enum GuiEventType
 	{
 		GuiEventType_CURSOR_BUTTON1_HELD,
@@ -228,7 +232,7 @@ namespace Dystopia
 		bool isActive;
 	};
 
-	ROCOCOAPI IGuiSupervisor : public IGui
+	ROCOCOAPI IGuiSupervisor : public IGui /* gui is script interface to allow scripts to bring up gui elements */
 	{
 		virtual void Free() = 0;
 		virtual void SetEventHandler(IEventCallback<GuiEventArgs>* guiEventHandler) = 0;
@@ -245,82 +249,17 @@ namespace Dystopia
 	struct AdvanceTimestepEvent
 	{
 		TimestepEvent cpuTime;
-		float dt;
-		float gameTime;
+		const float dt;
+		const float gameTime;
 	};
 
 	IGuiSupervisor* CreateGui(Environment& e, IUIStack& stack);
 
-	enum PaneModality
+	enum Relay
 	{
-		PaneModality_Modal,
-		PaneModality_Modeless,
+		Relay_None,
+		Relay_Next,
 	};
-
-	ROCOCOAPI IUIPane
-	{
-		virtual PaneModality OnTimestep(const TimestepEvent& timestep) = 0;
-		virtual PaneModality OnKeyboardEvent(const KeyboardEvent& ke) = 0;
-		virtual PaneModality OnMouseEvent(const MouseEvent& me) = 0;
-		virtual void RenderGui(IGuiRenderContext& grc) = 0;
-		virtual void RenderObjects(IRenderContext& rc) = 0;
-	};
-
-	ROCOCOAPI IUIPaneSupervisor: public IUIPane
-	{
-		virtual void Free() = 0;
-	};
-
-	ROCOCOAPI IUIControlPane: IUIPaneSupervisor
-	{
-		virtual IIntent* PlayerIntent() = 0;
-	};
-
-	IUIControlPane* CreatePaneIsometric(Environment& e, ILevelSupervisor& level);
-	IUIPaneSupervisor* CreateGuiWorldInterface(Environment& e, ILevelSupervisor& level);
-
-	IUIPaneSupervisor* CreateDialogBox(Environment& e, IEventCallback<GuiEventArgs>& _handler,
-		const wchar_t* _title,
-		const wchar_t* _message,
-		const wchar_t* _buttons,
-		Vec2i _span,
-		int32 _retzone,
-		int32 _hypzone);
-
-	IUIPaneSupervisor* CreateContextMenu(Environment& e, Vec2i topLeft, ContextMenuItem newMenu[], IEventCallback<ContextMenuItem>& onClick);
-	IUIPaneSupervisor* CreateInventoryPane(Environment& e, ILevel& level);
-	
-	enum ID_PANE;
-
-	ROCOCOAPI IUIPaneFactory
-	{
-		virtual void FreeInstance(ID_PANE id, IUIPaneSupervisor* pane) = 0;
-		virtual IUIPaneSupervisor* GetOrCreatePane(ID_PANE id) = 0; // Either construct or retrieve pane
-	};
-
-	struct PaneBind
-	{
-		IUIPaneSupervisor& pane;
-		ID_PANE id;
-	};
-
-	ROCOCOAPI IUIStack
-	{
-		virtual PaneBind PopTop() = 0;
-		virtual PaneBind PushTop(ID_PANE id) = 0;
-		virtual PaneBind PushTop(IUIPaneSupervisor* pane, ID_PANE id) = 0;
-		virtual PaneBind Top() = 0;
-	};
-
-	ROCOCOAPI IUIStackSupervisor : public IUIStack
-	{
-		virtual void Free() = 0;
-		virtual void OnCreated() = 0;
-		virtual void SetFactory(IUIPaneFactory& factory) = 0;
-		virtual IScene& Scene() = 0;
-	};
-
-	IUIStackSupervisor* CreateUIStack(Post::IPostbox& postbox);
 
 	struct Environment
 	{
@@ -333,15 +272,8 @@ namespace Dystopia
 		IUIStack& uiStack;
 		Post::IPostbox& postbox;
 		IControls& controls;
-	};
-
-	enum ID_PANE
-	{
-		ID_PANE_ISOMETRIC_GAME_VIEW,
-		ID_PANE_GUI_WORLD_INTERFACE,
-		ID_PANE_GENERIC_DIALOG_BOX,
-		ID_PANE_GENERIC_CONTEXT_MENU,
-		ID_PANE_INVENTORY_SELF
+		IBitmapCache& bitmapCache;
+		ILevel& level;
 	};
 
 	enum ActionMapType
@@ -360,26 +292,4 @@ namespace Dystopia
 	};
 
 	void InitControlMap(IControlsSupervisor& controls);
-}
-
-namespace Rococo
-{
-	namespace Post
-	{
-		using namespace Dystopia;
-
-		enum POST_TYPE : int64
-		{
-			POST_TYPE_INVALID = 0,
-			POST_TYPE_MOUSE_EVENT,
-			POST_TYPE_KEYBOARD_EVENT,
-			POST_TYPE_TIMESTEP,
-			POST_TYPE_ADVANCE_TIMESTEP // sent when the game/simulation advances by dt
-		};
-
-		inline POST_TYPE GetPostType(const MouseEvent& t) { return POST_TYPE_MOUSE_EVENT; }
-		inline POST_TYPE GetPostType(const KeyboardEvent& t) { return POST_TYPE_KEYBOARD_EVENT; }
-		inline POST_TYPE GetPostType(const TimestepEvent& t) { return POST_TYPE_TIMESTEP; }
-		inline POST_TYPE GetPostType(const AdvanceTimestepEvent& t) { return POST_TYPE_ADVANCE_TIMESTEP; }
-	}
 }

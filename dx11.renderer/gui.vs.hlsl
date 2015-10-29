@@ -47,8 +47,8 @@ ScreenVertex main(WorldVertex v)
 	sv.position.z = 0.0f;
 	sv.position.w = 1.0f;
 	sv.colour = v.colour;
-	sv.tx.u = v.tx1.x * guiScale.OOFontWidth;
-	sv.tx.v = v.tx1.y * guiScale.OOFontHeight;
+	sv.tx.u = v.pos.saturation * v.tx1.x * guiScale.OOFontWidth + (1.0f - v.pos.saturation) * v.tx1.x;
+	sv.tx.v = v.pos.saturation * v.tx1.y * guiScale.OOFontHeight + (1.0f - v.pos.saturation) * v.tx1.y;
 	sv.tx.saturation = v.pos.saturation;
 	sv.tx.fontBlend = v.pos.fontBlend;
 

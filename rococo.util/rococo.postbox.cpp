@@ -1,4 +1,5 @@
 #include <rococo.types.h>
+#include <rococo.post.h>
 #include <deque>
 #include <unordered_map>
 #include <algorithm>
@@ -7,19 +8,21 @@ namespace
 	using namespace Rococo;
 	using namespace Rococo::Post;
 
-	struct PostItem
+#pragma pack(push,1)
+	struct alignas(8) PostItem
 	{
 		POST_TYPE id;
 		uint64 nBytes;
-		bool isLossy;
 		char opaquedata[LARGEST_MESSAGE_SIZE];
+		bool isLossy;
 	};
+#pragma pack(pop)
 
 	class Postbox : public IPostboxSupervisor
 	{
 	private:
 		std::deque<PostItem> items;
-		typedef std::unordered_map<POST_TYPE, std::vector<IPostRecipient*>> submap;
+		typedef std::unordered_map<POST_TYPE, std::vector<IRecipient*>> submap;
 		submap subscribers;
 		enum { CAPACITY = 64 };
 	public:
@@ -89,19 +92,19 @@ namespace
 			SendDirectUnchecked(id, buffer, nBytes);
 		}
 
-		virtual void Subscribe(POST_TYPE id, IPostRecipient* recipient)
+		virtual void Subscribe(POST_TYPE id, IRecipient* recipient)
 		{
 			auto s = subscribers.find(id);
 			if (s == subscribers.end())
 			{
-				std::vector<IPostRecipient*> x;
+				std::vector<IRecipient*> x;
 				s = subscribers.insert(std::make_pair(id, x)).first;
 			}
 
 			s->second.push_back(recipient);
 		}
 
-		virtual void Unsubscribe(POST_TYPE id, IPostRecipient* recipient)
+		virtual void Unsubscribe(POST_TYPE id, IRecipient* recipient)
 		{
 			auto s = subscribers.find(id);
 			if (s != subscribers.end())

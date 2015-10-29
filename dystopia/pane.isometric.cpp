@@ -3,6 +3,8 @@
 #include "human.types.h"
 
 #include "rococo.ui.h"
+#include "dystopia.post.h"
+#include "dystopia.ui.h"
 
 #include <vector>
 
@@ -142,7 +144,6 @@ namespace
 	class PaneIsometric : public IUIControlPane, public IEventCallback<ContextMenuItem>, IEventCallback<ActionMap>
 	{
 		Environment& e;
-		ILevelSupervisor& level;
 		float gameTime;
 
 		Vec3 groundCursorProjection;
@@ -175,24 +176,24 @@ namespace
 			float t0 = -cursorPos.z / worldDir.z;
 			groundCursorProjection = cursorPos + t0 * worldDir;
 
-			level.SetGroundCursorPosition(groundCursorProjection);
+			e.level.SetGroundCursorPosition(groundCursorProjection);
 		}
 
 		void UpdateGlobalState()
 		{
 			float g = 0.04f * powf(1.25f, globalScale);
 
-			auto playerId = level.GetPlayerId();
+			auto playerId = e.level.GetPlayerId();
 
 			Vec3 playerPosition;
-			level.GetPosition(playerId, playerPosition);
+			e.level.GetPosition(playerId, playerPosition);
 
 			Degrees phi{ -45.0f };
 			GetIsometricTransforms(globalState.worldMatrix, inverseWorldMatrixProj, globalState.worldMatrixAndProj, g, Graphics::GetAspectRatio(e.renderer), playerPosition, phi, viewTheta, Metres{ 100.0f });
 		}
 	public:
-		PaneIsometric(Environment& _e, ILevelSupervisor& _level):
-			e(_e), level(_level), gameTime(0.0f), globalScale(4.0f), viewTheta { 45.0f }, isRotateLocked(true)
+		PaneIsometric(Environment& _e):
+			e(_e), gameTime(0.0f), globalScale(4.0f), viewTheta { 45.0f }, isRotateLocked(true)
 		{
 
 		}
@@ -207,7 +208,7 @@ namespace
 			return &intent;
 		}
 
-		virtual PaneModality OnTimestep(const TimestepEvent& clock)
+		virtual Relay OnTimestep(const TimestepEvent& clock)
 		{
 			float dt = clock.deltaTicks / (float)clock.hz;
 			if (dt < 0.0f) dt = 0.0f;
@@ -218,10 +219,10 @@ namespace
 				gameTime += dt;
 				AdvanceTimestepEvent ate{ clock, dt, gameTime };
 				e.postbox.SendDirect(ate);
-				level.UpdateObjects(gameTime, dt);
+				e.level.UpdateObjects(gameTime, dt);
 
 				auto id = e.uiStack.Top().id;
-				if (id != ID_PANE_GUI_WORLD_INTERFACE)
+				if (id != ID_PANE_STATS)
 				{
 					intent.Clear();
 				}
@@ -232,7 +233,7 @@ namespace
 
 			UpdateGroundCursorPosition(metrics.cursorPosition);
 
-			return PaneModality_Modal;
+			return Relay_None;
 		}
 
 		virtual void OnEvent(ActionMap& map)
@@ -266,20 +267,20 @@ namespace
 
 		void ActivateContextMenu(cr_vec3 origin, const Vec2i topLeftPosition)
 		{
-			auto id = level.SelectedId();
+			auto id = e.level.SelectedId();
 			if (id)
 			{
 				std::vector<ContextMenuItem> menu;
 
 				EquipmentDesc desc;
-				if (level.TryGetEquipment(id, desc))
+				if (e.level.TryGetEquipment(id, desc))
 				{
 					bool isInRange = IsInRange(origin - desc.worldPosition, PICKUP_DISTANCE);
-					menu.push_back({ L"Pickup", MENU_ITEM_PICKUP, id, isInRange });
+					menu.push_back({ L"Pickup", MENU_ITEM_PICKUP, (int64) id.value, isInRange });
 				}
 
-				menu.push_back({ L"Examine", MENU_ITEM_EXAMINE, id, true });
-				menu.push_back({ L"Cancel",  MENU_ITEM_CANCEL,  id, true });
+				menu.push_back({ L"Examine", MENU_ITEM_EXAMINE, (int64)id.value, true });
+				menu.push_back({ L"Cancel",  MENU_ITEM_CANCEL,  (int64)id.value, true });
 				menu.push_back({ nullptr, 0, 0 });
 
 				e.uiStack.PushTop(CreateContextMenu(e, topLeftPosition, &menu[0], *this), ID_PANE_GENERIC_CONTEXT_MENU);
@@ -288,26 +289,26 @@ namespace
 
 		virtual void OnEvent(ContextMenuItem& item)
 		{
-			ID_ENTITY id = item.context;
+			ID_ENTITY id( (size_t) item.context );
 
 			switch (item.commandId)
 			{
 			case MENU_ITEM_PICKUP:
-				PickupItem(level.GetPlayerId(), level, id, PICKUP_DISTANCE);
+				PickupItem(e.level.GetPlayerId(), e.level, id, PICKUP_DISTANCE);
 				break;
 			case MENU_ITEM_EXAMINE:
-				ExamineItem(id, level, e.gui);
+				ExamineItem(id, e.level, e.gui);
 				break;
 			}
 		}
 
-		virtual PaneModality OnKeyboardEvent(const KeyboardEvent& key)
+		virtual Relay OnKeyboardEvent(const KeyboardEvent& key)
 		{
 			e.controls.MapKeyboardEvent(key, *this);
-			return PaneModality_Modal;
+			return Relay_None;
 		}
 
-		virtual PaneModality OnMouseEvent(const MouseEvent& me)
+		virtual Relay OnMouseEvent(const MouseEvent& me)
 		{
 			if (me.dx != 0 && !isRotateLocked)
 			{
@@ -315,7 +316,7 @@ namespace
 				viewTheta = { newTheta };
 			}
 			e.controls.MapMouseEvent(me, *this);
-			return PaneModality_Modal;
+			return Relay_None;
 		}
 
 		virtual void RenderObjects(IRenderContext& rc)
@@ -323,7 +324,7 @@ namespace
 			UpdateGlobalState();
 
 			rc.SetGlobalState(globalState);
-			level.RenderObjects(rc);
+			e.level.RenderObjects(rc);
 		}
 
 		virtual void RenderGui(IGuiRenderContext& grc)
@@ -334,8 +335,8 @@ namespace
 
 namespace Dystopia
 {
-	IUIControlPane* CreatePaneIsometric(Environment& e, ILevelSupervisor& level)
+	IUIControlPane* CreatePaneIsometric(Environment& e)
 	{
-		return new PaneIsometric(e, level);
+		return new PaneIsometric(e);
 	}
 }

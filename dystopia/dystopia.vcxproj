@@ -213,10 +213,13 @@
   <ItemGroup>
     <ClInclude Include="..\include\rococo.io.h" />
     <ClInclude Include="..\include\rococo.maths.h" />
+    <ClInclude Include="..\include\rococo.post.h" />
     <ClInclude Include="..\include\rococo.renderer.h" />
     <ClInclude Include="..\include\rococo.types.h" />
     <ClInclude Include="..\include\rococo.ui.h" />
     <ClInclude Include="dystopia.h" />
+    <ClInclude Include="dystopia.ui.h" />
+    <ClInclude Include="dystopia.post.h" />
     <ClInclude Include="human.types.h" />
     <ClInclude Include="meshes.h" />
     <ClInclude Include="resource.h" />

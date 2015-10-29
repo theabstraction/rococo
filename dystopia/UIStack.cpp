@@ -2,6 +2,8 @@
 #include <vector>
 #include "rococo.renderer.h"
 #include "rococo.ui.h"
+#include "dystopia.post.h"
+#include "dystopia.ui.h"
 
 using namespace Rococo;
 using namespace Rococo::Post;
@@ -16,7 +18,7 @@ namespace
 
 	using namespace Rococo::Post;
 
-	class UIStack: public IUIStackSupervisor, public ILock, public IScene, public IPostRecipient
+	class UIStack: public IUIStackSupervisor, public ILock, public IScene, public IRecipient
 	{
 	private:
 		IUIPaneFactory* factory;
@@ -60,7 +62,7 @@ namespace
 			Sync sync(*this);
 			for (auto i = panes.rbegin(); isEnumerating &&  i != panes.rend(); ++i)
 			{
-				if (i->pane.OnTimestep(timestep) == PaneModality_Modal)
+				if (i->pane.OnTimestep(timestep) == Relay_None)
 				{
 					break;
 				}
@@ -73,7 +75,7 @@ namespace
 			Sync sync(*this);
 			for (auto i = panes.rbegin(); isEnumerating && i != panes.rend(); ++i)
 			{
-				if (i->pane.OnKeyboardEvent(ke) == PaneModality_Modal)
+				if (i->pane.OnKeyboardEvent(ke) == Relay_None)
 				{
 					break;
 				}
@@ -86,7 +88,7 @@ namespace
 			Sync sync(*this);
 			for (auto i = panes.rbegin(); isEnumerating && i != panes.rend(); ++i)
 			{
-				if (i->pane.OnMouseEvent(me) == PaneModality_Modal)
+				if (i->pane.OnMouseEvent(me) == Relay_None)
 				{
 					break;
 				}

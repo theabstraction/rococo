@@ -7,6 +7,8 @@
 
 #include <vector>
 
+#include "dystopia.ui.h"
+
 using namespace Dystopia;
 using namespace Rococo;
 

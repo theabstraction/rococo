@@ -62,6 +62,8 @@ namespace Rococo
 		int32 y;
 	};
 
+	typedef size_t ID_BITMAP;
+
 	struct Sphere
 	{
 		Vec3 centre;
@@ -265,55 +267,28 @@ namespace Rococo
 
 	void SplitString(const wchar_t* text, size_t length, const wchar_t* seperators, IEventCallback<const wchar_t*>& onSubString);
 
+	struct IGuiRenderContext;
+
+	ROCOCOAPI IBitmapCache
+	{
+		virtual ID_BITMAP Cache(const wchar_t* resourceName) = 0;
+		virtual void DrawBitmap(IGuiRenderContext& gc, const GuiRect& targetRect, ID_BITMAP id) = 0;
+		virtual void SetCursorBitmap(ID_BITMAP id, Vec2i hotspotOffset) = 0;
+	};
+
+	ROCOCOAPI IBitmapCacheSupervisor : public IBitmapCache
+	{
+		virtual void Free() = 0;
+	};
+
+	IBitmapCacheSupervisor* CreateBitmapCache(IInstallation& installation, IRenderer& renderer);
+
 	namespace Post
 	{
-		enum POST_TYPE: int64; // This should be implemented by the consumer of the postbox
-
-		enum { LARGEST_MESSAGE_SIZE = 240 };
-
-		template<class T> POST_TYPE GetPostType(const T& t)
-		{
-			static_assert(sizeof(T) <= LARGEST_MESSAGE_SIZE, "Increase LARGEST_MESSAGE_SIZE");
-			return T::GetPostType();
-		}
-
-		struct IPostRecipient
-		{
-			virtual void OnPost(POST_TYPE id, const void* buffer, uint64 nBytes) = 0;
-		};
-
-		template<class T> inline const T& InterpretAs(POST_TYPE id, const void* buffer, uint64 nBytes)
-		{
-			if (sizeof(T) != nBytes) Throw(0, L"Bad message conversion");
-			return *reinterpret_cast<const T*>(buffer);
-		}
-
-		ROCOCOAPI IPostbox
-		{
-			virtual void Deliver() = 0;
-			virtual void PostForLater(POST_TYPE id, const void* buffer, uint64 nBytes, bool isLossy) = 0;
-			virtual void SendDirect(POST_TYPE id, const void* buffer, uint64 nBytes) = 0;
-			virtual void Subscribe(POST_TYPE id, IPostRecipient* recipient) = 0;
-			virtual void Unsubscribe(POST_TYPE id, IPostRecipient* recipient) = 0;
-	
-			template<class T> void SendDirect(const T& t)
-			{
-				SendDirect(GetPostType(t), (const void*)&t, sizeof(T));
-			}
-
-			template<class T> void PostForLater(const T& t, bool isLossy)
-			{
-				PostForLater(GetPostType(t), (const void*)&t, sizeof(T), isLossy);
-			}
-		};
-
-		ROCOCOAPI IPostboxSupervisor : public IPostbox
-		{
-			virtual void Free() = 0;
-		};
-
-		IPostboxSupervisor* CreatePostbox();
+		struct IPostbox;
 	}
+
+	typedef int32 ID_MESH;
 }
 
 namespace Sexy

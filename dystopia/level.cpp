@@ -57,7 +57,7 @@ namespace
 	template<class ROW> ID_ENTITY GetFirstIntersect(cr_vec3 start, cr_vec3 end, const EntityTable<ROW>& table, const EntityTable<Solid>& solids)
 	{
 		float leastT = 2.0f;
-		ID_ENTITY firstTarget = 0;
+		ID_ENTITY firstTarget;
 
 		for (auto& i : table)
 		{
@@ -102,7 +102,7 @@ namespace
 
 	class Level : public ILevelSupervisor, public ILevelBuilder
 	{
-		Environment& e;
+		Environment& e; // not valid until constructor returns
 		IHumanFactory& hf;
 		ID_ENTITY idPlayer;
 		EntityTable<Solid> solids;
@@ -113,7 +113,7 @@ namespace
 		Vec3 groundZeroCursor;
 		ID_ENTITY selectedId;
 	public:
-		Level(Environment& _e, IHumanFactory& _hf) : e(_e), hf(_hf), idPlayer(0), groundZeroCursor{ 0,0,0 } {}
+		Level(Environment& _e, IHumanFactory& _hf) : e(_e), hf(_hf), idPlayer{ 0 }, groundZeroCursor{ 0,0,0 } {}
 
 		~Level()
 		{
@@ -188,7 +188,7 @@ namespace
 			ID_ENTITY id = AddSolid(transform, meshId);
 			auto* inv = CreateInventory({ 5, 8 });
 			auto h = new Human { HumanType_Vigilante, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Vigilante ) };
-			h->inventory->Swap(0, CreateRangedWeapon({ 10.0f, 2.5f }, L"Bag of stones"));
+			h->inventory->Swap(0, CreateRangedWeapon({ 2.5f, 320.0f, }, L"Bag of stones"));
 			allies.insert(id, h);
 			return id;
 		}
@@ -198,7 +198,7 @@ namespace
 			ID_ENTITY id = AddSolid(transform, meshId);
 			auto* inv = CreateInventory({ 3,4 });
 			auto h = new Human{ HumanType_Bobby, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Bobby) };
-			h->inventory->Swap(0, CreateRangedWeapon({ 10.0f, 2.5f }, L"Bag of stones"));
+			h->inventory->Swap(0, CreateRangedWeapon({ 2.5f, 10.0f }, L"Bag of stones"));
 			enemies.insert(id, h);
 			return id;
 		}
@@ -284,7 +284,7 @@ namespace
 
 		virtual void RenderObjects(IRenderContext& rc)
 		{
-			selectedId = 0;
+			selectedId = ID_ENTITY::Invalid();
 
 			bool foundItem = false;
 			for (auto& i : solids)
@@ -464,12 +464,10 @@ namespace
 	class LevelLoader : public ILevelLoader, public IEventCallback<ScriptCompileArgs>
 	{
 		Environment& e;
-		ILevel& level;
 
 	public:
-		LevelLoader(Environment& _e, ILevel& _level):
-			e(_e),
-			level(_level)
+		LevelLoader(Environment& _e):
+			e(_e)
 		{
 
 		}
@@ -482,7 +480,7 @@ namespace
 		virtual void OnEvent(ScriptCompileArgs& args)
 		{
 			AddNativeCalls_DystopiaIMeshes(args.ss, &e.meshes);
-			AddNativeCalls_DystopiaILevelBuilder(args.ss, &level);
+			AddNativeCalls_DystopiaILevelBuilder(args.ss, &e.level);
 			AddNativeCalls_DystopiaIGui(args.ss, &e.gui);
 		}
 
@@ -511,9 +509,9 @@ namespace
 
 namespace Dystopia
 {
-	ILevelLoader* CreateLevelLoader(Environment& e, ILevel& level)
+	ILevelLoader* CreateLevelLoader(Environment& e)
 	{
-		return new LevelLoader(e, level);
+		return new LevelLoader(e);
 	}
 
 	ILevelSupervisor* CreateLevel(Environment& e, IHumanFactory& hf)

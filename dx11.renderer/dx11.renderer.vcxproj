@@ -97,6 +97,9 @@
     <ClCompile Include="renderer.utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="bitmap.cache.cpp">
+      <FileType>Document</FileType>
+    </ClCompile>
     <None Include="dx11dialog.inl" />
     <None Include="dx11helpers.inl" />
   </ItemGroup>
