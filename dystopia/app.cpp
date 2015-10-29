@@ -17,30 +17,20 @@ namespace Dystopia
 	namespace Verb
 	{
 		void Examine(const VerbExamine& target, Environment& e);
+		void PickupItem(Environment& e, ID_ENTITY itemId, ID_ENTITY collectorId, Metres maxPickupRange);
+		void ShowSelectOptions(ID_ENTITY id, Environment& e, IEventCallback<ContextMenuItem>& handler);
 	}
 }
 
 namespace
 {
-	struct HumanFactory: public IHumanFactory
-	{
-		ILevel* level;
-		IIntent* controls;
-
-		virtual IHumanAISupervisor* CreateHuman(ID_ENTITY id, IInventory& inventory, HumanType typeId)
-		{
-			switch (typeId)
-			{
-			case HumanType_Bobby:
-				return CreateBobby(id, inventory, *level);
-			case HumanType_Vigilante:
-				return CreateVigilante(id, *controls, *level);
-			}
-			return nullptr;
-		}
-	};
-
-	class DystopiaApp : public IApp, public IEventCallback<GuiEventArgs>, public IUIPaneFactory, public Post::IRecipient
+	class DystopiaApp : 
+		public IApp,
+		public IEventCallback<GuiEventArgs>,
+		public IUIPaneFactory, 
+		public Post::IRecipient,
+		public IHumanFactory,
+		public IEventCallback<ContextMenuItem>
 	{
 	private:
 		AutoFree<Post::IPostboxSupervisor> postbox;
@@ -53,7 +43,6 @@ namespace
 		AutoFree<IBitmapCacheSupervisor> bitmaps;
 		AutoFree<ILevelSupervisor> level;
 		Environment e; // N.B some instances use e in constructor before e is initialized - this is to create a reference for internal use.
-		HumanFactory humanFactory;	
 		AutoFree<ILevelLoader> levelLoader;
 		AutoFree<IUIControlPane> isometricGameWorldView;
 		AutoFree<IUIPaneSupervisor> statsPaneSelf;
@@ -69,7 +58,7 @@ namespace
 			meshes(CreateMeshLoader(_installation, _renderer, *sourceCache)),
 			controls(CreateControlMapper(_installation, *sourceCache)),
 			bitmaps(CreateBitmapCache(_installation, _renderer)),
-			level(CreateLevel(e, humanFactory)),
+			level(CreateLevel(e, *this)),
 			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes, *gui, *uiStack, *postbox, *controls, *bitmaps, *level },
 			levelLoader(CreateLevelLoader(e)),
 			isometricGameWorldView(CreatePaneIsometric(e)),
@@ -77,14 +66,23 @@ namespace
 			inventoryPaneSelf(CreateInventoryPane(e))
 		{
 			uiStack->SetFactory(*this);
-			humanFactory.level = level;
-			humanFactory.controls = isometricGameWorldView->PlayerIntent();
-
 			gui->SetEventHandler(this);
 		}
 		
 		~DystopiaApp()
 		{
+		}
+
+		virtual IHumanAISupervisor* CreateHuman(ID_ENTITY id, IInventory& inventory, HumanType typeId)
+		{
+			switch (typeId)
+			{
+			case HumanType_Bobby:
+				return CreateBobby(id, inventory, *level);
+			case HumanType_Vigilante:
+				return CreateVigilante(id, *isometricGameWorldView->PlayerIntent(), *level);
+			}
+			return nullptr;
 		}
 
 		virtual void FreeInstance(ID_PANE id, IUIPaneSupervisor* pane)
@@ -117,10 +115,32 @@ namespace
 
 		}
 
+		virtual void OnEvent(ContextMenuItem& item)
+		{
+			ID_ENTITY id((size_t)item.context);
+
+			switch (item.commandId)
+			{
+			case ID_CONTEXT_COMMAND_EXAMINE:
+				Verb::Examine(VerbExamine{ id, 0 }, e);
+				break;
+			case ID_CONTEXT_COMMAND_PICKUP:
+				Verb::PickupItem(e, id, level->GetPlayerId(), PickupRange());
+			default:
+				break;
+			}
+		}
+
 		virtual void OnPost(const Mail& mail)
 		{
 			auto* target = Post::InterpretAs<VerbExamine>(mail);
 			if (target)	Verb::Examine(*target, e);
+
+			auto* selectItem = Post::InterpretAs<SelectItemOnGround>(mail);
+			if (selectItem)
+			{
+				Verb::ShowSelectOptions(selectItem->id, e, *this);
+			}
 		}
 
 		virtual void Free()
@@ -134,7 +154,8 @@ namespace
 			uiStack->PushTop(ID_PANE_ISOMETRIC_GAME_VIEW);
 			uiStack->PushTop(ID_PANE_STATS);
 
-			postbox->Subscribe(Post::POST_TYPE_EXAMINE, this);
+			postbox->Subscribe<VerbExamine>(this);
+			postbox->Subscribe<SelectItemOnGround>(this);
 
 			InitControlMap(*controls);
 			controls->LoadMapping(L"!controls.cfg");

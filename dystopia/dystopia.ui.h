@@ -76,6 +76,15 @@ namespace Dystopia
 		ID_PANE_GENERIC_CONTEXT_MENU,
 		ID_PANE_INVENTORY_SELF
 	};
+
+	enum ID_CONTEXT_COMMAND : int32
+	{
+		ID_CONTEXT_COMMAND_NONE,
+		ID_CONTEXT_COMMAND_EXAMINE,
+		ID_CONTEXT_COMMAND_PICKUP
+	};
+
+	inline const Metres PickupRange() { return { 2.5f }; }
 }
 
 #endif

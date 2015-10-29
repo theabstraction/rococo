@@ -90,6 +90,23 @@ namespace
 			return old;
 		}
 
+		uint32 EnumerateItems(IItemEnumerator* cb) const
+		{
+			uint32 count = 0, index = 0;
+			for (auto& i : items)
+			{
+				if (i.item)
+				{
+					if (cb) cb->OnItem(i.item, index);
+					count++;
+				}
+
+				index++;
+			}
+
+			return count;
+		}
+
 		virtual IItem* GetItem(uint32 index)
 		{
 			if (index >= items.size())
@@ -100,9 +117,35 @@ namespace
 			return items[index].item;
 		}
 
+		virtual uint32 ItemCount() const
+		{
+			uint32 count = 0;
+
+			for (auto& i : items)
+			{
+				if (i.item) count++;
+			}
+
+			return count;
+		}
+
 		virtual TableSpan Span() const
 		{
 			return span;
+		}
+
+		virtual bool TryGetFirstFreeSlot(uint32& index)
+		{
+			for (uint32 i = 0; i < items.size(); ++i)
+			{
+				if (items[i].item == nullptr)
+				{
+					index = i;
+					return true;
+				}
+			}
+
+			return false;
 		}
 	};
 }

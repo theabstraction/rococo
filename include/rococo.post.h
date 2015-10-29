@@ -57,6 +57,16 @@ namespace Rococo
 			{
 				PostForLater(Mail{ GetPostType<T>(), (const void*)&t, sizeof(T) }, isLossy);
 			}
+
+			template<class T> void Subscribe(IRecipient* recipient)
+			{
+				Subscribe(GetPostType<T>(), recipient);
+			}
+
+			template<class T> void Unsubscribe(IRecipient* recipient)
+			{
+				Unsubscribe(GetPostType<T>(), recipient);
+			}
 		};
 
 		ROCOCOAPI IPostboxSupervisor : public IPostbox

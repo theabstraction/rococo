@@ -157,6 +157,12 @@ namespace Rococo
 		virtual void OnEvent(const wchar_t* arg) = 0;
 	};
 
+	struct Metres
+	{
+		float value;
+		operator float() const { return value; }
+	};
+
 	struct Quad
 	{
 		float left;

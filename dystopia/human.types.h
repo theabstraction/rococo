@@ -30,11 +30,24 @@ namespace Dystopia
 		uint32 columns;
 	};
 
+	enum Enumerate
+	{
+		Enumerate_Stop,
+		Enumerate_Next
+	};
+
+	struct IItemEnumerator
+	{
+		virtual Enumerate OnItem(IItem* item, uint32 slot) = 0;
+	};
+
 	ROCOCOAPI IInventory
 	{
-		virtual IItem* Swap(uint32 index, IItem* item) = 0;
+		virtual uint32 EnumerateItems(IItemEnumerator* cb) const = 0;
 		virtual IItem* GetItem(uint32 index) = 0;
 		virtual TableSpan Span() const = 0;
+		virtual IItem* Swap(uint32 index, IItem* item) = 0;
+		virtual bool TryGetFirstFreeSlot(uint32& index) = 0;
 	};
 
 	ROCOCOAPI IInventorySupervisor : public IInventory

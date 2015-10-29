@@ -143,7 +143,7 @@ namespace
 		{
 			auto id = AddSolid(transform, editorId);
 			auto inv = CreateInventory({ 1,1 });
-			inv->Swap(0, CreateRangedWeapon({ muzzleVelocity, flightTime }, name.buffer));
+			inv->Swap(0, CreateRangedWeapon({ flightTime, muzzleVelocity }, name.buffer));
 			equipment.insert(id, Equipment{ inv });
 			return id;
 		}
@@ -401,7 +401,15 @@ namespace
 				i = allies.find(id);
 				if (i == allies.end())
 				{
-					return nullptr;
+					auto j = equipment.find(id);
+					if (j != equipment.end())
+					{
+						return j->second.inventory;	
+					}
+					else
+					{
+						return nullptr;
+					}
 				}
 			}
 

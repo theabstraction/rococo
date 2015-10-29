@@ -13,66 +13,7 @@ using namespace Dystopia;
 
 namespace
 {
-	enum
-	{
-		MENU_ITEM_NONE,
-		MENU_ITEM_PICKUP,
-		MENU_ITEM_EXAMINE,
-		MENU_ITEM_CANCEL
-	};
-
 	const Metres PICKUP_DISTANCE{ 1.5f };
-
-	void PickupItem(ID_ENTITY collectorId, ILevel& level, ID_ENTITY itemId, Metres maxPickupRange)
-	{
-		auto h = level.GetHuman(collectorId);
-		if (h.inventory)
-		{
-			Vec3 collectorPos;
-			level.GetPosition(collectorId, collectorPos);
-
-			EquipmentDesc desc;
-			if (level.TryGetEquipment(itemId, desc))
-			{
-				if (IsInRange(collectorPos - desc.worldPosition, maxPickupRange))
-				{
-					IItem* item = desc.inventory->Swap(0, nullptr);
-					IItem* oldItem = h.inventory->Swap(0, item);
-					desc.inventory->Swap(0, oldItem);
-					level.DeleteEquipment(itemId);
-				}
-			}
-		}
-	}
-
-	void ExamineItem(ID_ENTITY id, ILevel& level, IGui& gui)
-	{
-		AutoFree<IStringBuilder> description(CreateSafeStringBuilder(1024));
-		HumanSpec h = level.GetHuman(id);
-		if (h.type != HumanType_None)
-		{
-			h.ai->Describe(*description);
-		}
-		else
-		{
-			EquipmentDesc desc;
-			if (level.TryGetEquipment(id, desc))
-			{
-				auto* item = desc.inventory->GetItem(0);
-				auto* ranged = item ? item->GetRangedWeaponData() : nullptr;
-				if (ranged)
-				{
-					description->AppendFormat(L"Equipment:\n\tmuzzle velocity: %3.0f m/s", ranged->muzzleVelocity);
-				}
-			}
-			else
-			{
-				description->AppendFormat(L"Misc solid object");
-			}
-		}
-
-		gui.ShowDialogBox({ 640, 480 }, 100, 50, fstring{ L"Examine..." , -1 }, fstring{ *description, -1 }, fstring{ L">Continue=null", -1 });
-	}
 
 	struct XPlayerIntent: public IIntent
 	{
@@ -141,7 +82,7 @@ namespace
 		}
 	};
 
-	class PaneIsometric : public IUIControlPane, public IEventCallback<ContextMenuItem>, IEventCallback<ActionMap>
+	class PaneIsometric : public IUIControlPane, IEventCallback<ActionMap>
 	{
 		Environment& e;
 		float gameTime;
@@ -259,45 +200,14 @@ namespace
 			case ActionMapTypeInventory:
 				if (map.isActive) e.uiStack.PushTop(ID_PANE_INVENTORY_SELF);
 				break;
+			case ActionMapTypeSelect:
+				if (map.isActive && e.level.SelectedId())
+				{
+					SelectItemOnGround sitog{ e.level.SelectedId() };
+					e.postbox.PostForLater(sitog, false);
+				}
 			default:
 				intent.OnEvent(map);
-				break;
-			}
-		}
-
-		void ActivateContextMenu(cr_vec3 origin, const Vec2i topLeftPosition)
-		{
-			auto id = e.level.SelectedId();
-			if (id)
-			{
-				std::vector<ContextMenuItem> menu;
-
-				EquipmentDesc desc;
-				if (e.level.TryGetEquipment(id, desc))
-				{
-					bool isInRange = IsInRange(origin - desc.worldPosition, PICKUP_DISTANCE);
-					menu.push_back({ L"Pickup", MENU_ITEM_PICKUP, (int64) id.value, isInRange });
-				}
-
-				menu.push_back({ L"Examine", MENU_ITEM_EXAMINE, (int64)id.value, true });
-				menu.push_back({ L"Cancel",  MENU_ITEM_CANCEL,  (int64)id.value, true });
-				menu.push_back({ nullptr, 0, 0 });
-
-				e.uiStack.PushTop(CreateContextMenu(e, topLeftPosition, &menu[0], *this), ID_PANE_GENERIC_CONTEXT_MENU);
-			}
-		}
-
-		virtual void OnEvent(ContextMenuItem& item)
-		{
-			ID_ENTITY id( (size_t) item.context );
-
-			switch (item.commandId)
-			{
-			case MENU_ITEM_PICKUP:
-				PickupItem(e.level.GetPlayerId(), e.level, id, PICKUP_DISTANCE);
-				break;
-			case MENU_ITEM_EXAMINE:
-				ExamineItem(id, e.level, e.gui);
 				break;
 			}
 		}
