@@ -252,6 +252,30 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->ShowDialogBox(*span, retzone, hypzone, title, message, buttons);
 	}
+	void NativeDystopiaIGuiAdd3DHint(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float duration;
+		_offset += sizeof(duration);
+
+		ReadInput(duration, _sf, -_offset);
+		_offset += sizeof(void*);
+
+		IString* _message;
+		ReadInput(_message, _sf, -_offset);
+		fstring message { _message->buffer, _message->length };
+
+		Vec3* worldPos;
+		_offset += sizeof(worldPos);
+
+		ReadInput(worldPos, _sf, -_offset);
+		Dystopia::IGui* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Add3DHint(*worldPos, message, duration);
+	}
 
 	void NativeGetHandleForDystopiaGuiGetGui(NativeCallEnvironment& _nce)
 	{
@@ -272,6 +296,7 @@ namespace Dystopia
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.Gui.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForDystopiaGuiGetGui, _nceContext, SEXTEXT("GetHandleForIGui0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeDystopiaIGuiShowDialogBox, nullptr, SEXTEXT("IGuiShowDialogBox (Pointer hObject)(Sys.Maths.Vec2i span)(Int32 retzone)(Int32 hypzone)(Sys.Type.IString title)(Sys.Type.IString message)(Sys.Type.IString buttons) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaIGuiAdd3DHint, nullptr, SEXTEXT("IGuiAdd3DHint (Pointer hObject)(Sys.Maths.Vec3 worldPos)(Sys.Type.IString message)(Float32 duration) -> "));
 	}
 
 }

@@ -31,6 +31,7 @@
 	(context factory Dystopia.IGui)
 	(methods
 		(ShowDialogBox (const Vec2i span) (Int32 retzone)(Int32 hypzone)(const IString title)(const IString message)(const IString buttons) -> )
+		(Add3DHint (const Vec3 worldPos)(const IString message)(Float32 duration)->)
 	)
 	(factory Dystopia.Gui.GetGui)
 )

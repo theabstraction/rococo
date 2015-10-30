@@ -316,7 +316,7 @@ namespace Rococo
 		// Cap to something sensible
 		if (maxElevation > 85.0f)
 		{
-			maxElevation = Degrees{ 85.0f };
+			maxElevation = 85.0_degrees;
 		}
 
 		float S = Length(target - origin);

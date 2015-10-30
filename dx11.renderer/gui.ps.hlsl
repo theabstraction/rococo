@@ -19,8 +19,9 @@ SamplerState spriteSampler;
 
 float4 main(PixelVertex p) : SV_TARGET
 {
-	float alpha = g_GuiSprite.Sample(spriteSampler, float2(p.tx.u, p.tx.v)).x;
+	float fontAlpha = g_GuiSprite.Sample(spriteSampler, float2(p.tx.u, p.tx.v)).x;
 	float4 spritePixel = g_BitmapSprite.Sample(spriteSampler, float2(p.tx.u, p.tx.v)).xyzw;
-	float4 base = (1.0f - p.tx.fontBlend) * p.colour + float4(p.colour.x, p.colour.y, p.colour.z, alpha * p.colour.w) * p.tx.fontBlend;
-	return base * p.tx.saturation + spritePixel * (1.0f - p.tx.saturation);
+	float saturatedAlpha = lerp(p.colour.w, fontAlpha * p.colour.w, p.tx.fontBlend);
+	p.colour.w = saturatedAlpha;
+	return lerp(spritePixel, p.colour, p.tx.saturation);
 }

@@ -5,6 +5,7 @@
 
 namespace Dystopia
 {
+#pragma pack(push,1)
 	struct VerbExamine
 	{
 		ID_ENTITY entityId;
@@ -15,6 +16,14 @@ namespace Dystopia
 	{
 		ID_ENTITY id;
 	};
+
+	struct HintMessage3D
+	{
+		Vec3 position;
+		float duration;
+		wchar_t message[15];
+	};
+#pragma pack(pop)
 }
 
 namespace Rococo
@@ -31,7 +40,8 @@ namespace Rococo
 			POST_TYPE_TIMESTEP,
 			POST_TYPE_ADVANCE_TIMESTEP, // sent when the game/simulation advances by dt
 			POST_TYPE_EXAMINE,
-			POST_TYPE_SELECT_ITEM_ON_GROUND
+			POST_TYPE_SELECT_ITEM_ON_GROUND,
+			POST_TYPE_HINT_3D
 		};
 
 		template<> inline POST_TYPE GetPostType<MouseEvent>() { return POST_TYPE_MOUSE_EVENT; }
@@ -40,6 +50,7 @@ namespace Rococo
 		template<> inline POST_TYPE GetPostType<AdvanceTimestepEvent>() { return POST_TYPE_ADVANCE_TIMESTEP; }
 		template<> inline POST_TYPE GetPostType<VerbExamine>() { return POST_TYPE_EXAMINE; }
 		template<> inline POST_TYPE GetPostType<SelectItemOnGround>() { return POST_TYPE_SELECT_ITEM_ON_GROUND; }
+		template<> inline POST_TYPE GetPostType<HintMessage3D>() { return POST_TYPE_HINT_3D; }
 	}
 }
 

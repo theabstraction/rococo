@@ -65,7 +65,7 @@ void ValidateMatrixLib()
 	Vec4 v = T * centre;
 	VALIDATE(v.x == 0 && v.y == 0 && v.z == 0);
 
-	Degrees phi{ 90.0f };
+	auto phi = 90.0_degrees;
 
 	Matrix4x4 Rx = Matrix4x4::RotateRHAnticlockwiseX(phi);
 
@@ -75,7 +75,7 @@ void ValidateMatrixLib()
 	VALIDATE(Approx(rotatedCentre.y, -centre.z));
 	VALIDATE(Approx(rotatedCentre.z, centre.y)); 
 
-	Degrees theta{ 90.0f };
+	auto theta = 90.0_degrees;
 	Matrix4x4 Rz = Matrix4x4::RotateRHAnticlockwiseZ(theta);
 	rotatedCentre = Rz *  centre;
 
@@ -91,7 +91,7 @@ void ValidateMatrixLib()
 	VALIDATE(Approx(rotatedCentre.y, -centre.z));
 	VALIDATE(Approx(rotatedCentre.z, centre.x));
 
-	RxRz = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ 90.0 });
+	RxRz = Matrix4x4::RotateRHAnticlockwiseZ( 90.0_degrees );
 
 	Matrix4x4 moveCentreToOrigin = Matrix4x4::Translate(-1.0f * centre);
 	Matrix4x4 shiftVertical = Matrix4x4::Translate(Vec3{ 0, 0, Metres{ 100.0f } });

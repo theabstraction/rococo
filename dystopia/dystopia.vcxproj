@@ -218,6 +218,7 @@
     <ClInclude Include="..\include\rococo.renderer.h" />
     <ClInclude Include="..\include\rococo.types.h" />
     <ClInclude Include="..\include\rococo.ui.h" />
+    <ClInclude Include="dystopia.constants.h" />
     <ClInclude Include="dystopia.h" />
     <ClInclude Include="dystopia.ui.h" />
     <ClInclude Include="dystopia.post.h" />

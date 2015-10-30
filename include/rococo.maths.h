@@ -94,6 +94,11 @@ namespace Rococo
 		Radians ToRadians() const { return Radians{ DEGREES_TO_RADIANS_QUOTIENT() * quantity }; }
 	};
 
+	inline Degrees operator "" _degrees(long double literalValue)
+	{
+		return Degrees{ (float) literalValue };
+	}
+
 	inline float Sin(Radians radians) { return sinf(radians.quantity); }
 	inline float Cos(Radians radians) { return cosf(radians.quantity); }
 

@@ -516,9 +516,9 @@ namespace
 				VALIDATEDX11(device.CreateBlendState(&disableBlendDesc, &disableBlend));
 			}
 
-			AutoFree<IExpandingBuffer> fontFile(CreateExpandingBuffer(64 * 1024 * 1024));
+			AutoFree<IExpandingBuffer> fontFile(CreateExpandingBuffer(64_megabytes));
 			const wchar_t* fontName = L"!font1.tif";
-			installation.LoadResource(fontName, *fontFile, 64 * 1024 * 1024);
+			installation.LoadResource(fontName, *fontFile, 64_megabytes);
 
 			if (fontFile->GetData() == nullptr) Throw(0, L"The font file %s was blank", fontName);
 
@@ -581,11 +581,11 @@ namespace
 			VALIDATEDX11(device.CreateShaderResourceView(fontTexture, &desc, &fontBinding));
 
 			const wchar_t* csvName = L"!font1.csv";
-			installation.LoadResource(csvName, *fontFile, 256 * 1024);
+			installation.LoadResource(csvName, *fontFile, 256_kilobytes);
 
 			fonts = Fonts::LoadFontCSV(csvName, (const char*)fontFile->GetData(), fontFile->Length());
 
-			AutoFree<IExpandingBuffer> shaderCode(CreateExpandingBuffer(128 * 1024));
+			AutoFree<IExpandingBuffer> shaderCode(CreateExpandingBuffer(128_kilobytes));
 
 			// Create the buffer.
 			vector4Buffer = CreateConstantBuffer<Vec4>(device);
@@ -595,16 +595,16 @@ namespace
 
 			globalStateBuffer = CreateConstantBuffer<GlobalState>(device);
 
-			installation.LoadResource(L"!gui.vs", *shaderCode, 64 * 1024);
+			installation.LoadResource(L"!gui.vs", *shaderCode, 64_kilobytes);
 			idGuiVS = CreateGuiVertexShader(L"gui.vs", shaderCode->GetData(), shaderCode->Length());
 
-			installation.LoadResource(L"!gui.ps", *shaderCode, 64 * 1024);
+			installation.LoadResource(L"!gui.ps", *shaderCode, 64_kilobytes);
 			idGuiPS = CreatePixelShader(L"gui.ps", shaderCode->GetData(), shaderCode->Length());
 
-			installation.LoadResource(L"!object.vs", *shaderCode, 64 * 1024);
+			installation.LoadResource(L"!object.vs", *shaderCode, 64_kilobytes);
 			idObjVS = CreateObjectVertexShader(L"object.vs", shaderCode->GetData(), shaderCode->Length());
 
-			installation.LoadResource(L"!object.ps", *shaderCode, 64 * 1024);
+			installation.LoadResource(L"!object.ps", *shaderCode, 64_kilobytes);
 			idObjPS = CreatePixelShader(L"object.ps", shaderCode->GetData(), shaderCode->Length());
 
 			instanceBuffer = CreateConstantBuffer<ObjectInstance>(device);

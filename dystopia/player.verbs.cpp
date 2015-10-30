@@ -3,6 +3,7 @@
 #include "human.types.h"
 #include "dystopia.ui.h"
 #include "rococo.renderer.h"
+#include "dystopia.constants.h"
 
 #include <vector>
 
@@ -36,14 +37,14 @@ namespace
 	{
 		std::vector<ContextMenuItem> items;
 
-		items.push_back({ L"Examine", ID_CONTEXT_COMMAND_EXAMINE, (int64)id.value, true });
+		items.push_back({ L"Examine", ID_CONTEXT_COMMAND_EXAMINE, (int64)(uint64)id, true });
 
 		Vec3 itemPos;
 		e.level.GetPosition(id, itemPos);
 
 		Vec3 playerPos;
 		e.level.GetPosition(e.level.GetPlayerId(), playerPos);
-		items.push_back({ L"Pick up", ID_CONTEXT_COMMAND_PICKUP, (int64)id.value, IsInRange(itemPos - playerPos, PickupRange()) });
+		items.push_back({ L"Pick up", ID_CONTEXT_COMMAND_PICKUP, (int64)(uint64)id, IsInRange(itemPos - playerPos, PickupRange()) });
 		items.push_back({ L"Cancel", ID_CONTEXT_COMMAND_NONE, 0, true }	);
 		items.push_back({ nullptr, 0, 0, true }	);
 
@@ -123,6 +124,8 @@ namespace Dystopia
 							IItem* oldItem = collector->Swap(slot, item);
 							eq.inventory->Swap(0, oldItem);
 							if (!eq.inventory->EnumerateItems(nullptr)) e.level.DeleteEquipment(itemId);
+
+							e.gui.Add3DHint(eq.worldPosition, L"Looted!"_fstring, 2.5f);
 						}
 					}
 				}

@@ -494,8 +494,7 @@ namespace
 
 		virtual void Load(const wchar_t* resourceName, bool isReloading)
 		{
-			enum { MAX_LEVEL_FILE_SIZE = 16 * 1024 * 1024 };
-			ExecuteSexyScriptLoop(16384, e, resourceName, 0, MAX_LEVEL_FILE_SIZE, *this);
+			ExecuteSexyScriptLoop(16384, e, resourceName, 0, 16_megabytes, *this);
 		}
 
 		virtual void SyncWithModifiedFiles()

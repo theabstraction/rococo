@@ -43,7 +43,7 @@ namespace
 
 		virtual void PostForLater(const Mail& mail, bool isLossy)
 		{
-			if (mail.nBytes > LARGEST_MESSAGE_SIZE) Throw(0, L"Postbox message too long");
+			if (mail.nBytes > LARGEST_MESSAGE_SIZE) Throw(0, L"Postbox message too long. Message was %d bytes. Limit is %d bytes.", mail.nBytes, LARGEST_MESSAGE_SIZE);
 			if (items.size() > CAPACITY)
 			{
 				auto i = items.begin();

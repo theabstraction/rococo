@@ -7,7 +7,7 @@ namespace Dystopia
 	ID_ENTITY GenerateEntityId()
 	{
 		static ID_ENTITY nextId;
-		nextId.value += 1;
+		nextId = ID_ENTITY((uint64) nextId + 1);
 		return nextId;
 	}
 

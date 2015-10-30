@@ -16,14 +16,14 @@ namespace
 		Bitmaps(IInstallation& _installation, IRenderer& _renderer):
 			installation(_installation),
 			renderer(_renderer),
-			imageBuffer(CreateExpandingBuffer(1024 * 1024))
+			imageBuffer(CreateExpandingBuffer(1_megabytes))
 		{
 
 		}
 
 		virtual ID_BITMAP Cache(const wchar_t* resourceName)
 		{
-			installation.LoadResource(resourceName, *imageBuffer, 128 * 1024 * 1024);
+			installation.LoadResource(resourceName, *imageBuffer, 128_megabytes);
 			auto id = renderer.LoadTexture(*imageBuffer, resourceName);
 			return id; 
 		}

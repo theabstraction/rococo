@@ -31,6 +31,7 @@ namespace Dystopia {
 	struct NO_VTABLE IGui
 	{
 		virtual void ShowDialogBox(const Vec2i& span, int32 retzone, int32 hypzone, const fstring& title, const fstring& message, const fstring& buttons) = 0;
+		virtual void Add3DHint(const Vec3& worldPos, const fstring& message, float duration) = 0;
 	};
 }
 

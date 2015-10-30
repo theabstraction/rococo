@@ -44,18 +44,20 @@ namespace Dystopia
 
 	enum StatIndex : int32;
 
-	struct ID_ENTITY
+	class ID_ENTITY
 	{
+	private:
+		uint64 value;
+	public:
 		ID_ENTITY() : value(0) {}
-		explicit ID_ENTITY(size_t _value) : value(_value) {}
-		size_t value;
-		operator size_t() const { return value; }
+		explicit ID_ENTITY(uint64 _value) : value(_value) {}
+		operator uint64() const { return value; }
 		operator bool() const { return value != 0; }
 		size_t operator()(const ID_ENTITY& k) const { return *this; }
 		static ID_ENTITY Invalid() { return ID_ENTITY(); }
 	};
 
-	inline bool operator == (ID_ENTITY a, ID_ENTITY b) { return a.value == b.value; }
+	inline bool operator == (ID_ENTITY a, ID_ENTITY b) { return (uint64) a == (uint64) b; }
 
 	struct ProjectileDef
 	{
@@ -64,12 +66,6 @@ namespace Dystopia
 		Vec3 velocity;
 		float lifeTime;
 		ID_MESH bulletMesh;
-	};
-
-	struct fstring
-	{
-		const wchar_t* buffer;
-		const int32 length;
 	};
 
 	enum CMD_ID { CMD_ID_RETRY = 101, CMD_ID_IGNORE = 102, CMD_ID_EXIT = 103 };

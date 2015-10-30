@@ -295,6 +295,29 @@ namespace Rococo
 	}
 
 	typedef int32 ID_MESH;
+
+	struct fstring
+	{
+		const wchar_t* buffer;
+		const int32 length;
+	};
+
+	fstring to_fstring(const wchar_t* const msg);
+
+	inline constexpr fstring operator"" _fstring(const wchar_t* msg, size_t length)
+	{
+		return fstring{ msg, (int32) length };
+	}
+
+	inline size_t operator "" _megabytes(size_t mb)
+	{
+		return mb * 1024 * 1024;
+	}
+
+	inline size_t operator "" _kilobytes(size_t kb)
+	{
+		return kb * 1024;
+	}
 }
 
 namespace Sexy

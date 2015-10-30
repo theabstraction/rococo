@@ -82,7 +82,7 @@ namespace
 		}
 	};
 
-	class PaneIsometric : public IUIControlPane, IEventCallback<ActionMap>
+	class PaneIsometric : public IUIControlPane, IEventCallback<ActionMap>, public Post::IRecipient
 	{
 		Environment& e;
 		float gameTime;
@@ -99,6 +99,8 @@ namespace
 		bool isRotateLocked;
 
 		XPlayerIntent intent;
+
+		std::vector<HintMessage3D> hints3D;
 
 		void UpdateGroundCursorPosition(const Vec2i screenPosition)
 		{
@@ -129,14 +131,14 @@ namespace
 			Vec3 playerPosition;
 			e.level.GetPosition(playerId, playerPosition);
 
-			Degrees phi{ -45.0f };
+			auto phi = -45.0_degrees;
 			GetIsometricTransforms(globalState.worldMatrix, inverseWorldMatrixProj, globalState.worldMatrixAndProj, g, Graphics::GetAspectRatio(e.renderer), playerPosition, phi, viewTheta, Metres{ 100.0f });
 		}
 	public:
 		PaneIsometric(Environment& _e):
-			e(_e), gameTime(0.0f), globalScale(4.0f), viewTheta { 45.0f }, isRotateLocked(true)
+			e(_e), gameTime(0.0f), globalScale(4.0f), viewTheta { 45.0_degrees }, isRotateLocked(true)
 		{
-
+			e.postbox.Subscribe<HintMessage3D>(this);
 		}
 
 		virtual void Free()
@@ -147,6 +149,15 @@ namespace
 		virtual IIntent* PlayerIntent()
 		{
 			return &intent;
+		}
+
+		virtual void OnPost(const Mail& mail)
+		{
+			auto* hint3D = Post::InterpretAs<HintMessage3D>(mail);
+			if (hint3D)
+			{
+				hints3D.push_back(*hint3D);
+			}
 		}
 
 		virtual Relay OnTimestep(const TimestepEvent& clock)
@@ -166,6 +177,21 @@ namespace
 				if (id != ID_PANE_STATS)
 				{
 					intent.Clear();
+				}
+
+				auto i = hints3D.begin();
+				while (i != hints3D.end())
+				{
+					i->duration -= dt;
+
+					if (i->duration > 0)
+					{
+						i++;
+					}
+					else
+					{
+						i = hints3D.erase(i);
+					}
 				}
 			}
 
@@ -222,7 +248,7 @@ namespace
 		{
 			if (me.dx != 0 && !isRotateLocked)
 			{
-				float newTheta = fmodf(viewTheta + 0.25f * me.dx, 360.0f);
+				float newTheta = fmodf(viewTheta + 0.25f * me.dx, 360.0_degrees);
 				viewTheta = { newTheta };
 			}
 			e.controls.MapMouseEvent(me, *this);
@@ -237,8 +263,36 @@ namespace
 			e.level.RenderObjects(rc);
 		}
 
+		void RenderHint(IGuiRenderContext& grc, const HintMessage3D& hint)
+		{
+			Vec4 screenPos = globalState.worldMatrixAndProj * Vec4::FromVec3(hint.position, 1.0f);
+
+			GuiMetrics metrics;
+			e.renderer.GetGuiMetrics(metrics);
+
+			int32 x = (int32) (0.5f * metrics.screenSpan.x * (screenPos.x + 1.0f));
+			int32 y = (int32) (0.5f * metrics.screenSpan.y * (1.0f - screenPos.y));
+
+			float fAlpha = hint.duration > 1.0f ? 1.0f : hint.duration;
+			RGBAb colour(255, 255, 255, (uint8) (fAlpha * 255.0f));
+
+			Graphics::StackSpaceGraphics ss1;
+			auto& horzTextLight = Graphics::CreateHorizontalCentredText(ss1, 3, hint.message, colour);
+
+			Graphics::StackSpaceGraphics ss2;
+			auto& horzTextShadow = Graphics::CreateHorizontalCentredText(ss2, 3, hint.message, RGBAb(0,0,0, (uint8)(fAlpha * 255.0f)));
+			Vec2i span = grc.EvalSpan({ 0,0 }, horzTextLight);
+
+			grc.RenderText({ x-2,y-2 }, horzTextShadow);
+			grc.RenderText({ x,y }, horzTextLight);
+		}
+
 		virtual void RenderGui(IGuiRenderContext& grc)
 		{
+			for (auto& hint : hints3D)
+			{
+				RenderHint(grc, hint);
+			}
 		}
 	};
 }

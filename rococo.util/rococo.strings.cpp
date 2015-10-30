@@ -57,6 +57,16 @@ namespace
 
 namespace Rococo
 {
+	fstring to_fstring(const wchar_t* const msg)
+	{
+		size_t len = wcslen(msg);
+		if (len >= 0x020000000LL)
+		{
+			Throw(0, L"String too long to convert to fstring");
+		}
+		return{ msg, (int)len };
+	}
+
 	IStringBuilder* CreateSafeStringBuilder(size_t capacity)
 	{
 		return new SafeStringBuilder(capacity);

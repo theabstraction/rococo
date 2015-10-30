@@ -83,8 +83,6 @@ namespace Dystopia
 		ID_CONTEXT_COMMAND_EXAMINE,
 		ID_CONTEXT_COMMAND_PICKUP
 	};
-
-	inline const Metres PickupRange() { return { 2.5f }; }
 }
 
 #endif

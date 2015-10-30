@@ -235,11 +235,6 @@ namespace Dystopia
 		}
 	}
 
-	fstring FstringFromPointer(const wchar_t* const buffer)
-	{
-		return fstring{ buffer, (int32) wcslen(buffer) };
-	}
-
 	bool AreAtomicTokensEqual(cr_sex s, const fstring& token)
 	{
 		if (s.Type() == EXPRESSION_TYPE_ATOMIC)
@@ -268,11 +263,10 @@ namespace Dystopia
 		Sexy::Sex::CSParserProxy spp;
 		IInstallation& installation;
 
-		enum { MAX_SOURCE_FILE_LENGTH = 64 * 1048576 };
 	public:
 		SourceCache(IInstallation& _installation): 
-			fileBuffer(CreateExpandingBuffer(64 * 1024)),
-			unicodeBuffer(CreateExpandingBuffer(64 * 1024)),
+			fileBuffer(CreateExpandingBuffer(64_kilobytes)),
+			unicodeBuffer(CreateExpandingBuffer(64_kilobytes)),
 			installation(_installation)
 		{
 		}
@@ -308,7 +302,7 @@ namespace Dystopia
 				}
 			}
 			
-			installation.LoadResource(resourceName, *fileBuffer, MAX_SOURCE_FILE_LENGTH);
+			installation.LoadResource(resourceName, *fileBuffer, 64_megabytes);
 
 			ISourceCode* src = DuplicateSourceCode(installation.OS(), *unicodeBuffer, spp(), *fileBuffer, resourceName);
 			sources[resourceName] = Binding{ nullptr, src };
@@ -526,10 +520,7 @@ namespace Dystopia
 				cr_sex squot = sincludeExpr[0];
 				cr_sex stype = sincludeExpr[1];
 
-				static fstring fs_quote = FstringFromPointer(L"'");
-				static fstring fs_include = FstringFromPointer(L"#include");
-
-				if (AreAtomicTokensEqual(squot, fs_quote) && AreAtomicTokensEqual(stype, fs_include))
+				if (AreAtomicTokensEqual(squot, L"'"_fstring) && AreAtomicTokensEqual(stype, L"#include"_fstring))
 				{
 					for (int j = 2; j < sincludeExpr.NumberOfElements(); j++)
 					{

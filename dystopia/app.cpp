@@ -7,6 +7,7 @@
 #include "rococo.ui.h"
 #include "dystopia.post.h"
 #include "dystopia.ui.h"
+#include "dystopia.constants.h"
 
 using namespace Dystopia;
 using namespace Rococo;
