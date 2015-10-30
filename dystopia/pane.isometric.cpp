@@ -82,6 +82,24 @@ namespace
 		}
 	};
 
+	Vec3 ComputeGroundZeroPosition(const Vec2i screenPosition, const Matrix4x4& invWorldProj, IRenderer& renderer)
+	{
+		Vec2 C = Graphics::PixelSpaceToScreenSpace(screenPosition, renderer);
+
+		Vec4 xCursor = Vec4{ C.x, C.y, 0.0f, 1.0f };
+
+		Vec4 cursorPos = invWorldProj * xCursor;
+		Vec4 worldDir = invWorldProj * Vec4{ 0, 0, 1.0f, 0.0f };
+
+		// We now have all the information to specify cursor probe. Point on probe are P(t) = cursorPos + t.worldDir.
+		// We want intersection with earth z = 0
+		// t0.worldDir.z + cursorPos.z = 0
+		// t0 = -cursorPos.z / worldDir.z, giving P(t0), intersection with cursor and earth
+
+		float t0 = -cursorPos.z / worldDir.z;
+		return cursorPos + t0 * worldDir;
+	}
+
 	class PaneIsometric : public IUIControlPane, IEventCallback<ActionMap>, public Post::IRecipient
 	{
 		Environment& e;
@@ -104,22 +122,8 @@ namespace
 
 		void UpdateGroundCursorPosition(const Vec2i screenPosition)
 		{
-			Vec2 C = Graphics::PixelSpaceToScreenSpace(screenPosition, e.renderer);
-
-			Vec4 xCursor = Vec4{ C.x, C.y, 0.0f, 1.0f };
-
-			Vec4 cursorPos = inverseWorldMatrixProj * xCursor;
-			Vec4 worldDir = inverseWorldMatrixProj * Vec4{ 0, 0, 1.0f, 0.0f };
-
-			// We now have all the information to specify cursor probe. Point on probe are P(t) = cursorPos + t.worldDir.
-			// We want intersection with earth z = 0
-			// t0.worldDir.z + cursorPos.z = 0
-			// t0 = -cursorPos.z / worldDir.z, giving P(t0), intersection with cursor and earth
-
-			float t0 = -cursorPos.z / worldDir.z;
-			groundCursorProjection = cursorPos + t0 * worldDir;
-
-			e.level.SetGroundCursorPosition(groundCursorProjection);
+			Vec3 gzero = ComputeGroundZeroPosition(screenPosition, inverseWorldMatrixProj, e.renderer);
+			e.level.SetGroundCursorPosition(gzero);
 		}
 
 		void UpdateGlobalState()
@@ -139,6 +143,7 @@ namespace
 			e(_e), gameTime(0.0f), globalScale(4.0f), viewTheta { 45.0_degrees }, isRotateLocked(true)
 		{
 			e.postbox.Subscribe<HintMessage3D>(this);
+			e.postbox.Subscribe<VerbDropAtCursor>(this);
 		}
 
 		virtual void Free()
@@ -157,6 +162,19 @@ namespace
 			if (hint3D)
 			{
 				hints3D.push_back(*hint3D);
+			}
+
+			auto* dropAt = Post::InterpretAs<VerbDropAtCursor>(mail);
+			if (dropAt)
+			{
+				auto* inv = e.level.GetInventory(dropAt->entityId);
+				if (inv)
+				{
+					auto* item = inv->Swap(dropAt->inventoryIndex, nullptr);
+					Vec3 gzero = ComputeGroundZeroPosition(dropAt->cursorPosition, inverseWorldMatrixProj, e.renderer);
+
+					e.level.CreateStash(item, gzero);
+				}
 			}
 		}
 
@@ -201,6 +219,11 @@ namespace
 			UpdateGroundCursorPosition(metrics.cursorPosition);
 
 			return Relay_None;
+		}
+
+		virtual void OnTop()
+		{
+
 		}
 
 		virtual void OnEvent(ActionMap& map)

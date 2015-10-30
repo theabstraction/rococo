@@ -123,6 +123,7 @@ namespace
 
 			Sync sync(*this);
 			panes.push_back(PaneBind{ *pane, id });
+			pane->OnTop();
 			return panes.back();
 		}
 

@@ -503,6 +503,22 @@ namespace Dystopia
 		}
 	}
 
+	EXECUTERESULT ExecuteProtected(IVirtualMachine& vm, Sexy::Script::IPublicScriptSystem& ss, Environment& e)
+	{
+		try
+		{
+			EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(true, false));
+			return result;
+		}
+		catch (IException& ex)
+		{
+			Disassemble(vm, ss, e);
+			ss.PublicProgramObject().Log().Write(ex.Message());
+			Throw(ex.ErrorCode(), L"%s", ex.Message());
+			return EXECUTERESULT_SEH;
+		}
+	}
+
 	void ExecuteSexyScript(ISParserTree& mainModule, Environment& e, Script::IPublicScriptSystem& ss, int32 param, IEventCallback<ScriptCompileArgs>& onCompile)
 	{
 		using namespace Sexy::Script;
@@ -562,7 +578,17 @@ namespace Dystopia
 
 		vm.Push(param);
 
-		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		EXECUTERESULT result = EXECUTERESULT_YIELDED; 
+
+		__try
+		{
+			result = ExecuteProtected(vm, ss, e);
+		}
+		__except(EXCEPTION_EXECUTE_HANDLER)
+		{
+			result = EXECUTERESULT_SEH;
+		}
+
 		switch (result)
 		{
 		case EXECUTERESULT_BREAKPOINT:

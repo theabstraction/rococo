@@ -1,6 +1,8 @@
 (cpp.root $)
 // The config must contain one and only one cpp.root entry, which gives the path of generated c++ code. If the path is prefixed with $ then $ is replaced with the <project_root> given in the bennyhill command line
 
+(cpp.exception Rococo::IException)
+
 // sxy.types gives the location where custom types are generated from definitions found in this file. If the path is prefixed with $project$ then $project$ is replaced with the <project_root> given in the bennyhill command line
 // if the path is prefixed with $cpp$ then $cpp$ is replaced with the cpp.root as specified above
 // The first argument gives the sexy definition file, the second argument gives the types that are written into the cpp header
@@ -20,8 +22,6 @@
 (primitive Pointer Pointer uintptr_t)
 (primitive IdMesh Int32 ID_MESH)
 (primitive IdEntity Int64 ID_ENTITY)
-
-(cpp.exception Bloke::IException)
 
 // (struct <name> <sexy-name> <cpp-name>)  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files
 // Arguments that are struct are passed by reference in the script system. They may not be used as output arguments. It is assumed that the structures are defined elsewhere.

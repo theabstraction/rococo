@@ -90,7 +90,7 @@
 		( 0        0    0    1)
 	)
 	
-	(level.AddRangedWeapon powerupLoc 4 "rifle" 330.0 0.2)
+	(level.AddRangedWeapon powerupLoc 4 "9mm pistol" "!inventory/pistol9mm.tif" 330.0 0.2)
 	
 	(Dystopia.Gui.IGui gui (Dystopia.Gui.GetGui))
 	

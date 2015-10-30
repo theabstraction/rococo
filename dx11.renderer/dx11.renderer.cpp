@@ -203,11 +203,12 @@ namespace
 		{ "normal",		0, DXGI_FORMAT_R32G32B32_FLOAT,	0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "color",		0, DXGI_FORMAT_R8G8B8A8_UNORM,	0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "color",		1, DXGI_FORMAT_R8G8B8A8_UNORM,	0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "texcoord",	0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	const uint32 NumberOfObjectVertexElements()
 	{
-		static_assert(sizeof(objectVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC) == 4, "Vertex data was not 4 fields");
+		static_assert(sizeof(objectVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC) == 5, "Vertex data was not 5 fields");
 		return sizeof(objectVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC);
 	}
 
@@ -423,6 +424,8 @@ namespace
 			Vec2 uvBottomRight;
 			Vec2i hotspotOffset;
 		} cursor;
+
+		ID_TEXTURE lastTextureId;
 	public:
 		Windows::IWindow* window;
 
@@ -641,6 +644,26 @@ namespace
 			}
 		}
 
+		virtual void SetMeshTexture(ID_TEXTURE textureId, int textureIndex)
+		{
+			size_t index = textureId - 1;
+			if (index >= textures.size())
+			{
+				Throw(0, L"Bad texture id");
+			}
+
+			auto& t = textures[index];
+
+			D3D11_TEXTURE2D_DESC desc;
+			t.texture->GetDesc(&desc);
+
+			if (textureId != lastTextureId)
+			{
+				lastTextureId = textureId;
+				dc.PSSetShaderResources(textureIndex, 1, &t.textureView);
+			}
+		}
+
 		virtual IRenderer& Renderer()
 		{
 			return *this;
@@ -734,13 +757,18 @@ namespace
 			{
 				Throw(0, L"Bad texture id");
 			}
-
+			
 			auto& t = textures[index];
 
 			D3D11_TEXTURE2D_DESC desc;
 			t.texture->GetDesc(&desc);
 
-			dc.PSSetShaderResources(1, 1, &t.textureView);
+			if (id != lastTextureId)
+			{
+				FlushLayer();
+				lastTextureId = id;
+				dc.PSSetShaderResources(1, 1, &t.textureView);
+			}
 
 			return Vec2i{ (int32) desc.Width, (int32) desc.Height };
 		}
@@ -1021,6 +1049,8 @@ namespace
 		virtual void Render(IScene& scene)
 		{
 			if (mainBackBufferView.IsNull()) return;
+
+			lastTextureId = -1;
 
 			dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
 

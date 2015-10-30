@@ -2,6 +2,8 @@
 #include <rococo.renderer.h>
 #include <rococo.io.h>
 
+#include <unordered_map>
+
 namespace
 {
 	using namespace Rococo;
@@ -10,7 +12,7 @@ namespace
 	{
 		IInstallation& installation;
 		IRenderer& renderer;
-
+		std::unordered_map<std::wstring, ID_BITMAP> innerCache;
 		AutoFree<IExpandingBuffer> imageBuffer;
 	public:
 		Bitmaps(IInstallation& _installation, IRenderer& _renderer):
@@ -23,14 +25,23 @@ namespace
 
 		virtual ID_BITMAP Cache(const wchar_t* resourceName)
 		{
+			auto i = innerCache.find(resourceName);
+			if (i != innerCache.end()) return i->second;
+
 			installation.LoadResource(resourceName, *imageBuffer, 128_megabytes);
 			auto id = renderer.LoadTexture(*imageBuffer, resourceName);
+			innerCache.insert(std::make_pair(resourceName, id));
 			return id; 
 		}
 
 		virtual void SetCursorBitmap(ID_BITMAP id, Vec2i hotspotOffset)
 		{
 			renderer.SetCursorBitmap(id, hotspotOffset,{ 0.0f, 0.0f }, { 1.0f, 1.0f });
+		}
+
+		virtual void SetMeshBitmap(IRenderContext& rc, ID_BITMAP id)
+		{
+			rc.SetMeshTexture(id, 1);
 		}
 
 		virtual void DrawBitmap(IGuiRenderContext& gc, const GuiRect& targetRect, ID_BITMAP id)

@@ -97,10 +97,13 @@ namespace Dystopia
 
 	IKeyboardSupervisor* CreateKeyboardMap(IInstallation& installation, ISourceCache& sourceCache);
 
+	struct IItem;
+
 	ROCOCOAPI ILevel
 	{
 		virtual ID_ENTITY AddProjectile(const ProjectileDef& def, float currentTime) = 0;
 		virtual ILevelBuilder& Builder() = 0;
+		virtual ID_ENTITY CreateStash(IItem* item, cr_vec3 location) = 0;
 		virtual HumanSpec GetHuman(ID_ENTITY id) = 0;
 		virtual IInventory* GetInventory(ID_ENTITY id) = 0;
 		virtual ID_ENTITY GetPlayerId() const = 0;

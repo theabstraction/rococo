@@ -15,15 +15,15 @@ namespace
 	{
 		if (weapon.muzzleVelocity < 300.0f)
 		{
-			sb.AppendFormat(L"Ranged Weapon:\n\t\t\tMuzzle Velocity: %2.2f m/s", weapon.muzzleVelocity);
+			sb.AppendFormat(L"Ranged Weapon:\n\t\t\tProjectile speed: %2.0f m/s", weapon.muzzleVelocity.value);
 		}
 		else if (weapon.muzzleVelocity < 3000)
 		{
-			sb.AppendFormat(L"Ranged Weapon:\n\t\t\tMuzzle Velocity: MACH %.2f", weapon.muzzleVelocity / 330.0f);
+			sb.AppendFormat(L"Ranged Weapon:\n\t\t\tProjectile speed: MACH %.2f", weapon.muzzleVelocity / 330.0f);
 		}
 		else if (weapon.muzzleVelocity < 100000000)
 		{
-			sb.AppendFormat(L"Ranged Weapon:\n\t\t\tMuzzle Velocity: %.2f km/s", weapon.muzzleVelocity / 1000.0f);
+			sb.AppendFormat(L"Ranged Weapon:\n\t\t\tProjectile speed: %.2f km/s", weapon.muzzleVelocity / 1000.0f);
 		}
 		else
 		{
@@ -69,15 +69,13 @@ namespace Dystopia
 				{	
 					AutoFree<IStringBuilder> sb(CreateSafeStringBuilder(4096));
 
+					sb->AppendFormat(L"%s\n\n", item->Name());
+
 					auto weapon = item->GetRangedWeaponData();
 					if (weapon)
 					{
 						*sb << *weapon;
 					}
-					else
-					{
-						sb->AppendFormat(L"Misc item");
-					}	
 
 					struct : IEventCallback<GuiEventArgs>
 					{

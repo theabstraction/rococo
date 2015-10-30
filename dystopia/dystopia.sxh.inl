@@ -111,6 +111,12 @@ namespace
 		ReadInput(muzzleVelocity, _sf, -_offset);
 		_offset += sizeof(void*);
 
+		IString* _imageFile;
+		ReadInput(_imageFile, _sf, -_offset);
+		fstring imageFile { _imageFile->buffer, _imageFile->length };
+
+		_offset += sizeof(void*);
+
 		IString* _name;
 		ReadInput(_name, _sf, -_offset);
 		fstring name { _name->buffer, _name->length };
@@ -128,7 +134,7 @@ namespace
 
 		ReadInput(_pObject, _sf, -_offset);
 		ID_ENTITY entityId;
-		entityId = _pObject->AddRangedWeapon(*transform, editorId, name, muzzleVelocity, flightTime);
+		entityId = _pObject->AddRangedWeapon(*transform, editorId, name, imageFile, muzzleVelocity, flightTime);
 		_offset += sizeof(entityId);
 		WriteOutput(entityId, _sf, -_offset);
 	}
@@ -198,7 +204,7 @@ namespace Dystopia
 		ss.AddNativeCall(ns, NativeGetHandleForDystopiaLevelsGetLevel, _nceContext, SEXTEXT("GetHandleForILevel0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddEnemy, nullptr, SEXTEXT("ILevelAddEnemy (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddAlly, nullptr, SEXTEXT("ILevelAddAlly (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId) -> (Int64 entityId)"));
-		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddRangedWeapon, nullptr, SEXTEXT("ILevelAddRangedWeapon (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId)(Sys.Type.IString name)(Float32 muzzleVelocity)(Float32 flightTime) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddRangedWeapon, nullptr, SEXTEXT("ILevelAddRangedWeapon (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId)(Sys.Type.IString name)(Sys.Type.IString imageFile)(Float32 muzzleVelocity)(Float32 flightTime) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddSolid, nullptr, SEXTEXT("ILevelAddSolid (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderClear, nullptr, SEXTEXT("ILevelClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetPlayerId, nullptr, SEXTEXT("ILevelSetPlayerId (Pointer hObject)(Int64 playerId) -> "));

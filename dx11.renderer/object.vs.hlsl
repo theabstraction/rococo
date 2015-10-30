@@ -4,6 +4,7 @@ struct ObjectVertex
 	float4 normal : NORMAL;
 	float4 emissiveColour: COLOR0;
 	float4 diffuseColour: COLOR1;
+	float2 uv: TEXCOORD;
 };
 
 struct ScreenVertex
@@ -12,6 +13,7 @@ struct ScreenVertex
 	float4 normal : NORMAL;
 	float4 emissiveColour: COLOR0;
 	float4 diffuseColour: COLOR1;
+	float2 uv: TEXCOORD;
 };
 
 cbuffer globalState
@@ -35,6 +37,7 @@ ScreenVertex main(ObjectVertex v)
 	sv.normal = mul(v.normal, worldMatrix);
 	sv.emissiveColour = highlightColour.w * (highlightColour + v.emissiveColour) + (1.0f - highlightColour.w) * v.emissiveColour;
 	sv.diffuseColour = v.diffuseColour;
+	sv.uv = v.uv;
 
 	return sv;
 }

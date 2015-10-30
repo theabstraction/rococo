@@ -10,6 +10,7 @@ namespace Dystopia
 		virtual Relay OnMouseEvent(const MouseEvent& me) = 0;
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
 		virtual void RenderObjects(IRenderContext& rc) = 0;
+		virtual void OnTop() = 0;
 	};
 
 	ROCOCOAPI IUIPaneSupervisor : public IUIPane

@@ -17,7 +17,7 @@
 	(methods
 		(AddEnemy (const Matrix4x4 transform) (IdMesh editorId) -> (IdEntity entityId))
 		(AddAlly (const Matrix4x4 transform) (IdMesh editorId) -> (IdEntity entityId))
-		(AddRangedWeapon  (const Matrix4x4 transform) (IdMesh editorId) (const IString name) (Float32 muzzleVelocity)(Float32 flightTime) -> (IdEntity entityId))
+		(AddRangedWeapon  (const Matrix4x4 transform) (IdMesh editorId) (const IString name) (const IString imageFile) (Float32 muzzleVelocity)(Float32 flightTime) -> (IdEntity entityId))
 		(AddSolid (const Matrix4x4 transform) (IdMesh editorId) -> (IdEntity entityId))
 		(Clear ->)
 		(SetPlayerId (IdEntity playerId) ->)

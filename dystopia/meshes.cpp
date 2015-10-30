@@ -39,13 +39,31 @@ namespace
 
 	void ParseVertex(ObjectVertex& v, cr_sex sv)
 	{
-		const ISExpression* svx, *svy, *svz, *snx, *sny, *snz, *semissive, *sdiffuse;
-		ScanExpression(sv, L"(vx vy vz nx ny nz emissive diffuse)", "a a a a a a a a", &svx, &svy, &svz, &snx, &sny, &snz, &semissive, &sdiffuse);
+		if (sv.NumberOfElements() == 10)
+		{
+			const ISExpression* svx, *svy, *svz, *snx, *sny, *snz, *semissive, *sdiffuse, *stu, *stv;
+			ScanExpression(sv, L"(vx vy vz nx ny nz emissive diffuse u v)", "a a a a a a a a a a", &svx, &svy, &svz, &snx, &sny, &snz, &semissive, &sdiffuse, &stu, &stv);
 
-		v.position = GetVec3Value(*svx, *svy, *svz);
-		v.normal = GetVec3Value(*snx, *sny, *snz);
-		v.emissiveColour = GetColourValue(*semissive);
-		v.diffuseColour = GetColourValue(*sdiffuse);
+			v.position = GetVec3Value(*svx, *svy, *svz);
+			v.normal = GetVec3Value(*snx, *sny, *snz);
+			v.emissiveColour = GetColourValue(*semissive);
+			v.diffuseColour = GetColourValue(*sdiffuse);
+			v.u = (float)_wtof(stu->String()->Buffer);
+			v.v = (float)_wtof(stv->String()->Buffer);
+		}
+		else
+		{
+			const ISExpression* svx, *svy, *svz, *snx, *sny, *snz, *semissive, *sdiffuse;
+			ScanExpression(sv, L"(vx vy vz nx ny nz emissive diffuse u v)", "a a a a a a a a", &svx, &svy, &svz, &snx, &sny, &snz, &semissive, &sdiffuse);
+
+			v.position = GetVec3Value(*svx, *svy, *svz);
+			v.normal = GetVec3Value(*snx, *sny, *snz);
+			v.emissiveColour = GetColourValue(*semissive);
+			v.diffuseColour = GetColourValue(*sdiffuse);
+			v.diffuseColour.alpha = 0;
+			v.u = 0;
+			v.v = 0;
+		}
 	}
 
 	void ParseMeshVertices(TMeshes& meshes, int32 id, IRenderer& renderer, cr_sex meshDef, const wchar_t* resourcePath)

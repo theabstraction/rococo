@@ -104,6 +104,11 @@ namespace
 			return Relay_Next;
 		}
 
+		virtual void OnTop()
+		{
+
+		}
+
 		virtual void RenderObjects(IRenderContext& rc)
 		{
 		}

@@ -163,6 +163,28 @@ namespace Rococo
 		operator float() const { return value; }
 	};
 
+	struct Seconds
+	{
+		float value;
+		operator float() const { return value; }
+	};
+
+	inline Seconds operator "" _seconds(long double value)
+	{
+		return Seconds{ (float)value };
+	}
+
+	struct MetresPerSecond
+	{
+		float value;
+		operator float() const { return value; }
+	};
+
+	inline MetresPerSecond operator "" _mps(long double value)
+	{
+		return MetresPerSecond{ (float)value };
+	}
+
 	struct Quad
 	{
 		float left;
@@ -280,6 +302,7 @@ namespace Rococo
 		virtual ID_BITMAP Cache(const wchar_t* resourceName) = 0;
 		virtual void DrawBitmap(IGuiRenderContext& gc, const GuiRect& targetRect, ID_BITMAP id) = 0;
 		virtual void SetCursorBitmap(ID_BITMAP id, Vec2i hotspotOffset) = 0;
+		virtual void SetMeshBitmap(IRenderContext& rc, ID_BITMAP id) = 0;
 	};
 
 	ROCOCOAPI IBitmapCacheSupervisor : public IBitmapCache

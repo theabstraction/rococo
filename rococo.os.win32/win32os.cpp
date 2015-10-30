@@ -458,7 +458,7 @@ namespace
 		virtual void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const
 		{
 			FileHandle hFile = CreateFile(absPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
-			if (!hFile.IsValid()) Throw(HRESULT_FROM_WIN32(GetLastError()), L"Win32OS::LoadResource failed: CreateFile failed for <%s>", absPath);
+			if (!hFile.IsValid()) Throw(HRESULT_FROM_WIN32(GetLastError()), L"Win32OS::LoadResource failed: Error opening file %s", absPath);
 
 			LARGE_INTEGER len;
 			GetFileSizeEx(hFile, &len);

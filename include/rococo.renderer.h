@@ -32,6 +32,8 @@ namespace Rococo
 		Vec3 normal;
 		RGBAb emissiveColour;
 		RGBAb diffuseColour;
+		float u;
+		float v;
 	};
 
 	struct IRenderer;
@@ -77,6 +79,7 @@ namespace Rococo
 		virtual void Draw(ID_MESH id, const ObjectInstance* instance, uint32 nInstances) = 0;
 		virtual IRenderer& Renderer() = 0;
 		virtual void SetGlobalState(const GlobalState& gs) = 0;
+		virtual void SetMeshTexture(ID_TEXTURE textureId, int textureIndex) = 0;
 	};
 
 	ROCOCOAPI IScene

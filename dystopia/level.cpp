@@ -28,6 +28,7 @@ namespace
 		ObjectInstance instance;
 		ID_MESH meshId;
 		float boundingRadius;
+		ID_BITMAP bitmapId;
 	};
 
 	struct Projectile
@@ -139,11 +140,11 @@ namespace
 
 		virtual void Free() { delete this; }
 
-		virtual ID_ENTITY AddRangedWeapon(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, float muzzleVelocity, float flightTime)
+		virtual ID_ENTITY AddRangedWeapon(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, const fstring& resourceName, float muzzleVelocity, float flightTime)
 		{
 			auto id = AddSolid(transform, editorId);
-			auto inv = CreateInventory({ 1,1 });
-			inv->Swap(0, CreateRangedWeapon({ flightTime, muzzleVelocity }, name.buffer));
+			auto inv = CreateInventory({ 1,1 }, false);
+			inv->Swap(0, CreateRangedWeapon({ flightTime, muzzleVelocity }, name.buffer, e.bitmapCache.Cache(resourceName.buffer)));
 			equipment.insert(id, Equipment{ inv });
 			return id;
 		}
@@ -179,16 +180,16 @@ namespace
 		{
 			auto id = GenerateEntityId();
 			ID_MESH sysId = e.meshes.GetRendererId(meshId);
-			solids.insert(id, Solid{ {transform, {0,0,0,0}}, sysId, 1.0f });
+			solids.insert(id, Solid{ {transform, {0,0,0,0}}, sysId, 1.0f, 0 });
 			return id;
 		}
 
 		virtual ID_ENTITY AddAlly(const Matrix4x4& transform, ID_MESH meshId)
 		{
 			ID_ENTITY id = AddSolid(transform, meshId);
-			auto* inv = CreateInventory({ 5, 8 });
+			auto* inv = CreateInventory({ 5, 8 }, true);
 			auto h = new Human { HumanType_Vigilante, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Vigilante ) };
-			h->inventory->Swap(0, CreateRangedWeapon({ 2.5f, 320.0f, }, L"Bag of stones"));
+			h->inventory->Swap(0, CreateRangedWeapon({ 2.5_seconds, 10.0_mps }, L"Bag of stones", e.bitmapCache.Cache(L"!inventory/bagofstones.tif")));
 			allies.insert(id, h);
 			return id;
 		}
@@ -196,9 +197,9 @@ namespace
 		virtual ID_ENTITY AddEnemy(const Matrix4x4& transform, ID_MESH meshId)
 		{
 			ID_ENTITY id = AddSolid(transform, meshId);
-			auto* inv = CreateInventory({ 3,4 });
+			auto* inv = CreateInventory({ 3,4 }, true);
 			auto h = new Human{ HumanType_Bobby, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Bobby) };
-			h->inventory->Swap(0, CreateRangedWeapon({ 2.5f, 10.0f }, L"Bag of stones"));
+			h->inventory->Swap(0, CreateRangedWeapon({ 2.5_seconds, 10.0_mps }, L"Bag of stones", e.bitmapCache.Cache(L"!inventory/bagofstones.tif")));
 			enemies.insert(id, h);
 			return id;
 		}
@@ -211,6 +212,23 @@ namespace
 
 			projectiles.insert(id, Projectile{ def.attacker, def.origin, direction, def.velocity, def.lifeTime, currentTime, def.bulletMesh });
 
+			return id;
+		}
+
+		virtual ID_ENTITY CreateStash(IItem* item, cr_vec3 location)
+		{
+			auto id = GenerateEntityId();
+			Equipment eq{ CreateInventory({ 1,1 }, false) };
+			equipment.insert(id, eq);
+			eq.inventory->Swap(0, item);
+
+			e.meshes.Load(L"!mesh/stash.sxy"_fstring, 0x4000000);
+			ID_MESH sysId = e.meshes.GetRendererId(0x4000000);
+
+			Matrix4x4 stashLoc = Matrix4x4::Translate(location + Vec3{ 0,0,0.1f });
+			Matrix4x4 scale = Matrix4x4::Scale(0.37f, 0.37f, 0.37f);
+			Solid solid{ stashLoc * scale,{ 0,0,0,0 }, sysId, 1.0f, item->BitmapId()  };
+			solids.insert(id, solid);
 			return id;
 		}
 
@@ -297,11 +315,17 @@ namespace
 				float DS2 = Square(delta.x) + Square(delta.y);
 				bool isHighlighted = DS2 < Square(entity.boundingRadius);
 
+				if (entity.bitmapId != 0)
+				{
+					e.bitmapCache.SetMeshBitmap(rc, entity.bitmapId);
+				}
+
 				if (isHighlighted && !foundItem)
 				{
 					selectedId = i.first;
 					foundItem = true;
 					ObjectInstance instance{ entity.instance.orientation, { 1.0f, 1.0f, 1.0f, 0.5f } };
+
 					rc.Draw(entity.meshId, &instance, 1);
 				}
 				else
@@ -494,7 +518,7 @@ namespace
 
 		virtual void Load(const wchar_t* resourceName, bool isReloading)
 		{
-			ExecuteSexyScriptLoop(16384, e, resourceName, 0, 16_megabytes, *this);
+			ExecuteSexyScriptLoop(16384, e, resourceName, 0, (int32) 16_megabytes, *this);
 		}
 
 		virtual void SyncWithModifiedFiles()

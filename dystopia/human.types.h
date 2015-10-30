@@ -4,8 +4,8 @@ namespace Dystopia
 {
 	struct RangedWeapon
 	{
-		float flightTime;
-		float muzzleVelocity;
+		Seconds flightTime;
+		MetresPerSecond muzzleVelocity;
 	};
 
 	enum ITEM_TYPE
@@ -15,14 +15,15 @@ namespace Dystopia
 
 	struct IItem
 	{
-		virtual ITEM_TYPE Type() const = 0;
+		virtual ID_BITMAP BitmapId() const = 0;
 		virtual void Free() = 0;
-		virtual const wchar_t* Name() const = 0;
 		virtual RangedWeapon* GetRangedWeaponData() = 0;
 		virtual IInventory* GetContents() = 0;
+		virtual const wchar_t* Name() const = 0;
+		virtual ITEM_TYPE Type() const = 0;
 	};
 
-	IItem* CreateRangedWeapon(const RangedWeapon& data, const wchar_t* name);
+	IItem* CreateRangedWeapon(const RangedWeapon& data, const wchar_t* name, ID_BITMAP bitmapId);
 	
 	struct TableSpan
 	{
@@ -47,6 +48,7 @@ namespace Dystopia
 		virtual IItem* GetItem(uint32 index) = 0;
 		virtual TableSpan Span() const = 0;
 		virtual IItem* Swap(uint32 index, IItem* item) = 0;
+		virtual uint32 GetCursorIndex() const = 0;
 		virtual bool TryGetFirstFreeSlot(uint32& index) = 0;
 	};
 
@@ -55,7 +57,7 @@ namespace Dystopia
 		virtual void Free() = 0;
 	};
 
-	IInventorySupervisor* CreateInventory(TableSpan capacity);
+	IInventorySupervisor* CreateInventory(TableSpan capacity, bool hasCursorSlot);
 
 	enum HumanType : int32
 	{

@@ -72,6 +72,11 @@ namespace
 			return Relay_None;
 		}
 
+		virtual void OnTop()
+		{
+
+		}
+
 		virtual void RenderObjects(IRenderContext& rc)
 		{
 		}

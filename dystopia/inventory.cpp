@@ -23,6 +23,7 @@ namespace
 	{
 		RangedWeapon data;
 		std::wstring name;
+		ID_BITMAP bitmapId;
 
 		virtual ITEM_TYPE Type() const 
 		{ 
@@ -48,6 +49,11 @@ namespace
 		{
 			return nullptr;
 		}
+
+		virtual ID_BITMAP BitmapId() const
+		{
+			return bitmapId;
+		}
 	};
 
 	class Inventory : public IInventorySupervisor
@@ -57,7 +63,7 @@ namespace
 	public:
 		virtual void Free() { delete this; }
 
-		Inventory(TableSpan _span): span(_span), items(_span.rows * _span.columns)
+		Inventory(TableSpan _span, bool hasCursorSlot): span(_span), items((_span.rows * _span.columns) + (hasCursorSlot ? 1 : 0))
 		{
 		}
 
@@ -78,11 +84,16 @@ namespace
 			}
 		}
 
+		virtual uint32 GetCursorIndex() const
+		{
+			return span.rows * span.columns;
+		}
+
 		virtual IItem* Swap(uint32 index, IItem* item)
 		{
 			if (index >= items.size())
 			{
-				Throw(0, L"Bad inventory index");
+				return item; // In case an item cannot be swapped, it is returned
 			}
 
 			auto old = items[index].item;
@@ -154,16 +165,17 @@ namespace Dystopia
 {
 	using namespace Rococo;
 
-	IInventorySupervisor* CreateInventory(TableSpan span)
+	IInventorySupervisor* CreateInventory(TableSpan span, bool hasCursorSlot)
 	{
-		return new Inventory(span);
+		return new Inventory(span, hasCursorSlot);
 	}
 
-	IItem* CreateRangedWeapon(const RangedWeapon& data, const wchar_t* name)
+	IItem* CreateRangedWeapon(const RangedWeapon& data, const wchar_t* name, ID_BITMAP bitmapId)
 	{
 		auto* item = new RangedWeaponItem();
 		item->data = data;
 		item->name = name;
+		item->bitmapId = bitmapId;
 		return item;
 	}
 }

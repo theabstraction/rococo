@@ -52,7 +52,7 @@ namespace
 		}
 	}
 
-	auto RenderBoxMatrix(IGuiRenderContext& gc, int rows, int columns, Vec2i cellSpan, Vec2i topLeft, Vec2i cellBorders, IInventory& inv) -> int // inventory index
+	auto RenderInventory(IGuiRenderContext& gc, int rows, int columns, Vec2i cellSpan, Vec2i topLeft, Vec2i cellBorders, IInventory& inv, IBitmapCache& bitmaps) -> int // inventory index
 	{
 		struct : IEventCallback<MainRectEvent>, IEventCallback<ItemRectEvent>
 		{
@@ -61,6 +61,7 @@ namespace
 			IInventory* inv;
 			GuiRect mainRect;
 			int selectedIndex;
+			IBitmapCache* bitmaps;
 
 			virtual void OnEvent(ItemRectEvent& re)
 			{
@@ -79,9 +80,8 @@ namespace
 				auto* item = inv->GetItem(re.inventoryIndex);
 				if (item != nullptr)
 				{
-					Vec2i p = Centre(re.renderRect);
-					GuiRect highlight(p.x - 4, p.y - 4, p.x + 4, p.y + 4);
-					Graphics::DrawRectangle(*gc, highlight, RGBAb(255, 0, 0), RGBAb(255, 255, 0));
+					ID_BITMAP bitmapId = item->BitmapId();
+					bitmaps->DrawBitmap(*gc, re.renderRect, bitmapId);
 				}
 			}
 
@@ -102,6 +102,7 @@ namespace
 		renderBox.gc = &gc;
 		renderBox.inv = &inv;
 		renderBox.selectedIndex = -1;
+		renderBox.bitmaps = &bitmaps;
 
 		GuiMetrics gm;
 		gc.Renderer().GetGuiMetrics(gm);
@@ -247,26 +248,60 @@ namespace
 		{
 			switch (map.type)
 			{
-			case ActionMapTypeInventory:
-				e.bitmapCache.SetCursorBitmap(0, Vec2i{ 0,0 });
-				if (map.isActive) e.uiStack.PopTop();
-				activeIcon = CONTROL_ICON_NONE;
+			case ActionMapTypeInventory:	
+				if (map.isActive)
+				{
+					e.uiStack.PopTop();
+					e.bitmapCache.SetCursorBitmap(0, Vec2i{ 0,0 });
+					activeIcon = CONTROL_ICON_NONE;
+				}
 				break;
 			case ActionMapTypeSelect:
 				if (map.isActive)
 				{
+					auto* inv = e.level.GetInventory(e.level.GetPlayerId());
+					if (!inv) break;
+
 					if (lastSelectedIcon != nullptr)
 					{
 						activeIcon = lastSelectedIcon->id;
-						OnIconSelected(*lastSelectedIcon);
-					}
 
-					if (activeIcon == CONTROL_ICON_EXAMINE)
-					{
-						if (lastInventoryIndex >= 0)
+						if (activeIcon == CONTROL_ICON_EXAMINE)
 						{
-							VerbExamine examine{ e.level.GetPlayerId(), lastInventoryIndex };
-							e.postbox.PostForLater(examine, false);
+							auto* item = inv->GetItem(inv->GetCursorIndex());
+							if (item)
+							{
+								VerbExamine examine{ e.level.GetPlayerId(), inv->GetCursorIndex() };
+								e.postbox.PostForLater(examine, false);
+							}
+						}
+					}
+					else if (lastInventoryIndex >= 0)
+					{
+						auto* item = inv->GetItem(lastInventoryIndex);
+						if (item)
+						{
+							e.bitmapCache.SetCursorBitmap(item->BitmapId(), Vec2i{ -32, -28 });
+							auto* oldCursorItem = inv->Swap(inv->GetCursorIndex(), item);
+							inv->Swap(lastInventoryIndex, oldCursorItem);
+						}
+						else
+						{
+							e.bitmapCache.SetCursorBitmap(0, Vec2i{ 0,0 });
+							auto* oldCursorItem = inv->Swap(inv->GetCursorIndex(), nullptr);
+							inv->Swap(lastInventoryIndex, oldCursorItem);
+						}
+					}
+					else
+					{
+						auto* item = inv->GetItem(inv->GetCursorIndex());
+						if (item)
+						{
+							GuiMetrics metrics;
+							e.renderer.GetGuiMetrics(metrics);
+							VerbDropAtCursor drop{ e.level.GetPlayerId(), inv->GetCursorIndex(), metrics.cursorPosition };
+							e.postbox.PostForLater(drop, false);
+							e.bitmapCache.SetCursorBitmap(0, { 0,0 });
 						}
 					}
 				}
@@ -286,6 +321,19 @@ namespace
 			return Relay_None;
 		}
 
+		virtual void OnTop()
+		{
+			auto* inv = e.level.GetInventory(e.level.GetPlayerId());
+			if (inv)
+			{
+				auto* item = inv->GetItem(inv->GetCursorIndex());
+				if (item)
+				{
+					e.bitmapCache.SetCursorBitmap(item->BitmapId(), Vec2i{ -32, -28 });
+				}
+			}
+		}
+
 		virtual void RenderObjects(IRenderContext& rc)
 		{
 		}
@@ -300,7 +348,7 @@ namespace
 				Vec2i topLeft{ 164, 10 };
 
 				lastSelectedIcon = RenderControlIcons(gc, span.rows, 2, Vec2i{ 64, 56 }, Vec2i { 10, 10 }, Vec2i{ 5, 4 }, icons, e.bitmapCache);
-				lastInventoryIndex = RenderBoxMatrix(gc, span.rows, span.columns, Vec2i{ 64, 56 }, topLeft, Vec2i{ 5, 4 }, *inv);
+				lastInventoryIndex = RenderInventory(gc, span.rows, span.columns, Vec2i{ 64, 56 }, topLeft, Vec2i{ 5, 4 }, *inv, e.bitmapCache);
 			}
 			else
 			{
