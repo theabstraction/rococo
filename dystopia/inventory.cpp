@@ -60,16 +60,24 @@ namespace
 	{
 		std::vector<InventoryItemSlot> items;
 		TableSpan span;
+		bool hasPaperDoll;
 	public:
 		virtual void Free() { delete this; }
 
-		Inventory(TableSpan _span, bool hasCursorSlot): span(_span), items((_span.rows * _span.columns) + (hasCursorSlot ? 1 : 0))
+		Inventory(TableSpan _span, bool hasCursorSlot, bool _hasPaperDoll): 
+			span(_span), items((_span.rows * _span.columns) + (hasCursorSlot ? 1 : 0) + (_hasPaperDoll ? PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO : 0)),
+			hasPaperDoll(_hasPaperDoll)
 		{
 		}
 
 		~Inventory()
 		{
 			DeleteContents();
+		}
+
+		bool HasPaperDoll() const
+		{
+			return hasPaperDoll;
 		}
 
 		virtual void DeleteContents()
@@ -86,7 +94,7 @@ namespace
 
 		virtual uint32 GetCursorIndex() const
 		{
-			return span.rows * span.columns;
+			return (uint32) items.size() - 1;
 		}
 
 		virtual IItem* Swap(uint32 index, IItem* item)
@@ -165,9 +173,9 @@ namespace Dystopia
 {
 	using namespace Rococo;
 
-	IInventorySupervisor* CreateInventory(TableSpan span, bool hasCursorSlot)
+	IInventorySupervisor* CreateInventory(TableSpan span, bool hasCursorSlot, bool hasPaperDoll)
 	{
-		return new Inventory(span, hasCursorSlot);
+		return new Inventory(span, hasCursorSlot, hasPaperDoll);
 	}
 
 	IItem* CreateRangedWeapon(const RangedWeapon& data, const wchar_t* name, ID_BITMAP bitmapId)

@@ -237,6 +237,7 @@ namespace Rococo
 		uint8 blue;
 		uint8 alpha;
 
+		RGBAb() {}
 		RGBAb(uint32 x) { RGBAb* pCol = (RGBAb*)&x; *this = *pCol; }
 		RGBAb(uint8 _red, uint8 _green, uint8 _blue, uint8 _alpha = 255) : red(_red), green(_green), blue(_blue), alpha(_alpha) {}
 	};

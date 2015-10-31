@@ -42,6 +42,18 @@ namespace Dystopia
 		virtual Enumerate OnItem(IItem* item, uint32 slot) = 0;
 	};
 
+	enum PAPER_DOLL_SLOT
+	{
+		PAPER_DOLL_SLOT_LEFT_HAND = 0, // left from the front view of the paper doll!
+		PAPER_DOLL_SLOT_RIGHT_HAND,
+		PAPER_DOLL_SLOT_FEET,
+		PAPER_DOLL_SLOT_UNDERWEAR,
+		PAPER_DOLL_SLOT_TROUSERS,
+		PAPER_DOLL_SLOT_CHEST,
+		PAPER_DOLL_SLOT_HELMET,
+		PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO // this is always the last enumerated slot
+	};
+
 	ROCOCOAPI IInventory
 	{
 		virtual uint32 EnumerateItems(IItemEnumerator* cb) const = 0;
@@ -50,6 +62,7 @@ namespace Dystopia
 		virtual IItem* Swap(uint32 index, IItem* item) = 0;
 		virtual uint32 GetCursorIndex() const = 0;
 		virtual bool TryGetFirstFreeSlot(uint32& index) = 0;
+		virtual bool HasPaperDoll() const = 0;
 	};
 
 	ROCOCOAPI IInventorySupervisor : public IInventory
@@ -57,7 +70,7 @@ namespace Dystopia
 		virtual void Free() = 0;
 	};
 
-	IInventorySupervisor* CreateInventory(TableSpan capacity, bool hasCursorSlot);
+	IInventorySupervisor* CreateInventory(TableSpan capacity, bool hasCursorSlot, bool hasPaperDoll);
 
 	enum HumanType : int32
 	{
