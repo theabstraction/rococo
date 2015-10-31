@@ -26,7 +26,8 @@ namespace
 	const Vec2i borderSpan{ 1,1 };
 	const Vec2i slotDimensions{ 64, 56 };
 	const Vec2i slotHotSpotOffset{ -32, -28 };
-
+	const Vec2i cellBorders{ 5, 4 };
+	enum { FOREIGN_INV_FLAG = 0x40000000, CONTAINER_INV_FLAG = 0x20000000 };
 	struct ItemRectEvent
 	{
 		GuiRect renderRect;
@@ -37,6 +38,31 @@ namespace
 	{
 		GuiRect renderRect;
 	};
+
+	void DrawItemBitmap(IItem* item, GuiRect& rect, IGuiRenderContext& rc, IBitmapCache& b)
+	{
+		if (!item) return;
+
+		b.DrawBitmap(rc, rect, item->Data().bitmapId);
+
+		auto* ammo = item->GetAmmo();
+		if (ammo)
+		{
+			wchar_t scount[8];
+			SafeFormat(scount, _TRUNCATE, L"%u", ammo->count);
+			
+			Graphics::StackSpaceGraphics ss;
+			{
+				auto& shadowjob = Graphics::CreateHorizontalCentredText(ss, 7, scount, RGBAb(0, 0, 0));
+				rc.RenderText(TopLeft(rect) - Vec2i{ 1,1 }, shadowjob);
+			}
+			
+			{
+				auto& job = Graphics::CreateHorizontalCentredText(ss, 7, scount, RGBAb(255, 255, 255));
+				rc.RenderText(TopLeft(rect), job);
+			}
+		}
+	}
 
 	void ComputeBoxMatrixGeometry(uint32 startIndex, int rows, int columns, 
 		Vec2i cellSpan, Vec2i topLeft, Vec2i cellBorders, IEventCallback<ItemRectEvent>& cbItem, IEventCallback<MainRectEvent>& cbMain)
@@ -62,7 +88,7 @@ namespace
 		}
 	}
 
-	auto RenderBackpack(uint32 startIndex, IGuiRenderContext& gc, int rows, int columns, Vec2i cellSpan, Vec2i topLeft, Vec2i cellBorders, IInventory& inv, IBitmapCache& bitmaps, bool& isGuiUnderSlot) -> int // inventory index
+	auto RenderContainer(uint32 startIndex, IGuiRenderContext& gc, int rows, int columns, Vec2i cellSpan, Vec2i topLeft, Vec2i cellBorders, IInventory& inv, IBitmapCache& bitmaps, bool& isGuiUnderSlot) -> int // inventory index
 	{
 		struct : IEventCallback<MainRectEvent>, IEventCallback<ItemRectEvent>
 		{
@@ -91,8 +117,7 @@ namespace
 				auto* item = inv->GetItem(re.inventoryIndex);
 				if (item != nullptr)
 				{
-					ID_BITMAP bitmapId = item->BitmapId();
-					bitmaps->DrawBitmap(*gc, re.renderRect, bitmapId);
+					DrawItemBitmap(item, re.renderRect, *gc, *bitmaps);
 				}
 			}
 
@@ -135,7 +160,8 @@ namespace
 	enum CONTROL_ICON
 	{
 		CONTROL_ICON_NONE,
-		CONTROL_ICON_EXAMINE
+		CONTROL_ICON_EXAMINE,
+		CONTROL_ICON_OPEN
 	};
 
 	struct ControlIcon
@@ -271,7 +297,7 @@ namespace
 		gc.Renderer().GetGuiMetrics(metrics);
 
 		auto* cursorItem = inv.GetItem(inv.GetCursorIndex());
-		PAPER_DOLL_SLOT itemSlot = cursorItem ? cursorItem->DollSlot() : PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO;
+		PAPER_DOLL_SLOT itemSlot = cursorItem ? cursorItem->Data().slot : PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO;
 		int slotIndex = -1;
 
 		for (auto& i : items)
@@ -301,8 +327,7 @@ namespace
 					auto* item = inv.GetItem(i.slotIndex);
 					if (item != nullptr)
 					{
-						ID_BITMAP bitmapId = item->BitmapId();
-						bitmaps.DrawBitmap(gc, targetRect, bitmapId);
+						DrawItemBitmap(item, targetRect, gc, bitmaps);
 					}
 
 					if (isHighlighted)
@@ -389,7 +414,7 @@ namespace
 		AddInventorySlotDefault(doll, PAPER_DOLL_SLOT_HELMET, MakeSlotRect({ 128,4 }));
 	}
 
-	class InventoryPane : public IUIPaneSupervisor, public IEventCallback<ActionMap>
+	class InventoryPane : public IUIPaneSupervisor, public IEventCallback<ActionMap>, public Post::IRecipient
 	{
 		Environment& e;
 
@@ -402,20 +427,37 @@ namespace
 		InventoryList paperDoll;
 
 		bool isCursorUnderGui;
+
+		ID_ENTITY foreignContainerId;
+		int32 containerSlotIndex;
+
+		bool isBackpackVisible;
 	public:
 		InventoryPane(Environment& _e) :
-			e(_e), activeIcon(CONTROL_ICON_NONE), isCursorUnderGui(false)
+			e(_e), activeIcon(CONTROL_ICON_NONE), isCursorUnderGui(false) , containerSlotIndex(-1), isBackpackVisible(false)
 		{
 			icons.push_back(
-				{
-					CONTROL_ICON_EXAMINE,
-					L"!icons/examine.up.tif",
-					L"!icons/examine.down.tif",
-					L"Examine",
-					0,
-					0,
-					slotHotSpotOffset
-				}
+			{
+				CONTROL_ICON_EXAMINE,
+				L"!icons/examine.up.tif",
+				L"!icons/examine.up.tif",
+				L"Examine",
+				0,
+				0,
+				slotHotSpotOffset
+			}
+			);
+
+			icons.push_back(
+			{
+				CONTROL_ICON_OPEN,
+				L"!icons/open.tif",
+				L"!icons/open.tif",
+				L"Open",
+				0,
+				0,
+				slotHotSpotOffset
+			}
 			);
 
 			for (auto& i : icons)
@@ -423,11 +465,27 @@ namespace
 				i.bitmapIdDown = e.bitmapCache.Cache(i.resourceName1.c_str());
 				i.bitmapIdUp = e.bitmapCache.Cache(i.resourceName2.c_str());
 			}
+
+			e.postbox.Subscribe<VerbOpenInventory>(this);
 		}
 
 		virtual void Free()
 		{
 			delete this;
+		}
+
+		virtual void OnPost(const Mail& mail)
+		{
+			auto* openInventory = Post::InterpretAs<VerbOpenInventory>(mail);
+			if (openInventory)
+			{
+				if (e.uiStack.Top().id != ID_PANE_INVENTORY_SELF)
+				{
+					e.uiStack.PushTop(ID_PANE_INVENTORY_SELF);
+				}
+
+				foreignContainerId = openInventory->containerId;
+			}
 		}
 
 		virtual Relay OnTimestep(const TimestepEvent& clock)
@@ -437,14 +495,31 @@ namespace
 
 		void OnIconSelected(const ControlIcon& icon)
 		{
-			e.bitmapCache.SetCursorBitmap(icon.bitmapIdUp, icon.hotspotOffset);
+			activeIcon = icon.id;
+
+			auto* inv = e.level.GetInventory(e.level.GetPlayerId());
+			if (!inv) return;
+
+			if (activeIcon == CONTROL_ICON_EXAMINE)
+			{
+				auto* item = inv->GetItem(inv->GetCursorIndex());
+				if (item)
+				{
+					VerbExamine examine{ e.level.GetPlayerId(), inv->GetCursorIndex() };
+					e.postbox.PostForLater(examine, false);
+				}
+			}
+			else if (activeIcon == CONTROL_ICON_OPEN)
+			{
+				isBackpackVisible = !isBackpackVisible;
+			}
 		}
 
 		virtual void OnEvent(ActionMap& map)
 		{
 			switch (map.type)
 			{
-			case ActionMapTypeInventory:	
+			case ActionMapTypeInventory:
 				if (map.isActive)
 				{
 					e.uiStack.PopTop();
@@ -460,32 +535,85 @@ namespace
 
 					if (lastSelectedIcon != nullptr)
 					{
-						activeIcon = lastSelectedIcon->id;
-
-						if (activeIcon == CONTROL_ICON_EXAMINE)
-						{
-							auto* item = inv->GetItem(inv->GetCursorIndex());
-							if (item)
-							{
-								VerbExamine examine{ e.level.GetPlayerId(), inv->GetCursorIndex() };
-								e.postbox.PostForLater(examine, false);
-							}
-						}
+						OnIconSelected(*lastSelectedIcon);
 					}
 					else if (lastInventoryIndex >= 0)
 					{
-						auto* item = inv->GetItem(lastInventoryIndex);
-						if (item)
+						if ((lastInventoryIndex & FOREIGN_INV_FLAG) == 0)
 						{
-							e.bitmapCache.SetCursorBitmap(item->BitmapId(), slotHotSpotOffset);
-							auto* oldCursorItem = inv->Swap(inv->GetCursorIndex(), item);
-							inv->Swap(lastInventoryIndex, oldCursorItem);
+							if ((lastInventoryIndex & CONTAINER_INV_FLAG) != 0)
+							{
+								auto* rightItem = inv->GetItem(PAPER_DOLL_SLOT_RIGHT_HAND);
+
+								auto* wep = rightItem->GetRangedWeaponData();
+								if (wep != nullptr)
+								{
+									auto* magazine = inv->GetItem(inv->GetCursorIndex());
+									if (magazine)
+									{
+										auto* ammo = magazine->GetAmmo();
+										if (ammo == nullptr || ammo->ammoType != wep->ammunitionIndex)
+										{
+											return; // wrong ammo
+										}
+									}
+								}
+
+								auto* container = rightItem ? rightItem->GetContents() : nullptr;
+								if (!container) return;
+
+								auto* item = container->GetItem(lastInventoryIndex & ~CONTAINER_INV_FLAG);
+								if (item)
+								{
+									e.bitmapCache.SetCursorBitmap(item->Data().bitmapId, slotHotSpotOffset);
+								}
+								else
+								{
+									e.bitmapCache.SetCursorBitmap(0, Vec2i{ 0,0 });		
+								}
+
+								auto* oldCursorItem = inv->Swap(inv->GetCursorIndex(), item);
+								container->Swap(lastInventoryIndex & ~CONTAINER_INV_FLAG, oldCursorItem);
+							}
+							else
+							{
+								auto* item = inv->GetItem(lastInventoryIndex);
+								if (item)
+								{
+									e.bitmapCache.SetCursorBitmap(item->Data().bitmapId, slotHotSpotOffset);
+								}
+								else
+								{
+									e.bitmapCache.SetCursorBitmap(0, Vec2i{ 0,0 });
+									
+								}
+								
+								auto* oldCursorItem = inv->Swap(inv->GetCursorIndex(), item);
+								inv->Swap(lastInventoryIndex, oldCursorItem);
+							}
 						}
 						else
 						{
-							e.bitmapCache.SetCursorBitmap(0, Vec2i{ 0,0 });
-							auto* oldCursorItem = inv->Swap(inv->GetCursorIndex(), nullptr);
-							inv->Swap(lastInventoryIndex, oldCursorItem);
+							auto* foreignInv = e.level.GetInventory(foreignContainerId);
+							if (foreignInv)
+							{
+								auto* item = foreignInv->GetItem(lastInventoryIndex & ~FOREIGN_INV_FLAG);
+								if (item)
+								{
+									e.bitmapCache.SetCursorBitmap(item->Data().bitmapId, slotHotSpotOffset);
+								}
+								else
+								{
+									e.bitmapCache.SetCursorBitmap(0, Vec2i{ 0,0 });
+								}
+
+								auto* oldCursorItem = inv->Swap(inv->GetCursorIndex(), item);
+								foreignInv->Swap(lastInventoryIndex & ~FOREIGN_INV_FLAG, oldCursorItem);
+
+								VerbInventoryChanged changed;
+								changed.containerId = foreignContainerId;
+								e.postbox.PostForLater(changed, false);
+							}
 						}
 					}
 					else if (!isCursorUnderGui)
@@ -517,6 +645,11 @@ namespace
 			return Relay_None;
 		}
 
+		virtual void OnPop()
+		{
+			foreignContainerId = ID_ENTITY::Invalid();
+		}
+
 		virtual void OnTop()
 		{
 			if (paperDoll.empty())
@@ -530,7 +663,7 @@ namespace
 				auto* item = inv->GetItem(inv->GetCursorIndex());
 				if (item)
 				{
-					e.bitmapCache.SetCursorBitmap(item->BitmapId(), Vec2i{ -32, -28 });
+					e.bitmapCache.SetCursorBitmap(item->Data().bitmapId, Vec2i{ -32, -28 });
 				}
 			}
 		}
@@ -544,24 +677,79 @@ namespace
 			auto* inv = e.level.GetInventory(e.level.GetPlayerId());
 			if (inv)
 			{
-				auto span = inv->Span();
-
-				Vec2i topLeft{ 164, 10 };
-
 				isCursorUnderGui = false;
+				lastInventoryIndex = -1;
 
-				lastSelectedIcon = RenderControlIcons(gc, span.rows, 2, slotDimensions, Vec2i { 10, 10 }, Vec2i{ 5, 4 }, icons, e.bitmapCache, isCursorUnderGui);
+				int nIconCols = 1;
+				Vec2i topLeft {2, 2}; 
+				lastSelectedIcon = RenderControlIcons(gc, 4, nIconCols, slotDimensions, topLeft, cellBorders, icons, e.bitmapCache, isCursorUnderGui);
 
-				uint32 startIndex = inv->HasPaperDoll() ? PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO : 0;
-				lastInventoryIndex = RenderBackpack(startIndex, gc, span.rows, span.columns, slotDimensions, topLeft, Vec2i{ 5, 4 }, *inv, e.bitmapCache, isCursorUnderGui);
+				int32 iconWidth = nIconCols * (slotDimensions.y + cellBorders.y);
+				
+				Vec2i bptopLeft{ iconWidth + topLeft.x + 24, 2 };
+				Vec2i ammoTopLeft = isBackpackVisible ? Vec2i{ 328, 252 } : (bptopLeft + Vec2i{ 320, 0 });
+
+				if (isBackpackVisible)
+				{
+					auto span = inv->Span();
+					
+					uint32 startIndex = inv->HasPaperDoll() ? PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO : 0;
+					lastInventoryIndex = RenderContainer(startIndex, gc, span.rows, span.columns, slotDimensions, bptopLeft, cellBorders, *inv, e.bitmapCache, isCursorUnderGui);
+				}
 
 				if (inv->HasPaperDoll())
 				{
-					int32 lastDollIndex = RenderInventoryList(gc, { 740, 10 }, *inv, paperDoll, e.bitmapCache, isCursorUnderGui);
+					Vec2i topLeft = isBackpackVisible ? Vec2i { 2, 252 } : bptopLeft;
+					int32 lastDollIndex = RenderInventoryList(gc, topLeft, *inv, paperDoll, e.bitmapCache, isCursorUnderGui);
 					if (lastInventoryIndex < 0)
 					{
 						lastInventoryIndex = lastDollIndex;
 					}
+
+					auto* equippedItem = inv->GetItem(PAPER_DOLL_SLOT_RIGHT_HAND);
+					if (equippedItem)
+					{
+						auto* contents = equippedItem->GetContents();
+						if (contents)
+						{
+							auto span = contents->Span();
+
+							int32 containerHeight = span.rows * (slotDimensions.y + cellBorders.y) + 70;
+							int32 containerWidth = span.columns * (slotDimensions.x + cellBorders.x) + 14;
+
+							Graphics::DrawRectangle(gc, GuiRect(0, 0, containerWidth, containerHeight) + ammoTopLeft, opaqueBlack, opaqueBlack);
+							Graphics::DrawBorderAround(gc, GuiRect(0, 0, containerWidth, containerHeight) + ammoTopLeft, borderSpan, border1, border2);
+
+							GuiRect bitmapRect = GuiRect(0, 0, slotDimensions.x + 2, slotDimensions.y) + ammoTopLeft + Vec2i{ 2,2 };
+							e.bitmapCache.DrawBitmap(gc, bitmapRect, equippedItem->Data().bitmapId);
+							uint32 startIndex = contents->HasPaperDoll() ? PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO : 0;
+
+							Vec2i containerTopLeft{ bitmapRect.left + 2, bitmapRect.bottom + 2 };
+							int32 contentsIndex = RenderContainer(startIndex, gc, span.rows, span.columns, slotDimensions, containerTopLeft, cellBorders, *contents, e.bitmapCache, isCursorUnderGui);
+							if (contentsIndex >= 0)
+							{
+								lastInventoryIndex = contentsIndex | CONTAINER_INV_FLAG;
+							}
+						}
+					}
+				}
+
+				auto* foreignInv = e.level.GetInventory(foreignContainerId);
+				if (foreignInv)
+				{
+					uint32 foreignInvStart = foreignInv->HasPaperDoll() ? PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO : 0;
+					auto foreignSpan = foreignInv->Span();
+
+					GuiMetrics metrics;
+					e.renderer.GetGuiMetrics(metrics);
+
+					auto span = foreignInv->Span();
+					int32 containerWidth = span.columns * (slotDimensions.x + cellBorders.x) + 14;
+
+					Vec2i forTopLeft { metrics.screenSpan.x - containerWidth, 252 };
+
+					int32 foreignIndex = RenderContainer(foreignInvStart, gc, foreignSpan.rows, foreignSpan.columns, slotDimensions, forTopLeft, cellBorders, *foreignInv, e.bitmapCache, isCursorUnderGui);
+					if (foreignIndex >= 0) lastInventoryIndex = foreignIndex | FOREIGN_INV_FLAG;
 				}
 			}
 			else

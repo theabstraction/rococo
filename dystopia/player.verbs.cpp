@@ -38,14 +38,14 @@ namespace
 		std::vector<ContextMenuItem> items;
 
 		items.push_back({ L"Examine", ID_CONTEXT_COMMAND_EXAMINE, (int64)(uint64)id, true });
-
 		Vec3 itemPos;
 		e.level.GetPosition(id, itemPos);
 
 		Vec3 playerPos;
 		e.level.GetPosition(e.level.GetPlayerId(), playerPos);
 		items.push_back({ L"Pick up", ID_CONTEXT_COMMAND_PICKUP, (int64)(uint64)id, IsInRange(itemPos - playerPos, PickupRange()) });
-		items.push_back({ L"Cancel", ID_CONTEXT_COMMAND_NONE, 0, true }	);
+		items.push_back({ L"Open",    ID_CONTEXT_COMMAND_OPEN,   (int64)(uint64)id, IsInRange(itemPos - playerPos, PickupRange()) });
+		items.push_back({ L"Cancel",  ID_CONTEXT_COMMAND_NONE,   0, true }	);
 		items.push_back({ nullptr, 0, 0, true }	);
 
 		GuiMetrics metrics;
@@ -69,12 +69,74 @@ namespace Dystopia
 				{	
 					AutoFree<IStringBuilder> sb(CreateSafeStringBuilder(4096));
 
-					sb->AppendFormat(L"%s\n\n", item->Name());
+					sb->AppendFormat(L"%s\n\n", item->Data().name);
 
 					auto weapon = item->GetRangedWeaponData();
 					if (weapon)
 					{
 						*sb << *weapon;
+					}
+
+					auto armour = item->GetArmourData();
+					if (armour)
+					{
+						sb->AppendFormat(L"Armour: %u", armour->bulletProtection);
+					}
+
+					
+
+					auto ammo = item->GetAmmo();
+					if (ammo)
+					{
+						sb->AppendFormat(L"%d rounds at %0.2f grams per round\n", ammo->count, ammo->massPerBullet.value * 1000.0f);
+						if (item->Data().mass.value < 1.0)
+						{
+							sb->AppendFormat(L"\nClip weight: %2.0f grams. ", item->Data().mass.value * 1000.0f);
+						}
+						else
+						{
+							sb->AppendFormat(L"\nClip weight: %2.3f kg. ", item->Data().mass.value);
+						}
+
+						float totalMass = item->Data().mass.value + ammo->count * ammo->massPerBullet.value;
+						if (totalMass < 1.0)
+						{
+							sb->AppendFormat(L"\nTotal weight: %2.0f grams\n", totalMass * 1000.0f);
+						}
+						else
+						{
+							sb->AppendFormat(L"\nTotal weight: %2.3f kg\n", totalMass);
+						}
+					}
+					else
+					{
+						if (item->Data().mass.value < 1.0)
+						{
+							sb->AppendFormat(L"\nWeight: %2.0f grams\n", item->Data().mass.value * 1000.0f);
+						}
+						else
+						{
+							sb->AppendFormat(L"\nWeight: %2.3f kg\n", item->Data().mass.value);	
+						}
+					}
+
+					switch (item->Data().slot)
+					{
+					case PAPER_DOLL_SLOT_CHEST:
+						sb->AppendFormat(L"Note: Fits all chest measurements");
+						break;
+					case PAPER_DOLL_SLOT_FEET:
+						sb->AppendFormat(L"Note: fits feet of all sizes");
+						break;
+					case PAPER_DOLL_SLOT_HELMET:
+						sb->AppendFormat(L"Note: Headwear");
+						break;
+					case PAPER_DOLL_SLOT_TROUSERS:
+						sb->AppendFormat(L"Note: Fits all lengths of leg.");
+						break;
+					case PAPER_DOLL_SLOT_UNDERWEAR:
+						sb->AppendFormat(L"Note: Fits a waist of any girth.");
+						break;
 					}
 
 					struct : IEventCallback<GuiEventArgs>
@@ -97,6 +159,27 @@ namespace Dystopia
 				{
 					// Some kind of equipment container
 					ShowSelectOptions_Container(id, e, handler);
+				}
+			}
+		}
+
+		void OpenItem(Environment& e, ID_ENTITY itemId, ID_ENTITY collectorId, Metres maxPickupRange)
+		{
+			auto collector = e.level.GetInventory(collectorId);
+			if (collector)
+			{
+				Vec3 collectorPos;
+				e.level.GetPosition(collectorId, collectorPos);
+
+				EquipmentDesc eq;
+				if (e.level.TryGetEquipment(itemId, eq))
+				{
+					if (IsInRange(collectorPos - eq.worldPosition, maxPickupRange))
+					{
+						VerbOpenInventory open;
+						open.containerId = itemId;
+						e.postbox.SendDirect(open);
+					}
 				}
 			}
 		}

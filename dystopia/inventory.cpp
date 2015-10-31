@@ -14,20 +14,129 @@ namespace
 	{
 		IItem* item;
 
-		InventoryItemSlot(): item(nullptr)
+		InventoryItemSlot() : item(nullptr)
 		{
+		}
+	};
+
+	struct AmmoItem : public IItem
+	{
+		ItemData itemData;
+		Ammo ammo;
+		std::wstring name;
+	public:
+		AmmoItem(const Ammo& _ammo, const ItemData& _itemData) : ammo(_ammo), itemData(_itemData), name(_itemData.name)
+		{
+			itemData.name = name.c_str();
+			itemData.type = ITEM_TYPE_AMMO;
+			itemData.slot = PAPER_DOLL_SLOT_EITHER_HAND;
+		}
+
+		virtual void Free()
+		{
+			delete this;
+		}
+
+		virtual Ammo* GetAmmo()
+		{
+			return &ammo;
+		}
+
+		virtual ArmourValue* GetArmourData()
+		{
+			return nullptr;
+		}
+
+		virtual RangedWeapon* GetRangedWeaponData()
+		{
+			return nullptr;
+		}
+
+		virtual IInventory* GetContents()
+		{
+			return nullptr;
+		}
+
+		const ItemData& Data() const
+		{
+			return itemData;
+		}
+	};
+
+	struct Armour : public IItem
+	{
+		ItemData itemData;
+		ArmourValue armourValue;
+		std::wstring name;
+	public:
+		Armour(const ArmourValue& _armour, const ItemData& _itemData) : armourValue(_armour), itemData(_itemData), name(_itemData.name)
+		{
+			itemData.name = name.c_str();
+			itemData.type = ITEM_TYPE_ARMOUR;
+		}
+
+		virtual void Free()
+		{
+			delete this;
+		}	
+
+		virtual Ammo* GetAmmo()
+		{
+			return nullptr;
+		}
+		
+		virtual ArmourValue* GetArmourData()
+		{
+			return &armourValue;
+		}
+
+		virtual RangedWeapon* GetRangedWeaponData()
+		{
+			return nullptr;
+		}
+
+		virtual IInventory* GetContents()
+		{
+			return nullptr;
+		}
+
+		const ItemData& Data() const
+		{
+			return itemData;
 		}
 	};
 
 	struct RangedWeaponItem : public IItem
 	{
-		RangedWeapon data;
+		RangedWeapon rangedData;
 		std::wstring name;
-		ID_BITMAP bitmapId;
+		ItemData itemData;
+		AutoFree<IInventorySupervisor> clip;
+	public:
+		RangedWeaponItem(const RangedWeapon& _rangedData, const ItemData& _itemData) :
+			rangedData(_rangedData),
+			itemData(_itemData),
+			name(_itemData.name),
+			clip(_rangedData.ammunitionIndex > 0 ? CreateInventory({ 1,1 }, false, false) : nullptr)
+		{
+			itemData.name = name.c_str();
+			itemData.type = ITEM_TYPE_RANGED_WEAPON;
+			itemData.slot = PAPER_DOLL_SLOT_EITHER_HAND;
+		}
 
-		virtual ITEM_TYPE Type() const 
-		{ 
-			return ITEM_TYPE_RANGED_WEAPON;
+		virtual Ammo* GetAmmo()
+		{
+			return nullptr;
+		}
+
+		virtual ArmourValue* GetArmourData()
+		{
+			return nullptr;
+		}
+
+		const ItemData& Data() const
+		{
+			return itemData;
 		}
 
 		virtual void Free()
@@ -35,29 +144,14 @@ namespace
 			delete this;
 		}
 
-		virtual const wchar_t* Name() const 
-		{
-			return name.c_str();
-		}
-
 		virtual RangedWeapon* GetRangedWeaponData()
 		{
-			return &data;
+			return &rangedData;
 		}
 
 		virtual IInventory* GetContents() 
 		{
-			return nullptr;
-		}
-
-		virtual ID_BITMAP BitmapId() const
-		{
-			return bitmapId;
-		}
-
-		virtual PAPER_DOLL_SLOT DollSlot() const
-		{
-			return PAPER_DOLL_SLOT_EITHER_HAND;
+			return clip;
 		}
 	};
 
@@ -160,7 +254,8 @@ namespace
 
 		virtual bool TryGetFirstFreeSlot(uint32& index)
 		{
-			for (uint32 i = 0; i < items.size(); ++i)
+			uint32 firstIndex = hasPaperDoll ? PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO : 0;
+			for (uint32 i = firstIndex; i < items.size(); ++i)
 			{
 				if (items[i].item == nullptr)
 				{
@@ -183,12 +278,21 @@ namespace Dystopia
 		return new Inventory(span, hasCursorSlot, hasPaperDoll);
 	}
 
-	IItem* CreateRangedWeapon(const RangedWeapon& data, const wchar_t* name, ID_BITMAP bitmapId)
+	IItem* CreateRangedWeapon(const RangedWeapon& rangedData, const ItemData& itemData)
 	{
-		auto* item = new RangedWeaponItem();
-		item->data = data;
-		item->name = name;
-		item->bitmapId = bitmapId;
+		auto* item = new RangedWeaponItem(rangedData, itemData);
+		return item;
+	}
+
+	IItem* CreateAmmo(const Ammo& ammo, const ItemData& itemData)
+	{
+		auto* item = new AmmoItem(ammo, itemData);
+		return item;
+	}
+
+	IItem* CreateArmour(const ArmourValue& armour, const ItemData& itemData)
+	{
+		auto* item = new Armour(armour, itemData);
 		return item;
 	}
 }

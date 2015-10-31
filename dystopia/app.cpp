@@ -18,6 +18,7 @@ namespace Dystopia
 	namespace Verb
 	{
 		void Examine(const VerbExamine& target, Environment& e);
+		void OpenItem(Environment& e, ID_ENTITY itemId, ID_ENTITY collectorId, Metres maxPickupRange);
 		void PickupItem(Environment& e, ID_ENTITY itemId, ID_ENTITY collectorId, Metres maxPickupRange);
 		void ShowSelectOptions(ID_ENTITY id, Environment& e, IEventCallback<ContextMenuItem>& handler);
 	}
@@ -68,6 +69,7 @@ namespace
 		{
 			uiStack->SetFactory(*this);
 			gui->SetEventHandler(this);
+			level->OnCreated();
 		}
 		
 		~DystopiaApp()
@@ -81,7 +83,7 @@ namespace
 			case HumanType_Bobby:
 				return CreateBobby(id, inventory, *level);
 			case HumanType_Vigilante:
-				return CreateVigilante(id, *isometricGameWorldView->PlayerIntent(), *level);
+				return CreateVigilante(id, *isometricGameWorldView->PlayerIntent(), e);
 			}
 			return nullptr;
 		}
@@ -127,6 +129,9 @@ namespace
 				break;
 			case ID_CONTEXT_COMMAND_PICKUP:
 				Verb::PickupItem(e, id, level->GetPlayerId(), PickupRange());
+				break;
+			case ID_CONTEXT_COMMAND_OPEN:
+				Verb::OpenItem(e, id, level->GetPlayerId(), PickupRange());
 			default:
 				break;
 			}

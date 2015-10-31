@@ -157,6 +157,17 @@ namespace Rococo
 		virtual void OnEvent(const wchar_t* arg) = 0;
 	};
 
+	struct Kilograms
+	{
+		float value;
+		operator float() const { return value; }
+	};
+
+	inline Kilograms operator "" _kg(long double value)
+	{
+		return Kilograms{ (float)value };
+	}
+
 	struct Metres
 	{
 		float value;
@@ -324,6 +335,8 @@ namespace Rococo
 	{
 		const wchar_t* buffer;
 		const int32 length;
+
+		operator const wchar_t*() const { return buffer; }
 	};
 
 	fstring to_fstring(const wchar_t* const msg);

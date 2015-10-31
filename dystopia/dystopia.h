@@ -123,6 +123,7 @@ namespace Dystopia
 	ROCOCOAPI ILevelSupervisor: public ILevel
 	{
 		virtual void Free() = 0;
+		virtual void OnCreated() = 0;
 	};
 
 	ROCOCOAPI ILevelLoader

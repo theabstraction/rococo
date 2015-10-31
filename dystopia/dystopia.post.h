@@ -30,6 +30,16 @@ namespace Dystopia
 		uint32 inventoryIndex;
 		Vec2i cursorPosition;
 	};
+
+	struct VerbOpenInventory
+	{
+		ID_ENTITY containerId;
+	};
+
+	struct VerbInventoryChanged
+	{
+		ID_ENTITY containerId;
+	};
 #pragma pack(pop)
 }
 
@@ -49,7 +59,9 @@ namespace Rococo
 			POST_TYPE_EXAMINE,
 			POST_TYPE_SELECT_ITEM_ON_GROUND,
 			POST_TYPE_HINT_3D,
-			POST_TYPE_DROP_AT_CURSOR
+			POST_TYPE_DROP_AT_CURSOR,
+			POST_TYPE_OPEN_CONTAINER,
+			POST_TYPE_INVENTORY_UPDATED
 		};
 
 		template<> inline POST_TYPE GetPostType<MouseEvent>() { return POST_TYPE_MOUSE_EVENT; }
@@ -60,6 +72,8 @@ namespace Rococo
 		template<> inline POST_TYPE GetPostType<SelectItemOnGround>() { return POST_TYPE_SELECT_ITEM_ON_GROUND; }
 		template<> inline POST_TYPE GetPostType<HintMessage3D>() { return POST_TYPE_HINT_3D; }
 		template<> inline POST_TYPE GetPostType<VerbDropAtCursor>() { return POST_TYPE_DROP_AT_CURSOR; }
+		template<> inline POST_TYPE GetPostType<VerbOpenInventory>() { return POST_TYPE_OPEN_CONTAINER; }
+		template<> inline POST_TYPE GetPostType<VerbInventoryChanged>() { return POST_TYPE_INVENTORY_UPDATED; }
 	}
 }
 

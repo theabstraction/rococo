@@ -1235,10 +1235,18 @@ namespace
 			Rococo::Free(window); // top level windows created with CreateDialogWindow have to be manually freed
 		}
 
+		void OnGetMinMaxInfo(HWND hWnd, MINMAXINFO& info)
+		{
+			enum { DEFAULT_MIN_WIDTH = 1024, DEFAULT_MIN_HEIGHT = 640 };
+
+			info.ptMinTrackSize.x = DEFAULT_MIN_WIDTH;
+			info.ptMinTrackSize.y = DEFAULT_MIN_HEIGHT;
+		}
+
 		void PostConstruct()
 		{
 			WindowConfig config;
-			SetOverlappedWindowConfig(config, Vec2i{ 800, 600 }, SW_SHOWMAXIMIZED, nullptr, L"DX11 64-bit Rococo API Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0);
+			SetOverlappedWindowConfig(config, Vec2i{ 1024, 640 }, SW_SHOWMAXIMIZED, nullptr, L"DX11 64-bit Rococo API Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0);
 			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
 			eventHandler.BindMainWindow(*window);
 

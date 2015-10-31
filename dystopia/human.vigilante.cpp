@@ -1,6 +1,8 @@
 #include "dystopia.h"
 #include "human.types.h"
 #include "rococo.maths.h"
+#include "dystopia.post.h"
+#include <wchar.h>
 
 using namespace Dystopia;
 using namespace Rococo;
@@ -13,6 +15,7 @@ namespace
 		Vec3 velocity;
 		IIntent& intent;
 		ILevel& level;
+		Post::IPostbox& postbox;
 		float lastFireTime;
 		Stat stats[StatIndex_Count];
 
@@ -61,15 +64,51 @@ namespace
 							float dz = 10.0f / ranged->muzzleVelocity;
 							Vec3 dir{ 0, 1, dz };
 							ProjectileDef def = { id, pos, dir * ranged->muzzleVelocity, ranged->flightTime, 0 };
-							level.AddProjectile(def, lastFireTime);
+
+							if (ranged->ammunitionIndex)
+							{
+								auto* magazineCache = item->GetContents();
+								if (magazineCache)
+								{
+									auto* magazine = magazineCache->GetItem(0);
+									if (magazine)
+									{
+										auto* ammo = magazine->GetAmmo();
+										if (ammo)
+										{
+											if (ammo->count > 0)
+											{
+												ammo->count--;
+												level.AddProjectile(def, lastFireTime);
+
+												if (ammo->count == 0)
+												{
+													auto* detachedAmmo = magazineCache->Swap(0, nullptr);
+													detachedAmmo->Free();
+
+													HintMessage3D hint;
+													hint.duration = 2.5_seconds;
+													level.GetPosition(level.GetPlayerId(), hint.position);
+													SafeFormat(hint.message, _TRUNCATE, L"clip empty!");
+													postbox.PostForLater(hint, true);
+												}
+											}
+										}
+									}
+								}
+							}
+							else
+							{
+								level.AddProjectile(def, lastFireTime);
+							}
 						}
 					}
 				}
 			}
 		}
 	public:
-		HumanVigilante(ID_ENTITY _id, IIntent& _intent, ILevel& _level) :
-			id(_id), velocity{ 0, 0, 0 }, intent(_intent), level(_level), lastFireTime(0)
+		HumanVigilante(ID_ENTITY _id, IIntent& _intent, ILevel& _level, Post::IPostbox& _postbox) :
+			id(_id), velocity{ 0, 0, 0 }, intent(_intent), level(_level), lastFireTime(0), postbox(_postbox)
 		{
 			for (int i = 0; i < StatIndex_Count; ++i)
 			{
@@ -110,8 +149,8 @@ namespace
 
 namespace Dystopia
 {
-	IHumanAISupervisor* CreateVigilante(ID_ENTITY id, IIntent& intent, ILevel& level)
+	IHumanAISupervisor* CreateVigilante(ID_ENTITY id, IIntent& intent, Environment& e)
 	{
-		return new HumanVigilante(id, intent, level);
+		return new HumanVigilante(id, intent, e.level, e.postbox);
 	}
 }

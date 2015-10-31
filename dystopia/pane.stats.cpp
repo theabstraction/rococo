@@ -104,6 +104,11 @@ namespace
 			return Relay_Next;
 		}
 
+		virtual void OnPop()
+		{
+
+		}
+
 		virtual void OnTop()
 		{
 

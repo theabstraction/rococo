@@ -18,6 +18,8 @@
 
 #include "human.types.h"
 
+#include "dystopia.post.h"
+
 using namespace Dystopia;
 using namespace Rococo;
 
@@ -101,7 +103,7 @@ namespace
 		IInventorySupervisor* inventory;
 	};
 
-	class Level : public ILevelSupervisor, public ILevelBuilder
+	class Level : public ILevelSupervisor, public ILevelBuilder, public Post::IRecipient
 	{
 		Environment& e; // not valid until constructor returns
 		IHumanFactory& hf;
@@ -114,7 +116,15 @@ namespace
 		Vec3 groundZeroCursor;
 		ID_ENTITY selectedId;
 	public:
-		Level(Environment& _e, IHumanFactory& _hf) : e(_e), hf(_hf), groundZeroCursor{ 0,0,0 } {}
+		Level(Environment& _e, IHumanFactory& _hf) : e(_e), hf(_hf), groundZeroCursor{ 0,0,0 }
+		{
+			
+		}
+
+		virtual void OnCreated()
+		{
+			e.postbox.Subscribe<VerbInventoryChanged>(this);
+		}
 
 		~Level()
 		{
@@ -140,11 +150,52 @@ namespace
 
 		virtual void Free() { delete this; }
 
-		virtual ID_ENTITY AddRangedWeapon(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, const fstring& resourceName, float muzzleVelocity, float flightTime)
+		virtual ID_ENTITY AddAmmunition(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, const fstring& imageFile, int32 ammoType, float massPerBullet, float massPerClip, int32 count)
 		{
 			auto id = AddSolid(transform, editorId);
 			auto inv = CreateInventory({ 1,1 }, false, false);
-			inv->Swap(0, CreateRangedWeapon({ flightTime, muzzleVelocity }, name.buffer, e.bitmapCache.Cache(resourceName.buffer)));
+			ItemData itemData;
+			itemData.name = name;
+			itemData.mass = Kilograms{ massPerClip };
+			itemData.bitmapId = e.bitmapCache.Cache(imageFile);
+			inv->Swap(0, CreateAmmo({ massPerBullet, ammoType, count }, itemData));
+			equipment.insert(id, Equipment{ inv });
+			return id;
+		}
+
+		virtual ID_ENTITY AddRangedWeapon(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, const fstring& imageName, float muzzleVelocity, float flightTime, int32 ammoType, float mass)
+		{
+			auto id = AddSolid(transform, editorId);
+			auto inv = CreateInventory({ 1,1 }, false, false);
+			ItemData itemData;
+			itemData.name = name;
+			itemData.mass = Kilograms{ mass };
+			itemData.bitmapId = e.bitmapCache.Cache(imageName);
+			inv->Swap(0, CreateRangedWeapon({ flightTime, muzzleVelocity, ammoType }, itemData ));
+			equipment.insert(id, Equipment{ inv });
+			return id;
+		}
+
+		virtual ID_ENTITY AddArmour(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, const fstring& imageFile, int32 bulletProt, int32 dollSlot, float massKg)
+		{
+			if (dollSlot < 0 || dollSlot >= PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO)
+			{
+				Throw(0, L"Could not add armour: %s. dollslot was %d. 0...%d", name.buffer, dollSlot, PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO-1);
+			}
+
+			if (bulletProt < 0)
+			{
+				Throw(0, L"Could not add armour: %s. bulletProt was -ve", name.buffer, dollSlot, PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO - 1);
+			}
+
+			auto id = AddSolid(transform, editorId);
+			auto inv = CreateInventory({ 1,1 }, false, false);
+			ItemData itemData;
+			itemData.name = name;
+			itemData.mass = Kilograms{ massKg };
+			itemData.bitmapId = e.bitmapCache.Cache(imageFile);
+			itemData.slot = (PAPER_DOLL_SLOT) dollSlot;
+			inv->Swap(0, CreateArmour(ArmourValue {(uint32) bulletProt}, itemData));
 			equipment.insert(id, Equipment{ inv });
 			return id;
 		}
@@ -187,9 +238,13 @@ namespace
 		virtual ID_ENTITY AddAlly(const Matrix4x4& transform, ID_MESH meshId)
 		{
 			ID_ENTITY id = AddSolid(transform, meshId);
-			auto* inv = CreateInventory({ 5, 8 }, true, true);
+			auto* inv = CreateInventory({ 4, 10 }, true, true);
 			auto h = new Human { HumanType_Vigilante, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Vigilante ) };
-			h->inventory->Swap(0, CreateRangedWeapon({ 2.5_seconds, 10.0_mps }, L"Bag of stones", e.bitmapCache.Cache(L"!inventory/bagofstones.tif")));
+			ItemData data;
+			data.name = L"Bag of stones";
+			data.bitmapId = e.bitmapCache.Cache(L"!inventory/bagofstones.tif");
+			data.mass = 5.0_kg;
+			h->inventory->Swap(0, CreateRangedWeapon({ 2.5_seconds, 10.0_mps, 0 }, data));
 			allies.insert(id, h);
 			return id;
 		}
@@ -199,7 +254,11 @@ namespace
 			ID_ENTITY id = AddSolid(transform, meshId);
 			auto* inv = CreateInventory({ 3,4 }, true, true);
 			auto h = new Human{ HumanType_Bobby, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Bobby) };
-			h->inventory->Swap(0, CreateRangedWeapon({ 2.5_seconds, 10.0_mps }, L"Bag of stones", e.bitmapCache.Cache(L"!inventory/bagofstones.tif")));
+			ItemData data;
+			data.name = L"Bag of stones";
+			data.bitmapId = e.bitmapCache.Cache(L"!inventory/bagofstones.tif");
+			data.mass = 5.0_kg;
+			h->inventory->Swap(0, CreateRangedWeapon({ 2.5_seconds, 10.0_mps, 0 }, data));
 			enemies.insert(id, h);
 			return id;
 		}
@@ -227,7 +286,7 @@ namespace
 
 			Matrix4x4 stashLoc = Matrix4x4::Translate(location + Vec3{ 0,0,0.1f });
 			Matrix4x4 scale = Matrix4x4::Scale(0.37f, 0.37f, 0.37f);
-			Solid solid{ stashLoc * scale,{ 0,0,0,0 }, sysId, 1.0f, item->BitmapId()  };
+			Solid solid{ stashLoc * scale,{ 0,0,0,0 }, sysId, 1.0f, item->Data().bitmapId  };
 			solids.insert(id, solid);
 			return id;
 		}
@@ -246,6 +305,22 @@ namespace
 
 			auto& h = *i->second;
 			return{ h.type, h.inventory, h.ai };
+		}
+
+		virtual void OnPost(const Mail& mail)
+		{
+			auto* change = Post::InterpretAs<VerbInventoryChanged>(mail);
+			if (change)
+			{
+				EquipmentDesc eq;
+				if (TryGetEquipment(change->containerId, eq))
+				{
+					if (eq.inventory->EnumerateItems(nullptr) == 0)
+					{
+						DeleteEquipment(change->containerId);
+					}
+				}
+			}
 		}
 
 		virtual void SetGroundCursorPosition(cr_vec3 groundZero)

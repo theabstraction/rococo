@@ -6,43 +6,69 @@ namespace Dystopia
 	{
 		Seconds flightTime;
 		MetresPerSecond muzzleVelocity;
+		int32 ammunitionIndex; // 0 => weapon does not use ammunition
 	};
 
 	enum ITEM_TYPE
 	{
-		ITEM_TYPE_RANGED_WEAPON
+		ITEM_TYPE_MISC = 0,
+		ITEM_TYPE_RANGED_WEAPON,
+		ITEM_TYPE_ARMOUR,
+		ITEM_TYPE_AMMO
 	};
 
 	enum PAPER_DOLL_SLOT
 	{
 		PAPER_DOLL_SLOT_EITHER_HAND = 0,
 		PAPER_DOLL_SLOT_LEFT_HAND = 0, // left from the front view of the paper doll!
-		PAPER_DOLL_SLOT_RIGHT_HAND,
-		PAPER_DOLL_SLOT_FEET,
-		PAPER_DOLL_SLOT_UNDERWEAR,
-		PAPER_DOLL_SLOT_TROUSERS,
-		PAPER_DOLL_SLOT_CHEST,
-		PAPER_DOLL_SLOT_HELMET,
-		PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO // this is always the last enumerated slot
+		PAPER_DOLL_SLOT_RIGHT_HAND = 1,
+		PAPER_DOLL_SLOT_FEET = 2,
+		PAPER_DOLL_SLOT_UNDERWEAR = 3,
+		PAPER_DOLL_SLOT_TROUSERS = 4,
+		PAPER_DOLL_SLOT_CHEST = 5,
+		PAPER_DOLL_SLOT_HELMET = 6,
+		PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO = 7 // this is always the last enumerated slot
 	};
 
-	struct IItem
+	struct ArmourValue
 	{
-		virtual ID_BITMAP BitmapId() const = 0;
-		virtual void Free() = 0;
-		virtual RangedWeapon* GetRangedWeaponData() = 0;
-		virtual IInventory* GetContents() = 0;
-		virtual const wchar_t* Name() const = 0;
-		virtual ITEM_TYPE Type() const = 0;
+		uint32 bulletProtection;
+	};
+
+	struct Ammo
+	{
+		Kilograms massPerBullet;
+		int32 ammoType;
+		int32 count;
+	};
+
+	struct ItemData
+	{
+		const wchar_t* name;
+		ID_BITMAP bitmapId;
+		Kilograms mass;
+		ITEM_TYPE type;
 
 		// DollSlot gives slot in which an item fits. Most items should return PAPER_DOLL_SLOT_EITHER_HAND. Clothes/armour returns another value.
 		// Any item that can be equipped in the left hand can also be equipped in the right hand.
 		// All equipment will fit in the left hand, but will not function effectively if not in the correct slot.
 		// If an item returns PAPER_DOLL_SLOT_RIGHT_HAND it can be carried in either hand, but is too bulky for a backpack
-		virtual PAPER_DOLL_SLOT DollSlot() const = 0; 
+		PAPER_DOLL_SLOT slot;
 	};
 
-	IItem* CreateRangedWeapon(const RangedWeapon& data, const wchar_t* name, ID_BITMAP bitmapId);
+	struct IItem
+	{
+		virtual void Free() = 0;
+		virtual Ammo* GetAmmo() = 0;
+		virtual ArmourValue* GetArmourData() = 0;	
+		virtual RangedWeapon* GetRangedWeaponData() = 0;
+		virtual IInventory* GetContents() = 0;
+		virtual const ItemData& Data() const = 0;
+	};
+
+	IItem* CreateRangedWeapon(const RangedWeapon& rangedData, const ItemData& itemData);
+	IItem* CreateArmour(const ArmourValue& armour, const ItemData& itemData);
+	IItem* CreateAmmo(const Ammo& ammo, const ItemData& itemData);
 	
 	struct TableSpan
 	{
@@ -134,5 +160,5 @@ namespace Dystopia
 	};
 
 	IHumanAISupervisor* CreateBobby(ID_ENTITY id, IInventory& inventory, ILevel& level);
-	IHumanAISupervisor* CreateVigilante(ID_ENTITY id, IIntent& intent, ILevel& level);
+	IHumanAISupervisor* CreateVigilante(ID_ENTITY id, IIntent& intent, Environment& e);
 }
