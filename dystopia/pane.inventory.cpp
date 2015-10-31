@@ -17,6 +17,16 @@ using namespace Dystopia;
 
 namespace
 {
+	const RGBAb dollBlack(0, 0, 0, 64);
+	const RGBAb opaqueBlack(0, 0, 0, 255);
+	const RGBAb border1(160, 160, 160);
+	const RGBAb border2(192, 192, 192);
+	const RGBAb hiBorder1(224, 224, 224);
+	const RGBAb hiBorder2(255, 255, 255);
+	const Vec2i borderSpan{ 1,1 };
+	const Vec2i slotDimensions{ 64, 56 };
+	const Vec2i slotHotSpotOffset{ -32, -28 };
+
 	struct ItemRectEvent
 	{
 		GuiRect renderRect;
@@ -52,7 +62,7 @@ namespace
 		}
 	}
 
-	auto RenderInventory(uint32 startIndex, IGuiRenderContext& gc, int rows, int columns, Vec2i cellSpan, Vec2i topLeft, Vec2i cellBorders, IInventory& inv, IBitmapCache& bitmaps) -> int // inventory index
+	auto RenderBackpack(uint32 startIndex, IGuiRenderContext& gc, int rows, int columns, Vec2i cellSpan, Vec2i topLeft, Vec2i cellBorders, IInventory& inv, IBitmapCache& bitmaps, bool& isGuiUnderSlot) -> int // inventory index
 	{
 		struct : IEventCallback<MainRectEvent>, IEventCallback<ItemRectEvent>
 		{
@@ -62,6 +72,7 @@ namespace
 			GuiRect mainRect;
 			int selectedIndex;
 			IBitmapCache* bitmaps;
+			bool isGuiUnderSlot;
 
 			virtual void OnEvent(ItemRectEvent& re)
 			{
@@ -69,12 +80,12 @@ namespace
 				{
 					selectedIndex = re.inventoryIndex;
 					Graphics::DrawRectangle(*gc, re.renderRect, RGBAb(32, 0, 0), RGBAb(0, 0, 32));
-					Graphics::DrawBorderAround(*gc, re.renderRect, Vec2i{ 1,1 }, RGBAb(224, 224, 224), RGBAb(255, 255, 255));
+					Graphics::DrawBorderAround(*gc, re.renderRect, borderSpan, border2, hiBorder2);
 				}
 				else
 				{
-					Graphics::DrawRectangle(*gc, re.renderRect, RGBAb(0, 0, 0), RGBAb(0, 0, 0));
-					Graphics::DrawBorderAround(*gc, re.renderRect, Vec2i{ 1,1 }, RGBAb(160, 160, 160), RGBAb(224, 224, 224));
+					Graphics::DrawRectangle(*gc, re.renderRect, opaqueBlack, opaqueBlack);
+					Graphics::DrawBorderAround(*gc, re.renderRect, borderSpan, border1, hiBorder1);
 				}
 
 				auto* item = inv->GetItem(re.inventoryIndex);
@@ -89,11 +100,12 @@ namespace
 			{
 				if (IsPointInRect(cursorPos, mr.renderRect))
 				{
-					Graphics::DrawBorderAround(*gc, mr.renderRect, Vec2i{ 1,1 }, RGBAb(224, 224, 224), RGBAb(255, 255, 255));
+					Graphics::DrawBorderAround(*gc, mr.renderRect, borderSpan, border2, hiBorder2);
+					isGuiUnderSlot = true;
 				}
 				else
 				{
-					Graphics::DrawBorderAround(*gc, mr.renderRect, Vec2i{ 1,1 }, RGBAb(160, 160, 160), RGBAb(224, 224, 224));
+					Graphics::DrawBorderAround(*gc, mr.renderRect, borderSpan,border1, hiBorder1);
 				}
 
 				mainRect = mr.renderRect;
@@ -103,6 +115,7 @@ namespace
 		renderBox.inv = &inv;
 		renderBox.selectedIndex = -1;
 		renderBox.bitmaps = &bitmaps;
+		renderBox.isGuiUnderSlot = false;
 
 		GuiMetrics gm;
 		gc.Renderer().GetGuiMetrics(gm);
@@ -110,6 +123,11 @@ namespace
 		renderBox.cursorPos = gm.cursorPosition;
 
 		ComputeBoxMatrixGeometry(startIndex, rows, columns, cellSpan, topLeft, cellBorders, renderBox, renderBox);
+
+		if (renderBox.isGuiUnderSlot)
+		{
+			isGuiUnderSlot = true;
+		}
 
 		return renderBox.selectedIndex;
 	}
@@ -133,7 +151,7 @@ namespace
 
 	typedef std::vector<ControlIcon> Icons;
 
-	const ControlIcon* RenderControlIcons(IGuiRenderContext& gc, int rows, int columns, Vec2i cellSpan, Vec2i topLeft, Vec2i cellBorders, const Icons& icons, IBitmapCache& cache)
+	const ControlIcon* RenderControlIcons(IGuiRenderContext& gc, int rows, int columns, Vec2i cellSpan, Vec2i topLeft, Vec2i cellBorders, const Icons& icons, IBitmapCache& cache, bool& isCursorUnderGui)
 	{
 		struct : IEventCallback<MainRectEvent>, IEventCallback<ItemRectEvent>
 		{
@@ -142,16 +160,18 @@ namespace
 			const Icons* icons;
 			const ControlIcon* icon;
 			IBitmapCache* cache;
+			bool isCursorUnderGui;
 
 			virtual void OnEvent(MainRectEvent& mr)
 			{
 				if (IsPointInRect(cursorPos, mr.renderRect))
 				{
-					Graphics::DrawBorderAround(*gc, mr.renderRect, Vec2i{ 1,1 }, RGBAb(224, 224, 224), RGBAb(255, 255, 255));
+					Graphics::DrawBorderAround(*gc, mr.renderRect, borderSpan, border2, hiBorder2);
+					isCursorUnderGui = true;
 				}
 				else
 				{
-					Graphics::DrawBorderAround(*gc, mr.renderRect, Vec2i{ 1,1 }, RGBAb(160, 160, 160), RGBAb(224, 224, 224));
+					Graphics::DrawBorderAround(*gc, mr.renderRect, borderSpan, border1, hiBorder1);
 				}
 			}
 
@@ -166,19 +186,19 @@ namespace
 						icon = currentIcon;	
 						Graphics::DrawRectangle(*gc, re.renderRect, RGBAb(32, 0, 0), RGBAb(0, 0, 32));
 						cache->DrawBitmap(*gc, re.renderRect, currentIcon->bitmapIdDown);
-						Graphics::DrawBorderAround(*gc, re.renderRect, Vec2i{ 1,1 }, RGBAb(224, 224, 224), RGBAb(255, 255, 255));
+						Graphics::DrawBorderAround(*gc, re.renderRect, borderSpan, border2, hiBorder2);
 					}
 					else
 					{	
-						Graphics::DrawRectangle(*gc, re.renderRect, RGBAb(0, 0, 0), RGBAb(0, 0, 0));
+						Graphics::DrawRectangle(*gc, re.renderRect, opaqueBlack, opaqueBlack);
 						cache->DrawBitmap(*gc, re.renderRect, currentIcon->bitmapIdUp);
-						Graphics::DrawBorderAround(*gc, re.renderRect, Vec2i{ 1,1 }, RGBAb(160, 160, 160), RGBAb(224, 224, 224));
+						Graphics::DrawBorderAround(*gc, re.renderRect, borderSpan, border1, hiBorder1);
 					}
 				}
 				else
 				{
-					Graphics::DrawRectangle(*gc, re.renderRect, RGBAb(0, 0, 0), RGBAb(0, 0, 0));
-					Graphics::DrawBorderAround(*gc, re.renderRect, Vec2i{ 1,1 }, RGBAb(160, 160, 160), RGBAb(224, 224, 224));
+					Graphics::DrawRectangle(*gc, re.renderRect, opaqueBlack, opaqueBlack);
+					Graphics::DrawBorderAround(*gc, re.renderRect, borderSpan, border1, hiBorder1);
 				}
 			}
 		} renderBox;
@@ -186,6 +206,7 @@ namespace
 		renderBox.icons = &icons;
 		renderBox.icon = nullptr;
 		renderBox.cache = &cache;
+		renderBox.isCursorUnderGui = false;
 
 		GuiMetrics gm;
 		gc.Renderer().GetGuiMetrics(gm);
@@ -193,6 +214,11 @@ namespace
 		renderBox.cursorPos = gm.cursorPosition;
 
 		ComputeBoxMatrixGeometry(0, rows, columns, cellSpan, topLeft, cellBorders, renderBox, renderBox);
+
+		if (renderBox.isCursorUnderGui)
+		{
+			isCursorUnderGui = true;
+		}
 
 		return renderBox.icon;
 	}
@@ -208,7 +234,7 @@ namespace
 
 	struct InventoryBox
 	{
-		uint32 slotIndex;
+		PAPER_DOLL_SLOT slotIndex;
 		InventoryBoxType type;
 		GuiRect rect;
 		ID_BITMAP bitmapId;
@@ -222,32 +248,53 @@ namespace
 
 	typedef std::vector<InventoryBox> InventoryList;
 
-	auto RenderInventoryList(IGuiRenderContext& gc, Vec2i topLeft, IInventory& inv, const InventoryList& items, IBitmapCache& bitmaps)->int32 // yields slot index under cursor or negative
+	bool DoesItemFitSlot(PAPER_DOLL_SLOT itemSlot, PAPER_DOLL_SLOT dollSlot)
+	{
+		if (itemSlot == PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO)
+		{
+			// PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO means no item
+			return true;
+		}
+		else if (itemSlot == PAPER_DOLL_SLOT_EITHER_HAND)
+		{
+			return dollSlot == PAPER_DOLL_SLOT_LEFT_HAND || dollSlot == PAPER_DOLL_SLOT_RIGHT_HAND;
+		}
+		else
+		{
+			return dollSlot == itemSlot;
+		}
+	}
+
+	auto RenderInventoryList(IGuiRenderContext& gc, Vec2i topLeft, IInventory& inv, const InventoryList& items, IBitmapCache& bitmaps, bool& isCursorUnderGui)->int32 // yields slot index under cursor or negative
 	{
 		GuiMetrics metrics;
 		gc.Renderer().GetGuiMetrics(metrics);
 
+		auto* cursorItem = inv.GetItem(inv.GetCursorIndex());
+		PAPER_DOLL_SLOT itemSlot = cursorItem ? cursorItem->DollSlot() : PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO;
 		int slotIndex = -1;
 
 		for (auto& i : items)
 		{
 			GuiRect targetRect = i.rect + topLeft;
-			bool isCursorInRect = IsPointInRect(metrics.cursorPosition, targetRect);
+			bool isPointInRect = IsPointInRect(metrics.cursorPosition, targetRect);
+			if (isPointInRect) isCursorUnderGui = true;
+			bool isHighlighted = isPointInRect && DoesItemFitSlot(itemSlot, i.slotIndex);
 
 			switch (i.type)
 			{
 			case InventoryBoxType_Border:
 				Graphics::DrawBorderAround(gc, i.rect + topLeft, i.borderSpan,
-					isCursorInRect ? i.highlightColour1 : i.colour1,
-					isCursorInRect ? i.highlightColour2 : i.colour2);
+					isHighlighted ? i.highlightColour1 : i.colour1,
+					isHighlighted ? i.highlightColour2 : i.colour2);
 				break;
 			case InventoryBoxType_ColourTile:
 				Graphics::DrawRectangle(gc, targetRect,
-					isCursorInRect ? i.highlightColour1 : i.colour1,
-					isCursorInRect ? i.highlightColour2 : i.colour2);
+					isHighlighted ? i.highlightColour1 : i.colour1,
+					isHighlighted ? i.highlightColour2 : i.colour2);
 				break;
 			case InventoryBoxType_Bitmap:
-				bitmaps.DrawBitmap(gc, targetRect, isCursorInRect ? i.highlightBitmapId : i.bitmapId);
+				bitmaps.DrawBitmap(gc, targetRect, isHighlighted ? i.highlightBitmapId : i.bitmapId);
 				break;
 			case InventoryBoxType_Slot:
 				{
@@ -258,7 +305,10 @@ namespace
 						bitmaps.DrawBitmap(gc, targetRect, bitmapId);
 					}
 
-					if (isCursorInRect) slotIndex = i.slotIndex;
+					if (isHighlighted)
+					{
+						slotIndex = i.slotIndex;
+					}
 				}
 				break;
 			}
@@ -267,18 +317,19 @@ namespace
 		return slotIndex;
 	}
 
-	void AddBitmap(InventoryList& items, IBitmapCache& bitmaps, const wchar_t* imageFile, const wchar_t* highlightImageFile, const GuiRect& rect)
+	void AddBitmap(InventoryList& items, IBitmapCache& bitmaps, const wchar_t* imageFile, const wchar_t* highlightImageFile, const GuiRect& rect, PAPER_DOLL_SLOT slot)
 	{
 		InventoryBox box;
 		box.bitmapId = bitmaps.Cache(imageFile);
 		box.highlightBitmapId = bitmaps.Cache(imageFile);
 		box.type = InventoryBoxType_Bitmap;
 		box.rect = rect;
+		box.slotIndex = slot;
 
 		items.push_back(box);
 	}
 
-	void AddBorder(InventoryList& items, RGBAb b1, RGBAb b2, RGBAb hiB1, RGBAb hiB2, const GuiRect& rect, Vec2i borderSpan)
+	void AddBorder(InventoryList& items, RGBAb b1, RGBAb b2, RGBAb hiB1, RGBAb hiB2, const GuiRect& rect, Vec2i borderSpan, PAPER_DOLL_SLOT slot)
 	{
 		InventoryBox box;
 		box.colour1 = b1;
@@ -288,11 +339,12 @@ namespace
 		box.borderSpan = borderSpan;
 		box.rect = rect;
 		box.type = InventoryBoxType_Border;
+		box.slotIndex = slot;
 
 		items.push_back(box);
 	}
 
-	void AddColourTile(InventoryList& items, RGBAb b1, RGBAb b2, RGBAb hiB1, RGBAb hiB2, const GuiRect& rect)
+	void AddColourTile(InventoryList& items, RGBAb b1, RGBAb b2, RGBAb hiB1, RGBAb hiB2, const GuiRect& rect, PAPER_DOLL_SLOT slot)
 	{
 		InventoryBox box;
 		box.colour1 = b1;
@@ -301,25 +353,20 @@ namespace
 		box.highlightColour2 = hiB2;
 		box.rect = rect;
 		box.type = InventoryBoxType_ColourTile;
+		box.slotIndex = slot;
 
 		items.push_back(box);
 	}
 
 	GuiRect MakeSlotRect(Vec2i topLeft)
 	{
-		return GuiRect(topLeft.x, topLeft.y, topLeft.x + 64, topLeft.y + 56);
+		return GuiRect(topLeft.x, topLeft.y, topLeft.x + slotDimensions.x, topLeft.y + slotDimensions.y);
 	}
 
-	const RGBAb black(0, 0, 0, 64);
-	const RGBAb border1(160, 160, 160);
-	const RGBAb border2(192, 192, 192);
-	const RGBAb hiBorder1(224, 224, 224);
-	const RGBAb hiBorder2(255, 255, 255);
-
-	void AddInventorySlotDefault(InventoryList& doll, int32 slotIndex, const GuiRect& rect, bool blackOut = true)
+	void AddInventorySlotDefault(InventoryList& doll, PAPER_DOLL_SLOT slotIndex, const GuiRect& rect, bool blackOut = true)
 	{
-		if (blackOut) AddColourTile(doll, black, black, RGBAb(64, 0, 0, 64), RGBAb(0, 0, 64, 64), rect);
-		AddBorder(doll, border1, border2, hiBorder1, hiBorder2, rect, { 2, 2 });
+		if (blackOut) AddColourTile(doll, dollBlack, dollBlack, RGBAb(64, 0, 0, 64), RGBAb(0, 0, 64, 64), rect, slotIndex);
+		AddBorder(doll, border1, border2, hiBorder1, hiBorder2, rect, borderSpan, slotIndex);
 
 		InventoryBox box;
 		box.type = InventoryBoxType_Slot;
@@ -331,8 +378,8 @@ namespace
 
 	void PopulatePaperDoll(InventoryList& doll, IBitmapCache& bitmaps)
 	{
-		AddBitmap(doll, bitmaps, L"!inventory/paperdoll.tif", L"!inventory/paperdoll.tif", GuiRect(0, 0, 320, 320) );
-		AddBorder(doll, border1, border2, hiBorder1, hiBorder2, GuiRect(0, 0, 320, 320), { 2, 2 });
+		AddBitmap(doll, bitmaps, L"!inventory/paperdoll.tif", L"!inventory/paperdoll.tif", GuiRect(0, 0, 320, 320), PAPER_DOLL_SLOT_EITHER_HAND );
+		AddBorder(doll, border1, border2, hiBorder1, hiBorder2, GuiRect(0, 0, 320, 320), { 2, 2 }, PAPER_DOLL_SLOT_EITHER_HAND);
 		AddInventorySlotDefault(doll, PAPER_DOLL_SLOT_LEFT_HAND, MakeSlotRect({4,4}));
 		AddInventorySlotDefault(doll, PAPER_DOLL_SLOT_RIGHT_HAND, MakeSlotRect({ 252,4 }));
 		AddInventorySlotDefault(doll, PAPER_DOLL_SLOT_FEET, MakeSlotRect({ 128,260 }));
@@ -353,9 +400,11 @@ namespace
 		CONTROL_ICON activeIcon;
 
 		InventoryList paperDoll;
+
+		bool isCursorUnderGui;
 	public:
 		InventoryPane(Environment& _e) :
-			e(_e), activeIcon(CONTROL_ICON_NONE)
+			e(_e), activeIcon(CONTROL_ICON_NONE), isCursorUnderGui(false)
 		{
 			icons.push_back(
 				{
@@ -365,7 +414,7 @@ namespace
 					L"Examine",
 					0,
 					0,
-					Vec2i { -32, -28 }
+					slotHotSpotOffset
 				}
 			);
 
@@ -428,7 +477,7 @@ namespace
 						auto* item = inv->GetItem(lastInventoryIndex);
 						if (item)
 						{
-							e.bitmapCache.SetCursorBitmap(item->BitmapId(), Vec2i{ -32, -28 });
+							e.bitmapCache.SetCursorBitmap(item->BitmapId(), slotHotSpotOffset);
 							auto* oldCursorItem = inv->Swap(inv->GetCursorIndex(), item);
 							inv->Swap(lastInventoryIndex, oldCursorItem);
 						}
@@ -439,7 +488,7 @@ namespace
 							inv->Swap(lastInventoryIndex, oldCursorItem);
 						}
 					}
-					else
+					else if (!isCursorUnderGui)
 					{
 						auto* item = inv->GetItem(inv->GetCursorIndex());
 						if (item)
@@ -499,14 +548,16 @@ namespace
 
 				Vec2i topLeft{ 164, 10 };
 
-				lastSelectedIcon = RenderControlIcons(gc, span.rows, 2, Vec2i{ 64, 56 }, Vec2i { 10, 10 }, Vec2i{ 5, 4 }, icons, e.bitmapCache);
+				isCursorUnderGui = false;
+
+				lastSelectedIcon = RenderControlIcons(gc, span.rows, 2, slotDimensions, Vec2i { 10, 10 }, Vec2i{ 5, 4 }, icons, e.bitmapCache, isCursorUnderGui);
 
 				uint32 startIndex = inv->HasPaperDoll() ? PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO : 0;
-				lastInventoryIndex = RenderInventory(startIndex, gc, span.rows, span.columns, Vec2i{ 64, 56 }, topLeft, Vec2i{ 5, 4 }, *inv, e.bitmapCache);
+				lastInventoryIndex = RenderBackpack(startIndex, gc, span.rows, span.columns, slotDimensions, topLeft, Vec2i{ 5, 4 }, *inv, e.bitmapCache, isCursorUnderGui);
 
 				if (inv->HasPaperDoll())
 				{
-					int32 lastDollIndex = RenderInventoryList(gc, { 740, 10 }, *inv, paperDoll, e.bitmapCache);
+					int32 lastDollIndex = RenderInventoryList(gc, { 740, 10 }, *inv, paperDoll, e.bitmapCache, isCursorUnderGui);
 					if (lastInventoryIndex < 0)
 					{
 						lastInventoryIndex = lastDollIndex;

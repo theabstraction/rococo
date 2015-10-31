@@ -13,6 +13,19 @@ namespace Dystopia
 		ITEM_TYPE_RANGED_WEAPON
 	};
 
+	enum PAPER_DOLL_SLOT
+	{
+		PAPER_DOLL_SLOT_EITHER_HAND = 0,
+		PAPER_DOLL_SLOT_LEFT_HAND = 0, // left from the front view of the paper doll!
+		PAPER_DOLL_SLOT_RIGHT_HAND,
+		PAPER_DOLL_SLOT_FEET,
+		PAPER_DOLL_SLOT_UNDERWEAR,
+		PAPER_DOLL_SLOT_TROUSERS,
+		PAPER_DOLL_SLOT_CHEST,
+		PAPER_DOLL_SLOT_HELMET,
+		PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO // this is always the last enumerated slot
+	};
+
 	struct IItem
 	{
 		virtual ID_BITMAP BitmapId() const = 0;
@@ -21,6 +34,12 @@ namespace Dystopia
 		virtual IInventory* GetContents() = 0;
 		virtual const wchar_t* Name() const = 0;
 		virtual ITEM_TYPE Type() const = 0;
+
+		// DollSlot gives slot in which an item fits. Most items should return PAPER_DOLL_SLOT_EITHER_HAND. Clothes/armour returns another value.
+		// Any item that can be equipped in the left hand can also be equipped in the right hand.
+		// All equipment will fit in the left hand, but will not function effectively if not in the correct slot.
+		// If an item returns PAPER_DOLL_SLOT_RIGHT_HAND it can be carried in either hand, but is too bulky for a backpack
+		virtual PAPER_DOLL_SLOT DollSlot() const = 0; 
 	};
 
 	IItem* CreateRangedWeapon(const RangedWeapon& data, const wchar_t* name, ID_BITMAP bitmapId);
@@ -40,18 +59,6 @@ namespace Dystopia
 	struct IItemEnumerator
 	{
 		virtual Enumerate OnItem(IItem* item, uint32 slot) = 0;
-	};
-
-	enum PAPER_DOLL_SLOT
-	{
-		PAPER_DOLL_SLOT_LEFT_HAND = 0, // left from the front view of the paper doll!
-		PAPER_DOLL_SLOT_RIGHT_HAND,
-		PAPER_DOLL_SLOT_FEET,
-		PAPER_DOLL_SLOT_UNDERWEAR,
-		PAPER_DOLL_SLOT_TROUSERS,
-		PAPER_DOLL_SLOT_CHEST,
-		PAPER_DOLL_SLOT_HELMET,
-		PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO // this is always the last enumerated slot
 	};
 
 	ROCOCOAPI IInventory

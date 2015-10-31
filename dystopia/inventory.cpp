@@ -54,6 +54,11 @@ namespace
 		{
 			return bitmapId;
 		}
+
+		virtual PAPER_DOLL_SLOT DollSlot() const
+		{
+			return PAPER_DOLL_SLOT_EITHER_HAND;
+		}
 	};
 
 	class Inventory : public IInventorySupervisor
