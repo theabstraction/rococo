@@ -197,16 +197,27 @@ namespace Dystopia
 				{
 					if (IsInRange(collectorPos - eq.worldPosition, maxPickupRange))
 					{
-						IItem* item = eq.inventory->Swap(0, nullptr);
-
 						uint32 slot;
 						if (collector->TryGetFirstFreeSlot(slot))
 						{
+							IItem* item = nullptr;
+
+							int nSlots = eq.inventory->Span().columns * eq.inventory->Span().rows;
+							for (int i = 0; i < nSlots; ++i)
+							{
+								item = eq.inventory->Swap(i, nullptr);
+								if (item != nullptr) break;
+							}
+
 							IItem* oldItem = collector->Swap(slot, item);
 							eq.inventory->Swap(0, oldItem);
 							if (!eq.inventory->EnumerateItems(nullptr)) e.level.DeleteEquipment(itemId);
 
 							e.gui.Add3DHint(eq.worldPosition, L"Looted!"_fstring, 2.5f);
+						}
+						else
+						{
+							e.gui.Add3DHint(eq.worldPosition, L"Backpack full!"_fstring, 2.5f);
 						}
 					}
 				}

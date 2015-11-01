@@ -152,6 +152,11 @@ namespace
 		{
 		}
 
+		virtual void EnumeratePhysicsHullTriangles(ID_MESH id, ITriangleEnumerator& cb)
+		{
+
+		}
+
 		ID_MESH GetRendererId(int32 editorId)
 		{
 			auto i = meshes.find(editorId);

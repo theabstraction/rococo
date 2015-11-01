@@ -174,6 +174,11 @@ namespace Rococo
 		operator float() const { return value; }
 	};
 
+	inline Metres operator "" _metres(long double value)
+	{
+		return Metres{ (float)value };
+	}
+
 	struct Seconds
 	{
 		float value;

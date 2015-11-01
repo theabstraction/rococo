@@ -85,6 +85,11 @@ namespace Rococo
 		operator float() const { return quantity; }
 	};
 
+	inline Radians operator - (Radians r)
+	{
+		return Radians{ -(float)r };
+	}
+
 	struct Degrees
 	{
 		float quantity;
@@ -125,6 +130,8 @@ namespace Rococo
 	inline Vec3 operator * (cr_vec3 q, float f) { return Vec3{ q.x * f, q.y * f, q.z * f }; }
 	inline Vec3 operator * (float f, cr_vec3 q) { return Vec3{ q.x * f, q.y * f, q.z * f }; }
 	inline Vec3 operator - (cr_vec3 a, cr_vec3 b) { return Vec3{ a.x - b.x, a.y - b.y, a.z - b.z }; }
+	inline bool operator == (const Vec3& a, const Vec3& b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
+	inline bool operator != (const Vec3& a, const Vec3& b) { return !(a == b); }
 
 	inline float Dot(cr_vec3 a, cr_vec3 b) { return a.x*b.x + a.y*b.y + a.z*b.z; }
 
@@ -222,6 +229,38 @@ namespace Rococo
 
 	Vec2i TopCentre(const GuiRect& rect);
 	bool IsPointInRect(const Vec2i& p, const GuiRect& rect);
+
+	struct QuadStats
+	{
+		size_t quadsAllocated;
+		size_t quadsFree;
+		size_t nodesAllocated;
+		size_t nodesFree;
+		size_t quadAllocSize;
+		size_t nodeAllocSize;
+	};
+
+	ROCOCOAPI IQuadEnumerator
+	{
+		virtual void OnId(uint64 id) = 0;
+	};
+
+	ROCOCOAPI IQuadTree
+	{
+		virtual void AddEntity(const Sphere& boundingSphere, uint64 id) = 0;
+		virtual void Clear() = 0;
+		virtual void DeleteEntity(const Sphere& boundingSphere, uint64 id) = 0;
+		virtual void EnumerateItems(const Sphere& boundingSphere, IQuadEnumerator& cb) = 0;
+		virtual void GetStats(QuadStats& stats) = 0;
+		
+	};
+
+	ROCOCOAPI IQuadTreeSupervisor : public IQuadTree
+	{
+		virtual void Free() = 0;
+	};
+
+	IQuadTreeSupervisor* CreateLooseQuadTree(float width, float minBoundingRadius);
 }
 
 #endif // ROCOCO_MATHS_H

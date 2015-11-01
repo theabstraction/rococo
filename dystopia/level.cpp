@@ -20,6 +20,7 @@
 
 #include "dystopia.post.h"
 
+
 using namespace Dystopia;
 using namespace Rococo;
 
@@ -29,7 +30,7 @@ namespace
 	{
 		ObjectInstance instance;
 		ID_MESH meshId;
-		float boundingRadius;
+		Metres boundingRadius;
 		ID_BITMAP bitmapId;
 	};
 
@@ -57,28 +58,40 @@ namespace
 		return Sphere{ solid.instance.orientation.GetPosition() , solid.boundingRadius };
 	}
 
-	template<class ROW> ID_ENTITY GetFirstIntersect(cr_vec3 start, cr_vec3 end, const EntityTable<ROW>& table, const EntityTable<Solid>& solids)
+	template<class ROW> ID_ENTITY GetFirstIntersect(cr_vec3 start, cr_vec3 end, const EntityTable<ROW>& table, const EntityTable<Solid>& solids, IQuadTree& quadTree)
 	{
-		float leastT = 2.0f;
-		ID_ENTITY firstTarget;
-
-		for (auto& i : table)
+		struct : IQuadEnumerator
 		{
-			const Solid& solid = solids.find(i.first)->second;
-			auto sphere = BoundingSphere(solid);
-
-			float t0, t1;
-			if (TryGetIntersectionLineAndSphere(t0, t1, start, end, sphere))
+			float leastT = 2.0f;
+			ID_ENTITY firstTarget;
+			const EntityTable<Solid>* solids;
+			Vec3 start;
+			Vec3 end;
+			virtual void OnId(uint64 id)
 			{
-				if (t0 > 0 && t0 < 1 && t0 < leastT)
+				const Solid& solid = solids->find(ID_ENTITY(id))->second;
+				auto sphere = BoundingSphere(solid);
+
+				float t0, t1;
+				if (TryGetIntersectionLineAndSphere(t0, t1, start, end, sphere))
 				{
-					leastT = t0;
-					firstTarget = i.first;
+					if (t0 > 0 && t0 < 1 && t0 < leastT)
+					{
+						leastT = t0;
+						firstTarget = ID_ENTITY(id);
+					}
 				}
 			}
-		}
+		} onId;
 
-		return firstTarget;
+		onId.start = start;
+		onId.end = end;
+		onId.solids = &solids;
+		float radius = sqrtf(Square(end.x - start.x) + Square(end.y -start.y));
+		Sphere boundingSphere{ start, radius };
+		quadTree.EnumerateItems(boundingSphere, onId);
+
+		return onId.firstTarget;
 	}
 
 	bool Intersects(cr_vec3 start, cr_vec3 end, ID_ENTITY id, const EntityTable<Solid>& solids)
@@ -103,6 +116,98 @@ namespace
 		IInventorySupervisor* inventory;
 	};
 
+	struct CollisionResult
+	{
+		float t;
+	};
+
+	float GetLateralDisplacement(cr_vec3 a, cr_vec3 b)
+	{
+		return sqrtf(Square(a.x - b.x) + Square(a.y - b.y));
+	}
+
+	float FindIntersectLineVsMesh(cr_vec3 start, cr_vec3 target, const Solid& obstacle, float radius, IMeshLoader& meshes)
+	{
+		struct : ITriangleEnumerator
+		{
+			Vec3 start;
+			Vec3 target; 
+			const Solid* obstacle;
+			float radius;
+			float firstCollision;
+
+			virtual void OnTriangle(Triangle& tri)
+			{
+
+			}
+		} hull;
+
+		hull.start = start;
+		hull.target = target;
+		hull.obstacle = &obstacle;
+		hull.radius = radius;
+		hull.firstCollision = 1.0f;
+
+		meshes.EnumeratePhysicsHullTriangles(obstacle.meshId, hull);
+
+		return hull.firstCollision;
+	}
+
+	CollisionResult CollideBodies(cr_vec3 start, cr_vec3 target, const Solid& projectile, const Solid& obstacle, IMeshLoader& meshes)
+	{
+		float t = FindIntersectLineVsMesh(start, target, obstacle, projectile.boundingRadius, meshes);
+		return{ min(t, 1.0f) };
+	}
+
+	CollisionResult CollideWithGeometry(cr_vec3 start, cr_vec3 target, ID_ENTITY id, IQuadTree& quadTree, EntityTable<Solid>& solids, IMeshLoader& meshes)
+	{
+		auto& s = solids.find(id);
+		if (s == solids.end()) return CollisionResult{ 1.0f };
+
+		float radius = GetLateralDisplacement(start, target);
+		Sphere boundingSphere{ start, radius + s->second.boundingRadius };
+
+		struct : IQuadEnumerator
+		{
+			ID_ENTITY projectileId;
+			Solid* projectile;
+			EntityTable<Solid>* solids;
+			Vec3 start;
+			Vec3 end;
+			float collisionParameter;
+			IMeshLoader* meshes;
+
+			virtual void OnId(uint64 idNumber)
+			{
+				ID_ENTITY id(idNumber);
+				if (id != projectileId)
+				{
+					auto& c = solids->find(id);
+					if (c != solids->end())
+					{
+						auto result = CollideBodies(start, end, *projectile, c->second, *meshes);
+						if (result.t < collisionParameter)
+						{
+							collisionParameter = result.t;
+						}
+					}
+				}
+			}
+		} onTarget;
+
+		onTarget.projectileId = id;
+		onTarget.projectile = &s->second;
+		onTarget.solids = &solids;
+		onTarget.start = start;
+		onTarget.end = target;
+		onTarget.collisionParameter = 1.0f;
+		onTarget.meshes = &meshes;
+
+		quadTree.EnumerateItems(boundingSphere, onTarget);
+
+		return CollisionResult{ onTarget.collisionParameter };
+	}
+
 	class Level : public ILevelSupervisor, public ILevelBuilder, public Post::IRecipient
 	{
 		Environment& e; // not valid until constructor returns
@@ -115,8 +220,13 @@ namespace
 		EntityTable<Equipment> equipment;
 		Vec3 groundZeroCursor;
 		ID_ENTITY selectedId;
+		AutoFree<IQuadTreeSupervisor> quadTree;
 	public:
-		Level(Environment& _e, IHumanFactory& _hf) : e(_e), hf(_hf), groundZeroCursor{ 0,0,0 }
+		Level(Environment& _e, IHumanFactory& _hf) : 
+			e(_e),
+			hf(_hf),
+			groundZeroCursor{ 0,0,0 },
+			quadTree(CreateLooseQuadTree(Metres{ 4096.0 }, Metres{ 4 }))
 		{
 			
 		}
@@ -146,6 +256,7 @@ namespace
 				i.second.inventory->Free();
 			}
 			equipment.clear();
+			quadTree->Clear();
 		}
 
 		virtual void Free() { delete this; }
@@ -224,14 +335,16 @@ namespace
 				eq->second.inventory->Free();
 			}
 			equipment.erase(id);
-			solids.erase(id);
+			DeleteSolid(id);
 		}
 
 		virtual ID_ENTITY AddSolid(const Matrix4x4& transform, ID_MESH meshId)
 		{
 			auto id = GenerateEntityId();
 			ID_MESH sysId = e.meshes.GetRendererId(meshId);
-			solids.insert(id, Solid{ {transform, {0,0,0,0}}, sysId, 1.0f, 0 });
+			solids.insert(id, Solid{ {transform, {0,0,0,0}}, sysId, 1.0_metres, 0 });
+
+			quadTree->AddEntity(Sphere{ transform.GetPosition(), 1.0_metres }, id);
 			return id;
 		}
 
@@ -277,7 +390,7 @@ namespace
 		virtual ID_ENTITY CreateStash(IItem* item, cr_vec3 location)
 		{
 			auto id = GenerateEntityId();
-			Equipment eq{ CreateInventory({ 1,1 }, false, false) };
+			Equipment eq{ CreateInventory({ 4,4 }, false, false) };
 			equipment.insert(id, eq);
 			eq.inventory->Swap(0, item);
 
@@ -366,8 +479,29 @@ namespace
 
 			auto& entity = i->second;
 			auto& t = i->second.instance.orientation;
+			
+			Sphere boundingSphere{ t.GetPosition(), 1.0_metres };
 
-			t.SetPosition(pos);
+			if (boundingSphere.centre != pos)
+			{
+				quadTree->DeleteEntity(boundingSphere, id);
+				quadTree->AddEntity(boundingSphere, id);
+				t.SetPosition(pos);
+			}
+		}
+
+		void DeleteSolid(ID_ENTITY id)
+		{
+			auto i = solids.find(id);
+			if (i != solids.end())
+			{
+				auto& entity = i->second;
+				auto& t = i->second.instance.orientation;
+
+				Sphere boundingSphere{ t.GetPosition(), 1.0_metres };
+				quadTree->DeleteEntity(boundingSphere, id);
+				solids.erase(i);
+			}
 		}
 
 		virtual ID_ENTITY SelectedId() const
@@ -449,7 +583,7 @@ namespace
 
 			if (p.attacker == idPlayer)
 			{
-				ID_ENTITY idEnemy = GetFirstIntersect(oldPos, newPos, enemies, solids);
+				ID_ENTITY idEnemy = GetFirstIntersect(oldPos, newPos, enemies, solids, *quadTree);
 				if (idEnemy)
 				{
 					enemies[idEnemy]->ai->OnHit(idPlayer);
@@ -475,8 +609,26 @@ namespace
 				return;
 			}
 
-			Vec3 newPos = pos + i->second->ai->Velocity() * dt;
-			SetPosition(id, newPos);
+			auto j = solids.find(id);
+			if (j != solids.end())
+			{
+				Vec3 direction;
+				if (!TryNormalize(i->second->ai->Velocity(), direction)) return;
+
+				float speed = Length(i->second->ai->Velocity());
+
+				Vec4 velDir = Vec4::FromVec3(direction, 0.0f);
+
+				Vec4 velDirRotated = j->second.instance.orientation * velDir;
+				if (!TryNormalize(velDirRotated, direction)) return;
+
+				Vec3 newPos = pos + direction * dt * speed;
+
+				CollideWithGeometry(pos, newPos, id, *quadTree, solids, e.meshes);
+
+				SetPosition(id, newPos);
+			}
+			
 		}
 
 		void UpdateEnemy(Human& enemy, ID_ENTITY id, float gameTime, float dt)
@@ -543,7 +695,7 @@ namespace
 				}
 				else
 				{
-					solids.erase(j->first);
+					DeleteSolid(j->first);
 					delete j->second;
 					j = enemies.erase(j);		
 				}

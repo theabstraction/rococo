@@ -142,6 +142,35 @@ void ValidateMatrixLib()
 	VALIDATE(Approx(pPrimedInv.x, 5.0f));
 	VALIDATE(Approx(pPrimedInv.y, 8.0f));
 	VALIDATE(Approx(pPrimedInv.z, 10.0f));
+
+	AutoFree<IQuadTreeSupervisor> qTree(CreateLooseQuadTree(Metres{ 16384.0f }, Metres{ 3.95f }));
+//	qTree->AddEntity(Sphere{ Vec3 {0,0,0}, 2.0f }, 1);
+//	qTree->DeleteEntity(Sphere{ Vec3{ 0,0,0 }, 2.0f }, 1);
+	qTree->AddEntity(Sphere{ Vec3{ 1,2,3 }, 2.0f }, 4);
+	
+
+	struct : IQuadEnumerator
+	{
+		virtual void OnId(uint64 id)
+		{
+			this->id = id;
+		}
+
+		uint64 id;
+	} qSearch;
+
+	qTree->EnumerateItems(Sphere{ Vec3 { 1, 2, 1 }, 1.0f }, qSearch);
+	
+	qTree->DeleteEntity(Sphere{ Vec3{ 1,2,3 }, 2.0f }, 4);
+
+	VALIDATE(qSearch.id == 4);
+
+	QuadStats stats;
+	qTree->GetStats(stats);
+
+	wprintf(L"Quads allocated: %I64u. Quads on free list: %I64u\n", stats.quadsAllocated, stats.quadsFree);
+	wprintf(L"Nodes allocated: %I64u. Nodes on free list: %I64u\n", stats.nodesAllocated, stats.nodesFree);
+	wprintf(L"Nodes size: %I64u bytes. Quad size: %I64u bytes\n", stats.nodeAllocSize, stats.quadAllocSize);
 }
 
 void test()

@@ -58,6 +58,7 @@ namespace Dystopia
 	};
 
 	inline bool operator == (ID_ENTITY a, ID_ENTITY b) { return (uint64) a == (uint64) b; }
+	inline bool operator != (ID_ENTITY a, ID_ENTITY b) { return !(a == b); }
 
 	struct ProjectileDef
 	{
