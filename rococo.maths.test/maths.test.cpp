@@ -28,6 +28,11 @@ bool Approx(float f, float g)
 	return ::fabsf(f - g) < 0.0001f;
 }
 
+bool Approx(cr_vec3 f, cr_vec3 g)
+{
+	return Approx(f.x, g.x) && Approx(f.y, g.y) && Approx(f.z, g.z);
+}
+
 #define VALIDATE(p) validate(p, #p, __FILE__, __LINE__)
 
 void ValidatePolynomialLib()
@@ -46,13 +51,36 @@ void ValidatePolynomialLib()
 	VALIDATE(!TryGetRealRoots(x0, x1, 1.0f, 0.0f, 1.0f));
 }
 
-void ValidateCollisionLib()
+void ValidateQuadTreeLib() 
 {
-	float t0, t1;
-	VALIDATE(TryGetIntersectionLineAndSphere(t0, t1, Vec3{ 1, 0, 0 }, Vec3{ 21, 0, 0 }, Sphere{ Vec3 {7,0,0}, 2.0f }));
-	VALIDATE(Approx(t0, 0.2f) && Approx(t1, 0.4f));
+	AutoFree<IQuadTreeSupervisor> qTree(CreateLooseQuadTree(Metres{ 16384.0f }, Metres{ 3.95f }));
+	//	qTree->AddEntity(Sphere{ Vec3 {0,0,0}, 2.0f }, 1);
+	//	qTree->DeleteEntity(Sphere{ Vec3{ 0,0,0 }, 2.0f }, 1);
+	qTree->AddEntity(Sphere{ Vec3{ 1,2,3 }, 2.0f }, 4);
 
-	VALIDATE(!TryGetIntersectionLineAndSphere(t0, t1, Vec3{ 1, 0, 0 }, Vec3{ 21, 0, 0 }, Sphere{ Vec3{ 7,4,0 }, 2.0f }));
+
+	struct : IQuadEnumerator
+	{
+		virtual void OnId(uint64 id)
+		{
+			this->id = id;
+		}
+
+		uint64 id;
+	} qSearch;
+
+	qTree->EnumerateItems(Sphere{ Vec3{ 1, 2, 1 }, 1.0f }, qSearch);
+
+	qTree->DeleteEntity(Sphere{ Vec3{ 1,2,3 }, 2.0f }, 4);
+
+	VALIDATE(qSearch.id == 4);
+
+	QuadStats stats;
+	qTree->GetStats(stats);
+
+	wprintf(L"Quads allocated: %I64u. Quads on free list: %I64u\n", stats.quadsAllocated, stats.quadsFree);
+	wprintf(L"Nodes allocated: %I64u. Nodes on free list: %I64u\n", stats.nodesAllocated, stats.nodesFree);
+	wprintf(L"Nodes size: %I64u bytes. Quad size: %I64u bytes\n", stats.nodeAllocSize, stats.quadAllocSize);
 }
 
 void ValidateMatrixLib()
@@ -142,35 +170,82 @@ void ValidateMatrixLib()
 	VALIDATE(Approx(pPrimedInv.x, 5.0f));
 	VALIDATE(Approx(pPrimedInv.y, 8.0f));
 	VALIDATE(Approx(pPrimedInv.z, 10.0f));
+}
 
-	AutoFree<IQuadTreeSupervisor> qTree(CreateLooseQuadTree(Metres{ 16384.0f }, Metres{ 3.95f }));
-//	qTree->AddEntity(Sphere{ Vec3 {0,0,0}, 2.0f }, 1);
-//	qTree->DeleteEntity(Sphere{ Vec3{ 0,0,0 }, 2.0f }, 1);
-	qTree->AddEntity(Sphere{ Vec3{ 1,2,3 }, 2.0f }, 4);
-	
+void ValidateCollisionLib()
+{
+	float t0, t1;
+	VALIDATE(TryGetIntersectionLineAndSphere(t0, t1, Vec3{ 1, 0, 0 }, Vec3{ 21, 0, 0 }, Sphere{ Vec3{ 7,0,0 }, 2.0f }));
+	VALIDATE(Approx(t0, 0.2f) && Approx(t1, 0.4f));
 
-	struct : IQuadEnumerator
+	VALIDATE(!TryGetIntersectionLineAndSphere(t0, t1, Vec3{ 1, 0, 0 }, Vec3{ 21, 0, 0 }, Sphere{ Vec3{ 7,4,0 }, 2.0f }));
+
+	BoundingCube cube;
+	cube.P.parallelPlanes[0] = { { Vec4{ -1, 0, 0, 0 }, Vec4{ -1, 0, 0, 1 } },{ Vec4{ 1, 0, 0, 0 }, Vec4{ 1, 0, 0, 1 } } };
+	cube.P.parallelPlanes[1] = { { Vec4{ 0, -1, 0, 0 }, Vec4{ 0, -1, 0, 1 } },{ Vec4{ 0, 1, 0, 0 }, Vec4{ 0, 1, 0, 1 } } };
+	cube.P.parallelPlanes[2] = { { Vec4{ 0, 0, -1, 0 }, Vec4{ 0, 0, -1, 1 } },{ Vec4{ 0, 0, 1, 0 }, Vec4{ 0, 0, 1, 1 } } };
+	cube.topVertices.v =
 	{
-		virtual void OnId(uint64 id)
-		{
-			this->id = id;
-		}
+		{-1, -1, 1}, { 1, -1, 1 },{ -1, 1, 1 }, {1, 1, 1}
+	};
 
-		uint64 id;
-	} qSearch;
+	cube.bottomVertices.v =
+	{
+		{ -1, -1, -1 },{ 1, -1, -1 },{ -1, 1, -1 },{ 1, 1, -1 }
+	};
 
-	qTree->EnumerateItems(Sphere{ Vec3 { 1, 2, 1 }, 1.0f }, qSearch);
+	Sphere fallingSphere{ Vec3{ 0, 0, 10.0f }, 1.0f };
+
+	auto collision1 = CollideBoundingBoxAndSphere(cube, fallingSphere, Vec3{ 0, 0, 0 });
+
+	VALIDATE(Approx(collision1.t, 0.8f));
+	VALIDATE(Approx(collision1.touchPoint.x, 0));
+	VALIDATE(Approx(collision1.touchPoint.y, 0));
+	VALIDATE(Approx(collision1.touchPoint.z, 1.0f));
+	VALIDATE(collision1.contactType == ContactType_Face);
+
+	Sphere edgeTapAttackSphere{ Vec3{ -10, 1.0, 0.0f }, 2.0f };
+
+	auto collision2 = CollideBoundingBoxAndSphere(cube, edgeTapAttackSphere, Vec3{ 0, 1.0, 0 });
+	VALIDATE(Approx(collision2.t, 0.7f));
+	VALIDATE(Approx(collision2.touchPoint.x, -1));
+	VALIDATE(Approx(collision2.touchPoint.y, 1));
+	VALIDATE(Approx(collision2.touchPoint.z, 0.0f));
+	VALIDATE(collision2.contactType == ContactType_Face);
+
+	Sphere zed{ Vec3{ -10.0f, 0, 0.5f }, 2.0f };
+	Collision edge = CollideEdgeAndSphere(Edge{ { 0, 0, -1 }, { 0, 0, 1 } }, zed, Vec3{ 0, 0.0, 0.5f });
+	VALIDATE(edge.contactType == ContactType_Edge);
+	VALIDATE(edge.isDegenerate == false);
+	VALIDATE(Approx(edge.t, 0.8f));
+	VALIDATE(Approx(edge.touchPoint, Vec3{0.0f, 0.0f, 0.5f }));
+
+	Sphere edgeAttackSphere{ Vec3{ -10, 2.0, 0.0f }, 2.0f };
+	auto collision3 = CollideBoundingBoxAndSphere(cube, edgeAttackSphere, Vec3{ 0, 2.0, 0 });
+
+	float collisionTime = (9.0f - sqrtf(3.0f)) / 10.0f;
+
+	VALIDATE(Approx(collision3.t, collisionTime));
+	VALIDATE(Approx(collision3.touchPoint.x, -1));
+	VALIDATE(Approx(collision3.touchPoint.y, 1));
+	VALIDATE(Approx(collision3.touchPoint.z, 0.0f));
+	VALIDATE(collision3.contactType == ContactType_Edge);
+
+	auto edgeTest2 = CollideEdgeAndSphere(Edge{ { 0, 0, 0.01f},{ 0, 0, -0.01f } }, edgeAttackSphere, Vec3{ 0, 2.0, 0 } );
+	VALIDATE(edgeTest2.contactType == ContactType_Edge);
+
+	auto edgeTest3 = CollideEdgeAndSphere(Edge{ { 0, 0, -0.01f },{ 0, 0, -0.02f } }, edgeAttackSphere, Vec3{ 0, 2.0, 0 });
+	VALIDATE(edgeTest3.contactType == ContactType_None);
+
+	Collision ptTest = CollideVertexAndSphere({ 0, 2.0f, 0.0f }, edgeAttackSphere, { 0, 2.0f, 0.0f });
+	VALIDATE(ptTest.contactType == ContactType_Vertex);
+	VALIDATE(Approx(ptTest.t, 0.8f));
+
+	Collision ptTest2 = CollideVertexAndSphere({ 0, 0.001f, 0.0f }, edgeAttackSphere, { 0, 2.0f, 0.0f });
+	VALIDATE(ptTest2.contactType == ContactType_Vertex);
 	
-	qTree->DeleteEntity(Sphere{ Vec3{ 1,2,3 }, 2.0f }, 4);
-
-	VALIDATE(qSearch.id == 4);
-
-	QuadStats stats;
-	qTree->GetStats(stats);
-
-	wprintf(L"Quads allocated: %I64u. Quads on free list: %I64u\n", stats.quadsAllocated, stats.quadsFree);
-	wprintf(L"Nodes allocated: %I64u. Nodes on free list: %I64u\n", stats.nodesAllocated, stats.nodesFree);
-	wprintf(L"Nodes size: %I64u bytes. Quad size: %I64u bytes\n", stats.nodeAllocSize, stats.quadAllocSize);
+	Collision ptTest3 = CollideVertexAndSphere({ 0, -0.001f, 0.0f }, edgeAttackSphere, { 0, 2.0f, 0.0f });
+	VALIDATE(ptTest3.contactType == ContactType_None);
 }
 
 void test()
@@ -178,8 +253,9 @@ void test()
 	wprintf(L"rococo.maths.test running...\n");
 
 	ValidatePolynomialLib();
-	ValidateCollisionLib();
 	ValidateMatrixLib();
+//	ValidateQuadTreeLib();
+	ValidateCollisionLib();
 
 	wprintf(L"rococo.maths.test finished\n");
 }

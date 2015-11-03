@@ -38,10 +38,10 @@ namespace Rococo
 
 	struct IRenderer;
 
-	typedef size_t ID_VERTEX_SHADER;
-	typedef size_t ID_PIXEL_SHADER;
+	typedef uint64 ID_VERTEX_SHADER;
+	typedef uint64 ID_PIXEL_SHADER;
 	typedef int32 ID_MESH;
-	typedef size_t ID_TEXTURE;
+	typedef uint64 ID_TEXTURE;
 	
 	ROCOCOAPI IGuiRenderContext // Provides draw calls - do not cache
 	{

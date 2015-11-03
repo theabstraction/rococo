@@ -149,6 +149,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="rococo.collisions.cpp" />
     <ClCompile Include="rococo.maths.cpp" />
     <ClCompile Include="rococo.quad.tree.cpp" />
   </ItemGroup>

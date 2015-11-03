@@ -137,6 +137,19 @@ namespace Rococo
 
 	inline float operator * (cr_vec3 a, cr_vec3 b) { return Dot(a, b); }
 
+	inline Vec3 Cross(cr_vec3 a, cr_vec3 b)
+	{
+		// |i   j  k|
+		// |Ax Ay Az|
+		// |Bx By Bz|
+		return Vec3
+		{
+			a.y*b.z - a.z*b.y,
+			b.x*a.z - a.x*b.z,
+			a.x*b.y - a.y*b.x
+		};
+	}
+
 	inline Vec2i Quantize(const Vec2& v)
 	{
 		return Vec2i{ (int32)v.x, (int32)v.y };
@@ -261,6 +274,109 @@ namespace Rococo
 	};
 
 	IQuadTreeSupervisor* CreateLooseQuadTree(float width, float minBoundingRadius);
+
+	struct Edge
+	{
+		Vec3 a;
+		Vec3 b;
+	};
+
+	template<class T> ROCOCOAPI IEnumerator
+	{
+		virtual void operator()(const T& t) = 0;
+	};
+
+	struct Plane
+	{
+		Vec4 normal;
+		Vec4 pointInPlane;
+	};
+
+	struct ParallelPlanes
+	{
+		Plane P0;
+		Plane P1;
+	};
+
+	struct Quadrilateral
+	{
+		enum
+		{
+			VERTEX_INDEX_SW,
+			VERTEX_INDEX_SE,
+			VERTEX_INDEX_NW,
+			VERTEX_INDEX_NE
+		};
+
+		union
+		{
+			Vec3 vertices[4];
+
+			struct
+			{
+				Vec3 sw;
+				Vec3 se;
+				Vec3 nw;
+				Vec3 ne;
+			} v;
+		};
+	};
+
+	struct BoundingCube
+	{
+		union BoundingPlanes
+		{
+			// The bounding planes of the bounding cube all have normals that point outward.
+			// The points in the plane are the centres of the cube surfaces to which the plane refers
+			Plane planes[6];
+
+			struct
+			{
+				ParallelPlanes eastWest;
+				ParallelPlanes northSouth;
+				ParallelPlanes topBottom;
+			};
+
+			ParallelPlanes parallelPlanes[3];
+		} P;
+
+		enum
+		{
+			VERTEX_INDEX_SW,
+			VERTEX_INDEX_SE,
+			VERTEX_INDEX_NW,
+			VERTEX_INDEX_NE
+		};
+
+		Quadrilateral topVertices;
+		Quadrilateral bottomVertices;
+	};
+
+	void ForEachEdge(const Quadrilateral& q, IEnumerator<Edge>& processEdges);
+	void ForEachEdge(const BoundingCube& cube, IEnumerator<Edge>& processEdges);
+
+	enum ContactType
+	{
+		ContactType_None,
+		ContactType_Penetration,
+		ContactType_Face,
+		ContactType_Edge,
+		ContactType_Vertex
+	};
+
+	struct Collision
+	{
+		Vec3 touchPoint;
+		float t;
+		ContactType contactType;
+		bool isDegenerate;
+	};
+
+	Collision NoCollision();
+
+	Collision CollideBoundingBoxAndSphere(const BoundingCube& cube, const Sphere& sphere, cr_vec3 target);
+	Collision CollideEdgeAndSphere(const Edge& edge, const Sphere& sphere, cr_vec3 target);
+	Collision CollideVertexAndSphere(cr_vec3 v, const Sphere& sphere, cr_vec3 target);
 }
 
 #endif // ROCOCO_MATHS_H

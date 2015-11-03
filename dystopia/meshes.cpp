@@ -152,7 +152,7 @@ namespace
 		{
 		}
 
-		virtual void EnumeratePhysicsHullTriangles(ID_MESH id, ITriangleEnumerator& cb)
+		virtual void EvaluatePhysicsHull(ID_MESH id, IHullEnumerator& cb)
 		{
 
 		}

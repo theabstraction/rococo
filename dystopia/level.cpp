@@ -126,9 +126,9 @@ namespace
 		return sqrtf(Square(a.x - b.x) + Square(a.y - b.y));
 	}
 
-	float FindIntersectLineVsMesh(cr_vec3 start, cr_vec3 target, const Solid& obstacle, float radius, IMeshLoader& meshes)
+	float FindIntersectLineVsHull(cr_vec3 start, cr_vec3 target, const Solid& obstacle, float projectileRadius, IMeshLoader& meshes)
 	{
-		struct : ITriangleEnumerator
+		struct : IHullEnumerator
 		{
 			Vec3 start;
 			Vec3 target; 
@@ -136,7 +136,7 @@ namespace
 			float radius;
 			float firstCollision;
 
-			virtual void OnTriangle(Triangle& tri)
+			virtual void OnHull(const BoundingCube& cube)
 			{
 
 			}
@@ -145,17 +145,17 @@ namespace
 		hull.start = start;
 		hull.target = target;
 		hull.obstacle = &obstacle;
-		hull.radius = radius;
+		hull.radius = projectileRadius;
 		hull.firstCollision = 1.0f;
 
-		meshes.EnumeratePhysicsHullTriangles(obstacle.meshId, hull);
+		meshes.EvaluatePhysicsHull(obstacle.meshId, hull);
 
 		return hull.firstCollision;
 	}
 
 	CollisionResult CollideBodies(cr_vec3 start, cr_vec3 target, const Solid& projectile, const Solid& obstacle, IMeshLoader& meshes)
 	{
-		float t = FindIntersectLineVsMesh(start, target, obstacle, projectile.boundingRadius, meshes);
+		float t = FindIntersectLineVsHull(start, target, obstacle, projectile.boundingRadius, meshes);
 		return{ min(t, 1.0f) };
 	}
 

@@ -62,7 +62,7 @@ namespace Rococo
 		int32 y;
 	};
 
-	typedef size_t ID_BITMAP;
+	typedef uint64 ID_BITMAP;
 
 	struct Sphere
 	{

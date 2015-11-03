@@ -191,6 +191,11 @@ namespace Rococo
 
 		if (a == 0.0f)
 		{
+			if (b == 0.0f)
+			{
+				x0 = x1 = 0.0f;
+				return false;
+			}
 			// Degenerate case -> One root
 			x0 = x1 = -c / b;
 			return true;
