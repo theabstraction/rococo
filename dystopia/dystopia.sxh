@@ -20,7 +20,7 @@
 		(AddAmmunition (const Matrix4x4 transform) (IdMesh editorId)  (const IString name) (const IString imageFile) (Int32 ammoType)(Float32 massPerBullet)(Float32 massPerClip)(Int32 count) -> (IdEntity entityId))
 		(AddRangedWeapon  (const Matrix4x4 transform) (IdMesh editorId) (const IString name) (const IString imageFile) (Float32 muzzleVelocity)(Float32 flightTime)(Int32 ammoType)(Float32 massKg) -> (IdEntity entityId))
 		(AddArmour (const Matrix4x4 transform) (IdMesh editorId) (const IString name) (const IString imageFile) (Int32 bulletProt) (Int32 dollSlot) (Float32 massKg) -> (IdEntity entityId))
-		(AddSolid (const Matrix4x4 transform) (IdMesh editorId) -> (IdEntity entityId))
+		(AddSolid (const Matrix4x4 transform) (IdMesh editorId) (Int32 flags)-> (IdEntity entityId))
 		(Clear ->)
 		(SetPlayerId (IdEntity playerId) ->)
 	)

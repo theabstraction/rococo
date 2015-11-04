@@ -85,6 +85,8 @@ namespace Rococo
 	{
 		virtual void ConvertUnixPathToSysPath(const wchar_t* unixPath, wchar_t* sysPath, size_t bufferCapacity) const = 0;
 		virtual void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs>& cb) = 0;
+
+		// Call if the system has become unstable due to bad assets et al
 		virtual void FireUnstable() = 0;
 		virtual void SetUnstableHandler(IEventCallback<SysUnstableArgs>* cb) = 0;
 		virtual void GetBinDirectoryAbsolute(wchar_t* binDirectory, size_t capacityChars) const = 0;

@@ -372,7 +372,13 @@ namespace Sexy
 			virtual const ISExpression* GetTransform() const = 0;
 			virtual const ISExpression* GetOriginal() const = 0;
 			virtual const int TransformDepth() const = 0;
+			virtual bool operator == (const SEXCHAR* token) const = 0;
 		};
+
+		inline bool operator != (const ISExpression& s, const SEXCHAR* token)
+		{
+			return !(s == token);
+		}
 
 		struct NO_VTABLE ISExpressionBuilder : public ISExpression
 		{

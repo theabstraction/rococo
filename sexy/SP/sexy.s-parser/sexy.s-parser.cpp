@@ -213,6 +213,12 @@ namespace
 			end = _end;
 			endOffset = _endOffset;
 		}
+
+		virtual bool operator == (const SEXCHAR* token) const
+		{
+			if (token == nullptr) return Symbol == nullptr;
+			else return Symbol != nullptr && AreEqual(Symbol, token);
+		}
 	};
 
 #define STATE_CALL __fastcall

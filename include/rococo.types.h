@@ -336,6 +336,13 @@ namespace Rococo
 
 	typedef int32 ID_MESH;
 
+	struct ID_SYS_MESH
+	{
+		ID_SYS_MESH() : value(-1) {}
+		explicit ID_SYS_MESH(size_t _value) : value(_value) {}
+		size_t value;
+	};
+
 	struct fstring
 	{
 		const wchar_t* buffer;
@@ -360,6 +367,8 @@ namespace Rococo
 	{
 		return kb * 1024;
 	}
+
+	typedef const Matrix4x4& cr_m4x4;
 }
 
 namespace Sexy

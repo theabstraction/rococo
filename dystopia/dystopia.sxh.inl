@@ -244,6 +244,10 @@ namespace
 	{
 		Sexy::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 flags;
+		_offset += sizeof(flags);
+
+		ReadInput(flags, _sf, -_offset);
 		ID_MESH editorId;
 		_offset += sizeof(editorId);
 
@@ -257,7 +261,7 @@ namespace
 
 		ReadInput(_pObject, _sf, -_offset);
 		ID_ENTITY entityId;
-		entityId = _pObject->AddSolid(*transform, editorId);
+		entityId = _pObject->AddSolid(*transform, editorId, flags);
 		_offset += sizeof(entityId);
 		WriteOutput(entityId, _sf, -_offset);
 	}
@@ -309,7 +313,7 @@ namespace Dystopia
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddAmmunition, nullptr, SEXTEXT("ILevelAddAmmunition (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId)(Sys.Type.IString name)(Sys.Type.IString imageFile)(Int32 ammoType)(Float32 massPerBullet)(Float32 massPerClip)(Int32 count) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddRangedWeapon, nullptr, SEXTEXT("ILevelAddRangedWeapon (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId)(Sys.Type.IString name)(Sys.Type.IString imageFile)(Float32 muzzleVelocity)(Float32 flightTime)(Int32 ammoType)(Float32 massKg) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddArmour, nullptr, SEXTEXT("ILevelAddArmour (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId)(Sys.Type.IString name)(Sys.Type.IString imageFile)(Int32 bulletProt)(Int32 dollSlot)(Float32 massKg) -> (Int64 entityId)"));
-		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddSolid, nullptr, SEXTEXT("ILevelAddSolid (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddSolid, nullptr, SEXTEXT("ILevelAddSolid (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId)(Int32 flags) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderClear, nullptr, SEXTEXT("ILevelClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetPlayerId, nullptr, SEXTEXT("ILevelSetPlayerId (Pointer hObject)(Int64 playerId) -> "));
 	}

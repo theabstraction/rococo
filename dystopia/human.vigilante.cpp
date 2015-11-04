@@ -63,7 +63,7 @@ namespace
 						{
 							float dz = 10.0f / ranged->muzzleVelocity;
 							Vec3 dir{ 0, 1, dz };
-							ProjectileDef def = { id, pos, dir * ranged->muzzleVelocity, ranged->flightTime, 0 };
+							ProjectileDef def = { id, pos, dir * ranged->muzzleVelocity, ranged->flightTime, ID_SYS_MESH(0) };
 
 							if (ranged->ammunitionIndex)
 							{

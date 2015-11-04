@@ -66,7 +66,7 @@ namespace Dystopia
 		Vec3 origin;
 		Vec3 velocity;
 		float lifeTime;
-		ID_MESH bulletMesh;
+		ID_SYS_MESH bulletMesh;
 	};
 
 	enum CMD_ID { CMD_ID_RETRY = 101, CMD_ID_IGNORE = 102, CMD_ID_EXIT = 103 };

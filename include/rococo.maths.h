@@ -253,6 +253,9 @@ namespace Rococo
 		size_t nodeAllocSize;
 	};
 
+	void TransformPositions(const Vec3* vertices, size_t nElements, cr_m4x4 transform, Vec3* transformedVertices);
+	void TransformNormals(const Vec3* vertices, size_t nElements, cr_m4x4 transform, Vec3* transformedVertices);
+
 	ROCOCOAPI IQuadEnumerator
 	{
 		virtual void OnId(uint64 id) = 0;
@@ -332,21 +335,13 @@ namespace Rococo
 
 			struct
 			{
-				ParallelPlanes eastWest;
-				ParallelPlanes northSouth;
-				ParallelPlanes topBottom;
+				ParallelPlanes westEest;
+				ParallelPlanes southNorth;
+				ParallelPlanes bottomTop;
 			};
 
 			ParallelPlanes parallelPlanes[3];
 		} P;
-
-		enum
-		{
-			VERTEX_INDEX_SW,
-			VERTEX_INDEX_SE,
-			VERTEX_INDEX_NW,
-			VERTEX_INDEX_NE
-		};
 
 		Quadrilateral topVertices;
 		Quadrilateral bottomVertices;

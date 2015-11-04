@@ -26,12 +26,22 @@ using namespace Rococo;
 
 namespace
 {
+	enum SolidFlags
+	{
+		SolidFlags_None = 0,
+		SolidFlags_Obstacle = 0x0000001
+	};
+
 	struct Solid
 	{
 		ObjectInstance instance;
+		ID_SYS_MESH sysMeshId;
 		ID_MESH meshId;
 		Metres boundingRadius;
 		ID_BITMAP bitmapId;
+		uint32 flags;
+
+		bool HasFlag(SolidFlags flag) const { return (flags & flag) != 0; }
 	};
 
 	struct Projectile
@@ -42,7 +52,7 @@ namespace
 		Vec3 velocity;
 		float lifeTime;
 		float creationTime;
-		ID_MESH bulletMesh;
+		ID_SYS_MESH bulletMesh;
 	};
 
 	struct Human
@@ -116,53 +126,64 @@ namespace
 		IInventorySupervisor* inventory;
 	};
 
-	struct CollisionResult
-	{
-		float t;
-	};
-
 	float GetLateralDisplacement(cr_vec3 a, cr_vec3 b)
 	{
 		return sqrtf(Square(a.x - b.x) + Square(a.y - b.y));
 	}
 
-	float FindIntersectLineVsHull(cr_vec3 start, cr_vec3 target, const Solid& obstacle, float projectileRadius, IMeshLoader& meshes)
+	void TransformCube(const BoundingCube& cube, BoundingCube& rotatedCube, cr_m4x4 transform)
 	{
-		struct : IHullEnumerator
+		TransformPositions(cube.topVertices.vertices, 4, transform, rotatedCube.topVertices.vertices);
+		TransformPositions(cube.bottomVertices.vertices, 4, transform, rotatedCube.bottomVertices.vertices);
+
+		for (int i = 0; i < 6; ++i)
+		{
+			rotatedCube.P.planes[i].pointInPlane = transform * cube.P.planes[i].pointInPlane;
+			rotatedCube.P.planes[i].normal = Vec4::FromVec3(Normalize(transform * cube.P.planes[i].normal), 0.0f);
+		}
+	}
+
+	Collision FindIntersectSphereVsSolid(cr_vec3 start, cr_vec3 target, const Solid& obstacle, float projectileRadius, IMeshLoader& meshes)
+	{
+		struct : IEnumerator<BoundingCube>
 		{
 			Vec3 start;
 			Vec3 target; 
 			const Solid* obstacle;
 			float radius;
-			float firstCollision;
+			Collision firstCollision = NoCollision();
 
-			virtual void OnHull(const BoundingCube& cube)
+			virtual void operator()(const BoundingCube& cube)
 			{
-
+				BoundingCube rotatedCube;
+				TransformCube(cube, rotatedCube, obstacle->instance.orientation);
+				auto col = CollideBoundingBoxAndSphere(rotatedCube, Sphere{ start, radius }, target);
+				if (col.contactType != ContactType_None)
+				{
+					firstCollision = col;
+				}
 			}
-		} hull;
+		} collideAgainstHull;
 
-		hull.start = start;
-		hull.target = target;
-		hull.obstacle = &obstacle;
-		hull.radius = projectileRadius;
-		hull.firstCollision = 1.0f;
+		collideAgainstHull.start = start;
+		collideAgainstHull.target = target;
+		collideAgainstHull.obstacle = &obstacle;
+		collideAgainstHull.radius = projectileRadius;
 
-		meshes.EvaluatePhysicsHull(obstacle.meshId, hull);
+		meshes.ForEachPhysicsHull(obstacle.meshId, collideAgainstHull);
 
-		return hull.firstCollision;
+		return collideAgainstHull.firstCollision;
 	}
 
-	CollisionResult CollideBodies(cr_vec3 start, cr_vec3 target, const Solid& projectile, const Solid& obstacle, IMeshLoader& meshes)
+	Collision CollideBodies(cr_vec3 start, cr_vec3 target, const Solid& projectile, const Solid& obstacle, IMeshLoader& meshes)
 	{
-		float t = FindIntersectLineVsHull(start, target, obstacle, projectile.boundingRadius, meshes);
-		return{ min(t, 1.0f) };
+		return FindIntersectSphereVsSolid(start, target, obstacle, projectile.boundingRadius, meshes);
 	}
 
-	CollisionResult CollideWithGeometry(cr_vec3 start, cr_vec3 target, ID_ENTITY id, IQuadTree& quadTree, EntityTable<Solid>& solids, IMeshLoader& meshes)
+	Collision CollideWithGeometry(cr_vec3 start, cr_vec3 target, ID_ENTITY id, IQuadTree& quadTree, EntityTable<Solid>& solids, IMeshLoader& meshes)
 	{
 		auto& s = solids.find(id);
-		if (s == solids.end()) return CollisionResult{ 1.0f };
+		if (s == solids.end()) return NoCollision();
 
 		float radius = GetLateralDisplacement(start, target);
 		Sphere boundingSphere{ start, radius + s->second.boundingRadius };
@@ -174,7 +195,7 @@ namespace
 			EntityTable<Solid>* solids;
 			Vec3 start;
 			Vec3 end;
-			float collisionParameter;
+			Collision collision = NoCollision();
 			IMeshLoader* meshes;
 
 			virtual void OnId(uint64 idNumber)
@@ -183,12 +204,19 @@ namespace
 				if (id != projectileId)
 				{
 					auto& c = solids->find(id);
-					if (c != solids->end())
+					if (c != solids->end() && c->second.HasFlag(SolidFlags_Obstacle))
 					{
-						auto result = CollideBodies(start, end, *projectile, c->second, *meshes);
-						if (result.t < collisionParameter)
+						try
 						{
-							collisionParameter = result.t;
+							auto col = CollideBodies(start, end, *projectile, c->second, *meshes);
+							if (col.t < collision.t)
+							{
+								collision = col;
+							}
+						}
+						catch (IException& ex)
+						{
+							Throw(ex.ErrorCode(), L"Error colliding with body %I64u, against mesh %d:\n %s", (uint64)id, c->second.meshId, ex.Message());
 						}
 					}
 				}
@@ -200,12 +228,11 @@ namespace
 		onTarget.solids = &solids;
 		onTarget.start = start;
 		onTarget.end = target;
-		onTarget.collisionParameter = 1.0f;
 		onTarget.meshes = &meshes;
 
 		quadTree.EnumerateItems(boundingSphere, onTarget);
 
-		return CollisionResult{ onTarget.collisionParameter };
+		return onTarget.collision;
 	}
 
 	class Level : public ILevelSupervisor, public ILevelBuilder, public Post::IRecipient
@@ -263,7 +290,7 @@ namespace
 
 		virtual ID_ENTITY AddAmmunition(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, const fstring& imageFile, int32 ammoType, float massPerBullet, float massPerClip, int32 count)
 		{
-			auto id = AddSolid(transform, editorId);
+			auto id = AddSolid(transform, editorId, SolidFlags_None);
 			auto inv = CreateInventory({ 1,1 }, false, false);
 			ItemData itemData;
 			itemData.name = name;
@@ -276,7 +303,7 @@ namespace
 
 		virtual ID_ENTITY AddRangedWeapon(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, const fstring& imageName, float muzzleVelocity, float flightTime, int32 ammoType, float mass)
 		{
-			auto id = AddSolid(transform, editorId);
+			auto id = AddSolid(transform, editorId, SolidFlags_None);
 			auto inv = CreateInventory({ 1,1 }, false, false);
 			ItemData itemData;
 			itemData.name = name;
@@ -299,7 +326,7 @@ namespace
 				Throw(0, L"Could not add armour: %s. bulletProt was -ve", name.buffer, dollSlot, PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO - 1);
 			}
 
-			auto id = AddSolid(transform, editorId);
+			auto id = AddSolid(transform, editorId, SolidFlags_None);
 			auto inv = CreateInventory({ 1,1 }, false, false);
 			ItemData itemData;
 			itemData.name = name;
@@ -338,11 +365,11 @@ namespace
 			DeleteSolid(id);
 		}
 
-		virtual ID_ENTITY AddSolid(const Matrix4x4& transform, ID_MESH meshId)
+		virtual ID_ENTITY AddSolid(const Matrix4x4& transform, ID_MESH meshId, int32 flags)
 		{
 			auto id = GenerateEntityId();
-			ID_MESH sysId = e.meshes.GetRendererId(meshId);
-			solids.insert(id, Solid{ {transform, {0,0,0,0}}, sysId, 1.0_metres, 0 });
+			ID_SYS_MESH sysId = e.meshes.GetRendererId(meshId);
+			solids.insert(id, Solid{ {transform, {0,0,0,0}}, sysId, meshId, 1.0_metres, 0, (uint32) flags });
 
 			quadTree->AddEntity(Sphere{ transform.GetPosition(), 1.0_metres }, id);
 			return id;
@@ -350,7 +377,7 @@ namespace
 
 		virtual ID_ENTITY AddAlly(const Matrix4x4& transform, ID_MESH meshId)
 		{
-			ID_ENTITY id = AddSolid(transform, meshId);
+			ID_ENTITY id = AddSolid(transform, meshId, SolidFlags_None);
 			auto* inv = CreateInventory({ 4, 10 }, true, true);
 			auto h = new Human { HumanType_Vigilante, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Vigilante ) };
 			ItemData data;
@@ -364,7 +391,7 @@ namespace
 
 		virtual ID_ENTITY AddEnemy(const Matrix4x4& transform, ID_MESH meshId)
 		{
-			ID_ENTITY id = AddSolid(transform, meshId);
+			ID_ENTITY id = AddSolid(transform, meshId, SolidFlags_None);
 			auto* inv = CreateInventory({ 3,4 }, true, true);
 			auto h = new Human{ HumanType_Bobby, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Bobby) };
 			ItemData data;
@@ -395,11 +422,11 @@ namespace
 			eq.inventory->Swap(0, item);
 
 			e.meshes.Load(L"!mesh/stash.sxy"_fstring, 0x4000000);
-			ID_MESH sysId = e.meshes.GetRendererId(0x4000000);
+			ID_SYS_MESH sysId = e.meshes.GetRendererId(0x4000000);
 
 			Matrix4x4 stashLoc = Matrix4x4::Translate(location + Vec3{ 0,0,0.1f });
 			Matrix4x4 scale = Matrix4x4::Scale(0.37f, 0.37f, 0.37f);
-			Solid solid{ stashLoc * scale,{ 0,0,0,0 }, sysId, 1.0f, item->Data().bitmapId  };
+			Solid solid{ stashLoc * scale,{ 0,0,0,0 }, sysId, 0x4000000, 1.0f, item->Data().bitmapId, SolidFlags_None  };
 			solids.insert(id, solid);
 			return id;
 		}
@@ -535,11 +562,11 @@ namespace
 					foundItem = true;
 					ObjectInstance instance{ entity.instance.orientation, { 1.0f, 1.0f, 1.0f, 0.5f } };
 
-					rc.Draw(entity.meshId, &instance, 1);
+					rc.Draw(entity.sysMeshId, &instance, 1);
 				}
 				else
 				{
-					rc.Draw(entity.meshId, &entity.instance, 1);
+					rc.Draw(entity.sysMeshId, &entity.instance, 1);
 				}
 			}
 
@@ -615,7 +642,9 @@ namespace
 				Vec3 direction;
 				if (!TryNormalize(i->second->ai->Velocity(), direction)) return;
 
-				float speed = Length(i->second->ai->Velocity());
+				float speed = Length(i->second->ai->Velocity());// TODO - refactor AI velocity to incorporate the changes below
+
+				if (speed == 0.0f) return;
 
 				Vec4 velDir = Vec4::FromVec3(direction, 0.0f);
 
@@ -624,7 +653,38 @@ namespace
 
 				Vec3 newPos = pos + direction * dt * speed;
 
-				CollideWithGeometry(pos, newPos, id, *quadTree, solids, e.meshes);
+				auto col = CollideWithGeometry(pos, newPos, id, *quadTree, solids, e.meshes);
+				if (col.contactType != ContactType_None)
+				{
+					if (col.t > 0 && col.t < 1.0f)
+					{
+						float skinDepth = 0.01f; // Prevent object exactly reaching target to try to avoid numeric issues
+						Vec3 collisionPos = pos + direction * dt * speed * col.t * (1 - skinDepth);
+						Vec3 impulseDisplacement = collisionPos - col.touchPoint;
+
+						Vec3 impulseDirection;
+						if (TryNormalize(impulseDisplacement, impulseDirection))
+						{
+							float restitution = 0.75f;
+
+							auto col2 = CollideWithGeometry(pos, collisionPos, id, *quadTree, solids, e.meshes);
+							if (col2.contactType != ContactType_None)
+							{
+								return; // If a second collision occurs in the same timestep prevent motion altogether to avoid race conditions
+							}
+
+							newPos = collisionPos + impulseDirection * dt * speed * (1 - col.t);
+						}
+						else
+						{
+							// Not meant to happen here, no good reason contact point should match centre of objects that cause collision.
+#ifdef _DEBUG
+							TripDebugger();
+#endif
+							return;
+						}
+					}
+				}
 
 				SetPosition(id, newPos);
 			}

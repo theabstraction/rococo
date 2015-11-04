@@ -76,7 +76,7 @@ namespace Rococo
 
 	ROCOCOAPI IRenderContext // Provides draw calls - do not cache
 	{
-		virtual void Draw(ID_MESH id, const ObjectInstance* instance, uint32 nInstances) = 0;
+		virtual void Draw(ID_SYS_MESH id, const ObjectInstance* instance, uint32 nInstances) = 0;
 		virtual IRenderer& Renderer() = 0;
 		virtual void SetGlobalState(const GlobalState& gs) = 0;
 		virtual void SetMeshTexture(ID_TEXTURE textureId, int textureIndex) = 0;
@@ -120,8 +120,8 @@ namespace Rococo
 		virtual void UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid) = 0;
 		virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
 		
-		virtual ID_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
-		virtual void UpdateMesh(ID_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices) = 0;
+		virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
+		virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices) = 0;
 
 		virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, const wchar_t* uniqueName) = 0;
 		virtual void SetCursorBitmap(ID_TEXTURE bitmapId, Vec2i hotspotOffset, Vec2 uvTopLeft, Vec2 uvBottomRight) = 0;

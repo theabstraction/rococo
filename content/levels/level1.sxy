@@ -3,7 +3,8 @@
 (' #include "!scripts/dystopia.sxh.sxy")
 
 (namespace EntryPoint)
-
+	(alias Main EntryPoint.Main)
+	
 (using Sys.Maths)
 
 (function Main (Int32 arg) -> (Int32 exitCode): 
@@ -23,7 +24,7 @@
 		( 0 0 0    1)
 	)
 	
-	(level.AddSolid road 2)
+	(level.AddSolid road 2 0)
 
 	(Matrix4x4 offroad1 =
 		( 1 0 0    -3.5)
@@ -31,7 +32,7 @@
 		( 0 0 1     0.5)
 		( 0 0 0     1.0)
 	)
-	(level.AddSolid offroad1 1)
+	(level.AddSolid offroad1 1 1)
 		
 	(Matrix4x4 offroad2 =
 		( 2 0 0     4.0)
@@ -39,7 +40,7 @@
 		( 0 0 2     1.0)
 		( 0 0 0     1.0)
 	)
-	(level.AddSolid offroad2 1)
+	(level.AddSolid offroad2 1 1)
 	
 	(Matrix4x4 mrSmithLoc =
 		( 1 0 0     0.0 )
@@ -47,7 +48,7 @@
 		( 0 0 1     0.2 )
 		( 0 0 0     1.0 )
 	)
-	(level.AddEnemy mrSmithLoc 3)
+//	(level.AddEnemy mrSmithLoc 3)
 	
 	(Matrix4x4 mrSmithLoc2 =
 		( 1 0 0     1.0 )
@@ -55,7 +56,7 @@
 		( 0 0 1     0.2 )
 		( 0 0 0     1.0 )
 	)
-	(level.AddEnemy mrSmithLoc2 3)
+//	(level.AddEnemy mrSmithLoc2 3)
 	
 	(Matrix4x4 mrSmithLoc3 =
 		( 1 0 0     0.0 )
@@ -63,7 +64,7 @@
 		( 0 0 1     0.2 )
 		( 0 0 0     1.0 )
 	)
-	(level.AddEnemy mrSmithLoc3 3)
+//	(level.AddEnemy mrSmithLoc3 3)
 	
 	(Matrix4x4 mrSmithLoc4 =
 		( 1 0 0     1.0 )
@@ -71,7 +72,7 @@
 		( 0 0 1     0.2 )
 		( 0 0 0     1.0 )
 	)
-	(level.AddEnemy mrSmithLoc4 3)
+//	(level.AddEnemy mrSmithLoc4 3)
 		
 	(Matrix4x4 playerLoc =
 		( 1 0 0    0)
@@ -143,9 +144,7 @@
 	(Dystopia.Gui.IGui gui (Dystopia.Gui.GetGui))
 	
 	(Vec2i span = 800 600)
-	(gui.ShowDialogBox span 100 30 "Introduction" "&tNot a good day - I just lost my job, and I have been made bankrupt. Not fun." ">Continue...=Sys.Events.Continue" )
+	(gui.ShowDialogBox span 100 30 "Introduction" "&tNot a good day - I lost my job, and I have been made bankrupt." ">Continue...=Sys.Events.Continue" )
 			
 	(exitCode = 0)
 )
-
-(alias Main EntryPoint.Main)

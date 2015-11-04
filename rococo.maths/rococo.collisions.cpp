@@ -493,6 +493,9 @@ namespace Rococo
 			}
 		} collideWithVertex;
 
+		collideWithVertex.sphere = sphere;
+		collideWithVertex.target = target;
+
 		ForEachVertex(cube, collideWithVertex);
 
 		return collideWithVertex.vCollision;

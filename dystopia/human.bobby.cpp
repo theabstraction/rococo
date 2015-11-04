@@ -109,7 +109,7 @@ namespace
 							def.velocity.x = cosf(theta) * lateralSpeed;
 						}
 
-						def.bulletMesh = 0;
+						def.bulletMesh = ID_SYS_MESH(0);
 						level.AddProjectile(def, gameTime);
 					}
 				}

@@ -18,7 +18,7 @@ namespace Dystopia {
 		virtual ID_ENTITY/* entityId */ AddAmmunition(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, const fstring& imageFile, int32 ammoType, float massPerBullet, float massPerClip, int32 count) = 0;
 		virtual ID_ENTITY/* entityId */ AddRangedWeapon(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, const fstring& imageFile, float muzzleVelocity, float flightTime, int32 ammoType, float massKg) = 0;
 		virtual ID_ENTITY/* entityId */ AddArmour(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, const fstring& imageFile, int32 bulletProt, int32 dollSlot, float massKg) = 0;
-		virtual ID_ENTITY/* entityId */ AddSolid(const Matrix4x4& transform, ID_MESH editorId) = 0;
+		virtual ID_ENTITY/* entityId */ AddSolid(const Matrix4x4& transform, ID_MESH editorId, int32 flags) = 0;
 		virtual void Clear() = 0;
 		virtual void SetPlayerId(ID_ENTITY playerId) = 0;
 	};

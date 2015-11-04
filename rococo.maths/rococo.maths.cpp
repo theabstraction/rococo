@@ -85,6 +85,30 @@ namespace Rococo
 		};
 	}
 
+	void TransformPositions(const Vec3* vertices, size_t nElements, cr_m4x4 transform, Vec3* transformedVertices)
+	{
+		for (size_t i = 0; i < nElements; ++i)
+		{
+			cr_vec3 v = vertices[i];
+			Vec3& tv = transformedVertices[i];
+			tv.x = transform.row0.x * v.x + transform.row0.y * v.y + transform.row0.z * v.z + transform.row0.w;
+			tv.y = transform.row1.x * v.x + transform.row1.y * v.y + transform.row1.z * v.z + transform.row1.w;
+			tv.z = transform.row2.x * v.x + transform.row2.y * v.y + transform.row2.z * v.z + transform.row2.w;
+		}
+	}
+
+	void TransformNormals(const Vec3* vertices, size_t nElements, cr_m4x4 transform, Vec3* transformedVertices)
+	{
+		for (size_t i = 0; i < nElements; ++i)
+		{
+			cr_vec3 v = vertices[i];
+			Vec3& tv = transformedVertices[i];
+			tv.x = transform.row0.x * v.x + transform.row0.y * v.y + transform.row0.z * v.z;
+			tv.y = transform.row1.x * v.x + transform.row1.y * v.y + transform.row1.z * v.z;
+			tv.z = transform.row2.x * v.x + transform.row2.y * v.y + transform.row2.z * v.z;
+		}
+	}
+
 	void GetIsometricTransforms(Matrix4x4& worldMatrix, Matrix4x4& inverseWorldMatrixProj, Matrix4x4& worldMatrixAndProj, float scale, float aspectRatio, cr_vec3 centre, Degrees phi, Degrees viewTheta, Metres cameraHeight)
 	{
 		using namespace DirectX;

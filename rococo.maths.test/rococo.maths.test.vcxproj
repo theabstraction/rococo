@@ -152,6 +152,10 @@
   <ItemGroup>
     <ClCompile Include="maths.test.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\rococo.maths.h" />
+    <ClInclude Include="..\include\rococo.types.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

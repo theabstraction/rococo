@@ -16,15 +16,10 @@ namespace Dystopia
 		Vec3 c;
 	};
 
-	struct IHullEnumerator
-	{
-		virtual void OnHull(const BoundingCube& cube) = 0;
-	};
-
 	struct IMeshLoader: public IMeshes
 	{
-		virtual void EvaluatePhysicsHull(ID_MESH id, IHullEnumerator& cb) = 0;
-		virtual ID_MESH GetRendererId(int32 editorId) = 0;;
+		virtual size_t ForEachPhysicsHull(ID_MESH id, IEnumerator<BoundingCube> &cb) = 0;
+		virtual ID_SYS_MESH GetRendererId(ID_MESH editorId) = 0;;
 		virtual void Free() = 0;
 		virtual void UpdateMesh(const wchar_t* sysFilename) = 0;
 	};
