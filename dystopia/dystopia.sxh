@@ -27,6 +27,15 @@
 	(factory Dystopia.Levels.GetLevel)
 )
 
+(enum Int32
+	(as.sxy Dystopia.Entities.SolidFlags "../content/scripts/dystopia") 
+	(as.cpp Dystopia.SolidFlags "dystopia") 
+	(
+		(None 0)
+		(Obstacle 1)
+	)
+)
+
 (interface
 	(as.sxy Dystopia.Gui.IGui "../content/scripts/dystopia") 
 	(as.cpp Dystopia.IGui "dystopia")

@@ -909,6 +909,17 @@ Error:
 				}
 			}
 		}
+		else if (s.Type() == EXPRESSION_TYPE_NULL)
+		{
+			if (expected)
+			{
+				sexstringstream streamer;
+				streamer << SEXTEXT("Expected numeric expression, of type ") << GetTypeName(type) << SEXTEXT(" but saw a null expression");
+				Throw(s, streamer);
+			}
+			// not an atomic or a compound
+			return false;
+		}
 		else
 		{
 			if (expected)

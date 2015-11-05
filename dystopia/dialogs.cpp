@@ -256,12 +256,12 @@ namespace
 			return registerWindow->UIList();
 		}
 
-		virtual void Log(const wchar_t* format, ...)
+		virtual int Log(const wchar_t* format, ...)
 		{
 			va_list arglist;
 			va_start(arglist, format);
 			wchar_t text[4096];
-			SafeVFormat(text, _TRUNCATE, format, arglist);
+			int nChars = SafeVFormat(text, _TRUNCATE, format, arglist);
 
 			wchar_t* next = nullptr;
 			const wchar_t* token = wcstok_s(text, L"\n", &next);
@@ -271,6 +271,8 @@ namespace
 				AddLogLine(token);
 				token = wcstok_s(nullptr, L"\n", &next);
 			}
+
+			return nChars;
 		}
 
 		virtual Windows::IWindow& GetDebuggerWindowControl()

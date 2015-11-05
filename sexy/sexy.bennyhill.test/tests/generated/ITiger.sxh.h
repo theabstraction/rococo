@@ -1,11 +1,7 @@
 namespace Sys { namespace Animals { 
-	struct ITiger
+	enum AnimalType: int32
 	{
-		virtual void Write(Sys::SexString text) = 0;
+		AnimalType_Cat = 0, 	// 0x0
+		AnimalType_Dog = 1, 	// 0x1
 	};
 }}
-
-namespace Sys::Animals
-{
-	void AddNativeCalls_SysAnimalsITiger(Sexy::Script::IPublicScriptSystem& ss, Sys::IZoo* nceContext);
-}

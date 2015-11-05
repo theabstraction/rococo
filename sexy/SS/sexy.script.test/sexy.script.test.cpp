@@ -9857,6 +9857,34 @@ namespace
 		validate(x == 4);
 	}
 
+	void TestMacroAsArgument1(IPublicScriptSystem& ss)
+	{
+		csexstr srcCode =
+			SEXTEXT("(macro Sys.Seventeen in out (out.AddAtomic \"0x11\"))")
+
+			SEXTEXT("(function PassThrough (Int32 x)->(Int32 y) : (y = x))")
+			SEXTEXT("(namespace EntryPoint)")
+			SEXTEXT("(function Main -> (Int32 exitCode):")
+			SEXTEXT("	(exitCode = (PassThrough (#Sys.Seventeen)))")
+			SEXTEXT(")")
+			SEXTEXT("(alias Main EntryPoint.Main)")
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestMacroAsArgument1"));
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0x00000001);
+		Sexy::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateLogs();
+
+		int32 exitCode = vm.PopInt32();
+		validate(exitCode == 17);
+
+		validate(result == Sexy::EXECUTERESULT_TERMINATED);
+	}
+
 	void TestMultipleDerivation(IPublicScriptSystem& ss)
 	{
 		csexstr srcCode =
@@ -10559,6 +10587,8 @@ namespace
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+
+		TEST(TestMacroAsArgument1);
 
 	//	TEST(TestArrayOfArchetypes); // -> currently disabled, since arrays are 32-bit and 64-bits only, and closures are 128 bits.
 		TEST(TestMapOfArchetypes);

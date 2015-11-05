@@ -1,0 +1,13 @@
+// enum
+
+(config $config.xc)
+
+(enum Int32
+	(as.sxy Sys.Animals.AnimalType "ITiger")
+	(as.cpp Sys.Animals.AnimalType "ITiger")
+	(
+		(Cat 0)
+		(Dog 1)
+		(Tiger 2)
+	)
+)

@@ -527,6 +527,9 @@ namespace Dystopia
 		ScriptCompileArgs args{ ss };
 		onCompile.OnEvent(args);
 
+		bool hasIncludedFiles = false;
+		bool hasIncludedNatives = false;
+
 		// Find include directive
 		for (int i = 0; i < mainModule.Root().NumberOfElements(); ++i)
 		{
@@ -536,8 +539,15 @@ namespace Dystopia
 				cr_sex squot = sincludeExpr[0];
 				cr_sex stype = sincludeExpr[1];
 
-				if (AreAtomicTokensEqual(squot, L"'"_fstring) && AreAtomicTokensEqual(stype, L"#include"_fstring))
+				if (squot == L"'" && stype == L"#include")
 				{
+					if (hasIncludedFiles)
+					{
+						Throw(sincludeExpr, L"An include directive is already been stated. Merge directives.");
+					}
+
+					hasIncludedFiles = true;
+
 					for (int j = 2; j < sincludeExpr.NumberOfElements(); j++)
 					{
 						cr_sex sname = sincludeExpr[j];
@@ -550,6 +560,28 @@ namespace Dystopia
 
 						auto includedModule = e.sourceCache.GetSource(name->Buffer);
 						ss.AddTree(*includedModule);
+					}
+				}
+				else if (squot == L"'" && stype == L"#natives")
+				{
+					if (hasIncludedNatives)
+					{
+						Throw(sincludeExpr, L"A natives directive is already been stated. Merge directives.");
+					}
+
+					hasIncludedNatives = true;
+
+					for (int j = 2; j < sincludeExpr.NumberOfElements(); j++)
+					{
+						cr_sex sname = sincludeExpr[j];
+						if (!IsStringLiteral(sname))
+						{
+							Throw(sname, L"expecting string literal in natives directive (' #natives \"<name1>\" \"<name2 etc>\" ...) ");
+						}
+
+						auto name = sname.String();
+
+						ss.AddNativeLibrary(name->Buffer);
 					}
 
 					break;
@@ -630,11 +662,67 @@ namespace Dystopia
 		int exitCode = vm.PopInt32();
 	}
 
+	void PrintExpression(cr_sex s, int &totalOutput, int maxOutput, IDebuggerWindow& debugger)
+	{
+		switch (s.Type())
+		{
+		case EXPRESSION_TYPE_ATOMIC:
+			totalOutput += debugger.Log(SEXTEXT(" %s"), (csexstr)s.String()->Buffer);
+			break;
+		case EXPRESSION_TYPE_STRING_LITERAL:
+			totalOutput += debugger.Log(SEXTEXT(" \"%s\""), (csexstr)s.String()->Buffer);
+			break;
+		case EXPRESSION_TYPE_COMPOUND:
+
+			totalOutput += debugger.Log(SEXTEXT(" ("));
+
+			for (int i = 0; i < s.NumberOfElements(); ++i)
+			{
+				if (totalOutput > maxOutput)
+				{
+					return;
+				}
+
+				cr_sex child = s.GetElement(i);
+				PrintExpression(child, totalOutput, maxOutput, debugger);
+			}
+
+			totalOutput += debugger.Log(SEXTEXT(" )"));
+			break;
+		case EXPRESSION_TYPE_NULL:
+			totalOutput += debugger.Log(SEXTEXT(" ()"));
+			break;
+		}
+	}
+
 	void RouteParseException(ParseException& ex, IDebuggerWindow& debugger)
 	{
 		auto a = ex.Start();
 		auto b = ex.End();
 		debugger.Log(L"%s\n%s\nSpecimen: %s\n(%d,%d) to (%d,%d)", ex.Name(), ex.Message(), ex.Specimen(), a.X, a.Y, b.X, b.Y);
+
+		auto s = ex.Source();
+		if (s)
+		{
+			auto t = s->GetTransform();
+			if (t)
+			{
+				int totalOutput = 0;
+				PrintExpression(*t, totalOutput, 1024, debugger);
+			}
+		}
+
+		for (const ISExpression* s = ex.Source(); s != NULL; s = s->GetOriginal())
+		{
+			if (s->TransformDepth() > 0)  debugger.Log(SEXTEXT("Macro expansion %d:\n"), s->TransformDepth());
+
+			int totalOutput = 0;
+			PrintExpression(*s, totalOutput, 1024, debugger);
+
+			if (totalOutput > 1024) debugger.Log(SEXTEXT("..."));
+
+			debugger.Log(SEXTEXT("\n"));
+		}
 	}
 
 	struct ScriptLogger : ILog

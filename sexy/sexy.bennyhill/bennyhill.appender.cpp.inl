@@ -190,6 +190,38 @@ namespace
 		appender.Append(SEXTEXT(") = 0;"));
 	}
 
+	void DeclareCppEnum(FileAppender& appender, const EnumContext& ec, cr_sex senumDef, const ParseContext& pc)
+	{
+		int nsDepth = AppendNamespace(appender, ec.asCppEnum.SexyName());
+		if (nsDepth > 0)
+		{
+			appender.Append(SEXTEXT("\t"));
+		}
+
+		appender.Append(SEXTEXT("enum "));
+		AppendStructShortName(appender, ec.asCppEnum.SexyName());
+		appender.Append(SEXTEXT(": "));
+		AppendStructShortName(appender, ec.underlyingType.SexyName());
+		appender.Append(nsDepth > 0 ? SEXTEXT("\n\t{\n") : SEXTEXT("\n{\n"));
+
+		for (auto& i : ec.values)
+		{
+			auto& name = i.first;
+			appender.Append(nsDepth > 0 ? SEXTEXT("\t\t") : SEXTEXT("\t"));
+			AppendStructShortName(appender, ec.asCppEnum.SexyName());
+			appender.Append(SEXTEXT("_%s = %I64d, \t// 0x%I64x\n"), name.c_str(), i.second, i.second);
+		}
+
+		appender.Append(nsDepth > 0 ? SEXTEXT("\t};") : SEXTEXT("};"));
+
+		if (nsDepth > 0)
+		{
+			appender.Append('\n');
+			CloseNamespace(appender, nsDepth);
+		}
+	}
+
+
 	void DeclareCppInterface(FileAppender& appender, const InterfaceContext& ic, cr_sex interfaceDef, const ISExpression* methods, const ParseContext& pc)
 	{
 		int nsDepth = AppendNamespace(appender, ic.asCppInterface.SexyName());

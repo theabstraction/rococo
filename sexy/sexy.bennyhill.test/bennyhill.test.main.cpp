@@ -12,8 +12,6 @@
 #include "sexy.s-parser.h"
 #include "sexy.lib.s-parser.h"
 #include "sexy.lib.util.h"
-#include "sexy.strings.inl"
-#include "sexy.namespaces.inl"
 
 #include <rococo.win32.target.win7.h>
 #define WIN32_LEAN_AND_MEAN
@@ -368,6 +366,19 @@ namespace
 		} anon;
 		TestExecuteBennyHill(s_bennyExe, s_sexyRoot, "stringmethod1.sxh", anon);
 	}	
+
+	void TestParseEnum()
+	{
+		struct ANON : public ISexCallback
+		{
+			virtual void OnSex(cr_sex s)
+			{
+				csexstr expected = SEXTEXT("(interface Sys.Animals.ITiger(Write (IString text) -> ) )(class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject))(method ProxyITiger.Write (IString text)->  : (Sys.Animals.Native.ITigerWrite this.hObject text))");
+				ValidateEquivalentSExpression(expected, s);
+			}
+		} anon;
+		TestExecuteBennyHill(s_bennyExe, s_sexyRoot, "parseenum.sxh", anon);
+	}
 }
 
 void TruncateDirectory(char* fullpath)
@@ -407,6 +418,7 @@ int main(int argc, char* argv[])
 	TEST(TestParseMethod1v1);
 	TEST(TestParseMethod3v3);
 	TEST(TestParseStringMethod1); 
+	TEST(TestParseEnum);
 	
 	return 0;
 }

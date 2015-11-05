@@ -277,6 +277,25 @@ namespace
 		appender.Append(SEXTEXT(")\n"));
 	}
 
+	void DeclareSexyEnum(FileAppender& appender, const EnumContext& ec, cr_sex senumDef, const ParseContext& pc)
+	{
+		NamespaceSplitter splitter(ec.asSexyEnum);
+
+		csexstr body, tail;
+		if (!splitter.SplitTail(body, tail))
+		{
+			Throw(senumDef, SEXTEXT("Could not split namespace of enum definition"));
+		}
+
+		for (auto &i : ec.values)
+		{
+			appender.Append(SEXTEXT("(macro %s.%s%s in out (out.AddAtomic \"0x%I64X\"))\n"), body, tail, i.first.c_str(), i.second);
+		}
+
+		appender.Append(SEXTEXT("\n"));
+	}
+
+
 	void DeclareSexyInterface(FileAppender& appender, const InterfaceContext& ic, const ISExpression* methods, const ParseContext& pc)
 	{
 		appender.Append(SEXTEXT("(interface %s"), ic.asSexyInterface);

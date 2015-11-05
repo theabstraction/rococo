@@ -1,14 +1,3 @@
-(interface Sys.Animals.ITiger
-	(Write (Sys.Type.IString text) -> )
-)
-
-(class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject))
-	(method ProxyITiger.Construct (Pointer hObject): (this.hObject = hObject))
-	(ProxyITiger.Destruct -> : (Sys.Animals.Native.ITigerDestruct this.hObject))
-	(method ProxyITiger.Write (Sys.Type.IString text) ->  : (Sys.Animals.Native.ITigerWrite this.hObject text))
-
-(factory Sys.Animals.GetTigerByName Sys.Animals.ITiger (Sys.Type.IString tigerName) :
-	(Pointer pObject = (Sys.Animals.Native.GetHandleForITiger0 tigerName))
-	(construct ProxyITiger pObject)
-)
-
+(namespace Sys.Animals)
+(macro Sys.Animals.AnimalTypeCat in out (out.AddAtomic "0x0"))
+(macro Sys.Animals.AnimalTypeDog in out (out.AddAtomic "0x1"))

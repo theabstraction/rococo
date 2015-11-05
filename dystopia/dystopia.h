@@ -147,7 +147,7 @@ namespace Dystopia
 	{
 		virtual void AddDisassembly(bool clearFirst, const wchar_t* text) = 0;
 		virtual void Free() = 0;
-		virtual void Log(const wchar_t* format, ...) = 0;
+		virtual int Log(const wchar_t* format, ...) = 0;
 		virtual Windows::IWindow& GetDebuggerWindowControl() = 0;
 		virtual bool IsVisible() const = 0;
 		virtual void ShowWindow(bool show, IDebugControl* debugControl) = 0;

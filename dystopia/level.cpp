@@ -26,12 +26,6 @@ using namespace Rococo;
 
 namespace
 {
-	enum SolidFlags
-	{
-		SolidFlags_None = 0,
-		SolidFlags_Obstacle = 0x0000001
-	};
-
 	struct Solid
 	{
 		ObjectInstance instance;

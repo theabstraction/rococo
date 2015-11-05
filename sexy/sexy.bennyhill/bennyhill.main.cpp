@@ -45,8 +45,6 @@
 
 #include "sexy.s-parser.h"
 #include "sexy.lib.s-parser.h"
-#include "sexy.strings.inl"
-#include "sexy.namespaces.inl"
 
 #include "sexy.lib.util.h"
 
@@ -207,6 +205,26 @@ struct InterfaceContext
 	}
 };
 
+struct EnumContext
+{
+	enum { MAX_TOKEN_LEN = 256 };
+	CppType underlyingType;
+	CppType asCppEnum;
+	SEXCHAR asSexyEnum[MAX_TOKEN_LEN];
+	SEXCHAR appendSexyFile[_MAX_PATH];
+	SEXCHAR appendCppHeaderFile[_MAX_PATH];
+	SEXCHAR appendCppImplFile[_MAX_PATH];
+	std::vector<std::pair<stdstring, int64>> values;
+
+	EnumContext()
+	{
+		asSexyEnum[0] = 0;
+		appendSexyFile[0] = 0;
+		appendCppHeaderFile[0] = 0;
+		appendCppImplFile[0] = 0;
+	}
+};
+
 #include "bennyhill.validators.inl"
 #include "bennyhill.appender.sexy.inl"
 #include "bennyhill.appender.cpp.inl"
@@ -240,6 +258,22 @@ void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s,
 	FileDeleteOnceOnly(ic.appendCppImplFile);
 	FileAppender cppFileImplAppender(ic.appendCppImplFile);
 	ImplementNativeFunctions(cppFileImplAppender, ic, methods, pc);
+}
+
+void GenerateFiles(const ParseContext& pc, const EnumContext& ec, cr_sex senumDef)
+{
+	FileDeleteOnceOnly(ec.appendSexyFile);
+	FileAppender sexyFileAppender(ec.appendSexyFile);
+	DeclareSexyEnum(sexyFileAppender, ec, senumDef, pc);
+	//ImplementSexyInterface(sexyFileAppender, ic, methods, s, pc);
+
+	FileDeleteOnceOnly(ec.appendCppHeaderFile);
+	FileAppender cppFileAppender(ec.appendCppHeaderFile);
+	DeclareCppEnum(cppFileAppender, ec, senumDef, pc);
+
+	FileDeleteOnceOnly(ec.appendCppImplFile);
+	FileAppender cppFileImplAppender(ec.appendCppImplFile);
+	//ImplementNativeFunctions(cppFileImplAppender, ic, methods, pc);
 }
 
 void GetFileSpec(SEXCHAR filename[_MAX_PATH], csexstr root, csexstr scriptName, csexstr extension)
@@ -495,6 +529,161 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 	}
 }
 
+void ParseEnum(cr_sex senumDef, const ParseContext& pc)
+{
+	EnumContext ec;
+
+	if (senumDef.NumberOfElements() < 4)
+	{
+		Throw(senumDef, SEXTEXT("Expecting at least 4 elements in enumeration definition"));
+	}
+
+	cr_sex sbasicType = senumDef[1];
+	if (!IsAtomic(sbasicType))
+	{
+		Throw(sbasicType, SEXTEXT("Expecting underlying type, such as Int32 or Int64"));
+	}
+
+	auto i = pc.primitives.find(sbasicType.String()->Buffer);
+	if (i == pc.primitives.end())
+	{
+		Throw(sbasicType, SEXTEXT("Cannot find primitive type in the config file"));
+	}
+
+	ec.underlyingType.Set(i->second.cppType.c_str());
+
+	for (int i = 2; i < senumDef.NumberOfElements(); ++i)
+	{
+		cr_sex sdirective = senumDef.GetElement(i);
+		if (!IsCompound(sdirective)) Throw(sdirective, SEXTEXT("Expecting compound expression in the enum definition"));
+
+		cr_sex scmd = sdirective[0];
+		
+		if (IsCompound(scmd))
+		{
+			for (int j = 0; j < scmd.NumberOfElements(); j++)
+			{
+				cr_sex sdef = sdirective[j];
+				int nElements = sdef.NumberOfElements();
+				auto type = sdef.Type();
+				if (nElements != 2 || !IsAtomic(sdef[0]) || !IsAtomic(sdef[1]))
+				{
+					Throw(sdef, SEXTEXT("Expecting compound expression with 2 elements (<enum_name> <enum_value>)"));
+				}
+
+				cr_sex sName = sdef[0];
+				cr_sex sValue = sdef[1];
+
+				if (!IsCapital(sName.String()->Buffer[0]))
+				{
+					Throw(sName, SEXTEXT("Expecting a capital letter in the first position"));
+				}
+
+				for (csexstr p = sName.String()->Buffer; *p != 0; p++)
+				{
+					if (!IsAlphaNumeric(*p))
+					{
+						Throw(sName, SEXTEXT("Expecting alphanumerics throughout the name definition"));
+					}
+				}
+
+				VariantValue value;
+				auto result = Sexy::Parse::TryParse(value, VARTYPE_Int64, sValue.String()->Buffer);
+				if (result != Sexy::Parse::PARSERESULT_GOOD)
+				{
+					Throw(sValue, L"Expecting int64 numeric for value");
+				}
+
+				ec.values.push_back(std::make_pair(sName.String()->Buffer, value.int64Value));
+			}
+		}
+		else if (scmd == SEXTEXT("as.both"))
+		{
+			if (sdirective.NumberOfElements() != 3) Throw(sdirective, SEXTEXT("Expecting (as.both <fully qualified enum name> \"<target-filename-prefix>\")"));
+			cr_sex sinterfaceName = sdirective.GetElement(1);
+			ValidateFQSexyInterface(sinterfaceName); // sexy namespaces are more stringent than those of C++. so we use sexy validation for both
+
+			if (ec.asSexyEnum[0] != 0) Throw(sdirective, SEXTEXT("as.sxy is already defined for this interface"));
+			if (ec.asCppEnum.SexyName()[0] != 0) Throw(sdirective, SEXTEXT("as.cpp is already defined for this interface"));
+
+			cr_sex ssexyFilename = sdirective.GetElement(2);
+			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, SEXTEXT("Expecting string literal target-prefix. Filenames can potentially have spaces in them."));
+
+			csexstr sexyFilename = ssexyFilename.String()->Buffer;
+
+			StringPrint(ec.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRoot, sexyFilename);
+			StringPrint(ec.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRoot, sexyFilename);
+
+			ec.asCppEnum.Set(sinterfaceName.String()->Buffer);
+			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
+			StringPrint(ec.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRoot, ssexyFilename.String()->Buffer);
+		}
+		else if (scmd == SEXTEXT("as.sxy"))
+		{
+			if (sdirective.NumberOfElements() != 3) Throw(sdirective, SEXTEXT("Expecting (as.sxy <fully qualified enum name> \"<target-filename>\")"));
+			cr_sex sinterfaceName = sdirective.GetElement(1);
+			ValidateFQSexyInterface(sinterfaceName);
+
+			if (ec.asSexyEnum[0] != 0) Throw(sdirective, SEXTEXT("as.sxy is already defined for this enum"));
+
+			cr_sex ssexyFilename = sdirective.GetElement(2);
+			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, SEXTEXT("Expecting string literal"));
+			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
+			StringPrint(ec.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRoot, ssexyFilename.String()->Buffer);
+		}
+		else if (scmd == SEXTEXT("as.cpp"))
+		{
+			if (sdirective.NumberOfElements() != 3) Throw(sdirective, SEXTEXT("Expecting (as.cpp <fully qualified enum name> \"<target-filename-sans-extension>\")"));
+			cr_sex sstructName = sdirective.GetElement(1);
+			ValidateFQCppStruct(sstructName);
+
+			if (ec.asCppEnum.SexyName()[0] != 0) Throw(sdirective, SEXTEXT("as.cpp is already defined for this enum"));
+
+			cr_sex ssexyFilename = sdirective.GetElement(2);
+			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, SEXTEXT("Expecting string literal"));
+
+			csexstr sexyFilename = ssexyFilename.String()->Buffer;
+
+			StringPrint(ec.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRoot, sexyFilename);
+			StringPrint(ec.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRoot, sexyFilename);
+
+			ec.asCppEnum.Set(sstructName.String()->Buffer);
+		}
+		else
+		{
+			Throw(scmd, SEXTEXT("Expecting one of {as.both, as.sxy, as.cpp} or a compound expression giving a set of enumeration name value pairs"));
+		}
+	}
+
+	if (ec.asCppEnum.SexyName()[0] == 0)
+	{
+		Throw(senumDef, SEXTEXT("Missing as.cpp or as.both"));
+	}
+
+	if (ec.asSexyEnum[0] == 0)
+	{
+		Throw(senumDef, SEXTEXT("Missing as.sxy or as.both"));
+	}
+
+	if (ec.appendSexyFile[0] == 0) StringPrint(ec.appendSexyFile, _MAX_PATH, SEXTEXT("%s.sxh.sxy"), pc.scriptInputSansExtension);
+
+	if (ec.appendCppHeaderFile[0] == 0)
+	{
+		StringPrint(ec.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRoot, pc.scriptName);
+		StringPrint(ec.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.cpp"), pc.cppRoot, pc.scriptName);
+	}
+
+	try
+	{
+		GenerateFiles(pc, ec, senumDef);
+	}
+	catch (OS::OSException&)
+	{
+		WriteToStandardOutput(SEXTEXT("Error in enum defintion %s: %d.%d to %d.%d\n"), pc.scriptInput, senumDef.Start().X, senumDef.Start().Y, senumDef.End().X, senumDef.End().Y);
+		throw;
+	}
+}
+
 void ParseInterface(cr_sex interfaceDef, const ParseContext& pc)
 {
 	InterfaceContext ic;
@@ -686,6 +875,11 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 		{
 			if (!hasConfig) Throw(command, SEXTEXT("Must define a (config <config-path>) entry before all interfaces"));
 			ParseInterface(topLevelItem, pc);
+		}
+		else if (AreEqual(SEXTEXT("enum"), cmd))
+		{
+			if (!hasConfig) Throw(command, SEXTEXT("Must define a (config <config-path>) entry before all enumerations"));
+			ParseEnum(topLevelItem, pc);
 		}
 		else
 		{

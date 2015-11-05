@@ -145,10 +145,10 @@ namespace Sexy { namespace Sex
 
 	void AssertMacroShortName(cr_sex s, csexstr shortName)
 	{
-		if (!IsLowerCase(shortName[0]))
+		if (!IsAlphabetical(shortName[0]))
 		{
 			sexstringstream streamer;
-			streamer << SEXTEXT("Expecting macro name to begin with a lower case letter {a-z} at position[0]");
+			streamer << SEXTEXT("Expecting macro name to begin with a letter {a-z} or {A-Z} at position[0]");
 			Throw(s, streamer);
 		}
 

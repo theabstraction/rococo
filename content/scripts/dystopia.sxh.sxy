@@ -38,6 +38,9 @@
 	(construct ProxyILevel pObject)
 )
 
+(macro Dystopia.Entities.SolidFlagsNone in out (out.AddAtomic "0x0"))
+(macro Dystopia.Entities.SolidFlagsObstacle in out (out.AddAtomic "0x1"))
+
 (interface Dystopia.Gui.IGui
 	(ShowDialogBox (Sys.Maths.Vec2i span)(Int32 retzone)(Int32 hypzone)(Sys.Type.IString title)(Sys.Type.IString message)(Sys.Type.IString buttons) -> )
 	(Add3DHint (Sys.Maths.Vec3 worldPos)(Sys.Type.IString message)(Float32 duration) -> )

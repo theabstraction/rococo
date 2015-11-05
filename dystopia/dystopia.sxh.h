@@ -30,6 +30,12 @@ namespace Dystopia
 }
 
 namespace Dystopia { 
+	enum SolidFlags: int32
+	{
+		SolidFlags_None = 0, 	// 0x0
+		SolidFlags_Obstacle = 1, 	// 0x1
+	};
+}namespace Dystopia { 
 	struct NO_VTABLE IGui
 	{
 		virtual void ShowDialogBox(const Vec2i& span, int32 retzone, int32 hypzone, const fstring& title, const fstring& message, const fstring& buttons) = 0;
