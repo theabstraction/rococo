@@ -561,7 +561,7 @@ void ParseEnum(cr_sex senumDef, const ParseContext& pc)
 		
 		if (IsCompound(scmd))
 		{
-			for (int j = 0; j < scmd.NumberOfElements(); j++)
+			for (int j = 0; j < sdirective.NumberOfElements(); j++)
 			{
 				cr_sex sdef = sdirective[j];
 				int nElements = sdef.NumberOfElements();

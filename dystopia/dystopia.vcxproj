@@ -188,6 +188,8 @@
     <ClCompile Include="app.cpp" />
     <ClCompile Include="dialogs.cpp" />
     <ClCompile Include="Environment.cpp" />
+    <ClCompile Include="generator.city.cpp" />
+    <ClCompile Include="generator.house.cpp" />
     <ClCompile Include="gui.cpp" />
     <ClCompile Include="pane.context.menu.cpp" />
     <ClCompile Include="pane.inventory.cpp" />

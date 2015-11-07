@@ -431,7 +431,7 @@ namespace
 
 		DX11AppRenderer(ID3D11Device& _device, ID3D11DeviceContext& _dc, IDXGIFactory& _factory, IInstallation& installation) :
 			device(_device), dc(_dc), factory(_factory), fonts(nullptr), clipRect(-10000.0f, -10000.0f, 10000.0f, 10000.0f), hRenderWindow(0),
-			window(nullptr), cursor{ 0, {0,0}, {1,1}, {0,0} }
+			window(nullptr), cursor{ ID_TEXTURE(), {0,0}, {1,1}, {0,0} }
 		{
 			static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
 			guiBuffer = CreateDynamicVertexBuffer<GuiVertex>(device, GUI_BUFFER_VERTEX_CAPACITY);
@@ -646,7 +646,7 @@ namespace
 
 		virtual void SetMeshTexture(ID_TEXTURE textureId, int textureIndex)
 		{
-			size_t index = textureId - 1;
+			size_t index = textureId.value - 1;
 			if (index >= textures.size())
 			{
 				Throw(0, L"Bad texture id");
@@ -746,13 +746,14 @@ namespace
 			}
 			
 			textures.push_back({ anon.texture, textureView });
-			mapNameToTexture.insert(std::make_pair(uniqueName, textures.size()));
-			return textures.size();
+			auto id = ID_TEXTURE(textures.size());
+			mapNameToTexture.insert(std::make_pair(uniqueName, id));
+			return id;
 		}
 
 		virtual auto SelectTexture(ID_TEXTURE id) -> Vec2i
 		{
-			size_t index = id - 1;
+			size_t index = id.value - 1;
 			if (index >= textures.size())
 			{
 				Throw(0, L"Bad texture id");
@@ -826,7 +827,7 @@ namespace
 			{
 				delete shader;
 				Throw(hr, L"device.CreateInputLayout failed with shader %s", name);
-				return 0;
+				return ID_VERTEX_SHADER();
 			}
 
 			hr = device.CreateVertexShader(shaderCode, shaderLength, nullptr, &shader->vs);
@@ -834,12 +835,12 @@ namespace
 			{
 				delete shader;
 				Throw(hr, L"device.CreateVertexShader failed with shader %s", name);
-				return 0;
+				return ID_VERTEX_SHADER::Invalid();
 			}
 
 			shader->name = name;
 			vertexShaders.push_back(shader);
-			return (ID_VERTEX_SHADER)vertexShaders.size() - 1;
+			return ID_VERTEX_SHADER(vertexShaders.size() - 1);
 		}
 
 		ID_VERTEX_SHADER CreateGuiVertexShader(const wchar_t* name, const byte* shaderCode, size_t shaderLength)
@@ -863,12 +864,12 @@ namespace
 			{
 				delete shader;
 				Throw(hr, L"device.CreatePixelShader failed with shader %s", name);
-				return 0;
+				return ID_PIXEL_SHADER::Invalid();
 			}
 
 			shader->name = name;
 			pixelShaders.push_back(shader);
-			return (ID_PIXEL_SHADER)pixelShaders.size() - 1;
+			return ID_PIXEL_SHADER(pixelShaders.size() - 1);
 		}
 
 		void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job)
@@ -890,11 +891,11 @@ namespace
 
 		void UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid)
 		{
-			if (vid >= vertexShaders.size()) Throw(0, L"Bad vertex shader Id in call to UseShaders");
-			if (pid >= pixelShaders.size()) Throw(0, L"Bad pixel shader Id in call to UseShaders");
+			if (vid.value >= vertexShaders.size()) Throw(0, L"Bad vertex shader Id in call to UseShaders");
+			if (pid.value >= pixelShaders.size()) Throw(0, L"Bad pixel shader Id in call to UseShaders");
 
-			auto& vs = *vertexShaders[vid];
-			auto& ps = *pixelShaders[pid];
+			auto& vs = *vertexShaders[vid.value];
+			auto& ps = *pixelShaders[pid.value];
 
 			dc.IASetInputLayout(vs.inputLayout);
 			dc.VSSetShader(vs.vs, nullptr, 0);
@@ -1006,7 +1007,7 @@ namespace
 
 		void DrawCursor()
 		{
-			if (cursor.bitmapId)
+			if (cursor.bitmapId != ID_TEXTURE::Invalid())
 			{
 				GuiMetrics metrics;
 				GetGuiMetrics(metrics);
@@ -1050,7 +1051,7 @@ namespace
 		{
 			if (mainBackBufferView.IsNull()) return;
 
-			lastTextureId = -1;
+			lastTextureId = ID_TEXTURE::Invalid();
 
 			dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
 

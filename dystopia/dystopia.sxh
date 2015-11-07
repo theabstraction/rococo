@@ -21,6 +21,7 @@
 		(AddRangedWeapon  (const Matrix4x4 transform) (IdMesh editorId) (const IString name) (const IString imageFile) (Float32 muzzleVelocity)(Float32 flightTime)(Int32 ammoType)(Float32 massKg) -> (IdEntity entityId))
 		(AddArmour (const Matrix4x4 transform) (IdMesh editorId) (const IString name) (const IString imageFile) (Int32 bulletProt) (Int32 dollSlot) (Float32 massKg) -> (IdEntity entityId))
 		(AddSolid (const Matrix4x4 transform) (IdMesh editorId) (Int32 flags)-> (IdEntity entityId))
+		(GenerateCity (const IString name)->)
 		(Clear ->)
 		(SetPlayerId (IdEntity playerId) ->)
 	)
@@ -33,6 +34,7 @@
 	(
 		(None 0)
 		(Obstacle 1)
+		(Selectable 2)
 	)
 )
 

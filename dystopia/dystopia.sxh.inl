@@ -265,6 +265,22 @@ namespace
 		_offset += sizeof(entityId);
 		WriteOutput(entityId, _sf, -_offset);
 	}
+	void NativeDystopiaILevelBuilderGenerateCity(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(void*);
+
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+		Dystopia::ILevelBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GenerateCity(name);
+	}
 	void NativeDystopiaILevelBuilderClear(NativeCallEnvironment& _nce)
 	{
 		Sexy::uint8* _sf = _nce.cpu.SF();
@@ -314,6 +330,7 @@ namespace Dystopia
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddRangedWeapon, nullptr, SEXTEXT("ILevelAddRangedWeapon (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId)(Sys.Type.IString name)(Sys.Type.IString imageFile)(Float32 muzzleVelocity)(Float32 flightTime)(Int32 ammoType)(Float32 massKg) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddArmour, nullptr, SEXTEXT("ILevelAddArmour (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId)(Sys.Type.IString name)(Sys.Type.IString imageFile)(Int32 bulletProt)(Int32 dollSlot)(Float32 massKg) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddSolid, nullptr, SEXTEXT("ILevelAddSolid (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId)(Int32 flags) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderGenerateCity, nullptr, SEXTEXT("ILevelGenerateCity (Pointer hObject)(Sys.Type.IString name) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderClear, nullptr, SEXTEXT("ILevelClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetPlayerId, nullptr, SEXTEXT("ILevelSetPlayerId (Pointer hObject)(Int64 playerId) -> "));
 	}

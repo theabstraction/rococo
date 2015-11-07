@@ -30,23 +30,23 @@ namespace
 
 			installation.LoadResource(resourceName, *imageBuffer, 128_megabytes);
 			auto id = renderer.LoadTexture(*imageBuffer, resourceName);
-			innerCache.insert(std::make_pair(resourceName, id));
-			return id; 
+			innerCache.insert(std::make_pair(resourceName, ID_BITMAP(id.value)));
+			return ID_BITMAP(id.value);
 		}
 
 		virtual void SetCursorBitmap(ID_BITMAP id, Vec2i hotspotOffset)
 		{
-			renderer.SetCursorBitmap(id, hotspotOffset,{ 0.0f, 0.0f }, { 1.0f, 1.0f });
+			renderer.SetCursorBitmap(ID_TEXTURE(id.value), hotspotOffset,{ 0.0f, 0.0f }, { 1.0f, 1.0f });
 		}
 
 		virtual void SetMeshBitmap(IRenderContext& rc, ID_BITMAP id)
 		{
-			rc.SetMeshTexture(id, 1);
+			rc.SetMeshTexture(ID_TEXTURE(id.value), 1);
 		}
 
 		virtual void DrawBitmap(IGuiRenderContext& gc, const GuiRect& targetRect, ID_BITMAP id)
 		{
-			gc.SelectTexture(id);
+			gc.SelectTexture(ID_TEXTURE(id.value));
 
 			float x0 = (float) targetRect.left;
 			float x1 = (float)targetRect.right;

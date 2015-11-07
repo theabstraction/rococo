@@ -104,4 +104,19 @@ namespace Rococo
 		SplitString(text, length, seperators, cb);
 		return cb.count;
 	}
+
+	uint32 FastHash(const wchar_t* text)
+	{
+		if (text == nullptr) return 0;
+
+		uint32 hash = 5381;
+		int c;
+
+		while(c = *text++)
+		{
+			hash = ((hash << 5) + hash) + c;
+		}
+
+		return hash;
+	}
 }

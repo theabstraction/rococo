@@ -120,8 +120,9 @@ namespace
 		if (q.firstEntity == nullptr) return;
 		if (q.firstEntity->entityId == entry.id)
 		{
+			auto next = q.firstEntity->next;
 			entry.nodeAllocator->Free(q.firstEntity);
-			q.firstEntity = nullptr;
+			q.firstEntity = next;
 			return;
 		}
 
@@ -385,7 +386,8 @@ namespace
 
 		virtual void EnumerateItems(const Sphere& boundingSphere, IQuadEnumerator& cb)
 		{
-			Search criteria{ &cb, boundingSphere };
+			Sphere sphere{ boundingSphere.centre, max(minBoundingRadius, boundingSphere.radius) };
+			Search criteria{ &cb, sphere };
 			FindEntitiesInTree(world, criteria);
 		}
 

@@ -442,8 +442,8 @@ namespace
 				L"!icons/examine.up.tif",
 				L"!icons/examine.up.tif",
 				L"Examine",
-				0,
-				0,
+				ID_BITMAP::Invalid(),
+				ID_BITMAP::Invalid(),
 				slotHotSpotOffset
 			}
 			);
@@ -454,8 +454,8 @@ namespace
 				L"!icons/open.tif",
 				L"!icons/open.tif",
 				L"Open",
-				0,
-				0,
+				ID_BITMAP::Invalid(),
+				ID_BITMAP::Invalid(),
 				slotHotSpotOffset
 			}
 			);
@@ -523,7 +523,7 @@ namespace
 				if (map.isActive)
 				{
 					e.uiStack.PopTop();
-					e.bitmapCache.SetCursorBitmap(0, Vec2i{ 0,0 });
+					e.bitmapCache.SetCursorBitmap(ID_BITMAP::Invalid(), Vec2i{ 0,0 });
 					activeIcon = CONTROL_ICON_NONE;
 				}
 				break;
@@ -569,7 +569,7 @@ namespace
 								}
 								else
 								{
-									e.bitmapCache.SetCursorBitmap(0, Vec2i{ 0,0 });		
+									e.bitmapCache.SetCursorBitmap(ID_BITMAP::Invalid(), Vec2i{ 0,0 });		
 								}
 
 								auto* oldCursorItem = inv->Swap(inv->GetCursorIndex(), item);
@@ -584,7 +584,7 @@ namespace
 								}
 								else
 								{
-									e.bitmapCache.SetCursorBitmap(0, Vec2i{ 0,0 });
+									e.bitmapCache.SetCursorBitmap(ID_BITMAP::Invalid(), Vec2i{ 0,0 });
 									
 								}
 								
@@ -604,7 +604,7 @@ namespace
 								}
 								else
 								{
-									e.bitmapCache.SetCursorBitmap(0, Vec2i{ 0,0 });
+									e.bitmapCache.SetCursorBitmap(ID_BITMAP::Invalid(), Vec2i{ 0,0 });
 								}
 
 								auto* oldCursorItem = inv->Swap(inv->GetCursorIndex(), item);
@@ -625,7 +625,7 @@ namespace
 							e.renderer.GetGuiMetrics(metrics);
 							VerbDropAtCursor drop{ e.level.GetPlayerId(), inv->GetCursorIndex(), metrics.cursorPosition };
 							e.postbox.PostForLater(drop, false);
-							e.bitmapCache.SetCursorBitmap(0, { 0,0 });
+							e.bitmapCache.SetCursorBitmap(ID_BITMAP::Invalid(), { 0,0 });
 						}
 					}
 				}

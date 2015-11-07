@@ -33,14 +33,13 @@ namespace
 	struct MeshDesc
 	{
 		ID_SYS_MESH rendererId;
-		int32 editorId;
+		ID_MESH editorId;
 		std::wstring resourceName;
 	};
 
-	typedef std::unordered_map<int, MeshDesc> TMeshes;
-
 	typedef std::vector<BoundingCube> BoundingCubes;
-	typedef std::unordered_map<ID_MESH, BoundingCubes> TMeshBounds;
+	typedef std::unordered_map<ID_MESH, MeshDesc, ID_MESH> TMeshes;
+	typedef std::unordered_map<ID_MESH, BoundingCubes, ID_MESH> TMeshBounds;
 
 	void ParseVertex(ObjectVertex& v, cr_sex sv)
 	{
@@ -111,7 +110,7 @@ namespace
 		cube.P.bottomTop.P1.pointInPlane = Vec4::FromVec3(0.5f * (cube.topVertices.v.sw + cube.topVertices.v.ne), 1.0f);
 	}
 
-	void ParseMeshVertices(TVertices& vertexCache, TMeshBounds& physicsHulls, TMeshes& meshes, int32 id, IRenderer& renderer, cr_sex meshDef, const wchar_t* resourcePath, bool generateHull)
+	void ParseMeshVertices(TVertices& vertexCache, TMeshBounds& physicsHulls, TMeshes& meshes, ID_MESH id, IRenderer& renderer, cr_sex meshDef, const wchar_t* resourcePath, bool generateHull)
 	{
 		size_t nVertices = meshDef.NumberOfElements() - 1;
 		vertexCache.reserve(nVertices);
@@ -163,7 +162,7 @@ namespace
 		}
 	}
 
-	void ParseMeshScript(TVertices& vertexCache, TMeshBounds& physicsHulls, TMeshes& meshes, ISParserTree& tree, IRenderer& renderer, const wchar_t* resourcePath, int32 editorId)
+	void ParseMeshScript(TVertices& vertexCache, TMeshBounds& physicsHulls, TMeshes& meshes, ISParserTree& tree, IRenderer& renderer, const wchar_t* resourcePath, ID_MESH editorId)
 	{
 		cr_sex root = tree.Root();
 
@@ -265,6 +264,26 @@ namespace
 		{
 		}
 
+		virtual void BuildMesh(const ObjectVertex* vertices, size_t vertexCount, ID_MESH id)
+		{
+			if (vertexCount > 0x00000000FFFFFFFF)
+			{
+				Throw(0, L"BuildMesh failed. Vertex count was too high");
+			}
+
+			auto i = meshes.find(id);
+			if (i != meshes.end())
+			{
+				renderer.UpdateMesh(i->second.rendererId, vertices, (uint32)vertexCount);
+				i->second.resourceName = L"#generated";
+			}
+			else
+			{
+				auto rendererId = renderer.CreateTriangleMesh(vertices, (uint32)vertexCount);
+				meshes.insert(std::make_pair(id, MeshDesc{ rendererId, id, L"#generated" }));
+			}
+		}
+
 		virtual size_t ForEachPhysicsHull(ID_MESH id, IEnumerator<BoundingCube>& cb)
 		{
 			auto i = physicsHulls.find(id);
@@ -285,7 +304,7 @@ namespace
 			}
 		}
 
-		ID_SYS_MESH GetRendererId(int32 editorId)
+		ID_SYS_MESH GetRendererId(ID_MESH editorId)
 		{
 			auto i = meshes.find(editorId);
 			if (i == meshes.end())

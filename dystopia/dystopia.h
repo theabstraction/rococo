@@ -4,7 +4,6 @@
 
 namespace Rococo
 {
-	typedef int32 ID_MESH;
 	struct IScene;
 	struct IGuiRenderContext;
 	struct KeyboardEvent;
@@ -53,7 +52,7 @@ namespace Dystopia
 		explicit ID_ENTITY(uint64 _value) : value(_value) {}
 		operator uint64() const { return value; }
 		operator bool() const { return value != 0; }
-		size_t operator()(const ID_ENTITY& k) const { return *this; }
+		size_t operator()(const ID_ENTITY& k) const { return k; }
 		static ID_ENTITY Invalid() { return ID_ENTITY(); }
 	};
 
@@ -293,4 +292,6 @@ namespace Dystopia
 	};
 
 	void InitControlMap(IControlsSupervisor& controls);
+	void BuildRandomCity(const fstring& name, uint32 seedDelta, Environment& e);
+	ID_MESH GenerateRandomHouse(Environment& e);
 }

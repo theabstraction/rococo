@@ -10,7 +10,7 @@
 
 namespace Rococo
 {
-	struct alignas(16) Vec4
+	struct alignas(4) Vec4 // was 16, but sexy does not align on 16 byte boundaries yet
 	{
 		float x;
 		float y;
@@ -29,7 +29,7 @@ namespace Rococo
 		inline operator Vec3& () { return *reinterpret_cast<Vec3*> (this); }
 	};
 
-	struct alignas(16) Matrix4x4
+	struct alignas(4) Matrix4x4 // was 16, but sexy does not align on 16 byte boundaries yet
 	{
 		Vec4 row0;
 		Vec4 row1;
@@ -116,7 +116,6 @@ namespace Rococo
 	inline Vec2 operator - (const Vec2& a, const Vec2& b) { return Vec2{ a.x - b.x, a.y - b.y }; }
 	inline Vec2 operator + (const Vec2& a, const Vec2& b) { return Vec2{ a.x + b.x, a.y + b.y }; }
 	inline float Dot(const Vec2& a, const Vec2& b) { return a.x * b.x + a.y * b.y; }
-	inline float LengthSq(const Vec2& a) { return Dot(a, a); }
 	inline Vec2 operator / (const Vec2& numerator, float denominator) { float q = 1.0f / denominator; return Vec2{ numerator.x * q, numerator.y * q }; }
 	inline Vec2 operator * (const Vec2& q, float f) { return Vec2{ q.x * f, q.y * f }; }
 	inline Vec2 operator * (float f, const Vec2& q) { return Vec2{ q.x * f, q.y * f }; }
@@ -217,11 +216,15 @@ namespace Rococo
 
 	inline float LengthSq(cr_vec3 v) { return v * v; }
 	inline float Square(float x) { return x * x; }
+	inline float Cube(float x) { return x * x * x; }
 	inline bool IsInRange(cr_vec3 v, const Metres range) { return LengthSq(v) < Square(range); }
 	float Length(cr_vec3 v);
 	void swap(float& a, float &b);
 	Vec3 Normalize(cr_vec3 v);
 	bool TryNormalize(cr_vec3 v, Vec3& nv);
+
+	inline float LengthSq(Vec2 v) { return Square(v.x) + Square(v.y); }
+	inline float Length(Vec2 v) { return sqrtf(LengthSq(v)); }
 
 	Radians ComputeWeaponElevation(cr_vec3 origin, cr_vec3 target, float projectileSpeed, Degrees maxElevation, Gravity g, Metres largestError);
 
@@ -283,6 +286,11 @@ namespace Rococo
 		Vec3 a;
 		Vec3 b;
 	};
+
+	inline Vec2 Normalize(Vec2 v)
+	{
+		return v / Length(v);
+	}
 
 	template<class T> ROCOCOAPI IEnumerator
 	{

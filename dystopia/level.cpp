@@ -247,7 +247,7 @@ namespace
 			e(_e),
 			hf(_hf),
 			groundZeroCursor{ 0,0,0 },
-			quadTree(CreateLooseQuadTree(Metres{ 4096.0 }, Metres{ 4 }))
+			quadTree(CreateLooseQuadTree(Metres{ 4096.0 }, Metres{ 3.0f }))
 		{
 			
 		}
@@ -260,6 +260,11 @@ namespace
 		~Level()
 		{
 			Clear();
+		}
+
+		void GenerateCity(const fstring& name)
+		{
+			BuildRandomCity(name, 0, e);
 		}
 
 		virtual ILevelBuilder& Builder()
@@ -363,7 +368,7 @@ namespace
 		{
 			auto id = GenerateEntityId();
 			ID_SYS_MESH sysId = e.meshes.GetRendererId(meshId);
-			solids.insert(id, Solid{ {transform, {0,0,0,0}}, sysId, meshId, 1.0_metres, 0, (uint32) flags });
+			solids.insert(id, Solid{ {transform, {0,0,0,0}}, sysId, meshId, 1.0_metres, ID_BITMAP::Invalid(), (uint32) flags });
 
 			quadTree->AddEntity(Sphere{ transform.GetPosition(), 1.0_metres }, id);
 			return id;
@@ -410,18 +415,21 @@ namespace
 
 		virtual ID_ENTITY CreateStash(IItem* item, cr_vec3 location)
 		{
-			auto id = GenerateEntityId();
-			Equipment eq{ CreateInventory({ 4,4 }, false, false) };
-			equipment.insert(id, eq);
-			eq.inventory->Swap(0, item);
-
-			e.meshes.Load(L"!mesh/stash.sxy"_fstring, 0x4000000);
-			ID_SYS_MESH sysId = e.meshes.GetRendererId(0x4000000);
+			ID_MESH stashId(0x40000000);
+			e.meshes.Load(L"!mesh/stash.sxy"_fstring, stashId);
 
 			Matrix4x4 stashLoc = Matrix4x4::Translate(location + Vec3{ 0,0,0.1f });
 			Matrix4x4 scale = Matrix4x4::Scale(0.37f, 0.37f, 0.37f);
-			Solid solid{ stashLoc * scale,{ 0,0,0,0 }, sysId, 0x4000000, 1.0f, item->Data().bitmapId, SolidFlags_None  };
-			solids.insert(id, solid);
+			
+			auto id = Builder().AddSolid(stashLoc * scale, stashId, SolidFlags_Selectable);
+			auto& solid = solids.find(id)->second;
+
+			solid.bitmapId = item ? item->Data().bitmapId : ID_BITMAP::Invalid();
+
+			Equipment eq{ CreateInventory({ 4,4 }, false, false) };
+			equipment.insert(id, eq);
+			eq.inventory->Swap(0, item); // This is new inventory, so returned item is nullptr
+
 			return id;
 		}
 
@@ -530,39 +538,66 @@ namespace
 			return selectedId;
 		}
 
+		void RenderSolidsBySearch(IRenderContext& rc)
+		{
+			Vec3 centre;
+			GetPosition(idPlayer, centre);
+
+			struct : IQuadEnumerator
+			{
+				virtual void OnId(uint64 id)
+				{
+					auto& i = solids->find(ID_ENTITY(id));
+					auto& entity = i->second;
+
+					Vec3 pos = entity.instance.orientation.GetPosition();
+					Vec3 delta = pos - groundZeroCursor;
+
+					float DS2 = Square(delta.x) + Square(delta.y);
+					bool isHighlighted = entity.HasFlag(SolidFlags_Selectable) &&  DS2 < Square(entity.boundingRadius);
+
+					if (entity.bitmapId != ID_BITMAP::Invalid())
+					{
+						bitmaps->SetMeshBitmap(*rc, entity.bitmapId);
+					}
+
+					if (isHighlighted && !foundItem)
+					{
+						selectedId = i->first;
+						foundItem = true;
+						ObjectInstance instance{ entity.instance.orientation,{ 1.0f, 1.0f, 1.0f, 0.5f } };
+						rc->Draw(entity.sysMeshId, &instance, 1);
+					}
+					else
+					{
+						rc->Draw(entity.sysMeshId, &entity.instance, 1);
+					}
+
+					count++;
+				}
+
+				IRenderContext* rc;
+				EntityTable<Solid>* solids;
+				ID_ENTITY selectedId;
+				bool foundItem = false;
+				Vec3 groundZeroCursor;
+				IBitmapCache* bitmaps;
+				int count = 0;
+			} renderSolid;
+
+			renderSolid.groundZeroCursor = groundZeroCursor;
+			renderSolid.solids = &solids;
+			renderSolid.rc = &rc;
+			renderSolid.bitmaps = &e.bitmapCache;
+
+			quadTree->EnumerateItems(Sphere{ centre, 32.0_metres }, renderSolid);
+			
+			selectedId = renderSolid.selectedId;
+		}
+
 		virtual void RenderObjects(IRenderContext& rc)
 		{
-			selectedId = ID_ENTITY::Invalid();
-
-			bool foundItem = false;
-			for (auto& i : solids)
-			{
-				auto& entity = i.second;
-				
-				Vec3 pos = entity.instance.orientation.GetPosition();
-				Vec3 delta = pos - groundZeroCursor;
-
-				float DS2 = Square(delta.x) + Square(delta.y);
-				bool isHighlighted = DS2 < Square(entity.boundingRadius);
-
-				if (entity.bitmapId != 0)
-				{
-					e.bitmapCache.SetMeshBitmap(rc, entity.bitmapId);
-				}
-
-				if (isHighlighted && !foundItem)
-				{
-					selectedId = i.first;
-					foundItem = true;
-					ObjectInstance instance{ entity.instance.orientation, { 1.0f, 1.0f, 1.0f, 0.5f } };
-
-					rc.Draw(entity.sysMeshId, &instance, 1);
-				}
-				else
-				{
-					rc.Draw(entity.sysMeshId, &entity.instance, 1);
-				}
-			}
+			RenderSolidsBySearch(rc);
 
 			for (auto& i : projectiles)
 			{
@@ -607,7 +642,13 @@ namespace
 				ID_ENTITY idEnemy = GetFirstIntersect(oldPos, newPos, enemies, solids, *quadTree);
 				if (idEnemy)
 				{
-					enemies[idEnemy]->ai->OnHit(idPlayer);
+					auto i = enemies.find(idEnemy);
+					if (i != enemies.end())
+					{
+						i->second->ai->OnHit(idPlayer);
+					}
+
+					p.lifeTime = 0;
 				}
 			}
 			else
@@ -615,6 +656,7 @@ namespace
 				if (Intersects(oldPos, newPos, idPlayer, solids))
 				{
 					allies[idPlayer]->ai->OnHit(p.attacker);
+					p.lifeTime = 0;
 				}
 			}
 		}

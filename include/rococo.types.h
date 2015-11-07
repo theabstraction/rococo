@@ -13,6 +13,22 @@
 #define SecureCat wcscat_s // Needs include <wchar.h>.  If the output buffer is exhausted it will throw an exception
 #define SafeCat wcsncat_s // Needs include <wchar.h>.  With _TRUNCATE in the MaxCount position, it will truncate buffer overruns, rather than throw
 
+// The following could be done with a template, but that results in bloated error messages, and our ids are ubiquitous
+#define ROCOCO_ID(DEFINED_ID_NAME,TYPE,INVALID_VALUE)										\
+struct DEFINED_ID_NAME																		\
+{																							\
+	DEFINED_ID_NAME() : value(INVALID_VALUE) {}												\
+	explicit DEFINED_ID_NAME(TYPE _value) : value(_value) {}								\
+	TYPE value;																				\
+	bool operator == (const DEFINED_ID_NAME& obj) { return value == obj.value; }			\
+	bool operator != (const DEFINED_ID_NAME& obj) { return value != obj.value; }			\
+    static DEFINED_ID_NAME Invalid() { return DEFINED_ID_NAME(); }							\
+	size_t operator()(const DEFINED_ID_NAME& obj) const { return size_t(obj.value); }		\
+};																							\
+																							\
+inline bool operator == (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return a.value == b.value; }				\
+inline bool operator != (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return !(a == b); }
+
 namespace DirectX
 {
 	struct XMFLOAT4X4;
@@ -62,7 +78,7 @@ namespace Rococo
 		int32 y;
 	};
 
-	typedef uint64 ID_BITMAP;
+	ROCOCO_ID(ID_BITMAP, uint64, -1)
 
 	struct Sphere
 	{
@@ -334,14 +350,16 @@ namespace Rococo
 		struct IPostbox;
 	}
 
-	typedef int32 ID_MESH;
+	// ID_MESH are artist defined indices. The artist chooses a number to associate with a mesh.
+	// Rough convention:
+	//    ids 0          to 0x1FFFFFFF are defined in script files and level editors
+	//    ids 0x20000000 to 0x20FFFFFF are procedurally generated paths, roads and rivers created in C++
+	//    ids 0x21000000 t0 0x21FFFFFF are procedurally generated houses created in C++.
+	//    ids 0x40000000 to 0x41000000 are gameplay generated meshes such as explosions created in C++.
+	ROCOCO_ID(ID_MESH, int32, 0)
 
-	struct ID_SYS_MESH
-	{
-		ID_SYS_MESH() : value(-1) {}
-		explicit ID_SYS_MESH(size_t _value) : value(_value) {}
-		size_t value;
-	};
+	// ID_SYS_MESH are renderer defined indices that are generated when meshes are loaded into the renderer
+	ROCOCO_ID(ID_SYS_MESH, size_t, (size_t) -1)
 
 	struct fstring
 	{
@@ -350,6 +368,8 @@ namespace Rococo
 
 		operator const wchar_t*() const { return buffer; }
 	};
+
+	uint32 FastHash(const wchar_t* text);
 
 	fstring to_fstring(const wchar_t* const msg);
 

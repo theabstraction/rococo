@@ -612,13 +612,13 @@ namespace Dystopia
 
 		EXECUTERESULT result = EXECUTERESULT_YIELDED; 
 
-		__try
+	//	__try
 		{
 			result = ExecuteProtected(vm, ss, e);
 		}
-		__except(EXCEPTION_EXECUTE_HANDLER)
+//		__except(EXCEPTION_EXECUTE_HANDLER)
 		{
-			result = EXECUTERESULT_SEH;
+	//		result = EXECUTERESULT_SEH;
 		}
 
 		switch (result)

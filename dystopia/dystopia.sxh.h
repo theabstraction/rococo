@@ -19,6 +19,7 @@ namespace Dystopia {
 		virtual ID_ENTITY/* entityId */ AddRangedWeapon(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, const fstring& imageFile, float muzzleVelocity, float flightTime, int32 ammoType, float massKg) = 0;
 		virtual ID_ENTITY/* entityId */ AddArmour(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, const fstring& imageFile, int32 bulletProt, int32 dollSlot, float massKg) = 0;
 		virtual ID_ENTITY/* entityId */ AddSolid(const Matrix4x4& transform, ID_MESH editorId, int32 flags) = 0;
+		virtual void GenerateCity(const fstring& name) = 0;
 		virtual void Clear() = 0;
 		virtual void SetPlayerId(ID_ENTITY playerId) = 0;
 	};
@@ -34,6 +35,7 @@ namespace Dystopia {
 	{
 		SolidFlags_None = 0, 	// 0x0
 		SolidFlags_Obstacle = 1, 	// 0x1
+		SolidFlags_Selectable = 2, 	// 0x2
 	};
 }namespace Dystopia { 
 	struct NO_VTABLE IGui

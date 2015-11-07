@@ -81,6 +81,12 @@
     <ClCompile Include="player.verbs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="generator.city.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="generator.house.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dx11.renderer.rc">

@@ -1,0 +1,157 @@
+(' file.type dystopia.level)
+
+(' #include 
+	"!scripts/dystopia.sxh.sxy" 
+	"!scripts/dystopia.defs.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Sys.Maths)
+(using Dystopia.Entities)
+
+(function Main (Int32 arg) -> (Int32 exitCode): 
+	(Dystopia.Meshes.IMeshes meshes (Dystopia.Meshes.GetMeshes))
+	(meshes.Load "!mesh/cube.sxy" 1)
+	(meshes.Load "!mesh/road.sxy" 2)
+	(meshes.Load "!mesh/human.sxy" 3)
+	(meshes.Load "!mesh/rifle.sxy" 4)
+	
+	(Int32 intangible = (#Dystopia.Entities.SolidFlagsNone))
+	(Int32 tangible = (#Dystopia.Entities.SolidFlagsObstacle))
+	
+	(Dystopia.Levels.ILevel level (Dystopia.Levels.GetLevel))
+	(level.Clear)
+	
+	(Matrix4x4 road =
+		( 1 0 0    0)
+		( 0 1 0    0)
+		( 0 0 1    0)
+		( 0 0 0    1)
+	)
+	
+	(level.AddSolid road 2 intangible)
+
+	(Matrix4x4 offroad1 =
+		( 1 0 0    -3.5)
+		( 0 1 0     0.0)
+		( 0 0 1     0.5)
+		( 0 0 0     1.0)
+	)
+	(level.AddSolid offroad1 1 tangible)
+		
+	(Matrix4x4 offroad2 =
+		( 2 0 0     4.0)
+		( 0 2 0     0.0)
+		( 0 0 2     1.0)
+		( 0 0 0     1.0)
+	)
+	(level.AddSolid offroad2 1 tangible)
+	
+	(Matrix4x4 mrSmithLoc =
+		( 1 0 0     0.0 )
+		( 0 1 0     5.0 )
+		( 0 0 1     0.2 )
+		( 0 0 0     1.0 )
+	)
+//	(level.AddEnemy mrSmithLoc 3)
+	
+	(Matrix4x4 mrSmithLoc2 =
+		( 1 0 0     1.0 )
+		( 0 1 0     2.0 )
+		( 0 0 1     0.2 )
+		( 0 0 0     1.0 )
+	)
+//	(level.AddEnemy mrSmithLoc2 3)
+	
+	(Matrix4x4 mrSmithLoc3 =
+		( 1 0 0     0.0 )
+		( 0 1 0     2.0 )
+		( 0 0 1     0.2 )
+		( 0 0 0     1.0 )
+	)
+//	(level.AddEnemy mrSmithLoc3 3)
+	
+	(Matrix4x4 mrSmithLoc4 =
+		( 1 0 0     1.0 )
+		( 0 1 0     3.0 )
+		( 0 0 1     0.2 )
+		( 0 0 0     1.0 )
+	)
+//	(level.AddEnemy mrSmithLoc4 3)
+		
+	(Matrix4x4 playerLoc =
+		( 1 0 0    0)
+		( 0 1 0    0)
+		( 0 0 1  0.3)
+		( 0 0 0    1)
+	)
+	
+	(Int64 playerId = (level.AddAlly playerLoc 3))
+	(level.SetPlayerId playerId)
+	
+	(Matrix4x4 powerupLoc =
+		( 0.2      0	0    3)
+		( 0      0.2    0    3)
+		( 0        0  0.2  0.4)
+		( 0        0    0    1)
+	)
+	
+	(level.AddRangedWeapon powerupLoc 4 "9mm pistol" "!inventory/pistol9mm.tif" 330.0 0.2 1 1.2)
+	
+	(Matrix4x4 powerupLoc2 =
+		( 0.2      0	0    3.5)
+		( 0      0.2    0    3)
+		( 0        0  0.2  0.4)
+		( 0        0    0    1)
+	)
+	(level.AddArmour powerupLoc2 4 "Bicycle helmet" "!inventory/bike.helmet.tif" 5 6 0.425)
+	
+	(Matrix4x4 powerupLoc3 =
+		( 0.2      0	0    4)
+		( 0      0.2    0    3)
+		( 0        0  0.2  0.4)
+		( 0        0    0    1)
+	)
+	(level.AddArmour powerupLoc3 4 "Kevlar armoured jacket. Lvl 3A" "!inventory/armour.body.3.tif" 25 5 2.155)
+	
+	(Matrix4x4 powerupLoc4 =
+		( 0.2      0	0  4.5)
+		( 0      0.2    0    3)
+		( 0        0  0.2  0.4)
+		( 0        0    0    1)
+	)
+	(level.AddArmour powerupLoc4 4 "Titanium fig-leaf" "!inventory/fig-leaf.tif" 3 3 0.125)
+	
+	(Matrix4x4 powerupLoc5 =
+		( 0.2      0	0    5)
+		( 0      0.2    0    3)
+		( 0        0  0.2  0.4)
+		( 0        0    0    1)
+	)
+	(level.AddArmour powerupLoc5 4 "Combat trousers" "!inventory/trousers.tif" 2 4 1.3)
+	
+	(Matrix4x4 powerupLoc6 =
+		( 0.2      0	0  5.5)
+		( 0      0.2    0    3)
+		( 0        0  0.2  0.4)
+		( 0        0    0    1)
+	)
+	(level.AddArmour powerupLoc6 4 "Assault sandals" "!inventory/sandals.tif" 1 2 0.6)
+	
+	(Matrix4x4 powerupLoc7 =
+		( 0.2      0	0  6.5)
+		( 0      0.2    0    3)
+		( 0        0  0.2  0.4)
+		( 0        0    0    1)
+	)
+	(level.AddAmmunition powerupLoc7 4 "9mm magazine" "!inventory/clip9mm.tif" 1 0.0115 0.225 15)
+	
+	(Dystopia.Gui.IGui gui (Dystopia.Gui.GetGui))
+	
+	(Vec2i span = 800 600)
+	(gui.ShowDialogBox span 100 30 "Introduction" "&tNot a good day - I lost my job, and I have been made bankrupt." ">Continue...=Sys.Events.Continue" )
+			
+	(exitCode = 0)
+)
