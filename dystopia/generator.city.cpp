@@ -46,8 +46,6 @@ namespace
 		Vec3 leftDelta  = roadWidth * Vec3{ leftNormal.x,   leftNormal.y, 0.0f };
 		Vec3 rightDelta = roadWidth * Vec3{ rightNormal.x, rightNormal.y, 0.0f };
 
-		
-
 		Vec3 bottomLeft  = vLeft - leftDelta;
 		Vec3 topLeft     = vLeft + leftDelta;
 		Vec3 bottomRight = vRight - rightDelta;
@@ -61,6 +59,36 @@ namespace
 		c.cache->push_back({ bottomLeft,	up, roadColour, RGBAb(255,255,255, 0), 0, 1 });
 		c.cache->push_back({ topLeft,		up, roadColour, RGBAb(255,255,255, 0), 0, 1 });
 		c.cache->push_back({ topRight,		up, roadColour, RGBAb(255,255,255, 0), 0, 1 });
+
+		{
+			Vec3 bottomLeft = vLeft + leftDelta;
+			Vec3 topLeft = vLeft + 1.5f * leftDelta;
+			Vec3 bottomRight = vRight + rightDelta;
+			Vec3 topRight = vRight + 1.5f * rightDelta;
+
+			RGBAb pavementColour(160, 160, 160);
+			c.cache->push_back({ bottomLeft,	up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topRight,		up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight,	up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft,	up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topLeft,		up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topRight,		up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 bottomLeft = vLeft - 1.5f * leftDelta;
+			Vec3 topLeft = vLeft - leftDelta;
+			Vec3 bottomRight = vRight - 1.5f * rightDelta;
+			Vec3 topRight = vRight - rightDelta;
+
+			RGBAb pavementColour(160, 160, 160);
+			c.cache->push_back({ bottomLeft,	up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topRight,		up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight,	up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft,	up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topLeft,		up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topRight,		up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
 
 		if (addWhite)
 		{
@@ -143,7 +171,7 @@ namespace
 		c.index++;
 
 		auto id = ID_MESH(bodyIndex);
-		c.e->meshes.BuildMesh(&(c.cache->at(0)), c.cache->size(), id);
+		c.e->meshes.BuildMesh(&(c.cache->at(0)), c.cache->size(), id, false);
 		Matrix4x4 loc = Matrix4x4::Translate(Vec3{ midPoint.x, midPoint.y, 0.0f });
 		c.e->level.Builder().AddSolid(loc, id, SolidFlags_None);
 	}
@@ -188,21 +216,21 @@ namespace
 		}
 	}
 
-	void BuildHouses(TRoadVertices& road, Environment& e)
+	void BuildHouses(TRoadVertices& road, Environment& e, Randomizer& rng)
 	{
 		for (auto v : road)
 		{
 			Vec2 normal = { -v.gradient.y, v.gradient.x };
 
-			Vec2 housePosition = v.location + 5.0f * normal;
+			Vec2 housePosition = v.location + 15.0f * normal;
 
 			auto T = Matrix4x4::Translate({ housePosition.x, housePosition.y, 0.5f });
-			e.level.Builder().AddSolid(T, GenerateRandomHouse(e), SolidFlags_Obstacle);
+			e.level.Builder().AddSolid(T, GenerateRandomHouse(e, rng()), SolidFlags_Obstacle);
 
-			housePosition = v.location - 5.0f * normal;
+			housePosition = v.location - 15.0f * normal;
 
 			T = Matrix4x4::Translate({ housePosition.x, housePosition.y, 0.5f });
-			e.level.Builder().AddSolid(T, GenerateRandomHouse(e), SolidFlags_Obstacle);
+			e.level.Builder().AddSolid(T, GenerateRandomHouse(e, rng()), SolidFlags_Obstacle);
 		}
 	}
 }
@@ -228,6 +256,6 @@ namespace Dystopia
 			GenerateRoadSegment(left.location, right.location, left.gradient, right.gradient, c);
 		}
 
-		BuildHouses(mainRoad, e);
+		BuildHouses(mainRoad, e, rng);
 	}
 }

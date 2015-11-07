@@ -64,7 +64,7 @@ namespace
 
 	template<class ROW> ID_ENTITY GetFirstIntersect(cr_vec3 start, cr_vec3 end, const EntityTable<ROW>& table, const EntityTable<Solid>& solids, IQuadTree& quadTree)
 	{
-		struct : IQuadEnumerator
+		struct : IObjectEnumerator
 		{
 			float leastT = 2.0f;
 			ID_ENTITY firstTarget;
@@ -174,18 +174,20 @@ namespace
 		return FindIntersectSphereVsSolid(start, target, obstacle, projectile.boundingRadius, meshes);
 	}
 
-	Collision CollideWithGeometry(cr_vec3 start, cr_vec3 target, ID_ENTITY id, IQuadTree& quadTree, EntityTable<Solid>& solids, IMeshLoader& meshes)
+	Collision CollideWithGeometry(cr_vec3 start, cr_vec3 target, ID_ENTITY projectileId, IQuadTree& quadTree, EntityTable<Solid>& solids, IMeshLoader& meshes)
 	{
-		auto& s = solids.find(id);
+		auto& s = solids.find(projectileId);
 		if (s == solids.end()) return NoCollision();
+		Solid& projectile = s->second;
 
 		float radius = GetLateralDisplacement(start, target);
 		Sphere boundingSphere{ start, radius + s->second.boundingRadius };
 
-		struct : IQuadEnumerator
+		struct : IObjectEnumerator
 		{
 			ID_ENTITY projectileId;
 			Solid* projectile;
+			Solid* target;
 			EntityTable<Solid>* solids;
 			Vec3 start;
 			Vec3 end;
@@ -194,10 +196,10 @@ namespace
 
 			virtual void OnId(uint64 idNumber)
 			{
-				ID_ENTITY id(idNumber);
-				if (id != projectileId)
+				ID_ENTITY obstacleId(idNumber);
+				if (obstacleId != projectileId)
 				{
-					auto& c = solids->find(id);
+					auto& c = solids->find(obstacleId);
 					if (c != solids->end() && c->second.HasFlag(SolidFlags_Obstacle))
 					{
 						try
@@ -210,15 +212,15 @@ namespace
 						}
 						catch (IException& ex)
 						{
-							Throw(ex.ErrorCode(), L"Error colliding with body %I64u, against mesh %d:\n %s", (uint64)id, c->second.meshId, ex.Message());
+							Throw(ex.ErrorCode(), L"Error colliding with body %I64u, against mesh %d:\n %s", (uint64)projectileId, c->second.meshId, ex.Message());
 						}
 					}
 				}
 			}
 		} onTarget;
 
-		onTarget.projectileId = id;
-		onTarget.projectile = &s->second;
+		onTarget.projectileId = projectileId;
+		onTarget.projectile = &projectile;
 		onTarget.solids = &solids;
 		onTarget.start = start;
 		onTarget.end = target;
@@ -377,6 +379,8 @@ namespace
 		virtual ID_ENTITY AddAlly(const Matrix4x4& transform, ID_MESH meshId)
 		{
 			ID_ENTITY id = AddSolid(transform, meshId, SolidFlags_None);
+			auto& s = solids.find(id);
+			s->second.boundingRadius = 0.5_metres;
 			auto* inv = CreateInventory({ 4, 10 }, true, true);
 			auto h = new Human { HumanType_Vigilante, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Vigilante ) };
 			ItemData data;
@@ -543,7 +547,7 @@ namespace
 			Vec3 centre;
 			GetPosition(idPlayer, centre);
 
-			struct : IQuadEnumerator
+			struct : IObjectEnumerator
 			{
 				virtual void OnId(uint64 id)
 				{

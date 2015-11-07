@@ -75,7 +75,7 @@ namespace
 
 	struct Search
 	{
-		IQuadEnumerator* qeCallback;
+		IObjectEnumerator* qeCallback;
 		const Sphere sphere;
 	};
 
@@ -384,7 +384,7 @@ namespace
 			DeleteEntityFromTree(world, entry);
 		}
 
-		virtual void EnumerateItems(const Sphere& boundingSphere, IQuadEnumerator& cb)
+		virtual void EnumerateItems(const Sphere& boundingSphere, IObjectEnumerator& cb)
 		{
 			Sphere sphere{ boundingSphere.centre, max(minBoundingRadius, boundingSphere.radius) };
 			Search criteria{ &cb, sphere };

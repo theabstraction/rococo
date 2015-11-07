@@ -20,6 +20,7 @@ cbuffer globalState
 {
 	float4x4 worldMatrixAndProj;
 	float4x4 worldMatrix;
+	float4 sunlightDirection;
 };
 
 cbuffer perInstanceData
@@ -34,9 +35,13 @@ ScreenVertex main(ObjectVertex v)
 
 	float4 instancePos = mul(v.position, instanceMatrix);
 	sv.position = mul(instancePos, worldMatrixAndProj);
-	sv.normal = mul(v.normal, worldMatrix);
-	sv.emissiveColour = highlightColour.w * (highlightColour + v.emissiveColour) + (1.0f - highlightColour.w) * v.emissiveColour;
+
+	float f = -dot(v.normal, sunlightDirection);
+	f = clamp(f, 0.0f, 1.0f);
+	float illumination = 0.5f + 0.5f * f;
+	sv.emissiveColour = highlightColour.w * (highlightColour + illumination * v.emissiveColour) + (1.0f - highlightColour.w) * illumination * v.emissiveColour;
 	sv.diffuseColour = v.diffuseColour;
+	sv.normal = v.normal;
 	sv.uv = v.uv;
 
 	return sv;

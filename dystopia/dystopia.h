@@ -293,5 +293,5 @@ namespace Dystopia
 
 	void InitControlMap(IControlsSupervisor& controls);
 	void BuildRandomCity(const fstring& name, uint32 seedDelta, Environment& e);
-	ID_MESH GenerateRandomHouse(Environment& e);
+	ID_MESH GenerateRandomHouse(Environment& e, uint32 seed);
 }

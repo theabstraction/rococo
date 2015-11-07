@@ -67,6 +67,12 @@ namespace Rococo
 		float z;
 	};
 
+	template<class T> struct Segment
+	{
+		T a;
+		T b;
+	};
+
 	typedef const Vec3& cr_vec3;
 
 	struct Vec4;

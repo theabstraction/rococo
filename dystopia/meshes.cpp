@@ -70,12 +70,13 @@ namespace
 		}
 	}
 
-	void GenerateHull(BoundingCube& cube, TVertices& vertices)
+	void GenerateHull(BoundingCube& cube, const ObjectVertex* vertices, size_t nVertices)
 	{
 		float west = 1.0e24f, east = -1.0e24f, north = -1.0e24f, south = 1.0e24f, top = -1.0e24f, bottom = 1.0e24f;
 
-		for (auto& v : vertices)
+		for (auto* pV = vertices; pV < vertices + nVertices; ++pV)
 		{
+			auto& v = *pV;
 			west = min(v.position.x, west);
 			east = max(v.position.x, east);
 			south = min(v.position.y, south);
@@ -133,7 +134,7 @@ namespace
 		if (generateHull)
 		{
 			BoundingCube cube;
-			GenerateHull(cube, vertexCache);
+			GenerateHull(cube, &vertexCache[0], vertexCache.size());
 
 			auto h = physicsHulls.find(id);
 			if (h != physicsHulls.end())
@@ -264,7 +265,7 @@ namespace
 		{
 		}
 
-		virtual void BuildMesh(const ObjectVertex* vertices, size_t vertexCount, ID_MESH id)
+		virtual void BuildMesh(const ObjectVertex* vertices, size_t vertexCount, ID_MESH id, bool createPhysicsBox)
 		{
 			if (vertexCount > 0x00000000FFFFFFFF)
 			{
@@ -282,6 +283,25 @@ namespace
 				auto rendererId = renderer.CreateTriangleMesh(vertices, (uint32)vertexCount);
 				meshes.insert(std::make_pair(id, MeshDesc{ rendererId, id, L"#generated" }));
 			}
+
+			if (createPhysicsBox)
+			{
+				BoundingCube cube;
+				GenerateHull(cube, vertices, vertexCount);
+
+				auto h = physicsHulls.find(id);
+				if (h != physicsHulls.end())
+				{
+					h->second.clear();
+				}
+				else
+				{
+					BoundingCubes cubes;
+					h = physicsHulls.insert(std::make_pair(id, cubes)).first;
+				}
+
+				h->second.push_back(cube);
+			}
 		}
 
 		virtual size_t ForEachPhysicsHull(ID_MESH id, IEnumerator<BoundingCube>& cb)
@@ -293,14 +313,11 @@ namespace
 			}
 			else
 			{
-				for (auto& i : physicsHulls)
+				for (auto& cube : i->second)
 				{
-					for (auto& cube : i.second)
-					{
-						cb(cube);
-					}
+					cb(cube);
 				}
-				return physicsHulls.size();
+				return i->second.size();
 			}
 		}
 

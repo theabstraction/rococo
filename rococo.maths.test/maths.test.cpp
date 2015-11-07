@@ -59,7 +59,7 @@ void ValidateQuadTreeLib()
 	qTree->AddEntity(Sphere{ Vec3{ 1,2,3 }, 2.0f }, 4);
 
 
-	struct : IQuadEnumerator
+	struct : IObjectEnumerator
 	{
 		virtual void OnId(uint64 id)
 		{

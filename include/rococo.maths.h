@@ -259,7 +259,7 @@ namespace Rococo
 	void TransformPositions(const Vec3* vertices, size_t nElements, cr_m4x4 transform, Vec3* transformedVertices);
 	void TransformNormals(const Vec3* vertices, size_t nElements, cr_m4x4 transform, Vec3* transformedVertices);
 
-	ROCOCOAPI IQuadEnumerator
+	ROCOCOAPI IObjectEnumerator
 	{
 		virtual void OnId(uint64 id) = 0;
 	};
@@ -269,7 +269,7 @@ namespace Rococo
 		virtual void AddEntity(const Sphere& boundingSphere, uint64 id) = 0;
 		virtual void Clear() = 0;
 		virtual void DeleteEntity(const Sphere& boundingSphere, uint64 id) = 0;
-		virtual void EnumerateItems(const Sphere& boundingSphere, IQuadEnumerator& cb) = 0;
+		virtual void EnumerateItems(const Sphere& boundingSphere, IObjectEnumerator& cb) = 0;
 		virtual void GetStats(QuadStats& stats) = 0;
 		
 	};
@@ -380,6 +380,8 @@ namespace Rococo
 	Collision CollideBoundingBoxAndSphere(const BoundingCube& cube, const Sphere& sphere, cr_vec3 target);
 	Collision CollideEdgeAndSphere(const Edge& edge, const Sphere& sphere, cr_vec3 target);
 	Collision CollideVertexAndSphere(cr_vec3 v, const Sphere& sphere, cr_vec3 target);
+
+	template<class T> T Lerp(const T& a, const T& b, float t) { return a + (b - a) * t; }
 }
 
 #endif // ROCOCO_MATHS_H
