@@ -62,7 +62,15 @@ namespace
 						if (ranged)
 						{
 							float dz = 10.0f / ranged->muzzleVelocity;
-							Vec3 dir{ 0, 1, dz };
+
+							Matrix4x4 transform;
+							level.GetTransform(id, transform);
+
+							Vec4 north{ 0, 1, 0, 0 };
+							Vec4 aimAt = transform * north;
+							Vec2 aim2D = Normalize(Vec2{ aimAt.x, aimAt.y });
+
+							Vec3 dir{ aim2D.x, aim2D.y, dz };
 							ProjectileDef def = { id, pos, dir * ranged->muzzleVelocity, ranged->flightTime, ID_SYS_MESH(0) };
 
 							if (ranged->ammunitionIndex)

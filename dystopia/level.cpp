@@ -169,24 +169,20 @@ namespace
 		return collideAgainstHull.firstCollision;
 	}
 
-	Collision CollideBodies(cr_vec3 start, cr_vec3 target, const Solid& projectile, const Solid& obstacle, IMeshLoader& meshes)
+	Collision CollideBodies(cr_vec3 start, cr_vec3 target, Metres projectileRadius, const Solid& obstacle, IMeshLoader& meshes)
 	{
-		return FindIntersectSphereVsSolid(start, target, obstacle, projectile.boundingRadius, meshes);
+		return FindIntersectSphereVsSolid(start, target, obstacle, projectileRadius, meshes);
 	}
 
-	Collision CollideWithGeometry(cr_vec3 start, cr_vec3 target, ID_ENTITY projectileId, IQuadTree& quadTree, EntityTable<Solid>& solids, IMeshLoader& meshes)
+	Collision CollideWithGeometry(cr_vec3 start, cr_vec3 target, ID_ENTITY projectileId, Metres projectileRadius, IQuadTree& quadTree, EntityTable<Solid>& solids, IMeshLoader& meshes)
 	{
-		auto& s = solids.find(projectileId);
-		if (s == solids.end()) return NoCollision();
-		Solid& projectile = s->second;
-
 		float radius = GetLateralDisplacement(start, target);
-		Sphere boundingSphere{ start, radius + s->second.boundingRadius };
+		Sphere boundingSphere{ start, radius + projectileRadius };
 
 		struct : IObjectEnumerator
 		{
 			ID_ENTITY projectileId;
-			Solid* projectile;
+			Metres projectileRadius;
 			Solid* target;
 			EntityTable<Solid>* solids;
 			Vec3 start;
@@ -204,7 +200,7 @@ namespace
 					{
 						try
 						{
-							auto col = CollideBodies(start, end, *projectile, c->second, *meshes);
+							auto col = CollideBodies(start, end, projectileRadius, c->second, *meshes);
 							if (col.t < collision.t)
 							{
 								collision = col;
@@ -220,7 +216,7 @@ namespace
 		} onTarget;
 
 		onTarget.projectileId = projectileId;
-		onTarget.projectile = &projectile;
+		onTarget.projectileRadius = projectileRadius;
 		onTarget.solids = &solids;
 		onTarget.start = start;
 		onTarget.end = target;
@@ -479,6 +475,19 @@ namespace
 			return selectedId;
 		}
 
+		virtual void GetTransform(ID_ENTITY id, Matrix4x4& transform)
+		{
+			auto i = solids.find(id);
+			if (i == solids.end())
+			{
+				transform = Matrix4x4::Identity();
+			}
+			else
+			{
+				transform = i->second.instance.orientation;
+			}
+		}
+
 		virtual void SetTransform(ID_ENTITY id, const Matrix4x4& transform)
 		{
 			auto i = solids.find(id);
@@ -622,13 +631,42 @@ namespace
 			}
 		}
 
-		void UpdateProjectile(Projectile& p, float dt)
+		void UpdateProjectile(Projectile& p, float dt, ID_ENTITY projectileId)
 		{
 			Vec3 g = { 0, 0, -9.81f };
 			Vec3 newPos = dt * p.velocity + p.position + g * dt * dt * 0.5f;
 			Vec3 newVelocity = p.velocity + g * dt;
-			p.velocity = newVelocity;
 			Vec3 oldPos = p.position;
+
+			auto col = CollideWithGeometry(oldPos, newPos, projectileId, 0.02_metres, *quadTree, solids, e.meshes);
+			if (LengthSq(newVelocity) != 0 && col.contactType != ContactType_None)
+			{
+				if (col.t > 0 && col.t < 1.0f)
+				{
+					float skinDepth = 0.01f; // Prevent object exactly reaching target to try to avoid numeric issues
+					Vec3 collisionPos = oldPos + newVelocity * dt * col.t * (1 - skinDepth);
+					Vec3 impulseDisplacement = collisionPos - col.touchPoint;
+
+					Vec3 impulseDirection;
+					if (TryNormalize(impulseDisplacement, impulseDirection))
+					{
+						float restitution = 0.25f;
+						
+						newVelocity = (newVelocity + 2.0f * impulseDirection * Length(newVelocity)) * restitution;
+						newPos = collisionPos + dt * newVelocity * (1 - col.t);
+						
+
+						auto col2 = CollideWithGeometry(collisionPos, newPos, projectileId, 0.02_metres, *quadTree, solids, e.meshes);
+						if (col2.contactType != ContactType_None)
+						{
+							p.lifeTime = 0;
+							return;
+						}
+					}
+				}
+			}
+
+			p.velocity = newVelocity;
 			p.position = newPos;
 
 			if (!TryNormalize(p.velocity, p.direction))
@@ -693,7 +731,7 @@ namespace
 
 				Vec3 newPos = pos + direction * dt * speed;
 
-				auto col = CollideWithGeometry(pos, newPos, id, *quadTree, solids, e.meshes);
+				auto col = CollideWithGeometry(pos, newPos, id, j->second.boundingRadius, *quadTree, solids, e.meshes);
 				if (col.contactType != ContactType_None)
 				{
 					if (col.t > 0 && col.t < 1.0f)
@@ -706,14 +744,15 @@ namespace
 						if (TryNormalize(impulseDisplacement, impulseDirection))
 						{
 							float restitution = 0.75f;
+							newPos = collisionPos - impulseDirection * dt * restitution * speed * (1 - col.t);
 
-							auto col2 = CollideWithGeometry(pos, collisionPos, id, *quadTree, solids, e.meshes);
+							auto col2 = CollideWithGeometry(collisionPos, newPos, id, j->second.boundingRadius, *quadTree, solids, e.meshes);
 							if (col2.contactType != ContactType_None)
 							{
 								return; // If a second collision occurs in the same timestep prevent motion altogether to avoid race conditions
 							}
 
-							newPos = collisionPos + impulseDirection * dt * speed * (1 - col.t);
+							
 						}
 						else
 						{
@@ -779,7 +818,7 @@ namespace
 				}
 				else
 				{
-					UpdateProjectile(p, dt);
+					UpdateProjectile(p, dt, i->first);
 					i++;
 				}
 			}

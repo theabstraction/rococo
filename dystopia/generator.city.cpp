@@ -224,13 +224,17 @@ namespace
 
 			Vec2 housePosition = v.location + 15.0f * normal;
 
+			Radians theta{ acosf(Dot(normal, Vec2{ 1.0f, 0.0f })) };
+			
+			auto R = Matrix4x4::RotateRHAnticlockwiseZ(theta);
+
 			auto T = Matrix4x4::Translate({ housePosition.x, housePosition.y, 0.5f });
-			e.level.Builder().AddSolid(T, GenerateRandomHouse(e, rng()), SolidFlags_Obstacle);
+			e.level.Builder().AddSolid(T * R, GenerateRandomHouse(e, rng()), SolidFlags_Obstacle);
 
 			housePosition = v.location - 15.0f * normal;
 
 			T = Matrix4x4::Translate({ housePosition.x, housePosition.y, 0.5f });
-			e.level.Builder().AddSolid(T, GenerateRandomHouse(e, rng()), SolidFlags_Obstacle);
+			e.level.Builder().AddSolid(T * R, GenerateRandomHouse(e, rng()), SolidFlags_Obstacle);
 		}
 	}
 }

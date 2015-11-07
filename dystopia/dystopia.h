@@ -108,6 +108,7 @@ namespace Dystopia
 		virtual IInventory* GetInventory(ID_ENTITY id) = 0;
 		virtual ID_ENTITY GetPlayerId() const = 0;
 		virtual void GetPosition(ID_ENTITY id, Vec3& pos) const = 0;
+		virtual void GetTransform(ID_ENTITY id, Matrix4x4& transform);
 		virtual void SetPosition(ID_ENTITY id, cr_vec3 pos) = 0;
 		virtual void SetTransform(ID_ENTITY id, const Matrix4x4& transform) = 0;
 		virtual void SetGroundCursorPosition(cr_vec3 groundZero) = 0;
