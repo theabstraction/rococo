@@ -71,13 +71,13 @@ namespace
 		AddQuad(vertices, bottomLeft, bottomRight, topLeft, topRight, normal, colour);
 	}
 
-	void AddArchedRoof(TObjectVertices& vertices, Vec2 backLeft, Vec2 frontRight, float eaveSpan,  Metres height, Metres archHeight, RGBAb colour1, RGBAb colour2)
+	void AddArchedRoof(TObjectVertices& vertices, Vec2 southWest, Vec2 northEast, float eaveSpan,  Metres height, Metres archHeight, RGBAb colour1, RGBAb colour2)
 	{
 		// West tri
 		{
-			Vec3 westLeft{ backLeft.x, backLeft.y, height };
-			Vec3 westRight{ backLeft.x, frontRight.y, height };
-			Vec3 westZennith{ backLeft.x, 0.5f * (westRight.y + westLeft.y), height + archHeight };
+			Vec3 westLeft{ southWest.x, southWest.y, height };
+			Vec3 westRight{ southWest.x, northEast.y, height };
+			Vec3 westZennith{ southWest.x, 0, height + archHeight };
 			AddColourVertex(vertices, colour1, westLeft, west);
 			AddColourVertex(vertices, colour1, westRight, west);
 			AddColourVertex(vertices, colour1, westZennith, west);
@@ -85,10 +85,10 @@ namespace
 
 		// East tri
 		{
-			Vec3 eastLeft{ frontRight.x, backLeft.y, height };
-			Vec3 easttRight{ frontRight.x, frontRight.y, height };
-			Vec3 eastZennith{ frontRight.x, 0.5f * (easttRight.y + eastLeft.y), height + archHeight };
-			AddColourVertex(vertices, colour1, easttRight, east);
+			Vec3 eastLeft{ northEast.x, southWest.y, height };
+			Vec3 eastRight{ northEast.x, northEast.y, height };
+			Vec3 eastZennith{ northEast.x, 0, height + archHeight };
+			AddColourVertex(vertices, colour1, eastRight, east);
 			AddColourVertex(vertices, colour1, eastLeft, east);
 			AddColourVertex(vertices, colour1, eastZennith, east);
 		}
@@ -97,64 +97,63 @@ namespace
 		{
 			float archY = height + archHeight;
 			float eveY = height - eaveSpan;
-			Vec3 bottomLeft{ backLeft.x - eaveSpan, backLeft.y, height };
-			Vec3 bottomRight{ frontRight.x + eaveSpan, backLeft.y, height };
-			Vec3 topLeft{ backLeft.x - eaveSpan,0, archY };
-			Vec3 topRight{ frontRight.x + eaveSpan, 0, archY };
+			Vec3 topLeft{ southWest.x - eaveSpan, northEast.y, height };
+			Vec3 topRight{ northEast.x + eaveSpan, northEast.y, height };
+			Vec3 bottomLeft{ southWest.x - eaveSpan,0, archY };
+			Vec3 bottomRight{ northEast.x + eaveSpan, 0, archY };
 
-			float archSpan = bottomLeft.y - topLeft.y;
-			AddQuad(vertices, bottomLeft, bottomRight, topLeft, topRight, Normalize({ 0, archSpan, archHeight }), colour2);
+			float archSpan = topLeft.y - bottomLeft.y;
+			AddQuad(vertices, bottomLeft, bottomRight, topLeft, topRight, Normalize({ 0, archHeight, archSpan }), colour2);
 
-			Vec3 eveTopLeft = bottomLeft;
-			Vec3 eveTopRight = bottomRight;
-			Vec3 eveBottomLeft = Vec3 { backLeft.x - eaveSpan, backLeft.y - eaveSpan, eveY };
-			Vec3 eveBottomRight = Vec3{ frontRight.x + eaveSpan, backLeft.y - eaveSpan, eveY };
-
-			AddQuad(vertices, eveBottomLeft, eveBottomRight, eveTopLeft, eveTopRight, Normalize({ 0, archSpan, archHeight }), colour2);
+			Vec3 eveTopLeft = Vec3 { southWest.x - eaveSpan, northEast.y + eaveSpan, eveY };
+			Vec3 eveTopRight = Vec3{ northEast.x + eaveSpan, northEast.y + eaveSpan, eveY };
+			Vec3 eveBottomLeft = topLeft;
+			Vec3 eveBottomRight = topRight;
+			
+			AddQuad(vertices, eveBottomLeft, eveBottomRight, eveTopLeft, eveTopRight, Normalize({ 0, archHeight, archSpan,  }), colour2);
 		}
 
 		// South roof
 		{
 			float archY = height + archHeight;
 			float eveY = height - eaveSpan;
-			Vec3 bottomLeft{ frontRight.x + eaveSpan, frontRight.y, height };
-			Vec3 bottomRight{ backLeft.x - eaveSpan, frontRight.y, height };
-			Vec3 topLeft{ frontRight.x + eaveSpan,0, archY };
-			Vec3 topRight{ backLeft.x - eaveSpan, 0, archY };
+			Vec3 bottomLeft{ southWest.x - eaveSpan, southWest.y, height };
+			Vec3 bottomRight{ northEast.x + eaveSpan, southWest.y, height };
+			Vec3 topLeft{ southWest.x - eaveSpan,0, archY };
+			Vec3 topRight{ northEast.x + eaveSpan, 0, archY };
 
 			float archSpan = topLeft.y - bottomLeft.y;
-			AddQuad(vertices, bottomLeft, bottomRight, topLeft, topRight, Normalize({ 0, -archSpan, archHeight }), colour2);
+			AddQuad(vertices, bottomLeft, bottomRight, topLeft, topRight, Normalize({ 0, -archHeight, archSpan }), colour2);
 
-			Vec3 eveTopLeft = topLeft;
-			Vec3 eveTopRight = topRight;
-			Vec3 eveBottomLeft = bottomLeft;
-			Vec3 eveBottomRight = bottomRight;
+			Vec3 eveTopLeft = bottomLeft;
+			Vec3 eveTopRight = bottomRight;
+			Vec3 eveBottomLeft = Vec3{ southWest.x - eaveSpan, southWest.y - eaveSpan, eveY };
+			Vec3 eveBottomRight = Vec3{ northEast.x + eaveSpan, southWest.y - eaveSpan, eveY };
 
-			AddQuad(vertices, eveBottomLeft, eveBottomRight, eveTopLeft, eveTopRight, Normalize({ 0, -archSpan, archHeight }), colour2);
+			AddQuad(vertices, eveBottomLeft, eveBottomRight, eveTopLeft, eveTopRight, Normalize({ 0, -archHeight, archSpan }), colour2);
 		}
 	}
 
-	void AddTetraRoof(TObjectVertices& vertices, Vec2 backLeft, Vec2 frontRight, float eaveSpan, Metres height, Metres archHeight, RGBAb colour)
+	void AddTetraRoof(TObjectVertices& vertices, Vec2 southWest, Vec2 northEast, float eaveSpan, Metres height, Metres archHeight, RGBAb colour)
 	{
 		Vec3 zennith{ 0, 0, height + archHeight };
 
 		// West tri
 		{
-			Vec3 westNormal = Normalize(Vec3{ -(frontRight.x - backLeft.x), 0.0f, archHeight });
-			Vec3 westLeft{ backLeft.x, backLeft.y, height };
-			Vec3 westRight{ backLeft.x, frontRight.y, height };
+			Vec3 westNormal = Normalize(Vec3{ -archHeight, 0.0f, (northEast.x - southWest.x) * 0.5f });
+			Vec3 westLeft{ southWest.x, northEast.y, height };
+			Vec3 westRight{ southWest.x, southWest.y, height };
 
 			AddColourVertex(vertices, colour, westLeft, westNormal);
-			AddColourVertex(vertices, colour, westRight, westNormal);
 			AddColourVertex(vertices, colour, zennith, westNormal);
+			AddColourVertex(vertices, colour, westRight, westNormal);	
 		}
 
 		// East tri
 		{
-			Vec3 eastNormal = Normalize(Vec3{ frontRight.x - backLeft.x, 0.0f, archHeight });
-			Vec3 eastLeft{ frontRight.x, backLeft.y, height };
-			Vec3 easttRight{ frontRight.x, frontRight.y, height };
-			Vec3 eastZennith{ frontRight.x, 0.5f * (easttRight.y + eastLeft.y), height + archHeight };
+			Vec3 eastNormal = Normalize(Vec3{ archHeight, 0.0f, (northEast.x - southWest.x) * 0.5f });
+			Vec3 eastLeft{ northEast.x, southWest.y, height };
+			Vec3 easttRight{ northEast.x, northEast.y, height };
 			AddColourVertex(vertices, colour, easttRight, eastNormal);
 			AddColourVertex(vertices, colour, eastLeft, eastNormal);
 			AddColourVertex(vertices, colour, zennith, eastNormal);
@@ -162,24 +161,25 @@ namespace
 
 		// North roof
 		{
-			Vec3 northNormal = Normalize(Vec3{ 0.0f, frontRight.y - backLeft.y, archHeight });
-			Vec3 northLeft{ backLeft.x, frontRight.y, height };
-			Vec3 northRight{ frontRight.x, frontRight.y, height };
+			Vec3 northNormal = Normalize(Vec3{ 0.0f, archHeight, 0.5f * (northEast.y - southWest.y) });
+			Vec3 northLeft{ northEast.x, northEast.y, height };
+			Vec3 northRight{ southWest.x, northEast.y, height };
 
 			AddColourVertex(vertices, colour, northLeft, northNormal);
-			AddColourVertex(vertices, colour, northRight, northNormal);
 			AddColourVertex(vertices, colour, zennith, northNormal);
+			AddColourVertex(vertices, colour, northRight, northNormal);
+			
 		}
 
 		// South roof
 		{
-			Vec3 southNormal = Normalize(Vec3{ 0.0f, -(frontRight.y - backLeft.y), archHeight });
-			Vec3 southLeft{ frontRight.x, backLeft.y, height };
-			Vec3 southRight{ backLeft.x, backLeft.y, height };
+			Vec3 southNormal = Normalize(Vec3{ 0.0f, -archHeight, 0.5f * (northEast.y - southWest.y) });
+			Vec3 southLeft{ southWest.x, southWest.y, height };
+			Vec3 southRight{ northEast.x, southWest.y, height };
 
 			AddColourVertex(vertices, colour, southLeft, southNormal);
-			AddColourVertex(vertices, colour, southRight, southNormal);
 			AddColourVertex(vertices, colour, zennith, southNormal);
+			AddColourVertex(vertices, colour, southRight, southNormal);	
 		}
 	}
 
@@ -324,7 +324,11 @@ namespace
 		AddFace(vertices, spec, { x1, y0 }, { x1, y1 }, height, east, wallColour0, rng);
 		AddFace(vertices, spec, { x1, y1 }, { x0, y1 }, height, north, wallColour0, rng);
 
-		if (rng() % 2)
+		if (archheight == 0)
+		{
+			AddArchedRoof(vertices, { x0, y0 }, { x1, y1 }, 0.1_metres, height, archheight, wallColour0, wallColour0);
+		}
+		else if (rng() % 2)
 		{
 			AddArchedRoof(vertices, { x0, y0 }, { x1, y1 }, 0.1_metres, height, archheight, wallColour0, RGBAb(128, 192, 192));
 		}
