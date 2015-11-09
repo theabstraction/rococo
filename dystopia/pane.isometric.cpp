@@ -103,7 +103,6 @@ namespace
 	class PaneIsometric : public IUIControlPane, IEventCallback<ActionMap>, public Post::IRecipient
 	{
 		Environment& e;
-		float gameTime;
 
 		Vec3 groundCursorProjection;
 		Matrix4x4 inverseWorldMatrixProj;
@@ -143,7 +142,7 @@ namespace
 		}
 	public:
 		PaneIsometric(Environment& _e):
-			e(_e), gameTime(0.0f), globalScale(4.0f), viewTheta { 45.0_degrees }, isRotateLocked(true)
+			e(_e), globalScale(4.0f), viewTheta { 45.0_degrees }, isRotateLocked(true)
 		{
 			e.postbox.Subscribe<HintMessage3D>(this);
 			e.postbox.Subscribe<VerbDropAtCursor>(this);
@@ -189,10 +188,7 @@ namespace
 
 			if (dt > 0)
 			{
-				gameTime += dt;
-				AdvanceTimestepEvent ate{ clock, dt, gameTime };
-				e.postbox.SendDirect(ate);
-				e.level.UpdateObjects(gameTime, dt);
+				e.level.UpdateGameTime(dt);
 
 				auto id = e.uiStack.Top().id;
 				if (id != ID_PANE_STATS)

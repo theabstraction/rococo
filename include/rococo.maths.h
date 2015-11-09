@@ -29,6 +29,16 @@ namespace Rococo
 		inline operator Vec3& () { return *reinterpret_cast<Vec3*> (this); }
 	};
 
+	struct alignas(4) Quat
+	{
+		Vec3 v;
+		float s;
+		Quat(cr_vec3 _v, float _s) :  v(_v), s(_s) {}
+
+		inline operator DirectX::XMFLOAT4* () { return reinterpret_cast<DirectX::XMFLOAT4*> (this); }
+		inline operator const DirectX::XMFLOAT4* () const { return reinterpret_cast<const DirectX::XMFLOAT4*> (this); }
+	};
+
 	struct alignas(4) Matrix4x4 // was 16, but sexy does not align on 16 byte boundaries yet
 	{
 		Vec4 row0;

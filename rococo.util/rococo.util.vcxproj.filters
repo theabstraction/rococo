@@ -24,5 +24,8 @@
     <ClCompile Include="rococo.postbox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rococo.s-parser.helpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -336,6 +336,70 @@ namespace Dystopia
 	}
 
 }
+namespace Dystopia {
+	bool TryParse(const fstring& s, SolidFlags& value)
+	{
+		if (s == L"SolidFlags_None"_fstring)
+		{
+			value = SolidFlags_None;
+		}
+		else if (s == L"SolidFlags_Obstacle"_fstring)
+		{
+			value = SolidFlags_Obstacle;
+		}
+		else if (s == L"SolidFlags_Selectable"_fstring)
+		{
+			value = SolidFlags_Selectable;
+		}
+		else if (s == L"SolidFlags_Skeleton"_fstring)
+		{
+			value = SolidFlags_Skeleton;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+}
+
+namespace Dystopia {
+	bool TryParse(const fstring& s, AnimationType& value)
+	{
+		if (s == L"AnimationType_Standstill"_fstring)
+		{
+			value = AnimationType_Standstill;
+		}
+		else if (s == L"AnimationType_Running"_fstring)
+		{
+			value = AnimationType_Running;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+}
+
+namespace Dystopia {
+	bool TryParse(const fstring& s, SkeletonType& value)
+	{
+		if (s == L"SkeletonType_HumanMale"_fstring)
+		{
+			value = SkeletonType_HumanMale;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+}
+
 // BennyHill generated Sexy native functions for Dystopia::IGui 
 namespace
 {

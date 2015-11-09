@@ -77,6 +77,7 @@ namespace Rococo
 
 	struct Vec4;
 	struct Matrix4x4;
+	struct Quat;
 
 	struct Vec2i
 	{
@@ -125,6 +126,14 @@ namespace Rococo
 
 	void Throw(int32 errorCode, const wchar_t* format, ...);
 	void ShowErrorBox(IException& ex, const wchar_t* caption);
+
+	namespace Visitors
+	{
+		enum CheckState : int32;
+		struct TREE_NODE_ID;
+		struct IUITree;
+		struct IUIList;
+	}
 
 	template<class T> inline void Free(T* t)
 	{
@@ -362,6 +371,7 @@ namespace Rococo
 	//    ids 0x20000000 to 0x20FFFFFF are procedurally generated paths, roads and rivers created in C++
 	//    ids 0x21000000 t0 0x21FFFFFF are procedurally generated houses created in C++.
 	//    ids 0x40000000 to 0x41000000 are gameplay generated meshes such as explosions created in C++.
+	//	  ids 0x41000001 to 0x42000000 are skeletal animation meshes
 	ROCOCO_ID(ID_MESH, int32, 0)
 
 	// ID_SYS_MESH are renderer defined indices that are generated when meshes are loaded into the renderer
@@ -374,6 +384,8 @@ namespace Rococo
 
 		operator const wchar_t*() const { return buffer; }
 	};
+
+	bool operator == (const fstring& a, const fstring& b);
 
 	uint32 FastHash(const wchar_t* text);
 
@@ -395,6 +407,33 @@ namespace Rococo
 	}
 
 	typedef const Matrix4x4& cr_m4x4;
+
+	ROCOCOAPI IDebugControl
+	{
+		virtual void Continue() = 0;
+		virtual void StepOut() = 0;
+		virtual void StepOver() = 0;
+		virtual void StepNextSymbol() = 0;
+		virtual void StepNext() = 0;
+	};
+
+	ROCOCOAPI ILogger
+	{
+		virtual int Log(const wchar_t* format, ...) = 0;
+	};
+
+	ROCOCOAPI IDebuggerWindow: public ILogger
+	{
+		virtual void AddDisassembly(bool clearFirst, const wchar_t* text) = 0;
+		virtual void Free() = 0;
+		virtual Windows::IWindow& GetDebuggerWindowControl() = 0;
+		virtual bool IsVisible() const = 0;
+		virtual void ShowWindow(bool show, IDebugControl* debugControl) = 0;
+		virtual Visitors::IUITree& StackTree() = 0;
+		virtual Visitors::IUIList& RegisterList() = 0;
+	};
+
+	
 }
 
 namespace Sexy
@@ -407,7 +446,48 @@ namespace Sexy
 	namespace Sex
 	{
 		struct ISParserTree;
+		struct ISExpression;
+		typedef const ISExpression& cr_sex;
+		class ParseException;
 	}
+
+	namespace VM
+	{
+		struct IVirtualMachine;
+	}
+
+	enum EXECUTERESULT;
+}
+
+namespace Rococo
+{
+	ROCOCOAPI ISourceCache
+	{
+		virtual Sexy::Sex::ISParserTree* GetSource(const wchar_t* resourceName) = 0;
+		virtual void Free() = 0;
+		virtual void Release(const wchar_t* resourceName) = 0;
+	};
+
+	void DebuggerLoop(Sexy::Script::IPublicScriptSystem &ss, IDebuggerWindow& debugger);
+
+	struct ScriptCompileArgs
+	{
+		Sexy::Script::IPublicScriptSystem& ss;
+	};
+
+	void ExecuteSexyScript(Sexy::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Sexy::Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile);
+	ISourceCache* CreateSourceCache(IInstallation& installation);
+
+	void ThrowSex(Sexy::Sex::cr_sex s, const wchar_t* format, ...);
+	void ScanExpression(Sexy::Sex::cr_sex s, const wchar_t* hint, const char* format, ...);
+	void ValidateArgument(Sexy::Sex::cr_sex s, const wchar_t* arg);
+
+	Vec3 GetVec3Value(Sexy::Sex::cr_sex sx, Sexy::Sex::cr_sex sy, Sexy::Sex::cr_sex sz);
+	RGBAb GetColourValue(Sexy::Sex::cr_sex s);
+
+	void LogParseException(Sexy::Sex::ParseException& ex, ILogger& logger);
+
+	fstring GetAtomicArg(Sexy::Sex::cr_sex s);
 }
 
 #endif

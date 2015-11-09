@@ -12,10 +12,6 @@ namespace Dystopia
 	using namespace Sexy;
 	using namespace Sexy::Sex;
 
-	void ThrowSex(cr_sex s, const wchar_t* format, ...);
-	void ScanExpression(cr_sex s, const wchar_t* hint, const char* format, ...);
-	void ValidateArgument(cr_sex s, const wchar_t* arg);
-
 	struct Key
 	{
 		wchar_t keyName[24];

@@ -9,14 +9,6 @@
 
 namespace Rococo
 {
-	namespace Visitors
-	{
-		enum CheckState : int32;
-		struct TREE_NODE_ID;
-		struct IUITree;
-		struct IUIList;
-	}
-
 	namespace Windows
 	{
 		void SetControlFont(HWND hControlWindow); // Sets the font of the window to the default control font specified in InitRococoWindows

@@ -988,8 +988,9 @@ namespace
 				CopyStructureToBuffer(dc, instanceBuffer, instances + i, sizeof(ObjectInstance));
 				dc.VSSetConstantBuffers(1, 1, &instanceBuffer);
 				dc.Draw(buffer.numberOfVertices, 0);
-				dc.VSSetConstantBuffers(0, 0, nullptr);
 			}
+			
+			dc.VSSetConstantBuffers(0, 0, nullptr);
 		}
 
 		virtual Windows::IWindow& Window()

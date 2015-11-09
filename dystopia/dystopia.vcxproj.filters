@@ -87,6 +87,9 @@
     <ClCompile Include="generator.house.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="skeleton.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dx11.renderer.rc">
@@ -131,6 +134,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dystopia.constants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="skeleton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

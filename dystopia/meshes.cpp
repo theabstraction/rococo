@@ -6,21 +6,6 @@
 
 #include <unordered_map>
 
-
-namespace Dystopia
-{
-	using namespace Rococo;
-	using namespace Sexy::Sex;
-	void ThrowSex(cr_sex s, const wchar_t* format, ...);
-	void ScanExpression(cr_sex s, const wchar_t* hint, const char* format, ...);
-	void ValidateArgument(cr_sex s, const wchar_t* arg);
-	int32 GetValue(cr_sex s, int32 minValue, int32 maxValue, const wchar_t* hint);
-	Vec3 GetVec3Value(cr_sex x, cr_sex y, cr_sex z);
-	float GetValue(cr_sex s, float minValue, float maxValue, const wchar_t* hint);
-	RGBAb GetColourValue(cr_sex s);
-	void ExecuteSexyScript(size_t nMegabytesCapacity);
-}
-
 namespace
 {
 	using namespace Rococo;

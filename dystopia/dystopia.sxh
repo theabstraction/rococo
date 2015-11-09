@@ -35,6 +35,24 @@
 		(None 0)
 		(Obstacle 1)
 		(Selectable 2)
+		(Skeleton 4)
+	)
+)
+
+(enum Int32
+	(as.sxy Dystopia.Entities.AnimationType "../content/scripts/dystopia") 
+	(as.cpp Dystopia.AnimationType "dystopia") 
+	(
+		(Standstill 0)
+		(Running 1)
+	)
+)
+
+(enum Int32
+	(as.sxy Dystopia.Entities.SkeletonType "../content/scripts/dystopia") 
+	(as.cpp Dystopia.SkeletonType "dystopia") 
+	(
+		(HumanMale 0)
 	)
 )
 

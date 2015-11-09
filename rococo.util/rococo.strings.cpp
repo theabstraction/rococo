@@ -67,6 +67,11 @@ namespace Rococo
 		return{ msg, (int)len };
 	}
 
+	bool operator == (const fstring& a, const fstring& b)
+	{
+		return a.length == b.length && wcsncmp(a.buffer, b.buffer, a.length) == 0;
+	}
+
 	IStringBuilder* CreateSafeStringBuilder(size_t capacity)
 	{
 		return new SafeStringBuilder(capacity);

@@ -8,6 +8,7 @@
 #include "dystopia.post.h"
 #include "dystopia.ui.h"
 #include "dystopia.constants.h"
+#include "skeleton.h"
 
 using namespace Dystopia;
 using namespace Rococo;
@@ -44,6 +45,7 @@ namespace
 		AutoFree<IControlsSupervisor> controls;
 		AutoFree<IBitmapCacheSupervisor> bitmaps;
 		AutoFree<ILevelSupervisor> level;
+		AutoFree<IBoneLibrarySupervisor> boneLibrary;
 		Environment e; // N.B some instances use e in constructor before e is initialized - this is to create a reference for internal use.
 		AutoFree<ILevelLoader> levelLoader;
 		AutoFree<IUIControlPane> isometricGameWorldView;
@@ -61,7 +63,8 @@ namespace
 			controls(CreateControlMapper(_installation, *sourceCache)),
 			bitmaps(CreateBitmapCache(_installation, _renderer)),
 			level(CreateLevel(e, *this)),
-			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes, *gui, *uiStack, *postbox, *controls, *bitmaps, *level },
+			boneLibrary(CreateBoneLibrary(_installation, _renderer, *sourceCache)),
+			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes, *boneLibrary, *gui, *uiStack, *postbox, *controls, *bitmaps, *level },
 			levelLoader(CreateLevelLoader(e)),
 			isometricGameWorldView(CreatePaneIsometric(e)),
 			statsPaneSelf(CreatePaneStats(e)),
@@ -165,6 +168,9 @@ namespace
 
 			InitControlMap(*controls);
 			controls->LoadMapping(L"!controls.cfg");
+
+			boneLibrary->Reload(L"!bone.library.sxy");
+
 			levelLoader->Load(L"!levels/level1.sxy", false);	
 		}
 

@@ -206,6 +206,7 @@
     <ClCompile Include="player.verbs.cpp" />
     <ClCompile Include="script.natives.cpp" />
     <ClCompile Include="scripts.cpp" />
+    <ClCompile Include="skeleton.cpp" />
     <ClCompile Include="UIStack.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -225,6 +226,7 @@
     <ClInclude Include="human.types.h" />
     <ClInclude Include="meshes.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="skeleton.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\include\rococo.maths.inl" />

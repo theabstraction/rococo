@@ -273,7 +273,7 @@ void GenerateFiles(const ParseContext& pc, const EnumContext& ec, cr_sex senumDe
 
 	FileDeleteOnceOnly(ec.appendCppImplFile);
 	FileAppender cppFileImplAppender(ec.appendCppImplFile);
-	//ImplementNativeFunctions(cppFileImplAppender, ic, methods, pc);
+	ImplementNativeFunctions(cppFileImplAppender, ec, pc);
 }
 
 void GetFileSpec(SEXCHAR filename[_MAX_PATH], csexstr root, csexstr scriptName, csexstr extension)

@@ -36,8 +36,29 @@ namespace Dystopia {
 		SolidFlags_None = 0, 	// 0x0
 		SolidFlags_Obstacle = 1, 	// 0x1
 		SolidFlags_Selectable = 2, 	// 0x2
+		SolidFlags_Skeleton = 4, 	// 0x4
 	};
-}namespace Dystopia { 
+	bool TryParse(const fstring& s, SolidFlags& value); 
+}
+
+namespace Dystopia { 
+	enum AnimationType: int32
+	{
+		AnimationType_Standstill = 0, 	// 0x0
+		AnimationType_Running = 1, 	// 0x1
+	};
+	bool TryParse(const fstring& s, AnimationType& value); 
+}
+
+namespace Dystopia { 
+	enum SkeletonType: int32
+	{
+		SkeletonType_HumanMale = 0, 	// 0x0
+	};
+	bool TryParse(const fstring& s, SkeletonType& value); 
+}
+
+namespace Dystopia { 
 	struct NO_VTABLE IGui
 	{
 		virtual void ShowDialogBox(const Vec2i& span, int32 retzone, int32 hypzone, const fstring& title, const fstring& message, const fstring& buttons) = 0;

@@ -100,7 +100,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\;..\sexy\common\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -135,7 +135,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\;..\sexy\common\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -149,6 +149,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="rococo.postbox.cpp" />
+    <ClCompile Include="rococo.s-parser.helpers.cpp" />
     <ClCompile Include="rococo.strings.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -214,11 +214,19 @@ namespace
 
 		appender.Append(nsDepth > 0 ? SEXTEXT("\t};") : SEXTEXT("};"));
 
+		appender.Append('\n');
+
+		appender.Append(SEXTEXT("\tbool TryParse(const fstring& s, "));
+		AppendStructShortName(appender, ec.asCppEnum.SexyName()); 
+		appender.Append(SEXTEXT("& value); "));
+
 		if (nsDepth > 0)
 		{
 			appender.Append('\n');
 			CloseNamespace(appender, nsDepth);
 		}
+
+		appender.Append(SEXTEXT("\n\n"));
 	}
 
 
@@ -583,6 +591,49 @@ namespace
 			}
 		}
 	}
+
+	void ImplementNativeFunctions(FileAppender& appender, const EnumContext& ec, const ParseContext& pc)
+	{
+		NamespaceSplitter splitter(ec.asCppEnum.SexyName());
+
+		csexstr ns, tail;
+		splitter.SplitTail(ns, tail);
+
+		CppType nsType;
+		nsType.Set(ns);
+
+		
+#ifdef SEXCHAR_IS_WIDE
+		SEXCHAR stringIndicator = L'L';
+#else
+		SEXCHAR stringIndicator = ' ';
+#endif
+		
+		appender.Append(SEXTEXT("namespace %s {\n"), nsType.FQName());
+
+		appender.Append(SEXTEXT("\tbool TryParse(const fstring& s, %s& value)\n"), tail);
+		appender.Append(SEXTEXT("\t{\n"));
+
+		bool first = true;
+		for (auto& i : ec.values)
+		{
+			appender.Append(SEXTEXT("\t\t%s (s == %c\"%s_%s\"_fstring)\n"), first ? SEXTEXT("if") : SEXTEXT("else if"), stringIndicator, tail, i.first.c_str());
+			appender.Append(SEXTEXT("\t\t{\n"));
+			appender.Append(SEXTEXT("\t\t\tvalue = %s_%s;\n"), tail, i.first.c_str());
+			appender.Append(SEXTEXT("\t\t}\n"));
+
+			first = false;
+		}
+
+		appender.Append(SEXTEXT("\t\telse\n"));
+		appender.Append(SEXTEXT("\t\t{\n"));
+		appender.Append(SEXTEXT("\t\t\treturn false;\n"));
+		appender.Append(SEXTEXT("\t\t}\n\n"));
+
+		appender.Append(SEXTEXT("\t\treturn true;\n"));
+		appender.Append(SEXTEXT("\t}\n}\n\n"));
+	}
+
 
 	void ImplementNativeFunctions(FileAppender& appender, const InterfaceContext& ic, const ISExpression* methods, const ParseContext& pc)
 	{

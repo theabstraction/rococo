@@ -8,6 +8,8 @@ namespace Rococo
 	struct IGuiRenderContext;
 	struct KeyboardEvent;
 	struct MouseEvent;
+	struct ObjectInstance;
+	struct ISourceCache;
 }
 
 namespace Sexy
@@ -38,8 +40,9 @@ namespace Dystopia
 	enum HumanType : int32;
 	struct IHumanAISupervisor;
 	struct IHumanFactory;
-	struct ISourceCache;
 	struct Environment;
+	struct ISkeleton;
+	struct IBoneLibrary;
 
 	enum StatIndex : int32;
 
@@ -118,7 +121,7 @@ namespace Dystopia
 		virtual bool TryGetEquipment(ID_ENTITY id, EquipmentDesc& desc) const = 0;
 
 		virtual void RenderObjects(IRenderContext& rc) = 0;
-		virtual void UpdateObjects(float gameTime, float dt) = 0;
+		virtual void UpdateGameTime(float dt) = 0;
 	};
 
 	ROCOCOAPI ILevelSupervisor: public ILevel
@@ -134,34 +137,6 @@ namespace Dystopia
 		virtual void SyncWithModifiedFiles() = 0;
 	};
 
-	ROCOCOAPI IDebugControl
-	{
-		virtual void Continue() = 0;
-		virtual void StepOut() = 0;
-		virtual void StepOver() = 0;
-		virtual void StepNextSymbol() = 0;
-		virtual void StepNext() = 0;
-	};
-
-	ROCOCOAPI IDebuggerWindow
-	{
-		virtual void AddDisassembly(bool clearFirst, const wchar_t* text) = 0;
-		virtual void Free() = 0;
-		virtual int Log(const wchar_t* format, ...) = 0;
-		virtual Windows::IWindow& GetDebuggerWindowControl() = 0;
-		virtual bool IsVisible() const = 0;
-		virtual void ShowWindow(bool show, IDebugControl* debugControl) = 0;
-		virtual Visitors::IUITree& StackTree() = 0;
-		virtual Visitors::IUIList& RegisterList() = 0;
-	};
-
-	ROCOCOAPI ISourceCache
-	{
-		virtual Sexy::Sex::ISParserTree* GetSource(const wchar_t* resourceName) = 0;
-		virtual void Free() = 0;
-		virtual void Release(const wchar_t* resourceName) = 0;
-	};
-
 	IOS& GetOS(Environment& e);
 
 	void Free(Environment* e);
@@ -169,13 +144,6 @@ namespace Dystopia
 	ILevelLoader* CreateLevelLoader(Environment& e);
 	ILevelSupervisor* CreateLevel(Environment& e, IHumanFactory& humanFactory);
 	IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow* parent);
-
-	struct ScriptCompileArgs
-	{
-		Sexy::Script::IPublicScriptSystem& ss;
-	};
-	void ExecuteSexyScriptLoop(size_t maxBytes, Environment& e, const wchar_t* resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile);
-	ISourceCache* CreateSourceCache(IInstallation& installation);
 
 	enum ActionMapType : int32;
 
@@ -249,7 +217,6 @@ namespace Dystopia
 
 	struct AdvanceTimestepEvent
 	{
-		TimestepEvent cpuTime;
 		const float dt;
 		const float gameTime;
 	};
@@ -269,6 +236,7 @@ namespace Dystopia
 		IDebuggerWindow& debuggerWindow;
 		ISourceCache& sourceCache;
 		IMeshLoader& meshes;
+		IBoneLibrary& boneLibrary;
 		IGui& gui;
 		IUIStack& uiStack;
 		Post::IPostbox& postbox;
@@ -295,4 +263,6 @@ namespace Dystopia
 	void InitControlMap(IControlsSupervisor& controls);
 	void BuildRandomCity(const fstring& name, uint32 seedDelta, Environment& e);
 	ID_MESH GenerateRandomHouse(Environment& e, uint32 seed);
+
+	void ExecuteSexyScriptLoop(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, const wchar_t* resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile);
 }

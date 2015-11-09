@@ -20,6 +20,8 @@
 
 #include "dystopia.post.h"
 
+#include "skeleton.h"
+
 
 using namespace Dystopia;
 using namespace Rococo;
@@ -237,15 +239,20 @@ namespace
 		EntityTable<Human*> enemies;
 		EntityTable<Human*> allies;
 		EntityTable<Equipment> equipment;
+		EntityTable<ISkeletonSupervisor*> skeletons;
 		Vec3 groundZeroCursor;
 		ID_ENTITY selectedId;
 		AutoFree<IQuadTreeSupervisor> quadTree;
+		float gameTime;
+		float lastDt;
 	public:
 		Level(Environment& _e, IHumanFactory& _hf) : 
 			e(_e),
 			hf(_hf),
 			groundZeroCursor{ 0,0,0 },
-			quadTree(CreateLooseQuadTree(Metres{ 4096.0 }, Metres{ 3.0f }))
+			quadTree(CreateLooseQuadTree(Metres{ 4096.0 }, Metres{ 3.0f })),
+			gameTime(0),
+			lastDt(0)
 		{
 			
 		}
@@ -274,6 +281,7 @@ namespace
 		{
 			FreeTable(allies);
 			FreeTable(enemies);
+			FreeTable(skeletons);
 			solids.clear();
 			for (auto i : equipment)
 			{
@@ -374,11 +382,12 @@ namespace
 
 		virtual ID_ENTITY AddAlly(const Matrix4x4& transform, ID_MESH meshId)
 		{
-			ID_ENTITY id = AddSolid(transform, meshId, SolidFlags_None);
+			ID_ENTITY id = AddSolid(transform, meshId, SolidFlags_Skeleton);
 			auto& s = solids.find(id);
 			s->second.boundingRadius = 0.5_metres;
 			auto* inv = CreateInventory({ 4, 10 }, true, true);
 			auto h = new Human { HumanType_Vigilante, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Vigilante ) };
+			skeletons.insert(id, CreateSkeleton(e));
 			ItemData data;
 			data.name = L"Bag of stones";
 			data.bitmapId = e.bitmapCache.Cache(L"!inventory/bagofstones.tif");
@@ -390,7 +399,7 @@ namespace
 
 		virtual ID_ENTITY AddEnemy(const Matrix4x4& transform, ID_MESH meshId)
 		{
-			ID_ENTITY id = AddSolid(transform, meshId, SolidFlags_None);
+			ID_ENTITY id = AddSolid(transform, meshId, SolidFlags_Skeleton);
 			auto* inv = CreateInventory({ 3,4 }, true, true);
 			auto h = new Human{ HumanType_Bobby, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Bobby) };
 			ItemData data;
@@ -399,6 +408,7 @@ namespace
 			data.mass = 5.0_kg;
 			h->inventory->Swap(0, CreateRangedWeapon({ 2.5_seconds, 10.0_mps, 0 }, data));
 			enemies.insert(id, h);
+			skeletons.insert(id, CreateSkeleton(e));
 			return id;
 		}
 
@@ -416,7 +426,10 @@ namespace
 		virtual ID_ENTITY CreateStash(IItem* item, cr_vec3 location)
 		{
 			ID_MESH stashId(0x40000000);
-			e.meshes.Load(L"!mesh/stash.sxy"_fstring, stashId);
+			if (e.meshes.GetRendererId(stashId) == ID_SYS_MESH::Invalid())
+			{
+				e.meshes.Load(L"!mesh/stash.sxy"_fstring, stashId);
+			}
 
 			Matrix4x4 stashLoc = Matrix4x4::Translate(location + Vec3{ 0,0,0.1f });
 			Matrix4x4 scale = Matrix4x4::Scale(0.37f, 0.37f, 0.37f);
@@ -540,6 +553,32 @@ namespace
 				auto& entity = i->second;
 				auto& t = i->second.instance.orientation;
 
+				if (entity.HasFlag(SolidFlags_Skeleton))
+				{
+					auto j = skeletons.find(id);
+					if (j != skeletons.end())
+					{
+						j->second->Free();
+						skeletons.erase(j);
+					}
+
+					auto k = allies.find(id);
+					if (k != allies.end())
+					{
+						k->second->ai->Free();
+						k->second->inventory->Free();
+						allies.erase(k);
+					}
+
+					k = enemies .find(id);
+					if (k != enemies.end())
+					{
+						k->second->ai->Free();
+						k->second->inventory->Free();
+						enemies.erase(k);
+					}
+				}
+
 				Sphere boundingSphere{ t.GetPosition(), 1.0_metres };
 				quadTree->DeleteEntity(boundingSphere, id);
 				solids.erase(i);
@@ -558,9 +597,15 @@ namespace
 
 			struct : IObjectEnumerator
 			{
-				virtual void OnId(uint64 id)
+				virtual void OnId(uint64 idValue)
 				{
-					auto& i = solids->find(ID_ENTITY(id));
+					ID_ENTITY id(idValue);
+					auto& i = solids->find(id);
+					if (i == solids->end())
+					{
+						Throw(0, L"Entity #%I64u was registered in the quad tree, but not the solids table. BUG!", idValue);
+					}
+
 					auto& entity = i->second;
 
 					Vec3 pos = entity.instance.orientation.GetPosition();
@@ -569,21 +614,34 @@ namespace
 					float DS2 = Square(delta.x) + Square(delta.y);
 					bool isHighlighted = entity.HasFlag(SolidFlags_Selectable) &&  DS2 < Square(entity.boundingRadius);
 
-					if (entity.bitmapId != ID_BITMAP::Invalid())
+					if (entity.HasFlag(SolidFlags_Skeleton))
 					{
-						bitmaps->SetMeshBitmap(*rc, entity.bitmapId);
-					}
+						auto sk = skeletons->find(id);
+						if (sk == skeletons->end())
+						{
+							Throw(0, L"Entity #%I64u was marked as having a skeleton, but none could be found.", idValue);
+						}
 
-					if (isHighlighted && !foundItem)
-					{
-						selectedId = i->first;
-						foundItem = true;
-						ObjectInstance instance{ entity.instance.orientation,{ 1.0f, 1.0f, 1.0f, 0.5f } };
-						rc->Draw(entity.sysMeshId, &instance, 1);
+						sk->second->Render(*rc, entity.instance, gameTime, lastDt);
 					}
 					else
 					{
-						rc->Draw(entity.sysMeshId, &entity.instance, 1);
+						if (entity.bitmapId != ID_BITMAP::Invalid())
+						{
+							bitmaps->SetMeshBitmap(*rc, entity.bitmapId);
+						}
+
+						if (isHighlighted && !foundItem)
+						{
+							selectedId = i->first;
+							foundItem = true;
+							ObjectInstance instance{ entity.instance.orientation,{ 1.0f, 1.0f, 1.0f, 0.5f } };
+							rc->Draw(entity.sysMeshId, &instance, 1);
+						}
+						else
+						{
+							rc->Draw(entity.sysMeshId, &entity.instance, 1);
+						}
 					}
 
 					count++;
@@ -591,17 +649,23 @@ namespace
 
 				IRenderContext* rc;
 				EntityTable<Solid>* solids;
+				EntityTable<ISkeletonSupervisor*>* skeletons;
 				ID_ENTITY selectedId;
 				bool foundItem = false;
 				Vec3 groundZeroCursor;
 				IBitmapCache* bitmaps;
 				int count = 0;
+				float gameTime;
+				float lastDt;
 			} renderSolid;
 
 			renderSolid.groundZeroCursor = groundZeroCursor;
 			renderSolid.solids = &solids;
 			renderSolid.rc = &rc;
 			renderSolid.bitmaps = &e.bitmapCache;
+			renderSolid.skeletons = &skeletons;
+			renderSolid.gameTime = gameTime;
+			renderSolid.lastDt = lastDt;
 
 			quadTree->EnumerateItems(Sphere{ centre, 32.0_metres }, renderSolid);
 			
@@ -612,6 +676,7 @@ namespace
 		{
 			RenderSolidsBySearch(rc);
 
+			// N.B projectiles are not put in the quad tree, so do not appear in a search
 			for (auto& i : projectiles)
 			{
 				auto& p = i.second;
@@ -647,21 +712,18 @@ namespace
 					Vec3 collisionPos = oldPos + newVelocity * dt * col.t * (1 - skinDepth);
 					Vec3 impulseDisplacement = collisionPos - col.touchPoint;
 
-					Vec3 impulseDirection;
-					if (TryNormalize(impulseDisplacement, impulseDirection))
-					{
-						float restitution = 0.25f;
-						
-						newVelocity = (newVelocity + 2.0f * impulseDirection * Length(newVelocity)) * restitution;
-						newPos = collisionPos + dt * newVelocity * (1 - col.t);
-						
+					Vec3 impulseDirection = Normalize(impulseDisplacement);
 
-						auto col2 = CollideWithGeometry(collisionPos, newPos, projectileId, 0.02_metres, *quadTree, solids, e.meshes);
-						if (col2.contactType != ContactType_None)
-						{
-							p.lifeTime = 0;
-							return;
-						}
+					float restitution = 0.25f;
+						
+					newVelocity = (newVelocity + 2.0f * impulseDirection * Length(newVelocity)) * restitution;
+					newPos = collisionPos + dt * newVelocity * (1 - col.t);	
+
+					auto col2 = CollideWithGeometry(collisionPos, newPos, projectileId, 0.02_metres, *quadTree, solids, e.meshes);
+					if (col2.contactType != ContactType_None)
+					{
+						p.lifeTime = 0;
+						return;
 					}
 				}
 			}
@@ -740,34 +802,21 @@ namespace
 						Vec3 collisionPos = pos + direction * dt * speed * col.t * (1 - skinDepth);
 						Vec3 impulseDisplacement = collisionPos - col.touchPoint;
 
-						Vec3 impulseDirection;
-						if (TryNormalize(impulseDisplacement, impulseDirection))
-						{
-							float restitution = 0.75f;
-							newPos = collisionPos - impulseDirection * dt * restitution * speed * (1 - col.t);
+						Vec3 impulseDirection = Normalize(impulseDisplacement);
+						
+						float restitution = 0.75f;
+						newPos = collisionPos - impulseDirection * dt * restitution * speed * (1 - col.t);
 
-							auto col2 = CollideWithGeometry(collisionPos, newPos, id, j->second.boundingRadius, *quadTree, solids, e.meshes);
-							if (col2.contactType != ContactType_None)
-							{
-								return; // If a second collision occurs in the same timestep prevent motion altogether to avoid race conditions
-							}
-
-							
-						}
-						else
+						auto col2 = CollideWithGeometry(collisionPos, newPos, id, j->second.boundingRadius, *quadTree, solids, e.meshes);
+						if (col2.contactType != ContactType_None)
 						{
-							// Not meant to happen here, no good reason contact point should match centre of objects that cause collision.
-#ifdef _DEBUG
-							TripDebugger();
-#endif
-							return;
-						}
+							return; // If a second collision occurs in the same timestep prevent motion altogether to avoid race conditions
+						}	
 					}
 				}
 
 				SetPosition(id, newPos);
-			}
-			
+			}	
 		}
 
 		void UpdateEnemy(Human& enemy, ID_ENTITY id, float gameTime, float dt)
@@ -806,8 +855,14 @@ namespace
 			return i->second->inventory;
 		}
 
-		virtual void UpdateObjects(float gameTime, float dt)
+		virtual void UpdateGameTime(float dt)
 		{
+			gameTime += dt;
+			lastDt = dt;
+
+			AdvanceTimestepEvent ate{ dt, gameTime };
+			e.postbox.SendDirect(ate);
+
 			auto i = projectiles.begin();
 			while (i != projectiles.end())
 			{
@@ -884,7 +939,7 @@ namespace
 
 		virtual void Load(const wchar_t* resourceName, bool isReloading)
 		{
-			ExecuteSexyScriptLoop(16384, e, resourceName, 0, (int32) 16_megabytes, *this);
+			ExecuteSexyScriptLoop(16384, e.sourceCache, e.debuggerWindow, resourceName, 0, (int32) 16_megabytes, *this);
 		}
 
 		virtual void SyncWithModifiedFiles()
