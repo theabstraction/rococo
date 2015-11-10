@@ -622,7 +622,7 @@ namespace
 							Throw(0, L"Entity #%I64u was marked as having a skeleton, but none could be found.", idValue);
 						}
 
-						sk->second->Render(*rc, entity.instance, gameTime, lastDt);
+						sk->second->Render(*rc, entity.instance, Seconds{ gameTime });
 					}
 					else
 					{
@@ -947,12 +947,16 @@ namespace
 			struct : IEventCallback<FileModifiedArgs>
 			{
 				IMeshLoader* meshLoader;
+				IBoneLibrary* boneLib;
+
 				virtual void OnEvent(FileModifiedArgs& args)
 				{
 					meshLoader->UpdateMesh(args.resourceName);
+					boneLib->UpdateLib(args.resourceName);
 				}
 			} monitor;
 			monitor.meshLoader = &e.meshes;
+			monitor.boneLib = &e.boneLibrary;
 
 			GetOS(e).EnumerateModifiedFiles(monitor);
 		}

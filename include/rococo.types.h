@@ -117,6 +117,14 @@ namespace Rococo
 	struct Radians;
 	struct Gravity;
 	struct Metres;
+	struct Quat;
+
+	namespace Windows
+	{
+		struct IWindow;
+		IWindow& NoParent();
+		int ShowMessageBox(IWindow& window, const wchar_t* text, const wchar_t* caption, uint32 uType);
+	}
 
 	ROCOCOAPI IException
 	{
@@ -125,7 +133,7 @@ namespace Rococo
 	};
 
 	void Throw(int32 errorCode, const wchar_t* format, ...);
-	void ShowErrorBox(IException& ex, const wchar_t* caption);
+	void ShowErrorBox(Windows::IWindow& parent, IException& ex, const wchar_t* caption);
 
 	namespace Visitors
 	{
@@ -327,17 +335,6 @@ namespace Rococo
 		}
 	};
 
-	namespace Windows
-	{
-		struct IWindow;
-	}
-
-	namespace Visitors
-	{
-		struct IUIList;
-		struct IUITree;
-	}
-
 	struct KeyboardEvent;
 	struct MouseEvent;
 
@@ -367,7 +364,8 @@ namespace Rococo
 
 	// ID_MESH are artist defined indices. The artist chooses a number to associate with a mesh.
 	// Rough convention:
-	//    ids 0          to 0x1FFFFFFF are defined in script files and level editors
+	//    id  0          invalid
+	//    ids 1          to 0x1FFFFFFF are defined in script files and level editors
 	//    ids 0x20000000 to 0x20FFFFFF are procedurally generated paths, roads and rivers created in C++
 	//    ids 0x21000000 t0 0x21FFFFFF are procedurally generated houses created in C++.
 	//    ids 0x40000000 to 0x41000000 are gameplay generated meshes such as explosions created in C++.
@@ -484,6 +482,7 @@ namespace Rococo
 
 	Vec3 GetVec3Value(Sexy::Sex::cr_sex sx, Sexy::Sex::cr_sex sy, Sexy::Sex::cr_sex sz);
 	RGBAb GetColourValue(Sexy::Sex::cr_sex s);
+	Quat GetQuat(Sexy::Sex::cr_sex s);
 
 	void LogParseException(Sexy::Sex::ParseException& ex, ILogger& logger);
 

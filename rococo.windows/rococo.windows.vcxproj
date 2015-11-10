@@ -83,6 +83,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="rococo.message.box.cpp" />
     <ClCompile Include="rococo.window.cpp" />
     <ClCompile Include="variable.editor.cpp" />
   </ItemGroup>

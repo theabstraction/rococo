@@ -50,6 +50,16 @@
 
 (macro Dystopia.Entities.SkeletonTypeHumanMale in out (out.AddAtomic "0x0"))
 
+(macro Dystopia.Entities.LimbIndexHead in out (out.AddAtomic "0x0"))
+(macro Dystopia.Entities.LimbIndexLeftArm in out (out.AddAtomic "0x1"))
+(macro Dystopia.Entities.LimbIndexRightArm in out (out.AddAtomic "0x2"))
+(macro Dystopia.Entities.LimbIndexTorso in out (out.AddAtomic "0x3"))
+(macro Dystopia.Entities.LimbIndexLeftLeg in out (out.AddAtomic "0x4"))
+(macro Dystopia.Entities.LimbIndexRightLeg in out (out.AddAtomic "0x5"))
+(macro Dystopia.Entities.LimbIndexLeftFoot in out (out.AddAtomic "0x6"))
+(macro Dystopia.Entities.LimbIndexRightFoot in out (out.AddAtomic "0x7"))
+(macro Dystopia.Entities.LimbIndexCount in out (out.AddAtomic "0x8"))
+
 (interface Dystopia.Gui.IGui
 	(ShowDialogBox (Sys.Maths.Vec2i span)(Int32 retzone)(Int32 hypzone)(Sys.Type.IString title)(Sys.Type.IString message)(Sys.Type.IString buttons) -> )
 	(Add3DHint (Sys.Maths.Vec3 worldPos)(Sys.Type.IString message)(Float32 duration) -> )

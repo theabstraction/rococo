@@ -2,6 +2,8 @@
 #include <wchar.h>
 #include <stdarg.h>
 #include <malloc.h>
+#include <vector>
+#include <rococo.io.h>
 
 namespace
 {
@@ -52,6 +54,42 @@ namespace
 		wchar_t* buffer;
 		size_t capacity;
 		size_t offset;
+	};
+
+	class ExpandingBuffer : public IExpandingBuffer
+	{
+		std::vector<uint8> internalBuffer;
+	public:
+		ExpandingBuffer(size_t capacity) : internalBuffer(capacity)
+		{
+		}
+
+		virtual const uint8* GetData() const
+		{
+			if (internalBuffer.empty()) return nullptr;
+			else return &internalBuffer[0];
+		}
+
+		virtual uint8* GetData()
+		{
+			if (internalBuffer.empty()) return nullptr;
+			else return &internalBuffer[0];
+		}
+
+		virtual size_t Length() const
+		{
+			return internalBuffer.size();
+		}
+
+		virtual void Resize(size_t length)
+		{
+			internalBuffer.resize(length);
+		}
+
+		virtual void Free()
+		{
+			delete this;
+		}
 	};
 }
 
@@ -123,5 +161,10 @@ namespace Rococo
 		}
 
 		return hash;
+	}
+
+	IExpandingBuffer* CreateExpandingBuffer(size_t initialCapacity)
+	{
+		return new ExpandingBuffer(initialCapacity);
 	}
 }

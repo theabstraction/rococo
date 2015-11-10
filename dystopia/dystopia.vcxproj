@@ -186,6 +186,7 @@
   <ItemGroup>
     <ClCompile Include="actions.cpp" />
     <ClCompile Include="app.cpp" />
+    <ClCompile Include="bone.library.cpp" />
     <ClCompile Include="dialogs.cpp" />
     <ClCompile Include="Environment.cpp" />
     <ClCompile Include="generator.city.cpp" />
@@ -214,6 +215,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.io.h" />
+    <ClInclude Include="..\include\rococo.keys.h" />
     <ClInclude Include="..\include\rococo.maths.h" />
     <ClInclude Include="..\include\rococo.post.h" />
     <ClInclude Include="..\include\rococo.renderer.h" />

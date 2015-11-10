@@ -362,6 +362,32 @@ namespace Dystopia {
 
 		return true;
 	}
+
+	bool TryShortParse(const fstring& s, SolidFlags& value)
+	{
+		if (s == L"None"_fstring)
+		{
+			value = SolidFlags_None;
+		}
+		else if (s == L"Obstacle"_fstring)
+		{
+			value = SolidFlags_Obstacle;
+		}
+		else if (s == L"Selectable"_fstring)
+		{
+			value = SolidFlags_Selectable;
+		}
+		else if (s == L"Skeleton"_fstring)
+		{
+			value = SolidFlags_Skeleton;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
 }
 
 namespace Dystopia {
@@ -382,6 +408,24 @@ namespace Dystopia {
 
 		return true;
 	}
+
+	bool TryShortParse(const fstring& s, AnimationType& value)
+	{
+		if (s == L"Standstill"_fstring)
+		{
+			value = AnimationType_Standstill;
+		}
+		else if (s == L"Running"_fstring)
+		{
+			value = AnimationType_Running;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
 }
 
 namespace Dystopia {
@@ -390,6 +434,114 @@ namespace Dystopia {
 		if (s == L"SkeletonType_HumanMale"_fstring)
 		{
 			value = SkeletonType_HumanMale;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool TryShortParse(const fstring& s, SkeletonType& value)
+	{
+		if (s == L"HumanMale"_fstring)
+		{
+			value = SkeletonType_HumanMale;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+}
+
+namespace Dystopia {
+	bool TryParse(const fstring& s, LimbIndex& value)
+	{
+		if (s == L"LimbIndex_Head"_fstring)
+		{
+			value = LimbIndex_Head;
+		}
+		else if (s == L"LimbIndex_LeftArm"_fstring)
+		{
+			value = LimbIndex_LeftArm;
+		}
+		else if (s == L"LimbIndex_RightArm"_fstring)
+		{
+			value = LimbIndex_RightArm;
+		}
+		else if (s == L"LimbIndex_Torso"_fstring)
+		{
+			value = LimbIndex_Torso;
+		}
+		else if (s == L"LimbIndex_LeftLeg"_fstring)
+		{
+			value = LimbIndex_LeftLeg;
+		}
+		else if (s == L"LimbIndex_RightLeg"_fstring)
+		{
+			value = LimbIndex_RightLeg;
+		}
+		else if (s == L"LimbIndex_LeftFoot"_fstring)
+		{
+			value = LimbIndex_LeftFoot;
+		}
+		else if (s == L"LimbIndex_RightFoot"_fstring)
+		{
+			value = LimbIndex_RightFoot;
+		}
+		else if (s == L"LimbIndex_Count"_fstring)
+		{
+			value = LimbIndex_Count;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool TryShortParse(const fstring& s, LimbIndex& value)
+	{
+		if (s == L"Head"_fstring)
+		{
+			value = LimbIndex_Head;
+		}
+		else if (s == L"LeftArm"_fstring)
+		{
+			value = LimbIndex_LeftArm;
+		}
+		else if (s == L"RightArm"_fstring)
+		{
+			value = LimbIndex_RightArm;
+		}
+		else if (s == L"Torso"_fstring)
+		{
+			value = LimbIndex_Torso;
+		}
+		else if (s == L"LeftLeg"_fstring)
+		{
+			value = LimbIndex_LeftLeg;
+		}
+		else if (s == L"RightLeg"_fstring)
+		{
+			value = LimbIndex_RightLeg;
+		}
+		else if (s == L"LeftFoot"_fstring)
+		{
+			value = LimbIndex_LeftFoot;
+		}
+		else if (s == L"RightFoot"_fstring)
+		{
+			value = LimbIndex_RightFoot;
+		}
+		else if (s == L"Count"_fstring)
+		{
+			value = LimbIndex_Count;
 		}
 		else
 		{

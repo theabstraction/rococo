@@ -85,6 +85,36 @@ namespace Rococo
 		};
 	}
 
+	void XMVectorToVec4(DirectX::XMVECTOR xv, Vec4& v)
+	{
+		v.x = xv.m128_f32[0];
+		v.y = xv.m128_f32[1];
+		v.z = xv.m128_f32[2];
+		v.w = xv.m128_f32[3];
+	}
+
+	void XMMatrixToM4x4(DirectX::XMMATRIX xm, Matrix4x4& m)
+	{
+		XMVectorToVec4(xm.r[0], m.row0);
+		XMVectorToVec4(xm.r[1], m.row1);
+		XMVectorToVec4(xm.r[2], m.row2);
+		XMVectorToVec4(xm.r[3], m.row3);
+	}
+
+	void Matrix4x4::FromQuat(const Quat& quat, Matrix4x4& m)
+	{
+		using namespace DirectX;
+
+		XMVECTOR q;
+		q.m128_f32[0] = quat.v.x;
+		q.m128_f32[1] = quat.v.y;
+		q.m128_f32[2] = quat.v.z;
+		q.m128_f32[3] = quat.s;
+
+		XMMATRIX xm = XMMatrixRotationQuaternion(q);
+		XMMatrixToM4x4(xm, m);
+	}
+
 	void TransformPositions(const Vec3* vertices, size_t nElements, cr_m4x4 transform, Vec3* transformedVertices)
 	{
 		for (size_t i = 0; i < nElements; ++i)
@@ -161,6 +191,27 @@ namespace Rococo
 		Matrix4x4 tMatrix;
 		TransposeMatrix(matrix, tMatrix);
 		return tMatrix;
+	}
+
+	Quat InterpolateRotations(cr_quat a, cr_quat b, float t)
+	{
+		using namespace DirectX;
+
+		XMVECTOR A;
+		A.m128_f32[0] = a.v.x;
+		A.m128_f32[1] = a.v.y;
+		A.m128_f32[2] = a.v.z;
+		A.m128_f32[3] = a.s;
+		
+		XMVECTOR B;
+		B.m128_f32[0] = b.v.x;
+		B.m128_f32[1] = b.v.y;
+		B.m128_f32[2] = b.v.z;
+		B.m128_f32[3] = b.s;
+
+		auto p = DirectX::XMQuaternionSlerp(A, B, t);
+
+		return Quat(Vec3{ p.m128_f32[0],p.m128_f32[1], p.m128_f32[2] }, p.m128_f32[3]);
 	}
 
 	float Dot(const Vec4& a, const Vec4& b)

@@ -78,73 +78,6 @@ namespace
 		sd.SwapEffect = DXGI_SWAP_EFFECT_SEQUENTIAL;
 		return sd;
 	} 
-
-	class ExpandingBuffer : public IExpandingBuffer
-	{
-		std::vector<uint8> internalBuffer;
-	public:
-		ExpandingBuffer(size_t capacity): internalBuffer(capacity)
-		{
-		}
-
-		virtual const uint8* GetData() const
-		{
-			if (internalBuffer.empty()) return nullptr;
-			else return &internalBuffer[0];
-		}
-
-		virtual uint8* GetData()
-		{
-			if (internalBuffer.empty()) return nullptr;
-			else return &internalBuffer[0];
-		}
-
-		virtual size_t Length() const
-		{
-			return internalBuffer.size();
-		}
-
-		virtual void Resize(size_t length)
-		{
-			internalBuffer.resize(length);
-		}
-
-		virtual void Free()
-		{
-			delete this;
-		}
-	};
-}
-
-namespace Rococo
-{
-	void ShowErrorBox(IException& ex, const wchar_t* caption)
-	{
-		if (ex.ErrorCode() == 0)
-		{
-			MessageBox(nullptr, ex.Message(), caption, MB_ICONERROR);
-		}
-		else
-		{
-			wchar_t codeMsg[512];
-			wchar_t bigMsg[512];
-			if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, ex.ErrorCode(), 0, codeMsg, 512, nullptr) <= 0)
-			{
-				SafeFormat(bigMsg, _TRUNCATE, L"%s. Code 0x%x", ex.Message(), ex.ErrorCode());
-			}
-			else
-			{
-				SafeFormat(bigMsg, _TRUNCATE, L"%s\nCode 0x%x: %s", ex.Message(), ex.ErrorCode(), codeMsg);
-			}
-			
-			MessageBox(nullptr, bigMsg, caption, MB_ICONERROR);
-		}
-	}
-
-	IExpandingBuffer* CreateExpandingBuffer(size_t initialCapacity)
-	{
-		return new ExpandingBuffer(initialCapacity);
-	}
 }
 
 namespace
@@ -1353,10 +1286,13 @@ namespace
 
 		virtual void OnClose(HWND hWnd)
 		{
+			wchar_t text[256];
+			GetWindowText(hWnd, text, 255);
+			text[255] = 0;
 			if (eventHandler.OnClose())
 			{
 				AutoFree<CountdownConfirmationDialog> confirmDialog(CountdownConfirmationDialog::Create());
-				if (IDOK == confirmDialog->DoModal(hWnd, L"DX11 Test Window", L"Quitting application", 8))
+				if (IDOK == confirmDialog->DoModal(hWnd, text, L"Quitting application", 8))
 				{
 					PostQuitMessage(0);
 				}

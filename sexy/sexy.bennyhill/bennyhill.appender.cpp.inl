@@ -218,6 +218,10 @@ namespace
 
 		appender.Append(SEXTEXT("\tbool TryParse(const fstring& s, "));
 		AppendStructShortName(appender, ec.asCppEnum.SexyName()); 
+		appender.Append(SEXTEXT("& value);\n"));
+
+		appender.Append(SEXTEXT("\tbool TryShortParse(const fstring& s, "));
+		AppendStructShortName(appender, ec.asCppEnum.SexyName());
 		appender.Append(SEXTEXT("& value); "));
 
 		if (nsDepth > 0)
@@ -631,7 +635,31 @@ namespace
 		appender.Append(SEXTEXT("\t\t}\n\n"));
 
 		appender.Append(SEXTEXT("\t\treturn true;\n"));
-		appender.Append(SEXTEXT("\t}\n}\n\n"));
+		appender.Append(SEXTEXT("\t}\n\n"));
+
+		appender.Append(SEXTEXT("\tbool TryShortParse(const fstring& s, %s& value)\n"), tail);
+		appender.Append(SEXTEXT("\t{\n"));
+
+		first = true;
+		for (auto& i : ec.values)
+		{
+			appender.Append(SEXTEXT("\t\t%s (s == %c\"%s\"_fstring)\n"), first ? SEXTEXT("if") : SEXTEXT("else if"), stringIndicator, i.first.c_str());
+			appender.Append(SEXTEXT("\t\t{\n"));
+			appender.Append(SEXTEXT("\t\t\tvalue = %s_%s;\n"), tail, i.first.c_str());
+			appender.Append(SEXTEXT("\t\t}\n"));
+
+			first = false;
+		}
+
+		appender.Append(SEXTEXT("\t\telse\n"));
+		appender.Append(SEXTEXT("\t\t{\n"));
+		appender.Append(SEXTEXT("\t\t\treturn false;\n"));
+		appender.Append(SEXTEXT("\t\t}\n\n"));
+
+		appender.Append(SEXTEXT("\t\treturn true;\n"));
+		appender.Append(SEXTEXT("\t}\n"));
+
+		appender.Append(SEXTEXT("}\n\n"));
 	}
 
 

@@ -112,7 +112,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	}
 	catch (IException& ex)
 	{
-		ShowErrorBox(ex, L"Dystopia threw an exception");
+		ShowErrorBox(NoParent(), ex, L"Dystopia threw an exception");
 	}
 
 	CloseHandle(hInstanceLock);

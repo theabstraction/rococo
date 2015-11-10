@@ -158,14 +158,14 @@ namespace Dystopia
 		};
 	};
 
-	struct IControls
+	ROCOCOAPI IControls
 	{
 		virtual void LoadMapping(const wchar_t* resourceName) = 0;
 		virtual void MapKeyboardEvent(const KeyboardEvent& ke, IEventCallback<ActionMap>& onAction) = 0;
 		virtual void MapMouseEvent(const MouseEvent& me, IEventCallback<ActionMap>& onAction) = 0;
 	};
 
-	struct IControlsSupervisor : public IControls
+	ROCOCOAPI IControlsSupervisor : public IControls
 	{
 		virtual void AddAction(const wchar_t* name, ActionMapType type, bool isVector) = 0;
 		virtual void Free() = 0;

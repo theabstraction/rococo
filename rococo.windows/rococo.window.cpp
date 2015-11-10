@@ -187,7 +187,18 @@ namespace
 		}
 		catch (IException& ex)
 		{
-			ShowErrorBox(ex, L"Rococo Window Exception!");
+			struct : public IWindow
+			{
+				HWND hWnd;
+				virtual operator HWND () const
+				{
+					return nullptr;
+				}
+			} local;
+
+			local.hWnd = hWnd;
+
+			ShowErrorBox(local, ex, L"Rococo Window Exception!");
 			PostQuitMessage(ex.ErrorCode());
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}

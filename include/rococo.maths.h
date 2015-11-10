@@ -33,11 +33,17 @@ namespace Rococo
 	{
 		Vec3 v;
 		float s;
+
+		Quat() : v{ 0,0,0 }, s(1.0f) {}
 		Quat(cr_vec3 _v, float _s) :  v(_v), s(_s) {}
 
 		inline operator DirectX::XMFLOAT4* () { return reinterpret_cast<DirectX::XMFLOAT4*> (this); }
 		inline operator const DirectX::XMFLOAT4* () const { return reinterpret_cast<const DirectX::XMFLOAT4*> (this); }
 	};
+
+	typedef const Quat& cr_quat;
+
+	Quat InterpolateRotations(cr_quat a, cr_quat b, float t);
 
 	struct alignas(4) Matrix4x4 // was 16, but sexy does not align on 16 byte boundaries yet
 	{
@@ -73,6 +79,8 @@ namespace Rococo
 			row1.w = pos.y;
 			row2.w = pos.z;
 		}
+
+		static void FromQuat(const Quat& quat, Matrix4x4& m);
 	};
 
 	// Multiply matrix Ra x Rb to make RaRb. This has the property that Ra X Rb x v = (Ra x Rb) x v = Ra x (Rb x v)

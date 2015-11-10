@@ -45,14 +45,6 @@ namespace Rococo
 
 		throw ex;
 	}
-
-	void ShowErrorBox(IException& ex, const wchar_t* caption)
-	{
-		wchar_t bigMsg[512];
-		SafeFormat(bigMsg, _TRUNCATE, L"%s. Code 0x%x", ex.Message(), ex.ErrorCode());
-
-		MessageBox(nullptr, bigMsg, caption, MB_ICONERROR);
-	}
 }
 
 namespace
@@ -200,7 +192,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	}
 	catch (IException& ex)
 	{
-		ShowErrorBox(ex, L"Test threw an exception");
+		ShowErrorBox(NoParent(), ex, L"Test threw an exception");
 	}
 
 	return 0;

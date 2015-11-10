@@ -1,18 +1,15 @@
 #include "dystopia.h"
+#include "rococo.maths.h"
 #include "skeleton.h"
 #include "meshes.h"
 #include <array>
 #include <unordered_map>
-
-#include <sexy.types.h>
-#include <Sexy.S-Parser.h>
+#include "rococo.keys.h"
 
 namespace
 {
 	using namespace Rococo;
 	using namespace Dystopia;
-	using namespace Sexy;
-	using namespace Sexy::Sex;
 
 	const ID_MESH BODY_HEAD_MESH_ID(0x41000000);
 	const ID_MESH BODY_ARM_MESH_ID(0x41000001);
@@ -20,23 +17,11 @@ namespace
 	const ID_MESH BODY_LEG_MESH_ID(0x41000003);
 	const ID_MESH BODY_FOOT_MESH_ID(0x41000004);
 
-	enum LimbIndex
-	{
-		LimbIndex_Head,
-		LimbIndex_LeftArm,
-		LimbIndex_RightArm,
-		LimbIndex_Torso,
-		LimbIndex_LeftLeg,
-		LimbIndex_RightLeg,
-		LimbIndex_LeftFoot,
-		LimbIndex_RightFoot,
-		LimbIndex_Count
-	};
-
 	struct Limb
 	{
 		Matrix4x4 bodyToLimb;
 		ID_SYS_MESH bodyMeshId;
+		LimbIndex parentLimbIndex;
 	};
 
 	ID_SYS_MESH BindMesh(const wchar_t* resourceName, ID_MESH id, IMeshLoader& loader)
@@ -60,31 +45,85 @@ namespace
 		ID_SYS_MESH id_foot;
 	};
 
-	void SetStanding(Bones& bones, const LimbMeshes& meshes)
+	void SetLimbMeshes(Bones& bones, const LimbMeshes& meshes)
 	{
-		bones[LimbIndex_Head] = Limb{ Matrix4x4::Translate(Vec3{ 0,0,1.75f }), meshes.id_head };
-		bones[LimbIndex_LeftArm] = Limb{ Matrix4x4::Translate(Vec3{ -0.2f,0,1.10f }), meshes.id_arm };
-		bones[LimbIndex_RightArm] = Limb{ Matrix4x4::Translate(Vec3{ 0.2f,0,1.10f }), meshes.id_arm };
-		bones[LimbIndex_Torso] = Limb{ Matrix4x4::Translate(Vec3{ 0,0,1.20f }), meshes.id_torso };
-		bones[LimbIndex_LeftLeg] = Limb{ Matrix4x4::Translate(Vec3{ -0.1f,0,0.65f }), meshes.id_leg };
-		bones[LimbIndex_RightLeg] = Limb{ Matrix4x4::Translate(Vec3{ 0.1f,0,0.65f }), meshes.id_leg };
-		bones[LimbIndex_LeftFoot] = Limb{ Matrix4x4::Translate(Vec3{ -0.15f,0.05f,0.01f }), meshes.id_foot };
-		bones[LimbIndex_RightFoot] = Limb{ Matrix4x4::Translate(Vec3{ 0.15f,0.05f,0.01f }), meshes.id_foot };
+		bones[LimbIndex_Head].bodyMeshId = meshes.id_head;
+		bones[LimbIndex_Head].parentLimbIndex = LimbIndex_Torso;
+
+		bones[LimbIndex_LeftArm].bodyMeshId = meshes.id_arm;
+		bones[LimbIndex_LeftArm].parentLimbIndex = LimbIndex_Torso;
+
+		bones[LimbIndex_RightArm].bodyMeshId = meshes.id_arm;
+		bones[LimbIndex_RightArm].parentLimbIndex = LimbIndex_Torso;
+
+		bones[LimbIndex_Torso].bodyMeshId = meshes.id_torso;
+		bones[LimbIndex_Torso].parentLimbIndex = LimbIndex_Torso;
+
+		bones[LimbIndex_LeftLeg].bodyMeshId = meshes.id_leg;
+		bones[LimbIndex_LeftLeg].parentLimbIndex = LimbIndex_Torso;
+
+		bones[LimbIndex_RightLeg].bodyMeshId = meshes.id_leg;
+		bones[LimbIndex_RightLeg].parentLimbIndex = LimbIndex_Torso;
+
+		bones[LimbIndex_LeftFoot].bodyMeshId = meshes.id_foot;
+		bones[LimbIndex_LeftFoot].parentLimbIndex = LimbIndex_LeftLeg;
+
+		bones[LimbIndex_RightFoot].bodyMeshId = meshes.id_foot;
+		bones[LimbIndex_RightFoot].parentLimbIndex = LimbIndex_RightLeg;
 	}
 
-	void SetRunning(Bones& bones, const LimbMeshes& meshes, Radians phi)
+	BoneOrientation Morph(const BoneOrientation& boneA, const BoneOrientation& boneB, float t)
 	{
-		bones[LimbIndex_Head] = Limb{ Matrix4x4::Translate(Vec3{ 0,0,1.75f }), meshes.id_head };
-		bones[LimbIndex_LeftArm] = Limb{ Matrix4x4::Translate(Vec3{ -0.2f,0,1.10f }), meshes.id_arm };
-		bones[LimbIndex_RightArm] = Limb{ Matrix4x4::Translate(Vec3{ 0.2f,0,1.10f }), meshes.id_arm };
-		bones[LimbIndex_Torso] = Limb{ Matrix4x4::Translate(Vec3{ 0,0,1.20f }), meshes.id_torso };
+		BoneOrientation result;
+		result.parentToChildDisplacement = Lerp(boneA.parentToChildDisplacement, boneB.parentToChildDisplacement, t);
+		result.rotation = InterpolateRotations(boneA.rotation, boneB.rotation, t);
+		return result;
+	}
 
-		Matrix4x4 rotXForward = Matrix4x4::RotateRHAnticlockwiseX(phi);
-		Matrix4x4 rotXBackward = Matrix4x4::RotateRHAnticlockwiseX(-phi);
-		bones[LimbIndex_LeftLeg] = Limb{ Matrix4x4::Translate(Vec3{ -0.1f,   0,    0.65f }) * rotXForward, meshes.id_leg };
-		bones[LimbIndex_RightLeg] = Limb{ Matrix4x4::Translate(Vec3{ 0.1f,    0,    0.65f }) * rotXBackward, meshes.id_leg };
-		bones[LimbIndex_LeftFoot] = Limb{ Matrix4x4::Translate(Vec3{ -0.15f, 0.35f, 0.35f }) * rotXForward, meshes.id_foot };
-		bones[LimbIndex_RightFoot] = Limb{ Matrix4x4::Translate(Vec3{ 0.15f, -0.35f, 0.35f }) * rotXBackward, meshes.id_foot };
+	void Morph(IBoneLibrary& lib, ID_KEYFRAME a, ID_KEYFRAME b, float t, Bones& bones)
+	{
+		struct : IBoneEnumerator
+		{
+			std::array<BoneOrientation, LimbIndex_Count> bones;
+
+			virtual void OnBone(const BoneOrientation& bone, int32 index)
+			{
+				if (index > bones.size())
+				{
+					Throw(0, L"Bad bone index in morph call.");
+				}
+				bones[index] = bone;
+			}
+
+			// Called prior to OnBone to tell the enumerator what type of skeleton we have
+			virtual void OnType(SkeletonType type)
+			{
+				if (type != SkeletonType_HumanMale)
+				{
+					Throw(0, L"Unknown skeleton type");
+				}
+			}
+		} frameA, frameB;
+
+		lib.EnumerateKeyframeBonesById(a, frameA);
+		lib.EnumerateKeyframeBonesById(b, frameB);
+
+		std::array<BoneOrientation, LimbIndex_Count> morphedBones;
+
+		for (int i = 0; i < LimbIndex_Count; ++i)
+		{
+			morphedBones[i] = Morph(frameA.bones[i], frameB.bones[i], t);
+		}
+
+		for (int i = 0; i < LimbIndex_Count; ++i)
+		{
+			Matrix4x4 T = Matrix4x4::Translate(morphedBones[i].parentToChildDisplacement);
+
+			Matrix4x4 R;
+			Matrix4x4::FromQuat(morphedBones[i].rotation, R);
+
+			bones[i].bodyToLimb = T * R;
+		}
 	}
 
 	class Skeleton : public ISkeletonSupervisor
@@ -92,18 +131,83 @@ namespace
 		Environment& e;
 		Bones currentFrame;
 
-		AnimationType currentAnimation;
-
 		LimbMeshes limbMeshes;
 
-		float lastAnimationTime;
+		Seconds animationStart;
 
-		void UpdateCurrentFrame(float gameTime, float animationDT)
+		ID_ANIMATION animationId;
+		ID_KEYFRAME currentKeyframeId;
+		ID_KEYFRAME morphTargetKeyframeId;
+
+		float currentActualisationTime;
+
+		void UpdateCurrentFrame(Seconds gameTime)
 		{
+			if (animationStart == 0.0f)
+			{
+				animationStart = gameTime;
+				currentActualisationTime = gameTime;
+			}
 
+			morphTargetKeyframeId = ID_KEYFRAME::Invalid();
+
+			float nextActualisationTime = 0.0_seconds;
+			
+			while (true)
+			{
+				const auto& seq = e.boneLibrary.GetAnimationSequenceById(animationId);
+				for (auto& i : seq)
+				{
+					if (gameTime - animationStart < i.actualisationTime)
+					{
+						morphTargetKeyframeId = i.id;
+						nextActualisationTime = animationStart + i.actualisationTime;
+						break;
+					}
+					else
+					{
+						if (i.id != ID_KEYFRAME::Invalid())
+						{
+							currentKeyframeId = i.id;
+						}
+						
+						currentActualisationTime = animationStart + i.actualisationTime;
+					}
+				}
+
+				if (morphTargetKeyframeId == ID_KEYFRAME::Invalid())
+				{
+					auto* lastFrame = seq.lastFrame_plus_one - 1;
+					ID_ANIMATION nextAnimationId = lastFrame->nextAnimationId;
+
+					if (nextAnimationId == ID_ANIMATION::Invalid())
+					{
+						Morph(e.boneLibrary, currentKeyframeId, currentKeyframeId, 0.0f, currentFrame);
+						return;
+					}
+
+					animationId = nextAnimationId;
+
+					if (lastFrame->actualisationTime <= 0)
+					{
+						Throw(0, L"Bad expire time for animation %u", animationId.value);
+					}
+
+					animationStart.value += lastFrame->actualisationTime;
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			float duration = nextActualisationTime - currentActualisationTime;
+			float interpolationValue = (gameTime - animationStart) / duration;
+
+			Morph(e.boneLibrary, currentKeyframeId, morphTargetKeyframeId, interpolationValue, currentFrame);
 		}
 	public:
-		Skeleton(Environment& _e) : e(_e), lastAnimationTime(0)
+		Skeleton(Environment& _e) : e(_e)
 		{
 			limbMeshes.id_head = BindMesh(L"!mesh/body.head.sxy", BODY_HEAD_MESH_ID, e.meshes);
 			limbMeshes.id_arm = BindMesh(L"!mesh/body.arm.sxy", BODY_ARM_MESH_ID, e.meshes);
@@ -111,7 +215,10 @@ namespace
 			limbMeshes.id_leg = BindMesh(L"!mesh/body.leg.sxy", BODY_LEG_MESH_ID, e.meshes);
 			limbMeshes.id_foot = BindMesh(L"!mesh/body.foot.sxy", BODY_FOOT_MESH_ID, e.meshes);
 
-			SetRunning(currentFrame, limbMeshes, 0.0_degrees);
+			SetLimbMeshes(currentFrame, limbMeshes);
+			SetCurrentAnimation(AnimationType_Running);
+
+			morphTargetKeyframeId = currentKeyframeId = e.boneLibrary.GetAnimationSequenceById(animationId).firstFrame->id;
 		}
 
 		virtual void Free()
@@ -119,174 +226,62 @@ namespace
 			delete this;
 		}
 
-		virtual void Render(IRenderContext& rc, const ObjectInstance& instance, float gameTime, float frameDt)
+		std::vector<int> transformList;
+
+		virtual void Render(IRenderContext& rc, const ObjectInstance& instance, Seconds gameTime)
 		{
-			if (gameTime > lastAnimationTime)
-			{
-				float dt = lastAnimationTime - gameTime;
-				UpdateCurrentFrame(gameTime, dt);
-				lastAnimationTime = gameTime;
-			}
+			UpdateCurrentFrame(gameTime);
 
-			Vec3 pos = instance.orientation.GetPosition();
-			float f = fmodf(pos.x + pos.y + pos.z, 1.0f) * PI() / 3.0f;
-			SetRunning(currentFrame, limbMeshes, Radians{ f });
-
-			for (auto& limb : currentFrame)
+			for (int i = 0; i < currentFrame.size(); ++i)
 			{
-				ObjectInstance limbInstance{ instance.orientation * limb.bodyToLimb, instance.highlightColour };
-				rc.Draw(limb.bodyMeshId, &limbInstance, 1);
+				Matrix4x4 transform = Matrix4x4::Identity();
+				transformList.clear();
+					
+				int k = i;
+				do
+				{
+					transformList.push_back(k);
+					int old_k = k;
+					k = currentFrame[k].parentLimbIndex;
+					if (old_k == k) break;
+				} while (true);
+
+				for (auto j = transformList.begin(); j != transformList.end(); j++)
+				{
+					transform = transform * currentFrame[*j].bodyToLimb;
+				}
+
+				ObjectInstance limbInstance{ instance.orientation * transform, instance.highlightColour };
+				rc.Draw(currentFrame[i].bodyMeshId, &limbInstance, 1);
 			}
 		}
 
 		virtual void SetCurrentAnimation(AnimationType type)
 		{
-			currentAnimation = type;
+			const wchar_t* name = nullptr;
+
 			switch (type)
 			{
 			case AnimationType_Standstill:
-				SetStanding(currentFrame, limbMeshes);
+				name = L"standstill";
 				break;
 			case AnimationType_Running:
-				SetRunning(currentFrame, limbMeshes, 0.0_degrees);
+				name = L"running";
 				break;
+			default:
+				Throw(0, L"Unknown animation type");
 			}
+
+			const auto& seq = e.boneLibrary.GetAnimationSequenceByName(name);
+			animationId = seq.id;
+
+			if (animationId == animationId.Invalid())
+			{
+				Throw(0, L"Could not find animation '%s' in the bone library", name);
+			}
+
+			this->animationStart = 0.00_seconds;
 		}
-	};
-
-	struct BoneOrientation
-	{
-		Quat rotation;
-		Vec3 parentToChildDisplacement;
-		float unused;
-	};
-
-	struct Keyframe
-	{
-		SkeletonType type;
-		std::vector<BoneOrientation> limbs;
-	};
-
-	class BoneLibrary : public IBoneLibrarySupervisor
-	{
-	private:
-		IInstallation& installation;
-		IRenderer& renderer;
-		ISourceCache& sources;
-
-		std::unordered_map<std::wstring, Keyframe> keyframes;
-	public:
-		BoneLibrary(IInstallation& _installation, IRenderer& _renderer, ISourceCache& _sources) :
-			installation(_installation),
-			renderer(_renderer),
-			sources(_sources)
-		{
-
-		}
-
-		void ParseKeyframe(cr_sex sdirective)
-		{
-			if (sdirective.NumberOfElements() < 3)
-			{
-				ThrowSex(sdirective, L"Expecting at least 3 elements in a keyframe directive");
-
-				auto& keyframeName = GetAtomicArg(sdirective[1]);
-				auto result = keyframes.insert(std::make_pair(std::wstring(keyframeName), Keyframe()));
-				if (!result.second)
-				{
-					ThrowSex(sdirective[1], L"Duplicate keyframe name.", keyframeName);
-				}
-
-				auto& skeletonType = GetAtomicArg(sdirective[2]);
-				
-			}
-		}
-
-		void ParseBoneScript(cr_sex root)
-		{
-			if (root.NumberOfElements() < 2)
-			{
-				ThrowSex(root, L"There must be at least two elements in the root expression of a bone library file");
-			}
-
-			auto& sversion = root[0];
-			if (sversion.NumberOfElements() != 3)
-			{
-				ThrowSex(root, L"Expecting 3 elements in a bone library version expression");
-			}
-
-			if (sversion[0] != L"'" || sversion[1] != L"file.type" || sversion[2] != L"bone.library.1.0.0.0")
-			{
-				ThrowSex(sversion, L"Expecting version expression: (' file.type bone.library.1.0.0.0)");
-			}
-
-			for (int i = 1; i < root.NumberOfElements(); ++i)
-			{
-				auto& sdirective = root[i];
-				if (!IsCompound(sdirective))
-				{
-					ThrowSex(sdirective, L"Expecting compound expression");
-				}
-
-				if (sdirective[0] == L"keyframe")
-				{
-					ParseKeyframe(sdirective);
-				}
-				else
-				{
-					ThrowSex(sdirective, L"Unknown expression");
-				}
-			}
-		}
-
-		virtual void Free()
-		{
-			delete this;
-		}
-
-		virtual void Reload(const wchar_t* filename)
-		{
-			while (true)
-			{
-				try
-				{
-					keyframes.clear();
-					ProtectedLoad(filename);
-					return;
-				}
-				catch (IException& ex)
-				{
-					installation.OS().FireUnstable();
-					CMD_ID id = ShowContinueBox(renderer.Window(), ex.Message());
-					switch (id)
-					{
-					case CMD_ID_EXIT:
-						Throw(ex.ErrorCode(), L"%s", ex.Message());
-						break;
-					case CMD_ID_RETRY:
-						break;
-					case CMD_ID_IGNORE:
-						return;
-					}
-				}
-			}
-		}
-
-		void ProtectedLoad(const wchar_t* resourcePath)
-		{
-			try
-			{
-				auto tree = sources.GetSource(resourcePath);
-				ParseBoneScript(tree->Root());
-			}
-			catch (Sexy::Sex::ParseException& pex)
-			{
-				SourcePos p = pex.Start();
-				SourcePos q = pex.End();
-				Throw(0, L"Error parsering %s\n%s: %s\n(%d,%d) to (%d,%d)\n%s", resourcePath, pex.Name(), pex.Message(), p.X, p.Y, q.X, q.Y, pex.Specimen());
-			}
-		}
-
 	};
 }
 
@@ -295,10 +290,5 @@ namespace Dystopia
 	ISkeletonSupervisor* CreateSkeleton(Environment& e)
 	{
 		return new Skeleton(e);
-	}
-
-	IBoneLibrarySupervisor* CreateBoneLibrary(IInstallation& installation, IRenderer& renderer, ISourceCache& sources)
-	{
-		return new BoneLibrary(installation, renderer, sources);
 	}
 }

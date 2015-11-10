@@ -17,6 +17,8 @@
 
 #include <windows.h>
 
+#include <rococo.maths.h>
+
 namespace Rococo
 {
 	using namespace Sexy;
@@ -96,6 +98,17 @@ namespace Rococo
 		int blue = value & 0x000000FF;
 
 		return RGBAb(red, green, blue);
+	}
+
+	Quat GetQuat(cr_sex s)
+	{
+		if (s.NumberOfElements() != 4) Throw(s, L"Expecting quat (Vx Vy Vz S)");
+		float Vx = GetValue(s[0], -1.0e10f, 1e10f, L"Vx component");
+		float Vy = GetValue(s[1], -1.0e10f, 1e10f, L"Vy component");
+		float Vz = GetValue(s[2], -1.0e10f, 1e10f, L"Vz component");
+		float S = GetValue(s[3], -1.0e10f, 1e10f, L"scalar component");
+
+		return Quat{ Vec3{ Vx,Vy,Vz }, S };
 	}
 
 	Vec3 GetVec3Value(cr_sex sx, cr_sex sy, cr_sex sz)

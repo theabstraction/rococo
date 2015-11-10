@@ -12,8 +12,6 @@ namespace Rococo
 		struct IDrawTextJob;
 	}
 
-	void ShowErrorBox(IException& ex, const wchar_t* caption);
-
 	struct GuiVertex
 	{
 		float x;
