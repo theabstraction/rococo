@@ -465,25 +465,25 @@ namespace Dystopia {
 		{
 			value = LimbIndex_Head;
 		}
-		else if (s == L"LimbIndex_LeftArm"_fstring)
+		else if (s == L"LimbIndex_LeftUpperArm"_fstring)
 		{
-			value = LimbIndex_LeftArm;
+			value = LimbIndex_LeftUpperArm;
 		}
-		else if (s == L"LimbIndex_RightArm"_fstring)
+		else if (s == L"LimbIndex_RightUpperArm"_fstring)
 		{
-			value = LimbIndex_RightArm;
+			value = LimbIndex_RightUpperArm;
 		}
 		else if (s == L"LimbIndex_Torso"_fstring)
 		{
 			value = LimbIndex_Torso;
 		}
-		else if (s == L"LimbIndex_LeftLeg"_fstring)
+		else if (s == L"LimbIndex_LeftUpperLeg"_fstring)
 		{
-			value = LimbIndex_LeftLeg;
+			value = LimbIndex_LeftUpperLeg;
 		}
-		else if (s == L"LimbIndex_RightLeg"_fstring)
+		else if (s == L"LimbIndex_RightUpperLeg"_fstring)
 		{
-			value = LimbIndex_RightLeg;
+			value = LimbIndex_RightUpperLeg;
 		}
 		else if (s == L"LimbIndex_LeftFoot"_fstring)
 		{
@@ -492,6 +492,30 @@ namespace Dystopia {
 		else if (s == L"LimbIndex_RightFoot"_fstring)
 		{
 			value = LimbIndex_RightFoot;
+		}
+		else if (s == L"LimbIndex_LeftLowerArm"_fstring)
+		{
+			value = LimbIndex_LeftLowerArm;
+		}
+		else if (s == L"LimbIndex_RightLowerArm"_fstring)
+		{
+			value = LimbIndex_RightLowerArm;
+		}
+		else if (s == L"LimbIndex_LeftLowerLeg"_fstring)
+		{
+			value = LimbIndex_LeftLowerLeg;
+		}
+		else if (s == L"LimbIndex_RightLowerLeg"_fstring)
+		{
+			value = LimbIndex_RightLowerLeg;
+		}
+		else if (s == L"LimbIndex_LeftHand"_fstring)
+		{
+			value = LimbIndex_LeftHand;
+		}
+		else if (s == L"LimbIndex_RightHand"_fstring)
+		{
+			value = LimbIndex_RightHand;
 		}
 		else if (s == L"LimbIndex_Count"_fstring)
 		{
@@ -511,25 +535,25 @@ namespace Dystopia {
 		{
 			value = LimbIndex_Head;
 		}
-		else if (s == L"LeftArm"_fstring)
+		else if (s == L"LeftUpperArm"_fstring)
 		{
-			value = LimbIndex_LeftArm;
+			value = LimbIndex_LeftUpperArm;
 		}
-		else if (s == L"RightArm"_fstring)
+		else if (s == L"RightUpperArm"_fstring)
 		{
-			value = LimbIndex_RightArm;
+			value = LimbIndex_RightUpperArm;
 		}
 		else if (s == L"Torso"_fstring)
 		{
 			value = LimbIndex_Torso;
 		}
-		else if (s == L"LeftLeg"_fstring)
+		else if (s == L"LeftUpperLeg"_fstring)
 		{
-			value = LimbIndex_LeftLeg;
+			value = LimbIndex_LeftUpperLeg;
 		}
-		else if (s == L"RightLeg"_fstring)
+		else if (s == L"RightUpperLeg"_fstring)
 		{
-			value = LimbIndex_RightLeg;
+			value = LimbIndex_RightUpperLeg;
 		}
 		else if (s == L"LeftFoot"_fstring)
 		{
@@ -538,6 +562,30 @@ namespace Dystopia {
 		else if (s == L"RightFoot"_fstring)
 		{
 			value = LimbIndex_RightFoot;
+		}
+		else if (s == L"LeftLowerArm"_fstring)
+		{
+			value = LimbIndex_LeftLowerArm;
+		}
+		else if (s == L"RightLowerArm"_fstring)
+		{
+			value = LimbIndex_RightLowerArm;
+		}
+		else if (s == L"LeftLowerLeg"_fstring)
+		{
+			value = LimbIndex_LeftLowerLeg;
+		}
+		else if (s == L"RightLowerLeg"_fstring)
+		{
+			value = LimbIndex_RightLowerLeg;
+		}
+		else if (s == L"LeftHand"_fstring)
+		{
+			value = LimbIndex_LeftHand;
+		}
+		else if (s == L"RightHand"_fstring)
+		{
+			value = LimbIndex_RightHand;
 		}
 		else if (s == L"Count"_fstring)
 		{

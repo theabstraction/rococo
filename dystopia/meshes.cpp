@@ -26,7 +26,7 @@ namespace
 	typedef std::unordered_map<ID_MESH, MeshDesc, ID_MESH> TMeshes;
 	typedef std::unordered_map<ID_MESH, BoundingCubes, ID_MESH> TMeshBounds;
 
-	void ParseVertex(ObjectVertex& v, cr_sex sv)
+	void ParseVertex(ObjectVertex& v, cr_sex sv, bool isReflection)
 	{
 		if (sv.NumberOfElements() == 10)
 		{
@@ -52,6 +52,12 @@ namespace
 			v.diffuseColour.alpha = 0;
 			v.u = 0;
 			v.v = 0;
+		}
+
+		if (isReflection)
+		{
+			v.normal.x *= -1.0f;
+			v.position.x *= -1.0f;
 		}
 	}
 
@@ -96,7 +102,17 @@ namespace
 		cube.P.bottomTop.P1.pointInPlane = Vec4::FromVec3(0.5f * (cube.topVertices.v.sw + cube.topVertices.v.ne), 1.0f);
 	}
 
-	void ParseMeshVertices(TVertices& vertexCache, TMeshBounds& physicsHulls, TMeshes& meshes, ID_MESH id, IRenderer& renderer, cr_sex meshDef, const wchar_t* resourcePath, bool generateHull)
+	void SwapTriangleChirality(TVertices& vertexCache)
+	{
+		size_t nTriangles = vertexCache.size() / 3;
+		for (int i = 0; i < nTriangles; ++i)
+		{
+			ObjectVertex* v = &vertexCache[3 * i];
+			std::swap(v[0], v[1]);
+		}
+	}
+
+	void ParseMeshVertices(TVertices& vertexCache, TMeshBounds& physicsHulls, TMeshes& meshes, ID_MESH id, IRenderer& renderer, cr_sex meshDef, const wchar_t* resourcePath, bool generateHull, bool isReflection)
 	{
 		size_t nVertices = meshDef.NumberOfElements() - 1;
 		vertexCache.reserve(nVertices);
@@ -112,7 +128,7 @@ namespace
 		for (int i = 0; i < nVertices; ++i)
 		{
 			cr_sex sv = meshDef[i + 1];
-			ParseVertex(v, sv);
+			ParseVertex(v, sv, isReflection);
 			vertexCache.push_back(v);
 		}
 
@@ -135,6 +151,11 @@ namespace
 			h->second.push_back(cube);
 		}
 
+		if (isReflection)
+		{
+			SwapTriangleChirality(vertexCache);
+		}
+
 		auto i = meshes.find(id);
 		if (i != meshes.end())
 		{
@@ -148,7 +169,7 @@ namespace
 		}
 	}
 
-	void ParseMeshScript(TVertices& vertexCache, TMeshBounds& physicsHulls, TMeshes& meshes, ISParserTree& tree, IRenderer& renderer, const wchar_t* resourcePath, ID_MESH editorId)
+	void ParseMeshScript(TVertices& vertexCache, TMeshBounds& physicsHulls, TMeshes& meshes, ISParserTree& tree, IRenderer& renderer, const wchar_t* resourcePath, ID_MESH editorId, bool isReflected)
 	{
 		cr_sex root = tree.Root();
 
@@ -196,7 +217,7 @@ namespace
 
 				ValidateArgument(*meshconfirm, L"mesh");
 
-				ParseMeshVertices(vertexCache, physicsHulls, meshes, editorId, renderer, sdirective, resourcePath, autoHull);
+				ParseMeshVertices(vertexCache, physicsHulls, meshes, editorId, renderer, sdirective, resourcePath, autoHull, isReflected);
 
 				hasMesh = true;
 			}
@@ -235,6 +256,7 @@ namespace
 		AutoFree<IExpandingBuffer> meshFileImage;
 		AutoFree<IExpandingBuffer> unicodeFileImage;
 		TMeshes meshes;
+		TMeshes reflectedMeshes;
 		TVertices vertexCache;
 
 		TMeshBounds physicsHulls;
@@ -311,18 +333,35 @@ namespace
 			auto i = meshes.find(editorId);
 			if (i == meshes.end())
 			{
-				return ID_SYS_MESH();
+				i = reflectedMeshes.find(editorId);
+				if (i == reflectedMeshes.end())
+				{
+					return ID_SYS_MESH();
+				}
 			}
 
 			return i->second.rendererId;
 		}
 
-		virtual void Load(const fstring& resourcePath, ID_MESH editorId)
+		virtual void CreateReflection(ID_MESH sourceId, ID_MESH id)
 		{
-			Load(resourcePath, editorId, false);
+			auto i = meshes.find(sourceId);
+			if (i != meshes.end())
+			{
+				Load(to_fstring(i->second.resourceName.c_str()), id, false, true);
+			}
+			else
+			{
+				Throw(0, L"CreateReflection failed. No mesh found with id %u (0x%x)0", sourceId, sourceId);
+			}
 		}
 
-		void Load(const fstring& resourcePath, ID_MESH editorId, bool isReloading)
+		virtual void Load(const fstring& resourcePath, ID_MESH editorId)
+		{
+			Load(resourcePath, editorId, false, false);
+		}
+
+		void Load(const fstring& resourcePath, ID_MESH editorId, bool isReloading, bool isReflection)
 		{
 			using namespace Dystopia;
 
@@ -330,7 +369,7 @@ namespace
 			{
 				try
 				{
-					ProtectedLoadMesh(resourcePath.buffer, editorId);
+					ProtectedLoadMesh(resourcePath.buffer, editorId, isReflection);
 					return;
 				}
 				catch (IException& ex)
@@ -351,12 +390,12 @@ namespace
 			}
 		}
 
-		void ProtectedLoadMesh(const wchar_t* resourcePath, ID_MESH editorId)
+		void ProtectedLoadMesh(const wchar_t* resourcePath, ID_MESH editorId, bool isReflection)
 		{
 			try
 			{
 				auto tree = sourceCache.GetSource(resourcePath);
-				ParseMeshScript(vertexCache, physicsHulls, meshes, *tree, renderer, resourcePath, editorId);
+				ParseMeshScript(vertexCache, physicsHulls, isReflection ? reflectedMeshes : meshes, *tree, renderer, resourcePath, editorId, isReflection);
 			}
 			catch (Sexy::Sex::ParseException& pex)
 			{
@@ -379,7 +418,20 @@ namespace
 				if (DoesModifiedFilenameMatchResourceName(filename, mesh.resourceName.c_str()))
 				{
 					fstring resource = { mesh.resourceName.c_str(), (int32) mesh.resourceName.length() };
-					Load(resource, i.first, true);
+					sourceCache.Release(mesh.resourceName.c_str());
+					Load(resource, i.first, true, false);
+					return;
+				}
+			}
+
+			for (auto i : reflectedMeshes)
+			{
+				auto& mesh = i.second;
+				if (DoesModifiedFilenameMatchResourceName(filename, mesh.resourceName.c_str()))
+				{
+					fstring resource = { mesh.resourceName.c_str(), (int32)mesh.resourceName.length() };
+					sourceCache.Release(mesh.resourceName.c_str());
+					Load(resource, i.first, true, true);
 					return;
 				}
 			}

@@ -334,7 +334,11 @@ namespace
 			{
 				if (i->Action == FILE_ACTION_MODIFIED)
 				{
-					OnModified(info.FileName);
+					wchar_t nullTerminatedFilename[_MAX_PATH];
+					size_t nChars = info.FileNameLength >> 1;
+					SafeCopy(nullTerminatedFilename, info.FileName, nChars);
+					nullTerminatedFilename[nChars] = 0;
+					OnModified(nullTerminatedFilename);
 				}
 
 				if (!i->NextEntryOffset) break;

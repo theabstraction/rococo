@@ -12,10 +12,16 @@ namespace
 	using namespace Dystopia;
 
 	const ID_MESH BODY_HEAD_MESH_ID(0x41000000);
-	const ID_MESH BODY_ARM_MESH_ID(0x41000001);
+	const ID_MESH BODY_L_UPPER_ARM_MESH_ID(0x41000001);
 	const ID_MESH BODY_TORSO_MESH_ID(0x41000002);
-	const ID_MESH BODY_LEG_MESH_ID(0x41000003);
+	const ID_MESH BODY_UPPER_LEG_MESH_ID(0x41000003);
 	const ID_MESH BODY_FOOT_MESH_ID(0x41000004);
+	const ID_MESH BODY_L_LOWER_ARM_MESH_ID(0x41000005);
+	const ID_MESH BODY_LOWER_LEG_MESH_ID(0x41000006);
+	const ID_MESH BODY_L_HAND_MESH_ID(0x41000007);
+	const ID_MESH BODY_R_UPPER_ARM_MESH_ID(0x41000008);
+	const ID_MESH BODY_R_LOWER_ARM_MESH_ID(0x41000009);
+	const ID_MESH BODY_R_HAND_MESH_ID(0x4100000A);
 
 	struct Limb
 	{
@@ -34,15 +40,31 @@ namespace
 		return loader.GetRendererId(id);
 	}
 
+	ID_SYS_MESH ReflectMesh(ID_MESH srcId, ID_MESH id, IMeshLoader& loader)
+	{
+		if (loader.GetRendererId(id) == ID_SYS_MESH::Invalid())
+		{
+			loader.CreateReflection(srcId, id);
+		}
+
+		return loader.GetRendererId(id);
+	}
+
 	typedef std::array<Limb, LimbIndex_Count> Bones;
 
 	struct LimbMeshes
 	{
 		ID_SYS_MESH id_head;
-		ID_SYS_MESH id_arm;
+		ID_SYS_MESH id_l_upper_arm;
+		ID_SYS_MESH id_r_upper_arm;
 		ID_SYS_MESH id_torso;
-		ID_SYS_MESH id_leg;
+		ID_SYS_MESH id_upper_leg;
 		ID_SYS_MESH id_foot;
+		ID_SYS_MESH id_l_lower_arm;
+		ID_SYS_MESH id_r_lower_arm;
+		ID_SYS_MESH id_lower_leg;
+		ID_SYS_MESH id_l_hand;
+		ID_SYS_MESH id_r_hand;
 	};
 
 	void SetLimbMeshes(Bones& bones, const LimbMeshes& meshes)
@@ -50,26 +72,44 @@ namespace
 		bones[LimbIndex_Head].bodyMeshId = meshes.id_head;
 		bones[LimbIndex_Head].parentLimbIndex = LimbIndex_Torso;
 
-		bones[LimbIndex_LeftArm].bodyMeshId = meshes.id_arm;
-		bones[LimbIndex_LeftArm].parentLimbIndex = LimbIndex_Torso;
+		bones[LimbIndex_LeftUpperArm].bodyMeshId = meshes.id_l_upper_arm;
+		bones[LimbIndex_LeftUpperArm].parentLimbIndex = LimbIndex_Torso;
 
-		bones[LimbIndex_RightArm].bodyMeshId = meshes.id_arm;
-		bones[LimbIndex_RightArm].parentLimbIndex = LimbIndex_Torso;
+		bones[LimbIndex_RightUpperArm].bodyMeshId = meshes.id_r_upper_arm;
+		bones[LimbIndex_RightUpperArm].parentLimbIndex = LimbIndex_Torso;
 
 		bones[LimbIndex_Torso].bodyMeshId = meshes.id_torso;
 		bones[LimbIndex_Torso].parentLimbIndex = LimbIndex_Torso;
 
-		bones[LimbIndex_LeftLeg].bodyMeshId = meshes.id_leg;
-		bones[LimbIndex_LeftLeg].parentLimbIndex = LimbIndex_Torso;
+		bones[LimbIndex_LeftUpperLeg].bodyMeshId = meshes.id_upper_leg;
+		bones[LimbIndex_LeftUpperLeg].parentLimbIndex = LimbIndex_Torso;
 
-		bones[LimbIndex_RightLeg].bodyMeshId = meshes.id_leg;
-		bones[LimbIndex_RightLeg].parentLimbIndex = LimbIndex_Torso;
+		bones[LimbIndex_RightUpperLeg].bodyMeshId = meshes.id_upper_leg;
+		bones[LimbIndex_RightUpperLeg].parentLimbIndex = LimbIndex_Torso;
 
 		bones[LimbIndex_LeftFoot].bodyMeshId = meshes.id_foot;
-		bones[LimbIndex_LeftFoot].parentLimbIndex = LimbIndex_LeftLeg;
+		bones[LimbIndex_LeftFoot].parentLimbIndex = LimbIndex_LeftLowerLeg;
 
 		bones[LimbIndex_RightFoot].bodyMeshId = meshes.id_foot;
-		bones[LimbIndex_RightFoot].parentLimbIndex = LimbIndex_RightLeg;
+		bones[LimbIndex_RightFoot].parentLimbIndex = LimbIndex_RightLowerLeg;
+
+		bones[LimbIndex_LeftLowerLeg].bodyMeshId = meshes.id_lower_leg;
+		bones[LimbIndex_LeftLowerLeg].parentLimbIndex = LimbIndex_LeftUpperLeg;
+
+		bones[LimbIndex_RightLowerLeg].bodyMeshId = meshes.id_lower_leg;
+		bones[LimbIndex_RightLowerLeg].parentLimbIndex = LimbIndex_RightUpperLeg;
+
+		bones[LimbIndex_LeftHand].bodyMeshId = meshes.id_l_hand;
+		bones[LimbIndex_LeftHand].parentLimbIndex = LimbIndex_LeftLowerArm;
+
+		bones[LimbIndex_RightHand].bodyMeshId = meshes.id_r_hand;
+		bones[LimbIndex_RightHand].parentLimbIndex = LimbIndex_RightLowerArm;
+
+		bones[LimbIndex_LeftLowerArm].bodyMeshId = meshes.id_l_lower_arm;
+		bones[LimbIndex_LeftLowerArm].parentLimbIndex = LimbIndex_LeftUpperArm;
+
+		bones[LimbIndex_RightLowerArm].bodyMeshId = meshes.id_r_lower_arm;
+		bones[LimbIndex_RightLowerArm].parentLimbIndex = LimbIndex_RightUpperArm;
 	}
 
 	BoneOrientation Morph(const BoneOrientation& boneA, const BoneOrientation& boneB, float t)
@@ -210,13 +250,19 @@ namespace
 		Skeleton(Environment& _e) : e(_e)
 		{
 			limbMeshes.id_head = BindMesh(L"!mesh/body.head.sxy", BODY_HEAD_MESH_ID, e.meshes);
-			limbMeshes.id_arm = BindMesh(L"!mesh/body.arm.sxy", BODY_ARM_MESH_ID, e.meshes);
+			limbMeshes.id_l_lower_arm = BindMesh(L"!mesh/body.lower.arm.sxy", BODY_L_LOWER_ARM_MESH_ID, e.meshes);
+			limbMeshes.id_r_lower_arm = ReflectMesh(BODY_L_LOWER_ARM_MESH_ID, BODY_R_LOWER_ARM_MESH_ID, e.meshes);
 			limbMeshes.id_torso = BindMesh(L"!mesh/body.torso.sxy", BODY_TORSO_MESH_ID, e.meshes);
-			limbMeshes.id_leg = BindMesh(L"!mesh/body.leg.sxy", BODY_LEG_MESH_ID, e.meshes);
+			limbMeshes.id_lower_leg = BindMesh(L"!mesh/body.lower.leg.sxy", BODY_LOWER_LEG_MESH_ID, e.meshes);
 			limbMeshes.id_foot = BindMesh(L"!mesh/body.foot.sxy", BODY_FOOT_MESH_ID, e.meshes);
+			limbMeshes.id_l_upper_arm = BindMesh(L"!mesh/body.upper.arm.sxy", BODY_L_UPPER_ARM_MESH_ID, e.meshes);
+			limbMeshes.id_r_upper_arm = ReflectMesh(BODY_L_UPPER_ARM_MESH_ID, BODY_R_UPPER_ARM_MESH_ID, e.meshes);
+			limbMeshes.id_upper_leg = BindMesh(L"!mesh/body.upper.leg.sxy", BODY_UPPER_LEG_MESH_ID, e.meshes);
+			limbMeshes.id_l_hand = BindMesh(L"!mesh/body.hand.sxy", BODY_L_HAND_MESH_ID, e.meshes);
+			limbMeshes.id_r_hand = ReflectMesh(BODY_L_HAND_MESH_ID, BODY_R_HAND_MESH_ID, e.meshes);
 
 			SetLimbMeshes(currentFrame, limbMeshes);
-			SetCurrentAnimation(AnimationType_Running);
+			SetCurrentAnimation(AnimationType_Standstill);
 
 			morphTargetKeyframeId = currentKeyframeId = e.boneLibrary.GetAnimationSequenceById(animationId).firstFrame->id;
 		}
@@ -232,17 +278,13 @@ namespace
 
 			for (int i = 0; i < currentFrame.size(); ++i)
 			{
-				Matrix4x4 transform = Matrix4x4::Identity();
+				Matrix4x4 transform = currentFrame[i].bodyToLimb;
 					
-				int k = i;
-				int child_k;
-				do
+				int child_of_k = i;
+				for (int k = currentFrame[i].parentLimbIndex; k != child_of_k; child_of_k = k, k = currentFrame[k].parentLimbIndex)
 				{
-					transform =  transform * currentFrame[k].bodyToLimb;
-
-					child_k = k;
-					k = currentFrame[k].parentLimbIndex;
-				} while (child_k != k);
+					Multiply(/* OUTPUT  */ transform, currentFrame[k].bodyToLimb, transform);
+				}
 
 				ObjectInstance limbInstance{ instance.orientation * transform, instance.highlightColour };
 				rc.Draw(currentFrame[i].bodyMeshId, &limbInstance, 1);

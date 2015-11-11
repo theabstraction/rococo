@@ -65,14 +65,20 @@ namespace Dystopia {
 	enum LimbIndex: int32
 	{
 		LimbIndex_Head = 0, 	// 0x0
-		LimbIndex_LeftArm = 1, 	// 0x1
-		LimbIndex_RightArm = 2, 	// 0x2
+		LimbIndex_LeftUpperArm = 1, 	// 0x1
+		LimbIndex_RightUpperArm = 2, 	// 0x2
 		LimbIndex_Torso = 3, 	// 0x3
-		LimbIndex_LeftLeg = 4, 	// 0x4
-		LimbIndex_RightLeg = 5, 	// 0x5
+		LimbIndex_LeftUpperLeg = 4, 	// 0x4
+		LimbIndex_RightUpperLeg = 5, 	// 0x5
 		LimbIndex_LeftFoot = 6, 	// 0x6
 		LimbIndex_RightFoot = 7, 	// 0x7
-		LimbIndex_Count = 8, 	// 0x8
+		LimbIndex_LeftLowerArm = 8, 	// 0x8
+		LimbIndex_RightLowerArm = 9, 	// 0x9
+		LimbIndex_LeftLowerLeg = 10, 	// 0xa
+		LimbIndex_RightLowerLeg = 11, 	// 0xb
+		LimbIndex_LeftHand = 12, 	// 0xc
+		LimbIndex_RightHand = 13, 	// 0xd
+		LimbIndex_Count = 14, 	// 0xe
 	};
 	bool TryParse(const fstring& s, LimbIndex& value);
 	bool TryShortParse(const fstring& s, LimbIndex& value); 

@@ -239,12 +239,12 @@ namespace
 					if (map.vector.y > 0)
 					{
 						globalScale += 0.5f;
-						globalScale = min(globalScale, 10.0f);
+						globalScale = min(globalScale, 20.0f);
 					}
 					else if (map.vector.y < 0)
 					{
 						globalScale -= 0.5f;
-						globalScale = max(globalScale, 3.5f);
+						globalScale = max(globalScale, 1.5f);
 					}
 				}break;
 			case ActionMapTypeRotate:
@@ -258,6 +258,7 @@ namespace
 				{
 					SelectItemOnGround sitog{ e.level.SelectedId() };
 					e.postbox.PostForLater(sitog, false);
+					break;
 				}
 			default:
 				intent.OnEvent(map);
@@ -285,7 +286,7 @@ namespace
 
 			Matrix4x4 rotZ = Matrix4x4::RotateRHAnticlockwiseZ(-viewTheta.ToRadians());
 			Matrix4x4 translate = Matrix4x4::Translate(pos);
-			Matrix4x4 transform = translate * rotZ;
+			Matrix4x4 transform = translate; // TODO - enable when skeletal animation done *rotZ;
 			e.level.SetTransform(e.level.GetPlayerId(), transform);
 			return Relay_None;
 		}
