@@ -226,8 +226,6 @@ namespace
 			delete this;
 		}
 
-		std::vector<int> transformList;
-
 		virtual void Render(IRenderContext& rc, const ObjectInstance& instance, Seconds gameTime)
 		{
 			UpdateCurrentFrame(gameTime);
@@ -235,21 +233,16 @@ namespace
 			for (int i = 0; i < currentFrame.size(); ++i)
 			{
 				Matrix4x4 transform = Matrix4x4::Identity();
-				transformList.clear();
 					
 				int k = i;
+				int child_k;
 				do
 				{
-					transformList.push_back(k);
-					int old_k = k;
-					k = currentFrame[k].parentLimbIndex;
-					if (old_k == k) break;
-				} while (true);
+					transform =  transform * currentFrame[k].bodyToLimb;
 
-				for (auto j = transformList.begin(); j != transformList.end(); j++)
-				{
-					transform = transform * currentFrame[*j].bodyToLimb;
-				}
+					child_k = k;
+					k = currentFrame[k].parentLimbIndex;
+				} while (child_k != k);
 
 				ObjectInstance limbInstance{ instance.orientation * transform, instance.highlightColour };
 				rc.Draw(currentFrame[i].bodyMeshId, &limbInstance, 1);
