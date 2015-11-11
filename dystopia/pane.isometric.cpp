@@ -286,7 +286,7 @@ namespace
 
 			Matrix4x4 rotZ = Matrix4x4::RotateRHAnticlockwiseZ(-viewTheta.ToRadians());
 			Matrix4x4 translate = Matrix4x4::Translate(pos);
-			Matrix4x4 transform = translate; // TODO - enable when skeletal animation done *rotZ;
+			Matrix4x4 transform = translate*rotZ;
 			e.level.SetTransform(e.level.GetPlayerId(), transform);
 			return Relay_None;
 		}

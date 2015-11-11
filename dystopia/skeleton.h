@@ -19,7 +19,7 @@ namespace Dystopia
 		virtual void SetCurrentAnimation(AnimationType type) = 0;
 	};
 
-	ROCOCOAPI ISkeletonSupervisor
+	ROCOCOAPI ISkeletonSupervisor: public ISkeleton
 	{
 		virtual void Free() = 0;
 		virtual void Render(IRenderContext& rc, const ObjectInstance& instance, Seconds gameTime) = 0;

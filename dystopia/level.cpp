@@ -775,12 +775,24 @@ namespace
 			{
 				return;
 			}
-
+			
+			auto skel = skeletons.find(id);
+			if (skel == skeletons.end())
+			{
+				return;
+			}
+			
 			auto j = solids.find(id);
 			if (j != solids.end())
 			{
 				Vec3 direction;
-				if (!TryNormalize(i->second->ai->Velocity(), direction)) return;
+				if (!TryNormalize(i->second->ai->Velocity(), direction))
+				{
+					skel->second->SetCurrentAnimation(AnimationType_Standstill);
+					return;
+				}
+
+				skel->second->SetCurrentAnimation(AnimationType_Running);
 
 				float speed = Length(i->second->ai->Velocity());// TODO - refactor AI velocity to incorporate the changes below
 

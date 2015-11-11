@@ -128,7 +128,7 @@ namespace
 
 			virtual void OnBone(const BoneOrientation& bone, int32 index)
 			{
-				if (index > bones.size())
+				if (index >= bones.size())
 				{
 					Throw(0, L"Bad bone index in morph call.");
 				}
@@ -233,7 +233,7 @@ namespace
 						Throw(0, L"Bad expire time for animation %u", animationId.value);
 					}
 
-					animationStart.value += lastFrame->actualisationTime;
+					animationStart.value = gameTime;
 				}
 				else
 				{
@@ -242,7 +242,7 @@ namespace
 			}
 
 			float duration = nextActualisationTime - currentActualisationTime;
-			float interpolationValue = (gameTime - animationStart) / duration;
+			float interpolationValue = (gameTime - currentActualisationTime) / duration;
 
 			Morph(e.boneLibrary, currentKeyframeId, morphTargetKeyframeId, interpolationValue, currentFrame);
 		}
@@ -262,7 +262,7 @@ namespace
 			limbMeshes.id_r_hand = ReflectMesh(BODY_L_HAND_MESH_ID, BODY_R_HAND_MESH_ID, e.meshes);
 
 			SetLimbMeshes(currentFrame, limbMeshes);
-			SetCurrentAnimation(AnimationType_Standstill);
+			SetCurrentAnimation(AnimationType_Running);
 
 			morphTargetKeyframeId = currentKeyframeId = e.boneLibrary.GetAnimationSequenceById(animationId).firstFrame->id;
 		}
@@ -308,14 +308,18 @@ namespace
 			}
 
 			const auto& seq = e.boneLibrary.GetAnimationSequenceByName(name);
-			animationId = seq.id;
+			ID_ANIMATION nextId = seq.id;
 
-			if (animationId == animationId.Invalid())
+			if (nextId == animationId.Invalid())
 			{
 				Throw(0, L"Could not find animation '%s' in the bone library", name);
 			}
 
-			this->animationStart = 0.00_seconds;
+			if (animationId != nextId)
+			{
+				animationId = nextId;
+				this->animationStart = 0.00_seconds;
+			}
 		}
 	};
 }
