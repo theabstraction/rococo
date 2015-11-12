@@ -1,15 +1,15 @@
+#include "dystopia.h"
+
 #define WIN32_LEAN_AND_MEAN 
 #define NOMINMAX
-
 #include <windows.h>
-
-#include "dystopia.h"
 
 #include "resource.h"
 
 #include <rococo.renderer.h>
 #include <rococo.dx11.renderer.win32.h>
 #include <rococo.window.h>
+#include "rococo.strings.h"
 
 #include <vector>
 #include <algorithm>

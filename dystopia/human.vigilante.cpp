@@ -1,4 +1,5 @@
 #include "dystopia.h"
+#include "rococo.strings.h"
 #include "human.types.h"
 #include "rococo.maths.h"
 #include "dystopia.post.h"

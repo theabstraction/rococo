@@ -7,7 +7,8 @@
 #define NOMINMAX
 #include <Windows.h>
 
-#include <Rococo.types.h>
+#include <rococo.api.h>
 #include <Rococo.window.h>
+#include <rococo.strings.h>
 
 #endif

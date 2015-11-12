@@ -5,7 +5,8 @@
 #undef min
 #undef max
 
-#include <rococo.types.h>
+#include <rococo.api.h>
+#include <rococo.strings.h>
 #include <rococo.window.h>
 #include <rococo.maths.h>
 #include <rococo.visitors.h>

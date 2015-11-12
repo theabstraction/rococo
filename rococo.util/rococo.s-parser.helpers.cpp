@@ -6,6 +6,7 @@
 #include <sexy.debug.types.h>
 #include <sexy.script.h>
 
+#include <rococo.api.h>
 #include <rococo.io.h>
 #include <rococo.visitors.h>
 
@@ -18,6 +19,7 @@
 #include <windows.h>
 
 #include <rococo.maths.h>
+#include <rococo.strings.h>
 
 namespace Rococo
 {

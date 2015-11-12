@@ -101,13 +101,13 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\include\;..\sexy\common\</AdditionalIncludeDirectories>
+      <PrecompiledHeaderFile>dystopia.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -151,14 +151,14 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\include\;..\sexy\common\</AdditionalIncludeDirectories>
+      <PrecompiledHeaderFile>dystopia.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -204,6 +204,10 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="meshes.cpp" />
     <ClCompile Include="pane.dialog.box.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="player.verbs.cpp" />
     <ClCompile Include="script.natives.cpp" />
     <ClCompile Include="scripts.cpp" />
@@ -214,11 +218,13 @@
     <ResourceCompile Include="dx11.renderer.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\rococo.api.h" />
     <ClInclude Include="..\include\rococo.io.h" />
     <ClInclude Include="..\include\rococo.keys.h" />
     <ClInclude Include="..\include\rococo.maths.h" />
     <ClInclude Include="..\include\rococo.post.h" />
     <ClInclude Include="..\include\rococo.renderer.h" />
+    <ClInclude Include="..\include\rococo.strings.h" />
     <ClInclude Include="..\include\rococo.types.h" />
     <ClInclude Include="..\include\rococo.ui.h" />
     <ClInclude Include="dystopia.constants.h" />

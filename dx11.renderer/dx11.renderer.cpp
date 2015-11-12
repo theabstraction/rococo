@@ -2,7 +2,6 @@
 #include <rococo.renderer.h>
 
 #include <stdarg.h>
-#include <wchar.h>
 #include <malloc.h>
 
 #ifdef _DEBUG

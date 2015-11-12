@@ -71,6 +71,29 @@ namespace Sexy
 {
 	using namespace Rococo;
 
+	enum CALLBACK_CONTROL
+	{
+		CALLBACK_CONTROL_CONTINUE,
+		CALLBACK_CONTROL_BREAK
+	};
+
+	struct NULL_CONTEXT {};
+
+	template<class T, class CONTEXT = NULL_CONTEXT> struct ICallback
+	{
+		virtual CALLBACK_CONTROL operator()(T& value, CONTEXT context) = 0;
+	};
+
+	template<class T> struct ICallback<T, NULL_CONTEXT>
+	{
+		virtual CALLBACK_CONTROL operator()(T& value) = 0;
+	};
+
+	template<> struct ICallback<const wchar_t*, NULL_CONTEXT>
+	{
+		virtual CALLBACK_CONTROL operator()(const wchar_t* value) = 0;
+	};
+
 	namespace Sex
 	{
 		class ParseException;

@@ -1,6 +1,7 @@
-#include <rococo.types.h>
+#include <rococo.api.h>
 #include <rococo.fonts.h>
 #include <rococo.maths.h>
+#include <rococo.strings.h>
 
 #include <string.h>
 #include <stdlib.h>

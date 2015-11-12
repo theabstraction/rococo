@@ -1,9 +1,9 @@
-#include <rococo.types.h>
-#include <wchar.h>
+#include <rococo.api.h>
 #include <stdarg.h>
 #include <malloc.h>
 #include <vector>
 #include <rococo.io.h>
+#include <rococo.strings.h>
 
 namespace
 {

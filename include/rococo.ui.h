@@ -52,11 +52,6 @@ namespace Rococo
 	};
 
 	struct SourceFileSet;
-
-	struct NO_VTABLE IScriptExecutionTarget
-	{
-		virtual void ExecuteAppScript(const wchar_t* sourceName, ICallback<Sexy::Script::IPublicScriptSystem>* onPostCompile) = 0;
-	};
 }
 
 #endif // BLOKE_UI_H

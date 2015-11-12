@@ -260,7 +260,7 @@ namespace Sexy { namespace Compiler { namespace Impl
 		{
 			for (auto i = declarations.begin(); i != declarations.end(); ++i)
 			{
-				if (onArchetype(**i) == Rococo::CALLBACK_CONTROL_BREAK) break;
+				if (onArchetype(**i) == CALLBACK_CONTROL_BREAK) break;
 			}
 		}
 	};

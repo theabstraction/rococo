@@ -113,7 +113,7 @@ namespace Sexy { namespace Compiler { namespace Impl
 	{
 		for (auto& i : factories)
 		{
-			if (onFactory(*i.second, i.first.c_str()) == Rococo::CALLBACK_CONTROL_BREAK) break;
+			if (onFactory(*i.second, i.first.c_str()) == CALLBACK_CONTROL_BREAK) break;
 		}
 	}
 
@@ -122,7 +122,7 @@ namespace Sexy { namespace Compiler { namespace Impl
 		for(int i = 0; i < structures.StructCount(); ++i)
 		{
 			auto& alias = structures.GetStruct(i);
-			if (onStructure(alias.GetStructure(), alias.GetPublicName()) == Rococo::CALLBACK_CONTROL_BREAK) break;
+			if (onStructure(alias.GetStructure(), alias.GetPublicName()) == CALLBACK_CONTROL_BREAK) break;
 		}
 	}
 
@@ -131,7 +131,7 @@ namespace Sexy { namespace Compiler { namespace Impl
 		for (int i = 0; i < functions.FunctionCount(); ++i)
 		{
 			auto& alias = functions[i];
-			if (onFunction(alias.GetFunction(), alias.GetPublicName()) == Rococo::CALLBACK_CONTROL_BREAK) break;
+			if (onFunction(alias.GetFunction(), alias.GetPublicName()) == CALLBACK_CONTROL_BREAK) break;
 		}
 	}
 

@@ -1,3 +1,7 @@
+C:\work\rococo\sexy\bin\x64Release\SexyDotNet.exe.config
+C:\work\rococo\sexy\bin\x64Release\SexyDotNet.exe
+C:\work\rococo\sexy\bin\x64Release\SexyDotNet.pdb
+C:\work\rococo\sexy\sexydotnet\obj\x64\Release\sexydotnet.csprojResolveAssemblyReference.cache
 C:\work\rococo\sexy\sexydotnet\obj\x64\Release\AssemblerView.baml
 C:\work\rococo\sexy\sexydotnet\obj\x64\Release\CompileWindow.baml
 C:\work\rococo\sexy\sexydotnet\obj\x64\Release\ExceptionWindow.baml
@@ -13,10 +17,6 @@ C:\work\rococo\sexy\sexydotnet\obj\x64\Release\App.g.cs
 C:\work\rococo\sexy\sexydotnet\obj\x64\Release\GeneratedInternalTypeHelper.g.cs
 C:\work\rococo\sexy\sexydotnet\obj\x64\Release\SexyDotNet_MarkupCompile.cache
 C:\work\rococo\sexy\sexydotnet\obj\x64\Release\SexyDotNet_MarkupCompile.lref
-C:\work\rococo\sexy\sexydotnet\obj\x64\Release\sexydotnet.csprojResolveAssemblyReference.cache
-C:\work\rococo\sexy\bin\x64Release\SexyDotNet.exe.config
-C:\work\rococo\sexy\bin\x64Release\SexyDotNet.exe
-C:\work\rococo\sexy\bin\x64Release\SexyDotNet.pdb
 C:\work\rococo\sexy\sexydotnet\obj\x64\Release\MainWindow.baml
 C:\work\rococo\sexy\sexydotnet\obj\x64\Release\SexyDotNet.g.resources
 C:\work\rococo\sexy\sexydotnet\obj\x64\Release\SexyDotNet.Properties.Resources.resources

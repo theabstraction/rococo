@@ -38,6 +38,8 @@
 # error include "sexy.types.h" before including this file
 #endif
 
+#include <rococo.strings.h>
+
 namespace Sexy
 {
 	bool operator == (const sexstring_key& a, const sexstring_key& b);

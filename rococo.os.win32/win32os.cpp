@@ -3,7 +3,8 @@
 
 #include <windows.h>
 
-#include <rococo.types.h>
+#include <rococo.api.h>
+#include <rococo.strings.h>
 
 #include <wchar.h>
 #include <stdlib.h>
