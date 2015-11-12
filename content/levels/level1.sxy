@@ -23,50 +23,29 @@
 	
 	(Dystopia.Levels.ILevel level (Dystopia.Levels.GetLevel))
 	(level.Clear)
-		
-	(Matrix4x4 playerLoc =
-		( 1 0 0    0)
-		( 0 1 0    0)
-		( 0 0 1    0)
-		( 0 0 0    1)
-	)
 	
-	(Int64 playerId = (level.AddAlly playerLoc 3))
-	(level.SetPlayerId playerId)
+	(
+		(Vec3 position = 0 0 0)
+		(Int64 playerId = (level.AddAlly position 3))
+		(level.SetPlayerId playerId)
+	)
 	
 	(level.GenerateCity "Stafford")
 	
-		(Matrix4x4 mrSmithLoc =
-		( 1 0 0     0.0 )
-		( 0 1 0     5.0 )
-		( 0 0 1     0.2 )
-		( 0 0 0     1.0 )
+	(
+		(Vec3 position = 0.0 5.0 0.2)
+		(level.AddEnemy position 3)
 	)
-	(level.AddEnemy mrSmithLoc 3)
 	
-	(Matrix4x4 mrSmithLoc2 =
-		( 1 0 0     1.0 )
-		( 0 1 0     2.0 )
-		( 0 0 1     0.2 )
-		( 0 0 0     1.0 )
+	(
+		(Vec3 position = 0.0 7.0 0.2)
+		(level.AddEnemy position 3)
 	)
-	(level.AddEnemy mrSmithLoc2 3)
 	
-	(Matrix4x4 mrSmithLoc3 =
-		( 1 0 0     0.0 )
-		( 0 1 0     2.0 )
-		( 0 0 1     0.2 )
-		( 0 0 0     1.0 )
+	(
+		(Vec3 position = 0.3 5.0 0.2)
+		(level.AddEnemy position 3)
 	)
-	(level.AddEnemy mrSmithLoc3 3)
-	
-	(Matrix4x4 mrSmithLoc4 =
-		( 1 0 0     1.0 )
-		( 0 1 0     3.0 )
-		( 0 0 1     0.2 )
-		( 0 0 0     1.0 )
-	)
-	(level.AddEnemy mrSmithLoc4 3)
 			
 	(exitCode = 0)
 )

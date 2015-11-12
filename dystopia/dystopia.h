@@ -113,8 +113,9 @@ namespace Dystopia
 		virtual cr_vec3 GetPosition(ID_ENTITY id) const = 0;
 		virtual bool TryGetTransform(ID_ENTITY id, Matrix4x4& transform);
 		virtual void SetPosition(ID_ENTITY id, cr_vec3 pos) = 0;
-		virtual void SetHeading(ID_ENTITY id, Degrees theta) = 0;
-		virtual void SetElevation(ID_ENTITY id, Degrees phi) = 0;
+		virtual void SetVelocity(ID_ENTITY id, cr_vec3 v) = 0;
+		virtual void SetHeading(ID_ENTITY id, Radians theta) = 0;
+		virtual void SetElevation(ID_ENTITY id, Radians phi) = 0;
 		virtual void SetScale(ID_ENTITY, cr_vec3 scale) = 0;
 		virtual void SetGroundCursorPosition(cr_vec3 groundZero) = 0;
 		virtual ID_ENTITY SelectedId() = 0;

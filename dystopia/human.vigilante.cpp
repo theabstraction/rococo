@@ -12,7 +12,6 @@ namespace
 	class HumanVigilante : public IHumanAISupervisor
 	{
 		ID_ENTITY id;
-		Vec3 velocity;
 		IIntent& intent;
 		ILevel& level;
 		Post::IPostbox& postbox;
@@ -39,9 +38,18 @@ namespace
 		{
 			Vec3 pos = level.GetPosition(id);
 
-			float speed = 4.0f;
+			float speed = 4.0_mps;
 			Vec2 impulse = intent.GetImpulse();
-			velocity = speed * Vec3{ impulse.x, impulse.y, 0 };
+
+			if (impulse.y < 0) speed *= 0.5f;
+			Vec4 localVelocity = Vec4{ 0.25f * speed * impulse.x, speed * impulse.y, 0, 0 };
+
+			Matrix4x4 transform;
+			level.TryGetTransform(level.GetPlayerId(), transform);
+
+			Vec3 worldVel = transform * localVelocity;
+
+			level.SetVelocity(id, worldVel);
 
 			if (gameTime > lastFireTime + 0.25f)
 			{
@@ -115,7 +123,7 @@ namespace
 		}
 	public:
 		HumanVigilante(ID_ENTITY _id, IIntent& _intent, ILevel& _level, Post::IPostbox& _postbox) :
-			id(_id), velocity{ 0, 0, 0 }, intent(_intent), level(_level), lastFireTime(0), postbox(_postbox)
+			id(_id), intent(_intent), level(_level), lastFireTime(0), postbox(_postbox)
 		{
 			for (int i = 0; i < StatIndex_Count; ++i)
 			{
@@ -141,15 +149,6 @@ namespace
 			{
 				UpdateViaIntent(gameTime, dt);
 			}
-			else
-			{
-				velocity = Vec3{ 0,0,0 };
-			}
-		}
-
-		virtual cr_vec3 Velocity() const
-		{
-			return velocity;
 		}
 	};
 }

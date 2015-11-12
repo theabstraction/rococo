@@ -144,7 +144,6 @@ namespace Dystopia
 		virtual void Describe(IStringBuilder& sb, Language = Language_English) = 0;
 		virtual bool IsAlive() const = 0;
 		virtual void OnHit(ID_ENTITY attackerId) = 0;
-		virtual cr_vec3 Velocity() const = 0;
 		virtual Stat GetStat(StatIndex index) const = 0;
 	};
 

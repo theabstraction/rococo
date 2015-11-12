@@ -97,10 +97,16 @@ namespace Rococo
 		return PI() / 180.0f;
 	}
 
+	inline constexpr float RADIANS_TO_DEGREES_QUOTIENT()
+	{
+		return 180.0f / PI();
+	}
+
 	struct Radians
 	{
 		float quantity;
 		operator float() const { return quantity; }
+		operator Degrees () const; 
 	};
 
 	inline Radians operator - (Radians r)
@@ -116,6 +122,8 @@ namespace Rococo
 		operator Radians () const { return Radians{ DEGREES_TO_RADIANS_QUOTIENT() * quantity }; }
 		Radians ToRadians() const { return Radians{ DEGREES_TO_RADIANS_QUOTIENT() * quantity }; }
 	};
+
+	inline Radians::operator Degrees () const { return Degrees{ quantity * RADIANS_TO_DEGREES_QUOTIENT() }; }
 
 	inline Degrees operator "" _degrees(long double literalValue)
 	{

@@ -63,16 +63,16 @@ namespace
 		_offset += sizeof(editorId);
 
 		ReadInput(editorId, _sf, -_offset);
-		Matrix4x4* transform;
-		_offset += sizeof(transform);
+		Vec3* pos;
+		_offset += sizeof(pos);
 
-		ReadInput(transform, _sf, -_offset);
+		ReadInput(pos, _sf, -_offset);
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		ID_ENTITY entityId;
-		entityId = _pObject->AddEnemy(*transform, editorId);
+		entityId = _pObject->AddEnemy(*pos, editorId);
 		_offset += sizeof(entityId);
 		WriteOutput(entityId, _sf, -_offset);
 	}
@@ -84,16 +84,16 @@ namespace
 		_offset += sizeof(editorId);
 
 		ReadInput(editorId, _sf, -_offset);
-		Matrix4x4* transform;
-		_offset += sizeof(transform);
+		Vec3* pos;
+		_offset += sizeof(pos);
 
-		ReadInput(transform, _sf, -_offset);
+		ReadInput(pos, _sf, -_offset);
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		ID_ENTITY entityId;
-		entityId = _pObject->AddAlly(*transform, editorId);
+		entityId = _pObject->AddAlly(*pos, editorId);
 		_offset += sizeof(entityId);
 		WriteOutput(entityId, _sf, -_offset);
 	}
@@ -133,16 +133,16 @@ namespace
 		_offset += sizeof(editorId);
 
 		ReadInput(editorId, _sf, -_offset);
-		Matrix4x4* transform;
-		_offset += sizeof(transform);
+		Vec3* pos;
+		_offset += sizeof(pos);
 
-		ReadInput(transform, _sf, -_offset);
+		ReadInput(pos, _sf, -_offset);
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		ID_ENTITY entityId;
-		entityId = _pObject->AddAmmunition(*transform, editorId, name, imageFile, ammoType, massPerBullet, massPerClip, count);
+		entityId = _pObject->AddAmmunition(*pos, editorId, name, imageFile, ammoType, massPerBullet, massPerClip, count);
 		_offset += sizeof(entityId);
 		WriteOutput(entityId, _sf, -_offset);
 	}
@@ -182,16 +182,16 @@ namespace
 		_offset += sizeof(editorId);
 
 		ReadInput(editorId, _sf, -_offset);
-		Matrix4x4* transform;
-		_offset += sizeof(transform);
+		Vec3* pos;
+		_offset += sizeof(pos);
 
-		ReadInput(transform, _sf, -_offset);
+		ReadInput(pos, _sf, -_offset);
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		ID_ENTITY entityId;
-		entityId = _pObject->AddRangedWeapon(*transform, editorId, name, imageFile, muzzleVelocity, flightTime, ammoType, massKg);
+		entityId = _pObject->AddRangedWeapon(*pos, editorId, name, imageFile, muzzleVelocity, flightTime, ammoType, massKg);
 		_offset += sizeof(entityId);
 		WriteOutput(entityId, _sf, -_offset);
 	}
@@ -227,16 +227,16 @@ namespace
 		_offset += sizeof(editorId);
 
 		ReadInput(editorId, _sf, -_offset);
-		Matrix4x4* transform;
-		_offset += sizeof(transform);
+		Vec3* pos;
+		_offset += sizeof(pos);
 
-		ReadInput(transform, _sf, -_offset);
+		ReadInput(pos, _sf, -_offset);
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		ID_ENTITY entityId;
-		entityId = _pObject->AddArmour(*transform, editorId, name, imageFile, bulletProt, dollSlot, massKg);
+		entityId = _pObject->AddArmour(*pos, editorId, name, imageFile, bulletProt, dollSlot, massKg);
 		_offset += sizeof(entityId);
 		WriteOutput(entityId, _sf, -_offset);
 	}
@@ -252,18 +252,108 @@ namespace
 		_offset += sizeof(editorId);
 
 		ReadInput(editorId, _sf, -_offset);
-		Matrix4x4* transform;
-		_offset += sizeof(transform);
+		Vec3* pos;
+		_offset += sizeof(pos);
 
-		ReadInput(transform, _sf, -_offset);
+		ReadInput(pos, _sf, -_offset);
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		ID_ENTITY entityId;
-		entityId = _pObject->AddSolid(*transform, editorId, flags);
+		entityId = _pObject->AddSolid(*pos, editorId, flags);
 		_offset += sizeof(entityId);
 		WriteOutput(entityId, _sf, -_offset);
+	}
+	void NativeDystopiaILevelBuilderSetPosition(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec3* pos;
+		_offset += sizeof(pos);
+
+		ReadInput(pos, _sf, -_offset);
+		ID_ENTITY entityId;
+		_offset += sizeof(entityId);
+
+		ReadInput(entityId, _sf, -_offset);
+		Dystopia::ILevelBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetPosition(entityId, *pos);
+	}
+	void NativeDystopiaILevelBuilderSetVelocity(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec3* velocity;
+		_offset += sizeof(velocity);
+
+		ReadInput(velocity, _sf, -_offset);
+		ID_ENTITY entityId;
+		_offset += sizeof(entityId);
+
+		ReadInput(entityId, _sf, -_offset);
+		Dystopia::ILevelBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetVelocity(entityId, *velocity);
+	}
+	void NativeDystopiaILevelBuilderSetHeading(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Radians theta;
+		_offset += sizeof(theta);
+
+		ReadInput(theta, _sf, -_offset);
+		ID_ENTITY entityId;
+		_offset += sizeof(entityId);
+
+		ReadInput(entityId, _sf, -_offset);
+		Dystopia::ILevelBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetHeading(entityId, theta);
+	}
+	void NativeDystopiaILevelBuilderSetElevation(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Radians phi;
+		_offset += sizeof(phi);
+
+		ReadInput(phi, _sf, -_offset);
+		ID_ENTITY entityId;
+		_offset += sizeof(entityId);
+
+		ReadInput(entityId, _sf, -_offset);
+		Dystopia::ILevelBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetElevation(entityId, phi);
+	}
+	void NativeDystopiaILevelBuilderSetScale(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec3* scale;
+		_offset += sizeof(scale);
+
+		ReadInput(scale, _sf, -_offset);
+		ID_ENTITY entityId;
+		_offset += sizeof(entityId);
+
+		ReadInput(entityId, _sf, -_offset);
+		Dystopia::ILevelBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetScale(entityId, *scale);
 	}
 	void NativeDystopiaILevelBuilderGenerateCity(NativeCallEnvironment& _nce)
 	{
@@ -324,12 +414,17 @@ namespace Dystopia
 
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.Levels.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForDystopiaLevelsGetLevel, _nceContext, SEXTEXT("GetHandleForILevel0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddEnemy, nullptr, SEXTEXT("ILevelAddEnemy (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId) -> (Int64 entityId)"));
-		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddAlly, nullptr, SEXTEXT("ILevelAddAlly (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId) -> (Int64 entityId)"));
-		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddAmmunition, nullptr, SEXTEXT("ILevelAddAmmunition (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId)(Sys.Type.IString name)(Sys.Type.IString imageFile)(Int32 ammoType)(Float32 massPerBullet)(Float32 massPerClip)(Int32 count) -> (Int64 entityId)"));
-		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddRangedWeapon, nullptr, SEXTEXT("ILevelAddRangedWeapon (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId)(Sys.Type.IString name)(Sys.Type.IString imageFile)(Float32 muzzleVelocity)(Float32 flightTime)(Int32 ammoType)(Float32 massKg) -> (Int64 entityId)"));
-		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddArmour, nullptr, SEXTEXT("ILevelAddArmour (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId)(Sys.Type.IString name)(Sys.Type.IString imageFile)(Int32 bulletProt)(Int32 dollSlot)(Float32 massKg) -> (Int64 entityId)"));
-		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddSolid, nullptr, SEXTEXT("ILevelAddSolid (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Int32 editorId)(Int32 flags) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddEnemy, nullptr, SEXTEXT("ILevelAddEnemy (Pointer hObject)(Sys.Maths.Vec3 pos)(Int32 editorId) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddAlly, nullptr, SEXTEXT("ILevelAddAlly (Pointer hObject)(Sys.Maths.Vec3 pos)(Int32 editorId) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddAmmunition, nullptr, SEXTEXT("ILevelAddAmmunition (Pointer hObject)(Sys.Maths.Vec3 pos)(Int32 editorId)(Sys.Type.IString name)(Sys.Type.IString imageFile)(Int32 ammoType)(Float32 massPerBullet)(Float32 massPerClip)(Int32 count) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddRangedWeapon, nullptr, SEXTEXT("ILevelAddRangedWeapon (Pointer hObject)(Sys.Maths.Vec3 pos)(Int32 editorId)(Sys.Type.IString name)(Sys.Type.IString imageFile)(Float32 muzzleVelocity)(Float32 flightTime)(Int32 ammoType)(Float32 massKg) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddArmour, nullptr, SEXTEXT("ILevelAddArmour (Pointer hObject)(Sys.Maths.Vec3 pos)(Int32 editorId)(Sys.Type.IString name)(Sys.Type.IString imageFile)(Int32 bulletProt)(Int32 dollSlot)(Float32 massKg) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddSolid, nullptr, SEXTEXT("ILevelAddSolid (Pointer hObject)(Sys.Maths.Vec3 pos)(Int32 editorId)(Int32 flags) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetPosition, nullptr, SEXTEXT("ILevelSetPosition (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 pos) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetVelocity, nullptr, SEXTEXT("ILevelSetVelocity (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 velocity) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetHeading, nullptr, SEXTEXT("ILevelSetHeading (Pointer hObject)(Int64 entityId)(Float32 theta) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetElevation, nullptr, SEXTEXT("ILevelSetElevation (Pointer hObject)(Int64 entityId)(Float32 phi) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetScale, nullptr, SEXTEXT("ILevelSetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderGenerateCity, nullptr, SEXTEXT("ILevelGenerateCity (Pointer hObject)(Sys.Type.IString name) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderClear, nullptr, SEXTEXT("ILevelClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetPlayerId, nullptr, SEXTEXT("ILevelSetPlayerId (Pointer hObject)(Int64 playerId) -> "));

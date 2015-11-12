@@ -172,8 +172,8 @@ namespace
 
 		auto id = ID_MESH(bodyIndex);
 		c.e->meshes.BuildMesh(&(c.cache->at(0)), c.cache->size(), id, false);
-		Matrix4x4 loc = Matrix4x4::Translate(Vec3{ midPoint.x, midPoint.y, 0.0f });
-		c.e->level.Builder().AddSolid(loc, id, SolidFlags_None);
+
+		c.e->level.Builder().AddSolid(Vec3{ midPoint.x, midPoint.y, 0.0f }, id, SolidFlags_None);
 	}
 
 	void DivideRoad(Vec2 left, Vec2 right, TRoadVertices& v, Randomizer& rng)
@@ -226,15 +226,13 @@ namespace
 
 			Radians theta{ acosf(Dot(normal, Vec2{ 1.0f, 0.0f })) };
 			
-			auto R = Matrix4x4::RotateRHAnticlockwiseZ(theta);
-
-			auto T = Matrix4x4::Translate({ housePosition.x, housePosition.y, 0.5f });
-			e.level.Builder().AddSolid(T * R, GenerateRandomHouse(e, rng()), SolidFlags_Obstacle);
+			auto id = e.level.Builder().AddSolid({ housePosition.x, housePosition.y, 0.5f }, GenerateRandomHouse(e, rng()), SolidFlags_Obstacle);
+			e.level.SetHeading(id, theta);
 
 			housePosition = v.location - 15.0f * normal;
 
-			T = Matrix4x4::Translate({ housePosition.x, housePosition.y, 0.5f });
-			e.level.Builder().AddSolid(T * R, GenerateRandomHouse(e, rng()), SolidFlags_Obstacle);
+			id = e.level.Builder().AddSolid({ housePosition.x, housePosition.y, 0.5f }, GenerateRandomHouse(e, rng()), SolidFlags_Obstacle);
+			e.level.SetHeading(id, theta);
 		}
 	}
 }

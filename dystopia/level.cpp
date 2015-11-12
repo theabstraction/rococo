@@ -38,8 +38,8 @@ namespace
 		Vec3 scale;
 		// theta gives rotation around z axis, from x to y
 		// phi gives rotation around y axis, giving elevation
-		Degrees theta;			
-		Degrees phi;
+		Radians theta;
+		Radians phi;
 
 		ID_SYS_MESH sysMeshId;
 		ID_MESH meshId;
@@ -63,8 +63,14 @@ namespace
 		ID_SYS_MESH bulletMesh;
 	};
 
+	struct Dynamics
+	{
+		Vec3 velocity;
+	};
+
 	struct Human
 	{
+		Dynamics dynamics;
 		HumanType type;
 		float nextAIcheck;
 		AutoFree<IInventorySupervisor> inventory;
@@ -307,9 +313,9 @@ namespace
 
 		virtual void Free() { delete this; }
 
-		virtual ID_ENTITY AddAmmunition(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, const fstring& imageFile, int32 ammoType, float massPerBullet, float massPerClip, int32 count)
+		virtual ID_ENTITY AddAmmunition(cr_vec3 position, ID_MESH editorId, const fstring& name, const fstring& imageFile, int32 ammoType, float massPerBullet, float massPerClip, int32 count)
 		{
-			auto id = AddSolid(transform, editorId, SolidFlags_None);
+			auto id = AddSolid(position, editorId, SolidFlags_None);
 			auto inv = CreateInventory({ 1,1 }, false, false);
 			ItemData itemData;
 			itemData.name = name;
@@ -320,9 +326,9 @@ namespace
 			return id;
 		}
 
-		virtual ID_ENTITY AddRangedWeapon(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, const fstring& imageName, float muzzleVelocity, float flightTime, int32 ammoType, float mass)
+		virtual ID_ENTITY AddRangedWeapon(cr_vec3 position, ID_MESH editorId, const fstring& name, const fstring& imageName, float muzzleVelocity, float flightTime, int32 ammoType, float mass)
 		{
-			auto id = AddSolid(transform, editorId, SolidFlags_None);
+			auto id = AddSolid(position, editorId, SolidFlags_None);
 			auto inv = CreateInventory({ 1,1 }, false, false);
 			ItemData itemData;
 			itemData.name = name;
@@ -333,7 +339,7 @@ namespace
 			return id;
 		}
 
-		virtual ID_ENTITY AddArmour(const Matrix4x4& transform, ID_MESH editorId, const fstring& name, const fstring& imageFile, int32 bulletProt, int32 dollSlot, float massKg)
+		virtual ID_ENTITY AddArmour(cr_vec3 position, ID_MESH editorId, const fstring& name, const fstring& imageFile, int32 bulletProt, int32 dollSlot, float massKg)
 		{
 			if (dollSlot < 0 || dollSlot >= PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO)
 			{
@@ -345,7 +351,7 @@ namespace
 				Throw(0, L"Could not add armour: %s. bulletProt was -ve", name.buffer, dollSlot, PAPER_DOLL_SLOT_BACKPACK_INDEX_ZERO - 1);
 			}
 
-			auto id = AddSolid(transform, editorId, SolidFlags_None);
+			auto id = AddSolid(position, editorId, SolidFlags_None);
 			auto inv = CreateInventory({ 1,1 }, false, false);
 			ItemData itemData;
 			itemData.name = name;
@@ -378,12 +384,13 @@ namespace
 			abbatoir.push_back(id);
 		}
 
-		virtual ID_ENTITY AddSolid(const Matrix4x4& transform, ID_MESH meshId, int32 flags)
+		virtual ID_ENTITY AddSolid(cr_vec3 position, ID_MESH meshId, int32 flags)
 		{
-			Vec3 pos = transform.GetPosition();
-
 			auto id = GenerateEntityId();
 			ID_SYS_MESH sysId = e.meshes.GetRendererId(meshId);
+
+			Matrix4x4 transform = Matrix4x4::Translate(position);
+
 			solids.insert(id, 
 				/*
 					Matrix4x4 transform;
@@ -405,7 +412,7 @@ namespace
 				*/
 				Solid
 				{ 
-					transform, {0,0,0,0}, pos, {1,1,1}, 0, 0, sysId, meshId, 1.0_metres, ID_BITMAP::Invalid(), (uint32)flags
+					transform, {0,0,0,0}, position, {1,1,1}, 0, 0, sysId, meshId, 1.0_metres, ID_BITMAP::Invalid(), (uint32)flags
 				}
 			);
 
@@ -413,13 +420,14 @@ namespace
 			return id;
 		}
 
-		virtual ID_ENTITY AddAlly(const Matrix4x4& transform, ID_MESH meshId)
+		virtual ID_ENTITY AddAlly(cr_vec3 lateralPosition, ID_MESH meshId)
 		{
-			ID_ENTITY id = AddSolid(transform, meshId, SolidFlags_Skeleton);
+			Vec3 position{ lateralPosition.x, lateralPosition.y, 1.3_metres };
+			ID_ENTITY id = AddSolid(position, meshId, SolidFlags_Skeleton);
 			auto& s = solids.find(id);
 			s->second.boundingRadius = 0.5_metres;
 			auto* inv = CreateInventory({ 4, 10 }, true, true);
-			auto h = new Human { HumanType_Vigilante, 0.0f, inv, hf.CreateHuman(id, HumanType_Vigilante ) };
+			auto h = new Human{ {0,0,0}, HumanType_Vigilante, 0.0f, inv, hf.CreateHuman(id, HumanType_Vigilante) };
 			skeletons.insert(id, CreateSkeleton(e));
 			ItemData data;
 			data.name = L"Bag of stones";
@@ -430,11 +438,12 @@ namespace
 			return id;
 		}
 
-		virtual ID_ENTITY AddEnemy(const Matrix4x4& transform, ID_MESH meshId)
+		virtual ID_ENTITY AddEnemy(cr_vec3 lateralPosition, ID_MESH meshId)
 		{
-			ID_ENTITY id = AddSolid(transform, meshId, SolidFlags_Skeleton);
+			Vec3 position{ lateralPosition.x, lateralPosition.y, 1.3_metres };
+			ID_ENTITY id = AddSolid(position, meshId, SolidFlags_Skeleton);
 			auto* inv = CreateInventory({ 3,4 }, true, true);
-			auto h = new Human{ HumanType_Bobby, 0.0f, inv, hf.CreateHuman(id, HumanType_Bobby) };
+			auto h = new Human{ { 0,0,0 }, HumanType_Bobby, 0.0f, inv, hf.CreateHuman(id, HumanType_Bobby) };
 			ItemData data;
 			data.name = L"Bag of stones";
 			data.bitmapId = e.bitmapCache.Cache(L"!inventory/bagofstones.tif");
@@ -463,11 +472,11 @@ namespace
 			{
 				e.meshes.Load(L"!mesh/stash.sxy"_fstring, stashId);
 			}
-
-			Matrix4x4 stashLoc = Matrix4x4::Translate(location + Vec3{ 0,0,0.1f });
-			Matrix4x4 scale = Matrix4x4::Scale(0.37f, 0.37f, 0.37f);
 			
-			auto id = Builder().AddSolid(stashLoc * scale, stashId, SolidFlags_Selectable);
+			auto id = Builder().AddSolid(location, stashId, SolidFlags_Selectable);
+
+			SetScale(id, Vec3{ 0.37f, 0.37f, 0.37f });
+
 			auto& solid = solids.find(id)->second;
 
 			solid.bitmapId = item ? item->Data().bitmapId : ID_BITMAP::Invalid();
@@ -557,7 +566,7 @@ namespace
 			}
 		}
 
-		virtual void SetHeading(ID_ENTITY id, Degrees theta)
+		virtual void SetHeading(ID_ENTITY id, Radians theta)
 		{
 			auto i = solids.find(id);
 			if (i == solids.end())
@@ -569,7 +578,7 @@ namespace
 			i->second.AddFlag(SolidFlags_IsDirty);
 		}
 
-		virtual void SetElevation(ID_ENTITY id, Degrees phi)
+		virtual void SetElevation(ID_ENTITY id, Radians phi)
 		{
 			auto i = solids.find(id);
 			if (i == solids.end())
@@ -626,6 +635,21 @@ namespace
 				solid.transform.row1.w = targetPos.y;
 				solid.transform.row2.w = targetPos.z;
 			}
+		}
+
+		virtual void SetVelocity(ID_ENTITY id, cr_vec3 velocity)
+		{
+			auto i = allies.find(id);
+			if (i == allies.end())
+			{
+				i = enemies.find(id);
+				if (i == enemies.end())
+				{
+					Throw(0, L"Invalid entity Id %I64u", (uint64)id);
+				}
+			}
+
+			i->second->dynamics.velocity = velocity;
 		}
 
 		// This should only be called by the abbatoir clean up code
@@ -881,8 +905,9 @@ namespace
 			auto j = solids.find(id);
 			if (j != solids.end())
 			{
+				Vec3& velocity = i->second->dynamics.velocity;
 				Vec3 direction;
-				if (!TryNormalize(i->second->ai->Velocity(), direction))
+				if (!TryNormalize(velocity, direction))
 				{
 					skel->second->SetCurrentAnimation(AnimationType_Standstill);
 					return;
@@ -890,16 +915,11 @@ namespace
 
 				skel->second->SetCurrentAnimation(AnimationType_Running);
 
-				float speed = Length(i->second->ai->Velocity());// TODO - refactor AI velocity to incorporate the changes below
+				float speed = Length(velocity);
 
 				if (speed == 0.0f) return;
 
-				Vec4 velDir = Vec4::FromVec3(direction, 0.0f);
-
-				Vec4 velDirRotated = j->second.transform * velDir;
-				if (!TryNormalize(velDirRotated, direction)) return;
-
-				Vec3 newPos = pos + direction * dt * speed;
+				Vec3 newPos = pos + velocity * dt;
 
 				auto col = CollideWithGeometry(pos, newPos, id, j->second.boundingRadius, *quadTree, solids, e.meshes);
 				if (col.contactType != ContactType_None)
@@ -907,13 +927,19 @@ namespace
 					if (col.t > 0 && col.t < 1.0f)
 					{
 						float skinDepth = 0.01f; // Prevent object exactly reaching target to try to avoid numeric issues
-						Vec3 collisionPos = pos + direction * dt * speed * col.t * (1 - skinDepth);
+						Vec3 collisionPos = pos + velocity * dt * col.t * (1 - skinDepth);
 						Vec3 impulseDisplacement = collisionPos - col.touchPoint;
 
+						impulseDisplacement.z = 0;
+
 						Vec3 impulseDirection = Normalize(impulseDisplacement);
+
+						float componentOfVelocityAlongImpulse = Dot(velocity, impulseDirection);
+	
+						const float restitution = 0.25f;
+						velocity = restitution * (velocity + componentOfVelocityAlongImpulse * impulseDirection);
 						
-						float restitution = 0.75f;
-						newPos = collisionPos - impulseDirection * dt * restitution * speed * (1 - col.t);
+						newPos = collisionPos + velocity * (1 - col.t);
 
 						auto col2 = CollideWithGeometry(collisionPos, newPos, id, j->second.boundingRadius, *quadTree, solids, e.meshes);
 						if (col2.contactType != ContactType_None)

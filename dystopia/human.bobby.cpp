@@ -26,7 +26,6 @@ namespace
 
 	ROCOCOAPI IAgentManipulator
 	{
-		virtual void SetVelocity(cr_vec3 velocity) = 0;
 		virtual void Suicide() = 0;
 	};
 
@@ -97,24 +96,36 @@ namespace
 	public:
 		void Invoke(Environment& e, ID_ENTITY actorId, float gameTime, IAgentManipulator& agent)
 		{
-			int r = rand() % 5;
+			Vec3 velocity;
+
+			uint32 r = NextRandom() % 5;
+
 			switch (r)
 			{
 			case 0:
-				agent.SetVelocity( Vec3{ 1, 0, 0 } );
+				velocity = Vec3{ 1, 0, 0 };
 				break;
 			case 1:
-				agent.SetVelocity(Vec3{ -1, 0, 0 });
+				velocity = Vec3{ -1, 0, 0 };
 				break;
 			case 2:
-				agent.SetVelocity(Vec3{ 0, 1, 0 });
+				velocity = Vec3{ 0, 1, 0 };
 				break;
 			case 3:
-				agent.SetVelocity(Vec3{ 0, -1, 0 });
+				velocity = Vec3{ 0, -1, 0 };
 				break;
 			case 4:
-				agent.SetVelocity(Vec3{ 0, 0, 0 });
+				velocity = Vec3{ 0, 0, 0 };
 				break;
+			}
+
+			e.level.SetVelocity(actorId, velocity);
+
+			Vec3 direction;
+			if (TryNormalize(velocity, direction))
+			{
+				Radians theta{ acosf(Dot(direction,{ 0,1,0 })) };
+				e.level.SetHeading(actorId, theta);
 			}
 		}
 	};
@@ -125,7 +136,6 @@ namespace
 	class HumanBobby : public IHumanAISupervisor, public IAgentManipulator
 	{
 		ID_ENTITY id;
-		Vec3 velocity;
 		Environment& e;
 		bool isAlive;
 		uint32 totalWeight;
@@ -139,7 +149,7 @@ namespace
 		std::vector<BehaviourBinding> behaviours;
 	public:
 		HumanBobby(ID_ENTITY _id,  Environment& _e) : e(_e),
-			id(_id), velocity{ 0,0,0 }, isAlive(true)
+			id(_id), isAlive(true)
 		{
 			AddBehaviour(g_rangedAttackAgainstPlayer, 10);
 			AddBehaviour(g_randomWalk, 50);
@@ -164,20 +174,6 @@ namespace
 		}
 
 		virtual void Free() { delete this; }
-
-		virtual cr_vec3 Velocity() const { return velocity; }
-
-		virtual void SetVelocity(cr_vec3 velocity)
-		{
-			this->velocity = velocity;
-
-			Vec3 direction;
-			if (TryNormalize(velocity, direction))
-			{
-				Degrees theta{ acosf(Dot(direction, { 0,1,0 })) };
-				e.level.SetHeading(id, theta);
-			}
-		}
 
 		virtual void Suicide()
 		{

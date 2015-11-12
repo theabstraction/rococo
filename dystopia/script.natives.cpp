@@ -8,6 +8,8 @@
 #include <sexy.vm.h>
 #include <sexy.vm.cpu.h>
 
+#include <rococo.maths.h>
+
 using namespace Dystopia;
 
 namespace Dystopia

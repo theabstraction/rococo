@@ -18,6 +18,11 @@
 (primitive Float32 Float32 float)
 (primitive Float64 Float64 double)
 (primitive Bool Bool boolean32)
+(primitive Degrees Float32 Degrees)
+(primitive Radians Float32 Radians)
+(primitive Seconds Float32 Seconds)
+(primitive Metres Float32 Metres)
+(primitive Kilograms Float32 Kilograms)
 
 (primitive Pointer Pointer uintptr_t)
 (primitive IdMesh Int32 ID_MESH)
