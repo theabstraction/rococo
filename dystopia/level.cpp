@@ -245,6 +245,8 @@ namespace
 		AutoFree<IQuadTreeSupervisor> quadTree;
 		float gameTime;
 		float lastDt;
+
+		std::vector<ID_ENTITY> abbatoir;
 	public:
 		Level(Environment& _e, IHumanFactory& _hf) : 
 			e(_e),
@@ -359,15 +361,9 @@ namespace
 			}
 		}
 
-		virtual void DeleteEquipment(ID_ENTITY id)
+		virtual void Delete(ID_ENTITY id)
 		{
-			auto eq = equipment.find(id);
-			if (eq != equipment.end())
-			{
-				eq->second.inventory->Free();
-			}
-			equipment.erase(id);
-			DeleteSolid(id);
+			abbatoir.push_back(id);
 		}
 
 		virtual ID_ENTITY AddSolid(const Matrix4x4& transform, ID_MESH meshId, int32 flags)
@@ -386,7 +382,7 @@ namespace
 			auto& s = solids.find(id);
 			s->second.boundingRadius = 0.5_metres;
 			auto* inv = CreateInventory({ 4, 10 }, true, true);
-			auto h = new Human { HumanType_Vigilante, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Vigilante ) };
+			auto h = new Human { HumanType_Vigilante, 0.0f, inv, hf.CreateHuman(id, HumanType_Vigilante ) };
 			skeletons.insert(id, CreateSkeleton(e));
 			ItemData data;
 			data.name = L"Bag of stones";
@@ -401,7 +397,7 @@ namespace
 		{
 			ID_ENTITY id = AddSolid(transform, meshId, SolidFlags_Skeleton);
 			auto* inv = CreateInventory({ 3,4 }, true, true);
-			auto h = new Human{ HumanType_Bobby, 0.0f, inv, hf.CreateHuman(id, *inv, HumanType_Bobby) };
+			auto h = new Human{ HumanType_Bobby, 0.0f, inv, hf.CreateHuman(id, HumanType_Bobby) };
 			ItemData data;
 			data.name = L"Bag of stones";
 			data.bitmapId = e.bitmapCache.Cache(L"!inventory/bagofstones.tif");
@@ -472,7 +468,7 @@ namespace
 				{
 					if (eq.inventory->EnumerateItems(nullptr) == 0)
 					{
-						DeleteEquipment(change->containerId);
+						Delete(change->containerId);
 					}
 				}
 			}
@@ -509,7 +505,10 @@ namespace
 				Throw(0, L"Invalid entity Id");
 			}
 
+			Vec3 oldPos = i->second.instance.orientation.GetPosition();
+			quadTree->DeleteEntity(Sphere{ oldPos, 1.0_metres }, id);
 			i->second.instance.orientation = transform;
+			quadTree->AddEntity(Sphere{ transform.GetPosition(), 1.0_metres }, id);
 		}
 
 		virtual void GetPosition(ID_ENTITY id, Vec3& pos) const
@@ -540,11 +539,12 @@ namespace
 			if (boundingSphere.centre != pos)
 			{
 				quadTree->DeleteEntity(boundingSphere, id);
-				quadTree->AddEntity(boundingSphere, id);
+				quadTree->AddEntity(Sphere { pos, 1.0_metres } , id);
 				t.SetPosition(pos);
 			}
 		}
 
+		// This should only be called by the abbatoir clean up code
 		void DeleteSolid(ID_ENTITY id)
 		{
 			auto i = solids.find(id);
@@ -576,6 +576,15 @@ namespace
 						k->second->ai->Free();
 						k->second->inventory->Free();
 						enemies.erase(k);
+					}
+				}
+				else
+				{
+					auto eq = equipment.find(id);
+					if (eq != equipment.end())
+					{
+						eq->second.inventory->Free();
+						equipment.erase(eq);
 					}
 				}
 
@@ -901,11 +910,17 @@ namespace
 				}
 				else
 				{
-					DeleteSolid(j->first);
-					delete j->second;
-					j = enemies.erase(j);		
+					abbatoir.push_back(j->first);
+					break;
 				}
 			}
+
+			for (auto dead : abbatoir)
+			{
+				DeleteSolid(dead);
+			}
+
+			abbatoir.clear();
 
 			allies[idPlayer]->ai->Update(gameTime, dt);
 

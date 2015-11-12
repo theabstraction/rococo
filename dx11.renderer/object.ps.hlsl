@@ -1,7 +1,6 @@
 struct PixelVertex
 {
 	float4 position : SV_POSITION;
-	float4 normal : NORMAL;
 	float4 emissiveColour : COLOR0;
 	float4 diffuseColour : COLOR1; // w gives texture saturation
 	float2 uv: TEXCOORD;

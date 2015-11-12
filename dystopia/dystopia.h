@@ -117,7 +117,7 @@ namespace Dystopia
 		virtual void SetGroundCursorPosition(cr_vec3 groundZero) = 0;
 		virtual ID_ENTITY SelectedId() = 0;
 
-		virtual void DeleteEquipment(ID_ENTITY id) = 0;
+		virtual void Delete(ID_ENTITY id) = 0;
 		virtual bool TryGetEquipment(ID_ENTITY id, EquipmentDesc& desc) const = 0;
 
 		virtual void RenderObjects(IRenderContext& rc) = 0;

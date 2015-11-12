@@ -83,8 +83,6 @@ namespace Dystopia
 						sb->AppendFormat(L"Armour: %u", armour->bulletProtection);
 					}
 
-					
-
 					auto ammo = item->GetAmmo();
 					if (ammo)
 					{
@@ -211,7 +209,7 @@ namespace Dystopia
 
 							IItem* oldItem = collector->Swap(slot, item);
 							eq.inventory->Swap(0, oldItem);
-							if (!eq.inventory->EnumerateItems(nullptr)) e.level.DeleteEquipment(itemId);
+							if (!eq.inventory->EnumerateItems(nullptr)) e.level.Delete(itemId);
 
 							e.gui.Add3DHint(eq.worldPosition, L"Looted!"_fstring, 2.5f);
 						}

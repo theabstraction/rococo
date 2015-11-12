@@ -156,9 +156,9 @@ namespace Dystopia
 
 	ROCOCOAPI IHumanFactory
 	{
-		virtual IHumanAISupervisor* CreateHuman(ID_ENTITY id, IInventory& inventory, HumanType typeId) = 0;
+		virtual IHumanAISupervisor* CreateHuman(ID_ENTITY id, HumanType typeId) = 0;
 	};
 
-	IHumanAISupervisor* CreateBobby(ID_ENTITY id, IInventory& inventory, ILevel& level);
+	IHumanAISupervisor* CreateBobby(ID_ENTITY id, Environment& e);
 	IHumanAISupervisor* CreateVigilante(ID_ENTITY id, IIntent& intent, Environment& e);
 }

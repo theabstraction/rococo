@@ -126,6 +126,8 @@ namespace
 			return;
 		}
 
+		bool isDeleted = false;
+
 		for (auto* current = q.firstEntity; current != nullptr; )
 		{
 			auto* next = current->next;
@@ -144,9 +146,16 @@ namespace
 				}
 
 				entry.nodeAllocator->Free(current);	
+
+				isDeleted = true;
 			}
 			
 			current = next;
+		}
+
+		if (!isDeleted)
+		{
+			Throw(0, L"Item not found in quadtree: %I64u", entry.id);
 		}
 	}
 

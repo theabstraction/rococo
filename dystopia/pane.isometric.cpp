@@ -137,7 +137,7 @@ namespace
 			auto phi = -45.0_degrees;
 			GetIsometricTransforms(globalState.worldMatrix, inverseWorldMatrixProj, globalState.worldMatrixAndProj, g, Graphics::GetAspectRatio(e.renderer), playerPosition, phi, viewTheta, Metres{ 100.0f });
 
-			Vec3 sunlight = Normalize(Vec3{ 1.0f, 2.0f, -1.0f });
+			Vec3 sunlight = Normalize(Vec3{ -1.0f, -2.0f, -1.0f });
 			globalState.sunlightDirection = Vec4::FromVec3(sunlight, 0.0f);
 		}
 	public:

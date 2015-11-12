@@ -79,12 +79,12 @@ namespace
 		{
 		}
 
-		virtual IHumanAISupervisor* CreateHuman(ID_ENTITY id, IInventory& inventory, HumanType typeId)
+		virtual IHumanAISupervisor* CreateHuman(ID_ENTITY id, HumanType typeId)
 		{
 			switch (typeId)
 			{
 			case HumanType_Bobby:
-				return CreateBobby(id, inventory, *level);
+				return CreateBobby(id, e);
 			case HumanType_Vigilante:
 				return CreateVigilante(id, *isometricGameWorldView->PlayerIntent(), e);
 			}
