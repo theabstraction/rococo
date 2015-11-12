@@ -55,15 +55,14 @@ namespace
 			{
 				def.lifeTime = ranged->flightTime;
 				muzzleSpeed = ranged->muzzleVelocity;
-				e.level.GetPosition(actorId, def.origin);
+				def.origin = e.level.GetPosition(actorId);
 
 				const Metres shoulderHeight{ 1.5f };
 				def.origin.z += shoulderHeight;
 
 				auto playerId = e.level.GetPlayerId();
 
-				Vec3 playerPos;
-				e.level.GetPosition(playerId, playerPos);
+				cr_vec3 playerPos = e.level.GetPosition(playerId);
 
 				Radians elevation = ComputeWeaponElevation(def.origin, playerPos, muzzleSpeed, Degrees{ 45.0f }, Gravity{ -9.81f }, Metres{ 2.0f });
 
@@ -175,16 +174,8 @@ namespace
 			Vec3 direction;
 			if (TryNormalize(velocity, direction))
 			{
-				float theta = acosf(Dot(direction, { 0,1,0 }));
-
-				Matrix4x4 rotZ = Matrix4x4::RotateRHAnticlockwiseZ(Radians{ theta });
-
-				Vec3 pos;
-				e.level.GetPosition(id, pos);
-
-				Matrix4x4 tra = Matrix4x4::Translate(pos);
-
-				e.level.SetTransform(id, tra * rotZ);
+				Degrees theta{ acosf(Dot(direction, { 0,1,0 })) };
+				e.level.SetHeading(id, theta);
 			}
 		}
 

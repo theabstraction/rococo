@@ -38,11 +38,9 @@ namespace
 		std::vector<ContextMenuItem> items;
 
 		items.push_back({ L"Examine", ID_CONTEXT_COMMAND_EXAMINE, (int64)(uint64)id, true });
-		Vec3 itemPos;
-		e.level.GetPosition(id, itemPos);
+		cr_vec3 itemPos = e.level.GetPosition(id);
+		cr_vec3 playerPos = e.level.GetPosition(e.level.GetPlayerId());
 
-		Vec3 playerPos;
-		e.level.GetPosition(e.level.GetPlayerId(), playerPos);
 		items.push_back({ L"Pick up", ID_CONTEXT_COMMAND_PICKUP, (int64)(uint64)id, IsInRange(itemPos - playerPos, PickupRange()) });
 		items.push_back({ L"Open",    ID_CONTEXT_COMMAND_OPEN,   (int64)(uint64)id, IsInRange(itemPos - playerPos, PickupRange()) });
 		items.push_back({ L"Cancel",  ID_CONTEXT_COMMAND_NONE,   0, true }	);
@@ -166,8 +164,7 @@ namespace Dystopia
 			auto collector = e.level.GetInventory(collectorId);
 			if (collector)
 			{
-				Vec3 collectorPos;
-				e.level.GetPosition(collectorId, collectorPos);
+				cr_vec3 collectorPos = e.level.GetPosition(collectorId);
 
 				EquipmentDesc eq;
 				if (e.level.TryGetEquipment(itemId, eq))
@@ -187,8 +184,7 @@ namespace Dystopia
 			auto collector = e.level.GetInventory(collectorId);
 			if (collector)
 			{
-				Vec3 collectorPos;
-				e.level.GetPosition(collectorId, collectorPos);
+				cr_vec3 collectorPos = e.level.GetPosition(collectorId);
 
 				EquipmentDesc eq;
 				if (e.level.TryGetEquipment(itemId, eq))

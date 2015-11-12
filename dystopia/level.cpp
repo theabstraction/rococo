@@ -30,14 +30,26 @@ namespace
 {
 	struct Solid
 	{
-		ObjectInstance instance;
+		Matrix4x4 transform;
+		RGBA highlightColour;
+		Vec3 position;
+
+		// scale gives x y and z scale factors in model co-ordinates
+		Vec3 scale;
+		// theta gives rotation around z axis, from x to y
+		// phi gives rotation around y axis, giving elevation
+		Degrees theta;			
+		Degrees phi;
+
 		ID_SYS_MESH sysMeshId;
 		ID_MESH meshId;
 		Metres boundingRadius;
 		ID_BITMAP bitmapId;
 		uint32 flags;
 
+		void AddFlag(SolidFlags flag) { flags |= flag; }
 		bool HasFlag(SolidFlags flag) const { return (flags & flag) != 0; }
+		void RemoveFlag(SolidFlags flag) { flags &= ~flag; }
 	};
 
 	struct Projectile
@@ -61,7 +73,7 @@ namespace
 
 	Sphere BoundingSphere(const Solid& solid)
 	{
-		return Sphere{ solid.instance.orientation.GetPosition() , solid.boundingRadius };
+		return Sphere{ solid.transform.GetPosition() , solid.boundingRadius };
 	}
 
 	template<class ROW> ID_ENTITY GetFirstIntersect(cr_vec3 start, cr_vec3 end, const EntityTable<ROW>& table, const EntityTable<Solid>& solids, IQuadTree& quadTree)
@@ -152,7 +164,7 @@ namespace
 			virtual void operator()(const BoundingCube& cube)
 			{
 				BoundingCube rotatedCube;
-				TransformCube(cube, rotatedCube, obstacle->instance.orientation);
+				TransformCube(cube, rotatedCube, obstacle->transform);
 				auto col = CollideBoundingBoxAndSphere(rotatedCube, Sphere{ start, radius }, target);
 				if (col.contactType != ContactType_None)
 				{
@@ -252,7 +264,7 @@ namespace
 			e(_e),
 			hf(_hf),
 			groundZeroCursor{ 0,0,0 },
-			quadTree(CreateLooseQuadTree(Metres{ 4096.0 }, Metres{ 3.0f })),
+			quadTree(CreateLooseQuadTree(4096.0_metres, 3.0_metres)),
 			gameTime(0),
 			lastDt(0)
 		{
@@ -351,7 +363,7 @@ namespace
 			if (x != equipment.end())
 			{
 				auto& solid = solids.find(id);
-				desc.worldPosition = solid->second.instance.orientation.GetPosition();
+				desc.worldPosition = solid->second.transform.GetPosition();
 				desc.inventory = x->second.inventory;
 				return true;
 			}
@@ -368,9 +380,34 @@ namespace
 
 		virtual ID_ENTITY AddSolid(const Matrix4x4& transform, ID_MESH meshId, int32 flags)
 		{
+			Vec3 pos = transform.GetPosition();
+
 			auto id = GenerateEntityId();
 			ID_SYS_MESH sysId = e.meshes.GetRendererId(meshId);
-			solids.insert(id, Solid{ {transform, {0,0,0,0}}, sysId, meshId, 1.0_metres, ID_BITMAP::Invalid(), (uint32) flags });
+			solids.insert(id, 
+				/*
+					Matrix4x4 transform;
+					RGBA highlightColour;
+					Vec3 position;
+
+					// scale gives x y and z scale factors in model co-ordinates
+					Vec3 scale;
+					// theta gives rotation around z axis, from x to y
+					// phi gives rotation around y axis, giving elevation
+					Degrees theta;
+					Degrees phi;
+
+					ID_SYS_MESH sysMeshId;
+					ID_MESH meshId;
+					Metres boundingRadius;
+					ID_BITMAP bitmapId;
+					uint32 flags;
+				*/
+				Solid
+				{ 
+					transform, {0,0,0,0}, pos, {1,1,1}, 0, 0, sysId, meshId, 1.0_metres, ID_BITMAP::Invalid(), (uint32)flags
+				}
+			);
 
 			quadTree->AddEntity(Sphere{ transform.GetPosition(), 1.0_metres }, id);
 			return id;
@@ -484,20 +521,79 @@ namespace
 			return selectedId;
 		}
 
-		virtual void GetTransform(ID_ENTITY id, Matrix4x4& transform)
+		void UpdateTransform(ID_ENTITY id, Solid& solid)
+		{
+			if (solid.HasFlag(SolidFlags_IsDirty))
+			{
+				Matrix4x4 S = Matrix4x4::Scale(solid.scale.x, solid.scale.y, solid.scale.z);
+				Matrix4x4 R = Matrix4x4::RotateRHAnticlockwiseX(solid.phi) * Matrix4x4::RotateRHAnticlockwiseZ(solid.theta);
+				Matrix4x4 T = Matrix4x4::Translate(solid.position);
+
+				cr_vec3 currentPos = solid.transform.GetPosition();
+				if (currentPos != solid.position)
+				{
+					quadTree->DeleteEntity(Sphere{ currentPos, solid.boundingRadius }, id);
+					quadTree->AddEntity(Sphere{ solid.position, solid.boundingRadius }, id);
+				}
+
+				solid.transform = T * R * S;
+
+				solid.RemoveFlag(SolidFlags_IsDirty);
+			}
+		}
+
+		virtual bool TryGetTransform(ID_ENTITY id, Matrix4x4& transform)
 		{
 			auto i = solids.find(id);
 			if (i == solids.end())
 			{
-				transform = Matrix4x4::Identity();
+				return false;
 			}
 			else
 			{
-				transform = i->second.instance.orientation;
+				UpdateTransform(id, i->second);
+				transform = i->second.transform;
+				return true;
 			}
 		}
 
-		virtual void SetTransform(ID_ENTITY id, const Matrix4x4& transform)
+		virtual void SetHeading(ID_ENTITY id, Degrees theta)
+		{
+			auto i = solids.find(id);
+			if (i == solids.end())
+			{
+				Throw(0, L"Invalid entity %I64u", (uint64)id);
+			}
+
+			i->second.theta = theta;
+			i->second.AddFlag(SolidFlags_IsDirty);
+		}
+
+		virtual void SetElevation(ID_ENTITY id, Degrees phi)
+		{
+			auto i = solids.find(id);
+			if (i == solids.end())
+			{
+				Throw(0, L"Invalid entity Id %I64u", (uint64) id);
+			}
+
+			i->second.phi = phi;
+			i->second.AddFlag(SolidFlags_IsDirty);
+		}
+
+		virtual void SetScale(ID_ENTITY id, cr_vec3 scale)
+		{
+			auto i = solids.find(id);
+			if (i == solids.end())
+			{
+				Throw(0, L"Invalid entity Id %I64u", (uint64)id);
+			}
+
+			i->second.scale = scale;
+			i->second.AddFlag(SolidFlags_IsDirty);
+		}
+
+		virtual cr_vec3 GetPosition(ID_ENTITY id) const
 		{
 			auto i = solids.find(id);
 			if (i == solids.end())
@@ -505,42 +601,30 @@ namespace
 				Throw(0, L"Invalid entity Id");
 			}
 
-			Vec3 oldPos = i->second.instance.orientation.GetPosition();
-			quadTree->DeleteEntity(Sphere{ oldPos, 1.0_metres }, id);
-			i->second.instance.orientation = transform;
-			quadTree->AddEntity(Sphere{ transform.GetPosition(), 1.0_metres }, id);
+			return i->second.position;
 		}
 
-		virtual void GetPosition(ID_ENTITY id, Vec3& pos) const
+		virtual void SetPosition(ID_ENTITY id, cr_vec3 targetPos)
 		{
 			auto i = solids.find(id);
 			if (i == solids.end())
 			{
-				Throw(0, L"Invalid entity Id");
+				Throw(0, L"Invalid entity Id %I64u", (uint64)id);
 			}
 
-			auto& t = i->second.instance.orientation;
-			pos = t.GetPosition();
-		}
-
-		virtual void SetPosition(ID_ENTITY id, cr_vec3 pos)
-		{
-			auto i = solids.find(id);
-			if (i == solids.end())
-			{
-				Throw(0, L"Invalid entity Id");
-			}
-
-			auto& entity = i->second;
-			auto& t = i->second.instance.orientation;
+			auto& solid = i->second;
+			Vec3 currentPos = solid.transform.GetPosition();
 			
-			Sphere boundingSphere{ t.GetPosition(), 1.0_metres };
-
-			if (boundingSphere.centre != pos)
+			if (targetPos != currentPos)
 			{
-				quadTree->DeleteEntity(boundingSphere, id);
-				quadTree->AddEntity(Sphere { pos, 1.0_metres } , id);
-				t.SetPosition(pos);
+				quadTree->DeleteEntity(Sphere{ currentPos, solid.boundingRadius }, id);
+				quadTree->AddEntity(Sphere { targetPos, solid.boundingRadius } , id);
+
+				solid.position = targetPos;
+
+				solid.transform.row0.w = targetPos.x;
+				solid.transform.row1.w = targetPos.y;
+				solid.transform.row2.w = targetPos.z;
 			}
 		}
 
@@ -551,7 +635,7 @@ namespace
 			if (i != solids.end())
 			{
 				auto& entity = i->second;
-				auto& t = i->second.instance.orientation;
+				auto& t = i->second.transform;
 
 				if (entity.HasFlag(SolidFlags_Skeleton))
 				{
@@ -588,8 +672,7 @@ namespace
 					}
 				}
 
-				Sphere boundingSphere{ t.GetPosition(), 1.0_metres };
-				quadTree->DeleteEntity(boundingSphere, id);
+				quadTree->DeleteEntity(Sphere{ t.GetPosition(), entity.boundingRadius }, id);
 				solids.erase(i);
 			}
 		}
@@ -601,8 +684,7 @@ namespace
 
 		void RenderSolidsBySearch(IRenderContext& rc)
 		{
-			Vec3 centre;
-			GetPosition(idPlayer, centre);
+			cr_vec3 centre = GetPosition(idPlayer);
 
 			struct : IObjectEnumerator
 			{
@@ -617,7 +699,9 @@ namespace
 
 					auto& entity = i->second;
 
-					Vec3 pos = entity.instance.orientation.GetPosition();
+					This->UpdateTransform(id, i->second);
+
+					cr_vec3 pos = entity.position;
 					Vec3 delta = pos - groundZeroCursor;
 
 					float DS2 = Square(delta.x) + Square(delta.y);
@@ -631,7 +715,7 @@ namespace
 							Throw(0, L"Entity #%I64u was marked as having a skeleton, but none could be found.", idValue);
 						}
 
-						sk->second->Render(*rc, entity.instance, Seconds{ gameTime });
+						sk->second->Render(*rc, ObjectInstance{ entity.transform, entity.highlightColour }, Seconds{ gameTime });
 					}
 					else
 					{
@@ -644,12 +728,13 @@ namespace
 						{
 							selectedId = i->first;
 							foundItem = true;
-							ObjectInstance instance{ entity.instance.orientation,{ 1.0f, 1.0f, 1.0f, 0.5f } };
+							ObjectInstance instance{ entity.transform,{ 1.0f, 1.0f, 1.0f, 0.5f } };
 							rc->Draw(entity.sysMeshId, &instance, 1);
 						}
 						else
 						{
-							rc->Draw(entity.sysMeshId, &entity.instance, 1);
+							ObjectInstance instance{ entity.transform, entity.highlightColour };
+							rc->Draw(entity.sysMeshId, &instance, 1);
 						}
 					}
 
@@ -666,7 +751,10 @@ namespace
 				int count = 0;
 				float gameTime;
 				float lastDt;
+				Level* This;
 			} renderSolid;
+
+			renderSolid.This = this;
 
 			renderSolid.groundZeroCursor = groundZeroCursor;
 			renderSolid.solids = &solids;
@@ -776,8 +864,7 @@ namespace
 
 		void UpdatePosition(ID_ENTITY id, float dt, EntityTable<Human*>& humans)
 		{
-			Vec3 pos;
-			GetPosition(id, pos);
+			cr_vec3 pos = GetPosition(id);
 
 			auto i = humans.find(id);
 			if (i == humans.end())
@@ -809,7 +896,7 @@ namespace
 
 				Vec4 velDir = Vec4::FromVec3(direction, 0.0f);
 
-				Vec4 velDirRotated = j->second.instance.orientation * velDir;
+				Vec4 velDirRotated = j->second.transform * velDir;
 				if (!TryNormalize(velDirRotated, direction)) return;
 
 				Vec3 newPos = pos + direction * dt * speed;
@@ -924,8 +1011,7 @@ namespace
 
 			allies[idPlayer]->ai->Update(gameTime, dt);
 
-			Vec3 playerPos;
-			GetPosition(idPlayer, playerPos);
+			cr_vec3 playerPos = GetPosition(idPlayer);
 
 			UpdatePosition(idPlayer, dt, allies);
 		}

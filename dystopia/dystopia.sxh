@@ -32,10 +32,11 @@
 	(as.sxy Dystopia.Entities.SolidFlags "../content/scripts/dystopia") 
 	(as.cpp Dystopia.SolidFlags "dystopia") 
 	(
-		(None 0)
-		(Obstacle 1)
-		(Selectable 2)
-		(Skeleton 4)
+		(None 0)		
+		(Obstacle 1)		// Object can block moving objects - providing its mesh has a physics hull
+		(Selectable 2)		// Object can be selected and highlighted during standard gameplay
+		(Skeleton 4)		// Skeleton with matching id is present in the level
+		(IsDirty 8)			// Object has moved this timestep, and its transform needs to be computed before it is used
 	)
 )
 

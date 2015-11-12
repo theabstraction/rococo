@@ -37,6 +37,7 @@ namespace Dystopia {
 		SolidFlags_Obstacle = 1, 	// 0x1
 		SolidFlags_Selectable = 2, 	// 0x2
 		SolidFlags_Skeleton = 4, 	// 0x4
+		SolidFlags_IsDirty = 8, 	// 0x8
 	};
 	bool TryParse(const fstring& s, SolidFlags& value);
 	bool TryShortParse(const fstring& s, SolidFlags& value); 

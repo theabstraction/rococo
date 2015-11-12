@@ -37,8 +37,7 @@ namespace
 
 		void UpdateViaIntent(float gameTime, float dt)
 		{
-			Vec3 pos;
-			level.GetPosition(id, pos);
+			Vec3 pos = level.GetPosition(id);
 
 			float speed = 4.0f;
 			Vec2 impulse = intent.GetImpulse();
@@ -64,7 +63,7 @@ namespace
 							float dz = 10.0f / ranged->muzzleVelocity;
 
 							Matrix4x4 transform;
-							level.GetTransform(id, transform);
+							level.TryGetTransform(id, transform);
 
 							Vec4 north{ 0, 1, 0, 0 };
 							Vec4 aimAt = transform * north;
@@ -96,7 +95,7 @@ namespace
 
 													HintMessage3D hint;
 													hint.duration = 2.5_seconds;
-													level.GetPosition(level.GetPlayerId(), hint.position);
+													hint.position = level.GetPosition(level.GetPlayerId());
 													SafeFormat(hint.message, _TRUNCATE, L"clip empty!");
 													postbox.PostForLater(hint, true);
 												}

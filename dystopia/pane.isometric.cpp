@@ -131,8 +131,7 @@ namespace
 
 			auto playerId = e.level.GetPlayerId();
 
-			Vec3 playerPosition;
-			e.level.GetPosition(playerId, playerPosition);
+			cr_vec3 playerPosition=  e.level.GetPosition(playerId);
 
 			auto phi = -45.0_degrees;
 			GetIsometricTransforms(globalState.worldMatrix, inverseWorldMatrixProj, globalState.worldMatrixAndProj, g, Graphics::GetAspectRatio(e.renderer), playerPosition, phi, viewTheta, Metres{ 100.0f });
@@ -281,13 +280,8 @@ namespace
 			}
 			e.controls.MapMouseEvent(me, *this);
 			
-			Vec3 pos;
-			e.level.GetPosition(e.level.GetPlayerId(), pos);
+			e.level.SetHeading(e.level.GetPlayerId(), -viewTheta);
 
-			Matrix4x4 rotZ = Matrix4x4::RotateRHAnticlockwiseZ(-viewTheta.ToRadians());
-			Matrix4x4 translate = Matrix4x4::Translate(pos);
-			Matrix4x4 transform = translate*rotZ;
-			e.level.SetTransform(e.level.GetPlayerId(), transform);
 			return Relay_None;
 		}
 

@@ -355,6 +355,10 @@ namespace Dystopia {
 		{
 			value = SolidFlags_Skeleton;
 		}
+		else if (s == L"SolidFlags_IsDirty"_fstring)
+		{
+			value = SolidFlags_IsDirty;
+		}
 		else
 		{
 			return false;
@@ -380,6 +384,10 @@ namespace Dystopia {
 		else if (s == L"Skeleton"_fstring)
 		{
 			value = SolidFlags_Skeleton;
+		}
+		else if (s == L"IsDirty"_fstring)
+		{
+			value = SolidFlags_IsDirty;
 		}
 		else
 		{
