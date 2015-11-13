@@ -147,8 +147,28 @@ namespace Dystopia
 		virtual Stat GetStat(StatIndex index) const = 0;
 	};
 
+	ROCOCOAPI IAgentManipulator
+	{
+		virtual void Suicide() = 0;
+	};
+
+	enum AIRoutine
+	{
+		AIRoutine_Yielded = 0,
+		AIRoutine_Complete,
+		AIRoutine_Interrupted,
+	};
+
+	ROCOCOAPI IBehaviour
+	{
+		virtual void BeginRoutine() = 0;
+		virtual void Free() = 0;
+		virtual AIRoutine Invoke(Environment& e, ID_ENTITY actorId, Seconds gameTime, Seconds dt, IAgentManipulator& manipulator) = 0;
+	};
+
 	ROCOCOAPI IHumanAISupervisor : public IHumanAI
 	{
+		virtual void AddBehaviour(IBehaviour* behaviour, uint32 weight) = 0;
 		virtual void Update(float gameTime, float dt) = 0;
 		virtual void Free() = 0;
 	};

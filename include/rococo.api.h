@@ -10,8 +10,6 @@ struct DEFINED_ID_NAME																		\
 	DEFINED_ID_NAME() : value(INVALID_VALUE) {}												\
 	explicit DEFINED_ID_NAME(TYPE _value) : value(_value) {}								\
 	TYPE value;																				\
-	bool operator == (const DEFINED_ID_NAME& obj) { return value == obj.value; }			\
-	bool operator != (const DEFINED_ID_NAME& obj) { return value != obj.value; }			\
     static DEFINED_ID_NAME Invalid() { return DEFINED_ID_NAME(); }							\
 	size_t operator()(const DEFINED_ID_NAME& obj) const { return size_t(obj.value); }		\
 };																							\
@@ -245,9 +243,9 @@ namespace Rococo
 	ROCOCOAPI IBitmapCache
 	{
 		virtual ID_BITMAP Cache(const wchar_t* resourceName) = 0;
-	virtual void DrawBitmap(IGuiRenderContext& gc, const GuiRect& targetRect, ID_BITMAP id) = 0;
-	virtual void SetCursorBitmap(ID_BITMAP id, Vec2i hotspotOffset) = 0;
-	virtual void SetMeshBitmap(IRenderContext& rc, ID_BITMAP id) = 0;
+		virtual void DrawBitmap(IGuiRenderContext& gc, const GuiRect& targetRect, ID_BITMAP id) = 0;
+		virtual void SetCursorBitmap(ID_BITMAP id, Vec2i hotspotOffset) = 0;
+		virtual void SetMeshBitmap(IRenderContext& rc, ID_BITMAP id) = 0;
 	};
 
 	ROCOCOAPI IBitmapCacheSupervisor : public IBitmapCache
@@ -272,8 +270,8 @@ namespace Rococo
 	//	  ids 0x41000001 to 0x42000000 are skeletal animation meshes
 	ROCOCO_ID(ID_MESH, int32, 0)
 
-		// ID_SYS_MESH are renderer defined indices that are generated when meshes are loaded into the renderer
-		ROCOCO_ID(ID_SYS_MESH, size_t, (size_t)-1)
+	// ID_SYS_MESH are renderer defined indices that are generated when meshes are loaded into the renderer
+	ROCOCO_ID(ID_SYS_MESH, size_t, (size_t)-1)
 
 	struct fstring
 	{
@@ -360,8 +358,8 @@ namespace Rococo
 	ROCOCOAPI ISourceCache
 	{
 		virtual Sexy::Sex::ISParserTree* GetSource(const wchar_t* resourceName) = 0;
-	virtual void Free() = 0;
-	virtual void Release(const wchar_t* resourceName) = 0;
+		virtual void Free() = 0;
+		virtual void Release(const wchar_t* resourceName) = 0;
 	};
 
 	void DebuggerLoop(Sexy::Script::IPublicScriptSystem &ss, IDebuggerWindow& debugger);

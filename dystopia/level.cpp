@@ -194,7 +194,13 @@ namespace
 		return FindIntersectSphereVsSolid(start, target, obstacle, projectileRadius, meshes);
 	}
 
-	Collision CollideWithGeometry(cr_vec3 start, cr_vec3 target, ID_ENTITY projectileId, Metres projectileRadius, IQuadTree& quadTree, EntityTable<Solid>& solids, IMeshLoader& meshes)
+	struct CollisionEx
+	{
+		Collision collision;
+		ID_ENTITY id;
+	};
+
+	CollisionEx CollideWithGeometry(cr_vec3 start, cr_vec3 target, ID_ENTITY projectileId, Metres projectileRadius, IQuadTree& quadTree, EntityTable<Solid>& solids, IMeshLoader& meshes)
 	{
 		float radius = GetLateralDisplacement(start, target);
 		Sphere boundingSphere{ start, radius + projectileRadius };
@@ -207,7 +213,7 @@ namespace
 			EntityTable<Solid>* solids;
 			Vec3 start;
 			Vec3 end;
-			Collision collision = NoCollision();
+			CollisionEx cex = { NoCollision(), ID_ENTITY::Invalid() };
 			IMeshLoader* meshes;
 
 			virtual void OnId(uint64 idNumber)
@@ -221,9 +227,9 @@ namespace
 						try
 						{
 							auto col = CollideBodies(start, end, projectileRadius, c->second, *meshes);
-							if (col.t < collision.t)
+							if (col.t < cex.collision.t)
 							{
-								collision = col;
+								cex = { col, obstacleId };
 							}
 						}
 						catch (IException& ex)
@@ -244,7 +250,7 @@ namespace
 
 		quadTree.EnumerateItems(boundingSphere, onTarget);
 
-		return onTarget.collision;
+		return onTarget.cex;
 	}
 
 	class Level : public ILevelSupervisor, public ILevelBuilder, public Post::IRecipient
@@ -613,6 +619,21 @@ namespace
 			return i->second.position;
 		}
 
+		virtual void SetNextAIUpdate(ID_ENTITY id, float nextUpdateTime)
+		{
+			auto i = allies.find(id);
+			if (i == allies.end())
+			{
+				i = enemies.find(id);
+				if (i == enemies.end())
+				{
+					Throw(0, L"Invalid entity Id %I64u", (uint64)id);
+				}
+			}
+
+			i->second->nextAIcheck = nextUpdateTime;
+		}
+
 		virtual void SetPosition(ID_ENTITY id, cr_vec3 targetPos)
 		{
 			auto i = solids.find(id);
@@ -635,6 +656,21 @@ namespace
 				solid.transform.row1.w = targetPos.y;
 				solid.transform.row2.w = targetPos.z;
 			}
+		}
+
+		virtual cr_vec3 GetVelocity(ID_ENTITY id) const
+		{
+			auto i = allies.find(id);
+			if (i == allies.end())
+			{
+				i = enemies.find(id);
+				if (i == enemies.end())
+				{
+					Throw(0, L"Invalid entity Id %I64u", (uint64)id);
+				}
+			}
+
+			return i->second->dynamics.velocity;
 		}
 
 		virtual void SetVelocity(ID_ENTITY id, cr_vec3 velocity)
@@ -824,24 +860,24 @@ namespace
 			Vec3 newVelocity = p.velocity + g * dt;
 			Vec3 oldPos = p.position;
 
-			auto col = CollideWithGeometry(oldPos, newPos, projectileId, 0.02_metres, *quadTree, solids, e.meshes);
-			if (LengthSq(newVelocity) != 0 && col.contactType != ContactType_None)
+			auto cex = CollideWithGeometry(oldPos, newPos, projectileId, 0.02_metres, *quadTree, solids, e.meshes);
+			if (LengthSq(newVelocity) != 0 && cex.collision.contactType != ContactType_None)
 			{
-				if (col.t > 0 && col.t < 1.0f)
+				if (cex.collision.t > 0 && cex.collision.t < 1.0f)
 				{
 					float skinDepth = 0.01f; // Prevent object exactly reaching target to try to avoid numeric issues
-					Vec3 collisionPos = oldPos + newVelocity * dt * col.t * (1 - skinDepth);
-					Vec3 impulseDisplacement = collisionPos - col.touchPoint;
+					Vec3 collisionPos = oldPos + newVelocity * dt * cex.collision.t * (1 - skinDepth);
+					Vec3 impulseDisplacement = collisionPos - cex.collision.touchPoint;
 
 					Vec3 impulseDirection = Normalize(impulseDisplacement);
 
 					float restitution = 0.25f;
 						
 					newVelocity = (newVelocity + 2.0f * impulseDirection * Length(newVelocity)) * restitution;
-					newPos = collisionPos + dt * newVelocity * (1 - col.t);	
+					newPos = collisionPos + dt * newVelocity * (1 - cex.collision.t);
 
-					auto col2 = CollideWithGeometry(collisionPos, newPos, projectileId, 0.02_metres, *quadTree, solids, e.meshes);
-					if (col2.contactType != ContactType_None)
+					auto cex2 = CollideWithGeometry(collisionPos, newPos, projectileId, 0.02_metres, *quadTree, solids, e.meshes);
+					if (cex2.collision.contactType != ContactType_None)
 					{
 						p.lifeTime = 0;
 						return;
@@ -921,14 +957,14 @@ namespace
 
 				Vec3 newPos = pos + velocity * dt;
 
-				auto col = CollideWithGeometry(pos, newPos, id, j->second.boundingRadius, *quadTree, solids, e.meshes);
-				if (col.contactType != ContactType_None)
+				auto cex = CollideWithGeometry(pos, newPos, id, j->second.boundingRadius, *quadTree, solids, e.meshes);
+				if (cex.collision.contactType != ContactType_None)
 				{
-					if (col.t > 0 && col.t < 1.0f)
+					if (cex.collision.t > 0 && cex.collision.t < 1.0f)
 					{
 						float skinDepth = 0.01f; // Prevent object exactly reaching target to try to avoid numeric issues
-						Vec3 collisionPos = pos + velocity * dt * col.t * (1 - skinDepth);
-						Vec3 impulseDisplacement = collisionPos - col.touchPoint;
+						Vec3 collisionPos = pos + velocity * dt * cex.collision.t * (1 - skinDepth);
+						Vec3 impulseDisplacement = collisionPos - cex.collision.touchPoint;
 
 						impulseDisplacement.z = 0;
 
@@ -939,10 +975,20 @@ namespace
 						const float restitution = 0.25f;
 						velocity = restitution * (velocity + componentOfVelocityAlongImpulse * impulseDirection);
 						
-						newPos = collisionPos + velocity * (1 - col.t);
+						newPos = collisionPos + velocity * (1 - cex.collision.t);
+
+						AICollision aiNotify = 
+						{
+							id, 
+							cex.id,
+							collisionPos,
+							impulseDirection
+						};
+
+						e.postbox.PostForLater(aiNotify, false);
 
 						auto col2 = CollideWithGeometry(collisionPos, newPos, id, j->second.boundingRadius, *quadTree, solids, e.meshes);
-						if (col2.contactType != ContactType_None)
+						if (col2.collision.contactType != ContactType_None)
 						{
 							return; // If a second collision occurs in the same timestep prevent motion altogether to avoid race conditions
 						}	
@@ -955,14 +1001,11 @@ namespace
 
 		void UpdateEnemy(Human& enemy, ID_ENTITY id, float gameTime, float dt)
 		{
-			const float oorMax = 1.0f / (float)RAND_MAX;
-
 			UpdatePosition(id, dt, enemies);
 
 			if (enemy.nextAIcheck < gameTime)
 			{
 				enemy.ai->Update(gameTime, dt);
-				enemy.nextAIcheck = gameTime + GenRandomFloat(0.2f, 1.0f);
 			}
 		}
 
@@ -1042,6 +1085,18 @@ namespace
 			UpdatePosition(idPlayer, dt, allies);
 		}
 
+		Vec3 GetForwardDirection(ID_ENTITY id)
+		{
+			auto i = solids.find(id);
+			if (i == solids.end())
+			{
+				Throw(0, L"Bad id %I64d in call to GetForwardDirection.", (uint64)id);
+			}
+
+			UpdateTransform(id, i->second);
+			return Normalize(i->second.transform.GetForwardDirection());
+		}
+
 		virtual ID_ENTITY GetPlayerId() const
 		{
 			return idPlayer;
@@ -1079,6 +1134,18 @@ namespace
 		virtual void Load(const wchar_t* resourceName, bool isReloading)
 		{
 			ExecuteSexyScriptLoop(16384, e.sourceCache, e.debuggerWindow, resourceName, 0, (int32) 16_megabytes, *this);
+
+			AISetTarget target0;
+			target0.appendToNavPoints = false;
+			target0.boundingRadius = 1.0_metres;
+			target0.targetPosition = { 0,0,0 };
+			e.postbox.PostForLater(target0, false);
+
+			AISetTarget target1;
+			target1.appendToNavPoints = true;
+			target1.boundingRadius = 1.0_metres;
+			target1.targetPosition = { 15,0,0 };
+			e.postbox.PostForLater(target1, false);
 		}
 
 		virtual void SyncWithModifiedFiles()

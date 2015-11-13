@@ -19,6 +19,11 @@ namespace
 		float lastFireTime;
 		Stat stats[StatIndex_Count];
 
+		virtual void AddBehaviour(IBehaviour* behaviour, uint32 weight)
+		{
+
+		}
+
 		virtual bool IsAlive() const
 		{
 			return stats[StatIndex_Health].current > 0;

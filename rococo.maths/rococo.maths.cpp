@@ -85,6 +85,66 @@ namespace Rococo
 		};
 	}
 
+	Vec3 Matrix4x4::GetForwardDirection() const
+	{
+		// M.north gives direction of target
+
+		/*
+		( row0 ) ( 0 )     ( row0.y )
+		( row1 ) ( 1 ) =   ( row1.y )
+		( row2 ) ( 0 )     ( row2.y )
+		( row3 ) ( 0 )	   (   0    )
+		*/
+
+		return{ row0.y, row1.y, row2.y };
+	}
+
+	Vec3 Matrix4x4::GetRightDirection() const
+	{
+		// M.north gives direction of target
+
+		/*
+		( row0 ) ( 1 )     ( row0.x )
+		( row1 ) ( 0 ) =   ( row1.x )
+		( row2 ) ( 0 )     ( row2.x )
+		( row3 ) ( 0 )	   (   0    )
+		*/
+
+		return{ row0.x, row1.x, row2.x };
+	}
+
+	Vec3 Matrix4x4::GetUpDirection() const
+	{
+		// M.north gives direction of target
+
+		/*
+		( row0 ) ( 0 )     ( row0.z )
+		( row1 ) ( 0 ) =   ( row1.z )
+		( row2 ) ( 1 )     ( row2.z )
+		( row3 ) ( 0 )	   (   0    )
+		*/
+
+		return{ row0.z, row1.z, row2.z };
+	}
+
+	Radians GetHeadingOfVector(float DX, float DY)
+	{
+		if (DX == 0 && DY == 0) return 0.0_degrees;
+		float f = DY / (Square(DX) + Square(DY));
+		f = min(1.0f, max(-1.0f, f));
+		
+		float theta = acosf(f);
+
+		if (DX < 0)
+		{
+			return Radians{ theta };
+		}
+		else
+		{
+			return Radians{ (360.0_degrees).ToRadians() - theta };
+		}
+	}
+
 	void XMVectorToVec4(DirectX::XMVECTOR xv, Vec4& v)
 	{
 		v.x = xv.m128_f32[0];

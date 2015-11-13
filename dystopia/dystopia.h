@@ -110,7 +110,9 @@ namespace Dystopia
 		virtual HumanSpec GetHuman(ID_ENTITY id) = 0;
 		virtual IInventory* GetInventory(ID_ENTITY id) = 0;
 		virtual ID_ENTITY GetPlayerId() const = 0;
+		virtual Vec3 GetForwardDirection(ID_ENTITY id) = 0;
 		virtual cr_vec3 GetPosition(ID_ENTITY id) const = 0;
+		virtual cr_vec3 GetVelocity(ID_ENTITY id) const = 0;
 		virtual bool TryGetTransform(ID_ENTITY id, Matrix4x4& transform);
 		virtual void SetPosition(ID_ENTITY id, cr_vec3 pos) = 0;
 		virtual void SetVelocity(ID_ENTITY id, cr_vec3 v) = 0;
@@ -118,6 +120,7 @@ namespace Dystopia
 		virtual void SetElevation(ID_ENTITY id, Radians phi) = 0;
 		virtual void SetScale(ID_ENTITY, cr_vec3 scale) = 0;
 		virtual void SetGroundCursorPosition(cr_vec3 groundZero) = 0;
+		virtual void SetNextAIUpdate(ID_ENTITY id, float nextUpdateTime) = 0;
 		virtual ID_ENTITY SelectedId() = 0;
 
 		virtual void Delete(ID_ENTITY id) = 0;

@@ -81,7 +81,13 @@ namespace Rococo
 		}
 
 		static void FromQuat(const Quat& quat, Matrix4x4& m);
+
+		Vec3 GetForwardDirection() const;
+		Vec3 GetRightDirection() const;
+		Vec3 GetUpDirection() const;
 	};
+
+	Radians GetHeadingOfVector(float DX, float DY);
 
 	// Multiply matrix Ra x Rb to make RaRb. This has the property that Ra X Rb x v = (Ra x Rb) x v = Ra x (Rb x v)
 	void Multiply(Matrix4x4& product, const Matrix4x4& Ra, const Matrix4x4& Rb);
