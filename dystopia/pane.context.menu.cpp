@@ -72,16 +72,6 @@ namespace
 			return Relay_None;
 		}
 
-		virtual void OnPop()
-		{
-
-		}
-
-		virtual void OnTop()
-		{
-
-		}
-
 		virtual void RenderObjects(IRenderContext& rc)
 		{
 		}
@@ -138,6 +128,11 @@ namespace
 				gc.RenderText(p, item);
 				p.y += fontHeight + Y_BORDER;
 			}
+		}
+
+		virtual void OnLostTop()
+		{
+
 		}
 	};
 }

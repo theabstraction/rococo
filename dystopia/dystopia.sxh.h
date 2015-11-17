@@ -25,6 +25,7 @@ namespace Dystopia {
 		virtual void SetElevation(ID_ENTITY entityId, Radians phi) = 0;
 		virtual void SetScale(ID_ENTITY entityId, const Vec3& scale) = 0;
 		virtual void GenerateCity(const fstring& name) = 0;
+		virtual void PopulateCity(float populationDensity) = 0;
 		virtual void Clear() = 0;
 		virtual void SetPlayerId(ID_ENTITY playerId) = 0;
 	};

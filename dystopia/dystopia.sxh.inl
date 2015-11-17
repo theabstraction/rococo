@@ -371,6 +371,20 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->GenerateCity(name);
 	}
+	void NativeDystopiaILevelBuilderPopulateCity(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float populationDensity;
+		_offset += sizeof(populationDensity);
+
+		ReadInput(populationDensity, _sf, -_offset);
+		Dystopia::ILevelBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->PopulateCity(populationDensity);
+	}
 	void NativeDystopiaILevelBuilderClear(NativeCallEnvironment& _nce)
 	{
 		Sexy::uint8* _sf = _nce.cpu.SF();
@@ -426,6 +440,7 @@ namespace Dystopia
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetElevation, nullptr, SEXTEXT("ILevelSetElevation (Pointer hObject)(Int64 entityId)(Float32 phi) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetScale, nullptr, SEXTEXT("ILevelSetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderGenerateCity, nullptr, SEXTEXT("ILevelGenerateCity (Pointer hObject)(Sys.Type.IString name) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderPopulateCity, nullptr, SEXTEXT("ILevelPopulateCity (Pointer hObject)(Float32 populationDensity) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderClear, nullptr, SEXTEXT("ILevelClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetPlayerId, nullptr, SEXTEXT("ILevelSetPlayerId (Pointer hObject)(Int64 playerId) -> "));
 	}

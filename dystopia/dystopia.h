@@ -185,6 +185,7 @@ namespace Dystopia
 namespace Dystopia
 {
 	struct IUIStack;
+	enum ID_PANE;
 	
 	enum GuiEventType
 	{
@@ -263,6 +264,7 @@ namespace Dystopia
 		ActionMapTypeFire,
 		ActionMapTypeRotate,
 		ActionMapTypeScale,
+		ActionMapTypeStats,
 		ActionMapType_TypeCount
 	};
 
@@ -271,4 +273,40 @@ namespace Dystopia
 	ID_MESH GenerateRandomHouse(Environment& e, uint32 seed);
 
 	void ExecuteSexyScriptLoop(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, const wchar_t* resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile);
+}
+
+namespace Dystopia
+{
+	struct RangedWeapon;
+
+	namespace AI
+	{
+		namespace Low
+		{
+			void RunForward(ILevel& level, ID_ENTITY actorId, MetresPerSecond speed);
+			void RunInRandomDirection(ILevel& level, ID_ENTITY actorId, Seconds gameTime, Seconds runPeriod, MetresPerSecond runSpeed);
+			void Stop(ILevel& level, ID_ENTITY actorId);
+
+			// Rotate the actor towards the target point using the given angular velocity and timestep
+			// Returns -2.0f if case is degenerate, otherwise dot product of previous heading and direction unit vectors 
+			// The final parameter gives the alpha value, above which the target snaps exactly onto the heading direction
+			float TurnTowardsTarget(ILevel& level, ID_ENTITY actorId, cr_vec3 targetPoint, Radians turnAnglePerSec, Seconds dt, float snapAlpha = 0.950f);
+
+			void FireRangedWeapon(ILevel& level, Post::IPostbox* hintBox, ID_ENTITY creditToActorId, IItem* weapon, const ProjectileDef& def, Seconds now);
+
+			// Get ranged weapon, doll's left hand takes priority over right.
+			// If one hand is free, then weapon is used with both hands, and may get accuracy bonus etc
+			RangedWeapon* GetRangedWeapon(ILevel& level, ID_ENTITY actorId, bool& isUsedTwoHanded, IItem** ppItem = nullptr);
+		}
+
+		namespace Middle
+		{
+
+		}
+
+		namespace High
+		{
+
+		}
+	}
 }

@@ -10,8 +10,6 @@ namespace Dystopia
 		virtual Relay OnMouseEvent(const MouseEvent& me) = 0;
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
 		virtual void RenderObjects(IRenderContext& rc) = 0;
-		virtual void OnPop() = 0;
-		virtual void OnTop() = 0;
 	};
 
 	ROCOCOAPI IUIPaneSupervisor : public IUIPane
@@ -26,6 +24,7 @@ namespace Dystopia
 
 	IUIControlPane* CreatePaneIsometric(Environment& e);
 	IUIPaneSupervisor* CreatePaneStats(Environment& e);
+	IUIPaneSupervisor* CreatePersonalInfoPanel(Environment& e);
 
 	IUIPaneSupervisor* CreateDialogBox(Environment& e, IEventCallback<GuiEventArgs>& _handler,
 		const wchar_t* _title,
@@ -76,7 +75,8 @@ namespace Dystopia
 		ID_PANE_STATS,
 		ID_PANE_GENERIC_DIALOG_BOX,
 		ID_PANE_GENERIC_CONTEXT_MENU,
-		ID_PANE_INVENTORY_SELF
+		ID_PANE_INVENTORY_SELF,
+		ID_PANE_PERSONAL_INFO
 	};
 
 	enum ID_CONTEXT_COMMAND : int32

@@ -1,5 +1,12 @@
 #pragma once
 
+#include "rococo.post.h"
+
+namespace Rococo
+{
+	struct Mail;
+}
+
 namespace Dystopia
 {
 	struct RangedWeapon
@@ -131,6 +138,7 @@ namespace Dystopia
 	enum StatIndex : int32
 	{
 		StatIndex_Health = 0,
+		StatIndex_Kudos,
 		StatIndex_Count
 	};
 
@@ -145,6 +153,12 @@ namespace Dystopia
 		virtual bool IsAlive() const = 0;
 		virtual void OnHit(ID_ENTITY attackerId) = 0;
 		virtual Stat GetStat(StatIndex index) const = 0;
+		virtual void SendRaw(const Mail& mail) = 0;
+
+		template<class T> void Send(const T& t)
+		{
+			SendRaw(Mail{ Post::GetPostType<T>(), (const void*)&t, sizeof(T) });
+		}
 	};
 
 	ROCOCOAPI IAgentManipulator
@@ -162,14 +176,16 @@ namespace Dystopia
 	ROCOCOAPI IBehaviour
 	{
 		virtual void BeginRoutine() = 0;
+		virtual void EndRoutine() = 0;
 		virtual void Free() = 0;
+		virtual Post::IRecipient* GetRecipient() = 0;
 		virtual AIRoutine Invoke(Environment& e, ID_ENTITY actorId, Seconds gameTime, Seconds dt, IAgentManipulator& manipulator) = 0;
 	};
 
 	ROCOCOAPI IHumanAISupervisor : public IHumanAI
 	{
 		virtual void AddBehaviour(IBehaviour* behaviour, uint32 weight) = 0;
-		virtual void Update(float gameTime, float dt) = 0;
+		virtual void Update(Seconds gameTime, Seconds dt) = 0;
 		virtual void Free() = 0;
 	};
 

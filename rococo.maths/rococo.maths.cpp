@@ -29,6 +29,42 @@ namespace // globals
 
 namespace Rococo
 {
+	Vec2  GetIntersect(Vec2 A, Vec2 D, Vec2 B, Vec2 E)
+	{
+		// Given line P(t) = A + Dt and line Q(u) = B + Eu
+		// Find point common to both lines
+
+		// Px = Ax + Dx.t
+		// Py = Ay + Dy.y
+
+		// Px = Bx + Ex.u
+		// Py = By + Ey.u
+
+		// Ax + Dxt = Bx + Exu
+		// Ay + Dyt = By + Eyu
+
+		// AxDy + DxDyt = BxDy + ExuDy
+		// AyDx + DxDyt = DxBy + EyuDx
+
+		// AxDy - AyDx = BxDy - DxBy + (ExDy - EyDx)u
+
+		// (AxDy - AyDx -  BxDy + DxBy) / (ExDy - EyDx) = u
+		// (Ax - Bx).Dy + (By - Ay).Dx /  (ExDy - EyDx) = u
+
+		float denominator = E.x*D.y - E.y*D.x;
+
+		if (denominator == 0.0f)
+		{
+			Throw(0, L"Degenerate args in GetIntersect(...)");
+		}
+
+		float numerator = (A.x - B.x) * D.y + (B.y - A.y)*D.x;
+
+		float u = numerator / denominator;
+
+		return B + E * u;
+	}
+
 	const Matrix4x4& Matrix4x4::Identity()
 	{
 		return const_identity4x4;

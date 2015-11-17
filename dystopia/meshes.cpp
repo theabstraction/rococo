@@ -279,6 +279,11 @@ namespace
 				Throw(0, L"BuildMesh failed. Vertex count was too high");
 			}
 
+			if ((vertexCount % 3) != 0)
+			{
+				Throw(0, L"Vertex count must be divisible by 3 - 3 vertices per triangle");
+			}
+
 			auto i = meshes.find(id);
 			if (i != meshes.end())
 			{
@@ -289,6 +294,18 @@ namespace
 			{
 				auto rendererId = renderer.CreateTriangleMesh(vertices, (uint32)vertexCount);
 				meshes.insert(std::make_pair(id, MeshDesc{ rendererId, id, L"#generated" }));
+			}
+
+			for (size_t i = 0; i < vertexCount; i += 3)
+			{
+				const ObjectVertex& a = vertices[i];
+				const ObjectVertex& b = vertices[i+1];
+				const ObjectVertex& c = vertices[i+2];
+
+				if (a.position == b.position || a.position == c.position || b.position == c.position)
+				{
+					Throw(0, L"Degenerate triangle at vertex %I64u in C++ built mesh", i);
+				}
 			}
 
 			if (createPhysicsBox)

@@ -56,6 +56,45 @@ namespace
 		size_t offset;
 	};
 
+	class SafeStackStringBuilder : public IStringBuilder
+	{
+	private:
+		SafeStackString& sss;
+		size_t offset;
+	public:
+		SafeStackStringBuilder(SafeStackString& _sss) : sss(_sss), offset(0)
+		{
+			
+		}
+
+		virtual operator const wchar_t* () const
+		{
+			return sss.Buffer();
+		}
+
+		virtual int AppendFormat(const wchar_t* format, ...)
+		{
+			if (offset >= sss.Capacity() - 1)
+			{
+				return 0;
+			}
+
+			va_list args;
+			va_start(args, format);
+			int result = SafeVFormat(sss.Buffer() + offset, sss.Capacity() - offset, _TRUNCATE, format, args);
+
+			if (result > 0)
+			{
+				offset += result;
+			}
+			return result;
+		}
+
+		virtual void Free()
+		{
+		}
+	};
+
 	class ExpandingBuffer : public IExpandingBuffer
 	{
 		std::vector<uint8> internalBuffer;
@@ -113,6 +152,12 @@ namespace Rococo
 	IStringBuilder* CreateSafeStringBuilder(size_t capacity)
 	{
 		return new SafeStringBuilder(capacity);
+	}
+
+	IStringBuilder* CreateSafeStackStringBuilder(SafeStackString& sss)
+	{
+		static_assert(sizeof(SafeStackStringBuilder) < SafeStackString::OPAQUE_CAPACITY, "OPAQUE_CAPACITY insufficient");
+		return new (sss.Data()) SafeStackStringBuilder(sss);
 	}
 
 	void SplitString(const wchar_t* text, size_t length, const wchar_t* seperators, IEventCallback<const wchar_t*>& onSubString)

@@ -57,6 +57,19 @@ namespace Dystopia
 		Vec3 collisionPoint;
 		Vec3 impulseDirection;
 	};
+
+	struct AIKilled
+	{
+		ID_ENTITY killerId;
+		ID_ENTITY victimId;
+		int32 kudos;
+	};
+
+	struct UIStackPaneChange
+	{
+		ID_PANE poppedId;
+		ID_PANE newTopId;
+	};
 #pragma pack(pop)
 }
 
@@ -80,7 +93,9 @@ namespace Rococo
 			POST_TYPE_OPEN_CONTAINER,
 			POST_TYPE_INVENTORY_UPDATED,
 			POST_TYPE_AI_SET_TARGET,
-			POST_TYPE_AI_COLLISION
+			POST_TYPE_AI_COLLISION,
+			POST_TYPE_AI_KILLED,
+			POST_TYPE_UI_CHANGE
 		};
 
 		template<> inline POST_TYPE GetPostType<MouseEvent>() { return POST_TYPE_MOUSE_EVENT; }
@@ -95,6 +110,8 @@ namespace Rococo
 		template<> inline POST_TYPE GetPostType<VerbInventoryChanged>() { return POST_TYPE_INVENTORY_UPDATED; }
 		template<> inline POST_TYPE GetPostType<AISetTarget>() { return POST_TYPE_AI_SET_TARGET; }
 		template<> inline POST_TYPE GetPostType<AICollision>() { return POST_TYPE_AI_COLLISION; }
+		template<> inline POST_TYPE GetPostType<AIKilled>() { return POST_TYPE_AI_KILLED; }
+		template<> inline POST_TYPE GetPostType<UIStackPaneChange>() { return POST_TYPE_AI_KILLED; }
 	}
 }
 

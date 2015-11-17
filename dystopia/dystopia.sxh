@@ -27,6 +27,7 @@
 		(SetElevation (IdEntity entityId)(Radians phi)->)
 		(SetScale (IdEntity entityId)(const Vec3 scale)->)
 		(GenerateCity (const IString name)->)
+		(PopulateCity (Float32 populationDensity)->)
 		(Clear ->)
 		(SetPlayerId (IdEntity playerId) ->)
 	)

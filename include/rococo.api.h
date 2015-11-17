@@ -27,6 +27,8 @@ namespace Rococo
 {
 	typedef int64 ticks;
 
+	ticks CpuClock();
+
 	struct Vec2
 	{
 		float x;
@@ -38,6 +40,11 @@ namespace Rococo
 		float x;
 		float y;
 		float z;
+
+		static Vec3 FromVec2(const Vec2& pos, float z)
+		{
+			return Vec3{ pos.x, pos.y, z };
+		}
 	};
 
 	template<class T> struct Segment
@@ -65,15 +72,6 @@ namespace Rococo
 		Vec3 centre;
 		float radius;
 	};
-
-	ROCOCOAPI IStringBuilder
-	{
-		virtual int AppendFormat(const wchar_t* format, ...) = 0;
-	virtual operator const wchar_t* () const = 0;
-	virtual void Free() = 0;
-	};
-
-	IStringBuilder* CreateSafeStringBuilder(size_t capacity);
 
 	struct GuiRect
 	{
@@ -211,6 +209,7 @@ namespace Rococo
 	struct IRenderContext;
 	struct IBuffer;
 	struct IUltraClock;
+	struct IStringBuilder;
 
 	struct ILock
 	{
@@ -383,6 +382,18 @@ namespace Rococo
 	void LogParseException(Sexy::Sex::ParseException& ex, ILogger& logger);
 
 	fstring GetAtomicArg(Sexy::Sex::cr_sex s);
+}
+
+namespace Rococo
+{
+	namespace Random
+	{
+		uint32 Next();
+		uint32 Next(uint32 modulus);
+		void Seed(uint32 value = 0);
+		float NextFloat(float minValue, float maxValue);
+		Vec3 NextNormalVector();
+	}
 }
 
 #endif

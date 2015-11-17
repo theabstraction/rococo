@@ -172,6 +172,15 @@ void ValidateMatrixLib()
 	VALIDATE(Approx(pPrimedInv.z, 10.0f));
 }
 
+void ValidateVectorLib()
+{
+	Vec2 p = GetIntersect({ 1,2 }, { 0,1 }, { 0,3 }, { 1,0 });
+	VALIDATE(p.x == 1 && p.y == 3);
+
+	p = GetIntersect({ 2,1 }, { 1,0 }, { 3, 0 }, { 0,1 });
+	VALIDATE(p.x == 3 && p.y == 1);
+}
+
 void ValidateCollisionLib()
 {
 	float t0, t1;
@@ -252,6 +261,7 @@ void test()
 {
 	wprintf(L"rococo.maths.test running...\n");
 
+	ValidateVectorLib();
 	ValidatePolynomialLib();
 	ValidateMatrixLib();
 //	ValidateQuadTreeLib();

@@ -4,6 +4,7 @@
 #include "dystopia.ui.h"
 #include "rococo.renderer.h"
 #include "dystopia.constants.h"
+#include "rococo.strings.h"
 
 #include <vector>
 

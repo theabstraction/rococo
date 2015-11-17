@@ -8,20 +8,13 @@
 #include <random>
 
 #include "dystopia.post.h"
+#include "rococo.strings.h"
 
 using namespace Dystopia;
 using namespace Rococo;
 
 namespace
 {	
-	typedef std::mt19937 Randomizer;
-	Randomizer rng;
-
-	uint32 NextRandom()
-	{
-		return rng();
-	}
-
 	class Behaviour_RangedAttackAgainstPlayer : public IBehaviour
 	{
 	public:
@@ -30,51 +23,53 @@ namespace
 			ProjectileDef def;
 			def.attacker = actorId;
 
-			auto* pInv = e.level.GetInventory(actorId);
-			if (!pInv) return AIRoutine_Complete;
+			bool isUsedTwoHanded;
+			RangedWeapon* ranged = AI::Low::GetRangedWeapon(e.level, actorId, /* out */ isUsedTwoHanded);
 
-			IInventory& inventory = *pInv;
+			if (!ranged) return AIRoutine_Complete;
 
 			float muzzleSpeed;
-			auto* item = inventory.GetItem(0);
-			auto* ranged = item ? item->GetRangedWeaponData() : nullptr;
-			if (ranged)
+			
+			def.lifeTime = ranged->flightTime;
+			muzzleSpeed = ranged->muzzleVelocity;
+			def.origin = e.level.GetPosition(actorId);
+
+			if (muzzleSpeed < 60.0f && isUsedTwoHanded)
 			{
-				def.lifeTime = ranged->flightTime;
-				muzzleSpeed = ranged->muzzleVelocity;
-				def.origin = e.level.GetPosition(actorId);
+				// Probably a thrown weapon, so give it a boost
+				muzzleSpeed *= 1.25f;
+			}
 
-				const Metres shoulderHeight{ 1.5f };
-				def.origin.z += shoulderHeight;
+			const Metres shoulderHeight{ 1.5f };
+			def.origin.z += shoulderHeight;
 
-				auto playerId = e.level.GetPlayerId();
+			auto playerId = e.level.GetPlayerId();
 
-				cr_vec3 playerPos = e.level.GetPosition(playerId);
+			cr_vec3 playerPos = e.level.GetPosition(playerId);
 
-				Radians elevation = ComputeWeaponElevation(def.origin, playerPos, muzzleSpeed, Degrees{ 45.0f }, Gravity{ -9.81f }, Metres{ 2.0f });
+			Radians elevation = ComputeWeaponElevation(def.origin, playerPos, muzzleSpeed, Degrees{ 45.0f }, Gravity{ -9.81f }, Metres{ 2.0f });
 
-				Vec3 enemyToPlayer = playerPos - def.origin;
+			Vec3 enemyToPlayer = playerPos - def.origin;
 
-				if (elevation > 0.0f)
+			if (elevation > 0.0f)
+			{
+				def.velocity.z = muzzleSpeed * sinf(elevation);
+				float lateralSpeed = muzzleSpeed * cosf(elevation);
+
+				if (enemyToPlayer.y == 0)
 				{
-					def.velocity.z = muzzleSpeed * sinf(elevation);
-					float lateralSpeed = muzzleSpeed * cosf(elevation);
-
-					if (enemyToPlayer.y == 0)
-					{
-						def.velocity.y = 0;
-						def.velocity.x = enemyToPlayer.x > 0 ? lateralSpeed : -lateralSpeed;
-					}
-					else
-					{
-						Radians theta{ atan2f(enemyToPlayer.y, enemyToPlayer.x) };
-						def.velocity.y = sinf(theta) * lateralSpeed;
-						def.velocity.x = cosf(theta) * lateralSpeed;
-					}
-
-					def.bulletMesh = ID_SYS_MESH(0);
-					e.level.AddProjectile(def, gameTime);
+					def.velocity.y = 0;
+					def.velocity.x = enemyToPlayer.x > 0 ? lateralSpeed : -lateralSpeed;
 				}
+				else
+				{
+					Radians theta{ atan2f(enemyToPlayer.y, enemyToPlayer.x) };
+					def.velocity.y = sinf(theta) * lateralSpeed;
+					def.velocity.x = cosf(theta) * lateralSpeed;
+				}
+
+				def.bulletMesh = ID_SYS_MESH(0);
+				e.level.AddProjectile(def, gameTime);
 			}
 
 			e.level.SetNextAIUpdate(actorId, gameTime + 0.1f);
@@ -82,82 +77,25 @@ namespace
 		}
 
 		virtual void BeginRoutine() {}
+		virtual void EndRoutine() {}
 		virtual void Free() {}
+		virtual Post::IRecipient* GetRecipient() { return nullptr; }
 	} static g_rangedAttackAgainstPlayer;
-
-	void RunForward(ILevel& level, ID_ENTITY actorId, MetresPerSecond speed)
-	{
-		level.SetVelocity(actorId, speed * level.GetForwardDirection(actorId));
-	}
-
-	void RunInRandomDirection(ILevel& level, ID_ENTITY actorId, Seconds gameTime, Seconds runPeriod, MetresPerSecond runSpeed)
-	{
-		Degrees theta = Degrees{ (float)(NextRandom() % 360) };
-		level.SetHeading(actorId, theta);
-		RunForward(level, actorId, runSpeed);
-		level.SetNextAIUpdate(actorId, gameTime + runPeriod);
-	}
 
 	class Behaviour_RandomWalk : public IBehaviour
 	{
 	public:
 		AIRoutine Invoke(Environment& e, ID_ENTITY actorId, Seconds gameTime, Seconds dt, IAgentManipulator& agent)
 		{
-			RunInRandomDirection(e.level, actorId, gameTime, 2.0_seconds, 4.0_mps);
+			AI::Low::RunInRandomDirection(e.level, actorId, gameTime, 2.0_seconds, 4.0_mps);
 			return AIRoutine_Complete;
 		}
 
 		virtual void BeginRoutine() {}
+		virtual void EndRoutine() {}
 		virtual void Free() {}
+		virtual Post::IRecipient* GetRecipient() { return nullptr; }
 	} static g_randomWalk;
-
-	// Rotate the actor towards the target point using the given angular velocity and timestep
-	// Returns -2.0f if case is degenerate, otherwise dot product of previous heading and direction unit vectors 
-	// The final parameter gives the alpha value, above which the target snaps exactly onto the heading direction
-	float TurnTowardsTarget(ILevel& level, ID_ENTITY actorId, cr_vec3 targetPoint, Radians turnAnglePerSec, Seconds dt, float snapAlpha = 0.950f)
-	{
-		cr_vec3 actorPosition = level.GetPosition(actorId);
-		Vec3 delta = targetPoint - actorPosition;
-		delta.z = 0;
-
-		Vec3 targetDirection;
-		if (!TryNormalize(delta, targetDirection)) return -2.0f;
-
-		Vec3 forward = level.GetForwardDirection(actorId);
-
-		auto headingTheta = GetHeadingOfVector(forward.x, forward.y);
-		auto directionTheta = GetHeadingOfVector(targetDirection.x, targetDirection.y);
-
-		float alpha = Dot(forward, targetDirection);
-
-		if (alpha > snapAlpha)
-		{
-			level.SetHeading(actorId, directionTheta);
-		}
-		else
-		{
-			float dTheta = turnAnglePerSec * dt;
-
-			Vec3 v = Cross(forward, targetDirection);
-
-			// if direction is to left of heading then z component +ve, consider heading  = i, direction = j, then v = k
-			if (v.z < 0)
-			{
-				dTheta *= -1;
-			}
-
-			float nextTheta = headingTheta + dTheta;
-
-			level.SetHeading(actorId, Radians{ nextTheta });
-		}
-
-		return alpha;
-	}
-
-	void Stop(ILevel& level, ID_ENTITY actorId)
-	{
-		level.SetVelocity(actorId, Vec3{ 0,0,0 });
-	}
 
 	class Behaviour_FollowNavPoints : public IBehaviour, Post::IRecipient
 	{
@@ -171,25 +109,20 @@ namespace
 		Environment& e;
 		AICollision lastCollision;
 		ID_ENTITY actorId;
+
 	public:
 		Behaviour_FollowNavPoints(Environment& _e, ID_ENTITY _actorId) : e(_e), actorId(_actorId), targetIndex{ 0xFFFFFFFF }
 		{
-			e.postbox.Subscribe<AISetTarget>(this);
-			e.postbox.Subscribe<AICollision>(this);
-		}
-
-		~Behaviour_FollowNavPoints()
-		{
-			e.postbox.Unsubscribe<AISetTarget>(this);
-			e.postbox.Unsubscribe<AICollision>(this);
 		}
 
 		AIRoutine Invoke(Environment& e, ID_ENTITY actorId, Seconds gameTime, Seconds dt, IAgentManipulator& agent)
 		{
+			if (navpoints.empty()) return AIRoutine_Complete;
+
 			if (lastCollision.entityId == actorId)
 			{
 				lastCollision.entityId = ID_ENTITY::Invalid();	
-				RunInRandomDirection(e.level, actorId, gameTime, 0.5_seconds, 4.0_mps);
+				AI::Low::RunInRandomDirection(e.level, actorId, gameTime, 0.5_seconds, 4.0_mps);
 				return AIRoutine_Yielded;
 			}
 
@@ -213,7 +146,7 @@ namespace
 
 				if (targetIndex >= navpoints.size())
 				{
-					Stop(e.level, actorId);
+					AI::Low::Stop(e.level, actorId);
 					return AIRoutine_Complete;
 				}
 				else
@@ -232,21 +165,20 @@ namespace
 
 			if (Dot(vel, direction) <= 0)
 			{
-				Stop(e.level, actorId);
+				AI::Low::Stop(e.level, actorId);
 			}
 
-			float alpha = TurnTowardsTarget(e.level, actorId, targetPoint, 90.0_degrees, dt);
+			float alpha = AI::Low::TurnTowardsTarget(e.level, actorId, targetPoint, 90.0_degrees, dt);
 			if (alpha == 2.0f)
 			{
-				Stop(e.level, actorId);
+				AI::Low::Stop(e.level, actorId);
 				return AIRoutine_Interrupted;
 			}
 
 			if (alpha > 0.5f)
 			{
 				const MetresPerSecond speed { alpha * alpha * 2.0f };
-				RunForward(e.level, actorId, speed);
-				e.level.SetVelocity(actorId, speed * e.level.GetForwardDirection(actorId));
+				AI::Low::RunForward(e.level, actorId, speed);
 			}
 
 			return AIRoutine_Yielded;
@@ -279,10 +211,17 @@ namespace
 			targetIndex = 0;
 		}
 
+		virtual void EndRoutine()
+		{
+
+		}
+
 		virtual void Free()
 		{
 			delete this;
 		}
+
+		virtual Post::IRecipient* GetRecipient() { return this; }
 	};
 
 	class HumanBobby : public IHumanAISupervisor, public IAgentManipulator
@@ -348,12 +287,16 @@ namespace
 
 		virtual void OnHit(ID_ENTITY attackerId)
 		{
-			isAlive = false;
+			if (isAlive)
+			{
+				e.postbox.PostForLater(AIKilled{ attackerId, id, 1 }, false);
+				isAlive = false;
+			}
 		}
 
 		void ChooseRandomBehaviourByWeight(Seconds gameTime, Seconds dt)
 		{
-			uint32 r = NextRandom() % totalChoiceWeight;
+			uint32 r = Random::Next(totalChoiceWeight);
 
 			uint32 sum = 0;
 
@@ -366,6 +309,7 @@ namespace
 					i.behaviour->BeginRoutine();
 					if (i.behaviour->Invoke(e, id, gameTime, dt, *this) != AIRoutine_Yielded)
 					{
+						i.behaviour->EndRoutine();
 						behaviourIndex = -1;
 					}
 
@@ -376,17 +320,30 @@ namespace
 			}
 		}
 
-		void Update(float gameTime,float dt)
+		void Update(Seconds gameTime, Seconds dt)
 		{
 			if (behaviourIndex >= behaviours.size())
 			{
-				ChooseRandomBehaviourByWeight(Seconds{ gameTime }, Seconds{ dt });
+				ChooseRandomBehaviourByWeight( gameTime, dt );
 			}
 			else
 			{
 				if (behaviours[behaviourIndex].behaviour->Invoke(e, id, Seconds{ gameTime }, Seconds{ dt }, *this) != AIRoutine_Yielded)
 				{
+					behaviours[behaviourIndex].behaviour->EndRoutine();
 					behaviourIndex = -1;
+				}
+			}
+		}
+
+		virtual void SendRaw(const Mail& mail)
+		{
+			if (behaviourIndex < behaviours.size())
+			{
+				Post::IRecipient* recipient = behaviours[behaviourIndex].behaviour->GetRecipient();
+				if (recipient)
+				{
+					recipient->OnPost(mail);
 				}
 			}
 		}

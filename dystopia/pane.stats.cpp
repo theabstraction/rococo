@@ -109,11 +109,6 @@ namespace
 
 		}
 
-		virtual void OnTop()
-		{
-
-		}
-
 		virtual void RenderObjects(IRenderContext& rc)
 		{
 		}

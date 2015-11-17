@@ -69,6 +69,42 @@ namespace Rococo
 			}
 		};
 
+		template<class T> class Subscribtion
+		{
+		private:
+			IPostbox* postbox;
+			IRecipient* recipient;
+		public:
+			Subscribtion() : postbox(nullptr), recipient(nullptr)
+			{
+
+			}
+
+			~Subscribtion()
+			{
+				End();
+			}
+
+			void Start(IPostbox& postbox, IRecipient* recipient)
+			{
+				if (!this->postbox)
+				{
+					this->postbox = &postbox;
+					this->recipient = recipient;
+					postbox.Subscribe<T>(recipient);
+				}
+			}
+
+			void End()
+			{
+				if (postbox)
+				{
+					postbox->Unsubscribe<T>(recipient);
+					postbox = nullptr;
+				}
+			}
+		};
+
 		ROCOCOAPI IPostboxSupervisor : public IPostbox
 		{
 			virtual void Deliver() = 0;

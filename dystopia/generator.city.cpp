@@ -128,9 +128,375 @@ namespace
 	{
 		Vec2 gradient;
 		Vec2 location;
+		uint32 junctionIndex;
 	};
 
 	typedef std::vector<RoadNode> TRoadVertices;
+
+	struct Junction
+	{
+		uint32 westEastIndex;
+		uint32 northSouthIndex;
+	};
+
+	struct RoadNetwork
+	{
+		std::vector<TRoadVertices*> roads;
+		std::vector<Junction> junctions;
+	};
+
+	struct JunctionData
+	{
+		Vec2 centre;
+		Vec2 westOffset;
+		Vec2 eastOffset;
+		Vec2 southOffset;
+		Vec2 northOffset;
+		Vec2 westGrad;
+		Vec2 eastGrad;
+		Vec2 westNormal;
+		Vec2 eastNormal;
+		Vec2 southGrad;
+		Vec2 northGrad;
+		Vec2 southNormal;
+		Vec2 northNormal;
+		Vec2 westDelta;
+		Vec2 eastDelta;
+		Vec2 southDelta;
+		Vec2 northDelta;
+		Vec2 southWestCurb;
+		Vec2 northWestCurb;
+		Vec2 southEastCurb;
+		Vec2 northEastCurb;
+
+		Vec3 up{ 0,0,1 };
+		RGBAb roadColour;
+	};
+
+	void JoinRoadsInJunction(const JunctionData& j, RoadContext& c)
+	{
+		{
+			Vec3 topRight = Vec3::FromVec2(j.southWestCurb, 0);
+			Vec3 bottomLeft = Vec3::FromVec2(j.westOffset, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.westOffset - j.westDelta, 0);
+			c.cache->push_back({ topRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 topLeft = Vec3::FromVec2(j.southWestCurb, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.southOffset, 0);
+			Vec3 bottomLeft = Vec3::FromVec2(j.southOffset + j.southDelta, 0);
+
+			c.cache->push_back({ topLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 bottomLeft = Vec3::FromVec2(j.southOffset, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.southOffset - j.southDelta, 0);
+			Vec3 topRight = Vec3::FromVec2(j.southEastCurb, 0);
+			c.cache->push_back({ topRight,	j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 bottomLeft = Vec3::FromVec2(j.eastOffset - j.eastDelta, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.eastOffset, 0);
+			Vec3 topLeft = Vec3::FromVec2(j.southEastCurb, 0);
+			c.cache->push_back({ bottomRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+
+		{
+			Vec3 topLeft = Vec3::FromVec2(j.northOffset, 0);
+			Vec3 topRight = Vec3::FromVec2(j.northOffset - j.northDelta, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.northEastCurb, 0);
+			c.cache->push_back({ topLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 topRight = Vec3::FromVec2(j.eastOffset + j.eastDelta, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.eastOffset, 0);
+			Vec3 topLeft = Vec3::FromVec2(j.northEastCurb, 0);
+			c.cache->push_back({ topRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 topRight = Vec3::FromVec2(j.northOffset, 0);
+			Vec3 topLeft = Vec3::FromVec2(j.northOffset + j.northDelta, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.northWestCurb, 0);
+			c.cache->push_back({ topLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 topRight = Vec3::FromVec2(j.northWestCurb, 0);
+			Vec3 topLeft = Vec3::FromVec2(j.westOffset + j.westDelta, 0);
+			Vec3 bottomLeft = Vec3::FromVec2(j.westOffset, 0);
+			c.cache->push_back({ topLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 topRight = Vec3::FromVec2(j.northWestCurb, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.southWestCurb, 0);
+			Vec3 bottomLeft = Vec3::FromVec2(j.westOffset, 0);
+			c.cache->push_back({ topRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 topLeft = Vec3::FromVec2(j.southWestCurb, 0);
+			Vec3 topRight = Vec3::FromVec2(j.southEastCurb, 0);
+			Vec3 bottomLeft = Vec3::FromVec2(j.southOffset, 0);
+			c.cache->push_back({ topLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 topLeft = Vec3::FromVec2(j.southEastCurb, 0);
+			Vec3 topRight = Vec3::FromVec2(j.northEastCurb, 0);
+			Vec3 bottomLeft = Vec3::FromVec2(j.eastOffset, 0);
+			c.cache->push_back({ topLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 topLeft = Vec3::FromVec2(j.northOffset, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.northEastCurb, 0);
+			Vec3 bottomLeft = Vec3::FromVec2(j.northWestCurb, 0);
+			c.cache->push_back({ topLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 topLeft = Vec3::FromVec2(j.northWestCurb, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.southEastCurb, 0);
+			Vec3 bottomLeft = Vec3::FromVec2(j.southWestCurb, 0);
+			c.cache->push_back({ topLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 topRight = Vec3::FromVec2(j.northEastCurb, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.southEastCurb, 0);
+			Vec3 topLeft = Vec3::FromVec2(j.northWestCurb, 0);
+			c.cache->push_back({ topRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topLeft, j.up, j.roadColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+	}
+
+	void JoinPavementsInJunction(const JunctionData& j, RoadContext& c)
+	{
+		auto roadToPavementWidth = 3.0_metres;
+		auto roadWidth = 2.0_metres;
+		RGBAb pavementColour(160, 160, 160);
+		
+		{
+			Vec3 topRight = Vec3::FromVec2(j.southOffset + j.southNormal * roadWidth, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.westOffset -j.westNormal * roadToPavementWidth, 0);
+			Vec3 topLeft = Vec3::FromVec2(j.southOffset + j.southNormal * roadToPavementWidth, 0);
+			c.cache->push_back({ topRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topLeft, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+		
+		{
+			Vec3 bottomRight = Vec3::FromVec2(j.westOffset - j.westNormal * roadToPavementWidth, 0);
+			Vec3 bottomLeft = Vec3::FromVec2(j.westOffset - j.westNormal * roadWidth, 0);
+			Vec3 topLeft = Vec3::FromVec2(j.southOffset + j.southNormal * roadWidth, 0);
+			c.cache->push_back({ bottomRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topLeft, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 topRight = Vec3::FromVec2(j.southOffset + j.southNormal * roadWidth, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.westOffset - j.westNormal * roadWidth, 0);
+			Vec3 topLeft = Vec3::FromVec2(j.southWestCurb, 0);
+			c.cache->push_back({ topRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topLeft, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 topRight = Vec3::FromVec2(j.northOffset + j.northNormal * roadWidth, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.westOffset + j.westNormal * roadWidth, 0);
+			Vec3 topLeft = Vec3::FromVec2(j.northOffset + j.northNormal * roadToPavementWidth, 0);
+			c.cache->push_back({ topRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topLeft, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 topRight = Vec3::FromVec2(j.northOffset + j.northNormal * roadWidth, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.westOffset + j.westNormal * roadWidth, 0);
+			Vec3 topLeft = Vec3::FromVec2(j.northWestCurb, 0);
+			c.cache->push_back({ topRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topLeft, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 topLeft = Vec3::FromVec2(j.northOffset + j.northNormal * roadToPavementWidth, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.westOffset + j.westNormal * roadWidth, 0);
+			Vec3 bottomLeft = Vec3::FromVec2(j.westOffset + j.westNormal * roadToPavementWidth, 0);
+			c.cache->push_back({ topLeft, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+
+		{
+			Vec3 topRight = Vec3::FromVec2(j.northOffset - j.northNormal * roadWidth, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.eastOffset + j.eastNormal * roadWidth, 0);
+			Vec3 topLeft = Vec3::FromVec2(j.northEastCurb, 0);
+			c.cache->push_back({ topRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topLeft, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 bottomLeft = Vec3::FromVec2(j.northOffset - j.northNormal * roadWidth, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.eastOffset + j.eastNormal * roadWidth, 0);
+			Vec3 topRight = Vec3::FromVec2(j.eastOffset + j.eastNormal * roadToPavementWidth, 0);
+			c.cache->push_back({ bottomRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 topLeft = Vec3::FromVec2(j.northOffset - j.northNormal * roadWidth, 0);
+			Vec3 topRight = Vec3::FromVec2(j.northOffset - j.northNormal * roadToPavementWidth, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.eastOffset + j.eastNormal * roadToPavementWidth, 0);
+			c.cache->push_back({ topLeft, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 topRight = Vec3::FromVec2(j.southOffset - j.southNormal * roadWidth, 0);
+			Vec3 topLeft = Vec3::FromVec2(j.southOffset - j.southNormal * roadToPavementWidth, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.eastOffset - j.eastNormal * roadToPavementWidth, 0);
+			c.cache->push_back({ topLeft, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 bottomLeft = Vec3::FromVec2(j.southEastCurb, 0);
+			Vec3 topLeft = Vec3::FromVec2(j.eastOffset - j.eastNormal * roadWidth, 0);
+			Vec3 topRight = Vec3::FromVec2(j.eastOffset - j.eastNormal * roadToPavementWidth, 0);
+			c.cache->push_back({ topLeft, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ topRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+
+		{
+			Vec3 bottomLeft = Vec3::FromVec2(j.southEastCurb, 0);
+			Vec3 topLeft = Vec3::FromVec2(j.southOffset - j.southNormal * roadWidth, 0);
+			Vec3 bottomRight = Vec3::FromVec2(j.eastOffset - j.eastNormal * roadToPavementWidth, 0);
+			c.cache->push_back({ topLeft, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomLeft, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+			c.cache->push_back({ bottomRight, j.up, pavementColour, RGBAb(255,255,255, 0), 0, 1 });
+		}
+	}
+
+	void GenerateJunction(const RoadNode& left, const RoadNode& right, const RoadNode& south, const RoadNode& north, RoadContext& c)
+	{
+		c.cache->clear();
+
+		JunctionData j;
+
+		j.roadColour = RGBAb(128, 128, 128);
+
+		auto roadWidth = 2.0_metres;
+
+		j.centre = 0.5f * (left.location + right.location);
+
+		j.westOffset = left.location - j.centre;
+		j.southOffset = south.location - j.centre;
+		j.eastOffset = right.location - j.centre;
+		j.northOffset = north.location - j.centre;
+
+		j.westGrad = left.gradient;
+		j.eastGrad = right.gradient;
+
+		j.westNormal = { -j.westGrad.y, j.westGrad.x };
+		j.eastNormal = { -j.eastGrad.y, j.eastGrad.x };
+
+		j.southGrad = south.gradient;
+		j.northGrad = north.gradient;
+
+		j.southNormal = { -j.southGrad.y, j.southGrad.x };
+		j.northNormal = { -j.northGrad.y, j.northGrad.x };
+
+		j.westDelta = roadWidth * Vec2{ j.westNormal.x,  j.westNormal.y };
+		j.eastDelta = roadWidth * Vec2{ j.eastNormal.x, j.eastNormal.y };
+
+		j.southDelta = roadWidth * Vec2{ j.southNormal.x, j.southNormal.y };
+		j.northDelta = roadWidth * Vec2{ j.northNormal.x, j.northNormal.y };
+		
+		j.southWestCurb = GetIntersect(j.westOffset - j.westDelta, j.westGrad, j.southOffset + j.southDelta, j.southGrad);
+		j.southEastCurb = GetIntersect(j.eastOffset - j.eastDelta, j.eastGrad, j.southOffset - j.southDelta, j.southGrad);
+		j.northWestCurb = GetIntersect(j.westOffset + j.westDelta, j.westGrad, j.northOffset + j.northDelta, j.northGrad);
+		j.northEastCurb = GetIntersect(j.eastOffset + j.eastDelta, j.eastGrad, j.northOffset - j.northDelta, j.northGrad);
+
+		JoinRoadsInJunction(j, c);
+		JoinPavementsInJunction(j, c);
+
+		int bodyIndex = c.index + 0x20000001;
+		c.index++;
+
+		auto id = ID_MESH(bodyIndex);
+		c.e->meshes.BuildMesh(&(c.cache->at(0)), c.cache->size(), id, false);
+
+		c.e->level.Builder().AddSolid(Vec3::FromVec2(j.centre, 0.0f), id, SolidFlags_None);
+	}
+
+	void GenerateJunction(const RoadNode& left, const RoadNode& right, RoadNetwork& network, const TRoadVertices& road, RoadContext& c)
+	{
+		int junctionIndex = left.junctionIndex;
+
+		auto junction = network.junctions[junctionIndex - 1];
+
+		if (road[0].location.x == road[road.size()-1].location.x)
+		{
+			// north south road. Skip
+			return;
+		}
+
+		TRoadVertices& westEastRoad = *network.roads[junction.westEastIndex];
+		TRoadVertices& northSouthRoad = *network.roads[junction.northSouthIndex];
+
+		for (int i = 1; i < northSouthRoad.size()-1; ++i)
+		{
+			auto& nsSegment = northSouthRoad[i];
+			if (nsSegment.junctionIndex == junctionIndex)
+			{
+				GenerateJunction(left, right, northSouthRoad[i], northSouthRoad[i + 1], c);
+				break;
+			}
+		}
+	}
 
 	void GenerateRoadSegment(Vec2 left, Vec2 right, Vec2 leftGrad, Vec2 rightGrad, RoadContext& c)
 	{
@@ -176,7 +542,7 @@ namespace
 		c.e->level.Builder().AddSolid(Vec3{ midPoint.x, midPoint.y, 0.0f }, id, SolidFlags_None);
 	}
 
-	void DivideRoad(Vec2 left, Vec2 right, TRoadVertices& v, Randomizer& rng)
+	void DivideRoadWE(Vec2 left, Vec2 right, TRoadVertices& v, Randomizer& rng)
 	{
 		Vec2 midPoint = 0.5f * (left + right);
 		Vec2 randomDelta = { 0.0f, 0.0625f * RandomQuotient(rng, -1.0f, 1.0f) * Length(right - left) };
@@ -189,20 +555,74 @@ namespace
 			return;
 		}
 		
-		DivideRoad(left, node, v, rng);
-		DivideRoad(node, right, v, rng);
+		DivideRoadWE(left, node, v, rng);
+		DivideRoadWE(node, right, v, rng);
 	}
 
-	void BuildRoads(TRoadVertices& v, Randomizer& rng)
+	void DivideRoadSN(Vec2 left, Vec2 right, TRoadVertices& v, Randomizer& rng)
 	{
-		Vec2 westPoint = { -1000.0_metres, 0.0f };
-		Vec2 eastPoint = { 1000.0_metres, 0.0f };
+		Vec2 midPoint = 0.5f * (left + right);
+		Vec2 randomDelta = { 0.0625f * RandomQuotient(rng, -1.0f, 1.0f) * Length(right - left), 0.0f };
+		Vec2 node = midPoint + randomDelta;
+
+		auto meshLength = 10.0_metres;
+		if (LengthSq(right - left) < Square(meshLength))
+		{
+			v.push_back({ { 0,0 }, node });
+			return;
+		}
+
+		DivideRoadSN(left, node, v, rng);
+		DivideRoadSN(node, right, v, rng);
+	}
+
+	void BuildNorthSouthRoad(TRoadVertices& v, RoadNetwork& network, Randomizer& rng, uint32 index, Vec2 centre, uint32 junctionIndex)
+	{
+		Vec2 southPoint = { centre.x, -250.0_metres };
+		Vec2 northPoint = { centre.x, 250.0_metres };
+
+		v.push_back(RoadNode{ { 0, 1 }, southPoint, 0 });
+		v.push_back(RoadNode{ { 0, 1 }, northPoint, 0 });
+
+		//v.push_back({ { 0,0 }, midPoint });
+
+		DivideRoadSN(southPoint, centre, v, rng);
+		DivideRoadSN(centre, northPoint, v, rng);
+
+		std::sort(v.begin(), v.end(), [](RoadNode a, RoadNode b) {
+			return a.location.y < b.location.y;
+		});
+
+		v[0].gradient = v[v.size() - 1].gradient = { 0, 1 };
+
+		for (size_t i = 1; i < v.size() - 1; ++i)
+		{
+			Vec2 delta = v[i + 1].location - v[i - 1].location;
+			v[i].gradient = Normalize(delta);
+			v[i].junctionIndex = 0;
+		}
+
+		for (size_t i = 1; i < v.size() - 1; ++i)
+		{
+			Vec2 southBit = 0.5f * (v[i].location + v[i + 1].location);
+			if (LengthSq(southBit - centre) < Square(1.0))
+			{
+				v[i].junctionIndex = junctionIndex;
+				v[i+1].junctionIndex = junctionIndex;
+			}
+		}
+	}
+
+	void BuildWestEastRoad(TRoadVertices& v, RoadNetwork& network, Randomizer& rng, uint32 index)
+	{
+		Vec2 westPoint = { -250.0_metres, 0.0f };
+		Vec2 eastPoint = { 250.0_metres, 0.0f };
 
 		Vec2 midPoint = 0.5f * (westPoint + eastPoint);
 
-		DivideRoad(westPoint, midPoint, v, rng);
-		DivideRoad(midPoint, eastPoint, v, rng);
-
+		DivideRoadWE(westPoint, midPoint, v, rng);
+		DivideRoadWE(midPoint, eastPoint, v, rng);
+		
 		std::sort(v.begin(), v.end(), [](RoadNode a, RoadNode b) {
 			return a.location.x < b.location.x;
 		});
@@ -213,25 +633,64 @@ namespace
 		{
 			Vec2 delta = v[i + 1].location - v[i - 1].location;
 			v[i].gradient = Normalize(delta);
+			v[i].junctionIndex = 0;
 		}
+
+		for (size_t i = 1; i < v.size() - 1; ++i)
+		{
+			if ((rng() % 4) == 3)
+			{
+				uint32 junctionIndex = (uint32) network.junctions.size()+1;
+				v[i].junctionIndex = junctionIndex;
+				v[i+1].junctionIndex = junctionIndex;
+
+				Vec2 centre = 0.5f * (v[i].location + v[i + 1].location);
+
+				auto newRoad = new TRoadVertices();
+				network.roads.push_back(newRoad);
+				TRoadVertices& northSouthRoad = *newRoad;
+
+				network.junctions.push_back(Junction{ index,  (uint32)network.roads.size()-1 });
+				
+				BuildNorthSouthRoad(northSouthRoad, network, rng, (uint32) network.roads.size(), centre, junctionIndex);
+				i += 8;	
+			}
+		}
+	}
+
+	ID_MESH GetOneMeshOf(const std::vector<ID_MESH>& meshes, Randomizer& rng)
+	{
+		return meshes[rng() % meshes.size()];
 	}
 
 	void BuildHouses(TRoadVertices& road, Environment& e, Randomizer& rng)
 	{
-		for (auto v : road)
-		{
-			Vec2 normal = { -v.gradient.y, v.gradient.x };
+		std::vector<ID_MESH> meshes;
 
-			Vec2 housePosition = v.location + 15.0f * normal;
+		for (int i = 0; i < 20; ++i)
+		{
+			meshes.push_back(GenerateRandomHouse(e, rng()));
+		}
+
+		for (int i = 1; i < road.size(); i++)
+		{
+			if (road[i-1].junctionIndex != 0 || road[i].junctionIndex != 0 || road[i+1].junctionIndex != 0)
+			{
+				continue;
+			}
+
+			Vec2 normal = { -road[i].gradient.y, road[i].gradient.x };
+
+			Vec2 housePosition = road[i].location + 15.0f * normal;
 
 			Radians theta{ acosf(Dot(normal, Vec2{ 1.0f, 0.0f })) };
 			
-			auto id = e.level.Builder().AddSolid({ housePosition.x, housePosition.y, 0.5f }, GenerateRandomHouse(e, rng()), SolidFlags_Obstacle);
+			auto id = e.level.Builder().AddSolid({ housePosition.x, housePosition.y, 0.5f }, GetOneMeshOf(meshes, rng), SolidFlags_Obstacle);
 			e.level.SetHeading(id, theta);
 
-			housePosition = v.location - 15.0f * normal;
+			housePosition = road[i].location - 15.0f * normal;
 
-			id = e.level.Builder().AddSolid({ housePosition.x, housePosition.y, 0.5f }, GenerateRandomHouse(e, rng()), SolidFlags_Obstacle);
+			id = e.level.Builder().AddSolid({ housePosition.x, housePosition.y, 0.5f }, GetOneMeshOf(meshes, rng), SolidFlags_Obstacle);
 			e.level.SetHeading(id, theta);
 		}
 	}
@@ -244,20 +703,36 @@ namespace Dystopia
 		uint32 hash = FastHash(name);
 		Randomizer rng(hash + seedDelta);
 
-		TRoadVertices mainRoad;	
-		BuildRoads(mainRoad, rng);
+		RoadNetwork network;
+		TRoadVertices* mainRoad = new TRoadVertices();
+		network.roads.push_back(mainRoad);
+
+		BuildWestEastRoad(*mainRoad, network, rng, 0);
 
 		std::vector<ObjectVertex> cache;
 		RoadContext c{ &e, 0, &rng, &cache };
 
-		for (size_t i = 0; i < mainRoad.size() - 1; i++)
+		for (size_t j = 0; j < network.roads.size(); ++j)
 		{
-			auto left = mainRoad[i];
-			auto right = mainRoad[i + 1];
+			auto roadPtr = network.roads[j];
+			auto& road = *roadPtr;
 
-			GenerateRoadSegment(left.location, right.location, left.gradient, right.gradient, c);
+			for (size_t i = 0; i < road.size() - 1; i++)
+			{
+				auto left = road[i];
+				auto right = road[i + 1];
+
+				if (left.junctionIndex != 0 && right.junctionIndex != 0)
+				{
+					GenerateJunction(left, right, network, road, c);
+				}
+				else
+				{
+					GenerateRoadSegment(left.location, right.location, left.gradient, right.gradient, c);
+				}
+			}
+
+			BuildHouses(road, e, rng);
 		}
-
-		BuildHouses(mainRoad, e, rng);
 	}
 }

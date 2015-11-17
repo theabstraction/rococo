@@ -24,6 +24,7 @@
 	(SetElevation (Int64 entityId)(Float32 phi) -> )
 	(SetScale (Int64 entityId)(Sys.Maths.Vec3 scale) -> )
 	(GenerateCity (Sys.Type.IString name) -> )
+	(PopulateCity (Float32 populationDensity) -> )
 	(Clear  -> )
 	(SetPlayerId (Int64 playerId) -> )
 )
@@ -42,6 +43,7 @@
 	(method ProxyILevel.SetElevation (Int64 entityId)(Float32 phi) ->  : (Dystopia.Levels.Native.ILevelSetElevation this.hObject entityId phi))
 	(method ProxyILevel.SetScale (Int64 entityId)(Sys.Maths.Vec3 scale) ->  : (Dystopia.Levels.Native.ILevelSetScale this.hObject entityId scale))
 	(method ProxyILevel.GenerateCity (Sys.Type.IString name) ->  : (Dystopia.Levels.Native.ILevelGenerateCity this.hObject name))
+	(method ProxyILevel.PopulateCity (Float32 populationDensity) ->  : (Dystopia.Levels.Native.ILevelPopulateCity this.hObject populationDensity))
 	(method ProxyILevel.Clear  ->  : (Dystopia.Levels.Native.ILevelClear this.hObject ))
 	(method ProxyILevel.SetPlayerId (Int64 playerId) ->  : (Dystopia.Levels.Native.ILevelSetPlayerId this.hObject playerId))
 

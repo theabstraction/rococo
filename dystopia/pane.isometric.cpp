@@ -145,6 +145,7 @@ namespace
 		{
 			e.postbox.Subscribe<HintMessage3D>(this);
 			e.postbox.Subscribe<VerbDropAtCursor>(this);
+			e.postbox.Subscribe<UIStackPaneChange>(this);
 		}
 
 		virtual void Free()
@@ -176,6 +177,12 @@ namespace
 
 					e.level.CreateStash(item, gzero);
 				}
+			}
+
+			auto* uiChange = Post::InterpretAs<UIStackPaneChange>(mail);
+			if (uiChange)
+			{
+				isRotateLocked = true;
 			}
 		}
 
@@ -219,16 +226,6 @@ namespace
 			return Relay_None;
 		}
 
-		virtual void OnPop()
-		{
-
-		}
-
-		virtual void OnTop()
-		{
-
-		}
-
 		virtual void OnEvent(ActionMap& map)
 		{
 			switch (map.type)
@@ -246,6 +243,9 @@ namespace
 						globalScale = max(globalScale, 1.5f);
 					}
 				}break;
+			case ActionMapTypeStats:
+				if (map.isActive) e.uiStack.PushTop(ID_PANE_PERSONAL_INFO);
+				break;
 			case ActionMapTypeRotate:
 				isRotateLocked = !map.isActive;
 				break;
@@ -323,6 +323,10 @@ namespace
 			{
 				RenderHint(grc, hint);
 			}
+		}
+
+		virtual void OnLostTop()
+		{
 		}
 	};
 }

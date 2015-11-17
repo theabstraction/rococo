@@ -230,11 +230,6 @@ namespace
 
 		}
 
-		virtual void OnTop()
-		{
-
-		}
-
 		virtual void RenderObjects(IRenderContext& rc)
 		{
 		}
@@ -283,6 +278,11 @@ namespace
 			{
 				lastHighlight = -1;
 			}
+		}
+
+		virtual void OnLostTop()
+		{
+
 		}
 	};
 }

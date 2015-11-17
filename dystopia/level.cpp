@@ -159,6 +159,13 @@ namespace
 
 	Collision FindIntersectSphereVsSolid(cr_vec3 start, cr_vec3 target, const Solid& obstacle, float projectileRadius, IMeshLoader& meshes)
 	{
+		Vec3 delta = target - start;
+
+		if (Dot(delta, obstacle.position - start) < 0)
+		{
+			return NoCollision();
+		}
+
 		struct : IEnumerator<BoundingCube>
 		{
 			Vec3 start;
@@ -270,7 +277,9 @@ namespace
 		float gameTime;
 		float lastDt;
 
-		std::vector<ID_ENTITY> abbatoir;
+		std::vector<ID_ENTITY> lastRendered;
+
+		std::vector<ID_ENTITY> abattoir;
 	public:
 		Level(Environment& _e, IHumanFactory& _hf) : 
 			e(_e),
@@ -293,9 +302,39 @@ namespace
 			Clear();
 		}
 
-		void GenerateCity(const fstring& name)
+		virtual void GenerateCity(const fstring& name)
 		{
 			BuildRandomCity(name, 0, e);
+		}
+
+		virtual void PopulateCity(float populationDensity)
+		{
+			std::vector<Vec3> spawnPoints;
+
+			for (auto i : solids)
+			{
+				if (i.second.meshId.value > 0x21000000 && i.second.meshId.value <= 0x21FFFFFF)
+				{
+					spawnPoints.push_back(i.second.position);
+				}
+			}
+
+			for (auto i : spawnPoints)
+			{
+				float f = populationDensity;
+				while (f > 1.0f)
+				{
+					AddEnemy(i, ID_MESH(3));
+					f -= 1.0f;
+				}
+
+				float g = rand() / (float) RAND_MAX;
+
+				if (f >= g)
+				{
+					AddEnemy(i, ID_MESH(3));
+				}
+			}
 		}
 
 		virtual ILevelBuilder& Builder()
@@ -387,7 +426,7 @@ namespace
 
 		virtual void Delete(ID_ENTITY id)
 		{
-			abbatoir.push_back(id);
+			abattoir.push_back(id);
 		}
 
 		virtual ID_ENTITY AddSolid(cr_vec3 position, ID_MESH meshId, int32 flags)
@@ -688,7 +727,7 @@ namespace
 			i->second->dynamics.velocity = velocity;
 		}
 
-		// This should only be called by the abbatoir clean up code
+		// This should only be called by the abattoir clean up code
 		void DeleteSolid(ID_ENTITY id)
 		{
 			auto i = solids.find(id);
@@ -757,6 +796,8 @@ namespace
 						Throw(0, L"Entity #%I64u was registered in the quad tree, but not the solids table. BUG!", idValue);
 					}
 
+					
+
 					auto& entity = i->second;
 
 					This->UpdateTransform(id, i->second);
@@ -774,6 +815,8 @@ namespace
 						{
 							Throw(0, L"Entity #%I64u was marked as having a skeleton, but none could be found.", idValue);
 						}
+						
+						lastRendered->push_back(id);
 
 						sk->second->Render(*rc, ObjectInstance{ entity.transform, entity.highlightColour }, Seconds{ gameTime });
 					}
@@ -812,10 +855,11 @@ namespace
 				float gameTime;
 				float lastDt;
 				Level* This;
+				std::vector<ID_ENTITY>* lastRendered;
 			} renderSolid;
 
 			renderSolid.This = this;
-
+			renderSolid.lastRendered = &lastRendered;
 			renderSolid.groundZeroCursor = groundZeroCursor;
 			renderSolid.solids = &solids;
 			renderSolid.rc = &rc;
@@ -824,6 +868,7 @@ namespace
 			renderSolid.gameTime = gameTime;
 			renderSolid.lastDt = lastDt;
 
+			lastRendered.clear();
 			quadTree->EnumerateItems(Sphere{ centre, 32.0_metres }, renderSolid);
 			
 			selectedId = renderSolid.selectedId;
@@ -985,7 +1030,7 @@ namespace
 							impulseDirection
 						};
 
-						e.postbox.PostForLater(aiNotify, false);
+						i->second->ai->Send(aiNotify);
 
 						auto col2 = CollideWithGeometry(collisionPos, newPos, id, j->second.boundingRadius, *quadTree, solids, e.meshes);
 						if (col2.collision.contactType != ContactType_None)
@@ -999,7 +1044,7 @@ namespace
 			}	
 		}
 
-		void UpdateEnemy(Human& enemy, ID_ENTITY id, float gameTime, float dt)
+		void UpdateEnemy(Human& enemy, ID_ENTITY id, Seconds gameTime, Seconds dt)
 		{
 			UpdatePosition(id, dt, enemies);
 
@@ -1055,30 +1100,32 @@ namespace
 				}
 			}
 
-			auto j = enemies.begin();
-			while (j != enemies.end())
+			for (auto id : lastRendered)
 			{
-				auto& enemy = j->second;
-				if (enemy->ai->IsAlive())
+				auto en = enemies.find(id);
+				if (en != enemies.end())
 				{
-					UpdateEnemy(*enemy, j->first, gameTime, dt);
-					j++;
-				}
-				else
-				{
-					abbatoir.push_back(j->first);
-					break;
+					auto& enemy = en->second;
+					if (enemy->ai->IsAlive())
+					{
+						UpdateEnemy(*enemy, id, Seconds{ gameTime }, Seconds{ dt });
+					}
+					else
+					{
+						abattoir.push_back(id);
+						break;
+					}
 				}
 			}
 
-			for (auto dead : abbatoir)
+			for (auto dead : abattoir)
 			{
 				DeleteSolid(dead);
 			}
 
-			abbatoir.clear();
+			abattoir.clear();
 
-			allies[idPlayer]->ai->Update(gameTime, dt);
+			allies[idPlayer]->ai->Update(Seconds{ gameTime }, Seconds{ dt });
 
 			cr_vec3 playerPos = GetPosition(idPlayer);
 
@@ -1134,7 +1181,7 @@ namespace
 		virtual void Load(const wchar_t* resourceName, bool isReloading)
 		{
 			ExecuteSexyScriptLoop(16384, e.sourceCache, e.debuggerWindow, resourceName, 0, (int32) 16_megabytes, *this);
-
+			/*
 			AISetTarget target0;
 			target0.appendToNavPoints = false;
 			target0.boundingRadius = 1.0_metres;
@@ -1146,6 +1193,7 @@ namespace
 			target1.boundingRadius = 1.0_metres;
 			target1.targetPosition = { 15,0,0 };
 			e.postbox.PostForLater(target1, false);
+			*/
 		}
 
 		virtual void SyncWithModifiedFiles()

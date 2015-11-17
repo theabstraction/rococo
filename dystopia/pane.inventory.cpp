@@ -468,6 +468,7 @@ namespace
 			}
 
 			e.postbox.Subscribe<VerbOpenInventory>(this);
+			e.postbox.Subscribe<UIStackPaneChange>(this);
 		}
 
 		virtual void Free()
@@ -486,6 +487,19 @@ namespace
 				}
 
 				foreignContainerId = openInventory->containerId;
+			}
+
+			auto* uiChange = Post::InterpretAs<UIStackPaneChange>(mail);
+			if (uiChange)
+			{
+				if (uiChange->newTopId == ID_PANE_INVENTORY_SELF)
+				{
+					OnTop();
+				}
+				else if (uiChange->poppedId == ID_PANE_INVENTORY_SELF)
+				{
+					OnPop();
+				}
 			}
 		}
 
@@ -651,7 +665,7 @@ namespace
 			foreignContainerId = ID_ENTITY::Invalid();
 		}
 
-		virtual void OnTop()
+		void OnTop()
 		{
 			if (paperDoll.empty())
 			{
@@ -757,6 +771,11 @@ namespace
 			{
 				e.uiStack.PopTop(); // player vanished or something
 			}
+		}
+
+		virtual void OnLostTop()
+		{
+
 		}
 	};
 }

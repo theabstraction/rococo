@@ -71,12 +71,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IntDir>..\intermediate\$(ProjectName)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)\lib\</OutDir>
+    <OutDir>..\lib\</OutDir>
     <TargetName>$(ProjectName).debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>..\intermediate\$(ProjectName)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)\lib\</OutDir>
+    <OutDir>..\lib\</OutDir>
     <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -152,6 +152,7 @@
     <ClCompile Include="rococo.collisions.cpp" />
     <ClCompile Include="rococo.maths.cpp" />
     <ClCompile Include="rococo.quad.tree.cpp" />
+    <ClCompile Include="rococo.random.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.allocators.h" />

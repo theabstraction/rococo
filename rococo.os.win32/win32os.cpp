@@ -25,6 +25,13 @@ namespace Rococo
 		}
 	}
 
+	ticks CpuClock()
+	{
+		LARGE_INTEGER i;
+		QueryPerformanceCounter(&i);
+		return i.QuadPart;
+	}
+
 	void Throw(int32 errorCode, const wchar_t* format, ...)
 	{
 		va_list args;

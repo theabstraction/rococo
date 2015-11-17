@@ -185,6 +185,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="actions.cpp" />
+    <ClCompile Include="ai.lib.cpp" />
     <ClCompile Include="app.cpp" />
     <ClCompile Include="bone.library.cpp" />
     <ClCompile Include="dialogs.cpp" />
@@ -194,6 +195,7 @@
     <ClCompile Include="gui.cpp" />
     <ClCompile Include="pane.context.menu.cpp" />
     <ClCompile Include="pane.inventory.cpp" />
+    <ClCompile Include="pane.personal.info.cpp" />
     <ClCompile Include="pane.stats.cpp" />
     <ClCompile Include="human.bobby.cpp" />
     <ClCompile Include="human.vigilante.cpp" />
@@ -209,6 +211,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="player.verbs.cpp" />
+    <ClCompile Include="rpg.rules.kudos.cpp" />
     <ClCompile Include="script.natives.cpp" />
     <ClCompile Include="scripts.cpp" />
     <ClCompile Include="skeleton.cpp" />
@@ -234,6 +237,7 @@
     <ClInclude Include="human.types.h" />
     <ClInclude Include="meshes.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="rpg.rules.h" />
     <ClInclude Include="skeleton.h" />
   </ItemGroup>
   <ItemGroup>

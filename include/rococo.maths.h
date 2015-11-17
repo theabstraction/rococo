@@ -87,6 +87,7 @@ namespace Rococo
 		Vec3 GetUpDirection() const;
 	};
 
+	Vec2  GetIntersect(Vec2 A, Vec2 D, Vec2 B, Vec2 E);
 	Radians GetHeadingOfVector(float DX, float DY);
 
 	// Multiply matrix Ra x Rb to make RaRb. This has the property that Ra X Rb x v = (Ra x Rb) x v = Ra x (Rb x v)

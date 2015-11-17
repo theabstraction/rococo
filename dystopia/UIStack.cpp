@@ -101,11 +101,25 @@ namespace
 			if (panes.empty()) Throw(0, L"UIStack::PopTop failed. No UI panes.");
 			PaneBind top = panes.back();
 			panes.pop_back();
+
+			UIStackPaneChange change;
+			change.poppedId = top.id;
+
+			if (!panes.empty())
+			{
+				change.newTopId = panes.back().id;
+				postbox.SendDirect(change);
+			}
+
 			return top;
 		}
 
 		virtual PaneBind PushTop(ID_PANE id)
 		{
+			Unlock();
+
+			Sync sync(*this);
+
 			if (factory == nullptr) Throw(0, L"No factory has been assigned to the UI stack");
 
 			auto* pane = factory->GetOrCreatePane(id);
@@ -122,8 +136,15 @@ namespace
 			Unlock();
 
 			Sync sync(*this);
+
+			UIStackPaneChange change;
+			
+			change.newTopId = id;
+
 			panes.push_back(PaneBind{ *pane, id });
-			pane->OnTop();
+
+			postbox.SendDirect(change);
+
 			return panes.back();
 		}
 
