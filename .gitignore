@@ -29,3 +29,5 @@
 *.sxh.sxy
 /sexy/*.sdf
 *.xcf
+/dystopia/dystopia.version.cpp
+*.enc

@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{808DA513-B032-4192-8628-B0568EE43BF1}</ProjectGuid>
+    <ProjectGuid>{01A145ED-19D8-4172-96A0-6723256CFF0B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>dystopia</RootNamespace>
+    <RootNamespace>buildmaker</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -75,7 +75,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IntDir>..\intermediate\$(ProjectName)\$(Configuration)\</IntDir>
-    <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -83,7 +82,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IntDir>..\intermediate\$(ProjectName)\$(Configuration)\</IntDir>
-    <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -91,51 +89,27 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\include\;..\sexy\common\</AdditionalIncludeDirectories>
-      <PrecompiledHeaderFile>dystopia.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)\lib</AdditionalLibraryDirectories>
-      <StackCommitSize>1048576</StackCommitSize>
-      <AdditionalDependencies>$(ProjectDir)dystopia.version.$(Configuration).obj;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PreBuildEvent>
-      <Command>$(SolutionDir)copy.sexy.to.game.debug.bat</Command>
-    </PreBuildEvent>
-    <PreBuildEvent>
-      <Message>
-      </Message>
-    </PreBuildEvent>
-    <CustomBuildStep>
-      <Command>..\sexy\Bin\x64Debug\sexy.bennyhill.exe $(ProjectDir) dystopia.sxh dystopia.sxh.h</Command>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Outputs>dystopia.sxh.h;dystopia.sxh.inl</Outputs>
-      <Inputs>dystopia.sxh;config.xc</Inputs>
-    </CustomBuildStep>
-    <PreLinkEvent>
-      <Command>$(ProjectDir)pre.link.bat</Command>
-    </PreLinkEvent>
-    <PreLinkEvent>
-      <Message>build version generation</Message>
-    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -145,11 +119,11 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
@@ -158,116 +132,23 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\include\;..\sexy\common\</AdditionalIncludeDirectories>
-      <PrecompiledHeaderFile>dystopia.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)\lib</AdditionalLibraryDirectories>
-      <StackCommitSize>1048576</StackCommitSize>
-      <AdditionalDependencies>$(ProjectDir)dystopia.version.$(Configuration).obj;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PreBuildEvent>
-      <Command>$(SolutionDir)copy.sexy.to.game.release.bat</Command>
-    </PreBuildEvent>
-    <PreBuildEvent>
-      <Message>
-      </Message>
-    </PreBuildEvent>
-    <CustomBuildStep>
-      <Command>..\sexy\Bin\x64Debug\sexy.bennyhill.exe $(ProjectDir) dystopia.sxh dystopia.sxh.h</Command>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Outputs>dystopia.sxh.h;dystopia.sxh.inl</Outputs>
-      <Inputs>dystopia.sxh;config.xc</Inputs>
-    </CustomBuildStep>
-    <PreLinkEvent>
-      <Command>$(ProjectDir)pre.link.bat</Command>
-    </PreLinkEvent>
-    <PreLinkEvent>
-      <Message>build version generation</Message>
-    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="actions.cpp" />
-    <ClCompile Include="ai.lib.cpp" />
-    <ClCompile Include="app.cpp" />
-    <ClCompile Include="bone.library.cpp" />
-    <ClCompile Include="dialogs.cpp" />
-    <ClCompile Include="Environment.cpp" />
-    <ClCompile Include="generator.city.cpp" />
-    <ClCompile Include="generator.house.cpp" />
-    <ClCompile Include="gui.cpp" />
-    <ClCompile Include="pane.context.menu.cpp" />
-    <ClCompile Include="pane.inventory.cpp" />
-    <ClCompile Include="pane.personal.info.cpp" />
-    <ClCompile Include="pane.stats.cpp" />
-    <ClCompile Include="human.bobby.cpp" />
-    <ClCompile Include="human.vigilante.cpp" />
-    <ClCompile Include="inventory.cpp" />
-    <ClCompile Include="pane.isometric.cpp" />
-    <ClCompile Include="keyboard.cpp" />
-    <ClCompile Include="level.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="meshes.cpp" />
-    <ClCompile Include="pane.dialog.box.cpp" />
-    <ClCompile Include="pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="player.verbs.cpp" />
-    <ClCompile Include="rpg.rules.kudos.cpp" />
-    <ClCompile Include="script.natives.cpp" />
-    <ClCompile Include="scripts.cpp" />
-    <ClCompile Include="skeleton.cpp" />
-    <ClCompile Include="UIStack.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="dx11.renderer.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\include\rococo.api.h" />
-    <ClInclude Include="..\include\rococo.io.h" />
-    <ClInclude Include="..\include\rococo.keys.h" />
-    <ClInclude Include="..\include\rococo.maths.h" />
-    <ClInclude Include="..\include\rococo.post.h" />
-    <ClInclude Include="..\include\rococo.renderer.h" />
-    <ClInclude Include="..\include\rococo.strings.h" />
-    <ClInclude Include="..\include\rococo.types.h" />
-    <ClInclude Include="..\include\rococo.ui.h" />
-    <ClInclude Include="dystopia.constants.h" />
-    <ClInclude Include="dystopia.h" />
-    <ClInclude Include="dystopia.ui.h" />
-    <ClInclude Include="dystopia.post.h" />
-    <ClInclude Include="human.types.h" />
-    <ClInclude Include="meshes.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="rpg.rules.h" />
-    <ClInclude Include="skeleton.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\include\rococo.maths.inl" />
-    <None Include="component.system.inl" />
-    <None Include="dystopia.sxh">
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
-      <FileType>Document</FileType>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
-    </None>
-    <None Include="config.xc" />
-    <ClCompile Include="controls.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="build.maker.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

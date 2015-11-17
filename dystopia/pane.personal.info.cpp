@@ -8,8 +8,12 @@
 
 #include "rpg.rules.h"
 
+#include "rococo.strings.h"
+
 using namespace Rococo;
 using namespace Dystopia;
+
+void GetBuildVersion(unsigned& major, unsigned& minor);
 
 namespace
 {
@@ -195,6 +199,14 @@ namespace
 			sb->AppendFormat(L"one he'd probably call you that. Your life is so miserable and meaningless death means nothing to you.");
 			auto& job = Graphics::CreateLeftAlignedText(ssg, infoRect, 150, 50, 3, *sb, RGBAb(255, 255, 255));
 			grc.RenderText({ 0,0 }, job);
+
+			unsigned major, minor;
+			GetBuildVersion(major, minor);
+
+			wchar_t versionText[64];
+			SafeFormat(versionText, _TRUNCATE, L"Build %u.%04u", major, minor);
+
+			Graphics::RenderHorizontalCentredText(grc, versionText, RGBAb(255, 255, 255), 9, { rect.right - 120,rect.top });
 		}
 	};
 }
