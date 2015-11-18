@@ -94,3 +94,16 @@
 	(construct ProxyIGui pObject)
 )
 
+(interface Dystopia.Journal.IJournal
+	(AddHistory (Sys.Type.IString title)(Sys.Type.IString body) -> )
+)
+
+(class ProxyIJournal (implements Dystopia.Journal.IJournal) (Pointer hObject))
+	(method ProxyIJournal.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIJournal.AddHistory (Sys.Type.IString title)(Sys.Type.IString body) ->  : (Dystopia.Journal.Native.IJournalAddHistory this.hObject title body))
+
+(factory Dystopia.Journal.GetJournal Dystopia.Journal.IJournal  :
+	(Pointer pObject = (Dystopia.Journal.Native.GetHandleForIJournal0 ))
+	(construct ProxyIJournal pObject)
+)
+

@@ -209,6 +209,7 @@
     <ClCompile Include="gui.cpp" />
     <ClCompile Include="pane.context.menu.cpp" />
     <ClCompile Include="pane.inventory.cpp" />
+    <ClCompile Include="pane.journal.cpp" />
     <ClCompile Include="pane.personal.info.cpp" />
     <ClCompile Include="pane.stats.cpp" />
     <ClCompile Include="human.bobby.cpp" />
@@ -246,6 +247,7 @@
     <ClInclude Include="..\include\rococo.ui.h" />
     <ClInclude Include="dystopia.constants.h" />
     <ClInclude Include="dystopia.h" />
+    <ClInclude Include="dystopia.sxh.h" />
     <ClInclude Include="dystopia.ui.h" />
     <ClInclude Include="dystopia.post.h" />
     <ClInclude Include="human.types.h" />
@@ -268,6 +270,7 @@
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <None Include="dystopia.sxh.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

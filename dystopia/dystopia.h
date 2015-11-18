@@ -112,6 +112,7 @@ namespace Dystopia
 		virtual ID_ENTITY GetPlayerId() const = 0;
 		virtual Vec3 GetForwardDirection(ID_ENTITY id) = 0;
 		virtual cr_vec3 GetPosition(ID_ENTITY id) const = 0;
+		virtual const Vec3* TryGetPosition(ID_ENTITY id) const = 0;
 		virtual cr_vec3 GetVelocity(ID_ENTITY id) const = 0;
 		virtual bool TryGetTransform(ID_ENTITY id, Matrix4x4& transform);
 		virtual void SetPosition(ID_ENTITY id, cr_vec3 pos) = 0;
@@ -236,6 +237,41 @@ namespace Dystopia
 		Relay_Next,
 	};
 
+	struct HistoricEvent;
+
+	struct IJournalSupervisor : public IJournal
+	{
+		virtual bool IsReadyForRender() const = 0;
+		virtual size_t Count() const = 0;
+		virtual HistoricEvent& GetEvent(size_t index) = 0;
+		virtual void Free() = 0;
+	};
+
+	enum GoalState
+	{
+		GoalState_Ongoing,
+		GoalState_Complete,
+		GoalState_Failed
+	};
+
+	struct IGoal
+	{
+		virtual const wchar_t* Title() const = 0;
+		virtual const wchar_t* Body() const = 0;
+		virtual GoalState OnTimestep(float gameTime, float dt) = 0;
+		virtual GoalState State() const = 0;
+	};
+
+	struct IGoalSupervisor : public IGoal
+	{
+		virtual void Free() = 0;
+	};
+
+	IGoalSupervisor* CreateGoal_MeetObject(Environment& e, Metres _radius, const wchar_t* _title, const wchar_t* _body, ID_ENTITY _a, ID_ENTITY _b);
+
+	IJournalSupervisor* CreateJournal();
+
+	// Dystopia object environment - not necessarily well defined when passed to a constructor. Check the app constructor if in doubt.
 	struct Environment
 	{
 		IInstallation& installation;
@@ -250,6 +286,7 @@ namespace Dystopia
 		IControls& controls;
 		IBitmapCache& bitmapCache;
 		ILevel& level;
+		IJournalSupervisor& journal;
 	};
 
 	enum ActionMapType
@@ -265,6 +302,7 @@ namespace Dystopia
 		ActionMapTypeRotate,
 		ActionMapTypeScale,
 		ActionMapTypeStats,
+		ActionMapTypeJournal,
 		ActionMapType_TypeCount
 	};
 

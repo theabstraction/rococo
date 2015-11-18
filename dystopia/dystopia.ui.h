@@ -25,6 +25,7 @@ namespace Dystopia
 	IUIControlPane* CreatePaneIsometric(Environment& e);
 	IUIPaneSupervisor* CreatePaneStats(Environment& e);
 	IUIPaneSupervisor* CreatePersonalInfoPanel(Environment& e);
+	IUIPaneSupervisor* CreateJournalPane(Environment& e);
 
 	IUIPaneSupervisor* CreateDialogBox(Environment& e, IEventCallback<GuiEventArgs>& _handler,
 		const wchar_t* _title,
@@ -76,7 +77,8 @@ namespace Dystopia
 		ID_PANE_GENERIC_DIALOG_BOX,
 		ID_PANE_GENERIC_CONTEXT_MENU,
 		ID_PANE_INVENTORY_SELF,
-		ID_PANE_PERSONAL_INFO
+		ID_PANE_PERSONAL_INFO,
+		ID_PANE_JOURNAL
 	};
 
 	enum ID_CONTEXT_COMMAND : int32

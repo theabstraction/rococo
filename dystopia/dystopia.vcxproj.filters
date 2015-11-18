@@ -105,6 +105,9 @@
     <ClCompile Include="rpg.rules.kudos.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pane.journal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dx11.renderer.rc">
@@ -166,6 +169,9 @@
     <ClInclude Include="rpg.rules.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="dystopia.sxh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="dystopia.sxh">
@@ -178,6 +184,9 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\include\rococo.maths.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="dystopia.sxh.inl">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

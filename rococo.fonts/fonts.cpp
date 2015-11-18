@@ -18,7 +18,7 @@ namespace
 
 	bool IsPointIn(const Quad& clipRect, const Vec2& p)
 	{
-		if (p.x > clipRect.left && p.x < clipRect.right && p.y > clipRect.top && p.y < clipRect.bottom)
+		if (p.x >= clipRect.left && p.x <= clipRect.right && p.y >= clipRect.top && p.y <= clipRect.bottom)
 		{
 			return true;
 		}
@@ -378,6 +378,8 @@ namespace
 			{
 				ddx0 = glyphClip.left - p.x;
 				p.x += ddx0;
+				dx -= ddx0;
+				t0.x += ddx0;
 			}
 
 			if ((p.x + dx) > glyphClip.right)
@@ -390,6 +392,7 @@ namespace
 			{
 				ddy0 = glyphClip.top - p.y;
 				p.y += ddy0;
+				dy -= ddy0;
 			}
 
 			if ((p.y + dy) > glyphClip.bottom)

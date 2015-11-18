@@ -95,3 +95,13 @@
 	)
 	(factory Dystopia.Gui.GetGui)
 )
+
+(interface
+	(as.sxy Dystopia.Journal.IJournal "../content/scripts/dystopia") 
+	(as.cpp Dystopia.IJournal "dystopia")
+	(context factory Dystopia.IJournal)
+	(methods
+		(AddHistory (const IString title)(const IString body)->)
+	)
+	(factory Dystopia.Journal.GetJournal)
+)

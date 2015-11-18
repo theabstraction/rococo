@@ -18,9 +18,6 @@
 	(meshes.Load "!mesh/human.sxy" 3)
 	(meshes.Load "!mesh/rifle.sxy" 4)
 	
-	(Int32 intangible = (#Dystopia.Entities.SolidFlagsNone))
-	(Int32 tangible = (#Dystopia.Entities.SolidFlagsObstacle))
-	
 	(Dystopia.Levels.ILevel level (Dystopia.Levels.GetLevel))
 	(level.Clear)
 	
@@ -32,6 +29,14 @@
 	
 	(level.GenerateCity "Stafford")
 	(level.PopulateCity 2.5)
+	
+	(Dystopia.Journal.IJournal journal (Dystopia.Journal.GetJournal))
+	
+	(journal.AddHistory "The three witches"
+		"There once were three witches who lived in an old treacle oven. Their names were Matilda, Diana and Yoda. It was the vanity of Matilda that caused them one day to fight, and their fight cracked open the oven, killing all three. The end.")
+
+	(journal.AddHistory "The Great Egg"
+		"A while before the creation of the Great Egg came the Great Mongoose. His heart was as pure as the driven void, and his voice was as beautiful as any paradox. The faith he had in geometrical absurdities caused him much mellow.")
 			
 	(exitCode = 0)
 )

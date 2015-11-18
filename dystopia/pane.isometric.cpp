@@ -259,6 +259,9 @@ namespace
 					e.postbox.PostForLater(sitog, false);
 					break;
 				}
+			case ActionMapTypeJournal:
+				if (map.isActive) e.uiStack.PushTop(ID_PANE_JOURNAL);
+				break;
 			default:
 				intent.OnEvent(map);
 				break;

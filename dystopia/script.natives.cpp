@@ -19,6 +19,11 @@ namespace Dystopia
 		return _context;
 	}
 
+	IJournal* FactoryConstructDystopiaJournalGetJournal(IJournal* _context)
+	{
+		return _context;
+	}
+
 	ILevelBuilder* FactoryConstructDystopiaLevelsGetLevel(ILevel* _level)
 	{
 		return &_level->Builder();

@@ -46,13 +46,15 @@ namespace
 		AutoFree<IBitmapCacheSupervisor> bitmaps;
 		AutoFree<ILevelSupervisor> level;
 		AutoFree<IBoneLibrarySupervisor> boneLibrary;
+		AutoFree<IJournalSupervisor> journal;
 		Environment e; // N.B some instances use e in constructor before e is initialized - this is to create a reference for internal use.
 		AutoFree<ILevelLoader> levelLoader;
 		AutoFree<IUIControlPane> isometricGameWorldView;
 		AutoFree<IUIPaneSupervisor> statsPaneSelf;
 		AutoFree<IUIPaneSupervisor> inventoryPaneSelf;
 		AutoFree<IUIPaneSupervisor> personalInfoPanel;
-	
+		AutoFree<IUIPaneSupervisor> journalPane;
+		
 	public:
 		DystopiaApp(IRenderer& _renderer, IInstallation& _installation) :
 			postbox(Post::CreatePostbox()),
@@ -65,12 +67,15 @@ namespace
 			bitmaps(CreateBitmapCache(_installation, _renderer)),
 			level(CreateLevel(e, *this)),
 			boneLibrary(CreateBoneLibrary(_installation, _renderer, *sourceCache)),
-			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes, *boneLibrary, *gui, *uiStack, *postbox, *controls, *bitmaps, *level },
+			journal(CreateJournal()),
+			// remember that order of construction here is order fields appear in the private section above, not in the order in this constructor
+			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes, *boneLibrary, *gui, *uiStack, *postbox, *controls, *bitmaps, *level, *journal },
 			levelLoader(CreateLevelLoader(e)),
 			isometricGameWorldView(CreatePaneIsometric(e)),
 			statsPaneSelf(CreatePaneStats(e)),
 			inventoryPaneSelf(CreateInventoryPane(e)),
-			personalInfoPanel(CreatePersonalInfoPanel(e))
+			personalInfoPanel(CreatePersonalInfoPanel(e)),
+			journalPane(CreateJournalPane(e))
 		{
 			uiStack->SetFactory(*this);
 			gui->SetEventHandler(this);
@@ -115,6 +120,8 @@ namespace
 				return inventoryPaneSelf;
 			case ID_PANE_PERSONAL_INFO:
 				return personalInfoPanel;
+			case ID_PANE_JOURNAL:
+				return journalPane;
 			default:
 				return nullptr;
 			}

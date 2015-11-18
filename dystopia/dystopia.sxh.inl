@@ -813,3 +813,55 @@ namespace Dystopia
 	}
 
 }
+// BennyHill generated Sexy native functions for Dystopia::IJournal 
+namespace
+{
+	using namespace Sexy;
+	using namespace Sexy::Sex;
+	using namespace Sexy::Script;
+	using namespace Sexy::Compiler;
+	void NativeDystopiaIJournalAddHistory(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(void*);
+
+		IString* _body;
+		ReadInput(_body, _sf, -_offset);
+		fstring body { _body->buffer, _body->length };
+
+		_offset += sizeof(void*);
+
+		IString* _title;
+		ReadInput(_title, _sf, -_offset);
+		fstring title { _title->buffer, _title->length };
+
+		Dystopia::IJournal* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddHistory(title, body);
+	}
+
+	void NativeGetHandleForDystopiaJournalGetJournal(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* sf = _nce.cpu.SF();
+		ptrdiff_t offset = 2 * sizeof(size_t);
+		Dystopia::IJournal* nceContext = reinterpret_cast<Dystopia::IJournal*>(_nce.context);
+		// Uses: Dystopia::IJournal* FactoryConstructDystopiaJournalGetJournal(Dystopia::IJournal* _context);
+		Dystopia::IJournal* pObject = FactoryConstructDystopiaJournalGetJournal(nceContext);
+		offset += sizeof(void*);
+		WriteOutput(pObject, sf, -offset);
+	}
+}
+namespace Dystopia
+{
+	void AddNativeCalls_DystopiaIJournal(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IJournal* _nceContext)
+	{
+
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.Journal.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForDystopiaJournalGetJournal, _nceContext, SEXTEXT("GetHandleForIJournal0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeDystopiaIJournalAddHistory, nullptr, SEXTEXT("IJournalAddHistory (Pointer hObject)(Sys.Type.IString title)(Sys.Type.IString body) -> "));
+	}
+
+}

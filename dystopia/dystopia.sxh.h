@@ -104,3 +104,15 @@ namespace Dystopia
 	void AddNativeCalls_DystopiaIGui(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IGui* nceContext);
 }
 
+namespace Dystopia { 
+	struct NO_VTABLE IJournal
+	{
+		virtual void AddHistory(const fstring& title, const fstring& body) = 0;
+	};
+}
+
+namespace Dystopia
+{
+	void AddNativeCalls_DystopiaIJournal(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IJournal* nceContext);
+}
+

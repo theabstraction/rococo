@@ -658,6 +658,17 @@ namespace
 			return i->second.position;
 		}
 
+		virtual const Vec3* TryGetPosition(ID_ENTITY id) const
+		{
+			auto i = solids.find(id);
+			if (i == solids.end())
+			{
+				return nullptr;
+			}
+
+			return &i->second.position;
+		}
+
 		virtual void SetNextAIUpdate(ID_ENTITY id, float nextUpdateTime)
 		{
 			auto i = allies.find(id);
@@ -1176,6 +1187,7 @@ namespace
 			AddNativeCalls_DystopiaIMeshes(args.ss, &e.meshes);
 			AddNativeCalls_DystopiaILevelBuilder(args.ss, &e.level);
 			AddNativeCalls_DystopiaIGui(args.ss, &e.gui);
+			AddNativeCalls_DystopiaIJournal(args.ss, &e.journal);
 		}
 
 		virtual void Load(const wchar_t* resourceName, bool isReloading)

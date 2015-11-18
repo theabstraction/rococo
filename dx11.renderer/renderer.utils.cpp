@@ -168,7 +168,6 @@ namespace
 					{
 						DrawNextGlyph('-', builder);
 						builder.SetCursor(Vec2{ targetRect.left, nextGlyphPos.y + lastCellHeight });
-						DrawNextGlyph(' ', builder);
 						DrawNextGlyph('-', builder);
 					}
 					DrawNextGlyph((char)c, builder);
