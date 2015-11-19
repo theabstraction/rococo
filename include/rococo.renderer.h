@@ -45,8 +45,8 @@ namespace Rococo
 		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
 		virtual void FlushLayer() = 0;
 
-		virtual Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job) = 0;
-		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job) = 0;
+		virtual Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
+		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
 		virtual IRenderer& Renderer() = 0;
 		virtual auto SelectTexture(ID_TEXTURE id) -> Vec2i = 0; // select texture and returns span
 	};

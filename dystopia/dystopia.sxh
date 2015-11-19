@@ -102,6 +102,7 @@
 	(context factory Dystopia.IJournal)
 	(methods
 		(AddHistory (const IString title)(const IString body)->)
+		(AddGoalMeet (const IString title)(const IString body)(IdEntity a)(IdEntity b) (Metres radius)->)
 	)
 	(factory Dystopia.Journal.GetJournal)
 )

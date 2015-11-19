@@ -20,6 +20,16 @@ namespace
 		return Quad((float)rect.left, (float)rect.top, (float)rect.right, (float)rect.bottom);
 	}
 
+	Quad Intersect(const Quad& a, const Quad& b)
+	{
+		Quad q;
+		q.left = max(a.left, b.left);
+		q.right = min(a.right, b.right);
+		q.top = max(a.top, b.top);
+		q.bottom = min(a.bottom, b.bottom);
+		return q;
+	}
+
 	class HorizontalCentredText : public Fonts::IDrawTextJob
 	{
 	private:
@@ -119,8 +129,11 @@ namespace
 			builder.SetTextColour(colour);
 			builder.SetShadow(false);
 			builder.SetFontIndex(fontIndex);
-
-			builder.SetClipRect(Quad((float)targetRect.left, (float)targetRect.top, (float)targetRect.right, (float)targetRect.bottom));
+			
+			auto outerClipRect = builder.GetClipRect();
+			auto innerClipRect = targetRect;
+			
+			builder.SetClipRect(Intersect(outerClipRect, innerClipRect));
 
 			builder.SetCursor(Vec2{ targetRect.left, targetRect.top });
 

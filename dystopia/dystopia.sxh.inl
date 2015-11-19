@@ -842,6 +842,40 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddHistory(title, body);
 	}
+	void NativeDystopiaIJournalAddGoalMeet(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Metres radius;
+		_offset += sizeof(radius);
+
+		ReadInput(radius, _sf, -_offset);
+		ID_ENTITY b;
+		_offset += sizeof(b);
+
+		ReadInput(b, _sf, -_offset);
+		ID_ENTITY a;
+		_offset += sizeof(a);
+
+		ReadInput(a, _sf, -_offset);
+		_offset += sizeof(void*);
+
+		IString* _body;
+		ReadInput(_body, _sf, -_offset);
+		fstring body { _body->buffer, _body->length };
+
+		_offset += sizeof(void*);
+
+		IString* _title;
+		ReadInput(_title, _sf, -_offset);
+		fstring title { _title->buffer, _title->length };
+
+		Dystopia::IJournal* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddGoalMeet(title, body, a, b, radius);
+	}
 
 	void NativeGetHandleForDystopiaJournalGetJournal(NativeCallEnvironment& _nce)
 	{
@@ -862,6 +896,7 @@ namespace Dystopia
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.Journal.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForDystopiaJournalGetJournal, _nceContext, SEXTEXT("GetHandleForIJournal0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeDystopiaIJournalAddHistory, nullptr, SEXTEXT("IJournalAddHistory (Pointer hObject)(Sys.Type.IString title)(Sys.Type.IString body) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaIJournalAddGoalMeet, nullptr, SEXTEXT("IJournalAddGoalMeet (Pointer hObject)(Sys.Type.IString title)(Sys.Type.IString body)(Int64 a)(Int64 b)(Float32 radius) -> "));
 	}
 
 }

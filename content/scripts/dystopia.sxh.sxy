@@ -96,11 +96,13 @@
 
 (interface Dystopia.Journal.IJournal
 	(AddHistory (Sys.Type.IString title)(Sys.Type.IString body) -> )
+	(AddGoalMeet (Sys.Type.IString title)(Sys.Type.IString body)(Int64 a)(Int64 b)(Float32 radius) -> )
 )
 
 (class ProxyIJournal (implements Dystopia.Journal.IJournal) (Pointer hObject))
 	(method ProxyIJournal.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIJournal.AddHistory (Sys.Type.IString title)(Sys.Type.IString body) ->  : (Dystopia.Journal.Native.IJournalAddHistory this.hObject title body))
+	(method ProxyIJournal.AddGoalMeet (Sys.Type.IString title)(Sys.Type.IString body)(Int64 a)(Int64 b)(Float32 radius) ->  : (Dystopia.Journal.Native.IJournalAddGoalMeet this.hObject title body a b radius))
 
 (factory Dystopia.Journal.GetJournal Dystopia.Journal.IJournal  :
 	(Pointer pObject = (Dystopia.Journal.Native.GetHandleForIJournal0 ))

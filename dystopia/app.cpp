@@ -67,7 +67,7 @@ namespace
 			bitmaps(CreateBitmapCache(_installation, _renderer)),
 			level(CreateLevel(e, *this)),
 			boneLibrary(CreateBoneLibrary(_installation, _renderer, *sourceCache)),
-			journal(CreateJournal()),
+			journal(CreateJournal(e)),
 			// remember that order of construction here is order fields appear in the private section above, not in the order in this constructor
 			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes, *boneLibrary, *gui, *uiStack, *postbox, *controls, *bitmaps, *level, *journal },
 			levelLoader(CreateLevelLoader(e)),
@@ -80,6 +80,7 @@ namespace
 			uiStack->SetFactory(*this);
 			gui->SetEventHandler(this);
 			level->OnCreated();
+			journal->PostConstruct();
 		}
 		
 		~DystopiaApp()

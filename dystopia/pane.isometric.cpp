@@ -256,9 +256,9 @@ namespace
 				if (map.isActive && e.level.SelectedId())
 				{
 					SelectItemOnGround sitog{ e.level.SelectedId() };
-					e.postbox.PostForLater(sitog, false);
-					break;
+					e.postbox.PostForLater(sitog, false);	
 				}
+				break;
 			case ActionMapTypeJournal:
 				if (map.isActive) e.uiStack.PushTop(ID_PANE_JOURNAL);
 				break;

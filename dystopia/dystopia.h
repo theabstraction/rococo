@@ -239,14 +239,6 @@ namespace Dystopia
 
 	struct HistoricEvent;
 
-	struct IJournalSupervisor : public IJournal
-	{
-		virtual bool IsReadyForRender() const = 0;
-		virtual size_t Count() const = 0;
-		virtual HistoricEvent& GetEvent(size_t index) = 0;
-		virtual void Free() = 0;
-	};
-
 	enum GoalState
 	{
 		GoalState_Ongoing,
@@ -258,8 +250,17 @@ namespace Dystopia
 	{
 		virtual const wchar_t* Title() const = 0;
 		virtual const wchar_t* Body() const = 0;
-		virtual GoalState OnTimestep(float gameTime, float dt) = 0;
 		virtual GoalState State() const = 0;
+	};
+
+	struct IJournalSupervisor : public IJournal
+	{
+		virtual size_t Count() const = 0;
+		virtual void EnumerateGoals(IEnumerator<IGoal>& cb) = 0;
+		virtual void Free() = 0;
+		virtual HistoricEvent& GetEvent(size_t index) = 0;
+		virtual bool IsReadyForRender() const = 0;
+		virtual void PostConstruct() = 0;
 	};
 
 	struct IGoalSupervisor : public IGoal
@@ -267,9 +268,9 @@ namespace Dystopia
 		virtual void Free() = 0;
 	};
 
-	IGoalSupervisor* CreateGoal_MeetObject(Environment& e, Metres _radius, const wchar_t* _title, const wchar_t* _body, ID_ENTITY _a, ID_ENTITY _b);
+	IGoalSupervisor* CreateGoal_MeetObject(Environment& e, Metres radius, const wchar_t* title, const wchar_t* body, ID_ENTITY a, ID_ENTITY b);
 
-	IJournalSupervisor* CreateJournal();
+	IJournalSupervisor* CreateJournal(Environment& e);
 
 	// Dystopia object environment - not necessarily well defined when passed to a constructor. Check the app constructor if in doubt.
 	struct Environment

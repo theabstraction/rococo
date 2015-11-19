@@ -38,6 +38,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.maths.test", "rococo
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.util", "rococo.util\rococo.util.vcxproj", "{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Content", "Content", "{BF615B7F-43F1-42AC-AC74-C0600CA01BF6}"
+	ProjectSection(SolutionItems) = preProject
+		content\scripts\dystopia.sxh.sxy = content\scripts\dystopia.sxh.sxy
+		content\levels\level1.sxy = content\levels\level1.sxy
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

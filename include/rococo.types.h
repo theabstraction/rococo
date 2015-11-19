@@ -73,6 +73,11 @@ namespace Rococo
 		const T* operator -> () const { return t; }
 		const T& operator * () const { return *t; }
 	};
+
+	template<class T> ROCOCOAPI IEnumerator
+	{
+		virtual void operator()(const T& t) = 0;
+	};
 }
 
 #endif

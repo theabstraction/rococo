@@ -319,8 +319,7 @@ namespace
 		AutoRelease<ID3D11BlendState> disableBlend;
 
 		Fonts::IFontSupervisor* fonts;
-		Quad clipRect;
-
+		
 		AutoRelease<ID3D11Buffer> vector4Buffer;
 		AutoRelease<ID3D11Buffer> globalStateBuffer;
 
@@ -362,7 +361,7 @@ namespace
 		Windows::IWindow* window;
 
 		DX11AppRenderer(ID3D11Device& _device, ID3D11DeviceContext& _dc, IDXGIFactory& _factory, IInstallation& installation) :
-			device(_device), dc(_dc), factory(_factory), fonts(nullptr), clipRect(-10000.0f, -10000.0f, 10000.0f, 10000.0f), hRenderWindow(0),
+			device(_device), dc(_dc), factory(_factory), fonts(nullptr), hRenderWindow(0),
 			window(nullptr), cursor{ ID_TEXTURE(), {0,0}, {1,1}, {0,0} }
 		{
 			static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
@@ -804,19 +803,39 @@ namespace
 			return ID_PIXEL_SHADER(pixelShaders.size() - 1);
 		}
 
-		void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job)
+		void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect)
 		{
 			char stackBuffer[128];
 			Fonts::IGlyphRenderPipeline* pipeline = Fonts::CreateGlyphRenderPipeline(stackBuffer, sizeof(stackBuffer), *this);
-			RouteDrawTextBasic(pos, job, *fonts, *pipeline, clipRect);
+
+			Quad qrect(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
+
+			if (clipRect != nullptr)
+			{
+				qrect.left = (float)clipRect->left;
+				qrect.right = (float)clipRect->right;
+				qrect.top = (float)clipRect->top;
+				qrect.bottom = (float)clipRect->bottom;
+			}
+			RouteDrawTextBasic(pos, job, *fonts, *pipeline, qrect);
 		}
 
-		Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job)
+		Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect)
 		{
 			char stackBuffer[128];
 			SpanEvaluator spanEvaluator;
 			Fonts::IGlyphRenderPipeline* pipeline = Fonts::CreateGlyphRenderPipeline(stackBuffer, sizeof(stackBuffer), spanEvaluator);
-			RouteDrawTextBasic(pos, job, *fonts, *pipeline, clipRect);
+
+			Quad qrect(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
+
+			if (clipRect != nullptr)
+			{
+				qrect.left = (float)clipRect->left;
+				qrect.right = (float)clipRect->right;
+				qrect.top = (float)clipRect->top;
+				qrect.bottom = (float)clipRect->bottom;
+			}
+			RouteDrawTextBasic(pos, job, *fonts, *pipeline, qrect);
 
 			return Quantize(spanEvaluator.Span());
 		}

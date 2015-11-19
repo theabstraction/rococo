@@ -31,6 +31,7 @@ namespace Rococo
 		{
 			virtual void AppendChar(char c, Quad& outputRect) = 0;
 			virtual Vec2 GetCursor() = 0;
+			virtual Quad GetClipRect() const = 0;
 			virtual void SetClipRect(const Quad& rect) = 0;
 			virtual void SetCursor(const Vec2& bottomLeftOfNextGlyph) = 0;
 			virtual void SetFirstColumnIndex(int index) = 0;

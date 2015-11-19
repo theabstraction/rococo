@@ -325,11 +325,6 @@ namespace Rococo
 		return v / Length(v);
 	}
 
-	template<class T> ROCOCOAPI IEnumerator
-	{
-		virtual void operator()(const T& t) = 0;
-	};
-
 	struct Plane
 	{
 		Vec4 normal;

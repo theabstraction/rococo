@@ -230,6 +230,11 @@ namespace
 			return cursor;
 		}
 
+		virtual Quad GetClipRect() const
+		{
+			return clipRect;
+		}
+
 		virtual void SetClipRect(const Quad& clipRect)
 		{
 			this->clipRect = clipRect;
@@ -393,6 +398,7 @@ namespace
 				ddy0 = glyphClip.top - p.y;
 				p.y += ddy0;
 				dy -= ddy0;
+				t0.y += ddy0;
 			}
 
 			if ((p.y + dy) > glyphClip.bottom)
