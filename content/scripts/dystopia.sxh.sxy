@@ -96,13 +96,17 @@
 
 (interface Dystopia.Journal.IJournal
 	(AddHistory (Sys.Type.IString title)(Sys.Type.IString body) -> )
-	(AddGoalMeet (Sys.Type.IString title)(Sys.Type.IString body)(Int64 a)(Int64 b)(Float32 radius) -> )
+	(AddGoalMeet (Sys.Type.IString title)(Sys.Type.IString body)(Int64 a)(Int64 b)(Float32 radius)(Sys.Type.IString completionFunction) -> (Int64 id))
+	(CompleteFirst (Int64 forGoalId)(Int64 precusorGoalId) -> )
+	(FailFirst (Int64 forGoalId)(Int64 precusorGoalId) -> )
 )
 
 (class ProxyIJournal (implements Dystopia.Journal.IJournal) (Pointer hObject))
 	(method ProxyIJournal.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIJournal.AddHistory (Sys.Type.IString title)(Sys.Type.IString body) ->  : (Dystopia.Journal.Native.IJournalAddHistory this.hObject title body))
-	(method ProxyIJournal.AddGoalMeet (Sys.Type.IString title)(Sys.Type.IString body)(Int64 a)(Int64 b)(Float32 radius) ->  : (Dystopia.Journal.Native.IJournalAddGoalMeet this.hObject title body a b radius))
+	(method ProxyIJournal.AddGoalMeet (Sys.Type.IString title)(Sys.Type.IString body)(Int64 a)(Int64 b)(Float32 radius)(Sys.Type.IString completionFunction) -> (Int64 id) : (Dystopia.Journal.Native.IJournalAddGoalMeet this.hObject title body a b radius completionFunction -> id))
+	(method ProxyIJournal.CompleteFirst (Int64 forGoalId)(Int64 precusorGoalId) ->  : (Dystopia.Journal.Native.IJournalCompleteFirst this.hObject forGoalId precusorGoalId))
+	(method ProxyIJournal.FailFirst (Int64 forGoalId)(Int64 precusorGoalId) ->  : (Dystopia.Journal.Native.IJournalFailFirst this.hObject forGoalId precusorGoalId))
 
 (factory Dystopia.Journal.GetJournal Dystopia.Journal.IJournal  :
 	(Pointer pObject = (Dystopia.Journal.Native.GetHandleForIJournal0 ))

@@ -361,6 +361,24 @@ namespace Rococo
 		virtual void Release(const wchar_t* resourceName) = 0;
 	};
 
+	struct IArgStack
+	{
+		virtual void PushInt32(int32 value) = 0;
+		virtual void PushInt64(int64 value) = 0;
+		virtual void PushPointer(void * value) = 0;
+	};
+
+	struct IOutputStack
+	{
+		virtual int32 PopInt32() = 0;
+	};
+
+	struct IArgEnumerator
+	{
+		virtual void PushArgs(IArgStack& args) = 0;
+		virtual void PopOutputs(IOutputStack& args) = 0;
+	};
+
 	void DebuggerLoop(Sexy::Script::IPublicScriptSystem &ss, IDebuggerWindow& debugger);
 
 	struct ScriptCompileArgs
@@ -368,6 +386,8 @@ namespace Rococo
 		Sexy::Script::IPublicScriptSystem& ss;
 	};
 
+	void InitSexyScript(Sexy::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Sexy::Script::IPublicScriptSystem& ss, ISourceCache& sources, IEventCallback<ScriptCompileArgs>& onCompile);
+	void ExecuteFunction(const wchar_t* name, IArgEnumerator& args, Sexy::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
 	void ExecuteSexyScript(Sexy::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Sexy::Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile);
 	ISourceCache* CreateSourceCache(IInstallation& installation);
 

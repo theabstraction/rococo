@@ -46,6 +46,8 @@ namespace Dystopia
 
 	enum StatIndex : int32;
 
+	ROCOCO_ID(ID_GOAL, size_t, -1)
+
 	class ID_ENTITY
 	{
 	private:
@@ -139,6 +141,7 @@ namespace Dystopia
 
 	ROCOCOAPI ILevelLoader
 	{
+		virtual void ExecuteLevelFunction(const fstring& name, IArgEnumerator& args) = 0;
 		virtual void Free() = 0;
 		virtual void Load(const wchar_t* resourceName, bool isReloading) = 0;
 		virtual void SyncWithModifiedFiles() = 0;
@@ -187,7 +190,7 @@ namespace Dystopia
 {
 	struct IUIStack;
 	enum ID_PANE;
-	
+
 	enum GuiEventType
 	{
 		GuiEventType_CURSOR_BUTTON1_HELD,
@@ -237,10 +240,31 @@ namespace Dystopia
 		Relay_Next,
 	};
 
-	struct HistoricEvent;
+	enum HistoricEventType
+	{
+		HistoricEventType_Narrative,
+		HistoricEventType_CompletedGoal,
+		HistoricEventType_FailedGoal
+	};
+
+	struct HistoricEventLayout
+	{
+		int32 yTitlePixelRow;
+		int32 yBodyPixelRow;
+		int32 yEndOfBodyPixelRow;
+	};
+
+	ROCOCOAPI IHistoricEvent
+	{
+		virtual const wchar_t* Title() const = 0;
+		virtual const wchar_t* Body() const = 0;
+		virtual HistoricEventType Type() const = 0;
+		virtual HistoricEventLayout& Layout() = 0;
+	};
 
 	enum GoalState
 	{
+		GoalState_Pending,
 		GoalState_Ongoing,
 		GoalState_Complete,
 		GoalState_Failed
@@ -253,19 +277,28 @@ namespace Dystopia
 		virtual GoalState State() const = 0;
 	};
 
+	template<class T> ROCOCOAPI IMutableVectorEnumerator
+	{
+		virtual T& operator[](size_t index) = 0;
+		virtual size_t Count() const = 0;
+		virtual void Enumerate(IMutableEnumerator<T>& cb) = 0;
+	};
+
 	struct IJournalSupervisor : public IJournal
 	{
-		virtual size_t Count() const = 0;
 		virtual void EnumerateGoals(IEnumerator<IGoal>& cb) = 0;
+		virtual IMutableVectorEnumerator<IHistoricEvent>& History() = 0;
 		virtual void Free() = 0;
-		virtual HistoricEvent& GetEvent(size_t index) = 0;
 		virtual bool IsReadyForRender() const = 0;
 		virtual void PostConstruct() = 0;
+		virtual void UpdateGoals() = 0;
 	};
 
 	struct IGoalSupervisor : public IGoal
 	{
 		virtual void Free() = 0;
+		virtual void NotifyPrecursorInvalid() = 0;
+		virtual void Start() = 0;
 	};
 
 	IGoalSupervisor* CreateGoal_MeetObject(Environment& e, Metres radius, const wchar_t* title, const wchar_t* body, ID_ENTITY a, ID_ENTITY b);
@@ -288,6 +321,7 @@ namespace Dystopia
 		IBitmapCache& bitmapCache;
 		ILevel& level;
 		IJournalSupervisor& journal;
+		ILevelLoader& levelLoader;
 	};
 
 	enum ActionMapType
@@ -310,6 +344,14 @@ namespace Dystopia
 	void InitControlMap(IControlsSupervisor& controls);
 	void BuildRandomCity(const fstring& name, uint32 seedDelta, Environment& e);
 	ID_MESH GenerateRandomHouse(Environment& e, uint32 seed);
+
+	ROCOCOAPI IPersistentScript
+	{
+		virtual void ExecuteFunction(const fstring& name, IArgEnumerator& args) = 0;
+		virtual void Free() = 0;
+	};
+
+	IPersistentScript* CreatePersistentScript(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, const wchar_t* resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile);
 
 	void ExecuteSexyScriptLoop(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, const wchar_t* resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile);
 }

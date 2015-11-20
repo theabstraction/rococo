@@ -207,6 +207,7 @@
     <ClCompile Include="generator.city.cpp" />
     <ClCompile Include="generator.house.cpp" />
     <ClCompile Include="gui.cpp" />
+    <ClCompile Include="journal.cpp" />
     <ClCompile Include="pane.context.menu.cpp" />
     <ClCompile Include="pane.inventory.cpp" />
     <ClCompile Include="pane.journal.cpp" />

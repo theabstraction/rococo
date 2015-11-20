@@ -11,6 +11,12 @@
 (using Sys.Maths)
 (using Dystopia.Entities)
 
+(function OnHavingMetProfessor (Int64 playerId) (Int64 professorId)-> :
+	(Dystopia.Gui.IGui gui (Dystopia.Gui.GetGui))	
+	(Vec2i span = 800 600)
+	(gui.ShowDialogBox span 100 30 "A most unexpected meeting" "Professor Black has instructed me on my next target. Find MMM and get the package." ">Continue...=Sys.Events.Continue" )	
+)
+
 (function Main (Int32 arg) -> (Int32 exitCode): 
 	(Dystopia.Meshes.IMeshes meshes (Dystopia.Meshes.GetMeshes))
 	(meshes.Load "!mesh/cube.sxy" 1)
@@ -23,6 +29,8 @@
 	
 	(Int64 playerId)
 	(Int64 professorId)
+	(Int64 mmmId)
+
 	(
 		(Vec3 position = 0 0 0)
 		(playerId = (level.AddAlly position 3))
@@ -32,6 +40,11 @@
 	(
 		(Vec3 position = 5 5 0)
 		(professorId = (level.AddAlly position 3))
+	)
+
+	(
+		(Vec3 position = 10 5 0)
+		(mmmId = (level.AddAlly position 3))
 	)
 	
 	(level.GenerateCity "Stafford")
@@ -63,7 +76,9 @@
 	(journal.AddHistory "Diary entry: 23rd July"
 		"Plan:&n&tKill looters.&n&tGet food.&n&tGet money&n&tGet down to that depot and kick jobsworths' arses.")
 
-	(journal.AddGoalMeet "Meet the Professor" "The professor has the package. Collect it before he is assasinated." playerId professorId 2.0)	
+	(Int64 professorGoal = (journal.AddGoalMeet "Meet the Professor" "The professor has the package. Collect it before he is assasinated." playerId professorId 2.0 "OnHavingMetProfessor"))
+	(Int64 mmmGoal = (journal.AddGoalMeet "Meet the Marsh Mellow Maker" "MMM has the package. Collect it before he is assasinated." playerId mmmId 2.0 ""))
+	(journal.CompleteFirst mmmGoal professorGoal)
 			
 	(exitCode = 0)
 )

@@ -846,6 +846,12 @@ namespace
 	{
 		Sexy::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(void*);
+
+		IString* _completionFunction;
+		ReadInput(_completionFunction, _sf, -_offset);
+		fstring completionFunction { _completionFunction->buffer, _completionFunction->length };
+
 		Metres radius;
 		_offset += sizeof(radius);
 
@@ -874,7 +880,46 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AddGoalMeet(title, body, a, b, radius);
+		ID_GOAL id;
+		id = _pObject->AddGoalMeet(title, body, a, b, radius, completionFunction);
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
+	}
+	void NativeDystopiaIJournalCompleteFirst(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_GOAL precusorGoalId;
+		_offset += sizeof(precusorGoalId);
+
+		ReadInput(precusorGoalId, _sf, -_offset);
+		ID_GOAL forGoalId;
+		_offset += sizeof(forGoalId);
+
+		ReadInput(forGoalId, _sf, -_offset);
+		Dystopia::IJournal* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->CompleteFirst(forGoalId, precusorGoalId);
+	}
+	void NativeDystopiaIJournalFailFirst(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_GOAL precusorGoalId;
+		_offset += sizeof(precusorGoalId);
+
+		ReadInput(precusorGoalId, _sf, -_offset);
+		ID_GOAL forGoalId;
+		_offset += sizeof(forGoalId);
+
+		ReadInput(forGoalId, _sf, -_offset);
+		Dystopia::IJournal* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->FailFirst(forGoalId, precusorGoalId);
 	}
 
 	void NativeGetHandleForDystopiaJournalGetJournal(NativeCallEnvironment& _nce)
@@ -896,7 +941,9 @@ namespace Dystopia
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.Journal.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForDystopiaJournalGetJournal, _nceContext, SEXTEXT("GetHandleForIJournal0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeDystopiaIJournalAddHistory, nullptr, SEXTEXT("IJournalAddHistory (Pointer hObject)(Sys.Type.IString title)(Sys.Type.IString body) -> "));
-		ss.AddNativeCall(ns, NativeDystopiaIJournalAddGoalMeet, nullptr, SEXTEXT("IJournalAddGoalMeet (Pointer hObject)(Sys.Type.IString title)(Sys.Type.IString body)(Int64 a)(Int64 b)(Float32 radius) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaIJournalAddGoalMeet, nullptr, SEXTEXT("IJournalAddGoalMeet (Pointer hObject)(Sys.Type.IString title)(Sys.Type.IString body)(Int64 a)(Int64 b)(Float32 radius)(Sys.Type.IString completionFunction) -> (Int64 id)"));
+		ss.AddNativeCall(ns, NativeDystopiaIJournalCompleteFirst, nullptr, SEXTEXT("IJournalCompleteFirst (Pointer hObject)(Int64 forGoalId)(Int64 precusorGoalId) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaIJournalFailFirst, nullptr, SEXTEXT("IJournalFailFirst (Pointer hObject)(Int64 forGoalId)(Int64 precusorGoalId) -> "));
 	}
 
 }

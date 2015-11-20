@@ -78,6 +78,11 @@ namespace Rococo
 	{
 		virtual void operator()(const T& t) = 0;
 	};
+
+	template<class T> ROCOCOAPI IMutableEnumerator
+	{
+		virtual void operator()(T& t) = 0;
+	};
 }
 
 #endif

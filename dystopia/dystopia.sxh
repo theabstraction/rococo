@@ -102,7 +102,9 @@
 	(context factory Dystopia.IJournal)
 	(methods
 		(AddHistory (const IString title)(const IString body)->)
-		(AddGoalMeet (const IString title)(const IString body)(IdEntity a)(IdEntity b) (Metres radius)->)
+		(AddGoalMeet (const IString title)(const IString body)(IdEntity a)(IdEntity b) (Metres radius)(const IString completionFunction)->(IdGoal id))
+		(CompleteFirst (IdGoal forGoalId)(IdGoal precusorGoalId)->)
+		(FailFirst (IdGoal forGoalId)(IdGoal precusorGoalId)->)
 	)
 	(factory Dystopia.Journal.GetJournal)
 )

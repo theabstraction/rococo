@@ -47,8 +47,8 @@ namespace
 		AutoFree<ILevelSupervisor> level;
 		AutoFree<IBoneLibrarySupervisor> boneLibrary;
 		AutoFree<IJournalSupervisor> journal;
-		Environment e; // N.B some instances use e in constructor before e is initialized - this is to create a reference for internal use.
 		AutoFree<ILevelLoader> levelLoader;
+		Environment e; // N.B some instances use e in constructor before e is initialized - this is to create a reference for internal use.
 		AutoFree<IUIControlPane> isometricGameWorldView;
 		AutoFree<IUIPaneSupervisor> statsPaneSelf;
 		AutoFree<IUIPaneSupervisor> inventoryPaneSelf;
@@ -68,9 +68,9 @@ namespace
 			level(CreateLevel(e, *this)),
 			boneLibrary(CreateBoneLibrary(_installation, _renderer, *sourceCache)),
 			journal(CreateJournal(e)),
-			// remember that order of construction here is order fields appear in the private section above, not in the order in this constructor
-			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes, *boneLibrary, *gui, *uiStack, *postbox, *controls, *bitmaps, *level, *journal },
 			levelLoader(CreateLevelLoader(e)),
+			// remember that order of construction here is order fields appear in the private section above, not in the order in this constructor
+			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes, *boneLibrary, *gui, *uiStack, *postbox, *controls, *bitmaps, *level, *journal, *levelLoader },
 			isometricGameWorldView(CreatePaneIsometric(e)),
 			statsPaneSelf(CreatePaneStats(e)),
 			inventoryPaneSelf(CreateInventoryPane(e)),
@@ -192,6 +192,7 @@ namespace
 			TimestepEvent timestep{ clock.Start(), clock.FrameStart(), clock.FrameDelta(), clock.Hz() };
 			postbox->PostForLater(timestep, true);	
 			postbox->Deliver();
+			e.journal.UpdateGoals();
 			e.renderer.Render(uiStack->Scene());
 			return 5;
 		}

@@ -1169,12 +1169,26 @@ namespace
 	class LevelLoader : public ILevelLoader, public IEventCallback<ScriptCompileArgs>
 	{
 		Environment& e;
-
+		IPersistentScript* levelScript;
 	public:
-		LevelLoader(Environment& _e):
-			e(_e)
+		LevelLoader(Environment& _e): levelScript(nullptr), e(_e)
 		{
 
+		}
+
+		~LevelLoader()
+		{
+			if (levelScript)
+			{
+				levelScript->Free();
+				levelScript = nullptr;
+			}
+		}
+
+		virtual void ExecuteLevelFunction(const fstring& name, IArgEnumerator& args)
+		{
+			if (!levelScript) Throw(0, L"No level script loaded!");
+			levelScript->ExecuteFunction(name, args);
 		}
 
 		virtual void Free()
@@ -1192,20 +1206,27 @@ namespace
 
 		virtual void Load(const wchar_t* resourceName, bool isReloading)
 		{
-			ExecuteSexyScriptLoop(16384, e.sourceCache, e.debuggerWindow, resourceName, 0, (int32) 16_megabytes, *this);
-			/*
-			AISetTarget target0;
-			target0.appendToNavPoints = false;
-			target0.boundingRadius = 1.0_metres;
-			target0.targetPosition = { 0,0,0 };
-			e.postbox.PostForLater(target0, false);
+			if (levelScript)
+			{
+				levelScript->Free();
+				levelScript = nullptr;
+			}
 
-			AISetTarget target1;
-			target1.appendToNavPoints = true;
-			target1.boundingRadius = 1.0_metres;
-			target1.targetPosition = { 15,0,0 };
-			e.postbox.PostForLater(target1, false);
-			*/
+			levelScript = CreatePersistentScript(16384, e.sourceCache, e.debuggerWindow, resourceName, (int32)16_megabytes, *this);
+
+			struct : IArgEnumerator
+			{
+				virtual void PushArgs(IArgStack& args)
+				{
+					args.PushInt32(0);
+				}
+
+				virtual void PopOutputs(IOutputStack& args)
+				{
+					int32 exitCode = args.PopInt32();
+				}
+			} args;
+			levelScript->ExecuteFunction(L"Main"_fstring, args);
 		}
 
 		virtual void SyncWithModifiedFiles()

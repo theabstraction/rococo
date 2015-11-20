@@ -108,7 +108,9 @@ namespace Dystopia {
 	struct NO_VTABLE IJournal
 	{
 		virtual void AddHistory(const fstring& title, const fstring& body) = 0;
-		virtual void AddGoalMeet(const fstring& title, const fstring& body, ID_ENTITY a, ID_ENTITY b, Metres radius) = 0;
+		virtual ID_GOAL/* id */ AddGoalMeet(const fstring& title, const fstring& body, ID_ENTITY a, ID_ENTITY b, Metres radius, const fstring& completionFunction) = 0;
+		virtual void CompleteFirst(ID_GOAL forGoalId, ID_GOAL precusorGoalId) = 0;
+		virtual void FailFirst(ID_GOAL forGoalId, ID_GOAL precusorGoalId) = 0;
 	};
 }
 

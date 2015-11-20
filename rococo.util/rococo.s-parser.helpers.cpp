@@ -26,6 +26,50 @@ namespace Rococo
 	using namespace Sexy;
 	using namespace Sexy::Sex;
 
+	void Disassemble(VM::IVirtualMachine& vm, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
+
+	struct StardardDebugControl : IDebugControl
+	{
+		Sexy::VM::IVirtualMachine* vm;
+		Sexy::Script::IPublicScriptSystem* ss;
+		IDebuggerWindow* debugger;
+
+		void Update()
+		{
+			Disassemble(*vm, *ss, *debugger);
+		}
+
+		virtual void Continue()
+		{
+			vm->ContinueExecution(VM::ExecutionFlags(true, true, false));
+			Update();
+		}
+
+		virtual void StepOut()
+		{
+			vm->StepOut();
+			Update();
+		}
+
+		virtual void StepOver()
+		{
+			vm->StepOver();
+			Update();
+		}
+
+		virtual void StepNext()
+		{
+			vm->StepInto();
+			Update();
+		}
+
+		virtual void StepNextSymbol()
+		{
+			//ISymbols& symbols = ss->PublicProgramObject().ProgramMemory().
+			//vm->StepNextSymbol()
+		}
+	};
+
 	void ThrowSex(cr_sex s, const wchar_t* format, ...)
 	{
 		va_list args;
@@ -582,21 +626,14 @@ namespace Rococo
 		}
 	}
 
-	void ExecuteSexyScript(ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile)
+	void Preprocess(cr_sex sourceRoot, ISourceCache& sources, Sexy::Script::IPublicScriptSystem& ss)
 	{
-		using namespace Sexy::Script;
-		using namespace Sexy::Compiler;
-
-		ScriptCompileArgs args{ ss };
-		onCompile.OnEvent(args);
-
 		bool hasIncludedFiles = false;
 		bool hasIncludedNatives = false;
 
-		// Find include directive
-		for (int i = 0; i < mainModule.Root().NumberOfElements(); ++i)
+		for (int i = 0; i < sourceRoot.NumberOfElements(); ++i)
 		{
-			cr_sex sincludeExpr = mainModule.Root()[i];
+			cr_sex sincludeExpr = sourceRoot[i];
 			if (IsCompound(sincludeExpr) && sincludeExpr.NumberOfElements() >= 3)
 			{
 				cr_sex squot = sincludeExpr[0];
@@ -651,35 +688,31 @@ namespace Rococo
 				}
 			}
 		}
+	}
+
+	void InitSexyScript(ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, IEventCallback<ScriptCompileArgs>& onCompile)
+	{
+		using namespace Sexy::Script;
+		using namespace Sexy::Compiler;
+
+		ScriptCompileArgs args{ ss };
+		onCompile.OnEvent(args);
+
+		Preprocess(mainModule.Root(), sources, ss);
 
 		ss.AddTree(mainModule);
 		ss.Compile();
+	}
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
-		if (ns == nullptr)
-		{
-			Throw(0, L"Cannot find (namespace EntryPoint) in %s", mainModule.Source().Name());
-		}
-
-		const IFunction* f = ns->FindFunction(L"Main");
-		if (f == nullptr)
-		{
-			Throw(0, L"Cannot find function EntryPoint.Main in %s", mainModule.Source().Name());
-		}
-
-		ss.PublicProgramObject().SetProgramAndEntryPoint(*f);
-
-		auto& vm = ss.PublicProgramObject().VirtualMachine();
-
-		vm.Push(param);
-
+	void Execute(VM::IVirtualMachine& vm, Sexy::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
+	{
 		EXECUTERESULT result = EXECUTERESULT_YIELDED;
 
 		__try
 		{
 			result = ExecuteAndCatchIException(vm, ss, debugger);
 		}
-		__except(EXCEPTION_EXECUTE_HANDLER)
+		__except (EXCEPTION_EXECUTE_HANDLER)
 		{
 			result = EXECUTERESULT_SEH;
 		}
@@ -721,53 +754,84 @@ namespace Rococo
 			Throw(0, L"Unexpected EXECUTERESULT %d", result);
 			break;
 		}
+	}
+
+	void ExecuteFunction(const wchar_t* name, IArgEnumerator& args, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
+	{
+		auto& module = ss.PublicProgramObject().GetModule(ss.PublicProgramObject().ModuleCount() - 1);
+		auto f = module.FindFunction(name);
+		if (f == nullptr)
+		{
+			Throw(0, L"Cannot find function <%s> in <%s>", name, module.Name());
+		}
+
+		ss.PublicProgramObject().SetProgramAndEntryPoint(*f);
+
+		auto& vm = ss.PublicProgramObject().VirtualMachine();
+
+		struct: IArgStack, IOutputStack
+		{
+			virtual void PushInt32(int32 value)
+			{
+				vm->Push(value);
+			}
+			virtual void PushInt64(int64 value)
+			{
+				vm->Push(value);
+			}
+			virtual void PushPointer(void * value)
+			{
+				vm->Push(value);
+			}
+			virtual int32 PopInt32()
+			{
+				return vm->PopInt32();
+			}
+
+			IVirtualMachine* vm;
+		} argStack;
+
+		argStack.vm = &vm;
+		args.PushArgs(argStack);
+
+		Execute(vm, ss, debugger);
+
+		args.PopOutputs(argStack);
+	};
+
+	void ExecuteSexyScript(ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile)
+	{
+		using namespace Sexy::Script;
+		using namespace Sexy::Compiler;
+
+		InitSexyScript(mainModule, debugger, ss, sources, onCompile);
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		if (ns == nullptr)
+		{
+			Throw(0, L"Cannot find (namespace EntryPoint) in %s", mainModule.Source().Name());
+		}
+
+		const IFunction* f = ns->FindFunction(L"Main");
+		if (f == nullptr)
+		{
+			Throw(0, L"Cannot find function EntryPoint.Main in %s", mainModule.Source().Name());
+		}
+
+		ss.PublicProgramObject().SetProgramAndEntryPoint(*f);
+
+		auto& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(param);
+
+		Execute(vm, ss, debugger);
 
 		int exitCode = vm.PopInt32();
 	}
 
 	void DebuggerLoop(Sexy::Script::IPublicScriptSystem &ss, IDebuggerWindow& debugger)
 	{
-		struct : IDebugControl
-		{
-			IVirtualMachine* vm;
-			Sexy::Script::IPublicScriptSystem* ss;
-			IDebuggerWindow* debugger;
-
-			void Update()
-			{
-				Disassemble(*vm, *ss, *debugger);
-			}
-
-			virtual void Continue()
-			{
-				vm->ContinueExecution(VM::ExecutionFlags(true, true, false));
-				Update();
-			}
-
-			virtual void StepOut()
-			{
-				vm->StepOut();
-				Update();
-			}
-
-			virtual void StepOver()
-			{
-				vm->StepOver();
-				Update();
-			}
-
-			virtual void StepNext()
-			{
-				vm->StepInto();
-				Update();
-			}
-
-			virtual void StepNextSymbol()
-			{
-				//ISymbols& symbols = ss->PublicProgramObject().ProgramMemory().
-				//vm->StepNextSymbol()
-			}
-		} dc;
+		StardardDebugControl dc;
 
 		dc.vm = &ss.PublicProgramObject().VirtualMachine();
 		dc.ss = &ss;

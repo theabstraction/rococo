@@ -48,6 +48,73 @@ namespace Dystopia
 		}
 	};
 
+	class PersistentScript: public IPersistentScript
+	{
+		IDebuggerWindow& debugger;
+		ISourceCache& sources;
+		ScriptLogger logger;
+		Script::CScriptSystemProxy ssp;
+		ISParserTree* tree;
+	public:
+		PersistentScript(size_t maxBytes, ISourceCache& _sources, IDebuggerWindow& _debugger, const wchar_t* resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile) :
+			logger(_debugger),
+			debugger(_debugger),
+			sources(_sources),
+			tree(nullptr),
+			ssp(ProgramInitParameters(maxBytes), logger)
+		{
+			Script::IPublicScriptSystem& ss = ssp();
+			if (&ss == nullptr)
+			{
+				Throw(0, L"Failed to create script system");
+			}
+
+			while (true)
+			{
+				try
+				{
+					tree = sources.GetSource(resourcePath);
+					InitSexyScript(*tree, debugger, ssp(), sources, onCompile);
+					break;
+				}
+				catch (ParseException& ex)
+				{
+					LogParseException(ex, debugger);
+					auto id = ShowContinueBox(debugger.GetDebuggerWindowControl(), ex.Message());
+					if (id == CMD_ID_EXIT) Throw(ex.ErrorCode(), L"%s", ex.Message());
+					else if (id == CMD_ID_IGNORE) return;
+				}
+
+				DebuggerLoop(ssp(), debugger);
+			}
+		}
+
+		virtual void Free()
+		{
+			delete this;
+		}
+
+		virtual void ExecuteFunction(const fstring& name, IArgEnumerator& args)
+		{
+			try
+			{
+				Rococo::ExecuteFunction(name, args, ssp(), debugger);
+				return;
+			}
+			catch (ParseException& ex)
+			{
+				LogParseException(ex, debugger);
+			}
+			catch (IException& ex)
+			{
+				logger.logger.Log(L"Exection thrown: %s", ex.Message());
+			}
+
+			DebuggerLoop(ssp(), debugger);
+			Throw(0, L"Script failed");
+		}
+	};
+
 	void ExecuteSexyScriptLoop(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, const wchar_t* resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile)
 	{
 		ScriptLogger logger(debugger);
@@ -89,5 +156,10 @@ namespace Dystopia
 
 			DebuggerLoop(ss, debugger);
 		}
+	}
+
+	IPersistentScript* CreatePersistentScript(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, const wchar_t* resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile)
+	{
+		return new PersistentScript(maxBytes, sources, debugger, resourcePath, maxScriptSizeBytes, onCompile);
 	}
 }
