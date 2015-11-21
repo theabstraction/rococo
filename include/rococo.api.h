@@ -336,12 +336,15 @@ namespace Sexy
 		struct IPublicScriptSystem;
 	}
 
+	typedef size_t ID_BYTECODE;
+
 	namespace Sex
 	{
 		struct ISParserTree;
 		struct ISExpression;
 		typedef const ISExpression& cr_sex;
 		class ParseException;
+		
 	}
 
 	namespace VM
@@ -354,6 +357,12 @@ namespace Sexy
 
 namespace Rococo
 {
+	struct ArchetypeCallback
+	{
+		Sexy::ID_BYTECODE byteCodeId;
+		const uint8* callerSF;
+	};
+
 	ROCOCOAPI ISourceCache
 	{
 		virtual Sexy::Sex::ISParserTree* GetSource(const wchar_t* resourceName) = 0;
@@ -387,6 +396,7 @@ namespace Rococo
 	};
 
 	void InitSexyScript(Sexy::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Sexy::Script::IPublicScriptSystem& ss, ISourceCache& sources, IEventCallback<ScriptCompileArgs>& onCompile);
+	void ExecuteFunction(Sexy::ID_BYTECODE bytecodeId, IArgEnumerator& args, Sexy::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
 	void ExecuteFunction(const wchar_t* name, IArgEnumerator& args, Sexy::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
 	void ExecuteSexyScript(Sexy::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Sexy::Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile);
 	ISourceCache* CreateSourceCache(IInstallation& installation);

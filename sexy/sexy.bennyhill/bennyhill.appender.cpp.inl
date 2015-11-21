@@ -349,11 +349,11 @@ namespace
 			
 				if (isString)
 				{
-					appender.Append(SEXTEXT("\t\t_offset += sizeof(void*);\n\n"), fieldName);
+					appender.Append(SEXTEXT("\t\t_offset += sizeof(void*);\n"), fieldName);
 				}
 				else
 				{
-					appender.Append(SEXTEXT("\t\t_offset += sizeof(%s);\n\n"), fieldName);
+					appender.Append(SEXTEXT("\t\t_offset += sizeof(%s);\n"), fieldName);
 				}
 
 				if (isString) appender.Append(SEXTEXT("\t\tIString* _%s;\n"), fieldName);
@@ -367,6 +367,8 @@ namespace
 					appender.Append(SEXTEXT(" %s {"), fieldName);	
 					appender.Append(SEXTEXT(" _%s->buffer, _%s->length };\n\n"), fieldName, fieldName);
 				}
+
+				appender.Append(SEXTEXT("\n"));
 			}
 		}
 	}

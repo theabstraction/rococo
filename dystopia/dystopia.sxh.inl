@@ -11,13 +11,13 @@ namespace
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_MESH editorId;
 		_offset += sizeof(editorId);
-
 		ReadInput(editorId, _sf, -_offset);
-		_offset += sizeof(void*);
 
+		_offset += sizeof(void*);
 		IString* _resourceName;
 		ReadInput(_resourceName, _sf, -_offset);
 		fstring resourceName { _resourceName->buffer, _resourceName->length };
+
 
 		Dystopia::IMeshes* _pObject;
 		_offset += sizeof(_pObject);
@@ -61,12 +61,12 @@ namespace
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_MESH editorId;
 		_offset += sizeof(editorId);
-
 		ReadInput(editorId, _sf, -_offset);
+
 		Vec3* pos;
 		_offset += sizeof(pos);
-
 		ReadInput(pos, _sf, -_offset);
+
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -82,12 +82,12 @@ namespace
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_MESH editorId;
 		_offset += sizeof(editorId);
-
 		ReadInput(editorId, _sf, -_offset);
+
 		Vec3* pos;
 		_offset += sizeof(pos);
-
 		ReadInput(pos, _sf, -_offset);
+
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -103,40 +103,40 @@ namespace
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 count;
 		_offset += sizeof(count);
-
 		ReadInput(count, _sf, -_offset);
+
 		float massPerClip;
 		_offset += sizeof(massPerClip);
-
 		ReadInput(massPerClip, _sf, -_offset);
+
 		float massPerBullet;
 		_offset += sizeof(massPerBullet);
-
 		ReadInput(massPerBullet, _sf, -_offset);
+
 		int32 ammoType;
 		_offset += sizeof(ammoType);
-
 		ReadInput(ammoType, _sf, -_offset);
-		_offset += sizeof(void*);
 
+		_offset += sizeof(void*);
 		IString* _imageFile;
 		ReadInput(_imageFile, _sf, -_offset);
 		fstring imageFile { _imageFile->buffer, _imageFile->length };
 
-		_offset += sizeof(void*);
 
+		_offset += sizeof(void*);
 		IString* _name;
 		ReadInput(_name, _sf, -_offset);
 		fstring name { _name->buffer, _name->length };
 
+
 		ID_MESH editorId;
 		_offset += sizeof(editorId);
-
 		ReadInput(editorId, _sf, -_offset);
+
 		Vec3* pos;
 		_offset += sizeof(pos);
-
 		ReadInput(pos, _sf, -_offset);
+
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -152,40 +152,40 @@ namespace
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float massKg;
 		_offset += sizeof(massKg);
-
 		ReadInput(massKg, _sf, -_offset);
+
 		int32 ammoType;
 		_offset += sizeof(ammoType);
-
 		ReadInput(ammoType, _sf, -_offset);
+
 		float flightTime;
 		_offset += sizeof(flightTime);
-
 		ReadInput(flightTime, _sf, -_offset);
+
 		float muzzleVelocity;
 		_offset += sizeof(muzzleVelocity);
-
 		ReadInput(muzzleVelocity, _sf, -_offset);
-		_offset += sizeof(void*);
 
+		_offset += sizeof(void*);
 		IString* _imageFile;
 		ReadInput(_imageFile, _sf, -_offset);
 		fstring imageFile { _imageFile->buffer, _imageFile->length };
 
-		_offset += sizeof(void*);
 
+		_offset += sizeof(void*);
 		IString* _name;
 		ReadInput(_name, _sf, -_offset);
 		fstring name { _name->buffer, _name->length };
 
+
 		ID_MESH editorId;
 		_offset += sizeof(editorId);
-
 		ReadInput(editorId, _sf, -_offset);
+
 		Vec3* pos;
 		_offset += sizeof(pos);
-
 		ReadInput(pos, _sf, -_offset);
+
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -201,36 +201,36 @@ namespace
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float massKg;
 		_offset += sizeof(massKg);
-
 		ReadInput(massKg, _sf, -_offset);
+
 		int32 dollSlot;
 		_offset += sizeof(dollSlot);
-
 		ReadInput(dollSlot, _sf, -_offset);
+
 		int32 bulletProt;
 		_offset += sizeof(bulletProt);
-
 		ReadInput(bulletProt, _sf, -_offset);
-		_offset += sizeof(void*);
 
+		_offset += sizeof(void*);
 		IString* _imageFile;
 		ReadInput(_imageFile, _sf, -_offset);
 		fstring imageFile { _imageFile->buffer, _imageFile->length };
 
-		_offset += sizeof(void*);
 
+		_offset += sizeof(void*);
 		IString* _name;
 		ReadInput(_name, _sf, -_offset);
 		fstring name { _name->buffer, _name->length };
 
+
 		ID_MESH editorId;
 		_offset += sizeof(editorId);
-
 		ReadInput(editorId, _sf, -_offset);
+
 		Vec3* pos;
 		_offset += sizeof(pos);
-
 		ReadInput(pos, _sf, -_offset);
+
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -246,16 +246,16 @@ namespace
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 flags;
 		_offset += sizeof(flags);
-
 		ReadInput(flags, _sf, -_offset);
+
 		ID_MESH editorId;
 		_offset += sizeof(editorId);
-
 		ReadInput(editorId, _sf, -_offset);
+
 		Vec3* pos;
 		_offset += sizeof(pos);
-
 		ReadInput(pos, _sf, -_offset);
+
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -265,18 +265,38 @@ namespace
 		_offset += sizeof(entityId);
 		WriteOutput(entityId, _sf, -_offset);
 	}
+	void NativeDystopiaILevelBuilderName(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(void*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		ID_ENTITY entityId;
+		_offset += sizeof(entityId);
+		ReadInput(entityId, _sf, -_offset);
+
+		Dystopia::ILevelBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Name(entityId, name);
+	}
 	void NativeDystopiaILevelBuilderSetPosition(NativeCallEnvironment& _nce)
 	{
 		Sexy::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* pos;
 		_offset += sizeof(pos);
-
 		ReadInput(pos, _sf, -_offset);
+
 		ID_ENTITY entityId;
 		_offset += sizeof(entityId);
-
 		ReadInput(entityId, _sf, -_offset);
+
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -289,12 +309,12 @@ namespace
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* velocity;
 		_offset += sizeof(velocity);
-
 		ReadInput(velocity, _sf, -_offset);
+
 		ID_ENTITY entityId;
 		_offset += sizeof(entityId);
-
 		ReadInput(entityId, _sf, -_offset);
+
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -307,12 +327,12 @@ namespace
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Radians theta;
 		_offset += sizeof(theta);
-
 		ReadInput(theta, _sf, -_offset);
+
 		ID_ENTITY entityId;
 		_offset += sizeof(entityId);
-
 		ReadInput(entityId, _sf, -_offset);
+
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -325,12 +345,12 @@ namespace
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Radians phi;
 		_offset += sizeof(phi);
-
 		ReadInput(phi, _sf, -_offset);
+
 		ID_ENTITY entityId;
 		_offset += sizeof(entityId);
-
 		ReadInput(entityId, _sf, -_offset);
+
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -343,12 +363,12 @@ namespace
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* scale;
 		_offset += sizeof(scale);
-
 		ReadInput(scale, _sf, -_offset);
+
 		ID_ENTITY entityId;
 		_offset += sizeof(entityId);
-
 		ReadInput(entityId, _sf, -_offset);
+
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -360,10 +380,10 @@ namespace
 		Sexy::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(void*);
-
 		IString* _name;
 		ReadInput(_name, _sf, -_offset);
 		fstring name { _name->buffer, _name->length };
+
 
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
@@ -371,14 +391,30 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->GenerateCity(name);
 	}
+	void NativeDystopiaILevelBuilderAddStreetName(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(void*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Dystopia::ILevelBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddStreetName(name);
+	}
 	void NativeDystopiaILevelBuilderPopulateCity(NativeCallEnvironment& _nce)
 	{
 		Sexy::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float populationDensity;
 		_offset += sizeof(populationDensity);
-
 		ReadInput(populationDensity, _sf, -_offset);
+
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -401,8 +437,8 @@ namespace
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_ENTITY playerId;
 		_offset += sizeof(playerId);
-
 		ReadInput(playerId, _sf, -_offset);
+
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -434,12 +470,14 @@ namespace Dystopia
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddRangedWeapon, nullptr, SEXTEXT("ILevelAddRangedWeapon (Pointer hObject)(Sys.Maths.Vec3 pos)(Int32 editorId)(Sys.Type.IString name)(Sys.Type.IString imageFile)(Float32 muzzleVelocity)(Float32 flightTime)(Int32 ammoType)(Float32 massKg) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddArmour, nullptr, SEXTEXT("ILevelAddArmour (Pointer hObject)(Sys.Maths.Vec3 pos)(Int32 editorId)(Sys.Type.IString name)(Sys.Type.IString imageFile)(Int32 bulletProt)(Int32 dollSlot)(Float32 massKg) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddSolid, nullptr, SEXTEXT("ILevelAddSolid (Pointer hObject)(Sys.Maths.Vec3 pos)(Int32 editorId)(Int32 flags) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderName, nullptr, SEXTEXT("ILevelName (Pointer hObject)(Int64 entityId)(Sys.Type.IString name) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetPosition, nullptr, SEXTEXT("ILevelSetPosition (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 pos) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetVelocity, nullptr, SEXTEXT("ILevelSetVelocity (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 velocity) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetHeading, nullptr, SEXTEXT("ILevelSetHeading (Pointer hObject)(Int64 entityId)(Float32 theta) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetElevation, nullptr, SEXTEXT("ILevelSetElevation (Pointer hObject)(Int64 entityId)(Float32 phi) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetScale, nullptr, SEXTEXT("ILevelSetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderGenerateCity, nullptr, SEXTEXT("ILevelGenerateCity (Pointer hObject)(Sys.Type.IString name) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddStreetName, nullptr, SEXTEXT("ILevelAddStreetName (Pointer hObject)(Sys.Type.IString name) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderPopulateCity, nullptr, SEXTEXT("ILevelPopulateCity (Pointer hObject)(Float32 populationDensity) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderClear, nullptr, SEXTEXT("ILevelClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetPlayerId, nullptr, SEXTEXT("ILevelSetPlayerId (Pointer hObject)(Int64 playerId) -> "));
@@ -468,6 +506,10 @@ namespace Dystopia {
 		else if (s == L"SolidFlags_IsDirty"_fstring)
 		{
 			value = SolidFlags_IsDirty;
+		}
+		else if (s == L"SolidFlags_RoadSection"_fstring)
+		{
+			value = SolidFlags_RoadSection;
 		}
 		else
 		{
@@ -498,6 +540,10 @@ namespace Dystopia {
 		else if (s == L"IsDirty"_fstring)
 		{
 			value = SolidFlags_IsDirty;
+		}
+		else if (s == L"RoadSection"_fstring)
+		{
+			value = SolidFlags_RoadSection;
 		}
 		else
 		{
@@ -730,35 +776,35 @@ namespace
 		Sexy::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(void*);
-
 		IString* _buttons;
 		ReadInput(_buttons, _sf, -_offset);
 		fstring buttons { _buttons->buffer, _buttons->length };
 
-		_offset += sizeof(void*);
 
+		_offset += sizeof(void*);
 		IString* _message;
 		ReadInput(_message, _sf, -_offset);
 		fstring message { _message->buffer, _message->length };
 
-		_offset += sizeof(void*);
 
+		_offset += sizeof(void*);
 		IString* _title;
 		ReadInput(_title, _sf, -_offset);
 		fstring title { _title->buffer, _title->length };
 
+
 		int32 hypzone;
 		_offset += sizeof(hypzone);
-
 		ReadInput(hypzone, _sf, -_offset);
+
 		int32 retzone;
 		_offset += sizeof(retzone);
-
 		ReadInput(retzone, _sf, -_offset);
+
 		Vec2i* span;
 		_offset += sizeof(span);
-
 		ReadInput(span, _sf, -_offset);
+
 		Dystopia::IGui* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -771,18 +817,18 @@ namespace
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float duration;
 		_offset += sizeof(duration);
-
 		ReadInput(duration, _sf, -_offset);
-		_offset += sizeof(void*);
 
+		_offset += sizeof(void*);
 		IString* _message;
 		ReadInput(_message, _sf, -_offset);
 		fstring message { _message->buffer, _message->length };
 
+
 		Vec3* worldPos;
 		_offset += sizeof(worldPos);
-
 		ReadInput(worldPos, _sf, -_offset);
+
 		Dystopia::IGui* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -825,16 +871,16 @@ namespace
 		Sexy::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(void*);
-
 		IString* _body;
 		ReadInput(_body, _sf, -_offset);
 		fstring body { _body->buffer, _body->length };
 
-		_offset += sizeof(void*);
 
+		_offset += sizeof(void*);
 		IString* _title;
 		ReadInput(_title, _sf, -_offset);
 		fstring title { _title->buffer, _title->length };
+
 
 		Dystopia::IJournal* _pObject;
 		_offset += sizeof(_pObject);
@@ -846,35 +892,33 @@ namespace
 	{
 		Sexy::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(void*);
-
-		IString* _completionFunction;
-		ReadInput(_completionFunction, _sf, -_offset);
-		fstring completionFunction { _completionFunction->buffer, _completionFunction->length };
+		ArchetypeCallback completionFunction;
+		_offset += sizeof(completionFunction);
+		ReadInput(completionFunction, _sf, -_offset);
 
 		Metres radius;
 		_offset += sizeof(radius);
-
 		ReadInput(radius, _sf, -_offset);
+
 		ID_ENTITY b;
 		_offset += sizeof(b);
-
 		ReadInput(b, _sf, -_offset);
+
 		ID_ENTITY a;
 		_offset += sizeof(a);
-
 		ReadInput(a, _sf, -_offset);
-		_offset += sizeof(void*);
 
+		_offset += sizeof(void*);
 		IString* _body;
 		ReadInput(_body, _sf, -_offset);
 		fstring body { _body->buffer, _body->length };
 
-		_offset += sizeof(void*);
 
+		_offset += sizeof(void*);
 		IString* _title;
 		ReadInput(_title, _sf, -_offset);
 		fstring title { _title->buffer, _title->length };
+
 
 		Dystopia::IJournal* _pObject;
 		_offset += sizeof(_pObject);
@@ -891,12 +935,12 @@ namespace
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_GOAL precusorGoalId;
 		_offset += sizeof(precusorGoalId);
-
 		ReadInput(precusorGoalId, _sf, -_offset);
+
 		ID_GOAL forGoalId;
 		_offset += sizeof(forGoalId);
-
 		ReadInput(forGoalId, _sf, -_offset);
+
 		Dystopia::IJournal* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -909,12 +953,12 @@ namespace
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_GOAL precusorGoalId;
 		_offset += sizeof(precusorGoalId);
-
 		ReadInput(precusorGoalId, _sf, -_offset);
+
 		ID_GOAL forGoalId;
 		_offset += sizeof(forGoalId);
-
 		ReadInput(forGoalId, _sf, -_offset);
+
 		Dystopia::IJournal* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -941,7 +985,7 @@ namespace Dystopia
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.Journal.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForDystopiaJournalGetJournal, _nceContext, SEXTEXT("GetHandleForIJournal0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeDystopiaIJournalAddHistory, nullptr, SEXTEXT("IJournalAddHistory (Pointer hObject)(Sys.Type.IString title)(Sys.Type.IString body) -> "));
-		ss.AddNativeCall(ns, NativeDystopiaIJournalAddGoalMeet, nullptr, SEXTEXT("IJournalAddGoalMeet (Pointer hObject)(Sys.Type.IString title)(Sys.Type.IString body)(Int64 a)(Int64 b)(Float32 radius)(Sys.Type.IString completionFunction) -> (Int64 id)"));
+		ss.AddNativeCall(ns, NativeDystopiaIJournalAddGoalMeet, nullptr, SEXTEXT("IJournalAddGoalMeet (Pointer hObject)(Sys.Type.IString title)(Sys.Type.IString body)(Int64 a)(Int64 b)(Float32 radius)(Dystopia.Callbacks.TwoInt64InputFunction completionFunction) -> (Int64 id)"));
 		ss.AddNativeCall(ns, NativeDystopiaIJournalCompleteFirst, nullptr, SEXTEXT("IJournalCompleteFirst (Pointer hObject)(Int64 forGoalId)(Int64 precusorGoalId) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaIJournalFailFirst, nullptr, SEXTEXT("IJournalFailFirst (Pointer hObject)(Int64 forGoalId)(Int64 precusorGoalId) -> "));
 	}

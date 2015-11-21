@@ -21,12 +21,14 @@
 		(AddRangedWeapon  (const Vec3 pos) (IdMesh editorId) (const IString name) (const IString imageFile) (Float32 muzzleVelocity)(Float32 flightTime)(Int32 ammoType)(Float32 massKg) -> (IdEntity entityId))
 		(AddArmour (const Vec3 pos) (IdMesh editorId) (const IString name) (const IString imageFile) (Int32 bulletProt) (Int32 dollSlot) (Float32 massKg) -> (IdEntity entityId))
 		(AddSolid (const Vec3 pos) (IdMesh editorId) (Int32 flags)-> (IdEntity entityId))
+		(Name (IdEntity entityId)(const IString name)->)
 		(SetPosition (IdEntity entityId)(const Vec3 pos)->)
 		(SetVelocity (IdEntity entityId)(const Vec3 velocity)->)
 		(SetHeading (IdEntity entityId)(Radians theta)->)
 		(SetElevation (IdEntity entityId)(Radians phi)->)
 		(SetScale (IdEntity entityId)(const Vec3 scale)->)
 		(GenerateCity (const IString name)->)
+		(AddStreetName (const IString name)->)
 		(PopulateCity (Float32 populationDensity)->)
 		(Clear ->)
 		(SetPlayerId (IdEntity playerId) ->)
@@ -43,6 +45,7 @@
 		(Selectable 2)		// Object can be selected and highlighted during standard gameplay
 		(Skeleton 4)		// Skeleton with matching id is present in the level
 		(IsDirty 8)			// Object has moved this timestep, and its transform needs to be computed before it is used
+		(RoadSection 16)	// Object is a section of road, and potentially has a street address for a name
 	)
 )
 
@@ -102,7 +105,7 @@
 	(context factory Dystopia.IJournal)
 	(methods
 		(AddHistory (const IString title)(const IString body)->)
-		(AddGoalMeet (const IString title)(const IString body)(IdEntity a)(IdEntity b) (Metres radius)(const IString completionFunction)->(IdGoal id))
+		(AddGoalMeet (const IString title)(const IString body)(IdEntity a)(IdEntity b) (Metres radius)(TwoInt64InputFunction completionFunction)->(IdGoal id))
 		(CompleteFirst (IdGoal forGoalId)(IdGoal precusorGoalId)->)
 		(FailFirst (IdGoal forGoalId)(IdGoal precusorGoalId)->)
 	)

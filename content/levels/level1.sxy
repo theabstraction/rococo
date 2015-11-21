@@ -10,6 +10,7 @@
 	
 (using Sys.Maths)
 (using Dystopia.Entities)
+(using Dystopia.Callbacks)
 
 (function OnHavingMetProfessor (Int64 playerId) (Int64 professorId)-> :
 	(Dystopia.Gui.IGui gui (Dystopia.Gui.GetGui))	
@@ -47,6 +48,14 @@
 		(mmmId = (level.AddAlly position 3))
 	)
 	
+	(level.AddStreetName "Newport Road")
+	(level.AddStreetName "Lichfield Road")
+	(level.AddStreetName "Wolverhampton Road")
+	(level.AddStreetName "Stone Road")
+	(level.AddStreetName "Eccleshall Road")
+	(level.AddStreetName "Weston Road")
+	(level.AddStreetName "Weeping Cross")
+	(level.AddStreetName "Cannock Road")
 	(level.GenerateCity "Stafford")
 	(level.PopulateCity 2.5)
 	
@@ -76,8 +85,8 @@
 	(journal.AddHistory "Diary entry: 23rd July"
 		"Plan:&n&tKill looters.&n&tGet food.&n&tGet money&n&tGet down to that depot and kick jobsworths' arses.")
 
-	(Int64 professorGoal = (journal.AddGoalMeet "Meet the Professor" "The professor has the package. Collect it before he is assasinated." playerId professorId 2.0 "OnHavingMetProfessor"))
-	(Int64 mmmGoal = (journal.AddGoalMeet "Meet the Marsh Mellow Maker" "MMM has the package. Collect it before he is assasinated." playerId mmmId 2.0 ""))
+	(Int64 professorGoal = (journal.AddGoalMeet "Meet the Professor" "The professor has the package. Collect it before he is assasinated." playerId professorId 2.0 OnHavingMetProfessor))
+	(Int64 mmmGoal = (journal.AddGoalMeet "Meet the Marsh Mellow Maker" "MMM has the package. Collect it before he is assasinated." playerId mmmId 2.0 0))
 	(journal.CompleteFirst mmmGoal professorGoal)
 			
 	(exitCode = 0)

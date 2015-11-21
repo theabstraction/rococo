@@ -10437,6 +10437,28 @@ namespace
 		validate(ex.Start().Y == 11 && ex.End().Y == 11);
 	}
 
+	void TestNullArchetypeArg(IPublicScriptSystem& ss)
+	{
+		csexstr srcCode =
+			SEXTEXT("(namespace EntryPoint) \n")
+			SEXTEXT("(function Main -> (Int32 result): \n")
+			SEXTEXT("		(Call 0 -> result)\n")
+			SEXTEXT(")\n")
+			SEXTEXT("(function Call (EntryPoint.ToInt fn) -> (Int32 result):  (fn -> result))\n")
+			SEXTEXT("(archetype EntryPoint.ToInt -> (Int32 y)) \n")
+			SEXTEXT("(alias Main EntryPoint.Main) \n");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestNullArchetype"));
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(1); // Allocate stack space for the int32 x
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 0);
+	}
+
 	void RunCollectionTests()
 	{
 		TEST(TestArrayInt32);
@@ -10588,6 +10610,7 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestNullArchetypeArg);
 		TEST(TestMacroAsArgument1);
 
 	//	TEST(TestArrayOfArchetypes); // -> currently disabled, since arrays are 32-bit and 64-bits only, and closures are 128 bits.

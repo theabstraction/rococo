@@ -120,7 +120,7 @@ namespace
 
 	struct CompletionFunction
 	{
-		std::wstring name;
+		ArchetypeCallback fn;
 		ID_ENTITY a;
 		ID_ENTITY b;
 	};
@@ -180,7 +180,7 @@ namespace
 				abattoir.push_back({ git.first, true });
 				e.gui.Add3DHint(e.level.GetPosition(e.level.GetPlayerId()), L"Goal complete!"_fstring, 2.0_seconds);
 
-				if (!git.second.onComplete.name.empty())
+				if (git.second.onComplete.fn.byteCodeId != 0)
 				{
 					struct : IArgEnumerator
 					{
@@ -201,7 +201,7 @@ namespace
 
 					args.a = git.second.onComplete.a;
 					args.b = git.second.onComplete.b;
-					e.levelLoader.ExecuteLevelFunction(to_fstring(git.second.onComplete.name.c_str()), args);
+					e.levelLoader.ExecuteLevelFunction(git.second.onComplete.fn, args);
 				}
 			}
 			else if (g.State() == GoalState_Failed)
@@ -317,13 +317,13 @@ namespace
 
 		}
 
-		virtual ID_GOAL AddGoalMeet(const fstring& title, const fstring& body, ID_ENTITY a, ID_ENTITY b, Metres radius, const fstring& completionFunction)
+		virtual ID_GOAL AddGoalMeet(const fstring& title, const fstring& body, ID_ENTITY a, ID_ENTITY b, Metres radius, ArchetypeCallback twoInt64InputFunction)
 		{
 			auto* goal = CreateGoal_MeetObject(e, radius, title, body, a, b);
 			auto id = GenNextGoalId();
 			auto g = goalById.insert(std::make_pair(id, GoalBinding()));
 			g.first->second.goal = goal;
-			g.first->second.onComplete.name = completionFunction;
+			g.first->second.onComplete.fn = twoInt64InputFunction;
 			g.first->second.onComplete.a = a;
 			g.first->second.onComplete.b = b;
 			return id;

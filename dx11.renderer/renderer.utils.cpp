@@ -210,7 +210,7 @@ namespace Rococo
 
 		void RenderHorizontalCentredText(IGuiRenderContext& gr, const wchar_t* txt, RGBAb colour, int fontSize, const Vec2i& topLeft)
 		{
-			HorizontalCentredText hw(fontSize, txt, FontColourFromRGBAb(RGBAb{ 255, 255, 255, 255 }));
+			HorizontalCentredText hw(fontSize, txt, FontColourFromRGBAb(colour));
 			gr.RenderText(topLeft, hw);
 		}
 

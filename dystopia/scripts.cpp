@@ -94,7 +94,27 @@ namespace Dystopia
 			delete this;
 		}
 
-		virtual void ExecuteFunction(const fstring& name, IArgEnumerator& args)
+		virtual void ExecuteFunction(ArchetypeCallback fn, IArgEnumerator& args)
+		{
+			try
+			{
+				Rococo::ExecuteFunction(fn.byteCodeId, args, ssp(), debugger);
+				return;
+			}
+			catch (ParseException& ex)
+			{
+				LogParseException(ex, debugger);
+			}
+			catch (IException& ex)
+			{
+				logger.logger.Log(L"Exection thrown: %s", ex.Message());
+			}
+
+			DebuggerLoop(ssp(), debugger);
+			Throw(0, L"Script failed");
+		}
+
+		virtual void ExecuteFunction(const wchar_t* name, IArgEnumerator& args)
 		{
 			try
 			{

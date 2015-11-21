@@ -71,6 +71,8 @@ namespace Sexy
 {
 	using namespace Rococo;
 
+	typedef size_t ID_BYTECODE;
+
 	enum CALLBACK_CONTROL
 	{
 		CALLBACK_CONTROL_CONTINUE,
@@ -110,7 +112,6 @@ namespace Sexy
 	typedef unsigned long refcount_t;
 
 	typedef uint32 ID_API_CALLBACK;
-	typedef size_t ID_BYTECODE;
 
 	typedef unsigned char sexbyte;
 

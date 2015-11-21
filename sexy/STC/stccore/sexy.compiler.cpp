@@ -176,10 +176,14 @@ namespace
 		{
 			CodeSection cs;
 			f.Code().GetCodeSection(cs);	
+			SetProgramAndEntryPoint(cs.Id);
+		}
 
+		virtual void SetProgramAndEntryPoint(ID_BYTECODE bytecodeId)
+		{
 			virtualMachine->SetProgram(program);
 			virtualMachine->InitCpu();
-			virtualMachine->Cpu().D[VM::REGISTER_D5].byteCodeIdValue = cs.Id;
+			virtualMachine->Cpu().D[VM::REGISTER_D5].byteCodeIdValue = bytecodeId;
 		}
 
 		virtual void ResolveNativeTypes()

@@ -30,6 +30,7 @@ namespace Rococo
 
 	void Throw(int32 errorCode, const wchar_t* format, ...);
 	void TripDebugger();
+	bool IsDebugging();
 
 	template<class T> struct IEventCallback
 	{
@@ -77,6 +78,25 @@ namespace Rococo
 	template<class T> ROCOCOAPI IEnumerator
 	{
 		virtual void operator()(const T& t) = 0;
+	};
+
+	template<> ROCOCOAPI IEnumerator<const wchar_t*>
+	{
+		virtual void operator()(const wchar_t* t) = 0;
+	};
+
+	template<class T> ROCOCOAPI IEnumerable
+	{
+		virtual const T& operator[](size_t index) = 0;
+		virtual size_t Count() const = 0;
+		virtual void Enumerate(IEnumerator<T>& cb) = 0;
+	};
+
+	template<> ROCOCOAPI IEnumerable<const wchar_t*>
+	{
+		virtual const wchar_t* operator[](size_t index) = 0;
+		virtual size_t Count() const = 0;
+		virtual void Enumerate(IEnumerator<const wchar_t*>& cb) = 0;
 	};
 
 	template<class T> ROCOCOAPI IMutableEnumerator

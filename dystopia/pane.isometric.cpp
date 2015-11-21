@@ -326,6 +326,13 @@ namespace
 			{
 				RenderHint(grc, hint);
 			}
+
+			auto* name = e.level.TryGetName(e.level.NearestRoadId());
+			if (name)
+			{
+				Graphics::RenderHorizontalCentredText(grc, name, RGBAb(0, 0, 0), 8, { 11, 11 });
+				Graphics::RenderHorizontalCentredText(grc, name, RGBAb(255, 255, 255), 8, { 10, 10 });
+			}
 		}
 
 		virtual void OnLostTop()

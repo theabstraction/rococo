@@ -25,6 +25,11 @@ namespace Rococo
 		}
 	}
 
+	bool IsDebugging()
+	{
+		return IsDebuggerPresent() ? true : false;
+	}
+
 	ticks CpuClock()
 	{
 		LARGE_INTEGER i;

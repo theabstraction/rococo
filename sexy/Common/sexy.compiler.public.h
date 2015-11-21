@@ -429,6 +429,7 @@ namespace Sexy { namespace Compiler
 		virtual ILog& Log() = 0;
 		virtual void Free() = 0;
 		virtual void SetProgramAndEntryPoint(const IFunction& f) = 0;
+		virtual void SetProgramAndEntryPoint(ID_BYTECODE byteCodeId) = 0;
 	};
 
 	const IFunction* GetFunctionForBytecode(IPublicProgramObject& obj, ID_BYTECODE id);

@@ -708,13 +708,20 @@ namespace Rococo
 	{
 		EXECUTERESULT result = EXECUTERESULT_YIELDED;
 
-		__try
+		if (!IsDebugging())
+		{
+			__try
+			{
+				result = ExecuteAndCatchIException(vm, ss, debugger);
+			}
+			__except (EXCEPTION_EXECUTE_HANDLER)
+			{
+				result = EXECUTERESULT_SEH;
+			}
+		}
+		else
 		{
 			result = ExecuteAndCatchIException(vm, ss, debugger);
-		}
-		__except (EXCEPTION_EXECUTE_HANDLER)
-		{
-			result = EXECUTERESULT_SEH;
 		}
 
 		switch (result)
@@ -755,6 +762,42 @@ namespace Rococo
 			break;
 		}
 	}
+
+	void ExecuteFunction(ID_BYTECODE bytecodeId, IArgEnumerator& args, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
+	{
+		ss.PublicProgramObject().SetProgramAndEntryPoint(bytecodeId);
+
+		auto& vm = ss.PublicProgramObject().VirtualMachine();
+
+		struct : IArgStack, IOutputStack
+		{
+			virtual void PushInt32(int32 value)
+			{
+				vm->Push(value);
+			}
+			virtual void PushInt64(int64 value)
+			{
+				vm->Push(value);
+			}
+			virtual void PushPointer(void * value)
+			{
+				vm->Push(value);
+			}
+			virtual int32 PopInt32()
+			{
+				return vm->PopInt32();
+			}
+
+			IVirtualMachine* vm;
+		} argStack;
+
+		argStack.vm = &vm;
+		args.PushArgs(argStack);
+
+		Execute(vm, ss, debugger);
+
+		args.PopOutputs(argStack);
+	};
 
 	void ExecuteFunction(const wchar_t* name, IArgEnumerator& args, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
 	{

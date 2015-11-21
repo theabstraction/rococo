@@ -271,14 +271,16 @@ namespace
 		EntityTable<Human*> allies;
 		EntityTable<Equipment> equipment;
 		EntityTable<ISkeletonSupervisor*> skeletons;
+		EntityTable<std::wstring> names;
 		Vec3 groundZeroCursor;
 		ID_ENTITY selectedId;
 		AutoFree<IQuadTreeSupervisor> quadTree;
 		float gameTime;
 		float lastDt;
+		ID_ENTITY nearestRoadSection;
 
 		std::vector<ID_ENTITY> lastRendered;
-
+		std::vector<std::wstring> streetNames;
 		std::vector<ID_ENTITY> abattoir;
 	public:
 		Level(Environment& _e, IHumanFactory& _hf) : 
@@ -302,9 +304,57 @@ namespace
 			Clear();
 		}
 
+		virtual ID_ENTITY NearestRoadId() const
+		{
+			return nearestRoadSection;
+		}
+
+		virtual const wchar_t* TryGetName(ID_ENTITY id)
+		{
+			auto i = names.find(id);
+			return (i != names.end()) ? i->second.c_str() : nullptr;
+		}
+
 		virtual void GenerateCity(const fstring& name)
 		{
-			BuildRandomCity(name, 0, e);
+			struct : IEnumerable<const wchar_t*>
+			{
+				virtual const wchar_t* operator[](size_t index)
+				{
+					return (*names)[index].c_str();
+				}
+
+				virtual size_t Count() const
+				{
+					return names->size();
+				}
+
+				virtual void Enumerate(IEnumerator<const wchar_t*>& cb)
+				{
+					for (auto& i : *names)
+					{
+						cb(i.c_str());
+					}
+				}
+				std::vector<std::wstring>* names;
+			} enumerable;
+
+			enumerable.names = &streetNames;
+
+			BuildRandomCity(name, 0, e, enumerable);
+		}
+
+		virtual void AddStreetName(const fstring& name)
+		{
+			streetNames.push_back(std::wstring(name));
+		}
+
+		virtual void Name(ID_ENTITY entityId, const fstring& name)
+		{
+			if (!names.insert(entityId, std::wstring(name)).second)
+			{
+				Throw(0, L"Could not insert name: %s", name.buffer);
+			}
 		}
 
 		virtual void PopulateCity(float populationDensity)
@@ -354,6 +404,8 @@ namespace
 			}
 			equipment.clear();
 			quadTree->Clear();
+			streetNames.clear();
+			names.clear();
 		}
 
 		virtual void Free() { delete this; }
@@ -747,6 +799,8 @@ namespace
 				auto& entity = i->second;
 				auto& t = i->second.transform;
 
+				names.erase(id);
+
 				if (entity.HasFlag(SolidFlags_Skeleton))
 				{
 					auto j = skeletons.find(id);
@@ -807,14 +861,22 @@ namespace
 						Throw(0, L"Entity #%I64u was registered in the quad tree, but not the solids table. BUG!", idValue);
 					}
 
-					
-
 					auto& entity = i->second;
 
 					This->UpdateTransform(id, i->second);
 
 					cr_vec3 pos = entity.position;
 					Vec3 delta = pos - groundZeroCursor;
+
+					if (entity.HasFlag(SolidFlags_RoadSection))
+					{
+						float l2 = LengthSq(centre - pos);
+						if (l2 < roadSectionRange)
+						{
+							roadSectionRange = l2;
+							closestRoadSectionId = id;
+						}
+					}
 
 					float DS2 = Square(delta.x) + Square(delta.y);
 					bool isHighlighted = entity.HasFlag(SolidFlags_Selectable) &&  DS2 < Square(entity.boundingRadius);
@@ -867,8 +929,13 @@ namespace
 				float lastDt;
 				Level* This;
 				std::vector<ID_ENTITY>* lastRendered;
+				ID_ENTITY closestRoadSectionId;
+				float roadSectionRange;
+				Vec3 centre;
 			} renderSolid;
 
+			renderSolid.centre = centre;
+			renderSolid.roadSectionRange = 1.0e20f;
 			renderSolid.This = this;
 			renderSolid.lastRendered = &lastRendered;
 			renderSolid.groundZeroCursor = groundZeroCursor;
@@ -883,6 +950,7 @@ namespace
 			quadTree->EnumerateItems(Sphere{ centre, 32.0_metres }, renderSolid);
 			
 			selectedId = renderSolid.selectedId;
+			nearestRoadSection = renderSolid.closestRoadSectionId;
 		}
 
 		virtual void RenderObjects(IRenderContext& rc)
@@ -1185,10 +1253,10 @@ namespace
 			}
 		}
 
-		virtual void ExecuteLevelFunction(const fstring& name, IArgEnumerator& args)
+		virtual void ExecuteLevelFunction(ArchetypeCallback fn, IArgEnumerator& args)
 		{
 			if (!levelScript) Throw(0, L"No level script loaded!");
-			levelScript->ExecuteFunction(name, args);
+			levelScript->ExecuteFunction(fn, args);
 		}
 
 		virtual void Free()

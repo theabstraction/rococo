@@ -125,7 +125,8 @@ namespace Dystopia
 		virtual void SetGroundCursorPosition(cr_vec3 groundZero) = 0;
 		virtual void SetNextAIUpdate(ID_ENTITY id, float nextUpdateTime) = 0;
 		virtual ID_ENTITY SelectedId() = 0;
-
+		virtual ID_ENTITY NearestRoadId() const = 0;
+		virtual const wchar_t* TryGetName(ID_ENTITY id) = 0;
 		virtual void Delete(ID_ENTITY id) = 0;
 		virtual bool TryGetEquipment(ID_ENTITY id, EquipmentDesc& desc) const = 0;
 
@@ -141,7 +142,7 @@ namespace Dystopia
 
 	ROCOCOAPI ILevelLoader
 	{
-		virtual void ExecuteLevelFunction(const fstring& name, IArgEnumerator& args) = 0;
+		virtual void ExecuteLevelFunction(ArchetypeCallback bytecodeId, IArgEnumerator& args) = 0;
 		virtual void Free() = 0;
 		virtual void Load(const wchar_t* resourceName, bool isReloading) = 0;
 		virtual void SyncWithModifiedFiles() = 0;
@@ -342,12 +343,13 @@ namespace Dystopia
 	};
 
 	void InitControlMap(IControlsSupervisor& controls);
-	void BuildRandomCity(const fstring& name, uint32 seedDelta, Environment& e);
+	void BuildRandomCity(const fstring& name, uint32 seedDelta, Environment& e, IEnumerable<const wchar_t*>& names);
 	ID_MESH GenerateRandomHouse(Environment& e, uint32 seed);
 
 	ROCOCOAPI IPersistentScript
 	{
-		virtual void ExecuteFunction(const fstring& name, IArgEnumerator& args) = 0;
+		virtual void ExecuteFunction(ArchetypeCallback bytecodeId, IArgEnumerator& args) = 0;
+		virtual void ExecuteFunction(const wchar_t* name, IArgEnumerator& args) = 0;
 		virtual void Free() = 0;
 	};
 

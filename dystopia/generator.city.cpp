@@ -3,6 +3,7 @@
 #include "meshes.h"
 #include <random>
 #include <algorithm>
+#include "rococo.strings.h"
 
 namespace
 {
@@ -498,7 +499,7 @@ namespace
 		}
 	}
 
-	void GenerateRoadSegment(Vec2 left, Vec2 right, Vec2 leftGrad, Vec2 rightGrad, RoadContext& c)
+	void GenerateRoadSegment(Vec2 left, Vec2 right, Vec2 leftGrad, Vec2 rightGrad, RoadContext& c, const wchar_t* name, size_t streetAddress)
 	{
 		enum { nSegments = 5 };
 
@@ -539,7 +540,11 @@ namespace
 		auto id = ID_MESH(bodyIndex);
 		c.e->meshes.BuildMesh(&(c.cache->at(0)), c.cache->size(), id, false);
 
-		c.e->level.Builder().AddSolid(Vec3{ midPoint.x, midPoint.y, 0.0f }, id, SolidFlags_None);
+		ID_ENTITY roadId = c.e->level.Builder().AddSolid(Vec3{ midPoint.x, midPoint.y, 0.0f }, id, SolidFlags_RoadSection);
+
+		wchar_t streetName[256];
+		SafeFormat(streetName, _TRUNCATE, L"%I64u-%I64u %s", streetAddress, streetAddress + 1, name);
+		c.e->level.Builder().Name(roadId, to_fstring(streetName));
 	}
 
 	void DivideRoadWE(Vec2 left, Vec2 right, TRoadVertices& v, Randomizer& rng)
@@ -694,11 +699,94 @@ namespace
 			e.level.SetHeading(id, theta);
 		}
 	}
+
+	uint32 Next(Randomizer& rng, uint32 modulus)
+	{
+		return rng() % modulus;
+	}
+
+	void GenRandomStreetName(wchar_t randomName[256], Randomizer& rng)
+	{
+		const wchar_t* consonants[] = {
+			L"b",
+			L"c",
+			L"e",
+			L"f",
+			L"g",
+			L"h",
+			L"j",
+			L"k",
+			L"l",
+			L"m",
+			L"n",
+			L"p",
+			L"qu",
+			L"r",
+			L"s",
+			L"t",
+			L"v",
+			L"w",
+			L"y",
+			L"z",
+			L"th",
+			L"gh",
+			L"ph",
+			L"st",
+			L"br",
+			L"cr",
+			L"dr",
+			L"fr",
+			L"gr",
+			L"pr",
+			L"wr",
+			L"sc",
+		};
+
+		const wchar_t* vowels[] = {
+			L"a",
+			L"e",
+			L"i",
+			L"o",
+			L"oo",
+			L"u",
+			L"ou",
+			L"y",
+		};
+
+		const wchar_t* finalNames[] =
+		{
+			L"road",
+			L"drive",
+			L"street",
+			L"lane",
+			L"way"
+		};
+
+		randomName[0] = 0;
+
+		uint32 lenOfName = 2 + Random::Next(4);
+		for (uint32 i = 0; i < lenOfName; ++i)
+		{
+			const wchar_t* c = consonants[Next(rng, sizeof(consonants) / sizeof(const wchar_t*))];
+			SafeCat(randomName, 256, c, _TRUNCATE);
+
+			const wchar_t* v = vowels[Next(rng, sizeof(vowels) / sizeof(const wchar_t*))];
+			SafeCat(randomName, 256, v, _TRUNCATE);
+		}
+
+		SafeCat(randomName, 256, L" ", _TRUNCATE);
+
+		const wchar_t* fn = finalNames[Next(rng, sizeof(finalNames) / sizeof(const wchar_t*))];
+
+		SafeCat(randomName, 256, fn, _TRUNCATE);
+
+		randomName[0] = toupper(randomName[0]);
+	}
 }
 
 namespace Dystopia
 {
-	void BuildRandomCity(const fstring& name, uint32 seedDelta, Environment& e)
+	void BuildRandomCity(const fstring& name, uint32 seedDelta, Environment& e, IEnumerable<const wchar_t*>& names)
 	{
 		uint32 hash = FastHash(name);
 		Randomizer rng(hash + seedDelta);
@@ -712,6 +800,30 @@ namespace Dystopia
 		std::vector<ObjectVertex> cache;
 		RoadContext c{ &e, 0, &rng, &cache };
 
+		struct : IEnumerator<const wchar_t*>
+		{
+			std::vector<std::wstring> names;
+
+			virtual void operator()(const wchar_t* streetName)
+			{
+				names.push_back(streetName);
+			}
+		} streets;
+
+		names.Enumerate(streets);
+
+		if (network.roads.size() > streets.names.size())
+		{
+			size_t undefinedNames =  network.roads.size() - streets.names.size();
+			while (undefinedNames > 0)
+			{
+				wchar_t randomName[256];
+				GenRandomStreetName(randomName, rng);
+				streets.names.push_back(randomName);
+				undefinedNames--;
+			}
+		}
+		
 		for (size_t j = 0; j < network.roads.size(); ++j)
 		{
 			auto roadPtr = network.roads[j];
@@ -728,7 +840,7 @@ namespace Dystopia
 				}
 				else
 				{
-					GenerateRoadSegment(left.location, right.location, left.gradient, right.gradient, c);
+					GenerateRoadSegment(left.location, right.location, left.gradient, right.gradient, c, streets.names[j].c_str(), 2 * i + 1);
 				}
 			}
 

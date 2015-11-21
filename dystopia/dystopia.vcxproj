@@ -260,11 +260,11 @@
   <ItemGroup>
     <None Include="..\include\rococo.maths.inl" />
     <None Include="component.system.inl" />
-    <None Include="dystopia.sxh">
+    <CustomBuild Include="dystopia.sxh">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
-    </None>
+    </CustomBuild>
     <None Include="config.xc" />
     <ClCompile Include="controls.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>

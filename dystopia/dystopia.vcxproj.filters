@@ -177,9 +177,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="dystopia.sxh">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="config.xc">
       <Filter>Source Files</Filter>
     </None>
@@ -192,5 +189,10 @@
     <None Include="dystopia.sxh.inl">
       <Filter>Header Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="dystopia.sxh">
+      <Filter>Source Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

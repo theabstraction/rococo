@@ -19,12 +19,14 @@ namespace Dystopia {
 		virtual ID_ENTITY/* entityId */ AddRangedWeapon(const Vec3& pos, ID_MESH editorId, const fstring& name, const fstring& imageFile, float muzzleVelocity, float flightTime, int32 ammoType, float massKg) = 0;
 		virtual ID_ENTITY/* entityId */ AddArmour(const Vec3& pos, ID_MESH editorId, const fstring& name, const fstring& imageFile, int32 bulletProt, int32 dollSlot, float massKg) = 0;
 		virtual ID_ENTITY/* entityId */ AddSolid(const Vec3& pos, ID_MESH editorId, int32 flags) = 0;
+		virtual void Name(ID_ENTITY entityId, const fstring& name) = 0;
 		virtual void SetPosition(ID_ENTITY entityId, const Vec3& pos) = 0;
 		virtual void SetVelocity(ID_ENTITY entityId, const Vec3& velocity) = 0;
 		virtual void SetHeading(ID_ENTITY entityId, Radians theta) = 0;
 		virtual void SetElevation(ID_ENTITY entityId, Radians phi) = 0;
 		virtual void SetScale(ID_ENTITY entityId, const Vec3& scale) = 0;
 		virtual void GenerateCity(const fstring& name) = 0;
+		virtual void AddStreetName(const fstring& name) = 0;
 		virtual void PopulateCity(float populationDensity) = 0;
 		virtual void Clear() = 0;
 		virtual void SetPlayerId(ID_ENTITY playerId) = 0;
@@ -44,6 +46,7 @@ namespace Dystopia {
 		SolidFlags_Selectable = 2, 	// 0x2
 		SolidFlags_Skeleton = 4, 	// 0x4
 		SolidFlags_IsDirty = 8, 	// 0x8
+		SolidFlags_RoadSection = 16, 	// 0x10
 	};
 	bool TryParse(const fstring& s, SolidFlags& value);
 	bool TryShortParse(const fstring& s, SolidFlags& value); 
@@ -108,7 +111,7 @@ namespace Dystopia {
 	struct NO_VTABLE IJournal
 	{
 		virtual void AddHistory(const fstring& title, const fstring& body) = 0;
-		virtual ID_GOAL/* id */ AddGoalMeet(const fstring& title, const fstring& body, ID_ENTITY a, ID_ENTITY b, Metres radius, const fstring& completionFunction) = 0;
+		virtual ID_GOAL/* id */ AddGoalMeet(const fstring& title, const fstring& body, ID_ENTITY a, ID_ENTITY b, Metres radius, ArchetypeCallback completionFunction) = 0;
 		virtual void CompleteFirst(ID_GOAL forGoalId, ID_GOAL precusorGoalId) = 0;
 		virtual void FailFirst(ID_GOAL forGoalId, ID_GOAL precusorGoalId) = 0;
 	};

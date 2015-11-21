@@ -28,6 +28,7 @@
 (primitive IdMesh Int32 ID_MESH)
 (primitive IdEntity Int64 ID_ENTITY)
 (primitive IdGoal Int64 ID_GOAL)
+(primitive TwoInt64InputFunction Dystopia.Callbacks.TwoInt64InputFunction ArchetypeCallback)
 
 // (struct <name> <sexy-name> <cpp-name>)  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files
 // Arguments that are struct are passed by reference in the script system. They may not be used as output arguments. It is assumed that the structures are defined elsewhere.

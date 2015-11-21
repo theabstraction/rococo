@@ -151,7 +151,22 @@ namespace
 			ce.Builder.Assembler().Append_PushLiteral(BITCOUNT_64, fnRef);
 
 			VariantValue zeroRef;
-			fnRef.charPtrValue = nullptr;
+			zeroRef.charPtrValue = nullptr;
+			ce.Builder.Assembler().Append_PushLiteral(BITCOUNT_64, zeroRef);
+		}
+		else if (AreEqual(SEXTEXT("0"), fname))
+		{
+			auto& f = GetNullFunction(ce.Script, archetype);
+
+			CodeSection section;
+			f.Code().GetCodeSection(OUT section);
+
+			VariantValue fnRef;
+			fnRef.byteCodeIdValue = section.Id;
+			ce.Builder.Assembler().Append_PushLiteral(BITCOUNT_64, fnRef);
+
+			VariantValue zeroRef;
+			zeroRef.charPtrValue = nullptr;
 			ce.Builder.Assembler().Append_PushLiteral(BITCOUNT_64, zeroRef);
 		}
 		else
@@ -163,6 +178,7 @@ namespace
 				streamer << SEXTEXT("Failed to interpret expression as a closure argument: ") << inputType.Name() << SEXTEXT(" ") << argName;
 				Throw(s, streamer);
 			}
+		
 
 			ce.Builder.PushVariable(def);
 		}
