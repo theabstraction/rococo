@@ -15,7 +15,18 @@
 (function OnHavingMetProfessor (Int64 playerId) (Int64 professorId)-> :
 	(Dystopia.Gui.IGui gui (Dystopia.Gui.GetGui))	
 	(Vec2i span = 800 600)
-	(gui.ShowDialogBox span 100 30 "A most unexpected meeting" "Professor Black has instructed me on my next target. Find MMM and get the package." ">Continue...=Sys.Events.Continue" )	
+	(gui.ShowDialogBox span 100 30 "A most unexpected meeting" "Professor Black has instructed me on my next target. Find MMM and get the package." ">Continue...=0" )	
+)
+
+(function OnHavingMetMMM (Int64 playerId) (Int64 mmmId)-> :
+	(Dystopia.Gui.IGui gui (Dystopia.Gui.GetGui))	
+	(Vec2i span = 800 600)
+	(gui.ShowDialogBox span 100 30 "Met MMM" "You must take this to a higher level." ">Continue...=OnMMMComplete" )	
+)
+
+(function OnMMMComplete -> :
+	(Dystopia.Levels.ILevel level (Dystopia.Levels.GetLevel))
+    (level.SetLevel "!levels/level2.sxy")
 )
 
 (function Main (Int32 arg) -> (Int32 exitCode): 
@@ -56,7 +67,7 @@
 	(level.AddStreetName "Weston Road")
 	(level.AddStreetName "Weeping Cross")
 	(level.AddStreetName "Cannock Road")
-	(level.GenerateCity "Stafford")
+	(level.GenerateCity "Stafford" 50)
 	(level.PopulateCity 2.5)
 	
 	(Dystopia.Journal.IJournal journal (Dystopia.Journal.GetJournal))
@@ -86,7 +97,7 @@
 		"Plan:&n&tKill looters.&n&tGet food.&n&tGet money&n&tGet down to that depot and kick jobsworths' arses.")
 
 	(Int64 professorGoal = (journal.AddGoalMeet "Meet the Professor" "The professor has the package. Collect it before he is assasinated." playerId professorId 2.0 OnHavingMetProfessor))
-	(Int64 mmmGoal = (journal.AddGoalMeet "Meet the Marsh Mellow Maker" "MMM has the package. Collect it before he is assasinated." playerId mmmId 2.0 0))
+	(Int64 mmmGoal = (journal.AddGoalMeet "Meet the Marsh Mellow Maker" "MMM has the package. Collect it before he is assasinated." playerId mmmId 2.0 OnHavingMetMMM))
 	(journal.CompleteFirst mmmGoal professorGoal)
 			
 	(exitCode = 0)

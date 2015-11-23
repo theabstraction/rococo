@@ -89,7 +89,7 @@ namespace Dystopia {
 				if (levelsGained > 0)
 				{
 					fstring rewardText = to_fstring(GetKudosRewardText(kudosStat));
-					e.gui.ShowDialogBox({ 640,480 }, 150, 50, L"Life improves!"_fstring, rewardText, L"Continue=null"_fstring);
+					e.gui.ShowDialogBox({ 640,480 }, 150, 50, L"Life improves!"_fstring, rewardText, L"Continue=0"_fstring);
 				}
 				else if (delta > 0)
 				{

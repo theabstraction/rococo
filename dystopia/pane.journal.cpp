@@ -372,7 +372,7 @@ namespace
 			RGBAb fontColour = IsPointInRect(focusPoint, rect) ? white : grey;
 			Graphics::DrawRectangle(grc, rect, RGBAb(64, 0, 0, 64), RGBAb(0, 0, 64, 64));
 
-			Graphics::RenderVerticalCentredText(grc, Centre(rect).x, rect.top, fontColour, label, 3);
+			Graphics::RenderVerticalCentredText(grc, label, fontColour, 3, { Centre(rect).x, rect.top });
 		}
 
 		virtual void RenderGui(IGuiRenderContext& grc)

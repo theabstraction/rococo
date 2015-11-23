@@ -1,0 +1,52 @@
+(' file.type dystopia.level)
+
+(' #include 
+	"!scripts/dystopia.sxh.sxy" 
+	"!scripts/dystopia.defs.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Sys.Maths)
+(using Dystopia.Entities)
+(using Dystopia.Callbacks)
+
+(function Main (Int32 arg) -> (Int32 exitCode): 
+	(Dystopia.Meshes.IMeshes meshes (Dystopia.Meshes.GetMeshes))
+	(meshes.Load "!mesh/cube.sxy" 1)
+	(meshes.Load "!mesh/road.sxy" 2)
+	(meshes.Load "!mesh/human.sxy" 3)
+	(meshes.Load "!mesh/rifle.sxy" 4)
+	
+	(Dystopia.Levels.ILevel level (Dystopia.Levels.GetLevel))
+	(level.Clear)
+	
+	(Int64 playerId)
+	(Int64 professorId)
+	(Int64 mmmId)
+
+	(
+		(Vec3 position = 0 0 0)
+		(playerId = (level.AddAlly position 3))
+		(level.SetPlayerId playerId)
+	)
+	
+	(level.AddStreetName "Newport Road")
+	(level.AddStreetName "High Street")
+	(level.AddStreetName "Brrokhouse Road")
+	(level.AddStreetName "Sellman Street")
+	(level.AddStreetName "Glebe Lane")
+	(level.AddStreetName "Audmore Road")
+	(level.AddStreetName "Foresters Lane")
+	(level.AddStreetName "Greenfields")
+	(level.GenerateCity "Gnosall" 100)
+	(level.PopulateCity 2.5)
+	
+	(Dystopia.Journal.IJournal journal (Dystopia.Journal.GetJournal))
+	
+	(journal.AddHistory "Diary entry: 24th July"
+		"Escaped Stafford. Package last seen in Gnosall.")
+			
+	(exitCode = 0)
+)

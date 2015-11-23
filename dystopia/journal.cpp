@@ -254,10 +254,19 @@ namespace
 
 		~Journal()
 		{
+			Clear();
+		}
+
+		virtual void Clear()
+		{
 			for (auto& g : goalById)
 			{
 				g.second.goal->Free();
 			}
+
+			goalById.clear();
+			abattoir.clear();
+			history.clear();
 		}
 
 		virtual IHistoricEvent& operator[] (size_t index)

@@ -7,10 +7,34 @@
 
 namespace
 {
-	typedef std::mt19937  Randomizer;
-
 	using namespace Rococo;
 	using namespace Dystopia;
+
+	struct : IScene
+	{
+		virtual RGBA GetClearColour() const
+		{
+			return clearColour;
+		}
+
+		virtual void RenderGui(IGuiRenderContext& grc)
+		{
+			GuiMetrics metrics;
+			grc.Renderer().GetGuiMetrics(metrics);
+
+			Graphics::RenderHorizontalCentredText(grc, text.c_str(), RGBAb(255, 255, 255, 255), 1, { metrics.cursorPosition.x >> 1, 100 });
+		}
+
+		virtual void RenderObjects(IRenderContext& rc)
+		{
+
+		}
+
+		std::wstring text = L"Loading...";
+		RGBA clearColour =  RGBA(0.5f, 0, 0);
+	} customLoadScene;
+
+	typedef std::mt19937  Randomizer;
 
 	float RandomQuotient(Randomizer& rng, float minValue, float maxValue)
 	{
@@ -581,10 +605,10 @@ namespace
 		DivideRoadSN(node, right, v, rng);
 	}
 
-	void BuildNorthSouthRoad(TRoadVertices& v, RoadNetwork& network, Randomizer& rng, uint32 index, Vec2 centre, uint32 junctionIndex)
+	void BuildNorthSouthRoad(TRoadVertices& v, Metres radius, RoadNetwork& network, Randomizer& rng, uint32 index, Vec2 centre, uint32 junctionIndex)
 	{
-		Vec2 southPoint = { centre.x, -250.0_metres };
-		Vec2 northPoint = { centre.x, 250.0_metres };
+		Vec2 southPoint = { centre.x, -radius };
+		Vec2 northPoint = { centre.x, radius };
 
 		v.push_back(RoadNode{ { 0, 1 }, southPoint, 0 });
 		v.push_back(RoadNode{ { 0, 1 }, northPoint, 0 });
@@ -618,10 +642,10 @@ namespace
 		}
 	}
 
-	void BuildWestEastRoad(TRoadVertices& v, RoadNetwork& network, Randomizer& rng, uint32 index)
+	void BuildWestEastRoad(TRoadVertices& v, Metres radius, RoadNetwork& network, Randomizer& rng, uint32 index)
 	{
-		Vec2 westPoint = { -250.0_metres, 0.0f };
-		Vec2 eastPoint = { 250.0_metres, 0.0f };
+		Vec2 westPoint = { -radius, 0.0f };
+		Vec2 eastPoint = { radius, 0.0f };
 
 		Vec2 midPoint = 0.5f * (westPoint + eastPoint);
 
@@ -657,7 +681,7 @@ namespace
 
 				network.junctions.push_back(Junction{ index,  (uint32)network.roads.size()-1 });
 				
-				BuildNorthSouthRoad(northSouthRoad, network, rng, (uint32) network.roads.size(), centre, junctionIndex);
+				BuildNorthSouthRoad(northSouthRoad, radius, network, rng, (uint32) network.roads.size(), centre, junctionIndex);
 				i += 8;	
 			}
 		}
@@ -707,50 +731,88 @@ namespace
 
 	void GenRandomStreetName(wchar_t randomName[256], Randomizer& rng)
 	{
-		const wchar_t* consonants[] = {
-			L"b",
-			L"c",
-			L"e",
-			L"f",
-			L"g",
-			L"h",
-			L"j",
-			L"k",
-			L"l",
-			L"m",
-			L"n",
-			L"p",
-			L"qu",
-			L"r",
-			L"s",
-			L"t",
-			L"v",
-			L"w",
-			L"y",
-			L"z",
-			L"th",
-			L"gh",
-			L"ph",
-			L"st",
-			L"br",
-			L"cr",
-			L"dr",
-			L"fr",
-			L"gr",
-			L"pr",
-			L"wr",
-			L"sc",
+		const wchar_t* alpha[] = {
+			L"red",
+			L"green",
+			L"blue",
+			L"yellow",
+			L"orange",
+			L"black",
+			L"white",
+			L"grey",
+			L"new",
+			L"old",
+			L"fair",
+			L"all",
+			L"good",
+			L"upper",
+			L"lower",
+			L"",
+			L"",
+			L"",
+			L"",
+			L"",
+			L"",
+			L"",
+			L"",
+			L"",
+			L"",
+			L"",
+			L"",
+			L"",
+			L"",
+			L"",
+			L"",
+			L"",
 		};
 
-		const wchar_t* vowels[] = {
-			L"a",
-			L"e",
-			L"i",
-			L"o",
-			L"oo",
-			L"u",
-			L"ou",
-			L"y",
+		const wchar_t* beta[] = {
+			L"oak",
+			L"pine",
+			L"ash",
+			L"willow",
+			L"iron",
+			L"bronze",
+			L"brass",
+			L"copper",
+			L"wood",
+			L"fire",
+			L"earth",
+			L"water",
+			L"wheel",
+			L"horse",
+			L"port",
+			L"tower",
+			L"bridge",
+			L"square",
+			L"circle",
+			L"circus",
+			L"ring",
+			L"river",
+			L"pond",
+			L"hill",
+			L"valley",
+			L"mountain",
+			L"king",
+			L"queen",
+			L"prince",
+			L"princess",
+			L"duke",
+			L"duchess",
+			L"castle",
+			L"guard",
+			L"gaol",
+			L"mill",
+			L"baker",
+			L"butcher",
+			L"grocer",
+			L"market",
+			L"wine",
+			L"hall",
+			L"mahogany",
+			L"shire",
+			L"ton",
+			L"pound"
 		};
 
 		const wchar_t* finalNames[] =
@@ -764,15 +826,11 @@ namespace
 
 		randomName[0] = 0;
 
-		uint32 lenOfName = 2 + Random::Next(4);
-		for (uint32 i = 0; i < lenOfName; ++i)
-		{
-			const wchar_t* c = consonants[Next(rng, sizeof(consonants) / sizeof(const wchar_t*))];
-			SafeCat(randomName, 256, c, _TRUNCATE);
+		const wchar_t* c = alpha[Next(rng, sizeof(alpha) / sizeof(const wchar_t*))];
+		SafeCat(randomName, 256, c, _TRUNCATE);
 
-			const wchar_t* v = vowels[Next(rng, sizeof(vowels) / sizeof(const wchar_t*))];
-			SafeCat(randomName, 256, v, _TRUNCATE);
-		}
+		const wchar_t* v = beta[Next(rng, sizeof(beta) / sizeof(const wchar_t*))];
+		SafeCat(randomName, 256, v, _TRUNCATE);
 
 		SafeCat(randomName, 256, L" ", _TRUNCATE);
 
@@ -786,8 +844,12 @@ namespace
 
 namespace Dystopia
 {
-	void BuildRandomCity(const fstring& name, uint32 seedDelta, Environment& e, IEnumerable<const wchar_t*>& names)
+	void BuildRandomCity_V1(const fstring& name, Metres radius, uint32 seedDelta, Environment& e, IEnumerable<const wchar_t*>& names)
 	{
+		customLoadScene.clearColour = RGBA(0.75f, 0, 0);
+		customLoadScene.text = L"Generating roads...";
+		e.renderer.Render(customLoadScene);
+
 		uint32 hash = FastHash(name);
 		Randomizer rng(hash + seedDelta);
 
@@ -795,7 +857,7 @@ namespace Dystopia
 		TRoadVertices* mainRoad = new TRoadVertices();
 		network.roads.push_back(mainRoad);
 
-		BuildWestEastRoad(*mainRoad, network, rng, 0);
+		BuildWestEastRoad(*mainRoad, radius, network, rng, 0);
 
 		std::vector<ObjectVertex> cache;
 		RoadContext c{ &e, 0, &rng, &cache };
@@ -818,7 +880,15 @@ namespace Dystopia
 			while (undefinedNames > 0)
 			{
 				wchar_t randomName[256];
-				GenRandomStreetName(randomName, rng);
+
+				while (true)
+				{
+					GenRandomStreetName(randomName, rng);
+					if (std::find(streets.names.begin(), streets.names.end(), randomName) == streets.names.end() )
+					{
+						break;
+					}
+				}
 				streets.names.push_back(randomName);
 				undefinedNames--;
 			}
@@ -843,6 +913,13 @@ namespace Dystopia
 					GenerateRoadSegment(left.location, right.location, left.gradient, right.gradient, c, streets.names[j].c_str(), 2 * i + 1);
 				}
 			}
+
+			customLoadScene.clearColour = RGBA((network.roads.size() - j) / (float) (network.roads.size()), 0, 0);
+
+			wchar_t text[256];
+			SafeFormat(text, _TRUNCATE, L"Generating housing along %s", streets.names[j].c_str());
+			customLoadScene.text = text;
+			e.renderer.Render(customLoadScene);
 
 			BuildHouses(road, e, rng);
 		}

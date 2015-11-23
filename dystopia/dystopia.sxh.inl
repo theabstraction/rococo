@@ -357,6 +357,22 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetElevation(entityId, phi);
 	}
+	void NativeDystopiaILevelBuilderSetLevel(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(void*);
+		IString* _filename;
+		ReadInput(_filename, _sf, -_offset);
+		fstring filename { _filename->buffer, _filename->length };
+
+
+		Dystopia::ILevelBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetLevel(filename);
+	}
 	void NativeDystopiaILevelBuilderSetScale(NativeCallEnvironment& _nce)
 	{
 		Sexy::uint8* _sf = _nce.cpu.SF();
@@ -379,6 +395,10 @@ namespace
 	{
 		Sexy::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Metres radius;
+		_offset += sizeof(radius);
+		ReadInput(radius, _sf, -_offset);
+
 		_offset += sizeof(void*);
 		IString* _name;
 		ReadInput(_name, _sf, -_offset);
@@ -389,7 +409,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GenerateCity(name);
+		_pObject->GenerateCity(name, radius);
 	}
 	void NativeDystopiaILevelBuilderAddStreetName(NativeCallEnvironment& _nce)
 	{
@@ -475,8 +495,9 @@ namespace Dystopia
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetVelocity, nullptr, SEXTEXT("ILevelSetVelocity (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 velocity) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetHeading, nullptr, SEXTEXT("ILevelSetHeading (Pointer hObject)(Int64 entityId)(Float32 theta) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetElevation, nullptr, SEXTEXT("ILevelSetElevation (Pointer hObject)(Int64 entityId)(Float32 phi) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetLevel, nullptr, SEXTEXT("ILevelSetLevel (Pointer hObject)(Sys.Type.IString filename) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetScale, nullptr, SEXTEXT("ILevelSetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
-		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderGenerateCity, nullptr, SEXTEXT("ILevelGenerateCity (Pointer hObject)(Sys.Type.IString name) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderGenerateCity, nullptr, SEXTEXT("ILevelGenerateCity (Pointer hObject)(Sys.Type.IString name)(Float32 radius) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddStreetName, nullptr, SEXTEXT("ILevelAddStreetName (Pointer hObject)(Sys.Type.IString name) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderPopulateCity, nullptr, SEXTEXT("ILevelPopulateCity (Pointer hObject)(Float32 populationDensity) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderClear, nullptr, SEXTEXT("ILevelClear (Pointer hObject) -> "));

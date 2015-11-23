@@ -21,6 +21,7 @@ namespace Dystopia
 		// Pass array of clockwise-visible triangles for the mesh. 
 		// Diffuse.w is the texture blend parameter. Set to zero to use pure colours
 		virtual void BuildMesh(const ObjectVertex* vertices, size_t vertexCount, ID_MESH id, bool createPhysicsBox) = 0;
+		virtual void Clear() = 0;
 		virtual void CreateReflection(ID_MESH sourceId, ID_MESH id) = 0;
 		virtual size_t ForEachPhysicsHull(ID_MESH id, IEnumerator<BoundingCube> &cb) = 0;
 		virtual void Free() = 0;

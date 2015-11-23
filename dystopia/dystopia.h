@@ -143,9 +143,13 @@ namespace Dystopia
 	ROCOCOAPI ILevelLoader
 	{
 		virtual void ExecuteLevelFunction(ArchetypeCallback bytecodeId, IArgEnumerator& args) = 0;
+		virtual void ExecuteLevelFunction(const wchar_t* functionName, IArgEnumerator& args) = 0;
 		virtual void Free() = 0;
 		virtual void Load(const wchar_t* resourceName, bool isReloading) = 0;
+		virtual bool NeedsUpdate() const = 0;
+		virtual void SetNextLevel(const fstring& filename) = 0;
 		virtual void SyncWithModifiedFiles() = 0;
+		virtual void Update() = 0;
 	};
 
 	IOS& GetOS(Environment& e);
@@ -287,6 +291,7 @@ namespace Dystopia
 
 	struct IJournalSupervisor : public IJournal
 	{
+		virtual void Clear() = 0;
 		virtual void EnumerateGoals(IEnumerator<IGoal>& cb) = 0;
 		virtual IMutableVectorEnumerator<IHistoricEvent>& History() = 0;
 		virtual void Free() = 0;
@@ -343,7 +348,7 @@ namespace Dystopia
 	};
 
 	void InitControlMap(IControlsSupervisor& controls);
-	void BuildRandomCity(const fstring& name, uint32 seedDelta, Environment& e, IEnumerable<const wchar_t*>& names);
+	void BuildRandomCity(const fstring& name, Metres radius, uint32 seedDelta, Environment& e, IEnumerable<const wchar_t*>& names);
 	ID_MESH GenerateRandomHouse(Environment& e, uint32 seed);
 
 	ROCOCOAPI IPersistentScript

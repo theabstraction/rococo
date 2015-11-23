@@ -23,6 +23,27 @@ namespace Dystopia
 		void PickupItem(Environment& e, ID_ENTITY itemId, ID_ENTITY collectorId, Metres maxPickupRange);
 		void ShowSelectOptions(ID_ENTITY id, Environment& e, IEventCallback<ContextMenuItem>& handler);
 	}
+
+	struct : IScene
+	{
+		virtual RGBA GetClearColour() const
+		{
+			return RGBA(0.5f, 0, 0);
+		}
+
+		virtual void RenderGui(IGuiRenderContext& grc)
+		{
+			GuiMetrics metrics;
+			grc.Renderer().GetGuiMetrics(metrics);
+
+			Graphics::RenderHorizontalCentredText(grc, L"Loading...", RGBAb(255, 255, 255, 255), 0, { metrics.cursorPosition.x >> 1, 100 });
+		}
+
+		virtual void RenderObjects(IRenderContext& rc)
+		{
+
+		}
+	} levelLoadScene;
 }
 
 namespace
@@ -130,7 +151,24 @@ namespace
 
 		virtual void OnEvent(GuiEventArgs& args)
 		{
+			if (args.controlScript[0] == L'0' && args.controlScript[1] == 0)
+			{
+				return;
+			}
 
+			struct : IArgEnumerator
+			{
+				virtual void PushArgs(IArgStack& args)
+				{
+
+				}
+
+				virtual void PopOutputs(IOutputStack& output)
+				{
+
+				}
+			} nullArgs;
+			e.levelLoader.ExecuteLevelFunction(args.controlScript, nullArgs);
 		}
 
 		virtual void OnEvent(ContextMenuItem& item)
@@ -189,10 +227,24 @@ namespace
 		virtual auto OnFrameUpdated(const IUltraClock& clock) -> uint32 // outputs ms sleep for next frame
 		{
 			levelLoader->SyncWithModifiedFiles();
+			
 			TimestepEvent timestep{ clock.Start(), clock.FrameStart(), clock.FrameDelta(), clock.Hz() };
 			postbox->PostForLater(timestep, true);	
 			postbox->Deliver();
-			e.journal.UpdateGoals();
+			e.journal.UpdateGoals();	
+
+			if (e.levelLoader.NeedsUpdate())
+			{
+				e.renderer.Render(levelLoadScene);
+				// Allow journal and postbox to settle down sending messages to each other, without updating timestep
+				for (int i = 0; i < 10; ++i)
+				{
+					e.journal.UpdateGoals();
+					postbox->Deliver();
+				}
+				e.levelLoader.Update(); // Load the level just after post is delivered so that outstanding post does not hit the new level
+			}
+			
 			e.renderer.Render(uiStack->Scene());
 			return 5;
 		}

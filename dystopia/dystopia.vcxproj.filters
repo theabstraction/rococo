@@ -111,6 +111,9 @@
     <ClCompile Include="journal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="generate.city.mk2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dx11.renderer.rc">

@@ -200,11 +200,11 @@ namespace Rococo
 			return Vec2i{ metrics.screenSpan.x >> 1, metrics.screenSpan.y >> 1 };
 		}
 
-		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, int32 x, int32 top, RGBAb colour, const wchar_t* text, int fontIndex)
+		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& topMiddle)
 		{
-			HorizontalCentredText job(fontIndex, text, FontColourFromRGBAb(colour));
+			HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
 			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
-			grc.RenderText(Vec2i{ x - (span.x >> 1), top }, job);
+			grc.RenderText(Vec2i{ topMiddle.x - (span.x >> 1), topMiddle.y }, job);
 			return span;
 		}
 

@@ -18,6 +18,7 @@ namespace
 		Environment& e;
 		float lastFireTime;
 		Stat stats[StatIndex_Count];
+		Post::Subscribtion<AIKilled> sub_AiKilled;
 
 		virtual void AddBehaviour(IBehaviour* behaviour, uint32 weight)
 		{
@@ -95,7 +96,7 @@ namespace
 			stats[StatIndex_Health] = { 200,200 };
 			stats[StatIndex_Kudos] = { 0, RPG::GetFirstCap() };
 
-			e.postbox.Subscribe<AIKilled>(this);
+			sub_AiKilled.Start(e.postbox, this);
 		}
 
 		virtual void OnPost(const Mail& mail)

@@ -328,6 +328,14 @@ namespace
 			}
 		}
 
+		virtual void Clear()
+		{
+			meshes.clear();
+			reflectedMeshes.clear();
+			physicsHulls.clear();
+			renderer.ClearMeshes();
+		}
+
 		virtual size_t ForEachPhysicsHull(ID_MESH id, IEnumerator<BoundingCube>& cb)
 		{
 			auto i = physicsHulls.find(id);

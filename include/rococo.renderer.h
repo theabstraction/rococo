@@ -109,6 +109,7 @@ namespace Rococo
 
 	ROCOCOAPI IRenderer
 	{
+		virtual void ClearMeshes() = 0;
 		virtual ID_VERTEX_SHADER CreateGuiVertexShader(const wchar_t* name, const uint8* shaderCode, size_t shaderLength) = 0;
 		virtual ID_VERTEX_SHADER CreateObjectVertexShader(const wchar_t* name, const uint8* shaderCode, size_t shaderLength) = 0;
 		virtual ID_PIXEL_SHADER CreatePixelShader(const wchar_t* name, const uint8* shaderCode, size_t shaderLength) = 0;
@@ -134,7 +135,7 @@ namespace Rococo
 	{
 		Vec2i GetScreenCentre(const GuiMetrics& metrics);
 		void RenderHorizontalCentredText(IGuiRenderContext& gr, const wchar_t* txt, RGBAb colour, int fontSize, const Vec2i& topLeft);
-		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, int32 x, int32 top, RGBAb colour, const wchar_t* text, int fontIndex);
+		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& topMiddle);
 		void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag);
 		void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag);
 

@@ -183,6 +183,7 @@ namespace
 			if (uiChange)
 			{
 				isRotateLocked = true;
+				intent.Clear();
 			}
 		}
 
@@ -330,8 +331,14 @@ namespace
 			auto* name = e.level.TryGetName(e.level.NearestRoadId());
 			if (name)
 			{
-				Graphics::RenderHorizontalCentredText(grc, name, RGBAb(0, 0, 0), 8, { 11, 11 });
-				Graphics::RenderHorizontalCentredText(grc, name, RGBAb(255, 255, 255), 8, { 10, 10 });
+				Graphics::StackSpaceGraphics ssg;
+				auto& job = Graphics::CreateHorizontalCentredText(ssg, 8, name, RGBAb(255, 255, 255, 255));
+				auto& span = grc.EvalSpan({ 0,0 }, job);
+
+				GuiRect addressRect(10, 10, 10 + span.x + 4, 30);
+
+				Graphics::DrawRectangle(grc, addressRect, RGBAb(0, 0, 0, 64), RGBAb(0, 0, 0, 64));
+				grc.RenderText({ addressRect.left + 2, addressRect.top }, job);
 			}
 		}
 

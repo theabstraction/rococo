@@ -24,8 +24,9 @@ namespace Dystopia {
 		virtual void SetVelocity(ID_ENTITY entityId, const Vec3& velocity) = 0;
 		virtual void SetHeading(ID_ENTITY entityId, Radians theta) = 0;
 		virtual void SetElevation(ID_ENTITY entityId, Radians phi) = 0;
+		virtual void SetLevel(const fstring& filename) = 0;
 		virtual void SetScale(ID_ENTITY entityId, const Vec3& scale) = 0;
-		virtual void GenerateCity(const fstring& name) = 0;
+		virtual void GenerateCity(const fstring& name, Metres radius) = 0;
 		virtual void AddStreetName(const fstring& name) = 0;
 		virtual void PopulateCity(float populationDensity) = 0;
 		virtual void Clear() = 0;

@@ -12,7 +12,7 @@
 #include <sexy.vm.cpu.h>
 
 #include <rococo.maths.h>
-
+#include <rococo.strings.h>
 
 #include "component.system.inl"
 
@@ -28,6 +28,30 @@ using namespace Rococo;
 
 namespace
 {
+	struct : IScene
+	{
+		virtual RGBA GetClearColour() const
+		{
+			return clearColour;
+		}
+
+		virtual void RenderGui(IGuiRenderContext& grc)
+		{
+			GuiMetrics metrics;
+			grc.Renderer().GetGuiMetrics(metrics);
+
+			Graphics::RenderHorizontalCentredText(grc, text.c_str(), RGBAb(255, 255, 255, 255), 1, { metrics.cursorPosition.x >> 1, 100 });
+		}
+
+		virtual void RenderObjects(IRenderContext& rc)
+		{
+
+		}
+
+		std::wstring text = L"Loading...";
+		RGBA clearColour = RGBA(0.5f, 0, 0);
+	} customLoadScene;
+
 	struct Solid
 	{
 		Matrix4x4 transform;
@@ -304,6 +328,11 @@ namespace
 			Clear();
 		}
 
+		virtual void SetLevel(const fstring& filename)
+		{
+			e.levelLoader.SetNextLevel(filename);
+		}
+
 		virtual ID_ENTITY NearestRoadId() const
 		{
 			return nearestRoadSection;
@@ -315,7 +344,7 @@ namespace
 			return (i != names.end()) ? i->second.c_str() : nullptr;
 		}
 
-		virtual void GenerateCity(const fstring& name)
+		virtual void GenerateCity(const fstring& name, Metres radius)
 		{
 			struct : IEnumerable<const wchar_t*>
 			{
@@ -341,7 +370,7 @@ namespace
 
 			enumerable.names = &streetNames;
 
-			BuildRandomCity(name, 0, e, enumerable);
+			BuildRandomCity(name, radius, 0, e, enumerable);
 		}
 
 		virtual void AddStreetName(const fstring& name)
@@ -369,8 +398,19 @@ namespace
 				}
 			}
 
+			size_t updateMod = spawnPoints.size() / 10;
+			size_t index = 0;
 			for (auto i : spawnPoints)
 			{
+				if ((index % updateMod) == 0)
+				{
+					customLoadScene.clearColour.red = 1.0f - index / (float) spawnPoints.size();
+					wchar_t text[256];
+					SafeFormat(text, _TRUNCATE, L"Spawning %I64u of %I64u enemies", index, spawnPoints.size());
+					customLoadScene.text = text;
+					e.renderer.Render(customLoadScene);
+				}
+
 				float f = populationDensity;
 				while (f > 1.0f)
 				{
@@ -384,6 +424,8 @@ namespace
 				{
 					AddEnemy(i, ID_MESH(3));
 				}
+
+				index++;
 			}
 		}
 
@@ -1238,6 +1280,8 @@ namespace
 	{
 		Environment& e;
 		IPersistentScript* levelScript;
+
+		std::wstring nextLevelName;
 	public:
 		LevelLoader(Environment& _e): levelScript(nullptr), e(_e)
 		{
@@ -1251,6 +1295,34 @@ namespace
 				levelScript->Free();
 				levelScript = nullptr;
 			}
+		}
+
+		virtual bool NeedsUpdate() const
+		{
+			return !nextLevelName.empty();
+		}
+
+		virtual void SetNextLevel(const fstring& filename)
+		{
+			nextLevelName = filename;
+		}
+
+		virtual void Update()
+		{
+			if (!nextLevelName.empty())
+			{
+				e.level.Builder().Clear();
+				e.meshes.Clear();
+				e.journal.Clear();
+				Load(nextLevelName.c_str(), false);
+				nextLevelName.clear();
+			}
+		}
+
+		virtual void ExecuteLevelFunction(const wchar_t* functionName, IArgEnumerator& args)
+		{
+			if (!levelScript) Throw(0, L"No level script loaded!");
+			levelScript->ExecuteFunction(functionName, args);
 		}
 
 		virtual void ExecuteLevelFunction(ArchetypeCallback fn, IArgEnumerator& args)

@@ -553,10 +553,7 @@ namespace
 				fonts->Free();
 			}
 
-			for (auto& x : meshBuffers)
-			{
-				x.dx11Buffer->Release();
-			}
+			ClearMeshes();
 
 			for (auto& x : vertexShaders)
 			{
@@ -573,6 +570,16 @@ namespace
 				t.texture->Release();
 				t.textureView->Release();
 			}
+		}
+
+		virtual void ClearMeshes()
+		{
+			for (auto& x : meshBuffers)
+			{
+				x.dx11Buffer->Release();
+			}
+
+			meshBuffers.clear();
 		}
 
 		virtual void SetMeshTexture(ID_TEXTURE textureId, int textureIndex)
