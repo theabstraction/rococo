@@ -197,6 +197,11 @@ namespace Rococo
 		return Quad((float)v.left, (float)v.top, (float) v.right, (float) v.bottom);
 	}
 
+	inline Quad operator + (const Quad& quad, Vec2 offset)
+	{
+		return{ quad.left + offset.x, quad.top + offset.y, quad.right + offset.x, quad.bottom + offset.y };
+	}
+
 	inline Vec2 operator *= (Vec2& p, float scale)
 	{
 		p.x *= scale;
