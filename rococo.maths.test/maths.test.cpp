@@ -80,7 +80,7 @@ void ValidateQuadTreeLib()
 
 	wprintf(L"Quads allocated: %I64u. Quads on free list: %I64u\n", stats.quadsAllocated, stats.quadsFree);
 	wprintf(L"Nodes allocated: %I64u. Nodes on free list: %I64u\n", stats.nodesAllocated, stats.nodesFree);
-	wprintf(L"Nodes size: %I64u bytes. Quad size: %I64u bytes\n", stats.nodeAllocSize, stats.quadAllocSize);
+	wprintf(L"Nodes size: %I64u bytes. GuiRectf size: %I64u bytes\n", stats.nodeAllocSize, stats.quadAllocSize);
 }
 
 void ValidateMatrixLib()

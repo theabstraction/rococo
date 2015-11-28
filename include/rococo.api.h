@@ -161,15 +161,16 @@ namespace Rococo
 		return MetresPerSecond{ (float)value };
 	}
 
-	struct Quad
+	// Represent a gui rectangle in floating point co-ordinates. top < bottom for most uses.
+	struct GuiRectf
 	{
 		float left;
 		float top;
 		float right;
 		float bottom;
 
-		Quad() {}
-		Quad(float _left, float _top, float _right, float _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
+		GuiRectf() {}
+		GuiRectf(float _left, float _top, float _right, float _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
 	};
 
 	template<class T> ROCOCOAPI IVectorEnumerator
@@ -210,6 +211,7 @@ namespace Rococo
 	struct IBuffer;
 	struct IUltraClock;
 	struct IStringBuilder;
+	struct IRandom;
 
 	struct ILock
 	{
@@ -416,13 +418,33 @@ namespace Rococo
 
 namespace Rococo
 {
+	ROCOCOAPI IRandom
+	{
+		virtual uint32 operator()() = 0;
+		virtual void Seed(uint32 value) = 0;
+	};
+
 	namespace Random
 	{
-		uint32 Next();
-		uint32 Next(uint32 modulus);
-		void Seed(uint32 value = 0);
-		float NextFloat(float minValue, float maxValue);
-		Vec3 NextNormalVector();
+		uint32 Next(IRandom& rng);
+		uint32 Next(IRandom& rng, uint32 modulus);
+		void Seed(IRandom& rng, uint32 value = 0);
+		float NextFloat(IRandom& rng, float minValue, float maxValue);
+		Vec3 NextNormalVector(IRandom& rng);
+
+		class RandomMT : public IRandom
+		{
+		public:
+			RandomMT(uint32 seed = 0);
+			~RandomMT();
+			virtual uint32 operator()();
+			virtual void Seed(uint32 index);
+		private:
+			struct alignas(16) OpaqueBlock
+			{
+				uint8 opaque[6*1024];
+			} block;
+		};
 	}
 }
 

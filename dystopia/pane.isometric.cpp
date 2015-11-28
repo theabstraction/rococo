@@ -241,7 +241,7 @@ namespace
 					else if (map.vector.y < 0)
 					{
 						globalScale -= 0.5f;
-						globalScale = max(globalScale, 1.5f);
+						globalScale = max(globalScale, -20.0f);
 					}
 				}break;
 			case ActionMapTypeStats:

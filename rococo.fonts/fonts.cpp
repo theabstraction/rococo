@@ -16,7 +16,7 @@ namespace
 	using namespace Rococo;
 	using namespace Rococo::Fonts;
 
-	bool IsPointIn(const Quad& clipRect, const Vec2& p)
+	bool IsPointIn(const GuiRectf& clipRect, const Vec2& p)
 	{
 		if (p.x >= clipRect.left && p.x <= clipRect.right && p.y >= clipRect.top && p.y <= clipRect.bottom)
 		{
@@ -176,7 +176,7 @@ namespace
 
 	struct IGlyphCallback
 	{
-		virtual void OnGlyph(int column, const Quad* clippingRect, const Glyph& g, float height, FontColour colour, bool isShadowed, Quad& outputRect) = 0;
+		virtual void OnGlyph(int column, const GuiRectf* clippingRect, const Glyph& g, float height, FontColour colour, bool isShadowed, GuiRectf& outputRect) = 0;
 		virtual void OnNewLine() = 0;
 	};
 
@@ -188,7 +188,7 @@ namespace
 		int fontIndex;
 		int spacesPerTab;
 		Vec2 cursor;
-		Quad clipRect;
+		GuiRectf clipRect;
 		const GlyphsSpecSets& fg;
 		IGlyphCallback& glyphCallback;
 		int column;
@@ -205,7 +205,7 @@ namespace
 		{
 		}
 
-		virtual void AppendChar(char c, Quad& outputRect)
+		virtual void AppendChar(char c, GuiRectf& outputRect)
 		{
 			float specHeight = fg[fontIndex].FontHeight();
 			const Glyph& g = fg[fontIndex][c];
@@ -230,12 +230,12 @@ namespace
 			return cursor;
 		}
 
-		virtual Quad GetClipRect() const
+		virtual GuiRectf GetClipRect() const
 		{
 			return clipRect;
 		}
 
-		virtual void SetClipRect(const Quad& clipRect)
+		virtual void SetClipRect(const GuiRectf& clipRect)
 		{
 			this->clipRect = clipRect;
 		}
@@ -297,10 +297,10 @@ namespace
 
 		IGlyphBuilder& Builder() { return *builder; }
 
-		virtual void OnGlyph(int column, const Quad* clipRect, const Glyph& g, float height, FontColour colour, bool isShadowed, Quad& outputRect)
+		virtual void OnGlyph(int column, const GuiRectf* clipRect, const Glyph& g, float height, FontColour colour, bool isShadowed, GuiRectf& outputRect)
 		{
 			bool isVisible = clipRect == NULL || (IsPointIn(*clipRect, builder->cursor) || IsPointIn(*clipRect, builder->cursor + Vec2{ g.A + g.B, height }));
-			Quad glyphClipRect = clipRect == NULL ? Quad(0, 0, 16384.0f, 16384.0f) : *clipRect;
+			GuiRectf glyphClipRect = clipRect == NULL ? GuiRectf(0, 0, 16384.0f, 16384.0f) : *clipRect;
 
 			// Since it is visible the lowest line in the glyph must be below the top line in the clip rect, and the top line in the glyph above the bottom line in the clip rect
 			// also the left side of the glyph is to the left of the right clip rect. amd the right side of the glyph is to the right of the left clip rect
@@ -326,7 +326,7 @@ namespace
 
 			builder->cursor.x += g.A;
 
-			outputRect = Quad(builder->cursor.x, builder->cursor.y, builder->cursor.x + g.bottomRight.x - g.topLeft.x, builder->cursor.y + dy);
+			outputRect = GuiRectf(builder->cursor.x, builder->cursor.y, builder->cursor.x + g.bottomRight.x - g.topLeft.x, builder->cursor.y + dy);
 
 			if (isVisible)
 			{
@@ -361,7 +361,7 @@ namespace
 			delete this;
 		}
 
-		virtual void ClipGlyph(const Quad& glyphClip, const Vec2& cursor, const Vec2& glyphTopLeft, const Vec2& glyphBottomRight, FontColour rgbaColour)
+		virtual void ClipGlyph(const GuiRectf& glyphClip, const Vec2& cursor, const Vec2& glyphTopLeft, const Vec2& glyphBottomRight, FontColour rgbaColour)
 		{
 			Vec2 t0 = glyphTopLeft, t1 = glyphBottomRight;
 			Vec2 p = cursor;
@@ -430,7 +430,7 @@ namespace Rococo
 			return new (stackBuffer)GlyphPipeline(_renderer);
 		}
 
-		void RouteDrawTextBasic(const Vec2i& pos, IDrawTextJob& job, const IFont& font, IGlyphRenderPipeline& pipeline, const Quad& clipRect)
+		void RouteDrawTextBasic(const Vec2i& pos, IDrawTextJob& job, const IFont& font, IGlyphRenderPipeline& pipeline, const GuiRectf& clipRect)
 		{
 			GlyphBuilderAndProjector gbandp(font, pipeline);
 			gbandp.Builder().SetCursor(Dequantize(pos));

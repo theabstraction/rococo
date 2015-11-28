@@ -5,6 +5,11 @@
 
 #include <rococo.strings.h>
 
+namespace 
+{
+	Rococo::Random::RandomMT rng;
+}
+
 namespace Dystopia
 {
 	namespace AI
@@ -18,7 +23,7 @@ namespace Dystopia
 
 			void RunInRandomDirection(ILevel& level, ID_ENTITY actorId, Seconds gameTime, Seconds runPeriod, MetresPerSecond runSpeed)
 			{
-				Degrees theta = Degrees{ (float)(Random::Next() % 360) };
+				Degrees theta = Degrees{ (float)(Random::Next(rng) % 360) };
 				level.SetHeading(actorId, theta);
 				RunForward(level, actorId, runSpeed);
 				level.SetNextAIUpdate(actorId, gameTime + runPeriod);

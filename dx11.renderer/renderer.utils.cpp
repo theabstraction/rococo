@@ -15,14 +15,14 @@ namespace
 		return *pCol;
 	}
 
-	Quad GuiRectToQuad(const GuiRect& rect)
+	GuiRectf GuiRectToQuad(const GuiRect& rect)
 	{
-		return Quad((float)rect.left, (float)rect.top, (float)rect.right, (float)rect.bottom);
+		return GuiRectf((float)rect.left, (float)rect.top, (float)rect.right, (float)rect.bottom);
 	}
 
-	Quad Intersect(const Quad& a, const Quad& b)
+	GuiRectf Intersect(const GuiRectf& a, const GuiRectf& b)
 	{
-		Quad q;
+		GuiRectf q;
 		q.left = max(a.left, b.left);
 		q.right = min(a.right, b.right);
 		q.top = max(a.top, b.top);
@@ -38,19 +38,19 @@ namespace
 		int fontIndex;
 		float lastCellHeight;
 	public:
-		Quad target;
+		GuiRectf target;
 
 		HorizontalCentredText(int _fontIndex, const wchar_t* _text, Fonts::FontColour _colour) :
 			text(_text), colour(_colour), fontIndex(_fontIndex), lastCellHeight(10.0f)
 		{
 			float minFloat = std::numeric_limits<float>::min();
 			float maxFloat = std::numeric_limits<float>::max();
-			target = Quad(maxFloat, maxFloat, minFloat, minFloat);
+			target = GuiRectf(maxFloat, maxFloat, minFloat, minFloat);
 		}
 
 		void DrawNextGlyph(char c, Fonts::IGlyphBuilder& builder)
 		{
-			Quad outputRect;
+			GuiRectf outputRect;
 			builder.AppendChar(c, outputRect);
 
 			lastCellHeight = outputRect.bottom - outputRect.top;
@@ -69,7 +69,7 @@ namespace
 
 			float fMin = -1000000.0f;
 			float fMax = 1000000.0f;
-			builder.SetClipRect(Quad(fMin, fMin, fMax, fMax));
+			builder.SetClipRect(GuiRectf(fMin, fMin, fMax, fMax));
 
 			Vec2 firstGlyphPos = builder.GetCursor();
 
@@ -106,7 +106,7 @@ namespace
 		Fonts::FontColour colour;
 		int fontIndex;
 		float lastCellHeight;
-		Quad targetRect;
+		GuiRectf targetRect;
 		int retzone;
 		int hypzone;
 	public:
@@ -118,7 +118,7 @@ namespace
 
 		void DrawNextGlyph(char c, Fonts::IGlyphBuilder& builder)
 		{
-			Quad outputRect;
+			GuiRectf outputRect;
 			builder.AppendChar(c, outputRect);
 
 			lastCellHeight = outputRect.bottom - outputRect.top;
@@ -216,7 +216,7 @@ namespace Rococo
 
 		void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag)
 		{
-			Quad rect{ (float)grect.left, (float)grect.top, (float)grect.right, (float)grect.bottom };
+			GuiRectf rect{ (float)grect.left, (float)grect.top, (float)grect.right, (float)grect.bottom };
 			GuiVertex q[] =
 			{
 				{ rect.left,  rect.top,    1.0f, 0, diag,     0, 0, 0 },

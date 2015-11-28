@@ -205,6 +205,7 @@
     <ClCompile Include="dialogs.cpp" />
     <ClCompile Include="Environment.cpp" />
     <ClCompile Include="generate.city.mk2.cpp" />
+    <ClCompile Include="generate.quad.cpp" />
     <ClCompile Include="generator.city.cpp" />
     <ClCompile Include="generator.house.cpp" />
     <ClCompile Include="gui.cpp" />

@@ -348,8 +348,10 @@ namespace Dystopia
 	};
 
 	void InitControlMap(IControlsSupervisor& controls);
-	void BuildRandomCity(const fstring& name, Metres radius, uint32 seedDelta, Environment& e, IEnumerable<const wchar_t*>& names);
+	void BuildRandomCity_V1(const fstring& name, Metres radius, uint32 seedDelta, Environment& e, IEnumerable<const wchar_t*>& names);
+	void BuildRandomCity_V2(const fstring& name, Metres radius, uint32 seedDelta, Environment& e, IEnumerable<const wchar_t*>& names);
 	ID_MESH GenerateRandomHouse(Environment& e, uint32 seed);
+	void PopulateQuad(Environment& e, IVectorEnumerator<ID_MESH>& randomHouses, const GuiRectf& quad, cr_vec3 pos, IRandom& rng);
 
 	ROCOCOAPI IPersistentScript
 	{

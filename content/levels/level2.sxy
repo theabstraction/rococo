@@ -40,7 +40,7 @@
 	(level.AddStreetName "Audmore Road")
 	(level.AddStreetName "Foresters Lane")
 	(level.AddStreetName "Greenfields")
-	(level.GenerateCity "Gnosall" 250)
+	(level.GenerateCity "Gnosall" 500)
 //	(level.PopulateCity 2.5)
 	
 	(Dystopia.Journal.IJournal journal (Dystopia.Journal.GetJournal))

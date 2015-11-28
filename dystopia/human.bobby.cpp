@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <vector>
-#include <random>
 
 #include "dystopia.post.h"
 #include "rococo.strings.h"
@@ -15,6 +14,8 @@ using namespace Rococo;
 
 namespace
 {	
+	Random::RandomMT rng;
+
 	class Behaviour_RangedAttackAgainstPlayer : public IBehaviour
 	{
 	public:
@@ -296,7 +297,7 @@ namespace
 
 		void ChooseRandomBehaviourByWeight(Seconds gameTime, Seconds dt)
 		{
-			uint32 r = Random::Next(totalChoiceWeight);
+			uint32 r = Random::Next(rng, totalChoiceWeight);
 
 			uint32 sum = 0;
 

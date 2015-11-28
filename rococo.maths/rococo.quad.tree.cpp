@@ -6,7 +6,7 @@
 
 namespace
 {
-	// Quad tree, child components laid out as below:
+	// GuiRectf tree, child components laid out as below:
 	//
 	//                   y-axis
 	//                   ^

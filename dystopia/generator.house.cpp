@@ -1,8 +1,6 @@
 #include "dystopia.h"
 #include "meshes.h"
-
 #include <vector>
-#include <random>
 
 namespace
 {
@@ -10,9 +8,8 @@ namespace
 	using namespace Dystopia;
 
 	typedef std::vector<ObjectVertex> TObjectVertices;
-	typedef std::mt19937 Randomizer;
 
-	float RandomQuotient(Randomizer& rng, float minValue, float maxValue)
+	float RandomQuotient(IRandom& rng, float minValue, float maxValue)
 	{
 		float range = maxValue - minValue;
 
@@ -194,7 +191,7 @@ namespace
 		float windowBaseAboveGround;
 	};
 
-	Segment<Vec2> AddRandomDoor(TObjectVertices& vertices, Vec2 left, Vec2 right, cr_vec3 normal, Randomizer& rng)
+	Segment<Vec2> AddRandomDoor(TObjectVertices& vertices, Vec2 left, Vec2 right, cr_vec3 normal, IRandom& rng)
 	{
 		Vec2 proj = 0.01f * Vec2{ normal.x, normal.y };
 
@@ -219,7 +216,7 @@ namespace
 		}
 	}
 
-	void AddFace(TObjectVertices& vertices, BuildingSpec& spec, Vec2 left, Vec2 right, float roofHeight, cr_vec3 normal, RGBAb colour, Randomizer& rng)
+	void AddFace(TObjectVertices& vertices, BuildingSpec& spec, Vec2 left, Vec2 right, float roofHeight, cr_vec3 normal, RGBAb colour, IRandom& rng)
 	{
 		AddPanel(vertices, left, right, 0, roofHeight, normal, colour);
 		if (rng() % 2 == 0)
@@ -292,7 +289,7 @@ namespace
 
 	void BuildHouse(TObjectVertices& vertices, Environment& e, uint32 seed)
 	{
-		Randomizer rng(seed);
+		Random::RandomMT rng(seed);
 
 		float dx = RandomQuotient(rng, 2.0_metres, 4.0_metres);
 		float dy = RandomQuotient(rng, 2.0_metres, 4.0_metres);

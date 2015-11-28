@@ -177,7 +177,7 @@ namespace
 		if (p.y > rect.bottom) rect.bottom = p.y;
 	}
 
-	void ExpandZoneToContain(Quad& rect, const Vec2& p)
+	void ExpandZoneToContain(GuiRectf& rect, const Vec2& p)
 	{
 		if (p.x < rect.left) rect.left = p.x;
 		if (p.x > rect.right) rect.right = p.x;
@@ -188,7 +188,7 @@ namespace
 	class SpanEvaluator : public Fonts::IGlyphRenderer
 	{
 	public:
-		Quad renderZone;
+		GuiRectf renderZone;
 
 		SpanEvaluator() : renderZone(10000, 10000, -10000, -10000)
 		{
@@ -815,7 +815,7 @@ namespace
 			char stackBuffer[128];
 			Fonts::IGlyphRenderPipeline* pipeline = Fonts::CreateGlyphRenderPipeline(stackBuffer, sizeof(stackBuffer), *this);
 
-			Quad qrect(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
+			GuiRectf qrect(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
 
 			if (clipRect != nullptr)
 			{
@@ -833,7 +833,7 @@ namespace
 			SpanEvaluator spanEvaluator;
 			Fonts::IGlyphRenderPipeline* pipeline = Fonts::CreateGlyphRenderPipeline(stackBuffer, sizeof(stackBuffer), spanEvaluator);
 
-			Quad qrect(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
+			GuiRectf qrect(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
 
 			if (clipRect != nullptr)
 			{

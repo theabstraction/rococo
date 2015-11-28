@@ -1,9 +1,10 @@
 #include "dystopia.h"
 #include "rococo.renderer.h"
 #include "meshes.h"
-#include <random>
 #include <algorithm>
+#include <vector>
 #include "rococo.strings.h"
+#include <ctype.h>
 
 namespace
 {
@@ -34,9 +35,7 @@ namespace
 		RGBA clearColour =  RGBA(0.5f, 0, 0);
 	} customLoadScene;
 
-	typedef std::mt19937  Randomizer;
-
-	float RandomQuotient(Randomizer& rng, float minValue, float maxValue)
+	float RandomQuotient(IRandom& rng, float minValue, float maxValue)
 	{
 		float range = maxValue - minValue;
 
@@ -45,7 +44,7 @@ namespace
 		return min(value * range + minValue, maxValue);
 	}
 	
-	Vec2 RandomVec2(Randomizer& rng)
+	Vec2 RandomVec2(IRandom& rng)
 	{
 		return Vec2{ RandomQuotient(rng, -1.0f, 1.0f), RandomQuotient(rng, -1.0f, 1.0f) };
 	}
@@ -54,7 +53,7 @@ namespace
 	{
 		Environment* e;
 		uint32 index;
-		Randomizer* rng;
+		IRandom* rng;
 		std::vector<ObjectVertex>* cache;
 	};
 
@@ -571,7 +570,7 @@ namespace
 		c.e->level.Builder().Name(roadId, to_fstring(streetName));
 	}
 
-	void DivideRoadWE(Vec2 left, Vec2 right, TRoadVertices& v, Randomizer& rng)
+	void DivideRoadWE(Vec2 left, Vec2 right, TRoadVertices& v, IRandom& rng)
 	{
 		Vec2 midPoint = 0.5f * (left + right);
 		Vec2 randomDelta = { 0.0f, 0.0625f * RandomQuotient(rng, -1.0f, 1.0f) * Length(right - left) };
@@ -588,7 +587,7 @@ namespace
 		DivideRoadWE(node, right, v, rng);
 	}
 
-	void DivideRoadSN(Vec2 left, Vec2 right, TRoadVertices& v, Randomizer& rng)
+	void DivideRoadSN(Vec2 left, Vec2 right, TRoadVertices& v, IRandom& rng)
 	{
 		Vec2 midPoint = 0.5f * (left + right);
 		Vec2 randomDelta = { 0.0625f * RandomQuotient(rng, -1.0f, 1.0f) * Length(right - left), 0.0f };
@@ -605,7 +604,7 @@ namespace
 		DivideRoadSN(node, right, v, rng);
 	}
 
-	void BuildNorthSouthRoad(TRoadVertices& v, Metres radius, RoadNetwork& network, Randomizer& rng, uint32 index, Vec2 centre, uint32 junctionIndex)
+	void BuildNorthSouthRoad(TRoadVertices& v, Metres radius, RoadNetwork& network, IRandom& rng, uint32 index, Vec2 centre, uint32 junctionIndex)
 	{
 		Vec2 southPoint = { centre.x, -radius };
 		Vec2 northPoint = { centre.x, radius };
@@ -642,7 +641,7 @@ namespace
 		}
 	}
 
-	void BuildWestEastRoad(TRoadVertices& v, Metres radius, RoadNetwork& network, Randomizer& rng, uint32 index)
+	void BuildWestEastRoad(TRoadVertices& v, Metres radius, RoadNetwork& network, IRandom& rng, uint32 index)
 	{
 		Vec2 westPoint = { -radius, 0.0f };
 		Vec2 eastPoint = { radius, 0.0f };
@@ -687,12 +686,12 @@ namespace
 		}
 	}
 
-	ID_MESH GetOneMeshOf(const std::vector<ID_MESH>& meshes, Randomizer& rng)
+	ID_MESH GetOneMeshOf(const std::vector<ID_MESH>& meshes, IRandom& rng)
 	{
 		return meshes[rng() % meshes.size()];
 	}
 
-	void BuildHouses(TRoadVertices& road, Environment& e, Randomizer& rng)
+	void BuildHouses(TRoadVertices& road, Environment& e, IRandom& rng)
 	{
 		std::vector<ID_MESH> meshes;
 
@@ -724,12 +723,12 @@ namespace
 		}
 	}
 
-	uint32 Next(Randomizer& rng, uint32 modulus)
+	uint32 Next(IRandom& rng, uint32 modulus)
 	{
 		return rng() % modulus;
 	}
 
-	void GenRandomStreetName(wchar_t randomName[256], Randomizer& rng)
+	void GenRandomStreetName(wchar_t randomName[256], IRandom& rng)
 	{
 		const wchar_t* alpha[] = {
 			L"red",
@@ -851,7 +850,7 @@ namespace Dystopia
 		e.renderer.Render(customLoadScene);
 
 		uint32 hash = FastHash(name);
-		Randomizer rng(hash + seedDelta);
+		Random::RandomMT rng(hash + seedDelta);
 
 		RoadNetwork network;
 		TRoadVertices* mainRoad = new TRoadVertices();

@@ -3,14 +3,13 @@
 #include "rococo.strings.h"
 #include "rococo.renderer.h"
 #include "meshes.h"
-#include <random>
 #include <algorithm>
 #include <malloc.h>
+#include <vector>
 
 namespace
 {
 	using namespace Rococo;
-	typedef std::mt19937  Randomizer;
 
 	enum CompassDirection
 	{
@@ -42,6 +41,8 @@ namespace
 		}
 	};
 
+	const Metres CityCell::cellWidth = 100.0_metres;
+
 	Vec3 GetQuadrantVectorOffset(Quadrant q)
 	{
 		static Vec3 offsets[4] =
@@ -55,10 +56,10 @@ namespace
 		return offsets[q];
 	}
 
-	Quad GetQuadrant(Quadrant q)
+	GuiRectf GetQuadrant(Quadrant q)
 	{
 		Vec3 centre = CityCell::cellWidth * GetQuadrantVectorOffset(q);
-		return Quad
+		return GuiRectf
 		{
 			centre.x - CityCell::cellWidth * 0.125f,
 			centre.y + CityCell::cellWidth * 0.125f,
@@ -85,8 +86,6 @@ namespace
 		Vec3 v3 = GetCompassDirectionAsVec3(direction);
 		return 0.25f * CityCell::cellWidth * v3;
 	}
-
-	const Metres CityCell::cellWidth = 5.0_metres;
 
 	typedef std::vector<Vec2i> TIndices;
 
@@ -164,10 +163,328 @@ namespace
 		}
 	}
 
+	void BuildStraightQuad(const CityCell& cell, std::vector<ObjectVertex>& vertexCache, Vec3 bottomLeft, Vec3 bottomRight, Vec3 topLeft, Vec3 topRight)
+	{
+		Vec3 up{ 0,0,1 };
+		RGBAb roadColour(128, 128, 128);
+		RGBAb noTexture(255, 255, 255, 0);
+
+		vertexCache.push_back({ bottomLeft,		up, roadColour, noTexture, 0, 1 });
+		vertexCache.push_back({ topRight,		up, roadColour, noTexture, 0, 1 });
+		vertexCache.push_back({ bottomRight,	up, roadColour, noTexture, 0, 1 });
+		vertexCache.push_back({ bottomLeft,		up, roadColour, noTexture, 0, 1 });
+		vertexCache.push_back({ topLeft,		up, roadColour, noTexture, 0, 1 });
+		vertexCache.push_back({ topRight,		up, roadColour, noTexture, 0, 1 });
+	}
+
+	void BuildWhiteQuad(const CityCell& cell, std::vector<ObjectVertex>& vertexCache, Vec2 bottomLeft, Vec2 bottomRight, Vec2 topLeft, Vec2 topRight)
+	{
+		Vec3 up{ 0,0,1 };
+		RGBAb white(255, 255, 255);
+		RGBAb noTexture(255, 255, 255, 0);
+
+		vertexCache.push_back({Vec3::FromVec2(bottomLeft, 0.02f),    up, white, noTexture, 0, 1 });
+		vertexCache.push_back({ Vec3::FromVec2(topRight,  0.02f),	 up, white, noTexture, 0, 1 });
+		vertexCache.push_back({ Vec3::FromVec2(bottomRight, 0.02f),  up, white, noTexture, 0, 1 });
+		vertexCache.push_back({ Vec3::FromVec2(bottomLeft, 0.02f),   up, white, noTexture, 0, 1 });
+		vertexCache.push_back({ Vec3::FromVec2(topLeft, 0.02f),	     up, white, noTexture, 0, 1 });
+		vertexCache.push_back({ Vec3::FromVec2(topRight, 0.02f),	 up, white, noTexture, 0, 1 });
+	}
+
+	namespace Stripes
+	{
+		auto stripeWidth = 0.1_metres;
+		float stripeBorder = 1.0_metres;
+		float stripeLength = 4.0_metres;
+	}
+
+	void BuildStraightRoad(const CityCell& cell, std::vector<ObjectVertex>& vertexCache, Vec2 bottomLeftXY, Vec2 topRightXY, Vec2 directionXY)
+	{
+		Vec3 up{ 0,0,1 };
+		RGBAb roadColour(128, 128, 128);
+		RGBAb noTexture(255, 255, 255, 0);
+
+		Vec3 bottomLeft = Vec3::FromVec2(bottomLeftXY, 0);
+		Vec3 topRight = Vec3::FromVec2(topRightXY, 0);
+		Vec3 bottomRight = { topRight.x, bottomLeft.y, 0 };
+		Vec3 topLeft = { bottomLeft.x, topRight.y, 0 };
+
+		BuildStraightQuad(cell, vertexCache, bottomLeft, bottomRight, topLeft, topRight);
+		
+		int numberOfStripesPerCell = int32(CityCell::cellWidth / (Stripes::stripeBorder + Stripes::stripeLength));
+		float totalBorder = CityCell::cellWidth - numberOfStripesPerCell * Stripes::stripeLength;
+		float averageBorder = totalBorder / numberOfStripesPerCell;
+
+		if (directionXY.x != 0)
+		{
+			float x0 = 0.5f * averageBorder + bottomLeft.x;
+			float y = 0.5f * (bottomLeftXY.y + topRightXY.y);
+
+			while(true)
+			{
+				float x1 = x0 + Stripes::stripeLength;
+				if (x1 >= bottomRight.x)
+				{
+					break;
+				}
+
+				Vec2 bottomLeftSection{ x0, y - Stripes::stripeWidth };
+				Vec2 bottomRightSection{ x1, y - Stripes::stripeWidth };
+				Vec2 topLeftSection { x0, y + Stripes::stripeWidth };
+				Vec2 topRightSection{ x1, y + Stripes::stripeWidth };
+				BuildWhiteQuad(cell, vertexCache, bottomLeftSection, bottomRightSection, topLeftSection, topRightSection);
+
+				x0 += averageBorder + Stripes::stripeLength;
+			}
+		}
+		else
+		{
+			float y0 = 0.5f * averageBorder + bottomLeft.y;
+			float x = 0.5f * (bottomLeftXY.x + topRightXY.x);
+
+			while (true)
+			{
+				float y1 = y0 + Stripes::stripeLength;
+				if (y1 >= topRight.y)
+				{
+					break;
+				}
+
+				Vec2 bottomLeftSection{ x - Stripes::stripeWidth, y0 };
+				Vec2 bottomRightSection{ x + Stripes::stripeWidth, y0 };
+				Vec2 topLeftSection{ x - Stripes::stripeWidth, y1 };
+				Vec2 topRightSection{ x + Stripes::stripeWidth, y1 };
+				BuildWhiteQuad(cell, vertexCache, bottomLeftSection, bottomRightSection, topLeftSection, topRightSection);
+
+				y0 += averageBorder + Stripes::stripeLength;
+			}
+		}
+	}
+
+	void BuildRoadTurn(const CityCell& cell, std::vector<ObjectVertex>& vertexCache, CompassDirection start, CompassDirection end)
+	{
+		const Metres roadSpan = 2.5_metres;
+
+		Vec4 innerLoopStart;
+		Vec4 outerLoopStart;
+		Vec3 centre;
+		Vec3 normal;
+
+		if (start == CompassDirection_North)
+		{
+			Vec2 topRight = { roadSpan, cell.cellWidth * 0.5f };
+			Vec2 bottomLeft = { -roadSpan, cell.cellWidth * 0.25f };
+			Vec2 direction = { 0, 1 };
+			BuildStraightRoad(cell, vertexCache, bottomLeft, topRight, direction);
+
+			if (end == CompassDirection_East)
+			{
+				Vec2 topRight = { cell.cellWidth * 0.5f, roadSpan, };
+				Vec2 bottomLeft = { cell.cellWidth * 0.25f, -roadSpan };
+				Vec2 direction = { 1, 0 };
+				BuildStraightRoad(cell, vertexCache, bottomLeft, topRight, direction);
+
+				innerLoopStart = Vec4{ 0.25f * CityCell::cellWidth, roadSpan, 0, 1 };
+				outerLoopStart = Vec4{ 0.25f * CityCell::cellWidth,-roadSpan, 0, 1 };
+				centre = Vec3{ 0.25f * CityCell::cellWidth, 0.25f * CityCell::cellWidth, 0 };
+				normal = { 0 , -1, 0 };
+			}
+			else
+			{
+				Vec2 topRight = { -0.25f * cell.cellWidth, roadSpan, };
+				Vec2 bottomLeft = { -0.5f * cell.cellWidth, -roadSpan };
+				Vec2 direction = { 1, 0 };
+				BuildStraightRoad(cell, vertexCache, bottomLeft, topRight, direction);
+
+				innerLoopStart = Vec4{ -roadSpan, 0.25f * CityCell::cellWidth, 0, 1 };
+				outerLoopStart = Vec4{  roadSpan, 0.25f * CityCell::cellWidth, 0, 1 };
+				centre = Vec3{ -0.25f * CityCell::cellWidth, 0.25f * CityCell::cellWidth, 0};
+				normal = { 1 , 0, 0 };
+			}
+		}
+		else if(start == CompassDirection_East) // south to east
+		{
+			Vec2 topRight = { cell.cellWidth * 0.5f, roadSpan, };
+			Vec2 bottomLeft = { cell.cellWidth * 0.25f, -roadSpan };
+			Vec2 direction = { 1, 0 };
+			BuildStraightRoad(cell, vertexCache, bottomLeft, topRight, direction);
+
+			topRight = { roadSpan, -0.25f * cell.cellWidth };
+			bottomLeft = { -roadSpan, -0.5f * cell.cellWidth };
+			direction = { 0, 1 };
+			BuildStraightRoad(cell, vertexCache, bottomLeft, topRight, direction);
+
+			innerLoopStart = Vec4{  roadSpan, -0.25f * CityCell::cellWidth, 0, 1 };
+			outerLoopStart = Vec4{ -roadSpan, -0.25f * CityCell::cellWidth, 0, 1 };
+			centre = Vec3{ 0.25f * CityCell::cellWidth, -0.25f * CityCell::cellWidth, 0 };
+			normal = { -1, 0, 0 };
+		}
+		else // south west
+		{
+			Vec2 topRight = { -0.25f * cell.cellWidth, roadSpan, };
+			Vec2 bottomLeft = { -0.5f * cell.cellWidth, -roadSpan };
+			Vec2 direction = { 1, 0 };
+			BuildStraightRoad(cell, vertexCache, bottomLeft, topRight, direction);
+
+			topRight = { roadSpan, -0.25f * cell.cellWidth };
+			bottomLeft = { -roadSpan, -0.5f * cell.cellWidth };
+			direction = { 0, 1 };
+			BuildStraightRoad(cell, vertexCache, bottomLeft, topRight, direction);
+
+			innerLoopStart = Vec4{ -0.25f * CityCell::cellWidth, -roadSpan, 0, 1 };
+			outerLoopStart = Vec4{ -0.25f * CityCell::cellWidth, roadSpan, 0, 1 };
+			centre = Vec3{ -0.25f * CityCell::cellWidth, -0.25f * CityCell::cellWidth, 0 };
+			normal = { 0 , 1, 0 };
+		}
+
+		Radians totalCurve = 90.0_degrees;
+
+		auto moveOriginToCentre = Matrix4x4::Translate(-1.0f * centre);
+		auto moveCentreToOrigin = Matrix4x4::Translate(centre);
+
+		enum { CURVE_DIVISIONS = 40 };
+		for (int i = 0; i < CURVE_DIVISIONS; ++i)
+		{
+			float thetaFirst = i * totalCurve / CURVE_DIVISIONS;
+			float thetaSecond = (i + 1) * totalCurve / CURVE_DIVISIONS;
+
+			auto Rfirst = Matrix4x4::RotateRHAnticlockwiseZ(Radians{ -thetaFirst });
+			auto Rsecond = Matrix4x4::RotateRHAnticlockwiseZ(Radians{ -thetaSecond });
+
+			Matrix4x4 T_RT1 = moveCentreToOrigin * Rfirst * moveOriginToCentre;
+			Matrix4x4 T_RT2 = moveCentreToOrigin * Rsecond * moveOriginToCentre;
+
+			Vec4 topLeft = T_RT1 * innerLoopStart;
+			Vec4 topRight = T_RT1 * outerLoopStart;
+
+			Vec4 bottomLeft = T_RT2 * innerLoopStart;
+			Vec4 bottomRight = T_RT2 * outerLoopStart;
+
+			BuildStraightQuad(cell, vertexCache, bottomLeft, bottomRight, topLeft, topRight);
+
+			if (((i+1) & 3) != 0)
+			{
+				Vec3 loopCentre = 0.5f * (innerLoopStart + outerLoopStart);
+				Vec4 innerStripe = Vec4::FromVec3(loopCentre - normal * Stripes::stripeWidth, 1.0f);
+				Vec4 outerStripe = Vec4::FromVec3(loopCentre + normal * Stripes::stripeWidth, 1.0f);
+
+				topLeft = T_RT1 * innerStripe;
+				topRight = T_RT1 * outerStripe;
+
+				bottomLeft = T_RT2 * innerStripe;
+				bottomRight = T_RT2 * outerStripe;
+
+				BuildWhiteQuad(cell, vertexCache, 
+						{ bottomLeft.x, bottomLeft.y },
+						{ bottomRight.x, bottomRight.y }, 
+						{ topLeft.x, topLeft.y }, 
+						{ topRight.x, topRight.y }
+				);
+			}
+		}
+	}
+
 	void BuildRoadSegment(const CityCell& cell, std::vector<ObjectVertex>& vertexCache)
 	{
-		const Metres roadSpan = 0.10_metres;
+		const Metres roadSpan = 2.5_metres;
 
+		if (!cell.isRoadConnected[CompassDirection_West] && !cell.isRoadConnected[CompassDirection_East])
+		{
+			if (cell.isRoadConnected[CompassDirection_North] && cell.isRoadConnected[CompassDirection_South])
+			{
+				Vec2 bottomLeft = { -roadSpan, -cell.cellWidth * 0.5f };
+				Vec2 topRight = { roadSpan, cell.cellWidth * 0.5f };
+				Vec2 direction = { 0, 1 };
+
+				BuildStraightRoad(cell, vertexCache, bottomLeft, topRight, direction);
+				return;
+			}
+		}
+
+		if (cell.isRoadConnected[CompassDirection_West] && cell.isRoadConnected[CompassDirection_East])
+		{
+			if (!cell.isRoadConnected[CompassDirection_North] && !cell.isRoadConnected[CompassDirection_South])
+			{
+				Vec2 bottomLeft = { -cell.cellWidth * 0.5f, -roadSpan };
+				Vec2 topRight = { cell.cellWidth * 0.5f, roadSpan };
+				Vec2 direction = { 1, 0 };
+
+				BuildStraightRoad(cell, vertexCache, bottomLeft, topRight, direction);
+				return;
+			}
+		}
+
+		int count = 0;
+		for (int i = 0; i < 4; ++i)
+		{
+			if (cell.isRoadConnected[i])
+			{
+				count++;
+			}
+		}
+
+		if (count == 2)
+		{
+			// since we already have checked for straight roads, we are left with a bend
+
+			int firstIndex = -1;
+			int secondIndex = -1;
+
+			for (int i = 0; i < 4; ++i)
+			{
+				if (cell.isRoadConnected[i])
+				{
+					if (firstIndex < 0)
+					{
+						firstIndex = i;
+					}
+					else
+					{
+						secondIndex = i;
+						break;
+					}
+				}
+			}
+
+			BuildRoadTurn(cell, vertexCache, (CompassDirection) firstIndex, (CompassDirection)secondIndex);
+		}
+		else
+		{
+			if (cell.isRoadConnected[CompassDirection_West])
+			{
+				Vec2 bottomLeft = { -cell.cellWidth * 0.5f, -roadSpan };
+				Vec2 topRight   = { 0, roadSpan };
+				Vec2 direction = { 1, 0 };
+
+				BuildStraightRoad(cell, vertexCache, bottomLeft, topRight, direction);
+			}
+			if (cell.isRoadConnected[CompassDirection_East])
+			{
+				Vec2 topRight = { cell.cellWidth * 0.5f, roadSpan };
+				Vec2 bottomLeft = { 0, -roadSpan };
+				Vec2 direction = { 1, 0 };
+
+				BuildStraightRoad(cell, vertexCache, bottomLeft, topRight, direction);
+			}
+			if (cell.isRoadConnected[CompassDirection_North])
+			{
+				Vec2 topRight = { roadSpan, cell.cellWidth * 0.5f };
+				Vec2 bottomLeft = { -roadSpan, 0 };
+				Vec2 direction = { 0, 1 };
+
+				BuildStraightRoad(cell, vertexCache, bottomLeft, topRight, direction);
+			}
+			if (cell.isRoadConnected[CompassDirection_South])
+			{
+				Vec2 topRight = { roadSpan, 0 };
+				Vec2 bottomLeft = { -roadSpan, -cell.cellWidth * 0.5f };
+				Vec2 direction = { 0, 1 };
+
+				BuildStraightRoad(cell, vertexCache, bottomLeft, topRight, direction);
+			}
+		}
+	}
+/*
 		if (cell.isRoadConnected[CompassDirection_North])
 		{
 			Vec3 bottomLeft = { -roadSpan, 0, 0 };
@@ -235,9 +552,9 @@ namespace
 			vertexCache.push_back({ topLeft,		up, roadColour, RGBAb(255,255,255, 0), 0, 1 });
 			vertexCache.push_back({ topRight,		up, roadColour, RGBAb(255,255,255, 0), 0, 1 });
 		}
-	}
+		*/
 
-	uint32 GetNextInRecurringSequence(Randomizer& rng, uint32 recurrenceRate)
+	uint32 GetNextInRecurringSequence(IRandom& rng, uint32 recurrenceRate)
 	{
 		static uint32 count = 0;
 		static uint32 lastGen = 0;
@@ -268,7 +585,7 @@ namespace
 		return false;
 	}
 
-	void GenerateMinorRoadFrom(Vec2i startNode, CityCells& city, Randomizer& rng, TIndices& /* cache */ neighbours, TIndices& roadBuilder)
+	void GenerateMinorRoadFrom(Vec2i startNode, CityCells& city, IRandom& rng, TIndices& /* cache */ neighbours, TIndices& roadBuilder)
 	{
 		Vec2i currentNode = startNode;
 
@@ -324,16 +641,17 @@ namespace
 			}
 		);
 
-		indices.erase(i);
+		indices.erase(i, indices.end());
 	}
 
 	struct CityQuad
 	{
-		Quad quad;
+		GuiRectf quad;
 		Vec3 centre;
+		const CityCell& cell;
 	};
 
-	Quad Merge(const Quad& a, const Quad& b)
+	GuiRectf Merge(const GuiRectf& a, const GuiRectf& b)
 	{
 		float left = min(a.left, b.left);
 		float right = max(a.right, b.right);
@@ -343,17 +661,14 @@ namespace
 		return{ left, top, right, bottom };
 	}
 
-	void ForEachQuadBetweenRoads(CityCells& city, IEnumerator<CityQuad>& onQuad, Randomizer& rng)
+	bool IsInCity(const CityCells& city, Vec2i p)
 	{
-		TIndices indices;
+		return p.x >= 0 && p.y >= 0 && p.x < city.cellsPerSide && p.y < city.cellsPerSide;
+	}
 
-		std::vector<Quad> mergedQuads;
-
-		// Put them into reverse order, because we will in general delete them close to reverse order
-		for (auto i = city.cells.rbegin(); i != city.cells.rend(); ++i)
-		{
-			indices.push_back(i->index);
-		}
+	void ForEachQuadBetweenRoads(CityCells& city, Vec2i index, IEnumerator<CityQuad>& onQuad, IRandom& rng)
+	{
+		if (!IsInCity(city, index)) return;
 
 		struct NeighBours
 		{
@@ -368,9 +683,9 @@ namespace
 			{ NW, SE, CompassDirection_West, CompassDirection_South },
 		};
 
-		for (auto i : city.cells)
+		const auto& i = city[index];
 		{
-			Quad quad[4];
+			GuiRectf quad[4];
 			for (int j = 0; j < 4; ++j)
 			{
 				quad[j] = GetQuadrant((Quadrant)j);
@@ -379,8 +694,8 @@ namespace
 			bool anyRoad = i.isRoadConnected[CompassDirection_North] | i.isRoadConnected[CompassDirection_South] | i.isRoadConnected[CompassDirection_West] | i.isRoadConnected[CompassDirection_East];
 			if (!anyRoad)
 			{
-				Quad q = Merge(quad[NW], quad[SE]);
-				onQuad({ q, GetCellCentre(i) });
+				GuiRectf q = Merge(quad[NW], quad[SE]);
+				onQuad({ q, GetCellCentre(i), i });
 			}
 			else
 			{
@@ -420,8 +735,8 @@ namespace
 					{
 						indexUsed[neighbourIndex] = true;
 						indexUsedCount--;
-						Quad q = Merge(quad[index], quad[neighbourIndex]);
-						onQuad({ q, GetCellCentre(i) });
+						GuiRectf q = Merge(quad[index], quad[neighbourIndex]);
+						onQuad({ q, GetCellCentre(i), i });
 					}
 					else
 					{
@@ -432,30 +747,116 @@ namespace
 						{
 							indexUsed[neighbourIndex] = true;
 							indexUsedCount--;
-							Quad q = Merge(quad[index], quad[neighbourIndex]);
-							onQuad({ q, GetCellCentre(i) });
+							GuiRectf q = Merge(quad[index], quad[neighbourIndex]);
+							onQuad({ q, GetCellCentre(i), i });
 						}
 						else
 						{
-							onQuad({ quad[index], GetCellCentre(i) });
+							onQuad({ quad[index], GetCellCentre(i), i });
 						}
 					}
 				}
 			}
 		}
 	}
+
+	using namespace Dystopia;
+
+	void AddQuad(Environment& e, const GuiRectf& quad, cr_vec3 position, ID_MESH id)
+	{
+		ObjectVertex v[6];
+		for (int i = 0; i < 6; ++i)
+		{
+			v[i].diffuseColour = RGBAb(255, 255, 255, 0);
+			v[i].emissiveColour = RGBAb(255, 255, 255, 255);
+			v[i].normal = { 0, 0, 1 };
+			v[i].u = v[i].v = 0;
+		}
+
+		v[0].position = { quad.left, quad.bottom, 0 };
+		v[1].position = { quad.left, quad.top, 0 };
+		v[2].position = { quad.right, quad.top, 0 };
+		v[3].position = { quad.right, quad.top, 0 };
+		v[4].position = { quad.right, quad.bottom, 0 };
+		v[5].position = { quad.left, quad.bottom, 0 };
+
+		e.meshes.BuildMesh(v, 6, id, false);
+		e.level.Builder().AddSolid(position, id, SolidFlags_None);
+	}
+
+	bool TryMerge(GuiRectf& mergedQuad, const GuiRectf& a, const GuiRectf& b)
+	{
+		if (a.left == b.left && a.right == b.right)
+		{
+			if ((fabsf(a.top - b.bottom) < CityCell::cellWidth * 0.35f) || (fabsf(a.bottom - b.top) < CityCell::cellWidth * 0.35f))
+			{
+				mergedQuad = Merge(a, b);
+				return true;
+			}
+		}
+		else if (a.top == b.top && a.bottom == b.bottom)
+		{
+			if ((fabsf(a.left - b.right) < CityCell::cellWidth * 0.55f) || (fabsf(a.right - b.left) < CityCell::cellWidth * 0.55f))
+			{
+				mergedQuad = Merge(a, b);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	void MergeAndAppend(const std::vector<CityQuad>& a, const std::vector<CityQuad>& b, std::vector<CityQuad>& mergedQuads)
+	{
+		bool mergeResultI[4] = { false,false,false,false };
+		bool mergeResultJ[4] = { false,false,false,false };
+
+		for (size_t i = 0; i < a.size(); ++i)
+		{
+			for (size_t j = 0; j < b.size(); ++j)
+			{
+				if (!mergeResultJ[j])
+				{
+					Vec3 commonCentre = Lerp(a[i].centre, b[j].centre, 0.5f);
+				
+					Vec3 av3 = a[i].centre - commonCentre;
+					Vec3 bv3 = b[j].centre - commonCentre;
+
+					GuiRectf aq = a[i].quad + AsVec2(av3);
+					GuiRectf bq = b[j].quad + AsVec2(bv3);
+
+					GuiRectf mergedQuad;
+					if (TryMerge(mergedQuad, aq, bq))
+					{
+						mergedQuads.push_back({ mergedQuad, commonCentre, a[i].cell });
+						mergeResultI[i] = true;
+						mergeResultJ[j] = true;
+					}
+				}
+			}
+		}
+
+		for (size_t i = 0; i < a.size(); ++i)
+		{
+			if (!mergeResultI[i]) mergedQuads.push_back(a[i]);
+		}
+
+		for (size_t i = 0; i < b.size(); ++i)
+		{
+			if (!mergeResultJ[i]) mergedQuads.push_back(b[i]);
+		}
+	}
 }
 
 namespace Dystopia
 {
-	void BuildRandomCity(const fstring& name, Metres cityRadius, uint32 seedDelta, Environment& e, IEnumerable<const wchar_t*>& names)
+	void BuildRandomCity_V2(const fstring& name, Metres cityRadius, uint32 seedDelta, Environment& e, IEnumerable<const wchar_t*>& names)
 	{
 		int cellSpan = int32(cityRadius / CityCell::cellWidth);
 
 		CityCells city(cellSpan);
 
 		uint32 hash = FastHash(name);
-		Randomizer rng(hash + seedDelta);
+		Random::RandomMT rng(hash + seedDelta);
 
 		// First thing to do is layout a main road that passes through one side of town to the other
 		int32 mainRoadLine = rng() % city.cellsPerSide;
@@ -498,7 +899,7 @@ namespace Dystopia
 
 		names.Enumerate(streets);
 
-		enum { MINOR_ROAD_COUNT = 8 };
+		enum { MINOR_ROAD_COUNT = 16 };
 
 		TIndices connectionsCache;
 		TIndices road;
@@ -541,48 +942,97 @@ namespace Dystopia
 			}
 		}
 
-		std::vector<ID_MESH> meshes;
+		
+		struct : public IVectorEnumerator<ID_MESH>
+		{
+			std::vector<ID_MESH> meshes;
+			virtual ID_MESH* begin() { return &meshes[0]; }
+			virtual ID_MESH* end() { return &meshes[0] + meshes.size(); }
+			virtual const ID_MESH* begin() const { return &meshes[0]; }
+			virtual const ID_MESH* end() const { return &meshes[0] + meshes.size(); }
+			virtual size_t size() const { return meshes.size(); }
+		} randomHouses;
+
 		enum { RANDOM_HOUSE_MESH_COUNT = 100 };
-		meshes.reserve(RANDOM_HOUSE_MESH_COUNT);
+		randomHouses.meshes.reserve(RANDOM_HOUSE_MESH_COUNT);
 		for (int i = 0; i < RANDOM_HOUSE_MESH_COUNT; ++i)
 		{
-			meshes.push_back(GenerateRandomHouse(e, rng()));
+			randomHouses.meshes.push_back(GenerateRandomHouse(e, rng()));
 		}
 
 		struct: IEnumerator<CityQuad>
 		{
-			Environment* e;
+			std::vector<CityQuad> quads;
 
 			virtual void operator()(const CityQuad& cq)
 			{
-				const Quad& quad = cq.quad;
+				quads.push_back(cq);
+			}
+		} quadsA, quadsB ;
 
-				ObjectVertex v[6];
-				for (int i = 0; i < 6; ++i)
+		TIndices indices;
+		for (auto i = city.cells.rbegin(); i != city.cells.rend(); ++i)
+		{
+			indices.push_back(i->index);
+		}
+
+		std::vector<CityQuad> mergedQuads;
+
+		while (!indices.empty())
+		{
+			size_t indexCount = rng() % indices.size();
+			Vec2i index = indices[indexCount];
+
+			quadsA.quads.clear();
+			quadsB.quads.clear();
+			ForEachQuadBetweenRoads(city, index, quadsA, rng);
+
+			static Vec2i offsets[4] =
+			{
+				{  1,  0 },
+				{  0,  1 },
+				{ -1,  0 },
+				{  0, -1 },
+			};
+
+			bool hasMerged = false;
+
+			for (int j = 0; j < 8; ++j)
+			{
+				Vec2i offset = offsets[rng() & 3];
+
+				auto offsetIt = std::find(indices.begin(), indices.end(), index + offset);
+				if (offsetIt != indices.end())
 				{
-					v[i].diffuseColour = RGBAb(255, 255, 255, 0);
-					v[i].emissiveColour = RGBAb(255, 255, 255, 255);
-					v[i].normal = { 0, 0, 1 };
-					v[i].u = v[i].v = 0;
+					ForEachQuadBetweenRoads(city, index + offset, quadsB, rng);
+					MergeAndAppend(quadsA.quads, quadsB.quads, mergedQuads);
+					RemoveIndex(indices, index + offset);
+					hasMerged = true;
+					break;
 				}
-
-				v[0].position = { quad.left, quad.bottom, 0 };
-				v[1].position = { quad.left, quad.top, 0 };
-				v[2].position = { quad.right, quad.top, 0 };
-				v[3].position = { quad.right, quad.top, 0 };
-				v[4].position = { quad.right, quad.bottom, 0 };
-				v[5].position = { quad.left, quad.bottom, 0 };
-
-				auto mid = ID_MESH(meshId++);
-				e->meshes.BuildMesh(v, 6, mid, false);
-				e->level.Builder().AddSolid(cq.centre, mid, SolidFlags_None);
+				else
+				{
+					continue;
+				}
 			}
 
-			uint32 meshId = 0x20F00000;
-		} addQuadToList ;
+			if (!hasMerged)
+			{
+				for (auto& cq : quadsA.quads)
+				{
+					mergedQuads.push_back(cq);
+				}
+			}
 
-		addQuadToList.e = &e;
-		ForEachQuadBetweenRoads(city, addQuadToList, rng);
+			RemoveIndex(indices, index);
+		}
+
+		uint32 quadMesh = 0x22000000;
+		for (auto& mq : mergedQuads)
+		{
+			AddQuad(e, mq.quad, mq.centre, ID_MESH(quadMesh++));
+			PopulateQuad(e, randomHouses, mq.quad, mq.centre, rng);	
+		}
 
 		for (auto& cell : city.cells)
 		{

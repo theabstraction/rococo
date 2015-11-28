@@ -67,7 +67,7 @@
 	(level.AddStreetName "Weston Road")
 	(level.AddStreetName "Weeping Cross")
 	(level.AddStreetName "Cannock Road")
-	(level.GenerateCity "Stafford" 250)
+	(level.GenerateCity "Stafford" 1500)
 //	(level.PopulateCity 2.5)
 	
 	(Dystopia.Journal.IJournal journal (Dystopia.Journal.GetJournal))

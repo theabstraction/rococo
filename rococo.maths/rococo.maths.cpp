@@ -555,14 +555,6 @@ namespace Rococo
 		}
 	}
 
-	float GenRandomFloat(float minValue, float maxValue)
-	{
-		static constexpr float ooMax = 1.0f / (float)RAND_MAX;
-
-		float q = rand() * ooMax;
-		return minValue + q * (maxValue - minValue);
-	}
-
 	Vec2i TopCentre(const GuiRect& rect)
 	{
 		return Vec2i{ (rect.left + rect.right) >> 1, rect.top };

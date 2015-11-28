@@ -13,7 +13,7 @@ namespace Rococo
 
 		struct IGlyphClipper
 		{
-			virtual void ClipGlyph(const Quad& glyphClipRect, const Vec2& p, const Vec2& t0, const Vec2& t1, FontColour colour) = 0;
+			virtual void ClipGlyph(const GuiRectf& glyphClipRect, const Vec2& p, const Vec2& t0, const Vec2& t1, FontColour colour) = 0;
 		};
 
 		struct IGlyphRenderer
@@ -29,10 +29,10 @@ namespace Rococo
 
 		struct IGlyphBuilder
 		{
-			virtual void AppendChar(char c, Quad& outputRect) = 0;
+			virtual void AppendChar(char c, GuiRectf& outputRect) = 0;
 			virtual Vec2 GetCursor() = 0;
-			virtual Quad GetClipRect() const = 0;
-			virtual void SetClipRect(const Quad& rect) = 0;
+			virtual GuiRectf GetClipRect() const = 0;
+			virtual void SetClipRect(const GuiRectf& rect) = 0;
 			virtual void SetCursor(const Vec2& bottomLeftOfNextGlyph) = 0;
 			virtual void SetFirstColumnIndex(int index) = 0;
 			virtual void SetTextColour(FontColour colour) = 0;
@@ -76,7 +76,7 @@ namespace Rococo
 		};
 
 		IFontSupervisor* LoadFontCSV(const wchar_t* srcname, const char* data, size_t dataLength);
-		void RouteDrawTextBasic(const Vec2i& pos, IDrawTextJob& job, const IFont& font, IGlyphRenderPipeline& pipeline, const Quad& clipRect);
+		void RouteDrawTextBasic(const Vec2i& pos, IDrawTextJob& job, const IFont& font, IGlyphRenderPipeline& pipeline, const GuiRectf& clipRect);
 
 		int FindFirstFont(IFont& font, const char* specToken, bool throwOnError);
 		int GetFontMatchingHeight(IFont& font, const char* specToken, float height, bool throwOnError);

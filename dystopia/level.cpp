@@ -370,7 +370,7 @@ namespace
 
 			enumerable.names = &streetNames;
 
-			BuildRandomCity(name, radius, 0, e, enumerable);
+			BuildRandomCity_V2(name, radius, 0, e, enumerable);
 		}
 
 		virtual void AddStreetName(const fstring& name)
@@ -989,7 +989,7 @@ namespace
 			renderSolid.lastDt = lastDt;
 
 			lastRendered.clear();
-			quadTree->EnumerateItems(Sphere{ centre, 32.0_metres }, renderSolid);
+			quadTree->EnumerateItems(Sphere{ centre, 512.0_metres }, renderSolid);
 			
 			selectedId = renderSolid.selectedId;
 			nearestRoadSection = renderSolid.closestRoadSectionId;

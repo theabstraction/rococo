@@ -29,6 +29,7 @@ namespace Rococo
 		inline operator Vec3& () { return *reinterpret_cast<Vec3*> (this); }
 	};
 
+	// Quaternion. Mainly used in algorithms that need to smoothly interpolate between orientations
 	struct alignas(4) Quat
 	{
 		Vec3 v;
@@ -192,12 +193,12 @@ namespace Rococo
 		return Vec2{ (float)v.x, (float)v.y };
 	}
 
-	inline Quad Dequantize(const GuiRect& v)
+	inline GuiRectf Dequantize(const GuiRect& v)
 	{
-		return Quad((float)v.left, (float)v.top, (float) v.right, (float) v.bottom);
+		return GuiRectf((float)v.left, (float)v.top, (float) v.right, (float) v.bottom);
 	}
 
-	inline Quad operator + (const Quad& quad, Vec2 offset)
+	inline GuiRectf operator + (const GuiRectf& quad, Vec2 offset)
 	{
 		return{ quad.left + offset.x, quad.top + offset.y, quad.right + offset.x, quad.bottom + offset.y };
 	}
@@ -232,15 +233,15 @@ namespace Rococo
 		return GuiRect(rect.left + delta.x, rect.top + delta.y, rect.right + delta.x, rect.bottom + delta.y);
 	}
 
-	inline Vec2 Centre(const Quad& q) { return Vec2{ (q.left + q.right) * 0.5f, (q.top + q.bottom) * 0.5f }; }
-	inline float Width(const Quad& q) { return q.right - q.left; }
-	inline float Height(const Quad& q) { return q.bottom - q.top; }
-	inline Vec2 Span(const Quad& q) { return Vec2{ Width(q), Height(q) }; }
+	inline Vec2 Centre(const GuiRectf& q) { return Vec2{ (q.left + q.right) * 0.5f, (q.top + q.bottom) * 0.5f }; }
+	inline float Width(const GuiRectf& q) { return q.right - q.left; }
+	inline float Height(const GuiRectf& q) { return q.bottom - q.top; }
+	inline Vec2 Span(const GuiRectf& q) { return Vec2{ Width(q), Height(q) }; }
 
-	inline Vec2 TopLeft(const Quad& q) { return Vec2{ q.left, q.top }; }
-	inline Vec2 BottomRight(const Quad& q) { return Vec2{ q.right, q.bottom }; }
-	inline Vec2 TopRight(const Quad& q) { return Vec2{ q.right, q.top }; }
-	inline Vec2 BottomLeft(const Quad& q) { return Vec2{ q.left, q.bottom }; }
+	inline Vec2 TopLeft(const GuiRectf& q) { return Vec2{ q.left, q.top }; }
+	inline Vec2 BottomRight(const GuiRectf& q) { return Vec2{ q.right, q.bottom }; }
+	inline Vec2 TopRight(const GuiRectf& q) { return Vec2{ q.right, q.top }; }
+	inline Vec2 BottomLeft(const GuiRectf& q) { return Vec2{ q.left, q.bottom }; }
 
 	inline Vec2i Centre(const GuiRect& q) { return Vec2i{ (q.left + q.right) >> 1, (q.top + q.bottom) >> 1 }; }
 	inline int32 Width(const GuiRect& q) { return q.right - q.left; }
@@ -265,8 +266,6 @@ namespace Rococo
 	inline float Length(Vec2 v) { return sqrtf(LengthSq(v)); }
 
 	Radians ComputeWeaponElevation(cr_vec3 origin, cr_vec3 target, float projectileSpeed, Degrees maxElevation, Gravity g, Metres largestError);
-
-	float GenRandomFloat(float minValue, float maxValue);
 
 	// Create matrices for isometric rendering. The origin is relocated to the world centre, the world rotated by elevation and heading, and then scaled up
 	// The camera is vertically above the scene, with y up, x right and looking directly downwards
@@ -296,6 +295,11 @@ namespace Rococo
 
 	void TransformPositions(const Vec3* vertices, size_t nElements, cr_m4x4 transform, Vec3* transformedVertices);
 	void TransformNormals(const Vec3* vertices, size_t nElements, cr_m4x4 transform, Vec3* transformedVertices);
+
+	inline const Vec2& AsVec2(cr_vec3 & v)
+	{
+		return (const Vec2&)v;
+	}
 
 	ROCOCOAPI IObjectEnumerator
 	{
