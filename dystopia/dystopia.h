@@ -129,7 +129,7 @@ namespace Dystopia
 		virtual const wchar_t* TryGetName(ID_ENTITY id) = 0;
 		virtual void Delete(ID_ENTITY id) = 0;
 		virtual bool TryGetEquipment(ID_ENTITY id, EquipmentDesc& desc) const = 0;
-
+      virtual void SetRenderRadius(Metres radius) = 0;
 		virtual void RenderObjects(IRenderContext& rc) = 0;
 		virtual void UpdateGameTime(float dt) = 0;
 	};
@@ -219,9 +219,13 @@ namespace Dystopia
 
 	ROCOCOAPI IGuiSupervisor : public IGui /* gui is script interface to allow scripts to bring up gui elements */
 	{
+      virtual void AppendDebugElement(const wchar_t* format, ...) = 0;
 		virtual void Free() = 0;
+      virtual void RenderDebugElementsAndClear(IGuiRenderContext& grc, int32 fontIndex, int32 pxLeftAlign);
 		virtual void SetEventHandler(IEventCallback<GuiEventArgs>* guiEventHandler) = 0;
 	};
+
+   void RenderGuiDebugMessages(IGuiRenderContext& grc, IGuiSupervisor& gui);
 
 	struct TimestepEvent
 	{
@@ -320,7 +324,7 @@ namespace Dystopia
 		ISourceCache& sourceCache;
 		IMeshLoader& meshes;
 		IBoneLibrary& boneLibrary;
-		IGui& gui;
+      IGuiSupervisor& gui;
 		IUIStack& uiStack;
 		Post::IPostbox& postbox;
 		IControls& controls;

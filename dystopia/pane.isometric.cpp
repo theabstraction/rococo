@@ -5,6 +5,7 @@
 #include "rococo.ui.h"
 #include "dystopia.post.h"
 #include "dystopia.ui.h"
+#include "rococo.strings.h"
 
 #include <vector>
 
@@ -128,6 +129,9 @@ namespace
 		void UpdateGlobalState()
 		{
 			float g = 0.04f * powf(1.25f, globalScale);
+
+         auto viewRadius = Metres{ 2.0f * sqrtf(2.0f) / g };
+         e.level.SetRenderRadius(viewRadius);
 
 			auto playerId = e.level.GetPlayerId();
 
@@ -340,6 +344,11 @@ namespace
 				Graphics::DrawRectangle(grc, addressRect, RGBAb(0, 0, 0, 64), RGBAb(0, 0, 0, 64));
 				grc.RenderText({ addressRect.left + 2, addressRect.top }, job);
 			}
+
+         GuiMetrics metrics;
+         grc.Renderer().GetGuiMetrics(metrics);
+
+         e.gui.RenderDebugElementsAndClear(grc, 9, metrics.screenSpan.x - 320);
 		}
 
 		virtual void OnLostTop()

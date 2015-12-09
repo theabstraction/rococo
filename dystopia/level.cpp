@@ -106,7 +106,7 @@ namespace
 		return Sphere{ solid.transform.GetPosition() , solid.boundingRadius };
 	}
 
-	template<class ROW> ID_ENTITY GetFirstIntersect(cr_vec3 start, cr_vec3 end, const EntityTable<ROW>& table, const EntityTable<Solid>& solids, IQuadTree& quadTree)
+	ID_ENTITY GetFirstIntersect(cr_vec3 start, cr_vec3 end, const EntityTable<Solid>& solids, IQuadTree& quadTree)
 	{
 		struct : IObjectEnumerator
 		{
@@ -306,6 +306,8 @@ namespace
 		std::vector<ID_ENTITY> lastRendered;
 		std::vector<std::wstring> streetNames;
 		std::vector<ID_ENTITY> abattoir;
+
+      Metres viewRadius;
 	public:
 		Level(Environment& _e, IHumanFactory& _hf) : 
 			e(_e),
@@ -313,7 +315,8 @@ namespace
 			groundZeroCursor{ 0,0,0 },
 			quadTree(CreateLooseQuadTree(4096.0_metres, 3.0_metres)),
 			gameTime(0),
-			lastDt(0)
+			lastDt(0),
+         viewRadius(20.0_metres)
 		{
 			
 		}
@@ -332,6 +335,11 @@ namespace
 		{
 			e.levelLoader.SetNextLevel(filename);
 		}
+
+      virtual void SetRenderRadius(Metres radius)
+      {
+         viewRadius = radius;
+      }
 
 		virtual ID_ENTITY NearestRoadId() const
 		{
@@ -528,6 +536,8 @@ namespace
 			auto id = GenerateEntityId();
 			ID_SYS_MESH sysId = e.meshes.GetRendererId(meshId);
 
+         auto normalRadius = e.meshes.GetNormalBoundingRadius(meshId);
+
 			Matrix4x4 transform = Matrix4x4::Translate(position);
 
 			solids.insert(id, 
@@ -551,11 +561,11 @@ namespace
 				*/
 				Solid
 				{ 
-					transform, {0,0,0,0}, position, {1,1,1}, 0, 0, sysId, meshId, 1.0_metres, ID_BITMAP::Invalid(), (uint32)flags
+					transform, {0,0,0,0}, position, {1,1,1}, 0, 0, sysId, meshId, normalRadius, ID_BITMAP::Invalid(), (uint32)flags
 				}
 			);
 
-			quadTree->AddEntity(Sphere{ transform.GetPosition(), 1.0_metres }, id);
+			quadTree->AddEntity(Sphere{ transform.GetPosition(), normalRadius }, id);
 			return id;
 		}
 
@@ -604,7 +614,7 @@ namespace
 			return id;
 		}
 
-		virtual ID_ENTITY CreateStash(IItem* item, cr_vec3 location)
+	    virtual ID_ENTITY CreateStash(IItem* item, cr_vec3 location)
 		{
 			ID_MESH stashId(0x40000000);
 			if (e.meshes.GetRendererId(stashId) == ID_SYS_MESH::Invalid())
@@ -739,6 +749,13 @@ namespace
 
 			i->second.scale = scale;
 			i->second.AddFlag(SolidFlags_IsDirty);
+
+         auto R = e.meshes.GetNormalBoundingRadius(i->second.meshId);
+
+         // Hack here ->our game's bounding radius is mainly for use in the xy plane, for AI and physics, the z direction is
+         // generally irrelevant. so ignore the z scale factor
+         float maxScale = max(scale.x, scale.y);
+         i->second.boundingRadius = Metres{ R * maxScale };
 		}
 
 		virtual cr_vec3 GetPosition(ID_ENTITY id) const
@@ -933,7 +950,7 @@ namespace
 						
 						lastRendered->push_back(id);
 
-						sk->second->Render(*rc, ObjectInstance{ entity.transform, entity.highlightColour }, Seconds{ gameTime });
+                  if (renderSkeletons) sk->second->Render(*rc, ObjectInstance{ entity.transform, entity.highlightColour }, Seconds{ gameTime });
 					}
 					else
 					{
@@ -974,6 +991,7 @@ namespace
 				ID_ENTITY closestRoadSectionId;
 				float roadSectionRange;
 				Vec3 centre;
+            bool renderSkeletons;
 			} renderSolid;
 
 			renderSolid.centre = centre;
@@ -987,9 +1005,10 @@ namespace
 			renderSolid.skeletons = &skeletons;
 			renderSolid.gameTime = gameTime;
 			renderSolid.lastDt = lastDt;
+         renderSolid.renderSkeletons = viewRadius < 100.0_metres;
 
 			lastRendered.clear();
-			quadTree->EnumerateItems(Sphere{ centre, 512.0_metres }, renderSolid);
+			quadTree->EnumerateItems(Sphere{ centre, viewRadius }, renderSolid);
 			
 			selectedId = renderSolid.selectedId;
 			nearestRoadSection = renderSolid.closestRoadSectionId;
@@ -1007,10 +1026,10 @@ namespace
 				ObjectInstance pi{
 					Matrix4x4
 					{
-						Vec4{0.25f,		0,		0,  p.position.x},
+						Vec4{0.25f,		0,		   0,  p.position.x},
 						Vec4{0,		0.25f,		0,  p.position.y},
-						Vec4{0,			0,	0.25f,  p.position.z},
-						Vec4{0,			0,		0,			   1}
+						Vec4{0,			0,	  0.25f,  p.position.z},
+						Vec4{0,			0,		   0,			      1}
 					},
 					RGBA(0,0,0,0)
 				};
@@ -1066,7 +1085,7 @@ namespace
 
 			if (p.attacker == idPlayer)
 			{
-				ID_ENTITY idEnemy = GetFirstIntersect(oldPos, newPos, enemies, solids, *quadTree);
+				ID_ENTITY idEnemy = GetFirstIntersect(oldPos, newPos, solids, *quadTree);
 				if (idEnemy)
 				{
 					auto i = enemies.find(idEnemy);
@@ -1138,7 +1157,8 @@ namespace
 
 						float componentOfVelocityAlongImpulse = Dot(velocity, impulseDirection);
 	
-						const float restitution = 0.25f;
+						const float restitution = 0.25f; 
+						// N.B velocity is reference to velocity, we are changing the actual velocity here
 						velocity = restitution * (velocity + componentOfVelocityAlongImpulse * impulseDirection);
 						
 						newPos = collisionPos + velocity * (1 - cex.collision.t);
@@ -1366,7 +1386,7 @@ namespace
 					int32 exitCode = args.PopInt32();
 				}
 			} args;
-			levelScript->ExecuteFunction(L"Main"_fstring, args);
+			levelScript->ExecuteFunction(L"Main", args);
 		}
 
 		virtual void SyncWithModifiedFiles()

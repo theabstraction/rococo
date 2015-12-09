@@ -206,7 +206,14 @@ namespace
 			wchar_t versionText[64];
 			SafeFormat(versionText, _TRUNCATE, L"Build %u.%04u", major, minor);
 
-			Graphics::RenderHorizontalCentredText(grc, versionText, RGBAb(255, 255, 255), 9, { rect.right - 120,rect.top });
+			Graphics::RenderHorizontalCentredText(grc, versionText, RGBAb(255, 255, 255), 9, { rect.right - 240,rect.top });
+
+         auto mem = ProcessMemory();
+         
+         wchar_t memoryUsage[64];
+         SafeFormat(memoryUsage, _TRUNCATE, L"Mem: %I64u MB/%I64u MB", mem.current >> 20, mem.peak >> 20);
+
+         Graphics::RenderHorizontalCentredText(grc, memoryUsage, RGBAb(255, 255, 255), 9, { rect.right - 240,rect.top + 20 });
 		}
 	};
 }

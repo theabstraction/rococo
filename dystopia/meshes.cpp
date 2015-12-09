@@ -20,6 +20,7 @@ namespace
 		ID_SYS_MESH rendererId;
 		ID_MESH editorId;
 		std::wstring resourceName;
+      Metres boundingRadius;
 	};
 
 	typedef std::vector<BoundingCube> BoundingCubes;
@@ -156,16 +157,24 @@ namespace
 			SwapTriangleChirality(vertexCache);
 		}
 
+      float boundingRadiusSq = 0;
+
+      for (auto& v : vertexCache)
+      {
+         boundingRadiusSq = max(boundingRadiusSq, LengthSq(v.position));
+      }
+
 		auto i = meshes.find(id);
 		if (i != meshes.end())
 		{
 			renderer.UpdateMesh(i->second.rendererId, &vertexCache[0], (uint32)vertexCache.size());
 			i->second.resourceName = resourcePath;
+         i->second.boundingRadius = Metres{ sqrtf(boundingRadiusSq) };
 		}
 		else
 		{
 			auto rendererId = renderer.CreateTriangleMesh(&vertexCache[0], (uint32)vertexCache.size());
-			meshes.insert(std::make_pair(id, MeshDesc{ rendererId, id, resourcePath }));
+			meshes.insert(std::make_pair(id, MeshDesc{ rendererId, id, resourcePath, sqrtf(boundingRadiusSq) }));
 		}
 	}
 
@@ -284,6 +293,13 @@ namespace
 				Throw(0, L"Vertex count must be divisible by 3 - 3 vertices per triangle");
 			}
 
+         float boundingRadiusSq = 0;
+
+         for (size_t i = 0; i < vertexCount; ++i)
+         {
+            boundingRadiusSq = max(boundingRadiusSq, LengthSq(vertices[i].position));
+         }
+
 			auto i = meshes.find(id);
 			if (i != meshes.end())
 			{
@@ -293,7 +309,7 @@ namespace
 			else
 			{
 				auto rendererId = renderer.CreateTriangleMesh(vertices, (uint32)vertexCount);
-				meshes.insert(std::make_pair(id, MeshDesc{ rendererId, id, L"#generated" }));
+				meshes.insert(std::make_pair(id, MeshDesc{ rendererId, id, L"#generated", sqrtf(boundingRadiusSq) }));
 			}
 
 			for (size_t i = 0; i < vertexCount; i += 3)
@@ -336,6 +352,13 @@ namespace
 			renderer.ClearMeshes();
 		}
 
+      virtual Metres GetNormalBoundingRadius(ID_MESH editorId)
+      {
+         auto& mesh = meshes.find(editorId);
+         if (mesh == meshes.end()) Throw(0, L"Bad editorId in call to meshes.GetNormalBoundingRadius(...)");
+         return mesh->second.boundingRadius;
+      }
+
 		virtual size_t ForEachPhysicsHull(ID_MESH id, IEnumerator<BoundingCube>& cb)
 		{
 			auto i = physicsHulls.find(id);
@@ -361,7 +384,7 @@ namespace
 				i = reflectedMeshes.find(editorId);
 				if (i == reflectedMeshes.end())
 				{
-					return ID_SYS_MESH();
+					return ID_SYS_MESH::Invalid();
 				}
 			}
 

@@ -173,7 +173,7 @@ namespace
 		vertexCache.push_back({ topRight,		up, roadColour, noTexture, 0, 1 });
 		vertexCache.push_back({ bottomRight,	up, roadColour, noTexture, 0, 1 });
 		vertexCache.push_back({ bottomLeft,		up, roadColour, noTexture, 0, 1 });
-		vertexCache.push_back({ topLeft,		up, roadColour, noTexture, 0, 1 });
+		vertexCache.push_back({ topLeft,		   up, roadColour, noTexture, 0, 1 });
 		vertexCache.push_back({ topRight,		up, roadColour, noTexture, 0, 1 });
 	}
 

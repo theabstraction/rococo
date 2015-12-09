@@ -81,6 +81,14 @@ namespace Rococo
 	struct SysUnstableArgs {};
 	struct FileModifiedArgs { const wchar_t* resourceName; };
 
+   struct MemoryUsage
+   {
+      uint64 current;
+      uint64 peak;
+   };
+
+   MemoryUsage ProcessMemory();
+
 	ROCOCOAPI IOS
 	{
 		virtual void ConvertUnixPathToSysPath(const wchar_t* unixPath, wchar_t* sysPath, size_t bufferCapacity) const = 0;

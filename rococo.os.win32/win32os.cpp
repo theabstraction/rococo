@@ -2,6 +2,7 @@
 #define NOMINMAX
 
 #include <windows.h>
+#include <Psapi.h>
 
 #include <rococo.api.h>
 #include <rococo.strings.h>
@@ -36,6 +37,14 @@ namespace Rococo
 		QueryPerformanceCounter(&i);
 		return i.QuadPart;
 	}
+
+   MemoryUsage ProcessMemory()
+   {
+      PROCESS_MEMORY_COUNTERS counters = { 0 };
+      counters.cb = sizeof(counters);
+      GetProcessMemoryInfo(GetCurrentProcess(), &counters, sizeof(counters));
+      return{ counters.PagefileUsage, counters.PeakPagefileUsage };
+   }
 
 	void Throw(int32 errorCode, const wchar_t* format, ...)
 	{
