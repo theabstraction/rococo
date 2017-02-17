@@ -9,8 +9,8 @@ extern "C"
 	#include "jdatastream.h"
 }
 
-#include <bloke.types.h>
-#include <bloke.imaging.h>
+#include <rococo.types.h>
+#include <rococo.imaging.h>
 
 struct ErrorManager
 {
@@ -30,7 +30,7 @@ static void OnErrorExit (j_common_ptr cinfo)
 	longjmp(myerr->setjmpBuffer, 1);
 }
 
-namespace Bloke
+namespace Rococo
 {
 	namespace Imaging
 	{
@@ -124,7 +124,7 @@ namespace Bloke
 					}
 				}
 
-				loadEvents.OnARGBImage(Vec2i(cinfo.image_width, cinfo.image_height), (const F_A8R8G8B8*)contigBuffer);
+            loadEvents.OnARGBImage(Vec2i{ (int32) cinfo.image_width,(int32)cinfo.image_height }, (const F_A8R8G8B8*)contigBuffer);
 
 				if (contigBuffer) delete[] contigBuffer;
 

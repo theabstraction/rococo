@@ -1109,7 +1109,7 @@ jinit_memory_mgr (j_common_ptr cinfo)
 		{
 			char ch = 'x';
 
-			if (sscanf_s(memenv, "%ld%c", &max_to_use, &ch) > 0)
+			if (sscanf_s(memenv, "%ld%c", &max_to_use, &ch, 1) > 0)
 			{
 				if (ch == 'm' || ch == 'M')
 					max_to_use *= 1000L;

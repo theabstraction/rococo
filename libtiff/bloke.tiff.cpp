@@ -1,4 +1,4 @@
-#include <rococo.types.h>
+#include <rococo.api.h>
 #include <rococo.imaging.h>
 
 #include "libtiff\tiffiop.h"
@@ -155,7 +155,7 @@ namespace
 							*dest++ = *source++;
 						}
 
-						loadEvents.OnARGBImage(Vec2i(width, height), engineFormatBuffer);
+                  loadEvents.OnARGBImage(Vec2i{ (Rococo::int32) width, (Rococo::int32) height }, engineFormatBuffer);
 						isGood = true;
 
 						_freea(engineFormatBuffer);
@@ -189,7 +189,7 @@ namespace
 
 					if (j == height)
 					{
-						loadEvents.OnAlphaImage(Vec2i(width, height), (const Rococo::uint8*) raster);
+                  loadEvents.OnAlphaImage(Vec2i{ (Rococo::int32) width,(Rococo::int32) height }, (const Rococo::uint8*) raster);
 						isGood = true;
 					}
 

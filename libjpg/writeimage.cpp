@@ -9,8 +9,8 @@ extern "C"
 	#include "jdatastream.h"
 }
 
-#include <bloke.types.h>
-#include <bloke.imaging.h>
+#include <rococo.types.h>
+#include <rococo.imaging.h>
 
 namespace
 {
@@ -106,7 +106,7 @@ namespace
 	}
 }
 
-namespace Bloke { namespace Imaging
+namespace Rococo { namespace Imaging
 {
 	bool CompressJPeg(const unsigned char* data, const Vec2i& span, const wchar_t* filename, int quality)
 	{
