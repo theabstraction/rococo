@@ -18,21 +18,23 @@ namespace
 		{
 			switch (uMsg)
 			{
+         case WM_ERASEBKGND:
+            return TRUE;
 			case WM_SIZE:
 				return OnSize(hWnd, wParam, lParam);
 			case WM_NOTIFY:
 			{
-							  // Disabled in READONLY mode
-							  MSGFILTER* mf = (MSGFILTER*)lParam;
-							  if (mf->nmhdr.code == EN_MSGFILTER)
-							  {
-								  if (mf->msg == WM_NCRBUTTONUP)
-								  {
-									  Vec2i pos{ GET_X_LPARAM(mf->lParam), GET_Y_LPARAM(mf->lParam) };
-									  eventHandler.OnRightButtonUp(pos);
-									  return 0L;
-								  }
-							  }
+				// Disabled in READONLY mode
+				MSGFILTER* mf = (MSGFILTER*)lParam;
+				if (mf->nmhdr.code == EN_MSGFILTER)
+				{
+					if (mf->msg == WM_NCRBUTTONUP)
+					{
+						Vec2i pos{ GET_X_LPARAM(mf->lParam), GET_Y_LPARAM(mf->lParam) };
+						eventHandler.OnRightButtonUp(pos);
+						return 0L;
+					}
+				}
 			}
 			}
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
@@ -84,7 +86,7 @@ namespace
 			SendMessage(hWndEditor, EM_REPLACESEL, 0, (LPARAM)segmentBuffer);
 		}
 
-		void Construct(const WindowConfig& editorConfig, IParentWindowSupervisor& parent)
+		void Construct(const WindowConfig& editorConfig, IWindow& parent)
 		{
 			WindowConfig containerConfig = editorConfig;
 			containerConfig.style = WS_CHILD | WS_VISIBLE;
@@ -105,17 +107,31 @@ namespace
 			SetControlFont(hWndEditor);
 		}
 
-		virtual size_t LineCount() const
+		virtual int32 LineCount() const
 		{
-			return SendMessage(hWndEditor, EM_LINEFROMCHAR, -1, 0);
+			return (int32) SendMessage(hWndEditor, EM_LINEFROMCHAR, -1, 0);
 		}
 
-		virtual void ScrollTo(size_t lineNumber)
+      virtual int32 GetFirstVisibleLine() const
+      {
+         int32 y = (int32)SendMessage(hWndEditor, EM_GETFIRSTVISIBLELINE, 0, 0);
+         return y;
+      }
+
+		virtual void ScrollTo(int32 row)
 		{
-			SendMessage(hWndEditor, EM_LINESCROLL, 0, lineNumber - 4);
+         int32 y = GetFirstVisibleLine();
+         SendMessage(hWndEditor, EM_LINESCROLL, 0, -y);
+         SendMessage(hWndEditor, EM_LINESCROLL, 0, row);
 		}
+
+      ~RichEditor()
+      {
+         DestroyWindow(hWndEditor);
+         DestroyWindow(hWnd);
+      }
 	public:
-		static RichEditor* Create(const WindowConfig& editorConfig, IParentWindowSupervisor& parent, IRichEditorEvents& eventHandler)
+		static RichEditor* Create(const WindowConfig& editorConfig, IWindow& parent, IRichEditorEvents& eventHandler)
 		{
 			if (customAtom == 0)
 			{
@@ -126,6 +142,32 @@ namespace
 			p->Construct(editorConfig, parent);
 			return p;
 		}
+
+      virtual void SetTooltip(const wchar_t* name, const wchar_t* text)
+      {
+         // Not implemented
+      }
+
+      virtual void Hilight(const Vec2i& start, const Vec2i& end, RGBAb background, RGBAb foreground)
+      {
+         int startIndex = (int) SendMessage(hWndEditor, EM_LINEINDEX, start.y, 0) + start.x;
+         int endIndex = (int) SendMessage(hWndEditor, EM_LINEINDEX, end.y, 0) + end.x;
+
+         SendMessage(hWndEditor, EM_SETSEL, startIndex, endIndex);
+
+         CHARFORMAT2W format;
+         ZeroMemory(&format, sizeof(format));
+         format.cbSize = sizeof(format);
+         format.dwMask = CFM_BOLD | CFM_COLOR | CFM_BACKCOLOR;
+         format.dwEffects = CFE_BOLD;
+         format.crTextColor = RGB(foreground.red, foreground.green, foreground.blue);
+         format.crBackColor = RGB(background.red, background.green, background.blue);  
+
+         SendMessage(hWndEditor, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM) &format);
+
+         SendMessage(hWndEditor, EM_SETSEL, endIndex, endIndex);
+         SendMessage(hWndEditor, EM_SCROLLCARET, 0, 0);
+      }
 
 		virtual HWND EditorHandle() const
 		{

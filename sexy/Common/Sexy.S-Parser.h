@@ -78,8 +78,8 @@ namespace Sexy { namespace Sex
 	class ParseException: public IException
 	{
 	private:
-		SourcePos startPos;
-		SourcePos endPos;
+		Vec2i startPos;
+		Vec2i endPos;
 		
 		enum {MAX_ERRMSG_LEN = 512};
 		SEXCHAR srcName[MAX_ERRMSG_LEN];
@@ -88,7 +88,7 @@ namespace Sexy { namespace Sex
 		const ISExpression* source;
 
 	public:
-		ParseException(): startPos(0,0), endPos(0,0)
+      ParseException() : startPos{ 0,0 }, endPos{ 0, 0 }
 		{
 			srcName[0] = 0;
 			errText[0] = 0;
@@ -96,7 +96,7 @@ namespace Sexy { namespace Sex
 			source = nullptr;
 		}
 
-		ParseException(const SourcePos& start, const SourcePos& end, csexstr name, csexstr err, csexstr specimen, const ISExpression* _source):
+		ParseException(const Vec2i& start, const Vec2i& end, csexstr name, csexstr err, csexstr specimen, const ISExpression* _source):
 			startPos(start),
 			endPos(end),
 			source(_source)
@@ -106,8 +106,8 @@ namespace Sexy { namespace Sex
 			CopyString(specimenText, MAX_ERRMSG_LEN, specimen, -1);
 		}
 
-		const SourcePos& Start() const { return startPos; }
-		const SourcePos& End() const { return endPos; }
+		const Vec2i& Start() const { return startPos; }
+		const Vec2i& End() const { return endPos; }
 		csexstr Name() const { return srcName; }
 		const wchar_t* Message() const { return errText; }
 		int ErrorCode() const { return -1; }

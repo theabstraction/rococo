@@ -1,4 +1,5 @@
 #include "dystopia.h"
+
 #include <string>
 
 #include "rococo.renderer.h"
@@ -11,10 +12,12 @@
 
 #include "dystopia.ui.h"
 
+
 #include <wchar.h>
 #include <stdarg.h>
 
 using namespace Dystopia;
+using namespace Dystopia::UI;
 using namespace Rococo;
 
 namespace
@@ -32,9 +35,15 @@ namespace
       };
 
       std::vector<DebugMessage> debugList;
-
 	public:
-		Gui(Environment& _e, IUIStack& _stack) : e(_e), guiEventHandler(nullptr) {}
+		Gui(Environment& _e, IUIStack& _stack) :
+         e(_e), guiEventHandler(nullptr)
+      {
+      }
+
+      ~Gui()
+      {
+      }
 
 		virtual void SetEventHandler(IEventCallback<GuiEventArgs>* guiEventHandler)
 		{

@@ -10,6 +10,11 @@ namespace Rococo
 	struct MouseEvent;
 	struct ObjectInstance;
 	struct ISourceCache;
+
+   namespace IDE
+   {
+      struct IScriptExceptionHandler;
+   }
 }
 
 namespace Sexy
@@ -148,7 +153,6 @@ namespace Dystopia
 		virtual void Load(const wchar_t* resourceName, bool isReloading) = 0;
 		virtual bool NeedsUpdate() const = 0;
 		virtual void SetNextLevel(const fstring& filename) = 0;
-		virtual void SyncWithModifiedFiles() = 0;
 		virtual void Update() = 0;
 	};
 
@@ -158,7 +162,6 @@ namespace Dystopia
 
 	ILevelLoader* CreateLevelLoader(Environment& e);
 	ILevelSupervisor* CreateLevel(Environment& e, IHumanFactory& humanFactory);
-	IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow* parent);
 
 	enum ActionMapType : int32;
 
@@ -217,11 +220,16 @@ namespace Dystopia
 		bool isActive;
 	};
 
+   namespace UI
+   {
+      struct IUIBuilder;
+   }
+
 	ROCOCOAPI IGuiSupervisor : public IGui /* gui is script interface to allow scripts to bring up gui elements */
 	{
       virtual void AppendDebugElement(const wchar_t* format, ...) = 0;
 		virtual void Free() = 0;
-      virtual void RenderDebugElementsAndClear(IGuiRenderContext& grc, int32 fontIndex, int32 pxLeftAlign);
+      virtual void RenderDebugElementsAndClear(IGuiRenderContext& grc, int32 fontIndex, int32 pxLeftAlign) = 0;
 		virtual void SetEventHandler(IEventCallback<GuiEventArgs>* guiEventHandler) = 0;
 	};
 
@@ -315,12 +323,26 @@ namespace Dystopia
 
 	IJournalSupervisor* CreateJournal(Environment& e);
 
+   namespace UI
+   {
+      struct IUIBuilderSupervisor
+      {
+         virtual IUIBuilder& Builder() = 0;
+         virtual void Free() = 0;
+         virtual void RenderHierarchy(IGuiRenderContext& gc, const wchar_t* panelName) = 0;
+         virtual void Resize(Vec2i span) = 0;
+      };
+
+      IUIBuilderSupervisor* CreateScriptableUIBuilder();
+   }
+
 	// Dystopia object environment - not necessarily well defined when passed to a constructor. Check the app constructor if in doubt.
 	struct Environment
 	{
 		IInstallation& installation;
 		IRenderer& renderer;
 		IDebuggerWindow& debuggerWindow;
+      IDE::IScriptExceptionHandler& exceptionHandler;
 		ISourceCache& sourceCache;
 		IMeshLoader& meshes;
 		IBoneLibrary& boneLibrary;
@@ -332,6 +354,7 @@ namespace Dystopia
 		ILevel& level;
 		IJournalSupervisor& journal;
 		ILevelLoader& levelLoader;
+      UI::IUIBuilderSupervisor& paneBuilder;
 	};
 
 	enum ActionMapType
@@ -348,6 +371,7 @@ namespace Dystopia
 		ActionMapTypeScale,
 		ActionMapTypeStats,
 		ActionMapTypeJournal,
+      ActionMapTypeCV,
 		ActionMapType_TypeCount
 	};
 
@@ -356,17 +380,7 @@ namespace Dystopia
 	void BuildRandomCity_V2(const fstring& name, Metres radius, uint32 seedDelta, Environment& e, IEnumerable<const wchar_t*>& names);
 	ID_MESH GenerateRandomHouse(Environment& e, uint32 seed);
 	void PopulateQuad(Environment& e, IVectorEnumerator<ID_MESH>& randomHouses, const GuiRectf& quad, cr_vec3 pos, IRandom& rng);
-
-	ROCOCOAPI IPersistentScript
-	{
-		virtual void ExecuteFunction(ArchetypeCallback bytecodeId, IArgEnumerator& args) = 0;
-		virtual void ExecuteFunction(const wchar_t* name, IArgEnumerator& args) = 0;
-		virtual void Free() = 0;
-	};
-
-	IPersistentScript* CreatePersistentScript(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, const wchar_t* resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile);
-
-	void ExecuteSexyScriptLoop(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, const wchar_t* resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile);
+   IDE::IScriptExceptionHandler* UseDialogBoxForScriptException(Windows::IWindow& parent);
 }
 
 namespace Dystopia

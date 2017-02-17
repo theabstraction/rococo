@@ -23,11 +23,15 @@
 (primitive Seconds Float32 Seconds)
 (primitive Metres Float32 Metres)
 (primitive Kilograms Float32 Kilograms)
+(primitive RGBAb Int32 RGBAb)
 
 (primitive Pointer Pointer uintptr_t)
 (primitive IdMesh Int32 ID_MESH)
 (primitive IdEntity Int64 ID_ENTITY)
 (primitive IdGoal Int64 ID_GOAL)
+(primitive IdWidget Int32 ID_WIDGET)
+(primitive IdUIEventType Int64 ID_UI_EVENT_TYPE)
+(primitive WidgetState Int32 Dystopia.UI.EWidgetState)
 (primitive TwoInt64InputFunction Dystopia.Callbacks.TwoInt64InputFunction ArchetypeCallback)
 
 // (struct <name> <sexy-name> <cpp-name>)  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files

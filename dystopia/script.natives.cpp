@@ -33,6 +33,11 @@ namespace Dystopia
 	{
 		return _gui;
 	}
+
+   Dystopia::UI::IUIBuilder* FactoryConstructDystopiaUIGetUIBuilder(Dystopia::UI::IUIBuilder* _context)
+   {
+      return _context;
+   }
 }
 
 #include "dystopia.sxh.inl"

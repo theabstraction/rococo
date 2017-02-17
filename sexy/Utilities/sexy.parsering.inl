@@ -429,6 +429,9 @@ namespace Sexy { namespace Parse
 		case VARTYPE_Int64: return SEXTEXT("Int64");
 		case VARTYPE_Float32: return SEXTEXT("Float32");
 		case VARTYPE_Float64: return SEXTEXT("Float64");
+      case VARTYPE_Bool: return SEXTEXT("Boolean32");
+      case VARTYPE_Derivative: return SEXTEXT("Derivative");
+      case VARTYPE_Pointer: return SEXTEXT("Pointer");
 		default: return SEXTEXT("Unknown variable type");
 		}
 	}

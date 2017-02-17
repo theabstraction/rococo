@@ -86,7 +86,7 @@ namespace
 
 	void PrintParseException(const ParseException& e)
 	{
-		PrintToStandardOutput(SEXTEXT("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\nSpecimen: %s\r\n"), e.Name(), e.Start().X, e.Start().Y, e.End().X, e.End().Y, e.Message(), e.Specimen());
+		PrintToStandardOutput(SEXTEXT("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\nSpecimen: %s\r\n"), e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message(), e.Specimen());
 
 		for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
 		{

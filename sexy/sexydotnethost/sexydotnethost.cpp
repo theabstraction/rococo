@@ -86,8 +86,8 @@ namespace SexyDotNet { namespace Host
 			String^ msg = gcnew String(s, 0, StringLength(s), Encoding::ASCII);				
 			String^ name = gcnew String(n, 0, StringLength(n), Encoding::ASCII);
 #endif
-			SourceLocation start = SourceLocation(e.Start().X,e.Start().Y);
-			SourceLocation end = SourceLocation(e.End().X,e.End().Y);
+			SourceLocation start = SourceLocation(e.Start().x,e.Start().y);
+			SourceLocation end = SourceLocation(e.End().x,e.End().y);
 			throw gcnew CompileError(name, msg, start, end);
 		}
 	}
@@ -179,8 +179,8 @@ namespace SexyDotNet { namespace Host
 			String^ src = gcnew String(t, 0, StringLength(t), IsSexUnicode ? Encoding::Unicode : Encoding::ASCII);
 #endif
 
-			SourceLocation start = SourceLocation(ex.Start().X,ex.Start().Y);
-			SourceLocation end = SourceLocation(ex.End().X,ex.End().Y);
+			SourceLocation start = SourceLocation(ex.Start().x,ex.Start().y);
+			SourceLocation end = SourceLocation(ex.End().x,ex.End().y);
 			throw gcnew CompileError(src, msg, start, end);
 		}
 	}
@@ -339,8 +339,8 @@ namespace SexyDotNet { namespace Host
 			String^ msg = gcnew String(s, 0, StringLength(s), IsSexUnicode ? Encoding::Unicode : Encoding::ASCII);
 #endif
 
-			SourceLocation start = SourceLocation(e.Start().X,e.Start().Y);
-			SourceLocation end = SourceLocation(e.End().X,e.End().Y);
+			SourceLocation start = SourceLocation(e.Start().x,e.Start().y);
+			SourceLocation end = SourceLocation(e.End().x,e.End().y);
 			throw gcnew CompileError(moduleFullPath, msg, start, end);
 		}
 

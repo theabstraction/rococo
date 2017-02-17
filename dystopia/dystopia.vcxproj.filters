@@ -117,6 +117,15 @@
     <ClCompile Include="generate.quad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pane.cv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scriptable.widgets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dx11.renderer.rc">
@@ -179,6 +188,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dystopia.sxh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rococo.widgets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -347,14 +347,14 @@ namespace Sexy { namespace VM
 	struct NO_VTABLE ISourceFile
 	{
 		virtual const char* FileName() const = 0;
-		virtual size_t GetCodeOffset(const SourcePos& pos) const = 0;
+		virtual size_t GetCodeOffset(const Vec2i& pos) const = 0;
 	};
 
 #pragma pack(push,1)
 	struct FileData
 	{
 		const ISourceFile* Source;
-		SourcePos Pos;				
+		Vec2i Pos;				
 	};
 #pragma pack(pop)
 

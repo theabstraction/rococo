@@ -121,7 +121,7 @@ namespace
 		}
 		catch(Sexy::IException& iex)
 		{
-			ParseException pex(SourcePos(0,0), SourcePos(0,0), s->Tree().Source().Name(), iex.Message(), SEXTEXT(""), s);
+			ParseException pex(Vec2i{ 0,0 }, Vec2i{ 0,0 }, s->Tree().Source().Name(), iex.Message(), SEXTEXT(""), s);
 			ss.ProgramObject().Log().OnJITCompileException(pex);
 			ss.ProgramObject().VirtualMachine().Throw();
 		}

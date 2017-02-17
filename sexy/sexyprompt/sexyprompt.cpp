@@ -283,7 +283,7 @@ void LoadLibFile(TFiles& files, csexstr libFile, IPublicScriptSystem& ss, bool i
 #ifdef SEXCHAR_IS_WIDE
 	if (rawLibCode.IsUnicode())
 	{
-		sc = ss.SParser().ProxySourceBuffer((csexstr)rawLibCode.data, len / 2, SourcePos(0,0), libFile);
+		sc = ss.SParser().ProxySourceBuffer((csexstr)rawLibCode.data, len / 2, Vec2i{ 0,0 }, libFile);
 	}
 	else
 	{
@@ -292,18 +292,18 @@ void LoadLibFile(TFiles& files, csexstr libFile, IPublicScriptSystem& ss, bool i
 		AsciiToSEXCHAR(sexLibData.data, len+1, rawLibCode.data);
 		sexLibData.length = len;
 
-		sc = ss.SParser().ProxySourceBuffer(sexLibData.data, sexLibData.length, SourcePos(0,0), libFile);
+		sc = ss.SParser().ProxySourceBuffer(sexLibData.data, sexLibData.length, Vec2i{ 0,0 }, libFile);
 	}
 #else
 	if (rawLibCode.IsUnicode())
 	{
 		CSexBuffer sexLibData(len+2);
 		UnicodeToSEXCHAR(sexLibData.data, rawLibCode.length, (const wchar_t*) rawLibCode.data);
-		sc = ss.SParser().ProxySourceBuffer(sexLibData.data, sexLibData.length, SourcePos(0,0), libFile);
+		sc = ss.SParser().ProxySourceBuffer(sexLibData.data, sexLibData.length, Vec2i{ 0,0 }, libFile);
 	}
 	else
 	{
-		sc = ss.SParser().ProxySourceBuffer(rawLibCode.data, rawLibCode.length, SourcePos(0,0), libFile);
+		sc = ss.SParser().ProxySourceBuffer(rawLibCode.data, rawLibCode.length, Vec2i{ 0,0 }, libFile);
 	}
 #endif
 	
@@ -412,7 +412,7 @@ ISourceCode* AddSourcecodeModule(csexstr fileName, IPublicScriptSystem& ss)
 #ifdef SEXCHAR_IS_WIDE
 	if (rawLibCode.IsUnicode())
 	{
-		sc = ss.SParser().ProxySourceBuffer((csexstr)rawLibCode.data, len / 2, SourcePos(0,0), fileName);
+		sc = ss.SParser().ProxySourceBuffer((csexstr)rawLibCode.data, len / 2, Vec2i{ 0,0 }, fileName);
 	}
 	else
 	{
@@ -421,18 +421,18 @@ ISourceCode* AddSourcecodeModule(csexstr fileName, IPublicScriptSystem& ss)
 		AsciiToSEXCHAR(sexLibData.data, len+1, rawLibCode.data);
 		sexLibData.length = len;
 
-		sc = ss.SParser().ProxySourceBuffer(sexLibData.data, sexLibData.length, SourcePos(0,0), fileName);
+		sc = ss.SParser().ProxySourceBuffer(sexLibData.data, sexLibData.length, Vec2i{ 0,0 }, fileName);
 	}
 #else
 	if (rawLibCode.IsUnicode())
 	{
 		CSexBuffer sexLibData(len+2);
 		UnicodeToSEXCHAR(sexLibData.data, rawLibCode.length, (const wchar_t*) rawLibCode.data);
-		sc = ss.SParser().DuplicateSourceBuffer(sexLibData.data, sexLibData.length, SourcePos(0,0), fileName);
+		sc = ss.SParser().DuplicateSourceBuffer(sexLibData.data, sexLibData.length, Vec2i{ 0,0 }, fileName);
 	}
 	else
 	{
-		sc = ss.SParser().DuplicateSourceBuffer(rawLibCode.data, rawLibCode.length, SourcePos(0,0), fileName);
+		sc = ss.SParser().DuplicateSourceBuffer(rawLibCode.data, rawLibCode.length, Vec2i{ 0,0 }, fileName);
 	}
 #endif
 

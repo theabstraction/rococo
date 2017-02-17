@@ -38,6 +38,16 @@ namespace Rococo
 			virtual int NumberOfRows() const = 0;
 			virtual void DeleteRow(int rowIndex) = 0;
 		};
+
+      ROCOCOAPI ITreePopulator
+      {
+         virtual void Populate(IUITree& tree) = 0;
+      };
+
+      ROCOCOAPI IListPopulator
+      {
+         virtual void Populate(IUIList& list) = 0;
+      };
 	}
 }
 

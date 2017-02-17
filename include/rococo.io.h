@@ -61,6 +61,7 @@ namespace Rococo
 		};
 
 		void Print(IBinaryWriter& writer, const char* format, ...);
+      void SaveUserFile(const wchar_t* filename, const wchar_t* s);
 	}
 
 	ROCOCOAPI IBuffer
@@ -125,6 +126,12 @@ namespace Rococo
 	IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os);
 
 	bool DoesModifiedFilenameMatchResourceName(const wchar_t* modifiedFilename, const wchar_t* resourceName);
+
+   namespace IO
+   {
+      wchar_t GetFileSeparator();
+      void GetUserPath(wchar_t* fullpath, size_t capacity, const wchar_t* shortname);
+   }
 }
 
 #endif

@@ -386,7 +386,7 @@ namespace
 
 		try
 		{
-			Auto<ISourceCode> configSrc = spp().LoadSource(fullconfigPath, SourcePos(0,1));
+         Auto<ISourceCode> configSrc = spp().LoadSource(fullconfigPath, Vec2i{ 0,1 });
 			Auto<ISParserTree> tree = spp().CreateTree(configSrc());
 
 			ParseConfig(tree().Root(), pc);

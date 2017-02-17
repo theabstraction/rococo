@@ -353,14 +353,6 @@ namespace Sexy
 		bool SplitTail(csexstr& _body, csexstr& _tail);
 		bool SplitHead(csexstr& _head, csexstr& _body);
 	};
-	
-	struct SourcePos
-	{
-		SourcePos() {}
-		SourcePos(int x, int y): X(x),Y(y) {}
-		int X;
-		int Y;
-	};
 
 	namespace Sex
 	{
@@ -381,8 +373,8 @@ namespace Sexy
 
 		struct NO_VTABLE ISExpression
 		{
-			virtual const SourcePos& Start() const = 0; // (X.Y) of start relative to tree origin in source file
-			virtual const SourcePos& End() const = 0;// (X.Y) of end relative to tree origin in source file
+			virtual const Vec2i& Start() const = 0; // (X.Y) of start relative to tree origin in source file
+			virtual const Vec2i& End() const = 0;// (X.Y) of end relative to tree origin in source file
 			virtual size_t StartOffset() const = 0; // Displacement from the start of source code to the start of the expression
 			virtual size_t EndOffset() const = 0;// Displacement from the end of source code to the start of the expression
 			virtual EXPRESSION_TYPE Type() const = 0;
@@ -430,21 +422,21 @@ namespace Sexy
 		struct NO_VTABLE ISParser : public IRefCounted
 		{
 			virtual ISParserTree* CreateTree(ISourceCode& sourceCode) = 0; // Creates a new s-parser tree with a reference count of 1, and attaches a reference to ISourceCode 
-			virtual ISourceCode* DuplicateSourceBuffer(csexstr buffer, int segmentLength, const SourcePos& origin, csexstr name) = 0; // Duplicates a source segment and exposes as an instance
-			virtual ISourceCode* ProxySourceBuffer(csexstr bufferRef, int segmentLength, const SourcePos& origin, csexstr nameRef) = 0; // Duplicates the pointers defining the source code and its name and exposes as an instance
-			virtual ISourceCode* LoadSource(csexstr filename, const SourcePos& origin) = 0; // Loads source code, converts it to SEXCHARs and returns a reference to it
-			virtual ISourceCode* LoadSource(csexstr moduleName, const SourcePos& origin, const char* buffer, long len) = 0;
+			virtual ISourceCode* DuplicateSourceBuffer(csexstr buffer, int segmentLength, const Vec2i& origin, csexstr name) = 0; // Duplicates a source segment and exposes as an instance
+			virtual ISourceCode* ProxySourceBuffer(csexstr bufferRef, int segmentLength, const Vec2i& origin, csexstr nameRef) = 0; // Duplicates the pointers defining the source code and its name and exposes as an instance
+			virtual ISourceCode* LoadSource(csexstr filename, const Vec2i& origin) = 0; // Loads source code, converts it to SEXCHARs and returns a reference to it
+			virtual ISourceCode* LoadSource(csexstr moduleName, const Vec2i& origin, const char* buffer, long len) = 0;
 		};	
 
 		struct NO_VTABLE ISourceCode : public IRefCounted
 		{
-			virtual const SourcePos& Origin() const = 0; // The XY in the source document where the code segment begins
+			virtual const Vec2i& Origin() const = 0; // The XY in the source document where the code segment begins
 			virtual csexstr SourceStart() const = 0; // The first SEXCHAR in the source code segment
 			virtual const int SourceLength() const = 0;  // The number of SEXCHARS in the source code segment
 			virtual csexstr Name() const = 0; // The name of the source segment
 		};
 
-		csexstr ReadUntil(const SourcePos& pos, const ISourceCode& src);
+		csexstr ReadUntil(const Vec2i& pos, const ISourceCode& src);
 		void GetSpecimen(SEXCHAR specimen[64], const ISExpression& e);
 	} // Sex
 

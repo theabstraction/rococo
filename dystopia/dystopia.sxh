@@ -112,3 +112,34 @@
 	)
 	(factory Dystopia.Journal.GetJournal)
 )
+
+(enum Int32
+	(as.sxy Dystopia.UI.WidgetState "../content/scripts/panes") 
+	(as.cpp Dystopia.UI.EWidgetState "dystopia") 
+	(
+		(NoFocus 0)
+		(HasFocus 1)
+	)
+)
+
+(interface
+	(as.sxy Dystopia.UI.IUIBuilder "../content/scripts/panes") 
+	(as.cpp Dystopia.UI.IUIBuilder "dystopia")
+	(context factory Dystopia.UI.IUIBuilder)
+	(methods
+		 (RebuildPanel (IString panelName)->)
+         (AddButton (IdWidget id) (Vec2i span)(IString text)->)
+         (AddFrame (IdWidget id) (IdWidget frameId) (Vec2i span)->)
+         (AddWidgetToFrame (IdWidget frameId) (IdWidget id)->)
+         (HCentreChildren (IdWidget frameId)->)
+         (VCentreChildren (IdWidget frameId)->)
+         (ShrinkWrap (IdWidget frameId)->)
+         (ExpandToFit (IdWidget frameId)->)
+         (SetBorder (IdWidget id) (WidgetState state)(Vec2i dxdy)(RGBAb c1)(RGBAb c2)->)
+         (SetBackcolours (IdWidget id) (WidgetState state) (RGBAb b1)(RGBAb b2)->)
+         (SetButtonPulse (IdWidget id) (IdUIEventType commandId)(Bool fireWhenDown)(Bool fireWhenUp)->)
+         (SetFont (IdWidget id) (WidgetState state) (Int32 fontId)(RGBAb fontColour)->)
+         (Move (IdWidget id) (Vec2i positionInContainer)->)
+	)
+	(factory Dystopia.UI.GetUIBuilder)
+)

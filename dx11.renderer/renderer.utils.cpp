@@ -200,19 +200,45 @@ namespace Rococo
 			return Vec2i{ metrics.screenSpan.x >> 1, metrics.screenSpan.y >> 1 };
 		}
 
-		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& topMiddle)
+		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& middleLeft)
 		{
 			HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
 			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
-			grc.RenderText(Vec2i{ topMiddle.x - (span.x >> 1), topMiddle.y }, job);
+			grc.RenderText(Vec2i{ middleLeft.x, middleLeft.y - (span.y >> 1) }, job);
 			return span;
 		}
 
-		void RenderHorizontalCentredText(IGuiRenderContext& gr, const wchar_t* txt, RGBAb colour, int fontSize, const Vec2i& topLeft)
+      Vec2i RenderTopLeftAlignedText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& topLeft)
+      {
+         HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
+         Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
+         grc.RenderText(Vec2i{ topLeft.x, topLeft.y }, job);
+         return span;
+      }
+
+      Vec2i RenderTopRightAlignedText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& topRight)
+      {
+         HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
+         Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
+         grc.RenderText(Vec2i{ topRight.x - span.x, topRight.y }, job);
+         return span;
+      }
+
+      Vec2i RenderHorizontalCentredText(IGuiRenderContext& grc, const wchar_t* txt, RGBAb colour, int fontSize, const Vec2i& topMiddle)
 		{
-			HorizontalCentredText hw(fontSize, txt, FontColourFromRGBAb(colour));
-			gr.RenderText(topLeft, hw);
+			HorizontalCentredText job(fontSize, txt, FontColourFromRGBAb(colour));
+         Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
+         grc.RenderText(Vec2i{ topMiddle.x - (span.x >> 1), topMiddle.y }, job);
+         return span;
 		}
+
+      Vec2i RenderCentredText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& middle)
+      {
+         HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
+         Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
+         grc.RenderText(Vec2i{ middle.x - (span.x >> 1), middle.y - (span.y >> 1) }, job);
+         return span;
+      }
 
 		void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag)
 		{

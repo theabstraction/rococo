@@ -165,18 +165,18 @@ namespace
 
 				wchar_t text[64];
 				SafeFormat(text, _TRUNCATE, L"%s:", b.name);
-				Graphics::RenderHorizontalCentredText(grc, text, RGBAb(255, 255, 255, 192), 2, { 30,y });
+				Graphics::RenderVerticalCentredText(grc, text, RGBAb(255, 255, 255, 192), 2, { 30,y });
 
 				SafeFormat(text, _TRUNCATE, L"%3d / %3d", stat.current, stat.cap);
-				Graphics::RenderHorizontalCentredText(grc, text, RGBAb(255, 255, 255, 192), 2, { 130,y });
+				Graphics::RenderVerticalCentredText(grc, text, RGBAb(255, 255, 255, 192), 2, { 130,y });
 			}
 
 			wchar_t text[64];
 			SafeFormat(text, _TRUNCATE, L"Social Status: lower lower class (double minus)");
-			Graphics::RenderHorizontalCentredText(grc, text, RGBAb(255, 255, 255, 192), 2, { 330,30 });
+			Graphics::RenderVerticalCentredText(grc, text, RGBAb(255, 255, 255, 192), 2, { 330,30 });
 
 			SafeFormat(text, _TRUNCATE, L"Security clearance: none");
-			Graphics::RenderHorizontalCentredText(grc, text, RGBAb(255, 255, 255, 192), 2, { 330,60 });
+			Graphics::RenderVerticalCentredText(grc, text, RGBAb(255, 255, 255, 192), 2, { 330,60 });
 
 			GuiRect infoRect(rect.left + 20, rect.top + 100, rect.right - 20, rect.bottom - 20);
 

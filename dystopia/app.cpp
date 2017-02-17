@@ -1,6 +1,7 @@
 #include "dystopia.h"
 #include <rococo.renderer.h>
 #include <rococo.io.h>
+#include <rococo.sexy.ide.h>
 #include <vector>
 #include "meshes.h"
 #include "human.types.h"
@@ -48,19 +49,24 @@ namespace Dystopia
 
 namespace
 {
+   static const wchar_t* paneName = L"!gui/panes.sxy";
+
 	class DystopiaApp : 
 		public IApp,
 		public IEventCallback<GuiEventArgs>,
 		public IUIPaneFactory, 
 		public Post::IRecipient,
 		public IHumanFactory,
-		public IEventCallback<ContextMenuItem>
+		public IEventCallback<ContextMenuItem>,
+      private Rococo::IEventCallback<ScriptCompileArgs>,
+      private Rococo::IEventCallback<FileModifiedArgs>
 	{
 	private:
 		AutoFree<Post::IPostboxSupervisor> postbox;
 		AutoFree<IUIStackSupervisor> uiStack;
 		AutoFree<IGuiSupervisor> gui;
 		AutoFree<IDebuggerWindow> debuggerWindow;
+      AutoFree<IDE::IScriptExceptionHandler> exceptionHandler;
 		AutoFree<ISourceCache> sourceCache;
 		AutoFree<IMeshLoader> meshes;
 		AutoFree<IControlsSupervisor> controls;
@@ -69,19 +75,24 @@ namespace
 		AutoFree<IBoneLibrarySupervisor> boneLibrary;
 		AutoFree<IJournalSupervisor> journal;
 		AutoFree<ILevelLoader> levelLoader;
+      AutoFree<UI::IUIBuilderSupervisor> scriptableWidgets;
 		Environment e; // N.B some instances use e in constructor before e is initialized - this is to create a reference for internal use.
 		AutoFree<IUIControlPane> isometricGameWorldView;
 		AutoFree<IUIPaneSupervisor> statsPaneSelf;
 		AutoFree<IUIPaneSupervisor> inventoryPaneSelf;
+      AutoFree<IUIPaneSupervisor> cvPaneSelf;
 		AutoFree<IUIPaneSupervisor> personalInfoPanel;
 		AutoFree<IUIPaneSupervisor> journalPane;
+      
+      Rococo::IDE::IPersistentScript* paneScript;
 		
 	public:
 		DystopiaApp(IRenderer& _renderer, IInstallation& _installation) :
 			postbox(Post::CreatePostbox()),
 			uiStack(CreateUIStack(*postbox)),
 			gui(CreateGui(e, *uiStack)),
-			debuggerWindow(CreateDebuggerWindow(&_renderer.Window())),
+			debuggerWindow(IDE::CreateDebuggerWindow(&_renderer.Window())),
+         exceptionHandler(UseDialogBoxForScriptException(debuggerWindow->GetDebuggerWindowControl())),
 			sourceCache(CreateSourceCache(_installation)),
 			meshes(CreateMeshLoader(_installation, _renderer, *sourceCache)),
 			controls(CreateControlMapper(_installation, *sourceCache)),
@@ -90,23 +101,87 @@ namespace
 			boneLibrary(CreateBoneLibrary(_installation, _renderer, *sourceCache)),
 			journal(CreateJournal(e)),
 			levelLoader(CreateLevelLoader(e)),
+         scriptableWidgets(UI::CreateScriptableUIBuilder()),
 			// remember that order of construction here is order fields appear in the private section above, not in the order in this constructor
-			e{ _installation, _renderer, *debuggerWindow, *sourceCache, *meshes, *boneLibrary, *gui, *uiStack, *postbox, *controls, *bitmaps, *level, *journal, *levelLoader },
+			e{ _installation, _renderer, *debuggerWindow, *exceptionHandler, *sourceCache, *meshes, *boneLibrary, *gui, *uiStack, *postbox, *controls, *bitmaps, *level, *journal, *levelLoader, *scriptableWidgets},
 			isometricGameWorldView(CreatePaneIsometric(e)),
 			statsPaneSelf(CreatePaneStats(e)),
 			inventoryPaneSelf(CreateInventoryPane(e)),
+         cvPaneSelf(CreateCVPane(e)),
 			personalInfoPanel(CreatePersonalInfoPanel(e)),
-			journalPane(CreateJournalPane(e))
+			journalPane(CreateJournalPane(e)),
+         paneScript(nullptr)
 		{
 			uiStack->SetFactory(*this);
 			gui->SetEventHandler(this);
 			level->OnCreated();
 			journal->PostConstruct();
+
+         GuiMetrics metrics;
+         _renderer.GetGuiMetrics(metrics);
+         scriptableWidgets->Resize(metrics.screenSpan);
 		}
 		
 		~DystopiaApp()
 		{
+         if (paneScript)
+         {
+            paneScript->Free();
+            paneScript = nullptr;
+         }
 		}
+
+      void OnEvent(ScriptCompileArgs& args)
+      {
+         UI::AddNativeCalls_DystopiaUIIUIBuilder(args.ss, &WidgetBuilder());
+      }
+
+      void OnEvent(FileModifiedArgs& args)
+      {
+         meshes->UpdateMesh(args.resourceName);
+         boneLibrary->UpdateLib(args.resourceName);
+         
+         if (DoesModifiedFilenameMatchResourceName(args.resourceName, paneName))
+         {
+            e.sourceCache.Release(paneName);
+            LoadPanes();
+         }
+      }
+
+      void LoadPanes()
+      {
+         if (paneScript)
+         {
+            paneScript->Free();
+            paneScript = nullptr;
+         }
+
+         try
+         {
+            paneScript = IDE::CreatePersistentScript(16384, e.sourceCache, e.debuggerWindow, paneName, (int32)1_megabytes, *this, e.exceptionHandler);
+
+            struct : IArgEnumerator
+            {
+               virtual void PushArgs(IArgStack& args)
+               {
+               }
+
+               virtual void PopOutputs(IOutputStack& args)
+               {
+               }
+            } args;
+            paneScript->ExecuteFunction(L"Main", args, e.exceptionHandler);
+         }
+         catch (IException&)
+         {
+            
+         }
+      }
+
+      UI::IUIBuilder& WidgetBuilder()
+      {
+         return scriptableWidgets->Builder();
+      }
 
 		virtual IHumanAISupervisor* CreateHuman(ID_ENTITY id, HumanType typeId)
 		{
@@ -140,6 +215,8 @@ namespace
 				return statsPaneSelf;
 			case ID_PANE_INVENTORY_SELF:
 				return inventoryPaneSelf;
+         case ID_PANE_CV:
+            return cvPaneSelf;
 			case ID_PANE_PERSONAL_INFO:
 				return personalInfoPanel;
 			case ID_PANE_JOURNAL:
@@ -221,12 +298,14 @@ namespace
 
 			boneLibrary->Reload(L"!bone.library.sxy");
 
+         LoadPanes();
+
 			levelLoader->Load(L"!levels/level1.sxy", false);	
 		}
 
 		virtual auto OnFrameUpdated(const IUltraClock& clock) -> uint32 // outputs ms sleep for next frame
 		{
-			levelLoader->SyncWithModifiedFiles();
+         GetOS(e).EnumerateModifiedFiles(*this);
 			
 			TimestepEvent timestep{ clock.Start(), clock.FrameStart(), clock.FrameDelta(), clock.Hz() };
 			postbox->PostForLater(timestep, true);	
@@ -245,6 +324,8 @@ namespace
 				e.levelLoader.Update(); // Load the level just after post is delivered so that outstanding post does not hit the new level
 			}
 			
+         GuiMetrics metrics;
+         e.renderer.GetGuiMetrics(metrics);
 			e.renderer.Render(uiStack->Scene());
 			return 5;
 		}

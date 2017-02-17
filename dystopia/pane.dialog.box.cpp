@@ -248,7 +248,7 @@ namespace
 			Graphics::DrawRectangle(grc, rect, RGBAb(64, 0, 0, 0xE0), RGBAb(0, 0, 64, 0xE0));
 			Graphics::DrawBorderAround(grc, rect, Vec2i{ 2,2 }, RGBAb(192, 192, 192, 0xFF), RGBAb(128, 128, 128, 0xFF));
 
-			Vec2i introSpan = Graphics::RenderVerticalCentredText(grc, title.c_str(), RGBAb{ 0xFF, 0xFF, 0xFF, 0xFF }, 3, { centre.x, (int32)topLeft.y });
+			Vec2i introSpan = Graphics::RenderHorizontalCentredText(grc, title.c_str(), RGBAb{ 0xFF, 0xFF, 0xFF, 0xFF }, 3, { centre.x, (int32)topLeft.y });
 
 			int32 buttonHeight = 60;
 

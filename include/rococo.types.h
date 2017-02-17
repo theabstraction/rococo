@@ -22,6 +22,12 @@ namespace Rococo
 	typedef void* pointer;
 	typedef int32 boolean32; // 32-bit boolean
 
+   struct Vec2i
+   {
+      int32 x;
+      int32 y;
+   };
+
 	ROCOCOAPI IException
 	{
 		virtual const wchar_t* Message() const = 0;

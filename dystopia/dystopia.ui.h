@@ -37,6 +37,7 @@ namespace Dystopia
 
 	IUIPaneSupervisor* CreateContextMenu(Environment& e, Vec2i topLeft, ContextMenuItem newMenu[], IEventCallback<ContextMenuItem>& onClick);
 	IUIPaneSupervisor* CreateInventoryPane(Environment& e);
+   IUIPaneSupervisor* CreateCVPane(Environment& e);
 
 	enum ID_PANE;
 
@@ -77,6 +78,7 @@ namespace Dystopia
 		ID_PANE_GENERIC_DIALOG_BOX,
 		ID_PANE_GENERIC_CONTEXT_MENU,
 		ID_PANE_INVENTORY_SELF,
+      ID_PANE_CV,
 		ID_PANE_PERSONAL_INFO,
 		ID_PANE_JOURNAL
 	};

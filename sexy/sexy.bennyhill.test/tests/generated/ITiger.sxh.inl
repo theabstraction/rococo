@@ -1,4 +1,4 @@
-namespace Sys::Animals {
+namespace Sys { namespace Animals { 
 	bool TryParse(const fstring& s, AnimalType& value)
 	{
 		if (s == L"AnimalType_Cat"_fstring)
@@ -20,5 +20,27 @@ namespace Sys::Animals {
 
 		return true;
 	}
-}
+
+	bool TryShortParse(const fstring& s, AnimalType& value)
+	{
+		if (s == L"Cat"_fstring)
+		{
+			value = AnimalType_Cat;
+		}
+		else if (s == L"Dog"_fstring)
+		{
+			value = AnimalType_Dog;
+		}
+		else if (s == L"Tiger"_fstring)
+		{
+			value = AnimalType_Tiger;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+}}// Sys.Animals.AnimalType
 

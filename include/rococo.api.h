@@ -10,7 +10,7 @@ struct DEFINED_ID_NAME																		\
 	DEFINED_ID_NAME() : value(INVALID_VALUE) {}												\
 	explicit DEFINED_ID_NAME(TYPE _value) : value(_value) {}								\
 	TYPE value;																				\
-    static DEFINED_ID_NAME Invalid() { return DEFINED_ID_NAME(); }							\
+   static DEFINED_ID_NAME Invalid() { return DEFINED_ID_NAME(); }							\
 	size_t operator()(const DEFINED_ID_NAME& obj) const { return size_t(obj.value); }		\
 };																							\
 																							\
@@ -59,12 +59,6 @@ namespace Rococo
 	struct Matrix4x4;
 	struct Quat;
 
-	struct Vec2i
-	{
-		int32 x;
-		int32 y;
-	};
-
 	ROCOCO_ID(ID_BITMAP, uint64, -1)
 
 	struct Sphere
@@ -103,6 +97,8 @@ namespace Rococo
 		struct TREE_NODE_ID;
 		struct IUITree;
 		struct IUIList;
+      struct ITreePopulator;
+      struct IListPopulator;
 	}
 
 	void ShowErrorBox(Windows::IWindow& parent, IException& ex, const wchar_t* caption);
@@ -269,10 +265,13 @@ namespace Rococo
 	//    ids 0x21000000 t0 0x21FFFFFF are procedurally generated houses created in C++.
 	//    ids 0x40000000 to 0x41000000 are gameplay generated meshes such as explosions created in C++.
 	//	  ids 0x41000001 to 0x42000000 are skeletal animation meshes
-	ROCOCO_ID(ID_MESH, int32, 0)
+   ROCOCO_ID(ID_MESH, int32, 0)
 
-	// ID_SYS_MESH are renderer defined indices that are generated when meshes are loaded into the renderer
-	ROCOCO_ID(ID_SYS_MESH, size_t, (size_t)-1)
+   // ID_SYS_MESH are renderer defined indices that are generated when meshes are loaded into the renderer
+   ROCOCO_ID(ID_SYS_MESH, size_t, (size_t)-1)
+
+   ROCOCO_ID(ID_WIDGET, int32, 0);
+   ROCOCO_ID(ID_UI_EVENT_TYPE, int64, 0);
 
 	struct fstring
 	{
@@ -312,22 +311,43 @@ namespace Rococo
 		virtual void StepOver() = 0;
 		virtual void StepNextSymbol() = 0;
 		virtual void StepNext() = 0;
+      virtual void PopulateAPITree(Visitors::IUITree& tree) = 0;
 	};
 
 	ROCOCOAPI ILogger
 	{
+      virtual void AddLogSection(RGBAb colour, const wchar_t* format, ...) = 0;
+      virtual void ClearLog() = 0;
 		virtual int Log(const wchar_t* format, ...) = 0;
 	};
 
-	ROCOCOAPI IDebuggerWindow : public ILogger
+   namespace IO
+   {
+      struct IUnicode16Writer;
+   }
+
+   struct IDebuggerWindow;
+   
+   ROCOCOAPI IDebuggerPopulator
+   {
+      virtual void Populate(IDebuggerWindow& debugger) = 0;
+   };
+
+	ROCOCOAPI IDebuggerWindow: public ILogger
 	{
-		virtual void AddDisassembly(bool clearFirst, const wchar_t* text) = 0;
+     
+		virtual void AddDisassembly(RGBAb colour, const wchar_t* text, RGBAb bkColor = RGBAb(255,255,255), bool bringToView = false) = 0;
+      virtual void BeginStackUpdate() = 0;
+      virtual void EndStackUpdate() = 0;
+      virtual void InitDisassembly(size_t codeId) = 0;
+      virtual void AddSourceCode(const wchar_t* name, const wchar_t* sourceCode) = 0;
 		virtual void Free() = 0;
 		virtual Windows::IWindow& GetDebuggerWindowControl() = 0;
-		virtual bool IsVisible() const = 0;
-		virtual void ShowWindow(bool show, IDebugControl* debugControl) = 0;
-		virtual Visitors::IUITree& StackTree() = 0;
-		virtual Visitors::IUIList& RegisterList() = 0;
+      virtual void PopulateStackView(Visitors::ITreePopulator& populator) = 0;
+      virtual void PopulateRegisterView(Visitors::IListPopulator& populator) = 0;
+      virtual void Run(IDebuggerPopulator& populator, IDebugControl& control) = 0;
+      virtual void SetCodeHilight(const wchar_t* source, const Vec2i& start, const Vec2i& end, const wchar_t* message) = 0;
+		virtual void ShowWindow(bool show, IDebugControl* debugControl) = 0;   
 	};
 }
 
@@ -411,7 +431,7 @@ namespace Rococo
 	RGBAb GetColourValue(Sexy::Sex::cr_sex s);
 	Quat GetQuat(Sexy::Sex::cr_sex s);
 
-	void LogParseException(Sexy::Sex::ParseException& ex, ILogger& logger);
+	void LogParseException(Sexy::Sex::ParseException& ex, IDebuggerWindow& logger);
 
 	fstring GetAtomicArg(Sexy::Sex::cr_sex s);
 }

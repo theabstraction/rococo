@@ -42,11 +42,11 @@ namespace
 		refcount_t refcount;
 		SEXCHAR* buffer;
 		int segmentLength;
-		SourcePos origin;
+		Vec2i origin;
 		stdstring name;
 
 	public:
-		CSourceCodeCopy(csexstr _buffer, int _segmentLength, const SourcePos& _origin, csexstr _name):
+		CSourceCodeCopy(csexstr _buffer, int _segmentLength, const Vec2i& _origin, csexstr _name):
 			refcount(1),
 			name(_name),
 			origin(_origin),
@@ -62,7 +62,7 @@ namespace
 			delete buffer;
 		}
 
-		virtual const SourcePos& Origin() const		{	return origin; }
+		virtual const Vec2i& Origin() const		{	return origin; }
 		virtual csexstr SourceStart() const				{	return buffer; }
 		virtual const int SourceLength() const		{	return segmentLength;	}
 		virtual csexstr Name() const							{	return name.c_str();	}
@@ -87,11 +87,11 @@ namespace
 		refcount_t refcount;
 		csexstr buffer;
 		int segmentLength;
-		SourcePos origin;
+		Vec2i origin;
 		csexstr name;
 
 	public:
-		CSourceCodeProxy(csexstr _buffer, int _segmentLength, const SourcePos& _origin, csexstr _name):
+		CSourceCodeProxy(csexstr _buffer, int _segmentLength, const Vec2i& _origin, csexstr _name):
 			refcount(1),
 			name(_name),
 			origin(_origin),
@@ -100,7 +100,7 @@ namespace
 		{
 		}
 
-		virtual const SourcePos& Origin() const		{	return origin;	}
+		virtual const Vec2i& Origin() const		{	return origin;	}
 		virtual csexstr SourceStart() const	{	return buffer;	}
 		virtual const int SourceLength() const			{	return segmentLength;	}
 		virtual csexstr Name() const					{	return name; }

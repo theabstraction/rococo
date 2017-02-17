@@ -1998,9 +1998,9 @@ namespace
 
 			if (!programObject.ResolveDefinitions())
 			{
-				SourcePos start, end;
-				start.X = end.X = 0;
-				start.Y = end.Y = 0;
+				Vec2i start, end;
+				start.x = end.x = 0;
+				start.y = end.y = 0;
 
 				ParseException ex(start, end, SEXTEXT("Sexy Script System"), SEXTEXT("Failed to resolve definitions"), SEXTEXT(""), NULL);
 				throw ex;
@@ -2009,9 +2009,9 @@ namespace
 			const IStructure* mapNode = programObject.GetModule(0).FindStructure(SEXTEXT("_Map"));
 			if (mapNode->SizeOfStruct() < sizeof(MapImage))
 			{
-				SourcePos start, end;
-				start.X = end.X = 0;
-				start.Y = end.Y = 0;
+				Vec2i start, end;
+				start.x = end.x = 0;
+				start.y = end.y = 0;
 				ParseException ex(start, end, SEXTEXT("Sexy Script System"), SEXTEXT("_Map was too small to represent a MapImage. Add a few fake pointers in the _Map definition."), SEXTEXT(""), NULL);
 				throw ex;
 			}

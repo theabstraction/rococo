@@ -48,6 +48,7 @@
     <IntDir>..\intermediate\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName).debug</TargetName>
     <OutDir>..\lib\</OutDir>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>

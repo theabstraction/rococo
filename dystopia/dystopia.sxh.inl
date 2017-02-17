@@ -37,16 +37,14 @@ namespace
 		WriteOutput(pObject, sf, -offset);
 	}
 }
-namespace Dystopia
-{
+
+namespace Dystopia { 
 	void AddNativeCalls_DystopiaIMeshes(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IMeshes* _nceContext)
 	{
-
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.Meshes.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForDystopiaMeshesGetMeshes, _nceContext, SEXTEXT("GetHandleForIMeshes0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeDystopiaIMeshesLoad, nullptr, SEXTEXT("IMeshesLoad (Pointer hObject)(Sys.Type.IString resourceName)(Int32 editorId) -> "));
 	}
-
 }
 // BennyHill generated Sexy native functions for Dystopia::ILevelBuilder 
 namespace
@@ -477,11 +475,10 @@ namespace
 		WriteOutput(pObject, sf, -offset);
 	}
 }
-namespace Dystopia
-{
+
+namespace Dystopia { 
 	void AddNativeCalls_DystopiaILevelBuilder(Sexy::Script::IPublicScriptSystem& ss, Dystopia::ILevel* _nceContext)
 	{
-
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.Levels.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForDystopiaLevelsGetLevel, _nceContext, SEXTEXT("GetHandleForILevel0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderAddEnemy, nullptr, SEXTEXT("ILevelAddEnemy (Pointer hObject)(Sys.Maths.Vec3 pos)(Int32 editorId) -> (Int64 entityId)"));
@@ -503,9 +500,8 @@ namespace Dystopia
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderClear, nullptr, SEXTEXT("ILevelClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaILevelBuilderSetPlayerId, nullptr, SEXTEXT("ILevelSetPlayerId (Pointer hObject)(Int64 playerId) -> "));
 	}
-
 }
-namespace Dystopia {
+namespace Dystopia { 
 	bool TryParse(const fstring& s, SolidFlags& value)
 	{
 		if (s == L"SolidFlags_None"_fstring)
@@ -573,9 +569,9 @@ namespace Dystopia {
 
 		return true;
 	}
-}
+}// Dystopia.SolidFlags
 
-namespace Dystopia {
+namespace Dystopia { 
 	bool TryParse(const fstring& s, AnimationType& value)
 	{
 		if (s == L"AnimationType_Standstill"_fstring)
@@ -611,9 +607,9 @@ namespace Dystopia {
 
 		return true;
 	}
-}
+}// Dystopia.AnimationType
 
-namespace Dystopia {
+namespace Dystopia { 
 	bool TryParse(const fstring& s, SkeletonType& value)
 	{
 		if (s == L"SkeletonType_HumanMale"_fstring)
@@ -641,9 +637,9 @@ namespace Dystopia {
 
 		return true;
 	}
-}
+}// Dystopia.SkeletonType
 
-namespace Dystopia {
+namespace Dystopia { 
 	bool TryParse(const fstring& s, LimbIndex& value)
 	{
 		if (s == L"LimbIndex_Head"_fstring)
@@ -783,7 +779,7 @@ namespace Dystopia {
 
 		return true;
 	}
-}
+}// Dystopia.LimbIndex
 
 // BennyHill generated Sexy native functions for Dystopia::IGui 
 namespace
@@ -868,17 +864,15 @@ namespace
 		WriteOutput(pObject, sf, -offset);
 	}
 }
-namespace Dystopia
-{
+
+namespace Dystopia { 
 	void AddNativeCalls_DystopiaIGui(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IGui* _nceContext)
 	{
-
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.Gui.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForDystopiaGuiGetGui, _nceContext, SEXTEXT("GetHandleForIGui0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeDystopiaIGuiShowDialogBox, nullptr, SEXTEXT("IGuiShowDialogBox (Pointer hObject)(Sys.Maths.Vec2i span)(Int32 retzone)(Int32 hypzone)(Sys.Type.IString title)(Sys.Type.IString message)(Sys.Type.IString buttons) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaIGuiAdd3DHint, nullptr, SEXTEXT("IGuiAdd3DHint (Pointer hObject)(Sys.Maths.Vec3 worldPos)(Sys.Type.IString message)(Float32 duration) -> "));
 	}
-
 }
 // BennyHill generated Sexy native functions for Dystopia::IJournal 
 namespace
@@ -998,11 +992,10 @@ namespace
 		WriteOutput(pObject, sf, -offset);
 	}
 }
-namespace Dystopia
-{
+
+namespace Dystopia { 
 	void AddNativeCalls_DystopiaIJournal(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IJournal* _nceContext)
 	{
-
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.Journal.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForDystopiaJournalGetJournal, _nceContext, SEXTEXT("GetHandleForIJournal0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeDystopiaIJournalAddHistory, nullptr, SEXTEXT("IJournalAddHistory (Pointer hObject)(Sys.Type.IString title)(Sys.Type.IString body) -> "));
@@ -1010,5 +1003,344 @@ namespace Dystopia
 		ss.AddNativeCall(ns, NativeDystopiaIJournalCompleteFirst, nullptr, SEXTEXT("IJournalCompleteFirst (Pointer hObject)(Int64 forGoalId)(Int64 precusorGoalId) -> "));
 		ss.AddNativeCall(ns, NativeDystopiaIJournalFailFirst, nullptr, SEXTEXT("IJournalFailFirst (Pointer hObject)(Int64 forGoalId)(Int64 precusorGoalId) -> "));
 	}
-
 }
+namespace Dystopia { namespace UI { 
+	bool TryParse(const fstring& s, EWidgetState& value)
+	{
+		if (s == L"EWidgetState_NoFocus"_fstring)
+		{
+			value = EWidgetState_NoFocus;
+		}
+		else if (s == L"EWidgetState_HasFocus"_fstring)
+		{
+			value = EWidgetState_HasFocus;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool TryShortParse(const fstring& s, EWidgetState& value)
+	{
+		if (s == L"NoFocus"_fstring)
+		{
+			value = EWidgetState_NoFocus;
+		}
+		else if (s == L"HasFocus"_fstring)
+		{
+			value = EWidgetState_HasFocus;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+}}// Dystopia.UI.EWidgetState
+
+// BennyHill generated Sexy native functions for Dystopia::UI::IUIBuilder 
+namespace
+{
+	using namespace Sexy;
+	using namespace Sexy::Sex;
+	using namespace Sexy::Script;
+	using namespace Sexy::Compiler;
+	void NativeDystopiaUIIUIBuilderRebuildPanel(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(void*);
+		IString* _panelName;
+		ReadInput(_panelName, _sf, -_offset);
+		fstring panelName { _panelName->buffer, _panelName->length };
+
+
+		Dystopia::UI::IUIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->RebuildPanel(panelName);
+	}
+	void NativeDystopiaUIIUIBuilderAddButton(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(void*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		Vec2i* span;
+		_offset += sizeof(span);
+		ReadInput(span, _sf, -_offset);
+
+		ID_WIDGET id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Dystopia::UI::IUIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddButton(id, *span, text);
+	}
+	void NativeDystopiaUIIUIBuilderAddFrame(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2i* span;
+		_offset += sizeof(span);
+		ReadInput(span, _sf, -_offset);
+
+		ID_WIDGET frameId;
+		_offset += sizeof(frameId);
+		ReadInput(frameId, _sf, -_offset);
+
+		ID_WIDGET id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Dystopia::UI::IUIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddFrame(id, frameId, *span);
+	}
+	void NativeDystopiaUIIUIBuilderAddWidgetToFrame(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_WIDGET id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		ID_WIDGET frameId;
+		_offset += sizeof(frameId);
+		ReadInput(frameId, _sf, -_offset);
+
+		Dystopia::UI::IUIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddWidgetToFrame(frameId, id);
+	}
+	void NativeDystopiaUIIUIBuilderHCentreChildren(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_WIDGET frameId;
+		_offset += sizeof(frameId);
+		ReadInput(frameId, _sf, -_offset);
+
+		Dystopia::UI::IUIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->HCentreChildren(frameId);
+	}
+	void NativeDystopiaUIIUIBuilderVCentreChildren(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_WIDGET frameId;
+		_offset += sizeof(frameId);
+		ReadInput(frameId, _sf, -_offset);
+
+		Dystopia::UI::IUIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->VCentreChildren(frameId);
+	}
+	void NativeDystopiaUIIUIBuilderShrinkWrap(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_WIDGET frameId;
+		_offset += sizeof(frameId);
+		ReadInput(frameId, _sf, -_offset);
+
+		Dystopia::UI::IUIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ShrinkWrap(frameId);
+	}
+	void NativeDystopiaUIIUIBuilderExpandToFit(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_WIDGET frameId;
+		_offset += sizeof(frameId);
+		ReadInput(frameId, _sf, -_offset);
+
+		Dystopia::UI::IUIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ExpandToFit(frameId);
+	}
+	void NativeDystopiaUIIUIBuilderSetBorder(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb c2;
+		_offset += sizeof(c2);
+		ReadInput(c2, _sf, -_offset);
+
+		RGBAb c1;
+		_offset += sizeof(c1);
+		ReadInput(c1, _sf, -_offset);
+
+		Vec2i* dxdy;
+		_offset += sizeof(dxdy);
+		ReadInput(dxdy, _sf, -_offset);
+
+		Dystopia::UI::EWidgetState state;
+		_offset += sizeof(state);
+		ReadInput(state, _sf, -_offset);
+
+		ID_WIDGET id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Dystopia::UI::IUIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetBorder(id, state, *dxdy, c1, c2);
+	}
+	void NativeDystopiaUIIUIBuilderSetBackcolours(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb b2;
+		_offset += sizeof(b2);
+		ReadInput(b2, _sf, -_offset);
+
+		RGBAb b1;
+		_offset += sizeof(b1);
+		ReadInput(b1, _sf, -_offset);
+
+		Dystopia::UI::EWidgetState state;
+		_offset += sizeof(state);
+		ReadInput(state, _sf, -_offset);
+
+		ID_WIDGET id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Dystopia::UI::IUIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetBackcolours(id, state, b1, b2);
+	}
+	void NativeDystopiaUIIUIBuilderSetButtonPulse(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 fireWhenUp;
+		_offset += sizeof(fireWhenUp);
+		ReadInput(fireWhenUp, _sf, -_offset);
+
+		boolean32 fireWhenDown;
+		_offset += sizeof(fireWhenDown);
+		ReadInput(fireWhenDown, _sf, -_offset);
+
+		ID_UI_EVENT_TYPE commandId;
+		_offset += sizeof(commandId);
+		ReadInput(commandId, _sf, -_offset);
+
+		ID_WIDGET id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Dystopia::UI::IUIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetButtonPulse(id, commandId, fireWhenDown, fireWhenUp);
+	}
+	void NativeDystopiaUIIUIBuilderSetFont(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb fontColour;
+		_offset += sizeof(fontColour);
+		ReadInput(fontColour, _sf, -_offset);
+
+		int32 fontId;
+		_offset += sizeof(fontId);
+		ReadInput(fontId, _sf, -_offset);
+
+		Dystopia::UI::EWidgetState state;
+		_offset += sizeof(state);
+		ReadInput(state, _sf, -_offset);
+
+		ID_WIDGET id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Dystopia::UI::IUIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetFont(id, state, fontId, fontColour);
+	}
+	void NativeDystopiaUIIUIBuilderMove(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2i* positionInContainer;
+		_offset += sizeof(positionInContainer);
+		ReadInput(positionInContainer, _sf, -_offset);
+
+		ID_WIDGET id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Dystopia::UI::IUIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Move(id, *positionInContainer);
+	}
+
+	void NativeGetHandleForDystopiaUIGetUIBuilder(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* sf = _nce.cpu.SF();
+		ptrdiff_t offset = 2 * sizeof(size_t);
+		Dystopia::UI::IUIBuilder* nceContext = reinterpret_cast<Dystopia::UI::IUIBuilder*>(_nce.context);
+		// Uses: Dystopia::UI::IUIBuilder* FactoryConstructDystopiaUIGetUIBuilder(Dystopia::UI::IUIBuilder* _context);
+		Dystopia::UI::IUIBuilder* pObject = FactoryConstructDystopiaUIGetUIBuilder(nceContext);
+		offset += sizeof(void*);
+		WriteOutput(pObject, sf, -offset);
+	}
+}
+
+namespace Dystopia { namespace UI { 
+	void AddNativeCalls_DystopiaUIIUIBuilder(Sexy::Script::IPublicScriptSystem& ss, Dystopia::UI::IUIBuilder* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.UI.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForDystopiaUIGetUIBuilder, _nceContext, SEXTEXT("GetHandleForIUIBuilder0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeDystopiaUIIUIBuilderRebuildPanel, nullptr, SEXTEXT("IUIBuilderRebuildPanel (Pointer hObject)(Sys.Type.IString panelName) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaUIIUIBuilderAddButton, nullptr, SEXTEXT("IUIBuilderAddButton (Pointer hObject)(Int32 id)(Sys.Maths.Vec2i span)(Sys.Type.IString text) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaUIIUIBuilderAddFrame, nullptr, SEXTEXT("IUIBuilderAddFrame (Pointer hObject)(Int32 id)(Int32 frameId)(Sys.Maths.Vec2i span) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaUIIUIBuilderAddWidgetToFrame, nullptr, SEXTEXT("IUIBuilderAddWidgetToFrame (Pointer hObject)(Int32 frameId)(Int32 id) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaUIIUIBuilderHCentreChildren, nullptr, SEXTEXT("IUIBuilderHCentreChildren (Pointer hObject)(Int32 frameId) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaUIIUIBuilderVCentreChildren, nullptr, SEXTEXT("IUIBuilderVCentreChildren (Pointer hObject)(Int32 frameId) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaUIIUIBuilderShrinkWrap, nullptr, SEXTEXT("IUIBuilderShrinkWrap (Pointer hObject)(Int32 frameId) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaUIIUIBuilderExpandToFit, nullptr, SEXTEXT("IUIBuilderExpandToFit (Pointer hObject)(Int32 frameId) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaUIIUIBuilderSetBorder, nullptr, SEXTEXT("IUIBuilderSetBorder (Pointer hObject)(Int32 id)(Int32 state)(Sys.Maths.Vec2i dxdy)(Int32 c1)(Int32 c2) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaUIIUIBuilderSetBackcolours, nullptr, SEXTEXT("IUIBuilderSetBackcolours (Pointer hObject)(Int32 id)(Int32 state)(Int32 b1)(Int32 b2) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaUIIUIBuilderSetButtonPulse, nullptr, SEXTEXT("IUIBuilderSetButtonPulse (Pointer hObject)(Int32 id)(Int64 commandId)(Bool fireWhenDown)(Bool fireWhenUp) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaUIIUIBuilderSetFont, nullptr, SEXTEXT("IUIBuilderSetFont (Pointer hObject)(Int32 id)(Int32 state)(Int32 fontId)(Int32 fontColour) -> "));
+		ss.AddNativeCall(ns, NativeDystopiaUIIUIBuilderMove, nullptr, SEXTEXT("IUIBuilderMove (Pointer hObject)(Int32 id)(Sys.Maths.Vec2i positionInContainer) -> "));
+	}
+}}

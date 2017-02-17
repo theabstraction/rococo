@@ -22,7 +22,7 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
-		IWin32Menu* CreateMenu();
+		IWin32Menu* CreateMenu(bool contextMenu);
 
 		ROCOCOAPI ICommandTarget
 		{
@@ -131,6 +131,7 @@ namespace Rococo
 		protected:
 			virtual void OnDestroy(HWND hWnd);
 			virtual LRESULT OnInput(HWND hWnd, WPARAM wParam, LPARAM lParam);
+         virtual LRESULT OnKeydown(HWND hWnd, WPARAM wParam, LPARAM lParam);
 			virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 			virtual LRESULT OnTimer(HWND hWnd, WPARAM wParam, LPARAM lParam);
 			virtual void OnClose(HWND hWnd);
@@ -143,7 +144,7 @@ namespace Rococo
 			virtual void OnMenuCommand(HWND hWnd, DWORD id);
 			virtual void OnAcceleratorCommand(HWND hWnd, DWORD id);
 			virtual COLORREF GetBackgroundColour();
-			
+         virtual LRESULT OnSetCursor(HWND hWnd, WPARAM wParam, LPARAM lParam);
 		};
 
 		typedef void(*FN_OnControlCommand)(void* context, HWND hWnd, DWORD notificationCode, ControlId id, HWND hControlCode);
@@ -251,11 +252,15 @@ namespace Rococo
 		{
 			virtual void AppendText(COLORREF foreground, COLORREF background, const wchar_t* text, size_t nChars = (size_t) -1) = 0;
 			virtual HWND EditorHandle() const = 0;
-			virtual size_t LineCount() const = 0;
+         virtual void Hilight(const Vec2i& start, const Vec2i& end, RGBAb background, RGBAb foreground) = 0;
+			virtual int32 LineCount() const = 0;
 			virtual void ResetContent() = 0;	
-			virtual void ScrollTo(size_t lineNumber) = 0;
+         virtual int32 GetFirstVisibleLine() const = 0;
+			virtual void ScrollTo(int32 lineNumber) = 0;
+         virtual void SetTooltip(const wchar_t* name, const wchar_t* text) = 0;
 		};
 
+      bool OpenChooseFontBox(HWND hParent, LOGFONT& output);
 		void SetDlgCtrlID(HWND hWnd, DWORD id);
 		void SetText(HWND hWnd, size_t capacity, const wchar_t* format, ...);
 
@@ -282,6 +287,7 @@ namespace Rococo
 		{
 			virtual Visitors::IUITree& Tree() = 0;
 			virtual Visitors::CheckState GetCheckState(Visitors::TREE_NODE_ID id) const = 0;
+         virtual HWND TreeHandle() const = 0;
 		};
 
 		ROCOCOAPI IListWindowSupervisor : public IWindowSupervisor
@@ -327,6 +333,7 @@ namespace Rococo
 		ROCOCOAPI ITabControlEvents
 		{
 			virtual void OnSelectionChanged(int index) = 0;
+         virtual void OnTabRightClicked(int index, const POINT& screenCursorPos) = 0;
 		};
 
 		ROCOCOAPI ITabControl : public IWindowSupervisor
@@ -341,14 +348,64 @@ namespace Rococo
 			virtual int TabCount() const = 0;
 		};
 
+      ROCOCO_ID(IDEPANE_ID, int32, -1);
+
+      namespace IDE
+      {
+         ROCOCOAPI IIDENode : public IWindow
+         {
+            virtual void Free() = 0;
+            virtual void SetFont(HFONT hFont) = 0;
+         };
+
+         ROCOCOAPI ISpatialManager : public IWindow
+         {
+            virtual IIDENode* FindPane(IDEPANE_ID id) = 0;
+            virtual void Free() = 0;
+            virtual void NotifyMigration(IDEPANE_ID migratingId) = 0;
+            virtual void SetFontRecursive(HFONT hFont) = 0;
+            virtual void Save(const wchar_t* userConfigFile, const LOGFONT& logFont, int32 version) = 0;
+         };
+
+         ROCOCOAPI IPaneDatabase
+         {
+            virtual IDEPANE_ID GetMigratingId() = 0;
+            virtual void SetMigratingId(IDEPANE_ID) = 0;
+            virtual void NotifyMigration() = 0;
+            virtual void GetName(wchar_t name[256], IDEPANE_ID id) = 0;
+            virtual IIDENode* ConstructPane(IDEPANE_ID id, IParentWindowSupervisor& parent) = 0;
+         };
+
+         ROCOCOAPI IIDETextWindow : public IIDENode
+         {
+            virtual void AddSegment(RGBAb colour, const wchar_t* segment, size_t length, RGBAb bkColor) = 0;
+            virtual IRichEditor& Editor() = 0;
+         };
+
+         ROCOCOAPI IIDETreeWindow : public IIDENode
+         {
+            virtual ITreeControlSupervisor& GetTreeSupervisor() = 0;
+         };
+
+         ROCOCOAPI IIDEReportWindow : public IIDENode
+         {
+            virtual IListViewSupervisor& GetListViewSupervisor() = 0;
+         };
+
+         IIDETextWindow* CreateTextWindow(IWindow& parent);
+         IIDETreeWindow* CreateTreeView(IWindow& parent);
+         IIDEReportWindow* CreateReportView(IWindow& parent);
+         ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONT& logFont);
+      }
+
 		IButton* AddPushButton(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD styleEx = 0);
 		ICheckbox* AddCheckBox(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD styleEx = 0);
 		IWindowSupervisor* AddLabel(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD styleEx = 0);
 		IWindowSupervisor* AddEditor(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD styleEx = 0);
-		ITreeControlSupervisor* AddTree(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, ITreeControlHandler& eventHandler, DWORD style, DWORD styleEx = 0);
-		IListViewSupervisor* AddListView(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, IListViewEvents& eventHandler, DWORD style, DWORD containerStyle, DWORD containerStyleEx);
-		IRichEditor* AddRichEditor(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, IRichEditorEvents& eventHandler, DWORD style, DWORD styleEx = 0);
-		ITabControl* AddTabs(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, ITabControlEvents& eventHandler, DWORD style, DWORD styleEx = 0);
+		ITreeControlSupervisor* AddTree(IWindow& parent, const GuiRect& rect, LPCWSTR name, ControlId id, ITreeControlHandler& eventHandler, DWORD style, DWORD styleEx = 0);
+		IListViewSupervisor* AddListView(IWindow& parent, const GuiRect& rect, LPCWSTR name, IListViewEvents& eventHandler, DWORD style, DWORD containerStyle, DWORD containerStyleEx);
+		IRichEditor* AddRichEditor(IWindow& parent, const GuiRect& rect, LPCWSTR name, ControlId id, IRichEditorEvents& eventHandler, DWORD style, DWORD styleEx = 0);
+		ITabControl* AddTabs(IWindow& parent, const GuiRect& rect, LPCWSTR name, ControlId id, ITabControlEvents& eventHandler, DWORD style, DWORD styleEx = 0);
 		IListWindowSupervisor* AddListbox(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, IListItemHandler& handler, DWORD style, DWORD containerStyle, DWORD containerStyleEx);
 		IComboBoxSupervisor* AddComboBox(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD containerStyle, DWORD containerStyleEx);
 		IDialogSupervisor* CreateDialogWindow(const WindowConfig& config, IWindowHandler* handler);

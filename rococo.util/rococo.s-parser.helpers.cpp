@@ -23,52 +23,285 @@
 
 namespace Rococo
 {
+   using namespace Sexy;
+   using namespace Sexy::Sex;
+
+   void UpdateDebugger(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
+}
+
+namespace
+{
+   using namespace Sexy;
+   using namespace Sexy::Sex;
+   using namespace Sexy::Compiler;
+   using namespace Rococo::Visitors;
+
+   const wchar_t* Sanitize(const wchar_t* s)
+   {
+      if (wcscmp(s, L"_Null_Sys_Type_IString") == 0)
+      {
+         return L"IString";
+      }
+      else if (wcscmp(s, L"_Null_Sys_Type_IStringBuilder") == 0)
+      {
+         return L"IStringBuilder";
+      }
+      return s;
+   }
+
+   void AddArguments(const IArchetype& f, Visitors::IUITree& tree, Visitors::TREE_NODE_ID typeId)
+   {
+      wchar_t desc[256];
+
+      if (f.NumberOfInputs() > (f.IsVirtualMethod() ? 1 : 0))
+      {
+         auto inputId = tree.AddChild(typeId, L"[Inputs]", Visitors::CheckState_Clear);
+         for (int i = 0; i < f.NumberOfInputs(); ++i)
+         {
+            if (i == f.NumberOfInputs() - 1 && f.IsVirtualMethod())
+            {
+               // Skip the instance reference
+            }
+            else
+            {
+               auto& arg = f.GetArgument(i + f.NumberOfOutputs());
+               auto argName = f.GetArgName(i + f.NumberOfOutputs());
+
+               SafeFormat(desc, _TRUNCATE, L"%s %s", Sanitize(arg.Name()), argName);
+               tree.AddChild(inputId, desc, Visitors::CheckState_Clear);
+            }
+         }
+      }
+
+      if (f.NumberOfOutputs() > 0)
+      {
+         auto outputId = tree.AddChild(typeId, L"[Outputs]", Visitors::CheckState_Clear);
+
+         if (f.NumberOfOutputs() == 1 && (f.NumberOfInputs() == 0 || (f.NumberOfInputs() == 1 && f.IsVirtualMethod())))
+         {
+            auto& arg = f.GetArgument(0);
+            auto argName = f.GetArgName(0);
+
+            SafeFormat(desc, _TRUNCATE, L"%s %s - Get Accessor", Sanitize(arg.Name()), argName);
+            tree.AddChild(outputId, desc, Visitors::CheckState_Clear);
+         }
+         else
+         {  
+            for (int i = 0; i < f.NumberOfOutputs(); ++i)
+            {
+               auto& arg = f.GetArgument(i);
+               auto argName = f.GetArgName(i);
+
+               SafeFormat(desc, _TRUNCATE, L"%s %s", Sanitize(arg.Name()), argName);
+               tree.AddChild(outputId, desc, Visitors::CheckState_Clear);
+            }
+         }
+      }
+   }
+
+   struct StardardDebugControl : IDebugControl
+   {
+      Sexy::VM::IVirtualMachine* vm;
+      Sexy::Script::IPublicScriptSystem* ss;
+      IDebuggerWindow* debugger;
+
+      void Update()
+      {
+         UpdateDebugger(*ss, *debugger);
+      }
+
+      void RecurseNamespaces(const Sexy::Compiler::INamespace& ns, IUITree& tree, Visitors::TREE_NODE_ID rootId)
+      {
+         if (ns.ChildCount() > 0)
+         {
+            auto childSubspacesId = tree.AddChild(rootId, L"[Subspaces]", CheckState_Clear);
+
+            for (int i = 0; i < ns.ChildCount(); ++i)
+            {
+               auto& child = ns.GetChild(i);
+               auto childId = tree.AddChild(childSubspacesId, child.Name()->Buffer, CheckState_Clear);
+               RecurseNamespaces(child, tree, childId);
+            }
+         }
+
+         struct : public ICallback<const Sexy::Compiler::IStructure, csexstr>
+         {
+            TREE_NODE_ID childStructuresId;
+            TREE_NODE_ID rootId;
+            IUITree* tree;
+            const Sexy::Compiler::INamespace* ns;
+            virtual CALLBACK_CONTROL operator()(const Sexy::Compiler::IStructure& s, csexstr alias)
+            {
+               if (childStructuresId.value == 0) childStructuresId = tree->AddChild(rootId, L"[Structures]", CheckState_Clear);
+
+               wchar_t desc[256];
+               SafeFormat(desc, _TRUNCATE, L"%s.%s", ns->FullName()->Buffer, alias);
+               auto typeId = tree->AddChild(childStructuresId, desc, CheckState_Clear);
+
+               SafeFormat(desc, _TRUNCATE, L"%s - %d bytes. Defined in %s", Parse::VarTypeName(s.VarType()), s.SizeOfStruct(), s.Module().Name());
+               auto typeDescId = tree->AddChild(typeId, desc, CheckState_Clear);
+
+               if (s.VarType() == VARTYPE_Derivative)
+               {
+                  for (int32 i = 0; i < s.MemberCount(); ++i)
+                  {
+                     const wchar_t* fieldType = s.GetMember(i).UnderlyingType() ? s.GetMember(i).UnderlyingType()->Name() : L"Unknown Type";
+                     SafeFormat(desc, _TRUNCATE, L"%s %s", fieldType, s.GetMember(i).Name());
+                     tree->AddChild(typeId, desc, CheckState_Clear);
+                  }
+               }
+               return CALLBACK_CONTROL_CONTINUE;
+            }
+         } enumStructures;
+
+         enumStructures.tree = &tree;
+         enumStructures.childStructuresId.value = 0;
+         enumStructures.rootId = rootId;
+         enumStructures.ns = &ns;
+
+         ns.EnumerateStrutures(enumStructures);
+
+         struct : public ICallback<const Sexy::Compiler::IFunction, csexstr>
+         {
+            TREE_NODE_ID childFunctionsId;
+            TREE_NODE_ID rootId;
+            IUITree* tree;
+            const Sexy::Compiler::INamespace* ns;
+            virtual CALLBACK_CONTROL operator()(const Sexy::Compiler::IFunction& f, csexstr alias)
+            {
+               if (childFunctionsId.value == 0) childFunctionsId = tree->AddChild(rootId, L"[Functions]", CheckState_Clear);
+
+               TREE_NODE_ID typeId;
+               wchar_t desc[256];
+
+               SafeFormat(desc, _TRUNCATE, L"%s.%s", ns->FullName()->Buffer, alias);
+               typeId = tree->AddChild(childFunctionsId, desc, CheckState_Clear);
+
+               SafeFormat(desc, _TRUNCATE, L"Defined in %s", f.Module().Name());
+               tree->AddChild(typeId, desc, CheckState_Clear);
+
+               AddArguments(f, *tree, typeId);
+
+               return CALLBACK_CONTROL_CONTINUE;
+            }
+         } enumFunctions;
+
+         enumFunctions.tree = &tree;
+         enumFunctions.childFunctionsId.value = 0;
+         enumFunctions.rootId = rootId;
+         enumFunctions.ns = &ns;
+
+         ns.EnumerateFunctions(enumFunctions);
+
+         if (ns.InterfaceCount() > 0)
+         {
+            wchar_t desc[256];
+
+            auto interfaceId = tree.AddChild(rootId, L"[Interfaces]", CheckState_Clear);
+
+            for (int i = 0; i < ns.InterfaceCount(); ++i)
+            {
+               auto& inter = ns.GetInterface(i);
+               auto* base = inter.Base();
+
+               if (base)
+               {
+                  SafeFormat(desc, _TRUNCATE, L"%s.%s extending %s", ns.FullName()->Buffer, inter.Name(), base->Name());
+               }
+               else
+               {
+                  SafeFormat(desc, _TRUNCATE, L"%s.%s", ns.FullName()->Buffer, inter.Name());
+               }
+
+               auto interId = tree.AddChild(interfaceId, desc, CheckState_Clear);
+
+               for (int j = 0; j < inter.MethodCount(); ++j)
+               {
+                  auto& method = inter.GetMethod(j);
+                  SafeFormat(desc, _TRUNCATE, L"method %s", method.Name());
+                  auto methodId = tree.AddChild(interId, desc, CheckState_Clear);
+                  AddArguments(method, tree, methodId);
+               }
+            }
+         }
+
+         struct : public ICallback<const Sexy::Compiler::IFactory, csexstr>
+         {
+            TREE_NODE_ID childFactoryId;
+            TREE_NODE_ID rootId;
+            IUITree* tree;
+            const Sexy::Compiler::INamespace* ns;
+            virtual CALLBACK_CONTROL operator()(const Sexy::Compiler::IFactory& f, csexstr alias)
+            {
+               if (childFactoryId.value == 0) childFactoryId = tree->AddChild(rootId, L"[Factories]", CheckState_Clear);
+
+               TREE_NODE_ID typeId;
+               wchar_t desc[256];
+
+               SafeFormat(desc, _TRUNCATE, L"%s.%s - creates objects of type %s", ns->FullName()->Buffer, alias, f.InterfaceType()->Buffer);
+               typeId = tree->AddChild(childFactoryId, desc, CheckState_Clear);
+
+               SafeFormat(desc, _TRUNCATE, L"Defined in %s", f.Constructor().Module().Name());
+               tree->AddChild(typeId, desc, CheckState_Clear);
+
+               AddArguments(f.Constructor(), *tree, typeId);
+
+               return CALLBACK_CONTROL_CONTINUE;
+            }
+         } enumFactories;
+
+         enumFactories.tree = &tree;
+         enumFactories.childFactoryId.value = 0;
+         enumFactories.rootId = rootId;
+         enumFactories.ns = &ns;
+
+         ns.EnumerateFactories(enumFactories);
+      }
+
+      virtual void PopulateAPITree(Visitors::IUITree& tree)
+      {
+         auto& root = ss->PublicProgramObject().GetRootNamespace();
+         auto nsid = tree.AddRootItem(L"[Namespaces]", CheckState_Clear);
+         RecurseNamespaces(root, tree, nsid);
+      }
+
+      virtual void Continue()
+      {
+         vm->ContinueExecution(VM::ExecutionFlags(true, true, false));
+         Update();
+      }
+
+      virtual void StepOut()
+      {
+         vm->StepOut();
+         Update();
+      }
+
+      virtual void StepOver()
+      {
+         vm->StepOver();
+         Update();
+      }
+
+      virtual void StepNext()
+      {
+         vm->StepInto();
+         Update();
+      }
+
+      virtual void StepNextSymbol()
+      {
+         //ISymbols& symbols = ss->PublicProgramObject().ProgramMemory().
+         //vm->StepNextSymbol()
+      }
+   };
+}
+
+namespace Rococo
+{
 	using namespace Sexy;
 	using namespace Sexy::Sex;
-
-	void Disassemble(VM::IVirtualMachine& vm, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
-
-	struct StardardDebugControl : IDebugControl
-	{
-		Sexy::VM::IVirtualMachine* vm;
-		Sexy::Script::IPublicScriptSystem* ss;
-		IDebuggerWindow* debugger;
-
-		void Update()
-		{
-			Disassemble(*vm, *ss, *debugger);
-		}
-
-		virtual void Continue()
-		{
-			vm->ContinueExecution(VM::ExecutionFlags(true, true, false));
-			Update();
-		}
-
-		virtual void StepOut()
-		{
-			vm->StepOut();
-			Update();
-		}
-
-		virtual void StepOver()
-		{
-			vm->StepOver();
-			Update();
-		}
-
-		virtual void StepNext()
-		{
-			vm->StepInto();
-			Update();
-		}
-
-		virtual void StepNextSymbol()
-		{
-			//ISymbols& symbols = ss->PublicProgramObject().ProgramMemory().
-			//vm->StepNextSymbol()
-		}
-	};
+   using namespace Rococo::Visitors;
 
 	void ThrowSex(cr_sex s, const wchar_t* format, ...)
 	{
@@ -254,7 +487,7 @@ namespace Rococo
 		{
 			unicodeBuffer.Resize(2 * rawLength + 2);
 			os.UTF8ToUnicode(utf8data, (wchar_t*)unicodeBuffer.GetData(), rawLength, rawLength + 1);
-			auto* source = parser.DuplicateSourceBuffer((wchar_t*)unicodeBuffer.GetData(), (int)rawLength, SourcePos(1, 1), resourcePath);
+         auto* source = parser.DuplicateSourceBuffer((wchar_t*)unicodeBuffer.GetData(), (int)rawLength, Vec2i{ 1,1 }, resourcePath);
 			return source;
 		}
 
@@ -264,7 +497,7 @@ namespace Rococo
 		{
 			wchar_t* buf = (wchar_t*)(utf8data + 2);
 			size_t nChars = rawLength / 2 - 1;
-			return parser.DuplicateSourceBuffer(buf, (int)nChars, SourcePos(1, 1), resourcePath);
+         return parser.DuplicateSourceBuffer(buf, (int)nChars, Vec2i{ 1,1 }, resourcePath);
 		}
 		else if (bom == 0xFFFE)
 		{
@@ -275,13 +508,13 @@ namespace Rococo
 		{
 			wchar_t* buf = (wchar_t*)utf8data;
 			size_t nChars = rawLength / 2;
-			return parser.DuplicateSourceBuffer(buf, (int)nChars, SourcePos(1, 1), resourcePath);
+			return parser.DuplicateSourceBuffer(buf, (int)nChars, Vec2i{ 1,1 }, resourcePath);
 		}
 		else
 		{
 			unicodeBuffer.Resize(2 * rawLength + 2);
 			os.UTF8ToUnicode(utf8data, (wchar_t*)unicodeBuffer.GetData(), rawLength, rawLength + 1);
-			auto* source = parser.DuplicateSourceBuffer((wchar_t*)unicodeBuffer.GetData(), (int)rawLength, SourcePos(1, 1), resourcePath);
+			auto* source = parser.DuplicateSourceBuffer((wchar_t*)unicodeBuffer.GetData(), (int)rawLength, Vec2i{ 1,1 }, resourcePath);
 			return source;
 		}
 	}
@@ -326,11 +559,34 @@ namespace Rococo
 		}
 	}
 
-	void LogParseException(ParseException& ex, ILogger& logger)
+	void LogParseException(ParseException& ex, IDebuggerWindow& debugger)
 	{
-		auto a = ex.Start();
-		auto b = ex.End();
-		logger.Log(L"%s\n%s\nSpecimen: %s\n(%d,%d) to (%d,%d)", ex.Name(), ex.Message(), ex.Specimen(), a.X, a.Y, b.X, b.Y);
+      Vec2i a = ex.Start();
+      Vec2i b = ex.End();
+
+      debugger.AddLogSection(RGBAb(128, 0, 0), L"ParseException\n");
+      debugger.AddLogSection(RGBAb(64, 64, 64), L" Name: ");
+      debugger.AddLogSection(RGBAb(0, 0, 128), L"%s\n", ex.Name());
+
+      debugger.AddLogSection(RGBAb(64, 64, 64), L" Message: ");
+      debugger.AddLogSection(RGBAb(0, 0, 128), L"%s\n", ex.Message());
+
+      debugger.AddLogSection(RGBAb(64, 64, 64), L" Specimen: (");
+      debugger.AddLogSection(RGBAb(0, 0, 128), L"%d", a.x);
+      debugger.AddLogSection(RGBAb(64, 64, 64), L",");
+      debugger.AddLogSection(RGBAb(0, 0, 128), L"%d", a.y);
+      debugger.AddLogSection(RGBAb(64, 64, 64), L") to (");
+      debugger.AddLogSection(RGBAb(0, 0, 128), L"%d", b.x);
+      debugger.AddLogSection(RGBAb(64, 64, 64), L",");
+      debugger.AddLogSection(RGBAb(0, 0, 128), L"%d", b.y);
+      debugger.AddLogSection(RGBAb(64, 64, 64), L")\n");
+
+      debugger.AddLogSection(RGBAb(0, 127, 0), L"%s\n", ex.Specimen());
+
+      a = a - Vec2i{ 1, 0 };
+      b = b - Vec2i{ 1, 0 };
+
+      debugger.SetCodeHilight(ex.Name(), a, b, ex.Message());
 
 		auto s = ex.Source();
 		if (s)
@@ -339,21 +595,23 @@ namespace Rococo
 			if (t)
 			{
 				int totalOutput = 0;
-				PrintExpression(*t, totalOutput, 1024, logger);
+	//			PrintExpression(*t, totalOutput, 1024, logger);
 			}
 		}
 
 		for (const ISExpression* s = ex.Source(); s != NULL; s = s->GetOriginal())
 		{
-			if (s->TransformDepth() > 0)  logger.Log(SEXTEXT("Macro expansion %d:\n"), s->TransformDepth());
+			if (s->TransformDepth() > 0)  debugger.Log(SEXTEXT("Macro expansion %d:\n"), s->TransformDepth());
 
 			int totalOutput = 0;
-			PrintExpression(*s, totalOutput, 1024, logger);
+	//		PrintExpression(*s, totalOutput, 1024, logger);
 
-			if (totalOutput > 1024) logger.Log(SEXTEXT("..."));
+			if (totalOutput > 1024) debugger.Log(SEXTEXT("..."));
 
-			logger.Log(SEXTEXT("\n"));
+         debugger.Log(SEXTEXT("\n"));
 		}
+
+      debugger.Log(SEXTEXT("Error parsing script file: scroll down to see the error message"));
 	}
 
 	class SourceCache : public ISourceCache
@@ -443,53 +701,85 @@ namespace Rococo
 	using namespace Sexy::VM;
 	using namespace Rococo::Visitors;
 
-	void PopulateStackTree(Script::IPublicScriptSystem& ss, IUITree& tree, int depth)
+	void PopulateStackTree(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, int depth)
 	{
-		auto& vm = ss.PublicProgramObject().VirtualMachine();
+      struct : Visitors::ITreePopulator
+      {
+         Script::IPublicScriptSystem* ss;
+         int depth;
 
-		const Sexy::uint8* sf = nullptr;
-		const Sexy::uint8* pc = nullptr;
-		const IFunction* f = nullptr;
+         virtual void Populate(Visitors::IUITree& tree)
+         {
+            auto& vm = ss->PublicProgramObject().VirtualMachine();
 
-		size_t fnOffset;
-		if (!Sexy::Script::GetCallDescription(sf, pc, f, fnOffset, ss, depth) || !f)
-		{
-			return;
-		}
+            const Sexy::uint8* sf = nullptr;
+            const Sexy::uint8* pc = nullptr;
+            const IFunction* f = nullptr;
 
-		using namespace Sexy::Debugger;
+            size_t fnOffset;
+            if (!Sexy::Script::GetCallDescription(sf, pc, f, fnOffset, *ss, depth) || !f)
+            {
+               return;
+            }
+            
+            wchar_t desc[256];
+            SafeFormat(desc, _TRUNCATE, L"%p %s - %s", sf, f->Module().Name(), f->Name());
 
-		struct : public IVariableEnumeratorCallback
-		{
-			virtual void OnVariable(size_t index, const VariableDesc& v)
-			{
-				wchar_t desc[256];
-				if (v.Value[0] != 0)
-				{
-					SafeFormat(desc, _TRUNCATE, L"%p %S: %S %S = %S", v.Address + SF, v.Location, v.Type, v.Name, v.Value);
-				}
-				else
-				{
-					SafeFormat(desc, _TRUNCATE, L"%p %S: %S %S", v.Address + SF, v.Location, v.Type, v.Name);
-				}
-				tree->AddRootItem(desc, CheckState_NoCheckBox);
-			}
+            auto sfNode = tree.AddRootItem(desc, CheckState_Clear);
 
-			IUITree* tree;
-			const uint8* SF;
-		} addToTree;
+            using namespace Sexy::Debugger;
 
-		addToTree.tree = &tree;
-		addToTree.SF = sf;
+            struct : public IVariableEnumeratorCallback
+            {
+               virtual void OnVariable(size_t index, const VariableDesc& v)
+               {
+                  wchar_t desc[256];
+                  if (v.Value[0] != 0)
+                  {
+                     SafeFormat(desc, _TRUNCATE, L"%p %S: %S %S = %S", v.Address + SF, v.Location, v.Type, v.Name, v.Value);
+                  }
+                  else
+                  {
+                     SafeFormat(desc, _TRUNCATE, L"%p %S: %S %S", v.Address + SF, v.Location, v.Type, v.Name);
+                  }
+                  tree->AddChild(sfNode, desc, CheckState_NoCheckBox);
+               }
 
-		Script::ForeachVariable(ss, addToTree, depth);
+               TREE_NODE_ID sfNode;
+               IUITree* tree;
+               const uint8* SF;
+            } addToTree;
 
-		tree.AddRootItem(L"", CheckState_NoCheckBox);
+            addToTree.tree = &tree;
+            addToTree.SF = sf;
+            addToTree.sfNode = sfNode;
+
+            Script::ForeachVariable(*ss, addToTree, depth);
+         }
+      } anon;
+
+      anon.ss = &ss;
+      anon.depth = depth;
+
+      debugger.PopulateStackView(anon);
 	}
 
-	void PopulateRegisterWindow(Script::IPublicScriptSystem& ss, IUIList& registerList)
+   void PopulateSourceView(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
+   {
+      auto& vm = ss.PublicProgramObject().VirtualMachine();
+      auto& cpu = vm.Cpu();      
+      size_t pcOffset = cpu.PC() - cpu.ProgramStart;
+      auto* f = Sexy::Script::GetFunctionAtAddress(ss.PublicProgramObject(), pcOffset);
+      auto* tree = f ? ss.GetSourceCode(f->Module()) : nullptr;
+      if (tree)
+      {
+         debugger.AddSourceCode(f->Module().Name(), tree->Source().SourceStart());
+      }
+   }
+
+	void PopulateRegisterWindow(Script::IPublicScriptSystem& ss, Visitors::IUIList& registerListView)
 	{
-		auto& vm = ss.PublicProgramObject().VirtualMachine();
+      auto& vm = ss.PublicProgramObject().VirtualMachine();
 
 		using namespace Sexy::Debugger;
 
@@ -516,11 +806,11 @@ namespace Rococo
 			IUIList* uiList;
 		} addToList;
 
-		addToList.uiList = &registerList;
+		addToList.uiList = &registerListView;
 		addToList.count = 0;
 		addToList.maxCount = 9;
 
-		registerList.ClearRows();
+      registerListView.ClearRows();
 
 		Script::EnumerateRegisters(vm.Cpu(), addToList);
 	}
@@ -541,17 +831,24 @@ namespace Rococo
 
 		*ppSF = sf;
 
+      if (callDepth != 0)
+      {
+         return f;
+      }
+
 		CodeSection section;
 		f->Code().GetCodeSection(section);
 
 		IPublicProgramObject& po = ss.PublicProgramObject();
 		IVirtualMachine& vm = po.VirtualMachine();
 
-		size_t functionLength = po.ProgramMemory().GetFunctionLength(section.Id);
+		size_t functionLength = po.ProgramMemory().GetFunctionLength(section.Id); 
+      
+      debugger.InitDisassembly(section.Id);
 
 		wchar_t metaData[256];
-		SafeFormat(metaData, _TRUNCATE, L"%s %s (Id #%d) - %d bytes\n", f->Name(), f->Module().Name(), (int32)section.Id, (int32)functionLength);
-		debugger.AddDisassembly(false, metaData);
+		SafeFormat(metaData, _TRUNCATE, L"%s %s (Id #%d) - %d bytes\n\n", f->Name(), f->Module().Name(), (int32)section.Id, (int32)functionLength);
+		debugger.AddDisassembly(RGBAb(128,128,0), metaData);
 
 		int lineCount = 1;
 
@@ -572,12 +869,40 @@ namespace Rococo
 			}
 
 			wchar_t assemblyLine[256];
-			SafeFormat(assemblyLine, _TRUNCATE, L"%c%p %s %s // %s", isHighlight ? L'*' : L' ', fstart + i, rep.OpcodeText, rep.ArgText, symbol.Text);
-			debugger.AddDisassembly(false, assemblyLine);
+			
+         if (isHighlight)
+         {
+            debugger.AddDisassembly(RGBAb(128,0,0), L"*", RGBAb(255, 255, 255), true);
+            SafeFormat(assemblyLine, _TRUNCATE, L"%p", fstart + i);
+            debugger.AddDisassembly(RGBAb(255, 255, 255), assemblyLine, RGBAb(0, 0, 255));
+            SafeFormat(assemblyLine, _TRUNCATE, L" %s %s ", rep.OpcodeText, rep.ArgText);
+            debugger.AddDisassembly(RGBAb(255, 255, 255), assemblyLine, RGBAb(0, 0, 255));
+
+            if (symbol.Text[0] != 0)
+            {
+               SafeFormat(assemblyLine, _TRUNCATE, L"// %s", symbol.Text);
+               debugger.AddDisassembly(RGBAb(32, 128, 0), assemblyLine);
+            }
+         }
+         else
+         {
+            SafeFormat(assemblyLine, _TRUNCATE, L" %p", fstart + i);
+            debugger.AddDisassembly(RGBAb(0, 0, 0), assemblyLine);
+            SafeFormat(assemblyLine, _TRUNCATE, L" %s %s ", rep.OpcodeText, rep.ArgText);
+            debugger.AddDisassembly(RGBAb(128, 0, 0), assemblyLine);
+
+            if (symbol.Text[0] != 0)
+            {
+               SafeFormat(assemblyLine, _TRUNCATE, L"// %s", symbol.Text);
+               debugger.AddDisassembly(RGBAb(0, 128, 0), assemblyLine);
+            }
+         }
+
+         debugger.AddDisassembly(RGBAb(0, 0, 0), L"\n");
 
 			if (rep.ByteCount == 0)
 			{
-				debugger.AddDisassembly(false, L"Bad disassembly");
+				debugger.AddDisassembly(RGBAb(128,0,0), L"Bad disassembly");
 				break;
 			}
 
@@ -585,30 +910,71 @@ namespace Rococo
 			lineCount++;
 		}
 
-		debugger.AddDisassembly(false, L"");
+      debugger.AddDisassembly(RGBAb(0, 0, 0), nullptr);
 
 		return f;
 	}
 
-	void Disassemble(VM::IVirtualMachine& vm, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
-	{
-		AutoFree<VM::IDisassembler> disassembler(vm.Core().CreateDisassembler());
+   struct DebuggerPopulator : IDebuggerPopulator
+   {
+      Script::IPublicScriptSystem* ss;
 
-		debugger.AddDisassembly(true, nullptr);
-		debugger.StackTree().ResetContent();
+      virtual void Populate(IDebuggerWindow& debugger)
+      {
+         struct : Visitors::IListPopulator
+         {
+            Script::IPublicScriptSystem* ss;
+            IDebuggerWindow* debugger;
 
-		PopulateRegisterWindow(ss, debugger.RegisterList());
+            virtual void Populate(Visitors::IUIList& registerListView)
+            {
+               PopulateRegisterWindow(*ss, registerListView);
+            }
+         } anon;
 
-		for (int depth = 0; depth < 10; depth++)
-		{
-			const ISExpression* s;
-			const uint8* SF;
-			DisassembleCallStackAndAppendToView(*disassembler, debugger, ss, vm.Cpu(), depth, &s, &SF);
-			PopulateStackTree(ss, debugger.StackTree(), depth);
+         anon.ss = ss;
+         anon.debugger = &debugger;
 
-			if (SF == nullptr) break;
-		}
-	}
+         debugger.PopulateRegisterView(anon);
+
+         auto& vm = ss->PublicProgramObject().VirtualMachine();
+         AutoFree<VM::IDisassembler> disassembler(vm.Core().CreateDisassembler());
+
+         debugger.BeginStackUpdate();
+         for (int depth = 0; depth < 10; depth++)
+         {
+            const ISExpression* s;
+            const uint8* SF;
+            auto* f = DisassembleCallStackAndAppendToView(*disassembler, debugger, *ss, vm.Cpu(), depth, &s, &SF);
+            if (depth == 0 && f != nullptr)
+            {
+               size_t progOffset = vm.Cpu().PC() - vm.Cpu().ProgramStart;
+
+               CodeSection section;
+               f->Code().GetCodeSection(section);
+               size_t fnOffset = progOffset - ss->PublicProgramObject().ProgramMemory().GetFunctionAddress(section.Id);
+
+               auto sym = f->Code().GetSymbol(fnOffset);
+
+               if (sym.SourceExpression != nullptr)
+               {
+                  const Sex::ISExpression* sexpr = reinterpret_cast<const Sex::ISExpression*>(sym.SourceExpression);
+                  auto origin =  sexpr->Tree().Source().Origin();
+                  auto p0 = sexpr->Start() - Vec2i{ 1,0 };
+                  auto p1 = sexpr->End() - Vec2i{ 1,0 };
+                  debugger.SetCodeHilight(sexpr->Tree().Source().Name(), p0, p1, L"!");
+               }
+            }
+
+            PopulateStackTree(*ss, debugger, depth);
+
+            if (SF == nullptr) break;
+         }
+         debugger.EndStackUpdate();
+         
+         PopulateSourceView(*ss, debugger);
+      }
+   };
 
 	EXECUTERESULT ExecuteAndCatchIException(IVirtualMachine& vm, Sexy::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
 	{
@@ -619,7 +985,7 @@ namespace Rococo
 		}
 		catch (IException& ex)
 		{
-			Disassemble(vm, ss, debugger);
+         UpdateDebugger(ss, debugger);
 			ss.PublicProgramObject().Log().Write(ex.Message());
 			Throw(ex.ErrorCode(), L"%s", ex.Message());
 			return EXECUTERESULT_SEH;
@@ -727,11 +1093,11 @@ namespace Rococo
 		switch (result)
 		{
 		case EXECUTERESULT_BREAKPOINT:
-			Disassemble(vm, ss, debugger);
+         UpdateDebugger(ss, debugger);
 			Throw(0, L"Script hit breakpoint");
 			break;
 		case EXECUTERESULT_ILLEGAL:
-			Disassemble(vm, ss, debugger);
+         UpdateDebugger(ss, debugger);
 			Throw(0, L"Script did something bad.");
 			break;
 		case EXECUTERESULT_NO_ENTRY_POINT:
@@ -744,15 +1110,15 @@ namespace Rococo
 			Throw(0, L"Unexpected EXECUTERESULT_RETURNED");
 			break;
 		case EXECUTERESULT_SEH:
-			Disassemble(vm, ss, debugger);
+         UpdateDebugger(ss, debugger);
 			Throw(0, L"The script triggered a structured exception handler");
 			break;
 		case EXECUTERESULT_THROWN:
-			Disassemble(vm, ss, debugger);
+         UpdateDebugger(ss, debugger);
 			Throw(0, L"The script triggered a virtual machine exception");
 			break;
 		case EXECUTERESULT_YIELDED:
-			Disassemble(vm, ss, debugger);
+         UpdateDebugger(ss, debugger);
 			Throw(0, L"The script yielded");
 			break;
 		case EXECUTERESULT_TERMINATED:
@@ -872,22 +1238,24 @@ namespace Rococo
 		int exitCode = vm.PopInt32();
 	}
 
+   void UpdateDebugger(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
+   {
+      DebuggerPopulator populator;
+      populator.ss = &ss;
+      populator.Populate(debugger);
+   }
+
 	void DebuggerLoop(Sexy::Script::IPublicScriptSystem &ss, IDebuggerWindow& debugger)
 	{
-		StardardDebugControl dc;
+      StardardDebugControl dc;
 
-		dc.vm = &ss.PublicProgramObject().VirtualMachine();
-		dc.ss = &ss;
-		dc.debugger = &debugger;
+      dc.vm = &ss.PublicProgramObject().VirtualMachine();
+      dc.ss = &ss;
+      dc.debugger = &debugger;
 
-		debugger.ShowWindow(true, &dc);
+      DebuggerPopulator populator;
+      populator.ss = &ss;
 
-		MSG msg;
-		while (GetMessage(&msg, 0, 0, 0) && debugger.IsVisible())
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
+      debugger.Run(populator, dc);
 	}
-
 }

@@ -855,8 +855,8 @@ namespace
 
 		FileData fd;
 		fd.Source = testSrc;
-		fd.Pos.Y = 3;
-		fd.Pos.X = 1;
+		fd.Pos.y = 3;
+		fd.Pos.x = 1;
 		s->Add(72, IN fd);
 
 		FileData result;

@@ -372,7 +372,7 @@ namespace
 			RGBAb fontColour = IsPointInRect(focusPoint, rect) ? white : grey;
 			Graphics::DrawRectangle(grc, rect, RGBAb(64, 0, 0, 64), RGBAb(0, 0, 64, 64));
 
-			Graphics::RenderVerticalCentredText(grc, label, fontColour, 3, { Centre(rect).x, rect.top });
+			Graphics::RenderCentredText(grc, label, fontColour, 3, Centre(rect) );
 		}
 
 		virtual void RenderGui(IGuiRenderContext& grc)
@@ -383,7 +383,8 @@ namespace
 			auto controlRect = GuiRect(10, 10, 230, 250);
 			Graphics::DrawRectangle(grc, controlRect, RGBAb(64, 0, 0, 192), RGBAb(0, 0, 64, 192));
 
-			Graphics::RenderHorizontalCentredText(grc, L"Journal", RGBAb(255, 255, 255), 0, { controlRect.left + 2, controlRect.top });
+         int middle = (controlRect.left + controlRect.right) >> 1;
+			Graphics::RenderHorizontalCentredText(grc, L"Journal", RGBAb(255, 255, 255), 0, { middle, controlRect.top });
 
 			auto historyRect = GuiRect(0, 0, 150, 30) + Vec2i{ controlRect.left + 50, controlRect.top + 80 };
 			lastHistoryRect = historyRect;

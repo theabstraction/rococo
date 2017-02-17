@@ -22,7 +22,6 @@
     <ProjectGuid>{808DA513-B032-4192-8628-B0568EE43BF1}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>dystopia</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -76,6 +75,7 @@
     <LinkIncremental>true</LinkIncremental>
     <IntDir>..\intermediate\$(ProjectName)\$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -202,6 +202,7 @@
     <ClCompile Include="ai.lib.cpp" />
     <ClCompile Include="app.cpp" />
     <ClCompile Include="bone.library.cpp" />
+    <ClCompile Include="cv.cpp" />
     <ClCompile Include="dialogs.cpp" />
     <ClCompile Include="Environment.cpp" />
     <ClCompile Include="generate.city.mk2.cpp" />
@@ -211,6 +212,7 @@
     <ClCompile Include="gui.cpp" />
     <ClCompile Include="journal.cpp" />
     <ClCompile Include="pane.context.menu.cpp" />
+    <ClCompile Include="pane.cv.cpp" />
     <ClCompile Include="pane.inventory.cpp" />
     <ClCompile Include="pane.journal.cpp" />
     <ClCompile Include="pane.personal.info.cpp" />
@@ -231,6 +233,7 @@
     <ClCompile Include="player.verbs.cpp" />
     <ClCompile Include="rpg.rules.kudos.cpp" />
     <ClCompile Include="script.natives.cpp" />
+    <ClCompile Include="scriptable.widgets.cpp" />
     <ClCompile Include="scripts.cpp" />
     <ClCompile Include="skeleton.cpp" />
     <ClCompile Include="UIStack.cpp" />
@@ -248,6 +251,7 @@
     <ClInclude Include="..\include\rococo.strings.h" />
     <ClInclude Include="..\include\rococo.types.h" />
     <ClInclude Include="..\include\rococo.ui.h" />
+    <ClInclude Include="..\include\rococo.widgets.h" />
     <ClInclude Include="dystopia.constants.h" />
     <ClInclude Include="dystopia.h" />
     <ClInclude Include="dystopia.sxh.h" />

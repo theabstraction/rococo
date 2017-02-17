@@ -1,0 +1,38 @@
+(' file.type dystopia.pane)
+
+(' #include 
+	"!scripts/panes.sxh.sxy" 
+)
+
+(using Dystopia.UI)
+(using Sys.Maths)
+
+(function Main -> :
+	(IUIBuilder builder (GetUIBuilder))
+	(builder.RebuildPanel "cv")
+	
+	(trip)
+	
+	(builder.SetBackcolours 1 (#WidgetStateNoFocus) 0x40FF8F00 0x400000FF) 
+	(builder.SetBackcolours 1 (#WidgetStateHasFocus) 0x80FFFF00 0x800000FF) 
+	
+	(Vec2i border11 = 1 1)
+	(Vec2i border22 = 4 4)
+	(builder.SetBorder 1 (#WidgetStateNoFocus)  border11 0x80FFFFFF 0x80C0C0C0)
+	(builder.SetBorder 1 (#WidgetStateHasFocus) border22 0xFFFFFFFF 0xFFC0C0C0)
+	
+	(Vec2i buttonSpan = 120 30)
+	(builder.AddButton 4001 buttonSpan "Jab")
+	
+	(Vec2i buttonSpan = 120 30)
+	(builder.AddButton 4002 buttonSpan "Thrust")
+	
+	(Vec2i buttonSpan = 120 30)
+	(builder.AddButton 4003 buttonSpan "Lunge")
+	
+	(Vec2i buttonSpan = 120 30)
+	(builder.AddButton 4004 buttonSpan "Chop")
+	
+	(Vec2i buttonSpan = 120 30)
+	(builder.AddButton 4005 buttonSpan "Swing")
+)

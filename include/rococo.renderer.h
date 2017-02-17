@@ -134,8 +134,12 @@ namespace Rococo
 	namespace Graphics
 	{
 		Vec2i GetScreenCentre(const GuiMetrics& metrics);
-		void RenderHorizontalCentredText(IGuiRenderContext& gr, const wchar_t* txt, RGBAb colour, int fontSize, const Vec2i& topLeft);
-		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& topMiddle);
+      Vec2i RenderHorizontalCentredText(IGuiRenderContext& gr, const wchar_t* txt, RGBAb colour, int fontSize, const Vec2i& topMiddle);
+		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& middleLeft);
+      Vec2i RenderTopLeftAlignedText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& topLeft);
+      Vec2i RenderTopRightAlignedText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& topRight);
+
+      Vec2i RenderCentredText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& middle);
 		void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag);
 		void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag);
 

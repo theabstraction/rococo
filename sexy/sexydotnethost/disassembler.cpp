@@ -197,11 +197,11 @@ namespace SexyDotNet { namespace Host
 				{
 					currentlyViewedExpression = IntPtr((void*) s);
 				
-					const SourcePos& start = s->Start();
-					const SourcePos& end = s->End();
+					const Vec2i& start = s->Start();
+					const Vec2i& end = s->End();
 
-					this->start = SourceLocation(start.X, start.Y);
-					this->end = SourceLocation(end.X, end.Y);
+					this->start = SourceLocation(start.x, start.y);
+					this->end = SourceLocation(end.x, end.y);
 
 					changed = true;
 				}

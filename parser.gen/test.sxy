@@ -1,0 +1,10 @@
+// Input file ? output is !
+
+(cpp IPaneBuilder $builder)
+
+(foreach s in . :
+	(match // (paneIds array int32 7 4 6) -> builder.SetPaneIds(const int32* v, size_t nElements);
+		(literal paneIds)(literal array)(literal int32)(vector int32 v):
+			(call $builder.SetPaneIds v)
+	)
+)

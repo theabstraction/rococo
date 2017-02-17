@@ -251,6 +251,9 @@ namespace
 			case ActionMapTypeStats:
 				if (map.isActive) e.uiStack.PushTop(ID_PANE_PERSONAL_INFO);
 				break;
+         case ActionMapTypeCV:
+            if (map.isActive) e.uiStack.PushTop(ID_PANE_CV);
+            break;
 			case ActionMapTypeRotate:
 				isRotateLocked = !map.isActive;
 				break;

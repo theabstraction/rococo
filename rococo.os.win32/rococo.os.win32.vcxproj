@@ -77,6 +77,7 @@
     <IntDir>..\intermediate\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>..\lib\</OutDir>
     <TargetName>$(ProjectName).debug</TargetName>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

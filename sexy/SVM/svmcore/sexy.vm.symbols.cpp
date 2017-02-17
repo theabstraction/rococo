@@ -73,11 +73,11 @@ namespace
 			}
 		}
 
-		virtual size_t GetCodeOffset( const SourcePos& pos ) const
+		virtual size_t GetCodeOffset( const Vec2i& pos ) const
 		{
-			if (pos.Y == 0 || pos.Y > (int) rowOffsets.size()) return (size_t) -1;
+			if (pos.y == 0 || pos.y > (int) rowOffsets.size()) return (size_t) -1;
 
-			return rowOffsets[pos.Y-1] + pos.X;
+			return rowOffsets[pos.y-1] + pos.x;
 		}
 
 		virtual const char* FileName() const
@@ -119,8 +119,7 @@ namespace
 			else
 			{
 				fd.Source = NULL;
-				fd.Pos.X = 0;
-				fd.Pos.Y = 0;
+            fd.Pos = Vec2i{ 0,0 };
 				return false;
 			}
 		}

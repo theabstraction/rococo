@@ -256,7 +256,7 @@ namespace
 
 		try
 		{
-			Auto<ISourceCode> src = spp().ProxySourceBuffer(target, -1, SourcePos(0,0), SEXTEXT("target"));
+         Auto<ISourceCode> src = spp().ProxySourceBuffer(target, -1, Vec2i{ 0,0 }, SEXTEXT("target"));
 			Auto<ISParserTree> tree = spp().CreateTree(src());
 
 			ValidateEquivalentSExpression(tree().Root(), s);

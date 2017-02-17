@@ -84,9 +84,9 @@ namespace Dystopia
 			}
 			catch (Sexy::Sex::ParseException& pex)
 			{
-				SourcePos p = pex.Start();
-				SourcePos q = pex.End();
-				Throw(pex.ErrorCode(), L"Error parsering %s\n%s: %s\n(%d,%d) to (%d,%d)\n%s\n", L"keymap.sxy", pex.Name(), pex.Message(), p.X, p.Y, q.X, q.Y, pex.Specimen());
+				Vec2i p = pex.Start();
+            Vec2i q = pex.End();
+				Throw(pex.ErrorCode(), L"Error parsering %s\n%s: %s\n(%d,%d) to (%d,%d)\n%s\n", L"keymap.sxy", pex.Name(), pex.Message(), p.x, p.y, q.x, q.y, pex.Specimen());
 			}
 		}
 

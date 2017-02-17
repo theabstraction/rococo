@@ -11,7 +11,7 @@ namespace
 		typedef std::vector<Menu*> TChildren;
 		TChildren children;
 	public:
-		Menu();
+		Menu(bool contextMenu);
 		virtual ~Menu();
 		operator HMENU () { return hMenu; }
 		Menu& AddPopup(LPCWSTR name);
@@ -19,7 +19,7 @@ namespace
 		void Free() { delete this; }
 	};
 
-	Menu::Menu() : hMenu(::CreateMenu())
+	Menu::Menu(bool contextMenu) : hMenu(contextMenu ? ::CreatePopupMenu() : ::CreateMenu())
 	{
 	}
 
@@ -56,7 +56,7 @@ namespace
 			index++;
 		}
 
-		Menu* child = new Menu();
+		Menu* child = new Menu(false);
 		children.push_back(child);
 		AppendMenu(hMenu, MF_POPUP, (UINT_PTR)(HMENU)*child, name);
 		return *child;

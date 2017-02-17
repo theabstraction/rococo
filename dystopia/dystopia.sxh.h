@@ -5,8 +5,7 @@ namespace Dystopia {
 	};
 }
 
-namespace Dystopia
-{
+namespace Dystopia { 
 	void AddNativeCalls_DystopiaIMeshes(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IMeshes* nceContext);
 }
 
@@ -34,8 +33,7 @@ namespace Dystopia {
 	};
 }
 
-namespace Dystopia
-{
+namespace Dystopia { 
 	void AddNativeCalls_DystopiaILevelBuilder(Sexy::Script::IPublicScriptSystem& ss, Dystopia::ILevel* nceContext);
 }
 
@@ -103,8 +101,7 @@ namespace Dystopia {
 	};
 }
 
-namespace Dystopia
-{
+namespace Dystopia { 
 	void AddNativeCalls_DystopiaIGui(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IGui* nceContext);
 }
 
@@ -118,8 +115,40 @@ namespace Dystopia {
 	};
 }
 
-namespace Dystopia
-{
+namespace Dystopia { 
 	void AddNativeCalls_DystopiaIJournal(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IJournal* nceContext);
 }
+
+namespace Dystopia { namespace UI { 
+	enum EWidgetState: int32
+	{
+		EWidgetState_NoFocus = 0, 	// 0x0
+		EWidgetState_HasFocus = 1, 	// 0x1
+	};
+	bool TryParse(const fstring& s, EWidgetState& value);
+	bool TryShortParse(const fstring& s, EWidgetState& value); 
+}}
+
+namespace Dystopia { namespace UI { 
+	struct NO_VTABLE IUIBuilder
+	{
+		virtual void RebuildPanel(fstring& panelName) = 0;
+		virtual void AddButton(ID_WIDGET id, Vec2i& span, fstring& text) = 0;
+		virtual void AddFrame(ID_WIDGET id, ID_WIDGET frameId, Vec2i& span) = 0;
+		virtual void AddWidgetToFrame(ID_WIDGET frameId, ID_WIDGET id) = 0;
+		virtual void HCentreChildren(ID_WIDGET frameId) = 0;
+		virtual void VCentreChildren(ID_WIDGET frameId) = 0;
+		virtual void ShrinkWrap(ID_WIDGET frameId) = 0;
+		virtual void ExpandToFit(ID_WIDGET frameId) = 0;
+		virtual void SetBorder(ID_WIDGET id, Dystopia::UI::EWidgetState state, Vec2i& dxdy, RGBAb c1, RGBAb c2) = 0;
+		virtual void SetBackcolours(ID_WIDGET id, Dystopia::UI::EWidgetState state, RGBAb b1, RGBAb b2) = 0;
+		virtual void SetButtonPulse(ID_WIDGET id, ID_UI_EVENT_TYPE commandId, boolean32 fireWhenDown, boolean32 fireWhenUp) = 0;
+		virtual void SetFont(ID_WIDGET id, Dystopia::UI::EWidgetState state, int32 fontId, RGBAb fontColour) = 0;
+		virtual void Move(ID_WIDGET id, Vec2i& positionInContainer) = 0;
+	};
+}}
+
+namespace Dystopia { namespace UI { 
+	void AddNativeCalls_DystopiaUIIUIBuilder(Sexy::Script::IPublicScriptSystem& ss, Dystopia::UI::IUIBuilder* nceContext);
+}}
 

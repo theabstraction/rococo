@@ -282,7 +282,16 @@ namespace
 		SEXCHAR cppNSName[256];
 		GetFQCppStructName(cppCompressedNSName, cppNSName, 256, ns);
 
-		appender.Append(SEXTEXT("\n\nnamespace %s\n{\n\tvoid AddNativeCalls_%s(Sexy::Script::IPublicScriptSystem& ss, %s* nceContext);\n}\n\n"), cppNSName, ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
+      appender.Append(SEXTEXT("\n\n"));
+      int depth = AppendNamespace(appender, ic.asCppInterface.SexyName());
+      appender.Append(SEXTEXT("\tvoid AddNativeCalls_%s(Sexy::Script::IPublicScriptSystem& ss, %s* nceContext);\n"), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
+      while (depth > 0)
+      {
+         depth--;
+         appender.Append(SEXTEXT("}"));   
+      }
+      
+      appender.Append(SEXTEXT("\n\n"));
 	}
 
 	typedef std::unordered_map<stdstring,int> TAttributeMap;
@@ -600,24 +609,23 @@ namespace
 
 	void ImplementNativeFunctions(FileAppender& appender, const EnumContext& ec, const ParseContext& pc)
 	{
-		NamespaceSplitter splitter(ec.asCppEnum.SexyName());
+      int nsDepth = AppendNamespace(appender, ec.asCppEnum.SexyName());
+      if (nsDepth > 0)
+      {
+         appender.Append(SEXTEXT("\t"));
+      }
 
-		csexstr ns, tail;
-		splitter.SplitTail(ns, tail);
-
-		CppType nsType;
-		nsType.Set(ns);
-
-		
+      NamespaceSplitter splitter(ec.asCppEnum.SexyName());
+      csexstr ns, tail;
+      splitter.SplitTail(ns, tail);
+	
 #ifdef SEXCHAR_IS_WIDE
 		SEXCHAR stringIndicator = L'L';
 #else
 		SEXCHAR stringIndicator = ' ';
 #endif
-		
-		appender.Append(SEXTEXT("namespace %s {\n"), nsType.FQName());
 
-		appender.Append(SEXTEXT("\tbool TryParse(const fstring& s, %s& value)\n"), tail);
+		appender.Append(SEXTEXT("bool TryParse(const fstring& s, %s& value)\n"), tail);
 		appender.Append(SEXTEXT("\t{\n"));
 
 		bool first = true;
@@ -661,9 +669,14 @@ namespace
 		appender.Append(SEXTEXT("\t\treturn true;\n"));
 		appender.Append(SEXTEXT("\t}\n"));
 
-		appender.Append(SEXTEXT("}\n\n"));
-	}
+      while (nsDepth > 0)
+      {
+         nsDepth--;
+         appender.Append(SEXTEXT("}"));
+      }
 
+      appender.Append(SEXTEXT("// %s\n\n"), ec.asCppEnum.SexyName());
+	}
 
 	void ImplementNativeFunctions(FileAppender& appender, const InterfaceContext& ic, const ISExpression* methods, const ParseContext& pc)
 	{
@@ -719,6 +732,8 @@ namespace
 			}
 		}
 
+      appender.Append(SEXTEXT("}\n\n"));
+
 		NamespaceSplitter nsSplitter(ic.asCppInterface.SexyName());
 		csexstr ns, shortName;
 		nsSplitter.SplitTail(ns, shortName);
@@ -726,8 +741,10 @@ namespace
 		CppType nsType;
 		nsType.Set(ns);
 
-		appender.Append(SEXTEXT("}\nnamespace %s\n{\n\tvoid AddNativeCalls_%s(Sexy::Script::IPublicScriptSystem& ss, %s* _nceContext)\n"), nsType.FQName(), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
-		appender.Append(SEXTEXT("\t{\n\n"));
+      int depth = AppendNamespace(appender, ic.asCppInterface.SexyName());
+
+		appender.Append(SEXTEXT("\tvoid AddNativeCalls_%s(Sexy::Script::IPublicScriptSystem& ss, %s* _nceContext)\n"), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
+		appender.Append(SEXTEXT("\t{\n"));
 
 		if (methods != NULL)
 		{
@@ -795,6 +812,12 @@ namespace
 		}
 		appender.Append(SEXTEXT("\t}\n"));
 
-		appender.Append(SEXTEXT("\n}\n"));
+      while (depth > 0)
+      {
+         depth--;
+         appender.Append(SEXTEXT("}"));
+      }
+
+		appender.Append(SEXTEXT("\n"));
 	}
 }

@@ -184,6 +184,11 @@ namespace
 			}
 		}
 
+      virtual void OnTabRightClicked(int index, const POINT& screenPos)
+      {
+
+      }
+
 		void OpenFilenameEditor(VariableDesc& v)
 		{
 			OPENFILENAME spec = { 0 };

@@ -1,185 +1,51 @@
 #include "dystopia.h"
 #include <rococo.io.h>
 #include <rococo.visitors.h>
-#include <sexy.types.h>
-#include <sexy.compiler.public.h>
-#include <sexy.debug.types.h>
-#include <sexy.script.h>
-#include <Sexy.S-Parser.h>
-#include <sexy.vm.h>
-#include <sexy.vm.cpu.h>
 
-#include <malloc.h>
-#include <wchar.h>
-#include <process.h>
+#include <rococo.sexy.ide.h>
 
-#include <windows.h>
-
-#include "dystopia.h"
-
-#include <string>
-#include <unordered_map>
-
+using namespace Dystopia;
 using namespace Rococo;
 using namespace Sexy;
 using namespace Sexy::Sex;
 using namespace Sexy::VM;
 
+namespace
+{
+   struct DialogExceptionHandler: public IDE::IScriptExceptionHandler
+   {
+      Windows::IWindow& parent;
+
+      DialogExceptionHandler(Windows::IWindow& _parent): parent(_parent)
+      {
+      }
+
+      virtual void Free()
+      {
+         delete this;
+      }
+
+      virtual IDE::EScriptExceptionFlow GetScriptExceptionFlow(const wchar_t* source, const wchar_t* message)
+      {
+         auto id = Dystopia::ShowContinueBox(parent, L"Failed to create script system");
+         switch (id)
+         {
+         case CMD_ID_IGNORE:
+            return IDE::EScriptExceptionFlow_Ignore;
+         case CMD_ID_RETRY:
+            return IDE::EScriptExceptionFlow_Retry;
+         default:
+         case CMD_ID_EXIT:
+            return IDE::EScriptExceptionFlow_Terminate;
+         }
+      } 
+   };
+}
+	
 namespace Dystopia
 {
-	struct ScriptLogger : ILog
-	{
-		ILogger& logger;
-		ScriptLogger(ILogger& _logger) : logger(_logger) {}
-
-		virtual void Write(csexstr text)
-		{
-			logger.Log(L"%s", text);
-		}
-
-		virtual void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance)
-		{
-
-		}
-
-		virtual void OnJITCompileException(Sex::ParseException& ex)
-		{
-			LogParseException(ex, logger);
-		}
-	};
-
-	class PersistentScript: public IPersistentScript
-	{
-		IDebuggerWindow& debugger;
-		ISourceCache& sources;
-		ScriptLogger logger;
-		Script::CScriptSystemProxy ssp;
-		ISParserTree* tree;
-	public:
-		PersistentScript(size_t maxBytes, ISourceCache& _sources, IDebuggerWindow& _debugger, const wchar_t* resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile) :
-			logger(_debugger),
-			debugger(_debugger),
-			sources(_sources),
-			tree(nullptr),
-			ssp(ProgramInitParameters(maxBytes), logger)
-		{
-			Script::IPublicScriptSystem& ss = ssp();
-			if (&ss == nullptr)
-			{
-				Throw(0, L"Failed to create script system");
-			}
-
-			while (true)
-			{
-				try
-				{
-					tree = sources.GetSource(resourcePath);
-					InitSexyScript(*tree, debugger, ssp(), sources, onCompile);
-					break;
-				}
-				catch (ParseException& ex)
-				{
-					LogParseException(ex, debugger);
-					auto id = ShowContinueBox(debugger.GetDebuggerWindowControl(), ex.Message());
-					if (id == CMD_ID_EXIT) Throw(ex.ErrorCode(), L"%s", ex.Message());
-					else if (id == CMD_ID_IGNORE) return;
-				}
-
-				DebuggerLoop(ssp(), debugger);
-			}
-		}
-
-		virtual void Free()
-		{
-			delete this;
-		}
-
-		virtual void ExecuteFunction(ArchetypeCallback fn, IArgEnumerator& args)
-		{
-			try
-			{
-				Rococo::ExecuteFunction(fn.byteCodeId, args, ssp(), debugger);
-				return;
-			}
-			catch (ParseException& ex)
-			{
-				LogParseException(ex, debugger);
-			}
-			catch (IException& ex)
-			{
-				logger.logger.Log(L"Exection thrown: %s", ex.Message());
-			}
-
-			DebuggerLoop(ssp(), debugger);
-			Throw(0, L"Script failed");
-		}
-
-		virtual void ExecuteFunction(const wchar_t* name, IArgEnumerator& args)
-		{
-			try
-			{
-				Rococo::ExecuteFunction(name, args, ssp(), debugger);
-				return;
-			}
-			catch (ParseException& ex)
-			{
-				LogParseException(ex, debugger);
-			}
-			catch (IException& ex)
-			{
-				logger.logger.Log(L"Exection thrown: %s", ex.Message());
-			}
-
-			DebuggerLoop(ssp(), debugger);
-			Throw(0, L"Script failed");
-		}
-	};
-
-	void ExecuteSexyScriptLoop(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, const wchar_t* resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile)
-	{
-		ScriptLogger logger(debugger);
-
-		Auto<ISourceCode> src; 
-		Auto<ISParserTree> tree;
-		
-		while (true)
-		{
-			Script::CScriptSystemProxy ssp(ProgramInitParameters(maxBytes), logger);
-			Script::IPublicScriptSystem& ss = ssp();
-			if (&ss == nullptr)
-			{
-				auto id = ShowContinueBox(debugger.GetDebuggerWindowControl(), L"Failed to create script system");
-				Throw(0, L"Failed to create script system");
-			}
-
-			try
-			{
-				ISParserTree* tree = sources.GetSource(resourcePath);
-				ExecuteSexyScript(*tree, debugger, ss, sources, param, onCompile);
-				return;
-			}
-			catch (ParseException& ex)
-			{
-				LogParseException(ex, debugger);
-				auto id = ShowContinueBox(debugger.GetDebuggerWindowControl(), ex.Message());
-				if (id == CMD_ID_EXIT) Throw(ex.ErrorCode(), L"%s", ex.Message());
-				else if (id == CMD_ID_IGNORE) return;
-			}
-			catch (IException& ex)
-			{
-				auto id = ShowContinueBox(debugger.GetDebuggerWindowControl(), ex.Message());
-				if (id == CMD_ID_EXIT) Throw(ex.ErrorCode(), L"%s", ex.Message());
-				else if (id == CMD_ID_IGNORE) return;
-			}
-
-			sources.Release(resourcePath);
-
-			DebuggerLoop(ss, debugger);
-		}
-	}
-
-	IPersistentScript* CreatePersistentScript(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, const wchar_t* resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile)
-	{
-		return new PersistentScript(maxBytes, sources, debugger, resourcePath, maxScriptSizeBytes, onCompile);
-	}
+   IDE::IScriptExceptionHandler* UseDialogBoxForScriptException(Windows::IWindow& parent)
+   {
+      return new DialogExceptionHandler(parent);
+   }
 }

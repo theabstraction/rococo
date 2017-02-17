@@ -36,12 +36,6 @@ namespace Sexy
 {
 	namespace SysType
 	{
-		struct Vec2i
-		{
-			int32 x;
-			int32 y;
-		};
-
 		struct Recti
 		{
 			Vec2i bottomLeft;

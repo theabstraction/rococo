@@ -129,7 +129,7 @@ namespace
 
 		void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) 
 		{
-			ParseException ex(SourcePos(0,0), 	SourcePos(0,0), exceptionType, message, SEXTEXT(""), NULL);		
+			ParseException ex(Vec2i{ 0,0 },Vec2i{ 0,0 }, exceptionType, message, SEXTEXT(""), NULL);
 			exceptions.push_back(ex);
 		}
 
@@ -220,7 +220,7 @@ namespace
 
 	void PrintParseException(const ParseException& e)
 	{
-		PrintToStandardOutput(SEXTEXT("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n"), e.Name(), e.Start().X, e.Start().Y, e.End().X, e.End().Y, e.Message());
+		PrintToStandardOutput(SEXTEXT("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n"), e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message());
 
 		for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
 		{
@@ -361,7 +361,7 @@ namespace
 
 	void TestCreateNamespace(IPublicScriptSystem& ss)
 	{
-		Auto<ISourceCode> sc(ss.SParser().ProxySourceBuffer(SEXTEXT("(namespace Sys.Data)"), -1, SourcePos(0,0), SEXTEXT("test2")));
+		Auto<ISourceCode> sc(ss.SParser().ProxySourceBuffer(SEXTEXT("(namespace Sys.Data)"), -1, Vec2i{ 0,0 }, SEXTEXT("test2")));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
@@ -401,7 +401,7 @@ namespace
 			SEXTEXT("(namespace EntryPoint)")
 			SEXTEXT("(function Main -> (Int32 exitCode)(Int32 result): (exitCode = 1)(result = 0xABCDEF01))")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestAssignInt32Literal"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignInt32Literal"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -421,7 +421,7 @@ namespace
 			SEXTEXT("(namespace EntryPoint)\n")
 			SEXTEXT("(function Main -> (Int32 exitCode)(Float32 result)(Float32 result2): (exitCode = -125)(result = 1.7)(result2 = 1.0e15))")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestAssignFloat32Literal"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignFloat32Literal"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 
@@ -444,7 +444,7 @@ namespace
 			SEXTEXT("(namespace EntryPoint)\n")
 			SEXTEXT("(function Main -> (Int32 exitCode)(Float64 result)(Float64 result2):(exitCode = 0xAB)\n(result = 1.73)(result2 = -1.0e-15))")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestAssignFloat64Literal"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignFloat64Literal"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 
@@ -468,7 +468,7 @@ namespace
 			SEXTEXT("(function Main -> (Int32 exitCode)(Int64 result):")
 			SEXTEXT("   (exitCode = -75)(result = 0x800FCDCDEFEFABCD)   )\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestAssignInt64Literal"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignInt64Literal"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 
@@ -488,7 +488,7 @@ namespace
 			SEXTEXT("(namespace EntryPoint)")
 			SEXTEXT("(function Main -> (Int64 exitCode)(Int64 result): (result = 0xABCDEF01CDEF0123)(exitCode = result))")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestAssignInt64Variable"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignInt64Variable"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -509,7 +509,7 @@ namespace
 			SEXTEXT("(namespace EntryPoint)")
 			SEXTEXT("(function Main -> (Int32 exitCode)(Int32 result): (result = 0xABCDEF01)(exitCode = result))")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestAssignInt32Variable"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignInt32Variable"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -528,7 +528,7 @@ namespace
 			SEXTEXT("(namespace EntryPoint)")
 			SEXTEXT("(function Main -> (Float32 exitCode)(Float32 result): (result = 0.62)(exitCode = result))")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestAssignFloat32Variable"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignFloat32Variable"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -547,7 +547,7 @@ namespace
 			SEXTEXT("(namespace EntryPoint)")
 			SEXTEXT("(function Main -> (Float64 exitCode)(Float64 result): (result = 0.62)(exitCode = result))")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestAssignFloat64Variable"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignFloat64Variable"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -567,7 +567,7 @@ namespace
 			SEXTEXT("(function Main -> (Int32 exitCode):\n")
 			SEXTEXT("     (Int32 result) (result = 0xABCDEF01) (exitCode = result)   )\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLocalVariable"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLocalVariable"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -591,7 +591,7 @@ namespace
 			SEXTEXT("     (e = (1.0e100 != 1.0e-100))   )\n")
 			SEXTEXT("(namespace EntryPoint)\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanLiteralVsLiteralMatches"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanLiteralVsLiteralMatches"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -629,7 +629,7 @@ namespace
 			SEXTEXT("(function Main -> (Bool x):\n")
 			SEXTEXT("     (x = (72 > 72.1))   )\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanMismatch"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanMismatch"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -654,7 +654,7 @@ namespace
 			SEXTEXT("     (z = (24.2 >= temp2))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanVariableVsLiteralMatches"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanVariableVsLiteralMatches"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -683,7 +683,7 @@ namespace
 			SEXTEXT("     (z = (temp1 < temp2))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanVariableVsVariable"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanVariableVsVariable"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -716,7 +716,7 @@ namespace
 			SEXTEXT("     (z = (temp1 xor temp2))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanExpressions"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanExpressions"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -752,7 +752,7 @@ namespace
 			SEXTEXT("     (x = ((temp2 and temp1) xor temp2))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanCompoundExpressions1"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -773,7 +773,7 @@ namespace
 			SEXTEXT("     (x = ((temp2 xor temp1) xor temp2))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanCompoundExpressions2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -794,7 +794,7 @@ namespace
 			SEXTEXT("     (x = ((temp2 and temp1) or temp2))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanCompoundExpressions3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -815,7 +815,7 @@ namespace
 			SEXTEXT("     (x = ((temp2 or temp1) and temp2))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanCompoundExpressions4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -836,7 +836,7 @@ namespace
 			SEXTEXT("     (x = ((temp2 and temp1) and temp2))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanCompoundExpressions5"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions5"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -857,7 +857,7 @@ namespace
 			SEXTEXT("     (x = (temp2 and (temp2 and temp1)))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanCompoundExpressions6"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions6"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -878,7 +878,7 @@ namespace
 			SEXTEXT("     (x = (temp2 or (temp2 and temp1)))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanCompoundExpressions7"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions7"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -899,7 +899,7 @@ namespace
 			SEXTEXT("     (x = (true and (true and temp1)))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanCompoundExpressions8"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions8"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -920,7 +920,7 @@ namespace
 			SEXTEXT("     (x = ((true or false) and (true and temp1)))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanCompoundExpressions9"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions9"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -941,7 +941,7 @@ namespace
 			SEXTEXT("     (x = ((((temp2 and (temp2 or (temp1))) and (true and (temp1 or temp2))))))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanCompoundExpressions10"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions10"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -960,7 +960,7 @@ namespace
 			SEXTEXT("     (x = ((((true and (7 >= 6)) xor (true and (4.2 < 3.3))))))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanCompoundExpressions11"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions11"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -981,7 +981,7 @@ namespace
 			SEXTEXT("     (x = (((true and (temp1 >= temp2)) xor (true and (temp2 != temp1)))))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBooleanCompoundExpressions12"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions12"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1006,7 +1006,7 @@ namespace
 			SEXTEXT("     )\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestIfThen1"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestIfThen1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1031,7 +1031,7 @@ namespace
 			SEXTEXT("     )\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestIfThen2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestIfThen2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1055,7 +1055,7 @@ namespace
 			SEXTEXT("			(w = (temp1 / temp2))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestFloatArithmetic1"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFloatArithmetic1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1084,7 +1084,7 @@ namespace
 			SEXTEXT("     (x = (temp1 - 0.1))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDoubleArithmetic0"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoubleArithmetic0"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		IModule* srcModule = NULL;
@@ -1106,7 +1106,7 @@ namespace
 			SEXTEXT("     (x = (temp1 - temp2))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDoubleArithmetic1"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoubleArithmetic1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		IModule* srcModule = NULL;
@@ -1128,7 +1128,7 @@ namespace
 			SEXTEXT("     (x = (temp1 + temp2))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDoubleArithmetic2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoubleArithmetic2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1149,7 +1149,7 @@ namespace
 			SEXTEXT("     (x = (temp1 * temp2))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDoubleArithmetic3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoubleArithmetic3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1170,7 +1170,7 @@ namespace
 			SEXTEXT("	  (x = (temp1 / temp2))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDoubleArithmetic4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoubleArithmetic4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1194,7 +1194,7 @@ namespace
 			SEXTEXT("			(w = (temp1 / temp2))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestInt32Arithmetic"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInt32Arithmetic"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1227,7 +1227,7 @@ namespace
 			SEXTEXT("			(w = (temp1 / temp2))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestInt64Arithmetic"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInt64Arithmetic"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1258,7 +1258,7 @@ namespace
 			SEXTEXT("			(result = ((temp1 / temp2) + (temp1 * temp2)))")
 			SEXTEXT(")")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestInt32CompoundArithmetic"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInt32CompoundArithmetic"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1282,7 +1282,7 @@ namespace
 			SEXTEXT("			(w = ((temp1 / temp2) + (temp1 * temp2)))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestFloatCompoundArithmetic"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFloatCompoundArithmetic"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1315,7 +1315,7 @@ namespace
 			SEXTEXT("			(w = ((9 / 3) + (2 * 7)))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestFloatCompoundArithmetic"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFloatCompoundArithmetic"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1345,7 +1345,7 @@ namespace
 			SEXTEXT("     (if ((temp1 - temp2) >= 0.25) (x = 5) else (x = 7)) \n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestIfThen3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestIfThen3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1367,7 +1367,7 @@ namespace
 			SEXTEXT("     (x = 5)\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestFunctionCall1"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFunctionCall1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1391,7 +1391,7 @@ namespace
 			SEXTEXT("     (x = 5)\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestFunctionCall2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFunctionCall2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1415,7 +1415,7 @@ namespace
 			SEXTEXT("     (x = 5)\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestFunctionCall2_"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFunctionCall2_"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1443,7 +1443,7 @@ namespace
 			SEXTEXT("     (y = (x * x))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestFunctionCall3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFunctionCall3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1474,7 +1474,7 @@ namespace
 			SEXTEXT("     (isOK = (false xor e))")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestFunctionCall4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFunctionCall4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1509,7 +1509,7 @@ namespace
 			SEXTEXT("     (if (x <= 1) (result = 1) else (result = (x * (Factorial(x - 1)))))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestFunctionCallRecursion1"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFunctionCallRecursion1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1535,7 +1535,7 @@ namespace
 			SEXTEXT("     (if (x > 100) (result = (MyFunction1 (x / 2))) else (result = x))\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestFunctionCallRecursion2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFunctionCallRecursion2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1559,7 +1559,7 @@ namespace
 			SEXTEXT("     (result2 = 25)\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestFunctionCallMultiOutput1"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFunctionCallMultiOutput1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1590,7 +1590,7 @@ namespace
 			SEXTEXT("	(Float32 w)\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestStructure"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStructure"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1620,7 +1620,7 @@ namespace
 			SEXTEXT("     (Int32 x y z)\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestStructure2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStructure2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1656,7 +1656,7 @@ namespace
 			SEXTEXT("     (Int32 x y z)\n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestStructure3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStructure3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1715,7 +1715,7 @@ namespace
 			SEXTEXT("    (alias Vector3i Test.Maths.Vec3i)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestStructure4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStructure4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1739,7 +1739,7 @@ namespace
 			SEXTEXT("    ) \n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestWhileLoop1"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestWhileLoop1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1765,7 +1765,7 @@ namespace
 			SEXTEXT("    ) \n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestWhileLoopBreak"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestWhileLoopBreak"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1791,7 +1791,7 @@ namespace
 			SEXTEXT("    ) \n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestWhileLoopContinue"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestWhileLoopContinue"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1816,7 +1816,7 @@ namespace
 			SEXTEXT("    ) \n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDoWhile"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoWhile"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1842,7 +1842,7 @@ namespace
 			SEXTEXT("    ) \n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDoWhileBreak"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoWhileBreak"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1868,7 +1868,7 @@ namespace
 			SEXTEXT("    ) \n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDoWhileContinue"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoWhileContinue"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1895,7 +1895,7 @@ namespace
 			SEXTEXT("    ) \n")
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestNestedWhileLoops"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNestedWhileLoops"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1916,7 +1916,7 @@ namespace
 			SEXTEXT(") \n")
 			SEXTEXT("(archetype EntryPoint.FloatToFloat (Float32 x) -> (Float32 y)) \n")
 			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArchetypeDeclaration"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArchetypeDeclaration"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1947,7 +1947,7 @@ namespace
 			SEXTEXT(") \n")
 			SEXTEXT("(archetype EntryPoint.FloatToInt (Float32 x) -> (Int32 y)) \n")
 			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestNullArchetype"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestNullArchetype"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1973,7 +1973,7 @@ namespace
 			SEXTEXT("   (Value -> (Int32 id)) \n")
 		    SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestDefaultNullMethod"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestDefaultNullMethod"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1999,7 +1999,7 @@ namespace
 			SEXTEXT("		 (result = (x * x)) \n")
 			SEXTEXT(") \n")			
 			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArchetypeCall"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArchetypeCall"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2030,7 +2030,7 @@ namespace
 			SEXTEXT("		 (result = (f x)) \n")
 			SEXTEXT(") \n")			
 			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArchetypePropagation"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArchetypePropagation"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2059,7 +2059,7 @@ namespace
 			SEXTEXT("		 (f = Square) \n")
 			SEXTEXT(") \n")			
 			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArchetypeReturn"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArchetypeReturn"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2089,7 +2089,7 @@ namespace
 			SEXTEXT("		 (f = Square) \n")
 			SEXTEXT(") \n")			
 			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArchetypeReturnFromMultipleOutput"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArchetypeReturnFromMultipleOutput"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2124,7 +2124,7 @@ namespace
 			SEXTEXT("		 (Int32 arg)")
 			SEXTEXT(")")			
 			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestEmbeddedArchetype"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestEmbeddedArchetype"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2152,7 +2152,7 @@ namespace
 			SEXTEXT(")")	
 			SEXTEXT("(alias Main EntryPoint.Main)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestClosure"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestClosure"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2181,7 +2181,7 @@ namespace
 			SEXTEXT(")")	
 			SEXTEXT("(alias Main EntryPoint.Main)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestClosureWithVariable"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestClosureWithVariable"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2208,7 +2208,7 @@ namespace
 			SEXTEXT(")")
 			SEXTEXT("(alias Main EntryPoint.Main)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestReturnClosureWithVariableSucceed"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestReturnClosureWithVariableSucceed"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2238,7 +2238,7 @@ namespace
 			SEXTEXT(")")
 			SEXTEXT("(alias Main EntryPoint.Main)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestReturnClosureWithVariableFails"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestReturnClosureWithVariableFails"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2290,7 +2290,7 @@ namespace
 			SEXTEXT(")")				
 			SEXTEXT("(namespace EntryPoint)(alias Main EntryPoint.Main)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestNativeCall"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNativeCall"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2338,7 +2338,7 @@ namespace
 			SEXTEXT(")")				
 			SEXTEXT("(namespace EntryPoint)(alias Main EntryPoint.Main)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestNativeCall2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNativeCall2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2386,7 +2386,7 @@ namespace
 			SEXTEXT(")")				
 			SEXTEXT("(namespace EntryPoint)(alias Main EntryPoint.Main)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestNativeCall3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNativeCall3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2414,7 +2414,7 @@ namespace
 			SEXTEXT("    (SetId (Int32 value) ->)")
 			SEXTEXT(")");
 			
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestInterfaceDefinition"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInterfaceDefinition"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2462,7 +2462,7 @@ namespace
 			SEXTEXT("    (this.id = value)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestClassDefinition"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestClassDefinition"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -2503,7 +2503,7 @@ namespace
 			SEXTEXT("    (value = this.id)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMissingMethod"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMissingMethod"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2547,7 +2547,7 @@ namespace
 			SEXTEXT("    (this.id = value)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestClassInstance"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestClassInstance"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -2591,7 +2591,7 @@ namespace
 			SEXTEXT(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestConstructor"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestConstructor"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -2636,7 +2636,7 @@ namespace
 			SEXTEXT(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestNullObject"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNullObject"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -2656,7 +2656,7 @@ namespace
 			SEXTEXT("(function Main -> (Int32 result):)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDuplicateFunctionError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDuplicateFunctionError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2679,7 +2679,7 @@ namespace
 			SEXTEXT("(struct Vector3 (Float32 x y z))")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDuplicateStructureError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDuplicateStructureError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2701,7 +2701,7 @@ namespace
 			SEXTEXT("(namespace T234567890123456789012345678901234567890123456789012345678901234)") // 64 chars is not
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBigNamespaceError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBigNamespaceError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2723,7 +2723,7 @@ namespace
 			SEXTEXT("(function T2345678901234567890123456789012 -> (Int32 x):)") // 32 chars is not
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBigFunctionError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBigFunctionError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2745,7 +2745,7 @@ namespace
 			SEXTEXT("(struct T2345678901234567890123456789012 (Int32 x))") // 32 chars is not
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBigStructureError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBigStructureError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2767,7 +2767,7 @@ namespace
 			SEXTEXT("(interface EntryPoint.T2345678901234567890123456789012 (GetId -> (Int32 id)))") // 32 chars is not
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBigInterfaceError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBigInterfaceError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2789,7 +2789,7 @@ namespace
 			SEXTEXT("(archetype EntryPoint.T2345678901234567890123456789012 (Int32 x) -> (Int32 y))") // 32 chars is not
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestBigArchetypeError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBigArchetypeError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2811,7 +2811,7 @@ namespace
 			SEXTEXT("(interface EntryPoint.A (GetId -> (Int32 id)))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDuplicateInterfaceError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDuplicateInterfaceError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2833,7 +2833,7 @@ namespace
 			SEXTEXT("(archetype EntryPoint.A -> (Int32 id))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDuplicateArchetypeError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDuplicateArchetypeError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2863,7 +2863,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestTryWithoutThrow"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestTryWithoutThrow"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -2892,7 +2892,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestTryFinallyWithoutThrow"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestTryFinallyWithoutThrow"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -2926,7 +2926,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestCatch"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestCatch"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -2960,7 +2960,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDeepCatch"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDeepCatch"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -2988,7 +2988,7 @@ namespace
 			SEXTEXT("(method Robot.Destruct -> : (Sys.InvokeTest))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDestructor"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDestructor"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		g_destructorTestInt = 0;
@@ -3039,7 +3039,7 @@ namespace
 			SEXTEXT("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestExceptionDestruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestExceptionDestruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		g_destructorTestInt = 0;
@@ -3090,7 +3090,7 @@ namespace
 			SEXTEXT("(method TestException.Message -> (Sys.Type.IString s): (s = \"To be expected\"))")			
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDestructorThrows"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDestructorThrows"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3127,7 +3127,7 @@ namespace
 			SEXTEXT("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestThrowFromCatch"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestThrowFromCatch"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3153,7 +3153,7 @@ namespace
 			SEXTEXT("(class Robot (Int32 electroBrainNumber))")	
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestSizeOf"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestSizeOf"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3187,7 +3187,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestCatchArg"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestCatchArg"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3215,7 +3215,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestCatchInstanceArg"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestCatchInstanceArg"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3247,7 +3247,7 @@ namespace
 			SEXTEXT("(class Robot (Int32 brainState))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestInstancePropagation"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInstancePropagation"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3283,7 +3283,7 @@ namespace
 			SEXTEXT("(class Robot (Int32 brainState))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestInstanceMemberPropagation"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInstanceMemberPropagation"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3328,7 +3328,7 @@ namespace
 			SEXTEXT("(factory EntryPoint.MakeRobot EntryPoint.IRobot (Int32 brainState): (construct Robot brainState))")	
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestInterfacePropagation"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInterfacePropagation"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3370,7 +3370,7 @@ namespace
 			SEXTEXT("(factory Test.MakeRobot Test.IRobot (Int32 brainState) : (construct Robot brainState))")	
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMultipleInterfaces"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMultipleInterfaces"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3396,7 +3396,7 @@ namespace
 			SEXTEXT(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMultipleInterfaces"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMultipleInterfaces"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3421,7 +3421,7 @@ namespace
 			SEXTEXT(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestStringConstant"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStringConstant"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3444,7 +3444,7 @@ namespace
 			SEXTEXT(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestPrint"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestPrint"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3469,7 +3469,7 @@ namespace
 			SEXTEXT(")")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestPrintViaInstance"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestPrintViaInstance"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3495,7 +3495,7 @@ namespace
 			SEXTEXT(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMemoString"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMemoString"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
@@ -3528,7 +3528,7 @@ namespace
 			SEXTEXT(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMemoString2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMemoString2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3572,7 +3572,7 @@ namespace
 			SEXTEXT("(method Robot.ExistenceNumber -> (Int32 value): (value = 1234))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDynamicCast"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDynamicCast"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3608,7 +3608,7 @@ namespace
 			SEXTEXT("(factory Stuff.Dreambot Stuff.IRobot (Int32 id): (construct Robot id))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestInlinedFactory"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInlinedFactory"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3634,7 +3634,7 @@ namespace
 			SEXTEXT("  (result = rect.bottomLeft.x)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestRecti1"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestRecti1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
@@ -3667,7 +3667,7 @@ namespace
 			SEXTEXT("  (result = rect.bottomLeft.y)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestRecti2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestRecti2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
@@ -3700,7 +3700,7 @@ namespace
 			SEXTEXT("  (result = rect.topRight.x)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestRecti3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestRecti3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
@@ -3733,7 +3733,7 @@ namespace
 			SEXTEXT("  (result = rect.topRight.y)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestRecti4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestRecti4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
@@ -3779,7 +3779,7 @@ namespace
 			SEXTEXT("  (result = 320)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestWindow"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestWindow"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
@@ -3812,7 +3812,7 @@ namespace
 			SEXTEXT("  (s.ChildCount -> result)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestReflectionGetCurrentExpression"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestReflectionGetCurrentExpression"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
@@ -3846,7 +3846,7 @@ namespace
 			SEXTEXT("  (parent.ChildCount -> result)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestReflectionGetParent"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestReflectionGetParent"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
@@ -3892,7 +3892,7 @@ namespace
 			SEXTEXT("	)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestReflectionGetChild_BadIndex"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestReflectionGetChild_BadIndex"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
@@ -3926,7 +3926,7 @@ namespace
 			SEXTEXT("  (child.ChildCount -> result)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestReflectionGetChild"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestReflectionGetChild"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
@@ -3961,7 +3961,7 @@ namespace
 			SEXTEXT("  (Sys.Print name -> result)") // returns the strlen of 'IExpression'
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestReflectionGetAtomic"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestReflectionGetAtomic"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
@@ -4007,7 +4007,7 @@ namespace
 			SEXTEXT("  (EntryPoint.IPole pole)") // This creates two members, the concrete IPole, initially a null-object and a reference to the interface
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestNullMember"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNullMember"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
@@ -4054,7 +4054,7 @@ namespace
 			SEXTEXT("  (EntryPoint.IPole pole)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestNullMemberInit"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNullMemberInit"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
@@ -4093,7 +4093,7 @@ namespace
 			SEXTEXT(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestSysThrow"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestSysThrow"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4128,7 +4128,7 @@ namespace
 			SEXTEXT(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestSysThrow"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestSysThrow"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4167,7 +4167,7 @@ namespace
 			SEXTEXT("(method Tester.Construct : (this.id = 6))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestVirtualFromVirtual"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestVirtualFromVirtual"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4202,7 +4202,7 @@ namespace
 			SEXTEXT("(function GetNullRef -> (EntryPoint.ITest testRef): )")			
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestNullRefInit"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNullRefInit"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4229,7 +4229,7 @@ namespace
 			SEXTEXT(")")			
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestModuleCount"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestModuleCount"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4263,7 +4263,7 @@ namespace
 			SEXTEXT(")")			
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestPrintModules"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestPrintModules"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4298,7 +4298,7 @@ namespace
 			SEXTEXT(")")			
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestPrintStructs"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestPrintStructs"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4336,7 +4336,7 @@ namespace
 		SEXTEXT(")")		
 					;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMacro"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMacro"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4364,7 +4364,7 @@ namespace
 		SEXTEXT("	(s.ChildCount -> result)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestExpressionArg"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestExpressionArg"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4397,7 +4397,7 @@ namespace
 		SEXTEXT("	(out.Substitute in s)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestSubstitution"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestSubstitution"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4428,7 +4428,7 @@ namespace
 		SEXTEXT("	(Sys.Print s -> result)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestStringBuilder"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStringBuilder"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4468,7 +4468,7 @@ namespace
 		SEXTEXT("	(Sys.Print s -> result)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestStringBuilderBig"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStringBuilderBig"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4509,7 +4509,7 @@ namespace
 		SEXTEXT("	(GoPrint s)(result = 12)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestStringBuilderInsideClosure"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStringBuilderInsideClosure"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4550,7 +4550,7 @@ namespace
 		SEXTEXT("	(result = ((dog.Bark) + (dog.Powerup)))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDerivedInterfaces"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDerivedInterfaces"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4592,7 +4592,7 @@ namespace
 		SEXTEXT("	(result = ((k9.Bark) + (dog.Powerup)))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDerivedInterfaces2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDerivedInterfaces2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4623,7 +4623,7 @@ namespace
 		SEXTEXT("	(result = (Strings.FindLeftNoCase opera 4 instrument))") // the substring occurs at position 10 in the containing string
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestSearchSubstring"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestSearchSubstring"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4654,7 +4654,7 @@ namespace
 		SEXTEXT("	(result = (Strings.FindRightWithCase musical ((musical.Length) - 1) instrument))") // the substring occurs at position 10 in the containing string
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestSearchSubstring"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestSearchSubstring"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4687,7 +4687,7 @@ namespace
 		SEXTEXT("	(Sys.Print s -> result)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestAppendSubstring"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAppendSubstring"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4719,7 +4719,7 @@ namespace
 		SEXTEXT("	(Sys.Print s -> result)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestStringbuilderTruncate"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStringbuilderTruncate"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4752,7 +4752,7 @@ namespace
 		SEXTEXT("	(Sys.Print s -> result)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestSetCase"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestSetCase"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4790,7 +4790,7 @@ namespace
 		SEXTEXT("	(result = len)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestStringSplit"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStringSplit"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4817,7 +4817,7 @@ namespace
 		SEXTEXT("	(b.Capacity -> result)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMallocAligned"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMallocAligned"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4844,7 +4844,7 @@ namespace
 		SEXTEXT("	(result = a.Capacity)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayInt32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4877,7 +4877,7 @@ namespace
 			SEXTEXT("	(result = (f 17))")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestArrayArchetype"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestArrayArchetype"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -4904,7 +4904,7 @@ namespace
 		SEXTEXT("	(result = a.Length)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayInt32_2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32_2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4932,7 +4932,7 @@ namespace
 		SEXTEXT("	(result = (a 0))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayInt32_3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32_3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4972,7 +4972,7 @@ namespace
 		SEXTEXT("	(result = (a 3))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayInt32_4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32_4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5003,7 +5003,7 @@ namespace
 		SEXTEXT("	(result = (a 1))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayInt32_5"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32_5"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5033,7 +5033,7 @@ namespace
 		SEXTEXT("	(result = (x + a.Length))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayInt32_6"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32_6"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5061,7 +5061,7 @@ namespace
 		SEXTEXT("	(result = a.PopOut)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayInt32_7"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32_7"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5093,7 +5093,7 @@ namespace
 		SEXTEXT("	(result = (PassThrough (a 0)))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayInt32_8"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32_8"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5129,7 +5129,7 @@ namespace
 		SEXTEXT("	(result = sb.Length)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayFloat64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayFloat64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5158,7 +5158,7 @@ namespace
 		SEXTEXT("	(result = a.Length)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayInt32_9"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32_9"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5189,7 +5189,7 @@ namespace
 		SEXTEXT("	(result = a.Length)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayStruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayStruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5222,7 +5222,7 @@ namespace
 		SEXTEXT("	(result = w.z)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayStruct_2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayStruct_2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5255,7 +5255,7 @@ namespace
 		SEXTEXT("	(result = w.y)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayStruct_2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayStruct_2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5283,7 +5283,7 @@ namespace
 		SEXTEXT("	(result = (message.Length))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestGetSysMessage"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestGetSysMessage"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5320,7 +5320,7 @@ namespace
 		SEXTEXT("	(zoo.dog = (Sys.Type.BitchSpawn))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestInternalDestructorsCalled"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInternalDestructorsCalled"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5362,7 +5362,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestInternalDestructorsCalled2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInternalDestructorsCalled2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5391,7 +5391,7 @@ namespace
 		SEXTEXT("	(result = (a 3))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayRef"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayRef"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5422,7 +5422,7 @@ namespace
 		SEXTEXT("	(FillArray a)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayStrongTyping"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayStrongTyping"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5452,7 +5452,7 @@ namespace
 		SEXTEXT("	(Rover rover)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayStrongTyping2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayStrongTyping2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -5483,7 +5483,7 @@ namespace
 		SEXTEXT("	(rover.Bark a)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayStrongTyping3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayStrongTyping3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5517,7 +5517,7 @@ namespace
 		SEXTEXT("	(result = (kennel.dogIds 0))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayInStruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInStruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5558,7 +5558,7 @@ namespace
 		SEXTEXT("	(result = (sanctuary.kennel.dogIds 0))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayInStruct2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInStruct2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5596,7 +5596,7 @@ namespace
 		SEXTEXT("	(result = (sanctuary.kennels 0 dogId))") // Grab dogId from sanctuary.kennels(0)
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestConstructInArray"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestConstructInArray"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5640,7 +5640,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayInStruct4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInStruct4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5692,7 +5692,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayForeachWithinForEach"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayForeachWithinForEach"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5741,7 +5741,7 @@ namespace
 		SEXTEXT("	(sanctuary.kennelIds.Pop)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayForeachAndThrow"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayForeachAndThrow"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5788,7 +5788,7 @@ namespace
 		SEXTEXT("	(sanctuary.kennelIds.Pop)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayForeachAndThrow2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayForeachAndThrow2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5821,7 +5821,7 @@ namespace
 		SEXTEXT("	)")		
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayForeachEachElementInArray"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayForeachEachElementInArray"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5854,7 +5854,7 @@ namespace
 		SEXTEXT("	)")		
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayForeachEachElementInArrayWithoutIndex"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayForeachEachElementInArrayWithoutIndex"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5888,7 +5888,7 @@ namespace
 		SEXTEXT("	(a.Push 14)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayElementDeconstruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayElementDeconstruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5928,7 +5928,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayWithinArrayDeconstruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayWithinArrayDeconstruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5972,7 +5972,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayElementDeconstructWhenThrown"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayElementDeconstructWhenThrown"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6004,7 +6004,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestArrayElementLockRef"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayElementLockRef"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6031,7 +6031,7 @@ namespace
 		SEXTEXT("	(result = a.Length)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedList"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6060,7 +6060,7 @@ namespace
 		SEXTEXT("	(result = a.Length)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedList2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6090,7 +6090,7 @@ namespace
 		SEXTEXT("	(result = (n.Value + a.Length))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedList3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6120,7 +6120,7 @@ namespace
 		SEXTEXT("	(result = ((3 + n.Value) + (a.Length + 2)))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedList4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6158,7 +6158,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedList6"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList6"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6190,7 +6190,7 @@ namespace
 		SEXTEXT("	(result = tail.Value)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedList7"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList7"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6222,7 +6222,7 @@ namespace
 		SEXTEXT("	(result = head.Value)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedList8"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList8"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6256,7 +6256,7 @@ namespace
 		SEXTEXT("	(result = newNode.Value)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedList9"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList9"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6289,7 +6289,7 @@ namespace
 		SEXTEXT("	(result = tail.Value)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedList10"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList10"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6326,7 +6326,7 @@ namespace
 		SEXTEXT("	(result = (result + stuff.a.Length))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedList11"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList11"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6361,7 +6361,7 @@ namespace
 			SEXTEXT("   (result = (f 17))")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestLinkedListOfArchetypes"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestLinkedListOfArchetypes"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -6397,7 +6397,7 @@ namespace
 		SEXTEXT("	(result = head.Value)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedList12"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList12"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6434,7 +6434,7 @@ namespace
 		SEXTEXT("	(result = bone.Value)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedListOfLists"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedListOfLists"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6470,7 +6470,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedListForeach1"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedListForeach1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6506,7 +6506,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedListForeach2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedListForeach2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6544,7 +6544,7 @@ namespace
 		SEXTEXT("	(result = a.Length)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedListForeach3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedListForeach3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6581,7 +6581,7 @@ namespace
 		SEXTEXT("	(result = a.Length)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedListForeach4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedListForeach4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6618,7 +6618,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedListForeach5"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedListForeach5"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6664,7 +6664,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedListForeach6"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedListForeach6"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6709,7 +6709,7 @@ namespace
 
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestLinkedListForeach7"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedListForeach7"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6741,7 +6741,7 @@ namespace
 		SEXTEXT("	(result = a.Length)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestListStruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestListStruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6774,7 +6774,7 @@ namespace
 		SEXTEXT("	(result = val.z)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestListStruct2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestListStruct2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6807,7 +6807,7 @@ namespace
 		SEXTEXT("	(result = n.Value)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestListStrongTyping"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestListStrongTyping"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6834,7 +6834,7 @@ namespace
 		SEXTEXT("	(result = a.Length)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMap"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMap"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6869,7 +6869,7 @@ namespace
 			SEXTEXT("	(result = (f 17))")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestMapOfArchetypes"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMapOfArchetypes"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -6898,7 +6898,7 @@ namespace
 		SEXTEXT("	(result = a.Length)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMap2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMap2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6931,7 +6931,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMap3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMap3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6965,7 +6965,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMap4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMap4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6994,7 +6994,7 @@ namespace
 		SEXTEXT("	(result = n.Value)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMap5"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMap5"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7023,7 +7023,7 @@ namespace
 		SEXTEXT("	(result = n.Value)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMap6"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMap6"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7057,7 +7057,7 @@ namespace
 		SEXTEXT("	(result = (result + m.Value))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMap7"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMap7"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7088,7 +7088,7 @@ namespace
 		SEXTEXT("	(result = m.Value)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMapOverwriteValue"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapOverwriteValue"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7119,7 +7119,7 @@ namespace
 		SEXTEXT("	(if (m.Value == 239) (result = 1) else (result = 0))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMapOverwriteValue64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapOverwriteValue64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7149,7 +7149,7 @@ namespace
 		SEXTEXT("	(result = n.Value)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMapIndexedByInt32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapIndexedByInt32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7179,7 +7179,7 @@ namespace
 		SEXTEXT("	(result = n.Value)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMapIndexedByFloat64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapIndexedByFloat64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7212,7 +7212,7 @@ namespace
 		SEXTEXT("	(result = (m.Value + a.Length))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDeleteKey"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDeleteKey"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7245,7 +7245,7 @@ namespace
 		SEXTEXT("	(result = v.y)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMapValueStruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapValueStruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7279,7 +7279,7 @@ namespace
 		SEXTEXT("	(result = v.z)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMapValueConstruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapValueConstruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7316,7 +7316,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMapForeach1"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapForeach1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7356,7 +7356,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMapInStruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapInStruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7393,7 +7393,7 @@ namespace
 		SEXTEXT("	(subMap.a.Insert 22 Vec4 (199 233 455))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMapInMap"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapInMap"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7422,7 +7422,7 @@ namespace
 		SEXTEXT("	(result = n.Value)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMapCall"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapCall"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7456,7 +7456,7 @@ namespace
 		SEXTEXT("	(result = n.Value)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMapStrongTyping"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapStrongTyping"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7493,7 +7493,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMapThrowAndCleanup"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapThrowAndCleanup"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7530,7 +7530,7 @@ namespace
 		SEXTEXT("	)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMapThrowAndCleanup2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapThrowAndCleanup2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7567,7 +7567,7 @@ namespace
 		SEXTEXT("	(result = a.Length)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMapForeach2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapForeach2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7596,7 +7596,7 @@ namespace
 		SEXTEXT("	(result = 360)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestTypedef"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestTypedef"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7639,7 +7639,7 @@ namespace
 		SEXTEXT("	(Sys.Maths.F32.Cos 0.5 -> y)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathSinCosF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathSinCosF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7670,7 +7670,7 @@ namespace
 		SEXTEXT("	(Sys.Maths.F64.Cos 0.5 -> y)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathSinCos"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathSinCos"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7700,7 +7700,7 @@ namespace
 		SEXTEXT("	(Sys.Maths.F64.Tan 0.5 -> x)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathTan"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathTan"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7727,7 +7727,7 @@ namespace
 		SEXTEXT("	(Sys.Maths.F32.Tan 0.5 -> x)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathTanF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathTanF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7754,7 +7754,7 @@ namespace
 		SEXTEXT("	(Sys.Maths.F32.ArcTan 0.5 -> x)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathArcTanF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathArcTanF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7781,7 +7781,7 @@ namespace
 		SEXTEXT("	(Sys.Maths.F64.ArcTan 0.5 -> x)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathArcTan"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathArcTan"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7808,7 +7808,7 @@ namespace
 		SEXTEXT("	(Sys.Maths.F32.ArcTanYX 1 2 -> x)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathArcTanGradF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathArcTanGradF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7835,7 +7835,7 @@ namespace
 		SEXTEXT("	(Sys.Maths.F64.ArcTanYX 1 2 -> x)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathArcTanGrad"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathArcTanGrad"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7862,7 +7862,7 @@ namespace
 		SEXTEXT("	(Sys.Maths.F64.ArcSin 0.5 -> x)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathArcSin"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathArcSin"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7889,7 +7889,7 @@ namespace
 		SEXTEXT("	(Sys.Maths.F32.ArcSin 0.5 -> x)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathArcSinF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathArcSinF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7916,7 +7916,7 @@ namespace
 		SEXTEXT("	(Sys.Maths.F64.ArcCos 0.5 -> x)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathArcCos"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathArcCos"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7943,7 +7943,7 @@ namespace
 		SEXTEXT("	(Sys.Maths.F32.ArcCos 0.5 -> x)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathArcCosF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathArcCosF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7971,7 +7971,7 @@ namespace
 		SEXTEXT("	(Sys.Maths.F32.Cosh 0.5 -> y)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathSinhCoshF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathSinhCoshF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8002,7 +8002,7 @@ namespace
 		SEXTEXT("	(Sys.Maths.F64.Cosh 0.5 -> y)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathSinhCosh"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathSinhCosh"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8033,7 +8033,7 @@ namespace
 		SEXTEXT("	(Sys.Maths.F64.Tanh 0.5 -> x)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathTanh"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathTanh"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8060,7 +8060,7 @@ namespace
 		SEXTEXT("	(Sys.Maths.F32.Tanh 0.5 -> x)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathTanhF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathTanhF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8088,7 +8088,7 @@ namespace
 		SEXTEXT("	(x = (x - 2.7182818284590452353602874713527) )")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathExp"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathExp"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8116,7 +8116,7 @@ namespace
 		SEXTEXT("	(x = (x - 2.7182818284590452353602874713527) )")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathExpF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathExpF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8144,7 +8144,7 @@ namespace
 		SEXTEXT("	(x = (x - 0.69314718055994530941723212145818) )")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathLogN"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathLogN"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8172,7 +8172,7 @@ namespace
 		SEXTEXT("	(x = (x - 0.69314718055994530941723212145818) )")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathLogNF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathLogNF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8200,7 +8200,7 @@ namespace
 		SEXTEXT("	(x = (x - 3) )")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathLog10"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathLog10"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8228,7 +8228,7 @@ namespace
 		SEXTEXT("	(x = (x - 5) )")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathLog10F"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathLog10F"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8256,7 +8256,7 @@ namespace
 		SEXTEXT("	(x = (x - 81) )")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathPow"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathPow"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8284,7 +8284,7 @@ namespace
 		SEXTEXT("	(x = (x - 49.0) )")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathPowF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathPowF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8312,7 +8312,7 @@ namespace
 		SEXTEXT("	(x = (x - 5) )")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathAbsF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathAbsF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8340,7 +8340,7 @@ namespace
 		SEXTEXT("	(x = (x - (Sys.Maths.F64.Abs -12) ))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathAbs"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathAbs"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8368,7 +8368,7 @@ namespace
 		SEXTEXT("	(x = (x - 5) )")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathSqrtF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathSqrtF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8396,7 +8396,7 @@ namespace
 		SEXTEXT("	(x = (x - 12))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathSqrt"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathSqrt"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8424,7 +8424,7 @@ namespace
 		SEXTEXT("	(x = (x - (Sys.Maths.I32.Abs -12) ))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathAbsInt32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathAbsInt32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8452,7 +8452,7 @@ namespace
 		SEXTEXT("	(x = (x - (Sys.Maths.I64.Abs -12) ))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathAbsInt64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathAbsInt64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8480,7 +8480,7 @@ namespace
 		SEXTEXT("	(x = (x - 26) )")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathCeilF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathCeilF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8508,7 +8508,7 @@ namespace
 		SEXTEXT("	(x = (x - 18))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathCeil"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathCeil"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8536,7 +8536,7 @@ namespace
 		SEXTEXT("	(x = (x - 25) )")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathFloorF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathFloorF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8564,7 +8564,7 @@ namespace
 		SEXTEXT("	(x = (x - 17))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathFloor"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathFloor"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8591,7 +8591,7 @@ namespace
 			SEXTEXT("	(Sys.Maths.I32.Mod 16 9 -> rem)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathModInt32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathModInt32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8618,7 +8618,7 @@ namespace
 			SEXTEXT("	(Sys.Maths.I64.Mod 12 5 -> rem)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathModInt64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathModInt64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8648,7 +8648,7 @@ namespace
 		SEXTEXT("	(x = (x + (Sys.Maths.I64.RightShift 32 5)))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathShiftInt64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathShiftInt64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8677,7 +8677,7 @@ namespace
 		SEXTEXT("	(x = (x + (Sys.Maths.I32.RightShift 32 5)))")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMathShiftInt32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathShiftInt32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8706,7 +8706,7 @@ namespace
 			SEXTEXT("	(Sys.Maths.I32.MaxOf y z -> x)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestMinMaxInt32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMinMaxInt32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -8735,7 +8735,7 @@ namespace
 			SEXTEXT("	(Sys.Maths.F32.MaxOf y z -> x)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestMinMaxFloat32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMinMaxFloat32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -8764,7 +8764,7 @@ namespace
 			SEXTEXT("	(Sys.Maths.I64.MaxOf y z -> x)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestMinMaxInt64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMinMaxInt64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -8793,7 +8793,7 @@ namespace
 			SEXTEXT("	(Sys.Maths.F64.MaxOf y z -> x)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestMinMaxFloat64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMinMaxFloat64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -8821,7 +8821,7 @@ namespace
 			SEXTEXT("	(y = Sys.Maths.I32.MaxValue)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestLimitsInt32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestLimitsInt32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -8855,7 +8855,7 @@ namespace
 			SEXTEXT(")");
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestIsInfinity"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsInfinity"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -8893,7 +8893,7 @@ namespace
 			SEXTEXT("	(Sys.Maths.F32.IsQuietNan 2 -> z)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestIsQuietNan"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsQuietNan"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -8929,7 +8929,7 @@ namespace
 			SEXTEXT("	(Sys.Maths.F32.IsFinite 1 -> w)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestIsFinite"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsFinite"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -8968,7 +8968,7 @@ namespace
 			SEXTEXT("	(Sys.Maths.F32.IsNormal 1 -> w)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestIsNormal"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsNormal"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9008,7 +9008,7 @@ namespace
 			SEXTEXT(")");
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestIsInfinity64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsInfinity64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9046,7 +9046,7 @@ namespace
 			SEXTEXT("	(Sys.Maths.F64.IsQuietNan 2 -> z)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestIsQuietNan64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsQuietNan64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9082,7 +9082,7 @@ namespace
 			SEXTEXT("	(Sys.Maths.F64.IsFinite 1 -> w)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestIsFinite64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsFinite64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9121,7 +9121,7 @@ namespace
 			SEXTEXT("	(Sys.Maths.F64.IsNormal 1 -> w)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestIsNormal64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsNormal64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9158,7 +9158,7 @@ namespace
 			SEXTEXT("	(y = Sys.Maths.F32.MaxValue)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestLimitsFloat32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestLimitsFloat32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9189,7 +9189,7 @@ namespace
 			SEXTEXT("	(y = Sys.Maths.F64.MaxValue)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestLimitsFloat64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestLimitsFloat64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9220,7 +9220,7 @@ namespace
 			SEXTEXT("	(y = Sys.Maths.I64.MaxValue)")
 			SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestLimitsInt64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestLimitsInt64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9263,7 +9263,7 @@ namespace
 		SEXTEXT("	(brain.Id -> exitCode)")
 		SEXTEXT(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestReturnInterface"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestReturnInterface"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9290,7 +9290,7 @@ namespace
 			SEXTEXT("(function F (Int32 x) -> (Int32 y) -> : (y = x))")			
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestDoubleArrowsInFunction"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoubleArrowsInFunction"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -9319,7 +9319,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMemberwiseInit"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMemberwiseInit"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9347,7 +9347,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestStructStringPassByRef"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStructStringPassByRef"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9372,7 +9372,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestEmptyString"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestEmptyString"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9412,7 +9412,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMeshStruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMeshStruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9457,7 +9457,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMeshStruct2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMeshStruct2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9502,7 +9502,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMeshStruct3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMeshStruct3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9556,7 +9556,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestMeshStruct4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMeshStruct4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9581,7 +9581,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestYield"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestYield"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9614,7 +9614,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestStructByRefAssign"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStructByRefAssign"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9642,7 +9642,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestAssignVectorComponentsFromParameters"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignVectorComponentsFromParameters"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9676,7 +9676,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestConstructFromInterface"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestConstructFromInterface"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9703,7 +9703,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0,0), SEXTEXT("TestAssignPointerFromFunction"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignPointerFromFunction"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		struct ANON
@@ -9740,7 +9740,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestMinimumConstruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMinimumConstruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9760,7 +9760,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestRaw"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestRaw"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9781,7 +9781,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestGlobalInt32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestGlobalInt32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9811,7 +9811,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestGlobalInt32_2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestGlobalInt32_2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9840,7 +9840,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestGlobalInt32_3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestGlobalInt32_3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9870,7 +9870,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestMacroAsArgument1"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMacroAsArgument1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9908,7 +9908,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestMultipleDerivation"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMultipleDerivation"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9941,7 +9941,7 @@ namespace
 			SEXTEXT("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestMultipleDerivation2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMultipleDerivation2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9988,7 +9988,7 @@ namespace
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(1, 1), SEXTEXT("TestClassDefinesInterface"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestClassDefinesInterface"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10023,7 +10023,7 @@ namespace
 			SEXTEXT(")\n")
 			SEXTEXT("(alias Main EntryPoint.Main)\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(1, 1), SEXTEXT("TestClassExtendsInterface"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestClassExtendsInterface"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10048,7 +10048,7 @@ namespace
 			SEXTEXT("		(y = (x + 1))")
 			SEXTEXT("	)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(1, 1), SEXTEXT("TestInstancing"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestInstancing"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10087,7 +10087,7 @@ namespace
 			SEXTEXT("		(y = (Eval f))")
 			SEXTEXT("	)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(1, 1), SEXTEXT("TestInstancing"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestInstancing"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10123,7 +10123,7 @@ namespace
 			SEXTEXT("		(y = (Eval f))\n")
 			SEXTEXT("	)\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(1, 1), SEXTEXT("TestBadClosureArg"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestBadClosureArg"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10136,7 +10136,7 @@ namespace
 		ParseException ex;
 		validate(s_logger.TryGetNextException(ex));
 			
-		validate(ex.Start().Y == 5 && ex.End().Y == 5);
+		validate(ex.Start().y == 5 && ex.End().y == 5);
 	}
 
 	void TestBadClosureArg2(IPublicScriptSystem& ss)
@@ -10161,7 +10161,7 @@ namespace
 			SEXTEXT("		(y = (Eval e))\n")
 			SEXTEXT("	)\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(1, 1), SEXTEXT("TestBadClosureArg2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestBadClosureArg2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10174,7 +10174,7 @@ namespace
 		ParseException ex;
 		validate(s_logger.TryGetNextException(ex));
 
-		validate(ex.Start().Y == 13 && ex.End().Y == 13);
+		validate(ex.Start().y == 13 && ex.End().y == 13);
 	}
 
 	void TestBadClosureArg3(IPublicScriptSystem& ss)
@@ -10195,7 +10195,7 @@ namespace
 			SEXTEXT("		(q.Push f)\n")
 			SEXTEXT("	)\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(1, 1), SEXTEXT("TestBadClosureArg3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestBadClosureArg3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10208,7 +10208,7 @@ namespace
 		ParseException ex;
 		validate(s_logger.TryGetNextException(ex));
 
-		validate(ex.Start().Y == 11 && ex.End().Y == 11);
+		validate(ex.Start().y == 11 && ex.End().y == 11);
 	}
 
 	void TestClosureCapture(IPublicScriptSystem& ss)
@@ -10231,7 +10231,7 @@ namespace
 
 			SEXTEXT(")\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(1, 1), SEXTEXT("TestClosureCapture"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestClosureCapture"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10267,7 +10267,7 @@ namespace
 
 			SEXTEXT(")\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(1, 1), SEXTEXT("TestClosureCapture2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestClosureCapture2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10305,7 +10305,7 @@ namespace
 
 			SEXTEXT(")\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(1, 1), SEXTEXT("TestBadClosureArg7"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestBadClosureArg7"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10318,7 +10318,7 @@ namespace
 		ParseException ex;
 		validate(s_logger.TryGetNextException(ex));
 
-		validate(ex.Start().Y == 15 && ex.End().Y == 15);
+		validate(ex.Start().y == 15 && ex.End().y == 15);
 	}
 
 	void TestBadClosureArg6(IPublicScriptSystem& ss)
@@ -10345,7 +10345,7 @@ namespace
 
 			SEXTEXT(")\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(1, 1), SEXTEXT("TestBadClosureArg6"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestBadClosureArg6"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10358,7 +10358,7 @@ namespace
 		ParseException ex;
 		validate(s_logger.TryGetNextException(ex));
 
-		validate(ex.Start().Y == 14 && ex.End().Y == 14);
+		validate(ex.Start().y == 14 && ex.End().y == 14);
 	}
 
 	void TestBadClosureArg5(IPublicScriptSystem& ss)
@@ -10387,7 +10387,7 @@ namespace
 			
 			SEXTEXT(")\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(1, 1), SEXTEXT("TestBadClosureArg5"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestBadClosureArg5"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10400,7 +10400,7 @@ namespace
 		ParseException ex;
 		validate(s_logger.TryGetNextException(ex));
 
-		validate(ex.Start().Y == 16 && ex.End().Y == 16);
+		validate(ex.Start().y == 16 && ex.End().y == 16);
 	}
 
 	void TestBadClosureArg4(IPublicScriptSystem& ss)
@@ -10421,7 +10421,7 @@ namespace
 			SEXTEXT("		(q.Prepend f)\n")
 			SEXTEXT("	)\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(1, 1), SEXTEXT("TestBadClosureArg4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestBadClosureArg4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10434,7 +10434,7 @@ namespace
 			ParseException ex;
 		validate(s_logger.TryGetNextException(ex));
 
-		validate(ex.Start().Y == 11 && ex.End().Y == 11);
+		validate(ex.Start().y == 11 && ex.End().y == 11);
 	}
 
 	void TestNullArchetypeArg(IPublicScriptSystem& ss)
@@ -10447,7 +10447,7 @@ namespace
 			SEXTEXT("(function Call (EntryPoint.ToInt fn) -> (Int32 result):  (fn -> result))\n")
 			SEXTEXT("(archetype EntryPoint.ToInt -> (Int32 y)) \n")
 			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, SourcePos(0, 0), SEXTEXT("TestNullArchetype"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestNullArchetype"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());

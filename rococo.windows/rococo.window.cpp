@@ -22,6 +22,11 @@
 
 #include <Richedit.h>
 
+#include <Commdlg.h>
+
+#pragma comment(lib, "ComCtl32.lib")
+#pragma comment(linker,"\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+
 namespace
 {
 	HINSTANCE hThisInstance = nullptr;
@@ -53,13 +58,38 @@ namespace Rococo
 	{
 		void SetControlFont(HWND hControlWindow)
 		{
-			SendMessage(hControlWindow, WM_SETFONT, (WPARAM)hControlFont, 0);
+			SendMessage(hControlWindow, WM_SETFONT, (WPARAM)hControlFont, TRUE);
 		}
 
-		void SetTitleFont(HWND hTitleBar)
-		{
-			SendMessage(hTitleBar, WM_SETFONT, (WPARAM)hTitleFont, 0);
-		}
+      void SetTitleFont(HWND hTitleBar)
+      {
+         SendMessage(hTitleBar, WM_SETFONT, (WPARAM)hTitleFont, 0);
+      }
+
+      bool OpenChooseFontBox(HWND hParent, LOGFONT& output)
+      {
+         CHOOSEFONTW font = { 0 };
+         font.lStructSize = sizeof(font);
+         font.hInstance = hThisInstance;
+         font.hwndOwner = hParent;
+         
+         LOGFONT f = { 0 };
+         SafeCopy(f.lfFaceName, L"Courier New", _TRUNCATE);
+
+         font.lpLogFont = &f;
+         font.Flags = CF_FIXEDPITCHONLY | CF_FORCEFONTEXIST | CF_INITTOLOGFONTSTRUCT;
+         
+         if (ChooseFontW(&font))
+         {
+            output = f;
+            return true;
+         }
+         else
+         {
+            output = LOGFONT{ 0 };
+            return false;
+         }
+      }
 
 		void InitRococoWindows(HINSTANCE _hInstance, HICON _hLargeIcon, HICON _hSmallIcon, const LOGFONTW* titleFont, const LOGFONTW* controlFont)
 		{
@@ -91,6 +121,12 @@ namespace Rococo
 			{
 				Throw(GetLastError(), L"Rococo::Windows::InitRococoWindows(...): CreateFontIndirect(&controlFont) returned null");
 			}
+
+         BOOL isTrue = TRUE, isFalse = FALSE;
+         SystemParametersInfo(SPI_SETMENUANIMATION, 0, &isTrue, 0);
+         SystemParametersInfo(SPI_SETMENUFADE, 0, &isFalse, 0);
+
+         InitCommonControls();
 
 			atexit(Cleanup);
 		}
@@ -376,7 +412,7 @@ namespace Rococo
 			return parent.AddChild(childConfig, L"STATIC", id);
 		}
 
-		ITabControl* AddTabs(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, ITabControlEvents& eventHandler, DWORD style, DWORD styleEx)
+		ITabControl* AddTabs(IWindow& parent, const GuiRect& rect, LPCWSTR name, ControlId id, ITabControlEvents& eventHandler, DWORD style, DWORD styleEx)
 		{
 			WindowConfig childConfig;
 			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, styleEx);
@@ -391,7 +427,7 @@ namespace Rococo
 			return parent.AddChild(childConfig, L"EDIT", id);
 		}
 
-		ITreeControlSupervisor* AddTree(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, ITreeControlHandler& eventHandler, DWORD style, DWORD styleEx)
+		ITreeControlSupervisor* AddTree(IWindow& parent, const GuiRect& rect, LPCWSTR name, ControlId id, ITreeControlHandler& eventHandler, DWORD style, DWORD styleEx)
 		{
 			WindowConfig childConfig;
 			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, styleEx);
@@ -399,7 +435,7 @@ namespace Rococo
 			return t;
 		}
 
-		IListViewSupervisor* AddListView(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, IListViewEvents& eventHandler, DWORD style, DWORD containerStyle, DWORD containerStyleEx)
+		IListViewSupervisor* AddListView(IWindow& parent, const GuiRect& rect, LPCWSTR name, IListViewEvents& eventHandler, DWORD style, DWORD containerStyle, DWORD containerStyleEx)
 		{
 			WindowConfig childConfig;
 			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, containerStyleEx);
@@ -407,7 +443,7 @@ namespace Rococo
 			return t;
 		}
 
-		IRichEditor* AddRichEditor(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, IRichEditorEvents& eventHandler, DWORD style, DWORD styleEx)
+		IRichEditor* AddRichEditor(IWindow& parent, const GuiRect& rect, LPCWSTR name, ControlId id, IRichEditorEvents& eventHandler, DWORD style, DWORD styleEx)
 		{
 			if (hRichEditor == nullptr)
 			{
@@ -494,6 +530,11 @@ namespace Rococo
 			return DefWindowProc(hWnd, WM_INPUT, wParam, lParam);
 		}
 
+      LRESULT StandardWindowHandler::OnKeydown(HWND hWnd, WPARAM wParam, LPARAM lParam)
+      {
+         return DefWindowProc(hWnd, WM_KEYDOWN, wParam, lParam);
+      }
+
 		LRESULT StandardWindowHandler::OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			switch (uMsg)
@@ -525,13 +566,22 @@ namespace Rococo
 			case WM_ERASEBKGND:
 				OnEraseBackground(hWnd, (HDC)wParam);
 				return 0;
+         case WM_SETCURSOR:
+            return OnSetCursor(hWnd, wParam, lParam);
 			case WM_INPUT:
 				return OnInput(hWnd, wParam, lParam);
 			case WM_TIMER:
 				return OnTimer(hWnd, wParam, lParam);	
+         case WM_KEYDOWN:
+            return OnKeydown(hWnd, wParam, lParam);
 			}
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
+
+      LRESULT StandardWindowHandler::OnSetCursor(HWND hWnd, WPARAM wParam, LPARAM lParam)
+      {
+         return DefWindowProc(hWnd, WM_SETCURSOR, wParam, lParam);
+      }
 
 		LRESULT StandardWindowHandler::OnControlCommand(HWND hWnd, DWORD notificationCode, ControlId id, HWND hControlCode)
 		{
@@ -590,9 +640,9 @@ namespace Rococo
 			info.ptMinTrackSize.y = DEFAULT_MIN_HEIGHT;
 		}
 
-		IWin32Menu* CreateMenu()
+		IWin32Menu* CreateMenu(bool contextMenu)
 		{
-			return new Menu();
+			return new Menu(contextMenu);
 		}
 	} // Windows
 } // Rococo

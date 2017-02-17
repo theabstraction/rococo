@@ -401,6 +401,7 @@ namespace Sexy { namespace Compiler
 		virtual const IInterface* FindInterface(csexstr name) const = 0;
 		virtual const IMacro* FindMacro(csexstr name) const = 0;
 				
+      virtual const INamespace& GetChild(size_t index) const = 0;
 		virtual size_t ChildCount() const = 0;
 		virtual const sexstring FullName() const = 0;
 		virtual const sexstring Name() const = 0;

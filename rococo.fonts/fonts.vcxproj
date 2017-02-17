@@ -46,6 +46,7 @@
     <TargetName>$(ProjectName).debug</TargetName>
     <OutDir>$(SolutionDir)\lib\</OutDir>
     <IntDir>..\intermediate\$(ProjectName)\$(Configuration)\</IntDir>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>

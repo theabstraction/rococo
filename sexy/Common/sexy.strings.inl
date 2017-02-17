@@ -445,17 +445,17 @@ namespace Sexy
 
 	namespace Sex
 	{
-		csexstr ReadUntil(const SourcePos& pos, const ISourceCode& src)
+		csexstr ReadUntil(const Vec2i& pos, const ISourceCode& src)
 		{
-			SourcePos origin = src.Origin();
+			Vec2i origin = src.Origin();
 
-			int X = origin.X, Y = origin.Y;
+			int X = origin.x, Y = origin.y;
 
 			int i;
 			for(i = 0; i < src.SourceLength(); ++i)
 			{
-				if (Y > pos.Y) break;
-				else if (pos.Y == Y && X == pos.X)
+				if (Y > pos.y) break;
+				else if (pos.y == Y && X == pos.x)
 				{
 					break;
 				}
@@ -466,7 +466,7 @@ namespace Sexy
 					break;
 				case '\n':
 					Y++;
-					X = origin.X;
+					X = origin.x;
 					break;
 				default:
 					X++;

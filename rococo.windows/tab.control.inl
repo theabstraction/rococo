@@ -24,6 +24,20 @@ namespace
 		{
 			switch (uMsg)
 			{
+         case WM_RBUTTONUP:
+         {
+            POINT cursorPos;
+            GetCursorPos(&cursorPos);
+
+            POINT cursorPos2 = cursorPos;
+            ScreenToClient(hWndTabControl, &cursorPos2);
+
+            TCHITTESTINFO info = { cursorPos2, 0 };
+            int index = TabCtrl_HitTest(hWndTabControl, &info);
+
+            eventHandler.OnTabRightClicked(index, cursorPos);
+            return 0L;
+         }
 			case WM_SIZE:
 				return OnSize(hWnd, wParam, lParam);
 			case WM_NOTIFY:
@@ -34,6 +48,19 @@ namespace
 					eventHandler.OnSelectionChanged(GetCurrentSelection());
 					return 0L;
 				}
+            else if (header->code == NM_RCLICK)
+            {
+               POINT cursorPos;
+               GetCursorPos(&cursorPos);
+
+               POINT cursorPos2 = cursorPos;
+               ScreenToClient(hWndTabControl, &cursorPos2);
+
+               TCHITTESTINFO info = { cursorPos2, 0 };
+               int index = TabCtrl_HitTest(hWndTabControl, &info);
+
+               eventHandler.OnTabRightClicked(index, cursorPos);
+            }
 				else if (header->code == TTN_GETDISPINFO)
 				{
 					NMTTDISPINFO* info = (NMTTDISPINFO*)header;
@@ -139,7 +166,7 @@ namespace
 			return TabCtrl_GetItem(hWndTabControl, index, &item) == TRUE;
 		}
 
-		void Construct(const WindowConfig& tabConfig, IParentWindowSupervisor& parent)
+		void Construct(const WindowConfig& tabConfig, IWindow& parent)
 		{
 			WindowConfig containerConfig = tabConfig;
 			containerConfig.style = WS_CHILD | WS_VISIBLE;
@@ -163,11 +190,13 @@ namespace
 			TabCtrl_AdjustRect(hWndTabControl, TRUE, &rect);
 
 			WindowConfig clientConfig;
-			Windows::SetChildWindowConfig(clientConfig, FromRECT(rect), hWndTabControl, L"", WS_CHILD | WS_VISIBLE, WS_EX_CLIENTEDGE);
+			Windows::SetChildWindowConfig(clientConfig, FromRECT(rect), hWndTabControl, L"", WS_CHILD | WS_VISIBLE, 0 /* WS_EX_CLIENTEDGE */);
 			clientSpace = Windows::CreateChildWindow(clientConfig, &clientSpaceHandler);
+
+ //        SetWindowSubclass(hWndTabControl, OnSubclassMessage, (UINT_PTR) this, 0);
 		}
 	public:
-		static TabControlSupervisor* Create(const WindowConfig& config, IParentWindowSupervisor& parent, ITabControlEvents& eventHandler)
+		static TabControlSupervisor* Create(const WindowConfig& config, IWindow& parent, ITabControlEvents& eventHandler)
 		{
 			if (customAtom == 0)
 			{
@@ -181,6 +210,8 @@ namespace
 
 		~TabControlSupervisor()
 		{
+         Rococo::Free(clientSpace);
+         DestroyWindow(hWnd);
 		}
 
 		virtual IParentWindowSupervisor& ClientSpace()

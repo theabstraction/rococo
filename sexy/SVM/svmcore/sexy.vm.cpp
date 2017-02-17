@@ -585,7 +585,7 @@ namespace
 				FileData fd;
 				if (symbols.TryGetSymbol(cpu.PC() - cpu.ProgramStart, OUT fd))
 				{
-					if (fd.Source != start.Source || fd.Pos.X != start.Pos.X || fd.Pos.Y != start.Pos.Y)
+					if (fd.Source != start.Source || fd.Pos.x != start.Pos.x || fd.Pos.y != start.Pos.y)
 					{
 						break;
 					}

@@ -13,6 +13,7 @@
 
 #include <rococo.maths.h>
 #include <rococo.strings.h>
+#include <rococo.sexy.ide.h>
 
 #include "component.system.inl"
 
@@ -1299,7 +1300,7 @@ namespace
 	class LevelLoader : public ILevelLoader, public IEventCallback<ScriptCompileArgs>
 	{
 		Environment& e;
-		IPersistentScript* levelScript;
+		Rococo::IDE::IPersistentScript* levelScript;
 
 		std::wstring nextLevelName;
 	public:
@@ -1342,13 +1343,13 @@ namespace
 		virtual void ExecuteLevelFunction(const wchar_t* functionName, IArgEnumerator& args)
 		{
 			if (!levelScript) Throw(0, L"No level script loaded!");
-			levelScript->ExecuteFunction(functionName, args);
+			levelScript->ExecuteFunction(functionName, args, e.exceptionHandler);
 		}
 
 		virtual void ExecuteLevelFunction(ArchetypeCallback fn, IArgEnumerator& args)
 		{
 			if (!levelScript) Throw(0, L"No level script loaded!");
-			levelScript->ExecuteFunction(fn, args);
+			levelScript->ExecuteFunction(fn, args, e.exceptionHandler);
 		}
 
 		virtual void Free()
@@ -1372,7 +1373,7 @@ namespace
 				levelScript = nullptr;
 			}
 
-			levelScript = CreatePersistentScript(16384, e.sourceCache, e.debuggerWindow, resourceName, (int32)16_megabytes, *this);
+			levelScript = IDE::CreatePersistentScript(16384, e.sourceCache, e.debuggerWindow, resourceName, (int32)16_megabytes, *this, e.exceptionHandler);
 
 			struct : IArgEnumerator
 			{
@@ -1386,26 +1387,7 @@ namespace
 					int32 exitCode = args.PopInt32();
 				}
 			} args;
-			levelScript->ExecuteFunction(L"Main", args);
-		}
-
-		virtual void SyncWithModifiedFiles()
-		{
-			struct : IEventCallback<FileModifiedArgs>
-			{
-				IMeshLoader* meshLoader;
-				IBoneLibrary* boneLib;
-
-				virtual void OnEvent(FileModifiedArgs& args)
-				{
-					meshLoader->UpdateMesh(args.resourceName);
-					boneLib->UpdateLib(args.resourceName);
-				}
-			} monitor;
-			monitor.meshLoader = &e.meshes;
-			monitor.boneLib = &e.boneLibrary;
-
-			GetOS(e).EnumerateModifiedFiles(monitor);
+			levelScript->ExecuteFunction(L"Main", args, e.exceptionHandler);
 		}
 	};
 }

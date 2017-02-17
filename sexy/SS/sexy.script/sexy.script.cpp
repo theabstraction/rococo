@@ -419,7 +419,7 @@ namespace
 			{
 				SEXCHAR fullError[2048];
 				StringPrint(fullError, 2048, SEXTEXT("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
-				ParseException nativeError(SourcePos(0,0), SourcePos(0,0), NativeModuleSrc, fullError, SEXTEXT(""), NULL);
+				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, SEXTEXT(""), NULL);
 				Throw(nativeError);
 			}
 
@@ -439,7 +439,7 @@ namespace
 			{
 				SEXCHAR fullError[2048];
 				StringPrint(fullError, 2048, SEXTEXT("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
-				ParseException nativeError(SourcePos(0,0), SourcePos(0,0), NativeModuleSrc, fullError, SEXTEXT(""), NULL);
+				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, SEXTEXT(""), NULL);
 				Throw(nativeError);
 			}
 
@@ -452,7 +452,7 @@ namespace
 			{
 				SEXCHAR fullError[2048];
 				StringPrint(fullError, 2048, SEXTEXT("%s: Could not resolve all arguments. Check the log."), nf.Archetype.c_str());
-				ParseException nativeError(SourcePos(0,0), SourcePos(0,0), NativeModuleSrc, fullError, SEXTEXT(""), NULL);
+				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, SEXTEXT(""), NULL);
 				Throw(nativeError);
 			}
 
@@ -470,7 +470,7 @@ namespace
 			{
 				SEXCHAR fullError[2048];
 				StringPrint(fullError, 2048, SEXTEXT("%s: %s"), nf.Archetype.c_str(), e.Message());
-				ParseException nativeError(SourcePos(0,0), SourcePos(0,0), NativeModuleSrc, fullError, SEXTEXT(""), NULL);
+				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, SEXTEXT(""), NULL);
 				Throw(nativeError);
 			}							
 		}
@@ -1329,7 +1329,7 @@ namespace
 
 			SEXCHAR srcName[MAX_ARCHETYPE_LEN + 64];
 			StringPrint(srcName, MAX_ARCHETYPE_LEN + 64, L"Source: '%s'", sxArchetype);
-			Auto<ISourceCode> src = SParser().ProxySourceBuffer(sxArchetype, (int)len, SourcePos(0, 0), srcName);
+			Auto<ISourceCode> src = SParser().ProxySourceBuffer(sxArchetype, (int)len, Vec2i{ 0,0 }, srcName);
 
 			try
 			{
@@ -1366,7 +1366,7 @@ namespace
 				throw;
 			}
 
-			src.Src = sexParserProxy().DuplicateSourceBuffer(srcCode, -1, SourcePos(0,0), fullPath);
+			src.Src = sexParserProxy().DuplicateSourceBuffer(srcCode, -1, Vec2i{ 0,0 }, fullPath);
 			src.Tree = sexParserProxy().CreateTree(*src.Src);
 
 			AddTree(*src.Tree);

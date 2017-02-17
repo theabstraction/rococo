@@ -73,6 +73,7 @@
     <IntDir>..\intermediate\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>..\lib\</OutDir>
     <TargetName>$(ProjectName).debug</TargetName>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>..\intermediate\$(ProjectName)\$(Configuration)\</IntDir>
@@ -151,6 +152,7 @@
     <ClCompile Include="rococo.postbox.cpp" />
     <ClCompile Include="rococo.s-parser.helpers.cpp" />
     <ClCompile Include="rococo.strings.cpp" />
+    <ClCompile Include="ui.widgets.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

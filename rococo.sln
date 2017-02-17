@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.windows", "rococo.windows\rococo.windows.vcxproj", "{997A007C-24B0-44FE-A27E-0EE006D74128}"
 EndProject
@@ -21,6 +21,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dystopia", "dystopia\dystop
 	ProjectSection(ProjectDependencies) = postProject
 		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
 		{31024025-C99F-45A4-A4EA-BCEB32794477} = {31024025-C99F-45A4-A4EA-BCEB32794477}
+		{B9B1C849-B75F-4C56-AD56-01D36F3FDA05} = {B9B1C849-B75F-4C56-AD56-01D36F3FDA05}
 		{0C635B64-083B-4490-9100-BDB4A4CA6941} = {0C635B64-083B-4490-9100-BDB4A4CA6941}
 		{426AEC64-C529-4ADF-9A49-B4E7A3D6C710} = {426AEC64-C529-4ADF-9A49-B4E7A3D6C710}
 		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
@@ -43,6 +44,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Content", "Content", "{BF61
 		content\scripts\dystopia.sxh.sxy = content\scripts\dystopia.sxh.sxy
 		content\levels\level1.sxy = content\levels\level1.sxy
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.sexy.ide", "rococo.sexy.ide\rococo.sexy.ide.vcxproj", "{B9B1C849-B75F-4C56-AD56-01D36F3FDA05}"
+	ProjectSection(ProjectDependencies) = postProject
+		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.widgets", "rococo.widgets\rococo.widgets.vcxproj", "{673E7B16-B3C8-48D9-915B-A8E82900691C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.gluey", "rococo.gluey\rococo.gluey.vcxproj", "{BE591814-5BEE-49E7-B0A8-88AE8949724D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -116,6 +126,30 @@ Global
 		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Release|x64.Build.0 = Release|x64
 		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Release|x86.ActiveCfg = Release|Win32
 		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Release|x86.Build.0 = Release|Win32
+		{B9B1C849-B75F-4C56-AD56-01D36F3FDA05}.Debug|x64.ActiveCfg = Debug|x64
+		{B9B1C849-B75F-4C56-AD56-01D36F3FDA05}.Debug|x64.Build.0 = Debug|x64
+		{B9B1C849-B75F-4C56-AD56-01D36F3FDA05}.Debug|x86.ActiveCfg = Debug|Win32
+		{B9B1C849-B75F-4C56-AD56-01D36F3FDA05}.Debug|x86.Build.0 = Debug|Win32
+		{B9B1C849-B75F-4C56-AD56-01D36F3FDA05}.Release|x64.ActiveCfg = Release|x64
+		{B9B1C849-B75F-4C56-AD56-01D36F3FDA05}.Release|x64.Build.0 = Release|x64
+		{B9B1C849-B75F-4C56-AD56-01D36F3FDA05}.Release|x86.ActiveCfg = Release|Win32
+		{B9B1C849-B75F-4C56-AD56-01D36F3FDA05}.Release|x86.Build.0 = Release|Win32
+		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Debug|x64.ActiveCfg = Debug|x64
+		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Debug|x64.Build.0 = Debug|x64
+		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Debug|x86.ActiveCfg = Debug|Win32
+		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Debug|x86.Build.0 = Debug|Win32
+		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Release|x64.ActiveCfg = Release|x64
+		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Release|x64.Build.0 = Release|x64
+		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Release|x86.ActiveCfg = Release|Win32
+		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Release|x86.Build.0 = Release|Win32
+		{BE591814-5BEE-49E7-B0A8-88AE8949724D}.Debug|x64.ActiveCfg = Debug|x64
+		{BE591814-5BEE-49E7-B0A8-88AE8949724D}.Debug|x64.Build.0 = Debug|x64
+		{BE591814-5BEE-49E7-B0A8-88AE8949724D}.Debug|x86.ActiveCfg = Debug|Win32
+		{BE591814-5BEE-49E7-B0A8-88AE8949724D}.Debug|x86.Build.0 = Debug|Win32
+		{BE591814-5BEE-49E7-B0A8-88AE8949724D}.Release|x64.ActiveCfg = Release|x64
+		{BE591814-5BEE-49E7-B0A8-88AE8949724D}.Release|x64.Build.0 = Release|x64
+		{BE591814-5BEE-49E7-B0A8-88AE8949724D}.Release|x86.ActiveCfg = Release|Win32
+		{BE591814-5BEE-49E7-B0A8-88AE8949724D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

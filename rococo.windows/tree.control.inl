@@ -78,13 +78,14 @@ namespace
 			return 0L;
 		}
 
-		void Construct(const WindowConfig& treeConfig, IParentWindowSupervisor& parent, ControlId id)
+		void Construct(const WindowConfig& treeConfig, IWindow& parent, ControlId id)
 		{
 			WindowConfig containerConfig = treeConfig;
 			containerConfig.style = WS_CHILD | WS_VISIBLE;
 			containerConfig.exStyle = 0;
 			containerConfig.hWndParent = parent;
-			containerWindow = parent.AddChild(containerConfig, -1, static_cast<IWindowHandler*>(this));
+		
+         containerWindow = Windows::CreateChildWindow(containerConfig, this);
 
 			DWORD checkedStyle = 0;
 
@@ -122,7 +123,7 @@ namespace
 			StandardResizeControlWithTitleBar(*containerWindow, hTreeWindow, hTitle);
 		}
 	public:
-		static TreeControlSupervisor* Create(const WindowConfig& config, IParentWindowSupervisor& parent, ControlId id, ITreeControlHandler& eventHandler)
+		static TreeControlSupervisor* Create(const WindowConfig& config, IWindow& parent, ControlId id, ITreeControlHandler& eventHandler)
 		{
 			if (customAtom == 0)
 			{
@@ -136,6 +137,7 @@ namespace
 
 		~TreeControlSupervisor()
 		{
+         Rococo::Free(containerWindow);
 		}
 
 		virtual IUITree& operator()()

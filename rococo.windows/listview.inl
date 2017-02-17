@@ -21,6 +21,8 @@ namespace
 		{
 			switch (uMsg)
 			{
+         case WM_ERASEBKGND:
+            return TRUE;
 			case WM_SIZE:
 				return OnSize(hWnd, wParam, lParam);
 			case WM_DRAWITEM:
@@ -70,7 +72,7 @@ namespace
 			return TRUE;
 		}
 
-		void Construct(const WindowConfig& listConfig, IParentWindowSupervisor& parent, IListViewEvents& eventHandler, DWORD containerStyle)
+		void Construct(const WindowConfig& listConfig, IWindow& parent, IListViewEvents& eventHandler, DWORD containerStyle)
 		{
 			if (customAtom == 0)
 			{
@@ -106,7 +108,7 @@ namespace
 			StandardResizeControlWithTitleBar(hWnd, hWndListView, hTitle);
 		}
 	public:
-		static ListViewSupervisor* Create(const WindowConfig& listConfig, IParentWindowSupervisor& parent, IListViewEvents& eventHandler, DWORD containerStyle)
+		static ListViewSupervisor* Create(const WindowConfig& listConfig, IWindow& parent, IListViewEvents& eventHandler, DWORD containerStyle)
 		{
 			ListViewSupervisor* p = new ListViewSupervisor(eventHandler);
 			p->Construct(listConfig, parent, eventHandler, containerStyle);
@@ -115,6 +117,7 @@ namespace
 
 		~ListViewSupervisor()
 		{
+         DestroyWindow(hWnd);
 		}
 
 		virtual IUIList& UIList()

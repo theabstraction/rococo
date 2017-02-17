@@ -31,3 +31,5 @@
 *.xcf
 /dystopia/dystopia.version.cpp
 *.enc
+*.VC.opendb
+*.VC.db

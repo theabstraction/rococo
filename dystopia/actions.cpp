@@ -15,5 +15,6 @@ namespace Dystopia
 		controls.AddAction(L"scale", ActionMapTypeScale, false);
 		controls.AddAction(L"stats", ActionMapTypeStats, false);
 		controls.AddAction(L"journal", ActionMapTypeJournal, false);
+      controls.AddAction(L"cv", ActionMapTypeCV, false);
 	}
 }

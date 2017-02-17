@@ -16,6 +16,8 @@
 
 #include <vector>
 
+#include <shlobj.h>
+
 namespace Rococo
 {
 	void TripDebugger()
@@ -543,4 +545,36 @@ namespace Rococo
 	{
 		return new Installation(contentIndicatorName, os);
 	}
+
+   namespace IO
+   {
+      void GetUserPath(wchar_t* fullpath, size_t capacity, const wchar_t* shortname)
+      {
+         wchar_t* path;
+         SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
+         SafeFormat(fullpath, capacity, _TRUNCATE, L"%s\\%s", path, shortname);
+      }
+
+      void SaveUserFile(const wchar_t* filename, const wchar_t* s)
+      {
+         wchar_t* path;
+         SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
+
+         wchar_t fullpath[_MAX_PATH];
+         SafeFormat(fullpath, _TRUNCATE, L"%s\\%s", path, filename);
+
+         HANDLE hFile = CreateFile(fullpath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+         if (hFile != INVALID_HANDLE_VALUE)
+         {
+            DWORD writeLength;
+            WriteFile(hFile, s, (DWORD) (sizeof(wchar_t) * wcslen(s)), &writeLength, nullptr);
+            CloseHandle(hFile);
+         }
+      }
+
+      wchar_t GetFileSeparator()
+      {
+         return L'\\';
+      }
+   }
 }

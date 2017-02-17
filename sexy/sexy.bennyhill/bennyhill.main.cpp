@@ -265,8 +265,7 @@ void GenerateFiles(const ParseContext& pc, const EnumContext& ec, cr_sex senumDe
 	FileDeleteOnceOnly(ec.appendSexyFile);
 	FileAppender sexyFileAppender(ec.appendSexyFile);
 	DeclareSexyEnum(sexyFileAppender, ec, senumDef, pc);
-	//ImplementSexyInterface(sexyFileAppender, ic, methods, s, pc);
-
+	
 	FileDeleteOnceOnly(ec.appendCppHeaderFile);
 	FileAppender cppFileAppender(ec.appendCppHeaderFile);
 	DeclareCppEnum(cppFileAppender, ec, senumDef, pc);
@@ -679,7 +678,7 @@ void ParseEnum(cr_sex senumDef, const ParseContext& pc)
 	}
 	catch (OS::OSException&)
 	{
-		WriteToStandardOutput(SEXTEXT("Error in enum defintion %s: %d.%d to %d.%d\n"), pc.scriptInput, senumDef.Start().X, senumDef.Start().Y, senumDef.End().X, senumDef.End().Y);
+		WriteToStandardOutput(SEXTEXT("Error in enum defintion %s: %d.%d to %d.%d\n"), pc.scriptInput, senumDef.Start().x, senumDef.Start().y, senumDef.End().x, senumDef.End().y);
 		throw;
 	}
 }
@@ -841,7 +840,7 @@ void ParseInterface(cr_sex interfaceDef, const ParseContext& pc)
 	}
 	catch(OS::OSException&)
 	{
-		WriteToStandardOutput(SEXTEXT("Error in interface defintion %s: %d.%d to %d.%d\n"), pc.scriptInput, interfaceDef.Start().X, interfaceDef.Start().Y, interfaceDef.End().X, interfaceDef.End().Y);
+		WriteToStandardOutput(SEXTEXT("Error in interface defintion %s: %d.%d to %d.%d\n"), pc.scriptInput, interfaceDef.Start().x, interfaceDef.Start().y, interfaceDef.End().x, interfaceDef.End().y);
 		throw;
 	}
 }
@@ -989,7 +988,7 @@ int main(int argc, char* argv[])
 	
 	try
 	{
-		Auto<ISourceCode> src = spp->LoadSource(pc.scriptInput, SourcePos(1,1));
+      Auto<ISourceCode> src = spp->LoadSource(pc.scriptInput, Vec2i{ 1,1 });
 		Auto<ISParserTree> tree = spp->CreateTree(src());
 
 		if (tree->Root().NumberOfElements() == 0)
@@ -1002,7 +1001,7 @@ int main(int argc, char* argv[])
 	}
 	catch(ParseException& ex)
 	{
-		WriteToStandardOutput(SEXTEXT("%s. %s\nSpecimen: %s.\nPosition: %d.%d to %d.%d\n"), pc.scriptInput, ex.Message(), ex.Specimen(), ex.Start().X, ex.Start().Y, ex.End().X, ex.End().Y);
+		WriteToStandardOutput(SEXTEXT("%s. %s\nSpecimen: %s.\nPosition: %d.%d to %d.%d\n"), pc.scriptInput, ex.Message(), ex.Specimen(), ex.Start().x, ex.Start().y, ex.End().x, ex.End().y);
 
 		if (ex.ErrorCode() != 0)
 		{

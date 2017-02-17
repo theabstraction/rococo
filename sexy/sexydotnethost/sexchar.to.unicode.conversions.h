@@ -8,7 +8,7 @@ namespace
 	ISourceCode* AddUnicodeModule(const Byte* input, IScriptSystem& ss, int moduleLength, csexstr name)
 	{
 		csexstr wideInput = (csexstr) input;
-		return ss.SParser().DuplicateSourceBuffer(wideInput, moduleLength, SourcePos(0,0), name);
+      return ss.SParser().DuplicateSourceBuffer(wideInput, moduleLength, Vec2i{ 0,0 }, name);
 	}
 
 	ISourceCode* AddAsciiModule(const Byte* input, IScriptSystem& ss, int moduleLength, csexstr name)
@@ -19,7 +19,7 @@ namespace
 			tempBuffer[i] = input[i];
 		}
 
-		ISourceCode* sc = ss.SParser().DuplicateSourceBuffer(tempBuffer, moduleLength, SourcePos(0,0), name);
+		ISourceCode* sc = ss.SParser().DuplicateSourceBuffer(tempBuffer, moduleLength, Vec2i{ 0,0 }, name);
 		delete tempBuffer;
 		return sc;
 	}
@@ -80,7 +80,7 @@ namespace
 		}
 		else
 		{
-			ISourceCode* sc = ss.SParser().DuplicateSourceBuffer(tempBuffer, moduleLength, SourcePos(0,0), name);
+			ISourceCode* sc = ss.SParser().DuplicateSourceBuffer(tempBuffer, moduleLength, Vec2i{ 0,0 }, name);
 			delete tempBuffer;
 			return sc;
 		}		
@@ -88,7 +88,7 @@ namespace
 
 	ISourceCode* AddAsciiModule(const Byte* input, IScriptSystem& ss, int moduleLength, csexstr name)
 	{
-		return ss.SParser().DuplicateSourceBuffer((csexstr) input, moduleLength, SourcePos(0,0), name);
+		return ss.SParser().DuplicateSourceBuffer((csexstr) input, moduleLength, Vec2i{ 0,0 }, name);
 	}
 
 	bool CopyUnicodeToSexChar(SEXCHAR* output, size_t bufferCapacity, const Char* input)

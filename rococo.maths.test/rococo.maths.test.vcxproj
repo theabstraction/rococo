@@ -76,6 +76,7 @@
     <LinkIncremental>true</LinkIncremental>
     <IntDir>..\intermediate\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>..\lib\</OutDir>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>

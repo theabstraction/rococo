@@ -51,7 +51,7 @@ namespace
 
 	void Release(CSParserTree* tree);
 	int TransformDepth(CSParserTree& tree);
-	CSParserTree* ConstructTransform(CSParserTree& prototype, const SourcePos& start, const SourcePos& end, CSExpression* original);
+	CSParserTree* ConstructTransform(CSParserTree& prototype, const Vec2i& start, const Vec2i& end, CSExpression* original);
 	const ISExpression* GetOriginal(CSParserTree& tree);
 
 	struct FileReader
@@ -73,7 +73,7 @@ namespace
 				sexstringstream streamer;
 				streamer << SEXTEXT("Error ") << errNo << SEXTEXT(" opening file: ") << err << std::ends;
 				
-				throw ParseException(SourcePos(0,0), SourcePos(0,0), name, streamer.str().c_str(), SEXTEXT("<none>"), NULL);
+            throw ParseException(Vec2i{ 0,0 }, Vec2i{ 0,0 }, name, streamer.str().c_str(), SEXTEXT("<none>"), NULL);
 			}
 
 			long startLen = ftell(fp);
@@ -92,8 +92,8 @@ namespace
 	{
 	private:
 		CSParserTree& tree;
-		SourcePos start;
-		SourcePos end;
+		Vec2i start;
+		Vec2i end;
 		size_t startOffset;
 		size_t endOffset;
 		EXPRESSION_TYPE type;
@@ -117,7 +117,7 @@ namespace
 			type = EXPRESSION_TYPE_COMPOUND;
 		}
 	public:
-		CSExpression(CSParserTree& _tree, const SourcePos& _start, size_t _startOffset, CSExpression* _parent):
+		CSExpression(CSParserTree& _tree, const Vec2i& _start, size_t _startOffset, CSExpression* _parent):
 			tree(_tree),
 			type(EXPRESSION_TYPE_NULL),
 			start(_start),
@@ -135,7 +135,7 @@ namespace
 			}
 		}
 
-		CSExpression(CSParserTree& _tree, const SourcePos& _start, const SourcePos& _end, size_t _startOffset, size_t _endOffset, CSExpression* _parent, csexstr data, int dataLen, bool isStringLiteral) :
+		CSExpression(CSParserTree& _tree, const Vec2i& _start, const Vec2i& _end, size_t _startOffset, size_t _endOffset, CSExpression* _parent, csexstr data, int dataLen, bool isStringLiteral) :
 			tree(_tree),
 			type(isStringLiteral ? EXPRESSION_TYPE_STRING_LITERAL : EXPRESSION_TYPE_ATOMIC),
 			start(_start),
@@ -188,8 +188,8 @@ namespace
 			return child;
 		}
 
-		virtual const SourcePos& Start() const { return start; }
-		virtual const SourcePos& End() const		{ return end;		}
+		virtual const Vec2i& Start() const { return start; }
+		virtual const Vec2i& End() const		{ return end;		}
 		virtual size_t StartOffset() const { return startOffset; }
 		virtual size_t EndOffset() const { return endOffset; }
 		virtual EXPRESSION_TYPE Type() const		{ return type;	}
@@ -205,10 +205,10 @@ namespace
 
 		CSExpression* ConcreteParent() { return parent; }
 		
-		void AddAtomic(csexstr sourceSegmentOrigin, int32 sourceSegmentLength, const SourcePos& start, const SourcePos& end, size_t startOffset, size_t endOffset);
-		void AddEscapedString(csexstr sourceSegmentOrigin, int32 sourceSegmentLength, const SourcePos& start, const SourcePos& end, size_t startOffset, size_t endOffset);
+		void AddAtomic(csexstr sourceSegmentOrigin, int32 sourceSegmentLength, const Vec2i& start, const Vec2i& end, size_t startOffset, size_t endOffset);
+		void AddEscapedString(csexstr sourceSegmentOrigin, int32 sourceSegmentLength, const Vec2i& start, const Vec2i& end, size_t startOffset, size_t endOffset);
 
-		void SetEnd(const SourcePos& _end, size_t _endOffset)
+		void SetEnd(const Vec2i& _end, size_t _endOffset)
 		{ 
 			end = _end;
 			endOffset = _endOffset;
@@ -238,9 +238,9 @@ namespace
 		int generationLength;
 		csexstr generationCurrentPtr;
 		csexstr generationEnd;
-		SourcePos generationTokenStartPos;
-		SourcePos generationCursorPos;
-		SourcePos generationPrevCursorPos;
+		Vec2i generationTokenStartPos;
+		Vec2i generationCursorPos;
+		Vec2i generationPrevCursorPos;
 		CSExpression* generationNode;
 		csexstr startOfToken; 
 		CSExpression* original;
@@ -262,7 +262,7 @@ namespace
 		void STATE_CALL ReadingWhitespace();
 
 	public:
-		CSParserTree(CSexParser& _parser, ISourceCode& _sourceCode, const SourcePos& start, const SourcePos& end, int _transformDepth, CSExpression* _original):
+		CSParserTree(CSexParser& _parser, ISourceCode& _sourceCode, const Vec2i& start, const Vec2i& end, int _transformDepth, CSExpression* _original):
 			refcount(1),
 			parser(_parser),
 			sourceCode(_sourceCode),
@@ -329,12 +329,12 @@ namespace
 		return s;
 	}
 
-	void CSExpression::AddAtomic(csexstr sourceSegmentOrigin, int32 sourceSegmentLength, const SourcePos& start, const SourcePos& end, size_t startOffset, size_t endOffset)
+	void CSExpression::AddAtomic(csexstr sourceSegmentOrigin, int32 sourceSegmentLength, const Vec2i& start, const Vec2i& end, size_t startOffset, size_t endOffset)
 	{
 		new CSExpression(tree, start, end, startOffset, endOffset, this, sourceSegmentOrigin, sourceSegmentLength, false);
 	}
 
-	void CSExpression::AddEscapedString(csexstr sourceSegmentOrigin, int32 sourceSegmentLength, const SourcePos& start, const SourcePos& end, size_t startOffset, size_t endOffset)
+	void CSExpression::AddEscapedString(csexstr sourceSegmentOrigin, int32 sourceSegmentLength, const Vec2i& start, const Vec2i& end, size_t startOffset, size_t endOffset)
 	{
 		new CSExpression(tree, start, end, startOffset, endOffset, this, sourceSegmentOrigin, sourceSegmentLength, true);
 	}
@@ -351,8 +351,8 @@ namespace
 
 	void CSParserTree::AddStringToken(csexstr start, int32 length)
 	{
-		SourcePos theEnd = generationPrevCursorPos;
-		theEnd.X++;
+		Vec2i theEnd = generationPrevCursorPos;
+		theEnd.x++;
 		generationNode->AddEscapedString(start, length, generationTokenStartPos, theEnd, start - sourceCode.SourceStart(), start - sourceCode.SourceStart() + (size_t) length);
 	}
 
@@ -390,11 +390,11 @@ namespace
 		case '\r':
 			return;
 		case '\n':
-			generationCursorPos.X = root->Start().X;
-			generationCursorPos.Y++;
+			generationCursorPos.x = root->Start().x;
+			generationCursorPos.y++;
 			return;
 		default:
-			generationCursorPos.X++;
+			generationCursorPos.x++;
 			return;
 		}
 	}
@@ -442,7 +442,7 @@ namespace
 							throw ParseException(generationTokenStartPos, generationPrevCursorPos, sourceCode.Name(), SEXTEXT("Literal string escape character. Unrecognized escape sequence"), specimen, NULL);
 						}
 
-						generationCursorPos.X += 2 * sizeof(SEXCHAR);
+						generationCursorPos.x += 2 * sizeof(SEXCHAR);
 						generationCurrentPtr += 2 * sizeof(SEXCHAR);
 					}
 					else
@@ -641,7 +641,7 @@ namespace
 
 	bool IsUnicode(const char* buffer, long len)
 	{
-		return len > 2 && buffer[0] == 0;
+		return len > 2 && buffer[0] == 0 || buffer[1] == 0;
 	}
 	
 	class CSexParser: public ISParser
@@ -699,7 +699,7 @@ namespace
 			return refcount;
 		}
 
-		virtual ISourceCode* DuplicateSourceBuffer(csexstr buffer, int segmentLength, const SourcePos& origin, csexstr name)
+		virtual ISourceCode* DuplicateSourceBuffer(csexstr buffer, int segmentLength, const Vec2i& origin, csexstr name)
 		{
 			if (segmentLength < 0)
 			{
@@ -707,14 +707,14 @@ namespace
 				if (computedSegmentLength > INT_MAX-1)
 				{
 					csexstr specimen = SEXTEXT("!!!Bad source buffer!!!");
-					throw ParseException(SourcePos(0,0), SourcePos(0,0), name, SEXTEXT("The string length of the input buffer was greater than INT_MAX"), specimen, NULL);
+               throw ParseException(Vec2i{ 0,0 }, Vec2i{ 0,0 }, name, SEXTEXT("The string length of the input buffer was greater than INT_MAX"), specimen, NULL);
 				}
 				segmentLength = (int32) computedSegmentLength;
 			}
 			return new CSourceCodeCopy(buffer, segmentLength, origin, name);
 		}		
 
-		virtual ISourceCode* ProxySourceBuffer(csexstr bufferRef, int segmentLength, const SourcePos& origin, csexstr nameRef)
+		virtual ISourceCode* ProxySourceBuffer(csexstr bufferRef, int segmentLength, const Vec2i& origin, csexstr nameRef)
 		{
 			if (segmentLength < 0)
 			{
@@ -722,14 +722,14 @@ namespace
 				if (computedSegmentLength > INT_MAX)
 				{
 					csexstr specimen = SEXTEXT("!!!Bad source buffer!!!");
-					throw ParseException(SourcePos(0,0), SourcePos(0,0), nameRef, SEXTEXT("The string length of the input buffer was greater than INT_MAX"), specimen, NULL);
+               throw ParseException(Vec2i{ 0,0 }, Vec2i{ 0,0 }, nameRef, SEXTEXT("The string length of the input buffer was greater than INT_MAX"), specimen, NULL);
 				}
 				segmentLength = (int32) computedSegmentLength;
 			}
 			return new CSourceCodeProxy(bufferRef, segmentLength, origin, nameRef);
 		}
 
-		virtual ISourceCode* LoadSource(csexstr filename, const SourcePos& origin)
+		virtual ISourceCode* LoadSource(csexstr filename, const Vec2i& origin)
 		{
 			long len;
 			FileReader reader(filename, len);
@@ -745,7 +745,7 @@ namespace
 			return src;
 		}
 
-		virtual ISourceCode* LoadSource(csexstr moduleName, const SourcePos& origin, const char* buffer, long len)
+		virtual ISourceCode* LoadSource(csexstr moduleName, const Vec2i& origin, const char* buffer, long len)
 		{
 			ISourceCode* src;
 
@@ -811,7 +811,7 @@ namespace
 		return tree.TransformDepth();
 	}
 
-	CSParserTree* ConstructTransform(CSParserTree& prototype, const SourcePos& start, const SourcePos& end, CSExpression* original)
+	CSParserTree* ConstructTransform(CSParserTree& prototype, const Vec2i& start, const Vec2i& end, CSExpression* original)
 	{
 		CSParserTree* tree = new CSParserTree((CSexParser&) prototype.Parser(), (ISourceCode&) prototype.Source(), start, end, prototype.TransformDepth() + 1, original);
 		return tree;
