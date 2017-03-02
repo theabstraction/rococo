@@ -52,6 +52,12 @@ namespace
 			case WM_NOTIFY:
 				{
 					NMHDR* header = (NMHDR*)lParam;
+               if (header->code == TVN_SELCHANGED)
+               {
+                  LPNMTREEVIEW treeVieww = (LPNMTREEVIEW) header;
+                  auto& i = treeVieww->itemNew;
+                  eventHandler.OnItemSelected((int64)i.lParam, *this);
+               }
 					break;
 				}
 			case WM_ERASEBKGND:
@@ -194,15 +200,27 @@ namespace
 			y.state = INDEXTOSTATEIMAGEMASK(state);
 			y.hItem = ToHTree(id);
 			BOOL isOK = TreeView_SetItem(hTreeWindow, &y);
-			if (!isOK) Throw(GetLastError(), L"TreeView_SetItem failed");
+			if (!isOK) Throw(GetLastError(), L"TreeView_SetItem (TEXT/STATE) failed");
 			return id;
 		}
+
+      virtual void SetId(TREE_NODE_ID nodeId, int64 id)
+      {
+         TVITEMEX item = { 0 };
+         item.mask = TVIF_PARAM;
+         item.hItem = ToHTree(nodeId);
+         item.lParam = (int64) id;
+         if (!TreeView_SetItem(hTreeWindow, &item))
+         {
+            Throw(GetLastError(), L"TreeView_SetItem (LPARAM) failed");
+         }
+      }
 
 		virtual TREE_NODE_ID AddRootItem(LPCWSTR text, CheckState state)
 		{
 			TVINSERTSTRUCT z = { 0 };
 			z.hInsertAfter = TVI_LAST;
-			z.itemex.mask = TVIF_STATE | TVIF_TEXT;
+			z.itemex.mask = TVIF_STATE | TVIF_TEXT | TVIF_PARAM;
 			z.itemex.stateMask = TVIS_STATEIMAGEMASK;
 			z.itemex.pszText = (LPWSTR) text;
 

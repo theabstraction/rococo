@@ -65,7 +65,7 @@ namespace Sexy
 	{
 		void ThrowBadNativeArg(int index, csexstr source, csexstr message)
 		{
-			PrintToStandardOutput(SEXTEXT("Error %d in %s: %s\r\n"), index, source, message);
+			WriteToStandardOutput(SEXTEXT("Error %d in %s: %s\r\n"), index, source, message);
 			exit(-1);
 		}
 	}

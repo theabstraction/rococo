@@ -35,7 +35,7 @@ namespace
 
 		void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) 
 		{
-			PrintToStandardOutput(SEXTEXT("%s: code %d\nMessage: %s\n"), exceptionType, errorCode, message);
+			WriteToStandardOutput(SEXTEXT("%s: code %d\nMessage: %s\n"), exceptionType, errorCode, message);
 		}
 
 		void OnJITCompileException(Sex::ParseException& ex)

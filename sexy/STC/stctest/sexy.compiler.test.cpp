@@ -62,7 +62,7 @@ namespace
 
 		void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) 
 		{
-			PrintToStandardOutput(SEXTEXT("%s: code %d\nMessage: %s\n"), exceptionType, errorCode, message);
+			WriteToStandardOutput(SEXTEXT("%s: code %d\nMessage: %s\n"), exceptionType, errorCode, message);
 		}
 
 		void OnJITCompileException(Sex::ParseException& ex)
@@ -105,16 +105,16 @@ namespace
 		}
 		catch (STCException& e)
 		{
-			PrintToStandardOutput(SEXTEXT("Error %d: %s\r\n"), e.Code(), e.Message());
+			WriteToStandardOutput(SEXTEXT("Error %d: %s\r\n"), e.Code(), e.Message());
 			po->Free();
 			exit(-1);
 		}
 		catch(std::exception& stdex)
 		{
 #ifdef SEXCHAR_IS_WIDE
-			PrintToStandardOutput(SEXTEXT("Error: %S\r\n"), stdex.what());
+			WriteToStandardOutput(SEXTEXT("Error: %S\r\n"), stdex.what());
 #else
-			PrintToStandardOutput(SEXTEXT("Error: %s\r\n"), stdex.what());
+			WriteToStandardOutput(SEXTEXT("Error: %s\r\n"), stdex.what());
 #endif
 			po->Free();
 			exit(-1);
@@ -197,7 +197,7 @@ namespace
 		}
 		catch (STCException& e)
 		{
-			PrintToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_EMPTY_STRING);
 			// The test should throw
 		}
@@ -209,7 +209,7 @@ namespace
 		}
 		catch (STCException& e)
 		{
-			PrintToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_NULL_POINTER);
 			// The test should throw
 		}
@@ -222,7 +222,7 @@ namespace
 		}
 		catch (STCException& e)
 		{
-			PrintToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_BAD_ARGUMENT);
 		}
 
@@ -234,7 +234,7 @@ namespace
 		}
 		catch (STCException& e)
 		{
-			PrintToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_BAD_ARGUMENT);
 		}
 
@@ -246,7 +246,7 @@ namespace
 		}
 		catch (STCException& e)
 		{
-			PrintToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_BAD_ARGUMENT);
 		}
 
@@ -257,7 +257,7 @@ namespace
 		}
 		catch (IException& e)
 		{
-			PrintToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(FALSE);
 		}
 
@@ -267,7 +267,7 @@ namespace
 		}
 		catch (STCException& e)
 		{
-			PrintToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_BAD_ARGUMENT);
 		}
 
@@ -277,7 +277,7 @@ namespace
 		}
 		catch (STCException& e)
 		{
-			PrintToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_BAD_ARGUMENT);
 		}
 	}
@@ -308,7 +308,7 @@ namespace
 		}
 		catch (IException& e)
 		{
-			PrintToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
 		}
 		
 		INamespaceBuilder& nsSysType = object.GetRootNamespace().AddNamespace(SEXTEXT("Sys.Type"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
@@ -349,7 +349,7 @@ namespace
 		}
 		catch (STCException&e)
 		{
-			PrintToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_SEALED);
 		}
 
@@ -388,7 +388,7 @@ namespace
 		}
 		catch (STCException& e)
 		{
-			PrintToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_BAD_ARGUMENT);
 		}
 
@@ -1310,7 +1310,7 @@ namespace
 			IDisassembler::Rep rep;
 			dis->Disassemble(code + i, OUT rep);
 
-			PrintToStandardOutput(SEXTEXT("%s %s\r\n"), rep.OpcodeText, rep.ArgText);
+			WriteToStandardOutput(SEXTEXT("%s %s\r\n"), rep.OpcodeText, rep.ArgText);
 
 			i += rep.ByteCount;
 		}

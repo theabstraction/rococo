@@ -263,12 +263,12 @@ namespace
 		}
 		catch(ParseException& ex)
 		{
-			PrintToStandardOutput(SEXTEXT("Error matching s-expression to target: %s, %s"), ex.Message(), ex.Specimen());
+			WriteToStandardOutput(SEXTEXT("Error matching s-expression to target: %s, %s"), ex.Message(), ex.Specimen());
 			validate(false);
 		}
 		catch(IException& iex)
 		{
-			PrintToStandardOutput(SEXTEXT("Error: %s"), iex.Message());
+			WriteToStandardOutput(SEXTEXT("Error: %s"), iex.Message());
 			validate(false);
 		}
 	}

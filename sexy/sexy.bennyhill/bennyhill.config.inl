@@ -38,17 +38,17 @@ namespace
 
 	void ParseCppRoot(cr_sex sconfigItem, ParseContext& pc)
 	{
-		if (*pc.cppRoot != 0) Throw(sconfigItem, SEXTEXT("cpp.root has already been specified"));
+		if (*pc.cppRootDirectory != 0) Throw(sconfigItem, SEXTEXT("cpp.root has already been specified"));
 		if (sconfigItem.NumberOfElements() != 2) Throw(sconfigItem, SEXTEXT("Expecting (cpp.root <cpp-root-directory>). If the first character of <cpp-root-directory> is $, then $ is substituted with the project root"));
 		csexstr cppPath = StringFrom(sconfigItem.GetElement(1));
 
 		if (*cppPath == '$')
 		{
-			StringPrint(pc.cppRoot, _MAX_PATH, SEXTEXT("%s%s"), pc.projectRoot, cppPath + 1);
+			StringPrint(pc.cppRootDirectory, _MAX_PATH, SEXTEXT("%s%s"), pc.projectRoot, cppPath + 1);
 		}
 		else
 		{
-			StringPrint(pc.cppRoot, _MAX_PATH, SEXTEXT("%s"), cppPath);
+			StringPrint(pc.cppRootDirectory, _MAX_PATH, SEXTEXT("%s"), cppPath);
 		}
 	}
 
@@ -58,14 +58,14 @@ namespace
 		if (sconfigItem.NumberOfElements() != 2) Throw(sconfigItem, SEXTEXT("Expecting (cpp.exception <cpp-exception name>)."));
 
 		csexstr cppException = StringFrom(sconfigItem.GetElement(1));
-		StringPrint(pc.cppException, _MAX_PATH, SEXTEXT("%s"), cppException);
+		StringPrint(pc.cppException, 128, SEXTEXT("%s"), cppException);
 	}
 
 	void ParseTypeFile(cr_sex sconfigItem, ParseContext& pc)
 	{
-		if (*pc.cppRoot == 0) Throw(sconfigItem, SEXTEXT("cpp.root must be specified before cpp.types"));
-		if (*pc.cppTypes != 0) Throw(sconfigItem, SEXTEXT("cpp.types has already been specified"));
-		if (*pc.sexyTypes != 0) Throw(sconfigItem, SEXTEXT("sexy.types has already been specified"));
+		if (*pc.cppRootDirectory == 0) Throw(sconfigItem, SEXTEXT("cpp.root must be specified before cpp.types"));
+		if (*pc.cppTypesFilename != 0) Throw(sconfigItem, SEXTEXT("cpp.types has already been specified"));
+		if (*pc.sexyTypesFilename != 0) Throw(sconfigItem, SEXTEXT("sexy.types has already been specified"));
 		if (sconfigItem.NumberOfElements() != 3) Throw(sconfigItem, SEXTEXT("Expecting (cpp.types <sexy-types> <cpp-types>). Either argument can be prefixed with $project$ to map to the project root, or $cpp$ to map to the C++ root"));
 		csexstr cppTypesPath = StringFrom(sconfigItem.GetElement(2));
 
@@ -73,26 +73,26 @@ namespace
 		csexstr cppPrefix = SEXTEXT("$cpp$");
 		if (AreEqual(cppTypesPath, projectPrefix, StringLength(projectPrefix)))
 		{
-			StringPrint(pc.cppTypes, _MAX_PATH, SEXTEXT("%s%s"), pc.projectRoot, cppTypesPath + StringLength(projectPrefix));
+			StringPrint(pc.cppTypesFilename, _MAX_PATH, SEXTEXT("%s%s"), pc.projectRoot, cppTypesPath + StringLength(projectPrefix));
 		}
 		else if (AreEqual(cppTypesPath, cppPrefix, StringLength(cppPrefix)))
 		{
-			StringPrint(pc.cppTypes, _MAX_PATH, SEXTEXT("%s%s"), pc.cppRoot, cppTypesPath + StringLength(cppPrefix));
+			StringPrint(pc.cppTypesFilename, _MAX_PATH, SEXTEXT("%s%s"), pc.cppRootDirectory, cppTypesPath + StringLength(cppPrefix));
 		}
 		else
 		{
-			StringPrint(pc.cppTypes, _MAX_PATH, SEXTEXT("%s"), cppTypesPath);
+			StringPrint(pc.cppTypesFilename, _MAX_PATH, SEXTEXT("%s"), cppTypesPath);
 		}
 
 		csexstr sexyTypesPath = StringFrom(sconfigItem.GetElement(1));
 
 		if (AreEqual(sexyTypesPath, projectPrefix, StringLength(projectPrefix)))
 		{
-			StringPrint(pc.sexyTypes, _MAX_PATH, SEXTEXT("%s%s"), pc.projectRoot, sexyTypesPath + StringLength(projectPrefix));
+			StringPrint(pc.sexyTypesFilename, _MAX_PATH, SEXTEXT("%s%s"), pc.projectRoot, sexyTypesPath + StringLength(projectPrefix));
 		}
 		else
 		{
-			StringPrint(pc.sexyTypes, _MAX_PATH, SEXTEXT("%s"), sexyTypesPath);
+			StringPrint(pc.sexyTypesFilename, _MAX_PATH, SEXTEXT("%s"), sexyTypesPath);
 		}
 	}
 
@@ -188,6 +188,14 @@ namespace
 		{
 			auto j = pc.structs.find(sxhfieldtype);
 			if (j != pc.structs.end()) cpptypeDef = j->second.cppType.c_str();
+         else
+         {
+            auto k = pc.interfaces.find(sxhfieldtype);
+            if (k != pc.interfaces.end())
+            {
+               cpptypeDef = k->second->ic.asCppInterface.FQName();
+            }
+         }
 		}
 
 		if (cpptypeDef == NULL) Throw(field, SEXTEXT("Cannot resolve the type. Neither a known struct or primitive"));
@@ -269,8 +277,8 @@ namespace
 
 	void ParseStructDef(cr_sex sprimitiveDef, ParseContext& pc, FileAppender& cppTypeAppender, FileAppender& sexyTypeAppender)
 	{
-		if (*pc.cppRoot == 0) Throw(sprimitiveDef, SEXTEXT("cpp.root must be specified before a defstruct"));
-		if (*pc.cppTypes == 0) Throw(sprimitiveDef, SEXTEXT("cpp.types must be specified before a defstruct"));
+		if (*pc.cppRootDirectory == 0) Throw(sprimitiveDef, SEXTEXT("cpp.root must be specified before a defstruct"));
+		if (*pc.cppTypesFilename == 0) Throw(sprimitiveDef, SEXTEXT("cpp.types must be specified before a defstruct"));
 
 		if (sprimitiveDef.NumberOfElements() < 5) Throw(sprimitiveDef, SEXTEXT("Expecting 5 or more elements: (defstruct <sxh-type> <sxy-type> <cpp-type> (field1)...(fieldN))"));
 
@@ -340,15 +348,15 @@ namespace
 
 		if (nStructDefs > 0)
 		{
-			if (*pc.cppTypes == 0) Throw(configDef, SEXTEXT("cpp.types was not defined")); 
-			if (*pc.sexyTypes == 0) Throw(configDef, SEXTEXT("sexy.types was not defined"));
+			if (*pc.cppTypesFilename == 0) Throw(configDef, SEXTEXT("cpp.types was not defined"));
+			if (*pc.sexyTypesFilename == 0) Throw(configDef, SEXTEXT("sexy.types was not defined"));
 			if (*pc.cppException == 0) Throw(configDef, SEXTEXT("cpp.exception was not defined"));
 
-			FileDeleteOnceOnly(pc.cppTypes);
-			FileAppender cppTypeAppender(pc.cppTypes);
+			FileDeleteOnceOnly(pc.cppTypesFilename);
+			FileAppender cppTypeAppender(pc.cppTypesFilename);
 
-			FileDeleteOnceOnly(pc.sexyTypes);
-			FileAppender sexyTypeAppender(pc.sexyTypes);
+			FileDeleteOnceOnly(pc.sexyTypesFilename);
+			FileAppender sexyTypeAppender(pc.sexyTypesFilename);
 
 			for(int i = 0; i < configDef.NumberOfElements(); ++i)
 			{
@@ -362,7 +370,7 @@ namespace
 			}
 		}
 
-		if (*pc.cppRoot == 0) Throw(configDef, SEXTEXT("cpp.root was not specified"));
+		if (*pc.cppRootDirectory == 0) Throw(configDef, SEXTEXT("cpp.root was not specified"));
 	}
 
 	void ParseConfigSpec(cr_sex configSpec, ParseContext& pc)

@@ -94,12 +94,18 @@ namespace
 			if (i != pc.primitives.end())
 			{
 				AppendCppType(appender, s, outputType, pc);
-
 				appender.Append(SEXTEXT("/* %s */ %s("), outputName, methodName);
 			}
 			else
 			{
-				Throw(stype, SEXTEXT("Expecting primitive return type"));
+            auto j = pc.interfaces.find(outputType);
+            if (j == pc.interfaces.end())
+            {
+               Throw(stype, SEXTEXT("Expecting primitive return type or interface"));
+            }
+
+            AppendCppType(appender, s, outputType, pc);
+            appender.Append(SEXTEXT("* /* %s */ %s("), outputName, methodName);
 			}
 		}
 
@@ -216,11 +222,11 @@ namespace
 
 		appender.Append('\n');
 
-		appender.Append(SEXTEXT("\tbool TryParse(const fstring& s, "));
+		appender.Append(SEXTEXT("\tbool TryParse(const Rococo::fstring& s, "));
 		AppendStructShortName(appender, ec.asCppEnum.SexyName()); 
 		appender.Append(SEXTEXT("& value);\n"));
 
-		appender.Append(SEXTEXT("\tbool TryShortParse(const fstring& s, "));
+		appender.Append(SEXTEXT("\tbool TryShortParse(const Rococo::fstring& s, "));
 		AppendStructShortName(appender, ec.asCppEnum.SexyName());
 		appender.Append(SEXTEXT("& value); "));
 
@@ -233,6 +239,10 @@ namespace
 		appender.Append(SEXTEXT("\n\n"));
 	}
 
+   void AppendHelpers(FileAppender& appender)
+   {
+      appender.Append(SEXTEXT("#include \"sexy.natives.helpers.inl\"\n\n"));
+   }
 
 	void DeclareCppInterface(FileAppender& appender, const InterfaceContext& ic, cr_sex interfaceDef, const ISExpression* methods, const ParseContext& pc)
 	{
@@ -244,6 +254,7 @@ namespace
 
 		appender.Append(SEXTEXT("struct NO_VTABLE "));
 		AppendStructShortName(appender, ic.asCppInterface.SexyName());
+      appender.Append(ic.inheritanceString);
 		appender.Append(nsDepth > 0 ? SEXTEXT("\n\t{\n") : SEXTEXT("\n{\n"));
 
 		NamespaceSplitter splitter(ic.asCppInterface.SexyName());
@@ -342,30 +353,41 @@ namespace
 				{
 					isString = true;
 				}
+
+            bool isStringBuilder = false;
+            if (AreEqual(sxhtype, SEXTEXT("IStringBuilder")) || AreEqual(sxhtype, SEXTEXT("Sys.Text.IStringBuilder")))
+            {
+               isStringBuilder = true;
+            }
 			
-				if (!isString) 
+				if (!isString && !isStringBuilder)
 				{
 					appender.Append(SEXTEXT("\t\t"));
-					AppendCppType(appender, stype, sxhtype, pc);
+               AppendCppType(appender, stype, sxhtype, pc);
 				}
 
-				if (!isString && pc.structs.find(sxhtype) != pc.structs.end())
+				if (!isString && pc.structs.find(sxhtype) != pc.structs.end() && !isStringBuilder)
 				{
 					appender.Append('*');
 				}
 
-				if (!isString) appender.Append(SEXTEXT(" %s;\n"), fieldName);			
+				if (!isString && !isStringBuilder) appender.Append(SEXTEXT(" %s;\n"), fieldName);			
 			
 				if (isString)
 				{
-					appender.Append(SEXTEXT("\t\t_offset += sizeof(void*);\n"), fieldName);
+					appender.Append(SEXTEXT("\t\t_offset += sizeof(IString*);\n"));
 				}
+            else if (isStringBuilder)
+            {
+               appender.Append(SEXTEXT("\t\t_offset += sizeof(VirtualTable*);\n"));
+            }
 				else
 				{
 					appender.Append(SEXTEXT("\t\t_offset += sizeof(%s);\n"), fieldName);
 				}
 
 				if (isString) appender.Append(SEXTEXT("\t\tIString* _%s;\n"), fieldName);
+            if (isStringBuilder) appender.Append(SEXTEXT("\t\tVirtualTable* %s;\n"), fieldName);
 
 				appender.Append(isString ? SEXTEXT("\t\tReadInput(_%s, _sf, -_offset);\n") : SEXTEXT("\t\tReadInput(%s, _sf, -_offset);\n"), fieldName);
 
@@ -376,6 +398,10 @@ namespace
 					appender.Append(SEXTEXT(" %s {"), fieldName);	
 					appender.Append(SEXTEXT(" _%s->buffer, _%s->length };\n\n"), fieldName, fieldName);
 				}
+            else if (isStringBuilder)
+            {
+               appender.Append(SEXTEXT("\t\tSexy::Helpers::StringPopulator _%sPopulator(_nce, %s);"), fieldName, fieldName);
+            }
 
 				appender.Append(SEXTEXT("\n"));
 			}
@@ -414,6 +440,8 @@ namespace
 			appender.Append(SEXTEXT("\t\tReadInput(_pObject, _sf, -_offset);\n"));
 		}
 	
+      bool outputIsInterface = false;
+      std::vector<stdstring> outputPrefix;
 		for (int i = outputStart; i < method.NumberOfElements(); ++i)
 		{
 			cr_sex s = method.GetElement(i);
@@ -422,15 +450,33 @@ namespace
 			cr_sex svalue = s.GetElement(1);
 
 			csexstr type = StringFrom(stype);
+         
+         SEXCHAR cppName[256];
+			SEXCHAR compressedName[256];
 
 			TTypeMap::const_iterator k = pc.primitives.find(type);
-			if (k == pc.primitives.end()) Throw(stype, SEXTEXT("Could not find type amongst the primitives"));
-
-			SEXCHAR cppName[256];
-			SEXCHAR compressedName[256];
-			GetFQCppStructName(compressedName, cppName, 256, k->second.cppType.c_str());
-
-			appender.Append(SEXTEXT("\t\t%s %s;\n"), cppName, StringFrom(svalue));
+         if (k == pc.primitives.end())
+         {
+            auto z = pc.interfaces.find(type);
+            if (z == pc.interfaces.end())
+            {
+               Throw(stype, SEXTEXT("Could not find type amongst the primitives or interfaces"));
+            }
+            else
+            {
+               SafeFormat(cppName, _TRUNCATE, SEXTEXT("%s* %s = "), z->second->ic.asCppInterface.FQName(), StringFrom(svalue));
+               outputPrefix.push_back(cppName);
+               outputIsInterface = true;
+            }
+         }
+         else
+         {
+            GetFQCppStructName(compressedName, cppName, 256, k->second.cppType.c_str());
+           
+            SEXCHAR moreHacks[256];
+            SafeFormat(moreHacks, _TRUNCATE, SEXTEXT("%s %s = "), cppName, StringFrom(svalue));
+            outputPrefix.push_back(moreHacks);
+         }
 		}
 
 		if (HasAttributeThrows(attributes))
@@ -438,6 +484,7 @@ namespace
 			appender.Append(SEXTEXT("try\n\t\t{\n\t\t\t"));
 		}
 
+      int index = 0;
 		if (outputStart < method.NumberOfElements())
 		{
 			cr_sex s = method.GetElement(outputStart);
@@ -452,7 +499,7 @@ namespace
 			cr_sex stype = s.GetElement(typeIndex);
 			cr_sex svalue = s.GetElement(typeIndex + 1);
 
-			appender.Append(SEXTEXT("\t\t%s = "), StringFrom(svalue));
+			appender.Append(SEXTEXT("\t\t%s"), outputPrefix[0].c_str());
 		}
 		else
 		{
@@ -483,13 +530,20 @@ namespace
 			{
 				if (inputCount > 1) appender.Append(SEXTEXT(", "));
 				inputCount++;
-			
-				if (!AreEqual(type, SEXTEXT("IString")) && !AreEqual(type, SEXTEXT("Sys.Type.IString")) && pc.structs.find(type) != pc.structs.end())
-				{
-					appender.Append('*');
-				}
 
-				appender.Append(SEXTEXT("%s"), StringFrom(svalue));
+            if (AreEqual(type, SEXTEXT("IStringBuilder")) || AreEqual(type, SEXTEXT("Sys.Type.IStringBuilder")))
+            {
+               appender.Append(SEXTEXT("_%sPopulator"), StringFrom(svalue));
+            }
+            else
+            {
+               if (!AreEqual(type, SEXTEXT("IString")) && !AreEqual(type, SEXTEXT("Sys.Type.IString")) && pc.structs.find(type) != pc.structs.end())
+               {
+                  appender.Append('*');
+               }
+
+               appender.Append(SEXTEXT("%s"), StringFrom(svalue));
+            }	
 			}
 			else
 			{
@@ -523,8 +577,25 @@ namespace
 			cr_sex stype = s.GetElement(0);
 			cr_sex svalue = s.GetElement(1);
 
-			appender.Append(SEXTEXT("\t\t_offset += sizeof(%s);\n"), StringFrom(svalue));
-			appender.Append(SEXTEXT("\t\tWriteOutput(%s, _sf, -_offset);\n"), StringFrom(svalue));
+			appender.Append(SEXTEXT("\t\t_offset += sizeof(%s);\n"), outputIsInterface ? SEXTEXT("CReflectedClass*") : StringFrom(svalue));
+
+         if (outputIsInterface)
+         {
+            auto z = pc.interfaces.find(stype.String()->Buffer);
+
+            NamespaceSplitter splitter(z->second->ic.asSexyInterface);
+
+            csexstr body, tail;
+            splitter.SplitTail(body, tail);
+
+            appender.Append(SEXTEXT("\t\tauto& _%sStruct = Sexy::Helpers::GetDefaultProxy(SEXTEXT(\"%s\"),SEXTEXT(\"%s\"), SEXTEXT(\"Proxy%s\"), _nce.ss);\n"), StringFrom(svalue), body, tail, tail);
+            appender.Append(SEXTEXT("\t\tCReflectedClass* _sxy%s = _nce.ss.Represent(_%sStruct, %s);\n"), StringFrom(svalue), StringFrom(svalue), StringFrom(svalue));
+            appender.Append(SEXTEXT("\t\tWriteOutput(&_sxy%s->header._vTables[0], _sf, -_offset);\n"), StringFrom(svalue));
+         }
+         else
+         {
+            appender.Append(SEXTEXT("\t\tWriteOutput(%s, _sf, -_offset);\n"), StringFrom(svalue));
+         }
 		}
 
 		appender.Append(SEXTEXT("\t}\n"));
@@ -551,10 +622,10 @@ namespace
 				{
 					if (includeTypes)
 					{
-						TTypeMap::const_iterator j = pc.primitives.find(SEXTEXT("IString"));
+						TTypeMap::const_iterator j = pc.structs.find(SEXTEXT("IString"));
 						if (j == pc.primitives.end())
 						{
-							Throw(stype, SEXTEXT("Missing IString definition in the config. Suggest adding an entry of the form: (primitive IString Sys.Type.IString Sys.SexString)"));
+							Throw(stype, SEXTEXT("Missing IString definition in the config. Suggest adding an entry of the form: (struct IString Sys.Type.IString fstring)"));
 						}
 
 						SEXCHAR compressedStructName[256];
@@ -625,7 +696,7 @@ namespace
 		SEXCHAR stringIndicator = ' ';
 #endif
 
-		appender.Append(SEXTEXT("bool TryParse(const fstring& s, %s& value)\n"), tail);
+		appender.Append(SEXTEXT("bool TryParse(const Rococo::fstring& s, %s& value)\n"), tail);
 		appender.Append(SEXTEXT("\t{\n"));
 
 		bool first = true;
@@ -647,7 +718,7 @@ namespace
 		appender.Append(SEXTEXT("\t\treturn true;\n"));
 		appender.Append(SEXTEXT("\t}\n\n"));
 
-		appender.Append(SEXTEXT("\tbool TryShortParse(const fstring& s, %s& value)\n"), tail);
+		appender.Append(SEXTEXT("\tbool TryShortParse(const Rococo::fstring& s, %s& value)\n"), tail);
 		appender.Append(SEXTEXT("\t{\n"));
 
 		first = true;
@@ -681,7 +752,7 @@ namespace
 	void ImplementNativeFunctions(FileAppender& appender, const InterfaceContext& ic, const ISExpression* methods, const ParseContext& pc)
 	{
 		appender.Append(SEXTEXT("// BennyHill generated Sexy native functions for %s \n"), ic.asCppInterface.FQName());
-		appender.Append(SEXTEXT("namespace\n{\n\tusing namespace Sexy;\n\tusing namespace Sexy::Sex;\n\tusing namespace Sexy::Script;\n\tusing namespace Sexy::Compiler;\n"));
+		appender.Append(SEXTEXT("namespace\n{\n\tusing namespace Sexy;\n\tusing namespace Sexy::Sex;\n\tusing namespace Sexy::Script;\n\tusing namespace Sexy::Compiler;\n\n"));
 
 		if (methods != NULL)
 		{
@@ -712,13 +783,13 @@ namespace
 
 				appender.Append(SEXTEXT("\tvoid NativeGetHandleFor%s(NativeCallEnvironment& _nce)\n"), factoryType.CompressedName());
 				appender.Append(SEXTEXT("\t{\n"));
-				appender.Append(SEXTEXT("\t\tSexy::uint8* sf = _nce.cpu.SF();\n"));
-				appender.Append(SEXTEXT("\t\tptrdiff_t offset = 2 * sizeof(size_t);\n"));
+				appender.Append(SEXTEXT("\t\tSexy::uint8* _sf = _nce.cpu.SF();\n"));
+				appender.Append(SEXTEXT("\t\tptrdiff_t _offset = 2 * sizeof(size_t);\n"));
 
 				TAttributeMap attributes;
 				AddNativeInputs(attributes, appender, sfactoryDef, 2, sfactoryDef.NumberOfElements() - 1, pc);
 				appender.Append(SEXTEXT("\t\t%s* nceContext = reinterpret_cast<%s*>(_nce.context);\n"), ic.nceContext.FQName(), ic.nceContext.FQName());
-				appender.Append(SEXTEXT("\t\t// Uses: %s* FactoryConstruct%s(%s* _context"), ic.nceContext.FQName(), factoryType.CompressedName(), ic.nceContext.FQName());
+				appender.Append(SEXTEXT("\t\t// Uses: %s* FactoryConstruct%s(%s* _context"), ic.asCppInterface.FQName(), factoryType.CompressedName(), ic.nceContext.FQName());
 				AppendFactoryArguments(appender, sfactoryDef, 2, sfactoryDef.NumberOfElements() - 1, pc, true);
 				appender.Append(SEXTEXT(");\n"));
 
@@ -726,8 +797,8 @@ namespace
 				AppendFactoryArguments(appender, sfactoryDef, 2, sfactoryDef.NumberOfElements() - 1, pc, false);
 				appender.Append(SEXTEXT(");\n"));
 
-				appender.Append(SEXTEXT("\t\toffset += sizeof(void*);\n"));
-				appender.Append(SEXTEXT("\t\tWriteOutput(pObject, sf, -offset);\n"));
+				appender.Append(SEXTEXT("\t\t_offset += sizeof(IString*);\n"));
+				appender.Append(SEXTEXT("\t\tWriteOutput(pObject, _sf, -_offset);\n"));
 				appender.Append(SEXTEXT("\t}\n"));
 			}
 		}

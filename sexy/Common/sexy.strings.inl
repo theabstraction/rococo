@@ -369,18 +369,18 @@ namespace Sexy
 		dest[source->Length] = 0;
 	}
 
-	void __cdecl WriteToStandardOutput(const char* format, ...)
+   int __cdecl WriteToStandardOutput(const char* format, ...)
 	{	
 		va_list args;
 		va_start(args, format);
-		vprintf_s(format, args);
+		return vprintf_s(format, args);
 	}
 
-	void __cdecl WriteToStandardOutput(const wchar_t* format, ...)
+	int __cdecl WriteToStandardOutput(const wchar_t* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
-		vwprintf_s(format, args);
+		return vwprintf_s(format, args);
 	}
 
 	void __cdecl CopyString(char* dest, size_t capacity, const char* source)

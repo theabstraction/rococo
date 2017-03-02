@@ -16,7 +16,11 @@
 (primitive Float32 Float32 float)
 (primitive Float64 Float64 double)
 (primitive Bool Bool boolean32)
-(primitive IString Sys.Type.IString Sys.SexString)
+
+// System defined strings. They are defined as structs to stop them being used as output values, which is not yet implemented.
+(struct IString Sys.Type.IString fstring)
+(struct IStringBuilder Sys.Type.IStringBuilder Sexy.IStringPopulator)
+
 (primitive Pointer Pointer uintptr_t)
 
 (cpp.exception Sys::IException)
@@ -36,6 +40,7 @@
 	(Vec2 bottomLeft)
 	(Vec2 span) 
 )
+
 
 (defstruct Sys.HTIGER Sys.HTIGER Sys.HTIGER
 	(Pointer hTiger)

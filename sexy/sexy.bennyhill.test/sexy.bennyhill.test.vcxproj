@@ -103,6 +103,7 @@
     <None Include="simplestmethod.sxh" />
     <None Include="stringmethod1.sxh" />
     <None Include="tests\config.xc" />
+    <None Include="tests\returninterface.sxh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

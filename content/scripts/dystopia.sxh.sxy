@@ -1,3 +1,65 @@
+(macro Dystopia.Entities.SolidFlagsNone in out (out.AddAtomic "0x0"))
+(macro Dystopia.Entities.SolidFlagsObstacle in out (out.AddAtomic "0x1"))
+(macro Dystopia.Entities.SolidFlagsSelectable in out (out.AddAtomic "0x2"))
+(macro Dystopia.Entities.SolidFlagsSkeleton in out (out.AddAtomic "0x4"))
+(macro Dystopia.Entities.SolidFlagsIsDirty in out (out.AddAtomic "0x8"))
+(macro Dystopia.Entities.SolidFlagsRoadSection in out (out.AddAtomic "0x10"))
+
+(macro Dystopia.Entities.AnimationTypeStandstill in out (out.AddAtomic "0x0"))
+(macro Dystopia.Entities.AnimationTypeRunning in out (out.AddAtomic "0x1"))
+
+(macro Dystopia.Entities.SkeletonTypeHumanMale in out (out.AddAtomic "0x0"))
+
+(macro Dystopia.Entities.LimbIndexHead in out (out.AddAtomic "0x0"))
+(macro Dystopia.Entities.LimbIndexLeftUpperArm in out (out.AddAtomic "0x1"))
+(macro Dystopia.Entities.LimbIndexRightUpperArm in out (out.AddAtomic "0x2"))
+(macro Dystopia.Entities.LimbIndexTorso in out (out.AddAtomic "0x3"))
+(macro Dystopia.Entities.LimbIndexLeftUpperLeg in out (out.AddAtomic "0x4"))
+(macro Dystopia.Entities.LimbIndexRightUpperLeg in out (out.AddAtomic "0x5"))
+(macro Dystopia.Entities.LimbIndexLeftFoot in out (out.AddAtomic "0x6"))
+(macro Dystopia.Entities.LimbIndexRightFoot in out (out.AddAtomic "0x7"))
+(macro Dystopia.Entities.LimbIndexLeftLowerArm in out (out.AddAtomic "0x8"))
+(macro Dystopia.Entities.LimbIndexRightLowerArm in out (out.AddAtomic "0x9"))
+(macro Dystopia.Entities.LimbIndexLeftLowerLeg in out (out.AddAtomic "0xA"))
+(macro Dystopia.Entities.LimbIndexRightLowerLeg in out (out.AddAtomic "0xB"))
+(macro Dystopia.Entities.LimbIndexLeftHand in out (out.AddAtomic "0xC"))
+(macro Dystopia.Entities.LimbIndexRightHand in out (out.AddAtomic "0xD"))
+(macro Dystopia.Entities.LimbIndexCount in out (out.AddAtomic "0xE"))
+
+(interface Dystopia.Journal.IJournal
+	(AddHistory (Sys.Type.IString title)(Sys.Type.IString body) -> )
+	(AddGoalMeet (Sys.Type.IString title)(Sys.Type.IString body)(Int64 a)(Int64 b)(Float32 radius)(Dystopia.Callbacks.TwoInt64InputFunction completionFunction) -> (Int64 id))
+	(CompleteFirst (Int64 forGoalId)(Int64 precusorGoalId) -> )
+	(FailFirst (Int64 forGoalId)(Int64 precusorGoalId) -> )
+)
+
+(class ProxyIJournal (implements Dystopia.Journal.IJournal) (Pointer hObject))
+	(method ProxyIJournal.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIJournal.AddHistory (Sys.Type.IString title)(Sys.Type.IString body) ->  : (Dystopia.Journal.Native.IJournalAddHistory this.hObject title body))
+	(method ProxyIJournal.AddGoalMeet (Sys.Type.IString title)(Sys.Type.IString body)(Int64 a)(Int64 b)(Float32 radius)(Dystopia.Callbacks.TwoInt64InputFunction completionFunction) -> (Int64 id) : (Dystopia.Journal.Native.IJournalAddGoalMeet this.hObject title body a b radius completionFunction -> id))
+	(method ProxyIJournal.CompleteFirst (Int64 forGoalId)(Int64 precusorGoalId) ->  : (Dystopia.Journal.Native.IJournalCompleteFirst this.hObject forGoalId precusorGoalId))
+	(method ProxyIJournal.FailFirst (Int64 forGoalId)(Int64 precusorGoalId) ->  : (Dystopia.Journal.Native.IJournalFailFirst this.hObject forGoalId precusorGoalId))
+
+(factory Dystopia.Journal.GetJournal Dystopia.Journal.IJournal  :
+	(Pointer pObject = (Dystopia.Journal.Native.GetHandleForIJournal0 ))
+	(construct ProxyIJournal pObject)
+)
+
+(interface Dystopia.Gui.IGui
+	(ShowDialogBox (Sys.Maths.Vec2i span)(Int32 retzone)(Int32 hypzone)(Sys.Type.IString title)(Sys.Type.IString message)(Sys.Type.IString buttons) -> )
+	(Add3DHint (Sys.Maths.Vec3 worldPos)(Sys.Type.IString message)(Float32 duration) -> )
+)
+
+(class ProxyIGui (implements Dystopia.Gui.IGui) (Pointer hObject))
+	(method ProxyIGui.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIGui.ShowDialogBox (Sys.Maths.Vec2i span)(Int32 retzone)(Int32 hypzone)(Sys.Type.IString title)(Sys.Type.IString message)(Sys.Type.IString buttons) ->  : (Dystopia.Gui.Native.IGuiShowDialogBox this.hObject span retzone hypzone title message buttons))
+	(method ProxyIGui.Add3DHint (Sys.Maths.Vec3 worldPos)(Sys.Type.IString message)(Float32 duration) ->  : (Dystopia.Gui.Native.IGuiAdd3DHint this.hObject worldPos message duration))
+
+(factory Dystopia.Gui.GetGui Dystopia.Gui.IGui  :
+	(Pointer pObject = (Dystopia.Gui.Native.GetHandleForIGui0 ))
+	(construct ProxyIGui pObject)
+)
+
 (interface Dystopia.Meshes.IMeshes
 	(Load (Sys.Type.IString resourceName)(Int32 editorId) -> )
 )
@@ -56,67 +118,5 @@
 (factory Dystopia.Levels.GetLevel Dystopia.Levels.ILevel  :
 	(Pointer pObject = (Dystopia.Levels.Native.GetHandleForILevel0 ))
 	(construct ProxyILevel pObject)
-)
-
-(macro Dystopia.Entities.SolidFlagsNone in out (out.AddAtomic "0x0"))
-(macro Dystopia.Entities.SolidFlagsObstacle in out (out.AddAtomic "0x1"))
-(macro Dystopia.Entities.SolidFlagsSelectable in out (out.AddAtomic "0x2"))
-(macro Dystopia.Entities.SolidFlagsSkeleton in out (out.AddAtomic "0x4"))
-(macro Dystopia.Entities.SolidFlagsIsDirty in out (out.AddAtomic "0x8"))
-(macro Dystopia.Entities.SolidFlagsRoadSection in out (out.AddAtomic "0x10"))
-
-(macro Dystopia.Entities.AnimationTypeStandstill in out (out.AddAtomic "0x0"))
-(macro Dystopia.Entities.AnimationTypeRunning in out (out.AddAtomic "0x1"))
-
-(macro Dystopia.Entities.SkeletonTypeHumanMale in out (out.AddAtomic "0x0"))
-
-(macro Dystopia.Entities.LimbIndexHead in out (out.AddAtomic "0x0"))
-(macro Dystopia.Entities.LimbIndexLeftUpperArm in out (out.AddAtomic "0x1"))
-(macro Dystopia.Entities.LimbIndexRightUpperArm in out (out.AddAtomic "0x2"))
-(macro Dystopia.Entities.LimbIndexTorso in out (out.AddAtomic "0x3"))
-(macro Dystopia.Entities.LimbIndexLeftUpperLeg in out (out.AddAtomic "0x4"))
-(macro Dystopia.Entities.LimbIndexRightUpperLeg in out (out.AddAtomic "0x5"))
-(macro Dystopia.Entities.LimbIndexLeftFoot in out (out.AddAtomic "0x6"))
-(macro Dystopia.Entities.LimbIndexRightFoot in out (out.AddAtomic "0x7"))
-(macro Dystopia.Entities.LimbIndexLeftLowerArm in out (out.AddAtomic "0x8"))
-(macro Dystopia.Entities.LimbIndexRightLowerArm in out (out.AddAtomic "0x9"))
-(macro Dystopia.Entities.LimbIndexLeftLowerLeg in out (out.AddAtomic "0xA"))
-(macro Dystopia.Entities.LimbIndexRightLowerLeg in out (out.AddAtomic "0xB"))
-(macro Dystopia.Entities.LimbIndexLeftHand in out (out.AddAtomic "0xC"))
-(macro Dystopia.Entities.LimbIndexRightHand in out (out.AddAtomic "0xD"))
-(macro Dystopia.Entities.LimbIndexCount in out (out.AddAtomic "0xE"))
-
-(interface Dystopia.Gui.IGui
-	(ShowDialogBox (Sys.Maths.Vec2i span)(Int32 retzone)(Int32 hypzone)(Sys.Type.IString title)(Sys.Type.IString message)(Sys.Type.IString buttons) -> )
-	(Add3DHint (Sys.Maths.Vec3 worldPos)(Sys.Type.IString message)(Float32 duration) -> )
-)
-
-(class ProxyIGui (implements Dystopia.Gui.IGui) (Pointer hObject))
-	(method ProxyIGui.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyIGui.ShowDialogBox (Sys.Maths.Vec2i span)(Int32 retzone)(Int32 hypzone)(Sys.Type.IString title)(Sys.Type.IString message)(Sys.Type.IString buttons) ->  : (Dystopia.Gui.Native.IGuiShowDialogBox this.hObject span retzone hypzone title message buttons))
-	(method ProxyIGui.Add3DHint (Sys.Maths.Vec3 worldPos)(Sys.Type.IString message)(Float32 duration) ->  : (Dystopia.Gui.Native.IGuiAdd3DHint this.hObject worldPos message duration))
-
-(factory Dystopia.Gui.GetGui Dystopia.Gui.IGui  :
-	(Pointer pObject = (Dystopia.Gui.Native.GetHandleForIGui0 ))
-	(construct ProxyIGui pObject)
-)
-
-(interface Dystopia.Journal.IJournal
-	(AddHistory (Sys.Type.IString title)(Sys.Type.IString body) -> )
-	(AddGoalMeet (Sys.Type.IString title)(Sys.Type.IString body)(Int64 a)(Int64 b)(Float32 radius)(Dystopia.Callbacks.TwoInt64InputFunction completionFunction) -> (Int64 id))
-	(CompleteFirst (Int64 forGoalId)(Int64 precusorGoalId) -> )
-	(FailFirst (Int64 forGoalId)(Int64 precusorGoalId) -> )
-)
-
-(class ProxyIJournal (implements Dystopia.Journal.IJournal) (Pointer hObject))
-	(method ProxyIJournal.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyIJournal.AddHistory (Sys.Type.IString title)(Sys.Type.IString body) ->  : (Dystopia.Journal.Native.IJournalAddHistory this.hObject title body))
-	(method ProxyIJournal.AddGoalMeet (Sys.Type.IString title)(Sys.Type.IString body)(Int64 a)(Int64 b)(Float32 radius)(Dystopia.Callbacks.TwoInt64InputFunction completionFunction) -> (Int64 id) : (Dystopia.Journal.Native.IJournalAddGoalMeet this.hObject title body a b radius completionFunction -> id))
-	(method ProxyIJournal.CompleteFirst (Int64 forGoalId)(Int64 precusorGoalId) ->  : (Dystopia.Journal.Native.IJournalCompleteFirst this.hObject forGoalId precusorGoalId))
-	(method ProxyIJournal.FailFirst (Int64 forGoalId)(Int64 precusorGoalId) ->  : (Dystopia.Journal.Native.IJournalFailFirst this.hObject forGoalId precusorGoalId))
-
-(factory Dystopia.Journal.GetJournal Dystopia.Journal.IJournal  :
-	(Pointer pObject = (Dystopia.Journal.Native.GetHandleForIJournal0 ))
-	(construct ProxyIJournal pObject)
 )
 

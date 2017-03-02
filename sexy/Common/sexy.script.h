@@ -213,6 +213,14 @@ namespace Sexy { namespace Script
 		void* srcExpression;
 	};
 
+   struct CClassSysTypeStringBuilder
+   {
+      CClassHeader header;
+      int32 length;
+      SEXCHAR* buffer;
+      int32 capacity;
+   };
+
 	struct CScriptSystemClass
 	{
 		CClassHeader header;

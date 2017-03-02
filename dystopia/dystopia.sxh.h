@@ -1,43 +1,4 @@
 namespace Dystopia { 
-	struct NO_VTABLE IMeshes
-	{
-		virtual void Load(const fstring& resourceName, ID_MESH editorId) = 0;
-	};
-}
-
-namespace Dystopia { 
-	void AddNativeCalls_DystopiaIMeshes(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IMeshes* nceContext);
-}
-
-namespace Dystopia { 
-	struct NO_VTABLE ILevelBuilder
-	{
-		virtual ID_ENTITY/* entityId */ AddEnemy(const Vec3& pos, ID_MESH editorId) = 0;
-		virtual ID_ENTITY/* entityId */ AddAlly(const Vec3& pos, ID_MESH editorId) = 0;
-		virtual ID_ENTITY/* entityId */ AddAmmunition(const Vec3& pos, ID_MESH editorId, const fstring& name, const fstring& imageFile, int32 ammoType, float massPerBullet, float massPerClip, int32 count) = 0;
-		virtual ID_ENTITY/* entityId */ AddRangedWeapon(const Vec3& pos, ID_MESH editorId, const fstring& name, const fstring& imageFile, float muzzleVelocity, float flightTime, int32 ammoType, float massKg) = 0;
-		virtual ID_ENTITY/* entityId */ AddArmour(const Vec3& pos, ID_MESH editorId, const fstring& name, const fstring& imageFile, int32 bulletProt, int32 dollSlot, float massKg) = 0;
-		virtual ID_ENTITY/* entityId */ AddSolid(const Vec3& pos, ID_MESH editorId, int32 flags) = 0;
-		virtual void Name(ID_ENTITY entityId, const fstring& name) = 0;
-		virtual void SetPosition(ID_ENTITY entityId, const Vec3& pos) = 0;
-		virtual void SetVelocity(ID_ENTITY entityId, const Vec3& velocity) = 0;
-		virtual void SetHeading(ID_ENTITY entityId, Radians theta) = 0;
-		virtual void SetElevation(ID_ENTITY entityId, Radians phi) = 0;
-		virtual void SetLevel(const fstring& filename) = 0;
-		virtual void SetScale(ID_ENTITY entityId, const Vec3& scale) = 0;
-		virtual void GenerateCity(const fstring& name, Metres radius) = 0;
-		virtual void AddStreetName(const fstring& name) = 0;
-		virtual void PopulateCity(float populationDensity) = 0;
-		virtual void Clear() = 0;
-		virtual void SetPlayerId(ID_ENTITY playerId) = 0;
-	};
-}
-
-namespace Dystopia { 
-	void AddNativeCalls_DystopiaILevelBuilder(Sexy::Script::IPublicScriptSystem& ss, Dystopia::ILevel* nceContext);
-}
-
-namespace Dystopia { 
 	enum SolidFlags: int32
 	{
 		SolidFlags_None = 0, 	// 0x0
@@ -93,17 +54,15 @@ namespace Dystopia {
 	bool TryShortParse(const fstring& s, LimbIndex& value); 
 }
 
-namespace Dystopia { 
-	struct NO_VTABLE IGui
+namespace Dystopia { namespace UI { 
+	enum EWidgetState: int32
 	{
-		virtual void ShowDialogBox(const Vec2i& span, int32 retzone, int32 hypzone, const fstring& title, const fstring& message, const fstring& buttons) = 0;
-		virtual void Add3DHint(const Vec3& worldPos, const fstring& message, float duration) = 0;
+		EWidgetState_NoFocus = 0, 	// 0x0
+		EWidgetState_HasFocus = 1, 	// 0x1
 	};
-}
-
-namespace Dystopia { 
-	void AddNativeCalls_DystopiaIGui(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IGui* nceContext);
-}
+	bool TryParse(const fstring& s, EWidgetState& value);
+	bool TryShortParse(const fstring& s, EWidgetState& value); 
+}}
 
 namespace Dystopia { 
 	struct NO_VTABLE IJournal
@@ -119,15 +78,56 @@ namespace Dystopia {
 	void AddNativeCalls_DystopiaIJournal(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IJournal* nceContext);
 }
 
-namespace Dystopia { namespace UI { 
-	enum EWidgetState: int32
+namespace Dystopia { 
+	struct NO_VTABLE IGui
 	{
-		EWidgetState_NoFocus = 0, 	// 0x0
-		EWidgetState_HasFocus = 1, 	// 0x1
+		virtual void ShowDialogBox(const Vec2i& span, int32 retzone, int32 hypzone, const fstring& title, const fstring& message, const fstring& buttons) = 0;
+		virtual void Add3DHint(const Vec3& worldPos, const fstring& message, float duration) = 0;
 	};
-	bool TryParse(const fstring& s, EWidgetState& value);
-	bool TryShortParse(const fstring& s, EWidgetState& value); 
-}}
+}
+
+namespace Dystopia { 
+	void AddNativeCalls_DystopiaIGui(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IGui* nceContext);
+}
+
+namespace Dystopia { 
+	struct NO_VTABLE IMeshes
+	{
+		virtual void Load(const fstring& resourceName, ID_MESH editorId) = 0;
+	};
+}
+
+namespace Dystopia { 
+	void AddNativeCalls_DystopiaIMeshes(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IMeshes* nceContext);
+}
+
+namespace Dystopia { 
+	struct NO_VTABLE ILevelBuilder
+	{
+		virtual ID_ENTITY/* entityId */ AddEnemy(const Vec3& pos, ID_MESH editorId) = 0;
+		virtual ID_ENTITY/* entityId */ AddAlly(const Vec3& pos, ID_MESH editorId) = 0;
+		virtual ID_ENTITY/* entityId */ AddAmmunition(const Vec3& pos, ID_MESH editorId, const fstring& name, const fstring& imageFile, int32 ammoType, float massPerBullet, float massPerClip, int32 count) = 0;
+		virtual ID_ENTITY/* entityId */ AddRangedWeapon(const Vec3& pos, ID_MESH editorId, const fstring& name, const fstring& imageFile, float muzzleVelocity, float flightTime, int32 ammoType, float massKg) = 0;
+		virtual ID_ENTITY/* entityId */ AddArmour(const Vec3& pos, ID_MESH editorId, const fstring& name, const fstring& imageFile, int32 bulletProt, int32 dollSlot, float massKg) = 0;
+		virtual ID_ENTITY/* entityId */ AddSolid(const Vec3& pos, ID_MESH editorId, int32 flags) = 0;
+		virtual void Name(ID_ENTITY entityId, const fstring& name) = 0;
+		virtual void SetPosition(ID_ENTITY entityId, const Vec3& pos) = 0;
+		virtual void SetVelocity(ID_ENTITY entityId, const Vec3& velocity) = 0;
+		virtual void SetHeading(ID_ENTITY entityId, Radians theta) = 0;
+		virtual void SetElevation(ID_ENTITY entityId, Radians phi) = 0;
+		virtual void SetLevel(const fstring& filename) = 0;
+		virtual void SetScale(ID_ENTITY entityId, const Vec3& scale) = 0;
+		virtual void GenerateCity(const fstring& name, Metres radius) = 0;
+		virtual void AddStreetName(const fstring& name) = 0;
+		virtual void PopulateCity(float populationDensity) = 0;
+		virtual void Clear() = 0;
+		virtual void SetPlayerId(ID_ENTITY playerId) = 0;
+	};
+}
+
+namespace Dystopia { 
+	void AddNativeCalls_DystopiaILevelBuilder(Sexy::Script::IPublicScriptSystem& ss, Dystopia::ILevel* nceContext);
+}
 
 namespace Dystopia { namespace UI { 
 	struct NO_VTABLE IUIBuilder

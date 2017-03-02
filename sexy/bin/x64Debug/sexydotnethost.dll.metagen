@@ -1,0 +1,170 @@
+ImageRuntimeVersion: v4.0.30319
+Assembly sexydotnethost, Version=1.0.*, Culture=Invariant Language (Invariant Country): 
+	hash=SHA1, flags=PublicKey
+Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Struct SexyDotNet.Host.SourceLocation: AutoLayout, AnsiClass, Class, Public, SequentialLayout, Sealed, BeforeFieldInit
+  :System.ValueType
+    Void .ctor(Int32, Int32): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Properties:
+    Int32 Line 'get set' : 
+    Int32 Pos  'get set' : 
+  Methods:
+    get_Pos(): PrivateScope, Public, HideBySig, SpecialName
+    set_Pos(Int32): PrivateScope, Public, HideBySig, SpecialName
+    get_Line(): PrivateScope, Public, HideBySig, SpecialName
+    set_Line(Int32): PrivateScope, Public, HideBySig, SpecialName
+    ToString(): PrivateScope, Public, Final, Virtual, HideBySig
+Struct SexyDotNet.Host.FunctionRef: AutoLayout, AnsiClass, Class, Public, SequentialLayout, Sealed, BeforeFieldInit
+  :System.ValueType
+    Void .ctor(IntPtr, System.String): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Properties:
+    IntPtr Handle 'get ' : 
+    System.String Name 'get ' : 
+  Methods:
+    get_Name(): PrivateScope, Public, HideBySig, SpecialName
+    get_Handle(): PrivateScope, Public, HideBySig, SpecialName
+Class SexyDotNet.Host.CompileError: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+  :System.Exception
+    Void .ctor(System.String, System.String, SexyDotNet.Host.SourceLocation, SexyDotNet.Host.SourceLocation): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Properties:
+    SexyDotNet.Host.SourceLocation End 'get set' : 
+    SexyDotNet.Host.SourceLocation Start 'get set' : 
+    System.String SourceFile 'get set' : 
+  Methods:
+    get_SourceFile(): PrivateScope, Public, HideBySig, SpecialName
+    set_SourceFile(String): PrivateScope, Public, HideBySig, SpecialName
+    get_Start(): PrivateScope, Public, HideBySig, SpecialName
+    set_Start(SourceLocation): PrivateScope, Public, HideBySig, SpecialName
+    get_End(): PrivateScope, Public, HideBySig, SpecialName
+    set_End(SourceLocation): PrivateScope, Public, HideBySig, SpecialName
+    ToString(): PrivateScope, Public, Virtual, HideBySig
+Class SexyDotNet.Host.AssemblySection: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(System.String, System.Collections.Generic.List`1[System.String]): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Properties:
+    System.Collections.Generic.IList`1[System.String] Segments 'get ' : 
+    System.String FunctionName 'get ' : 
+  Methods:
+    get_FunctionName(): PrivateScope, Public, HideBySig, SpecialName
+    get_Segments(): PrivateScope, Public, HideBySig, SpecialName
+Class SexyDotNet.Host.SourceModule: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(SexyDotNet.Host.SexyScriptLanguage, IntPtr, IntPtr, IntPtr, System.String): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.IDisposable
+  Fields:
+    Int32 bytecodeVersion : Public
+  Properties:
+    System.Collections.Generic.IList`1[SexyDotNet.Host.AssemblySection] Sections 'get ' : 
+    System.String Name 'get ' : 
+    IntPtr NativeModuleHandle 'get ' : 
+  Methods:
+    get_NativeModuleHandle(): PrivateScope, Public, HideBySig, SpecialName
+    get_Name(): PrivateScope, Public, HideBySig, SpecialName
+    get_Sections(): PrivateScope, Public, HideBySig, SpecialName
+    Dispose(): PrivateScope, Public, Final, Virtual, HideBySig
+Struct SexyDotNet.Host.SourceFileSegment: AutoLayout, AnsiClass, Class, Public, SequentialLayout, Sealed, BeforeFieldInit
+  :System.ValueType
+    Void .ctor(Int32, IntPtr, SexyDotNet.Host.SourceModule, SexyDotNet.Host.FunctionRef): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Fields:
+    Int32 LineNumber : Public
+    IntPtr CodeBase : Public
+    SexyDotNet.Host.SourceModule Source : Public
+    SexyDotNet.Host.FunctionRef Function : Public
+  Methods:
+    ToString(): PrivateScope, Public, Final, Virtual, HideBySig
+Struct SexyDotNet.Host.VariableDesc: AutoLayout, AnsiClass, Class, Public, SequentialLayout, Sealed, BeforeFieldInit
+  :System.ValueType
+    Void .ctor(Int32, System.String, System.String, System.String, SexyDotNet.Host.VariableKind, IntPtr): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Fields:
+    Int32 SFOffset : Public
+    System.String Name : Public
+    System.String Type : Public
+    System.String Value : Public
+    SexyDotNet.Host.VariableKind Direction : Public
+    IntPtr Address : Public
+  Methods:
+    ToString(): PrivateScope, Public, Final, Virtual, HideBySig
+Class SexyDotNet.Host.TerminationHandler: AutoLayout, AnsiClass, Class, Public, Sealed, BeforeFieldInit
+  :System.MulticastDelegate
+    Void .ctor(System.Object, IntPtr): PrivateScope, Public, SpecialName, RTSpecialName
+  Methods:
+    Invoke(Int32): PrivateScope, Public, Final, Virtual, VtableLayoutMask
+    BeginInvoke(Int32, AsyncCallback, Object): PrivateScope, Public, Final, Virtual, VtableLayoutMask
+    EndInvoke(IAsyncResult): PrivateScope, Public, Final, Virtual, VtableLayoutMask
+Class SexyDotNet.Host.LogHandler: AutoLayout, AnsiClass, Class, Public, Sealed, BeforeFieldInit
+  :System.MulticastDelegate
+    Void .ctor(System.Object, IntPtr): PrivateScope, Public, SpecialName, RTSpecialName
+  Methods:
+    Invoke(Char*): PrivateScope, Public, Final, Virtual, VtableLayoutMask
+    BeginInvoke(Char*, AsyncCallback, Object): PrivateScope, Public, Final, Virtual, VtableLayoutMask
+    EndInvoke(IAsyncResult): PrivateScope, Public, Final, Virtual, VtableLayoutMask
+Class SexyDotNet.Host.RouteSysMessagesHandler: AutoLayout, AnsiClass, Class, Public, Sealed, BeforeFieldInit
+  :System.MulticastDelegate
+    Void .ctor(System.Object, IntPtr): PrivateScope, Public, SpecialName, RTSpecialName
+  Methods:
+    Invoke(): PrivateScope, Public, Final, Virtual, VtableLayoutMask
+    BeginInvoke(AsyncCallback, Object): PrivateScope, Public, Final, Virtual, VtableLayoutMask
+    EndInvoke(IAsyncResult): PrivateScope, Public, Final, Virtual, VtableLayoutMask
+Class SexyDotNet.Host.SexyScriptLanguage: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(SexyDotNet.Host.LogHandler, SexyDotNet.Host.RouteSysMessagesHandler): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.IDisposable
+  Properties:
+    IntPtr DisassemblerHandle 'get ' : 
+    IntPtr NativeHandle 'get ' : 
+    System.String SourceCode 'get ' : 
+    System.String Filename 'get ' : 
+    SexyDotNet.Host.SourceLocation End 'get ' : 
+    SexyDotNet.Host.SourceLocation Start 'get ' : 
+    System.Collections.Generic.Dictionary`2[System.IntPtr,SexyDotNet.Host.SourceFileSegment] SourceFileSegments 'get ' : 
+  Events:
+    SexyDotNet.Host.TerminationHandler EvTerminated: SpecialName
+  Methods:
+    RefreshDisassembler(): PrivateScope, Public, HideBySig
+    AddModule(String): PrivateScope, Public, HideBySig
+    UpdateDisassembly(): PrivateScope, Public, HideBySig
+    GetModule(String): PrivateScope, Public, HideBySig
+    get_SourceFileSegments(): PrivateScope, Public, HideBySig, SpecialName
+    GetVariables(Int32): PrivateScope, Public, HideBySig
+    GetElements(String, Int32): PrivateScope, Public, HideBySig
+    get_Start(): PrivateScope, Public, HideBySig, SpecialName
+    get_End(): PrivateScope, Public, HideBySig, SpecialName
+    get_Filename(): PrivateScope, Public, HideBySig, SpecialName
+    get_SourceCode(): PrivateScope, Public, HideBySig, SpecialName
+    get_NativeHandle(): PrivateScope, Public, HideBySig, SpecialName
+    get_DisassemblerHandle(): PrivateScope, Public, HideBySig, SpecialName
+    GetRegisterValue(Int32): PrivateScope, Public, HideBySig
+    StepInto(): PrivateScope, Public, HideBySig
+    StepOver(): PrivateScope, Public, HideBySig
+    StepOut(): PrivateScope, Public, HideBySig
+    ThrowOnCompileError(): PrivateScope, Public, HideBySig
+    Compile(): PrivateScope, Public, HideBySig
+    Execute(): PrivateScope, Public, HideBySig
+    GetCallerSF(IntPtr): PrivateScope, Public, HideBySig
+    GetPCAddress(Int32): PrivateScope, Public, HideBySig
+    GetReturnAddress(IntPtr): PrivateScope, Public, HideBySig
+    GetStackFrame(Int32): PrivateScope, Public, HideBySig
+    add_EvTerminated(TerminationHandler): PrivateScope, Public, HideBySig, SpecialName
+    remove_EvTerminated(TerminationHandler): PrivateScope, Public, HideBySig, SpecialName
+    raise_EvTerminated(Int32): PrivateScope, Public, HideBySig, SpecialName
+    Dispose(): PrivateScope, Public, Final, Virtual, HideBySig
+Struct SexyDotNet.Host.HostLimits: AutoLayout, AnsiClass, Class, Public, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    SexyDotNet.Host.HostLimits MAX_SOURCE_FILE_KILOBYTES = 4096 : Public, Static, Literal, HasDefault
+Struct SexyDotNet.Host.VariableKind: AutoLayout, AnsiClass, Class, Public, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    SexyDotNet.Host.VariableKind Input = 0 : Public, Static, Literal, HasDefault
+    SexyDotNet.Host.VariableKind Output = 1 : Public, Static, Literal, HasDefault
+    SexyDotNet.Host.VariableKind Local = 2 : Public, Static, Literal, HasDefault
+    SexyDotNet.Host.VariableKind Pseudo = 3 : Public, Static, Literal, HasDefault
+    SexyDotNet.Host.VariableKind Global = 4 : Public, Static, Literal, HasDefault

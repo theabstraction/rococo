@@ -65,6 +65,7 @@ namespace
       MENU_SPACER = 0,
       MENU_SYS_EXIT = 1000,
       MENU_SYSFONT,
+      MENU_SYSRESET,
       MENU_EXECUTE_NEXT,
       MENU_EXECUTE_OVER,
       MENU_EXECUTE_OUT,
@@ -72,7 +73,11 @@ namespace
       MENU_EXECUTE_CONTINUE
    };
 
-   class TabbedDebuggerWindowHandler : public StandardWindowHandler, public IDebuggerWindow, public Windows::IDE::IPaneDatabase
+   class TabbedDebuggerWindowHandler : 
+      public StandardWindowHandler,
+      public IDebuggerWindow,
+      public Windows::IDE::IPaneDatabase,
+      public ITreeControlHandler
    {
    private:
       IParentWindowSupervisor* dialog;
@@ -86,6 +91,8 @@ namespace
       LOGFONT logFont;
       HFONT hFont;
 
+      int64 requiredDepth; // Function to view according to stack depth = 1 + stack depth
+
       UINT WM_DEBUGGER_TABCHANGED;
 
       TabbedDebuggerWindowHandler() :
@@ -94,7 +101,8 @@ namespace
          isVisible(false),
          debugControl(nullptr),
          spatialManager(nullptr),
-         disassemblyId(false), hFont(nullptr)
+         disassemblyId(false), hFont(nullptr),
+         requiredDepth(1)
       {
          WM_DEBUGGER_TABCHANGED = RegisterWindowMessage(L"WM_DEBUGGER_TABCHANGED");
 
@@ -102,6 +110,7 @@ namespace
          auto& sysDebug = mainMenu->AddPopup(L"&Debug");
          
          sysMenu.AddString(L"&Font...", MENU_SYSFONT);
+         sysMenu.AddString(L"&Reset UI", MENU_SYSRESET);
          sysMenu.AddString(L"E&xit", MENU_SYS_EXIT);
          
          sysDebug.AddString(L"Step Next", MENU_EXECUTE_NEXT, L"F10");
@@ -129,6 +138,44 @@ namespace
          }
       }
 
+      virtual void OnItemSelected(int64 id, ITreeControlSupervisor& tree)
+      {
+         IIDETreeWindow* report = static_cast<IIDETreeWindow*>(spatialManager->FindPane(IDEPANE_ID_STACK));
+         if (report)
+         {
+            if (&report->GetTreeSupervisor() == &tree)
+            {
+               if (requiredDepth != id && id > 0)
+               {
+                  requiredDepth = id;
+
+                  if (debugControl)
+                  {
+                     debugControl->RefreshAtDepth(requiredDepth - 1);
+                  }
+               }
+            }
+         }
+      }
+
+      virtual void ResetUI()
+      {
+         if (MessageBox(*dialog, L"Do you wish to reset the IDE to tabs?", L"Sexy Debugger IDE", MB_YESNO) == IDYES)
+         {
+            spatialManager->Free();
+            IO::DeleteUserFile(L"debugger.ide.sxy");
+            spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont);
+
+            DeleteObject(hFont);
+            hFont = CreateFontIndirectW(&logFont);
+            spatialManager->SetFontRecursive(hFont);
+
+            LayoutChildren();
+     
+            IO::DeleteUserFile(L"debugger.ide.sxy");
+         }
+      }
+
       virtual void OnMenuCommand(HWND hWnd, DWORD id)
       {
          switch (id)
@@ -139,6 +186,9 @@ namespace
          case MENU_SYSFONT:
             OnChooseFont();
             break;    
+         case MENU_SYSRESET:
+            ResetUI();
+            break;
          }
 
          if (debugControl)
@@ -235,7 +285,7 @@ namespace
 
       virtual void GetName(wchar_t name[256], IDEPANE_ID id)
       {
-         std::unordered_map<IDEPANE_ID, const wchar_t*, IDEPANE_ID> idToName (
+         static std::unordered_map<IDEPANE_ID, const wchar_t*, IDEPANE_ID> idToName (
          {
             { IDEPANE_ID_DISASSEMBLER, L"Disassembly"},
             { IDEPANE_ID_SOURCE,       L"Source"},
@@ -283,7 +333,7 @@ namespace
             }
             case EPaneId_ID_STACK:
             {
-               auto report = CreateTreeView(parent);
+               auto report = CreateTreeView(parent, this);
                report->SetFont(hFont);
                return report;
             }
@@ -295,7 +345,7 @@ namespace
             }
             case EPaneId_ID_API:
             {
-               auto apiTree = CreateTreeView(parent);
+               auto apiTree = CreateTreeView(parent, this);
                apiTree->SetFont(hFont);
                if (debugControl)
                {
@@ -383,6 +433,12 @@ namespace
          }
 
          logSegments.push_back({ RGB(0,0,0), text  });
+
+         auto* logPane = spatialManager->FindPane(IDEPANE_ID_LOG);
+         if (logPane)
+         {
+            static_cast<IIDETextWindow*>(logPane)->AddSegment(RGB(0, 0, 0), text, wcslen(text) + 1, RGBAb(255, 255, 255));
+         }
 
          return len;
       }
@@ -619,6 +675,11 @@ namespace
             DispatchMessage(&msg);
          }
 
+         auto* logPane = spatialManager->FindPane(IDEPANE_ID_LOG);
+         if (logPane)
+         {
+            static_cast<IIDETextWindow*>(logPane)->Editor().ResetContent();
+         }
          ClearLog();
          ShowWindow(false, nullptr);
       }

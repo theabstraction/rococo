@@ -1203,27 +1203,22 @@ namespace
       void Split(IIDENode* nodeA, IIDENode* nodeB);
    };
 
-   class IDETreeView : public StandardWindowHandler, public IIDETreeWindow
-   {
-      struct TreeEventHandler : ITreeControlHandler
-      {
-         virtual void OnDrawItem(DRAWITEMSTRUCT& dis)
-         {
-
-         }
-
-         virtual void OnMeasureItem(MEASUREITEMSTRUCT& mis)
-         {
-
-         }
-      } treeEventHandler;
-
-
+   class IDETreeView : public StandardWindowHandler, public IIDETreeWindow, private ITreeControlHandler
+   {  
    private:
       IParentWindowSupervisor* treeFrame;
       ITreeControlSupervisor* treeClient;
+      ITreeControlHandler* handler;
 
-      IDETreeView() : treeFrame(nullptr), treeClient(nullptr)
+      virtual void OnItemSelected(int64 id, ITreeControlSupervisor& origin)
+      {
+         if (handler) handler->OnItemSelected(id, origin);
+      }
+
+      IDETreeView(ITreeControlHandler* _handler) :
+         treeFrame(nullptr),
+         treeClient(nullptr),
+         handler(_handler)
       {
 
       }
@@ -1244,7 +1239,7 @@ namespace
          WindowConfig config;
          Windows::SetChildWindowConfig(config, GuiRect{ 1, 1, 2, 2 }, parent, nullptr, 0, 0);
          treeFrame = Windows::CreateChildWindow(config, this);
-         treeClient = Windows::AddTree(*treeFrame, GuiRect(1, 1, 2, 2), L"", 1008, treeEventHandler, WS_CHILD | WS_VISIBLE | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_BORDER);
+         treeClient = Windows::AddTree(*treeFrame, GuiRect(1, 1, 2, 2), L"", 1008, *this, WS_CHILD | WS_VISIBLE | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_BORDER);
       }
 
       virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
@@ -1254,9 +1249,9 @@ namespace
       }
 
    public:
-      static IDETreeView* Create(IWindow& parent)
+      static IDETreeView* Create(IWindow& parent, ITreeControlHandler* handler)
       {
-         auto node = new IDETreeView();
+         auto node = new IDETreeView(handler);
          node->PostConstruct(parent);
          return node;
       }
@@ -1516,9 +1511,9 @@ namespace Rococo
             return IDETextWindow::Create(parent);
          }
 
-         IIDETreeWindow* CreateTreeView(IWindow& parent)
+         IIDETreeWindow* CreateTreeView(IWindow& parent, ITreeControlHandler* handler)
          {
-            return IDETreeView::Create(parent);
+            return IDETreeView::Create(parent, handler);
          }
 
          IIDEReportWindow* CreateReportView(IWindow& parent)

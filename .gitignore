@@ -20,16 +20,12 @@
 *.cache
 *.html
 *.ipch
-/sexy/Bin/*
-/sexy/sexydotnet/obj/*
 *.sdf
 *.opensdf
 *.exp
 *.sxh.h
 *.sxh.sxy
-/sexy/*.sdf
 *.xcf
-/dystopia/dystopia.version.cpp
 *.enc
 *.VC.opendb
 *.VC.db

@@ -1,5 +1,5 @@
-#ifndef BLOKE_COMPILER_OPTIONS_H
-# define BLOKE_COMPILER_OPTIONS_H
+#ifndef ROCOCO_COMPILER_OPTIONS_H
+# define ROCOCO_COMPILER_OPTIONS_H
 
 # define _HAS_ITERATOR_DEBUGGING 0
 # define _SECURE_SCL 0
@@ -11,10 +11,11 @@
 #ifndef NO_VTABLE // Use on pure interfaces, which have no implementation
 # ifdef _WIN32
 #  define NO_VTABLE __declspec(novtable)
-#  define ROCOCOAPI struct NO_VTABLE
 # else
 #  define NO_VTABLE
 # endif
 #endif
 
-#endif
+# define ROCOCOAPI struct NO_VTABLE
+
+#endif // ROCOCO

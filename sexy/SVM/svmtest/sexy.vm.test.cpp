@@ -838,7 +838,7 @@ namespace
 			IDisassembler::Rep rep;
 			dis->Disassemble(code + i, OUT rep);
 
-			PrintToStandardOutput(SEXTEXT("%s %s\r\n"), rep.OpcodeText, rep.ArgText);
+			WriteToStandardOutput(SEXTEXT("%s %s\r\n"), rep.OpcodeText, rep.ArgText);
 
 			validate (rep.ByteCount != 0);
 			i += rep.ByteCount;
@@ -1191,7 +1191,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 			void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) 
 			{
-				PrintToStandardOutput(SEXTEXT("%s: code %d\nMessage: %s\n"), exceptionType, errorCode, message);
+				WriteToStandardOutput(SEXTEXT("%s: code %d\nMessage: %s\n"), exceptionType, errorCode, message);
 			}
 
 			void OnJITCompileException(Sex::ParseException& ex)
@@ -1208,7 +1208,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 		catch (IException& ex)
 		{
-			PrintToStandardOutput(SEXTEXT("%s: code %d\n"), ex.Message(), ex.ErrorCode());
+			WriteToStandardOutput(SEXTEXT("%s: code %d\n"), ex.Message(), ex.ErrorCode());
 		}
 	}
 

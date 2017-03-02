@@ -22,6 +22,40 @@ namespace Rococo
 	typedef void* pointer;
 	typedef int32 boolean32; // 32-bit boolean
 
+   struct fstring
+   {
+      const wchar_t* buffer;
+      const int32 length;
+
+      operator const wchar_t*() const { return buffer; }
+   };
+
+   inline constexpr fstring operator"" _fstring(const wchar_t* msg, size_t length)
+   {
+      return fstring{ msg, (int32)length };
+   }
+
+   struct ILock
+   {
+      virtual void Lock() = 0;
+      virtual void Unlock() = 0;
+   };
+
+   class Sync
+   {
+      ILock& lock;
+   public:
+      Sync(ILock& _lock) : lock(_lock)
+      {
+         lock.Lock();
+      }
+
+      ~Sync()
+      {
+         lock.Unlock();
+      }
+   };
+
    struct Vec2i
    {
       int32 x;
@@ -109,6 +143,132 @@ namespace Rococo
 	{
 		virtual void operator()(T& t) = 0;
 	};
+
+   struct RGBAb
+   {
+      uint8 red;
+      uint8 green;
+      uint8 blue;
+      uint8 alpha;
+
+      RGBAb() {}
+      RGBAb(uint32 x) { RGBAb* pCol = (RGBAb*)&x; *this = *pCol; }
+      RGBAb(uint8 _red, uint8 _green, uint8 _blue, uint8 _alpha = 255) : red(_red), green(_green), blue(_blue), alpha(_alpha) {}
+   };
+
+   struct RGBA
+   {
+      float red;
+      float green;
+      float blue;
+      float alpha;
+
+      RGBA(float _r, float _g, float _b, float _a = 1.0f) : red(_r), green(_g), blue(_b), alpha(_a) {}
+   };
+
+   template<class T> ROCOCOAPI IVectorEnumerator
+   {
+      virtual T* begin() = 0;
+      virtual T* end() = 0;
+      virtual const T* begin() const = 0;
+      virtual const T* end() const = 0;
+      virtual size_t size() const = 0;
+   };
+
+   // Represent a gui rectangle in floating point co-ordinates. top < bottom for most uses.
+   struct GuiRectf
+   {
+      float left;
+      float top;
+      float right;
+      float bottom;
+
+      GuiRectf() {}
+      GuiRectf(float _left, float _top, float _right, float _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
+   };
+
+   template<class T> inline T max(T a, T b)
+   {
+      return a > b ? a : b;
+   }
+
+   template<class T> inline T min(T a, T b)
+   {
+      return a < b ? a : b;
+   }
+
+   struct Kilograms
+   {
+      float value;
+      operator float() const { return value; }
+   };
+
+   inline Kilograms operator "" _kg(long double value)
+   {
+      return Kilograms{ (float)value };
+   }
+
+   struct Metres
+   {
+      float value;
+      operator float() const { return value; }
+   };
+
+   inline Metres operator "" _metres(long double value)
+   {
+      return Metres{ (float)value };
+   }
+
+   struct Seconds
+   {
+      float value;
+      operator float() const { return value; }
+   };
+
+   inline Seconds operator "" _seconds(long double value)
+   {
+      return Seconds{ (float)value };
+   }
+
+   struct MetresPerSecond
+   {
+      float value;
+      operator float() const { return value; }
+   };
+
+   inline MetresPerSecond operator "" _mps(long double value)
+   {
+      return MetresPerSecond{ (float)value };
+   }
+
+   struct GuiRect
+   {
+      int32 left;
+      int32 top;
+      int32 right;
+      int32 bottom;
+
+      GuiRect() {}
+      GuiRect(int32 _left, int32 _top, int32 _right, int32 _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
+   };
+
+   struct Vec2
+   {
+      float x;
+      float y;
+   };
+
+   struct Vec3
+   {
+      float x;
+      float y;
+      float z;
+
+      static Vec3 FromVec2(const Vec2& pos, float z)
+      {
+         return Vec3{ pos.x, pos.y, z };
+      }
+   };
 }
 
 #endif

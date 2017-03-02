@@ -58,5 +58,8 @@
     <None Include="tests\config.xc">
       <Filter>Tests</Filter>
     </None>
+    <None Include="tests\returninterface.sxh">
+      <Filter>Tests</Filter>
+    </None>
   </ItemGroup>
 </Project>

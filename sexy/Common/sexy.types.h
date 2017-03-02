@@ -113,8 +113,6 @@ namespace Sexy
 
 	typedef uint32 ID_API_CALLBACK;
 
-	typedef unsigned char sexbyte;
-
 	struct VTABLEDEF
 	{
 		const ID_BYTECODE* Root;
@@ -124,15 +122,10 @@ namespace Sexy
 
 #ifndef SEXCHAR_IS_WIDE
 	typedef char SEXCHAR;
-#define PrintToStandardOutput printf_s
-#define PrintToFile fprintf_s
 # define SEXTEXT(quote) quote 
 # define __SEXFUNCTION__ __FUNCTION__
 #else
 	typedef wchar_t SEXCHAR;
-#define PrintToStandardOutput wprintf_s
-#define PrintToFile fwprintf_s
-
 # define SEXSTRINGIFY(x) L ## x
 # define SEXSTRINGIFY2(x) SEXSTRINGIFY(x)
 # define SEXTEXT(quote) L##quote
@@ -175,6 +168,11 @@ namespace Sexy
 		csexstr buffer;
 	};
 
+   struct NO_VTABLE IStringPopulator
+   {
+      virtual void Populate(csexstr text);
+   };
+
 #pragma pack(pop)
 
 	typedef sexstring_header* sexstring;
@@ -184,8 +182,6 @@ namespace Sexy
 	bool __cdecl IsAlphabetical(SEXCHAR c);
 	bool __cdecl IsNumeric(SEXCHAR c);
 	bool __cdecl IsAlphaNumeric(SEXCHAR c);
-
-	void ThrowBuildTokenError(int err);
 
 	void GetRefName(OUT TokenBuffer& token, csexstr name);
 
@@ -198,8 +194,8 @@ namespace Sexy
 	int _cdecl GetErrorString(char* buf, size_t sizeInChars, int errNum);
 	int _cdecl GetErrorString(wchar_t* buf, size_t sizeInChars, int errNum);
 
-	void __cdecl WriteToStandardOutput(const char* text, ...);
-	void __cdecl WriteToStandardOutput(const wchar_t* text, ...);
+   int __cdecl WriteToStandardOutput(const char* text, ...);
+	int __cdecl WriteToStandardOutput(const wchar_t* text, ...);
 
 	int32 __cdecl StringLength(const char* s);
 	int32 __cdecl StringLength(const wchar_t* s);

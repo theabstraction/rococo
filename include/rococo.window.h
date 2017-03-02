@@ -275,8 +275,11 @@ namespace Rococo
 			virtual DWORD BlockModal(IModalControl& control, HWND ownerWindow, IWindowHandler* subHandler) = 0;
 		};
 
+      struct ITreeControlSupervisor;
+
 		ROCOCOAPI ITreeControlHandler
 		{
+         virtual void OnItemSelected(int64 id, ITreeControlSupervisor& origin) = 0;
 		};
 
 		ROCOCOAPI IListViewEvents: public IItemRenderer
@@ -393,7 +396,7 @@ namespace Rococo
          };
 
          IIDETextWindow* CreateTextWindow(IWindow& parent);
-         IIDETreeWindow* CreateTreeView(IWindow& parent);
+         IIDETreeWindow* CreateTreeView(IWindow& parent, ITreeControlHandler* handler);
          IIDEReportWindow* CreateReportView(IWindow& parent);
          ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONT& logFont);
       }

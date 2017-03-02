@@ -60,14 +60,14 @@ namespace
 		switch (s.Type())
 		{
 		case EXPRESSION_TYPE_ATOMIC:
-			totalOutput += PrintToStandardOutput(SEXTEXT(" %s"), (csexstr) s.String()->Buffer);
+			totalOutput += WriteToStandardOutput(SEXTEXT(" %s"), (csexstr) s.String()->Buffer);
 			break;
 		case EXPRESSION_TYPE_STRING_LITERAL:
-			totalOutput += PrintToStandardOutput(SEXTEXT(" \"%s\""), (csexstr) s.String()->Buffer);
+			totalOutput += WriteToStandardOutput(SEXTEXT(" \"%s\""), (csexstr) s.String()->Buffer);
 			break;
 		case EXPRESSION_TYPE_COMPOUND:
 			
-			totalOutput += PrintToStandardOutput(SEXTEXT(" ("));
+			totalOutput += WriteToStandardOutput(SEXTEXT(" ("));
 
 			for(int i = 0; i < s.NumberOfElements(); ++i)
 			{
@@ -80,24 +80,24 @@ namespace
 				PrintExpression(child, totalOutput, maxOutput);								
 			}
 			
-			totalOutput += PrintToStandardOutput(SEXTEXT(" )"));
+			totalOutput += WriteToStandardOutput(SEXTEXT(" )"));
 		}
 	}
 
 	void PrintParseException(const ParseException& e)
 	{
-		PrintToStandardOutput(SEXTEXT("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\nSpecimen: %s\r\n"), e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message(), e.Specimen());
+		WriteToStandardOutput(SEXTEXT("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\nSpecimen: %s\r\n"), e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message(), e.Specimen());
 
 		for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
 		{
-			if (s->TransformDepth() > 0)  PrintToStandardOutput(SEXTEXT("Macro expansion %d:\r\n"), s->TransformDepth());
+			if (s->TransformDepth() > 0)  WriteToStandardOutput(SEXTEXT("Macro expansion %d:\r\n"), s->TransformDepth());
 
 			int totalOutput = 0;
 			PrintExpression(*s, totalOutput, 1024);
 
-			if (totalOutput > 1024) PrintToStandardOutput(SEXTEXT("..."));
+			if (totalOutput > 1024) WriteToStandardOutput(SEXTEXT("..."));
 
-			PrintToStandardOutput(SEXTEXT("\r\n"));
+			WriteToStandardOutput(SEXTEXT("\r\n"));
 		}
 	}
 
@@ -133,7 +133,7 @@ namespace
 
 		void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) 
 		{
-			PrintToStandardOutput(SEXTEXT("%s: code (0x%x) %d\nMessage: %s\n"), exceptionType, errorCode, errorCode, message);
+			WriteToStandardOutput(SEXTEXT("%s: code (0x%x) %d\nMessage: %s\n"), exceptionType, errorCode, errorCode, message);
 		}
 
 		void OnJITCompileException(Sex::ParseException& ex)

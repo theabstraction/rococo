@@ -1,0 +1,3 @@
+ProjectRoot: C:\work\rococo\sexy\sexy.bennyhill.test\tests\
+ScriptInput: C:\work\rococo\sexy\sexy.bennyhill.test\tests\returninterface.sxh
+TouchFile: null

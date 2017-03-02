@@ -1,0 +1,24 @@
+// string method test
+
+(config $config.xc)
+
+(interface
+	(as.sxy Sys.Animals.ITigerPup "tiger") // This gives the fully qualified interface as published in the scripting language
+	(as.cpp Sys.Animals.ITigerPup "tiger") // This gives the fully qualified struct name as published in the C++ header
+	(methods
+		(AppendName (IStringBuilder builder) ->) // method that has one string output
+	)
+	(~)  // implementation has destructor
+	(context factory Sys.Animals.ITigerPup)
+)
+
+(interface
+	(as.sxy Sys.Animals.ITiger "tiger") // This gives the fully qualified interface as published in the scripting language
+	(as.cpp Sys.Animals.ITiger "tiger") // This gives the fully qualified struct name as published in the C++ header
+	(methods
+		(MakeBabies -> (Sys.Animals.ITigerPup pup)) // method that has one string output
+	)
+	(~)  // implementation has destructor
+	(context factory Sys.IZoo)
+	(factory Sys.Animals.GetTigerByName (IString tigerName))
+)

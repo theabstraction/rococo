@@ -57,35 +57,116 @@ namespace Sexy
 	}
 }
 
-struct TypeDef
+namespace
 {
-	Sexy::stdstring sexyType;
-	Sexy::stdstring cppType;
-};
+   using namespace Sexy;
+   void GetFQCppStructName(SEXCHAR* compressedStructName, SEXCHAR* cppStructName, size_t capacity, csexstr fqStructName);
 
-typedef std::unordered_map<Sexy::stdstring,TypeDef> TTypeMap;
 
-struct ParseContext
-{
-	Sexy::SEXCHAR scriptInput[_MAX_PATH];
-	Sexy::SEXCHAR projectRoot[_MAX_PATH];
-	Sexy::SEXCHAR scriptName[_MAX_PATH];
-	Sexy::SEXCHAR scriptInputSansExtension[_MAX_PATH];
-	Sexy::SEXCHAR cppRoot[_MAX_PATH];
-	Sexy::SEXCHAR cppTypes[_MAX_PATH];
-	Sexy::SEXCHAR sexyTypes[_MAX_PATH];
-	Sexy::SEXCHAR cppException[_MAX_PATH];
+   struct TypeDef
+   {
+      Sexy::stdstring sexyType;
+      Sexy::stdstring cppType;
+   };
 
-	TTypeMap primitives;
-	TTypeMap structs;
-};
+   typedef std::unordered_map<Sexy::stdstring, TypeDef> TTypeMap;
+
+
+   class CppType
+   {
+   private:
+      enum { MAX_TOKEN_LEN = 256 };
+      SEXCHAR bennyHillDef[MAX_TOKEN_LEN];
+      SEXCHAR compressedName[MAX_TOKEN_LEN];
+      SEXCHAR fqName[MAX_TOKEN_LEN];
+
+   public:
+      CppType()
+      {
+         bennyHillDef[0] = 0;
+         compressedName[0] = 0;
+         fqName[0] = 0;
+      }
+
+      void Set(csexstr bennyHillDef)
+      {
+         CopyString(this->bennyHillDef, MAX_TOKEN_LEN, bennyHillDef);
+         GetFQCppStructName(compressedName, fqName, 256, bennyHillDef);
+      }
+
+      csexstr CompressedName() const
+      {
+         return compressedName;
+      }
+
+      csexstr FQName() const
+      {
+         return fqName;
+      }
+
+      csexstr SexyName() const
+      {
+         return bennyHillDef;
+      }
+   };
+
+   typedef std::vector<const Sexy::Sex::ISExpression*> TExpressions;
+
+   struct InterfaceContext
+   {
+      enum { MAX_TOKEN_LEN = 256 };
+      CppType asCppInterface;
+      SEXCHAR asSexyInterface[MAX_TOKEN_LEN];
+      SEXCHAR appendSexyFile[_MAX_PATH];
+      SEXCHAR appendCppHeaderFile[_MAX_PATH];
+      SEXCHAR appendCppImplFile[_MAX_PATH];
+
+      SEXCHAR inheritanceString[128];
+
+      bool isSingleton; // If true then the context comes from the native registration method, else it comes from the factory.
+      CppType nceContext;
+      bool hasDestructor;
+      TExpressions factories;
+
+      InterfaceContext()
+      {
+         asSexyInterface[0] = 0;
+         appendSexyFile[0] = 0;
+         appendCppHeaderFile[0] = 0;
+         appendCppImplFile[0] = 0;
+         hasDestructor = false;
+         isSingleton = false;
+      }
+   };
+
+   struct InterfaceDef
+   {
+      InterfaceContext ic;
+      const Sexy::Sex::ISExpression* sdef;
+      const Sexy::Sex::ISExpression* methods;
+   };
+
+   struct ParseContext
+   {
+      Sexy::SEXCHAR scriptInput[_MAX_PATH];
+      Sexy::SEXCHAR projectRoot[_MAX_PATH];
+      Sexy::SEXCHAR scriptName[_MAX_PATH];
+      Sexy::SEXCHAR scriptInputSansExtension[_MAX_PATH];
+      Sexy::SEXCHAR cppRootDirectory[_MAX_PATH];
+      Sexy::SEXCHAR cppTypesFilename[_MAX_PATH];
+      Sexy::SEXCHAR sexyTypesFilename[_MAX_PATH];
+      Sexy::SEXCHAR cppException[128];
+
+      TTypeMap primitives;
+      TTypeMap structs;
+      std::unordered_map<Sexy::stdstring, InterfaceDef*> interfaces;
+   };
+}
 
 #include "bennyhill.sex.inl"
 
 namespace
 {
-	typedef std::vector<const Sexy::Sex::ISExpression*> TExpressions;
-
 	Sexy::csexstr StringFrom(Sexy::Sex::cr_sex s)
 	{
 		if (!IsAtomic(s) && !IsStringLiteral(s)) Throw(s, SEXTEXT("Expecting atomic or string literal"));
@@ -140,70 +221,7 @@ namespace
 		*p = 0;
 		*q = 0;
 	}
-
-	class CppType
-	{
-	private:
-		enum { MAX_TOKEN_LEN = 256 };
-		SEXCHAR bennyHillDef[MAX_TOKEN_LEN];
-		SEXCHAR compressedName[MAX_TOKEN_LEN];
-		SEXCHAR fqName[MAX_TOKEN_LEN];
-
-	public:
-		CppType()
-		{
-			bennyHillDef[0] = 0;
-			compressedName[0] = 0;
-			fqName[0] = 0;
-		}
-
-		void Set(csexstr bennyHillDef)
-		{
-			CopyString(this->bennyHillDef, MAX_TOKEN_LEN, bennyHillDef);
-			GetFQCppStructName(compressedName, fqName, 256, bennyHillDef);
-		}
-
-		csexstr CompressedName() const
-		{
-			return compressedName;
-		}
-
-		csexstr FQName() const
-		{
-			return fqName;
-		}
-
-		csexstr SexyName() const
-		{
-			return bennyHillDef;
-		}
-	};
 }
-
-struct InterfaceContext
-{
-	enum { MAX_TOKEN_LEN = 256 };
-	CppType asCppInterface;
-	SEXCHAR asSexyInterface[MAX_TOKEN_LEN];
-	SEXCHAR appendSexyFile[_MAX_PATH];
-	SEXCHAR appendCppHeaderFile[_MAX_PATH];
-	SEXCHAR appendCppImplFile[_MAX_PATH];
-
-	bool isSingleton; // If true then the context comes from the native registration method, else it comes from the factory.
-	CppType nceContext;
-	bool hasDestructor;
-	TExpressions factories;
-
-	InterfaceContext()
-	{
-		asSexyInterface[0] = 0;
-		appendSexyFile[0] = 0;
-		appendCppHeaderFile[0] = 0;
-		appendCppImplFile[0] = 0;
-		hasDestructor = false;
-		isSingleton = false;
-	}
-};
 
 struct EnumContext
 {
@@ -244,6 +262,17 @@ void CopyCharToSEXCHAR(SEXCHAR* dest, const char* src, size_t capacity)
 	dest[capacity-1] = 0;
 }
 
+std::unordered_map<std::wstring, int> appendOnceMap;
+
+void AppendOnceOnly(FileAppender& appender, csexstr filename)
+{
+   if (appendOnceMap.find(filename) == appendOnceMap.end())
+   {
+      appendOnceMap[filename] = 1;
+      AppendHelpers(appender);
+   }
+}
+
 void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods, cr_sex interfaceDef)
 {
 	FileDeleteOnceOnly(ic.appendSexyFile);
@@ -256,7 +285,8 @@ void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s,
 	DeclareCppInterface(cppFileAppender, ic, interfaceDef, methods, pc);
 
 	FileDeleteOnceOnly(ic.appendCppImplFile);
-	FileAppender cppFileImplAppender(ic.appendCppImplFile);
+	FileAppender cppFileImplAppender(ic.appendCppImplFile); 
+   AppendOnceOnly(cppFileImplAppender, ic.appendCppImplFile);
 	ImplementNativeFunctions(cppFileImplAppender, ic, methods, pc);
 }
 
@@ -460,7 +490,7 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 	sexstring filePrefix = sFilePrefix.String();
 
 	SEXCHAR sexyFile[_MAX_PATH];
-	StringPrint(sexyFile, _MAX_PATH, SEXTEXT("%s%s.inl"), pc.cppRoot, filePrefix->Buffer);
+	StringPrint(sexyFile, _MAX_PATH, SEXTEXT("%s%s.inl"), pc.cppRootDirectory, filePrefix->Buffer);
 
 	FileDeleteOnceOnly(sexyFile);
 
@@ -610,12 +640,12 @@ void ParseEnum(cr_sex senumDef, const ParseContext& pc)
 
 			csexstr sexyFilename = ssexyFilename.String()->Buffer;
 
-			StringPrint(ec.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRoot, sexyFilename);
-			StringPrint(ec.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRoot, sexyFilename);
+			StringPrint(ec.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
+			StringPrint(ec.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
 
 			ec.asCppEnum.Set(sinterfaceName.String()->Buffer);
 			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
-			StringPrint(ec.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRoot, ssexyFilename.String()->Buffer);
+			StringPrint(ec.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 		}
 		else if (scmd == SEXTEXT("as.sxy"))
 		{
@@ -628,7 +658,7 @@ void ParseEnum(cr_sex senumDef, const ParseContext& pc)
 			cr_sex ssexyFilename = sdirective.GetElement(2);
 			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, SEXTEXT("Expecting string literal"));
 			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
-			StringPrint(ec.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRoot, ssexyFilename.String()->Buffer);
+			StringPrint(ec.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 		}
 		else if (scmd == SEXTEXT("as.cpp"))
 		{
@@ -643,8 +673,8 @@ void ParseEnum(cr_sex senumDef, const ParseContext& pc)
 
 			csexstr sexyFilename = ssexyFilename.String()->Buffer;
 
-			StringPrint(ec.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRoot, sexyFilename);
-			StringPrint(ec.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRoot, sexyFilename);
+			StringPrint(ec.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
+			StringPrint(ec.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
 
 			ec.asCppEnum.Set(sstructName.String()->Buffer);
 		}
@@ -668,8 +698,8 @@ void ParseEnum(cr_sex senumDef, const ParseContext& pc)
 
 	if (ec.appendCppHeaderFile[0] == 0)
 	{
-		StringPrint(ec.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRoot, pc.scriptName);
-		StringPrint(ec.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.cpp"), pc.cppRoot, pc.scriptName);
+		StringPrint(ec.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, pc.scriptName);
+		StringPrint(ec.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.cpp"), pc.cppRootDirectory, pc.scriptName);
 	}
 
 	try
@@ -683,7 +713,7 @@ void ParseEnum(cr_sex senumDef, const ParseContext& pc)
 	}
 }
 
-void ParseInterface(cr_sex interfaceDef, const ParseContext& pc)
+void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
 {
 	InterfaceContext ic;
 	const ISExpression* methods = NULL;
@@ -714,25 +744,34 @@ void ParseInterface(cr_sex interfaceDef, const ParseContext& pc)
 
 			csexstr sexyFilename = ssexyFilename.String()->Buffer;
 
-			StringPrint(ic.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRoot, sexyFilename);
-			StringPrint(ic.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRoot, sexyFilename);
+			StringPrint(ic.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
+			StringPrint(ic.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
 
 			ic.asCppInterface.Set(sinterfaceName.String()->Buffer);
 			CopyString(ic.asSexyInterface, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
-			StringPrint(ic.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRoot, ssexyFilename.String()->Buffer);
+			StringPrint(ic.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 		}
 		else if (AreEqual(ssname, SEXTEXT("as.sxy")))
 		{
-			if (directive.NumberOfElements() != 3) Throw(directive, SEXTEXT("Expecting (as.sxy <fully qualified interface name> \"<target-filename>\")"));
+			if (directive.NumberOfElements() < 3 || directive.NumberOfElements() > 4) Throw(directive, SEXTEXT("Expecting (as.sxy <fully qualified interface name> \"<target-filename>\" [inheritance string])"));
 			cr_sex sinterfaceName = directive.GetElement(1);
 			ValidateFQSexyInterface(sinterfaceName);
 
 			if (ic.asSexyInterface[0] != 0) Throw(directive, SEXTEXT("as.sxy is already defined for this interface"));
 
+         if (directive.NumberOfElements() == 4)
+         {
+            SafeFormat(ic.inheritanceString, _TRUNCATE, SEXTEXT("%s"), directive[3].String()->Buffer);
+         }
+         else
+         {
+            *ic.inheritanceString = 0;
+         }
+
 			cr_sex ssexyFilename = directive.GetElement(2);
 			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename,  SEXTEXT("Expecting string literal"));
 			CopyString(ic.asSexyInterface, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
-			StringPrint(ic.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRoot, ssexyFilename.String()->Buffer);
+			StringPrint(ic.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 		}
 		else if (AreEqual(ssname, SEXTEXT("as.cpp")))
 		{
@@ -747,8 +786,8 @@ void ParseInterface(cr_sex interfaceDef, const ParseContext& pc)
 
 			csexstr sexyFilename = ssexyFilename.String()->Buffer;
 
-			StringPrint(ic.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRoot, sexyFilename);
-			StringPrint(ic.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRoot, sexyFilename);
+			StringPrint(ic.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
+			StringPrint(ic.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
 
 			ic.asCppInterface.Set(sstructName.String()->Buffer);
 		}
@@ -820,20 +859,28 @@ void ParseInterface(cr_sex interfaceDef, const ParseContext& pc)
 
 	if (ic.appendCppHeaderFile[0] == 0) 
 	{
-		StringPrint(ic.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRoot, pc.scriptName);
-		StringPrint(ic.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.cpp"), pc.cppRoot, pc.scriptName);
+		StringPrint(ic.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, pc.scriptName);
+		StringPrint(ic.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.cpp"), pc.cppRootDirectory, pc.scriptName);
 	}
 
 	if (ic.factories.empty())
 	{
-		Throw(interfaceDef, SEXTEXT("Interface needs to specify at least one factory"));
+		// Disable exception. Interfaces can be grabbed from the output of functions that return them
+      // Throw(interfaceDef, SEXTEXT("Interface needs to specify at least one factory"));
 	}
 
 	if (!ic.nceContext.SexyName()[0])
 	{
 		Throw(interfaceDef, SEXTEXT("Missing (context <'factory'|'api'> <context-type>)"));
 	}
-	
+
+   InterfaceDef* def = new InterfaceDef;
+   def->methods = methods;
+   def->sdef = &interfaceDef;
+   def->ic = ic;
+
+   pc.interfaces.insert(std::make_pair(stdstring(ic.asSexyInterface), def));
+	/*
 	try
 	{
 		GenerateFiles(pc, ic, interfaceDef, methods, interfaceDef);
@@ -843,6 +890,7 @@ void ParseInterface(cr_sex interfaceDef, const ParseContext& pc)
 		WriteToStandardOutput(SEXTEXT("Error in interface defintion %s: %d.%d to %d.%d\n"), pc.scriptInput, interfaceDef.Start().x, interfaceDef.Start().y, interfaceDef.End().x, interfaceDef.End().y);
 		throw;
 	}
+   */
 }
 
 void ParseInterfaceFile(cr_sex root, ParseContext& pc)
@@ -885,8 +933,21 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 			Throw(command, SEXTEXT("Expecting 'interface or config or functions' in the command at position #0"));
 		}		
 	}
+
+   for (auto i : pc.interfaces)
+   {
+      auto& def = *i.second;
+      GenerateFiles(pc, def.ic, *def.sdef, def.methods, *def.sdef);
+   }
+
+   for (auto i : pc.interfaces)
+   {
+      delete i.second;
+   }
 }
 
+// Takes a path to a file, returns the end file name as target (sans extension), and the end path (sans extensiion)
+// So that /a/dog.txt goes to 'dog' and '/a/dog' 
 void StripToFilenameSansExtension(csexstr name, SEXCHAR target[_MAX_PATH], SEXCHAR nameSansExtension[_MAX_PATH])
 {
 	int len = StringLength(name);
@@ -980,7 +1041,7 @@ int main(int argc, char* argv[])
 
 	if (*pc.scriptName == 0)
 	{
-		WriteToStandardOutput(SEXTEXT("Unexpected error. Could not derive script name from script-input-file '%S'. Expecting [...filename.sxy]"), scriptInput);
+		WriteToStandardOutput(SEXTEXT("Unexpected error. Could not derive script name from script-input-file '%S'. Expecting [...filename.sxh]"), scriptInput);
 		return -1;
 	}
 		

@@ -20,6 +20,37 @@
 
 namespace Rococo
 {
+   bool FileModifiedArgs::Matches(const wchar_t* resource)
+   {
+      const wchar_t* a = this->resourceName;
+      const wchar_t* b = resource;
+      if (*b == L'!') b++;
+
+      while (*a != 0)
+      {
+         if (*a == L'\\')
+         {
+            if (*b == L'\\' || *b == L'/')
+            {
+               // dandy
+            }
+            else
+            {
+               return false;
+            }
+         }
+         else if (*a != *b) return false;
+
+         a++;
+         b++;
+      }
+
+      return *b == 0;
+   }
+}
+
+namespace Rococo
+{
 	void TripDebugger()
 	{
 		if (IsDebuggerPresent())
@@ -160,6 +191,17 @@ namespace
 
 		path = binDirectory;
 
+      if (wcsstr(contentIndicatorName, L"\\") != nullptr)
+      {
+         // The indicator is part of a path
+         if (os.IsFileExistant(contentIndicatorName))
+         { 
+            SecureFormat(path.data, L"%s", contentIndicatorName);
+            MakeContainerDirectory(path);
+            return;
+         }
+      }
+
 		size_t len = wcslen(path);
 
 		while (len > 0)
@@ -267,12 +309,13 @@ namespace
 
 		IEventCallback<SysUnstableArgs>* onUnstable;
 	public:
-		Win32OS(HINSTANCE hAppInstance):
+		Win32OS():
 			hMonitorDirectory(INVALID_HANDLE_VALUE), 
 			hThread(0),
 			isRunning(false),
 			onUnstable(nullptr)
 		{
+         auto hAppInstance = GetModuleHandle(nullptr);
 			GetModuleFileNameW(hAppInstance, binDirectory, _MAX_PATH);
 			MakeContainerDirectory(binDirectory);
 		}
@@ -536,9 +579,9 @@ namespace
 
 namespace Rococo
 {
-	IOSSupervisor* GetWin32OS(HINSTANCE hAppInstance)
+	IOSSupervisor* GetOS()
 	{
-		return new Win32OS(hAppInstance);
+		return new Win32OS();
 	}
 
 	IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os)
@@ -553,6 +596,17 @@ namespace Rococo
          wchar_t* path;
          SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
          SafeFormat(fullpath, capacity, _TRUNCATE, L"%s\\%s", path, shortname);
+      }
+
+      void DeleteUserFile(const wchar_t* filename)
+      {
+         wchar_t* path;
+         SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
+
+         wchar_t fullpath[_MAX_PATH];
+         SafeFormat(fullpath, _TRUNCATE, L"%s\\%s", path, filename);
+
+         DeleteFile(fullpath);
       }
 
       void SaveUserFile(const wchar_t* filename, const wchar_t* s)

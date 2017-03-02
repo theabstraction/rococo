@@ -26,7 +26,7 @@ namespace Rococo
    using namespace Sexy;
    using namespace Sexy::Sex;
 
-   void UpdateDebugger(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
+   void UpdateDebugger(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, Rococo::int32 stackDepth, bool refreshAll);
 }
 
 namespace
@@ -107,7 +107,7 @@ namespace
 
       void Update()
       {
-         UpdateDebugger(*ss, *debugger);
+         UpdateDebugger(*ss, *debugger, 0, true);
       }
 
       void RecurseNamespaces(const Sexy::Compiler::INamespace& ns, IUITree& tree, Visitors::TREE_NODE_ID rootId)
@@ -256,6 +256,11 @@ namespace
          enumFactories.ns = &ns;
 
          ns.EnumerateFactories(enumFactories);
+      }
+
+      virtual void RefreshAtDepth(int stackDepth)
+      {
+         UpdateDebugger(*ss, *debugger, stackDepth, false);
       }
 
       virtual void PopulateAPITree(Visitors::IUITree& tree)
@@ -726,6 +731,7 @@ namespace Rococo
             SafeFormat(desc, _TRUNCATE, L"%p %s - %s", sf, f->Module().Name(), f->Name());
 
             auto sfNode = tree.AddRootItem(desc, CheckState_Clear);
+            tree.SetId(sfNode, depth + 1);
 
             using namespace Sexy::Debugger;
 
@@ -742,9 +748,11 @@ namespace Rococo
                   {
                      SafeFormat(desc, _TRUNCATE, L"%p %S: %S %S", v.Address + SF, v.Location, v.Type, v.Name);
                   }
-                  tree->AddChild(sfNode, desc, CheckState_NoCheckBox);
+                  auto node = tree->AddChild(sfNode, desc, CheckState_NoCheckBox);
+                  tree->SetId(node, depth+1);
                }
 
+               int32 depth;
                TREE_NODE_ID sfNode;
                IUITree* tree;
                const uint8* SF;
@@ -753,6 +761,7 @@ namespace Rococo
             addToTree.tree = &tree;
             addToTree.SF = sf;
             addToTree.sfNode = sfNode;
+            addToTree.depth = depth;
 
             Script::ForeachVariable(*ss, addToTree, depth);
          }
@@ -764,17 +773,21 @@ namespace Rococo
       debugger.PopulateStackView(anon);
 	}
 
-   void PopulateSourceView(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
+   void PopulateSourceView(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, int64 stackDepth)
    {
-      auto& vm = ss.PublicProgramObject().VirtualMachine();
-      auto& cpu = vm.Cpu();      
-      size_t pcOffset = cpu.PC() - cpu.ProgramStart;
-      auto* f = Sexy::Script::GetFunctionAtAddress(ss.PublicProgramObject(), pcOffset);
-      auto* tree = f ? ss.GetSourceCode(f->Module()) : nullptr;
-      if (tree)
-      {
-         debugger.AddSourceCode(f->Module().Name(), tree->Source().SourceStart());
-      }
+        const Sexy::uint8* sf = nullptr;
+        const Sexy::uint8* pc = nullptr;
+        const Sexy::Compiler::IFunction* f;
+        
+        size_t fnOffset;
+        if (Sexy::Script::GetCallDescription(sf, pc, f, fnOffset, ss, stackDepth) && f)
+        {
+           auto* tree = ss.GetSourceCode(f->Module());
+           if (tree)
+           {
+              debugger.AddSourceCode(f->Module().Name(), tree->Source().SourceStart());
+           }
+        }
    }
 
 	void PopulateRegisterWindow(Script::IPublicScriptSystem& ss, Visitors::IUIList& registerListView)
@@ -815,7 +828,7 @@ namespace Rococo
 		Script::EnumerateRegisters(vm.Cpu(), addToList);
 	}
 
-	const IFunction* DisassembleCallStackAndAppendToView(IDisassembler& disassembler, IDebuggerWindow& debugger, Sexy::Script::IPublicScriptSystem& ss, CPU& cpu, size_t callDepth, const ISExpression** ppExpr, const uint8** ppSF)
+	const IFunction* DisassembleCallStackAndAppendToView(IDisassembler& disassembler, IDebuggerWindow& debugger, Sexy::Script::IPublicScriptSystem& ss, CPU& cpu, size_t callDepth, const ISExpression** ppExpr, const uint8** ppSF, size_t populateAtDepth)
 	{
 		const Sexy::uint8* sf = nullptr;
 		const Sexy::uint8* pc = nullptr;
@@ -831,7 +844,7 @@ namespace Rococo
 
 		*ppSF = sf;
 
-      if (callDepth != 0)
+      if (callDepth != populateAtDepth || populateAtDepth == (size_t) -1)
       {
          return f;
       }
@@ -918,6 +931,8 @@ namespace Rococo
    struct DebuggerPopulator : IDebuggerPopulator
    {
       Script::IPublicScriptSystem* ss;
+      int stackDepth;
+      bool refreshAll;
 
       virtual void Populate(IDebuggerWindow& debugger)
       {
@@ -940,13 +955,17 @@ namespace Rococo
          auto& vm = ss->PublicProgramObject().VirtualMachine();
          AutoFree<VM::IDisassembler> disassembler(vm.Core().CreateDisassembler());
 
-         debugger.BeginStackUpdate();
+         if (refreshAll)
+         {
+            debugger.BeginStackUpdate();
+         }
+
          for (int depth = 0; depth < 10; depth++)
          {
             const ISExpression* s;
             const uint8* SF;
-            auto* f = DisassembleCallStackAndAppendToView(*disassembler, debugger, *ss, vm.Cpu(), depth, &s, &SF);
-            if (depth == 0 && f != nullptr)
+            auto* f = DisassembleCallStackAndAppendToView(*disassembler, debugger, *ss, vm.Cpu(), depth, &s, &SF, stackDepth);
+            if (depth == stackDepth && f != nullptr)
             {
                size_t progOffset = vm.Cpu().PC() - vm.Cpu().ProgramStart;
 
@@ -966,13 +985,20 @@ namespace Rococo
                }
             }
 
-            PopulateStackTree(*ss, debugger, depth);
+            if (refreshAll)
+            {
+               PopulateStackTree(*ss, debugger, depth);
+            }
 
             if (SF == nullptr) break;
          }
-         debugger.EndStackUpdate();
+
+         if (refreshAll)
+         {
+            debugger.EndStackUpdate();
+         }
          
-         PopulateSourceView(*ss, debugger);
+         PopulateSourceView(*ss, debugger, stackDepth);
       }
    };
 
@@ -985,8 +1011,8 @@ namespace Rococo
 		}
 		catch (IException& ex)
 		{
-         UpdateDebugger(ss, debugger);
 			ss.PublicProgramObject().Log().Write(ex.Message());
+         UpdateDebugger(ss, debugger, 0, true);
 			Throw(ex.ErrorCode(), L"%s", ex.Message());
 			return EXECUTERESULT_SEH;
 		}
@@ -1093,11 +1119,11 @@ namespace Rococo
 		switch (result)
 		{
 		case EXECUTERESULT_BREAKPOINT:
-         UpdateDebugger(ss, debugger);
+         UpdateDebugger(ss, debugger, 0, true);
 			Throw(0, L"Script hit breakpoint");
 			break;
 		case EXECUTERESULT_ILLEGAL:
-         UpdateDebugger(ss, debugger);
+         UpdateDebugger(ss, debugger, 0, true);
 			Throw(0, L"Script did something bad.");
 			break;
 		case EXECUTERESULT_NO_ENTRY_POINT:
@@ -1110,15 +1136,15 @@ namespace Rococo
 			Throw(0, L"Unexpected EXECUTERESULT_RETURNED");
 			break;
 		case EXECUTERESULT_SEH:
-         UpdateDebugger(ss, debugger);
+         UpdateDebugger(ss, debugger, 0, true);
 			Throw(0, L"The script triggered a structured exception handler");
 			break;
 		case EXECUTERESULT_THROWN:
-         UpdateDebugger(ss, debugger);
+         UpdateDebugger(ss, debugger, 0, true);
 			Throw(0, L"The script triggered a virtual machine exception");
 			break;
 		case EXECUTERESULT_YIELDED:
-         UpdateDebugger(ss, debugger);
+         UpdateDebugger(ss, debugger, 0, true);
 			Throw(0, L"The script yielded");
 			break;
 		case EXECUTERESULT_TERMINATED:
@@ -1208,7 +1234,7 @@ namespace Rococo
 		args.PopOutputs(argStack);
 	};
 
-	void ExecuteSexyScript(ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile)
+	int32 ExecuteSexyScript(ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile)
 	{
 		using namespace Sexy::Script;
 		using namespace Sexy::Compiler;
@@ -1236,12 +1262,15 @@ namespace Rococo
 		Execute(vm, ss, debugger);
 
 		int exitCode = vm.PopInt32();
+      return exitCode;
 	}
 
-   void UpdateDebugger(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
+   void UpdateDebugger(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, int32 stackDepth, bool refreshAll)
    {
       DebuggerPopulator populator;
       populator.ss = &ss;
+      populator.stackDepth = stackDepth;
+      populator.refreshAll = refreshAll;
       populator.Populate(debugger);
    }
 
@@ -1255,6 +1284,8 @@ namespace Rococo
 
       DebuggerPopulator populator;
       populator.ss = &ss;
+      populator.stackDepth = 0;
+      populator.refreshAll = true;
 
       debugger.Run(populator, dc);
 	}

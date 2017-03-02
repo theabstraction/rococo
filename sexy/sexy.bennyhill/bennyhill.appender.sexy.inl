@@ -135,18 +135,26 @@ namespace
 		auto i = pc.primitives.find(sxhtype);
 		if (i == pc.primitives.end())
 		{
-			i = pc.structs.find(sxhtype);
-			if (i == pc.structs.end())
-			{
-				Throw(stype, SEXTEXT("Could not resolve sexy type"));
-			}
-			else
-			{
-				Throw(stype, SEXTEXT("The output type is a struct. Only primitive types are legal output for sexy functions."));
-			}
-		}
+         i = pc.structs.find(sxhtype);
+         if (i != pc.structs.end())
+         {
+            Throw(stype, SEXTEXT("The output type is a struct. Only primitives and generated interfaces are legal output for sexy functions."));
+         }
 
-		appender.Append(SEXTEXT("(%s %s)"), i->second.sexyType.c_str(), svalue.String()->Buffer);
+         auto j = pc.interfaces.find(sxhtype);
+         if (j == pc.interfaces.end())
+         {
+            Throw(stype, SEXTEXT("Could not resolve sexy type. Double-check the namespaces and the type name"));
+         }			
+         else
+         {
+            appender.Append(SEXTEXT("(%s %s)"), j->second->ic.asSexyInterface, svalue.String()->Buffer);
+         }
+		}
+      else
+      {
+         appender.Append(SEXTEXT("(%s %s)"), i->second.sexyType.c_str(), svalue.String()->Buffer);
+      }
 	}
 
 	int GetOutputPosition(cr_sex method)

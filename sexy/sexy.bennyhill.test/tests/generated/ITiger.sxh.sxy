@@ -1,4 +1,2 @@
-(macro Sys.Animals.AnimalTypeCat in out (out.AddAtomic "0x0"))
-(macro Sys.Animals.AnimalTypeDog in out (out.AddAtomic "0x1"))
-(macro Sys.Animals.AnimalTypeTiger in out (out.AddAtomic "0x2"))
-
+(interface Sys.Animals.ITiger
+	(MakeBabies  -> 

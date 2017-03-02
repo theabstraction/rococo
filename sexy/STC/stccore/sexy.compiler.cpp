@@ -87,6 +87,8 @@ namespace
 		IProgramMemory* program;
 		TSymbols symbols;
 		CommonStructures* common;
+
+      std::vector<IStructure*> systemStructures;
 	public:
 		virtual ILog& Log()	{	return log;	}
 		virtual void Free() { delete this; }
@@ -185,6 +187,23 @@ namespace
 			virtualMachine->InitCpu();
 			virtualMachine->Cpu().D[VM::REGISTER_D5].byteCodeIdValue = bytecodeId;
 		}
+
+      virtual const IStructure* GetSysType(SEXY_CLASS_ID id)
+      {
+         if (systemStructures.empty())
+         {
+            if (!modules.empty())
+            {
+               auto* s = modules[0]->FindStructure(SEXTEXT("StringBuilder"));
+               if (s)
+               {
+                  systemStructures.push_back(s);
+               }
+            }
+         }
+        
+         return id >= systemStructures.size() ? nullptr : systemStructures[id];
+      }
 
 		virtual void ResolveNativeTypes()
 		{

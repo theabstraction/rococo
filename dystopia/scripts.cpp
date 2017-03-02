@@ -27,7 +27,7 @@ namespace
 
       virtual IDE::EScriptExceptionFlow GetScriptExceptionFlow(const wchar_t* source, const wchar_t* message)
       {
-         auto id = Dystopia::ShowContinueBox(parent, L"Failed to create script system");
+         auto id = Dystopia::ShowContinueBox(parent, L"Script Error.\n\tIgnore to continue.\n\tRetry to debug.\n\tExit to terminate.");
          switch (id)
          {
          case CMD_ID_IGNORE:

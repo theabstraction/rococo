@@ -80,7 +80,11 @@ namespace Rococo
 	IExpandingBuffer* CreateExpandingBuffer(size_t initialCapacity);
 
 	struct SysUnstableArgs {};
-	struct FileModifiedArgs { const wchar_t* resourceName; };
+   struct FileModifiedArgs
+   {
+      const wchar_t* resourceName;
+      bool Matches(const wchar_t* resource);
+   };
 
    struct MemoryUsage
    {
@@ -123,6 +127,8 @@ namespace Rococo
 		virtual void Free() = 0;
 	};
 
+   IOSSupervisor* GetOS();
+
 	IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os);
 
 	bool DoesModifiedFilenameMatchResourceName(const wchar_t* modifiedFilename, const wchar_t* resourceName);
@@ -131,6 +137,7 @@ namespace Rococo
    {
       wchar_t GetFileSeparator();
       void GetUserPath(wchar_t* fullpath, size_t capacity, const wchar_t* shortname);
+      void DeleteUserFile(const wchar_t* filename);
    }
 }
 

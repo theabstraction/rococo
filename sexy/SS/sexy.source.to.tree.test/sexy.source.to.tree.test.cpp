@@ -29,14 +29,14 @@ void PrintExpression(cr_sex s, int &totalOutput, int maxOutput)
 	switch (s.Type())
 	{
 	case EXPRESSION_TYPE_ATOMIC:
-		totalOutput += PrintToStandardOutput(SEXTEXT(" %s"), (csexstr) s.String()->Buffer);
+		totalOutput += WriteToStandardOutput(SEXTEXT(" %s"), (csexstr) s.String()->Buffer);
 		break;
 	case EXPRESSION_TYPE_STRING_LITERAL:
-		totalOutput += PrintToStandardOutput(SEXTEXT(" \"%s\""), (csexstr) s.String()->Buffer);
+		totalOutput += WriteToStandardOutput(SEXTEXT(" \"%s\""), (csexstr) s.String()->Buffer);
 		break;
 	case EXPRESSION_TYPE_COMPOUND:
 			
-		totalOutput += PrintToStandardOutput(SEXTEXT(" ("));
+		totalOutput += WriteToStandardOutput(SEXTEXT(" ("));
 
 		for(int i = 0; i < s.NumberOfElements(); ++i)
 		{
@@ -49,24 +49,24 @@ void PrintExpression(cr_sex s, int &totalOutput, int maxOutput)
 			PrintExpression(child, totalOutput, maxOutput);								
 		}
 			
-		totalOutput += PrintToStandardOutput(SEXTEXT(" )"));
+		totalOutput += WriteToStandardOutput(SEXTEXT(" )"));
 	}				
 }
 
 void PrintParseException(const ParseException& e)
 {
-	PrintToStandardOutput(SEXTEXT("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n"), e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message());
+	WriteToStandardOutput(SEXTEXT("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n"), e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message());
 
 	for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
 	{
-		if (s->TransformDepth() > 0)  PrintToStandardOutput(SEXTEXT("Macro expansion %d:\r\n"), s->TransformDepth());
+		if (s->TransformDepth() > 0)  WriteToStandardOutput(SEXTEXT("Macro expansion %d:\r\n"), s->TransformDepth());
 
 		int totalOutput = 0;
 		PrintExpression(*s, totalOutput, 1024);
 
-		if (totalOutput > 1024) PrintToStandardOutput(SEXTEXT("..."));
+		if (totalOutput > 1024) WriteToStandardOutput(SEXTEXT("..."));
 
-		PrintToStandardOutput(SEXTEXT("\r\n"));
+		WriteToStandardOutput(SEXTEXT("\r\n"));
 	}
 }
 
@@ -98,7 +98,7 @@ void RunTests()
 	{
 		SEXCHAR osMessage[256];
 		FormatSysMessage(osMessage, 256, ose.ErrorCode());
-		PrintToStandardOutput(SEXTEXT("OS Error. %s\r\n%s\r\n"), ose.Message(), osMessage);
+		WriteToStandardOutput(SEXTEXT("OS Error. %s\r\n%s\r\n"), ose.Message(), osMessage);
 		exit(-1);
 	}
 	catch(std::exception& stdex)

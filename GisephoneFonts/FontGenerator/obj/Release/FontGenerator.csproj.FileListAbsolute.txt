@@ -1,0 +1,17 @@
+C:\work\rococo\GisephoneFonts\bin\Gisephone.Fonts.Generator.exe.config
+C:\work\rococo\GisephoneFonts\bin\Gisephone.Fonts.Generator.exe
+C:\work\rococo\GisephoneFonts\bin\Gisephone.Fonts.Generator.pdb
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\Release\FontGenerator.csprojResolveAssemblyReference.cache
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\Release\DeferredRenderView.baml
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\Release\DeferredRenderView.g.cs
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\Release\MainWindow.g.cs
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\Release\App.g.cs
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\Release\GeneratedInternalTypeHelper.g.cs
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\Release\Gisephone.Fonts.Generator_MarkupCompile.cache
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\Release\Gisephone.Fonts.Generator_MarkupCompile.lref
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\Release\MainWindow.baml
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\Release\Gisephone.Fonts.Generator.g.resources
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\Release\Gisephone.Fonts.Generator.Properties.Resources.resources
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\Release\FontGenerator.csproj.GenerateResource.Cache
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\Release\Gisephone.Fonts.Generator.exe
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\Release\Gisephone.Fonts.Generator.pdb

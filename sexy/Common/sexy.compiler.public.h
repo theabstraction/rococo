@@ -417,6 +417,11 @@ namespace Sexy { namespace Compiler
 		virtual void EnumerateArchetypes(ICallback<const IArchetype>& onArchetype) const = 0;
 	};
 
+   enum SEXY_CLASS_ID: size_t
+   {
+      SEXY_CLASS_ID_STRINGBUILDER = 0
+   };
+
 	struct NO_VTABLE IPublicProgramObject
 	{
 		virtual const IModule& GetModule(int index) const = 0;
@@ -431,6 +436,7 @@ namespace Sexy { namespace Compiler
 		virtual void Free() = 0;
 		virtual void SetProgramAndEntryPoint(const IFunction& f) = 0;
 		virtual void SetProgramAndEntryPoint(ID_BYTECODE byteCodeId) = 0;
+      virtual const IStructure* GetSysType(SEXY_CLASS_ID id) = 0;
 	};
 
 	const IFunction* GetFunctionForBytecode(IPublicProgramObject& obj, ID_BYTECODE id);

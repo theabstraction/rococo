@@ -73,30 +73,30 @@ using namespace Sexy::Compiler;
 
 void PrintHelp()
 {
-	PrintToStandardOutput(SEXTEXT("Usage: SEXYPROMPT [options] [files]:\r\n\r\n"));
-	PrintToStandardOutput(SEXTEXT("\tOptions::\r\n\r\n"));
-	PrintToStandardOutput(SEXTEXT("\t\t-?                 show help\r\n"));
-	PrintToStandardOutput(SEXTEXT("\t\t-version           show version\r\n"));
-	PrintToStandardOutput(SEXTEXT("\t\t-banner            show banner\r\n"));
-	PrintToStandardOutput(SEXTEXT("\t\t-lib:[libfilename] open s-expression of files \r\n"));
-	PrintToStandardOutput(SEXTEXT("\t\t-verbose           toggle verbosity\r\n"));
-	PrintToStandardOutput(SEXTEXT("\r\n"));
+	WriteToStandardOutput(SEXTEXT("Usage: SEXYPROMPT [options] [files]:\r\n\r\n"));
+	WriteToStandardOutput(SEXTEXT("\tOptions::\r\n\r\n"));
+	WriteToStandardOutput(SEXTEXT("\t\t-?                 show help\r\n"));
+	WriteToStandardOutput(SEXTEXT("\t\t-version           show version\r\n"));
+	WriteToStandardOutput(SEXTEXT("\t\t-banner            show banner\r\n"));
+	WriteToStandardOutput(SEXTEXT("\t\t-lib:[libfilename] open s-expression of files \r\n"));
+	WriteToStandardOutput(SEXTEXT("\t\t-verbose           toggle verbosity\r\n"));
+	WriteToStandardOutput(SEXTEXT("\r\n"));
 }
 
 void PrintVersion()
 {
 	int versionMajor = 1;
 	int versionMinor = 0;
-	PrintToStandardOutput(SEXTEXT("Version: %d.%d\r\n"), Sexy::VERSION_MAJOR, Sexy::VERSION_MINOR);
+	WriteToStandardOutput(SEXTEXT("Version: %d.%d\r\n"), Sexy::VERSION_MAJOR, Sexy::VERSION_MINOR);
 }
 
 void PrintBanner()
 {
-	PrintToStandardOutput(SEXTEXT("SexyPrompt by 19th Century Software. Copyright(c)2012. All rights reserved.\r\n"));
-	PrintToStandardOutput(SEXTEXT("Masterminded and programmed by Mark Anthony Taylor.\r\n"));
-	PrintToStandardOutput(SEXTEXT("This software is NOT free!\r\n"));
-	PrintToStandardOutput(SEXTEXT("If by a pigeon's coo thou art subdued I'll sing thee lullabies.\r\n"));
-	PrintToStandardOutput(SEXTEXT("Compiled %hs %hs\r\n"), __DATE__, __TIME__);
+	WriteToStandardOutput(SEXTEXT("SexyPrompt by 19th Century Software. Copyright(c)2012. All rights reserved.\r\n"));
+	WriteToStandardOutput(SEXTEXT("Masterminded and programmed by Mark Anthony Taylor.\r\n"));
+	WriteToStandardOutput(SEXTEXT("This software is NOT free!\r\n"));
+	WriteToStandardOutput(SEXTEXT("If by a pigeon's coo thou art subdued I'll sing thee lullabies.\r\n"));
+	WriteToStandardOutput(SEXTEXT("Compiled %hs %hs\r\n"), __DATE__, __TIME__);
 }
 
 void SexcharToAscii(char* dest, size_t maxLen, csexstr source)
@@ -380,7 +380,7 @@ void PreProcessArgs(TFiles& files, int argc, SEXCHAR* argv[], IPublicScriptSyste
 		{
 			csexstr libFile = value + 5;
 
-			if (isVerbose) PrintToStandardOutput(SEXTEXT("Loading entries from library file: %s\r\n"), libFile);
+			if (isVerbose) WriteToStandardOutput(SEXTEXT("Loading entries from library file: %s\r\n"), libFile);
 			LoadLibFile(files, libFile, ss, isVerbose);
 
 			continue;
@@ -443,51 +443,51 @@ int ProtectedMain(int argc, SEXCHAR* argv[], TFiles& files, IPublicScriptSystem&
 {
 	PreProcessArgs(OUT files, argc, argv, ss);
 
-	if (isVerbose) PrintToStandardOutput(SEXTEXT("Adding source code modules\r\n"));
+	if (isVerbose) WriteToStandardOutput(SEXTEXT("Adding source code modules\r\n"));
 	for(TFiles::iterator i = files.begin(); i != files.end(); ++i)
 	{		
 		csexstr fileName = i->Filename.c_str();
 
-		if (isVerbose) PrintToStandardOutput(SEXTEXT("%s\r\n"), fileName);
+		if (isVerbose) WriteToStandardOutput(SEXTEXT("%s\r\n"), fileName);
 		i->SC = AddSourcecodeModule(fileName, ss);
 		i->Tree = ss.SParser().CreateTree(*i->SC);
 
 		ss.AddTree(*i->Tree);
 	}
 
-	if (isVerbose) PrintToStandardOutput(SEXTEXT("Compiling\r\n"));
+	if (isVerbose) WriteToStandardOutput(SEXTEXT("Compiling\r\n"));
 	ss.Compile();
-	if (isVerbose) PrintToStandardOutput(SEXTEXT("Compiled\r\n"));
+	if (isVerbose) WriteToStandardOutput(SEXTEXT("Compiled\r\n"));
 
 	const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
 	if (ns == NULL)
 	{
-		PrintToStandardOutput(SEXTEXT("Cannot find namespace 'EntryPoint' in the source code\r\n"));
+		WriteToStandardOutput(SEXTEXT("Cannot find namespace 'EntryPoint' in the source code\r\n"));
 		return -1;
 	}
 
 	const IFunction* f = ns->FindFunction(SEXTEXT("Main"));
 	if (f == NULL)
 	{
-		PrintToStandardOutput(SEXTEXT("Cannot find function 'Main' aliased in the namespace 'EntryPoint'\r\n"));
+		WriteToStandardOutput(SEXTEXT("Cannot find function 'Main' aliased in the namespace 'EntryPoint'\r\n"));
 		return -1;
 	}
 
 	if (f->NumberOfInputs() != 0)
 	{
-		PrintToStandardOutput(SEXTEXT("EntryPoint.Main had inputs. This program cannot be run from sexyprompt\r\n"));
+		WriteToStandardOutput(SEXTEXT("EntryPoint.Main had inputs. This program cannot be run from sexyprompt\r\n"));
 		return -1;
 	}
 
 	if (f->NumberOfOutputs() != 1)
 	{
-		PrintToStandardOutput(SEXTEXT("EntryPoint.Main had other than a single output. This program cannot be run from sexyprompt\r\n"));
+		WriteToStandardOutput(SEXTEXT("EntryPoint.Main had other than a single output. This program cannot be run from sexyprompt\r\n"));
 		return -1;
 	}
 
 	if (f->GetArgument(0).VarType() != VARTYPE_Int32)
 	{
-		PrintToStandardOutput(SEXTEXT("EntryPoint.Main had other than a single output of Int32. This program cannot be run from sexyprompt\r\n"));
+		WriteToStandardOutput(SEXTEXT("EntryPoint.Main had other than a single output of Int32. This program cannot be run from sexyprompt\r\n"));
 		return -1;
 	}
 	
@@ -495,19 +495,19 @@ int ProtectedMain(int argc, SEXCHAR* argv[], TFiles& files, IPublicScriptSystem&
 
 	ss.PublicProgramObject().VirtualMachine().Push(0); // allow space for int32 return value
 
-	if (isVerbose) PrintToStandardOutput(SEXTEXT("Executing\r\n"));
+	if (isVerbose) WriteToStandardOutput(SEXTEXT("Executing\r\n"));
 	EXECUTERESULT result = ss.PublicProgramObject().VirtualMachine().Execute(VM::ExecutionFlags(true, true));
 	if (result == EXECUTERESULT_TERMINATED)
 	{
 		int retCode = ss.PublicProgramObject().VirtualMachine().PopInt32();
 
-		if (isVerbose) PrintToStandardOutput(SEXTEXT("Sexy program terminated with exit code %d\r\n"), retCode);
+		if (isVerbose) WriteToStandardOutput(SEXTEXT("Sexy program terminated with exit code %d\r\n"), retCode);
 
 		return retCode;
 	}
 	else
 	{
-		PrintToStandardOutput(SEXTEXT("Virtual machine prematurely terminated\r\n"));
+		WriteToStandardOutput(SEXTEXT("Virtual machine prematurely terminated\r\n"));
 		return -1;
 	}
 }

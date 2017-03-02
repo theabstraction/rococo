@@ -42,7 +42,7 @@ namespace Dystopia
 
 namespace Rococo
 {
-	IOSSupervisor* GetWin32OS(HINSTANCE hAppInstance);
+	IOSSupervisor* GetOS();
 }
 
 struct FileHandle
@@ -90,7 +90,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	{
 		InitRococoWindows(_hInstance, LoadIcon(_hInstance, MAKEINTRESOURCE(IDI_ICON1)), LoadIcon(_hInstance, MAKEINTRESOURCE(IDI_ICON1)), nullptr, nullptr); // This must be called once, in WinMain or DllMain
 
-		AutoFree<IOSSupervisor> os = GetWin32OS(_hInstance);
+		AutoFree<IOSSupervisor> os = GetOS();
 		AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
 		os->Monitor(installation->Content());
 

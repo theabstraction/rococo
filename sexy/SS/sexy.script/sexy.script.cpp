@@ -794,7 +794,7 @@ namespace
 
 				if (IsNullType(st))
 				{
-					LogError(progObjProxy().Log(), SEXTEXT("Null structures, including '%s', cannot be used to native object"), st.Name());
+					LogError(progObjProxy().Log(), SEXTEXT("Null structures, including '%s', cannot be used to reflect a native object"), st.Name());
 					return NULL;
 				}
 
@@ -1376,7 +1376,20 @@ namespace
 
 		virtual void AddNativeLibrary(const Sexy::SEXCHAR* dynamicLinkLibOfNativeCalls)
 		{
-			FN_CreateLib create = Sexy::OS::GetLibCreateFunction(dynamicLinkLibOfNativeCalls);
+         SEXCHAR srcEnvironmentDll[_MAX_PATH];
+         SafeFormat(srcEnvironmentDll, _TRUNCATE, SEXTEXT("%s%s"), srcEnvironment, dynamicLinkLibOfNativeCalls);
+
+         FN_CreateLib create;
+
+         try
+         {
+            create = Sexy::OS::GetLibCreateFunction(srcEnvironmentDll);
+         }
+         catch (IException&)
+         {
+            create = Sexy::OS::GetLibCreateFunction(dynamicLinkLibOfNativeCalls);
+         }
+
 			INativeLib* lib = create(*this);
 			nativeLibs.push_back(lib);
 		}
