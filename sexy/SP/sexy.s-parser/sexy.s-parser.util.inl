@@ -18,31 +18,6 @@ namespace
 		delete[] buf;
 	}
 
-	struct sexstring_key
-	{
-		int32 Length;
-		const SEXCHAR* Text;
-
-		sexstring_key(const SEXCHAR* text, int32 length): Text(text), Length(length)	{}
-	};
-
-	bool operator < (const sexstring_key& a, const sexstring_key& b)
-	{
-		int32 lengthDelta = a.Length - b.Length;
-		if (lengthDelta < 0)
-		{
-			return true;
-		}
-		else if (lengthDelta > 0)
-		{
-			return false;
-		}
-		else
-		{
-			return Compare(a.Text, b.Text, a.Length) < 0;
-		}
-	}
-
 	bool TryGetSexCharFromHex(SEXCHAR& value, SEXCHAR hex)
 	{
 		if (hex >= (SEXCHAR) '0' && hex <= (SEXCHAR) '9')

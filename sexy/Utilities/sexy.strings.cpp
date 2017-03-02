@@ -43,7 +43,7 @@ namespace Sexy
 
 	bool operator < (const sexstring_key& a, const sexstring_key& b)
 	{
-		int32 lengthDelta = a.Length - b.Length;
+		int64 lengthDelta = a.Length - b.Length;
 		if (lengthDelta < 0)
 		{
 			return true;

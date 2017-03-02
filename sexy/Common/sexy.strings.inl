@@ -90,14 +90,14 @@ namespace Sexy
 		return ANON::jenkins_one_at_a_time_hash(s, StringLength(s));
 	}
 
-	int32 Hash(csexstr s, int32 length)
+	int32 Hash(csexstr s, int64 length)
 	{
 		struct ANON
 		{
-			static int jenkins_one_at_a_time_hash(csexstr s, int32 len)
+			static int jenkins_one_at_a_time_hash(csexstr s, int64 len)
 			{
 				int32 hash = 0;
-				for(int i = 0; i < len; ++i)
+				for(int64 i = 0; i < len; ++i)
 				{
 					hash += s[i];
 					hash += (hash << 10);
@@ -110,7 +110,7 @@ namespace Sexy
 			}
 		};
 
-		if (s == NULL) return -1;
+		if (s == NULL) return -1LL;
 		return ANON::jenkins_one_at_a_time_hash(s, length);
 	}
 

@@ -136,10 +136,10 @@ namespace Sexy
 
 	struct sexstring_key
 	{
-		int32 Length;
+		int64 Length;
 		csexstr Text;
 
-		sexstring_key(csexstr text, int32 length): Text(text), Length(length)	{}
+		sexstring_key(csexstr text, int64 length): Text(text), Length(length)	{}
 	};
 
 	struct TokenBuffer
@@ -213,7 +213,7 @@ namespace Sexy
 	bool ParseEscapeCharacter(SEXCHAR& finalChar, SEXCHAR c);
 
 	size_t Hash(csexstr text);
-	int32 Hash(csexstr s, int32 length);
+	int32 Hash(csexstr s, int64 length);
 	int32 Hash(int32 x);
 	int32 Hash(int64 x);
 
