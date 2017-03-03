@@ -64,6 +64,15 @@
 	principal credit screen and its principal readme file.
 */
 
+#include <sexy.types.h>
+#include <malloc.h>
+#include <memory.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
+#include <stdexcept>
+
 namespace Sexy
 {
 	size_t Hash(csexstr s)
@@ -86,7 +95,7 @@ namespace Sexy
 			}
 		};
 
-		if (s == NULL) return -1;
+		if (s == nullptr) return -1;
 		return ANON::jenkins_one_at_a_time_hash(s, StringLength(s));
 	}
 
@@ -110,7 +119,7 @@ namespace Sexy
 			}
 		};
 
-		if (s == NULL) return -1LL;
+		if (s == nullptr) return -1LL;
 		return ANON::jenkins_one_at_a_time_hash(s, length);
 	}
 

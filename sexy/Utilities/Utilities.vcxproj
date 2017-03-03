@@ -88,15 +88,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\Common\sexy.namespaces.inl" />
-    <None Include="..\Common\sexy.strings.inl" />
     <None Include="ReadMe.txt" />
-    <None Include="sexy.compiler.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="sexy.compiler.cpp" />
+    <ClCompile Include="sexy.namespaces.cpp" />
+    <ClCompile Include="sexy.natives.helpers.cpp" />
     <ClCompile Include="sexy.os.win32.cpp" />
+    <ClCompile Include="sexy.parsering.cpp" />
+    <ClCompile Include="sexy.s-parser.util.cpp" />
+    <ClCompile Include="sexy.strings.2.cpp" />
     <ClCompile Include="sexy.strings.cpp" />
     <ClCompile Include="sexy.util.cpp" />
+    <ClCompile Include="sexy.variants.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

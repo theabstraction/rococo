@@ -132,6 +132,8 @@ namespace Sexy
 # define __SEXFUNCTION__ SEXSTRINGIFY2(__FUNCTION__)
 #endif
 
+   const SEXCHAR OS_DIRECTORY_SLASH = (SEXCHAR) '\\';
+
 	typedef const SEXCHAR* csexstr;
 
 	struct sexstring_key
@@ -333,6 +335,8 @@ namespace Sexy
 			virtual int ErrorCode() const { return exceptionNumber; }
 			virtual const wchar_t* Message() const { return message; }
 		};
+
+      void Throw(int erroCode, csexstr format, ...);
 	}
 
 	template<class T> bool IsFlagged(T flags, T flag) { return (flags & flag) != 0; }
@@ -485,10 +489,11 @@ namespace Sexy
 	struct ProgramInitParameters
 	{
 		size_t MaxProgramBytes;
+      csexstr NativeSourcePath;
 		
 		enum { ONE_KILOBYTE = 1024 };
-		ProgramInitParameters(): MaxProgramBytes(1024 * ONE_KILOBYTE) {}
-		ProgramInitParameters(size_t _maxProgBytes): MaxProgramBytes(_maxProgBytes) {}
+		ProgramInitParameters(): MaxProgramBytes(1024 * ONE_KILOBYTE), NativeSourcePath(nullptr) {}
+		ProgramInitParameters(size_t _maxProgBytes, csexstr _nativeSourcePath = nullptr): MaxProgramBytes(_maxProgBytes), NativeSourcePath(_nativeSourcePath) {}
 	};
 } // Sexy
 

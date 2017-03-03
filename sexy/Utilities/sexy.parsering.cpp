@@ -1,3 +1,9 @@
+#include <sexy.types.h>
+#include <sexy.strings.h>
+#include <malloc.h>
+#include <float.h>
+#include <stdio.h>
+
 namespace
 {
 	using namespace Sexy;

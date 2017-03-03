@@ -31,6 +31,13 @@
 	principal credit screen and its principal readme file.
 */
 
+#include <sexy.types.h>
+#include <Sexy.S-Parser.h>
+#include <sexy.compiler.public.h>
+
+using namespace Sexy::Sex;
+using namespace Sexy::Compiler;
+
 namespace Sexy
 {
 	namespace Variants

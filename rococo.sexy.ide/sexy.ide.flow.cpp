@@ -65,7 +65,7 @@ namespace
          {
             try
             {
-               ss = CreateScriptV_1_1_0_0(Sexy::ProgramInitParameters{ maxBytes }, logger);
+               ss = CreateScriptV_1_2_0_0(Sexy::ProgramInitParameters{ maxBytes }, logger);
                if (ss == nullptr)
                {
                   Throw(0, L"Failed to create script system -> probably an environment problem");

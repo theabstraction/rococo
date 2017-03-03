@@ -31,6 +31,12 @@
 	principal credit screen and its principal readme file.
 */
 
+#include <sexy.types.h>
+#include <sexy.strings.h>
+#include <sexy.stdstrings.h>
+#include <sexy.compiler.public.h>
+#include "..\STC\stccore\sexy.compiler.h"
+
 namespace Sexy { namespace Compiler
 {
 	IStructureBuilder* FindMember(IStructureBuilder& s, csexstr name)

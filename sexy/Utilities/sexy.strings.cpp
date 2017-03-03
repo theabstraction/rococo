@@ -5,8 +5,6 @@
 
 #include <sexy.strings.h>
 
-#include <sexy.string.keys.inl>
-
 namespace Sexy
 {
 	bool operator == (const sexstring_key& a, const sexstring_key& b)
@@ -18,10 +16,10 @@ namespace Sexy
 	int32 Compare(const wchar_t* a, const wchar_t* b) { return wcscmp(a, b); }
 	int32 CompareI(const char* a, const char* b) { return _stricmp(a, b); }
 	int32 CompareI(const wchar_t* a, const wchar_t* b) { return _wcsicmp(a, b); }
-	int32 CompareI(const char* a, const char* b, int count) { return _strnicmp(a, b, count); }
-	int32 CompareI(const wchar_t* a, const wchar_t* b, int count) { return _wcsnicmp(a, b, count); }
-	int32 Compare(const char* a, const char* b, int count) { return strncmp(a, b, count); }
-	int32 Compare(const wchar_t* a, const wchar_t* b, int count) { return wcsncmp(a, b, count); }
+	int32 CompareI(const char* a, const char* b, int64 count) { return _strnicmp(a, b, count); }
+	int32 CompareI(const wchar_t* a, const wchar_t* b, int64 count) { return _wcsnicmp(a, b, count); }
+	int32 Compare(const char* a, const char* b, int64 count) { return strncmp(a, b, count); }
+	int32 Compare(const wchar_t* a, const wchar_t* b, int64 count) { return wcsncmp(a, b, count); }
 	int32 Compare(sexstring a, const SEXCHAR* b) { return Compare(a->Buffer, b); }
 	const char* GetSubString(const char* s, const char *subString) { return strstr(s, subString); }
 	const wchar_t* GetSubString(const wchar_t* s, const wchar_t *subString) { return wcsstr(s, subString); }

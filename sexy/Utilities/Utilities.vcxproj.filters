@@ -13,21 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Implementation">
-      <UniqueIdentifier>{4626f0fc-5be0-424e-a16d-e0e608b7a7c9}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="..\Common\sexy.strings.inl">
-      <Filter>Implementation</Filter>
-    </None>
-    <None Include="..\Common\sexy.namespaces.inl">
-      <Filter>Implementation</Filter>
-    </None>
-    <None Include="sexy.compiler.inl">
-      <Filter>Implementation</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sexy.util.cpp">
@@ -37,6 +25,27 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sexy.strings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexy.compiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexy.namespaces.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexy.natives.helpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexy.parsering.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexy.s-parser.util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexy.strings.2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexy.variants.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

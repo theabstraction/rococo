@@ -151,7 +151,7 @@ namespace
 
                   if (debugControl)
                   {
-                     debugControl->RefreshAtDepth(requiredDepth - 1);
+                     debugControl->RefreshAtDepth((int32)(requiredDepth - 1));
                   }
                }
             }

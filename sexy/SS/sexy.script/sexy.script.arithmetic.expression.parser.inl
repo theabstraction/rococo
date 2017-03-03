@@ -33,7 +33,51 @@
 
 namespace
 {
-	bool IsArithmeticOperator(cr_sex s);
+   bool IsBinaryCompareOperator(cr_sex s)
+   {
+      if (s.Type() == EXPRESSION_TYPE_ATOMIC)
+      {
+         sexstring op = s.String();
+         if (AreEqual(op, SEXTEXT(">"))) return true;
+         if (AreEqual(op, SEXTEXT("<")))	return true;
+         if (AreEqual(op, SEXTEXT(">="))) return true;
+         if (AreEqual(op, SEXTEXT("<="))) return true;
+         if (AreEqual(op, SEXTEXT("!="))) return true;
+         if (AreEqual(op, SEXTEXT("=="))) return true;
+      }
+
+      return false;
+   }
+
+   bool IsBinaryBooleanOperator(cr_sex s)
+   {
+      if (s.Type() == EXPRESSION_TYPE_ATOMIC)
+      {
+         sexstring op = s.String();
+         if (AreEqual(op, SEXTEXT("and"))) return true;
+         if (AreEqual(op, SEXTEXT("or")))	return true;
+         if (AreEqual(op, SEXTEXT("xor"))) return true;
+      }
+
+      return false;
+   }
+
+   bool IsArithmeticOperator(cr_sex s)
+   {
+      if (!IsAtomic(s))
+      {
+         return false;
+      }
+
+      sexstring opStr = s.String();
+
+      if (AreEqual(opStr, SEXTEXT("+"))) return true;
+      if (AreEqual(opStr, SEXTEXT("-"))) return true;
+      if (AreEqual(opStr, SEXTEXT("*"))) return true;
+      if (AreEqual(opStr, SEXTEXT("/"))) return true;
+
+      return false;
+   }
 
 	enum ARITHMETIC_OP
 	{
@@ -101,23 +145,6 @@ namespace
 				return VARTYPE_Bad;
 			}
 		}
-	}
-
-	bool IsArithmeticOperator(cr_sex s)
-	{
-		if (!IsAtomic(s))
-		{
-			return false;
-		}
-
-		sexstring opStr = s.String();
-
-		if (AreEqual(opStr, SEXTEXT("+"))) return true;
-		if (AreEqual(opStr, SEXTEXT("-"))) return true;
-		if (AreEqual(opStr, SEXTEXT("*"))) return true;
-		if (AreEqual(opStr, SEXTEXT("/"))) return true;
-
-		return false;
 	}
 
 	ARITHMETIC_OP GetArithmeticOp(cr_sex s)

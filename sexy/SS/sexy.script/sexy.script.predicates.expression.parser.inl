@@ -31,6 +31,16 @@
 	principal credit screen and its principal readme file.
 */
 
+namespace Sexy
+{
+   namespace Variants
+   {
+      bool Compare(const VariantValue& a, const VariantValue& b, VARTYPE type, CONDITION op, cr_sex src);
+   }
+}
+
+using namespace Sexy::Variants;
+
 namespace
 {
 	void CompileBinaryCompareLiteralVsLiteral(CCompileEnvironment& ce, cr_sex parent, csexstr leftString, VARTYPE lType, CONDITION op, csexstr rightString, VARTYPE rType)
@@ -57,7 +67,7 @@ namespace
 		{
 			if (Variants::TryRecast(newRValue, rValue, rType, bestCastType))
 			{
-				bool match = Compare(newLValue, newRValue, bestCastType, op, parent);
+				bool match = Sexy::Variants::Compare(newLValue, newRValue, bestCastType, op, parent);
 				VariantValue val;
 				val.int32Value = match ? 1 : 0;
 				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, val, BITCOUNT_32);
@@ -68,7 +78,7 @@ namespace
 		Throw(parent, SEXTEXT("Not implemented"));
 	}
 
-	void CompileBinaryBooleanLiteralVsLiteral(CCompileEnvironment& ce, cr_sex parent, int32 leftValue, LOGICAL_OP op, int32 rightValue)
+	void CompileBinaryBooleanLiteralVsLiteral(CCompileEnvironment& ce, cr_sex parent, int32 leftValue, Variants::LOGICAL_OP op, int32 rightValue)
 	{
 		bool match = Compare(leftValue, rightValue, op, parent);
 		VariantValue val;
@@ -177,6 +187,30 @@ namespace
 		}
 	}
 
+   void AddBinaryComparison(cr_sex src, VM::IAssembler& assembler, int booleanTargetId, int sourceA, int sourceB, CONDITION op, VARTYPE type)
+   {
+      switch (type)
+      {
+      case VARTYPE_Float32:
+         assembler.Append_FloatSubtract(VM::REGISTER_D4 + sourceA, VM::REGISTER_D4 + sourceB, VM::FLOATSPEC_SINGLE);
+         break;
+      case VARTYPE_Float64:
+         assembler.Append_FloatSubtract(VM::REGISTER_D4 + sourceA, VM::REGISTER_D4 + sourceB, VM::FLOATSPEC_DOUBLE);
+         break;
+      case VARTYPE_Int32:
+         assembler.Append_IntSubtract(VM::REGISTER_D4 + sourceA, BITCOUNT_32, VM::REGISTER_D4 + sourceB);
+         break;
+      case VARTYPE_Int64:
+         assembler.Append_IntSubtract(VM::REGISTER_D4 + sourceA, BITCOUNT_64, VM::REGISTER_D4 + sourceB);
+         break;
+      default:
+         Throw(src, SEXTEXT("Cannot find subtraction rule for the given type"));
+      }
+
+      assembler.Append_SetIf(op, VM::REGISTER_D4 + booleanTargetId, GetBitCount(type));
+   }
+
+
 	void CompileBinaryCompareVariableVsLiteral(CCompileEnvironment& ce, cr_sex parent, csexstr leftVarName, CONDITION op, csexstr rightString, VARTYPE rType, cr_sex leftVarExpr)
 	{
 		VariantValue rValue;
@@ -215,6 +249,27 @@ namespace
 			AddBinaryComparison(parent, builder.Assembler(), Sexy::ROOT_TEMPDEPTH, Sexy::ROOT_TEMPDEPTH + 1, Sexy::ROOT_TEMPDEPTH + 2, op, varLType);
 		}
 	}
+
+   void AddBinaryBoolean(cr_sex src, VM::IAssembler& assembler, int booleanTargetId, int sourceA, int sourceB, Variants::LOGICAL_OP op)
+   {
+      if (booleanTargetId != sourceA - 1)
+      {
+         Throw(src, SEXTEXT("Algorthimic error: Expecting [booleanTargetId] to be [sourceA-1]"));
+      }
+
+      switch (op)
+      {
+      case LOGICAL_OP_AND:
+         assembler.Append_LogicalAND(VM::REGISTER_D4 + sourceA, BITCOUNT_32, VM::REGISTER_D4 + sourceB);
+         break;
+      case LOGICAL_OP_OR:
+         assembler.Append_LogicalOR(VM::REGISTER_D4 + sourceA, BITCOUNT_32, VM::REGISTER_D4 + sourceB);
+         break;
+      case LOGICAL_OP_XOR:
+         assembler.Append_LogicalXOR(VM::REGISTER_D4 + sourceA, BITCOUNT_32, VM::REGISTER_D4 + sourceB);
+         break;
+      }
+   }
 
 	void CompileBinaryBooleanLiteralVsVariable(CCompileEnvironment& ce, cr_sex parent, int literalValue, LOGICAL_OP op, csexstr variableName)
 	{
@@ -721,6 +776,20 @@ namespace
 	{
 		return TryCompileFunctionCallAndReturnValue(ce, src, VARTYPE_Bool, NULL, NULL);
 	}
+
+   CONDITION GetBinaryComparisonOp(cr_sex opExpr, bool negate)
+   {
+      sexstring op = opExpr.String();
+      if (AreEqual(op, SEXTEXT(">"))) return negate ? CONDITION_IF_LESS_OR_EQUAL : CONDITION_IF_GREATER_THAN;
+      if (AreEqual(op, SEXTEXT("<")))	return negate ? CONDITION_IF_GREATER_OR_EQUAL : CONDITION_IF_LESS_THAN;
+      if (AreEqual(op, SEXTEXT(">="))) return negate ? CONDITION_IF_LESS_THAN : CONDITION_IF_GREATER_OR_EQUAL;
+      if (AreEqual(op, SEXTEXT("<="))) return negate ? CONDITION_IF_GREATER_THAN : CONDITION_IF_LESS_OR_EQUAL;
+      if (AreEqual(op, SEXTEXT("!="))) return negate ? CONDITION_IF_EQUAL : CONDITION_IF_NOT_EQUAL;
+      if (AreEqual(op, SEXTEXT("=="))) return negate ? CONDITION_IF_NOT_EQUAL : CONDITION_IF_EQUAL;
+
+      Throw(opExpr, SEXTEXT("Cannot interpret as a comparison operator"));
+      return CONDITION_IF_EQUAL;
+   }
 
 	bool TryCompileBooleanExpression(CCompileEnvironment& ce, cr_sex s, bool expected, bool& negate)
 	{

@@ -41,11 +41,6 @@
 
 #include "sexy.stdstrings.h"
 
-#include "sexy.strings.inl"
-#include "sexy.namespaces.inl"
-#include "sexy.compiler.inl"
-#include "sexy.parsering.inl"
-
 namespace Sexy
 {
 	void LogError(ILog& log, csexstr format, ...)

@@ -239,11 +239,6 @@ namespace
 		appender.Append(SEXTEXT("\n\n"));
 	}
 
-   void AppendHelpers(FileAppender& appender)
-   {
-      appender.Append(SEXTEXT("#include \"sexy.natives.helpers.inl\"\n\n"));
-   }
-
 	void DeclareCppInterface(FileAppender& appender, const InterfaceContext& ic, cr_sex interfaceDef, const ISExpression* methods, const ParseContext& pc)
 	{
 		int nsDepth = AppendNamespace(appender, ic.asCppInterface.SexyName());

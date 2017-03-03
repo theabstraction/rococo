@@ -47,7 +47,7 @@
 #include "sexy.lib.s-parser.h"
 
 #include "sexy.lib.util.h"
-
+#include "bennyhill.h"
 
 namespace Sexy
 {
@@ -264,6 +264,11 @@ void CopyCharToSEXCHAR(SEXCHAR* dest, const char* src, size_t capacity)
 
 std::unordered_map<std::wstring, int> appendOnceMap;
 
+void AppendHelpers(FileAppender& appender)
+{
+
+}
+
 void AppendOnceOnly(FileAppender& appender, csexstr filename)
 {
    if (appendOnceMap.find(filename) == appendOnceMap.end())
@@ -273,18 +278,45 @@ void AppendOnceOnly(FileAppender& appender, csexstr filename)
    }
 }
 
+void DeleteFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods, cr_sex interfaceDef)
+{
+   FileDelete(ic.appendSexyFile);
+   FileDelete(ic.appendCppHeaderFile);
+   FileDelete(ic.appendCppImplFile);
+}
+
+void WriteInterfaceDeclaration(FileAppender& writer, csexstr qualifiedName, int depth)
+{
+   NamespaceSplitter splitter(qualifiedName);
+   csexstr head, body;
+   if (splitter.SplitHead(head, body))
+   {
+      writer.Append(SEXTEXT("namespace %s { "), head);
+      WriteInterfaceDeclaration(writer, body, depth + 1);
+      writer.Append(SEXTEXT("}"));
+   }
+   else
+   {
+      writer.Append(SEXTEXT("\n\tstruct %s;\n"), qualifiedName);
+   }
+}
+
 void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods, cr_sex interfaceDef)
 {
-	FileDeleteOnceOnly(ic.appendSexyFile);
-	FileAppender sexyFileAppender(ic.appendSexyFile);		
+	FileAppender sexyFileAppender(ic.appendSexyFile);	
 	DeclareSexyInterface(sexyFileAppender, ic, methods, pc);
 	ImplementSexyInterface(sexyFileAppender, ic, methods, s, pc);
 
-	FileDeleteOnceOnly(ic.appendCppHeaderFile);
 	FileAppender cppFileAppender(ic.appendCppHeaderFile);
+
+   for (auto i : pc.interfaces)
+   {
+      WriteInterfaceDeclaration(cppFileAppender, i.second->ic.asCppInterface.SexyName(), 0);
+      cppFileAppender.Append(SEXTEXT("\n\n"));
+   }
+
 	DeclareCppInterface(cppFileAppender, ic, interfaceDef, methods, pc);
 
-	FileDeleteOnceOnly(ic.appendCppImplFile);
 	FileAppender cppFileImplAppender(ic.appendCppImplFile); 
    AppendOnceOnly(cppFileImplAppender, ic.appendCppImplFile);
 	ImplementNativeFunctions(cppFileImplAppender, ic, methods, pc);
@@ -292,15 +324,12 @@ void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s,
 
 void GenerateFiles(const ParseContext& pc, const EnumContext& ec, cr_sex senumDef)
 {
-	FileDeleteOnceOnly(ec.appendSexyFile);
 	FileAppender sexyFileAppender(ec.appendSexyFile);
 	DeclareSexyEnum(sexyFileAppender, ec, senumDef, pc);
 	
-	FileDeleteOnceOnly(ec.appendCppHeaderFile);
 	FileAppender cppFileAppender(ec.appendCppHeaderFile);
 	DeclareCppEnum(cppFileAppender, ec, senumDef, pc);
 
-	FileDeleteOnceOnly(ec.appendCppImplFile);
 	FileAppender cppFileImplAppender(ec.appendCppImplFile);
 	ImplementNativeFunctions(cppFileImplAppender, ec, pc);
 }
@@ -492,7 +521,7 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 	SEXCHAR sexyFile[_MAX_PATH];
 	StringPrint(sexyFile, _MAX_PATH, SEXTEXT("%s%s.inl"), pc.cppRootDirectory, filePrefix->Buffer);
 
-	FileDeleteOnceOnly(sexyFile);
+	FileDelete(sexyFile);
 
 	FileAppender sexyAppender(sexyFile);
 
@@ -896,6 +925,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
 void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 {
 	bool hasConfig = false;
+   bool hasFunctions = false;
 
 	for(int i = 0; i < root.NumberOfElements(); ++i)
 	{
@@ -915,8 +945,10 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 		}
 		else if (AreEqual(SEXTEXT("functions"), cmd))
 		{
+         if (hasFunctions) Throw(command, SEXTEXT("Only one set of functions can be defined in the generator file"));
 			if (!hasConfig) Throw(command, SEXTEXT("Must define a (config <config-path>) entry before all functions"));
 			ParseFunctions(topLevelItem, pc);
+         hasFunctions = true;
 		}
 		else if (AreEqual(SEXTEXT("interface"), cmd))
 		{
@@ -933,6 +965,12 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 			Throw(command, SEXTEXT("Expecting 'interface or config or functions' in the command at position #0"));
 		}		
 	}
+
+   for (auto i : pc.interfaces)
+   {
+      auto& def = *i.second;
+      DeleteFiles(pc, def.ic, *def.sdef, def.methods, *def.sdef);
+   }
 
    for (auto i : pc.interfaces)
    {

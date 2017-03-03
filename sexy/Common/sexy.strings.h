@@ -47,10 +47,10 @@ namespace Sexy
 	int32 Compare(const wchar_t* a, const wchar_t* b);
 	int32 CompareI(const char* a, const char* b);
 	int32 CompareI(const wchar_t* a, const wchar_t* b);
-	int32 CompareI(const char* a, const char* b, int count);
-	int32 CompareI(const wchar_t* a, const wchar_t* b, int count);
-	int32 Compare(const char* a, const char* b, int count);
-	int32 Compare(const wchar_t* a, const wchar_t* b, int count);
+	int32 CompareI(const char* a, const char* b, int64 count);
+	int32 CompareI(const wchar_t* a, const wchar_t* b, int64 count);
+	int32 Compare(const char* a, const char* b, int64 count);
+	int32 Compare(const wchar_t* a, const wchar_t* b, int64 count);
 	int32 Compare(sexstring a, const SEXCHAR* b);
 	const char* GetSubString(const char* s, const char *subString);
 	const wchar_t* GetSubString(const wchar_t* s, const wchar_t *subString);
@@ -74,6 +74,31 @@ namespace Sexy
 
 	bool AreEqual(sexstring a, sexstring b);
 	bool operator < (const sexstring_key& a, const sexstring_key& b);
+
+   class CStringKey
+   {
+      friend bool operator == (const CStringKey& a, const CStringKey& b);
+      friend bool operator < (const CStringKey& a, const CStringKey& b);
+   private:
+      csexstr text;
+      size_t hashValue;
+
+   public:
+      CStringKey(csexstr _text) : text(_text) { hashValue = Sexy::Hash(_text); }
+      CStringKey() : text(nullptr), hashValue(0) {}
+
+      csexstr c_str() const { return text; }
+
+      size_t Hash() const { return hashValue; }
+   };
+
+   struct hashCStringKey
+   {
+      size_t operator()(const CStringKey& s) const { return s.Hash(); }
+   };
+
+   bool operator == (const CStringKey& a, const CStringKey& b);
+   bool operator < (const CStringKey& a, const CStringKey& b);
 }
 
 #endif

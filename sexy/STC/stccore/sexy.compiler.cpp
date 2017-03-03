@@ -39,8 +39,6 @@
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
 
-#include "sexy.string.keys.inl"
-
 using namespace Sexy;
 using namespace Sexy::Compiler;
 using namespace Sexy::VM;

@@ -47,6 +47,22 @@
 #error include "sexy.types.h" before including this file
 #endif
 
+namespace Sexy
+{
+   namespace Variants
+   {
+      enum LOGICAL_OP
+      {
+         LOGICAL_OP_AND,
+         LOGICAL_OP_OR,
+         LOGICAL_OP_XOR
+      };
+
+      LOGICAL_OP GetBinaryLogicalOp(Sex::cr_sex opExpr);
+      bool Compare(int a, int b, LOGICAL_OP op, Sex::cr_sex src);
+   }
+}
+
 namespace Sexy { namespace Sex
 {
 	struct ISParser;

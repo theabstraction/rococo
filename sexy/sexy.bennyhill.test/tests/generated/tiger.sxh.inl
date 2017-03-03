@@ -1,32 +1,3 @@
-namespace // Benny Hill generated helpers
-{
-	using namespace Sexy;
-	using namespace Sexy::Sex;
-	using namespace Sexy::Script;
-	using namespace Sexy::Compiler;
-
-	class StringPopulator : public IStringPopulator
-	{
-		CClassSysTypeStringBuilder* builder;
-	public:
-		StringPopulator(NativeCallEnvironment& _nce, VirtualTable* vTableBuilder)
-		{
-			char* _instance = ((char*)vTableBuilder) + vTableBuilder->OffsetToInstance;
-			CClassDesc* _abstractClass = reinterpret_cast<CClassDesc*>(_instance);
-			if (_abstractClass->structDef != _nce.ss.PublicProgramObject().GetSysType(SEXY_CLASS_ID_STRINGBUILDER))
-			{
-				_nce.ss.ThrowFromNativeCode(0, SEXTEXT("Builder was not a Sys.Type.StringBuilder"));
-			}
-			builder = reinterpret_cast<CClassSysTypeStringBuilder*>(_abstractClass);
-		}
-
-		virtual void Populate(csexstr text)
-		{
-			SafeCat(builder->buffer, builder->capacity, text, _TRUNCATE);
-			builder->length = StringLength(builder->buffer);
-		}
-	};
-}
 // BennyHill generated Sexy native functions for Sys::Animals::ITigerPup 
 namespace
 {
@@ -42,7 +13,7 @@ namespace
 		_offset += sizeof(VirtualTable*);
 		VirtualTable* builder;
 		ReadInput(builder, _sf, -_offset);
-		StringPopulator _builderPopulator(_nce, builder);
+		Sexy::Helpers::StringPopulator _builderPopulator(_nce, builder);
 		Sys::Animals::ITigerPup* _pObject;
 		_offset += sizeof(_pObject);
 
@@ -77,9 +48,9 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		Sys::Animals::ITigerPup* pup = _pObject->MakeBabies();
 		_offset += sizeof(CReflectedClass*);
-		const IStructure* _pupStruct = Sexy::Script::FindStructure(_nce.ss,  SEXTEXT("Sys.Animals.ITigerPup"));
-		CReflectedClass* _sxypup = _nce.ss.Represent(*_pupStruct, pup);
-		WriteOutput(_sxypup, _sf, -_offset);
+		auto& _pupStruct = Sexy::Helpers::GetDefaultProxy(SEXTEXT("Sys.Animals"),SEXTEXT("ITigerPup"), SEXTEXT("ProxyITigerPup"), _nce.ss);
+		CReflectedClass* _sxypup = _nce.ss.Represent(_pupStruct, pup);
+		WriteOutput(&_sxypup->header._vTables[0], _sf, -_offset);
 	}
 
 	void NativeGetHandleForSysAnimalsGetTigerByName(NativeCallEnvironment& _nce)

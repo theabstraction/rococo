@@ -298,7 +298,7 @@ namespace SexyDotNet { namespace Host
 
 			ProgramInitParameters pip;
 			pip.MaxProgramBytes = 32768;
-			nativeHandle = IntPtr(CreateScriptV_1_1_0_0(pip, *ToLog(logHandle)));
+			nativeHandle = IntPtr(CreateScriptV_1_2_0_0(pip, *ToLog(logHandle)));
 			sourceModules = gcnew Dictionary<String^,SourceModule^>();
 			disassemblerHandle = IntPtr(ToSS(nativeHandle)->PublicProgramObject().VirtualMachine().Core().CreateDisassembler());
 			currentlyViewedModule = IntPtr::Zero;

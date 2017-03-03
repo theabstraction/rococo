@@ -48,6 +48,8 @@
 
 #include <memory>
 
+#include <stdarg.h>
+
 #define BREAK_ON_THROW
 
 #ifndef SCRIPT_IS_LIBRARY
@@ -163,6 +165,16 @@ namespace Sexy { namespace OS
 			throw ose;
 		}
 	}
+
+   void Throw(int errCode, csexstr format, ...)
+   {
+      OS::OSException ex;
+      va_list args;
+      va_start(args, format);
+      SafeVFormat(ex.message, _TRUNCATE, format, args);
+      ex.exceptionNumber = errCode;
+      throw ex;
+   }
 
 	void LoadAsciiTextFile(SEXCHAR* data, size_t capacity, const SEXCHAR* filename)
 	{

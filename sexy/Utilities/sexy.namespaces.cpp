@@ -31,6 +31,9 @@
 	principal credit screen and its principal readme file.
 */
 
+#include <sexy.types.h>
+#include <sexy.stdstrings.h>
+
 namespace Sexy
 {
 	class NamespaceException: public IException

@@ -47,6 +47,8 @@
 
 #include "sexy.stdstrings.h"
 
+#include "bennyhill.h"
+
 namespace Rococo
 {
 	using namespace Sexy;
@@ -90,15 +92,17 @@ namespace Rococo
 		fwrite(&c, sizeof(char), 1, hFile);
 	}
 
-	void FileDeleteOnceOnly(csexstr name)
-	{
-		static std::unordered_set<stdstring> knownFiles;
+   void FileAppender::AppendSequence(int count, char c)
+   {
+      for (int i = 0; i < count; ++i)
+      {
+         Append(c);
+      }
+   }
 
-		if (knownFiles.find(name) == knownFiles.end())
-		{
-			_wunlink(name);
-			knownFiles.insert(name);
-		}
+	void FileDelete(csexstr name)
+   {
+		_wunlink(name);
 	}
 
 	void TripDebugger()

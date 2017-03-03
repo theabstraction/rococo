@@ -67,6 +67,8 @@ namespace Sexy
 	namespace Compiler
 	{
 		struct IProgramObject;
+      struct VirtualTable;
+      struct IStructure;
 	}
 
 	namespace Sex
@@ -286,6 +288,8 @@ namespace Sexy { namespace Script
 		virtual int NextID() = 0;
 	};	
 
+   void SetDefaultNativeSourcePath(csexstr pathname);
+
 	struct NO_VTABLE INativeLib
 	{
 		virtual void AddNativeCalls() = 0;
@@ -326,6 +330,21 @@ namespace Sexy { namespace Script
 	SCRIPTEXPORT_API const Sexy::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, csexstr fullyQualifiedName);
 }}
 
+namespace Sexy {
+   namespace Helpers // Used by Benny Hill to simplify native function integration
+   {
+      class StringPopulator : public IStringPopulator
+      {
+         Script::CClassSysTypeStringBuilder* builder;
+      public:
+         StringPopulator(Script::NativeCallEnvironment& _nce, Compiler::VirtualTable* vTableBuilder);
+         virtual void Populate(csexstr text);
+      };
+      const Compiler::IStructure& GetDefaultProxy(csexstr fqNS, csexstr interfaceName, csexstr proxyName, Script::IPublicScriptSystem& ss);
+   }
+}
+
+
 namespace Sexy { namespace Sex
 {
 	SCRIPTEXPORT_API void AssertCompound(cr_sex e);
@@ -337,9 +356,37 @@ namespace Sexy { namespace Sex
 	SCRIPTEXPORT_API void Throw(cr_sex e, csexstr message);
 }}
 
+namespace Sexy {
+   namespace Variants
+   {
+      bool TryRecast(OUT VariantValue& end, IN const VariantValue& original, VARTYPE orignalType, VARTYPE endType);
+
+      inline VariantValue FromValue(int32 value)
+      {
+         VariantValue v;
+         v.int32Value = value;
+         return v;
+      }
+
+      inline VariantValue Zero() { return FromValue(0); }
+      inline VariantValue ValueTrue() { return FromValue(1); }
+      inline VariantValue ValueFalse() { return FromValue(0); }
+
+      inline bool IsAssignableToBoolean(VARTYPE type)
+      {
+         return type == VARTYPE_Bool;
+      }
+
+      VARTYPE GetBestCastType(VARTYPE a, VARTYPE b);
+
+      bool TryRecast(OUT VariantValue& end, IN const VariantValue& original, VARTYPE orignalType, VARTYPE endType);
+   }
+}
+
+
 #ifndef THIS_IS_THE_SEXY_CORE_LIBRARY
 
-extern "C" SCRIPTEXPORT_API Sexy::Script::IPublicScriptSystem* CreateScriptV_1_1_0_0(const Sexy::ProgramInitParameters& pip, Sexy::ILog& logger);
+extern "C" SCRIPTEXPORT_API Sexy::Script::IPublicScriptSystem* CreateScriptV_1_2_0_0(const Sexy::ProgramInitParameters& pip, Sexy::ILog& logger);
 
 namespace Sexy { namespace Script
 {
@@ -353,7 +400,7 @@ namespace Sexy { namespace Script
 
 		CScriptSystemProxy(const ProgramInitParameters& pip, ILog& logger)
 		{
-			instance = CreateScriptV_1_1_0_0(pip, logger);
+			instance = CreateScriptV_1_2_0_0(pip, logger);
 		}
 
 		~CScriptSystemProxy()

@@ -41,26 +41,3 @@
 #include <rococo.types.h>
 #include <sexy.types.h>
 
-typedef struct _iobuf FILE;
-
-namespace Rococo
-{
-	using namespace Sexy;
-
-	class FileAppender
-	{
-	private:
-		FILE* hFile;
-		csexstr filename;
-	public:
-		FileAppender(csexstr _filename);
-		~FileAppender();
-		void Append(csexstr format, ...);
-		void FileAppender::Append(char c);
-	};
-
-	void FileDeleteOnceOnly(csexstr name);
-	void TripDebugger();
-	void WriteStandardErrorCode(int errorCode);
-	int64 GetLastModifiedDate(const char* path);
-}

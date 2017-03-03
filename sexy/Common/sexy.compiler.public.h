@@ -523,4 +523,5 @@ namespace Sexy { namespace Compiler
 	BITCOUNT GetBitCount(VARTYPE type);
 }}
 
+
 #endif

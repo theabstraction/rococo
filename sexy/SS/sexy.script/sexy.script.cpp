@@ -47,8 +47,6 @@
 #include <unordered_map>
 #include <sexy.stdstrings.h>
 
-#include <sexy.string.keys.inl>
-
 using namespace Sexy;
 using namespace Sexy::Script;
 using namespace Sexy::Compiler;
@@ -59,6 +57,49 @@ namespace
 {
 	class CScript;
 	class CScripts;
+}
+
+namespace
+{
+   SEXCHAR defaultNativeSourcePath[256] = { 0 };
+
+   // Careful that we had enough buffer space
+   void AddSlashToDirectory(SEXCHAR* buffer)
+   {
+      // Terminate with slash
+
+      SEXCHAR* s = buffer;
+      for (; *s != 0; s++)
+      {
+
+      }
+
+      if (s[-1] != '\\' && s[-1] != '/')
+      {
+         s[0] = OS_DIRECTORY_SLASH;
+         s[1] = 0;
+      }
+   }
+}
+
+namespace Sexy
+{
+   namespace Script
+   {
+      void SetDefaultNativeSourcePath(csexstr pathname)
+      {
+         if (pathname == nullptr)
+         {
+            defaultNativeSourcePath[0] = 0;
+            return;
+         }
+
+         SafeCopy(defaultNativeSourcePath, 255, pathname, _TRUNCATE);
+
+         // Terminate with slash
+         AddSlashToDirectory(defaultNativeSourcePath);
+      }
+   }
 }
 
 namespace Sexy
@@ -329,8 +370,6 @@ namespace
 #include "sexy.script.matching.inl"
 #include "sexy.script.factory.inl"
 #include "sexy.script.closure.inl"
-#include "sexy.variants.inl"
-#include "sexy.s-parser.util.inl"
 #include "sexy.script.array.inl"
 #include "sexy.script.list.inl"
 #include "sexy.script.map.inl"
@@ -642,14 +681,27 @@ namespace
 		{
 			try
 			{
-				OS::GetEnvVariable(srcEnvironment, _MAX_PATH, SEXTEXT("SEXY_NATIVE_SRC_DIR"));				
+            if (pip.NativeSourcePath != 0)
+            {
+               SafeCopy(srcEnvironment, _MAX_PATH-1, pip.NativeSourcePath, _TRUNCATE);
+            }
+            else if (*defaultNativeSourcePath != 0)
+            {
+               SafeCopy(srcEnvironment, _MAX_PATH - 1, defaultNativeSourcePath, _TRUNCATE);
+            }
+            else
+            {
+               OS::GetEnvVariable(srcEnvironment, _MAX_PATH, SEXTEXT("SEXY_NATIVE_SRC_DIR"));
+            }
+            AddSlashToDirectory(srcEnvironment);
 			}
-			catch(OS::OSException&)
+			catch(OS::OSException& innerEx)
 			{
-				SEXCHAR info[256];
-				StringPrint(info, 256, SEXTEXT("Failed to get sexy environment"));
-				_logger.Write(info);
-				throw;
+            OS::OSException ex;
+            ex.exceptionNumber = innerEx.ErrorCode();
+            StringPrint(ex.message, ex.CAPACITY, SEXTEXT("%s:\nFailed to get sexy environment.\nUse Sexy::Script::SetDefaultNativeSourcePath(...) or ProgramInitParameters or environment variable SEXY_NATIVE_SRC_DIR"), innerEx.Message());
+            _logger.Write(ex.message);
+            throw ex;
 			}
 			
 			scripts = new CScripts(progObjProxy(), *this);
@@ -1483,7 +1535,7 @@ namespace
 	}
 }
 
-extern "C" SCRIPTEXPORT_API Sexy::Script::IScriptSystem* CreateScriptV_1_1_0_0(const ProgramInitParameters& pip, ILog& logger)
+extern "C" SCRIPTEXPORT_API Sexy::Script::IScriptSystem* CreateScriptV_1_2_0_0(const ProgramInitParameters& pip, ILog& logger)
 {
 	try
 	{
