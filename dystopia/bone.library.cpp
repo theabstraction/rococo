@@ -246,7 +246,7 @@ namespace
 			{
 				Vec2i p = pex.Start();
             Vec2i q = pex.End();
-				Throw(0, L"Error parsering %s\n%s: %s\n(%d,%d) to (%d,%d)\n%s", resourcePath, pex.Name(), pex.Message(), p.x, p.y, q.x, q.y, pex.Specimen());
+            Rococo::Throw(0, L"Error parsering %s\n%s: %s\n(%d,%d) to (%d,%d)\n%s", resourcePath, pex.Name(), pex.Message(), p.x, p.y, q.x, q.y, pex.Specimen());
 			}
 		}
 	public:
@@ -307,7 +307,7 @@ namespace
 					switch (id)
 					{
 					case CMD_ID_EXIT:
-						Throw(ex.ErrorCode(), L"%s", ex.Message());
+                  Rococo::Throw(ex.ErrorCode(), L"%s", ex.Message());
 						break;
 					case CMD_ID_RETRY:
 						break;
@@ -344,7 +344,7 @@ namespace
 			size_t index = id.value - 1;
 			if (index > animationsByIndex.size())
 			{
-				Throw(0, L"GetAnimationSequenceById(%u): id invalid.", id.value);
+            Rococo::Throw(0, L"GetAnimationSequenceById(%u): id invalid.", id.value);
 			}
 
 			auto& a = *animationsByIndex[index];
@@ -388,7 +388,7 @@ namespace
 			uint32 index = id.value - 1;
 			if (index >= keyframesByIndex.size())
 			{
-				Throw(0, L"Bad keyframe id #%u", id.value);
+            Rococo::Throw(0, L"Bad keyframe id #%u", id.value);
 			}
 
 			auto& k = *keyframesByIndex[index];

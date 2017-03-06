@@ -65,10 +65,10 @@ namespace
          {
             try
             {
-               ss = CreateScriptV_1_2_0_0(Sexy::ProgramInitParameters{ maxBytes }, logger);
+               ss = CreateScriptV_1_2_0_0(Sexy::Compiler::ProgramInitParameters{ maxBytes }, logger);
                if (ss == nullptr)
                {
-                  Throw(0, L"Failed to create script system -> probably an environment problem");
+                  Rococo::Throw(0, L"Failed to create script system -> probably an environment problem");
                }
                tree = sources.GetSource(resourcePath);
                InitSexyScript(*tree, debugger, *ss, sources, onCompile);
@@ -85,7 +85,7 @@ namespace
 
                case EScriptExceptionFlow_Ignore:
                case EScriptExceptionFlow_Terminate:
-                  Throw(ex.ErrorCode(), L"%s:\r\n%s", ex.Name(), ex.Message());
+                  Rococo::Throw(ex.ErrorCode(), L"%s:\r\n%s", ex.Name(), ex.Message());
                   return;
                }
             }
@@ -101,7 +101,7 @@ namespace
                   break;
 
                case EScriptExceptionFlow_Terminate:
-                  Throw(ex.ErrorCode(), L"%s", ex.Message());
+                  Rococo::Throw(ex.ErrorCode(), L"%s", ex.Message());
                   return;
                }
             }
@@ -134,7 +134,7 @@ namespace
             case EScriptExceptionFlow_Retry:
                break;
             case EScriptExceptionFlow_Terminate:
-               Throw(ex.ErrorCode(), L"%s:\r\n%s", ex.Name(), ex.Message());
+               Rococo::Throw(ex.ErrorCode(), L"%s:\r\n%s", ex.Name(), ex.Message());
                break;
             }
          }
@@ -149,7 +149,7 @@ namespace
             case EScriptExceptionFlow_Retry:
                break;
             case EScriptExceptionFlow_Terminate:
-               Throw(ex.ErrorCode(), L"%s", ex.Message());
+               Rococo::Throw(ex.ErrorCode(), L"%s", ex.Message());
                return;
             }
          }
@@ -175,7 +175,7 @@ namespace
             case EScriptExceptionFlow_Retry:
                break;
             case EScriptExceptionFlow_Terminate:
-               Throw(ex.ErrorCode(), L"%s:\r\n%s", ex.Name(), ex.Message());
+               Rococo::Throw(ex.ErrorCode(), L"%s:\r\n%s", ex.Name(), ex.Message());
                break;
             }
          }
@@ -190,7 +190,7 @@ namespace
             case EScriptExceptionFlow_Retry:
                break;
             case EScriptExceptionFlow_Terminate:
-               Throw(ex.ErrorCode(), L"%s", ex.Message());
+               Rococo::Throw(ex.ErrorCode(), L"%s", ex.Message());
                return;
             }
          }
@@ -213,7 +213,7 @@ namespace Rococo
 
          while (true)
          {
-            Script::CScriptSystemProxy ssp(ProgramInitParameters(maxBytes), logger);
+            Script::CScriptSystemProxy ssp(Sexy::Compiler::ProgramInitParameters(maxBytes), logger);
             Script::IPublicScriptSystem& ss = ssp();
             if (&ss == nullptr)
             {

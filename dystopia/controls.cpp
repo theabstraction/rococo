@@ -153,7 +153,7 @@ namespace
 		{
 			if (!mapNameToAction.insert(std::make_pair(std::wstring(name), ActionBinding{ type, isVector })).second)
 			{
-				Throw(0, L"Cannot add action %s again. The action is already defined", name);
+            Rococo::Throw(0, L"Cannot add action %s again. The action is already defined", name);
 			}
 		}
 
@@ -246,7 +246,7 @@ namespace
 			{
 				Vec2i p = pex.Start();
             Vec2i q = pex.End();
-				Throw(pex.ErrorCode(), L"Error parsering %s\n%s: %s\n(%d,%d) to (%d,%d)\nSpecimen: %s", resourcePath, pex.Name(), pex.Message(), p.x, p.y, q.x, q.y, pex.Specimen());
+            Rococo::Throw(pex.ErrorCode(), L"Error parsering %s\n%s: %s\n(%d,%d) to (%d,%d)\nSpecimen: %s", resourcePath, pex.Name(), pex.Message(), p.x, p.y, q.x, q.y, pex.Specimen());
 			}
 		}
 	};

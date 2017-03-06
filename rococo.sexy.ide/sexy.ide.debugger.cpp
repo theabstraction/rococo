@@ -429,7 +429,7 @@ namespace
          }
          else
          {
-            Throw(GetLastError(), L"Bad format in log message");
+            Rococo::Throw(GetLastError(), L"Bad format in log message");
          }
 
          logSegments.push_back({ RGB(0,0,0), text  });

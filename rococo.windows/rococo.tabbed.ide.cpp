@@ -532,7 +532,7 @@ namespace
       {
          if (moveTabIndex < 0 || moveTabIndex >= paneIds.size() || paneIds.size() < 2)
          {
-            Throw(0, L"Unexpected tab index in IDE::Split");
+            Rococo::Throw(0, L"Unexpected tab index in IDE::Split");
          }
 
          sectionA = IDESpatialManager::Create(*window, database);
@@ -1431,7 +1431,7 @@ namespace
    {
       if (sheader.NumberOfElements() != 4)
       {
-         Throw(0, L"Expecting 4 elements in header");
+         Rococo::Throw(0, L"Expecting 4 elements in header");
       }
 
       cr_sex svid = sheader[1];
@@ -1475,14 +1475,14 @@ namespace
 
          if (src->SourceLength() == 0)
          {
-            Throw(0, L"Missing IDE config file. Reverting to default");
+            Rococo::Throw(0, L"Missing IDE config file. Reverting to default");
          }
 
          cr_sex root = tree->Root();
 
          if (root.NumberOfElements() != 2)
          {
-            Throw(0, L"Expecting header element followed by IDE nodes");
+            Rococo::Throw(0, L"Expecting header element followed by IDE nodes");
          }
 
          LoadHeader(root[0], versionId, logFont);

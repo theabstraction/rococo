@@ -285,12 +285,12 @@ namespace
 		{
 			if (vertexCount > 0x00000000FFFFFFFF)
 			{
-				Throw(0, L"BuildMesh failed. Vertex count was too high");
+            Rococo::Throw(0, L"BuildMesh failed. Vertex count was too high");
 			}
 
 			if ((vertexCount % 3) != 0)
 			{
-				Throw(0, L"Vertex count must be divisible by 3 - 3 vertices per triangle");
+            Rococo::Throw(0, L"Vertex count must be divisible by 3 - 3 vertices per triangle");
 			}
 
          float boundingRadiusSq = 0;
@@ -320,7 +320,7 @@ namespace
 
 				if (a.position == b.position || a.position == c.position || b.position == c.position)
 				{
-					Throw(0, L"Degenerate triangle at vertex %I64u in C++ built mesh", i);
+               Rococo::Throw(0, L"Degenerate triangle at vertex %I64u in C++ built mesh", i);
 				}
 			}
 
@@ -355,7 +355,7 @@ namespace
       virtual Metres GetNormalBoundingRadius(ID_MESH editorId)
       {
          auto& mesh = meshes.find(editorId);
-         if (mesh == meshes.end()) Throw(0, L"Bad editorId in call to meshes.GetNormalBoundingRadius(...)");
+         if (mesh == meshes.end()) Rococo::Throw(0, L"Bad editorId in call to meshes.GetNormalBoundingRadius(...)");
          return mesh->second.boundingRadius;
       }
 
@@ -400,7 +400,7 @@ namespace
 			}
 			else
 			{
-				Throw(0, L"CreateReflection failed. No mesh found with id %u (0x%x)0", sourceId, sourceId);
+            Rococo::Throw(0, L"CreateReflection failed. No mesh found with id %u (0x%x)0", sourceId, sourceId);
 			}
 		}
 
@@ -427,7 +427,7 @@ namespace
 					switch (id)
 					{
 					case CMD_ID_EXIT:
-						Throw(ex.ErrorCode(), L"%s", ex.Message());
+                  Rococo::Throw(ex.ErrorCode(), L"%s", ex.Message());
 						break;
 					case CMD_ID_RETRY:
 						break;
@@ -449,7 +449,7 @@ namespace
 			{
 				Vec2i p = pex.Start();
             Vec2i q = pex.End();
-				Throw(pex.ErrorCode(), L"Error parsering %s\n%s: %s\n(%d,%d) to (%d,%d)\n%s", resourcePath, pex.Name(), pex.Message(), p.x, p.y, q.x, q.y, pex.Specimen());
+            Rococo::Throw(pex.ErrorCode(), L"Error parsering %s\n%s: %s\n(%d,%d) to (%d,%d)\n%s", resourcePath, pex.Name(), pex.Message(), p.x, p.y, q.x, q.y, pex.Specimen());
 			}
 		}
 

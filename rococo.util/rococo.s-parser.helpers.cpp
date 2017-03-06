@@ -1150,7 +1150,7 @@ namespace Rococo
 		case EXECUTERESULT_TERMINATED:
 			break;
 		default:
-			Throw(0, L"Unexpected EXECUTERESULT %d", result);
+         Rococo::Throw(0, L"Unexpected EXECUTERESULT %d", result);
 			break;
 		}
 	}
