@@ -67,6 +67,16 @@ namespace Sexy { namespace Compiler
 		FunctionPrototype(csexstr _name, bool _isMethod): Name(_name), IsMethod(_isMethod) {}
 	};
 
+   struct ProgramInitParameters
+   {
+      size_t MaxProgramBytes;
+      csexstr NativeSourcePath;
+
+      enum { ONE_KILOBYTE = 1024 };
+      ProgramInitParameters() : MaxProgramBytes(1024 * ONE_KILOBYTE), NativeSourcePath(nullptr) {}
+      ProgramInitParameters(size_t _maxProgBytes, csexstr _nativeSourcePath = nullptr) : MaxProgramBytes(_maxProgBytes), NativeSourcePath(_nativeSourcePath) {}
+   };
+
 	class NameString
 	{
 	private:

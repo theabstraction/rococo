@@ -121,11 +121,11 @@ namespace
 
 		if (inputCount < nExtraElements)
 		{
-			Throw(s, "Too many input arguments supplied to the function");
+			Throw(s, SEXTEXT("Too many input arguments supplied to the function"));
 		}
 		else if (inputCount >nExtraElements)
 		{
-			Throw(s, "Too few input arguments supplied to the function");
+			Throw(s, SEXTEXT("Too few input arguments supplied to the function"));
 		}
 	}
 

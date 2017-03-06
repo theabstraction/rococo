@@ -1809,7 +1809,7 @@ namespace
 
 		if (!AreEqual(mapToken.String(), SEXTEXT("->")))
 		{
-			Throw(s, "Expecting syntax: (cast <from_variable> -> <to_type> <to_variable> )");
+			Throw(s, SEXTEXT("Expecting syntax: (cast <from_variable> -> <to_type> <to_variable> )"));
 		}
 
 		AssertQualifiedIdentifier(toTypeExpr);
@@ -1819,7 +1819,7 @@ namespace
 		IStructure* toType = MatchStructure(toTypeExpr, ce.Builder.Module());
 		if (toType == NULL)
 		{
-			Throw(toTypeExpr, "Unknown target type for cast");
+			Throw(toTypeExpr, SEXTEXT("Unknown target type for cast"));
 		}
 
 		if (IsNullType(*toType))

@@ -34,139 +34,59 @@
 // bennyhill.cpp : Defines the entry point for the console application.
 #include "bennyhill.stdafx.h"
 
-#include "sexy.types.h"
-#include "sexy.strings.h"
-
 #include <stdarg.h>
-
 #include <unordered_map>
 
-#include <sexy.stdstrings.h>
-
-#include "sexy.s-parser.h"
 #include "sexy.lib.s-parser.h"
-
 #include "sexy.lib.util.h"
-#include "bennyhill.h"
 
 namespace Sexy
 {
-	bool AreEqual(csexstr s, const sexstring& t)
-	{
-		return AreEqual(s, t->Buffer);
-	}
-}
-
-namespace
-{
-   using namespace Sexy;
-   void GetFQCppStructName(SEXCHAR* compressedStructName, SEXCHAR* cppStructName, size_t capacity, csexstr fqStructName);
-
-
-   struct TypeDef
+   void ConvertAndAppendCppType(FileAppender& appender, csexstr cppType)
    {
-      Sexy::stdstring sexyType;
-      Sexy::stdstring cppType;
-   };
+      NamespaceSplitter splitter(cppType);
 
-   typedef std::unordered_map<Sexy::stdstring, TypeDef> TTypeMap;
+      csexstr nsRoot, tail;
+      if (splitter.SplitHead(nsRoot, tail))
+      {
+         appender.Append(SEXTEXT("%s::"), nsRoot);
+         return ConvertAndAppendCppType(appender, tail);
+      }
+      else
+      {
+         appender.Append(SEXTEXT("%s"), cppType);
+      }
+   }
 
-
-   class CppType
+   void AppendCppType(FileAppender& appender, cr_sex field, csexstr sxhfieldtype, const ParseContext& pc)
    {
-   private:
-      enum { MAX_TOKEN_LEN = 256 };
-      SEXCHAR bennyHillDef[MAX_TOKEN_LEN];
-      SEXCHAR compressedName[MAX_TOKEN_LEN];
-      SEXCHAR fqName[MAX_TOKEN_LEN];
-
-   public:
-      CppType()
+      csexstr cpptypeDef = NULL;
+      auto i = pc.primitives.find(sxhfieldtype);
+      if (i != pc.primitives.end()) cpptypeDef = i->second.cppType.c_str();
+      else
       {
-         bennyHillDef[0] = 0;
-         compressedName[0] = 0;
-         fqName[0] = 0;
+         auto j = pc.structs.find(sxhfieldtype);
+         if (j != pc.structs.end()) cpptypeDef = j->second.cppType.c_str();
+         else
+         {
+            auto k = pc.interfaces.find(sxhfieldtype);
+            if (k != pc.interfaces.end())
+            {
+               cpptypeDef = k->second->ic.asCppInterface.FQName();
+            }
+         }
       }
 
-      void Set(csexstr bennyHillDef)
-      {
-         CopyString(this->bennyHillDef, MAX_TOKEN_LEN, bennyHillDef);
-         GetFQCppStructName(compressedName, fqName, 256, bennyHillDef);
-      }
+      if (cpptypeDef == NULL) Throw(field, SEXTEXT("Cannot resolve the type. Neither a known struct or primitive"));
 
-      csexstr CompressedName() const
-      {
-         return compressedName;
-      }
+      ConvertAndAppendCppType(appender, cpptypeDef);
+   }
 
-      csexstr FQName() const
-      {
-         return fqName;
-      }
-
-      csexstr SexyName() const
-      {
-         return bennyHillDef;
-      }
-   };
-
-   typedef std::vector<const Sexy::Sex::ISExpression*> TExpressions;
-
-   struct InterfaceContext
+   bool AreEqual(csexstr s, const sexstring& t)
    {
-      enum { MAX_TOKEN_LEN = 256 };
-      CppType asCppInterface;
-      SEXCHAR asSexyInterface[MAX_TOKEN_LEN];
-      SEXCHAR appendSexyFile[_MAX_PATH];
-      SEXCHAR appendCppHeaderFile[_MAX_PATH];
-      SEXCHAR appendCppImplFile[_MAX_PATH];
+      return AreEqual(s, t->Buffer);
+   }
 
-      SEXCHAR inheritanceString[128];
-
-      bool isSingleton; // If true then the context comes from the native registration method, else it comes from the factory.
-      CppType nceContext;
-      bool hasDestructor;
-      TExpressions factories;
-
-      InterfaceContext()
-      {
-         asSexyInterface[0] = 0;
-         appendSexyFile[0] = 0;
-         appendCppHeaderFile[0] = 0;
-         appendCppImplFile[0] = 0;
-         hasDestructor = false;
-         isSingleton = false;
-      }
-   };
-
-   struct InterfaceDef
-   {
-      InterfaceContext ic;
-      const Sexy::Sex::ISExpression* sdef;
-      const Sexy::Sex::ISExpression* methods;
-   };
-
-   struct ParseContext
-   {
-      Sexy::SEXCHAR scriptInput[_MAX_PATH];
-      Sexy::SEXCHAR projectRoot[_MAX_PATH];
-      Sexy::SEXCHAR scriptName[_MAX_PATH];
-      Sexy::SEXCHAR scriptInputSansExtension[_MAX_PATH];
-      Sexy::SEXCHAR cppRootDirectory[_MAX_PATH];
-      Sexy::SEXCHAR cppTypesFilename[_MAX_PATH];
-      Sexy::SEXCHAR sexyTypesFilename[_MAX_PATH];
-      Sexy::SEXCHAR cppException[128];
-
-      TTypeMap primitives;
-      TTypeMap structs;
-      std::unordered_map<Sexy::stdstring, InterfaceDef*> interfaces;
-   };
-}
-
-#include "bennyhill.sex.inl"
-
-namespace
-{
 	Sexy::csexstr StringFrom(Sexy::Sex::cr_sex s)
 	{
 		if (!IsAtomic(s) && !IsStringLiteral(s)) Throw(s, SEXTEXT("Expecting atomic or string literal"));
@@ -178,9 +98,6 @@ namespace
 		if (elementIndex >= command.NumberOfElements()) Throw(command, SEXTEXT("Insufficient elements in expression"));
 		return StringFrom(command.GetElement(elementIndex));
 	}
-
-	void AppendCppType(FileAppender& appender, cr_sex field, csexstr fieldtype, const ParseContext& pc);
-
 
 	void GetFQCppStructName(SEXCHAR* compressedStructName, SEXCHAR* cppStructName, size_t capacity, csexstr fqStructName)
 	{
@@ -221,27 +138,18 @@ namespace
 		*p = 0;
 		*q = 0;
 	}
-}
 
-struct EnumContext
-{
-	enum { MAX_TOKEN_LEN = 256 };
-	CppType underlyingType;
-	CppType asCppEnum;
-	SEXCHAR asSexyEnum[MAX_TOKEN_LEN];
-	SEXCHAR appendSexyFile[_MAX_PATH];
-	SEXCHAR appendCppHeaderFile[_MAX_PATH];
-	SEXCHAR appendCppImplFile[_MAX_PATH];
-	std::vector<std::pair<stdstring, int64>> values;
+   void CopyCharToSEXCHAR(SEXCHAR* dest, const char* src, size_t capacity)
+   {
+      for (size_t i = 0; i < capacity; i++)
+      {
+         dest[i] = src[i];
+         dest[i] &= 0x00FF;
+      }
 
-	EnumContext()
-	{
-		asSexyEnum[0] = 0;
-		appendSexyFile[0] = 0;
-		appendCppHeaderFile[0] = 0;
-		appendCppImplFile[0] = 0;
-	}
-};
+      dest[capacity - 1] = 0;
+   }
+} // Sexy
 
 #include "bennyhill.validators.inl"
 #include "bennyhill.appender.sexy.inl"
@@ -250,40 +158,6 @@ struct EnumContext
 
 using namespace Sexy;
 using namespace Sexy::Sex;
-
-void CopyCharToSEXCHAR(SEXCHAR* dest, const char* src, size_t capacity)
-{
-	for(size_t i = 0; i < capacity; i++)
-	{
-		dest[i] = src[i];
-		dest[i] &= 0x00FF;
-	}
-
-	dest[capacity-1] = 0;
-}
-
-std::unordered_map<std::wstring, int> appendOnceMap;
-
-void AppendHelpers(FileAppender& appender)
-{
-
-}
-
-void AppendOnceOnly(FileAppender& appender, csexstr filename)
-{
-   if (appendOnceMap.find(filename) == appendOnceMap.end())
-   {
-      appendOnceMap[filename] = 1;
-      AppendHelpers(appender);
-   }
-}
-
-void DeleteFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods, cr_sex interfaceDef)
-{
-   FileDelete(ic.appendSexyFile);
-   FileDelete(ic.appendCppHeaderFile);
-   FileDelete(ic.appendCppImplFile);
-}
 
 void WriteInterfaceDeclaration(FileAppender& writer, csexstr qualifiedName, int depth)
 {
@@ -318,7 +192,6 @@ void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s,
 	DeclareCppInterface(cppFileAppender, ic, interfaceDef, methods, pc);
 
 	FileAppender cppFileImplAppender(ic.appendCppImplFile); 
-   AppendOnceOnly(cppFileImplAppender, ic.appendCppImplFile);
 	ImplementNativeFunctions(cppFileImplAppender, ic, methods, pc);
 }
 
@@ -520,8 +393,6 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 
 	SEXCHAR sexyFile[_MAX_PATH];
 	StringPrint(sexyFile, _MAX_PATH, SEXTEXT("%s%s.inl"), pc.cppRootDirectory, filePrefix->Buffer);
-
-	FileDelete(sexyFile);
 
 	FileAppender sexyAppender(sexyFile);
 
@@ -969,12 +840,6 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
    for (auto i : pc.interfaces)
    {
       auto& def = *i.second;
-      DeleteFiles(pc, def.ic, *def.sdef, def.methods, *def.sdef);
-   }
-
-   for (auto i : pc.interfaces)
-   {
-      auto& def = *i.second;
       GenerateFiles(pc, def.ic, *def.sdef, def.methods, *def.sdef);
    }
 
@@ -1065,6 +930,16 @@ int main(int argc, char* argv[])
 	int64 touchModifiedAt = GetLastModifiedDate(touchFile);
 	int64 scriptModifiedAt = GetLastModifiedDate(scriptInput);
 
+   if (touchModifiedAt == 0 && strcmp(touchFile, "null") != 0)
+   {
+      printf("!!! Warning: touchfile does not appear to exist !!! \n");
+   }
+
+   if (scriptModifiedAt == 0)
+   {
+      printf("!!! Warning: scriptInput does not appear to exist !!!\n");
+   }
+
 	if (scriptModifiedAt < touchModifiedAt)
 	{
 		printf("%s was last updated before %s\n", scriptInput, touchFile);
@@ -1084,11 +959,13 @@ int main(int argc, char* argv[])
 	}
 		
 	CSParserProxy spp;
-	
+   Auto<ISourceCode> src;
+   Auto<ISParserTree> tree;
+
 	try
 	{
-      Auto<ISourceCode> src = spp->LoadSource(pc.scriptInput, Vec2i{ 1,1 });
-		Auto<ISParserTree> tree = spp->CreateTree(src());
+      src = spp->LoadSource(pc.scriptInput, Vec2i{ 1,1 });
+		tree = spp->CreateTree(src());
 
 		if (tree->Root().NumberOfElements() == 0)
 		{

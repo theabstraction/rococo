@@ -38,6 +38,5 @@
 
 #pragma once
 
-#include <rococo.types.h>
-#include <sexy.types.h>
+#include "bennyhill.h"
 

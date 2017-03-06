@@ -31,18 +31,154 @@
 	principal credit screen and its principal readme file.
 */
 
+using namespace Sexy::Variants;
+
 namespace Sexy
 {
    namespace Variants
    {
-      bool Compare(const VariantValue& a, const VariantValue& b, VARTYPE type, CONDITION op, cr_sex src);
+      bool IsAGreaterThanB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
+      {
+         switch (type)
+         {
+         case VARTYPE_Derivative:
+            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'greater than' operator defined"));
+         case VARTYPE_Int32:
+            return a.int32Value > b.int32Value;
+         case VARTYPE_Int64:
+            return a.int64Value > b.int64Value;
+         case VARTYPE_Float32:
+            return a.floatValue > b.floatValue;
+         case VARTYPE_Float64:
+            return a.doubleValue > b.doubleValue;
+         default:
+            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
+            return false;
+         }
+      }
+
+      bool IsALessThanB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
+      {
+         switch (type)
+         {
+         case VARTYPE_Derivative:
+            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'less than' operator defined"));
+         case VARTYPE_Int32:
+            return a.int32Value < b.int32Value;
+         case VARTYPE_Int64:
+            return a.int64Value < b.int64Value;
+         case VARTYPE_Float32:
+            return a.floatValue < b.floatValue;
+         case VARTYPE_Float64:
+            return a.doubleValue < b.doubleValue;
+         default:
+            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
+            return false;
+         }
+      }
+
+      bool IsAGreaterThanOrEqualToB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
+      {
+         switch (type)
+         {
+         case VARTYPE_Derivative:
+            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'greater than or equal to' operator defined"));
+         case VARTYPE_Int32:
+            return a.int32Value >= b.int32Value;
+         case VARTYPE_Int64:
+            return a.int64Value >= b.int64Value;
+         case VARTYPE_Float32:
+            return a.floatValue >= b.floatValue;
+         case VARTYPE_Float64:
+            return a.doubleValue >= b.doubleValue;
+         default:
+            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
+            return false;
+         }
+      }
+
+      bool IsALessThanOrEqualToB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
+      {
+         switch (type)
+         {
+         case VARTYPE_Derivative:
+            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'less than or equal to' operator defined"));
+         case VARTYPE_Int32:
+            return a.int32Value <= b.int32Value;
+         case VARTYPE_Int64:
+            return a.int64Value <= b.int64Value;
+         case VARTYPE_Float32:
+            return a.floatValue <= b.floatValue;
+         case VARTYPE_Float64:
+            return a.doubleValue <= b.doubleValue;
+         default:
+            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
+            return false;
+         }
+      }
+
+      bool IsANotEqualToB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
+      {
+         switch (type)
+         {
+         case VARTYPE_Derivative:
+            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'not equal to' operator defined"));
+         case VARTYPE_Int32:
+            return a.int32Value != b.int32Value;
+         case VARTYPE_Int64:
+            return a.int64Value != b.int64Value;
+         case VARTYPE_Float32:
+            return a.floatValue != b.floatValue;
+         case VARTYPE_Float64:
+            return a.doubleValue != b.doubleValue;
+         default:
+            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
+            return false;
+         }
+      }
+
+      bool IsAEqualToB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
+      {
+         switch (type)
+         {
+         case VARTYPE_Derivative:
+            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'not equal to' operator defined"));
+         case VARTYPE_Int32:
+            return a.int32Value == b.int32Value;
+         case VARTYPE_Int64:
+            return a.int64Value == b.int64Value;
+         case VARTYPE_Float32:
+            return a.floatValue == b.floatValue;
+         case VARTYPE_Float64:
+            return a.doubleValue == b.doubleValue;
+         default:
+            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
+            return false;
+         }
+      }
    }
 }
 
-using namespace Sexy::Variants;
-
 namespace
 {
+   using namespace Sexy::Variants;
+
+   bool Compare(const VariantValue& a, const VariantValue& b, VARTYPE type, CONDITION op, cr_sex src)
+   {
+      switch (op)
+      {
+      case CONDITION_IF_GREATER_THAN:			return IsAGreaterThanB(a, b, type, src);
+      case CONDITION_IF_LESS_THAN:			   return IsALessThanB(a, b, type, src);
+      case CONDITION_IF_GREATER_OR_EQUAL:		return IsAGreaterThanOrEqualToB(a, b, type, src);
+      case CONDITION_IF_LESS_OR_EQUAL:		   return IsALessThanOrEqualToB(a, b, type, src);
+      case CONDITION_IF_NOT_EQUAL:			   return IsANotEqualToB(a, b, type, src);
+      case CONDITION_IF_EQUAL:				   return IsAEqualToB(a, b, type, src);
+      default:
+         Throw(src, SEXTEXT("Expecting binary boolean operator"));
+         return false;
+      }
+   }
+
 	void CompileBinaryCompareLiteralVsLiteral(CCompileEnvironment& ce, cr_sex parent, csexstr leftString, VARTYPE lType, CONDITION op, csexstr rightString, VARTYPE rType)
 	{
 		VariantValue lValue;
@@ -67,7 +203,7 @@ namespace
 		{
 			if (Variants::TryRecast(newRValue, rValue, rType, bestCastType))
 			{
-				bool match = Sexy::Variants::Compare(newLValue, newRValue, bestCastType, op, parent);
+				bool match = Compare(newLValue, newRValue, bestCastType, op, parent);
 				VariantValue val;
 				val.int32Value = match ? 1 : 0;
 				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, val, BITCOUNT_32);
@@ -78,7 +214,28 @@ namespace
 		Throw(parent, SEXTEXT("Not implemented"));
 	}
 
-	void CompileBinaryBooleanLiteralVsLiteral(CCompileEnvironment& ce, cr_sex parent, int32 leftValue, Variants::LOGICAL_OP op, int32 rightValue)
+   enum LOGICAL_OP
+   {
+      LOGICAL_OP_AND,
+      LOGICAL_OP_OR,
+      LOGICAL_OP_XOR
+   };
+
+   bool Compare(int a, int b, LOGICAL_OP op, cr_sex src)
+   {
+      switch (op)
+      {
+      case LOGICAL_OP_AND:		return a != 0 && b != 0;
+      case LOGICAL_OP_OR:		return a != 0 || b != 0;
+      case LOGICAL_OP_XOR:		return (a != 0 && b == 0) || (a == 0 && b != 0);
+
+      default:
+         Throw(src, SEXTEXT("Expecting binary boolean operator"));
+         return false;
+      }
+   }
+
+	void CompileBinaryBooleanLiteralVsLiteral(CCompileEnvironment& ce, cr_sex parent, int32 leftValue, LOGICAL_OP op, int32 rightValue)
 	{
 		bool match = Compare(leftValue, rightValue, op, parent);
 		VariantValue val;
@@ -250,7 +407,7 @@ namespace
 		}
 	}
 
-   void AddBinaryBoolean(cr_sex src, VM::IAssembler& assembler, int booleanTargetId, int sourceA, int sourceB, Variants::LOGICAL_OP op)
+   void AddBinaryBoolean(cr_sex src, VM::IAssembler& assembler, int booleanTargetId, int sourceA, int sourceB, LOGICAL_OP op)
    {
       if (booleanTargetId != sourceA - 1)
       {
@@ -789,6 +946,17 @@ namespace
 
       Throw(opExpr, SEXTEXT("Cannot interpret as a comparison operator"));
       return CONDITION_IF_EQUAL;
+   }
+
+   LOGICAL_OP GetBinaryLogicalOp(cr_sex opExpr)
+   {
+      sexstring op = opExpr.String();
+      if (AreEqual(op, SEXTEXT("and"))) return LOGICAL_OP_AND;
+      if (AreEqual(op, SEXTEXT("or")))	return LOGICAL_OP_OR;
+      if (AreEqual(op, SEXTEXT("xor"))) return LOGICAL_OP_XOR;
+
+      Throw(opExpr, SEXTEXT("Cannot interpret as a binary logical operation"));
+      return LOGICAL_OP_AND;
    }
 
 	bool TryCompileBooleanExpression(CCompileEnvironment& ce, cr_sex s, bool expected, bool& negate)

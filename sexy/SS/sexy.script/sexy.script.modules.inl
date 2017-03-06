@@ -1768,11 +1768,11 @@ namespace
 					}
 					catch (IException& e)
 					{
-						Throw(*(j->E), e.Message());
+						Sexy::Sex::Throw(*(j->E), e.Message());
 					}
 					catch (std::exception& e)
 					{
-						Throw(*(j->E), e.what());
+                  Sexy::Sex::Throw(*(j->E), SEXTEXT("std::exception thrown: %S"), e.what());
 					}				
 				}
 			}
@@ -1795,11 +1795,11 @@ namespace
 				{
 					sexstringstream streamer;
 					streamer << ex.Source() << SEXTEXT(": ") << ex.Message();
-					Throw(root, streamer);
+               Sexy::Sex::Throw(root, streamer);
 				}			
-				catch (std::exception& )
+				catch (std::exception& e)
 				{
-					Throw(root, SEXTEXT("std::exception thrown" /* TODO: e.what() */));
+               Sexy::Sex::Throw(root, SEXTEXT("std::exception thrown: %S"), e.what());
 				}	
 			}
 		}

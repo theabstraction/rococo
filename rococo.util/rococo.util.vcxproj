@@ -95,6 +95,9 @@
     <ClCompile Include="rococo.strings.cpp" />
     <ClCompile Include="ui.widgets.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\rococo.ringbuffer.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

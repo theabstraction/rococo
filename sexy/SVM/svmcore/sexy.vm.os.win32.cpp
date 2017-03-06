@@ -115,20 +115,6 @@ namespace Sexy { namespace VM { namespace OS
 		VirtualFree(data, nBytes, MEM_RELEASE);
 	}
 
-// #define BREAK_ON_THROW
-
-#ifdef BREAK_ON_THROW
-	void BreakOnThrow()
-	{
-		if (IsDebuggerPresent())
-		{
-			__debugbreak();
-		}
-	}
-#else
-		void BreakOnThrow() {}
-#endif
-
 	bool RouteSysMessages()
 	{
 		MsgWaitForMultipleObjectsEx(0, NULL, 10, QS_ALLINPUT | QS_ALLPOSTMESSAGE, MWMO_ALERTABLE | MWMO_INPUTAVAILABLE);

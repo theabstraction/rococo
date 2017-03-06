@@ -542,7 +542,7 @@ namespace
 
 		void TerminateByIllegal(int exitCode)
 		{
-			VM::OS::BreakOnThrow();
+			Sexy::OS::BreakOnThrow();
 			
 			this->exitCode = exitCode;
 			if (throwToQuit) throw IllegalException();

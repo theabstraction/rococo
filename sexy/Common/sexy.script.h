@@ -34,17 +34,9 @@
 #ifndef SEXY_SCRIPT_H
 #define SEXY_SCRIPT_H
 
-#ifndef SEXY_H
-# error include "sexy.types.h" before including this file
-#endif
-
-#ifndef sexy_compiler_public_h
-# error include "sexy.compiler.public.h" before including this file
-#endif
-
-#ifndef SEXY_DEBUG_H
-# error include "sexy.debug.types.h" before including this file
-#endif
+#include "sexy.types.h" 
+#include "sexy.compiler.public.h" 
+#include "sexy.debug.types.h" 
 
 #ifndef SCRIPT_IS_LIBRARY
 # define SCRIPT_IS_LIBRARY
@@ -164,15 +156,6 @@ namespace Sexy { namespace Script
 		int offset = e.code.GetOffset(index + e.function.NumberOfOutputs());
 		ReadInput(value, e.cpu.SF(), offset);
 	}
-
-	struct ScriptException: public Rococo::IException
-	{
-		wchar_t message[256];
-		int errNumber;
-
-		virtual int ErrorCode() const { return errNumber; }
-		virtual const wchar_t* Message() const { return message; } 
-	};
 
 #pragma pack(push,1)
 	struct CClassDesc
@@ -344,18 +327,6 @@ namespace Sexy {
    }
 }
 
-
-namespace Sexy { namespace Sex
-{
-	SCRIPTEXPORT_API void AssertCompound(cr_sex e);
-	SCRIPTEXPORT_API void AssertAtomic(cr_sex e);
-	SCRIPTEXPORT_API void AssertStringLiteral(cr_sex e);
-	SCRIPTEXPORT_API void AssertNotTooManyElements(cr_sex e, int32 maxElements);
-	SCRIPTEXPORT_API void AssertNotTooFewElements(cr_sex e, int32 minElements);
-	SCRIPTEXPORT_API cr_sex GetAtomicArg(cr_sex e, int argIndex);
-	SCRIPTEXPORT_API void Throw(cr_sex e, csexstr message);
-}}
-
 namespace Sexy {
    namespace Variants
    {
@@ -386,7 +357,7 @@ namespace Sexy {
 
 #ifndef THIS_IS_THE_SEXY_CORE_LIBRARY
 
-extern "C" SCRIPTEXPORT_API Sexy::Script::IPublicScriptSystem* CreateScriptV_1_2_0_0(const Sexy::ProgramInitParameters& pip, Sexy::ILog& logger);
+extern "C" SCRIPTEXPORT_API Sexy::Script::IPublicScriptSystem* CreateScriptV_1_2_0_0(const Sexy::Compiler::ProgramInitParameters& pip, Sexy::ILog& logger);
 
 namespace Sexy { namespace Script
 {
@@ -398,7 +369,7 @@ namespace Sexy { namespace Script
 	public:
 		IPublicScriptSystem& operator()() { return *instance; }
 
-		CScriptSystemProxy(const ProgramInitParameters& pip, ILog& logger)
+		CScriptSystemProxy(const Sexy::Compiler::ProgramInitParameters& pip, ILog& logger)
 		{
 			instance = CreateScriptV_1_2_0_0(pip, logger);
 		}

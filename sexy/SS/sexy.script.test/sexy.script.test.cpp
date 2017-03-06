@@ -314,16 +314,18 @@ namespace
 			PrintParseException(e);
 			exit(-1);
 		}
-		catch (ScriptException& scrEx)
-		{
-			WriteToStandardOutput(SEXTEXT("ScriptException: %s\r\n"), scrEx.Message());
-			exit(-1);
-		}
 		catch (IException& ose)
 		{
-			SEXCHAR osMessage[256];
-			FormatSysMessage(osMessage, 256, ose.ErrorCode());
-			WriteToStandardOutput(SEXTEXT("OS Error. %s\r\n%s\r\n"), ose.Message(), osMessage);
+         if (ose.ErrorCode() != 0)
+         {
+            SEXCHAR osMessage[256];
+            FormatSysMessage(osMessage, 256, ose.ErrorCode());
+            WriteToStandardOutput(SEXTEXT("Error code%d~%x,%s\r\n%s\r\n"), ose.ErrorCode(), ose.ErrorCode(), ose.Message(), osMessage);
+         }
+         else
+         {
+            WriteToStandardOutput(SEXTEXT("%s"), ose.Message());
+         }
 			exit(-1);
 		}
 		catch(std::exception& stdex)
@@ -2278,7 +2280,7 @@ namespace
 			ss.AddNativeCall(ns, ANON::CpuHz, NULL, SEXTEXT("CpuHz -> (Int64 hz)"));
 			ss.AddNativeCall(ns, ANON::CpuTime, NULL, SEXTEXT("CpuTime -> (Int64 count)"));
 		}
-		catch (ScriptException& ex)
+		catch (IException& ex)
 		{
 			s_logger.Write(ex.Message());
 			validate(false);
@@ -2326,7 +2328,7 @@ namespace
 		{
 			ss.AddNativeCall(ns, ANON::Square, NULL, SEXTEXT("Square (Int32 x)-> (Int32 y)"));
 		}
-		catch (ScriptException& ex)
+		catch (IException& ex)
 		{
 			s_logger.Write(ex.Message());
 			validate(false);
@@ -2374,7 +2376,7 @@ namespace
 		{
 			ss.AddNativeCall(ns, ANON::George, NULL, SEXTEXT("George (Int32 x)(Int32 y)-> (Int32 pxy)(Int32 dxy)"));
 		}
-		catch (ScriptException& ex)
+		catch (IException& ex)
 		{
 			s_logger.Write(ex.Message());
 			validate(false);
@@ -2697,8 +2699,8 @@ namespace
 	{
 		csexstr srcCode =
 			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(namespace TX3456789012345678901234567890123456789012345678901234567890123)") // 63 chars is ok
-			SEXTEXT("(namespace T234567890123456789012345678901234567890123456789012345678901234)") // 64 chars is not
+			SEXTEXT("(namespace T134567890123456789012345678901234567890123456789012345678901234TX3456789012345678901234567890123456789012345678901234567890123)") // 127 chars is ok
+			SEXTEXT("(namespace T234567890123456789012345678901234567890123456789012345678901234T234567890123456789012345678901234567890123456789012345678901234)") // 128 chars is not
 			;
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBigNamespaceError"));
@@ -2719,8 +2721,8 @@ namespace
 	{
 		csexstr srcCode =
 			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function TX34567890123456789012345678901 -> (Int32 x):)") // 31 chars is ok
-			SEXTEXT("(function T2345678901234567890123456789012 -> (Int32 x):)") // 32 chars is not
+			SEXTEXT("(function E2345678901234567890123456789012TX34567890123456789012345678901 -> (Int32 x):)") // 63 chars is ok
+			SEXTEXT("(function T2345678901234567890123456789012T2345678901234567890123456789012 -> (Int32 x):)") // 64 chars is not
 			;
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBigFunctionError"));
@@ -3004,7 +3006,7 @@ namespace
 		{
 			ss.AddNativeCall(nsSys, ANON::InvokeTest, NULL, SEXTEXT("InvokeTest ->"));
 		}
-		catch (ScriptException& ex)
+		catch (IException& ex)
 		{
 			s_logger.Write(ex.Message());
 			validate(false);
@@ -3055,7 +3057,7 @@ namespace
 		{
 			ss.AddNativeCall(nsSys, ANON::InvokeTest, NULL, SEXTEXT("InvokeTest ->"));
 		}
-		catch (ScriptException& ex)
+		catch (IException& ex)
 		{
 			s_logger.Write(ex.Message());
 			validate(false);

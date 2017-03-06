@@ -75,6 +75,8 @@ namespace Sexy
 	bool AreEqual(sexstring a, sexstring b);
 	bool operator < (const sexstring_key& a, const sexstring_key& b);
 
+   // This was written before later versions of C++ improved std::wstring as key for unodered_map
+   // TODO -> eliminate class
    class CStringKey
    {
       friend bool operator == (const CStringKey& a, const CStringKey& b);

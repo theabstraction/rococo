@@ -32,9 +32,6 @@
 */
 
 #include "sexy.script.stdafx.h"
-#include "sexy.types.h"
-#include "sexy.compiler.public.h"
-#include "sexy.debug.types.h"
 #include "sexy.script.h"
 #include "..\STC\stccore\Sexy.Compiler.h"
 #include "..\STC\stccore\sexy.compiler.helpers.h"
@@ -386,11 +383,6 @@ namespace
 
 namespace
 {
-	void Throw(ScriptException& ex)
-	{
-		throw ex;
-	}
-
 	void CopyStringToSexChar(SEXCHAR* output, size_t bufferCapacity, const char* input, size_t inputLength)
 	{
 		for(size_t i = 0; i < inputLength; ++i)
@@ -1061,10 +1053,7 @@ namespace
 			int nBytes = s.SizeOfStruct();
 			if (nBytes <= 0)
 			{
-				ScriptException ex;
-				ex.errNumber = -1;
-				CopyString(ex.message, 256, SEXTEXT("The structure size was not postive"), -1);
-				Throw(ex);
+            Sexy::Throw(0, SEXTEXT("The structure size was not postive"));
 			}
 
 			CClassHeader* instance = (CClassHeader*) new char[nBytes];
@@ -1094,10 +1083,7 @@ namespace
 			IStructure* expressStruct = reflectionModule.FindStructure(SEXTEXT("Expression"));
 			if (expressStruct == NULL) 
 			{
-				ScriptException ex;
-				ex.errNumber = -1;
-				CopyString(ex.message, 256, SEXTEXT("Cannot find 'Expression' in the reflection module"), -1);
-				Throw(ex);
+            Sexy::Throw(0, SEXTEXT("Cannot find 'Expression' in the reflection module"));
 			}
 
 			CClassExpression* express = (CClassExpression*) DynamicCreateClass(*expressStruct, 0);
@@ -1353,27 +1339,18 @@ namespace
 
 			if (callback == NULL)
 			{
-				ScriptException ex;
-				ex.errNumber = -1;
-				CopyString(ex.message, 256, SEXTEXT("ScriptSystem::AddNativeCall(...callback...): The [callback] pointer was NULL"), -1);
-				Throw(ex);
+            Sexy::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...callback...): The [callback] pointer was NULL"));
 			}
 			
 			if (archetype == NULL)
 			{
-				ScriptException ex;
-				ex.errNumber = -1;
-				CopyString(ex.message, 256, SEXTEXT("ScriptSystem::AddNativeCall(...archetype...): The [archetype] pointer was NULL"), -1);
-				Throw(ex);
+            Sexy::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...archetype...): The [archetype] pointer was NULL"));
 			}
 
 			size_t len = StringLength(archetype);
 			if (len > (MAX_ARCHETYPE_LEN-1))
 			{
-				ScriptException ex;
-				ex.errNumber = -1;
-				CopyString(ex.message, 256, SEXTEXT("ScriptSystem::AddNativeCall(...archetype...): The [archetype] string length exceed the maximum"), -1);
-				Throw(ex);
+            Sexy::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...archetype...): The [archetype] string length exceed the maximum"));
 			}
 
 			SEXCHAR sxArchetype[MAX_ARCHETYPE_LEN];

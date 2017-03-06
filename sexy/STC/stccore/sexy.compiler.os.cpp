@@ -39,25 +39,10 @@
 
 //#define BREAK_ON_THROW
 
-namespace
-{
-#ifdef BREAK_ON_THROW
-	void BreakOnThrow()
-	{
-		if (IsDebuggerPresent())
-		{
-			__debugbreak();
-		}
-	}
-#else
-	void BreakOnThrow() {}
-#endif
-}
-
 namespace Sexy { namespace Compiler {
 	void Throw(STCException& e)
 	{
-		BreakOnThrow();
+		OS::BreakOnThrow();
 		throw e;
 	}
 }}

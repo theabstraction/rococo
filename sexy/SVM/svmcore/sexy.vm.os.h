@@ -49,8 +49,6 @@ namespace Sexy { namespace VM { namespace OS
 	void* AllocAlignedMemory(size_t nBytes);
 	void FreeAlignedMemory(void* data, size_t nBytes);
 
-	void BreakOnThrow();
-
 	bool RouteSysMessages();
 }}} // SVM::VM::OS
 

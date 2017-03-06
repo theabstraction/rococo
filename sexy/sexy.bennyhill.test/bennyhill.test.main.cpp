@@ -207,14 +207,6 @@ namespace
 		throw ex;
 	}
 
-	void Throw(cr_sex e, csexstr message)
-	{
-		SEXCHAR specimen[64];
-		GetSpecimen(specimen, e);
-		ParseException ex(e.Start(), e.End(), e.Tree().Source().Name(), message, specimen, &e);
-		Throw(ex);
-	}
-
 	void ValidateEquivalentSExpression(cr_sex target, cr_sex source)
 	{
 		if (target.Type() != source.Type())

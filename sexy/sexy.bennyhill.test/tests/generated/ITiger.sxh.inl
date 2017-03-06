@@ -1,5 +1,5 @@
 namespace Sys { namespace Animals { 
-	bool TryParse(const fstring& s, AnimalType& value)
+	bool TryParse(const Rococo::fstring& s, AnimalType& value)
 	{
 		if (s == L"AnimalType_Cat"_fstring)
 		{
@@ -21,7 +21,7 @@ namespace Sys { namespace Animals {
 		return true;
 	}
 
-	bool TryShortParse(const fstring& s, AnimalType& value)
+	bool TryShortParse(const Rococo::fstring& s, AnimalType& value)
 	{
 		if (s == L"Cat"_fstring)
 		{

@@ -39,173 +39,54 @@
 #include <sexy.script.h>
 #include <sexy.vm.h>
 
+#include <stdarg.h>
+
 using namespace Sexy;
 using namespace Sexy::Sex;
 using namespace Sexy::Compiler;
 
 namespace  Sexy
-{
-   namespace Variants
+{ 
+   void Throw(int errCode, csexstr format, ...)
    {
-      bool IsAGreaterThanB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
+      struct SexyException : public IException
       {
-         switch (type)
-         {
-         case VARTYPE_Derivative:
-            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'greater than' operator defined"));
-         case VARTYPE_Int32:
-            return a.int32Value > b.int32Value;
-         case VARTYPE_Int64:
-            return a.int64Value > b.int64Value;
-         case VARTYPE_Float32:
-            return a.floatValue > b.floatValue;
-         case VARTYPE_Float64:
-            return a.doubleValue > b.doubleValue;
-         default:
-            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
-            return false;
-         }
+         SEXCHAR message[4096];
+         int32 exceptionNumber;
+
+         virtual const wchar_t* Message() const { return message; }
+         virtual int32 ErrorCode() const { return exceptionNumber; }
+      } ex;
+
+      va_list args;
+      va_start(args, format);
+      SafeVFormat(ex.message, _TRUNCATE, format, args);
+      ex.exceptionNumber = errCode;
+      throw ex;
+   }
+
+   namespace Sex
+   {
+     
+
+      void Throw(ParseException& ex)
+      {
+         OS::BreakOnThrow();
+         throw ex;
       }
 
-      bool IsALessThanB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
+      void Throw(cr_sex e, csexstr format, ...)
       {
-         switch (type)
-         {
-         case VARTYPE_Derivative:
-            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'less than' operator defined"));
-         case VARTYPE_Int32:
-            return a.int32Value < b.int32Value;
-         case VARTYPE_Int64:
-            return a.int64Value < b.int64Value;
-         case VARTYPE_Float32:
-            return a.floatValue < b.floatValue;
-         case VARTYPE_Float64:
-            return a.doubleValue < b.doubleValue;
-         default:
-            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
-            return false;
-         }
-      }
+         va_list args;
+         va_start(args, format);
 
-      bool IsAGreaterThanOrEqualToB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
-      {
-         switch (type)
-         {
-         case VARTYPE_Derivative:
-            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'greater than or equal to' operator defined"));
-         case VARTYPE_Int32:
-            return a.int32Value >= b.int32Value;
-         case VARTYPE_Int64:
-            return a.int64Value >= b.int64Value;
-         case VARTYPE_Float32:
-            return a.floatValue >= b.floatValue;
-         case VARTYPE_Float64:
-            return a.doubleValue >= b.doubleValue;
-         default:
-            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
-            return false;
-         }
-      }
+         wchar_t message[4096];
+         SafeVFormat(message, _TRUNCATE, format, args);
 
-      bool IsALessThanOrEqualToB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
-      {
-         switch (type)
-         {
-         case VARTYPE_Derivative:
-            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'less than or equal to' operator defined"));
-         case VARTYPE_Int32:
-            return a.int32Value <= b.int32Value;
-         case VARTYPE_Int64:
-            return a.int64Value <= b.int64Value;
-         case VARTYPE_Float32:
-            return a.floatValue <= b.floatValue;
-         case VARTYPE_Float64:
-            return a.doubleValue <= b.doubleValue;
-         default:
-            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
-            return false;
-         }
-      }
-
-      bool IsANotEqualToB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
-      {
-         switch (type)
-         {
-         case VARTYPE_Derivative:
-            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'not equal to' operator defined"));
-         case VARTYPE_Int32:
-            return a.int32Value != b.int32Value;
-         case VARTYPE_Int64:
-            return a.int64Value != b.int64Value;
-         case VARTYPE_Float32:
-            return a.floatValue != b.floatValue;
-         case VARTYPE_Float64:
-            return a.doubleValue != b.doubleValue;
-         default:
-            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
-            return false;
-         }
-      }
-
-      bool IsAEqualToB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
-      {
-         switch (type)
-         {
-         case VARTYPE_Derivative:
-            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'not equal to' operator defined"));
-         case VARTYPE_Int32:
-            return a.int32Value == b.int32Value;
-         case VARTYPE_Int64:
-            return a.int64Value == b.int64Value;
-         case VARTYPE_Float32:
-            return a.floatValue == b.floatValue;
-         case VARTYPE_Float64:
-            return a.doubleValue == b.doubleValue;
-         default:
-            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
-            return false;
-         }
-      }
-
-      bool Compare(const VariantValue& a, const VariantValue& b, VARTYPE type, CONDITION op, cr_sex src)
-      {
-         switch (op)
-         {
-         case CONDITION_IF_GREATER_THAN:			return IsAGreaterThanB(a, b, type, src);
-         case CONDITION_IF_LESS_THAN:			return IsALessThanB(a, b, type, src);
-         case CONDITION_IF_GREATER_OR_EQUAL:		return IsAGreaterThanOrEqualToB(a, b, type, src);
-         case CONDITION_IF_LESS_OR_EQUAL:		return IsALessThanOrEqualToB(a, b, type, src);
-         case CONDITION_IF_NOT_EQUAL:			return IsANotEqualToB(a, b, type, src);
-         case CONDITION_IF_EQUAL:				return IsAEqualToB(a, b, type, src);
-         default:
-            Throw(src, SEXTEXT("Expecting binary boolean operator"));
-            return false;
-         }
-      }
-
-      LOGICAL_OP GetBinaryLogicalOp(cr_sex opExpr)
-      {
-         sexstring op = opExpr.String();
-         if (AreEqual(op, SEXTEXT("and"))) return LOGICAL_OP_AND;
-         if (AreEqual(op, SEXTEXT("or")))	return LOGICAL_OP_OR;
-         if (AreEqual(op, SEXTEXT("xor"))) return LOGICAL_OP_XOR;
-
-         Throw(opExpr, SEXTEXT("Cannot interpret as a binary logical operation"));
-         return LOGICAL_OP_AND;
-      }
-
-      bool Compare(int a, int b, LOGICAL_OP op, cr_sex src)
-      {
-         switch (op)
-         {
-         case LOGICAL_OP_AND:		return a != 0 && b != 0;
-         case LOGICAL_OP_OR:		return a != 0 || b != 0;
-         case LOGICAL_OP_XOR:		return (a != 0 && b == 0) || (a == 0 && b != 0);
-
-         default:
-            Throw(src, SEXTEXT("Expecting binary boolean operator"));
-            return false;
-         }
+         SEXCHAR specimen[64];
+         GetSpecimen(specimen, e);
+         ParseException ex(e.Start(), e.End(), e.Tree().Source().Name(), message, specimen, &e);
+         Throw(ex);
       }
    }
 }

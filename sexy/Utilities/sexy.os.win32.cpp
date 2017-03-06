@@ -35,17 +35,20 @@ principal credit screen and its principal readme file.
 
 // #define BREAK_ON_THROW 1
 
-namespace OS
+namespace Sexy
 {
-#ifdef BREAK_ON_THROW
-	void BreakOnThrow()
-	{
-		if (IsDebuggerPresent())
-		{
-			__debugbreak();
-		}
-	}
-#else
-	void BreakOnThrow() {}
-#endif
+   namespace OS
+   {
+   #ifdef BREAK_ON_THROW
+	   void BreakOnThrow()
+	   {
+		   if (IsDebuggerPresent())
+		   {
+			   __debugbreak();
+		   }
+	   }
+   #else
+	   void BreakOnThrow() {}
+   #endif
+   }
 }

@@ -87,7 +87,7 @@ void PrintVersion()
 {
 	int versionMajor = 1;
 	int versionMinor = 0;
-	WriteToStandardOutput(SEXTEXT("Version: %d.%d\r\n"), Sexy::VERSION_MAJOR, Sexy::VERSION_MINOR);
+	WriteToStandardOutput(SEXTEXT("Version: 1.2.0.0\r\n"));
 }
 
 void PrintBanner()

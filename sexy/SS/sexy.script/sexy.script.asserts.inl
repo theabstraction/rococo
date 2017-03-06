@@ -34,20 +34,6 @@
 
 namespace Sexy { namespace Sex
 {
-	void Throw(ParseException& ex)
-	{
-		OS::BreakOnThrow();
-		throw ex;
-	}
-
-	SCRIPTEXPORT_API void Throw(cr_sex e, csexstr message)
-	{
-		SEXCHAR specimen[64];
-		GetSpecimen(specimen, e);
-		ParseException ex(e.Start(), e.End(), e.Tree().Source().Name(), message, specimen, &e);
-		Throw(ex);
-	}	
-
 	void Throw(cr_sex e, sexstringstream& streamer)
 	{
 		streamer << std::ends;
@@ -60,21 +46,6 @@ namespace Sexy { namespace Sex
 		streamer << SEXTEXT("Type mismatch: ") << GetFriendlyName(a) << SEXTEXT(" != ") << GetFriendlyName(b) << SEXTEXT(". ") << extra;
 		Throw(s, streamer);
 	}
-
-#ifdef SEXCHAR_IS_WIDE
-
-	void Throw(const ISExpression& e, const char* message)
-	{
-		SEXCHAR specimen[64];
-		GetSpecimen(specimen, e);
-		wchar_t unicodeMessage[256];
-		swprintf_s(unicodeMessage, 256, L"%S", message);
-		ParseException ex(e.Start(), e.End(), e.Tree().Source().Name(), unicodeMessage, specimen, &e);
-		OS::BreakOnThrow();
-		throw ex;
-	}
-
-#endif
 
 	csexstr ToString(EXPRESSION_TYPE type)
 	{
@@ -299,7 +270,7 @@ namespace Sexy { namespace Sex
 
 		const sexstring text = e.String();
 
-		enum { NAMESPACE_MAX_TOTAL_LENGTH = 63 };
+		enum { NAMESPACE_MAX_TOTAL_LENGTH = 127 };
 
 		if (text->Length > NAMESPACE_MAX_TOTAL_LENGTH)
 		{
@@ -341,7 +312,7 @@ namespace Sexy { namespace Sex
 
 		const sexstring text = e.String();
 
-		enum {FUNCTION_NAME_MAX_TOTAL_LENGTH = 31 };
+		enum {FUNCTION_NAME_MAX_TOTAL_LENGTH = 63 };
 
 		for(const SEXCHAR* c = text->Buffer; *c != 0; ++c)
 		{

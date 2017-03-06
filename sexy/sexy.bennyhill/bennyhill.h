@@ -3,10 +3,16 @@
 #include <rococo.types.h>
 #include <sexy.types.h>
 #include <stdio.h>
+#include <sexy.s-parser.h>
+#include "sexy.strings.h"
+#include <sexy.stdstrings.h>
+#include <unordered_map>
 
-namespace Rococo
+namespace Sexy
 {
-   using namespace Sexy;
+   using namespace Sex;
+
+   bool AreEqual(csexstr s, const sexstring& t);
 
    class FileAppender
    {
@@ -16,13 +22,137 @@ namespace Rococo
    public:
       FileAppender(csexstr _filename);
       ~FileAppender();
+
       void Append(csexstr format, ...);
       void Append(char c);
       void AppendSequence(int count, char c);
    };
 
-   void FileDelete(csexstr name);
    void TripDebugger();
    void WriteStandardErrorCode(int errorCode);
    int64 GetLastModifiedDate(const char* path);
+
+   void GetFQCppStructName(SEXCHAR* compressedStructName, SEXCHAR* cppStructName, size_t capacity, csexstr fqStructName);
+
+   struct TypeDef
+   {
+      Sexy::stdstring sexyType;
+      Sexy::stdstring cppType;
+   };
+
+   typedef std::unordered_map<Sexy::stdstring, TypeDef> TTypeMap;
+
+   class CppType
+   {
+   private:
+      enum { MAX_TOKEN_LEN = 256 };
+      SEXCHAR bennyHillDef[MAX_TOKEN_LEN];
+      SEXCHAR compressedName[MAX_TOKEN_LEN];
+      SEXCHAR fqName[MAX_TOKEN_LEN];
+
+   public:
+      CppType()
+      {
+         bennyHillDef[0] = 0;
+         compressedName[0] = 0;
+         fqName[0] = 0;
+      }
+
+      void Set(csexstr bennyHillDef)
+      {
+         CopyString(this->bennyHillDef, MAX_TOKEN_LEN, bennyHillDef);
+         GetFQCppStructName(compressedName, fqName, 256, bennyHillDef);
+      }
+
+      csexstr CompressedName() const
+      {
+         return compressedName;
+      }
+
+      csexstr FQName() const
+      {
+         return fqName;
+      }
+
+      csexstr SexyName() const
+      {
+         return bennyHillDef;
+      }
+   };
+
+   typedef std::vector<const Sexy::Sex::ISExpression*> TExpressions;
+
+   struct InterfaceContext
+   {
+      enum { MAX_TOKEN_LEN = 256 };
+      CppType asCppInterface;
+      SEXCHAR asSexyInterface[MAX_TOKEN_LEN];
+      SEXCHAR appendSexyFile[_MAX_PATH];
+      SEXCHAR appendCppHeaderFile[_MAX_PATH];
+      SEXCHAR appendCppImplFile[_MAX_PATH];
+
+      SEXCHAR inheritanceString[128];
+
+      bool isSingleton; // If true then the context comes from the native registration method, else it comes from the factory.
+      CppType nceContext;
+      bool hasDestructor;
+      TExpressions factories;
+
+      InterfaceContext()
+      {
+         asSexyInterface[0] = 0;
+         appendSexyFile[0] = 0;
+         appendCppHeaderFile[0] = 0;
+         appendCppImplFile[0] = 0;
+         hasDestructor = false;
+         isSingleton = false;
+      }
+   };
+
+   struct InterfaceDef
+   {
+      InterfaceContext ic;
+      const Sexy::Sex::ISExpression* sdef;
+      const Sexy::Sex::ISExpression* methods;
+   };
+
+   struct ParseContext
+   {
+      Sexy::SEXCHAR scriptInput[_MAX_PATH];
+      Sexy::SEXCHAR projectRoot[_MAX_PATH];
+      Sexy::SEXCHAR scriptName[_MAX_PATH];
+      Sexy::SEXCHAR scriptInputSansExtension[_MAX_PATH];
+      Sexy::SEXCHAR cppRootDirectory[_MAX_PATH];
+      Sexy::SEXCHAR cppTypesFilename[_MAX_PATH];
+      Sexy::SEXCHAR sexyTypesFilename[_MAX_PATH];
+      Sexy::SEXCHAR cppException[128];
+
+      TTypeMap primitives;
+      TTypeMap structs;
+      std::unordered_map<Sexy::stdstring, InterfaceDef*> interfaces;
+   };
+
+   Sexy::csexstr StringFrom(Sexy::Sex::cr_sex s);
+   Sexy::csexstr StringFrom(Sexy::Sex::cr_sex command, int elementIndex);
+   void AppendCppType(FileAppender& appender, cr_sex field, csexstr fieldtype, const ParseContext& pc);
+
+   struct EnumContext
+   {
+      enum { MAX_TOKEN_LEN = 256 };
+      CppType underlyingType;
+      CppType asCppEnum;
+      SEXCHAR asSexyEnum[MAX_TOKEN_LEN];
+      SEXCHAR appendSexyFile[_MAX_PATH];
+      SEXCHAR appendCppHeaderFile[_MAX_PATH];
+      SEXCHAR appendCppImplFile[_MAX_PATH];
+      std::vector<std::pair<stdstring, int64>> values;
+
+      EnumContext()
+      {
+         asSexyEnum[0] = 0;
+         appendSexyFile[0] = 0;
+         appendCppHeaderFile[0] = 0;
+         appendCppImplFile[0] = 0;
+      }
+   };
 }

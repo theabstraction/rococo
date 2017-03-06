@@ -99,15 +99,10 @@ namespace Sexy
 	namespace Sex
 	{
 		class ParseException;
+      void Throw(ParseException& ex);
 	}
 
 	enum {ROOT_TEMPDEPTH = 3};
-
-	enum
-	{
-		VERSION_MAJOR = 1,
-		VERSION_MINOR = 0
-	};
 
 	typedef unsigned long refcount_t;
 
@@ -486,15 +481,18 @@ namespace Sexy
 		bool ContainsPoint(csexstr s);
 	}
 
-	struct ProgramInitParameters
-	{
-		size_t MaxProgramBytes;
-      csexstr NativeSourcePath;
-		
-		enum { ONE_KILOBYTE = 1024 };
-		ProgramInitParameters(): MaxProgramBytes(1024 * ONE_KILOBYTE), NativeSourcePath(nullptr) {}
-		ProgramInitParameters(size_t _maxProgBytes, csexstr _nativeSourcePath = nullptr): MaxProgramBytes(_maxProgBytes), NativeSourcePath(_nativeSourcePath) {}
-	};
+   void Throw(int errorCode, csexstr format, ...);
+
+   namespace Sex
+   {
+      void AssertCompound(cr_sex e);
+      void AssertAtomic(cr_sex e);
+      void AssertStringLiteral(cr_sex e);
+      void AssertNotTooManyElements(cr_sex e, int32 maxElements);
+      void AssertNotTooFewElements(cr_sex e, int32 minElements);
+      cr_sex GetAtomicArg(cr_sex e, int argIndex);
+      void Throw(cr_sex e, csexstr message, ...);
+   }
 } // Sexy
 
 #endif

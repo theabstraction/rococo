@@ -73,18 +73,6 @@ namespace
 
 namespace Sexy { namespace OS 
 {
-#ifdef BREAK_ON_THROW
-	void BreakOnThrow()
-	{
-		if (IsDebuggerPresent())
-		{
-			__debugbreak();
-		}
-	}
-#else
-	void BreakOnThrow() {}
-#endif
-
 	bool IsFileExistant(const SEXCHAR* filename)
 	{
 		return INVALID_FILE_ATTRIBUTES != GetFileAttributes(filename);

@@ -163,46 +163,6 @@ namespace
 		}
 	}
 
-	void ConvertAndAppendCppType(FileAppender& appender, csexstr cppType)
-	{
-		NamespaceSplitter splitter(cppType);
-
-		csexstr nsRoot, tail;
-		if (splitter.SplitHead(nsRoot, tail))
-		{
-			appender.Append(SEXTEXT("%s::"), nsRoot);
-			return ConvertAndAppendCppType(appender, tail);
-		}
-		else
-		{
-			appender.Append(SEXTEXT("%s"), cppType);
-		}
-	}
-
-	void AppendCppType(FileAppender& appender, cr_sex field, csexstr sxhfieldtype, const ParseContext& pc)
-	{
-		csexstr cpptypeDef = NULL;
-		auto i = pc.primitives.find(sxhfieldtype);
-		if (i != pc.primitives.end()) cpptypeDef = i->second.cppType.c_str();
-		else 
-		{
-			auto j = pc.structs.find(sxhfieldtype);
-			if (j != pc.structs.end()) cpptypeDef = j->second.cppType.c_str();
-         else
-         {
-            auto k = pc.interfaces.find(sxhfieldtype);
-            if (k != pc.interfaces.end())
-            {
-               cpptypeDef = k->second->ic.asCppInterface.FQName();
-            }
-         }
-		}
-
-		if (cpptypeDef == NULL) Throw(field, SEXTEXT("Cannot resolve the type. Neither a known struct or primitive"));
-
-		ConvertAndAppendCppType(appender, cpptypeDef);
-	}
-
 	void AppendStructDefToCppTypeFile(FileAppender& cppTypeAppender, csexstr cppType, cr_sex sprimitiveDef, const ParseContext& pc)
 	{
 		SEXCHAR cppTypeShortName[256];
@@ -352,10 +312,7 @@ namespace
 			if (*pc.sexyTypesFilename == 0) Throw(configDef, SEXTEXT("sexy.types was not defined"));
 			if (*pc.cppException == 0) Throw(configDef, SEXTEXT("cpp.exception was not defined"));
 
-			FileDelete(pc.cppTypesFilename);
 			FileAppender cppTypeAppender(pc.cppTypesFilename);
-
-			FileDelete(pc.sexyTypesFilename);
 			FileAppender sexyTypeAppender(pc.sexyTypesFilename);
 
 			for(int i = 0; i < configDef.NumberOfElements(); ++i)

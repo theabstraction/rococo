@@ -49,12 +49,17 @@
 
 #include "bennyhill.h"
 
-namespace Rococo
+namespace Sexy
 {
-	using namespace Sexy;
-
 	FileAppender::FileAppender(csexstr _filename) : filename(_filename)
 	{
+      static std::unordered_set<std::wstring> deletedFiles;
+      if (deletedFiles.find(_filename) == deletedFiles.end())
+      {
+         _wunlink(_filename);
+         deletedFiles.insert(_filename);
+      }
+
 		int errcode = _wfopen_s(&hFile, _filename, L"ab");
 		if (hFile == nullptr)
 		{
@@ -99,11 +104,6 @@ namespace Rococo
          Append(c);
       }
    }
-
-	void FileDelete(csexstr name)
-   {
-		_wunlink(name);
-	}
 
 	void TripDebugger()
 	{
