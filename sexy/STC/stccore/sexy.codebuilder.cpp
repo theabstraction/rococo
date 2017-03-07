@@ -1044,7 +1044,7 @@ namespace
 		for(TVariables::const_reverse_iterator i = variables.rbegin(); i != variables.rend(); ++i)
 		{
 			Variable* v = *i;
-			if (v->SectionIndex() >= sectionIndex)
+			if (v->SectionIndex() > sectionIndex)
 			{
 				continue;
 			}

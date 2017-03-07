@@ -1044,6 +1044,38 @@ namespace
 		validate(x == 74);
 	}
 
+   void TestFloatArithmeticByMember(IPublicScriptSystem& ss)
+   {
+      csexstr srcCode =
+         SEXTEXT("(namespace EntryPoint)\n")
+         SEXTEXT("(function Main -> (Float32 x)(Float32 y)(Float32 z)(Float32 w):\n")
+         SEXTEXT("     (Sys.Maths.Vec2 a = 0.5 1.5)\n")
+         SEXTEXT("     (x = (a.x + 0.5))\n")
+         SEXTEXT("     (y = (a.y + 0.5))\n")
+         SEXTEXT("	  (z = (a.x - a.y))\n")
+         SEXTEXT("     (w = 0)\n")
+         SEXTEXT(")\n")
+         SEXTEXT("(alias Main EntryPoint.Main)");
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFloatArithmetic1"));
+      Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+      VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+      vm.Push(100.0f); // Allocate stack space for the float32 x
+      vm.Push(100.0f); // Allocate stack space for the float32 y
+      vm.Push(100.0f); // Allocate stack space for the float32 z
+      vm.Push(100.0f); // Allocate stack space for the float32 w
+      ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+      float32 w = vm.PopFloat32();
+      float32 z = vm.PopFloat32();
+      float32 y = vm.PopFloat32();
+      float32 x = vm.PopFloat32();
+      validate(x == 1.0f);
+      validate(y == 2.0f);
+      validate(z == -1.0f);
+      validate(w == 0.0f);
+   }
+
 	void TestFloatArithmetic(IPublicScriptSystem& ss)
 	{
 		csexstr srcCode =
@@ -2520,6 +2552,34 @@ namespace
 			validate(GetSubString(msg, SEXTEXT("Player.SetId")) != NULL);
 		}
 	} 
+
+   void TestDuplicateVariable(IPublicScriptSystem& ss)
+   {
+      csexstr srcCode =
+         SEXTEXT("(namespace EntryPoint)\n")
+         SEXTEXT("(function Main -> (Int32 exitCode):\n")
+         SEXTEXT("  (Int32 a = 1)")
+         SEXTEXT("  (Int32 a = 1)")
+         SEXTEXT(")\n")
+         SEXTEXT("(alias Main EntryPoint.Main)\n");
+
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDuplicateVariable"));
+      Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+      try
+      {
+         VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+         vm.Push(0); // Allocate stack space for the int32 exitCode
+         auto result = vm.Execute(VM::ExecutionFlags(false, true));
+         validate(result == EXECUTERESULT_THROWN);
+         s_logger.Clear();
+         return;
+      }
+      catch (ParseException&)
+      {
+         validate(false);
+      }
+   }
 
 	void TestClassInstance(IPublicScriptSystem& ss)
 	{
@@ -10698,6 +10758,7 @@ namespace
 		TEST(TestInt32CompoundArithmetic);
 		TEST(TestFloatCompoundArithmetic);
 		TEST(TestFloatLiteralArithmetic);
+      TEST(TestFloatArithmeticByMember);
 		TEST(TestIfThen3);
 		TEST(TestFunctionCall1);
 		TEST(TestFunctionCall2);
@@ -10836,6 +10897,7 @@ namespace
 	void RunPositiveFailures()
 	{		
 		TEST(TestMissingMethod);
+      TEST(TestDuplicateVariable);
 		TEST(TestDuplicateFunctionError);
 		TEST(TestDuplicateStructureError);
 		TEST(TestBigNamespaceError);
@@ -10852,6 +10914,7 @@ namespace
 	
 	void RunTests()
 	{	
+      TEST(TestLinkedList11);
 		RunPositiveSuccesses();	
 		RunCollectionTests();
 		RunPositiveFailures();

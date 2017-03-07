@@ -2414,7 +2414,7 @@ namespace
 
 	void StreamSTCEX(sexstringstream& streamer, const STCException& ex)
 	{
-		streamer << SEXTEXT("Compiler exception code: ") << ex.Code() << SEXTEXT(". Source: ") << ex.Source() << SEXTEXT(". Message: ") << ex.Message() << std::ends;
+		streamer << SEXTEXT("Compiler exception code: ") << ex.Code() << SEXTEXT(".") << std::endl << SEXTEXT("Source: ") << ex.Source() << std::endl << SEXTEXT(". Message: ") << ex.Message() << std::ends;
 	}
 
 	void CompileExpression(CCompileEnvironment& ce, cr_sex s)

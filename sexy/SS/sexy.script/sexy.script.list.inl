@@ -904,9 +904,6 @@ namespace
 			AddVariable(ce, NameString::From(indexName), ce.Object.Common().TypeInt32());
 		}
 
-		const IStructure& elementType = GetListDef(ce, s, collectionName);
-		AddVariableRef(ce, NameString::From(refName), elementType);
-
 		ce.Builder.AddSymbol(SEXTEXT("(foreach...")); 
 
 		ce.Builder.AddSymbol(collectionName);
