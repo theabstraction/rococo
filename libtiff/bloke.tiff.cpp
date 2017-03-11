@@ -10,6 +10,34 @@
 
 namespace
 {
+   Rococo::IAllocator* tiffAllocator = nullptr;
+}
+
+void* _TIFFmalloc(tmsize_t s)
+{
+   return tiffAllocator ? tiffAllocator->Allocate((size_t)s) : malloc((size_t) s);
+}
+
+void _TIFFfree(void* p)
+{
+   if (tiffAllocator)
+   {
+      tiffAllocator->Free(p);
+   }
+   else
+   {
+      free(p);
+   }
+}
+
+void* _TIFFrealloc(void* p, tmsize_t s)
+{
+   return tiffAllocator ? tiffAllocator->Reallocate(p, (size_t) s) : realloc(p, (size_t) s);
+}
+
+
+namespace
+{
 	using namespace Rococo;
 	using namespace Rococo::Imaging;
 
@@ -142,35 +170,24 @@ namespace
 				if (samplesPerPixel == 3 || samplesPerPixel == 4)
 				{
 					nPixels = width * height;
-					F_A8R8G8B8* raster = (F_A8R8G8B8*)_malloca(nPixels * sizeof (F_A8R8G8B8));
+					F_A8R8G8B8* raster = (F_A8R8G8B8*)_TIFFmalloc(nPixels * sizeof (F_A8R8G8B8));
 
 					if (TIFFReadRGBAImageOriented(tif, width, height, (Rococo::uint32*) raster, ORIENTATION_TOPLEFT))
 					{
-						F_A8R8G8B8* engineFormatBuffer = (F_A8R8G8B8*)_malloca(nPixels * sizeof (F_A8R8G8B8));
-						F_A8R8G8B8* source = (F_A8R8G8B8*)raster;
-						F_A8R8G8B8* dest = engineFormatBuffer;
-
-						for (size_t i = 0; i < nPixels; ++i)
-						{
-							*dest++ = *source++;
-						}
-
-                  loadEvents.OnARGBImage(Vec2i{ (Rococo::int32) width, (Rococo::int32) height }, engineFormatBuffer);
+                  loadEvents.OnARGBImage(Vec2i{ (Rococo::int32) width, (Rococo::int32) height }, raster);
 						isGood = true;
-
-						_freea(engineFormatBuffer);
 					}
 					else
 					{
 						_snprintf_s(errorBuffer, errorCapacity, errorCapacity, "Failed to parse TIFF F_A8R8G8B8-32bit memory image");
 					}
-					_freea(raster);
+					_TIFFfree(raster);
 				}
 				else if (samplesPerPixel == 1 && bitsPerSample == 8)
 				{
 					Rococo::uint32 len = (Rococo::uint32)TIFFScanlineSize(tif);
 					nPixels = width * height;
-					char* raster = (char*)_malloca(nPixels * sizeof (char));
+					char* raster = (char*)_TIFFmalloc(nPixels * sizeof (char));
 
 					Rococo::uint32 j;
 					for (j = 0; j < height; j++)
@@ -193,7 +210,7 @@ namespace
 						isGood = true;
 					}
 
-					_freea(raster);
+               _TIFFfree(raster);
 				}
 
 				TIFFClose(tif);
@@ -233,5 +250,10 @@ namespace Rococo
 
 			return isOk;
 		}
+
+      void SetTiffAllocator(IAllocator* _allocator)
+      {
+         tiffAllocator = _allocator;
+      }
 	}
 }

@@ -17,6 +17,13 @@
 #include <vector>
 
 #include <shlobj.h>
+#include <comip.h>
+
+#include <Shlwapi.h>
+
+#include <rococo.strings.h>
+
+#pragma comment(lib, "Shlwapi.lib")
 
 namespace Rococo
 {
@@ -589,6 +596,27 @@ namespace Rococo
 		return new Installation(contentIndicatorName, os);
 	}
 
+   ThreadLock::ThreadLock()
+   {
+      static_assert(sizeof(CRITICAL_SECTION) <= sizeof(implementation), "ThreadLock too small. Increase opaque data");
+      InitializeCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
+   }
+   
+   ThreadLock::~ThreadLock()
+   {
+      DeleteCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
+   }
+
+   void ThreadLock::Lock()
+   {
+      EnterCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
+   }
+
+   void ThreadLock::Unlock()
+   {
+      LeaveCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
+   }
+
    namespace IO
    {
       void GetUserPath(wchar_t* fullpath, size_t capacity, const wchar_t* shortname)
@@ -630,5 +658,244 @@ namespace Rococo
       {
          return L'\\';
       }
-   }
+
+      template<class T> struct ComObject
+      {
+         T* instance;
+
+         ComObject() : instance(nullptr) {}
+         ComObject(T* _instance) : instance(_instance) {}
+         ~ComObject() { if (instance) instance->Release(); }
+
+         T* operator -> () { return instance;  }
+         T** operator& () { return &instance; }
+
+         operator T* () { return instance; }
+      };
+
+      bool ChooseDirectory(wchar_t* name, size_t capacity)
+      {
+         class DialogEventHandler : public IFileDialogEvents,  public IFileDialogControlEvents
+         {
+         public:
+            // IUnknown methods
+            IFACEMETHODIMP QueryInterface(REFIID riid, void** ppv)
+            {
+               static const QITAB qit[] = 
+               {
+                  QITABENT(DialogEventHandler, IFileDialogEvents),
+                  QITABENT(DialogEventHandler, IFileDialogControlEvents),
+                  { nullptr, 0 }
+               };
+               return QISearch(this, qit, riid, ppv);
+            }
+
+            IFACEMETHODIMP_(ULONG) AddRef()
+            {
+               return InterlockedIncrement(&_cRef);
+            }
+
+            IFACEMETHODIMP_(ULONG) Release()
+            {
+               long cRef = InterlockedDecrement(&_cRef);
+               if (!cRef)
+                  delete this;
+               return cRef;
+            }
+
+            // IFileDialogEvents methods
+            IFACEMETHODIMP OnFileOk(IFileDialog *) { return S_OK; };
+            IFACEMETHODIMP OnFolderChange(IFileDialog *) { return S_OK; };
+            IFACEMETHODIMP OnFolderChanging(IFileDialog *, IShellItem *) { return S_OK; };
+            IFACEMETHODIMP OnHelp(IFileDialog *) { return S_OK; };
+            IFACEMETHODIMP OnSelectionChange(IFileDialog *) { return S_OK; };
+            IFACEMETHODIMP OnShareViolation(IFileDialog *, IShellItem *, FDE_SHAREVIOLATION_RESPONSE *) { return S_OK; };
+            IFACEMETHODIMP OnTypeChange(IFileDialog *pfd) { return S_OK; };
+            IFACEMETHODIMP OnOverwrite(IFileDialog *, IShellItem *, FDE_OVERWRITE_RESPONSE *) { return S_OK; };
+
+            // IFileDialogControlEvents methods
+            IFACEMETHODIMP OnItemSelected(IFileDialogCustomize *pfdc, DWORD dwIDCtl, DWORD dwIDItem) { return S_OK; };
+            IFACEMETHODIMP OnButtonClicked(IFileDialogCustomize *, DWORD) { return S_OK; };
+            IFACEMETHODIMP OnCheckButtonToggled(IFileDialogCustomize *, DWORD, BOOL) { return S_OK; };
+            IFACEMETHODIMP OnControlActivating(IFileDialogCustomize *, DWORD) { return S_OK; };
+
+            static HRESULT CreateInstance(REFIID riid, void **ppv)
+            {
+               *ppv = NULL;
+               DialogEventHandler *pDialogEventHandler = new (std::nothrow) DialogEventHandler();
+               HRESULT hr = pDialogEventHandler ? S_OK : E_OUTOFMEMORY;
+               if (SUCCEEDED(hr))
+               {
+                  hr = pDialogEventHandler->QueryInterface(riid, ppv);
+                  pDialogEventHandler->Release();
+               }
+               return hr;
+            }
+
+            DialogEventHandler() : _cRef(1) { };
+         private:
+            ~DialogEventHandler() { };
+            long _cRef;
+         };
+
+         CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
+         ComObject<IFileDialog> pfd;
+         HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
+         if (FAILED(hr))
+         {
+            Throw(hr, L"CoCreateInstance(CLSID_FileOpenDialog failed");
+         }
+
+         ComObject<IFileDialogEvents> pfde;
+         hr = DialogEventHandler::CreateInstance(IID_PPV_ARGS(&pfde));
+         if (FAILED(hr))
+         {
+            Throw(hr, L"CDialogEventHandler_CreateInstance failed");
+         }
+
+         DWORD dwCookie;
+         hr = pfd->Advise(pfde, &dwCookie);
+         if (FAILED(hr))
+         {
+            Throw(hr, L"pfd->Advise failed");
+         }
+
+         // Set the options on the dialog.
+         DWORD dwFlags;
+
+         // Before setting, always get the options first in order 
+         // not to override existing options.
+         hr = pfd->GetOptions(&dwFlags);
+         if (FAILED(hr))
+         {
+            Throw(hr, L"pfd->GetOptions failed");
+         }
+
+         // In this case, get shell items only for file system items.
+         hr = pfd->SetOptions(dwFlags | FOS_FORCEFILESYSTEM | FOS_PICKFOLDERS);
+         if (FAILED(hr))
+         {
+            Throw(hr, L"pfd->SetOptions failed");
+         }
+
+         // Set the file types to display only. 
+         // Notice that this is a 1-based array.
+         /*
+         hr = pfd->SetFileTypes(ARRAYSIZE(c_rgSaveTypes), c_rgSaveTypes);
+         if (FAILED(hr))
+         {
+            Throw(hr, L"pfd->SetFileTypes failed");
+         }
+         */
+
+         /*
+         // Set the selected file type index to Word Docs for this example.
+         hr = pfd->SetFileTypeIndex(INDEX_WORDDOC);
+         if (FAILED(hr))
+         {
+            Throw(hr, L"pfd->SetFileTypeIndex failed");
+         }
+         */
+
+         /*
+         // Set the default extension to be ".doc" file.
+         hr = pfd->SetDefaultExtension(L"doc;docx");
+         if (FAILED(hr))
+         {
+            Throw(hr, L"pfd->SetDefaultExtension failed");
+         }
+         */
+
+         // Show the dialog
+         hr = pfd->Show(NULL);
+         if (FAILED(hr))
+         {
+            if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED))
+            {
+               return false;
+            }
+            Throw(hr, L"pfd->Show failed");
+         }
+
+         // Obtain the result once the user clicks 
+         // the 'Open' button.
+         // The result is an IShellItem object.
+         ComObject<IShellItem> psiResult;
+         hr = pfd->GetResult(&psiResult);
+         if (FAILED(hr))
+         {
+            Throw(hr, L"pfd->GetResult");
+         }
+
+         LPWSTR _name = nullptr;
+         hr = psiResult->GetDisplayName(SIGDN_FILESYSPATH, &_name);
+         if (FAILED(hr))
+         {
+            Throw(hr, L"pfd->GetResult");
+         }
+         
+         SafeCopy(name, capacity, _name, _TRUNCATE);
+
+         CoTaskMemFree(_name);
+
+         // Unhook the event handler.
+         pfd->Unadvise(dwCookie);
+
+         return true;
+      }
+
+      void ForEachFileInDirectory(const wchar_t* directory, IEventCallback<const wchar_t*>& onFile)
+      { 
+         struct Anon
+         {
+            HANDLE hSearch;
+
+            ~Anon()
+            {
+               if (hSearch != INVALID_HANDLE_VALUE)
+               {
+                  FindClose(hSearch);
+               }
+            }
+
+            operator HANDLE () {
+               return hSearch;
+            }
+         };
+
+         Anon hSearch;
+
+         wchar_t fullpath[MAX_PATH];
+         SafeCopy(fullpath, directory, _TRUNCATE);
+
+         bool isSlashed = GetFinalNull(directory)[-1] == L'\\' || GetFinalNull(directory)[-1] == L'/';
+         SafeFormat(fullpath, _TRUNCATE, L"%s%s*.*", directory, isSlashed ? L"" : L"\\");
+
+         WIN32_FIND_DATAW findData;
+         hSearch.hSearch = FindFirstFileW(fullpath, &findData);
+ 
+         if (hSearch.hSearch == INVALID_HANDLE_VALUE)
+         {
+            if (GetLastError() != ERROR_FILE_NOT_FOUND)
+            {
+               Throw(GetLastError(), L"Could not browse directory: %s", fullpath);
+            }
+            return;
+         }
+
+         if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+         {
+            onFile.OnEvent(findData.cFileName);
+         }
+
+         while (FindNextFile(hSearch, &findData))
+         {
+            if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+            {
+               onFile.OnEvent(findData.cFileName);
+            }
+         }
+      }
+   } // IO
 }

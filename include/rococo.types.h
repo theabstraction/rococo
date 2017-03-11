@@ -56,6 +56,17 @@ namespace Rococo
       }
    };
 
+   class ThreadLock : public ILock
+   {
+      int64 implementation[8];
+   public:
+      ThreadLock();
+      ~ThreadLock();
+
+      void Lock();
+      void Unlock();
+   };
+
    struct Vec2i
    {
       int32 x;
@@ -197,6 +208,11 @@ namespace Rococo
       return a < b ? a : b;
    }
 
+   template<class T> inline T Sq(T a)
+   {
+      return a * a;
+   }
+
    struct Kilograms
    {
       float value;
@@ -269,6 +285,24 @@ namespace Rococo
          return Vec3{ pos.x, pos.y, z };
       }
    };
+
+   ROCOCOAPI IAllocator
+   {
+      virtual void* Allocate(size_t capacity) = 0;
+      virtual void Free(void* data) = 0;
+      virtual void* Reallocate(void* ptr, size_t capacity) = 0;
+   };
+
+   ROCOCOAPI IAllocatorSupervisor: public IAllocator
+   {
+      virtual void Free() = 0;
+   };
+
+   namespace Memory
+   {
+      IAllocator& CheckedAllocator();
+      IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes);
+   }
 }
 
 #endif

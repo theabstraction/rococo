@@ -164,6 +164,8 @@ namespace Rococo
    namespace IO
    {
       struct IUnicode16Writer;
+      bool ChooseDirectory(wchar_t* name, size_t capacity);
+      void ForEachFileInDirectory(const wchar_t* directory, IEventCallback<const wchar_t*>& onFile);
    }
 
    struct IDebuggerWindow;

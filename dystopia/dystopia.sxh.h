@@ -8,8 +8,8 @@ namespace Dystopia {
 		SolidFlags_IsDirty = 8, 	// 0x8
 		SolidFlags_RoadSection = 16, 	// 0x10
 	};
-	bool TryParse(const fstring& s, SolidFlags& value);
-	bool TryShortParse(const fstring& s, SolidFlags& value); 
+	bool TryParse(const Rococo::fstring& s, SolidFlags& value);
+	bool TryShortParse(const Rococo::fstring& s, SolidFlags& value); 
 }
 
 namespace Dystopia { 
@@ -18,8 +18,8 @@ namespace Dystopia {
 		AnimationType_Standstill = 0, 	// 0x0
 		AnimationType_Running = 1, 	// 0x1
 	};
-	bool TryParse(const fstring& s, AnimationType& value);
-	bool TryShortParse(const fstring& s, AnimationType& value); 
+	bool TryParse(const Rococo::fstring& s, AnimationType& value);
+	bool TryShortParse(const Rococo::fstring& s, AnimationType& value); 
 }
 
 namespace Dystopia { 
@@ -27,8 +27,8 @@ namespace Dystopia {
 	{
 		SkeletonType_HumanMale = 0, 	// 0x0
 	};
-	bool TryParse(const fstring& s, SkeletonType& value);
-	bool TryShortParse(const fstring& s, SkeletonType& value); 
+	bool TryParse(const Rococo::fstring& s, SkeletonType& value);
+	bool TryShortParse(const Rococo::fstring& s, SkeletonType& value); 
 }
 
 namespace Dystopia { 
@@ -50,8 +50,8 @@ namespace Dystopia {
 		LimbIndex_RightHand = 13, 	// 0xd
 		LimbIndex_Count = 14, 	// 0xe
 	};
-	bool TryParse(const fstring& s, LimbIndex& value);
-	bool TryShortParse(const fstring& s, LimbIndex& value); 
+	bool TryParse(const Rococo::fstring& s, LimbIndex& value);
+	bool TryShortParse(const Rococo::fstring& s, LimbIndex& value); 
 }
 
 namespace Dystopia { namespace UI { 
@@ -60,8 +60,28 @@ namespace Dystopia { namespace UI {
 		EWidgetState_NoFocus = 0, 	// 0x0
 		EWidgetState_HasFocus = 1, 	// 0x1
 	};
-	bool TryParse(const fstring& s, EWidgetState& value);
-	bool TryShortParse(const fstring& s, EWidgetState& value); 
+	bool TryParse(const Rococo::fstring& s, EWidgetState& value);
+	bool TryShortParse(const Rococo::fstring& s, EWidgetState& value); 
+}}
+
+namespace Dystopia { 
+	struct IJournal;
+}
+
+namespace Dystopia { 
+	struct IGui;
+}
+
+namespace Dystopia { 
+	struct IMeshes;
+}
+
+namespace Dystopia { 
+	struct ILevelBuilder;
+}
+
+namespace Dystopia { namespace UI { 
+	struct IUIBuilder;
 }}
 
 namespace Dystopia { 
@@ -79,6 +99,26 @@ namespace Dystopia {
 }
 
 namespace Dystopia { 
+	struct IJournal;
+}
+
+namespace Dystopia { 
+	struct IGui;
+}
+
+namespace Dystopia { 
+	struct IMeshes;
+}
+
+namespace Dystopia { 
+	struct ILevelBuilder;
+}
+
+namespace Dystopia { namespace UI { 
+	struct IUIBuilder;
+}}
+
+namespace Dystopia { 
 	struct NO_VTABLE IGui
 	{
 		virtual void ShowDialogBox(const Vec2i& span, int32 retzone, int32 hypzone, const fstring& title, const fstring& message, const fstring& buttons) = 0;
@@ -91,6 +131,26 @@ namespace Dystopia {
 }
 
 namespace Dystopia { 
+	struct IJournal;
+}
+
+namespace Dystopia { 
+	struct IGui;
+}
+
+namespace Dystopia { 
+	struct IMeshes;
+}
+
+namespace Dystopia { 
+	struct ILevelBuilder;
+}
+
+namespace Dystopia { namespace UI { 
+	struct IUIBuilder;
+}}
+
+namespace Dystopia { 
 	struct NO_VTABLE IMeshes
 	{
 		virtual void Load(const fstring& resourceName, ID_MESH editorId) = 0;
@@ -100,6 +160,26 @@ namespace Dystopia {
 namespace Dystopia { 
 	void AddNativeCalls_DystopiaIMeshes(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IMeshes* nceContext);
 }
+
+namespace Dystopia { 
+	struct IJournal;
+}
+
+namespace Dystopia { 
+	struct IGui;
+}
+
+namespace Dystopia { 
+	struct IMeshes;
+}
+
+namespace Dystopia { 
+	struct ILevelBuilder;
+}
+
+namespace Dystopia { namespace UI { 
+	struct IUIBuilder;
+}}
 
 namespace Dystopia { 
 	struct NO_VTABLE ILevelBuilder
@@ -128,6 +208,26 @@ namespace Dystopia {
 namespace Dystopia { 
 	void AddNativeCalls_DystopiaILevelBuilder(Sexy::Script::IPublicScriptSystem& ss, Dystopia::ILevel* nceContext);
 }
+
+namespace Dystopia { 
+	struct IJournal;
+}
+
+namespace Dystopia { 
+	struct IGui;
+}
+
+namespace Dystopia { 
+	struct IMeshes;
+}
+
+namespace Dystopia { 
+	struct ILevelBuilder;
+}
+
+namespace Dystopia { namespace UI { 
+	struct IUIBuilder;
+}}
 
 namespace Dystopia { namespace UI { 
 	struct NO_VTABLE IUIBuilder

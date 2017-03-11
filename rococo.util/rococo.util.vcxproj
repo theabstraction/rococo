@@ -90,9 +90,11 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="allocators.cpp" />
     <ClCompile Include="rococo.postbox.cpp" />
     <ClCompile Include="rococo.s-parser.helpers.cpp" />
     <ClCompile Include="rococo.strings.cpp" />
+    <ClCompile Include="rococo.texture.builder.cpp" />
     <ClCompile Include="ui.widgets.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -51,6 +51,7 @@ namespace
 
 			ShowWindow(hWnd, SW_SHOW);
 			EnableWindow(ownerWindow, FALSE);
+         SetForegroundWindow(hWnd);
 
 			while (control.IsRunning())
 			{

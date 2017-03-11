@@ -328,6 +328,8 @@ TIFFOpenW(const wchar_t* name, const char* mode)
 
 #endif /* ndef _WIN32_WCE */
 
+/*
+
 void*
 _TIFFmalloc(tmsize_t s)
 {
@@ -345,7 +347,7 @@ _TIFFrealloc(void* p, tmsize_t s)
 {
 	return (realloc(p, (size_t) s));
 }
-
+*/
 void
 _TIFFmemset(void* p, int v, tmsize_t c)
 {

@@ -1,5 +1,5 @@
 namespace Dystopia { 
-	bool TryParse(const fstring& s, SolidFlags& value)
+	bool TryParse(const Rococo::fstring& s, SolidFlags& value)
 	{
 		if (s == L"SolidFlags_None"_fstring)
 		{
@@ -33,7 +33,7 @@ namespace Dystopia {
 		return true;
 	}
 
-	bool TryShortParse(const fstring& s, SolidFlags& value)
+	bool TryShortParse(const Rococo::fstring& s, SolidFlags& value)
 	{
 		if (s == L"None"_fstring)
 		{
@@ -69,7 +69,7 @@ namespace Dystopia {
 }// Dystopia.SolidFlags
 
 namespace Dystopia { 
-	bool TryParse(const fstring& s, AnimationType& value)
+	bool TryParse(const Rococo::fstring& s, AnimationType& value)
 	{
 		if (s == L"AnimationType_Standstill"_fstring)
 		{
@@ -87,7 +87,7 @@ namespace Dystopia {
 		return true;
 	}
 
-	bool TryShortParse(const fstring& s, AnimationType& value)
+	bool TryShortParse(const Rococo::fstring& s, AnimationType& value)
 	{
 		if (s == L"Standstill"_fstring)
 		{
@@ -107,7 +107,7 @@ namespace Dystopia {
 }// Dystopia.AnimationType
 
 namespace Dystopia { 
-	bool TryParse(const fstring& s, SkeletonType& value)
+	bool TryParse(const Rococo::fstring& s, SkeletonType& value)
 	{
 		if (s == L"SkeletonType_HumanMale"_fstring)
 		{
@@ -121,7 +121,7 @@ namespace Dystopia {
 		return true;
 	}
 
-	bool TryShortParse(const fstring& s, SkeletonType& value)
+	bool TryShortParse(const Rococo::fstring& s, SkeletonType& value)
 	{
 		if (s == L"HumanMale"_fstring)
 		{
@@ -137,7 +137,7 @@ namespace Dystopia {
 }// Dystopia.SkeletonType
 
 namespace Dystopia { 
-	bool TryParse(const fstring& s, LimbIndex& value)
+	bool TryParse(const Rococo::fstring& s, LimbIndex& value)
 	{
 		if (s == L"LimbIndex_Head"_fstring)
 		{
@@ -207,7 +207,7 @@ namespace Dystopia {
 		return true;
 	}
 
-	bool TryShortParse(const fstring& s, LimbIndex& value)
+	bool TryShortParse(const Rococo::fstring& s, LimbIndex& value)
 	{
 		if (s == L"Head"_fstring)
 		{
@@ -279,7 +279,7 @@ namespace Dystopia {
 }// Dystopia.LimbIndex
 
 namespace Dystopia { namespace UI { 
-	bool TryParse(const fstring& s, EWidgetState& value)
+	bool TryParse(const Rococo::fstring& s, EWidgetState& value)
 	{
 		if (s == L"EWidgetState_NoFocus"_fstring)
 		{
@@ -297,7 +297,7 @@ namespace Dystopia { namespace UI {
 		return true;
 	}
 
-	bool TryShortParse(const fstring& s, EWidgetState& value)
+	bool TryShortParse(const Rococo::fstring& s, EWidgetState& value)
 	{
 		if (s == L"NoFocus"_fstring)
 		{
@@ -316,35 +316,6 @@ namespace Dystopia { namespace UI {
 	}
 }}// Dystopia.UI.EWidgetState
 
-namespace // Benny Hill generated helpers
-{
-	using namespace Sexy;
-	using namespace Sexy::Sex;
-	using namespace Sexy::Script;
-	using namespace Sexy::Compiler;
-
-	class StringPopulator : public IStringPopulator
-	{
-		CClassSysTypeStringBuilder* builder;
-	public:
-		StringPopulator(NativeCallEnvironment& _nce, VirtualTable* vTableBuilder)
-		{
-			char* _instance = ((char*)vTableBuilder) + vTableBuilder->OffsetToInstance;
-			CClassDesc* _abstractClass = reinterpret_cast<CClassDesc*>(_instance);
-			if (_abstractClass->structDef != _nce.ss.PublicProgramObject().GetSysType(SEXY_CLASS_ID_STRINGBUILDER))
-			{
-				_nce.ss.ThrowFromNativeCode(0, SEXTEXT("Builder was not a Sys.Type.StringBuilder"));
-			}
-			builder = reinterpret_cast<CClassSysTypeStringBuilder*>(_abstractClass);
-		}
-
-		virtual void Populate(csexstr text)
-		{
-			SafeCat(builder->buffer, builder->capacity, text, _TRUNCATE);
-			builder->length = StringLength(builder->buffer);
-		}
-	};
-}
 // BennyHill generated Sexy native functions for Dystopia::IJournal 
 namespace
 {

@@ -24,6 +24,8 @@ namespace Rococo
 
 		IWin32Menu* CreateMenu(bool contextMenu);
 
+      IWindow& NullParent();
+
 		ROCOCOAPI ICommandTarget
 		{
 			virtual void OnAcceleratorCommand(DWORD id) = 0;

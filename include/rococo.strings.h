@@ -43,6 +43,12 @@ namespace Rococo
 	};
 
 	IStringBuilder* CreateSafeStackStringBuilder(SafeStackString& sss);
+
+   const wchar_t* GetFinalNull(const wchar_t* s);
+   const wchar_t* GetRightSubstringAfter(const wchar_t* s, wchar_t c);
+   const wchar_t* GetFileExtension(const wchar_t* s);
+
+   bool Eq(const wchar_t* a, const wchar_t* b);
 }
 
 #endif  Rococo_Strings_H

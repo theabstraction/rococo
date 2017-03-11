@@ -66,6 +66,21 @@ namespace Rococo
          SendMessage(hTitleBar, WM_SETFONT, (WPARAM)hTitleFont, 0);
       }
 
+      IWindow& NullParent()
+      {
+         class NullParentClass : public IWindow
+         {
+         public:
+            virtual operator HWND () const
+            {
+               return nullptr;
+            }
+         };
+
+         static NullParentClass s_null;
+         return s_null;
+      }
+
       bool OpenChooseFontBox(HWND hParent, LOGFONT& output)
       {
          CHOOSEFONTW font = { 0 };

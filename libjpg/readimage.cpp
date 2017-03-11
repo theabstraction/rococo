@@ -30,10 +30,71 @@ static void OnErrorExit (j_common_ptr cinfo)
 	longjmp(myerr->setjmpBuffer, 1);
 }
 
+namespace
+{
+   Rococo::IAllocator* allocator = nullptr;
+
+   void* Allocate(size_t capacity)
+   {
+      if (allocator)
+      {
+         return allocator->Allocate(capacity);
+      }
+      else
+      {
+         return malloc(capacity);
+      }
+   }
+
+   void Delete(void* ptr)
+   {
+      if (allocator)
+      {
+         allocator->Free(ptr);
+      }
+      else
+      {
+         free(ptr);
+      }
+   }
+}
+
+extern "C"
+{
+   GLOBAL(void *)
+      jpeg_get_small(j_common_ptr cinfo, size_t sizeofobject)
+   {
+      return (void *)Allocate(sizeofobject);
+   }
+
+   GLOBAL(void)
+      jpeg_free_small(j_common_ptr cinfo, void * object, size_t sizeofobject)
+   {
+      Delete(object);
+   }
+
+   GLOBAL(void FAR *)
+      jpeg_get_large(j_common_ptr cinfo, size_t sizeofobject)
+   {
+      return (void FAR *) Allocate(sizeofobject);
+   }
+
+   GLOBAL(void)
+      jpeg_free_large(j_common_ptr cinfo, void FAR * object, size_t sizeofobject)
+   {
+      Delete(object);
+   }
+}
+
 namespace Rococo
 {
 	namespace Imaging
 	{
+      void SetJpegAllocator(IAllocator* _allocator)
+      {
+         allocator = _allocator;
+      }
+
 		bool DecompressJPeg(IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes)
 		{
 			DataStream stream;
@@ -51,7 +112,7 @@ namespace Rococo
 
 			if (setjmp(errorManager.setjmpBuffer))
 			{
-				if (contigBuffer) delete[] contigBuffer;
+				if (contigBuffer) Delete(contigBuffer);
 				jpeg_destroy_decompress(&cinfo);
 				return false;
 			}
@@ -62,15 +123,15 @@ namespace Rococo
 			jpeg_inmemory_source(&cinfo, &stream);
 			jpeg_read_header(&cinfo, TRUE);
 
-			if (cinfo.image_height < 1 || cinfo.image_height > 4096)
+			if (cinfo.image_height < 1 || cinfo.image_height > 8192)
 			{
-				loadEvents.OnError("Image height was outside range 1...2048 pixels");
+				loadEvents.OnError("Image height was outside range 1...8192 pixels");
 				isOK = false;
 			}
 
-			if (cinfo.image_width < 1 || cinfo.image_width > 4096)
+			if (cinfo.image_width < 1 || cinfo.image_width > 8192)
 			{
-				loadEvents.OnError("Image width was outside range 1...2048 pixels");
+				loadEvents.OnError("Image width was outside range 1...8192 pixels");
 				isOK = false;
 			}
 
@@ -93,7 +154,7 @@ namespace Rococo
 				int stride = cinfo.image_width * sizeof(__int32);
 				JSAMPARRAY buffer = (*cinfo.mem->alloc_sarray) ((j_common_ptr)&cinfo, JPOOL_IMAGE, cinfo.image_width * cinfo.num_components, 1);
 
-				unsigned char* contigBuffer = new unsigned char[cinfo.image_height * stride];
+				contigBuffer = (uint8*) Allocate(cinfo.image_height * stride);
 
 				while (isOK && cinfo.output_scanline < cinfo.output_height)
 				{
@@ -126,7 +187,7 @@ namespace Rococo
 
             loadEvents.OnARGBImage(Vec2i{ (int32) cinfo.image_width,(int32)cinfo.image_height }, (const F_A8R8G8B8*)contigBuffer);
 
-				if (contigBuffer) delete[] contigBuffer;
+				Delete(contigBuffer);
 
 				jpeg_finish_decompress(&cinfo);
 			}

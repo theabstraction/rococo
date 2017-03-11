@@ -31,6 +31,8 @@ extern void free JPP((void *ptr));
  * routines malloc() and free().
  */
 
+/*
+
 GLOBAL(void *)
 jpeg_get_small (j_common_ptr cinfo, size_t sizeofobject)
 {
@@ -42,7 +44,7 @@ jpeg_free_small (j_common_ptr cinfo, void * object, size_t sizeofobject)
 {
   free(object);
 }
-
+*/
 
 /*
  * "Large" objects are treated the same as "small" ones.
@@ -51,6 +53,7 @@ jpeg_free_small (j_common_ptr cinfo, void * object, size_t sizeofobject)
  * you probably won't be able to process useful-size images in only 64KB.
  */
 
+ /*
 GLOBAL(void FAR *)
 jpeg_get_large (j_common_ptr cinfo, size_t sizeofobject)
 {
@@ -62,7 +65,7 @@ jpeg_free_large (j_common_ptr cinfo, void FAR * object, size_t sizeofobject)
 {
   free(object);
 }
-
+*/
 
 /*
  * This routine computes the total memory space available for allocation.

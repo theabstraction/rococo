@@ -1049,14 +1049,22 @@ namespace
       csexstr srcCode =
          SEXTEXT("(namespace EntryPoint)\n")
          SEXTEXT("(function Main -> (Float32 x)(Float32 y)(Float32 z)(Float32 w):\n")
-         SEXTEXT("     (Sys.Maths.Vec2 a = 0.5 1.5)\n")
-         SEXTEXT("     (x = (a.x + 0.5))\n")
-         SEXTEXT("     (y = (a.y + 0.5))\n")
-         SEXTEXT("	  (z = (a.x - a.y))\n")
+         SEXTEXT("     (Sys.Maths.Vec2 screenSpan = 10 20)\n")
+
+         SEXTEXT("     (Float32 halfX = (0.5 * screenSpan.x))\n")
+         SEXTEXT("     (Float32 halfY = (0.5 * screenSpan.y))\n")
+         SEXTEXT("     (Float32 x0)\n")
+         SEXTEXT("     (Float32 x1)\n")
+         SEXTEXT("     (x0 = (halfX - 20))\n")
+         SEXTEXT("     (x1 = (halfY + 20))\n")
+
+         SEXTEXT("     (x = x0)\n")
+         SEXTEXT("     (y = x1)\n")
+         SEXTEXT("	  (z = (x0 + x1))\n")
          SEXTEXT("     (w = 0)\n")
          SEXTEXT(")\n")
          SEXTEXT("(alias Main EntryPoint.Main)");
-      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFloatArithmetic1"));
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFloatArithmeticByMember"));
       Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
       VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1070,9 +1078,9 @@ namespace
       float32 z = vm.PopFloat32();
       float32 y = vm.PopFloat32();
       float32 x = vm.PopFloat32();
-      validate(x == 1.0f);
-      validate(y == 2.0f);
-      validate(z == -1.0f);
+      validate(x == -15.0f);
+      validate(y == 30.0f);
+      validate(z == 15.0f);
       validate(w == 0.0f);
    }
 

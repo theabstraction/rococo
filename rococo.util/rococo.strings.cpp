@@ -212,4 +212,35 @@ namespace Rococo
 	{
 		return new ExpandingBuffer(initialCapacity);
 	}
+
+   const wchar_t* GetFinalNull(const wchar_t* s)
+   {
+      const wchar_t* p = s;
+      while (*p++ != 0);
+      return p - 1;
+   }
+
+   const wchar_t* GetRightSubstringAfter(const wchar_t* s, wchar_t c)
+   {
+      const wchar_t* p = GetFinalNull(s);
+      for (const wchar_t* q = p; q >= s; --q)
+      {
+         if (*q == c)
+         {
+            return q;
+         }
+      }
+
+      return nullptr;
+   }
+
+   const wchar_t* GetFileExtension(const wchar_t* s)
+   {
+      return GetRightSubstringAfter(s, L'.');
+   }
+
+   bool Eq(const wchar_t* a, const wchar_t* b)
+   {
+      return wcscmp(a, b) == 0;
+   }
 }
