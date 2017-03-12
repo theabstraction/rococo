@@ -135,10 +135,7 @@ namespace
 		{
 			if (length + writePos + sizeof(int32) >= heapEnd)
 			{
-				OS::OSException ex;
-				ex.exceptionNumber = -1;
-				Sexy::StringPrint(ex.message, 256, SEXTEXT("sexy.s-parser.symbols.inl: private heap symbols exhausted. Increase CPrivateHeapSymbols::_maxAllocHint"));
-				throw ex;
+            Sexy::Throw(0, SEXTEXT("sexy.s-parser.symbols.inl: private heap symbols exhausted. Increase CPrivateHeapSymbols::_maxAllocHint"));
 				return NULL;
 			}
 

@@ -725,14 +725,8 @@ namespace
 			if (false && stack + nBytes > maxPtr)
 			{
 				VM::OS::FreeAlignedMemory(stack, stackSize);
-
-				Sexy::OS::OSException ex;
-				ex.exceptionNumber = 0;
-				StringPrint(ex.message, 256, SEXTEXT("The SexyVM stack end %p exceeded the maximum pointer value of %p"), stack, maxPtr);
-
-				stack = NULL;
-
-				throw ex;
+            stack = NULL;
+				Sexy::Throw(0, SEXTEXT("The SexyVM stack end %p exceeded the maximum pointer value of %p"), stack, maxPtr);
 			}
 		}
 

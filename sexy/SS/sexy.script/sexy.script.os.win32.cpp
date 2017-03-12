@@ -63,11 +63,8 @@ namespace
 {
 	void CloseAndThrowOS(HANDLE toClose, const Sexy::SEXCHAR* message, const Sexy::SEXCHAR* filename)
 	{
-		Sexy::OS::OSException ose;
-		ose.exceptionNumber = GetLastError();
-		Sexy::StringPrint(ose.message, 256, SEXTEXT("%s: %s"), message, filename);
-		CloseHandle(toClose);
-		throw ose;
+      CloseHandle(toClose);
+		Sexy::Throw(GetLastError(), SEXTEXT("%s: %s"), message, filename);
 	}
 }
 
@@ -121,10 +118,7 @@ namespace Sexy { namespace OS
 			}
 		}
 
-		Sexy::OS::OSException ose;
-		ose.exceptionNumber = GetLastError();
-		Sexy::StringPrint(ose.message, 256, SEXTEXT("SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot find src_indicator.txt descending from sexy.script.dll"));
-		throw ose;
+      Sexy::Throw(GetLastError(), SEXTEXT("SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot find src_indicator.txt descending from sexy.script.dll"));
 	}
 
 	void GetEnvVariable(SEXCHAR* data, size_t capacity, const SEXCHAR* envVariable)
@@ -137,26 +131,29 @@ namespace Sexy { namespace OS
 
 				if (INVALID_FILE_ATTRIBUTES == GetFileAttributes(data))
 				{
-					Sexy::OS::OSException ose;
-					ose.exceptionNumber = GetLastError();
-					Sexy::StringPrint(ose.message, 256, SEXTEXT("Error associating environment variable %s to the sexy native source directory"), envVariable);
-					throw ose;
+               Sexy::Throw(GetLastError(), SEXTEXT("Error associating environment variable %s to the sexy native source directory"), envVariable);
 				}
 
 				SetEnvironmentVariable(envVariable, data);
 				return;
 			}
 
-			Sexy::OS::OSException ose;
-			ose.exceptionNumber = GetLastError();
-			Sexy::StringPrint(ose.message, 256, SEXTEXT("Environment variable %s not found"), envVariable);
-			throw ose;
+         Throw(GetLastError(), SEXTEXT("Environment variable %s not found"), envVariable);
 		}
 	}
 
    void Throw(int errCode, csexstr format, ...)
    {
-      OS::OSException ex;
+      class OSException : public Rococo::IException
+      {
+      public:
+         enum { CAPACITY = 1024 };
+         int exceptionNumber;
+         wchar_t message[CAPACITY];
+
+         virtual int ErrorCode() const { return exceptionNumber; }
+         virtual const wchar_t* Message() const { return message; }
+      } ex;
       va_list args;
       va_start(args, format);
       SafeVFormat(ex.message, _TRUNCATE, format, args);
@@ -214,19 +211,13 @@ namespace Sexy { namespace OS
 		HMODULE hLib = LoadLibrary(linkLib);
 		if (hLib == NULL)
 		{
-			Sexy::OS::OSException ose;
-			ose.exceptionNumber = GetLastError();
-			Sexy::StringPrint(ose.message, 256, SEXTEXT("Could not load %s"), (const SEXCHAR*) linkLib);
-			throw ose;
+			Sexy::Throw(GetLastError(), SEXTEXT("Could not load %s"), (const SEXCHAR*) linkLib);
 		}
 
 		FARPROC fp = GetProcAddress(hLib, "CreateLib");
 		if (fp == NULL)
 		{
-			Sexy::OS::OSException ose;
-			ose.exceptionNumber = GetLastError();
-			Sexy::StringPrint(ose.message, 256, SEXTEXT("Could not find void CreateLib(...) in %s"), (const SEXCHAR*) linkLib);
-			throw ose;
+         Sexy::Throw(GetLastError(), SEXTEXT("Could not find void CreateLib(...) in %s"), (const SEXCHAR*) linkLib);
 		}
 
 		Sexy::Script::FN_CreateLib createFn = (Sexy::Script::FN_CreateLib) fp;

@@ -319,18 +319,6 @@ namespace Sexy
 		void BreakOnThrow();
 		void LoadAsciiTextFile(SEXCHAR* data, size_t capacity, const SEXCHAR* filename);
 		void GetEnvVariable(SEXCHAR* data, size_t capacity, const SEXCHAR* envVariable);
-
-		class OSException: public Rococo::IException
-		{
-		public:
-			enum { CAPACITY = 1024 };
-			int exceptionNumber;
-			wchar_t message[CAPACITY];
-
-			virtual int ErrorCode() const { return exceptionNumber; }
-			virtual const wchar_t* Message() const { return message; }
-		};
-
       void Throw(int erroCode, csexstr format, ...);
 	}
 

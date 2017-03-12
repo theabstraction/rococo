@@ -687,13 +687,12 @@ namespace
             }
             AddSlashToDirectory(srcEnvironment);
 			}
-			catch(OS::OSException& innerEx)
+			catch(IException& innerEx)
 			{
-            OS::OSException ex;
-            ex.exceptionNumber = innerEx.ErrorCode();
-            StringPrint(ex.message, ex.CAPACITY, SEXTEXT("%s:\nFailed to get sexy environment.\nUse Sexy::Script::SetDefaultNativeSourcePath(...) or ProgramInitParameters or environment variable SEXY_NATIVE_SRC_DIR"), innerEx.Message());
-            _logger.Write(ex.message);
-            throw ex;
+            wchar_t message[1024];
+            SafeFormat(message, _TRUNCATE, SEXTEXT("%s:\nFailed to get sexy environment.\nUse Sexy::Script::SetDefaultNativeSourcePath(...) or ProgramInitParameters or environment variable SEXY_NATIVE_SRC_DIR"), innerEx.Message());
+            _logger.Write(message);
+            Sexy::Throw(innerEx.ErrorCode(), SEXTEXT("%s"), message);
 			}
 			
 			scripts = new CScripts(progObjProxy(), *this);
@@ -715,7 +714,7 @@ namespace
 				AddNativeLibrary(SEXTEXT("Sexy.NativeLib.Reflection"));
 				AddNativeLibrary(SEXTEXT("Sexy.NativeLib.Maths"));
 			}
-			catch(OS::OSException&)
+			catch(IException&)
 			{
 				_logger.Write(SEXTEXT("Sexy: Error reading common source files."));
 				delete scripts;

@@ -67,7 +67,23 @@ namespace  Sexy
 
    namespace Sex
    {
-     
+      ParseException::ParseException() : startPos{ 0,0 }, endPos{ 0, 0 }
+      {
+         srcName[0] = 0;
+         errText[0] = 0;
+         specimenText[0] = 0;
+         source = nullptr;
+      }
+
+      ParseException::ParseException(const Vec2i& start, const Vec2i& end, csexstr name, csexstr err, csexstr specimen, const ISExpression* _source) :
+         startPos(start),
+         endPos(end),
+         source(_source)
+      {
+         CopyString(srcName, MAX_ERRMSG_LEN, name, -1);
+         CopyString(errText, MAX_ERRMSG_LEN, err, -1);
+         CopyString(specimenText, MAX_ERRMSG_LEN, specimen, -1);
+      }
 
       void Throw(ParseException& ex)
       {

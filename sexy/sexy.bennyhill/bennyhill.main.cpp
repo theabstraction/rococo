@@ -36,6 +36,7 @@
 
 #include <stdarg.h>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "sexy.lib.s-parser.h"
 #include "sexy.lib.util.h"
@@ -159,22 +160,6 @@ namespace Sexy
 using namespace Sexy;
 using namespace Sexy::Sex;
 
-void WriteInterfaceDeclaration(FileAppender& writer, csexstr qualifiedName, int depth)
-{
-   NamespaceSplitter splitter(qualifiedName);
-   csexstr head, body;
-   if (splitter.SplitHead(head, body))
-   {
-      writer.Append(SEXTEXT("namespace %s { "), head);
-      WriteInterfaceDeclaration(writer, body, depth + 1);
-      writer.Append(SEXTEXT("}"));
-   }
-   else
-   {
-      writer.Append(SEXTEXT("\n\tstruct %s;\n"), qualifiedName);
-   }
-}
-
 void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods, cr_sex interfaceDef)
 {
 	FileAppender sexyFileAppender(ic.appendSexyFile);	
@@ -182,13 +167,6 @@ void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s,
 	ImplementSexyInterface(sexyFileAppender, ic, methods, s, pc);
 
 	FileAppender cppFileAppender(ic.appendCppHeaderFile);
-
-   for (auto i : pc.interfaces)
-   {
-      WriteInterfaceDeclaration(cppFileAppender, i.second->ic.asCppInterface.SexyName(), 0);
-      cppFileAppender.Append(SEXTEXT("\n\n"));
-   }
-
 	DeclareCppInterface(cppFileAppender, ic, interfaceDef, methods, pc);
 
 	FileAppender cppFileImplAppender(ic.appendCppImplFile); 
@@ -197,12 +175,6 @@ void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s,
 
 void GenerateFiles(const ParseContext& pc, const EnumContext& ec, cr_sex senumDef)
 {
-	FileAppender sexyFileAppender(ec.appendSexyFile);
-	DeclareSexyEnum(sexyFileAppender, ec, senumDef, pc);
-	
-	FileAppender cppFileAppender(ec.appendCppHeaderFile);
-	DeclareCppEnum(cppFileAppender, ec, senumDef, pc);
-
 	FileAppender cppFileImplAppender(ec.appendCppImplFile);
 	ImplementNativeFunctions(cppFileImplAppender, ec, pc);
 }
@@ -458,9 +430,11 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 	}
 }
 
-void ParseEnum(cr_sex senumDef, const ParseContext& pc)
+void ParseEnum(cr_sex senumDef, ParseContext& pc)
 {
-	EnumContext ec;
+   EnumDef def;
+   def.sdef = &senumDef;
+	EnumContext& ec = def.ec;
 
 	if (senumDef.NumberOfElements() < 4)
 	{
@@ -602,15 +576,7 @@ void ParseEnum(cr_sex senumDef, const ParseContext& pc)
 		StringPrint(ec.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.cpp"), pc.cppRootDirectory, pc.scriptName);
 	}
 
-	try
-	{
-		GenerateFiles(pc, ec, senumDef);
-	}
-	catch (OS::OSException&)
-	{
-		WriteToStandardOutput(SEXTEXT("Error in enum defintion %s: %d.%d to %d.%d\n"), pc.scriptInput, senumDef.Start().x, senumDef.Start().y, senumDef.End().x, senumDef.End().y);
-		throw;
-	}
+   pc.enums.push_back(def);
 }
 
 void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
@@ -837,13 +803,20 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 		}		
 	}
 
-   for (auto i : pc.interfaces)
+   GenerateDeclarations(pc);
+
+   for(auto& i: pc.enums)
+   {
+      GenerateFiles(pc, i.ec, *i.sdef);
+   }
+
+   for (auto& i : pc.interfaces)
    {
       auto& def = *i.second;
       GenerateFiles(pc, def.ic, *def.sdef, def.methods, *def.sdef);
    }
 
-   for (auto i : pc.interfaces)
+   for (auto& i : pc.interfaces)
    {
       delete i.second;
    }
@@ -932,17 +905,17 @@ int main(int argc, char* argv[])
 
    if (touchModifiedAt == 0 && strcmp(touchFile, "null") != 0)
    {
-      printf("!!! Warning: touchfile does not appear to exist !!! \n");
+      printf("!!! Warning: touchfile '%s' does not appear to exist !!! \n", touchFile);
    }
 
    if (scriptModifiedAt == 0)
    {
-      printf("!!! Warning: scriptInput does not appear to exist !!!\n");
+      printf("!!! Warning: scriptInput '%s' does not appear to exist !!!\n", scriptInput);
    }
 
 	if (scriptModifiedAt < touchModifiedAt)
 	{
-		printf("%s was last updated before %s\n", scriptInput, touchFile);
+		printf("%s was last updated before %s.\nTerminating BennyHill gracefully.\n", scriptInput, touchFile);
 		return 0;
 	}
 

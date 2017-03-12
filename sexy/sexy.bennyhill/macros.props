@@ -3,12 +3,16 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
     <BTEST>$(SolutionDir)sexy.bennyhill.test\tests\</BTEST>
+    <MAD>C:\work\madscience\projects\api\api.core\</MAD>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />
   <ItemGroup>
     <BuildMacro Include="BTEST">
       <Value>$(BTEST)</Value>
+    </BuildMacro>
+    <BuildMacro Include="MAD">
+      <Value>$(MAD)</Value>
     </BuildMacro>
   </ItemGroup>
 </Project>

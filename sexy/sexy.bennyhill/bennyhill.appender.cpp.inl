@@ -36,6 +36,8 @@ namespace
 	using namespace Sexy;
 	using namespace Sexy::Sex;
 
+   void DeclareCppEnum(FileAppender& appender, const EnumContext& ec, cr_sex senumDef, const ParseContext& pc);
+
 	int AppendNamespace(FileAppender& appender, csexstr fqStructName)
 	{
 		NamespaceSplitter splitter(fqStructName);
@@ -156,8 +158,8 @@ namespace
 				if (inputCount > 1) appender.Append(SEXTEXT(", "));
 				inputCount++;
 
-				if (s.NumberOfElements() == 3)
-				{
+				if (s.NumberOfElements() == 3 || AreEqual(inputtype, SEXTEXT("IString")))
+            {
 					appender.Append(SEXTEXT("const "));
 				}
 
@@ -195,6 +197,72 @@ namespace
 
 		appender.Append(SEXTEXT(") = 0;"));
 	}
+
+   void WriteInterfaceDeclaration(FileAppender& writer, csexstr qualifiedName, int depth)
+   {
+      NamespaceSplitter splitter(qualifiedName);
+      csexstr head, body;
+      if (splitter.SplitHead(head, body))
+      {
+         writer.Append(SEXTEXT("namespace %s { "), head);
+         WriteInterfaceDeclaration(writer, body, depth + 1);
+         writer.Append(SEXTEXT("}"));
+      }
+      else
+      {
+         writer.Append(SEXTEXT("\n\tstruct %s;\n"), qualifiedName);
+      }
+   }
+
+   void GenerateDeclarations(const ParseContext& pc)
+   {
+      std::unordered_set<stdstring> enumFiles;
+      for (auto& i : pc.enums)
+      {
+         enumFiles.insert(i.ec.appendSexyFile);
+      }
+
+      for (auto& i : enumFiles)
+      {
+         FileAppender sexyFileAppender(i.c_str());
+         for (auto& i : pc.enums)
+         {
+            DeclareSexyEnum(sexyFileAppender, i.ec, *i.sdef, pc);
+         }
+      }
+
+      enumFiles.clear();
+      for (auto& i : pc.enums)
+      {
+         enumFiles.insert(i.ec.appendCppHeaderFile);
+      }
+
+      for (auto& i : enumFiles)
+      {
+         FileAppender cppFileAppender(i.c_str());
+         for (auto& i : pc.enums)
+         {
+            DeclareCppEnum(cppFileAppender, i.ec, *i.sdef, pc);
+         }
+      }
+
+      enumFiles.clear();
+      for (auto& i : pc.interfaces)
+      {
+         auto& ic = i.second->ic;
+         enumFiles.insert(ic.appendCppHeaderFile);
+      }
+
+      for (auto& i : enumFiles)
+      {
+         FileAppender cppFileAppender(i.c_str());
+         for (auto& i : pc.interfaces)
+         {
+            WriteInterfaceDeclaration(cppFileAppender, i.second->ic.asCppInterface.SexyName(), 0);
+            cppFileAppender.Append(SEXTEXT("\n\n"));
+         }
+      }
+   }
 
 	void DeclareCppEnum(FileAppender& appender, const EnumContext& ec, cr_sex senumDef, const ParseContext& pc)
 	{
