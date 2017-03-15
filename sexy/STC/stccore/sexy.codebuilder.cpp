@@ -1617,11 +1617,6 @@ namespace
 		{
 			size_t nBytesSource = sourceDef.AllocSize;
 
-			if (srcType->VarType() == VARTYPE_Derivative)
-			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot assign %s to %s. The source was of derived type"), source, target);
-			}
-
 			if (targetDef.IsParentValue || sourceDef.IsParentValue)
 			{
 				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot handle this case for a closure upvalue"));

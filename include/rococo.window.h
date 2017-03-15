@@ -369,7 +369,7 @@ namespace Rococo
             virtual void Free() = 0;
             virtual void NotifyMigration(IDEPANE_ID migratingId) = 0;
             virtual void SetFontRecursive(HFONT hFont) = 0;
-            virtual void Save(const wchar_t* userConfigFile, const LOGFONT& logFont, int32 version) = 0;
+            virtual void Save(const LOGFONT& logFont, int32 version) = 0;
          };
 
          ROCOCOAPI IPaneDatabase
@@ -400,7 +400,7 @@ namespace Rococo
          IIDETextWindow* CreateTextWindow(IWindow& parent);
          IIDETreeWindow* CreateTreeView(IWindow& parent, ITreeControlHandler* handler);
          IIDEReportWindow* CreateReportView(IWindow& parent);
-         ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONT& logFont);
+         ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONT& logFont, const wchar_t* appName);
       }
 
 		IButton* AddPushButton(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD styleEx = 0);

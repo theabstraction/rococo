@@ -26,6 +26,9 @@
 (macro Dystopia.Entities.LimbIndexRightHand in out (out.AddAtomic "0xD"))
 (macro Dystopia.Entities.LimbIndexCount in out (out.AddAtomic "0xE"))
 
+(macro Dystopia.UI.WidgetStateNoFocus in out (out.AddAtomic "0x0"))
+(macro Dystopia.UI.WidgetStateHasFocus in out (out.AddAtomic "0x1"))
+
 (interface Dystopia.Journal.IJournal
 	(AddHistory (Sys.Type.IString title)(Sys.Type.IString body) -> )
 	(AddGoalMeet (Sys.Type.IString title)(Sys.Type.IString body)(Int64 a)(Int64 b)(Float32 radius)(Dystopia.Callbacks.TwoInt64InputFunction completionFunction) -> (Int64 id))

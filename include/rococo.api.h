@@ -4,16 +4,16 @@
 #include <rococo.types.h>
 
 // The following could be done with a template, but that results in bloated error messages, and our ids are ubiquitous
-#define ROCOCO_ID(DEFINED_ID_NAME,TYPE,INVALID_VALUE)										\
-struct DEFINED_ID_NAME																		\
-{																							\
-	DEFINED_ID_NAME() : value(INVALID_VALUE) {}												\
-	explicit DEFINED_ID_NAME(TYPE _value) : value(_value) {}								\
-	TYPE value;																				\
-   static DEFINED_ID_NAME Invalid() { return DEFINED_ID_NAME(); }							\
-	size_t operator()(const DEFINED_ID_NAME& obj) const { return size_t(obj.value); }		\
-};																							\
-																							\
+#define ROCOCO_ID(DEFINED_ID_NAME,TYPE,INVALID_VALUE)										      \
+struct DEFINED_ID_NAME																		            \
+{																							                  \
+	DEFINED_ID_NAME() : value(INVALID_VALUE) {}												      \
+	explicit DEFINED_ID_NAME(TYPE _value) : value(_value) {}								      \
+	TYPE value;																				               \
+   static DEFINED_ID_NAME Invalid() { return DEFINED_ID_NAME(); }							   \
+	size_t operator()(const DEFINED_ID_NAME& obj) const { return size_t(obj.value); }	\
+   operator bool () const { return value != INVALID_VALUE; }                            \
+};																							                  \
 inline bool operator == (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return a.value == b.value; }				\
 inline bool operator != (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return !(a == b); }
 
@@ -79,7 +79,15 @@ namespace Rococo
 	struct IOS;
 	struct IRenderContext;
 	struct IBuffer;
-	struct IUltraClock;
+
+   ROCOCOAPI IUltraClock
+   {
+      virtual ticks Hz() const = 0;			// Number of ticks per seconds
+      virtual ticks FrameStart() const = 0;	// The time of the current render frame
+      virtual ticks Start() const = 0;		// The time at which the mainloop started
+      virtual ticks FrameDelta() const = 0;	// The time between the previous frame and the current frame.
+   };
+
 	struct IStringBuilder;
 	struct IRandom;
 	struct KeyboardEvent;
@@ -166,6 +174,11 @@ namespace Rococo
       struct IUnicode16Writer;
       bool ChooseDirectory(wchar_t* name, size_t capacity);
       void ForEachFileInDirectory(const wchar_t* directory, IEventCallback<const wchar_t*>& onFile);
+   }
+
+   namespace OS
+   {
+      void ShutdownApp();
    }
 
    struct IDebuggerWindow;
@@ -285,6 +298,84 @@ namespace Rococo
 		virtual uint32 operator()() = 0;
 		virtual void Seed(uint32 value) = 0;
 	};
+
+   namespace Events
+   {
+      typedef int32 EventHash;
+
+      class EventId
+      {
+      private:
+         const wchar_t* name;
+         EventHash hash;
+         mutable EventHash id{ 0 };
+
+      public:
+         EventId(const wchar_t* const _name, EventHash _hash) : name(_name), hash(_hash) { }
+         EventId(const EventId& src) : name(src.name), hash(src.hash), id(src.id) {}
+         EventId operator = (const EventId& src) = delete;
+
+         const wchar_t* Name() const  { return name; }
+         operator const wchar_t*() const { return name; }
+
+         operator EventHash() const;
+      };
+
+      EventId operator "" _event(const wchar_t* name, size_t len);
+
+      struct Event
+      {
+         EventId id;
+         int64 sizeInBytes;
+         operator EventId() const { return id; }
+
+         Event(EventId _id) : id(_id) {}
+      };
+
+      inline bool operator == (const EventId& a, const EventId& b)
+      {
+         return (EventHash)a == (EventHash)b;
+      }
+
+      inline bool operator != (const EventId& a, const EventId& b)
+      {
+         return !(a == b);
+      }
+
+      ROCOCOAPI IObserver
+      {
+         virtual void OnEvent(Event& ev) = 0;
+      };
+
+      ROCOCOAPI IPublisher
+      {
+         virtual void Detach(IObserver* observer) = 0;
+         virtual void Observe(IObserver* observer) = 0;
+         virtual void Publish(Event& ev) = 0;
+      };
+
+      ROCOCOAPI IPublisherSupervisor : public IPublisher
+      {
+         virtual void Free() = 0;
+      };
+
+      IPublisherSupervisor* CreatePublisher();
+
+      template<class T> inline void Publish(IPublisher& publisher, T& ev)
+      {
+         ev.sizeInBytes = sizeof(T);
+         publisher.Publish(ev);
+      }
+
+      void ThrowBadEvent(const Event& ev);
+
+      template<class T> inline T& As(Event& ev)
+      {
+         T& t = static_cast<T&>(ev);
+         if (t.sizeInBytes != sizeof(T)) ThrowBadEvent();
+         return t;
+      }
+   } // Events
 
 	namespace Random
 	{

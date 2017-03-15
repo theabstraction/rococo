@@ -267,6 +267,11 @@ namespace
 				Throw(E_INVALIDARG, L"Win32OS::LoadResource failed: %s%s - filename was too long", contentDirectory, resourcePath + 1);
 			}
 
+         if (wcsstr(resourcePath, L"..") != nullptr)
+         {
+            Throw(E_INVALIDARG, L"Win32OS::LoadResource failed: %s - parent directory sequence '..' is forbidden", resourcePath);
+         }
+
 			FilePath sysPath;
 			os.ConvertUnixPathToSysPath(resourcePath + 1, sysPath, _MAX_PATH);
 			
@@ -615,6 +620,14 @@ namespace Rococo
    void ThreadLock::Unlock()
    {
       LeaveCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
+   }
+
+   namespace OS
+   {
+      void ShutdownApp()
+      {
+         PostQuitMessage(0);
+      }
    }
 
    namespace IO

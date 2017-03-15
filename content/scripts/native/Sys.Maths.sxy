@@ -35,8 +35,8 @@
 )
 
 (struct Quatf
-	(Float32 s)
 	(Vec3f v)
+	(Float32 s)
 )
 
 (struct Vec2lf

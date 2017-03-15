@@ -1,0 +1,80 @@
+(config $config.xc) 
+
+(interface
+	(as.sxy HV.Graphics.IMeshBuilder "../content/scripts/hv")
+	(as.cpp HV.Graphics.IMeshBuilder "hv")
+	(context factory HV.Graphics.IMeshBuilder)
+	(methods
+		(Begin (IString fqName))
+		(AddTriangle (const Vertex a)(const Vertex b)(const Vertex c))
+		(End)
+		(Clear)
+	)
+	(factory HV.Graphics.MeshBuilder)
+)
+
+(interface
+	(as.sxy HV.Graphics.IInstances "../content/scripts/hv")
+	(as.cpp HV.Graphics.IInstances "hv")
+	(context factory HV.Graphics.IInstances)
+	(methods
+		(SetOrientation (IdEntity entityId)(const Quat orientation))
+		(SetScale (IdEntity entityId)(const Vec3 scale))
+		(SetPosition (IdEntity entityId)(const Vec3 position))
+		(GetScale (IdEntity entityId)(Vec3 scale))
+		(GetPosition (IdEntity entityId)(Vec3 position))
+		(GetOrientation (IdEntity entityId)(Quat orientation))
+
+		(Begin (IString fqName))
+		(SetMeshByName (IString modelName))
+		(SetParent(IdEntity entityId))
+		(End -> (IdEntity entityId))
+		(Clear)
+	)
+	(factory HV.Graphics.Instances)
+)
+
+(interface
+	(as.sxy HV.Graphics.ISceneBuilder "../content/scripts/hv")
+	(as.cpp HV.Graphics.ISceneBuilder "hv")
+	(context factory HV.Graphics.ISceneBuilder)
+	(methods
+		(AddStatics  (IdEntity entityId))
+		(AddAllStatics (IString prefix))
+		(Clear)
+	)
+	(factory HV.Graphics.SceneBuilder)
+)
+
+(enum Int32
+	(as.sxy HV.Graphics.OrientationFlags "../content/scripts/hv")
+	(as.cpp HV.Graphics.OrientationFlags "hv")
+	(
+		(None 0)
+		(OrientationFlagsHeading 1)
+		(OrientationFlagsElevation 2)
+		(OrientationFlagsRoll 4)
+	)
+)
+
+
+(interface
+	(as.sxy HV.Graphics.ICamera "../content/scripts/hv")
+	(as.cpp HV.Graphics.ICamera "hv")
+	(context factory HV.Graphics.ICamera)
+	(methods
+		(Clear)
+		(SetProjection (const Matrix4x4 proj))
+		(SetPosition (const Vec3 position))
+		(SetOrientation (const Quat orientation))
+		(FollowEntity (IdEntity id))
+		(MoveToEntity (IdEntity id))
+		(OrientateWithEntity (IdEntity id)(Int32 flags))
+		(OrientateToEntity(IdEntity id)(Int32 flags))
+		(GetPosition (Vec3 position))
+		(GetOrientation (Quat orientation))
+		(GetWorld (Matrix4x4 world))
+		(GetWorldAndProj (Matrix4x4 worldAndProj))
+	)
+	(factory HV.Graphics.Camera)
+)

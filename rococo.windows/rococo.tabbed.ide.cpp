@@ -405,6 +405,8 @@ namespace
 
       bool isRoot;
 
+      std::wstring savename;
+
       IDESpatialManager(IPaneDatabase& _database) :
          layout(ELayout_Tabbed), tabView(nullptr),
          window(nullptr),
@@ -756,12 +758,14 @@ namespace
          TrackPopupMenu(*contextMenu, TPM_VERNEGANIMATION | TPM_TOPALIGN | TPM_LEFTALIGN, screenPos.x, screenPos.y, 0, *window, NULL);
       }
    public:
-      static IDESpatialManager* Create(IWindow& parent, IPaneDatabase& database, bool isRoot = false)
+      static IDESpatialManager* Create(IWindow& parent, IPaneDatabase& database, bool isRoot = false, const wchar_t* savename = nullptr)
       {
          auto node = new IDESpatialManager(database);
          node->PostConstruct(parent);
          node->SetBackgroundColour(RGB(255, 0, 0));
          node->isRoot = isRoot;
+
+         if (savename) { node->savename = savename; }
          return node;
       }
 
@@ -1007,7 +1011,7 @@ namespace
          }
       }
 
-      virtual void Save(const wchar_t* userConfigFile, const LOGFONT& logFont, int32 version)
+      virtual void Save(const LOGFONT& logFont, int32 version)
       {
          IDEWriterViaSexy writer;
 
@@ -1021,7 +1025,7 @@ namespace
             Save(writer);
          writer.PopChild();
 
-         writer.Commit(userConfigFile);
+         writer.Commit(savename.c_str());
       }
 
       void Save(IIDEWriter& writer)
@@ -1456,17 +1460,19 @@ namespace
       logFont.lfHeight = height.int32Value;
    }
 
-   ISpatialManager* _LoadSpatialManager(IWindow& parent, LOGFONT& logFont, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId)
+   ISpatialManager* _LoadSpatialManager(IWindow& parent, LOGFONT& logFont, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, const wchar_t* appName)
    {
       CSParserProxy parser;
 
+      wchar_t savename[_MAX_PATH];
+      SafeFormat(savename, _TRUNCATE, L"%s.ide.sxy", appName);
       wchar_t fullpath[_MAX_PATH];
-      IO::GetUserPath(fullpath, _MAX_PATH, L"debugger.ide.sxy");
+      IO::GetUserPath(fullpath, _MAX_PATH, savename);
 
       Auto<Sexy::Sex::ISourceCode> src;
       Auto<Sexy::Sex::ISParserTree> tree;
 
-      auto spatialManager = IDESpatialManager::Create(parent, database, true);
+      auto spatialManager = IDESpatialManager::Create(parent, database, true, savename);
 
       try
       {
@@ -1526,9 +1532,9 @@ namespace Rococo
             return IDESpatialManager::Create(parent, database, true);
          }
 
-         ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONT& logFont)
+         ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONT& logFont, const wchar_t* appName)
          {
-            return _LoadSpatialManager(parent, logFont, database, idArray, nPanes, versionId);
+            return _LoadSpatialManager(parent, logFont, database, idArray, nPanes, versionId, appName);
          }
       }
    }

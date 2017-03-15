@@ -240,7 +240,7 @@ namespace
          currentPanel = i->second;
       }
 
-      virtual void RebuildPanel(fstring& panelName)
+      virtual void RebuildPanel(const fstring& panelName)
       {
          BuildPanel(panelName);
       }
@@ -252,7 +252,7 @@ namespace
          return reinterpret_cast<WidgetFrame&>(widget);
       }
 
-      virtual void AddButton(ID_WIDGET id, Vec2i& span, fstring& text)
+      virtual void AddButton(ID_WIDGET id, Vec2i& span, const fstring& text)
       {
          AssertUnique(*currentPanel, id, currentPanelName.c_str());
 
@@ -411,7 +411,7 @@ namespace
          return GuiRect(w.posInContainer.x, w.posInContainer.y, w.posInContainer.x + w.span.x, w.posInContainer.y + w.span.y);
       }
 
-      GuiRect GetSmallestRectContainingChildren(WidgetFrame& parent)
+      GuiRect GetSmallestRectContainingChildren(const WidgetFrame& parent)
       {
          if (!parent.children.empty())
          {

@@ -259,6 +259,30 @@ void ValidateCollisionLib()
 	VALIDATE(ptTest3.contactType == ContactType_None);
 }
 
+void  ValidateProjectionLib()
+{
+   Matrix4x4 projection = {
+      {1,   0,   0,   0},
+      {0,   1,   0,   0},
+      {0,   0,   1,  -1},
+      {0,   0,   1,   0}
+   };
+
+   Vec4 worldPositionX{ 1.0f, 0.0f, 10.0f,  1.0f };
+   Vec4 worldPositionY{ 0.0f, 1.0f, 10.0f,  1.0f };
+
+   Vec4 screenPositionX = projection * worldPositionX;
+   VALIDATE(screenPositionX.x == 1.0f);
+   VALIDATE(screenPositionX.y == 0);
+   VALIDATE(screenPositionX.z == 9.0f);
+   
+
+   Vec4 screenPositionY = projection * worldPositionY;
+   VALIDATE(screenPositionY.x == 0.0f);
+   VALIDATE(screenPositionY.y == 1.0);
+   VALIDATE(screenPositionY.z == 9.0f);
+}
+
 void test()
 {
 	wprintf(L"rococo.maths.test running...\n");
@@ -268,6 +292,7 @@ void test()
 	ValidateMatrixLib();
 //	ValidateQuadTreeLib();
 	ValidateCollisionLib();
+   ValidateProjectionLib();
 
 	wprintf(L"rococo.maths.test finished\n");
 }

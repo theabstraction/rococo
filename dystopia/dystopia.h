@@ -1,6 +1,7 @@
 #pragma once
 
 #include <rococo.api.h>
+#include <rococo.renderer.h>
 
 namespace Rococo
 {
@@ -10,6 +11,11 @@ namespace Rococo
 	struct MouseEvent;
 	struct ObjectInstance;
 	struct ISourceCache;
+
+   ROCOCOAPI IDystopiaApp: public IApp
+   {
+      virtual void OnCreate() = 0;
+   };
 
    namespace IDE
    {

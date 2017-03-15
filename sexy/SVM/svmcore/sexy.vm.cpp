@@ -1466,6 +1466,8 @@ namespace
 			info.SourceOffset = (int32)(int8) I->Opmod2;
 			info.ByteCount = (size_t) I->Opmod3;			
 			cpu.AdvancePC(4);
+
+         info.SF = cpu.D[REGISTER_SF].uint8PtrValue;
 		}
 
 		uint8* LookupSFPtr(int offset)

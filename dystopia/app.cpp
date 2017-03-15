@@ -52,7 +52,7 @@ namespace
    static const wchar_t* paneName = L"!gui/panes.sxy";
 
 	class DystopiaApp : 
-		public IApp,
+		public IDystopiaApp,
 		public IEventCallback<GuiEventArgs>,
 		public IUIPaneFactory, 
 		public Post::IRecipient,
@@ -284,7 +284,7 @@ namespace
 			delete this;
 		}
 
-		virtual void OnCreated()
+		virtual void OnCreate()
 		{
 			uiStack->OnCreated();
 			uiStack->PushTop(ID_PANE_ISOMETRIC_GAME_VIEW);
@@ -339,12 +339,17 @@ namespace
 		{
 			postbox->PostForLater(ke, true);
 		}
+
+      virtual const wchar_t* Title() const
+      {
+         return L"Dystopia";
+      }
 	};
 }
 
 namespace Dystopia
 {
-	IApp* CreateDystopiaApp(IRenderer& renderer, IInstallation& installatiion)
+   IDystopiaApp* CreateDystopiaApp(IRenderer& renderer, IInstallation& installatiion)
 	{
 		return new DystopiaApp(renderer, installatiion);
 	}

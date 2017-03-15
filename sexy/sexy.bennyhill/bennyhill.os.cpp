@@ -63,10 +63,7 @@ namespace Sexy
 		int errcode = _wfopen_s(&hFile, _filename, L"ab");
 		if (hFile == nullptr)
 		{
-			OS::OSException ex;
-			ex.exceptionNumber = errcode;
-			StringPrint(ex.message, OS::OSException::CAPACITY, SEXTEXT("Error opening/creating %s for appending"), _filename);	
-			throw ex;
+			Throw(errcode, SEXTEXT("Error opening/creating %s for appending"), _filename);	
 		}
 	}
 

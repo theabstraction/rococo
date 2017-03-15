@@ -255,7 +255,6 @@ namespace Rococo
                case EScriptExceptionFlow_Ignore:
                   return 0;
                case EScriptExceptionFlow_Retry:
-                  DebuggerLoop(ssp(), debugger);
                   break;
                case EScriptExceptionFlow_Terminate:
                   Throw(ex.ErrorCode(), L"%s", ex.Message());

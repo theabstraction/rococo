@@ -25,7 +25,7 @@ namespace Rococo
    struct fstring
    {
       const wchar_t* buffer;
-      const int32 length;
+      int32 length;
 
       operator const wchar_t*() const { return buffer; }
    };
@@ -78,6 +78,15 @@ namespace Rococo
 		virtual const wchar_t* Message() const = 0;
 		virtual int32 ErrorCode() const = 0;
 	};
+
+   class RecursionGuard
+   {
+   private:
+      int32& counter;
+   public:
+      RecursionGuard(int32& _counter): counter(_counter) { counter++; }
+      ~RecursionGuard() { counter--; }
+   };
 
 	void Throw(int32 errorCode, const wchar_t* format, ...);
 	void TripDebugger();
@@ -294,6 +303,11 @@ namespace Rococo
    };
 
    ROCOCOAPI IAllocatorSupervisor: public IAllocator
+   {
+      virtual void Free() = 0;
+   };
+
+   ROCOCOAPI IHeapObject
    {
       virtual void Free() = 0;
    };

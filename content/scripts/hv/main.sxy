@@ -1,0 +1,68 @@
+(' #file.type rococo.hv)
+
+(' #include 
+	"!scripts/hv.sxh.sxy"
+	"!scripts/types.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Sys.Maths)
+(using HV.Graphics)
+
+(function DefinePlatonicSquare -> :
+	(IMeshBuilder mb (MeshBuilder))
+	(mb.Clear)
+	(mb.Begin "mesh.platonic.square")
+	
+	/*
+	(struct Vertex
+		(Sys.Maths.Vec3 position)
+		(Sys.Maths.Vec3 normal)
+		(Int32 emissiveColour)
+		(Int32 diffuseColour)
+		(Sys.Maths.Vec2 uv)
+	)
+	*/
+	
+	// Top face
+	(Vertex bottomLeft  = (-0.5 -0.5 2.5) (0 0 1) 0x808080FF 0xFF0000FF (0 0))
+	(Vertex topLeft     = (-0.5  0.5 2.5) (0 0 1) 0x808080FF 0xFF0000FF (0 0))
+	(Vertex bottomRight = ( 0.5 -0.5 2.5) (0 0 1) 0x808080FF 0xFF0000FF (0 0))
+	(Vertex topRight    = ( 0.5  0.5 2.5) (0 0 1) 0x808080FF 0xFF0000FF (0 0))
+	(mb.AddTriangle bottomLeft topLeft topRight)
+	(mb.AddTriangle topRight bottomRight bottomLeft)
+	
+	(mb.End)
+)
+
+(function GetProjectionMatrix (Matrix4x4 output)-> :
+	(Matrix4x4 proj = 
+		(1   0   0   0)
+		(0   1   0   0)
+		(0   0   1  -1)
+		(0   0   1   0)
+	)
+	
+	(output = proj)
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(IMeshBuilder mb (MeshBuilder))
+	(IInstances instances (Instances))
+	(ISceneBuilder scene (SceneBuilder))
+	(ICamera camera (Camera))
+	
+	(DefinePlatonicSquare)
+	
+	(instances.Begin "square.1")
+	(instances.SetMeshByName "mesh.platonic.square")
+	(Int64 squareId = instances.End)
+	
+	(scene.AddStatics squareId)
+	
+	(Matrix4x4 proj)
+	(GetProjectionMatrix proj)
+	(camera.SetProjection proj)
+)

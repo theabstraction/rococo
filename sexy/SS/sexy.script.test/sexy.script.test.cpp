@@ -463,6 +463,69 @@ namespace
 		validate(AreAproxEqual(result, 1.73));
 	}
 
+   void TestAssignMatrixVariable(IPublicScriptSystem& ss)
+   {
+      csexstr srcCode =
+         SEXTEXT("(namespace EntryPoint)")
+         SEXTEXT("(using Sys.Maths)")
+         SEXTEXT("(function Main (Int32 id) -> (Int32 exitCode): ")
+         SEXTEXT("  (Matrix4x4 m)")
+         SEXTEXT("  (Matrix4x4 n)")
+         SEXTEXT("  (m = n)")
+         SEXTEXT(")")
+         SEXTEXT("(alias Main EntryPoint.Main)");
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignMatrixVariable"));
+      Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+      VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+      vm.Push(100); // Allocate stack space for the int32 exitCode
+      vm.Push(101); // Allocate stack space for the int32 result
+
+      auto result = vm.Execute(VM::ExecutionFlags(false, true));
+      ValidateExecution(result);
+   }
+
+   void TestAssignVectorVariableByRef(IPublicScriptSystem& ss)
+   {
+      csexstr srcCode =
+         SEXTEXT("(namespace EntryPoint)")
+         SEXTEXT("(using Sys.Maths)")
+         SEXTEXT("(function InitVec (Vec3 v) -> :  ")
+         SEXTEXT("  (Vec3 n = 1 2 3)") 
+         SEXTEXT("  (v = n)")
+         SEXTEXT(")")
+         SEXTEXT("(function Main (Int32 id) -> (Float32 a)(Float32 b)(Float32 c): ")
+         SEXTEXT("  (Vec3 v)")
+         SEXTEXT("  (InitVec v)")
+         SEXTEXT("  (a = v.x)")
+         SEXTEXT("  (b = v.y)")
+         SEXTEXT("  (c = v.z)")
+         SEXTEXT(")")
+         SEXTEXT("(alias Main EntryPoint.Main)");
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignVectorVariableByRef"));
+      Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+      VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+      vm.Push(100); // Allocate stack space for int32 exitCode
+      vm.Push(100); // Allocate stack space for int32 a
+      vm.Push(100); // Allocate stack space for int32 b
+      vm.Push(100); // Allocate stack space for int32 c
+
+      auto result = vm.Execute(VM::ExecutionFlags(false, true));
+
+      auto exitCode = vm.PopInt32();
+      auto c = vm.PopFloat32();
+      auto b = vm.PopFloat32();
+      auto a = vm.PopFloat32();
+
+      ValidateExecution(result);
+
+      validate(exitCode == 100)
+      validate(a == 1.0f);
+      validate(b == 2.0f);
+      validate(c == 3.0f);
+   }
+
 	void TestAssignInt64Literal(IPublicScriptSystem& ss)
 	{
 		csexstr srcCode =
@@ -10735,6 +10798,8 @@ namespace
 		TEST(TestAssignInt64Variable);
 		TEST(TestAssignFloat32Variable);
 		TEST(TestAssignFloat64Variable);
+      TEST(TestAssignMatrixVariable);
+      TEST(TestAssignVectorVariableByRef);
 		TEST(TestLocalVariable);
 		TEST(TestBooleanLiteralVsLiteralMatches);
 		TEST(TestBooleanMismatch);
@@ -10925,7 +10990,7 @@ namespace
       TEST(TestLinkedList11);
 		RunPositiveSuccesses();	
 		RunCollectionTests();
-		RunPositiveFailures();
+		RunPositiveFailures(); 
 	}
 }
 

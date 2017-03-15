@@ -359,10 +359,7 @@ namespace
 		catch(ParseException& ex)
 		{
 			WriteToStandardOutput(SEXTEXT("%s: %s. Specimen: %s"), fullconfigPath, ex.Message(), ex.Specimen());
-			OS::OSException oex;
-			oex.exceptionNumber = -1;
-			StringPrint(oex.message, 256, SEXTEXT("Error parsing config"));
-			throw oex;
+			Sexy::Throw(0, SEXTEXT("Error parsing config"));
 		}
 	}
 }

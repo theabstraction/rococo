@@ -82,6 +82,8 @@ namespace Rococo
 		}
 
 		static void FromQuat(const Quat& quat, Matrix4x4& m);
+      static void FromQuatAndThenTranspose(const Quat& quat, Matrix4x4& m);
+      static void GetRotationQuat(const Matrix4x4& m, Quat& quat);
 
 		Vec3 GetForwardDirection() const;
 		Vec3 GetRightDirection() const;
@@ -153,8 +155,8 @@ namespace Rococo
 	inline Vec2 operator / (const Vec2& numerator, float denominator) { float q = 1.0f / denominator; return Vec2{ numerator.x * q, numerator.y * q }; }
 	inline Vec2 operator * (const Vec2& q, float f) { return Vec2{ q.x * f, q.y * f }; }
 	inline Vec2 operator * (float f, const Vec2& q) { return Vec2{ q.x * f, q.y * f }; }
-	inline Vec2 operator += (Vec2& a, const Vec2& b) { a.x += b.x; a.y += b.y; return a; }
-	inline Vec2 operator -= (Vec2& a, const Vec2& b) { a.x -= b.x; a.y -= b.y; return a; }
+	inline void operator += (Vec2& a, const Vec2& b) { a.x += b.x; a.y += b.y; }
+	inline void operator -= (Vec2& a, const Vec2& b) { a.x -= b.x; a.y -= b.y;  }
 
 	inline bool operator == (const Vec2i& a, const Vec2i& b) { return a.x == b.x && a.y == b.y; }
 	inline bool operator != (const Vec2i& a, const Vec2i& b) { return !(a == b); }
@@ -165,6 +167,11 @@ namespace Rococo
 	inline Vec3 operator - (cr_vec3 a, cr_vec3 b) { return Vec3{ a.x - b.x, a.y - b.y, a.z - b.z }; }
 	inline bool operator == (const Vec3& a, const Vec3& b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
 	inline bool operator != (const Vec3& a, const Vec3& b) { return !(a == b); }
+
+   inline void operator += (Vec3& a, const Vec3& b) { a.x += b.x; a.y += b.y; a.z += b.z; }
+   inline void operator -= (Vec3& a, const Vec3& b) { a.x -= b.x; a.y -= b.y; a.z -= b.z; }
+
+   inline Vec3 operator - (cr_vec3 a) { return Vec3{ -a.x, -a.y, -a.z }; }
 
 	inline float Dot(cr_vec3 a, cr_vec3 b) { return a.x*b.x + a.y*b.y + a.z*b.z; }
 

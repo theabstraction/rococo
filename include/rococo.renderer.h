@@ -51,14 +51,6 @@ namespace Rococo
 		virtual auto SelectTexture(ID_TEXTURE id) -> Vec2i = 0; // select texture and returns span
 	};
 
-	ROCOCOAPI IUltraClock
-	{
-		virtual ticks Hz() const = 0;			// Number of ticks per seconds
-		virtual ticks FrameStart() const = 0;	// The time of the current render frame
-		virtual ticks Start() const = 0;		// The time at which the mainloop started
-		virtual ticks FrameDelta() const = 0;	// The time between the previous frame and the current frame.
-	};
-
 	struct ObjectInstance
 	{
 		Matrix4x4 orientation;
@@ -90,10 +82,10 @@ namespace Rococo
 	ROCOCOAPI IApp
 	{
 		virtual void Free() = 0;
-		virtual void OnCreated() = 0; // called just after construction - a 'post-constructor'
 		virtual auto OnFrameUpdated(const IUltraClock& clock) -> uint32 = 0; // returns number of ms to sleep per frame as hint
 		virtual void OnKeyboardEvent(const KeyboardEvent& k) = 0;
 		virtual void OnMouseEvent(const MouseEvent& me) = 0;
+      virtual const wchar_t* Title() const = 0;
 	};
 
 	struct GuiMetrics
@@ -128,7 +120,7 @@ namespace Rococo
 
 	ROCOCOAPI IAppFactory
 	{
-		virtual IApp* CreateApp(IRenderer& renderer) = 0;
+		virtual IApp* CreateApp(IRenderer& renderer, Windows::IWindow& ownerWindow) = 0;
 	};
 
 	namespace Graphics

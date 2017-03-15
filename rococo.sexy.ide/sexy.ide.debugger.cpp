@@ -164,7 +164,7 @@ namespace
          {
             spatialManager->Free();
             IO::DeleteUserFile(L"debugger.ide.sxy");
-            spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont);
+            spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, L"debugger");
 
             DeleteObject(hFont);
             hFont = CreateFontIndirectW(&logFont);
@@ -266,7 +266,7 @@ namespace
          SetOverlappedWindowConfig(config, Vec2i{ 800, 600 }, SW_SHOWMAXIMIZED, hParentWnd, L"Dystopia Script Debugger", WS_OVERLAPPEDWINDOW | WS_MAXIMIZE, 0, *mainMenu);    
          dialog = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
         
-         spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont);
+         spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, L"debugger");
 
          DeleteObject(hFont);
          hFont = CreateFontIndirectW(&logFont);
@@ -645,7 +645,7 @@ namespace
 
       virtual void Save()
       { 
-         spatialManager->Save(L"debugger.ide.sxy", logFont, IDE_FILE_VERSION);
+         spatialManager->Save(logFont, IDE_FILE_VERSION);
       }
 
       virtual void Run(IDebuggerPopulator& populator, IDebugControl& debugControl)

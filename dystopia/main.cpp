@@ -32,42 +32,20 @@
 #include <sexy.lib.util.h>
 #include <sexy.lib.script.h>
 
+#include <sexy.script.h>
+
 using namespace Rococo;
 using namespace Rococo::Windows;
 
 namespace Dystopia
 {
-	IApp* CreateDystopiaApp(IRenderer& renderer, IInstallation& installation);
+	IDystopiaApp* CreateDystopiaApp(IRenderer& renderer, IInstallation& installation);
 }
 
 namespace Rococo
 {
 	IOSSupervisor* GetOS();
 }
-
-struct FileHandle
-{
-	HANDLE hFile;
-
-	FileHandle(HANDLE _hFile) : hFile(_hFile)
-	{
-	}
-
-	bool IsValid() const
-	{
-		return hFile != INVALID_HANDLE_VALUE;
-	}
-
-	~FileHandle()
-	{
-		if (IsValid()) CloseHandle(hFile);
-	}
-
-	operator HANDLE()
-	{
-		return hFile;
-	}
-};
 
 int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -96,21 +74,14 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
 		wchar_t srcpath[_MAX_PATH];
 		SecureFormat(srcpath, L"%sscripts\\native\\", installation->Content());
-		SetEnvironmentVariable(L"SEXY_NATIVE_SRC_DIR", srcpath);
 
-		struct : IAppFactory
-		{
-			IInstallation* installation;
+      Sexy::Script::SetDefaultNativeSourcePath(srcpath);
 
-			virtual IApp* CreateApp(IRenderer& renderer)
-			{
-				return Dystopia::CreateDystopiaApp(renderer, *installation);
-			}
-		} factory;
-
-		factory.installation = installation;
-
-		RendererMain(hInstanceLock, *installation, factory);
+      AutoFree<IDX11Window> mainWindow(CreateDX11Window(*installation));
+      SetWindowText(mainWindow->Window(), L"Dystopia");
+      AutoFree<IDystopiaApp> app = Dystopia::CreateDystopiaApp(mainWindow->Renderer(), *installation);
+      app->OnCreate();
+      mainWindow->Run(hInstanceLock, *app);
 	}
 	catch (IException& ex)
 	{

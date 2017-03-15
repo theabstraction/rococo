@@ -199,17 +199,30 @@ namespace Rococo
 
 	void Matrix4x4::FromQuat(const Quat& quat, Matrix4x4& m)
 	{
-		using namespace DirectX;
-
-		XMVECTOR q;
-		q.m128_f32[0] = quat.v.x;
-		q.m128_f32[1] = quat.v.y;
-		q.m128_f32[2] = quat.v.z;
-		q.m128_f32[3] = quat.s;
-
+      using namespace DirectX;
+      XMVECTOR q = XMLoadFloat4(quat);
 		XMMATRIX xm = XMMatrixRotationQuaternion(q);
 		XMMatrixToM4x4(xm, m);
 	}
+
+   void Matrix4x4::GetRotationQuat(const Matrix4x4& m, Quat& quat)
+   {
+      using namespace DirectX;
+      XMMATRIX xm = XMLoadFloat4x4(m);
+      XMVECTOR q = XMQuaternionRotationMatrix(xm);
+      XMStoreFloat4(quat, q);
+   }
+
+   void Matrix4x4::FromQuatAndThenTranspose(const Quat& quat, Matrix4x4& m)
+   {
+      using namespace DirectX;
+
+      XMVECTOR q;
+      q = XMLoadFloat4(quat);
+      XMMATRIX xm = XMMatrixRotationQuaternion(q);
+      XMMATRIX xmt = XMMatrixTranspose(xm);
+      XMMatrixToM4x4(xmt, m);
+   }
 
 	void TransformPositions(const Vec3* vertices, size_t nElements, cr_m4x4 transform, Vec3* transformedVertices)
 	{
@@ -293,17 +306,8 @@ namespace Rococo
 	{
 		using namespace DirectX;
 
-		XMVECTOR A;
-		A.m128_f32[0] = a.v.x;
-		A.m128_f32[1] = a.v.y;
-		A.m128_f32[2] = a.v.z;
-		A.m128_f32[3] = a.s;
-		
-		XMVECTOR B;
-		B.m128_f32[0] = b.v.x;
-		B.m128_f32[1] = b.v.y;
-		B.m128_f32[2] = b.v.z;
-		B.m128_f32[3] = b.s;
+      XMVECTOR A = XMLoadFloat4(a);	
+		XMVECTOR B = XMLoadFloat4(b);
 
 		auto p = DirectX::XMQuaternionSlerp(A, B, t);
 

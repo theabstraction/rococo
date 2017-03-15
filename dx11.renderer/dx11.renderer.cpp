@@ -32,6 +32,8 @@
 
 #include <unordered_map>
 
+#include <rococo.dx11.renderer.win32.h>
+
 namespace
 {
 	using namespace Rococo;
@@ -1395,78 +1397,89 @@ namespace
 	}
 } // anon
 
-namespace Rococo
+namespace
 {
-	void CALLBACK RendererMain(HANDLE hInstanceLock, IInstallation& installation, IAppFactory& appFactory)
-	{
-		DX11Host host;
-		Create_DX11_0_DebugHost(0, host);
+   class DX11Window : public IDX11Window, public IAppEventHandler, public IEventCallback<SysUnstableArgs>
+   {
+      IInstallation& installation;
+      DX11Host host;
+      IApp* app{ nullptr };    
+      DX11AppRenderer* renderer{ nullptr };
+      AutoFree<MainWindowHandler> mainWindowHandler;
 
-		DX11AppRenderer renderer(*host.device, *host.dc, *host.factory, installation);
+      IWindow& Window()
+      {
+         return mainWindowHandler->Window();
+      }
 
-		struct ANON : IAppEventHandler, IEventCallback<SysUnstableArgs>
-		{
-			DX11AppRenderer* renderer;
-			IApp* app;
-			IOS* os;
+      virtual void BindMainWindow(HWND hWnd)
+      {
+         renderer->BindMainWindow(hWnd);
+      }
 
-			~ANON()
-			{
-				os->SetUnstableHandler(nullptr);
-			}
+      virtual bool OnClose()
+      {
+         renderer->SwitchToWindowMode();
+         return true;
+      }
 
-			virtual void BindMainWindow(HWND hWnd) 
-			{
-				renderer->BindMainWindow(hWnd);
-			}
+      virtual void OnKeyboardEvent(const RAWKEYBOARD& k)
+      {
+         if (app) app->OnKeyboardEvent((const KeyboardEvent&)k);
+      }
 
-			virtual bool OnClose()
-			{
-				renderer->SwitchToWindowMode();
-				return true;
-			}
+      virtual void OnMouseEvent(const RAWMOUSE& m)
+      {
+         renderer->OnMouseEvent(m);
+         if (app) app->OnMouseEvent((const MouseEvent&)m);
+      }
 
-			virtual void OnKeyboardEvent(const RAWKEYBOARD& k)
-			{
-				if (app) app->OnKeyboardEvent((const KeyboardEvent&)k);
-			}
+      virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
+      {
+         renderer->OnSize(hWnd, span, type);
+      }
 
-			virtual void OnMouseEvent(const RAWMOUSE& m)
-			{
-				renderer->OnMouseEvent(m);
-				if (app) app->OnMouseEvent((const MouseEvent&) m);
-			}
+      virtual void OnEvent(SysUnstableArgs& arg)
+      {
+         renderer->SwitchToWindowMode();
+      }
 
-			virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
-			{
-				renderer->OnSize(hWnd, span, type);
-			}
+      virtual IRenderer& Renderer()
+      {
+         return *renderer;
+      }
+   public:
+      DX11Window(IInstallation& _installation): installation(_installation)
+      {
+         Create_DX11_0_DebugHost(0, host);
+         renderer = new  DX11AppRenderer(*host.device, *host.dc, *host.factory, installation);
+         mainWindowHandler = MainWindowHandler::Create(*this);
+         VALIDATEDX11(host.factory->MakeWindowAssociation(mainWindowHandler->Window(), 0));
+         renderer->window = &mainWindowHandler->Window();
+         installation.OS().SetUnstableHandler(this);
+      }
 
-			virtual void OnEvent(SysUnstableArgs& arg)
-			{
-				renderer->SwitchToWindowMode();
-			}
+      virtual void Free()
+      {
+         installation.OS().SetUnstableHandler(nullptr);
+         delete renderer;
+         delete this;
+      } 
 
-		} eventSink;
+      void Run(HANDLE hInstanceLock, IApp& app)
+      {
+         this->app = &app;
+         MainLoop(*mainWindowHandler, hInstanceLock, app);
+         this->app = nullptr;
+      }
+   };
+}
 
-		eventSink.renderer = &renderer;
-		eventSink.app = nullptr;
-		eventSink.os = &installation.OS();
-
-		AutoFree<MainWindowHandler> mainWindowHandler = MainWindowHandler::Create(eventSink);
-		SetWindowText(mainWindowHandler->Window(), L"Dystopia, By Mark Anthony Taylor");
-		VALIDATEDX11(host.factory->MakeWindowAssociation(mainWindowHandler->Window(), 0));
-
-		renderer.window = &mainWindowHandler->Window();
-
-		installation.OS().SetUnstableHandler(&eventSink);
-
-		AutoFree<IApp> app = appFactory.CreateApp(renderer);
-		app->OnCreated();
-
-		eventSink.app = app;
-
-		MainLoop(*mainWindowHandler, hInstanceLock, *app);
-	}
+namespace Rococo
+{ 
+   IDX11Window* CreateDX11Window(IInstallation& installation)
+   {
+      return new DX11Window(installation);
+   }
 }
 

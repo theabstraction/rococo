@@ -99,26 +99,6 @@ namespace Dystopia {
 }
 
 namespace Dystopia { 
-	struct IJournal;
-}
-
-namespace Dystopia { 
-	struct IGui;
-}
-
-namespace Dystopia { 
-	struct IMeshes;
-}
-
-namespace Dystopia { 
-	struct ILevelBuilder;
-}
-
-namespace Dystopia { namespace UI { 
-	struct IUIBuilder;
-}}
-
-namespace Dystopia { 
 	struct NO_VTABLE IGui
 	{
 		virtual void ShowDialogBox(const Vec2i& span, int32 retzone, int32 hypzone, const fstring& title, const fstring& message, const fstring& buttons) = 0;
@@ -131,26 +111,6 @@ namespace Dystopia {
 }
 
 namespace Dystopia { 
-	struct IJournal;
-}
-
-namespace Dystopia { 
-	struct IGui;
-}
-
-namespace Dystopia { 
-	struct IMeshes;
-}
-
-namespace Dystopia { 
-	struct ILevelBuilder;
-}
-
-namespace Dystopia { namespace UI { 
-	struct IUIBuilder;
-}}
-
-namespace Dystopia { 
 	struct NO_VTABLE IMeshes
 	{
 		virtual void Load(const fstring& resourceName, ID_MESH editorId) = 0;
@@ -160,26 +120,6 @@ namespace Dystopia {
 namespace Dystopia { 
 	void AddNativeCalls_DystopiaIMeshes(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IMeshes* nceContext);
 }
-
-namespace Dystopia { 
-	struct IJournal;
-}
-
-namespace Dystopia { 
-	struct IGui;
-}
-
-namespace Dystopia { 
-	struct IMeshes;
-}
-
-namespace Dystopia { 
-	struct ILevelBuilder;
-}
-
-namespace Dystopia { namespace UI { 
-	struct IUIBuilder;
-}}
 
 namespace Dystopia { 
 	struct NO_VTABLE ILevelBuilder
@@ -209,31 +149,11 @@ namespace Dystopia {
 	void AddNativeCalls_DystopiaILevelBuilder(Sexy::Script::IPublicScriptSystem& ss, Dystopia::ILevel* nceContext);
 }
 
-namespace Dystopia { 
-	struct IJournal;
-}
-
-namespace Dystopia { 
-	struct IGui;
-}
-
-namespace Dystopia { 
-	struct IMeshes;
-}
-
-namespace Dystopia { 
-	struct ILevelBuilder;
-}
-
-namespace Dystopia { namespace UI { 
-	struct IUIBuilder;
-}}
-
 namespace Dystopia { namespace UI { 
 	struct NO_VTABLE IUIBuilder
 	{
-		virtual void RebuildPanel(fstring& panelName) = 0;
-		virtual void AddButton(ID_WIDGET id, Vec2i& span, fstring& text) = 0;
+		virtual void RebuildPanel(const fstring& panelName) = 0;
+		virtual void AddButton(ID_WIDGET id, Vec2i& span, const fstring& text) = 0;
 		virtual void AddFrame(ID_WIDGET id, ID_WIDGET frameId, Vec2i& span) = 0;
 		virtual void AddWidgetToFrame(ID_WIDGET frameId, ID_WIDGET id) = 0;
 		virtual void HCentreChildren(ID_WIDGET frameId) = 0;

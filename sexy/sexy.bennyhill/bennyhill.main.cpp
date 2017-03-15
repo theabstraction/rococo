@@ -117,9 +117,7 @@ namespace Sexy
 
 			if (pos >= safeZone)
 			{
-				OS::OSException ex;
-				StringPrint(ex.message, 256, SEXTEXT("Overflow formatting struct name: %.64s"), fqStructName);
-				throw ex;
+				Throw(0, SEXTEXT("Overflow formatting struct name: %.64s"), fqStructName);
 			}
 
 			if (src == '.')
