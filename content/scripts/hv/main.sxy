@@ -27,22 +27,55 @@
 	*/
 	
 	// Top face
-	(Vertex bottomLeft  = (-0.5 -0.5 2.5) (0 0 1) 0x808080FF 0xFF0000FF (0 0))
-	(Vertex topLeft     = (-0.5  0.5 2.5) (0 0 1) 0x808080FF 0xFF0000FF (0 0))
-	(Vertex bottomRight = ( 0.5 -0.5 2.5) (0 0 1) 0x808080FF 0xFF0000FF (0 0))
-	(Vertex topRight    = ( 0.5  0.5 2.5) (0 0 1) 0x808080FF 0xFF0000FF (0 0))
-	(mb.AddTriangle bottomLeft topLeft topRight)
-	(mb.AddTriangle topRight bottomRight bottomLeft)
+	(
+		(Vertex bottomLeft  = (-0.5 -0.5 0.5) (0 0 1) 0x808080FF 0xFF0000FF (0 0))
+		(Vertex topLeft     = (-0.5  0.5 0.5) (0 0 1) 0x808080FF 0xFF0000FF (0 1))
+		(Vertex bottomRight = ( 0.5 -0.5 2.5) (0 0 1) 0x808080FF 0xFF0000FF (1 0))
+		(Vertex topRight    = ( 0.5  0.5 2.5) (0 0 1) 0x808080FF 0xFF0000FF (1 1))
+		
+		(mb.AddTriangle topLeft bottomLeft   topRight)
+		(mb.AddTriangle bottomRight topRight bottomLeft)
+	)
+	
+	// Nearer face
+	(
+		(Vertex bottomLeft  = (-1.0 -1.0 1.5) (0 0 1) 0x808080FF 0xFF00008F (0 0))
+		(Vertex topLeft     = (-1.0  1.0 1.5) (0 0 1) 0x808080FF 0xFF00008F (0 1))
+		(Vertex bottomRight = ( 1.0 -1.0 1.5) (0 0 1) 0x808080FF 0xFF00008F (1 0))
+		(Vertex topRight    = ( 1.0  1.0 1.5) (0 0 1) 0x808080FF 0xFF00008F (1 1))
+		(mb.AddTriangle topLeft bottomLeft topRight)
+		(mb.AddTriangle bottomRight topRight bottomLeft)
+	)
 	
 	(mb.End)
 )
 
 (function GetProjectionMatrix (Matrix4x4 output)-> :
+
+	(ICamera camera (Camera))
+	(Float32 aspect = camera.AspectRatio)
+
+	(Float32 radiansPerDegree = ((#pi) / 180))
+	(Float32 fov = 45.0)
+	(Float32 tanFov = (F32.Tan ((radiansPerDegree * fov) / 2)))
+    (Float32 yScale = (1 / tanFov))
+	(Float32 xScale = (yScale * aspect))
+	
+	(Float32 far = 1000)
+	(Float32 near = 0.2)
+	
+	(Float32 df = (near - far))
+	(Float32 z0 = ((far + near) / df ))
+	(Float32 zScale = (0 + z0))
+	
+	(Float32 w0 = ((far * near) * 2))
+	(Float32 wScale = (w0 / df ))
+	
 	(Matrix4x4 proj = 
-		(1   0   0   0)
-		(0   1   0   0)
-		(0   0   1  -1)
-		(0   0   1   0)
+		(xScale		0       0   	 0)
+		(0	   yScale   	0        0)
+		(0			0  zScale   wScale)
+		(0			0      -1        1)
 	)
 	
 	(output = proj)
@@ -57,7 +90,7 @@
 	(DefinePlatonicSquare)
 	
 	(instances.Begin "square.1")
-	(instances.SetMeshByName "mesh.platonic.square")
+	(instances.SetMeshByName "mesh.platonic.square" "!portraits/charlotte.jpg")
 	(Int64 squareId = instances.End)
 	
 	(scene.AddStatics squareId)
@@ -65,4 +98,9 @@
 	(Matrix4x4 proj)
 	(GetProjectionMatrix proj)
 	(camera.SetProjection proj)
+//	(Quat q = (0 1 0) 0)
+	(Vec3 pos = 0 0 3)
+//	(camera.SetOrientation q)
+	(camera.SetPosition pos)
+	(scene.SetClearColour 0.25 0.25 0)
 )

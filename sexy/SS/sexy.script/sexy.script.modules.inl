@@ -930,7 +930,7 @@ namespace
 			}
 			else
 			{
-				OS::BreakOnThrow();
+				OS::BreakOnThrow(OS::BreakFlag_SS);
 			}
 		}
 	}

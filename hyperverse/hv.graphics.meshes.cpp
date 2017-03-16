@@ -18,7 +18,6 @@ namespace
 
       MeshBuilder(IRenderer& _renderer): renderer(_renderer)
       {
-
       }
 
       virtual void Clear()
@@ -56,15 +55,20 @@ namespace
          {
             Throw(0, L"MeshBuilder::End(): There are no mesh vertices. Empty meshes are forbidden.");
          }
+ 
+         static_assert(sizeof(ObjectVertex) == sizeof(Vertex), "Packing error");
+         
+         const ObjectVertex* v = (const ObjectVertex*)&vertices[0];
 
          auto i = meshes.find(name);
          if (i != meshes.end())
-         {
-            renderer.UpdateMesh(i->second, (const ObjectVertex*)&vertices[0], (uint32) vertices.size());
+         {     
+            renderer.UpdateMesh(i->second, v, (uint32) vertices.size());
          }
          else
          {
-            auto id = renderer.CreateTriangleMesh((const ObjectVertex*)&vertices[0], (uint32) vertices.size());
+            
+            auto id = renderer.CreateTriangleMesh(v, (uint32) vertices.size());
             meshes[name] = id;
          }
 

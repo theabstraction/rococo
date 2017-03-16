@@ -42,7 +42,7 @@
 namespace Sexy { namespace Compiler {
 	void Throw(STCException& e)
 	{
-		OS::BreakOnThrow();
+		OS::BreakOnThrow(OS::BreakFlag_STC);
 		throw e;
 	}
 }}

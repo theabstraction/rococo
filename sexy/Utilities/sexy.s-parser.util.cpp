@@ -62,6 +62,9 @@ namespace  Sexy
       va_start(args, format);
       SafeVFormat(ex.message, _TRUNCATE, format, args);
       ex.exceptionNumber = errCode;
+
+      OS::BreakOnThrow(OS::BreakFlag_All);
+
       throw ex;
    }
 
@@ -87,7 +90,7 @@ namespace  Sexy
 
       void Throw(ParseException& ex)
       {
-         OS::BreakOnThrow();
+         OS::BreakOnThrow(OS::BreakFlag_SS);
          throw ex;
       }
 

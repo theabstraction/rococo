@@ -204,20 +204,22 @@ namespace Sexy { namespace OS
 
 	typedef void (*FN_AddNativeSexyCalls)(Sexy::Script::IScriptSystem& ss);
 
-	Sexy::Script::FN_CreateLib GetLibCreateFunction(const SEXCHAR* dynamicLinkLibOfNativeCalls)
+   Sexy::Script::FN_CreateLib GetLibCreateFunction(const SEXCHAR* dynamicLinkLibOfNativeCalls, bool throwOnError)
 	{
 		SEXCHAR linkLib[_MAX_PATH];
 		StringPrint(linkLib, _MAX_PATH, SEXTEXT("%s.dll"), dynamicLinkLibOfNativeCalls);
 		HMODULE hLib = LoadLibrary(linkLib);
 		if (hLib == NULL)
 		{
-			Sexy::Throw(GetLastError(), SEXTEXT("Could not load %s"), (const SEXCHAR*) linkLib);
+         if (throwOnError) Sexy::Throw(GetLastError(), SEXTEXT("Could not load %s"), (const SEXCHAR*) linkLib);
+         return nullptr;
 		}
 
 		FARPROC fp = GetProcAddress(hLib, "CreateLib");
 		if (fp == NULL)
 		{
-         Sexy::Throw(GetLastError(), SEXTEXT("Could not find void CreateLib(...) in %s"), (const SEXCHAR*) linkLib);
+         if (throwOnError) Sexy::Throw(GetLastError(), SEXTEXT("Could not find void CreateLib(...) in %s"), (const SEXCHAR*) linkLib);
+         return nullptr;
 		}
 
 		Sexy::Script::FN_CreateLib createFn = (Sexy::Script::FN_CreateLib) fp;

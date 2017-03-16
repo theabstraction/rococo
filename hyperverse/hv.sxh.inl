@@ -189,6 +189,12 @@ namespace
 		Sexy::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
+		IString* _texture;
+		ReadInput(_texture, _sf, -_offset);
+		fstring texture { _texture->buffer, _texture->length };
+
+
+		_offset += sizeof(IString*);
 		IString* _modelName;
 		ReadInput(_modelName, _sf, -_offset);
 		fstring modelName { _modelName->buffer, _modelName->length };
@@ -198,7 +204,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetMeshByName(modelName);
+		_pObject->SetMeshByName(modelName, texture);
 	}
 	void NativeHVGraphicsIInstancesSetParent(NativeCallEnvironment& _nce)
 	{
@@ -261,7 +267,7 @@ namespace HV { namespace Graphics {
 		ss.AddNativeCall(ns, NativeHVGraphicsIInstancesGetPosition, nullptr, SEXTEXT("IInstancesGetPosition (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 position) -> "));
 		ss.AddNativeCall(ns, NativeHVGraphicsIInstancesGetOrientation, nullptr, SEXTEXT("IInstancesGetOrientation (Pointer hObject)(Int64 entityId)(Sys.Maths.Quat orientation) -> "));
 		ss.AddNativeCall(ns, NativeHVGraphicsIInstancesBegin, nullptr, SEXTEXT("IInstancesBegin (Pointer hObject)(Sys.Type.IString fqName) -> "));
-		ss.AddNativeCall(ns, NativeHVGraphicsIInstancesSetMeshByName, nullptr, SEXTEXT("IInstancesSetMeshByName (Pointer hObject)(Sys.Type.IString modelName) -> "));
+		ss.AddNativeCall(ns, NativeHVGraphicsIInstancesSetMeshByName, nullptr, SEXTEXT("IInstancesSetMeshByName (Pointer hObject)(Sys.Type.IString modelName)(Sys.Type.IString texture) -> "));
 		ss.AddNativeCall(ns, NativeHVGraphicsIInstancesSetParent, nullptr, SEXTEXT("IInstancesSetParent (Pointer hObject)(Int64 entityId) -> "));
 		ss.AddNativeCall(ns, NativeHVGraphicsIInstancesEnd, nullptr, SEXTEXT("IInstancesEnd (Pointer hObject) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeHVGraphicsIInstancesClear, nullptr, SEXTEXT("IInstancesClear (Pointer hObject) -> "));
@@ -405,6 +411,28 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Clear();
 	}
+	void NativeHVGraphicsISceneBuilderSetClearColour(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float blue;
+		_offset += sizeof(blue);
+		ReadInput(blue, _sf, -_offset);
+
+		float green;
+		_offset += sizeof(green);
+		ReadInput(green, _sf, -_offset);
+
+		float red;
+		_offset += sizeof(red);
+		ReadInput(red, _sf, -_offset);
+
+		HV::Graphics::ISceneBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetClearColour(red, green, blue);
+	}
 
 	void NativeGetHandleForHVGraphicsSceneBuilder(NativeCallEnvironment& _nce)
 	{
@@ -426,6 +454,7 @@ namespace HV { namespace Graphics {
 		ss.AddNativeCall(ns, NativeHVGraphicsISceneBuilderAddStatics, nullptr, SEXTEXT("ISceneBuilderAddStatics (Pointer hObject)(Int64 entityId) -> "));
 		ss.AddNativeCall(ns, NativeHVGraphicsISceneBuilderAddAllStatics, nullptr, SEXTEXT("ISceneBuilderAddAllStatics (Pointer hObject)(Sys.Type.IString prefix) -> "));
 		ss.AddNativeCall(ns, NativeHVGraphicsISceneBuilderClear, nullptr, SEXTEXT("ISceneBuilderClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVGraphicsISceneBuilderSetClearColour, nullptr, SEXTEXT("ISceneBuilderSetClearColour (Pointer hObject)(Float32 red)(Float32 green)(Float32 blue) -> "));
 	}
 }}
 // BennyHill generated Sexy native functions for HV::Graphics::ICamera 
@@ -608,6 +637,18 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->GetWorldAndProj(*worldAndProj);
 	}
+	void NativeHVGraphicsICameraAspectRatio(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		float widthOverHeight = _pObject->AspectRatio();
+		_offset += sizeof(widthOverHeight);
+		WriteOutput(widthOverHeight, _sf, -_offset);
+	}
 
 	void NativeGetHandleForHVGraphicsCamera(NativeCallEnvironment& _nce)
 	{
@@ -638,5 +679,6 @@ namespace HV { namespace Graphics {
 		ss.AddNativeCall(ns, NativeHVGraphicsICameraGetOrientation, nullptr, SEXTEXT("ICameraGetOrientation (Pointer hObject)(Sys.Maths.Quat orientation) -> "));
 		ss.AddNativeCall(ns, NativeHVGraphicsICameraGetWorld, nullptr, SEXTEXT("ICameraGetWorld (Pointer hObject)(Sys.Maths.Matrix4x4 world) -> "));
 		ss.AddNativeCall(ns, NativeHVGraphicsICameraGetWorldAndProj, nullptr, SEXTEXT("ICameraGetWorldAndProj (Pointer hObject)(Sys.Maths.Matrix4x4 worldAndProj) -> "));
+		ss.AddNativeCall(ns, NativeHVGraphicsICameraAspectRatio, nullptr, SEXTEXT("ICameraAspectRatio (Pointer hObject) -> (Float32 widthOverHeight)"));
 	}
 }}

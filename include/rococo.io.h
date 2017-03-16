@@ -84,6 +84,7 @@ namespace Rococo
    {
       const wchar_t* resourceName;
       bool Matches(const wchar_t* resource);
+      void GetPingPath(wchar_t* path, size_t capacity);
    };
 
    struct MemoryUsage

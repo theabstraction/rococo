@@ -20,10 +20,11 @@ namespace
       Vec3 scale{ 1.0f, 1.0f, 1.0f };
       mutable Matrix4x4 model;
       ID_SYS_MESH meshId;
+      ID_TEXTURE textureId;
       ID_ENTITY parentId; 
       std::wstring name;
       std::vector<ID_ENTITY> children;
-      mutable bool isDirty{ false };
+      mutable bool isDirty{ true };
 
       virtual const wchar_t* Name() const 
       {
@@ -64,6 +65,7 @@ namespace
       }
 
       virtual ID_SYS_MESH MeshId() const { return meshId; }
+      virtual ID_TEXTURE TextureId() const { return textureId;  }
    };
 
    typedef std::unordered_map<ID_ENTITY, EntityImpl*, ID_ENTITY> MapIdToEntity;
@@ -72,16 +74,20 @@ namespace
    {      
       MapIdToEntity idToEntity;
       std::unordered_map<std::wstring, ID_ENTITY> nameToEntityId;
+      std::unordered_map<std::wstring, ID_TEXTURE> nameToTextureId;
 
       wchar_t name[Strings::MAX_FQ_NAME_LEN + 1]{ 0 };
       Matrix4x4 model;
       ID_SYS_MESH meshId;
+      ID_TEXTURE textureId;
       IMeshBuilderSupervisor& meshBuilder;
       EntityImpl* parent{ nullptr };
       ID_ENTITY parentId;
       int32 enumerationDepth{ 0 };
+      IRenderer& renderer;
 
-      Instances(IMeshBuilderSupervisor& _meshBuilder) : meshBuilder(_meshBuilder) {}
+      Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer) :
+         meshBuilder(_meshBuilder), renderer(_renderer) {}
 
       virtual void Begin(const fstring& fqName)
       {
@@ -228,7 +234,7 @@ namespace
          i->second->position = position;
       }
       
-      virtual void SetMeshByName(const fstring& modelName)
+      virtual void SetMeshByName(const fstring& modelName, const fstring& textureFile)
       {
          if (*name == 0)
          {
@@ -238,6 +244,19 @@ namespace
          if (!meshBuilder.TryGetByName(modelName, meshId))
          {
             Throw(0, L"Mesh %s not found", modelName);
+         }
+
+         auto i = nameToTextureId.find(textureFile.buffer);
+         if (i == nameToTextureId.end())
+         {
+            AutoFree<IExpandingBuffer> fileImage = CreateExpandingBuffer(0);
+            renderer.Installation().LoadResource(textureFile, *fileImage, 64_megabytes);
+            textureId = renderer.LoadTexture(*fileImage, textureFile);
+            nameToTextureId[textureFile.buffer] = textureId;
+         }
+         else
+         {
+            textureId = i->second;
          }
       }
 
@@ -275,6 +294,16 @@ namespace
             Throw(0, L"Call InstanceBuilder.Begin(...) first");
          }
 
+         if (!meshId)
+         {
+            Throw(0, L"No valid mesh set for this instance");
+         }
+
+         if (!textureId)
+         {
+            Throw(0, L"No valid texture set for this instance");
+         }
+
          auto i = nameToEntityId.find(name);
          if (i == nameToEntityId.end())
          {
@@ -284,6 +313,7 @@ namespace
             entity->model = model;
             entity->meshId = meshId;
             entity->parentId = parentId;
+            entity->textureId = textureId;
             idToEntity.insert(std::make_pair(i->second, entity));
             if (parent != nullptr)
             {
@@ -302,6 +332,7 @@ namespace
 
             et->second->parentId = parentId;
             et->second->meshId = meshId;
+            et->second->textureId = textureId;
             et->second->isDirty = false;
 
             if (parent != nullptr)
@@ -319,6 +350,7 @@ namespace
          meshId = ID_SYS_MESH::Invalid();
          parent = nullptr;
          parentId = ID_ENTITY::Invalid();
+         textureId = ID_TEXTURE::Invalid();
       }
 
       virtual void Free()
@@ -332,9 +364,9 @@ namespace HV
 {
    namespace Graphics
    {
-      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& builder)
+      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& builder, IRenderer& renderer)
       {
-         return new Instances(builder);
+         return new Instances(builder, renderer);
       }
    }
 }

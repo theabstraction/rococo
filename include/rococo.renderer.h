@@ -116,6 +116,8 @@ namespace Rococo
 
 		virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, const wchar_t* uniqueName) = 0;
 		virtual void SetCursorBitmap(ID_TEXTURE bitmapId, Vec2i hotspotOffset, Vec2 uvTopLeft, Vec2 uvBottomRight) = 0;
+
+      virtual IInstallation& Installation() = 0;
 	};
 
 	ROCOCOAPI IAppFactory

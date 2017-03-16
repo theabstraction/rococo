@@ -1,4 +1,5 @@
 #include "hv.h"
+#include <rococo.strings.h>
 
 namespace
 {
@@ -30,6 +31,18 @@ namespace
          HV::Events::OnFileChangedEvent ev;
          ev.args = &args;
          Publish(e.publisher, ev);
+
+         if (Eq(Rococo::GetFileExtension(args.resourceName), L".sxy"))
+         {
+            wchar_t pingname[1024];
+            args.GetPingPath(pingname, 1024);
+            e.sources.Release(pingname);
+         }
+
+         if (args.Matches(L"!scripts/hv/main.sxy"))
+         {
+            HV::RunEnvironmentScript(e, L"!scripts/hv/main.sxy");
+         }
       }
 
       virtual uint32 OnFrameUpdated(const IUltraClock& clock)

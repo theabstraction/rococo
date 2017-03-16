@@ -103,7 +103,7 @@ namespace Sexy
 {
 	namespace OS
 	{
-		FN_CreateLib GetLibCreateFunction(const SEXCHAR* dynamicLinkLibOfNativeCalls);
+		FN_CreateLib GetLibCreateFunction(const SEXCHAR* dynamicLinkLibOfNativeCalls, bool throwOnError);
 	}
 
 	namespace Script
@@ -1409,14 +1409,9 @@ namespace
 
          FN_CreateLib create;
 
-         try
-         {
-            create = Sexy::OS::GetLibCreateFunction(srcEnvironmentDll);
-         }
-         catch (IException&)
-         {
-            create = Sexy::OS::GetLibCreateFunction(dynamicLinkLibOfNativeCalls);
-         }
+         create = Sexy::OS::GetLibCreateFunction(srcEnvironmentDll, false);
+         if (!create) 
+            create = Sexy::OS::GetLibCreateFunction(dynamicLinkLibOfNativeCalls, true);
 
 			INativeLib* lib = create(*this);
 			nativeLibs.push_back(lib);

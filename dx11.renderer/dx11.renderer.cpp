@@ -34,6 +34,8 @@
 
 #include <rococo.dx11.renderer.win32.h>
 
+#include <rococo.strings.h>
+
 namespace
 {
 	using namespace Rococo;
@@ -299,6 +301,7 @@ namespace
 		ID3D11Device& device;
 		ID3D11DeviceContext& dc;
 		IDXGIFactory& factory;
+      IInstallation& installation;
 
 		AutoRelease<IDXGISwapChain> mainSwapChain;
 		AutoRelease<ID3D11RenderTargetView> mainBackBufferView;
@@ -362,9 +365,9 @@ namespace
 	public:
 		Windows::IWindow* window;
 
-		DX11AppRenderer(ID3D11Device& _device, ID3D11DeviceContext& _dc, IDXGIFactory& _factory, IInstallation& installation) :
+		DX11AppRenderer(ID3D11Device& _device, ID3D11DeviceContext& _dc, IDXGIFactory& _factory, IInstallation& _installation) :
 			device(_device), dc(_dc), factory(_factory), fonts(nullptr), hRenderWindow(0),
-			window(nullptr), cursor{ ID_TEXTURE(), {0,0}, {1,1}, {0,0} }
+			window(nullptr), cursor{ ID_TEXTURE(), {0,0}, {1,1}, {0,0} }, installation(_installation)
 		{
 			static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
 			guiBuffer = CreateDynamicVertexBuffer<GuiVertex>(device, GUI_BUFFER_VERTEX_CAPACITY);
@@ -604,6 +607,11 @@ namespace
 			}
 		}
 
+      virtual IInstallation& Installation()
+      {
+         return installation;
+      }
+
 		virtual IRenderer& Renderer()
 		{
 			return *this;
@@ -626,7 +634,7 @@ namespace
 
 				virtual void OnError(const char* message)
 				{
-					Throw(0, L"Could not parse image: %s", message);
+					Throw(0, L"Could not parse image: %S", message);
 				}
 
 				virtual void OnARGBImage(const Vec2i& span, const Imaging::F_A8R8G8B8* data)
@@ -661,8 +669,20 @@ namespace
 			anon.device = &device;
 			anon.texture = nullptr;
 
-			Rococo::Imaging::DecompressTiff(anon, buffer.GetData(), buffer.Length());
-
+         auto* ext = Rococo::GetFileExtension(uniqueName);
+         if (Eq(ext, L".tif") || Eq(ext, L".tiff"))
+         {
+            Rococo::Imaging::DecompressTiff(anon, buffer.GetData(), buffer.Length());
+         }
+         else if(Eq(ext, L".jpg") || Eq(ext, L".jpeg"))
+         {
+            Rococo::Imaging::DecompressJPeg(anon, buffer.GetData(), buffer.Length());
+         }
+         else
+         {
+            Throw(0, L"Unknown file extension. Only jpg and tif are permitted image files");
+         }
+               
 			if (anon.texture == nullptr)
 			{
 				Throw(0, L"Could not parse Tiff file");

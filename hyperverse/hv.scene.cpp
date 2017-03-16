@@ -23,11 +23,20 @@ namespace
       std::vector<ID_ENTITY> entities;
       std::vector<ObjectInstance> drawQueue;
       HV::Graphics::ICameraSupervisor& camera;
+
+      RGBA clearColour{ 0,0,0,1 };
    public:
       Scene(HV::Graphics::IInstancesSupervisor& _instances, HV::Graphics::ICameraSupervisor& _camera) : 
          instances(_instances), camera(_camera)
       {
 
+      }
+
+      virtual void SetClearColour(float32 red, float32 green, float32 blue)
+      {
+         clearColour.red = red;
+         clearColour.green = green;
+         clearColour.blue = blue;
       }
 
       virtual void Free()
@@ -77,9 +86,10 @@ namespace
          RenderTest(grc);
       }
 
-      void FlushDrawQueue(ID_SYS_MESH meshId, IRenderContext& rc)
+      void FlushDrawQueue(ID_SYS_MESH meshId, ID_TEXTURE textureId, IRenderContext& rc)
       {
          if (drawQueue.empty()) return;
+         rc.SetMeshTexture(textureId, 1);
          rc.Draw(meshId, &drawQueue[0], (uint32)drawQueue.size());
          drawQueue.clear();
       }
@@ -97,6 +107,7 @@ namespace
          rc.SetGlobalState(state);
 
          ID_SYS_MESH meshId;
+         ID_TEXTURE textureId;
 
          for (auto i : entities)
          {
@@ -106,24 +117,23 @@ namespace
                Throw(0, L"Unexpected missing entity");
             }
 
-            if (entity->MeshId() != meshId)
+            if (entity->MeshId() != meshId || entity->TextureId() != textureId)
             {
-               FlushDrawQueue(meshId, rc);
+               FlushDrawQueue(meshId, textureId, rc);
                meshId = entity->MeshId();
+               textureId = entity->TextureId();
             }
-            else
-            {
-               ObjectInstance instance{ entity->Model(), RGBA(0, 0, 0, 0) };
-               drawQueue.push_back(instance);
-            }
+           
+            ObjectInstance instance{ entity->Model(), RGBA(0, 0, 0, 0) };
+            drawQueue.push_back(instance);
          }
 
-         FlushDrawQueue(meshId, rc);
+         FlushDrawQueue(meshId, textureId, rc);
       }
 
       virtual RGBA GetClearColour() const
       {
-         return RGBA(0.0f, 0.0f, 0.0f, 1.0f);
+         return clearColour;
       }
    };
 }

@@ -31,24 +31,35 @@ SUCH DAMAGES.
 principal credit screen and its principal readme file.
 */
 
-# include <windows.h>
+#include <sexy.types.h>
+#include <windows.h>
 
-// #define BREAK_ON_THROW 1
+#define BREAK_ON_THROW 1
+
+namespace
+{
+   int breakFlags = 0;
+}
 
 namespace Sexy
 {
    namespace OS
    {
+      void SetBreakPoints(int flags)
+      {
+         breakFlags = flags;
+      }
+
    #ifdef BREAK_ON_THROW
-	   void BreakOnThrow()
+	   void BreakOnThrow(BreakFlag flag)
 	   {
-		   if (IsDebuggerPresent())
+		   if ((breakFlags & flag) != 0 && IsDebuggerPresent())
 		   {
 			   __debugbreak();
 		   }
 	   }
    #else
-	   void BreakOnThrow() {}
+	   void BreakOnThrow(BreakFlag flag) {}
    #endif
    }
 }

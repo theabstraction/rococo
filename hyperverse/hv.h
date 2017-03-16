@@ -26,6 +26,7 @@ namespace HV
       virtual const ID_ENTITY* begin() const = 0;
       virtual const ID_ENTITY* end() const = 0;
       virtual ID_SYS_MESH MeshId() const = 0;
+      virtual ID_TEXTURE TextureId() const = 0;
    };
 
    ROCOCOAPI IEntityCallback
@@ -75,10 +76,10 @@ namespace HV
 
       ISceneSupervisor* CreateScene(IInstancesSupervisor& instances, ICameraSupervisor& camera);
 
-      ICameraSupervisor* CreateCamera(IInstancesSupervisor& instances);
+      ICameraSupervisor* CreateCamera(IInstancesSupervisor& instances, IRenderer& render);
 
       IMeshBuilderSupervisor* CreateMeshBuilder(IRenderer& renderer);
-      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& builder);
+      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& builder, IRenderer& renderer);
    }
 
    namespace Events

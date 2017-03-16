@@ -17,8 +17,11 @@ namespace
       ID_ENTITY orientationGuideId;     
       int32 orientationFlags;
       IInstancesSupervisor& instances;
+      IRenderer& renderer;
    public:
-      Camera(IInstancesSupervisor& _instances): instances(_instances)
+      Camera(IInstancesSupervisor& _instances, IRenderer& _renderer): 
+         instances(_instances),
+         renderer(_renderer)
       {
          Clear();
       }
@@ -27,10 +30,18 @@ namespace
       {
          projection = world = Matrix4x4::Identity();
          followingId = orientationGuideId = ID_ENTITY::Invalid();
-         orientation = Quat{ { 1.0f, 0, 0 }, 0 };
+         orientation = Quat{ { 0, 0, 0 }, 1.0 };
          position = Vec3 { 0, 0, 0 };
          orientationFlags = 0;
          isDirty = false;
+      }
+
+      virtual float AspectRatio()
+      {
+         GuiMetrics metrics;
+         renderer.GetGuiMetrics(metrics);
+
+         return metrics.screenSpan.y / (float)metrics.screenSpan.x;
       }
 
       virtual void GetPosition(Vec3& position)
@@ -83,7 +94,7 @@ namespace
          this->projection = proj;
       }
 
-      virtual void GetWorld(Matrix4x4& world)
+      virtual void GetWorld(Matrix4x4& worldToCamera)
       {
          if (isDirty)
          {
@@ -93,7 +104,7 @@ namespace
             Matrix4x4 translate = Matrix4x4::Translate(-position);
             this->world = rot * translate;
          }
-         world = this->world;
+         worldToCamera = this->world;
       }
 
       virtual void GetWorldAndProj(Matrix4x4& worldAndProj)
@@ -145,9 +156,9 @@ namespace HV
 {
    namespace Graphics
    {
-      ICameraSupervisor* CreateCamera(IInstancesSupervisor& instances)
+      ICameraSupervisor* CreateCamera(IInstancesSupervisor& instances, IRenderer& renderer)
       {
-         return new Camera(instances);
+         return new Camera(instances, renderer);
       }
    }
 }

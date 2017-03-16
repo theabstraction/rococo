@@ -71,8 +71,8 @@ void Main(HANDLE hInstanceLock)
    Sexy::Script::SetDefaultNativeSourcePath(srcpath);
 
    AutoFree<HV::Graphics::IMeshBuilderSupervisor> meshes = HV::Graphics::CreateMeshBuilder(mainWindow->Renderer());
-   AutoFree<HV::Graphics::IInstancesSupervisor> instances = HV::Graphics::CreateInstanceBuilder(*meshes);
-   AutoFree<HV::Graphics::ICameraSupervisor> camera = HV::Graphics::CreateCamera(*instances);
+   AutoFree<HV::Graphics::IInstancesSupervisor> instances = HV::Graphics::CreateInstanceBuilder(*meshes, mainWindow->Renderer());
+   AutoFree<HV::Graphics::ICameraSupervisor> camera = HV::Graphics::CreateCamera(*instances, mainWindow->Renderer());
    AutoFree<HV::Graphics::ISceneSupervisor> scene = HV::Graphics::CreateScene(*instances, *camera);
  
 
@@ -100,6 +100,8 @@ void Main(HANDLE hInstanceLock)
 int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
    using namespace Rococo;
+
+   Sexy::OS::SetBreakPoints(Sexy::OS::BreakFlag_All);
 
    HANDLE hInstanceLock = CreateEvent(nullptr, TRUE, FALSE, L"HV_InstanceLock");
 

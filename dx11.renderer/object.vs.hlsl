@@ -32,11 +32,11 @@ ScreenVertex main(ObjectVertex v)
 {
 	ScreenVertex sv;
 
-	float4 instancePos = mul(v.position, instanceMatrix);
-	sv.position = mul(instancePos, worldMatrixAndProj);
+	float4 instancePos = mul(instanceMatrix, v.position);
+	sv.position = mul(worldMatrixAndProj, instancePos);
 
 	v.normal.w = 0;
-	float4 normal = mul(v.normal, instanceMatrix);
+	float4 normal = mul(instanceMatrix, v.normal);
 	float f = -dot(normal.xyz, sunlightDirection.xyz);
 	f = clamp(f, 0.0f, 1.0f);
 	float illumination = 0.5f + 0.5f * f;

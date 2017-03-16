@@ -54,6 +54,16 @@ namespace Rococo
 
       return *b == 0;
    }
+
+   void FileModifiedArgs::GetPingPath(wchar_t* path, size_t capacity)
+   {
+      SafeFormat(path, capacity, _TRUNCATE, L"!%s", resourceName);
+
+      for (wchar_t* p = path; *p != 0; p++)
+      {
+         if (*p == '\\') *p = '/';
+      }
+   }
 }
 
 namespace Rococo
