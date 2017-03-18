@@ -16,6 +16,7 @@
 	(AddAtomic (IString s) ->)
 	(AddCompound -> (IExpressionBuilder child))
 	(Copy (IExpression s) ->)
+	(CopyString (IExpression input) -> )
 	(Substitute (IExpression input) (IExpression format) ->)
 )
 
@@ -39,6 +40,10 @@
 
 (method ExpressionBuilder.Copy (IExpression s) -> :
 	(Sys.Reflection.Native.ExpressionBuilderAddCopy this.builderPtr s.Handle)
+)
+
+(method ExpressionBuilder.CopyString (IExpression s) -> :
+	(Sys.Reflection.Native.ExpressionBuilderAddCopyToString this.builderPtr s.Handle)
 )
 
 (method ExpressionBuilder.AddAtomic (IString s) -> :

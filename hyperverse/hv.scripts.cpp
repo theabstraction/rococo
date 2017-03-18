@@ -12,24 +12,34 @@ namespace
    using namespace HV;
    using namespace Rococo;
 
-   HV::Graphics::IMeshBuilder* FactoryConstructHVGraphicsMeshBuilder(HV::Graphics::IMeshBuilder* _context)
+   HV::Graphics::IMeshBuilder* FactoryConstructHVGraphicsMeshBuilder(HV::Graphics::IMeshBuilder* mb)
    {
-      return _context;
+      return mb;
    }
 
-   HV::Graphics::IInstances* FactoryConstructHVGraphicsInstances(HV::Graphics::IInstances* _context)
+   HV::Graphics::IInstances* FactoryConstructHVGraphicsInstances(HV::Graphics::IInstances* ins)
    {
-      return _context;
+      return ins;
    }
 
-   HV::Graphics::ISceneBuilder* FactoryConstructHVGraphicsSceneBuilder(HV::Graphics::ISceneBuilder* _context)
+   HV::Graphics::ISceneBuilder* FactoryConstructHVGraphicsSceneBuilder(HV::Graphics::ISceneBuilder* sb)
    {
-      return _context;
+      return sb;
    }
 
-   HV::Graphics::ICamera* FactoryConstructHVGraphicsCamera(HV::Graphics::ICamera* _context)
+   HV::Graphics::ICamera* FactoryConstructHVGraphicsCamera(HV::Graphics::ICamera* camera)
    {
-      return _context;
+      return camera;
+   }
+
+   HV::IPlayer* FactoryConstructHVGraphicsPlayer(HV::IPlayerSupervisor* players, int32 index)
+   {
+      return players->GetPlayer(index);
+   }
+
+   HV::IKeyboard* FactoryConstructHVKeyboard(HV::IKeyboard* kb)
+   {
+      return kb;
    }
 }
 
@@ -70,6 +80,8 @@ namespace HV
             Graphics::AddNativeCalls_HVGraphicsIInstances(args.ss, &e.instances);
             Graphics::AddNativeCalls_HVGraphicsISceneBuilder(args.ss, &e.scene.Builder());
             Graphics::AddNativeCalls_HVGraphicsICamera(args.ss, &e.camera);
+            AddNativeCalls_HVIKeyboard(args.ss, &e.keyboard);
+            AddNativeCalls_HVIPlayer(args.ss, &e.players);
          }
 
       public:

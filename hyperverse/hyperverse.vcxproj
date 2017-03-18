@@ -175,10 +175,12 @@
     <ClCompile Include="hv.events.cpp" />
     <ClCompile Include="hv.graphics.instances.cpp" />
     <ClCompile Include="hv.graphics.meshes.cpp" />
+    <ClCompile Include="hv.keyboard.cpp" />
+    <ClCompile Include="hv.player.cpp" />
     <ClCompile Include="hv.scene.cpp" />
     <ClCompile Include="hv.scripts.cpp" />
     <ClCompile Include="hv.strings.cpp" />
-    <ClCompile Include="hyperverse.main.cpp" />
+    <ClCompile Include="hv.main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hv.h" />

@@ -10,6 +10,8 @@ using namespace Rococo::Events;
 namespace HV
 {
    ROCOCO_ID(ID_ENTITY, int64, 0);
+
+   struct IPlayerSupervisor;
 }
 
 #include "hv.script.types.h"
@@ -75,12 +77,34 @@ namespace HV
       };
 
       ISceneSupervisor* CreateScene(IInstancesSupervisor& instances, ICameraSupervisor& camera);
-
       ICameraSupervisor* CreateCamera(IInstancesSupervisor& instances, IRenderer& render);
-
       IMeshBuilderSupervisor* CreateMeshBuilder(IRenderer& renderer);
-      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& builder, IRenderer& renderer);
+      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& builder, IRenderer& renderer, IPublisher& publisher);
    }
+
+   ROCOCOAPI IPlayerSupervisor
+   {
+      virtual void Free() = 0;
+      virtual IPlayer* GetPlayer(int32 index) = 0;
+      virtual void Update(const IUltraClock& clock) = 0;
+   };
+
+   IPlayerSupervisor* CreatePlayerSupervisor(Rococo::Events::IPublisher& publisher);
+
+   struct Key
+   {
+      const wchar_t* KeyName;
+      bool isPressed;
+   };
+
+   ROCOCOAPI IKeyboardSupervisor: public IKeyboard
+   {
+      virtual const wchar_t* GetAction(const wchar_t* keyName) = 0;
+      virtual Key GetKeyFromEvent(const KeyboardEvent& ke) = 0;
+      virtual void Free() = 0;
+   };
+
+   IKeyboardSupervisor* CreateKeyboardSupervisor();
 
    namespace Events
    {
@@ -100,6 +124,25 @@ namespace HV
          OnFileChangedEvent() : Event(OnFileChanged) {}
          FileModifiedArgs* args;
       };
+
+      extern EventId OnPlayerAction;
+
+      struct OnPlayerActionEvent : public Event
+      {
+         OnPlayerActionEvent() : Event(OnPlayerAction) {}
+         const wchar_t* Name;
+         bool start;
+      };
+
+      extern EventId OnPlayerTryMove;
+
+      struct OnPlayerTryMoveEvent : public Event
+      {
+         OnPlayerTryMoveEvent() : Event(OnPlayerTryMove) {}
+         ID_ENTITY playerEntityId;
+         float fowardDelta;
+         float straffeDelta;
+      };
    }
   
    bool QueryYesNo(Windows::IWindow& ownerWindow, const wchar_t* message);
@@ -116,6 +159,8 @@ namespace HV
       Graphics::IMeshBuilderSupervisor& meshes;
       Graphics::IInstancesSupervisor& instances;
       Graphics::ICameraSupervisor& camera;
+      IPlayerSupervisor& players;
+      IKeyboardSupervisor& keyboard;
    };
 
    IApp* CreateHVApp(Cosmos& e);

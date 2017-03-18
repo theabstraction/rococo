@@ -6,12 +6,14 @@
 
 #ifdef _DEBUG
 #pragma comment(lib, "rococo.tiff.debug.lib")
+#pragma comment(lib, "rococo.jpg.debug.lib")
 #pragma comment(lib, "rococo.windows.debug.lib")
 #pragma comment(lib, "rococo.fonts.debug.lib")
 #else
 #pragma comment(lib, "rococo.tiff.lib")
 #pragma comment(lib, "rococo.windows.lib")
 #pragma comment(lib, "rococo.fonts.lib")
+#pragma comment(lib, "rococo.jpg.lib")
 #endif
 
 #pragma comment(lib, "dxgi.lib")
@@ -94,6 +96,7 @@ namespace
 		ticks frameStart;
 		ticks start;
 		ticks frameDelta;
+      Seconds dt;
 
 		UltraClock()
 		{
@@ -109,6 +112,7 @@ namespace
 		virtual ticks FrameStart() const { return frameStart; }
 		virtual ticks Start() const { return start; }
 		virtual ticks FrameDelta() const { return frameDelta; }
+      virtual Seconds DT() const { return dt;  }
 	};
 
 	D3D11_INPUT_ELEMENT_DESC guiVertexDesc[] =
@@ -419,7 +423,7 @@ namespace
 			{
 				D3D11_RASTERIZER_DESC objRenderingDesc;
 				objRenderingDesc.FillMode = D3D11_FILL_SOLID;
-				objRenderingDesc.CullMode = D3D11_CULL_BACK;
+            objRenderingDesc.CullMode = D3D11_CULL_NONE; // D3D11_CULL_BACK;
 				objRenderingDesc.FrontCounterClockwise = FALSE;
 				objRenderingDesc.DepthBias = 0;
 				objRenderingDesc.DepthBiasClamp = 0.0f;
@@ -1409,6 +1413,11 @@ namespace
 			QueryPerformanceCounter((LARGE_INTEGER*)&uc.frameStart);
 
 			uc.frameDelta = uc.frameStart - lastTick;
+
+         float dt0 = uc.frameDelta / (float)uc.hz;
+         dt0 = max(0.0f, dt0);
+         dt0 = min(dt0, 0.05f);
+         uc.dt = Seconds{ dt0 };
 
 			sleepMS = app.OnFrameUpdated(uc);
 

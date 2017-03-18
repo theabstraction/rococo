@@ -1,0 +1,23 @@
+(' #file.type rococo.hv)
+
+(' #include 
+	"!scripts/hv.sxh.sxy"
+	"!scripts/types.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using HV)
+
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(IKeyboard k (Keyboard))
+	(k.ClearActions)
+	(k.BindAction "W" 		"move.fps.forward")
+	(k.BindAction "S" 		"move.fps.backward")
+	(k.BindAction "A" 		"move.fps.straffeleft")
+	(k.BindAction "D" 		"move.fps.strafferight")
+	(k.BindAction "SPACE" 	"move.fps.jump")
+	(k.BindAction "R" 		"move.fps.autorun")
+)

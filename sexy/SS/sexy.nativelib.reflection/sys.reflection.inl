@@ -167,6 +167,30 @@ namespace
 		}
 	}
 
+   void DuplicateExpressionAsString(cr_sex s, ISExpressionBuilder& b)
+   {
+      switch (s.Type())
+      {
+      case EXPRESSION_TYPE_STRING_LITERAL:
+         b.AddStringLiteral(s.String()->Buffer);
+         return;
+      case EXPRESSION_TYPE_ATOMIC:
+      {
+         csexstr token = s.String()->Buffer;
+         b.AddStringLiteral(token);
+      }
+      return;
+      case EXPRESSION_TYPE_COMPOUND:
+      {
+         Sexy::Sex::Throw(*b.Parent(), SEXTEXT("Could not duplicate as string. Element is compound"));
+      }
+      return;
+      default:
+         Sexy::Sex::Throw(*b.Parent(), SEXTEXT("Could not duplicate. Element type not applicable"));
+         break;
+      }
+   }
+
 	int SubstituteAtomic(cr_sex input, csexstr token, ISExpressionBuilder& b)
 	{
 		using namespace Sexy::Parse;
@@ -271,6 +295,19 @@ namespace
 		DuplicateExpression(*pSource, *pBuilder);
 	}
 
+   void NativeExpressionBuilderAddCopyToString(NativeCallEnvironment& e)
+   {
+      IScriptSystem& SS = (IScriptSystem&)e.ss;
+
+      ISExpressionBuilder* pBuilder;
+      ReadInput(0, (void*&)pBuilder, e);
+
+      ISExpression* pSource;
+      ReadInput(1, (void*&)pSource, e);
+
+      DuplicateExpressionAsString(*pSource, *pBuilder);
+   }
+
 	void NativeExpressionBuilderSubstitute(NativeCallEnvironment& e)
 	{
 		IScriptSystem& SS = (IScriptSystem&) e.ss;
@@ -307,6 +344,7 @@ namespace
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddAtomic, &ss, SEXTEXT("ExpressionBuilderAddAtomic (Pointer builderPtr) (Pointer strBuffer) ->"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCompound, &ss, SEXTEXT("ExpressionBuilderAddCompound (Pointer builderPtr) -> (Sys.Reflection.IExpressionBuilder child)"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCopy, &ss, SEXTEXT("ExpressionBuilderAddCopy (Pointer builderPtr) (Pointer xpressPtr) ->"), true);
+      ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCopyToString, &ss, SEXTEXT("ExpressionBuilderAddCopyToString (Pointer builderPtr) (Pointer xpressPtr) ->"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderSubstitute, &ss, SEXTEXT("ExpressionBuilderSubstitute (Pointer builderPtr) (Pointer inputPtr) (Pointer formatPtr) -> (Int32 errorCount)"), true);
 	}
 }

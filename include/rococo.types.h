@@ -244,6 +244,12 @@ namespace Rococo
       return Metres{ (float)value };
    }
 
+
+   inline Metres operator "" _metres(unsigned long long value)
+   {
+      return Metres{ (float)value };
+   }
+
    struct Seconds
    {
       float value;

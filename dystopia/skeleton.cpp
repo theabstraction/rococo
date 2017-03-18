@@ -4,7 +4,6 @@
 #include "meshes.h"
 #include <array>
 #include <unordered_map>
-#include "rococo.keys.h"
 
 namespace
 {

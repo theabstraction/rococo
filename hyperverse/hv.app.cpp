@@ -48,13 +48,23 @@ namespace
       virtual uint32 OnFrameUpdated(const IUltraClock& clock)
       {
          e.installation.OS().EnumerateModifiedFiles(*this);
+         e.players.Update(clock);
+         e.camera.Update(clock);
          e.renderer.Render(e.scene);
          return 5;
       }
 
-      virtual void OnKeyboardEvent(const KeyboardEvent& k)
+      virtual void OnKeyboardEvent(const KeyboardEvent& keyboardEvent)
       {
-
+         Key key = e.keyboard.GetKeyFromEvent(keyboardEvent);
+         auto* action = e.keyboard.GetAction(key.KeyName);
+         if (action)
+         {
+            HV::Events::OnPlayerActionEvent pae;
+            pae.Name = action;
+            pae.start = key.isPressed;
+            Rococo::Events::Publish(e.publisher, pae);
+         }
       }
 
       virtual void OnMouseEvent(const MouseEvent& me)

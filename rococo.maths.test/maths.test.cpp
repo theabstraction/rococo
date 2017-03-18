@@ -261,26 +261,37 @@ void ValidateCollisionLib()
 
 void  ValidateProjectionLib()
 {
-   Matrix4x4 projection = {
-      {1,   0,   0,   0},
-      {0,   1,   0,   0},
-      {0,   0,   1,  -1},
-      {0,   0,   1,   0}
-   };
+   Matrix4x4 projection = Matrix4x4::GetRHProjectionMatrix(90_degrees, 2.0f, 0.3_metres, 3000.3_metres);
 
-   Vec4 worldPositionX{ 1.0f, 0.0f, 10.0f,  1.0f };
-   Vec4 worldPositionY{ 0.0f, 1.0f, 10.0f,  1.0f };
+   Vec4 xNear{ 1.0f, 1.0f, -0.3_metres, 1.0f };
+   Vec4 xFar1{ 1.0f, 1.0f, -2990_metres, 1.0f };
+   Vec4 xFar2{ 1.0f, 1.0f, -3010_metres, 1.0f };
 
-   Vec4 screenPositionX = projection * worldPositionX;
-   VALIDATE(screenPositionX.x == 1.0f);
-   VALIDATE(screenPositionX.y == 0);
-   VALIDATE(screenPositionX.z == 9.0f);
-   
+   Vec4 xn = projection * xNear;
+   Vec4 xf1 = projection * xFar1;
+   Vec4 xf2 = projection * xFar2;
 
-   Vec4 screenPositionY = projection * worldPositionY;
-   VALIDATE(screenPositionY.x == 0.0f);
-   VALIDATE(screenPositionY.y == 1.0);
-   VALIDATE(screenPositionY.z == 9.0f);
+   VALIDATE(xn.x == 0.5f);
+   VALIDATE(xn.y == 1.0f);
+   VALIDATE(xn.z == 0.0f);
+   VALIDATE(xn.w > 0.0f);
+
+   VALIDATE(xf1.x == 0.5f);
+   VALIDATE(xf1.y == 1.0f);
+   VALIDATE((xf1.z / xf1.w) < 1.0f);
+   VALIDATE((xf2.z / xf2.w) > 1.0f);
+
+   Matrix4x4 translation = Matrix4x4::Translate(Vec3{ 0,0,-0.3_metres });
+
+   Matrix4x4 PT = projection * translation;
+
+   Vec4 xAt0{ 1.0f, 1.0f, 0, 1.0f };
+   Vec4 x0 = PT * xAt0;
+
+   VALIDATE(xn.x == x0.x);
+   VALIDATE(xn.y == x0.y);
+   VALIDATE(xn.z == x0.z);
+   VALIDATE(xn.w == x0.w);
 }
 
 void test()

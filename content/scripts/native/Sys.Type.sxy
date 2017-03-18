@@ -22,7 +22,7 @@
 )
 
 (function ValidateSubscriptRange (Int32 i) (Int32 min) (Int32 max) (IString message) -> :
-	(if ((i < min) or (i >= max)) (Sys.Throw -1 message))
+	(if ((i < min) or (i > max)) (Sys.Throw -1 message))
 )
 
 (alias ValidateSubscriptRange Sys.ValidateSubscriptRange)
@@ -70,14 +70,14 @@
 
 // Example: (#inc i) maps to (i = (i+1) )
 (macro Sys.Type.inc in out
-	(ValidateSubscriptRange in.ChildCount 2 3 "Usage: (#inc <variable-name>)")
+	(ValidateSubscriptRange in.ChildCount 2 2 "Usage: (#inc <variable-name>)")
 	(IExpression format = ' ($1 = ($1 + 1)))
 	(out.Substitute in format)
 )
 
 // Example: (#dec i) maps to (i = (i-1) )
 (macro Sys.Type.dec in out
-	(ValidateSubscriptRange in.ChildCount 2 3 "Usage: (#dec <variable-name>)")
+	(ValidateSubscriptRange in.ChildCount 2 2 "Usage: (#dec <variable-name>)")
 	(IExpression format = ' ($1 = ($1 - 1)))
 	(out.Substitute in format)
 )

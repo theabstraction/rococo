@@ -52,9 +52,9 @@
 	(as.cpp HV.Graphics.OrientationFlags "hv")
 	(
 		(None 0)
-		(OrientationFlagsHeading 1)
-		(OrientationFlagsElevation 2)
-		(OrientationFlagsRoll 4)
+		(Heading 1)
+		(Elevation 2)
+		(Roll 4)
 	)
 )
 
@@ -65,6 +65,7 @@
 	(context factory HV.Graphics.ICamera)
 	(methods
 		(Clear)
+		(SetRHProjection (Degrees fov)(Float32 near)(Float32 far))
 		(SetProjection (const Matrix4x4 proj))
 		(SetPosition (const Vec3 position))
 		(SetOrientation (const Quat orientation))
@@ -79,4 +80,29 @@
 		(AspectRatio -> (Float32 widthOverHeight))
 	)
 	(factory HV.Graphics.Camera)
+)
+
+(interface
+	(as.sxy HV.IPlayer "../content/scripts/hv")
+	(as.cpp HV.IPlayer "hv")
+	(context factory HV.IPlayerSupervisor)
+	(methods
+		(SetPlayerEntity (IdEntity id))
+		(GetPlayerEntity -> (IdEntity id))
+		(SetControlFPS)
+		(SetControlNone)
+	)
+	(factory HV.Graphics.Player (Int32 index))
+)
+
+(interface
+	(as.sxy HV.IKeyboard "../content/scripts/hv")
+	(as.cpp HV.IKeyboard "hv")
+	(context factory HV.IKeyboard)
+	(methods
+		(ClearActions)
+		(SetKeyName (IString name)(Int32 scancode))
+		(BindAction (IString keyName)(IString actionName))
+	)
+	(factory HV.Keyboard)
 )

@@ -31,7 +31,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.util", "rococo.util\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Content", "Content", "{BF615B7F-43F1-42AC-AC74-C0600CA01BF6}"
 	ProjectSection(SolutionItems) = preProject
+		content\scripts\hv\controls.sxy = content\scripts\hv\controls.sxy
 		content\scripts\dystopia.sxh.sxy = content\scripts\dystopia.sxh.sxy
+		content\scripts\hv\keys.sxy = content\scripts\hv\keys.sxy
 		content\levels\level1.sxy = content\levels\level1.sxy
 		content\scripts\hv\main.sxy = content\scripts\hv\main.sxy
 	EndProjectSection
@@ -53,6 +55,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperverse", "hyperverse\hy
 		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
 		{151FC7F0-2D21-40F1-AD39-AEED3924CCC3} = {151FC7F0-2D21-40F1-AD39-AEED3924CCC3}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dystopia", "dystopia\dystopia.vcxproj", "{808DA513-B032-4192-8628-B0568EE43BF1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -138,6 +142,14 @@ Global
 		{E98664C0-72C3-4E38-BACD-444DF2288DC9}.Release|x64.Build.0 = Release|x64
 		{E98664C0-72C3-4E38-BACD-444DF2288DC9}.Release|x86.ActiveCfg = Release|Win32
 		{E98664C0-72C3-4E38-BACD-444DF2288DC9}.Release|x86.Build.0 = Release|Win32
+		{808DA513-B032-4192-8628-B0568EE43BF1}.Debug|x64.ActiveCfg = Debug|x64
+		{808DA513-B032-4192-8628-B0568EE43BF1}.Debug|x64.Build.0 = Debug|x64
+		{808DA513-B032-4192-8628-B0568EE43BF1}.Debug|x86.ActiveCfg = Debug|Win32
+		{808DA513-B032-4192-8628-B0568EE43BF1}.Debug|x86.Build.0 = Debug|Win32
+		{808DA513-B032-4192-8628-B0568EE43BF1}.Release|x64.ActiveCfg = Release|x64
+		{808DA513-B032-4192-8628-B0568EE43BF1}.Release|x64.Build.0 = Release|x64
+		{808DA513-B032-4192-8628-B0568EE43BF1}.Release|x86.ActiveCfg = Release|Win32
+		{808DA513-B032-4192-8628-B0568EE43BF1}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

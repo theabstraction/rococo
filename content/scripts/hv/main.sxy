@@ -10,6 +10,18 @@
 	
 (using Sys.Maths)
 (using HV.Graphics)
+(using HV)
+
+(function DefinePoint -> :
+	(IMeshBuilder mb (MeshBuilder))
+	(mb.Clear)
+	(mb.Begin "mesh.platonic.point")
+	(Vertex bottomLeft  = (-0.001  -0.001 0) (0 0 1) 0x00000000 0x00000000 (1 1))
+	(Vertex topLeft     = (-0.001   0.001 0) (0 0 1) 0x00000000 0x00000000 (1 0))
+	(Vertex bottomRight = ( 0.001  -0.001 0) (0 0 1) 0x00000000 0x00000000 (0 1))
+	(mb.AddTriangle  topLeft bottomLeft   bottomRight)
+	(mb.End)
+)
 
 (function DefinePlatonicSquare -> :
 	(IMeshBuilder mb (MeshBuilder))
@@ -28,57 +40,26 @@
 	
 	// Top face
 	(
-		(Vertex bottomLeft  = (-0.5 -0.5 0.5) (0 0 1) 0x808080FF 0xFF0000FF (0 0))
-		(Vertex topLeft     = (-0.5  0.5 0.5) (0 0 1) 0x808080FF 0xFF0000FF (0 1))
-		(Vertex bottomRight = ( 0.5 -0.5 2.5) (0 0 1) 0x808080FF 0xFF0000FF (1 0))
-		(Vertex topRight    = ( 0.5  0.5 2.5) (0 0 1) 0x808080FF 0xFF0000FF (1 1))
+		(Vertex bottomLeft  = (-0.5 -0.5 2.5) (0 0 1) 0x808080FF 0xFF0000FF (1 1))
+		(Vertex topLeft     = (-0.5  0.5 2.5) (0 0 1) 0x808080FF 0xFF0000FF (1 0))
+		(Vertex bottomRight = ( 0.5 -0.5 4.5) (0 0 1) 0x808080FF 0xFF0000FF (0 1))
+		(Vertex topRight    = ( 0.5  0.5 4.5) (0 0 1) 0x808080FF 0xFF0000FF (0 0))
 		
-		(mb.AddTriangle topLeft bottomLeft   topRight)
-		(mb.AddTriangle bottomRight topRight bottomLeft)
+		(mb.AddTriangle  topLeft bottomLeft   topRight)
+		(mb.AddTriangle bottomRight topRight   bottomLeft)
 	)
 	
 	// Nearer face
 	(
-		(Vertex bottomLeft  = (-1.0 -1.0 1.5) (0 0 1) 0x808080FF 0xFF00008F (0 0))
-		(Vertex topLeft     = (-1.0  1.0 1.5) (0 0 1) 0x808080FF 0xFF00008F (0 1))
-		(Vertex bottomRight = ( 1.0 -1.0 1.5) (0 0 1) 0x808080FF 0xFF00008F (1 0))
-		(Vertex topRight    = ( 1.0  1.0 1.5) (0 0 1) 0x808080FF 0xFF00008F (1 1))
-		(mb.AddTriangle topLeft bottomLeft topRight)
-		(mb.AddTriangle bottomRight topRight bottomLeft)
+		(Vertex bottomLeft  = (-1.0 -1.0 3.5) (0 0 1) 0x808080FF 0xFF00008F (1 1))
+		(Vertex topLeft     = (-1.0  1.0 3.5) (0 0 1) 0x808080FF 0xFF00008F (1 0))
+		(Vertex bottomRight = ( 1.0 -1.0 3.5) (0 0 1) 0x808080FF 0xFF00008F (0 1))
+		(Vertex topRight    = ( 1.0  1.0 3.5) (0 0 1) 0x808080FF 0xFF00008F (0 0))
+		(mb.AddTriangle bottomLeft topLeft  topRight)
+		(mb.AddTriangle bottomRight topRight   bottomLeft)
 	)
 	
 	(mb.End)
-)
-
-(function GetProjectionMatrix (Matrix4x4 output)-> :
-
-	(ICamera camera (Camera))
-	(Float32 aspect = camera.AspectRatio)
-
-	(Float32 radiansPerDegree = ((#pi) / 180))
-	(Float32 fov = 45.0)
-	(Float32 tanFov = (F32.Tan ((radiansPerDegree * fov) / 2)))
-    (Float32 yScale = (1 / tanFov))
-	(Float32 xScale = (yScale * aspect))
-	
-	(Float32 far = 1000)
-	(Float32 near = 0.2)
-	
-	(Float32 df = (near - far))
-	(Float32 z0 = ((far + near) / df ))
-	(Float32 zScale = (0 + z0))
-	
-	(Float32 w0 = ((far * near) * 2))
-	(Float32 wScale = (w0 / df ))
-	
-	(Matrix4x4 proj = 
-		(xScale		0       0   	 0)
-		(0	   yScale   	0        0)
-		(0			0  zScale   wScale)
-		(0			0      -1        1)
-	)
-	
-	(output = proj)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):
@@ -87,20 +68,27 @@
 	(ISceneBuilder scene (SceneBuilder))
 	(ICamera camera (Camera))
 	
+	(DefinePoint)
 	(DefinePlatonicSquare)
 	
 	(instances.Begin "square.1")
 	(instances.SetMeshByName "mesh.platonic.square" "!portraits/charlotte.jpg")
 	(Int64 squareId = instances.End)
 	
+	(instances.Begin "player.1")
+	(instances.SetMeshByName "mesh.platonic.point" "!portraits/charlotte.jpg")
+	(Int64 playerId = instances.End)
+	
+	(IPlayer player (Player 0))
+	(player.SetPlayerEntity playerId)
+	(player.SetControlFPS)
+	
+	(Vec3 pos = 0 0 6.5)
+	(instances.SetPosition playerId pos)
+	
 	(scene.AddStatics squareId)
 	
-	(Matrix4x4 proj)
-	(GetProjectionMatrix proj)
-	(camera.SetProjection proj)
-//	(Quat q = (0 1 0) 0)
-	(Vec3 pos = 0 0 3)
-//	(camera.SetOrientation q)
-	(camera.SetPosition pos)
+	(camera.SetRHProjection 60 0.3 1000)
+	(camera.FollowEntity playerId)
 	(scene.SetClearColour 0.25 0.25 0)
 )

@@ -86,6 +86,7 @@ namespace Rococo
       virtual ticks FrameStart() const = 0;	// The time of the current render frame
       virtual ticks Start() const = 0;		// The time at which the mainloop started
       virtual ticks FrameDelta() const = 0;	// The time between the previous frame and the current frame.
+      virtual Seconds DT() const = 0; // Get a sanitized timestep in seconds
    };
 
 	struct IStringBuilder;
@@ -349,8 +350,8 @@ namespace Rococo
 
       ROCOCOAPI IPublisher
       {
+         virtual void Attach(IObserver* observer) = 0;
          virtual void Detach(IObserver* observer) = 0;
-         virtual void Observe(IObserver* observer) = 0;
          virtual void Publish(Event& ev) = 0;
       };
 
@@ -372,7 +373,7 @@ namespace Rococo
       template<class T> inline T& As(Event& ev)
       {
          T& t = static_cast<T&>(ev);
-         if (t.sizeInBytes != sizeof(T)) ThrowBadEvent();
+         if (t.sizeInBytes != sizeof(T)) ThrowBadEvent(ev);
          return t;
       }
    } // Events

@@ -8,8 +8,6 @@
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
 
-#include "rococo.keys.h"
-
 namespace
 {
 	using namespace Rococo;
@@ -38,12 +36,12 @@ namespace
 		IRenderer& renderer;
 		ISourceCache& sources;
 
-		StringKey filename;
+      std::wstring filename;
 
-		std::unordered_map<StringKey, Keyframe*, HashStringKey> keyframes;
+		std::unordered_map<std::wstring, Keyframe*> keyframes;
 		std::vector<Keyframe*> keyframesByIndex;
 
-		std::unordered_map<StringKey, Animation*, HashStringKey> animations;
+		std::unordered_map<std::wstring, Animation*> animations;
 		std::vector<Animation*> animationsByIndex;
 
 		void ParseBone(cr_sex sbone, BoneOrientation& bone)
@@ -75,7 +73,7 @@ namespace
 
 			auto* nkf = new Keyframe();
 			auto& keyframeName = GetAtomicArg(sdirective[1]);
-			auto i = keyframes.insert(std::make_pair(StringKey(keyframeName, true), nkf));
+			auto i = keyframes.insert(std::make_pair(keyframeName, nkf));
 			if (!i.second)
 			{
 				delete nkf;
@@ -131,7 +129,7 @@ namespace
 			{
 				frame.id = ID_KEYFRAME::Invalid();
 
-				auto j = animations.find(StringKey(kname.buffer + 1, false));
+				auto j = animations.find(kname.buffer + 1);
 				if (j == animations.end())
 				{
 					ThrowSex(sframe[0], L"Could not find animation %s", kname.buffer + 1);
@@ -142,7 +140,7 @@ namespace
 			else
 			{
 				frame.nextAnimationId = ID_ANIMATION::Invalid();
-				auto k = keyframes.find(StringKey(kname, false));
+				auto k = keyframes.find(kname.buffer);
 				if (k == keyframes.end())
 				{
 					ThrowSex(sframe[0], L"Cannot find keyframe");
@@ -170,7 +168,7 @@ namespace
 			auto& animationName = GetAtomicArg(sdirective[2]);
 
 			auto anim = new Animation();
-			auto i = animations.insert(std::make_pair(StringKey(animationName, true), anim));
+			auto i = animations.insert(std::make_pair(animationName, anim));
 			if (!i.second)
 			{
 				delete anim;
@@ -290,14 +288,14 @@ namespace
 
 		virtual void Reload(const wchar_t* _filename)
 		{
-			this->filename = StringKey(_filename, true);
+			this->filename = _filename;
 
 			while (true)
 			{
 				try
 				{
 					Clear();
-					ProtectedLoad(filename);
+					ProtectedLoad(filename.c_str());
 					return;
 				}
 				catch (IException& ex)
@@ -320,7 +318,7 @@ namespace
 
 		virtual AnimationSequence GetAnimationSequenceByName(const wchar_t* name)
 		{
-			auto i = animations.find(StringKey(name, false));
+			auto i = animations.find(name);
 			if (i == animations.end())
 			{
 				return{ nullptr, nullptr, 0, ID_ANIMATION::Invalid() };
@@ -370,8 +368,7 @@ namespace
 
 		virtual int32 EnumerateKeyframeBonesByName(const wchar_t* name, IBoneEnumerator& onFrame)
 		{
-			StringKey key(name, false);
-			auto i = keyframes.find(key);
+			auto i = keyframes.find(name);
 			if (i != keyframes.end())
 			{
 				return 0;
@@ -400,10 +397,10 @@ namespace
 
 		virtual void UpdateLib(const wchar_t* updatedFile)
 		{
-			if (wcscmp(filename + 1, updatedFile) == 0)
+			if (wcscmp(filename.c_str() + 1, updatedFile) == 0)
 			{
-				sources.Release(filename);
-				Reload(filename);
+				sources.Release(filename.c_str());
+				Reload(filename.c_str());
 			}
 		}
 	};

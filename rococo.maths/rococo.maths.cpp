@@ -29,6 +29,47 @@ namespace // globals
 
 namespace Rococo
 {
+   Matrix4x4 Matrix4x4::GetRHProjectionMatrix(Degrees fov, float32 aspectRatio, float near, float far)
+   {
+      if (fov < 0.001f || fov > 179.0f)                Throw(0, L"Field-of-view out of range. Must be 0.001 <= fov <= 179.");
+      if (aspectRatio < 0.01f || aspectRatio > 100.0f) Throw(0, L"Aspect ratio outside of sane range. Must be 0.01 <= AR <= 100.");
+      if (near <= 0 || near > 100000.0f)               Throw(0, L"Near plane outside of sane range. Range: 0 < near < 100000");
+      if (far <= near || far > 100000.0f)              Throw(0, L"Far plane outside of sane range. Range: near < far <= 100000");
+
+      float32 tanhalffov = tanf(fov.ToRadians() / 2.0f);
+
+      /*
+      The camera sits at the origin looking down, therefore only  -far < z < -near is visible
+      Thus z is negative to be visible.
+      To stop x and y flipping directions in screen space, their quotient has to be positive
+      So the w divide has to be positive. To make divide positive with -ve z, we need to multiply z by -1
+      So we have matrix
+      (A  0  0  0)
+      (0  B  0  0)
+      (0  0  C  D)
+      (0  0 -1  0)
+      When z - -far, proj(z) = proj(-far) = 1, thus (C.-far + D) / (-1)(-far) = 1, or D - C.far = far
+      When z = -near, proj(z) = proj(-near) = 0, thus D = C.near
+      // Thus C.near - C.far = far, and thus C = far / (near-far)
+      With D = (far.near) / (near -far)
+      // Note that near < far, thus C and D are negative
+
+      */
+
+      float32 B = 1.0f / tanhalffov;
+      float32 A = B / aspectRatio;
+      float32 C = far / (near - far);
+      float32 D = (far * near) / (near - far);
+
+      return Matrix4x4
+      {
+         { A,	 0,  0,   0 },
+         { 0,   B,  0,   0 },
+         { 0,   0,  C,   D },
+         { 0,   0, -1,   0 }
+      };
+   }
+
 	Vec2  GetIntersect(Vec2 A, Vec2 D, Vec2 B, Vec2 E)
 	{
 		// Given line P(t) = A + Dt and line Q(u) = B + Eu

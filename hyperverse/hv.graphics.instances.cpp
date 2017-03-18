@@ -15,7 +15,7 @@ namespace
 
    struct EntityImpl : public IEntity
    {
-      Quat orientation{ {1.0f, 0.0f, 0.0f}, 0.0f };
+      Quat orientation{ {0.0f, 0.0f, 0.0f}, 1.0f };
       Vec3 position{ 0, 0, 0 };
       Vec3 scale{ 1.0f, 1.0f, 1.0f };
       mutable Matrix4x4 model;
@@ -70,7 +70,7 @@ namespace
 
    typedef std::unordered_map<ID_ENTITY, EntityImpl*, ID_ENTITY> MapIdToEntity;
 
-   struct Instances : public IInstancesSupervisor
+   struct Instances : public IInstancesSupervisor, public IObserver
    {      
       MapIdToEntity idToEntity;
       std::unordered_map<std::wstring, ID_ENTITY> nameToEntityId;
@@ -85,9 +85,18 @@ namespace
       ID_ENTITY parentId;
       int32 enumerationDepth{ 0 };
       IRenderer& renderer;
+      IPublisher& publisher;
 
-      Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer) :
-         meshBuilder(_meshBuilder), renderer(_renderer) {}
+      Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, IPublisher& _publisher) :
+         meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
+      {
+         publisher.Attach(this);
+      }
+
+      ~Instances()
+      {
+         publisher.Detach(this);
+      }
 
       virtual void Begin(const fstring& fqName)
       {
@@ -104,6 +113,21 @@ namespace
       {
          auto i = idToEntity.find(id);
          return i == idToEntity.end() ? nullptr : i->second;
+      }
+
+      virtual void OnEvent(Event& ev)
+      {
+         if (ev == HV::Events::OnPlayerTryMove)
+         {
+            auto& ptme = Rococo::Events::As<HV::Events::OnPlayerTryMoveEvent>(ev);
+            
+            Vec3 pos;
+            GetPosition(ptme.playerEntityId, pos);
+
+            pos.z += ptme.fowardDelta;
+            pos.x += ptme.straffeDelta;
+            SetPosition(ptme.playerEntityId, pos);
+         }
       }
 
       std::vector<const Matrix4x4*> modelStack;
@@ -364,9 +388,9 @@ namespace HV
 {
    namespace Graphics
    {
-      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& builder, IRenderer& renderer)
+      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& builder, IRenderer& renderer, IPublisher& publisher)
       {
-         return new Instances(builder, renderer);
+         return new Instances(builder, renderer, publisher);
       }
    }
 }

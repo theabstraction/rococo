@@ -46,7 +46,9 @@ namespace Rococo
 
 	Quat InterpolateRotations(cr_quat a, cr_quat b, float t);
 
-	struct alignas(4) Matrix4x4 // was 16, but sexy does not align on 16 byte boundaries yet
+   // Generally in the Rococo libs code/assume that matrices are used to pre-multiply column vectors
+   // If this is not the case, then make sure you comment/document that matrices go against the convention
+	struct alignas(4) Matrix4x4 
 	{
 		Vec4 row0;
 		Vec4 row1;
@@ -88,6 +90,10 @@ namespace Rococo
 		Vec3 GetForwardDirection() const;
 		Vec3 GetRightDirection() const;
 		Vec3 GetUpDirection() const;
+
+      // Returns a matrix in a RH system for a camera located at the origin, with stuff below z = -near visible
+      // Used to pre-multiply column vector to transform into screen space
+      static Matrix4x4 GetRHProjectionMatrix(Degrees fov, float32 aspectRatio, float near, float far);
 	};
 
 	Vec2  GetIntersect(Vec2 A, Vec2 D, Vec2 B, Vec2 E);
@@ -139,6 +145,11 @@ namespace Rococo
 	{
 		return Degrees{ (float) literalValue };
 	}
+
+   inline Degrees operator "" _degrees(unsigned long long literalValue)
+   {
+      return Degrees{ (float)literalValue };
+   }
 
 	inline float Sin(Radians radians) { return sinf(radians.quantity); }
 	inline float Cos(Radians radians) { return cosf(radians.quantity); }

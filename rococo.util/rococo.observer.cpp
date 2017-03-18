@@ -23,7 +23,7 @@ namespace
          observers.erase(observer);
       }
 
-      virtual void Observe(IObserver* observer)
+      virtual void Attach(IObserver* observer)
       {
          if (lockDepth) Throw(0, L"The publisher is locked.");
          observers.insert(observer);
@@ -66,8 +66,9 @@ namespace Rococo
             else
             {
                knownEvents[hash] = name;
-               id = hash;
             }
+
+            id = hash;
          }
 
          return id;

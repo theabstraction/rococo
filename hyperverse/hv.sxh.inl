@@ -5,17 +5,17 @@ namespace HV { namespace Graphics {
 		{
 			value = OrientationFlags_None;
 		}
-		else if (s == L"OrientationFlags_OrientationFlagsHeading"_fstring)
+		else if (s == L"OrientationFlags_Heading"_fstring)
 		{
-			value = OrientationFlags_OrientationFlagsHeading;
+			value = OrientationFlags_Heading;
 		}
-		else if (s == L"OrientationFlags_OrientationFlagsElevation"_fstring)
+		else if (s == L"OrientationFlags_Elevation"_fstring)
 		{
-			value = OrientationFlags_OrientationFlagsElevation;
+			value = OrientationFlags_Elevation;
 		}
-		else if (s == L"OrientationFlags_OrientationFlagsRoll"_fstring)
+		else if (s == L"OrientationFlags_Roll"_fstring)
 		{
-			value = OrientationFlags_OrientationFlagsRoll;
+			value = OrientationFlags_Roll;
 		}
 		else
 		{
@@ -31,17 +31,17 @@ namespace HV { namespace Graphics {
 		{
 			value = OrientationFlags_None;
 		}
-		else if (s == L"OrientationFlagsHeading"_fstring)
+		else if (s == L"Heading"_fstring)
 		{
-			value = OrientationFlags_OrientationFlagsHeading;
+			value = OrientationFlags_Heading;
 		}
-		else if (s == L"OrientationFlagsElevation"_fstring)
+		else if (s == L"Elevation"_fstring)
 		{
-			value = OrientationFlags_OrientationFlagsElevation;
+			value = OrientationFlags_Elevation;
 		}
-		else if (s == L"OrientationFlagsRoll"_fstring)
+		else if (s == L"Roll"_fstring)
 		{
-			value = OrientationFlags_OrientationFlagsRoll;
+			value = OrientationFlags_Roll;
 		}
 		else
 		{
@@ -475,6 +475,28 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Clear();
 	}
+	void NativeHVGraphicsICameraSetRHProjection(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float far;
+		_offset += sizeof(far);
+		ReadInput(far, _sf, -_offset);
+
+		float near;
+		_offset += sizeof(near);
+		ReadInput(near, _sf, -_offset);
+
+		Degrees fov;
+		_offset += sizeof(fov);
+		ReadInput(fov, _sf, -_offset);
+
+		HV::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetRHProjection(fov, near, far);
+	}
 	void NativeHVGraphicsICameraSetProjection(NativeCallEnvironment& _nce)
 	{
 		Sexy::uint8* _sf = _nce.cpu.SF();
@@ -668,6 +690,7 @@ namespace HV { namespace Graphics {
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Graphics.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForHVGraphicsCamera, _nceContext, SEXTEXT("GetHandleForICamera0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeHVGraphicsICameraClear, nullptr, SEXTEXT("ICameraClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVGraphicsICameraSetRHProjection, nullptr, SEXTEXT("ICameraSetRHProjection (Pointer hObject)(Sys.Maths.Degrees fov)(Float32 near)(Float32 far) -> "));
 		ss.AddNativeCall(ns, NativeHVGraphicsICameraSetProjection, nullptr, SEXTEXT("ICameraSetProjection (Pointer hObject)(Sys.Maths.Matrix4x4 proj) -> "));
 		ss.AddNativeCall(ns, NativeHVGraphicsICameraSetPosition, nullptr, SEXTEXT("ICameraSetPosition (Pointer hObject)(Sys.Maths.Vec3 position) -> "));
 		ss.AddNativeCall(ns, NativeHVGraphicsICameraSetOrientation, nullptr, SEXTEXT("ICameraSetOrientation (Pointer hObject)(Sys.Maths.Quat orientation) -> "));
@@ -682,3 +705,168 @@ namespace HV { namespace Graphics {
 		ss.AddNativeCall(ns, NativeHVGraphicsICameraAspectRatio, nullptr, SEXTEXT("ICameraAspectRatio (Pointer hObject) -> (Float32 widthOverHeight)"));
 	}
 }}
+// BennyHill generated Sexy native functions for HV::IPlayer 
+namespace
+{
+	using namespace Sexy;
+	using namespace Sexy::Sex;
+	using namespace Sexy::Script;
+	using namespace Sexy::Compiler;
+
+	void NativeHVIPlayerSetPlayerEntity(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		HV::IPlayer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetPlayerEntity(id);
+	}
+	void NativeHVIPlayerGetPlayerEntity(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::IPlayer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		ID_ENTITY id = _pObject->GetPlayerEntity();
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
+	}
+	void NativeHVIPlayerSetControlFPS(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::IPlayer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetControlFPS();
+	}
+	void NativeHVIPlayerSetControlNone(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::IPlayer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetControlNone();
+	}
+
+	void NativeGetHandleForHVGraphicsPlayer(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		HV::IPlayerSupervisor* nceContext = reinterpret_cast<HV::IPlayerSupervisor*>(_nce.context);
+		// Uses: HV::IPlayer* FactoryConstructHVGraphicsPlayer(HV::IPlayerSupervisor* _context, int32 _index);
+		HV::IPlayer* pObject = FactoryConstructHVGraphicsPlayer(nceContext, index);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace HV { 
+	void AddNativeCalls_HVIPlayer(Sexy::Script::IPublicScriptSystem& ss, HV::IPlayerSupervisor* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVGraphicsPlayer, _nceContext, SEXTEXT("GetHandleForIPlayer0 (Int32 index) -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVIPlayerSetPlayerEntity, nullptr, SEXTEXT("IPlayerSetPlayerEntity (Pointer hObject)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeHVIPlayerGetPlayerEntity, nullptr, SEXTEXT("IPlayerGetPlayerEntity (Pointer hObject) -> (Int64 id)"));
+		ss.AddNativeCall(ns, NativeHVIPlayerSetControlFPS, nullptr, SEXTEXT("IPlayerSetControlFPS (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVIPlayerSetControlNone, nullptr, SEXTEXT("IPlayerSetControlNone (Pointer hObject) -> "));
+	}
+}
+// BennyHill generated Sexy native functions for HV::IKeyboard 
+namespace
+{
+	using namespace Sexy;
+	using namespace Sexy::Sex;
+	using namespace Sexy::Script;
+	using namespace Sexy::Compiler;
+
+	void NativeHVIKeyboardClearActions(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::IKeyboard* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ClearActions();
+	}
+	void NativeHVIKeyboardSetKeyName(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 scancode;
+		_offset += sizeof(scancode);
+		ReadInput(scancode, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		HV::IKeyboard* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetKeyName(name, scancode);
+	}
+	void NativeHVIKeyboardBindAction(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _actionName;
+		ReadInput(_actionName, _sf, -_offset);
+		fstring actionName { _actionName->buffer, _actionName->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _keyName;
+		ReadInput(_keyName, _sf, -_offset);
+		fstring keyName { _keyName->buffer, _keyName->length };
+
+
+		HV::IKeyboard* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->BindAction(keyName, actionName);
+	}
+
+	void NativeGetHandleForHVKeyboard(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::IKeyboard* nceContext = reinterpret_cast<HV::IKeyboard*>(_nce.context);
+		// Uses: HV::IKeyboard* FactoryConstructHVKeyboard(HV::IKeyboard* _context);
+		HV::IKeyboard* pObject = FactoryConstructHVKeyboard(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace HV { 
+	void AddNativeCalls_HVIKeyboard(Sexy::Script::IPublicScriptSystem& ss, HV::IKeyboard* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVKeyboard, _nceContext, SEXTEXT("GetHandleForIKeyboard0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVIKeyboardClearActions, nullptr, SEXTEXT("IKeyboardClearActions (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVIKeyboardSetKeyName, nullptr, SEXTEXT("IKeyboardSetKeyName (Pointer hObject)(Sys.Type.IString name)(Int32 scancode) -> "));
+		ss.AddNativeCall(ns, NativeHVIKeyboardBindAction, nullptr, SEXTEXT("IKeyboardBindAction (Pointer hObject)(Sys.Type.IString keyName)(Sys.Type.IString actionName) -> "));
+	}
+}

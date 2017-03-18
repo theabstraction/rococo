@@ -8,7 +8,6 @@ namespace
 
    class Camera : public ICameraSupervisor
    {
-      bool isDirty;
       Matrix4x4 world;
       Matrix4x4 projection;
       Quat orientation;
@@ -17,7 +16,8 @@ namespace
       ID_ENTITY orientationGuideId;     
       int32 orientationFlags;
       IInstancesSupervisor& instances;
-      IRenderer& renderer;
+      IRenderer& renderer; 
+      bool isDirty;
    public:
       Camera(IInstancesSupervisor& _instances, IRenderer& _renderer): 
          instances(_instances),
@@ -41,7 +41,7 @@ namespace
          GuiMetrics metrics;
          renderer.GetGuiMetrics(metrics);
 
-         return metrics.screenSpan.y / (float)metrics.screenSpan.x;
+         return metrics.screenSpan.x / (float)metrics.screenSpan.y;
       }
 
       virtual void GetPosition(Vec3& position)
@@ -74,6 +74,7 @@ namespace
          if (followingId)
          {
             instances.ConcatenatePositionVectors(followingId, position);
+            isDirty = true;
          }
 
          if (orientationGuideId)
@@ -86,7 +87,13 @@ namespace
             model.row0.z = 0;
 
             Matrix4x4::GetRotationQuat(model, orientation);
+            isDirty = true;
          }
+      }
+
+      virtual void SetRHProjection(Degrees fov, float near, float far)
+      {
+         this->projection = Matrix4x4::GetRHProjectionMatrix(fov, AspectRatio(), near, far);
       }
 
       virtual void SetProjection(const Matrix4x4& proj)
@@ -111,7 +118,7 @@ namespace
       {
          Matrix4x4 world;
          GetWorld(world);
-         worldAndProj = world * projection;
+         worldAndProj = projection * world;
       }
 
       virtual void FollowEntity(ID_ENTITY id)

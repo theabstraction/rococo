@@ -71,10 +71,11 @@ void Main(HANDLE hInstanceLock)
    Sexy::Script::SetDefaultNativeSourcePath(srcpath);
 
    AutoFree<HV::Graphics::IMeshBuilderSupervisor> meshes = HV::Graphics::CreateMeshBuilder(mainWindow->Renderer());
-   AutoFree<HV::Graphics::IInstancesSupervisor> instances = HV::Graphics::CreateInstanceBuilder(*meshes, mainWindow->Renderer());
+   AutoFree<HV::Graphics::IInstancesSupervisor> instances = HV::Graphics::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher);
    AutoFree<HV::Graphics::ICameraSupervisor> camera = HV::Graphics::CreateCamera(*instances, mainWindow->Renderer());
    AutoFree<HV::Graphics::ISceneSupervisor> scene = HV::Graphics::CreateScene(*instances, *camera);
- 
+   AutoFree<HV::IPlayerSupervisor> players = HV::CreatePlayerSupervisor(*publisher);
+   AutoFree<HV::IKeyboardSupervisor> keyboardSupervisor = HV::CreateKeyboardSupervisor();
 
    HV::Cosmos e
    {
@@ -87,9 +88,13 @@ void Main(HANDLE hInstanceLock)
       *scene,
       *meshes,
       *instances,
-      *camera
+      *camera,
+      *players,
+      *keyboardSupervisor
    };
 
+   RunEnvironmentScript(e, L"!scripts/hv/keys.sxy");
+   RunEnvironmentScript(e, L"!scripts/hv/controls.sxy");
    RunEnvironmentScript(e, L"!scripts/hv/main.sxy");
 
    AutoFree<IApp> app = HV::CreateHVApp(e);

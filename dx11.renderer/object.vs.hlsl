@@ -15,6 +15,8 @@ struct ScreenVertex
 	float2 uv: TEXCOORD;
 };
 
+#pragma pack_matrix(row_major)
+
 cbuffer globalState
 {
 	float4x4 worldMatrixAndProj;

@@ -83,7 +83,7 @@ namespace
 
       virtual void RenderGui(IGuiRenderContext& grc)
       {
-         RenderTest(grc);
+    //     RenderTest(grc);
       }
 
       void FlushDrawQueue(ID_SYS_MESH meshId, ID_TEXTURE textureId, IRenderContext& rc)
