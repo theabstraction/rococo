@@ -1,5 +1,6 @@
-..\x64\Release\build.maker dystopia.version
+cd %1
+.\bin\build.maker.exe %2dystopia.version
 @echo off
 call "C:\VS2015\VC\vcvarsall.bat" amd64
-cl.exe /c /MDd dystopia.version.cpp /Fodystopia.version.Debug.obj
-cl.exe /c /MD dystopia.version.cpp /Fodystopia.version.Release.obj
+cl.exe /c /MDd %2dystopia.version.cpp /Fo%1temp/dystopia/version.obj
+

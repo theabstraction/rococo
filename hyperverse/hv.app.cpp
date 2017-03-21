@@ -69,7 +69,7 @@ namespace
 
       virtual void OnMouseEvent(const MouseEvent& me)
       {
-
+         
       }
 
       virtual const wchar_t* Title() const

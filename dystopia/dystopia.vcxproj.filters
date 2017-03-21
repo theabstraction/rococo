@@ -210,6 +210,9 @@
     <None Include="dystopia.sxh.inl">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="pre.link.bat">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="dystopia.sxh">

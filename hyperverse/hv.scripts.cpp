@@ -7,7 +7,7 @@
 #include <rococo.sexy.ide.h>
 #include <rococo.strings.h>
 
-namespace
+namespace // Script factories
 {
    using namespace HV;
    using namespace Rococo;
@@ -40,6 +40,11 @@ namespace
    HV::IKeyboard* FactoryConstructHVKeyboard(HV::IKeyboard* kb)
    {
       return kb;
+   }
+
+   HV::IConfig* FactoryConstructHVConfig(HV::IConfig* config)
+   {
+      return config;
    }
 }
 
@@ -82,6 +87,7 @@ namespace HV
             Graphics::AddNativeCalls_HVGraphicsICamera(args.ss, &e.camera);
             AddNativeCalls_HVIKeyboard(args.ss, &e.keyboard);
             AddNativeCalls_HVIPlayer(args.ss, &e.players);
+            AddNativeCalls_HVIConfig(args.ss, &e.config);
          }
 
       public:

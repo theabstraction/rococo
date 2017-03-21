@@ -1,0 +1,56 @@
+(' #file.type rococo.hv)
+
+(' #include 
+	"!scripts/hv.sxh.sxy"
+	"!scripts/types.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+
+(using HV)
+(using Sys)
+(using Sys.Reflection)
+
+(macro HV.float in out
+	(ValidateSubscriptRange in.ChildCount 3 3 "Usage: (#float <name> <float-value)")
+	(IExpressionBuilder set = out.AddCompound)
+	(set.AddAtomic "c.Float")
+	(set.CopyString (in 1))
+	(set.Copy (in 2))
+)
+
+(macro HV.int in out
+	(ValidateSubscriptRange in.ChildCount 3 3 "Usage: (#int <name> <int-value)")
+	(IExpressionBuilder set = out.AddCompound)
+	(set.AddAtomic "c.Int")
+	(set.CopyString (in 1))
+	(set.Copy (in 2))
+)
+
+(macro HV.bool in out
+	(ValidateSubscriptRange in.ChildCount 3 3 "Usage: (#bool <name> <bool-value)")
+	(IExpressionBuilder set = out.AddCompound)
+	(set.AddAtomic "c.Bool")
+	(set.CopyString (in 1))
+	(set.Copy (in 2))
+)
+
+(macro HV.text in out
+	(ValidateSubscriptRange in.ChildCount 3 3 "Usage: (#text <name> &"<text-string>&")")
+	(IExpressionBuilder set = out.AddCompound)
+	(set.AddAtomic "c.Text")
+	(set.CopyString (in 1))
+	(set.Copy (in 2))
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(IConfig c (Config))
+
+	(#float 		mouse.fps.xscale 				4)
+	(#float 		mouse.fps.yscale 				4)
+	(#bool  		mouse.fps.yreverse 			false)
+	(#int   		app.sleep						5)
+	(#text  		app.title 		 "Hyperverse 1.0")
+)

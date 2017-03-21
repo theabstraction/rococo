@@ -13,7 +13,7 @@ namespace Rococo
 	   int32 readPos;
 	   int32 writePos;
 	public:
-	   OneReaderOneWriterCircleBuffer(size_t _elementCount) : elementCount(_elementCount), readPos(0), writePos(0)
+	   OneReaderOneWriterCircleBuffer(int32 _elementCount) : elementCount(_elementCount), readPos(0), writePos(0)
 	   {
 		  elements = new ELEMENT_TYPE[_elementCount];
 	   }

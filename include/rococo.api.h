@@ -23,6 +23,11 @@ namespace DirectX
 	struct XMFLOAT4;
 }
 
+namespace Sexy
+{
+   struct IStringPopulator;
+}
+
 namespace Rococo
 {
 	typedef int64 ticks;

@@ -1,4 +1,4 @@
-#include "hv.h"
+#include "hv.defaults.h"
 #include <rococo.os.win32.h>
 
 #include <rococo.libs.inl>
@@ -54,31 +54,37 @@ namespace HV
 
 void Main(HANDLE hInstanceLock)
 {
+   using namespace HV;
+   using namespace HV::Events;
+   using namespace HV::Graphics;
+   using namespace HV::Defaults;
+
    AutoFree<IOSSupervisor> os = GetOS();
    AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
-   AutoFree<Events::IPublisherSupervisor> publisher(Events::CreatePublisher());
+   AutoFree<Rococo::Events::IPublisherSupervisor> publisher(Rococo::Events::CreatePublisher());
    os->Monitor(installation->Content());
 
    AutoFree<IDX11Window> mainWindow(CreateDX11Window(*installation));
    AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation));
    AutoFree<IDebuggerWindow> debuggerWindow(Rococo::IDE::CreateDebuggerWindow(&mainWindow->Window()));
 
-   SetWindowText(mainWindow->Window(), L"Hyperverse");
+   AutoFree<IConfigSupervisor> config(CreateConfig());
 
    wchar_t srcpath[_MAX_PATH];
    SecureFormat(srcpath, L"%sscripts\\native\\", installation->Content());
 
    Sexy::Script::SetDefaultNativeSourcePath(srcpath);
 
-   AutoFree<HV::Graphics::IMeshBuilderSupervisor> meshes = HV::Graphics::CreateMeshBuilder(mainWindow->Renderer());
-   AutoFree<HV::Graphics::IInstancesSupervisor> instances = HV::Graphics::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher);
-   AutoFree<HV::Graphics::ICameraSupervisor> camera = HV::Graphics::CreateCamera(*instances, mainWindow->Renderer());
-   AutoFree<HV::Graphics::ISceneSupervisor> scene = HV::Graphics::CreateScene(*instances, *camera);
-   AutoFree<HV::IPlayerSupervisor> players = HV::CreatePlayerSupervisor(*publisher);
-   AutoFree<HV::IKeyboardSupervisor> keyboardSupervisor = HV::CreateKeyboardSupervisor();
+   AutoFree<IMeshBuilderSupervisor> meshes = CreateMeshBuilder(mainWindow->Renderer());
+   AutoFree<IInstancesSupervisor> instances = CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher);
+   AutoFree<ICameraSupervisor> camera = CreateCamera(*instances, mainWindow->Renderer());
+   AutoFree<ISceneSupervisor> scene = CreateScene(*instances, *camera);
+   AutoFree<IPlayerSupervisor> players = CreatePlayerSupervisor(*publisher);
+   AutoFree<IKeyboardSupervisor> keyboardSupervisor = CreateKeyboardSupervisor();
 
    HV::Cosmos e
    {
+      *config,
       *publisher,
       *installation,
       *sourceCache,
@@ -93,11 +99,17 @@ void Main(HANDLE hInstanceLock)
       *keyboardSupervisor
    };
 
+   SetDefaults(*config);
+
+   RunEnvironmentScript(e, L"!scripts/hv/config.sxy");
+
+   SetWindowText(mainWindow->Window(), config->GetText(HV::Defaults::appTitle.key));
+
    RunEnvironmentScript(e, L"!scripts/hv/keys.sxy");
    RunEnvironmentScript(e, L"!scripts/hv/controls.sxy");
    RunEnvironmentScript(e, L"!scripts/hv/main.sxy");
 
-   AutoFree<IApp> app = HV::CreateHVApp(e);
+   AutoFree<IApp> app = CreateHVApp(e);
 
    mainWindow->Run(hInstanceLock, *app);
 }

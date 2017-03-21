@@ -19,6 +19,37 @@ namespace HV
 
 namespace HV
 {
+   struct ConfigText
+   {
+      const fstring key;
+      const fstring value;
+
+      operator const fstring() { return key; }
+   };
+
+   struct ConfigInt
+   {
+      const fstring key;
+      int value;
+
+      operator const fstring() { return key; }
+   };
+
+   struct ConfigFloat
+   {
+      const fstring key;
+      float value;
+
+      operator const fstring() { return key; }
+   };
+
+   struct ConfigBool
+   {
+      const fstring key;
+      const boolean32 value;
+      operator const fstring() { return key; }
+   };
+
    ROCOCOAPI IEntity
    {
       virtual const wchar_t* Name() const = 0;
@@ -106,6 +137,14 @@ namespace HV
 
    IKeyboardSupervisor* CreateKeyboardSupervisor();
 
+   ROCOCOAPI IConfigSupervisor: public IConfig
+   {
+      virtual const wchar_t* GetText(const wchar_t* name) const = 0;
+      virtual void Free() = 0;
+   };
+
+   IConfigSupervisor* CreateConfig();
+
    namespace Events
    {
       extern EventId OnTick;
@@ -134,6 +173,15 @@ namespace HV
          bool start;
       };
 
+      extern EventId OnPlayerDelta;
+
+      struct OnPlayerDeltaEvent : public Event
+      {
+         OnPlayerDeltaEvent() : Event(OnPlayerDelta) {}
+         const wchar_t* Name;
+         float delta;
+      };
+
       extern EventId OnPlayerTryMove;
 
       struct OnPlayerTryMoveEvent : public Event
@@ -149,6 +197,7 @@ namespace HV
 
    struct Cosmos
    {
+      IConfigSupervisor& config;
       Rococo::Events::IPublisher& publisher;
       IInstallation& installation;
       ISourceCache& sources;

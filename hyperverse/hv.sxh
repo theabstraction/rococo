@@ -106,3 +106,21 @@
 	)
 	(factory HV.Keyboard)
 )
+
+(interface 
+	(as.sxy HV.IConfig "../content/scripts/hv")
+	(as.cpp HV.IConfig "hv")
+	(context factory HV.IConfig)
+	(methods
+		(Int   (IString name)(Int32 value))
+		(Float (IString name)(Float32 value))
+		(Bool  (IString name)(Bool value))
+		(Text  (IString name) (IString value))
+
+		(GetInt    (IString name)->(Int32 value))
+		(GetFloat  (IString name)->(Float32 value))
+		(GetBool   (IString name)->(Bool value))
+		(GetText   (IString name)(IStringBuilder text))
+	)
+	(factory HV.Config)
+)

@@ -704,6 +704,8 @@ namespace Rococo
             // IUnknown methods
             IFACEMETHODIMP QueryInterface(REFIID riid, void** ppv)
             {
+#pragma warning( push )
+#pragma warning( disable : 4838)
                static const QITAB qit[] = 
                {
                   QITABENT(DialogEventHandler, IFileDialogEvents),
@@ -711,6 +713,7 @@ namespace Rococo
                   { nullptr, 0 }
                };
                return QISearch(this, qit, riid, ppv);
+#pragma warning( pop )
             }
 
             IFACEMETHODIMP_(ULONG) AddRef()

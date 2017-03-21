@@ -74,16 +74,20 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IntDir>..\intermediate\$(ProjectName)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>..\intermediate\$(ProjectName)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -107,7 +111,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\include\;..\sexy\common\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include\;$(SolutionDir)sexy\common\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -115,7 +119,8 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\lib</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)copy.sexy.to.game.debug.bat</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
     <CustomBuildStep>
       <Command>..\sexy\Bin\x64Debug\sexy.bennyhill.exe $(ProjectDir) hv.sxh hv.sxh.h</Command>
@@ -151,7 +156,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\include\;..\sexy\common\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)include\sexy\common\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -161,7 +166,8 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\lib</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)copy.sexy.to.game.release.bat</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
     <CustomBuildStep>
       <Command>..\sexy\Bin\x64Debug\sexy.bennyhill.exe $(ProjectDir) hv.sxh hv.sxh.h</Command>
@@ -172,10 +178,13 @@
   <ItemGroup>
     <ClCompile Include="hv.app.cpp" />
     <ClCompile Include="hv.camera.cpp" />
+    <ClCompile Include="hv.config.cpp" />
+    <ClCompile Include="hv.defaultconfig.cpp" />
     <ClCompile Include="hv.events.cpp" />
     <ClCompile Include="hv.graphics.instances.cpp" />
     <ClCompile Include="hv.graphics.meshes.cpp" />
     <ClCompile Include="hv.keyboard.cpp" />
+    <ClCompile Include="hv.mouse.cpp" />
     <ClCompile Include="hv.player.cpp" />
     <ClCompile Include="hv.scene.cpp" />
     <ClCompile Include="hv.scripts.cpp" />
@@ -183,6 +192,7 @@
     <ClCompile Include="hv.main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="hv.defaults.h" />
     <ClInclude Include="hv.h" />
     <ClInclude Include="hv.script.types.h" />
     <ClInclude Include="hv.sxh.h" />
