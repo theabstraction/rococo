@@ -73,7 +73,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include\;$(SolutionDir)include\sexy\common\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)sexy\common\</AdditionalIncludeDirectories>
       <ProgramDataBaseFileName>$(IntDir)$(ProjectName).debug.pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>

@@ -139,7 +139,7 @@
       <Inputs>dystopia.sxh;config.xc</Inputs>
     </CustomBuildStep>
     <PreLinkEvent>
-      <Command>$(ProjectDir)pre.link.bat $(SolutionDir) $(ProjectDir)</Command>
+      <Command>$(ProjectDir)pre.link.bat $(SolutionDir) $(ProjectDir) /MDd</Command>
     </PreLinkEvent>
     <PreLinkEvent>
       <Message>build version generation</Message>
@@ -176,7 +176,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include\;$(SolutionDir)sexy\common\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)sexy\common\</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>dystopia.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
@@ -204,7 +204,7 @@
       <Inputs>dystopia.sxh;config.xc</Inputs>
     </CustomBuildStep>
     <PreLinkEvent>
-      <Command>$(ProjectDir)pre.link.bat $(SolutionDir) $(ProjectDir)</Command>
+      <Command>$(ProjectDir)pre.link.bat $(SolutionDir) $(ProjectDir) /MD</Command>
     </PreLinkEvent>
     <PreLinkEvent>
       <Message>build version generation</Message>
