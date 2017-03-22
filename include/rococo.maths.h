@@ -139,6 +139,13 @@ namespace Rococo
 		Radians ToRadians() const { return Radians{ DEGREES_TO_RADIANS_QUOTIENT() * quantity }; }
 	};
 
+   struct FPSAngles
+   {
+      Degrees heading;   // 0 is North, 90 is East, 180 is South, 270 is West
+      Degrees elevation; // 0 is horizontal, 90 is up, -90 is down
+      Degrees tilt;      // -ve is lean left angle, +ve is lean right angle
+   };
+
 	inline Radians::operator Degrees () const { return Degrees{ quantity * RADIANS_TO_DEGREES_QUOTIENT() }; }
 
 	inline Degrees operator "" _degrees(long double literalValue)

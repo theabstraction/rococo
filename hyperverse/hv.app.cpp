@@ -1,4 +1,4 @@
-#include "hv.h"
+#include "hv.events.h"
 #include <rococo.strings.h>
 
 namespace
@@ -28,7 +28,7 @@ namespace
 
       virtual void OnEvent(FileModifiedArgs& args)
       {
-         HV::Events::OnFileChangedEvent ev;
+         HV::Events::OS::OnFileChangedEvent ev;
          ev.args = &args;
          Publish(e.publisher, ev);
 
@@ -60,7 +60,7 @@ namespace
          auto* action = e.keyboard.GetAction(key.KeyName);
          if (action)
          {
-            HV::Events::OnPlayerActionEvent pae;
+            HV::Events::Player::OnPlayerActionEvent pae;
             pae.Name = action;
             pae.start = key.isPressed;
             Rococo::Events::Publish(e.publisher, pae);
@@ -69,7 +69,7 @@ namespace
 
       virtual void OnMouseEvent(const MouseEvent& me)
       {
-         
+         e.mouse.TranslateMouseEvent(me);
       }
 
       virtual const wchar_t* Title() const

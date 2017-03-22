@@ -19,14 +19,14 @@ namespace
 
    class Scene : public ISceneSupervisor, public HV::Graphics::ISceneBuilderSupervisor
    {
-      HV::Graphics::IInstancesSupervisor& instances;
+      HV::Entities::IInstancesSupervisor& instances;
       std::vector<ID_ENTITY> entities;
       std::vector<ObjectInstance> drawQueue;
       HV::Graphics::ICameraSupervisor& camera;
 
       RGBA clearColour{ 0,0,0,1 };
    public:
-      Scene(HV::Graphics::IInstancesSupervisor& _instances, HV::Graphics::ICameraSupervisor& _camera) : 
+      Scene(HV::Entities::IInstancesSupervisor& _instances, HV::Graphics::ICameraSupervisor& _camera) :
          instances(_instances), camera(_camera)
       {
 
@@ -142,7 +142,7 @@ namespace HV
 {
    namespace Graphics
    {
-      ISceneSupervisor* CreateScene(IInstancesSupervisor& instances, ICameraSupervisor& camera)
+      ISceneSupervisor* CreateScene(Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera)
       {
          return new  Scene(instances, camera);
       }

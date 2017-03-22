@@ -1,4 +1,6 @@
 #include "hv.defaults.h"
+#include "hv.events.h"
+
 #include <rococo.os.win32.h>
 
 #include <rococo.libs.inl>
@@ -36,6 +38,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Windows;
+using namespace HV::Entities;
 
 namespace Rococo
 {
@@ -77,10 +80,11 @@ void Main(HANDLE hInstanceLock)
 
    AutoFree<IMeshBuilderSupervisor> meshes = CreateMeshBuilder(mainWindow->Renderer());
    AutoFree<IInstancesSupervisor> instances = CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher);
-   AutoFree<ICameraSupervisor> camera = CreateCamera(*instances, mainWindow->Renderer());
+   AutoFree<ICameraSupervisor> camera = CreateCamera(*instances, mainWindow->Renderer(), *publisher);
    AutoFree<ISceneSupervisor> scene = CreateScene(*instances, *camera);
    AutoFree<IPlayerSupervisor> players = CreatePlayerSupervisor(*publisher);
    AutoFree<IKeyboardSupervisor> keyboardSupervisor = CreateKeyboardSupervisor();
+   AutoFree<IMouse> mouse = CreateMouse(*publisher);
 
    HV::Cosmos e
    {
@@ -96,7 +100,8 @@ void Main(HANDLE hInstanceLock)
       *instances,
       *camera,
       *players,
-      *keyboardSupervisor
+      *keyboardSupervisor,
+      *mouse
    };
 
    SetDefaults(*config);

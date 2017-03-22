@@ -14,9 +14,9 @@
 )
 
 (interface
-	(as.sxy HV.Graphics.IInstances "../content/scripts/hv")
-	(as.cpp HV.Graphics.IInstances "hv")
-	(context factory HV.Graphics.IInstances)
+	(as.sxy HV.Entities.IInstances "../content/scripts/hv")
+	(as.cpp HV.Entities.IInstances "hv")
+	(context factory HV.Entities.IInstances)
 	(methods
 		(SetOrientation (IdEntity entityId)(const Quat orientation))
 		(SetScale (IdEntity entityId)(const Vec3 scale))
@@ -31,7 +31,7 @@
 		(End -> (IdEntity entityId))
 		(Clear)
 	)
-	(factory HV.Graphics.Instances)
+	(factory HV.Entities.Instances)
 )
 
 (interface

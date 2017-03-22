@@ -73,14 +73,8 @@ namespace HV
       void ValidateFQNameIdentifier(const wchar_t* fqName);
    }
 
-   namespace Graphics
+   namespace Entities
    {
-      ROCOCOAPI IMeshBuilderSupervisor: public IMeshBuilder
-      {
-         virtual void Free() = 0;
-         virtual bool TryGetByName(const wchar_t* name, ID_SYS_MESH& id) = 0;
-      };
-
       ROCOCOAPI IInstancesSupervisor: public IInstances
       {
          virtual void ForAll(IEntityCallback& cb) = 0;
@@ -89,6 +83,15 @@ namespace HV
          virtual void ConcatenateModelMatrices(ID_ENTITY id, Matrix4x4& result) = 0;
          virtual void ConcatenatePositionVectors(ID_ENTITY id, Vec3& position) = 0;
       };
+   }
+
+   namespace Graphics
+   {
+      ROCOCOAPI IMeshBuilderSupervisor: public IMeshBuilder
+      {
+         virtual void Free() = 0;
+         virtual bool TryGetByName(const wchar_t* name, ID_SYS_MESH& id) = 0;
+      }; 
 
       ROCOCOAPI ISceneBuilderSupervisor: public ISceneBuilder
       {
@@ -107,10 +110,15 @@ namespace HV
          virtual ISceneBuilderSupervisor&  Builder() = 0;
       };
 
-      ISceneSupervisor* CreateScene(IInstancesSupervisor& instances, ICameraSupervisor& camera);
-      ICameraSupervisor* CreateCamera(IInstancesSupervisor& instances, IRenderer& render);
+      ISceneSupervisor* CreateScene(Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera);
+      ICameraSupervisor* CreateCamera(Entities::IInstancesSupervisor& instances, IRenderer& render, IPublisher& publisher);
       IMeshBuilderSupervisor* CreateMeshBuilder(IRenderer& renderer);
-      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& builder, IRenderer& renderer, IPublisher& publisher);
+      
+   }
+
+   namespace Entities
+   {
+      IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& builder, IRenderer& renderer, IPublisher& publisher);
    }
 
    ROCOCOAPI IPlayerSupervisor
@@ -137,6 +145,14 @@ namespace HV
 
    IKeyboardSupervisor* CreateKeyboardSupervisor();
 
+   ROCOCOAPI IMouse
+   {
+      virtual void TranslateMouseEvent(const MouseEvent& ev) = 0;
+      virtual void Free() = 0;
+   };
+
+   IMouse* CreateMouse(IPublisher& publisher);
+
    ROCOCOAPI IConfigSupervisor: public IConfig
    {
       virtual const wchar_t* GetText(const wchar_t* name) const = 0;
@@ -144,54 +160,6 @@ namespace HV
    };
 
    IConfigSupervisor* CreateConfig();
-
-   namespace Events
-   {
-      extern EventId OnTick;
-
-      struct OnTickEvent : public Event
-      {
-         OnTickEvent() : Event(OnTick) {}
-         IUltraClock* clock;
-         uint32 frameSleep{ 5 };
-      };
-
-      extern EventId OnFileChanged;
-
-      struct OnFileChangedEvent : public Event
-      {
-         OnFileChangedEvent() : Event(OnFileChanged) {}
-         FileModifiedArgs* args;
-      };
-
-      extern EventId OnPlayerAction;
-
-      struct OnPlayerActionEvent : public Event
-      {
-         OnPlayerActionEvent() : Event(OnPlayerAction) {}
-         const wchar_t* Name;
-         bool start;
-      };
-
-      extern EventId OnPlayerDelta;
-
-      struct OnPlayerDeltaEvent : public Event
-      {
-         OnPlayerDeltaEvent() : Event(OnPlayerDelta) {}
-         const wchar_t* Name;
-         float delta;
-      };
-
-      extern EventId OnPlayerTryMove;
-
-      struct OnPlayerTryMoveEvent : public Event
-      {
-         OnPlayerTryMoveEvent() : Event(OnPlayerTryMove) {}
-         ID_ENTITY playerEntityId;
-         float fowardDelta;
-         float straffeDelta;
-      };
-   }
   
    bool QueryYesNo(Windows::IWindow& ownerWindow, const wchar_t* message);
 
@@ -206,10 +174,11 @@ namespace HV
       IRenderer& renderer;
       Graphics::ISceneSupervisor& scene;
       Graphics::IMeshBuilderSupervisor& meshes;
-      Graphics::IInstancesSupervisor& instances;
+      Entities::IInstancesSupervisor& instances;
       Graphics::ICameraSupervisor& camera;
       IPlayerSupervisor& players;
       IKeyboardSupervisor& keyboard;
+      IMouse& mouse;
    };
 
    IApp* CreateHVApp(Cosmos& e);

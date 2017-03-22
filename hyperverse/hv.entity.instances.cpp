@@ -1,4 +1,4 @@
-#include "hv.h"
+#include "hv.events.h"
 #include <unordered_map>
 #include <string>
 #include <vector>
@@ -10,6 +10,8 @@ namespace
 {
    using namespace HV;
    using namespace HV::Graphics;
+   using namespace HV::Events;
+   using namespace HV::Entities;
 
    int64 nextId = 1;
 
@@ -117,9 +119,9 @@ namespace
 
       virtual void OnEvent(Event& ev)
       {
-         if (ev == HV::Events::OnPlayerTryMove)
+         if (ev == Player::OnPlayerTryMove)
          {
-            auto& ptme = Rococo::Events::As<HV::Events::OnPlayerTryMoveEvent>(ev);
+            auto& ptme = Rococo::Events::As<Player::OnPlayerTryMoveEvent>(ev);
             
             Vec3 pos;
             GetPosition(ptme.playerEntityId, pos);
@@ -386,7 +388,7 @@ namespace
 
 namespace HV
 {
-   namespace Graphics
+   namespace Entities
    {
       IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& builder, IRenderer& renderer, IPublisher& publisher)
       {

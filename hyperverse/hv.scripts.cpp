@@ -17,7 +17,7 @@ namespace // Script factories
       return mb;
    }
 
-   HV::Graphics::IInstances* FactoryConstructHVGraphicsInstances(HV::Graphics::IInstances* ins)
+   HV::Entities::IInstances* FactoryConstructHVEntitiesInstances(HV::Entities::IInstances* ins)
    {
       return ins;
    }
@@ -82,7 +82,7 @@ namespace HV
          virtual void OnEvent(ScriptCompileArgs& args)
          {
             Graphics::AddNativeCalls_HVGraphicsIMeshBuilder(args.ss, &e.meshes);
-            Graphics::AddNativeCalls_HVGraphicsIInstances(args.ss, &e.instances);
+            Entities::AddNativeCalls_HVEntitiesIInstances(args.ss, &e.instances);
             Graphics::AddNativeCalls_HVGraphicsISceneBuilder(args.ss, &e.scene.Builder());
             Graphics::AddNativeCalls_HVGraphicsICamera(args.ss, &e.camera);
             AddNativeCalls_HVIKeyboard(args.ss, &e.keyboard);

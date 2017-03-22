@@ -36,9 +36,6 @@
     <ClCompile Include="hv.strings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hv.graphics.instances.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hv.camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -60,6 +57,9 @@
     <ClCompile Include="hv.defaultconfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hv.entity.instances.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hv.h">
@@ -72,6 +72,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="hv.defaults.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hv.events.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

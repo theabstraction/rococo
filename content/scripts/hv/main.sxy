@@ -10,6 +10,7 @@
 	
 (using Sys.Maths)
 (using HV.Graphics)
+(using HV.Entities)
 (using HV)
 
 (function DefinePoint -> :
@@ -75,6 +76,9 @@
 	(instances.SetMeshByName "mesh.platonic.square" "!portraits/charlotte.jpg")
 	(Int64 squareId = instances.End)
 	
+	(Vec3 sqPos = 0 5 0)
+	(instances.SetPosition squareId sqPos)
+	
 	(instances.Begin "player.1")
 	(instances.SetMeshByName "mesh.platonic.point" "!portraits/charlotte.jpg")
 	(Int64 playerId = instances.End)
@@ -90,5 +94,6 @@
 	
 	(camera.SetRHProjection 60 0.3 1000)
 	(camera.FollowEntity playerId)
+	(camera.OrientateWithEntity playerId 0)
 	(scene.SetClearColour 0.25 0.25 0)
 )
