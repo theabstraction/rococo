@@ -49,6 +49,16 @@ namespace
 
 		}
 
+      virtual void AddOverlay(int zorder, IUIOverlay* overlay)
+      {
+
+      }
+
+      virtual void RemoveOverlay(IUIOverlay* overlay)
+      {
+
+      }
+
 		std::wstring text = L"Loading...";
 		RGBA clearColour = RGBA(0.5f, 0, 0);
 	} customLoadScene;

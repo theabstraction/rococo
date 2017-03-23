@@ -207,6 +207,17 @@ namespace
 			auto* t = Post::InterpretAs<TimestepEvent>(mail);
 			if (t) OnTimestep(*t);
 		}
+
+      virtual void AddOverlay(int zorder, IUIOverlay* overlay)
+      {
+
+      }
+
+      virtual void RemoveOverlay(IUIOverlay* overlay)
+      {
+
+      }
+
 	};
 }
 

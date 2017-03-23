@@ -1,6 +1,7 @@
 #include "hv.h"
 
 #include <vector>
+#include <algorithm>
 
 namespace
 {
@@ -17,11 +18,29 @@ namespace
       Rococo::Graphics::RenderCentredText(grc, L"Hello World!", RGBAb(255, 255, 255, 255), 0, { c.x >> 1,c.y >> 1 });
    }
 
+   struct Overlay
+   { 
+      int32 zOrder;
+      IUIOverlay* overlay;
+   };
+
+   bool operator < (const Overlay& a, const Overlay& b)
+   {
+      return a.zOrder < b.zOrder;
+   }
+
+   bool operator == (const Overlay& a, IUIOverlay* b)
+   {
+      return a.overlay == b;
+   }
+
    class Scene : public ISceneSupervisor, public HV::Graphics::ISceneBuilderSupervisor
    {
       HV::Entities::IInstancesSupervisor& instances;
       std::vector<ID_ENTITY> entities;
       std::vector<ObjectInstance> drawQueue;
+
+      std::vector<Overlay> overlays;
       HV::Graphics::ICameraSupervisor& camera;
 
       RGBA clearColour{ 0,0,0,1 };
@@ -30,6 +49,27 @@ namespace
          instances(_instances), camera(_camera)
       {
 
+      }
+
+      virtual void AddOverlay(int zorder, IUIOverlay* overlay)
+      {
+         auto i = std::find(overlays.begin(), overlays.end(), overlay);
+         if (i == overlays.end())
+         {
+            overlays.push_back({ zorder, overlay });
+         }
+         else
+         {
+            i->zOrder = zorder;
+         }
+
+         std::sort(overlays.begin(), overlays.end());
+      }
+
+      virtual void RemoveOverlay(IUIOverlay* overlay)
+      {
+         auto i = std::remove(overlays.begin(), overlays.end(), overlay);
+         overlays.erase(i, overlays.end());
       }
 
       virtual void SetClearColour(float32 red, float32 green, float32 blue)
@@ -59,31 +99,12 @@ namespace
          entities.push_back(id);
       }
 
-      virtual void AddAllStatics(const fstring& prefix)
-      {
-         struct ANON : public IEntityCallback
-         {
-            Scene* This;
-            fstring prefix;
-
-            virtual void OnEntity(int64 index, IEntity& entity, ID_ENTITY id)
-            {
-               if (wcsncmp(entity.Name(), prefix, prefix.length) == 0)
-               {
-                  This->AddStatics(id);
-               }
-            }
-         } addByPrefix;
-
-         addByPrefix.This = this;
-         addByPrefix.prefix = prefix;
-
-         instances.ForAll(addByPrefix);
-      }
-
       virtual void RenderGui(IGuiRenderContext& grc)
       {
-    //     RenderTest(grc);
+         for (auto& o : overlays)
+         {
+            o.overlay->Render(grc);
+         }
       }
 
       void FlushDrawQueue(ID_SYS_MESH meshId, ID_TEXTURE textureId, IRenderContext& rc)

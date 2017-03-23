@@ -423,12 +423,12 @@ namespace
 			{
 				D3D11_RASTERIZER_DESC objRenderingDesc;
 				objRenderingDesc.FillMode = D3D11_FILL_SOLID;
-            objRenderingDesc.CullMode = D3D11_CULL_NONE; // D3D11_CULL_BACK;
+            objRenderingDesc.CullMode = D3D11_CULL_BACK;
 				objRenderingDesc.FrontCounterClockwise = FALSE;
 				objRenderingDesc.DepthBias = 0;
 				objRenderingDesc.DepthBiasClamp = 0.0f;
 				objRenderingDesc.SlopeScaledDepthBias = 0.0f;
-				objRenderingDesc.DepthClipEnable = FALSE;
+				objRenderingDesc.DepthClipEnable = TRUE;
 				objRenderingDesc.ScissorEnable = FALSE;
 				objRenderingDesc.MultisampleEnable = FALSE;
 
@@ -870,7 +870,10 @@ namespace
 			}
 			RouteDrawTextBasic(pos, job, *fonts, *pipeline, qrect);
 
-			return Quantize(spanEvaluator.Span());
+			Vec2i span = Quantize(spanEvaluator.Span());
+         if (span.x < 0) span.x = 0;
+         if (span.y < 0) span.y = 0;
+         return span;
 		}
 
 		void UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid)

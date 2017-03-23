@@ -7,7 +7,7 @@ namespace
    using namespace HV::Graphics;
    using namespace HV::Entities;
 
-   class Camera : public ICameraSupervisor, public IObserver
+   class Camera : public ICameraSupervisor, public IObserver, public IMathsVenue
    {
       Matrix4x4 world;
       Matrix4x4 projection;
@@ -17,14 +17,17 @@ namespace
       ID_ENTITY orientationGuideId;
       int32 orientationFlags;
       IInstancesSupervisor& instances;
+      IMobiles& mobiles;
       IRenderer& renderer;
       IPublisher& publisher;
       bool isDirty{ false };
       bool isFPSlinked{ false };
-      FPSAngles fps{ 0, 0, 0 };
+      Degrees elevation{ 0 };
+      Degrees heading{ 0 };
    public:
-      Camera(IInstancesSupervisor& _instances, IRenderer& _renderer, IPublisher& _publisher) :
+      Camera(IInstancesSupervisor& _instances, IMobiles& _mobiles, IRenderer& _renderer, IPublisher& _publisher) :
          instances(_instances),
+         mobiles(_mobiles),
          renderer(_renderer),
          publisher(_publisher)
       {
@@ -38,6 +41,45 @@ namespace
          publisher.Detach(this);
       }
 
+      IMathsVenue& Venue()
+      {
+         return *this;
+      }
+
+      void ShowVenue(IMathsVisitor& visitor)
+      {
+         visitor.Clear();
+         visitor.Show(L"World->Camera", world);
+         visitor.Show(L"Camera->Screen", projection);
+         visitor.ShowString(L"", L"");
+
+         visitor.ShowRow(L"Position", &position.x, 3);
+
+         if (!isFPSlinked)
+         {
+            visitor.ShowRow(L"Orientation", &orientation.v.x, 4);
+         }
+
+         if (isFPSlinked)
+         {
+            visitor.Show(L"Heading", heading);
+            visitor.Show(L"Elevation", elevation);
+         }
+
+         visitor.ShowString(L"", L"");
+
+         visitor.ShowHex(L"OrientFlags", orientationFlags);
+         visitor.ShowDecimal(L"Following", followingId.value);
+         visitor.ShowDecimal(L"Guide", orientationGuideId.value);
+
+         visitor.ShowString(L"", L"");
+
+         visitor.ShowBool(L"Dirty", isDirty);
+         visitor.ShowBool(L"FPSLinked", isFPSlinked);
+
+         visitor.ShowPointer(L"this", this);
+      }
+
       virtual void OnEvent(Event& ev)
       {
          if (ev == HV::Events::Player::OnPlayerViewChange)
@@ -45,17 +87,12 @@ namespace
             auto& pvce = Rococo::Events::As <HV::Events::Player::OnPlayerViewChangeEvent>(ev);
             if (pvce.elevationDelta != 0 && orientationGuideId == pvce.playerEntityId)
             {
-               float newElevation = fps.elevation + (float)pvce.elevationDelta;
+               float newElevation = elevation + (float)pvce.elevationDelta * 0.25f;
                newElevation = min(89.0f, newElevation);
                newElevation = max(-89.0f, newElevation);
-               fps.elevation = Degrees{ newElevation };
+               elevation = Degrees{ newElevation };
+               isFPSlinked = true;
             }
-         }
-         else if (ev == HV::Events::Input::OnMouseMoveRelative)
-         {
-            auto& mmre = Rococo::Events::As <HV::Events::Input::OnMouseMoveRelativeEvent>(ev);
-            float newHeading = fps.heading + mmre.dx;
-            fps.heading = Degrees{ fmodf(newHeading, 360.0f) };
          }
       }
 
@@ -67,7 +104,7 @@ namespace
          position = Vec3 { 0, 0, 0 };
          orientationFlags = 0;
          isDirty = false;
-         fps = { 0,0,0 };
+         elevation = Degrees{ 0 };
       }
 
       virtual float AspectRatio()
@@ -155,21 +192,31 @@ namespace
                // If the camera is viewing a particle at point P in the world, we can transform the point P into camera space
                // by rotating it 90 degress anticlockwise around the x-axis
 
-               float cameraToWorldElevation = 90.0f - fps.elevation;
+               float cameraToWorldElevation = 90.0f - elevation;
                float worldToCameraElevation = -cameraToWorldElevation;
 
                // The heading gives us compass direction with 0 = North and 90 = East
                // Heading is thus clockwise when positive, but our rotation matrix has anticlockwise for positive angles
                // So switch signs
 
-               float cameraToWorldYaw = -fps.heading;
-               float worldToCameraYaw = -cameraToWorldYaw;
+               FPSAngles angles;
+               mobiles.GetAngles(orientationGuideId, angles);
 
-               Matrix4x4 Rz = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ worldToCameraYaw });
+               heading = angles.heading;
+
+               Matrix4x4 Rz = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ angles.heading });
                Matrix4x4 Rx = Matrix4x4::RotateRHAnticlockwiseX(Degrees{ worldToCameraElevation });
 
+               Matrix4x4 T = Matrix4x4::Translate(-position);
+
                // Lean is not yet implemented
-               world = Rz * Rx;
+               world = Rx * Rz * T;
+
+               float detW = Determinant(world);
+               if (detW < 0.9f || detW > 1.1f)
+               {
+                  Throw(0, L"Bad world-to-camera determinant: %f", detW);
+               }
 
                isDirty = false;
             }
@@ -257,9 +304,9 @@ namespace HV
 {
    namespace Graphics
    {
-      ICameraSupervisor* CreateCamera(IInstancesSupervisor& instances, IRenderer& renderer, IPublisher& publisher)
+      ICameraSupervisor* CreateCamera(IInstancesSupervisor& instances, IMobiles& mobiles, IRenderer& renderer, IPublisher& publisher)
       {
-         return new Camera(instances, renderer, publisher);
+         return new Camera(instances, mobiles, renderer, publisher);
       }
    }
 }

@@ -72,11 +72,18 @@ namespace Rococo
 		virtual void SetMeshTexture(ID_TEXTURE textureId, int textureIndex) = 0;
 	};
 
+   ROCOCOAPI IUIOverlay
+   {
+      virtual void Render(IGuiRenderContext& gc) = 0;
+   };
+
 	ROCOCOAPI IScene
 	{
 		virtual RGBA GetClearColour() const = 0;
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
 		virtual void RenderObjects(IRenderContext& rc) = 0;
+      virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
+      virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
 	};
 
 	ROCOCOAPI IApp

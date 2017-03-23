@@ -77,25 +77,29 @@ namespace HV
             float delta;
          };
 
-         extern EventId OnPlayerTryMove;
-
-         struct OnPlayerTryMoveEvent : public Event
-         {
-            OnPlayerTryMoveEvent() : Event(OnPlayerTryMove) {}
-            ID_ENTITY playerEntityId;
-            float fowardDelta;
-            float straffeDelta;
-            int32 headingDelta;
-         };
-
          extern EventId OnPlayerViewChange;
 
          struct OnPlayerViewChangeEvent : public Event
          {
             OnPlayerViewChangeEvent() : Event(OnPlayerViewChange) {}
             ID_ENTITY playerEntityId;
-            int32 elevationDelta;
+            float32 elevationDelta;
+         };
+      } // Player
+
+      namespace Entities
+      {
+         extern EventId OnTryMoveMobile;
+
+         struct OnTryMoveMobileEvent : public Event
+         {
+            OnTryMoveMobileEvent() : Event(OnTryMoveMobile) {}
+            ID_ENTITY entityId;
+            float fowardDelta;
+            float straffeDelta;
+            FPSAngles delta; 
+            FPSAngles angles;
          };
       }
-   } // Events
+   } // 
 } // HV

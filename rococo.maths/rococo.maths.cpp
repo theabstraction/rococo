@@ -70,6 +70,15 @@ namespace Rococo
       };
    }
 
+   float Determinant(const Matrix4x4& m)
+   {
+      using namespace DirectX;
+
+      XMMATRIX xm = XMLoadFloat4x4(m);
+      XMVECTOR xdet = XMMatrixDeterminant(xm);
+      return xdet.m128_f32[0];
+   }
+
 	Vec2  GetIntersect(Vec2 A, Vec2 D, Vec2 B, Vec2 E)
 	{
 		// Given line P(t) = A + Dt and line Q(u) = B + Eu

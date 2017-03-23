@@ -17,37 +17,20 @@ namespace
 
    struct EntityImpl : public IEntity
    {
-      Quat orientation{ {0.0f, 0.0f, 0.0f}, 1.0f };
-      Vec3 position{ 0, 0, 0 };
-      Vec3 scale{ 1.0f, 1.0f, 1.0f };
-      mutable Matrix4x4 model;
+      Matrix4x4 model;
+      ID_ENTITY parentId; 
       ID_SYS_MESH meshId;
       ID_TEXTURE textureId;
-      ID_ENTITY parentId; 
-      std::wstring name;
+      Vec3 scale{ 1.0f, 1.0f, 1.0f };       
       std::vector<ID_ENTITY> children;
-      mutable bool isDirty{ true };
 
-      virtual const wchar_t* Name() const 
+      virtual const Vec3 Position() const
       {
-         return name.c_str();
+         return model.GetPosition();
       }
 
-      virtual const Vec3& Position() const
-      {
-         return position;
-      }
-
-      virtual const Matrix4x4& Model() const
-      {
-         if (isDirty)
-         {
-            isDirty = false;
-            Matrix4x4 rotation;
-            Matrix4x4::FromQuat(orientation, rotation);
-            Matrix4x4 translation = Matrix4x4::Translate(position);
-            model = translation * rotation;
-         }
+      virtual Matrix4x4& Model()
+      {       
          return model;
       }
 
@@ -75,19 +58,12 @@ namespace
    struct Instances : public IInstancesSupervisor, public IObserver
    {      
       MapIdToEntity idToEntity;
-      std::unordered_map<std::wstring, ID_ENTITY> nameToEntityId;
       std::unordered_map<std::wstring, ID_TEXTURE> nameToTextureId;
-
-      wchar_t name[Strings::MAX_FQ_NAME_LEN + 1]{ 0 };
-      Matrix4x4 model;
-      ID_SYS_MESH meshId;
-      ID_TEXTURE textureId;
       IMeshBuilderSupervisor& meshBuilder;
-      EntityImpl* parent{ nullptr };
-      ID_ENTITY parentId;
-      int32 enumerationDepth{ 0 };
       IRenderer& renderer;
       IPublisher& publisher;
+
+      int32 enumerationDepth{ 0 };
 
       Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, IPublisher& _publisher) :
          meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
@@ -98,17 +74,82 @@ namespace
       ~Instances()
       {
          publisher.Detach(this);
+
+         Clear();
       }
 
-      virtual void Begin(const fstring& fqName)
+      ID_ENTITY Add(ID_SYS_MESH meshId, ID_TEXTURE textureId, const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId)
       {
-         if (*name != 0)
+         float d = Determinant(model);
+         if (d < 0.975f || d > 1.025f)
          {
-            Throw(0, L"Call InstanceBuilder.End() first");
+            Throw(0, L"Bad model matrix. Determinant was %f", d);
          }
 
-         Strings::ValidateFQNameIdentifier(fqName);
-         SafeCopy(name, fqName, _TRUNCATE);
+         if (parentId != 0)
+         {
+            auto i = idToEntity.find(parentId);
+            if (i == idToEntity.end()) Throw(0, L"Cannot find parent entit;y with id #%d", parentId.value);
+            i->second->children.push_back(ID_ENTITY(nextId));
+         }
+
+         ID_ENTITY id(nextId++);
+
+         auto* e = new EntityImpl;
+         e->model = model;
+         e->parentId = parentId;
+         e->meshId = meshId;
+         e->textureId = textureId;
+         e->scale = scale;
+
+         idToEntity.insert(std::make_pair(id, e));
+
+         return id;
+      }
+
+      virtual ID_ENTITY AddBody(const fstring& modelName, const fstring& texture, const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId)
+      {
+         ID_SYS_MESH meshId;
+         if (!meshBuilder.TryGetByName(modelName, meshId))
+         {
+            Throw(0, L"Cannot find model: %s", modelName.buffer);
+         }
+
+         ID_TEXTURE textureId;
+         auto i = nameToTextureId.find(texture.buffer);
+         if (i == nameToTextureId.end())
+         {
+            AutoFree<IExpandingBuffer> fileImage = CreateExpandingBuffer(0);
+            renderer.Installation().LoadResource(texture, *fileImage, 64_megabytes);
+            textureId = renderer.LoadTexture(*fileImage, texture);
+            nameToTextureId[texture.buffer] = textureId;
+         }
+         else
+         {
+            textureId = i->second;
+         }
+
+         return Add(meshId, textureId, model, scale, parentId);
+      }
+
+      virtual ID_ENTITY AddGhost(const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId)
+      {
+         return Add(ID_SYS_MESH::Invalid(), ID_TEXTURE::Invalid(), model, scale, parentId);
+      }
+
+      virtual boolean32 TryGetModelToWorldMatrix(ID_ENTITY entityId, Matrix4x4& model)
+      {
+         auto i = idToEntity.find(entityId);
+         if (i == idToEntity.end())
+         {
+            model = Matrix4x4::Identity();
+            return false;
+         }
+         else
+         {
+            model = i->second->model;
+            return true;
+         }
       }
 
       virtual IEntity* GetEntity(ID_ENTITY id)
@@ -119,17 +160,6 @@ namespace
 
       virtual void OnEvent(Event& ev)
       {
-         if (ev == Player::OnPlayerTryMove)
-         {
-            auto& ptme = Rococo::Events::As<Player::OnPlayerTryMoveEvent>(ev);
-            
-            Vec3 pos;
-            GetPosition(ptme.playerEntityId, pos);
-
-            pos.z += ptme.fowardDelta;
-            pos.x += ptme.straffeDelta;
-            SetPosition(ptme.playerEntityId, pos);
-         }
       }
 
       std::vector<const Matrix4x4*> modelStack;
@@ -177,6 +207,12 @@ namespace
             Matrix4x4 mPrimed = m * **j;
             m = mPrimed;
          }
+
+         float Dm = Determinant(m);
+         if (Dm < 0.9f || Dm > 1.1f)
+         {
+            Throw(0, L"Bad model matrix for entity %lld. Det M = %f", leafId.value, Dm);
+         }
       }
 
       void ForAll(IEntityCallback& cb)
@@ -206,33 +242,10 @@ namespace
          auto i = idToEntity.find(entityId);
          if (i == idToEntity.end())
          {
-            Throw(0, L"SetOrientation - no such entity");
+            Throw(0, L"GetPosition - no such entity");
          }
 
-         position = i->second->position;
-      }
-
-      virtual void GetOrientation(ID_ENTITY entityId, Quat& orientation)
-      {
-         auto i = idToEntity.find(entityId);
-         if (i == idToEntity.end())
-         {
-            Throw(0, L"SetOrientation - no such entity");
-         }
-
-         orientation = i->second->orientation;
-      }
-
-      virtual void SetOrientation(ID_ENTITY id, const Quat& orientation)
-      {
-         auto i = idToEntity.find(id);
-         if (i == idToEntity.end())
-         {
-            Throw(0, L"SetOrientation - no such entity");
-         }
-
-         i->second->isDirty = true;
-         i->second->orientation = orientation;
+         position = i->second->model.GetPosition();
       }
 
       virtual void SetScale(ID_ENTITY id, const Vec3& scale)
@@ -243,140 +256,17 @@ namespace
             Throw(0, L"SetScale - no such entity");
          }
 
-
-         i->second->isDirty = true;
          i->second->scale = scale;
       }
-
-      virtual void SetPosition(ID_ENTITY id, const Vec3& position)
-      {
-         auto i = idToEntity.find(id);
-         if (i == idToEntity.end())
-         {
-            Throw(0, L"SetPosition - no such entity");
-         }
-
-         i->second->isDirty = true;
-         i->second->position = position;
-      }
-      
-      virtual void SetMeshByName(const fstring& modelName, const fstring& textureFile)
-      {
-         if (*name == 0)
-         {
-            Throw(0, L"Call InstanceBuilder.Begin(...) first");
-         }
-
-         if (!meshBuilder.TryGetByName(modelName, meshId))
-         {
-            Throw(0, L"Mesh %s not found", modelName);
-         }
-
-         auto i = nameToTextureId.find(textureFile.buffer);
-         if (i == nameToTextureId.end())
-         {
-            AutoFree<IExpandingBuffer> fileImage = CreateExpandingBuffer(0);
-            renderer.Installation().LoadResource(textureFile, *fileImage, 64_megabytes);
-            textureId = renderer.LoadTexture(*fileImage, textureFile);
-            nameToTextureId[textureFile.buffer] = textureId;
-         }
-         else
-         {
-            textureId = i->second;
-         }
-      }
-
-      virtual void SetParent(ID_ENTITY parentId)
-      {
-         if (*name == 0)
-         {
-            Throw(0, L"Call InstanceBuilder.Begin(...) first");
-         }
-
-         if (parentId != ID_ENTITY::Invalid())
-         {
-            this->parentId = parentId;
-            auto i = idToEntity.find(parentId);
-            if (i == idToEntity.end())
-            {
-               Throw(0, L"SetParent(...) Could not find parent");
-            }
-            else
-            {
-               parent = i->second;
-            }
-         }
-      }
-
-      virtual ID_ENTITY End()
-      {
-         if (enumerationDepth > 0)
-         {
-            Throw(0, L"Cannot create entity at this point. An enumeration is in progress");
-         }
-
-         if (*name == 0)
-         {
-            Throw(0, L"Call InstanceBuilder.Begin(...) first");
-         }
-
-         if (!meshId)
-         {
-            Throw(0, L"No valid mesh set for this instance");
-         }
-
-         if (!textureId)
-         {
-            Throw(0, L"No valid texture set for this instance");
-         }
-
-         auto i = nameToEntityId.find(name);
-         if (i == nameToEntityId.end())
-         {
-            i = nameToEntityId.insert(std::make_pair(std::wstring(name), ID_ENTITY(nextId++))).first;
-            EntityImpl* entity = new EntityImpl();
-            entity->name = name;
-            entity->model = model;
-            entity->meshId = meshId;
-            entity->parentId = parentId;
-            entity->textureId = textureId;
-            idToEntity.insert(std::make_pair(i->second, entity));
-            if (parent != nullptr)
-            {
-               parent->children.push_back(i->second);
-            }
-            Clear();
-            return i->second;
-         }
-         else
-         {
-            auto et = idToEntity.find(i->second);
-            if (et == idToEntity.end())
-            {
-               Throw(0, L"Expecting entity for %s", name);
-            }
-
-            et->second->parentId = parentId;
-            et->second->meshId = meshId;
-            et->second->textureId = textureId;
-            et->second->isDirty = false;
-
-            if (parent != nullptr)
-            {
-               parent->children.push_back(i->second);
-            }
-            Clear();
-            return i->second;
-         }
-      }
-
+   
       virtual void Clear()
       {
-         *name = 0;
-         meshId = ID_SYS_MESH::Invalid();
-         parent = nullptr;
-         parentId = ID_ENTITY::Invalid();
-         textureId = ID_TEXTURE::Invalid();
+         for (auto& i : idToEntity)
+         {
+            delete i.second;
+         }
+
+         idToEntity.clear();
       }
 
       virtual void Free()

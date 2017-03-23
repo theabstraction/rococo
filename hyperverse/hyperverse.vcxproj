@@ -180,11 +180,13 @@
     <ClCompile Include="hv.camera.cpp" />
     <ClCompile Include="hv.config.cpp" />
     <ClCompile Include="hv.defaultconfig.cpp" />
+    <ClCompile Include="hv.entity.mobiles.cpp" />
     <ClCompile Include="hv.events.cpp" />
     <ClCompile Include="hv.entity.instances.cpp" />
     <ClCompile Include="hv.graphics.meshes.cpp" />
     <ClCompile Include="hv.keyboard.cpp" />
     <ClCompile Include="hv.mouse.cpp" />
+    <ClCompile Include="hv.maths.visitor.cpp" />
     <ClCompile Include="hv.player.cpp" />
     <ClCompile Include="hv.scene.cpp" />
     <ClCompile Include="hv.scripts.cpp" />
@@ -200,7 +202,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="config.xc" />
-    <None Include="hv.sxh" />
+    <CustomBuild Include="hv.sxh">
+      <FileType>Document</FileType>
+    </CustomBuild>
     <None Include="hv.sxh.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -18,17 +18,11 @@
 	(as.cpp HV.Entities.IInstances "hv")
 	(context factory HV.Entities.IInstances)
 	(methods
-		(SetOrientation (IdEntity entityId)(const Quat orientation))
-		(SetScale (IdEntity entityId)(const Vec3 scale))
-		(SetPosition (IdEntity entityId)(const Vec3 position))
+		(AddBody (IString modelName)(IString texture)(const Matrix4x4 model)(const Vec3 scale)(IdEntity parentId)->(IdEntity entityId))
+		(AddGhost (const Matrix4x4 model)(const Vec3 scale)(IdEntity parentId)->(IdEntity entityId))
 		(GetScale (IdEntity entityId)(Vec3 scale))
-		(GetPosition (IdEntity entityId)(Vec3 position))
-		(GetOrientation (IdEntity entityId)(Quat orientation))
-
-		(Begin (IString fqName))
-		(SetMeshByName (IString modelName)(IString texture))
-		(SetParent(IdEntity entityId))
-		(End -> (IdEntity entityId))
+		(SetScale (IdEntity entityId)(const Vec3 scale))
+		(TryGetModelToWorldMatrix (IdEntity entityId)(Matrix4x4 position)->(Bool existant))
 		(Clear)
 	)
 	(factory HV.Entities.Instances)
@@ -40,11 +34,22 @@
 	(context factory HV.Graphics.ISceneBuilder)
 	(methods
 		(AddStatics  (IdEntity entityId))
-		(AddAllStatics (IString prefix))
 		(Clear)
 		(SetClearColour (Float32 red)(Float32 green)(Float32 blue))
 	)
 	(factory HV.Graphics.SceneBuilder)
+)
+
+(interface
+	(as.sxy HV.Entities.IMobiles "../content/scripts/hv")
+	(as.cpp HV.Entities.IMobiles "hv")
+	(context factory HV.Entities.IMobiles)
+	(methods
+		(Link (IdEntity id))
+		(GetAngles (IdEntity id)(FPSAngles angles))
+		(SetAngles (IdEntity id)(const FPSAngles angles))
+	)
+	(factory HV.Entities.Mobiles)
 )
 
 (enum Int32
@@ -54,10 +59,9 @@
 		(None 0)
 		(Heading 1)
 		(Elevation 2)
-		(Roll 4)
+		(Tilt 4)
 	)
 )
-
 
 (interface
 	(as.sxy HV.Graphics.ICamera "../content/scripts/hv")

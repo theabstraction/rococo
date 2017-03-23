@@ -96,6 +96,8 @@ namespace Rococo
       static Matrix4x4 GetRHProjectionMatrix(Degrees fov, float32 aspectRatio, float near, float far);
 	};
 
+   float Determinant(const Matrix4x4& m);
+
 	Vec2  GetIntersect(Vec2 A, Vec2 D, Vec2 B, Vec2 E);
 	Radians GetHeadingOfVector(float DX, float DY);
 

@@ -60,6 +60,12 @@
     <ClCompile Include="hv.entity.instances.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hv.maths.visitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hv.entity.mobiles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hv.h">
@@ -85,8 +91,10 @@
     <None Include="config.xc">
       <Filter>Script Files</Filter>
     </None>
-    <None Include="hv.sxh">
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="hv.sxh">
       <Filter>Script Files</Filter>
-    </None>
+    </CustomBuild>
   </ItemGroup>
 </Project>

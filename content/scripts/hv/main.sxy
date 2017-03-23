@@ -9,20 +9,11 @@
 	(alias Main EntryPoint.Main)
 	
 (using Sys.Maths)
+(using Sys.Maths.I32)
 (using HV.Graphics)
 (using HV.Entities)
 (using HV)
-
-(function DefinePoint -> :
-	(IMeshBuilder mb (MeshBuilder))
-	(mb.Clear)
-	(mb.Begin "mesh.platonic.point")
-	(Vertex bottomLeft  = (-0.001  -0.001 0) (0 0 1) 0x00000000 0x00000000 (1 1))
-	(Vertex topLeft     = (-0.001   0.001 0) (0 0 1) 0x00000000 0x00000000 (1 0))
-	(Vertex bottomRight = ( 0.001  -0.001 0) (0 0 1) 0x00000000 0x00000000 (0 1))
-	(mb.AddTriangle  topLeft bottomLeft   bottomRight)
-	(mb.End)
-)
+(using Sys.Type)
 
 (function DefinePlatonicSquare -> :
 	(IMeshBuilder mb (MeshBuilder))
@@ -39,61 +30,123 @@
 	)
 	*/
 	
-	// Top face
+	// South face
 	(
-		(Vertex bottomLeft  = (-0.5 -0.5 -0.5) (0 0 1) 0x808080FF 0xFF0000FF (1 1))
-		(Vertex topLeft     = (-0.5  0.5 -0.5) (0 0 1) 0x808080FF 0xFF0000FF (1 0))
-		(Vertex bottomRight = ( 0.5 -0.5  0.5) (0 0 1) 0x808080FF 0xFF0000FF (0 1))
-		(Vertex topRight    = ( 0.5  0.5  0.5) (0 0 1) 0x808080FF 0xFF0000FF (0 0))
+		(Vertex bottomLeft  = (-0.5 -0.5 -0.5) (0 -1 0) 0x808080FF 0xFF0000FF (0 1))
+		(Vertex topLeft     = (-0.5 -0.5  0.5) (0 -1 0) 0x808080FF 0xFF0000FF (0 0))
+		(Vertex bottomRight = ( 0.5 -0.5 -0.5) (0 -1 0) 0x808080FF 0xFF0000FF (1 1))
+		(Vertex topRight    = ( 0.5 -0.5  0.5) (0 -1 0) 0x808080FF 0xFF0000FF (1 0))
 		
-		(mb.AddTriangle  topLeft bottomLeft   topRight)
-		(mb.AddTriangle bottomRight topRight   bottomLeft)
+		(mb.AddTriangle topLeft topRight bottomLeft)
+		(mb.AddTriangle bottomRight bottomLeft topRight)
 	)
 	
-	// Nearer face
+	// North face
 	(
-		(Vertex bottomLeft  = (-1.0 -1.0 0) (0 0 1) 0x808080FF 0xFF00008F (1 1))
-		(Vertex topLeft     = (-1.0  1.0 0) (0 0 1) 0x808080FF 0xFF00008F (1 0))
-		(Vertex bottomRight = ( 1.0 -1.0 0) (0 0 1) 0x808080FF 0xFF00008F (0 1))
-		(Vertex topRight    = ( 1.0  1.0 0) (0 0 1) 0x808080FF 0xFF00008F (0 0))
-		(mb.AddTriangle bottomLeft topLeft  topRight)
-		(mb.AddTriangle bottomRight topRight   bottomLeft)
+		(Vertex bottomLeft  = ( 0.5  0.5 -0.5) (0 -1 0) 0x808080FF 0xFF0000FF (0 1))
+		(Vertex topLeft     = ( 0.5  0.5  0.5) (0 -1 0) 0x808080FF 0xFF0000FF (0 0))
+		(Vertex bottomRight = (-0.5  0.5 -0.5) (0 -1 0) 0x808080FF 0xFF0000FF (1 1))
+		(Vertex topRight    = (-0.5  0.5  0.5) (0 -1 0) 0x808080FF 0xFF0000FF (1 0))
+		
+		(mb.AddTriangle topLeft topRight bottomLeft)
+		(mb.AddTriangle bottomRight bottomLeft topRight)
 	)
+	
+	// West face
+	(
+		(Vertex bottomLeft  = (-0.5  0.5 -0.5) (0 -1 0) 0x808080FF 0xFF0000FF (0 1))
+		(Vertex topLeft     = (-0.5  0.5  0.5) (0 -1 0) 0x808080FF 0xFF0000FF (0 0))
+		(Vertex bottomRight = (-0.5 -0.5 -0.5) (0 -1 0) 0x808080FF 0xFF0000FF (1 1))
+		(Vertex topRight    = (-0.5 -0.5  0.5) (0 -1 0) 0x808080FF 0xFF0000FF (1 0))
+		
+		(mb.AddTriangle topLeft topRight bottomLeft)
+		(mb.AddTriangle bottomRight bottomLeft topRight)
+	)
+	
+	// East face
+	(
+		(Vertex bottomLeft  = (0.5 -0.5 -0.5) (0 -1 0) 0x808080FF 0xFF0000FF (0 1))
+		(Vertex topLeft     = (0.5 -0.5  0.5) (0 -1 0) 0x808080FF 0xFF0000FF (0 0))
+		(Vertex bottomRight = (0.5  0.5 -0.5) (0 -1 0) 0x808080FF 0xFF0000FF (1 1))
+		(Vertex topRight    = (0.5  0.5  0.5) (0 -1 0) 0x808080FF 0xFF0000FF (1 0))
+		
+		(mb.AddTriangle topLeft topRight bottomLeft)
+		(mb.AddTriangle bottomRight bottomLeft topRight)
+	)
+	
+	// Top face
+	(
+		(Vertex bottomLeft  = (-0.5 -0.5  0.5) (0 -1 0) 0x808080FF 0xFF0000FF (0 1))
+		(Vertex topLeft     = (-0.5  0.5  0.5) (0 -1 0) 0x808080FF 0xFF0000FF (0 0))
+		(Vertex bottomRight = ( 0.5 -0.5  0.5) (0 -1 0) 0x808080FF 0xFF0000FF (1 1))
+		(Vertex topRight    = ( 0.5  0.5  0.5) (0 -1 0) 0x808080FF 0xFF0000FF (1 0))
+		
+		(mb.AddTriangle topLeft topRight bottomLeft)
+		(mb.AddTriangle bottomRight bottomLeft topRight)
+	)
+	
+	// Bottom face
+	(
+		(Vertex bottomLeft  = ( 0.5 -0.5 -0.5) (0 -1 0) 0x808080FF 0xFF0000FF (0 1))
+		(Vertex topLeft     = ( 0.5  0.5 -0.5) (0 -1 0) 0x808080FF 0xFF0000FF (0 0))
+		(Vertex bottomRight = (-0.5 -0.5 -0.5) (0 -1 0) 0x808080FF 0xFF0000FF (1 1))
+		(Vertex topRight    = (-0.5  0.5 -0.5) (0 -1 0) 0x808080FF 0xFF0000FF (1 0))
+		
+		(mb.AddTriangle topLeft topRight bottomLeft)
+		(mb.AddTriangle bottomRight bottomLeft topRight)
+	)
+	
 	
 	(mb.End)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):
-	(IMeshBuilder mb (MeshBuilder))
 	(IInstances instances (Instances))
-	(ISceneBuilder scene (SceneBuilder))
-	(ICamera camera (Camera))
+	(IMobiles mobiles (Mobiles))
 	
-	(DefinePoint)
 	(DefinePlatonicSquare)
+		
+	(Int64 playerId)
+	(
+		(Matrix4x4 model =
+			(1 0 0 0)
+			(0 1 0 3)
+			(0 0 1 0)
+			(0 0 0 1)
+		)
+		
+		(Vec3 scale = 1 1 1)
+		(instances.AddGhost model scale 0 -> playerId)
+		(mobiles.Link playerId)
+	)
 	
-	(instances.Begin "square.1")
-	(instances.SetMeshByName "mesh.platonic.square" "!portraits/charlotte.jpg")
-	(Int64 squareId = instances.End)
+	(ISceneBuilder scene (SceneBuilder))
 	
-	(Vec3 sqPos = 0 5 0)
-	(instances.SetPosition squareId sqPos)
-	
-	(instances.Begin "player.1")
-	(instances.SetMeshByName "mesh.platonic.point" "!portraits/charlotte.jpg")
-	(Int64 playerId = instances.End)
-	
+	(#for (Int32 i = 0)(i < 10)(i = (i + 1))
+		(#for (Int32 j = 0)(j < 10)(j = (j + 1))
+			(Vec3 scale = 1 1 1)
+			(Float32 x = (ToFloat32(i * 4)))
+			(Float32 y = (ToFloat32(j * 4)))
+			(Matrix4x4 model =
+				(1 0 0 x)
+				(0 1 0 y)
+				(0 0 1 0)
+				(0 0 0 1)
+			)
+			
+			(Int64 cubeId = (instances.AddBody "mesh.platonic.square" "!portraits/charlotte.jpg" model scale 0))
+			(scene.AddStatics cubeId)
+		)
+	)
+
 	(IPlayer player (Player 0))
 	(player.SetPlayerEntity playerId)
 	(player.SetControlFPS)
 	
-	(Vec3 pos = 3 3 0)
-	(instances.SetPosition playerId pos)
-	
-	(scene.AddStatics squareId)
-	
+	(ICamera camera (Camera))
 	(camera.SetRHProjection 60 0.3 1000)
 	(camera.FollowEntity playerId)
-	(camera.OrientateWithEntity playerId 0)
+	(camera.OrientateWithEntity playerId (#OrientationFlagsHeading))
+	
 	(scene.SetClearColour 0.25 0.25 0)
 )

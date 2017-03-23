@@ -13,9 +13,9 @@ namespace HV { namespace Graphics {
 		{
 			value = OrientationFlags_Elevation;
 		}
-		else if (s == L"OrientationFlags_Roll"_fstring)
+		else if (s == L"OrientationFlags_Tilt"_fstring)
 		{
-			value = OrientationFlags_Roll;
+			value = OrientationFlags_Tilt;
 		}
 		else
 		{
@@ -39,9 +39,9 @@ namespace HV { namespace Graphics {
 		{
 			value = OrientationFlags_Elevation;
 		}
-		else if (s == L"Roll"_fstring)
+		else if (s == L"Tilt"_fstring)
 		{
-			value = OrientationFlags_Roll;
+			value = OrientationFlags_Tilt;
 		}
 		else
 		{
@@ -60,59 +60,65 @@ namespace
 	using namespace Sexy::Script;
 	using namespace Sexy::Compiler;
 
-	void NativeHVEntitiesIInstancesSetOrientation(NativeCallEnvironment& _nce)
+	void NativeHVEntitiesIInstancesAddBody(NativeCallEnvironment& _nce)
 	{
 		Sexy::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Quat* orientation;
-		_offset += sizeof(orientation);
-		ReadInput(orientation, _sf, -_offset);
+		ID_ENTITY parentId;
+		_offset += sizeof(parentId);
+		ReadInput(parentId, _sf, -_offset);
 
-		ID_ENTITY entityId;
-		_offset += sizeof(entityId);
-		ReadInput(entityId, _sf, -_offset);
-
-		HV::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetOrientation(entityId, *orientation);
-	}
-	void NativeHVEntitiesIInstancesSetScale(NativeCallEnvironment& _nce)
-	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* scale;
 		_offset += sizeof(scale);
 		ReadInput(scale, _sf, -_offset);
 
-		ID_ENTITY entityId;
-		_offset += sizeof(entityId);
-		ReadInput(entityId, _sf, -_offset);
+		Matrix4x4* model;
+		_offset += sizeof(model);
+		ReadInput(model, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _texture;
+		ReadInput(_texture, _sf, -_offset);
+		fstring texture { _texture->buffer, _texture->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _modelName;
+		ReadInput(_modelName, _sf, -_offset);
+		fstring modelName { _modelName->buffer, _modelName->length };
+
 
 		HV::Entities::IInstances* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetScale(entityId, *scale);
+		ID_ENTITY entityId = _pObject->AddBody(modelName, texture, *model, *scale, parentId);
+		_offset += sizeof(entityId);
+		WriteOutput(entityId, _sf, -_offset);
 	}
-	void NativeHVEntitiesIInstancesSetPosition(NativeCallEnvironment& _nce)
+	void NativeHVEntitiesIInstancesAddGhost(NativeCallEnvironment& _nce)
 	{
 		Sexy::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Vec3* position;
-		_offset += sizeof(position);
-		ReadInput(position, _sf, -_offset);
+		ID_ENTITY parentId;
+		_offset += sizeof(parentId);
+		ReadInput(parentId, _sf, -_offset);
 
-		ID_ENTITY entityId;
-		_offset += sizeof(entityId);
-		ReadInput(entityId, _sf, -_offset);
+		Vec3* scale;
+		_offset += sizeof(scale);
+		ReadInput(scale, _sf, -_offset);
+
+		Matrix4x4* model;
+		_offset += sizeof(model);
+		ReadInput(model, _sf, -_offset);
 
 		HV::Entities::IInstances* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetPosition(entityId, *position);
+		ID_ENTITY entityId = _pObject->AddGhost(*model, *scale, parentId);
+		_offset += sizeof(entityId);
+		WriteOutput(entityId, _sf, -_offset);
 	}
 	void NativeHVEntitiesIInstancesGetScale(NativeCallEnvironment& _nce)
 	{
@@ -132,11 +138,29 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->GetScale(entityId, *scale);
 	}
-	void NativeHVEntitiesIInstancesGetPosition(NativeCallEnvironment& _nce)
+	void NativeHVEntitiesIInstancesSetScale(NativeCallEnvironment& _nce)
 	{
 		Sexy::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Vec3* position;
+		Vec3* scale;
+		_offset += sizeof(scale);
+		ReadInput(scale, _sf, -_offset);
+
+		ID_ENTITY entityId;
+		_offset += sizeof(entityId);
+		ReadInput(entityId, _sf, -_offset);
+
+		HV::Entities::IInstances* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetScale(entityId, *scale);
+	}
+	void NativeHVEntitiesIInstancesTryGetModelToWorldMatrix(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Matrix4x4* position;
 		_offset += sizeof(position);
 		ReadInput(position, _sf, -_offset);
 
@@ -148,89 +172,9 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetPosition(entityId, *position);
-	}
-	void NativeHVEntitiesIInstancesGetOrientation(NativeCallEnvironment& _nce)
-	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Quat* orientation;
-		_offset += sizeof(orientation);
-		ReadInput(orientation, _sf, -_offset);
-
-		ID_ENTITY entityId;
-		_offset += sizeof(entityId);
-		ReadInput(entityId, _sf, -_offset);
-
-		HV::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetOrientation(entityId, *orientation);
-	}
-	void NativeHVEntitiesIInstancesBegin(NativeCallEnvironment& _nce)
-	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(IString*);
-		IString* _fqName;
-		ReadInput(_fqName, _sf, -_offset);
-		fstring fqName { _fqName->buffer, _fqName->length };
-
-
-		HV::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->Begin(fqName);
-	}
-	void NativeHVEntitiesIInstancesSetMeshByName(NativeCallEnvironment& _nce)
-	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(IString*);
-		IString* _texture;
-		ReadInput(_texture, _sf, -_offset);
-		fstring texture { _texture->buffer, _texture->length };
-
-
-		_offset += sizeof(IString*);
-		IString* _modelName;
-		ReadInput(_modelName, _sf, -_offset);
-		fstring modelName { _modelName->buffer, _modelName->length };
-
-
-		HV::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetMeshByName(modelName, texture);
-	}
-	void NativeHVEntitiesIInstancesSetParent(NativeCallEnvironment& _nce)
-	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		ID_ENTITY entityId;
-		_offset += sizeof(entityId);
-		ReadInput(entityId, _sf, -_offset);
-
-		HV::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetParent(entityId);
-	}
-	void NativeHVEntitiesIInstancesEnd(NativeCallEnvironment& _nce)
-	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		ID_ENTITY entityId = _pObject->End();
-		_offset += sizeof(entityId);
-		WriteOutput(entityId, _sf, -_offset);
+		boolean32 existant = _pObject->TryGetModelToWorldMatrix(entityId, *position);
+		_offset += sizeof(existant);
+		WriteOutput(existant, _sf, -_offset);
 	}
 	void NativeHVEntitiesIInstancesClear(NativeCallEnvironment& _nce)
 	{
@@ -260,16 +204,11 @@ namespace HV { namespace Entities {
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Entities.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForHVEntitiesInstances, _nceContext, SEXTEXT("GetHandleForIInstances0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesSetOrientation, nullptr, SEXTEXT("IInstancesSetOrientation (Pointer hObject)(Int64 entityId)(Sys.Maths.Quat orientation) -> "));
-		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesSetScale, nullptr, SEXTEXT("IInstancesSetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
-		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesSetPosition, nullptr, SEXTEXT("IInstancesSetPosition (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 position) -> "));
+		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesAddBody, nullptr, SEXTEXT("IInstancesAddBody (Pointer hObject)(Sys.Type.IString modelName)(Sys.Type.IString texture)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesAddGhost, nullptr, SEXTEXT("IInstancesAddGhost (Pointer hObject)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesGetScale, nullptr, SEXTEXT("IInstancesGetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
-		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesGetPosition, nullptr, SEXTEXT("IInstancesGetPosition (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 position) -> "));
-		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesGetOrientation, nullptr, SEXTEXT("IInstancesGetOrientation (Pointer hObject)(Int64 entityId)(Sys.Maths.Quat orientation) -> "));
-		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesBegin, nullptr, SEXTEXT("IInstancesBegin (Pointer hObject)(Sys.Type.IString fqName) -> "));
-		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesSetMeshByName, nullptr, SEXTEXT("IInstancesSetMeshByName (Pointer hObject)(Sys.Type.IString modelName)(Sys.Type.IString texture) -> "));
-		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesSetParent, nullptr, SEXTEXT("IInstancesSetParent (Pointer hObject)(Int64 entityId) -> "));
-		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesEnd, nullptr, SEXTEXT("IInstancesEnd (Pointer hObject) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesSetScale, nullptr, SEXTEXT("IInstancesSetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
+		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesTryGetModelToWorldMatrix, nullptr, SEXTEXT("IInstancesTryGetModelToWorldMatrix (Pointer hObject)(Int64 entityId)(Sys.Maths.Matrix4x4 position) -> (Bool existant)"));
 		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesClear, nullptr, SEXTEXT("IInstancesClear (Pointer hObject) -> "));
 	}
 }}
@@ -385,22 +324,6 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddStatics(entityId);
 	}
-	void NativeHVGraphicsISceneBuilderAddAllStatics(NativeCallEnvironment& _nce)
-	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(IString*);
-		IString* _prefix;
-		ReadInput(_prefix, _sf, -_offset);
-		fstring prefix { _prefix->buffer, _prefix->length };
-
-
-		HV::Graphics::ISceneBuilder* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AddAllStatics(prefix);
-	}
 	void NativeHVGraphicsISceneBuilderClear(NativeCallEnvironment& _nce)
 	{
 		Sexy::uint8* _sf = _nce.cpu.SF();
@@ -452,9 +375,89 @@ namespace HV { namespace Graphics {
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Graphics.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForHVGraphicsSceneBuilder, _nceContext, SEXTEXT("GetHandleForISceneBuilder0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeHVGraphicsISceneBuilderAddStatics, nullptr, SEXTEXT("ISceneBuilderAddStatics (Pointer hObject)(Int64 entityId) -> "));
-		ss.AddNativeCall(ns, NativeHVGraphicsISceneBuilderAddAllStatics, nullptr, SEXTEXT("ISceneBuilderAddAllStatics (Pointer hObject)(Sys.Type.IString prefix) -> "));
 		ss.AddNativeCall(ns, NativeHVGraphicsISceneBuilderClear, nullptr, SEXTEXT("ISceneBuilderClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeHVGraphicsISceneBuilderSetClearColour, nullptr, SEXTEXT("ISceneBuilderSetClearColour (Pointer hObject)(Float32 red)(Float32 green)(Float32 blue) -> "));
+	}
+}}
+// BennyHill generated Sexy native functions for HV::Entities::IMobiles 
+namespace
+{
+	using namespace Sexy;
+	using namespace Sexy::Sex;
+	using namespace Sexy::Script;
+	using namespace Sexy::Compiler;
+
+	void NativeHVEntitiesIMobilesLink(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		HV::Entities::IMobiles* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Link(id);
+	}
+	void NativeHVEntitiesIMobilesGetAngles(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		FPSAngles* angles;
+		_offset += sizeof(angles);
+		ReadInput(angles, _sf, -_offset);
+
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		HV::Entities::IMobiles* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetAngles(id, *angles);
+	}
+	void NativeHVEntitiesIMobilesSetAngles(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		FPSAngles* angles;
+		_offset += sizeof(angles);
+		ReadInput(angles, _sf, -_offset);
+
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		HV::Entities::IMobiles* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetAngles(id, *angles);
+	}
+
+	void NativeGetHandleForHVEntitiesMobiles(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::Entities::IMobiles* nceContext = reinterpret_cast<HV::Entities::IMobiles*>(_nce.context);
+		// Uses: HV::Entities::IMobiles* FactoryConstructHVEntitiesMobiles(HV::Entities::IMobiles* _context);
+		HV::Entities::IMobiles* pObject = FactoryConstructHVEntitiesMobiles(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace HV { namespace Entities { 
+	void AddNativeCalls_HVEntitiesIMobiles(Sexy::Script::IPublicScriptSystem& ss, HV::Entities::IMobiles* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Entities.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVEntitiesMobiles, _nceContext, SEXTEXT("GetHandleForIMobiles0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVEntitiesIMobilesLink, nullptr, SEXTEXT("IMobilesLink (Pointer hObject)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeHVEntitiesIMobilesGetAngles, nullptr, SEXTEXT("IMobilesGetAngles (Pointer hObject)(Int64 id)(Sys.Maths.FPSAngles angles) -> "));
+		ss.AddNativeCall(ns, NativeHVEntitiesIMobilesSetAngles, nullptr, SEXTEXT("IMobilesSetAngles (Pointer hObject)(Int64 id)(Sys.Maths.FPSAngles angles) -> "));
 	}
 }}
 // BennyHill generated Sexy native functions for HV::IConfig 

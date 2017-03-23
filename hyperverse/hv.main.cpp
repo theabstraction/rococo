@@ -80,11 +80,13 @@ void Main(HANDLE hInstanceLock)
 
    AutoFree<IMeshBuilderSupervisor> meshes = CreateMeshBuilder(mainWindow->Renderer());
    AutoFree<IInstancesSupervisor> instances = CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher);
-   AutoFree<ICameraSupervisor> camera = CreateCamera(*instances, mainWindow->Renderer(), *publisher);
+   AutoFree<IMobilesSupervisor> mobiles = CreateMobilesSupervisor(*instances, *publisher);
+   AutoFree<ICameraSupervisor> camera = CreateCamera(*instances, *mobiles, mainWindow->Renderer(), *publisher);
    AutoFree<ISceneSupervisor> scene = CreateScene(*instances, *camera);
    AutoFree<IPlayerSupervisor> players = CreatePlayerSupervisor(*publisher);
    AutoFree<IKeyboardSupervisor> keyboardSupervisor = CreateKeyboardSupervisor();
    AutoFree<IMouse> mouse = CreateMouse(*publisher);
+   AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor();
 
    HV::Cosmos e
    {
@@ -98,13 +100,17 @@ void Main(HANDLE hInstanceLock)
       *scene,
       *meshes,
       *instances,
+      *mobiles,
       *camera,
       *players,
       *keyboardSupervisor,
-      *mouse
+      *mouse,
+      *mathsVisitor
    };
 
    SetDefaults(*config);
+
+   scene->AddOverlay(1000, &mathsVisitor->Overlay());
 
    RunEnvironmentScript(e, L"!scripts/hv/config.sxy");
 

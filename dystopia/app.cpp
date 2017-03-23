@@ -44,6 +44,16 @@ namespace Dystopia
 		{
 
 		}
+
+      virtual void AddOverlay(int zorder, IUIOverlay* overlay)
+      {
+
+      }
+
+      virtual void RemoveOverlay(IUIOverlay* overlay)
+      {
+
+      }
 	} levelLoadScene;
 }
 

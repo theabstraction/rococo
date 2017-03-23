@@ -142,3 +142,9 @@
 (alias Sys.Type.Float32 Sys.SI.Seconds)
 (alias Sys.Type.Float32 Sys.SI.Kilograms)
 (alias Sys.Type.Float32 Sys.SI.Metres)
+
+(struct FPSAngles
+	(Float32 heading elevation tilt)
+)
+
+(alias FPSAngles Sys.Maths.FPSAngles)

@@ -1,6 +1,7 @@
 (' #file.type rococo.hv)
 
 (' #include 
+	"!scripts/hv/hv.types.sxy"
 	"!scripts/hv.sxh.sxy"
 	"!scripts/types.sxy"
 )

@@ -12,10 +12,11 @@ struct DEFINED_ID_NAME																		            \
 	TYPE value;																				               \
    static DEFINED_ID_NAME Invalid() { return DEFINED_ID_NAME(); }							   \
 	size_t operator()(const DEFINED_ID_NAME& obj) const { return size_t(obj.value); }	\
-   operator bool () const { return value != INVALID_VALUE; }                            \
+   operator bool () const { return value != INVALID_VALUE; }                           \
 };																							                  \
 inline bool operator == (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return a.value == b.value; }				\
-inline bool operator != (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return !(a == b); }
+inline bool operator != (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return !(a == b); }                   \
+inline bool operator <  (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return a.value < b.value; }
 
 namespace DirectX
 {

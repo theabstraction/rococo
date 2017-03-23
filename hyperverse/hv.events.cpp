@@ -10,11 +10,16 @@ namespace HV
          EventId OnFileChanged         = L"os.file.changed"_event;
       }
 
+      namespace Entities
+      {
+          EventId OnTryMoveMobile      = L"mobile.try.move"_event;
+      }
+
       namespace Player
       {
          EventId OnPlayerAction        = L"player.action"_event;
          EventId OnPlayerDelta         = L"player.delta"_event;
-         EventId OnPlayerTryMove       = L"player.try.move"_event;
+        
          EventId OnPlayerViewChange    = L"player.view.change"_event;
       }
 

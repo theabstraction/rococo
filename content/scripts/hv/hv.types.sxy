@@ -1,0 +1,9 @@
+(struct FPSAngles
+	(Float32 
+		heading    // 0 is North, 90 is East, 180 is South, 270 is West
+        elevation // 0 is horizontal, 90 is up, -90 is down
+        tilt      // -ve is lean left angle, +ve is lean right angle
+    )
+)
+
+(alias FPSAngles HV.FPSAngles)

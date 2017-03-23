@@ -49,8 +49,8 @@ namespace
       bool isMovingRight{ false };
       bool isAutoRun{ false };
 
-      int32 headingDelta{ 0 };
-      int32 elevationDelta{ 0 };
+      float headingDelta{ 0 };
+      float elevationDelta{ 0 };
 
       FPSControl()
       {
@@ -82,14 +82,14 @@ namespace
          else if (ev == Input::OnMouseMoveRelative)
          {
             auto& mmr = As<Input::OnMouseMoveRelativeEvent>(ev);
-            headingDelta += mmr.dx;
-            elevationDelta += mmr.dy;
+            headingDelta += 0.25f * mmr.dx;
+            elevationDelta -= mmr.dy;
          }
       }
 
       virtual void Update(ID_ENTITY playerId, const IUltraClock& clock, IPublisher& publisher)
       {
-         HV::Events::Player::OnPlayerTryMoveEvent ptme;
+         HV::Events::Entities::OnTryMoveMobileEvent tmm;
 
          float forwardDelta = 0;
          if (isMovingForward || isAutoRun) forwardDelta += 1.0f;
@@ -101,18 +101,18 @@ namespace
 
          if (forwardDelta != 0 || straffeDelta != 0 || headingDelta != 0)
          {
-            ptme.fowardDelta = clock.DT() * forwardDelta;
-            ptme.straffeDelta = clock.DT() * straffeDelta;
-            ptme.playerEntityId = playerId;
-            ptme.headingDelta = headingDelta;
-
-            Rococo::Events::Publish(publisher, ptme);
+            tmm.fowardDelta = clock.DT() * forwardDelta;
+            tmm.straffeDelta = clock.DT() * straffeDelta;
+            tmm.entityId = playerId;
+            tmm.delta = { Degrees { headingDelta }, Degrees { 0 }, Degrees { 0 } };
+            Rococo::Events::Publish(publisher, tmm);
             headingDelta = 0;
          }
 
          if (elevationDelta)
          {
             HV::Events::Player::OnPlayerViewChangeEvent pvce;
+            pvce.playerEntityId = playerId;
             pvce.elevationDelta = elevationDelta;
             Rococo::Events::Publish(publisher, pvce);
             elevationDelta = 0;

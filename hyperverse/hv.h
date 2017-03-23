@@ -52,9 +52,8 @@ namespace HV
 
    ROCOCOAPI IEntity
    {
-      virtual const wchar_t* Name() const = 0;
-      virtual const Vec3& Position() const = 0;
-      virtual const Matrix4x4& Model() const = 0;
+      virtual const Vec3 Position() const = 0;
+      virtual Matrix4x4& Model() = 0;
       virtual ID_ENTITY ParentId() const = 0;
       virtual const ID_ENTITY* begin() const = 0;
       virtual const ID_ENTITY* end() const = 0;
@@ -66,6 +65,37 @@ namespace HV
    {
       virtual void OnEntity(int64 index, IEntity& entity, ID_ENTITY id) = 0;
    };
+
+   typedef const wchar_t* VisitorName;
+
+   ROCOCOAPI IMathsVisitor
+   {
+      virtual void Clear() = 0;
+      virtual void Show(VisitorName name, const Matrix4x4& m) = 0;
+      virtual void ShowRow(VisitorName name, const float* vector, const size_t nComponents) = 0;
+      virtual void ShowColumn(VisitorName name, const float* vector, const size_t nComponents) = 0;
+      virtual void ShowDecimal(VisitorName name, const int32 value) = 0;
+      virtual void Show(VisitorName name, const float value) = 0;
+      virtual void ShowHex(VisitorName name, const int32 value) = 0;
+      virtual void ShowBool(VisitorName name, const bool value) = 0;
+      virtual void ShowDecimal(VisitorName name, const int64 value) = 0;
+      virtual void ShowHex(VisitorName name, const int64 value) = 0;
+      virtual void ShowPointer(VisitorName name, const void* ptr) = 0;
+      virtual void ShowString(VisitorName name, const wchar_t* format, ...) = 0;
+   };
+
+   ROCOCOAPI IMathsVenue
+   {
+      virtual void ShowVenue(IMathsVisitor& visitor) = 0;
+   };
+
+   ROCOCOAPI IMathsVisitorSupervisor: public IMathsVisitor
+   {
+      virtual IUIOverlay& Overlay() = 0;
+      virtual void Free() = 0;
+   };
+
+   IMathsVisitorSupervisor* CreateMathsVisitor();
 
    namespace Strings
    {
@@ -102,6 +132,7 @@ namespace HV
       {
          virtual void Free() = 0;
          virtual void Update(const IUltraClock& clock) = 0;
+         virtual IMathsVenue& Venue() = 0;
       };
 
       ROCOCOAPI ISceneSupervisor : public IScene
@@ -111,7 +142,7 @@ namespace HV
       };
 
       ISceneSupervisor* CreateScene(Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera);
-      ICameraSupervisor* CreateCamera(Entities::IInstancesSupervisor& instances, IRenderer& render, IPublisher& publisher);
+      ICameraSupervisor* CreateCamera(Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& render, IPublisher& publisher);
       IMeshBuilderSupervisor* CreateMeshBuilder(IRenderer& renderer);
       
    }
@@ -160,6 +191,13 @@ namespace HV
    };
 
    IConfigSupervisor* CreateConfig();
+
+   ROCOCOAPI IMobilesSupervisor: public Entities::IMobiles
+   {
+      virtual void Free() = 0;
+   };
+
+   IMobilesSupervisor* CreateMobilesSupervisor(Entities::IInstancesSupervisor& instances, IPublisher& publisher);
   
    bool QueryYesNo(Windows::IWindow& ownerWindow, const wchar_t* message);
 
@@ -175,10 +213,13 @@ namespace HV
       Graphics::ISceneSupervisor& scene;
       Graphics::IMeshBuilderSupervisor& meshes;
       Entities::IInstancesSupervisor& instances;
+      Entities::IMobiles& mobiles;
       Graphics::ICameraSupervisor& camera;
       IPlayerSupervisor& players;
       IKeyboardSupervisor& keyboard;
       IMouse& mouse;
+      IMathsVisitorSupervisor& mathsDebugger;
+      
    };
 
    IApp* CreateHVApp(Cosmos& e);
