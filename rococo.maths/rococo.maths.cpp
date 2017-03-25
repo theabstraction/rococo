@@ -79,6 +79,22 @@ namespace Rococo
       return xdet.m128_f32[0];
    }
 
+   void ExpandZoneToContain(GuiRect& rect, const Vec2i& p)
+   {
+      if (p.x < rect.left) rect.left = p.x;
+      if (p.x > rect.right) rect.right = p.x;
+      if (p.y < rect.top) rect.top = p.y;
+      if (p.y > rect.bottom) rect.bottom = p.y;
+   }
+
+   void ExpandZoneToContain(GuiRectf& rect, const Vec2& p)
+   {
+      if (p.x < rect.left) rect.left = p.x;
+      if (p.x > rect.right) rect.right = p.x;
+      if (p.y < rect.top) rect.top = p.y;
+      if (p.y > rect.bottom) rect.bottom = p.y;
+   }
+
 	Vec2  GetIntersect(Vec2 A, Vec2 D, Vec2 B, Vec2 E)
 	{
 		// Given line P(t) = A + Dt and line Q(u) = B + Eu

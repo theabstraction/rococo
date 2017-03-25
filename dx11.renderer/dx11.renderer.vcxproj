@@ -91,20 +91,40 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.maths.h" />
+    <ClInclude Include="rococo.dx11.api.h" />
     <ClInclude Include="dx11.renderer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="dx11.depth.cpp" />
+    <ClCompile Include="dx11.dialog.cpp" />
+    <ClCompile Include="dx11.gui.cpp" />
+    <ClInclude Include="dx11.imports.inl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClCompile Include="dx11.objects.cpp" />
     <ClCompile Include="dx11.renderer.cpp" />
+    <ClCompile Include="dx11.swapchain.cpp" />
+    <ClCompile Include="dx11.textures.cpp" />
     <ClCompile Include="renderer.utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bitmap.cache.cpp">
       <FileType>Document</FileType>
     </ClCompile>
-    <None Include="dx11dialog.inl" />
+    <None Include="..\rococo.os.win32\rococo.ultraclock.inl" />
+    <None Include="dx11buffers.inl" />
     <None Include="dx11helpers.inl" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="depth.ps.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\content\%(Filename)</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\content\%(Filename)</ObjectFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
     <FxCompile Include="gui.ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>

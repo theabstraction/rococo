@@ -41,10 +41,6 @@ namespace Rococo
 		T b;
 	};
 
-	typedef const Vec3& cr_vec3;
-
-	struct Vec4;
-	struct Matrix4x4;
 	struct Quat;
 
 	ROCOCO_ID(ID_BITMAP, uint64, -1)
@@ -55,8 +51,6 @@ namespace Rococo
 		float radius;
 	};
 
-	struct Degrees;
-	struct Radians;
 	struct Gravity;
 	struct Metres;
 	struct Quat;

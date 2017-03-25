@@ -22,6 +22,22 @@ namespace Rococo
 	typedef void* pointer;
 	typedef int32 boolean32; // 32-bit boolean
 
+   struct Vec2;
+   struct Vec3;
+   struct Vec4;
+   struct Matrix4x4;
+   struct Radians;
+   struct Degrees;
+   struct Quat;
+   struct Sphere;
+   struct Gravity;
+   struct Metres;
+   
+   typedef const Vec2& cr_vec2;
+   typedef const Vec3& cr_vec3;
+   typedef const Vec4& cr_vec4;
+   typedef const Matrix4x4& cr_m4x4;
+
    struct fstring
    {
       const wchar_t* buffer;
@@ -40,6 +56,11 @@ namespace Rococo
       virtual void Lock() = 0;
       virtual void Unlock() = 0;
    };
+
+   namespace Windows
+   {
+      struct IWindow;
+   }
 
    class Sync
    {
@@ -282,6 +303,9 @@ namespace Rococo
       GuiRect() {}
       GuiRect(int32 _left, int32 _top, int32 _right, int32 _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
    };
+
+   void ExpandZoneToContain(GuiRect& rect, const Vec2i& p);
+   void ExpandZoneToContain(GuiRectf& rect, const Vec2& p);
 
    struct Vec2
    {

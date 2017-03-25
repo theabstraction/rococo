@@ -8,7 +8,6 @@
 #include <windows.h>
 #include <rococo.window.h>
 #include <rococo.strings.h>
-#include <rococo.visitors.h>
 #include <commctrl.h>
 
 #include <vector>

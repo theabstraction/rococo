@@ -259,10 +259,10 @@ namespace
 
       enum { IDE_FILE_VERSION = 0x1002 };
 
-      void PostConstruct(IWindow* parent)
+      void PostConstruct(IWindow& parent)
       {
          WindowConfig config;
-         HWND hParentWnd = parent ? (HWND)*parent : nullptr;
+         HWND hParentWnd = parent ? (HWND) parent : nullptr;
          SetOverlappedWindowConfig(config, Vec2i{ 800, 600 }, SW_SHOWMAXIMIZED, hParentWnd, L"Dystopia Script Debugger", WS_OVERLAPPEDWINDOW | WS_MAXIMIZE, 0, *mainMenu);    
          dialog = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
         
@@ -390,7 +390,7 @@ namespace
          }
       }
    public:
-      static TabbedDebuggerWindowHandler* Create(IWindow* parent)
+      static TabbedDebuggerWindowHandler* Create(IWindow& parent)
       {
          auto m = new TabbedDebuggerWindowHandler();
          m->PostConstruct(parent);
@@ -690,7 +690,7 @@ namespace Rococo
 {
    namespace IDE
    {
-      IDebuggerWindow* CreateDebuggerWindow(IWindow* parent)
+      IDebuggerWindow* CreateDebuggerWindow(IWindow& parent)
       {
          return TabbedDebuggerWindowHandler::Create(parent);
       }

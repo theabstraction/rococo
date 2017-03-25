@@ -207,6 +207,11 @@
     </CustomBuild>
     <None Include="hv.sxh.inl" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="hv.imports.cpp">
+      <FileType>Document</FileType>
+    </ClCompile>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

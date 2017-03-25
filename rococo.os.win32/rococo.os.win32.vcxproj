@@ -151,6 +151,9 @@
   <ItemGroup>
     <ClCompile Include="win32os.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="rococo.imports.inl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

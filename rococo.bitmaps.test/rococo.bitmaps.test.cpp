@@ -5,7 +5,6 @@
 #include <commctrl.h>
 #include <vector>
 
-#include <rococo.visitors.h>
 #include <rococo.window.h>
 #include <rococo.io.h>
 #include <rococo.strings.h>

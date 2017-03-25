@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <FxCompile Include="gui.ps.hlsl" />
+    <FxCompile Include="gui.vs.hlsl" />
+    <FxCompile Include="object.vs.hlsl" />
+    <FxCompile Include="object.ps.hlsl" />
+    <FxCompile Include="depth.ps.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="bitmap.cache.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11.swapchain.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11.depth.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11.renderer.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer.utils.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11.gui.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11.objects.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11.dialog.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11.textures.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="rococo.dx11.api.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dx11.renderer.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rococo.maths.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dx11.imports.inl">
+      <Filter>Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\rococo.os.win32\rococo.ultraclock.inl">
+      <Filter>Sources</Filter>
+    </None>
+    <None Include="dx11helpers.inl">
+      <Filter>Headers</Filter>
+    </None>
+    <None Include="dx11buffers.inl">
+      <Filter>Headers</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Sources">
+      <UniqueIdentifier>{4d420732-2698-4336-bbc4-cde79ac59cb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{0434006d-571d-46b7-947b-b01f592b9817}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

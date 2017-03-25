@@ -8,6 +8,12 @@
 #include <intrin.h>
 #include <math.h>
 
+namespace DirectX
+{
+   struct XMFLOAT4;
+   struct XMFLOAT4X4;
+}
+
 namespace Rococo
 {
 	struct alignas(4) Vec4 // was 16, but sexy does not align on 16 byte boundaries yet

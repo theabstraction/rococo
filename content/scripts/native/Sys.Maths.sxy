@@ -146,5 +146,4 @@
 (struct FPSAngles
 	(Float32 heading elevation tilt)
 )
-
 (alias FPSAngles Sys.Maths.FPSAngles)

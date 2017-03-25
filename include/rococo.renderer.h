@@ -82,8 +82,6 @@ namespace Rococo
 		virtual RGBA GetClearColour() const = 0;
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
 		virtual void RenderObjects(IRenderContext& rc) = 0;
-      virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
-      virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
 	};
 
 	ROCOCOAPI IApp
@@ -108,23 +106,17 @@ namespace Rococo
 
 	ROCOCOAPI IRenderer
 	{
+      virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
 		virtual void ClearMeshes() = 0;
-		virtual ID_VERTEX_SHADER CreateGuiVertexShader(const wchar_t* name, const uint8* shaderCode, size_t shaderLength) = 0;
-		virtual ID_VERTEX_SHADER CreateObjectVertexShader(const wchar_t* name, const uint8* shaderCode, size_t shaderLength) = 0;
-		virtual ID_PIXEL_SHADER CreatePixelShader(const wchar_t* name, const uint8* shaderCode, size_t shaderLength) = 0;
-
-		virtual Windows::IWindow& Window() = 0;
+      virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
+      virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
+      virtual IInstallation& Installation() = 0;	
+      virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, const wchar_t* uniqueName) = 0;
 		virtual void Render(IScene& scene) = 0;
-		virtual void UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid) = 0;
-		virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
-		
-		virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
-		virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices) = 0;
-
-		virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, const wchar_t* uniqueName) = 0;
+      virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
 		virtual void SetCursorBitmap(ID_TEXTURE bitmapId, Vec2i hotspotOffset, Vec2 uvTopLeft, Vec2 uvBottomRight) = 0;
-
-      virtual IInstallation& Installation() = 0;
+		virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices) = 0;
+      virtual Windows::IWindow& Window() = 0;     
 	};
 
 	ROCOCOAPI IAppFactory

@@ -13,17 +13,17 @@ namespace
       Matrix4x4 projection;
       Quat orientation;
       Vec3 position;
+      int32 orientationFlags;
       ID_ENTITY followingId;
       ID_ENTITY orientationGuideId;
-      int32 orientationFlags;
       IInstancesSupervisor& instances;
       IMobiles& mobiles;
       IRenderer& renderer;
       IPublisher& publisher;
-      bool isDirty{ false };
-      bool isFPSlinked{ false };
       Degrees elevation{ 0 };
       Degrees heading{ 0 };
+      bool isDirty{ false };
+      bool isFPSlinked{ false };   
    public:
       Camera(IInstancesSupervisor& _instances, IMobiles& _mobiles, IRenderer& _renderer, IPublisher& _publisher) :
          instances(_instances),

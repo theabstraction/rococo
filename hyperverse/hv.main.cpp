@@ -10,28 +10,10 @@
 #include <rococo.renderer.h>
 #include <rococo.dx11.renderer.win32.h>
 #include <rococo.window.h>
-#include "rococo.strings.h"
+#include <rococo.strings.h>
 
 #include <vector>
 #include <algorithm>
-
-#ifdef _DEBUG
-# pragma comment(lib, "dx11.renderer.debug.lib")
-# pragma comment(lib, "rococo.os.win32.debug.lib")
-# pragma comment(lib, "rococo.maths.debug.lib")
-# pragma comment(lib, "rococo.util.debug.lib")
-# pragma comment(lib, "rococo.sexy.ide.debug.lib")
-#else
-# pragma comment(lib, "dx11.renderer.lib")
-# pragma comment(lib, "rococo.os.win32.lib")
-# pragma comment(lib, "rococo.maths.lib")
-# pragma comment(lib, "rococo.util.lib")
-# pragma comment(lib, "rococo.sexy.ide.lib")
-#endif
-
-#include <sexy.lib.s-parser.h>
-#include <sexy.lib.util.h>
-#include <sexy.lib.script.h>
 
 #include <sexy.script.h>
 #include <rococo.sexy.ide.h>
@@ -69,7 +51,7 @@ void Main(HANDLE hInstanceLock)
 
    AutoFree<IDX11Window> mainWindow(CreateDX11Window(*installation));
    AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation));
-   AutoFree<IDebuggerWindow> debuggerWindow(Rococo::IDE::CreateDebuggerWindow(&mainWindow->Window()));
+   AutoFree<IDebuggerWindow> debuggerWindow(Rococo::IDE::CreateDebuggerWindow(mainWindow->Window()));
 
    AutoFree<IConfigSupervisor> config(CreateConfig());
 
@@ -110,7 +92,7 @@ void Main(HANDLE hInstanceLock)
 
    SetDefaults(*config);
 
-   scene->AddOverlay(1000, &mathsVisitor->Overlay());
+   mainWindow->Renderer().AddOverlay(1000, &mathsVisitor->Overlay());
 
    RunEnvironmentScript(e, L"!scripts/hv/config.sxy");
 

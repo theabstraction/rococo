@@ -5,12 +5,18 @@
 #error "#include <rococo.types.h> before including this file"
 #endif
 
+#include <rococo.visitors.h>
 #include <Rococo.ui.h>
 
 namespace Rococo
 {
 	namespace Windows
 	{
+      ROCOCOAPI IWindow
+      {
+         virtual operator HWND () const = 0;
+      };
+
 		void SetControlFont(HWND hControlWindow); // Sets the font of the window to the default control font specified in InitRococoWindows
 		void SetTitleFont(HWND hTitleBar);  // Sets the font of the window to the default title font specified in InitRococoWindows
 		
@@ -219,11 +225,6 @@ namespace Rococo
 
 		GuiRect ClientArea(HWND hWnd);
 		GuiRect WindowArea(HWND hWnd);
-
-		ROCOCOAPI IWindow
-		{
-			virtual operator HWND () const = 0;
-		};
 
 		ROCOCOAPI IWindowSupervisor : public IWindow
 		{
