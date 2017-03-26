@@ -21,20 +21,9 @@ namespace Sexy
 {
    namespace Compiler
    {
-      csexstr GetTypeName(const IStructure& s)
-      {
-         csexstr name = s.Name();
-         if (AreEqual(name, SEXTEXT("_Null_"), 6))
-         {
-            return s.GetInterface(0).Name();
-         }
-         else
-         {
-            return name;
-         }
-      }
-   }//Compiler
-}//Sexy
+      csexstr GetTypeName(const IStructure& s);
+   }
+}
 
 namespace SexyDotNet { namespace Host
 {
@@ -393,13 +382,13 @@ namespace SexyDotNet { namespace Host
 			const void* pVariableData = SF + def.SFOffset;
 			if (def.Usage == ARGUMENTUSAGE_BYVALUE)
 			{
-				CopySexCharToUnicode(unicodeType, 256, GetTypeName(*def.ResolvedType));				
+				CopySexCharToUnicode(unicodeType, 256, Compiler::GetTypeName(*def.ResolvedType));				
 				FormatValue(ss, unicodeValue, 256, def.ResolvedType->VarType(), pVariableData);
 			}
 			else
 			{
 				unicodeType[0] = L'*';
-				CopySexCharToUnicode(unicodeType+1, 255, GetTypeName(*def.ResolvedType));
+				CopySexCharToUnicode(unicodeType+1, 255, Compiler::GetTypeName(*def.ResolvedType));
 
 				const void** ppData = (const void**) pVariableData;
 
@@ -471,7 +460,7 @@ namespace SexyDotNet { namespace Host
 		{
 			NativeVariableDesc desc;
 			CopyString(desc.Name, NativeVariableDesc::NAME_CAPACITY, childName, -1);
-			CopyString(desc.Type, NativeVariableDesc::TYPE_CAPACITY, GetTypeName(*member.UnderlyingType()), -1);
+			CopyString(desc.Type, NativeVariableDesc::TYPE_CAPACITY, Compiler::GetTypeName(*member.UnderlyingType()), -1);
 			if (member.IsPseudoVariable()) StringCat(desc.Type, SEXTEXT("(pseudo)"), NativeVariableDesc::TYPE_CAPACITY);
 
 			char value[NativeVariableDesc::VALUE_CAPACITY];

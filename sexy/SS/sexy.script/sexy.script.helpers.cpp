@@ -52,6 +52,21 @@ using namespace Sexy::VM;
 
 namespace Sexy
 {
+   namespace Compiler
+   {
+      csexstr GetTypeName(const IStructure& s)
+      {
+         csexstr name = s.Name();
+         if (AreEqual(name, SEXTEXT("_Null_"), 6))
+         {
+            return s.GetInterface(0).Name();
+         }
+         else
+         {
+            return name;
+         }
+      }
+   }
    namespace Script
    {
       using namespace Sexy::Debugger;
@@ -82,19 +97,6 @@ namespace Sexy
          va_list args;
          va_start(args, format);
          vsprintf_s(variable.Type, VariableDesc::TYPE_CAPACITY, format, args);
-      }
-
-      Sexy::csexstr GetTypeName(const Sexy::Compiler::IStructure& s)
-      {
-         Sexy::csexstr name = s.Name();
-         if (AreEqual(name, SEXTEXT("_Null_"), 6))
-         {
-            return s.GetInterface(0).Name();
-         }
-         else
-         {
-            return name;
-         }
       }
 
       void AddSFToVarEnum(VariableDesc& variable, const Sexy::uint8* SF)

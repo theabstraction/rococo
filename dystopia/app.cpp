@@ -101,7 +101,7 @@ namespace
 			postbox(Post::CreatePostbox()),
 			uiStack(CreateUIStack(*postbox)),
 			gui(CreateGui(e, *uiStack)),
-			debuggerWindow(IDE::CreateDebuggerWindow(&_renderer.Window())),
+			debuggerWindow(IDE::CreateDebuggerWindow(_renderer.Window())),
          exceptionHandler(UseDialogBoxForScriptException(debuggerWindow->GetDebuggerWindowControl())),
 			sourceCache(CreateSourceCache(_installation)),
 			meshes(CreateMeshLoader(_installation, _renderer, *sourceCache)),
