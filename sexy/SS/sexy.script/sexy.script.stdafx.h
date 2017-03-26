@@ -76,7 +76,7 @@ namespace Sexy
       void ThrowTypeMismatch(cr_sex s, const IStructure& a, const IStructure& b, csexstr extra);
 
       void AssertAtomicMatch(cr_sex s, csexstr value);
-      void ThrowNamespaceConflict(cr_sex s, INamespace& n1, INamespace& n2, csexstr type, csexstr token);
+      void ThrowNamespaceConflict(cr_sex s, const INamespace& n1, const INamespace& n2, csexstr type, csexstr token);
       void ThrowTokenNotFound(cr_sex s, csexstr item, csexstr repository, csexstr type);
       INamespace& AssertGetNamespace(IProgramObject& object, cr_sex s, csexstr fullName);
    }
@@ -566,5 +566,7 @@ namespace Sexy
       void CallMacro(CCompileEnvironment& ce, const IFunction& f, cr_sex s);
       bool TryCompileAsPlainFunctionCall(CCompileEnvironment& ce, cr_sex s);
       bool TryCompileAsDerivativeFunctionCall(CCompileEnvironment& ce, cr_sex s);
+      int GetOutputSFOffset(CCompileEnvironment& ce, int inputStackAllocCount, int outputStackAllocCount);
+      void PopOutputs(CCompileEnvironment& ce, cr_sex invocation, const IArchetype& callee, int outputOffset, bool isVirtualCall);
    }
 }

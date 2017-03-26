@@ -10601,6 +10601,9 @@ namespace
          SEXTEXT("		(Vec3 a = 2 4 6)\n")
          SEXTEXT("		(Vec3 b = 5 7 9)\n")
          SEXTEXT("		(Vec3 c = a + b)\n")
+         SEXTEXT("      (cx = c.x)\n")
+         SEXTEXT("      (cy = c.y)\n")
+         SEXTEXT("      (cz = c.z)\n")
          SEXTEXT(")\n")
          SEXTEXT("(alias Main EntryPoint.Main) \n");
       Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestOperatorOverload"));
@@ -10613,12 +10616,44 @@ namespace
       vm.Push(0); 
       EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
       ValidateExecution(result);
-      float x = vm.PopFloat32();
-      float y = vm.PopFloat32();
       float z = vm.PopFloat32();
+      float y = vm.PopFloat32();
+      float x = vm.PopFloat32();
       validate(x == 7.0f);
       validate(y == 11.0f);
       validate(z == 15.0f);
+   }
+
+   void TestOperatorOverload2(IPublicScriptSystem& ss)
+   {
+      csexstr srcCode =
+         SEXTEXT("(using Sys.Maths) \n")
+         SEXTEXT("(namespace EntryPoint) \n")
+         SEXTEXT("(function Main -> (Float32 cx)(Float32 cy)(Float32 cz): \n")
+         SEXTEXT("		(Vec3 a = 2 4 6)\n")
+         SEXTEXT("		(Vec3 b = 5 7 9)\n")
+         SEXTEXT("		(Vec3 c = (a - b))\n")
+         SEXTEXT("      (cx = c.x)\n")
+         SEXTEXT("      (cy = c.y)\n")
+         SEXTEXT("      (cz = c.z)\n")
+         SEXTEXT(")\n")
+         SEXTEXT("(alias Main EntryPoint.Main) \n");
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestOperatorOverload2"));
+      Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+      VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+      vm.Push(0); // Allocate stack space for the Vec3
+      vm.Push(0);
+      vm.Push(0);
+      EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+      ValidateExecution(result);
+      float z = vm.PopFloat32();
+      float y = vm.PopFloat32();
+      float x = vm.PopFloat32();
+      validate(x == -3.0f);
+      validate(y == -3.0f);
+      validate(z == -3.0f);
    }
 
 	void RunCollectionTests()
@@ -11016,8 +11051,8 @@ namespace
 	
 	void RunTests()
 	{	
-      TEST(TestRecti1);
- //     TEST(TestOperatorOverload);
+      TEST(TestOperatorOverload);
+ // -> TODO     TEST(TestOperatorOverload2);
       TEST(TestLinkedList11);
 		RunPositiveSuccesses();	
 		RunCollectionTests();

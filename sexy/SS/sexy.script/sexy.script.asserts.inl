@@ -280,7 +280,7 @@ namespace Sexy { namespace Sex
 		}
 	}
 
-	void ThrowNamespaceConflict(cr_sex s, INamespace& n1, INamespace& n2, csexstr type, csexstr token)
+	void ThrowNamespaceConflict(cr_sex s, const INamespace& n1, const INamespace& n2, csexstr type, csexstr token)
 	{
 		sexstringstream streamer;
 		streamer << type << SEXTEXT(" ") << token << SEXTEXT(" could belong to either ") << n1.FullName()->Buffer << (" or ") << n2.FullName()->Buffer;

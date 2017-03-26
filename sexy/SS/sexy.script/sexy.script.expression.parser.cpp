@@ -854,31 +854,109 @@ namespace Sexy { namespace Script
       Throw(directive, SEXTEXT("Unary operator not implemented"));
    }
 
-   void CompileBinaryOperatorOverload(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, int offset)
+   const IFunction* FindFunction(cr_sex origin, csexstr shortName, const IModule& module)
    {
+      const IFunction* f = module.FindFunction(shortName);
+      if (f != nullptr) return f;
+
+      const IFunction* finalFunction = nullptr;
+      const INamespace* finalNS = nullptr;
+      for (int i = 0; i < module.PrefixCount(); ++i)
+      {
+         const INamespace& prefix = module.GetPrefix(i);
+         f = prefix.FindFunction(shortName);
+
+         if (f != nullptr)
+         {
+            if (finalFunction != nullptr)
+               ThrowNamespaceConflict(origin, prefix, *finalNS, SEXTEXT("function"), shortName);
+            else
+            {
+               finalFunction = f;
+               finalNS = &prefix;
+            }
+         }
+      }
+
+      return finalFunction;
+   }
+
+   int PushBinaryOperatorInputs(CCompileEnvironment& ce, cr_sex s, const IStructure& type, const IArchetype& callee, int firstArgIndex)
+   {
+      // (vec3 f = a + b) -> (AddVec3toVec3 a b f)
+      // 
+      int inputStackAllocCount = 0;
+
+      if (callee.NumberOfInputs() != 3)
+      {
+         Throw(s, L"Binary operator %s must have three arguments", callee.Name());
+      }
+
+      if (callee.NumberOfOutputs() != 0)
+      {
+         Throw(s, L"Binary operator %s must not return output", callee.Name());
+      }
+
+      for (int i = 0; i < 2; i++)
+      {
+         if (&callee.GetArgument(i) != &type)
+         {
+            Throw(s, L"%s was not of type %s. It was of type %s", type.Name(), callee.GetArgument(i).Name());
+         }
+      }
+     
+      int indices[] { 2 + firstArgIndex, 4 + firstArgIndex, 0 + firstArgIndex };
+
+      for(int i = 0; i < 3; i++)
+      {
+         csexstr inputName = callee.GetArgName(i);
+         const IStructure& argType = callee.GetArgument(i);
+         
+         int inputStackCost = PushInput(ce, s, indices[i], argType, nullptr, inputName, callee.GetGenericArg1(i));
+         inputStackAllocCount += inputStackCost;
+      }
+      return inputStackAllocCount;
+   }
+
+   void CompileBinaryOperatorOverload(csexstr operation, CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, int offset)
+   {
+      // Assume varStruct is struct
       // Convert (Vec3 c = a + b) into (Vec3 c)(AddVec3toVec3 a b c)
 
-      cr_sex sa = directive[offset + 3];
-      cr_sex sb = directive[offset + 5];
-
-      auto* a_name = SEXTEXT("a");
-      auto* b_name = SEXTEXT("a");
-
+      csexstr instrumentName = varStruct.Name();
       SEXCHAR functionName[Sexy::NAMESPACE_MAX_LENGTH];
-      SafeFormat(functionName, _TRUNCATE, SEXTEXT("Add%sto%s"), a_name, b_name);
+      SafeFormat(functionName, _TRUNCATE, SEXTEXT("%s%s%s"), operation, instrumentName, instrumentName);
 
-      Throw(directive, SEXTEXT("Binary operator %s not implemented"), functionName);
+      auto* overloadFn = FindFunction(directive, functionName, ce.Script.ProgramModule());
+      if (!overloadFn)
+      {
+         Throw(directive, SEXTEXT("Could not find binary operator function (%s (%s a)(%s b)(%s output) -> ).\nBe sure to use the correct (using ...) directive and include any necessary modules in your script."), functionName, instrumentName, instrumentName, instrumentName);
+      }
+
+      int inputStackAllocCount = PushBinaryOperatorInputs(ce, directive, varStruct, *overloadFn, offset);
+      AppendFunctionCallAssembly(ce, *overloadFn);
+      ce.Builder.MarkExpression(&directive);
+      RepairStack(ce, directive, *overloadFn);
+      int outputOffset = GetOutputSFOffset(ce, inputStackAllocCount, 0);
+      PopOutputs(ce, directive, *overloadFn, outputOffset, false);
+      ce.Builder.AssignClosureParentSF();
    }
 
    void CompileOperatorOverload(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, int offset)
    {
-      if (directive.NumberOfElements() - offset == 5)
+      if (directive.NumberOfElements() - offset == 4)
       {
          CompileUnaryOperatorOverload(ce, directive, varStruct, offset);
       }
-      else if (directive.NumberOfElements() - offset == 6)
+      else if (directive.NumberOfElements() - offset == 5)
       {
-         CompileBinaryOperatorOverload(ce, directive, varStruct, offset);
+         csexstr op = directive[3 + offset].String()->Buffer;
+         csexstr prefix;
+         if (AreEqual(op, SEXTEXT("+"))) prefix = SEXTEXT("Add");
+         else if (AreEqual(op, SEXTEXT("-"))) prefix = SEXTEXT("Subtract");
+         else if (AreEqual(op, SEXTEXT("*"))) prefix = SEXTEXT("Multiply");
+         else Throw(directive[3 + offset], SEXTEXT("Unknown operator"));
+         CompileBinaryOperatorOverload(prefix, ce, directive, varStruct, offset);
       }
       else
       {
@@ -893,10 +971,17 @@ namespace Sexy { namespace Script
 	
 		if (varStruct.VarType() == VARTYPE_Derivative && !varStruct.Prototype().IsClass)
 		{
-         cr_sex secondarg = directive[4 + offset];
-         if (IsAtomic(secondarg) && AreEqual(secondarg.String(), SEXTEXT("+")))
+         if (directive.NumberOfElements() == (6 + offset))
          {
-            CompileOperatorOverload(ce, directive, varStruct, offset);
+            cr_sex secondarg = directive[4 + offset];
+            if (IsAtomic(secondarg) && (AreEqual(secondarg.String(), SEXTEXT("+")) || AreEqual(secondarg.String(), SEXTEXT("-"))))
+            {
+               CompileOperatorOverload(ce, directive, varStruct, offset + 1);
+            }
+            else
+            {
+               CompileMemberwiseAssignment(ce, directive, varStruct, offset);
+            }
          }
          else
          {
