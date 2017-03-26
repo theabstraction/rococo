@@ -30,6 +30,9 @@
     <ClCompile Include="sexy.script.helpers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sexy.script.expression.parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sexy.script.stdafx.h">
@@ -56,9 +59,6 @@
       <Filter>Implementation</Filter>
     </None>
     <None Include="ReadMe.txt" />
-    <None Include="sexy.script.expression.parser.inl">
-      <Filter>Implementation</Filter>
-    </None>
     <None Include="sexy.script.conditional.expression.parser.inl">
       <Filter>Implementation</Filter>
     </None>

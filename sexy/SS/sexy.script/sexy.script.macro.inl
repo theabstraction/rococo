@@ -31,112 +31,115 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace
+namespace Sexy
 {
-	enum { MAX_TRANSFORM_DEPTH = 16 };
+   namespace Script
+   {
+      enum { MAX_TRANSFORM_DEPTH = 16 };
 
-	void* GetInterface(const CClassHeader& header)
-	{
-		return (void*)&header._vTables[0];
-	}
+      void* GetInterface(const CClassHeader& header)
+      {
+         return (void*)&header._vTables[0];
+      }
 
-	IMacroBuilder* DeclareMacro(cr_sex macroDef, IModuleBuilder& module)
-	{
-		AssertNotTooFewElements(macroDef, 5);
+      IMacroBuilder* DeclareMacro(cr_sex macroDef, IModuleBuilder& module)
+      {
+         AssertNotTooFewElements(macroDef, 5);
 
-		cr_sex macroNameExpr = GetAtomicArg(macroDef, 1);
-		cr_sex inNameExpr = GetAtomicArg(macroDef, 2);
-		cr_sex outNameExpr = GetAtomicArg(macroDef, 3);
+         cr_sex macroNameExpr = GetAtomicArg(macroDef, 1);
+         cr_sex inNameExpr = GetAtomicArg(macroDef, 2);
+         cr_sex outNameExpr = GetAtomicArg(macroDef, 3);
 
-		AssertLocalIdentifier(inNameExpr);
-		AssertLocalIdentifier(outNameExpr);
+         AssertLocalIdentifier(inNameExpr);
+         AssertLocalIdentifier(outNameExpr);
 
-		NamespaceSplitter splitter(macroNameExpr.String()->Buffer);
+         NamespaceSplitter splitter(macroNameExpr.String()->Buffer);
 
-		csexstr nsRoot, shortName;
-		AssertSplitTail(splitter, macroNameExpr, OUT nsRoot, OUT shortName);
-		AssertMacroShortName(macroNameExpr, shortName);
+         csexstr nsRoot, shortName;
+         AssertSplitTail(splitter, macroNameExpr, OUT nsRoot, OUT shortName);
+         AssertMacroShortName(macroNameExpr, shortName);
 
-		csexstr staticShortName = macroNameExpr.String()->Buffer + StringLength(nsRoot) + 1;
+         csexstr staticShortName = macroNameExpr.String()->Buffer + StringLength(nsRoot) + 1;
 
-		INamespaceBuilder& ns = AssertGetSubspace(module.Object(), macroNameExpr, nsRoot);
+         INamespaceBuilder& ns = AssertGetSubspace(module.Object(), macroNameExpr, nsRoot);
 
-		TokenBuffer fname;
-		StringPrint(fname, SEXTEXT("#%s"), shortName);
-		if (module.FindFunction(fname) != NULL)
-		{
-			ThrowTokenAlreadyDefined(macroNameExpr, shortName, module.Name(), SEXTEXT("macro"));
-		}
+         TokenBuffer fname;
+         StringPrint(fname, SEXTEXT("#%s"), shortName);
+         if (module.FindFunction(fname) != NULL)
+         {
+            ThrowTokenAlreadyDefined(macroNameExpr, shortName, module.Name(), SEXTEXT("macro"));
+         }
 
-		IFunctionBuilder &f = module.DeclareFunction(FunctionPrototype(fname, false), &macroDef);
-		f.AddInput(NameString::From(inNameExpr.String()), TypeString::From(SEXTEXT("Sys.Reflection.IExpression")), (void*) &inNameExpr);
-		f.AddInput(NameString::From(outNameExpr.String()), TypeString::From(SEXTEXT("Sys.Reflection.IExpressionBuilder")), (void*) &outNameExpr);		
+         IFunctionBuilder &f = module.DeclareFunction(FunctionPrototype(fname, false), &macroDef);
+         f.AddInput(NameString::From(inNameExpr.String()), TypeString::From(SEXTEXT("Sys.Reflection.IExpression")), (void*)&inNameExpr);
+         f.AddInput(NameString::From(outNameExpr.String()), TypeString::From(SEXTEXT("Sys.Reflection.IExpressionBuilder")), (void*)&outNameExpr);
 
-		if (!f.TryResolveArguments())
-		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Error resolving arguments in macro: ") << fname;
-			Throw(macroDef, streamer);
-		}
-		
-		IMacroBuilder* macro = ns.AddMacro(staticShortName, (void*) &macroDef, f);
-		if (macro == NULL) ThrowTokenAlreadyDefined(macroNameExpr, shortName, ns.FullName()->Buffer, SEXTEXT("macro"));	
+         if (!f.TryResolveArguments())
+         {
+            sexstringstream streamer;
+            streamer << SEXTEXT("Error resolving arguments in macro: ") << fname;
+            Throw(macroDef, streamer);
+         }
 
-		return macro;
-	}
+         IMacroBuilder* macro = ns.AddMacro(staticShortName, (void*)&macroDef, f);
+         if (macro == NULL) ThrowTokenAlreadyDefined(macroNameExpr, shortName, ns.FullName()->Buffer, SEXTEXT("macro"));
 
-	void CompileMacroFromExpression(IMacroBuilder& macro, CScript& script, cr_sex macroDef)
-	{
-		CCompileEnvironment ce(script, macro.Implementation().Builder());
+         return macro;
+      }
 
-		// (macro <macro-name> <in-name> <out-name> (xpr1) .... (xprN))
-		IFunction& f = ce.Builder.Owner();
+      void CompileMacroFromExpression(IMacroBuilder& macro, CScript& script, cr_sex macroDef)
+      {
+         CCompileEnvironment ce(script, macro.Implementation().Builder());
 
-		csexstr macroName = f.Name();
+         // (macro <macro-name> <in-name> <out-name> (xpr1) .... (xprN))
+         IFunction& f = ce.Builder.Owner();
 
-		ce.Builder.Begin();
+         csexstr macroName = f.Name();
 
-		CompileExpressionSequence(ce, 4, macroDef.NumberOfElements()-1, macroDef);
+         ce.Builder.Begin();
 
-		ce.Builder.End();
-		ce.Builder.Assembler().Clear();
-	}
+         CompileExpressionSequence(ce, 4, macroDef.NumberOfElements() - 1, macroDef);
 
-	void CallMacro(CCompileEnvironment& ce, const IFunction& f, cr_sex s)
-	{
-		if (s.TransformDepth() >= MAX_TRANSFORM_DEPTH)
-		{
-			Throw(s, SEXTEXT("Exceeded maximum macro evaluation depth"));
-		}
+         ce.Builder.End();
+         ce.Builder.Assembler().Clear();
+      }
 
-		VM::IVirtualMachine& vm = ce.SS.ProgramObject().VirtualMachine();
-		const CClassExpression* input = ce.SS.GetExpressionReflection(s);
+      void CallMacro(CCompileEnvironment& ce, const IFunction& f, cr_sex s)
+      {
+         if (s.TransformDepth() >= MAX_TRANSFORM_DEPTH)
+         {
+            Throw(s, SEXTEXT("Exceeded maximum macro evaluation depth"));
+         }
 
-		ISExpressionBuilder* outputRoot = const_cast<ISExpression&>(s).CreateTransform();
+         VM::IVirtualMachine& vm = ce.SS.ProgramObject().VirtualMachine();
+         const CClassExpression* input = ce.SS.GetExpressionReflection(s);
 
-		CClassExpressionBuilder output;
-		if (!ce.SS.ConstructExpressionBuilder(output, outputRoot))
-		{
-			Throw(s, SEXTEXT("Internal compiler error"));
-		}
+         ISExpressionBuilder* outputRoot = const_cast<ISExpression&>(s).CreateTransform();
 
-		VM::CPU& cpu = vm.Cpu();
+         CClassExpressionBuilder output;
+         if (!ce.SS.ConstructExpressionBuilder(output, outputRoot))
+         {
+            Throw(s, SEXTEXT("Internal compiler error"));
+         }
 
-		vm.Push(GetInterface(input->Header));
-		vm.Push(GetInterface(output.Header));
+         VM::CPU& cpu = vm.Cpu();
 
-		CodeSection macroSection;
-		f.Code().GetCodeSection(OUT macroSection);
+         vm.Push(GetInterface(input->Header));
+         vm.Push(GetInterface(output.Header));
 
-		EXECUTERESULT result = vm.ExecuteFunctionProtected(macroSection.Id);	
-		if (result != EXECUTERESULT_RETURNED)
-		{
-			Throw(s, SEXTEXT("Error executing macro expansion"));
-		}
+         CodeSection macroSection;
+         f.Code().GetCodeSection(OUT macroSection);
 
-		vm.SetStatus(EXECUTERESULT_RUNNING);
+         EXECUTERESULT result = vm.ExecuteFunctionProtected(macroSection.Id);
+         if (result != EXECUTERESULT_RETURNED)
+         {
+            Throw(s, SEXTEXT("Error executing macro expansion"));
+         }
 
-		vm.PopPointer();
-		vm.PopPointer();
-	}
-}
+         vm.SetStatus(EXECUTERESULT_RUNNING);
+
+         vm.PopPointer();
+         vm.PopPointer();
+      }
+   }//Script
+}//Sexy

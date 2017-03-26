@@ -19,19 +19,22 @@
 
 namespace Sexy
 {
-	csexstr GetTypeName(const IStructure& s)
-	{
-		csexstr name = s.Name();
-		if (AreEqual(name, SEXTEXT("_Null_"), 6))
-		{
-			return s.GetInterface(0).Name();
-		}
-		else
-		{
-			return name;
-		}
-	}
-}
+   namespace Compiler
+   {
+      csexstr GetTypeName(const IStructure& s)
+      {
+         csexstr name = s.Name();
+         if (AreEqual(name, SEXTEXT("_Null_"), 6))
+         {
+            return s.GetInterface(0).Name();
+         }
+         else
+         {
+            return name;
+         }
+      }
+   }//Compiler
+}//Sexy
 
 namespace SexyDotNet { namespace Host
 {

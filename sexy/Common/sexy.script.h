@@ -190,14 +190,6 @@ namespace Sexy { namespace Script
 		Sex::ISExpressionBuilder* BuilderPtr;
 	};
 
-	struct CStringConstant
-	{
-		CClassHeader header;
-		int32 length;
-		csexstr pointer;
-		void* srcExpression;
-	};
-
    struct CClassSysTypeStringBuilder
    {
       CClassHeader header;
@@ -254,6 +246,14 @@ namespace Sexy { namespace Script
 		virtual CReflectedClass* GetRepresentation(void* pSourceInstance) = 0;
 		virtual CReflectedClass* Represent(const Sexy::Compiler::IStructure& st, void* pSourceInstance) = 0;
 	};	
+
+   struct CStringConstant
+   {
+      CClassHeader header;
+      int32 length;
+      csexstr pointer;
+      void* srcExpression;
+   };
 		
 	struct NO_VTABLE IScriptSystem : IPublicScriptSystem
 	{

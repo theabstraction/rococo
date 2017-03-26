@@ -15,6 +15,35 @@
 (using HV)
 (using Sys.Type)
 
+(function DefineRandomWall (IMeshBuilder mb)(Vec2 start) (Vec2 end) (Float32 height) -> :
+	(Vec3 delta)
+	(Vertex bottomLeft  = (start.x start.y      0) (0 -1 0) 0x808080FF 0xFF0000FF (0 1))
+	(Vertex topLeft     = (start.x start.y height) (0 -1 0) 0x808080FF 0xFF0000FF (0 0))
+	(Vertex bottomRight = (end.x   end.y        0) (0 -1 0) 0x808080FF 0xFF0000FF (1 1))
+	(Vertex topRight    = (end.x   end.y   height) (0 -1 0) 0x808080FF 0xFF0000FF (1 0))
+		
+	(mb.AddTriangle topLeft topRight bottomLeft)
+	(mb.AddTriangle bottomRight bottomLeft topRight)
+)
+
+(function DefineRandomBulding (IString name) (Float32 height) -> :
+	(IMeshBuilder mb (MeshBuilder))
+	(mb.Clear)
+	(mb.Begin name)
+	
+	(Vec2 sw = -10 -10)
+	(Vec2 se = 10 -10)
+	(Vec2 ne = 10 10)
+	(Vec2 nw = -10 10)
+	
+	(DefineRandomWall mb sw se height)
+	(DefineRandomWall mb se ne height)
+	(DefineRandomWall mb ne nw height)
+	(DefineRandomWall mb nw sw height)
+	
+	(mb.End)
+)
+
 (function DefinePlatonicSquare -> :
 	(IMeshBuilder mb (MeshBuilder))
 	(mb.Clear)
@@ -104,6 +133,7 @@
 	(IInstances instances (Instances))
 	(IMobiles mobiles (Mobiles))
 	
+	(DefineRandomBulding "mesh.tallhouse" 100.0 )
 	(DefinePlatonicSquare)
 		
 	(Int64 playerId)
@@ -125,8 +155,8 @@
 	(#for (Int32 i = 0)(i < 10)(i = (i + 1))
 		(#for (Int32 j = 0)(j < 10)(j = (j + 1))
 			(Vec3 scale = 1 1 1)
-			(Float32 x = (ToFloat32(i * 4)))
-			(Float32 y = (ToFloat32(j * 4)))
+			(Float32 x = (ToFloat32(i * 10)))
+			(Float32 y = (ToFloat32(j * 10)))
 			(Matrix4x4 model =
 				(1 0 0 x)
 				(0 1 0 y)
@@ -134,7 +164,7 @@
 				(0 0 0 1)
 			)
 			
-			(Int64 cubeId = (instances.AddBody "mesh.platonic.square" "!portraits/charlotte.jpg" model scale 0))
+			(Int64 cubeId = (instances.AddBody "mesh.tallhouse" "!portraits/charlotte.jpg" model scale 0))
 			(scene.AddStatics cubeId)
 		)
 	)

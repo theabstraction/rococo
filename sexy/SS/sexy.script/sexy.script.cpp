@@ -52,12 +52,6 @@ using namespace Sexy::VM;
 
 namespace
 {
-	class CScript;
-	class CScripts;
-}
-
-namespace
-{
    SEXCHAR defaultNativeSourcePath[256] = { 0 };
 
    // Careful that we had enough buffer space
@@ -121,244 +115,13 @@ namespace Sexy
 #define VM_CALLBACK_CONVENTION _cdecl
 #define VM_CALLBACK(x) void VM_CALLBACK_CONVENTION OnInvoke##x(VariantValue* registers, void* context)
 
-namespace
-{
-	GlobalValue* GetGlobalValue(CScript& script, csexstr buffer);
+namespace Sexy {
+   namespace Script
+   {
+      const SEXCHAR* const THIS_POINTER_TOKEN = SEXTEXT("this");
 
-	class CCompileEnvironment
-	{
-	private:
-		const IStructure* arrayStruct;
-		const IStructure* listStruct;
-		const IStructure* mapStruct;
-		const TMapMethodToMember& methodMap;		
-
-	public: // member variables made public to enhance speed in debug mode
-		CScript& Script;
-		ICodeBuilder& Builder;
-		INamespaceBuilder& RootNS;
-		IScriptSystem& SS;
-		IProgramObject& Object;
-		
-		CCompileEnvironment(CScript& script, ICodeBuilder& builder);
-
-		const IStructure& StructArray();
-		const IStructure& StructList();
-		const IStructure& StructMap();
-
-		csexstr MapMethodToMember(csexstr method)
-		{
-			auto i = methodMap.find(CStringKey(method));
-			return i == methodMap.end() ? NULL : i->second;
-		}
-	};
-
-	struct ArrayDef
-	{
-		cr_sex SexDef;
-		const IStructure& ElementType;
-
-		ArrayDef(cr_sex sexDef, const IStructure& elementType): SexDef(sexDef), ElementType(elementType) {}
-	};
-
-	struct ListDef
-	{
-		cr_sex SexDef;
-		const IStructure& ElementType;
-
-		ListDef(cr_sex sexDef, const IStructure& elementType): SexDef(sexDef), ElementType(elementType) {}
-	};
-
-	struct MapDef
-	{
-		cr_sex SexDef;
-		const IStructure& KeyType;
-		const IStructure& ValueType;
-
-		MapDef(cr_sex sexDef, const IStructure& keyType, const IStructure& valueType): SexDef(sexDef), KeyType(keyType), ValueType(valueType) {}
-		MapDef(const MapDef& s): SexDef(s.SexDef), KeyType(s.KeyType), ValueType(s.ValueType) {}
-	};
-
-	struct NodeDef
-	{
-		cr_sex SexDef;
-		const IStructure& ElementType;
-
-		NodeDef(cr_sex sexDef, const IStructure& elementType): SexDef(sexDef), ElementType(elementType) {}
-	};
-
-	struct MapNodeDef
-	{
-		cr_sex SexDef;
-		MapDef mapdef;
-		stdstring mapName;
-		MapNodeDef(cr_sex _sexDef, const MapDef& _mapdef, csexstr _mapName): SexDef(_sexDef), mapdef(_mapdef), mapName(_mapName) {}
-	};
-
-	struct ArrayCallbacks
-	{
-		ID_API_CALLBACK ArrayPushAndGetRef;
-		ID_API_CALLBACK ArrayPush32;
-		ID_API_CALLBACK ArrayPush64;
-		ID_API_CALLBACK ArrayPushByRef;
-		ID_API_CALLBACK ArrayGet32;
-		ID_API_CALLBACK ArrayGet64;
-		ID_API_CALLBACK ArrayGetMember32;
-		ID_API_CALLBACK ArrayGetMember64;
-		ID_API_CALLBACK ArrayGetByRef;
-		ID_API_CALLBACK ArraySet32;
-		ID_API_CALLBACK ArraySet64;
-		ID_API_CALLBACK ArraySetByRef;
-		ID_API_CALLBACK ArrayInit;
-		ID_API_CALLBACK ArrayDelete;
-		ID_API_CALLBACK ArrayPop;
-		ID_API_CALLBACK ArrayPopOut32;
-		ID_API_CALLBACK ArrayPopOut64;
-		ID_API_CALLBACK ArrayLock;
-		ID_API_CALLBACK ArrayUnlock;
-		ID_API_CALLBACK ArrayGetRefUnchecked;
-		ID_API_CALLBACK ArrayDestructElements;
-	};
-
-	struct ListCallbacks
-	{
-		ID_API_CALLBACK ListInit;
-		ID_API_CALLBACK ListAppend;
-		ID_API_CALLBACK ListAppendAndGetRef;
-		ID_API_CALLBACK ListAppend32;
-		ID_API_CALLBACK ListAppend64;
-		ID_API_CALLBACK ListClear;
-		ID_API_CALLBACK ListPrepend;
-		ID_API_CALLBACK ListPrependAndGetRef;
-		ID_API_CALLBACK ListPrepend32;
-		ID_API_CALLBACK ListPrepend64;
-		ID_API_CALLBACK ListGetTail;
-		ID_API_CALLBACK ListGetHead;
-		ID_API_CALLBACK NodeGet32;
-		ID_API_CALLBACK NodeGet64;
-		ID_API_CALLBACK NodeGetElementRef;
-		ID_API_CALLBACK NodeNext;
-		ID_API_CALLBACK NodePrevious;
-		ID_API_CALLBACK NodeAppend;
-		ID_API_CALLBACK NodeAppend32;
-		ID_API_CALLBACK NodeAppend64;
-		ID_API_CALLBACK NodePrepend;
-		ID_API_CALLBACK NodePrepend32;
-		ID_API_CALLBACK NodePrepend64;
-		ID_API_CALLBACK NodePop;
-		ID_API_CALLBACK NodeEnumNext;
-		ID_API_CALLBACK NodeHasNext;
-		ID_API_CALLBACK NodeHasPrevious;
-		ID_API_CALLBACK NodeReleaseRef;
-	};
-
-	struct MapCallbacks
-	{
-		ID_API_CALLBACK MapInit;
-		ID_API_CALLBACK MapInsert32;
-		ID_API_CALLBACK MapInsert64;
-		ID_API_CALLBACK MapInsertValueByRef;
-		ID_API_CALLBACK MapInsertAndGetRef;
-		ID_API_CALLBACK MapClear;
-		ID_API_CALLBACK MapTryGet;
-		ID_API_CALLBACK MapNodeGet32;
-		ID_API_CALLBACK MapNodeGet64;
-		ID_API_CALLBACK MapNodeGetRef;
-		ID_API_CALLBACK MapNodePop;
-		ID_API_CALLBACK MapGetHead;
-		ID_API_CALLBACK NodeEnumNext;
-		ID_API_CALLBACK MapNodeReleaseRef;
-	};
-
-	const ArrayCallbacks& GetArrayCallbacks(CCompileEnvironment& ce);
-	const ListCallbacks& GetListCallbacks(CCompileEnvironment& ce);
-	const MapCallbacks& GetMapCallbacks(CCompileEnvironment& ce);
-
-	const IStructure& GetArrayDef(CCompileEnvironment& ce, cr_sex src, csexstr arrayName);
-	const IStructure& GetListDef(CCompileEnvironment& ce, cr_sex src, csexstr name);
-	const MapDef GetMapDef(CCompileEnvironment& ce, cr_sex src, csexstr name);
-	const IStructure& GetNodeDef(CCompileEnvironment& ce, cr_sex src, csexstr name);
-	const MapNodeDef& GetMapNodeDef(CCompileEnvironment& ce, cr_sex src, csexstr name);
-
-	void AddArrayDef(CScript& script, ICodeBuilder& builder, csexstr arrayName, const IStructure& elementType, cr_sex def);
-	void AddListDef(CScript& script, ICodeBuilder& builder, csexstr listName, const IStructure& elementType, cr_sex def);
-	void AddMapDef(CScript& script, ICodeBuilder& builder, csexstr name, const IStructure& keyType, const IStructure& valueType, cr_sex def);
-	void AddNodeDef(CScript& script, ICodeBuilder& builder, csexstr name, const IStructure& elementType, cr_sex s);
-	void AddMapNodeDef(CScript& script, ICodeBuilder& builder, const MapDef& def, csexstr nodeName, csexstr mapName, cr_sex s);
-
-	const SEXCHAR* const THIS_POINTER_TOKEN = SEXTEXT("this");
-
-	typedef std::unordered_map<void*,void*> TAllocationMap;
-
-	void GetAtomicValue(CCompileEnvironment& ce, cr_sex parent, csexstr id, VARTYPE type);
-	void AppendDeconstruct(CCompileEnvironment& ce, cr_sex sequence);
-	void AddPseudoVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& ts);
-	void AddVariableAndSymbol(CCompileEnvironment& ce, csexstr type, csexstr name);
-	void ValidateUnusedVariable(cr_sex identifierExpr, ICodeBuilder& builder);
-	void AssertGetVariable(OUT MemberDef& def, csexstr name, CCompileEnvironment& ce, cr_sex exceptionSource);
-	void CompileAsPopOutFromArray(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, VARTYPE requiredType);
-	void CompileArraySet(CCompileEnvironment& ce, cr_sex s);
-	void CompileGetArrayElement(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, VARTYPE varType, const IStructure* structType);
-	void CompileGetArraySubelement(CCompileEnvironment& ce, cr_sex indexExpr, cr_sex subItemName, csexstr instanceName, VARTYPE type, const IStructure* structType);
-
-	bool TryCompileAsArrayCall(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, csexstr methodName);
-	bool TryCompileAsListCall(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, csexstr methodName);
-	bool TryCompileAsNodeCall(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, csexstr methodName);
-	bool TryCompileAsMapCall(CCompileEnvironment& ce, cr_sex s, csexstr mapName, csexstr methodName);
-	bool TryCompileAsMapNodeCall(CCompileEnvironment& ce, cr_sex s, csexstr name, csexstr methodName);
-	bool TryCompileAsInlineMapAndReturnValue(CCompileEnvironment& ce, cr_sex s, csexstr instance, csexstr methodName, VARTYPE returnType, const IStructure& instanceStruct, OUT VARTYPE& outputType);
-
-	void ConstructMemberByRef(CCompileEnvironment& ce, cr_sex args, int tempDepth, const IStructure& type, int offset);
-
-	VARTYPE GetAtomicValueAnyNumeric(CCompileEnvironment& ce, cr_sex parent, csexstr id, int tempdepth);
-	void AssignVariableToVariable(CCompileEnvironment& ce, cr_sex exceptionSource, csexstr lhs, csexstr rhs);	
-	CStringConstant* CreateStringConstant(CScript& script, int length, csexstr s, const ISExpression* srcExpression);
-	IFunctionBuilder& DeclareFunction(IModuleBuilder& module, cr_sex source, FunctionPrototype& prototype);
-	csexstr GetContext(const CScript& script);
-	const ISExpression* GetTryCatchExpression(CScript& script);
-	bool TryCompileBooleanExpression(CCompileEnvironment& ce, cr_sex s, bool isExpected, bool& negate);
-	void CompileExpressionSequence(CCompileEnvironment& ce, int start, int end, cr_sex sequence);
-	void CompileExpression(CCompileEnvironment& ce, cr_sex s);
-	void ValidateArchetypeMatchesArchetype(cr_sex s, const IArchetype& f, const IArchetype& archetype, csexstr source);
-	int GetIndexOf(int start, cr_sex s, csexstr text);
-	void CompileExceptionBlock(CCompileEnvironment& ce, cr_sex s);
-	void CompileThrow(CCompileEnvironment& ce, cr_sex s);
-	void CompileNextClosures(CScript& script);
-	void GetVariableByName(ICodeBuilder& builder, OUT MemberDef& def, csexstr name, cr_sex src);
-	void AddCatchHandler(CScript& script, ID_BYTECODE id, size_t start, size_t end);
-	IModuleBuilder& GetModule(CScript& script);
-	void AppendVirtualCallAssembly(csexstr instanceName, int interfaceIndex, int methodIndex, ICodeBuilder& builder, const IInterface& interf, cr_sex s);
-	int GetFirstOutputOffset(ICodeBuilder& builder);
-	IModule& GetSysTypeMemoModule(CScript& script);
-	INamespaceBuilder& GetNamespaceByFQN(CCompileEnvironment& ce, csexstr ns, cr_sex s);
-	void MarkStackRollback(CCompileEnvironment& ce, cr_sex invokeExpression);
-	int PushInput(CCompileEnvironment& ce, cr_sex s, int index, const IStructure& inputStruct, const IArchetype* archetype, csexstr inputName, const IStructure* genericArg1);	
-	const IArgument& GetInput(cr_sex s, IFunction& f, int index);
-	const IArchetype* GetArchetype(cr_sex s, IFunction& f, int index);
-	void PushVariableRef(cr_sex s, ICodeBuilder& builder, const MemberDef& def, csexstr name, int interfaceIndex);
-	int GetCommonInterfaceIndex(const IStructure& object, const IStructure& argType);
-	csexstr GetTypeName(VARTYPE type);
-
-	IFunctionBuilder& MustMatchFunction(IModuleBuilder& module, cr_sex s, csexstr name);
-	IInterfaceBuilder* MatchInterface(cr_sex typeExpr, IModuleBuilder& module);
-	IStructureBuilder* MatchStructure(cr_sex typeExpr, IModuleBuilder& module);
-	IFunctionBuilder* MatchFunction(cr_sex nameExpr, IModuleBuilder& module);
-
-	bool TryCompileAssignArchetype(CCompileEnvironment& ce, cr_sex s, const IStructure& elementType, bool allowClosures);
-	bool TryCompileArithmeticExpression(CCompileEnvironment& ce, cr_sex s, bool expected, VARTYPE type);
-	
-	void CompileFunctionCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, IFunction& callee, VARTYPE returnType, const IArchetype* returnArchetype, const IStructure* returnTypeStruct);
-	bool TryCompileMacroInvocation(CCompileEnvironment& ce, cr_sex s, sexstring token);
-	IProgramObject& GetProgramObject(CScript& script);
-	void CompileJITStub(IFunctionBuilder& f, cr_sex fdef, CScript& script, IScriptSystem& ss);
-	void CompileJITStub(IFactoryBuilder* f, cr_sex fdef, CScript& script, IScriptSystem& ss);
-	void CompileJITStub(IMacroBuilder* m, CScript& script, IScriptSystem& ss);
-
-	IScriptSystem& GetSystem(CScript& script);
-	IScriptSystem& GetSystem(CScripts& scripts);
-
-	IFunctionBuilder& GetNullFunction(CScript& script, const IArchetype& archetype);
-}
+   } // Script
+} // Sexy
 
 #include "sexy.script.util.inl"
 #include "sexy.script.asserts.inl"
@@ -373,7 +136,6 @@ namespace
 #include "sexy.script.arithmetic.expression.parser.inl"
 #include "sexy.script.predicates.expression.parser.inl"
 #include "sexy.script.conditional.expression.parser.inl"
-#include "sexy.script.expression.parser.inl"
 #include "sexy.script.exception.logic.inl"
 #include "sexy.script.modules.inl"
 #include "sexy.script.exceptions.inl"
@@ -381,8 +143,10 @@ namespace
 #include "sexy.script.JIT.inl"
 #include "sexy.script.stringbuilders.inl"
 
-namespace
+namespace Sexy
 {
+   namespace Script
+   {
 	void CopyStringToSexChar(SEXCHAR* output, size_t bufferCapacity, const char* input, size_t inputLength)
 	{
 		for(size_t i = 0; i < inputLength; ++i)
@@ -1504,7 +1268,8 @@ namespace
 	{
 		return script.GetGlobalValue(buffer);
 	}
-}
+} // Script
+} // Sexy
 
 extern "C" SCRIPTEXPORT_API Sexy::Script::IScriptSystem* CreateScriptV_1_2_0_0(const ProgramInitParameters& pip, ILog& logger)
 {

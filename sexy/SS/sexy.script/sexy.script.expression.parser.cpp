@@ -31,7 +31,25 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace
+#include "sexy.script.stdafx.h"
+#include "sexy.script.h"
+#include "..\STC\stccore\Sexy.Compiler.h"
+#include "..\STC\stccore\sexy.compiler.helpers.h"
+#include "Sexy.S-Parser.h"
+#include "Sexy.VM.h"
+#include "Sexy.VM.CPU.h"
+
+#include <stdarg.h>
+#include <algorithm>
+#include <unordered_map>
+#include <sexy.stdstrings.h>
+
+using namespace Sexy;
+using namespace Sexy::Sex;
+using namespace Sexy::Compiler;
+using namespace Sexy::Script;
+
+namespace Sexy { namespace Script
 {
 	size_t GetOffsetTo(csexstr memberName, const IStructure& s)
 	{
@@ -831,6 +849,43 @@ namespace
 		}
 	}
 
+   void CompileUnaryOperatorOverload(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, int offset)
+   {
+      Throw(directive, SEXTEXT("Unary operator not implemented"));
+   }
+
+   void CompileBinaryOperatorOverload(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, int offset)
+   {
+      // Convert (Vec3 c = a + b) into (Vec3 c)(AddVec3toVec3 a b c)
+
+      cr_sex sa = directive[offset + 3];
+      cr_sex sb = directive[offset + 5];
+
+      auto* a_name = SEXTEXT("a");
+      auto* b_name = SEXTEXT("a");
+
+      SEXCHAR functionName[Sexy::NAMESPACE_MAX_LENGTH];
+      SafeFormat(functionName, _TRUNCATE, SEXTEXT("Add%sto%s"), a_name, b_name);
+
+      Throw(directive, SEXTEXT("Binary operator %s not implemented"), functionName);
+   }
+
+   void CompileOperatorOverload(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, int offset)
+   {
+      if (directive.NumberOfElements() - offset == 5)
+      {
+         CompileUnaryOperatorOverload(ce, directive, varStruct, offset);
+      }
+      else if (directive.NumberOfElements() - offset == 6)
+      {
+         CompileBinaryOperatorOverload(ce, directive, varStruct, offset);
+      }
+      else
+      {
+         Throw(directive, SEXTEXT("Expecting binary or unary operator, but there were too many arguments"));
+      }
+   }
+
 	void CompileAssignmentDirective(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, bool explicitKeyword)
 	{
 		int offset = explicitKeyword ? 0 : -1; // explicit means the directive begins with the assignment keyword, else it begins with the target variable
@@ -838,7 +893,15 @@ namespace
 	
 		if (varStruct.VarType() == VARTYPE_Derivative && !varStruct.Prototype().IsClass)
 		{
-			CompileMemberwiseAssignment(ce, directive, varStruct, offset);
+         cr_sex secondarg = directive[4 + offset];
+         if (IsAtomic(secondarg) && AreEqual(secondarg.String(), SEXTEXT("+")))
+         {
+            CompileOperatorOverload(ce, directive, varStruct, offset);
+         }
+         else
+         {
+            CompileMemberwiseAssignment(ce, directive, varStruct, offset);
+         }
 			return;
 		}
 			
@@ -2445,4 +2508,4 @@ namespace
 			Throw(s, streamer.str().c_str());
 		}
 	}
-} // Anonymous
+} /* script */ } // Sexy

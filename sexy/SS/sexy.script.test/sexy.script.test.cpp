@@ -3763,8 +3763,8 @@ namespace
 			SEXTEXT(" (alias Main EntryPoint.Main)")
 
 			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (Recti rect = (40 7) (7 7))")
-			SEXTEXT("  (result = rect.bottomLeft.x)")
+			SEXTEXT("  (Recti rect = (1 2) (3 4))")
+			SEXTEXT("  (result = rect.topLeft.x)")
 			SEXTEXT(")");
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestRecti1"));
@@ -3783,7 +3783,7 @@ namespace
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);
 		int32 x = vm.PopInt32();
-		validate(x == 40);
+		validate(x == 1);
 	}
 
 	void TestRecti2(IPublicScriptSystem& ss)
@@ -3796,8 +3796,8 @@ namespace
 			SEXTEXT(" (alias Main EntryPoint.Main)")
 
 			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (Recti rect = (7 40) (7 7))")
-			SEXTEXT("  (result = rect.bottomLeft.y)")
+			SEXTEXT("  (Recti rect = (1 2) (3 4))")
+			SEXTEXT("  (result = rect.topLeft.y)")
 			SEXTEXT(")");
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestRecti2"));
@@ -3816,7 +3816,7 @@ namespace
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);
 		int32 x = vm.PopInt32();
-		validate(x == 40);
+		validate(x == 2);
 	}
 
 	void TestRecti3(IPublicScriptSystem& ss)
@@ -3829,8 +3829,8 @@ namespace
 			SEXTEXT(" (alias Main EntryPoint.Main)")
 
 			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (Recti rect = (7 7) (40 7))")
-			SEXTEXT("  (result = rect.topRight.x)")
+			SEXTEXT("  (Recti rect = (1 2) (3 4))")
+			SEXTEXT("  (result = rect.bottomRight.x)")
 			SEXTEXT(")");
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestRecti3"));
@@ -3849,7 +3849,7 @@ namespace
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);
 		int32 x = vm.PopInt32();
-		validate(x == 40);
+		validate(x == 3);
 	}
 
 	void TestRecti4(IPublicScriptSystem& ss)
@@ -3862,8 +3862,8 @@ namespace
 			SEXTEXT(" (alias Main EntryPoint.Main)")
 
 			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (Recti rect = (7 7) (7 40))")
-			SEXTEXT("  (result = rect.topRight.y)")
+			SEXTEXT("  (Recti rect = (1 2) (3 4))")
+			SEXTEXT("  (result = rect.bottomRight.y)")
 			SEXTEXT(")");
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestRecti4"));
@@ -3882,7 +3882,7 @@ namespace
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);
 		int32 x = vm.PopInt32();
-		validate(x == 40);
+		validate(x == 4);
 	}
 
 	void TestWindow(IPublicScriptSystem& ss)
@@ -10592,6 +10592,35 @@ namespace
 		validate(x == 0);
 	}
 
+   void TestOperatorOverload(IPublicScriptSystem& ss)
+   {
+      csexstr srcCode =
+         SEXTEXT("(using Sys.Maths) \n")
+         SEXTEXT("(namespace EntryPoint) \n")
+         SEXTEXT("(function Main -> (Float32 cx)(Float32 cy)(Float32 cz): \n")
+         SEXTEXT("		(Vec3 a = 2 4 6)\n")
+         SEXTEXT("		(Vec3 b = 5 7 9)\n")
+         SEXTEXT("		(Vec3 c = a + b)\n")
+         SEXTEXT(")\n")
+         SEXTEXT("(alias Main EntryPoint.Main) \n");
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestOperatorOverload"));
+      Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+      VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+      vm.Push(0); // Allocate stack space for the Vec3
+      vm.Push(0);
+      vm.Push(0); 
+      EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+      ValidateExecution(result);
+      float x = vm.PopFloat32();
+      float y = vm.PopFloat32();
+      float z = vm.PopFloat32();
+      validate(x == 7.0f);
+      validate(y == 11.0f);
+      validate(z == 15.0f);
+   }
+
 	void RunCollectionTests()
 	{
 		TEST(TestArrayInt32);
@@ -10987,6 +11016,8 @@ namespace
 	
 	void RunTests()
 	{	
+      TEST(TestRecti1);
+ //     TEST(TestOperatorOverload);
       TEST(TestLinkedList11);
 		RunPositiveSuccesses();	
 		RunCollectionTests();
@@ -10996,6 +11027,7 @@ namespace
 
 int main(int argc, char* argv[])
 {
+   Sexy::OS::SetBreakPoints(Sexy::OS::BreakFlag_All);
 	RunTests();
 	return 0;
 }

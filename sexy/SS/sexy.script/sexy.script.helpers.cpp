@@ -50,193 +50,196 @@ using namespace Sexy::Compiler;
 using namespace Sexy::Sex;
 using namespace Sexy::VM;
 
-namespace
+namespace Sexy
 {
-	using namespace Sexy::Debugger;
+   namespace Script
+   {
+      using namespace Sexy::Debugger;
 
-	void FormatVariableDesc(VariableDesc& variable, const char* format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-		vsprintf_s(variable.Value, VariableDesc::VALUE_CAPACITY, format, args);
-	}
+      void FormatVariableDesc(VariableDesc& variable, const char* format, ...)
+      {
+         va_list args;
+         va_start(args, format);
+         vsprintf_s(variable.Value, VariableDesc::VALUE_CAPACITY, format, args);
+      }
 
-	void FormatVariableDescLocation(VariableDesc& variable, const char* format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-		vsprintf_s(variable.Location, VariableDesc::LOCATION_CAPACITY, format, args);
-	}
+      void FormatVariableDescLocation(VariableDesc& variable, const char* format, ...)
+      {
+         va_list args;
+         va_start(args, format);
+         vsprintf_s(variable.Location, VariableDesc::LOCATION_CAPACITY, format, args);
+      }
 
-	void FormatVariableDescName(VariableDesc& variable, const char* format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-		vsprintf_s(variable.Name, VariableDesc::NAME_CAPACITY, format, args);
-	}
+      void FormatVariableDescName(VariableDesc& variable, const char* format, ...)
+      {
+         va_list args;
+         va_start(args, format);
+         vsprintf_s(variable.Name, VariableDesc::NAME_CAPACITY, format, args);
+      }
 
-	void FormatVariableDescType(VariableDesc& variable, const char* format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-		vsprintf_s(variable.Type, VariableDesc::TYPE_CAPACITY, format, args);
-	}
+      void FormatVariableDescType(VariableDesc& variable, const char* format, ...)
+      {
+         va_list args;
+         va_start(args, format);
+         vsprintf_s(variable.Type, VariableDesc::TYPE_CAPACITY, format, args);
+      }
 
-	Sexy::csexstr GetTypeName(const Sexy::Compiler::IStructure& s)
-	{
-		Sexy::csexstr name = s.Name();
-		if (AreEqual(name, SEXTEXT("_Null_"), 6))
-		{
-			return s.GetInterface(0).Name();
-		}
-		else
-		{
-			return name;
-		}
-	}
+      Sexy::csexstr GetTypeName(const Sexy::Compiler::IStructure& s)
+      {
+         Sexy::csexstr name = s.Name();
+         if (AreEqual(name, SEXTEXT("_Null_"), 6))
+         {
+            return s.GetInterface(0).Name();
+         }
+         else
+         {
+            return name;
+         }
+      }
 
-	void AddSFToVarEnum(VariableDesc& variable, const Sexy::uint8* SF)
-	{
-		variable.Address = 0;
-		FormatVariableDescLocation(variable, "CPU");
-		FormatVariableDescName(variable, "SF");
-		FormatVariableDescType(variable, "Register");
-		FormatVariableDesc(variable, "0x%p", SF);
-	}
+      void AddSFToVarEnum(VariableDesc& variable, const Sexy::uint8* SF)
+      {
+         variable.Address = 0;
+         FormatVariableDescLocation(variable, "CPU");
+         FormatVariableDescName(variable, "SF");
+         FormatVariableDescType(variable, "Register");
+         FormatVariableDesc(variable, "0x%p", SF);
+      }
 
-	void AddOldSFToVarEnum(VariableDesc& variable, const Sexy::uint8* SF)
-	{
-		const Sexy::uint8** pOldSF = (const Sexy::uint8**)(SF - 2 * sizeof(size_t));
-		variable.Address = -2 * (int) sizeof(size_t);
-		FormatVariableDescLocation(variable, "CPU");
-		FormatVariableDescName(variable, "Caller's SF");
-		FormatVariableDescType(variable, "Register");
+      void AddOldSFToVarEnum(VariableDesc& variable, const Sexy::uint8* SF)
+      {
+         const Sexy::uint8** pOldSF = (const Sexy::uint8**)(SF - 2 * sizeof(size_t));
+         variable.Address = -2 * (int) sizeof(size_t);
+         FormatVariableDescLocation(variable, "CPU");
+         FormatVariableDescName(variable, "Caller's SF");
+         FormatVariableDescType(variable, "Register");
 
-		if (*pOldSF != NULL) 
-			FormatVariableDesc(variable, "0x%p", *pOldSF);
-		else
-			FormatVariableDesc(variable, "Execeution Stub");
-	}
+         if (*pOldSF != NULL)
+            FormatVariableDesc(variable, "0x%p", *pOldSF);
+         else
+            FormatVariableDesc(variable, "Execeution Stub");
+      }
 
-	void AddReturnAddressToVarEnum(VariableDesc& variable, const Sexy::uint8* SF)
-	{
-		const Sexy::uint8** pRet = (const Sexy::uint8**)(SF - sizeof(size_t));
-		variable.Address = -(int)sizeof(size_t);
-		FormatVariableDescLocation(variable, "CPU");
-		FormatVariableDescName(variable, "Return Address");
-		FormatVariableDescType(variable, "Register");
-		FormatVariableDesc(variable, "0x%p", *pRet);
-	}
+      void AddReturnAddressToVarEnum(VariableDesc& variable, const Sexy::uint8* SF)
+      {
+         const Sexy::uint8** pRet = (const Sexy::uint8**)(SF - sizeof(size_t));
+         variable.Address = -(int)sizeof(size_t);
+         FormatVariableDescLocation(variable, "CPU");
+         FormatVariableDescName(variable, "Return Address");
+         FormatVariableDescType(variable, "Register");
+         FormatVariableDesc(variable, "0x%p", *pRet);
+      }
 
-	struct AsciiName
-	{
-		char data[64];
+      struct AsciiName
+      {
+         char data[64];
 
-		AsciiName(csexstr name)
-		{
+         AsciiName(csexstr name)
+         {
 #ifndef SEXCHAR_IS_WIDE
-			sprintf_s(data, 64, "%s", name);
+            sprintf_s(data, 64, "%s", name);
 #else
-			sprintf_s(data, 64, "%S", name);
+            sprintf_s(data, 64, "%S", name);
 #endif
-		}
-	};
+         }
+      };
 
-	void ProtectedFormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, VARTYPE type, const void* pVariableData)
-	{
-		switch(type)
-		{
-		case VARTYPE_Bad:
-			StringPrint(buffer, bufferCapacity, "Bad type");
-			break;
-		case VARTYPE_Bool:
-			{
-				const Sexy::int32 value = *(const Sexy::int32*) pVariableData;
-				if (value == 0 || value == 1) StringPrint(buffer, bufferCapacity, (value == 1 ? "true" :  "false"));
-				else StringPrint(buffer, bufferCapacity, "%d", value, value);
-			}
-			break;
-		case VARTYPE_Derivative:
-			StringPrint(buffer, bufferCapacity, "");
-			break;
-		case VARTYPE_Int32:
-			{
-				const Sexy::int32* pValue = (const Sexy::int32*) pVariableData;
-				StringPrint(buffer, bufferCapacity, "%d (0x%X)", *pValue, *pValue);
-			}
-			break;
-		case VARTYPE_Int64:
-			{
-				const Sexy::int64* pValue = (const Sexy::int64*) pVariableData;
-				StringPrint(buffer, bufferCapacity, "%ld (0x%lX)", *pValue, *pValue);
-			}
-			break;
-		case VARTYPE_Float32:
-			{
-				const float* pValue = (const float*) pVariableData;
-				StringPrint(buffer, bufferCapacity, "%g", *pValue);
-			}
-			break;
-		case VARTYPE_Float64:
-			{
-				const double* pValue = (const double*) pVariableData;
-				StringPrint(buffer, bufferCapacity, "%lg", *pValue);
-			}
-			break;
-		case VARTYPE_Pointer:
-			{
-				void **ppData = (void**) pVariableData;
-				const void* ptr = *ppData;
-				Sexy::csexstr symbol = ss.GetSymbol(ptr);
-				if (symbol == NULL)
-				{
-					StringPrint(buffer, bufferCapacity, "0x%p", ptr);
-				}
-				else
-				{
-					StringPrint(buffer, bufferCapacity, sizeof(SEXCHAR) == 1 ? "%s" : "%S", symbol);
-				}
-			}
-			break;
-		default:
-			StringPrint(buffer, bufferCapacity, "Unknown type");
-		}
-	}
+      void ProtectedFormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, VARTYPE type, const void* pVariableData)
+      {
+         switch (type)
+         {
+         case VARTYPE_Bad:
+            StringPrint(buffer, bufferCapacity, "Bad type");
+            break;
+         case VARTYPE_Bool:
+         {
+            const Sexy::int32 value = *(const Sexy::int32*) pVariableData;
+            if (value == 0 || value == 1) StringPrint(buffer, bufferCapacity, (value == 1 ? "true" : "false"));
+            else StringPrint(buffer, bufferCapacity, "%d", value, value);
+         }
+         break;
+         case VARTYPE_Derivative:
+            StringPrint(buffer, bufferCapacity, "");
+            break;
+         case VARTYPE_Int32:
+         {
+            const Sexy::int32* pValue = (const Sexy::int32*) pVariableData;
+            StringPrint(buffer, bufferCapacity, "%d (0x%X)", *pValue, *pValue);
+         }
+         break;
+         case VARTYPE_Int64:
+         {
+            const Sexy::int64* pValue = (const Sexy::int64*) pVariableData;
+            StringPrint(buffer, bufferCapacity, "%ld (0x%lX)", *pValue, *pValue);
+         }
+         break;
+         case VARTYPE_Float32:
+         {
+            const float* pValue = (const float*)pVariableData;
+            StringPrint(buffer, bufferCapacity, "%g", *pValue);
+         }
+         break;
+         case VARTYPE_Float64:
+         {
+            const double* pValue = (const double*)pVariableData;
+            StringPrint(buffer, bufferCapacity, "%lg", *pValue);
+         }
+         break;
+         case VARTYPE_Pointer:
+         {
+            void **ppData = (void**)pVariableData;
+            const void* ptr = *ppData;
+            Sexy::csexstr symbol = ss.GetSymbol(ptr);
+            if (symbol == NULL)
+            {
+               StringPrint(buffer, bufferCapacity, "0x%p", ptr);
+            }
+            else
+            {
+               StringPrint(buffer, bufferCapacity, sizeof(SEXCHAR) == 1 ? "%s" : "%S", symbol);
+            }
+         }
+         break;
+         default:
+            StringPrint(buffer, bufferCapacity, "Unknown type");
+         }
+      }
 
-	struct VirtualTable
-	{
-		ptrdiff_t InterfaceToInstanceOffset;
-	};
+      struct VirtualTable
+      {
+         ptrdiff_t InterfaceToInstanceOffset;
+      };
 
-	struct Instance
-	{			
-		const VirtualTable* VTableOrTypeDef;
-	};
+      struct Instance
+      {
+         const VirtualTable* VTableOrTypeDef;
+      };
 
-	const Sexy::uint8* GetMemberPtr(const IStructure& s, const Sexy::uint8* instance, ptrdiff_t offset)
-	{
-		ptrdiff_t instanceOffset = 0;
-		if (s.InterfaceCount() > 0)
-		{
-			const Instance* pInstance = (const Instance*) (instance + offset);
-			if (pInstance->VTableOrTypeDef != NULL)
-			{
-				instanceOffset = pInstance->VTableOrTypeDef->InterfaceToInstanceOffset;
-			}
-			else
-			{
-				return NULL; 
-			}
-		}
-		return (instance + offset + instanceOffset);
-	}
+      const Sexy::uint8* GetMemberPtr(const IStructure& s, const Sexy::uint8* instance, ptrdiff_t offset)
+      {
+         ptrdiff_t instanceOffset = 0;
+         if (s.InterfaceCount() > 0)
+         {
+            const Instance* pInstance = (const Instance*)(instance + offset);
+            if (pInstance->VTableOrTypeDef != NULL)
+            {
+               instanceOffset = pInstance->VTableOrTypeDef->InterfaceToInstanceOffset;
+            }
+            else
+            {
+               return NULL;
+            }
+         }
+         return (instance + offset + instanceOffset);
+      }
 
-	const Sexy::Compiler::IStructure* GetConcreteType(const IStructure& s, const Sexy::uint8* instance, ptrdiff_t offset, CClassHeader*& header)
-	{
-		if (s.InterfaceCount() == 0) return NULL;
-		header = (CClassHeader*) GetMemberPtr(s, instance, offset);
-		return (header != NULL && header->_typeInfo != NULL) ? header->_typeInfo->structDef : NULL;
-	}
+      const Sexy::Compiler::IStructure* GetConcreteType(const IStructure& s, const Sexy::uint8* instance, ptrdiff_t offset, CClassHeader*& header)
+      {
+         if (s.InterfaceCount() == 0) return NULL;
+         header = (CClassHeader*)GetMemberPtr(s, instance, offset);
+         return (header != NULL && header->_typeInfo != NULL) ? header->_typeInfo->structDef : NULL;
+      }
+   }
 }
 
 namespace Sexy { namespace Script
@@ -660,14 +663,14 @@ namespace Sexy { namespace Script
 
 					if (AreEqual(expectedToken.Text, name))
 					{
-						AsciiName desc(GetTypeName(*lastPseudo));
+						AsciiName desc(Compiler::GetTypeName(*lastPseudo));
 						AsciiName last(lastPseudoName);
 						FormatVariableDescType(variable, "%s*", desc.data);
 						FormatVariableDescName(variable, "%s", last.data);
 					}
 					else
 					{
-						AsciiName desc(GetTypeName(*def.ResolvedType));
+						AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
 						AsciiName asciiName(name);
 						FormatVariableDescType(variable, "%s", desc.data);
 						FormatVariableDescName(variable, "%s", asciiName.data);
@@ -675,7 +678,7 @@ namespace Sexy { namespace Script
 				}
 				else
 				{
-					AsciiName desc(GetTypeName(*def.ResolvedType));
+					AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
 					AsciiName asciiName(name);
 					FormatVariableDescType(variable, "%s", desc.data);
 					FormatVariableDescName(variable, "%s", asciiName.data);
@@ -694,7 +697,7 @@ namespace Sexy { namespace Script
 					FormatVariableDesc(variable, "Bad pointer");
 				}
 				
-				AsciiName desc(GetTypeName(*def.ResolvedType));
+				AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
 				FormatVariableDescType(variable, "*%s", desc.data);
 
 				AsciiName asciiName(name);

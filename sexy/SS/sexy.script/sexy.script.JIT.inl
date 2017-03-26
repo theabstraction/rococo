@@ -31,158 +31,161 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace
+namespace Sexy
 {
-	ID_API_CALLBACK JITCallbackId(IScriptSystem& ss);
-	const SEXCHAR* const SKIPSTRING = SEXTEXT("#!skip");
+   namespace Script
+   {
+      ID_API_CALLBACK JITCallbackId(IScriptSystem& ss);
+      const SEXCHAR* const SKIPSTRING = SEXTEXT("#!skip");
 
-	void SetPCToFunctionStart(IScriptSystem& ss, const IFunction& f)
-	{
-		CodeSection section;
-		f.Code().GetCodeSection(OUT section);
+      void SetPCToFunctionStart(IScriptSystem& ss, const IFunction& f)
+      {
+         CodeSection section;
+         f.Code().GetCodeSection(OUT section);
 
-		size_t programStart = f.Object().ProgramMemory().GetFunctionAddress(section.Id);
+         size_t programStart = f.Object().ProgramMemory().GetFunctionAddress(section.Id);
 
-		VM::CPU& cpu = ss.ProgramObject().VirtualMachine().Cpu();
-		cpu.SetPC(cpu.ProgramStart + programStart);
-	}
+         VM::CPU& cpu = ss.ProgramObject().VirtualMachine().Cpu();
+         cpu.SetPC(cpu.ProgramStart + programStart);
+      }
 
-	enum JIT_TYPE
-	{
-		JIT_TYPE_FACTORY = 0xFAC100EE,
-		JIT_TYPE_FUNCTION = 0xF00BAAAA,
-		JIT_TYPE_MACRO = 0x1000ACA0
-	};
+      enum JIT_TYPE
+      {
+         JIT_TYPE_FACTORY = 0xFAC100EE,
+         JIT_TYPE_FUNCTION = 0xF00BAAAA,
+         JIT_TYPE_MACRO = 0x1000ACA0
+      };
 
-	void CompileFunction(IFunctionBuilder& f, CScript& script, cr_sex s, IScriptSystem& ss)
-	{
-		csexstr name = f.Name();
-		f.Builder().DeleteSymbols();
-		CompileFunctionFromExpression(f, IN s, script);
-		SetPCToFunctionStart(ss, f);
-	}
+      void CompileFunction(IFunctionBuilder& f, CScript& script, cr_sex s, IScriptSystem& ss)
+      {
+         csexstr name = f.Name();
+         f.Builder().DeleteSymbols();
+         CompileFunctionFromExpression(f, IN s, script);
+         SetPCToFunctionStart(ss, f);
+      }
 
-	void CompileFactory(IFactoryBuilder& factory, CScript& script, cr_sex s, IScriptSystem& ss)
-	{
-		csexstr name = factory.Name();
+      void CompileFactory(IFactoryBuilder& factory, CScript& script, cr_sex s, IScriptSystem& ss)
+      {
+         csexstr name = factory.Name();
 
-		int bodyIndex = GetIndexOf(1, s, SEXTEXT(":"));
-		if (bodyIndex < 0) Throw(s, SEXTEXT("Could not find body indicator ':' in factory definition"));
-		if (bodyIndex >= s.NumberOfElements()) Throw(s, SEXTEXT("Body indicator ':' was at the end of the expression. Expecting body to follow it"));
+         int bodyIndex = GetIndexOf(1, s, SEXTEXT(":"));
+         if (bodyIndex < 0) Throw(s, SEXTEXT("Could not find body indicator ':' in factory definition"));
+         if (bodyIndex >= s.NumberOfElements()) Throw(s, SEXTEXT("Body indicator ':' was at the end of the expression. Expecting body to follow it"));
 
-		factory.Constructor().Builder().DeleteSymbols();
-		CompileFactoryBody(factory, s, bodyIndex+1, script);
-		SetPCToFunctionStart(ss, factory.Constructor());
-	}
+         factory.Constructor().Builder().DeleteSymbols();
+         CompileFactoryBody(factory, s, bodyIndex + 1, script);
+         SetPCToFunctionStart(ss, factory.Constructor());
+      }
 
-	void _cdecl OnJITRoutineNeedsCompiling_Protected(VariantValue* registers, IScriptSystem& ss)
-	{
-		void* pObj = registers[252].vPtrValue;
-		ISExpression* s = (ISExpression*) registers[253].vPtrValue;
-		CScript* script = (CScript*) registers[254].vPtrValue;
-		int32 type = registers[255].int32Value;
+      void _cdecl OnJITRoutineNeedsCompiling_Protected(VariantValue* registers, IScriptSystem& ss)
+      {
+         void* pObj = registers[252].vPtrValue;
+         ISExpression* s = (ISExpression*)registers[253].vPtrValue;
+         CScript* script = (CScript*)registers[254].vPtrValue;
+         int32 type = registers[255].int32Value;
 
-		switch(type)
-		{
-		case JIT_TYPE_FUNCTION:
-			CompileFunction(*(IFunctionBuilder*) pObj, *script, *s, ss);			
-			break;
-		case JIT_TYPE_FACTORY:
-			CompileFactory(*(IFactoryBuilder*) pObj, *script, *s, ss);			
-			break;
-		case JIT_TYPE_MACRO:
-			{
-				IMacroBuilder& macro = *(IMacroBuilder*) pObj;
-				macro.Implementation().Builder().DeleteSymbols();
-				CompileMacroFromExpression(macro, *script, *s);
-				SetPCToFunctionStart(ss, macro.Implementation());
-			}
-			break;
-		default:
-			ss.ProgramObject().Log().Write(SEXTEXT("OnJITRoutineNeedsCompiling called with bad type"));
-			ss.ProgramObject().VirtualMachine().Throw();
-			return;
-		}
-	}
+         switch (type)
+         {
+         case JIT_TYPE_FUNCTION:
+            CompileFunction(*(IFunctionBuilder*)pObj, *script, *s, ss);
+            break;
+         case JIT_TYPE_FACTORY:
+            CompileFactory(*(IFactoryBuilder*)pObj, *script, *s, ss);
+            break;
+         case JIT_TYPE_MACRO:
+         {
+            IMacroBuilder& macro = *(IMacroBuilder*)pObj;
+            macro.Implementation().Builder().DeleteSymbols();
+            CompileMacroFromExpression(macro, *script, *s);
+            SetPCToFunctionStart(ss, macro.Implementation());
+         }
+         break;
+         default:
+            ss.ProgramObject().Log().Write(SEXTEXT("OnJITRoutineNeedsCompiling called with bad type"));
+            ss.ProgramObject().VirtualMachine().Throw();
+            return;
+         }
+      }
 
-	void _cdecl OnJITRoutineNeedsCompiling(VariantValue* registers, void* context)
-	{
-		IScriptSystem& ss = *(IScriptSystem*) context;
-		ISExpression* s = (ISExpression*) registers[253].vPtrValue;
+      void _cdecl OnJITRoutineNeedsCompiling(VariantValue* registers, void* context)
+      {
+         IScriptSystem& ss = *(IScriptSystem*)context;
+         ISExpression* s = (ISExpression*)registers[253].vPtrValue;
 
-		try
-		{
-			OnJITRoutineNeedsCompiling_Protected(registers, ss);
-		}		
-		catch(ParseException& ex)
-		{
-			ss.ProgramObject().Log().OnJITCompileException(ex);
-			ss.ProgramObject().VirtualMachine().Throw();
-		}
-		catch(Sexy::IException& iex)
-		{
-			ParseException pex(Vec2i{ 0,0 }, Vec2i{ 0,0 }, s->Tree().Source().Name(), iex.Message(), SEXTEXT(""), s);
-			ss.ProgramObject().Log().OnJITCompileException(pex);
-			ss.ProgramObject().VirtualMachine().Throw();
-		}
-	}
+         try
+         {
+            OnJITRoutineNeedsCompiling_Protected(registers, ss);
+         }
+         catch (ParseException& ex)
+         {
+            ss.ProgramObject().Log().OnJITCompileException(ex);
+            ss.ProgramObject().VirtualMachine().Throw();
+         }
+         catch (Sexy::IException& iex)
+         {
+            ParseException pex(Vec2i{ 0,0 }, Vec2i{ 0,0 }, s->Tree().Source().Name(), iex.Message(), SEXTEXT(""), s);
+            ss.ProgramObject().Log().OnJITCompileException(pex);
+            ss.ProgramObject().VirtualMachine().Throw();
+         }
+      }
 
-	void CompileJITStubBytecode(ICodeBuilder& builder, void* ptr, cr_sex s, CScript& script, JIT_TYPE type, IScriptSystem& ss)
-	{
-		VM::IAssembler& assembler = builder.Assembler();
+      void CompileJITStubBytecode(ICodeBuilder& builder, void* ptr, cr_sex s, CScript& script, JIT_TYPE type, IScriptSystem& ss)
+      {
+         VM::IAssembler& assembler = builder.Assembler();
 
-		builder.Begin();
-		
-		VariantValue Ptr, exprPtr, scrPtr;
-		Ptr.vPtrValue = ptr;
+         builder.Begin();
 
-		builder.AddSymbol(SKIPSTRING);
-		assembler.Append_SetRegisterImmediate(252, Ptr, BITCOUNT_POINTER);
+         VariantValue Ptr, exprPtr, scrPtr;
+         Ptr.vPtrValue = ptr;
 
-		exprPtr.vPtrValue = const_cast<ISExpression*>(&s);
-		builder.AddSymbol(SKIPSTRING);
-		assembler.Append_SetRegisterImmediate(253, exprPtr, BITCOUNT_POINTER);
-		
-		scrPtr.vPtrValue = &script;
-		builder.AddSymbol(SKIPSTRING);
-		assembler.Append_SetRegisterImmediate(254, scrPtr, BITCOUNT_POINTER);
+         builder.AddSymbol(SKIPSTRING);
+         assembler.Append_SetRegisterImmediate(252, Ptr, BITCOUNT_POINTER);
 
-		VariantValue typeVal;
-		typeVal.int32Value = type;
-		builder.AddSymbol(SKIPSTRING);
-		assembler.Append_SetRegisterImmediate(255, typeVal, BITCOUNT_32);
+         exprPtr.vPtrValue = const_cast<ISExpression*>(&s);
+         builder.AddSymbol(SKIPSTRING);
+         assembler.Append_SetRegisterImmediate(253, exprPtr, BITCOUNT_POINTER);
 
-		builder.AddSymbol(SKIPSTRING);
-		assembler.Append_Invoke(JITCallbackId(ss));
+         scrPtr.vPtrValue = &script;
+         builder.AddSymbol(SKIPSTRING);
+         assembler.Append_SetRegisterImmediate(254, scrPtr, BITCOUNT_POINTER);
 
-		assembler.Append_Exit(VM::REGISTER_D4);
+         VariantValue typeVal;
+         typeVal.int32Value = type;
+         builder.AddSymbol(SKIPSTRING);
+         assembler.Append_SetRegisterImmediate(255, typeVal, BITCOUNT_32);
 
-		builder.End();
-		builder.Assembler().Clear();
-	}
+         builder.AddSymbol(SKIPSTRING);
+         assembler.Append_Invoke(JITCallbackId(ss));
 
-	void CompileJITStub(IFunctionBuilder& f, cr_sex fdef, CScript& script, IScriptSystem& ss)
-	{
-		csexstr name = f.Name();
-		ICodeBuilder& builder = f.Builder();
+         assembler.Append_Exit(VM::REGISTER_D4);
 
-		CompileJITStubBytecode(builder, &f, fdef, script, JIT_TYPE_FUNCTION, ss);
-	}
+         builder.End();
+         builder.Assembler().Clear();
+      }
 
-	void CompileJITStub(IFactoryBuilder* f, cr_sex fdef, CScript& script, IScriptSystem& ss)
-	{
-		csexstr name = f->Name();
-		ICodeBuilder& builder = f->Constructor().Builder();
+      void CompileJITStub(IFunctionBuilder& f, cr_sex fdef, CScript& script, IScriptSystem& ss)
+      {
+         csexstr name = f.Name();
+         ICodeBuilder& builder = f.Builder();
 
-		CompileJITStubBytecode(builder, (void*) f,  fdef, script, JIT_TYPE_FACTORY, ss);
-	}
+         CompileJITStubBytecode(builder, &f, fdef, script, JIT_TYPE_FUNCTION, ss);
+      }
 
-	void CompileJITStub(IMacroBuilder* m, CScript& script, IScriptSystem& ss)
-	{
-		csexstr name = m->Name();
+      void CompileJITStub(IFactoryBuilder* f, cr_sex fdef, CScript& script, IScriptSystem& ss)
+      {
+         csexstr name = f->Name();
+         ICodeBuilder& builder = f->Constructor().Builder();
 
-		ICodeBuilder& builder = m->Implementation().Builder();
+         CompileJITStubBytecode(builder, (void*)f, fdef, script, JIT_TYPE_FACTORY, ss);
+      }
 
-		CompileJITStubBytecode(builder, (void*) m,  *((ISExpression*) m->Expression()), script, JIT_TYPE_MACRO, ss);
-	}
-}
+      void CompileJITStub(IMacroBuilder* m, CScript& script, IScriptSystem& ss)
+      {
+         csexstr name = m->Name();
+
+         ICodeBuilder& builder = m->Implementation().Builder();
+
+         CompileJITStubBytecode(builder, (void*)m, *((ISExpression*)m->Expression()), script, JIT_TYPE_MACRO, ss);
+      }
+   }//Script
+}//Sexy

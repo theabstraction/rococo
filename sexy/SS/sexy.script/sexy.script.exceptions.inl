@@ -31,149 +31,152 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace
+namespace Sexy
 {
-	void AddCatchHandler(CScript& script, ID_BYTECODE id, size_t startOfBody, size_t gotoCleanupPos, size_t handlerPos);
+   namespace Script
+   {
+      void AddCatchHandler(CScript& script, ID_BYTECODE id, size_t startOfBody, size_t gotoCleanupPos, size_t handlerPos);
 
-	void CompileTryCatchFinally(CCompileEnvironment& ce, csexstr exName, cr_sex body, cr_sex handler, const ISExpression* cleanup)
-	{
-		ce.Builder.AddSymbol(SEXTEXT("try"));
-		ce.Builder.Assembler().Append_NoOperation();
+      void CompileTryCatchFinally(CCompileEnvironment& ce, csexstr exName, cr_sex body, cr_sex handler, const ISExpression* cleanup)
+      {
+         ce.Builder.AddSymbol(SEXTEXT("try"));
+         ce.Builder.Assembler().Append_NoOperation();
 
-		size_t startOfBody = ce.Builder.Assembler().WritePosition();
-		ce.Script.PushTryCatchBlock(body);
-				
-		CompileExpressionSequence(ce, 0, body.NumberOfElements()-1, body);
-		ce.Script.PopTryCatchBlock();
+         size_t startOfBody = ce.Builder.Assembler().WritePosition();
+         ce.Script.PushTryCatchBlock(body);
 
-		size_t gotoCleanupPos = ce.Builder.Assembler().WritePosition();
+         CompileExpressionSequence(ce, 0, body.NumberOfElements() - 1, body);
+         ce.Script.PopTryCatchBlock();
 
-		CodeSection section;
-		ce.Builder.GetCodeSection(OUT section);
+         size_t gotoCleanupPos = ce.Builder.Assembler().WritePosition();
 
-		ce.Builder.Assembler().Append_Branch(0);
+         CodeSection section;
+         ce.Builder.GetCodeSection(OUT section);
 
-		ce.Builder.AddSymbol(SEXTEXT("catch"));
-		ce.Builder.Assembler().Append_NoOperation();
-	
-		size_t handlerPos = ce.Builder.Assembler().WritePosition();
-		AddCatchHandler(ce.Script, section.Id, startOfBody, gotoCleanupPos, handlerPos);
+         ce.Builder.Assembler().Append_Branch(0);
 
-		ce.Builder.AddCatchVariable(exName, (void*) ce.Script.GetTryCatchExpression());
+         ce.Builder.AddSymbol(SEXTEXT("catch"));
+         ce.Builder.Assembler().Append_NoOperation();
 
-		TokenBuffer exRefName;
-		GetRefName(exRefName, exName);
-		ce.Builder.AddSymbol(exRefName);
+         size_t handlerPos = ce.Builder.Assembler().WritePosition();
+         AddCatchHandler(ce.Script, section.Id, startOfBody, gotoCleanupPos, handlerPos);
 
-		AddVariable(ce, NameString::From(exRefName), ce.Object.Common().TypePointer());
-		
-		ce.Builder.AssignVariableRefToTemp(exName, 0, Compiler::GetInstanceToInterfaceOffset(0));
-		ce.Builder.AddSymbol(SEXTEXT("Set exception ref to exception interface"));
-		ce.Builder.AssignTempToVariable(0, exRefName);
+         ce.Builder.AddCatchVariable(exName, (void*)ce.Script.GetTryCatchExpression());
 
-		CompileExpressionSequence(ce, 0, handler.NumberOfElements()-1, handler);
+         TokenBuffer exRefName;
+         GetRefName(exRefName, exName);
+         ce.Builder.AddSymbol(exRefName);
 
-		ce.Builder.AddSymbol(SEXTEXT("end-catch"));
+         AddVariable(ce, NameString::From(exRefName), ce.Object.Common().TypePointer());
 
-		ce.Builder.PopLastVariables(2); // That pops the reference to the exception and the exception itself
+         ce.Builder.AssignVariableRefToTemp(exName, 0, Compiler::GetInstanceToInterfaceOffset(0));
+         ce.Builder.AddSymbol(SEXTEXT("Set exception ref to exception interface"));
+         ce.Builder.AssignTempToVariable(0, exRefName);
 
-		size_t cleanupPos = ce.Builder.Assembler().WritePosition();
-		size_t buildToCleanupDelta = cleanupPos - gotoCleanupPos;
-		if (cleanup != NULL)
-		{
-			ce.Builder.AddSymbol(SEXTEXT("finally"));
-			CompileExpressionSequence(ce, 0, cleanup->NumberOfElements()-1, *cleanup);
-		}
+         CompileExpressionSequence(ce, 0, handler.NumberOfElements() - 1, handler);
 
-		ce.Builder.Assembler().SetWriteModeToOverwrite(gotoCleanupPos);
-		ce.Builder.Assembler().Append_Branch((int) buildToCleanupDelta);
-		ce.Builder.Assembler().SetWriteModeToAppend();
-	}
+         ce.Builder.AddSymbol(SEXTEXT("end-catch"));
 
-	void CompileExceptionBlock(CCompileEnvironment& ce, cr_sex s)
-	{
-		// (try (body) catch exception-name (handler) finally (cleanup))
-		if (s.NumberOfElements() != 5 && s.NumberOfElements() != 7)
-		{
-			sexstringstream streamer;
-			streamer <<  SEXTEXT("Expecting 5 or 7 elements in a (try (...) catch e (...) finally (...)) block. Found ") << s.NumberOfElements() << SEXTEXT(" elements") << std::ends;
-			Throw(s, streamer.str().c_str());
-		}
+         ce.Builder.PopLastVariables(2); // That pops the reference to the exception and the exception itself
 
-		GetAtomicArg(s, 0);
-		AssertKeyword(s, 0, SEXTEXT("try"));
-		AssertKeyword(s, 2, SEXTEXT("catch"));
+         size_t cleanupPos = ce.Builder.Assembler().WritePosition();
+         size_t buildToCleanupDelta = cleanupPos - gotoCleanupPos;
+         if (cleanup != NULL)
+         {
+            ce.Builder.AddSymbol(SEXTEXT("finally"));
+            CompileExpressionSequence(ce, 0, cleanup->NumberOfElements() - 1, *cleanup);
+         }
 
-		cr_sex body = s.GetElement(1);
-		AssertCompoundOrNull(body);
-		
-		cr_sex exNameExpr = GetAtomicArg(s, 3);
-		AssertLocalIdentifier(exNameExpr);
+         ce.Builder.Assembler().SetWriteModeToOverwrite(gotoCleanupPos);
+         ce.Builder.Assembler().Append_Branch((int)buildToCleanupDelta);
+         ce.Builder.Assembler().SetWriteModeToAppend();
+      }
 
-		cr_sex handler = s.GetElement(4);
-		AssertCompoundOrNull(handler);
+      void CompileExceptionBlock(CCompileEnvironment& ce, cr_sex s)
+      {
+         // (try (body) catch exception-name (handler) finally (cleanup))
+         if (s.NumberOfElements() != 5 && s.NumberOfElements() != 7)
+         {
+            sexstringstream streamer;
+            streamer << SEXTEXT("Expecting 5 or 7 elements in a (try (...) catch e (...) finally (...)) block. Found ") << s.NumberOfElements() << SEXTEXT(" elements") << std::ends;
+            Throw(s, streamer.str().c_str());
+         }
 
-		if (s.NumberOfElements() == 7) AssertKeyword(s, 5, SEXTEXT("finally"));
+         GetAtomicArg(s, 0);
+         AssertKeyword(s, 0, SEXTEXT("try"));
+         AssertKeyword(s, 2, SEXTEXT("catch"));
 
-		const ISExpression* cleanup = NULL;
-		
-		if (s.NumberOfElements() == 7)
-		{
-			cleanup = &s.GetElement(6);
-			AssertCompoundOrNull(*cleanup);
-		}
+         cr_sex body = s.GetElement(1);
+         AssertCompoundOrNull(body);
 
-		CompileTryCatchFinally(ce, exNameExpr.String()->Buffer, body, handler, cleanup);
-	}
+         cr_sex exNameExpr = GetAtomicArg(s, 3);
+         AssertLocalIdentifier(exNameExpr);
 
-	bool HasInterface(const IInterface& interface, const IStructure& classspec)
-	{
-		for(int i = 0; i < classspec.InterfaceCount(); ++i)
-		{
-			if (&classspec.GetInterface(i) == &interface) return true;
-		}
+         cr_sex handler = s.GetElement(4);
+         AssertCompoundOrNull(handler);
 
-		return false;
-	}
+         if (s.NumberOfElements() == 7) AssertKeyword(s, 5, SEXTEXT("finally"));
 
-	void CompileThrow(CCompileEnvironment& ce, cr_sex s)
-	{
-		cr_sex ex = GetAtomicArg(s, 1);
-		AssertLocalIdentifier(ex);
+         const ISExpression* cleanup = NULL;
 
-		MemberDef def;
-		if (!ce.Builder.TryGetVariableByName(OUT def, ex.String()->Buffer))
-		{
-			Throw(ex, SEXTEXT("Expecting local exception identifier"));
-		}
+         if (s.NumberOfElements() == 7)
+         {
+            cleanup = &s.GetElement(6);
+            AssertCompoundOrNull(*cleanup);
+         }
 
-		const IInterface& interfExc = ce.Object.Common().SysTypeIException();
-		if (!HasInterface(interfExc, *def.ResolvedType))
-		{
-			Throw(ex, SEXTEXT("The variable does not implement the Sys.Type.IException interface"));
-		}
+         CompileTryCatchFinally(ce, exNameExpr.String()->Buffer, body, handler, cleanup);
+      }
 
-		int sizeofException = def.AllocSize;
+      bool HasInterface(const IInterface& interface, const IStructure& classspec)
+      {
+         for (int i = 0; i < classspec.InterfaceCount(); ++i)
+         {
+            if (&classspec.GetInterface(i) == &interface) return true;
+         }
 
-		IFunction* fnThrow = ce.Object.Common().SysType().FindFunction(SEXTEXT("_throw"));
-		if (fnThrow == NULL)
-		{
-			Throw(s, SEXTEXT("Cannot find intrinsic function Sys.Type.Exception._throw(Sys.Type.IException ex)"));
-		}
+         return false;
+      }
 
-		SEXCHAR symbol[256];
-		StringPrint(symbol, 256, SEXTEXT("&%s"), (csexstr) ex.String()->Buffer);
-		ce.Builder.AddSymbol(symbol);
-		ce.Builder.AssignVariableRefToTemp(ex.String()->Buffer, 0 /* D4 */); // Push a ref to the exception on the stack
+      void CompileThrow(CCompileEnvironment& ce, cr_sex s)
+      {
+         cr_sex ex = GetAtomicArg(s, 1);
+         AssertLocalIdentifier(ex);
 
-		AddArgVariable(SEXTEXT("exception"), ce, ce.Object.Common().TypePointer());
-		ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);
+         MemberDef def;
+         if (!ce.Builder.TryGetVariableByName(OUT def, ex.String()->Buffer))
+         {
+            Throw(ex, SEXTEXT("Expecting local exception identifier"));
+         }
 
-		ce.Builder.AddSymbol(SEXTEXT("throw"));
-		AppendFunctionCallAssembly(ce, *fnThrow);
+         const IInterface& interfExc = ce.Object.Common().SysTypeIException();
+         if (!HasInterface(interfExc, *def.ResolvedType))
+         {
+            Throw(ex, SEXTEXT("The variable does not implement the Sys.Type.IException interface"));
+         }
 
-		MarkStackRollback(ce, s);
+         int sizeofException = def.AllocSize;
 
-		ce.Builder.PopLastVariables(1); // Correct the stack - N.B, this allows continue strategy
-	}
-}
+         IFunction* fnThrow = ce.Object.Common().SysType().FindFunction(SEXTEXT("_throw"));
+         if (fnThrow == NULL)
+         {
+            Throw(s, SEXTEXT("Cannot find intrinsic function Sys.Type.Exception._throw(Sys.Type.IException ex)"));
+         }
+
+         SEXCHAR symbol[256];
+         StringPrint(symbol, 256, SEXTEXT("&%s"), (csexstr)ex.String()->Buffer);
+         ce.Builder.AddSymbol(symbol);
+         ce.Builder.AssignVariableRefToTemp(ex.String()->Buffer, 0 /* D4 */); // Push a ref to the exception on the stack
+
+         AddArgVariable(SEXTEXT("exception"), ce, ce.Object.Common().TypePointer());
+         ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);
+
+         ce.Builder.AddSymbol(SEXTEXT("throw"));
+         AppendFunctionCallAssembly(ce, *fnThrow);
+
+         MarkStackRollback(ce, s);
+
+         ce.Builder.PopLastVariables(1); // Correct the stack - N.B, this allows continue strategy
+      }
+   }//Script
+}//Sexy

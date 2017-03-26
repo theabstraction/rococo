@@ -107,12 +107,12 @@
 )
 
 (struct Recti // when used for gui (0,0) is the top left of the screen and hence bottom > top
-	(Vec2i bottomLeft topRight)
+	(Vec2i topLeft bottomRight)
 )
 
 (function GetRectiSpan (Recti r) -> (Vec2i ds):
-	(ds.x = ((r.topRight.x - r.bottomLeft.x) + 1))
-	(ds.y = ((r.bottomLeft.y - r.topRight.y) + 1))
+	(ds.x = ((r.bottomRight.x - r.topLeft.x) + 1))
+	(ds.y = ((r.bottomRight.y - r.topLeft.y) + 1))
 )
 
 (alias Vec2i Sys.Maths.Vec2i)

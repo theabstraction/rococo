@@ -31,514 +31,517 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace
+namespace Sexy
 {
-	IStructureBuilder* MatchStructureDirect(cr_sex typeExpr, IModuleBuilder& module)
-	{
-		if (!IsAtomic(typeExpr))
-			return NULL;
-		csexstr type = typeExpr.String()->Buffer;
-
-		return module.FindStructure(type);
-	}
-
-	IStructure* MatchMemberViaStructure(cr_sex originExpression, csexstr root, IStructureBuilder& rootStructure)
-	{
-		NamespaceSplitter splitter(root);
-
-		csexstr head, body;
-		if (!splitter.SplitHead(OUT head, OUT body))
-		{
-			return FindMember(rootStructure, root);
-		}
-
-		IStructureBuilder* s = FindMember(rootStructure, head);
-		if (s == NULL) return NULL;
-
-		return MatchMemberViaStructure(originExpression, body, *s);
-	}
-
-	IStructure* MatchMemberViaStructure(cr_sex originExpression, csexstr root, INamespaceBuilder& ns)
-	{
-		NamespaceSplitter splitter(root);
-
-		csexstr head, body;
-		if (!splitter.SplitHead(OUT head, OUT body))
-		{
-			return ns.FindStructure(root);			
-		}
-
-		IStructureBuilder* s = ns.FindStructure(head);
-		if (s == NULL) return NULL;
-
-		return MatchMemberViaStructure(originExpression, root, *s);
-	}
-
-	IStructure* MatchStructureViaAlias(cr_sex originExpression, csexstr root, INamespaceBuilder& ns)
-	{
-		NamespaceSplitter splitter(root);
-
-		csexstr head, body;
-		if (!splitter.SplitHead(OUT head, OUT body))
-		{
-			return ns.FindStructure(root);
-		}
-
-		if (IsCapital(head[0]))
-		{
-			// Starts with capital letter, so it may be a sub-namespace
-			INamespaceBuilder* subNS = ns.FindSubspace(head);
-			if (subNS == NULL)
-			{
-				return NULL;
-			}
-			else
-			{
-				return MatchStructureViaAlias(originExpression, body, *subNS);
-			}
-		}
-		else
-		{
-			// Starts with lower cast letter, so may be a structure variable
-			return MatchMemberViaStructure(originExpression, body, ns);
-		}
-	}
-
-	IFunctionBuilder& MustMatchFunction(IModuleBuilder& module, cr_sex s, csexstr name)
-	{
-		if (!IsCapital(name[0]))
-		{
-			Throw(s, SEXTEXT("Functions begin with a capital letter"));
-		}
-
-		NamespaceSplitter splitter(name);
-
-		csexstr body, tail;
-		if (splitter.SplitTail(OUT body, OUT tail))
-		{
-			INamespaceBuilder* ns = Compiler::MatchNamespace(module, body);
-			if (ns == NULL)
-			{
-				Throw(s, SEXTEXT("Could not find namespace prefixing function"));
-			}
-
-			IFunctionBuilder* f = ns->FindFunction(tail);			
-			if (f == NULL)
-			{
-				ThrowTokenNotFound(s, name, ns->FullName()->Buffer, SEXTEXT("namespace"));
-			}
-
-			return *f;
-		}
-		else
-		{
-			IFunctionBuilder* f = module.FindFunction(name);
-			if (f != NULL) return *f;
-
-			IFunctionBuilder* finalFunction = NULL;
-			INamespaceBuilder* finalNS = NULL;
-			for(int i = 0; i < module.PrefixCount(); ++i)
-			{
-				INamespaceBuilder& prefix = module.GetPrefix(i);
-				f = prefix.FindFunction(name);
-				
-				if (f != NULL)
-				{
-					if (finalFunction != NULL) 
-						ThrowNamespaceConflict(s, prefix, *finalNS, SEXTEXT("function"), name);
-					else
-					{
-						finalFunction = f;
-						finalNS = &prefix;
-					}
-				}
-			}
-
-			if (f == NULL)
-			{
-				ThrowTokenNotFound(s, name, module.Name(), SEXTEXT("function"));
-			}
-			
-			return *finalFunction;						
-		}	
-	}
-
-	IStructureBuilder* MatchStructure(cr_sex typeExpr, IModuleBuilder& module)
-	{
-		if (!IsAtomic(typeExpr))
-			return NULL;
-
-		csexstr type = typeExpr.String()->Buffer;
-
-		if (!IsCapital(type[0]))
-		{
-			if (AreEqual(type, SEXTEXT("array")))
-			{
-				// Special intrinsic
-				return module.Object().GetModule(0).FindStructure(SEXTEXT("_Array"));
-			}
-			return NULL;
-		}
-
-		NamespaceSplitter splitter(type);
-
-		csexstr body, tail;
-		if (splitter.SplitTail(OUT body, OUT tail))
-		{
-			INamespaceBuilder* ns =  Compiler::MatchNamespace(module, body);
-			if (ns == NULL) ThrowTokenNotFound(typeExpr, body, SEXTEXT("program"), SEXTEXT("namespace"));
-
-			IStructureBuilder* s = ns->FindStructure(tail);
-			if (s != NULL)
-			{
-				return s;
-			}
-		}
-		else
-		{
-			IStructureBuilder* s = module.Object().IntrinsicModule().FindStructure(type);
-			if (s == NULL)
-			{
-				for(int i = 0; i < module.PrefixCount(); ++i)
-				{
-					INamespaceBuilder& prefix = module.GetPrefix(i);
-					s = prefix.FindStructure(type);
-					if (s != NULL)
-					{
-						return s;
-					}
-
-					IInterfaceBuilder* interf = prefix.FindInterface(type);
-					if (interf != NULL)
-					{
-						return &interf->NullObjectType();
-					}
-				}				
-				
-				s = MatchStructureDirect(typeExpr, module);
-				return s;
-			}		
-			else
-			{
-				return s;
-			}				
-		}	
-
-		return NULL;
-	}
-
-	IFunctionBuilder* MatchFunction(cr_sex nameExpr, IModuleBuilder& module)
-	{
-		if (!IsAtomic(nameExpr))
-			return NULL;
-
-		csexstr name = nameExpr.String()->Buffer;
-
-		if (!IsCapital(name[0]))
-		{
-			return NULL;
-		}
-
-		NamespaceSplitter splitter(name);
-
-		csexstr body, tail;
-		if (splitter.SplitTail(OUT body, OUT tail))
-		{
-			INamespaceBuilder* ns =  Compiler::MatchNamespace(module, body);
-			if (ns == NULL)
-			{
-				Throw(nameExpr, SEXTEXT("Could not find namespace prefixing function"));
-			}
-
-			return ns->FindFunction(tail);			
-		}
-		else
-		{
-			IFunctionBuilder* f = module.FindFunction(name);
-			if (f != NULL) return f;
-
-			IFunctionBuilder* finalFunction = NULL;
-			INamespaceBuilder* finalNS = NULL;
-			for(int i = 0; i < module.PrefixCount(); ++i)
-			{
-				INamespaceBuilder& prefix = module.GetPrefix(i);
-				f = prefix.FindFunction(name);
-				
-				if (f != NULL)
-				{
-					if (finalFunction != NULL) 
-						ThrowNamespaceConflict(nameExpr, prefix, *finalNS, SEXTEXT("function"), name);
-					else
-					{
-						finalFunction = f;
-						finalNS = &prefix;
-					}
-				}
-			}
-			
-			return finalFunction;						
-		}	
-
-		return NULL;
-	}
-
-	IInterfaceBuilder* GetInterfaceFQN(cr_sex baseExpr, CScript& script)
-	{
-		AssertAtomic(baseExpr);
-
-		csexstr fqn = baseExpr.String()->Buffer;
-
-		NamespaceSplitter splitter(fqn);
-
-		csexstr nsName, shortName;
-		if (!splitter.SplitTail(OUT nsName, OUT shortName))
-		{
-			Throw(baseExpr, SEXTEXT("Expecting fully qualified namespace name"));
-		}
-
-		INamespaceBuilder* ns = GetProgramObject(script).GetRootNamespace().FindSubspace(nsName);
-		if (ns == NULL) ThrowTokenNotFound(baseExpr, nsName, SEXTEXT("program"), SEXTEXT("namespace"));
-
-		return ns->FindInterface(shortName);
-	}
-
-	IInterfaceBuilder& GetInterfaceInModule(cr_sex interfExpr, IModuleBuilder& module)
-	{
-		NamespaceSplitter splitter(interfExpr.String()->Buffer);
-
-		INamespaceBuilder* NS = NULL;
-
-		csexstr ns, shortName;
-		if (splitter.SplitTail(OUT ns, OUT shortName))
-		{
-			NS = module.Object().GetRootNamespace().FindSubspace(ns);
-			if (NS == NULL) ThrowTokenNotFound(interfExpr, ns, SEXTEXT("program"), SEXTEXT("namespace"));
-			
-			IInterfaceBuilder* interf = NS->FindInterface(shortName);
-			if (interf == NULL)  ThrowTokenNotFound(interfExpr, shortName, ns, SEXTEXT("interface"));
-
-			return *interf;
-		}
-		else
-		{
-			IInterfaceBuilder* interf = NULL;
-
-			for(int i = 0; i < module.PrefixCount(); i++)
-			{
-				INamespaceBuilder& prefix = module.GetPrefix(i);
-				interf = prefix.FindInterface(shortName);
-				if (interf != NULL)
-				{
-					if (NS != NULL) ThrowNamespaceConflict(interfExpr, *NS, prefix, SEXTEXT("interface"), shortName);
-					NS = &prefix;
-				}
-			}
-
-			if (NS == NULL) ThrowTokenNotFound(interfExpr, shortName, module.Name(), SEXTEXT("interface"));
-			return *interf;
-		}
-	}
-
-	int GetIndexOfInterface(const IStructure& concreteClass, const IInterface& interf)
-	{
-		for(int i = 0; i < concreteClass.InterfaceCount(); ++i)
-		{
-			if (concreteClass.GetInterface(i) == interf)
-			{
-				return i;
-			}
-		}
-
-		return -1;
-	}
-
-
-	IInterfaceBuilder* MatchInterface(cr_sex typeExpr, IModuleBuilder& module)
-	{
-		if (!IsAtomic(typeExpr))
-			return NULL;
-
-		csexstr type = typeExpr.String()->Buffer;
-
-		if (!IsCapital(type[0]))
-		{
-			return NULL;
-		}
-
-		NamespaceSplitter splitter(type);
-
-		csexstr body, tail;
-		if (splitter.SplitTail(OUT body, OUT tail))
-		{
-			INamespaceBuilder* ns =  Compiler::MatchNamespace(module, body);
-			if (ns == NULL) ThrowTokenNotFound(typeExpr, body, SEXTEXT("program"), SEXTEXT("namespace"));
-			
-			IInterfaceBuilder* interf = ns->FindInterface(tail);
-			if (interf != NULL)
-			{
-				return interf;
-			}
-
-			return NULL;
-		}
-		else
-		{
-			INamespaceBuilder* sysType = module.Object().GetRootNamespace().FindSubspace(SEXTEXT("Sys.Type"));
-			IInterfaceBuilder* interf = sysType->FindInterface(type);
-			INamespaceBuilder* iterfNS = sysType;
-			
-			for(int i = 0; i < module.PrefixCount(); ++i)
-			{
-				INamespaceBuilder& prefix = module.GetPrefix(i);
-				IInterfaceBuilder* ithInterf = prefix.FindInterface(type);
-				if (ithInterf != NULL)
-				{
-					if (interf != NULL && interf != ithInterf)
-					{
-						Sexy::Sex::ThrowNamespaceConflict(typeExpr, *iterfNS, prefix, SEXTEXT("interface"), type);
-					}
-
-					interf = ithInterf;
-					iterfNS = &prefix;
-				}
-			}	
-
-			return interf;
-		}				
-	}
-
-	IArchetype* MatchArchetype(cr_sex typeExpr, IModuleBuilder& module)
-	{
-		if (!IsAtomic(typeExpr))
-			return NULL;
-
-		csexstr type = typeExpr.String()->Buffer;
-
-		if (!IsCapital(type[0]))
-		{
-			return NULL;
-		}
-
-		NamespaceSplitter splitter(type);
-
-		csexstr body, tail;
-		if (splitter.SplitTail(OUT body, OUT tail))
-		{
-			INamespaceBuilder* ns =  Compiler::MatchNamespace(module, body);
-			if (ns == NULL)
-			{
-				ThrowTokenNotFound(typeExpr, body, SEXTEXT("program"), SEXTEXT("namespace"));
-			}
-
-			IArchetype* a = ns->FindArchetype(tail);
-			if (a != NULL)
-			{
-				return NULL;
-			}
-		}
-		else
-		{
-			for(int i = 0; i < module.PrefixCount(); ++i)
-			{
-				INamespaceBuilder& prefix = module.GetPrefix(i);
-				IArchetype* a = prefix.FindArchetype(type);
-				if (a != NULL)
-				{
-					return a;
-				}
-			}							
-		}		
-
-		return NULL;				
-	}
-
-	IStructure* GetStructByQualifiedPath(ICodeBuilder& builder, csexstr structName)
-	{
-		NamespaceSplitter splitter(structName);
-		csexstr nspath, publicName;
-
-		if (splitter.SplitTail(OUT nspath, OUT publicName))
-		{
-			INamespaceBuilder* ns = builder.Module().Object().GetRootNamespace().FindSubspace(nspath);
-			if (ns != NULL)
-			{
-				IStructure* st = ns->FindStructure(publicName);
-				return st;
-			}
-		}
-
-		return NULL;
-	}
-
-	IInterface& GetRequiredInterface(cr_sex s, ICodeBuilder& builder, csexstr fullyQualifiedName)
-	{
-		IInterfaceBuilder* i = GetInterface(builder.Module().Object(), fullyQualifiedName);
-		if (i == NULL)
-		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Cannot find ") << fullyQualifiedName;
-			Throw(s, streamer);
-		}
-
-		return *i;
-	}
-
-	void GetThisRefDef(OUT MemberDef& def, ICodeBuilder& builder, cr_sex s)
-	{
-		if (!builder.TryGetVariableByName(OUT def, SEXTEXT("this")))
-		{
-			Throw(s, SEXTEXT("Expecting 'this' to be defined in the context"));
-		}
-
-		if (def.Usage == ARGUMENTUSAGE_BYVALUE)
-		{
-			Throw(s, SEXTEXT("Expecting 'this' to be by reference"));
-		}
-	}
-
-	const IStructure& GetClass(cr_sex classExpr, CScript& script)
-	{
-		const IStructure* classType = MatchStructure(classExpr, GetModule(script));
-		if (classType == NULL)	Throw(classExpr, SEXTEXT("Expecting a type"));
-		if (!classType->Prototype().IsClass)	Throw(classExpr, SEXTEXT("Expecting a class"));
-		return *classType;
-	}
-
-	const IStructure& GetThisInterfaceRefDef(OUT MemberDef& def, ICodeBuilder& builder, cr_sex s)
-	{
-		GetThisRefDef(OUT def, builder, s);
-		const IStructure& interfaceType = *def.ResolvedType;
-		if (!interfaceType.Prototype().IsClass)	Throw(s, SEXTEXT("The variable is not of interface type"));
-		if (!AreEqual(interfaceType.Name(), SEXTEXT("_Null"), 4)) Throw(s, SEXTEXT("The variable is not of interface type"));
-		if (interfaceType.InterfaceCount() != 1) Throw(s, SEXTEXT("Internal algorithmic error.Expecting  one and only one interface with the null class"));
-		return interfaceType;
-	}
-
-	int GetInterfaceIndex(const IInterface& interf, const IStructure& classType)
-	{
-		for(int i = 0; i < classType.InterfaceCount(); ++i)
-		{
-			if (&classType.GetInterface(i) == &interf)
-			{
-				return i;
-			}
-		}
-
-		return 0;
-	}
-
-	int GetInterfaceOffset(int index)
-	{
-		return sizeof(size_t) * (index+1) + sizeof(int32);
-	}
-
-	void GetVariableByName(ICodeBuilder& builder, OUT MemberDef& def, csexstr name, cr_sex s)
-	{
-		if (!builder.TryGetVariableByName(def, name))
-		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Error, cannot find entry ") << name;
-			Throw(s, streamer);
-		}
-	}
-}
+   namespace Script
+   {
+      IStructureBuilder* MatchStructureDirect(cr_sex typeExpr, IModuleBuilder& module)
+      {
+         if (!IsAtomic(typeExpr))
+            return NULL;
+         csexstr type = typeExpr.String()->Buffer;
+
+         return module.FindStructure(type);
+      }
+
+      IStructure* MatchMemberViaStructure(cr_sex originExpression, csexstr root, IStructureBuilder& rootStructure)
+      {
+         NamespaceSplitter splitter(root);
+
+         csexstr head, body;
+         if (!splitter.SplitHead(OUT head, OUT body))
+         {
+            return FindMember(rootStructure, root);
+         }
+
+         IStructureBuilder* s = FindMember(rootStructure, head);
+         if (s == NULL) return NULL;
+
+         return MatchMemberViaStructure(originExpression, body, *s);
+      }
+
+      IStructure* MatchMemberViaStructure(cr_sex originExpression, csexstr root, INamespaceBuilder& ns)
+      {
+         NamespaceSplitter splitter(root);
+
+         csexstr head, body;
+         if (!splitter.SplitHead(OUT head, OUT body))
+         {
+            return ns.FindStructure(root);
+         }
+
+         IStructureBuilder* s = ns.FindStructure(head);
+         if (s == NULL) return NULL;
+
+         return MatchMemberViaStructure(originExpression, root, *s);
+      }
+
+      IStructure* MatchStructureViaAlias(cr_sex originExpression, csexstr root, INamespaceBuilder& ns)
+      {
+         NamespaceSplitter splitter(root);
+
+         csexstr head, body;
+         if (!splitter.SplitHead(OUT head, OUT body))
+         {
+            return ns.FindStructure(root);
+         }
+
+         if (IsCapital(head[0]))
+         {
+            // Starts with capital letter, so it may be a sub-namespace
+            INamespaceBuilder* subNS = ns.FindSubspace(head);
+            if (subNS == NULL)
+            {
+               return NULL;
+            }
+            else
+            {
+               return MatchStructureViaAlias(originExpression, body, *subNS);
+            }
+         }
+         else
+         {
+            // Starts with lower cast letter, so may be a structure variable
+            return MatchMemberViaStructure(originExpression, body, ns);
+         }
+      }
+
+      IFunctionBuilder& MustMatchFunction(IModuleBuilder& module, cr_sex s, csexstr name)
+      {
+         if (!IsCapital(name[0]))
+         {
+            Throw(s, SEXTEXT("Functions begin with a capital letter"));
+         }
+
+         NamespaceSplitter splitter(name);
+
+         csexstr body, tail;
+         if (splitter.SplitTail(OUT body, OUT tail))
+         {
+            INamespaceBuilder* ns = Compiler::MatchNamespace(module, body);
+            if (ns == NULL)
+            {
+               Throw(s, SEXTEXT("Could not find namespace prefixing function"));
+            }
+
+            IFunctionBuilder* f = ns->FindFunction(tail);
+            if (f == NULL)
+            {
+               ThrowTokenNotFound(s, name, ns->FullName()->Buffer, SEXTEXT("namespace"));
+            }
+
+            return *f;
+         }
+         else
+         {
+            IFunctionBuilder* f = module.FindFunction(name);
+            if (f != NULL) return *f;
+
+            IFunctionBuilder* finalFunction = NULL;
+            INamespaceBuilder* finalNS = NULL;
+            for (int i = 0; i < module.PrefixCount(); ++i)
+            {
+               INamespaceBuilder& prefix = module.GetPrefix(i);
+               f = prefix.FindFunction(name);
+
+               if (f != NULL)
+               {
+                  if (finalFunction != NULL)
+                     ThrowNamespaceConflict(s, prefix, *finalNS, SEXTEXT("function"), name);
+                  else
+                  {
+                     finalFunction = f;
+                     finalNS = &prefix;
+                  }
+               }
+            }
+
+            if (f == NULL)
+            {
+               ThrowTokenNotFound(s, name, module.Name(), SEXTEXT("function"));
+            }
+
+            return *finalFunction;
+         }
+      }
+
+      IStructureBuilder* MatchStructure(cr_sex typeExpr, IModuleBuilder& module)
+      {
+         if (!IsAtomic(typeExpr))
+            return NULL;
+
+         csexstr type = typeExpr.String()->Buffer;
+
+         if (!IsCapital(type[0]))
+         {
+            if (AreEqual(type, SEXTEXT("array")))
+            {
+               // Special intrinsic
+               return module.Object().GetModule(0).FindStructure(SEXTEXT("_Array"));
+            }
+            return NULL;
+         }
+
+         NamespaceSplitter splitter(type);
+
+         csexstr body, tail;
+         if (splitter.SplitTail(OUT body, OUT tail))
+         {
+            INamespaceBuilder* ns = Compiler::MatchNamespace(module, body);
+            if (ns == NULL) ThrowTokenNotFound(typeExpr, body, SEXTEXT("program"), SEXTEXT("namespace"));
+
+            IStructureBuilder* s = ns->FindStructure(tail);
+            if (s != NULL)
+            {
+               return s;
+            }
+         }
+         else
+         {
+            IStructureBuilder* s = module.Object().IntrinsicModule().FindStructure(type);
+            if (s == NULL)
+            {
+               for (int i = 0; i < module.PrefixCount(); ++i)
+               {
+                  INamespaceBuilder& prefix = module.GetPrefix(i);
+                  s = prefix.FindStructure(type);
+                  if (s != NULL)
+                  {
+                     return s;
+                  }
+
+                  IInterfaceBuilder* interf = prefix.FindInterface(type);
+                  if (interf != NULL)
+                  {
+                     return &interf->NullObjectType();
+                  }
+               }
+
+               s = MatchStructureDirect(typeExpr, module);
+               return s;
+            }
+            else
+            {
+               return s;
+            }
+         }
+
+         return NULL;
+      }
+
+      IFunctionBuilder* MatchFunction(cr_sex nameExpr, IModuleBuilder& module)
+      {
+         if (!IsAtomic(nameExpr))
+            return NULL;
+
+         csexstr name = nameExpr.String()->Buffer;
+
+         if (!IsCapital(name[0]))
+         {
+            return NULL;
+         }
+
+         NamespaceSplitter splitter(name);
+
+         csexstr body, tail;
+         if (splitter.SplitTail(OUT body, OUT tail))
+         {
+            INamespaceBuilder* ns = Compiler::MatchNamespace(module, body);
+            if (ns == NULL)
+            {
+               Throw(nameExpr, SEXTEXT("Could not find namespace prefixing function"));
+            }
+
+            return ns->FindFunction(tail);
+         }
+         else
+         {
+            IFunctionBuilder* f = module.FindFunction(name);
+            if (f != NULL) return f;
+
+            IFunctionBuilder* finalFunction = NULL;
+            INamespaceBuilder* finalNS = NULL;
+            for (int i = 0; i < module.PrefixCount(); ++i)
+            {
+               INamespaceBuilder& prefix = module.GetPrefix(i);
+               f = prefix.FindFunction(name);
+
+               if (f != NULL)
+               {
+                  if (finalFunction != NULL)
+                     ThrowNamespaceConflict(nameExpr, prefix, *finalNS, SEXTEXT("function"), name);
+                  else
+                  {
+                     finalFunction = f;
+                     finalNS = &prefix;
+                  }
+               }
+            }
+
+            return finalFunction;
+         }
+
+         return NULL;
+      }
+
+      IInterfaceBuilder* GetInterfaceFQN(cr_sex baseExpr, CScript& script)
+      {
+         AssertAtomic(baseExpr);
+
+         csexstr fqn = baseExpr.String()->Buffer;
+
+         NamespaceSplitter splitter(fqn);
+
+         csexstr nsName, shortName;
+         if (!splitter.SplitTail(OUT nsName, OUT shortName))
+         {
+            Throw(baseExpr, SEXTEXT("Expecting fully qualified namespace name"));
+         }
+
+         INamespaceBuilder* ns = GetProgramObject(script).GetRootNamespace().FindSubspace(nsName);
+         if (ns == NULL) ThrowTokenNotFound(baseExpr, nsName, SEXTEXT("program"), SEXTEXT("namespace"));
+
+         return ns->FindInterface(shortName);
+      }
+
+      IInterfaceBuilder& GetInterfaceInModule(cr_sex interfExpr, IModuleBuilder& module)
+      {
+         NamespaceSplitter splitter(interfExpr.String()->Buffer);
+
+         INamespaceBuilder* NS = NULL;
+
+         csexstr ns, shortName;
+         if (splitter.SplitTail(OUT ns, OUT shortName))
+         {
+            NS = module.Object().GetRootNamespace().FindSubspace(ns);
+            if (NS == NULL) ThrowTokenNotFound(interfExpr, ns, SEXTEXT("program"), SEXTEXT("namespace"));
+
+            IInterfaceBuilder* interf = NS->FindInterface(shortName);
+            if (interf == NULL)  ThrowTokenNotFound(interfExpr, shortName, ns, SEXTEXT("interface"));
+
+            return *interf;
+         }
+         else
+         {
+            IInterfaceBuilder* interf = NULL;
+
+            for (int i = 0; i < module.PrefixCount(); i++)
+            {
+               INamespaceBuilder& prefix = module.GetPrefix(i);
+               interf = prefix.FindInterface(shortName);
+               if (interf != NULL)
+               {
+                  if (NS != NULL) ThrowNamespaceConflict(interfExpr, *NS, prefix, SEXTEXT("interface"), shortName);
+                  NS = &prefix;
+               }
+            }
+
+            if (NS == NULL) ThrowTokenNotFound(interfExpr, shortName, module.Name(), SEXTEXT("interface"));
+            return *interf;
+         }
+      }
+
+      int GetIndexOfInterface(const IStructure& concreteClass, const IInterface& interf)
+      {
+         for (int i = 0; i < concreteClass.InterfaceCount(); ++i)
+         {
+            if (concreteClass.GetInterface(i) == interf)
+            {
+               return i;
+            }
+         }
+
+         return -1;
+      }
+
+
+      IInterfaceBuilder* MatchInterface(cr_sex typeExpr, IModuleBuilder& module)
+      {
+         if (!IsAtomic(typeExpr))
+            return NULL;
+
+         csexstr type = typeExpr.String()->Buffer;
+
+         if (!IsCapital(type[0]))
+         {
+            return NULL;
+         }
+
+         NamespaceSplitter splitter(type);
+
+         csexstr body, tail;
+         if (splitter.SplitTail(OUT body, OUT tail))
+         {
+            INamespaceBuilder* ns = Compiler::MatchNamespace(module, body);
+            if (ns == NULL) ThrowTokenNotFound(typeExpr, body, SEXTEXT("program"), SEXTEXT("namespace"));
+
+            IInterfaceBuilder* interf = ns->FindInterface(tail);
+            if (interf != NULL)
+            {
+               return interf;
+            }
+
+            return NULL;
+         }
+         else
+         {
+            INamespaceBuilder* sysType = module.Object().GetRootNamespace().FindSubspace(SEXTEXT("Sys.Type"));
+            IInterfaceBuilder* interf = sysType->FindInterface(type);
+            INamespaceBuilder* iterfNS = sysType;
+
+            for (int i = 0; i < module.PrefixCount(); ++i)
+            {
+               INamespaceBuilder& prefix = module.GetPrefix(i);
+               IInterfaceBuilder* ithInterf = prefix.FindInterface(type);
+               if (ithInterf != NULL)
+               {
+                  if (interf != NULL && interf != ithInterf)
+                  {
+                     Sexy::Sex::ThrowNamespaceConflict(typeExpr, *iterfNS, prefix, SEXTEXT("interface"), type);
+                  }
+
+                  interf = ithInterf;
+                  iterfNS = &prefix;
+               }
+            }
+
+            return interf;
+         }
+      }
+
+      IArchetype* MatchArchetype(cr_sex typeExpr, IModuleBuilder& module)
+      {
+         if (!IsAtomic(typeExpr))
+            return NULL;
+
+         csexstr type = typeExpr.String()->Buffer;
+
+         if (!IsCapital(type[0]))
+         {
+            return NULL;
+         }
+
+         NamespaceSplitter splitter(type);
+
+         csexstr body, tail;
+         if (splitter.SplitTail(OUT body, OUT tail))
+         {
+            INamespaceBuilder* ns = Compiler::MatchNamespace(module, body);
+            if (ns == NULL)
+            {
+               ThrowTokenNotFound(typeExpr, body, SEXTEXT("program"), SEXTEXT("namespace"));
+            }
+
+            IArchetype* a = ns->FindArchetype(tail);
+            if (a != NULL)
+            {
+               return NULL;
+            }
+         }
+         else
+         {
+            for (int i = 0; i < module.PrefixCount(); ++i)
+            {
+               INamespaceBuilder& prefix = module.GetPrefix(i);
+               IArchetype* a = prefix.FindArchetype(type);
+               if (a != NULL)
+               {
+                  return a;
+               }
+            }
+         }
+
+         return NULL;
+      }
+
+      IStructure* GetStructByQualifiedPath(ICodeBuilder& builder, csexstr structName)
+      {
+         NamespaceSplitter splitter(structName);
+         csexstr nspath, publicName;
+
+         if (splitter.SplitTail(OUT nspath, OUT publicName))
+         {
+            INamespaceBuilder* ns = builder.Module().Object().GetRootNamespace().FindSubspace(nspath);
+            if (ns != NULL)
+            {
+               IStructure* st = ns->FindStructure(publicName);
+               return st;
+            }
+         }
+
+         return NULL;
+      }
+
+      IInterface& GetRequiredInterface(cr_sex s, ICodeBuilder& builder, csexstr fullyQualifiedName)
+      {
+         IInterfaceBuilder* i = GetInterface(builder.Module().Object(), fullyQualifiedName);
+         if (i == NULL)
+         {
+            sexstringstream streamer;
+            streamer << SEXTEXT("Cannot find ") << fullyQualifiedName;
+            Throw(s, streamer);
+         }
+
+         return *i;
+      }
+
+      void GetThisRefDef(OUT MemberDef& def, ICodeBuilder& builder, cr_sex s)
+      {
+         if (!builder.TryGetVariableByName(OUT def, SEXTEXT("this")))
+         {
+            Throw(s, SEXTEXT("Expecting 'this' to be defined in the context"));
+         }
+
+         if (def.Usage == ARGUMENTUSAGE_BYVALUE)
+         {
+            Throw(s, SEXTEXT("Expecting 'this' to be by reference"));
+         }
+      }
+
+      const IStructure& GetClass(cr_sex classExpr, CScript& script)
+      {
+         const IStructure* classType = MatchStructure(classExpr, GetModule(script));
+         if (classType == NULL)	Throw(classExpr, SEXTEXT("Expecting a type"));
+         if (!classType->Prototype().IsClass)	Throw(classExpr, SEXTEXT("Expecting a class"));
+         return *classType;
+      }
+
+      const IStructure& GetThisInterfaceRefDef(OUT MemberDef& def, ICodeBuilder& builder, cr_sex s)
+      {
+         GetThisRefDef(OUT def, builder, s);
+         const IStructure& interfaceType = *def.ResolvedType;
+         if (!interfaceType.Prototype().IsClass)	Throw(s, SEXTEXT("The variable is not of interface type"));
+         if (!AreEqual(interfaceType.Name(), SEXTEXT("_Null"), 4)) Throw(s, SEXTEXT("The variable is not of interface type"));
+         if (interfaceType.InterfaceCount() != 1) Throw(s, SEXTEXT("Internal algorithmic error.Expecting  one and only one interface with the null class"));
+         return interfaceType;
+      }
+
+      int GetInterfaceIndex(const IInterface& interf, const IStructure& classType)
+      {
+         for (int i = 0; i < classType.InterfaceCount(); ++i)
+         {
+            if (&classType.GetInterface(i) == &interf)
+            {
+               return i;
+            }
+         }
+
+         return 0;
+      }
+
+      int GetInterfaceOffset(int index)
+      {
+         return sizeof(size_t) * (index + 1) + sizeof(int32);
+      }
+
+      void GetVariableByName(ICodeBuilder& builder, OUT MemberDef& def, csexstr name, cr_sex s)
+      {
+         if (!builder.TryGetVariableByName(def, name))
+         {
+            sexstringstream streamer;
+            streamer << SEXTEXT("Error, cannot find entry ") << name;
+            Throw(s, streamer);
+         }
+      }
+   }//Script
+}//Sexy

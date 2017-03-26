@@ -31,24 +31,10 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace
+namespace Sexy { namespace Script
 {
 	class CScript;
 	class CScripts;
-
-	struct CBindNSExpressionToModule
-	{
-		const ISExpression* E;
-		CScript* Module;
-		INamespace* NS;
-	};
-
-	inline bool operator < (const CBindNSExpressionToModule& a, const CBindNSExpressionToModule& b)
-	{
-		return a.E->String()->Length < b.E->String()->Length;
-	}
-
-	typedef std::vector<CBindNSExpressionToModule> TNamespaceDefinitions;
 
 	bool IsIStringInlined(CScripts& scripts);
 
@@ -64,20 +50,6 @@ namespace
 			return module == A.Module;
 		}
 	};
-
-	struct CBindFnDefToExpression
-	{
-		const ISExpression* FnDef;
-		IFunctionBuilder* Fn;
-	};
-	typedef std::tr1::unordered_map<CStringKey,CBindFnDefToExpression,hashCStringKey> TFunctionDefinitions;
-
-	struct CBindStructDefToExpression
-	{
-		const ISExpression* StructDef;
-		IStructureBuilder* Struct;
-	};
-	typedef std::vector<CBindStructDefToExpression> TStructureDefinitions;
 
 	void Resolve(IArgumentBuilder& arg, csexstr type, csexstr id, csexstr source, cr_sex e, csexstr genericArgType = NULL)
 	{
@@ -1193,25 +1165,6 @@ namespace
 		builder.Assembler().Clear();
 	}
 
-	struct CClosureDef
-	{
-		const ISExpression* ClosureExpr;
-		IFunctionBuilder* Closure;
-		CClosureDef(cr_sex closureExpr, IFunctionBuilder& closure): ClosureExpr(&closureExpr), Closure(&closure) {}
-	};
-
-	typedef std::vector<CClosureDef> TClosures;
-
-	struct CNullDef
-	{
-		IInterfaceBuilder* Interface;
-		const ISExpression* Source;
-		IStructureBuilder* NullObject;
-		INamespaceBuilder* NS;
-	};
-
-	typedef std::vector<CNullDef> TNullObjectDefs;
-
 	IFunctionBuilder& DeclareFunction(CScript& script, cr_sex source, FunctionPrototype& prototype);
 
 	void CompileNullMethod(const IArchetype& nullMethod, IInterface& interf, IStructureBuilder& nullObject, cr_sex source, INamespace& ns)
@@ -1288,324 +1241,6 @@ namespace
 	public:
 		CCompileContext(CScript& _script, csexstr _name): script(_script), name(_name) { RegisterContext(script,name); }
 		~CCompileContext() { RegisterContext(script,emptyString); }	
-	};
-
-	typedef std::vector<CStringConstant*> TStringConstants;
-
-	typedef std::vector<IMacroBuilder*> TMacros;
-
-	struct BuilderAndNameKey
-	{
-		ICodeBuilder* Builder;
-		CStringKey Name;
-	};
-
-	struct hashBuilderAndNameKey
-	{
-		size_t operator()(const BuilderAndNameKey& s) const
-		{
-			return s.Name.Hash() ^ (size_t) s.Builder;
-		}
-	};
-
-	bool operator == (const BuilderAndNameKey& a, const BuilderAndNameKey& b)
-	{
-		return a.Builder == b.Builder && a.Name == b.Name;
-	}
-
-	class CScript
-	{
-	private:
-		ISParserTree& tree;
-		IProgramObject& programObject;
-		IModuleBuilder& module;
-		bool isDirty;
-		CScripts& scripts;
-		TFunctionDefinitions localFunctions;
-		TStructureDefinitions localStructures;
-		TClosures closureJobs;
-		TNullObjectDefs nullDefs;
-		TStringConstants stringConstants;
-		TMacros macros;
-
-		typedef std::unordered_map<CStringKey, GlobalValue, hashCStringKey> TGlobalVariables;
-		TGlobalVariables globalVariables;
-
-		typedef std::vector<const ISExpression*> TExceptionBlocks;
-		TExceptionBlocks exceptionBlocks;	
-		csexstr contextName;
-
-		typedef std::unordered_map<BuilderAndNameKey,ArrayDef,hashBuilderAndNameKey> TMapNameToArrayDef;
-		typedef std::unordered_map<BuilderAndNameKey,ListDef,hashBuilderAndNameKey> TMapNameToListDef;
-		typedef std::unordered_map<BuilderAndNameKey,NodeDef,hashBuilderAndNameKey> TMapNameToNodeDef;
-		typedef std::unordered_map<BuilderAndNameKey,MapDef,hashBuilderAndNameKey> TMapNameToMapDef;
-		typedef std::unordered_map<BuilderAndNameKey,MapNodeDef,hashBuilderAndNameKey> TMapNameToMapNodeDef;
-
-		TMapNameToArrayDef mapNameToArrayDef;
-		TMapNameToListDef mapNameToListDef;
-		TMapNameToNodeDef mapNameToNodeDef;
-		TMapNameToMapDef mapNameToMapDef;
-		TMapNameToMapNodeDef mapNameToMapNodeDef;
-	public:
-		CScript(ISParserTree& _tree, IProgramObject& _programObject, CScripts& _scripts):
-			tree(_tree),
-			programObject(_programObject),
-			isDirty(true),
-			scripts(_scripts),
-			module(_programObject.AddModule(tree.Source().Name())),
-			contextName(emptyString)
-		{
-			tree.AddRef();
-		}
-
-		GlobalValue* GetGlobalValue(csexstr name)
-		{
-			CStringKey key(name);
-			auto i = globalVariables.find(key);
-			return i == globalVariables.end() ? nullptr : &i->second;
-		}
-
-		void EnumerateGlobals(IGlobalEnumerator& cb)
-		{
-			for (auto i : globalVariables)
-			{
-				cb(i.first.c_str(), i.second);
-			}
-		}
-
-		const ArrayDef* GetArrayDef(ICodeBuilder& builder, csexstr arrayName)
-		{
-			BuilderAndNameKey key;
-			key.Builder = &builder;
-			key.Name = CStringKey(arrayName);
-
-			TMapNameToArrayDef::const_iterator i = mapNameToArrayDef.find(key);
-			return i == mapNameToArrayDef.end() ? NULL : &i->second;
-		}
-
-		const ListDef* GetListDef(ICodeBuilder& builder, csexstr listName)
-		{
-			BuilderAndNameKey key;
-			key.Builder = &builder;
-			key.Name = CStringKey(listName);
-
-			TMapNameToListDef::const_iterator i = mapNameToListDef.find(key);
-			return i == mapNameToListDef.end() ? NULL : &i->second;
-		}
-
-		const NodeDef* GetNodeDef(ICodeBuilder& builder, csexstr listName)
-		{
-			BuilderAndNameKey key;
-			key.Builder = &builder;
-			key.Name = CStringKey(listName);
-
-			TMapNameToNodeDef::const_iterator i = mapNameToNodeDef.find(key);
-			return i == mapNameToNodeDef.end() ? NULL : &i->second;
-		}
-
-		const MapDef* GetMapDef(ICodeBuilder& builder, csexstr listName)
-		{
-			BuilderAndNameKey key;
-			key.Builder = &builder;
-			key.Name = CStringKey(listName);
-
-			TMapNameToMapDef::const_iterator i = mapNameToMapDef.find(key);
-			return i == mapNameToMapDef.end() ? NULL : &i->second;
-		}
-
-		const MapNodeDef* GetMapNodeDef(ICodeBuilder& builder, csexstr name)
-		{
-			BuilderAndNameKey key;
-			key.Builder = &builder;
-			key.Name = CStringKey(name);
-
-			TMapNameToMapNodeDef::const_iterator i = mapNameToMapNodeDef.find(key);
-			return i == mapNameToMapNodeDef.end() ? NULL : &i->second;
-		}
-
-		void AddArrayDef(ICodeBuilder& builder, csexstr arrayName, const IStructure& elementType, cr_sex s)
-		{
-			BuilderAndNameKey key;
-			key.Builder = &builder;
-			key.Name = CStringKey(arrayName);
-
-			ArrayDef def(s, elementType);
-			mapNameToArrayDef.insert(std::make_pair(key,def));
-		}
-
-		void AddListDef(ICodeBuilder& builder, csexstr name, const IStructure& elementType, cr_sex s)
-		{
-			BuilderAndNameKey key;
-			key.Builder = &builder;
-			key.Name = CStringKey(name);
-
-			ListDef def(s, elementType);
-			mapNameToListDef.insert(std::make_pair(key,def));
-		}
-
-		void AddMapDef(ICodeBuilder& builder, csexstr name, const IStructure& keyType, const IStructure& valueType, cr_sex s)
-		{
-			BuilderAndNameKey key;
-			key.Builder = &builder;
-			key.Name = CStringKey(name);
-
-			MapDef def(s, keyType, valueType);
-			mapNameToMapDef.insert(std::make_pair(key,def));
-		}
-
-		void AddMapNodeDef(ICodeBuilder& builder, const MapDef& mapDef, csexstr mapName, csexstr nodeName, cr_sex s)
-		{
-			BuilderAndNameKey key;
-			key.Builder = &builder;
-			key.Name = CStringKey(nodeName);
-
-			MapNodeDef def(s, mapDef, mapName);
-			mapNameToMapNodeDef.insert(std::make_pair(key,def));
-		}
-
-		void AddNodeDef(ICodeBuilder& builder, csexstr nodeName, const IStructure& elementType, cr_sex s)
-		{
-			BuilderAndNameKey key;
-			key.Builder = &builder;
-			key.Name = CStringKey(nodeName);
-
-			NodeDef def(s, elementType);
-			mapNameToNodeDef.insert(std::make_pair(key,def));
-		}
-
-		const bool IsIStringInlined() const { return ::IsIStringInlined(scripts); }
-
-		IProgramObject& Object() { return programObject; }
-		IScriptSystem& System() { return GetSystem(scripts); }
-
-		CStringConstant* CreateStringConstant(int length, csexstr pointer, const ISExpression* srcExpression)
-		{
-			const IStructure& scStruct = Object().Common().TypeStringLiteral();
-
-			CStringConstant* sc = new CStringConstant;
-			sc->header._allocSize = scStruct.SizeOfStruct();
-			sc->header._vTables[0].Root = scStruct.GetVirtualTable(1);
-			sc->header._typeInfo = (CClassDesc*) scStruct.GetVirtualTable(0);
-			sc->length = length;
-			sc->pointer = pointer;
-			sc->srcExpression = (void*) srcExpression;
-
-			stringConstants.push_back(sc);
-			return sc;
-		}
-
-		void RegisterContext(csexstr _name) { contextName = _name; }
-		csexstr GetContext() const { return contextName; }
-
-		const ISExpression* GetTryCatchExpression() const
-		{
-			return exceptionBlocks.empty() ? NULL : exceptionBlocks.back();
-		}
-
-		void PushTryCatchBlock(cr_sex s)
-		{
-			exceptionBlocks.push_back(&s);
-		}
-
-		void PopTryCatchBlock()
-		{
-			exceptionBlocks.pop_back();
-		}
-
-		void AddCatchHandler(CScript& script, ID_BYTECODE id, size_t start, size_t end, size_t handlerOffset);
-
-		~CScript()
-		{
-			tree.Release();
-
-			for(auto i = stringConstants.begin(); i != stringConstants.end(); ++i)
-			{
-				CStringConstant* sc = *i;
-				delete sc;
-			}
-
-			stringConstants.clear();
-		}
-
-		IModuleBuilder& ProgramModule() { return module; }
-		TFunctionDefinitions& LocalFunctions() { return localFunctions; }
-		TNullObjectDefs& NullObjects() { return nullDefs; }
-		const ISParserTree& Tree() const { return tree; }
-		ISParserTree& Tree() { return tree; }
-
-		void Clear()
-		{
-			macros.clear();
-			module.Clear();
-			closureJobs.clear();
-			stringConstants.clear();
-			globalVariables.clear();
-		}
-
-		void CompileNullObjects()
-		{
-			for(auto n = nullDefs.begin(); n != nullDefs.end(); ++n)
-			{
-				CompileNullObject(*n->Interface, *n->NullObject, *n->Source, *n->NS);
-				n->Interface->PostCompile();
-			}
-		}
-
-		void CompileNextClosures()
-		{
-			// Compiling a local function can enqueue a closure for further compilation, so handle that next
-			while(!closureJobs.empty())
-			{
-				CClosureDef cdef = closureJobs.back();
-				closureJobs.pop_back();
-				CompileClosureBody(*cdef.ClosureExpr, *cdef.Closure, *this);
-			}
-		}
-
-		void CompileLocalFunctions()
-		{
-			for(auto i = localFunctions.begin(); i != localFunctions.end(); ++i)
-			{
-				CompileFunctionFromExpression(*i->second.Fn, *i->second.FnDef, *this);
-			}
-		}
-
-		void CompileJITStubs()
-		{
-			for(auto i = localFunctions.begin(); i != localFunctions.end(); ++i)
-			{
-				csexstr fname = i->second.Fn->Name();
-				CompileJITStub(*i->second.Fn, *i->second.FnDef, *this, GetSystem(*this));
-			}
-		}
-
-		void AppendCompiledNamespaces(TNamespaceDefinitions& nsDefs);
-		void AddEnumeratedVirtualMethod(IN cr_sex virtualMethodExpr, IN csexstr methodName, REF IInterfaceBuilder& inter, IN size_t vmIndex);
-		void AddVirtualMethod(IN cr_sex virtualMethodExpr, REF IInterfaceBuilder& inter, IN size_t vmIndex);
-		void AddVirtualMethod(IN const IArchetype& archetype, REF IInterfaceBuilder& inter, IN size_t vmIndex, cr_sex def);		
-		void ComputeGlobal(cr_sex globalDef, int& globalBaseIndex);
-		void ComputeGlobals(int& globalBaseIndex);
-		void ComputeInterfaces();
-		void ComputeInterfacePrototypes();
-		void ComputePrefixes();
-		void ComputeStructureNames();
-		void ComputeFunctionNames();
-		void ComputeStructureFields();
-		void ComputeFunctionArgs();
-		void CompileFactoryJITStubs();
-		void CompileMacroJITStubs();
-		void ValidateTopLevel();
-		void ComputeArchetypes();
-		void ComputeArchetypeNames();
-		void AddArchetype(cr_sex e);
-		void AddArchetypeName(cr_sex e);
-		void PostClosure(cr_sex s, IFunctionBuilder& closure);
-		void AddInterfacePrototype(cr_sex s, bool isInterfaceDefinedFromClassMethods);
-		void ValidateConcreteClasses();
-		void ValidateConstructors();
-		void DeclareFactory(cr_sex factoryDef);
-		void DeclareMacros();
-		IFunctionBuilder& GetNullFunction(const IArchetype& archetype);
 	};
 
 	CStringConstant* CreateStringConstant(CScript& script, int length, csexstr pointer, const ISExpression* srcExpression)
@@ -2253,6 +1888,143 @@ namespace
 		script.AddCatchHandler(script, id, start, end, handlerOffset);
 	}
 
+   CScript::CScript(ISParserTree& _tree, IProgramObject& _programObject, CScripts& _scripts) :
+      tree(_tree),
+      programObject(_programObject),
+      isDirty(true),
+      scripts(_scripts),
+      module(_programObject.AddModule(tree.Source().Name())),
+      contextName(emptyString)
+   {
+      tree.AddRef();
+   }
+
+   GlobalValue* CScript::GetGlobalValue(csexstr name)
+   {
+      CStringKey key(name);
+      auto i = globalVariables.find(key);
+      return i == globalVariables.end() ? nullptr : &i->second;
+   }
+
+   void CScript::EnumerateGlobals(IGlobalEnumerator& cb)
+   {
+      for (auto i : globalVariables)
+      {
+         cb(i.first.c_str(), i.second);
+      }
+   }
+
+   const ArrayDef* CScript::GetArrayDef(ICodeBuilder& builder, csexstr arrayName)
+   {
+      BuilderAndNameKey key;
+      key.Builder = &builder;
+      key.Name = CStringKey(arrayName);
+
+      TMapNameToArrayDef::const_iterator i = mapNameToArrayDef.find(key);
+      return i == mapNameToArrayDef.end() ? NULL : &i->second;
+   }
+
+   const ListDef* CScript::GetListDef(ICodeBuilder& builder, csexstr listName)
+   {
+      BuilderAndNameKey key;
+      key.Builder = &builder;
+      key.Name = CStringKey(listName);
+
+      TMapNameToListDef::const_iterator i = mapNameToListDef.find(key);
+      return i == mapNameToListDef.end() ? NULL : &i->second;
+   }
+
+   const NodeDef* CScript::GetNodeDef(ICodeBuilder& builder, csexstr listName)
+   {
+      BuilderAndNameKey key;
+      key.Builder = &builder;
+      key.Name = CStringKey(listName);
+
+      TMapNameToNodeDef::const_iterator i = mapNameToNodeDef.find(key);
+      return i == mapNameToNodeDef.end() ? NULL : &i->second;
+   }
+
+   const MapDef* CScript::GetMapDef(ICodeBuilder& builder, csexstr listName)
+   {
+      BuilderAndNameKey key;
+      key.Builder = &builder;
+      key.Name = CStringKey(listName);
+
+      TMapNameToMapDef::const_iterator i = mapNameToMapDef.find(key);
+      return i == mapNameToMapDef.end() ? NULL : &i->second;
+   }
+
+   const MapNodeDef* CScript::GetMapNodeDef(ICodeBuilder& builder, csexstr name)
+   {
+      BuilderAndNameKey key;
+      key.Builder = &builder;
+      key.Name = CStringKey(name);
+
+      TMapNameToMapNodeDef::const_iterator i = mapNameToMapNodeDef.find(key);
+      return i == mapNameToMapNodeDef.end() ? NULL : &i->second;
+   }
+
+   void CScript::AddArrayDef(ICodeBuilder& builder, csexstr arrayName, const IStructure& elementType, cr_sex s)
+   {
+      BuilderAndNameKey key;
+      key.Builder = &builder;
+      key.Name = CStringKey(arrayName);
+
+      ArrayDef def(s, elementType);
+      mapNameToArrayDef.insert(std::make_pair(key, def));
+   }
+
+   void CScript::AddListDef(ICodeBuilder& builder, csexstr name, const IStructure& elementType, cr_sex s)
+   {
+      BuilderAndNameKey key;
+      key.Builder = &builder;
+      key.Name = CStringKey(name);
+
+      ListDef def(s, elementType);
+      mapNameToListDef.insert(std::make_pair(key, def));
+   }
+
+   void CScript::AddMapDef(ICodeBuilder& builder, csexstr name, const IStructure& keyType, const IStructure& valueType, cr_sex s)
+   {
+      BuilderAndNameKey key;
+      key.Builder = &builder;
+      key.Name = CStringKey(name);
+
+      MapDef def(s, keyType, valueType);
+      mapNameToMapDef.insert(std::make_pair(key, def));
+   }
+
+   void CScript::AddMapNodeDef(ICodeBuilder& builder, const MapDef& mapDef, csexstr mapName, csexstr nodeName, cr_sex s)
+   {
+      BuilderAndNameKey key;
+      key.Builder = &builder;
+      key.Name = CStringKey(nodeName);
+
+      MapNodeDef def(s, mapDef, mapName);
+      mapNameToMapNodeDef.insert(std::make_pair(key, def));
+   }
+
+   const bool CScript::IsIStringInlined() const
+   { 
+      return Sexy::Script::IsIStringInlined(scripts);
+   }
+
+   IScriptSystem&  CScript::System()
+   {
+      return GetSystem(scripts);
+   }
+
+   void CScript::AddNodeDef(ICodeBuilder& builder, csexstr nodeName, const IStructure& elementType, cr_sex s)
+   {
+      BuilderAndNameKey key;
+      key.Builder = &builder;
+      key.Name = CStringKey(nodeName);
+
+      NodeDef def(s, elementType);
+      mapNameToNodeDef.insert(std::make_pair(key, def));
+   }
+
+
 	void CScript::AddCatchHandler(CScript& script, ID_BYTECODE id, size_t start, size_t end, size_t handlerOffset)
 	{
 		scripts.ExceptionLogic().AddCatchHandler(id, start, end, handlerOffset);
@@ -2268,6 +2040,82 @@ namespace
 	{
 		script.PostClosure(s, closure);
 	}
+
+   CStringConstant* CScript::CreateStringConstant(int length, csexstr pointer, const ISExpression* srcExpression)
+   {
+      const IStructure& scStruct = Object().Common().TypeStringLiteral();
+
+      CStringConstant* sc = new CStringConstant;
+      sc->header._allocSize = scStruct.SizeOfStruct();
+      sc->header._vTables[0].Root = scStruct.GetVirtualTable(1);
+      sc->header._typeInfo = (CClassDesc*)scStruct.GetVirtualTable(0);
+      sc->length = length;
+      sc->pointer = pointer;
+      sc->srcExpression = (void*)srcExpression;
+
+      stringConstants.push_back(sc);
+      return sc;
+   }
+
+   CScript::~CScript()
+   {
+      tree.Release();
+
+      for (auto i = stringConstants.begin(); i != stringConstants.end(); ++i)
+      {
+         CStringConstant* sc = *i;
+         delete sc;
+      }
+
+      stringConstants.clear();
+   }
+
+   void CScript::Clear()
+   {
+      macros.clear();
+      module.Clear();
+      closureJobs.clear();
+      stringConstants.clear();
+      globalVariables.clear();
+   }
+
+   void  CScript::CompileNullObjects()
+   {
+      for (auto n = nullDefs.begin(); n != nullDefs.end(); ++n)
+      {
+         CompileNullObject(*n->Interface, *n->NullObject, *n->Source, *n->NS);
+         n->Interface->PostCompile();
+      }
+   }
+
+   void  CScript::CompileNextClosures()
+   {
+      // Compiling a local function can enqueue a closure for further compilation, so handle that next
+      while (!closureJobs.empty())
+      {
+         CClosureDef cdef = closureJobs.back();
+         closureJobs.pop_back();
+         CompileClosureBody(*cdef.ClosureExpr, *cdef.Closure, *this);
+      }
+   }
+
+   void  CScript::CompileLocalFunctions()
+   {
+      for (auto i = localFunctions.begin(); i != localFunctions.end(); ++i)
+      {
+         CompileFunctionFromExpression(*i->second.Fn, *i->second.FnDef, *this);
+      }
+   }
+
+   void  CScript::CompileJITStubs()
+   {
+      for (auto i = localFunctions.begin(); i != localFunctions.end(); ++i)
+      {
+         csexstr fname = i->second.Fn->Name();
+         CompileJITStub(*i->second.Fn, *i->second.FnDef, *this, GetSystem(*this));
+      }
+   }
+
 
 	void CScript::AppendCompiledNamespaces(TNamespaceDefinitions& nsDefs)
 	{
@@ -3902,4 +3750,4 @@ namespace
 	{
 		script.AddNodeDef(builder, name, elementType, s);
 	}
-}
+}} // Sexy::Script

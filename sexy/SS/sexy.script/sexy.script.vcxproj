@@ -130,7 +130,9 @@
     <None Include="sexy.script.asserts.inl" />
     <None Include="sexy.script.conditional.expression.parser.inl" />
     <None Include="sexy.script.exceptions.inl" />
-    <None Include="sexy.script.expression.parser.inl" />
+    <ClCompile Include="sexy.script.expression.parser.cpp">
+      <FileType>Document</FileType>
+    </ClCompile>
     <None Include="sexy.script.factory.inl" />
     <None Include="sexy.script.functions.inl" />
     <None Include="sexy.script.JIT.inl" />

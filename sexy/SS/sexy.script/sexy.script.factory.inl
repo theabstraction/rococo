@@ -31,195 +31,198 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace
+namespace Sexy
 {
-	const IFactory& GetFactoryInModuleByFQN(cr_sex factoryExpr, csexstr ns, csexstr shortName, IModule& module)
-	{
-		const INamespace* NS = module.Object().GetRootNamespace().FindSubspace(ns);
-		if (NS == NULL)
-		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Cannot find the namespace: ") << ns << std::ends;
-			Throw(factoryExpr, streamer.str().c_str());
-		}
+   namespace Script
+   {
+      const IFactory& GetFactoryInModuleByFQN(cr_sex factoryExpr, csexstr ns, csexstr shortName, IModule& module)
+      {
+         const INamespace* NS = module.Object().GetRootNamespace().FindSubspace(ns);
+         if (NS == NULL)
+         {
+            sexstringstream streamer;
+            streamer << SEXTEXT("Cannot find the namespace: ") << ns << std::ends;
+            Throw(factoryExpr, streamer.str().c_str());
+         }
 
-		const IFactory* factory = NS->FindFactory(shortName);
-		if (factory == NULL)
-		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Cannot find the factory in the namespace: ") << shortName;
-			Throw(factoryExpr, streamer);
-		}
+         const IFactory* factory = NS->FindFactory(shortName);
+         if (factory == NULL)
+         {
+            sexstringstream streamer;
+            streamer << SEXTEXT("Cannot find the factory in the namespace: ") << shortName;
+            Throw(factoryExpr, streamer);
+         }
 
-		return *factory;
-	}
+         return *factory;
+      }
 
-	IFactory& GetFactoryInModuleByPrefix(cr_sex factoryExpr, IModuleBuilder& module)
-	{
-		IFactory* uniqueFactory = NULL;
-		INamespace* NS = NULL;
+      IFactory& GetFactoryInModuleByPrefix(cr_sex factoryExpr, IModuleBuilder& module)
+      {
+         IFactory* uniqueFactory = NULL;
+         INamespace* NS = NULL;
 
-		for(int i = 0; i < module.PrefixCount(); i++)
-		{
-			INamespaceBuilder& prefix = module.GetPrefix(i);
-			IFactory* factory = prefix.FindFactory(factoryExpr.String()->Buffer);
-			if (factory != NULL)
-			{				
-				if (NS != NULL)
-				{
-					sexstringstream streamer;
-					streamer << SEXTEXT("Module uses more than one namespace that has a factory of the given name: ") << NS->FullName() << SEXTEXT(" and ") << prefix.FullName();
-					Throw(factoryExpr, streamer);
-				}
+         for (int i = 0; i < module.PrefixCount(); i++)
+         {
+            INamespaceBuilder& prefix = module.GetPrefix(i);
+            IFactory* factory = prefix.FindFactory(factoryExpr.String()->Buffer);
+            if (factory != NULL)
+            {
+               if (NS != NULL)
+               {
+                  sexstringstream streamer;
+                  streamer << SEXTEXT("Module uses more than one namespace that has a factory of the given name: ") << NS->FullName() << SEXTEXT(" and ") << prefix.FullName();
+                  Throw(factoryExpr, streamer);
+               }
 
-				uniqueFactory = factory;
-				NS = &prefix;
-			}
-		}
+               uniqueFactory = factory;
+               NS = &prefix;
+            }
+         }
 
-		if (uniqueFactory == NULL)
-		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Cannot find the factory in any namespace used by the module");
-			Throw(factoryExpr, streamer);
-		}
+         if (uniqueFactory == NULL)
+         {
+            sexstringstream streamer;
+            streamer << SEXTEXT("Cannot find the factory in any namespace used by the module");
+            Throw(factoryExpr, streamer);
+         }
 
-		return *uniqueFactory;
-	}
+         return *uniqueFactory;
+      }
 
-	const IFactory& GetFactoryInModule(cr_sex factoryExpr, IModuleBuilder& module)
-	{
-		sexstring factoryName = factoryExpr.String();
-		NamespaceSplitter splitter(factoryName->Buffer);
+      const IFactory& GetFactoryInModule(cr_sex factoryExpr, IModuleBuilder& module)
+      {
+         sexstring factoryName = factoryExpr.String();
+         NamespaceSplitter splitter(factoryName->Buffer);
 
-		csexstr ns, shortName;
-		if (splitter.SplitTail(OUT ns, OUT shortName))
-		{
-			return GetFactoryInModuleByFQN(factoryExpr, ns, shortName, module);
-		}
-		else
-		{
-			return GetFactoryInModuleByPrefix(factoryExpr, module);
-		}
-	}
+         csexstr ns, shortName;
+         if (splitter.SplitTail(OUT ns, OUT shortName))
+         {
+            return GetFactoryInModuleByFQN(factoryExpr, ns, shortName, module);
+         }
+         else
+         {
+            return GetFactoryInModuleByPrefix(factoryExpr, module);
+         }
+      }
 
-	void CompileFactoryCall(CCompileEnvironment& ce, const IFactory& factory, csexstr id, csexstr refId, cr_sex args, const IInterface& interf)
-	{
-		const IFunction& factoryFunction = factory.Constructor();
-		const IFunction* inlineConstructor = factory.InlineConstructor();
-		const IStructure* inlineClass = factory.InlineClass();
-				
-		CodeSection section;
-		if (inlineConstructor == NULL)
-		{			
-			ce.Builder.Append_InitializeVirtualTable(id);
-			factoryFunction.Code().GetCodeSection(OUT section);
-		}
-		else
-		{
-			ce.Builder.Append_InitializeVirtualTable(id, *inlineClass);
-			inlineConstructor->Code().GetCodeSection(OUT section);
-		}
-		
-		int explicitInputCount = ArgCount(factoryFunction) - 1;
-		int mapIndex = GetIndexOf(1, args, SEXTEXT("->"));
-		if (mapIndex > 0) Throw(args, SEXTEXT("Mapping token are not allowed in constructor calls, which have no output"));
-		if (args.NumberOfElements() - 1 < explicitInputCount) Throw(args, SEXTEXT("Too few arguments to factory call"));
-		if (args.NumberOfElements() - 1 > explicitInputCount) Throw(args, SEXTEXT("Too many arguments to factory call"));
-	
-		int inputStackAllocCount = PushInputs(ce, args, factoryFunction, true, 1);
-		inputStackAllocCount += CompileInstancePointerArg(ce, id);
+      void CompileFactoryCall(CCompileEnvironment& ce, const IFactory& factory, csexstr id, csexstr refId, cr_sex args, const IInterface& interf)
+      {
+         const IFunction& factoryFunction = factory.Constructor();
+         const IFunction* inlineConstructor = factory.InlineConstructor();
+         const IStructure* inlineClass = factory.InlineClass();
 
-		ce.Builder.AddSymbol(factoryFunction.Name());
-		ce.Builder.Assembler().Append_CallById(section.Id);
+         CodeSection section;
+         if (inlineConstructor == NULL)
+         {
+            ce.Builder.Append_InitializeVirtualTable(id);
+            factoryFunction.Code().GetCodeSection(OUT section);
+         }
+         else
+         {
+            ce.Builder.Append_InitializeVirtualTable(id, *inlineClass);
+            inlineConstructor->Code().GetCodeSection(OUT section);
+         }
 
-		ce.Builder.MarkExpression(args.Parent());
+         int explicitInputCount = ArgCount(factoryFunction) - 1;
+         int mapIndex = GetIndexOf(1, args, SEXTEXT("->"));
+         if (mapIndex > 0) Throw(args, SEXTEXT("Mapping token are not allowed in constructor calls, which have no output"));
+         if (args.NumberOfElements() - 1 < explicitInputCount) Throw(args, SEXTEXT("Too few arguments to factory call"));
+         if (args.NumberOfElements() - 1 > explicitInputCount) Throw(args, SEXTEXT("Too many arguments to factory call"));
 
-		RepairStack(ce, *args.Parent(), factoryFunction);
+         int inputStackAllocCount = PushInputs(ce, args, factoryFunction, true, 1);
+         inputStackAllocCount += CompileInstancePointerArg(ce, id);
 
-		if (inlineConstructor == NULL)
-		{	
-			ce.Builder.AssignTempToVariable(0, refId); // Factory instanced constructor calls leave the address of the new interface into D4 which updates the reference.
-		}
-		else
-		{
-			int interfaceIndex = GetIndexOfInterface(*inlineClass, interf);
-			if (interfaceIndex < 0)
-			{
-				sexstringstream streamer;
-				streamer << inlineConstructor->Name() << SEXTEXT(" does not support the interface ") << interf.Name();
-				Throw(args, streamer);
-			}
+         ce.Builder.AddSymbol(factoryFunction.Name());
+         ce.Builder.Assembler().Append_CallById(section.Id);
 
-			ce.Builder.AssignVariableRefToTemp(id, 0, sizeof(size_t) * (interfaceIndex+1) + sizeof(int32));
-			ce.Builder.AddSymbol(refId);
-			ce.Builder.AssignTempToVariable(0, refId);
-		}
-		
-		ce.Builder.AssignClosureParentSF();
-	}
+         ce.Builder.MarkExpression(args.Parent());
 
-	bool TryCompileAsLateFactoryCall(CCompileEnvironment& ce, const MemberDef& targetDef, cr_sex directive)
-	{
-		cr_sex factoryCall = directive.GetElement(2);
+         RepairStack(ce, *args.Parent(), factoryFunction);
 
-		if (!IsCompound(factoryCall))
-		{	
-			return false;
-		}
+         if (inlineConstructor == NULL)
+         {
+            ce.Builder.AssignTempToVariable(0, refId); // Factory instanced constructor calls leave the address of the new interface into D4 which updates the reference.
+         }
+         else
+         {
+            int interfaceIndex = GetIndexOfInterface(*inlineClass, interf);
+            if (interfaceIndex < 0)
+            {
+               sexstringstream streamer;
+               streamer << inlineConstructor->Name() << SEXTEXT(" does not support the interface ") << interf.Name();
+               Throw(args, streamer);
+            }
 
-		if (factoryCall.NumberOfElements() < 1)
-		{
-			return false;
-		}
+            ce.Builder.AssignVariableRefToTemp(id, 0, sizeof(size_t) * (interfaceIndex + 1) + sizeof(int32));
+            ce.Builder.AddSymbol(refId);
+            ce.Builder.AssignTempToVariable(0, refId);
+         }
 
-		cr_sex factoryNameExpr = factoryCall.GetElement(0);
-		if (!IsAtomic(factoryNameExpr))
-		{
-			return false;
-		}
+         ce.Builder.AssignClosureParentSF();
+      }
 
-		const IStructure& targetStruct = *targetDef.ResolvedType;
-		if (!IsNullType(targetStruct))
-		{
-			return false;
-		}
+      bool TryCompileAsLateFactoryCall(CCompileEnvironment& ce, const MemberDef& targetDef, cr_sex directive)
+      {
+         cr_sex factoryCall = directive.GetElement(2);
 
-		csexstr targetName = directive.GetElement(0).String()->Buffer;
+         if (!IsCompound(factoryCall))
+         {
+            return false;
+         }
 
-		TokenBuffer targetRefName;
-		GetRefName(targetRefName, targetName);
+         if (factoryCall.NumberOfElements() < 1)
+         {
+            return false;
+         }
 
-		MemberDef refDef;
-		if (!ce.Builder.TryGetVariableByName(OUT refDef, targetRefName))
-		{
-			return false;
-		}
+         cr_sex factoryNameExpr = factoryCall.GetElement(0);
+         if (!IsAtomic(factoryNameExpr))
+         {
+            return false;
+         }
 
-		const IFactory& factory = GetFactoryInModule(factoryNameExpr, GetModule(ce.Script));
+         const IStructure& targetStruct = *targetDef.ResolvedType;
+         if (!IsNullType(targetStruct))
+         {
+            return false;
+         }
 
-		CompileFactoryCall(ce, factory, targetName, targetRefName, factoryCall, targetStruct.GetInterface(0));
+         csexstr targetName = directive.GetElement(0).String()->Buffer;
 
-		return true;
-	}
+         TokenBuffer targetRefName;
+         GetRefName(targetRefName, targetName);
 
-	void CompileConstructFromFactory(CCompileEnvironment& ce, const IStructure& nullType, csexstr id, cr_sex args)
-	{		
-		// This function turns (<IInterface> id (<Factory> <arg1>...<argN>)) into assembly
+         MemberDef refDef;
+         if (!ce.Builder.TryGetVariableByName(OUT refDef, targetRefName))
+         {
+            return false;
+         }
 
-		TokenBuffer refName;
-		GetRefName(refName, id);
+         const IFactory& factory = GetFactoryInModule(factoryNameExpr, GetModule(ce.Script));
 
-		ce.Builder.AddSymbol(refName);
-		AddVariable(ce, NameString::From(refName), ce.Object.Common().TypePointer());
+         CompileFactoryCall(ce, factory, targetName, targetRefName, factoryCall, targetStruct.GetInterface(0));
 
-		AddSymbol(ce.Builder, SEXTEXT("%s %s"), GetFriendlyName(nullType), id);
+         return true;
+      }
 
-		AddVariable(ce, NameString::From(id), nullType);
+      void CompileConstructFromFactory(CCompileEnvironment& ce, const IStructure& nullType, csexstr id, cr_sex args)
+      {
+         // This function turns (<IInterface> id (<Factory> <arg1>...<argN>)) into assembly
 
-		cr_sex factoryExpr = GetAtomicArg(args, 0);
-		const IFactory& factory = GetFactoryInModule(factoryExpr, GetModule(ce.Script));
+         TokenBuffer refName;
+         GetRefName(refName, id);
 
-		CompileFactoryCall(ce, factory, id, refName, args, nullType.GetInterface(0));
-	}
-}
+         ce.Builder.AddSymbol(refName);
+         AddVariable(ce, NameString::From(refName), ce.Object.Common().TypePointer());
+
+         AddSymbol(ce.Builder, SEXTEXT("%s %s"), GetFriendlyName(nullType), id);
+
+         AddVariable(ce, NameString::From(id), nullType);
+
+         cr_sex factoryExpr = GetAtomicArg(args, 0);
+         const IFactory& factory = GetFactoryInModule(factoryExpr, GetModule(ce.Script));
+
+         CompileFactoryCall(ce, factory, id, refName, args, nullType.GetInterface(0));
+      }
+   }//Script
+}//Sexy
