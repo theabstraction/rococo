@@ -127,6 +127,10 @@
       <Outputs>hv.sxh.h;hv.sxh.inl</Outputs>
       <Inputs>hv.sxh;config.xc</Inputs>
     </CustomBuildStep>
+    <PreLinkEvent>
+      <Command>
+      </Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -174,6 +178,10 @@
       <Outputs>hv.sxh.h;hv.sxh.inl</Outputs>
       <Inputs>hv.sxh;config.xc</Inputs>
     </CustomBuildStep>
+    <PreLinkEvent>
+      <Command>
+      </Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="hv.app.cpp" />

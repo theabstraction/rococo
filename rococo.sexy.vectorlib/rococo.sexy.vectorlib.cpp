@@ -1,0 +1,104 @@
+// rococo.sexy.vectorlib.cpp : Defines the exported functions for the DLL application.
+
+#include <rococo.types.h>
+#include <rococo.maths.h>
+
+#include <DirectXMath.h>
+
+#include <sexy.script.h>
+#include <sexy.vm.h>
+#include <sexy.vm.cpu.h>
+
+namespace Rococo
+{
+   namespace Maths
+   {
+      // N.B when compiled in release mode, these will generally inline within the vectorlib.inl function code
+      using namespace DirectX;
+
+      void AddVec3toVec3(const Vec3& a, const Vec3& b, Vec3& c)
+      {
+         c = a + b;
+      }
+
+      void SubtractVec3fromVec3(const Vec3& a, const Vec3& b, Vec3& c)
+      {
+         c = a - b;
+      }
+
+      void MultiplyMatrixByRef(const Matrix4x4& a, const Matrix4x4& b, Matrix4x4& c)
+      {
+         Multiply(c, a, b);
+      }
+
+      float Dot(const Vec3& a, const Vec3& b)
+      {
+         return a.x * b.x + a.y * b.y + a.z * b.z;
+      }
+
+      float Length(const Vec3& a)
+      {
+         float ds2 = Rococo::Maths::Dot(a, a);
+         float ds = sqrtf(ds2);
+         return ds;
+      }
+
+      void CrossByRef(const Vec3& a, const Vec3& b, Vec3& c)
+      {
+         XMVECTOR xa = XMLoadFloat3((const XMFLOAT3*) &a.x);
+         XMVECTOR xb = XMLoadFloat3((const XMFLOAT3*) &b.x);
+         XMVECTOR xc = XMVector3Cross(xa, xb);
+         XMStoreFloat3((XMFLOAT3*)&c, xc);
+      }
+
+      void NormalizeInPlace(Vec3& a)
+      {
+         float ds = Rococo::Maths::Length(a);
+         if (ds == 0) Throw(0, L"Cannot normalize null vector");
+         float scale = 1.0f / ds;
+
+         a.x *= scale;
+         a.y *= scale;
+         a.z *= scale;
+      }
+   }
+}
+
+using namespace Sexy;
+using namespace Sexy::Script;
+using namespace Sexy::Compiler;
+
+#include "vectorlib.inl"
+
+extern "C"
+{
+   __declspec(dllexport) INativeLib* CreateLib(Sexy::Script::IScriptSystem& ss)
+   {
+      class GeomsNativeLib : public INativeLib
+      {
+      private:
+         IScriptSystem& ss;
+
+      public:
+         GeomsNativeLib(IScriptSystem& _ss) : ss(_ss)
+         {
+         }
+
+      private:
+         virtual void AddNativeCalls()
+         {
+            Sys::Geometry::F32::AddNativeCalls_SysGeometryF32(ss, nullptr);
+         }
+
+         virtual void ClearResources()
+         {
+         }
+
+         virtual void Release()
+         {
+            delete this;
+         }
+      };
+      return new GeomsNativeLib(ss);
+   }
+}

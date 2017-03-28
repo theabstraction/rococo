@@ -147,18 +147,3 @@
 	(Float32 heading elevation tilt)
 )
 (alias FPSAngles Sys.Maths.FPSAngles)
-
-(function AddVec3fVec3f (Vec3f a) (Vec3f b) (Vec3f output)-> :
-	(output.x = (a.x + b.x))
-	(output.y = (a.y + b.y))
-	(output.z = (a.z + b.z))
-)
-
-(function SubtractVec3fVec3f (Vec3f a) (Vec3f b) (Vec3f output)-> :
-	(output.x = (a.x - b.x))
-	(output.y = (a.y - b.y))
-	(output.z = (a.z - b.z))
-)
-
-(alias AddVec3fVec3f Sys.Maths.AddVec3fVec3f)
-(alias SubtractVec3fVec3f Sys.Maths.SubtractVec3fVec3f)

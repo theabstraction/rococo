@@ -24,6 +24,7 @@ namespace Rococo
       const uint32 NumberOfObjectVertexElements();
 
       ID3D11SamplerState* CreateSpriteSampler(ID3D11Device& device);
+      ID3D11SamplerState* CreateObjectSampler(ID3D11Device& device);
       ID3D11RasterizerState* CreateSpriteRasterizer(ID3D11Device& device);
       ID3D11RasterizerState* CreateObjectRasterizer(ID3D11Device& device);
       ID3D11BlendState* CreateAlphaBlend(ID3D11Device& device);
@@ -47,10 +48,11 @@ namespace Rococo
       {
          IInstallation& installation;
          ID3D11Device& device;
+         ID3D11DeviceContext& dc;
          IExpandingBuffer& scratchBuffer;
 
       public:
-         TextureLoader(IInstallation& installation, ID3D11Device& device, IExpandingBuffer& _scratchBuffer);
+         TextureLoader(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& _dc, IExpandingBuffer& _scratchBuffer);
          TextureBind LoadAlphaBitmap(const wchar_t* resourceName);
          TextureBind LoadColourBitmap(const wchar_t* resourceName);
       };

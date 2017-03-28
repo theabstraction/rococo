@@ -52,7 +52,10 @@ namespace
       float headingDelta{ 0 };
       float elevationDelta{ 0 };
 
-      FPSControl()
+      Vec3 speeds;
+
+      FPSControl(cr_vec3 _speeds):
+         speeds(_speeds)
       {
       }
 
@@ -101,8 +104,8 @@ namespace
 
          if (forwardDelta != 0 || straffeDelta != 0 || headingDelta != 0)
          {
-            tmm.fowardDelta = clock.DT() * forwardDelta;
-            tmm.straffeDelta = clock.DT() * straffeDelta;
+            tmm.fowardDelta = clock.DT() * ((forwardDelta > 0) ? forwardDelta * speeds.x : forwardDelta * speeds.z);
+            tmm.straffeDelta = clock.DT() * straffeDelta * speeds.y;
             tmm.entityId = playerId;
             tmm.delta = { Degrees { headingDelta }, Degrees { 0 }, Degrees { 0 } };
             Rococo::Events::Publish(publisher, tmm);
@@ -168,10 +171,19 @@ namespace
    {
       ID_ENTITY playerId;
       AutoFree<IControlMethod> control;
+
+      Vec3 speeds{ 10.0f, 2.0f, 5.0f };
    public:
       Player() : control{ new NullControl }
       {
 
+      }
+
+      virtual void SetSpeed(float forward, float backward, float straffe)
+      {
+         speeds.x = forward;
+         speeds.y = straffe;
+         speeds.z = backward;
       }
 
       virtual void Clear()
@@ -200,7 +212,7 @@ namespace
 
       virtual void SetControlFPS()
       {
-         control = new FPSControl();
+         control = new FPSControl(speeds);
       }
 
       virtual void SetControlNone()

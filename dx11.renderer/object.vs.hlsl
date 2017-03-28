@@ -10,8 +10,7 @@ struct ObjectVertex
 struct ScreenVertex
 {
 	float4 position : SV_POSITION;
-	float4 emissiveColour: COLOR0;
-	float4 diffuseColour: COLOR1;
+	float4 colour: COLOR0;
 	float2 uv: TEXCOORD;
 };
 
@@ -40,11 +39,13 @@ ScreenVertex main(ObjectVertex v)
 	v.normal.w = 0;
 	float4 normal = mul(instanceMatrix, v.normal);
 	float f = -dot(normal.xyz, sunlightDirection.xyz);
-	f = clamp(f, 0.0f, 1.0f);
-	float illumination = 0.5f + 0.5f * f;
-	sv.emissiveColour = highlightColour.w * (highlightColour + illumination * v.emissiveColour) + (1.0f - highlightColour.w) * illumination * v.emissiveColour;
-	sv.diffuseColour = v.diffuseColour;
-	
+   float incidence = clamp(f, 0.0f, 1.0f);
+   float ambience = 0.25f;
+	float illumination = ambience + incidence;
+
+   float4 totalEmission = v.emissiveColour + highlightColour;
+   float4 totalIlluminated = illumination * v.diffuseColour;
+	sv.colour = totalEmission + totalIlluminated;
 	sv.uv = v.uv;
 
 	return sv;

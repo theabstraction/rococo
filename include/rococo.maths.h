@@ -104,6 +104,16 @@ namespace Rococo
 
    float Determinant(const Matrix4x4& m);
 
+   inline Vec4 HomogenizeNormal(cr_vec3 normal)
+   {
+      return Vec4{ normal.x, normal.y, normal.z, 0.0f };
+   }
+
+   inline Vec4 HomogenizePosition(cr_vec3 normal)
+   {
+      return Vec4{ normal.x, normal.y, normal.z, 1.0f };
+   }
+
 	Vec2  GetIntersect(Vec2 A, Vec2 D, Vec2 B, Vec2 E);
 	Radians GetHeadingOfVector(float DX, float DY);
 

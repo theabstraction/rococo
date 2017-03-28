@@ -117,6 +117,7 @@ namespace
 
 		AutoRelease<ID3D11Texture2D> fontTexture;
 		AutoRelease<ID3D11SamplerState> spriteSampler;
+      AutoRelease<ID3D11SamplerState> objectSampler;
 		AutoRelease<ID3D11ShaderResourceView> fontBinding;
 		AutoRelease<ID3D11RasterizerState> spriteRaterizering;
 		AutoRelease<ID3D11RasterizerState> objectRaterizering;
@@ -169,12 +170,13 @@ namespace
 			device(_device), dc(_dc), factory(_factory), fonts(nullptr), hRenderWindow(0),
 			window(nullptr), cursor{ ID_TEXTURE(), {0,0}, {1,1}, {0,0} }, installation(_installation),
          scratchBuffer(CreateExpandingBuffer(16_kilobytes)),
-         textureLoader(_installation, _device, *scratchBuffer)
+         textureLoader(_installation, _device, _dc, *scratchBuffer)
 		{
 			static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
 			guiBuffer = DX11::CreateDynamicVertexBuffer<GuiVertex>(device, GUI_BUFFER_VERTEX_CAPACITY);
 
 			spriteSampler = DX11::CreateSpriteSampler(device);
+         objectSampler = DX11::CreateObjectSampler(device);
          objDepthState = DX11::CreateObjectDepthStencilState(device);
          guiDepthState = DX11::CreateGuiDepthStencilState(device);
          spriteRaterizering = DX11::CreateSpriteRasterizer(device);
@@ -651,16 +653,18 @@ namespace
 
 			RGBA clearColour = scene.GetClearColour();
 
-			if (clearColour.alpha > 0)
-			{
-				dc.ClearRenderTargetView(mainBackBufferView, (const FLOAT*)&clearColour);
-				dc.ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-			}
+         if (clearColour.alpha > 0)
+         {
+            dc.ClearRenderTargetView(mainBackBufferView, (const FLOAT*)&clearColour);
+         }
+
+			dc.ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 			FLOAT blendFactorUnused[] = { 0,0,0,0 };
 			dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
 			UseShaders(idObjVS, idObjPS);
 
+         dc.PSSetSamplers(0, 1, &objectSampler);
 			dc.RSSetState(objectRaterizering);
 			dc.OMSetDepthStencilState(objDepthState, 0);
 

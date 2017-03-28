@@ -1,0 +1,11 @@
+(config $config.xc)
+
+(functions Sys.Geometry.F32 "vectorlib"
+	(AddVec3fVec3f (Vec3 a)(Vec3 b)(Vec3 sum)-> : Rococo::Maths::AddVec3toVec3)
+	(SubtractVec3fVec3f (Vec3 a)(Vec3 b)(Vec3 difference)-> : Rococo::Maths::SubtractVec3fromVec3)
+	(Dot (Vec3 a)(Vec3 b) -> (Float32 dotProduct) : Rococo::Maths::Dot)
+	(MultiplyVec3fVec3f  (Vec3 a)(Vec3 b)(Vec3 crossProduct)-> : Rococo::Maths::CrossByRef )
+	(MultMatrix4x4fMatrix4x4f (Matrix4x4 a)(Matrix4x4 b)(Matrix4x4 product)-> : Rococo::Maths::MultiplyMatrixByRef)
+	(Length (Vec3 a) -> (Float32 len) : Rococo::Maths::Length)
+	(Normalize (Vec3 n) -> : Rococo::Maths::NormalizeInPlace)
+)

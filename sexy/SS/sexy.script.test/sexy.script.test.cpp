@@ -10596,6 +10596,11 @@ namespace
    {
       csexstr srcCode =
          SEXTEXT("(using Sys.Maths) \n")
+         SEXTEXT("(function AddVec3fVec3f (Vec3 a)(Vec3 b)(Vec3 c)-> : \n")
+         SEXTEXT("   (c.x = (a.x + b.x))")
+         SEXTEXT("   (c.y = (a.y + b.y))")
+         SEXTEXT("   (c.z = (a.z + b.z))")
+         SEXTEXT(")\n")
          SEXTEXT("(namespace EntryPoint) \n")
          SEXTEXT("(function Main -> (Float32 cx)(Float32 cy)(Float32 cz): \n")
          SEXTEXT("		(Vec3 a = 2 4 6)\n")
@@ -10628,11 +10633,17 @@ namespace
    {
       csexstr srcCode =
          SEXTEXT("(using Sys.Maths) \n")
+         SEXTEXT("(function SubtractVec3fVec3f (Vec3 a)(Vec3 b)(Vec3 c)-> : \n")
+         SEXTEXT("   (c.x = (a.x - b.x))")
+         SEXTEXT("   (c.y = (a.y - b.y))")
+         SEXTEXT("   (c.z = (a.z - b.z))")
+         SEXTEXT(")\n")
          SEXTEXT("(namespace EntryPoint) \n")
          SEXTEXT("(function Main -> (Float32 cx)(Float32 cy)(Float32 cz): \n")
          SEXTEXT("		(Vec3 a = 2 4 6)\n")
          SEXTEXT("		(Vec3 b = 5 7 9)\n")
-         SEXTEXT("		(Vec3 c = (a - b))\n")
+         SEXTEXT("		(Vec3 c)\n")
+         SEXTEXT("      (c = a - b)\n")
          SEXTEXT("      (cx = c.x)\n")
          SEXTEXT("      (cy = c.y)\n")
          SEXTEXT("      (cz = c.z)\n")
@@ -10807,6 +10818,9 @@ namespace
 	{
 		validate(true);
 
+      TEST(TestOperatorOverload2);
+      TEST(TestOperatorOverload);
+      
 		TEST(TestNullArchetypeArg);
 		TEST(TestMacroAsArgument1);
 
@@ -11051,9 +11065,6 @@ namespace
 	
 	void RunTests()
 	{	
-      TEST(TestOperatorOverload);
- // -> TODO     TEST(TestOperatorOverload2);
-      TEST(TestLinkedList11);
 		RunPositiveSuccesses();	
 		RunCollectionTests();
 		RunPositiveFailures(); 

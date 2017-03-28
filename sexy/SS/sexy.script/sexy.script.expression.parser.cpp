@@ -974,7 +974,10 @@ namespace Sexy { namespace Script
          if (directive.NumberOfElements() == (6 + offset))
          {
             cr_sex secondarg = directive[4 + offset];
-            if (IsAtomic(secondarg) && (AreEqual(secondarg.String(), SEXTEXT("+")) || AreEqual(secondarg.String(), SEXTEXT("-"))))
+            if (IsAtomic(secondarg) && 
+               (AreEqual(secondarg.String(), SEXTEXT("+")) || 
+                AreEqual(secondarg.String(), SEXTEXT("-")) || 
+                AreEqual(secondarg.String(), SEXTEXT("*"))))
             {
                CompileOperatorOverload(ce, directive, varStruct, offset + 1);
             }
@@ -1585,7 +1588,7 @@ namespace Sexy { namespace Script
 
 	bool IsAssignment(cr_sex s)
 	{
-		if (s.NumberOfElements() != 3)	
+		if (s.NumberOfElements() != 3 && s.NumberOfElements() != 5)	
 		{
 			return false;
 		}
@@ -1736,17 +1739,43 @@ namespace Sexy { namespace Script
 
 	void CompileAsStructureAssignment(CCompileEnvironment& ce, const IStructure& varStruct, cr_sex directive)
 	{
-		csexstr varName = directive.GetElement(0).String()->Buffer;
-		cr_sex rhs = directive.GetElement(2);
+      if (directive.NumberOfElements() == 3)
+      {
+         csexstr varName = directive.GetElement(0).String()->Buffer;
+         cr_sex rhs = directive.GetElement(2);
 
-		switch(rhs.Type())
-		{
-		case EXPRESSION_TYPE_COMPOUND:
-			 CompileAsStructureAssignmentFromCompound(ce, varStruct, varName, rhs);
-			 break;
-		default:
-			Throw(directive, SEXTEXT("Non-compound structure assignment is not yet implemented"));
-		}
+         switch (rhs.Type())
+         {
+         case EXPRESSION_TYPE_COMPOUND:
+            CompileAsStructureAssignmentFromCompound(ce, varStruct, varName, rhs);
+            break;
+         default:
+            Throw(directive, SEXTEXT("Non-compound structure assignment is not yet implemented"));
+         }
+      }
+      else if (directive.NumberOfElements() == 5)
+      {
+         auto& sop = directive[3];
+
+         if (IsAtomic(sop))
+         {
+            csexstr prefix = nullptr;
+            auto s = sop.String();
+            if (AreEqual(s, SEXTEXT("+"))) prefix = SEXTEXT("Add");
+            else  if (AreEqual(s, SEXTEXT("-"))) prefix = SEXTEXT("Subtract");
+            else  if (AreEqual(s, SEXTEXT("*"))) prefix = SEXTEXT("Multiply");
+            else Throw(directive, L"Unrecognized assignment syntax");
+            CompileBinaryOperatorOverload(prefix, ce, directive, varStruct, 0);
+         }
+         else
+         {
+            Throw(directive, L"Unrecognized assignment syntax");
+         }
+      }
+      else
+      {
+         Throw(directive, SEXTEXT("Could not parse assignment"));
+      }
 	}
 
 	bool TryCompileAsImplicitSetDirective(CCompileEnvironment& ce, cr_sex directive)

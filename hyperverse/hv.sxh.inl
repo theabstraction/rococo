@@ -356,6 +356,20 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetClearColour(red, green, blue);
 	}
+	void NativeHVGraphicsISceneBuilderSetSunDirection(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec3* sun;
+		_offset += sizeof(sun);
+		ReadInput(sun, _sf, -_offset);
+
+		HV::Graphics::ISceneBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetSunDirection(*sun);
+	}
 
 	void NativeGetHandleForHVGraphicsSceneBuilder(NativeCallEnvironment& _nce)
 	{
@@ -377,6 +391,7 @@ namespace HV { namespace Graphics {
 		ss.AddNativeCall(ns, NativeHVGraphicsISceneBuilderAddStatics, nullptr, SEXTEXT("ISceneBuilderAddStatics (Pointer hObject)(Int64 entityId) -> "));
 		ss.AddNativeCall(ns, NativeHVGraphicsISceneBuilderClear, nullptr, SEXTEXT("ISceneBuilderClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeHVGraphicsISceneBuilderSetClearColour, nullptr, SEXTEXT("ISceneBuilderSetClearColour (Pointer hObject)(Float32 red)(Float32 green)(Float32 blue) -> "));
+		ss.AddNativeCall(ns, NativeHVGraphicsISceneBuilderSetSunDirection, nullptr, SEXTEXT("ISceneBuilderSetSunDirection (Pointer hObject)(Sys.Maths.Vec3 sun) -> "));
 	}
 }}
 // BennyHill generated Sexy native functions for HV::Entities::IMobiles 
@@ -954,6 +969,28 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetControlNone();
 	}
+	void NativeHVIPlayerSetSpeed(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float straffe;
+		_offset += sizeof(straffe);
+		ReadInput(straffe, _sf, -_offset);
+
+		float backward;
+		_offset += sizeof(backward);
+		ReadInput(backward, _sf, -_offset);
+
+		float forward;
+		_offset += sizeof(forward);
+		ReadInput(forward, _sf, -_offset);
+
+		HV::IPlayer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetSpeed(forward, backward, straffe);
+	}
 
 	void NativeGetHandleForHVGraphicsPlayer(NativeCallEnvironment& _nce)
 	{
@@ -980,6 +1017,7 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVIPlayerGetPlayerEntity, nullptr, SEXTEXT("IPlayerGetPlayerEntity (Pointer hObject) -> (Int64 id)"));
 		ss.AddNativeCall(ns, NativeHVIPlayerSetControlFPS, nullptr, SEXTEXT("IPlayerSetControlFPS (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeHVIPlayerSetControlNone, nullptr, SEXTEXT("IPlayerSetControlNone (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVIPlayerSetSpeed, nullptr, SEXTEXT("IPlayerSetSpeed (Pointer hObject)(Float32 forward)(Float32 backward)(Float32 straffe) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for HV::IKeyboard 

@@ -27,6 +27,7 @@ namespace
       HV::Graphics::ICameraSupervisor& camera;
 
       RGBA clearColour{ 0,0,0,1 };
+      Vec3 sun{ 0, 0, -1 };
    public:
       Scene(HV::Entities::IInstancesSupervisor& _instances, HV::Graphics::ICameraSupervisor& _camera) :
          instances(_instances), camera(_camera)
@@ -39,6 +40,15 @@ namespace
          clearColour.red = red;
          clearColour.green = green;
          clearColour.blue = blue;
+      }
+
+      virtual void SetSunDirection(const Vec3& sun)
+      {
+         this->sun = sun;
+         if (!TryNormalize(sun, this->sun))
+         {
+            this->sun = { 0,0,0 }; // night
+         }
       }
 
       virtual void Free()
@@ -78,7 +88,7 @@ namespace
          drawQueue.clear();
 
          GlobalState state;
-         state.sunlightDirection = Vec4{ 0, 0, 1.0f, 0.0f };
+         state.sunlightDirection = HomogenizeNormal(sun);
 
          camera.GetWorld(state.worldMatrix);
          camera.GetWorldAndProj(state.worldMatrixAndProj);

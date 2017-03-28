@@ -14,6 +14,7 @@ namespace
    class TextureParser : public Imaging::IImageLoadEvents
    {
       ID3D11Device& device;
+      ID3D11DeviceContext& dc;
       ID3D11Texture2D* texture;
       std::wstring name;
       bool allowAlpha;
@@ -28,35 +29,66 @@ namespace
       {
          if (!allowColour)
          {
-            OnError("nOnly 24-bit or 32-bit colour formats allowed.");
+            OnError("Only 8-bit alpha (greyscale) formats allowed.");
+         }
+
+         if (span.x > D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION || span.y > D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)
+         {
+            Throw(0, L"Image %s exceeded maximum span allowed by DX11.", name.c_str());
          }
 
          D3D11_TEXTURE2D_DESC colourSprite;
          colourSprite.Width = span.x;
          colourSprite.Height = span.y;
-         colourSprite.MipLevels = 1;
+         colourSprite.MipLevels = 0;
          colourSprite.ArraySize = 1;
          colourSprite.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
          colourSprite.SampleDesc.Count = 1;
          colourSprite.SampleDesc.Quality = 0;
-         colourSprite.Usage = D3D11_USAGE_IMMUTABLE;
-         colourSprite.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+         colourSprite.Usage = D3D11_USAGE_DEFAULT; // D3D11_USAGE_IMMUTABLE;
+         colourSprite.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
          colourSprite.CPUAccessFlags = 0;
-         colourSprite.MiscFlags = 0;
+         colourSprite.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
+         struct ABGR8
+         {
+            uint8 alpha;
+            uint8 blue;
+            uint8 green;
+            uint8 red;
+            
+            ABGR8() {}
+            ABGR8(uint32 x) { ABGR8* pCol = (ABGR8*)&x; *this = *pCol; }
+            ABGR8(uint8 _red, uint8 _green, uint8 _blue, uint8 _alpha = 255) : red(_red), green(_green), blue(_blue), alpha(_alpha) {}
+         };
+
+         RGBAb* target = (RGBAb*)data;
+         for (int i = 0; i < span.x * span.y; ++i)
+         {
+            Imaging::F_A8R8G8B8 col = data[i];
+            RGBAb twizzled(col.r, col.g, col.b, col.a);
+            target[i] = twizzled;
+         }
+         /*
          D3D11_SUBRESOURCE_DATA level0Def;
          level0Def.pSysMem = data;
          level0Def.SysMemPitch = span.x * sizeof(RGBAb);
          level0Def.SysMemSlicePitch = 0;
-
-         VALIDATEDX11(device.CreateTexture2D(&colourSprite, &level0Def, &texture));
+         */
+         VALIDATEDX11(device.CreateTexture2D(&colourSprite, nullptr, &texture));
+         dc.UpdateSubresource(texture, 0, nullptr, data, span.x * sizeof(RGBAb), 0);
       }
 
       virtual void OnAlphaImage(const Vec2i& span, const uint8* data)
       {
          if (!allowAlpha)
          {
-            OnError("nOnly 8-bit alpha (greyscale) formats allowed.");
+            OnError("Only 24-bit or 32-bit colour formats allowed.");
+         }
+
+         if (span.x > D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION || span.y > D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)
+         {
+            Throw(0, L"Image %s exceeded maximum span allowed by DX11.", name.c_str());
          }
 
          D3D11_TEXTURE2D_DESC alphaImmutableSprite;
@@ -80,8 +112,8 @@ namespace
          VALIDATEDX11(device.CreateTexture2D(&alphaImmutableSprite, &level0Def, &texture));
       }
    public:
-      TextureParser(ID3D11Device& _device, const wchar_t* filename, bool _allowAlpha, bool _allowColour) :
-         device(_device), name(filename), allowAlpha(_allowAlpha), allowColour(_allowColour)
+      TextureParser(ID3D11Device& _device, ID3D11DeviceContext& _dc, const wchar_t* filename, bool _allowAlpha, bool _allowColour) :
+         device(_device), name(filename), allowAlpha(_allowAlpha), allowColour(_allowColour), dc(_dc)
       {
       }
 
@@ -93,16 +125,16 @@ namespace Rococo
 {
    namespace DX11
    {
-      ID3D11Texture2D* LoadAlphaBitmap(ID3D11Device& device, const uint8* buffer, size_t nBytes, const wchar_t* resourceName)
+      ID3D11Texture2D* LoadAlphaBitmap(ID3D11Device& device, ID3D11DeviceContext& dc, const uint8* buffer, size_t nBytes, const wchar_t* resourceName)
       {
-         TextureParser parser(device, resourceName, true, false);
+         TextureParser parser(device, dc, resourceName, true, false);
          Rococo::Imaging::DecompressTiff(parser, buffer, nBytes);
          return parser.Texture();
       }
 
-      ID3D11Texture2D* LoadColourBitmap(ID3D11Device& device, const uint8* buffer, size_t nBytes, const wchar_t* resourceName)
+      ID3D11Texture2D* LoadColourBitmap(ID3D11Device& device, ID3D11DeviceContext& dc, const uint8* buffer, size_t nBytes, const wchar_t* resourceName)
       {
-         TextureParser parser(device, resourceName, false, true);
+         TextureParser parser(device, dc, resourceName, false, true);
 
          auto* ext = GetFileExtension(resourceName);
          if (Eq(ext, L".tiff") || Eq(ext, L".tif"))
@@ -117,9 +149,10 @@ namespace Rococo
          return parser.Texture();
       }
 
-      TextureLoader::TextureLoader(IInstallation& _installation, ID3D11Device& _device, IExpandingBuffer& _scratchBuffer):
+      TextureLoader::TextureLoader(IInstallation& _installation, ID3D11Device& _device, ID3D11DeviceContext& _dc, IExpandingBuffer& _scratchBuffer):
          installation(_installation),
          device(_device), 
+         dc(_dc),
          scratchBuffer(_scratchBuffer)
       {
 
@@ -137,27 +170,29 @@ namespace Rococo
 
          if (scratchBuffer.Length() == 0) Throw(0, L"The image file %s was blank", resourceName);
 
-         auto* colour = DX11::LoadColourBitmap(device, scratchBuffer.GetData(), scratchBuffer.Length(), resourceName);
+         auto* tx = DX11::LoadColourBitmap(device, dc, scratchBuffer.GetData(), scratchBuffer.Length(), resourceName);
 
          D3D11_SHADER_RESOURCE_VIEW_DESC desc;
          ZeroMemory(&desc, sizeof(desc));
 
-         desc.Texture2D.MipLevels = 1;
+         desc.Texture2D.MipLevels = -1;
          desc.Texture2D.MostDetailedMip = 0;
 
          desc.Format = DXGI_FORMAT_UNKNOWN;
          desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 
          ID3D11ShaderResourceView* view = nullptr;
-         HRESULT hr = device.CreateShaderResourceView(colour, &desc, &view);
+         HRESULT hr = device.CreateShaderResourceView(tx, &desc, &view);
 
          if FAILED(hr)
          {
-            colour->Release();
+            tx->Release();
             Throw(hr, L"Failed to CreateShaderResourceVie for %s", resourceName);
          }
 
-         return{ colour, view };
+         dc.GenerateMips(view);
+
+         return{ tx, view };
       }
 
       TextureBind TextureLoader::LoadAlphaBitmap(const wchar_t* resourceName)
@@ -172,7 +207,7 @@ namespace Rococo
 
          if (scratchBuffer.Length() == 0) Throw(0, L"The image file %s was blank", resourceName);
 
-         auto* alpha = DX11::LoadAlphaBitmap(device, scratchBuffer.GetData(), scratchBuffer.Length(), resourceName);
+         auto* alpha = DX11::LoadAlphaBitmap(device, dc, scratchBuffer.GetData(), scratchBuffer.Length(), resourceName);
 
          D3D11_SHADER_RESOURCE_VIEW_DESC desc;
          ZeroMemory(&desc, sizeof(desc));

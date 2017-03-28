@@ -85,16 +85,16 @@ namespace HV
          }
 
          virtual void OnEvent(ScriptCompileArgs& args)
-         {
+         { 
+            args.ss.AddNativeLibrary(SEXTEXT("rococo.sexy.vectorlib.debug"));
             Entities::AddNativeCalls_HVEntitiesIInstances(args.ss, &e.instances);
             Entities::AddNativeCalls_HVEntitiesIMobiles(args.ss, &e.mobiles);
             Graphics::AddNativeCalls_HVGraphicsIMeshBuilder(args.ss, &e.meshes);
             Graphics::AddNativeCalls_HVGraphicsISceneBuilder(args.ss, &e.scene.Builder());
-            Graphics::AddNativeCalls_HVGraphicsICamera(args.ss, &e.camera);
+            Graphics::AddNativeCalls_HVGraphicsICamera(args.ss, &e.camera);     
             AddNativeCalls_HVIKeyboard(args.ss, &e.keyboard);
             AddNativeCalls_HVIPlayer(args.ss, &e.players);
-            AddNativeCalls_HVIConfig(args.ss, &e.config);
-           
+            AddNativeCalls_HVIConfig(args.ss, &e.config);     
          }
 
       public:

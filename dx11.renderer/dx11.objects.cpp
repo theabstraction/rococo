@@ -30,6 +30,23 @@ namespace Rococo
          return sizeof(objectVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC);
       }
 
+      ID3D11SamplerState* CreateObjectSampler(ID3D11Device& device)
+      {
+         D3D11_SAMPLER_DESC spriteSamplerDesc;
+         ZeroMemory(&spriteSamplerDesc, sizeof(spriteSamplerDesc));
+         spriteSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+         spriteSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+         spriteSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+         spriteSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+         spriteSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+         spriteSamplerDesc.MinLOD = 0;
+         spriteSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+         ID3D11SamplerState* spriteSampler = nullptr;
+         VALIDATEDX11(device.CreateSamplerState(&spriteSamplerDesc, &spriteSampler));
+         return spriteSampler;
+      }
+
       ID3D11RasterizerState* CreateObjectRasterizer(ID3D11Device& device)
       {
          D3D11_RASTERIZER_DESC objRenderingDesc;

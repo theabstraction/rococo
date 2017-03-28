@@ -214,42 +214,32 @@ void AppendNativeFunction(cr_sex functionDef, sexstring ns, const ParseContext& 
 		Throw(functionDef, SEXTEXT("Expecting two elements after the output. The first : and the second the function name to be called in C++"));
 	}
 
-	int bodyIndicatorPos = outputStart + 1;
+   int bodyIndicatorPos = outputStart;
 
-	const ISExpression* outputDef = &functionDef.GetElement(outputStart);
-	if (IsAtomic(*outputDef))
+   if (functionDef.NumberOfElements() == outputStart + 3)
+   {
+      bodyIndicatorPos++;
+   }
+   
+   cr_sex bodyIndicator = functionDef[bodyIndicatorPos];
+   if (!IsAtomic(bodyIndicator) || !AreEqual(bodyIndicator.String(), SEXTEXT(":")))
+   {
+      Throw(bodyIndicator, SEXTEXT("Expecting ':' body indicator at this position. Benny Hill functions have only one output. Check spaces between tokens."));
+   }
+
+   cr_sex sCppFunction = functionDef[functionDef.NumberOfElements() - 1];
+   if (!IsAtomic(sCppFunction) && !IsStringLiteral(sCppFunction))
+   {
+      Throw(sCppFunction, SEXTEXT("Expecting function name, atomic or string literal"));
+   }
+
+   sexstring cppFunction = sCppFunction.String();
+
+	if (bodyIndicatorPos > outputStart)
 	{
-		if (AreEqual(outputDef->String(), SEXTEXT(":")))
-		{
-			bodyIndicatorPos = outputStart;
-		}
-		else
-		{
-			Throw(*outputDef, SEXTEXT("Expecting ':' body indicator at this position. Benny Hill functions have only one output. Check spaces between tokens."));
-		}
-	}
-
-	if (outputDef != nullptr)
-	{
-		cr_sex bodyIndicator = functionDef.GetElement(outputStart + 1);
-		if (!IsAtomic(bodyIndicator))
-		{
-			Throw(bodyIndicator, SEXTEXT("Expecting ':' body indicator at this position. Benny Hill functions have only one output. Check spaces between tokens."));
-		}
-	}
-
-	cr_sex sCppFunction = functionDef.GetElement(functionDef.NumberOfElements() - 1);
-	if (!IsAtomic(sCppFunction) && !IsStringLiteral(sCppFunction))
-	{
-		Throw(sCppFunction, SEXTEXT("Expecting function name, atomic or string literal"));
-	}
-
-	sexstring cppFunction = sCppFunction.String();
-
-	if (outputDef)
-	{
-		cr_sex stype = outputDef->GetElement(0);
-		cr_sex svalue = outputDef->GetElement(1);
+      cr_sex outputDef = functionDef[outputStart];
+		cr_sex stype = outputDef.GetElement(0);
+		cr_sex svalue = outputDef.GetElement(1);
 
 		csexstr type = StringFrom(stype);
 
@@ -300,10 +290,11 @@ void AppendNativeFunction(cr_sex functionDef, sexstring ns, const ParseContext& 
 
 	outputFile.Append(SEXTEXT(");\n"));
 
-	if (outputDef)
+	if (bodyIndicatorPos > outputStart)
 	{
-		cr_sex stype = outputDef->GetElement(0);
-		cr_sex svalue = outputDef->GetElement(1);
+      cr_sex outputDef = functionDef[outputStart];
+		cr_sex stype = outputDef.GetElement(0);
+		cr_sex svalue = outputDef.GetElement(1);
 
 		outputFile.Append(SEXTEXT("\t\t_offset += sizeof(%s);\n"), StringFrom(svalue));
 		outputFile.Append(SEXTEXT("\t\tWriteOutput(%s, _sf, -_offset);\n"), StringFrom(svalue));
@@ -928,6 +919,8 @@ int main(int argc, char* argv[])
 		WriteToStandardOutput(SEXTEXT("Unexpected error. Could not derive script name from script-input-file '%S'. Expecting [...filename.sxh]"), scriptInput);
 		return -1;
 	}
+
+   Sexy::OS::SetBreakPoints(Sexy::OS::BreakFlag_All);
 		
 	CSParserProxy spp;
    Auto<ISourceCode> src;
