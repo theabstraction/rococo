@@ -39,9 +39,15 @@
     <ClCompile Include="rococo.observer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rococo.sprites.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.ringbuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rococo.textures.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

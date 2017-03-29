@@ -32,6 +32,11 @@ namespace // Script factories
       return camera;
    }
 
+   HV::ISprites* FactoryConstructHVSprites(HV::ISprites* sprites)
+   {
+      return sprites;
+   }
+
    HV::IPlayer* FactoryConstructHVGraphicsPlayer(HV::IPlayerSupervisor* players, int32 index)
    {
       return players->GetPlayer(index);
@@ -95,10 +100,11 @@ namespace HV
             Entities::AddNativeCalls_HVEntitiesIMobiles(args.ss, &e.mobiles);
             Graphics::AddNativeCalls_HVGraphicsIMeshBuilder(args.ss, &e.meshes);
             Graphics::AddNativeCalls_HVGraphicsISceneBuilder(args.ss, &e.scene.Builder());
-            Graphics::AddNativeCalls_HVGraphicsICamera(args.ss, &e.camera);     
+            Graphics::AddNativeCalls_HVGraphicsICamera(args.ss, &e.camera);   
+            AddNativeCalls_HVISprites(args.ss, &e.sprites);
             AddNativeCalls_HVIKeyboard(args.ss, &e.keyboard);
             AddNativeCalls_HVIPlayer(args.ss, &e.players);
-            AddNativeCalls_HVIConfig(args.ss, &e.config);     
+            AddNativeCalls_HVIConfig(args.ss, &e.config);   
          }
 
       public:

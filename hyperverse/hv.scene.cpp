@@ -3,6 +3,8 @@
 #include <vector>
 #include <algorithm>
 
+#include <rococo.textures.h>
+
 namespace
 {
    using namespace Rococo;
@@ -73,6 +75,16 @@ namespace
 
       virtual void RenderGui(IGuiRenderContext& grc)
       {
+         Vec2i topLeft = { 0, 0 };
+         Textures::BitmapLocation location;
+         if (grc.Renderer().SpriteBuilder().TryGetBitmapLocation(L"!textures/walls/metal1.jpg", location))
+         {
+            Rococo::Graphics::DrawSprite(topLeft, location, grc, false);
+         }
+         else
+         {
+            Throw(0, L"Metal1 not loaded!");
+         }
       }
 
       void FlushDrawQueue(ID_SYS_MESH meshId, ID_TEXTURE textureId, IRenderContext& rc)

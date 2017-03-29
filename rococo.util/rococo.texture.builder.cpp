@@ -1,4 +1,5 @@
-#include <rococo.types.h>
+#include <rococo.api.h>
+#include <rococo.io.h>
 #include <rococo.textures.h>
 #include <rococo.imaging.h>
 
@@ -6,6 +7,8 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+
+#include <rococo.strings.h>
 
 namespace
 {
@@ -496,7 +499,7 @@ namespace
          }
       }
 
-      virtual void BuildTextures(int32 minWidth, int32 priority)
+      virtual void BuildTextures(int32 minWidth)
       {
          int32 width = EvaluateRequiredTextureSpan(minWidth);
 
@@ -587,6 +590,47 @@ namespace Rococo
 {
    namespace Textures
    {
+      const RGBAb* ConvertToRGBAbFormat(Imaging::F_A8R8G8B8* pixels, size_t bufferLength)
+      {
+         RGBAb* engineFormat = (RGBAb*)pixels;
+
+         for (size_t i = 0; i < bufferLength; ++i)
+         {
+            auto src = pixels[i];
+            engineFormat[i] = RGBAb(src.r, src.g, src.b, src.a);
+         }
+
+         return engineFormat;
+      }
+
+      void StandardLoadFromCompressedTextureBuffer(const wchar_t* name, IEventCallback<CompressedTextureBuffer>& onLoad, IInstallation& installation, IExpandingBuffer& buffer)
+      {
+         COMPRESSED_TYPE type;
+
+         auto* ext = GetFileExtension(name);
+         if (Eq(ext, L".tiff") || Eq(ext, L".tif"))
+         {
+            type = COMPRESSED_TYPE_TIF;
+         }
+         else if (Eq(ext, L".jpg") || Eq(ext, L".jpeg"))
+         {
+            type = COMPRESSED_TYPE_JPG;
+         }
+         else
+         {
+            Throw(0, L"%s: Image files either be a tif or a jpg.", name);
+         }
+
+         installation.LoadResource(name, buffer, 64_megabytes);
+         CompressedTextureBuffer args =
+         {
+            buffer.GetData(),
+            buffer.Length(),
+            type
+         };
+         onLoad.OnEvent(args);
+      }
+
       ITextureArrayBuilderSupervisor* CreateTextureArrayBuilder(IResourceLoader& loader, ITextureArray& textureFactory)
       {
          return new TextureArrayBuilder(loader, textureFactory);

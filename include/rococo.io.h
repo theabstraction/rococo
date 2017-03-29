@@ -136,7 +136,9 @@ namespace Rococo
 
    namespace IO
    {
+      enum { MAX_PATHLEN = 260 };
       wchar_t GetFileSeparator();
+      void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity);
       void GetUserPath(wchar_t* fullpath, size_t capacity, const wchar_t* shortname);
       void DeleteUserFile(const wchar_t* filename);
    }

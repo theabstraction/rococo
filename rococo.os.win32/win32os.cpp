@@ -11,14 +11,12 @@
 #include <stdlib.h>
 
 #include <rococo.io.h>
-
 #include <process.h>
 
 #include <vector>
 
 #include <shlobj.h>
 #include <comip.h>
-
 #include <Shlwapi.h>
 
 #include <rococo.strings.h>
@@ -885,6 +883,29 @@ namespace Rococo
          return true;
       }
 
+      void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity)
+      {
+         const wchar_t* finalChar = GetFinalNull(pathname);
+
+         if (pathname == nullptr || pathname == finalChar)
+         {
+            Throw(0, L"Invalid pathname in call to EndDirectoryWithSlash");
+         }
+
+         bool isSlashed = finalChar[-1] == L'\\' || finalChar[-1] == L'/';
+         if (!isSlashed)
+         {
+            if (finalChar >= (pathname + capacity - 1))
+            {
+               Throw(0, L"Insufficient room in directory buffer to trail with slash");
+            }
+
+            wchar_t* mutablePath = const_cast<wchar_t*>(finalChar);
+            mutablePath[0] = L'/';
+            mutablePath[1] = 0;
+         }
+      }
+
       void ForEachFileInDirectory(const wchar_t* directory, IEventCallback<const wchar_t*>& onFile)
       { 
          struct Anon
@@ -907,8 +928,6 @@ namespace Rococo
          Anon hSearch;
 
          wchar_t fullpath[MAX_PATH];
-         SafeCopy(fullpath, directory, _TRUNCATE);
-
          bool isSlashed = GetFinalNull(directory)[-1] == L'\\' || GetFinalNull(directory)[-1] == L'/';
          SafeFormat(fullpath, _TRUNCATE, L"%s%s*.*", directory, isSlashed ? L"" : L"\\");
 

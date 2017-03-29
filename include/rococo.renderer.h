@@ -21,7 +21,7 @@ namespace Rococo
 		RGBAb colour;
 		float u;
 		float v;
-		float unused;
+		float textureIndex; // When used in sprite calls, this indexes the texture in the texture array
 	};
 
 	struct ObjectVertex
@@ -39,12 +39,17 @@ namespace Rococo
 	ROCOCO_ID(ID_VERTEX_SHADER,size_t,-1)
 	ROCOCO_ID(ID_PIXEL_SHADER, size_t, -1)
 	ROCOCO_ID(ID_TEXTURE, size_t, -1)
+
+   namespace Textures
+   {
+      struct BitmapLocation;
+   }
 	
 	ROCOCOAPI IGuiRenderContext // Provides draw calls - do not cache
 	{
 		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
 		virtual void FlushLayer() = 0;
-
+      virtual void AddSpriteTriangle(bool alphaBlend, const GuiVertex triangle[3]) = 0;
 		virtual Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
 		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
 		virtual IRenderer& Renderer() = 0;
@@ -104,6 +109,11 @@ namespace Rococo
 		struct IWindow;
 	}
 
+   namespace Textures
+   {
+      struct ITextureArrayBuilder;
+   }
+
 	ROCOCOAPI IRenderer
 	{
       virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
@@ -112,6 +122,7 @@ namespace Rococo
       virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
       virtual IInstallation& Installation() = 0;	
       virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, const wchar_t* uniqueName) = 0;
+      virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
 		virtual void Render(IScene& scene) = 0;
       virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
 		virtual void SetCursorBitmap(ID_TEXTURE bitmapId, Vec2i hotspotOffset, Vec2 uvTopLeft, Vec2 uvBottomRight) = 0;
@@ -145,7 +156,9 @@ namespace Rococo
 		Fonts::IDrawTextJob& CreateLeftAlignedText(StackSpaceGraphics& ss, const GuiRect& targetRect, int retzone, int hypzone, int fontIndex, const wchar_t* text, RGBAb colour);
 		float GetAspectRatio(const IRenderer& renderer);
 		Vec2 PixelSpaceToScreenSpace(const Vec2i& v, IRenderer& renderer);
-	}
-}
+
+      void DrawSprite(const Vec2i& position, const Textures::BitmapLocation& location, IGuiRenderContext& gc, bool alphaBlend);
+	} // Graphics
+} // Rococo
 
 #endif

@@ -100,12 +100,14 @@
     <ClCompile Include="rococo.observer.cpp" />
     <ClCompile Include="rococo.postbox.cpp" />
     <ClCompile Include="rococo.s-parser.helpers.cpp" />
+    <ClCompile Include="rococo.sprites.cpp" />
     <ClCompile Include="rococo.strings.cpp" />
     <ClCompile Include="rococo.texture.builder.cpp" />
     <ClCompile Include="ui.widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.ringbuffer.h" />
+    <ClInclude Include="..\include\rococo.textures.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="copy.sexy.to.game.debug.bat" />

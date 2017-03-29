@@ -314,7 +314,7 @@ void Main()
 
    IO::ForEachFileInDirectory(directory, onFile);
 
-   textureArrayBuilder->BuildTextures(1, 0);
+   textureArrayBuilder->BuildTextures(1);
 
    HIMAGELIST hImages = tarray.CreateImageList();
    mainWindow->DoModal(nullptr, hImages);

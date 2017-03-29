@@ -6,6 +6,8 @@
     <FxCompile Include="object.vs.hlsl" />
     <FxCompile Include="object.ps.hlsl" />
     <FxCompile Include="depth.ps.hlsl" />
+    <FxCompile Include="sprite.ps.hlsl" />
+    <FxCompile Include="sprite.vs..hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bitmap.cache.cpp">

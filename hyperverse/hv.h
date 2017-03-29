@@ -141,6 +141,13 @@ namespace HV
          virtual ISceneBuilderSupervisor&  Builder() = 0;
       };
 
+      ROCOCOAPI ISpriteSupervisor : public ISprites
+      {
+         virtual void Free() = 0;
+      };
+
+      ISpriteSupervisor* CreateSpriteSupervisor(IRenderer & renderer);
+
       ISceneSupervisor* CreateScene(Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera);
       ICameraSupervisor* CreateCamera(Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& render, IPublisher& publisher);
       IMeshBuilderSupervisor* CreateMeshBuilder(IRenderer& renderer);
@@ -215,11 +222,11 @@ namespace HV
       Entities::IInstancesSupervisor& instances;
       Entities::IMobiles& mobiles;
       Graphics::ICameraSupervisor& camera;
+      Graphics::ISpriteSupervisor& sprites;
       IPlayerSupervisor& players;
       IKeyboardSupervisor& keyboard;
       IMouse& mouse;
       IMathsVisitorSupervisor& mathsDebugger;
-      
    };
 
    IApp* CreateHVApp(Cosmos& e);

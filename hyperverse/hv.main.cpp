@@ -69,6 +69,7 @@ void Main(HANDLE hInstanceLock)
    AutoFree<IKeyboardSupervisor> keyboardSupervisor = CreateKeyboardSupervisor();
    AutoFree<IMouse> mouse = CreateMouse(*publisher);
    AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor();
+   AutoFree<ISpriteSupervisor> sprites = CreateSpriteSupervisor(mainWindow->Renderer());
 
    HV::Cosmos e
    {
@@ -84,6 +85,7 @@ void Main(HANDLE hInstanceLock)
       *instances,
       *mobiles,
       *camera,
+      *sprites,
       *players,
       *keyboardSupervisor,
       *mouse,
