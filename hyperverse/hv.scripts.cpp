@@ -86,7 +86,11 @@ namespace HV
 
          virtual void OnEvent(ScriptCompileArgs& args)
          { 
-            args.ss.AddNativeLibrary(SEXTEXT("rococo.sexy.vectorlib.debug"));
+#ifdef _DEBUG
+            args.ss.AddNativeLibrary(SEXTEXT("rococo.sexy.mathsex.debug"));
+#else
+            args.ss.AddNativeLibrary(SEXTEXT("rococo.sexy.mathsex"));
+#endif
             Entities::AddNativeCalls_HVEntitiesIInstances(args.ss, &e.instances);
             Entities::AddNativeCalls_HVEntitiesIMobiles(args.ss, &e.mobiles);
             Graphics::AddNativeCalls_HVGraphicsIMeshBuilder(args.ss, &e.meshes);

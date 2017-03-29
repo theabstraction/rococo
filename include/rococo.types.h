@@ -38,6 +38,9 @@ namespace Rococo
    typedef const Vec4& cr_vec4;
    typedef const Matrix4x4& cr_m4x4;
 
+   int64 CpuTicks();
+   int64 CpuHz();
+
    struct fstring
    {
       const wchar_t* buffer;

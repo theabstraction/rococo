@@ -80,12 +80,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.tiff", "libtiff\blok
 		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.sexy.vectorlib", "rococo.sexy.vectorlib\rococo.sexy.vectorlib.vcxproj", "{FE3BADFF-A200-4389-BD90-D3A058834C4F}"
-	ProjectSection(ProjectDependencies) = postProject
-		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
-		{0C635B64-083B-4490-9100-BDB4A4CA6941} = {0C635B64-083B-4490-9100-BDB4A4CA6941}
-		{426AEC64-C529-4ADF-9A49-B4E7A3D6C710} = {426AEC64-C529-4ADF-9A49-B4E7A3D6C710}
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.sexy.mathsex", "rococo.sexy.mathsex\rococo.sexy.mathsex.vcxproj", "{FE3BADFF-A200-4389-BD90-D3A058834C4F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

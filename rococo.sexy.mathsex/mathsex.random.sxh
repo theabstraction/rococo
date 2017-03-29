@@ -1,0 +1,8 @@
+(config $config.xc)
+
+(functions Sys.Random "mathsex.random"
+	(RollDie (Int32 sides)->(Int32 value): Rococo::Random::RollDie)
+	(RollDice (Int32 count)(Int32 sides)->(Int32 sum): Rococo::Random::RollDice)
+	(Seed (Int32 value)-> : Rococo::Random::Seed)
+	(AnyOf (Float32 minValue)(Float32 maxValue)->(Float32 value): Rococo::Random::AnyOf)
+)

@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="rococo.sexy.mathsex.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="SXH">
+      <UniqueIdentifier>{50a3b7ca-f851-4326-8d8e-a8a88c32fd7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{09f9fdea-0991-403b-bd21-b78c1973bd9c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="mathsex.random.sxh">
+      <Filter>SXH</Filter>
+    </CustomBuild>
+    <CustomBuild Include="mathsex.time.sxh">
+      <Filter>SXH</Filter>
+    </CustomBuild>
+    <CustomBuild Include="mathsex.vectors.sxh">
+      <Filter>SXH</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="config.xc">
+      <Filter>SXH</Filter>
+    </None>
+    <None Include="mathsex.random.inl">
+      <Filter>Generated Files</Filter>
+    </None>
+    <None Include="mathsex.vectors.inl">
+      <Filter>Generated Files</Filter>
+    </None>
+    <None Include="mathsex.time.inl">
+      <Filter>Generated Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

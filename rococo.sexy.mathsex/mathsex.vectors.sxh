@@ -1,6 +1,6 @@
 (config $config.xc)
 
-(functions Sys.Geometry.F32 "vectorlib"
+(functions Sys.Geometry.F32 "mathsex.vectors"
 	(AddVec3fVec3f (Vec3 a)(Vec3 b)(Vec3 sum)-> : Rococo::Maths::AddVec3toVec3)
 	(SubtractVec3fVec3f (Vec3 a)(Vec3 b)(Vec3 difference)-> : Rococo::Maths::SubtractVec3fromVec3)
 	(Dot (Vec3 a)(Vec3 b) -> (Float32 dotProduct) : Rococo::Maths::Dot)

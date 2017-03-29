@@ -16,7 +16,6 @@
 (using HV)
 (using Sys.Type)
 (using Sys.Geometry.F32)
-(using Sys.Random)
 
 /*
 	struct ObjectVertex
@@ -48,7 +47,7 @@
 	(Int32 colour) 
 )
 
-(function IntrudeWall (IMeshBuilder mb)(Vec3 start) (Vec3 end) (Float32 leftDelta)(Float32 rightDelta)(Float32 intrusiion)(FloorDef floor)(Float32 bestSubFloorHeight)(Float32 windowHeightMod)(Float32 windowRange) -> :
+(function IntrudeWall (IMeshBuilder mb)(Vec3 start) (Vec3 end) (Float32 leftDelta)(Float32 rightDelta)(Float32 intrusiion)(FloorDef floor) -> :
 	(Vec3 delta = end - start)
 	(Float32 deltaLen = (Length delta))
 	(Vec3 up = 0 0 1)
@@ -65,11 +64,11 @@
 	(ProjectLine  leftintrude  normal intrusiion leftinside)
 	(ProjectLine  rightintrude normal intrusiion rightinside)
 
-	(DefineRandomWall mb start        leftintrude  floor bestSubFloorHeight windowHeightMod windowRange)
-	(DefineRandomWall mb leftintrude  leftinside   floor bestSubFloorHeight windowHeightMod windowRange)
-	(DefineRandomWall mb leftinside   rightinside  floor bestSubFloorHeight windowHeightMod windowRange)
-	(DefineRandomWall mb rightinside  rightintrude floor bestSubFloorHeight windowHeightMod windowRange)
-	(DefineRandomWall mb rightintrude end          floor bestSubFloorHeight windowHeightMod windowRange)
+	(DefineRandomWall mb start        leftintrude  floor)
+	(DefineRandomWall mb leftintrude  leftinside   floor)
+	(DefineRandomWall mb leftinside   rightinside  floor)
+	(DefineRandomWall mb rightinside  rightintrude floor)
+	(DefineRandomWall mb rightintrude end          floor)
 )
 
 (function RecessWall (IMeshBuilder mb)(Vec3 start) (Vec3 end) (FloorDef floor)-> :
@@ -150,7 +149,7 @@
 	(TesselateWindow mb oil xax floor.low floor.high)
 )
 
-(function CentreWindowInWall (IMeshBuilder mb)(Vec3 start) (Vec3 end) (FloorDef floor)(Float32 windowHeight)(Float32 windowRange)-> :
+(function CentreWindowInWall (IMeshBuilder mb)(Vec3 start) (Vec3 end) (FloorDef floor)-> :
 /*
 	
 	|--------------------------------------------------|
@@ -189,9 +188,10 @@
 	(Normalize tangent)
 	(Vec3 up = 0 0 1)
 	(Float32 height = (floor.high - floor.low))
+	(Float32 windowHeight = 3.0)
 	(Float32 verticalBorder = (height - windowHeight))
 	(Float32 baseHeight = (0.5 * verticalBorder))
-	(Float32 windowWidth = (windowRange * wallLength))
+	(Float32 windowWidth = 1.5)
 	(Float32 horzBorder = (wallLength - windowWidth))
 	(Float32 columnWidth = (0.5 * horzBorder))
 	
@@ -289,33 +289,30 @@
 	(mb.AddTriangle topRight bottomRight bottomLeft)
 )
 
-(function TesselateSegment (IMeshBuilder mb)(Vec3 start) (Vec3 end) (FloorDef floor) (Float32 bestSubFloorHeight)(Float32 windowHeightMod)(Float32 windowRange) -> :
+(function TesselateSegment (IMeshBuilder mb)(Vec3 start) (Vec3 end) (FloorDef floor) -> :
 	(Float32 height = (floor.high - floor.low))
-	(Int32 subfloorCount = (ToInt32 (height / bestSubFloorHeight)))
+	(Float32 bestSubfloorHeight = 4.5 )
+	(Int32 subfloorCount = (ToInt32 (height / bestSubfloorHeight)))
 	(Float32 subfloorHeight = (height / (ToFloat32 subfloorCount)))
 	(Float32 y = floor.low)
-	
-	(Float32 windowHeight = (windowHeightMod * bestSubFloorHeight))
-	
 	(#for(Int32 i = 0)(i < subfloorCount)(#inc i)
 		(Float32 y1 = (y + subfloorHeight))
 		(FloorDef subfloor = y y1 floor.colour)
-		(CentreWindowInWall mb start end subfloor windowHeight windowRange)
+		(CentreWindowInWall mb start end subfloor)
 		(y = (y + subfloorHeight))
 	)
 )
 
-(function TesselateWall (IMeshBuilder mb)(Vec3 start) (Vec3 end) (FloorDef floor)(Float32 bestSubFloorHeight)(Float32 windowHeightMod)(Float32 windowRange)  -> :
+(function TesselateWall (IMeshBuilder mb)(Vec3 start) (Vec3 end) (FloorDef floor)   -> :
 	(Vec3 tangent = end - start)
 	(Float32 tangentLen = (Length tangent))
 	(Vec3 up = 0 0 1)
 	(Vec3 normal = tangent * up)
 	(Normalize normal)
 	(Normalize tangent)
-	(Float32 segmentWidth = (AnyOf 3 10))
 	(Float32 height = (floor.high - floor.low))
-	(if ((tangentLen > segmentWidth) and (height > 6.0)) 
-		(Int32 segmentCount = (ToInt32 (tangentLen / segmentWidth)))
+	(if ((tangentLen > 3.0) and (height > 6.0)) 
+		(Int32 segmentCount = (ToInt32 (tangentLen / 3.0)))
 		(Float32 segmentLength = (tangentLen / (ToFloat32 segmentCount)))
 		(Float32 x = 0)
 		(#for(Int32 i = 0)(i < segmentCount)(#inc i)
@@ -324,79 +321,85 @@
 			(x = (x + segmentLength))
 			(Vec3 endSegment)
 			(ProjectLine start tangent x endSegment)
-			(TesselateSegment mb startSegment endSegment floor bestSubFloorHeight windowHeightMod windowRange)
+			(TesselateSegment mb startSegment endSegment floor)
 		)
 	else	
-		(TesselateBlankWall mb start end floor )
+		(TesselateBlankWall mb start end floor)
 	)
 )
 
-(function DefineRandomWall (IMeshBuilder mb)(Vec3 start) (Vec3 end) (FloorDef floor)(Float32 bestSubFloorHeight)(Float32 windowHeightMod)(Float32 windowRange)  -> :
-	(TesselateWall mb start end floor bestSubFloorHeight windowHeightMod windowRange)
+(function DefineRandomWall (IMeshBuilder mb)(Vec3 start) (Vec3 end) (FloorDef floor)  -> :
+	(TesselateWall mb start end floor)
 )
 
-(function AddRandomFloor (IMeshBuilder mb)(Float32 length)(Float32 width)(Float32 floorY)(Float32 height) -> :
-	(Float32 oml = (1 - length))
-	(Float32 omw = (1 - width))
-
-	(Vec3 sw = oml        omw      0)
-	(Vec3 se = length     omw      0)
-	(Vec3 ne = length   width      0)
-	(Vec3 nw = oml      width      0)
-
-	(Float32 bestSubFloorHeight = (AnyOf 3.5 6))
-	(Float32 windowHeightMod = (AnyOf 0.7 0.95))
-	(Float32 windowRange = (AnyOf 0.7 0.9))
-		
-	(Float32 ceiling = (floorY + height))
-
-	(FloorDef floor = floorY ceiling 0x00FFFFFF) 
-
-	(if ((RollDie 2) == 1)	
-		(IntrudeWall mb sw se 0.3 0.7 -2.0 floor bestSubFloorHeight windowHeightMod windowRange) 
-		(width = (width - 2))
-	else
-		(DefineRandomWall mb sw se floor bestSubFloorHeight windowHeightMod windowRange)
-	)
-
-	(if ((RollDie 2) == 1)	
-		(IntrudeWall mb se ne 0.3 0.7 -2.0 floor bestSubFloorHeight windowHeightMod windowRange) 
-	else
-		(DefineRandomWall mb se ne floor bestSubFloorHeight windowHeightMod windowRange)
-	)
-
-	(if ((RollDie 2) == 1)	
-		(IntrudeWall mb ne nw 0.3 0.7 -2.0 floor bestSubFloorHeight windowHeightMod windowRange) 
-	else
-		(DefineRandomWall mb ne nw floor bestSubFloorHeight windowHeightMod windowRange)
-	)
-
-	(if ((RollDie 2) == 1)	
-		(IntrudeWall mb nw sw 0.3 0.7 -2.0 floor bestSubFloorHeight windowHeightMod windowRange) 
-	else
-		(DefineRandomWall mb nw sw floor bestSubFloorHeight windowHeightMod windowRange)
-	)
-)
-
-(function DefineRandomBulding (IString name) -> :
+(function DefineRandomBulding (IString name) (Float32 height) -> :
 	(IMeshBuilder mb (MeshBuilder))
 	(mb.Clear)
 	(mb.Begin name)
 	
-	(Int32 floorCount = (RollDie 4))
-	
-	(Float32 floorY = 0)
-	(Float32 width =  (AnyOf 10 20))
-	(Float32 length =  (AnyOf 20 30))
-	
-	(#for (Int32 i = 0)(i < floorCount)(#inc i)
-		(Float32 height = (AnyOf 10 60))
-	
-		(AddRandomFloor mb length width floorY height)
+	(
+		(Vec3 sw = -96 -28 0)
+		(Vec3 se =  96 -28 0)
+		(Vec3 ne =  96  29 0)
+		(Vec3 nw = -96  29 0)
 		
-		(floorY = (floorY + height))	
-		(length = (length * (AnyOf 0.8 1.0)))
-		(width = (width * (AnyOf 0.8 1.0)))
+		(FloorDef floor = 0 20 0x00FFFFFF) 
+		(IntrudeWall mb sw se 0.3 0.7 -2.0 floor) 
+		(DefineRandomWall mb se ne floor)
+		(IntrudeWall mb ne nw 0.3 0.7 -2.0 floor) 
+		(DefineRandomWall mb nw sw floor)
+	)
+	
+	(
+		(Vec3 sw = -50 -25 0)
+		(Vec3 se =  50 -25 0)
+		(Vec3 ne =  50  25 0)
+		(Vec3 nw = -50  25 0)
+		
+		(FloorDef floor = 20 60 0x00FFFFFF) 
+		(IntrudeWall mb sw se 0.3 0.7 -2.0 floor) 
+		(DefineRandomWall mb se ne floor)
+		(IntrudeWall mb ne nw 0.3 0.7 -2.0 floor) 
+		(DefineRandomWall mb nw sw floor)
+	)
+	
+	(
+		(Vec3 sw = -48 -20 0)
+		(Vec3 se =  48 -20 0)
+		(Vec3 ne =  48  20 0)
+		(Vec3 nw = -48  20 0)
+		
+		(FloorDef floor = 60 180 0x00FFFFFF) 
+		(DefineRandomWall mb sw se floor)
+		(IntrudeWall mb se ne 0.3 0.7 -2.0 floor)
+		(DefineRandomWall mb ne nw floor)
+		(IntrudeWall mb nw sw 0.3 0.7 -2.0 floor)
+	)
+	
+	(
+		(Vec3 sw = -38 -20 0)
+		(Vec3 se =  38 -20 0)
+		(Vec3 ne =  38  20 0)
+		(Vec3 nw = -38  20 0)
+		
+		(FloorDef floor = 180 370 0x00FFFFFF) 
+		(DefineRandomWall mb sw se floor)
+		(IntrudeWall mb se ne 0.3 0.7 -6.0 floor)
+		(DefineRandomWall mb ne nw floor)
+		(IntrudeWall mb nw sw 0.3 0.7 -6.0 floor)
+	)
+	
+	(
+		(Vec3 sw = -32 -20 0)
+		(Vec3 se =  32 -20 0)
+		(Vec3 ne =  32  20 0)
+		(Vec3 nw = -32  20 0)
+		
+		(FloorDef floor = 370 389 0x00FFFFFF) 
+		(IntrudeWall mb sw se 0.3 0.7 -2.0 floor) 
+		(IntrudeWall mb se ne 0.3 0.7 -2.0 floor)
+		(IntrudeWall mb ne nw 0.3 0.7 -2.0 floor) 
+		(IntrudeWall mb nw sw 0.3 0.7 -2.0 floor)
 	)
 	
 	(mb.End)
@@ -408,20 +411,19 @@
 	
 	(IStringBuilder buildingMeshName (StringBuilder 256))
 	
-	(Int32 maxBuildingTypes = 20)
-	(#for (Int32 k = 0)(k < maxBuildingTypes)(#inc k)
-		(buildingMeshName.Clear)
-		(#build buildingMeshName "mesh.building.random" k)
-		(DefineRandomBulding buildingMeshName)
-	)
+	(Int32 one = 1)
+	(#build buildingMeshName "mesh.skyscraper.empire.state" one)
+	
+	
+	(DefineRandomBulding buildingMeshName 380.0 )
 		
 	(Int64 playerId)
 	(
 		(Matrix4x4 model =
-			(1 0 0  100)
-			(0 1 0  100)
+			(1 0 0 5)
+			(0 1 0 -35)
 			(0 0 1 1.65)
-			(0 0 0    1)
+			(0 0 0 1)
 		)
 		
 		(Vec3 scale = 1 1 1)
@@ -431,11 +433,11 @@
 	
 	(ISceneBuilder scene (SceneBuilder))
 	
-	(#for (Int32 i = 0)(i < 5)(i = (i + 1))
-		(#for (Int32 j = 0)(j < 5)(j = (j + 1))
+	(#for (Int32 i = 0)(i < 1)(i = (i + 1))
+		(#for (Int32 j = 0)(j < 1)(j = (j + 1))
 			(Vec3 scale = 1 1 1)
-			(Float32 x = (ToFloat32(i * 100)))
-			(Float32 y = (ToFloat32(j * 100)))
+			(Float32 x = (ToFloat32(i * 400)))
+			(Float32 y = (ToFloat32(j * 400)))
 			(Matrix4x4 model =
 				(1 0 0 x)
 				(0 1 0 y)
@@ -443,10 +445,7 @@
 				(0 0 0 1)
 			)
 			
-			(IStringBuilder randomName (StringBuilder 256))
-			(Int32 index = ((RollDie maxBuildingTypes) - 1))
-			(#build randomName "mesh.building.random" index)
-			(Int64 cubeId = (instances.AddBody randomName "!textures/walls/brick1.jpg" model scale 0))
+			(Int64 cubeId = (instances.AddBody buildingMeshName "!textures/walls/brick1.jpg" model scale 0))
 			(scene.AddStatics cubeId)
 		)
 	)

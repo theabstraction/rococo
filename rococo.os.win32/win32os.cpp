@@ -27,6 +27,20 @@
 
 namespace Rococo
 {
+   int64 CpuTicks()
+   {
+      LARGE_INTEGER ticks;
+      QueryPerformanceCounter(&ticks);
+      return ticks.QuadPart;
+   }
+
+   int64 CpuHz()
+   {
+      LARGE_INTEGER hz;
+      QueryPerformanceFrequency(&hz);
+      return hz.QuadPart;
+   }
+
    bool FileModifiedArgs::Matches(const wchar_t* resource)
    {
       const wchar_t* a = this->resourceName;

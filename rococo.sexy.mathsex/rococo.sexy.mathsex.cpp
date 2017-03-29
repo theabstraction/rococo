@@ -9,8 +9,54 @@
 #include <sexy.vm.h>
 #include <sexy.vm.cpu.h>
 
+#include <rococo.api.h>
+
+#include <random>
+
+namespace
+{
+   std::default_random_engine rng;
+}
+
 namespace Rococo
 {
+   namespace Random
+   {
+      void Seed(int64 value)
+      {
+         if (value == 0)
+         {
+            value = CpuTicks();
+         }
+
+         uint32 a = (uint32)(0x00000000FFFFFFFF & value);
+         uint32 b = (uint32)(value >> 32);
+         rng.seed(a ^ b);
+      }
+
+      int32 RollDie(int32 sides)
+      {
+         return (rng() % sides) + 1;
+      }
+
+      int32 RollDice(int32 count, int32 sides)
+      {
+         int sum = 0;
+         for (int i = 0; i < count; ++i)
+         {
+            sum += RollDie(sides);
+         }
+         return sum;
+      }
+
+      float AnyOf(float minValue, float maxValue)
+      {
+         float32 range = maxValue - minValue;
+         float f = rng() / (float) rng.max();
+         return range * f + minValue;
+      }
+   }
+
    namespace Maths
    {
       // N.B when compiled in release mode, these will generally inline within the vectorlib.inl function code
@@ -68,7 +114,9 @@ using namespace Sexy;
 using namespace Sexy::Script;
 using namespace Sexy::Compiler;
 
-#include "vectorlib.inl"
+#include "mathsex.vectors.inl"
+#include "mathsex.random.inl"
+#include "mathsex.time.inl"
 
 extern "C"
 {
@@ -88,6 +136,8 @@ extern "C"
          virtual void AddNativeCalls()
          {
             Sys::Geometry::F32::AddNativeCalls_SysGeometryF32(ss, nullptr);
+            Sys::Random::AddNativeCalls_SysRandom(ss, nullptr);
+            Sys::Time::AddNativeCalls_SysTime(ss, nullptr);
          }
 
          virtual void ClearResources()
