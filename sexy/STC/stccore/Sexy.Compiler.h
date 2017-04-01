@@ -72,18 +72,18 @@ namespace Sexy { namespace Compiler
 		size_t ContinuePosition;
 	};
 
-	struct NO_VTABLE ICompileSection
+	ROCOCOAPI ICompileSection
 	{
 		virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData = nullptr) = 0;
 	};
 
-	struct NO_VTABLE IArgumentBuilder : public IArgument
+	ROCOCOAPI IArgumentBuilder : public IArgument
 	{
 		virtual bool TryResolveArgument() = 0;
 		virtual IFunctionBuilder& Parent() = 0;
 	};
 
-	struct NO_VTABLE IFunctionBuilder : public IFunction
+	ROCOCOAPI IFunctionBuilder : public IFunction
 	{
 		virtual IArgumentBuilder& AddInput(const NameString& name, const TypeString& type, void* userdata) = 0;
 		virtual IArgumentBuilder& AddClosureInput(const NameString& name, const TypeString& type, void* userdata) = 0;
@@ -103,31 +103,31 @@ namespace Sexy { namespace Compiler
 		virtual void SetType(const IStructure* type) = 0;
 	};
 
-	struct NO_VTABLE IFunctionAliasBuilder : public IFunctionAlias
+	ROCOCOAPI IFunctionAliasBuilder : public IFunctionAlias
 	{
 		virtual IFunctionBuilder& GetFunction() = 0;
 	};
 
-	struct NO_VTABLE IStructAliasBuilder : public IStructAlias
+	ROCOCOAPI IStructAliasBuilder : public IStructAlias
 	{
 		virtual IStructureBuilder& GetStructure() = 0;
 	};
 
-	struct NO_VTABLE IFunctionEnumeratorBuilder : public IFunctionEnumerator
+	ROCOCOAPI IFunctionEnumeratorBuilder : public IFunctionEnumerator
 	{
 		virtual IFunctionAliasBuilder& operator[](int index) = 0;
 	};
 
 	IFunctionBuilder* FindByName(IFunctionEnumeratorBuilder& e, csexstr publicName);
 	
-	struct NO_VTABLE IMemberBuilder : public IMember
+	ROCOCOAPI IMemberBuilder : public IMember
 	{
 		virtual IStructureBuilder* UnderlyingType() = 0;
 		virtual IStructureBuilder* UnderlyingGenericArg1Type() = 0;
 		virtual IStructureBuilder* UnderlyingGenericArg2Type() = 0;
 	};
 	
-	struct NO_VTABLE IStructureBuilder : public IStructure
+	ROCOCOAPI IStructureBuilder : public IStructure
 	{
 		virtual IModuleBuilder& Module() = 0;
 		virtual void AddInterface(csexstr interfaceFullName) = 0;		
@@ -143,7 +143,7 @@ namespace Sexy { namespace Compiler
 		virtual IProgramObject& Object() = 0;
 	};
 
-	struct NO_VTABLE IModuleBuilder : public IModule
+	ROCOCOAPI IModuleBuilder : public IModule
 	{
 		virtual void ClearPrefixes() = 0;		
 		virtual void Clear() = 0;
@@ -162,7 +162,7 @@ namespace Sexy { namespace Compiler
 		virtual IProgramObject& Object() = 0;
 	};
 
-	struct NO_VTABLE IInterfaceBuilder : public IInterface
+	ROCOCOAPI IInterfaceBuilder : public IInterface
 	{
 		virtual IAttributes& Attributes() = 0;
 		virtual IStructureBuilder& NullObjectType() = 0;
@@ -171,19 +171,19 @@ namespace Sexy { namespace Compiler
 		virtual void ExpandNullObjectAllocSize(int minimumByteCount) = 0;
 	};
 
-	struct NO_VTABLE IFactoryBuilder : public IFactory
+	ROCOCOAPI IFactoryBuilder : public IFactory
 	{
 		virtual void SetInline(IFunctionBuilder* f, IStructureBuilder* s) = 0; // Used in the compilation phase to set the inline implementation for the factory
 		virtual IFunctionBuilder& Constructor() = 0;
 		virtual IStructureBuilder* InlineClass() = 0; // if not NULL indicates the concrete class of the inline constructor
 	};
 
-	struct NO_VTABLE IMacroBuilder : public IMacro
+	ROCOCOAPI IMacroBuilder : public IMacro
 	{
 		virtual IFunctionBuilder& Implementation() = 0;
 	};
 
-	struct NO_VTABLE INamespaceBuilder : public INamespace
+	ROCOCOAPI INamespaceBuilder : public INamespace
 	{
 		virtual INamespaceBuilder* Parent() = 0;
 		virtual INamespaceBuilder& GetChild(size_t index) = 0;
@@ -213,7 +213,7 @@ namespace Sexy { namespace Compiler
 
 	class CommonStructures;
 
-	struct NO_VTABLE IProgramObject : public IPublicProgramObject
+	ROCOCOAPI IProgramObject : public IPublicProgramObject
 	{
 		virtual IModuleBuilder& AddModule(csexstr name) = 0;		
 		virtual IModuleBuilder& GetModule(int index) = 0;
@@ -251,7 +251,7 @@ namespace Sexy { namespace Compiler
 	COMPILER_API void ValidateNamespaceString(csexstr s, csexstr name, csexstr functionSymbol);
 
 	// Recursive structure. Given a branch, its children are visited first and then it is evaluated
-	struct NO_VTABLE IBinaryExpression
+	ROCOCOAPI IBinaryExpression
 	{
 		// Evaluate and put the result/reference into the target register.
 		virtual void EvaluateBranch(ICodeBuilder& builder, IProgramObject& object, int target) = 0;
@@ -282,7 +282,7 @@ namespace Sexy { namespace Compiler
 		virtual void operator()(csexstr name, const GlobalValue& defaultValue) = 0;
 	};
 
-	struct NO_VTABLE ICodeBuilder : public IFunctionCode
+	ROCOCOAPI ICodeBuilder : public IFunctionCode
 	{
 		virtual IFunctionBuilder& Owner() = 0;
 		

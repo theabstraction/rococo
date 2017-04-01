@@ -1,4 +1,5 @@
 #include "hv.h"
+#include "hv.events.h"
 
 #include <vector>
 #include <algorithm>
@@ -20,21 +21,42 @@ namespace
       Rococo::Graphics::RenderCentredText(grc, L"Hello World!", RGBAb(255, 255, 255, 255), 0, { c.x >> 1,c.y >> 1 });
    }
 
-   class Scene : public ISceneSupervisor, public HV::Graphics::ISceneBuilderSupervisor
+   class Scene : public ISceneSupervisor, public HV::Graphics::ISceneBuilderSupervisor, public IObserver
    {
       HV::Entities::IInstancesSupervisor& instances;
       std::vector<ID_ENTITY> entities;
       std::vector<ObjectInstance> drawQueue;
-
       HV::Graphics::ICameraSupervisor& camera;
+
+      IPublisher& publisher;
 
       RGBA clearColour{ 0,0,0,1 };
       Vec3 sun{ 0, 0, -1 };
-   public:
-      Scene(HV::Entities::IInstancesSupervisor& _instances, HV::Graphics::ICameraSupervisor& _camera) :
-         instances(_instances), camera(_camera)
-      {
 
+      Vec2i spritePos{ 0, 0 };
+   public:
+      Scene(HV::Entities::IInstancesSupervisor& _instances, HV::Graphics::ICameraSupervisor& _camera, IPublisher& _publisher) :
+         instances(_instances), camera(_camera), publisher(_publisher)
+      {
+         publisher.Attach(this);
+      }
+      
+      ~Scene()
+      {
+         publisher.Detach(this);
+      }
+
+      virtual void OnEvent(Event& ev)
+      {
+         if (ev == HV::Events::Entities::OnTryMoveMobile)
+         {
+            auto& tmm = As<HV::Events::Entities::OnTryMoveMobileEvent>(ev);
+            int32 dy = (int32) (50.0f * tmm.fowardDelta);
+            int32 dx = (int32) (50.0f * tmm.straffeDelta);
+
+            spritePos.x += dx;
+            spritePos.y -= dy;
+         }
       }
 
       virtual void SetClearColour(float32 red, float32 green, float32 blue)
@@ -75,16 +97,33 @@ namespace
 
       virtual void RenderGui(IGuiRenderContext& grc)
       {
-         Vec2i topLeft = { 0, 0 };
          Textures::BitmapLocation location;
          if (grc.Renderer().SpriteBuilder().TryGetBitmapLocation(L"!textures/walls/metal1.jpg", location))
          {
-            Rococo::Graphics::DrawSprite(topLeft, location, grc, false);
+            Rococo::Graphics::DrawSprite(Vec2i{ 0, 0 } - spritePos, location, grc, false);
          }
          else
          {
             Throw(0, L"Metal1 not loaded!");
          }
+
+         if (grc.Renderer().SpriteBuilder().TryGetBitmapLocation(L"!textures/characters/player1.small.tif", location))
+         {
+            GuiMetrics metrics;
+            grc.Renderer().GetGuiMetrics(metrics);
+
+            auto span = Span(location.txUV);
+
+            Vec2i delta{ span.x >> 1, span.y >> 1 };
+
+            Vec2i centre{ metrics.screenSpan.x >> 1, metrics.screenSpan.y >> 1 };
+            Rococo::Graphics::DrawSprite(centre - delta, location, grc, true);
+         }
+         else
+         {
+            Throw(0, L"!textures/characters/player1.small.tif not loaded!");
+         }
+
       }
 
       void FlushDrawQueue(ID_SYS_MESH meshId, ID_TEXTURE textureId, IRenderContext& rc)
@@ -143,9 +182,9 @@ namespace HV
 {
    namespace Graphics
    {
-      ISceneSupervisor* CreateScene(Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera)
+      ISceneSupervisor* CreateScene(Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, IPublisher& publisher)
       {
-         return new  Scene(instances, camera);
+         return new  Scene(instances, camera, publisher);
       }
    }
 }

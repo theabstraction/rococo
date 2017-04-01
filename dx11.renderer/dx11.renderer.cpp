@@ -1007,6 +1007,8 @@ namespace
             dc.Draw((UINT)chunk, 0);
 
             nSpriteVerticesLeftToRender -= chunk;
+
+            textureArray.spriteTriangles.clear();
          }
 		}
 

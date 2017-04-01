@@ -1043,6 +1043,16 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetControlFPS();
 	}
+	void NativeHVIPlayerSetControl4WayScroller(NativeCallEnvironment& _nce)
+	{
+		Sexy::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::IPlayer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetControl4WayScroller();
+	}
 	void NativeHVIPlayerSetControlNone(NativeCallEnvironment& _nce)
 	{
 		Sexy::uint8* _sf = _nce.cpu.SF();
@@ -1100,6 +1110,7 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVIPlayerSetPlayerEntity, nullptr, SEXTEXT("IPlayerSetPlayerEntity (Pointer hObject)(Int64 id) -> "));
 		ss.AddNativeCall(ns, NativeHVIPlayerGetPlayerEntity, nullptr, SEXTEXT("IPlayerGetPlayerEntity (Pointer hObject) -> (Int64 id)"));
 		ss.AddNativeCall(ns, NativeHVIPlayerSetControlFPS, nullptr, SEXTEXT("IPlayerSetControlFPS (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVIPlayerSetControl4WayScroller, nullptr, SEXTEXT("IPlayerSetControl4WayScroller (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeHVIPlayerSetControlNone, nullptr, SEXTEXT("IPlayerSetControlNone (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeHVIPlayerSetSpeed, nullptr, SEXTEXT("IPlayerSetSpeed (Pointer hObject)(Float32 forward)(Float32 backward)(Float32 straffe) -> "));
 	}

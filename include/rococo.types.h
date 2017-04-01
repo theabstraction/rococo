@@ -1,9 +1,8 @@
 #ifndef Rococo_TYPES_H
 #define Rococo_TYPES_H
 
-#ifndef Rococo_COMPILER_OPTIONS_ARE_SET
-# include <rococo.compiler.options.h>
-#endif
+#include <rococo.compiler.options.h>
+
 
 namespace Rococo
 {

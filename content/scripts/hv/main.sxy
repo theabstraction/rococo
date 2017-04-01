@@ -24,6 +24,7 @@
 	
 	(ISprites sprites (Sprites))
 	(sprites.AddEachSpriteInDirectory "!textures/walls")
+	(sprites.AddEachSpriteInDirectory "!textures/characters")
 	(sprites.LoadAllSprites)
 	
 	(Int64 playerId)
@@ -44,7 +45,7 @@
 
 	(IPlayer player (Player 0))
 	(player.SetPlayerEntity playerId)
-	(player.SetControlFPS)
+	(player.SetControl4WayScroller)
 	
 	(ICamera camera (Camera))
 	(camera.SetRHProjection 60 0.3 1000)

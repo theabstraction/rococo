@@ -881,7 +881,21 @@ namespace Sexy { namespace Script
       return finalFunction;
    }
 
-   int PushBinaryOperatorInputs(CCompileEnvironment& ce, cr_sex s, const IStructure& type, const IArchetype& callee, int firstArgIndex)
+   csexstr GetOperationPrefix(csexstr op)
+   {
+      static std::unordered_map<stdstring, csexstr> mapOperatorToFunctionPrex =
+      {
+         { SEXTEXT("+"), SEXTEXT("Add") },
+         { SEXTEXT("-"), SEXTEXT("Subtract") },
+         { SEXTEXT("*"), SEXTEXT("Multiply") },
+         { SEXTEXT("/"), SEXTEXT("Divide") }
+      };
+
+      auto i = mapOperatorToFunctionPrex.find(op);
+      return (i == mapOperatorToFunctionPrex.end()) ? nullptr : i->second;
+   }
+
+   int PushBinaryOperatorInputs(CCompileEnvironment& ce, cr_sex s, const IStructure& type, const IArchetype& callee, int firstArgIndex, const IStructure& atype, const IStructure& btype)
    {
       // (vec3 f = a + b) -> (AddVec3toVec3 a b f)
       // 
@@ -897,12 +911,14 @@ namespace Sexy { namespace Script
          Throw(s, L"Binary operator %s must not return output", callee.Name());
       }
 
-      for (int i = 0; i < 2; i++)
+      if (&callee.GetArgument(0) != &atype)
       {
-         if (&callee.GetArgument(i) != &type)
-         {
-            Throw(s, L"%s was not of type %s. It was of type %s", type.Name(), callee.GetArgument(i).Name());
-         }
+         Throw(s, L"First input argument was not of type %s. It was of type %s", atype.Name(), callee.GetArgument(0).Name());
+      }
+
+      if (&callee.GetArgument(1) != &btype)
+      {
+         Throw(s, L"Second input argument was not of type %s. It was of type %s", atype.Name(), callee.GetArgument(1).Name());
       }
      
       int indices[] { 2 + firstArgIndex, 4 + firstArgIndex, 0 + firstArgIndex };
@@ -918,14 +934,132 @@ namespace Sexy { namespace Script
       return inputStackAllocCount;
    }
 
+   const IStructure* GetFirstMemberWithLiteralType(const IStructure& s)
+   {
+      if (IsNumericTypeOrBoolean(s.VarType()))
+      {
+         return &s;
+      }
+
+      if (s.InterfaceCount() != 0)
+      {
+         return nullptr;
+      }
+
+      // The structure was not a 
+
+      for (int32 i = 0; i < s.MemberCount(); ++i)
+      {
+         auto* memberType = s.GetMember(i).UnderlyingType();
+         if (memberType && memberType->Name()[0] != SEXCHAR('_'))
+         {
+            auto* m = GetFirstMemberWithLiteralType(*memberType);
+            if (m) return m;
+         }
+      }
+
+      return nullptr;
+   }
+
+   const IStructure& GetModuleDisposition(CCompileEnvironment& ce, IModule& module)
+   {
+      for (int i = 0; i < ce.Builder.Module().PrefixCount(); i++)
+      {
+         auto& prefix = ce.Builder.Module().GetPrefix(i);
+         if (AreEqual(prefix.Name(), SEXTEXT("F32")))
+         {
+            return ce.Object.Common().TypeFloat32();
+         }
+         else if (AreEqual(prefix.Name(), SEXTEXT("F64")))
+         {
+            return ce.Object.Common().TypeFloat64();
+         }
+         else if (AreEqual(prefix.Name(), SEXTEXT("I32")))
+         {
+            return ce.Object.Common().TypeInt32();
+         }
+         else if (AreEqual(prefix.Name(), SEXTEXT("I64")))
+         {
+            return ce.Object.Common().TypeInt64();
+         }
+      }
+
+      return ce.Object.Common().TypeFloat32();
+   }
+
+   const IStructure& GetFunctionDisposition(CCompileEnvironment& ce)
+   {
+      return GetModuleDisposition(ce, ce.Builder.Module());
+   }
+
+   const IStructure& GetLiteralDisposition(CCompileEnvironment& ce, const IStructure* hintStruct)
+   {
+      if (hintStruct)
+      {
+         // Motivation - if say we are dealing with Vec3f then literals could well be Float32s
+         const IStructure* s = GetFirstMemberWithLiteralType(*hintStruct);
+         if (s) return *s;
+      }
+
+      return GetFunctionDisposition(ce);
+   }
+
+   const IStructure& GetBestType(CCompileEnvironment& ce, cr_sex svalue, csexstr value, const IStructure* hintStruct)
+   {
+      MemberDef def;
+      if (ce.Builder.TryGetVariableByName(def, value))
+      {
+         return *def.ResolvedType;
+      }
+      
+      const IStructure& disposition = GetLiteralDisposition(ce, hintStruct);
+
+      VariantValue parsedValue;
+      if (Parse::PARSERESULT_GOOD == Parse::TryParse(parsedValue, disposition.VarType(), value))
+      {
+         return disposition;
+      }
+      else
+      {
+         parsedValue;
+         if (Parse::PARSERESULT_GOOD == Parse::TryParse(parsedValue, VARTYPE_Float32, value))
+         {
+            return ce.Object.Common().TypeFloat32();
+         }
+      }
+      Throw(svalue, L"Cannot infer best variable type for atomic expression");
+   }
+
+   // Infer a type for an expression
+   const IStructure& GetBestType(CCompileEnvironment& ce, cr_sex s, const IStructure* hintStruct)
+   {
+      switch (s.Type())
+      {
+      case EXPRESSION_TYPE_ATOMIC:
+         return GetBestType(ce, s, s.String()->Buffer, hintStruct);
+      case EXPRESSION_TYPE_COMPOUND:
+         Throw(s, SEXTEXT("Cannot infer variable type from compound expression"));
+      case EXPRESSION_TYPE_STRING_LITERAL:
+         return ce.Object.Common().SysTypeIString().NullObjectType();
+      default:
+         Throw(s, SEXTEXT("Cannot infer variable type from expression"));
+      }
+   }
+
    void CompileBinaryOperatorOverload(csexstr operation, CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, int offset)
    {
       // Assume varStruct is struct
       // Convert (Vec3 c = a + b) into (Vec3 c)(AddVec3toVec3 a b c)
 
+      cr_sex sa = directive[2 + offset];
+      cr_sex sb = directive[4 + offset];
+
+      const IStructure& atype = GetBestType(ce, sa, &varStruct);
+      const IStructure& btype = GetBestType(ce, sb, &varStruct);
+
       csexstr instrumentName = varStruct.Name();
       SEXCHAR functionName[Sexy::NAMESPACE_MAX_LENGTH];
-      SafeFormat(functionName, _TRUNCATE, SEXTEXT("%s%s%s"), operation, instrumentName, instrumentName);
+      SafeFormat(functionName, _TRUNCATE, SEXTEXT("%s%s%s"), operation, atype.Name(), btype.Name());
 
       auto* overloadFn = FindFunction(directive, functionName, ce.Script.ProgramModule());
       if (!overloadFn)
@@ -933,7 +1067,7 @@ namespace Sexy { namespace Script
          Throw(directive, SEXTEXT("Could not find binary operator function (%s (%s a)(%s b)(%s output) -> ).\nBe sure to use the correct (using ...) directive and include any necessary modules in your script."), functionName, instrumentName, instrumentName, instrumentName);
       }
 
-      int inputStackAllocCount = PushBinaryOperatorInputs(ce, directive, varStruct, *overloadFn, offset);
+      int inputStackAllocCount = PushBinaryOperatorInputs(ce, directive, varStruct, *overloadFn, offset, atype, btype);
       AppendFunctionCallAssembly(ce, *overloadFn);
       ce.Builder.MarkExpression(&directive);
       RepairStack(ce, directive, *overloadFn);
@@ -950,13 +1084,21 @@ namespace Sexy { namespace Script
       }
       else if (directive.NumberOfElements() - offset == 5)
       {
-         csexstr op = directive[3 + offset].String()->Buffer;
-         csexstr prefix;
-         if (AreEqual(op, SEXTEXT("+"))) prefix = SEXTEXT("Add");
-         else if (AreEqual(op, SEXTEXT("-"))) prefix = SEXTEXT("Subtract");
-         else if (AreEqual(op, SEXTEXT("*"))) prefix = SEXTEXT("Multiply");
-         else Throw(directive[3 + offset], SEXTEXT("Unknown operator"));
-         CompileBinaryOperatorOverload(prefix, ce, directive, varStruct, offset);
+         cr_sex sop = directive[3 + offset];
+         csexstr op = sop.String()->Buffer;
+         if (IsAtomic(sop))
+         {
+            csexstr prefix = GetOperationPrefix(op);
+            if (prefix == nullptr)
+            {
+               Throw(0, SEXTEXT("Unknown operator. Expecting one of [+-*/] "));
+            }
+            CompileBinaryOperatorOverload(prefix, ce, directive, varStruct, offset);
+         }
+         else
+         {
+            Throw(directive, SEXTEXT("Expecting binary operator, but did not find an atomic expression"));
+         }
       }
       else
       {

@@ -10629,6 +10629,42 @@ namespace
       validate(z == 15.0f);
    }
 
+   void TestOperatorOverload3(IPublicScriptSystem& ss)
+   {
+      csexstr srcCode =
+         SEXTEXT("(using Sys.Maths) \n")
+         SEXTEXT("(function MultiplyVec3fFloat32 (Vec3 a)(Float32 b)(Vec3 c) -> : \n")
+         SEXTEXT("   (c.x = (a.x * b))")
+         SEXTEXT("   (c.y = (a.y * b))")
+         SEXTEXT("   (c.z = (a.z * b))")
+         SEXTEXT(")\n")
+         SEXTEXT("(namespace EntryPoint) \n")
+         SEXTEXT("(function Main -> (Float32 cx)(Float32 cy)(Float32 cz): \n")
+         SEXTEXT("		(Vec3 a = 2 4 6)\n")
+         SEXTEXT("		(Vec3 c = a * 3)\n")
+         SEXTEXT("      (cx = c.x)\n")
+         SEXTEXT("      (cy = c.y)\n")
+         SEXTEXT("      (cz = c.z)\n")
+         SEXTEXT(")\n")
+         SEXTEXT("(alias Main EntryPoint.Main) \n");
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestOperatorOverload3"));
+      Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+      VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+      vm.Push(0); // Allocate stack space for the Vec3
+      vm.Push(0);
+      vm.Push(0);
+      EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+      ValidateExecution(result);
+      float z = vm.PopFloat32();
+      float y = vm.PopFloat32();
+      float x = vm.PopFloat32();
+      validate(x == 6.0f);
+      validate(y == 12.0f);
+      validate(z == 18.0f);
+   }
+
    void TestOperatorOverload2(IPublicScriptSystem& ss)
    {
       csexstr srcCode =
@@ -10818,6 +10854,7 @@ namespace
 	{
 		validate(true);
 
+      TEST(TestOperatorOverload3);
       TEST(TestOperatorOverload2);
       TEST(TestOperatorOverload);
       
@@ -11065,9 +11102,17 @@ namespace
 	
 	void RunTests()
 	{	
+      LARGE_INTEGER start, end, hz;
+      QueryPerformanceCounter(&start);
+      TEST(TestOperatorOverload3);
 		RunPositiveSuccesses();	
 		RunCollectionTests();
 		RunPositiveFailures(); 
+      QueryPerformanceCounter(&end);
+      QueryPerformanceFrequency(&hz);
+
+      double dt = (double)(end.QuadPart - start.QuadPart) / (double)hz.QuadPart;
+      printf("\nAll tests completed in %.2f seconds\n", dt);
 	}
 }
 

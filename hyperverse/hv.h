@@ -15,6 +15,9 @@ namespace HV
 }
 
 #include "hv.script.types.h"
+
+#define NO_VTABLE __declspec(novtable)
+
 #include "hv.sxh.h"
 
 namespace HV
@@ -148,7 +151,7 @@ namespace HV
 
       ISpriteSupervisor* CreateSpriteSupervisor(IRenderer & renderer);
 
-      ISceneSupervisor* CreateScene(Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera);
+      ISceneSupervisor* CreateScene(Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, IPublisher& publisher);
       ICameraSupervisor* CreateCamera(Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& render, IPublisher& publisher);
       IMeshBuilderSupervisor* CreateMeshBuilder(IRenderer& renderer);
       

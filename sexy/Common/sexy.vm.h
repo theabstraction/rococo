@@ -104,7 +104,7 @@ namespace Sexy { namespace VM
 
 	typedef void (_cdecl *FN_API_CALLBACK)(VariantValue* registers, void* context);
 
-	struct NO_VTABLE ICore
+	ROCOCOAPI ICore
 	{
 		virtual void Free() = 0;
 		virtual void Log(csexstr text) = 0;
@@ -136,13 +136,13 @@ namespace Sexy { namespace VM
 
 	struct IDebugger;
 
-	struct NO_VTABLE IStepCallback
+	ROCOCOAPI IStepCallback
 	{
 		virtual void OnStep(IDebugger& debugger) = 0;
 		virtual void StepNext() = 0;
 	};
 
-	struct NO_VTABLE IDebugger
+	ROCOCOAPI IDebugger
 	{		
 		virtual void ClearBreakpoint(size_t offset) = 0;
 		
@@ -177,7 +177,7 @@ namespace Sexy { namespace VM
 		bool CorrectSF;
 	};
 
-	struct NO_VTABLE IVirtualMachine : IDebugger
+	ROCOCOAPI IVirtualMachine : IDebugger
 	{
 		virtual IVirtualMachine* Clone(CPU& _cpu) = 0;
 		virtual CPU& Cpu() = 0;
@@ -238,13 +238,13 @@ namespace Sexy { namespace VM
 		}
 	};
 
-	struct NO_VTABLE IRefCounted
+	ROCOCOAPI IRefCounted
 	{
 		virtual void AddRef() = 0;
 		virtual void Release() = 0;
 	};
 
-	struct NO_VTABLE IProgramMemory : public IRefCounted
+	ROCOCOAPI IProgramMemory : public IRefCounted
 	{
 		virtual void Clear() = 0;
 		virtual uint8* StartOfMemory() = 0;
@@ -260,7 +260,7 @@ namespace Sexy { namespace VM
 		virtual ID_BYTECODE GetFunctionContaingAddress(size_t pcOffset) const = 0;
 	};
 
-	struct NO_VTABLE IAssemblerBuilder
+	ROCOCOAPI IAssemblerBuilder
 	{
 		virtual void Append_AddImmediate(DINDEX source,  BITCOUNT bits, DINDEX target, const VariantValue& v) = 0;
 		virtual void Append_BooleanNot(DINDEX target) = 0;
@@ -332,7 +332,7 @@ namespace Sexy { namespace VM
 		virtual void Append_SetGlobal(BITCOUNT bits, int32 offset) = 0;
 	};
 
-	struct NO_VTABLE IAssembler : IAssemblerBuilder
+	ROCOCOAPI IAssembler : IAssemblerBuilder
 	{
 		virtual void Clear() = 0; // Clear the program
 		virtual ICore& Core() = 0; // Retrieve the SVM core object
@@ -344,7 +344,7 @@ namespace Sexy { namespace VM
 		virtual void Revert(size_t position) = 0; // Drop everything after the position, and set the write position to position, and set write mode to append
 	};
 
-	struct NO_VTABLE ISourceFile
+	ROCOCOAPI ISourceFile
 	{
 		virtual const char* FileName() const = 0;
 		virtual size_t GetCodeOffset(const Vec2i& pos) const = 0;
@@ -358,7 +358,7 @@ namespace Sexy { namespace VM
 	};
 #pragma pack(pop)
 
-	struct NO_VTABLE ISymbols
+	ROCOCOAPI ISymbols
 	{
 		virtual void Clear() = 0;
 		virtual void Free() = 0;
@@ -367,7 +367,7 @@ namespace Sexy { namespace VM
 		virtual bool TryGetSymbol(size_t index, OUT FileData& fd) const = 0;
 	};
 	
-	struct NO_VTABLE IDisassembler
+	ROCOCOAPI IDisassembler
 	{
 		enum {MAX_ARG_LEN = 64, MAX_FULL_TEXT_LEN = 128};
 

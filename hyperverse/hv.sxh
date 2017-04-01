@@ -95,6 +95,7 @@
 		(SetPlayerEntity (IdEntity id))
 		(GetPlayerEntity -> (IdEntity id))
 		(SetControlFPS)
+		(SetControl4WayScroller)
 		(SetControlNone)
 		(SetSpeed (Float32 forward)(Float32 backward)(Float32 straffe))
 	)

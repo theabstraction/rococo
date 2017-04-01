@@ -77,7 +77,7 @@ namespace Sexy
 
 namespace Sexy { namespace Script
 {
-	struct NO_VTABLE IFreeable
+	ROCOCOAPI IFreeable
 	{
 		virtual void Free() = 0;
 	};
@@ -217,17 +217,17 @@ namespace Sexy { namespace Script
 		ENUM_REPRESENT_DELETE
 	};
 
-	struct NO_VTABLE IRepresentationEnumeratorCallback
+	ROCOCOAPI IRepresentationEnumeratorCallback
 	{
 		virtual ENUM_REPRESENT OnRepresentation(CReflectedClass* rep) = 0;
 	};
 
-	struct NO_VTABLE IPublicScriptSystem : public IFreeable
+	ROCOCOAPI IPublicScriptSystem : public IFreeable
 	{
 		virtual void AddCommonSource(const Sexy::SEXCHAR* dynamicLinkLibOfNativeCalls) = 0;
 		virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, csexstr archetype, bool checkName = true) = 0; // Example: AddNativeCall(ns, ANON::CpuHz, NULL, "CpuHz -> (Int64 hz)");
 		virtual const Compiler::INamespace& AddNativeNamespace(csexstr name) = 0;
-		virtual void AddNativeLibrary(const Sexy::SEXCHAR *sexySourceFile) = 0;
+		virtual void AddNativeLibrary(const Sexy::SEXCHAR *sexyLibraryFile) = 0;
 		virtual Compiler::IModule* AddTree(Sex::ISParserTree& tree) = 0;
 		virtual void Compile() = 0;
 		virtual csexstr GetSymbol(const void* ptr) const = 0;
@@ -255,7 +255,7 @@ namespace Sexy { namespace Script
       void* srcExpression;
    };
 		
-	struct NO_VTABLE IScriptSystem : IPublicScriptSystem
+	ROCOCOAPI IScriptSystem : IPublicScriptSystem
 	{
 		virtual Compiler::IProgramObject& ProgramObject() = 0;
 		
@@ -273,7 +273,7 @@ namespace Sexy { namespace Script
 
    void SetDefaultNativeSourcePath(csexstr pathname);
 
-	struct NO_VTABLE INativeLib
+	ROCOCOAPI INativeLib
 	{
 		virtual void AddNativeCalls() = 0;
 		virtual void ClearResources() = 0;
@@ -282,7 +282,7 @@ namespace Sexy { namespace Script
 
 	typedef INativeLib* (*FN_CreateLib)(Sexy::Script::IScriptSystem& ss);
 
-	struct NO_VTABLE MemberEnumeratorCallback
+	ROCOCOAPI MemberEnumeratorCallback
 	{
 		virtual void OnMember(IPublicScriptSystem& ss, csexstr childName, const Sexy::Compiler::IMember& member, const uint8* sfItem) = 0;
 	};

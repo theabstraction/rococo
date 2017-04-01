@@ -165,7 +165,7 @@ namespace Sexy
 		csexstr buffer;
 	};
 
-   struct NO_VTABLE IStringPopulator
+   ROCOCOAPI IStringPopulator
    {
       virtual void Populate(csexstr text);
    };
@@ -217,7 +217,7 @@ namespace Sexy
 	sexstring CreateSexString(csexstr src, int32 length = -1);
 	void FreeSexString(sexstring s);
 
-	struct NO_VTABLE ILog
+   ROCOCOAPI ILog
 	{
 		virtual void Write(csexstr text) = 0;
 		virtual void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) = 0; // thrown by uncaught sexy exceptions
@@ -363,7 +363,7 @@ namespace Sexy
 
 		struct ISExpressionBuilder;
 
-		struct NO_VTABLE ISExpression
+      ROCOCOAPI ISExpression
 		{
 			virtual const Vec2i& Start() const = 0; // (X.Y) of start relative to tree origin in source file
 			virtual const Vec2i& End() const = 0;// (X.Y) of end relative to tree origin in source file
@@ -388,7 +388,7 @@ namespace Sexy
 			return !(s == token);
 		}
 
-		struct NO_VTABLE ISExpressionBuilder : public ISExpression
+		ROCOCOAPI ISExpressionBuilder : public ISExpression
 		{
 			virtual ISExpressionBuilder* AddChild() = 0;
 			virtual void AddAtomic(csexstr text) = 0;
@@ -397,13 +397,13 @@ namespace Sexy
 
 		typedef const ISExpression& cr_sex;
 
-		struct NO_VTABLE IRefCounted
+		ROCOCOAPI IRefCounted
 		{
 			virtual refcount_t AddRef() = 0; // Increments the reference count and returns the new value
 			virtual refcount_t Release() = 0; // Decrements the reference count and returns the new value. If it decrements to zero the instance is released
 		};
 
-		struct NO_VTABLE ISParserTree : public IRefCounted
+		ROCOCOAPI ISParserTree : public IRefCounted
 		{
 			virtual ISExpression& Root() = 0; // Refers to the root expression in the tree
 			virtual const ISExpression& Root() const = 0; // // Constant reference to the root expression in the tree
@@ -411,7 +411,7 @@ namespace Sexy
 			virtual const ISourceCode& Source() const = 0; // The source code associated with this parser tree
 		};
 
-		struct NO_VTABLE ISParser : public IRefCounted
+		ROCOCOAPI ISParser : public IRefCounted
 		{
 			virtual ISParserTree* CreateTree(ISourceCode& sourceCode) = 0; // Creates a new s-parser tree with a reference count of 1, and attaches a reference to ISourceCode 
 			virtual ISourceCode* DuplicateSourceBuffer(csexstr buffer, int segmentLength, const Vec2i& origin, csexstr name) = 0; // Duplicates a source segment and exposes as an instance
@@ -420,7 +420,7 @@ namespace Sexy
 			virtual ISourceCode* LoadSource(csexstr moduleName, const Vec2i& origin, const char* buffer, long len) = 0;
 		};	
 
-		struct NO_VTABLE ISourceCode : public IRefCounted
+		ROCOCOAPI ISourceCode : public IRefCounted
 		{
 			virtual const Vec2i& Origin() const = 0; // The XY in the source document where the code segment begins
 			virtual csexstr SourceStart() const = 0; // The first SEXCHAR in the source code segment

@@ -64,7 +64,7 @@ void Main(HANDLE hInstanceLock)
    AutoFree<IInstancesSupervisor> instances = CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher);
    AutoFree<IMobilesSupervisor> mobiles = CreateMobilesSupervisor(*instances, *publisher);
    AutoFree<ICameraSupervisor> camera = CreateCamera(*instances, *mobiles, mainWindow->Renderer(), *publisher);
-   AutoFree<ISceneSupervisor> scene = CreateScene(*instances, *camera);
+   AutoFree<ISceneSupervisor> scene = CreateScene(*instances, *camera, *publisher);
    AutoFree<IPlayerSupervisor> players = CreatePlayerSupervisor(*publisher);
    AutoFree<IKeyboardSupervisor> keyboardSupervisor = CreateKeyboardSupervisor();
    AutoFree<IMouse> mouse = CreateMouse(*publisher);

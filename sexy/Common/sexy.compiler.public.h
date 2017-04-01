@@ -209,7 +209,7 @@ namespace Sexy { namespace Compiler
 		return (uint8*) &stub.pVTable1;
 	}
 
-	struct NO_VTABLE IArchetype
+	ROCOCOAPI IArchetype
 	{
 		virtual csexstr Name() const = 0;
 		virtual const int NumberOfOutputs() const = 0;
@@ -221,7 +221,7 @@ namespace Sexy { namespace Compiler
 		virtual const void* Definition() const = 0;
 	};
 
-	struct NO_VTABLE IArgument
+	ROCOCOAPI IArgument
 	{
 		virtual csexstr Name() const = 0;
 		virtual csexstr TypeString() const = 0;
@@ -235,7 +235,7 @@ namespace Sexy { namespace Compiler
 		virtual void* Userdata() const = 0;
 	};
 
-	struct NO_VTABLE IFunction : public IArchetype
+	ROCOCOAPI IFunction : public IArchetype
 	{
 		virtual const IModule& Module() const = 0;
 		virtual IPublicProgramObject& Object() const = 0;
@@ -248,19 +248,19 @@ namespace Sexy { namespace Compiler
 
 	inline int ArgCount(const IArchetype& archetype) { return archetype.NumberOfInputs() + archetype.NumberOfOutputs(); }
 
-	struct NO_VTABLE IFunctionAlias
+	ROCOCOAPI IFunctionAlias
 	{
 		virtual const IFunction& GetFunction() const = 0;
 		virtual csexstr GetPublicName() const = 0;
 	};
 
-	struct NO_VTABLE IStructAlias
+	ROCOCOAPI IStructAlias
 	{
 		virtual const IStructure& GetStructure() const = 0;
 		virtual csexstr GetPublicName() const = 0;
 	};
 
-	struct NO_VTABLE IFunctionEnumerator
+	ROCOCOAPI IFunctionEnumerator
 	{
 		virtual int FunctionCount() const = 0;
 		
@@ -269,7 +269,7 @@ namespace Sexy { namespace Compiler
 
 	const IFunction* FindByName(const IFunctionEnumerator& e, csexstr publicName);
 
-	struct NO_VTABLE IMember
+	ROCOCOAPI IMember
 	{
 		virtual csexstr Name() const = 0;
 		virtual const int SizeOfMember() const = 0;
@@ -280,7 +280,7 @@ namespace Sexy { namespace Compiler
 		virtual bool IsPseudoVariable() const = 0;
 	};
 
-	struct NO_VTABLE  IStructure
+	ROCOCOAPI IStructure
 	{
 		virtual IPublicProgramObject& Object() const = 0;
 		virtual csexstr Name() const = 0;
@@ -305,7 +305,7 @@ namespace Sexy { namespace Compiler
 	inline bool operator == (const IStructure& a, const IStructure& b) { return &a == &b; } 
 	inline bool operator != (const IStructure& a, const IStructure& b) { return &a != &b; } 
 
-	struct NO_VTABLE  IModule
+	ROCOCOAPI  IModule
 	{
 		virtual int GetVersion() const = 0;
 		
@@ -356,7 +356,7 @@ namespace Sexy { namespace Compiler
 		ADDNAMESPACEFLAGS_CREATE_ROOTS = 0x00000001
 	};
 
-	struct NO_VTABLE  IAttributes
+	ROCOCOAPI  IAttributes
 	{
 		virtual bool AddAttribute(csexstr name, const void* value) = 0;
 		virtual const int AttributeCount() const = 0;
@@ -364,7 +364,7 @@ namespace Sexy { namespace Compiler
 		virtual csexstr GetAttribute(int index, OUT const void*& value) const = 0;	
 	};
 
-	struct NO_VTABLE IInterface
+	ROCOCOAPI IInterface
 	{
 		virtual const IAttributes& Attributes() const = 0;
 		virtual const IInterface* Base() const = 0;
@@ -380,7 +380,7 @@ namespace Sexy { namespace Compiler
 		return &a == &b;
 	}
 
-	struct NO_VTABLE IFactory
+	ROCOCOAPI IFactory
 	{
 		virtual csexstr Name() const = 0;
 		virtual const IFunction& Constructor() const = 0;		
@@ -391,7 +391,7 @@ namespace Sexy { namespace Compiler
 		
 	};
 
-	struct NO_VTABLE IMacro
+	ROCOCOAPI IMacro
 	{
 		virtual csexstr Name() const = 0;
 		virtual const void* Expression() const = 0;
@@ -399,7 +399,7 @@ namespace Sexy { namespace Compiler
 		virtual const IFunction& Implementation() const = 0;
 	};
 
-	struct NO_VTABLE INamespace
+	ROCOCOAPI INamespace
 	{	
 		virtual const INamespace* FindSubspace(csexstr subpath) const = 0;
 		virtual const IStructure* FindStructure(csexstr name) const = 0;
@@ -432,7 +432,7 @@ namespace Sexy { namespace Compiler
       SEXY_CLASS_ID_STRINGBUILDER = 0
    };
 
-	struct NO_VTABLE IPublicProgramObject
+	ROCOCOAPI IPublicProgramObject
 	{
 		virtual const IModule& GetModule(int index) const = 0;
 		virtual const INamespace& GetRootNamespace() const = 0;
@@ -512,7 +512,7 @@ namespace Sexy { namespace Compiler
 		const void* SourceExpression;
 	};
 
-	struct NO_VTABLE IFunctionCode
+	ROCOCOAPI IFunctionCode
 	{
 		virtual const IFunction& Owner() const = 0;
 		virtual void GetCodeSection(CodeSection& section) const = 0;

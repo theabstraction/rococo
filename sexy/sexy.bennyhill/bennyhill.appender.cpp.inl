@@ -315,7 +315,7 @@ namespace
 			appender.Append(SEXTEXT("\t"));
 		}
 
-		appender.Append(SEXTEXT("struct NO_VTABLE "));
+		appender.Append(SEXTEXT("ROCOCOAPI "));
 		AppendStructShortName(appender, ic.asCppInterface.SexyName());
       appender.Append(ic.inheritanceString);
 		appender.Append(nsDepth > 0 ? SEXTEXT("\n\t{\n") : SEXTEXT("\n{\n"));

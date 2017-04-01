@@ -37,6 +37,116 @@ namespace
       }
    };
 
+   struct FourWayScroller : public IControlMethod
+   {
+   public:
+      typedef void (FourWayScroller::*ACTION_FUNCTION)(bool start);
+      static std::unordered_map<std::wstring, ACTION_FUNCTION> nameToAction;
+
+      bool isMovingForward{ false };
+      bool isMovingBackward{ false };
+      bool isMovingLeft{ false };
+      bool isMovingRight{ false };
+      bool isAutoRun{ false };
+
+      Vec3 speeds;
+
+      FourWayScroller(cr_vec3 _speeds) :
+         speeds(_speeds)
+      {
+      }
+
+      virtual void Clear() override
+      {
+         isMovingBackward = isMovingForward = isMovingLeft = isMovingRight = false;
+      }
+
+      virtual void Free()
+      {
+         delete this;
+      }
+
+      virtual void OnEvent(Event& ev)
+      {
+         if (ev == HV::Events::Player::OnPlayerAction)
+         {
+            auto& pae = As<HV::Events::Player::OnPlayerActionEvent>(ev);
+
+            auto i = nameToAction.find(pae.Name);
+            if (i != nameToAction.end())
+            {
+               ((*this).*(i->second))(pae.start);
+            }
+         }
+      }
+
+      virtual void Update(ID_ENTITY playerId, const IUltraClock& clock, IPublisher& publisher)
+      {
+         HV::Events::Entities::OnTryMoveMobileEvent tmm;
+
+         float forwardDelta = 0;
+         if (isMovingForward || isAutoRun) forwardDelta += 1.0f;
+         if (isMovingBackward) forwardDelta -= 1.0f;
+
+         float straffeDelta = 0;
+         if (isMovingLeft) straffeDelta -= 1.0f;
+         if (isMovingRight) straffeDelta += 1.0f;
+
+         if (forwardDelta != 0 || straffeDelta != 0)
+         {
+            tmm.fowardDelta = clock.DT() * ((forwardDelta > 0) ? forwardDelta * speeds.x : forwardDelta * speeds.z);
+            tmm.straffeDelta = clock.DT() * straffeDelta * speeds.y;
+            tmm.entityId = playerId;
+            tmm.delta = { 0,0,0 };
+            Rococo::Events::Publish(publisher, tmm);
+         }
+      }
+
+      void OnForward(bool start)
+      {
+         isMovingForward = start;
+         isAutoRun = false;
+      }
+
+      void OnBackward(bool start)
+      {
+         isMovingBackward = start;
+         isAutoRun = false;
+      }
+
+
+      void OnStraffeLeft(bool start)
+      {
+         isMovingLeft = start;
+      }
+
+
+      void OnStraffeRight(bool start)
+      {
+         isMovingRight = start;
+      }
+
+      void OnJump(bool start)
+      {
+
+      }
+
+      void OnAutoRun(bool start)
+      {
+         isAutoRun = true;
+      }
+   };
+
+   std::unordered_map<std::wstring, FourWayScroller::ACTION_FUNCTION> FourWayScroller::nameToAction =
+   {
+      { L"move.fps.forward",         &FourWayScroller::OnForward },
+      { L"move.fps.backward",        &FourWayScroller::OnBackward },
+      { L"move.fps.straffeleft",     &FourWayScroller::OnStraffeLeft },
+      { L"move.fps.strafferight",    &FourWayScroller::OnStraffeRight },
+      { L"move.fps.jump",            &FourWayScroller::OnJump },
+      { L"move.fps.autorun",         &FourWayScroller::OnAutoRun }
+   };
+
    struct FPSControl: public IControlMethod
    {
    public:
@@ -172,7 +282,7 @@ namespace
       ID_ENTITY playerId;
       AutoFree<IControlMethod> control;
 
-      Vec3 speeds{ 10.0f, 2.0f, 5.0f };
+      Vec3 speeds{ 10.0f, 10.0f, 5.0f };
    public:
       Player() : control{ new NullControl }
       {
@@ -208,6 +318,11 @@ namespace
       virtual ID_ENTITY GetPlayerEntity()
       {
          return playerId;
+      }
+
+      virtual void SetControl4WayScroller()
+      {
+         control = new FourWayScroller(speeds);
       }
 
       virtual void SetControlFPS()
