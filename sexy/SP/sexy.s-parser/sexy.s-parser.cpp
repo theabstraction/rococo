@@ -88,6 +88,8 @@ namespace
 		}
 	};
 
+   void DeleteTree(CSParserTree* tree);
+
 	class CSExpression: public ISExpressionBuilder
 	{
 	private:
@@ -270,7 +272,7 @@ namespace
 			original(_original),
 			symbols(_sourceCode.SourceLength())
 		{
-			sourceCode.AddRef();
+			auto srcrefcount = sourceCode.AddRef();
 			root = new CSExpression(*this, start, 0, NULL);
 			root->SetEnd(end, _sourceCode.SourceLength()-1);
 		}
@@ -480,6 +482,11 @@ namespace
 		GetSpecimen(specimen, *generationNode);
 		throw ParseException(generationTokenStartPos, generationPrevCursorPos, sourceCode.Name(), SEXTEXT("Literal string not closed with a double quote character"), specimen, NULL);
 	}
+
+   void DeleteTree(CSParserTree* tree)
+   {
+      delete tree;
+   }
 
 	void CSParserTree::OpenInnerExpression()
 	{

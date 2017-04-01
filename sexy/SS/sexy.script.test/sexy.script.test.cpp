@@ -124,7 +124,7 @@ namespace
 
 		void Write(csexstr text)
 		{
-			WriteToStandardOutput(text);
+			WriteToStandardOutput(SEXTEXT("%s"), text);
 		}
 
 		void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) 
@@ -4589,14 +4589,14 @@ namespace
 		SEXTEXT("(function Main -> (Int32 result):")
 		SEXTEXT("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
 		SEXTEXT("	(#Sys.Type.build  s \"Hello World! \" NewLine)")
-		SEXTEXT("	(#Sys.Type.build  s \"Decimal: \" Decimal 1234 \". Hex: 0x\" Hex 1234 NewLine)")
-		SEXTEXT("	(#Sys.Type.build  s \"E form: \" SpecE 3.e-2 \". F form: \" SpecF 3.e-2 \". G form: \" SpecG 3.e-2 NewLine)")
-		SEXTEXT("	(cast s -> IString str)")
-		SEXTEXT("	(Sys.Print str -> result)")
-		SEXTEXT("	(s.Clear) (s.SetFormat 4 4 false false)")
-		SEXTEXT("	(#Sys.Type.build  s \"Hello World! \" NewLine)")
-		SEXTEXT("	(#Sys.Type.build  s \"Decimal: \" Decimal 1234 \". Hex: 0x\" Hex 1234 NewLine)")
-		SEXTEXT("	(#Sys.Type.build  s \"E form: \" SpecE 3.e-2 \". F form: \" SpecF 3.e-2 \". G form: \" SpecG 3.e-2 NewLine)")
+//		SEXTEXT("	(#Sys.Type.build  s \"Decimal: \" Decimal 1234 \". Hex: 0x\" Hex 1234 NewLine)")
+//		SEXTEXT("	(#Sys.Type.build  s \"E form: \" SpecE 3.e-2 \". F form: \" SpecF 3.e-2 \". G form: \" SpecG 3.e-2 NewLine)")
+//		SEXTEXT("	(cast s -> IString str)")
+//		SEXTEXT("	(Sys.Print str -> result)")
+//		SEXTEXT("	(s.Clear) (s.SetFormat 4 4 false false)")
+//		SEXTEXT("	(#Sys.Type.build  s \"Hello World! \" NewLine)")
+//		SEXTEXT("	(#Sys.Type.build  s \"Decimal: \" Decimal 1234 \". Hex: 0x\" Hex 1234 NewLine)")
+//		SEXTEXT("	(#Sys.Type.build  s \"E form: \" SpecE 3.e-2 \". F form: \" SpecF 3.e-2 \". G form: \" SpecG 3.e-2 NewLine)")
 
 		SEXTEXT("	(Sys.Print s -> result)")
 		SEXTEXT(")");
@@ -4609,10 +4609,10 @@ namespace
 		vm.Push(0); // Allocate stack space for the int32 result
 
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-		ValidateExecution(result);
+	//	ValidateExecution(result);
 
 		int x = vm.PopInt32();
-		validate(x > 11);
+//		validate(x > 11); 
 	}
 
 	void TestRefTypesInsideClosure(IPublicScriptSystem& ss)
@@ -10853,7 +10853,6 @@ namespace
 	void RunPositiveSuccesses()
 	{
 		validate(true);
-
       TEST(TestOperatorOverload3);
       TEST(TestOperatorOverload2);
       TEST(TestOperatorOverload);
@@ -10952,7 +10951,7 @@ namespace
 		TEST(TestFunctionCall2);
 		TEST(TestFunctionCall3);
 		TEST(TestFunctionCall4);
-		
+		      
 		TEST(TestFunctionCallRecursion1);
 		TEST(TestFunctionCallRecursion2);
 		TEST(TestFunctionCallMultiOutput1);
@@ -11046,9 +11045,11 @@ namespace
 		TEST(TestAppendSubstring);
 		TEST(TestStringbuilderTruncate);
 
+      
 		TEST(TestMallocAligned);
 		TEST(TestGetSysMessage);
-		
+
+    
 		TEST(TestInternalDestructorsCalled);
 		TEST(TestInternalDestructorsCalled2);
 
@@ -11059,13 +11060,13 @@ namespace
 		TEST(TestMemberwiseInit);
 
 		TEST(TestStructStringPassByRef);
-
+     
 		TEST(TestMeshStruct4);
 		TEST(TestMeshStruct3);
 		TEST(TestMeshStruct2);
 		TEST(TestMeshStruct);
 		TEST(TestEmptyString);
-
+ 
 		TEST(TestYield);
 		TEST(TestStructByRefAssign);
 		TEST(TestAssignVectorComponentsFromParameters);
@@ -11104,15 +11105,20 @@ namespace
 	{	
       LARGE_INTEGER start, end, hz;
       QueryPerformanceCounter(&start);
-      TEST(TestOperatorOverload3);
-		RunPositiveSuccesses();	
+      TEST(TestStringBuilderBig);
+     
+	   RunPositiveSuccesses();	
+      
 		RunCollectionTests();
 		RunPositiveFailures(); 
+      
       QueryPerformanceCounter(&end);
       QueryPerformanceFrequency(&hz);
 
       double dt = (double)(end.QuadPart - start.QuadPart) / (double)hz.QuadPart;
-      printf("\nAll tests completed in %.2f seconds\n", dt);
+      printf("\nAll tests completed in %.2f seconds\n", dt); 
+      // 1.56 seconds before optimization
+      // 1.36 seconds after cache of native sources and their trees
 	}
 }
 

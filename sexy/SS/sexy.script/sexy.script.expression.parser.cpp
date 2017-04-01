@@ -1028,6 +1028,7 @@ namespace Sexy { namespace Script
          }
       }
       Throw(svalue, L"Cannot infer best variable type for atomic expression");
+      return *hintStruct;
    }
 
    // Infer a type for an expression
@@ -1043,6 +1044,7 @@ namespace Sexy { namespace Script
          return ce.Object.Common().SysTypeIString().NullObjectType();
       default:
          Throw(s, SEXTEXT("Cannot infer variable type from expression"));
+         return *hintStruct;
       }
    }
 

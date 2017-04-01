@@ -66,7 +66,10 @@ namespace
 		virtual csexstr SourceStart() const				{	return buffer; }
 		virtual const int SourceLength() const		{	return segmentLength;	}
 		virtual csexstr Name() const							{	return name.c_str();	}
-		virtual refcount_t AddRef()								{	return ++refcount;		}
+		virtual refcount_t AddRef()							
+      {
+         return ++refcount;	
+      }
 
 		virtual refcount_t Release()
 		{

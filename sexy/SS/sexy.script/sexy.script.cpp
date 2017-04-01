@@ -191,7 +191,6 @@ namespace Sexy
 	}
 
 	typedef std::tr1::unordered_map<stdstring,NativeFunction*> TMapFQNToNativeCall;
-	typedef std::list<CommonSource> TCommonSources;
 	typedef std::list<INativeLib*> TNativeLibs;
 	
 	void _cdecl RouteToNative(VariantValue* registers, void* context)
@@ -381,7 +380,6 @@ namespace Sexy
 		int nativeCallIndex;
 
 		TMapFQNToNativeCall nativeCalls;
-		TCommonSources commonSources;
 		TNativeLibs nativeLibs;
 
 		ID_API_CALLBACK jitId;
@@ -559,14 +557,6 @@ namespace Sexy
 		
 		~CScriptSystem()
 		{
-			for(auto i = commonSources.begin(); i != commonSources.end(); ++i)
-			{
-				i->Tree->Release();
-				i->Src->Release();
-			}
-
-			commonSources.clear();
-
 			for(auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
 			{
 				NativeFunction* nf = i->second;
@@ -1065,16 +1055,26 @@ namespace Sexy
 			progObjProxy().ResolveNativeTypes();
 		
 			scripts->ExceptionLogic().InstallThrowHandler();
+         
+         isBuildingNativeCalls = false; // We just want the namespaces
 
-			for(auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
-			{
-				INativeLib* lib = *i;
-				lib->AddNativeCalls();
-			}
+         for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
+         {
+            INativeLib* lib = *i;
+            lib->AddNativeCalls();
+         }
 
 			InstallNativeCallNamespaces(IN nativeCalls, REF ProgramObject().GetRootNamespace());
 			scripts->CompileNamespaces();
 			scripts->CompileDeclarations();
+
+         isBuildingNativeCalls = true; // We want the functions
+
+         for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
+         {
+            INativeLib* lib = *i;
+            lib->AddNativeCalls();
+         }
 	
 			InstallNullFunction();
 			InstallNativeCalls(IN nativeCalls, REF ProgramObject().GetRootNamespace());
@@ -1096,9 +1096,16 @@ namespace Sexy
 			return scripts->GetSourceCode(module);
 		}
 
+      bool isBuildingNativeCalls{ true };
+
 		virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, csexstr archetype, bool checkName)
 		{		
 			enum { MAX_ARCHETYPE_LEN = 256};
+
+         if (!isBuildingNativeCalls)
+         {
+            return;
+         }
 
 			if (callback == NULL)
 			{
@@ -1137,33 +1144,66 @@ namespace Sexy
 			}			
 		}
 
+      static std::unordered_map<stdstring, ISParserTree*> commonGlobalSources;
+
 		virtual void AddCommonSource(const Sexy::SEXCHAR *sexySourceFile)
 		{
-			CommonSource src;
-			src.SexySourceCode = sexySourceFile;
+         struct Anon
+         {
+            static void CleanupGlobalSources()
+            {
+               for (auto& i : commonGlobalSources)
+               {
+                  ISourceCode& src = const_cast<ISourceCode&>(i.second->Source());
+                  src.Release();
+                  i.second->Release();
+               }
+            }
+         };
 
-			enum { MAX_NATIVE_SRC_LEN = 32768 };
+         static bool cleanupQueued = false;
+         if (!cleanupQueued)
+         {
+            atexit(Anon::CleanupGlobalSources);
+            cleanupQueued = true;
+         }
 
-			SEXCHAR srcCode[MAX_NATIVE_SRC_LEN];
+         CommonSource src;
+         src.SexySourceCode = sexySourceFile;
 
-			SEXCHAR fullPath[_MAX_PATH];
-			StringPrint(fullPath, _MAX_PATH, SEXTEXT("%s%s"), srcEnvironment, sexySourceFile);		
+         auto i = commonGlobalSources.find(sexySourceFile);
+         if (i == commonGlobalSources.end())
+         {
+            enum { MAX_NATIVE_SRC_LEN = 32768 };
 
-			try
-			{
-				OS::LoadAsciiTextFile(srcCode, MAX_NATIVE_SRC_LEN, fullPath);
-			}
-			catch(Sexy::IException&)
-			{
-				throw;
-			}
+            SEXCHAR srcCode[MAX_NATIVE_SRC_LEN];
 
-			src.Src = sexParserProxy().DuplicateSourceBuffer(srcCode, -1, Vec2i{ 0,0 }, fullPath);
-			src.Tree = sexParserProxy().CreateTree(*src.Src);
+            SEXCHAR fullPath[_MAX_PATH];
+            StringPrint(fullPath, _MAX_PATH, SEXTEXT("%s%s"), srcEnvironment, sexySourceFile);
+
+            try
+            {
+               OS::LoadAsciiTextFile(srcCode, MAX_NATIVE_SRC_LEN, fullPath);
+            }
+            catch (Sexy::IException&)
+            {
+               throw;
+            }
+
+            src.Src = sexParserProxy().DuplicateSourceBuffer(srcCode, -1, Vec2i{ 0,0 }, fullPath);
+            src.Tree = sexParserProxy().CreateTree(*src.Src);
+
+            commonGlobalSources.insert(std::make_pair(sexySourceFile, src.Tree));
+         }
+         else
+         {
+            src.Tree = i->second;
+            src.Src = const_cast<ISourceCode*>( &i->second->Source() );
+         }
 
 			AddTree(*src.Tree);
 
-			commonSources.push_back(src);
+			// commonSources.push_back(src);
 		}
 
 		virtual void AddNativeLibrary(const Sexy::SEXCHAR* dynamicLinkLibOfNativeCalls)
@@ -1268,6 +1308,8 @@ namespace Sexy
 	{
 		return script.GetGlobalValue(buffer);
 	}
+
+   std::unordered_map<stdstring, ISParserTree*> CScriptSystem::commonGlobalSources;
 } // Script
 } // Sexy
 
