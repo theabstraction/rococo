@@ -221,6 +221,10 @@ namespace Sexy
 		}
 	}
 
+   // This may well be one of the most CPU intensive functions where there are huge numbers of scripts that
+   // need compiling per execution session. I guess having TMapFQNToNativeCall & f->TryResolveArguments() compiled once
+   // globally would be a great optimization -> MAT
+
 	void InstallNativeCalls(IN const TMapFQNToNativeCall& nativeCalls, REF INamespaceBuilder& rootNS)
 	{
 		for(auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
@@ -1056,8 +1060,6 @@ namespace Sexy
 		
 			scripts->ExceptionLogic().InstallThrowHandler();
          
-         isBuildingNativeCalls = false; // We just want the namespaces
-
          for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
          {
             INativeLib* lib = *i;
@@ -1067,14 +1069,6 @@ namespace Sexy
 			InstallNativeCallNamespaces(IN nativeCalls, REF ProgramObject().GetRootNamespace());
 			scripts->CompileNamespaces();
 			scripts->CompileDeclarations();
-
-         isBuildingNativeCalls = true; // We want the functions
-
-         for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
-         {
-            INativeLib* lib = *i;
-            lib->AddNativeCalls();
-         }
 	
 			InstallNullFunction();
 			InstallNativeCalls(IN nativeCalls, REF ProgramObject().GetRootNamespace());
@@ -1096,16 +1090,9 @@ namespace Sexy
 			return scripts->GetSourceCode(module);
 		}
 
-      bool isBuildingNativeCalls{ true };
-
 		virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, csexstr archetype, bool checkName)
 		{		
 			enum { MAX_ARCHETYPE_LEN = 256};
-
-         if (!isBuildingNativeCalls)
-         {
-            return;
-         }
 
 			if (callback == NULL)
 			{

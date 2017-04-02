@@ -442,11 +442,21 @@ namespace
 
 			auto& t = textures[index];
 
-			D3D11_TEXTURE2D_DESC desc;
-			t.texture->GetDesc(&desc);
-
 			if (textureId != lastTextureId)
 			{
+            if (t.view == nullptr)
+            {
+               D3D11_SHADER_RESOURCE_VIEW_DESC desc;
+               ZeroMemory(&desc, sizeof(desc));
+
+               desc.Texture2D.MipLevels = -1;
+               desc.Texture2D.MostDetailedMip = 0;
+
+               desc.Format = DXGI_FORMAT_UNKNOWN;
+               desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+
+               VALIDATEDX11(device.CreateShaderResourceView(t.texture, &desc, &t.view));
+            }
 				lastTextureId = textureId;
 				dc.PSSetShaderResources(textureIndex, 1, &t.view);
 			}
