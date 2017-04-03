@@ -3274,6 +3274,70 @@ namespace
 		validate(x == 11);
 	}
 
+   void TestCompareGetAccessorWithOne(IPublicScriptSystem& ss)
+   {
+      csexstr srcCode =
+         SEXTEXT("(namespace EntryPoint)")
+         SEXTEXT("(class Job (defines Sys.IJob))")
+         SEXTEXT("(method Job.Type -> (Int32 value): (value = 117))")
+         SEXTEXT("(function Main -> (Int32 result):")
+         SEXTEXT("(Int32 vst2 = 117)")
+         SEXTEXT("     (Job job)")
+         SEXTEXT("	  (if (job.Type == vst2)")
+         SEXTEXT("	      (result = 55)")
+         SEXTEXT("	   else")
+         SEXTEXT("	      (result = 89)")
+         SEXTEXT("	   )")
+         SEXTEXT(")")
+         SEXTEXT("(alias Main EntryPoint.Main)")
+         ;
+
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestCompareGetAccessorWithOne"));
+      Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+      VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+      vm.Push(0); // Allocate stack space for the int32 result
+
+      EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+      ValidateExecution(result);
+
+      int x = vm.PopInt32();
+      validate(x == 55);
+   }
+
+   void TestCompareGetAccessorWithOne2(IPublicScriptSystem& ss)
+   {
+      csexstr srcCode =
+         SEXTEXT("(namespace EntryPoint)")
+         SEXTEXT("(class Job (defines Sys.IJob))")
+         SEXTEXT("(method Job.Type -> (Int32 value): (value = 117))")
+         SEXTEXT("(function Main -> (Int32 result):")
+         SEXTEXT("(Int32 vst2 = 118)")
+         SEXTEXT("     (Job job)")
+         SEXTEXT("	  (if (job.Type < vst2)")
+         SEXTEXT("	      (result = 55)")
+         SEXTEXT("	   else")
+         SEXTEXT("	      (result = 89)")
+         SEXTEXT("	   )")
+         SEXTEXT(")")
+         SEXTEXT("(alias Main EntryPoint.Main)")
+         ;
+
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestCompareGetAccessorWithOne2"));
+      Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+      VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+      vm.Push(0); // Allocate stack space for the int32 result
+
+      EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+      ValidateExecution(result);
+
+      int x = vm.PopInt32();
+      validate(x == 55);
+   }
+
 	void TestSizeOf(IPublicScriptSystem& ss)
 	{
 		csexstr srcCode =
@@ -11080,6 +11144,9 @@ namespace
 		TEST(TestMultipleDerivation2);
 		TEST(TestMultipleDerivation);
 
+      TEST(TestCompareGetAccessorWithOne);
+      TEST(TestCompareGetAccessorWithOne2);
+
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 	}
 
@@ -11098,15 +11165,14 @@ namespace
 		TEST(TestDuplicateArchetypeError);
 		TEST(TestReturnClosureWithVariableFail);
 		TEST(TestDestructorThrows);
-		TEST(TestDoubleArrowsInFunction);		
+		TEST(TestDoubleArrowsInFunction);	
 	}
 	
 	void RunTests()
 	{	
       LARGE_INTEGER start, end, hz;
       QueryPerformanceCounter(&start);
-      TEST(TestStringBuilderBig);
-     
+
 	   RunPositiveSuccesses();	
       
 		RunCollectionTests();

@@ -376,7 +376,7 @@ namespace Sexy
          if (Parse::PARSERESULT_GOOD != Parse::TryParse(OUT rValue, rType, rightString))
          {
             sexstringstream streamer;
-            streamer << SEXTEXT("Cannot parse the left part of the expression: ") << rightString;
+            streamer << SEXTEXT("Cannot parse the right part of the expression: ") << rightString;
             Throw(parent, streamer);
          }
 
@@ -488,41 +488,18 @@ namespace Sexy
 
       void CompileBinaryCompareAtomicVsCompound(CCompileEnvironment& ce, cr_sex parent, csexstr varName, CONDITION op, cr_sex s, bool leftToRight);
 
-      void CompileBinaryCompareVariableVsVariable(CCompileEnvironment& ce, cr_sex parent, csexstr leftVarName, CONDITION op, cr_sex rightExpr)
+      void CompileBinaryCompareVariableVsVariable(CCompileEnvironment& ce, cr_sex parent, cr_sex leftExpr, csexstr leftVarName, CONDITION op, cr_sex rightExpr)
       {
          ICodeBuilder& builder = ce.Builder;
 
-         csexstr rightVarName = rightExpr.String()->Buffer;
-
-         VARTYPE varLType = builder.GetVarType(leftVarName);
-         VARTYPE varRType = builder.GetVarType(rightVarName);
-
-         if (varLType == VARTYPE_Bad)
-         {
-            Throw(parent, SEXTEXT("The LHS is neither a literal, nor an identifier"));
-         }
-         else if (varLType == VARTYPE_Derivative)
-         {
-            Throw(parent, SEXTEXT("The LHS is a derived type, and cannot be used in boolean comparisons"));
-         }
-
-         if (varRType == VARTYPE_Bad)
-         {
-            CompileBinaryCompareAtomicVsCompound(ce, parent, leftVarName, op, rightExpr, true);
-            return;
-         }
-         else if (varRType == VARTYPE_Derivative)
-         {
-            Throw(parent, SEXTEXT("The RHS is a derived type, and cannot be used in boolean comparisons"));
-         }
+         VARTYPE varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftVarName, Sexy::ROOT_TEMPDEPTH + 1);
+         VARTYPE varRType = GetAtomicValueAnyNumeric(ce, rightExpr, rightExpr.String()->Buffer, Sexy::ROOT_TEMPDEPTH + 2);
 
          if (varLType != varRType)
          {
-            Throw(parent, SEXTEXT("The LHS is not the same type as the RHS"));
+            Throw(parent, L"Cannot compare left with right, they are of different types");
          }
 
-         builder.AssignVariableToTemp(leftVarName, Sexy::ROOT_TEMPDEPTH + 1);
-         builder.AssignVariableToTemp(rightVarName, Sexy::ROOT_TEMPDEPTH + 2);
          AddBinaryComparison(parent, builder.Assembler(), Sexy::ROOT_TEMPDEPTH, Sexy::ROOT_TEMPDEPTH + 1, Sexy::ROOT_TEMPDEPTH + 2, op, varLType);
       }
 
@@ -648,7 +625,7 @@ namespace Sexy
                   }
                   else
                   {
-                     CompileBinaryCompareVariableVsVariable(ce, parent, leftString, op, right);
+                     CompileBinaryCompareVariableVsVariable(ce, parent, left, leftString, op, right);
                   }
                }
                else if (!IsCompound(right))

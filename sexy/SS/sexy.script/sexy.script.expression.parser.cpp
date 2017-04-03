@@ -2675,7 +2675,7 @@ namespace Sexy { namespace Script
 			const ISExpression* t = s.GetTransform();
 			if (t != NULL)
 			{
-				CompileExpression(ce, *t);
+ 				CompileExpression(ce, *t);
 			}
 
 			return;
