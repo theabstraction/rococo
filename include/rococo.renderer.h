@@ -146,6 +146,7 @@ namespace Rococo
       Vec2i RenderCentredText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& middle);
 		void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag);
 		void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag);
+      void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour);
 
 		struct alignas(16) StackSpaceGraphics
 		{

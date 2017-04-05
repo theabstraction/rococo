@@ -50,7 +50,7 @@ namespace
          e.installation.OS().EnumerateModifiedFiles(*this);
          e.players.Update(clock);
          e.camera.Update(clock);
-         e.camera.Venue().ShowVenue(e.mathsDebugger);
+   //    e.camera.Venue().ShowVenue(e.mathsDebugger);
          e.renderer.Render(e.scene);
          return 5;
       }

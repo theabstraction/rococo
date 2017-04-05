@@ -211,6 +211,14 @@ namespace HV
   
    bool QueryYesNo(Windows::IWindow& ownerWindow, const wchar_t* message);
 
+   ROCOCOAPI IEditor
+   {
+      virtual void Free() = 0;
+      virtual IUIOverlay& Overlay() = 0;
+   };
+
+   IEditor* CreateEditor(IPublisher& publisher);
+
    struct Cosmos
    {
       IConfigSupervisor& config;
@@ -230,6 +238,7 @@ namespace HV
       IKeyboardSupervisor& keyboard;
       IMouse& mouse;
       IMathsVisitorSupervisor& mathsDebugger;
+      IEditor& editor;
    };
 
    IApp* CreateHVApp(Cosmos& e);

@@ -24,14 +24,21 @@ namespace
          {
             Input::OnMouseMoveRelativeEvent mmre;
             mmre.dx = rm.lLastX;
-            mmre.dy = rm.lLastY;       
+            mmre.dy = rm.lLastY;
+
+            if ((rm.usButtonFlags & RI_MOUSE_WHEEL))
+            {
+               mmre.dz = ((int32)(short)rm.usButtonData) / 120;
+            }
+            else
+            {
+               mmre.dz = 0;
+            }
+
             Publish(publisher, mmre);
-         }
-         else if (rm.usFlags == MOUSE_ATTRIBUTES_CHANGED)
-         {
+       
             Input::OnMouseChangedEvent mce;
-            mce.cursor = Vec2i{ rm.lLastX, rm.lLastY };
-            mce.flags = rm.usButtonData & Input::MouseFlags_LRM;
+            mce.flags = rm.usButtonFlags & Input::MouseFlags_LRMW;
             if (mce.flags != 0)
             {
                Publish(publisher, mce);

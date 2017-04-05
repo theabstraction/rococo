@@ -52,6 +52,20 @@ namespace Rococo
 
 	Quat InterpolateRotations(cr_quat a, cr_quat b, float t);
 
+   bool GetLineIntersect(Vec2 a, Vec2 b, Vec2 c, Vec2 d, float& t, float& u);
+
+   // Determine whether two parallel line segments are on the same line and touch
+   bool DoParallelLinesIntersect(Vec2 a, Vec2 b, Vec2 c, Vec2 d);
+
+   struct IntersectCounts
+   {
+      int32 forwardCount;
+      int32 backwardCount;
+   };
+
+   // Count the number of times a vector crosses a permeter, used to determine whether a surface faces inside or outside a sector
+   IntersectCounts CountLineIntersects(Vec2 origin, Vec2 direction, const Vec2* positionArray, size_t nVertices);
+
    // Generally in the Rococo libs code/assume that matrices are used to pre-multiply column vectors
    // If this is not the case, then make sure you comment/document that matrices go against the convention
 	struct alignas(4) Matrix4x4 
@@ -193,6 +207,23 @@ namespace Rococo
 	inline Vec2 operator * (float f, const Vec2& q) { return Vec2{ q.x * f, q.y * f }; }
 	inline void operator += (Vec2& a, const Vec2& b) { a.x += b.x; a.y += b.y; }
 	inline void operator -= (Vec2& a, const Vec2& b) { a.x -= b.x; a.y -= b.y;  }
+   inline bool operator == (Vec2 a, Vec2 b) { return a.x == b.x && a.y == b.y; }
+   inline bool operator != (Vec2 a, Vec2 b) { return !(a == b); }
+
+   /*
+
+   |i  j  k |
+   |ax ay az|
+   |bx by bz|
+
+   */
+
+   // N.B if a is i and b is j, then the cross product is k
+   // i x j is counter-clockwise and cross product is positive
+   inline float Cross(Vec2 a, Vec2 b)
+   {
+      return a.x * b.y - a.y * b.x;
+   }
 
 	inline bool operator == (const Vec2i& a, const Vec2i& b) { return a.x == b.x && a.y == b.y; }
 	inline bool operator != (const Vec2i& a, const Vec2i& b) { return !(a == b); }

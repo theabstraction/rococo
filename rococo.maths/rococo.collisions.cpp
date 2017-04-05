@@ -500,4 +500,186 @@ namespace Rococo
 
 		return collideWithVertex.vCollision;
 	}
+
+   bool GetLineIntersect(Vec2 a, Vec2 b, Vec2 c, Vec2 d, float& t, float& u)
+   {
+      // let F = b-a, and G = d-c
+      // P(t) = a + F.t
+      // Q(u) = c + G.u
+
+      // At intersect P(t)=Q(u)
+      // a + F.t = c + G.u
+
+      // ax + Fx.t = cx + Gx.u
+      // ay + Fy.t = cy + Gy.u
+
+      // Fy.ax + FxFy.t = Fy.cx + Fy.Gx.u
+      // Fx.ay + FxFy.t = Fx.cy + Fx.Gy.u
+
+      // Fx.ay - Fy.ax = Fx.cy - Fy.cx + u(Fx.Gy - Fy.Gx)
+      // [ Fx(ay - cy) + Fy(cx - ax) ] / (Fx.Gy - Fy.Gx) = u
+
+      float Fx = b.x - a.x;
+      float Fy = b.y - a.y;
+
+      float Gx = d.x - c.x;
+      float Gy = d.y - c.y;
+
+      float LHS = Fx * (a.y - c.y) + Fy * (c.x - a.x);
+      float RHS = Fx*Gy - Fy*Gx;
+
+      const float epsilon = 0.001f;
+
+      if (RHS > -epsilon && RHS < epsilon)
+      {
+         u = 0;
+         t = 0;
+         return false;
+      }
+
+      u = LHS / RHS;
+
+      if (Fx != 0)
+      {
+         t = ((c.x - a.x) + Gx * u) / Fx;
+      }
+      else
+      {
+         t = ((c.y - a.y) + Gy * u) / Fy;
+      }
+
+      return true;
+   }
+
+   bool DoParallelLinesIntersect(Vec2 a, Vec2 b, Vec2 c, Vec2 d)
+   {
+      // Two parallel line segments only intersect if they are part of the same infinite line
+
+      float Fx = b.x - a.x;
+      float Fy = b.y - a.y;
+
+      float Gx = d.x - c.x;
+      float Gy = d.y - c.y;
+
+      // P(t) = a + F.t
+      // Q(u) = c + G.t
+
+      const float epsilon = 0.001f;
+
+      if (Fx == 0 && Gx != 0 || Fx != 0 && Gx == 0)
+      {
+         return false;
+      }
+
+      struct ANON
+      {
+         static bool Intersects_0_1(float u0, float u1)
+         {
+            const float epsilon = 0.001f;
+            if ((u0 <= epsilon && u1 >= 1.0f + epsilon) || (u0 >= 1.0f + epsilon && u1 <= epsilon))
+            {
+               // ab is a subset of cd
+               return true;
+            }
+            else if (u0 >= -epsilon && u0 <= 1.0f + epsilon)
+            {
+               // Point c is in the line segment ab
+               return true;
+            }
+            else if (u1 >= -epsilon && u1 <= 1.0f + epsilon)
+            {
+               // Point d is in the line segment ab
+               return true;
+            }
+            else
+            {
+               return false;
+            }
+         }
+      };
+
+      if (Fx == 0)
+      {
+         // Two vertical line segments
+         if (a.x != c.x)
+         {
+            return false;
+         }
+
+         // Establish u0 at t = 0 and t = 1
+         float u0 = (a.y - c.y) / Gy;
+         float u1 = (b.y - c.y) / Gy;
+         
+         return ANON::Intersects_0_1(u0, u1);
+      }
+      else
+      {
+         float gradF = Fy / Fx;
+         float gradG = Gy / Gx;
+
+         if (fabsf(gradF - gradG) > epsilon)
+         {
+            return false;
+         }
+
+         if (Gy == 0)
+         {
+            if (a.y != c.y)
+            {
+               return false;
+            }
+         }
+         else
+         {
+            // If the line segments are part of the same line then a = c + Gu
+            Vec2 ca = c - a; // = Gu
+            float uX = ca.x / Gx;
+            float uY = ca.y / Gy;
+
+            if (fabsf(uX - uY) > epsilon)
+            {
+               return false;
+            }
+         }
+
+         float u0 = (a.x - c.x) / Gx;
+         float u1 = (b.x - c.x) / Gx;
+
+         return ANON::Intersects_0_1(u0, u1);
+      }
+   }
+
+   IntersectCounts CountLineIntersects(Vec2 origin, Vec2 direction, const Vec2* positionArray, size_t nVertices)
+   {
+      if (nVertices < 2)
+      {
+         Throw(0, L"CountLineIntersects failed - insufficient vertices in positionArray");
+      }
+
+      IntersectCounts counts = { 0 };
+      for (size_t i = 0; i < nVertices - 1; ++i)
+      {
+         Vec2 a = positionArray[i];
+         Vec2 b = positionArray[i+1];
+
+         float t, u;
+         if (GetLineIntersect(a, b, origin, origin + direction, t, u))
+         {
+            if (t >= 0 && t <= 1)
+            {
+               // Intersection occurs within segment
+               if (u > 0)
+               {
+                  counts.forwardCount++;
+               }
+               else if (u < 0)
+               {
+                  counts.backwardCount++;
+               }
+            }
+         }
+      }
+
+      return counts;
+   }
 }

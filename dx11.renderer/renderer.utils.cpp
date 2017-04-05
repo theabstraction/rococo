@@ -5,6 +5,8 @@
 #include <limits>
 #include <new>
 
+#include <rococo.maths.h>
+
 namespace
 {
 	using namespace Rococo;
@@ -238,6 +240,44 @@ namespace Rococo
          Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
          grc.RenderText(Vec2i{ middle.x - (span.x >> 1), middle.y - (span.y >> 1) }, job);
          return span;
+      }
+
+      void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour)
+      {
+         Vec2i delta = end - start;
+
+         int dx2 = Sq(delta.x);
+         int dy2 = Sq(delta.y);
+
+         Vec2 offset;
+         if (dy2 > dx2) // Move vertical than horizontal
+         {
+            offset = { (float) pixelthickness, 0 };
+         }
+         else
+         {
+            offset = { 0, (float) pixelthickness };
+         }
+
+         Vec2 bottomLeft = Vec2{ (float) start.x,  (float) start.y };
+         Vec2 topLeft = bottomLeft + offset;
+
+         Vec2 bottomRight = Vec2{ (float) end.x,  (float) end.y };
+         Vec2 topRight = bottomRight + offset;
+         
+
+         GuiVertex q[] =
+         {
+            { topLeft.x,     topLeft.y,       1.0f, 0, colour, 0, 0, 0 },
+            { bottomLeft.x,  bottomLeft.y,    1.0f, 0, colour, 0, 0, 0 },
+            { bottomRight.x, bottomRight.y,   1.0f, 0, colour, 0, 0, 0 },
+            { bottomRight.x, bottomRight.y,   1.0f, 0, colour, 0, 0, 0 },
+            { topRight.x,    topRight.y,      1.0f, 0, colour, 0, 0, 0 },
+            { topLeft.x,     topLeft.y,       1.0f, 0, colour, 0, 0, 0 },
+         };
+
+         grc.AddTriangle(q);
+         grc.AddTriangle(q + 3);
       }
 
 		void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag)

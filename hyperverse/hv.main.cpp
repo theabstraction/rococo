@@ -70,6 +70,7 @@ void Main(HANDLE hInstanceLock)
    AutoFree<IMouse> mouse = CreateMouse(*publisher);
    AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor();
    AutoFree<ISpriteSupervisor> sprites = CreateSpriteSupervisor(mainWindow->Renderer());
+   AutoFree<IEditor> editor = CreateEditor(*publisher);
 
    HV::Cosmos e
    {
@@ -89,12 +90,14 @@ void Main(HANDLE hInstanceLock)
       *players,
       *keyboardSupervisor,
       *mouse,
-      *mathsVisitor
+      *mathsVisitor,
+      *editor
    };
 
    SetDefaults(*config);
 
    mainWindow->Renderer().AddOverlay(1000, &mathsVisitor->Overlay());
+   mainWindow->Renderer().AddOverlay(1001, &editor->Overlay());
 
    RunEnvironmentScript(e, L"!scripts/hv/config.sxy");
 

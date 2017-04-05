@@ -257,6 +257,52 @@ void ValidateCollisionLib()
 	
 	Collision ptTest3 = CollideVertexAndSphere({ 0, -0.001f, 0.0f }, edgeAttackSphere, { 0, 2.0f, 0.0f });
 	VALIDATE(ptTest3.contactType == ContactType_None);
+
+   {
+      Vec2 a = { 1, 2 }, b = { 9, 2 };
+      Vec2 c = { 0, 1 }, d = { 0, 3 };
+      float t, u;
+      if (!GetLineIntersect(a, b, c, d, t, u))
+      {
+         Throw(0, L"Bad intersect!");
+      }
+      VALIDATE(u == 0.5f);
+      VALIDATE(t == -0.125f);
+   }
+
+   {
+      Vec2 a = { 1, 2 }, b = { 9, 2 };
+      Vec2 c = { 4, 2 }, d = { 5, 2 };
+      float t, u;
+      if (GetLineIntersect(a, b, c, d, t, u))
+      {
+         Throw(0, L"Bad intersect!");
+      }
+   }
+
+   {
+      Vec2 a{ 0, 1 }, b{ 0, 2 };
+      Vec2 c{ 0, 2 }, d{ 0, 3 };
+      VALIDATE(DoParallelLinesIntersect(a, b, c, d));
+   }
+
+   {
+      Vec2 a{ 1, 0 }, b{ 2, 0 };
+      Vec2 c{ 2, 0 }, d{ 3, 0 };
+      VALIDATE(DoParallelLinesIntersect(a, b, c, d));
+   }
+
+   {
+      Vec2 a{ 1, 1 }, b{ 3, 3 };
+      Vec2 c{ 2, 2 }, d{ 5, 5 };
+      VALIDATE(DoParallelLinesIntersect(a, b, c, d));
+   }
+
+   {
+      Vec2 a{ 1, 1 }, b{ 3, 3 };
+      Vec2 c{ 3.01f, 3.01f }, d{ 5, 5 };
+      VALIDATE(!DoParallelLinesIntersect(a, b, c, d));
+   }
 }
 
 void  ValidateProjectionLib()
