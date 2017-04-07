@@ -649,8 +649,10 @@ namespace Rococo
       }
    }
 
-   IntersectCounts CountLineIntersects(Vec2 origin, Vec2 direction, const Vec2* positionArray, size_t nVertices)
+   IntersectCounts CountLineIntersects(Vec2 origin, Vec2 direction, const Vec2* positionArray, size_t nVertices, float edgeEpsilon)
    {
+      edgeEpsilon = fabsf(edgeEpsilon);
+
       if (nVertices < 2)
       {
          Throw(0, L"CountLineIntersects failed - insufficient vertices in positionArray");
@@ -665,7 +667,11 @@ namespace Rococo
          float t, u;
          if (GetLineIntersect(a, b, origin, origin + direction, t, u))
          {
-            if (t >= 0 && t <= 1)
+            if ((t > -edgeEpsilon && t < edgeEpsilon) || ((t > 1 - edgeEpsilon) && t < (1 + edgeEpsilon)))
+            {
+               counts.edgeCases++;
+            }
+            else if (t >= 0 && t <= 1)
             {
                // Intersection occurs within segment
                if (u > 0)

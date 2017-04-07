@@ -115,6 +115,7 @@ namespace HV
          virtual IEntity* GetEntity(ID_ENTITY id) = 0;
          virtual void ConcatenateModelMatrices(ID_ENTITY id, Matrix4x4& result) = 0;
          virtual void ConcatenatePositionVectors(ID_ENTITY id, Vec3& position) = 0;
+         virtual Graphics::IMeshBuilder& MeshBuilder() = 0;
       };
    }
 
@@ -213,11 +214,12 @@ namespace HV
 
    ROCOCOAPI IEditor
    {
+      virtual void Activate(bool isActive) = 0;
       virtual void Free() = 0;
       virtual IUIOverlay& Overlay() = 0;
    };
 
-   IEditor* CreateEditor(IPublisher& publisher);
+   IEditor* CreateEditor(IPublisher& publisher, HV::Entities::IInstancesSupervisor& instances);
 
    struct Cosmos
    {

@@ -399,6 +399,11 @@ namespace
 			}
 		}
 
+      void Free()
+      {
+         delete this;
+      }
+
       virtual ITextureArrayBuilder& SpriteBuilder()
       {
          return *textureArrayBuilder;
@@ -875,6 +880,8 @@ namespace
 
 			mainSwapChain->Present(1, 0);
 
+         dc.OMSetBlendState(nullptr, nullptr, 0);
+         dc.RSSetState(nullptr);
 			dc.OMSetDepthStencilState(nullptr, 0);
 			dc.OMSetRenderTargets(0, nullptr, nullptr);
 			dc.IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
@@ -1072,10 +1079,28 @@ namespace
 
 	struct DX11Host
 	{
+      DX11Host()
+      {
+
+      }
+
+      ~DX11Host()
+      {
+         device = nullptr;
+         dc = nullptr;
+         adapter = nullptr;
+         factory = nullptr;
+         if (debug)
+         {
+         //   debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+            debug = nullptr;
+         }
+      }
 		AutoRelease<IDXGIAdapter> adapter;
 		AutoRelease<ID3D11DeviceContext> dc;
 		AutoRelease<ID3D11Device> device;
 		AutoRelease<IDXGIFactory> factory;
+      AutoRelease<ID3D11Debug> debug;
 	};
 
 	class MainWindowHandler : public StandardWindowHandler
@@ -1258,6 +1283,7 @@ namespace
 #else
       flags = 0;
 #endif
+      flags |= D3D11_CREATE_DEVICE_SINGLETHREADED;
 
 		VALIDATEDX11(D3D11CreateDevice(host.adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, flags,
 			featureLevelNeeded, 1, D3D11_SDK_VERSION, &host.device, &featureLevelFound, &host.dc
@@ -1267,6 +1293,8 @@ namespace
 		{
 			Throw(0, L"DX 11.0 is required for this application");
 		}
+
+      host.device->QueryInterface(IID_PPV_ARGS(&host.debug));
 	}
 
 	void MainLoop(MainWindowHandler& mainWindow, HANDLE hInstanceLock, IApp& app)
@@ -1380,7 +1408,7 @@ namespace
       virtual void Free()
       {
          installation.OS().SetUnstableHandler(nullptr);
-         delete renderer;
+         renderer->Free();
          delete this;
       } 
 

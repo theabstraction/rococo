@@ -650,6 +650,17 @@ namespace Rococo
       {
          PostQuitMessage(0);
       }
+
+      void PrintDebug(const char* format, ...)
+      {
+#if _DEBUG
+         va_list arglist;
+         va_start(arglist,format);
+         char line[4096];
+         vsnprintf_s(line, _TRUNCATE, format, arglist);
+         OutputDebugStringA(line);
+#endif
+      }
    }
 
    namespace IO

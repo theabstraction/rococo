@@ -9,7 +9,7 @@ namespace
    class HVApp : public IApp, public IEventCallback<FileModifiedArgs>
    {
       Cosmos& e;
-
+      bool editorActive{ false };
    public:
       HVApp(Cosmos& _e) : e(_e)
       {
@@ -65,6 +65,11 @@ namespace
             pae.Name = action;
             pae.start = key.isPressed;
             Rococo::Events::Publish(e.publisher, pae);
+         }
+         if (Eq(action, L"gui.editor.toggle") && key.isPressed)
+         {
+            editorActive = !editorActive;
+            e.editor.Activate(editorActive);
          }
       }
 

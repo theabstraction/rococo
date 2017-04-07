@@ -21,4 +21,5 @@
 	(k.BindAction "D" 		"move.fps.strafferight")
 	(k.BindAction "SPACE" 	"move.fps.jump")
 	(k.BindAction "R" 		"move.fps.autorun")
+	(k.BindAction "E"		"gui.editor.toggle")
 )

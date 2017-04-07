@@ -349,6 +349,11 @@ namespace Rococo
       IAllocator& CheckedAllocator();
       IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes);
    }
+
+   namespace OS
+   {
+      void PrintDebug(const char* format, ...);
+   }
 }
 
 #endif

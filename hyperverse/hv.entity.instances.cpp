@@ -78,6 +78,11 @@ namespace
          Clear();
       }
 
+      virtual HV::Graphics::IMeshBuilder& MeshBuilder()
+      {
+         return meshBuilder;
+      }
+
       ID_ENTITY Add(ID_SYS_MESH meshId, ID_TEXTURE textureId, const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId)
       {
          float d = Determinant(model);

@@ -192,7 +192,7 @@ namespace Rococo
 
          dc.GenerateMips(view);
 
-         return{ tx, nullptr };
+         return{ tx, view };
       }
 
       TextureBind TextureLoader::LoadAlphaBitmap(const wchar_t* resourceName)

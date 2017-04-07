@@ -90,6 +90,18 @@ namespace
 
       virtual void RenderObjects(IRenderContext& rc)
       {
+         Clear();
+         struct ANON: public IEntityCallback
+         {
+            std::vector<ID_ENTITY>* entities;
+            virtual void OnEntity(int64 index, IEntity& entity, ID_ENTITY id)
+            {
+               entities->push_back(id);
+            }
+         } addToScene;
+         addToScene.entities = &entities;
+         instances.ForAll(addToScene);
+
          drawQueue.clear();
 
          GlobalState state;
@@ -109,6 +121,11 @@ namespace
             if (!entity)
             {
                Throw(0, L"Unexpected missing entity");
+            }
+
+            if (!entity->TextureId())
+            {
+               continue;
             }
 
             if (entity->MeshId() != meshId || entity->TextureId() != textureId)

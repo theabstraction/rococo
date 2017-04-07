@@ -10,157 +10,459 @@ namespace
    using namespace HV;
    using namespace Rococo;
 
-   struct GuiTriangle
+   struct Triangle2d
    {
-      GuiVertex A;
-      GuiVertex B;
-      GuiVertex C;
+      Vec2 A;
+      Vec2 B;
+      Vec2 C;
    };
 
-   void SetGroundVertex(GuiVertex& v, Vec2 p, float uvScale, Vec2 uvOffset)
+   void ValidateArray(const Vec2* positionArray, size_t nVertices)
    {
-      v.x = p.x;
-      v.y = p.y;
-      v.u = uvScale * p.x + uvOffset.x;
-      v.y = uvScale * p.y + uvOffset.y;
-      v.colour = RGBAb(0, 0, 0, 255);
-      v.fontBlend = 0;
-      v.saturation = 1.0f;
-      v.textureIndex = 1;
+       // N.B we use modular arithmetic to connect final vertex with beginning
+      // So we do not duplicate end vertex in the array with the beginning
+      if (nVertices < 3 || positionArray[0] == positionArray[nVertices - 1])
+      {
+         Throw(0, L"IsClockwiseSequential: Cannot evaluate chirality. Bad position array");
+      }
+
+      if (nVertices > 256)
+      {
+         Throw(0, L"IsClockwiseSequential: Too many elements in mesh. Maximum is 256. Simplify");
+      }
    }
 
-   void EarClipTesselator(std::vector<GuiTriangle>& output, std::deque<Vec2> mesh, float uvScale, Vec2 uvOffset)
+   // If [array] represents a ring, then GetRingElement(i...) returns the ith element using modular arithmetic
+   template<class T>
+   T GetRingElement(size_t index, const T* array, size_t capacity)
    {
-      if (mesh.size() < 3)
+      return array[index % capacity];
+   }
+
+   bool IsOdd(int32 i)
+   {
+      return (i % 2) == 1;
+   }
+
+   bool DoesLineIntersectSegments(Vec2 origin, Vec2 normal, const Vec2* positionArray, size_t nVertices)
+   {
+      IntersectCounts counts = { 0 };
+      for (size_t i = 0; i < nVertices; ++i)
+      {
+         Vec2 q0 = GetRingElement(i, positionArray, nVertices);
+         Vec2 q1 = GetRingElement(i + 1, positionArray, nVertices);
+
+         Vec2 specimen[2];
+         specimen[0] = q0;
+         specimen[1] = q1;
+
+         if (q0 != origin && q1 != origin)
+         {
+            auto count = CountLineIntersects(origin, normal, specimen, 2, 0.001f);
+            counts.forwardCount += count.forwardCount;
+            counts.backwardCount += count.backwardCount;
+            counts.edgeCases += count.edgeCases;
+         }
+      }
+
+      return counts.forwardCount > 0;
+   }
+
+   // Determine whether forward iteration of a perimeter array is clockwise
+   bool IsClockwiseSequential(const Vec2* positionArray, size_t nVertices)
+   {
+      for (size_t j = 0; j < nVertices; ++j)
+      {
+         Vec2 p0 = GetRingElement(j, positionArray, nVertices);
+         Vec2 p1 = GetRingElement(j+1, positionArray, nVertices); 
+         
+         Vec2 centre = (p0 + p1) * 0.5f;
+         Vec2 dp = p1 - p0;
+         Vec3 normal = Cross({ dp.x, dp.y, 0 }, { 0, 0, 1 });
+
+         // Take a segment from the perimeter and generate its normal
+         // Count the number of timest that normal crosses the perimeter
+
+         IntersectCounts counts = { 0 };
+         for (size_t i = j+1; i < nVertices+j; ++i)
+         {
+            Vec2 q0 = GetRingElement(i, positionArray, nVertices);
+            Vec2 q1 = GetRingElement(i + 1, positionArray, nVertices);
+           
+            Vec2 specimen[2];
+            specimen[0] = q0;
+            specimen[1] = q1;
+            auto count = CountLineIntersects(centre, { normal.x, normal.y }, specimen, 2, 0.001f);
+            counts.forwardCount += count.forwardCount;
+            counts.backwardCount += count.backwardCount;
+            counts.edgeCases += count.edgeCases;
+         }
+
+         // If its odd, then the segment is facing inside the enclosed region
+         if (counts.edgeCases == 0)
+         {
+            if (IsOdd(counts.forwardCount))
+            {
+               if (IsOdd(counts.backwardCount))
+               {
+                  Throw(0, L"IsClockwiseSequential: Unexpected - forwardcount and backward count both odd!");
+               }
+
+               return true;
+            }
+            else
+            {
+               // Iteration needs to go backwardds to go clockwise aroun the perimeter
+               if (!IsOdd(counts.backwardCount))
+               {
+                  Throw(0, L"IsClockwiseSequential: Unexpected - forwardcount and backward count both even!");
+               }
+
+               return false;
+            }
+         }
+      }
+
+      Throw(0, L"IsClockwiseSequential: Every calculation to evaluate chirality was an edge case");
+      return false;
+   }
+
+   bool IsInternal(const Triangle2d& t, Vec2 p)
+   {
+      float Fa = Cross(t.B - t.A, p - t.B);
+      float Fb = Cross(t.C - t.B, p - t.C);
+      float Fc = Cross(t.A - t.C, p - t.A);
+
+      if (Fa < 0 && Fb < 0 && Fc < 0)
+      {
+         return true;
+      }
+
+      return false;
+   }
+
+   size_t CountInternalPoints(const Triangle2d& t, const Vec2* points, size_t nPoints)
+   {
+      size_t count = 0;
+      for (size_t i = 0; i < nPoints; ++i)
+      {
+         auto p = points[i];
+         if (IsInternal(t, p))
+         {
+            count++;
+         }
+      }
+
+      return count;
+   }
+
+   ROCOCOAPI I2dMeshBuilder
+   {
+      virtual void Append(const Triangle2d& t) = 0;
+   };
+
+   void EarClipTesselator(I2dMeshBuilder& tb, std::deque<Vec2>& perimeter)
+   {
+      if (perimeter.size() < 3)
       {
          Throw(0, L"Cannot tesselate vector array with fewer than 3 elements");
       }
 
-      while (!mesh.empty())
+      while (!perimeter.empty())
       {
-         auto i = mesh.begin();
-         for (; i != mesh.end(); ++i)
+         auto i = perimeter.begin();
+         for (; i != perimeter.end(); ++i)
          {
             auto j = i;
-            Vec2 a = *j++; if (j == mesh.end()) j = mesh.begin();
-            Vec2 b = *j++; if (j == mesh.end()) j = mesh.begin();
-            Vec2 c = *j++;
+            Triangle2d t;
+            t.A = *j++; if (j == perimeter.end()) j = perimeter.begin();
+            t.B = *j++; if (j == perimeter.end()) j = perimeter.begin();
+            t.C = *j++;
 
-            Vec2 ab = b - a;
-            Vec2 bc = c - a;
+            Vec2 ab = t.B - t.A;
+            Vec2 bc = t.C - t.B;
 
             float k = Cross(ab, bc);
-            if (k < 0) // clockwise, we have an ear
+            if (k <= 0) // clockwise, we have an ear
             {
-               GuiTriangle t;
-               SetGroundVertex(t.A, a, uvScale, uvOffset);
-               SetGroundVertex(t.B, b, uvScale, uvOffset);
-               SetGroundVertex(t.C, c, uvScale, uvOffset);
-               output.push_back(t);
+               // If we have an ear, we can eliminate b
+               // For the case ab and bc are parallel k = 0, but since they share a point b, are part of the same line, so we can eliminate b
 
-               j = i;
-               j++;
-               if (j == mesh.end()) j = mesh.begin();
-               mesh.erase(j);
-
-               if (mesh.size() < 4)
+               Vec2* stackArray = (Vec2*)alloca(sizeof(Vec2) * perimeter.size());
+               int index = 0;
+               for (auto v : perimeter)
                {
-                  mesh.clear();
-                  return;
+                  stackArray[index++] = v;
                }
 
-               i = mesh.begin();
-               break;
+               if (!DoesLineIntersectSegments(t.A, t.C - t.A, stackArray, perimeter.size()) && CountInternalPoints(t, stackArray, perimeter.size()) == 0)
+               {
+                  tb.Append(t);
+
+                  j = i;
+                  j++;
+                  if (j == perimeter.end()) j = perimeter.begin();
+                  perimeter.erase(j);
+
+                  if (perimeter.size() < 3)
+                  {
+                     perimeter.clear();
+                     return;
+                  }
+
+                  i = perimeter.begin();
+                  break;
+               }
+            }
+            else
+            {
+               // Concave, not an ear
             }
          }
 
-         if (i == mesh.end())
+         if (i == perimeter.end())
          {
             Throw(0, L"Could not tesselate mesh. Iterated through all mesh and did not find ears");
          }
       }
    }
 
-   class Sector
+   struct ObjectVertexBuffer
    {
-      std::vector<ObjectVertex> wallVertices;
-      std::vector<ObjectVertex> floorVertices;
-      std::vector<ObjectVertex> ceilingVertices;
-      float uvScale{ 1.0f };
+      const HV::Graphics::Vertex* v;
+      const size_t VertexCount;
+   };
 
-   public:
-      std::vector<GuiTriangle> guiView;
+   uint32 nextSectorId = 1;
 
-      Sector(const Vec2* positionArray, size_t nVertices, float z0, float z1)
+   class Sector: private I2dMeshBuilder
+   {
+      std::vector<HV::Graphics::Vertex> wallVertices;
+      std::vector<HV::Graphics::Vertex> floorVertices;
+      std::vector<HV::Graphics::Vertex> ceilingVertices;
+      float uvScale{ 0.2f };
+      Vec2 uvOffset{ 0,0 };
+      float z0;
+      float z1;
+      wchar_t name[32];
+      uint32 id;
+      ID_ENTITY floorId;
+      ID_ENTITY ceilingId;
+      ID_ENTITY wallId;
+
+      virtual void Append(const Triangle2d& t)
+      {       
+         Vec3 up{ 0, 0, 1 };
+         HV::Graphics::Vertex a, b, c;
+         a.position = { t.A.x, t.A.y, z0 };
+         b.position = { t.B.x, t.B.y, z0 };
+         c.position = { t.C.x, t.C.y, z0 };
+         a.normal = b.normal = c.normal = up;
+         a.emissiveColour = b.emissiveColour = c.emissiveColour = RGBAb(0, 0, 0, 0);
+         a.diffuseColour = b.diffuseColour = c.diffuseColour = RGBAb(255, 255, 255, 0);
+         a.uv = uvScale * Vec2{ t.A.x,t.A.y } + uvOffset;
+         b.uv = uvScale * Vec2{ t.B.x,t.B.y } + uvOffset;
+         c.uv = uvScale * Vec2{ t.C.x,t.C.y } + uvOffset;
+         floorVertices.push_back(a);
+         floorVertices.push_back(b);
+         floorVertices.push_back(c);
+         a.normal = b.normal = c.normal = -up;
+         a.position.z = b.position.z = c.position.z = z1;
+         ceilingVertices.push_back(b);
+         ceilingVertices.push_back(a);
+         ceilingVertices.push_back(c);
+      }
+
+      void BuildWalls(const Vec2* positionArray, size_t nVertices, bool forwardIsClockwise, HV::Entities::IInstancesSupervisor& instances)
       {
-         if (nVertices < 4 || positionArray[0] != positionArray[nVertices - 1])
+         float u = 0;
+
+         for (size_t i = 0; i != nVertices; i++)
          {
-            Throw(0, L"Cannot construct Sector. Bad position array");
-         }
+            Vec2 p = GetRingElement(i, positionArray, nVertices);
+            Vec2 q = GetRingElement(i + 1, positionArray, nVertices);
 
-         Vec3 p0 = { positionArray[0].x, positionArray[0].y, z0 };
-         Vec3 p1 = { positionArray[0].x, positionArray[0].y, z1 };
-
-         Vec3 q0 = { positionArray[1].x, positionArray[1].y, z0 };
-         Vec3 q1 = { positionArray[1].x, positionArray[1].y, z1 };
-
-         Vec3 qp = q0 - p0;
-         Vec3 ph = (p0 + p1) * 0.5f;
-         Vec3 qh = (q0 + q1) * 0.5f;
-         Vec3 centre = (ph + qh) * 0.5f;
-
-         Vec3 normal = Cross(qp, { 0, 0, 1 });
-
-         int32 countDirection;
-         int32 startIndex;
-         int32 endIndex;
-
-         IntersectCounts counts = CountLineIntersects({ centre.x, centre.y }, { normal.x, normal.y }, positionArray + 1, nVertices - 1);
-
-         if ((counts.forwardCount % 2) == 1)
-         {
-            if ((counts.backwardCount % 2) == 1)
+            if (!forwardIsClockwise)
             {
-               Throw(0, L"Error computing mesh from sector perimeter");
+               std::swap(p, q);
             }
 
-            countDirection = 1;
-            startIndex = 0;
-            endIndex = (int32) nVertices;
+            Vec3 up{ 0, 0, 1 };
+            Vec3 P0 = { p.x, p.y, z0 };
+            Vec3 Q0 = { q.x, q.y, z0 };
+            Vec3 P1 = { p.x, p.y, z1 };
+            Vec3 Q1 = { q.x, q.y, z1 };
+
+            Vec3 delta = Q0 - P0;
+
+            float segmentLength = round(Length(delta));
+
+            Vec3 normal = Cross(delta, up);
+
+            HV::Graphics::Vertex PV0, PV1, QV0, QV1;
+
+            PV0.position = P0;
+            PV1.position = P1;
+            QV0.position = Q0;
+            QV1.position = Q1;
+
+            PV0.normal = PV1.normal = QV0.normal = QV1.normal = normal;
+            PV0.emissiveColour = PV1.emissiveColour = QV0.emissiveColour = QV1.emissiveColour = RGBAb(0, 0, 0, 0);
+            PV0.diffuseColour = PV1.diffuseColour = QV0.diffuseColour = QV1.diffuseColour = RGBAb(255, 255, 255, 0);
+
+            PV0.uv.y = QV0.uv.y = uvScale * z0;
+            PV1.uv.y = QV1.uv.y = uvScale * z1;
+            PV0.uv.x = PV1.uv.x = uvScale * u;
+            QV0.uv.x = QV1.uv.x = uvScale * (u + segmentLength);
+
+            u += segmentLength;
+
+            wallVertices.push_back(PV0);
+            wallVertices.push_back(PV1);
+            wallVertices.push_back(QV0);
+            wallVertices.push_back(PV1);
+            wallVertices.push_back(QV1);
+            wallVertices.push_back(QV0);
+         }
+
+         SafeFormat(name, _TRUNCATE, L"sector.walls.%u", id);
+         auto& mb = instances.MeshBuilder();
+         mb.Begin(to_fstring(name));
+
+         for (size_t i = 0; i < wallVertices.size();)
+         {
+            const HV::Graphics::Vertex& a = wallVertices[i++];
+            const HV::Graphics::Vertex& b = wallVertices[i++];
+            const HV::Graphics::Vertex& c = wallVertices[i++];
+            mb.AddTriangle(a, b, c);
+         }
+
+         mb.End();
+
+         wallId = instances.AddBody(to_fstring(name), L"!textures/walls/metal1.jpg"_fstring, Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+      }
+   public:
+      Sector(): id(nextSectorId++)
+      {
+
+      }
+
+      ObjectVertexBuffer FloorVertices() const
+      {
+         return{ &floorVertices[0], floorVertices.size() };
+      }
+
+      void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1, HV::Entities::IInstancesSupervisor& instances)
+      {
+         this->z0 = z0;
+         this->z1 = z1;
+
+         ValidateArray(positionArray, nVertices);
+
+         std::deque<Vec2> perimeter;
+
+         bool forwardIsClockwise;
+         if (IsClockwiseSequential(positionArray, nVertices))
+         {
+            forwardIsClockwise = true;
+            for (size_t i = 0; i != nVertices; i++)
+            {
+               perimeter.push_back(positionArray[i]);
+            }
          }
          else
          {
-            countDirection = -1;
-            startIndex = (int32) nVertices-1;
-            endIndex = -1;
+            forwardIsClockwise = false;
+            for (int32 i = (int32)nVertices - 1; i >= 0; i--)
+            {
+               perimeter.push_back(positionArray[i]);
+            }
          }
 
-         std::deque<Vec2> perimeter;
-         for (int32 i = startIndex; i != endIndex; i += countDirection)
+         BuildWalls(positionArray, nVertices, forwardIsClockwise, instances);
+
+         EarClipTesselator(*this, perimeter);
+
+         SafeFormat(name, _TRUNCATE, L"sector.floor.%u", id);
+
+         auto& mb = instances.MeshBuilder();
+         mb.Begin(to_fstring(name));
+
+         for (size_t i = 0; i < floorVertices.size();)
          {
-            perimeter.push_back(positionArray[i]);
+            const HV::Graphics::Vertex& a = floorVertices[i++];
+            const HV::Graphics::Vertex& b = floorVertices[i++];
+            const HV::Graphics::Vertex& c = floorVertices[i++];
+            mb.AddTriangle(a, b, c);
          }
 
-         EarClipTesselator(guiView, perimeter, uvScale, { 0,0 });
+         mb.End();
+
+         floorId = instances.AddBody(to_fstring(name), L"!textures/walls/metal1.jpg"_fstring, Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+
+         SafeFormat(name, _TRUNCATE, L"sector.ceiling.%u", id);
+
+         mb.Begin(to_fstring(name));
+
+         for (size_t i = 0; i < ceilingVertices.size();)
+         {
+            const HV::Graphics::Vertex& a = ceilingVertices[i++];
+            const HV::Graphics::Vertex& b = ceilingVertices[i++];
+            const HV::Graphics::Vertex& c = ceilingVertices[i++];
+            mb.AddTriangle(a, b, c);
+         }
+
+         mb.End();
+
+         ceilingId = instances.AddBody(to_fstring(name), L"!textures/walls/metal1.jpg"_fstring, Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
    };
 
    class Sectors
    {
-      const Metres defaultFloorLevel{ 200.0f };
-      const Metres defaultRoomHeight{ 3.0f };
+      HV::Entities::IInstancesSupervisor&  instances;
+      const Metres defaultFloorLevel{ 0.0f };
+      const Metres defaultRoomHeight{ 4.0f };
    public:
+      Sectors(HV::Entities::IInstancesSupervisor& _instances) : instances(_instances) {}
       std::vector<Sector*> sectors;
 
       void AddSector(const Vec2* positionArray, size_t nVertices)
       {
-         sectors.push_back(new Sector(positionArray, nVertices, defaultFloorLevel, defaultFloorLevel + defaultRoomHeight));
+         auto* s = new Sector();
+         try
+         {
+            s->Build(positionArray, nVertices, defaultFloorLevel, defaultFloorLevel + defaultRoomHeight, instances);
+            sectors.push_back(s);
+         }
+         catch (IException& ex)
+         {
+            delete s;
+            ShowErrorBox(Windows::NoParent(), ex, L"Algorithmic error creating sector. Try something simpler");
+
+#ifdef _DEBUG
+            if (QueryYesNo(Windows::NoParent(), L"Try again?"))
+            {
+               TripDebugger();
+               OS::PrintDebug("\n\n\n // Troublesome perimeter: \n");
+               OS::PrintDebug("const Vec2 perimeter[%d] = { ", nVertices);
+               for (const Vec2* p = positionArray; p < positionArray + nVertices; p++)
+               {
+                  OS::PrintDebug("{%f,%f},", p->x, p->y);
+               }
+               OS::PrintDebug("};\n\n\n");
+
+               AddSector(positionArray, nVertices);
+            }
+#endif
+         }
       }
    };
 
    class WorldMap
    {
    private:
+      HV::Entities::IInstancesSupervisor& instances;
       int32 gridlinePixelWidth{ 8 };
       Metres gridlineMetricWidth{ 2.0f };
       Vec2 gridCentre{ 0, 0 }; // Always uses integral co-ordinates
@@ -172,6 +474,11 @@ namespace
       GuiMetrics metrics { 0 };    
    public:
       Sectors sectors;
+
+      WorldMap(HV::Entities::IInstancesSupervisor& _instances) : instances(_instances), sectors(_instances)
+      {
+         
+      }
 
       Vec2 GetWorldPosition(Vec2i screenPosition)
       {
@@ -250,24 +557,32 @@ namespace
 
          DrawGridLines(grc);
 
+         Vec2i centreOffseti = GetScreenPosition(Vec2{0, 0});
+         Vec2 centreOffset{ (float)centreOffseti.x, (float)centreOffseti.y };
+
+         const float scale = gridlinePixelWidth / gridlineMetricWidth;
+
          for (auto sector : sectors.sectors)
          {
-            for (auto& triangle : sector->guiView)
+            ObjectVertexBuffer vertices = sector->FloorVertices();
+            for(size_t i = 0; i < vertices.VertexCount; i += 3 )
             {
-               GuiTriangle screenMappedTriangle = triangle;
-               Vec2i p0 = GetScreenPosition(Vec2{ triangle.A.x, triangle.A.y });
-               screenMappedTriangle.A.x = (float) p0.x;
-               screenMappedTriangle.A.y = (float) p0.y;
+               GuiVertex v[3];
+               for (int j = 0; j < 3; ++j)
+               {
+                  Vec2 worldPos{ vertices.v[i + j].position.x, vertices.v[i + j].position.y };
+                  auto pos = GetScreenPosition(worldPos);
+                  v[j].x = (float) pos.x;
+                  v[j].y = (float) pos.y;
+                  v[j].u = vertices.v[i + j].uv.x;
+                  v[j].v = vertices.v[i + j].uv.y;
+                  v[j].colour = RGBAb(192, 192, 192, 192);
+                  v[j].fontBlend = 0;
+                  v[j].saturation = 1;
+                  v[j].textureIndex = 1;
+               }
 
-               Vec2i p1 = GetScreenPosition(Vec2{ triangle.B.x, triangle.B.y });
-               screenMappedTriangle.B.x = (float)p1.x;
-               screenMappedTriangle.B.y = (float)p1.y;
-
-               Vec2i p2 = GetScreenPosition(Vec2{ triangle.C.x, triangle.C.y });
-               screenMappedTriangle.C.x = (float)p2.x;
-               screenMappedTriangle.C.y = (float)p2.y;
-
-               grc.AddTriangle(&screenMappedTriangle.A);
+               grc.AddTriangle(v);
             }
          }
       }
@@ -432,32 +747,26 @@ namespace
          if (clickedDown)
          {
             Vec2 wp = map.SnapToGrid(map.GetWorldPosition(cursorPos));
-            lineList.push_back(wp);
             isLineBuilding = true;
 
-            if (lineList.size() > 1)
+            if (!lineList.empty() && lineList[0] == wp)
             {
-               if (lineList[0] == wp)
+               // Sector closed
+               isLineBuilding = false;
+
+               if (lineList.size() >= 3)
                {
-                  // Sector closed
-                  isLineBuilding = false;
-
-                  if (lineList.size() == 2)
-                  {
-                     // Forbid naked line segments
-                     lineList.clear();
-                  }
-
-                  if (!lineList.empty())
-                  {
-                     map.sectors.AddSector(&lineList[0], lineList.size());
-                  }
-
-                  return;
+                  map.sectors.AddSector(&lineList[0], lineList.size());      
                }
-
-               DestroyCrossedLines();
+                  
+               lineList.clear();
+               return;
             }
+            else
+            {
+               lineList.push_back(wp);
+            }
+            DestroyCrossedLines();
          }
       }
    public:
@@ -499,13 +808,17 @@ namespace
    class Editor : public IEditor, public IUIOverlay, public IObserver
    {
       IPublisher& publisher;
+      HV::Entities::IInstancesSupervisor& instances;
       WorldMap map;
       EditMode_SectorBuilder editMode_Sectors;
       IEditMode* editMode;
       GuiMetrics metrics;
+      bool isActive{ false };
 
       void Render(IGuiRenderContext& grc) override
       {
+         if (!isActive) return;
+
          grc.Renderer().GetGuiMetrics(metrics);
          map.Render(grc);
 
@@ -519,6 +832,11 @@ namespace
          return *this;
       }
 
+      virtual void Activate(bool isActive)
+      {
+         this->isActive = isActive;
+      }
+
       void Free() override
       {
          delete this;
@@ -526,20 +844,30 @@ namespace
 
       void OnEvent(Event& ev) override
       {
-         RouteEventToUI(ev, metrics.cursorPosition, *editMode);
+         if (isActive) RouteEventToUI(ev, metrics.cursorPosition, *editMode);
       }
    public:
-      Editor(IPublisher& _publisher) : publisher(_publisher), editMode_Sectors(map), editMode(&editMode_Sectors.Mode())
+      Editor(IPublisher& _publisher, HV::Entities::IInstancesSupervisor& _instances) :
+         publisher(_publisher),
+         instances(_instances),
+         map(_instances),
+         editMode_Sectors(map), 
+         editMode(&editMode_Sectors.Mode())
       {
          publisher.Attach(this);
+      }
+
+      ~Editor()
+      {
+         publisher.Detach(this);
       }
    };
 }
 
 namespace HV
 {
-   IEditor* CreateEditor(IPublisher& publisher)
+   IEditor* CreateEditor(IPublisher& publisher, HV::Entities::IInstancesSupervisor& instances)
    {
-      return new Editor(publisher);
+      return new Editor(publisher, instances);
    }
 }
