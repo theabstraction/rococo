@@ -1,463 +1,21 @@
 #include "hv.h"
 #include "hv.events.h"
 #include <rococo.strings.h>
+#include <rococo.maths.h>
+#include <rococo.widgets.h>
+
 #include <vector>
 #include <deque>
-#include <rococo.maths.h>
+#include<algorithm>
+
+#include <rococo.rings.inl>
 
 namespace
 {
    using namespace HV;
    using namespace Rococo;
+   using namespace Rococo::Widgets;
 
-   struct Triangle2d
-   {
-      Vec2 A;
-      Vec2 B;
-      Vec2 C;
-   };
-
-   void ValidateArray(const Vec2* positionArray, size_t nVertices)
-   {
-       // N.B we use modular arithmetic to connect final vertex with beginning
-      // So we do not duplicate end vertex in the array with the beginning
-      if (nVertices < 3 || positionArray[0] == positionArray[nVertices - 1])
-      {
-         Throw(0, L"IsClockwiseSequential: Cannot evaluate chirality. Bad position array");
-      }
-
-      if (nVertices > 256)
-      {
-         Throw(0, L"IsClockwiseSequential: Too many elements in mesh. Maximum is 256. Simplify");
-      }
-   }
-
-   // If [array] represents a ring, then GetRingElement(i...) returns the ith element using modular arithmetic
-   template<class T>
-   T GetRingElement(size_t index, const T* array, size_t capacity)
-   {
-      return array[index % capacity];
-   }
-
-   bool IsOdd(int32 i)
-   {
-      return (i % 2) == 1;
-   }
-
-   bool DoesLineIntersectSegments(Vec2 origin, Vec2 normal, const Vec2* positionArray, size_t nVertices)
-   {
-      IntersectCounts counts = { 0 };
-      for (size_t i = 0; i < nVertices; ++i)
-      {
-         Vec2 q0 = GetRingElement(i, positionArray, nVertices);
-         Vec2 q1 = GetRingElement(i + 1, positionArray, nVertices);
-
-         Vec2 specimen[2];
-         specimen[0] = q0;
-         specimen[1] = q1;
-
-         if (q0 != origin && q1 != origin)
-         {
-            auto count = CountLineIntersects(origin, normal, specimen, 2, 0.001f);
-            counts.forwardCount += count.forwardCount;
-            counts.backwardCount += count.backwardCount;
-            counts.edgeCases += count.edgeCases;
-         }
-      }
-
-      return counts.forwardCount > 0;
-   }
-
-   // Determine whether forward iteration of a perimeter array is clockwise
-   bool IsClockwiseSequential(const Vec2* positionArray, size_t nVertices)
-   {
-      for (size_t j = 0; j < nVertices; ++j)
-      {
-         Vec2 p0 = GetRingElement(j, positionArray, nVertices);
-         Vec2 p1 = GetRingElement(j+1, positionArray, nVertices); 
-         
-         Vec2 centre = (p0 + p1) * 0.5f;
-         Vec2 dp = p1 - p0;
-         Vec3 normal = Cross({ dp.x, dp.y, 0 }, { 0, 0, 1 });
-
-         // Take a segment from the perimeter and generate its normal
-         // Count the number of timest that normal crosses the perimeter
-
-         IntersectCounts counts = { 0 };
-         for (size_t i = j+1; i < nVertices+j; ++i)
-         {
-            Vec2 q0 = GetRingElement(i, positionArray, nVertices);
-            Vec2 q1 = GetRingElement(i + 1, positionArray, nVertices);
-           
-            Vec2 specimen[2];
-            specimen[0] = q0;
-            specimen[1] = q1;
-            auto count = CountLineIntersects(centre, { normal.x, normal.y }, specimen, 2, 0.001f);
-            counts.forwardCount += count.forwardCount;
-            counts.backwardCount += count.backwardCount;
-            counts.edgeCases += count.edgeCases;
-         }
-
-         // If its odd, then the segment is facing inside the enclosed region
-         if (counts.edgeCases == 0)
-         {
-            if (IsOdd(counts.forwardCount))
-            {
-               if (IsOdd(counts.backwardCount))
-               {
-                  Throw(0, L"IsClockwiseSequential: Unexpected - forwardcount and backward count both odd!");
-               }
-
-               return true;
-            }
-            else
-            {
-               // Iteration needs to go backwardds to go clockwise aroun the perimeter
-               if (!IsOdd(counts.backwardCount))
-               {
-                  Throw(0, L"IsClockwiseSequential: Unexpected - forwardcount and backward count both even!");
-               }
-
-               return false;
-            }
-         }
-      }
-
-      Throw(0, L"IsClockwiseSequential: Every calculation to evaluate chirality was an edge case");
-      return false;
-   }
-
-   bool IsInternal(const Triangle2d& t, Vec2 p)
-   {
-      float Fa = Cross(t.B - t.A, p - t.B);
-      float Fb = Cross(t.C - t.B, p - t.C);
-      float Fc = Cross(t.A - t.C, p - t.A);
-
-      if (Fa < 0 && Fb < 0 && Fc < 0)
-      {
-         return true;
-      }
-
-      return false;
-   }
-
-   size_t CountInternalPoints(const Triangle2d& t, const Vec2* points, size_t nPoints)
-   {
-      size_t count = 0;
-      for (size_t i = 0; i < nPoints; ++i)
-      {
-         auto p = points[i];
-         if (IsInternal(t, p))
-         {
-            count++;
-         }
-      }
-
-      return count;
-   }
-
-   ROCOCOAPI I2dMeshBuilder
-   {
-      virtual void Append(const Triangle2d& t) = 0;
-   };
-
-   void EarClipTesselator(I2dMeshBuilder& tb, std::deque<Vec2>& perimeter)
-   {
-      if (perimeter.size() < 3)
-      {
-         Throw(0, L"Cannot tesselate vector array with fewer than 3 elements");
-      }
-
-      while (!perimeter.empty())
-      {
-         auto i = perimeter.begin();
-         for (; i != perimeter.end(); ++i)
-         {
-            auto j = i;
-            Triangle2d t;
-            t.A = *j++; if (j == perimeter.end()) j = perimeter.begin();
-            t.B = *j++; if (j == perimeter.end()) j = perimeter.begin();
-            t.C = *j++;
-
-            Vec2 ab = t.B - t.A;
-            Vec2 bc = t.C - t.B;
-
-            float k = Cross(ab, bc);
-            if (k <= 0) // clockwise, we have an ear
-            {
-               // If we have an ear, we can eliminate b
-               // For the case ab and bc are parallel k = 0, but since they share a point b, are part of the same line, so we can eliminate b
-
-               Vec2* stackArray = (Vec2*)alloca(sizeof(Vec2) * perimeter.size());
-               int index = 0;
-               for (auto v : perimeter)
-               {
-                  stackArray[index++] = v;
-               }
-
-               if (!DoesLineIntersectSegments(t.A, t.C - t.A, stackArray, perimeter.size()) && CountInternalPoints(t, stackArray, perimeter.size()) == 0)
-               {
-                  tb.Append(t);
-
-                  j = i;
-                  j++;
-                  if (j == perimeter.end()) j = perimeter.begin();
-                  perimeter.erase(j);
-
-                  if (perimeter.size() < 3)
-                  {
-                     perimeter.clear();
-                     return;
-                  }
-
-                  i = perimeter.begin();
-                  break;
-               }
-            }
-            else
-            {
-               // Concave, not an ear
-            }
-         }
-
-         if (i == perimeter.end())
-         {
-            Throw(0, L"Could not tesselate mesh. Iterated through all mesh and did not find ears");
-         }
-      }
-   }
-
-   struct ObjectVertexBuffer
-   {
-      const HV::Graphics::Vertex* v;
-      const size_t VertexCount;
-   };
-
-   uint32 nextSectorId = 1;
-
-   class Sector: private I2dMeshBuilder
-   {
-      std::vector<HV::Graphics::Vertex> wallVertices;
-      std::vector<HV::Graphics::Vertex> floorVertices;
-      std::vector<HV::Graphics::Vertex> ceilingVertices;
-      float uvScale{ 0.2f };
-      Vec2 uvOffset{ 0,0 };
-      float z0;
-      float z1;
-      wchar_t name[32];
-      uint32 id;
-      ID_ENTITY floorId;
-      ID_ENTITY ceilingId;
-      ID_ENTITY wallId;
-
-      virtual void Append(const Triangle2d& t)
-      {       
-         Vec3 up{ 0, 0, 1 };
-         HV::Graphics::Vertex a, b, c;
-         a.position = { t.A.x, t.A.y, z0 };
-         b.position = { t.B.x, t.B.y, z0 };
-         c.position = { t.C.x, t.C.y, z0 };
-         a.normal = b.normal = c.normal = up;
-         a.emissiveColour = b.emissiveColour = c.emissiveColour = RGBAb(0, 0, 0, 0);
-         a.diffuseColour = b.diffuseColour = c.diffuseColour = RGBAb(255, 255, 255, 0);
-         a.uv = uvScale * Vec2{ t.A.x,t.A.y } + uvOffset;
-         b.uv = uvScale * Vec2{ t.B.x,t.B.y } + uvOffset;
-         c.uv = uvScale * Vec2{ t.C.x,t.C.y } + uvOffset;
-         floorVertices.push_back(a);
-         floorVertices.push_back(b);
-         floorVertices.push_back(c);
-         a.normal = b.normal = c.normal = -up;
-         a.position.z = b.position.z = c.position.z = z1;
-         ceilingVertices.push_back(b);
-         ceilingVertices.push_back(a);
-         ceilingVertices.push_back(c);
-      }
-
-      void BuildWalls(const Vec2* positionArray, size_t nVertices, bool forwardIsClockwise, HV::Entities::IInstancesSupervisor& instances)
-      {
-         float u = 0;
-
-         for (size_t i = 0; i != nVertices; i++)
-         {
-            Vec2 p = GetRingElement(i, positionArray, nVertices);
-            Vec2 q = GetRingElement(i + 1, positionArray, nVertices);
-
-            if (!forwardIsClockwise)
-            {
-               std::swap(p, q);
-            }
-
-            Vec3 up{ 0, 0, 1 };
-            Vec3 P0 = { p.x, p.y, z0 };
-            Vec3 Q0 = { q.x, q.y, z0 };
-            Vec3 P1 = { p.x, p.y, z1 };
-            Vec3 Q1 = { q.x, q.y, z1 };
-
-            Vec3 delta = Q0 - P0;
-
-            float segmentLength = round(Length(delta));
-
-            Vec3 normal = Cross(delta, up);
-
-            HV::Graphics::Vertex PV0, PV1, QV0, QV1;
-
-            PV0.position = P0;
-            PV1.position = P1;
-            QV0.position = Q0;
-            QV1.position = Q1;
-
-            PV0.normal = PV1.normal = QV0.normal = QV1.normal = normal;
-            PV0.emissiveColour = PV1.emissiveColour = QV0.emissiveColour = QV1.emissiveColour = RGBAb(0, 0, 0, 0);
-            PV0.diffuseColour = PV1.diffuseColour = QV0.diffuseColour = QV1.diffuseColour = RGBAb(255, 255, 255, 0);
-
-            PV0.uv.y = QV0.uv.y = uvScale * z0;
-            PV1.uv.y = QV1.uv.y = uvScale * z1;
-            PV0.uv.x = PV1.uv.x = uvScale * u;
-            QV0.uv.x = QV1.uv.x = uvScale * (u + segmentLength);
-
-            u += segmentLength;
-
-            wallVertices.push_back(PV0);
-            wallVertices.push_back(PV1);
-            wallVertices.push_back(QV0);
-            wallVertices.push_back(PV1);
-            wallVertices.push_back(QV1);
-            wallVertices.push_back(QV0);
-         }
-
-         SafeFormat(name, _TRUNCATE, L"sector.walls.%u", id);
-         auto& mb = instances.MeshBuilder();
-         mb.Begin(to_fstring(name));
-
-         for (size_t i = 0; i < wallVertices.size();)
-         {
-            const HV::Graphics::Vertex& a = wallVertices[i++];
-            const HV::Graphics::Vertex& b = wallVertices[i++];
-            const HV::Graphics::Vertex& c = wallVertices[i++];
-            mb.AddTriangle(a, b, c);
-         }
-
-         mb.End();
-
-         wallId = instances.AddBody(to_fstring(name), L"!textures/walls/metal1.jpg"_fstring, Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
-      }
-   public:
-      Sector(): id(nextSectorId++)
-      {
-
-      }
-
-      ObjectVertexBuffer FloorVertices() const
-      {
-         return{ &floorVertices[0], floorVertices.size() };
-      }
-
-      void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1, HV::Entities::IInstancesSupervisor& instances)
-      {
-         this->z0 = z0;
-         this->z1 = z1;
-
-         ValidateArray(positionArray, nVertices);
-
-         std::deque<Vec2> perimeter;
-
-         bool forwardIsClockwise;
-         if (IsClockwiseSequential(positionArray, nVertices))
-         {
-            forwardIsClockwise = true;
-            for (size_t i = 0; i != nVertices; i++)
-            {
-               perimeter.push_back(positionArray[i]);
-            }
-         }
-         else
-         {
-            forwardIsClockwise = false;
-            for (int32 i = (int32)nVertices - 1; i >= 0; i--)
-            {
-               perimeter.push_back(positionArray[i]);
-            }
-         }
-
-         BuildWalls(positionArray, nVertices, forwardIsClockwise, instances);
-
-         EarClipTesselator(*this, perimeter);
-
-         SafeFormat(name, _TRUNCATE, L"sector.floor.%u", id);
-
-         auto& mb = instances.MeshBuilder();
-         mb.Begin(to_fstring(name));
-
-         for (size_t i = 0; i < floorVertices.size();)
-         {
-            const HV::Graphics::Vertex& a = floorVertices[i++];
-            const HV::Graphics::Vertex& b = floorVertices[i++];
-            const HV::Graphics::Vertex& c = floorVertices[i++];
-            mb.AddTriangle(a, b, c);
-         }
-
-         mb.End();
-
-         floorId = instances.AddBody(to_fstring(name), L"!textures/walls/metal1.jpg"_fstring, Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
-
-         SafeFormat(name, _TRUNCATE, L"sector.ceiling.%u", id);
-
-         mb.Begin(to_fstring(name));
-
-         for (size_t i = 0; i < ceilingVertices.size();)
-         {
-            const HV::Graphics::Vertex& a = ceilingVertices[i++];
-            const HV::Graphics::Vertex& b = ceilingVertices[i++];
-            const HV::Graphics::Vertex& c = ceilingVertices[i++];
-            mb.AddTriangle(a, b, c);
-         }
-
-         mb.End();
-
-         ceilingId = instances.AddBody(to_fstring(name), L"!textures/walls/metal1.jpg"_fstring, Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
-      }
-   };
-
-   class Sectors
-   {
-      HV::Entities::IInstancesSupervisor&  instances;
-      const Metres defaultFloorLevel{ 0.0f };
-      const Metres defaultRoomHeight{ 4.0f };
-   public:
-      Sectors(HV::Entities::IInstancesSupervisor& _instances) : instances(_instances) {}
-      std::vector<Sector*> sectors;
-
-      void AddSector(const Vec2* positionArray, size_t nVertices)
-      {
-         auto* s = new Sector();
-         try
-         {
-            s->Build(positionArray, nVertices, defaultFloorLevel, defaultFloorLevel + defaultRoomHeight, instances);
-            sectors.push_back(s);
-         }
-         catch (IException& ex)
-         {
-            delete s;
-            ShowErrorBox(Windows::NoParent(), ex, L"Algorithmic error creating sector. Try something simpler");
-
-#ifdef _DEBUG
-            if (QueryYesNo(Windows::NoParent(), L"Try again?"))
-            {
-               TripDebugger();
-               OS::PrintDebug("\n\n\n // Troublesome perimeter: \n");
-               OS::PrintDebug("const Vec2 perimeter[%d] = { ", nVertices);
-               for (const Vec2* p = positionArray; p < positionArray + nVertices; p++)
-               {
-                  OS::PrintDebug("{%f,%f},", p->x, p->y);
-               }
-               OS::PrintDebug("};\n\n\n");
-
-               AddSector(positionArray, nVertices);
-            }
-#endif
-         }
-      }
-   };
 
    class WorldMap
    {
@@ -471,11 +29,13 @@ namespace
       Vec2 grabbedCentre;
       Vec2i pixelOffset{ 0, 0 };
       Vec2i grabbedOffset{ 0,0 };
-      GuiMetrics metrics { 0 };    
-   public:
-      Sectors sectors;
+      GuiMetrics metrics { 0 };   
 
-      WorldMap(HV::Entities::IInstancesSupervisor& _instances) : instances(_instances), sectors(_instances)
+      AutoFree<ISectors> sectors;
+   public:
+      ISectors& Sectors() { return *sectors; }
+
+      WorldMap(HV::Entities::IInstancesSupervisor& _instances) : instances(_instances), sectors(CreateSectors(_instances))
       {
          
       }
@@ -533,7 +93,7 @@ namespace
          Rococo::Graphics::RenderCentredText(grc, originText, RGBAb(255, 255, 255), 9, { metrics.screenSpan.x >> 1, 8 });
       }
 
-      void Render(IGuiRenderContext& grc)
+      void Render(IGuiRenderContext& grc, const ISector* litSector)
       {
          grc.Renderer().GetGuiMetrics(metrics);
 
@@ -562,8 +122,10 @@ namespace
 
          const float scale = gridlinePixelWidth / gridlineMetricWidth;
 
-         for (auto sector : sectors.sectors)
+         for (ISector* sector : *sectors)
          {
+            float dim = !litSector ? 0.9f : 0.7f;
+            RGBAb colour = sector->GetGuiColour(sector == litSector ? 1.0f : dim);
             ObjectVertexBuffer vertices = sector->FloorVertices();
             for(size_t i = 0; i < vertices.VertexCount; i += 3 )
             {
@@ -576,14 +138,29 @@ namespace
                   v[j].y = (float) pos.y;
                   v[j].u = vertices.v[i + j].uv.x;
                   v[j].v = vertices.v[i + j].uv.y;
-                  v[j].colour = RGBAb(192, 192, 192, 192);
+                  v[j].colour = colour;
                   v[j].fontBlend = 0;
                   v[j].saturation = 1;
                   v[j].textureIndex = 1;
                }
 
                grc.AddTriangle(v);
-            }
+            }  
+         }
+
+         if (litSector)
+         {
+            size_t nVertices;
+            const Vec2* v = litSector->WallVertices(nVertices);
+            Ring<Vec2> ring(v, nVertices);
+
+            for (size_t i = 0; i < nVertices; ++i)
+            {
+               Vec2 p = ring[i];
+               Vec2 q = ring[i + 1];
+
+               Rococo::Graphics::DrawLine(grc, 2, GetScreenPosition(p), GetScreenPosition(q), RGBAb(255, 255, 255));
+            };
          }
       }
 
@@ -650,16 +227,76 @@ namespace
       }
    };
 
-   ROCOCOAPI IUITarget
-   {
-      virtual void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) = 0;
-      virtual void OnMouseLClick(Vec2i cursorPos, bool clickedDown) = 0;
-      virtual void OnMouseRClick(Vec2i cursorPos, bool clickedDown) = 0;
-   };
-
    ROCOCOAPI IEditMode: public IUITarget
    {
       virtual void Render(IGuiRenderContext& grc) = 0; 
+      virtual const ISector* GetHilight() const = 0;
+   };
+
+   class EditMode_SectorEditor : private IEditMode
+   {
+      WorldMap& map;
+      GuiMetrics metrics;
+      IPublisher& publisher;
+      ISector* lit{ nullptr };
+
+      void GetRect(GuiRect& rect) const override
+      {
+         rect = { 0, 0, metrics.screenSpan.x, metrics.screenSpan.y };
+      }
+
+      void Render(IGuiRenderContext& grc) override
+      {
+         grc.Renderer().GetGuiMetrics(metrics);
+      }
+
+      void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
+      {
+         if (dWheel < 0)
+         {
+            map.ZoomIn(-dWheel);
+         }
+         else if (dWheel > 0)
+         {
+            map.ZoomOut(dWheel);
+         }
+      }
+
+      void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
+      {
+         if (clickedDown)
+         {
+            map.GrabAtCursor();
+         }
+         else
+         {
+            map.ReleaseGrab();
+         }
+      }
+
+      void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
+      {
+         if (clickedDown)
+         {
+            Vec2 wp = map.GetWorldPosition(cursorPos);
+            for (auto* s : map.Sectors())
+            {
+               int32 index = s->GetFloorTriangleIndexContainingPoint(wp);
+               if (index >= 0)
+               {
+                  if (lit == s)
+                  {
+                     lit->InvokeSectorDialog();
+                  }
+                  lit = s;
+               }
+            }
+         }
+      }
+   public:
+      EditMode_SectorEditor(IPublisher& _publisher, WorldMap& _map) : publisher(_publisher), map(_map)  { }
+      IEditMode& Mode() { return *this; }
+      const ISector* GetHilight() const override { return lit; }
    };
 
    class EditMode_SectorBuilder: private IEditMode
@@ -667,10 +304,16 @@ namespace
       bool isLineBuilding{ false };
       std::vector<Vec2> lineList;
       WorldMap& map;
+      GuiMetrics metrics;
+      IPublisher& publisher;
+
+      void GetRect(GuiRect& rect) const override
+      {
+         rect = { 0, 0, metrics.screenSpan.x, metrics.screenSpan.y };
+      }
 
       void Render(IGuiRenderContext& grc) override
       {
-         GuiMetrics metrics;
          grc.Renderer().GetGuiMetrics(metrics);
 
          for (int i = 1; i < lineList.size(); ++i)
@@ -704,7 +347,6 @@ namespace
          if (clickedDown)
          {
             map.GrabAtCursor();
-            isLineBuilding = false;
          }
          else
          {
@@ -729,6 +371,7 @@ namespace
                {
                   if (t >= 0 && t <= 1 && u >= 0 && u <= 1)
                   {
+                     SetStatus(L"Crossed lines: sector creation cancelled", publisher);
                      lineList.clear();
                      return;
                   }
@@ -736,10 +379,71 @@ namespace
                else if (DoParallelLinesIntersect(a, b, startOfLastLine, lastVertex))
                {
                   lineList.clear();
+                  SetStatus(L"Sector creation cancelled", publisher);
                   return;
                }
             }
          }
+      }
+
+      void TryAppendVertex(Vec2 worldPosition)
+      {
+         isLineBuilding = true;
+
+         if (lineList.empty())
+         {
+            // First point is not allowed to be in or on any sector
+            SectorAndSegment sns = map.Sectors().GetFirstSectorWithPoint(worldPosition);
+            if (sns.sector != nullptr)
+            {
+               SetStatus(L"A new sector's first point must lay outside all other sectors", publisher);
+               return;
+            }
+
+            ISector* sector = map.Sectors().GetFirstSectorContainingPoint(worldPosition);
+            if (sector != nullptr)
+            {
+               SetStatus(L"A new sector's first point must lay outside all other sectors", publisher);
+               return;
+            }
+         }
+
+         if (!lineList.empty())
+         {
+            Vec2 a = *lineList.rbegin();
+            Vec2 b = worldPosition;
+
+            SectorAndSegment sns = map.Sectors().GetFirstSectorWithPoint(b);
+            if (sns.sector == nullptr)
+            {
+               auto* first = map.Sectors().GetFirstSectorCrossingLine(a, b);
+               if (first)
+               {
+                  SetStatus(L"Cannot place edge of a new sector within the vertices of another.", publisher);
+                  return;
+               }
+            }
+         }
+
+         if (!lineList.empty() && lineList[0] == worldPosition)
+         {
+            // Sector closed
+            isLineBuilding = false;
+
+            if (lineList.size() >= 3)
+            {
+               map.Sectors().AddSector(&lineList[0], lineList.size());
+            }
+
+            SetStatus(L"Sector created", publisher);
+            lineList.clear();
+            return;
+         }
+         else
+         {
+            lineList.push_back(worldPosition);
+         }
+         DestroyCrossedLines();
       }
 
       void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
@@ -747,84 +451,46 @@ namespace
          if (clickedDown)
          {
             Vec2 wp = map.SnapToGrid(map.GetWorldPosition(cursorPos));
-            isLineBuilding = true;
-
-            if (!lineList.empty() && lineList[0] == wp)
-            {
-               // Sector closed
-               isLineBuilding = false;
-
-               if (lineList.size() >= 3)
-               {
-                  map.sectors.AddSector(&lineList[0], lineList.size());      
-               }
-                  
-               lineList.clear();
-               return;
-            }
-            else
-            {
-               lineList.push_back(wp);
-            }
-            DestroyCrossedLines();
+            TryAppendVertex(wp);
          }
       }
    public:
-      EditMode_SectorBuilder(WorldMap& _map) : map(_map) 
+      EditMode_SectorBuilder(IPublisher& _publisher, WorldMap& _map) : publisher(_publisher), map(_map) 
       {
       }
       IEditMode& Mode() { return *this; }
+      const ISector* GetHilight() const override { return nullptr; }
    };
-
-   void RouteEventToUI(Event& ev, Vec2i cursorPos, IUITarget& ui)
-   {
-      if (ev == HV::Events::Input::OnMouseMoveRelative)
-      {
-         auto& mc = As<HV::Events::Input::OnMouseMoveRelativeEvent>(ev);
-         ui.OnMouseMove(cursorPos, { mc.dx, mc.dy }, mc.dz);
-      }
-      else if (ev == HV::Events::Input::OnMouseChanged)
-      {
-         auto& mc = As <HV::Events::Input::OnMouseChangedEvent>(ev);
-         if ((mc.flags & HV::Events::Input::MouseFlags_LDown))
-         {
-            ui.OnMouseLClick(cursorPos, true);
-         }
-         else if ((mc.flags & HV::Events::Input::MouseFlags_LUp))
-         {
-            ui.OnMouseLClick(cursorPos, false);
-         }
-         else if ((mc.flags & HV::Events::Input::MouseFlags_RDown))
-         {
-            ui.OnMouseRClick(cursorPos, true);
-         }
-         else if ((mc.flags & HV::Events::Input::MouseFlags_RUp))
-         {
-            ui.OnMouseRClick(cursorPos, false);
-         }
-      }
-   }
 
    class Editor : public IEditor, public IUIOverlay, public IObserver
    {
       IPublisher& publisher;
       HV::Entities::IInstancesSupervisor& instances;
       WorldMap map;
-      EditMode_SectorBuilder editMode_Sectors;
+      EditMode_SectorBuilder editMode_SectorBuilder;
+      EditMode_SectorEditor editMode_SectorEditor;
+      AutoFree<IWindowTree> windowTree;
       IEditMode* editMode;
       GuiMetrics metrics;
       bool isActive{ false };
+      AutoFree<IToolbar> toolbar;
+      AutoFree<IStatusBar> statusbar;
 
       void Render(IGuiRenderContext& grc) override
       {
          if (!isActive) return;
 
          grc.Renderer().GetGuiMetrics(metrics);
-         map.Render(grc);
+         map.Render(grc, editMode->GetHilight());
 
          editMode->Render(grc);
 
          map.RenderTopGui(grc);
+
+         toolbar->Render(grc, true, 4, RGBAb(224, 224, 224), RGBAb(128, 128, 128));
+
+         GuiRect statusRect{ 0, metrics.screenSpan.y - 24, metrics.screenSpan.x, metrics.screenSpan.y };
+         statusbar->Render(grc, statusRect);
       }
 
       IUIOverlay& Overlay() override
@@ -842,19 +508,46 @@ namespace
          delete this;
       }
 
+      void SetMode(IEditMode& mode)
+      {
+         editMode = &mode;
+         windowTree->Clear();
+         windowTree->AddTarget(editMode, 0);
+         windowTree->AddTarget(toolbar, 1);
+      }
+
       void OnEvent(Event& ev) override
       {
-         if (isActive) RouteEventToUI(ev, metrics.cursorPosition, *editMode);
+         if (isActive)
+         {
+            if (ev == L"editor.ui.vertices"_event)
+            {
+               SetMode(editMode_SectorBuilder.Mode());
+            }
+            else if (ev == L"editor.ui.sectors"_event)
+            {
+               SetMode(editMode_SectorEditor.Mode());
+            }
+            RouteEventToUI(ev, metrics.cursorPosition, *windowTree);
+         }
       }
    public:
-      Editor(IPublisher& _publisher, HV::Entities::IInstancesSupervisor& _instances) :
+      Editor(IPublisher& _publisher, HV::Entities::IInstancesSupervisor& _instances, IRenderer& renderer) :
          publisher(_publisher),
          instances(_instances),
          map(_instances),
-         editMode_Sectors(map), 
-         editMode(&editMode_Sectors.Mode())
+         editMode_SectorBuilder(publisher, map),
+         editMode_SectorEditor(publisher, map),
+         toolbar(Widgets::CreateToolbar(publisher, renderer)),
+         windowTree(CreateWindowTree()),
+         statusbar(CreateStatusBar(_publisher))
       {
+         SetMode(editMode_SectorBuilder.Mode());
          publisher.Attach(this);
+         toolbar->AddButton(L"load", L"editor.ui.load"_event, L"!textures/toolbars/load.tif");
+         toolbar->AddButton(L"save", L"editor.ui.save"_event, L"!textures/toolbars/save.tif");
+         toolbar->AddButton(L"vertices", L"editor.ui.vertices"_event, L"!textures/toolbars/builder.tif");
+         toolbar->AddButton(L"sectors", L"editor.ui.sectors"_event, L"!textures/toolbars/sectors.tif");
       }
 
       ~Editor()
@@ -866,8 +559,8 @@ namespace
 
 namespace HV
 {
-   IEditor* CreateEditor(IPublisher& publisher, HV::Entities::IInstancesSupervisor& instances)
+   IEditor* CreateEditor(IPublisher& publisher, HV::Entities::IInstancesSupervisor& instances, IRenderer& renderer)
    {
-      return new Editor(publisher, instances);
+      return new Editor(publisher, instances, renderer);
    }
 }

@@ -1,36 +1,11 @@
 #include <rococo.api.h>
 #include <rococo.renderer.h>
+#include <rococo.widgets.h>
 
 namespace Rococo
 {
    namespace Widgets
    {
-      struct WidgetFrame
-      {
-         RGBAb bkColour1;
-         RGBAb bkColour2;
-         RGBAb borderColour1;
-         RGBAb borderColour2;
-         GuiRect borderWidths;
-      };
-
-      struct WidgetFrameSet
-      {
-         WidgetFrame frames[2]; // normal, lit
-      };
-
-      struct Label
-      {
-         int32 fontIndex;
-         RGBAb fontColour;
-      };
-
-      struct LabelSet
-      {
-         Label labels[2]; // normal, lit
-         wchar_t text[256];
-      };
-
       void Draw3DFrame(IGuiRenderContext& rc, const GuiRect& rect, struct WidgetFrameSet& frameSet, bool isLit)
       {
          auto& frame = frameSet.frames[isLit ? 1 : 0];

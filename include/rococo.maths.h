@@ -48,6 +48,27 @@ namespace Rococo
 		inline operator const DirectX::XMFLOAT4* () const { return reinterpret_cast<const DirectX::XMFLOAT4*> (this); }
 	};
 
+   template<class T>
+   ROCOCOAPI IRingManipulator
+   {
+      virtual size_t ElementCount() const = 0;
+      virtual T operator[](size_t index) const = 0;
+      virtual bool IsEmpty() const = 0;
+      virtual void Erase(size_t index) = 0;
+      virtual T* Array() = 0;
+   };
+
+   template<class T>
+   ROCOCOAPI IRing
+   {
+      virtual size_t ElementCount() const = 0;
+      virtual T operator[](size_t index) const = 0;
+      virtual bool IsEmpty() const = 0;
+      virtual const T* Array() const = 0;
+   };
+
+   bool IsClockwiseSequential(IRing<Vec2>& ring);
+
 	typedef const Quat& cr_quat;
 
 	Quat InterpolateRotations(cr_quat a, cr_quat b, float t);
@@ -199,6 +220,26 @@ namespace Rococo
 		float g; // generally negative, and in metres per second per second
 		operator float() const { return g; }
 	};
+
+   struct Triangle2d
+   {
+      Vec2 A;
+      Vec2 B;
+      Vec2 C;
+
+      size_t CountInternalPoints(const Vec2* points, size_t nPoints);
+      bool IsInternal(Vec2 p) const;
+      bool IsInternalOrOnEdge(Vec2 p) const;
+   };
+
+   ROCOCOAPI I2dMeshBuilder
+   {
+      virtual void Append(const Triangle2d& t) = 0;
+   };
+
+   void TesselateByEarClip(I2dMeshBuilder& tb, IRingManipulator<Vec2>& ring);
+
+   bool IsOdd(int32 i);
 
 	inline Vec2 operator - (const Vec2& a, const Vec2& b) { return Vec2{ a.x - b.x, a.y - b.y }; }
 	inline Vec2 operator + (const Vec2& a, const Vec2& b) { return Vec2{ a.x + b.x, a.y + b.y }; }

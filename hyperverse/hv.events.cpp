@@ -22,11 +22,5 @@ namespace HV
         
          EventId OnPlayerViewChange    = L"player.view.change"_event;
       }
-
-      namespace Input
-      {
-         EventId OnMouseMoveRelative   = L"input.mouse.delta"_event;
-         EventId OnMouseChanged        = L"input.mouse.buttons"_event;
-      }
    }
 }

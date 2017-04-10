@@ -75,6 +75,12 @@
     <ClCompile Include="hv.editor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hv.sectors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hv.sector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hv.h">
@@ -99,6 +105,9 @@
     </None>
     <None Include="config.xc">
       <Filter>Script Files</Filter>
+    </None>
+    <None Include="..\include\rococo.rings.inl">
+      <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

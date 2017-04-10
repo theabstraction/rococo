@@ -13,7 +13,6 @@ namespace
    public:
       HVApp(Cosmos& _e) : e(_e)
       {
-         
       }
 
       virtual void Free()
@@ -60,16 +59,19 @@ namespace
          Key key = e.keyboard.GetKeyFromEvent(keyboardEvent);
          auto* action = e.keyboard.GetAction(key.KeyName);
          if (action)
-         {
-            HV::Events::Player::OnPlayerActionEvent pae;
-            pae.Name = action;
-            pae.start = key.isPressed;
-            Rococo::Events::Publish(e.publisher, pae);
-         }
-         if (Eq(action, L"gui.editor.toggle") && key.isPressed)
-         {
-            editorActive = !editorActive;
-            e.editor.Activate(editorActive);
+         {  
+            if (Eq(action, L"gui.editor.toggle") && key.isPressed)
+            {
+               editorActive = !editorActive;
+               e.editor.Activate(editorActive);
+            }
+            else
+            {
+               HV::Events::Player::OnPlayerActionEvent pae;
+               pae.Name = action;
+               pae.start = key.isPressed;
+               Rococo::Events::Publish(e.publisher, pae);
+            }
          }
       }
 

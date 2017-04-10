@@ -51,6 +51,10 @@
 	(mb.AddTriangle topRight bottomRight bottomLeft)
 	(mb.AddTriangle topRight bottomLeft bottomRight)
 	(mb.End)
+	
+	(ISprites sprites (Sprites))
+	(sprites.AddEachSpriteInDirectory "!textures/toolbars")
+	(sprites.LoadAllSprites)
 		
 	(Int64 playerId)
 	(

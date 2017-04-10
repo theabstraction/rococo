@@ -634,4 +634,187 @@ namespace Rococo
 	{
 		return (p.x > rect.left && p.x < rect.right && p.y > rect.top && p.y < rect.bottom);
 	}
+
+   bool Triangle2d::IsInternal(Vec2 p) const
+   {
+      float Fa = Cross(B - A, p - B);
+      float Fb = Cross(C - B, p - C);
+      float Fc = Cross(A - C, p - A);
+
+      if (Fa < 0 && Fb < 0 && Fc < 0)
+      {
+         return true;
+      }
+
+      return false;
+   }
+
+   bool Triangle2d::IsInternalOrOnEdge(Vec2 p) const
+   {
+      float Fa = Cross(B - A, p - B);
+      float Fb = Cross(C - B, p - C);
+      float Fc = Cross(A - C, p - A);
+
+      if (Fa <= 0 && Fb <= 0 && Fc <= 0)
+      {
+         return true;
+      }
+
+      return false;
+   }  
+   
+   size_t Triangle2d::CountInternalPoints(const Vec2* points, size_t nPoints)
+   {
+      size_t count = 0;
+      for (size_t i = 0; i < nPoints; ++i)
+      {
+         auto p = points[i];
+         if (IsInternal(p))
+         {
+            count++;
+         }
+      }
+
+      return count;
+   }
+
+   bool IsOdd(int32 i)
+   {
+      return (i % 2) == 1;
+   }
+
+   bool DoesLineIntersectRing(Vec2 origin, Vec2 normal, IRingManipulator<Vec2>& ring)
+   {
+      IntersectCounts counts = { 0 };
+      for (size_t i = 0; i < ring.ElementCount(); ++i)
+      {
+         Vec2 q0 = ring[i];
+         Vec2 q1 = ring[i + 1];
+
+         Vec2 specimen[2];
+         specimen[0] = q0;
+         specimen[1] = q1;
+
+         if (q0 != origin && q1 != origin)
+         {
+            auto count = CountLineIntersects(origin, normal, specimen, 2, 0.001f);
+            counts.forwardCount += count.forwardCount;
+            counts.backwardCount += count.backwardCount;
+            counts.edgeCases += count.edgeCases;
+         }
+      }
+
+      return counts.forwardCount > 0;
+   }
+
+   bool IsClockwiseSequential(IRing<Vec2>& ring)
+   {
+      for (size_t j = 0; j < ring.ElementCount(); ++j)
+      {
+         Vec2 p0 = ring[j];
+         Vec2 p1 = ring[j + 1];
+
+         Vec2 centre = (p0 + p1) * 0.5f;
+         Vec2 dp = p1 - p0;
+         Vec3 normal = Cross({ dp.x, dp.y, 0 }, { 0, 0, 1 });
+
+         // Take a segment from the perimeter and generate its normal
+         // Count the number of timest that normal crosses the perimeter
+
+         IntersectCounts counts = { 0 };
+         for (size_t i = j + 1; i < ring.ElementCount() + j; ++i)
+         {
+            Vec2 q0 = ring[i];
+            Vec2 q1 = ring[i + 1];
+
+            Vec2 specimen[2];
+            specimen[0] = q0;
+            specimen[1] = q1;
+            auto count = CountLineIntersects(centre, { normal.x, normal.y }, specimen, 2, 0.001f);
+            counts.forwardCount += count.forwardCount;
+            counts.backwardCount += count.backwardCount;
+            counts.edgeCases += count.edgeCases;
+         }
+
+         // If its odd, then the segment is facing inside the enclosed region
+         if (counts.edgeCases == 0)
+         {
+            if (IsOdd(counts.forwardCount))
+            {
+               if (IsOdd(counts.backwardCount))
+               {
+                  Throw(0, L"IsClockwiseSequential: Unexpected - forwardcount and backward count both odd!");
+               }
+
+               return true;
+            }
+            else
+            {
+               // Iteration needs to go backwardds to go clockwise aroun the perimeter
+               if (!IsOdd(counts.backwardCount))
+               {
+                  Throw(0, L"IsClockwiseSequential: Unexpected - forwardcount and backward count both even!");
+               }
+
+               return false;
+            }
+         }
+      }
+
+      Throw(0, L"IsClockwiseSequential: Every calculation to evaluate chirality was an edge case");
+      return false;
+   }
+
+   void TesselateByEarClip(I2dMeshBuilder& builder, IRingManipulator<Vec2>& ring)
+   {
+      if (ring.ElementCount() < 3)
+      {
+         Throw(0, L"Cannot tesselate ring with fewer than 3 elements");
+      }
+
+      size_t i = 0;
+      while (i < ring.ElementCount())
+      {
+         Triangle2d t;
+         t.A = ring[i];
+         t.B = ring[i + 1];
+         t.C = ring[i + 2];
+
+         Vec2 ab = t.B - t.A;
+         Vec2 bc = t.C - t.B;
+
+         float k = Cross(ab, bc);
+         if (k <= 0) // clockwise, we have an ear
+         {
+            // If we have an ear, we can eliminate B
+            // For the case ab and bc are parallel k = 0, but since they share a point B, are part of the same line, so we can eliminate b
+
+            if (!DoesLineIntersectRing(t.A, t.C - t.A, ring) && t.CountInternalPoints(ring.Array(), ring.ElementCount()) == 0)
+            {
+               if (Dot(ab,bc) != Length(ab)*Length(bc)) builder.Append(t);
+               ring.Erase(i + 1);
+
+               if (ring.ElementCount() < 3)
+               {
+                  return;
+               }
+
+               i = 0;
+               continue;
+            }
+            else
+            {
+               // Convex, but it crossed the ring
+            }
+         }
+         else
+         {
+            // Concave, not an ear
+         }
+
+         i++;
+      }
+
+      Throw(0, L"Could not tesselate mesh. Iterated through all mesh and did not find ears");
+   }
 }

@@ -354,8 +354,8 @@ namespace
 
 			int buttonWidth = 80;
 
-			okButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x - buttonWidth - 20, buttonsTop, centre.x - 20, buttonsBottom), L"&OK", IDOK, WS_VISIBLE | BS_DEFPUSHBUTTON, WS_EX_CLIENTEDGE);
-			cancelButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x + 20, buttonsTop, centre.x + buttonWidth + 20, buttonsBottom), L"&Cancel", IDCANCEL, WS_VISIBLE | BS_PUSHBUTTON, WS_EX_CLIENTEDGE);
+			okButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x - buttonWidth - 20, buttonsTop, centre.x - 20, buttonsBottom), L"&OK", IDOK, WS_VISIBLE | BS_DEFPUSHBUTTON, 0);
+			cancelButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x + 20, buttonsTop, centre.x + buttonWidth + 20, buttonsBottom), L"&Cancel", IDCANCEL, WS_VISIBLE | BS_PUSHBUTTON, 0);
 
 			struct ANON
 			{

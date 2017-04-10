@@ -327,6 +327,11 @@ namespace Rococo
       }
    };
 
+   inline const Vec2& Flatten(const Vec3& a)
+   {
+      return *reinterpret_cast<const Vec2*>(&a);
+   }
+
    ROCOCOAPI IAllocator
    {
       virtual void* Allocate(size_t capacity) = 0;

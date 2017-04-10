@@ -88,5 +88,11 @@ namespace Rococo
       {
          return new Publisher();
       }
+
+      namespace Input
+      {
+         EventId OnMouseMoveRelative = L"input.mouse.delta"_event;
+         EventId OnMouseChanged = L"input.mouse.buttons"_event;
+      }
    } // Events
 } // Rococo

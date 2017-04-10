@@ -21,5 +21,19 @@
     <ClCompile Include="widget.frame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="widget.toolbar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="widget.tree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="widget.statusbar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\rococo.widgets.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

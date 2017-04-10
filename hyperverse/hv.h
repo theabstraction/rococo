@@ -219,7 +219,54 @@ namespace HV
       virtual IUIOverlay& Overlay() = 0;
    };
 
-   IEditor* CreateEditor(IPublisher& publisher, HV::Entities::IInstancesSupervisor& instances);
+   IEditor* CreateEditor(IPublisher& publisher, HV::Entities::IInstancesSupervisor& instances, IRenderer& renderer);
+
+   struct ObjectVertexBuffer
+   {
+      const HV::Graphics::Vertex* v;
+      const size_t VertexCount;
+   };
+
+   struct ISectors;
+   struct ISector;
+
+   struct SectorAndSegment
+   {
+      ISector* sector;
+      int32 segment;
+   };
+
+   ROCOCOAPI ISector
+   {
+      virtual void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1, ISectors& sectors) = 0;
+      virtual bool DoesLineCrossSector(Vec2 a, Vec2 b) = 0;
+      virtual ObjectVertexBuffer FloorVertices() const = 0;
+      virtual void Free() = 0;
+     
+      virtual int32 GetSegment(Vec2 p, Vec2 q) = 0;
+      virtual int32 GetFloorTriangleIndexContainingPoint(Vec2 p) = 0;
+      virtual RGBAb GetGuiColour(float intensity) const = 0;
+      virtual int32 GetPerimeterIndex(Vec2 a) = 0;
+      virtual void InvokeSectorDialog() = 0;
+      virtual void RemoveWallSegment(size_t index) = 0;   
+      virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
+   };
+
+   ISector* CreateSector(Entities::IInstancesSupervisor&  instances);
+
+   ROCOCOAPI ISectors
+   {
+      virtual void AddSector(const Vec2* perimeter, size_t nVertices) = 0;
+      virtual void Free() = 0;
+
+      virtual ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b) = 0;
+      virtual SectorAndSegment GetFirstSectorWithPoint(Vec2 a) = 0;
+      virtual ISector* GetFirstSectorContainingPoint(Vec2 a) = 0;
+      virtual ISector** begin() = 0;
+      virtual ISector** end() = 0;
+   };
+
+   ISectors* CreateSectors(HV::Entities::IInstancesSupervisor& instances);
 
    struct Cosmos
    {
