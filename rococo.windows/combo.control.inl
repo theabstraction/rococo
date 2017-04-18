@@ -80,6 +80,11 @@ namespace
 
 			hWndComboBox = CreateWindowIndirect(L"COMBOBOX", configCorrected, nullptr);
 		}
+
+      virtual void OnPretranslateMessage(MSG& msg)
+      {
+
+      }
 	public:
 		static ComboBoxSupervisor* Create(const WindowConfig& listConfig, IParentWindowSupervisor& parent, IItemRenderer* itemRenderer, DWORD containerStyle, DWORD containerStyleEx)
 		{

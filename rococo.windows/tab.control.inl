@@ -195,6 +195,11 @@ namespace
 
  //        SetWindowSubclass(hWndTabControl, OnSubclassMessage, (UINT_PTR) this, 0);
 		}
+
+      virtual void OnPretranslateMessage(MSG& msg)
+      {
+
+      }
 	public:
 		static TabControlSupervisor* Create(const WindowConfig& config, IWindow& parent, ITabControlEvents& eventHandler)
 		{

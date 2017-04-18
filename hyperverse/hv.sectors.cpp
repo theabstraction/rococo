@@ -10,21 +10,6 @@ namespace
    using namespace Rococo;
    using namespace HV;
 
-   void ValidateArray(const Vec2* positionArray, size_t nVertices)
-   {
-      // N.B we use modular arithmetic to connect final vertex with beginning
-      // So we do not duplicate end vertex in the array with the beginning
-      if (nVertices < 3 || positionArray[0] == positionArray[nVertices - 1])
-      {
-         Throw(0, L"IsClockwiseSequential: Cannot evaluate chirality. Bad position array");
-      }
-
-      if (nVertices > 256)
-      {
-         Throw(0, L"IsClockwiseSequential: Too many elements in mesh. Maximum is 256. Simplify");
-      }
-   }
-
    // If [array] represents a ring, then GetRingElement(i...) returns the ith element using modular arithmetic
    template<class T>
    T GetRingElement(size_t index, const T* array, size_t capacity)
@@ -56,10 +41,10 @@ namespace
 
       void AddSector(const Vec2* positionArray, size_t nVertices) override
       {
-         auto* s = CreateSector(instances);
+         auto* s = CreateSector(instances, *this);
          try
          {
-            s->Build(positionArray, nVertices, defaultFloorLevel, defaultFloorLevel + defaultRoomHeight, *this);
+            s->Build(positionArray, nVertices, defaultFloorLevel, defaultFloorLevel + defaultRoomHeight);
             sectors.push_back(s);
          }
          catch (IException& ex)

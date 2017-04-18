@@ -65,6 +65,9 @@ namespace Rococo
          virtual void AddButton(const wchar_t* name, Rococo::Events::EventId id, const wchar_t* buttonTextureResource) = 0;
          virtual GuiRect Render(IGuiRenderContext& rc, bool horizontal, int buttonBorder, RGBAb backColour, RGBAb highlightBorder) = 0;
          virtual void SetPosition(Vec2i pos) = 0;
+         virtual void SetToggleOn(const wchar_t* name) = 0;
+         virtual void SetToggleOff(const wchar_t* name) = 0;
+         virtual void SetToggleColours(RGBAb colour, RGBAb borderColour) = 0;
          virtual void Free() = 0;
       };
 

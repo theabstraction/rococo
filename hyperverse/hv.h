@@ -219,7 +219,7 @@ namespace HV
       virtual IUIOverlay& Overlay() = 0;
    };
 
-   IEditor* CreateEditor(IPublisher& publisher, HV::Entities::IInstancesSupervisor& instances, IRenderer& renderer);
+   IEditor* CreateEditor(IPublisher& publisher, HV::Entities::IInstancesSupervisor& instances, IRenderer& renderer, Windows::IWindow& parent);
 
    struct ObjectVertexBuffer
    {
@@ -230,29 +230,35 @@ namespace HV
    struct ISectors;
    struct ISector;
 
+   struct Segment
+   {
+      int32 perimeterIndexStart;
+      int32 perimeterIndexEnd;
+   };
+
    struct SectorAndSegment
    {
       ISector* sector;
-      int32 segment;
+      Segment segment;
    };
 
    ROCOCOAPI ISector
    {
-      virtual void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1, ISectors& sectors) = 0;
+      virtual void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) = 0;
       virtual bool DoesLineCrossSector(Vec2 a, Vec2 b) = 0;
       virtual ObjectVertexBuffer FloorVertices() const = 0;
       virtual void Free() = 0;
      
-      virtual int32 GetSegment(Vec2 p, Vec2 q) = 0;
+      virtual Segment GetSegment(Vec2 p, Vec2 q) = 0;
       virtual int32 GetFloorTriangleIndexContainingPoint(Vec2 p) = 0;
       virtual RGBAb GetGuiColour(float intensity) const = 0;
       virtual int32 GetPerimeterIndex(Vec2 a) = 0;
-      virtual void InvokeSectorDialog() = 0;
-      virtual void RemoveWallSegment(size_t index) = 0;   
+      virtual void InvokeSectorDialog(Rococo::Windows::IWindow& parent) = 0; 
       virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
+      virtual void RemoveWallSegment(Segment segment) = 0;
    };
 
-   ISector* CreateSector(Entities::IInstancesSupervisor&  instances);
+   ISector* CreateSector(Entities::IInstancesSupervisor&  instances, ISectors& co_sectors);
 
    ROCOCOAPI ISectors
    {

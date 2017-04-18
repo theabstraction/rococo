@@ -124,6 +124,7 @@ namespace Rococo
 
 		ROCOCOAPI IWindowHandler
 		{
+         virtual void OnPretranslateMessage(MSG& msg) = 0;
 			virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
 		};
 
@@ -153,6 +154,7 @@ namespace Rococo
 			virtual void OnAcceleratorCommand(HWND hWnd, DWORD id);
 			virtual COLORREF GetBackgroundColour();
          virtual LRESULT OnSetCursor(HWND hWnd, WPARAM wParam, LPARAM lParam);
+         virtual void OnPretranslateMessage(MSG& msg);
 		};
 
 		typedef void(*FN_OnControlCommand)(void* context, HWND hWnd, DWORD notificationCode, ControlId id, HWND hControlCode);
@@ -161,6 +163,7 @@ namespace Rococo
 		typedef void(*FN_OnClose)(void* context, HWND hWnd);
 		typedef void(*FN_OnSize)(void* context, HWND hWnd, const Vec2i& span, RESIZE_TYPE type);
 		typedef DWORD(*FN_OnIdle)(void* context);
+      typedef void(*FN_OnPreTranslate)(void* context, MSG& msg);
 
 		ROCOCOAPI IWiredWindowHandler : public IWindowHandler
 		{
@@ -172,6 +175,7 @@ namespace Rococo
 			virtual void RouteMenuCommand(void* context, FN_OnMenuCommand f) = 0;
 			virtual void RouteAcceleratorCommand(void* context, FN_OnAcceleratorCommand f) = 0;
 			virtual void RouteSize(void* context, FN_OnSize fn) = 0;
+         virtual void RoutePreTranslate(void* context, FN_OnPreTranslate fn) = 0;
 		};
 
 		IWiredWindowHandler* CreateWiredHandler();

@@ -32,6 +32,7 @@ namespace
 		FnBind<FN_OnClose> bindClose;
 		FnBind<FN_OnIdle> bindIdle;
 		FnBind<FN_OnSize> bindOnSize;
+      FnBind<FN_OnPreTranslate> bindPreTranslate;
 
 	public:
 		WiredHandler()
@@ -79,6 +80,11 @@ namespace
 				bindControlCommand.type(bindControlCommand.context, hWnd, notificationCode, id, hControlCode);
 			}
 		}
+
+      void RoutePreTranslate(void* context, FN_OnPreTranslate fn)
+      {
+         bindPreTranslate.Set(context, fn);
+      }
 
 		DWORD OnIdle()
 		{
@@ -140,6 +146,14 @@ namespace
 		{
 			bindOnSize.type(bindOnSize.context, hWnd, Vec2i{ LOWORD(lParam), HIWORD(lParam) }, (RESIZE_TYPE)wParam);
 		}
+
+      virtual void OnPretranslateMessage(MSG& msg)
+      {
+         if (bindPreTranslate.type != nullptr)
+         {
+            bindPreTranslate.type(bindPreTranslate.context, msg);
+         }
+      }
 
 		virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{

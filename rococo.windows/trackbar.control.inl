@@ -51,6 +51,10 @@ namespace
 			return 0L;
 		}
 
+      virtual void OnPretranslateMessage(MSG& msg)
+      {
+
+      }
 	public:
 		static TrackBarSupervisor* Create(const WindowConfig& barConfig, IParentWindowSupervisor& parent, ITrackBarHandler& handler)
 		{

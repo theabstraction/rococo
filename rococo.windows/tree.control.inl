@@ -128,6 +128,11 @@ namespace
 
 			StandardResizeControlWithTitleBar(*containerWindow, hTreeWindow, hTitle);
 		}
+
+      virtual void OnPretranslateMessage(MSG& msg)
+      {
+
+      }
 	public:
 		static TreeControlSupervisor* Create(const WindowConfig& config, IWindow& parent, ControlId id, ITreeControlHandler& eventHandler)
 		{

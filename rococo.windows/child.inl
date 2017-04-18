@@ -19,6 +19,11 @@ namespace
 			DeleteAll(children);
 		}
 
+      virtual void OnPretranslateMessage(MSG& msg)
+      {
+
+      }
+
 		virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			if (modelessHandler)

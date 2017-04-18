@@ -647,6 +647,11 @@ namespace Rococo
 			DeleteObject(br);
 		}
 
+      void StandardWindowHandler::OnPretranslateMessage(MSG& msg)
+      {
+
+      }
+
 		void StandardWindowHandler::OnGetMinMaxInfo(HWND hWnd, MINMAXINFO& info)
 		{
 			enum { DEFAULT_MIN_WIDTH = 800, DEFAULT_MIN_HEIGHT = 600 };

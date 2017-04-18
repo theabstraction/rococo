@@ -130,6 +130,11 @@ namespace
          DestroyWindow(hWndEditor);
          DestroyWindow(hWnd);
       }
+
+      virtual void OnPretranslateMessage(MSG& msg)
+      {
+
+      }
 	public:
 		static RichEditor* Create(const WindowConfig& editorConfig, IWindow& parent, IRichEditorEvents& eventHandler)
 		{

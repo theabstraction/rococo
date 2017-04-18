@@ -15,6 +15,10 @@ namespace
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
 
+      virtual void OnPretranslateMessage(MSG& msg)
+      {
+
+      }
 	public:
 		static ButtonSupervisor* Create(const WindowConfig& config, IParentWindowSupervisor& parent)
 		{

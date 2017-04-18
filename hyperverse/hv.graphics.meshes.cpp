@@ -51,14 +51,9 @@ namespace
 
       virtual void End()
       {
-         if (vertices.empty())
-         {
-            Throw(0, L"MeshBuilder::End(): There are no mesh vertices. Empty meshes are forbidden.");
-         }
- 
          static_assert(sizeof(ObjectVertex) == sizeof(Vertex), "Packing error");
          
-         const ObjectVertex* v = (const ObjectVertex*)&vertices[0];
+         const ObjectVertex* v = vertices.empty() ? nullptr : (const ObjectVertex*)&vertices[0];
 
          auto i = meshes.find(name);
          if (i != meshes.end())

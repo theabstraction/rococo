@@ -35,12 +35,6 @@ namespace Rococo
 
 	ticks CpuClock();
 
-	template<class T> struct Segment
-	{
-		T a;
-		T b;
-	};
-
 	struct Quat;
 
 	ROCOCO_ID(ID_BITMAP, uint64, -1)

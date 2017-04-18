@@ -70,7 +70,7 @@ void Main(HANDLE hInstanceLock)
    AutoFree<IMouse> mouse = CreateMouse(*publisher);
    AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor();
    AutoFree<ISpriteSupervisor> sprites = CreateSpriteSupervisor(mainWindow->Renderer());
-   AutoFree<IEditor> editor = CreateEditor(*publisher, *instances, mainWindow->Renderer());
+   AutoFree<IEditor> editor = CreateEditor(*publisher, *instances, mainWindow->Renderer(), mainWindow->Window());
 
    HV::Cosmos e
    {

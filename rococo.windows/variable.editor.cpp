@@ -162,6 +162,7 @@ namespace
 		IButton* cancelButton;
 		ITabControl* tabControl;
 		IParentWindowSupervisor* tab;
+      HWND hwndTip{ nullptr };
 
 		ModalDialogHandler dlg;
 		ControlId nextId;
@@ -183,6 +184,11 @@ namespace
 				}
 			}
 		}
+
+      virtual void OnPretranslateMessage(MSG& msg)
+      {
+         SendMessage(hwndTip, TTM_RELAYEVENT, 0, (LPARAM) &msg);
+      }
 
       virtual void OnTabRightClicked(int index, const POINT& screenPos)
       {
@@ -336,6 +342,11 @@ namespace
 				tabControl = nullptr;
 			}
 
+         hwndTip = CreateWindowExW(NULL, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON,
+            CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+            *supervisor, NULL, GetWindowInstance(*supervisor), NULL);
+
+
 			if (topLeft) MoveWindow(*supervisor, topLeft->x, topLeft->y, windowSpan.x, windowSpan.y, TRUE);
 
 			IParentWindowSupervisor& tabParent = defaultTab ? tabControl->ClientSpace() : *supervisor;
@@ -376,11 +387,18 @@ namespace
 					VariableEditor* This = (VariableEditor*)context;
 					This->OnSize(hWnd, span, type);
 				}
+
+            static void OnPreTranslate(void* context, MSG& msg)
+            {
+               VariableEditor* This = (VariableEditor*)context;
+               This->OnPretranslateMessage(msg);
+            }
 			};
 
 			dlg.Router().RouteControlCommand(this, ANON::OnControlCommand);
 			dlg.Router().RouteClose(this, ANON::OnClose);
 			dlg.Router().RouteSize(this, ANON::OnSize);
+         dlg.Router().RoutePreTranslate(this, ANON::OnPreTranslate);
 
 			GuiRect windowArea = WindowArea(*supervisor);
 			POINT pos;
@@ -438,6 +456,22 @@ namespace
 			return  GuiRect(nextX + labelWidth + 10, nextY, clientrect.right - 10, nextY + 22);
 		}
 
+      void AddToolTip(HWND hwndTool, LPCWSTR pszText)
+      {
+         // Associate the tooltip with the tool.
+         TOOLINFO toolInfo = { 0 };
+         toolInfo.cbSize = sizeof(toolInfo);
+         toolInfo.hwnd = *supervisor;
+         toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+         toolInfo.uId = (UINT_PTR)hwndTool;
+         toolInfo.lpszText = (LPWSTR) pszText;
+         GetClientRect(hwndTool, &toolInfo.rect);
+         SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
+
+         SendMessage(hwndTip, TTM_ACTIVATE, TRUE, 0);
+      }
+
+
 		virtual void AddIntegerEditor(LPCWSTR variableName, LPCWSTR variableDesc, int minimum, int maximum, int defaultValue)
 		{
 			if (nextY > windowSpan.y - 30)
@@ -453,6 +487,8 @@ namespace
 
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.EditControl = AddEditor(*tab, GetDefaultEditRect(), editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
+
+         AddToolTip(*v.StaticControl, variableDesc);
 
 			SecureCopy(v.name, variableName);
 			v.var.value.int32Value = defaultValue;
@@ -488,6 +524,7 @@ namespace
 			
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableDesc, -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.SpecialButtonControl = Windows::AddPushButton(*tab, buttonRect, L"Edit Script", nextId++, WS_VISIBLE | BS_PUSHBUTTON, WS_EX_CLIENTEDGE);
+         AddToolTip(*v.StaticControl, variableDesc);
 
 			SecureCopy(v.name, variableName);
 
@@ -517,6 +554,7 @@ namespace
 
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.ComboControl = AddComboBox(*tab, comboRect, editor, nextId++, WS_VISIBLE | CBS_SIMPLE | CBS_HASSTRINGS | CBS_DISABLENOSCROLL, 0, WS_EX_STATICEDGE);
+         AddToolTip(*v.StaticControl, variableDesc);
 
 			SecureCopy(v.name, variableName);
 
@@ -559,6 +597,7 @@ namespace
 
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.EditControl = AddEditor(*tab, GetDefaultEditRect(), editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
+         AddToolTip(*v.StaticControl, variableDesc);
 
 			SecureCopy(v.name, variableName);
 
@@ -594,7 +633,7 @@ namespace
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.EditControl = AddEditor(*tab, editRect, editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
 			v.SpecialButtonControl = Windows::AddPushButton(*tab, buttonRect, L"...", nextId++, WS_VISIBLE | BS_PUSHBUTTON, WS_EX_CLIENTEDGE);
-
+         AddToolTip(*v.StaticControl, variableDesc);
 			SecureCopy(v.name, variableName);
 
 			v.var.value.textValue.capacity = capacity;

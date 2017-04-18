@@ -18,6 +18,7 @@ namespace
       wchar_t resource[128];
       Textures::BitmapLocation bitmap;
       GuiRect renderLocation;
+      bool isOn{ false };
 
       Button(EventId _id, const wchar_t* name, const wchar_t* resource) : id(_id)
       {
@@ -34,6 +35,8 @@ namespace
       std::vector<Button*> buttons;
       GuiRect rect;
       Button* focus{ nullptr };
+      RGBAb toggleColour{ 224,244,0,255 };
+      RGBAb toggleBorderColour{ 0,0,0,255 };
    public:
       Toolbar(IPublisher& _publisher, IRenderer& _renderer):
          publisher(_publisher), renderer(_renderer)
@@ -93,10 +96,38 @@ namespace
       }
 
 
-      virtual void AddButton(const wchar_t* name, EventId id, const wchar_t* buttonTextureResource)
+      void AddButton(const wchar_t* name, EventId id, const wchar_t* buttonTextureResource) override
       {
          auto* b = new Button(id, name, buttonTextureResource);
          buttons.push_back(b);
+      }
+
+      void SetToggleOn(const wchar_t* name) override
+      {
+         for (auto* b : buttons)
+         {
+            if (Eq(b->name, name))
+            {
+               b->isOn = true;
+            }
+         }
+      }
+
+      void SetToggleOff(const wchar_t* name) override
+      {
+         for (auto* b : buttons)
+         {
+            if (Eq(b->name, name))
+            {
+               b->isOn = false;
+            }
+         }
+      }
+
+      void SetToggleColours(RGBAb colour, RGBAb borderColour) override
+      {
+         toggleColour = colour;
+         toggleBorderColour = borderColour;
       }
 
       GuiRect TileHorizontally(int buttonBorder)
@@ -173,7 +204,6 @@ namespace
             }
          }
 
-
          if (horizontal)
          {
             rect = TileHorizontally(buttonBorder);
@@ -193,10 +223,17 @@ namespace
 
          for (auto* b : buttons)
          {
+            if (b->isOn)
+            {
+               Graphics::DrawRectangle(rc, b->renderLocation, toggleColour, toggleColour);
+               Graphics::DrawBorderAround(rc, b->renderLocation, { 1,1 }, toggleBorderColour, toggleBorderColour);
+            }
+
             if (highlightBorder.alpha != 0 && IsPointInRect(metrics.cursorPosition, b->renderLocation))
             {
                Graphics::DrawBorderAround(rc, b->renderLocation, { 1,1 }, highlightBorder, highlightBorder);
             }
+
             Graphics::DrawSprite(TopLeft(b->renderLocation), b->bitmap, rc, true);
          }
 

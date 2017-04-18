@@ -144,6 +144,11 @@ namespace
 
 			StandardResizeControlWithTitleBar(hWnd, hWndListBox, hTitle);
 		}
+
+      virtual void OnPretranslateMessage(MSG& msg)
+      {
+
+      }
 	public:
 		static ListBoxSupervisor* Create(const WindowConfig& listConfig, IParentWindowSupervisor& parent, IListItemHandler& itemRenderer, DWORD containerStyle, DWORD containerStyleEx)
 		{

@@ -431,7 +431,7 @@ namespace
 		{
 			for (auto& x : meshBuffers)
 			{
-				x.dx11Buffer->Release();
+            if (x.dx11Buffer) x.dx11Buffer->Release();
 			}
 
 			meshBuffers.clear();
@@ -735,7 +735,7 @@ namespace
 
 		virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices)
 		{
-			ID3D11Buffer* meshBuffer = DX11::CreateImmutableVertexBuffer(device, vertices, nVertices);
+			ID3D11Buffer* meshBuffer = vertices ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
 			meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST });
 			int32 index = (int32) meshBuffers.size();
 			return ID_SYS_MESH(index-1);
@@ -748,9 +748,10 @@ namespace
 				Throw(E_INVALIDARG, L"renderer.UpdateMesh(ID_MESH id, ....) - Bad id ");
 			}
 
-			ID3D11Buffer* newMesh = DX11::CreateImmutableVertexBuffer(device, vertices, nVertices);
+			ID3D11Buffer* newMesh = vertices != nullptr ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
 			meshBuffers[rendererId.value].numberOfVertices = nVertices;
-			meshBuffers[rendererId.value].dx11Buffer->Release();
+
+         if (meshBuffers[rendererId.value].dx11Buffer) meshBuffers[rendererId.value].dx11Buffer->Release();
 			meshBuffers[rendererId.value].dx11Buffer = newMesh;
 		}
 
@@ -759,6 +760,9 @@ namespace
 			if (id.value < 0 || id.value >= meshBuffers.size()) Throw(E_INVALIDARG, L"renderer.DrawObject(ID_MESH id) - Bad id ");
 
 			auto& buffer = meshBuffers[id.value];
+
+         if (!buffer.dx11Buffer)
+            return;
 
 			ID3D11Buffer* buffers[] = { buffer.dx11Buffer };
 

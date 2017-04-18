@@ -22,6 +22,11 @@ namespace
 			DeleteAll(children);
 		}
 
+      virtual void OnPretranslateMessage(MSG& msg)
+      {
+
+      }
+
 		virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			if (modalHandler)
@@ -61,6 +66,7 @@ namespace
 				MSG msg;
 				while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 				{
+               overrideHandler->OnPretranslateMessage(msg);
 					TranslateMessage(&msg);
 					DispatchMessage(&msg);
 				}

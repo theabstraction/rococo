@@ -86,7 +86,7 @@ namespace
          Vec2 worldCursor = GetWorldPosition(metrics.cursorPosition);
 
          wchar_t originText[24];
-         SafeFormat(originText, _TRUNCATE, L"(%4.4f,%4.4f)", worldCursor.x, worldCursor.y);
+         SafeFormat(originText, _TRUNCATE, L"(%4.1f,%4.1f)", worldCursor.x, worldCursor.y);
 
          Vec2i centre{ metrics.screenSpan.x >> 1, metrics.screenSpan.y >> 1 };
          Rococo::Graphics::DrawRectangle(grc, { centre.x - 70,0,centre.x + 70, 20 }, RGBAb(64, 64, 64, 224), RGBAb(64, 64, 64, 224));
@@ -238,6 +238,7 @@ namespace
       WorldMap& map;
       GuiMetrics metrics;
       IPublisher& publisher;
+      Windows::IWindow& parent;
       ISector* lit{ nullptr };
 
       void GetRect(GuiRect& rect) const override
@@ -286,7 +287,7 @@ namespace
                {
                   if (lit == s)
                   {
-                     lit->InvokeSectorDialog();
+                     lit->InvokeSectorDialog(parent);
                   }
                   lit = s;
                }
@@ -294,7 +295,11 @@ namespace
          }
       }
    public:
-      EditMode_SectorEditor(IPublisher& _publisher, WorldMap& _map) : publisher(_publisher), map(_map)  { }
+      EditMode_SectorEditor(IPublisher& _publisher, WorldMap& _map, Windows::IWindow& _parent) : 
+         publisher(_publisher), 
+         map(_map),
+         parent(_parent)
+      { }
       IEditMode& Mode() { return *this; }
       const ISector* GetHilight() const override { return lit; }
    };
@@ -396,16 +401,16 @@ namespace
             SectorAndSegment sns = map.Sectors().GetFirstSectorWithPoint(worldPosition);
             if (sns.sector != nullptr)
             {
-               SetStatus(L"A new sector's first point must lay outside all other sectors", publisher);
+               SetStatus(L"A new sector's first point must lie outside all other sectors", publisher);
                return;
             }
 
             ISector* sector = map.Sectors().GetFirstSectorContainingPoint(worldPosition);
             if (sector != nullptr)
             {
-               SetStatus(L"A new sector's first point must lay outside all other sectors", publisher);
+               SetStatus(L"A new sector's first point must lie outside all other sectors", publisher);
                return;
-            }
+            }   
          }
 
          if (!lineList.empty())
@@ -433,9 +438,8 @@ namespace
             if (lineList.size() >= 3)
             {
                map.Sectors().AddSector(&lineList[0], lineList.size());
+               SetStatus(L"Sector created", publisher);
             }
-
-            SetStatus(L"Sector created", publisher);
             lineList.clear();
             return;
          }
@@ -508,9 +512,27 @@ namespace
          delete this;
       }
 
-      void SetMode(IEditMode& mode)
+      enum Mode
       {
-         editMode = &mode;
+         Mode_Vertex,
+         Mode_Sector
+      };
+
+      void SetMode(Mode mode)
+      {
+         if (mode == Mode_Vertex)
+         {
+            editMode = &editMode_SectorBuilder.Mode();
+            toolbar->SetToggleOn(L"vertices");
+            toolbar->SetToggleOff(L"sectors");
+         }
+         else
+         {
+            editMode = &editMode_SectorEditor.Mode();
+            toolbar->SetToggleOff(L"vertices");
+            toolbar->SetToggleOn(L"sectors");
+         }
+
          windowTree->Clear();
          windowTree->AddTarget(editMode, 0);
          windowTree->AddTarget(toolbar, 1);
@@ -522,32 +544,33 @@ namespace
          {
             if (ev == L"editor.ui.vertices"_event)
             {
-               SetMode(editMode_SectorBuilder.Mode());
+               SetMode(Mode_Vertex);
             }
             else if (ev == L"editor.ui.sectors"_event)
             {
-               SetMode(editMode_SectorEditor.Mode());
+               SetMode(Mode_Sector);
             }
             RouteEventToUI(ev, metrics.cursorPosition, *windowTree);
          }
       }
    public:
-      Editor(IPublisher& _publisher, HV::Entities::IInstancesSupervisor& _instances, IRenderer& renderer) :
+      Editor(IPublisher& _publisher, HV::Entities::IInstancesSupervisor& _instances, IRenderer& renderer, Windows::IWindow& parent) :
          publisher(_publisher),
          instances(_instances),
          map(_instances),
          editMode_SectorBuilder(publisher, map),
-         editMode_SectorEditor(publisher, map),
+         editMode_SectorEditor(publisher, map, parent),
          toolbar(Widgets::CreateToolbar(publisher, renderer)),
          windowTree(CreateWindowTree()),
          statusbar(CreateStatusBar(_publisher))
-      {
-         SetMode(editMode_SectorBuilder.Mode());
+      {      
          publisher.Attach(this);
          toolbar->AddButton(L"load", L"editor.ui.load"_event, L"!textures/toolbars/load.tif");
          toolbar->AddButton(L"save", L"editor.ui.save"_event, L"!textures/toolbars/save.tif");
          toolbar->AddButton(L"vertices", L"editor.ui.vertices"_event, L"!textures/toolbars/builder.tif");
          toolbar->AddButton(L"sectors", L"editor.ui.sectors"_event, L"!textures/toolbars/sectors.tif");
+         toolbar->SetToggleColours(RGBAb(255, 255, 255), RGBAb(128, 128, 128));
+         SetMode(Mode_Vertex);
       }
 
       ~Editor()
@@ -559,8 +582,8 @@ namespace
 
 namespace HV
 {
-   IEditor* CreateEditor(IPublisher& publisher, HV::Entities::IInstancesSupervisor& instances, IRenderer& renderer)
+   IEditor* CreateEditor(IPublisher& publisher, HV::Entities::IInstancesSupervisor& instances, IRenderer& renderer, Windows::IWindow& parent)
    {
-      return new Editor(publisher, instances, renderer);
+      return new Editor(publisher, instances, renderer, parent);
    }
 }
