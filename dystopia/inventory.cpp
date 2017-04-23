@@ -23,7 +23,7 @@ namespace
 	{
 		ItemData itemData;
 		Ammo ammo;
-		std::wstring name;
+		std::string name;
 	public:
 		AmmoItem(const Ammo& _ammo, const ItemData& _itemData) : ammo(_ammo), itemData(_itemData), name(_itemData.name)
 		{
@@ -67,7 +67,7 @@ namespace
 	{
 		ItemData itemData;
 		ArmourValue armourValue;
-		std::wstring name;
+		std::string name;
 	public:
 		Armour(const ArmourValue& _armour, const ItemData& _itemData) : armourValue(_armour), itemData(_itemData), name(_itemData.name)
 		{
@@ -109,7 +109,7 @@ namespace
 	struct RangedWeaponItem : public IItem
 	{
 		RangedWeapon rangedData;
-		std::wstring name;
+		std::string name;
 		ItemData itemData;
 		AutoFree<IInventorySupervisor> clip;
 	public:

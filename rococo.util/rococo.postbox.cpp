@@ -37,13 +37,13 @@ namespace
 				SendDirectUnchecked(Mail{ item.id, item.opaquedata, item.nBytes });
 				items.pop_front();
 
-				if (i++ == MAX_ITEMS_PER_DELIVERY) Throw(0, L"Postbox delivery failed. MAX_ITEMS_PER_DELIVERY exceeded");
+				if (i++ == MAX_ITEMS_PER_DELIVERY) Throw(0, "Postbox delivery failed. MAX_ITEMS_PER_DELIVERY exceeded");
 			}
 		}
 
 		virtual void PostForLater(const Mail& mail, bool isLossy)
 		{
-			if (mail.nBytes > LARGEST_MESSAGE_SIZE) Throw(0, L"Postbox message too long. Message was %d bytes. Limit is %d bytes.", mail.nBytes, LARGEST_MESSAGE_SIZE);
+			if (mail.nBytes > LARGEST_MESSAGE_SIZE) Throw(0, "Postbox message too long. Message was %d bytes. Limit is %d bytes.", mail.nBytes, LARGEST_MESSAGE_SIZE);
 			if (items.size() > CAPACITY)
 			{
 				auto i = items.begin();
@@ -61,7 +61,7 @@ namespace
 
 				if (items.size() > CAPACITY)
 				{
-					Throw(0, L"Postbox buffer exhausted. Failed to deliver #%d", mail.id);
+					Throw(0, "Postbox buffer exhausted. Failed to deliver #%d", mail.id);
 				}
 			}
 
@@ -88,7 +88,7 @@ namespace
 
 		virtual void SendDirect(const Mail& mail)
 		{
-			if (mail.nBytes > LARGEST_MESSAGE_SIZE) Throw(0, L"Postbox message too long");
+			if (mail.nBytes > LARGEST_MESSAGE_SIZE) Throw(0, "Postbox message too long");
 			SendDirectUnchecked(mail);
 		}
 

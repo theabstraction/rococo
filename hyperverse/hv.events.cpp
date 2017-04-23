@@ -6,21 +6,21 @@ namespace HV
    {
       namespace OS
       {
-         EventId OnTick                = L"os.tick"_event;
-         EventId OnFileChanged         = L"os.file.changed"_event;
+         EventId OnTick                = "os.tick"_event;
+         EventId OnFileChanged         = "os.file.changed"_event;
       }
 
       namespace Entities
       {
-          EventId OnTryMoveMobile      = L"mobile.try.move"_event;
+          EventId OnTryMoveMobile      = "mobile.try.move"_event;
       }
 
       namespace Player
       {
-         EventId OnPlayerAction        = L"player.action"_event;
-         EventId OnPlayerDelta         = L"player.delta"_event;
+         EventId OnPlayerAction        = "player.action"_event;
+         EventId OnPlayerDelta         = "player.delta"_event;
         
-         EventId OnPlayerViewChange    = L"player.view.change"_event;
+         EventId OnPlayerViewChange    = "player.view.change"_event;
       }
    }
 }

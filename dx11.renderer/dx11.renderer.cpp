@@ -28,7 +28,7 @@ namespace
 
 	struct DX11Shader
 	{
-		std::wstring name;
+		std::string name;
 	};
 
 	struct DX11VertexShader : public DX11Shader
@@ -161,7 +161,7 @@ namespace
       {
          if (arrayCapacity != 0)
          {
-            Throw(0, L"DX11TextureArray texture is already defined. You cannot add more textures.");
+            Throw(0, "DX11TextureArray texture is already defined. You cannot add more textures.");
          }
          count++;
       }
@@ -286,7 +286,7 @@ namespace
 		AutoRelease<ID3D11DepthStencilState> objDepthState;
 
 		std::vector<DX11::TextureBind> textures;
-		std::unordered_map<std::wstring, ID_TEXTURE> mapNameToTexture;
+		std::unordered_map<std::string, ID_TEXTURE> mapNameToTexture;
 
       std::vector<Overlay> overlays;
 
@@ -303,7 +303,7 @@ namespace
       AutoFree<IExpandingBuffer> scratchBuffer;
       DX11::TextureLoader textureLoader;
 
-      virtual void Load(const wchar_t* name, IEventCallback<CompressedTextureBuffer>& onLoad)
+      virtual void Load(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad)
       {
          StandardLoadFromCompressedTextureBuffer(name, onLoad, installation, *scratchBuffer);
       }
@@ -331,11 +331,11 @@ namespace
          alphaBlend = DX11::CreateAlphaBlend(device);
          disableBlend = DX11::CreateNoBlend(device);
 
-         DX11::TextureBind fb = textureLoader.LoadAlphaBitmap(L"!font1.tif");
+         DX11::TextureBind fb = textureLoader.LoadAlphaBitmap("!font1.tif");
          fontTexture = fb.texture;
          fontBinding = fb.view;
 
-			const wchar_t* csvName = L"!font1.csv";
+			cstr csvName = "!font1.csv";
 			installation.LoadResource(csvName, *scratchBuffer, 256_kilobytes);
 			fonts = Fonts::LoadFontCSV(csvName, (const char*)scratchBuffer->GetData(), scratchBuffer->Length());
 
@@ -347,26 +347,26 @@ namespace
 
 			globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
 
-			installation.LoadResource(L"!gui.vs", *scratchBuffer, 64_kilobytes);
-			idGuiVS = CreateGuiVertexShader(L"gui.vs", scratchBuffer->GetData(), scratchBuffer->Length());
+			installation.LoadResource("!gui.vs", *scratchBuffer, 64_kilobytes);
+			idGuiVS = CreateGuiVertexShader("gui.vs", scratchBuffer->GetData(), scratchBuffer->Length());
 
-			installation.LoadResource(L"!gui.ps", *scratchBuffer, 64_kilobytes);
-			idGuiPS = CreatePixelShader(L"gui.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+			installation.LoadResource("!gui.ps", *scratchBuffer, 64_kilobytes);
+			idGuiPS = CreatePixelShader("gui.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
-			installation.LoadResource(L"!object.vs", *scratchBuffer, 64_kilobytes);
-			idObjVS = CreateObjectVertexShader(L"object.vs", scratchBuffer->GetData(), scratchBuffer->Length());
+			installation.LoadResource("!object.vs", *scratchBuffer, 64_kilobytes);
+			idObjVS = CreateObjectVertexShader("object.vs", scratchBuffer->GetData(), scratchBuffer->Length());
 
-			installation.LoadResource(L"!object.ps", *scratchBuffer, 64_kilobytes);
-			idObjPS = CreatePixelShader(L"object.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+			installation.LoadResource("!object.ps", *scratchBuffer, 64_kilobytes);
+			idObjPS = CreatePixelShader("object.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
-         installation.LoadResource(L"!depth.ps", *scratchBuffer, 64_kilobytes);
-         idObjDepthPS = CreatePixelShader(L"depth.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+         installation.LoadResource("!depth.ps", *scratchBuffer, 64_kilobytes);
+         idObjDepthPS = CreatePixelShader("depth.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
-         installation.LoadResource(L"!sprite.vs", *scratchBuffer, 64_kilobytes);
-         idSpriteVS = CreateGuiVertexShader(L"sprite.vs", scratchBuffer->GetData(), scratchBuffer->Length());
+         installation.LoadResource("!sprite.vs", *scratchBuffer, 64_kilobytes);
+         idSpriteVS = CreateGuiVertexShader("sprite.vs", scratchBuffer->GetData(), scratchBuffer->Length());
 
-         installation.LoadResource(L"!sprite.ps", *scratchBuffer, 64_kilobytes);
-         idSpritePS = CreatePixelShader(L"sprite.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+         installation.LoadResource("!sprite.ps", *scratchBuffer, 64_kilobytes);
+         idSpritePS = CreatePixelShader("sprite.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
 			instanceBuffer = DX11::CreateConstantBuffer<ObjectInstance>(device);
 		}
@@ -442,7 +442,7 @@ namespace
 			size_t index = textureId.value - 1;
 			if (index >= textures.size())
 			{
-				Throw(0, L"Bad texture id");
+				Throw(0, "Bad texture id");
 			}
 
 			auto& t = textures[index];
@@ -477,7 +477,7 @@ namespace
 			return *this;
 		}
 
-		virtual ID_TEXTURE LoadTexture(IBuffer& buffer, const wchar_t* uniqueName)
+		virtual ID_TEXTURE LoadTexture(IBuffer& buffer, cstr uniqueName)
 		{
 			auto i = mapNameToTexture.find(uniqueName);
 			if (i != mapNameToTexture.end())
@@ -498,7 +498,7 @@ namespace
 			size_t index = id.value - 1;
 			if (index >= textures.size())
 			{
-				Throw(0, L"Bad texture id");
+				Throw(0, "Bad texture id");
 			}
 			
 			auto& t = textures[index];
@@ -558,17 +558,17 @@ namespace
 			SyncViewport();
 		}
 
-		ID_VERTEX_SHADER CreateVertexShader(const wchar_t* name, const byte* shaderCode, size_t shaderLength, const D3D11_INPUT_ELEMENT_DESC* vertexDesc, UINT nElements)
+		ID_VERTEX_SHADER CreateVertexShader(cstr name, const byte* shaderCode, size_t shaderLength, const D3D11_INPUT_ELEMENT_DESC* vertexDesc, UINT nElements)
 		{
-			if (name == nullptr || wcslen(name) > 1024) Throw(0, L"Bad <name> for vertex shader");
-			if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 65536) Throw(0, L"Bad shader code for vertex shader %s", name);
+			if (name == nullptr || rlen(name) > 1024) Throw(0, "Bad <name> for vertex shader");
+			if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 65536) Throw(0, "Bad shader code for vertex shader %s", name);
 
 			DX11VertexShader* shader = new DX11VertexShader;
 			HRESULT hr = device.CreateInputLayout(vertexDesc, nElements, shaderCode, shaderLength, &shader->inputLayout);
 			if FAILED(hr)
 			{
 				delete shader;
-				Throw(hr, L"device.CreateInputLayout failed with shader %s", name);
+				Throw(hr, "device.CreateInputLayout failed with shader %s", name);
 				return ID_VERTEX_SHADER();
 			}
 
@@ -576,7 +576,7 @@ namespace
 			if FAILED(hr)
 			{
 				delete shader;
-				Throw(hr, L"device.CreateVertexShader failed with shader %s", name);
+				Throw(hr, "device.CreateVertexShader failed with shader %s", name);
 				return ID_VERTEX_SHADER::Invalid();
 			}
 
@@ -585,27 +585,27 @@ namespace
 			return ID_VERTEX_SHADER(vertexShaders.size() - 1);
 		}
 
-		ID_VERTEX_SHADER CreateGuiVertexShader(const wchar_t* name, const byte* shaderCode, size_t shaderLength)
+		ID_VERTEX_SHADER CreateGuiVertexShader(cstr name, const byte* shaderCode, size_t shaderLength)
 		{
 			return CreateVertexShader(name, shaderCode, shaderLength, DX11::GetGuiVertexDesc(), DX11::NumberOfGuiVertexElements());
 		}
 
-		virtual ID_VERTEX_SHADER CreateObjectVertexShader(const wchar_t* name, const uint8* shaderCode, size_t shaderLength)
+		virtual ID_VERTEX_SHADER CreateObjectVertexShader(cstr name, const uint8* shaderCode, size_t shaderLength)
 		{
 			return CreateVertexShader(name, shaderCode, shaderLength, DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
 		}
 
-		ID_PIXEL_SHADER CreatePixelShader(const wchar_t* name, const byte* shaderCode, size_t shaderLength)
+		ID_PIXEL_SHADER CreatePixelShader(cstr name, const byte* shaderCode, size_t shaderLength)
 		{
-			if (name == nullptr || wcslen(name) > 1024) Throw(0, L"Bad <name> for pixel shader");
-			if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 16384) Throw(0, L"Bad shader code for pixel shader %s", name);
+			if (name == nullptr || rlen(name) > 1024) Throw(0, "Bad <name> for pixel shader");
+			if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 16384) Throw(0, "Bad shader code for pixel shader %s", name);
 
 			DX11PixelShader* shader = new DX11PixelShader;
 			HRESULT hr = device.CreatePixelShader(shaderCode, shaderLength, nullptr, &shader->ps);
 			if FAILED(hr)
 			{
 				delete shader;
-				Throw(hr, L"device.CreatePixelShader failed with shader %s", name);
+				Throw(hr, "device.CreatePixelShader failed with shader %s", name);
 				return ID_PIXEL_SHADER::Invalid();
 			}
 
@@ -677,8 +677,8 @@ namespace
 
 		void UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid)
 		{
-			if (vid.value >= vertexShaders.size()) Throw(0, L"Bad vertex shader Id in call to UseShaders");
-			if (pid.value >= pixelShaders.size()) Throw(0, L"Bad pixel shader Id in call to UseShaders");
+			if (vid.value >= vertexShaders.size()) Throw(0, "Bad vertex shader Id in call to UseShaders");
+			if (pid.value >= pixelShaders.size()) Throw(0, "Bad pixel shader Id in call to UseShaders");
 
 			auto& vs = *vertexShaders[vid.value];
 			auto& ps = *pixelShaders[pid.value];
@@ -745,7 +745,7 @@ namespace
 		{
 			if (rendererId.value < 0 || rendererId.value >= meshBuffers.size())
 			{
-				Throw(E_INVALIDARG, L"renderer.UpdateMesh(ID_MESH id, ....) - Bad id ");
+				Throw(E_INVALIDARG, "renderer.UpdateMesh(ID_MESH id, ....) - Bad id ");
 			}
 
 			ID3D11Buffer* newMesh = vertices != nullptr ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
@@ -757,7 +757,7 @@ namespace
 
 		virtual void Draw(ID_SYS_MESH id, const ObjectInstance* instances, uint32 nInstances)
 		{
-			if (id.value < 0 || id.value >= meshBuffers.size()) Throw(E_INVALIDARG, L"renderer.DrawObject(ID_MESH id) - Bad id ");
+			if (id.value < 0 || id.value >= meshBuffers.size()) Throw(E_INVALIDARG, "renderer.DrawObject(ID_MESH id) - Bad id ");
 
 			auto& buffer = meshBuffers[id.value];
 
@@ -1139,7 +1139,7 @@ namespace
 		void PostConstruct()
 		{
 			WindowConfig config;
-			SetOverlappedWindowConfig(config, Vec2i{ 1024, 640 }, SW_SHOWMAXIMIZED, nullptr, L"DX11 64-bit Rococo API Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0);
+			SetOverlappedWindowConfig(config, Vec2i{ 1024, 640 }, SW_SHOWMAXIMIZED, nullptr, "DX11 64-bit Rococo API Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0);
 			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
 			eventHandler.BindMainWindow(*window);
 
@@ -1156,7 +1156,7 @@ namespace
 			mouseDesc.usUsagePage = 0x01;
 			if (!RegisterRawInputDevices(&mouseDesc, 1, sizeof(mouseDesc)))
 			{
-				Throw(GetLastError(), L"RegisterRawInputDevices(&mouseDesc, 1, sizeof(mouseDesc) failed");
+				Throw(GetLastError(), "RegisterRawInputDevices(&mouseDesc, 1, sizeof(mouseDesc) failed");
 			}
 
 			RAWINPUTDEVICE keyboardDesc;
@@ -1166,7 +1166,7 @@ namespace
 			keyboardDesc.usUsagePage = 0x01;
 			if (!RegisterRawInputDevices(&keyboardDesc, 1, sizeof(keyboardDesc)))
 			{
-				Throw(GetLastError(), L"RegisterRawInputDevices(&keyboardDesc, 1, sizeof(keyboardDesc)) failed");
+				Throw(GetLastError(), "RegisterRawInputDevices(&keyboardDesc, 1, sizeof(keyboardDesc)) failed");
 			}
 		}
 	public:
@@ -1246,13 +1246,13 @@ namespace
 
 		virtual void OnClose(HWND hWnd)
 		{
-			wchar_t text[256];
-			GetWindowText(hWnd, text, 255);
+			rchar text[256];
+			GetWindowTextA(hWnd, text, 255);
 			text[255] = 0;
 			if (eventHandler.OnClose())
 			{
 				AutoFree<DX11::ICountdownConfirmationDialog> confirmDialog(DX11::CreateCountdownConfirmationDialog());
-				if (IDOK == confirmDialog->DoModal(hWnd, text, L"Quitting application", 8))
+				if (IDOK == confirmDialog->DoModal(hWnd, text, "Quitting application", 8))
 				{
 					PostQuitMessage(0);
 				}
@@ -1295,7 +1295,7 @@ namespace
 
 		if (featureLevelFound != D3D_FEATURE_LEVEL_11_0)
 		{
-			Throw(0, L"DX 11.0 is required for this application");
+			Throw(0, "DX 11.0 is required for this application");
 		}
 
       host.device->QueryInterface(IID_PPV_ARGS(&host.debug));

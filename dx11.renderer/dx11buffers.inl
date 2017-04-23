@@ -23,7 +23,7 @@ namespace Rococo
          size_t nBytes = sizeof(T) * capacity;
          if (capacity > std::numeric_limits<UINT>::max())
          {
-            Throw(E_INVALIDARG, L"CreateDynamicVertexBuffer failed - capacity too large");
+            Throw(E_INVALIDARG, "CreateDynamicVertexBuffer failed - capacity too large");
          }
 
          D3D11_BUFFER_DESC bufferDesc;
@@ -45,7 +45,7 @@ namespace Rococo
          size_t nBytes = sizeof(T) * capacity;
          if (capacity > std::numeric_limits<UINT>::max())
          {
-            Throw(E_INVALIDARG, L"CreateImmutableVertexBuffer failed - capacity too large");
+            Throw(E_INVALIDARG, "CreateImmutableVertexBuffer failed - capacity too large");
          }
 
          D3D11_BUFFER_DESC bufferDesc;

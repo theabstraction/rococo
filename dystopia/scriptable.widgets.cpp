@@ -82,7 +82,7 @@ namespace
          RGBAb colour;
       } normalFont, hiFont;
 
-      wchar_t text[32];
+      rchar text[32];
       ID_UI_EVENT_TYPE commandId;
       boolean32 fireWhenDown;
       boolean32 fireWhenUp;
@@ -151,7 +151,7 @@ namespace
 
    typedef std::unordered_map<ID_WIDGET, BaseWidget*, ID_WIDGET> TWidgetSet;
 
-   WidgetFrame& GetFrame(ID_WIDGET id, TWidgetSet& set, const wchar_t* debugSrc)
+   WidgetFrame& GetFrame(ID_WIDGET id, TWidgetSet& set, cstr debugSrc)
    {
       auto i = set.find(id);
       if (i == set.end())
@@ -177,7 +177,7 @@ namespace
       set.clear();
    }
 
-   void AssertUnique(TWidgetSet& set, ID_WIDGET id, const wchar_t* debugName)
+   void AssertUnique(TWidgetSet& set, ID_WIDGET id, cstr debugName)
    {
       auto i = set.find(id);
       if (i != set.end())
@@ -188,9 +188,9 @@ namespace
 
    class GuiBuilder : public UI::IUIBuilder, public IUIBuilderSupervisor
    {
-      std::unordered_map<std::wstring, TWidgetSet*> panelSet;
+      std::unordered_map<std::string, TWidgetSet*> panelSet;
       TWidgetSet* currentPanel;
-      std::wstring currentPanelName;
+      std::string currentPanelName;
    public:
       GuiBuilder()
       {
@@ -218,7 +218,7 @@ namespace
          return *this;
       }
 
-      void BuildPanel(const wchar_t* name)
+      void BuildPanel(cstr name)
       {
          auto i = panelSet.find(name);
          if (i != panelSet.end())
@@ -602,12 +602,12 @@ namespace
          }
       }
 
-      void RenderError(IGuiRenderContext& gc, const GuiRect& rect, const wchar_t* format, ...)
+      void RenderError(IGuiRenderContext& gc, const GuiRect& rect, cstr format, ...)
       {
          va_list args;
          va_start(args, format);
 
-         wchar_t errmsg[256];
+         rchar errmsg[256];
          SafeVFormat(errmsg, _TRUNCATE, format, args);
 
          Graphics::DrawRectangle(gc, rect, RGBAb(64, 64, 64, 128), RGBAb(64, 64, 64, 128));
@@ -639,7 +639,7 @@ namespace
          lastScreenSpan = span;
       }
 
-      virtual void RenderHierarchy(IGuiRenderContext& gc, const wchar_t* panelName)
+      virtual void RenderHierarchy(IGuiRenderContext& gc, cstr panelName)
       {
          GuiMetrics metrics;
          gc.Renderer().GetGuiMetrics(metrics);

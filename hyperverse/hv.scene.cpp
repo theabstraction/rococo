@@ -120,7 +120,7 @@ namespace
             IEntity* entity = instances.GetEntity(i);
             if (!entity)
             {
-               Throw(0, L"Unexpected missing entity");
+               Throw(0, "Unexpected missing entity");
             }
 
             if (!entity->TextureId())

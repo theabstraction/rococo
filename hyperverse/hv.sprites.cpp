@@ -15,7 +15,7 @@ namespace
    struct Sprites : public ISpriteSupervisor
    {
       IRenderer &renderer;
-      std::unordered_set<std::wstring> names;
+      std::unordered_set<std::string> names;
 
       Sprites(IRenderer& _renderer) : renderer(_renderer)
       {
@@ -31,7 +31,7 @@ namespace
       void AddSprite(const fstring& resourceName)
       {
          auto* ext = GetFileExtension(resourceName);
-         if (Eq(ext, L".tif") || Eq(ext, L".tiff") || Eq(ext, L".jpg") || Eq(ext, L".jpeg"))
+         if (Eq(ext, ".tif") || Eq(ext, ".tiff") || Eq(ext, ".jpg") || Eq(ext, ".jpeg"))
          {
             if (names.find(resourceName.buffer) == names.end())
             {
@@ -43,16 +43,16 @@ namespace
 
       void AddEachSpriteInDirectory(const fstring& directoryName)
       { 
-         struct : IEventCallback<const wchar_t*>
+         struct : IEventCallback<cstr>
          {
             Sprites* sprites;
-            wchar_t shortdir[IO::MAX_PATHLEN];
-            wchar_t directory[IO::MAX_PATHLEN];
+            rchar shortdir[IO::MAX_PATHLEN];
+            rchar directory[IO::MAX_PATHLEN];
 
-            virtual void OnEvent(const wchar_t* filename)
+            virtual void OnEvent(cstr filename)
             {
-               wchar_t contentRelativePath[IO::MAX_PATHLEN];
-               SafeFormat(contentRelativePath, _TRUNCATE, L"%s%s", shortdir, filename);             
+               rchar contentRelativePath[IO::MAX_PATHLEN];
+               SafeFormat(contentRelativePath, _TRUNCATE, "%s%s", shortdir, filename);             
                sprites->AddSprite(to_fstring(contentRelativePath));
             }
          } onFileFound;
@@ -60,13 +60,13 @@ namespace
 
          if (directoryName[0] != L'!')
          {
-            Throw(0, L"Sprite directories must be inside the content directory. Use the '!<directory>' notation");
+            Throw(0, "Sprite directories must be inside the content directory. Use the '!<directory>' notation");
          }
 
          SafeCopy(onFileFound.shortdir, directoryName, _TRUNCATE);
          EndDirectoryWithSlash(onFileFound.shortdir, IO::MAX_PATHLEN);
    
-         SafeFormat(onFileFound.directory, _TRUNCATE, L"%s%s", renderer.Installation().Content(), (onFileFound.shortdir+1));
+         SafeFormat(onFileFound.directory, _TRUNCATE, "%s%s", renderer.Installation().Content(), (onFileFound.shortdir+1));
          IO::ForEachFileInDirectory(onFileFound.directory, onFileFound);
       }
 

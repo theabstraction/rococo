@@ -31,16 +31,16 @@ namespace
          ev.args = &args;
          Publish(e.publisher, ev);
 
-         if (Eq(Rococo::GetFileExtension(args.resourceName), L".sxy"))
+         if (Eq(Rococo::GetFileExtension(args.resourceName), ".sxy"))
          {
-            wchar_t pingname[1024];
+            rchar pingname[1024];
             args.GetPingPath(pingname, 1024);
             e.sources.Release(pingname);
          }
 
-         if (args.Matches(L"!scripts/hv/main.sxy"))
+         if (args.Matches("!scripts/hv/main.sxy"))
          {
-            HV::RunEnvironmentScript(e, L"!scripts/hv/main.sxy");
+            HV::RunEnvironmentScript(e, "!scripts/hv/main.sxy");
          }
       }
 
@@ -60,7 +60,7 @@ namespace
          auto* action = e.keyboard.GetAction(key.KeyName);
          if (action)
          {  
-            if (Eq(action, L"gui.editor.toggle") && key.isPressed)
+            if (Eq(action, "gui.editor.toggle") && key.isPressed)
             {
                editorActive = !editorActive;
                e.editor.Activate(editorActive);
@@ -80,9 +80,9 @@ namespace
          e.mouse.TranslateMouseEvent(me);
       }
 
-      virtual const wchar_t* Title() const
+      virtual cstr Title() const
       {
-         return L"Hyperverse, by Mark Anthony Taylor";
+         return "Hyperverse, by Mark Anthony Taylor";
       }
    };
 }

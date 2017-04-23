@@ -29,7 +29,7 @@ namespace
 		LimbIndex parentLimbIndex;
 	};
 
-	ID_SYS_MESH BindMesh(const wchar_t* resourceName, ID_MESH id, IMeshLoader& loader)
+	ID_SYS_MESH BindMesh(cstr resourceName, ID_MESH id, IMeshLoader& loader)
 	{
 		if (loader.GetRendererId(id) == ID_SYS_MESH::Invalid())
 		{
@@ -292,7 +292,7 @@ namespace
 
 		virtual void SetCurrentAnimation(AnimationType type)
 		{
-			const wchar_t* name = nullptr;
+			cstr name = nullptr;
 
 			switch (type)
 			{

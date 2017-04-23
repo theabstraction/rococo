@@ -25,7 +25,7 @@ namespace
          delete this;
       }
 
-      virtual IDE::EScriptExceptionFlow GetScriptExceptionFlow(const wchar_t* source, const wchar_t* message)
+      virtual IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message)
       {
          auto id = Dystopia::ShowContinueBox(parent, L"Script Error.\n\tIgnore to continue.\n\tRetry to debug.\n\tExit to terminate.");
          switch (id)

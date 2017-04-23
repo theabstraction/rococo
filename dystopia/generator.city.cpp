@@ -41,7 +41,7 @@ namespace
 
       }
 
-		std::wstring text = L"Loading...";
+		std::string text = L"Loading...";
 		RGBA clearColour =  RGBA(0.5f, 0, 0);
 	} customLoadScene;
 
@@ -532,7 +532,7 @@ namespace
 		}
 	}
 
-	void GenerateRoadSegment(Vec2 left, Vec2 right, Vec2 leftGrad, Vec2 rightGrad, RoadContext& c, const wchar_t* name, size_t streetAddress)
+	void GenerateRoadSegment(Vec2 left, Vec2 right, Vec2 leftGrad, Vec2 rightGrad, RoadContext& c, cstr name, size_t streetAddress)
 	{
 		enum { nSegments = 5 };
 
@@ -575,7 +575,7 @@ namespace
 
 		ID_ENTITY roadId = c.e->level.Builder().AddSolid(Vec3{ midPoint.x, midPoint.y, 0.0f }, id, SolidFlags_RoadSection);
 
-		wchar_t streetName[256];
+		rchar streetName[256];
 		SafeFormat(streetName, _TRUNCATE, L"%I64u-%I64u %s", streetAddress, streetAddress + 1, name);
 		c.e->level.Builder().Name(roadId, to_fstring(streetName));
 	}
@@ -738,9 +738,9 @@ namespace
 		return rng() % modulus;
 	}
 
-	void GenRandomStreetName(wchar_t randomName[256], IRandom& rng)
+	void GenRandomStreetName(rchar randomName[256], IRandom& rng)
 	{
-		const wchar_t* alpha[] = {
+		cstr alpha[] = {
 			L"red",
 			L"green",
 			L"blue",
@@ -775,7 +775,7 @@ namespace
 			L"",
 		};
 
-		const wchar_t* beta[] = {
+		cstr beta[] = {
 			L"oak",
 			L"pine",
 			L"ash",
@@ -824,7 +824,7 @@ namespace
 			L"pound"
 		};
 
-		const wchar_t* finalNames[] =
+		cstr finalNames[] =
 		{
 			L"road",
 			L"drive",
@@ -835,15 +835,15 @@ namespace
 
 		randomName[0] = 0;
 
-		const wchar_t* c = alpha[Next(rng, sizeof(alpha) / sizeof(const wchar_t*))];
+		cstr c = alpha[Next(rng, sizeof(alpha) / sizeof(cstr))];
 		SafeCat(randomName, 256, c, _TRUNCATE);
 
-		const wchar_t* v = beta[Next(rng, sizeof(beta) / sizeof(const wchar_t*))];
+		cstr v = beta[Next(rng, sizeof(beta) / sizeof(cstr))];
 		SafeCat(randomName, 256, v, _TRUNCATE);
 
 		SafeCat(randomName, 256, L" ", _TRUNCATE);
 
-		const wchar_t* fn = finalNames[Next(rng, sizeof(finalNames) / sizeof(const wchar_t*))];
+		cstr fn = finalNames[Next(rng, sizeof(finalNames) / sizeof(cstr))];
 
 		SafeCat(randomName, 256, fn, _TRUNCATE);
 
@@ -853,7 +853,7 @@ namespace
 
 namespace Dystopia
 {
-	void BuildRandomCity_V1(const fstring& name, Metres radius, uint32 seedDelta, Environment& e, IEnumerable<const wchar_t*>& names)
+	void BuildRandomCity_V1(const fstring& name, Metres radius, uint32 seedDelta, Environment& e, IEnumerable<cstr>& names)
 	{
 		customLoadScene.clearColour = RGBA(0.75f, 0, 0);
 		customLoadScene.text = L"Generating roads...";
@@ -871,11 +871,11 @@ namespace Dystopia
 		std::vector<ObjectVertex> cache;
 		RoadContext c{ &e, 0, &rng, &cache };
 
-		struct : IEnumerator<const wchar_t*>
+		struct : IEnumerator<cstr>
 		{
-			std::vector<std::wstring> names;
+			std::vector<std::string> names;
 
-			virtual void operator()(const wchar_t* streetName)
+			virtual void operator()(cstr streetName)
 			{
 				names.push_back(streetName);
 			}
@@ -888,7 +888,7 @@ namespace Dystopia
 			size_t undefinedNames =  network.roads.size() - streets.names.size();
 			while (undefinedNames > 0)
 			{
-				wchar_t randomName[256];
+				rchar randomName[256];
 
 				while (true)
 				{
@@ -925,7 +925,7 @@ namespace Dystopia
 
 			customLoadScene.clearColour = RGBA((network.roads.size() - j) / (float) (network.roads.size()), 0, 0);
 
-			wchar_t text[256];
+			rchar text[256];
 			SafeFormat(text, _TRUNCATE, L"Generating housing along %s", streets.names[j].c_str());
 			customLoadScene.text = text;
 			e.renderer.Render(customLoadScene);

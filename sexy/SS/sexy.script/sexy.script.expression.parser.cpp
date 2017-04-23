@@ -36,7 +36,7 @@
 #include "..\STC\stccore\Sexy.Compiler.h"
 #include "..\STC\stccore\sexy.compiler.helpers.h"
 #include "Sexy.S-Parser.h"
-#include "Sexy.VM.h"
+#include "sexy.vm.h"
 #include "Sexy.VM.CPU.h"
 
 #include <stdarg.h>
@@ -903,22 +903,22 @@ namespace Sexy { namespace Script
 
       if (callee.NumberOfInputs() != 3)
       {
-         Throw(s, L"Binary operator %s must have three arguments", callee.Name());
+         Throw(s, SEXTEXT("Binary operator %s must have three arguments"), callee.Name());
       }
 
       if (callee.NumberOfOutputs() != 0)
       {
-         Throw(s, L"Binary operator %s must not return output", callee.Name());
+         Throw(s, SEXTEXT("Binary operator %s must not return output"), callee.Name());
       }
 
       if (&callee.GetArgument(0) != &atype)
       {
-         Throw(s, L"First input argument was not of type %s. It was of type %s", atype.Name(), callee.GetArgument(0).Name());
+         Throw(s, SEXTEXT("First input argument was not of type %s. It was of type %s"), atype.Name(), callee.GetArgument(0).Name());
       }
 
       if (&callee.GetArgument(1) != &btype)
       {
-         Throw(s, L"Second input argument was not of type %s. It was of type %s", atype.Name(), callee.GetArgument(1).Name());
+         Throw(s, SEXTEXT("Second input argument was not of type %s. It was of type %s"), atype.Name(), callee.GetArgument(1).Name());
       }
      
       int indices[] { 2 + firstArgIndex, 4 + firstArgIndex, 0 + firstArgIndex };
@@ -1027,7 +1027,7 @@ namespace Sexy { namespace Script
             return ce.Object.Common().TypeFloat32();
          }
       }
-      Throw(svalue, L"Cannot infer best variable type for atomic expression");
+      Throw(svalue, SEXTEXT("Cannot infer best variable type for atomic expression"));
       return *hintStruct;
    }
 
@@ -1908,12 +1908,12 @@ namespace Sexy { namespace Script
             if (AreEqual(s, SEXTEXT("+"))) prefix = SEXTEXT("Add");
             else  if (AreEqual(s, SEXTEXT("-"))) prefix = SEXTEXT("Subtract");
             else  if (AreEqual(s, SEXTEXT("*"))) prefix = SEXTEXT("Multiply");
-            else Throw(directive, L"Unrecognized assignment syntax");
+            else Throw(directive, SEXTEXT("Unrecognized assignment syntax"));
             CompileBinaryOperatorOverload(prefix, ce, directive, varStruct, 0);
          }
          else
          {
-            Throw(directive, L"Unrecognized assignment syntax");
+            Throw(directive, SEXTEXT("Unrecognized assignment syntax"));
          }
       }
       else

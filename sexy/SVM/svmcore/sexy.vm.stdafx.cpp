@@ -35,4 +35,4 @@
 // svmcore.pch will be the pre-compiled header
 // stdafx.obj will contain the pre-compiled type information
 
-#include "Sexy.VM.StdAfx.h"
+#include "sexy.vm.stdafx.h"

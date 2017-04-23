@@ -72,7 +72,7 @@ namespace
 			configCorrected.hWndParent = p->hWnd;
 			configCorrected.style |= WS_CHILD | WS_VISIBLE;
 
-			p->hWndBar = CreateWindowIndirect(TRACKBAR_CLASS, configCorrected, nullptr);
+			p->hWndBar = CreateWindowIndirect(TRACKBAR_CLASSA, configCorrected, nullptr);
 			return p;
 		}
 

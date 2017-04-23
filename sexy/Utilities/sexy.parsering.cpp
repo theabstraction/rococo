@@ -3,6 +3,7 @@
 #include <malloc.h>
 #include <float.h>
 #include <stdio.h>
+#include <memory.h>
 
 namespace
 {
@@ -627,20 +628,24 @@ namespace Sexy { namespace Parse
 		return sscanf_s(decimalDigits, "%f", &value);
 	}
 
-	inline int ScanString(const wchar_t* decimalDigits, float32& value)
+#ifdef SEXCHAR_IS_WIDE
+	inline int ScanString(cstr decimalDigits, float32& value)
 	{
 		return swscanf_s(decimalDigits, L"%f", &value);
 	}
+#endif
 
 	inline int ScanString(const char* decimalDigits, float64& value)
 	{
 		return sscanf_s(decimalDigits, "%lf", &value);
 	}
 
-	inline int ScanString(const wchar_t* decimalDigits, float64& value)
+#ifdef SEXCHAR_IS_WIDE
+	inline int ScanString(cstr decimalDigits, float64& value)
 	{
 		return swscanf_s(decimalDigits, L"%lf", &value);
 	}
+#endif
 
 	PARSERESULT TryParseFloat(OUT float32& value, IN csexstr s)
 	{

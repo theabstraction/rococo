@@ -28,9 +28,9 @@ namespace Dystopia
 	IUIPaneSupervisor* CreateJournalPane(Environment& e);
 
 	IUIPaneSupervisor* CreateDialogBox(Environment& e, IEventCallback<GuiEventArgs>& _handler,
-		const wchar_t* _title,
-		const wchar_t* _message,
-		const wchar_t* _buttons,
+		cstr _title,
+		cstr _message,
+		cstr _buttons,
 		Vec2i _span,
 		int32 _retzone,
 		int32 _hypzone);

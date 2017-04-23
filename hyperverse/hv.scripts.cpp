@@ -62,7 +62,7 @@ namespace // Script factories
 
 namespace HV
 {
-   void RunEnvironmentScript(Cosmos& e, const wchar_t* name)
+   void RunEnvironmentScript(Cosmos& e, cstr name)
    {
       class ScriptContext: public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
       {
@@ -73,12 +73,12 @@ namespace HV
 
          }
 
-         virtual IDE::EScriptExceptionFlow GetScriptExceptionFlow(const wchar_t* source, const wchar_t* message)
+         virtual IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message)
          {
             e.installation.OS().FireUnstable();
 
-            wchar_t msg[1024];
-            SafeFormat(msg, _TRUNCATE, L"Error: Do you wish to debug?\n\t%s\n\t%s", source, message);
+            rchar msg[1024];
+            SafeFormat(msg, _TRUNCATE, "Error: Do you wish to debug?\n\t%s\n\t%s", source, message);
             if (HV::QueryYesNo(e.mainWindow, msg))
             {
                return IDE::EScriptExceptionFlow_Retry;
@@ -110,7 +110,7 @@ namespace HV
       public:
          ScriptContext(Cosmos& _e) : e(_e) {}
 
-         void Execute(const wchar_t* name)
+         void Execute(cstr name)
          {
             try
             {

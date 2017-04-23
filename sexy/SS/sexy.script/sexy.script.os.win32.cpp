@@ -149,10 +149,10 @@ namespace Sexy { namespace OS
       public:
          enum { CAPACITY = 1024 };
          int exceptionNumber;
-         wchar_t message[CAPACITY];
+         rchar message[CAPACITY];
 
          virtual int ErrorCode() const { return exceptionNumber; }
-         virtual const wchar_t* Message() const { return message; }
+         virtual cstr Message() const { return message; }
       } ex;
       va_list args;
       va_start(args, format);

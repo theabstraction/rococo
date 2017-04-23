@@ -104,7 +104,7 @@ namespace
 			delete this;
 		}
 
-		virtual IWindowSupervisor* AddChild(const WindowConfig& _childConfig, LPCWSTR className, ControlId id)
+		virtual IWindowSupervisor* AddChild(const WindowConfig& _childConfig, cstr className, ControlId id)
 		{
 			WindowConfig childConfig = _childConfig;
 			childConfig.hWndParent = hWnd;

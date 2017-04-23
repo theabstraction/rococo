@@ -37,13 +37,13 @@ namespace
 		}
 	}
 
-	void FormatModeString(const DXGI_MODE_DESC& mode, wchar_t modeDesc[64])
+	void FormatModeString(const DXGI_MODE_DESC& mode, rchar modeDesc[64])
 	{
 		UINT hz = (UINT)(mode.RefreshRate.Numerator / (float)mode.RefreshRate.Denominator);
 		SafeFormat(modeDesc, 64, _TRUNCATE, L"%d x %d - %d Hz", mode.Width, mode.Height, hz);
 	}
 
-	bool FormatOutputString(IDXGIOutput& output, wchar_t outputString[64], UINT index)
+	bool FormatOutputString(IDXGIOutput& output, rchar outputString[64], UINT index)
 	{
 		DXGI_OUTPUT_DESC odesc;
 		if (S_OK != output.GetDesc(&odesc))
@@ -177,7 +177,7 @@ namespace
 					DXGI_OUTPUT_DESC odesc;
 					output->GetDesc(&odesc);
 
-					wchar_t outputString[64];
+					rchar outputString[64];
 					if (FormatOutputString(*output, outputString, i + 1))
 					{
 						outputList->AddString(outputString);
@@ -212,7 +212,7 @@ namespace
 
 						for (auto& i : modeCache)
 						{
-							wchar_t modeString[64];
+							rchar modeString[64];
 							FormatModeString(i, modeString);
 							modeList->AddString(modeString);
 						}
@@ -337,7 +337,7 @@ namespace
 			else
 			{
 				int secsLeft = (int) ((float) delta.QuadPart / (float) hz.QuadPart);
-				wchar_t txt[64];
+				rchar txt[64];
 				SafeFormat(txt, _TRUNCATE, L"Confirming in %d seconds", secsLeft);
 				SetWindowText(*countdownTimerLabel, txt);
 			}
@@ -368,7 +368,7 @@ namespace
 			return m;
 		}
 
-		DWORD DoModal(HWND owner /* the owner is greyed out during modal operation */, LPCWSTR title, LPCWSTR hint, int countdown)
+		DWORD DoModal(HWND owner /* the owner is greyed out during modal operation */, cstr title, cstr hint, int countdown)
 		{
 			LARGE_INTEGER hz;
 			QueryPerformanceFrequency(&hz);

@@ -31,7 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
-#include "Sexy.VM.StdAfx.h"
+#include "sexy.vm.stdafx.h"
 #include <unordered_map>
 
 using namespace Sexy;

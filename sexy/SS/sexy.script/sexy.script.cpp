@@ -36,7 +36,7 @@
 #include "..\STC\stccore\Sexy.Compiler.h"
 #include "..\STC\stccore\sexy.compiler.helpers.h"
 #include "Sexy.S-Parser.h"
-#include "Sexy.VM.h"
+#include "sexy.vm.h"
 #include "Sexy.VM.CPU.h"
 
 #include <stdarg.h>
@@ -154,14 +154,15 @@ namespace Sexy
 			output[i] = input[i];
 		}
 	}
-
-	void CopyStringToSexChar(SEXCHAR* output, size_t bufferCapacity, const wchar_t* input, size_t inputLength)
+#ifdef SEXCHAR_IS_WIDE
+	void CopyStringToSexChar(SEXCHAR* output, size_t bufferCapacity, cstr input, size_t inputLength)
 	{
 		for(size_t i = 0; i < inputLength; ++i)
 		{
 			output[i] = (SEXCHAR) input[i];
 		}
 	}
+#endif
 
 	struct NativeFunction
 	{
@@ -455,7 +456,7 @@ namespace Sexy
 			}
 			catch(IException& innerEx)
 			{
-            wchar_t message[1024];
+            rchar message[1024];
             SafeFormat(message, _TRUNCATE, SEXTEXT("%s:\nFailed to get sexy environment.\nUse Sexy::Script::SetDefaultNativeSourcePath(...) or ProgramInitParameters or environment variable SEXY_NATIVE_SRC_DIR"), innerEx.Message());
             _logger.Write(message);
             Sexy::Throw(innerEx.ErrorCode(), SEXTEXT("%s"), message);
@@ -1114,7 +1115,7 @@ namespace Sexy
 			CopyStringToSexChar(sxArchetype, 256, archetype, len+1);
 
 			SEXCHAR srcName[MAX_ARCHETYPE_LEN + 64];
-			StringPrint(srcName, MAX_ARCHETYPE_LEN + 64, L"Source: '%s'", sxArchetype);
+			StringPrint(srcName, MAX_ARCHETYPE_LEN + 64, SEXTEXT("Source: '%s'"), sxArchetype);
 			Auto<ISourceCode> src = SParser().ProxySourceBuffer(sxArchetype, (int)len, Vec2i{ 0,0 }, srcName);
 
 			try

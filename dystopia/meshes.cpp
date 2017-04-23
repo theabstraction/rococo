@@ -19,7 +19,7 @@ namespace
 	{
 		ID_SYS_MESH rendererId;
 		ID_MESH editorId;
-		std::wstring resourceName;
+		std::string resourceName;
       Metres boundingRadius;
 	};
 
@@ -113,7 +113,7 @@ namespace
 		}
 	}
 
-	void ParseMeshVertices(TVertices& vertexCache, TMeshBounds& physicsHulls, TMeshes& meshes, ID_MESH id, IRenderer& renderer, cr_sex meshDef, const wchar_t* resourcePath, bool generateHull, bool isReflection)
+	void ParseMeshVertices(TVertices& vertexCache, TMeshBounds& physicsHulls, TMeshes& meshes, ID_MESH id, IRenderer& renderer, cr_sex meshDef, cstr resourcePath, bool generateHull, bool isReflection)
 	{
 		size_t nVertices = meshDef.NumberOfElements() - 1;
 		vertexCache.reserve(nVertices);
@@ -178,7 +178,7 @@ namespace
 		}
 	}
 
-	void ParseMeshScript(TVertices& vertexCache, TMeshBounds& physicsHulls, TMeshes& meshes, ISParserTree& tree, IRenderer& renderer, const wchar_t* resourcePath, ID_MESH editorId, bool isReflected)
+	void ParseMeshScript(TVertices& vertexCache, TMeshBounds& physicsHulls, TMeshes& meshes, ISParserTree& tree, IRenderer& renderer, cstr resourcePath, ID_MESH editorId, bool isReflected)
 	{
 		cr_sex root = tree.Root();
 
@@ -438,7 +438,7 @@ namespace
 			}
 		}
 
-		void ProtectedLoadMesh(const wchar_t* resourcePath, ID_MESH editorId, bool isReflection)
+		void ProtectedLoadMesh(cstr resourcePath, ID_MESH editorId, bool isReflection)
 		{
 			try
 			{
@@ -458,7 +458,7 @@ namespace
 			delete this;
 		}
 
-		virtual void UpdateMesh(const wchar_t* filename)
+		virtual void UpdateMesh(cstr filename)
 		{
 			for (auto i : meshes)
 			{

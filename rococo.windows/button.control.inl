@@ -23,7 +23,7 @@ namespace
 		static ButtonSupervisor* Create(const WindowConfig& config, IParentWindowSupervisor& parent)
 		{
 			ButtonSupervisor* p = new ButtonSupervisor();
-			p->hWnd = CreateWindowIndirect(L"BUTTON", config, nullptr);
+			p->hWnd = CreateWindowIndirect("BUTTON", config, nullptr);
 			return p;
 		}
 

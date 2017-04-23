@@ -51,7 +51,7 @@ namespace Dystopia
 
 	struct ItemData
 	{
-		const wchar_t* name;
+		cstr name;
 		ID_BITMAP bitmapId;
 		Kilograms mass;
 		ITEM_TYPE type;

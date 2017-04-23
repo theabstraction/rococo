@@ -69,7 +69,7 @@ namespace HV
       virtual void OnEntity(int64 index, IEntity& entity, ID_ENTITY id) = 0;
    };
 
-   typedef const wchar_t* VisitorName;
+   typedef cstr VisitorName;
 
    ROCOCOAPI IMathsVisitor
    {
@@ -84,7 +84,7 @@ namespace HV
       virtual void ShowDecimal(VisitorName name, const int64 value) = 0;
       virtual void ShowHex(VisitorName name, const int64 value) = 0;
       virtual void ShowPointer(VisitorName name, const void* ptr) = 0;
-      virtual void ShowString(VisitorName name, const wchar_t* format, ...) = 0;
+      virtual void ShowString(VisitorName name, cstr format, ...) = 0;
    };
 
    ROCOCOAPI IMathsVenue
@@ -103,7 +103,7 @@ namespace HV
    namespace Strings
    {
       enum { MAX_FQ_NAME_LEN = 127 };
-      void ValidateFQNameIdentifier(const wchar_t* fqName);
+      void ValidateFQNameIdentifier(cstr fqName);
    }
 
    namespace Entities
@@ -124,7 +124,7 @@ namespace HV
       ROCOCOAPI IMeshBuilderSupervisor: public IMeshBuilder
       {
          virtual void Free() = 0;
-         virtual bool TryGetByName(const wchar_t* name, ID_SYS_MESH& id) = 0;
+         virtual bool TryGetByName(cstr name, ID_SYS_MESH& id) = 0;
       }; 
 
       ROCOCOAPI ISceneBuilderSupervisor: public ISceneBuilder
@@ -174,13 +174,13 @@ namespace HV
 
    struct Key
    {
-      const wchar_t* KeyName;
+      cstr KeyName;
       bool isPressed;
    };
 
    ROCOCOAPI IKeyboardSupervisor: public IKeyboard
    {
-      virtual const wchar_t* GetAction(const wchar_t* keyName) = 0;
+      virtual cstr GetAction(cstr keyName) = 0;
       virtual Key GetKeyFromEvent(const KeyboardEvent& ke) = 0;
       virtual void Free() = 0;
    };
@@ -197,7 +197,7 @@ namespace HV
 
    ROCOCOAPI IConfigSupervisor: public IConfig
    {
-      virtual const wchar_t* GetText(const wchar_t* name) const = 0;
+      virtual cstr GetText(cstr name) const = 0;
       virtual void Free() = 0;
    };
 
@@ -210,7 +210,7 @@ namespace HV
 
    IMobilesSupervisor* CreateMobilesSupervisor(Entities::IInstancesSupervisor& instances, IPublisher& publisher);
   
-   bool QueryYesNo(Windows::IWindow& ownerWindow, const wchar_t* message);
+   bool QueryYesNo(Windows::IWindow& ownerWindow, cstr message);
 
    ROCOCOAPI IEditor
    {
@@ -297,7 +297,7 @@ namespace HV
    };
 
    IApp* CreateHVApp(Cosmos& e);
-   void RunEnvironmentScript(Cosmos& e, const wchar_t* name);
+   void RunEnvironmentScript(Cosmos& e, cstr name);
 }
 
 

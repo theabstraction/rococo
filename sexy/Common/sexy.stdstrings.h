@@ -11,7 +11,7 @@ namespace Sexy
 	typedef std::wstringstream sexstringstream;
 #else
 	typedef std::string stdstring;
-	typedef std::stringstream std::sexstringstream;
+	typedef std::stringstream sexstringstream;
 #endif
 }
 

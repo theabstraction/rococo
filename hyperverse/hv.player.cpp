@@ -41,7 +41,7 @@ namespace
    {
    public:
       typedef void (FourWayScroller::*ACTION_FUNCTION)(bool start);
-      static std::unordered_map<std::wstring, ACTION_FUNCTION> nameToAction;
+      static std::unordered_map<std::string, ACTION_FUNCTION> nameToAction;
 
       bool isMovingForward{ false };
       bool isMovingBackward{ false };
@@ -137,21 +137,21 @@ namespace
       }
    };
 
-   std::unordered_map<std::wstring, FourWayScroller::ACTION_FUNCTION> FourWayScroller::nameToAction =
+   std::unordered_map<std::string, FourWayScroller::ACTION_FUNCTION> FourWayScroller::nameToAction =
    {
-      { L"move.fps.forward",         &FourWayScroller::OnForward },
-      { L"move.fps.backward",        &FourWayScroller::OnBackward },
-      { L"move.fps.straffeleft",     &FourWayScroller::OnStraffeLeft },
-      { L"move.fps.strafferight",    &FourWayScroller::OnStraffeRight },
-      { L"move.fps.jump",            &FourWayScroller::OnJump },
-      { L"move.fps.autorun",         &FourWayScroller::OnAutoRun }
+      { "move.fps.forward",         &FourWayScroller::OnForward },
+      { "move.fps.backward",        &FourWayScroller::OnBackward },
+      { "move.fps.straffeleft",     &FourWayScroller::OnStraffeLeft },
+      { "move.fps.strafferight",    &FourWayScroller::OnStraffeRight },
+      { "move.fps.jump",            &FourWayScroller::OnJump },
+      { "move.fps.autorun",         &FourWayScroller::OnAutoRun }
    };
 
    struct FPSControl: public IControlMethod
    {
    public:
       typedef void (FPSControl::*ACTION_FUNCTION)(bool start);
-      static std::unordered_map<std::wstring, ACTION_FUNCTION> nameToAction;
+      static std::unordered_map<std::string, ACTION_FUNCTION> nameToAction;
  
       bool isMovingForward{ false };
       bool isMovingBackward{ false };
@@ -267,14 +267,14 @@ namespace
       }
    };
 
-   std::unordered_map<std::wstring, FPSControl::ACTION_FUNCTION> FPSControl::nameToAction =
+   std::unordered_map<std::string, FPSControl::ACTION_FUNCTION> FPSControl::nameToAction =
    {
-      { L"move.fps.forward",         &FPSControl::OnForward },
-      { L"move.fps.backward",        &FPSControl::OnBackward },
-      { L"move.fps.straffeleft",     &FPSControl::OnStraffeLeft },
-      { L"move.fps.strafferight",    &FPSControl::OnStraffeRight },
-      { L"move.fps.jump",            &FPSControl::OnJump },
-      { L"move.fps.autorun",         &FPSControl::OnAutoRun }
+      { "move.fps.forward",         &FPSControl::OnForward },
+      { "move.fps.backward",        &FPSControl::OnBackward },
+      { "move.fps.straffeleft",     &FPSControl::OnStraffeLeft },
+      { "move.fps.strafferight",    &FPSControl::OnStraffeRight },
+      { "move.fps.jump",            &FPSControl::OnJump },
+      { "move.fps.autorun",         &FPSControl::OnAutoRun }
    };
 
    class Player : public IPlayer, public IObserver
@@ -368,7 +368,7 @@ namespace
       {
          if (index != 0)
          {
-            Rococo::Throw(0, L"Bad index. Only player #0 is recognized");
+            Rococo::Throw(0, "Bad index. Only player #0 is recognized");
          }
 
          return &player;

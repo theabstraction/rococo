@@ -36,12 +36,12 @@ namespace
 		IRenderer& renderer;
 		ISourceCache& sources;
 
-      std::wstring filename;
+      std::string filename;
 
-		std::unordered_map<std::wstring, Keyframe*> keyframes;
+		std::unordered_map<std::string, Keyframe*> keyframes;
 		std::vector<Keyframe*> keyframesByIndex;
 
-		std::unordered_map<std::wstring, Animation*> animations;
+		std::unordered_map<std::string, Animation*> animations;
 		std::vector<Animation*> animationsByIndex;
 
 		void ParseBone(cr_sex sbone, BoneOrientation& bone)
@@ -233,7 +233,7 @@ namespace
 			}
 		}
 
-		void ProtectedLoad(const wchar_t* resourcePath)
+		void ProtectedLoad(cstr resourcePath)
 		{
 			try
 			{
@@ -286,7 +286,7 @@ namespace
 			delete this;
 		}
 
-		virtual void Reload(const wchar_t* _filename)
+		virtual void Reload(cstr _filename)
 		{
 			this->filename = _filename;
 
@@ -316,7 +316,7 @@ namespace
 			}
 		}
 
-		virtual AnimationSequence GetAnimationSequenceByName(const wchar_t* name)
+		virtual AnimationSequence GetAnimationSequenceByName(cstr name)
 		{
 			auto i = animations.find(name);
 			if (i == animations.end())
@@ -366,7 +366,7 @@ namespace
 			}
 		}
 
-		virtual int32 EnumerateKeyframeBonesByName(const wchar_t* name, IBoneEnumerator& onFrame)
+		virtual int32 EnumerateKeyframeBonesByName(cstr name, IBoneEnumerator& onFrame)
 		{
 			auto i = keyframes.find(name);
 			if (i != keyframes.end())
@@ -395,7 +395,7 @@ namespace
 			return (int32)k.limbs.size();
 		}
 
-		virtual void UpdateLib(const wchar_t* updatedFile)
+		virtual void UpdateLib(cstr updatedFile)
 		{
 			if (wcscmp(filename.c_str() + 1, updatedFile) == 0)
 			{

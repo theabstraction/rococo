@@ -59,17 +59,17 @@ namespace Dystopia
 
 	ROCOCOAPI IBoneLibrary
 	{
-		virtual AnimationSequence GetAnimationSequenceByName(const wchar_t* name) = 0;
+		virtual AnimationSequence GetAnimationSequenceByName(cstr name) = 0;
 		virtual AnimationSequence GetAnimationSequenceById(ID_ANIMATION id) = 0;
-		virtual int32 EnumerateKeyframeBonesByName(const wchar_t* name, IBoneEnumerator& onFrame) = 0;
+		virtual int32 EnumerateKeyframeBonesByName(cstr name, IBoneEnumerator& onFrame) = 0;
 		virtual int32 EnumerateKeyframeBonesById(ID_KEYFRAME id, IBoneEnumerator& onFrame) = 0;
-		virtual void UpdateLib(const wchar_t* filename) = 0;
+		virtual void UpdateLib(cstr filename) = 0;
 	};
 
 	ROCOCOAPI IBoneLibrarySupervisor: public IBoneLibrary
 	{
 		virtual void Free() = 0;
-		virtual void Reload(const wchar_t* libraryName) = 0;
+		virtual void Reload(cstr libraryName) = 0;
 	};
 
 	IBoneLibrarySupervisor* CreateBoneLibrary(IInstallation& installation, IRenderer& renderer, ISourceCache& sources);

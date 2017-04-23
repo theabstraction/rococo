@@ -84,9 +84,9 @@ namespace
 
    struct IIDEWriter
    {
-      virtual void WriteText(const wchar_t* propName, const wchar_t* value) = 0;
-      virtual void WriteInt(const wchar_t* propName, int32 value) = 0;
-      virtual void WriteSetOfIds(const wchar_t* propName, IIterator<IDEPANE_ID>& container) = 0;
+      virtual void WriteText(cstr propName, cstr value) = 0;
+      virtual void WriteInt(cstr propName, int32 value) = 0;
+      virtual void WriteSetOfIds(cstr propName, IIterator<IDEPANE_ID>& container) = 0;
       virtual void PushChild() = 0;
       virtual void PopChild() = 0;
    };
@@ -101,7 +101,7 @@ namespace
       {
       }
 
-      void Commit(const wchar_t* filename)
+      void Commit(cstr filename)
       {
          IO::SaveUserFile(filename, *sb);
       }
@@ -110,41 +110,41 @@ namespace
       {
          for (int i = 0; i < depth; ++i)
          {
-            sb->AppendFormat(L"  ");
+            sb->AppendFormat("  ");
          }
       }
 
-      virtual void WriteText(const wchar_t* propName, const wchar_t* value) // TODO->escape sequences
+      virtual void WriteText(cstr propName, cstr value) // TODO->escape sequences
       {
          AppendDepth();
-         sb->AppendFormat(L"(%s string \"%s\")\n", propName, value);
+         sb->AppendFormat("(%s string \"%s\")\n", propName, value);
       }
 
-      virtual void WriteInt(const wchar_t* propName, int32 value)
+      virtual void WriteInt(cstr propName, int32 value)
       {
          AppendDepth();
-         sb->AppendFormat(L"(%s int32 0x%X)\n", propName, value);
+         sb->AppendFormat("(%s int32 0x%X)\n", propName, value);
       }
 
-      virtual void WriteSetOfIds(const wchar_t* propName, IIterator<IDEPANE_ID>& container)
+      virtual void WriteSetOfIds(cstr propName, IIterator<IDEPANE_ID>& container)
       {
          AppendDepth();
-         sb->AppendFormat(L"(%s array IDEPANE_ID ", propName);
+         sb->AppendFormat("(%s array IDEPANE_ID ", propName);
 
          container.Begin();
          while (!container.IsEnd())
          {
             auto id = container.Next();
-            sb->AppendFormat(L" 0x%X", id.value);
+            sb->AppendFormat(" 0x%X", id.value);
          }
 
-         sb->AppendFormat(L")\n");
+         sb->AppendFormat(")\n");
       }
 
       virtual void PushChild()
       {
          AppendDepth();
-         sb->AppendFormat(L"(child \n");
+         sb->AppendFormat("(child \n");
          depth++;
       }
 
@@ -152,7 +152,7 @@ namespace
       {
          depth--;
          AppendDepth();
-         sb->AppendFormat(L")\n");
+         sb->AppendFormat(")\n");
       }
    };
 
@@ -177,7 +177,7 @@ namespace
          GuiRect tabRect = { 0,0, 200, 20 };
 
          Windows::WindowConfig config;
-         SetChildWindowConfig(config, GuiRect{ 0, 0, 8, 8 }, *parent, L"Blank", WS_VISIBLE | WS_CHILD, 0);
+         SetChildWindowConfig(config, GuiRect{ 0, 0, 8, 8 }, *parent, "Blank", WS_VISIBLE | WS_CHILD, 0);
          window = Windows::CreateChildWindow(config, this);
       }
 
@@ -316,7 +316,7 @@ namespace
          GuiRect tabRect = { 0,0, 200, 20 };
 
          Windows::WindowConfig config;
-         SetChildWindowConfig(config, GuiRect{ 0, 0, 8, 8 }, *parent, L"Blank", WS_VISIBLE | WS_CHILD, 0);
+         SetChildWindowConfig(config, GuiRect{ 0, 0, 8, 8 }, *parent, "Blank", WS_VISIBLE | WS_CHILD, 0);
          window = Windows::CreateChildWindow(config, this);
       }
 
@@ -368,17 +368,17 @@ namespace
 
    struct TabContextMenuItem
    {
-      const wchar_t* text;
+      cstr text;
       int32 menuId;
    };
 
    const std::vector<TabContextMenuItem> tileSubMenuItems =
    {
-      { L"Tabbed View",        ELayout_Tabbed },
-      { L"Split Horiztonally", ELayout_Horizontal },
-      { L"Split Vertically  ", ELayout_Vertical },
-      { L"Migrate From",       EMenuCommand_MigrateFrom },
-      { L"Migrate To",         EMenuCommand_MigrateTo }
+      { "Tabbed View",        ELayout_Tabbed },
+      { "Split Horiztonally", ELayout_Horizontal },
+      { "Split Vertically  ", ELayout_Vertical },
+      { "Migrate From",       EMenuCommand_MigrateFrom },
+      { "Migrate To",         EMenuCommand_MigrateTo }
    };
 
    class IDESpatialManager : public StandardWindowHandler, private ITabControlEvents, public ISpatialManager
@@ -404,7 +404,7 @@ namespace
 
       bool isRoot;
 
-      std::wstring savename;
+      std::string savename;
 
       IDESpatialManager(IPaneDatabase& _database) :
          layout(ELayout_Tabbed), tabView(nullptr),
@@ -422,12 +422,12 @@ namespace
 
          if (WM_SPLITTER_DRAGGED == 0)
          {
-            WM_SPLITTER_DRAGGED = RegisterWindowMessage(L"WM_SPLITTER_DRAGGED");
+            WM_SPLITTER_DRAGGED = RegisterWindowMessageA("WM_SPLITTER_DRAGGED");
          }
 
          if (WM_IDEPANE_MIGRATED == 0)
          {
-            WM_IDEPANE_MIGRATED = RegisterWindowMessage(L"WM_IDEPANE_MIGRATED");
+            WM_IDEPANE_MIGRATED = RegisterWindowMessageA("WM_IDEPANE_MIGRATED");
          }
       }
 
@@ -440,7 +440,7 @@ namespace
          GuiRect tabRect = { 0,0, 200, 20 };
 
          Windows::WindowConfig config;
-         SetChildWindowConfig(config, GuiRect{ 0, 0, 8, 8 }, parent, L"Host", WS_VISIBLE | WS_CHILD, 0);
+         SetChildWindowConfig(config, GuiRect{ 0, 0, 8, 8 }, parent, "Host", WS_VISIBLE | WS_CHILD, 0);
          window = Windows::CreateChildWindow(config, this);
       }
 
@@ -453,7 +453,7 @@ namespace
          if (tabView == nullptr)
          {
             GuiRect rect{ wrect.left, wrect.top, wrect.right, wrect.bottom };
-            tabView = Windows::AddTabs(*window, rect, L"Tabbed Control", 0x41000000, *this, TCS_BUTTONS, 0);
+            tabView = Windows::AddTabs(*window, rect, "Tabbed Contro", 0x41000000, *this, TCS_BUTTONS, 0);
          }
          else
          {
@@ -464,9 +464,9 @@ namespace
 
          for (auto id : paneIds)
          {
-            wchar_t name[256];
+            rchar name[256];
             database.GetName(name, id);
-            tabView->AddTab(name, L"");
+            tabView->AddTab(name, "");
          }
 
          OnSelectionChanged(0);
@@ -533,7 +533,7 @@ namespace
       {
          if (moveTabIndex < 0 || moveTabIndex >= paneIds.size() || paneIds.size() < 2)
          {
-            Rococo::Throw(0, L"Unexpected tab index in IDE::Split");
+            Rococo::Throw(0, "Unexpected tab index in IDE::Split");
          }
 
          sectionA = IDESpatialManager::Create(*window, database);
@@ -689,8 +689,8 @@ namespace
                   DeleteMenu(hMenu, 0, MF_BYPOSITION);
                }
 
-               wchar_t name[40];
-               MENUITEMINFOW item = { 0 };
+               rchar name[40];
+               MENUITEMINFOA item = { 0 };
                item.cbSize = sizeof(item);
                item.fMask = MIIM_STRING | MIIM_ID | MIIM_STATE;
                item.dwTypeData = name;
@@ -703,17 +703,17 @@ namespace
                   if (paneIds.size() > 1)
                   {
                      item.wID = ELayout_Horizontal;
-                     SafeCopy(name, L"Split Horiztonally", _TRUNCATE);
-                     InsertMenuItem(hMenu, pos++, MF_BYPOSITION, &item);
+                     SafeCopy(name, "Split Horiztonally", _TRUNCATE);
+                     InsertMenuItemA(hMenu, pos++, MF_BYPOSITION, &item);
 
                      item.wID = ELayout_Vertical;
-                     SafeCopy(name, L"Split Vertically", _TRUNCATE);
-                     InsertMenuItem(hMenu, pos++, MF_BYPOSITION, &item);
+                     SafeCopy(name, "Split Vertically", _TRUNCATE);
+                     InsertMenuItemA(hMenu, pos++, MF_BYPOSITION, &item);
                   }
 
                   item.wID = EMenuCommand_MigrateFrom;
-                  SafeCopy(name, L"Migrate From", _TRUNCATE);
-                  InsertMenuItem(hMenu, pos++, MF_BYPOSITION, &item);
+                  SafeCopy(name, "Migrate From", _TRUNCATE);
+                  InsertMenuItemA(hMenu, pos++, MF_BYPOSITION, &item);
                }
 
                if (database.GetMigratingId() == IDEPANE_ID::Invalid())
@@ -721,8 +721,8 @@ namespace
                   item.fState = MF_DISABLED;
                }
                item.wID = EMenuCommand_MigrateTo;
-               SafeCopy(name, L"Migrate To", _TRUNCATE);
-               InsertMenuItem(hMenu, pos++, MF_BYPOSITION, &item);
+               SafeCopy(name, "Migrate To", _TRUNCATE);
+               InsertMenuItemA(hMenu, pos++, MF_BYPOSITION, &item);
             }
          }
 
@@ -757,7 +757,7 @@ namespace
          TrackPopupMenu(*contextMenu, TPM_VERNEGANIMATION | TPM_TOPALIGN | TPM_LEFTALIGN, screenPos.x, screenPos.y, 0, *window, NULL);
       }
    public:
-      static IDESpatialManager* Create(IWindow& parent, IPaneDatabase& database, bool isRoot = false, const wchar_t* savename = nullptr)
+      static IDESpatialManager* Create(IWindow& parent, IPaneDatabase& database, bool isRoot = false, cstr savename = nullptr)
       {
          auto node = new IDESpatialManager(database);
          node->PostConstruct(parent);
@@ -900,27 +900,27 @@ namespace
          }
       }
 
-      int32 GetInt32(cr_sex s, int32 index, const wchar_t* helper)
+      int32 GetInt32(cr_sex s, int32 index, cstr helper)
       {
          if (index < 0 || index >= s.NumberOfElements())
          {
-            wchar_t msg[1024];
-            SafeFormat(msg, _TRUNCATE, L"Expression too short. Expected an int32 in position %d: %s", index, helper);
+            rchar msg[1024];
+            SafeFormat(msg, _TRUNCATE, "Expression too short. Expected an int32 in position %d: %s", index, helper);
             ThrowSex(s, msg);
          }
 
          if (!IsAtomic(s[index]))
          {
-            wchar_t msg[1024];
-            SafeFormat(msg, _TRUNCATE, L"Expecting atomic argument in position %d: %s", index, helper);
+            rchar msg[1024];
+            SafeFormat(msg, _TRUNCATE, "Expecting atomic argument in position %d: %s", index, helper);
             ThrowSex(s[index], msg);
          }
 
          VariantValue value;
          if (Sexy::Parse::PARSERESULT_GOOD != Sexy::Parse::TryParse(value, VARTYPE_Int32, s[index].String()->Buffer))
          {
-            wchar_t msg[1024];
-            SafeFormat(msg, _TRUNCATE, L"Expecting int32 argument in position %d: %s", index, helper);
+            rchar msg[1024];
+            SafeFormat(msg, _TRUNCATE, "Expecting int32 argument in position %d: %s", index, helper);
             ThrowSex(s[index], msg);
          }
 
@@ -934,14 +934,14 @@ namespace
             cr_sex sdirective = s[i];
             if (IsCompound(sdirective))
             {
-               if (sdirective[0] == L"splitPosition")
+               if (sdirective[0] == "splitPosition")
                {
-                  auto helper = L"(splitPosition int32 <width>)";
+                  auto helper = "(splitPosition int32 <width>)";
                   this->splitPosition = GetInt32(sdirective, 2, helper);
                }
-               else if (sdirective[0] == L"layout")
+               else if (sdirective[0] == "layout")
                {
-                  auto helper = L"(layout int32 <layout-enum-value>)";
+                  auto helper = "(layout int32 <layout-enum-value>)";
                   int ilayout = GetInt32(sdirective, 2, helper);
 
                   switch (ilayout)
@@ -952,12 +952,12 @@ namespace
                      layout = (ELayout)ilayout;
                      break;
                   default:
-                     ThrowSex(sdirective, L"Unknown layout");
+                     ThrowSex(sdirective, "Unknown layout");
                   }
                }
-               else if (sdirective[0] == L"paneIds")
+               else if (sdirective[0] == "paneIds")
                {
-                  auto helper = L"(layout array int32 id1 .... id1)";
+                  auto helper = "(layout array int32 id1 .... id1)";
 
                   for (int j = 3; j < sdirective.NumberOfElements(); ++j)
                   {
@@ -977,7 +977,7 @@ namespace
                cr_sex sdirective = s[i];
                if (IsCompound(sdirective))
                {
-                  if (sdirective[0] == L"child")
+                  if (sdirective[0] == "child")
                   {
                      childCount++;
                      IDESpatialManager* child;
@@ -993,7 +993,7 @@ namespace
                      }
                      else
                      {
-                        ThrowSex(sdirective, L"Expecting two child nodes");
+                        ThrowSex(sdirective, "Expecting two child nodes");
                      }
                   }
                }
@@ -1001,7 +1001,7 @@ namespace
 
             if (childCount != 2)
             {
-               ThrowSex(s, L"Expecing two child nodes");
+               ThrowSex(s, "Expecing two child nodes");
             }
             else
             {
@@ -1010,14 +1010,14 @@ namespace
          }
       }
 
-      virtual void Save(const LOGFONT& logFont, int32 version)
+      virtual void Save(const LOGFONTA& logFont, int32 version)
       {
          IDEWriterViaSexy writer;
 
          writer.PushChild();
-            writer.WriteInt(L"Version", version);
-            writer.WriteText(L"FontFamily", logFont.lfFaceName);
-            writer.WriteInt(L"FontHeight", logFont.lfHeight);
+            writer.WriteInt("Version", version);
+            writer.WriteText("FontFamily", logFont.lfFaceName);
+            writer.WriteInt("FontHeight", logFont.lfHeight);
          writer.PopChild();
 
          writer.PushChild();
@@ -1033,13 +1033,13 @@ namespace
 
          if (paneIds.size() > 0)
          {
-            writer.WriteSetOfIds(L"paneIds", enumerator);
+            writer.WriteSetOfIds("paneIds", enumerator);
          }
 
          if (sectionA != nullptr)
          {
-            writer.WriteInt(L"splitPosition", splitPosition);
-            writer.WriteInt(L"layout", (int32)layout);
+            writer.WriteInt("splitPosition", splitPosition);
+            writer.WriteInt("layout", (int32)layout);
 
             writer.PushChild();
             sectionA->Save(writer);
@@ -1101,7 +1101,7 @@ namespace
          GuiRect tabRect = { 0,0, 200, 20 };
 
          Windows::WindowConfig config;
-         SetChildWindowConfig(config, GuiRect{ 0, 0, 8, 8 }, *parent, L"Blank", WS_VISIBLE | WS_CHILD, 0);
+         SetChildWindowConfig(config, GuiRect{ 0, 0, 8, 8 }, *parent, "Blank", WS_VISIBLE | WS_CHILD, 0);
          window = Windows::CreateChildWindow(config, this);
       }
 
@@ -1242,7 +1242,7 @@ namespace
          WindowConfig config;
          Windows::SetChildWindowConfig(config, GuiRect{ 1, 1, 2, 2 }, parent, nullptr, 0, 0);
          treeFrame = Windows::CreateChildWindow(config, this);
-         treeClient = Windows::AddTree(*treeFrame, GuiRect(1, 1, 2, 2), L"", 1008, *this, WS_CHILD | WS_VISIBLE | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_BORDER);
+         treeClient = Windows::AddTree(*treeFrame, GuiRect(1, 1, 2, 2), "", 1008, *this, WS_CHILD | WS_VISIBLE | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_BORDER);
       }
 
       virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
@@ -1309,7 +1309,7 @@ namespace
 
       void PostConstruct(IWindow& parent)
       {
-         window = Windows::AddListView(parent, GuiRect(0, 0, 0, 0), L"", listEventHandler, LVS_REPORT, WS_BORDER, 0);
+         window = Windows::AddListView(parent, GuiRect(0, 0, 0, 0), "", listEventHandler, LVS_REPORT, WS_BORDER, 0);
       }
 
       void LayoutChildren()
@@ -1387,7 +1387,7 @@ namespace
          return node;
       }
 
-      void AddSegment(RGBAb colour, const wchar_t* segment, size_t length, RGBAb bkColor)
+      void AddSegment(RGBAb colour, cstr segment, size_t length, RGBAb bkColor)
       {
          editor->AppendText(RGB(colour.red, colour.green, colour.blue), RGB(bkColor.red, bkColor.green, bkColor.blue), segment, length);
       }
@@ -1430,11 +1430,11 @@ namespace
       LayoutChildren();
    }
 
-   void LoadHeader(cr_sex sheader, UINT versionId, LOGFONT& logFont)
+   void LoadHeader(cr_sex sheader, UINT versionId, LOGFONTA& logFont)
    {
       if (sheader.NumberOfElements() != 4)
       {
-         Rococo::Throw(0, L"Expecting 4 elements in header");
+         Rococo::Throw(0, "Expecting 4 elements in header");
       }
 
       cr_sex svid = sheader[1];
@@ -1443,14 +1443,14 @@ namespace
 
       VariantValue id;
       Parse::TryParse(id, VARTYPE_Int32, GetAtomicArg(svid, 2).String()->Buffer);
-      if (GetAtomicArg(svid, 0) != L"Version" || id.int32Value != versionId)
+      if (GetAtomicArg(svid, 0) != "Version" || id.int32Value != versionId)
       {
-         ThrowSex(svid, L"Expecting (Version int32 0x%x)", versionId);
+         ThrowSex(svid, "Expecting (Version int32 0x%x)", versionId);
       }
 
-      if (GetAtomicArg(sfont, 0) != L"FontFamily") ThrowSex(sfont, L"Expecting (FontFamily string ...)");
+      if (GetAtomicArg(sfont, 0) != "FontFamily") ThrowSex(sfont, "Expecting (FontFamily string ...)");
 
-      if (GetAtomicArg(sheight, 0) != L"FontHeight") ThrowSex(sfont, L"Expecting (FontHeight int32 ...)");
+      if (GetAtomicArg(sheight, 0) != "FontHeight") ThrowSex(sfont, "Expecting (FontHeight int32 ...)");
 
       SafeCopy(logFont.lfFaceName, sfont[2].String()->Buffer, _TRUNCATE);
 
@@ -1459,13 +1459,13 @@ namespace
       logFont.lfHeight = height.int32Value;
    }
 
-   ISpatialManager* _LoadSpatialManager(IWindow& parent, LOGFONT& logFont, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, const wchar_t* appName)
+   ISpatialManager* _LoadSpatialManager(IWindow& parent, LOGFONTA& logFont, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, cstr appName)
    {
       CSParserProxy parser;
 
-      wchar_t savename[_MAX_PATH];
-      SafeFormat(savename, _TRUNCATE, L"%s.ide.sxy", appName);
-      wchar_t fullpath[_MAX_PATH];
+      rchar savename[_MAX_PATH];
+      SafeFormat(savename, _TRUNCATE, "%s.ide.sxy", appName);
+      rchar fullpath[_MAX_PATH];
       IO::GetUserPath(fullpath, _MAX_PATH, savename);
 
       Auto<Sexy::Sex::ISourceCode> src;
@@ -1480,14 +1480,14 @@ namespace
 
          if (src->SourceLength() == 0)
          {
-            Rococo::Throw(0, L"Missing IDE config file. Reverting to default");
+            Rococo::Throw(0, "Missing IDE config file. Reverting to default");
          }
 
          cr_sex root = tree->Root();
 
          if (root.NumberOfElements() != 2)
          {
-            Rococo::Throw(0, L"Expecting header element followed by IDE nodes");
+            Rococo::Throw(0, "Expecting header element followed by IDE nodes");
          }
 
          LoadHeader(root[0], versionId, logFont);
@@ -1531,7 +1531,7 @@ namespace Rococo
             return IDESpatialManager::Create(parent, database, true);
          }
 
-         ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONT& logFont, const wchar_t* appName)
+         ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTA& logFont, cstr appName)
          {
             return _LoadSpatialManager(parent, logFont, database, idArray, nPanes, versionId, appName);
          }

@@ -8,7 +8,7 @@ namespace
 		IParentWindowSupervisor* clientSpace;
 		StandardWindowHandler clientSpaceHandler;
 		ITabControlEvents& eventHandler;
-		std::unordered_map<size_t, std::wstring> tooltips;
+		std::unordered_map<size_t, std::string> tooltips;
 		size_t nextIndex;
 
 		TabControlSupervisor(ITabControlEvents& _eventHandler) :
@@ -61,20 +61,20 @@ namespace
 
                eventHandler.OnTabRightClicked(index, cursorPos);
             }
-				else if (header->code == TTN_GETDISPINFO)
+				else if (header->code == TTN_GETDISPINFOA)
 				{
-					NMTTDISPINFO* info = (NMTTDISPINFO*)header;
+					NMTTDISPINFOA* info = (NMTTDISPINFOA*)header;
 					
 					TC_ITEM item = { 0 };
 					item.dwState = TCIF_PARAM;
 					TabCtrl_GetItem(hWndTabControl, info->hdr.idFrom, &item);
 
-					wchar_t text[80];
+					rchar text[80];
 					info->lpszText = text;
 
 					auto i = tooltips.find((size_t)item.lParam);
 					
-					const wchar_t* src = i == tooltips.end() ? L"" : i->second.c_str();
+					cstr src = i == tooltips.end() ? "" : i->second.c_str();
 					SafeCopy(text, src, _TRUNCATE);
 					
 					info->hinst = nullptr;
@@ -118,15 +118,15 @@ namespace
 			MoveWindow(*clientSpace, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, TRUE);
 		}
 
-		int AddTab(LPCWSTR data, LPCWSTR tooltip)
+		int AddTab(cstr data, cstr tooltip)
 		{
-			TCITEM tie = { 0 };
+			TCITEMA tie = { 0 };
 			tie.mask = TCIF_TEXT | TCIF_IMAGE | TCIF_PARAM;
 			tie.iImage = -1;
-			tie.pszText = (LPWSTR)data;
+			tie.pszText = (rchar*)data;
 			tie.lParam = tooltip ? nextIndex : -1;
 
-			if (tooltip) tooltips[nextIndex++] = std::wstring(tooltip);
+			if (tooltip) tooltips[nextIndex++] = std::string(tooltip);
 
 			int index = TabCtrl_InsertItem(hWndTabControl, 10000, &tie);
 
@@ -157,9 +157,9 @@ namespace
 			return TabCtrl_GetItemCount(hWndTabControl);
 		}
 
-		bool GetTabName(int index, LPWSTR buffer, DWORD capacity) const
+		bool GetTabName(int index, rchar* buffer, DWORD capacity) const
 		{
-			TC_ITEM item = { 0 };
+			TC_ITEMA item = { 0 };
 			item.mask = TCIF_TEXT;
 			item.pszText = buffer;
 			item.cchTextMax = Rococo::min((DWORD) 1024, capacity);
@@ -180,7 +180,7 @@ namespace
 			listConfigCorrected.hWndParent = hWnd;
 			listConfigCorrected.style |= WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS;
 
-			hWndTabControl = CreateWindowIndirect(WC_TABCONTROL, listConfigCorrected, nullptr);
+			hWndTabControl = CreateWindowIndirect(WC_TABCONTROLA, listConfigCorrected, nullptr);
 			SetDlgCtrlID(hWndTabControl, 1001);
 
 			SetControlFont(hWndTabControl);
@@ -190,7 +190,7 @@ namespace
 			TabCtrl_AdjustRect(hWndTabControl, TRUE, &rect);
 
 			WindowConfig clientConfig;
-			Windows::SetChildWindowConfig(clientConfig, FromRECT(rect), hWndTabControl, L"", WS_CHILD | WS_VISIBLE, 0 /* WS_EX_CLIENTEDGE */);
+			Windows::SetChildWindowConfig(clientConfig, FromRECT(rect), hWndTabControl, "", WS_CHILD | WS_VISIBLE, 0 /* WS_EX_CLIENTEDGE */);
 			clientSpace = Windows::CreateChildWindow(clientConfig, &clientSpaceHandler);
 
  //        SetWindowSubclass(hWndTabControl, OnSubclassMessage, (UINT_PTR) this, 0);

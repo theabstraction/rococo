@@ -53,7 +53,7 @@ namespace Rococo
 	{
 		struct IWindow;
 		IWindow& NoParent();
-		int ShowMessageBox(IWindow& window, const wchar_t* text, const wchar_t* caption, uint32 uType);
+		int ShowMessageBox(IWindow& window, cstr text, cstr caption, uint32 uType);
 	}
 
 	namespace Visitors
@@ -66,7 +66,7 @@ namespace Rococo
       struct IListPopulator;
 	}
 
-	void ShowErrorBox(Windows::IWindow& parent, IException& ex, const wchar_t* caption);
+	void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr caption);
 
 	struct IRenderer;
 	struct IInstallation;
@@ -88,13 +88,13 @@ namespace Rococo
 	struct KeyboardEvent;
 	struct MouseEvent;
 
-	void SplitString(const wchar_t* text, size_t length, const wchar_t* seperators, IEventCallback<const wchar_t*>& onSubString);
+	void SplitString(cstr text, size_t length, cstr seperators, IEventCallback<cstr>& onSubString);
 
 	struct IGuiRenderContext;
 
 	ROCOCOAPI IBitmapCache
 	{
-		virtual ID_BITMAP Cache(const wchar_t* resourceName) = 0;
+		virtual ID_BITMAP Cache(cstr resourceName) = 0;
 		virtual void DrawBitmap(IGuiRenderContext& gc, const GuiRect& targetRect, ID_BITMAP id) = 0;
 		virtual void SetCursorBitmap(ID_BITMAP id, Vec2i hotspotOffset) = 0;
 		virtual void SetMeshBitmap(IRenderContext& rc, ID_BITMAP id) = 0;
@@ -130,9 +130,9 @@ namespace Rococo
 
 	bool operator == (const fstring& a, const fstring& b);
 
-	uint32 FastHash(const wchar_t* text);
+	uint32 FastHash(cstr text);
 
-	fstring to_fstring(const wchar_t* const msg);
+	fstring to_fstring(cstr const msg);
 
 	inline size_t operator "" _megabytes(size_t mb)
 	{
@@ -159,16 +159,16 @@ namespace Rococo
 
 	ROCOCOAPI ILogger
 	{
-      virtual void AddLogSection(RGBAb colour, const wchar_t* format, ...) = 0;
+      virtual void AddLogSection(RGBAb colour, cstr format, ...) = 0;
       virtual void ClearLog() = 0;
-		virtual int Log(const wchar_t* format, ...) = 0;
+		virtual int Log(cstr format, ...) = 0;
 	};
 
    namespace IO
    {
       struct IUnicode16Writer;
-      bool ChooseDirectory(wchar_t* name, size_t capacity);
-      void ForEachFileInDirectory(const wchar_t* directory, IEventCallback<const wchar_t*>& onFile);
+      bool ChooseDirectory(rchar* name, size_t capacity);
+      void ForEachFileInDirectory(cstr directory, IEventCallback<cstr>& onFile);
    }
 
    namespace OS
@@ -186,17 +186,17 @@ namespace Rococo
 	ROCOCOAPI IDebuggerWindow: public ILogger
 	{
      
-		virtual void AddDisassembly(RGBAb colour, const wchar_t* text, RGBAb bkColor = RGBAb(255,255,255), bool bringToView = false) = 0;
+		virtual void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor = RGBAb(255,255,255), bool bringToView = false) = 0;
       virtual void BeginStackUpdate() = 0;
       virtual void EndStackUpdate() = 0;
       virtual void InitDisassembly(size_t codeId) = 0;
-      virtual void AddSourceCode(const wchar_t* name, const wchar_t* sourceCode) = 0;
+      virtual void AddSourceCode(cstr name, cstr sourceCode) = 0;
 		virtual void Free() = 0;
 		virtual Windows::IWindow& GetDebuggerWindowControl() = 0;
       virtual void PopulateStackView(Visitors::ITreePopulator& populator) = 0;
       virtual void PopulateRegisterView(Visitors::IListPopulator& populator) = 0;
       virtual void Run(IDebuggerPopulator& populator, IDebugControl& control) = 0;
-      virtual void SetCodeHilight(const wchar_t* source, const Vec2i& start, const Vec2i& end, const wchar_t* message) = 0;
+      virtual void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message) = 0;
 		virtual void ShowWindow(bool show, IDebugControl* debugControl) = 0;   
 	};
 }
@@ -237,9 +237,9 @@ namespace Rococo
 
 	ROCOCOAPI ISourceCache
 	{
-		virtual Sexy::Sex::ISParserTree* GetSource(const wchar_t* resourceName) = 0;
+		virtual Sexy::Sex::ISParserTree* GetSource(cstr resourceName) = 0;
 		virtual void Free() = 0;
-		virtual void Release(const wchar_t* resourceName) = 0;
+		virtual void Release(cstr resourceName) = 0;
 	};
 
 	struct IArgStack
@@ -269,13 +269,13 @@ namespace Rococo
 
 	void InitSexyScript(Sexy::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Sexy::Script::IPublicScriptSystem& ss, ISourceCache& sources, IEventCallback<ScriptCompileArgs>& onCompile);
 	void ExecuteFunction(Sexy::ID_BYTECODE bytecodeId, IArgEnumerator& args, Sexy::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
-	void ExecuteFunction(const wchar_t* name, IArgEnumerator& args, Sexy::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
+	void ExecuteFunction(cstr name, IArgEnumerator& args, Sexy::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
 	int32 ExecuteSexyScript(Sexy::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Sexy::Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile);
 	ISourceCache* CreateSourceCache(IInstallation& installation);
 
-	void ThrowSex(Sexy::Sex::cr_sex s, const wchar_t* format, ...);
-	void ScanExpression(Sexy::Sex::cr_sex s, const wchar_t* hint, const char* format, ...);
-	void ValidateArgument(Sexy::Sex::cr_sex s, const wchar_t* arg);
+	void ThrowSex(Sexy::Sex::cr_sex s, cstr format, ...);
+	void ScanExpression(Sexy::Sex::cr_sex s, cstr hint, const char* format, ...);
+	void ValidateArgument(Sexy::Sex::cr_sex s, cstr arg);
 
 	Vec3 GetVec3Value(Sexy::Sex::cr_sex sx, Sexy::Sex::cr_sex sy, Sexy::Sex::cr_sex sz);
 	RGBAb GetColourValue(Sexy::Sex::cr_sex s);
@@ -301,22 +301,22 @@ namespace Rococo
       class EventId
       {
       private:
-         const wchar_t* name;
+         cstr name;
          EventHash hash;
          mutable EventHash id{ 0 };
 
       public:
-         EventId(const wchar_t* const _name, EventHash _hash) : name(_name), hash(_hash) { }
+         EventId(cstr const _name, EventHash _hash) : name(_name), hash(_hash) { }
          EventId(const EventId& src) : name(src.name), hash(src.hash), id(src.id) {}
          EventId operator = (const EventId& src) = delete;
 
-         const wchar_t* Name() const  { return name; }
-         operator const wchar_t*() const { return name; }
+         cstr Name() const  { return name; }
+         operator cstr() const { return name; }
 
          operator EventHash() const;
       };
 
-      EventId operator "" _event(const wchar_t* name, size_t len);
+      EventId operator "" _event(cstr name, size_t len);
 
       struct Event
       {

@@ -62,7 +62,7 @@
 #include "Sexy.Script.h"
 #include "Sexy.S-Parser.h"
 #include "..\\stc\\stccore\\Sexy.Compiler.h"
-#include "Sexy.VM.h"
+#include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }

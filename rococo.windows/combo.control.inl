@@ -78,7 +78,7 @@ namespace
 			configCorrected.hWndParent = hWnd;
 			configCorrected.style |= WS_CHILD | WS_VISIBLE;
 
-			hWndComboBox = CreateWindowIndirect(L"COMBOBOX", configCorrected, nullptr);
+			hWndComboBox = CreateWindowIndirect("COMBOBOX", configCorrected, nullptr);
 		}
 
       virtual void OnPretranslateMessage(MSG& msg)
@@ -113,12 +113,12 @@ namespace
 			delete this;
 		}
 
-		virtual int AddString(LPCWSTR text)
+		virtual int AddString(cstr text)
 		{
 			return ComboBox_AddString(hWndComboBox, text);
 		}
 
-		virtual int FindString(LPCWSTR text)
+		virtual int FindString(cstr text)
 		{
 			return ComboBox_FindString(hWndComboBox, 0, text);
 		}
@@ -133,12 +133,12 @@ namespace
 			ComboBox_SetCurSel(hWndComboBox, index);
 		}
 
-		virtual bool GetString(int index, LPWSTR buffer, size_t capacity)
+		virtual bool GetString(int index, rchar* buffer, size_t capacity)
 		{
 			int length = ComboBox_GetLBTextLen(hWndComboBox, index);
 			if (length == CB_ERR) return false;
 
-			wchar_t* stackbuffer = (wchar_t*)alloca(2 * max(capacity, (size_t)length + 1));
+			rchar* stackbuffer = (rchar*)alloca(2 * max(capacity, (size_t)length + 1));
 			if (!ComboBox_GetLBText(hWndComboBox, index, stackbuffer))
 			{
 				return false;

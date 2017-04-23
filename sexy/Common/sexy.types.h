@@ -48,22 +48,24 @@
 # ifdef  _WIN64
    typedef __int64 ptrdiff_t;
 # else
-  typedef _W64 int ptrdiff_t;
+
 # endif
 # define _PTRDIFF_T_DEFINED
 #endif
 
-#define SEXCHAR_IS_WIDE // Comment this out to make the codebase use ASCII, otherwise it will use 16-bit UNICODE
+// #define SEXCHAR_IS_WIDE // Comment this out to make the codebase use ASCII, otherwise it will use 16-bit UNICODE
 
 #define IN
 #define OUT
 #define REF
 
-#ifdef _WIN64
- #define POINTERS_ARE_64_BIT
-#else
- #error "Sexy no longer supports anything other than 64-bit platforms."
+#ifndef _WIN64
+# ifdef _WIN32
+ #error "Sexy does not supports anything other than 64-bit platforms." 
+# endif
 #endif
+
+#define POINTERS_ARE_64_BIT
 
 typedef char* va_list;
 
@@ -91,9 +93,9 @@ namespace Sexy
 		virtual CALLBACK_CONTROL operator()(T& value) = 0;
 	};
 
-	template<> struct ICallback<const wchar_t*, NULL_CONTEXT>
+	template<> struct ICallback<cstr, NULL_CONTEXT>
 	{
-		virtual CALLBACK_CONTROL operator()(const wchar_t* value) = 0;
+		virtual CALLBACK_CONTROL operator()(cstr value) = 0;
 	};
 
 	namespace Sex
@@ -120,7 +122,7 @@ namespace Sexy
 # define SEXTEXT(quote) quote 
 # define __SEXFUNCTION__ __FUNCTION__
 #else
-	typedef wchar_t SEXCHAR;
+	typedef rchar SEXCHAR;
 # define SEXSTRINGIFY(x) L ## x
 # define SEXSTRINGIFY2(x) SEXSTRINGIFY(x)
 # define SEXTEXT(quote) L##quote
@@ -136,7 +138,7 @@ namespace Sexy
 		int64 Length;
 		csexstr Text;
 
-		sexstring_key(csexstr text, int64 length): Text(text), Length(length)	{}
+		sexstring_key(csexstr text, int64 length): Length(length), Text(text) 	{}
 	};
 
 	struct TokenBuffer
@@ -183,27 +185,24 @@ namespace Sexy
 	void GetRefName(OUT TokenBuffer& token, csexstr name);
 
 	int __cdecl StringPrintV(char* buf, size_t sizeInChars, va_list args, const char* format);
-	int __cdecl StringPrintV(wchar_t* buf, size_t sizeInChars, va_list args, const wchar_t* format);
+	int __cdecl StringPrintV(rchar* buf, size_t sizeInChars, va_list args, cstr format);
 	int __cdecl StringPrint(char* buf, size_t sizeInChars, const char* format, ...);
-	int __cdecl StringPrint(wchar_t* buf, size_t sizeInChars, const wchar_t* format, ...);
+	int __cdecl StringPrint(rchar* buf, size_t sizeInChars, cstr format, ...);
 	int __cdecl StringPrint(TokenBuffer& buf, const SEXCHAR* format, ...);
 
-	int _cdecl GetErrorString(char* buf, size_t sizeInChars, int errNum);
-	int _cdecl GetErrorString(wchar_t* buf, size_t sizeInChars, int errNum);
-
    int __cdecl WriteToStandardOutput(const char* text, ...);
-	int __cdecl WriteToStandardOutput(const wchar_t* text, ...);
+	int __cdecl WriteToStandardOutput(cstr text, ...);
 
 	int32 __cdecl StringLength(const char* s);
-	int32 __cdecl StringLength(const wchar_t* s);
+	int32 __cdecl StringLength(cstr s);
 	void __cdecl CopyChars(SEXCHAR* dest, const sexstring source);
 	void __cdecl CopyString(char* dest, size_t capacity, const char* source);
-	void __cdecl CopyString(wchar_t* dest, size_t capacity, const wchar_t* source);
+	void __cdecl CopyString(rchar* dest, size_t capacity, cstr source);
 
-	void __cdecl CopyString(wchar_t* dest, size_t destCapacity, const wchar_t* source, int maxChars); // use maxChars -1 to truncate
+	void __cdecl CopyString(rchar* dest, size_t destCapacity, cstr source, int maxChars); // use maxChars -1 to truncate
 	void __cdecl CopyString(char* dest, size_t destCapacity, const char* source, int maxChars); // use maxChars -1 to truncate
 
-	void __cdecl StringCat(wchar_t* buf, const wchar_t* source, int maxChars);
+	void __cdecl StringCat(rchar* buf, cstr source, int maxChars);
 	void __cdecl StringCat(char* buf, const char* source, int maxChars);
 
 	bool TryParseSexHex(SEXCHAR& finalChar, csexstr s);
@@ -216,6 +215,13 @@ namespace Sexy
 
 	sexstring CreateSexString(csexstr src, int32 length = -1);
 	void FreeSexString(sexstring s);
+
+#ifdef GetErrorString
+# undef GetErrorString
+#endif
+
+   int _cdecl GetErrorString(char* buf, size_t sizeInChars, int errNum);
+   int _cdecl GetErrorString(rchar* buf, size_t sizeInChars, int errNum);
 
    ROCOCOAPI ILog
 	{
@@ -265,7 +271,7 @@ namespace Sexy
 
 		size_t* size_tPtrValue;
 		char* charPtrValue;
-		wchar_t* wcharPtrValue;
+		rchar* rcharPtrValue;
 		void* vPtrValue;
 		float floatValue;
 		double doubleValue;

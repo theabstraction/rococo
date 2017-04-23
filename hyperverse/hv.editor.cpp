@@ -85,8 +85,8 @@ namespace
       {
          Vec2 worldCursor = GetWorldPosition(metrics.cursorPosition);
 
-         wchar_t originText[24];
-         SafeFormat(originText, _TRUNCATE, L"(%4.1f,%4.1f)", worldCursor.x, worldCursor.y);
+         rchar originText[24];
+         SafeFormat(originText, _TRUNCATE, "(%4.1f,%4.1f)", worldCursor.x, worldCursor.y);
 
          Vec2i centre{ metrics.screenSpan.x >> 1, metrics.screenSpan.y >> 1 };
          Rococo::Graphics::DrawRectangle(grc, { centre.x - 70,0,centre.x + 70, 20 }, RGBAb(64, 64, 64, 224), RGBAb(64, 64, 64, 224));
@@ -376,7 +376,7 @@ namespace
                {
                   if (t >= 0 && t <= 1 && u >= 0 && u <= 1)
                   {
-                     SetStatus(L"Crossed lines: sector creation cancelled", publisher);
+                     SetStatus("Crossed lines: sector creation cancelled", publisher);
                      lineList.clear();
                      return;
                   }
@@ -384,7 +384,7 @@ namespace
                else if (DoParallelLinesIntersect(a, b, startOfLastLine, lastVertex))
                {
                   lineList.clear();
-                  SetStatus(L"Sector creation cancelled", publisher);
+                  SetStatus("Sector creation cancelled", publisher);
                   return;
                }
             }
@@ -401,14 +401,14 @@ namespace
             SectorAndSegment sns = map.Sectors().GetFirstSectorWithPoint(worldPosition);
             if (sns.sector != nullptr)
             {
-               SetStatus(L"A new sector's first point must lie outside all other sectors", publisher);
+               SetStatus("A new sector's first point must lie outside all other sectors", publisher);
                return;
             }
 
             ISector* sector = map.Sectors().GetFirstSectorContainingPoint(worldPosition);
             if (sector != nullptr)
             {
-               SetStatus(L"A new sector's first point must lie outside all other sectors", publisher);
+               SetStatus("A new sector's first point must lie outside all other sectors", publisher);
                return;
             }   
          }
@@ -424,7 +424,7 @@ namespace
                auto* first = map.Sectors().GetFirstSectorCrossingLine(a, b);
                if (first)
                {
-                  SetStatus(L"Cannot place edge of a new sector within the vertices of another.", publisher);
+                  SetStatus("Cannot place edge of a new sector within the vertices of another.", publisher);
                   return;
                }
             }
@@ -438,7 +438,7 @@ namespace
             if (lineList.size() >= 3)
             {
                map.Sectors().AddSector(&lineList[0], lineList.size());
-               SetStatus(L"Sector created", publisher);
+               SetStatus("Sector created", publisher);
             }
             lineList.clear();
             return;
@@ -523,14 +523,14 @@ namespace
          if (mode == Mode_Vertex)
          {
             editMode = &editMode_SectorBuilder.Mode();
-            toolbar->SetToggleOn(L"vertices");
-            toolbar->SetToggleOff(L"sectors");
+            toolbar->SetToggleOn("vertices");
+            toolbar->SetToggleOff("sectors");
          }
          else
          {
             editMode = &editMode_SectorEditor.Mode();
-            toolbar->SetToggleOff(L"vertices");
-            toolbar->SetToggleOn(L"sectors");
+            toolbar->SetToggleOff("vertices");
+            toolbar->SetToggleOn("sectors");
          }
 
          windowTree->Clear();
@@ -542,11 +542,11 @@ namespace
       {
          if (isActive)
          {
-            if (ev == L"editor.ui.vertices"_event)
+            if (ev == "editor.ui.vertices"_event)
             {
                SetMode(Mode_Vertex);
             }
-            else if (ev == L"editor.ui.sectors"_event)
+            else if (ev == "editor.ui.sectors"_event)
             {
                SetMode(Mode_Sector);
             }
@@ -565,10 +565,10 @@ namespace
          statusbar(CreateStatusBar(_publisher))
       {      
          publisher.Attach(this);
-         toolbar->AddButton(L"load", L"editor.ui.load"_event, L"!textures/toolbars/load.tif");
-         toolbar->AddButton(L"save", L"editor.ui.save"_event, L"!textures/toolbars/save.tif");
-         toolbar->AddButton(L"vertices", L"editor.ui.vertices"_event, L"!textures/toolbars/builder.tif");
-         toolbar->AddButton(L"sectors", L"editor.ui.sectors"_event, L"!textures/toolbars/sectors.tif");
+         toolbar->AddButton("load", "editor.ui.load"_event, "!textures/toolbars/load.tif");
+         toolbar->AddButton("save", "editor.ui.save"_event, "!textures/toolbars/save.tif");
+         toolbar->AddButton("vertices", "editor.ui.vertices"_event, "!textures/toolbars/builder.tif");
+         toolbar->AddButton("sectors", "editor.ui.sectors"_event, "!textures/toolbars/sectors.tif");
          toolbar->SetToggleColours(RGBAb(255, 255, 255), RGBAb(128, 128, 128));
          SetMode(Mode_Vertex);
       }

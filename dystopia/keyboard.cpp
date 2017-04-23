@@ -13,7 +13,7 @@ namespace Dystopia
 
 	struct Key
 	{
-		wchar_t keyName[24];
+		rchar keyName[24];
 	};
 
 	class KeyboardMap : public IKeyboardSupervisor
@@ -23,7 +23,7 @@ namespace Dystopia
 
 		Key keys[512];
 
-		void SetName(const wchar_t* name, uint32 index)
+		void SetName(cstr name, uint32 index)
 		{
 			SafeCopy(keys[index].keyName, name, _TRUNCATE);
 		}
@@ -109,7 +109,7 @@ namespace Dystopia
 					}
 					else
 					{
-						for (wchar_t* s = keys[scancode].keyName; *s != 0; ++s)
+						for (rchar* s = keys[scancode].keyName; *s != 0; ++s)
 						{
 							if (*s == ' ') *s = '_';
 						}
@@ -134,12 +134,12 @@ namespace Dystopia
 			if (hFile != INVALID_HANDLE_VALUE)
 			{
 				DWORD len;
-				WriteFile(hFile, (const wchar_t*)*sb, DWORD(wcslen(*sb) * sizeof(wchar_t)), &len, nullptr);
+				WriteFile(hFile, (cstr)*sb, DWORD(rlen(*sb) * sizeof(rchar)), &len, nullptr);
 				CloseHandle(hFile);
 			}
 		}
 
-		virtual uint32 GetScanCode(const wchar_t* keyName) const
+		virtual uint32 GetScanCode(cstr keyName) const
 		{
 			for (uint32 scancode = 0; scancode < 512; ++scancode)
 			{

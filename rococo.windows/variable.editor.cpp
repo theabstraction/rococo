@@ -12,7 +12,7 @@
 
 #include <commdlg.h>
 #include <Windowsx.h>
-#include <wchar.h>
+#include <stdio.h>
 #include <vector>
 
 #include <rococo.variable.editor.h>
@@ -27,7 +27,7 @@ namespace
 	struct VariantTextBuffer
 	{
 		DWORD capacity;
-		wchar_t* text;
+		rchar* text;
 	};
 
 	union UVariant
@@ -55,27 +55,27 @@ namespace
 		EVariantType type;
 	};
 
-	void FormatWithVariant(wchar_t* desc, size_t capacity, const Variant& var)
+	void FormatWithVariant(rchar* desc, size_t capacity, const Variant& var)
 	{
 		switch (var.type)
 		{
 		case EVariantType_Int32:
-			SecureFormat(desc, capacity, L"%d", var.value.int32Value);
+			SecureFormat(desc, capacity, "%d", var.value.int32Value);
 			break;
 		case EVariantType_Uint32:
-			SecureFormat(desc, capacity, L"%u", var.value.uint32Value);
+			SecureFormat(desc, capacity, "%u", var.value.uint32Value);
 			break;
 		case EVariantType_Float:
-			SecureFormat(desc, capacity, L"%f", var.value.floatValue);
+			SecureFormat(desc, capacity, "%f", var.value.floatValue);
 			break;
 		case EVariantType_Double:
-			SecureFormat(desc, capacity, L"%lf", var.value.doubleValue);
+			SecureFormat(desc, capacity, "%lf", var.value.doubleValue);
 			break;
 		case EVariantType_String:
 			SafeCopy(desc, capacity, var.value.textValue.text, _TRUNCATE);
 			break;
 		default:
-			SafeFormat(desc, capacity, capacity, L"? Unknown ?");
+			SafeFormat(desc, capacity, capacity, "? Unknown ?");
 		}
 	}
 
@@ -90,21 +90,21 @@ namespace
 		Variant var;
 		UVariant minimum;
 		UVariant maximum;
-		const wchar_t* filter;
+		cstr filter;
 		IStringValidator* validator;
 		ISelection* selection;
-		wchar_t name[NAME_CAPACITY];
-		wchar_t tabName[TAB_NAME_CAPACITY];
+		rchar name[NAME_CAPACITY];
+		rchar tabName[TAB_NAME_CAPACITY];
 	};
 
-	void ParseInt32(VariableDesc& v, const wchar_t* s)
+	void ParseInt32(VariableDesc& v, cstr s)
 	{
 		if (*s == 0)
 		{
 			v.var.value.int32Value = 0;
 		}
 
-		if (wcslen(s) > 10)
+		if (rlen(s) > 10)
 		{
 			if (s[0] == '-')
 			{
@@ -117,7 +117,7 @@ namespace
 		}
 		else
 		{
-			_snwscanf_s(s, 10, L"%d", &v.var.value.int32Value);
+			_snscanf_s(s, 10, "%d", &v.var.value.int32Value);
 		}
 
 		if (v.var.value.int32Value < v.minimum.int32Value)
@@ -130,7 +130,7 @@ namespace
 		}
 	}
 
-	void ParseVariable(VariableDesc& v, const wchar_t* s)
+	void ParseVariable(VariableDesc& v, cstr s)
 	{
 		switch (v.var.type)
 		{
@@ -141,7 +141,7 @@ namespace
 			SecureCopy(v.var.value.textValue.text, v.var.value.textValue.capacity, s);
 			break;
 		default:
-			Throw(0, L"Var type %d Not implemented for parsering.", v.var.type);
+			Throw(0, "Var type %d Not implemented for parsering.", v.var.type);
 		}
 	}
 
@@ -171,12 +171,12 @@ namespace
 
 		virtual void OnSelectionChanged(int index)
 		{
-			wchar_t tabName[VariableDesc::TAB_NAME_CAPACITY];
+			rchar tabName[VariableDesc::TAB_NAME_CAPACITY];
 			if (tabControl->GetTabName(index, tabName, VariableDesc::TAB_NAME_CAPACITY))
 			{
 				for (VariableDesc& v : variables)
 				{
-					UINT vis = wcscmp(v.tabName, tabName) == 0 ? SW_SHOW : SW_HIDE;
+					UINT vis = strcmp(v.tabName, tabName) == 0 ? SW_SHOW : SW_HIDE;
 					if (v.ComboControl) ShowWindow(*v.ComboControl, vis);
 					if (v.EditControl) ShowWindow(*v.EditControl, vis);
 					if (v.StaticControl) ShowWindow(*v.StaticControl, vis);
@@ -197,7 +197,7 @@ namespace
 
 		void OpenFilenameEditor(VariableDesc& v)
 		{
-			OPENFILENAME spec = { 0 };
+			OPENFILENAMEA spec = { 0 };
 			spec.lStructSize = sizeof(spec);
 			spec.hwndOwner = *supervisor;
 			spec.lpstrFilter = v.filter;
@@ -206,21 +206,21 @@ namespace
 			spec.lpstrFile = v.var.value.textValue.text;
 			spec.nMaxFile = v.var.value.textValue.capacity;
 
-			wchar_t title[256];
-			SecureFormat(title, L"%s: Select file name", v.name);
+			rchar title[256];
+			SecureFormat(title, "%s: Select file name", v.name);
 			spec.lpstrTitle = title;
 
 			spec.Flags = 0;
 
-			wchar_t currentDirectory[_MAX_PATH];
-			GetCurrentDirectory(_MAX_PATH, currentDirectory);
+			rchar currentDirectory[_MAX_PATH];
+			GetCurrentDirectoryA(_MAX_PATH, currentDirectory);
 
-			if (GetOpenFileNameW(&spec))
+			if (GetOpenFileNameA(&spec))
 			{
-				SetWindowText(*v.EditControl, spec.lpstrFile);
+				SetWindowTextA(*v.EditControl, spec.lpstrFile);
 			}
 
-			SetCurrentDirectory(currentDirectory);
+			SetCurrentDirectoryA(currentDirectory);
 		}
 
 		virtual void OnMenuCommand(HWND hWnd, DWORD id)
@@ -272,8 +272,8 @@ namespace
 					{
 						if (v.validator)
 						{
-							wchar_t* text = (wchar_t*)_malloca(sizeof(wchar_t)* v.var.value.textValue.capacity);
-							GetWindowText(*v.EditControl, text, v.var.value.textValue.capacity);
+							rchar* text = (rchar*)_malloca(sizeof(rchar)* v.var.value.textValue.capacity);
+							GetWindowTextA(*v.EditControl, text, v.var.value.textValue.capacity);
 							if (!v.validator->ValidateAndReportErrors(text))
 							{
 								return 0L;
@@ -326,7 +326,7 @@ namespace
 			nextY = 28;
 		}
 
-		void Construct(LPCWSTR appQueryName, LPCWSTR defaultTab, LPCWSTR defaultTooltip, const POINT* topLeft)
+		void Construct(cstr appQueryName, cstr defaultTab, cstr defaultTooltip, const POINT* topLeft)
 		{
 			WindowConfig config;
 			Windows::SetOverlappedWindowConfig(config, windowSpan, SW_HIDE, hwndOwner, appQueryName, WS_OVERLAPPED | WS_SYSMENU, 0);
@@ -334,7 +334,7 @@ namespace
 
 			if (defaultTab)
 			{
-				tabControl = Windows::AddTabs(*supervisor, GuiRect(1, 1, 1, 1), L"", -1, *this, WS_CLIPSIBLINGS | TCS_TOOLTIPS, 0);
+				tabControl = Windows::AddTabs(*supervisor, GuiRect(1, 1, 1, 1), "", -1, *this, WS_CLIPSIBLINGS | TCS_TOOLTIPS, 0);
 				tabControl->AddTab(defaultTab, defaultTooltip);
 			}
 			else
@@ -352,7 +352,7 @@ namespace
 			IParentWindowSupervisor& tabParent = defaultTab ? tabControl->ClientSpace() : *supervisor;
 
 			WindowConfig childConfig;
-			Windows::SetChildWindowConfig(childConfig, ClientArea(tabParent), tabParent, L"", WS_VISIBLE | WS_CHILD, 0);
+			Windows::SetChildWindowConfig(childConfig, ClientArea(tabParent), tabParent, "", WS_VISIBLE | WS_CHILD, 0);
 			tab = tabParent.AddChild(childConfig, -1, this);
 			SetBackgroundColour(GetSysColor(COLOR_3DFACE));
 
@@ -365,8 +365,8 @@ namespace
 
 			int buttonWidth = 80;
 
-			okButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x - buttonWidth - 20, buttonsTop, centre.x - 20, buttonsBottom), L"&OK", IDOK, WS_VISIBLE | BS_DEFPUSHBUTTON, 0);
-			cancelButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x + 20, buttonsTop, centre.x + buttonWidth + 20, buttonsBottom), L"&Cancel", IDCANCEL, WS_VISIBLE | BS_PUSHBUTTON, 0);
+			okButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x - buttonWidth - 20, buttonsTop, centre.x - 20, buttonsBottom), "&OK", IDOK, WS_VISIBLE | BS_DEFPUSHBUTTON, 0);
+			cancelButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x + 20, buttonsTop, centre.x + buttonWidth + 20, buttonsBottom), "&Cance", IDCANCEL, WS_VISIBLE | BS_PUSHBUTTON, 0);
 
 			struct ANON
 			{
@@ -408,7 +408,7 @@ namespace
 			Resize();
 		}
 	public:
-		static VariableEditor* Create(HWND hwndOwner, const Vec2i& span, int labelWidth, LPCWSTR appQueryName, LPCWSTR defaultTab, LPCWSTR defaultTooltip, IVariableEditorEventHandler* eventHandler, const POINT* topLeft)
+		static VariableEditor* Create(HWND hwndOwner, const Vec2i& span, int labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const POINT* topLeft)
 		{
 			VariableEditor* editor = new VariableEditor(span, labelWidth, hwndOwner, eventHandler);
 			editor->Construct(appQueryName, defaultTab, defaultTooltip, topLeft);
@@ -429,11 +429,11 @@ namespace
 				{
 					if (v.EditControl == nullptr)
 					{
-						Throw(0, L"Validated control missing an edit box");
+						Throw(0, "Validated control missing an edit box");
 					}
 					{
-						wchar_t* liveBuffer = (wchar_t*)alloca(sizeof(wchar_t)* v.var.value.textValue.capacity + 2);
-						GetWindowText(*v.EditControl, liveBuffer, v.var.value.textValue.capacity);
+						rchar* liveBuffer = (rchar*)alloca(sizeof(rchar)* v.var.value.textValue.capacity + 2);
+						GetWindowTextA(*v.EditControl, liveBuffer, v.var.value.textValue.capacity);
 						if (!v.validator->ValidateAndReportErrors(liveBuffer))
 						{
 							return false;
@@ -456,15 +456,15 @@ namespace
 			return  GuiRect(nextX + labelWidth + 10, nextY, clientrect.right - 10, nextY + 22);
 		}
 
-      void AddToolTip(HWND hwndTool, LPCWSTR pszText)
+      void AddToolTip(HWND hwndTool, cstr pszText)
       {
          // Associate the tooltip with the tool.
-         TOOLINFO toolInfo = { 0 };
+         TOOLINFOA toolInfo = { 0 };
          toolInfo.cbSize = sizeof(toolInfo);
          toolInfo.hwnd = *supervisor;
          toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
          toolInfo.uId = (UINT_PTR)hwndTool;
-         toolInfo.lpszText = (LPWSTR) pszText;
+         toolInfo.lpszText = (rchar*) pszText;
          GetClientRect(hwndTool, &toolInfo.rect);
          SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
 
@@ -472,18 +472,18 @@ namespace
       }
 
 
-		virtual void AddIntegerEditor(LPCWSTR variableName, LPCWSTR variableDesc, int minimum, int maximum, int defaultValue)
+		virtual void AddIntegerEditor(cstr variableName, cstr variableDesc, int minimum, int maximum, int defaultValue)
 		{
 			if (nextY > windowSpan.y - 30)
 			{
-				Throw(0, L"Too many editors added to variable editor.\nCannot add editor for: %s\n", variableName);
+				Throw(0, "Too many editors added to variable editor.\nCannot add editor for: %s\n", variableName);
 			}
 
 			VariableDesc v = { 0 };
 			tabControl->GetTabName(tabControl->TabCount()-1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
 
-			wchar_t editor[256];
-			SecureFormat(editor, L"Edit_%s", variableName);
+			rchar editor[256];
+			SecureFormat(editor, "Edit_%s", variableName);
 
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.EditControl = AddEditor(*tab, GetDefaultEditRect(), editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
@@ -501,16 +501,16 @@ namespace
 			nextY += 22;
 		}
 
-		virtual void AddPushButton(LPCWSTR variableName, LPCWSTR variableDesc)
+		virtual void AddPushButton(cstr variableName, cstr variableDesc)
 		{
 			if (nextY > windowSpan.y - 30)
 			{
-				Throw(0, L"Too many editors added to variable editor.\nCannot add editor for: %s\n", variableName);
+				Throw(0, "Too many editors added to variable editor.\nCannot add editor for: %s\n", variableName);
 			}
 
 			if (eventHandler == nullptr)
 			{
-				Throw(0, L"The variable editor was not constructed with an event handler and thus cannot deliver push button events");
+				Throw(0, "The variable editor was not constructed with an event handler and thus cannot deliver push button events");
 			}
 
 			VariableDesc v = { 0 };
@@ -523,7 +523,7 @@ namespace
 			buttonRect.right = ClientArea(*supervisor).right - 20;
 			
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableDesc, -1, WS_VISIBLE | SS_RIGHT, 0);
-			v.SpecialButtonControl = Windows::AddPushButton(*tab, buttonRect, L"Edit Script", nextId++, WS_VISIBLE | BS_PUSHBUTTON, WS_EX_CLIENTEDGE);
+			v.SpecialButtonControl = Windows::AddPushButton(*tab, buttonRect, "Edit Script", nextId++, WS_VISIBLE | BS_PUSHBUTTON, WS_EX_CLIENTEDGE);
          AddToolTip(*v.StaticControl, variableDesc);
 
 			SecureCopy(v.name, variableName);
@@ -535,18 +535,18 @@ namespace
 			nextY = buttonRect.bottom + 2;
 		}
 
-		virtual void AddSelection(LPCWSTR variableName, LPCWSTR variableDesc, wchar_t* buffer, DWORD capacityIncludingNullCharacter, ISelection& selection, IStringValidator* validator)
+		virtual void AddSelection(cstr variableName, cstr variableDesc, rchar* buffer, DWORD capacityIncludingNullCharacter, ISelection& selection, IStringValidator* validator)
 		{
 			if (nextY > windowSpan.y - 30)
 			{
-				Throw(0, L"Too many editors added to variable editor.\nCannot add editor for: %s\n", variableName);
+				Throw(0, "Too many editors added to variable editor.\nCannot add editor for: %s\n", variableName);
 			}
 
 			VariableDesc v = { 0 };
 			tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
 
-			wchar_t editor[256];
-			SecureFormat(editor, L"Edit_%s", variableName);
+			rchar editor[256];
+			SecureFormat(editor, "Edit_%s", variableName);
 
 			GuiRect labelRect = GetDefaultLabelRect();
 			GuiRect comboRect = GetDefaultEditRect();
@@ -569,17 +569,17 @@ namespace
 			nextY = comboRect.bottom + 2;
 		}
 
-		virtual void AddTab(LPCWSTR tabName, LPCWSTR tabToolTip)
+		virtual void AddTab(cstr tabName, cstr tabToolTip)
 		{
 			tabControl->AddTab(tabName, tabToolTip);
 			nextY = 28;
 		}
 
-		virtual void AddStringEditor(LPCWSTR variableName, LPCWSTR variableDesc, wchar_t* buffer, DWORD capacity, IStringValidator* validator)
+		virtual void AddStringEditor(cstr variableName, cstr variableDesc, rchar* buffer, DWORD capacity, IStringValidator* validator)
 		{
 			if (nextY > windowSpan.y - 30)
 			{
-				Throw(0, L"Too many editors added to variable editor.\nCannot add editor for: %s\n", variableName);
+				Throw(0, "Too many editors added to variable editor.\nCannot add editor for: %s\n", variableName);
 			}
 
 			VariableDesc v = { 0 };
@@ -592,8 +592,8 @@ namespace
 				v.tabName[0] = 0;
 			}
 
-			wchar_t editor[256];
-			SecureFormat(editor, L"Edit_%s", variableName);
+			rchar editor[256];
+			SecureFormat(editor, "Edit_%s", variableName);
 
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.EditControl = AddEditor(*tab, GetDefaultEditRect(), editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
@@ -611,18 +611,18 @@ namespace
 			nextY += 22;
 		}
 
-		virtual void AddFilenameEditor(LPCWSTR variableName, LPCWSTR variableDesc, wchar_t* buffer, DWORD capacity, const wchar_t* filter, IStringValidator* validator = nullptr)
+		virtual void AddFilenameEditor(cstr variableName, cstr variableDesc, rchar* buffer, DWORD capacity, cstr filter, IStringValidator* validator = nullptr)
 		{
 			if (nextY > windowSpan.y - 30)
 			{
-				Throw(0, L"Too many editors added to variable editor.\nCannot add editor for: %s\n", variableName);
+				Throw(0, "Too many editors added to variable editor.\nCannot add editor for: %s\n", variableName);
 			}
 
 			VariableDesc v = { 0 };
 			tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
 
-			wchar_t editor[256];
-			SecureFormat(editor, L"Edit_%s", variableName);
+			rchar editor[256];
+			SecureFormat(editor, "Edit_%s", variableName);
 
 			GuiRect editRect = GetDefaultEditRect();
 			editRect.right -= 40;
@@ -632,7 +632,7 @@ namespace
 
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.EditControl = AddEditor(*tab, editRect, editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
-			v.SpecialButtonControl = Windows::AddPushButton(*tab, buttonRect, L"...", nextId++, WS_VISIBLE | BS_PUSHBUTTON, WS_EX_CLIENTEDGE);
+			v.SpecialButtonControl = Windows::AddPushButton(*tab, buttonRect, "...", nextId++, WS_VISIBLE | BS_PUSHBUTTON, WS_EX_CLIENTEDGE);
          AddToolTip(*v.StaticControl, variableDesc);
 			SecureCopy(v.name, variableName);
 
@@ -653,7 +653,7 @@ namespace
 		{
 			for (const VariableDesc& v : variables)
 			{
-				SetWindowTextW(*v.StaticControl, v.name);
+				SetWindowTextA(*v.StaticControl, v.name);
 
 				if (tabControl)
 				{
@@ -661,7 +661,7 @@ namespace
 					OnSelectionChanged(currentTabIndex);
 				}
 
-				wchar_t desc[256];
+				rchar desc[256];
 				FormatWithVariant(desc, 256, v.var);
 
 				if (v.var.type == EVariantType_Int32)
@@ -678,7 +678,7 @@ namespace
 
 				if (v.EditControl != nullptr)
 				{
-					SetWindowText(*v.EditControl, desc);
+					SetWindowTextA(*v.EditControl, desc);
 				}
 
 				if (v.ComboControl != nullptr)
@@ -716,8 +716,8 @@ namespace
 				{
 					int len = GetWindowTextLength(*v.EditControl);
 					{
-						wchar_t *value = (wchar_t*)alloca(2 * len + 2);
-						GetWindowText(*v.EditControl, value, len + 1);
+						rchar *value = (rchar*)alloca(2 * len + 2);
+						GetWindowTextA(*v.EditControl, value, len + 1);
 						ParseVariable(v, value);
 					}
 				}
@@ -742,10 +742,10 @@ namespace
 
 		void OnChangeInt32Variable(VariableDesc& v)
 		{
-			wchar_t buffer[16];
-			GetWindowText(*v.EditControl, buffer, 16);
+			rchar buffer[16];
+			GetWindowTextA(*v.EditControl, buffer, 16);
 
-			wchar_t* s = buffer;
+			rchar* s = buffer;
 
 			if (s[0] == '+' || s[0] == '-') s++;
 			else if (s[0] == 0) return;
@@ -755,7 +755,7 @@ namespace
 				if (*s < '0' || *s > '9')
 				{
 					*s = 0;
-					SetWindowText(*v.EditControl, buffer);
+					SetWindowTextA(*v.EditControl, buffer);
 					SendMessage(*v.EditControl, EM_SETSEL, s - buffer, s - buffer);
 					break;
 				}
@@ -775,11 +775,11 @@ namespace
 			}
 		}
 
-		virtual int GetInteger(LPCWSTR variableName)
+		virtual int GetInteger(cstr variableName)
 		{
 			for(const VariableDesc& v: variables)
 			{
-				if (wcscmp(variableName, v.name) == 0)
+				if (strcmp(variableName, v.name) == 0)
 				{
 					if (v.var.type == EVariantType_Int32)
 					{
@@ -787,12 +787,12 @@ namespace
 					}
 					else
 					{
-						Throw(0, L"VariableEditor::GetInteger('%s'): variable is not an Int32", variableName);
+						Throw(0, "VariableEditor::GetInteger('%s'): variable is not an Int32", variableName);
 					}
 				}
 			}
 
-			Throw(0, L"VariableEditor::GetInteger('%s'). Item not found", variableName);
+			Throw(0, "VariableEditor::GetInteger('%s'). Item not found", variableName);
 			return 0;
 		}
 
@@ -805,7 +805,7 @@ namespace
 
 namespace Rococo
 {
-	IVariableEditor* CreateVariableEditor(HWND hwndOwner, const Vec2i& span, int labelWidth, LPCWSTR appQueryName, LPCWSTR defaultTab, LPCWSTR defaultTooltip, IVariableEditorEventHandler* eventHandler, const POINT* topLeft)
+	IVariableEditor* CreateVariableEditor(HWND hwndOwner, const Vec2i& span, int labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const POINT* topLeft)
 	{
 		return VariableEditor::Create(hwndOwner, span, labelWidth, appQueryName, defaultTab, defaultTooltip, eventHandler, topLeft);
 	}

@@ -50,10 +50,10 @@ namespace
          catch (IException& ex)
          {
             s->Free();
-            ShowErrorBox(Windows::NoParent(), ex, L"Algorithmic error creating sector. Try something simpler");
+            ShowErrorBox(Windows::NoParent(), ex, "Algorithmic error creating sector. Try something simpler");
 
 #ifdef _DEBUG
-            if (QueryYesNo(Windows::NoParent(), L"Try again?"))
+            if (QueryYesNo(Windows::NoParent(), "Try again?"))
             {
                TripDebugger();
                OS::PrintDebug("\n\n\n // Troublesome perimeter: \n");

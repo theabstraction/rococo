@@ -16,13 +16,17 @@ using namespace Sexy::VM;
 using namespace Sexy::Compiler;
 
 #include "sexchar.to.unicode.conversions.h"
+#include <malloc.h>
 
 namespace
 {  
 	inline void WriteLineToStandardOutput(const char* text) { puts(text); }
-	inline void WriteLineToStandardOutput(const wchar_t* text) { _putws(text); }
 
-	typedef void (__stdcall *FN_Log)(const wchar_t* text);
+#ifdef SEXCHAR_IS_TEXT
+   inline void WriteLineToStandardOutput(cstr text) { _putws(text); }
+#endif
+
+	typedef void (__stdcall *FN_Log)(cstr text);
 	typedef bool (__stdcall *FN_RouteMessages)();
 
 	bool IsException(const ParseException& ex)
@@ -47,22 +51,7 @@ namespace
 
 		virtual void Write(csexstr message)
 		{
-#ifdef SEXCHAR_IS_WIDE
-			m_log((Char*) message);
-#else
-			size_t len = strlen(message);
-			Char* unicodeMessage = (Char*) _malloca(2*len+2);
-
-			for(size_t i = 0; i < len; ++i)
-			{
-				unicodeMessage[i] = (Char) message[i];				
-			}
-
-			unicodeMessage[len] = 0;
-			m_log(unicodeMessage);
-
-			_freea(unicodeMessage);
-#endif
+			m_log(message);
 		}
 
 		void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) 

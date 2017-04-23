@@ -2,14 +2,14 @@
 
 #include "stdafx.h"
 #include <string.h>
-#include <wchar.h>
+#include "sexy.strings.h"
 #include <stdio.h>
 #include "sexy.debug.types.h"
 #include "sexy.compiler.public.h"
 #include "sexy.script.h"
 #include "sexy.s-parser.h"
 
-#include "sexy.VM.h"
+#include "sexy.vm.h"
 #include "sexy.VM.CPU.h"
 
 #include "sexydotnethost.h"
@@ -67,7 +67,7 @@ namespace
 
 	int GetModuleHeader(const IModule& module, Char* pCharLine)
 	{
-		wchar_t unicodeModuleName[256];
+      wchar_t unicodeModuleName[256];
 		int nameLength = CopySexCharToUnicode(unicodeModuleName, 256, module.Name());
 		if (nameLength <= 0)
 		{

@@ -40,6 +40,7 @@
 #include <sexy.vm.h>
 
 #include <stdarg.h>
+#include <stdio.h>
 
 using namespace Sexy;
 using namespace Sexy::Sex;
@@ -54,7 +55,7 @@ namespace  Sexy
          SEXCHAR message[4096];
          int32 exceptionNumber;
 
-         virtual const wchar_t* Message() const { return message; }
+         virtual cstr Message() const { return message; }
          virtual int32 ErrorCode() const { return exceptionNumber; }
       } ex;
 
@@ -99,7 +100,7 @@ namespace  Sexy
          va_list args;
          va_start(args, format);
 
-         wchar_t message[4096];
+         rchar message[4096];
          SafeVFormat(message, _TRUNCATE, format, args);
 
          SEXCHAR specimen[64];

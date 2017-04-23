@@ -25,7 +25,7 @@ namespace Rococo
 		};
 		
 		bool CompressJPeg(const unsigned char* data, const Vec2i& span, const char* filename, int quality);
-		bool CompressJPeg(const unsigned char* data, const Vec2i& span, const wchar_t* filename, int quality);
+		bool CompressJPeg(const unsigned char* data, const Vec2i& span, cstr filename, int quality);
 
 		bool DecompressJPeg(IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes);
 		bool DecompressTiff(IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes);

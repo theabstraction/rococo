@@ -38,7 +38,7 @@
 #include "..\STC\stccore\Sexy.Compiler.h"
 #include "..\STC\stccore\sexy.compiler.helpers.h"
 #include "Sexy.S-Parser.h"
-#include "Sexy.VM.h"
+#include "sexy.vm.h"
 #include "Sexy.VM.CPU.h"
 
 #include <stdarg.h>

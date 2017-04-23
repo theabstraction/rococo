@@ -655,7 +655,7 @@ namespace
 	{
 	private:
 		refcount_t refcount;
-
+      std::vector<char> tempBuffer;
 	public:
 		CSexParser(): refcount(1)
 		{
@@ -741,13 +741,11 @@ namespace
 			long len;
 			FileReader reader(filename, len);
 
-			char* buffer = (char*) _malloca(len+1);		
-			size_t nBytes = fread(buffer, 1, len, reader.fp);
-			buffer[len] = 0;
+         tempBuffer.resize(len + 1);	
+			size_t nBytes = fread(&tempBuffer[0], 1, len, reader.fp);
+         tempBuffer[nBytes] = 0;
 
-			ISourceCode* src = LoadSource(filename, origin, buffer, len);
-
-			_freea(buffer);
+			ISourceCode* src = LoadSource(filename, origin, &tempBuffer[0], (long) nBytes);
 
 			return src;
 		}
@@ -767,7 +765,7 @@ namespace
 					SEXCHAR* sexBuffer = (SEXCHAR*)_malloca(len << 1);
 					for (int i = 0; i < (len << 1); ++i)
 					{
-						wchar_t c = buffer[i];
+						rchar c = buffer[i];
 						sexBuffer[i] = c > 127 ? '?' : c;
 					}
 					sexBuffer[len] = 0;
@@ -838,61 +836,61 @@ namespace
 		size_t len;
 	};
 
-	static EscapeSequence* mapWcharToSequence = nullptr;
+	static EscapeSequence* maprcharToSequence = nullptr;
 
 	void ClearEscapeMap()
 	{
-		delete[] mapWcharToSequence;
-		mapWcharToSequence = nullptr;
+		delete[] maprcharToSequence;
+		maprcharToSequence = nullptr;
 	}
 
 	void InitEscapeSequences()
 	{
-		if (mapWcharToSequence == nullptr)
+		if (maprcharToSequence == nullptr)
 		{
-			mapWcharToSequence = new EscapeSequence[65536];
+			maprcharToSequence = new EscapeSequence[65536];
 			atexit(ClearEscapeMap);
 
 			for (uint32 i = 0; i < 65536; ++i)
 			{
-				sprintf_s(mapWcharToSequence[i].text, "&x%x", i);
-				mapWcharToSequence[i].len = 6;
+				sprintf_s(maprcharToSequence[i].text, "&x%x", i);
+				maprcharToSequence[i].len = 6;
 			}
 
 			for (uint32 i = 32; i <= 255; ++i)
 			{
-				sprintf_s(mapWcharToSequence[i].text, "%c", i);
-				mapWcharToSequence[i].len = 1;
+				sprintf_s(maprcharToSequence[i].text, "%c", i);
+				maprcharToSequence[i].len = 1;
 			}
 
-			sprintf_s(mapWcharToSequence[L'\r'].text, "&r");
-			mapWcharToSequence[L'\r'].len = 2;
+			sprintf_s(maprcharToSequence[L'\r'].text, "&r");
+			maprcharToSequence[L'\r'].len = 2;
 
-			sprintf_s(mapWcharToSequence[L'\n'].text, "&n");
-			mapWcharToSequence[L'\n'].len = 2;
+			sprintf_s(maprcharToSequence[L'\n'].text, "&n");
+			maprcharToSequence[L'\n'].len = 2;
 
-			sprintf_s(mapWcharToSequence[L'\t'].text, "&t");
-			mapWcharToSequence[L'\t'].len = 2;
+			sprintf_s(maprcharToSequence[L'\t'].text, "&t");
+			maprcharToSequence[L'\t'].len = 2;
 
-			sprintf_s(mapWcharToSequence[L'\"'].text, "&q");
-			mapWcharToSequence[L'\"'].len = 2;
+			sprintf_s(maprcharToSequence[L'\"'].text, "&q");
+			maprcharToSequence[L'\"'].len = 2;
 
-			sprintf_s(mapWcharToSequence[L'&'].text, "&&");
-			mapWcharToSequence[L'&'].len = 2;
+			sprintf_s(maprcharToSequence[L'&'].text, "&&");
+			maprcharToSequence[L'&'].len = 2;
 		}
 	}
 }
 
 namespace
 {
-	void ThrowBadArg(const wchar_t* format, ...)
+	void ThrowBadArg(cstr format, ...)
 	{
 		struct : public IException
 		{
-			wchar_t msg[256];
+			rchar msg[256];
 			int32 errorCode;
 
-			virtual const wchar_t* Message() const
+			virtual cstr Message() const
 			{
 				return msg;
 			}
@@ -920,12 +918,12 @@ namespace Sexy
 	{
 		using namespace Rococo::IO;
 
-		bool IsToken(cr_sex s, const wchar_t* text)
+		bool IsToken(cr_sex s, cstr text)
 		{
 			return IsAtomic(s) && AreEqual(s.String(), text);
 		}
 
-		void EscapeScriptStringToAnsi(IBinaryWriter& writer, const wchar_t* text)
+		void EscapeScriptStringToAnsi(IBinaryWriter& writer, cstr text)
 		{
 			if (*text == 0) return;
 
@@ -933,23 +931,23 @@ namespace Sexy
 
 			size_t segmentLength = 0;
 
-			for (const wchar_t* s = text; *s != 0; s++)
+			for (cstr s = text; *s != 0; s++)
 			{
-				segmentLength += mapWcharToSequence[*s].len;
+				segmentLength += maprcharToSequence[*s].len;
 			}
 
 			if (segmentLength > 0xFFFFFFFFull)
 			{
-				ThrowBadArg(L"EscapeScriptStringToAnsi -> string length too long");
+				ThrowBadArg(SEXTEXT("EscapeScriptStringToAnsi -> string length too long"));
 			}
 
 			uint8* segment = (uint8*)_malloca(segmentLength);
 
 			uint8* writePos = segment;
-			for (const wchar_t* s = text; *s != 0; s++)
+			for (cstr s = text; *s != 0; s++)
 			{
-				memcpy(writePos, mapWcharToSequence[*s].text, mapWcharToSequence[*s].len);
-				writePos += mapWcharToSequence[*s].len;
+				memcpy(writePos, maprcharToSequence[*s].text, maprcharToSequence[*s].len);
+				writePos += maprcharToSequence[*s].len;
 			}
 
 			writer.Write(segment, (uint32) segmentLength);
@@ -957,7 +955,7 @@ namespace Sexy
 			_freea(segment);
 		}
 
-		void EscapeScriptStringToUnicode(IUnicode16Writer& writer, const wchar_t* text)
+		void EscapeScriptStringToUnicode(IUnicode16Writer& writer, cstr text)
 		{
 			if (*text == 0) return;
 
@@ -965,23 +963,23 @@ namespace Sexy
 
 			size_t segmentLength = 1;
 
-			for (const wchar_t* s = text; *s != 0; s++)
+			for (cstr s = text; *s != 0; s++)
 			{
-				segmentLength += mapWcharToSequence[*s].len;
+				segmentLength += maprcharToSequence[*s].len;
 			}
 
-			wchar_t* segment = (wchar_t*)_malloca(sizeof(wchar_t) * segmentLength);
+			rchar* segment = (rchar*)_malloca(sizeof(rchar) * segmentLength);
 
-			wchar_t* writePos = segment;
-			for (const wchar_t* s = text; *s != 0; s++)
+			rchar* writePos = segment;
+			for (cstr s = text; *s != 0; s++)
 			{
-				SecureFormat(writePos, segment + segmentLength - writePos, L"%S", mapWcharToSequence[*s].text);
-				writePos += mapWcharToSequence[*s].len;
+				SecureFormat(writePos, segment + segmentLength - writePos, SEXTEXT("%s"), maprcharToSequence[*s].text);
+				writePos += maprcharToSequence[*s].len;
 			}
 
 			*writePos = 0;
 
-			writer.Append(L"%s", segment);
+			writer.Append(L"%S", segment);
 
 			_freea(segment);
 		}

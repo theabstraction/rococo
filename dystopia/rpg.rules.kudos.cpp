@@ -8,8 +8,8 @@ namespace
 	struct CapBind
 	{
 		StatValue statcap;
-		const wchar_t* title;
-		const wchar_t* rewardText;
+		cstr title;
+		cstr rewardText;
 	};
 
 	CapBind kudosCaps[]
@@ -48,7 +48,7 @@ namespace Dystopia {
 			return 0;
 		}
 
-		const wchar_t* GetTitle(Stat kudos)
+		cstr GetTitle(Stat kudos)
 		{
 			return kudosCaps[GetKudosLevel(kudos)].title;
 		}
@@ -58,7 +58,7 @@ namespace Dystopia {
 			return kudosCaps[GetKudosLevel(kudos) + 1].statcap;
 		}
 
-		const wchar_t* GetKudosRewardText(Stat kudos)
+		cstr GetKudosRewardText(Stat kudos)
 		{
 			return kudosCaps[GetKudosLevel(kudos)].rewardText;
 		}

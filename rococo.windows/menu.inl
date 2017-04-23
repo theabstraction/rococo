@@ -14,8 +14,8 @@ namespace
 		Menu(bool contextMenu);
 		virtual ~Menu();
 		operator HMENU () { return hMenu; }
-		Menu& AddPopup(LPCWSTR name);
-		void AddString(LPCWSTR name, UINT_PTR id, LPCWSTR keyCommand);
+		Menu& AddPopup(cstr name);
+		void AddString(cstr name, UINT_PTR id, cstr keyCommand);
 		void Free() { delete this; }
 	};
 
@@ -33,22 +33,22 @@ namespace
 		}
 	}
 
-	Menu& Menu::AddPopup(LPCWSTR name)
+	Menu& Menu::AddPopup(cstr name)
 	{
 		UINT index = 0;
 		for (auto m : children)
 		{
-			MENUITEMINFO mi = { 0 };
+			MENUITEMINFOA mi = { 0 };
 			mi.cbSize = sizeof(mi);			
 			mi.fMask = MIIM_STRING | MIIM_SUBMENU;
 			mi.cch = 256;
 
-			wchar_t text[256];
+			rchar text[256];
 			*(int*)text = 0;
 			mi.dwTypeData = text;
 
-			GetMenuItemInfo(hMenu, index, TRUE, &mi);
-			if (wcscmp(text, name) == 0 && mi.hSubMenu != nullptr)
+			GetMenuItemInfoA(hMenu, index, TRUE, &mi);
+			if (strcmp(text, name) == 0 && mi.hSubMenu != nullptr)
 			{
 				return *m;
 			}
@@ -58,23 +58,23 @@ namespace
 
 		Menu* child = new Menu(false);
 		children.push_back(child);
-		AppendMenu(hMenu, MF_POPUP, (UINT_PTR)(HMENU)*child, name);
+		AppendMenuA(hMenu, MF_POPUP, (UINT_PTR)(HMENU)*child, name);
 		return *child;
 	}
 
-	void Menu::AddString(LPCWSTR name, UINT_PTR id, LPCWSTR keyCommand)
+	void Menu::AddString(cstr name, UINT_PTR id, cstr keyCommand)
 	{
-		wchar_t text[64];
+		rchar text[64];
 
 		if (keyCommand)
 		{
-			SecureFormat(text, L"%s\t%s", name, keyCommand);
+			SecureFormat(text, "%s\t%s", name, keyCommand);
 		}
 		else
 		{
-			SecureFormat(text, L"%s", name);
+			SecureFormat(text, "%s", name);
 		}
 
-		AppendMenu(hMenu, MF_STRING, id, text);
+		AppendMenuA(hMenu, MF_STRING, id, text);
 	}
 }

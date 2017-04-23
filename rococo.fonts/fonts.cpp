@@ -58,7 +58,7 @@ namespace
 
 			if (defaultChar < 0 || defaultChar > MAX_INDEX)
 			{
-				Throw(0, L"Bad defaultChar %d in spec %d of %s", defaultChar, specIndex, csv.Filename());
+				Throw(0, "Bad defaultChar %d in spec %d of %s", defaultChar, specIndex, csv.Filename());
 			}
 
 			for (int i = 0; i < charsInSet; ++i)
@@ -70,7 +70,7 @@ namespace
 
 				if (charValue < 0 || charValue > MAX_INDEX)
 				{
-					Throw(0, L"Bad charValue %d in spec %d of %s", charValue, specIndex, csv.Filename());
+					Throw(0, "Bad charValue %d in spec %d of %s", charValue, specIndex, csv.Filename());
 				}
 
 				Glyph& g = glyphs[charValue];
@@ -85,7 +85,7 @@ namespace
 				g.bottomRight.y = g.topLeft.y + fontHeight;
 			}
 
-			if (glyphs[defaultChar].topLeft.y < 0) Throw(0, L"defaultChar %d in spec %d of %s was not defined", defaultChar, specIndex, csv.Filename());
+			if (glyphs[defaultChar].topLeft.y < 0) Throw(0, "defaultChar %d in spec %d of %s was not defined", defaultChar, specIndex, csv.Filename());
 
 			for (int i = 0; i < 256; ++i)
 			{
@@ -107,7 +107,7 @@ namespace
 
 		Vec4 scale;
 	public:
-		GlyphsSpecSets(const wchar_t* sourceName, const char* csvData, size_t nBytes)
+		GlyphsSpecSets(cstr sourceName, const char* csvData, size_t nBytes)
 		{
 			CSVStream csv(sourceName, csvData, nBytes);
 
@@ -127,7 +127,7 @@ namespace
 				int specIndex;
 				csv >> ValidateItem("Spec") >> specIndex;
 
-				if (specIndex != j) Throw(0, L"Spec index %d did not match j = %d in %s", specIndex, j, sourceName);
+				if (specIndex != j) Throw(0, "Spec index %d did not match j = %d in %s", specIndex, j, sourceName);
 
 				GlyphSet* set = new GlyphSet(csv, j);
 				glyphsets[j] = set;
@@ -135,7 +135,7 @@ namespace
 
 			if (numberOfGlyphSets == 0)
 			{
-				Throw(0, L"There are no glyphsets in the font '%s'", sourceName);
+				Throw(0, "There are no glyphsets in the font '%s'", sourceName);
 			}
 		}
 
@@ -416,7 +416,7 @@ namespace Rococo
 {
 	namespace Fonts
 	{
-		IFontSupervisor* LoadFontCSV(const wchar_t* srcName, const char* srcData, size_t srcLenBytes)
+		IFontSupervisor* LoadFontCSV(cstr srcName, const char* srcData, size_t srcLenBytes)
 		{
 			return new GlyphsSpecSets(srcName, srcData, srcLenBytes);
 		}
@@ -425,7 +425,7 @@ namespace Rococo
 		{
 			if (nBytes < sizeof(GlyphPipeline))
 			{
-				Throw(0, L"Insufficient buffer. Make sure it is sizeof(DeferredProjector) or greater");
+				Throw(0, "Insufficient buffer. Make sure it is sizeof(DeferredProjector) or greater");
 			}
 			return new (stackBuffer)GlyphPipeline(_renderer);
 		}

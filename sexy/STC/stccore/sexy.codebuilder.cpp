@@ -33,7 +33,7 @@
 
 #include "Sexy.Compiler.StdAfx.h"
 #include "Sexy.Validators.h"
-#include "Sexy.VM.h"
+#include "sexy.vm.h"
 #include "sexy.compiler.helpers.h"
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"

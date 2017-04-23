@@ -10,8 +10,8 @@ namespace
    struct DebugLine
    {
       enum size_t { KEY_LEN = 64, VALUE_LEN = 128 };
-      wchar_t key[KEY_LEN];
-      wchar_t value[VALUE_LEN];
+      rchar key[KEY_LEN];
+      rchar value[VALUE_LEN];
    };
 
    class MathsVisitor: public IMathsVisitorSupervisor, public IUIOverlay
@@ -52,7 +52,7 @@ namespace
          DebugLine line[4];
          Name(line[0], name);
 
-         size_t len = wcslen(line[0].key);
+         size_t len = rlen(line[0].key);
          for (int i : {1, 2, 3})
          {
             FillNameWithSpaces(line[i], len);
@@ -63,7 +63,7 @@ namespace
          for (int i : {0, 1, 2, 3})
          {
             auto& r = row[i];
-            SafeFormat(line[i].value, _TRUNCATE, L"(%+12.4f %+12.4f %+12.4f %+12.4f    )", r.x, r.y, r.z, r.w);
+            SafeFormat(line[i].value, _TRUNCATE, "(%+12.4f %+12.4f %+12.4f %+12.4f    )", r.x, r.y, r.z, r.w);
             lines.push_back(line[i]);
          }
 
@@ -75,7 +75,7 @@ namespace
          DebugLine line;
          Name(line, name);
        
-         SafeCopy(line.value, L"(", _TRUNCATE);
+         SafeCopy(line.value, "(", _TRUNCATE);
          
          size_t index = 1;
          for (size_t i = 0; i < nComponents; ++i)
@@ -83,18 +83,18 @@ namespace
             size_t capacity = DebugLine::VALUE_LEN - index;
             if (capacity < 12)
             {
-               SafeFormat(line.value + index, capacity, _TRUNCATE, L"...");
+               SafeFormat(line.value + index, capacity, _TRUNCATE, "...");
                break;
             }
 
-            int nChars = SafeFormat(line.value + index, capacity, _TRUNCATE, L"%+12.4f", vector[i]);
+            int nChars = SafeFormat(line.value + index, capacity, _TRUNCATE, "%+12.4f", vector[i]);
             if (nChars > 0)
             {
                index += nChars;
             }
          }
 
-         SafeFormat(line.value + index, DebugLine::VALUE_LEN - index, _TRUNCATE, L")");
+         SafeFormat(line.value + index, DebugLine::VALUE_LEN - index, _TRUNCATE, ")");
 
          lines.push_back(line);
          AddBlankLine();
@@ -105,9 +105,9 @@ namespace
          DebugLine line;
          Name(line, name);
 
-         size_t len = wcslen(line.key);
+         size_t len = rlen(line.key);
 
-         SafeFormat(line.value, _TRUNCATE, L"( %+12.4f    )", vector[0]);
+         SafeFormat(line.value, _TRUNCATE, "( %+12.4f    )", vector[0]);
 
          lines.push_back(line);
 
@@ -116,7 +116,7 @@ namespace
             DebugLine line;
             FillNameWithSpaces(line, len);
 
-            SafeFormat(line.value, _TRUNCATE, L"( %+12.4f    )", vector[i]);
+            SafeFormat(line.value, _TRUNCATE, "( %+12.4f    )", vector[i]);
             lines.push_back(line);
          }
       }
@@ -125,7 +125,7 @@ namespace
       {
          DebugLine line;
          Name(line, name);
-         SafeFormat(line.value, _TRUNCATE, L"%+12.4f", value);
+         SafeFormat(line.value, _TRUNCATE, "%+12.4f", value);
          lines.push_back(line);
       }
 
@@ -133,7 +133,7 @@ namespace
       {
          DebugLine line;
          Name(line, name);
-         SafeFormat(line.value, _TRUNCATE, L"%8d", value);
+         SafeFormat(line.value, _TRUNCATE, "%8d", value);
          lines.push_back(line);;
       }
 
@@ -141,7 +141,7 @@ namespace
       {
          DebugLine line;
          Name(line, name);
-         SafeFormat(line.value, _TRUNCATE, L"0x%.8X", value);
+         SafeFormat(line.value, _TRUNCATE, "0x%.8X", value);
          lines.push_back(line);
       }
 
@@ -149,7 +149,7 @@ namespace
       {
          DebugLine line;
          Name(line, name);
-         SafeFormat(line.value, _TRUNCATE, L"%S", value ? "true" : "false");
+         SafeFormat(line.value, _TRUNCATE, "%s", value ? "true" : "false");
          lines.push_back(line);
       }
 
@@ -157,7 +157,7 @@ namespace
       {
          DebugLine line;
          Name(line, name);
-         SafeFormat(line.value, _TRUNCATE, L"%lld", value);
+         SafeFormat(line.value, _TRUNCATE, "%lld", value);
          lines.push_back(line);
       }
 
@@ -165,7 +165,7 @@ namespace
       {
          DebugLine line;
          Name(line, name);
-         SafeFormat(line.value, _TRUNCATE, L"%.8x:%.8x", (int32)(value >> 32), (int32) (value & 0xFFFFFFFF));
+         SafeFormat(line.value, _TRUNCATE, "%.8x:%.8x", (int32)(value >> 32), (int32) (value & 0xFFFFFFFF));
          lines.push_back(line);
       }
 
@@ -173,11 +173,11 @@ namespace
       {
          DebugLine line;
          Name(line, name);
-         SafeFormat(line.value, _TRUNCATE, L"%p", ptr);
+         SafeFormat(line.value, _TRUNCATE, "%p", ptr);
          lines.push_back(line);
       }
 
-      virtual void ShowString(VisitorName name, const wchar_t* format, ...)
+      virtual void ShowString(VisitorName name, cstr format, ...)
       {
          DebugLine line;
          Name(line, name);

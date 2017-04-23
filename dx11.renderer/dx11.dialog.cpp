@@ -66,9 +66,9 @@ namespace
          else
          {
             int secsLeft = (int)((float)delta.QuadPart / (float)hz.QuadPart);
-            wchar_t txt[64];
-            SafeFormat(txt, _TRUNCATE, L"Confirming in %d seconds", secsLeft);
-            SetWindowText(*countdownTimerLabel, txt);
+            rchar txt[64];
+            SafeFormat(txt, _TRUNCATE, "Confirming in %d seconds", secsLeft);
+            SetWindowTextA(*countdownTimerLabel, txt);
          }
 
          return 0;
@@ -77,14 +77,14 @@ namespace
       void PostConstruct()
       {
          WindowConfig config;
-         SetOverlappedWindowConfig(config, Vec2i{ 500, 350 }, SW_SHOW, nullptr, L"Confirm Title", WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU, 0);
+         SetOverlappedWindowConfig(config, Vec2i{ 500, 350 }, SW_SHOW, nullptr, "Confirm Title", WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU, 0);
          dialogWindow = Windows::CreateDialogWindow(config, this);
          RECT rect;
          GetClientRect(*dialogWindow, &rect);
-         label = AddLabel(*dialogWindow, GuiRect(rect.left + 10, rect.top + 10, rect.right - 10, rect.bottom - 100), L"Hint", 0, WS_BORDER);
-         countdownTimerLabel = AddLabel(*dialogWindow, GuiRect(rect.left + 10, rect.bottom - 90, rect.right - 10, rect.bottom - 50), L"Timer", 0, WS_BORDER);
-         okButton = AddPushButton(*dialogWindow, GuiRect(210, rect.bottom - 40, 290, rect.bottom - 10), L"OK", IDOK, BS_DEFPUSHBUTTON);
-         cancelButton = AddPushButton(*dialogWindow, GuiRect(310, rect.bottom - 40, 390, rect.bottom - 10), L"Cancel", IDCANCEL, 0);
+         label = AddLabel(*dialogWindow, GuiRect(rect.left + 10, rect.top + 10, rect.right - 10, rect.bottom - 100), "Hint", 0, WS_BORDER);
+         countdownTimerLabel = AddLabel(*dialogWindow, GuiRect(rect.left + 10, rect.bottom - 90, rect.right - 10, rect.bottom - 50), "Timer", 0, WS_BORDER);
+         okButton = AddPushButton(*dialogWindow, GuiRect(210, rect.bottom - 40, 290, rect.bottom - 10), "OK", IDOK, BS_DEFPUSHBUTTON);
+         cancelButton = AddPushButton(*dialogWindow, GuiRect(310, rect.bottom - 40, 390, rect.bottom - 10), "Cance", IDCANCEL, 0);
 
          SetTimer(*dialogWindow, (UINT_PTR)dialogWindow, 100, nullptr);
       }
@@ -97,7 +97,7 @@ namespace
          return m;
       }
 
-      DWORD DoModal(HWND owner /* the owner is greyed out during modal operation */, LPCWSTR title, LPCWSTR hint, int countdown)
+      DWORD DoModal(HWND owner /* the owner is greyed out during modal operation */, cstr title, cstr hint, int countdown)
       {
          LARGE_INTEGER hz;
          QueryPerformanceFrequency(&hz);
@@ -107,8 +107,8 @@ namespace
 
          confirmAt.QuadPart = hz.QuadPart * countdown + start.QuadPart;
 
-         SetWindowText(*dialogWindow, title);
-         SetWindowText(*label, hint);
+         SetWindowTextA(*dialogWindow, title);
+         SetWindowTextA(*label, hint);
          return dialogWindow->BlockModal(modalHandler.ModalControl(), owner, this);
       }
 
@@ -164,13 +164,13 @@ namespace Rococo
          }
       }
 
-      void FormatModeString(const DXGI_MODE_DESC& mode, wchar_t modeDesc[64])
+      void FormatModeString(const DXGI_MODE_DESC& mode, rchar modeDesc[64])
       {
          UINT hz = (UINT)(mode.RefreshRate.Numerator / (float)mode.RefreshRate.Denominator);
-         SafeFormat(modeDesc, 64, _TRUNCATE, L"%d x %d - %d Hz", mode.Width, mode.Height, hz);
+         SafeFormat(modeDesc, 64, _TRUNCATE, "%d x %d - %d Hz", mode.Width, mode.Height, hz);
       }
 
-      bool FormatOutputString(IDXGIOutput& output, wchar_t outputString[64], UINT index)
+      bool FormatOutputString(IDXGIOutput& output, rchar outputString[64], UINT index)
       {
          DXGI_OUTPUT_DESC odesc;
          if (S_OK != output.GetDesc(&odesc))
@@ -183,7 +183,7 @@ namespace Rococo
             int width = odesc.DesktopCoordinates.right - odesc.DesktopCoordinates.left;
             int height = odesc.DesktopCoordinates.bottom - odesc.DesktopCoordinates.top;
 
-            SafeFormat(outputString, 64, _TRUNCATE, L"Output #%d: %d x %d", index, width, height);
+            SafeFormat(outputString, 64, _TRUNCATE, "Output #%d: %d x %d", index, width, height);
             return true;
          }
          else
@@ -209,7 +209,7 @@ namespace Rococo
             int width = modeList[0].Width;
             int height = modeList[0].Height;
 
-            SafeFormat(outputString, 64, _TRUNCATE, L"Output #%d: %d x %d", index, width, height);
+            SafeFormat(outputString, 64, _TRUNCATE, "Output #%d: %d x %d", index, width, height);
             return true;
          }
       }
@@ -253,13 +253,13 @@ namespace Rococo
          void PostConstruct()
          {
             WindowConfig config;
-            SetOverlappedWindowConfig(config, Vec2i{ 800, 435 }, SW_SHOW, nullptr, L"Choose screen resolution", WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU, 0);
+            SetOverlappedWindowConfig(config, Vec2i{ 800, 435 }, SW_SHOW, nullptr, "Choose screen resolution", WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU, 0);
             dialogWindow = Windows::CreateDialogWindow(config, this);
-            adapterList = AddListbox(*dialogWindow, GuiRect(10, 10, 390, 150), L"Graphics Adapter", *this, LBS_NOTIFY, WS_BORDER, 0);
-            outputList = AddListbox(*dialogWindow, GuiRect(410, 10, 770, 150), L"Screens", *this, WS_VSCROLL | LBS_NOTIFY, WS_BORDER, 0);
-            modeList = AddListbox(*dialogWindow, GuiRect(10, 160, 390, 380), L"Display Modes", *this, WS_VSCROLL | LBS_NOTIFY, WS_BORDER, 0);
-            okButton = AddPushButton(*dialogWindow, GuiRect(410, 350, 490, 380), L"OK", IDOK, BS_DEFPUSHBUTTON);
-            cancelButton = AddPushButton(*dialogWindow, GuiRect(510, 350, 590, 380), L"Cancel", IDCANCEL, 0);
+            adapterList = AddListbox(*dialogWindow, GuiRect(10, 10, 390, 150), "Graphics Adapter", *this, LBS_NOTIFY, WS_BORDER, 0);
+            outputList = AddListbox(*dialogWindow, GuiRect(410, 10, 770, 150), "Screens", *this, WS_VSCROLL | LBS_NOTIFY, WS_BORDER, 0);
+            modeList = AddListbox(*dialogWindow, GuiRect(10, 160, 390, 380), "Display Modes", *this, WS_VSCROLL | LBS_NOTIFY, WS_BORDER, 0);
+            okButton = AddPushButton(*dialogWindow, GuiRect(410, 350, 490, 380), "OK", IDOK, BS_DEFPUSHBUTTON);
+            cancelButton = AddPushButton(*dialogWindow, GuiRect(510, 350, 590, 380), "Cance", IDCANCEL, 0);
          }
 
          void PopulateAdapterList()
@@ -278,7 +278,9 @@ namespace Rococo
                adapter->GetDesc(&desc);
                adapter->Release();
 
-               adapterList->AddString(desc.Description);
+               rchar buf[256];
+               SafeFormat(buf, 256, "%S", desc.Description);
+               adapterList->AddString(buf);
             }
 
             adapterList->SetCurrentSelection(0);
@@ -304,7 +306,7 @@ namespace Rococo
                   DXGI_OUTPUT_DESC odesc;
                   output->GetDesc(&odesc);
 
-                  wchar_t outputString[64];
+                  rchar outputString[64];
                   if (FormatOutputString(*output, outputString, i + 1))
                   {
                      outputList->AddString(outputString);
@@ -339,7 +341,7 @@ namespace Rococo
 
                      for (auto& i : modeCache)
                      {
-                        wchar_t modeString[64];
+                        rchar modeString[64];
                         FormatModeString(i, modeString);
                         modeList->AddString(modeString);
                      }

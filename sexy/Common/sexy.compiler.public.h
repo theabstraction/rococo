@@ -468,7 +468,7 @@ namespace Sexy { namespace Compiler
 	private:
 		enum {MAX_MSG_LEN = 256};
 		ERRORCODE code;
-		wchar_t message[MAX_MSG_LEN];
+      SEXCHAR message[MAX_MSG_LEN];
 		SEXCHAR source[MAX_MSG_LEN];
 
 	public:
@@ -483,7 +483,7 @@ namespace Sexy { namespace Compiler
 			return source;
 		}
 	
-		virtual const wchar_t* Message() const
+		virtual csexstr Message() const
 		{
 			return message;
 		}

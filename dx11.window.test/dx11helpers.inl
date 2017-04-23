@@ -4,10 +4,10 @@ namespace
 
 	struct DX11Exception : public IException
 	{
-		wchar_t msg[256];
+		rchar msg[256];
 		int32 errorCode;
 
-		virtual const wchar_t* Message() const
+		virtual cstr Message() const
 		{
 			return msg;
 		}
@@ -21,7 +21,7 @@ namespace
 
 namespace Rococo
 {
-	void Throw(int32 errorCode, const wchar_t* format, ...)
+	void Throw(int32 errorCode, cstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);

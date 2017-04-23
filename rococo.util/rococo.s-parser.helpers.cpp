@@ -12,9 +12,9 @@
 
 #include <stdarg.h>
 #include <malloc.h>
-#include <wchar.h>
 #include <unordered_map>
 #include <excpt.h>
+#include <string.h>
 
 #include <windows.h>
 
@@ -36,26 +36,26 @@ namespace
    using namespace Sexy::Compiler;
    using namespace Rococo::Visitors;
 
-   const wchar_t* Sanitize(const wchar_t* s)
+   const char* Sanitize(const char* s)
    {
-      if (wcscmp(s, L"_Null_Sys_Type_IString") == 0)
+      if (strcmp(s, "_Null_Sys_Type_IString") == 0)
       {
-         return L"IString";
+         return "IString";
       }
-      else if (wcscmp(s, L"_Null_Sys_Type_IStringBuilder") == 0)
+      else if (strcmp(s, "_Null_Sys_Type_IStringBuilder") == 0)
       {
-         return L"IStringBuilder";
+         return "IStringBuilder";
       }
       return s;
    }
 
    void AddArguments(const IArchetype& f, Visitors::IUITree& tree, Visitors::TREE_NODE_ID typeId)
    {
-      wchar_t desc[256];
+      rchar desc[256];
 
       if (f.NumberOfInputs() > (f.IsVirtualMethod() ? 1 : 0))
       {
-         auto inputId = tree.AddChild(typeId, L"[Inputs]", Visitors::CheckState_Clear);
+         auto inputId = tree.AddChild(typeId, "[Inputs]", Visitors::CheckState_Clear);
          for (int i = 0; i < f.NumberOfInputs(); ++i)
          {
             if (i == f.NumberOfInputs() - 1 && f.IsVirtualMethod())
@@ -67,7 +67,7 @@ namespace
                auto& arg = f.GetArgument(i + f.NumberOfOutputs());
                auto argName = f.GetArgName(i + f.NumberOfOutputs());
 
-               SafeFormat(desc, _TRUNCATE, L"%s %s", Sanitize(arg.Name()), argName);
+               SafeFormat(desc, _TRUNCATE, "%s %s", Sanitize(arg.Name()), argName);
                tree.AddChild(inputId, desc, Visitors::CheckState_Clear);
             }
          }
@@ -75,14 +75,14 @@ namespace
 
       if (f.NumberOfOutputs() > 0)
       {
-         auto outputId = tree.AddChild(typeId, L"[Outputs]", Visitors::CheckState_Clear);
+         auto outputId = tree.AddChild(typeId, "[Outputs]", Visitors::CheckState_Clear);
 
          if (f.NumberOfOutputs() == 1 && (f.NumberOfInputs() == 0 || (f.NumberOfInputs() == 1 && f.IsVirtualMethod())))
          {
             auto& arg = f.GetArgument(0);
             auto argName = f.GetArgName(0);
 
-            SafeFormat(desc, _TRUNCATE, L"%s %s - Get Accessor", Sanitize(arg.Name()), argName);
+            SafeFormat(desc, _TRUNCATE, "%s %s - Get Accessor", Sanitize(arg.Name()), argName);
             tree.AddChild(outputId, desc, Visitors::CheckState_Clear);
          }
          else
@@ -92,7 +92,7 @@ namespace
                auto& arg = f.GetArgument(i);
                auto argName = f.GetArgName(i);
 
-               SafeFormat(desc, _TRUNCATE, L"%s %s", Sanitize(arg.Name()), argName);
+               SafeFormat(desc, _TRUNCATE, "%s %s", Sanitize(arg.Name()), argName);
                tree.AddChild(outputId, desc, Visitors::CheckState_Clear);
             }
          }
@@ -114,7 +114,7 @@ namespace
       {
          if (ns.ChildCount() > 0)
          {
-            auto childSubspacesId = tree.AddChild(rootId, L"[Subspaces]", CheckState_Clear);
+            auto childSubspacesId = tree.AddChild(rootId, "[Subspaces]", CheckState_Clear);
 
             for (int i = 0; i < ns.ChildCount(); ++i)
             {
@@ -132,21 +132,21 @@ namespace
             const Sexy::Compiler::INamespace* ns;
             virtual CALLBACK_CONTROL operator()(const Sexy::Compiler::IStructure& s, csexstr alias)
             {
-               if (childStructuresId.value == 0) childStructuresId = tree->AddChild(rootId, L"[Structures]", CheckState_Clear);
+               if (childStructuresId.value == 0) childStructuresId = tree->AddChild(rootId, "[Structures]", CheckState_Clear);
 
-               wchar_t desc[256];
-               SafeFormat(desc, _TRUNCATE, L"%s.%s", ns->FullName()->Buffer, alias);
+               rchar desc[256];
+               SafeFormat(desc, _TRUNCATE, "%s.%s", ns->FullName()->Buffer, alias);
                auto typeId = tree->AddChild(childStructuresId, desc, CheckState_Clear);
 
-               SafeFormat(desc, _TRUNCATE, L"%s - %d bytes. Defined in %s", Parse::VarTypeName(s.VarType()), s.SizeOfStruct(), s.Module().Name());
+               SafeFormat(desc, _TRUNCATE, "%s - %d bytes. Defined in %s", Parse::VarTypeName(s.VarType()), s.SizeOfStruct(), s.Module().Name());
                auto typeDescId = tree->AddChild(typeId, desc, CheckState_Clear);
 
                if (s.VarType() == VARTYPE_Derivative)
                {
                   for (int32 i = 0; i < s.MemberCount(); ++i)
                   {
-                     const wchar_t* fieldType = s.GetMember(i).UnderlyingType() ? s.GetMember(i).UnderlyingType()->Name() : L"Unknown Type";
-                     SafeFormat(desc, _TRUNCATE, L"%s %s", fieldType, s.GetMember(i).Name());
+                     cstr fieldType = s.GetMember(i).UnderlyingType() ? s.GetMember(i).UnderlyingType()->Name() : "Unknown Type";
+                     SafeFormat(desc, _TRUNCATE, "%s %s", fieldType, s.GetMember(i).Name());
                      tree->AddChild(typeId, desc, CheckState_Clear);
                   }
                }
@@ -169,15 +169,15 @@ namespace
             const Sexy::Compiler::INamespace* ns;
             virtual CALLBACK_CONTROL operator()(const Sexy::Compiler::IFunction& f, csexstr alias)
             {
-               if (childFunctionsId.value == 0) childFunctionsId = tree->AddChild(rootId, L"[Functions]", CheckState_Clear);
+               if (childFunctionsId.value == 0) childFunctionsId = tree->AddChild(rootId, "[Functions]", CheckState_Clear);
 
                TREE_NODE_ID typeId;
-               wchar_t desc[256];
+               rchar desc[256];
 
-               SafeFormat(desc, _TRUNCATE, L"%s.%s", ns->FullName()->Buffer, alias);
+               SafeFormat(desc, _TRUNCATE, "%s.%s", ns->FullName()->Buffer, alias);
                typeId = tree->AddChild(childFunctionsId, desc, CheckState_Clear);
 
-               SafeFormat(desc, _TRUNCATE, L"Defined in %s", f.Module().Name());
+               SafeFormat(desc, _TRUNCATE, "Defined in %s", f.Module().Name());
                tree->AddChild(typeId, desc, CheckState_Clear);
 
                AddArguments(f, *tree, typeId);
@@ -195,9 +195,9 @@ namespace
 
          if (ns.InterfaceCount() > 0)
          {
-            wchar_t desc[256];
+            rchar desc[256];
 
-            auto interfaceId = tree.AddChild(rootId, L"[Interfaces]", CheckState_Clear);
+            auto interfaceId = tree.AddChild(rootId, "[Interfaces]", CheckState_Clear);
 
             for (int i = 0; i < ns.InterfaceCount(); ++i)
             {
@@ -206,11 +206,11 @@ namespace
 
                if (base)
                {
-                  SafeFormat(desc, _TRUNCATE, L"%s.%s extending %s", ns.FullName()->Buffer, inter.Name(), base->Name());
+                  SafeFormat(desc, _TRUNCATE, "%s.%s extending %s", ns.FullName()->Buffer, inter.Name(), base->Name());
                }
                else
                {
-                  SafeFormat(desc, _TRUNCATE, L"%s.%s", ns.FullName()->Buffer, inter.Name());
+                  SafeFormat(desc, _TRUNCATE, "%s.%s", ns.FullName()->Buffer, inter.Name());
                }
 
                auto interId = tree.AddChild(interfaceId, desc, CheckState_Clear);
@@ -218,7 +218,7 @@ namespace
                for (int j = 0; j < inter.MethodCount(); ++j)
                {
                   auto& method = inter.GetMethod(j);
-                  SafeFormat(desc, _TRUNCATE, L"method %s", method.Name());
+                  SafeFormat(desc, _TRUNCATE, "method %s", method.Name());
                   auto methodId = tree.AddChild(interId, desc, CheckState_Clear);
                   AddArguments(method, tree, methodId);
                }
@@ -233,15 +233,15 @@ namespace
             const Sexy::Compiler::INamespace* ns;
             virtual CALLBACK_CONTROL operator()(const Sexy::Compiler::IFactory& f, csexstr alias)
             {
-               if (childFactoryId.value == 0) childFactoryId = tree->AddChild(rootId, L"[Factories]", CheckState_Clear);
+               if (childFactoryId.value == 0) childFactoryId = tree->AddChild(rootId, "[Factories]", CheckState_Clear);
 
                TREE_NODE_ID typeId;
-               wchar_t desc[256];
+               rchar desc[256];
 
-               SafeFormat(desc, _TRUNCATE, L"%s.%s - creates objects of type %s", ns->FullName()->Buffer, alias, f.InterfaceType()->Buffer);
+               SafeFormat(desc, _TRUNCATE, "%s.%s - creates objects of type %s", ns->FullName()->Buffer, alias, f.InterfaceType()->Buffer);
                typeId = tree->AddChild(childFactoryId, desc, CheckState_Clear);
 
-               SafeFormat(desc, _TRUNCATE, L"Defined in %s", f.Constructor().Module().Name());
+               SafeFormat(desc, _TRUNCATE, "Defined in %s", f.Constructor().Module().Name());
                tree->AddChild(typeId, desc, CheckState_Clear);
 
                AddArguments(f.Constructor(), *tree, typeId);
@@ -266,7 +266,7 @@ namespace
       virtual void PopulateAPITree(Visitors::IUITree& tree)
       {
          auto& root = ss->PublicProgramObject().GetRootNamespace();
-         auto nsid = tree.AddRootItem(L"[Namespaces]", CheckState_Clear);
+         auto nsid = tree.AddRootItem("[Namespaces]", CheckState_Clear);
          RecurseNamespaces(root, tree, nsid);
       }
 
@@ -308,12 +308,12 @@ namespace Rococo
 	using namespace Sexy::Sex;
    using namespace Rococo::Visitors;
 
-	void ThrowSex(cr_sex s, const wchar_t* format, ...)
+	void ThrowSex(cr_sex s, cstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 
-		wchar_t msg[512];
+		rchar msg[512];
 		SafeVFormat(msg, _TRUNCATE, format, args);
 
 		auto start = s.Start();
@@ -322,26 +322,26 @@ namespace Rococo
 		SEXCHAR specimen[64];
 		Sexy::Sex::GetSpecimen(specimen, s);
 
-		ParseException ex(start, end, L"ParseException", msg, specimen, &s);
+		ParseException ex(start, end, "ParseException", msg, specimen, &s);
 
 		TripDebugger();
 
 		throw ex;
 	}
 
-	void ValidateArgument(cr_sex s, const wchar_t* arg)
+	void ValidateArgument(cr_sex s, const char* arg)
 	{
 		auto txt = s.String();
 
-		if (!IsAtomic(s) || wcscmp(arg, txt->Buffer) != 0)
+		if (!IsAtomic(s) || strcmp(arg, txt->Buffer) != 0)
 		{
 			if (arg[0] == '\'' && arg[1] == 0)
 			{
-				ThrowSex(s, L"Expecting quote character");
+				ThrowSex(s, "Expecting quote character");
 			}
 			else
 			{
-				ThrowSex(s, L"Expecting atomic argument: '%s'", arg);
+				ThrowSex(s, "Expecting atomic argument: '%s'", arg);
 			}
 		}
 	}
@@ -353,12 +353,12 @@ namespace Rococo
 		float value;
 		if (!IsAtomic(s) || Parse::PARSERESULT_GOOD != Parse::TryParseFloat(value, txt->Buffer))
 		{
-			ThrowSex(s, L"%s: Expecting atomic argument float", hint);
+			ThrowSex(s, "%s: Expecting atomic argument float", hint);
 		}
 
 		if (value < minValue || value > maxValue)
 		{
-			ThrowSex(s, L"%s: Value %g must be in domain [%g,%g]", hint, value, minValue, maxValue);
+			ThrowSex(s, "%s: Value %g must be in domain [%g,%g]", hint, value, minValue, maxValue);
 		}
 
 		return value;
@@ -369,12 +369,12 @@ namespace Rococo
 		int32 value;
 		if (!IsAtomic(s) || Parse::PARSERESULT_GOOD != Parse::TryParseHex(value, s.String()->Buffer))
 		{
-			ThrowSex(s, L"Cannot parse hex colour value");
+			ThrowSex(s, "Cannot parse hex colour value");
 		}
 
 		if (value > 0x00FFFFFF)
 		{
-			ThrowSex(s, L"Expecting hex digits RRGGBB");
+			ThrowSex(s, "Expecting hex digits RRGGBB");
 		}
 
 		int red = (value >> 16) & 0x000000FF;
@@ -386,20 +386,20 @@ namespace Rococo
 
 	Quat GetQuat(cr_sex s)
 	{
-		if (s.NumberOfElements() != 4) Throw(s, L"Expecting quat (Vx Vy Vz S)");
-		float Vx = GetValue(s[0], -1.0e10f, 1e10f, L"Vx component");
-		float Vy = GetValue(s[1], -1.0e10f, 1e10f, L"Vy component");
-		float Vz = GetValue(s[2], -1.0e10f, 1e10f, L"Vz component");
-		float S = GetValue(s[3], -1.0e10f, 1e10f, L"scalar component");
+		if (s.NumberOfElements() != 4) Throw(s, "Expecting quat (Vx Vy Vz S)");
+		float Vx = GetValue(s[0], -1.0e10f, 1e10f, "Vx component");
+		float Vy = GetValue(s[1], -1.0e10f, 1e10f, "Vy component");
+		float Vz = GetValue(s[2], -1.0e10f, 1e10f, "Vz component");
+		float S = GetValue(s[3], -1.0e10f, 1e10f, "scalar component");
 
 		return Quat{ Vec3{ Vx,Vy,Vz }, S };
 	}
 
 	Vec3 GetVec3Value(cr_sex sx, cr_sex sy, cr_sex sz)
 	{
-		float x = GetValue(sx, -1.0e10f, 1e10f, L"x component");
-		float y = GetValue(sy, -1.0e10f, 1e10f, L"y component");
-		float z = GetValue(sz, -1.0e10f, 1e10f, L"z component");
+		float x = GetValue(sx, -1.0e10f, 1e10f, "x component");
+		float y = GetValue(sy, -1.0e10f, 1e10f, "y component");
+		float z = GetValue(sz, -1.0e10f, 1e10f, "z component");
 		return Vec3{ x, y, z };
 	}
 
@@ -410,18 +410,18 @@ namespace Rococo
 		int32 value;
 		if (!IsAtomic(s) || Parse::PARSERESULT_GOOD != Parse::TryParseDecimal(value, txt->Buffer))
 		{
-			ThrowSex(s, L"%s: Expecting atomic argument int32", hint);
+			ThrowSex(s, "%s: Expecting atomic argument int32", hint);
 		}
 
 		if (value < minValue || value > maxValue)
 		{
-			ThrowSex(s, L"%s: Value %d must be in domain [%d,%d]", hint, value, minValue, maxValue);
+			ThrowSex(s, "%s: Value %d must be in domain [%d,%d]", hint, value, minValue, maxValue);
 		}
 
 		return value;
 	}
 
-	void ScanExpression(cr_sex s, const wchar_t* hint, const char* format, ...)
+	void ScanExpression(cr_sex s, cstr hint, const char* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -435,7 +435,7 @@ namespace Rococo
 			{
 				if (elementIndex >= nElements)
 				{
-					ThrowSex(s, L"Too few elements in expression. Format is : %s", hint);
+					ThrowSex(s, "Too few elements in expression. Format is : %s", hint);
 				}
 
 				const ISExpression** ppExpr = va_arg(args, const ISExpression**);
@@ -447,14 +447,14 @@ namespace Rococo
 
 				if (!IsAtomic(child))
 				{
-					ThrowSex(child, L"Expecting atomic element in expression. Format is : %s", hint);
+					ThrowSex(child, "Expecting atomic element in expression. Format is : %s", hint);
 				}
 			}
 			else if (*p == 'c')
 			{
 				if (elementIndex >= nElements)
 				{
-					ThrowSex(s, L"Too few elements in expression. Format is : %s", hint);
+					ThrowSex(s, "Too few elements in expression. Format is : %s", hint);
 				}
 
 				const ISExpression** ppExpr = va_arg(args, const ISExpression**);
@@ -464,7 +464,7 @@ namespace Rococo
 
 				if (!IsCompound(child))
 				{
-					ThrowSex(child, L"Expecting compound element in expression. Format is : %s", hint);
+					ThrowSex(child, "Expecting compound element in expression. Format is : %s", hint);
 				}
 			}
 			else if (*p == ' ')
@@ -473,60 +473,96 @@ namespace Rococo
 			}
 			else
 			{
-				Throw(0, L"Bad format character %c", *p);
+				Throw(0, "Bad format character %c", *p);
 			}
 		}
 	}
 
-	ISourceCode* DuplicateSourceCode(IOS& os, IExpandingBuffer& unicodeBuffer, ISParser& parser, const IBuffer& rawData, const wchar_t* resourcePath)
+	ISourceCode* DuplicateSourceCode(IOS& os, IExpandingBuffer& rbuffer, ISParser& parser, const IBuffer& rawData, cstr resourcePath)
 	{
 		const char* utf8data = (const char*)rawData.GetData();
 		size_t rawLength = rawData.Length();
 
 		if (rawLength < 2)
 		{
-			Throw(0, L"Script file '%s' was too small", resourcePath);
+			Throw(0, "Script file '%s' was too small", resourcePath);
 		}
 
 		if (rawLength % 2 != 0)
 		{
-			unicodeBuffer.Resize(2 * rawLength + 2);
-			os.UTF8ToUnicode(utf8data, (wchar_t*)unicodeBuffer.GetData(), rawLength, rawLength + 1);
-         auto* source = parser.DuplicateSourceBuffer((wchar_t*)unicodeBuffer.GetData(), (int)rawLength, Vec2i{ 1,1 }, resourcePath);
-			return source;
+         size_t charlen = sizeof(rchar);
+         if (charlen == 1)
+         {
+            return parser.DuplicateSourceBuffer((csexstr)rawData.GetData(), (int) rawData.Length(), Vec2i{ 1,1 }, resourcePath);
+         }
+         else
+         {
+            rbuffer.Resize(2 * rawLength + 2);
+            SafeFormat((rchar*)rbuffer.GetData(), rawLength / charlen, _TRUNCATE, charlen == 2 ? "%S" : "%s");
+            auto* source = parser.DuplicateSourceBuffer((csexstr)rbuffer.GetData(), (int)rawLength, Vec2i{ 1,1 }, resourcePath);
+            return source;
+         }
 		}
 
-		wchar_t bom = *(wchar_t*)utf8data;
+		rchar bom = *(rchar*)utf8data;
 
 		if (bom == 0xFEFF)
 		{
-			wchar_t* buf = (wchar_t*)(utf8data + 2);
+			rchar* buf = (rchar*)(utf8data + 2);
 			size_t nChars = rawLength / 2 - 1;
-         return parser.DuplicateSourceBuffer(buf, (int)nChars, Vec2i{ 1,1 }, resourcePath);
+         rbuffer.Resize(nChars+1);
+         size_t charlen = sizeof(rchar);
+         if (charlen == 1)
+         {
+            SafeFormat((rchar*)rbuffer.GetData(), nChars, _TRUNCATE, "%S", (const wchar_t*)buf);
+            return parser.DuplicateSourceBuffer((rchar*)rbuffer.GetData(), (int)nChars, Vec2i{ 1,1 }, resourcePath);
+         }
+         else
+         {
+            return parser.DuplicateSourceBuffer(buf, (int)nChars, Vec2i{ 1,1 }, resourcePath);
+         }
 		}
 		else if (bom == 0xFFFE)
 		{
-			Throw(0, L"Script file '%s' UNICODE was incorrect endian for this OS", resourcePath);
+			Throw(0, "Script file '%s' UNICODE was incorrect endian for this OS", resourcePath);
 			return nullptr;
 		}
 		else if ((bom & 0x00FF) == 0)
 		{
-			wchar_t* buf = (wchar_t*)utf8data;
-			size_t nChars = rawLength / 2;
-			return parser.DuplicateSourceBuffer(buf, (int)nChars, Vec2i{ 1,1 }, resourcePath);
+         rchar* buf = (rchar*)(utf8data);
+         size_t nChars = rawLength / 2;
+         rbuffer.Resize(nChars + 1);
+         size_t charlen = sizeof(rchar);
+         if (charlen == 1)
+         {
+            SafeFormat((rchar*)rbuffer.GetData(), nChars, _TRUNCATE, "%S", (const wchar_t*)buf);
+            return parser.DuplicateSourceBuffer((rchar*)rbuffer.GetData(), (int)nChars, Vec2i{ 1,1 }, resourcePath);
+         }
+         else
+         {
+            return parser.DuplicateSourceBuffer(buf, (int)nChars, Vec2i{ 1,1 }, resourcePath);
+         }
 		}
-		else
+		else // src is ascii
 		{
-			unicodeBuffer.Resize(2 * rawLength + 2);
-			os.UTF8ToUnicode(utf8data, (wchar_t*)unicodeBuffer.GetData(), rawLength, rawLength + 1);
-			auto* source = parser.DuplicateSourceBuffer((wchar_t*)unicodeBuffer.GetData(), (int)rawLength, Vec2i{ 1,1 }, resourcePath);
-			return source;
+         size_t charlen = sizeof(rchar);
+         if (charlen == 1)
+         {
+            return parser.DuplicateSourceBuffer((csexstr)rawData.GetData(), (int)rawData.Length(), Vec2i{ 1,1 }, resourcePath);
+         }
+         else
+         {
+            rbuffer.Resize(2 * rawLength + 2);
+            SafeFormat((rchar*)rbuffer.GetData(), rawLength / charlen, _TRUNCATE, charlen == 2 ? "%S" : "%s");
+            auto* source = parser.DuplicateSourceBuffer((csexstr)rbuffer.GetData(), (int)rawLength, Vec2i{ 1,1 }, resourcePath);
+            return source;
+         }
 		}
 	}
 
 	fstring GetAtomicArg(cr_sex s)
 	{
-		if (!IsAtomic(s)) ThrowSex(s, L"Expecting atomic argument");
+		if (!IsAtomic(s)) ThrowSex(s, "Expecting atomic argument");
 		auto st = s.String();
 		return fstring{ st->Buffer, st->Length };
 	}
@@ -569,24 +605,24 @@ namespace Rococo
       Vec2i a = ex.Start();
       Vec2i b = ex.End();
 
-      debugger.AddLogSection(RGBAb(128, 0, 0), L"ParseException\n");
-      debugger.AddLogSection(RGBAb(64, 64, 64), L" Name: ");
-      debugger.AddLogSection(RGBAb(0, 0, 128), L"%s\n", ex.Name());
+      debugger.AddLogSection(RGBAb(128, 0, 0), "ParseException\n");
+      debugger.AddLogSection(RGBAb(64, 64, 64), " Name: ");
+      debugger.AddLogSection(RGBAb(0, 0, 128), "%s\n", ex.Name());
 
-      debugger.AddLogSection(RGBAb(64, 64, 64), L" Message: ");
-      debugger.AddLogSection(RGBAb(0, 0, 128), L"%s\n", ex.Message());
+      debugger.AddLogSection(RGBAb(64, 64, 64), " Message: ");
+      debugger.AddLogSection(RGBAb(0, 0, 128), "%s\n", ex.Message());
 
-      debugger.AddLogSection(RGBAb(64, 64, 64), L" Specimen: (");
-      debugger.AddLogSection(RGBAb(0, 0, 128), L"%d", a.x);
-      debugger.AddLogSection(RGBAb(64, 64, 64), L",");
-      debugger.AddLogSection(RGBAb(0, 0, 128), L"%d", a.y);
-      debugger.AddLogSection(RGBAb(64, 64, 64), L") to (");
-      debugger.AddLogSection(RGBAb(0, 0, 128), L"%d", b.x);
-      debugger.AddLogSection(RGBAb(64, 64, 64), L",");
-      debugger.AddLogSection(RGBAb(0, 0, 128), L"%d", b.y);
-      debugger.AddLogSection(RGBAb(64, 64, 64), L")\n");
+      debugger.AddLogSection(RGBAb(64, 64, 64), " Specimen: (");
+      debugger.AddLogSection(RGBAb(0, 0, 128), "%d", a.x);
+      debugger.AddLogSection(RGBAb(64, 64, 64), ",");
+      debugger.AddLogSection(RGBAb(0, 0, 128), "%d", a.y);
+      debugger.AddLogSection(RGBAb(64, 64, 64), ") to (");
+      debugger.AddLogSection(RGBAb(0, 0, 128), "%d", b.x);
+      debugger.AddLogSection(RGBAb(64, 64, 64), ",");
+      debugger.AddLogSection(RGBAb(0, 0, 128), "%d", b.y);
+      debugger.AddLogSection(RGBAb(64, 64, 64), ")\n");
 
-      debugger.AddLogSection(RGBAb(0, 127, 0), L"%s\n", ex.Specimen());
+      debugger.AddLogSection(RGBAb(0, 127, 0), "%s\n", ex.Specimen());
 
       a = a - Vec2i{ 1, 0 };
       b = b - Vec2i{ 1, 0 };
@@ -627,7 +663,7 @@ namespace Rococo
 			ISParserTree* tree;
 			ISourceCode* code;
 		};
-		std::unordered_map<std::wstring, Binding> sources;
+		std::unordered_map<std::string, Binding> sources;
 		AutoFree<IExpandingBuffer> fileBuffer;
 		AutoFree<IExpandingBuffer> unicodeBuffer;
 		Sexy::Sex::CSParserProxy spp;
@@ -655,7 +691,7 @@ namespace Rococo
 			delete this;
 		}
 
-		virtual ISParserTree* GetSource(const wchar_t* resourceName)
+		virtual ISParserTree* GetSource(cstr resourceName)
 		{
 			auto i = sources.find(resourceName);
 			if (i != sources.end())
@@ -685,7 +721,7 @@ namespace Rococo
 			return tree;
 		}
 
-		virtual void Release(const wchar_t* resourceName)
+		virtual void Release(cstr resourceName)
 		{
 			auto i = sources.find(resourceName);
 			if (i != sources.end())
@@ -727,8 +763,8 @@ namespace Rococo
                return;
             }
             
-            wchar_t desc[256];
-            SafeFormat(desc, _TRUNCATE, L"%p %s - %s", sf, f->Module().Name(), f->Name());
+            rchar desc[256];
+            SafeFormat(desc, _TRUNCATE, "%p %s - %s", sf, f->Module().Name(), f->Name());
 
             auto sfNode = tree.AddRootItem(desc, CheckState_Clear);
             tree.SetId(sfNode, depth + 1);
@@ -739,14 +775,14 @@ namespace Rococo
             {
                virtual void OnVariable(size_t index, const VariableDesc& v)
                {
-                  wchar_t desc[256];
+                  rchar desc[256];
                   if (v.Value[0] != 0)
                   {
-                     SafeFormat(desc, _TRUNCATE, L"%p %S: %S %S = %S", v.Address + SF, v.Location, v.Type, v.Name, v.Value);
+                     SafeFormat(desc, _TRUNCATE, "%p %s: %s %s = %s", v.Address + SF, v.Location, v.Type, v.Name, v.Value);
                   }
                   else
                   {
-                     SafeFormat(desc, _TRUNCATE, L"%p %S: %S %S", v.Address + SF, v.Location, v.Type, v.Name);
+                     SafeFormat(desc, _TRUNCATE, "%p %s: %s %s", v.Address + SF, v.Location, v.Type, v.Name);
                   }
                   auto node = tree->AddChild(sfNode, desc, CheckState_NoCheckBox);
                   tree->SetId(node, depth+1);
@@ -805,11 +841,11 @@ namespace Rococo
 			{
 				if (count < maxCount)
 				{
-					wchar_t wname[128], wvalue[128];
-					SafeFormat(wname, _TRUNCATE, L"%S", name);
-					SafeFormat(wvalue, _TRUNCATE, L"%S", value);
+					rchar wname[128], wvalue[128];
+					SafeFormat(wname, _TRUNCATE, "%s", name);
+					SafeFormat(wvalue, _TRUNCATE, "%s", value);
 
-					const wchar_t* row[] = { wname, wvalue, nullptr };
+					cstr row[] = { wname, wvalue, nullptr };
 					uiList->AddRow(row);
 				}
 
@@ -859,8 +895,8 @@ namespace Rococo
       
       debugger.InitDisassembly(section.Id);
 
-		wchar_t metaData[256];
-		SafeFormat(metaData, _TRUNCATE, L"%s %s (Id #%d) - %d bytes\n\n", f->Name(), f->Module().Name(), (int32)section.Id, (int32)functionLength);
+		rchar metaData[256];
+		SafeFormat(metaData, _TRUNCATE, "%s %s (Id #%d) - %d bytes\n\n", f->Name(), f->Module().Name(), (int32)section.Id, (int32)functionLength);
 		debugger.AddDisassembly(RGBAb(128,128,0), metaData);
 
 		int lineCount = 1;
@@ -881,41 +917,41 @@ namespace Rococo
 				*ppExpr = (const ISExpression*)symbol.SourceExpression;
 			}
 
-			wchar_t assemblyLine[256];
+			rchar assemblyLine[256];
 			
          if (isHighlight)
          {
-            debugger.AddDisassembly(RGBAb(128,0,0), L"*", RGBAb(255, 255, 255), true);
-            SafeFormat(assemblyLine, _TRUNCATE, L"%p", fstart + i);
+            debugger.AddDisassembly(RGBAb(128,0,0), "*", RGBAb(255, 255, 255), true);
+            SafeFormat(assemblyLine, _TRUNCATE, "%p", fstart + i);
             debugger.AddDisassembly(RGBAb(255, 255, 255), assemblyLine, RGBAb(0, 0, 255));
-            SafeFormat(assemblyLine, _TRUNCATE, L" %s %s ", rep.OpcodeText, rep.ArgText);
+            SafeFormat(assemblyLine, _TRUNCATE, " %s %s ", rep.OpcodeText, rep.ArgText);
             debugger.AddDisassembly(RGBAb(255, 255, 255), assemblyLine, RGBAb(0, 0, 255));
 
             if (symbol.Text[0] != 0)
             {
-               SafeFormat(assemblyLine, _TRUNCATE, L"// %s", symbol.Text);
+               SafeFormat(assemblyLine, _TRUNCATE, "// %s", symbol.Text);
                debugger.AddDisassembly(RGBAb(32, 128, 0), assemblyLine);
             }
          }
          else
          {
-            SafeFormat(assemblyLine, _TRUNCATE, L" %p", fstart + i);
+            SafeFormat(assemblyLine, _TRUNCATE, " %p", fstart + i);
             debugger.AddDisassembly(RGBAb(0, 0, 0), assemblyLine);
-            SafeFormat(assemblyLine, _TRUNCATE, L" %s %s ", rep.OpcodeText, rep.ArgText);
+            SafeFormat(assemblyLine, _TRUNCATE, " %s %s ", rep.OpcodeText, rep.ArgText);
             debugger.AddDisassembly(RGBAb(128, 0, 0), assemblyLine);
 
             if (symbol.Text[0] != 0)
             {
-               SafeFormat(assemblyLine, _TRUNCATE, L"// %s", symbol.Text);
+               SafeFormat(assemblyLine, _TRUNCATE, "// %s", symbol.Text);
                debugger.AddDisassembly(RGBAb(0, 128, 0), assemblyLine);
             }
          }
 
-         debugger.AddDisassembly(RGBAb(0, 0, 0), L"\n");
+         debugger.AddDisassembly(RGBAb(0, 0, 0), "\n");
 
 			if (rep.ByteCount == 0)
 			{
-				debugger.AddDisassembly(RGBAb(128,0,0), L"Bad disassembly");
+				debugger.AddDisassembly(RGBAb(128,0,0), "Bad disassembly");
 				break;
 			}
 
@@ -981,7 +1017,7 @@ namespace Rococo
                   auto origin =  sexpr->Tree().Source().Origin();
                   auto p0 = sexpr->Start() - Vec2i{ 1,0 };
                   auto p1 = sexpr->End() - Vec2i{ 1,0 };
-                  debugger.SetCodeHilight(sexpr->Tree().Source().Name(), p0, p1, L"!");
+                  debugger.SetCodeHilight(sexpr->Tree().Source().Name(), p0, p1, "!");
                }
             }
 
@@ -1013,7 +1049,7 @@ namespace Rococo
 		{
 			ss.PublicProgramObject().Log().Write(ex.Message());
          UpdateDebugger(ss, debugger, 0, true);
-			Throw(ex.ErrorCode(), L"%s", ex.Message());
+			Throw(ex.ErrorCode(), "%s", ex.Message());
 			return EXECUTERESULT_SEH;
 		}
 	}
@@ -1031,11 +1067,11 @@ namespace Rococo
 				cr_sex squot = sincludeExpr[0];
 				cr_sex stype = sincludeExpr[1];
 
-				if (squot == L"'" && stype == L"#include")
+				if (squot == "'" && stype == "#include")
 				{
 					if (hasIncludedFiles)
 					{
-						Throw(sincludeExpr, L"An include directive is already been stated. Merge directives.");
+						Throw(sincludeExpr, "An include directive is already been stated. Merge directives.");
 					}
 
 					hasIncludedFiles = true;
@@ -1045,7 +1081,7 @@ namespace Rococo
 						cr_sex sname = sincludeExpr[j];
 						if (!IsStringLiteral(sname))
 						{
-							Throw(sname, L"expecting string literal in include directive (' #include \"<name1>\" \"<name2 etc>\" ...) ");
+							Throw(sname, "expecting string literal in include directive (' #include \"<name1>\" \"<name2 etc>\" ...) ");
 						}
 
 						auto name = sname.String();
@@ -1054,11 +1090,11 @@ namespace Rococo
 						ss.AddTree(*includedModule);
 					}
 				}
-				else if (squot == L"'" && stype == L"#natives")
+				else if (squot == "'" && stype == "#natives")
 				{
 					if (hasIncludedNatives)
 					{
-						Throw(sincludeExpr, L"A natives directive is already been stated. Merge directives.");
+						Throw(sincludeExpr, "A natives directive is already been stated. Merge directives.");
 					}
 
 					hasIncludedNatives = true;
@@ -1068,7 +1104,7 @@ namespace Rococo
 						cr_sex sname = sincludeExpr[j];
 						if (!IsStringLiteral(sname))
 						{
-							Throw(sname, L"expecting string literal in natives directive (' #natives \"<name1>\" \"<name2 etc>\" ...) ");
+							Throw(sname, "expecting string literal in natives directive (' #natives \"<name1>\" \"<name2 etc>\" ...) ");
 						}
 
 						auto name = sname.String();
@@ -1120,37 +1156,37 @@ namespace Rococo
 		{
 		case EXECUTERESULT_BREAKPOINT:
          UpdateDebugger(ss, debugger, 0, true);
-			Throw(0, L"Script hit breakpoint");
+			Throw(0, "Script hit breakpoint");
 			break;
 		case EXECUTERESULT_ILLEGAL:
          UpdateDebugger(ss, debugger, 0, true);
-			Throw(0, L"Script did something bad.");
+			Throw(0, "Script did something bad.");
 			break;
 		case EXECUTERESULT_NO_ENTRY_POINT:
-			Throw(0, L"No entry point");
+			Throw(0, "No entry point");
 			break;
 		case EXECUTERESULT_NO_PROGRAM:
-			Throw(0, L"No program");
+			Throw(0, "No program");
 			break;
 		case EXECUTERESULT_RETURNED:
-			Throw(0, L"Unexpected EXECUTERESULT_RETURNED");
+			Throw(0, "Unexpected EXECUTERESULT_RETURNED");
 			break;
 		case EXECUTERESULT_SEH:
          UpdateDebugger(ss, debugger, 0, true);
-			Throw(0, L"The script triggered a structured exception handler");
+			Throw(0, "The script triggered a structured exception handler");
 			break;
 		case EXECUTERESULT_THROWN:
          UpdateDebugger(ss, debugger, 0, true);
-			Throw(0, L"The script triggered a virtual machine exception");
+			Throw(0, "The script triggered a virtual machine exception");
 			break;
 		case EXECUTERESULT_YIELDED:
          UpdateDebugger(ss, debugger, 0, true);
-			Throw(0, L"The script yielded");
+			Throw(0, "The script yielded");
 			break;
 		case EXECUTERESULT_TERMINATED:
 			break;
 		default:
-         Rococo::Throw(0, L"Unexpected EXECUTERESULT %d", result);
+         Rococo::Throw(0, "Unexpected EXECUTERESULT %d", result);
 			break;
 		}
 	}
@@ -1191,13 +1227,13 @@ namespace Rococo
 		args.PopOutputs(argStack);
 	};
 
-	void ExecuteFunction(const wchar_t* name, IArgEnumerator& args, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
+	void ExecuteFunction(cstr name, IArgEnumerator& args, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
 	{
 		auto& module = ss.PublicProgramObject().GetModule(ss.PublicProgramObject().ModuleCount() - 1);
 		auto f = module.FindFunction(name);
 		if (f == nullptr)
 		{
-			Throw(0, L"Cannot find function <%s> in <%s>", name, module.Name());
+			Throw(0, "Cannot find function <%s> in <%s>", name, module.Name());
 		}
 
 		ss.PublicProgramObject().SetProgramAndEntryPoint(*f);
@@ -1244,13 +1280,13 @@ namespace Rococo
 		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
 		if (ns == nullptr)
 		{
-			Throw(0, L"Cannot find (namespace EntryPoint) in %s", mainModule.Source().Name());
+			Throw(0, "Cannot find (namespace EntryPoint) in %s", mainModule.Source().Name());
 		}
 
-		const IFunction* f = ns->FindFunction(L"Main");
+		const IFunction* f = ns->FindFunction("Main");
 		if (f == nullptr)
 		{
-			Throw(0, L"Cannot find function EntryPoint.Main in %s", mainModule.Source().Name());
+			Throw(0, "Cannot find function EntryPoint.Main in %s", mainModule.Source().Name());
 		}
 
 		ss.PublicProgramObject().SetProgramAndEntryPoint(*f);

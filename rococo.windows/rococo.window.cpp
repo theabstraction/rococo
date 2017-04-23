@@ -12,7 +12,7 @@
 
 
 #include <malloc.h>
-#include <wchar.h>
+#include <stdio.h>
 #include <vector>
 #include <unordered_map>
 #include <string>
@@ -81,60 +81,60 @@ namespace Rococo
          return s_null;
       }
 
-      bool OpenChooseFontBox(HWND hParent, LOGFONT& output)
+      bool OpenChooseFontBox(HWND hParent, LOGFONTA& output)
       {
-         CHOOSEFONTW font = { 0 };
+         CHOOSEFONTA font = { 0 };
          font.lStructSize = sizeof(font);
          font.hInstance = hThisInstance;
          font.hwndOwner = hParent;
          
-         LOGFONT f = { 0 };
-         SafeCopy(f.lfFaceName, L"Courier New", _TRUNCATE);
+         LOGFONTA f = { 0 };
+         SafeCopy(f.lfFaceName, "Courier New", _TRUNCATE);
 
          font.lpLogFont = &f;
          font.Flags = CF_FIXEDPITCHONLY | CF_FORCEFONTEXIST | CF_INITTOLOGFONTSTRUCT;
          
-         if (ChooseFontW(&font))
+         if (ChooseFontA(&font))
          {
             output = f;
             return true;
          }
          else
          {
-            output = LOGFONT{ 0 };
+            output = LOGFONTA{ 0 };
             return false;
          }
       }
 
-		void InitRococoWindows(HINSTANCE _hInstance, HICON _hLargeIcon, HICON _hSmallIcon, const LOGFONTW* titleFont, const LOGFONTW* controlFont)
+		void InitRococoWindows(HINSTANCE _hInstance, HICON _hLargeIcon, HICON _hSmallIcon, const LOGFONTA* titleFont, const LOGFONTA* controlFont)
 		{
 			if (_hInstance == nullptr)
 			{
-				Throw(0, L"Rococo::Windows::InitRococoWindows(...): _hInstance was null");
+				Throw(0, "Rococo::Windows::InitRococoWindows(...): _hInstance was nul");
 			}
 
 			hThisInstance = _hInstance;
 			hLargeIcon = _hLargeIcon;
 			hSmallIcon = _hSmallIcon;
 
-			LOGFONT defaultTitleFont = { 0 };
-			SecureCopy(defaultTitleFont.lfFaceName, L"Courier New");
+			LOGFONTA defaultTitleFont = { 0 };
+			SecureCopy(defaultTitleFont.lfFaceName, "Courier New");
 			defaultTitleFont.lfHeight = -11;
 
-			hTitleFont = CreateFontIndirect(titleFont ? titleFont : & defaultTitleFont);
+			hTitleFont = CreateFontIndirectA(titleFont ? titleFont : & defaultTitleFont);
 			if (hTitleFont == nullptr)
 			{
-				Throw(GetLastError(), L"Rococo::Windows::InitRococoWindows(...): CreateFontIndirect(&titlefont) returned null");
+				Throw(GetLastError(), "Rococo::Windows::InitRococoWindows(...): CreateFontIndirect(&titlefont) returned nul");
 			}
 
-			LOGFONT defaultControlFont = { 0 };
-			SecureCopy(defaultControlFont.lfFaceName, L"Courier New");
+			LOGFONTA defaultControlFont = { 0 };
+			SecureCopy(defaultControlFont.lfFaceName, "Courier New");
 			defaultControlFont.lfHeight = -11;
 
-			hControlFont = CreateFontIndirect(controlFont ? controlFont : &defaultControlFont);
+			hControlFont = CreateFontIndirectA(controlFont ? controlFont : &defaultControlFont);
 			if (hControlFont == nullptr)
 			{
-				Throw(GetLastError(), L"Rococo::Windows::InitRococoWindows(...): CreateFontIndirect(&controlFont) returned null");
+				Throw(GetLastError(), "Rococo::Windows::InitRococoWindows(...): CreateFontIndirect(&controlFont) returned nul");
 			}
 
          BOOL isTrue = TRUE, isFalse = FALSE;
@@ -150,7 +150,7 @@ namespace Rococo
 		{
 			if (hThisInstance == nullptr)
 			{
-				Throw(0, L"Rococo::Windows::InitRococoWindows(...) should first be called before using functions in the Rococo.windows library.");
+				Throw(0, "Rococo::Windows::InitRococoWindows(...) should first be called before using functions in the Rococo.windows library.");
 			}
 		}
 
@@ -168,7 +168,7 @@ namespace Rococo
 			return FromRECT(rect);
 		}
 
-		void SetChildWindowConfig(WindowConfig& config, const GuiRect& rect, HWND hWndParent, LPCWSTR name, DWORD style, DWORD exStyle)
+		void SetChildWindowConfig(WindowConfig& config, const GuiRect& rect, HWND hWndParent, cstr name, DWORD style, DWORD exStyle)
 		{
 			config.style = style | WS_CHILD | WS_VISIBLE;
 			config.exStyle = exStyle;
@@ -181,7 +181,7 @@ namespace Rococo
 			config.windowName = name;
 		}
 
-		void SetPopupWindowConfig(WindowConfig& config, const GuiRect& rect, HWND hWndParent, LPCWSTR name, DWORD style, DWORD exStyle, HMENU hPopupMenu)
+		void SetPopupWindowConfig(WindowConfig& config, const GuiRect& rect, HWND hWndParent, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu)
 		{
 			config.style = style | WS_POPUP;
 			config.exStyle = exStyle;
@@ -194,7 +194,7 @@ namespace Rococo
 			config.windowName = name;
 		}
 
-		void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& span, int32 showWindowCommand, HWND hWndOwner, LPCWSTR name, DWORD style, DWORD exStyle, HMENU hPopupMenu)
+		void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& span, int32 showWindowCommand, HWND hWndOwner, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu)
 		{
 			config.style = style | WS_OVERLAPPED;
 			config.exStyle = exStyle;
@@ -207,7 +207,7 @@ namespace Rococo
 			config.windowName = name;
 		}
 
-		void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& topLeft, const Vec2i& span, HWND hWndOwner, LPCWSTR name, DWORD style, DWORD exStyle, HMENU hPopupMenu)
+		void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& topLeft, const Vec2i& span, HWND hWndOwner, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu)
 		{
 			config.style = style | WS_OVERLAPPED;
 			config.exStyle = exStyle;
@@ -250,19 +250,19 @@ namespace
 
 			local.hWnd = hWnd;
 
-			ShowErrorBox(local, ex, L"Rococo Window Exception!");
+			ShowErrorBox(local, ex, "Rococo Window Exception!");
 			PostQuitMessage(ex.ErrorCode());
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
 	}
 
-	LPCWSTR customClassName = L"Rococo_WINDOW";
+	cstr customClassName = "Rococo_WINDOW";
 
 	ATOM CreateCustomAtom()
 	{
 		ValidateInit();
 
-		WNDCLASSEX classDef = { 0 };
+		WNDCLASSEXA classDef = { 0 };
 		classDef.cbSize = sizeof(classDef);
 		classDef.style = 0;
 		classDef.cbWndExtra = 0;
@@ -273,9 +273,9 @@ namespace
 		classDef.hInstance = hThisInstance;
 		classDef.lpszClassName = customClassName;
 		classDef.lpszMenuName = NULL;
-		classDef.lpfnWndProc = DefWindowProc; // DefCustomWindowProc;
+		classDef.lpfnWndProc = DefWindowProcA; // DefCustomWindowProc;
 
-		return RegisterClassExW(&classDef);
+		return RegisterClassExA(&classDef);
 	}
 
 	typedef std::vector<IWindowSupervisor*> TWindows;
@@ -324,17 +324,17 @@ namespace Rococo
 {
 	namespace Windows
 	{
-		HWND CreateWindowIndirect(LPCWSTR className, const WindowConfig& c, IWindowHandler* _handler)
+		HWND CreateWindowIndirect(cstr className, const WindowConfig& c, IWindowHandler* _handler)
 		{
 			ValidateInit();
 
-			HWND hWnd = CreateWindowExW(c.exStyle, className, c.windowName, c.style, c.left, c.top, c.width, c.height, c.hWndParent, c.hMenu, hThisInstance, _handler);
+			HWND hWnd = CreateWindowExA(c.exStyle, className, c.windowName, c.style, c.left, c.top, c.width, c.height, c.hWndParent, c.hMenu, hThisInstance, _handler);
 			if (hWnd == nullptr)
 			{
-				Throw(GetLastError(), L"Rococo::CreateWindowIndirect(...): CreateWindowExW failed");
+				Throw(GetLastError(), "Rococo::CreateWindowIndirect(...): CreateWindowExW failed");
 			}
 
-			if (className == (LPCWSTR)customAtom || className == customClassName)
+			if (className == (cstr)customAtom || className == customClassName)
 			{
 				SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)(VOID*)DefCustomWindowProc);
 				SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) static_cast<IWindowHandler*>(_handler));
@@ -400,7 +400,7 @@ namespace Rococo
 			return window.BlockModal(*this, hWndOwner, wiredHandler);
 		}
 
-		IButton* AddPushButton(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD styleEx)
+		IButton* AddPushButton(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx)
 		{
 			DWORD trueStyle = style == 0 ? BS_PUSHBUTTON : style;
 			WindowConfig childConfig;
@@ -410,7 +410,7 @@ namespace Rococo
 			return button;
 		}
 
-		ICheckbox* AddCheckBox(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD styleEx)
+		ICheckbox* AddCheckBox(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx)
 		{
 			DWORD trueStyle = style == 0 ? BS_CHECKBOX : style;
 			WindowConfig childConfig;
@@ -420,14 +420,14 @@ namespace Rococo
 			return button;
 		}
 
-		IWindowSupervisor* AddLabel(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD styleEx)
+		IWindowSupervisor* AddLabel(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx)
 		{
 			WindowConfig childConfig;
 			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, styleEx);
-			return parent.AddChild(childConfig, L"STATIC", id);
+			return parent.AddChild(childConfig, "STATIC", id);
 		}
 
-		ITabControl* AddTabs(IWindow& parent, const GuiRect& rect, LPCWSTR name, ControlId id, ITabControlEvents& eventHandler, DWORD style, DWORD styleEx)
+		ITabControl* AddTabs(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, ITabControlEvents& eventHandler, DWORD style, DWORD styleEx)
 		{
 			WindowConfig childConfig;
 			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, styleEx);
@@ -435,14 +435,14 @@ namespace Rococo
 			return t;
 		}
 
-		IWindowSupervisor* AddEditor(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD styleEx)
+		IWindowSupervisor* AddEditor(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx)
 		{
 			WindowConfig childConfig;
 			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, styleEx);
-			return parent.AddChild(childConfig, L"EDIT", id);
+			return parent.AddChild(childConfig, "EDIT", id);
 		}
 
-		ITreeControlSupervisor* AddTree(IWindow& parent, const GuiRect& rect, LPCWSTR name, ControlId id, ITreeControlHandler& eventHandler, DWORD style, DWORD styleEx)
+		ITreeControlSupervisor* AddTree(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, ITreeControlHandler& eventHandler, DWORD style, DWORD styleEx)
 		{
 			WindowConfig childConfig;
 			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, styleEx);
@@ -450,7 +450,7 @@ namespace Rococo
 			return t;
 		}
 
-		IListViewSupervisor* AddListView(IWindow& parent, const GuiRect& rect, LPCWSTR name, IListViewEvents& eventHandler, DWORD style, DWORD containerStyle, DWORD containerStyleEx)
+		IListViewSupervisor* AddListView(IWindow& parent, const GuiRect& rect, cstr name, IListViewEvents& eventHandler, DWORD style, DWORD containerStyle, DWORD containerStyleEx)
 		{
 			WindowConfig childConfig;
 			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, containerStyleEx);
@@ -458,16 +458,16 @@ namespace Rococo
 			return t;
 		}
 
-		IRichEditor* AddRichEditor(IWindow& parent, const GuiRect& rect, LPCWSTR name, ControlId id, IRichEditorEvents& eventHandler, DWORD style, DWORD styleEx)
+		IRichEditor* AddRichEditor(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, IRichEditorEvents& eventHandler, DWORD style, DWORD styleEx)
 		{
 			if (hRichEditor == nullptr)
 			{
-				hRichEditor = LoadLibrary(L"Riched20.dll");
+				hRichEditor = LoadLibraryA("Riched20.dll");
 			}
 
 			if (hRichEditor == nullptr)
 			{
-				Throw(GetLastError(), L"Error loading Riched20.dll");
+				Throw(GetLastError(), "Error loading Riched20.dll");
 			}
 
 			WindowConfig childConfig;
@@ -477,7 +477,7 @@ namespace Rococo
 			return editor;
 		}
 
-		IListWindowSupervisor* AddListbox(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, IListItemHandler& listRenderer, DWORD style, DWORD containerStyle, DWORD containerStyleEx)
+		IListWindowSupervisor* AddListbox(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, IListItemHandler& listRenderer, DWORD style, DWORD containerStyle, DWORD containerStyleEx)
 		{
 			WindowConfig config;
 			Windows::SetChildWindowConfig(config, rect, parent, name, style, 0);
@@ -485,7 +485,7 @@ namespace Rococo
 			return w;
 		}
 
-		IComboBoxSupervisor* AddComboBox(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD containerStyle, DWORD containerStyleEx)
+		IComboBoxSupervisor* AddComboBox(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD containerStyle, DWORD containerStyleEx)
 		{
 			WindowConfig config;
 			Windows::SetChildWindowConfig(config, rect, parent, name, style, 0);
@@ -493,7 +493,7 @@ namespace Rococo
 			return w;
 		}
 
-		ITrackBarSupervisor* AddTrackbar(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD styleEx, ITrackBarHandler& handler)
+		ITrackBarSupervisor* AddTrackbar(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx, ITrackBarHandler& handler)
 		{
 			WindowConfig config;
 			Windows::SetChildWindowConfig(config, rect, parent, name, style, styleEx);
@@ -501,17 +501,17 @@ namespace Rococo
 			return w;
 		}
 
-		void SetText(HWND hWnd, size_t capacity, const wchar_t* format, ...)
+		void SetText(HWND hWnd, size_t capacity, cstr format, ...)
 		{
-			if (hWnd == nullptr) Throw(0, L"SetText failed. hWnd was null.");
+			if (hWnd == nullptr) Throw(0, "SetText failed. hWnd was null.");
 
 			va_list args;
 			va_start(args, format);
 
-			wchar_t* text = (wchar_t*)_malloca(capacity * sizeof(wchar_t));
+			rchar* text = (rchar*)_malloca(capacity * sizeof(rchar));
 			SafeVFormat(text, capacity, _TRUNCATE, format, args);
 
-			SetWindowTextW(hWnd, text);
+			SetWindowTextA(hWnd, text);
 
 			_freea(text);
 		}
@@ -520,14 +520,14 @@ namespace Rococo
 		{
 			if (hWnd == nullptr)
 			{
-				Throw(0, L"SetDlgCtrlID: The window handle was null");
+				Throw(0, "SetDlgCtrlID: The window handle was nul");
 			}
 			SetWindowLongPtr(hWnd, GWLP_ID, static_cast<LONG_PTR>(static_cast<DWORD_PTR>(id)));
 		}
 
-		bool ModalQuery(HWND hWnd, LPCWSTR caption, LPCWSTR question)
+		bool ModalQuery(HWND hWnd, cstr caption, cstr question)
 		{
-			return MessageBox(hWnd, question, caption, MB_ICONQUESTION | MB_YESNO) == IDYES;
+			return MessageBoxA(hWnd, question, caption, MB_ICONQUESTION | MB_YESNO) == IDYES;
 		}
 
 		void StandardWindowHandler::OnDestroy(HWND hWnd)

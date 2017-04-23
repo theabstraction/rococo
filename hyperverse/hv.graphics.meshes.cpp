@@ -11,8 +11,8 @@ namespace
 
    struct MeshBuilder : public HV::Graphics::IMeshBuilderSupervisor
    {
-      std::unordered_map<std::wstring, ID_SYS_MESH> meshes;
-      wchar_t name[Strings::MAX_FQ_NAME_LEN + 1];
+      std::unordered_map<std::string, ID_SYS_MESH> meshes;
+      rchar name[Strings::MAX_FQ_NAME_LEN + 1];
       std::vector<Vertex> vertices;
       IRenderer& renderer;
 
@@ -35,7 +35,7 @@ namespace
       {
          if (*name != 0)
          {
-            Throw(0, L"Call MeshBuilder.End() first");
+            Throw(0, "Call MeshBuilder.End() first");
          }
          Strings::ValidateFQNameIdentifier(fqName);
          SafeCopy(name, fqName, _TRUNCATE);
@@ -43,7 +43,7 @@ namespace
 
       virtual void AddTriangle(const Vertex& a, const Vertex& b, const Vertex& c)
       {
-         if (*name == 0) Throw(0, L"Call MeshBuilder.Begin() first");
+         if (*name == 0) Throw(0, "Call MeshBuilder.Begin() first");
          vertices.push_back(a);
          vertices.push_back(b);
          vertices.push_back(c);
@@ -70,7 +70,7 @@ namespace
          Clear();
       }
 
-      virtual bool TryGetByName(const wchar_t* name, ID_SYS_MESH& id)
+      virtual bool TryGetByName(cstr name, ID_SYS_MESH& id)
       {
          auto i = meshes.find(name);
          if (i == meshes.end())

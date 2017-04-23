@@ -1,8 +1,8 @@
 #ifndef Rococo_Strings_H
 #define Rococo_Strings_H
 
+#ifdef SEXCHAR_IS_WIDE
 #include <wchar.h>
-
 #define SecureFormat swprintf_s // Needs include <wchar.h>. If the output buffer is exhausted it will throw an exception
 #define SafeFormat _snwprintf_s // Needs include <wchar.h>. With _TRUNCATE in the MaxCount position, it will truncate buffer overruns, rather than throw
 #define SafeVFormat _vsnwprintf_s // Needs include <wchar.h>. With _TRUNCATE in the MaxCount position, it will truncate buffer overruns, rather than throw
@@ -10,13 +10,24 @@
 #define SafeCopy wcsncpy_s // Needs include <wchar.h>. With _TRUNCATE in the MaxCount position, it will truncate buffer overruns, rather than throw
 #define SecureCat wcscat_s // Needs include <wchar.h>.  If the output buffer is exhausted it will throw an exception
 #define SafeCat wcsncat_s // Needs include <wchar.h>.  With _TRUNCATE in the MaxCount position, it will truncate buffer overruns, rather than throw
+#else
+#include <stdio.h>
+#include <string.h>
+#define SecureFormat sprintf_s // Needs include <wchar.h>. If the output buffer is exhausted it will throw an exception
+#define SafeFormat _snprintf_s // Needs include <wchar.h>. With _TRUNCATE in the MaxCount position, it will truncate buffer overruns, rather than throw
+#define SafeVFormat _vsnprintf_s // Needs include <wchar.h>. With _TRUNCATE in the MaxCount position, it will truncate buffer overruns, rather than throw
+#define SecureCopy strcpy_s // Needs include <wchar.h>. If the output buffer is exhausted it will throw an exception
+#define SafeCopy strncpy_s // Needs include <wchar.h>. With _TRUNCATE in the MaxCount position, it will truncate buffer overruns, rather than throw
+#define SecureCat strcat_s // Needs include <wchar.h>.  If the output buffer is exhausted it will throw an exception
+#define SafeCat strncat_s // Needs include <wchar.h>.  With _TRUNCATE in the MaxCount position, it will truncate buffer overruns, rather than throw
+#endif
 
 namespace Rococo
 {
 	ROCOCOAPI IStringBuilder
 	{
-		virtual int AppendFormat(const wchar_t* format, ...) = 0;
-		virtual operator const wchar_t* () const = 0;
+		virtual int AppendFormat(cstr format, ...) = 0;
+		virtual operator cstr () const = 0;
 		virtual void Free() = 0;
 	};
 
@@ -24,7 +35,7 @@ namespace Rococo
 
 	struct IStringBuffer
 	{
-		virtual wchar_t* GetBufferStart() = 0;
+		virtual rchar* GetBufferStart() = 0;
 		virtual size_t Capacity() const = 0;
 	};
 
@@ -32,23 +43,23 @@ namespace Rococo
 	{
 	public:
 		enum {OPAQUE_CAPACITY = 32 };
-		SafeStackString(wchar_t* _buffer, size_t _capacity) : buffer(_buffer), capacity(_capacity) {}
-		wchar_t* Buffer() { return buffer; }
+		SafeStackString(rchar* _buffer, size_t _capacity) : buffer(_buffer), capacity(_capacity) {}
+		rchar* Buffer() { return buffer; }
 		size_t Capacity() const { return capacity; }
 		void* Data() { return rawData; }
 	private:
-		wchar_t* buffer;
+		rchar* buffer;
 		size_t capacity;	
 		char rawData[OPAQUE_CAPACITY];
 	};
 
 	IStringBuilder* CreateSafeStackStringBuilder(SafeStackString& sss);
 
-   const wchar_t* GetFinalNull(const wchar_t* s);
-   const wchar_t* GetRightSubstringAfter(const wchar_t* s, wchar_t c);
-   const wchar_t* GetFileExtension(const wchar_t* s);
+   cstr GetFinalNull(cstr s);
+   cstr GetRightSubstringAfter(cstr s, rchar c);
+   cstr GetFileExtension(cstr s);
 
-   bool Eq(const wchar_t* a, const wchar_t* b);
+   bool Eq(cstr a, cstr b);
 }
 
 #endif  Rococo_Strings_H

@@ -17,23 +17,23 @@ namespace
 	struct ButtonParser
 	{
 		enum { CAPACITY = 128 };
-		wchar_t name[CAPACITY];
-		wchar_t script[CAPACITY];
+		rchar name[CAPACITY];
+		rchar script[CAPACITY];
 
-		ButtonParser(const wchar_t* text)
+		ButtonParser(cstr text)
 		{
 			name[0] = script[0] = 0;
 
-			for (const wchar_t* s = text; *s != 0; s++)
+			for (cstr s = text; *s != 0; s++)
 			{
 				if (*s == L'=')
 				{
 					size_t nTokenChars = s - text + 1;
 					if (nTokenChars >= CAPACITY - 1) nTokenChars = CAPACITY - 2;
-					memcpy_s(name, sizeof(wchar_t) * CAPACITY, text, sizeof(wchar_t) * nTokenChars);
+					memcpy_s(name, sizeof(rchar) * CAPACITY, text, sizeof(rchar) * nTokenChars);
 					name[nTokenChars - 1] = 0;
 
-					const wchar_t* pscript = s + 1;
+					cstr pscript = s + 1;
 					wcsncpy_s(script, pscript, _TRUNCATE);
 				}
 			}
@@ -41,9 +41,9 @@ namespace
 	};
 
 	// Draw buttons in a horizontal line and returns index of button under cursor, or negative if no button is under the cursor
-	int32 DrawHorzButtons(const wchar_t* text, size_t length, const wchar_t* seperators, const Vec2i& pos, IGuiRenderContext& grc, bool rightToLeft)
+	int32 DrawHorzButtons(cstr text, size_t length, cstr seperators, const Vec2i& pos, IGuiRenderContext& grc, bool rightToLeft)
 	{
-		struct : IEventCallback<const wchar_t*>
+		struct : IEventCallback<cstr>
 		{
 			Vec2i nextPos;
 			IGuiRenderContext* grc;
@@ -52,7 +52,7 @@ namespace
 			int32 index;
 			bool rightToLeft;
 
-			virtual void OnEvent(const wchar_t* text)
+			virtual void OnEvent(cstr text)
 			{
 				ButtonParser button(text);
 
@@ -117,17 +117,17 @@ namespace
 		return cb.cursorIndex;
 	}
 
-	void InvokeButtonHandler(IEventCallback<GuiEventArgs>& handler, int buttonIndex, const std::wstring& buttonDef)
+	void InvokeButtonHandler(IEventCallback<GuiEventArgs>& handler, int buttonIndex, const std::string& buttonDef)
 	{
 		if (buttonIndex < 0 || buttonDef.empty())
 			return;
 
-		struct : IEventCallback<const wchar_t*>
+		struct : IEventCallback<cstr>
 		{
 			int count;
 			int buttonIndex;
 			IEventCallback<GuiEventArgs>* guiEvent;
-			virtual void OnEvent(const wchar_t* text)
+			virtual void OnEvent(cstr text)
 			{
 				if (count == buttonIndex)
 				{
@@ -143,7 +143,7 @@ namespace
 		cb.buttonIndex = buttonIndex;
 		cb.guiEvent = &handler;
 
-		const wchar_t* buttonText = buttonDef.c_str();
+		cstr buttonText = buttonDef.c_str();
 		size_t len = buttonDef.length();
 
 		if (*buttonText == L'>')
@@ -160,9 +160,9 @@ namespace
 	{
 		Environment& e;
 		
-		std::wstring title;
-		std::wstring message;
-		std::wstring buttons;
+		std::string title;
+		std::string message;
+		std::string buttons;
 		Vec2i span;
 		int32 retzone;
 		int32 hypzone;
@@ -172,9 +172,9 @@ namespace
 	public:
 		DialogBox(Environment& _e,
 			IEventCallback<GuiEventArgs>& _guiEventHandler,
-			const wchar_t* _title,
-			const wchar_t* _message, 
-			const wchar_t* _buttons,
+			cstr _title,
+			cstr _message, 
+			cstr _buttons,
 			Vec2i _span,
 			int32 _retzone,
 			int32 _hypzone) 
@@ -257,7 +257,7 @@ namespace
 			auto& body = CreateLeftAlignedText(ss, targetRect, retzone, hypzone, 7, message.c_str(), RGBAb{ 0xFF, 0xFF, 0xFF, 0xFF });
 			grc.RenderText(Vec2i{ 0, 0 }, body);
 
-			const wchar_t* buttonText = buttons.c_str();
+			cstr buttonText = buttons.c_str();
 			size_t len = buttons.length();
 			if (len != 0)
 			{
@@ -290,9 +290,9 @@ namespace
 namespace Dystopia
 {
 	IUIPaneSupervisor* CreateDialogBox(Environment& e, IEventCallback<GuiEventArgs>& _handler,
-		const wchar_t* _title,
-		const wchar_t* _message,
-		const wchar_t* _buttons,
+		cstr _title,
+		cstr _message,
+		cstr _buttons,
 		Vec2i _span,
 		int32 _retzone,
 		int32 _hypzone)

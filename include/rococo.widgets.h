@@ -33,7 +33,7 @@ namespace Rococo
       struct LabelSet
       {
          Label labels[2]; // normal, lit
-         wchar_t text[256];
+         rchar text[256];
       };
 
       void Draw3DFrame(IGuiRenderContext& rc, const GuiRect& rect, struct WidgetFrameSet& frameSet, bool isLit);
@@ -62,11 +62,11 @@ namespace Rococo
 
       ROCOCOAPI IToolbar: public IUITarget
       {
-         virtual void AddButton(const wchar_t* name, Rococo::Events::EventId id, const wchar_t* buttonTextureResource) = 0;
+         virtual void AddButton(cstr name, Rococo::Events::EventId id, cstr buttonTextureResource) = 0;
          virtual GuiRect Render(IGuiRenderContext& rc, bool horizontal, int buttonBorder, RGBAb backColour, RGBAb highlightBorder) = 0;
          virtual void SetPosition(Vec2i pos) = 0;
-         virtual void SetToggleOn(const wchar_t* name) = 0;
-         virtual void SetToggleOff(const wchar_t* name) = 0;
+         virtual void SetToggleOn(cstr name) = 0;
+         virtual void SetToggleOff(cstr name) = 0;
          virtual void SetToggleColours(RGBAb colour, RGBAb borderColour) = 0;
          virtual void Free() = 0;
       };
@@ -81,6 +81,6 @@ namespace Rococo
 
       IStatusBar* CreateStatusBar(Events::IPublisher& publisher);
 
-      void SetStatus(const wchar_t* statustext, Events::IPublisher& publisher);
+      void SetStatus(cstr statustext, Events::IPublisher& publisher);
    }
 }

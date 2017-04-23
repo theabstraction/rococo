@@ -5,21 +5,21 @@ namespace HV
 {
    namespace Strings
    {
-      void ValidateFQNameIdentifier(const wchar_t* fqName)
+      void ValidateFQNameIdentifier(cstr fqName)
       {
          if (fqName == nullptr)
          {
-            Throw(0, L"Error validating fully qualified name - null");
+            Throw(0, "Error validating fully qualified name - nul");
          }
 
          if (*fqName == 0)
          {
-            Throw(0, L"Error validating fully qualified name - blank");
+            Throw(0, "Error validating fully qualified name - blank");
          }
 
-         if (wcslen(fqName) > MAX_FQ_NAME_LEN)
+         if (rlen(fqName) > MAX_FQ_NAME_LEN)
          {
-            Throw(0, L"Error validating fully qualified name - exceeded maximum of %d chars", MAX_FQ_NAME_LEN);
+            Throw(0, "Error validating fully qualified name - exceeded maximum of %d chars", MAX_FQ_NAME_LEN);
          }
 
          enum State
@@ -39,7 +39,7 @@ namespace HV
                }
                else
                {
-                  Throw(0, L"Error validating fully qualified name - Characters must be in range 0-9 or a-z");
+                  Throw(0, "Error validating fully qualified name - Characters must be in range 0-9 or a-z");
                }
             }
             else // Insubspace
@@ -54,14 +54,14 @@ namespace HV
                }
                else
                {
-                  Throw(0, L"Error validating fully qualified name - Characters must be in range 0-9 or a-z. Use '.' to separate subspaces");
+                  Throw(0, "Error validating fully qualified name - Characters must be in range 0-9 or a-z. Use '.' to separate subspaces");
                }
             }
          }
 
          if (state == State_ExpectingSubspace)
          {
-            Throw(0, L"Error validating fully qualified name - name must not terminate on a period '.'");
+            Throw(0, "Error validating fully qualified name - name must not terminate on a period '.'");
          }
       }
    }

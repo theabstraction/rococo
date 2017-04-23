@@ -16,9 +16,9 @@ namespace
    public:
       ~CheckedAllocator()
       {
-         wchar_t text[1024];
-         SafeFormat(text, _TRUNCATE, L"\nCheckedAllocator: Allocs: %u, Frees: %u, Reallocs: %u\n\n", allocCount, freeCount, reallocCount);
-         OutputDebugStringW(text);
+         rchar text[1024];
+         SafeFormat(text, _TRUNCATE, "\nCheckedAllocator: Allocs: %u, Frees: %u, Reallocs: %u\n\n", allocCount, freeCount, reallocCount);
+         OutputDebugStringA(text);
       }
 
       virtual void* Allocate(size_t capacity)
@@ -27,7 +27,7 @@ namespace
          return malloc(capacity);
       }
 
-      virtual void Free(void* data)
+      virtual void FreeData(void* data)
       {
          freeCount++;
          free(data);
@@ -54,14 +54,14 @@ namespace
       BlockAllocator(size_t kilobytes, size_t maxkilobytes)
       {
          hHeap = HeapCreate(HEAP_NO_SERIALIZE, kilobytes * 1024, maxkilobytes * 1024);
-         if (hHeap == nullptr) Throw(GetLastError(), L"Error allocating heap");
+         if (hHeap == nullptr) Throw(GetLastError(), "Error allocating heap");
       }
 
       ~BlockAllocator()
       {
-         wchar_t text[1024];
-         SafeFormat(text, _TRUNCATE, L"\nBlockAllocator(%p) Allocs: %u, Frees: %u, Reallocs: %u\n\n", hHeap, allocCount, freeCount, reallocCount);
-         OutputDebugStringW(text);
+         rchar text[1024];
+         SafeFormat(text, _TRUNCATE, "\nBlockAllocator(%p) Allocs: %u, Frees: %u, Reallocs: %u\n\n", hHeap, allocCount, freeCount, reallocCount);
+         OutputDebugStringA(text);
 
          HeapDestroy(hHeap);
       }
@@ -70,11 +70,11 @@ namespace
       {
          allocCount++;
          auto* ptr = HeapAlloc(hHeap, 0, capacity);
-         if (ptr == nullptr) Throw(0, L"Insufficient memory in dedicated BlockAllocator heap for alloc operation");
+         if (ptr == nullptr) Throw(0, "Insufficient memory in dedicated BlockAllocator heap for alloc operation");
          return ptr;
       }
 
-      virtual void Free(void* data)
+      virtual void FreeData(void* data)
       {
          freeCount++;
          if (data) HeapFree(hHeap, 0, data);
@@ -88,7 +88,7 @@ namespace
          }
          reallocCount++;
          auto* ptr = HeapReAlloc(hHeap, 0, old, capacity);
-         if (ptr == nullptr) Throw(0, L"Insufficient memory in dedicated BlockAllocator heap for realloc operation");
+         if (ptr == nullptr) Throw(0, "Insufficient memory in dedicated BlockAllocator heap for realloc operation");
          return ptr;
       }
 

@@ -59,7 +59,7 @@ namespace
 
       }
 
-		std::wstring text = L"Loading...";
+		std::string text = L"Loading...";
 		RGBA clearColour = RGBA(0.5f, 0, 0);
 	} customLoadScene;
 
@@ -306,7 +306,7 @@ namespace
 		EntityTable<Human*> allies;
 		EntityTable<Equipment> equipment;
 		EntityTable<ISkeletonSupervisor*> skeletons;
-		EntityTable<std::wstring> names;
+		EntityTable<std::string> names;
 		Vec3 groundZeroCursor;
 		ID_ENTITY selectedId;
 		AutoFree<IQuadTreeSupervisor> quadTree;
@@ -315,7 +315,7 @@ namespace
 		ID_ENTITY nearestRoadSection;
 
 		std::vector<ID_ENTITY> lastRendered;
-		std::vector<std::wstring> streetNames;
+		std::vector<std::string> streetNames;
 		std::vector<ID_ENTITY> abattoir;
 
       Metres viewRadius;
@@ -357,7 +357,7 @@ namespace
 			return nearestRoadSection;
 		}
 
-		virtual const wchar_t* TryGetName(ID_ENTITY id)
+		virtual cstr TryGetName(ID_ENTITY id)
 		{
 			auto i = names.find(id);
 			return (i != names.end()) ? i->second.c_str() : nullptr;
@@ -365,9 +365,9 @@ namespace
 
 		virtual void GenerateCity(const fstring& name, Metres radius)
 		{
-			struct : IEnumerable<const wchar_t*>
+			struct : IEnumerable<cstr>
 			{
-				virtual const wchar_t* operator[](size_t index)
+				virtual cstr operator[](size_t index)
 				{
 					return (*names)[index].c_str();
 				}
@@ -377,14 +377,14 @@ namespace
 					return names->size();
 				}
 
-				virtual void Enumerate(IEnumerator<const wchar_t*>& cb)
+				virtual void Enumerate(IEnumerator<cstr>& cb)
 				{
 					for (auto& i : *names)
 					{
 						cb(i.c_str());
 					}
 				}
-				std::vector<std::wstring>* names;
+				std::vector<std::string>* names;
 			} enumerable;
 
 			enumerable.names = &streetNames;
@@ -394,12 +394,12 @@ namespace
 
 		virtual void AddStreetName(const fstring& name)
 		{
-			streetNames.push_back(std::wstring(name));
+			streetNames.push_back(std::string(name));
 		}
 
 		virtual void Name(ID_ENTITY entityId, const fstring& name)
 		{
-			if (!names.insert(entityId, std::wstring(name)).second)
+			if (!names.insert(entityId, std::string(name)).second)
 			{
 				Throw(0, L"Could not insert name: %s", name.buffer);
 			}
@@ -424,7 +424,7 @@ namespace
 				if ((index % updateMod) == 0)
 				{
 					customLoadScene.clearColour.red = 1.0f - index / (float) spawnPoints.size();
-					wchar_t text[256];
+					rchar text[256];
 					SafeFormat(text, _TRUNCATE, L"Spawning %I64u of %I64u enemies", index, spawnPoints.size());
 					customLoadScene.text = text;
 					e.renderer.Render(customLoadScene);
@@ -1312,7 +1312,7 @@ namespace
 		Environment& e;
 		Rococo::IDE::IPersistentScript* levelScript;
 
-		std::wstring nextLevelName;
+		std::string nextLevelName;
 	public:
 		LevelLoader(Environment& _e): levelScript(nullptr), e(_e)
 		{
@@ -1350,7 +1350,7 @@ namespace
 			}
 		}
 
-		virtual void ExecuteLevelFunction(const wchar_t* functionName, IArgEnumerator& args)
+		virtual void ExecuteLevelFunction(cstr functionName, IArgEnumerator& args)
 		{
 			if (!levelScript) Throw(0, L"No level script loaded!");
 			levelScript->ExecuteFunction(functionName, args, e.exceptionHandler);
@@ -1375,7 +1375,7 @@ namespace
 			AddNativeCalls_DystopiaIJournal(args.ss, &e.journal);
 		}
 
-		virtual void Load(const wchar_t* resourceName, bool isReloading)
+		virtual void Load(cstr resourceName, bool isReloading)
 		{
 			if (levelScript)
 			{

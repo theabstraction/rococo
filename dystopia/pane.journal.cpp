@@ -364,7 +364,7 @@ namespace
 			return Relay_None;
 		}
 
-		void DrawButton(IGuiRenderContext& grc, Vec2i focusPoint, const wchar_t* label, const GuiRect& rect)
+		void DrawButton(IGuiRenderContext& grc, Vec2i focusPoint, cstr label, const GuiRect& rect)
 		{
 			RGBAb white(255, 255, 255);
 			RGBAb grey(160, 160, 160);

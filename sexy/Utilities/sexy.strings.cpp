@@ -13,26 +13,38 @@ namespace Sexy
 	}
 
 	int32 Compare(const char* a, const char* b) { return strcmp(a, b); }
-	int32 Compare(const wchar_t* a, const wchar_t* b) { return wcscmp(a, b); }
+#ifdef SEXCHAR_IS_WIDE
+	int32 Compare(cstr a, cstr b) { return wcscmp(a, b); }
+#endif
 	int32 CompareI(const char* a, const char* b) { return _stricmp(a, b); }
-	int32 CompareI(const wchar_t* a, const wchar_t* b) { return _wcsicmp(a, b); }
+#ifdef SEXCHAR_IS_WIDE
+	int32 CompareI(cstr a, cstr b) { return _wcsicmp(a, b); }
+#endif
 	int32 CompareI(const char* a, const char* b, int64 count) { return _strnicmp(a, b, count); }
-	int32 CompareI(const wchar_t* a, const wchar_t* b, int64 count) { return _wcsnicmp(a, b, count); }
+#ifdef SEXCHAR_IS_WIDE
+	int32 CompareI(cstr a, cstr b, int64 count) { return _wcsnicmp(a, b, count); }
+#endif
 	int32 Compare(const char* a, const char* b, int64 count) { return strncmp(a, b, count); }
-	int32 Compare(const wchar_t* a, const wchar_t* b, int64 count) { return wcsncmp(a, b, count); }
+#ifdef SEXCHAR_IS_WIDE
+	int32 Compare(cstr a, cstr b, int64 count) { return wcsncmp(a, b, count); }
+#endif
 	int32 Compare(sexstring a, const SEXCHAR* b) { return Compare(a->Buffer, b); }
 	const char* GetSubString(const char* s, const char *subString) { return strstr(s, subString); }
-	const wchar_t* GetSubString(const wchar_t* s, const wchar_t *subString) { return wcsstr(s, subString); }
+#ifdef SEXCHAR_IS_WIDE
+	cstr GetSubString(cstr s, const rchar *subString) { return wcsstr(s, subString); }
+#endif
 
 	errno_t StrNCopy(char* dest, size_t count, const char* src, size_t maxCount)
 	{
 		return strncpy_s(dest, count, _In_z_ src, maxCount);
 	}
 
-	errno_t StrNCopy(wchar_t* dest, size_t count, const wchar_t* src, size_t maxCount)
+#ifdef SEXCHAR_IS_WIDE
+	errno_t StrNCopy(rchar* dest, size_t count, cstr src, size_t maxCount)
 	{
 		return wcsncpy_s(dest, count, _In_z_ src, maxCount);
 	}
+#endif
 
 	bool AreEqual(sexstring a, sexstring b)
 	{

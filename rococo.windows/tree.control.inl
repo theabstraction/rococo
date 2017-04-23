@@ -110,10 +110,10 @@ namespace
 			{
 				WindowConfig titleConfig;
 				Windows::SetChildWindowConfig(titleConfig, GuiRect(0, 0, 0, 0), *containerWindow, treeConfig.windowName, WS_CHILD | WS_VISIBLE, 0);
-				hTitle = CreateWindowIndirect(WC_STATIC, titleConfig, nullptr);
+				hTitle = CreateWindowIndirect(WC_STATICA, titleConfig, nullptr);
 			}
 
-			hTreeWindow = CreateWindowIndirect(WC_TREEVIEW, treeConfigCorrected, nullptr);
+			hTreeWindow = CreateWindowIndirect(WC_TREEVIEWA, treeConfigCorrected, nullptr);
 
 			if (checkedStyle)
 			{
@@ -180,19 +180,19 @@ namespace
 			}
 		}
 
-		virtual TREE_NODE_ID AddChild(TREE_NODE_ID parentId, const wchar_t* text, CheckState state)
+		virtual TREE_NODE_ID AddChild(TREE_NODE_ID parentId, cstr text, CheckState state)
 		{
-			TVINSERTSTRUCT z = { 0 };
+			TVINSERTSTRUCTA z = { 0 };
 			z.hParent = ToHTree(parentId);
 			z.hInsertAfter = TVI_LAST;
 			z.itemex.mask = TVIF_TEXT;
-			z.itemex.pszText = (LPWSTR)text;
+			z.itemex.pszText = (rchar*)text;
 
-			size_t len = wcslen(text);
+			size_t len = rlen(text);
 
 			if (len > INT_MAX)
 			{
-				Throw(0, L"TreeView_SetItem failed: text length > INT_MAX");
+				Throw(0, "TreeView_SetItem failed: text length > INT_MAX");
 			}
 
 			z.itemex.cchTextMax = (int) len;
@@ -205,7 +205,7 @@ namespace
 			y.state = INDEXTOSTATEIMAGEMASK(state);
 			y.hItem = ToHTree(id);
 			BOOL isOK = TreeView_SetItem(hTreeWindow, &y);
-			if (!isOK) Throw(GetLastError(), L"TreeView_SetItem (TEXT/STATE) failed");
+			if (!isOK) Throw(GetLastError(), "TreeView_SetItem (TEXT/STATE) failed");
 			return id;
 		}
 
@@ -217,23 +217,23 @@ namespace
          item.lParam = (int64) id;
          if (!TreeView_SetItem(hTreeWindow, &item))
          {
-            Throw(GetLastError(), L"TreeView_SetItem (LPARAM) failed");
+            Throw(GetLastError(), "TreeView_SetItem (LPARAM) failed");
          }
       }
 
-		virtual TREE_NODE_ID AddRootItem(LPCWSTR text, CheckState state)
+		virtual TREE_NODE_ID AddRootItem(cstr text, CheckState state)
 		{
-			TVINSERTSTRUCT z = { 0 };
+			TVINSERTSTRUCTA z = { 0 };
 			z.hInsertAfter = TVI_LAST;
 			z.itemex.mask = TVIF_STATE | TVIF_TEXT | TVIF_PARAM;
 			z.itemex.stateMask = TVIS_STATEIMAGEMASK;
-			z.itemex.pszText = (LPWSTR) text;
+			z.itemex.pszText = (rchar*) text;
 
-			size_t len = wcslen(text);
+			size_t len = rlen(text);
 
 			if (len > INT_MAX)
 			{
-				Throw(0, L"AddRootItem failed: text length > INT_MAX");
+				Throw(0, "AddRootItem failed: text length > INT_MAX");
 			}
 
 			z.itemex.cchTextMax = (int)len;
@@ -246,7 +246,7 @@ namespace
 			y.state = INDEXTOSTATEIMAGEMASK(state);
 			y.hItem = ToHTree(id);
 			BOOL isOK = TreeView_SetItem(hTreeWindow, &y);
-			if (!isOK) Throw(GetLastError(), L"AddRootItem failed");
+			if (!isOK) Throw(GetLastError(), "AddRootItem failed");
 			return id;
 		}
 

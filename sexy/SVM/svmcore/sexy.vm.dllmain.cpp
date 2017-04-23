@@ -32,7 +32,7 @@
 */
 
 // dllmain.cpp : Defines the entry point for the DLL application.
-#include "Sexy.VM.StdAfx.h"
+#include "sexy.vm.stdafx.h"
 #include <WinError.h>
 
 IMPORT_FROM_DLL void WIN32_API SetLastError(unsigned int dwErrCode);

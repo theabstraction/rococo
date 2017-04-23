@@ -497,7 +497,7 @@ namespace Sexy
 
          if (varLType != varRType)
          {
-            Throw(parent, L"Cannot compare left with right, they are of different types");
+            Throw(parent, SEXTEXT("Cannot compare left with right, they are of different types"));
          }
 
          AddBinaryComparison(parent, builder.Assembler(), Sexy::ROOT_TEMPDEPTH, Sexy::ROOT_TEMPDEPTH + 1, Sexy::ROOT_TEMPDEPTH + 2, op, varLType);

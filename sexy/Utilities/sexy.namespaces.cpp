@@ -39,7 +39,7 @@ namespace Sexy
 	class NamespaceException: public IException
 	{
 	private:
-		wchar_t msg[1024];
+		rchar msg[1024];
 
 	public:
 		NamespaceException(csexstr _msg)
@@ -48,7 +48,7 @@ namespace Sexy
 		}
 
 		virtual int ErrorCode() const { return -1; }
-		virtual const wchar_t* Message() const { return msg; }
+		virtual cstr Message() const { return msg; }
 	};
 
 	NamespaceSplitter::NamespaceSplitter(csexstr _src): src(_src)

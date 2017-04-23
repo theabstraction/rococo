@@ -49,7 +49,7 @@ namespace
 		auto* ammo = item->GetAmmo();
 		if (ammo)
 		{
-			wchar_t scount[8];
+			rchar scount[8];
 			SafeFormat(scount, _TRUNCATE, L"%u", ammo->count);
 			
 			Graphics::StackSpaceGraphics ss;
@@ -168,9 +168,9 @@ namespace
 	struct ControlIcon
 	{
 		CONTROL_ICON id;
-		std::wstring resourceName1;
-		std::wstring resourceName2;
-		std::wstring verb;
+		std::string resourceName1;
+		std::string resourceName2;
+		std::string verb;
 		ID_BITMAP bitmapIdUp;
 		ID_BITMAP bitmapIdDown;
 		Vec2i hotspotOffset;
@@ -343,7 +343,7 @@ namespace
 		return slotIndex;
 	}
 
-	void AddBitmap(InventoryList& items, IBitmapCache& bitmaps, const wchar_t* imageFile, const wchar_t* highlightImageFile, const GuiRect& rect, PAPER_DOLL_SLOT slot)
+	void AddBitmap(InventoryList& items, IBitmapCache& bitmaps, cstr imageFile, cstr highlightImageFile, const GuiRect& rect, PAPER_DOLL_SLOT slot)
 	{
 		InventoryBox box;
 		box.bitmapId = bitmaps.Cache(imageFile);

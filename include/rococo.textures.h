@@ -27,7 +27,7 @@ namespace Rococo
 
       ROCOCOAPI IResourceLoader
       {
-         virtual void Load(const wchar_t* name, IEventCallback<CompressedTextureBuffer>& onLoad) = 0;
+         virtual void Load(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad) = 0;
       };
 
       struct BitmapLocation
@@ -38,8 +38,8 @@ namespace Rococo
 
       ROCOCOAPI ITextureArrayBuilder
       {
-         virtual void AddBitmap(const wchar_t* name) = 0;
-         virtual bool TryGetBitmapLocation(const wchar_t* name, BitmapLocation& location) = 0;
+         virtual void AddBitmap(cstr name) = 0;
+         virtual bool TryGetBitmapLocation(cstr name, BitmapLocation& location) = 0;
          virtual void BuildTextures(int32 minWidth) = 0;
          virtual void Clear() = 0;
       };
@@ -58,7 +58,7 @@ namespace Rococo
          virtual size_t TextureCount() const = 0;
       };
 
-      void StandardLoadFromCompressedTextureBuffer(const wchar_t* name, IEventCallback<CompressedTextureBuffer>& onLoad, IInstallation& installation, IExpandingBuffer& buffer);
+      void StandardLoadFromCompressedTextureBuffer(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad, IInstallation& installation, IExpandingBuffer& buffer);
       ITextureArrayBuilderSupervisor* CreateTextureArrayBuilder(IResourceLoader& loader, ITextureArray& textureArray);
 
       const RGBAb* ConvertToRGBAbFormat(Imaging::F_A8R8G8B8* pixels, size_t bufferLength);

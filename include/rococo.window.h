@@ -23,8 +23,8 @@ namespace Rococo
 		ROCOCOAPI IWin32Menu
 		{
 			virtual operator HMENU () = 0;
-			virtual IWin32Menu& AddPopup(LPCWSTR name) = 0; // Returns the popup with the given name, or creates a new one if it was not found
-			virtual void AddString(LPCWSTR name, UINT_PTR id, LPCWSTR keyCmd = nullptr) = 0;
+			virtual IWin32Menu& AddPopup(cstr name) = 0; // Returns the popup with the given name, or creates a new one if it was not found
+			virtual void AddString(cstr name, UINT_PTR id, cstr keyCmd = nullptr) = 0;
 			virtual void Free() = 0;
 		};
 
@@ -82,9 +82,9 @@ namespace Rococo
 		// If titleFont is non null, then it will overwrite the default titlefont of Courier New 11pt for all control title bars
 		// Use LoadImage or LoadIcon to generate the correct HICONs. HINSTANCE comes from the appropriate WinMain or DllMain argument
 		// If controlFont is non null then it creates the default font used in Rococo::Window controls
-		void InitRococoWindows(HINSTANCE hInstance, HICON hLargeIcon, HICON hSmallIcon, const LOGFONT* titleFont, const LOGFONT* controlFont);
+		void InitRococoWindows(HINSTANCE hInstance, HICON hLargeIcon, HICON hSmallIcon, const LOGFONTA* titleFont, const LOGFONTA* controlFont);
 
-		void ShowEditorError(HWND parent, const wchar_t* format, ...);
+		void ShowEditorError(HWND parent, cstr format, ...);
 
 		ROCOCOAPI IItemRenderer
 		{
@@ -108,7 +108,7 @@ namespace Rococo
 		{
 			DWORD exStyle;
 			DWORD style;
-			LPCWSTR windowName;
+			cstr windowName;
 			int32 left;
 			int32 top;
 			int32 width;
@@ -117,10 +117,10 @@ namespace Rococo
 			HMENU hMenu;
 		};
 
-		void SetChildWindowConfig(WindowConfig& config, const GuiRect& rect, HWND hWndParent, LPCWSTR name, DWORD style, DWORD exStyle);
-		void SetPopupWindowConfig(WindowConfig& config, const GuiRect& rect, HWND hWndParent, LPCWSTR name, DWORD style, DWORD exStyle, HMENU hPopupMenu = nullptr);
-		void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& span, int32 showWindowCommand, HWND hWndOwner, LPCWSTR name, DWORD style, DWORD exStyle, HMENU hPopupMenu = nullptr);
-		void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& topLeft, const Vec2i& span, HWND hWndOwner, LPCWSTR name, DWORD style, DWORD exStyle, HMENU hPopupMenu = nullptr);
+		void SetChildWindowConfig(WindowConfig& config, const GuiRect& rect, HWND hWndParent, cstr name, DWORD style, DWORD exStyle);
+		void SetPopupWindowConfig(WindowConfig& config, const GuiRect& rect, HWND hWndParent, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu = nullptr);
+		void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& span, int32 showWindowCommand, HWND hWndOwner, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu = nullptr);
+		void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& topLeft, const Vec2i& span, HWND hWndOwner, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu = nullptr);
 
 		ROCOCOAPI IWindowHandler
 		{
@@ -223,9 +223,9 @@ namespace Rococo
 			DWORD BlockModal(IDialogSupervisor& window, HWND hWndOwner); // Blocks the current thread until the modal dialog completes, and returns the exit code
 		};
 
-		HWND CreateWindowIndirect(LPCWSTR className, const WindowConfig& c, IWindowHandler* handler);
+		HWND CreateWindowIndirect(cstr className, const WindowConfig& c, IWindowHandler* handler);
 
-		bool ModalQuery(HWND hParentWnd, LPCWSTR caption, LPCWSTR question);
+		bool ModalQuery(HWND hParentWnd, cstr caption, cstr question);
 
 		GuiRect ClientArea(HWND hWnd);
 		GuiRect WindowArea(HWND hWnd);
@@ -257,23 +257,23 @@ namespace Rococo
 
 		ROCOCOAPI IRichEditor : public IWindowSupervisor
 		{
-			virtual void AppendText(COLORREF foreground, COLORREF background, const wchar_t* text, size_t nChars = (size_t) -1) = 0;
+			virtual void AppendText(COLORREF foreground, COLORREF background, cstr text, size_t nChars = (size_t) -1) = 0;
 			virtual HWND EditorHandle() const = 0;
          virtual void Hilight(const Vec2i& start, const Vec2i& end, RGBAb background, RGBAb foreground) = 0;
 			virtual int32 LineCount() const = 0;
 			virtual void ResetContent() = 0;	
          virtual int32 GetFirstVisibleLine() const = 0;
 			virtual void ScrollTo(int32 lineNumber) = 0;
-         virtual void SetTooltip(const wchar_t* name, const wchar_t* text) = 0;
+         virtual void SetTooltip(cstr name, cstr text) = 0;
 		};
 
-      bool OpenChooseFontBox(HWND hParent, LOGFONT& output);
+      bool OpenChooseFontBox(HWND hParent, LOGFONTA& output);
 		void SetDlgCtrlID(HWND hWnd, DWORD id);
-		void SetText(HWND hWnd, size_t capacity, const wchar_t* format, ...);
+		void SetText(HWND hWnd, size_t capacity, cstr format, ...);
 
 		ROCOCOAPI IParentWindowSupervisor : public IWindowSupervisor
 		{
-			virtual IWindowSupervisor* AddChild(const WindowConfig& childConfig, LPCWSTR className, ControlId id) = 0;
+			virtual IWindowSupervisor* AddChild(const WindowConfig& childConfig, cstr className, ControlId id) = 0;
 			virtual IParentWindowSupervisor* AddChild(const WindowConfig& childConfig, ControlId id, IWindowHandler* windowHandler) = 0;
 		};
 
@@ -302,10 +302,10 @@ namespace Rococo
 
 		ROCOCOAPI IListWindowSupervisor : public IWindowSupervisor
 		{
-			virtual int AddString(LPCWSTR data) = 0;
+			virtual int AddString(cstr data) = 0;
 			virtual int GetCurrentSelection() = 0;
 			virtual LRESULT GetItemData(int index) = 0;
-			virtual bool GetString(int index, LPWSTR data, size_t capacity) = 0;
+			virtual bool GetString(int index, rchar* data, size_t capacity) = 0;
 			virtual void ResetContent() = 0;
 			virtual void SetCurrentSelection(int index) = 0;
 			virtual HWND ListBoxHandle() const = 0;
@@ -320,9 +320,9 @@ namespace Rococo
 
 		ROCOCOAPI IComboBoxSupervisor : public IWindowSupervisor
 		{
-			virtual int AddString(LPCWSTR text) = 0;
-			virtual int FindString(LPCWSTR text) = 0;
-			virtual bool GetString(int index, LPWSTR buffer, size_t capacity) = 0;
+			virtual int AddString(cstr text) = 0;
+			virtual int FindString(cstr text) = 0;
+			virtual bool GetString(int index, rchar* buffer, size_t capacity) = 0;
 			virtual int GetCurrentSelection() = 0;
 			virtual void SetCurrentSelection(int index) = 0;
 		};
@@ -348,13 +348,13 @@ namespace Rococo
 
 		ROCOCOAPI ITabControl : public IWindowSupervisor
 		{
-			virtual int AddTab(LPCWSTR data, LPCWSTR tooltip) = 0;
+			virtual int AddTab(cstr data, cstr tooltip) = 0;
 			virtual IParentWindowSupervisor& ClientSpace() = 0;
 			virtual void SetClientSpaceBackgroundColour(COLORREF colour) = 0;
 			virtual int GetCurrentSelection() = 0;
 			virtual void ResetContent() = 0;
 			virtual void SetCurrentSelection(int index) = 0;
-			virtual bool GetTabName(int index, LPWSTR buffer, DWORD capacity) const = 0;
+			virtual bool GetTabName(int index, rchar* buffer, DWORD capacity) const = 0;
 			virtual int TabCount() const = 0;
 		};
 
@@ -374,7 +374,7 @@ namespace Rococo
             virtual void Free() = 0;
             virtual void NotifyMigration(IDEPANE_ID migratingId) = 0;
             virtual void SetFontRecursive(HFONT hFont) = 0;
-            virtual void Save(const LOGFONT& logFont, int32 version) = 0;
+            virtual void Save(const LOGFONTA& logFont, int32 version) = 0;
          };
 
          ROCOCOAPI IPaneDatabase
@@ -382,13 +382,13 @@ namespace Rococo
             virtual IDEPANE_ID GetMigratingId() = 0;
             virtual void SetMigratingId(IDEPANE_ID) = 0;
             virtual void NotifyMigration() = 0;
-            virtual void GetName(wchar_t name[256], IDEPANE_ID id) = 0;
+            virtual void GetName(rchar name[256], IDEPANE_ID id) = 0;
             virtual IIDENode* ConstructPane(IDEPANE_ID id, IParentWindowSupervisor& parent) = 0;
          };
 
          ROCOCOAPI IIDETextWindow : public IIDENode
          {
-            virtual void AddSegment(RGBAb colour, const wchar_t* segment, size_t length, RGBAb bkColor) = 0;
+            virtual void AddSegment(RGBAb colour, cstr segment, size_t length, RGBAb bkColor) = 0;
             virtual IRichEditor& Editor() = 0;
          };
 
@@ -405,22 +405,22 @@ namespace Rococo
          IIDETextWindow* CreateTextWindow(IWindow& parent);
          IIDETreeWindow* CreateTreeView(IWindow& parent, ITreeControlHandler* handler);
          IIDEReportWindow* CreateReportView(IWindow& parent);
-         ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONT& logFont, const wchar_t* appName);
+         ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTA& logFont, cstr appName);
       }
 
-		IButton* AddPushButton(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD styleEx = 0);
-		ICheckbox* AddCheckBox(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD styleEx = 0);
-		IWindowSupervisor* AddLabel(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD styleEx = 0);
-		IWindowSupervisor* AddEditor(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD styleEx = 0);
-		ITreeControlSupervisor* AddTree(IWindow& parent, const GuiRect& rect, LPCWSTR name, ControlId id, ITreeControlHandler& eventHandler, DWORD style, DWORD styleEx = 0);
-		IListViewSupervisor* AddListView(IWindow& parent, const GuiRect& rect, LPCWSTR name, IListViewEvents& eventHandler, DWORD style, DWORD containerStyle, DWORD containerStyleEx);
-		IRichEditor* AddRichEditor(IWindow& parent, const GuiRect& rect, LPCWSTR name, ControlId id, IRichEditorEvents& eventHandler, DWORD style, DWORD styleEx = 0);
-		ITabControl* AddTabs(IWindow& parent, const GuiRect& rect, LPCWSTR name, ControlId id, ITabControlEvents& eventHandler, DWORD style, DWORD styleEx = 0);
-		IListWindowSupervisor* AddListbox(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, IListItemHandler& handler, DWORD style, DWORD containerStyle, DWORD containerStyleEx);
-		IComboBoxSupervisor* AddComboBox(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD containerStyle, DWORD containerStyleEx);
+		IButton* AddPushButton(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
+		ICheckbox* AddCheckBox(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
+		IWindowSupervisor* AddLabel(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
+		IWindowSupervisor* AddEditor(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
+		ITreeControlSupervisor* AddTree(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, ITreeControlHandler& eventHandler, DWORD style, DWORD styleEx = 0);
+		IListViewSupervisor* AddListView(IWindow& parent, const GuiRect& rect, cstr name, IListViewEvents& eventHandler, DWORD style, DWORD containerStyle, DWORD containerStyleEx);
+		IRichEditor* AddRichEditor(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, IRichEditorEvents& eventHandler, DWORD style, DWORD styleEx = 0);
+		ITabControl* AddTabs(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, ITabControlEvents& eventHandler, DWORD style, DWORD styleEx = 0);
+		IListWindowSupervisor* AddListbox(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, IListItemHandler& handler, DWORD style, DWORD containerStyle, DWORD containerStyleEx);
+		IComboBoxSupervisor* AddComboBox(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD containerStyle, DWORD containerStyleEx);
 		IDialogSupervisor* CreateDialogWindow(const WindowConfig& config, IWindowHandler* handler);
 		IParentWindowSupervisor* CreateChildWindow(const WindowConfig& config, IWindowHandler* handler);
-		ITrackBarSupervisor* AddTrackbar(IParentWindowSupervisor& parent, const GuiRect& rect, LPCWSTR name, ControlId id, DWORD style, DWORD styleEx, ITrackBarHandler& handler);
+		ITrackBarSupervisor* AddTrackbar(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx, ITrackBarHandler& handler);
 	} // Windows
 
 	namespace Flow
@@ -429,7 +429,7 @@ namespace Rococo
 		struct IFlowGraphEditor;
 		struct IFlowGraphEventHandler;
 		struct INodeFactories;
-		IFlowGraphEditor* CreateFlowGraphEditor(HWND hWndParent, LPCWSTR title, const Vec2i& span, const Vec2i& position, IFlowGraphEventHandler& eventHandler, IFlowGraph& graph, INodeFactories& factories);
+		IFlowGraphEditor* CreateFlowGraphEditor(HWND hWndParent, cstr title, const Vec2i& span, const Vec2i& position, IFlowGraphEventHandler& eventHandler, IFlowGraph& graph, INodeFactories& factories);
 	}
 } // Rococo
 

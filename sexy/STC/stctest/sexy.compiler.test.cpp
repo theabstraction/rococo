@@ -18,7 +18,7 @@
 #include "sexy.lib.compiler.h"
 #include "sexy.lib.util.h"
 
-#include "Sexy.VM.h"
+#include "sexy.vm.h"
 #include "Sexy.VM.CPU.h"
 
 using namespace Sexy;

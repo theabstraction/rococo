@@ -61,7 +61,7 @@ namespace Rococo
       {
          if (nElements == 0)
          {
-            Throw(0, L"Ring is empty in call to RingManipulator::Erase(...)");
+            Throw(0, "Ring is empty in call to RingManipulator::Erase(...)");
          }
 
          size_t normalizedIndex = index % nElements;

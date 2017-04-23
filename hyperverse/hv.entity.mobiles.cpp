@@ -66,7 +66,7 @@ namespace
       {
          if (!instances.GetEntity(id))
          {
-            Throw(0, L"No such entity");
+            Throw(0, "No such entity");
          }
 
          auto i = mapIdToAngles.find(id);
@@ -81,7 +81,7 @@ namespace
          auto i = mapIdToAngles.find(id);
          if (i == mapIdToAngles.end())
          {
-            Throw(0, L"No such entity");
+            Throw(0, "No such entity");
          }
 
          angles = i->second;
@@ -92,7 +92,7 @@ namespace
          auto i = mapIdToAngles.find(id);
          if (i == mapIdToAngles.end())
          {
-            Throw(0, L"No such entity");
+            Throw(0, "No such entity");
          }
 
          i->second = angles;

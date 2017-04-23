@@ -36,9 +36,9 @@ namespace
 		CSVCursor cursor;
 		const char* buffer;
 		const size_t nBytes;
-		wchar_t filename[_MAX_PATH];
+		rchar filename[_MAX_PATH];
 	public:
-		CSVStream(const wchar_t* _filename, const char* buffer, size_t nBytes);
+		CSVStream(cstr _filename, const char* buffer, size_t nBytes);
 
 		CSVStream& operator >> (SkipItem& item);
 		CSVStream& operator >> (ValidateItem& item);
@@ -47,7 +47,7 @@ namespace
 		CSVStream& operator >> (StringBuffer& s);
 
 		bool AdvanceToNextLine();
-		const wchar_t* Filename() const { return filename; }
+		cstr Filename() const { return filename; }
 	};
 
 	bool AdvanceCSVToNextLine(CSVCursor& cursor)
@@ -196,11 +196,11 @@ namespace
 		cursor.end = cursor.finale;
 	}
 
-	void GetCSVItem(const wchar_t* fullname, CSVCursor& cursor, char* buffer, size_t bufferLen)
+	void GetCSVItem(cstr fullname, CSVCursor& cursor, char* buffer, size_t bufferLen)
 	{
 		if (cursor.start == NULL)
 		{
-			Throw(0, L"Expecting CSV item in %s, but the csv cursor was invalid at line %d", fullname, cursor.lineNumber);
+			Throw(0, "Expecting CSV item in %s, but the csv cursor was invalid at line %d", fullname, cursor.lineNumber);
 		}
 
 		char previousChar = ' ';
@@ -211,7 +211,7 @@ namespace
 
 		if (p > end)
 		{
-			Throw(0, L"Expecting CSV item in %s line %d item %d", fullname, cursor.lineNumber, cursor.tokenIndex);
+			Throw(0, "Expecting CSV item in %s line %d item %d", fullname, cursor.lineNumber, cursor.tokenIndex);
 		}
 
 		bool inquote = *p == '"';
@@ -232,7 +232,7 @@ namespace
 
 			if (inquote)
 			{
-				Throw(0, L"Quotation not terminated in %s line %d", fullname, cursor.lineNumber);
+				Throw(0, "Quotation not terminated in %s line %d", fullname, cursor.lineNumber);
 			}
 		}
 
@@ -253,7 +253,7 @@ namespace
 
 					if (len >= bufferLen)
 					{
-						Throw(0, L"Insufficient buffer space to copy %s line %d item %d", fullname, cursor.lineNumber, cursor.tokenIndex);
+						Throw(0, "Insufficient buffer space to copy %s line %d item %d", fullname, cursor.lineNumber, cursor.tokenIndex);
 					}
 
 					memcpy_s(buffer, bufferLen, tokenStart, len);
@@ -269,7 +269,7 @@ namespace
 			size_t len = p - tokenStart;
 			if (len >= bufferLen)
 			{
-				Throw(0, L"Insufficient buffer space to copy %s line %d item %d", fullname, cursor.lineNumber, cursor.tokenIndex);
+				Throw(0, "Insufficient buffer space to copy %s line %d item %d", fullname, cursor.lineNumber, cursor.tokenIndex);
 			}
 
 			memcpy_s(buffer, bufferLen, tokenStart, len);
@@ -281,7 +281,7 @@ namespace
 		cursor.tokenIndex++;
 	}
 
-	CSVStream::CSVStream(const wchar_t* _filename, const char* _buffer, size_t _nBytes) : buffer(_buffer), nBytes(_nBytes)
+	CSVStream::CSVStream(cstr _filename, const char* _buffer, size_t _nBytes) : buffer(_buffer), nBytes(_nBytes)
 	{
 		SecureCopy(this->filename, _filename);
 		SetCSVToStart(buffer, nBytes, cursor);
@@ -305,7 +305,7 @@ namespace
 		{
 			size_t tokenBufferLen = strlen(item.item) + 1;
 			char* expectedToken = (char*)alloca(sizeof(char)* tokenBufferLen);
-			Throw(0, L"Expecting '%S' in '%s' at column %d line %d", expectedToken, filename, cursor.tokenIndex, cursor.lineNumber);
+			Throw(0, "Expecting '%S' in '%s' at column %d line %d", expectedToken, filename, cursor.tokenIndex, cursor.lineNumber);
 		}
 		return *this;
 	}
@@ -317,7 +317,7 @@ namespace
 		GetCSVItem(filename, cursor, token, len);
 		if (sscanf_s(token, "%d", &item) != 1)
 		{
-			Throw(0, L"Expecting int32 in '%s' at column %d line %d", filename, cursor.tokenIndex, cursor.lineNumber);
+			Throw(0, "Expecting int32 in '%s' at column %d line %d", filename, cursor.tokenIndex, cursor.lineNumber);
 		}
 		return *this;
 	}
@@ -329,7 +329,7 @@ namespace
 		GetCSVItem(filename, cursor, token, len);
 		if (sscanf_s(token, "%f", &item) != 1)
 		{
-			Throw(0, L"Expecting float in '%s' at column %d line %d", filename, cursor.tokenIndex, cursor.lineNumber);
+			Throw(0, "Expecting float in '%s' at column %d line %d", filename, cursor.tokenIndex, cursor.lineNumber);
 		}
 		return *this;
 	}

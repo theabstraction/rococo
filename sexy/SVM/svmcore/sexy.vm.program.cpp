@@ -31,8 +31,8 @@
 	principal credit screen and its principal readme file.
 */
 
-#include "Sexy.VM.StdAfx.h"
-#include "Sexy.VM.OS.h"
+#include "sexy.vm.stdafx.h"
+#include "sexy.vm.os.h"
 
 #include <algorithm>
 

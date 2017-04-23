@@ -59,7 +59,7 @@ namespace Dystopia
 
 namespace
 {
-   static const wchar_t* paneName = L"!gui/panes.sxy";
+   static cstr paneName = L"!gui/panes.sxy";
 
 	class DystopiaApp : 
 		public IDystopiaApp,
@@ -350,7 +350,7 @@ namespace
 			postbox->PostForLater(ke, true);
 		}
 
-      virtual const wchar_t* Title() const
+      virtual cstr Title() const
       {
          return L"Dystopia";
       }

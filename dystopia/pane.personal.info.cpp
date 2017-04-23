@@ -147,7 +147,7 @@ namespace
 
 			struct StatBinding
 			{
-				const wchar_t* name;
+				cstr name;
 				StatIndex index;
 			};
 
@@ -163,7 +163,7 @@ namespace
 
 				int32 y = 30 * (1 + (int32)i);
 
-				wchar_t text[64];
+				rchar text[64];
 				SafeFormat(text, _TRUNCATE, L"%s:", b.name);
 				Graphics::RenderVerticalCentredText(grc, text, RGBAb(255, 255, 255, 192), 2, { 30,y });
 
@@ -171,7 +171,7 @@ namespace
 				Graphics::RenderVerticalCentredText(grc, text, RGBAb(255, 255, 255, 192), 2, { 130,y });
 			}
 
-			wchar_t text[64];
+			rchar text[64];
 			SafeFormat(text, _TRUNCATE, L"Social Status: lower lower class (double minus)");
 			Graphics::RenderVerticalCentredText(grc, text, RGBAb(255, 255, 255, 192), 2, { 330,30 });
 
@@ -184,7 +184,7 @@ namespace
 
 			auto& player = e.level.GetHuman(id);
 
-			wchar_t buffer[4096];
+			rchar buffer[4096];
 			SafeStackString sss(buffer, 4096);
 			AutoFree<IStringBuilder> sb = CreateSafeStackStringBuilder(sss);
 			sb->AppendFormat(L"The state of the nation:\n");
@@ -203,14 +203,14 @@ namespace
 			unsigned major, minor;
 			GetBuildVersion(major, minor);
 
-			wchar_t versionText[64];
+			rchar versionText[64];
 			SafeFormat(versionText, _TRUNCATE, L"Build %u.%04u", major, minor);
 
 			Graphics::RenderHorizontalCentredText(grc, versionText, RGBAb(255, 255, 255), 9, { rect.right - 240,rect.top });
 
          auto mem = ProcessMemory();
          
-         wchar_t memoryUsage[64];
+         rchar memoryUsage[64];
          SafeFormat(memoryUsage, _TRUNCATE, L"Mem: %I64u MB/%I64u MB", mem.current >> 20, mem.peak >> 20);
 
          Graphics::RenderHorizontalCentredText(grc, memoryUsage, RGBAb(255, 255, 255), 9, { rect.right - 240,rect.top + 20 });

@@ -71,7 +71,7 @@ namespace
 			return m;
 		}
 
-		DWORD DoModal(HWND owner /* the owner is greyed out during modal operation */, LPCWSTR title, LPCWSTR hint)
+		DWORD DoModal(HWND owner /* the owner is greyed out during modal operation */, cstr title, cstr hint)
 		{
 			SetWindowText(*dialogWindow, title);
 			SetWindowText(*label, hint);
@@ -94,7 +94,7 @@ namespace
 
 namespace Dystopia
 {
-	CMD_ID ShowContinueBox(IWindow& renderWindow, const wchar_t* message)
+	CMD_ID ShowContinueBox(IWindow& renderWindow, cstr message)
 	{
 		AutoFree<ContinueDialog> dialog = ContinueDialog::Create();
 		return (CMD_ID) dialog->DoModal(renderWindow, L"Error", message);

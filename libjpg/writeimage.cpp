@@ -45,9 +45,9 @@ namespace
 			}
 		}
 
-		AutoFileHandle(const wchar_t* filename)
+		AutoFileHandle(cstr filename)
 		{
-			errno_t status = _wfopen_s(&file, (const wchar_t*)filename, L"wb");
+			errno_t status = _wfopen_s(&file, (cstr)filename, L"wb");
 			if (status != 0)
 			{
 				file = NULL;
@@ -108,7 +108,7 @@ namespace
 
 namespace Rococo { namespace Imaging
 {
-	bool CompressJPeg(const unsigned char* data, const Vec2i& span, const wchar_t* filename, int quality)
+	bool CompressJPeg(const unsigned char* data, const Vec2i& span, cstr filename, int quality)
 	{
 		AutoFileHandle output(filename);
 		if (!*output) return false;

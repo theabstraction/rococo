@@ -35,14 +35,14 @@ namespace
 	class HorizontalCentredText : public Fonts::IDrawTextJob
 	{
 	private:
-		const wchar_t* text;
+		cstr text;
 		Fonts::FontColour colour;
 		int fontIndex;
 		float lastCellHeight;
 	public:
 		GuiRectf target;
 
-		HorizontalCentredText(int _fontIndex, const wchar_t* _text, Fonts::FontColour _colour) :
+		HorizontalCentredText(int _fontIndex, cstr _text, Fonts::FontColour _colour) :
 			text(_text), colour(_colour), fontIndex(_fontIndex), lastCellHeight(10.0f)
 		{
 			float minFloat = std::numeric_limits<float>::min();
@@ -75,9 +75,9 @@ namespace
 
 			Vec2 firstGlyphPos = builder.GetCursor();
 
-			for (const wchar_t* p = text; *p != 0; p++)
+			for (cstr p = text; *p != 0; p++)
 			{
-				wchar_t c = *p;
+				rchar c = *p;
 
 				if (c >= 255) c = '?';
 
@@ -104,7 +104,7 @@ namespace
 	class LeftAlignedText : public Fonts::IDrawTextJob
 	{
 	private:
-		const wchar_t* text;
+		cstr text;
 		Fonts::FontColour colour;
 		int fontIndex;
 		float lastCellHeight;
@@ -112,7 +112,7 @@ namespace
 		int retzone;
 		int hypzone;
 	public:
-		LeftAlignedText(const GuiRect& _targetRect, int _retzone, int _hypzone, int _fontIndex, const wchar_t* _text, Fonts::FontColour _colour) :
+		LeftAlignedText(const GuiRect& _targetRect, int _retzone, int _hypzone, int _fontIndex, cstr _text, Fonts::FontColour _colour) :
 			targetRect(GuiRectToQuad(_targetRect)), retzone(_retzone), hypzone(_hypzone),
 			text(_text), colour(_colour), fontIndex(_fontIndex), lastCellHeight(10.0f)
 		{
@@ -142,9 +142,9 @@ namespace
 			const float retX = targetRect.right - retzone;
 			const float hypX = targetRect.right - hypzone;
 
-			for (const wchar_t* p = text; *p != 0; p++)
+			for (cstr p = text; *p != 0; p++)
 			{
-				wchar_t c = *p;
+				rchar c = *p;
 
 				Vec2 nextGlyphPos = builder.GetCursor();
 
@@ -202,7 +202,7 @@ namespace Rococo
 			return Vec2i{ metrics.screenSpan.x >> 1, metrics.screenSpan.y >> 1 };
 		}
 
-		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& middleLeft)
+		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middleLeft)
 		{
 			HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
 			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
@@ -210,7 +210,7 @@ namespace Rococo
 			return span;
 		}
 
-      Vec2i RenderTopLeftAlignedText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& topLeft)
+      Vec2i RenderTopLeftAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topLeft)
       {
          HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
          Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
@@ -218,7 +218,7 @@ namespace Rococo
          return span;
       }
 
-      Vec2i RenderTopRightAlignedText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& topRight)
+      Vec2i RenderTopRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topRight)
       {
          HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
          Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
@@ -226,7 +226,7 @@ namespace Rococo
          return span;
       }
 
-      Vec2i RenderHorizontalCentredText(IGuiRenderContext& grc, const wchar_t* txt, RGBAb colour, int fontSize, const Vec2i& topMiddle)
+      Vec2i RenderHorizontalCentredText(IGuiRenderContext& grc, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle)
 		{
 			HorizontalCentredText job(fontSize, txt, FontColourFromRGBAb(colour));
          Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
@@ -234,7 +234,7 @@ namespace Rococo
          return span;
 		}
 
-      Vec2i RenderCentredText(IGuiRenderContext& grc, const wchar_t* text, RGBAb colour, int fontSize, const Vec2i& middle)
+      Vec2i RenderCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middle)
       {
          HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
          Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
@@ -312,14 +312,14 @@ namespace Rococo
 			DrawRectangle(grc, rightRect, diag, diag);
 		}
 
-		Fonts::IDrawTextJob& CreateHorizontalCentredText(StackSpaceGraphics& ss, int fontIndex, const wchar_t* text, RGBAb colour)
+		Fonts::IDrawTextJob& CreateHorizontalCentredText(StackSpaceGraphics& ss, int fontIndex, cstr text, RGBAb colour)
 		{
 			static_assert(sizeof(ss) > sizeof(HorizontalCentredText), "Increase buffer size");
 			HorizontalCentredText *hct = new (&ss) HorizontalCentredText(fontIndex, text, FontColourFromRGBAb(colour));
 			return *hct;
 		}
 
-		Fonts::IDrawTextJob& CreateLeftAlignedText(StackSpaceGraphics& ss, const GuiRect& targetRect, int retzone, int hypzone, int fontIndex, const wchar_t* text, RGBAb colour)
+		Fonts::IDrawTextJob& CreateLeftAlignedText(StackSpaceGraphics& ss, const GuiRect& targetRect, int retzone, int hypzone, int fontIndex, cstr text, RGBAb colour)
 		{
 			static_assert(sizeof(ss) > sizeof(LeftAlignedText), "Increase buffer size");
 			LeftAlignedText *lat = new (&ss) LeftAlignedText(targetRect, retzone, hypzone, fontIndex, text, FontColourFromRGBAb(colour));

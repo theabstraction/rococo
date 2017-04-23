@@ -24,7 +24,7 @@ using namespace Sexy;
 using namespace Sexy::Sex;
 
 /*
-bool operator == (cr_sex s, const wchar_t* atomicMatch)
+bool operator == (cr_sex s, cstr atomicMatch)
 {
    if (s.Type() == EXPRESSION_TYPE_ATOMIC || s.Type() == EXPRESSION_TYPE_STRING_LITERAL)
    {
@@ -35,12 +35,12 @@ bool operator == (cr_sex s, const wchar_t* atomicMatch)
 }
 */
 
-cr_sex ValidateDirective(cr_sex s, const wchar_t* sdirective)
+cr_sex ValidateDirective(cr_sex s, cstr sdirective)
 {
    Sexy::Sex::AssertCompound(s);
    if (s[0] != sdirective)
    {
-      wchar_t msg[1024];
+      rchar msg[1024];
       SafeFormat(msg, _TRUNCATE, L"Expecting %s", sdirective);
       Throw(s, msg);
    }
@@ -68,14 +68,14 @@ void WriteCppFile(cr_sex s)
 
 int main()
 {
-   std::vector<wchar_t> buffer;
+   std::vector<rchar> buffer;
    buffer.reserve(8_kilobytes);
 
-   wchar_t line[1024];
+   rchar line[1024];
 
    while (_getws_s(line))
    {
-      const wchar_t* p = line;
+      cstr p = line;
       while (*p != 0)
       {
          buffer.push_back(*p);
@@ -87,7 +87,7 @@ int main()
 
    buffer.push_back(0);
 
-   const wchar_t* src = &buffer[0];
+   cstr src = &buffer[0];
 
    printf("/*\n%S\n*/\n", src);
 

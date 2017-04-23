@@ -21,7 +21,7 @@ namespace Rococo
 		float n2 = LengthSq(plane.normal);
 		if (n2 < 0.996f || n2 > 1.004)
 		{
-			Throw(0, L"Bad normals: Normalize plane normal vectors.");
+			Throw(0, "Bad normals: Normalize plane normal vectors.");
 		}
 
 		// Algorithm:
@@ -197,7 +197,7 @@ namespace Rococo
 	{
 		if (LengthSq(p.normal) < 0.994 || LengthSq(q.normal) > 1.004)
 		{
-			Throw(0, L"Bad normals in Intersect(const Plane& p, const Plane& q)->Line");
+			Throw(0, "Bad normals in Intersect(const Plane& p, const Plane& q)->Line");
 		}
 		// Plane equation: given two points P and Q in plane, with normal N:
 		// (P - Q).N = 0..................(1)
@@ -655,7 +655,7 @@ namespace Rococo
 
       if (nVertices < 2)
       {
-         Throw(0, L"CountLineIntersects failed - insufficient vertices in positionArray");
+         Throw(0, "CountLineIntersects failed - insufficient vertices in positionArray");
       }
 
       IntersectCounts counts = { 0 };

@@ -59,7 +59,7 @@ namespace
 
 namespace Rococo
 {
-	void ShowErrorBox(IException& ex, const wchar_t* caption)
+	void ShowErrorBox(IException& ex, cstr caption)
 	{
 		if (ex.ErrorCode() == 0)
 		{
@@ -67,8 +67,8 @@ namespace Rococo
 		}
 		else
 		{
-			wchar_t codeMsg[512];
-			wchar_t bigMsg[512];
+			rchar codeMsg[512];
+			rchar bigMsg[512];
 			if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, ex.ErrorCode(), 0, codeMsg, 512, nullptr) <= 0)
 			{
 				SafeFormat(bigMsg, _TRUNCATE, L"%s. Code 0x%x", ex.Message(), ex.ErrorCode());
@@ -196,7 +196,7 @@ namespace
 
 	struct DX11Shader
 	{
-		std::wstring name;
+		std::string name;
 	};
 
 	struct DX11VertexShader : public DX11Shader
@@ -236,9 +236,9 @@ namespace
 
 	enum { UMLIMITED = -1 };
 
-	void LoadFileAbsolute(const wchar_t* filename, std::vector<byte>& data, int64 maxFileSize = UMLIMITED)
+	void LoadFileAbsolute(cstr filename, std::vector<byte>& data, int64 maxFileSize = UMLIMITED)
 	{
-		if (filename == nullptr || wcslen(filename) == 0) Throw(E_INVALIDARG, L"LoadFileAbsolute failed: <filename> was blank");
+		if (filename == nullptr || rlen(filename) == 0) Throw(E_INVALIDARG, L"LoadFileAbsolute failed: <filename> was blank");
 		FileHandle hFile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 		if (!hFile.IsValid()) Throw(HRESULT_FROM_WIN32(GetLastError()), L"LoadFileAbsolute failed: CreateFile failed for %s", filename);
 
@@ -306,8 +306,8 @@ namespace
 
 	struct IRenderer
 	{
-		virtual ID_VERTEX_SHADER CreateVertexShader(const wchar_t* name, const byte* shaderCode, size_t shaderLength) = 0;
-		virtual ID_PIXEL_SHADER CreatePixelShader(const wchar_t* name, const byte* shaderCode, size_t shaderLength) = 0;
+		virtual ID_VERTEX_SHADER CreateVertexShader(cstr name, const byte* shaderCode, size_t shaderLength) = 0;
+		virtual ID_PIXEL_SHADER CreatePixelShader(cstr name, const byte* shaderCode, size_t shaderLength) = 0;
 
 		virtual void Render(IScene& scene) = 0;
 		virtual void UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid) = 0;
@@ -360,14 +360,14 @@ namespace
 	class HorizontalCentredText : public Fonts::IDrawTextJob
 	{
 	private:
-		const wchar_t* text;
+		cstr text;
 		Fonts::FontColour colour;
 		int fontIndex;
 
 	public:
 		Quad target;
 
-		HorizontalCentredText(int _fontIndex, const wchar_t* _text, Fonts::FontColour _colour) : text(_text), colour(_colour), fontIndex(_fontIndex)
+		HorizontalCentredText(int _fontIndex, cstr _text, Fonts::FontColour _colour) : text(_text), colour(_colour), fontIndex(_fontIndex)
 		{
 			float minFloat = std::numeric_limits<float>::min();
 			float maxFloat = std::numeric_limits<float>::max();
@@ -395,9 +395,9 @@ namespace
 			float fMax = 1000000.0f;
 			builder.SetClipRect(Quad(fMin, fMin, fMax, fMax));
 
-			for (const wchar_t* p = text; *p != 0; p++)
+			for (cstr p = text; *p != 0; p++)
 			{
-				wchar_t c = *p;
+				rchar c = *p;
 
 				if (c >= 255) c = '?';
 
@@ -515,14 +515,14 @@ namespace
 			VALIDATEDX11(device.CreateBlendState(&alphaBlendDesc, alphaBlend));
 
 			std::vector<byte> fontFile;
-			const wchar_t* fontName = L"C:\\Work\\rococo\\dx11.window.test\\font1.tif";
+			cstr fontName = L"C:\\Work\\rococo\\dx11.window.test\\font1.tif";
 			LoadFileAbsolute(fontName, fontFile, 64 * 1024 * 1024);
 
 			if (fontFile.empty()) Throw(0, L"The font file %s was blank", fontName);
 
 			struct ANON: public Imaging::IImageLoadEvents
 			{
-				const wchar_t* fontName;
+				cstr fontName;
 				ID3D11Device* device;
 				AutoRelease<ID3D11Texture2D>& fontTexture;
 
@@ -578,7 +578,7 @@ namespace
 
 			VALIDATEDX11(device.CreateShaderResourceView(fontTexture, &desc, fontBinding));
 
-			const wchar_t* csvName = L"C:\\Work\\rococo\\dx11.window.test\\font1.csv";
+			cstr csvName = L"C:\\Work\\rococo\\dx11.window.test\\font1.csv";
 			LoadFileAbsolute(csvName, fontFile, 65536);
 
 			fonts = Fonts::LoadFontCSV(csvName, (const char*) &fontFile[0], fontFile.size());
@@ -654,9 +654,9 @@ namespace
 			screenSpan.y = (int32) viewport.Height;
 		}
 
-		ID_VERTEX_SHADER CreateVertexShader(const wchar_t* name, const byte* shaderCode, size_t shaderLength)
+		ID_VERTEX_SHADER CreateVertexShader(cstr name, const byte* shaderCode, size_t shaderLength)
 		{
-			if (name == nullptr || wcslen(name) > 1024) Throw(0, L"Bad <name> for vertex shader");
+			if (name == nullptr || rlen(name) > 1024) Throw(0, L"Bad <name> for vertex shader");
 			if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 65536) Throw(0, L"Bad shader code for vertex shader %s", name);
 
 			DX11VertexShader* shader = new DX11VertexShader;
@@ -681,9 +681,9 @@ namespace
 			return (ID_VERTEX_SHADER) vertexShaders.size() - 1;
 		}
 
-		ID_PIXEL_SHADER CreatePixelShader(const wchar_t* name, const byte* shaderCode, size_t shaderLength)
+		ID_PIXEL_SHADER CreatePixelShader(cstr name, const byte* shaderCode, size_t shaderLength)
 		{
-			if (name == nullptr || wcslen(name) > 1024) Throw(0, L"Bad <name> for pixel shader");
+			if (name == nullptr || rlen(name) > 1024) Throw(0, L"Bad <name> for pixel shader");
 			if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 16384) Throw(0, L"Bad shader code for pixel shader %s", name);
 
 			DX11PixelShader* shader = new DX11PixelShader;
@@ -1149,7 +1149,7 @@ public:
 		GuiMetrics metrics;
 		renderer.GetGuiMetrics(metrics);
 
-		wchar_t info[256];
+		rchar info[256];
 		SafeFormat(info, _TRUNCATE, L"Mouse: (%d,%d)", metrics.cursorPosition.x, metrics.cursorPosition.y);
 
 		HorizontalCentredText hw(0, info, FontColourFromRGBAb(RGBAb{ 255, 255, 255, 255 }));

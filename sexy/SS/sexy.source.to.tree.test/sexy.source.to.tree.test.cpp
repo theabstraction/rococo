@@ -72,10 +72,17 @@ void PrintParseException(const ParseException& e)
 
 void FormatSysMessage(SEXCHAR* text, size_t capacity, int msgNumber)
 {
-	if (!FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, msgNumber, 0, text, (DWORD) capacity, NULL))
+#ifdef SEXCHAR_IS_WIDE
+	if (!FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, msgNumber, 0, text, (DWORD) capacity, NULL))
 	{
 		StringPrint(text, capacity, SEXTEXT("Code %d ( 0x%x )"), msgNumber, msgNumber);
 	}
+#else
+   if (!FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, msgNumber, 0, text, (DWORD)capacity, NULL))
+   {
+      StringPrint(text, capacity, SEXTEXT("Code %d ( 0x%x )"), msgNumber, msgNumber);
+   }
+#endif
 }
 
 void RunTest(ISParser& ss);

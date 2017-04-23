@@ -1,7 +1,7 @@
 // svmhost.cpp : Defines the entry point for the console application.
 
 #include "Sexy.VM.Test.StdAfx.h"
-#include "Sexy.VM.h"
+#include "sexy.vm.h"
 #include "Sexy.VM.CPU.h"
 
 #include <vector>

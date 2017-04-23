@@ -5,7 +5,7 @@
 
 #include <rococo.types.h>
 
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, rchar* lpCmdLine, int nCmdShow)
 {
    
 }

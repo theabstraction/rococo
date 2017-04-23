@@ -12,7 +12,7 @@ namespace
 	{
 		IInstallation& installation;
 		IRenderer& renderer;
-		std::unordered_map<std::wstring, ID_BITMAP> innerCache;
+		std::unordered_map<std::string, ID_BITMAP> innerCache;
 		AutoFree<IExpandingBuffer> imageBuffer;
 	public:
 		Bitmaps(IInstallation& _installation, IRenderer& _renderer):
@@ -23,7 +23,7 @@ namespace
 
 		}
 
-		virtual ID_BITMAP Cache(const wchar_t* resourceName)
+		virtual ID_BITMAP Cache(cstr resourceName)
 		{
 			auto i = innerCache.find(resourceName);
 			if (i != innerCache.end()) return i->second;

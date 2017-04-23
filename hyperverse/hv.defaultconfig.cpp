@@ -6,16 +6,16 @@ namespace HV
 
    namespace Defaults
    {
-      const ConfigText appTitle   = { L"app.title"_fstring,   L"Hyperverse"_fstring };
-      const ConfigText appAuthor  = { L"app.author"_fstring,  L"Mark Anthony Taylor"_fstring };
-      const ConfigText appEmail   = { L"app.email"_fstring,   L"mark.anthony.taylor@gmail.com"_fstring };
-      const ConfigText appURL     = { L"app.url"_fstring,     L"www.shyreman.com"_fstring };
-      const ConfigText appTwitter = { L"app.twitter"_fstring, L"@Shyreman"_fstring };
-      const ConfigInt   appSleep  { L"app.sleep", 5 };
+      const ConfigText appTitle   = { "app.title"_fstring,   "Hyperverse"_fstring };
+      const ConfigText appAuthor  = { "app.author"_fstring,  "Mark Anthony Taylor"_fstring };
+      const ConfigText appEmail   = { "app.emai"_fstring,   "mark.anthony.taylor@gmail.com"_fstring };
+      const ConfigText appURL     = { "app.ur"_fstring,     "www.shyreman.com"_fstring };
+      const ConfigText appTwitter = { "app.twitter"_fstring, "@Shyreman"_fstring };
+      const ConfigInt   appSleep  { "app.sleep", 5 };
 
-      const ConfigFloat mouseFpsxScale = { L"mouse.fps.xscale"_fstring, 	4.0f };
-      const ConfigFloat mouseFpsyScale = { L"mouse.fps.yscale"_fstring, 	4.0f };
-      const ConfigBool  mouseYreverse = { L"mouse.fps.yreverse"_fstring, 	false };
+      const ConfigFloat mouseFpsxScale = { "mouse.fps.xscale"_fstring, 	4.0f };
+      const ConfigFloat mouseFpsyScale = { "mouse.fps.yscale"_fstring, 	4.0f };
+      const ConfigBool  mouseYreverse = { "mouse.fps.yreverse"_fstring, 	false };
 
       void Add(IConfig& config, const ConfigText& ct)
       {

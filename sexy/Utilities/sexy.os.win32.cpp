@@ -47,6 +47,10 @@ namespace Sexy
    {
       void SetBreakPoints(int flags)
       {
+         static_assert(sizeof(int64) == 8, "Bad int64");
+         static_assert(sizeof(int32) == 4, "Bad int32");
+         static_assert(sizeof(int16) == 2, "Bad int16");
+         static_assert(sizeof(int8) == 1, "Bad int8");
          breakFlags = flags;
       }
 

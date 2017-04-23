@@ -73,7 +73,7 @@ namespace Sexy { namespace Sex
 		return s.Type() == EXPRESSION_TYPE_NULL;
 	}
 
-	bool IsToken(cr_sex s, const wchar_t* text);
+	bool IsToken(cr_sex s, cstr text);
 
 	class ParseException: public IException
 	{
@@ -83,7 +83,7 @@ namespace Sexy { namespace Sex
 		
 		enum {MAX_ERRMSG_LEN = 512};
 		SEXCHAR srcName[MAX_ERRMSG_LEN];
-		wchar_t errText[MAX_ERRMSG_LEN];
+		rchar errText[MAX_ERRMSG_LEN];
 		SEXCHAR specimenText[MAX_ERRMSG_LEN];
 		const ISExpression* source;
 
@@ -93,7 +93,7 @@ namespace Sexy { namespace Sex
 		const Vec2i& Start() const { return startPos; }
 		const Vec2i& End() const { return endPos; }
 		csexstr Name() const { return srcName; }
-		const wchar_t* Message() const { return errText; }
+		cstr Message() const { return errText; }
 		int ErrorCode() const { return -1; }
 		const ISExpression* Source() const { return source; }
 		csexstr Specimen() const { return specimenText; }
@@ -161,6 +161,6 @@ namespace Sexy { namespace Sex
 		ISParser* operator->() { return instance; }
 	};
 
-	void EscapeScriptStringToAnsi(Rococo::IO::IBinaryWriter& writer, const wchar_t* text);
-	void EscapeScriptStringToUnicode(Rococo::IO::IUnicode16Writer& writer, const wchar_t* text);
+	void EscapeScriptStringToAnsi(Rococo::IO::IBinaryWriter& writer, cstr text);
+	void EscapeScriptStringToUnicode(Rococo::IO::IUnicode16Writer& writer, cstr text);
 }}

@@ -14,16 +14,16 @@ namespace
 	public:
 		SafeStringBuilder(size_t _capacity): buffer(nullptr), capacity(_capacity), offset(0)
 		{
-			buffer = new wchar_t[capacity];
+			buffer = new rchar[capacity];
 			buffer[0] = 0;
 		}
 
-		virtual operator const wchar_t* () const
+		virtual operator cstr () const
 		{
 			return buffer;
 		}
 
-		virtual int AppendFormat(const wchar_t* format, ...)
+		virtual int AppendFormat(cstr format, ...)
 		{
 			if (offset >= capacity - 1)
 			{
@@ -51,7 +51,7 @@ namespace
 			delete[] buffer;
 		}
 
-		wchar_t* buffer;
+		rchar* buffer;
 		size_t capacity;
 		size_t offset;
 	};
@@ -67,12 +67,12 @@ namespace
 			
 		}
 
-		virtual operator const wchar_t* () const
+		virtual operator cstr () const
 		{
 			return sss.Buffer();
 		}
 
-		virtual int AppendFormat(const wchar_t* format, ...)
+		virtual int AppendFormat(cstr format, ...)
 		{
 			if (offset >= sss.Capacity() - 1)
 			{
@@ -134,19 +134,29 @@ namespace
 
 namespace Rococo
 {
-	fstring to_fstring(const wchar_t* const msg)
+   size_t rlen(cstr s)
+   {
+      return strlen(s);
+   }
+
+	fstring to_fstring(cstr const msg)
 	{
-		size_t len = wcslen(msg);
+		size_t len = rlen(msg);
 		if (len >= 0x020000000LL)
 		{
-			Throw(0, L"String too long to convert to fstring");
+			Throw(0, "String too long to convert to fstring");
 		}
 		return{ msg, (int)len };
 	}
 
+   int StrCmpN(cstr a, cstr b, size_t len)
+   {
+      return strncmp(a, b, len);
+   }
+
 	bool operator == (const fstring& a, const fstring& b)
 	{
-		return a.length == b.length && wcsncmp(a.buffer, b.buffer, a.length) == 0;
+		return a.length == b.length && StrCmpN(a.buffer, b.buffer, a.length) == 0;
 	}
 
 	IStringBuilder* CreateSafeStringBuilder(size_t capacity)
@@ -160,29 +170,29 @@ namespace Rococo
 		return new (sss.Data()) SafeStackStringBuilder(sss);
 	}
 
-	void SplitString(const wchar_t* text, size_t length, const wchar_t* seperators, IEventCallback<const wchar_t*>& onSubString)
+	void SplitString(const char* text, size_t length, cstr seperators, IEventCallback<cstr>& onSubString)
 	{
-		if (length == 0) length = wcslen(text);
-		size_t bytecount = sizeof(wchar_t) * (length + 1);
-		wchar_t* buf = (wchar_t*)_alloca(bytecount);
+		if (length == 0) length = rlen(text);
+		size_t bytecount = sizeof(rchar) * (length + 1);
+		rchar* buf = (rchar*)_alloca(bytecount);
 		memcpy_s(buf, bytecount, text, bytecount);
 		buf[length] = 0;
 
-		wchar_t* next_token = nullptr;
-		wchar_t* token = wcstok_s(buf, L"|", &next_token);
+		rchar* next_token = nullptr;
+		rchar* token = strtok_s(buf, "|", &next_token);
 		while (token != nullptr)
 		{
 			onSubString.OnEvent(token);
-			token = wcstok_s(nullptr, L"|", &next_token);
+			token = strtok_s(nullptr, "|", &next_token);
 		}
 	}
 
-	size_t CountSubStrings(const wchar_t* text, size_t length, const wchar_t* seperators)
+	size_t CountSubStrings(cstr text, size_t length, cstr seperators)
 	{
-		struct : IEventCallback<const wchar_t*>
+		struct : IEventCallback<cstr>
 		{
 			size_t count;
-			virtual void OnEvent(const wchar_t* text)
+			virtual void OnEvent(cstr text)
 			{
 				count++;
 			}
@@ -193,7 +203,7 @@ namespace Rococo
 		return cb.count;
 	}
 
-	uint32 FastHash(const wchar_t* text)
+	uint32 FastHash(cstr text)
 	{
 		if (text == nullptr) return 0;
 
@@ -213,17 +223,17 @@ namespace Rococo
 		return new ExpandingBuffer(initialCapacity);
 	}
 
-   const wchar_t* GetFinalNull(const wchar_t* s)
+   cstr GetFinalNull(cstr s)
    {
-      const wchar_t* p = s;
+      cstr p = s;
       while (*p++ != 0);
       return p - 1;
    }
 
-   const wchar_t* GetRightSubstringAfter(const wchar_t* s, wchar_t c)
+   cstr GetRightSubstringAfter(cstr s, rchar c)
    {
-      const wchar_t* p = GetFinalNull(s);
-      for (const wchar_t* q = p; q >= s; --q)
+      cstr p = GetFinalNull(s);
+      for (cstr q = p; q >= s; --q)
       {
          if (*q == c)
          {
@@ -234,13 +244,13 @@ namespace Rococo
       return nullptr;
    }
 
-   const wchar_t* GetFileExtension(const wchar_t* s)
+   cstr GetFileExtension(cstr s)
    {
       return GetRightSubstringAfter(s, L'.');
    }
 
-   bool Eq(const wchar_t* a, const wchar_t* b)
+   bool Eq(const char* a, const char* b)
    {
-      return wcscmp(a, b) == 0;
+      return strcmp(a, b) == 0;
    }
 }

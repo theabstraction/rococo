@@ -32,7 +32,7 @@ namespace Rococo
 
       ROCOCOAPI ICountdownConfirmationDialog
       {
-         virtual DWORD DoModal(HWND owner /* the owner is greyed out during modal operation */, LPCWSTR title, LPCWSTR hint, int countdown) = 0;
+         virtual DWORD DoModal(HWND owner /* the owner is greyed out during modal operation */, cstr title, cstr hint, int countdown) = 0;
          virtual void Free() = 0;
       };
 
@@ -53,8 +53,8 @@ namespace Rococo
 
       public:
          TextureLoader(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& _dc, IExpandingBuffer& _scratchBuffer);
-         TextureBind LoadAlphaBitmap(const wchar_t* resourceName);
-         TextureBind LoadColourBitmap(const wchar_t* resourceName);
+         TextureBind LoadAlphaBitmap(cstr resourceName);
+         TextureBind LoadColourBitmap(cstr resourceName);
       };
    } // DX11
 } // Rococo

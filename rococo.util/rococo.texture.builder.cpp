@@ -95,7 +95,7 @@ namespace
       {
          if (index >= rows.size())
          {
-            Throw(0, L"Bad index in Grid::Row())");
+            Throw(0, "Bad index in Grid::Row())");
          }
          return *rows[index];
       }
@@ -104,7 +104,7 @@ namespace
       {
          if (index >= rows.size())
          {
-            Throw(0, L"Bad index in Grid::Row())");
+            Throw(0, "Bad index in Grid::Row())");
          }
          return *rows[index];
       }
@@ -185,7 +185,7 @@ namespace
       IResourceLoader& loader;
       ITextureArray& textureArray;
 
-      std::unordered_map<std::wstring, BitmapLocationImpl>  mapNameToLoc;
+      std::unordered_map<std::string, BitmapLocationImpl>  mapNameToLoc;
 
       struct TextureSpec
       {
@@ -206,16 +206,16 @@ namespace
          delete this;
       }
 
-      virtual void AddBitmap(const wchar_t* name)
+      virtual void AddBitmap(cstr name)
       {
          auto i = mapNameToLoc.find(name);
          if (i == mapNameToLoc.end())
          {
-             i = mapNameToLoc.insert(std::make_pair(std::wstring(name), BitmapLocationImpl{ GuiRect {0,0,0,0}, {0,0},0 })).first;
+             i = mapNameToLoc.insert(std::make_pair(std::string(name), BitmapLocationImpl{ GuiRect {0,0,0,0}, {0,0},0 })).first;
          }
       }
 
-      virtual bool TryGetBitmapLocation(const wchar_t* name, BitmapLocation& location)
+      virtual bool TryGetBitmapLocation(cstr name, BitmapLocation& location)
       {
          auto i = mapNameToLoc.find(name);
          if (i == mapNameToLoc.end())
@@ -235,7 +235,7 @@ namespace
       {
          struct ANON : public IEventCallback<CompressedTextureBuffer>, public Imaging::IImageLoadEvents 
          {
-            const wchar_t* name;
+            cstr name;
             Vec2i span;
             int32 maxWidth;
 
@@ -253,7 +253,7 @@ namespace
 
             virtual void OnError(const char* message)
             {
-               Throw(0, L"Could not load image %s:\n%S", name, message);
+               Throw(0, "Could not load image %s:\n%S", name, message);
             }
 
             virtual void OnARGBImage(const Vec2i& span, const Imaging::F_A8R8G8B8* data)
@@ -266,7 +266,7 @@ namespace
 
             virtual void OnAlphaImage(const Vec2i& span, const uint8* data)
             {
-               Throw(0, L"Image %s was an alpha, or single channel bitmap.\nOnly 32-bt RGBA or 24-bit RGB files supported.", name);
+               Throw(0, "Image %s was an alpha, or single channel bitmap.\nOnly 32-bt RGBA or 24-bit RGB files supported.", name);
             }
          } onLoad;
 
@@ -313,7 +313,7 @@ namespace
 
          if (maxWidth > textureArray.MaxWidth())
          {
-            Throw(0, L"The span of the largest texture was greater than the largest texture supported");
+            Throw(0, "The span of the largest texture was greater than the largest texture supported");
          }
 
          return maxWidth;
@@ -381,7 +381,7 @@ namespace
          {
             TextureArrayBuilder* builder;
 
-            bool GetRelativeOrder(const wchar_t* a, const wchar_t* b)
+            bool GetRelativeOrder(cstr a, cstr b)
             {
                auto& A = builder->mapNameToLoc[a];
                auto& B = builder->mapNameToLoc[b];
@@ -420,7 +420,7 @@ namespace
                }
             }
 
-            bool operator()(const wchar_t* a, const wchar_t* b)
+            bool operator()(cstr a, cstr b)
             {
                return GetRelativeOrder(a, b);
             }
@@ -428,7 +428,7 @@ namespace
 
          sortBy.builder = this;
 
-         std::vector<const wchar_t*> orderedNames;
+         std::vector<cstr> orderedNames;
          for (auto& bmp : mapNameToLoc)
          {
             orderedNames.push_back(bmp.first.c_str());
@@ -518,7 +518,7 @@ namespace
          {
             struct ANON : public IEventCallback<CompressedTextureBuffer>, public Imaging::IImageLoadEvents
             {
-               const wchar_t* name;
+               cstr name;
                Vec2i span;
                BitmapLocationImpl* loc;
                ITextureArray* ta;
@@ -537,20 +537,20 @@ namespace
 
                virtual void OnError(const char* message)
                {
-                  Throw(0, L"Could not load image %s:\n%S", name, message);
+                  Throw(0, "Could not load image %s:\n%S", name, message);
                }
 
                virtual void OnARGBImage(const Vec2i& span, const Imaging::F_A8R8G8B8* data)
                {
                   if (this->span.x != span.x || this->span.y != span.y)
                   {
-                     Throw(0, L"Span of image %s changed during execution of the application", name);
+                     Throw(0, "Span of image %s changed during execution of the application", name);
                   }
 
                   Vec2i spanUv = { loc->uv.right - loc->uv.left, loc->uv.bottom - loc->uv.top };
                   if (span.x != spanUv.x || span.y != spanUv.y)
                   {
-                     Throw(0, L"Algorithmic error -> BuildTextures(...) loc inconsistent with span");
+                     Throw(0, "Algorithmic error -> BuildTextures(...) loc inconsistent with span");
                   }
 
                   ta->WriteSubImage(loc->index, data, loc->uv);
@@ -558,7 +558,7 @@ namespace
 
                virtual void OnAlphaImage(const Vec2i& span, const uint8* data)
                {
-                  Throw(0, L"Image %s was an alpha, or single channel bitmap.\nOnly 32-bt RGBA or 24-bit RGB files supported.", name);
+                  Throw(0, "Image %s was an alpha, or single channel bitmap.\nOnly 32-bt RGBA or 24-bit RGB files supported.", name);
                }
             } onLoad;
 
@@ -603,22 +603,22 @@ namespace Rococo
          return engineFormat;
       }
 
-      void StandardLoadFromCompressedTextureBuffer(const wchar_t* name, IEventCallback<CompressedTextureBuffer>& onLoad, IInstallation& installation, IExpandingBuffer& buffer)
+      void StandardLoadFromCompressedTextureBuffer(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad, IInstallation& installation, IExpandingBuffer& buffer)
       {
          COMPRESSED_TYPE type;
 
          auto* ext = GetFileExtension(name);
-         if (Eq(ext, L".tiff") || Eq(ext, L".tif"))
+         if (Eq(ext, ".tiff") || Eq(ext, ".tif"))
          {
             type = COMPRESSED_TYPE_TIF;
          }
-         else if (Eq(ext, L".jpg") || Eq(ext, L".jpeg"))
+         else if (Eq(ext, ".jpg") || Eq(ext, ".jpeg"))
          {
             type = COMPRESSED_TYPE_JPG;
          }
          else
          {
-            Throw(0, L"%s: Image files either be a tif or a jpg.", name);
+            Throw(0, "%s: Image files either be a tif or a jpg.", name);
          }
 
          installation.LoadResource(name, buffer, 64_megabytes);

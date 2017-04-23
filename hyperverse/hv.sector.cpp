@@ -22,12 +22,12 @@ namespace
       // So we do not duplicate end vertex in the array with the beginning
       if (nVertices < 3 || positionArray[0] == positionArray[nVertices - 1])
       {
-         Throw(0, L"ValidateArray: Bad position array");
+         Throw(0, "ValidateArray: Bad position array");
       }
 
       if (nVertices > 256)
       {
-         Throw(0, L"ValidateArray: Too many elements in mesh. Maximum is 256. Simplify");
+         Throw(0, "ValidateArray: Too many elements in mesh. Maximum is 256. Simplify");
       }
    }
 
@@ -76,7 +76,7 @@ namespace
       ID_ENTITY ceilingId;
       ID_ENTITY wallId;
       
-      wchar_t name[32];
+      rchar name[32];
       
       Segment GetSegment(Vec2 p, Vec2 q) override
       {
@@ -100,8 +100,8 @@ namespace
 
       void RebuildWalls()
       {
-         wchar_t name[32];
-         SafeFormat(name, _TRUNCATE, L"sector.walls.%u", id);
+         rchar name[32];
+         SafeFormat(name, _TRUNCATE, "sector.walls.%u", id);
          auto& mb = instances.MeshBuilder();
          mb.Clear();
          mb.Begin(to_fstring(name));
@@ -113,7 +113,7 @@ namespace
 
          mb.End();
 
-         wallId = instances.AddBody(to_fstring(name), L"!textures/walls/metal1.jpg"_fstring, Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+         wallId = instances.AddBody(to_fstring(name), "!textures/walls/metal1.jpg"_fstring, Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
       void RemoveWallSegment(Segment segment)
@@ -313,8 +313,8 @@ namespace
 
       void RebuildFloors()
       {
-         wchar_t name[32];
-         SafeFormat(name, _TRUNCATE, L"sector.floor.%u", id);
+         rchar name[32];
+         SafeFormat(name, _TRUNCATE, "sector.floor.%u", id);
 
          auto& mb = instances.MeshBuilder();
          mb.Begin(to_fstring(name));
@@ -326,13 +326,13 @@ namespace
 
          mb.End();
 
-         floorId = instances.AddBody(to_fstring(name), L"!textures/walls/metal1.jpg"_fstring, Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+         floorId = instances.AddBody(to_fstring(name), "!textures/walls/metal1.jpg"_fstring, Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
       void RebuildCeiling()
       {
-         wchar_t name[32];
-         SafeFormat(name, _TRUNCATE, L"sector.ceiling.%u", id);
+         rchar name[32];
+         SafeFormat(name, _TRUNCATE, "sector.ceiling.%u", id);
 
          auto& mb = instances.MeshBuilder();
          mb.Begin(to_fstring(name));
@@ -344,7 +344,7 @@ namespace
 
          mb.End();
 
-         ceilingId = instances.AddBody(to_fstring(name), L"!textures/walls/metal1.jpg"_fstring, Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+         ceilingId = instances.AddBody(to_fstring(name), "!textures/walls/metal1.jpg"_fstring, Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
       void Rebuild()
@@ -447,15 +447,15 @@ namespace
 
       void InvokeSectorDialog(Rococo::Windows::IWindow& parent) override
       {
-         wchar_t title[32];
-         SafeFormat(title, _TRUNCATE, L"Sector %u", id);
-         AutoFree<IVariableEditor> editor = CreateVariableEditor(parent, { 640, 400 }, 120, title, L"Floor and Ceiling", L"Edit floor and ceiling parameters");
-         editor->AddIntegerEditor(L"Altitiude", L"Altitiude - centimetres", 0, 100000, (int32)( z0 * 100.0f));
-         editor->AddIntegerEditor(L"Height", L"Height - centimetres", 250, 100000, (int32)( (z1 - z0) * 100.0f));
+         rchar title[32];
+         SafeFormat(title, _TRUNCATE, "Sector %u", id);
+         AutoFree<IVariableEditor> editor = CreateVariableEditor(parent, { 640, 400 }, 120, title, "Floor and Ceiling", "Edit floor and ceiling parameters");
+         editor->AddIntegerEditor("Altitiude", "Altitiude - centimetres", 0, 100000, (int32)( z0 * 100.0f));
+         editor->AddIntegerEditor("Height", "Height - centimetres", 250, 100000, (int32)( (z1 - z0) * 100.0f));
          if (editor->IsModalDialogChoiceYes())
          {
-            int Z0 = editor->GetInteger(L"Altitiude");
-            int Z1 = editor->GetInteger(L"Height");
+            int Z0 = editor->GetInteger("Altitiude");
+            int Z1 = editor->GetInteger("Height");
 
             Z0 = min(10000, Z0);
             Z0 = max(0, Z0);

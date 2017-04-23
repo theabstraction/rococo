@@ -1,6 +1,6 @@
 #include <rococo.api.h>
 #include <rococo.maths.h>
-#include <wchar.h>
+#include <rococo.strings.h>
 #include <DirectXMath.h>
 
 #ifdef _DEBUG
@@ -21,7 +21,7 @@ void validate(bool condition, const char* expr, const char* filename, int lineNu
 {
 	if (!condition)
 	{
-		Throw(0, L"Error validating %S at %S @line %d", expr, filename, lineNumber);
+		Throw(0, "Error validating %S at %S @line %d", expr, filename, lineNumber);
 	}
 }
 
@@ -80,9 +80,9 @@ void ValidateQuadTreeLib()
 	QuadStats stats;
 	qTree->GetStats(stats);
 
-	wprintf(L"Quads allocated: %I64u. Quads on free list: %I64u\n", stats.quadsAllocated, stats.quadsFree);
-	wprintf(L"Nodes allocated: %I64u. Nodes on free list: %I64u\n", stats.nodesAllocated, stats.nodesFree);
-	wprintf(L"Nodes size: %I64u bytes. GuiRectf size: %I64u bytes\n", stats.nodeAllocSize, stats.quadAllocSize);
+	printf("Quads allocated: %I64u. Quads on free list: %I64u\n", stats.quadsAllocated, stats.quadsFree);
+	printf("Nodes allocated: %I64u. Nodes on free list: %I64u\n", stats.nodesAllocated, stats.nodesFree);
+	printf("Nodes size: %I64u bytes. GuiRectf size: %I64u bytes\n", stats.nodeAllocSize, stats.quadAllocSize);
 }
 
 void ValidateMatrixLib()
@@ -264,7 +264,7 @@ void ValidateCollisionLib()
       float t, u;
       if (!GetLineIntersect(a, b, c, d, t, u))
       {
-         Throw(0, L"Bad intersect!");
+         Throw(0, "Bad intersect!");
       }
       VALIDATE(u == 0.5f);
       VALIDATE(t == -0.125f);
@@ -276,7 +276,7 @@ void ValidateCollisionLib()
       float t, u;
       if (GetLineIntersect(a, b, c, d, t, u))
       {
-         Throw(0, L"Bad intersect!");
+         Throw(0, "Bad intersect!");
       }
    }
 
@@ -342,7 +342,7 @@ void  ValidateProjectionLib()
 
 void test()
 {
-	wprintf(L"rococo.maths.test running...\n");
+	printf("rococo.maths.test running...\n");
 
 	ValidateVectorLib();
 	ValidatePolynomialLib();
@@ -351,7 +351,7 @@ void test()
 	ValidateCollisionLib();
    ValidateProjectionLib();
 
-	wprintf(L"rococo.maths.test finished\n");
+	printf("rococo.maths.test finished\n");
 }
 
 int main(int argc, char* argv[])
@@ -362,7 +362,7 @@ int main(int argc, char* argv[])
 	}
 	catch (IException& ex)
 	{
-		wprintf(L"%s\n", ex.Message());
+		printf("%s\n", ex.Message());
 	}
 }
 

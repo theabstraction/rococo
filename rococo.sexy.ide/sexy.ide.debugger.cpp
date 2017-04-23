@@ -88,7 +88,7 @@ namespace
       bool isVisible;
       IDEPANE_ID migratingId;
 
-      LOGFONT logFont;
+      LOGFONTA logFont;
       HFONT hFont;
 
       int64 requiredDepth; // Function to view according to stack depth = 1 + stack depth
@@ -104,35 +104,35 @@ namespace
          disassemblyId(false), hFont(nullptr),
          requiredDepth(1)
       {
-         WM_DEBUGGER_TABCHANGED = RegisterWindowMessage(L"WM_DEBUGGER_TABCHANGED");
+         WM_DEBUGGER_TABCHANGED = RegisterWindowMessageA("WM_DEBUGGER_TABCHANGED");
 
-         auto& sysMenu = mainMenu->AddPopup(L"&Sys");
-         auto& sysDebug = mainMenu->AddPopup(L"&Debug");
+         auto& sysMenu = mainMenu->AddPopup("&Sys");
+         auto& sysDebug = mainMenu->AddPopup("&Debug");
          
-         sysMenu.AddString(L"&Font...", MENU_SYSFONT);
-         sysMenu.AddString(L"&Reset UI", MENU_SYSRESET);
-         sysMenu.AddString(L"E&xit", MENU_SYS_EXIT);
+         sysMenu.AddString("&Font...", MENU_SYSFONT);
+         sysMenu.AddString("&Reset UI", MENU_SYSRESET);
+         sysMenu.AddString("E&xit", MENU_SYS_EXIT);
          
-         sysDebug.AddString(L"Step Next", MENU_EXECUTE_NEXT, L"F10");
-         sysDebug.AddString(L"Step Over", MENU_EXECUTE_OVER, L"F11");
-         sysDebug.AddString(L"Step Out", MENU_EXECUTE_OUT, L"Shift + F11");
-         sysDebug.AddString(L"Step Symbol", MENU_EXECUTE_NEXT_SYMBOL, L"Shift + F10");
-         sysDebug.AddString(L"Continue", MENU_EXECUTE_CONTINUE, L"F5");
+         sysDebug.AddString("Step Next", MENU_EXECUTE_NEXT, "F10");
+         sysDebug.AddString("Step Over", MENU_EXECUTE_OVER, "F11");
+         sysDebug.AddString("Step Out", MENU_EXECUTE_OUT, "Shift + F11");
+         sysDebug.AddString("Step Symbo", MENU_EXECUTE_NEXT_SYMBOL, "Shift + F10");
+         sysDebug.AddString("Continue", MENU_EXECUTE_CONTINUE, "F5");
 
-         logFont = LOGFONT{ 0 };
-         SafeCopy(logFont.lfFaceName, L"Courier New", _TRUNCATE);
+         logFont = LOGFONTA{ 0 };
+         SafeCopy(logFont.lfFaceName, "Courier New", _TRUNCATE);
          logFont.lfHeight = -11;
 
-         hFont = CreateFontIndirect(&logFont);
+         hFont = CreateFontIndirectA(&logFont);
       }
 
       void OnChooseFont()
       {
-         LOGFONT output;
+         LOGFONTA output;
          if (OpenChooseFontBox(*dialog, output))
          {
             DeleteObject(hFont);
-            hFont = CreateFontIndirect(&output);
+            hFont = CreateFontIndirectA(&output);
             logFont = output;
             spatialManager->SetFontRecursive(hFont);
          }
@@ -160,19 +160,19 @@ namespace
 
       virtual void ResetUI()
       {
-         if (MessageBox(*dialog, L"Do you wish to reset the IDE to tabs?", L"Sexy Debugger IDE", MB_YESNO) == IDYES)
+         if (MessageBoxA(*dialog, "Do you wish to reset the IDE to tabs?", "Sexy Debugger IDE", MB_YESNO) == IDYES)
          {
             spatialManager->Free();
-            IO::DeleteUserFile(L"debugger.ide.sxy");
-            spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, L"debugger");
+            IO::DeleteUserFile("debugger.ide.sxy");
+            spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, "debugger");
 
             DeleteObject(hFont);
-            hFont = CreateFontIndirectW(&logFont);
+            hFont = CreateFontIndirectA(&logFont);
             spatialManager->SetFontRecursive(hFont);
 
             LayoutChildren();
      
-            IO::DeleteUserFile(L"debugger.ide.sxy");
+            IO::DeleteUserFile("debugger.ide.sxy");
          }
       }
 
@@ -263,13 +263,13 @@ namespace
       {
          WindowConfig config;
          HWND hParentWnd = parent ? (HWND) parent : nullptr;
-         SetOverlappedWindowConfig(config, Vec2i{ 800, 600 }, SW_SHOWMAXIMIZED, hParentWnd, L"Dystopia Script Debugger", WS_OVERLAPPEDWINDOW | WS_MAXIMIZE, 0, *mainMenu);    
+         SetOverlappedWindowConfig(config, Vec2i{ 800, 600 }, SW_SHOWMAXIMIZED, hParentWnd, "Dystopia Script Debugger", WS_OVERLAPPEDWINDOW | WS_MAXIMIZE, 0, *mainMenu);    
          dialog = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
         
-         spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, L"debugger");
+         spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, "debugger");
 
          DeleteObject(hFont);
-         hFont = CreateFontIndirectW(&logFont);
+         hFont = CreateFontIndirectA(&logFont);
          spatialManager->SetFontRecursive(hFont);
 
          LayoutChildren();
@@ -283,16 +283,16 @@ namespace
          MoveWindow(*spatialManager, 0, 0, rect.right, rect.bottom, TRUE);
       }
 
-      virtual void GetName(wchar_t name[256], IDEPANE_ID id)
+      virtual void GetName(rchar name[256], IDEPANE_ID id)
       {
-         static std::unordered_map<IDEPANE_ID, const wchar_t*, IDEPANE_ID> idToName (
+         static std::unordered_map<IDEPANE_ID, cstr, IDEPANE_ID> idToName (
          {
-            { IDEPANE_ID_DISASSEMBLER, L"Disassembly"},
-            { IDEPANE_ID_SOURCE,       L"Source"},
-            { IDEPANE_ID_STACK,        L"Stack" },
-            { IDEPANE_ID_REGISTER,     L"Registers" },
-            { IDEPANE_ID_API,          L"API" },
-            { IDEPANE_ID_LOG,          L"Log" }
+            { IDEPANE_ID_DISASSEMBLER, "Disassembly"},
+            { IDEPANE_ID_SOURCE,       "Source"},
+            { IDEPANE_ID_STACK,        "Stack" },
+            { IDEPANE_ID_REGISTER,     "Registers" },
+            { IDEPANE_ID_API,          "API" },
+            { IDEPANE_ID_LOG,          "Log" }
          });
          SafeCopy(name, 256, idToName[id], _TRUNCATE);
       }
@@ -370,17 +370,17 @@ namespace
 
       struct Hilight
       {
-         std::wstring source;
-         std::wstring toolTip;
+         std::string source;
+         std::string toolTip;
          Vec2i start;
          Vec2i end;
          RGBAb foreground;
          RGBAb background;
       } hilight;
 
-      virtual void SetCodeHilight(const wchar_t* source, const Vec2i& start, const Vec2i& end, const wchar_t* message)
+      virtual void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message)
       {
-         if (wcscmp(message, L"!") == 0)
+         if (strcmp(message, "!") == 0)
          {
             hilight = { source, message, start, end, RGBAb(255,255,255), RGBAb(0,0,192) };
          }
@@ -405,7 +405,7 @@ namespace
       struct ColouredTextSegment
       {
          RGBAb colour;
-         std::wstring text;
+         std::string text;
       };
 
       std::vector<ColouredTextSegment> logSegments;
@@ -415,9 +415,9 @@ namespace
          logSegments.clear();
       }
 
-      virtual int Log(const wchar_t* format, ...)
+      virtual int Log(cstr format, ...)
       {
-         wchar_t text[4096];
+         rchar text[4096];
          va_list args;
          va_start(args, format);
          int len = SafeVFormat(text, 4094,  _TRUNCATE, format, args);
@@ -429,7 +429,7 @@ namespace
          }
          else
          {
-            Rococo::Throw(GetLastError(), L"Bad format in log message");
+            Rococo::Throw(GetLastError(), "Bad format in log message");
          }
 
          logSegments.push_back({ RGB(0,0,0), text  });
@@ -437,15 +437,15 @@ namespace
          auto* logPane = spatialManager->FindPane(IDEPANE_ID_LOG);
          if (logPane)
          {
-            static_cast<IIDETextWindow*>(logPane)->AddSegment(RGB(0, 0, 0), text, wcslen(text) + 1, RGBAb(255, 255, 255));
+            static_cast<IIDETextWindow*>(logPane)->AddSegment(RGB(0, 0, 0), text, rlen(text) + 1, RGBAb(255, 255, 255));
          }
 
          return len;
       }
 
-      virtual void AddLogSection(RGBAb colour, const wchar_t* format, ...)
+      virtual void AddLogSection(RGBAb colour, cstr format, ...)
       {
-         wchar_t text[4096];
+         rchar text[4096];
          va_list args;
          va_start(args, format);
          int len = SafeVFormat(text, 4094, _TRUNCATE, format, args);
@@ -455,7 +455,7 @@ namespace
          auto* logPane = spatialManager->FindPane(IDEPANE_ID_LOG);
          if (logPane)
          {
-            static_cast<IIDETextWindow*>(logPane)->AddSegment(colour, text, wcslen(text) + 1, RGBAb(255,255,255));
+            static_cast<IIDETextWindow*>(logPane)->AddSegment(colour, text, rlen(text) + 1, RGBAb(255,255,255));
          }
       }
 
@@ -491,14 +491,14 @@ namespace
          report->Editor().ResetContent();
       }
 
-      virtual void AddDisassembly(RGBAb colour, const wchar_t* text, RGBAb bkColor, bool bringToView)
+      virtual void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor, bool bringToView)
       {
          IIDETextWindow* report = static_cast<IIDETextWindow*>(spatialManager->FindPane(IDEPANE_ID(IDEPANE_ID_DISASSEMBLER)));
          if (report)
          {
             if (text)
             {
-               report->AddSegment(colour, text, wcslen(text), bkColor);
+               report->AddSegment(colour, text, rlen(text), bkColor);
             }
 
             if (bringToView)
@@ -568,16 +568,16 @@ namespace
          this->debugControl = debugControl;
       }
 
-      virtual void AddSourceCode(const wchar_t* name, const wchar_t* sourceCode)
+      virtual void AddSourceCode(cstr name, cstr sourceCode)
       {
          IIDETextWindow* report = static_cast<IIDETextWindow*>(spatialManager->FindPane(IDEPANE_ID_SOURCE));
          if (report)
          {
             report->Editor().ResetContent();
-            report->AddSegment(RGBAb(255, 255, 255), L"Module: ", -1, RGBAb(0, 0, 255));
-            report->AddSegment(RGBAb(255, 255, 255), name, wcslen(name) + 1, RGBAb(0, 0, 255));
-            report->AddSegment(RGBAb(0, 0, 64), L"\n", 2, RGBAb(255, 255, 255));
-            report->AddSegment(RGBAb(0, 0, 0), sourceCode, wcslen(sourceCode) + 1, RGBAb(255, 255, 255));
+            report->AddSegment(RGBAb(255, 255, 255), "Module: ", -1, RGBAb(0, 0, 255));
+            report->AddSegment(RGBAb(255, 255, 255), name, rlen(name) + 1, RGBAb(0, 0, 255));
+            report->AddSegment(RGBAb(0, 0, 64), "\n", 2, RGBAb(255, 255, 255));
+            report->AddSegment(RGBAb(0, 0, 0), sourceCode, rlen(sourceCode) + 1, RGBAb(255, 255, 255));
 
             if (hilight.source == name)
             {
@@ -620,7 +620,7 @@ namespace
             GetClientRect(report->GetListViewSupervisor(), &rect);
 
             int width = max(rect.right - 60, 256);
-            const wchar_t* columns[] = { L"VM", L"Values", nullptr };
+            cstr columns[] = { "VM", "Values", nullptr };
             int widths[] = { 40, width, -1 };
             report->GetListViewSupervisor().UIList().SetColumns(columns, widths);
 

@@ -38,7 +38,9 @@
 
 #pragma once
 
-#include <rococo.win32.target.win7.h>
+#ifdef _WIN32
+# include <rococo.win32.target.win7.h>
+#endif
 
 #include "sexy.types.h"
 
@@ -47,7 +49,7 @@
 #include <stdarg.h>
 
 #define SVM_CORE_MODULE
-#include "Sexy.VM.h"
+#include "sexy.vm.h"
 
 
 // TODO: reference additional headers your program requires here

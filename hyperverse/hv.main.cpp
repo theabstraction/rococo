@@ -29,11 +29,11 @@ namespace Rococo
 
 namespace HV
 {
-   bool QueryYesNo(IWindow& ownerWindow, const wchar_t* message)
+   bool QueryYesNo(IWindow& ownerWindow, cstr message)
    {
-      wchar_t title[256];
-      GetWindowText(ownerWindow, title, 256);
-      return MessageBox(ownerWindow, message, title, MB_ICONQUESTION | MB_YESNO) == IDYES;
+      rchar title[256];
+      GetWindowTextA(ownerWindow, title, 256);
+      return ShowMessageBox(Windows::NullParent(), message, title, MB_ICONQUESTION | MB_YESNO) == IDYES;
    }
 }
 
@@ -45,7 +45,7 @@ void Main(HANDLE hInstanceLock)
    using namespace HV::Defaults;
 
    AutoFree<IOSSupervisor> os = GetOS();
-   AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
+   AutoFree<IInstallationSupervisor> installation = CreateInstallation("content.indicator.txt", *os);
    AutoFree<Rococo::Events::IPublisherSupervisor> publisher(Rococo::Events::CreatePublisher());
    os->Monitor(installation->Content());
 
@@ -55,8 +55,8 @@ void Main(HANDLE hInstanceLock)
 
    AutoFree<IConfigSupervisor> config(CreateConfig());
 
-   wchar_t srcpath[_MAX_PATH];
-   SecureFormat(srcpath, L"%sscripts\\native\\", installation->Content());
+   rchar srcpath[_MAX_PATH];
+   SecureFormat(srcpath, "%sscripts\\native\\", installation->Content());
 
    Sexy::Script::SetDefaultNativeSourcePath(srcpath);
 
@@ -97,13 +97,13 @@ void Main(HANDLE hInstanceLock)
    SetDefaults(*config);
 
  
-   RunEnvironmentScript(e, L"!scripts/hv/config.sxy");
+   RunEnvironmentScript(e, "!scripts/hv/config.sxy");
 
-   SetWindowText(mainWindow->Window(), config->GetText(HV::Defaults::appTitle.key));
+   SetWindowTextA(mainWindow->Window(), config->GetText(HV::Defaults::appTitle.key));
 
-   RunEnvironmentScript(e, L"!scripts/hv/keys.sxy");
-   RunEnvironmentScript(e, L"!scripts/hv/controls.sxy");
-   RunEnvironmentScript(e, L"!scripts/hv/main.sxy");
+   RunEnvironmentScript(e, "!scripts/hv/keys.sxy");
+   RunEnvironmentScript(e, "!scripts/hv/controls.sxy");
+   RunEnvironmentScript(e, "!scripts/hv/main.sxy");
 
    e.renderer.AddOverlay(1000, &mathsVisitor->Overlay());
    e.renderer.AddOverlay(1001, &e.editor.Overlay());
@@ -119,7 +119,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
    Sexy::OS::SetBreakPoints(Sexy::OS::BreakFlag_All);
 
-   HANDLE hInstanceLock = CreateEvent(nullptr, TRUE, FALSE, L"HV_InstanceLock");
+   HANDLE hInstanceLock = CreateEventA(nullptr, TRUE, FALSE, "HV_InstanceLock");
 
    if (GetLastError() == ERROR_ALREADY_EXISTS)
    {
@@ -127,7 +127,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
       if (IsDebuggerPresent())
       {
-         MessageBox(nullptr, L"Hyperverse is already running", L"Hyperverse", MB_ICONEXCLAMATION);
+         ShowMessageBox(Windows::NoParent(), "Hyperverse is already running", "Hyperverse", MB_ICONEXCLAMATION);
       }
       return -1;
    }
@@ -139,7 +139,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
    }
    catch (IException& ex)
    {
-      ShowErrorBox(NoParent(), ex, L"Hyperverse - Fatal Error");
+      ShowErrorBox(NoParent(), ex, "Hyperverse - Fatal Error");
    }
 
    CloseHandle(hInstanceLock);

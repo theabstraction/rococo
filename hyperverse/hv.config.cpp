@@ -14,10 +14,10 @@ namespace
 
    struct Config : public IConfigSupervisor
    {
-      std::unordered_map<std::wstring, int32> mapToInt;
-      std::unordered_map<std::wstring, float> mapToFloat;
-      std::unordered_map<std::wstring, boolean32> mapToBool;
-      std::unordered_map<std::wstring, std::wstring> mapToText;
+      std::unordered_map<std::string, int32> mapToInt;
+      std::unordered_map<std::string, float> mapToFloat;
+      std::unordered_map<std::string, boolean32> mapToBool;
+      std::unordered_map<std::string, std::string> mapToText;
 
       virtual void Int(const fstring& name, int32 value)
       {
@@ -70,7 +70,7 @@ namespace
          }
       }
 
-      virtual const wchar_t* GetText(const wchar_t* name) const
+      virtual cstr GetText(cstr name) const
       {
          auto i = mapToText.find(name);
          if (i != mapToText.end() && !i->second.empty())
@@ -79,7 +79,7 @@ namespace
          }
          else
          {
-            return L"";
+            return "";
          }
       }
 

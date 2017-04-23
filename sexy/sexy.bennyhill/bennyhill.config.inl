@@ -348,11 +348,13 @@ namespace
 		}
 
 		CSParserProxy spp;
+      Auto<ISourceCode> configSrc;
+      Auto<ISParserTree> tree;
 
 		try
 		{
-         Auto<ISourceCode> configSrc = spp().LoadSource(fullconfigPath, Vec2i{ 0,1 });
-			Auto<ISParserTree> tree = spp().CreateTree(configSrc());
+         configSrc = spp().LoadSource(fullconfigPath, Vec2i{ 1,1 });
+			tree = spp().CreateTree(configSrc());
 
 			ParseConfig(tree().Root(), pc);
 		}

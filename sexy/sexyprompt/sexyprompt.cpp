@@ -47,7 +47,7 @@
 #include "sexy.script.h"
 #include "sexy.s-parser.h"
 
-#include "sexy.VM.h"
+#include "sexy.vm.h"
 
 #include <stdio.h>
 #include <tchar.h>
@@ -115,14 +115,14 @@ void SexcharToAscii(char* dest, size_t maxLen, csexstr source)
 	dest[maxLen-1] = 0;
 }
 
-void UnicodeToSEXCHAR(SEXCHAR* dest, size_t maxLen, const wchar_t* source)
+void UnicodeToSEXCHAR(SEXCHAR* dest, size_t maxLen, cstr source)
 {
 	SEXCHAR* d = dest;
-	const wchar_t* s = source;
+	cstr s = source;
 
 	for(size_t i = 0; i < maxLen-1; ++i)
 	{
-		wchar_t c = *s++;
+		rchar c = *s++;
 		if (c > 127) c = '?';
 		*d++ = (SEXCHAR) c;
 
@@ -298,7 +298,7 @@ void LoadLibFile(TFiles& files, csexstr libFile, IPublicScriptSystem& ss, bool i
 	if (rawLibCode.IsUnicode())
 	{
 		CSexBuffer sexLibData(len+2);
-		UnicodeToSEXCHAR(sexLibData.data, rawLibCode.length, (const wchar_t*) rawLibCode.data);
+		UnicodeToSEXCHAR(sexLibData.data, rawLibCode.length, (cstr) rawLibCode.data);
 		sc = ss.SParser().ProxySourceBuffer(sexLibData.data, sexLibData.length, Vec2i{ 0,0 }, libFile);
 	}
 	else
@@ -427,7 +427,7 @@ ISourceCode* AddSourcecodeModule(csexstr fileName, IPublicScriptSystem& ss)
 	if (rawLibCode.IsUnicode())
 	{
 		CSexBuffer sexLibData(len+2);
-		UnicodeToSEXCHAR(sexLibData.data, rawLibCode.length, (const wchar_t*) rawLibCode.data);
+		UnicodeToSEXCHAR(sexLibData.data, rawLibCode.length, (cstr) rawLibCode.data);
 		sc = ss.SParser().DuplicateSourceBuffer(sexLibData.data, sexLibData.length, Vec2i{ 0,0 }, fileName);
 	}
 	else

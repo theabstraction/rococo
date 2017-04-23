@@ -86,7 +86,7 @@ namespace Dystopia
 
 	enum CMD_ID { CMD_ID_RETRY = 101, CMD_ID_IGNORE = 102, CMD_ID_EXIT = 103 };
 
-	CMD_ID ShowContinueBox(Rococo::Windows::IWindow& renderWindow, const wchar_t* message);
+	CMD_ID ShowContinueBox(Rococo::Windows::IWindow& renderWindow, cstr message);
 
 	struct HumanSpec
 	{
@@ -103,7 +103,7 @@ namespace Dystopia
 
 	ROCOCOAPI IKeyboard
 	{
-		virtual uint32 GetScanCode(const wchar_t* keyName) const = 0;
+		virtual uint32 GetScanCode(cstr keyName) const = 0;
 	};
 
 	ROCOCOAPI IKeyboardSupervisor : public IKeyboard
@@ -137,7 +137,7 @@ namespace Dystopia
 		virtual void SetNextAIUpdate(ID_ENTITY id, float nextUpdateTime) = 0;
 		virtual ID_ENTITY SelectedId() = 0;
 		virtual ID_ENTITY NearestRoadId() const = 0;
-		virtual const wchar_t* TryGetName(ID_ENTITY id) = 0;
+		virtual cstr TryGetName(ID_ENTITY id) = 0;
 		virtual void Delete(ID_ENTITY id) = 0;
 		virtual bool TryGetEquipment(ID_ENTITY id, EquipmentDesc& desc) const = 0;
       virtual void SetRenderRadius(Metres radius) = 0;
@@ -154,9 +154,9 @@ namespace Dystopia
 	ROCOCOAPI ILevelLoader
 	{
 		virtual void ExecuteLevelFunction(ArchetypeCallback bytecodeId, IArgEnumerator& args) = 0;
-		virtual void ExecuteLevelFunction(const wchar_t* functionName, IArgEnumerator& args) = 0;
+		virtual void ExecuteLevelFunction(cstr functionName, IArgEnumerator& args) = 0;
 		virtual void Free() = 0;
-		virtual void Load(const wchar_t* resourceName, bool isReloading) = 0;
+		virtual void Load(cstr resourceName, bool isReloading) = 0;
 		virtual bool NeedsUpdate() const = 0;
 		virtual void SetNextLevel(const fstring& filename) = 0;
 		virtual void Update() = 0;
@@ -184,14 +184,14 @@ namespace Dystopia
 
 	ROCOCOAPI IControls
 	{
-		virtual void LoadMapping(const wchar_t* resourceName) = 0;
+		virtual void LoadMapping(cstr resourceName) = 0;
 		virtual void MapKeyboardEvent(const KeyboardEvent& ke, IEventCallback<ActionMap>& onAction) = 0;
 		virtual void MapMouseEvent(const MouseEvent& me, IEventCallback<ActionMap>& onAction) = 0;
 	};
 
 	ROCOCOAPI IControlsSupervisor : public IControls
 	{
-		virtual void AddAction(const wchar_t* name, ActionMapType type, bool isVector) = 0;
+		virtual void AddAction(cstr name, ActionMapType type, bool isVector) = 0;
 		virtual void Free() = 0;
 	};
 
@@ -214,13 +214,13 @@ namespace Dystopia
 
 	struct GuiEventArgs
 	{
-		const wchar_t* controlScript;
+		cstr controlScript;
 		GuiEventType type;
 	};
 
 	struct ContextMenuItem
 	{
-		const wchar_t* buttonName;
+		cstr buttonName;
 		int32 commandId;
 		int64 context;
 		bool isActive;
@@ -233,7 +233,7 @@ namespace Dystopia
 
 	ROCOCOAPI IGuiSupervisor : public IGui /* gui is script interface to allow scripts to bring up gui elements */
 	{
-      virtual void AppendDebugElement(const wchar_t* format, ...) = 0;
+      virtual void AppendDebugElement(cstr format, ...) = 0;
 		virtual void Free() = 0;
       virtual void RenderDebugElementsAndClear(IGuiRenderContext& grc, int32 fontIndex, int32 pxLeftAlign) = 0;
 		virtual void SetEventHandler(IEventCallback<GuiEventArgs>* guiEventHandler) = 0;
@@ -279,8 +279,8 @@ namespace Dystopia
 
 	ROCOCOAPI IHistoricEvent
 	{
-		virtual const wchar_t* Title() const = 0;
-		virtual const wchar_t* Body() const = 0;
+		virtual cstr Title() const = 0;
+		virtual cstr Body() const = 0;
 		virtual HistoricEventType Type() const = 0;
 		virtual HistoricEventLayout& Layout() = 0;
 	};
@@ -295,8 +295,8 @@ namespace Dystopia
 
 	struct IGoal
 	{
-		virtual const wchar_t* Title() const = 0;
-		virtual const wchar_t* Body() const = 0;
+		virtual cstr Title() const = 0;
+		virtual cstr Body() const = 0;
 		virtual GoalState State() const = 0;
 	};
 
@@ -325,7 +325,7 @@ namespace Dystopia
 		virtual void Start() = 0;
 	};
 
-	IGoalSupervisor* CreateGoal_MeetObject(Environment& e, Metres radius, const wchar_t* title, const wchar_t* body, ID_ENTITY a, ID_ENTITY b);
+	IGoalSupervisor* CreateGoal_MeetObject(Environment& e, Metres radius, cstr title, cstr body, ID_ENTITY a, ID_ENTITY b);
 
 	IJournalSupervisor* CreateJournal(Environment& e);
 
@@ -335,7 +335,7 @@ namespace Dystopia
       {
          virtual IUIBuilder& Builder() = 0;
          virtual void Free() = 0;
-         virtual void RenderHierarchy(IGuiRenderContext& gc, const wchar_t* panelName) = 0;
+         virtual void RenderHierarchy(IGuiRenderContext& gc, cstr panelName) = 0;
          virtual void Resize(Vec2i span) = 0;
       };
 
@@ -382,8 +382,8 @@ namespace Dystopia
 	};
 
 	void InitControlMap(IControlsSupervisor& controls);
-	void BuildRandomCity_V1(const fstring& name, Metres radius, uint32 seedDelta, Environment& e, IEnumerable<const wchar_t*>& names);
-	void BuildRandomCity_V2(const fstring& name, Metres radius, uint32 seedDelta, Environment& e, IEnumerable<const wchar_t*>& names);
+	void BuildRandomCity_V1(const fstring& name, Metres radius, uint32 seedDelta, Environment& e, IEnumerable<cstr>& names);
+	void BuildRandomCity_V2(const fstring& name, Metres radius, uint32 seedDelta, Environment& e, IEnumerable<cstr>& names);
 	ID_MESH GenerateRandomHouse(Environment& e, uint32 seed);
 	void PopulateQuad(Environment& e, IVectorEnumerator<ID_MESH>& randomHouses, const GuiRectf& quad, cr_vec3 pos, IRandom& rng);
    IDE::IScriptExceptionHandler* UseDialogBoxForScriptException(Windows::IWindow& parent);

@@ -91,7 +91,7 @@ namespace
 			listConfigCorrected.hWndParent = hWnd;
 			listConfigCorrected.style |= WS_CHILD | WS_VISIBLE;
 
-			hWndListView = CreateWindowIndirect(WC_LISTVIEWW, listConfigCorrected, nullptr);
+			hWndListView = CreateWindowIndirect(WC_LISTVIEWA, listConfigCorrected, nullptr);
 			SetDlgCtrlID(hWndListView, 1001);
 			SetControlFont(hWndListView);
 
@@ -101,7 +101,7 @@ namespace
 				titleConfig.style = WS_CHILD | WS_VISIBLE;
 				titleConfig.exStyle = 0;
 				titleConfig.hWndParent = hWnd;
-				hTitle = CreateWindowIndirect(L"STATIC", titleConfig, nullptr);
+				hTitle = CreateWindowIndirect(WC_STATICA, titleConfig, nullptr);
 				SetTitleFont(hTitle);
 			}
 
@@ -135,30 +135,30 @@ namespace
 			return *this;
 		}
 
-		virtual void AddRow(const wchar_t* values[])
+		virtual void AddRow(cstr values[])
 		{
 			if (values == nullptr || *values == nullptr)
 			{
-				Throw(0, L"ListViewSupervisor::AddRow needs at least one value");
+				Throw(0, "ListViewSupervisor::AddRow needs at least one value");
 			}
 
-			LV_ITEM item = { 0 };
+			LV_ITEMA item = { 0 };
 			item.mask = LVIF_TEXT;
-			item.pszText = (LPWSTR)values[0];
+			item.pszText = (rchar*)values[0];
 			item.iItem = 0x7FFFFFFF;
 			item.cchTextMax = 256;
 			int index = ListView_InsertItem(hWndListView, &item);
 			if (index < 0)
 			{
-				Throw(0, L"ListViewSupervisor::AddRow failed. ListView_InsertItem returned %d", index);
+				Throw(0, "ListViewSupervisor::AddRow failed. ListView_InsertItem returned %d", index);
 			}
 
 			int k = 1;
-			for (const wchar_t** value = values + k; *value != nullptr; ++value, ++k)
+			for (cstr* value = values + k; *value != nullptr; ++value, ++k)
 			{
-				LVITEM item = { 0 };
+				LVITEMA item = { 0 };
 				item.iSubItem = k;
-				item.pszText = (LPWSTR) *value;
+				item.pszText = (rchar*) *value;
 				SendMessage(hWndListView, LVM_SETITEMTEXT, index, (LPARAM)&item);
 			}
 		}
@@ -178,21 +178,21 @@ namespace
 			ListView_DeleteItem(hWndListView, rowIndex);
 		}
 
-		virtual void SetColumns(const wchar_t* columnNames[], int widths[])
+		virtual void SetColumns(cstr columnNames[], int widths[])
 		{
 			while (ListView_DeleteColumn(hWndListView, 0));
 
 			int index = 0;
-			for (const wchar_t** col = columnNames; *col != nullptr; ++col, ++index)
+			for (cstr* col = columnNames; *col != nullptr; ++col, ++index)
 			{
-				LV_COLUMN item;
+				LV_COLUMNA item;
 				item = { 0 };
 				item.mask = LVCF_TEXT | LVCF_WIDTH;
-				item.pszText = (LPWSTR) *col;
+				item.pszText = (rchar*) *col;
 				item.cx = widths[index];
 				if (-1 == ListView_InsertColumn(hWndListView, 10000, &item))
 				{
-					Throw(0, L"Error inserting item into a ListView header");
+					Throw(0, "Error inserting item into a ListView header");
 				}
 			}
 		}

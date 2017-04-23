@@ -10,7 +10,7 @@ namespace
    using namespace Rococo;
    using namespace Rococo::Events;
 
-   std::unordered_map<size_t, const wchar_t*> knownEvents;
+   std::unordered_map<size_t, cstr> knownEvents;
 
    struct Publisher : public IPublisherSupervisor
    {
@@ -19,13 +19,13 @@ namespace
 
       virtual void Detach(IObserver* observer)
       {
-         if (lockDepth) Throw(0, L"The publisher is locked.");
+         if (lockDepth) Throw(0, "The publisher is locked.");
          observers.erase(observer);
       }
 
       virtual void Attach(IObserver* observer)
       {
-         if (lockDepth) Throw(0, L"The publisher is locked.");
+         if (lockDepth) Throw(0, "The publisher is locked.");
          observers.insert(observer);
       }
 
@@ -41,7 +41,7 @@ namespace
 
       virtual void Free()
       {
-         if (lockDepth) Throw(0, L"The publisher is locked.");
+         if (lockDepth) Throw(0, "The publisher is locked.");
          delete this;
       }
    };
@@ -58,9 +58,9 @@ namespace Rococo
             auto& i = knownEvents.find(hash);
             if (i != knownEvents.end())
             {
-               if (wcscmp(i->second, name) != 0)
+               if (strcmp(i->second, name) != 0)
                {
-                  Throw(0, L"Hash clash between %s and %s", i->second, name);
+                  Throw(0, "Hash clash between %s and %s", i->second, name);
                }
             }
             else
@@ -74,14 +74,14 @@ namespace Rococo
          return id;
       }
 
-      EventId operator "" _event(const wchar_t* name, size_t len)
+      EventId operator "" _event(cstr name, size_t len)
       {
          return EventId{ name, (EventHash)FastHash(name) };
       }
 
       void ThrowBadEvent(const Event& ev)
       {
-         Throw(0, L"Event %s: body was incorrect size", ev.id.Name());
+         Throw(0, "Event %s: body was incorrect size", ev.id.Name());
       }
 
       IPublisherSupervisor* CreatePublisher()
@@ -91,8 +91,8 @@ namespace Rococo
 
       namespace Input
       {
-         EventId OnMouseMoveRelative = L"input.mouse.delta"_event;
-         EventId OnMouseChanged = L"input.mouse.buttons"_event;
+         EventId OnMouseMoveRelative = "input.mouse.delta"_event;
+         EventId OnMouseChanged = "input.mouse.buttons"_event;
       }
    } // Events
 } // Rococo

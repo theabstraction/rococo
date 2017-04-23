@@ -849,7 +849,7 @@ namespace
 
 namespace Dystopia
 {
-	void BuildRandomCity_V2(const fstring& name, Metres cityRadius, uint32 seedDelta, Environment& e, IEnumerable<const wchar_t*>& names)
+	void BuildRandomCity_V2(const fstring& name, Metres cityRadius, uint32 seedDelta, Environment& e, IEnumerable<cstr>& names)
 	{
 		int cellSpan = int32(cityRadius / CityCell::cellWidth);
 
@@ -887,11 +887,11 @@ namespace Dystopia
 			undefinedIndices.push_back(c.index);
 		}
 
-		struct : IEnumerator<const wchar_t*>
+		struct : IEnumerator<cstr>
 		{
-			std::vector<std::wstring> names;
+			std::vector<std::string> names;
 
-			virtual void operator()(const wchar_t* streetName)
+			virtual void operator()(cstr streetName)
 			{
 				names.push_back(streetName);
 			}

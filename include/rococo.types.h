@@ -3,9 +3,13 @@
 
 #include <rococo.compiler.options.h>
 
+#ifndef _WIN32
+# include <stddef.h>
+#endif
 
 namespace Rococo
 {
+#ifdef _WIN32
 	typedef __int8 int8;
 	typedef __int16 int16;
 	typedef __int32 int32;
@@ -14,12 +18,35 @@ namespace Rococo
 	typedef unsigned __int8 uint8;
 	typedef unsigned __int16 uint16;
 	typedef unsigned __int32 uint32;
-	typedef unsigned __int64 uint64;
+   typedef unsigned __int64 uint64;
+
+#define ROCOCO_CONSTEXPR constexpr
+
+#else
+   typedef signed char int8;
+   typedef signed short int int16;
+   typedef signed int int32;
+   typedef signed long long int int64;
+
+   typedef unsigned char uint8;
+   typedef unsigned short int uint16;
+   typedef unsigned int uint32;
+   typedef unsigned long long int uint64;
+
+#define ROCOCO_CONSTEXPR
+
+#endif
+
+   typedef char rchar; // the Rococo character type
+   typedef const rchar* cstr;
 
 	typedef float float32;
 	typedef double float64;
 	typedef void* pointer;
 	typedef int32 boolean32; // 32-bit boolean
+
+   size_t rlen(cstr s);
+   int StrCmpN(cstr a, cstr b, size_t len);
 
    struct Vec2;
    struct Vec3;
@@ -42,13 +69,13 @@ namespace Rococo
 
    struct fstring
    {
-      const wchar_t* buffer;
+      cstr buffer;
       int32 length;
 
-      operator const wchar_t*() const { return buffer; }
+      operator cstr() const { return buffer; }
    };
 
-   inline constexpr fstring operator"" _fstring(const wchar_t* msg, size_t length)
+   inline ROCOCO_CONSTEXPR fstring operator"" _fstring(cstr msg, size_t length)
    {
       return fstring{ msg, (int32)length };
    }
@@ -98,7 +125,7 @@ namespace Rococo
 
 	ROCOCOAPI IException
 	{
-		virtual const wchar_t* Message() const = 0;
+		virtual cstr Message() const = 0;
 		virtual int32 ErrorCode() const = 0;
 	};
 
@@ -111,7 +138,7 @@ namespace Rococo
       ~RecursionGuard() { counter--; }
    };
 
-	void Throw(int32 errorCode, const wchar_t* format, ...);
+	void Throw(int32 errorCode, cstr format, ...);
 	void TripDebugger();
 	bool IsDebugging();
 
@@ -120,9 +147,9 @@ namespace Rococo
 		virtual void OnEvent(T& arg) = 0;
 	};
 
-	template<> struct IEventCallback<const wchar_t*>
+	template<> struct IEventCallback<cstr>
 	{
-		virtual void OnEvent(const wchar_t* arg) = 0;
+		virtual void OnEvent(cstr arg) = 0;
 	};
 
 	template<class T> inline void Free(T* t)
@@ -163,9 +190,9 @@ namespace Rococo
 		virtual void operator()(const T& t) = 0;
 	};
 
-	template<> ROCOCOAPI IEnumerator<const wchar_t*>
+	template<> ROCOCOAPI IEnumerator<cstr>
 	{
-		virtual void operator()(const wchar_t* t) = 0;
+		virtual void operator()(cstr t) = 0;
 	};
 
 	template<class T> ROCOCOAPI IEnumerable
@@ -175,11 +202,11 @@ namespace Rococo
 		virtual void Enumerate(IEnumerator<T>& cb) = 0;
 	};
 
-	template<> ROCOCOAPI IEnumerable<const wchar_t*>
+	template<> ROCOCOAPI IEnumerable<cstr>
 	{
-		virtual const wchar_t* operator[](size_t index) = 0;
+		virtual cstr operator[](size_t index) = 0;
 		virtual size_t Count() const = 0;
-		virtual void Enumerate(IEnumerator<const wchar_t*>& cb) = 0;
+		virtual void Enumerate(IEnumerator<cstr>& cb) = 0;
 	};
 
 	template<class T> ROCOCOAPI IMutableEnumerator
@@ -335,7 +362,7 @@ namespace Rococo
    ROCOCOAPI IAllocator
    {
       virtual void* Allocate(size_t capacity) = 0;
-      virtual void Free(void* data) = 0;
+      virtual void FreeData(void* data) = 0;
       virtual void* Reallocate(void* ptr, size_t capacity) = 0;
    };
 

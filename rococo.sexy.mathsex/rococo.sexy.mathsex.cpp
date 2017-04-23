@@ -100,7 +100,7 @@ namespace Rococo
       void NormalizeInPlace(Vec3& a)
       {
          float ds = Rococo::Maths::Length(a);
-         if (ds == 0) Throw(0, L"Cannot normalize null vector");
+         if (ds == 0) Throw(0, "Cannot normalize null vector");
          float scale = 1.0f / ds;
 
          a.x *= scale;

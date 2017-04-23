@@ -65,9 +65,9 @@ class MainWindow : StandardWindowHandler, public IListViewEvents
    void PostConstruct()
    {
       WindowConfig config;
-      SetOverlappedWindowConfig(config, Vec2i{ 800, 600 }, SW_SHOW, nullptr, L"Bitmap Test Dialog", WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MAXIMIZEBOX, 0);
+      SetOverlappedWindowConfig(config, Vec2i{ 800, 600 }, SW_SHOW, nullptr, "Bitmap Test Dialog", WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MAXIMIZEBOX, 0);
       dialogWindow = Windows::CreateDialogWindow(config, this);
-      imageView = Windows::AddListView(*dialogWindow, GuiRect{ 0, 0, 1, 1 }, L"Textures", *this,  LVS_ICON | LVS_ALIGNLEFT, 0, 0);
+      imageView = Windows::AddListView(*dialogWindow, GuiRect{ 0, 0, 1, 1 }, "Textures", *this,  LVS_ICON | LVS_ALIGNLEFT, 0, 0);
 
       RECT rect;
       GetClientRect(*dialogWindow, &rect);
@@ -89,16 +89,16 @@ public:
 
       int nImages = ImageList_GetImageCount(hImages);
 
-      wchar_t text[128];
+      rchar text[128];
 
       for (int i = 0; i < nImages; ++i)
       {
-         LVITEM item = { 0 };
+         LVITEMA item = { 0 };
          item.iItem = i;
          item.mask = LVIF_IMAGE | LVIF_TEXT;
          item.iImage = i;
             
-         SafeFormat(text, _TRUNCATE, L"Texture #%d", i);
+         SafeFormat(text, _TRUNCATE, "Texture #%d", i);
          item.pszText = text;
          ListView_InsertItem(imageView->ListViewHandle(), &item);
       }
@@ -116,27 +116,27 @@ class ResourceLoader : public Rococo::Textures::IResourceLoader
 {
 private:
 public:
-   virtual void Load(const wchar_t* name, IEventCallback<Textures::CompressedTextureBuffer>& onLoad)
+   virtual void Load(cstr name, IEventCallback<Textures::CompressedTextureBuffer>& onLoad)
    {  
       auto* ext = GetFileExtension(name);
 
       Textures::COMPRESSED_TYPE type;
       if (ext == nullptr)
       {
-         Throw(0, L"Could not load image file: %s. No extension", name);
+         Throw(0, "Could not load image file: %s. No extension", name);
       }
       
-      if (Eq(ext, L".tiff") || Eq(ext, L".tif"))
+      if (Eq(ext, ".tiff") || Eq(ext, ".tif"))
       {
          type = Textures::COMPRESSED_TYPE_TIF;
       }
-      else if (Eq(ext, L".jpg") || Eq(ext, L".jpeg"))
+      else if (Eq(ext, ".jpg") || Eq(ext, ".jpeg"))
       {
          type = Textures::COMPRESSED_TYPE_JPG;
       }
       else
       {
-         Throw(0, L"Could not load image file: %s. Unrecognized extension", name);
+         Throw(0, "Could not load image file: %s. Unrecognized extension", name);
       }
 
       struct Anon
@@ -156,10 +156,10 @@ public:
 
       Anon hFile;
 
-      hFile.hFile = CreateFile(name, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+      hFile.hFile = CreateFileA(name, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
       if (hFile == INVALID_HANDLE_VALUE)
       {
-         Throw(GetLastError(), L"Could not load image file: %s", name);
+         Throw(GetLastError(), "Could not load image file: %s", name);
       }
       
       LARGE_INTEGER fileLengthQ;
@@ -167,7 +167,7 @@ public:
 
       if (fileLengthQ.QuadPart > 0x20000000LL)
       {
-         Throw(0, L"Filesize for %s exceeded limit", name);
+         Throw(0, "Filesize for %s exceeded limit", name);
       }
 
       DWORD fileLength = (DWORD)fileLengthQ.QuadPart;
@@ -178,7 +178,7 @@ public:
       DWORD read;
       if (!ReadFile(hFile, &data[0], fileLength, &read, nullptr) || read != fileLength)
       {
-         Throw(0, L"ReadFile failed for image file: %s", name);
+         Throw(0, "ReadFile failed for image file: %s", name);
       }
 
       onLoad.OnEvent(Textures::CompressedTextureBuffer{ &data[0], fileLength, type });
@@ -217,7 +217,7 @@ public:
       HBITMAP hBitmap = CreateDIBSection(nullptr, &info, DIB_RGB_COLORS, &pBits, nullptr, 0 );
       if (hBitmap == nullptr)
       {
-         Throw(GetLastError(), L"Could not create DIB section");
+         Throw(GetLastError(), "Could not create DIB section");
       }
 
       imageTextures.push_back({ hBitmap, (Imaging::F_A8R8G8B8*) pBits });
@@ -263,7 +263,7 @@ public:
       for (auto& i : imageTextures)
       {
          int index = ImageList_Add(hImages, i.hBitmap, nullptr);
-         if (index < 0) Throw(GetLastError(), L"ImageList_Add failed");
+         if (index < 0) Throw(GetLastError(), "ImageList_Add failed");
       }
       return hImages;
    }
@@ -280,7 +280,7 @@ void Main()
    Imaging::SetTiffAllocator(imageAllocator);
    Imaging::SetJpegAllocator(imageAllocator);
 
-   wchar_t directory[MAX_PATH];
+   rchar directory[MAX_PATH];
    if (!IO::ChooseDirectory(directory, MAX_PATH))
    {
       return;
@@ -291,18 +291,18 @@ void Main()
    AutoFree<MainWindow> mainWindow(MainWindow::Create());
    AutoFree<Rococo::Textures::ITextureArrayBuilderSupervisor> textureArrayBuilder = Textures::CreateTextureArrayBuilder(loader, tarray);
 
-   struct ANON : IEventCallback<const wchar_t*>
+   struct ANON : IEventCallback<cstr>
    {
       Textures::ITextureArrayBuilder* builder;
-      const wchar_t* root;
+      cstr root;
 
-      virtual void OnEvent(const wchar_t* pathname)
+      virtual void OnEvent(cstr pathname)
       {
          auto* ext = GetFileExtension(pathname);
-         if (Eq(ext, L".tiff") || Eq(ext, L".tif") || Eq(ext, L".jpg") || Eq(ext, L".jpeg"))
+         if (Eq(ext, ".tiff") || Eq(ext, ".tif") || Eq(ext, ".jpg") || Eq(ext, ".jpeg"))
          {
-            wchar_t filename[MAX_PATH];
-            SafeFormat(filename, _TRUNCATE, L"%s\\%s", root, pathname);
+            rchar filename[MAX_PATH];
+            SafeFormat(filename, _TRUNCATE, "%s\\%s", root, pathname);
             builder->AddBitmap(filename);
          }      
       }
@@ -330,7 +330,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
    }
    catch (IException& ex)
    {
-      Rococo::ShowErrorBox(NullParent(), ex, L"Bitmap Test Dialog - Exception");
+      Rococo::ShowErrorBox(NullParent(), ex, "Bitmap Test Dialog - Exception");
    }
 
    return 0;

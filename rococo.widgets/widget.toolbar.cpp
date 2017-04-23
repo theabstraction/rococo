@@ -14,13 +14,13 @@ namespace
    struct Button
    {
       EventId id;
-      wchar_t name[32];
-      wchar_t resource[128];
+      rchar name[32];
+      rchar resource[128];
       Textures::BitmapLocation bitmap;
       GuiRect renderLocation;
       bool isOn{ false };
 
-      Button(EventId _id, const wchar_t* name, const wchar_t* resource) : id(_id)
+      Button(EventId _id, cstr name, cstr resource) : id(_id)
       {
          SafeCopy(this->name, name, _TRUNCATE);
          SafeCopy(this->resource, resource, _TRUNCATE);
@@ -69,7 +69,7 @@ namespace
          if (focus)
          {
             focus = nullptr;
-            SetStatus(L"", publisher);
+            SetStatus("", publisher);
          }
       }
 
@@ -96,13 +96,13 @@ namespace
       }
 
 
-      void AddButton(const wchar_t* name, EventId id, const wchar_t* buttonTextureResource) override
+      void AddButton(cstr name, EventId id, cstr buttonTextureResource) override
       {
          auto* b = new Button(id, name, buttonTextureResource);
          buttons.push_back(b);
       }
 
-      void SetToggleOn(const wchar_t* name) override
+      void SetToggleOn(cstr name) override
       {
          for (auto* b : buttons)
          {
@@ -113,7 +113,7 @@ namespace
          }
       }
 
-      void SetToggleOff(const wchar_t* name) override
+      void SetToggleOff(cstr name) override
       {
          for (auto* b : buttons)
          {
@@ -147,7 +147,7 @@ namespace
             {
                if (height != span.y)
                {
-                  Throw(0, L"Cannot tile toolbar horizontally. %s was not %d pixels high", b->name, span.y);
+                  Throw(0, "Cannot tile toolbar horizontally. %s was not %d pixels high", b->name, span.y);
                }
             }
 
@@ -179,7 +179,7 @@ namespace
             {
                if (width != span.x)
                {
-                  Throw(0, L"Cannot tile toolbar vertically. %s was not %d pixels wide", b->name, span.x);
+                  Throw(0, "Cannot tile toolbar vertically. %s was not %d pixels wide", b->name, span.x);
                }
             }
 
@@ -200,7 +200,7 @@ namespace
          {
             if (!renderer.SpriteBuilder().TryGetBitmapLocation(b->resource, b->bitmap))
             {
-               Throw(0, L"Cannot add button '%s'\n - failed to load texture resource '%s'", b->name, b->resource);
+               Throw(0, "Cannot add button '%s'\n - failed to load texture resource '%s'", b->name, b->resource);
             }
          }
 

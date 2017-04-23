@@ -21,7 +21,7 @@ namespace Dystopia
 	{
 		Vec3 position;
 		float duration;
-		wchar_t message[15];
+		rchar message[15];
 	};
 
 	struct VerbDropAtCursor

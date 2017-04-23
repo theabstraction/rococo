@@ -2,7 +2,7 @@
 
 #include "stdafx.h"
 #include <string.h>
-#include <wchar.h>
+#include <sexy.strings.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "sexy.debug.types.h"
@@ -10,7 +10,7 @@
 #include "sexy.script.h"
 #include "sexy.s-parser.h"
 
-#include "sexy.VM.h"
+#include "sexy.vm.h"
 #include "sexy.VM.CPU.h"
 #include "sexydotnethost.h"
 #include "sexy.lib.util.h"
@@ -501,7 +501,7 @@ namespace SexyDotNet { namespace Host
 		const IStructure* pseudoType;
 		const Sexy::uint8* SF;
 
-		if (FindVariableByName(def, pseudoType, SF, ss, namePtr, callDepth))
+		if (FindVariableByName(def, pseudoType, SF, ss, sxchVariableName, callDepth))
 		{
 			VariableKind vk;
 			switch(def.location)
@@ -531,7 +531,7 @@ namespace SexyDotNet { namespace Host
 						
 					TVariableList nativeVars;
 					ListVariableDescBuilder builder(nativeVars, vk);
-					GetMembers(ss, s, namePtr, pInstance, 0, builder);
+					GetMembers(ss, s, sxchVariableName, pInstance, 0, builder);
 
 					for(auto i = nativeVars.begin(); i != nativeVars.end(); ++i)
 					{

@@ -75,7 +75,7 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
-		IFontSupervisor* LoadFontCSV(const wchar_t* srcname, const char* data, size_t dataLength);
+		IFontSupervisor* LoadFontCSV(cstr srcname, const char* data, size_t dataLength);
 		void RouteDrawTextBasic(const Vec2i& pos, IDrawTextJob& job, const IFont& font, IGlyphRenderPipeline& pipeline, const GuiRectf& clipRect);
 
 		int FindFirstFont(IFont& font, const char* specToken, bool throwOnError);

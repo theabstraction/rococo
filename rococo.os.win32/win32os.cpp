@@ -7,7 +7,6 @@
 #include <rococo.api.h>
 #include <rococo.strings.h>
 
-#include <wchar.h>
 #include <stdlib.h>
 
 #include <rococo.io.h>
@@ -39,10 +38,10 @@ namespace Rococo
       return hz.QuadPart;
    }
 
-   bool FileModifiedArgs::Matches(const wchar_t* resource)
+   bool FileModifiedArgs::Matches(cstr resource)
    {
-      const wchar_t* a = this->resourceName;
-      const wchar_t* b = resource;
+      cstr a = this->resourceName;
+      cstr b = resource;
       if (*b == L'!') b++;
 
       while (*a != 0)
@@ -67,11 +66,11 @@ namespace Rococo
       return *b == 0;
    }
 
-   void FileModifiedArgs::GetPingPath(wchar_t* path, size_t capacity)
+   void FileModifiedArgs::GetPingPath(rchar* path, size_t capacity)
    {
-      SafeFormat(path, capacity, _TRUNCATE, L"!%s", resourceName);
+      SafeFormat(path, capacity, _TRUNCATE, "!%s", resourceName);
 
-      for (wchar_t* p = path; *p != 0; p++)
+      for (rchar* p = path; *p != 0; p++)
       {
          if (*p == '\\') *p = '/';
       }
@@ -108,17 +107,17 @@ namespace Rococo
       return{ counters.PagefileUsage, counters.PeakPagefileUsage };
    }
 
-	void Throw(int32 errorCode, const wchar_t* format, ...)
+	void Throw(int32 errorCode, cstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 
 		struct : public IException
 		{
-			wchar_t msg[256];
+			rchar msg[256];
 			int32 errorCode;
 
-			virtual const wchar_t* Message() const
+			virtual cstr Message() const
 			{
 				return msg;
 			}
@@ -138,10 +137,10 @@ namespace Rococo
 		throw ex;
 	}
 
-	bool DoesModifiedFilenameMatchResourceName(const wchar_t* modifiedFilename, const wchar_t* resourceName)
+	bool DoesModifiedFilenameMatchResourceName(cstr modifiedFilename, cstr resourceName)
 	{
-		const wchar_t* p = modifiedFilename;
-		const wchar_t* q = resourceName + 1;
+		cstr p = modifiedFilename;
+		cstr q = resourceName + 1;
 
 		while (*p != 0)
 		{
@@ -193,9 +192,9 @@ namespace
 		}
 	};
 
-	void MakeContainerDirectory(wchar_t* filename)
+	void MakeContainerDirectory(rchar* filename)
 	{
-		int len = (int)wcslen(filename);
+		int len = (int)rlen(filename);
 
 		for (int i = len - 2; i > 0; --i)
 		{
@@ -209,48 +208,48 @@ namespace
 
 	struct FilePath
 	{
-		wchar_t data[_MAX_PATH];
-		operator wchar_t*() { return data; }
+		rchar data[_MAX_PATH];
+		operator rchar*() { return data; }
 	};
 
-	void GetContentDirectory(const wchar_t* contentIndicatorName, FilePath& path, IOS& os)
+	void GetContentDirectory(cstr contentIndicatorName, FilePath& path, IOS& os)
 	{
 		FilePath binDirectory;
 		os.GetBinDirectoryAbsolute(binDirectory, os.MaxPath());
 
 		path = binDirectory;
 
-      if (wcsstr(contentIndicatorName, L"\\") != nullptr)
+      if (strstr(contentIndicatorName, "\\") != nullptr)
       {
          // The indicator is part of a path
          if (os.IsFileExistant(contentIndicatorName))
          { 
-            SecureFormat(path.data, L"%s", contentIndicatorName);
+            SecureFormat(path.data, "%s", contentIndicatorName);
             MakeContainerDirectory(path);
             return;
          }
       }
 
-		size_t len = wcslen(path);
+		size_t len = rlen(path);
 
 		while (len > 0)
 		{
 			FilePath indicator;
-			SecureFormat(indicator.data, L"%s%s", path.data, contentIndicatorName);
+			SecureFormat(indicator.data, "%s%s", path.data, contentIndicatorName);
 			if (os.IsFileExistant(indicator))
 			{
-				SecureCat(path.data, L"content\\");
+				SecureCat(path.data, "content\\");
 				return;
 			}
 
 			MakeContainerDirectory(path);
 
-			size_t newLen = wcslen(path);
+			size_t newLen = rlen(path);
 			if (newLen >= len) break;
 			len = newLen;
 		}
 
-		Throw(0, L"Could not find %s below the executable folder '%s'", contentIndicatorName, binDirectory);
+		Throw(0, "Could not find %s below the executable folder '%s'", contentIndicatorName, binDirectory);
 	}
 
 	class Installation: public IInstallationSupervisor
@@ -259,7 +258,7 @@ namespace
 		FilePath contentDirectory;
 
 	public:
-		Installation(const wchar_t* contentIndicatorName, IOS& _os): os(_os)
+		Installation(cstr contentIndicatorName, IOS& _os): os(_os)
 		{
 			GetContentDirectory(contentIndicatorName, contentDirectory, os);
 		}
@@ -274,31 +273,31 @@ namespace
 			return os;
 		}
 
-		virtual const wchar_t* Content() const
+		virtual cstr Content() const
 		{
 			return contentDirectory.data;
 		}
 
-		virtual void LoadResource(const wchar_t* resourcePath, IExpandingBuffer& buffer, int64 maxFileLength)
+		virtual void LoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength)
 		{
-			if (resourcePath == nullptr || wcslen(resourcePath) < 2) Throw(E_INVALIDARG, L"Win32OS::LoadResource failed: <resourcePath> was blank");
-			if (resourcePath[0] != '!') Throw(E_INVALIDARG, L"Win32OS::LoadResource failed: <%s> did not begin with ping '!' character", resourcePath);
+			if (resourcePath == nullptr || rlen(resourcePath) < 2) Throw(E_INVALIDARG, "Win32OS::LoadResource failed: <resourcePath> was blank");
+			if (resourcePath[0] != '!') Throw(E_INVALIDARG, "Win32OS::LoadResource failed: <%s> did not begin with ping '!' character", resourcePath);
 
-			if (wcslen(resourcePath) + wcslen(contentDirectory) >= _MAX_PATH)
+			if (rlen(resourcePath) + rlen(contentDirectory) >= _MAX_PATH)
 			{
-				Throw(E_INVALIDARG, L"Win32OS::LoadResource failed: %s%s - filename was too long", contentDirectory, resourcePath + 1);
+				Throw(E_INVALIDARG, "Win32OS::LoadResource failed: %s%s - filename was too long", contentDirectory, resourcePath + 1);
 			}
 
-         if (wcsstr(resourcePath, L"..") != nullptr)
+         if (strstr(resourcePath, "..") != nullptr)
          {
-            Throw(E_INVALIDARG, L"Win32OS::LoadResource failed: %s - parent directory sequence '..' is forbidden", resourcePath);
+            Throw(E_INVALIDARG, "Win32OS::LoadResource failed: %s - parent directory sequence '..' is forbidden", resourcePath);
          }
 
 			FilePath sysPath;
 			os.ConvertUnixPathToSysPath(resourcePath + 1, sysPath, _MAX_PATH);
 			
 			FilePath absPath;
-			SecureFormat(absPath.data, L"%s%s", contentDirectory.data, sysPath.data);
+			SecureFormat(absPath.data, "%s%s", contentDirectory.data, sysPath.data);
 
 			os.LoadAbsolute(absPath, buffer, maxFileLength);
 		}
@@ -339,7 +338,7 @@ namespace
 		bool isRunning;
 
 		CriticalSection threadLock;
-		std::vector<std::wstring> modifiedFiles;
+		std::vector<std::string> modifiedFiles;
 
 		IEventCallback<SysUnstableArgs>* onUnstable;
 	public:
@@ -350,7 +349,7 @@ namespace
 			onUnstable(nullptr)
 		{
          auto hAppInstance = GetModuleHandle(nullptr);
-			GetModuleFileNameW(hAppInstance, binDirectory, _MAX_PATH);
+			GetModuleFileNameA(hAppInstance, binDirectory, _MAX_PATH);
 			MakeContainerDirectory(binDirectory);
 		}
 
@@ -377,7 +376,7 @@ namespace
 		{
 			if (0 == MultiByteToWideChar(CP_UTF8, 0, s, (int) cbUtf8count, unicode, (int)unicodeCapacity))
 			{
-				Throw(GetLastError(), L"Could not convert UTF8 to wchar: %S", s);
+				Throw(GetLastError(), "Could not convert UTF8 to rchar: %S", s);
 			}
 		}
 
@@ -386,7 +385,7 @@ namespace
 			while (!modifiedFiles.empty())
 			{
 				threadLock.Lock();
-				std::wstring f = modifiedFiles.back();
+				std::string f = modifiedFiles.back();
 				modifiedFiles.pop_back();
 				threadLock.Unlock();
 
@@ -405,7 +404,7 @@ namespace
 			onUnstable = cb;
 		}
 
-		void OnModified(const wchar_t* filename)
+		void OnModified(cstr filename)
 		{
 			Sync sync(threadLock);
 
@@ -416,7 +415,7 @@ namespace
 
 				for (auto& v : modifiedFiles)
 				{
-					if (wcscmp(v.c_str(), filename) == 0)
+					if (strcmp(v.c_str(), filename) == 0)
 					{
 						isInList = true;
 						break;
@@ -435,10 +434,8 @@ namespace
 			{
 				if (i->Action == FILE_ACTION_MODIFIED)
 				{
-					wchar_t nullTerminatedFilename[_MAX_PATH];
-					size_t nChars = info.FileNameLength >> 1;
-					SafeCopy(nullTerminatedFilename, info.FileName, nChars);
-					nullTerminatedFilename[nChars] = 0;
+					rchar nullTerminatedFilename[_MAX_PATH];
+					SafeFormat(nullTerminatedFilename, _TRUNCATE, "%S", info.FileName);
 					OnModified(nullTerminatedFilename);
 				}
 
@@ -507,45 +504,45 @@ namespace
 			return This->MonitorDirectory();
 		}
 
-		virtual void Monitor(const wchar_t* absPath)
+		virtual void Monitor(cstr absPath)
 		{
 			if (isRunning || hMonitorDirectory != INVALID_HANDLE_VALUE)
 			{
-				Throw(0, L"A directory is already being monitored");
+				Throw(0, "A directory is already being monitored");
 			}
 
 			DWORD shareFlags = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
-			hMonitorDirectory = CreateFile(absPath, GENERIC_READ, shareFlags, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, nullptr);
+			hMonitorDirectory = CreateFileA(absPath, GENERIC_READ, shareFlags, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, nullptr);
 			if (hMonitorDirectory == INVALID_HANDLE_VALUE)
 			{
-				Throw(GetLastError(), L"Failed to create monitor on directory %s", absPath);
+				Throw(GetLastError(), "Failed to create monitor on directory %s", absPath);
 			}
 
 			isRunning = true;
 			hThread = _beginthreadex(nullptr, 65536, thread_monitor_directory, this, 0, &threadId);
 		}
 
-		virtual bool IsFileExistant(const wchar_t* absPath) const
+		virtual bool IsFileExistant(cstr absPath) const
 		{
-			return INVALID_FILE_ATTRIBUTES != GetFileAttributes(absPath);
+			return INVALID_FILE_ATTRIBUTES != GetFileAttributesA(absPath);
 		}
 
-		virtual void ConvertUnixPathToSysPath(const wchar_t* unixPath, wchar_t* sysPath, size_t bufferCapacity) const
+		virtual void ConvertUnixPathToSysPath(cstr unixPath, rchar* sysPath, size_t bufferCapacity) const
 		{
-			if (unixPath == nullptr) Throw(E_INVALIDARG, L"Blank path in call to os.ConvertUnixPathToSysPath");
-			if (wcslen(unixPath) >= bufferCapacity)
+			if (unixPath == nullptr) Throw(E_INVALIDARG, "Blank path in call to os.ConvertUnixPathToSysPath");
+			if (rlen(unixPath) >= bufferCapacity)
 			{
-				Throw(E_INVALIDARG, L"Path too long in call to os.ConvertUnixPathToSysPath");
+				Throw(E_INVALIDARG, "Path too long in call to os.ConvertUnixPathToSysPath");
 			}
 
-			size_t len = wcslen(unixPath);
+			size_t len = rlen(unixPath);
 
 			size_t i = 0;
 			for (; i < len; ++i)
 			{
-				wchar_t c = unixPath[i];
+				rchar c = unixPath[i];
 
-				if (c == '\\') Throw(E_INVALIDARG, L"Illegal backslash '\\' in unixPath in call to os.ConvertUnixPathToSysPath");
+				if (c == '\\') Throw(E_INVALIDARG, "Illegal backslash '\\' in unixPath in call to os.ConvertUnixPathToSysPath");
 
 				if (c == '/')
 				{
@@ -560,17 +557,17 @@ namespace
 			sysPath[i] = 0;
 		}
 
-		virtual void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const
+		virtual void LoadAbsolute(cstr absPath, IExpandingBuffer& buffer, int64 maxFileLength) const
 		{
-			FileHandle hFile = CreateFile(absPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
-			if (!hFile.IsValid()) Throw(HRESULT_FROM_WIN32(GetLastError()), L"Win32OS::LoadResource failed: Error opening file %s", absPath);
+			FileHandle hFile = CreateFileA(absPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+			if (!hFile.IsValid()) Throw(HRESULT_FROM_WIN32(GetLastError()), "Win32OS::LoadResource failed: Error opening file %s", absPath);
 
 			LARGE_INTEGER len;
 			GetFileSizeEx(hFile, &len);
 
 			if (maxFileLength > 0 && len.QuadPart > maxFileLength)
 			{
-				Throw(0, L"Win32OS::LoadResource failed: File <%s> was too large at over %ld bytes", absPath, maxFileLength);
+				Throw(0, "Win32OS::LoadResource failed: File <%s> was too large at over %ld bytes", absPath, maxFileLength);
 			}
 
 			buffer.Resize(len.QuadPart);
@@ -586,12 +583,12 @@ namespace
 				DWORD bytesRead = 0;
 				if (!ReadFile(hFile, data + offset, chunk, &bytesRead, nullptr))
 				{
-					Throw(HRESULT_FROM_WIN32(GetLastError()), L"Error reading file <%s>", absPath);
+					Throw(HRESULT_FROM_WIN32(GetLastError()), "Error reading file <%s>", absPath);
 				}
 
 				if (bytesRead != chunk)
 				{
-					Throw(0, L"Win32OS::LoadResource: Error reading file <%s>. Failed to read chunk", absPath);
+					Throw(0, "Win32OS::LoadResource: Error reading file <%s>. Failed to read chunk", absPath);
 				}
 
 				offset += (ptrdiff_t)chunk;
@@ -599,9 +596,9 @@ namespace
 			}
 		}
 
-		virtual void GetBinDirectoryAbsolute(wchar_t* directory, size_t capacityChars) const
+		virtual void GetBinDirectoryAbsolute(rchar* directory, size_t capacityChars) const
 		{
-			SecureFormat(directory, capacityChars, L"%s", binDirectory.data);
+			SecureFormat(directory, capacityChars, "%s", binDirectory.data);
 		}
 
 		virtual size_t MaxPath() const
@@ -618,7 +615,7 @@ namespace Rococo
 		return new Win32OS();
 	}
 
-	IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os)
+	IInstallationSupervisor* CreateInstallation(cstr contentIndicatorName, IOS& os)
 	{
 		return new Installation(contentIndicatorName, os);
 	}
@@ -665,42 +662,42 @@ namespace Rococo
 
    namespace IO
    {
-      void GetUserPath(wchar_t* fullpath, size_t capacity, const wchar_t* shortname)
+      void GetUserPath(rchar* fullpath, size_t capacity, cstr shortname)
       {
          wchar_t* path;
          SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
-         SafeFormat(fullpath, capacity, _TRUNCATE, L"%s\\%s", path, shortname);
+         SafeFormat(fullpath, capacity, _TRUNCATE, "%S\\%s", path, shortname);
       }
 
-      void DeleteUserFile(const wchar_t* filename)
+      void DeleteUserFile(cstr filename)
       {
          wchar_t* path;
          SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
 
-         wchar_t fullpath[_MAX_PATH];
-         SafeFormat(fullpath, _TRUNCATE, L"%s\\%s", path, filename);
+         rchar fullpath[_MAX_PATH];
+         SafeFormat(fullpath, _TRUNCATE, "%S\\%s", path, filename);
 
-         DeleteFile(fullpath);
+         DeleteFileA(fullpath);
       }
 
-      void SaveUserFile(const wchar_t* filename, const wchar_t* s)
+      void SaveUserFile(cstr filename, cstr s)
       {
          wchar_t* path;
          SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
 
-         wchar_t fullpath[_MAX_PATH];
-         SafeFormat(fullpath, _TRUNCATE, L"%s\\%s", path, filename);
+         rchar fullpath[_MAX_PATH];
+         SafeFormat(fullpath, _TRUNCATE, "%S\\%s", path, filename);
 
-         HANDLE hFile = CreateFile(fullpath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+         HANDLE hFile = CreateFileA(fullpath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
          if (hFile != INVALID_HANDLE_VALUE)
          {
             DWORD writeLength;
-            WriteFile(hFile, s, (DWORD) (sizeof(wchar_t) * wcslen(s)), &writeLength, nullptr);
+            WriteFile(hFile, s, (DWORD) (sizeof(rchar) * rlen(s)), &writeLength, nullptr);
             CloseHandle(hFile);
          }
       }
 
-      wchar_t GetFileSeparator()
+      rchar GetFileSeparator()
       {
          return L'\\';
       }
@@ -719,7 +716,7 @@ namespace Rococo
          operator T* () { return instance; }
       };
 
-      bool ChooseDirectory(wchar_t* name, size_t capacity)
+      bool ChooseDirectory(rchar* name, size_t capacity)
       {
          class DialogEventHandler : public IFileDialogEvents,  public IFileDialogControlEvents
          {
@@ -793,21 +790,21 @@ namespace Rococo
          HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
          if (FAILED(hr))
          {
-            Throw(hr, L"CoCreateInstance(CLSID_FileOpenDialog failed");
+            Throw(hr, "CoCreateInstance(CLSID_FileOpenDialog failed");
          }
 
          ComObject<IFileDialogEvents> pfde;
          hr = DialogEventHandler::CreateInstance(IID_PPV_ARGS(&pfde));
          if (FAILED(hr))
          {
-            Throw(hr, L"CDialogEventHandler_CreateInstance failed");
+            Throw(hr, "CDialogEventHandler_CreateInstance failed");
          }
 
          DWORD dwCookie;
          hr = pfd->Advise(pfde, &dwCookie);
          if (FAILED(hr))
          {
-            Throw(hr, L"pfd->Advise failed");
+            Throw(hr, "pfd->Advise failed");
          }
 
          // Set the options on the dialog.
@@ -818,14 +815,14 @@ namespace Rococo
          hr = pfd->GetOptions(&dwFlags);
          if (FAILED(hr))
          {
-            Throw(hr, L"pfd->GetOptions failed");
+            Throw(hr, "pfd->GetOptions failed");
          }
 
          // In this case, get shell items only for file system items.
          hr = pfd->SetOptions(dwFlags | FOS_FORCEFILESYSTEM | FOS_PICKFOLDERS);
          if (FAILED(hr))
          {
-            Throw(hr, L"pfd->SetOptions failed");
+            Throw(hr, "pfd->SetOptions failed");
          }
 
          // Set the file types to display only. 
@@ -834,7 +831,7 @@ namespace Rococo
          hr = pfd->SetFileTypes(ARRAYSIZE(c_rgSaveTypes), c_rgSaveTypes);
          if (FAILED(hr))
          {
-            Throw(hr, L"pfd->SetFileTypes failed");
+            Throw(hr, "pfd->SetFileTypes failed");
          }
          */
 
@@ -843,16 +840,16 @@ namespace Rococo
          hr = pfd->SetFileTypeIndex(INDEX_WORDDOC);
          if (FAILED(hr))
          {
-            Throw(hr, L"pfd->SetFileTypeIndex failed");
+            Throw(hr, "pfd->SetFileTypeIndex failed");
          }
          */
 
          /*
          // Set the default extension to be ".doc" file.
-         hr = pfd->SetDefaultExtension(L"doc;docx");
+         hr = pfd->SetDefaultExtension("doc;docx");
          if (FAILED(hr))
          {
-            Throw(hr, L"pfd->SetDefaultExtension failed");
+            Throw(hr, "pfd->SetDefaultExtension failed");
          }
          */
 
@@ -864,7 +861,7 @@ namespace Rococo
             {
                return false;
             }
-            Throw(hr, L"pfd->Show failed");
+            Throw(hr, "pfd->Show failed");
          }
 
          // Obtain the result once the user clicks 
@@ -874,17 +871,17 @@ namespace Rococo
          hr = pfd->GetResult(&psiResult);
          if (FAILED(hr))
          {
-            Throw(hr, L"pfd->GetResult");
+            Throw(hr, "pfd->GetResult");
          }
 
-         LPWSTR _name = nullptr;
+         wchar_t* _name = nullptr;
          hr = psiResult->GetDisplayName(SIGDN_FILESYSPATH, &_name);
          if (FAILED(hr))
          {
-            Throw(hr, L"pfd->GetResult");
+            Throw(hr, "pfd->GetResult");
          }
          
-         SafeCopy(name, capacity, _name, _TRUNCATE);
+         SafeFormat(name, capacity, _TRUNCATE, "%S", _name);
 
          CoTaskMemFree(_name);
 
@@ -894,13 +891,13 @@ namespace Rococo
          return true;
       }
 
-      void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity)
+      void EndDirectoryWithSlash(rchar* pathname, size_t capacity)
       {
-         const wchar_t* finalChar = GetFinalNull(pathname);
+         cstr finalChar = GetFinalNull(pathname);
 
          if (pathname == nullptr || pathname == finalChar)
          {
-            Throw(0, L"Invalid pathname in call to EndDirectoryWithSlash");
+            Throw(0, "Invalid pathname in call to EndDirectoryWithSlash");
          }
 
          bool isSlashed = finalChar[-1] == L'\\' || finalChar[-1] == L'/';
@@ -908,16 +905,16 @@ namespace Rococo
          {
             if (finalChar >= (pathname + capacity - 1))
             {
-               Throw(0, L"Insufficient room in directory buffer to trail with slash");
+               Throw(0, "Insufficient room in directory buffer to trail with slash");
             }
 
-            wchar_t* mutablePath = const_cast<wchar_t*>(finalChar);
+            rchar* mutablePath = const_cast<rchar*>(finalChar);
             mutablePath[0] = L'/';
             mutablePath[1] = 0;
          }
       }
 
-      void ForEachFileInDirectory(const wchar_t* directory, IEventCallback<const wchar_t*>& onFile)
+      void ForEachFileInDirectory(cstr directory, IEventCallback<cstr>& onFile)
       { 
          struct Anon
          {
@@ -938,18 +935,18 @@ namespace Rococo
 
          Anon hSearch;
 
-         wchar_t fullpath[MAX_PATH];
+         rchar fullpath[MAX_PATH];
          bool isSlashed = GetFinalNull(directory)[-1] == L'\\' || GetFinalNull(directory)[-1] == L'/';
-         SafeFormat(fullpath, _TRUNCATE, L"%s%s*.*", directory, isSlashed ? L"" : L"\\");
+         SafeFormat(fullpath, _TRUNCATE, "%s%s*.*", directory, isSlashed ? "" : "\\");
 
-         WIN32_FIND_DATAW findData;
-         hSearch.hSearch = FindFirstFileW(fullpath, &findData);
+         WIN32_FIND_DATAA findData;
+         hSearch.hSearch = FindFirstFileA(fullpath, &findData);
  
          if (hSearch.hSearch == INVALID_HANDLE_VALUE)
          {
             if (GetLastError() != ERROR_FILE_NOT_FOUND)
             {
-               Throw(GetLastError(), L"Could not browse directory: %s", fullpath);
+               Throw(GetLastError(), "Could not browse directory: %s", fullpath);
             }
             return;
          }
@@ -959,7 +956,7 @@ namespace Rococo
             onFile.OnEvent(findData.cFileName);
          }
 
-         while (FindNextFile(hSearch, &findData))
+         while (FindNextFileA(hSearch, &findData))
          {
             if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
             {

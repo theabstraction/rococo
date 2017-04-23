@@ -17,7 +17,7 @@ namespace Rococo
 
       struct IUIBuilder
       {
-         virtual void AddButton(ID_WIDGET id, Vec2i span, const wchar_t* text) = 0;
+         virtual void AddButton(ID_WIDGET id, Vec2i span, cstr text) = 0;
          virtual void AddFrame(ID_WIDGET frameId, Vec2i span) = 0;
          virtual void AddWidgetToFrame(ID_WIDGET frameId, ID_WIDGET id) = 0;
          virtual void CentreChildrenHorizontally(ID_WIDGET frameId) = 0;

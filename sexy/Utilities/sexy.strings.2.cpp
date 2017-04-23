@@ -300,11 +300,12 @@ namespace Sexy
 		return _vsnprintf_s(buf, sizeInChars, _TRUNCATE, format, argList);
 	}
 
-	int __cdecl StringPrintV(wchar_t* buf, size_t sizeInChars, va_list argList, const wchar_t* format)
+#ifdef SEXCHAR_IS_WIDE
+	int __cdecl StringPrintV(rchar* buf, size_t sizeInChars, va_list argList, cstr format)
 	{
 		return _vsnwprintf_s(buf, sizeInChars, _TRUNCATE, format, argList);
 	}
-
+#endif
 	int __cdecl StringPrint(char* buf, size_t sizeInChars, const char* format, ...) // N.B if you are having crashes passing a SEXCHAR array try casting it to (const SEXCHAR*)
 	{
 		va_list args;
@@ -312,12 +313,14 @@ namespace Sexy
 		return _vsnprintf_s(buf, sizeInChars, _TRUNCATE, format, args);
 	}
 
-	int __cdecl StringPrint(wchar_t* buf, size_t sizeInChars, const wchar_t* format, ...)
+#ifdef SEXCHAR_IS_WIDE
+	int __cdecl StringPrint(rchar* buf, size_t sizeInChars, cstr format, ...)
 	{
 		va_list args;
 		va_start(args,format);
 		return _vsnwprintf_s(buf, sizeInChars, _TRUNCATE, format, args);
 	}
+#endif
 
 	int __cdecl StringPrint(TokenBuffer& buf, const SEXCHAR* format, ...)
 	{
@@ -338,13 +341,15 @@ namespace Sexy
 		return strerror_s(buf, sizeInChars, errNum);
 	}
 
-	int _cdecl GetErrorString(wchar_t* buf, size_t sizeInChars, int errNum)
+#ifdef SEXCHAR_IS_WIDE
+	int _cdecl GetErrorString(rchar* buf, size_t sizeInChars, int errNum)
 	{
 		char err[256];
 		GetErrorString(err, sizeInChars, errNum);
 
 		return _snwprintf_s(buf, sizeInChars, _TRUNCATE, L"%S", err);		
 	}
+#endif
 
 	int32 __cdecl StringLength(const char* s)
 	{
@@ -357,9 +362,10 @@ namespace Sexy
 		return (int32) l;
 	}
 
-	int32 __cdecl StringLength(const wchar_t* s)
+#ifdef SEXCHAR_IS_WIDE
+	int32 __cdecl StringLength(cstr s)
 	{
-		size_t l = wcslen(s);
+		size_t l = rlen(s);
 		if (l > INT_MAX)
 		{
 			throw std::invalid_argument("The string length exceeded INT_MAX characters");
@@ -367,6 +373,7 @@ namespace Sexy
 
 		return (int32) l;
 	}
+#endif
 
 	void __cdecl CopyChars(SEXCHAR* dest, const sexstring source)
 	{
@@ -385,43 +392,48 @@ namespace Sexy
 		return vprintf_s(format, args);
 	}
 
-	int __cdecl WriteToStandardOutput(const wchar_t* format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-		return vwprintf_s(format, args);
-	}
+#ifdef SEXCHAR_IS_WIDE
+   int __cdecl WriteToStandardOutput(cstr format, ...)
+   {
+      va_list args;
+      va_start(args, format);
+      return vwprintf_s(format, args);
+   }
+#endif
 
 	void __cdecl CopyString(char* dest, size_t capacity, const char* source)
 	{
 		strcpy_s(dest, capacity, source);
 	}
 
-	void __cdecl CopyString(wchar_t* dest, size_t capacity, const wchar_t* source, int maxChars)
+#ifdef SEXCHAR_IS_WIDE
+	void __cdecl CopyString(rchar* dest, size_t capacity, cstr source, int maxChars)
 	{
 		wcsncpy_s(dest, capacity, source,  maxChars < 0 ? _TRUNCATE : maxChars);
 	}
 
-	void __cdecl CopyString(wchar_t* dest, size_t capacity, const wchar_t* source)
+	void __cdecl CopyString(rchar* dest, size_t capacity, cstr source)
 	{
 		wcscpy_s(dest, capacity, source);
 	}
+#endif
 
 	void __cdecl CopyString(char* dest, size_t capacity, const char* source, int maxChars)
 	{
 		strncpy_s(dest, capacity, source, maxChars < 0 ? _TRUNCATE : maxChars);
 	}
 
-	void __cdecl CopyString(wchar_t* dest, const char* source, int maxChars)
+#ifdef SEXCHAR_IS_WIDE
+	void __cdecl CopyString(rchar* dest, const char* source, int maxChars)
 	{
 		_snwprintf_s(dest, maxChars, maxChars, L"%S", source);
 	}
 
-	void __cdecl StringCat(wchar_t* buf, const wchar_t* source, int maxChars)
+	void __cdecl StringCat(rchar* buf, cstr source, int maxChars)
 	{
 		wcscat_s(buf, maxChars, source);
 	}
-
+#endif
 	void __cdecl StringCat(char* buf, const char* source, int maxChars)
 	{
 		strcat_s(buf, maxChars, source);

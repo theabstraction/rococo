@@ -68,7 +68,7 @@ namespace
 			return TRUE;
 		}
 
-		int AddString(LPCWSTR data)
+		int AddString(cstr data)
 		{
 			LRESULT index = SendMessage(hWndListBox, LB_ADDSTRING, 0, (LPARAM)data); // If data is not a string, we need owner draw and no LBS_HASSTRINGS, else we crash here.
 			return (int) index;
@@ -95,11 +95,11 @@ namespace
 			return SendMessage(hWndListBox, LB_GETITEMDATA, index, 0);
 		}
 
-		bool GetString(int index, LPWSTR data, size_t capacity)
+		bool GetString(int index, rchar* data, size_t capacity)
 		{
 			LRESULT length = SendMessage(hWndListBox, LB_GETTEXTLEN, index, 0);
 			if (length == LB_ERR) return false;
-			wchar_t* buffer = (wchar_t*) _malloca(sizeof(wchar_t)* (length + 1));
+			rchar* buffer = (rchar*) _malloca(sizeof(rchar)* (length + 1));
 			if (LB_ERR == SendMessage(hWndListBox, LB_GETTEXT, index, (LPARAM)buffer))
 			{
 				return false;
@@ -127,7 +127,7 @@ namespace
 			listConfigCorrected.hWndParent = hWnd;
 			listConfigCorrected.style |= WS_CHILD | WS_VISIBLE | LBS_NOTIFY;
 
-			hWndListBox = CreateWindowIndirect(L"LISTBOX", listConfigCorrected, nullptr);
+			hWndListBox = CreateWindowIndirect("LISTBOX", listConfigCorrected, nullptr);
 			SetDlgCtrlID(hWndListBox, 1001);
 
 			if (listConfig.windowName != nullptr && listConfig.windowName[0] != 0)
@@ -136,7 +136,7 @@ namespace
 				titleConfig.style = WS_CHILD | WS_VISIBLE;
 				titleConfig.exStyle = 0;
 				titleConfig.hWndParent = hWnd;
-				hTitle = CreateWindowIndirect(L"STATIC", titleConfig, nullptr);
+				hTitle = CreateWindowIndirect("STATIC", titleConfig, nullptr);
 				SetTitleFont(hTitle);
 			}
 

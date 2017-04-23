@@ -31,8 +31,8 @@
 	principal credit screen and its principal readme file.
 */
 
-#include "Sexy.VM.StdAfx.h"
-#include "Sexy.VM.OS.h"
+#include "sexy.vm.stdafx.h"
+#include "sexy.vm.os.h"
 
 #include <rococo.win32.target.win7.h>
 #define WIN32_LEAN_AND_MEAN

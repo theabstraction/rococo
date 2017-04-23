@@ -14,8 +14,8 @@ namespace Dystopia {
 		int32 GetKudosLevel(Stat kudos);
 		StatValue GetNextCap(Stat kudos);
 
-		const wchar_t* GetTitle(Stat kudos);
-		const wchar_t* GetKudosRewardText(Stat kudos);
+		cstr GetTitle(Stat kudos);
+		cstr GetKudosRewardText(Stat kudos);
 	}
 }
 

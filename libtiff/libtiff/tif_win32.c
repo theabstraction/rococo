@@ -271,7 +271,7 @@ TIFFOpen(const char* name, const char* mode)
  * Open a TIFF file with a Unicode filename, for read/writing.
  */
 TIFF*
-TIFFOpenW(const wchar_t* name, const char* mode)
+TIFFOpenW(cstr name, const char* mode)
 {
 	static const char module[] = "TIFFOpenW";
 	thandle_t fd;

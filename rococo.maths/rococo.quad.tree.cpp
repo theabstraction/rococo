@@ -155,7 +155,7 @@ namespace
 
 		if (!isDeleted)
 		{
-			Throw(0, L"Item not found in quadtree: %I64u", entry.id);
+			Throw(0, "Item not found in quadtree: %I64u", entry.id);
 		}
 	}
 
@@ -423,17 +423,17 @@ namespace Rococo
 	{
 		if (minBoundingRadius <= 0.01f)
 		{
-			Throw(0, L"CreateLooseQuadTree(...): minimum bounding radius was too small");
+			Throw(0, "CreateLooseQuadTree(...): minimum bounding radius was too smal");
 		}
 
 		if (width <= 2.0f * minBoundingRadius)
 		{
-			Throw(0, L"The width of the quad tree must be greater than twice the minimum bounding radius for tree entitites");
+			Throw(0, "The width of the quad tree must be greater than twice the minimum bounding radius for tree entitites");
 		}
 
 		if (width > 1.0e9f)
 		{
-			Throw(0, L"Quadtree not tested to function for this width");
+			Throw(0, "Quadtree not tested to function for this width");
 		}
 
 		return new LooseQuadTree(width, minBoundingRadius);

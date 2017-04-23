@@ -483,7 +483,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 				auto result = Sexy::Parse::TryParse(value, VARTYPE_Int64, sValue.String()->Buffer);
 				if (result != Sexy::Parse::PARSERESULT_GOOD)
 				{
-					Throw(sValue, L"Expecting int64 numeric for value");
+					Throw(sValue, SEXTEXT("Expecting int64 numeric for value"));
 				}
 
 				ec.values.push_back(std::make_pair(sName.String()->Buffer, value.int64Value));
@@ -916,7 +916,7 @@ int main(int argc, char* argv[])
 
 	if (*pc.scriptName == 0)
 	{
-		WriteToStandardOutput(SEXTEXT("Unexpected error. Could not derive script name from script-input-file '%S'. Expecting [...filename.sxh]"), scriptInput);
+		WriteToStandardOutput(SEXTEXT("Unexpected error. Could not derive script name from script-input-file '%s'. Expecting [...filename.sxh]"), scriptInput);
 		return -1;
 	}
 

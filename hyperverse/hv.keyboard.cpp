@@ -10,8 +10,8 @@ namespace
 
    class Keyboard : public IKeyboardSupervisor
    {
-      std::array<std::wstring,512> codes;
-      std::unordered_map<std::wstring, std::wstring> actionBinds;
+      std::array<std::string,512> codes;
+      std::unordered_map<std::string, std::string> actionBinds;
       HKL hLocale;
    public:
       Keyboard()
@@ -29,7 +29,7 @@ namespace
          actionBinds[keyName.buffer] = actionName.buffer;
       }
 
-      virtual const wchar_t* GetAction(const wchar_t* keyName)
+      virtual cstr GetAction(cstr keyName)
       {
          if (keyName != nullptr)
          {
@@ -76,7 +76,7 @@ namespace
       {
          if (scancode < 0 || scancode >= codes.size())
          {
-            Throw(0, L"Bad scancode. 0 <= scancode < %u", codes.size());
+            Throw(0, "Bad scancode. 0 <= scancode < %u", codes.size());
          }
 
          codes[scancode] = name.buffer;

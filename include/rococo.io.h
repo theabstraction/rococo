@@ -8,7 +8,7 @@ namespace Rococo
 		ROCOCOAPI IStreamer
 		{
 			virtual void Close() = 0; // Closes the IO object responsible for the stream
-			virtual const wchar_t* Name() const = 0; // Gives a resource identifier for the stream, such as a filename
+			virtual cstr Name() const = 0; // Gives a resource identifier for the stream, such as a filename
 			virtual void Free() = 0; // Delete the object that implements the streamer. Free will call Close before deleting the object to which the ROCOCOAPI refers
 		};
 
@@ -39,7 +39,7 @@ namespace Rococo
 
 		ROCOCOAPI IScriptGenerator
 		{
-			virtual void AppendStringLiteral(IUnicode16Writer& writer, const wchar_t* text) = 0;
+			virtual void AppendStringLiteral(IUnicode16Writer& writer, cstr text) = 0;
 		};
 
 		class FileImage
@@ -61,7 +61,7 @@ namespace Rococo
 		};
 
 		void Print(IBinaryWriter& writer, const char* format, ...);
-      void SaveUserFile(const wchar_t* filename, const wchar_t* s);
+      void SaveUserFile(cstr filename, cstr s);
 	}
 
 	ROCOCOAPI IBuffer
@@ -82,9 +82,9 @@ namespace Rococo
 	struct SysUnstableArgs {};
    struct FileModifiedArgs
    {
-      const wchar_t* resourceName;
-      bool Matches(const wchar_t* resource);
-      void GetPingPath(wchar_t* path, size_t capacity);
+      cstr resourceName;
+      bool Matches(cstr resource);
+      void GetPingPath(rchar* path, size_t capacity);
    };
 
    struct MemoryUsage
@@ -97,24 +97,24 @@ namespace Rococo
 
 	ROCOCOAPI IOS
 	{
-		virtual void ConvertUnixPathToSysPath(const wchar_t* unixPath, wchar_t* sysPath, size_t bufferCapacity) const = 0;
+		virtual void ConvertUnixPathToSysPath(cstr unixPath, rchar* sysPath, size_t bufferCapacity) const = 0;
 		virtual void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs>& cb) = 0;
 
 		// Call if the system has become unstable due to bad assets et al
 		virtual void FireUnstable() = 0;
 		virtual void SetUnstableHandler(IEventCallback<SysUnstableArgs>* cb) = 0;
-		virtual void GetBinDirectoryAbsolute(wchar_t* binDirectory, size_t capacityChars) const = 0;
-		virtual bool IsFileExistant(const wchar_t* absPath) const = 0;
-		virtual void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const = 0;
+		virtual void GetBinDirectoryAbsolute(rchar* binDirectory, size_t capacityChars) const = 0;
+		virtual bool IsFileExistant(cstr absPath) const = 0;
+		virtual void LoadAbsolute(cstr absPath, IExpandingBuffer& buffer, int64 maxFileLength) const = 0;
 		virtual size_t MaxPath() const = 0;
-		virtual void Monitor(const wchar_t* absPath) = 0;
+		virtual void Monitor(cstr absPath) = 0;
 		virtual void UTF8ToUnicode(const char* s, wchar_t* unicode, size_t cbUtf8count, size_t unicodeCapacity) = 0;
 	};
 
 	ROCOCOAPI IInstallation
 	{
-		virtual const wchar_t* Content() const = 0;
-		virtual void LoadResource(const wchar_t* resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
+		virtual cstr Content() const = 0;
+		virtual void LoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
 		virtual IOS& OS() = 0;
 	};
 
@@ -130,17 +130,17 @@ namespace Rococo
 
    IOSSupervisor* GetOS();
 
-	IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os);
+	IInstallationSupervisor* CreateInstallation(cstr contentIndicatorName, IOS& os);
 
-	bool DoesModifiedFilenameMatchResourceName(const wchar_t* modifiedFilename, const wchar_t* resourceName);
+	bool DoesModifiedFilenameMatchResourceName(cstr modifiedFilename, cstr resourceName);
 
    namespace IO
    {
       enum { MAX_PATHLEN = 260 };
-      wchar_t GetFileSeparator();
-      void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity);
-      void GetUserPath(wchar_t* fullpath, size_t capacity, const wchar_t* shortname);
-      void DeleteUserFile(const wchar_t* filename);
+      rchar GetFileSeparator();
+      void EndDirectoryWithSlash(rchar* pathname, size_t capacity);
+      void GetUserPath(rchar* fullpath, size_t capacity, cstr shortname);
+      void DeleteUserFile(cstr filename);
    }
 }
 

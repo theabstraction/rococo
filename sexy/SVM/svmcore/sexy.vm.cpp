@@ -31,10 +31,10 @@
 	principal credit screen and its principal readme file.
 */
 
-#include "Sexy.VM.StdAfx.h"
+#include "sexy.vm.stdafx.h"
 #include "Sexy.VM.CPU.h"
 #include <math.h>
-#include "Sexy.VM.OS.h"
+#include "sexy.vm.os.h"
 
 #include <excpt.h>
 

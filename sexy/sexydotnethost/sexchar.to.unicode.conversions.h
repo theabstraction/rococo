@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 namespace
 {
 	bool CopyUnicodeToSexChar(SEXCHAR* output, size_t bufferCapacity, const Char* input);
@@ -26,7 +28,7 @@ namespace
 
 	bool CopyUnicodeToSexChar(SEXCHAR* output, size_t bufferCapacity, const Char* input)
 	{
-		size_t neededLen = wcslen(input)+1;
+		size_t neededLen = rlen(input)+1;
 		if (neededLen > bufferCapacity)
 		{
 			return false;
@@ -37,7 +39,7 @@ namespace
 		return true;
 	}
 
-	int CopySexCharToUnicode(wchar_t* output, size_t bufferCapacity, csexstr input)
+	int CopySexCharToUnicode(rchar* output, size_t bufferCapacity, csexstr input)
 	{
 		size_t len = StringLength(input);
 		if (len >= bufferCapacity)
@@ -91,6 +93,11 @@ namespace
 		return ss.SParser().DuplicateSourceBuffer((csexstr) input, moduleLength, Vec2i{ 0,0 }, name);
 	}
 
+   int CopySexCharToUnicode(wchar_t* output, size_t bufferCapacity, csexstr input)
+   {
+      return _snwprintf_s(output, bufferCapacity, _TRUNCATE, L"%S", input);
+   }
+
 	bool CopyUnicodeToSexChar(SEXCHAR* output, size_t bufferCapacity, const Char* input)
 	{
 		size_t neededLen = wcslen(input)+1;
@@ -114,7 +121,7 @@ namespace
 		return true;
 	}
 
-	int CopySexCharToUnicode(wchar_t* output, size_t bufferCapacity, csexstr input)
+	int CopySexCharToUnicode(rchar* output, size_t bufferCapacity, csexstr input)
 	{
 		size_t len = StringLength(input);
 		if (len >= bufferCapacity)
@@ -131,45 +138,50 @@ namespace
 	}
 #endif
 
-	void ProtectedFormatValue(IScriptSystem& ss, wchar_t* unicodeValue, size_t bufferLen, VARTYPE type, const void* pVariableData)
+   void CopyAsciiToToSEXCHAR(SEXCHAR* output, size_t bufferCapacity, const char* input)
+   {
+      strncpy_s(output, bufferCapacity, input, _TRUNCATE);
+   }
+
+	void ProtectedFormatValue(IScriptSystem& ss, rchar* rvalue, size_t bufferLen, VARTYPE type, const void* pVariableData)
 	{
 		switch(type)
 		{
 		case VARTYPE_Bad:
-			_snwprintf_s(unicodeValue, bufferLen, _TRUNCATE, L"Bad type");
+			StringPrint(rvalue, bufferLen, SEXTEXT("Bad type"));
 			break;
 		case VARTYPE_Bool:
 			{
 				const int32 value = *(const int32*) pVariableData;
-				if (value == 0 || value == 1) _snwprintf_s(unicodeValue, bufferLen, bufferLen, value == 1 ? L"true" :  L"false");
-				else  _snwprintf_s(unicodeValue, bufferLen, _TRUNCATE, L"%d (%8.8x)", value, value);
+				if (value == 0 || value == 1) StringPrint(rvalue, bufferLen, value == 1 ? SEXTEXT("true") : SEXTEXT("false"));
+				else  StringPrint(rvalue, bufferLen, SEXTEXT("%d (%8.8x)"), value, value);
 			}
 			break;
 		case VARTYPE_Derivative:
-			_snwprintf_s(unicodeValue, bufferLen, _TRUNCATE, L"");
+         StringPrint(rvalue, bufferLen, SEXTEXT(""));
 			break;
 		case VARTYPE_Int32:
 			{
 				const int32* pValue = (const int32*) pVariableData;
-				_snwprintf_s(unicodeValue, bufferLen, _TRUNCATE, L"%d (%8.8x)", *pValue, *pValue);
+            StringPrint(rvalue, bufferLen, SEXTEXT("%d (%8.8x)"), *pValue, *pValue);
 			}
 			break;
 		case VARTYPE_Int64:
 			{
 				const int64* pValue = (const int64*) pVariableData;
-				_snwprintf_s(unicodeValue, bufferLen, _TRUNCATE, L"%lld (%8llx)", *pValue, *pValue);
+            StringPrint(rvalue, bufferLen, SEXTEXT("%lld (%8llx)"), *pValue, *pValue);
 			}
 			break;
 		case VARTYPE_Float32:
 			{
 				const float32* pValue = (const float32*) pVariableData;
-				_snwprintf_s(unicodeValue, bufferLen, _TRUNCATE, L"%g", *pValue);
+            StringPrint(rvalue, bufferLen, SEXTEXT("%g"), *pValue);
 			}
 			break;
 		case VARTYPE_Float64:
 			{
 				const float64* pValue = (const float64*) pVariableData;
-				_snwprintf_s(unicodeValue, bufferLen, _TRUNCATE, L"%lg", *pValue);
+            StringPrint(rvalue, bufferLen, SEXTEXT("%lg"), *pValue);
 			}
 			break;
 		case VARTYPE_Pointer:
@@ -179,11 +191,11 @@ namespace
 				csexstr symbol = ss.GetSymbol(ptr);
 				if (symbol == NULL)
 				{
-					_snwprintf_s(unicodeValue, bufferLen, _TRUNCATE, L"%p", ptr);
+               StringPrint(rvalue, bufferLen, SEXTEXT("%p"), ptr);
 				}
 				else
 				{
-					CopySexCharToUnicode(unicodeValue, bufferLen, symbol);
+					memcpy_s(rvalue, sizeof(rchar) * bufferLen, symbol, sizeof(rchar) * bufferLen);
 				}
 			}
 			break;
@@ -196,11 +208,11 @@ namespace
 				};
 
 				const Closure* pValue = (const Closure*)pVariableData;
-				_snwprintf_s(unicodeValue, bufferLen, _TRUNCATE, L"Id: %llu. SF: 0x%llX", pValue->id, (size_t) pValue->parentSF);
+            StringPrint(rvalue, bufferLen, SEXTEXT("Id: %llu. SF: 0x%llX"), pValue->id, (size_t) pValue->parentSF);
 			}
 			break;
 		default:
-			_snwprintf_s(unicodeValue, bufferLen, bufferLen, L"Unknown type");
+         StringPrint(rvalue, bufferLen, SEXTEXT("Unknown type"));
 		}
 	}
 
@@ -208,11 +220,14 @@ namespace
 	{
 		__try
 		{
-			ProtectedFormatValue(ss, unicodeValue, bufferLen, type, pVariableData);
+         char rvalue[256];
+			ProtectedFormatValue(ss, rvalue, bufferLen, type, pVariableData);
+
+         _snwprintf_s(unicodeValue, bufferLen, _TRUNCATE, L"%S", rvalue);
 		}
 		__except(1)
 		{
-			_snwprintf_s(unicodeValue, bufferLen, _TRUNCATE, L"Bad pointer");
+			wcscpy_s(unicodeValue, bufferLen, L"Bad pointer");
 		}
 	}
 }

@@ -16,13 +16,13 @@ namespace
       ID3D11Device& device;
       ID3D11DeviceContext& dc;
       ID3D11Texture2D* texture;
-      std::wstring name;
+      std::string name;
       bool allowAlpha;
       bool allowColour;
 
       virtual void OnError(const char* message)
       {
-         Throw(0, L"Could not load %s\n%S", name.c_str(), message);
+         Throw(0, "Could not load %s\n%S", name.c_str(), message);
       }
 
       virtual void OnARGBImage(const Vec2i& span, const Imaging::F_A8R8G8B8* data)
@@ -34,7 +34,7 @@ namespace
 
          if (span.x > D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION || span.y > D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)
          {
-            Throw(0, L"Image %s exceeded maximum span allowed by DX11.", name.c_str());
+            Throw(0, "Image %s exceeded maximum span allowed by DX11.", name.c_str());
          }
 
          D3D11_TEXTURE2D_DESC colourSprite;
@@ -88,7 +88,7 @@ namespace
 
          if (span.x > D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION || span.y > D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)
          {
-            Throw(0, L"Image %s exceeded maximum span allowed by DX11.", name.c_str());
+            Throw(0, "Image %s exceeded maximum span allowed by DX11.", name.c_str());
          }
 
          D3D11_TEXTURE2D_DESC alphaImmutableSprite;
@@ -112,7 +112,7 @@ namespace
          VALIDATEDX11(device.CreateTexture2D(&alphaImmutableSprite, &level0Def, &texture));
       }
    public:
-      TextureParser(ID3D11Device& _device, ID3D11DeviceContext& _dc, const wchar_t* filename, bool _allowAlpha, bool _allowColour) :
+      TextureParser(ID3D11Device& _device, ID3D11DeviceContext& _dc, cstr filename, bool _allowAlpha, bool _allowColour) :
          device(_device), name(filename), allowAlpha(_allowAlpha), allowColour(_allowColour), dc(_dc)
       {
       }
@@ -125,19 +125,19 @@ namespace Rococo
 {
    namespace DX11
    {
-      ID3D11Texture2D* LoadAlphaBitmap(ID3D11Device& device, ID3D11DeviceContext& dc, const uint8* buffer, size_t nBytes, const wchar_t* resourceName)
+      ID3D11Texture2D* LoadAlphaBitmap(ID3D11Device& device, ID3D11DeviceContext& dc, const uint8* buffer, size_t nBytes, cstr resourceName)
       {
          TextureParser parser(device, dc, resourceName, true, false);
          Rococo::Imaging::DecompressTiff(parser, buffer, nBytes);
          return parser.Texture();
       }
 
-      ID3D11Texture2D* LoadColourBitmap(ID3D11Device& device, ID3D11DeviceContext& dc, const uint8* buffer, size_t nBytes, const wchar_t* resourceName)
+      ID3D11Texture2D* LoadColourBitmap(ID3D11Device& device, ID3D11DeviceContext& dc, const uint8* buffer, size_t nBytes, cstr resourceName)
       {
          TextureParser parser(device, dc, resourceName, false, true);
 
          auto* ext = GetFileExtension(resourceName);
-         if (Eq(ext, L".tiff") || Eq(ext, L".tif"))
+         if (Eq(ext, ".tiff") || Eq(ext, ".tif"))
          {
             Rococo::Imaging::DecompressTiff(parser, buffer, nBytes);
          }
@@ -158,17 +158,17 @@ namespace Rococo
 
       }
 
-      TextureBind TextureLoader::LoadColourBitmap(const wchar_t* resourceName)
+      TextureBind TextureLoader::LoadColourBitmap(cstr resourceName)
       {
          auto* ext = GetFileExtension(resourceName);
-         if (!Eq(ext, L".tiff") && !Eq(ext, L".tif") && !Eq(ext, L".jpg") && !Eq(ext, L".jpg"))
+         if (!Eq(ext, ".tiff") && !Eq(ext, ".tif") && !Eq(ext, ".jpg") && !Eq(ext, ".jpg"))
          {
-            Throw(0, L"%s\nOnly Tiff and Jpeg files can be used for colour bitmaps", resourceName);
+            Throw(0, "%s\nOnly Tiff and Jpeg files can be used for colour bitmaps", resourceName);
          }
 
          installation.LoadResource(resourceName, scratchBuffer, 64_megabytes);
 
-         if (scratchBuffer.Length() == 0) Throw(0, L"The image file %s was blank", resourceName);
+         if (scratchBuffer.Length() == 0) Throw(0, "The image file %s was blank", resourceName);
 
          auto* tx = DX11::LoadColourBitmap(device, dc, scratchBuffer.GetData(), scratchBuffer.Length(), resourceName);
 
@@ -187,7 +187,7 @@ namespace Rococo
          if FAILED(hr)
          {
             tx->Release();
-            Throw(hr, L"Failed to CreateShaderResourceVie for %s", resourceName);
+            Throw(hr, "Failed to CreateShaderResourceVie for %s", resourceName);
          }
 
          dc.GenerateMips(view);
@@ -195,17 +195,17 @@ namespace Rococo
          return{ tx, view };
       }
 
-      TextureBind TextureLoader::LoadAlphaBitmap(const wchar_t* resourceName)
+      TextureBind TextureLoader::LoadAlphaBitmap(cstr resourceName)
       {
          auto* ext = GetFileExtension(resourceName);
-         if (!Eq(ext, L".tiff") && !Eq(ext, L".tif"))
+         if (!Eq(ext, ".tiff") && !Eq(ext, ".tif"))
          {
-            Throw(0, L"%s\nOnly Tiff files can be used for alpha bitmaps", resourceName);
+            Throw(0, "%s\nOnly Tiff files can be used for alpha bitmaps", resourceName);
          }
 
          installation.LoadResource(resourceName, scratchBuffer, 64_megabytes);
 
-         if (scratchBuffer.Length() == 0) Throw(0, L"The image file %s was blank", resourceName);
+         if (scratchBuffer.Length() == 0) Throw(0, "The image file %s was blank", resourceName);
 
          auto* alpha = DX11::LoadAlphaBitmap(device, dc, scratchBuffer.GetData(), scratchBuffer.Length(), resourceName);
 
@@ -224,7 +224,7 @@ namespace Rococo
          if FAILED(hr)
          {
             alpha->Release();
-            Throw(hr, L"Failed to CreateShaderResourceVie for %s", resourceName);
+            Throw(hr, "Failed to CreateShaderResourceVie for %s", resourceName);
          }
 
          return{ alpha, view };

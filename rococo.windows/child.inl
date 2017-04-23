@@ -54,7 +54,7 @@ namespace
 			return p;
 		}
 
-		static ChildWindowImpl* Create(const WindowConfig& config, LPCWSTR childClassName)
+		static ChildWindowImpl* Create(const WindowConfig& config, cstr childClassName)
 		{
 			ChildWindowImpl* p = new ChildWindowImpl(false);
 			p->hWnd = CreateWindowIndirect(childClassName, config, nullptr);
@@ -71,7 +71,7 @@ namespace
 			delete this;
 		}
 
-		virtual IWindowSupervisor* AddChild(const WindowConfig& _childConfig, LPCWSTR className, ControlId id)
+		virtual IWindowSupervisor* AddChild(const WindowConfig& _childConfig, cstr className, ControlId id)
 		{
 			WindowConfig childConfig = _childConfig;
 			childConfig.hWndParent = hWnd;

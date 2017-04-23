@@ -58,7 +58,7 @@ namespace
    struct Instances : public IInstancesSupervisor, public IObserver
    {      
       MapIdToEntity idToEntity;
-      std::unordered_map<std::wstring, ID_TEXTURE> nameToTextureId;
+      std::unordered_map<std::string, ID_TEXTURE> nameToTextureId;
       IMeshBuilderSupervisor& meshBuilder;
       IRenderer& renderer;
       IPublisher& publisher;
@@ -88,13 +88,13 @@ namespace
          float d = Determinant(model);
          if (d < 0.975f || d > 1.025f)
          {
-            Throw(0, L"Bad model matrix. Determinant was %f", d);
+            Throw(0, "Bad model matrix. Determinant was %f", d);
          }
 
          if (parentId != 0)
          {
             auto i = idToEntity.find(parentId);
-            if (i == idToEntity.end()) Throw(0, L"Cannot find parent entit;y with id #%d", parentId.value);
+            if (i == idToEntity.end()) Throw(0, "Cannot find parent entit;y with id #%d", parentId.value);
             i->second->children.push_back(ID_ENTITY(nextId));
          }
 
@@ -117,7 +117,7 @@ namespace
          ID_SYS_MESH meshId;
          if (!meshBuilder.TryGetByName(modelName, meshId))
          {
-            Throw(0, L"Cannot find model: %s", modelName.buffer);
+            Throw(0, "Cannot find model: %s", modelName.buffer);
          }
 
          ID_TEXTURE textureId;
@@ -179,7 +179,7 @@ namespace
             auto* entity = GetEntity(i);
             if (entity == nullptr)
             {
-               Throw(0, L"Missing entity");
+               Throw(0, "Missing entity");
             }
 
             position += entity->Position();
@@ -198,7 +198,7 @@ namespace
             auto* entity = GetEntity(i);
             if (entity == nullptr)
             {
-               Throw(0, L"Missing entity");
+               Throw(0, "Missing entity");
             }
 
             modelStack.push_back(&entity->Model());
@@ -216,7 +216,7 @@ namespace
          float Dm = Determinant(m);
          if (Dm < 0.9f || Dm > 1.1f)
          {
-            Throw(0, L"Bad model matrix for entity %lld. Det M = %f", leafId.value, Dm);
+            Throw(0, "Bad model matrix for entity %lld. Det M = %f", leafId.value, Dm);
          }
       }
 
@@ -236,7 +236,7 @@ namespace
          auto i = idToEntity.find(entityId);
          if (i == idToEntity.end())
          {
-            Throw(0, L"SetOrientation - no such entity");
+            Throw(0, "SetOrientation - no such entity");
          }
 
          scale = i->second->scale;
@@ -247,7 +247,7 @@ namespace
          auto i = idToEntity.find(entityId);
          if (i == idToEntity.end())
          {
-            Throw(0, L"GetPosition - no such entity");
+            Throw(0, "GetPosition - no such entity");
          }
 
          position = i->second->model.GetPosition();
@@ -258,7 +258,7 @@ namespace
          auto i = idToEntity.find(id);
          if (i == idToEntity.end())
          {
-            Throw(0, L"SetScale - no such entity");
+            Throw(0, "SetScale - no such entity");
          }
 
          i->second->scale = scale;

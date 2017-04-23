@@ -37,7 +37,7 @@
 #include <sys/stat.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <wchar.h>
+#include <string.h>
 
 #include <rococo.win32.target.win7.h>
 #define WIN32_LEAN_AND_MEAN
@@ -53,14 +53,14 @@ namespace Sexy
 {
 	FileAppender::FileAppender(csexstr _filename) : filename(_filename)
 	{
-      static std::unordered_set<std::wstring> deletedFiles;
+      static std::unordered_set<stdstring> deletedFiles;
       if (deletedFiles.find(_filename) == deletedFiles.end())
       {
-         _wunlink(_filename);
+         _unlink(_filename);
          deletedFiles.insert(_filename);
       }
 
-		int errcode = _wfopen_s(&hFile, _filename, L"ab");
+		int errcode = fopen_s(&hFile, _filename, "ab");
 		if (hFile == nullptr)
 		{
 			Throw(errcode, SEXTEXT("Error opening/creating %s for appending"), _filename);	

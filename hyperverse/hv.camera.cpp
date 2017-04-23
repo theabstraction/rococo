@@ -49,35 +49,35 @@ namespace
       void ShowVenue(IMathsVisitor& visitor)
       {
          visitor.Clear();
-         visitor.Show(L"World->Camera", world);
-         visitor.Show(L"Camera->Screen", projection);
-         visitor.ShowString(L"", L"");
+         visitor.Show("World->Camera", world);
+         visitor.Show("Camera->Screen", projection);
+         visitor.ShowString("", "");
 
-         visitor.ShowRow(L"Position", &position.x, 3);
+         visitor.ShowRow("Position", &position.x, 3);
 
          if (!isFPSlinked)
          {
-            visitor.ShowRow(L"Orientation", &orientation.v.x, 4);
+            visitor.ShowRow("Orientation", &orientation.v.x, 4);
          }
 
          if (isFPSlinked)
          {
-            visitor.Show(L"Heading", heading);
-            visitor.Show(L"Elevation", elevation);
+            visitor.Show("Heading", heading);
+            visitor.Show("Elevation", elevation);
          }
 
-         visitor.ShowString(L"", L"");
+         visitor.ShowString("", "");
 
-         visitor.ShowHex(L"OrientFlags", orientationFlags);
-         visitor.ShowDecimal(L"Following", followingId.value);
-         visitor.ShowDecimal(L"Guide", orientationGuideId.value);
+         visitor.ShowHex("OrientFlags", orientationFlags);
+         visitor.ShowDecimal("Following", followingId.value);
+         visitor.ShowDecimal("Guide", orientationGuideId.value);
 
-         visitor.ShowString(L"", L"");
+         visitor.ShowString("", "");
 
-         visitor.ShowBool(L"Dirty", isDirty);
-         visitor.ShowBool(L"FPSLinked", isFPSlinked);
+         visitor.ShowBool("Dirty", isDirty);
+         visitor.ShowBool("FPSLinked", isFPSlinked);
 
-         visitor.ShowPointer(L"this", this);
+         visitor.ShowPointer("this", this);
       }
 
       virtual void OnEvent(Event& ev)
@@ -215,7 +215,7 @@ namespace
                float detW = Determinant(world);
                if (detW < 0.9f || detW > 1.1f)
                {
-                  Throw(0, L"Bad world-to-camera determinant: %f", detW);
+                  Throw(0, "Bad world-to-camera determinant: %f", detW);
                }
 
                isDirty = false;

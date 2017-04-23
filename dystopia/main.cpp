@@ -72,7 +72,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
 		os->Monitor(installation->Content());
 
-		wchar_t srcpath[_MAX_PATH];
+		rchar srcpath[_MAX_PATH];
 		SecureFormat(srcpath, L"%sscripts\\native\\", installation->Content());
 
       Sexy::Script::SetDefaultNativeSourcePath(srcpath);

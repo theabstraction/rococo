@@ -60,10 +60,10 @@ namespace
 
 		void ResetContent()
 		{
-			SetWindowText(hWndEditor, L"");
+			SetWindowTextA(hWndEditor, "");
 		}
 
-		virtual void AppendText(COLORREF foreground, COLORREF background, const wchar_t* text, size_t nChars)
+		virtual void AppendText(COLORREF foreground, COLORREF background, cstr text, size_t nChars)
 		{
 			CHARFORMAT2 c;
 			memset(&c, 0, sizeof(c));
@@ -77,8 +77,8 @@ namespace
 			cr.cpMin = -1;
 			cr.cpMax = -1;
 
-			size_t len = min(wcslen(text), nChars);
-			wchar_t* segmentBuffer = (wchar_t*)_alloca(sizeof(wchar_t)* len + 2);
+			size_t len = min(rlen(text), nChars);
+			rchar* segmentBuffer = (rchar*)_alloca(sizeof(rchar)* len + 2);
 			SafeCopy(segmentBuffer, len + 1, text, len);
 
 			// hwnd = rich edit hwnd
@@ -101,7 +101,7 @@ namespace
 			editorConfigCorrected.hWndParent = hWnd;
 			editorConfigCorrected.style |= WS_CHILD | WS_VISIBLE;
 
-			hWndEditor = CreateWindowIndirect(L"RichEdit20W", editorConfigCorrected, nullptr);
+			hWndEditor = CreateWindowIndirect("RichEdit20W", editorConfigCorrected, nullptr);
 			SetDlgCtrlID(hWndEditor, 1001);
 
 			SetControlFont(hWndEditor);
@@ -148,7 +148,7 @@ namespace
 			return p;
 		}
 
-      virtual void SetTooltip(const wchar_t* name, const wchar_t* text)
+      virtual void SetTooltip(cstr name, cstr text)
       {
          // Not implemented
       }

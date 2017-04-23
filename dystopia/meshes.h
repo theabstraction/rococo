@@ -27,7 +27,7 @@ namespace Dystopia
 		virtual void Free() = 0;
 		virtual ID_SYS_MESH GetRendererId(ID_MESH editorId) = 0;
       virtual Metres GetNormalBoundingRadius(ID_MESH editorId) = 0;
-		virtual void UpdateMesh(const wchar_t* sysFilename) = 0;	
+		virtual void UpdateMesh(cstr sysFilename) = 0;	
 	};
 
 	IMeshLoader* CreateMeshLoader(IInstallation& _installation, IRenderer& _renderer, ISourceCache& _sourceCache);

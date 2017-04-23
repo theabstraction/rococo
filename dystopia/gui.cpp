@@ -31,7 +31,7 @@ namespace
       struct DebugMessage
       {
          enum { CAPACITY = 64 };
-         wchar_t text[CAPACITY];
+         rchar text[CAPACITY];
       };
 
       std::vector<DebugMessage> debugList;
@@ -52,7 +52,7 @@ namespace
 
 		virtual void Free() { delete this; }
 
-      virtual void AppendDebugElement(const wchar_t* format, ...)
+      virtual void AppendDebugElement(cstr format, ...)
       {
          if (debugList.size() > 64) return;
 
@@ -86,7 +86,7 @@ namespace
          debugList.clear();
       }
 
-      virtual void EnumerateAndClear(IEnumerator<const wchar_t*>& cb)
+      virtual void EnumerateAndClear(IEnumerator<cstr>& cb)
       {
          for (auto& msg : debugList)
          {

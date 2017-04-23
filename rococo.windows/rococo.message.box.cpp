@@ -8,7 +8,7 @@
 #include <rococo.api.h>
 #include <rococo.strings.h>
 #include <rococo.window.h>
-#include <wchar.h>
+#include <stdio.h>
 
 namespace
 {
@@ -21,9 +21,9 @@ namespace Rococo
 {
 	namespace Windows
 	{
-		int ShowMessageBox(IWindow& window, const wchar_t* text, const wchar_t* caption, uint32 uType)
+		int ShowMessageBox(IWindow& window, cstr text, cstr caption, uint32 uType)
 		{
-			return MessageBox(window, text, caption, uType);
+			return MessageBoxA(window, text, caption, uType);
 		}
 
 		IWindow& NoParent()
@@ -40,7 +40,7 @@ namespace Rococo
 		}
 	}
 
-	void ShowErrorBox(IWindow& parent, IException& ex, const wchar_t* caption)
+	void ShowErrorBox(IWindow& parent, IException& ex, cstr caption)
 	{
 		if (ex.ErrorCode() == 0)
 		{
@@ -48,15 +48,15 @@ namespace Rococo
 		}
 		else
 		{
-			wchar_t codeMsg[512];
-			wchar_t bigMsg[512];
-			if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, ex.ErrorCode(), 0, codeMsg, 512, nullptr) <= 0)
+			rchar codeMsg[512];
+			rchar bigMsg[512];
+			if (FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, ex.ErrorCode(), 0, codeMsg, 512, nullptr) <= 0)
 			{
-				SafeFormat(bigMsg, _TRUNCATE, L"%s. Code 0x%x", ex.Message(), ex.ErrorCode());
+				SafeFormat(bigMsg, _TRUNCATE, "%s. Code 0x%x", ex.Message(), ex.ErrorCode());
 			}
 			else
 			{
-				SafeFormat(bigMsg, _TRUNCATE, L"%s\nCode 0x%x: %s", ex.Message(), ex.ErrorCode(), codeMsg);
+				SafeFormat(bigMsg, _TRUNCATE, "%s\nCode 0x%x: %s", ex.Message(), ex.ErrorCode(), codeMsg);
 			}
 
 			ShowMessageBox(parent, bigMsg, caption, MB_ICONERROR);

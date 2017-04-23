@@ -31,7 +31,7 @@ namespace HV
          struct OnPlayerActionEvent : public Event
          {
             OnPlayerActionEvent() : Event(OnPlayerAction) {}
-            const wchar_t* Name;
+            cstr Name;
             bool start;
          };
 
@@ -40,7 +40,7 @@ namespace HV
          struct OnPlayerDeltaEvent : public Event
          {
             OnPlayerDeltaEvent() : Event(OnPlayerDelta) {}
-            const wchar_t* Name;
+            cstr Name;
             float delta;
          };
 

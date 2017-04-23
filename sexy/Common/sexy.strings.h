@@ -44,18 +44,18 @@ namespace Sexy
 {
 	bool operator == (const sexstring_key& a, const sexstring_key& b);
 	int32 Compare(const char* a, const char* b);
-	int32 Compare(const wchar_t* a, const wchar_t* b);
+	int32 Compare(cstr a, cstr b);
 	int32 CompareI(const char* a, const char* b);
-	int32 CompareI(const wchar_t* a, const wchar_t* b);
+	int32 CompareI(cstr a, cstr b);
 	int32 CompareI(const char* a, const char* b, int64 count);
-	int32 CompareI(const wchar_t* a, const wchar_t* b, int64 count);
+	int32 CompareI(cstr a, cstr b, int64 count);
 	int32 Compare(const char* a, const char* b, int64 count);
-	int32 Compare(const wchar_t* a, const wchar_t* b, int64 count);
+	int32 Compare(cstr a, cstr b, int64 count);
 	int32 Compare(sexstring a, const SEXCHAR* b);
 	const char* GetSubString(const char* s, const char *subString);
-	const wchar_t* GetSubString(const wchar_t* s, const wchar_t *subString);
+	cstr GetSubString(cstr s, const rchar *subString);
 	int32 StrNCopy(char* dest, size_t count, const char* src, size_t maxCount);
-	int32 StrNCopy(wchar_t* dest, size_t count, const wchar_t* src, size_t maxCount);
+	int32 StrNCopy(rchar* dest, size_t count, cstr src, size_t maxCount);
 
 	template<typename CHARTYPE> inline bool AreEqual(const CHARTYPE* a, const CHARTYPE* b)
 	{

@@ -31,10 +31,10 @@ namespace Rococo
 {
    Matrix4x4 Matrix4x4::GetRHProjectionMatrix(Degrees fov, float32 aspectRatio, float near, float far)
    {
-      if (fov < 0.001f || fov > 179.0f)                Throw(0, L"Field-of-view out of range. Must be 0.001 <= fov <= 179.");
-      if (aspectRatio < 0.01f || aspectRatio > 100.0f) Throw(0, L"Aspect ratio outside of sane range. Must be 0.01 <= AR <= 100.");
-      if (near <= 0 || near > 100000.0f)               Throw(0, L"Near plane outside of sane range. Range: 0 < near < 100000");
-      if (far <= near || far > 100000.0f)              Throw(0, L"Far plane outside of sane range. Range: near < far <= 100000");
+      if (fov < 0.001f || fov > 179.0f)                Throw(0, "Field-of-view out of range. Must be 0.001 <= fov <= 179.");
+      if (aspectRatio < 0.01f || aspectRatio > 100.0f) Throw(0, "Aspect ratio outside of sane range. Must be 0.01 <= AR <= 100.");
+      if (near <= 0 || near > 100000.0f)               Throw(0, "Near plane outside of sane range. Range: 0 < near < 100000");
+      if (far <= near || far > 100000.0f)              Throw(0, "Far plane outside of sane range. Range: near < far <= 100000");
 
       float32 tanhalffov = tanf(fov.ToRadians() / 2.0f);
 
@@ -121,7 +121,7 @@ namespace Rococo
 
 		if (denominator == 0.0f)
 		{
-			Throw(0, L"Degenerate args in GetIntersect(...)");
+			Throw(0, "Degenerate args in GetIntersect(...)");
 		}
 
 		float numerator = (A.x - B.x) * D.y + (B.y - A.y)*D.x;
@@ -499,17 +499,17 @@ namespace Rococo
 		}
 	}
 
-	void ThrowNumericException(const wchar_t* format)
+	void ThrowNumericException(cstr format)
 	{
 		struct : IException
 		{
-			wchar_t msg[256];
+			rchar msg[256];
 
-			virtual const wchar_t* Message() const { return msg; }
+			virtual cstr Message() const { return msg; }
 			virtual int32 ErrorCode() const { return 0; }
 		} ex;
 
-		SafeFormat(ex.msg, _TRUNCATE, L"%s", format);
+		SafeFormat(ex.msg, _TRUNCATE, "%s", format);
 
 		TripDebugger();
 
@@ -523,7 +523,7 @@ namespace Rococo
 		float l = LengthSq(v);
 		if (l <= epsilon)
 		{
-			ThrowNumericException(L"Vec3 Normalize(cr_vec3 v) failed: the argument was a null vecctor");
+			ThrowNumericException("Vec3 Normalize(cr_vec3 v) failed: the argument was a null vecctor");
 		}
 
 		float f = 1.0f / sqrtf(l);
@@ -743,7 +743,7 @@ namespace Rococo
             {
                if (IsOdd(counts.backwardCount))
                {
-                  Throw(0, L"IsClockwiseSequential: Unexpected - forwardcount and backward count both odd!");
+                  Throw(0, "IsClockwiseSequential: Unexpected - forwardcount and backward count both odd!");
                }
 
                return true;
@@ -753,7 +753,7 @@ namespace Rococo
                // Iteration needs to go backwardds to go clockwise aroun the perimeter
                if (!IsOdd(counts.backwardCount))
                {
-                  Throw(0, L"IsClockwiseSequential: Unexpected - forwardcount and backward count both even!");
+                  Throw(0, "IsClockwiseSequential: Unexpected - forwardcount and backward count both even!");
                }
 
                return false;
@@ -761,7 +761,7 @@ namespace Rococo
          }
       }
 
-      Throw(0, L"IsClockwiseSequential: Every calculation to evaluate chirality was an edge case");
+      Throw(0, "IsClockwiseSequential: Every calculation to evaluate chirality was an edge case");
       return false;
    }
 
@@ -769,7 +769,7 @@ namespace Rococo
    {
       if (ring.ElementCount() < 3)
       {
-         Throw(0, L"Cannot tesselate ring with fewer than 3 elements");
+         Throw(0, "Cannot tesselate ring with fewer than 3 elements");
       }
 
       size_t i = 0;
@@ -815,6 +815,6 @@ namespace Rococo
          i++;
       }
 
-      Throw(0, L"Could not tesselate mesh. Iterated through all mesh and did not find ears");
+      Throw(0, "Could not tesselate mesh. Iterated through all mesh and did not find ears");
    }
 }

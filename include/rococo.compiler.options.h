@@ -11,7 +11,7 @@
 # ifdef _WIN32
 #  define ROCOCO_NO_VTABLE __declspec(novtable)
 # else
-#  define NO_VTABLE
+#  define ROCOCO_NO_VTABLE
 # endif
 #endif
 

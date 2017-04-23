@@ -51,9 +51,9 @@ namespace
 			ActionBinding action[MouseControl_NumberOfControls];
 		} mapMouseControlToAction;
 
-		std::unordered_map<std::wstring, MouseControl> mapNameToMouseControl;
+		std::unordered_map<std::string, MouseControl> mapNameToMouseControl;
 
-		std::unordered_map<std::wstring, ActionBinding> mapNameToAction;
+		std::unordered_map<std::string, ActionBinding> mapNameToAction;
 	public:
 		ControlMapper(IInstallation& _installation, ISourceCache& _sourceCache) :
 			installation(_installation),
@@ -149,9 +149,9 @@ namespace
 			}
 		}
 
-		virtual void AddAction(const wchar_t* name, ActionMapType type, bool isVector)
+		virtual void AddAction(cstr name, ActionMapType type, bool isVector)
 		{
-			if (!mapNameToAction.insert(std::make_pair(std::wstring(name), ActionBinding{ type, isVector })).second)
+			if (!mapNameToAction.insert(std::make_pair(std::string(name), ActionBinding{ type, isVector })).second)
 			{
             Rococo::Throw(0, L"Cannot add action %s again. The action is already defined", name);
 			}
@@ -235,7 +235,7 @@ namespace
 			}
 		}
 
-		virtual void LoadMapping(const wchar_t* resourcePath)
+		virtual void LoadMapping(cstr resourcePath)
 		{
 			try
 			{

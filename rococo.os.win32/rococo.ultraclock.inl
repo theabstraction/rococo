@@ -14,7 +14,7 @@ namespace Rococo
          {
             if (!QueryPerformanceFrequency((LARGE_INTEGER*)&hz))
             {
-               Throw(GetLastError(), L"Cannot acquire high performance monitor");
+               Throw(GetLastError(), "Cannot acquire high performance monitor");
             }
 
             QueryPerformanceCounter((LARGE_INTEGER*)&start);

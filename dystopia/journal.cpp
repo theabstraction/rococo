@@ -11,13 +11,13 @@ namespace Dystopia
 {
 	struct HistoricEvent: IHistoricEvent
 	{
-		std::wstring title;
-		std::wstring body;
+		std::string title;
+		std::string body;
 		HistoricEventLayout layout;
 		HistoricEventType type;
 
-		virtual const wchar_t* Title() const { return title.c_str(); }
-		virtual const wchar_t* Body()  const { return body.c_str(); }
+		virtual cstr Title() const { return title.c_str(); }
+		virtual cstr Body()  const { return body.c_str(); }
 		virtual HistoricEventType Type() const { return type;  }
 		virtual HistoricEventLayout& Layout() { return layout; }
 	};
@@ -33,8 +33,8 @@ namespace
 		ID_ENTITY a;
 		ID_ENTITY b;
 
-		std::wstring title;
-		std::wstring body;
+		std::string title;
+		std::string body;
 
 		Metres completionRadius;
 		GoalState state;
@@ -43,7 +43,7 @@ namespace
 
 		Post::Subscribtion<AdvanceTimestepEvent> sub_Timestep;
 	public:
-		Goal_MeetObject(Environment& _e, Metres _radius, const wchar_t* _title, const wchar_t* _body, ID_ENTITY _a, ID_ENTITY _b) :
+		Goal_MeetObject(Environment& _e, Metres _radius, cstr _title, cstr _body, ID_ENTITY _a, ID_ENTITY _b) :
 			e(_e),
 			state(GoalState_Pending),
 			completionRadius(_radius),
@@ -82,8 +82,8 @@ namespace
 			delete this;
 		}
 
-		virtual const wchar_t* Title() const { return title.c_str(); }
-		virtual const wchar_t* Body() const { return body.c_str(); }
+		virtual cstr Title() const { return title.c_str(); }
+		virtual cstr Body() const { return body.c_str(); }
 
 		void OnTimestep(float gameTime, float dt)
 		{
@@ -169,7 +169,7 @@ namespace
 			IGoalSupervisor& g = *git.second.goal;
 			if (g.State() == GoalState_Complete)
 			{
-				wchar_t newBody[4096];
+				rchar newBody[4096];
 				SafeFormat(newBody, _TRUNCATE, L"This goal was completed - \"%s\"", g.Body());
 				HistoricEvent he;
 				he.title = g.Title();
@@ -206,7 +206,7 @@ namespace
 			}
 			else if (g.State() == GoalState_Failed)
 			{
-				wchar_t newBody[4096];
+				rchar newBody[4096];
 				SafeFormat(newBody, _TRUNCATE, L"You failed to complete this goal - \"%s\"", g.Body());
 				HistoricEvent he;
 				he.title = g.Title();
@@ -401,7 +401,7 @@ namespace Dystopia
 		return new Journal(e);
 	}
 
-	IGoalSupervisor* CreateGoal_MeetObject(Environment& e, Metres radius, const wchar_t* title, const wchar_t* body, ID_ENTITY a, ID_ENTITY b)
+	IGoalSupervisor* CreateGoal_MeetObject(Environment& e, Metres radius, cstr title, cstr body, ID_ENTITY a, ID_ENTITY b)
 	{
 		return new Goal_MeetObject(e, radius, title, body, a, b);
 	}

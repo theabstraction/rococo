@@ -1,13 +1,15 @@
 #include "windows.test.h"
 #include <stdarg.h>
-#include <wchar.h>
+#include <rococo.strings.h>
 
 #include "resource.h"
 
 #ifdef _DEBUG
 #pragma comment(lib, "rococo.windows.debug.lib")
+#pragma comment(lib, "rococo.util.debug.lib")
 #else
 #pragma comment(lib, "rococo.windows.lib")
+#pragma comment(lib, "rococo.util.lib")
 #endif
 
 namespace
@@ -16,10 +18,10 @@ namespace
 
 	struct TestException : public IException
 	{
-		wchar_t msg[256];
+		rchar msg[256];
 		int32 errorCode;
 
-		virtual const wchar_t* Message() const
+		virtual cstr Message() const
 		{
 			return msg;
 		}
@@ -33,7 +35,7 @@ namespace
 
 namespace Rococo
 {
-	void Throw(int32 errorCode, const wchar_t* format, ...)
+	void Throw(int32 errorCode, cstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -82,9 +84,9 @@ namespace
 		void PostConstruct()
 		{
 			WindowConfig config;
-			SetOverlappedWindowConfig(config, Vec2i{ 800, 600 }, SW_SHOW, nullptr, L"Test Modal Dialog", WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU, 0);
+			SetOverlappedWindowConfig(config, Vec2i{ 800, 600 }, SW_SHOW, nullptr, "Test Modal Dialog", WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU, 0);
 			dialogWindow = Windows::CreateDialogWindow(config, this);
-			AddPushButton(*dialogWindow, GuiRect(10, 10, 200, 34), L"OK", IDOK, 0);
+			AddPushButton(*dialogWindow, GuiRect(10, 10, 200, 34), "OK", IDOK, 0);
 		}
 
 	public:
@@ -124,11 +126,11 @@ namespace
 		void PostConstruct()
 		{
 			WindowConfig config;
-			SetOverlappedWindowConfig(config, Vec2i{ 800, 600 }, SW_SHOWMAXIMIZED, nullptr, L"64-bit Rococo API Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0);
+			SetOverlappedWindowConfig(config, Vec2i{ 800, 600 }, SW_SHOWMAXIMIZED, nullptr, "64-bit Rococo API Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0);
 
 			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
-			AddPushButton(*window, GuiRect(10, 10, 200, 34), L"Close", IDCANCEL, 0); // Child window is auto freed when the parent is deleted
-			AddPushButton(*window, GuiRect(10, 40, 200, 64), L"Modal", IDSHOWMODAL, 0); // Child window is auto freed when the parent is deleted
+			AddPushButton(*window, GuiRect(10, 10, 200, 34), "Close", IDCANCEL, 0); // Child window is auto freed when the parent is deleted
+			AddPushButton(*window, GuiRect(10, 40, 200, 64), "Moda", IDSHOWMODAL, 0); // Child window is auto freed when the parent is deleted
 		}
 	public:
 		// This is our post construct pattern. Allow the constructor to return to initialize the v-tables, then call PostConstruct to create the window 
@@ -156,10 +158,10 @@ namespace
 				switch (modalDialog->DoModal(*window))
 				{
 				case IDOK:
-					MessageBox(nullptr, L"The OK button was pressed", L"Test", MB_ICONINFORMATION);
+					ShowMessageBox(Windows::NullParent(), "The OK button was pressed", "Test", MB_ICONINFORMATION);
 					break;
 				case IDCANCEL:
-					MessageBox(nullptr, L"The window was closed", L"Test", MB_ICONINFORMATION);
+               ShowMessageBox(Windows::NullParent(), "The window was closed", "Test", MB_ICONINFORMATION);
 					break;
 				}
 			}
@@ -192,7 +194,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	}
 	catch (IException& ex)
 	{
-		ShowErrorBox(NoParent(), ex, L"Test threw an exception");
+		ShowErrorBox(NoParent(), ex, "Test threw an exception");
 	}
 
 	return 0;

@@ -596,7 +596,7 @@ namespace
 			VALIDATE(e.End().x == 2);
 			VALIDATE(GetSubString(e.Message(), SEXTEXT("trailing hexes")) != NULL);
 #else
-			VALIDATE(e.End().X == 2);
+			VALIDATE(e.End().x == 2);
 			VALIDATE(GetSubString(e.Message(), SEXTEXT("double quote")) != NULL);
 #endif
 			
@@ -610,7 +610,7 @@ namespace
 #ifdef SEXCHAR_IS_WIDE
 		csexstr srcString = SEXTEXT("\"&x0041\"");
 #else
-		csexstr srcString = SEXTEXT("\"\\x41\"");
+		csexstr srcString = SEXTEXT("\"&x41\"");
 #endif
 		ISourceCode* src = parser.ProxySourceBuffer(srcString,-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
 

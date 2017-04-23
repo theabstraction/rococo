@@ -15,7 +15,7 @@ namespace
 {
 	struct ContextMenuItemImpl
 	{
-		std::wstring buttonName;
+		std::string buttonName;
 		int32 commandId;
 		int64 context;
 		GuiRect lastRenderedRect;

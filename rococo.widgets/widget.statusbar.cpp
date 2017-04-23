@@ -9,18 +9,18 @@ using namespace Rococo::Widgets;
 
 namespace
 {
-   EventId evStatusUpate = L"ui.status.upate"_event;
+   EventId evStatusUpate = "ui.status.upate"_event;
 
    struct StatusEvent : public Event
    {
       StatusEvent() : Event(evStatusUpate) {}
-      const wchar_t* status;
+      cstr status;
    };
 
    class StatusBar : public IStatusBar, public IObserver
    {
       IPublisher& publisher;
-      wchar_t text[256];
+      rchar text[256];
 
       int32 updateHighlight;
    public:
@@ -63,14 +63,14 @@ namespace Rococo
 {
    namespace Widgets
    {   
-      EventId evStatusUpate = L"ui.status.upate"_event;
+      EventId evStatusUpate = "ui.status.upate"_event;
 
       IStatusBar* CreateStatusBar(IPublisher& publisher)
       {
          return new StatusBar(publisher);
       }
 
-      void SetStatus(const wchar_t* statustext, Events::IPublisher& publisher)
+      void SetStatus(cstr statustext, Events::IPublisher& publisher)
       {
          StatusEvent ev;
          ev.status = statustext;
