@@ -32,7 +32,7 @@
 */
 
 #include "sexy.vm.stdafx.h"
-#include "Sexy.VM.CPU.h"
+#include "sexy.vm.cpu.h"
 
 #include <stdarg.h>
 
@@ -65,16 +65,16 @@ namespace
 		va_end(args);
 	}
 
-	FormatBinding s_formatters[Opcodes::MAX_OPCODES] = {0};
+   FormatBinding s_formatters[Opcodes::MAX_OPCODES] = { {0} };
 
-#define EnableFormatter(x) s_formatters[Opcodes::##x] = CreateBinding(Format##x, SEXTEXT(#x));
+#define EnableFormatter(x) s_formatters[Opcodes::x] = CreateBinding(Format##x, SEXTEXT(#x));
 
 	struct REGNAME
 	{
 		SEXCHAR buf[8];
 	};
 
-	REGNAME names[256] = {0};
+   REGNAME names[256] = { { {0} } };
 
 	csexstr RegisterName(DINDEX index)
 	{
@@ -701,6 +701,9 @@ namespace
 				format(rep, SEXTEXT("%d=#%I64x"), offset, value);
 				break;
 			}
+      default:
+         format(rep, SEXTEXT("Bad bitcount"));
+         break;
 		}
 	}
 
@@ -732,7 +735,7 @@ namespace
 		int32 offset = *(int32*) (I.ToPC() + 3);
 		rep.ByteCount = 7;
 
-		format(rep, SEXTEXT("%s.%d=@%d"), RegisterName(I.Opmod2), bits, offset);
+		format(rep, SEXTEXT("%s.%d=@%d"), regname, bits, offset);
 	}
 
 	void FormatSetStackFrameValue32(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -788,7 +791,7 @@ namespace
 		int32 offset = *(int32*) (I.ToPC() + 3);
 		rep.ByteCount = 7;
 
-		format(rep, SEXTEXT("%u.%d=%s"), offset, bits, RegisterName(I.Opmod2));
+		format(rep, SEXTEXT("%u.%d=%s"), offset, bits, regname);
 	}
 
 	void FormatSwap(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -926,7 +929,7 @@ namespace
 	{
 		int SFoffset =  (int32)(int8) I.Opmod2;
 		int memberOffset = (int32)(int8) I.Opmod3;
-		char sign = SFoffset >= 0 ? '+' : '-';
+	//	char sign = SFoffset >= 0 ? '+' : '-';
 
 		format(rep, SEXTEXT("%s=SF(%d->%d)"), RegisterName(I.Opmod1), SFoffset, memberOffset);
 		rep.ByteCount = 4;
@@ -1095,7 +1098,7 @@ namespace
 		EnableFormatter(GetStackFrameValueAndExtendToPointer);
 	}
 
-	class Disassembler: public IDisassembler
+	class Disassembler final: public IDisassembler
 	{
 	private:
 		ICore& core;

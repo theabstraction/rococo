@@ -11,7 +11,7 @@
 #include "sexy.s-parser.h"
 
 #include "sexy.vm.h"
-#include "sexy.VM.CPU.h"
+#include "sexy.vm.cpu.h"
 #include "sexydotnethost.h"
 #include "sexy.lib.util.h"
 

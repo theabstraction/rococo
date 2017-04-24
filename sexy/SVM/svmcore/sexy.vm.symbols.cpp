@@ -33,25 +33,24 @@
 
 #include "sexy.vm.stdafx.h"
 #include <unordered_map>
+#include <string>
 
 using namespace Sexy;
 using namespace Sexy::VM;
 
 namespace
 {
-	class SourceImage: public ISourceFile
+	class SourceImage final: public ISourceFile
 	{
 	private:
-		ICore& core;
 		std::string sourceName;
 		
 		typedef std::vector<size_t> TOffsets;
 		TOffsets rowOffsets;
 
 	public:
-		SourceImage(ICore& _core, const char* _sourceName, const char* srcCode, size_t codeLenBytes):
-				core(_core),
-				sourceName(_sourceName)
+		SourceImage(const char* _sourceName, const char* srcCode, size_t codeLenBytes):
+			sourceName(_sourceName)
 		{
 			rowOffsets.push_back(0); // Row 1 always starts at offset 0
 
@@ -86,19 +85,17 @@ namespace
 		}
 	};
 
-	class Symbols: public ISymbols
+	class Symbols final: public ISymbols
 	{
-	private:
-		ICore& core;
-
-		typedef std::tr1::unordered_map<size_t,FileData> TOffsetToSymbol;
+   private:
+		typedef std::unordered_map<size_t,FileData> TOffsetToSymbol;
 		TOffsetToSymbol symbolMap;
 
 		typedef std::vector<SourceImage*> TImages;
 		TImages images;
 		
 	public:
-		Symbols(ICore& _core): core(_core)
+		Symbols()
 		{
 
 		}
@@ -131,7 +128,7 @@ namespace
 
 		virtual ISourceFile* AddSourceImage(const char* sourceName, const char* sourceCode, size_t srcLenBytes )
 		{
-			SourceImage* si = new SourceImage(core, sourceName, sourceCode, srcLenBytes);
+			SourceImage* si = new SourceImage(sourceName, sourceCode, srcLenBytes);
 			images.push_back(si);
 			return si;
 		}
@@ -156,8 +153,8 @@ namespace
 
 namespace Sexy { namespace VM
 {
-	ISymbols* CreateSymbolTable(ICore& core)
+	ISymbols* CreateSymbolTable(ICore&)
 	{
-		return new Symbols(core);
+		return new Symbols();
 	}
 }} // Sexy::VM

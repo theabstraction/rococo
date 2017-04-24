@@ -57,7 +57,7 @@ namespace
 			size_t UsedLength;
 		};
 
-		typedef std::tr1::unordered_map<ID_BYTECODE,FunctionDef> TFunctions;
+		typedef std::unordered_map<ID_BYTECODE,FunctionDef> TFunctions;
 		TFunctions functions;
 
 		int version;

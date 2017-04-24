@@ -77,7 +77,7 @@ namespace Sexy
          SetPCToFunctionStart(ss, factory.Constructor());
       }
 
-      void _cdecl OnJITRoutineNeedsCompiling_Protected(VariantValue* registers, IScriptSystem& ss)
+      void CALLTYPE_C OnJITRoutineNeedsCompiling_Protected(VariantValue* registers, IScriptSystem& ss)
       {
          void* pObj = registers[252].vPtrValue;
          ISExpression* s = (ISExpression*)registers[253].vPtrValue;
@@ -107,7 +107,7 @@ namespace Sexy
          }
       }
 
-      void _cdecl OnJITRoutineNeedsCompiling(VariantValue* registers, void* context)
+      void CALLTYPE_C OnJITRoutineNeedsCompiling(VariantValue* registers, void* context)
       {
          IScriptSystem& ss = *(IScriptSystem*)context;
          ISExpression* s = (ISExpression*)registers[253].vPtrValue;

@@ -34,7 +34,7 @@
 #ifndef SVMOS_H
 #define SVMOS_H
 
-#include "Sexy.VM.CPU.h"
+#include "sexy.vm.cpu.h"
 
 namespace Sexy { namespace VM { namespace OS
 {

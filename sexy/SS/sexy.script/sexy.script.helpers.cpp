@@ -39,7 +39,7 @@
 #include "..\STC\stccore\sexy.compiler.helpers.h"
 #include "Sexy.S-Parser.h"
 #include "sexy.vm.h"
-#include "Sexy.VM.CPU.h"
+#include "sexy.vm.cpu.h"
 
 #include <stdarg.h>
 #include <string>
@@ -248,14 +248,18 @@ namespace Sexy { namespace Script
 {
 	SCRIPTEXPORT_API void FormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, VARTYPE type, const void* pVariableData)
 	{
+#ifdef _WIN32
 		__try
+#endif
 		{
 			ProtectedFormatValue(ss, buffer, bufferCapacity, type, pVariableData);
 		}
+#ifdef _WIN32
 		__except(1)
 		{
 			strcpy_s(buffer, bufferCapacity, "Bad pointer");
 		}
+#endif
 	}
 
 	SCRIPTEXPORT_API void ForeachStackLevel(Sexy::Compiler::IPublicProgramObject& obj, ICallStackEnumerationCallback& cb)
@@ -409,8 +413,11 @@ namespace Sexy { namespace Script
 
 	SCRIPTEXPORT_API const uint8* GetReturnAddress(CPU& cpu, const uint8* sf)
 	{
+#ifdef _WIN32
 		__try
+#endif
 		{
+
 			if (sf >= cpu.StackStart + 4 && sf < cpu.StackEnd)
 			{
 				uint8* pValue = ((Sexy::uint8*) sf) - sizeof(size_t) ;
@@ -422,9 +429,12 @@ namespace Sexy { namespace Script
 				}
 			}
 		}
+#ifdef _WIN32
 		__except(1)
+
 		{
 		}
+#endif
 
 		return NULL;		
 	}
@@ -689,15 +699,18 @@ namespace Sexy { namespace Script
 			else
 			{
 				const void** ppData = (const void**) pVariableData;
-
+#ifdef _WIN32
 				__try
+#endif
 				{
 					FormatVariableDesc(variable, "0x%p (-> 0x%p)", pVariableData, *ppData);
 				}
+#ifdef _WIN32
 				__except(1)
 				{
 					FormatVariableDesc(variable, "Bad pointer");
 				}
+#endif
 				
 				AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
 				FormatVariableDescType(variable, "*%s", desc.data);
@@ -733,9 +746,10 @@ namespace Sexy { namespace Script
 	SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const IStructure& s, csexstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback)
 	{
 		if (s.VarType() != VARTYPE_Derivative) return true;
-
+#ifdef _WIN32
 		__try
 		{
+#endif
 			CClassHeader* concreteInstancePtr = NULL;
 			const IStructure* concreteType = GetConcreteType(s, instance, offset, concreteInstancePtr);
 			const IStructure* specimen;
@@ -767,10 +781,12 @@ namespace Sexy { namespace Script
 
 			return true;
 		}
+#ifdef _WIN32
 		__except(1)
 		{
 			return false;
 		}
+#endif
 	}
 
 	SCRIPTEXPORT_API const Sexy::uint8* GetInstance(const MemberDef& def, const IStructure* pseudoType, const Sexy::uint8* SF)

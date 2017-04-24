@@ -27,9 +27,6 @@
     <ClCompile Include="sexy.vm.program.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sexy.vm.dllmain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sexy.vm.disassembler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -40,6 +37,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sexy.vm.assembler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexy.vm.main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

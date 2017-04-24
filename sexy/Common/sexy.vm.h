@@ -102,7 +102,7 @@ namespace Sexy { namespace VM
 	struct ISymbols;
 	struct IProgramMemory;
 
-	typedef void (_cdecl *FN_API_CALLBACK)(VariantValue* registers, void* context);
+	typedef void (CALLTYPE_C *FN_API_CALLBACK)(VariantValue* registers, void* context);
 
 	ROCOCOAPI ICore
 	{
@@ -395,7 +395,7 @@ namespace Sexy { namespace VM
 		int reserved;
 	};
 
-	typedef Sexy::VM::ICore* (_cdecl *FN_CreateSVMCore)(const Sexy::VM::CoreSpec* spec);
+	typedef Sexy::VM::ICore* (CALLTYPE_C *FN_CreateSVMCore)(const Sexy::VM::CoreSpec* spec);
 }}
 
 // #define IS_VM_DLL 1

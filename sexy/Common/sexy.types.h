@@ -35,6 +35,7 @@
 # define SEXY_H
 
 #include <rococo.types.h>
+#include <stdarg.h>
 
 #if !defined(_W64)
 # if !defined(__midl) && (defined(_X86_) || defined(_M_IX86))
@@ -66,8 +67,6 @@
 #endif
 
 #define POINTERS_ARE_64_BIT
-
-typedef char* va_list;
 
 namespace Sexy
 {
@@ -176,34 +175,34 @@ namespace Sexy
 
 	typedef sexstring_header* sexstring;
 
-	bool __cdecl IsCapital(SEXCHAR c);
-	bool __cdecl IsLowerCase(SEXCHAR c);
-	bool __cdecl IsAlphabetical(SEXCHAR c);
-	bool __cdecl IsNumeric(SEXCHAR c);
-	bool __cdecl IsAlphaNumeric(SEXCHAR c);
+	bool CALLTYPE_C IsCapital(SEXCHAR c);
+	bool CALLTYPE_C IsLowerCase(SEXCHAR c);
+	bool CALLTYPE_C IsAlphabetical(SEXCHAR c);
+	bool CALLTYPE_C IsNumeric(SEXCHAR c);
+	bool CALLTYPE_C IsAlphaNumeric(SEXCHAR c);
 
 	void GetRefName(OUT TokenBuffer& token, csexstr name);
 
-	int __cdecl StringPrintV(char* buf, size_t sizeInChars, va_list args, const char* format);
-	int __cdecl StringPrintV(rchar* buf, size_t sizeInChars, va_list args, cstr format);
-	int __cdecl StringPrint(char* buf, size_t sizeInChars, const char* format, ...);
-	int __cdecl StringPrint(rchar* buf, size_t sizeInChars, cstr format, ...);
-	int __cdecl StringPrint(TokenBuffer& buf, const SEXCHAR* format, ...);
+	int CALLTYPE_C StringPrintV(char* buf, size_t sizeInChars, va_list args, const char* format);
+	int CALLTYPE_C StringPrintV(rchar* buf, size_t sizeInChars, va_list args, cstr format);
+	int CALLTYPE_C StringPrint(char* buf, size_t sizeInChars, const char* format, ...);
+	int CALLTYPE_C StringPrint(rchar* buf, size_t sizeInChars, cstr format, ...);
+	int CALLTYPE_C StringPrint(TokenBuffer& buf, const SEXCHAR* format, ...);
 
-   int __cdecl WriteToStandardOutput(const char* text, ...);
-	int __cdecl WriteToStandardOutput(cstr text, ...);
+   int CALLTYPE_C WriteToStandardOutput(const char* text, ...);
+	int CALLTYPE_C WriteToStandardOutput(cstr text, ...);
 
-	int32 __cdecl StringLength(const char* s);
-	int32 __cdecl StringLength(cstr s);
-	void __cdecl CopyChars(SEXCHAR* dest, const sexstring source);
-	void __cdecl CopyString(char* dest, size_t capacity, const char* source);
-	void __cdecl CopyString(rchar* dest, size_t capacity, cstr source);
+	int32 CALLTYPE_C StringLength(const char* s);
+	int32 CALLTYPE_C StringLength(cstr s);
+	void CALLTYPE_C CopyChars(SEXCHAR* dest, const sexstring source);
+	void CALLTYPE_C CopyString(char* dest, size_t capacity, const char* source);
+	void CALLTYPE_C CopyString(rchar* dest, size_t capacity, cstr source);
 
-	void __cdecl CopyString(rchar* dest, size_t destCapacity, cstr source, int maxChars); // use maxChars -1 to truncate
-	void __cdecl CopyString(char* dest, size_t destCapacity, const char* source, int maxChars); // use maxChars -1 to truncate
+	void CALLTYPE_C CopyString(rchar* dest, size_t destCapacity, cstr source, int maxChars); // use maxChars -1 to truncate
+	void CALLTYPE_C CopyString(char* dest, size_t destCapacity, const char* source, int maxChars); // use maxChars -1 to truncate
 
-	void __cdecl StringCat(rchar* buf, cstr source, int maxChars);
-	void __cdecl StringCat(char* buf, const char* source, int maxChars);
+	void CALLTYPE_C StringCat(rchar* buf, cstr source, int maxChars);
+	void CALLTYPE_C StringCat(char* buf, const char* source, int maxChars);
 
 	bool TryParseSexHex(SEXCHAR& finalChar, csexstr s);
 	bool ParseEscapeCharacter(SEXCHAR& finalChar, SEXCHAR c);
@@ -215,13 +214,6 @@ namespace Sexy
 
 	sexstring CreateSexString(csexstr src, int32 length = -1);
 	void FreeSexString(sexstring s);
-
-#ifdef GetErrorString
-# undef GetErrorString
-#endif
-
-   int _cdecl GetErrorString(char* buf, size_t sizeInChars, int errNum);
-   int _cdecl GetErrorString(rchar* buf, size_t sizeInChars, int errNum);
 
    ROCOCOAPI ILog
 	{

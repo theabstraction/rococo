@@ -492,7 +492,7 @@ namespace Sexy { namespace Compiler { namespace Impl
 	class AttributeContainer: public IAttributes
 	{		
 	private:
-		typedef std::tr1::unordered_map<CStringKey, const void*, hashCStringKey> TMapKeyToAttr;
+		typedef std::unordered_map<CStringKey, const void*, hashCStringKey> TMapKeyToAttr;
 		TMapKeyToAttr attributeMap;
 
 		typedef std::vector<std::pair<csexstr,const void*>> TAttrVector;
@@ -574,11 +574,11 @@ namespace Sexy { namespace Compiler { namespace Impl
 		virtual void SetInline(IFunctionBuilder* f, IStructureBuilder* s) { inlineConstructor = f; inlineClass = s; }
 	};
 
-	typedef std::tr1::unordered_map<CStringKey,Structure*,hashCStringKey> TResolvedStructures;
+	typedef std::unordered_map<CStringKey,Structure*,hashCStringKey> TResolvedStructures;
 	typedef std::vector<CStructIdentityAlias> TStructures;
-	typedef std::tr1::unordered_map<CStringKey,Interface*,hashCStringKey> TInterfaces;
+	typedef std::unordered_map<CStringKey,Interface*,hashCStringKey> TInterfaces;
 	typedef std::vector<IInterfaceBuilder*> TInterfaceEnum;
-	typedef std::tr1::unordered_map<CStringKey,Factory*,hashCStringKey> TFactories;
+	typedef std::unordered_map<CStringKey,Factory*,hashCStringKey> TFactories;
 
 	class Macro: public IMacroBuilder
 	{
@@ -604,8 +604,8 @@ namespace Sexy { namespace Compiler { namespace Impl
 		sexstring fullname;
 
 		typedef std::vector<Namespace*> TChildren;
-		typedef std::tr1::unordered_map<CStringKey,Namespace*,hashCStringKey> TMapNameToNS;
-		typedef std::tr1::unordered_map<CStringKey,Macro*,hashCStringKey> TMapNameToMacro;
+		typedef std::unordered_map<CStringKey,Namespace*,hashCStringKey> TMapNameToNS;
+		typedef std::unordered_map<CStringKey,Macro*,hashCStringKey> TMapNameToMacro;
 
 		TChildren children;
 		TMapNameToNS nameToChildren;

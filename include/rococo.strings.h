@@ -62,4 +62,4 @@ namespace Rococo
    bool Eq(cstr a, cstr b);
 }
 
-#endif  Rococo_Strings_H
+#endif // Rococo_Strings_H

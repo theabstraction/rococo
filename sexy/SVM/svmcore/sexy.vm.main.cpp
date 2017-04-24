@@ -33,37 +33,74 @@
 
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "sexy.vm.stdafx.h"
+
+#ifdef _WIN32
 #include <WinError.h>
 
-IMPORT_FROM_DLL void WIN32_API SetLastError(unsigned int dwErrCode);
+      IMPORT_FROM_DLL void WIN32_API SetLastError(unsigned int dwErrCode);
 
-namespace Sexy { namespace VM
-{
-	Sexy::VM::ICore* CreateSVMCore(const Sexy::VM::CoreSpec& spec);
-}}
+      namespace Sexy { namespace VM
+      {
+	      Sexy::VM::ICore* CreateSVMCore(const Sexy::VM::CoreSpec& spec);
+      }}
 
-extern "C" SVMLIB Sexy::VM::ICore* CreateSVMCore(const Sexy::VM::CoreSpec* spec)
-{
-	if (spec == NULL) 
-	{
-		printf("CoreSpec was NULL");
-		SetLastError(E_POINTER);
-		return NULL;
-	}
+      extern "C" SVMLIB Sexy::VM::ICore* CreateSVMCore(const Sexy::VM::CoreSpec* spec)
+      {
+	      if (spec == NULL) 
+	      {
+		      printf("CoreSpec was NULL");
+		      SetLastError(E_POINTER);
+		      return NULL;
+	      }
 
-	if (spec->Version != Sexy::VM::CORE_LIB_VERSION)
-	{
-		printf("Invalid CoreSpec->Version");
-		SetLastError(E_INVALIDARG);
-		return NULL;
-	}
+	      if (spec->Version != Sexy::VM::CORE_LIB_VERSION)
+	      {
+		      printf("Invalid CoreSpec->Version");
+		      SetLastError(E_INVALIDARG);
+		      return NULL;
+	      }
 		
-	if(spec->SizeOfStruct != sizeof(Sexy::VM::CoreSpec))
-	{
-		printf("Unexpected CoreSpec->SizeOfStruct value");
-		SetLastError(E_INVALIDARG);
-		return NULL;
-	}
+	      if(spec->SizeOfStruct != sizeof(Sexy::VM::CoreSpec))
+	      {
+		      printf("Unexpected CoreSpec->SizeOfStruct value");
+		      SetLastError(E_INVALIDARG);
+		      return NULL;
+	      }
 
-	return Sexy::VM::CreateSVMCore(*spec);
+	      return Sexy::VM::CreateSVMCore(*spec);
+      }
+
+#else
+
+namespace Sexy 
+{
+   namespace VM
+   {
+      Sexy::VM::ICore* CreateSVMCore(const Sexy::VM::CoreSpec& spec);
+   }
 }
+
+extern "C" Sexy::VM::ICore* CreateSVMCore(const Sexy::VM::CoreSpec* spec)
+{
+   if (spec == NULL)
+   {
+      printf("CoreSpec was NULL");
+      return NULL;
+   }
+
+   if (spec->Version != Sexy::VM::CORE_LIB_VERSION)
+   {
+      printf("Invalid CoreSpec->Version");
+      return NULL;
+   }
+
+   if (spec->SizeOfStruct != sizeof(Sexy::VM::CoreSpec))
+   {
+      printf("Unexpected CoreSpec->SizeOfStruct value");
+      return NULL;
+   }
+
+   return Sexy::VM::CreateSVMCore(*spec);
+}
+
+#endif

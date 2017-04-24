@@ -37,7 +37,7 @@
 #include "..\STC\stccore\sexy.compiler.helpers.h"
 #include "Sexy.S-Parser.h"
 #include "sexy.vm.h"
-#include "Sexy.VM.CPU.h"
+#include "sexy.vm.cpu.h"
 
 #include <stdarg.h>
 #include <algorithm>
@@ -191,10 +191,10 @@ namespace Sexy
 		WriteOutput(0, nullLen, e);
 	}
 
-	typedef std::tr1::unordered_map<stdstring,NativeFunction*> TMapFQNToNativeCall;
+	typedef std::unordered_map<stdstring,NativeFunction*> TMapFQNToNativeCall;
 	typedef std::list<INativeLib*> TNativeLibs;
 	
-	void _cdecl RouteToNative(VariantValue* registers, void* context)
+	void CALLTYPE_C RouteToNative(VariantValue* registers, void* context)
 	{
 		NativeFunction* nf = (NativeFunction*) context;
 		nf->NativeCallback(nf->e);
@@ -293,7 +293,7 @@ namespace Sexy
 		return GetAtomicArg(s, 1).String()->Buffer;
 	}
 
-	void _cdecl OnCallbackInvoked(VariantValue* registers, void* context)
+	void CALLTYPE_C OnCallbackInvoked(VariantValue* registers, void* context)
 	{
 		NativeFunction* nf = (NativeFunction*) context;
 		nf->NativeCallback(nf->e);

@@ -57,17 +57,16 @@ namespace Sexy { namespace VM
 
 namespace
 {
-	class Core: public ICore
+	class Core final: public ICore
 	{
 	private:
 		ILog* logger;
 		ID_API_CALLBACK nextId;
-		typedef std::tr1::unordered_map<ID_API_CALLBACK, ApiCallbackBinding> TMapIdToCallback;
+		typedef std::unordered_map<ID_API_CALLBACK, ApiCallbackBinding> TMapIdToCallback;
 		TMapIdToCallback callbacks;
 	public:
 		Core(const CoreSpec& spec):
-			nextId(1),
-			logger(NULL)
+			logger(NULL),nextId(1)
 		{
 
 		}

@@ -32,17 +32,23 @@
 */
 
 #include "sexy.vm.stdafx.h"
-#include "Sexy.VM.CPU.h"
+#include "sexy.vm.cpu.h"
 #include <math.h>
 #include "sexy.vm.os.h"
 
-#include <excpt.h>
+#ifdef _WIN32
+# include <excpt.h>
+#else
+# include <stdlib.h> // for posix_memalign and free
+#endif
 
 using namespace Sexy;
 using namespace Sexy::VM;
 
-#define ActivateInstruction(x) s_instructionTable[Opcodes::##x] = &CVirtualMachine::OnOpcode##x;
-#define OPCODE_CALLBACK_CONVENTION _fastcall
+#define MERGE_TOKENS(a, b) a##b
+#define FoobarActivateInstruction(x) s_instructionTable[MERGE_TOKENS(Opcodes::,x) ] = &CVirtualMachine::MERGE_TOKENS(OnOpcode,x)
+#define ActivateInstruction(x) s_instructionTable[Opcodes::x] = &CVirtualMachine::MERGE_TOKENS(OnOpcode,x)
+#define OPCODE_CALLBACK_CONVENTION // Since we switched to 64-bit, there is no special fastcall
 #define OPCODE_CALLBACK(x) void OPCODE_CALLBACK_CONVENTION OnOpcode##x()
 
 static_assert(sizeof(Sexy::VariantValue) == 8, "The codebase assumes that sizeof(Sexy::VariantValue) is 8. Major changes are needed if this is not so.");
@@ -85,21 +91,21 @@ namespace
 		}
 	}
 
-	class CVirtualMachine: public IVirtualMachine, public IStepCallback
+	class CVirtualMachine final: public IVirtualMachine, public IStepCallback
 	{
 	private:
 		volatile EXECUTERESULT status;		
 
-		uint8* stack;
-		size_t stackSize;
+      uint8* stack{ nullptr };
+      size_t stackSize{ 0 };
 		std::vector<uint8> globalData;
 
 		TMemory breakpoints;
-		int exitCode;	
-		bool throwToQuit;
+      int exitCode{ 0 };
+      bool throwToQuit{ true };
 		ICore& core;
 
-		IProgramMemory* program;
+      IProgramMemory* program{ nullptr };
 		
 		CPU& cpu;
 
@@ -107,12 +113,13 @@ namespace
 
 		static FN_VM* s_instructionTable; 
 
-		int isBeingStepped;
+      int isBeingStepped{ 0 };
 
 		IStepCallback* stepCallback;
 
 	public:
-		CVirtualMachine(ICore& _core, CPU& _cpu) : cpu(_cpu), core(_core), program(nullptr), stack(nullptr), isBeingStepped(0)
+		CVirtualMachine(ICore& _core, CPU& _cpu) :
+         core(_core), cpu(_cpu) 
 		{
 			SetStackSize(64 * 1024);
 
@@ -464,6 +471,7 @@ namespace
 			size_t functionStart = program->GetFunctionAddress(codeId);
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 
+#ifdef _WIN32
 			__try
 			{
 				while(cpu.SF() > context && status == EXECUTERESULT_RUNNING)
@@ -475,6 +483,12 @@ namespace
 			{
 				return EXECUTERESULT_SEH;
 			}
+#else
+         while (cpu.SF() > context && status == EXECUTERESULT_RUNNING)
+         {
+            Advance();
+         }
+#endif
 
 			if (status == EXECUTERESULT_RUNNING) status = EXECUTERESULT_RETURNED;
 
@@ -1283,6 +1297,9 @@ namespace
 					cpu.D[VM::REGISTER_D4].int64Value = *pInt64Data;
 				}
 				break;
+         default:
+            TerminateByIllegal(-1);
+            break;
 			}
 
 			cpu.AdvancePC(4);
@@ -1311,6 +1328,9 @@ namespace
 					*pInt64Data = cpu.D[VM::REGISTER_D4].int64Value;
 				}
 				break;
+         default:
+            TerminateByIllegal(-1);
+            break;
 			}
 
 			cpu.AdvancePC(4);
@@ -1349,9 +1369,6 @@ namespace
 			// Then make the new stack frame equal to the stack pointer
 			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
 
-			const Ins* I = NextInstruction();
-			const VariantValue& offsetRegister = cpu.D[I->Opmod1];
-
 			ID_BYTECODE* pByteCodeId = (ID_BYTECODE*)(cpu.PC() + 1);
 			size_t addressOffset = program->GetFunctionAddress(*pByteCodeId);
 			cpu.SetPC(cpu.ProgramStart + addressOffset);
@@ -1375,7 +1392,6 @@ namespace
 
 		OPCODE_CALLBACK(CallVirtualFunctionByValue)
 		{
-			const Ins* I = NextInstruction();
 			const int32* offsetArray = (const int32*) (cpu.PC() + 1);
 
 			int32 sfOffset = *offsetArray;
@@ -1407,7 +1423,6 @@ namespace
 
 		OPCODE_CALLBACK(CallVirtualFunctionByAddress)
 		{
-			const Ins* I = NextInstruction();
 			const int32* offsetArray = (const int32*) (cpu.PC() + 1);
 			int32 sfOffset = *offsetArray;
 			int32 methodIndex = offsetArray[1];
@@ -1443,7 +1458,6 @@ namespace
 
 		void GetMemCopyInfoAndAdvance(OUT MemCopyInfo& info)
 		{
-			const Ins* I = NextInstruction();
 			cpu.AdvancePC(1);
 			const int32* pOffset = (const int32*) cpu.PC();
 			info.TargetOffset = *pOffset;
@@ -1537,7 +1551,6 @@ namespace
 			// Then make the new stack frame equal to the stack pointer
 			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
 
-			const Ins* I = NextInstruction();
 			int32* offsetPtr = (int32*) (cpu.PC() + 1);
 			cpu.SetPC(cpu.PC() + *offsetPtr);
 		}
@@ -1862,6 +1875,9 @@ namespace
 				target.int64Value = source.int64Value + *(const int64*)arg;
 				cpu.AdvancePC(8);
 				break;
+         default:
+            TerminateByIllegal(-1);
+            break;
 			}
 		}
 
@@ -2458,7 +2474,6 @@ namespace
 
 		OPCODE_CALLBACK(TripDebugger)
 		{
-			const Ins* I = NextInstruction();
 			cpu.AdvancePC(1);
 			status = EXECUTERESULT_BREAKPOINT;
 			if (throwToQuit) throw YieldException();
@@ -2548,13 +2563,18 @@ namespace
 
 	void CVirtualMachine::Free()
 	{ 
+      // hack, wwe use in-place allocation to create the instance, so dont call delete. See: IVirtualMachine* CreateVirtualMachine(ICore& core)
 		this->~CVirtualMachine();
 
 		uint8* mem = (uint8*) this;
 		
 		uint8* pCpu = mem - GetCpuToVMOffset();
-		CPU& cpu = (CPU&) *pCpu; // no destructor on this
+
+#ifdef _WIN32
 		_aligned_free(pCpu);
+#else
+      free(pCpu);
+#endif
 	}
 }
 
@@ -2563,7 +2583,13 @@ namespace Sexy { namespace VM
 	IVirtualMachine* CreateVirtualMachine(ICore& core)
 	{
 		enum { CACHE_LINE_ALIGN = 128 };
+
+#ifdef _WIN32
 		uint8* mem = (uint8*)_aligned_malloc(GetCpuToVMOffset() + sizeof(CVirtualMachine), CACHE_LINE_ALIGN);
+#else
+      uint8* mem;
+      posix_memalign((void**)&mem, GetCpuToVMOffset() + sizeof(CVirtualMachine), CACHE_LINE_ALIGN);
+#endif
 
 		CPU* cpu = new (mem) CPU();
 		return new (mem + GetCpuToVMOffset()) CVirtualMachine(core, *cpu);

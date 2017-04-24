@@ -184,7 +184,7 @@ namespace
 		StringCat(format, suffix, 16);
 	}
 
-	typedef std::tr1::unordered_map<CStringBuilder*,int> TStringBuilders;
+	typedef std::unordered_map<CStringBuilder*,int> TStringBuilders;
 
 	void Clear(TStringBuilders& z)
 	{

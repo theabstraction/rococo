@@ -32,7 +32,7 @@
 */
 
 #include "sexy.vm.stdafx.h"
-#include "Sexy.VM.CPU.h"
+#include "sexy.vm.cpu.h"
 
 using namespace Sexy;
 using namespace Sexy::VM;

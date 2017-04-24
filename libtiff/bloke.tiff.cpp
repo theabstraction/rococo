@@ -22,7 +22,7 @@ void _TIFFfree(void* p)
 {
    if (tiffAllocator)
    {
-      tiffAllocator->Free(p);
+      tiffAllocator->FreeData(p);
    }
    else
    {

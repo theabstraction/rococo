@@ -521,13 +521,13 @@ namespace
 
 			struct ANON
 			{
-				static void _cdecl Throw(NativeCallEnvironment& e)
+				static void CALLTYPE_C Throw(NativeCallEnvironment& e)
 				{
 					CDefaultExceptionLogic* logic = (CDefaultExceptionLogic*) e.context;
 					logic->Throw(e.function);
 				}
 
-				static void _cdecl GetSysMessage(NativeCallEnvironment& e)
+				static void CALLTYPE_C GetSysMessage(NativeCallEnvironment& e)
 				{
 					IScriptSystem& ss = (IScriptSystem&) e.ss;
 

@@ -50,7 +50,7 @@ namespace
    {
       if (allocator)
       {
-         allocator->Free(ptr);
+         allocator->FreeData(ptr);
       }
       else
       {

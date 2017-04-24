@@ -113,7 +113,7 @@
     <ClCompile Include="sexy.vm.core.cpp" />
     <ClCompile Include="sexy.vm.cpp" />
     <ClCompile Include="sexy.vm.disassembler.cpp" />
-    <ClCompile Include="sexy.vm.dllmain.cpp">
+    <ClCompile Include="sexy.vm.main.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </PrecompiledHeader>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>

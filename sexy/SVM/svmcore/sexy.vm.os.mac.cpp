@@ -34,94 +34,29 @@
 #include "sexy.vm.stdafx.h"
 #include "sexy.vm.os.h"
 
-#include <rococo.win32.target.win7.h>
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#include <excpt.h>
-#include <intrin.h>
+#include <CoreServices/CoreServices.h>
+#include <mach/mach.h>
+#include <mach/mach_time.h>
 
 using namespace Sexy;
 using namespace Sexy::VM;
 
-namespace
-{
-	EXCEPTIONCODE SysToSVM(uint32 code)
-	{
-		switch(code)
-		{
-		case EXCEPTION_ACCESS_VIOLATION:
-			return EXCEPTIONCODE_BAD_ADDRESS;
-		case EXCEPTION_DATATYPE_MISALIGNMENT:
-			return EXCEPTIONCODE_BAD_ALIGN;
-		default:
-			return EXCEPTIONCODE_UNKNOWN;
-		}
-	}
-}
-
 namespace Sexy { namespace VM { namespace OS 
 {
-	EXECUTERESULT ExecuteProtected(FN_CODE fnCode, void* context, EXCEPTIONCODE& exceptionCode, bool arg)
-	{
-		exceptionCode = EXCEPTIONCODE_NONE;
-#ifdef _WIN32
-		__try
-		{
-			return fnCode(context, arg);
-		}
-		__except(EXCEPTION_EXECUTE_HANDLER)
-		{
-			OUT exceptionCode = SysToSVM(GetExceptionCode());
-			return EXECUTERESULT_SEH;
-		}
-#else
-      return fnCode(context, arg);
-#endif
-	}
-
-	EXECUTERESULT ExecuteProtected(FN_CODE1 fnCode, void* context, EXCEPTIONCODE& exceptionCode)
-	{
-		exceptionCode = EXCEPTIONCODE_NONE;
-
-#ifdef _WIN32
-		__try
-		{
-			return fnCode(context);
-		}
-		__except(EXCEPTION_EXECUTE_HANDLER)
-		{
-			OUT exceptionCode = SysToSVM(GetExceptionCode());
-			return EXECUTERESULT_SEH;
-		}
-#else
-      return fnCode(context);
-#endif
-	}
-
+/*
 	int64 TimerTicks()
 	{
-		LARGE_INTEGER ticks;
-		QueryPerformanceCounter(&ticks);
-		return ticks.QuadPart;
+		return (int64) mach_absolute_time();
 	}
 
 	int64 TimerHz()
 	{
-		LARGE_INTEGER hz;
-		QueryPerformanceFrequency(&hz);
-		return hz.QuadPart;
+		mach_timebase_info_data_t info;
+		mach_timebase_info(&info);
+		return sTimebaseInfo.numer / sTimebaseInfo.denom;
 	}
-
-	void* AllocAlignedMemory(size_t nBytes)
-	{
-		return VirtualAlloc(NULL, nBytes, MEM_COMMIT, PAGE_READWRITE); 
-	}
-
-	void FreeAlignedMemory(void* data, size_t nBytes)
-	{
-		VirtualFree(data, nBytes, MEM_RELEASE);
-	}
-
+*/
+/*
 	bool RouteSysMessages()
 	{
 		MsgWaitForMultipleObjectsEx(0, NULL, 10, QS_ALLINPUT | QS_ALLPOSTMESSAGE, MWMO_ALERTABLE | MWMO_INPUTAVAILABLE);
@@ -140,4 +75,5 @@ namespace Sexy { namespace VM { namespace OS
 
 		return true;
 	}
+*/
 }}} // Sexy::VM::OS

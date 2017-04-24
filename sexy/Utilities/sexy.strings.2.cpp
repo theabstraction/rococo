@@ -295,18 +295,18 @@ namespace Sexy
 		}
 	}
 
-	int __cdecl StringPrintV(char* buf, size_t sizeInChars, va_list argList, const char* format)
+	int CALLTYPE_C StringPrintV(char* buf, size_t sizeInChars, va_list argList, const char* format)
 	{
 		return _vsnprintf_s(buf, sizeInChars, _TRUNCATE, format, argList);
 	}
 
 #ifdef SEXCHAR_IS_WIDE
-	int __cdecl StringPrintV(rchar* buf, size_t sizeInChars, va_list argList, cstr format)
+	int CALLTYPE_C StringPrintV(rchar* buf, size_t sizeInChars, va_list argList, cstr format)
 	{
 		return _vsnwprintf_s(buf, sizeInChars, _TRUNCATE, format, argList);
 	}
 #endif
-	int __cdecl StringPrint(char* buf, size_t sizeInChars, const char* format, ...) // N.B if you are having crashes passing a SEXCHAR array try casting it to (const SEXCHAR*)
+	int CALLTYPE_C StringPrint(char* buf, size_t sizeInChars, const char* format, ...) // N.B if you are having crashes passing a SEXCHAR array try casting it to (const SEXCHAR*)
 	{
 		va_list args;
 		va_start(args,format);
@@ -314,7 +314,7 @@ namespace Sexy
 	}
 
 #ifdef SEXCHAR_IS_WIDE
-	int __cdecl StringPrint(rchar* buf, size_t sizeInChars, cstr format, ...)
+	int CALLTYPE_C StringPrint(rchar* buf, size_t sizeInChars, cstr format, ...)
 	{
 		va_list args;
 		va_start(args,format);
@@ -322,7 +322,7 @@ namespace Sexy
 	}
 #endif
 
-	int __cdecl StringPrint(TokenBuffer& buf, const SEXCHAR* format, ...)
+	int CALLTYPE_C StringPrint(TokenBuffer& buf, const SEXCHAR* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -336,22 +336,7 @@ namespace Sexy
 		return status;
 	}
 
-	int _cdecl GetErrorString(char* buf, size_t sizeInChars, int errNum)
-	{
-		return strerror_s(buf, sizeInChars, errNum);
-	}
-
-#ifdef SEXCHAR_IS_WIDE
-	int _cdecl GetErrorString(rchar* buf, size_t sizeInChars, int errNum)
-	{
-		char err[256];
-		GetErrorString(err, sizeInChars, errNum);
-
-		return _snwprintf_s(buf, sizeInChars, _TRUNCATE, L"%S", err);		
-	}
-#endif
-
-	int32 __cdecl StringLength(const char* s)
+	int32 CALLTYPE_C StringLength(const char* s)
 	{
 		size_t l = strlen(s);
 		if (l > INT_MAX)
@@ -363,7 +348,7 @@ namespace Sexy
 	}
 
 #ifdef SEXCHAR_IS_WIDE
-	int32 __cdecl StringLength(cstr s)
+	int32 CALLTYPE_C StringLength(cstr s)
 	{
 		size_t l = rlen(s);
 		if (l > INT_MAX)
@@ -375,7 +360,7 @@ namespace Sexy
 	}
 #endif
 
-	void __cdecl CopyChars(SEXCHAR* dest, const sexstring source)
+	void CALLTYPE_C CopyChars(SEXCHAR* dest, const sexstring source)
 	{
 		for(int i = 0; i < source->Length; ++i)
 		{
@@ -385,7 +370,7 @@ namespace Sexy
 		dest[source->Length] = 0;
 	}
 
-   int __cdecl WriteToStandardOutput(const char* format, ...)
+   int CALLTYPE_C WriteToStandardOutput(const char* format, ...)
 	{	
 		va_list args;
 		va_start(args, format);
@@ -393,7 +378,7 @@ namespace Sexy
 	}
 
 #ifdef SEXCHAR_IS_WIDE
-   int __cdecl WriteToStandardOutput(cstr format, ...)
+   int CALLTYPE_C WriteToStandardOutput(cstr format, ...)
    {
       va_list args;
       va_start(args, format);
@@ -401,65 +386,65 @@ namespace Sexy
    }
 #endif
 
-	void __cdecl CopyString(char* dest, size_t capacity, const char* source)
+	void CALLTYPE_C CopyString(char* dest, size_t capacity, const char* source)
 	{
 		strcpy_s(dest, capacity, source);
 	}
 
 #ifdef SEXCHAR_IS_WIDE
-	void __cdecl CopyString(rchar* dest, size_t capacity, cstr source, int maxChars)
+	void CALLTYPE_C CopyString(rchar* dest, size_t capacity, cstr source, int maxChars)
 	{
 		wcsncpy_s(dest, capacity, source,  maxChars < 0 ? _TRUNCATE : maxChars);
 	}
 
-	void __cdecl CopyString(rchar* dest, size_t capacity, cstr source)
+	void CALLTYPE_C CopyString(rchar* dest, size_t capacity, cstr source)
 	{
 		wcscpy_s(dest, capacity, source);
 	}
 #endif
 
-	void __cdecl CopyString(char* dest, size_t capacity, const char* source, int maxChars)
+	void CALLTYPE_C CopyString(char* dest, size_t capacity, const char* source, int maxChars)
 	{
 		strncpy_s(dest, capacity, source, maxChars < 0 ? _TRUNCATE : maxChars);
 	}
 
 #ifdef SEXCHAR_IS_WIDE
-	void __cdecl CopyString(rchar* dest, const char* source, int maxChars)
+	void CALLTYPE_C CopyString(rchar* dest, const char* source, int maxChars)
 	{
 		_snwprintf_s(dest, maxChars, maxChars, L"%S", source);
 	}
 
-	void __cdecl StringCat(rchar* buf, cstr source, int maxChars)
+	void CALLTYPE_C StringCat(rchar* buf, cstr source, int maxChars)
 	{
 		wcscat_s(buf, maxChars, source);
 	}
 #endif
-	void __cdecl StringCat(char* buf, const char* source, int maxChars)
+	void CALLTYPE_C StringCat(char* buf, const char* source, int maxChars)
 	{
 		strcat_s(buf, maxChars, source);
 	}
 
-	bool __cdecl IsCapital(SEXCHAR c)
+	bool CALLTYPE_C IsCapital(SEXCHAR c)
 	{
 		return c >= 'A' && c <= 'Z';
 	}
 
-	bool __cdecl IsLowerCase(SEXCHAR c)
+	bool CALLTYPE_C IsLowerCase(SEXCHAR c)
 	{
 		return c >= 'a' && c <= 'z';
 	}
 
-	bool __cdecl IsAlphabetical(SEXCHAR c)
+	bool CALLTYPE_C IsAlphabetical(SEXCHAR c)
 	{
 		return IsCapital(c) || IsLowerCase(c);
 	}
 
-	bool __cdecl IsNumeric(SEXCHAR c)
+	bool CALLTYPE_C IsNumeric(SEXCHAR c)
 	{
 		return c >= '0' && c <= '9';
 	}
 
-	bool __cdecl IsAlphaNumeric(SEXCHAR c)
+	bool CALLTYPE_C IsAlphaNumeric(SEXCHAR c)
 	{
 		return IsAlphabetical(c) || IsNumeric(c);
 	}

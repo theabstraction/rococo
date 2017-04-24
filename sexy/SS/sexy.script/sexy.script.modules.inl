@@ -1266,7 +1266,7 @@ namespace Sexy { namespace Script
 	{
 		friend CScript;
 	private:
-		typedef std::tr1::unordered_map<ISParserTree*,CScript*> TMapTreeToScript;
+		typedef std::unordered_map<ISParserTree*,CScript*> TMapTreeToScript;
 		TMapTreeToScript scriptMap;
 		typedef std::vector<std::pair<ISParserTree*,CScript*>> TScriptVector;
 		TScriptVector scripts;

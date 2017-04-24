@@ -95,7 +95,7 @@ namespace Sexy { namespace Script
 		NativeCallEnvironment(IPublicScriptSystem& _ss, const  Compiler::IFunction& _function, VM::CPU& _cpu, void* _context);
 	};
 
-	typedef void (_cdecl *FN_NATIVE_CALL)(NativeCallEnvironment& e);
+	typedef void (CALLTYPE_C *FN_NATIVE_CALL)(NativeCallEnvironment& e);
 
 	void ThrowBadNativeArg(int index, csexstr source, csexstr message);	
 
