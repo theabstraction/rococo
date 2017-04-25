@@ -54,8 +54,8 @@ namespace Sexy
 	int32 Compare(sexstring a, const SEXCHAR* b);
 	const char* GetSubString(const char* s, const char *subString);
 	cstr GetSubString(cstr s, const rchar *subString);
-	int32 StrNCopy(char* dest, size_t count, const char* src, size_t maxCount);
-	int32 StrNCopy(rchar* dest, size_t count, cstr src, size_t maxCount);
+	void StrNCopy(char* dest, size_t count, const char* src, size_t maxCount);
+   void StrNCopy(rchar* dest, size_t count, cstr src, size_t maxCount);
 
 	template<typename CHARTYPE> inline bool AreEqual(const CHARTYPE* a, const CHARTYPE* b)
 	{

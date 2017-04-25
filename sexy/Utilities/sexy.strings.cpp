@@ -5,6 +5,11 @@
 
 #include <sexy.strings.h>
 
+#ifndef _WIN32
+# define _stricmp strcasecmp
+# define _strnicmp strncasecmp
+#endif
+
 namespace Sexy
 {
 	bool operator == (const sexstring_key& a, const sexstring_key& b)
@@ -34,9 +39,9 @@ namespace Sexy
 	cstr GetSubString(cstr s, const rchar *subString) { return wcsstr(s, subString); }
 #endif
 
-	errno_t StrNCopy(char* dest, size_t count, const char* src, size_t maxCount)
+	void StrNCopy(char* dest, size_t count, const char* src, size_t maxCount)
 	{
-		return strncpy_s(dest, count, _In_z_ src, maxCount);
+		strncpy_s(dest, count, src, maxCount);
 	}
 
 #ifdef SEXCHAR_IS_WIDE

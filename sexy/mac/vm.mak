@@ -2,7 +2,7 @@
 
 VM_OBJS = sexy.vm.assembler.obj sexy.vm.core.obj sexy.vm.obj sexy.vm.disassembler.obj sexy.vm.main.obj sexy.vm.os.mac.obj sexy.vm.program.obj\
         sexy.vm.stdafx.obj sexy.vm.symbols.obj
-VM_SRCS = $(OBJS,.obj=.cpp) 
+VM_SRCS = $(VM_OBJS,.obj=.cpp) 
 
 COMMON_DIR = ../Common/
 ROCOCO_HEADERS = ../../include/

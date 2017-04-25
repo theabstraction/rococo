@@ -1,9 +1,17 @@
 #include <sexy.types.h>
 #include <sexy.strings.h>
+
+#ifdef _WIN32
 #include <malloc.h>
+#endif
+
 #include <float.h>
 #include <stdio.h>
 #include <memory.h>
+
+#ifdef _WIN32
+# include <cmath>
+#endif
 
 namespace
 {
@@ -515,12 +523,16 @@ namespace Sexy { namespace Parse
 
 	bool IsNAN(double x)
 	{
-		return _isnan(x) != 0;
+      union { uint64 u; double f; } ieee754;
+      ieee754.f = x;
+      return ((unsigned)(ieee754.u >> 32) & 0x7fffffff) +  ((unsigned)ieee754.u != 0) > 0x7ff00000;
 	}
 
 	bool IsInfinite(double x)
 	{
-		return _finite(x) == 0 && !IsNAN(x);
+      union { uint64 u; double f; } ieee754;
+      ieee754.f = x;
+      return ((unsigned)(ieee754.u >> 32) & 0x7fffffff) == 0x7ff00000 && ((unsigned)ieee754.u == 0);
 	}
 
 	bool IsDecimal(csexstr x)
@@ -617,7 +629,10 @@ namespace Sexy { namespace Parse
 					return false;
 				}
 				break;
+         case STATE_MANTISSA_AFTER_POINT:
+            break;
 			}
+        
 		}
 
 		return true;

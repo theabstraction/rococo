@@ -34,8 +34,8 @@
 #include "sexy.types.h"
 #include "sexy.strings.h"
 #include "sexy.compiler.public.h"
-#include "..\STC\stccore\sexy.compiler.h"
-#include "..\STC\stccore\Sexy.Validators.h"
+#include <sexy.compiler.h>
+#include <Sexy.Validators.h>
 #include <float.h>
 #include <stdarg.h>
 
@@ -52,6 +52,13 @@ namespace Sexy
 		StringPrintV(msg, 1024, args, format);
 		log.Write(msg);
 	}
+
+#ifndef _WIN32
+   void memcpy_s(void *dest, size_t destSize, const void *src, size_t count)
+   {
+      memcpy(dest, src, count);
+   }
+#endif
 }
 
 namespace Sexy

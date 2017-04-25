@@ -13,6 +13,11 @@
 #else
 #include <stdio.h>
 #include <string.h>
+
+#ifndef _TRUNCATE
+# define _TRUNCATE ((size_t)-1)
+#endif
+
 #define SecureFormat sprintf_s // Needs include <wchar.h>. If the output buffer is exhausted it will throw an exception
 #define SafeFormat _snprintf_s // Needs include <wchar.h>. With _TRUNCATE in the MaxCount position, it will truncate buffer overruns, rather than throw
 #define SafeVFormat _vsnprintf_s // Needs include <wchar.h>. With _TRUNCATE in the MaxCount position, it will truncate buffer overruns, rather than throw

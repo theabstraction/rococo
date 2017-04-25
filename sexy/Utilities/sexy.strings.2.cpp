@@ -65,7 +65,11 @@
 */
 
 #include <sexy.types.h>
+
+#ifdef _WIN32
 #include <malloc.h>
+#endif
+
 #include <memory.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -338,8 +342,9 @@ namespace Sexy
 
 	int32 CALLTYPE_C StringLength(const char* s)
 	{
+      enum { MAX_INT32 = 0x7FFFFFFF };
 		size_t l = strlen(s);
-		if (l > INT_MAX)
+		if (l > MAX_INT32)
 		{
 			throw std::invalid_argument("The string length exceeded INT_MAX characters");
 		}
@@ -374,7 +379,12 @@ namespace Sexy
 	{	
 		va_list args;
 		va_start(args, format);
+
+#ifdef _WIN32
 		return vprintf_s(format, args);
+#else
+      return vprintf(format, args);
+#endif
 	}
 
 #ifdef SEXCHAR_IS_WIDE

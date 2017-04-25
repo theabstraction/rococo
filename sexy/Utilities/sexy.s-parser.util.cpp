@@ -36,8 +36,9 @@
 #include <Sexy.S-Parser.h>
 #include <sexy.compiler.public.h>
 #include <sexy.debug.types.h>
-#include <sexy.script.h>
 #include <sexy.vm.h>
+#include <sexy.vm.cpu.h>
+#include <sexy.script.h>
 
 #include <stdarg.h>
 #include <stdio.h>

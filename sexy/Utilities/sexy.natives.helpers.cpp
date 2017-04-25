@@ -3,6 +3,7 @@
 #include <sexy.strings.h>
 #include <sexy.compiler.public.h>
 #include <sexy.debug.types.h>
+#include <sexy.vm.cpu.h>
 #include <sexy.script.h>
 
 namespace Sexy

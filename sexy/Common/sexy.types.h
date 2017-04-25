@@ -72,6 +72,27 @@ namespace Sexy
 {
 	using namespace Rococo;
 
+#ifndef _WIN32
+# define _TRUNCATE ((size_t)-1)
+
+   typedef int32 errno_t;
+   void memcpy_s(void *dest, size_t destSize, const void *src, size_t count);
+   int sscanf_s(const char* buffer, const char* format, ...);
+   int sprintf_s(char* buffer, size_t capacity, const char* format, ...);
+   int _vsnprintf_s(char* buffer, size_t capacity, size_t maxCount, const char* _Format, va_list args);
+
+   template<size_t _Size>
+   inline int _vsnprintf_s(char(& buffer)[_Size], size_t maxCount, const char* _Format, va_list args)
+   {
+      return _vsnprintf_s(buffer, _Size, maxCount, _Format, args);
+   }
+       
+   void strcpy_s(char* dest, size_t capacity, const char* source);
+   void strncpy_s(char* dest, size_t capacity, const char* source, size_t maxCount);
+   void strcat_s(char* dest, size_t capacity, const char* source);
+   void strncat_s(char* dest, size_t capacity, const char* source, size_t maxCount);
+#endif
+
 	typedef size_t ID_BYTECODE;
 
 	enum CALLBACK_CONTROL

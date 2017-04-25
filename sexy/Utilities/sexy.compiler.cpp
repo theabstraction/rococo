@@ -35,7 +35,7 @@
 #include <sexy.strings.h>
 #include <sexy.stdstrings.h>
 #include <sexy.compiler.public.h>
-#include "..\STC\stccore\sexy.compiler.h"
+#include <sexy.compiler.h>
 
 namespace Sexy { namespace Compiler
 {
