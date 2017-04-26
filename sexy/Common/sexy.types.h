@@ -74,17 +74,24 @@ namespace Sexy
 
 #ifndef _WIN32
 # define _TRUNCATE ((size_t)-1)
-
    typedef int32 errno_t;
    void memcpy_s(void *dest, size_t destSize, const void *src, size_t count);
    int sscanf_s(const char* buffer, const char* format, ...);
    int sprintf_s(char* buffer, size_t capacity, const char* format, ...);
-   int _vsnprintf_s(char* buffer, size_t capacity, size_t maxCount, const char* _Format, va_list args);
+   int _vsnprintf_s(char* buffer, size_t capacity, size_t maxCount, const char* format, va_list args);
 
    template<size_t _Size>
-   inline int _vsnprintf_s(char(& buffer)[_Size], size_t maxCount, const char* _Format, va_list args)
+   inline int _vsnprintf_s(char(& buffer)[_Size], size_t maxCount, const char* format, va_list args)
    {
-      return _vsnprintf_s(buffer, _Size, maxCount, _Format, args);
+      return _vsnprintf_s(buffer, _Size, maxCount, format, args);
+   }
+
+   template<size_t _Size>
+   inline int sprintf_s(char(&buffer)[_Size], const char* format, ...)
+   {
+      va_list args;
+      va_start(args, format);
+      return _vsnprintf_s(buffer, _Size, _TRUNCATE, format, args);
    }
        
    void strcpy_s(char* dest, size_t capacity, const char* source);

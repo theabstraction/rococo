@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include "sexy.types.h"
+#include <sexy.types.h>
 
 // #define IS_SPARSER_DLL 1
 
@@ -43,13 +43,8 @@
 # define SEXY_SPARSER_API
 #endif
 
-#include "..\Common\Sexy.S-Parser.h"
+#include <Sexy.S-Parser.h>
 
 #ifndef NULL
 # define NULL ((0))
 #endif
-
-#include <string>
-#include <unordered_map>
-#include <vector>
-#include <sstream>

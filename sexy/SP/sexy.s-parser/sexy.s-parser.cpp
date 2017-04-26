@@ -34,12 +34,20 @@
 #include "sexy.s-parser.stdafx.h"
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
-#include "sexy.s-parser.source.inl"
-#include "sexy.s-parser.symbols.inl"
 
-#include "..\..\include\rococo.io.h"
+#include <rococo.io.h>
 
 #include <stdarg.h>
+
+#include <string>
+#include <unordered_map>
+#include <vector>
+#include <list>
+#include <sstream>
+#include <string>
+
+#include "sexy.s-parser.source.inl"
+#include "sexy.s-parser.symbols.inl"
 
 using namespace Sexy;
 using namespace Sexy::Sex;
@@ -50,7 +58,6 @@ namespace
 	class CSExpression;
 
 	void Release(CSParserTree* tree);
-	int TransformDepth(CSParserTree& tree);
 	CSParserTree* ConstructTransform(CSParserTree& prototype, const Vec2i& start, const Vec2i& end, CSExpression* original);
 	const ISExpression* GetOriginal(CSParserTree& tree);
 
@@ -60,15 +67,25 @@ namespace
 
 		FileReader(const csexstr name, long& len)
 		{
-#ifdef SEXCHAR_IS_WIDE
+#ifdef _WIN32
+# ifdef SEXCHAR_IS_WIDE
 			errno_t errNo = _wfopen_s(&fp, name, SEXTEXT("rb"));
+# else
+			errno_t errNo = fopen_s(&fp, name, "rb");
+# endif
 #else
-			errno_t errNo = fopen_s(&fp, name, "r");
+         fp = fopen(name, "rb");
+         errno_t errNo = (fp == nullptr) ? errno : 0;
 #endif
 			if (errNo != 0)
 			{
 				char err[256];
+
+#ifdef _WIN32
 				strerror_s(err, 256, errNo);
+#else
+            strerror_r(errNo, err, 256);
+#endif
 
 				sexstringstream streamer;
 				streamer << SEXTEXT("Error ") << errNo << SEXTEXT(" opening file: ") << err << std::ends;
@@ -88,9 +105,7 @@ namespace
 		}
 	};
 
-   void DeleteTree(CSParserTree* tree);
-
-	class CSExpression: public ISExpressionBuilder
+	class CSExpression final : public ISExpressionBuilder
 	{
 	private:
 		CSParserTree& tree;
@@ -98,11 +113,11 @@ namespace
 		Vec2i end;
 		size_t startOffset;
 		size_t endOffset;
-		EXPRESSION_TYPE type;
-		sexstring Symbol;
+		EXPRESSION_TYPE type;	
+      CSParserTree* transform; // 'this->transform' is the macro transform of 'this'
 		CSExpression* parent;
-		CSParserTree* transform; // 'this->transform' is the macro transform of 'this'
-
+      sexstring Symbol;
+		
 		typedef std::list<CSExpression*> TChildrenList;
 		typedef std::vector<CSExpression*> TChildrenVector;
 		TChildrenVector children;
@@ -121,14 +136,14 @@ namespace
 	public:
 		CSExpression(CSParserTree& _tree, const Vec2i& _start, size_t _startOffset, CSExpression* _parent):
 			tree(_tree),
-			type(EXPRESSION_TYPE_NULL),
 			start(_start),
 			end(_start),
+         startOffset(_startOffset),
+         endOffset(0),
+         type(EXPRESSION_TYPE_NULL),
+         transform(NULL),
 			parent(_parent),
-			Symbol(NULL),
-			transform(NULL),
-			children(NULL),
-			startOffset(_startOffset)
+			Symbol(NULL)
 		{
 			children.reserve(4);
 			if (_parent != NULL)
@@ -138,16 +153,15 @@ namespace
 		}
 
 		CSExpression(CSParserTree& _tree, const Vec2i& _start, const Vec2i& _end, size_t _startOffset, size_t _endOffset, CSExpression* _parent, csexstr data, int dataLen, bool isStringLiteral) :
-			tree(_tree),
-			type(isStringLiteral ? EXPRESSION_TYPE_STRING_LITERAL : EXPRESSION_TYPE_ATOMIC),
+			tree(_tree),		
 			start(_start),
 			end(_end),
-			parent(_parent),
-			Symbol(NULL),
-			transform(NULL),
-			children(NULL),
 			startOffset(_startOffset),
-			endOffset(_endOffset)
+			endOffset(_endOffset),
+         type(isStringLiteral ? EXPRESSION_TYPE_STRING_LITERAL : EXPRESSION_TYPE_ATOMIC),
+         transform(NULL),
+         parent(_parent),
+         Symbol(NULL)
 		{
 			Symbol = AddSymbol(tree, data, dataLen);
 
@@ -175,12 +189,12 @@ namespace
 
 		virtual void AddAtomic(csexstr token)
 		{
-			CSExpression* atomic = new CSExpression(tree, start, end, startOffset, endOffset, this, token, StringLength(token), false);
+			new CSExpression(tree, start, end, startOffset, endOffset, this, token, StringLength(token), false);
 		}
 
 		virtual void AddStringLiteral(csexstr token)
 		{
-			CSExpression* strliteral = new CSExpression(tree, start, end, startOffset, endOffset, this, token, StringLength(token), true);
+			new CSExpression(tree, start, end, startOffset, endOffset, this, token, StringLength(token), true);
 		}
 
 		virtual ISExpressionBuilder* AddChild()
@@ -223,9 +237,13 @@ namespace
 		}
 	};
 
-#define STATE_CALL __fastcall
+#ifdef _WIN32
+# define STATE_CALL __fastcall
+#else
+# define STATE_CALL
+#endif
 
-	class CSParserTree: public ISParserTree
+	class CSParserTree final: public ISParserTree
 	{
 	private:
 		int transformDepth;
@@ -265,14 +283,14 @@ namespace
 
 	public:
 		CSParserTree(CSexParser& _parser, ISourceCode& _sourceCode, const Vec2i& start, const Vec2i& end, int _transformDepth, CSExpression* _original):
-			refcount(1),
-			parser(_parser),
-			sourceCode(_sourceCode),
 			transformDepth(_transformDepth),
-			original(_original),
-			symbols(_sourceCode.SourceLength())
+         parser(_parser),
+         refcount(1),	
+         sourceCode(_sourceCode),	
+         symbols(_sourceCode.SourceLength()),
+			original(_original)			
 		{
-			auto srcrefcount = sourceCode.AddRef();
+			sourceCode.AddRef();
 			root = new CSExpression(*this, start, 0, NULL);
 			root->SetEnd(end, _sourceCode.SourceLength()-1);
 		}
@@ -483,11 +501,6 @@ namespace
 		throw ParseException(generationTokenStartPos, generationPrevCursorPos, sourceCode.Name(), SEXTEXT("Literal string not closed with a double quote character"), specimen, NULL);
 	}
 
-   void DeleteTree(CSParserTree* tree)
-   {
-      delete tree;
-   }
-
 	void CSParserTree::OpenInnerExpression()
 	{
 		generationNode = new CSExpression(*this, generationPrevCursorPos, generationCurrentPtr - sourceCode.SourceStart() - 1, generationNode);
@@ -648,10 +661,10 @@ namespace
 
 	bool IsUnicode(const char* buffer, long len)
 	{
-		return len > 2 && buffer[0] == 0 || buffer[1] == 0;
+		return (len > 2 && buffer[0] == 0) || buffer[1] == 0;
 	}
 	
-	class CSexParser: public ISParser
+	class CSexParser final: public ISParser
 	{
 	private:
 		refcount_t refcount;
@@ -762,7 +775,7 @@ namespace
 				}
 				else
 				{
-					SEXCHAR* sexBuffer = (SEXCHAR*)_malloca(len << 1);
+					SEXCHAR* sexBuffer = (SEXCHAR*)alloca(len << 1);
 					for (int i = 0; i < (len << 1); ++i)
 					{
 						rchar c = buffer[i];
@@ -781,7 +794,7 @@ namespace
 				}
 				else
 				{
-					SEXCHAR* sexBuffer = (SEXCHAR*)_malloca((len << 1) + sizeof(SEXCHAR));
+					SEXCHAR* sexBuffer = (SEXCHAR*)alloca((len << 1) + sizeof(SEXCHAR));
 					for (int i = 0; i < len; ++i)
 					{
 						char c = buffer[i];
@@ -809,11 +822,6 @@ namespace
 		{
 			tree->Release();
 		}
-	}
-
-	int TransformDepth(CSParserTree& tree)
-	{
-		return tree.TransformDepth();
 	}
 
 	CSParserTree* ConstructTransform(CSParserTree& prototype, const Vec2i& start, const Vec2i& end, CSExpression* original)
@@ -848,10 +856,10 @@ namespace
 	{
 		if (maprcharToSequence == nullptr)
 		{
-			maprcharToSequence = new EscapeSequence[65536];
+			maprcharToSequence = new EscapeSequence[256];
 			atexit(ClearEscapeMap);
 
-			for (uint32 i = 0; i < 65536; ++i)
+			for (uint32 i = 0; i < 32; ++i)
 			{
 				sprintf_s(maprcharToSequence[i].text, "&x%x", i);
 				maprcharToSequence[i].len = 6;
@@ -933,7 +941,7 @@ namespace Sexy
 
 			for (cstr s = text; *s != 0; s++)
 			{
-				segmentLength += maprcharToSequence[*s].len;
+				segmentLength += maprcharToSequence[(size_t)*s].len;
 			}
 
 			if (segmentLength > 0xFFFFFFFFull)
@@ -941,18 +949,16 @@ namespace Sexy
 				ThrowBadArg(SEXTEXT("EscapeScriptStringToAnsi -> string length too long"));
 			}
 
-			uint8* segment = (uint8*)_malloca(segmentLength);
+			uint8* segment = (uint8*)alloca(segmentLength);
 
 			uint8* writePos = segment;
 			for (cstr s = text; *s != 0; s++)
 			{
-				memcpy(writePos, maprcharToSequence[*s].text, maprcharToSequence[*s].len);
-				writePos += maprcharToSequence[*s].len;
+				memcpy(writePos, maprcharToSequence[(size_t)*s].text, maprcharToSequence[(size_t)*s].len);
+				writePos += maprcharToSequence[(size_t)*s].len;
 			}
 
 			writer.Write(segment, (uint32) segmentLength);
-
-			_freea(segment);
 		}
 
 		void EscapeScriptStringToUnicode(IUnicode16Writer& writer, cstr text)
@@ -965,23 +971,21 @@ namespace Sexy
 
 			for (cstr s = text; *s != 0; s++)
 			{
-				segmentLength += maprcharToSequence[*s].len;
+				segmentLength += maprcharToSequence[(size_t)*s].len;
 			}
 
-			rchar* segment = (rchar*)_malloca(sizeof(rchar) * segmentLength);
+			rchar* segment = (rchar*)alloca(sizeof(rchar) * segmentLength);
 
 			rchar* writePos = segment;
 			for (cstr s = text; *s != 0; s++)
 			{
-				SecureFormat(writePos, segment + segmentLength - writePos, SEXTEXT("%s"), maprcharToSequence[*s].text);
-				writePos += maprcharToSequence[*s].len;
+				SecureFormat(writePos, segment + segmentLength - writePos, SEXTEXT("%s"), maprcharToSequence[(size_t)*s].text);
+				writePos += maprcharToSequence[(size_t)*s].len;
 			}
 
 			*writePos = 0;
 
 			writer.Append(L"%S", segment);
-
-			_freea(segment);
 		}
 	}
 }

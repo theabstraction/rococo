@@ -36,7 +36,7 @@ namespace
 	using namespace Sexy;
 	using namespace Sexy::Sex;
 
-	class CSourceCodeCopy: public ISourceCode
+	class CSourceCodeCopy final: public ISourceCode
 	{
 	private:
 		refcount_t refcount;
@@ -48,9 +48,9 @@ namespace
 	public:
 		CSourceCodeCopy(csexstr _buffer, int _segmentLength, const Vec2i& _origin, csexstr _name):
 			refcount(1),
-			name(_name),
-			origin(_origin),
-			segmentLength(_segmentLength)
+         segmentLength(_segmentLength),
+         origin(_origin),
+			name(_name)
 		{
 			buffer = new SEXCHAR[_segmentLength + 1];
 			memcpy(buffer, _buffer, segmentLength * sizeof(SEXCHAR));
@@ -84,7 +84,7 @@ namespace
 		}
 	};
 
-	class CSourceCodeProxy: public ISourceCode
+	class CSourceCodeProxy final: public ISourceCode
 	{
 	private:
 		refcount_t refcount;
@@ -96,10 +96,10 @@ namespace
 	public:
 		CSourceCodeProxy(csexstr _buffer, int _segmentLength, const Vec2i& _origin, csexstr _name):
 			refcount(1),
-			name(_name),
-			origin(_origin),
-			segmentLength(_segmentLength),
-			buffer(_buffer)
+         buffer(_buffer),
+         segmentLength(_segmentLength),
+         origin(_origin),
+			name(_name)	
 		{
 		}
 
