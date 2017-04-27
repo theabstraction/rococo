@@ -35,8 +35,8 @@
 #include "sexy.compiler.public.h"
 #include "sexy.debug.types.h"
 #include "Sexy.Script.h"
-#include "..\STC\stccore\Sexy.Compiler.h"
-#include "..\STC\stccore\sexy.compiler.helpers.h"
+#include "Sexy.Compiler.h"
+#include "sexy.compiler.helpers.h"
 #include "Sexy.S-Parser.h"
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
@@ -75,28 +75,28 @@ namespace Sexy
       {
          va_list args;
          va_start(args, format);
-         vsprintf_s(variable.Value, VariableDesc::VALUE_CAPACITY, format, args);
+         SafeFormat(variable.Value, VariableDesc::VALUE_CAPACITY, format, args);
       }
 
       void FormatVariableDescLocation(VariableDesc& variable, const char* format, ...)
       {
          va_list args;
          va_start(args, format);
-         vsprintf_s(variable.Location, VariableDesc::LOCATION_CAPACITY, format, args);
+         SafeFormat(variable.Location, VariableDesc::LOCATION_CAPACITY, format, args);
       }
 
       void FormatVariableDescName(VariableDesc& variable, const char* format, ...)
       {
          va_list args;
          va_start(args, format);
-         vsprintf_s(variable.Name, VariableDesc::NAME_CAPACITY, format, args);
+         SafeFormat(variable.Name, VariableDesc::NAME_CAPACITY, format, args);
       }
 
       void FormatVariableDescType(VariableDesc& variable, const char* format, ...)
       {
          va_list args;
          va_start(args, format);
-         vsprintf_s(variable.Type, VariableDesc::TYPE_CAPACITY, format, args);
+         SafeFormat(variable.Type, VariableDesc::TYPE_CAPACITY, format, args);
       }
 
       void AddSFToVarEnum(VariableDesc& variable, const Sexy::uint8* SF)
@@ -244,603 +244,607 @@ namespace Sexy
    }
 }
 
-namespace Sexy { namespace Script
-{
-	SCRIPTEXPORT_API void FormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, VARTYPE type, const void* pVariableData)
-	{
-#ifdef _WIN32
-		__try
-#endif
-		{
-			ProtectedFormatValue(ss, buffer, bufferCapacity, type, pVariableData);
-		}
-#ifdef _WIN32
-		__except(1)
-		{
-			strcpy_s(buffer, bufferCapacity, "Bad pointer");
-		}
-#endif
-	}
+namespace Sexy
+{ 
+   namespace Script
+   {
+	   SCRIPTEXPORT_API void FormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, VARTYPE type, const void* pVariableData)
+	   {
+   #ifdef _WIN32
+		   __try
+   #endif
+		   {
+			   ProtectedFormatValue(ss, buffer, bufferCapacity, type, pVariableData);
+		   }
+   #ifdef _WIN32
+		   __except(1)
+		   {
+			   strcpy_s(buffer, bufferCapacity, "Bad pointer");
+		   }
+   #endif
+	   }
 
-	SCRIPTEXPORT_API void ForeachStackLevel(Sexy::Compiler::IPublicProgramObject& obj, ICallStackEnumerationCallback& cb)
-	{
-		IProgramMemory& mem = obj.ProgramMemory();
-		CPU& cpu = obj.VirtualMachine().Cpu();
-		const uint8* sf = cpu.SF();
-		const uint8* pc = cpu.PC();
+	   SCRIPTEXPORT_API void ForeachStackLevel(Sexy::Compiler::IPublicProgramObject& obj, ICallStackEnumerationCallback& cb)
+	   {
+		   IProgramMemory& mem = obj.ProgramMemory();
+		   CPU& cpu = obj.VirtualMachine().Cpu();
+		   const uint8* sf = cpu.SF();
+		   const uint8* pc = cpu.PC();
 
-		const uint8* currentFrame = sf;
-		const uint8* currentLine = pc;
+		   const uint8* currentFrame = sf;
+		   const uint8* currentLine = pc;
 
-		for (; currentLine != NULL; currentLine = GetReturnAddress(cpu, currentFrame), currentFrame = GetCallerSF(cpu, currentFrame))
-		{
-			ID_BYTECODE runningId = mem.GetFunctionContaingAddress(currentLine - cpu.ProgramStart);
-			if (runningId != 0)
-			{
-				const Sexy::Compiler::IFunction* f = Sexy::Script::GetFunctionFromBytecode(obj, runningId);
-				if (f != NULL)
-				{
-					AsciiName name(f->Name());
-					cb.OnStackLevel(currentFrame, name.data);
-				}
-				else
-				{
-					char desc[128];
-					sprintf_s(desc, 128, "---Unknown function. ID_BYTECODE %u---", (uint32) (size_t) runningId);
-					cb.OnStackLevel(currentFrame, desc);
-				}
-			}
-			else 
-			{
-				if (currentFrame == NULL)
-				{
-					cb.OnStackLevel(currentFrame, "---Execution Stub---");
-				}
-				else
-				{
-					cb.OnStackLevel(currentFrame, "---Could not resolve function---");
-				}
-			}
-		}
-	}
+		   for (; currentLine != NULL; currentLine = GetReturnAddress(cpu, currentFrame), currentFrame = GetCallerSF(cpu, currentFrame))
+		   {
+			   ID_BYTECODE runningId = mem.GetFunctionContaingAddress(currentLine - cpu.ProgramStart);
+			   if (runningId != 0)
+			   {
+				   const Sexy::Compiler::IFunction* f = Sexy::Script::GetFunctionFromBytecode(obj, runningId);
+				   if (f != NULL)
+				   {
+					   AsciiName name(f->Name());
+					   cb.OnStackLevel(currentFrame, name.data);
+				   }
+				   else
+				   {
+					   char desc[128];
+					   sprintf_s(desc, 128, "---Unknown function. ID_BYTECODE %u---", (uint32) (size_t) runningId);
+					   cb.OnStackLevel(currentFrame, desc);
+				   }
+			   }
+			   else 
+			   {
+				   if (currentFrame == NULL)
+				   {
+					   cb.OnStackLevel(currentFrame, "---Execution Stub---");
+				   }
+				   else
+				   {
+					   cb.OnStackLevel(currentFrame, "---Could not resolve function---");
+				   }
+			   }
+		   }
+	   }
 
-	SCRIPTEXPORT_API void EnumerateRegisters(Sexy::VM::CPU& cpu, IRegisterEnumerationCallback& cb)
-	{
-		char value[128];
+	   SCRIPTEXPORT_API void EnumerateRegisters(Sexy::VM::CPU& cpu, IRegisterEnumerationCallback& cb)
+	   {
+		   char value[128];
 
-		sprintf_s(value, 128, "0x%p", cpu.PC());
-		cb.OnRegister("PC", value);
+		   sprintf_s(value, 128, "0x%p", cpu.PC());
+		   cb.OnRegister("PC", value);
 
-		sprintf_s(value, 128, "0x%p", cpu.SP());
-		cb.OnRegister("SP", value);
+		   sprintf_s(value, 128, "0x%p", cpu.SP());
+		   cb.OnRegister("SP", value);
 
-		sprintf_s(value, 128, "0x%p", cpu.SF());
-		cb.OnRegister("SF", value);
+		   sprintf_s(value, 128, "0x%p", cpu.SF());
+		   cb.OnRegister("SF", value);
 
-		sprintf_s(value, 128, "0x%X", cpu.SR());
-		cb.OnRegister("SR", value);
+		   sprintf_s(value, 128, "0x%X", cpu.SR());
+		   cb.OnRegister("SR", value);
 
-		for(int i = 4; i < 256; ++i)
-		{
-			char name[16];
-			sprintf_s(name, 16, "D%u", i);
-			sprintf_s(value, 128, "%lld / 0x%llX", cpu.D[i].int64Value, cpu.D[i].int64Value);
-			cb.OnRegister(name, value);
-		}
-	}
+		   for(int i = 4; i < 256; ++i)
+		   {
+			   char name[16];
+			   sprintf_s(name, 16, "D%u", i);
+			   sprintf_s(value, 128, "%lld / 0x%llX", cpu.D[i].int64Value, cpu.D[i].int64Value);
+			   cb.OnRegister(name, value);
+		   }
+	   }
 
-	SCRIPTEXPORT_API const Sexy::Sex::ISExpression* GetSexSymbol(CPU& cpu, const uint8* pcAddress, Sexy::Script::IPublicScriptSystem& ss)
-	{
-		size_t pcOffset = cpu.PC() - cpu.ProgramStart;
+	   SCRIPTEXPORT_API const Sexy::Sex::ISExpression* GetSexSymbol(CPU& cpu, const uint8* pcAddress, Sexy::Script::IPublicScriptSystem& ss)
+	   {
+		   size_t pcOffset = cpu.PC() - cpu.ProgramStart;
 
-		const Sexy::Compiler::IFunction* f = GetFunctionAtAddress(ss.PublicProgramObject(), pcOffset);
+		   const Sexy::Compiler::IFunction* f = GetFunctionAtAddress(ss.PublicProgramObject(), pcOffset);
 
-		if (f == NULL) return NULL;
+		   if (f == NULL) return NULL;
 
-		Sexy::Compiler::CodeSection section;
-		f->Code().GetCodeSection(section);
+		   Sexy::Compiler::CodeSection section;
+		   f->Code().GetCodeSection(section);
 
-		IPublicProgramObject& po = ss.PublicProgramObject();
-		IVirtualMachine& vm = po.VirtualMachine();
+		   IPublicProgramObject& po = ss.PublicProgramObject();
+		   IVirtualMachine& vm = po.VirtualMachine();
 
-		size_t functionLength = po.ProgramMemory().GetFunctionLength(section.Id);
-		size_t functionStartAddress = po.ProgramMemory().GetFunctionAddress(section.Id);
+		   size_t functionLength = po.ProgramMemory().GetFunctionLength(section.Id);
+		   size_t functionStartAddress = po.ProgramMemory().GetFunctionAddress(section.Id);
 
-		const uint8* fstart = vm.Cpu().ProgramStart + functionStartAddress;
-		size_t fnOffset = pcOffset - po.ProgramMemory().GetFunctionAddress(section.Id);
+		   const uint8* fstart = vm.Cpu().ProgramStart + functionStartAddress;
+		   size_t fnOffset = pcOffset - po.ProgramMemory().GetFunctionAddress(section.Id);
 
-		const Sexy::Sex::ISExpression* s = (const Sexy::Sex::ISExpression*) f->Code().GetSymbol(fnOffset).SourceExpression;
-		return s;
-	}
+		   const Sexy::Sex::ISExpression* s = (const Sexy::Sex::ISExpression*) f->Code().GetSymbol(fnOffset).SourceExpression;
+		   return s;
+	   }
 
-	SCRIPTEXPORT_API const Sexy::Compiler::IFunction* GetFunctionFromBytecode(const Sexy::Compiler::IModule& module, Sexy::ID_BYTECODE id)
-	{
-		for(int j = 0; j < module.FunctionCount(); ++j)
-		{
-			const IFunction& f = module.GetFunction(j);
+	   SCRIPTEXPORT_API const Sexy::Compiler::IFunction* GetFunctionFromBytecode(const Sexy::Compiler::IModule& module, Sexy::ID_BYTECODE id)
+	   {
+		   for(int j = 0; j < module.FunctionCount(); ++j)
+		   {
+			   const IFunction& f = module.GetFunction(j);
 				
-			CodeSection section;
-			f.Code().GetCodeSection(section);
-			if (section.Id == id)
-			{
-				return &f;
-			}
-		}
+			   CodeSection section;
+			   f.Code().GetCodeSection(section);
+			   if (section.Id == id)
+			   {
+				   return &f;
+			   }
+		   }
 
-		return NULL;
-	}
+		   return NULL;
+	   }
 
-	SCRIPTEXPORT_API const Sexy::Compiler::IFunction* GetFunctionFromBytecode(Sexy::Compiler::IPublicProgramObject& obj, Sexy::ID_BYTECODE id)
-	{
-		for(int i = 0; i < obj.ModuleCount(); ++i)
-		{
-			const Sexy::Compiler::IFunction* f = GetFunctionFromBytecode(obj.GetModule(i), id);
-			if (f != NULL) return f;
-		}
+	   SCRIPTEXPORT_API const Sexy::Compiler::IFunction* GetFunctionFromBytecode(Sexy::Compiler::IPublicProgramObject& obj, Sexy::ID_BYTECODE id)
+	   {
+		   for(int i = 0; i < obj.ModuleCount(); ++i)
+		   {
+			   const Sexy::Compiler::IFunction* f = GetFunctionFromBytecode(obj.GetModule(i), id);
+			   if (f != NULL) return f;
+		   }
 
-		return GetFunctionFromBytecode(obj.IntrinsicModule(), id);
-	}
+		   return GetFunctionFromBytecode(obj.IntrinsicModule(), id);
+	   }
 
-	SCRIPTEXPORT_API const Sexy::Compiler::IFunction* GetFunctionAtAddress(Sexy::Compiler::IPublicProgramObject& po, size_t pcOffset)
-	{
-		IVirtualMachine& vm = po.VirtualMachine();
-		IProgramMemory& mem = po.ProgramMemory();
+	   SCRIPTEXPORT_API const Sexy::Compiler::IFunction* GetFunctionAtAddress(Sexy::Compiler::IPublicProgramObject& po, size_t pcOffset)
+	   {
+		   IVirtualMachine& vm = po.VirtualMachine();
+		   IProgramMemory& mem = po.ProgramMemory();
 
-		ID_BYTECODE runningId = mem.GetFunctionContaingAddress(pcOffset);
-		if (runningId != 0)
-		{
-			const IFunction* f = GetFunctionFromBytecode(po, runningId);
-			return f;
-		}
+		   ID_BYTECODE runningId = mem.GetFunctionContaingAddress(pcOffset);
+		   if (runningId != 0)
+		   {
+			   const IFunction* f = GetFunctionFromBytecode(po, runningId);
+			   return f;
+		   }
 
-		return NULL;
-	}
+		   return NULL;
+	   }
 
-	SCRIPTEXPORT_API const uint8* GetCallerSF(CPU& cpu, const uint8* sf)
-	{
-		if (sf >= cpu.StackStart + 2 * sizeof(size_t) && sf < cpu.StackEnd)
-		{
-			uint8* pValue = ((uint8*) sf) - 2 * sizeof(size_t) ;
-			void** ppValue = (void**) pValue;
+	   SCRIPTEXPORT_API const uint8* GetCallerSF(CPU& cpu, const uint8* sf)
+	   {
+		   if (sf >= cpu.StackStart + 2 * sizeof(size_t) && sf < cpu.StackEnd)
+		   {
+			   uint8* pValue = ((uint8*) sf) - 2 * sizeof(size_t) ;
+			   void** ppValue = (void**) pValue;
 
-			return (*ppValue < sf) ? (const uint8*) (*ppValue) : NULL;
-		}
-		else
-		{
-			return NULL;
-		}
-	}
+			   return (*ppValue < sf) ? (const uint8*) (*ppValue) : NULL;
+		   }
+		   else
+		   {
+			   return NULL;
+		   }
+	   }
 
-	SCRIPTEXPORT_API const uint8* GetReturnAddress(CPU& cpu, const uint8* sf)
-	{
-#ifdef _WIN32
-		__try
-#endif
-		{
+	   SCRIPTEXPORT_API const uint8* GetReturnAddress(CPU& cpu, const uint8* sf)
+	   {
+   #ifdef _WIN32
+		   __try
+   #endif
+		   {
 
-			if (sf >= cpu.StackStart + 4 && sf < cpu.StackEnd)
-			{
-				uint8* pValue = ((Sexy::uint8*) sf) - sizeof(size_t) ;
-				void** ppValue = (void**) pValue;
-				const uint8* caller = (const uint8*) *ppValue;
-				if (caller >= cpu.ProgramStart && caller < cpu.ProgramEnd)
-				{
-					return caller;
-				}
-			}
-		}
-#ifdef _WIN32
-		__except(1)
+			   if (sf >= cpu.StackStart + 4 && sf < cpu.StackEnd)
+			   {
+				   uint8* pValue = ((Sexy::uint8*) sf) - sizeof(size_t) ;
+				   void** ppValue = (void**) pValue;
+				   const uint8* caller = (const uint8*) *ppValue;
+				   if (caller >= cpu.ProgramStart && caller < cpu.ProgramEnd)
+				   {
+					   return caller;
+				   }
+			   }
+		   }
+   #ifdef _WIN32
+		   __except(1)
 
-		{
-		}
-#endif
+		   {
+		   }
+   #endif
 
-		return NULL;		
-	}
+		   return NULL;		
+	   }
 
-	SCRIPTEXPORT_API const uint8* GetStackFrame(Sexy::VM::CPU& cpu, int32 callDepth)
-	{
-		const uint8* sf = cpu.SF();
-		for(int32 depth = callDepth; depth > 0; depth--)
-		{
-			sf = GetCallerSF(cpu, sf);
-		}
-		return sf;
-	}
+	   SCRIPTEXPORT_API const uint8* GetStackFrame(Sexy::VM::CPU& cpu, int32 callDepth)
+	   {
+		   const uint8* sf = cpu.SF();
+		   for(int32 depth = callDepth; depth > 0; depth--)
+		   {
+			   sf = GetCallerSF(cpu, sf);
+		   }
+		   return sf;
+	   }
 
-	SCRIPTEXPORT_API const uint8* GetPCAddress(Sexy::VM::CPU& cpu, int32 callDepth)
-	{
-		const uint8* pc = cpu.PC();
-		const uint8* sf = cpu.SF();
-		for(int32 depth = callDepth; depth > 0; depth--)
-		{
-			pc = GetReturnAddress(cpu, sf);
-			sf = GetCallerSF(cpu, sf);			
-		}
-		return pc;
-	}
+	   SCRIPTEXPORT_API const uint8* GetPCAddress(Sexy::VM::CPU& cpu, int32 callDepth)
+	   {
+		   const uint8* pc = cpu.PC();
+		   const uint8* sf = cpu.SF();
+		   for(int32 depth = callDepth; depth > 0; depth--)
+		   {
+			   pc = GetReturnAddress(cpu, sf);
+			   sf = GetCallerSF(cpu, sf);			
+		   }
+		   return pc;
+	   }
 
-	SCRIPTEXPORT_API bool GetVariableByIndex(csexstr& name, MemberDef& def, const IStructure*& pseudoType, const Sexy::uint8*& SF, IPublicScriptSystem& ss, size_t index, size_t callDepth)
-	{
-		const uint8* pc;
-		const IFunction* f;
-		size_t fnOffset;
+	   SCRIPTEXPORT_API bool GetVariableByIndex(csexstr& name, MemberDef& def, const IStructure*& pseudoType, const Sexy::uint8*& SF, IPublicScriptSystem& ss, size_t index, size_t callDepth)
+	   {
+		   const uint8* pc;
+		   const IFunction* f;
+		   size_t fnOffset;
 
-		if (!GetCallDescription(SF, pc, f, fnOffset, ss, callDepth)) return false;
+		   if (!GetCallDescription(SF, pc, f, fnOffset, ss, callDepth)) return false;
 
-		if (index < 3) return false; // Not real variables
+		   if (index < 3) return false; // Not real variables
 					
-		size_t count = 3;
+		   size_t count = 3;
 	
-		const IStructure* lastPseudo = NULL;
-		csexstr lastPseudoName;
+		   const IStructure* lastPseudo = NULL;
+		   csexstr lastPseudoName;
 
-		for(int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
-		{
-			f->Code().GetLocalVariableSymbolByIndex(OUT def, OUT name, i);
+		   for(int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
+		   {
+			   f->Code().GetLocalVariableSymbolByIndex(OUT def, OUT name, i);
 
-			if (fnOffset < def.pcStart || fnOffset > def.pcEnd)
-			{
-				continue;
-			}
+			   if (fnOffset < def.pcStart || fnOffset > def.pcEnd)
+			   {
+				   continue;
+			   }
 
-			if (AreEqual(name, SEXTEXT("_arg"), 4)) continue;
+			   if (AreEqual(name, SEXTEXT("_arg"), 4)) continue;
 
-			if (def.location == Sexy::Compiler::VARLOCATION_NONE)
-			{
-				lastPseudo = def.ResolvedType;
-				lastPseudoName = name;
-				continue;
-			}	
+			   if (def.location == Sexy::Compiler::VARLOCATION_NONE)
+			   {
+				   lastPseudo = def.ResolvedType;
+				   lastPseudoName = name;
+				   continue;
+			   }	
 
-			pseudoType = NULL;
+			   pseudoType = NULL;
 
-			if (count == index)
-			{
-				const void* pVariableData = SF + def.SFOffset;
-				if (def.Usage == Sexy::Compiler::ARGUMENTUSAGE_BYVALUE)
-				{
-					if (lastPseudo != NULL && lastPseudoName != NULL)
-					{
-						TokenBuffer expectedToken;
-						StringPrint(expectedToken, SEXTEXT("_ref_%s"), lastPseudoName);
-						if (AreEqual(expectedToken.Text, name))
-						{
-							pseudoType =  lastPseudo;
-						}
-					}
-				}
+			   if (count == index)
+			   {
+				   const void* pVariableData = SF + def.SFOffset;
+				   if (def.Usage == Sexy::Compiler::ARGUMENTUSAGE_BYVALUE)
+				   {
+					   if (lastPseudo != NULL && lastPseudoName != NULL)
+					   {
+						   TokenBuffer expectedToken;
+						   StringPrint(expectedToken, SEXTEXT("_ref_%s"), lastPseudoName);
+						   if (AreEqual(expectedToken.Text, name))
+						   {
+							   pseudoType =  lastPseudo;
+						   }
+					   }
+				   }
 
-				return true;
-			}
+				   return true;
+			   }
 
-			count++;			
-		}
+			   count++;			
+		   }
 
-		return false;
-	}
+		   return false;
+	   }
 
-	SCRIPTEXPORT_API bool FindVariableByName(MemberDef& def, const IStructure*& pseudoType, const Sexy::uint8*& SF, IPublicScriptSystem& ss, csexstr searchName, size_t callDepth)
-	{
-		size_t nVariables = GetCurrentVariableCount(ss, callDepth);
-		for(size_t i = 0; i < nVariables; ++i)
-		{
-			csexstr name;
-			if (!GetVariableByIndex(name, def, pseudoType, SF, ss, i, callDepth)) continue;
+	   SCRIPTEXPORT_API bool FindVariableByName(MemberDef& def, const IStructure*& pseudoType, const Sexy::uint8*& SF, IPublicScriptSystem& ss, csexstr searchName, size_t callDepth)
+	   {
+		   size_t nVariables = GetCurrentVariableCount(ss, callDepth);
+		   for(size_t i = 0; i < nVariables; ++i)
+		   {
+			   csexstr name;
+			   if (!GetVariableByIndex(name, def, pseudoType, SF, ss, i, callDepth)) continue;
 
-			if (AreEqual(name, searchName))
-			{
-				return true;
-			}
-		}
+			   if (AreEqual(name, searchName))
+			   {
+				   return true;
+			   }
+		   }
 
-		return false;
-	}
+		   return false;
+	   }
 
-	SCRIPTEXPORT_API size_t GetCurrentVariableCount(IPublicScriptSystem& ss, size_t callDepth)
-	{
-		const uint8* sf;
-		const uint8* pc;
-		const IFunction* f;
-		size_t fnOffset;
+	   SCRIPTEXPORT_API size_t GetCurrentVariableCount(IPublicScriptSystem& ss, size_t callDepth)
+	   {
+		   const uint8* sf;
+		   const uint8* pc;
+		   const IFunction* f;
+		   size_t fnOffset;
 
-		if (!GetCallDescription(sf, pc, f, fnOffset, ss, callDepth)) return 0;
+		   if (!GetCallDescription(sf, pc, f, fnOffset, ss, callDepth)) return 0;
 
-		size_t count = 0;
-		for(int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
-		{
-			Sexy::Compiler::MemberDef def;
-			Sexy::csexstr name;
-			f->Code().GetLocalVariableSymbolByIndex(OUT def, OUT name, i);
+		   size_t count = 0;
+		   for(int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
+		   {
+			   Sexy::Compiler::MemberDef def;
+			   Sexy::csexstr name;
+			   f->Code().GetLocalVariableSymbolByIndex(OUT def, OUT name, i);
 
-			if (fnOffset < def.pcStart || fnOffset > def.pcEnd)
-			{
-				continue;
-			}
+			   if (fnOffset < def.pcStart || fnOffset > def.pcEnd)
+			   {
+				   continue;
+			   }
 
-			if (AreEqual(name, SEXTEXT("_arg"), 4)) continue;
+			   if (AreEqual(name, SEXTEXT("_arg"), 4)) continue;
 
-			count++;
-		}
+			   count++;
+		   }
 
-		return count + 3; // + SF + return address + old SF
-	}
+		   return count + 3; // + SF + return address + old SF
+	   }
 
-	SCRIPTEXPORT_API void SkipJIT(Sexy::Compiler::IPublicProgramObject& po)
-	{
-		IVirtualMachine& vm = po.VirtualMachine();
-		IProgramMemory& mem = po.ProgramMemory();
+	   SCRIPTEXPORT_API void SkipJIT(Sexy::Compiler::IPublicProgramObject& po)
+	   {
+		   IVirtualMachine& vm = po.VirtualMachine();
+		   IProgramMemory& mem = po.ProgramMemory();
 
-		while(true)
-		{
-			size_t pcOffset = vm.Cpu().PC() - vm.Cpu().ProgramStart;
+		   while(true)
+		   {
+			   size_t pcOffset = vm.Cpu().PC() - vm.Cpu().ProgramStart;
 			
-			const IFunction* f = GetFunctionAtAddress(po, pcOffset);
-			if (f != NULL)
-			{
-				CodeSection section;
-				f->Code().GetCodeSection(section);
+			   const IFunction* f = GetFunctionAtAddress(po, pcOffset);
+			   if (f != NULL)
+			   {
+				   CodeSection section;
+				   f->Code().GetCodeSection(section);
 
-				size_t fnOffset = pcOffset - mem.GetFunctionAddress(section.Id);
+				   size_t fnOffset = pcOffset - mem.GetFunctionAddress(section.Id);
 				
-				csexstr symbol = f->Code().GetSymbol(fnOffset).Text;
-				if (symbol != NULL && AreEqual(symbol, SEXTEXT("#!skip")))
-				{
-					vm.StepInto(true);
-					continue;
-				}
-			}
+				   csexstr symbol = f->Code().GetSymbol(fnOffset).Text;
+				   if (symbol != NULL && AreEqual(symbol, SEXTEXT("#!skip")))
+				   {
+					   vm.StepInto(true);
+					   continue;
+				   }
+			   }
 
-			break;
-		}
-	}
+			   break;
+		   }
+	   }
 
-	SCRIPTEXPORT_API bool GetCallDescription(const uint8*& sf, const uint8*& pc, const IFunction*& f, size_t& fnOffset, IPublicScriptSystem& ss, size_t callDepth)
-	{
-		IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
-		IPublicProgramObject& obj = ss.PublicProgramObject();
-		CPU& cpu = vm.Cpu();
+	   SCRIPTEXPORT_API bool GetCallDescription(const uint8*& sf, const uint8*& pc, const IFunction*& f, size_t& fnOffset, IPublicScriptSystem& ss, size_t callDepth)
+	   {
+		   IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
+		   IPublicProgramObject& obj = ss.PublicProgramObject();
+		   CPU& cpu = vm.Cpu();
 
-		sf = Sexy::Script::GetStackFrame(cpu, (int32) callDepth);
-		pc = Sexy::Script::GetPCAddress(cpu, (int32) callDepth);
+		   sf = Sexy::Script::GetStackFrame(cpu, (int32) callDepth);
+		   pc = Sexy::Script::GetPCAddress(cpu, (int32) callDepth);
 
-		if (pc == NULL) return false;
+		   if (pc == NULL) return false;
 
-		f = GetFunctionAtAddress(obj, (size_t)(pc - cpu.ProgramStart));
-		if (f == NULL) return false;
+		   f = GetFunctionAtAddress(obj, (size_t)(pc - cpu.ProgramStart));
+		   if (f == NULL) return false;
 
-		CodeSection cs;
-		f->Code().GetCodeSection(OUT cs);
+		   CodeSection cs;
+		   f->Code().GetCodeSection(OUT cs);
 
-		const Sexy::uint8* startOfFunction = obj.ProgramMemory().GetFunctionAddress(cs.Id) + obj.ProgramMemory().StartOfMemory();
-		ptrdiff_t pcOffsetRel = pc - startOfFunction;
-		if (pcOffsetRel < 0) return false;
-		fnOffset = (size_t) pcOffsetRel;
-		return true;
-	}
+		   const Sexy::uint8* startOfFunction = obj.ProgramMemory().GetFunctionAddress(cs.Id) + obj.ProgramMemory().StartOfMemory();
+		   ptrdiff_t pcOffsetRel = pc - startOfFunction;
+		   if (pcOffsetRel < 0) return false;
+		   fnOffset = (size_t) pcOffsetRel;
+		   return true;
+	   }
 
-	SCRIPTEXPORT_API void ForeachVariable(Sexy::Script::IPublicScriptSystem& ss, Sexy::Debugger::IVariableEnumeratorCallback& variableEnum, size_t callDepth)
-	{
-		const uint8* sf;
-		const uint8* pc;
-		const IFunction* f;
-		size_t fnOffset;
+	   SCRIPTEXPORT_API void ForeachVariable(Sexy::Script::IPublicScriptSystem& ss, Sexy::Debugger::IVariableEnumeratorCallback& variableEnum, size_t callDepth)
+	   {
+		   const uint8* sf;
+		   const uint8* pc;
+		   const IFunction* f;
+		   size_t fnOffset;
 
-		if (!GetCallDescription(sf, pc, f, fnOffset, ss, callDepth)) return;
+		   if (!GetCallDescription(sf, pc, f, fnOffset, ss, callDepth)) return;
 
-		const Sexy::Compiler::IStructure* lastPseudo = NULL;
-		csexstr lastPseudoName;
+		   const Sexy::Compiler::IStructure* lastPseudo = NULL;
+		   csexstr lastPseudoName;
 
-		VariableDesc variable;
+		   VariableDesc variable;
 		
-		AddSFToVarEnum(variable, sf);
-		variableEnum.OnVariable(0, variable);
-		AddReturnAddressToVarEnum(variable, sf);
-		variableEnum.OnVariable(1, variable);
-		AddOldSFToVarEnum(variable, sf);
-		variableEnum.OnVariable(2, variable);
+		   AddSFToVarEnum(variable, sf);
+		   variableEnum.OnVariable(0, variable);
+		   AddReturnAddressToVarEnum(variable, sf);
+		   variableEnum.OnVariable(1, variable);
+		   AddOldSFToVarEnum(variable, sf);
+		   variableEnum.OnVariable(2, variable);
 				
-		size_t count = 3;
+		   size_t count = 3;
 
-		for(int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
-		{
-			MemberDef def;
-			csexstr name;
-			f->Code().GetLocalVariableSymbolByIndex(OUT def, OUT name, i);
+		   for(int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
+		   {
+			   MemberDef def;
+			   csexstr name;
+			   f->Code().GetLocalVariableSymbolByIndex(OUT def, OUT name, i);
 
-			if (fnOffset < def.pcStart || fnOffset > def.pcEnd)
-			{
-				continue;
-			}
+			   if (fnOffset < def.pcStart || fnOffset > def.pcEnd)
+			   {
+				   continue;
+			   }
 
-			if (AreEqual(name, SEXTEXT("_arg"), 4)) continue;
+			   if (AreEqual(name, SEXTEXT("_arg"), 4)) continue;
 
-			if (def.location == Sexy::Compiler::VARLOCATION_NONE)
-			{
-				lastPseudo = def.ResolvedType;
-				lastPseudoName = name;
-				continue;
-			}			
+			   if (def.location == Sexy::Compiler::VARLOCATION_NONE)
+			   {
+				   lastPseudo = def.ResolvedType;
+				   lastPseudoName = name;
+				   continue;
+			   }			
 
-			const void* pVariableData = sf + def.SFOffset;
-			if (def.Usage == ARGUMENTUSAGE_BYVALUE)
-			{
-				FormatValue(ss, variable.Value, variable.VALUE_CAPACITY, def.ResolvedType->VarType(), pVariableData);
+			   const void* pVariableData = sf + def.SFOffset;
+			   if (def.Usage == ARGUMENTUSAGE_BYVALUE)
+			   {
+				   FormatValue(ss, variable.Value, variable.VALUE_CAPACITY, def.ResolvedType->VarType(), pVariableData);
 
-				if (lastPseudo != NULL && lastPseudoName != NULL)
-				{
-					TokenBuffer expectedToken;
-					StringPrint(expectedToken, SEXTEXT("_ref_%s"), lastPseudoName);
+				   if (lastPseudo != NULL && lastPseudoName != NULL)
+				   {
+					   TokenBuffer expectedToken;
+					   StringPrint(expectedToken, SEXTEXT("_ref_%s"), lastPseudoName);
 
-					if (AreEqual(expectedToken.Text, name))
-					{
-						AsciiName desc(Compiler::GetTypeName(*lastPseudo));
-						AsciiName last(lastPseudoName);
-						FormatVariableDescType(variable, "%s*", desc.data);
-						FormatVariableDescName(variable, "%s", last.data);
-					}
-					else
-					{
-						AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
-						AsciiName asciiName(name);
-						FormatVariableDescType(variable, "%s", desc.data);
-						FormatVariableDescName(variable, "%s", asciiName.data);
-					}
-				}
-				else
-				{
-					AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
-					AsciiName asciiName(name);
-					FormatVariableDescType(variable, "%s", desc.data);
-					FormatVariableDescName(variable, "%s", asciiName.data);
-				}
-			}
-			else
-			{
-				const void** ppData = (const void**) pVariableData;
-#ifdef _WIN32
-				__try
-#endif
-				{
-					FormatVariableDesc(variable, "0x%p (-> 0x%p)", pVariableData, *ppData);
-				}
-#ifdef _WIN32
-				__except(1)
-				{
-					FormatVariableDesc(variable, "Bad pointer");
-				}
-#endif
+					   if (AreEqual(expectedToken.Text, name))
+					   {
+						   AsciiName desc(Compiler::GetTypeName(*lastPseudo));
+						   AsciiName last(lastPseudoName);
+						   FormatVariableDescType(variable, "%s*", desc.data);
+						   FormatVariableDescName(variable, "%s", last.data);
+					   }
+					   else
+					   {
+						   AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
+						   AsciiName asciiName(name);
+						   FormatVariableDescType(variable, "%s", desc.data);
+						   FormatVariableDescName(variable, "%s", asciiName.data);
+					   }
+				   }
+				   else
+				   {
+					   AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
+					   AsciiName asciiName(name);
+					   FormatVariableDescType(variable, "%s", desc.data);
+					   FormatVariableDescName(variable, "%s", asciiName.data);
+				   }
+			   }
+			   else
+			   {
+				   const void** ppData = (const void**) pVariableData;
+   #ifdef _WIN32
+				   __try
+   #endif
+				   {
+					   FormatVariableDesc(variable, "0x%p (-> 0x%p)", pVariableData, *ppData);
+				   }
+   #ifdef _WIN32
+				   __except(1)
+				   {
+					   FormatVariableDesc(variable, "Bad pointer");
+				   }
+   #endif
 				
-				AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
-				FormatVariableDescType(variable, "*%s", desc.data);
+				   AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
+				   FormatVariableDescType(variable, "*%s", desc.data);
 
-				AsciiName asciiName(name);
-				FormatVariableDescName(variable, "%s", asciiName.data);
-			}
+				   AsciiName asciiName(name);
+				   FormatVariableDescName(variable, "%s", asciiName.data);
+			   }
 
-			switch(def.location)
-			{
-			case VARLOCATION_NONE:
-				variable.Address = 0;
-				FormatVariableDescLocation(variable, "Pseudo");				
-				break;
-			case VARLOCATION_INPUT:
-				variable.Address = def.SFOffset;
-				FormatVariableDescLocation(variable, "Input");
-				break;
-			case VARLOCATION_OUTPUT:
-				FormatVariableDescLocation(variable, "Output");
-				variable.Address = def.SFOffset;
-				break;
-			case VARLOCATION_TEMP:
-				FormatVariableDescLocation(variable, "Temp");
-				variable.Address = def.SFOffset;
-				break;
-			}
+			   switch(def.location)
+			   {
+			   case VARLOCATION_NONE:
+				   variable.Address = 0;
+				   FormatVariableDescLocation(variable, "Pseudo");				
+				   break;
+			   case VARLOCATION_INPUT:
+				   variable.Address = def.SFOffset;
+				   FormatVariableDescLocation(variable, "Input");
+				   break;
+			   case VARLOCATION_OUTPUT:
+				   FormatVariableDescLocation(variable, "Output");
+				   variable.Address = def.SFOffset;
+				   break;
+			   case VARLOCATION_TEMP:
+				   FormatVariableDescLocation(variable, "Temp");
+				   variable.Address = def.SFOffset;
+				   break;
+			   }
 
-			variableEnum.OnVariable(count++, variable);
-		}
-	}
+			   variableEnum.OnVariable(count++, variable);
+		   }
+	   }
 
-	SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const IStructure& s, csexstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback)
-	{
-		if (s.VarType() != VARTYPE_Derivative) return true;
-#ifdef _WIN32
-		__try
-		{
-#endif
-			CClassHeader* concreteInstancePtr = NULL;
-			const IStructure* concreteType = GetConcreteType(s, instance, offset, concreteInstancePtr);
-			const IStructure* specimen;
+	   SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const IStructure& s, csexstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback)
+	   {
+		   if (s.VarType() != VARTYPE_Derivative) return true;
+   #ifdef _WIN32
+		   __try
+   #endif
+		   {
+  
+			   CClassHeader* concreteInstancePtr = NULL;
+			   const IStructure* concreteType = GetConcreteType(s, instance, offset, concreteInstancePtr);
+			   const IStructure* specimen;
 
-			if (concreteType != NULL) 
-			{
-				specimen = concreteType;
-				instance = (const uint8*) concreteInstancePtr;
-			}
-			else
-			{
-				specimen = &s;
-				instance += offset;
-			}
+			   if (concreteType != NULL) 
+			   {
+				   specimen = concreteType;
+				   instance = (const uint8*) concreteInstancePtr;
+			   }
+			   else
+			   {
+				   specimen = &s;
+				   instance += offset;
+			   }
 
-			ptrdiff_t suboffset = 0;
-			for(int i = 0; i < s.MemberCount(); ++i)
-			{
-				const Sexy::Compiler::IMember& member = specimen->GetMember(i);
+			   ptrdiff_t suboffset = 0;
+			   for(int i = 0; i < s.MemberCount(); ++i)
+			   {
+				   const Sexy::Compiler::IMember& member = specimen->GetMember(i);
 
-				TokenBuffer childName;
-				StringPrint(childName, SEXTEXT("%s.%s"), parentName, member.Name());
+				   TokenBuffer childName;
+				   StringPrint(childName, SEXTEXT("%s.%s"), parentName, member.Name());
 
-				enumCallback.OnMember(ss, childName, member, instance + suboffset);
+				   enumCallback.OnMember(ss, childName, member, instance + suboffset);
 
-				const int sizeofMember = member.SizeOfMember();
-				suboffset += sizeofMember;
-			}
+				   const int sizeofMember = member.SizeOfMember();
+				   suboffset += sizeofMember;
+			   }
 
-			return true;
-		}
-#ifdef _WIN32
-		__except(1)
-		{
-			return false;
-		}
-#endif
-	}
+			   return true;
+		   }
+   #ifdef _WIN32
+		   __except(1)
+		   {
+			   return false;
+		   }
+   #endif
+	   }
 
-	SCRIPTEXPORT_API const Sexy::uint8* GetInstance(const MemberDef& def, const IStructure* pseudoType, const Sexy::uint8* SF)
-	{
-		if (pseudoType != NULL)
-		{
-			const Sexy::uint8* instancePtr = *(const Sexy::uint8**) (SF + def.SFOffset);
-			return instancePtr;
-		}
-		else
-		{
-			if (def.Usage == Sexy::Compiler::ARGUMENTUSAGE_BYREFERENCE)
-			{
-				const Sexy::uint8** ppInstance = (const Sexy::uint8**) (SF + def.SFOffset);
-				return *ppInstance;
-			}
-			else
-			{
-				return SF + def.SFOffset;
-			}
-		}
-	}
+	   SCRIPTEXPORT_API const Sexy::uint8* GetInstance(const MemberDef& def, const IStructure* pseudoType, const Sexy::uint8* SF)
+	   {
+		   if (pseudoType != NULL)
+		   {
+			   const Sexy::uint8* instancePtr = *(const Sexy::uint8**) (SF + def.SFOffset);
+			   return instancePtr;
+		   }
+		   else
+		   {
+			   if (def.Usage == Sexy::Compiler::ARGUMENTUSAGE_BYREFERENCE)
+			   {
+				   const Sexy::uint8** ppInstance = (const Sexy::uint8**) (SF + def.SFOffset);
+				   return *ppInstance;
+			   }
+			   else
+			   {
+				   return SF + def.SFOffset;
+			   }
+		   }
+	   }
 
-	SCRIPTEXPORT_API csexstr GetShortName(const Sexy::Compiler::IStructure& s)
-	{
-		return IsNullType(s) ? s.GetInterface(0).Name() : s.Name();
-	}
+	   SCRIPTEXPORT_API csexstr GetShortName(const Sexy::Compiler::IStructure& s)
+	   {
+		   return IsNullType(s) ? s.GetInterface(0).Name() : s.Name();
+	   }
 
-	SCRIPTEXPORT_API csexstr GetInstanceTypeName(const MemberDef& def, const IStructure* pseudoType)
-	{
-		return GetShortName(pseudoType != NULL ? *pseudoType : *def.ResolvedType);
-	}
+	   SCRIPTEXPORT_API csexstr GetInstanceTypeName(const MemberDef& def, const IStructure* pseudoType)
+	   {
+		   return GetShortName(pseudoType != NULL ? *pseudoType : *def.ResolvedType);
+	   }
 
-	SCRIPTEXPORT_API csexstr GetInstanceVarName(csexstr name, const IStructure* pseudoType)
-	{
-		return pseudoType != NULL ? (name + StringLength(SEXTEXT("_ref_"))) : name;
-	}
+	   SCRIPTEXPORT_API csexstr GetInstanceVarName(csexstr name, const IStructure* pseudoType)
+	   {
+		   return pseudoType != NULL ? (name + StringLength(SEXTEXT("_ref_"))) : name;
+	   }
 
-	SCRIPTEXPORT_API const Sexy::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, csexstr fullyQualifiedName)
-	{
-		NamespaceSplitter splitter(fullyQualifiedName);
+	   SCRIPTEXPORT_API const Sexy::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, csexstr fullyQualifiedName)
+	   {
+		   NamespaceSplitter splitter(fullyQualifiedName);
 
-		csexstr nsBody, stTail;
-		if (!splitter.SplitTail(nsBody, stTail))
-		{
-			LogError(ss.PublicProgramObject().Log(), SEXTEXT("Expecting fully qualified structure name, but was supplied '%s'"), fullyQualifiedName);
-			return NULL;
-		}
+		   csexstr nsBody, stTail;
+		   if (!splitter.SplitTail(nsBody, stTail))
+		   {
+			   LogError(ss.PublicProgramObject().Log(), SEXTEXT("Expecting fully qualified structure name, but was supplied '%s'"), fullyQualifiedName);
+			   return NULL;
+		   }
 
-		const INamespace& root = ss.PublicProgramObject().GetRootNamespace();
-		const INamespace* ns = root.FindSubspace(nsBody);
+		   const INamespace& root = ss.PublicProgramObject().GetRootNamespace();
+		   const INamespace* ns = root.FindSubspace(nsBody);
 
-		if (ns == NULL) return NULL;
+		   if (ns == NULL) return NULL;
 
-		return ns->FindStructure(stTail);
-	}
-}}
+		   return ns->FindStructure(stTail);
+	   }
+   } // Script
+} // Sexy

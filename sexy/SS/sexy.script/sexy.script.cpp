@@ -33,15 +33,14 @@
 
 #include "sexy.script.stdafx.h"
 #include "sexy.script.h"
-#include "..\STC\stccore\Sexy.Compiler.h"
-#include "..\STC\stccore\sexy.compiler.helpers.h"
+#include "Sexy.Compiler.h"
+#include "sexy.compiler.helpers.h"
 #include "Sexy.S-Parser.h"
-#include "sexy.vm.h"
-#include "sexy.vm.cpu.h"
 
 #include <stdarg.h>
 #include <algorithm>
 #include <unordered_map>
+#include <list>
 #include <sexy.stdstrings.h>
 
 using namespace Sexy;
@@ -112,7 +111,11 @@ namespace Sexy
 	}
 }
 
-#define VM_CALLBACK_CONVENTION _cdecl
+#ifdef _WIN32
+# define VM_CALLBACK_CONVENTION _cdecl
+#else
+# define VM_CALLBACK_CONVENTION
+#endif
 #define VM_CALLBACK(x) void VM_CALLBACK_CONVENTION OnInvoke##x(VariantValue* registers, void* context)
 
 namespace Sexy {

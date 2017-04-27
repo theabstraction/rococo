@@ -1172,7 +1172,8 @@ namespace Sexy { namespace Script
 		TokenBuffer qualifiedMethodName;
 		StringPrint(qualifiedMethodName, SEXTEXT("%s.%s"), nullObject.Name(), nullMethod.Name());
 
-		IFunctionBuilder& f = DeclareFunction(nullObject.Module(), source, FunctionPrototype(qualifiedMethodName, true));
+      FunctionPrototype fp(qualifiedMethodName, true);
+		IFunctionBuilder& f = Sexy::Script::DeclareFunction(nullObject.Module(), source, fp);
 		
 		for(int i = 0; i < nullMethod.NumberOfOutputs(); ++i)
 		{
@@ -1838,7 +1839,8 @@ namespace Sexy { namespace Script
 
 		cr_sex source = *(const Sex::ISExpression*) archetype.Definition();
 
-		IFunctionBuilder& f = DeclareFunction(module, source, FunctionPrototype(nullFunctionName, true));
+      FunctionPrototype fp(nullFunctionName, true);
+      IFunctionBuilder& f = Sexy::Script::DeclareFunction(module, source, fp);
 
 		scripts.nullArchetypeFunctions.insert(std::make_pair(&archetype, &f));
 

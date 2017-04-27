@@ -1671,7 +1671,7 @@ namespace Sexy
 				      return &ce.Object.Common().TypeInt64();
 			      }
 
-			      return false;
+			      return nullptr;
 		      }
 			
 		      int32 value32;
@@ -1687,7 +1687,7 @@ namespace Sexy
 		      }
 	      }
 
-	      return false;
+	      return nullptr;
       }
 
       const IStructure* GuessTypeAtomic(CCompileEnvironment& ce, cr_sex arg)

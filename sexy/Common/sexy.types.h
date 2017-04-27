@@ -79,6 +79,14 @@ namespace Sexy
    int sscanf_s(const char* buffer, const char* format, ...);
    int sprintf_s(char* buffer, size_t capacity, const char* format, ...);
    int _vsnprintf_s(char* buffer, size_t capacity, size_t maxCount, const char* format, va_list args);
+   
+   template<size_t _Size>
+   inline int _snprintf_s(char(&buffer)[_Size], size_t maxCount, const char* format, ...)
+   {
+      va_list args;
+      va_start(args, format);
+      return _vsnprintf_s(buffer, _Size, maxCount, format, args);
+   }
 
    template<size_t _Size>
    inline int _vsnprintf_s(char(& buffer)[_Size], size_t maxCount, const char* format, va_list args)
@@ -98,6 +106,8 @@ namespace Sexy
    void strncpy_s(char* dest, size_t capacity, const char* source, size_t maxCount);
    void strcat_s(char* dest, size_t capacity, const char* source);
    void strncat_s(char* dest, size_t capacity, const char* source, size_t maxCount);
+
+# define _MAX_PATH 260 // There is no good answer for this
 #endif
 
 	typedef size_t ID_BYTECODE;

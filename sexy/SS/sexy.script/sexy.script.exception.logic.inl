@@ -548,7 +548,7 @@ namespace
 			const IStructure& nativeExType = *module.FindStructure(SEXTEXT("NativeException"));
 			
 			int size = GetNullSize(nativeExType);
-			NativeException* ex = (NativeException*) _alloca(size);
+			NativeException* ex = (NativeException*) alloca(size);
 
 			InitObjectStubAsNullLength(ex->Header, nativeExType, size);
 			ex->errorCode = errorCode;

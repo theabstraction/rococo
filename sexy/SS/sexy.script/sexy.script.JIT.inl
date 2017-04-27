@@ -51,8 +51,8 @@ namespace Sexy
 
       enum JIT_TYPE
       {
-         JIT_TYPE_FACTORY = 0xFAC100EE,
-         JIT_TYPE_FUNCTION = 0xF00BAAAA,
+         JIT_TYPE_FACTORY = 0x3AC100EE,
+         JIT_TYPE_FUNCTION = 0x3F0BAAAA,
          JIT_TYPE_MACRO = 0x1000ACA0
       };
 
