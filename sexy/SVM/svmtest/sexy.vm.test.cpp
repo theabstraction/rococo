@@ -1,11 +1,10 @@
 // svmhost.cpp : Defines the entry point for the console application.
 
-#include "Sexy.VM.Test.StdAfx.h"
+#include "Sexy.vm.test.stdafx.h"
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 
 #include <vector>
-#include <intrin.h>
 
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 
@@ -23,8 +22,8 @@ namespace
 
 	void Abort()
 	{
-		if (IsDebuggerPresent())
-			__debugbreak();
+		if (Sexy::OS::IsDebuggerPresent())
+			Sexy::OS::TripDebugger();
 		else
 			exit(-1); 
 	}
@@ -33,6 +32,8 @@ namespace
 	{
 		printf("Validation failed in %s[%d]: %s\r\n", filename, lineNumber, expression);
 	}
+
+#ifdef _WIN32
 
 	int64 TimerTicks()
 	{
@@ -47,6 +48,23 @@ namespace
 		QueryPerformanceFrequency(&hz);
 		return hz.QuadPart;
 	}
+
+#else
+
+   int64 TimerTicks()
+   {
+      return (int64)mach_absolute_time();
+   }
+
+   int64 TimerHz()
+   {
+      mach_timebase_info_data_t info;
+      mach_timebase_info(&info);
+      return info.numer / info.denom;
+   }
+
+#endif
+
 
 	void Run(IAssembler& a, IVirtualMachine& vm, IProgramMemory& pm)
 	{
@@ -1155,7 +1173,8 @@ namespace
 		vprintf(format, args);
 		va_end(args);
 
-		char errBuffer[256];
+      char errBuffer[256];
+#ifdef _WIN32
 		if (0 == FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, error, 0, errBuffer, 256, NULL))
 		{
 			printf("\r\nCode %d(0x%X)", error, error);		
@@ -1164,21 +1183,24 @@ namespace
 		{
 			printf("\r\nCode %d(0x%X): %s", error, error, errBuffer);
 		}
+#else
+      strerror_r(error, errBuffer, 256);
+      printf("\r\nCode %d(0x%X): %s", error, error, errBuffer);
+#endif
 	}
 }
 
-int _tmain(int argc, _TCHAR* argv[])
+int main(int argc, char* argv[])
 {
 	CoreSpec spec;
 	spec.SizeOfStruct = sizeof(CoreSpec);
 	spec.Reserved = 0;
 	spec.Version = CORE_LIB_VERSION;
-	AutoFree<ICore> core = CreateSVMCore(&spec);
+	AutoFree<ICore> core ( CreateSVMCore(&spec) );
 	if (core == NULL)
 	{
-		int exitCode = GetLastError();
-		LogError(exitCode, "Error creating SVM core object");
-		return exitCode;
+		LogError(0, "Error creating SVM core object");
+		return 0;
 	}
 	else
 	{
@@ -1212,6 +1234,6 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 	}
 
-	return NO_ERROR;
+	return 0;
 }
 

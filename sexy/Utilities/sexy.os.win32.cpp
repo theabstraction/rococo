@@ -45,6 +45,16 @@ namespace Sexy
 {
    namespace OS
    {
+      void TripDebugger()
+      {
+         __debugbreak();
+      }
+
+      bool IsDebuggerPresent()
+      {
+         return ::IsDebuggerPresent() == TRUE;
+      }
+
       void SetBreakPoints(int flags)
       {
          static_assert(sizeof(int64) == 8, "Bad int64");

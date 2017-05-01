@@ -15,7 +15,7 @@ UTILS_SRC_AND_DIRS = $(addprefix $(UTILS_DIR),$(UTILS_SRCS))
 UTILS_OBJ_AND_DIRS = $(addprefix $(OBJ_DIR),$(UTILS_OBJS))
 
 CPP_COMPILER = g++
-CPP_FLAGS = -Wall -g -std=c++14
+CPP_FLAGS = -g -std=c++14
 LIBGEN = ar
 LIBGEN_FLAGS = cr
 	
@@ -23,5 +23,8 @@ $(LIB_DIR)sexy.utilities.mac.lib: $(UTILS_OBJ_AND_DIRS)
 	$(LIBGEN) $(LIBGEN_FLAGS) $(LIB_DIR)sexy.utilities.mac.lib $(UTILS_OBJ_AND_DIRS)
 
 $(OBJ_DIR)%.obj : $(addprefix $(UTILS_DIR),$(notdir %.cpp))
-	$(CPP_COMPILER) $(CPP_FLAGS)    -I$(COMMON_DIR)    -I$(STC_LIB)    -I$(ROCOCO_HEADERS)   -c $<   -o $@
-	
+	$(CPP_COMPILER) $(CPP_FLAGS) -I$(COMMON_DIR) -I$(STC_LIB) -I$(ROCOCO_HEADERS) -c $< -o $@
+
+clean:
+	rm -f $(UTILS_OBJ_AND_DIRS) $(LIB_DIR)sexy.utilities.mac.lib
+

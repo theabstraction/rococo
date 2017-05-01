@@ -14,7 +14,7 @@ SCRIPT_SRC_AND_DIRS = $(addprefix $(SCRIOT_DIR),$(SCRIPT_SRCS))
 SCRIPT_OBJ_AND_DIRS = $(addprefix $(OBJ_DIR),$(SCRIPT_OBJS))
 
 CPP_COMPILER = g++
-CPP_FLAGS = -Wall -g -std=c++14
+CPP_FLAGS = -g -std=c++14
 LIBGEN = ar
 LIBGEN_FLAGS = cr
 	
@@ -22,5 +22,7 @@ $(LIB_DIR)sexy.script.mac.lib: $(SCRIPT_OBJ_AND_DIRS)
 	$(LIBGEN) $(LIBGEN_FLAGS) $(LIB_DIR)sexy.script.mac.lib $(SCRIPT_OBJ_AND_DIRS)
 
 $(OBJ_DIR)%.obj : $(addprefix $(SCRIOT_DIR),$(notdir %.cpp))
-	$(CPP_COMPILER) $(CPP_FLAGS)    -I$(COMMON_DIR)  -I$(COMPILER_DIR)  -I$(ROCOCO_HEADERS)   -c $<   -o $@
-	
+	$(CPP_COMPILER) $(CPP_FLAGS) -I$(COMMON_DIR) -I$(COMPILER_DIR) -I$(ROCOCO_HEADERS) -c $< -o $@
+
+clean:
+	rm -f $(SCRIPT_OBJ_AND_DIRS) $(LIB_DIR)sexy.script.mac.lib

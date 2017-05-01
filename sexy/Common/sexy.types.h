@@ -72,6 +72,12 @@ namespace Sexy
 {
 	using namespace Rococo;
 
+   namespace OS
+   {
+      void TripDebugger();
+      bool IsDebuggerPresent();
+   }
+
 #ifndef _WIN32
 # define _TRUNCATE ((size_t)-1)
    typedef int32 errno_t;
@@ -234,9 +240,6 @@ namespace Sexy
 	int32 CALLTYPE_C StringLength(cstr s);
 	void CALLTYPE_C CopyChars(SEXCHAR* dest, const sexstring source);
 	void CALLTYPE_C CopyString(char* dest, size_t capacity, const char* source);
-	void CALLTYPE_C CopyString(rchar* dest, size_t capacity, cstr source);
-
-	void CALLTYPE_C CopyString(rchar* dest, size_t destCapacity, cstr source, int maxChars); // use maxChars -1 to truncate
 	void CALLTYPE_C CopyString(char* dest, size_t destCapacity, const char* source, int maxChars); // use maxChars -1 to truncate
 
 	void CALLTYPE_C StringCat(rchar* buf, cstr source, int maxChars);

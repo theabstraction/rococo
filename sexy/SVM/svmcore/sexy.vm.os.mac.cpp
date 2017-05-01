@@ -43,6 +43,15 @@ using namespace Sexy::VM;
 
 namespace Sexy { namespace VM { namespace OS 
 {
+   EXECUTERESULT ExecuteProtected(FN_CODE1 fnCode, void* context, EXCEPTIONCODE& exceptionCode)
+   {
+      return fnCode(context);
+   }
+
+   EXECUTERESULT ExecuteProtected(FN_CODE fnCode, void* context, EXCEPTIONCODE& exceptionCode, bool arg)
+   {  
+      return fnCode(context, arg);
+   }
 /*
 	int64 TimerTicks()
 	{
@@ -56,24 +65,15 @@ namespace Sexy { namespace VM { namespace OS
 		return sTimebaseInfo.numer / sTimebaseInfo.denom;
 	}
 */
-/*
-	bool RouteSysMessages()
-	{
-		MsgWaitForMultipleObjectsEx(0, NULL, 10, QS_ALLINPUT | QS_ALLPOSTMESSAGE, MWMO_ALERTABLE | MWMO_INPUTAVAILABLE);
+   void* AllocAlignedMemory(size_t nBytes)
+   {
+      void* pMemory = nullptr;
+      posix_memalign(&pMemory, 128, nBytes);
+      return pMemory;
+   }
 
-		MSG msg;
-		while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			if (msg.message == WM_QUIT)
-			{
-				return false;
-			}
-
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-
-		return true;
-	}
-*/
+   void FreeAlignedMemory(void* data, size_t nBytes)
+   {
+      free(data);
+   }
 }}} // Sexy::VM::OS

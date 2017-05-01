@@ -401,18 +401,6 @@ namespace Sexy
 		strcpy_s(dest, capacity, source);
 	}
 
-#ifdef SEXCHAR_IS_WIDE
-	void CALLTYPE_C CopyString(rchar* dest, size_t capacity, cstr source, int maxChars)
-	{
-		wcsncpy_s(dest, capacity, source,  maxChars < 0 ? _TRUNCATE : maxChars);
-	}
-
-	void CALLTYPE_C CopyString(rchar* dest, size_t capacity, cstr source)
-	{
-		wcscpy_s(dest, capacity, source);
-	}
-#endif
-
 	void CALLTYPE_C CopyString(char* dest, size_t capacity, const char* source, int maxChars)
 	{
 		strncpy_s(dest, capacity, source, maxChars < 0 ? _TRUNCATE : maxChars);

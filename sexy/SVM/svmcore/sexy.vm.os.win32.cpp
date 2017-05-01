@@ -64,7 +64,7 @@ namespace Sexy { namespace VM { namespace OS
 	EXECUTERESULT ExecuteProtected(FN_CODE fnCode, void* context, EXCEPTIONCODE& exceptionCode, bool arg)
 	{
 		exceptionCode = EXCEPTIONCODE_NONE;
-#ifdef _WIN32
+
 		__try
 		{
 			return fnCode(context, arg);
@@ -74,16 +74,12 @@ namespace Sexy { namespace VM { namespace OS
 			OUT exceptionCode = SysToSVM(GetExceptionCode());
 			return EXECUTERESULT_SEH;
 		}
-#else
-      return fnCode(context, arg);
-#endif
 	}
 
 	EXECUTERESULT ExecuteProtected(FN_CODE1 fnCode, void* context, EXCEPTIONCODE& exceptionCode)
 	{
 		exceptionCode = EXCEPTIONCODE_NONE;
 
-#ifdef _WIN32
 		__try
 		{
 			return fnCode(context);
@@ -93,9 +89,8 @@ namespace Sexy { namespace VM { namespace OS
 			OUT exceptionCode = SysToSVM(GetExceptionCode());
 			return EXECUTERESULT_SEH;
 		}
-#else
+
       return fnCode(context);
-#endif
 	}
 
 	int64 TimerTicks()
@@ -120,24 +115,5 @@ namespace Sexy { namespace VM { namespace OS
 	void FreeAlignedMemory(void* data, size_t nBytes)
 	{
 		VirtualFree(data, nBytes, MEM_RELEASE);
-	}
-
-	bool RouteSysMessages()
-	{
-		MsgWaitForMultipleObjectsEx(0, NULL, 10, QS_ALLINPUT | QS_ALLPOSTMESSAGE, MWMO_ALERTABLE | MWMO_INPUTAVAILABLE);
-
-		MSG msg;
-		while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			if (msg.message == WM_QUIT)
-			{
-				return false;
-			}
-
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-
-		return true;
 	}
 }}} // Sexy::VM::OS

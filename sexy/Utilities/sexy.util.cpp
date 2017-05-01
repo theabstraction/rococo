@@ -35,7 +35,7 @@
 #include "sexy.strings.h"
 #include "sexy.compiler.public.h"
 #include <sexy.compiler.h>
-#include <Sexy.Validators.h>
+#include <sexy.validators.h>
 #include <float.h>
 #include <stdarg.h>
 

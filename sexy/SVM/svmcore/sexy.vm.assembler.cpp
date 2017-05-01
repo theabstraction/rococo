@@ -161,6 +161,8 @@ namespace
 				case BITCOUNT_64:
 					AddArgument(v.int64Value);
 					break;
+            default:
+               break;
 				}
 			}
 		}
@@ -300,6 +302,8 @@ namespace
 						AddArgument(value);
 					}
 					break;
+            default:
+               break;
 				}
 			}
 		}

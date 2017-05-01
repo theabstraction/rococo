@@ -149,7 +149,7 @@ namespace Sexy { namespace VM
 		virtual EXECUTERESULT Debug() = 0;
 		virtual void EnumBreakpoints(FN_BREAKPOINT_CALLBACK fnCallback, void* context) = 0;
 		virtual void GetStackTrace(FN_OnStackTrace fnCallback, void* context) = 0;
-		virtual bool RouteSysMessages() = 0;
+	//	virtual bool RouteSysMessages() = 0;
 		virtual void SetBreakpoint(size_t offset) = 0;
 		virtual void StepNextSymbol(ISymbols& symbols) = 0;
 		virtual void StepInto(bool ignoreCallbacks = false) = 0;
