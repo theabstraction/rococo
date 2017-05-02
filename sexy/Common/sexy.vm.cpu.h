@@ -96,7 +96,7 @@ namespace Sexy { namespace VM
 		uint8* StackEnd;
 		uint8* Globals;
 		EXCEPTIONCODE ExceptionCode;
-	};
+	} TIGHTLY_PACKED;;
 
 	enum STATUSBIT
 	{
@@ -245,7 +245,7 @@ namespace Sexy { namespace VM
 		uint8 Opmod3;
 
 		const uint8* ToPC() const { return (const uint8*) this; }
-	};
+	} TIGHTLY_PACKED;;
 }}
 
 #pragma pack(pop)

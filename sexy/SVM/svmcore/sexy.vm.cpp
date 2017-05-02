@@ -258,6 +258,9 @@ namespace
 			ActivateInstruction(SetGlobal);
 
 			ActivateInstruction(GetStackFrameValueAndExtendToPointer);
+
+         static_assert(sizeof(VariantValue) == sizeof(size_t), "Bad packing size");
+         static_assert(BITCOUNT_POINTER == sizeof(size_t) * 8, "Bad BITCOUNT_POINTER");
 		}
 
 		IVirtualMachine* Clone(CPU& _cpu)
@@ -2587,8 +2590,8 @@ namespace Sexy { namespace VM
 #ifdef _WIN32
 		uint8* mem = (uint8*)_aligned_malloc(GetCpuToVMOffset() + sizeof(CVirtualMachine), CACHE_LINE_ALIGN);
 #else
-      uint8* mem;
-      posix_memalign((void**)&mem, GetCpuToVMOffset() + sizeof(CVirtualMachine), CACHE_LINE_ALIGN);
+      uint8* mem = nullptr;
+      posix_memalign((void**)&mem, CACHE_LINE_ALIGN, GetCpuToVMOffset() + sizeof(CVirtualMachine));
 #endif
 
 		CPU* cpu = new (mem) CPU();

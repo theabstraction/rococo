@@ -54,6 +54,9 @@
 
 # ifdef WIN32
 #  pragma pack(push, 1)
+# define TIGHTLY_PACKED
+#else
+# define TIGHTLY_PACKED __attribute__((packed))
 # endif
 
 namespace Sexy { namespace VM
@@ -130,7 +133,7 @@ namespace Sexy { namespace VM
 		const uint8* FunctionStart;
 		const uint8* StackFrame;
 		int Level;
-	};
+	} TIGHTLY_PACKED;
 
 	typedef void (*FN_OnStackTrace)(void* context, const StackTraceItem& item);
 
@@ -149,7 +152,6 @@ namespace Sexy { namespace VM
 		virtual EXECUTERESULT Debug() = 0;
 		virtual void EnumBreakpoints(FN_BREAKPOINT_CALLBACK fnCallback, void* context) = 0;
 		virtual void GetStackTrace(FN_OnStackTrace fnCallback, void* context) = 0;
-	//	virtual bool RouteSysMessages() = 0;
 		virtual void SetBreakpoint(size_t offset) = 0;
 		virtual void StepNextSymbol(ISymbols& symbols) = 0;
 		virtual void StepInto(bool ignoreCallbacks = false) = 0;
@@ -350,13 +352,11 @@ namespace Sexy { namespace VM
 		virtual size_t GetCodeOffset(const Vec2i& pos) const = 0;
 	};
 
-#pragma pack(push,1)
 	struct FileData
 	{
 		const ISourceFile* Source;
 		Vec2i Pos;				
-	};
-#pragma pack(pop)
+	} TIGHTLY_PACKED;
 
 	ROCOCOAPI ISymbols
 	{

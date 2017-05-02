@@ -58,9 +58,9 @@ namespace
 
    int64 TimerHz()
    {
-      mach_timebase_info_data_t info;
+      mach_timebase_info_data_t info = {  0  };
       mach_timebase_info(&info);
-      return info.numer / info.denom;
+      return 1000000000 * info.numer / info.denom;
    }
 
 #endif
@@ -287,7 +287,7 @@ namespace
 		a.Append_SetRegisterImmediate(REGISTER_D4, v, BITCOUNT_POINTER); // Register 4 now points to our magic array
 
 		v.int32Value = 1;
-		a.Append_SetRegisterImmediate(REGISTER_D5, v, BITCOUNT_32); // Register 4 now points to our magic array
+		a.Append_SetRegisterImmediate(REGISTER_D5, v, BITCOUNT_32); // Register 5 now points to 1
 		a.Append_Poke(REGISTER_D5, BITCOUNT_32, REGISTER_D4, 0); // lookup 32bits of (Register4) + 8 bytes, and store result in 5
 
 		v.int32Value = 2;
@@ -809,10 +809,13 @@ namespace
 	{
 		pm.Clear();
 
-		printf("<<<<<< %s\r\n", name);
+		printf("<<<<<< %s ", name);
 
 		IAssembler* assembler = vm.Core().CreateAssembler();
 		fnTest(*assembler,vm,pm);
+
+      printf(":\n");
+
 		Disassemble(*assembler);
 		assembler->Free();
 
@@ -821,7 +824,7 @@ namespace
 		validate(cpu.PC() >= cpu.ProgramStart && cpu.PC() < cpu.ProgramEnd);
 		validate(cpu.SP() >= cpu.StackStart && cpu.SP() < cpu.StackEnd);
 
-		printf("%s >>>>>>\r\n\r\n", name);
+		printf("%s >>>>>>\n\n", name);
 	}
 
 #define WRAP(test, v, p) Wrap(#test, test, v, p)
@@ -1112,7 +1115,9 @@ namespace
 
 	void PresentApp(IVirtualMachine& vm)
 	{
+      WriteToStandardOutput("Creating program memory...");
 		IProgramMemory* pm = vm.Core().CreateProgramMemory(32768);
+      WriteToStandardOutput("success\n");
 
 		WRAP(TestTerminate, vm, *pm);
 		WRAP(TestNoOp, vm, *pm);
@@ -1147,7 +1152,7 @@ namespace
 		WRAP(TestCallAndReturn, vm, *pm);
 		WRAP(TestCallByIdIndirectAndReturn, vm, *pm);
 		WRAP(TestCallByIdAndReturn, vm, *pm);
-		WrapWithoutvalidate(TestMemoryExceptions, vm, *pm);
+		
 		WRAP(TestOverwrite, vm, *pm);
 		TestBranch(vm, *pm);
 
@@ -1164,6 +1169,8 @@ namespace
 		WRAP(TestStackFrameImmediate, vm, *pm);
 		
 		WRAP(TestPerformance, vm, *pm);
+
+      WrapWithoutvalidate(TestMemoryExceptions, vm, *pm);
 	}
 
 	void LogError(int error, const char* format, ...)
@@ -1192,48 +1199,62 @@ namespace
 
 int main(int argc, char* argv[])
 {
+   setbuf(stdout, nullptr);
+
 	CoreSpec spec;
 	spec.SizeOfStruct = sizeof(CoreSpec);
 	spec.Reserved = 0;
 	spec.Version = CORE_LIB_VERSION;
+
+   WriteToStandardOutput("VM.TEST initialization....");
+
 	AutoFree<ICore> core ( CreateSVMCore(&spec) );
 	if (core == NULL)
 	{
 		LogError(0, "Error creating SVM core object");
 		return 0;
 	}
-	else
+
+   WriteToStandardOutput("success\n");
+   WriteToStandardOutput("Setting logger....");
+	
+	struct CLogger: public ILog
 	{
-		struct CLogger: public ILog
+		void Write(csexstr text)
 		{
-			void Write(csexstr text)
-			{
-				WriteToStandardOutput(SEXTEXT("%s\n"), text);
-			}
-
-			void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) 
-			{
-				WriteToStandardOutput(SEXTEXT("%s: code %d\nMessage: %s\n"), exceptionType, errorCode, message);
-			}
-
-			void OnJITCompileException(Sex::ParseException& ex)
-			{
-			}
-		} logger;
-
-		core->SetLogger(&logger);
-
-		try
-		{
-			AutoFree<IVirtualMachine> vm(core->CreateVirtualMachine());
-			PresentApp(*vm);
+			WriteToStandardOutput(SEXTEXT("%s\n"), text);
 		}
-		catch (IException& ex)
+
+		void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) 
 		{
-			WriteToStandardOutput(SEXTEXT("%s: code %d\n"), ex.Message(), ex.ErrorCode());
+			WriteToStandardOutput(SEXTEXT("%s: code %d\nMessage: %s\n"), exceptionType, errorCode, message);
 		}
+
+		void OnJITCompileException(Sex::ParseException& ex)
+		{
+		}
+	} logger;
+
+	core->SetLogger(&logger);
+
+   WriteToStandardOutput("success\n");
+
+   WriteToStandardOutput("Creating virtual machine");
+   AutoFree<IVirtualMachine> vm;
+
+   WriteToStandardOutput("...");
+   vm = core->CreateVirtualMachine();
+   WriteToStandardOutput("success\n");
+
+	try
+	{
+		PresentApp(*vm);
+      return 0;
 	}
-
-	return 0;
+	catch (IException& ex)
+	{
+		WriteToStandardOutput(SEXTEXT("%s: code %d\n"), ex.Message(), ex.ErrorCode());
+      return ex.ErrorCode();
+	}
 }
 

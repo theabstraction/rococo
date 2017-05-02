@@ -81,7 +81,7 @@ namespace Sexy
 
    void strncpy_s(char* dest, size_t capacity, const char* source, size_t maxCount)
    {
-      strncpy(dest, source, maxCount);
+      strncpy(dest, source, capacity);
    }
 
    void strcat_s(char* dest, size_t capacity, const char* source)

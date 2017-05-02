@@ -41,30 +41,70 @@
 using namespace Sexy;
 using namespace Sexy::VM;
 
+namespace
+{
+   typedef void(*FN_SignalHandler)(int);
+
+   struct SignalException
+   {
+      int signalCode;
+   };
+
+   struct ThrowOnSignal
+   {
+      FN_SignalHandler previousHandler;
+      int code;
+
+      static void OnSignal(int code)
+      {
+         throw SignalException{ code };
+      }
+
+      ThrowOnSignal(int code)
+      {
+         this->previousHandler = signal(code, ThrowOnSignal::OnSignal);
+         this->code = code;
+      }
+
+      ~ThrowOnSignal()
+      {
+         signal(code, previousHandler);
+      }
+   };
+}
+
 namespace Sexy { namespace VM { namespace OS 
 {
    EXECUTERESULT ExecuteProtected(FN_CODE1 fnCode, void* context, EXCEPTIONCODE& exceptionCode)
    {
-      return fnCode(context);
+      ThrowOnSignal ev(SIGSEGV);
+
+      try
+      {
+         return fnCode(context);
+      }
+      catch (SignalException&)
+      {
+         OUT exceptionCode = EXCEPTIONCODE_BAD_ADDRESS;
+         return EXECUTERESULT_SEH;
+      }
    }
 
    EXECUTERESULT ExecuteProtected(FN_CODE fnCode, void* context, EXCEPTIONCODE& exceptionCode, bool arg)
    {  
-      return fnCode(context, arg);
-   }
-/*
-	int64 TimerTicks()
-	{
-		return (int64) mach_absolute_time();
-	}
+      ThrowOnSignal ev(SIGSEGV);
 
-	int64 TimerHz()
-	{
-		mach_timebase_info_data_t info;
-		mach_timebase_info(&info);
-		return sTimebaseInfo.numer / sTimebaseInfo.denom;
-	}
-*/
+      try
+      {
+         return fnCode(context, arg);
+      }
+      catch (SignalException&)
+      {
+         OUT exceptionCode = EXCEPTIONCODE_BAD_ADDRESS;
+         return EXECUTERESULT_SEH;
+      }
+   }
+
    void* AllocAlignedMemory(size_t nBytes)
    {
       void* pMemory = nullptr;

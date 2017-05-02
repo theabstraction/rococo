@@ -323,9 +323,13 @@ namespace Sexy
 		BITCOUNT_ID_API = 8 * sizeof(ID_API_CALLBACK),
 
 #ifdef _WIN64
-		BITCOUNT_POINTER = 64
+      BITCOUNT_POINTER = 64
 #else
-		BITCOUNT_POINTER = 32
+# ifdef _Win32
+      BITCOUNT_POINTER = 32
+# else
+      BITCOUNT_POINTER = 64
+# endif
 #endif
 	};
 
