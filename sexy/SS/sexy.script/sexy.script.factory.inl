@@ -40,16 +40,16 @@ namespace Sexy
          const INamespace* NS = module.Object().GetRootNamespace().FindSubspace(ns);
          if (NS == NULL)
          {
-            sexstringstream streamer;
-            streamer << SEXTEXT("Cannot find the namespace: ") << ns << std::ends;
-            Throw(factoryExpr, streamer.str().c_str());
+            sexstringstream<1024> streamer;
+            streamer.sb << SEXTEXT("Cannot find the namespace: ") << ns;
+            Throw(factoryExpr, *streamer.sb);
          }
 
          const IFactory* factory = NS->FindFactory(shortName);
          if (factory == NULL)
          {
-            sexstringstream streamer;
-            streamer << SEXTEXT("Cannot find the factory in the namespace: ") << shortName;
+            sexstringstream<1024> streamer;
+            streamer.sb << SEXTEXT("Cannot find the factory in the namespace: ") << shortName;
             Throw(factoryExpr, streamer);
          }
 
@@ -69,9 +69,9 @@ namespace Sexy
             {
                if (NS != NULL)
                {
-                  sexstringstream streamer;
-                  streamer << SEXTEXT("Module uses more than one namespace that has a factory of the given name: ") << NS->FullName() << SEXTEXT(" and ") << prefix.FullName();
-                  Throw(factoryExpr, streamer);
+                  sexstringstream<1024> streamer;
+                  streamer.sb << SEXTEXT("Module uses more than one namespace that has a factory of the given name: ") << NS->FullName()->Buffer << SEXTEXT(" and ") << prefix.FullName()->Buffer;
+                  Throw(factoryExpr, *streamer.sb);
                }
 
                uniqueFactory = factory;
@@ -81,9 +81,9 @@ namespace Sexy
 
          if (uniqueFactory == NULL)
          {
-            sexstringstream streamer;
-            streamer << SEXTEXT("Cannot find the factory in any namespace used by the module");
-            Throw(factoryExpr, streamer);
+            sexstringstream<1024> streamer;
+            streamer.sb << SEXTEXT("Cannot find the factory in any namespace used by the module");
+            Throw(factoryExpr, *streamer.sb);
          }
 
          return *uniqueFactory;
@@ -148,8 +148,8 @@ namespace Sexy
             int interfaceIndex = GetIndexOfInterface(*inlineClass, interf);
             if (interfaceIndex < 0)
             {
-               sexstringstream streamer;
-               streamer << inlineConstructor->Name() << SEXTEXT(" does not support the interface ") << interf.Name();
+               sexstringstream<1024> streamer;
+               streamer.sb << inlineConstructor->Name() << SEXTEXT(" does not support the interface ") << interf.Name();
                Throw(args, streamer);
             }
 

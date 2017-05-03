@@ -347,9 +347,9 @@ namespace
 		csexstr ns, shortName;
 		if (!splitter.SplitTail(ns, shortName))
 		{
-			sexstringstream s;
-			s << SEXTEXT("Cpp interface ") << ic.asCppInterface.SexyName() << SEXTEXT("needs a namespace prefix.") << std::ends;
-			Throw(interfaceDef, s.str().c_str());
+			sexstringstream<256> s;
+			s.sb << SEXTEXT("Cpp interface ") << ic.asCppInterface.SexyName() << SEXTEXT("needs a namespace prefix.");
+			Throw(interfaceDef, "%s", (cstr) s);
 		}
 
 		SEXCHAR cppCompressedNSName[256];

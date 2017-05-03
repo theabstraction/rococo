@@ -268,9 +268,9 @@ namespace Sexy { namespace Compiler
 			INamespaceBuilder* ns =  Compiler::MatchNamespace(module, body);
 			if (ns == NULL) 
 			{
-				sexstringstream streamer;
-				streamer << SEXTEXT("Expecting namespace prefix name to begin with capital letter: ") << body << std::ends;
-				logger.Write(streamer.str().c_str());
+				sexstringstream<256> streamer;
+				streamer.sb << SEXTEXT("Could not identify namespace ") << body;
+				logger.Write(streamer);
 				return NULL;
 			}
 
@@ -287,9 +287,9 @@ namespace Sexy { namespace Compiler
 			}
 			else
 			{
-				sexstringstream streamer;
-				streamer << SEXTEXT("Cannot find structure ") << tail << SEXTEXT(" in namespace ") << body << std::ends;
-				logger.Write(streamer.str().c_str());
+				sexstringstream<1024> streamer;
+				streamer.sb << SEXTEXT("Cannot find structure ") << tail << SEXTEXT(" in namespace ") << body;
+				logger.Write(streamer);
 			}
 
 			return NULL;

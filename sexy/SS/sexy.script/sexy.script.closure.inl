@@ -93,9 +93,9 @@ namespace Sexy
             const IStructure& neededType = closureArchetype.GetArgument(outputIndex);
             if (!AreEqual(neededType.Name(), type))
             {
-               sexstringstream streamer;
-               streamer << SEXTEXT("The output type did not match that of the archetype: ") << neededType.Name() << std::ends;
-               Throw(outputType, streamer.str().c_str());
+               sexstringstream<1024> streamer;
+               streamer.sb << SEXTEXT("The output type did not match that of the archetype: ") << neededType.Name();
+               Throw(outputType, *streamer.sb);
             }
 
             closure.AddOutput(NameString::From(name), TypeString::From(type), (void*)&outputExpr);
@@ -118,9 +118,9 @@ namespace Sexy
             const IStructure& neededType = closureArchetype.GetArgument(inputIndex);
             if (!AreEqual(type, GetFriendlyName(neededType)))
             {
-               sexstringstream streamer;
-               streamer << SEXTEXT("The input type did not match that of the archetype: ") << GetFriendlyName(neededType) << std::ends;
-               Throw(inputType, streamer.str().c_str());
+               sexstringstream<1024> streamer;
+               streamer.sb << SEXTEXT("The input type did not match that of the archetype: ") << GetFriendlyName(neededType);
+               Throw(inputType, *streamer.sb);
             }
 
             closure.AddInput(NameString::From(name), TypeString::From(type), (void*)&inputExpr);

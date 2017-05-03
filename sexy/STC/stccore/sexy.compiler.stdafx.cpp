@@ -32,6 +32,6 @@
 */
 
 // stdafx.cpp : source file that includes just the standard includes
-#include "Sexy.Compiler.StdAfx.h"
-#include "Sexy.Lib.VM.h"
+#include "sexy.compiler.stdafx.h"
+#include "sexy.lib.vm.h"
 

@@ -274,9 +274,9 @@ namespace Sexy { namespace Compiler { namespace Impl
 			INamespaceBuilder* ns = object.GetRootNamespace().FindSubspace(name);
 			if (ns == NULL)
 			{
-				sexstringstream streamer;
-				streamer << SEXTEXT("Could not resolve prefix directive's namespace: '") << name << SEXTEXT("' in '") << Name() << SEXTEXT("'") << std::ends;
-				Throw(ERRORCODE_BAD_ARGUMENT, Name(), streamer.str().c_str());
+				sexstringstream<1024> streamer;
+				streamer.sb << SEXTEXT("Could not resolve prefix directive's namespace: '") << name << SEXTEXT("' in '") << Name() << SEXTEXT("'");
+				Throw(ERRORCODE_BAD_ARGUMENT, Name(), "%s", (cstr) streamer);
 			}
 			prefixes.push_back(ns);
 		}

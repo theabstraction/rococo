@@ -34,17 +34,16 @@
 
 namespace Sexy { namespace Sex
 {
-	void Throw(cr_sex e, sexstringstream& streamer)
+	void Throw(cr_sex e, const fstring& f)
 	{
-		streamer << std::ends;
-		Throw(e, streamer.str().c_str());
+		Throw(e, "%s", f.buffer);
 	}
 
 	void ThrowTypeMismatch(cr_sex s, const IStructure& a, const IStructure& b, csexstr extra)
 	{
-		sexstringstream streamer;
-		streamer << SEXTEXT("Type mismatch: ") << GetFriendlyName(a) << SEXTEXT(" != ") << GetFriendlyName(b) << SEXTEXT(". ") << extra;
-		Throw(s, streamer);
+		sexstringstream<1024> streamer;
+		streamer.sb << SEXTEXT("Type mismatch: ") << GetFriendlyName(a) << SEXTEXT(" != ") << GetFriendlyName(b) << SEXTEXT(". ") << extra;
+		Throw(s, *streamer.sb);
 	}
 
 	csexstr ToString(EXPRESSION_TYPE type)
@@ -63,9 +62,9 @@ namespace Sexy { namespace Sex
 	{
 		if (e.Type() != type)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Expecting ") << ToString(type) << " expression, but found " << ToString(e.Type()) << " expression";
-			Throw(e, streamer);
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Expecting ") << ToString(type) << " expression, but found " << ToString(e.Type()) << " expression";
+			Throw(e, *streamer.sb);
 		}
 	}
 
@@ -73,9 +72,9 @@ namespace Sexy { namespace Sex
 	{
 		if (!IsAtomic(s) || !AreEqual(s.String(), SEXTEXT("=")))
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Expecting '") << value << SEXTEXT("' at this position");
-			Throw(s, streamer);
+         sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Expecting '") << value << SEXTEXT("' at this position");
+			Throw(s, *streamer.sb);
 		}
 	}
 
@@ -83,17 +82,17 @@ namespace Sexy { namespace Sex
 	{
 		if (e.Type() != EXPRESSION_TYPE_COMPOUND && e.Type() != EXPRESSION_TYPE_NULL)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Expecting compound or null expression, but found a ") << ToString(e.Type()) << " expression";
-			Throw(e, streamer);
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Expecting compound or null expression, but found a ") << ToString(e.Type()) << " expression";
+         Throw(e, *streamer.sb);
 		}
 	}
 
 	void ThrowTokenAlreadyDefined(cr_sex s, csexstr name, csexstr repository, csexstr type)
 	{
-		sexstringstream streamer;
-		streamer << type << SEXTEXT(" '") << name << SEXTEXT("' is already defined in ") << repository;
-		Throw(s, streamer);
+      sexstringstream<1024> streamer;
+		streamer.sb << type << SEXTEXT(" '") << name << SEXTEXT("' is already defined in ") << repository;
+      Throw(s, *streamer.sb);
 	}
 
 	INamespaceBuilder& AssertGetSubspace(IProgramObject& object, cr_sex s, csexstr name)
@@ -118,9 +117,9 @@ namespace Sexy { namespace Sex
 	{
 		if (!IsAlphabetical(shortName[0]))
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Expecting macro name to begin with a letter {a-z} or {A-Z} at position[0]");
-			Throw(s, streamer);
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Expecting macro name to begin with a letter {a-z} or {A-Z} at position[0]");
+         Throw(s, *streamer.sb);
 		}
 
 		int len = StringLength(shortName);
@@ -130,9 +129,9 @@ namespace Sexy { namespace Sex
 			SEXCHAR c = shortName[i];
 			if (!IsAlphaNumeric(c))
 			{
-				sexstringstream streamer;
-				streamer << SEXTEXT("Expecting identifier character to be an alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
-				Throw(s, streamer);
+				sexstringstream<1024> streamer;
+				streamer.sb << SEXTEXT("Expecting identifier character to be an alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
+            Throw(s, *streamer.sb);
 			}
 		}
 	}
@@ -154,9 +153,9 @@ namespace Sexy { namespace Sex
 
 		if (text->Length >= NAMESPACE_MAX_LENGTH)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Expecting typename, but the string was too long. Exceeded ") << NAMESPACE_MAX_LENGTH << SEXTEXT(" characters");
-			Throw(e, streamer);
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Expecting typename, but the string was too long. Exceeded ") << NAMESPACE_MAX_LENGTH << SEXTEXT(" characters");
+         Throw(e, *streamer.sb);
 		}
 
 		enum STATE
@@ -174,9 +173,9 @@ namespace Sexy { namespace Sex
 			case STATE_EXPECTING_NEW_ITEM:
 				if (!IsCapital(c))
 				{
-					sexstringstream streamer;
-					streamer << SEXTEXT("Expecting typename '") << text->Buffer << SEXTEXT("' to begin with capital letter {A-Z} at position[") << i << SEXTEXT("]");
-					Throw(e, streamer);
+					sexstringstream<1024> streamer;
+					streamer.sb << SEXTEXT("Expecting typename '") << text->Buffer << SEXTEXT("' to begin with capital letter {A-Z} at position[") << i << SEXTEXT("]");
+               Throw(e, *streamer.sb);
 				}
 				state = STATE_WITHIN_ITEM;
 				break;
@@ -187,9 +186,9 @@ namespace Sexy { namespace Sex
 				}
 				else if (!IsAlphaNumeric(c))
 				{
-					sexstringstream streamer;
-					streamer << SEXTEXT("Expecting alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
-					Throw(e, streamer);
+					sexstringstream<1024> streamer;
+					streamer.sb << SEXTEXT("Expecting alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
+               Throw(e, *streamer.sb);
 				}
 				break;
 			}
@@ -197,9 +196,9 @@ namespace Sexy { namespace Sex
 
 		if (STATE_EXPECTING_NEW_ITEM)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Expecting typename to terminate on an alphanumeric {A-Z or a-z or 0-9} at position[") << text->Length << SEXTEXT("]");
-			Throw(e, streamer);
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Expecting typename to terminate on an alphanumeric {A-Z or a-z or 0-9} at position[") << text->Length << SEXTEXT("]");
+         Throw(e, *streamer.sb);
 		}
 	}
 
@@ -215,9 +214,9 @@ namespace Sexy { namespace Sex
 
 		if (text->Length >= NAMESPACE_MAX_LENGTH)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Identifier was too long. Exceeded ") << NAMESPACE_MAX_LENGTH << SEXTEXT(" characters");
-			Throw(e, streamer);
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Identifier was too long. Exceeded ") << NAMESPACE_MAX_LENGTH << SEXTEXT(" characters");
+         Throw(e, *streamer.sb);
 		}
 
 		enum STATE
@@ -235,8 +234,8 @@ namespace Sexy { namespace Sex
 			case STATE_EXPECTING_NEW_ITEM:
 				if (!IsLowerCase(c))
 				{
-					sexstringstream streamer;
-					streamer << SEXTEXT("Expecting local variable or member nane '") << text->Buffer << SEXTEXT("' to begin with lower case letter {A-Z} at position[") << i << SEXTEXT("]");
+					sexstringstream<1024> streamer;
+					streamer.sb << SEXTEXT("Expecting local variable or member nane '") << text->Buffer << SEXTEXT("' to begin with lower case letter {A-Z} at position[") << i << SEXTEXT("]");
 					Throw(e, streamer);
 				}
 				state = STATE_WITHIN_ITEM;
@@ -248,9 +247,9 @@ namespace Sexy { namespace Sex
 				}
 				else if (!IsAlphaNumeric(c))
 				{
-					sexstringstream streamer;
-					streamer << SEXTEXT("Expecting alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
-					Throw(e, streamer);
+					sexstringstream<1024> streamer;
+					streamer.sb << SEXTEXT("Expecting alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
+					Throw(e, *streamer.sb);
 				}
 				break;
 			}
@@ -258,9 +257,9 @@ namespace Sexy { namespace Sex
 
 		if (STATE_EXPECTING_NEW_ITEM)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Expecting identifier to terminate on an alphanumeric {A-Z or a-z or 0-9} at position[") << text->Length << SEXTEXT("]");
-			Throw(e, streamer);
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Expecting identifier to terminate on an alphanumeric {A-Z or a-z or 0-9} at position[") << text->Length << SEXTEXT("]");
+         Throw(e, *streamer.sb);
 		}
 	}
 
@@ -274,23 +273,23 @@ namespace Sexy { namespace Sex
 
 		if (text->Length > NAMESPACE_MAX_TOTAL_LENGTH)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Namespace name was greater than the maximum length of ") << NAMESPACE_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
-			Throw(e, streamer);
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Namespace name was greater than the maximum length of ") << NAMESPACE_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
+         Throw(e, *streamer.sb);
 		}
 	}
 
 	void ThrowNamespaceConflict(cr_sex s, const INamespace& n1, const INamespace& n2, csexstr type, csexstr token)
 	{
-		sexstringstream streamer;
-		streamer << type << SEXTEXT(" ") << token << SEXTEXT(" could belong to either ") << n1.FullName()->Buffer << (" or ") << n2.FullName()->Buffer;
+		sexstringstream<1024> streamer;
+		streamer.sb << type << SEXTEXT(" ") << token << SEXTEXT(" could belong to either ") << n1.FullName()->Buffer << (" or ") << n2.FullName()->Buffer;
 		Throw(s, streamer);
 	}
 
 	void ThrowTokenNotFound(cr_sex s, csexstr item, csexstr repository, csexstr type)
 	{
-		sexstringstream streamer;
-		streamer << type << SEXTEXT(" '") << item << SEXTEXT("' not found in ") << repository;
+		sexstringstream<1024> streamer;
+		streamer.sb << type << SEXTEXT(" '") << item << SEXTEXT("' not found in ") << repository;
 		Throw(s, streamer);
 	}
 
@@ -299,8 +298,8 @@ namespace Sexy { namespace Sex
 		INamespace* ns = object.GetRootNamespace().FindSubspace(fullName);
 		if (ns == NULL)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("The namespace ") << fullName << (" was unrecognized.");
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("The namespace ") << fullName << (" was unrecognized.");
 			Throw(s, streamer);
 		}
 		return *ns;
@@ -321,8 +320,8 @@ namespace Sexy { namespace Sex
 				ptrdiff_t finalLen = ((ptrdiff_t) text->Length) - (c - text->Buffer) - 1;
 				if (finalLen > FUNCTION_NAME_MAX_TOTAL_LENGTH)
 				{
-					sexstringstream streamer;
-					streamer << SEXTEXT("Method name was greater than the maximum length of ") << FUNCTION_NAME_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
+					sexstringstream<1024> streamer;
+					streamer.sb << SEXTEXT("Method name was greater than the maximum length of ") << FUNCTION_NAME_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
 					Throw(e, streamer);
 				}
 
@@ -332,8 +331,8 @@ namespace Sexy { namespace Sex
 
 		if (text->Length > FUNCTION_NAME_MAX_TOTAL_LENGTH)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Function name was greater than the maximum length of ") << FUNCTION_NAME_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Function name was greater than the maximum length of ") << FUNCTION_NAME_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
 			Throw(e, streamer);
 		}
 	}
@@ -345,8 +344,8 @@ namespace Sexy { namespace Sex
 
 		if (!IsLowerCase(s->Buffer[0]))
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Expecting identifier to begin with a lower case letter {a-z} at position[0]");
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Expecting identifier to begin with a lower case letter {a-z} at position[0]");
 			Throw(e, streamer);
 		}
 
@@ -356,8 +355,8 @@ namespace Sexy { namespace Sex
 
 			if (!IsAlphaNumeric(c))
 			{
-				sexstringstream streamer;
-				streamer << SEXTEXT("Expecting identifier character to be an alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
+				sexstringstream<1024> streamer;
+				streamer.sb << SEXTEXT("Expecting identifier character to be an alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
 				Throw(e, streamer);
 			}
 		}
@@ -367,8 +366,8 @@ namespace Sexy { namespace Sex
 	{
 		if (!IsCapital(name[0]))
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Expecting typename to begin with an upper case letter {A-Z} at position[0]");
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Expecting typename to begin with an upper case letter {A-Z} at position[0]");
 			Throw(src, streamer);
 		}
 
@@ -378,8 +377,8 @@ namespace Sexy { namespace Sex
 			SEXCHAR c = name[i];
 			if (!IsAlphaNumeric(c))
 			{
-				sexstringstream streamer;
-				streamer << SEXTEXT("Expecting typename character to be an alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
+				sexstringstream<1024> streamer;
+				streamer.sb << SEXTEXT("Expecting typename character to be an alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
 				Throw(src, streamer);
 			}
 		}
@@ -393,8 +392,8 @@ namespace Sexy { namespace Sex
 
 		if (!IsCapital(s->Buffer[0]))
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Expecting typename to begin with an upper case letter {A-Z} at position[0]");
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Expecting typename to begin with an upper case letter {A-Z} at position[0]");
 			Throw(e, streamer);
 		}
 
@@ -403,8 +402,8 @@ namespace Sexy { namespace Sex
 			SEXCHAR c = s->Buffer[i];
 			if (!IsAlphaNumeric(c))
 			{
-				sexstringstream streamer;
-				streamer << SEXTEXT("Expecting typename character to be an alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
+				sexstringstream<1024> streamer;
+				streamer.sb << SEXTEXT("Expecting typename character to be an alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
 				Throw(e, streamer);
 			}
 		}
@@ -419,8 +418,8 @@ namespace Sexy { namespace Sex
 		enum {STRUCT_NAME_MAX_TOTAL_LENGTH = 31 };
 		if (text->Length > STRUCT_NAME_MAX_TOTAL_LENGTH)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Structure name was greater than the maximum length of ") << STRUCT_NAME_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Structure name was greater than the maximum length of ") << STRUCT_NAME_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
 			Throw(e, streamer);
 		}
 	}
@@ -433,8 +432,8 @@ namespace Sexy { namespace Sex
 
 		if (StringLength(name) > INTERFACE_NAME_MAX_TOTAL_LENGTH)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Interface name was greater than the maximum length of ") << INTERFACE_NAME_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Interface name was greater than the maximum length of ") << INTERFACE_NAME_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
 			Throw(src, streamer);
 		}
 	}
@@ -447,8 +446,8 @@ namespace Sexy { namespace Sex
 
 		if (StringLength(name) > ARCHETYPE_NAME_MAX_TOTAL_LENGTH)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Archetype name was greater than the maximum length of ") << ARCHETYPE_NAME_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Archetype name was greater than the maximum length of ") << ARCHETYPE_NAME_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
 			Throw(src, streamer);
 		}
 	}
@@ -458,8 +457,8 @@ namespace Sexy { namespace Sex
 		int32 elementCount = e.NumberOfElements();
 		if (maxElements > 0 && elementCount > maxElements)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Expression had more than the maximum of ") << maxElements << " element" << (maxElements > 1 ? SEXTEXT("s") : SEXTEXT(""));
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Expression had more than the maximum of ") << maxElements << " element" << (maxElements > 1 ? SEXTEXT("s") : SEXTEXT(""));
 			Throw(e, streamer);
 		}
 	}
@@ -469,8 +468,8 @@ namespace Sexy { namespace Sex
 		int32 elementCount = e.NumberOfElements();
 		if (minElements > 0 && elementCount < minElements)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Expression had fewer than the minimum of ") << minElements << SEXTEXT(" element") << (minElements > 1 ? SEXTEXT("s") : SEXTEXT(""));
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Expression had fewer than the minimum of ") << minElements << SEXTEXT(" element") << (minElements > 1 ? SEXTEXT("s") : SEXTEXT(""));
 			Throw(e, streamer);
 		}
 	}
@@ -489,8 +488,8 @@ namespace Sexy { namespace Sex
 		cr_sex item = GetAtomicArg(e, arg);
 		if (!AreEqual(item.String(), name))
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Expecting ") << name << SEXTEXT(" at position ") << arg;
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Expecting ") << name << SEXTEXT(" at position ") << arg;
 			Throw(e, streamer);
 		}
 	}
@@ -509,8 +508,8 @@ namespace Sexy { namespace Sex
 
 			if (!AreEqual(firstElement.String(), headName))
 			{
-				sexstringstream streamer;
-				streamer << SEXTEXT("Expecting expression (") << headName << SEXTEXT(" ...), but found a (") << firstElement.String()->Buffer << SEXTEXT(" ...)");
+				sexstringstream<1024> streamer;
+				streamer.sb << SEXTEXT("Expecting expression (") << headName << SEXTEXT(" ...), but found a (") << firstElement.String()->Buffer << SEXTEXT(" ...)");
 				Throw(e, streamer);
 			}
 		}
@@ -524,12 +523,12 @@ namespace Sexy { namespace Sex
 		return child.String();
 	}
 
-	void StreamArg(sexstringstream& streamer, csexstr name, const IStructure& type)
+	void StreamArg(strbuilder& streamer, csexstr name, const IStructure& type)
 	{
 		streamer << SEXTEXT(" (") << GetFriendlyName(type) << SEXTEXT(" ") << name << SEXTEXT(")");
 	}
 
-	void StreamFullMethod(sexstringstream& streamer, const IArchetype& callee)
+	void StreamFullMethod(strbuilder& streamer, const IArchetype& callee)
 	{
 		streamer << callee.Name() << SEXTEXT(" ");
 
@@ -572,23 +571,22 @@ namespace Sexy { namespace Sex
 		if (callee.NumberOfInputs() == numberOfSuppliedInputArgs) return;
 		if (IsGetAccessor(callee) && numberOfSuppliedInputArgs == 0) return;
 
-		sexstringstream streamer;
-		streamer << SEXTEXT("Function call '");
+		sexstringstream<1024> streamer;
+		streamer.sb << SEXTEXT("Function call '");
 
-		StreamFullMethod(streamer, callee);
+		StreamFullMethod(streamer.sb, callee);
 			
-		streamer << SEXTEXT("' was supplied with ");
+		streamer.sb << SEXTEXT("' was supplied with ");
 
 		if (callee.NumberOfInputs() < numberOfSuppliedInputArgs) 
 		{
-			streamer << SEXTEXT("too many inputs");
+			streamer.sb << SEXTEXT("too many inputs");
 		}
 		else
 		{
-			streamer << SEXTEXT("too few inputs");
+			streamer.sb << SEXTEXT("too few inputs");
 		}
 		
-		streamer << std::ends;
-		Throw(s, streamer.str().c_str());
+		Throw(s, *streamer.sb);
 	}
 }}

@@ -46,7 +46,7 @@
 #define COMPILER_LIB
 
 #include "sexy.compiler.public.h"
-#include "Sexy.Compiler.h"
+#include "sexy.compiler.h"
 
 #include <sstream>
 

@@ -75,7 +75,7 @@ namespace Sexy
       void AssertTypeIdentifier(cr_sex src, csexstr name);
       void AssertLocalIdentifier(cr_sex e);
 
-      void Throw(cr_sex e, sexstringstream& streamer);
+      void Throw(cr_sex e, const fstring& f);
       void ThrowTypeMismatch(cr_sex s, const IStructure& a, const IStructure& b, csexstr extra);
 
       void AssertAtomicMatch(cr_sex s, csexstr value);
@@ -129,7 +129,7 @@ namespace Sexy
       };
 
       void InitClassMembers(CCompileEnvironment& ce, csexstr id);
-      void StreamSTCEX(sexstringstream& streamer, const Compiler::STCException& ex);
+      void StreamSTCEX(strbuilder& sb, const Compiler::STCException& ex);
       bool TryCompileFunctionCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, VARTYPE type, const IStructure* derivedType, const IArchetype* returnArchetype);
 
       class CScripts;

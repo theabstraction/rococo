@@ -56,9 +56,9 @@ namespace Sexy
 		length = StringLength(_src);		
 		if (length >= NAMESPACE_MAX_LENGTH)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Error splitting namespace '") << _src << SEXTEXT("' namespace exceeded maximum length of ") << NAMESPACE_MAX_LENGTH << SEXTEXT(" characters") << std::ends;
-			throw NamespaceException(streamer.str().c_str());
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Error splitting namespace '") << _src << SEXTEXT("' namespace exceeded maximum length of ") << NAMESPACE_MAX_LENGTH << SEXTEXT(" characters");
+			throw NamespaceException(streamer);
 		}
 	}
 

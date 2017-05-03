@@ -76,8 +76,8 @@ namespace Sexy
 
          if (!f.TryResolveArguments())
          {
-            sexstringstream streamer;
-            streamer << SEXTEXT("Error resolving arguments in macro: ") << fname;
+            sexstringstream<1024> streamer;
+            streamer.sb << SEXTEXT("Error resolving arguments in macro: ") << fname;
             Throw(macroDef, streamer);
          }
 

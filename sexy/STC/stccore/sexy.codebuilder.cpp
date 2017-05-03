@@ -31,12 +31,14 @@
 	principal credit screen and its principal readme file.
 */
 
-#include "Sexy.Compiler.StdAfx.h"
-#include "Sexy.Validators.h"
+#include "sexy.compiler.stdafx.h"
+#include "sexy.validators.h"
 #include "sexy.vm.h"
 #include "sexy.compiler.helpers.h"
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
+
+#include <list>
 
 using namespace Sexy;
 using namespace Sexy::Compiler;
@@ -1079,9 +1081,9 @@ namespace
 			const IArgument& arg = f.Arg(i);
 			if (arg.ResolvedType() == NULL)
 			{
-				sexstringstream streamer;
-				streamer << SEXTEXT("Could not resolve type (Arg #") << i << SEXTEXT(") ") << arg.TypeString() << SEXTEXT(" ") << arg.Name() << std::ends; 
-				Throw(ERRORCODE_NULL_POINTER, __SEXFUNCTION__, streamer.str().c_str());
+				sexstringstream<1024> streamer;
+				streamer.sb << SEXTEXT("Could not resolve type (Arg #") << i << SEXTEXT(") ") << arg.TypeString() << SEXTEXT(" ") << arg.Name(); 
+				Throw(ERRORCODE_NULL_POINTER, __SEXFUNCTION__, "%s", (cstr) streamer);
 			}
 
 			int varOffset = 0;
@@ -2145,9 +2147,9 @@ namespace
 	{
 		if (!builder.TryGetVariableByName(def, name))
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Error, cannot find entry ") << name << std::ends;
-			Throw(ERRORCODE_COMPILE_ERRORS, builder.Module().Name(), streamer.str().c_str());
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Error, cannot find entry ") << name;
+			Throw(ERRORCODE_COMPILE_ERRORS, builder.Module().Name(), "%s", (cstr) streamer);
 		}
 	}
 
@@ -2155,9 +2157,9 @@ namespace
 	{
 		if (instance == NULL)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Error, cannot find instance ") << instanceName << std::ends;
-			Throw(ERRORCODE_COMPILE_ERRORS, module.Name(), streamer.str().c_str());
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Error, cannot find instance ") << instanceName;
+			Throw(ERRORCODE_COMPILE_ERRORS, module.Name(), "%s", (cstr) streamer);
 		}
 	}
 
@@ -2213,9 +2215,9 @@ namespace
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, instanceName))
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Error, cannot find instance ") << instanceName << std::ends;
-			Throw(ERRORCODE_COMPILE_ERRORS, Module().Name(), streamer.str().c_str());
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Error, cannot find instance ") << instanceName;
+			Throw(ERRORCODE_COMPILE_ERRORS, Module().Name(), "%s", (cstr) streamer);
 		}
 
 		if (def.ResolvedType->Prototype().IsClass)
@@ -2229,9 +2231,9 @@ namespace
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, instanceName))
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Error, cannot find instance ") << instanceName << std::ends;
-			Throw(ERRORCODE_COMPILE_ERRORS, classType.Module().Name(), streamer.str().c_str());
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Error, cannot find instance ") << instanceName;
+			Throw(ERRORCODE_COMPILE_ERRORS, classType.Module().Name(), "%s", (cstr) streamer);
 		}
 
 		if (def.ResolvedType->Prototype().IsClass)

@@ -107,6 +107,7 @@
     <ClCompile Include="sexy.s-parser.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Common\sexy.stdstrings.h" />
     <ClInclude Include="sexy.s-parser.stdafx.h" />
   </ItemGroup>
   <ItemGroup>

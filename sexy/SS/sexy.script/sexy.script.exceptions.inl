@@ -97,9 +97,9 @@ namespace Sexy
          // (try (body) catch exception-name (handler) finally (cleanup))
          if (s.NumberOfElements() != 5 && s.NumberOfElements() != 7)
          {
-            sexstringstream streamer;
-            streamer << SEXTEXT("Expecting 5 or 7 elements in a (try (...) catch e (...) finally (...)) block. Found ") << s.NumberOfElements() << SEXTEXT(" elements") << std::ends;
-            Throw(s, streamer.str().c_str());
+            sexstringstream<1024> streamer;
+            streamer.sb << SEXTEXT("Expecting 5 or 7 elements in a (try (...) catch e (...) finally (...)) block. Found ") << s.NumberOfElements() << SEXTEXT(" elements");
+            Throw(s, *streamer.sb);
          }
 
          GetAtomicArg(s, 0);

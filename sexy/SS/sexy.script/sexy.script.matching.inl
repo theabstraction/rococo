@@ -477,8 +477,8 @@ namespace Sexy
          IInterfaceBuilder* i = GetInterface(builder.Module().Object(), fullyQualifiedName);
          if (i == NULL)
          {
-            sexstringstream streamer;
-            streamer << SEXTEXT("Cannot find ") << fullyQualifiedName;
+            sexstringstream<1024> streamer;
+            streamer.sb << SEXTEXT("Cannot find ") << fullyQualifiedName;
             Throw(s, streamer);
          }
 
@@ -538,8 +538,8 @@ namespace Sexy
       {
          if (!builder.TryGetVariableByName(def, name))
          {
-            sexstringstream streamer;
-            streamer << SEXTEXT("Error, cannot find entry ") << name;
+            sexstringstream<1024> streamer;
+            streamer.sb << SEXTEXT("Error, cannot find entry ") << name;
             Throw(s, streamer);
          }
       }

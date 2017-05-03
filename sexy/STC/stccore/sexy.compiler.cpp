@@ -31,13 +31,15 @@
 	principal credit screen and its principal readme file.
 */
 
-#include "Sexy.Compiler.StdAfx.h"
-#include "Sexy.Validators.h"
+#include "sexy.compiler.stdafx.h"
+#include "sexy.validators.h"
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 #include "sexy.compiler.helpers.h"
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
+
+#include <list>
 
 using namespace Sexy;
 using namespace Sexy::Compiler;
@@ -49,9 +51,9 @@ namespace Sexy { namespace Compiler {
 }} // Sexy::Compiler
 
 
-#include "Sexy.Compiler.inl"
+#include "sexy.compiler.inl"
 #include "sexy.compiler.attributes.inl"
-#include "sexy.compiler.Functions.inl"
+#include "sexy.compiler.functions.inl"
 #include "sexy.compiler.modules.inl"
 #include "sexy.compiler.structures.inl"
 #include "sexy.compiler.namespaces.inl"

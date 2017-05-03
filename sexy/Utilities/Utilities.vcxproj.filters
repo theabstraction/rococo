@@ -48,6 +48,9 @@
     <ClCompile Include="sexy.variants.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sexy.strings.builder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\STC\stccore\Sexy.Compiler.h">

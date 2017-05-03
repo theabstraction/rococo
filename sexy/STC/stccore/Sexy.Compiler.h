@@ -85,6 +85,7 @@ namespace Sexy { namespace Compiler
 
 	ROCOCOAPI IFunctionBuilder : public IFunction
 	{
+      virtual void Free() = 0;
 		virtual IArgumentBuilder& AddInput(const NameString& name, const TypeString& type, void* userdata) = 0;
 		virtual IArgumentBuilder& AddClosureInput(const NameString& name, const TypeString& type, void* userdata) = 0;
 		virtual IArgumentBuilder& AddInput(const NameString& name, const IStructure& type, void* userdata) = 0;
@@ -129,6 +130,7 @@ namespace Sexy { namespace Compiler
 	
 	ROCOCOAPI IStructureBuilder : public IStructure
 	{
+      virtual void Free() = 0;
 		virtual IModuleBuilder& Module() = 0;
 		virtual void AddInterface(csexstr interfaceFullName) = 0;		
 		virtual void AddMember(const NameString& name, const TypeString& type, csexstr genericArg1 = nullptr, csexstr genericArg2 = nullptr) = 0;
@@ -284,6 +286,7 @@ namespace Sexy { namespace Compiler
 
 	ROCOCOAPI ICodeBuilder : public IFunctionCode
 	{
+      virtual void Free() = 0;
 		virtual IFunctionBuilder& Owner() = 0;
 		
 		virtual const bool NeedsParentsSF() const = 0;
@@ -322,7 +325,6 @@ namespace Sexy { namespace Compiler
 		virtual void EnterSection() = 0;
 		virtual void LeaveSection() = 0;
 		virtual void End() = 0;
-		virtual void Free() = 0;
 		
 		virtual VM::IAssembler& Assembler() = 0;
 		virtual IModuleBuilder& Module() = 0;

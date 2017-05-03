@@ -73,7 +73,7 @@ namespace Sexy { namespace Compiler { namespace Impl
 			{
 				for(auto i = functionsByName.begin(); i != functionsByName.end(); ++i)
 				{
-					delete i->second;
+					 i->second->Free();
 				}
 			}
 			
@@ -306,8 +306,8 @@ namespace Sexy { namespace Compiler { namespace Impl
 			{
 				for(auto i = structures.begin(); i != structures.end(); ++i)
 				{
-					IStructure& s = i->GetStructure();
-					delete &s;
+					auto& sb = i->GetStructure();
+               sb.Free();
 				}
 			}
 			structures.clear();
@@ -438,6 +438,8 @@ namespace Sexy { namespace Compiler { namespace Impl
 		Structure(csexstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, VARTYPE type, const void* _definition);
 		~Structure();
 
+      virtual void Free() { delete this; }
+
 		virtual void AddInterface(csexstr interfaceFullName);
 		virtual int InterfaceCount() const;
 		virtual const IInterface& GetInterface(int index) const;
@@ -521,6 +523,10 @@ namespace Sexy { namespace Compiler { namespace Impl
 		Interface(csexstr _name, const int _methodCount, IStructureBuilder& _nullObjectType, Interface* _base);
 		~Interface();
 		
+      virtual void Free()
+      {
+         delete this;
+      }
 		//IInterface
 		virtual const IInterface* Base() const  { return base; }
 		virtual const IAttributes& Attributes() const { return attributes; }

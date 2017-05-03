@@ -5,16 +5,13 @@
 #include "sexy.compiler.public.h"
 
 #include <stdarg.h>
-#include <rococo.win32.target.win7.h>
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#include <rococo.os.win32.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
-#include <intrin.h>
 #include <string.h>
 
-#include "..\stccore\Sexy.Compiler.h"
+#include <sexy.compiler.h>
 #include "sexy.lib.compiler.h"
 #include "sexy.lib.util.h"
 
@@ -72,9 +69,9 @@ namespace
 
 	void Stop()
 	{
-		if (IsDebuggerPresent())
+		if (Sexy::OS::IsDebuggerPresent())
 		{
-			__debugbreak();
+			Sexy::OS::TripDebugger();
 		}
 		else
 		{
@@ -258,7 +255,7 @@ namespace
 		catch (IException& e)
 		{
 			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
-			VALIDATE(FALSE);
+			VALIDATE(false);
 		}
 
 		try
@@ -461,18 +458,15 @@ namespace
 		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("-42")) == PARSERESULT_GOOD);
 		VALIDATE(value == -42);
 
-		#pragma warning(disable: 4146) // Bad compiler warning in VS2010 for valid numeric input
-			VALIDATE(TryParseDecimal(OUT value, SEXTEXT("-9223372036854775808")) == PARSERESULT_GOOD);
-			VALIDATE(value == -9223372036854775808); // N.B picked up by some compilers (such as MS-VC) as an error, but it -2^63, which translates to the -9223372036854775808 decimal string for a signed 32-bit number
-		#pragma warning(default: 4146) // Bad compiler warning in VS2010 for valid numeric input
+	   VALIDATE(TryParseDecimal(OUT value, SEXTEXT("-9223372036854775808")) == PARSERESULT_GOOD);
 
 		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("9223372036854775808")) == PARSERESULT_OVERFLOW);
 
 		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("-9223372036854775807")) == PARSERESULT_GOOD);
-		VALIDATE(value == -9223372036854775807);
+		VALIDATE(value == -9223372036854775807LL);
 
 		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("9223372036854775807")) == PARSERESULT_GOOD);
-		VALIDATE(value == 9223372036854775807);
+		VALIDATE(value == 9223372036854775807LL);
 
 		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("-9223372036854775809")) == PARSERESULT_OVERFLOW);
 		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("9223372036854775809")) == PARSERESULT_OVERFLOW);
@@ -1868,7 +1862,7 @@ namespace
 	}
 }
 
-int main(int argc, char* argv)
+int main(int argc, char* argv[])
 {
 	printf("Sexy Tree Compiler Test Suite\r\n");
 	PresentTests();

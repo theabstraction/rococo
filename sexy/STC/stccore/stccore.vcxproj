@@ -122,7 +122,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\sexy.compiler.public.h" />
-    <ClInclude Include="Sexy.Compiler.h" />
+    <ClInclude Include="sexy.compiler.h" />
     <ClInclude Include="sexy.compiler.helpers.h" />
     <ClInclude Include="sexy.compiler.inl" />
     <ClInclude Include="sexy.compiler.stdafx.h" />

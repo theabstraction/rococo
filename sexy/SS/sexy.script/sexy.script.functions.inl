@@ -176,8 +176,8 @@ namespace Sexy
 		      MemberDef def;
 		      if (!ce.Builder.TryGetVariableByName(OUT def, fname) || def.ResolvedType->Archetype() != &archetype)
 		      {
-			      sexstringstream streamer;
-			      streamer << SEXTEXT("Failed to interpret expression as a closure argument: ") << inputType.Name() << SEXTEXT(" ") << argName;
+			      sexstringstream<1024> streamer;
+			      streamer.sb << SEXTEXT("Failed to interpret expression as a closure argument: ") << inputType.Name() << SEXTEXT(" ") << argName;
 			      Throw(s, streamer);
 		      }
 		
@@ -196,8 +196,8 @@ namespace Sexy
 	      {
 		      csexstr name = inputExpression.String()->Buffer;
 
-		      sexstringstream streamer;
-		      streamer << SEXTEXT("The input '") << name << SEXTEXT("' was not recognized ");
+		      sexstringstream<1024> streamer;
+		      streamer.sb << SEXTEXT("The input '") << name << SEXTEXT("' was not recognized ");
 		      Throw(inputExpression, streamer);
 	      }
 
@@ -222,8 +222,8 @@ namespace Sexy
 	      {
 		      csexstr name = inputExpression.String()->Buffer;
 
-		      sexstringstream streamer;
-		      streamer << SEXTEXT("The input '") << name << SEXTEXT("' was not recognized ");
+		      sexstringstream<1024> streamer;
+		      streamer.sb << SEXTEXT("The input '") << name << SEXTEXT("' was not recognized ");
 		      Throw(inputExpression, streamer);
 	      }
 
@@ -288,8 +288,8 @@ namespace Sexy
 	      VARTYPE vType = varStruct.VarType();
 	      if (vType != VARTYPE_Derivative)
 	      {
-		      sexstringstream streamer;
-		      streamer << SEXTEXT("The variable is not a derived type. Expected: ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
+		      sexstringstream<1024> streamer;
+		      streamer.sb << SEXTEXT("The variable is not a derived type. Expected: ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
 		      Throw(s, streamer);
 	      }
 
@@ -299,8 +299,8 @@ namespace Sexy
 		      int cii = GetCommonInterfaceIndex(varStruct, inputType);
 		      if (cii < 0)
 		      {
-			      sexstringstream streamer;
-			      streamer << SEXTEXT("The input type '") << varStruct.Name() << SEXTEXT("' did not match the argument type '") << GetFriendlyName(inputType) << SEXTEXT(" ") << name << SEXTEXT("'");
+			      sexstringstream<1024> streamer;
+			      streamer.sb << SEXTEXT("The input type '") << varStruct.Name() << SEXTEXT("' did not match the argument type '") << GetFriendlyName(inputType) << SEXTEXT(" ") << name << SEXTEXT("'");
 			      Throw(s, streamer);
 		      }
 
@@ -325,8 +325,8 @@ namespace Sexy
 		      {
 			      if (*def.ResolvedType != inputType)
 			      {
-				      sexstringstream streamer;
-				      streamer << SEXTEXT("The input ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name << SEXTEXT(" did not match the input variable ") << GetFriendlyName(*def.ResolvedType) << SEXTEXT(" ") << token;
+				      sexstringstream<1024> streamer;
+				      streamer.sb << SEXTEXT("The input ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name << SEXTEXT(" did not match the input variable ") << GetFriendlyName(*def.ResolvedType) << SEXTEXT(" ") << token;
 				      Throw(s, streamer);
 			      }
 			      else
@@ -376,8 +376,8 @@ namespace Sexy
 	      }
 	      else
 	      {
-		      sexstringstream streamer;
-		      streamer << SEXTEXT("Expecting an expression that returns a reference to ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
+		      sexstringstream<1024> streamer;
+		      streamer.sb << SEXTEXT("Expecting an expression that returns a reference to ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
 		      Throw(s, streamer);
 	      }
       }
@@ -388,8 +388,8 @@ namespace Sexy
 	      {
 	      case EXPRESSION_TYPE_STRING_LITERAL:
 		      {
-			      sexstringstream streamer;
-			      streamer << SEXTEXT("Cannot yet handle string literal expression for ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
+			      sexstringstream<1024> streamer;
+			      streamer.sb << SEXTEXT("Cannot yet handle string literal expression for ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
 			      Throw(s, streamer);
 		      }
 		      break;
@@ -399,15 +399,15 @@ namespace Sexy
 	      case EXPRESSION_TYPE_COMPOUND:
 		      if (!TryCompileFunctionCallAndReturnValue(ce, s, VARTYPE_Derivative, &inputType, NULL))
 		      {
-			      sexstringstream streamer;
-			      streamer << SEXTEXT("Expecting compound expression to return input for ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
+			      sexstringstream<1024> streamer;
+			      streamer.sb << SEXTEXT("Expecting compound expression to return input for ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
 			      Throw(s, streamer);
 		      }			
 		      break;
 	      default:
 		      {
-			      sexstringstream streamer;
-			      streamer << SEXTEXT("Expecting atomic, compound or string literal expression for ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
+			      sexstringstream<1024> streamer;
+			      streamer.sb << SEXTEXT("Expecting atomic, compound or string literal expression for ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
 			      Throw(s, streamer);
 		      }
 	      }
@@ -433,8 +433,8 @@ namespace Sexy
 	      default:
 		      if (expectingStructRef)
 		      {
-			      sexstringstream streamer;
-			      streamer << SEXTEXT("Expecting atomic, compound or string literal expression for ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
+			      sexstringstream<1024> streamer;
+			      streamer.sb << SEXTEXT("Expecting atomic, compound or string literal expression for ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
 			      Throw(s, streamer);
 		      }
 		      return false;
@@ -444,8 +444,8 @@ namespace Sexy
 
 	      if (!Sexy::IsAlphabetical(vname[0]))
 	      {
-		      sexstringstream streamer;
-		      streamer << SEXTEXT("Could not interpret token as function or variable. Expected: ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
+		      sexstringstream<1024> streamer;
+		      streamer.sb << SEXTEXT("Could not interpret token as function or variable. Expected: ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
 		      Throw(s, streamer);
 	      }
 
@@ -461,8 +461,8 @@ namespace Sexy
 	      {
 		      if (expectingStructRef)
 		      {
-			      sexstringstream streamer;
-			      streamer << SEXTEXT("The variable is not a derived type. Expected: ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
+			      sexstringstream<1024> streamer;
+			      streamer.sb << SEXTEXT("The variable is not a derived type. Expected: ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
 			      Throw(s, streamer);
 		      }
 	      }
@@ -474,8 +474,8 @@ namespace Sexy
 	      {
 		      if (expectingStructRef)
 		      {
-			      sexstringstream streamer;
-			      streamer << SEXTEXT("The input type '") << varStruct->Name() << SEXTEXT("' did not match the argument type '") << GetFriendlyName(inputType) << SEXTEXT(" ") << name << SEXTEXT("'");
+			      sexstringstream<1024> streamer;
+			      streamer.sb << SEXTEXT("The input type '") << varStruct->Name() << SEXTEXT("' did not match the argument type '") << GetFriendlyName(inputType) << SEXTEXT(" ") << name << SEXTEXT("'");
 			      Throw(s, streamer);
 		      }
 
@@ -490,16 +490,16 @@ namespace Sexy
 
 		      if (&elementType != genericArg1)
 		      {				
-			      sexstringstream streamer;
-			      streamer << SEXTEXT("The input supplied was (array ") << GetFriendlyName(elementType) << SEXTEXT(" ") << vname << SEXTEXT(") ");
+			      sexstringstream<1024> streamer;
+			      streamer.sb << SEXTEXT("The input supplied was (array ") << GetFriendlyName(elementType) << SEXTEXT(" ") << vname << SEXTEXT(") ");
 
 			      if (genericArg1 != NULL)
 			      {
-				      streamer << SEXTEXT("but input required was (array ") << GetFriendlyName(*genericArg1) << SEXTEXT(" ") << name << SEXTEXT(") ");
+				      streamer.sb << SEXTEXT("but input required was (array ") << GetFriendlyName(*genericArg1) << SEXTEXT(" ") << name << SEXTEXT(") ");
 			      }
 			      else
 			      {
-				      streamer << SEXTEXT("but input required was (") << GetFriendlyName(inputType) << SEXTEXT(" ") << name << SEXTEXT(") ");
+				      streamer.sb << SEXTEXT("but input required was (") << GetFriendlyName(inputType) << SEXTEXT(" ") << name << SEXTEXT(") ");
 			      }
 			      Throw(s, streamer);
 		      }
@@ -582,8 +582,8 @@ namespace Sexy
 	      {
 		      if (!TryCompileArithmeticExpression(ce, inputExpression, true, inputType))
 		      {
-			      sexstringstream streamer;
-			      streamer << SEXTEXT("Expected ") << GetTypeName(inputType) << SEXTEXT(" valued expression");
+			      sexstringstream<1024> streamer;
+			      streamer.sb << SEXTEXT("Expected ") << GetTypeName(inputType) << SEXTEXT(" valued expression");
 			      Throw(inputExpression, streamer);
 		      }
 	      }
@@ -592,8 +592,8 @@ namespace Sexy
 		      ce.Builder.AddSymbol(inputName); 
 		      if (!TryCompilePushStructRef(ce, inputExpression, true, inputStruct, inputName, genericArg1))
 		      {
-			      sexstringstream streamer;
-			      streamer << SEXTEXT("Expected a reference to a ") << GetFriendlyName(inputStruct);
+			      sexstringstream<1024> streamer;
+			      streamer.sb << SEXTEXT("Expected a reference to a ") << GetFriendlyName(inputStruct);
 			      Throw(inputExpression, streamer);
 		      }
 		      return sizeof(size_t);
@@ -602,8 +602,8 @@ namespace Sexy
 	      {
 		      if (!TryCompilePushClosure(ce, inputExpression, true, inputStruct, *archetype, inputName))
 		      {
-			      sexstringstream streamer;
-			      streamer << SEXTEXT("Expected an archetype ") << archetype->Name();
+			      sexstringstream<1024> streamer;
+			      streamer.sb << SEXTEXT("Expected an archetype ") << archetype->Name();
 			      Throw(inputExpression, streamer);
 		      }
 
@@ -648,8 +648,8 @@ namespace Sexy
 	
 	      if (&requiredOutputStruct != exprOutputStruct)
 	      {
-		      sexstringstream streamer;
-		      streamer << SEXTEXT("Function expects type ") << GetFriendlyName(requiredOutputStruct) << SEXTEXT(" but identifier was of type ") << GetFriendlyName(*exprOutputStruct);
+		      sexstringstream<1024> streamer;
+		      streamer.sb << SEXTEXT("Function expects type ") << GetFriendlyName(requiredOutputStruct) << SEXTEXT(" but identifier was of type ") << GetFriendlyName(*exprOutputStruct);
 		      Throw(outputExpr, streamer);
 	      }
 
@@ -741,8 +741,8 @@ namespace Sexy
 
 	      if (outputStruct.VarType() != returnType)
 	      {
-		      sexstringstream streamer;
-		      streamer << SEXTEXT("Function returns ") << GetTypeName(outputStruct.VarType()) << SEXTEXT(" but expression expects ") << GetTypeName(returnType);
+		      sexstringstream<1024> streamer;
+		      streamer.sb << SEXTEXT("Function returns ") << GetTypeName(outputStruct.VarType()) << SEXTEXT(" but expression expects ") << GetTypeName(returnType);
 		      Throw(s, streamer);
 	      }
       }
@@ -767,8 +767,8 @@ namespace Sexy
 
 	      if (returnTypeStruct != NULL && returnTypeStruct != &argStruct)
 	      {
-		      sexstringstream streamer;
-		      streamer << SEXTEXT("Function returns ") <<  GetFriendlyName(argStruct) << SEXTEXT(" but expression expects ") << GetFriendlyName(*returnTypeStruct);
+		      sexstringstream<1024> streamer;
+		      streamer.sb << SEXTEXT("Function returns ") <<  GetFriendlyName(argStruct) << SEXTEXT(" but expression expects ") << GetFriendlyName(*returnTypeStruct);
 		      Throw(s, streamer);
 	      }
 
@@ -977,16 +977,16 @@ namespace Sexy
 					      }
 					      else
 					      {
-						      sexstringstream streamer;
-						      streamer << interf.Name() << SEXTEXT(" attribute 'indexed' found, but the index function must take only one input");
+						      sexstringstream<1024> streamer;
+						      streamer.sb << interf.Name() << SEXTEXT(" attribute 'indexed' found, but the index function must take only one input");
 						      Throw(methodNameExpr, streamer);
 					      }
 					      return NULL;
 				      }
 			      }
 
-			      sexstringstream streamer;
-			      streamer << interf.Name() << SEXTEXT(" attribute 'indexed' found, but the name was not found in the list of methods for the interfafce");
+			      sexstringstream<1024> streamer;
+			      streamer.sb << interf.Name() << SEXTEXT(" attribute 'indexed' found, but the name was not found in the list of methods for the interfafce");
 			      Throw(methodNameExpr, streamer);
 		      }
 	      }
@@ -1044,8 +1044,8 @@ namespace Sexy
 	      if (returnType == VARTYPE_AnyNumeric && IsPrimitiveType(type)) return;
 	      if (returnType != type)
 	      {
-		      sexstringstream streamer;
-		      streamer << SEXTEXT("The property returns type ") << GetTypeName(returnType) << SEXTEXT(" only");
+		      sexstringstream<1024> streamer;
+		      streamer.sb << SEXTEXT("The property returns type ") << GetTypeName(returnType) << SEXTEXT(" only");
 		      Throw(s, streamer);
 	      }
       }
@@ -1454,8 +1454,8 @@ namespace Sexy
 				      }
 			      }
 
-			      sexstringstream streamer;
-			      streamer << SEXTEXT("No interface ") << interf.Name() << SEXTEXT(" supported by ") << refDef.ResolvedType->Name();
+			      sexstringstream<1024> streamer;
+			      streamer.sb << SEXTEXT("No interface ") << interf.Name() << SEXTEXT(" supported by ") << refDef.ResolvedType->Name();
 			      Throw(s, streamer);
 		      }		
 	      }
@@ -1958,8 +1958,8 @@ namespace Sexy
 	      INamespaceBuilder* ns = Compiler::MatchNamespace(GetModule(ce.Script), body);
 	      if (ns == NULL)
 	      {
-		      sexstringstream streamer;
-		      streamer << SEXTEXT("Could not find namespace: ") << body;
+		      sexstringstream<1024> streamer;
+		      streamer.sb << SEXTEXT("Could not find namespace: ") << body;
 		      Throw(s, streamer);
 		      return false;
 	      }
@@ -1994,8 +1994,8 @@ namespace Sexy
 		      }
 		      else if (g != NULL)
 		      {
-			      sexstringstream streamer;
-			      streamer << SEXTEXT("Ambiguity: '") << fname << "' could belong to " << prefix.FullName()->Buffer << " or " << NS->FullName()->Buffer;
+			      sexstringstream<1024> streamer;
+			      streamer.sb << SEXTEXT("Ambiguity: '") << fname << "' could belong to " << prefix.FullName()->Buffer << " or " << NS->FullName()->Buffer;
 			      Throw(s, streamer);
 			      return false;
 		      }
@@ -2121,8 +2121,8 @@ namespace Sexy
 	      INamespaceBuilder* NS = ce.RootNS.FindSubspace(ns);
 	      if (NS == NULL)
 	      {
-		      sexstringstream streamer;
-		      streamer << SEXTEXT("Could not find the namespace ") << ns;
+		      sexstringstream<1024> streamer;
+		      streamer.sb << SEXTEXT("Could not find the namespace ") << ns;
 		      Throw(s, streamer);
 	      }
 	      return *NS;
@@ -2133,8 +2133,8 @@ namespace Sexy
 	      const IFunction* constructor = st.Constructor();
 	      if (constructor == NULL)
 	      {
-		      sexstringstream streamer;
-		      streamer << SEXTEXT("Cannot find ") << st.Name() << SEXTEXT(".Construct in ") << st.Module().Name();
+		      sexstringstream<1024> streamer;
+		      streamer.sb << SEXTEXT("Cannot find ") << st.Name() << SEXTEXT(".Construct in ") << st.Module().Name();
 		      Throw(s, streamer);
 	      }
 
@@ -2156,8 +2156,8 @@ namespace Sexy
 	      IFunctionBuilder* f = NS.FindFunction(shortName);
 	      if (f == NULL)
 	      {
-		      sexstringstream streamer;
-		      streamer << SEXTEXT("Could not find ") << shortName << SEXTEXT(" in ") << ns;
+		      sexstringstream<1024> streamer;
+		      streamer.sb << SEXTEXT("Could not find ") << shortName << SEXTEXT(" in ") << ns;
 		      Throw(s, streamer);
 	      }
 

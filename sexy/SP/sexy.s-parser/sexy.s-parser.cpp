@@ -87,10 +87,10 @@ namespace
             strerror_r(errNo, err, 256);
 #endif
 
-				sexstringstream streamer;
-				streamer << SEXTEXT("Error ") << errNo << SEXTEXT(" opening file: ") << err << std::ends;
+				sexstringstream<1024> streamer;
+				streamer.sb << SEXTEXT("Error ") << errNo << SEXTEXT(" opening file: ") << err;
 				
-            throw ParseException(Vec2i{ 0,0 }, Vec2i{ 0,0 }, name, streamer.str().c_str(), SEXTEXT("<none>"), NULL);
+            throw ParseException(Vec2i{ 0,0 }, Vec2i{ 0,0 }, name, streamer, SEXTEXT("<none>"), NULL);
 			}
 
 			long startLen = ftell(fp);

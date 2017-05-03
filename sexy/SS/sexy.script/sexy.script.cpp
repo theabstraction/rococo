@@ -1219,9 +1219,9 @@ namespace Sexy
 
 		virtual void ThrowNative(int errorNumber, csexstr source, csexstr message)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Native Error (") << source << SEXTEXT("): ") << message << std::ends;
-			progObjProxy().Log().Write(streamer.str().c_str());
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Native Error (") << source << SEXTEXT("): ") << message;
+			progObjProxy().Log().Write(*streamer.sb);
 			progObjProxy().VirtualMachine().Throw();
 		}
 	};

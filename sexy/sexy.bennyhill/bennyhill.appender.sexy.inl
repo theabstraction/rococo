@@ -40,9 +40,9 @@ namespace
 		csexstr ns, shortname;
 		if(!splitter.SplitTail(ns, shortname))
 		{
-			sexstringstream err;
-			err << SEXTEXT("Could not split interface name: ") << fqInterfaceName << std::ends;
-			Throw(s, err.str().c_str());
+			sexstringstream<1024> err;
+			err.sb << SEXTEXT("Could not split interface name: ") << fqInterfaceName;
+			Throw(s, *err.sb);
 		}
 
 		appender.Append(SEXTEXT("Proxy%s"), shortname);

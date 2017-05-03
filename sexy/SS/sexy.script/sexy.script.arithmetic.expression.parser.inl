@@ -273,30 +273,30 @@ namespace Sexy
          VARTYPE rType = builder.GetVarType(token);
          if (rType == VARTYPE_Bad)
          {
-            sexstringstream streamer;
+            sexstringstream<1024> streamer;
 
             VARTYPE literalType = Parse::GetLiteralType(token);
             if (IsPrimitiveType(literalType))
             {
-               streamer << token << SEXTEXT(" was ") << GetTypeName(literalType) << SEXTEXT(" Expecting ") << GetTypeName(type);
+               streamer.sb << token << SEXTEXT(" was ") << GetTypeName(literalType) << SEXTEXT(" Expecting ") << GetTypeName(type);
             }
             else
             {
-               streamer << token << SEXTEXT(" was not a literal type or a known identifier");
+               streamer.sb << token << SEXTEXT(" was not a literal type or a known identifier");
             }
             Throw(parent, streamer);
          }
          else if (rType == VARTYPE_Derivative)
          {
-            sexstringstream streamer;
-            streamer << token << SEXTEXT(" was a derived type, it cannot be used directly in arithmetic expressions");
+            sexstringstream<1024> streamer;
+            streamer.sb << token << SEXTEXT(" was a derived type, it cannot be used directly in arithmetic expressions");
             Throw(parent, streamer);
          }
 
          if (rType != type)
          {
-            sexstringstream streamer;
-            streamer << token << SEXTEXT(" was not the same type as that of the arithmetic expression in which it was referenced");
+            sexstringstream<1024> streamer;
+            streamer.sb << token << SEXTEXT(" was not the same type as that of the arithmetic expression in which it was referenced");
             Throw(parent, streamer);
          }
       }
@@ -362,8 +362,8 @@ namespace Sexy
             IFunctionBuilder& f = MustMatchFunction(ce.Builder.Module(), parent, id);
             if (!IsGetAccessor(f) && f.GetArgument(0).VarType() != type)
             {
-               sexstringstream streamer;
-               streamer << SEXTEXT("Expecting variable or single valued function with no inputs of return type ") << Parse::VarTypeName(type);
+               sexstringstream<1024> streamer;
+               streamer.sb << SEXTEXT("Expecting variable or single valued function with no inputs of return type ") << Parse::VarTypeName(type);
                Throw(parent, streamer);
             }
 
@@ -379,8 +379,8 @@ namespace Sexy
                {
                   if (!TryCompileMethodCallWithoutInputAndReturnValue(ce, parent, instance, item, type, NULL, NULL))
                   {
-                     sexstringstream streamer;
-                     streamer << SEXTEXT("Expecting method call ") << Parse::VarTypeName(type);
+                     sexstringstream<1024> streamer;
+                     streamer.sb << SEXTEXT("Expecting method call ") << Parse::VarTypeName(type);
                      Throw(parent, streamer);
                   }
                }
@@ -594,8 +594,8 @@ namespace Sexy
          const IArchetype* a = input.ResolvedType()->Archetype();
          if (a == NULL)
          {
-            sexstringstream streamer;
-            streamer << SEXTEXT("Error, expecting archetype for variable ") << name << SEXTEXT(" in ") << f.Name();
+            sexstringstream<1024> streamer;
+            streamer.sb << SEXTEXT("Error, expecting archetype for variable ") << name << SEXTEXT(" in ") << f.Name();
             Throw(s, streamer);
          }
 
@@ -723,17 +723,17 @@ namespace Sexy
             {
                if (def.ResolvedType != &type)
                {
-                  sexstringstream streamer;
-                  streamer << SEXTEXT("Cannot assign from (") << GetFriendlyName(*def.ResolvedType) << SEXTEXT(" ") << token << SEXTEXT(")");
-                  streamer << SEXTEXT(". Exepcted type: ") << GetFriendlyName(type);
+                  sexstringstream<1024> streamer;
+                  streamer.sb << SEXTEXT("Cannot assign from (") << GetFriendlyName(*def.ResolvedType) << SEXTEXT(" ") << token << SEXTEXT(")");
+                  streamer.sb << SEXTEXT(". Exepcted type: ") << GetFriendlyName(type);
                   Throw(s, streamer);
                }
 
                if (!allowClosures && def.CapturesLocalVariables)
                {
-                  sexstringstream streamer;
-                  streamer << SEXTEXT("Cannot assign from (") << GetFriendlyName(*def.ResolvedType) << SEXTEXT(" ") << token << SEXTEXT(")");
-                  streamer << SEXTEXT(". Closures cannot be persisted.");
+                  sexstringstream<1024> streamer;
+                  streamer.sb << SEXTEXT("Cannot assign from (") << GetFriendlyName(*def.ResolvedType) << SEXTEXT(" ") << token << SEXTEXT(")");
+                  streamer.sb << SEXTEXT(". Closures cannot be persisted.");
                   Throw(s, streamer);
                }
 
@@ -834,9 +834,9 @@ namespace Sexy
                {
                   if (type != VARTYPE_Int32)
                   {
-                     sexstringstream streamer;
-                     streamer << SEXTEXT("Type mismatch. The 'sizeof' operator evaluates to an Int32");
-                     Throw(s, streamer.str().c_str());
+                     sexstringstream<1024> streamer;
+                     streamer.sb << SEXTEXT("Type mismatch. The 'sizeof' operator evaluates to an Int32");
+                     Throw(s, *streamer.sb);
                   }
 
                   cr_sex valueExpr = GetAtomicArg(s, 1);
@@ -861,16 +861,16 @@ namespace Sexy
 
                   if (expected)
                   {
-                     sexstringstream streamer;
-                     streamer << SEXTEXT("'") << command->Buffer << SEXTEXT("' recognized as ") << GetFriendlyName(*def.ResolvedType) << SEXTEXT(" which does not yield an arithmetical value in this context");
+                     sexstringstream<1024> streamer;
+                     streamer.sb << SEXTEXT("'") << command->Buffer << SEXTEXT("' recognized as ") << GetFriendlyName(*def.ResolvedType) << SEXTEXT(" which does not yield an arithmetical value in this context");
                      Throw(s, streamer);
                   }
                }
 
                if (expected)
                {
-                  sexstringstream streamer;
-                  streamer << SEXTEXT("Cannot interpet token as arithmetic valued expression");
+                  sexstringstream<1024> streamer;
+                  streamer.sb << SEXTEXT("Cannot interpet token as arithmetic valued expression");
                   Throw(commandExpr, streamer);
                }
 
@@ -880,8 +880,8 @@ namespace Sexy
             {
                if (expected)
                {
-                  sexstringstream streamer;
-                  streamer << SEXTEXT("Could not determine meaning of expression. Check identifiers and syntax are valid");
+                  sexstringstream<1024> streamer;
+                  streamer.sb << SEXTEXT("Could not determine meaning of expression. Check identifiers and syntax are valid");
                   Throw(s, streamer);
                }
                // All arithmetic expressions have 3 elements
@@ -918,18 +918,18 @@ namespace Sexy
 
                   if (expected)
                   {
-                     sexstringstream streamer;
+                     sexstringstream<1024> streamer;
                      if (type == VARTYPE_Derivative)
                      {
-                        streamer << SEXTEXT("Expected arithmetic expression, but found a derived type not of the same type as the assignment");
+                        streamer.sb << SEXTEXT("Expected arithmetic expression, but found a derived type not of the same type as the assignment");
                      }
                      else if (tokenType != VARTYPE_Bad)
                      {
-                        streamer << SEXTEXT("'") << token << SEXTEXT("' was a ") << GetTypeName(tokenType) << SEXTEXT(" but expression requires ") << GetTypeName(type);
+                        streamer.sb << SEXTEXT("'") << token << SEXTEXT("' was a ") << GetTypeName(tokenType) << SEXTEXT(" but expression requires ") << GetTypeName(type);
                      }
                      else
                      {
-                        streamer << SEXTEXT("Expected arithmetic expression, but found an unknown identifier");
+                        streamer.sb << SEXTEXT("Expected arithmetic expression, but found an unknown identifier");
                      }
                      Throw(s, streamer);
                   }
@@ -942,8 +942,8 @@ namespace Sexy
          {
             if (expected)
             {
-               sexstringstream streamer;
-               streamer << SEXTEXT("Expected numeric expression, of type ") << GetTypeName(type) << SEXTEXT(" but saw a null expression");
+               sexstringstream<1024> streamer;
+               streamer.sb << SEXTEXT("Expected numeric expression, of type ") << GetTypeName(type) << SEXTEXT(" but saw a null expression");
                Throw(s, streamer);
             }
             // not an atomic or a compound
@@ -953,8 +953,8 @@ namespace Sexy
          {
             if (expected)
             {
-               sexstringstream streamer;
-               streamer << SEXTEXT("Expected numeric expression, of type ") << GetTypeName(type);
+               sexstringstream<1024> streamer;
+               streamer.sb << SEXTEXT("Expected numeric expression, of type ") << GetTypeName(type);
                Throw(s, streamer);
             }
             // not an atomic or a compound

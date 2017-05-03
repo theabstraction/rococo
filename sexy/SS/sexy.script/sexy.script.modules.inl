@@ -55,15 +55,15 @@ namespace Sexy { namespace Script
 	{
 		if (!arg.TryResolveArgument())
 		{
-			sexstringstream streamer;
+			sexstringstream<1024> streamer;
 
 			if (genericArgType != NULL)
 			{
-				streamer << SEXTEXT("Unknown type in argument (***") << type << SEXTEXT("*** ") << genericArgType << SEXTEXT(" ") << id << SEXTEXT(") of function ") << source << SEXTEXT("\r\n");
+				streamer.sb << SEXTEXT("Unknown type in argument (***") << type << SEXTEXT("*** ") << genericArgType << SEXTEXT(" ") << id << SEXTEXT(") of function ") << source << SEXTEXT("\r\n");
 			}
 			else
 			{
-				streamer << SEXTEXT("Unknown type in argument (***") << type << SEXTEXT("*** ") << id << SEXTEXT(") of function ") << source << SEXTEXT("\r\n");
+				streamer.sb << SEXTEXT("Unknown type in argument (***") << type << SEXTEXT("*** ") << id << SEXTEXT(") of function ") << source << SEXTEXT("\r\n");
 			}
 			
 			Throw(e, streamer);
@@ -79,8 +79,8 @@ namespace Sexy { namespace Script
 		}
 		catch (IException& e)
 		{
-			sexstringstream streamer;
-			streamer << e.Message();
+			sexstringstream<1024> streamer;
+			streamer.sb << e.Message();
 			Throw(src, streamer);
 
 			IStructureBuilder *s = NULL;
@@ -98,8 +98,8 @@ namespace Sexy { namespace Script
 		INamespaceBuilder* ns = po.GetRootNamespace().FindSubspace(body);
 		if (ns == NULL)
 		{
-			sexstringstream streamer;
-			streamer << "Cannot find namespace '" << body << "' that prefixes the public name: " << publicName;
+			sexstringstream<1024> streamer;
+			streamer.sb << "Cannot find namespace '" << body << "' that prefixes the public name: " << publicName;
 			Throw(s, streamer);
 		}		
 
@@ -128,16 +128,16 @@ namespace Sexy { namespace Script
 				INamespaceBuilder* nsSrc = MatchNamespace(module, nsBody);
 				if (nsSrc == NULL)
 				{
-					sexstringstream streamer;
-					streamer << SEXTEXT("Cannot resolve alias. Source name '") << nsBody << SEXTEXT("' was not a reconigzed namespace");
+					sexstringstream<1024> streamer;
+					streamer.sb << SEXTEXT("Cannot resolve alias. Source name '") << nsBody << SEXTEXT("' was not a reconigzed namespace");
 					Throw(nameExpr, streamer);
 				}
 
 				IStructureBuilder* s = nsSrc->FindStructure(shortName);
 				if (s == NULL)
 				{
-					sexstringstream streamer;
-					streamer << SEXTEXT("Cannot find '") << shortName << SEXTEXT("' in ") << nsBody;
+					sexstringstream<1024> streamer;
+					streamer.sb << SEXTEXT("Cannot find '") << shortName << SEXTEXT("' in ") << nsBody;
 					Throw(nameExpr, streamer);
 				}
 
@@ -149,16 +149,16 @@ namespace Sexy { namespace Script
 			IStructureBuilder* s = module.FindStructure(name);
 			if (s == NULL)
 			{
-				sexstringstream streamer;
-				streamer << SEXTEXT("Cannot resolve alias. Local name '") << name << SEXTEXT("' was neither a structure or a function");
+				sexstringstream<1024> streamer;
+				streamer.sb << SEXTEXT("Cannot resolve alias. Local name '") << name << SEXTEXT("' was neither a structure or a function");
 				Throw(nameExpr, streamer);
 			}
 			else
 			{
 				if (s->Prototype().IsClass)
 				{
-					sexstringstream streamer;
-					streamer << SEXTEXT("Aliasing a class is not allowed: '") << name << SEXTEXT("'");
+					sexstringstream<1024> streamer;
+					streamer.sb << SEXTEXT("Aliasing a class is not allowed: '") << name << SEXTEXT("'");
 					Throw(nameExpr, streamer);
 				}
 				else
@@ -327,15 +327,15 @@ namespace Sexy { namespace Script
 		IStructure* s = GetLocalStructure(script, className);
 		if (s == NULL)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Could not find a matching class definition inside the module for ") << className;
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Could not find a matching class definition inside the module for ") << className;
 			Throw(nameExpr, streamer);
 		}
 
 		/*if (!s->Prototype().IsClass) //TODO -> delete
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("The object matching the name was a struct, not a class: ") << className;
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("The object matching the name was a struct, not a class: ") << className;
 			Throw(nameExpr, streamer);
 		}*/
 
@@ -406,8 +406,8 @@ namespace Sexy { namespace Script
 
 		if (startPos > endPos)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Expected a child constructor indicator '->' after the constructor input arguments,\r\n followed by (construct ") << m.Name() << SEXTEXT(" arg1... argN) amongst the child constructors."); 
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Expected a child constructor indicator '->' after the constructor input arguments,\r\n followed by (construct ") << m.Name() << SEXTEXT(" arg1... argN) amongst the child constructors."); 
 			Throw(constructorDef, streamer);
 		}
 
@@ -424,14 +424,14 @@ namespace Sexy { namespace Script
 
 		if (constructCount == 0)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Could not find child constructor for ") << m.Name() << SEXTEXT(".\r\nExpected (construct ") << m.Name() << SEXTEXT(" arg1... argN) amongst the child constructors."); 
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Could not find child constructor for ") << m.Name() << SEXTEXT(".\r\nExpected (construct ") << m.Name() << SEXTEXT(" arg1... argN) amongst the child constructors."); 
 			Throw(constructorDef, streamer);
 		}
 		else if (constructCount > 1)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Conflicting child constructors for ") << m.Name();
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Conflicting child constructors for ") << m.Name();
 			Throw(constructorDef, streamer);
 		}
 	}
@@ -568,8 +568,8 @@ namespace Sexy { namespace Script
 			const IStructure* s = f.Module().FindStructure(classTypeName);
 			if (s == NULL)
 			{
-				sexstringstream streamer;
-				streamer <<  SEXTEXT("Unknown structure: ") << classTypeName;
+				sexstringstream<1024> streamer;
+				streamer.sb <<  SEXTEXT("Unknown structure: ") << classTypeName;
 				Throw(fdef, streamer);
 			}
 
@@ -807,9 +807,9 @@ namespace Sexy { namespace Script
 		}
 		catch(STCException& ex)
 		{
-			sexstringstream streamer;
-			StreamSTCEX(streamer, ex);
-			Throw(sequence, streamer.str().c_str());
+			sexstringstream<1024> streamer;
+			StreamSTCEX(streamer.sb, ex);
+			Throw(sequence, *streamer.sb);
 		}
 	}
 
@@ -911,8 +911,8 @@ namespace Sexy { namespace Script
 	{
 		if (args.NumberOfElements() != type.MemberCount())
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("The number of arguments supplied in the memberwise constructor is ") << args.NumberOfElements()
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("The number of arguments supplied in the memberwise constructor is ") << args.NumberOfElements()
 					 << SEXTEXT(", while the number of members in ") << GetFriendlyName(type) << SEXTEXT(" is ") << type.MemberCount();
 			Throw(args, streamer);
 		}
@@ -1197,8 +1197,8 @@ namespace Sexy { namespace Script
 
 		if (!f.TryResolveArguments())
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Error resolving arguments in null method: ") << qualifiedMethodName;
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Error resolving arguments in null method: ") << qualifiedMethodName;
 			Throw(source, streamer);
 		}
 
@@ -1392,8 +1392,8 @@ namespace Sexy { namespace Script
 					CScript* origin = FindDefiningModule(ns);
 					csexstr source = (origin == NULL) ? SEXTEXT("an intrinsic module") : origin->Tree().Source().Name();	
 
-					sexstringstream streamer;
-					streamer << "The namespace " << nsSymbol << SEXTEXT(" is defined in ") << source << SEXTEXT(". Only one definition is permitted");				
+					sexstringstream<1024> streamer;
+					streamer.sb << "The namespace " << nsSymbol << SEXTEXT(" is defined in ") << source << SEXTEXT(". Only one definition is permitted");				
 					Throw(*(j->E), streamer);
 				}
 				else
@@ -1429,8 +1429,8 @@ namespace Sexy { namespace Script
 				}
 				catch(STCException& ex)
 				{
-					sexstringstream streamer;
-					streamer << ex.Source() << SEXTEXT(": ") << ex.Message();
+					sexstringstream<1024> streamer;
+					streamer.sb << ex.Source() << SEXTEXT(": ") << ex.Message();
                Sexy::Sex::Throw(root, streamer);
 				}			
 				catch (std::exception& e)
@@ -1710,35 +1710,35 @@ namespace Sexy { namespace Script
 					{
 						if (s.InterfaceCount() != 1)
 						{
-							sexstringstream streamer;
-							streamer << SEXTEXT("Cannot inline IString, as ") << mod.Name() << SEXTEXT("/") << s.Name() << SEXTEXT(" implements multiple interfaces.") << std::ends;
-							programObject.Log().Write(streamer.str().c_str());
+							sexstringstream<1024> streamer;
+							streamer.sb << SEXTEXT("Cannot inline IString, as ") << mod.Name() << SEXTEXT("/") << s.Name() << SEXTEXT(" implements multiple interfaces.");
+							programObject.Log().Write(*streamer.sb);
 							return false;
 						}
 
 						if (s.MemberCount() < 5)
 						{
-							sexstringstream streamer;
-							streamer << SEXTEXT("Cannot inline IString, as ") << mod.Name() << SEXTEXT("/") << s.Name() << SEXTEXT(" does not implement both the buffer and length members.") << std::ends;
-							programObject.Log().Write(streamer.str().c_str());
+							sexstringstream<1024> streamer;
+							streamer.sb << SEXTEXT("Cannot inline IString, as ") << mod.Name() << SEXTEXT("/") << s.Name() << SEXTEXT(" does not implement both the buffer and length members.");
+							programObject.Log().Write(*streamer.sb);
 							return false;
 						}
 
 						const IMember& bufferMember = s.GetMember(4);
 						if (bufferMember.UnderlyingType()->VarType() != VARTYPE_Pointer || !AreEqual(SEXTEXT("buffer"), bufferMember.Name()))
 						{
-							sexstringstream streamer;
-							streamer << SEXTEXT("Cannot inline IString, as ") << mod.Name() << SEXTEXT("/") << s.Name() << SEXTEXT(" 5th member is not (Pointer Buffer).") << std::ends;
-							programObject.Log().Write(streamer.str().c_str());
+							sexstringstream<1024> streamer;
+							streamer.sb << SEXTEXT("Cannot inline IString, as ") << mod.Name() << SEXTEXT("/") << s.Name() << SEXTEXT(" 5th member is not (Pointer Buffer).");
+							programObject.Log().Write(*streamer.sb);
 							return false;
 						}
 
 						const IMember& lenMember = s.GetMember(3);
 						if (lenMember.UnderlyingType()->VarType() != VARTYPE_Int32 || !AreEqual(SEXTEXT("length"), lenMember.Name()))
 						{
-							sexstringstream streamer;
-							streamer << SEXTEXT("Cannot inline IString, as ") << mod.Name() << SEXTEXT("/") << s.Name() << SEXTEXT(" 4th member is not (Int32 length).") << std::ends;
-							programObject.Log().Write(streamer.str().c_str());
+							sexstringstream<1024> streamer;
+							streamer.sb << SEXTEXT("Cannot inline IString, as ") << mod.Name() << SEXTEXT("/") << s.Name() << SEXTEXT(" 4th member is not (Int32 length).");
+							programObject.Log().Write(*streamer.sb);
 							return false;
 						}
 					}
@@ -1861,8 +1861,8 @@ namespace Sexy { namespace Script
 
 		if (!f.TryResolveArguments())
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Error resolving arguments in: ") << nullFunctionName;
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Error resolving arguments in: ") << nullFunctionName;
 			Throw(source, streamer);
 		}
 
@@ -2157,8 +2157,8 @@ namespace Sexy { namespace Script
 		IStructure* st = MatchStructure(type, module);
 		if (st == NULL)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Cannot find match to ") << type.String()->Buffer;
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Cannot find match to ") << type.String()->Buffer;
 			Throw(s, streamer);
 		}
 
@@ -2227,8 +2227,8 @@ namespace Sexy { namespace Script
 
 		if (!ns.FindArchetype(archetypeName))
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Could not find archetype: '") << archetypeName << SEXTEXT("'");
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Could not find archetype: '") << archetypeName << SEXTEXT("'");
 			Throw(s, streamer);
 		}
 
@@ -2239,8 +2239,8 @@ namespace Sexy { namespace Script
 	{
 		if (ns.FindArchetype(archetypeName))
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Archetype declaration conflict. Multiple declarations using the same name: '") << archetypeName << SEXTEXT("'");
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Archetype declaration conflict. Multiple declarations using the same name: '") << archetypeName << SEXTEXT("'");
 			Throw(s, streamer);
 		}
 
@@ -2960,8 +2960,8 @@ namespace Sexy { namespace Script
 		const IFunction* f = classType.Module().FindFunction(qualifiedName);
 		if (f == NULL)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Expecting method named '") << (csexstr) qualifiedName << SEXTEXT("' inside source module");
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Expecting method named '") << (csexstr) qualifiedName << SEXTEXT("' inside source module");
 			Throw(classType.Definition() != NULL ? *(const ISExpression*) classType.Definition() : src, streamer);
 		}
 
@@ -3005,8 +3005,8 @@ namespace Sexy { namespace Script
 			const ISExpression* exp = (const ISExpression*) specimen.Definition();
 			if (exp != NULL)
 			{
-				sexstringstream streamer;
-				streamer << SEXTEXT("Type requires an explicit constructor definition inside the module ") << type.Module().Name() << SEXTEXT(". Expecting ") << type.Name() << SEXTEXT(".Construct");
+				sexstringstream<1024> streamer;
+				streamer.sb << SEXTEXT("Type requires an explicit constructor definition inside the module ") << type.Module().Name() << SEXTEXT(". Expecting ") << type.Name() << SEXTEXT(".Construct");
 				Throw(*exp, streamer);
 			}
 		}
@@ -3154,8 +3154,8 @@ namespace Sexy { namespace Script
 
 		if (cons == NULL)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Cannot find ") << fullName << SEXTEXT(" in the module");
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Cannot find ") << fullName << SEXTEXT(" in the module");
 			Throw(src, streamer);
 		}
 
@@ -3219,8 +3219,8 @@ namespace Sexy { namespace Script
 		IFunctionBuilder& cons = GetConcreteMethod(classNameExpr, className, SEXTEXT("Construct"), script.ProgramModule());
 		if (cons.NumberOfOutputs() > 0)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Unexpected output ") << (csexstr) className->Buffer << SEXTEXT(".Construct in the module");
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Unexpected output ") << (csexstr) className->Buffer << SEXTEXT(".Construct in the module");
 			Throw(classNameExpr, streamer);
 		}
 
@@ -3555,8 +3555,8 @@ namespace Sexy { namespace Script
 		}
 		catch (IException& e)
 		{
-			sexstringstream streamer;
-			streamer << e.Message();
+			sexstringstream<1024> streamer;
+			streamer.sb << e.Message();
 			Throw(source, streamer);
 
 			IFunctionBuilder* f = NULL;

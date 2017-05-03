@@ -52,13 +52,6 @@ namespace Sexy
 		StringPrintV(msg, 1024, args, format);
 		log.Write(msg);
 	}
-
-#ifndef _WIN32
-   void memcpy_s(void *dest, size_t destSize, const void *src, size_t count)
-   {
-      memcpy(dest, src, count);
-   }
-#endif
 }
 
 namespace Sexy
@@ -68,7 +61,7 @@ namespace Sexy
 		void ThrowBadNativeArg(int index, csexstr source, csexstr message)
 		{
 			WriteToStandardOutput(SEXTEXT("Error %d in %s: %s\r\n"), index, source, message);
-			exit(-1);
+         Throw(0, "Bad native argument: %s - %s", source, message);
 		}
 	}
 }

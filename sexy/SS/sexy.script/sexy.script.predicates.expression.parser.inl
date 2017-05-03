@@ -186,16 +186,16 @@ namespace Sexy
          VariantValue lValue;
          if (Parse::PARSERESULT_GOOD != Parse::TryParse(OUT lValue, lType, leftString))
          {
-            sexstringstream streamer;
-            streamer << SEXTEXT("Cannot parse the left part of the expression: ") << leftString;
+            sexstringstream<1024> streamer;
+            streamer.sb << SEXTEXT("Cannot parse the left part of the expression: ") << leftString;
             Throw(parent, streamer);
          }
 
          VariantValue rValue;
          if (Parse::PARSERESULT_GOOD != Parse::TryParse(OUT rValue, rType, rightString))
          {
-            sexstringstream streamer;
-            streamer << SEXTEXT("Cannot parse the right part of the expression: ") << rightString;
+            sexstringstream<1024> streamer;
+            streamer.sb << SEXTEXT("Cannot parse the right part of the expression: ") << rightString;
             Throw(parent, streamer);
          }
 
@@ -254,8 +254,8 @@ namespace Sexy
             IFunctionBuilder& f = MustMatchFunction(ce.Builder.Module(), s, id);
             if (!IsGetAccessor(f) || !IsNumericTypeOrBoolean(f.GetArgument(0).VarType()))
             {
-               sexstringstream streamer;
-               streamer << SEXTEXT("Expecting variable or single valued function with no inputs, and return type ") << Parse::VarTypeName(type);
+               sexstringstream<1024> streamer;
+               streamer.sb << SEXTEXT("Expecting variable or single valued function with no inputs, and return type ") << Parse::VarTypeName(type);
                Throw(s, streamer);
             }
 
@@ -289,8 +289,8 @@ namespace Sexy
                   type = CompileMethodCallWithoutInputAndReturnNumericValue(ce, s, instance, item);
                   if (!IsNumericTypeOrBoolean(type))
                   {
-                     sexstringstream streamer;
-                     streamer << SEXTEXT("Expecting method returning ") << Parse::VarTypeName(type);
+                     sexstringstream<1024> streamer;
+                     streamer.sb << SEXTEXT("Expecting method returning ") << Parse::VarTypeName(type);
                      Throw(s, streamer);
                   }
 
@@ -375,8 +375,8 @@ namespace Sexy
          VariantValue rValue;
          if (Parse::PARSERESULT_GOOD != Parse::TryParse(OUT rValue, rType, rightString))
          {
-            sexstringstream streamer;
-            streamer << SEXTEXT("Cannot parse the right part of the expression: ") << rightString;
+            sexstringstream<1024> streamer;
+            streamer.sb << SEXTEXT("Cannot parse the right part of the expression: ") << rightString;
             Throw(parent, streamer);
          }
 
@@ -460,8 +460,8 @@ namespace Sexy
          VariantValue lValue;
          if (Parse::PARSERESULT_GOOD != Parse::TryParse(OUT lValue, lType, leftString))
          {
-            sexstringstream streamer;
-            streamer << SEXTEXT("Cannot parse the left part of the expression: ") << leftString;
+            sexstringstream<1024> streamer;
+            streamer.sb << SEXTEXT("Cannot parse the left part of the expression: ") << leftString;
             Throw(parent, streamer);
          }
 
@@ -548,8 +548,8 @@ namespace Sexy
          VARTYPE type = ce.Builder.GetVarType(varName);
          if (type == VARTYPE_Derivative)
          {
-            sexstringstream streamer;
-            streamer << helper << SEXTEXT(" was of derived type and cannot be directly used in a comparison expression");
+            sexstringstream<1024> streamer;
+            streamer.sb << helper << SEXTEXT(" was of derived type and cannot be directly used in a comparison expression");
             Throw(parent, streamer);
          }
          else if (type == VARTYPE_Bad)
@@ -557,16 +557,16 @@ namespace Sexy
             type = Parse::GetLiteralType(varName);
             if (!IsPrimitiveType(type))
             {
-               sexstringstream streamer;
-               streamer << helper << SEXTEXT(" was not recognized either as a literal, or as an identifier");
+               sexstringstream<1024> streamer;
+               streamer.sb << helper << SEXTEXT(" was not recognized either as a literal, or as an identifier");
                Throw(parent, streamer);
             }
 
             VariantValue value;
             if (Parse::TryParse(OUT value, type, varName) != Parse::PARSERESULT_GOOD)
             {
-               sexstringstream streamer;
-               streamer << helper << SEXTEXT(" was not parsed either as a literal, or as an identifier");
+               sexstringstream<1024> streamer;
+               streamer.sb << helper << SEXTEXT(" was not parsed either as a literal, or as an identifier");
                Throw(parent, streamer);
             }
 
@@ -1011,8 +1011,8 @@ namespace Sexy
             {
                if (expected)
                {
-                  sexstringstream streamer;
-                  streamer << SEXTEXT("Expected expression with 3 elements. This expression had ") << s.NumberOfElements() << SEXTEXT(" elements.");
+                  sexstringstream<1024> streamer;
+                  streamer.sb << SEXTEXT("Expected expression with 3 elements. This expression had ") << s.NumberOfElements() << SEXTEXT(" elements.");
                   Throw(s, streamer);
                }
                // All binary predicate expressions have 3 elements

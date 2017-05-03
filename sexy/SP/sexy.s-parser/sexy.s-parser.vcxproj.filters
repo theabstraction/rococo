@@ -29,6 +29,9 @@
     <ClInclude Include="sexy.s-parser.stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\sexy.stdstrings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="sexy.s-parser.source.inl">

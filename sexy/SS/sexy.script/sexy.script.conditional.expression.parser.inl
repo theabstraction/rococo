@@ -64,8 +64,8 @@ namespace Sexy
                bool negate = false;
                if (!TryCompileBooleanExpression(ce, condition, true, negate))
                {
-                  sexstringstream streamer;
-                  streamer << SEXTEXT("Expecting boolean valued expression in the last position in the do...while statement");
+                  sexstringstream<1024> streamer;
+                  streamer.sb << SEXTEXT("Expecting boolean valued expression in the last position in the do...while statement");
                   Throw(condition, streamer);
                }
 
@@ -113,8 +113,8 @@ namespace Sexy
                bool negate = false;
                if (!TryCompileBooleanExpression(ce, condition, true, negate))
                {
-                  sexstringstream streamer;
-                  streamer << SEXTEXT("Expecting boolean valued expression as the condition in the (while ...) statement");
+                  sexstringstream<1024> streamer;
+                  streamer.sb << SEXTEXT("Expecting boolean valued expression as the condition in the (while ...) statement");
                   Throw(condition, streamer);
                }
 
@@ -317,22 +317,22 @@ namespace Sexy
                }
                else
                {
-                  sexstringstream streamer;
-                  streamer << SEXTEXT("Do not know how to enumerate type ") << GetFriendlyName(*def.ResolvedType);
+                  sexstringstream<1024> streamer;
+                  streamer.sb << SEXTEXT("Do not know how to enumerate type ") << GetFriendlyName(*def.ResolvedType);
                   Throw(collection, streamer);
                }
             }
             else
             {
-               sexstringstream streamer;
-               streamer << SEXTEXT("Expecting collection variable name");
+               sexstringstream<1024> streamer;
+               streamer.sb << SEXTEXT("Expecting collection variable name");
                Throw(collection, streamer);
             }
          }
          else
          {
-            sexstringstream streamer;
-            streamer << SEXTEXT("Expecting compound or atomic collection expression");
+            sexstringstream<1024> streamer;
+            streamer.sb << SEXTEXT("Expecting compound or atomic collection expression");
             Throw(collection, streamer);
          }
       }

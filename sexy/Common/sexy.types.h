@@ -176,6 +176,34 @@ namespace Sexy
 
 	typedef const SEXCHAR* csexstr;
 
+   struct strbuilder
+   {
+      virtual strbuilder& AppendFormat(const char* format, ...) = 0;
+      virtual strbuilder& operator << (csexstr text) = 0;
+      virtual strbuilder& operator << (int32 value) = 0;
+      virtual strbuilder& operator << (uint32 value) = 0;
+      virtual strbuilder& operator << (int64 value) = 0;
+      virtual strbuilder& operator << (uint64 value) = 0;
+      virtual fstring operator * () const = 0;
+   };
+
+   class StackStringBuilder : public strbuilder
+   {
+   private:
+      char* buffer;
+      size_t capacity;
+      int32 length;
+   public:
+      StackStringBuilder(char* _buffer, size_t _capacity);
+      fstring operator * () const override { return fstring{ buffer, length }; }
+      strbuilder& AppendFormat(const char* format, ...) override;
+      strbuilder& operator << (csexstr text) override;
+      strbuilder& operator << (int32 value)  override;
+      strbuilder& operator << (uint32 value) override;
+      strbuilder& operator << (int64 value)  override;
+      strbuilder& operator << (uint64 value) override;
+   };
+
 	struct sexstring_key
 	{
 		int64 Length;

@@ -38,9 +38,6 @@
     <ClInclude Include="sexy.compiler.stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Sexy.Compiler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\sexy.compiler.public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -48,6 +45,9 @@
       <Filter>Implementation</Filter>
     </ClInclude>
     <ClInclude Include="sexy.compiler.helpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sexy.compiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

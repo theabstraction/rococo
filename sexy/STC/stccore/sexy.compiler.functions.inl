@@ -193,8 +193,13 @@ namespace
 				delete arg;
 			}
 
-			delete builder;
+		   builder->Free();
 		}
+
+      virtual void Free()
+      {
+         delete this;
+      }
 
 		virtual csexstr Name() const								{ return name.c_str(); }
 		const IStructure& GetArgument(int index) const				{ return *args[index]->ResolvedType(); }

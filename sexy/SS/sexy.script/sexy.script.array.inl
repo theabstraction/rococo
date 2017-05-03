@@ -560,8 +560,8 @@ namespace Sexy
 
 			   if (!TryCompileAssignArchetype(ce, value, elementType, false))
 			   {
-				   sexstringstream streamer;
-				   streamer << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
+				   sexstringstream<1024> streamer;
+				   streamer.sb << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
 				   Throw(value, streamer);
 			   } // The value is in D7
 
@@ -577,8 +577,8 @@ namespace Sexy
 
 			   if (!TryCompileArithmeticExpression(ce, value, true, elementType.VarType()))
 			   {
-				   sexstringstream streamer;
-				   streamer << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
+				   sexstringstream<1024> streamer;
+				   streamer.sb << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
 				   Throw(value, streamer);
 			   } // The value is in D7
 		
@@ -615,8 +615,8 @@ namespace Sexy
 		   const IStructure& elementType = GetArrayDef(ce, s, instanceName);
 		   if (elementType.VarType() != requiredType)
 		   {
-			   sexstringstream streamer;
-			   streamer << SEXTEXT("The array pops out type ") << GetTypeName(elementType.VarType()) << SEXTEXT(", but the expression required type ") << requiredType;
+			   sexstringstream<1024> streamer;
+			   streamer.sb << SEXTEXT("The array pops out type ") << GetTypeName(elementType.VarType()) << SEXTEXT(", but the expression required type ") << requiredType;
 			   Throw(s, streamer);
 		   }
 
@@ -688,8 +688,8 @@ namespace Sexy
 		   {
 			   if (!TryCompileArithmeticExpression(ce, value, true, elementVarType))
 			   {
-				   sexstringstream streamer;
-				   streamer << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementVarType);
+				   sexstringstream<1024> streamer;
+				   streamer.sb << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementVarType);
 				   Throw(value, streamer);
 			   } // The value is in D7
 		   }
@@ -808,10 +808,10 @@ namespace Sexy
 
 		   if (memberType.VarType() != type || type == VARTYPE_Derivative && memberType != *structType)
 		   {
-			   sexstringstream streamer;
-			   streamer << SEXTEXT("The array element type ") << elementType.Name() << SEXTEXT(" does not match the type required: ");
-			   if (structType == NULL) streamer << GetTypeName(type);
-			   else streamer << structType->Name();
+			   sexstringstream<1024> streamer;
+			   streamer.sb << SEXTEXT("The array element type ") << elementType.Name() << SEXTEXT(" does not match the type required: ");
+			   if (structType == NULL) streamer.sb << GetTypeName(type);
+			   else streamer.sb << structType->Name();
 			   Throw(subItemName, streamer);
 		   }
 
@@ -1234,8 +1234,8 @@ namespace Sexy
 			   }
 		   }
 
-		   sexstringstream streamer;
-		   streamer <<  SEXTEXT("Expecting an expression that evaluates to ") << GetTypeName(type);
+		   sexstringstream<1024> streamer;
+		   streamer.sb <<  SEXTEXT("Expecting an expression that evaluates to ") << GetTypeName(type);
 		   Throw(valueExpr, streamer);						
 	   }
 

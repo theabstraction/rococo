@@ -635,8 +635,8 @@ namespace Sexy
       {
          if (args.NumberOfElements() != type.MemberCount())
          {
-            sexstringstream streamer;
-            streamer << SEXTEXT("The number of arguments supplied in the memberwise constructor is ") << args.NumberOfElements()
+            sexstringstream<1024> streamer;
+            streamer.sb << SEXTEXT("The number of arguments supplied in the memberwise constructor is ") << args.NumberOfElements()
                << SEXTEXT(", while the number of members in ") << GetFriendlyName(type) << SEXTEXT(" is ") << type.MemberCount();
             Throw(args, streamer);
          }
@@ -695,8 +695,8 @@ namespace Sexy
          {
             if (!TryCompileAssignArchetype(ce, s[2], def.ValueType, false))
             {
-               sexstringstream streamer;
-               streamer << SEXTEXT("Expecting archetype ") << GetFriendlyName(def.ValueType);
+               sexstringstream<1024> streamer;
+               streamer.sb << SEXTEXT("Expecting archetype ") << GetFriendlyName(def.ValueType);
                Throw(s[2], streamer);
             }
             ce.Builder.AssignVariableRefToTemp(mapName, 0); // map ref goes to D4
@@ -717,16 +717,16 @@ namespace Sexy
                cr_sex typeExpr = s.GetElement(2);
                if (!IsAtomic(typeExpr) || !AreEqual(typeExpr.String(), GetFriendlyName(def.ValueType)))
                {
-                  sexstringstream streamer;
-                  streamer << SEXTEXT("Bad value type, syntax is: (<map-name>.Insert <key> ") << GetFriendlyName(def.ValueType) << SEXTEXT(" (<constructor-args>))");
+                  sexstringstream<1024> streamer;
+                  streamer.sb << SEXTEXT("Bad value type, syntax is: (<map-name>.Insert <key> ") << GetFriendlyName(def.ValueType) << SEXTEXT(" (<constructor-args>))");
                   Throw(s, streamer);
                }
 
                cr_sex argsExpr = s.GetElement(3);
                if (!IsCompound(argsExpr) && !IsNull(argsExpr))
                {
-                  sexstringstream streamer;
-                  streamer << SEXTEXT("Value should be a compound expression, syntax is: (<map-name>.Insert <key> ") << GetFriendlyName(def.ValueType) << SEXTEXT(" (<constructor-args>))");
+                  sexstringstream<1024> streamer;
+                  streamer.sb << SEXTEXT("Value should be a compound expression, syntax is: (<map-name>.Insert <key> ") << GetFriendlyName(def.ValueType) << SEXTEXT(" (<constructor-args>))");
                   Throw(s, streamer);
                }
 
@@ -890,15 +890,15 @@ namespace Sexy
 
                if (valType == VARTYPE_Derivative)
                {
-                  sexstringstream streamer;
-                  streamer << SEXTEXT("The node is for a map with a derivative value type ") << GetFriendlyName(mnd.mapdef.ValueType) << SEXTEXT(", and does not support the Value property") << GetTypeName(returnType);
+                  sexstringstream<1024> streamer;
+                  streamer.sb << SEXTEXT("The node is for a map with a derivative value type ") << GetFriendlyName(mnd.mapdef.ValueType) << SEXTEXT(", and does not support the Value property") << GetTypeName(returnType);
                   Throw(s, streamer);
                }
 
                if (returnType != VARTYPE_AnyNumeric && valType != returnType)
                {
-                  sexstringstream streamer;
-                  streamer << SEXTEXT("The node is for a map with value type ") << GetFriendlyName(mnd.mapdef.ValueType) << SEXTEXT(" but the context requires a type ") << GetTypeName(returnType);
+                  sexstringstream<1024> streamer;
+                  streamer.sb << SEXTEXT("The node is for a map with value type ") << GetFriendlyName(mnd.mapdef.ValueType) << SEXTEXT(" but the context requires a type ") << GetTypeName(returnType);
                   Throw(s, streamer);
                }
 

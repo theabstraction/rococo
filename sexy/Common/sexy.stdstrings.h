@@ -2,17 +2,24 @@
 #define SEXY_STDSTRINGS_H
 
 #include <string>
-#include <sstream>
 
 namespace Sexy
 {
 #ifdef SEXCHAR_IS_WIDE
 	typedef std::wstring stdstring;
-	typedef std::wstringstream sexstringstream;
 #else
 	typedef std::string stdstring;
-	typedef std::stringstream sexstringstream;
 #endif
+
+   template<size_t CAPACITY> class sexstringstream
+   {
+   private:
+      char buffer[CAPACITY];
+   public:
+      StackStringBuilder sb;
+      sexstringstream(): sb(buffer, CAPACITY) {}
+      operator const char* () const { return buffer; }
+   };
 }
 
 #endif // SEXY_STDSTRINGS_H

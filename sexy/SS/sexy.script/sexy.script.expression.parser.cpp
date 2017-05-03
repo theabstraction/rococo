@@ -273,16 +273,16 @@ namespace Sexy { namespace Script
 		int delta = archetype.NumberOfInputs() - f.NumberOfInputs();
 		if (delta != 0)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("There are ") << Comparative(delta) << SEXTEXT(" inputs in ") << source << archetype.Name() << SEXTEXT(" than in that of ") << f.Name();
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("There are ") << Comparative(delta) << SEXTEXT(" inputs in ") << source << archetype.Name() << SEXTEXT(" than in that of ") << f.Name();
 			Throw(s, streamer);
 		}
 
 		delta = archetype.NumberOfOutputs() - f.NumberOfOutputs();
 		if (delta != 0)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("There are ") << Comparative(delta) << SEXTEXT(" outputs in ") << source << archetype.Name() << SEXTEXT(" than that of ") << f.Name();
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("There are ") << Comparative(delta) << SEXTEXT(" outputs in ") << source << archetype.Name() << SEXTEXT(" than that of ") << f.Name();
 			Throw(s, streamer);
 		}
 
@@ -314,8 +314,8 @@ namespace Sexy { namespace Script
 			
 			if (&stf != &st)
 			{
-				sexstringstream streamer;
-				streamer << source << archetype.Name() << SEXTEXT(": Argument [") << i << "] (" << GetFriendlyName(st) << " " << argname << SEXTEXT("). Type did not match that of the implementation. Expected '") << GetFriendlyName(stf) << SEXTEXT("'");
+				sexstringstream<1024> streamer;
+				streamer.sb << source << archetype.Name() << SEXTEXT(": Argument [") << i << "] (" << GetFriendlyName(st) << " " << argname << SEXTEXT("). Type did not match that of the implementation. Expected '") << GetFriendlyName(stf) << SEXTEXT("'");
 				Throw(s, streamer);
 			}
 
@@ -324,31 +324,31 @@ namespace Sexy { namespace Script
 
 			if (interfGenericArg1 != concreteGenericArg1)
 			{
-				sexstringstream streamer;
+				sexstringstream<1024> streamer;
 
 				// Not really expecting the generic args to be NULL, as we should already have bailed out above, but handle the case
 
-				streamer << SEXTEXT("Error validating concrete method against the interface's specification for (") << f.Name() << SEXTEXT("...). ") << std::endl;
+				streamer.sb << SEXTEXT("Error validating concrete method against the interface's specification for (") << f.Name() << SEXTEXT("...). \n");
 				if (archetype.GetGenericArg1(i) != NULL)
 				{
-					streamer << SEXTEXT("Interface's method with generic argument type '") << GetFriendlyName(*interfGenericArg1) << SEXTEXT("' does not match ");
+					streamer.sb << SEXTEXT("Interface's method with generic argument type '") << GetFriendlyName(*interfGenericArg1) << SEXTEXT("' does not match ");
 				}
 				else
 				{
-					streamer << SEXTEXT("Interface's method has no generic argument type and so does not match ");
+					streamer.sb << SEXTEXT("Interface's method has no generic argument type and so does not match ");
 				}
 				
 				if (f.GetGenericArg1(i) != NULL)
 				{
-					streamer << SEXTEXT("concrete generic argument type '") << GetFriendlyName(*concreteGenericArg1) << SEXTEXT("'");
+					streamer.sb << SEXTEXT("concrete generic argument type '") << GetFriendlyName(*concreteGenericArg1) << SEXTEXT("'");
 				}
 				else
 				{
-					streamer << SEXTEXT("concrete method with no generic argument type ");
+					streamer.sb << SEXTEXT("concrete method with no generic argument type ");
 				}
 
 				
-				Throw(f.Definition() != NULL ? *(const ISExpression*)(f.Definition()) : s, streamer);
+				Throw(f.Definition() != NULL ? *(const ISExpression*)(f.Definition()) : s, "%s", (cstr) streamer);
 			}
 		}
 	}
@@ -434,8 +434,8 @@ namespace Sexy { namespace Script
 				}
 				else
 				{
-					sexstringstream streamer;
-					streamer << SEXTEXT("The type of ") << targetVariable << SEXTEXT(" does not match the type of ") << sourceText;
+					sexstringstream<1024> streamer;
+					streamer.sb << SEXTEXT("The type of ") << targetVariable << SEXTEXT(" does not match the type of ") << sourceText;
 					Throw(directive, streamer);
 				}
 			}
@@ -449,8 +449,8 @@ namespace Sexy { namespace Script
 
 					if (sourceDef.CapturesLocalVariables && !targetDef.CapturesLocalVariables)
 					{
-						sexstringstream streamer;
-						streamer << SEXTEXT("Could not copy ") << sourceText << SEXTEXT(" to ") << targetVariable << SEXTEXT(". The target variable accepts regular function references, but not closures.");
+						sexstringstream<1024> streamer;
+						streamer.sb << SEXTEXT("Could not copy ") << sourceText << SEXTEXT(" to ") << targetVariable << SEXTEXT(". The target variable accepts regular function references, but not closures.");
 						Throw(directive, streamer);
 					}
 
@@ -460,8 +460,8 @@ namespace Sexy { namespace Script
 				}
 				else
 				{
-					sexstringstream streamer;
-					streamer << SEXTEXT("The type of ") << targetVariable << SEXTEXT(" does not match the type of ") << sourceText;
+					sexstringstream<1024> streamer;
+					streamer.sb << SEXTEXT("The type of ") << targetVariable << SEXTEXT(" does not match the type of ") << sourceText;
 					Throw(directive, streamer);
 				}
 			}
@@ -665,15 +665,15 @@ namespace Sexy { namespace Script
 				}
 				else
 				{
-					sexstringstream streamer;
-					streamer << SEXTEXT("The type of ") << targetVariable << SEXTEXT(" does not match the type of ") << sourceText;
+					sexstringstream<1024> streamer;
+					streamer.sb << SEXTEXT("The type of ") << targetVariable << SEXTEXT(" does not match the type of ") << sourceText;
 					Throw(src, streamer);
 				}
 			}
 			else
 			{
-				sexstringstream streamer;
-				streamer << SEXTEXT("Cannot assign to type of ") << targetVariable << SEXTEXT(". The source is not a primitive type");
+				sexstringstream<1024> streamer;
+				streamer.sb << SEXTEXT("Cannot assign to type of ") << targetVariable << SEXTEXT(". The source is not a primitive type");
 				Throw(src, streamer);
 			}
 		}
@@ -745,16 +745,16 @@ namespace Sexy { namespace Script
 
 				if (!IsCompound(src))
 				{
-					sexstringstream streamer;
-					streamer << memberType.Name() << SEXTEXT(" is a derived type, and requires a compound initializer");
+					sexstringstream<1024> streamer;
+					streamer.sb << memberType.Name() << SEXTEXT(" is a derived type, and requires a compound initializer");
 					Throw(src, streamer);
 					return;
 				}
 
 				if (src.NumberOfElements() != memberType.MemberCount())
 				{
-					sexstringstream streamer;
-					streamer << member.Name() << SEXTEXT(" has ") << memberType.MemberCount() << SEXTEXT(" elements. But ") << src.NumberOfElements() << SEXTEXT(" were supplied ");
+					sexstringstream<1024> streamer;
+					streamer.sb << member.Name() << SEXTEXT(" has ") << memberType.MemberCount() << SEXTEXT(" elements. But ") << src.NumberOfElements() << SEXTEXT(" were supplied ");
 					Throw(src, streamer);
 					return;
 				}
@@ -772,8 +772,8 @@ namespace Sexy { namespace Script
 			}
 		case VARTYPE_Bad:
 			{
-				sexstringstream streamer;
-				streamer << memberType.Name() << SEXTEXT(" is a bad type, and cannot be initialized");
+				sexstringstream<1024> streamer;
+				streamer.sb << memberType.Name() << SEXTEXT(" is a bad type, and cannot be initialized");
 				Throw(src, streamer);
 				return;
 			}
@@ -1150,9 +1150,9 @@ namespace Sexy { namespace Script
 		}
 		else
 		{		
-			sexstringstream streamer;
+			sexstringstream<1024> streamer;
 			csexstr targetVariable = GetAtomicArg(directive, 1 + offset).String()->Buffer;
-			streamer << SEXTEXT("Bad expression on RHS of assignment: ") << targetVariable;
+			streamer.sb << SEXTEXT("Bad expression on RHS of assignment: ") << targetVariable;
 			Throw(directive, streamer);
 		}
 	}
@@ -1162,8 +1162,8 @@ namespace Sexy { namespace Script
 		csexstr id = identifierExpr.String()->Buffer;
 		if (builder.GetVarType(id) != VARTYPE_Bad)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Variable name ") << id << SEXTEXT(" is already defined in the context");
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Variable name ") << id << SEXTEXT(" is already defined in the context");
 			Throw(identifierExpr, streamer);
 		}
 	}	
@@ -1206,8 +1206,8 @@ namespace Sexy { namespace Script
 		IFunction* constructor = module.FindFunction(qualifiedConstructorName);
 		if (constructor == NULL)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Cannot find constructor in source module: ") << qualifiedConstructorName;
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Cannot find constructor in source module: ") << qualifiedConstructorName;
 			Throw(typeExpr, streamer);
 		}
 		return *constructor;
@@ -1369,8 +1369,8 @@ namespace Sexy { namespace Script
 		const IFunction* constructor = type.Constructor();
 		if (constructor == NULL)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Needs a constructor function ") << type.Name() << SEXTEXT(".Construct inside ") << type.Module().Name(); 
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Needs a constructor function ") << type.Name() << SEXTEXT(".Construct inside ") << type.Module().Name(); 
 			Throw(*args.Parent(), streamer);
 		}
 
@@ -2241,8 +2241,8 @@ namespace Sexy { namespace Script
 
 		if (def.ResolvedType->VarType() != g->type)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("The global variable type ") << GetTypeName(g->type) << SEXTEXT(" does not match the local variable type ") << def.ResolvedType->Name() << std::ends;
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("The global variable type ") << GetTypeName(g->type) << SEXTEXT(" does not match the local variable type ") << def.ResolvedType->Name();
 			Throw(s, streamer);
 		}
 
@@ -2373,15 +2373,15 @@ namespace Sexy { namespace Script
 		const IStructure& src = *def.ResolvedType;
 		if (src.InterfaceCount() == 0)
 		{
-			sexstringstream streamer;
-			streamer <<  SEXTEXT("The source type '") << GetFriendlyName(src) << SEXTEXT("' implements no interfaces");
+			sexstringstream<1024> streamer;
+			streamer.sb <<  SEXTEXT("The source type '") << GetFriendlyName(src) << SEXTEXT("' implements no interfaces");
 			Throw(exceptionSource, streamer);
 		}
 
 		if (def.location != Compiler::VARLOCATION_INPUT)
 		{
-			sexstringstream streamer;
-			streamer <<  SEXTEXT("Only inputs can be used as the source for an interface to an output");
+			sexstringstream<1024> streamer;
+			streamer.sb <<  SEXTEXT("Only inputs can be used as the source for an interface to an output");
 			Throw(exceptionSource, streamer);
 		}
 
@@ -2398,8 +2398,8 @@ namespace Sexy { namespace Script
 				}
 			}
 
-			sexstringstream streamer;
-			streamer <<  SEXTEXT("The RHS type '") << GetFriendlyName(src) << SEXTEXT("' does not implement interface ") << outputInterface.Name();
+			sexstringstream<1024> streamer;
+			streamer.sb <<  SEXTEXT("The RHS type '") << GetFriendlyName(src) << SEXTEXT("' does not implement interface ") << outputInterface.Name();
 			Throw(exceptionSource, streamer);
 		}
 		else
@@ -2496,37 +2496,37 @@ namespace Sexy { namespace Script
 		MemberDef def;
 		if (!ce.Builder.TryGetVariableByName(OUT def, lhs->Buffer))
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Cannot find ") << (csexstr) lhs->Buffer << SEXTEXT(" in this context") << std::ends;
-			Throw(s, streamer.str().c_str());
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Cannot find ") << (csexstr) lhs->Buffer << SEXTEXT(" in this context");
+			Throw(s, *streamer.sb);
 		}
 
 		if (def.Usage != ARGUMENTUSAGE_BYREFERENCE)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Cannot assign a string to ") << (csexstr) lhs->Buffer << SEXTEXT(": the variable was a value type");
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Cannot assign a string to ") << (csexstr) lhs->Buffer << SEXTEXT(": the variable was a value type");
 			Throw(s, streamer);
 		}
 
 		if (def.SFOffset >= 0)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Cannot assign a string to the temporary variable ") << (csexstr) lhs->Buffer;
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Cannot assign a string to the temporary variable ") << (csexstr) lhs->Buffer;
 			Throw(s, streamer);
 		}
 
 		const IInterface& istring = ce.Object.Common().SysTypeIString();
 		if (def.ResolvedType != &istring.NullObjectType())
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("Cannot assign a string to anything other than a Sys.Type.IString reference") << (csexstr) lhs->Buffer;
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("Cannot assign a string to anything other than a Sys.Type.IString reference") << (csexstr) lhs->Buffer;
 			Throw(s, streamer);
 		}
 
 		if (ce.Builder.Owner().GetArgumentByName(lhs->Buffer)->Direction() != ARGDIRECTION_OUTPUT)
 		{
-			sexstringstream streamer;
-			streamer << SEXTEXT("The Sys.Type.IString was not an output reference: ") << (csexstr) lhs->Buffer;
+			sexstringstream<1024> streamer;
+			streamer.sb << SEXTEXT("The Sys.Type.IString was not an output reference: ") << (csexstr) lhs->Buffer;
 			Throw(s, streamer);
 		}
 
@@ -2718,24 +2718,24 @@ namespace Sexy { namespace Script
 				return;
 		}
 		
-		sexstringstream streamer;
+		sexstringstream<1024> streamer;
 
 		const IStructure* varStruct = ce.Builder.GetVarStructure(token->Buffer);
 		if (NULL == varStruct)
 		{
-			streamer << SEXTEXT("Unrecognized keyword/variable/function/namespace/syntax in expression: ") << token->Buffer;
+			streamer.sb << SEXTEXT("Unrecognized keyword/variable/function/namespace/syntax in expression: ") << token->Buffer;
 		}
 		else
 		{
-			streamer << SEXTEXT("Variable recognized, but the syntax in which it is used was not: ") << GetFriendlyName(*varStruct) << SEXTEXT(" ") << token->Buffer;
+			streamer.sb << SEXTEXT("Variable recognized, but the syntax in which it is used was not: ") << GetFriendlyName(*varStruct) << SEXTEXT(" ") << token->Buffer;
 		}
 		
 		Throw(s, streamer);
 	}
 
-	void StreamSTCEX(sexstringstream& streamer, const STCException& ex)
+	void StreamSTCEX(strbuilder& streamer, const STCException& ex)
 	{
-		streamer << SEXTEXT("Compiler exception code: ") << ex.Code() << SEXTEXT(".") << std::endl << SEXTEXT("Source: ") << ex.Source() << std::endl << SEXTEXT(". Message: ") << ex.Message() << std::ends;
+		streamer << SEXTEXT("Compiler exception code: ") << ex.Code() << SEXTEXT(".\n") << SEXTEXT("Source: ") << ex.Source() << SEXTEXT("\n. Message: ") << ex.Message();
 	}
 
 	void CompileExpression(CCompileEnvironment& ce, cr_sex s)
@@ -2761,9 +2761,9 @@ namespace Sexy { namespace Script
 		}
 		catch(STCException& ex)
 		{
-			sexstringstream streamer;
-			StreamSTCEX(streamer, ex);
-			Throw(s, streamer.str().c_str());
+			sexstringstream<1024> streamer;
+			StreamSTCEX(streamer.sb, ex);
+			Throw(s, *streamer.sb);
 		}
 	}
 } /* script */ } // Sexy

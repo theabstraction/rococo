@@ -602,15 +602,15 @@ namespace Sexy
             {
                if (!TryCompileAssignArchetype(ce, value, elementType, false))
                {
-                  sexstringstream streamer;
-                  streamer << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
+                  sexstringstream<1024> streamer;
+                  streamer.sb << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
                   Throw(value, streamer);
                }
             }
             else if (!TryCompileArithmeticExpression(ce, value, true, elementType.VarType()))
             {
-               sexstringstream streamer;
-               streamer << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
+               sexstringstream<1024> streamer;
+               streamer.sb << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
                Throw(value, streamer);
             } // The value is in D7
 
@@ -674,15 +674,15 @@ namespace Sexy
             {
                if (!TryCompileAssignArchetype(ce, value, elementType, false))
                {
-                  sexstringstream streamer;
-                  streamer << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
+                  sexstringstream<1024> streamer;
+                  streamer.sb << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
                   Throw(value, streamer);
                }
             }
             else if (!TryCompileArithmeticExpression(ce, value, true, elementType.VarType()))
             {
-               sexstringstream streamer;
-               streamer << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
+               sexstringstream<1024> streamer;
+               streamer.sb << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
                Throw(value, streamer);
             } // The value is in D7
 

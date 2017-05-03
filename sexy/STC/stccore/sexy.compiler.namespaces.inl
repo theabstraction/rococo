@@ -182,8 +182,8 @@ namespace Sexy { namespace Compiler { namespace Impl
 
 		for(auto i = interfaces.begin(); i != interfaces.end(); ++i)
 		{
-			IInterface* interface = i->second;
-			delete interface;
+			auto* interface = i->second;
+			interface->Free();
 		}
 
 		interfaces.clear();
@@ -337,10 +337,10 @@ namespace Sexy { namespace Compiler { namespace Impl
 				}
 				else
 				{
-					sexstringstream streamer;
+					sexstringstream<1024> streamer;
 					csexstr sep = fullname->Length == 0 ? SEXTEXT("") : SEXTEXT(".");
-					streamer << SEXTEXT("Cannot create namespace '") << fullname->Buffer << sep << childName << SEXTEXT("' as one of its roots '") << fullname->Buffer << sep << branchName << SEXTEXT("' was undefined") << std::ends;
-					throw STCException(ERRORCODE_BAD_ARGUMENT, SEXTEXT("Namespace"), streamer.str().c_str());
+					streamer.sb << SEXTEXT("Cannot create namespace '") << fullname->Buffer << sep << childName << SEXTEXT("' as one of its roots '") << fullname->Buffer << sep << branchName << SEXTEXT("' was undefined");
+					throw STCException(ERRORCODE_BAD_ARGUMENT, SEXTEXT("Namespace"), streamer);
 				}
 			}
 		}

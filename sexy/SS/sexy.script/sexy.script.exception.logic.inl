@@ -134,7 +134,7 @@ namespace
 		sexstringstream stream;
 		stream << SEXTEXT("DeconstructLocalObjects(ss,") << functionOffset << ", " << sf << ", " << f.Name()  << ", " << totalStackCorrection << ")" << std::endl;
 		stream << SEXTEXT("src: start ") << src.InstancePosStart << ", count " << src.InstancePosCount << ", disp " << src.TotalDisplacement << std::endl;
-		stream << std::ends;
+		stream;
 		ss.ProgramObject().Log().Write(stream.str().c_str());
 		*/
 		for(int i = 0; i < src.InstancePosCount; ++i)
@@ -304,12 +304,11 @@ namespace
 
 	void LogCpu(ILog& logger, const VM::CPU& cpu)
 	{
-		sexstringstream stream;
-		stream << "SF: " << cpu.SF() << std::endl;
-		stream << "PC: " << cpu.PC() << std::endl;
-		stream << "Stack: " << cpu.StackStart << " to " << cpu.StackEnd << std::endl;
-		stream << std::ends;
-		logger.Write(stream.str().c_str());
+		sexstringstream<1024> stream;
+		stream.sb.AppendFormat("SF: %p\n", cpu.SF());
+      stream.sb.AppendFormat("PC: %p\n", cpu.SF());
+      stream.sb.AppendFormat("Stack: %p to %p\n", cpu.StackStart, cpu.StackEnd);
+		logger.Write(stream);
 	}
 
 	bool CatchException(const TExceptionHandlers& handlers, IScriptSystem& ss)
@@ -412,9 +411,9 @@ namespace
 
 			if (IsPtrInsideStack(ptr, po))
 			{				
-				sexstringstream streamer;
-				streamer << SEXTEXT("A pointer inside an exception object '") << GetType(oldInstance).Name() << SEXTEXT(".") << name << SEXTEXT("' referred to another object on the stack") << std::ends;
-				po.Log().Write(streamer.str().c_str());
+				sexstringstream<1024> streamer;
+				streamer.sb << SEXTEXT("A pointer inside an exception object '") << GetType(oldInstance).Name() << SEXTEXT(".") << name << SEXTEXT("' referred to another object on the stack");
+				po.Log().Write(*streamer.sb);
 				po.VirtualMachine().Throw();
 				return;
 			}
