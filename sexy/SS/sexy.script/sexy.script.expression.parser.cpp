@@ -35,7 +35,7 @@
 #include "sexy.script.h"
 #include "Sexy.Compiler.h"
 #include "sexy.compiler.helpers.h"
-#include "Sexy.S-Parser.h"
+#include "sexy.s-parser.h"
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 

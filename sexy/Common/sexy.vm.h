@@ -52,7 +52,7 @@
 # define REF
 #endif
 
-# ifdef WIN32
+#ifdef _WIN32
 #  pragma pack(push, 1)
 # define TIGHTLY_PACKED
 #else
@@ -415,7 +415,7 @@ namespace Sexy { namespace VM
   extern "C" SVMLIB Sexy::VM::ICore* CreateSVMCore(const Sexy::VM::CoreSpec* spec); 
 # endif
 
-# ifdef WIN32
+# ifdef _WIN32
 #  pragma pack(pop)
 # endif
 

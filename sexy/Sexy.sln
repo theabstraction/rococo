@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{3B688E
 		Common\sexy.lib.compiler.h = Common\sexy.lib.compiler.h
 		Common\sexy.lib.s-parser.h = Common\sexy.lib.s-parser.h
 		Common\sexy.lib.script.h = Common\sexy.lib.script.h
+		Common\sexy.lib.util.h = Common\sexy.lib.util.h
 		Common\sexy.lib.vm.h = Common\sexy.lib.vm.h
 		Common\sexy.native.sys.type.h = Common\sexy.native.sys.type.h
 		Common\sexy.s-parser.h = Common\sexy.s-parser.h

@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "sexy.lib.util.h"
-#include "Sexy.S-Parser.h"
+#include "sexy.s-parser.h"
 #include "sexy.lib.s-parser.h"
 
 using namespace Sexy;

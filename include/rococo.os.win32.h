@@ -1,9 +1,11 @@
 #ifndef ROCOCO_WIN32_H
 #define ROCOCO_WIN32_H
 
-#define WIN32_LEAN_AND_MEAN 
-#define NOMINMAX
-#include <windows.h>
+#ifdef _WIN32
+# include <rococo.win32.target.win7.h>
+# define WIN32_LEAN_AND_MEAN 
+# define NOMINMAX
+# include <windows.h>
 
 namespace Rococo
 {
@@ -27,4 +29,5 @@ namespace Rococo
    };
 }
 
+# endif
 #endif

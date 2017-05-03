@@ -36,11 +36,14 @@
 
 #include <tchar.h>
 #include <stdio.h>
-#include <intrin.h>
+
+#ifdef _WIN32
+# include <intrin.h>
+#endif
+
 #include <memory.h>
 #include <vector>
 #include <string.h>
-
 
 #include "sexy.debug.types.h"
 #include "sexy.compiler.public.h"
@@ -50,17 +53,14 @@
 # define UNICODE
 #endif
 
-#include <windows.h>
-
-#undef min
-#undef max
+#include <rococo.os.win32.h>
 
 #include <limits>
 
 #include "sexy.lib.util.h"
 
-#include "Sexy.Script.h"
-#include "Sexy.S-Parser.h"
+#include "sexy.script.h"
+#include "sexy.s-parser.h"
 #include "..\\stc\\stccore\\Sexy.Compiler.h"
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"

@@ -1,20 +1,16 @@
 // sexy.s-parser.test.cpp : Defines the entry point for the console application.
-#include "sexy.s-parser.test.stdafx.h"
-#include <rococo.win32.target.win7.h>
+#include <rococo.os.win32.h>
+
+#include "sexy.lib.s-parser.h"
+#include "sexy.lib.util.h"
 
 #include "sexy.types.h"
 #include "sexy.strings.h"
 
 #include <stdio.h>
-#include <tchar.h>
-
-#include <rococo.win32.target.win7.h>
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
-#include <intrin.h>
 
 #include "sexy.s-parser.h"
 
@@ -45,9 +41,9 @@ namespace
 
 	void Stop()
 	{
-		if (IsDebuggerPresent())
+		if (Sexy::OS::IsDebuggerPresent())
 		{
-			__debugbreak();
+         Sexy::OS::TripDebugger();
 		}
 		else
 		{
@@ -67,7 +63,7 @@ namespace
 
 	void ShowFailureEq(size_t expression1, size_t expression2, const char* filename, int lineNumber)
 	{
-		printf("Validation failed in %s[%d]: %lld != %lld\r\n", filename, lineNumber, expression1, expression2);
+		printf("Validation failed in %s[%d]: %llu != %llu\r\n", filename, lineNumber, (uint64) expression1, (uint64) expression2);
 	}
 
 	#define WRAP(x) Wrap(#x, x);
@@ -716,7 +712,7 @@ namespace
 	}
 }
 
-int _tmain(int argc, _TCHAR* argv[])
+int main(int argc, char* argv[])
 {
 	TEST(TestStringOffsets1);
 	TEST(TestStringOffsets2);

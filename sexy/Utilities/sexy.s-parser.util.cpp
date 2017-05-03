@@ -33,7 +33,7 @@
 
 #include <sexy.types.h>
 #include <sexy.strings.h>
-#include <Sexy.S-Parser.h>
+#include "sexy.s-parser.h"
 #include <sexy.compiler.public.h>
 #include <sexy.debug.types.h>
 #include <sexy.vm.h>
