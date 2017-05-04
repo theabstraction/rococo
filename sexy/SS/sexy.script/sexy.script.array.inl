@@ -31,6 +31,8 @@
 	principal credit screen and its principal readme file.
 */
 
+#include <cerrno>
+
 namespace Sexy
 {
    namespace Script
@@ -806,7 +808,7 @@ namespace Sexy
 
 		   const IStructure& memberType = *member->UnderlyingType();
 
-		   if (memberType.VarType() != type || type == VARTYPE_Derivative && memberType != *structType)
+		   if (memberType.VarType() != type || (type == VARTYPE_Derivative && memberType != *structType))
 		   {
 			   sexstringstream<1024> streamer;
 			   streamer.sb << SEXTEXT("The array element type ") << elementType.Name() << SEXTEXT(" does not match the type required: ");

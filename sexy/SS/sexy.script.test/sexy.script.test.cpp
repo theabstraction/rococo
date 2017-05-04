@@ -34,7 +34,6 @@
 #include "sexy.types.h"
 #include "sexy.strings.h"
 
-#include <tchar.h>
 #include <stdio.h>
 
 #ifdef _WIN32
@@ -44,6 +43,7 @@
 #include <memory.h>
 #include <vector>
 #include <string.h>
+#include <stdlib.h>
 
 #include "sexy.debug.types.h"
 #include "sexy.compiler.public.h"
@@ -58,12 +58,12 @@
 #include <limits>
 
 #include "sexy.lib.util.h"
-
-#include "sexy.script.h"
-#include "sexy.s-parser.h"
-#include "..\\stc\\stccore\\Sexy.Compiler.h"
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
+#include "sexy.script.h"
+#include "sexy.s-parser.h"
+#include "sexy.compiler.h"
+
 
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 
@@ -76,6 +76,7 @@ using namespace Sexy::Compiler;
 
 namespace
 {
+#ifdef _WIN32
 	void FormatSysMessage(SEXCHAR* text, size_t capacity, int msgNumber)
 	{
 		if (!FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, msgNumber, 0, text, (DWORD) capacity, NULL))
@@ -83,6 +84,12 @@ namespace
 			StringPrint(text, capacity, SEXTEXT("Code %d ( 0x%x )"), msgNumber, msgNumber);
 		}
 	}
+#else // OSX etc
+   void FormatSysMessage(SEXCHAR* text, size_t capacity, int msgNumber)
+   {
+      strerror_r(msgNumber, text, capacity);
+   }
+#endif
 
 	typedef void (*FN_TEST)(IPublicScriptSystem& ss);
 
@@ -149,8 +156,8 @@ namespace
 
 	void Abort()
 	{
-		if (IsDebuggerPresent())
-			__debugbreak();
+		if (Sexy::OS::IsDebuggerPresent())
+			Sexy::OS::TripDebugger();
 		else
 			exit(-1); 
 	}
@@ -297,11 +304,12 @@ namespace
 		pip.MaxProgramBytes = 32768;
 		CScriptSystemProxy ssp(pip, s_logger);
 		
-		if (&ssp() == NULL) exit(-1);
+      auto& ss = ssp();
+		if (&ss == NULL) exit(-1);
 
 		try
 		{
-			fnTest(ssp());
+			fnTest(ss);
 			ValidateLogs();
 		}
 		catch (STCException& e)
@@ -539,7 +547,7 @@ namespace
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 		vm.Push(100); // Allocate stack space for the int32 exitCode
-		vm.Push(0x0123456712345678); // Allocate stack space for the int64 result
+		vm.Push(0x0123456712345678LL); // Allocate stack space for the int64 result
 		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
 		int64 result = vm.PopInt64();
 		int32 exitCode = vm.PopInt32();		
@@ -2361,17 +2369,14 @@ namespace
 		{
 			static void CpuHz(NativeCallEnvironment& e)
 			{				
-				LARGE_INTEGER int64Hz;
-				QueryPerformanceFrequency(&int64Hz);
-				int64 hz = int64Hz.QuadPart;				
+            int64 hz = 170;
 				WriteOutput(0, hz, e);
 			}
 
 			static void CpuTime(NativeCallEnvironment& e)
 			{
-				LARGE_INTEGER i64count;
-				QueryPerformanceCounter(&i64count);
-				int64 count = i64count.QuadPart;
+            static int64 count = 0;
+            count += 1000;
 				WriteOutput(0, count, e);
 			}
 		};
@@ -2400,16 +2405,11 @@ namespace
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 
-		vm.Push(0x1000000000000000); // Allocate stack space for the int64 result
+		vm.Push(0x1000000000000000LL); // Allocate stack space for the int64 result
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);
 		int64 x = vm.PopInt64();
-
-		LARGE_INTEGER int64Hz;
-		QueryPerformanceFrequency(&int64Hz);
-		int64 hz = int64Hz.QuadPart;	
-
-		validate(x == hz);
+		validate(170 == x);
 	}
 
 	void TestNativeCall2(IPublicScriptSystem& ss)
@@ -8654,7 +8654,7 @@ namespace
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
 
-		vm.Push(0x17FFF7FFFL); // Allocate stack space for the int64 result
+		vm.Push((int64)0); // Allocate stack space for the int64 result
 
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);
@@ -8820,7 +8820,7 @@ namespace
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
 
-		vm.Push(0x17FFF7FFFL); // Allocate stack space for the int64 result
+		vm.Push((int64)0); // Allocate stack space for the int64 result
 
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);
@@ -8850,7 +8850,7 @@ namespace
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
 
-		vm.Push(0x37FFF7FFF); // Allocate stack space for the int64 result
+		vm.Push((int64)0); // Allocate stack space for the int64 result
 
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);
@@ -9050,7 +9050,6 @@ namespace
 			SEXTEXT("	(Sys.Maths.F32.IsInfinity (0 / 0) -> z)")
 			SEXTEXT("	(Sys.Maths.F32.IsInfinity 3 -> w)")
 			SEXTEXT(")");
-			SEXTEXT(")");
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsInfinity"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
@@ -9203,7 +9202,6 @@ namespace
 			SEXTEXT("	(Sys.Maths.F64.IsInfinity (0 / 0) -> z)")
 			SEXTEXT("	(Sys.Maths.F64.IsInfinity 3 -> w)")
 			SEXTEXT(")");
-		SEXTEXT(")");
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsInfinity64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
@@ -11167,24 +11165,58 @@ namespace
 		TEST(TestDestructorThrows);
 		TEST(TestDoubleArrowsInFunction);	
 	}
+
+#ifdef _WIN32
+
+   int64 TimerTicks()
+   {
+      LARGE_INTEGER ticks;
+      QueryPerformanceCounter(&ticks);
+      return ticks.QuadPart;
+   }
+
+   int64 TimerHz()
+   {
+      LARGE_INTEGER hz;
+      QueryPerformanceFrequency(&hz);
+      return hz.QuadPart;
+   }
+
+#else
+# include <unistd.h>
+# include <sys/sysctl.h>
+# include <mach/mach.h>
+# include <mach/mach_time.h>
+
+   int64 TimerTicks()
+   {
+      return (int64)mach_absolute_time();
+   }
+
+   int64 TimerHz()
+   {
+      mach_timebase_info_data_t info = { 0 };
+      mach_timebase_info(&info);
+      return 1000000000 * info.numer / info.denom;
+   }
+
+#endif
 	
 	void RunTests()
 	{	
-      LARGE_INTEGER start, end, hz;
-      QueryPerformanceCounter(&start);
+      int64 start, end, hz;
+      start = TimerTicks();
 
 	   RunPositiveSuccesses();	
       
 		RunCollectionTests();
 		RunPositiveFailures(); 
       
-      QueryPerformanceCounter(&end);
-      QueryPerformanceFrequency(&hz);
+      end = TimerTicks();
+      hz = TimerHz();
 
-      double dt = (double)(end.QuadPart - start.QuadPart) / (double)hz.QuadPart;
+      double dt = (double)(end - start) / (double)hz;
       printf("\nAll tests completed in %.2f seconds\n", dt); 
-      // 1.56 seconds before optimization
-      // 1.36 seconds after cache of native sources and their trees
 	}
 }
 

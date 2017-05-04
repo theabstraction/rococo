@@ -183,7 +183,7 @@ namespace Sexy
       }
 
       // All our datatypes are multiples of 4-bytes and are allocated from aligned blocks, so this should generally be faster than memcpy which is bloated with alignment cases
-      void __fastcall AlignedMemcpy(void* __restrict dest, const void* __restrict source, size_t nBytes)
+      void AlignedMemcpy(void* __restrict dest, const void* __restrict source, size_t nBytes)
       {
          // TODO -> Replace with SSE code
          size_t nWords = nBytes >> 2;

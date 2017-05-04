@@ -32,8 +32,6 @@
 */
 
 #include "sexy.script.stdafx.h"
-#include "sexy.script.h"
-#include "Sexy.Compiler.h"
 #include "sexy.compiler.helpers.h"
 #include "sexy.s-parser.h"
 #include "sexy.vm.h"
@@ -1021,7 +1019,6 @@ namespace Sexy { namespace Script
       }
       else
       {
-         parsedValue;
          if (Parse::PARSERESULT_GOOD == Parse::TryParse(parsedValue, VARTYPE_Float32, value))
          {
             return ce.Object.Common().TypeFloat32();
@@ -2206,10 +2203,25 @@ namespace Sexy { namespace Script
 		// or 
 		// (global <varname> <- <source_variable>)
 
-		if (s.NumberOfElements() != 4 || !IsAtomic(s[1]) && !IsAtomic(s[2]) || !IsAtomic(s[3]))
+      if (s.NumberOfElements() != 4)
+      {
+         Throw(s, SEXTEXT("Expecting (global <varname> -> <target_variable>) or (global <varname> <- <source_variable>). Either way, global expression have 4 elements."));
+      }
+
+      if (!IsAtomic(s[1]))
+      {
+         Throw(s[1], SEXTEXT("Expecting atomc value for <varname> in (global <varname> ..."));
+      }
+
+		if (!IsAtomic(s[2]))
 		{
-			Throw(s, SEXTEXT("Expecting (global <varname> -> <target_variable>) or (global <varname> <- <source_variable>)"));
+			Throw(s[2], SEXTEXT("Expecting -> or <- in (global <varname> -> ..."));
 		}
+
+      if (!IsAtomic(s[3]))
+      {
+         Throw(s[3], SEXTEXT("Expecting source or target variable name in (global <varname> <-/-> <source/target>)"));
+      }
 
 		sexstring globalName = s[1].String();
 		sexstring localVarName = s[3].String();

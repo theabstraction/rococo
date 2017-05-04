@@ -32,11 +32,10 @@
 */
 
 #include "sexy.script.stdafx.h"
-#include "sexy.script.h"
-#include "Sexy.Compiler.h"
 #include "sexy.compiler.helpers.h"
 #include "sexy.s-parser.h"
 
+#include <stdlib.h>
 #include <stdarg.h>
 #include <algorithm>
 #include <unordered_map>

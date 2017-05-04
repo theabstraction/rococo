@@ -47,7 +47,7 @@
 #include <sexy.script.h>
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
-#include "Sexy.Compiler.h"
+#include "sexy.compiler.h"
 
 
 #include <unordered_map>

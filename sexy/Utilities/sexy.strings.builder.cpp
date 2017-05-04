@@ -30,9 +30,14 @@ namespace Sexy
                // vsnprintf_s appears buggy
                Sexy::OS::TripDebugger();
             }
-            abort();
+            Throw(0, "_vsnprintf_s appears to be bugged");
          }
-      }    
+      }   
+      else if (charsCopied < 0)
+      {
+         length = (int32)(capacity - 1);
+         buffer[length] = 0;
+      }
       
       return *this;
    }

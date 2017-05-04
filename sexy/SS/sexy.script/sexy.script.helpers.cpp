@@ -34,8 +34,6 @@
 #include "sexy.script.stdafx.h"
 #include "sexy.compiler.public.h"
 #include "sexy.debug.types.h"
-#include "Sexy.Script.h"
-#include "Sexy.Compiler.h"
 #include "sexy.compiler.helpers.h"
 #include "sexy.s-parser.h"
 #include "sexy.vm.h"

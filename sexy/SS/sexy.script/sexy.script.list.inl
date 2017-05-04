@@ -502,7 +502,7 @@ namespace Sexy
       {
          IScriptSystem& ss = *(IScriptSystem*)context;
          ListNode* n = (ListNode*)registers[VM::REGISTER_D7].vPtrValue;
-         if (n->Element == NULL)
+         if (n->Previous == nullptr)
          {
             ss.ThrowFromNativeCode(-1, SEXTEXT("The node had no predecessor"));
             return;

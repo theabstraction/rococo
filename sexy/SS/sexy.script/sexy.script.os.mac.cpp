@@ -37,6 +37,7 @@
 #include "sexy.compiler.public.h"
 #include "sexy.script.h"
 
+#include <cerrno>
 #include <memory>
 #include <stdarg.h>
 #include <stdio.h>
@@ -115,6 +116,26 @@ namespace Sexy { namespace OS
       }
 
       Sexy::Throw(0, SEXTEXT("SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot find src_indicator.txt descending from sexy.script.dll"));
+   }
+
+#include <sys/stat.h>
+
+   void GetEnvVariable(SEXCHAR* data, size_t capacity, const SEXCHAR* envVariable)
+   {
+      if (AreEqual(envVariable, SEXTEXT("SEXY_NATIVE_SRC_DIR")))
+      {
+         GetDefaultNativeSrcDir(data, capacity);
+
+         struct stat sb;
+         if (stat(data, &sb) != 0 || !S_ISDIR(sb.st_mode))
+         {
+            Sexy::Throw(0, SEXTEXT("Error associating environment variable %s to the sexy native source directory"), envVariable);
+         }
+
+         return;
+      }
+
+      Throw(0, SEXTEXT("Environment variable %s not found"), envVariable);
    }
 
 	void LoadAsciiTextFile(SEXCHAR* data, size_t capacity, const SEXCHAR* filename)
