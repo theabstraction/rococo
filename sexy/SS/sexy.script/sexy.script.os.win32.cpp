@@ -218,7 +218,7 @@ namespace Sexy { namespace OS
 		FARPROC fp = GetProcAddress(lib, "CreateLib");
 		if (fp == nullptr)
 		{
-         if (throwOnError) Sexy::Throw(GetLastError(), SEXTEXT("Could not find void CreateLib(...) in %s.dll"), dynamicLinkLibOfNativeCalls);
+         if (throwOnError) Sexy::Throw(GetLastError(), SEXTEXT("Could not find  INativeLib* CreateLib(...) in %s"), linkLib);
          return nullptr;
 		}
 

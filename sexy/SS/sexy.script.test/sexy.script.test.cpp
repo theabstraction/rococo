@@ -10767,6 +10767,29 @@ namespace
 
 	void RunCollectionTests()
 	{
+      TEST(TestMap2);
+      TEST(TestMap);  
+      TEST(TestMap3);
+      TEST(TestMap4);
+      TEST(TestMap5);
+      TEST(TestMap6);
+      TEST(TestMap7);
+      TEST(TestMapOfArchetypes);
+      TEST(TestMapOverwriteValue);
+      TEST(TestMapOverwriteValue64);
+      TEST(TestMapIndexedByInt32);
+      TEST(TestMapIndexedByFloat64);
+      TEST(TestDeleteKey);
+      TEST(TestMapValueStruct);
+      TEST(TestMapValueConstruct);
+      TEST(TestMapForeach1);
+      TEST(TestMapForeach2);
+
+      TEST(TestMapInStruct);
+      TEST(TestMapInMap);
+      TEST(TestMapStrongTyping);
+      TEST(TestMapThrowAndCleanup);
+      TEST(TestMapThrowAndCleanup2);
 		TEST(TestArrayInt32);
 		TEST(TestArrayInt32_2);
 		TEST(TestArrayInt32_3);
@@ -10813,36 +10836,13 @@ namespace
 		TEST(TestLinkedListForeach5);
 		TEST(TestLinkedListForeach6);
 		TEST(TestLinkedListForeach7);
-
+      TEST(TestLinkedListOfArchetypes);
 		TEST(TestLinkedListOfLists);
 
 		TEST(TestListStruct);
 		TEST(TestListStruct2);
 
 		TEST(TestListStrongTyping);
-
-		TEST(TestMap);
-		TEST(TestMap2);
-		TEST(TestMap3);
-		TEST(TestMap4);
-		TEST(TestMap5);
-		TEST(TestMap6);
-		TEST(TestMap7);
-		TEST(TestMapOverwriteValue);
-		TEST(TestMapOverwriteValue64);
-		TEST(TestMapIndexedByInt32);
-		TEST(TestMapIndexedByFloat64);
-		TEST(TestDeleteKey);
-		TEST(TestMapValueStruct);
-		TEST(TestMapValueConstruct);
-		TEST(TestMapForeach1);
-		TEST(TestMapForeach2);
-
-		TEST(TestMapInStruct);
-		TEST(TestMapInMap);
-		TEST(TestMapStrongTyping);
-		TEST(TestMapThrowAndCleanup);
-		TEST(TestMapThrowAndCleanup2);
 	}
 
 	void TestMaths()
@@ -10923,8 +10923,6 @@ namespace
 		TEST(TestMacroAsArgument1);
 
 	//	TEST(TestArrayOfArchetypes); // -> currently disabled, since arrays are 32-bit and 64-bits only, and closures are 128 bits.
-		TEST(TestMapOfArchetypes);
-		TEST(TestLinkedListOfArchetypes);
 		TEST(TestClosureCapture);
 		TEST(TestClosureCapture2);
 		TEST(TestArchetypePropagation);
@@ -11207,9 +11205,9 @@ namespace
       int64 start, end, hz;
       start = TimerTicks();
 
+      RunCollectionTests();
 	   RunPositiveSuccesses();	
       
-		RunCollectionTests();
 		RunPositiveFailures(); 
       
       end = TimerTicks();

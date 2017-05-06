@@ -21,7 +21,7 @@
     <ClCompile Include="sexy.nativelib.reflection.stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sexy,nativelib.reflection.cpp">
+    <ClCompile Include="sexy.nativelib.reflection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

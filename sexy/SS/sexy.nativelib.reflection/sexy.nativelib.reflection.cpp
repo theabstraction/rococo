@@ -3,14 +3,12 @@
 
 #include "sexy.nativelib.reflection.stdafx.h"
 
-#include <rococo.win32.target.win7.h>
-
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-
 #include "sexy.types.h"
 #include "sexy.strings.h"
 #include "sexy.debug.types.h"
 #include "sexy.compiler.public.h"
+#include "sexy.vm.h"
+#include "sexy.vm.cpu.h"
 #include "sexy.script.h"
 
 #include "sexy.native.sys.type.h"
@@ -20,11 +18,7 @@
 # define _UNICODE
 #endif
 
-#include <rococo.win32.target.win7.h>
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-
-#include "sexy.vm.cpu.h"
+#include "rococo.os.win32.h"
 
 using namespace Sexy;
 using namespace Sexy::Script;
@@ -32,9 +26,9 @@ using namespace Sexy::Compiler;
 using namespace Sexy::SysType;
 using namespace Sexy::Sex;
 
-HINSTANCE s_hNativeLibInstance = NULL;
-
 #include "sys.reflection.inl"
+
+#ifdef _WIN32
 
 BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 {
@@ -44,7 +38,6 @@ BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 	{
 	case DLL_PROCESS_ATTACH: 
 		DisableThreadLibraryCalls(hDllHandle);
-		s_hNativeLibInstance = hDllHandle;
 		break;
 	case DLL_PROCESS_DETACH:
 		break;
@@ -53,9 +46,14 @@ BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 	return bSuccess;
 }
 
+# define DLLEXPORT __declspec(dllexport) 
+#else
+# define DLLEXPORT
+#endif
+
 extern "C"
 {
-	__declspec(dllexport) INativeLib* CreateLib(Sexy::Script::IScriptSystem& ss)
+   DLLEXPORT INativeLib* CreateLib(Sexy::Script::IScriptSystem& ss)
 	{
 		class ReflectionNativeLib: public INativeLib
 		{

@@ -5,6 +5,8 @@
 #include "sexy.types.h"
 #include "sexy.debug.types.h"
 #include "sexy.compiler.public.h"
+#include "sexy.vm.h"
+#include "sexy.vm.cpu.h"
 #include "sexy.script.h"
 #include "sexy.native.sys.type.h"
 
@@ -22,20 +24,13 @@
 // If you wish to build your application for a previous Windows platform, include WinSDKVer.h and
 // set the _WIN32_WINNT macro to the platform you wish to support before including SDKDDKVer.h.
 
-#include <rococo.win32.target.win7.h>
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-
-#undef min
-#undef max
+#include "rococo.os.win32.h"
 
 using namespace Sexy;
 using namespace Sexy::Script;
 using namespace Sexy::Compiler;
 using namespace Sexy::SysType;
 using namespace Sexy::Sex;
-
-#include "sexy.vm.cpu.h"
 
 #include <cmath>
 #include <limits>
@@ -55,6 +50,18 @@ union FloatInt
 	float fValue;
 	int32 iValue;
 };
+
+#ifndef _WIN32
+int32 abs(int32 x)
+{
+   return  x < 0 ? -x : x;
+}
+
+int64 llabs(int64 x)
+{
+   return  x < 0 ? -x : x;
+}
+#endif
 
 boolean32 IsQuietNan(float f)
 {
@@ -233,6 +240,8 @@ int64 ToInt64(T t)
 #include "sexy.compiler.public.h"
 #include "sexy.strings.h"
 
+#ifdef _WIN32
+
 BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 {
     BOOLEAN bSuccess = TRUE;
@@ -249,9 +258,14 @@ BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 	return bSuccess;
 }
 
+# define DLLEXPORT __declspec(dllexport)
+#else
+# define DLLEXPORT
+#endif
+
 extern "C"
 {
-	__declspec(dllexport) INativeLib* CreateLib(Sexy::Script::IScriptSystem& ss)
+   DLLEXPORT INativeLib* CreateLib(Sexy::Script::IScriptSystem& ss)
 	{
 		class MathsNativeLib: public INativeLib
 		{

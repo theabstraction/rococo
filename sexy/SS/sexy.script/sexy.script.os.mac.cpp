@@ -99,7 +99,7 @@ namespace Sexy { namespace OS
    void GetDefaultNativeSrcDir(SEXCHAR* data, size_t capacity)
    {
       uint32 lcapacity = (uint32) capacity;
-      if (_NSGetExecutablePath(data, &lcapacity) == 0)
+      if (_NSGetExecutablePath(data, &lcapacity) != 0)
       {
          Throw(0, SEXTEXT("_NSGetExecutablePath failed"));
       }
@@ -175,7 +175,7 @@ namespace Sexy { namespace OS
    Sexy::Script::FN_CreateLib GetLibCreateFunction(const SEXCHAR* dynamicLinkLibOfNativeCalls, bool throwOnError)
 	{
 	   SEXCHAR linkLib[_MAX_PATH];
-		StringPrint(linkLib, _MAX_PATH, SEXTEXT("%s.dll"), dynamicLinkLibOfNativeCalls);
+		StringPrint(linkLib, _MAX_PATH, SEXTEXT("%s.mac.dylib"), dynamicLinkLibOfNativeCalls);
       void* lib = dlopen(linkLib, RTLD_NOW | RTLD_GLOBAL);
       if (lib == nullptr)
 		{
@@ -187,7 +187,7 @@ namespace Sexy { namespace OS
       *(void **)(&fp) = dlsym(lib, "CreateLib");
 		if (fp == nullptr)
 		{
-         if (throwOnError) Sexy::Throw(errno, SEXTEXT("Could not find void CreateLib(...) in %s.dll"), dynamicLinkLibOfNativeCalls);
+         if (throwOnError) Sexy::Throw(errno, SEXTEXT("Could not find INativeLib* CreateLib(...) in %s"), linkLib);
          return nullptr;
 		}
 

@@ -60,7 +60,7 @@ namespace Sexy
       };
 
       typedef std::list<MapNode*> TMapNodes;
-      typedef std::vector<TMapNodes> TNodeRows;
+      typedef std::vector<TMapNodes> TNodeRows; // TODO - investigate performance, usually better to have vector of ptrs.
 
       struct IKeyResolver
       {
@@ -503,11 +503,19 @@ namespace Sexy
          m->Head = m->Tail = NULL;
       }
 
+      MapNode* InsertKey(MapImage& theMap, VariantValue source, IScriptSystem& ss)
+      {
+         // Need to explicity cast to virtual, as OSX 'optimizes' by using direction function calls to NullObject in every case
+         IKeyResolver& virtualResolver = static_cast<IKeyResolver&>(theMap.KeyResolver);
+         MapNode* n = virtualResolver.InsertKey(source, theMap, ss);
+         return n;
+      }
+
       VM_CALLBACK(MapInsert32)
       {
          IScriptSystem& ss = *(IScriptSystem*)context;
          MapImage* m = (MapImage*)registers[VM::REGISTER_D4].vPtrValue;
-         MapNode* n = m->KeyResolver.InsertKey(registers[VM::REGISTER_D8], *m, ss);
+         MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
          int32 value = registers[VM::REGISTER_D7].int32Value;
          *(int32*)GetValuePointer(n) = value;
       }
@@ -516,7 +524,7 @@ namespace Sexy
       {
          IScriptSystem& ss = *(IScriptSystem*)context;
          MapImage* m = (MapImage*)registers[VM::REGISTER_D4].vPtrValue;
-         MapNode* n = m->KeyResolver.InsertKey(registers[VM::REGISTER_D8], *m, ss);
+         MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
          int64 value = registers[VM::REGISTER_D7].int64Value;
          *(int64*)GetValuePointer(n) = value;
       }
@@ -525,7 +533,7 @@ namespace Sexy
       {
          IScriptSystem& ss = *(IScriptSystem*)context;
          MapImage* m = (MapImage*)registers[VM::REGISTER_D4].vPtrValue;
-         MapNode* n = m->KeyResolver.InsertKey(registers[VM::REGISTER_D8], *m, ss);
+         MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
          const void* valueSrc = registers[VM::REGISTER_D7].vPtrValue;
          AlignedMemcpy(GetValuePointer(n), valueSrc, m->ValueType->SizeOfStruct());
       }
@@ -534,14 +542,14 @@ namespace Sexy
       {
          IScriptSystem& ss = *(IScriptSystem*)context;
          MapImage* m = (MapImage*)registers[VM::REGISTER_D4].vPtrValue;
-         MapNode* n = m->KeyResolver.InsertKey(registers[VM::REGISTER_D8], *m, ss);
+         MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
          registers[VM::REGISTER_D7].vPtrValue = GetValuePointer(n);
       }
 
       VM_CALLBACK(MapTryGet)
       {
          MapImage* m = (MapImage*)registers[VM::REGISTER_D7].vPtrValue;
-         MapNode* node = m->KeyResolver.FindItem(registers[VM::REGISTER_D8], *m);
+         MapNode* node = static_cast<IKeyResolver&>(m->KeyResolver).FindItem(registers[VM::REGISTER_D8], *m);
          node->AddRef();
          registers[VM::REGISTER_D7].vPtrValue = node;
       }
@@ -575,7 +583,7 @@ namespace Sexy
          IScriptSystem& ss = *(IScriptSystem*)context;
          MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
          if (!m->IsExistant) ss.ThrowFromNativeCode(-1, SEXTEXT("MapNodePop failed. The node did not represent an entry in the map"));
-         else m->Container->KeyResolver.Delete(m, ss);
+         else static_cast<IKeyResolver&>(m->Container->KeyResolver).Delete(m, ss);
       }
 
       VM_CALLBACK(MapNodeReleaseRef)
