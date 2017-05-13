@@ -42,11 +42,11 @@
 #include <list>
 #include <sexy.stdstrings.h>
 
-using namespace Sexy;
-using namespace Sexy::Script;
-using namespace Sexy::Compiler;
-using namespace Sexy::Sex;
-using namespace Sexy::VM;
+using namespace Rococo;
+using namespace Rococo::Script;
+using namespace Rococo::Compiler;
+using namespace Rococo::Sex;
+using namespace Rococo::VM;
 
 namespace
 {
@@ -71,7 +71,7 @@ namespace
    }
 }
 
-namespace Sexy
+namespace Rococo
 {
    namespace Script
    {
@@ -91,7 +91,7 @@ namespace Sexy
    }
 }
 
-namespace Sexy
+namespace Rococo
 {
 	namespace OS
 	{
@@ -117,7 +117,7 @@ namespace Sexy
 #endif
 #define VM_CALLBACK(x) void VM_CALLBACK_CONVENTION OnInvoke##x(VariantValue* registers, void* context)
 
-namespace Sexy {
+namespace Rococo {
    namespace Script
    {
       const SEXCHAR* const THIS_POINTER_TOKEN = SEXTEXT("this");
@@ -145,7 +145,7 @@ namespace Sexy {
 #include "sexy.script.JIT.inl"
 #include "sexy.script.stringbuilders.inl"
 
-namespace Sexy
+namespace Rococo
 {
    namespace Script
    {
@@ -459,9 +459,9 @@ namespace Sexy
 			catch(IException& innerEx)
 			{
             rchar message[1024];
-            SafeFormat(message, _TRUNCATE, SEXTEXT("%s:\nFailed to get sexy environment.\nUse Sexy::Script::SetDefaultNativeSourcePath(...) or ProgramInitParameters or environment variable SEXY_NATIVE_SRC_DIR"), innerEx.Message());
+            SafeFormat(message, _TRUNCATE, SEXTEXT("%s:\nFailed to get sexy environment.\nUse Rococo::Script::SetDefaultNativeSourcePath(...) or ProgramInitParameters or environment variable SEXY_NATIVE_SRC_DIR"), innerEx.Message());
             _logger.Write(message);
-            Sexy::Throw(innerEx.ErrorCode(), SEXTEXT("%s"), message);
+            Rococo::Throw(innerEx.ErrorCode(), SEXTEXT("%s"), message);
 			}
 			
 			scripts = new CScripts(progObjProxy(), *this);
@@ -585,7 +585,7 @@ namespace Sexy
 			return (i != representations.end()) ? i->second : NULL;
 		}
 
-		virtual CReflectedClass* Represent(const Sexy::Compiler::IStructure& st, void* pSourceInstance)
+		virtual CReflectedClass* Represent(const Rococo::Compiler::IStructure& st, void* pSourceInstance)
 		{
 			auto i = representations.find(pSourceInstance);
 			if (i == representations.end())
@@ -650,7 +650,7 @@ namespace Sexy
 		{
 			if (!alignedAllocationMap.empty())
 			{
-				Sexy::LogError(ProgramObject().Log(), SEXTEXT("Memory leak! %u elements found in the aligned allocation map"), alignedAllocationMap.size());
+				Rococo::LogError(ProgramObject().Log(), SEXTEXT("Memory leak! %u elements found in the aligned allocation map"), alignedAllocationMap.size());
 				return false;
 			}
 
@@ -791,7 +791,7 @@ namespace Sexy
 			return instance;
 		}
 
-		virtual bool ConstructExpressionBuilder(CClassExpressionBuilder& builderContainer, Sexy::Sex::ISExpressionBuilder* builder)
+		virtual bool ConstructExpressionBuilder(CClassExpressionBuilder& builderContainer, Rococo::Sex::ISExpressionBuilder* builder)
 		{
 			IStructure* s = GetClassFromModuleElseLog(ReflectionModule(), SEXTEXT("ExpressionBuilder"));
 			if (s == NULL)
@@ -813,7 +813,7 @@ namespace Sexy
 			int nBytes = s.SizeOfStruct();
 			if (nBytes <= 0)
 			{
-            Sexy::Throw(0, SEXTEXT("The structure size was not postive"));
+            Rococo::Throw(0, SEXTEXT("The structure size was not postive"));
 			}
 
 			CClassHeader* instance = (CClassHeader*) new char[nBytes];
@@ -843,11 +843,11 @@ namespace Sexy
 			IStructure* expressStruct = reflectionModule.FindStructure(SEXTEXT("Expression"));
 			if (expressStruct == NULL) 
 			{
-            Sexy::Throw(0, SEXTEXT("Cannot find 'Expression' in the reflection module"));
+            Rococo::Throw(0, SEXTEXT("Cannot find 'Expression' in the reflection module"));
 			}
 
 			CClassExpression* express = (CClassExpression*) DynamicCreateClass(*expressStruct, 0);
-			express->ExpressionPtr = (Sexy::Sex::ISExpression*) &s;
+			express->ExpressionPtr = (Rococo::Sex::ISExpression*) &s;
 			return express;
 		}
 
@@ -1099,18 +1099,18 @@ namespace Sexy
 
 			if (callback == NULL)
 			{
-            Sexy::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...callback...): The [callback] pointer was NULL"));
+            Rococo::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...callback...): The [callback] pointer was NULL"));
 			}
 			
 			if (archetype == NULL)
 			{
-            Sexy::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...archetype...): The [archetype] pointer was NULL"));
+            Rococo::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...archetype...): The [archetype] pointer was NULL"));
 			}
 
 			size_t len = StringLength(archetype);
 			if (len > (MAX_ARCHETYPE_LEN-1))
 			{
-            Sexy::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...archetype...): The [archetype] string length exceed the maximum"));
+            Rococo::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...archetype...): The [archetype] string length exceed the maximum"));
 			}
 
 			SEXCHAR sxArchetype[MAX_ARCHETYPE_LEN];
@@ -1136,7 +1136,7 @@ namespace Sexy
 
       static std::unordered_map<stdstring, ISParserTree*> commonGlobalSources;
 
-		virtual void AddCommonSource(const Sexy::SEXCHAR *sexySourceFile)
+		virtual void AddCommonSource(const Rococo::SEXCHAR *sexySourceFile)
 		{
          struct Anon
          {
@@ -1175,7 +1175,7 @@ namespace Sexy
             {
                OS::LoadAsciiTextFile(srcCode, MAX_NATIVE_SRC_LEN, fullPath);
             }
-            catch (Sexy::IException&)
+            catch (Rococo::IException&)
             {
                throw;
             }
@@ -1196,16 +1196,16 @@ namespace Sexy
 			// commonSources.push_back(src);
 		}
 
-		virtual void AddNativeLibrary(const Sexy::SEXCHAR* dynamicLinkLibOfNativeCalls)
+		virtual void AddNativeLibrary(const Rococo::SEXCHAR* dynamicLinkLibOfNativeCalls)
 		{
          SEXCHAR srcEnvironmentDll[_MAX_PATH];
          SafeFormat(srcEnvironmentDll, _TRUNCATE, SEXTEXT("%s%s"), srcEnvironment, dynamicLinkLibOfNativeCalls);
 
          FN_CreateLib create;
 
-         create = Sexy::OS::GetLibCreateFunction(srcEnvironmentDll, false);
+         create = Rococo::OS::GetLibCreateFunction(srcEnvironmentDll, false);
          if (!create) 
-            create = Sexy::OS::GetLibCreateFunction(dynamicLinkLibOfNativeCalls, true);
+            create = Rococo::OS::GetLibCreateFunction(dynamicLinkLibOfNativeCalls, true);
 
 			INativeLib* lib = create(*this);
 			nativeLibs.push_back(lib);
@@ -1303,14 +1303,14 @@ namespace Sexy
 } // Script
 } // Sexy
 
-extern "C" SCRIPTEXPORT_API Sexy::Script::IScriptSystem* CreateScriptV_1_2_0_0(const ProgramInitParameters& pip, ILog& logger)
+extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystem* CreateScriptV_1_2_0_0(const ProgramInitParameters& pip, ILog& logger)
 {
 	try
 	{
 		CScriptSystem* ss = new CScriptSystem(pip, logger);
 		return ss;
 	}
-	catch(Sexy::IException& ex)
+	catch(Rococo::IException& ex)
 	{
 		SEXCHAR errLog[256];
 		StringPrint(errLog, 256, SEXTEXT("Sexy CreateScriptV_1_1_0_0(...) returning NULL. Error: %d, %s."), ex.ErrorCode(), ex.Message());
@@ -1319,7 +1319,7 @@ extern "C" SCRIPTEXPORT_API Sexy::Script::IScriptSystem* CreateScriptV_1_2_0_0(c
 	}
 }
 
-namespace Sexy { namespace Script
+namespace Rococo { namespace Script
 {
 	NativeCallEnvironment::NativeCallEnvironment(IPublicScriptSystem& _ss, const  Compiler::IFunction& _function, CPU& _cpu, void* _context):
 		ss(_ss), function(_function), code(_function.Code()), cpu(_cpu), context(_context)

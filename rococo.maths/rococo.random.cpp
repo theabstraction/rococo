@@ -16,7 +16,7 @@ namespace Rococo
 		RandomMT::RandomMT(uint32 seed)
 		{
 			static_assert(sizeof(RandomMT::OpaqueBlock) > sizeof(TRandomizer), "Insufficient data in opaque buffer");
-			TRandomizer* rng = new (block.opaque) TRandomizer(seed == 0 ? (uint32) CpuClock() : seed);
+			TRandomizer* rng = new (block.opaque) TRandomizer(seed == 0 ? (uint32) OS::CpuTicks() : seed);
 			(*rng)();
 		}
 
@@ -52,7 +52,7 @@ namespace Rococo
 		{
 			if (value == 0)
 			{
-				value = (uint32)CpuClock();
+				value = (uint32)OS::CpuTicks();
 			}
 			rng.Seed(value);
 		}

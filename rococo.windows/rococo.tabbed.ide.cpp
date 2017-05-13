@@ -21,8 +21,8 @@ using namespace Rococo::Windows;
 using namespace Rococo::Visitors;
 using namespace Rococo::Windows::IDE;
 
-using namespace Sexy;
-using namespace Sexy::Sex;
+
+using namespace Rococo::Sex;
 
 namespace
 {
@@ -917,7 +917,7 @@ namespace
          }
 
          VariantValue value;
-         if (Sexy::Parse::PARSERESULT_GOOD != Sexy::Parse::TryParse(value, VARTYPE_Int32, s[index].String()->Buffer))
+         if (Rococo::Parse::PARSERESULT_GOOD != Rococo::Parse::TryParse(value, VARTYPE_Int32, s[index].String()->Buffer))
          {
             rchar msg[1024];
             SafeFormat(msg, _TRUNCATE, "Expecting int32 argument in position %d: %s", index, helper);
@@ -1468,8 +1468,8 @@ namespace
       rchar fullpath[_MAX_PATH];
       IO::GetUserPath(fullpath, _MAX_PATH, savename);
 
-      Auto<Sexy::Sex::ISourceCode> src;
-      Auto<Sexy::Sex::ISParserTree> tree;
+      Auto<Rococo::Sex::ISourceCode> src;
+      Auto<Rococo::Sex::ISParserTree> tree;
 
       auto spatialManager = IDESpatialManager::Create(parent, database, true, savename);
 

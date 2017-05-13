@@ -35,7 +35,7 @@
 
 //#define BREAK_ON_THROW
 
-namespace Sexy { namespace Compiler {
+namespace Rococo { namespace Compiler {
 	void Throw(STCException& e)
 	{
 		OS::BreakOnThrow(OS::BreakFlag_STC);

@@ -17,7 +17,7 @@
 
 #include <vector>
 
-namespace Sexy
+namespace Rococo
 {
    namespace Compiler
    {
@@ -363,7 +363,7 @@ namespace SexyDotNet { namespace Host
 
 		List<VariableDesc>^ vars = gcnew List<VariableDesc>();
 
-		size_t nVariables = Sexy::Script::GetCurrentVariableCount(ss, callDepth);
+		size_t nVariables = Rococo::Script::GetCurrentVariableCount(ss, callDepth);
 
 		for(size_t i = 0; i < nVariables; ++i)
 		{
@@ -456,7 +456,7 @@ namespace SexyDotNet { namespace Host
 
 		ListVariableDescBuilder(TVariableList& _listVars, VariableKind _vk): listVars(_listVars), parentKind(_vk) {}
 
-		virtual void OnMember(IPublicScriptSystem& ss, csexstr childName, const Sexy::Compiler::IMember& member, const uint8* sfItem)
+		virtual void OnMember(IPublicScriptSystem& ss, csexstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem)
 		{
 			NativeVariableDesc desc;
 			CopyString(desc.Name, NativeVariableDesc::NAME_CAPACITY, childName, -1);
@@ -499,7 +499,7 @@ namespace SexyDotNet { namespace Host
 
 		MemberDef def;
 		const IStructure* pseudoType;
-		const Sexy::uint8* SF;
+		const Rococo::uint8* SF;
 
 		if (FindVariableByName(def, pseudoType, SF, ss, sxchVariableName, callDepth))
 		{
@@ -524,7 +524,7 @@ namespace SexyDotNet { namespace Host
 			const IStructure& s = *def.ResolvedType;
 			if (s.VarType() == VARTYPE_Derivative)
 			{
-				const Sexy::uint8* pInstance = GetInstance(def, pseudoType, SF);
+				const Rococo::uint8* pInstance = GetInstance(def, pseudoType, SF);
 				if (pInstance != NULL)
 				{
 					size_t subMemberOffset = 0;
@@ -548,28 +548,28 @@ namespace SexyDotNet { namespace Host
 	IntPtr SexyScriptLanguage::GetCallerSF(IntPtr sf)
 	{
 		CPU& cpu = ToSS(nativeHandle)->PublicProgramObject().VirtualMachine().Cpu();
-		const uint8* callerSF = Sexy::Script::GetCallerSF(cpu, (const uint8*) sf.ToPointer());
+		const uint8* callerSF = Rococo::Script::GetCallerSF(cpu, (const uint8*) sf.ToPointer());
 		return IntPtr((void*)callerSF);
 	}
 
 	IntPtr SexyScriptLanguage::GetPCAddress(Int32 callDepth)
 	{
 		CPU& cpu = ToSS(nativeHandle)->PublicProgramObject().VirtualMachine().Cpu();
-		const uint8* pc = Sexy::Script::GetPCAddress(cpu, callDepth);
+		const uint8* pc = Rococo::Script::GetPCAddress(cpu, callDepth);
 		return IntPtr((void*)pc);
 	}
 
 	IntPtr SexyScriptLanguage::GetReturnAddress(IntPtr sf)
 	{
 		CPU& cpu = ToSS(nativeHandle)->PublicProgramObject().VirtualMachine().Cpu();
-		const uint8* returnAddress = Sexy::Script::GetReturnAddress(cpu, (const uint8*) sf.ToPointer());
+		const uint8* returnAddress = Rococo::Script::GetReturnAddress(cpu, (const uint8*) sf.ToPointer());
 		return IntPtr((void*)returnAddress);
 	}
 
 	IntPtr SexyScriptLanguage::GetStackFrame(Int32 callDepth)
 	{
 		CPU& cpu = ToSS(nativeHandle)->PublicProgramObject().VirtualMachine().Cpu();
-		const uint8* SF = Sexy::Script::GetStackFrame(cpu, callDepth);
+		const uint8* SF = Rococo::Script::GetStackFrame(cpu, callDepth);
 		return IntPtr((void*)SF);
 	}
 
@@ -592,7 +592,7 @@ namespace SexyDotNet { namespace Host
 		delete sc;
 	}
 
-	void CStepCallback::OnStep(Sexy::VM::IDebugger& debugger)
+	void CStepCallback::OnStep(Rococo::VM::IDebugger& debugger)
 	{
 		int stepIndex = nextStepIndex;
 

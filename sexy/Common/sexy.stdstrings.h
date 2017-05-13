@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace Sexy
+namespace Rococo
 {
 #ifdef SEXCHAR_IS_WIDE
 	typedef std::wstring stdstring;

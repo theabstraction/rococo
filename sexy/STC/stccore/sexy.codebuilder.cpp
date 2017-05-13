@@ -40,9 +40,9 @@
 
 #include <list>
 
-using namespace Sexy;
-using namespace Sexy::Compiler;
-using namespace Sexy::Parse;
+using namespace Rococo;
+using namespace Rococo::Compiler;
+using namespace Rococo::Parse;
 
 namespace
 {
@@ -175,7 +175,7 @@ namespace
 		CodeBuilder(IFunctionBuilder& _f, bool _mayUseParentsSF);
 		~CodeBuilder(void);
 
-		Sexy::VM::IAssembler& Assembler() { return *assembler; }
+		Rococo::VM::IAssembler& Assembler() { return *assembler; }
 
 		IModuleBuilder& Module() { return f.Module(); }
 		const IModule& Module() const { return f.Module(); }
@@ -1224,7 +1224,7 @@ namespace
 		}
 	}
 
-	void CodeBuilder::AddVariable(const Sexy::Compiler::NameString& name, const Sexy::Compiler::TypeString& type, void* userData)
+	void CodeBuilder::AddVariable(const Rococo::Compiler::NameString& name, const Rococo::Compiler::TypeString& type, void* userData)
 	{
 		if (IsVariableDefinedAtLevel(sectionIndex, name.c_str()))
 		{
@@ -1271,7 +1271,7 @@ namespace
 		}
 	}
 
-	void CodeBuilder::AddVariable(const Sexy::Compiler::NameString& name, const IStructure& type, void* userData)
+	void CodeBuilder::AddVariable(const Rococo::Compiler::NameString& name, const IStructure& type, void* userData)
 	{
 		if (IsVariableDefinedAtLevel(sectionIndex, name.c_str()))
 		{
@@ -1324,7 +1324,7 @@ namespace
 		v->SetStackPosition(offset);		
 	}
 
-	void CodeBuilder::AssignLiteral(const Sexy::Compiler::NameString& name, csexstr literalValue)
+	void CodeBuilder::AssignLiteral(const Rococo::Compiler::NameString& name, csexstr literalValue)
 	{
 		REQUIRE_NOT_NULL(literalValue);
 
@@ -2340,10 +2340,10 @@ namespace
 	}
 }
 
-namespace Sexy { namespace Compiler
+namespace Rococo { namespace Compiler
 {
 	ICodeBuilder* CreateBuilder(IFunctionBuilder& f, bool _mayUseParentSF)
 	{
 		return new CodeBuilder(f, _mayUseParentSF);
 	}
-}} // Sexy::Compiler
+}} // Rococo::Compiler

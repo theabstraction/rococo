@@ -38,7 +38,7 @@
 
 // This header does not reference other sexy headers, or other sexy types to minimize the exposure of third party debuggers to sexy types
 
-namespace Sexy
+namespace Rococo
 {
 	namespace Debugger
 	{

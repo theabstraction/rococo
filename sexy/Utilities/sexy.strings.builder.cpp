@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-namespace Sexy
+namespace Rococo
 {
    StackStringBuilder::StackStringBuilder(char* _buffer, size_t _capacity) :
       buffer(_buffer), capacity(_capacity), length(0)
@@ -25,10 +25,10 @@ namespace Sexy
          length += charsCopied;
          if ((size_t)length > capacity)
          {
-            if (Sexy::OS::IsDebuggerPresent())
+            if (Rococo::OS::IsDebugging())
             {
                // vsnprintf_s appears buggy
-               Sexy::OS::TripDebugger();
+               Rococo::OS::TripDebugger();
             }
             Throw(0, "_vsnprintf_s appears to be bugged");
          }

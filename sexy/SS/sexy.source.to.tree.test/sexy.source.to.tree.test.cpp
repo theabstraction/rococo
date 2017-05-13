@@ -21,8 +21,8 @@
 #include "sexy.s-parser.h"
 #include "sexy.lib.s-parser.h"
 
-using namespace Sexy;
-using namespace Sexy::Sex;
+using namespace Rococo;
+using namespace Rococo::Sex;
 
 void PrintExpression(cr_sex s, int &totalOutput, int maxOutput)
 {

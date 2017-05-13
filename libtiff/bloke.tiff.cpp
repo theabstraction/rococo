@@ -1,12 +1,17 @@
-#include <rococo.api.h>
-#include <rococo.imaging.h>
-
-#include "libtiff\tiffiop.h"
+#ifndef _WIN32
+# include <stddef.h>
+#else
+# include <malloc.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <malloc.h>
+#include <rococo.api.h>
+#include <rococo.imaging.h>
+#include <rococo.strings.h>
+
+#include <tiffiop.h>
 
 namespace
 {
@@ -179,7 +184,7 @@ namespace
 					}
 					else
 					{
-						_snprintf_s(errorBuffer, errorCapacity, errorCapacity, "Failed to parse TIFF F_A8R8G8B8-32bit memory image");
+						SafeFormat(errorBuffer, errorCapacity, _TRUNCATE, "Failed to parse TIFF F_A8R8G8B8-32bit memory image");
 					}
 					_TIFFfree(raster);
 				}

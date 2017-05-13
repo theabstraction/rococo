@@ -31,7 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace Sexy { namespace Compiler { namespace Impl
+namespace Rococo { namespace Compiler { namespace Impl
 {
 	void CreateNullInstance(ObjectStub* obj, const IStructure& nullStruct)
 	{
@@ -405,4 +405,4 @@ namespace Sexy { namespace Compiler { namespace Impl
 	{
 		return archetypes.Find(name);
 	}
-}}} // Sexy::Compiler::Impl
+}}} // Rococo::Compiler::Impl

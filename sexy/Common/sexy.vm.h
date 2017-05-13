@@ -54,12 +54,9 @@
 
 #ifdef _WIN32
 #  pragma pack(push, 1)
-# define TIGHTLY_PACKED
-#else
-# define TIGHTLY_PACKED __attribute__((packed))
 # endif
 
-namespace Sexy { namespace VM
+namespace Rococo { namespace VM
 {
 	enum { CORE_LIB_VERSION = 0x00010001 };
 		
@@ -395,7 +392,7 @@ namespace Sexy { namespace VM
 		int reserved;
 	};
 
-	typedef Sexy::VM::ICore* (CALLTYPE_C *FN_CreateSVMCore)(const Sexy::VM::CoreSpec* spec);
+	typedef Rococo::VM::ICore* (CALLTYPE_C *FN_CreateSVMCore)(const Rococo::VM::CoreSpec* spec);
 }}
 
 // #define IS_VM_DLL 1
@@ -412,7 +409,7 @@ namespace Sexy { namespace VM
 #  else
 #    define SVMLIB
 #  endif
-  extern "C" SVMLIB Sexy::VM::ICore* CreateSVMCore(const Sexy::VM::CoreSpec* spec); 
+  extern "C" SVMLIB Rococo::VM::ICore* CreateSVMCore(const Rococo::VM::CoreSpec* spec); 
 # endif
 
 # ifdef _WIN32

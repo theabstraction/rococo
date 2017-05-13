@@ -37,87 +37,8 @@
 #include <rococo.types.h>
 #include <stdarg.h>
 
-#if !defined(_W64)
-# if !defined(__midl) && (defined(_X86_) || defined(_M_IX86))
-#  define _W64 __w64
-# else
-#  define _W64
-# endif
-#endif
-
-#ifndef _PTRDIFF_T_DEFINED
-# ifdef  _WIN64
-   typedef __int64 ptrdiff_t;
-# else
-
-# endif
-# define _PTRDIFF_T_DEFINED
-#endif
-
-// #define SEXCHAR_IS_WIDE // Comment this out to make the codebase use ASCII, otherwise it will use 16-bit UNICODE
-
-#define IN
-#define OUT
-#define REF
-
-#ifndef _WIN64
-# ifdef _WIN32
- #error "Sexy does not supports anything other than 64-bit platforms." 
-# endif
-#endif
-
-#define POINTERS_ARE_64_BIT
-
-namespace Sexy
+namespace Rococo
 {
-	using namespace Rococo;
-
-   namespace OS
-   {
-      void TripDebugger();
-      bool IsDebuggerPresent();
-   }
-
-#ifndef _WIN32
-# define _TRUNCATE ((size_t)-1)
-   typedef int32 errno_t;
-   void memcpy_s(void *dest, size_t destSize, const void *src, size_t count);
-   int sscanf_s(const char* buffer, const char* format, ...);
-   int sprintf_s(char* buffer, size_t capacity, const char* format, ...);
-   int _vsnprintf_s(char* buffer, size_t capacity, size_t maxCount, const char* format, va_list args);
-   
-   template<size_t _Size>
-   inline int _snprintf_s(char(&buffer)[_Size], size_t maxCount, const char* format, ...)
-   {
-      va_list args;
-      va_start(args, format);
-      return _vsnprintf_s(buffer, _Size, maxCount, format, args);
-   }
-
-   template<size_t _Size>
-   inline int _vsnprintf_s(char(& buffer)[_Size], size_t maxCount, const char* format, va_list args)
-   {
-      return _vsnprintf_s(buffer, _Size, maxCount, format, args);
-   }
-
-   template<size_t _Size>
-   inline int sprintf_s(char(&buffer)[_Size], const char* format, ...)
-   {
-      va_list args;
-      va_start(args, format);
-      return _vsnprintf_s(buffer, _Size, _TRUNCATE, format, args);
-   }
-       
-   void strcpy_s(char* dest, size_t capacity, const char* source);
-   void strncpy_s(char* dest, size_t capacity, const char* source, size_t maxCount);
-   void strcat_s(char* dest, size_t capacity, const char* source);
-   void strncat_s(char* dest, size_t capacity, const char* source, size_t maxCount);
-
-# define _MAX_PATH 260 // There is no good answer for this
-#endif
-
-	typedef size_t ID_BYTECODE;
-
 	enum CALLBACK_CONTROL
 	{
 		CALLBACK_CONTROL_CONTINUE,
@@ -371,7 +292,7 @@ namespace Sexy
 		CONDITION_IF_LESS_OR_EQUAL
 	};
 
-	enum EXECUTERESULT
+	enum EXECUTERESULT: int32
 	{
 		EXECUTERESULT_RUNNING = 0,  // The bytecode is running or about to be run
 		EXECUTERESULT_TERMINATED, // The bytecode exited and returned an exit code

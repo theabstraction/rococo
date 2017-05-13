@@ -77,7 +77,7 @@
 #include <stdarg.h>
 #include <stdexcept>
 
-namespace Sexy
+namespace Rococo
 {
 	size_t Hash(csexstr s)
 	{

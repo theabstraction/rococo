@@ -8,8 +8,8 @@
 namespace Dystopia
 {
 	using namespace Rococo;
-	using namespace Sexy;
-	using namespace Sexy::Sex;
+	
+	using namespace Rococo::Sex;
 
 	struct Key
 	{
@@ -82,7 +82,7 @@ namespace Dystopia
 				auto tree = sourceCache.GetSource(L"!keymap.sxy");
 				MapKeys(*tree);
 			}
-			catch (Sexy::Sex::ParseException& pex)
+			catch (Rococo::Sex::ParseException& pex)
 			{
 				Vec2i p = pex.Start();
             Vec2i q = pex.End();

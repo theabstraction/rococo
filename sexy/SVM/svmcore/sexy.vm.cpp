@@ -42,8 +42,8 @@
 # include <stdlib.h> // for posix_memalign and free
 #endif
 
-using namespace Sexy;
-using namespace Sexy::VM;
+using namespace Rococo;
+using namespace Rococo::VM;
 
 #define MERGE_TOKENS(a, b) a##b
 #define FoobarActivateInstruction(x) s_instructionTable[MERGE_TOKENS(Opcodes::,x) ] = &CVirtualMachine::MERGE_TOKENS(OnOpcode,x)
@@ -51,7 +51,7 @@ using namespace Sexy::VM;
 #define OPCODE_CALLBACK_CONVENTION // Since we switched to 64-bit, there is no special fastcall
 #define OPCODE_CALLBACK(x) void OPCODE_CALLBACK_CONVENTION OnOpcode##x()
 
-static_assert(sizeof(Sexy::VariantValue) == 8, "The codebase assumes that sizeof(Sexy::VariantValue) is 8. Major changes are needed if this is not so.");
+static_assert(sizeof(Rococo::VariantValue) == 8, "The codebase assumes that sizeof(Rococo::VariantValue) is 8. Major changes are needed if this is not so.");
 
 namespace
 {
@@ -559,7 +559,7 @@ namespace
 
 		void TerminateByIllegal(int exitCode)
 		{
-			Sexy::OS::BreakOnThrow(Sexy::OS::BreakFlag_VM);
+			Rococo::OS::BreakOnThrow(Rococo::OS::BreakFlag_VM);
 			
 			this->exitCode = exitCode;
 			if (throwToQuit) throw IllegalException();
@@ -743,7 +743,7 @@ namespace
 			{
 				VM::OS::FreeAlignedMemory(stack, stackSize);
             stack = NULL;
-				Sexy::Throw(0, SEXTEXT("The SexyVM stack end %p exceeded the maximum pointer value of %p"), stack, maxPtr);
+				Rococo::Throw(0, SEXTEXT("The SexyVM stack end %p exceeded the maximum pointer value of %p"), stack, maxPtr);
 			}
 		}
 
@@ -2581,7 +2581,7 @@ namespace
 	}
 }
 
-namespace Sexy { namespace VM 
+namespace Rococo { namespace VM 
 {
 	IVirtualMachine* CreateVirtualMachine(ICore& core)
 	{
@@ -2597,4 +2597,4 @@ namespace Sexy { namespace VM
 		CPU* cpu = new (mem) CPU();
 		return new (mem + GetCpuToVMOffset()) CVirtualMachine(core, *cpu);
 	}
-}} // Sexy::VM
+}} // Rococo::VM

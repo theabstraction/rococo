@@ -55,7 +55,7 @@ namespace Rococo
       {
          if (!id)
          {
-            auto& i = knownEvents.find(hash);
+            const auto& i = knownEvents.find(hash);
             if (i != knownEvents.end())
             {
                if (strcmp(i->second, name) != 0)

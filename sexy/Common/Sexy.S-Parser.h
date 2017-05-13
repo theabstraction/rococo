@@ -47,7 +47,7 @@
 #error include "sexy.types.h" before including this file
 #endif
 
-namespace Sexy { namespace Sex
+namespace Rococo { namespace Sex
 {
 	struct ISParser;
 	struct ISParserTree;
@@ -131,7 +131,7 @@ namespace Sexy { namespace Sex
 	};
 }}
 
-SEXY_SPARSER_API Sexy::Sex::ISParser* Sexy_CreateSexParser(); // Creates an instance of an ISParser with a reference count of 1
+SEXY_SPARSER_API Rococo::Sex::ISParser* Sexy_CreateSexParser(); // Creates an instance of an ISParser with a reference count of 1
 
 namespace Rococo
 {
@@ -142,7 +142,7 @@ namespace Rococo
 	}
 }
 
-namespace Sexy { namespace Sex
+namespace Rococo { namespace Sex
 {
 	// Usage:
 	// CSParserProxy spp;

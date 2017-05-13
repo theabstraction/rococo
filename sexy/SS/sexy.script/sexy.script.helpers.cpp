@@ -42,13 +42,13 @@
 #include <stdarg.h>
 #include <string>
 
-using namespace Sexy;
-using namespace Sexy::Script;
-using namespace Sexy::Compiler;
-using namespace Sexy::Sex;
-using namespace Sexy::VM;
+using namespace Rococo;
+using namespace Rococo::Script;
+using namespace Rococo::Compiler;
+using namespace Rococo::Sex;
+using namespace Rococo::VM;
 
-namespace Sexy
+namespace Rococo
 {
    namespace Compiler
    {
@@ -67,7 +67,7 @@ namespace Sexy
    }
    namespace Script
    {
-      using namespace Sexy::Debugger;
+      using namespace Rococo::Debugger;
 
       void FormatVariableDesc(VariableDesc& variable, const char* format, ...)
       {
@@ -97,7 +97,7 @@ namespace Sexy
          SafeFormat(variable.Type, VariableDesc::TYPE_CAPACITY, format, args);
       }
 
-      void AddSFToVarEnum(VariableDesc& variable, const Sexy::uint8* SF)
+      void AddSFToVarEnum(VariableDesc& variable, const Rococo::uint8* SF)
       {
          variable.Address = 0;
          FormatVariableDescLocation(variable, "CPU");
@@ -106,9 +106,9 @@ namespace Sexy
          FormatVariableDesc(variable, "0x%p", SF);
       }
 
-      void AddOldSFToVarEnum(VariableDesc& variable, const Sexy::uint8* SF)
+      void AddOldSFToVarEnum(VariableDesc& variable, const Rococo::uint8* SF)
       {
-         const Sexy::uint8** pOldSF = (const Sexy::uint8**)(SF - 2 * sizeof(size_t));
+         const Rococo::uint8** pOldSF = (const Rococo::uint8**)(SF - 2 * sizeof(size_t));
          variable.Address = -2 * (int) sizeof(size_t);
          FormatVariableDescLocation(variable, "CPU");
          FormatVariableDescName(variable, "Caller's SF");
@@ -120,9 +120,9 @@ namespace Sexy
             FormatVariableDesc(variable, "Execeution Stub");
       }
 
-      void AddReturnAddressToVarEnum(VariableDesc& variable, const Sexy::uint8* SF)
+      void AddReturnAddressToVarEnum(VariableDesc& variable, const Rococo::uint8* SF)
       {
-         const Sexy::uint8** pRet = (const Sexy::uint8**)(SF - sizeof(size_t));
+         const Rococo::uint8** pRet = (const Rococo::uint8**)(SF - sizeof(size_t));
          variable.Address = -(int)sizeof(size_t);
          FormatVariableDescLocation(variable, "CPU");
          FormatVariableDescName(variable, "Return Address");
@@ -153,7 +153,7 @@ namespace Sexy
             break;
          case VARTYPE_Bool:
          {
-            const Sexy::int32 value = *(const Sexy::int32*) pVariableData;
+            const Rococo::int32 value = *(const Rococo::int32*) pVariableData;
             if (value == 0 || value == 1) StringPrint(buffer, bufferCapacity, (value == 1 ? "true" : "false"));
             else StringPrint(buffer, bufferCapacity, "%d", value, value);
          }
@@ -163,13 +163,13 @@ namespace Sexy
             break;
          case VARTYPE_Int32:
          {
-            const Sexy::int32* pValue = (const Sexy::int32*) pVariableData;
+            const Rococo::int32* pValue = (const Rococo::int32*) pVariableData;
             StringPrint(buffer, bufferCapacity, "%d (0x%X)", *pValue, *pValue);
          }
          break;
          case VARTYPE_Int64:
          {
-            const Sexy::int64* pValue = (const Sexy::int64*) pVariableData;
+            const Rococo::int64* pValue = (const Rococo::int64*) pVariableData;
             StringPrint(buffer, bufferCapacity, "%ld (0x%lX)", *pValue, *pValue);
          }
          break;
@@ -189,7 +189,7 @@ namespace Sexy
          {
             void **ppData = (void**)pVariableData;
             const void* ptr = *ppData;
-            Sexy::csexstr symbol = ss.GetSymbol(ptr);
+            Rococo::csexstr symbol = ss.GetSymbol(ptr);
             if (symbol == NULL)
             {
                StringPrint(buffer, bufferCapacity, "0x%p", ptr);
@@ -215,7 +215,7 @@ namespace Sexy
          const VirtualTable* VTableOrTypeDef;
       };
 
-      const Sexy::uint8* GetMemberPtr(const IStructure& s, const Sexy::uint8* instance, ptrdiff_t offset)
+      const Rococo::uint8* GetMemberPtr(const IStructure& s, const Rococo::uint8* instance, ptrdiff_t offset)
       {
          ptrdiff_t instanceOffset = 0;
          if (s.InterfaceCount() > 0)
@@ -233,7 +233,7 @@ namespace Sexy
          return (instance + offset + instanceOffset);
       }
 
-      const Sexy::Compiler::IStructure* GetConcreteType(const IStructure& s, const Sexy::uint8* instance, ptrdiff_t offset, CClassHeader*& header)
+      const Rococo::Compiler::IStructure* GetConcreteType(const IStructure& s, const Rococo::uint8* instance, ptrdiff_t offset, CClassHeader*& header)
       {
          if (s.InterfaceCount() == 0) return NULL;
          header = (CClassHeader*)GetMemberPtr(s, instance, offset);
@@ -242,7 +242,7 @@ namespace Sexy
    }
 }
 
-namespace Sexy
+namespace Rococo
 { 
    namespace Script
    {
@@ -262,7 +262,7 @@ namespace Sexy
    #endif
 	   }
 
-	   SCRIPTEXPORT_API void ForeachStackLevel(Sexy::Compiler::IPublicProgramObject& obj, ICallStackEnumerationCallback& cb)
+	   SCRIPTEXPORT_API void ForeachStackLevel(Rococo::Compiler::IPublicProgramObject& obj, ICallStackEnumerationCallback& cb)
 	   {
 		   IProgramMemory& mem = obj.ProgramMemory();
 		   CPU& cpu = obj.VirtualMachine().Cpu();
@@ -277,7 +277,7 @@ namespace Sexy
 			   ID_BYTECODE runningId = mem.GetFunctionContaingAddress(currentLine - cpu.ProgramStart);
 			   if (runningId != 0)
 			   {
-				   const Sexy::Compiler::IFunction* f = Sexy::Script::GetFunctionFromBytecode(obj, runningId);
+				   const Rococo::Compiler::IFunction* f = Rococo::Script::GetFunctionFromBytecode(obj, runningId);
 				   if (f != NULL)
 				   {
 					   AsciiName name(f->Name());
@@ -304,7 +304,7 @@ namespace Sexy
 		   }
 	   }
 
-	   SCRIPTEXPORT_API void EnumerateRegisters(Sexy::VM::CPU& cpu, IRegisterEnumerationCallback& cb)
+	   SCRIPTEXPORT_API void EnumerateRegisters(Rococo::VM::CPU& cpu, IRegisterEnumerationCallback& cb)
 	   {
 		   char value[128];
 
@@ -329,15 +329,15 @@ namespace Sexy
 		   }
 	   }
 
-	   SCRIPTEXPORT_API const Sexy::Sex::ISExpression* GetSexSymbol(CPU& cpu, const uint8* pcAddress, Sexy::Script::IPublicScriptSystem& ss)
+	   SCRIPTEXPORT_API const Rococo::Sex::ISExpression* GetSexSymbol(CPU& cpu, const uint8* pcAddress, Rococo::Script::IPublicScriptSystem& ss)
 	   {
 		   size_t pcOffset = cpu.PC() - cpu.ProgramStart;
 
-		   const Sexy::Compiler::IFunction* f = GetFunctionAtAddress(ss.PublicProgramObject(), pcOffset);
+		   const Rococo::Compiler::IFunction* f = GetFunctionAtAddress(ss.PublicProgramObject(), pcOffset);
 
 		   if (f == NULL) return NULL;
 
-		   Sexy::Compiler::CodeSection section;
+		   Rococo::Compiler::CodeSection section;
 		   f->Code().GetCodeSection(section);
 
 		   IPublicProgramObject& po = ss.PublicProgramObject();
@@ -349,11 +349,11 @@ namespace Sexy
 		   const uint8* fstart = vm.Cpu().ProgramStart + functionStartAddress;
 		   size_t fnOffset = pcOffset - po.ProgramMemory().GetFunctionAddress(section.Id);
 
-		   const Sexy::Sex::ISExpression* s = (const Sexy::Sex::ISExpression*) f->Code().GetSymbol(fnOffset).SourceExpression;
+		   const Rococo::Sex::ISExpression* s = (const Rococo::Sex::ISExpression*) f->Code().GetSymbol(fnOffset).SourceExpression;
 		   return s;
 	   }
 
-	   SCRIPTEXPORT_API const Sexy::Compiler::IFunction* GetFunctionFromBytecode(const Sexy::Compiler::IModule& module, Sexy::ID_BYTECODE id)
+	   SCRIPTEXPORT_API const Rococo::Compiler::IFunction* GetFunctionFromBytecode(const Rococo::Compiler::IModule& module, Rococo::ID_BYTECODE id)
 	   {
 		   for(int j = 0; j < module.FunctionCount(); ++j)
 		   {
@@ -370,18 +370,18 @@ namespace Sexy
 		   return NULL;
 	   }
 
-	   SCRIPTEXPORT_API const Sexy::Compiler::IFunction* GetFunctionFromBytecode(Sexy::Compiler::IPublicProgramObject& obj, Sexy::ID_BYTECODE id)
+	   SCRIPTEXPORT_API const Rococo::Compiler::IFunction* GetFunctionFromBytecode(Rococo::Compiler::IPublicProgramObject& obj, Rococo::ID_BYTECODE id)
 	   {
 		   for(int i = 0; i < obj.ModuleCount(); ++i)
 		   {
-			   const Sexy::Compiler::IFunction* f = GetFunctionFromBytecode(obj.GetModule(i), id);
+			   const Rococo::Compiler::IFunction* f = GetFunctionFromBytecode(obj.GetModule(i), id);
 			   if (f != NULL) return f;
 		   }
 
 		   return GetFunctionFromBytecode(obj.IntrinsicModule(), id);
 	   }
 
-	   SCRIPTEXPORT_API const Sexy::Compiler::IFunction* GetFunctionAtAddress(Sexy::Compiler::IPublicProgramObject& po, size_t pcOffset)
+	   SCRIPTEXPORT_API const Rococo::Compiler::IFunction* GetFunctionAtAddress(Rococo::Compiler::IPublicProgramObject& po, size_t pcOffset)
 	   {
 		   IVirtualMachine& vm = po.VirtualMachine();
 		   IProgramMemory& mem = po.ProgramMemory();
@@ -420,7 +420,7 @@ namespace Sexy
 
 			   if (sf >= cpu.StackStart + 4 && sf < cpu.StackEnd)
 			   {
-				   uint8* pValue = ((Sexy::uint8*) sf) - sizeof(size_t) ;
+				   uint8* pValue = ((Rococo::uint8*) sf) - sizeof(size_t) ;
 				   void** ppValue = (void**) pValue;
 				   const uint8* caller = (const uint8*) *ppValue;
 				   if (caller >= cpu.ProgramStart && caller < cpu.ProgramEnd)
@@ -439,7 +439,7 @@ namespace Sexy
 		   return NULL;		
 	   }
 
-	   SCRIPTEXPORT_API const uint8* GetStackFrame(Sexy::VM::CPU& cpu, int32 callDepth)
+	   SCRIPTEXPORT_API const uint8* GetStackFrame(Rococo::VM::CPU& cpu, int32 callDepth)
 	   {
 		   const uint8* sf = cpu.SF();
 		   for(int32 depth = callDepth; depth > 0; depth--)
@@ -449,7 +449,7 @@ namespace Sexy
 		   return sf;
 	   }
 
-	   SCRIPTEXPORT_API const uint8* GetPCAddress(Sexy::VM::CPU& cpu, int32 callDepth)
+	   SCRIPTEXPORT_API const uint8* GetPCAddress(Rococo::VM::CPU& cpu, int32 callDepth)
 	   {
 		   const uint8* pc = cpu.PC();
 		   const uint8* sf = cpu.SF();
@@ -461,7 +461,7 @@ namespace Sexy
 		   return pc;
 	   }
 
-	   SCRIPTEXPORT_API bool GetVariableByIndex(csexstr& name, MemberDef& def, const IStructure*& pseudoType, const Sexy::uint8*& SF, IPublicScriptSystem& ss, size_t index, size_t callDepth)
+	   SCRIPTEXPORT_API bool GetVariableByIndex(csexstr& name, MemberDef& def, const IStructure*& pseudoType, const Rococo::uint8*& SF, IPublicScriptSystem& ss, size_t index, size_t callDepth)
 	   {
 		   const uint8* pc;
 		   const IFunction* f;
@@ -487,7 +487,7 @@ namespace Sexy
 
 			   if (AreEqual(name, SEXTEXT("_arg"), 4)) continue;
 
-			   if (def.location == Sexy::Compiler::VARLOCATION_NONE)
+			   if (def.location == Rococo::Compiler::VARLOCATION_NONE)
 			   {
 				   lastPseudo = def.ResolvedType;
 				   lastPseudoName = name;
@@ -499,7 +499,7 @@ namespace Sexy
 			   if (count == index)
 			   {
 				   const void* pVariableData = SF + def.SFOffset;
-				   if (def.Usage == Sexy::Compiler::ARGUMENTUSAGE_BYVALUE)
+				   if (def.Usage == Rococo::Compiler::ARGUMENTUSAGE_BYVALUE)
 				   {
 					   if (lastPseudo != NULL && lastPseudoName != NULL)
 					   {
@@ -521,7 +521,7 @@ namespace Sexy
 		   return false;
 	   }
 
-	   SCRIPTEXPORT_API bool FindVariableByName(MemberDef& def, const IStructure*& pseudoType, const Sexy::uint8*& SF, IPublicScriptSystem& ss, csexstr searchName, size_t callDepth)
+	   SCRIPTEXPORT_API bool FindVariableByName(MemberDef& def, const IStructure*& pseudoType, const Rococo::uint8*& SF, IPublicScriptSystem& ss, csexstr searchName, size_t callDepth)
 	   {
 		   size_t nVariables = GetCurrentVariableCount(ss, callDepth);
 		   for(size_t i = 0; i < nVariables; ++i)
@@ -550,8 +550,8 @@ namespace Sexy
 		   size_t count = 0;
 		   for(int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
 		   {
-			   Sexy::Compiler::MemberDef def;
-			   Sexy::csexstr name;
+			   Rococo::Compiler::MemberDef def;
+			   Rococo::csexstr name;
 			   f->Code().GetLocalVariableSymbolByIndex(OUT def, OUT name, i);
 
 			   if (fnOffset < def.pcStart || fnOffset > def.pcEnd)
@@ -567,7 +567,7 @@ namespace Sexy
 		   return count + 3; // + SF + return address + old SF
 	   }
 
-	   SCRIPTEXPORT_API void SkipJIT(Sexy::Compiler::IPublicProgramObject& po)
+	   SCRIPTEXPORT_API void SkipJIT(Rococo::Compiler::IPublicProgramObject& po)
 	   {
 		   IVirtualMachine& vm = po.VirtualMachine();
 		   IProgramMemory& mem = po.ProgramMemory();
@@ -602,8 +602,8 @@ namespace Sexy
 		   IPublicProgramObject& obj = ss.PublicProgramObject();
 		   CPU& cpu = vm.Cpu();
 
-		   sf = Sexy::Script::GetStackFrame(cpu, (int32) callDepth);
-		   pc = Sexy::Script::GetPCAddress(cpu, (int32) callDepth);
+		   sf = Rococo::Script::GetStackFrame(cpu, (int32) callDepth);
+		   pc = Rococo::Script::GetPCAddress(cpu, (int32) callDepth);
 
 		   if (pc == NULL) return false;
 
@@ -613,14 +613,14 @@ namespace Sexy
 		   CodeSection cs;
 		   f->Code().GetCodeSection(OUT cs);
 
-		   const Sexy::uint8* startOfFunction = obj.ProgramMemory().GetFunctionAddress(cs.Id) + obj.ProgramMemory().StartOfMemory();
+		   const Rococo::uint8* startOfFunction = obj.ProgramMemory().GetFunctionAddress(cs.Id) + obj.ProgramMemory().StartOfMemory();
 		   ptrdiff_t pcOffsetRel = pc - startOfFunction;
 		   if (pcOffsetRel < 0) return false;
 		   fnOffset = (size_t) pcOffsetRel;
 		   return true;
 	   }
 
-	   SCRIPTEXPORT_API void ForeachVariable(Sexy::Script::IPublicScriptSystem& ss, Sexy::Debugger::IVariableEnumeratorCallback& variableEnum, size_t callDepth)
+	   SCRIPTEXPORT_API void ForeachVariable(Rococo::Script::IPublicScriptSystem& ss, Rococo::Debugger::IVariableEnumeratorCallback& variableEnum, size_t callDepth)
 	   {
 		   const uint8* sf;
 		   const uint8* pc;
@@ -629,7 +629,7 @@ namespace Sexy
 
 		   if (!GetCallDescription(sf, pc, f, fnOffset, ss, callDepth)) return;
 
-		   const Sexy::Compiler::IStructure* lastPseudo = NULL;
+		   const Rococo::Compiler::IStructure* lastPseudo = NULL;
 		   csexstr lastPseudoName;
 
 		   VariableDesc variable;
@@ -656,7 +656,7 @@ namespace Sexy
 
 			   if (AreEqual(name, SEXTEXT("_arg"), 4)) continue;
 
-			   if (def.location == Sexy::Compiler::VARLOCATION_NONE)
+			   if (def.location == Rococo::Compiler::VARLOCATION_NONE)
 			   {
 				   lastPseudo = def.ResolvedType;
 				   lastPseudoName = name;
@@ -769,7 +769,7 @@ namespace Sexy
 			   ptrdiff_t suboffset = 0;
 			   for(int i = 0; i < s.MemberCount(); ++i)
 			   {
-				   const Sexy::Compiler::IMember& member = specimen->GetMember(i);
+				   const Rococo::Compiler::IMember& member = specimen->GetMember(i);
 
 				   TokenBuffer childName;
 				   StringPrint(childName, SEXTEXT("%s.%s"), parentName, member.Name());
@@ -790,18 +790,18 @@ namespace Sexy
    #endif
 	   }
 
-	   SCRIPTEXPORT_API const Sexy::uint8* GetInstance(const MemberDef& def, const IStructure* pseudoType, const Sexy::uint8* SF)
+	   SCRIPTEXPORT_API const Rococo::uint8* GetInstance(const MemberDef& def, const IStructure* pseudoType, const Rococo::uint8* SF)
 	   {
 		   if (pseudoType != NULL)
 		   {
-			   const Sexy::uint8* instancePtr = *(const Sexy::uint8**) (SF + def.SFOffset);
+			   const Rococo::uint8* instancePtr = *(const Rococo::uint8**) (SF + def.SFOffset);
 			   return instancePtr;
 		   }
 		   else
 		   {
-			   if (def.Usage == Sexy::Compiler::ARGUMENTUSAGE_BYREFERENCE)
+			   if (def.Usage == Rococo::Compiler::ARGUMENTUSAGE_BYREFERENCE)
 			   {
-				   const Sexy::uint8** ppInstance = (const Sexy::uint8**) (SF + def.SFOffset);
+				   const Rococo::uint8** ppInstance = (const Rococo::uint8**) (SF + def.SFOffset);
 				   return *ppInstance;
 			   }
 			   else
@@ -811,7 +811,7 @@ namespace Sexy
 		   }
 	   }
 
-	   SCRIPTEXPORT_API csexstr GetShortName(const Sexy::Compiler::IStructure& s)
+	   SCRIPTEXPORT_API csexstr GetShortName(const Rococo::Compiler::IStructure& s)
 	   {
 		   return IsNullType(s) ? s.GetInterface(0).Name() : s.Name();
 	   }
@@ -826,7 +826,7 @@ namespace Sexy
 		   return pseudoType != NULL ? (name + StringLength(SEXTEXT("_ref_"))) : name;
 	   }
 
-	   SCRIPTEXPORT_API const Sexy::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, csexstr fullyQualifiedName)
+	   SCRIPTEXPORT_API const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, csexstr fullyQualifiedName)
 	   {
 		   NamespaceSplitter splitter(fullyQualifiedName);
 

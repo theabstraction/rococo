@@ -1305,7 +1305,7 @@ namespace
 	{
 		OS::UltraClock uc;
 
-		ticks lastTick = uc.start;
+		OS::ticks lastTick = uc.start;
 
 		DWORD sleepMS = 5;
 		MSG msg = { 0 };

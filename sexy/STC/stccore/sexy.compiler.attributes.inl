@@ -31,7 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace Sexy { namespace Compiler { namespace Impl
+namespace Rococo { namespace Compiler { namespace Impl
 {	
 	bool AttributeContainer::AddAttribute(csexstr name, const void* value)
 	{

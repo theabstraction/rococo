@@ -66,10 +66,10 @@
 
 #include "sexy.lib.util.h"
 
-using namespace Sexy;
-using namespace Sexy::Sex;
-using namespace Sexy::Script;
-using namespace Sexy::Compiler;
+using namespace Rococo;
+using namespace Rococo::Sex;
+using namespace Rococo::Script;
+using namespace Rococo::Compiler;
 
 void PrintHelp()
 {

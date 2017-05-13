@@ -37,7 +37,7 @@
 #include <sexy.compiler.public.h>
 #include <sexy.compiler.h>
 
-namespace Sexy { namespace Compiler
+namespace Rococo { namespace Compiler
 {
 	IStructureBuilder* FindMember(IStructureBuilder& s, csexstr name)
 	{

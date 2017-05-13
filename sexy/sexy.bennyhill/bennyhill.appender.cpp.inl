@@ -33,8 +33,8 @@
 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
+	using namespace Rococo;
+	using namespace Rococo::Sex;
 
    void DeclareCppEnum(FileAppender& appender, const EnumContext& ec, cr_sex senumDef, const ParseContext& pc);
 
@@ -358,7 +358,7 @@ namespace
 
       appender.Append(SEXTEXT("\n\n"));
       int depth = AppendNamespace(appender, ic.asCppInterface.SexyName());
-      appender.Append(SEXTEXT("\tvoid AddNativeCalls_%s(Sexy::Script::IPublicScriptSystem& ss, %s* nceContext);\n"), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
+      appender.Append(SEXTEXT("\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, %s* nceContext);\n"), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
       while (depth > 0)
       {
          depth--;
@@ -463,7 +463,7 @@ namespace
 				}
             else if (isStringBuilder)
             {
-               appender.Append(SEXTEXT("\t\tSexy::Helpers::StringPopulator _%sPopulator(_nce, %s);"), fieldName, fieldName);
+               appender.Append(SEXTEXT("\t\tRococo::Helpers::StringPopulator _%sPopulator(_nce, %s);"), fieldName, fieldName);
             }
 
 				appender.Append(SEXTEXT("\n"));
@@ -480,7 +480,7 @@ namespace
 		appender.Append(SEXTEXT("(NativeCallEnvironment& _nce)\n"));
 		appender.Append(SEXTEXT("\t{\n"));
 
-		appender.Append(SEXTEXT("\t\tSexy::uint8* _sf = _nce.cpu.SF();\n"));
+		appender.Append(SEXTEXT("\t\tRococo::uint8* _sf = _nce.cpu.SF();\n"));
 		appender.Append(SEXTEXT("\t\tptrdiff_t _offset = 2 * sizeof(size_t);\n"));
 	
 		bool hasInitializedStringStruct = false;
@@ -651,7 +651,7 @@ namespace
             csexstr body, tail;
             splitter.SplitTail(body, tail);
 
-            appender.Append(SEXTEXT("\t\tauto& _%sStruct = Sexy::Helpers::GetDefaultProxy(SEXTEXT(\"%s\"),SEXTEXT(\"%s\"), SEXTEXT(\"Proxy%s\"), _nce.ss);\n"), StringFrom(svalue), body, tail, tail);
+            appender.Append(SEXTEXT("\t\tauto& _%sStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT(\"%s\"),SEXTEXT(\"%s\"), SEXTEXT(\"Proxy%s\"), _nce.ss);\n"), StringFrom(svalue), body, tail, tail);
             appender.Append(SEXTEXT("\t\tCReflectedClass* _sxy%s = _nce.ss.Represent(_%sStruct, %s);\n"), StringFrom(svalue), StringFrom(svalue), StringFrom(svalue));
             appender.Append(SEXTEXT("\t\tWriteOutput(&_sxy%s->header._vTables[0], _sf, -_offset);\n"), StringFrom(svalue));
          }
@@ -815,7 +815,7 @@ namespace
 	void ImplementNativeFunctions(FileAppender& appender, const InterfaceContext& ic, const ISExpression* methods, const ParseContext& pc)
 	{
 		appender.Append(SEXTEXT("// BennyHill generated Sexy native functions for %s \n"), ic.asCppInterface.FQName());
-		appender.Append(SEXTEXT("namespace\n{\n\tusing namespace Sexy;\n\tusing namespace Sexy::Sex;\n\tusing namespace Sexy::Script;\n\tusing namespace Sexy::Compiler;\n\n"));
+		appender.Append(SEXTEXT("namespace\n{\n\tusing namespace Rococo;\n\tusing namespace Rococo::Sex;\n\tusing namespace Rococo::Script;\n\tusing namespace Rococo::Compiler;\n\n"));
 
 		if (methods != NULL)
 		{
@@ -846,7 +846,7 @@ namespace
 
 				appender.Append(SEXTEXT("\tvoid NativeGetHandleFor%s(NativeCallEnvironment& _nce)\n"), factoryType.CompressedName());
 				appender.Append(SEXTEXT("\t{\n"));
-				appender.Append(SEXTEXT("\t\tSexy::uint8* _sf = _nce.cpu.SF();\n"));
+				appender.Append(SEXTEXT("\t\tRococo::uint8* _sf = _nce.cpu.SF();\n"));
 				appender.Append(SEXTEXT("\t\tptrdiff_t _offset = 2 * sizeof(size_t);\n"));
 
 				TAttributeMap attributes;
@@ -877,7 +877,7 @@ namespace
 
       int depth = AppendNamespace(appender, ic.asCppInterface.SexyName());
 
-		appender.Append(SEXTEXT("\tvoid AddNativeCalls_%s(Sexy::Script::IPublicScriptSystem& ss, %s* _nceContext)\n"), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
+		appender.Append(SEXTEXT("\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, %s* _nceContext)\n"), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
 		appender.Append(SEXTEXT("\t{\n"));
 
 		if (methods != NULL)

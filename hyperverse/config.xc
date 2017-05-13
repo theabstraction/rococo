@@ -39,7 +39,7 @@
 (struct Quat Sys.Maths.Quat Quat)
 (struct Matrix4x4 Sys.Maths.Matrix4x4 Matrix4x4)
 (struct IString Sys.Type.IString fstring)
-(struct IStringBuilder Sys.Type.IStringBuilder Sexy.IStringPopulator)
+(struct IStringBuilder Sys.Type.IStringBuilder Rococo.IStringPopulator)
 (struct FPSAngles Sys.Maths.FPSAngles FPSAngles)
 
 // (defstruct <name> <sexy-name> <cpp-name> (fields) )  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files. It creates new structures in the target specified in (cpp.types ...)

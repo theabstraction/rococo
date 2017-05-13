@@ -39,12 +39,12 @@
 
       IMPORT_FROM_DLL void WIN32_API SetLastError(unsigned int dwErrCode);
 
-      namespace Sexy { namespace VM
+      namespace Rococo { namespace VM
       {
-	      Sexy::VM::ICore* CreateSVMCore(const Sexy::VM::CoreSpec& spec);
+	      Rococo::VM::ICore* CreateSVMCore(const Rococo::VM::CoreSpec& spec);
       }}
 
-      extern "C" SVMLIB Sexy::VM::ICore* CreateSVMCore(const Sexy::VM::CoreSpec* spec)
+      extern "C" SVMLIB Rococo::VM::ICore* CreateSVMCore(const Rococo::VM::CoreSpec* spec)
       {
 	      if (spec == NULL) 
 	      {
@@ -53,34 +53,34 @@
 		      return NULL;
 	      }
 
-	      if (spec->Version != Sexy::VM::CORE_LIB_VERSION)
+	      if (spec->Version != Rococo::VM::CORE_LIB_VERSION)
 	      {
 		      printf("Invalid CoreSpec->Version");
 		      SetLastError(E_INVALIDARG);
 		      return NULL;
 	      }
 		
-	      if(spec->SizeOfStruct != sizeof(Sexy::VM::CoreSpec))
+	      if(spec->SizeOfStruct != sizeof(Rococo::VM::CoreSpec))
 	      {
 		      printf("Unexpected CoreSpec->SizeOfStruct value");
 		      SetLastError(E_INVALIDARG);
 		      return NULL;
 	      }
 
-	      return Sexy::VM::CreateSVMCore(*spec);
+	      return Rococo::VM::CreateSVMCore(*spec);
       }
 
 #else
 
-namespace Sexy 
+namespace Rococo 
 {
    namespace VM
    {
-      Sexy::VM::ICore* CreateSVMCore(const Sexy::VM::CoreSpec& spec);
+      Rococo::VM::ICore* CreateSVMCore(const Rococo::VM::CoreSpec& spec);
    }
 }
 
-extern "C" Sexy::VM::ICore* CreateSVMCore(const Sexy::VM::CoreSpec* spec)
+extern "C" Rococo::VM::ICore* CreateSVMCore(const Rococo::VM::CoreSpec* spec)
 {
    if (spec == NULL)
    {
@@ -88,19 +88,19 @@ extern "C" Sexy::VM::ICore* CreateSVMCore(const Sexy::VM::CoreSpec* spec)
       return NULL;
    }
 
-   if (spec->Version != Sexy::VM::CORE_LIB_VERSION)
+   if (spec->Version != Rococo::VM::CORE_LIB_VERSION)
    {
       printf("Invalid CoreSpec->Version");
       return NULL;
    }
 
-   if (spec->SizeOfStruct != sizeof(Sexy::VM::CoreSpec))
+   if (spec->SizeOfStruct != sizeof(Rococo::VM::CoreSpec))
    {
       printf("Unexpected CoreSpec->SizeOfStruct value");
       return NULL;
    }
 
-   return Sexy::VM::CreateSVMCore(*spec);
+   return Rococo::VM::CreateSVMCore(*spec);
 }
 
 #endif

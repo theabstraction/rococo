@@ -40,7 +40,7 @@
 
 #include <rococo.strings.h>
 
-namespace Sexy
+namespace Rococo
 {
 	bool operator == (const sexstring_key& a, const sexstring_key& b);
 	int32 Compare(const char* a, const char* b);
@@ -86,7 +86,7 @@ namespace Sexy
       size_t hashValue;
 
    public:
-      CStringKey(csexstr _text) : text(_text) { hashValue = Sexy::Hash(_text); }
+      CStringKey(csexstr _text) : text(_text) { hashValue = Rococo::Hash(_text); }
       CStringKey() : text(nullptr), hashValue(0) {}
 
       csexstr c_str() const { return text; }

@@ -75,7 +75,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		rchar srcpath[_MAX_PATH];
 		SecureFormat(srcpath, L"%sscripts\\native\\", installation->Content());
 
-      Sexy::Script::SetDefaultNativeSourcePath(srcpath);
+      Rococo::Script::SetDefaultNativeSourcePath(srcpath);
 
       AutoFree<IDX11Window> mainWindow(CreateDX11Window(*installation));
       SetWindowText(mainWindow->Window(), L"Dystopia");

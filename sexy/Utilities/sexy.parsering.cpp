@@ -15,8 +15,8 @@
 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Parse;
+	using namespace Rococo;
+	using namespace Rococo::Parse;
 
 	union DoubleBits
 	{
@@ -320,7 +320,7 @@ namespace
 	}
 }
 
-namespace Sexy { namespace Compiler
+namespace Rococo { namespace Compiler
 {
 	BITCOUNT GetBitCount(VARTYPE type)
 	{
@@ -340,7 +340,7 @@ namespace Sexy { namespace Compiler
 	}
 }}
 
-namespace Sexy { namespace Parse
+namespace Rococo { namespace Parse
 {
 	VARTYPE GetLiteralType(csexstr candidate)
 	{
@@ -881,4 +881,4 @@ namespace Sexy { namespace Parse
 	{
 		return _TryParseExponentForm(OUT y, IN s);
 	}
-}} // Sexy::Compiler
+}} // Rococo::Compiler

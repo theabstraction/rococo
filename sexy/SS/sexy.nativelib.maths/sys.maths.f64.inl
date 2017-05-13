@@ -2,7 +2,7 @@ namespace
 {
 	void NativeSysMathsF64Sin(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 radians;
 		_offset += sizeof(radians);
@@ -15,7 +15,7 @@ namespace
 
 	void NativeSysMathsF64Cos(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 radians;
 		_offset += sizeof(radians);
@@ -28,7 +28,7 @@ namespace
 
 	void NativeSysMathsF64Tan(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 radians;
 		_offset += sizeof(radians);
@@ -41,7 +41,7 @@ namespace
 
 	void NativeSysMathsF64ArcSin(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -54,7 +54,7 @@ namespace
 
 	void NativeSysMathsF64ArcCos(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -67,7 +67,7 @@ namespace
 
 	void NativeSysMathsF64ArcTan(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -80,7 +80,7 @@ namespace
 
 	void NativeSysMathsF64ArcTanYX(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -97,7 +97,7 @@ namespace
 
 	void NativeSysMathsF64Abs(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -110,7 +110,7 @@ namespace
 
 	void NativeSysMathsF64Sinh(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -123,7 +123,7 @@ namespace
 
 	void NativeSysMathsF64Cosh(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -136,7 +136,7 @@ namespace
 
 	void NativeSysMathsF64Tanh(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -149,7 +149,7 @@ namespace
 
 	void NativeSysMathsF64Exp(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -162,7 +162,7 @@ namespace
 
 	void NativeSysMathsF64Floor(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -175,7 +175,7 @@ namespace
 
 	void NativeSysMathsF64Ceiling(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -188,7 +188,7 @@ namespace
 
 	void NativeSysMathsF64Power(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 exponent;
 		_offset += sizeof(exponent);
@@ -205,7 +205,7 @@ namespace
 
 	void NativeSysMathsF64LogN(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -218,7 +218,7 @@ namespace
 
 	void NativeSysMathsF64Log10(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -231,7 +231,7 @@ namespace
 
 	void NativeSysMathsF64SquareRoot(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -244,7 +244,7 @@ namespace
 
 	void NativeSysMathsF64ErrorFunction(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -257,7 +257,7 @@ namespace
 
 	void NativeSysMathsF64MaxOf(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 y;
 		_offset += sizeof(y);
@@ -274,7 +274,7 @@ namespace
 
 	void NativeSysMathsF64MinOf(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 y;
 		_offset += sizeof(y);
@@ -291,7 +291,7 @@ namespace
 
 	void NativeSysMathsF64RoundToNearest(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -304,7 +304,7 @@ namespace
 
 	void NativeSysMathsF64IsInfinity(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -317,7 +317,7 @@ namespace
 
 	void NativeSysMathsF64IsNan(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -330,7 +330,7 @@ namespace
 
 	void NativeSysMathsF64IsSignalNan(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -343,7 +343,7 @@ namespace
 
 	void NativeSysMathsF64IsQuietNan(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -356,7 +356,7 @@ namespace
 
 	void NativeSysMathsF64IsNormal(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -369,7 +369,7 @@ namespace
 
 	void NativeSysMathsF64IsFinite(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -382,7 +382,7 @@ namespace
 
 	void NativeSysMathsF64QuietNan(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 value = QuietNanF64();
 		_offset += sizeof(value);
@@ -391,7 +391,7 @@ namespace
 
 	void NativeSysMathsF64MinValue(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 value = MinF64Value();
 		_offset += sizeof(value);
@@ -400,7 +400,7 @@ namespace
 
 	void NativeSysMathsF64MaxValue(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 value = MaxF64Value();
 		_offset += sizeof(value);
@@ -409,7 +409,7 @@ namespace
 
 	void NativeSysMathsF64ToInt32(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -422,7 +422,7 @@ namespace
 
 	void NativeSysMathsF64ToInt64(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -435,7 +435,7 @@ namespace
 
 	void NativeSysMathsF64ToFloat32(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float64 x;
 		_offset += sizeof(x);
@@ -449,7 +449,7 @@ namespace
 }
 
 namespace Sys { namespace Maths { namespace F64 { 
-	void AddNativeCalls_SysMathsF64(Sexy::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
+	void AddNativeCalls_SysMathsF64(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Sys.Maths.F64"));
 		ss.AddNativeCall(ns, NativeSysMathsF64Sin, nullptr, SEXTEXT("Sin(Float64 radians) -> (Float64 value)"));

@@ -31,7 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace Sexy
+namespace Rococo
 {
    namespace Script
    {
@@ -533,7 +533,7 @@ namespace Sexy
 
       void CompileAsClearList(CCompileEnvironment& ce, cr_sex s, csexstr instanceName)
       {
-         ce.Builder.AssignVariableRefToTemp(instanceName, Sexy::ROOT_TEMPDEPTH);
+         ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
          AppendInvoke(ce, GetListCallbacks(ce).ListClear, s);
       }
 
@@ -560,7 +560,7 @@ namespace Sexy
          ce.Builder.AssignVariableRefToTemp(instance, 0, 0); // list goes to D4
          ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).ListAppendAndGetRef); // This returns the address of the blank slot in D7
 
-         inputStackAllocCount += CompileInstancePointerArgFromTemp(ce, Sexy::ROOT_TEMPDEPTH);
+         inputStackAllocCount += CompileInstancePointerArgFromTemp(ce, Rococo::ROOT_TEMPDEPTH);
 
          AppendFunctionCallAssembly(ce, *constructor);
 
@@ -713,7 +713,7 @@ namespace Sexy
          AssertNotTooFewElements(s, 1);
          AssertNotTooManyElements(s, 1);
 
-         ce.Builder.AssignVariableRefToTemp(instanceName, Sexy::ROOT_TEMPDEPTH, 0); // node goes to D6
+         ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // node goes to D6
 
          AppendInvoke(ce, GetListCallbacks(ce).NodePop, s);
       }
@@ -789,19 +789,19 @@ namespace Sexy
             AddNodeDef(ce.Script, ce.Builder, nodeName, GetListDef(ce, source, srcName), source);
 
             ce.Builder.AddSymbol(srcName);
-            ce.Builder.AssignVariableRefToTemp(srcName, Sexy::ROOT_TEMPDEPTH); // A pointer to the list is now in D7
+            ce.Builder.AssignVariableRefToTemp(srcName, Rococo::ROOT_TEMPDEPTH); // A pointer to the list is now in D7
 
             if (AreEqual(listDirective, SEXTEXT("Tail")))
             {
                ce.Builder.AddSymbol(SEXTEXT("tail now in D7"));
                AppendInvoke(ce, GetListCallbacks(ce).ListGetTail, source); // tail is now in D7
-               AssignTempToVariableRef(ce, Sexy::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
+               AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
             }
             else if (AreEqual(listDirective, SEXTEXT("Head")))
             {
                ce.Builder.AddSymbol(SEXTEXT("head now in D7"));
                AppendInvoke(ce, GetListCallbacks(ce).ListGetHead, source); // tail is now in D7
-               AssignTempToVariableRef(ce, Sexy::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
+               AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
             }
             else
             {
@@ -813,19 +813,19 @@ namespace Sexy
             AddNodeDef(ce.Script, ce.Builder, nodeName, GetNodeDef(ce, source, srcName), source);
 
             ce.Builder.AddSymbol(srcName);
-            ce.Builder.AssignVariableRefToTemp(srcName, Sexy::ROOT_TEMPDEPTH); // A pointer to the node is now in D7
+            ce.Builder.AssignVariableRefToTemp(srcName, Rococo::ROOT_TEMPDEPTH); // A pointer to the node is now in D7
 
             if (AreEqual(listDirective, SEXTEXT("Next")))
             {
                ce.Builder.AddSymbol(SEXTEXT("tail now in D7"));
                AppendInvoke(ce, GetListCallbacks(ce).NodeNext, source); // tail is now in D7
-               AssignTempToVariableRef(ce, Sexy::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
+               AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
             }
             else if (AreEqual(listDirective, SEXTEXT("Previous")))
             {
                ce.Builder.AddSymbol(SEXTEXT("head now in D7"));
                AppendInvoke(ce, GetListCallbacks(ce).NodePrevious, source); // tail is now in D7
-               AssignTempToVariableRef(ce, Sexy::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
+               AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
             }
             else
             {
@@ -909,19 +909,19 @@ namespace Sexy
          ce.Builder.AddSymbol(SEXTEXT("(foreach..."));
 
          ce.Builder.AddSymbol(collectionName);
-         AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH + 6, Sexy::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
+         AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
          ce.Builder.AssignVariableRefToTemp(collectionName, 9, 0);	// List ref is in D13
 
          //////////////////////////////////////////////////////// Test list to see if it is empty //////////////////////////////////////////////////////
          TokenBuffer collectionLength;
          StringPrint(collectionLength, SEXTEXT("%s._length"), collectionName);
-         ce.Builder.AssignVariableToTemp(collectionLength, Sexy::ROOT_TEMPDEPTH);
+         ce.Builder.AssignVariableToTemp(collectionLength, Rococo::ROOT_TEMPDEPTH);
          ce.Builder.Assembler().Append_Test(VM::REGISTER_D7, BITCOUNT_32);
          size_t bailoutPos = ce.Builder.Assembler().WritePosition();
          ce.Builder.Assembler().Append_BranchIf(CONDITION_IF_EQUAL, 0);
          ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-         AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH + 5, Sexy::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER);
+         AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 5, Rococo::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER);
 
          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D13, VM::REGISTER_D7, BITCOUNT_POINTER);
          AppendInvoke(ce, GetListCallbacks(ce).ListGetHead, collection);
@@ -930,13 +930,13 @@ namespace Sexy
          if (indexName != NULL)
          {
             ce.Builder.AddSymbol(SEXTEXT("D11 - working index"));
-            AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH + 4, Sexy::ROOT_TEMPDEPTH + 4, BITCOUNT_32); // Index is D11
+            AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 4, Rococo::ROOT_TEMPDEPTH + 4, BITCOUNT_32); // Index is D11
             VariantValue zero;
             zero.int32Value = 0;
             ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D11, zero, BITCOUNT_32); // init index to zero
 
             // We may be nested in a function that overwrites D10, which is used as the result of D11-1
-            AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH + 3, Sexy::ROOT_TEMPDEPTH + 3, BITCOUNT_POINTER);
+            AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 3, Rococo::ROOT_TEMPDEPTH + 3, BITCOUNT_POINTER);
          }
 
          AddVariableRef(ce, NameString::From(refName), ce.Object.Common().TypeNode());
@@ -964,7 +964,7 @@ namespace Sexy
          ce.Builder.Assembler().Append_Test(VM::REGISTER_D12, BITCOUNT_POINTER);
 
          ptrdiff_t endLoop = ce.Builder.Assembler().WritePosition();
-         ce.Builder.Assembler().Append_BranchIf(Sexy::CONDITION_IF_NOT_EQUAL, (int32)(startLoop - endLoop));
+         ce.Builder.Assembler().Append_BranchIf(Rococo::CONDITION_IF_NOT_EQUAL, (int32)(startLoop - endLoop));
 
          ce.Builder.PopLastVariables(indexName != NULL ? 4 : 2); // Release the D10-D12 and the ref. We need to release the ref manually to stop the refcount decrement
 

@@ -53,7 +53,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace Sexy
+namespace Rococo
 {
    namespace Compiler
    {
@@ -68,7 +68,7 @@ namespace Sexy
 
    namespace Sex
    {
-      using namespace Sexy::Compiler;
+      using namespace Rococo::Compiler;
 
       void AssertQualifiedIdentifier(cr_sex e);
       void AssertTypeIdentifier(cr_sex e);
@@ -86,8 +86,8 @@ namespace Sexy
 
    namespace Script
    {
-      using namespace Sexy::Compiler;
-      using namespace Sexy::Sex;
+      using namespace Rococo::Compiler;
+      using namespace Rococo::Sex;
 
       extern const SEXCHAR* const THIS_POINTER_TOKEN;
 

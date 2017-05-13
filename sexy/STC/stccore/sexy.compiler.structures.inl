@@ -31,7 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace Sexy { namespace Compiler { namespace Impl
+namespace Rococo { namespace Compiler { namespace Impl
 {
 	Structure::Structure(csexstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, VARTYPE _type, const void* _definition):
 		name(_name),
@@ -684,4 +684,4 @@ namespace Sexy { namespace Compiler { namespace Impl
 
 		return (const ID_BYTECODE*) virtualTables[interfaceIndex];
 	}
-}}} //Sexy::Compiler::Impl
+}}} //Rococo::Compiler::Impl

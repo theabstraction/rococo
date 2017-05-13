@@ -511,7 +511,7 @@ namespace Rococo
 
 		SafeFormat(ex.msg, _TRUNCATE, "%s", format);
 
-		TripDebugger();
+		OS::TripDebugger();
 
 		throw ex;
 	}

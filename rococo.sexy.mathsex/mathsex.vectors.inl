@@ -2,7 +2,7 @@ namespace
 {
 	void NativeSysGeometryF32AddVec3fVec3f(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* sum;
 		_offset += sizeof(sum);
@@ -21,7 +21,7 @@ namespace
 
 	void NativeSysGeometryF32SubtractVec3fVec3f(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* difference;
 		_offset += sizeof(difference);
@@ -40,7 +40,7 @@ namespace
 
 	void NativeSysGeometryF32Dot(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* b;
 		_offset += sizeof(b);
@@ -57,7 +57,7 @@ namespace
 
 	void NativeSysGeometryF32MultiplyVec3fVec3f(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* crossProduct;
 		_offset += sizeof(crossProduct);
@@ -76,7 +76,7 @@ namespace
 
 	void NativeSysGeometryF32MultMatrix4x4fMatrix4x4f(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Matrix4x4* product;
 		_offset += sizeof(product);
@@ -95,7 +95,7 @@ namespace
 
 	void NativeSysGeometryF32Length(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* a;
 		_offset += sizeof(a);
@@ -108,7 +108,7 @@ namespace
 
 	void NativeSysGeometryF32Normalize(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* n;
 		_offset += sizeof(n);
@@ -120,7 +120,7 @@ namespace
 }
 
 namespace Sys { namespace Geometry { namespace F32 { 
-	void AddNativeCalls_SysGeometryF32(Sexy::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
+	void AddNativeCalls_SysGeometryF32(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Sys.Geometry.F32"));
 		ss.AddNativeCall(ns, NativeSysGeometryF32AddVec3fVec3f, nullptr, SEXTEXT("AddVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 sum) -> "));

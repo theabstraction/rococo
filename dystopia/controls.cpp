@@ -14,8 +14,8 @@ namespace
 {
 	using namespace Dystopia;
 	using namespace Rococo;
-	using namespace Sexy::Sex;
-	using namespace Sexy;
+	using namespace Rococo::Sex;
+	
 
 	class ControlMapper: public IControlsSupervisor
 	{
@@ -210,7 +210,7 @@ namespace
 			}
 		}
 
-		void MapControls(Sexy::Sex::ISParserTree& tree)
+		void MapControls(Rococo::Sex::ISParserTree& tree)
 		{
 			cr_sex root = tree.Root();
 
@@ -242,7 +242,7 @@ namespace
 				auto tree = sourceCache.GetSource(resourcePath);
 				MapControls(*tree);
 			}
-			catch (Sexy::Sex::ParseException& pex)
+			catch (Rococo::Sex::ParseException& pex)
 			{
 				Vec2i p = pex.Start();
             Vec2i q = pex.End();

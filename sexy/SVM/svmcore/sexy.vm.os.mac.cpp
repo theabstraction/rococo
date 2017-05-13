@@ -38,8 +38,8 @@
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 
-using namespace Sexy;
-using namespace Sexy::VM;
+using namespace Rococo;
+using namespace Rococo::VM;
 
 namespace
 {
@@ -73,7 +73,7 @@ namespace
    };
 }
 
-namespace Sexy { namespace VM { namespace OS 
+namespace Rococo { namespace VM { namespace OS 
 {
    EXECUTERESULT ExecuteProtected(FN_CODE1 fnCode, void* context, EXCEPTIONCODE& exceptionCode)
    {
@@ -116,4 +116,4 @@ namespace Sexy { namespace VM { namespace OS
    {
       free(data);
    }
-}}} // Sexy::VM::OS
+}}} // Rococo::VM::OS

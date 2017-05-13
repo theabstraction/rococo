@@ -42,12 +42,12 @@
 #include <unordered_map>
 #include <sexy.stdstrings.h>
 
-using namespace Sexy;
-using namespace Sexy::Sex;
-using namespace Sexy::Compiler;
-using namespace Sexy::Script;
+using namespace Rococo;
+using namespace Rococo::Sex;
+using namespace Rococo::Compiler;
+using namespace Rococo::Script;
 
-namespace Sexy { namespace Script
+namespace Rococo { namespace Script
 {
 	size_t GetOffsetTo(csexstr memberName, const IStructure& s)
 	{
@@ -55,7 +55,7 @@ namespace Sexy { namespace Script
 		for(int i = 0; i < s.MemberCount(); i++)
 		{
 			const IMember& member = s.GetMember(i);
-			if (Sexy::AreEqual(member.Name(), SEXTEXT("_allocSize")))
+			if (Rococo::AreEqual(member.Name(), SEXTEXT("_allocSize")))
 			{
 				break;							
 			}
@@ -502,7 +502,7 @@ namespace Sexy { namespace Script
 
 						StringPrint(symbol, SEXTEXT("-> %s"), (csexstr) refTarget);
 						ce.Builder.AddSymbol(symbol);
-						ce.Builder.AssignTempToVariable(Sexy::ROOT_TEMPDEPTH, refTarget);
+						ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, refTarget);
 					}
 					else if (targetType == VARTYPE_Closure)
 					{	
@@ -511,7 +511,7 @@ namespace Sexy { namespace Script
 
 						TokenBuffer bytecodeId;
 						StringPrint(bytecodeId, SEXTEXT("%s.bytecodeId"), targetVariable);
-						ce.Builder.AssignTempToVariable(Sexy::ROOT_TEMPDEPTH, bytecodeId);
+						ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, bytecodeId);
 
 						TokenBuffer parentSF;
 						StringPrint(parentSF, SEXTEXT("%s.parentSF"), targetVariable);
@@ -521,7 +521,7 @@ namespace Sexy { namespace Script
 					{						
 						StringPrint(symbol, SEXTEXT("-> %s"), (csexstr) targetVariable);
 						ce.Builder.AddSymbol(symbol);
-						ce.Builder.AssignTempToVariable(Sexy::ROOT_TEMPDEPTH, targetVariable);
+						ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
 					}
 				}
 				else
@@ -551,7 +551,7 @@ namespace Sexy { namespace Script
 			if (TryCompileBooleanExpression(ce, sourceValue, true, negate))
 			{
 				ce.Builder.AddSymbol(symbol);
-				ce.Builder.AssignTempToVariable(Sexy::ROOT_TEMPDEPTH, targetVariable);
+				ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
 				if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
 				return;
 			}
@@ -563,7 +563,7 @@ namespace Sexy { namespace Script
 			if (TryCompileArithmeticExpression(ce, sourceValue, true, targetType))
 			{
 				ce.Builder.AddSymbol(symbol);
-				ce.Builder.AssignTempToVariable(Sexy::ROOT_TEMPDEPTH, targetVariable);
+				ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
 				return;
 			}
 			break;
@@ -574,7 +574,7 @@ namespace Sexy { namespace Script
 				StringPrint(targetId, SEXTEXT("%s.bytecodeId"), targetVariable);
 
 				ce.Builder.AddSymbol(symbol);
-				ce.Builder.AssignTempToVariable(Sexy::ROOT_TEMPDEPTH, targetId); 
+				ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetId); 
 
 				TokenBuffer targetSF;
 				StringPrint(targetSF, SEXTEXT("%s.parentSF"), targetVariable);
@@ -582,7 +582,7 @@ namespace Sexy { namespace Script
 				ce.Builder.AddSymbol(symbol);
 				
 				// hotfix for 64-bit binaries - id goest to D7 while parentSF goes to D14, an unused register
-				ce.Builder.AssignTempToVariable(Sexy::ROOT_TEMPDEPTH + 7, targetSF); 
+				ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH + 7, targetSF); 
 				return;
 			}
 			else if (TryCompileClosureDef(ce, sourceValue, *varStruct.Archetype(), ce.Builder.Owner().GetArgumentByName(targetVariable) == NULL))
@@ -594,7 +594,7 @@ namespace Sexy { namespace Script
 
 				TokenBuffer targetVariableByteCodeId;
 				StringPrint(targetVariableByteCodeId, SEXTEXT("%s.bytecodeId"), targetVariable);
-				ce.Builder.AssignTempToVariable(Sexy::ROOT_TEMPDEPTH, targetVariableByteCodeId);
+				ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariableByteCodeId);
 
 				TokenBuffer targetVariableParentSF;
 				StringPrint(symbol, SEXTEXT("%s.parentSF = SF"), targetVariable);
@@ -608,7 +608,7 @@ namespace Sexy { namespace Script
 			if (TryCompileFunctionCallAndReturnValue(ce, sourceValue, targetType, NULL, NULL))
 			{				
 				ce.Builder.AddSymbol(symbol);
-				ce.Builder.AssignTempToVariable(Sexy::ROOT_TEMPDEPTH, targetVariable);
+				ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
 				return;
 			}			
 			break;
@@ -618,7 +618,7 @@ namespace Sexy { namespace Script
 				TokenBuffer refTarget;
 				GetRefName(refTarget, targetVariable);
 				ce.Builder.AddSymbol(symbol);
-				ce.Builder.AssignTempToVariable(Sexy::ROOT_TEMPDEPTH, refTarget);
+				ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, refTarget);
 				return;
 			}			
 			break;
@@ -705,11 +705,11 @@ namespace Sexy { namespace Script
 
 			TokenBuffer vTableBuffer;
 			StringPrint(vTableBuffer, SEXTEXT("%s._vTable1"), variableName);
-			ce.Builder.AssignVariableRefToTemp(vTableBuffer, Sexy::ROOT_TEMPDEPTH);
+			ce.Builder.AssignVariableRefToTemp(vTableBuffer, Rococo::ROOT_TEMPDEPTH);
 
 			TokenBuffer refName;
 			GetRefName(refName, variableName);
-			ce.Builder.AssignTempToVariable(Sexy::ROOT_TEMPDEPTH, refName);
+			ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, refName);
 		}
 		else
 		{
@@ -1057,7 +1057,7 @@ namespace Sexy { namespace Script
       const IStructure& btype = GetBestType(ce, sb, &varStruct);
 
       csexstr instrumentName = varStruct.Name();
-      SEXCHAR functionName[Sexy::NAMESPACE_MAX_LENGTH];
+      SEXCHAR functionName[Rococo::NAMESPACE_MAX_LENGTH];
       SafeFormat(functionName, _TRUNCATE, SEXTEXT("%s%s%s"), operation, atype.Name(), btype.Name());
 
       auto* overloadFn = FindFunction(directive, functionName, ce.Script.ProgramModule());
@@ -1510,7 +1510,7 @@ namespace Sexy { namespace Script
 		if (!IsAtomic(nodeNameExpr)) Throw(nodeNameExpr, SEXTEXT("Expecting (type id = & <node-name>). The <node-name> element needs to be atomic"));
 
 		csexstr nodeName = nodeNameExpr.String()->Buffer;
-		ce.Builder.AssignVariableRefToTemp(nodeName, Sexy::ROOT_TEMPDEPTH); // The node pointer is now in D7
+		ce.Builder.AssignVariableRefToTemp(nodeName, Rococo::ROOT_TEMPDEPTH); // The node pointer is now in D7
 
 		const IStructure* nodeType = ce.Builder.GetVarStructure(nodeName);
 		if (*nodeType == ce.Object.Common().TypeNode())
@@ -1539,7 +1539,7 @@ namespace Sexy { namespace Script
 		}
 		
 		AddVariableRef(ce, NameString::From(id), type);
-		AssignTempToVariableRef(ce, Sexy::ROOT_TEMPDEPTH, id); // The id variable is now pointing to the element
+		AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, id); // The id variable is now pointing to the element
 	}
 
 	void AssertDefaultConstruction(CCompileEnvironment& ce, cr_sex decl, const IStructure& s)
@@ -2484,7 +2484,7 @@ namespace Sexy { namespace Script
 						Throw(exceptionSource, SEXTEXT("Only primitive types can be popped out from an array"));
 					}
 					CompileAsPopOutFromArray(ce, exceptionSource, body, ce.Builder.GetVarType(lhs));
-					ce.Builder.AssignTempToVariable(Sexy::ROOT_TEMPDEPTH, lhs);
+					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, lhs);
 					return;
 				}
 			}

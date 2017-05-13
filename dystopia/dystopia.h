@@ -23,7 +23,7 @@ namespace Rococo
    }
 }
 
-namespace Sexy
+namespace Rococo
 {
 	namespace Script
 	{

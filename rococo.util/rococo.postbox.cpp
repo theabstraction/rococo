@@ -3,6 +3,8 @@
 #include <deque>
 #include <unordered_map>
 #include <algorithm>
+#include <vector>
+
 namespace
 {
 	using namespace Rococo;
@@ -15,14 +17,22 @@ namespace
 		uint64 nBytes;
 		char opaquedata[LARGEST_MESSAGE_SIZE];
 		bool isLossy;
-	};
+	} TIGHTLY_PACKED;
 #pragma pack(pop)
+
+   struct HashPostType
+   {
+      size_t operator() (POST_TYPE id) const
+      {
+         return (size_t)id;
+      }
+   };
 
 	class Postbox : public IPostboxSupervisor
 	{
 	private:
 		std::deque<PostItem> items;
-		typedef std::unordered_map<POST_TYPE, std::vector<IRecipient*>> submap;
+		typedef std::unordered_map<POST_TYPE, std::vector<IRecipient*>, HashPostType> submap;
 		submap subscribers;
 		enum { CAPACITY = 64 };
 	public:

@@ -11,7 +11,7 @@ CPP_COMPILER = g++
 CPP_FLAGS = -g -std=c++14
 	
 $(BIN_DIR)sexy.vm.test: $(LIB_DIR)sexy.vm.mac.lib $(LIB_DIR)sexy.utilities.mac.lib $(OBJ_DIR)sexy.vm.test.obj
-	$(CPP_COMPILER) -g -o $(BIN_DIR)sexy.vm.test $(LIB_DIR)sexy.vm.mac.lib $(LIB_DIR)sexy.utilities.mac.lib $(OBJ_DIR)sexy.vm.test.obj
+	$(CPP_COMPILER) -g -o $(BIN_DIR)sexy.vm.test $(LIB_DIR)sexy.vm.mac.lib $(LIB_DIR)sexy.utilities.mac.lib $(OBJ_DIR)sexy.vm.test.obj  $(LIB_DIR)rococo.util.mac.lib
 
 $(OBJ_DIR)%.obj : $(addprefix $(VM_DIR),$(notdir %.cpp))
 	$(CPP_COMPILER) $(CPP_FLAGS) -I$(COMMON_DIR) -I$(ROCOCO_HEADERS) -c $< -o $@

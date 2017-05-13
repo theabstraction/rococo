@@ -11,8 +11,8 @@
 #include "sexy.lib.util.h"
 #include "sexy.lib.vm.h"
 
-using namespace Sexy;
-using namespace Sexy::VM;
+using namespace Rococo;
+using namespace Rococo::VM;
 
 namespace
 {
@@ -22,8 +22,8 @@ namespace
 
 	void Abort()
 	{
-		if (Sexy::OS::IsDebuggerPresent())
-			Sexy::OS::TripDebugger();
+		if (Rococo::OS::IsDebugging())
+			Rococo::OS::TripDebugger();
 		else
 			exit(-1); 
 	}

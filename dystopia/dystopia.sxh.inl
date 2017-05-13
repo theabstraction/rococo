@@ -319,14 +319,14 @@ namespace Dystopia { namespace UI {
 // BennyHill generated Sexy native functions for Dystopia::IJournal 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
-	using namespace Sexy::Script;
-	using namespace Sexy::Compiler;
+	
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
 
 	void NativeDystopiaIJournalAddHistory(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
 		IString* _body;
@@ -348,7 +348,7 @@ namespace
 	}
 	void NativeDystopiaIJournalAddGoalMeet(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ArchetypeCallback completionFunction;
 		_offset += sizeof(completionFunction);
@@ -388,7 +388,7 @@ namespace
 	}
 	void NativeDystopiaIJournalCompleteFirst(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_GOAL precusorGoalId;
 		_offset += sizeof(precusorGoalId);
@@ -406,7 +406,7 @@ namespace
 	}
 	void NativeDystopiaIJournalFailFirst(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_GOAL precusorGoalId;
 		_offset += sizeof(precusorGoalId);
@@ -425,7 +425,7 @@ namespace
 
 	void NativeGetHandleForDystopiaJournalGetJournal(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Dystopia::IJournal* nceContext = reinterpret_cast<Dystopia::IJournal*>(_nce.context);
 		// Uses: Dystopia::IJournal* FactoryConstructDystopiaJournalGetJournal(Dystopia::IJournal* _context);
@@ -436,7 +436,7 @@ namespace
 }
 
 namespace Dystopia { 
-	void AddNativeCalls_DystopiaIJournal(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IJournal* _nceContext)
+	void AddNativeCalls_DystopiaIJournal(Rococo::Script::IPublicScriptSystem& ss, Dystopia::IJournal* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.Journal.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForDystopiaJournalGetJournal, _nceContext, SEXTEXT("GetHandleForIJournal0  -> (Pointer hObject)"));
@@ -449,14 +449,14 @@ namespace Dystopia {
 // BennyHill generated Sexy native functions for Dystopia::IGui 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
-	using namespace Sexy::Script;
-	using namespace Sexy::Compiler;
+	
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
 
 	void NativeDystopiaIGuiShowDialogBox(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
 		IString* _buttons;
@@ -496,7 +496,7 @@ namespace
 	}
 	void NativeDystopiaIGuiAdd3DHint(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float duration;
 		_offset += sizeof(duration);
@@ -521,7 +521,7 @@ namespace
 
 	void NativeGetHandleForDystopiaGuiGetGui(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Dystopia::IGui* nceContext = reinterpret_cast<Dystopia::IGui*>(_nce.context);
 		// Uses: Dystopia::IGui* FactoryConstructDystopiaGuiGetGui(Dystopia::IGui* _context);
@@ -532,7 +532,7 @@ namespace
 }
 
 namespace Dystopia { 
-	void AddNativeCalls_DystopiaIGui(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IGui* _nceContext)
+	void AddNativeCalls_DystopiaIGui(Rococo::Script::IPublicScriptSystem& ss, Dystopia::IGui* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.Gui.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForDystopiaGuiGetGui, _nceContext, SEXTEXT("GetHandleForIGui0  -> (Pointer hObject)"));
@@ -543,14 +543,14 @@ namespace Dystopia {
 // BennyHill generated Sexy native functions for Dystopia::IMeshes 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
-	using namespace Sexy::Script;
-	using namespace Sexy::Compiler;
+	
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
 
 	void NativeDystopiaIMeshesLoad(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_MESH editorId;
 		_offset += sizeof(editorId);
@@ -571,7 +571,7 @@ namespace
 
 	void NativeGetHandleForDystopiaMeshesGetMeshes(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Dystopia::IMeshes* nceContext = reinterpret_cast<Dystopia::IMeshes*>(_nce.context);
 		// Uses: Dystopia::IMeshes* FactoryConstructDystopiaMeshesGetMeshes(Dystopia::IMeshes* _context);
@@ -582,7 +582,7 @@ namespace
 }
 
 namespace Dystopia { 
-	void AddNativeCalls_DystopiaIMeshes(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IMeshes* _nceContext)
+	void AddNativeCalls_DystopiaIMeshes(Rococo::Script::IPublicScriptSystem& ss, Dystopia::IMeshes* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.Meshes.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForDystopiaMeshesGetMeshes, _nceContext, SEXTEXT("GetHandleForIMeshes0  -> (Pointer hObject)"));
@@ -592,14 +592,14 @@ namespace Dystopia {
 // BennyHill generated Sexy native functions for Dystopia::ILevelBuilder 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
-	using namespace Sexy::Script;
-	using namespace Sexy::Compiler;
+	
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
 
 	void NativeDystopiaILevelBuilderAddEnemy(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_MESH editorId;
 		_offset += sizeof(editorId);
@@ -619,7 +619,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderAddAlly(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_MESH editorId;
 		_offset += sizeof(editorId);
@@ -639,7 +639,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderAddAmmunition(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 count;
 		_offset += sizeof(count);
@@ -687,7 +687,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderAddRangedWeapon(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float massKg;
 		_offset += sizeof(massKg);
@@ -735,7 +735,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderAddArmour(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float massKg;
 		_offset += sizeof(massKg);
@@ -779,7 +779,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderAddSolid(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 flags;
 		_offset += sizeof(flags);
@@ -803,7 +803,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderName(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
 		IString* _name;
@@ -823,7 +823,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderSetPosition(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* pos;
 		_offset += sizeof(pos);
@@ -841,7 +841,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderSetVelocity(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* velocity;
 		_offset += sizeof(velocity);
@@ -859,7 +859,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderSetHeading(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Radians theta;
 		_offset += sizeof(theta);
@@ -877,7 +877,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderSetElevation(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Radians phi;
 		_offset += sizeof(phi);
@@ -895,7 +895,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderSetLevel(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
 		IString* _filename;
@@ -911,7 +911,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderSetScale(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* scale;
 		_offset += sizeof(scale);
@@ -929,7 +929,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderGenerateCity(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Metres radius;
 		_offset += sizeof(radius);
@@ -949,7 +949,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderAddStreetName(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
 		IString* _name;
@@ -965,7 +965,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderPopulateCity(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float populationDensity;
 		_offset += sizeof(populationDensity);
@@ -979,7 +979,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderClear(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Dystopia::ILevelBuilder* _pObject;
 		_offset += sizeof(_pObject);
@@ -989,7 +989,7 @@ namespace
 	}
 	void NativeDystopiaILevelBuilderSetPlayerId(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_ENTITY playerId;
 		_offset += sizeof(playerId);
@@ -1004,7 +1004,7 @@ namespace
 
 	void NativeGetHandleForDystopiaLevelsGetLevel(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Dystopia::ILevel* nceContext = reinterpret_cast<Dystopia::ILevel*>(_nce.context);
 		// Uses: Dystopia::ILevelBuilder* FactoryConstructDystopiaLevelsGetLevel(Dystopia::ILevel* _context);
@@ -1015,7 +1015,7 @@ namespace
 }
 
 namespace Dystopia { 
-	void AddNativeCalls_DystopiaILevelBuilder(Sexy::Script::IPublicScriptSystem& ss, Dystopia::ILevel* _nceContext)
+	void AddNativeCalls_DystopiaILevelBuilder(Rococo::Script::IPublicScriptSystem& ss, Dystopia::ILevel* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.Levels.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForDystopiaLevelsGetLevel, _nceContext, SEXTEXT("GetHandleForILevel0  -> (Pointer hObject)"));
@@ -1042,14 +1042,14 @@ namespace Dystopia {
 // BennyHill generated Sexy native functions for Dystopia::UI::IUIBuilder 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
-	using namespace Sexy::Script;
-	using namespace Sexy::Compiler;
+	
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
 
 	void NativeDystopiaUIIUIBuilderRebuildPanel(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
 		IString* _panelName;
@@ -1065,7 +1065,7 @@ namespace
 	}
 	void NativeDystopiaUIIUIBuilderAddButton(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
 		IString* _text;
@@ -1089,7 +1089,7 @@ namespace
 	}
 	void NativeDystopiaUIIUIBuilderAddFrame(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec2i* span;
 		_offset += sizeof(span);
@@ -1111,7 +1111,7 @@ namespace
 	}
 	void NativeDystopiaUIIUIBuilderAddWidgetToFrame(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_WIDGET id;
 		_offset += sizeof(id);
@@ -1129,7 +1129,7 @@ namespace
 	}
 	void NativeDystopiaUIIUIBuilderHCentreChildren(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_WIDGET frameId;
 		_offset += sizeof(frameId);
@@ -1143,7 +1143,7 @@ namespace
 	}
 	void NativeDystopiaUIIUIBuilderVCentreChildren(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_WIDGET frameId;
 		_offset += sizeof(frameId);
@@ -1157,7 +1157,7 @@ namespace
 	}
 	void NativeDystopiaUIIUIBuilderShrinkWrap(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_WIDGET frameId;
 		_offset += sizeof(frameId);
@@ -1171,7 +1171,7 @@ namespace
 	}
 	void NativeDystopiaUIIUIBuilderExpandToFit(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_WIDGET frameId;
 		_offset += sizeof(frameId);
@@ -1185,7 +1185,7 @@ namespace
 	}
 	void NativeDystopiaUIIUIBuilderSetBorder(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		RGBAb c2;
 		_offset += sizeof(c2);
@@ -1215,7 +1215,7 @@ namespace
 	}
 	void NativeDystopiaUIIUIBuilderSetBackcolours(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		RGBAb b2;
 		_offset += sizeof(b2);
@@ -1241,7 +1241,7 @@ namespace
 	}
 	void NativeDystopiaUIIUIBuilderSetButtonPulse(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		boolean32 fireWhenUp;
 		_offset += sizeof(fireWhenUp);
@@ -1267,7 +1267,7 @@ namespace
 	}
 	void NativeDystopiaUIIUIBuilderSetFont(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		RGBAb fontColour;
 		_offset += sizeof(fontColour);
@@ -1293,7 +1293,7 @@ namespace
 	}
 	void NativeDystopiaUIIUIBuilderMove(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec2i* positionInContainer;
 		_offset += sizeof(positionInContainer);
@@ -1312,7 +1312,7 @@ namespace
 
 	void NativeGetHandleForDystopiaUIGetUIBuilder(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Dystopia::UI::IUIBuilder* nceContext = reinterpret_cast<Dystopia::UI::IUIBuilder*>(_nce.context);
 		// Uses: Dystopia::UI::IUIBuilder* FactoryConstructDystopiaUIGetUIBuilder(Dystopia::UI::IUIBuilder* _context);
@@ -1323,7 +1323,7 @@ namespace
 }
 
 namespace Dystopia { namespace UI { 
-	void AddNativeCalls_DystopiaUIIUIBuilder(Sexy::Script::IPublicScriptSystem& ss, Dystopia::UI::IUIBuilder* _nceContext)
+	void AddNativeCalls_DystopiaUIIUIBuilder(Rococo::Script::IPublicScriptSystem& ss, Dystopia::UI::IUIBuilder* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Dystopia.UI.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForDystopiaUIGetUIBuilder, _nceContext, SEXTEXT("GetHandleForIUIBuilder0  -> (Pointer hObject)"));

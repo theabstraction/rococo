@@ -5,7 +5,10 @@
 # error "#include <rococo.types.h> before including this file"
 #endif
 
-#include <intrin.h>
+#ifdef _WIN32
+# include <intrin.h>
+#endif
+
 #include <math.h>
 
 namespace DirectX

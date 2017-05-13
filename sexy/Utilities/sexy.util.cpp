@@ -41,7 +41,7 @@
 
 #include "sexy.stdstrings.h"
 
-namespace Sexy
+namespace Rococo
 {
 	void LogError(ILog& log, csexstr format, ...)
 	{
@@ -54,7 +54,7 @@ namespace Sexy
 	}
 }
 
-namespace Sexy
+namespace Rococo
 {
 	namespace Script
 	{

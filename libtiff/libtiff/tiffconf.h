@@ -7,6 +7,10 @@
 #ifndef _TIFFCONF_
 #define _TIFFCONF_
 
+#ifndef _WIN32
+# include <stddef.h>
+#endif
+
 /* Define to 1 if the system has the type `int16'. */
 /* #undef HAVE_INT16 */
 
@@ -44,29 +48,44 @@
 #define TIFF_UINT32_T unsigned int
 
 /* Signed 64-bit type formatter */
-#define TIFF_INT64_FORMAT "%I64d"
+#define TIFF_INT64_FORMAT "%lld"
 
+#ifdef _WIN32
 /* Signed 64-bit type */
-#define TIFF_INT64_T signed __int64
+# define TIFF_INT64_T signed __int64
+#else
+# define TIFF_INT64_T signed long long int
+#endif
 
 /* Unsigned 64-bit type formatter */
-#define TIFF_UINT64_FORMAT "%I64u"
+#define TIFF_UINT64_FORMAT "%llu"
 
 /* Unsigned 64-bit type */
-#define TIFF_UINT64_T unsigned __int64
+#ifdef _WIN32
+# define TIFF_UINT64_T unsigned __int64
+#else
+# define TIFF_UINT64_T unsigned long long int
+#endif
 
 /* Signed size type */
 #if defined(_WIN64)
 #define TIFF_SSIZE_T signed __int64
 #else
-#define TIFF_SSIZE_T signed int
+#define TIFF_SSIZE_T signed long long int
 #endif
 
 /* Signed size type formatter */
 #if defined(_WIN64)
 #define TIFF_SSIZE_FORMAT "%I64d"
 #else
-#define TIFF_SSIZE_FORMAT "%ld"
+#define TIFF_SSIZE_FORMAT "%lld"
+#endif
+
+#ifndef _WIN32
+
+int strcpy_s(char* _Destination, size_t _SizeInBytes, char const* _Source);
+int sprintf_s(char* buffer, size_t capacity, const char* format, ...);
+
 #endif
 
 /* Pointer difference type */

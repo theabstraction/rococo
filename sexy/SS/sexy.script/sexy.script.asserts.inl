@@ -32,7 +32,7 @@
 */
 
 
-namespace Sexy { namespace Sex
+namespace Rococo { namespace Sex
 {
 	void Throw(cr_sex e, const fstring& f)
 	{

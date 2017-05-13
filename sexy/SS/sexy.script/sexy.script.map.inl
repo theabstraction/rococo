@@ -31,7 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace Sexy
+namespace Rococo
 {
    namespace Script
    {
@@ -279,7 +279,7 @@ namespace Sexy
          {
             VirtualTable** key = (VirtualTable**)keySource.vPtrValue;
             InlineString* strKey = (InlineString*)(((uint8*)key) + (*key)->OffsetToInstance);
-            int hashcode = Sexy::Hash(strKey->buffer, strKey->length);
+            int hashcode = Rococo::Hash(strKey->buffer, strKey->length);
             ExpandRows(m);
 
             TMapNodes& row = GetRow(hashcode, m);
@@ -309,7 +309,7 @@ namespace Sexy
 
             VirtualTable** key = (VirtualTable**)keySource.vPtrValue;
             InlineString* strKey = (InlineString*)(((uint8*)key) + (*key)->OffsetToInstance);
-            int hashcode = Sexy::Hash(strKey->buffer, strKey->length);
+            int hashcode = Rococo::Hash(strKey->buffer, strKey->length);
 
             TMapNodes& row = GetRow(hashcode, m);
 
@@ -338,7 +338,7 @@ namespace Sexy
          {
             int32 key = keySource.int32Value;
 
-            int hashcode = Sexy::Hash(key);
+            int hashcode = Rococo::Hash(key);
             ExpandRows(m);
 
             TMapNodes& row = GetRow(hashcode, m);
@@ -368,7 +368,7 @@ namespace Sexy
 
             int32 key = keySource.int32Value;
 
-            int hashcode = Sexy::Hash(key);
+            int hashcode = Rococo::Hash(key);
 
             TMapNodes& row = GetRow(hashcode, m);
 
@@ -397,7 +397,7 @@ namespace Sexy
          {
             int64 key = keySource.int64Value;
 
-            int hashcode = Sexy::Hash(key);
+            int hashcode = Rococo::Hash(key);
             ExpandRows(m);
 
             TMapNodes& row = GetRow(hashcode, m);
@@ -427,7 +427,7 @@ namespace Sexy
 
             int64 key = keySource.int64Value;
 
-            int hashcode = Sexy::Hash(key);
+            int hashcode = Rococo::Hash(key);
 
             TMapNodes& row = GetRow(hashcode, m);
 
@@ -595,7 +595,7 @@ namespace Sexy
 
       void CompileAsMapNodePop(CCompileEnvironment& ce, cr_sex s, csexstr name)
       {
-         ce.Builder.AssignVariableRefToTemp(name, Sexy::ROOT_TEMPDEPTH);
+         ce.Builder.AssignVariableRefToTemp(name, Rococo::ROOT_TEMPDEPTH);
          AppendInvoke(ce, GetMapCallbacks(ce).MapNodePop, s);
       }
 
@@ -603,7 +603,7 @@ namespace Sexy
       {
          if (def.KeyType == ce.Object.Common().SysTypeIString().NullObjectType())
          {
-            if (!TryCompileStringLiteralInputToTemp(ce, keyExpr, Sexy::ROOT_TEMPDEPTH + 1, ce.Object.Common().SysTypeIString().NullObjectType())) // key ptr goes to D8
+            if (!TryCompileStringLiteralInputToTemp(ce, keyExpr, Rococo::ROOT_TEMPDEPTH + 1, ce.Object.Common().SysTypeIString().NullObjectType())) // key ptr goes to D8
             {
                Throw(keyExpr, SEXTEXT("Expecting string literal as key"));
             }
@@ -629,7 +629,7 @@ namespace Sexy
 
          int inputStackAllocCount = 0;
          inputStackAllocCount = PushInputs(ce, args, constructor, true, 0);
-         inputStackAllocCount += CompileInstancePointerArgFromTemp(ce, Sexy::ROOT_TEMPDEPTH);
+         inputStackAllocCount += CompileInstancePointerArgFromTemp(ce, Rococo::ROOT_TEMPDEPTH);
 
          AppendFunctionCallAssembly(ce, constructor);
 
@@ -689,7 +689,7 @@ namespace Sexy
 
          cr_sex keyExpr = s.GetElement(1);
 
-         CompileAsKeyToTemp(ce, keyExpr, def, Sexy::ROOT_TEMPDEPTH + 1);
+         CompileAsKeyToTemp(ce, keyExpr, def, Rococo::ROOT_TEMPDEPTH + 1);
 
          if (IsPrimitiveType(def.ValueType.VarType()))
          {
@@ -741,7 +741,7 @@ namespace Sexy
                ce.Builder.AssignVariableRefToTemp(mapName, 0); // map ref goes to D4
                AppendInvoke(ce, GetMapCallbacks(ce).MapInsertAndGetRef, s); // The value ref is now in D7
 
-               ConstructByRef(ce, argsExpr, Sexy::ROOT_TEMPDEPTH, def.ValueType);
+               ConstructByRef(ce, argsExpr, Rococo::ROOT_TEMPDEPTH, def.ValueType);
             }
          }
          else
@@ -800,12 +800,12 @@ namespace Sexy
 
          AddMapNodeDef(ce.Script, ce.Builder, def, nodeName, mapName, source);
 
-         CompileAsKeyToTemp(ce, keyExpr, def, Sexy::ROOT_TEMPDEPTH + 1);
+         CompileAsKeyToTemp(ce, keyExpr, def, Rococo::ROOT_TEMPDEPTH + 1);
 
-         ce.Builder.AssignVariableRefToTemp(mapName, Sexy::ROOT_TEMPDEPTH); // D7 refers to the map
+         ce.Builder.AssignVariableRefToTemp(mapName, Rococo::ROOT_TEMPDEPTH); // D7 refers to the map
          AppendInvoke(ce, GetMapCallbacks(ce).MapTryGet, source); // now D7 refers to the correct node
 
-         AssignTempToVariableRef(ce, Sexy::ROOT_TEMPDEPTH, nodeName);
+         AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName);
       }
 
       void CompileMapDeclaration(CCompileEnvironment& ce, cr_sex s)
@@ -835,7 +835,7 @@ namespace Sexy
          ce.Builder.AddSymbol(name);
          AddVariable(ce, NameString::From(name), ce.StructMap());
 
-         ce.Builder.AssignVariableRefToTemp(name, Sexy::ROOT_TEMPDEPTH); // Map ref goes to D7
+         ce.Builder.AssignVariableRefToTemp(name, Rococo::ROOT_TEMPDEPTH); // Map ref goes to D7
 
          VariantValue k;
          k.vPtrValue = (void*)keyStruct;
@@ -872,7 +872,7 @@ namespace Sexy
             }
 
             ce.Builder.AddSymbol(field);
-            ce.Builder.AssignVariableToTemp(field, Sexy::ROOT_TEMPDEPTH, 0);
+            ce.Builder.AssignVariableToTemp(field, Rococo::ROOT_TEMPDEPTH, 0);
             return true;
          }
          else if (instanceStruct == ce.Object.Common().TypeMapNode())
@@ -887,12 +887,12 @@ namespace Sexy
                StringPrint(field, SEXTEXT("%s._exists"), instance);
                ValidateReturnType(s, returnType, VARTYPE_Bool);
                ce.Builder.AddSymbol(field);
-               ce.Builder.AssignVariableToTemp(field, Sexy::ROOT_TEMPDEPTH, 0);
+               ce.Builder.AssignVariableToTemp(field, Rococo::ROOT_TEMPDEPTH, 0);
                outputType = VARTYPE_Bool;
             }
             else if (AreEqual(SEXTEXT("Value"), methodName))
             {
-               ce.Builder.AssignVariableRefToTemp(instance, Sexy::ROOT_TEMPDEPTH, 0); // node goes to D7
+               ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH, 0); // node goes to D7
 
                VARTYPE valType = mnd.mapdef.ValueType.VarType();
 
@@ -980,19 +980,19 @@ namespace Sexy
          ce.Builder.AddSymbol(SEXTEXT("(foreach..."));
 
          ce.Builder.AddSymbol(collectionName);
-         AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH + 6, Sexy::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
+         AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
          ce.Builder.AssignVariableRefToTemp(collectionName, 9, 0);	// Map ref is in D13
 
          //////////////////////////////////////////////////////// Test map to see if it is empty //////////////////////////////////////////////////////
          TokenBuffer collectionLength;
          StringPrint(collectionLength, SEXTEXT("%s._length"), collectionName);
-         ce.Builder.AssignVariableToTemp(collectionLength, Sexy::ROOT_TEMPDEPTH);
+         ce.Builder.AssignVariableToTemp(collectionLength, Rococo::ROOT_TEMPDEPTH);
          ce.Builder.Assembler().Append_Test(VM::REGISTER_D7, BITCOUNT_32);
          size_t bailoutPos = ce.Builder.Assembler().WritePosition();
          ce.Builder.Assembler().Append_BranchIf(CONDITION_IF_EQUAL, 0);
          ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-         AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH + 5, Sexy::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER);
+         AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 5, Rococo::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER);
 
          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D13, VM::REGISTER_D7, BITCOUNT_POINTER);
          AppendInvoke(ce, GetMapCallbacks(ce).MapGetHead, collection);
@@ -1001,13 +1001,13 @@ namespace Sexy
          if (indexName != NULL)
          {
             ce.Builder.AddSymbol(SEXTEXT("D11 - working index"));
-            AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH + 4, Sexy::ROOT_TEMPDEPTH + 4, BITCOUNT_32); // Index is D11
+            AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 4, Rococo::ROOT_TEMPDEPTH + 4, BITCOUNT_32); // Index is D11
             VariantValue zero;
             zero.int32Value = 0;
             ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D11, zero, BITCOUNT_32); // init index to zero
 
             // We may be nested in a function that overwrites D10, which is used as the result of D11-1
-            AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH + 3, Sexy::ROOT_TEMPDEPTH + 3, BITCOUNT_POINTER);
+            AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 3, Rococo::ROOT_TEMPDEPTH + 3, BITCOUNT_POINTER);
          }
 
          AddVariableRef(ce, NameString::From(refName), ce.Object.Common().TypeMapNode());
@@ -1035,7 +1035,7 @@ namespace Sexy
          ce.Builder.Assembler().Append_Test(VM::REGISTER_D12, BITCOUNT_POINTER);
 
          ptrdiff_t endLoop = ce.Builder.Assembler().WritePosition();
-         ce.Builder.Assembler().Append_BranchIf(Sexy::CONDITION_IF_NOT_EQUAL, (int32)(startLoop - endLoop));
+         ce.Builder.Assembler().Append_BranchIf(Rococo::CONDITION_IF_NOT_EQUAL, (int32)(startLoop - endLoop));
 
          ce.Builder.PopLastVariables(indexName != NULL ? 4 : 2); // Release the D10-D12 and the ref. We need to release the ref manually to stop the refcount decrement
 

@@ -25,11 +25,11 @@ namespace
 
 		if (symbol[0] == 0)
 		{
-			Sexy::StringPrint(assemblyLine, 256, SEXTEXT("%p %s %s"), code + pcOffset, rep.OpcodeText, rep.ArgText);
+			Rococo::StringPrint(assemblyLine, 256, SEXTEXT("%p %s %s"), code + pcOffset, rep.OpcodeText, rep.ArgText);
 		}
 		else
 		{
-			Sexy::StringPrint(assemblyLine, 256, SEXTEXT("%p %s %s // %s"), code + pcOffset, rep.OpcodeText, rep.ArgText, symbol);
+			Rococo::StringPrint(assemblyLine, 256, SEXTEXT("%p %s %s // %s"), code + pcOffset, rep.OpcodeText, rep.ArgText, symbol);
 		}
 
 		if (rep.ByteCount == 0)
@@ -175,7 +175,7 @@ namespace SexyDotNet { namespace Host
 			{
 				currentlyViewedModule = IntPtr((void*)&currentModule);
 
-				Sexy::Sex::ISParserTree* tree = ss.GetSourceCode(currentModule);
+				Rococo::Sex::ISParserTree* tree = ss.GetSourceCode(currentModule);
 				if (tree != NULL)
 				{
 					csexstr src = tree->Source().SourceStart();
@@ -190,7 +190,7 @@ namespace SexyDotNet { namespace Host
 
 			size_t fnOffset = pcOffset - po.ProgramMemory().GetFunctionAddress(section.Id);
 				
-			const Sexy::Sex::ISExpression* s = (const Sexy::Sex::ISExpression*) f->Code().GetSymbol(fnOffset).SourceExpression;
+			const Rococo::Sex::ISExpression* s = (const Rococo::Sex::ISExpression*) f->Code().GetSymbol(fnOffset).SourceExpression;
 			if (s != NULL)
 			{
 				if (currentlyViewedExpression.ToPointer() != s)

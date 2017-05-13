@@ -61,7 +61,7 @@ namespace
          return (i != mapToBool.end()) ? i->second : false;
       }
 
-      virtual void GetText(const fstring& name, Sexy::IStringPopulator& text)
+      virtual void GetText(const fstring& name, Rococo::IStringPopulator& text)
       {
          auto i = mapToText.find(name.buffer);
          if (i != mapToText.end() && !i->second.empty())

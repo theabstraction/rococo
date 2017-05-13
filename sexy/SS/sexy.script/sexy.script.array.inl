@@ -33,7 +33,7 @@
 
 #include <cerrno>
 
-namespace Sexy
+namespace Rococo
 {
    namespace Script
    {
@@ -489,10 +489,10 @@ namespace Sexy
 		   int inputStackAllocCount = PushInputs(ce, s, *constructor, true, 1);
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
-		   ce.Builder.AssignVariableRefToTemp(arrayInstance, Sexy::ROOT_TEMPDEPTH, 0); // array goes to D7
+		   ce.Builder.AssignVariableRefToTemp(arrayInstance, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
 		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayPushAndGetRef); // This returns the address of the blank slot in D8
 
-		   inputStackAllocCount += CompileInstancePointerArgFromTemp(ce, Sexy::ROOT_TEMPDEPTH + 1);
+		   inputStackAllocCount += CompileInstancePointerArgFromTemp(ce, Rococo::ROOT_TEMPDEPTH + 1);
 
 		   AppendFunctionCallAssembly(ce, *constructor); 
 
@@ -514,7 +514,7 @@ namespace Sexy
 				   Throw(s, SEXTEXT("Expecting either (array.Push <arg>), (array.Push ( element-constructor-args...)) or (array.Push <element-type-name> (memberwise-constructor-args...)"));
 			   }
 
-			   ce.Builder.AssignVariableRefToTemp(instanceName, Sexy::ROOT_TEMPDEPTH, 0); // array goes to D7
+			   ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
 			   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPushAndGetRef); // D8 now contains the ref to the newly created element
 
 			   cr_sex memberwiseArgs = s.GetElement(2);
@@ -523,7 +523,7 @@ namespace Sexy
 				   Throw(memberwiseArgs, SEXTEXT("Expecting either a null or compound expression"));
 			   }
 
-			   ConstructMemberByRef(ce, memberwiseArgs, Sexy::ROOT_TEMPDEPTH+1, elementType, 0);
+			   ConstructMemberByRef(ce, memberwiseArgs, Rococo::ROOT_TEMPDEPTH+1, elementType, 0);
 		   }
 		   else // 2
 		   {
@@ -606,7 +606,7 @@ namespace Sexy
 		   AssertNotTooFewElements(s, 1);
 		   AssertNotTooManyElements(s, 1);
 	
-		   ce.Builder.AssignVariableRefToTemp(instanceName, Sexy::ROOT_TEMPDEPTH, 0); // array goes to D7
+		   ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayPop);
@@ -663,7 +663,7 @@ namespace Sexy
 		   CompileAsPopOutFromArray(ce, s, instanceName, requiredType);
 
 		   // The front of the queue was popped into D7
-		   ce.Builder.AssignTempToVariable(Sexy::ROOT_TEMPDEPTH, targetToken);
+		   ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetToken);
 	   }
 
 	   void CompileArraySet(CCompileEnvironment& ce, cr_sex s)
@@ -678,7 +678,7 @@ namespace Sexy
 			   Throw(index, SEXTEXT("Could not evaluate the expression as index type Int32"));
 		   }
 
-		   AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH, 0, BITCOUNT_32); // save the value to D7 for popping to D4
+		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH, 0, BITCOUNT_32); // save the value to D7 for popping to D4
 		
 		   const IStructure& elementType = GetArrayDef(ce, s, instance);
 
@@ -704,7 +704,7 @@ namespace Sexy
 
 			   MemberDef def;
 			   AssertGetVariable(def, value.String()->Buffer, ce, value);
-			   ce.Builder.AssignVariableRefToTemp(value.String()->Buffer, Sexy::ROOT_TEMPDEPTH); // The value reference is in D7 
+			   ce.Builder.AssignVariableRefToTemp(value.String()->Buffer, Rococo::ROOT_TEMPDEPTH); // The value reference is in D7 
 		   }
 
 		   ce.Builder.PopLastVariables(1);
@@ -966,7 +966,7 @@ namespace Sexy
 
 		   AddVariableRef(ce, NameString::From(refName), elementType);
 
-		   AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH + 6, Sexy::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
+		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
 
 		   ce.Builder.AddSymbol(collectionName);
 		   ce.Builder.AssignVariableRefToTemp(collectionName, 9, 0); // Array ref is now in D13
@@ -985,7 +985,7 @@ namespace Sexy
 		   else
 		   {
 			   if (!TryCompileArithmeticExpression(ce, indexExpr, true, VARTYPE_Int32)) Throw(indexExpr, SEXTEXT("Failed to parse expression as (Int32 startIndex)"));
-			   CompileValidateIndexPositive(ce, collection, Sexy::ROOT_TEMPDEPTH); // index now validated to be positive
+			   CompileValidateIndexPositive(ce, collection, Rococo::ROOT_TEMPDEPTH); // index now validated to be positive
 			   ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D12, BITCOUNT_32); // D12 contains the working index throughout the entire iteration
 		   }
 				
@@ -1057,13 +1057,13 @@ namespace Sexy
 
 		   AddVariableRef(ce, NameString::From(refName), elementType);
 
-		   AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH + 6, Sexy::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
+		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
 
 		   ce.Builder.AddSymbol(collectionName);
 		   ce.Builder.AssignVariableRefToTemp(collectionName, 9, 0); // Array ref is now in D13
 				
 		   ce.Builder.AddSymbol(SEXTEXT("D12 - working index"));
-		   AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH + 5, Sexy::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER);
+		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 5, Rococo::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER);
 
 		   ce.Builder.AddSymbol(SEXTEXT("(foreach...")); 
 
@@ -1081,7 +1081,7 @@ namespace Sexy
 			   else
 			   {
 				   if (!TryCompileArithmeticExpression(ce, startIndexExpr, true, VARTYPE_Int32)) Throw(startIndexExpr, SEXTEXT("Failed to parse expression as (Int32 startIndex)"));
-				   CompileValidateIndexPositive(ce, collection, Sexy::ROOT_TEMPDEPTH); // index now validated to be positive
+				   CompileValidateIndexPositive(ce, collection, Rococo::ROOT_TEMPDEPTH); // index now validated to be positive
 				   ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D12, BITCOUNT_32); // D12 contains the working index throughout the entire iteration
 			   }
 		   }
@@ -1094,7 +1094,7 @@ namespace Sexy
 		
 		   // We may be nested in a function that overwrites D11, so save it
 		   ce.Builder.AddSymbol(SEXTEXT("D11 - final index"));
-		   AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH + 4, Sexy::ROOT_TEMPDEPTH + 4, BITCOUNT_POINTER);
+		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 4, Rococo::ROOT_TEMPDEPTH + 4, BITCOUNT_POINTER);
 
 		   if (IsCompound(collection))
 		   {
@@ -1127,7 +1127,7 @@ namespace Sexy
 		   }
 		
 		   // We may be nested in a function that overwrites D10, which is used as the result of D10-11
-		   AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH + 3, Sexy::ROOT_TEMPDEPTH + 3, BITCOUNT_POINTER);
+		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 3, Rococo::ROOT_TEMPDEPTH + 3, BITCOUNT_POINTER);
 		
 		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayLock); // Prevent popping of the array during enumeration
 
@@ -1169,7 +1169,7 @@ namespace Sexy
 				   ce.Builder.TryGetVariableByName(OUT refDef, refName);
 				   ce.Builder.Assembler().Append_SetStackFrameValue(refDef.SFOffset, VM::REGISTER_D7, BITCOUNT_POINTER);
 
-				   if (indexName != NULL) ce.Builder.AssignTempToVariable(Sexy::ROOT_TEMPDEPTH + 5, indexName); // index is now = running index
+				   if (indexName != NULL) ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH + 5, indexName); // index is now = running index
 				   VariantValue one;
 				   one.int32Value = 1;
 				   ce.Builder.Assembler().Append_AddImmediate(VM::REGISTER_D12, BITCOUNT_32, VM::REGISTER_D12, one); // increment the running index
@@ -1193,11 +1193,11 @@ namespace Sexy
 		   const IStructure& elementType = GetArrayDef(ce, *(const ISExpression*) s.Definition(), instanceName);
 		   if (RequiresDestruction(elementType))
 		   {
-			   ce.Builder.AssignVariableRefToTemp(instanceName, Sexy::ROOT_TEMPDEPTH);
+			   ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
 			   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayDestructElements);
 		   }
 
-		   ce.Builder.AssignVariableRefToTemp(instanceName, Sexy::ROOT_TEMPDEPTH);
+		   ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
 		   AppendInvoke(ce, GetArrayCallbacks(ce).ArrayDelete, *(const ISExpression*) s.Definition());
 	   }
 
@@ -1231,7 +1231,7 @@ namespace Sexy
 			   }
 			   else
 			   {
-				   VARTYPE atomicType = GetAtomicValueAnyNumeric(ce, valueExpr, valueExpr.String()->Buffer, Sexy::ROOT_TEMPDEPTH);
+				   VARTYPE atomicType = GetAtomicValueAnyNumeric(ce, valueExpr, valueExpr.String()->Buffer, Rococo::ROOT_TEMPDEPTH);
 				   if (atomicType == type) return;
 			   }
 		   }

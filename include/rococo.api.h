@@ -24,17 +24,13 @@ namespace DirectX
 	struct XMFLOAT4;
 }
 
-namespace Sexy
+namespace Rococo
 {
    struct IStringPopulator;
 }
 
 namespace Rococo
 {
-	typedef int64 ticks;
-
-	ticks CpuClock();
-
 	struct Quat;
 
 	ROCOCO_ID(ID_BITMAP, uint64, -1)
@@ -76,10 +72,9 @@ namespace Rococo
 
    ROCOCOAPI IUltraClock
    {
-      virtual ticks Hz() const = 0;			// Number of ticks per seconds
-      virtual ticks FrameStart() const = 0;	// The time of the current render frame
-      virtual ticks Start() const = 0;		// The time at which the mainloop started
-      virtual ticks FrameDelta() const = 0;	// The time between the previous frame and the current frame.
+      virtual OS::ticks FrameStart() const = 0;	// The time of the current render frame
+      virtual OS::ticks Start() const = 0;		// The time at which the mainloop started
+      virtual OS::ticks FrameDelta() const = 0;	// The time between the previous frame and the current frame.
       virtual Seconds DT() const = 0; // Get a sanitized timestep in seconds
    };
 
@@ -134,12 +129,18 @@ namespace Rococo
 
 	fstring to_fstring(cstr const msg);
 
-	inline size_t operator "" _megabytes(size_t mb)
+#ifdef _WIN32
+   typedef size_t lsize_t;
+#else
+   typedef unsigned long long lsize_t;
+#endif
+
+	inline lsize_t operator "" _megabytes(lsize_t mb)
 	{
 		return mb * 1024 * 1024;
 	}
 
-	inline size_t operator "" _kilobytes(size_t kb)
+	inline lsize_t operator "" _kilobytes(lsize_t kb)
 	{
 		return kb * 1024;
 	}
@@ -201,14 +202,12 @@ namespace Rococo
 	};
 }
 
-namespace Sexy
+namespace Rococo
 {
 	namespace Script
 	{
 		struct IPublicScriptSystem;
 	}
-
-	typedef size_t ID_BYTECODE;
 
 	namespace Sex
 	{
@@ -224,20 +223,20 @@ namespace Sexy
 		struct IVirtualMachine;
 	}
 
-	enum EXECUTERESULT;
+	enum EXECUTERESULT : int32;
 }
 
 namespace Rococo
 {
 	struct ArchetypeCallback
 	{
-		Sexy::ID_BYTECODE byteCodeId;
+		ID_BYTECODE byteCodeId;
 		const uint8* callerSF;
 	};
 
 	ROCOCOAPI ISourceCache
 	{
-		virtual Sexy::Sex::ISParserTree* GetSource(cstr resourceName) = 0;
+		virtual Rococo::Sex::ISParserTree* GetSource(cstr resourceName) = 0;
 		virtual void Free() = 0;
 		virtual void Release(cstr resourceName) = 0;
 	};
@@ -260,30 +259,30 @@ namespace Rococo
 		virtual void PopOutputs(IOutputStack& args) = 0;
 	};
 
-	void DebuggerLoop(Sexy::Script::IPublicScriptSystem &ss, IDebuggerWindow& debugger);
+	void DebuggerLoop(Rococo::Script::IPublicScriptSystem &ss, IDebuggerWindow& debugger);
 
 	struct ScriptCompileArgs
 	{
-		Sexy::Script::IPublicScriptSystem& ss;
+		Rococo::Script::IPublicScriptSystem& ss;
 	};
 
-	void InitSexyScript(Sexy::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Sexy::Script::IPublicScriptSystem& ss, ISourceCache& sources, IEventCallback<ScriptCompileArgs>& onCompile);
-	void ExecuteFunction(Sexy::ID_BYTECODE bytecodeId, IArgEnumerator& args, Sexy::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
-	void ExecuteFunction(cstr name, IArgEnumerator& args, Sexy::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
-	int32 ExecuteSexyScript(Sexy::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Sexy::Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile);
+	void InitSexyScript(Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, IEventCallback<ScriptCompileArgs>& onCompile);
+	void ExecuteFunction(Rococo::ID_BYTECODE bytecodeId, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
+	void ExecuteFunction(cstr name, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
+	int32 ExecuteSexyScript(Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile);
 	ISourceCache* CreateSourceCache(IInstallation& installation);
 
-	void ThrowSex(Sexy::Sex::cr_sex s, cstr format, ...);
-	void ScanExpression(Sexy::Sex::cr_sex s, cstr hint, const char* format, ...);
-	void ValidateArgument(Sexy::Sex::cr_sex s, cstr arg);
+	void ThrowSex(Rococo::Sex::cr_sex s, cstr format, ...);
+	void ScanExpression(Rococo::Sex::cr_sex s, cstr hint, const char* format, ...);
+	void ValidateArgument(Rococo::Sex::cr_sex s, cstr arg);
 
-	Vec3 GetVec3Value(Sexy::Sex::cr_sex sx, Sexy::Sex::cr_sex sy, Sexy::Sex::cr_sex sz);
-	RGBAb GetColourValue(Sexy::Sex::cr_sex s);
-	Quat GetQuat(Sexy::Sex::cr_sex s);
+	Vec3 GetVec3Value(Rococo::Sex::cr_sex sx, Rococo::Sex::cr_sex sy, Rococo::Sex::cr_sex sz);
+	RGBAb GetColourValue(Rococo::Sex::cr_sex s);
+	Quat GetQuat(Rococo::Sex::cr_sex s);
 
-	void LogParseException(Sexy::Sex::ParseException& ex, IDebuggerWindow& logger);
+	void LogParseException(Rococo::Sex::ParseException& ex, IDebuggerWindow& logger);
 
-	fstring GetAtomicArg(Sexy::Sex::cr_sex s);
+	fstring GetAtomicArg(Rococo::Sex::cr_sex s);
 }
 
 namespace Rococo

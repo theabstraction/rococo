@@ -10,8 +10,8 @@ namespace
 {
 	using namespace Rococo;
 	using namespace Dystopia;
-	using namespace Sexy;
-	using namespace Sexy::Sex;
+	
+	using namespace Rococo::Sex;
 
 	typedef std::vector<ObjectVertex> TVertices;
 
@@ -445,7 +445,7 @@ namespace
 				auto tree = sourceCache.GetSource(resourcePath);
 				ParseMeshScript(vertexCache, physicsHulls, isReflection ? reflectedMeshes : meshes, *tree, renderer, resourcePath, editorId, isReflection);
 			}
-			catch (Sexy::Sex::ParseException& pex)
+			catch (Rococo::Sex::ParseException& pex)
 			{
 				Vec2i p = pex.Start();
             Vec2i q = pex.End();

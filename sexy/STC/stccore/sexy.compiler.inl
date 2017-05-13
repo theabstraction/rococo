@@ -33,7 +33,7 @@
 
 #pragma once
 
-namespace Sexy { namespace Compiler { namespace Impl
+namespace Rococo { namespace Compiler { namespace Impl
 {
 	class FunctionAlias: public IFunctionAliasBuilder
 	{
@@ -689,4 +689,4 @@ namespace Sexy { namespace Compiler { namespace Impl
 		virtual void EnumerateFunctions(ICallback<const IFunction, csexstr>& onFunction) const;
 		virtual void EnumerateArchetypes(ICallback<const IArchetype>& onArchetype) const;
 	};	
-}}} // Sexy::Compiler::Impl
+}}} // Rococo::Compiler::Impl

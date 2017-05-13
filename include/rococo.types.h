@@ -7,6 +7,19 @@
 # include <stddef.h>
 #endif
 
+#ifndef _PTRDIFF_T_DEFINED
+# ifdef  _WIN64
+typedef __int64 ptrdiff_t;
+# endif
+# define _PTRDIFF_T_DEFINED
+#endif
+
+#ifdef _WIN32
+# define TIGHTLY_PACKED
+#else
+# define TIGHTLY_PACKED __attribute__((packed))
+# endif
+
 namespace Rococo
 {
 #ifdef _WIN32
@@ -19,6 +32,8 @@ namespace Rococo
 	typedef unsigned __int16 uint16;
 	typedef unsigned __int32 uint32;
    typedef unsigned __int64 uint64;
+
+   typedef size_t ID_BYTECODE;
 
 #define ROCOCO_CONSTEXPR constexpr
 
@@ -64,8 +79,7 @@ namespace Rococo
    typedef const Vec4& cr_vec4;
    typedef const Matrix4x4& cr_m4x4;
 
-   int64 CpuTicks();
-   int64 CpuHz();
+   typedef size_t ID_BYTECODE;
 
    struct fstring
    {
@@ -139,8 +153,6 @@ namespace Rococo
    };
 
 	void Throw(int32 errorCode, cstr format, ...);
-	void TripDebugger();
-	bool IsDebugging();
 
 	template<class T> struct IEventCallback
 	{
@@ -384,8 +396,89 @@ namespace Rococo
 
    namespace OS
    {
+      typedef int64 ticks;
       void PrintDebug(const char* format, ...);
+      void TripDebugger();
+      bool IsDebugging();
+      ticks CpuTicks();
+      ticks CpuHz();
+      void LoadAsciiTextFile(char* data, size_t capacity, cstr filename);
+      bool StripLastSubpath(rchar* fullpath);
+      bool IsFileExistant(cstr path);
    }
+
+#if !defined(_W64)
+# if !defined(__midl) && (defined(_X86_) || defined(_M_IX86))
+#  define _W64 __w64
+# else
+#  define _W64
+# endif
+#endif
+
+#define IN
+#define OUT
+#define REF
+
+#ifndef _WIN64
+# ifdef _WIN32
+#error "Sexy does not supports anything other than 64-bit platforms." 
+# endif
+#endif
+
+#define POINTERS_ARE_64_BIT
+
+#ifndef _WIN32
+# include <stdarg.h>
+# define _TRUNCATE ((size_t)-1)
+   typedef int32 errno_t;
+   void memcpy_s(void *dest, size_t destSize, const void *src, size_t count);
+   int sscanf_s(const char* buffer, const char* format, ...);
+   int sprintf_s(char* buffer, size_t capacity, const char* format, ...);
+   int _vsnprintf_s(char* buffer, size_t capacity, size_t maxCount, const char* format, va_list args);
+
+   template<size_t _Size>
+   inline int _snprintf_s(char(&buffer)[_Size], size_t maxCount, const char* format, ...)
+   {
+      va_list args;
+      va_start(args, format);
+      return _vsnprintf_s(buffer, _Size, maxCount, format, args);
+   }
+
+   template<size_t _Size>
+   inline int _vsnprintf_s(char(&buffer)[_Size], size_t maxCount, const char* format, va_list args)
+   {
+      return _vsnprintf_s(buffer, _Size, maxCount, format, args);
+   }
+
+   template<size_t _Size>
+   inline int sprintf_s(char(&buffer)[_Size], const char* format, ...)
+   {
+      va_list args;
+      va_start(args, format);
+      return _vsnprintf_s(buffer, _Size, _TRUNCATE, format, args);
+   }
+
+   inline int _snprintf_s(char *buffer, size_t capacity, size_t maxCount, const char* format, ...)
+   {
+      va_list args;
+      va_start(args, format);
+      return _vsnprintf_s(buffer, capacity, maxCount, format, args);
+   }
+
+   void strcpy_s(char* dest, size_t capacity, const char* source);
+   void strncpy_s(char* dest, size_t capacity, const char* source, size_t maxCount);
+   void strcat_s(char* dest, size_t capacity, const char* source);
+   void strncat_s(char* dest, size_t capacity, const char* source, size_t maxCount);
+
+   template<size_t _Size>
+   inline void strcat_s(char(&buffer)[_Size], const char* source)
+   {
+      strcat_s(buffer, _Size, source);
+   }
+
+# define _MAX_PATH 260 // There is no good answer for this
+#endif
+
 }
 
 #endif

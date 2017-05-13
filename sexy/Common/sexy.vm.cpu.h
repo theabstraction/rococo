@@ -45,7 +45,7 @@
 
 #pragma pack(push,1)
 
-namespace Sexy { namespace VM
+namespace Rococo { namespace VM
 {
 	enum EXCEPTIONCODE
 	{

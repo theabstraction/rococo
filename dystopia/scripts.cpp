@@ -6,9 +6,9 @@
 
 using namespace Dystopia;
 using namespace Rococo;
-using namespace Sexy;
-using namespace Sexy::Sex;
-using namespace Sexy::VM;
+
+using namespace Rococo::Sex;
+using namespace Rococo::VM;
 
 namespace
 {

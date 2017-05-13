@@ -1,5 +1,5 @@
 #include <sexy.types.h>
-#include <Sexy.S-Parser.h>
+#include <sexy.s-parser.h>
 #include <sexy.vm.h>
 #include <sexy.vm.cpu.h>
 #include <sexy.compiler.public.h>
@@ -11,29 +11,74 @@
 #include <rococo.visitors.h>
 
 #include <stdarg.h>
-#include <malloc.h>
+
 #include <unordered_map>
-#include <excpt.h>
+#include <string>
+
+#ifdef _WIN32
+# include <malloc.h>
+# include <excpt.h>
+# define TRY_PROTECTED __try
+# define CATCH_PROTECTED __except (EXCEPTION_EXECUTE_HANDLER)
+#else
+# include <CoreServices/CoreServices.h>
+# include <mach/mach.h>
+# include <mach/mach_time.h>
+# define TRY_PROTECTED try
+# define CATCH_PROTECTED catch (SignalException& sigEx)
+namespace
+{
+   typedef void(*FN_SignalHandler)(int);
+
+   struct SignalException
+   {
+      int signalCode;
+   };
+
+   struct ThrowOnSignal
+   {
+      FN_SignalHandler previousHandler;
+      int code;
+
+      static void OnSignal(int code)
+      {
+         throw SignalException{ code };
+      }
+
+      ThrowOnSignal(int code)
+      {
+         this->previousHandler = signal(code, ThrowOnSignal::OnSignal);
+         this->code = code;
+      }
+
+      ~ThrowOnSignal()
+      {
+         signal(code, previousHandler);
+      }
+   };
+}
+#endif
+
 #include <string.h>
 
-#include <windows.h>
+#include <rococo.os.win32.h>
 
 #include <rococo.maths.h>
 #include <rococo.strings.h>
 
 namespace Rococo
 {
-   using namespace Sexy;
-   using namespace Sexy::Sex;
+   
+   using namespace Rococo::Sex;
 
    void UpdateDebugger(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, Rococo::int32 stackDepth, bool refreshAll);
 }
 
 namespace
 {
-   using namespace Sexy;
-   using namespace Sexy::Sex;
-   using namespace Sexy::Compiler;
+   using namespace Rococo;
+   using namespace Rococo::Sex;
+   using namespace Rococo::Compiler;
    using namespace Rococo::Visitors;
 
    const char* Sanitize(const char* s)
@@ -101,8 +146,8 @@ namespace
 
    struct StardardDebugControl : IDebugControl
    {
-      Sexy::VM::IVirtualMachine* vm;
-      Sexy::Script::IPublicScriptSystem* ss;
+      Rococo::VM::IVirtualMachine* vm;
+      Rococo::Script::IPublicScriptSystem* ss;
       IDebuggerWindow* debugger;
 
       void Update()
@@ -110,7 +155,7 @@ namespace
          UpdateDebugger(*ss, *debugger, 0, true);
       }
 
-      void RecurseNamespaces(const Sexy::Compiler::INamespace& ns, IUITree& tree, Visitors::TREE_NODE_ID rootId)
+      void RecurseNamespaces(const Rococo::Compiler::INamespace& ns, IUITree& tree, Visitors::TREE_NODE_ID rootId)
       {
          if (ns.ChildCount() > 0)
          {
@@ -124,13 +169,13 @@ namespace
             }
          }
 
-         struct : public ICallback<const Sexy::Compiler::IStructure, csexstr>
+         struct : public ICallback<const Rococo::Compiler::IStructure, csexstr>
          {
             TREE_NODE_ID childStructuresId;
             TREE_NODE_ID rootId;
             IUITree* tree;
-            const Sexy::Compiler::INamespace* ns;
-            virtual CALLBACK_CONTROL operator()(const Sexy::Compiler::IStructure& s, csexstr alias)
+            const Rococo::Compiler::INamespace* ns;
+            virtual CALLBACK_CONTROL operator()(const Rococo::Compiler::IStructure& s, csexstr alias)
             {
                if (childStructuresId.value == 0) childStructuresId = tree->AddChild(rootId, "[Structures]", CheckState_Clear);
 
@@ -161,13 +206,13 @@ namespace
 
          ns.EnumerateStrutures(enumStructures);
 
-         struct : public ICallback<const Sexy::Compiler::IFunction, csexstr>
+         struct : public ICallback<const Rococo::Compiler::IFunction, csexstr>
          {
             TREE_NODE_ID childFunctionsId;
             TREE_NODE_ID rootId;
             IUITree* tree;
-            const Sexy::Compiler::INamespace* ns;
-            virtual CALLBACK_CONTROL operator()(const Sexy::Compiler::IFunction& f, csexstr alias)
+            const Rococo::Compiler::INamespace* ns;
+            virtual CALLBACK_CONTROL operator()(const Rococo::Compiler::IFunction& f, csexstr alias)
             {
                if (childFunctionsId.value == 0) childFunctionsId = tree->AddChild(rootId, "[Functions]", CheckState_Clear);
 
@@ -225,13 +270,13 @@ namespace
             }
          }
 
-         struct : public ICallback<const Sexy::Compiler::IFactory, csexstr>
+         struct : public ICallback<const Rococo::Compiler::IFactory, csexstr>
          {
             TREE_NODE_ID childFactoryId;
             TREE_NODE_ID rootId;
             IUITree* tree;
-            const Sexy::Compiler::INamespace* ns;
-            virtual CALLBACK_CONTROL operator()(const Sexy::Compiler::IFactory& f, csexstr alias)
+            const Rococo::Compiler::INamespace* ns;
+            virtual CALLBACK_CONTROL operator()(const Rococo::Compiler::IFactory& f, csexstr alias)
             {
                if (childFactoryId.value == 0) childFactoryId = tree->AddChild(rootId, "[Factories]", CheckState_Clear);
 
@@ -304,8 +349,8 @@ namespace
 
 namespace Rococo
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
+	
+	using namespace Rococo::Sex;
    using namespace Rococo::Visitors;
 
 	void ThrowSex(cr_sex s, cstr format, ...)
@@ -320,11 +365,11 @@ namespace Rococo
 		auto end = s.End();
 
 		SEXCHAR specimen[64];
-		Sexy::Sex::GetSpecimen(specimen, s);
+		Rococo::Sex::GetSpecimen(specimen, s);
 
 		ParseException ex(start, end, "ParseException", msg, specimen, &s);
 
-		TripDebugger();
+		OS::TripDebugger();
 
 		throw ex;
 	}
@@ -488,76 +533,16 @@ namespace Rococo
 			Throw(0, "Script file '%s' was too small", resourcePath);
 		}
 
-		if (rawLength % 2 != 0)
-		{
-         size_t charlen = sizeof(rchar);
-         if (charlen == 1)
+      if (rawLength % 2 == 0)
+      {
+         char bom = *utf8data;
+         if (bom == 0 || (bom & 0x80))
          {
-            return parser.DuplicateSourceBuffer((csexstr)rawData.GetData(), (int) rawData.Length(), Vec2i{ 1,1 }, resourcePath);
+            Throw(0, "Script file '%s' was not UTF-8 or began with non-ASCII character", resourcePath);
          }
-         else
-         {
-            rbuffer.Resize(2 * rawLength + 2);
-            SafeFormat((rchar*)rbuffer.GetData(), rawLength / charlen, _TRUNCATE, charlen == 2 ? "%S" : "%s");
-            auto* source = parser.DuplicateSourceBuffer((csexstr)rbuffer.GetData(), (int)rawLength, Vec2i{ 1,1 }, resourcePath);
-            return source;
-         }
-		}
+      }
 
-		rchar bom = *(rchar*)utf8data;
-
-		if (bom == 0xFEFF)
-		{
-			rchar* buf = (rchar*)(utf8data + 2);
-			size_t nChars = rawLength / 2 - 1;
-         rbuffer.Resize(nChars+1);
-         size_t charlen = sizeof(rchar);
-         if (charlen == 1)
-         {
-            SafeFormat((rchar*)rbuffer.GetData(), nChars, _TRUNCATE, "%S", (const wchar_t*)buf);
-            return parser.DuplicateSourceBuffer((rchar*)rbuffer.GetData(), (int)nChars, Vec2i{ 1,1 }, resourcePath);
-         }
-         else
-         {
-            return parser.DuplicateSourceBuffer(buf, (int)nChars, Vec2i{ 1,1 }, resourcePath);
-         }
-		}
-		else if (bom == 0xFFFE)
-		{
-			Throw(0, "Script file '%s' UNICODE was incorrect endian for this OS", resourcePath);
-			return nullptr;
-		}
-		else if ((bom & 0x00FF) == 0)
-		{
-         rchar* buf = (rchar*)(utf8data);
-         size_t nChars = rawLength / 2;
-         rbuffer.Resize(nChars + 1);
-         size_t charlen = sizeof(rchar);
-         if (charlen == 1)
-         {
-            SafeFormat((rchar*)rbuffer.GetData(), nChars, _TRUNCATE, "%S", (const wchar_t*)buf);
-            return parser.DuplicateSourceBuffer((rchar*)rbuffer.GetData(), (int)nChars, Vec2i{ 1,1 }, resourcePath);
-         }
-         else
-         {
-            return parser.DuplicateSourceBuffer(buf, (int)nChars, Vec2i{ 1,1 }, resourcePath);
-         }
-		}
-		else // src is ascii
-		{
-         size_t charlen = sizeof(rchar);
-         if (charlen == 1)
-         {
-            return parser.DuplicateSourceBuffer((csexstr)rawData.GetData(), (int)rawData.Length(), Vec2i{ 1,1 }, resourcePath);
-         }
-         else
-         {
-            rbuffer.Resize(2 * rawLength + 2);
-            SafeFormat((rchar*)rbuffer.GetData(), rawLength / charlen, _TRUNCATE, charlen == 2 ? "%S" : "%s");
-            auto* source = parser.DuplicateSourceBuffer((csexstr)rbuffer.GetData(), (int)rawLength, Vec2i{ 1,1 }, resourcePath);
-            return source;
-         }
-		}
+      return parser.DuplicateSourceBuffer((csexstr)rawData.GetData(), (int) rawData.Length(), Vec2i{ 1,1 }, resourcePath);
 	}
 
 	fstring GetAtomicArg(cr_sex s)
@@ -655,6 +640,8 @@ namespace Rococo
       debugger.Log(SEXTEXT("Error parsing script file: scroll down to see the error message"));
 	}
 
+
+
 	class SourceCache : public ISourceCache
 	{
 	private:
@@ -666,7 +653,7 @@ namespace Rococo
 		std::unordered_map<std::string, Binding> sources;
 		AutoFree<IExpandingBuffer> fileBuffer;
 		AutoFree<IExpandingBuffer> unicodeBuffer;
-		Sexy::Sex::CSParserProxy spp;
+		Rococo::Sex::CSParserProxy spp;
 		IInstallation& installation;
 
 	public:
@@ -676,6 +663,11 @@ namespace Rococo
 			installation(_installation)
 		{
 		}
+
+      ISourceCache* GetInterface()
+      {
+         return this;
+      }
 
 		~SourceCache()
 		{
@@ -735,11 +727,12 @@ namespace Rococo
 
 	ISourceCache* CreateSourceCache(IInstallation& installation)
 	{
-		return new SourceCache(installation);
+		auto* cache = new SourceCache(installation);
+      return cache->GetInterface();
 	}
 
-	using namespace Sexy::Compiler;
-	using namespace Sexy::VM;
+	using namespace Rococo::Compiler;
+	using namespace Rococo::VM;
 	using namespace Rococo::Visitors;
 
 	void PopulateStackTree(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, int depth)
@@ -753,12 +746,12 @@ namespace Rococo
          {
             auto& vm = ss->PublicProgramObject().VirtualMachine();
 
-            const Sexy::uint8* sf = nullptr;
-            const Sexy::uint8* pc = nullptr;
+            const Rococo::uint8* sf = nullptr;
+            const Rococo::uint8* pc = nullptr;
             const IFunction* f = nullptr;
 
             size_t fnOffset;
-            if (!Sexy::Script::GetCallDescription(sf, pc, f, fnOffset, *ss, depth) || !f)
+            if (!Rococo::Script::GetCallDescription(sf, pc, f, fnOffset, *ss, depth) || !f)
             {
                return;
             }
@@ -769,7 +762,7 @@ namespace Rococo
             auto sfNode = tree.AddRootItem(desc, CheckState_Clear);
             tree.SetId(sfNode, depth + 1);
 
-            using namespace Sexy::Debugger;
+            using namespace Rococo::Debugger;
 
             struct : public IVariableEnumeratorCallback
             {
@@ -811,12 +804,12 @@ namespace Rococo
 
    void PopulateSourceView(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, int64 stackDepth)
    {
-        const Sexy::uint8* sf = nullptr;
-        const Sexy::uint8* pc = nullptr;
-        const Sexy::Compiler::IFunction* f;
+        const Rococo::uint8* sf = nullptr;
+        const Rococo::uint8* pc = nullptr;
+        const Rococo::Compiler::IFunction* f;
         
         size_t fnOffset;
-        if (Sexy::Script::GetCallDescription(sf, pc, f, fnOffset, ss, stackDepth) && f)
+        if (Rococo::Script::GetCallDescription(sf, pc, f, fnOffset, ss, stackDepth) && f)
         {
            auto* tree = ss.GetSourceCode(f->Module());
            if (tree)
@@ -830,7 +823,7 @@ namespace Rococo
 	{
       auto& vm = ss.PublicProgramObject().VirtualMachine();
 
-		using namespace Sexy::Debugger;
+		using namespace Rococo::Debugger;
 
 		struct : public IRegisterEnumerationCallback
 		{
@@ -864,16 +857,16 @@ namespace Rococo
 		Script::EnumerateRegisters(vm.Cpu(), addToList);
 	}
 
-	const IFunction* DisassembleCallStackAndAppendToView(IDisassembler& disassembler, IDebuggerWindow& debugger, Sexy::Script::IPublicScriptSystem& ss, CPU& cpu, size_t callDepth, const ISExpression** ppExpr, const uint8** ppSF, size_t populateAtDepth)
+	const IFunction* DisassembleCallStackAndAppendToView(IDisassembler& disassembler, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, CPU& cpu, size_t callDepth, const ISExpression** ppExpr, const uint8** ppSF, size_t populateAtDepth)
 	{
-		const Sexy::uint8* sf = nullptr;
-		const Sexy::uint8* pc = nullptr;
+		const Rococo::uint8* sf = nullptr;
+		const Rococo::uint8* pc = nullptr;
 		const IFunction* f = nullptr;
 		*ppExpr = nullptr;
 		*ppSF = nullptr;
 
 		size_t fnOffset;
-		if (!Sexy::Script::GetCallDescription(sf, pc, f, fnOffset, ss, callDepth) || !f)
+		if (!Rococo::Script::GetCallDescription(sf, pc, f, fnOffset, ss, callDepth) || !f)
 		{
 			return nullptr;
 		}
@@ -901,7 +894,7 @@ namespace Rococo
 
 		int lineCount = 1;
 
-		const Sexy::uint8* fstart = vm.Cpu().ProgramStart + po.ProgramMemory().GetFunctionAddress(section.Id);
+		const Rococo::uint8* fstart = vm.Cpu().ProgramStart + po.ProgramMemory().GetFunctionAddress(section.Id);
 
 		size_t i = 0;
 		while (i < functionLength)
@@ -1038,7 +1031,7 @@ namespace Rococo
       }
    };
 
-	EXECUTERESULT ExecuteAndCatchIException(IVirtualMachine& vm, Sexy::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
+	EXECUTERESULT ExecuteAndCatchIException(IVirtualMachine& vm, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
 	{
 		try
 		{
@@ -1054,7 +1047,7 @@ namespace Rococo
 		}
 	}
 
-	void Preprocess(cr_sex sourceRoot, ISourceCache& sources, Sexy::Script::IPublicScriptSystem& ss)
+	void Preprocess(cr_sex sourceRoot, ISourceCache& sources, Rococo::Script::IPublicScriptSystem& ss)
 	{
 		bool hasIncludedFiles = false;
 		bool hasIncludedNatives = false;
@@ -1120,8 +1113,8 @@ namespace Rococo
 
 	void InitSexyScript(ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, IEventCallback<ScriptCompileArgs>& onCompile)
 	{
-		using namespace Sexy::Script;
-		using namespace Sexy::Compiler;
+		using namespace Rococo::Script;
+		using namespace Rococo::Compiler;
 
 		ScriptCompileArgs args{ ss };
 		onCompile.OnEvent(args);
@@ -1132,17 +1125,17 @@ namespace Rococo
 		ss.Compile();
 	}
 
-	void Execute(VM::IVirtualMachine& vm, Sexy::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
+	void Execute(VM::IVirtualMachine& vm, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
 	{
 		EXECUTERESULT result = EXECUTERESULT_YIELDED;
 
-		if (!IsDebugging())
+		if (!OS::IsDebugging())
 		{
-			__try
+         TRY_PROTECTED
 			{
 				result = ExecuteAndCatchIException(vm, ss, debugger);
 			}
-			__except (EXCEPTION_EXECUTE_HANDLER)
+			CATCH_PROTECTED
 			{
 				result = EXECUTERESULT_SEH;
 			}
@@ -1272,8 +1265,8 @@ namespace Rococo
 
 	int32 ExecuteSexyScript(ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile)
 	{
-		using namespace Sexy::Script;
-		using namespace Sexy::Compiler;
+		using namespace Rococo::Script;
+		using namespace Rococo::Compiler;
 
 		InitSexyScript(mainModule, debugger, ss, sources, onCompile);
 
@@ -1310,7 +1303,7 @@ namespace Rococo
       populator.Populate(debugger);
    }
 
-	void DebuggerLoop(Sexy::Script::IPublicScriptSystem &ss, IDebuggerWindow& debugger)
+	void DebuggerLoop(Rococo::Script::IPublicScriptSystem &ss, IDebuggerWindow& debugger)
 	{
       StardardDebugControl dc;
 

@@ -26,11 +26,11 @@
 
 #include "rococo.os.win32.h"
 
-using namespace Sexy;
-using namespace Sexy::Script;
-using namespace Sexy::Compiler;
-using namespace Sexy::SysType;
-using namespace Sexy::Sex;
+using namespace Rococo;
+using namespace Rococo::Script;
+using namespace Rococo::Compiler;
+using namespace Rococo::SysType;
+using namespace Rococo::Sex;
 
 #include <cmath>
 #include <limits>
@@ -265,7 +265,7 @@ BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 
 extern "C"
 {
-   DLLEXPORT INativeLib* CreateLib(Sexy::Script::IScriptSystem& ss)
+   DLLEXPORT INativeLib* CreateLib(Rococo::Script::IScriptSystem& ss)
 	{
 		class MathsNativeLib: public INativeLib
 		{

@@ -36,7 +36,7 @@
 
 #include "sexy.vm.cpu.h"
 
-namespace Sexy { namespace VM { namespace OS
+namespace Rococo { namespace VM { namespace OS
 {
 	typedef EXECUTERESULT (*FN_CODE)(void* context, bool arg);
 	typedef EXECUTERESULT (*FN_CODE1)(void* context);

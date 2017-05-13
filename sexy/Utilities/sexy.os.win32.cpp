@@ -41,20 +41,10 @@ namespace
    int breakFlags = 0;
 }
 
-namespace Sexy
+namespace Rococo
 {
    namespace OS
    {
-      void TripDebugger()
-      {
-         __debugbreak();
-      }
-
-      bool IsDebuggerPresent()
-      {
-         return ::IsDebuggerPresent() == TRUE;
-      }
-
       void SetBreakPoints(int flags)
       {
          static_assert(sizeof(int64) == 8, "Bad int64");

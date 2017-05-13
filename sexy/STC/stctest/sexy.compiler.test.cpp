@@ -18,10 +18,10 @@
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 
-using namespace Sexy;
-using namespace Sexy::Compiler;
-using namespace Sexy::VM;
-using namespace Sexy::Parse;
+using namespace Rococo;
+using namespace Rococo::Compiler;
+using namespace Rococo::VM;
+using namespace Rococo::Parse;
 
 
 #define VALIDATE(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Stop(); }
@@ -69,9 +69,9 @@ namespace
 
 	void Stop()
 	{
-		if (Sexy::OS::IsDebuggerPresent())
+		if (Rococo::OS::IsDebugging())
 		{
-			Sexy::OS::TripDebugger();
+			Rococo::OS::TripDebugger();
 		}
 		else
 		{

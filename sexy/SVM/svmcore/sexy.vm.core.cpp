@@ -36,10 +36,10 @@
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
 
-using namespace Sexy;
-using namespace Sexy::VM;
+using namespace Rococo;
+using namespace Rococo::VM;
 
-namespace Sexy { namespace VM
+namespace Rococo { namespace VM
 {
 	IVirtualMachine* CreateVirtualMachine(ICore& core);
 	IAssembler* CreateAssembler(ICore& core);
@@ -53,7 +53,7 @@ namespace Sexy { namespace VM
 		void* Context;
 		stdstring Symbol;
 	};
-}} // Sexy::VM
+}} // Rococo::VM
 
 namespace
 {
@@ -73,28 +73,28 @@ namespace
 
 		IVirtualMachine* CreateVirtualMachine()
 		{
-			IVirtualMachine* vm = Sexy::VM::CreateVirtualMachine(*this);
+			IVirtualMachine* vm = Rococo::VM::CreateVirtualMachine(*this);
 			return vm;
 		}
 
 		IAssembler* CreateAssembler()
 		{
-			return Sexy::VM::CreateAssembler(*this);
+			return Rococo::VM::CreateAssembler(*this);
 		}
 
 		IProgramMemory* CreateProgramMemory(size_t capacity)
 		{
-			return Sexy::VM::CreateProgramMemory(capacity);
+			return Rococo::VM::CreateProgramMemory(capacity);
 		}
 
 		IDisassembler* CreateDisassembler()
 		{
-			return Sexy::VM::CreateDisassembler(*this);
+			return Rococo::VM::CreateDisassembler(*this);
 		}
 
 		ISymbols* CreateSymbolTable()
 		{
-			return Sexy::VM::CreateSymbolTable(*this);
+			return Rococo::VM::CreateSymbolTable(*this);
 		}
 
 		bool TryInvoke(ID_API_CALLBACK id, VariantValue* registers)
@@ -151,7 +151,7 @@ namespace
 	};
 }
 
-namespace Sexy { namespace VM
+namespace Rococo { namespace VM
 {
 	ICore* CreateSVMCore(const CoreSpec& spec)
 	{

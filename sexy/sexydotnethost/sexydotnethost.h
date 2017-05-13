@@ -8,12 +8,12 @@ using namespace System::IO;
 using namespace System::Collections::Generic;
 using namespace System::Runtime::InteropServices;
 
-using namespace Sexy;
-using namespace Sexy::Script;
-using namespace Sexy::Sex;
+using namespace Rococo;
+using namespace Rococo::Script;
+using namespace Rococo::Sex;
 
-using namespace Sexy::VM;
-using namespace Sexy::Compiler;
+using namespace Rococo::VM;
+using namespace Rococo::Compiler;
 
 #include "sexchar.to.unicode.conversions.h"
 #include <malloc.h>
@@ -82,7 +82,7 @@ namespace
 
 namespace SexyDotNet { namespace Host
 {
-	class CStepCallback: public Sexy::VM::IStepCallback
+	class CStepCallback: public Rococo::VM::IStepCallback
 	{
 	private:
 		int nextStepIndex;
@@ -94,7 +94,7 @@ namespace SexyDotNet { namespace Host
 		{ 
 			nextStepIndex = 0;
 		}
-		virtual void OnStep(Sexy::VM::IDebugger& debugger);
+		virtual void OnStep(Rococo::VM::IDebugger& debugger);
 
 		virtual void StepNext()
 		{

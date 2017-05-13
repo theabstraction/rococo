@@ -31,7 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace Sexy
+namespace Rococo
 { 
    namespace Script
    {
@@ -310,7 +310,7 @@ namespace Sexy
 	      }
 	      else
 	      {
-		      ce.Builder.AssignVariableRefToTemp(varName, Sexy::ROOT_TEMPDEPTH, 0);
+		      ce.Builder.AssignVariableRefToTemp(varName, Rococo::ROOT_TEMPDEPTH, 0);
 	      }							
       }
 
@@ -442,7 +442,7 @@ namespace Sexy
 
 	      csexstr vname = s.String()->Buffer;
 
-	      if (!Sexy::IsAlphabetical(vname[0]))
+	      if (!Rococo::IsAlphabetical(vname[0]))
 	      {
 		      sexstringstream<1024> streamer;
 		      streamer.sb << SEXTEXT("Could not interpret token as function or variable. Expected: ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
@@ -1035,7 +1035,7 @@ namespace Sexy
 		      ce.Builder.TryGetVariableByName(OUT def, fqn);
 
 		      int interfaceToInstanceOffset = def.Usage == ARGUMENTUSAGE_BYREFERENCE ? interfaceToInstanceOffsetByRef : 0;
-		      ce.Builder.AssignVariableToTemp(fqn, Sexy::ROOT_TEMPDEPTH, -interfaceToInstanceOffset);
+		      ce.Builder.AssignVariableToTemp(fqn, Rococo::ROOT_TEMPDEPTH, -interfaceToInstanceOffset);
 	      }
       }
 
@@ -1077,7 +1077,7 @@ namespace Sexy
 		      }
 
 		      ce.Builder.AddSymbol(field);
-		      ce.Builder.AssignVariableToTemp(field, Sexy::ROOT_TEMPDEPTH, 0);
+		      ce.Builder.AssignVariableToTemp(field, Rococo::ROOT_TEMPDEPTH, 0);
 		      return true;
 	      }
 
@@ -1102,7 +1102,7 @@ namespace Sexy
 		      }
 
 		      ce.Builder.AddSymbol(field);
-		      ce.Builder.AssignVariableToTemp(field, Sexy::ROOT_TEMPDEPTH, 0);
+		      ce.Builder.AssignVariableToTemp(field, Rococo::ROOT_TEMPDEPTH, 0);
 		      return true;
 	      }
 	      else if (instanceStruct == ce.Object.Common().TypeNode())
@@ -1137,7 +1137,7 @@ namespace Sexy
 		      {
 			      ValidateReturnType(s, returnType, VARTYPE_Bool);
 
-			      ce.Builder.AssignVariableRefToTemp(instance, Sexy::ROOT_TEMPDEPTH); // Node ptr goes to D7
+			      ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH); // Node ptr goes to D7
 			      ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeHasNext); // Boolean (n.Next != NULL) goes to D7
 
 			      return true;
@@ -1146,7 +1146,7 @@ namespace Sexy
 		      {
 			      ValidateReturnType(s, returnType, VARTYPE_Bool);
 
-			      ce.Builder.AssignVariableRefToTemp(instance, Sexy::ROOT_TEMPDEPTH); // Node ptr goes to D7
+			      ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH); // Node ptr goes to D7
 			      ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeHasPrevious); // Boolean (n.Next != NULL) goes to D7
 
 			      return true;
@@ -1169,7 +1169,7 @@ namespace Sexy
 
 		      int interfaceToInstanceOffsetByRef;
 
-		      if (Sexy::GetSubString(instance, SEXTEXT(".")) != NULL)
+		      if (Rococo::GetSubString(instance, SEXTEXT(".")) != NULL)
 		      {
 			      // the string is an element of a larger structure, which means buffer and length will offset from the start of the instance, rather than an interface pointer
 			      interfaceToInstanceOffsetByRef = 0;
@@ -1637,7 +1637,7 @@ namespace Sexy
 
       const IStructure* GuessTypeAtomicLiteral(CCompileEnvironment& ce, cr_sex arg)
       {
-	      using namespace Sexy::Parse;
+	      using namespace Rococo::Parse;
 
 	      csexstr value = arg.String()->Buffer;
 
@@ -1692,7 +1692,7 @@ namespace Sexy
 
       const IStructure* GuessTypeAtomic(CCompileEnvironment& ce, cr_sex arg)
       {
-	      using namespace Sexy::Parse;
+	      using namespace Rococo::Parse;
 
 	      csexstr value = arg.String()->Buffer;
 
@@ -1749,7 +1749,7 @@ namespace Sexy
 
       const IStructure* GuessTypeCompound(CCompileEnvironment& ce, cr_sex s)
       {
-	      using namespace Sexy::Parse;
+	      using namespace Rococo::Parse;
 
 	      if (s.NumberOfElements() == 0) return NULL;
 

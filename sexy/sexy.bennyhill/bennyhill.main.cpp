@@ -41,7 +41,7 @@
 #include "sexy.lib.s-parser.h"
 #include "sexy.lib.util.h"
 
-namespace Sexy
+namespace Rococo
 {
    void ConvertAndAppendCppType(FileAppender& appender, csexstr cppType)
    {
@@ -88,13 +88,13 @@ namespace Sexy
       return AreEqual(s, t->Buffer);
    }
 
-	Sexy::csexstr StringFrom(Sexy::Sex::cr_sex s)
+	Rococo::csexstr StringFrom(Rococo::Sex::cr_sex s)
 	{
 		if (!IsAtomic(s) && !IsStringLiteral(s)) Throw(s, SEXTEXT("Expecting atomic or string literal"));
 		return s.String()->Buffer;
 	}
 
-	Sexy::csexstr StringFrom(Sexy::Sex::cr_sex command, int elementIndex)
+	Rococo::csexstr StringFrom(Rococo::Sex::cr_sex command, int elementIndex)
 	{
 		if (elementIndex >= command.NumberOfElements()) Throw(command, SEXTEXT("Insufficient elements in expression"));
 		return StringFrom(command.GetElement(elementIndex));
@@ -155,8 +155,8 @@ namespace Sexy
 #include "bennyhill.appender.cpp.inl"
 #include "bennyhill.config.inl"
 
-using namespace Sexy;
-using namespace Sexy::Sex;
+using namespace Rococo;
+using namespace Rococo::Sex;
 
 void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods, cr_sex interfaceDef)
 {
@@ -198,7 +198,7 @@ void AppendNativeFunction(cr_sex functionDef, sexstring ns, const ParseContext& 
 	outputFile.Append(SEXTEXT("\tvoid Native%s%s(NativeCallEnvironment& _nce)\n"), nsType.CompressedName(), fname->Buffer);
 	outputFile.Append(SEXTEXT("\t{\n"));
 
-	outputFile.Append(SEXTEXT("\t\tSexy::uint8* _sf = _nce.cpu.SF();\n"));
+	outputFile.Append(SEXTEXT("\t\tRococo::uint8* _sf = _nce.cpu.SF();\n"));
 	outputFile.Append(SEXTEXT("\t\tptrdiff_t _offset = 2 * sizeof(size_t);\n"));
 
 	bool hasInitializedStringStruct = false;
@@ -397,7 +397,7 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 	CppType nsType;
 	nsType.Set(ns->Buffer);
 
-	sexyAppender.Append(SEXTEXT("\n\tvoid AddNativeCalls_%s(Sexy::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)\n"), nsType.CompressedName());
+	sexyAppender.Append(SEXTEXT("\n\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)\n"), nsType.CompressedName());
 	sexyAppender.Append(SEXTEXT("\t{\n"));
 
 	sexyAppender.Append(SEXTEXT("\t\tconst INamespace& ns = ss.AddNativeNamespace(SEXTEXT(\"%s\"));\n"), nsType.SexyName());
@@ -480,8 +480,8 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 				}
 
 				VariantValue value;
-				auto result = Sexy::Parse::TryParse(value, VARTYPE_Int64, sValue.String()->Buffer);
-				if (result != Sexy::Parse::PARSERESULT_GOOD)
+				auto result = Rococo::Parse::TryParse(value, VARTYPE_Int64, sValue.String()->Buffer);
+				if (result != Rococo::Parse::PARSERESULT_GOOD)
 				{
 					Throw(sValue, SEXTEXT("Expecting int64 numeric for value"));
 				}
@@ -920,7 +920,7 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
-   Sexy::OS::SetBreakPoints(Sexy::OS::BreakFlag_All);
+   Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 		
 	CSParserProxy spp;
    Auto<ISourceCode> src;

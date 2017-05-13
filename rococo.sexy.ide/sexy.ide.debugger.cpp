@@ -26,9 +26,9 @@ using namespace Rococo::Windows;
 using namespace Rococo::Windows::IDE;
 using namespace Rococo::Visitors;
 
-using namespace Sexy;
-using namespace Sexy::Sex;
-using namespace Sexy::VM;
+
+using namespace Rococo::Sex;
+using namespace Rococo::VM;
 
 namespace
 {

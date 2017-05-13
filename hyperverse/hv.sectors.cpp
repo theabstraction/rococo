@@ -55,7 +55,7 @@ namespace
 #ifdef _DEBUG
             if (QueryYesNo(Windows::NoParent(), "Try again?"))
             {
-               TripDebugger();
+               OS::TripDebugger();
                OS::PrintDebug("\n\n\n // Troublesome perimeter: \n");
                OS::PrintDebug("const Vec2 perimeter[%d] = { ", nVertices);
                for (const Vec2* p = positionArray; p < positionArray + nVertices; p++)

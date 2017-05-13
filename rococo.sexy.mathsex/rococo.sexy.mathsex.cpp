@@ -26,7 +26,7 @@ namespace Rococo
       {
          if (value == 0)
          {
-            value = CpuTicks();
+            value = OS::CpuTicks();
          }
 
          uint32 a = (uint32)(0x00000000FFFFFFFF & value);
@@ -110,9 +110,9 @@ namespace Rococo
    }
 }
 
-using namespace Sexy;
-using namespace Sexy::Script;
-using namespace Sexy::Compiler;
+using namespace Rococo;
+using namespace Rococo::Script;
+using namespace Rococo::Compiler;
 
 #include "mathsex.vectors.inl"
 #include "mathsex.random.inl"
@@ -120,7 +120,7 @@ using namespace Sexy::Compiler;
 
 extern "C"
 {
-   __declspec(dllexport) INativeLib* CreateLib(Sexy::Script::IScriptSystem& ss)
+   __declspec(dllexport) INativeLib* CreateLib(Rococo::Script::IScriptSystem& ss)
    {
       class GeomsNativeLib : public INativeLib
       {

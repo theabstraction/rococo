@@ -1,7 +1,7 @@
 #ifndef BLOKE_UI_H
 #define BLOKE_UI_H
 
-namespace Sexy
+namespace Rococo
 {
 	namespace Script
 	{

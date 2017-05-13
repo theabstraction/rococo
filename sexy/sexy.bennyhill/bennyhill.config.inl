@@ -33,8 +33,8 @@
 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
+	using namespace Rococo;
+	using namespace Rococo::Sex;
 
 	void ParseCppRoot(cr_sex sconfigItem, ParseContext& pc)
 	{
@@ -361,7 +361,7 @@ namespace
 		catch(ParseException& ex)
 		{
 			WriteToStandardOutput(SEXTEXT("%s: %s. Specimen: %s"), fullconfigPath, ex.Message(), ex.Specimen());
-			Sexy::Throw(0, SEXTEXT("Error parsing config"));
+			Rococo::Throw(0, SEXTEXT("Error parsing config"));
 		}
 	}
 }

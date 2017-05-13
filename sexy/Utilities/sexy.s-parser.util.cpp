@@ -43,33 +43,12 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-using namespace Sexy;
-using namespace Sexy::Sex;
-using namespace Sexy::Compiler;
+using namespace Rococo;
+using namespace Rococo::Sex;
+using namespace Rococo::Compiler;
 
-namespace  Sexy
+namespace Rococo
 { 
-   void Throw(int errCode, csexstr format, ...)
-   {
-      struct SexyException : public IException
-      {
-         SEXCHAR message[4096];
-         int32 exceptionNumber;
-
-         virtual cstr Message() const { return message; }
-         virtual int32 ErrorCode() const { return exceptionNumber; }
-      } ex;
-
-      va_list args;
-      va_start(args, format);
-      SafeVFormat(ex.message, _TRUNCATE, format, args);
-      ex.exceptionNumber = errCode;
-
-      OS::BreakOnThrow(OS::BreakFlag_All);
-
-      throw ex;
-   }
-
    namespace Sex
    {
       ParseException::ParseException() : startPos{ 0,0 }, endPos{ 0, 0 }

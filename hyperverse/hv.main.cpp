@@ -58,7 +58,7 @@ void Main(HANDLE hInstanceLock)
    rchar srcpath[_MAX_PATH];
    SecureFormat(srcpath, "%sscripts\\native\\", installation->Content());
 
-   Sexy::Script::SetDefaultNativeSourcePath(srcpath);
+   Rococo::Script::SetDefaultNativeSourcePath(srcpath);
 
    AutoFree<IMeshBuilderSupervisor> meshes = CreateMeshBuilder(mainWindow->Renderer());
    AutoFree<IInstancesSupervisor> instances = CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher);
@@ -117,7 +117,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 {
    using namespace Rococo;
 
-   Sexy::OS::SetBreakPoints(Sexy::OS::BreakFlag_All);
+   Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 
    HANDLE hInstanceLock = CreateEventA(nullptr, TRUE, FALSE, "HV_InstanceLock");
 

@@ -23,8 +23,8 @@
 
 typedef void (*FN_TEST)();
 
-using namespace Sexy;
-using namespace Sexy::Sex;
+using namespace Rococo;
+using namespace Rococo::Sex;
 
 namespace
 {

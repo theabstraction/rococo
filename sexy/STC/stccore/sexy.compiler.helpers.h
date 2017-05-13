@@ -36,7 +36,7 @@
 #ifndef SEXY_COMPILER_HELPERS_H
 #define  SEXY_COMPILER_HELPERS_H
 
-namespace Sexy
+namespace Rococo
 {
 	namespace Compiler 
 	{

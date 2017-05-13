@@ -56,8 +56,10 @@
 #  define COMPILER_API
 #endif
 
-namespace Sexy { namespace Compiler
+namespace Rococo { namespace Compiler
 {
+   using namespace Rococo::Compiler; // OSX g++ is especially dumb
+
 	struct ICodeBuilder;
 	struct IFunctionBuilder;
 	struct IModuleBuilder;
@@ -372,7 +374,7 @@ namespace Sexy { namespace Compiler
 	IInterfaceBuilder* GetInterface(IProgramObject& object, csexstr fullyQualifiedName);
 	IStructureBuilder* MatchStructure(ILog& logger, csexstr type, IModuleBuilder& module);
 	INamespaceBuilder* MatchNamespace(IModuleBuilder& module, csexstr name);
-}} // Sexy::Compiler
+}} // Rococo::Compiler
 
 # ifdef WIN32
 #  pragma pack(pop)

@@ -1,6 +1,13 @@
 #include <rococo.api.h>
 #include <stdarg.h>
-#include <malloc.h>
+
+#ifdef _WIN32
+# include <malloc.h>
+#else 
+# include <alloca.h>
+# define strtok_s strtok_r
+#endif
+
 #include <vector>
 #include <rococo.io.h>
 #include <rococo.strings.h>
@@ -174,7 +181,7 @@ namespace Rococo
 	{
 		if (length == 0) length = rlen(text);
 		size_t bytecount = sizeof(rchar) * (length + 1);
-		rchar* buf = (rchar*)_alloca(bytecount);
+		rchar* buf = (rchar*)alloca(bytecount);
 		memcpy_s(buf, bytecount, text, bytecount);
 		buf[length] = 0;
 
@@ -210,9 +217,12 @@ namespace Rococo
 		uint32 hash = 5381;
 		int c;
 
-		while(c = *text++)
+		while(true)
 		{
+         int c = *text;
+         if (c == 0) break;
 			hash = ((hash << 5) + hash) + c;
+         text++;
 		}
 
 		return hash;

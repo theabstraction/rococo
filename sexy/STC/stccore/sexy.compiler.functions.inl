@@ -104,28 +104,28 @@ namespace
 			}
 		}
 	public:
-		FunctionArgument(const Sexy::Compiler::NameString& _name, const Sexy::Compiler::TypeString& _type, ARGDIRECTION _direction, IFunctionBuilder& _parentFunction, void* _userdata):
+		FunctionArgument(const Rococo::Compiler::NameString& _name, const Rococo::Compiler::TypeString& _type, ARGDIRECTION _direction, IFunctionBuilder& _parentFunction, void* _userdata):
 			name(_name.c_str()), type(_type.c_str()), usage(ARGUMENTUSAGE_BYVALUE), isClosureInput(false),
 			direction(_direction), resolvedType(NULL), parentFunction(_parentFunction), userdata(_userdata), resolvedGenericArg1Type(NULL), resolvedGenericArg2Type(NULL)
 		{
 
 		}
 
-		FunctionArgument(const Sexy::Compiler::NameString& _name, const Sexy::Compiler::IStructure& _type, ARGDIRECTION _direction, IFunctionBuilder& _parentFunction, void* _userdata):
+		FunctionArgument(const Rococo::Compiler::NameString& _name, const Rococo::Compiler::IStructure& _type, ARGDIRECTION _direction, IFunctionBuilder& _parentFunction, void* _userdata):
 			name(_name.c_str()), type(GetFriendlyName(_type)), usage(ARGUMENTUSAGE_BYVALUE), isClosureInput(false),
 			direction(_direction), resolvedType((IStructureBuilder*)&_type), parentFunction(_parentFunction), userdata(_userdata), resolvedGenericArg1Type(NULL), resolvedGenericArg2Type(NULL)
 		{
 
 		}
 
-		FunctionArgument(const Sexy::Compiler::NameString& _name, const Sexy::Compiler::TypeString& _genericType, const Sexy::Compiler::TypeString& _genericArgtype, ARGDIRECTION _direction, IFunctionBuilder& _parentFunction, void* _userdata):
+		FunctionArgument(const Rococo::Compiler::NameString& _name, const Rococo::Compiler::TypeString& _genericType, const Rococo::Compiler::TypeString& _genericArgtype, ARGDIRECTION _direction, IFunctionBuilder& _parentFunction, void* _userdata):
 			name(_name.c_str()), type(_genericType.c_str()), usage(ARGUMENTUSAGE_BYVALUE), genericArg1Type(_genericArgtype.c_str()), isClosureInput(false),
 			direction(_direction), resolvedType(NULL), parentFunction(_parentFunction), userdata(_userdata), resolvedGenericArg1Type(NULL), resolvedGenericArg2Type(NULL)
 		{
 
 		}
 
-		FunctionArgument(const Sexy::Compiler::NameString& _name, const Sexy::Compiler::TypeString& _genericType, const Sexy::Compiler::TypeString& _genericArgtype, const Sexy::Compiler::TypeString& _genericArgtype2, ARGDIRECTION _direction, IFunctionBuilder& _parentFunction, void* _userdata):
+		FunctionArgument(const Rococo::Compiler::NameString& _name, const Rococo::Compiler::TypeString& _genericType, const Rococo::Compiler::TypeString& _genericArgtype, const Rococo::Compiler::TypeString& _genericArgtype2, ARGDIRECTION _direction, IFunctionBuilder& _parentFunction, void* _userdata):
 			name(_name.c_str()), type(_genericType.c_str()), usage(ARGUMENTUSAGE_BYVALUE), genericArg1Type(_genericArgtype.c_str()), genericArg2Type(_genericArgtype2.c_str()), isClosureInput(false),
 			direction(_direction), resolvedType(NULL), parentFunction(_parentFunction), userdata(_userdata), resolvedGenericArg1Type(NULL), resolvedGenericArg2Type(NULL)
 		{

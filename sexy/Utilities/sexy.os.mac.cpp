@@ -48,89 +48,10 @@ namespace
    int breakFlags = 0;
 }
 
-namespace Sexy
+namespace Rococo
 {
-   void memcpy_s(void *dest, size_t destSize, const void *src, size_t count)
-   {
-      memcpy(dest, src, count);
-   }
-
-   int sscanf_s(const char* buffer, const char* format, ...)
-   {
-      va_list args;
-      va_start(args, format);
-      return vsscanf(buffer, format, args);
-   }
-
-   int sprintf_s(char* buffer, size_t capacity, const char* format, ...)
-   {
-      va_list args;
-      va_start(args, format);
-      return vsnprintf(buffer, capacity, format, args);
-   }
-
-   int _vsnprintf_s(char* buffer, size_t capacity, size_t maxCount, const char* format, va_list args)
-   {
-      return vsnprintf(buffer, capacity, format, args);
-   }
-
-   void strcpy_s(char* dest, size_t capacity, const char* source)
-   {
-      strcpy(dest, source);
-   }
-
-   void strncpy_s(char* dest, size_t capacity, const char* source, size_t maxCount)
-   {
-      strncpy(dest, source, capacity);
-   }
-
-   void strcat_s(char* dest, size_t capacity, const char* source)
-   {
-      strcat(dest, source);
-   }
-
-   void strncat_s(char* dest, size_t capacity, const char* source, size_t maxCount)
-   {
-      strncpy(dest, source, maxCount);
-   }
-
    namespace OS
    {
-      bool IsDebuggerPresent()
-      {
-         int                 junk;
-         int                 mib[4];
-         struct kinfo_proc   info;
-         size_t              size;
-
-         // Initialize the flags so that, if sysctl fails for some bizarre 
-         // reason, we get a predictable result.
-
-         info.kp_proc.p_flag = 0;
-
-         // Initialize mib, which tells sysctl the info we want, in this case
-         // we're looking for information about a specific process ID.
-
-         mib[0] = CTL_KERN;
-         mib[1] = KERN_PROC;
-         mib[2] = KERN_PROC_PID;
-         mib[3] = getpid();
-
-         // Call sysctl.
-
-         size = sizeof(info);
-         junk = sysctl(mib, sizeof(mib) / sizeof(*mib), &info, &size, NULL, 0);
-
-         // We're being debugged if the P_TRACED flag is set.
-
-         return ((info.kp_proc.p_flag & P_TRACED) != 0);
-      }
-
-      void TripDebugger()
-      {
-         __builtin_trap();;
-      }
-
       void SetBreakPoints(int flags)
       {
          static_assert(sizeof(int64) == 8, "Bad int64");
@@ -143,7 +64,7 @@ namespace Sexy
    #ifdef BREAK_ON_THROW
 	   void BreakOnThrow(BreakFlag flag)
 	   {
-		   if ((breakFlags & flag) != 0 && IsDebuggerPresent())
+		   if ((breakFlags & flag) != 0 && Rococo::OS::IsDebugging())
 		   {
             TripDebugger();
 		   }

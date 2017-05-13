@@ -2,7 +2,7 @@ namespace
 {
 	void NativeSysStringAreStringsEqual(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		fstring t;
 		_offset += sizeof(t);
@@ -19,7 +19,7 @@ namespace
 
 	void NativeSysStringAreStringsEqualI(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		fstring t;
 		_offset += sizeof(t);
@@ -36,7 +36,7 @@ namespace
 
 	void NativeSysStringCompareStrings(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		fstring t;
 		_offset += sizeof(t);
@@ -53,7 +53,7 @@ namespace
 
 	void NativeSysStringCompareStringsI(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		fstring t;
 		_offset += sizeof(t);
@@ -70,7 +70,7 @@ namespace
 
 	void NativeSysStringFindFirstSubstringIndex(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		fstring subset;
 		_offset += sizeof(subset);
@@ -87,7 +87,7 @@ namespace
 
 	void NativeSysStringFindLastSubstringIndex(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		fstring subset;
 		_offset += sizeof(subset);
@@ -104,7 +104,7 @@ namespace
 
 	void NativeSysStringFindNextSubstringIndex(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		fstring subset;
 		_offset += sizeof(subset);
@@ -125,7 +125,7 @@ namespace
 
 	void NativeSysStringFindFirstCharIndex(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 char;
 		_offset += sizeof(char);
@@ -142,7 +142,7 @@ namespace
 
 	void NativeSysStringFindLastCharIndex(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 char;
 		_offset += sizeof(char);
@@ -159,7 +159,7 @@ namespace
 
 	void NativeSysStringFindNextCharIndex(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 char;
 		_offset += sizeof(char);
@@ -181,7 +181,7 @@ namespace
 }
 
 namespace Sys { namespace String { 
-	void AddNativeCalls_SysString(Sexy::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
+	void AddNativeCalls_SysString(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Sys.String"));
 		ss.AddNativeCall(ns, NativeSysStringAreStringsEqual, nullptr, SEXTEXT("AreStringsEqual(Sys.Type.IString s)(Sys.Type.IString t) -> (Bool areEqual)"));

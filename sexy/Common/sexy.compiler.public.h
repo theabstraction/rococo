@@ -36,14 +36,14 @@
 #ifndef sexy_compiler_public_h
 # define sexy_compiler_public_h
 
-namespace Sexy { namespace VM
+namespace Rococo { namespace VM
 {
 	struct IVirtualMachine;
 	struct IAssembler;
 	struct IProgramMemory;
-}} // Sexy::VM
+}} // Rococo::VM
 
-namespace Sexy { namespace Compiler
+namespace Rococo { namespace Compiler
 {
 	struct IFunction;
 	struct IFunctionSet;
@@ -439,9 +439,9 @@ namespace Sexy { namespace Compiler
 		virtual int ModuleCount() const = 0;
 		virtual const IModule& IntrinsicModule() const = 0;
 
-		virtual Sexy::VM::IVirtualMachine& VirtualMachine() = 0;
-		virtual Sexy::VM::IProgramMemory& ProgramMemory() = 0;
-		virtual const Sexy::VM::IProgramMemory& ProgramMemory() const = 0;
+		virtual Rococo::VM::IVirtualMachine& VirtualMachine() = 0;
+		virtual Rococo::VM::IProgramMemory& ProgramMemory() = 0;
+		virtual const Rococo::VM::IProgramMemory& ProgramMemory() const = 0;
 		virtual ILog& Log() = 0;
 		virtual void Free() = 0;
 		virtual void SetProgramAndEntryPoint(const IFunction& f) = 0;

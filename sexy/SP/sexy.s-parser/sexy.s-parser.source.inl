@@ -33,8 +33,8 @@
 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
+	using namespace Rococo;
+	using namespace Rococo::Sex;
 
 	class CSourceCodeCopy final: public ISourceCode
 	{

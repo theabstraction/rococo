@@ -61,14 +61,14 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 
 namespace
 {
-	void CloseAndThrowOS(HANDLE toClose, const Sexy::SEXCHAR* message, const Sexy::SEXCHAR* filename)
+	void CloseAndThrowOS(HANDLE toClose, const Rococo::SEXCHAR* message, const Rococo::SEXCHAR* filename)
 	{
       CloseHandle(toClose);
-		Sexy::Throw(GetLastError(), SEXTEXT("%s: %s"), message, filename);
+		Rococo::Throw(GetLastError(), SEXTEXT("%s: %s"), message, filename);
 	}
 }
 
-namespace Sexy { namespace OS 
+namespace Rococo { namespace OS 
 {
 	bool IsFileExistant(const SEXCHAR* filename)
 	{
@@ -98,9 +98,9 @@ namespace Sexy { namespace OS
 		HMODULE hModule = GetModuleHandle(SEXTEXT("sexy.script.dll"));
 		if (hModule == NULL)
 		{
-			Sexy::OS::OSException ose;
+			Rococo::OS::OSException ose;
 			ose.exceptionNumber = GetLastError();
-			Sexy::StringPrint(ose.message, 256, SEXTEXT("SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot get module handle for sexy.script.dll"));
+			Rococo::StringPrint(ose.message, 256, SEXTEXT("SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot get module handle for sexy.script.dll"));
 			throw ose;
 		}
 
@@ -118,7 +118,7 @@ namespace Sexy { namespace OS
 			}
 		}
 
-      Sexy::Throw(GetLastError(), SEXTEXT("SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot find src_indicator.txt descending from sexy.script.dll"));
+      Rococo::Throw(GetLastError(), SEXTEXT("SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot find src_indicator.txt descending from sexy.script.dll"));
 	}
 
 	void GetEnvVariable(SEXCHAR* data, size_t capacity, const SEXCHAR* envVariable)
@@ -131,7 +131,7 @@ namespace Sexy { namespace OS
 
 				if (INVALID_FILE_ATTRIBUTES == GetFileAttributes(data))
 				{
-               Sexy::Throw(GetLastError(), SEXTEXT("Error associating environment variable %s to the sexy native source directory"), envVariable);
+               Rococo::Throw(GetLastError(), SEXTEXT("Error associating environment variable %s to the sexy native source directory"), envVariable);
 				}
 
 				SetEnvironmentVariable(envVariable, data);
@@ -202,27 +202,27 @@ namespace Sexy { namespace OS
 		data[bytesRead] = 0;
 	}
 
-	typedef void (*FN_AddNativeSexyCalls)(Sexy::Script::IScriptSystem& ss);
+	typedef void (*FN_AddNativeSexyCalls)(Rococo::Script::IScriptSystem& ss);
 
-   Sexy::Script::FN_CreateLib GetLibCreateFunction(const SEXCHAR* dynamicLinkLibOfNativeCalls, bool throwOnError)
+   Rococo::Script::FN_CreateLib GetLibCreateFunction(const SEXCHAR* dynamicLinkLibOfNativeCalls, bool throwOnError)
 	{
 	   SEXCHAR linkLib[_MAX_PATH];
 		StringPrint(linkLib, _MAX_PATH, SEXTEXT("%s.dll"), dynamicLinkLibOfNativeCalls);
       HMODULE lib = LoadLibrary(linkLib);
       if (lib == nullptr)
 		{
-         if (throwOnError) Sexy::Throw(GetLastError(), SEXTEXT("Could not load %s"), (const SEXCHAR*) linkLib);
+         if (throwOnError) Rococo::Throw(GetLastError(), SEXTEXT("Could not load %s"), (const SEXCHAR*) linkLib);
          return nullptr;
 		}
 
 		FARPROC fp = GetProcAddress(lib, "CreateLib");
 		if (fp == nullptr)
 		{
-         if (throwOnError) Sexy::Throw(GetLastError(), SEXTEXT("Could not find  INativeLib* CreateLib(...) in %s"), linkLib);
+         if (throwOnError) Rococo::Throw(GetLastError(), SEXTEXT("Could not find  INativeLib* CreateLib(...) in %s"), linkLib);
          return nullptr;
 		}
 
-		Sexy::Script::FN_CreateLib createFn = (Sexy::Script::FN_CreateLib) fp;
+		Rococo::Script::FN_CreateLib createFn = (Rococo::Script::FN_CreateLib) fp;
 		return createFn;
 	}
-}} // Sexy::OS
+}} // Rococo::OS

@@ -43,7 +43,7 @@
 # define SEXY_SPARSER_API
 #endif
 
-#include <Sexy.S-Parser.h>
+#include <sexy.s-parser.h>
 
 #ifndef NULL
 # define NULL ((0))

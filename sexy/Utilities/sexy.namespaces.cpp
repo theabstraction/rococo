@@ -34,7 +34,7 @@
 #include <sexy.types.h>
 #include <sexy.stdstrings.h>
 
-namespace Sexy
+namespace Rococo
 {
 	class NamespaceException: public IException
 	{

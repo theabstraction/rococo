@@ -18,9 +18,9 @@ using namespace Rococo;
 using namespace Rococo::IDE;
 using namespace Rococo::Windows;
 
-using namespace Sexy;
-using namespace Sexy::Sex;
-using namespace Sexy::VM;
+
+using namespace Rococo::Sex;
+using namespace Rococo::VM;
 
 namespace
 {
@@ -51,7 +51,7 @@ namespace
       IDebuggerWindow& debugger;
       ISourceCache& sources;
       ISParserTree* tree;
-      AutoFree<Sexy::Script::IPublicScriptSystem> ss;
+      AutoFree<Rococo::Script::IPublicScriptSystem> ss;
       size_t maxBytes;
    public:
       PersistentScript(size_t _maxBytes, ISourceCache& _sources, IDebuggerWindow& _debugger, cstr resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& _exceptionHandler) :
@@ -65,7 +65,7 @@ namespace
          {
             try
             {
-               ss = CreateScriptV_1_2_0_0(Sexy::Compiler::ProgramInitParameters{ maxBytes }, logger);
+               ss = CreateScriptV_1_2_0_0(Rococo::Compiler::ProgramInitParameters{ maxBytes }, logger);
                if (ss == nullptr)
                {
                   Rococo::Throw(0, "Failed to create script system -> probably an environment problem");
@@ -213,7 +213,7 @@ namespace Rococo
 
          while (true)
          {
-            Script::CScriptSystemProxy ssp(Sexy::Compiler::ProgramInitParameters(maxBytes), logger);
+            Script::CScriptSystemProxy ssp(Rococo::Compiler::ProgramInitParameters(maxBytes), logger);
             Script::IPublicScriptSystem& ss = ssp();
             if (&ss == nullptr)
             {

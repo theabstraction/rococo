@@ -33,8 +33,8 @@
 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
+	using namespace Rococo;
+	using namespace Rococo::Sex;
 
 	void ValidateSexyType(cr_sex s, csexstr name)
 	{
@@ -64,7 +64,7 @@ namespace
 
 	void ValidateSexyVariable(cr_sex s, csexstr name)
 	{
-		if (!Sexy::IsLowerCase(name[0]))
+		if (!Rococo::IsLowerCase(name[0]))
 		{
 			Throw(s, SEXTEXT("Expecting a lower case letter in the first position"));
 		}

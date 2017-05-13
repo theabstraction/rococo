@@ -6,14 +6,14 @@
 #include <sexy.vm.cpu.h>
 #include <sexy.script.h>
 
-namespace Sexy
+namespace Rococo
 {
    namespace Helpers
    {
-      using namespace Sexy;
-      using namespace Sexy::Sex;
-      using namespace Sexy::Script;
-      using namespace Sexy::Compiler;
+      using namespace Rococo;
+      using namespace Rococo::Sex;
+      using namespace Rococo::Script;
+      using namespace Rococo::Compiler;
      
       StringPopulator::StringPopulator(NativeCallEnvironment& _nce, VirtualTable* vTableBuilder)
       {
@@ -36,18 +36,18 @@ namespace Sexy
       {
          auto* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(fqNS);
          if (ns == nullptr)
-            Sexy::OS::Throw(0, SEXTEXT("GetDefaultProxy: Cannot find subspace %s"), fqNS);
+            Rococo::OS::Throw(0, SEXTEXT("GetDefaultProxy: Cannot find subspace %s"), fqNS);
 
          auto* pInt = ns->FindInterface(interfaceName);
          if (pInt == nullptr)
-            Sexy::OS::Throw(0, SEXTEXT("GetDefaultProxy: Cannot find interface %s in subspace"), interfaceName);
+            Rococo::OS::Throw(0, SEXTEXT("GetDefaultProxy: Cannot find interface %s in subspace"), interfaceName);
 
-         const Sexy::Compiler::IStructure& nullType = pInt->NullObjectType();
+         const Rococo::Compiler::IStructure& nullType = pInt->NullObjectType();
          auto& mod = nullType.Module();
 
          const IStructure* s = mod.FindStructure(proxyName);
          if (s == nullptr)
-            Sexy::OS::Throw(0, SEXTEXT("GetDefaultProxy: Cannot find proxy %s in %s"), proxyName, mod.Name());
+            Rococo::OS::Throw(0, SEXTEXT("GetDefaultProxy: Cannot find proxy %s in %s"), proxyName, mod.Name());
 
          return *s;
       }

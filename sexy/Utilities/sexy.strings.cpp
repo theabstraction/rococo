@@ -10,7 +10,7 @@
 # define _strnicmp strncasecmp
 #endif
 
-namespace Sexy
+namespace Rococo
 {
 	bool operator == (const sexstring_key& a, const sexstring_key& b)
 	{

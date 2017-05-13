@@ -95,7 +95,7 @@ namespace Dystopia {
 }
 
 namespace Dystopia { 
-	void AddNativeCalls_DystopiaIJournal(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IJournal* nceContext);
+	void AddNativeCalls_DystopiaIJournal(Rococo::Script::IPublicScriptSystem& ss, Dystopia::IJournal* nceContext);
 }
 
 namespace Dystopia { 
@@ -107,7 +107,7 @@ namespace Dystopia {
 }
 
 namespace Dystopia { 
-	void AddNativeCalls_DystopiaIGui(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IGui* nceContext);
+	void AddNativeCalls_DystopiaIGui(Rococo::Script::IPublicScriptSystem& ss, Dystopia::IGui* nceContext);
 }
 
 namespace Dystopia { 
@@ -118,7 +118,7 @@ namespace Dystopia {
 }
 
 namespace Dystopia { 
-	void AddNativeCalls_DystopiaIMeshes(Sexy::Script::IPublicScriptSystem& ss, Dystopia::IMeshes* nceContext);
+	void AddNativeCalls_DystopiaIMeshes(Rococo::Script::IPublicScriptSystem& ss, Dystopia::IMeshes* nceContext);
 }
 
 namespace Dystopia { 
@@ -146,7 +146,7 @@ namespace Dystopia {
 }
 
 namespace Dystopia { 
-	void AddNativeCalls_DystopiaILevelBuilder(Sexy::Script::IPublicScriptSystem& ss, Dystopia::ILevel* nceContext);
+	void AddNativeCalls_DystopiaILevelBuilder(Rococo::Script::IPublicScriptSystem& ss, Dystopia::ILevel* nceContext);
 }
 
 namespace Dystopia { namespace UI { 
@@ -169,6 +169,6 @@ namespace Dystopia { namespace UI {
 }}
 
 namespace Dystopia { namespace UI { 
-	void AddNativeCalls_DystopiaUIIUIBuilder(Sexy::Script::IPublicScriptSystem& ss, Dystopia::UI::IUIBuilder* nceContext);
+	void AddNativeCalls_DystopiaUIIUIBuilder(Rococo::Script::IPublicScriptSystem& ss, Dystopia::UI::IUIBuilder* nceContext);
 }}
 

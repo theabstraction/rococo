@@ -33,8 +33,8 @@
 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
+	using namespace Rococo;
+	using namespace Rococo::Sex;
 
 	struct hash_sexstring_key
 	{
@@ -135,7 +135,7 @@ namespace
 		{
 			if (length + writePos + sizeof(int32) >= heapEnd)
 			{
-            Sexy::Throw(0, SEXTEXT("sexy.s-parser.symbols.inl: private heap symbols exhausted. Increase CPrivateHeapSymbols::_maxAllocHint"));
+            Rococo::Throw(0, SEXTEXT("sexy.s-parser.symbols.inl: private heap symbols exhausted. Increase CPrivateHeapSymbols::_maxAllocHint"));
 				return NULL;
 			}
 

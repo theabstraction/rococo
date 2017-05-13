@@ -32,7 +32,7 @@
 */
 #pragma once
 
-namespace Sexy
+namespace Rococo
 {
 	namespace SysType
 	{

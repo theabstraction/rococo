@@ -35,8 +35,8 @@
 #include <unordered_map>
 #include <string>
 
-using namespace Sexy;
-using namespace Sexy::VM;
+using namespace Rococo;
+using namespace Rococo::VM;
 
 namespace
 {
@@ -151,10 +151,10 @@ namespace
 	};
 }
 
-namespace Sexy { namespace VM
+namespace Rococo { namespace VM
 {
 	ISymbols* CreateSymbolTable(ICore&)
 	{
 		return new Symbols();
 	}
-}} // Sexy::VM
+}} // Rococo::VM

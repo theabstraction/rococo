@@ -40,8 +40,8 @@
 #include <excpt.h>
 #include <intrin.h>
 
-using namespace Sexy;
-using namespace Sexy::VM;
+using namespace Rococo;
+using namespace Rococo::VM;
 
 namespace
 {
@@ -59,7 +59,7 @@ namespace
 	}
 }
 
-namespace Sexy { namespace VM { namespace OS 
+namespace Rococo { namespace VM { namespace OS 
 {
 	EXECUTERESULT ExecuteProtected(FN_CODE fnCode, void* context, EXCEPTIONCODE& exceptionCode, bool arg)
 	{
@@ -116,4 +116,4 @@ namespace Sexy { namespace VM { namespace OS
 	{
 		VirtualFree(data, nBytes, MEM_RELEASE);
 	}
-}}} // Sexy::VM::OS
+}}} // Rococo::VM::OS

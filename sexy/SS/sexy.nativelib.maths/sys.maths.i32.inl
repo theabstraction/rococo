@@ -2,7 +2,7 @@ namespace
 {
 	void NativeSysMathsI32Abs(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 x;
 		_offset += sizeof(x);
@@ -15,7 +15,7 @@ namespace
 
 	void NativeSysMathsI32LeftShift(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 bitCount;
 		_offset += sizeof(bitCount);
@@ -32,7 +32,7 @@ namespace
 
 	void NativeSysMathsI32RightShift(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 bitCount;
 		_offset += sizeof(bitCount);
@@ -49,7 +49,7 @@ namespace
 
 	void NativeSysMathsI32MaxOf(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 y;
 		_offset += sizeof(y);
@@ -66,7 +66,7 @@ namespace
 
 	void NativeSysMathsI32MinOf(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 y;
 		_offset += sizeof(y);
@@ -83,7 +83,7 @@ namespace
 
 	void NativeSysMathsI32MinValue(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 value = MinI32Value();
 		_offset += sizeof(value);
@@ -92,7 +92,7 @@ namespace
 
 	void NativeSysMathsI32MaxValue(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 value = MaxI32Value();
 		_offset += sizeof(value);
@@ -101,7 +101,7 @@ namespace
 
 	void NativeSysMathsI32Mod(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 denominator;
 		_offset += sizeof(denominator);
@@ -118,7 +118,7 @@ namespace
 
 	void NativeSysMathsI32ToInt64(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 x;
 		_offset += sizeof(x);
@@ -131,7 +131,7 @@ namespace
 
 	void NativeSysMathsI32ToFloat32(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 x;
 		_offset += sizeof(x);
@@ -144,7 +144,7 @@ namespace
 
 	void NativeSysMathsI32ToFloat64(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 x;
 		_offset += sizeof(x);
@@ -158,7 +158,7 @@ namespace
 }
 
 namespace Sys { namespace Maths { namespace I32 { 
-	void AddNativeCalls_SysMathsI32(Sexy::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
+	void AddNativeCalls_SysMathsI32(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Sys.Maths.I32"));
 		ss.AddNativeCall(ns, NativeSysMathsI32Abs, nullptr, SEXTEXT("Abs(Int32 x) -> (Int32 value)"));

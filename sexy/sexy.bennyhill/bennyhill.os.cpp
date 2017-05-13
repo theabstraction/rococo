@@ -49,7 +49,7 @@
 
 #include "bennyhill.h"
 
-namespace Sexy
+namespace Rococo
 {
 	FileAppender::FileAppender(csexstr _filename) : filename(_filename)
 	{
@@ -101,14 +101,6 @@ namespace Sexy
          Append(c);
       }
    }
-
-	void TripDebugger()
-	{
-		if (IsDebuggerPresent())
-		{
-			__debugbreak();
-		}
-	}
 
 	void WriteStandardErrorCode(int errorCode)
 	{

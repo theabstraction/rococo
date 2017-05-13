@@ -2,7 +2,7 @@ namespace
 {
 	void NativeSysRandomRollDie(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 sides;
 		_offset += sizeof(sides);
@@ -15,7 +15,7 @@ namespace
 
 	void NativeSysRandomRollDice(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 sides;
 		_offset += sizeof(sides);
@@ -32,7 +32,7 @@ namespace
 
 	void NativeSysRandomSeed(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 value;
 		_offset += sizeof(value);
@@ -43,7 +43,7 @@ namespace
 
 	void NativeSysRandomAnyOf(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float maxValue;
 		_offset += sizeof(maxValue);
@@ -61,7 +61,7 @@ namespace
 }
 
 namespace Sys { namespace Random { 
-	void AddNativeCalls_SysRandom(Sexy::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
+	void AddNativeCalls_SysRandom(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Sys.Random"));
 		ss.AddNativeCall(ns, NativeSysRandomRollDie, nullptr, SEXTEXT("RollDie(Int32 sides) -> (Int32 value)"));

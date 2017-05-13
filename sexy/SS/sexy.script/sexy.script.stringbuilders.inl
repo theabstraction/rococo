@@ -618,7 +618,7 @@ namespace
 		}
 		else
 		{
-			diff = Sexy::Compare(s, t);
+			diff = Rococo::Compare(s, t);
 		}
 
 		WriteOutput(0, diff, e);
@@ -643,7 +643,7 @@ namespace
 		}
 		else
 		{
-			diff = Sexy::CompareI(s, t);
+			diff = Rococo::CompareI(s, t);
 		}
 
 		WriteOutput(0, diff, e);

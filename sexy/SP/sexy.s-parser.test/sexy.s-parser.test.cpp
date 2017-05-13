@@ -17,12 +17,12 @@
 #define VALIDATE(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Stop(); }
 #define VALIDATE_EQUAL(_Expression1, _Expression2) if ((_Expression1) != (_Expression2)) { ShowFailureEq(_Expression1, _Expression2, __FILE__, __LINE__); Stop(); }
 
-using namespace Sexy;
-using namespace Sexy::Sex;
+using namespace Rococo;
+using namespace Rococo::Sex;
 
 namespace
 {
-	struct Logger: public Sexy::ILog
+	struct Logger: public Rococo::ILog
 	{
 		virtual void Write(csexstr text) 
 		{
@@ -41,9 +41,9 @@ namespace
 
 	void Stop()
 	{
-		if (Sexy::OS::IsDebuggerPresent())
+		if (Rococo::OS::IsDebugging())
 		{
-         Sexy::OS::TripDebugger();
+         Rococo::OS::TripDebugger();
 		}
 		else
 		{

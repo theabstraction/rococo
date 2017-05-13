@@ -31,9 +31,9 @@
 	principal credit screen and its principal readme file.
 */
 
-using namespace Sexy::Variants;
+using namespace Rococo::Variants;
 
-namespace Sexy
+namespace Rococo
 {
    namespace Variants
    {
@@ -159,11 +159,11 @@ namespace Sexy
    }
 }
 
-namespace Sexy
+namespace Rococo
 {
    namespace Script
    {
-      using namespace Sexy::Variants;
+      using namespace Rococo::Variants;
 
       bool Compare(const VariantValue& a, const VariantValue& b, VARTYPE type, CONDITION op, cr_sex src)
       {
@@ -262,7 +262,7 @@ namespace Sexy
             type = f.GetArgument(0).VarType();
             CompileFunctionCallAndReturnValue(ce, s, f, type, NULL, NULL);
 
-            if (tempdepth > Sexy::ROOT_TEMPDEPTH)
+            if (tempdepth > Rococo::ROOT_TEMPDEPTH)
             {
                ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4 + tempdepth, GetBitCount(type));
             }
@@ -294,7 +294,7 @@ namespace Sexy
                      Throw(s, streamer);
                   }
 
-                  if (tempdepth > Sexy::ROOT_TEMPDEPTH)
+                  if (tempdepth > Rococo::ROOT_TEMPDEPTH)
                   {
                      ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4 + tempdepth, GetBitCount(type));
                   }
@@ -384,7 +384,7 @@ namespace Sexy
 
          if (IsZero(rValue, rType))
          {
-            VARTYPE varLType = GetAtomicValueAnyNumeric(ce, leftVarExpr, leftVarName, Sexy::ROOT_TEMPDEPTH);
+            VARTYPE varLType = GetAtomicValueAnyNumeric(ce, leftVarExpr, leftVarName, Rococo::ROOT_TEMPDEPTH);
 
             VariantValue newRValue;
             if (varLType != VARTYPE_Pointer && !Variants::TryRecast(OUT newRValue, IN rValue, rType, varLType))
@@ -396,7 +396,7 @@ namespace Sexy
          }
          else
          {
-            VARTYPE varLType = GetAtomicValueAnyNumeric(ce, leftVarExpr, leftVarName, Sexy::ROOT_TEMPDEPTH + 1);
+            VARTYPE varLType = GetAtomicValueAnyNumeric(ce, leftVarExpr, leftVarName, Rococo::ROOT_TEMPDEPTH + 1);
 
             VariantValue newRValue;
             if (!Variants::TryRecast(OUT newRValue, IN rValue, rType, varLType))
@@ -405,7 +405,7 @@ namespace Sexy
             }
 
             builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + 2, newRValue, GetBitCount(varLType));
-            AddBinaryComparison(parent, builder.Assembler(), Sexy::ROOT_TEMPDEPTH, Sexy::ROOT_TEMPDEPTH + 1, Sexy::ROOT_TEMPDEPTH + 2, op, varLType);
+            AddBinaryComparison(parent, builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, varLType);
          }
       }
 
@@ -450,8 +450,8 @@ namespace Sexy
          lValue.int32Value = literalValue;
 
          ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + 1, lValue, BITCOUNT_32);
-         ce.Builder.AssignVariableToTemp(variableName, Sexy::ROOT_TEMPDEPTH + 2);
-         AddBinaryBoolean(parent, ce.Builder.Assembler(), Sexy::ROOT_TEMPDEPTH, Sexy::ROOT_TEMPDEPTH + 1, Sexy::ROOT_TEMPDEPTH + 2, op);
+         ce.Builder.AssignVariableToTemp(variableName, Rococo::ROOT_TEMPDEPTH + 2);
+         AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op);
 
       }
 
@@ -482,8 +482,8 @@ namespace Sexy
          }
 
          ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + 1, newLValue, GetBitCount(varRType));
-         ce.Builder.AssignVariableToTemp(rightVarName, Sexy::ROOT_TEMPDEPTH + 2);
-         AddBinaryComparison(parent, ce.Builder.Assembler(), Sexy::ROOT_TEMPDEPTH, Sexy::ROOT_TEMPDEPTH + 1, Sexy::ROOT_TEMPDEPTH + 2, op, varRType);
+         ce.Builder.AssignVariableToTemp(rightVarName, Rococo::ROOT_TEMPDEPTH + 2);
+         AddBinaryComparison(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, varRType);
       }
 
       void CompileBinaryCompareAtomicVsCompound(CCompileEnvironment& ce, cr_sex parent, csexstr varName, CONDITION op, cr_sex s, bool leftToRight);
@@ -492,15 +492,15 @@ namespace Sexy
       {
          ICodeBuilder& builder = ce.Builder;
 
-         VARTYPE varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftVarName, Sexy::ROOT_TEMPDEPTH + 1);
-         VARTYPE varRType = GetAtomicValueAnyNumeric(ce, rightExpr, rightExpr.String()->Buffer, Sexy::ROOT_TEMPDEPTH + 2);
+         VARTYPE varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftVarName, Rococo::ROOT_TEMPDEPTH + 1);
+         VARTYPE varRType = GetAtomicValueAnyNumeric(ce, rightExpr, rightExpr.String()->Buffer, Rococo::ROOT_TEMPDEPTH + 2);
 
          if (varLType != varRType)
          {
             Throw(parent, SEXTEXT("Cannot compare left with right, they are of different types"));
          }
 
-         AddBinaryComparison(parent, builder.Assembler(), Sexy::ROOT_TEMPDEPTH, Sexy::ROOT_TEMPDEPTH + 1, Sexy::ROOT_TEMPDEPTH + 2, op, varLType);
+         AddBinaryComparison(parent, builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, varLType);
       }
 
       void CompileBinaryBooleanVariableVsVariable(CCompileEnvironment& ce, cr_sex parent, csexstr leftVarName, LOGICAL_OP op, csexstr rightVarName)
@@ -534,9 +534,9 @@ namespace Sexy
             Throw(parent, SEXTEXT("The RHS is not a boolean type"));
          }
 
-         ce.Builder.AssignVariableToTemp(leftVarName, Sexy::ROOT_TEMPDEPTH + 1);
-         ce.Builder.AssignVariableToTemp(rightVarName, Sexy::ROOT_TEMPDEPTH + 2);
-         AddBinaryBoolean(parent, ce.Builder.Assembler(), Sexy::ROOT_TEMPDEPTH, Sexy::ROOT_TEMPDEPTH + 1, Sexy::ROOT_TEMPDEPTH + 2, op);
+         ce.Builder.AssignVariableToTemp(leftVarName, Rococo::ROOT_TEMPDEPTH + 1);
+         ce.Builder.AssignVariableToTemp(rightVarName, Rococo::ROOT_TEMPDEPTH + 2);
+         AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op);
       }
 
       void CompileBinaryCompareAtomicVsCompound(CCompileEnvironment& ce, cr_sex parent, csexstr varName, CONDITION op, cr_sex s, bool leftToRight)
@@ -574,13 +574,13 @@ namespace Sexy
          }
          else
          {
-            ce.Builder.AssignVariableToTemp(varName, Sexy::ROOT_TEMPDEPTH + A);
+            ce.Builder.AssignVariableToTemp(varName, Rococo::ROOT_TEMPDEPTH + A);
          }
 
          TryCompileArithmeticExpression(ce, s, true, type);
          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + B, GetBitCount(type));
 
-         AddBinaryComparison(parent, ce.Builder.Assembler(), Sexy::ROOT_TEMPDEPTH, Sexy::ROOT_TEMPDEPTH + 1, Sexy::ROOT_TEMPDEPTH + 2, op, type);
+         AddBinaryComparison(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, type);
       }
 
       // Compile code to evaluate a boolean and copy the value to the temp variable #tempDepth
@@ -657,12 +657,12 @@ namespace Sexy
 
                   TryCompileArithmeticExpression(ce, left, true, guessType);
 
-                  AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH, Sexy::ROOT_TEMPDEPTH + 1, bits);
+                  AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, bits);
                   TryCompileArithmeticExpression(ce, right, true, guessType);
                   ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, GetBitCount(guessType));
                   ce.Builder.PopLastVariables(1);
 
-                  AddBinaryComparison(parent, ce.Builder.Assembler(), Sexy::ROOT_TEMPDEPTH, Sexy::ROOT_TEMPDEPTH + 1, Sexy::ROOT_TEMPDEPTH + 2, op, guessType);
+                  AddBinaryComparison(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, guessType);
                }
                else
                {
@@ -721,7 +721,7 @@ namespace Sexy
 
             if (invert)
             {
-               ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D4 + Sexy::ROOT_TEMPDEPTH, VM::REGISTER_D4 + Sexy::ROOT_TEMPDEPTH + offset, BITCOUNT_32);
+               ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D4 + Rococo::ROOT_TEMPDEPTH, VM::REGISTER_D4 + Rococo::ROOT_TEMPDEPTH + offset, BITCOUNT_32);
             }
 
             if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
@@ -769,9 +769,9 @@ namespace Sexy
          if (TryCompileBooleanExpression(ce, right, true, negate))
          {
             if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
-            ce.Builder.AssignVariableToTemp(leftString, Sexy::ROOT_TEMPDEPTH + 1);
+            ce.Builder.AssignVariableToTemp(leftString, Rococo::ROOT_TEMPDEPTH + 1);
             ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, GetBitCount(type));
-            AppendBooleanLogicalOp(parent, op, ce.Builder.Assembler(), Sexy::ROOT_TEMPDEPTH + 1, Sexy::ROOT_TEMPDEPTH + 2);
+            AppendBooleanLogicalOp(parent, op, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2);
             return;
          }
          else
@@ -790,7 +790,7 @@ namespace Sexy
 
          if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
 
-         AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH, Sexy::ROOT_TEMPDEPTH + 1, BITCOUNT_32);
+         AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, BITCOUNT_32);
          negate = false;
          if (!TryCompileBooleanExpression(ce, right, true, negate))
          {
@@ -802,7 +802,7 @@ namespace Sexy
 
          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, BITCOUNT_32);
 
-         AppendBooleanLogicalOp(parent, op, ce.Builder.Assembler(), Sexy::ROOT_TEMPDEPTH + 1, Sexy::ROOT_TEMPDEPTH + 2);
+         AppendBooleanLogicalOp(parent, op, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2);
       }
 
       void CompileBinaryBooleanAtomicVsCompoundExpression(CCompileEnvironment& ce, cr_sex parent, csexstr leftString, LOGICAL_OP op, cr_sex right)
@@ -896,7 +896,7 @@ namespace Sexy
 
       const IFunction* TryGetMethod(const MemberDef& def, csexstr methodName)
       {
-         if (Sexy::IsCapital(methodName[0]))
+         if (Rococo::IsCapital(methodName[0]))
          {
             TokenBuffer localMethodName;
             StringPrint(localMethodName, SEXTEXT("%s.%s"), def.ResolvedType->Name(), methodName);
@@ -1034,7 +1034,7 @@ namespace Sexy
             {
                if (VARTYPE_Bool == ce.Builder.GetVarType(token))
                {
-                  ce.Builder.AssignVariableToTemp(token, Sexy::ROOT_TEMPDEPTH);
+                  ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
                   return true;
                }
                else

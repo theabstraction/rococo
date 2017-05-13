@@ -20,8 +20,8 @@
 #include <vector>
 
 using namespace Rococo;
-using namespace Sexy;
-using namespace Sexy::Sex;
+
+using namespace Rococo::Sex;
 
 /*
 bool operator == (cr_sex s, cstr atomicMatch)
@@ -37,7 +37,7 @@ bool operator == (cr_sex s, cstr atomicMatch)
 
 cr_sex ValidateDirective(cr_sex s, cstr sdirective)
 {
-   Sexy::Sex::AssertCompound(s);
+   Rococo::Sex::AssertCompound(s);
    if (s[0] != sdirective)
    {
       rchar msg[1024];
@@ -53,7 +53,7 @@ void WriteCppFile(cr_sex s)
 {
    if (s.NumberOfElements() < 1) Throw(s, L"Expecting at least one statement in the sexy file");
    
-   Sexy::Sex::AssertCompound(s[0]);
+   Rococo::Sex::AssertCompound(s[0]);
 
    cr_sex cppInstance = ValidateDirective(s[0], L"cpp");
    cr_sex sClass = GetAtomicArg(cppInstance, 1);
@@ -100,7 +100,7 @@ int main()
       tree = sparser->CreateTree(*source);
       WriteCppFile(tree->Root());
    }
-   catch (Sexy::Sex::ParseException& ex)
+   catch (Rococo::Sex::ParseException& ex)
    {
       wprintf(L"ParseException\n\nName: %s\nMessage: %s\nAt line %d, col %d\n", ex.Name(), ex.Message(), ex.Start().Y, ex.End().X);
    }

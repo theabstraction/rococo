@@ -49,8 +49,8 @@
 #include "sexy.s-parser.source.inl"
 #include "sexy.s-parser.symbols.inl"
 
-using namespace Sexy;
-using namespace Sexy::Sex;
+using namespace Rococo;
+using namespace Rococo::Sex;
 
 namespace
 {
@@ -920,7 +920,7 @@ namespace
 	}
 }
 
-namespace Sexy
+namespace Rococo
 {
 	namespace Sex
 	{
@@ -991,7 +991,7 @@ namespace Sexy
 }
 
 /////////////////////// Entry point ///////////////////////////
-SEXY_SPARSER_API Sexy::Sex::ISParser* Sexy_CreateSexParser()
+SEXY_SPARSER_API Rococo::Sex::ISParser* Sexy_CreateSexParser()
 {
 	return new CSexParser();
 }

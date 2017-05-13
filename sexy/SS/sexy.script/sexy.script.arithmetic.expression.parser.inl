@@ -31,7 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace Sexy 
+namespace Rococo 
 {
    namespace Script
    {
@@ -389,7 +389,7 @@ namespace Sexy
                   MemberDef def;
                   if (ce.Builder.TryGetVariableByName(OUT def, id))
                   {
-                     ce.Builder.AssignVariableToTemp(id, Sexy::ROOT_TEMPDEPTH);
+                     ce.Builder.AssignVariableToTemp(id, Rococo::ROOT_TEMPDEPTH);
                   }
                   else
                   {
@@ -401,7 +401,7 @@ namespace Sexy
             {
                if (ce.Builder.GetVarStructure(id) != NULL)
                {
-                  ce.Builder.AssignVariableToTemp(id, Sexy::ROOT_TEMPDEPTH);
+                  ce.Builder.AssignVariableToTemp(id, Rococo::ROOT_TEMPDEPTH);
                }
                else
                {
@@ -422,7 +422,7 @@ namespace Sexy
 
          GetAtomicValue(ce, atomicExpr, varname, type);
          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + B, GetBitCount(type));
-         AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, Sexy::ROOT_TEMPDEPTH);
+         AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, Rococo::ROOT_TEMPDEPTH);
       }
 
       void CompileArithmeticAtomicVsAtomic(CCompileEnvironment& ce, cr_sex parent, csexstr left, ARITHMETIC_OP op, csexstr right, VARTYPE type, cr_sex leftExpr, cr_sex rightExpr)
@@ -455,12 +455,12 @@ namespace Sexy
             BITCOUNT bits = GetBitCount(type);
             GetAtomicValue(ce, leftExpr, left, type);
 
-            AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH, Sexy::ROOT_TEMPDEPTH + 1, bits);
+            AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, bits);
             GetAtomicValue(ce, rightExpr, right, type);
             ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, GetBitCount(type));
             ce.Builder.PopLastVariables(1);
 
-            AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, Sexy::ROOT_TEMPDEPTH);
+            AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, Rococo::ROOT_TEMPDEPTH);
          }
       }
 
@@ -490,9 +490,9 @@ namespace Sexy
 
          if (B > A)
          {
-            CompileAtomicSide(ce, parent, token, Sexy::ROOT_TEMPDEPTH + A, order, type);
+            CompileAtomicSide(ce, parent, token, Rococo::ROOT_TEMPDEPTH + A, order, type);
 
-            AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH + A, Sexy::ROOT_TEMPDEPTH + A, bits);
+            AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + A, Rococo::ROOT_TEMPDEPTH + A, bits);
             TryCompileArithmeticExpression(ce, s, true, type);
             ce.Builder.PopLastVariables(1);
 
@@ -502,10 +502,10 @@ namespace Sexy
          {
             TryCompileArithmeticExpression(ce, s, true, type);
             ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + B, bits);
-            CompileAtomicSide(ce, parent, token, Sexy::ROOT_TEMPDEPTH + A, order, type);
+            CompileAtomicSide(ce, parent, token, Rococo::ROOT_TEMPDEPTH + A, order, type);
          }
 
-         AppendArithmeticOp(ce.Builder.Assembler(), s, op, type, Sexy::ROOT_TEMPDEPTH);
+         AppendArithmeticOp(ce.Builder.Assembler(), s, op, type, Rococo::ROOT_TEMPDEPTH);
       }
 
       void CompileArithmeticCompoundVsCompound(CCompileEnvironment& ce, cr_sex parent, cr_sex left, ARITHMETIC_OP op, cr_sex right, VARTYPE type)
@@ -513,11 +513,11 @@ namespace Sexy
          BITCOUNT bits = GetBitCount(type);
 
          TryCompileArithmeticExpression(ce, left, true, type);
-         AddArchiveRegister(ce, Sexy::ROOT_TEMPDEPTH, Sexy::ROOT_TEMPDEPTH + 1, bits);
+         AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, bits);
          TryCompileArithmeticExpression(ce, right, true, type);
          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, bits);
          ce.Builder.PopLastVariables(1);
-         AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, Sexy::ROOT_TEMPDEPTH);
+         AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, Rococo::ROOT_TEMPDEPTH);
       }
 
       void CompileBinaryArithmeticExpression(CCompileEnvironment& ce, cr_sex parent, cr_sex left, ARITHMETIC_OP op, cr_sex right, VARTYPE type)
@@ -641,7 +641,7 @@ namespace Sexy
          {
             TokenBuffer allocSizeName;
             StringPrint(allocSizeName, SEXTEXT("%s._allocSize"), value);
-            ce.Builder.AssignVariableToTemp(allocSizeName, Sexy::ROOT_TEMPDEPTH);
+            ce.Builder.AssignVariableToTemp(allocSizeName, Rococo::ROOT_TEMPDEPTH);
          }
       }
 
@@ -737,7 +737,7 @@ namespace Sexy
                   Throw(s, streamer);
                }
 
-               ce.Builder.AssignVariableToTemp(token, Sexy::ROOT_TEMPDEPTH);
+               ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
                return true;
             }
             else
@@ -903,7 +903,7 @@ namespace Sexy
                VARTYPE tokenType = ce.Builder.GetVarType(token);
                if (type == tokenType)
                {
-                  ce.Builder.AssignVariableToTemp(token, Sexy::ROOT_TEMPDEPTH);
+                  ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
                   return true;
                }
                else

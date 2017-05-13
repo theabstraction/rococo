@@ -64,15 +64,17 @@
 #include "sexy.s-parser.h"
 #include "sexy.compiler.h"
 
+#include "sexy.lib.util.h"
+
 
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 
 #define TEST(test) Test(#test, test)
 
-using namespace Sexy;
-using namespace Sexy::Sex;
-using namespace Sexy::Script;
-using namespace Sexy::Compiler;
+using namespace Rococo;
+using namespace Rococo::Sex;
+using namespace Rococo::Script;
+using namespace Rococo::Compiler;
 
 namespace
 {
@@ -156,8 +158,8 @@ namespace
 
 	void Abort()
 	{
-		if (Sexy::OS::IsDebuggerPresent())
-			Sexy::OS::TripDebugger();
+		if (Rococo::OS::IsDebugging())
+			Rococo::OS::TripDebugger();
 		else
 			exit(-1); 
 	}
@@ -9878,9 +9880,9 @@ namespace
 
 		vm.Push(0); // Allocate stack space for the int32 result
 
-		Sexy::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateLogs();
-		validate(result == Sexy::EXECUTERESULT_TERMINATED);
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 
 		int value = vm.PopInt32();
 		validate(value == 12);		
@@ -9916,9 +9918,9 @@ namespace
 
 		vm.Push((void*) 0); // Allocate stack space for the int32 result
 
-		Sexy::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateLogs();
-		validate(result == Sexy::EXECUTERESULT_TERMINATED);
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 
 		void* value = vm.PopPointer();
 		validate(value == (void*) 0x12345678);		
@@ -9940,9 +9942,9 @@ namespace
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 
-		Sexy::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateLogs();
-		validate(result == Sexy::EXECUTERESULT_TERMINATED);
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 	}
 
 	void TestRaw(IPublicScriptSystem& ss)
@@ -9960,9 +9962,9 @@ namespace
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 
-		Sexy::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateLogs();
-		validate(result == Sexy::EXECUTERESULT_TERMINATED);
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 	}
 
 	void TestGlobalInt32(IPublicScriptSystem& ss)
@@ -9983,12 +9985,12 @@ namespace
 
 		vm.Push(0x3); // add our output to the stack
 
-		Sexy::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 
 		int x = vm.PopInt32();
 		
 		ValidateLogs();
-		validate(result == Sexy::EXECUTERESULT_TERMINATED);
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 		
 		validate(x == 6);
 	}
@@ -10013,12 +10015,12 @@ namespace
 
 		vm.Push(0x3); // add our output to the stack
 
-		Sexy::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 
 		int x = vm.PopInt32();
 
 		ValidateLogs();
-		validate(result == Sexy::EXECUTERESULT_TERMINATED);
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 
 		validate(x == 4);
 	}
@@ -10042,12 +10044,12 @@ namespace
 
 		vm.Push((int64)0x3); // add our output to the stack
 
-		Sexy::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 
 		int64 x = vm.PopInt64();
 
 		ValidateLogs();
-		validate(result == Sexy::EXECUTERESULT_TERMINATED);
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 
 		validate(x == 4);
 	}
@@ -10071,13 +10073,13 @@ namespace
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 
 		vm.Push(0x00000001);
-		Sexy::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateLogs();
 
 		int32 exitCode = vm.PopInt32();
 		validate(exitCode == 17);
 
-		validate(result == Sexy::EXECUTERESULT_TERMINATED);
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 	}
 
 	void TestMultipleDerivation(IPublicScriptSystem& ss)
@@ -10108,9 +10110,9 @@ namespace
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 
-		Sexy::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateLogs();
-		validate(result == Sexy::EXECUTERESULT_TERMINATED);
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 	}
 
 	void TestMultipleDerivation2(IPublicScriptSystem& ss)
@@ -10141,9 +10143,9 @@ namespace
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 
-		Sexy::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateLogs();
-		validate(result == Sexy::EXECUTERESULT_TERMINATED);
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 	}
 
 	void TestClassDefinesInterface(IPublicScriptSystem& ss)
@@ -10188,9 +10190,9 @@ namespace
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 
-		Sexy::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateLogs();
-		validate(result == Sexy::EXECUTERESULT_TERMINATED);
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 	}
 
 	void TestClassExtendsInterface(IPublicScriptSystem& ss)
@@ -10229,9 +10231,9 @@ namespace
 
 		validate(idog->Base() == ianimal);
 
-		Sexy::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateLogs();
-		validate(result == Sexy::EXECUTERESULT_TERMINATED);
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 	}
 
 	void TestInstancing(IPublicScriptSystem& ss)
@@ -10253,9 +10255,9 @@ namespace
 		
 		vm2->Push(0x3);
 
-		Sexy::EXECUTERESULT result = vm2->Execute(VM::ExecutionFlags(false, true));
+		Rococo::EXECUTERESULT result = vm2->Execute(VM::ExecutionFlags(false, true));
 		ValidateLogs();
-		validate(result == Sexy::EXECUTERESULT_TERMINATED);
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 
 		int x1 = vm2->PopInt32();
 		validate(x1 = 4);
@@ -10290,7 +10292,7 @@ namespace
 		vm.Push(0x00000001);
 		auto result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateLogs();
-		validate(result == Sexy::EXECUTERESULT_TERMINATED);
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 
 		int x1 = vm.PopInt32();
 		validate(x1 = 77);
@@ -11220,7 +11222,7 @@ namespace
 
 int main(int argc, char* argv[])
 {
-   Sexy::OS::SetBreakPoints(Sexy::OS::BreakFlag_All);
+   Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 	RunTests();
 	return 0;
 }

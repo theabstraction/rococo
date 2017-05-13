@@ -55,14 +55,14 @@ namespace HV { namespace Graphics {
 // BennyHill generated Sexy native functions for HV::Graphics::IMeshBuilder 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
-	using namespace Sexy::Script;
-	using namespace Sexy::Compiler;
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
 
 	void NativeHVGraphicsIMeshBuilderBegin(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
 		IString* _fqName;
@@ -78,7 +78,7 @@ namespace
 	}
 	void NativeHVGraphicsIMeshBuilderAddTriangle(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::Graphics::Vertex* c;
 		_offset += sizeof(c);
@@ -100,7 +100,7 @@ namespace
 	}
 	void NativeHVGraphicsIMeshBuilderEnd(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::Graphics::IMeshBuilder* _pObject;
 		_offset += sizeof(_pObject);
@@ -110,7 +110,7 @@ namespace
 	}
 	void NativeHVGraphicsIMeshBuilderClear(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::Graphics::IMeshBuilder* _pObject;
 		_offset += sizeof(_pObject);
@@ -121,7 +121,7 @@ namespace
 
 	void NativeGetHandleForHVGraphicsMeshBuilder(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::Graphics::IMeshBuilder* nceContext = reinterpret_cast<HV::Graphics::IMeshBuilder*>(_nce.context);
 		// Uses: HV::Graphics::IMeshBuilder* FactoryConstructHVGraphicsMeshBuilder(HV::Graphics::IMeshBuilder* _context);
@@ -132,7 +132,7 @@ namespace
 }
 
 namespace HV { namespace Graphics { 
-	void AddNativeCalls_HVGraphicsIMeshBuilder(Sexy::Script::IPublicScriptSystem& ss, HV::Graphics::IMeshBuilder* _nceContext)
+	void AddNativeCalls_HVGraphicsIMeshBuilder(Rococo::Script::IPublicScriptSystem& ss, HV::Graphics::IMeshBuilder* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Graphics.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForHVGraphicsMeshBuilder, _nceContext, SEXTEXT("GetHandleForIMeshBuilder0  -> (Pointer hObject)"));
@@ -145,14 +145,14 @@ namespace HV { namespace Graphics {
 // BennyHill generated Sexy native functions for HV::IPlayer 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
-	using namespace Sexy::Script;
-	using namespace Sexy::Compiler;
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
 
 	void NativeHVIPlayerSetPlayerEntity(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_ENTITY id;
 		_offset += sizeof(id);
@@ -166,7 +166,7 @@ namespace
 	}
 	void NativeHVIPlayerGetPlayerEntity(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::IPlayer* _pObject;
 		_offset += sizeof(_pObject);
@@ -178,7 +178,7 @@ namespace
 	}
 	void NativeHVIPlayerSetControlFPS(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::IPlayer* _pObject;
 		_offset += sizeof(_pObject);
@@ -188,7 +188,7 @@ namespace
 	}
 	void NativeHVIPlayerSetControl4WayScroller(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::IPlayer* _pObject;
 		_offset += sizeof(_pObject);
@@ -198,7 +198,7 @@ namespace
 	}
 	void NativeHVIPlayerSetControlNone(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::IPlayer* _pObject;
 		_offset += sizeof(_pObject);
@@ -208,7 +208,7 @@ namespace
 	}
 	void NativeHVIPlayerSetSpeed(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float straffe;
 		_offset += sizeof(straffe);
@@ -231,7 +231,7 @@ namespace
 
 	void NativeGetHandleForHVGraphicsPlayer(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 index;
 		_offset += sizeof(index);
@@ -246,7 +246,7 @@ namespace
 }
 
 namespace HV { 
-	void AddNativeCalls_HVIPlayer(Sexy::Script::IPublicScriptSystem& ss, HV::IPlayerSupervisor* _nceContext)
+	void AddNativeCalls_HVIPlayer(Rococo::Script::IPublicScriptSystem& ss, HV::IPlayerSupervisor* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForHVGraphicsPlayer, _nceContext, SEXTEXT("GetHandleForIPlayer0 (Int32 index) -> (Pointer hObject)"));
@@ -261,14 +261,14 @@ namespace HV {
 // BennyHill generated Sexy native functions for HV::Entities::IInstances 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
-	using namespace Sexy::Script;
-	using namespace Sexy::Compiler;
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
 
 	void NativeHVEntitiesIInstancesAddBody(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_ENTITY parentId;
 		_offset += sizeof(parentId);
@@ -304,7 +304,7 @@ namespace
 	}
 	void NativeHVEntitiesIInstancesAddGhost(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_ENTITY parentId;
 		_offset += sizeof(parentId);
@@ -328,7 +328,7 @@ namespace
 	}
 	void NativeHVEntitiesIInstancesGetScale(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* scale;
 		_offset += sizeof(scale);
@@ -346,7 +346,7 @@ namespace
 	}
 	void NativeHVEntitiesIInstancesSetScale(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* scale;
 		_offset += sizeof(scale);
@@ -364,7 +364,7 @@ namespace
 	}
 	void NativeHVEntitiesIInstancesTryGetModelToWorldMatrix(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Matrix4x4* position;
 		_offset += sizeof(position);
@@ -384,7 +384,7 @@ namespace
 	}
 	void NativeHVEntitiesIInstancesClear(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::Entities::IInstances* _pObject;
 		_offset += sizeof(_pObject);
@@ -395,7 +395,7 @@ namespace
 
 	void NativeGetHandleForHVEntitiesInstances(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::Entities::IInstances* nceContext = reinterpret_cast<HV::Entities::IInstances*>(_nce.context);
 		// Uses: HV::Entities::IInstances* FactoryConstructHVEntitiesInstances(HV::Entities::IInstances* _context);
@@ -406,7 +406,7 @@ namespace
 }
 
 namespace HV { namespace Entities { 
-	void AddNativeCalls_HVEntitiesIInstances(Sexy::Script::IPublicScriptSystem& ss, HV::Entities::IInstances* _nceContext)
+	void AddNativeCalls_HVEntitiesIInstances(Rococo::Script::IPublicScriptSystem& ss, HV::Entities::IInstances* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Entities.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForHVEntitiesInstances, _nceContext, SEXTEXT("GetHandleForIInstances0  -> (Pointer hObject)"));
@@ -421,14 +421,14 @@ namespace HV { namespace Entities {
 // BennyHill generated Sexy native functions for HV::Graphics::ICamera 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
-	using namespace Sexy::Script;
-	using namespace Sexy::Compiler;
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
 
 	void NativeHVGraphicsICameraClear(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::Graphics::ICamera* _pObject;
 		_offset += sizeof(_pObject);
@@ -438,7 +438,7 @@ namespace
 	}
 	void NativeHVGraphicsICameraSetRHProjection(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float far;
 		_offset += sizeof(far);
@@ -460,7 +460,7 @@ namespace
 	}
 	void NativeHVGraphicsICameraSetProjection(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Matrix4x4* proj;
 		_offset += sizeof(proj);
@@ -474,7 +474,7 @@ namespace
 	}
 	void NativeHVGraphicsICameraSetPosition(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* position;
 		_offset += sizeof(position);
@@ -488,7 +488,7 @@ namespace
 	}
 	void NativeHVGraphicsICameraSetOrientation(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Quat* orientation;
 		_offset += sizeof(orientation);
@@ -502,7 +502,7 @@ namespace
 	}
 	void NativeHVGraphicsICameraFollowEntity(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_ENTITY id;
 		_offset += sizeof(id);
@@ -516,7 +516,7 @@ namespace
 	}
 	void NativeHVGraphicsICameraMoveToEntity(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_ENTITY id;
 		_offset += sizeof(id);
@@ -530,7 +530,7 @@ namespace
 	}
 	void NativeHVGraphicsICameraOrientateWithEntity(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 flags;
 		_offset += sizeof(flags);
@@ -548,7 +548,7 @@ namespace
 	}
 	void NativeHVGraphicsICameraOrientateToEntity(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 flags;
 		_offset += sizeof(flags);
@@ -566,7 +566,7 @@ namespace
 	}
 	void NativeHVGraphicsICameraGetPosition(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* position;
 		_offset += sizeof(position);
@@ -580,7 +580,7 @@ namespace
 	}
 	void NativeHVGraphicsICameraGetOrientation(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Quat* orientation;
 		_offset += sizeof(orientation);
@@ -594,7 +594,7 @@ namespace
 	}
 	void NativeHVGraphicsICameraGetWorld(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Matrix4x4* world;
 		_offset += sizeof(world);
@@ -608,7 +608,7 @@ namespace
 	}
 	void NativeHVGraphicsICameraGetWorldAndProj(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Matrix4x4* worldAndProj;
 		_offset += sizeof(worldAndProj);
@@ -622,7 +622,7 @@ namespace
 	}
 	void NativeHVGraphicsICameraAspectRatio(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::Graphics::ICamera* _pObject;
 		_offset += sizeof(_pObject);
@@ -635,7 +635,7 @@ namespace
 
 	void NativeGetHandleForHVGraphicsCamera(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::Graphics::ICamera* nceContext = reinterpret_cast<HV::Graphics::ICamera*>(_nce.context);
 		// Uses: HV::Graphics::ICamera* FactoryConstructHVGraphicsCamera(HV::Graphics::ICamera* _context);
@@ -646,7 +646,7 @@ namespace
 }
 
 namespace HV { namespace Graphics { 
-	void AddNativeCalls_HVGraphicsICamera(Sexy::Script::IPublicScriptSystem& ss, HV::Graphics::ICamera* _nceContext)
+	void AddNativeCalls_HVGraphicsICamera(Rococo::Script::IPublicScriptSystem& ss, HV::Graphics::ICamera* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Graphics.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForHVGraphicsCamera, _nceContext, SEXTEXT("GetHandleForICamera0  -> (Pointer hObject)"));
@@ -669,14 +669,14 @@ namespace HV { namespace Graphics {
 // BennyHill generated Sexy native functions for HV::ISprites 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
-	using namespace Sexy::Script;
-	using namespace Sexy::Compiler;
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
 
 	void NativeHVISpritesClear(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::ISprites* _pObject;
 		_offset += sizeof(_pObject);
@@ -686,7 +686,7 @@ namespace
 	}
 	void NativeHVISpritesAddSprite(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
 		IString* _resourceName;
@@ -702,7 +702,7 @@ namespace
 	}
 	void NativeHVISpritesAddEachSpriteInDirectory(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
 		IString* _directoryName;
@@ -718,7 +718,7 @@ namespace
 	}
 	void NativeHVISpritesLoadAllSprites(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::ISprites* _pObject;
 		_offset += sizeof(_pObject);
@@ -729,7 +729,7 @@ namespace
 
 	void NativeGetHandleForHVSprites(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::ISprites* nceContext = reinterpret_cast<HV::ISprites*>(_nce.context);
 		// Uses: HV::ISprites* FactoryConstructHVSprites(HV::ISprites* _context);
@@ -740,7 +740,7 @@ namespace
 }
 
 namespace HV { 
-	void AddNativeCalls_HVISprites(Sexy::Script::IPublicScriptSystem& ss, HV::ISprites* _nceContext)
+	void AddNativeCalls_HVISprites(Rococo::Script::IPublicScriptSystem& ss, HV::ISprites* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForHVSprites, _nceContext, SEXTEXT("GetHandleForISprites0  -> (Pointer hObject)"));
@@ -753,14 +753,14 @@ namespace HV {
 // BennyHill generated Sexy native functions for HV::Graphics::ISceneBuilder 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
-	using namespace Sexy::Script;
-	using namespace Sexy::Compiler;
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
 
 	void NativeHVGraphicsISceneBuilderAddStatics(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_ENTITY entityId;
 		_offset += sizeof(entityId);
@@ -774,7 +774,7 @@ namespace
 	}
 	void NativeHVGraphicsISceneBuilderClear(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::Graphics::ISceneBuilder* _pObject;
 		_offset += sizeof(_pObject);
@@ -784,7 +784,7 @@ namespace
 	}
 	void NativeHVGraphicsISceneBuilderSetClearColour(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float blue;
 		_offset += sizeof(blue);
@@ -806,7 +806,7 @@ namespace
 	}
 	void NativeHVGraphicsISceneBuilderSetSunDirection(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Vec3* sun;
 		_offset += sizeof(sun);
@@ -821,7 +821,7 @@ namespace
 
 	void NativeGetHandleForHVGraphicsSceneBuilder(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::Graphics::ISceneBuilder* nceContext = reinterpret_cast<HV::Graphics::ISceneBuilder*>(_nce.context);
 		// Uses: HV::Graphics::ISceneBuilder* FactoryConstructHVGraphicsSceneBuilder(HV::Graphics::ISceneBuilder* _context);
@@ -832,7 +832,7 @@ namespace
 }
 
 namespace HV { namespace Graphics { 
-	void AddNativeCalls_HVGraphicsISceneBuilder(Sexy::Script::IPublicScriptSystem& ss, HV::Graphics::ISceneBuilder* _nceContext)
+	void AddNativeCalls_HVGraphicsISceneBuilder(Rococo::Script::IPublicScriptSystem& ss, HV::Graphics::ISceneBuilder* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Graphics.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForHVGraphicsSceneBuilder, _nceContext, SEXTEXT("GetHandleForISceneBuilder0  -> (Pointer hObject)"));
@@ -845,14 +845,14 @@ namespace HV { namespace Graphics {
 // BennyHill generated Sexy native functions for HV::IConfig 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
-	using namespace Sexy::Script;
-	using namespace Sexy::Compiler;
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
 
 	void NativeHVIConfigInt(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 value;
 		_offset += sizeof(value);
@@ -872,7 +872,7 @@ namespace
 	}
 	void NativeHVIConfigFloat(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		float value;
 		_offset += sizeof(value);
@@ -892,7 +892,7 @@ namespace
 	}
 	void NativeHVIConfigBool(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		boolean32 value;
 		_offset += sizeof(value);
@@ -912,7 +912,7 @@ namespace
 	}
 	void NativeHVIConfigText(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
 		IString* _value;
@@ -934,7 +934,7 @@ namespace
 	}
 	void NativeHVIConfigGetInt(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
 		IString* _name;
@@ -952,7 +952,7 @@ namespace
 	}
 	void NativeHVIConfigGetFloat(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
 		IString* _name;
@@ -970,7 +970,7 @@ namespace
 	}
 	void NativeHVIConfigGetBool(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
 		IString* _name;
@@ -988,12 +988,12 @@ namespace
 	}
 	void NativeHVIConfigGetText(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(VirtualTable*);
 		VirtualTable* text;
 		ReadInput(text, _sf, -_offset);
-		Sexy::Helpers::StringPopulator _textPopulator(_nce, text);
+		Rococo::Helpers::StringPopulator _textPopulator(_nce, text);
 		_offset += sizeof(IString*);
 		IString* _name;
 		ReadInput(_name, _sf, -_offset);
@@ -1009,7 +1009,7 @@ namespace
 
 	void NativeGetHandleForHVConfig(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::IConfig* nceContext = reinterpret_cast<HV::IConfig*>(_nce.context);
 		// Uses: HV::IConfig* FactoryConstructHVConfig(HV::IConfig* _context);
@@ -1020,7 +1020,7 @@ namespace
 }
 
 namespace HV { 
-	void AddNativeCalls_HVIConfig(Sexy::Script::IPublicScriptSystem& ss, HV::IConfig* _nceContext)
+	void AddNativeCalls_HVIConfig(Rococo::Script::IPublicScriptSystem& ss, HV::IConfig* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForHVConfig, _nceContext, SEXTEXT("GetHandleForIConfig0  -> (Pointer hObject)"));
@@ -1037,14 +1037,14 @@ namespace HV {
 // BennyHill generated Sexy native functions for HV::Entities::IMobiles 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
-	using namespace Sexy::Script;
-	using namespace Sexy::Compiler;
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
 
 	void NativeHVEntitiesIMobilesLink(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		ID_ENTITY id;
 		_offset += sizeof(id);
@@ -1058,7 +1058,7 @@ namespace
 	}
 	void NativeHVEntitiesIMobilesGetAngles(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		FPSAngles* angles;
 		_offset += sizeof(angles);
@@ -1076,7 +1076,7 @@ namespace
 	}
 	void NativeHVEntitiesIMobilesSetAngles(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		FPSAngles* angles;
 		_offset += sizeof(angles);
@@ -1095,7 +1095,7 @@ namespace
 
 	void NativeGetHandleForHVEntitiesMobiles(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::Entities::IMobiles* nceContext = reinterpret_cast<HV::Entities::IMobiles*>(_nce.context);
 		// Uses: HV::Entities::IMobiles* FactoryConstructHVEntitiesMobiles(HV::Entities::IMobiles* _context);
@@ -1106,7 +1106,7 @@ namespace
 }
 
 namespace HV { namespace Entities { 
-	void AddNativeCalls_HVEntitiesIMobiles(Sexy::Script::IPublicScriptSystem& ss, HV::Entities::IMobiles* _nceContext)
+	void AddNativeCalls_HVEntitiesIMobiles(Rococo::Script::IPublicScriptSystem& ss, HV::Entities::IMobiles* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Entities.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForHVEntitiesMobiles, _nceContext, SEXTEXT("GetHandleForIMobiles0  -> (Pointer hObject)"));
@@ -1118,14 +1118,14 @@ namespace HV { namespace Entities {
 // BennyHill generated Sexy native functions for HV::IKeyboard 
 namespace
 {
-	using namespace Sexy;
-	using namespace Sexy::Sex;
-	using namespace Sexy::Script;
-	using namespace Sexy::Compiler;
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
 
 	void NativeHVIKeyboardClearActions(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::IKeyboard* _pObject;
 		_offset += sizeof(_pObject);
@@ -1135,7 +1135,7 @@ namespace
 	}
 	void NativeHVIKeyboardSetKeyName(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		int32 scancode;
 		_offset += sizeof(scancode);
@@ -1155,7 +1155,7 @@ namespace
 	}
 	void NativeHVIKeyboardBindAction(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
 		IString* _actionName;
@@ -1178,7 +1178,7 @@ namespace
 
 	void NativeGetHandleForHVKeyboard(NativeCallEnvironment& _nce)
 	{
-		Sexy::uint8* _sf = _nce.cpu.SF();
+		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::IKeyboard* nceContext = reinterpret_cast<HV::IKeyboard*>(_nce.context);
 		// Uses: HV::IKeyboard* FactoryConstructHVKeyboard(HV::IKeyboard* _context);
@@ -1189,7 +1189,7 @@ namespace
 }
 
 namespace HV { 
-	void AddNativeCalls_HVIKeyboard(Sexy::Script::IPublicScriptSystem& ss, HV::IKeyboard* _nceContext)
+	void AddNativeCalls_HVIKeyboard(Rococo::Script::IPublicScriptSystem& ss, HV::IKeyboard* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForHVKeyboard, _nceContext, SEXTEXT("GetHandleForIKeyboard0  -> (Pointer hObject)"));

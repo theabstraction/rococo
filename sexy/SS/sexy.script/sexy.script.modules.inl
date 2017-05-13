@@ -31,7 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace Sexy { namespace Script
+namespace Rococo { namespace Script
 {
 	class CScript;
 	class CScripts;
@@ -678,13 +678,13 @@ namespace Sexy { namespace Script
 		}
 		else if (s == ce.StructList())
 		{
-			ce.Builder.AssignVariableRefToTemp(instanceName, Sexy::ROOT_TEMPDEPTH);
+			ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
 			AppendInvoke(ce, GetListCallbacks(ce).ListClear, sequence);
 			return;
 		}
 		else if (s == ce.StructMap())
 		{
-			ce.Builder.AssignVariableRefToTemp(instanceName, Sexy::ROOT_TEMPDEPTH);
+			ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
 			AppendInvoke(ce, GetMapCallbacks(ce).MapClear, sequence);
 			return;
 		}
@@ -746,7 +746,7 @@ namespace Sexy { namespace Script
 				// Expecting node to be by ARGUMENTUSAGE_BYVALUE and allocsize to be zero, as the only such here are pseudo variables
 				// After the pseudo variable we can expect the actual reference, a pointer type by value
 				
-				ce.Builder.AssignVariableRefToTemp(instanceName, Sexy::ROOT_TEMPDEPTH);
+				ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
 				AppendInvoke(ce, GetListCallbacks(ce).NodeReleaseRef, sequence); // release the ref to the node
 			}
 			else if (*def.ResolvedType == ce.Object.Common().TypeMapNode())
@@ -754,7 +754,7 @@ namespace Sexy { namespace Script
 				// Expecting node to be by ARGUMENTUSAGE_BYVALUE and allocsize to be zero, as the only such here are pseudo variables
 				// After the pseudo variable we can expect the actual reference, a pointer type by value
 				
-				ce.Builder.AssignVariableRefToTemp(instanceName, Sexy::ROOT_TEMPDEPTH);
+				ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
 				AppendInvoke(ce, GetMapCallbacks(ce).MapNodeReleaseRef, sequence); // release the ref to the node
 			}
 			backRef--;			
@@ -964,7 +964,7 @@ namespace Sexy { namespace Script
 
 	void CompileMapConstruct(CCompileEnvironment& ce, cr_sex def, const IMember& member, csexstr fullName)
 	{
-		ce.Builder.AssignVariableRefToTemp(fullName, Sexy::ROOT_TEMPDEPTH); // Map goes to D7
+		ce.Builder.AssignVariableRefToTemp(fullName, Rococo::ROOT_TEMPDEPTH); // Map goes to D7
 
 		VariantValue key;
 		key.vPtrValue = (void*) member.UnderlyingGenericArg1Type();
@@ -1173,7 +1173,7 @@ namespace Sexy { namespace Script
 		StringPrint(qualifiedMethodName, SEXTEXT("%s.%s"), nullObject.Name(), nullMethod.Name());
 
       FunctionPrototype fp(qualifiedMethodName, true);
-		IFunctionBuilder& f = Sexy::Script::DeclareFunction(nullObject.Module(), source, fp);
+		IFunctionBuilder& f = Rococo::Script::DeclareFunction(nullObject.Module(), source, fp);
 		
 		for(int i = 0; i < nullMethod.NumberOfOutputs(); ++i)
 		{
@@ -1404,11 +1404,11 @@ namespace Sexy { namespace Script
 					}
 					catch (IException& e)
 					{
-						Sexy::Sex::Throw(*(j->E), e.Message());
+						Rococo::Sex::Throw(*(j->E), e.Message());
 					}
 					catch (std::exception& e)
 					{
-                  Sexy::Sex::Throw(*(j->E), SEXTEXT("std::exception thrown: %S"), e.what());
+                  Rococo::Sex::Throw(*(j->E), SEXTEXT("std::exception thrown: %S"), e.what());
 					}				
 				}
 			}
@@ -1431,11 +1431,11 @@ namespace Sexy { namespace Script
 				{
 					sexstringstream<1024> streamer;
 					streamer.sb << ex.Source() << SEXTEXT(": ") << ex.Message();
-               Sexy::Sex::Throw(root, streamer);
+               Rococo::Sex::Throw(root, streamer);
 				}			
 				catch (std::exception& e)
 				{
-               Sexy::Sex::Throw(root, SEXTEXT("std::exception thrown: %S"), e.what());
+               Rococo::Sex::Throw(root, SEXTEXT("std::exception thrown: %S"), e.what());
 				}	
 			}
 		}
@@ -1840,7 +1840,7 @@ namespace Sexy { namespace Script
 		cr_sex source = *(const Sex::ISExpression*) archetype.Definition();
 
       FunctionPrototype fp(nullFunctionName, true);
-      IFunctionBuilder& f = Sexy::Script::DeclareFunction(module, source, fp);
+      IFunctionBuilder& f = Rococo::Script::DeclareFunction(module, source, fp);
 
 		scripts.nullArchetypeFunctions.insert(std::make_pair(&archetype, &f));
 
@@ -2008,7 +2008,7 @@ namespace Sexy { namespace Script
 
    const bool CScript::IsIStringInlined() const
    { 
-      return Sexy::Script::IsIStringInlined(scripts);
+      return Rococo::Script::IsIStringInlined(scripts);
    }
 
    IScriptSystem&  CScript::System()
@@ -3752,4 +3752,4 @@ namespace Sexy { namespace Script
 	{
 		script.AddNodeDef(builder, name, elementType, s);
 	}
-}} // Sexy::Script
+}} // Rococo::Script

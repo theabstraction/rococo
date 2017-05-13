@@ -41,14 +41,14 @@
 
 #include <list>
 
-using namespace Sexy;
-using namespace Sexy::Compiler;
-using namespace Sexy::VM;
+using namespace Rococo;
+using namespace Rococo::Compiler;
+using namespace Rococo::VM;
 
-namespace Sexy { namespace Compiler {
+namespace Rococo { namespace Compiler {
 	ICodeBuilder* CreateBuilder(IFunctionBuilder& f, bool mayUseParentsSF);
 	void Throw(STCException& e);
-}} // Sexy::Compiler
+}} // Rococo::Compiler
 
 
 #include "sexy.compiler.inl"
@@ -59,7 +59,7 @@ namespace Sexy { namespace Compiler {
 #include "sexy.compiler.namespaces.inl"
 #include "sexy.compiler.symbols.inl"
 
-using namespace Sexy::Compiler::Impl;
+using namespace Rococo::Compiler::Impl;
 
 namespace
 {
@@ -239,7 +239,7 @@ namespace
 	};
 }
 
-namespace Sexy { namespace Compiler
+namespace Rococo { namespace Compiler
 {
 	COMPILER_API IProgramObject* CreateProgramObject_1_0_0_0(const ProgramInitParameters& pip, ILog& log)
 	{
@@ -249,7 +249,7 @@ namespace Sexy { namespace Compiler
 	void ValidateNotNull(void* p)
 	{
 		if (p == NULL)
-			Throw(Sexy::Compiler::ERRORCODE_NULL_POINTER, SEXTEXT("Null ptr"), SEXTEXT("item"));
+			Throw(Rococo::Compiler::ERRORCODE_NULL_POINTER, SEXTEXT("Null ptr"), SEXTEXT("item"));
 	}
 
 	CommonStructures::CommonStructures(IProgramObject& obj)
@@ -390,5 +390,5 @@ namespace Sexy { namespace Compiler
 			Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, SEXTEXT("[%s] terminated in a dot: %s"), name, s);
 		}
 	}
-}} // Sexy::Compiler
+}} // Rococo::Compiler
 

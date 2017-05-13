@@ -182,18 +182,18 @@ namespace
       return;
       case EXPRESSION_TYPE_COMPOUND:
       {
-         Sexy::Sex::Throw(*b.Parent(), SEXTEXT("Could not duplicate as string. Element is compound"));
+         Rococo::Sex::Throw(*b.Parent(), SEXTEXT("Could not duplicate as string. Element is compound"));
       }
       return;
       default:
-         Sexy::Sex::Throw(*b.Parent(), SEXTEXT("Could not duplicate. Element type not applicable"));
+         Rococo::Sex::Throw(*b.Parent(), SEXTEXT("Could not duplicate. Element type not applicable"));
          break;
       }
    }
 
 	int SubstituteAtomic(cr_sex input, csexstr token, ISExpressionBuilder& b)
 	{
-		using namespace Sexy::Parse;
+		using namespace Rococo::Parse;
 
 		if (token[0] != '$')
 		{

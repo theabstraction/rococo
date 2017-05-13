@@ -32,13 +32,13 @@
 */
 
 #include <sexy.types.h>
-#include "sexy.s-parser.h"
+#include <sexy.s-parser.h>
 #include <sexy.compiler.public.h>
 
-using namespace Sexy::Sex;
-using namespace Sexy::Compiler;
+using namespace Rococo::Sex;
+using namespace Rococo::Compiler;
 
-namespace Sexy
+namespace Rococo
 {
 	namespace Variants
 	{

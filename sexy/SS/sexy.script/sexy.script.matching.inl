@@ -31,7 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace Sexy
+namespace Rococo
 {
    namespace Script
    {
@@ -397,7 +397,7 @@ namespace Sexy
                {
                   if (interf != NULL && interf != ithInterf)
                   {
-                     Sexy::Sex::ThrowNamespaceConflict(typeExpr, *iterfNS, prefix, SEXTEXT("interface"), type);
+                     Rococo::Sex::ThrowNamespaceConflict(typeExpr, *iterfNS, prefix, SEXTEXT("interface"), type);
                   }
 
                   interf = ithInterf;

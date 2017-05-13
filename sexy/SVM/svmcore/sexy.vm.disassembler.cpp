@@ -36,8 +36,8 @@
 
 #include <stdarg.h>
 
-using namespace Sexy;
-using namespace Sexy::VM;
+using namespace Rococo;
+using namespace Rococo::VM;
 
 namespace
 {
@@ -1147,7 +1147,7 @@ namespace
 	};
 }
 
-namespace Sexy { namespace VM
+namespace Rococo { namespace VM
 {
 	IDisassembler* CreateDisassembler(ICore& core)
 	{

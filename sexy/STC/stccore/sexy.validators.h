@@ -38,10 +38,10 @@
 #  pragma once
 # endif
 
-namespace Sexy { namespace Compiler
+namespace Rococo { namespace Compiler
 {
 	void Throw(ERRORCODE code, csexstr source, csexstr format, ...);	
-}} // Sexy::Compiler
+}} // Rococo::Compiler
 
 #define WIDEN2(x) L ## x
 #define WIDEN(x) WIDEN2(x)

@@ -2,7 +2,53 @@
 #include <stdlib.h>
 #include <rococo.strings.h>
 
-#include <windows.h>
+#ifdef _WIN32
+# include <rococo.os.win32.h>
+#else
+
+namespace
+{
+      using namespace Rococo;
+      void OutputDebugStringA(cstr text)
+      {
+         puts(text);
+      }
+
+      typedef void* HANDLE;
+
+      HANDLE HeapCreate(int unused, size_t start, size_t capacity)
+      {
+         return nullptr;
+      }
+
+      int GetLastError()
+      {
+         return 0;
+      }
+
+      void HeapDestroy(HANDLE hHeap)
+      {
+
+      }
+
+      void* HeapAlloc(HANDLE hHeap, int unused, size_t capacity)
+      {
+         return malloc(capacity);
+      }
+
+      void HeapFree(HANDLE hHeap, int unused, void* data)
+      {
+         free(data);
+      }
+
+      void* HeapReAlloc(HANDLE hHeap, int unused, void* old, size_t capacity)
+      {
+         return realloc(old, capacity);
+      }
+
+      enum {  HEAP_NO_SERIALIZE = 0 };
+} // anon
+#endif
 
 namespace
 {

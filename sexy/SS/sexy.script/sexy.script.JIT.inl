@@ -31,7 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace Sexy
+namespace Rococo
 {
    namespace Script
    {
@@ -121,7 +121,7 @@ namespace Sexy
             ss.ProgramObject().Log().OnJITCompileException(ex);
             ss.ProgramObject().VirtualMachine().Throw();
          }
-         catch (Sexy::IException& iex)
+         catch (Rococo::IException& iex)
          {
             ParseException pex(Vec2i{ 0,0 }, Vec2i{ 0,0 }, s->Tree().Source().Name(), iex.Message(), SEXTEXT(""), s);
             ss.ProgramObject().Log().OnJITCompileException(pex);

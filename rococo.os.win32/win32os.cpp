@@ -24,20 +24,6 @@
 
 namespace Rococo
 {
-   int64 CpuTicks()
-   {
-      LARGE_INTEGER ticks;
-      QueryPerformanceCounter(&ticks);
-      return ticks.QuadPart;
-   }
-
-   int64 CpuHz()
-   {
-      LARGE_INTEGER hz;
-      QueryPerformanceFrequency(&hz);
-      return hz.QuadPart;
-   }
-
    bool FileModifiedArgs::Matches(cstr resource)
    {
       cstr a = this->resourceName;
@@ -79,25 +65,35 @@ namespace Rococo
 
 namespace Rococo
 {
-	void TripDebugger()
-	{
-		if (IsDebuggerPresent())
-		{
-			__debugbreak();
-		}
-	}
+   namespace OS
+   {
+      ticks CpuTicks()
+      {
+         LARGE_INTEGER ticks;
+         QueryPerformanceCounter(&ticks);
+         return ticks.QuadPart;
+      }
 
-	bool IsDebugging()
-	{
-		return IsDebuggerPresent() ? true : false;
-	}
+      ticks CpuHz()
+      {
+         LARGE_INTEGER hz;
+         QueryPerformanceFrequency(&hz);
+         return hz.QuadPart;
+      }
 
-	ticks CpuClock()
-	{
-		LARGE_INTEGER i;
-		QueryPerformanceCounter(&i);
-		return i.QuadPart;
-	}
+      void TripDebugger()
+      {
+         if (IsDebuggerPresent())
+         {
+            __debugbreak();
+         }
+      }
+
+      bool IsDebugging()
+      {
+         return IsDebuggerPresent() ? true : false;
+      }
+   }
 
    MemoryUsage ProcessMemory()
    {
@@ -132,7 +128,7 @@ namespace Rococo
 
 		ex.errorCode = errorCode;
 
-		TripDebugger();
+		OS::TripDebugger();
 
 		throw ex;
 	}

@@ -33,16 +33,24 @@
 #define SIZEOF_LONG 4
 
 /* Signed 64-bit type formatter */
-#define TIFF_INT64_FORMAT "%I64d"
+#define TIFF_INT64_FORMAT "%lld"
 
+#ifdef _WIN32
 /* Signed 64-bit type */
-#define TIFF_INT64_T signed __int64
+# define TIFF_INT64_T signed __int64
+#else
+# define TIFF_INT64_T signed long long int
+#endif
 
 /* Unsigned 64-bit type formatter */
-#define TIFF_UINT64_FORMAT "%I64u"
+#define TIFF_UINT64_FORMAT "%llu"
 
 /* Unsigned 64-bit type */
-#define TIFF_UINT64_T unsigned __int64
+#ifdef _WIN32
+# define TIFF_UINT64_T unsigned __int64
+#else
+# define TIFF_UINT64_T unsigned long long int
+#endif
 
 /* Set the native cpu bit order */
 #define HOST_FILLORDER FILLORDER_LSB2MSB
