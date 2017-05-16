@@ -176,14 +176,19 @@ namespace Rococo { namespace VM
 		bool CorrectSF;
 	};
 
+   ROCOCOAPI ITraceOutput
+   {
+      virtual void Report(const CPU& cpu) const = 0;
+   };
+
 	ROCOCOAPI IVirtualMachine : IDebugger
 	{
 		virtual IVirtualMachine* Clone(CPU& _cpu) = 0;
 		virtual CPU& Cpu() = 0;
 		virtual ICore& Core() = 0;
 		
-		virtual EXECUTERESULT Execute(const ExecutionFlags& ef) = 0;
-		virtual EXECUTERESULT ContinueExecution(const ExecutionFlags& ef) = 0;
+		virtual EXECUTERESULT Execute(const ExecutionFlags& ef, ITraceOutput* tracer = nullptr) = 0;
+		virtual EXECUTERESULT ContinueExecution(const ExecutionFlags& ef, ITraceOutput* tracer = nullptr) = 0;
 		virtual void Pause() = 0;
 		virtual void InitCpu() = 0;
 		virtual void InitPC() = 0;

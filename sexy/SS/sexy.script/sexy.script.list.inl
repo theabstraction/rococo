@@ -784,6 +784,11 @@ namespace Rococo
             Throw(source, SEXTEXT("Expecting <source-name>.<property> There was no dot operator '.' in the atomic expression"));
          }
 
+         VariantValue v;
+         v.int64Value = 0;
+         ce.Builder.Assembler().Append_SetRegisterImmediate(Rococo::ROOT_TEMPDEPTH, v, BITCOUNT_POINTER);
+         AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName);
+
          if (*ce.Builder.GetVarStructure(srcName) == ce.StructList())
          {
             AddNodeDef(ce.Script, ce.Builder, nodeName, GetListDef(ce, source, srcName), source);

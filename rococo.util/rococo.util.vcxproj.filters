@@ -30,9 +30,6 @@
     <ClCompile Include="ui.widgets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="allocators.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="rococo.texture.builder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -46,6 +43,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="rococo.flow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rococo.base.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rococo.os.win32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rococo.allocators.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

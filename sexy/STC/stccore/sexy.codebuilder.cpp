@@ -1076,7 +1076,9 @@ namespace
 		size_t x = 2*sizeof(void*);
 		int32 sfOffset = -(int32)x;
 
-		for(int32 i = ArgCount(f)-1; i >= 0; --i)
+      int32 argCount = ArgCount(f);
+
+		for(int32 i = argCount-1; i >= 0; --i)
 		{
 			const IArgument& arg = f.Arg(i);
 			if (arg.ResolvedType() == NULL)
@@ -1087,7 +1089,7 @@ namespace
 			}
 
 			int varOffset = 0;
-			if (i == ArgCount(f)-1)
+			if (i == argCount-1)
 			{
 				varOffset = thisOffset;
 			}

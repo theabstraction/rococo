@@ -1,18 +1,13 @@
 (namespace EntryPoint)
-	(alias Main EntryPoint.Main)
-
-(using Sys.Type)
-
-(archetype Sys.OneToOne (Int32 x) -> (Int32 y))
-
-(function DoubleInt (Int32 x) -> (Int32 y): 
-(	y = (2 * x))
-)
 
 (function Main -> (Int32 result):
-	(map IString Sys.OneToOne a)
-	(a.Insert "Joe" DoubleInt)
-	(node n = (a "Joe"))
-	(Sys.OneToOne f = n.Value)
-	(result = (f 17))
+			
+	(EntryPoint.IPlayer player)
+	(player.GetId -> result)
+)	
+			
+(alias Main EntryPoint.Main)
+
+(interface EntryPoint.IPlayer				
+	(GetId -> (Int32 value))
 )

@@ -91,38 +91,6 @@ namespace Rococo { namespace OS
       Throw(0, SEXTEXT("Environment variable %s not found"), envVariable);
    }
 
-	void LoadAsciiTextFile(SEXCHAR* data, size_t capacity, const SEXCHAR* filename)
-	{
-		FILE* f = fopen(filename, "rb");
-		if (f == nullptr)
-		{
-			Throw(0, SEXTEXT("Cannot open file %s"), filename);
-		}
-
-      size_t startIndex = 0;
-      while (startIndex < capacity)
-      {
-         size_t bytesRead = fread(data + startIndex, 1, capacity - startIndex, f);
-
-         if (bytesRead == 0)
-         {
-            // graceful completion
-            break;
-         }
-         startIndex += bytesRead;
-      }
-
-      if (startIndex >= capacity)
-      {
-         fclose(f);
-         Throw(0, "File too large: ", filename);
-      }
-		
-      fclose(f);
-
-		data[startIndex] = 0;
-	}
-
 	typedef void (*FN_AddNativeSexyCalls)(Rococo::Script::IScriptSystem& ss);
 
    Rococo::Script::FN_CreateLib GetLibCreateFunction(const SEXCHAR* dynamicLinkLibOfNativeCalls, bool throwOnError)

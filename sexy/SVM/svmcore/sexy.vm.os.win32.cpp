@@ -109,7 +109,11 @@ namespace Rococo { namespace VM { namespace OS
 
 	void* AllocAlignedMemory(size_t nBytes)
 	{
-		return VirtualAlloc(NULL, nBytes, MEM_COMMIT, PAGE_READWRITE); 
+		void* ptr = VirtualAlloc(NULL, nBytes, MEM_COMMIT, PAGE_READWRITE); 
+#ifdef _DEBUG
+      memset(ptr, 0xFE, nBytes);
+#endif
+      return ptr;
 	}
 
 	void FreeAlignedMemory(void* data, size_t nBytes)

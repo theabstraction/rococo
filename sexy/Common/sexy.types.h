@@ -308,16 +308,15 @@ namespace Rococo
 
 	namespace OS
 	{
-      enum BreakFlag
+      enum BreakFlag: int32
       {
          BreakFlag_None = 0,
          BreakFlag_STC = 1,
          BreakFlag_VM = 2,
          BreakFlag_SS= 4,
-         BreakFlag_All = 7
+         BreakFlag_All = 0x7FFFFFFF
       };
       void SetBreakPoints(int32 flags);
-		void BreakOnThrow(BreakFlag targetFlag);
 		void LoadAsciiTextFile(SEXCHAR* data, size_t capacity, const SEXCHAR* filename);
 		void GetEnvVariable(SEXCHAR* data, size_t capacity, const SEXCHAR* envVariable);
       void Throw(int erroCode, csexstr format, ...);

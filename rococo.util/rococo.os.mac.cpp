@@ -62,36 +62,6 @@ namespace Rococo
    {
       strncpy(dest, source, maxCount);
    }
-
-   void Throw(int32 errorCode, cstr format, ...)
-   {
-      va_list args;
-      va_start(args, format);
-
-      struct : public IException
-      {
-         rchar msg[256];
-         int32 errorCode;
-
-         virtual cstr Message() const
-         {
-            return msg;
-         }
-
-         virtual int32 ErrorCode() const
-         {
-            return errorCode;
-         }
-      } ex;
-
-      _vsnprintf_s(ex.msg, 256, _TRUNCATE, format, args);
-
-      ex.errorCode = errorCode;
-
-      OS::TripDebugger();
-
-      throw ex;
-   }
 }
 
 namespace Rococo
@@ -182,17 +152,13 @@ namespace Rococo
          breakFlags = flags;
       }
 
-#ifdef BREAK_ON_THROW
       void BreakOnThrow(BreakFlag flag)
       {
-         if ((breakFlags & flag) != 0 && IsDebuging())
+         if ((breakFlags & flag) != 0 && IsDebugging())
          {
             TripDebugger();
          }
       }
-#else
-      void BreakOnThrow(BreakFlag flag) {}
-#endif
 
       bool IsFileExistant(cstr filename)
       {
@@ -251,38 +217,6 @@ namespace Rococo
          }
 
          return *q == 0;
-      }
-
-      void LoadAsciiTextFile(SEXCHAR* data, size_t capacity, const SEXCHAR* filename)
-      {
-         FILE* f = fopen(filename, "rb");
-         if (f == nullptr)
-         {
-            Throw(0, SEXTEXT("Cannot open file %s"), filename);
-         }
-
-         size_t startIndex = 0;
-         while (startIndex < capacity)
-         {
-            size_t bytesRead = fread(data + startIndex, 1, capacity - startIndex, f);
-
-            if (bytesRead == 0)
-            {
-               // graceful completion
-               break;
-            }
-            startIndex += bytesRead;
-         }
-
-         if (startIndex >= capacity)
-         {
-            fclose(f);
-            Throw(0, "File too large: ", filename);
-         }
-
-         fclose(f);
-
-         data[startIndex] = 0;
       }
    } // OS
 } // Rococo

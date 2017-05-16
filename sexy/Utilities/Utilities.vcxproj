@@ -91,7 +91,7 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="sexy.compiler.cpp" />
+    <ClCompile Include="sexy.compiler.util.cpp" />
     <ClCompile Include="sexy.namespaces.cpp" />
     <ClCompile Include="sexy.natives.helpers.cpp" />
     <ClCompile Include="sexy.os.win32.cpp" />

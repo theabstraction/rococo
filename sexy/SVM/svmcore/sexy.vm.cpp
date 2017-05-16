@@ -415,9 +415,30 @@ namespace
 			}
 		}
 
-		EXECUTERESULT Continue(const ExecutionFlags& ef)
+      ITraceOutput* currentTracer = nullptr;
+
+      struct TraceContext
+      {
+         ITraceOutput* previous;
+         CVirtualMachine& vm;
+
+         TraceContext(CVirtualMachine& _vm, ITraceOutput* tracer): vm(_vm)
+         {
+            previous = vm.currentTracer;
+            vm.currentTracer = tracer;
+         }
+
+         ~TraceContext()
+         {
+            vm.currentTracer = previous;
+         }
+      };
+
+		EXECUTERESULT Continue(const ExecutionFlags& ef, ITraceOutput* tracer)
 		{
 			if (status == EXECUTERESULT_YIELDED) status = EXECUTERESULT_RUNNING;
+
+         TraceContext tc(*this, tracer);
 
 			if (ef.RunProtected)
 			{
@@ -565,9 +586,9 @@ namespace
 			if (throwToQuit) throw IllegalException();
 		}
 
-		virtual EXECUTERESULT ContinueExecution(const ExecutionFlags& ef)
+		virtual EXECUTERESULT ContinueExecution(const ExecutionFlags& ef, ITraceOutput* tracer)
 		{
-			return Continue(ef);
+			return Continue(ef, tracer);
 		}
 
 		virtual void StepNextSymbol(ISymbols& symbols)
@@ -795,7 +816,7 @@ namespace
 			memset(&breakpoints[0], 0, cpu.ProgramEnd - cpu.ProgramStart);
 		}
 
-		virtual EXECUTERESULT Execute(const ExecutionFlags& ef)
+		virtual EXECUTERESULT Execute(const ExecutionFlags& ef, ITraceOutput* tracer)
 		{
 			if (program == NULL)
 			{
@@ -809,7 +830,7 @@ namespace
 				cpu.SetSF(cpu.SP());
 			}
 
-			return Continue(ef);
+			return Continue(ef, tracer);
 		}
 		
 		void Advance()
@@ -820,10 +841,35 @@ namespace
 			(this->*fn)();
 		}
 
+      EXECUTERESULT ProtectedContinueAndTrace(ITraceOutput& tracer)
+      {
+         this->throwToQuit = false;
+
+         tracer.Report(cpu);
+
+         while (status == EXECUTERESULT_RUNNING)
+         {
+            const uint8* pc = cpu.PC();
+            Opcodes::OPCODE i = (Opcodes::OPCODE) *pc;
+            FN_VM fn = s_instructionTable[i];
+            (this->*fn)();
+
+            tracer.Report(cpu);
+         }
+
+         return status;
+      }
+
 		EXECUTERESULT ProtectedContinue(bool throwToQuit)
 		{
 			status = EXECUTERESULT_RUNNING;
-			this->throwToQuit = throwToQuit;
+
+         if (currentTracer)
+         {
+            return ProtectedContinueAndTrace(*currentTracer);
+         }
+
+         this->throwToQuit = throwToQuit;
 			
 			if (throwToQuit)
 			{

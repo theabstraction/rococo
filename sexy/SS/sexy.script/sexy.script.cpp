@@ -1173,7 +1173,7 @@ namespace Rococo
 
             try
             {
-               OS::LoadAsciiTextFile(srcCode, MAX_NATIVE_SRC_LEN, fullPath);
+               LoadAsciiTextFile(srcCode, MAX_NATIVE_SRC_LEN, fullPath);
             }
             catch (Rococo::IException&)
             {

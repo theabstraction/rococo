@@ -54,7 +54,6 @@ namespace Rococo
          breakFlags = flags;
       }
 
-   #ifdef BREAK_ON_THROW
 	   void BreakOnThrow(BreakFlag flag)
 	   {
 		   if ((breakFlags & flag) != 0 && IsDebuggerPresent())
@@ -62,8 +61,5 @@ namespace Rococo
 			   __debugbreak();
 		   }
 	   }
-   #else
-	   void BreakOnThrow(BreakFlag flag) {}
-   #endif
    }
 }

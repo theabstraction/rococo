@@ -1,6 +1,6 @@
 # Make file for VM module in the Rococo.Sexy library
 
-COMPILER_OBJS = sexy.codebuilder.obj sexy.compiler.obj sexy.compiler.os.obj sexy.compiler.stdafx.obj
+COMPILER_OBJS = sexy.codebuilder.obj sexy.compiler.obj sexy.compiler.os.obj
 COMPILER_SRCS = $(COMPILER_OBJS,.obj=.cpp) 
 
 COMMON_DIR = ../Common/

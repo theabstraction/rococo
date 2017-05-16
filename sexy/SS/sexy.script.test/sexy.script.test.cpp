@@ -2751,33 +2751,46 @@ namespace
 
 			SEXTEXT("(interface EntryPoint.IPlayer")				
 			SEXTEXT("    (GetId -> (Int32 value))")
-			SEXTEXT("    (SetId (Int32 value) ->)")
-			SEXTEXT(")")
-
-			SEXTEXT("(class Player (implements EntryPoint.IPlayer)")				
-			SEXTEXT("    (Int32 id)")
-			SEXTEXT(")")
-
-			SEXTEXT("(method Player.GetId -> (Int32 value):")				
-			SEXTEXT("    (value = this.id)")
-			SEXTEXT(")")
-
-			SEXTEXT("(method Player.SetId (Int32 value) -> :")				
-			SEXTEXT("    (this.id = value)")
-			SEXTEXT(")")
-
-			SEXTEXT("(method Player.Construct (Int32 value): ")				
-			SEXTEXT("    (this.id = value)")
-			SEXTEXT(")")
-			;
+			SEXTEXT(")");
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNullObject"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
-		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());	
+
+      AutoFree<VM::IDisassembler> dis ( vm.Core().CreateDisassembler() );
+
+      struct ANON : public VM::ITraceOutput
+      {
+         IPublicScriptSystem* ss;
+         VM::IDisassembler* dis;
+         virtual void Report(const VM::CPU& cpu) const
+         {
+            VM::IDisassembler::Rep rep;
+            dis->Disassemble(cpu.PC(), rep);
+
+            auto id = ss->PublicProgramObject().ProgramMemory().GetFunctionContaingAddress(cpu.PC() - cpu.ProgramStart);
+            auto* f = GetFunctionFromBytecode(ss->PublicProgramObject(), id);
+
+            if (f)
+            {
+               printf("[ %s ] %s: %s\n", f->Name(), rep.OpcodeText, rep.ArgText);
+            }
+            else
+            {
+               printf("[ ] %s: %s\n", rep.OpcodeText, rep.ArgText);
+            }
+
+            printf("PC:%16.16llx SP:%16.16llx SF:%16.16llx D4:%16.16llx D5:%16.16llx D6:%16.16llx D7:%16.16llx D8:%16.16llx\n", cpu.D[0].uint64Value, cpu.D[1].uint64Value, cpu.D[2].uint64Value, cpu.D[4].uint64Value, cpu.D[5].uint64Value, cpu.D[6].uint64Value, cpu.D[7].uint64Value, cpu.D[8].uint64Value);
+         }
+      } tracer;
+
+      tracer.dis = dis;
+      tracer.ss = &ss;
 
 		vm.Push(0); // Allocate stack space for the int32 result
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+      
 		ValidateExecution(result);
 		int32 x = vm.PopInt32();
 		validate(x == 0);
@@ -10769,8 +10782,8 @@ namespace
 
 	void RunCollectionTests()
 	{
-      TEST(TestMap2);
       TEST(TestMap);  
+      TEST(TestMap2);
       TEST(TestMap3);
       TEST(TestMap4);
       TEST(TestMap5);
@@ -10916,7 +10929,12 @@ namespace
 
 	void RunPositiveSuccesses()
 	{
+      TEST(TestLinkedList6);
+
 		validate(true);
+      TEST(TestDestructor);
+      TEST(TestNullObject);
+      TEST(TestNullArchetype);
       TEST(TestOperatorOverload3);
       TEST(TestOperatorOverload2);
       TEST(TestOperatorOverload);
@@ -10934,7 +10952,6 @@ namespace
 		TEST(TestClosure);
 		TEST(TestClosureWithVariable);
 		TEST(TestReturnClosureWithVariableSucceed);	
-		TEST(TestNullArchetype);
 		TEST(TestArchetypeCall);
 
 		TEST(TestRefTypesInsideClosure);
@@ -11037,8 +11054,6 @@ namespace
 		TEST(TestInterfaceDefinition);			
 	
 		TEST(TestConstructor);
-		TEST(TestDestructor);
-		TEST(TestNullObject);		
 		TEST(TestClassDefinition);
 		TEST(TestClassInstance);
 		TEST(TestDynamicCast);
@@ -11207,9 +11222,11 @@ namespace
       int64 start, end, hz;
       start = TimerTicks();
 
-      RunCollectionTests();
+     // for(int i = 0; i < 100; i++)
+     //    TEST(TestNullObject);
+
 	   RunPositiveSuccesses();	
-      
+      RunCollectionTests();
 		RunPositiveFailures(); 
       
       end = TimerTicks();

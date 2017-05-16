@@ -161,47 +161,6 @@ namespace Rococo { namespace OS
       throw ex;
    }
 
-	void LoadAsciiTextFile(SEXCHAR* data, size_t capacity, const SEXCHAR* filename)
-	{
-		char* rawAsciiData = (char*) _alloca(capacity);
-
-		HANDLE hFile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_READONLY | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-		if (hFile == INVALID_HANDLE_VALUE)
-		{
-			CloseAndThrowOS(hFile, SEXTEXT("Cannot open file"), filename);
-		}
-
-		LARGE_INTEGER len;
-		if (!GetFileSizeEx(hFile, &len))
-		{				
-			CloseAndThrowOS(hFile, SEXTEXT("Cannot get file size"), filename);
-		}
-
-		if (len.HighPart != 0 || (LONG) len.LowPart >= (LONG) capacity)
-		{
-			CloseAndThrowOS(hFile, SEXTEXT("Cannot handle file size"), filename);
-		}
-
-		DWORD bytesRead = 0;
-		if (!ReadFile(hFile, rawAsciiData, (DWORD) capacity, &bytesRead, NULL))
-		{
-			CloseAndThrowOS(hFile, SEXTEXT("Cannot read file"), filename);
-		}
-		
-		CloseHandle(hFile);
-
-#ifdef SEXCHAR_IS_WIDE
-		for(int i = 0; i < (int) bytesRead; ++i)
-		{
-			data[i] = (SEXCHAR) rawAsciiData[i];
-		}
-#else
-		memcpy(data, rawAsciiData, bytesRead);		
-#endif
-
-		data[bytesRead] = 0;
-	}
-
 	typedef void (*FN_AddNativeSexyCalls)(Rococo::Script::IScriptSystem& ss);
 
    Rococo::Script::FN_CreateLib GetLibCreateFunction(const SEXCHAR* dynamicLinkLibOfNativeCalls, bool throwOnError)

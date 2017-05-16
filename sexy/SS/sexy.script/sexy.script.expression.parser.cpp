@@ -1579,8 +1579,20 @@ namespace Rococo { namespace Script
 		AddVariable(ce, NameString::From(id), st);
 
 		ce.Builder.Append_InitializeVirtualTable(id);
-		ce.Builder.AssignVariableRefToTemp(id, 0);
-		ce.Builder.AssignTempToVariable(0, refName);
+
+      // Temp fix, needs generalizing 
+      if (st.InterfaceCount() == 0)
+      {
+         ce.Builder.AssignVariableRefToTemp(id, 0);
+      }
+      else
+      {
+         TokenBuffer vTableRef;
+         StringPrint(vTableRef, SEXTEXT("%s._vTable1"), id);
+         ce.Builder.AssignVariableRefToTemp(vTableRef, 0); 
+      } 
+      
+      ce.Builder.AssignTempToVariable(0, refName);
 
 		InitClassMembers(ce, id);
 	}

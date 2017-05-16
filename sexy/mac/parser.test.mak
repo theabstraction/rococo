@@ -11,7 +11,7 @@ CPP_COMPILER = g++
 CPP_FLAGS = -g -std=c++14
 	
 $(BIN_DIR)sexy.parser.test: $(LIB_DIR)sexy.s-parser.mac.lib $(LIB_DIR)sexy.utilities.mac.lib $(OBJ_DIR)sexy.s-parser.test.obj
-	$(CPP_COMPILER) -g -o $(BIN_DIR)sexy.parser.test $(LIB_DIR)sexy.s-parser.mac.lib $(LIB_DIR)sexy.utilities.mac.lib $(OBJ_DIR)sexy.s-parser.test.obj
+	$(CPP_COMPILER) -g -o $(BIN_DIR)sexy.parser.test $(LIB_DIR)rococo.util.mac.lib $(LIB_DIR)sexy.s-parser.mac.lib $(LIB_DIR)sexy.utilities.mac.lib $(OBJ_DIR)sexy.s-parser.test.obj
 
 $(OBJ_DIR)%.obj : $(addprefix $(S_DIR),$(notdir %.cpp))
 	$(CPP_COMPILER) $(CPP_FLAGS) -I$(COMMON_DIR) -I$(ROCOCO_HEADERS) -c $< -o $@

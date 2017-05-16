@@ -1182,6 +1182,10 @@ namespace Rococo { namespace Script
 			csexstr argName = nullMethod.GetArgName(i);
 			f.AddOutput(NameString::From(argName), argStruct, (void*)&source);
 		}
+      
+      TokenBuffer qualifiedInterfaceName;
+		StringPrint(qualifiedInterfaceName, SEXTEXT("%s.%s"), ns.FullName()->Buffer, interf.Name());
+      f.AddInput(NameString::From(THIS_POINTER_TOKEN), TypeString::From(qualifiedInterfaceName), (void*) &source);
 
 		for(int i = 0; i < nullMethod.NumberOfInputs()-1; ++i)
 		{
@@ -1190,17 +1194,14 @@ namespace Rococo { namespace Script
 			f.AddInput(NameString::From(nullMethod.GetArgName(index)), argStruct, (void*)&source);
 		}
 
-		TokenBuffer qualifiedInterfaceName;
-		StringPrint(qualifiedInterfaceName, SEXTEXT("%s.%s"), ns.FullName()->Buffer, interf.Name());
-
-		f.AddInput(NameString::From(THIS_POINTER_TOKEN), TypeString::From(qualifiedInterfaceName), (void*) &source);
-
 		if (!f.TryResolveArguments())
 		{
 			sexstringstream<1024> streamer;
 			streamer.sb << SEXTEXT("Error resolving arguments in null method: ") << qualifiedMethodName;
 			Throw(source, streamer);
 		}
+
+      f.Builder().SetThisOffset(sizeof(int32) + sizeof(void*));
 
 		f.Builder().Begin();
 
@@ -1852,7 +1853,7 @@ namespace Rococo { namespace Script
 			f.AddOutput(NameString::From(argName), argStruct, (void*) archetype.Definition());
 		}
 
-		for (int i = 0; i < archetype.NumberOfInputs() - 1; ++i)
+		for (int i = 0; i < archetype.NumberOfInputs(); ++i)
 		{
 			int index = archetype.NumberOfOutputs() + i;
 			const IStructure& argStruct = archetype.GetArgument(index);

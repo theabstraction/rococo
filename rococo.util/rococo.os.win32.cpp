@@ -103,36 +103,6 @@ namespace Rococo
       return{ counters.PagefileUsage, counters.PeakPagefileUsage };
    }
 
-	void Throw(int32 errorCode, cstr format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-
-		struct : public IException
-		{
-			rchar msg[256];
-			int32 errorCode;
-
-			virtual cstr Message() const
-			{
-				return msg;
-			}
-
-			virtual int32 ErrorCode() const
-			{
-				return errorCode;
-			}
-		} ex;
-
-		SafeVFormat(ex.msg, _TRUNCATE, format, args);
-
-		ex.errorCode = errorCode;
-
-		OS::TripDebugger();
-
-		throw ex;
-	}
-
 	bool DoesModifiedFilenameMatchResourceName(cstr modifiedFilename, cstr resourceName)
 	{
 		cstr p = modifiedFilename;

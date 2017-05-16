@@ -394,15 +394,19 @@ namespace Rococo
       IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes);
    }
 
+   void LoadAsciiTextFile(char* data, size_t capacity, const char* filename);
+
    namespace OS
    {
+      enum BreakFlag : int32;
+
       typedef int64 ticks;
       void PrintDebug(const char* format, ...);
       void TripDebugger();
       bool IsDebugging();
+      void BreakOnThrow(BreakFlag flag);
       ticks CpuTicks();
       ticks CpuHz();
-      void LoadAsciiTextFile(char* data, size_t capacity, cstr filename);
       bool StripLastSubpath(rchar* fullpath);
       bool IsFileExistant(cstr path);
    }

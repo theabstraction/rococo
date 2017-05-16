@@ -215,7 +215,6 @@ namespace Rococo
 		if (text == nullptr) return 0;
 
 		uint32 hash = 5381;
-		int c;
 
 		while(true)
 		{

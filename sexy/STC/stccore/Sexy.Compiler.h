@@ -42,18 +42,8 @@
 #error include "sexy.compiler.pubic.h"
 #endif
 
+#ifdef WIN32
 # pragma pack(push,1)
-
-// #define IS_COMPILER_DLL 1
-
-#ifdef IS_COMPILER_DLL
-# ifdef COMPILER_LIB
-#  define COMPILER_API __declspec(dllexport)
-# else
-#  define COMPILER_API __declspec(dllimport)
-# endif
-#else
-#  define COMPILER_API
 #endif
 
 namespace Rococo { namespace Compiler
@@ -231,7 +221,7 @@ namespace Rococo { namespace Compiler
 		virtual void InitCommon() = 0;
 	};
 
-	COMPILER_API IProgramObject* CreateProgramObject_1_0_0_0(const ProgramInitParameters& pip, ILog& log);
+	IProgramObject* CreateProgramObject_1_0_0_0(const ProgramInitParameters& pip, ILog& log);
 
 	class CProgramObjectProxy
 	{
@@ -252,7 +242,7 @@ namespace Rococo { namespace Compiler
 		IProgramObject& operator()() { return *instance; }
 	};
 
-	COMPILER_API void ValidateNamespaceString(csexstr s, csexstr name, csexstr functionSymbol);
+	void ValidateNamespaceString(csexstr s, csexstr name, csexstr functionSymbol);
 
 	// Recursive structure. Given a branch, its children are visited first and then it is evaluated
 	ROCOCOAPI IBinaryExpression

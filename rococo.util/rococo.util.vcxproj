@@ -96,13 +96,15 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="allocators.cpp" />
+    <ClCompile Include="rococo.allocators.cpp" />
+    <ClCompile Include="rococo.base.cpp" />
     <ClCompile Include="rococo.flow.cpp" />
     <ClCompile Include="rococo.observer.cpp" />
     <ClCompile Include="rococo.os.mac.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="rococo.os.win32.cpp" />
     <ClCompile Include="rococo.postbox.cpp" />
     <ClCompile Include="rococo.s-parser.helpers.cpp" />
     <ClCompile Include="rococo.sprites.cpp" />
