@@ -21,9 +21,6 @@
     <ClCompile Include="sexy.util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sexy.os.win32.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sexy.strings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -5,6 +5,40 @@
 
 #include <stdio.h>
 
+#define BREAK_ON_THROW 1
+
+namespace
+{
+   int breakFlags = 0;
+}
+
+namespace Rococo
+{
+   namespace OS
+   {
+      void SetBreakPoints(int flags)
+      {
+         static_assert(sizeof(int64) == 8, "Bad int64");
+         static_assert(sizeof(int32) == 4, "Bad int32");
+         static_assert(sizeof(int16) == 2, "Bad int16");
+         static_assert(sizeof(int8) == 1, "Bad int8");
+         breakFlags = flags;
+      }
+
+#ifdef BREAK_ON_THROW
+      void BreakOnThrow(BreakFlag flag)
+      {
+         if ((breakFlags & flag) != 0 && Rococo::OS::IsDebugging())
+         {
+            TripDebugger();
+         }
+      }
+#else
+      void BreakOnThrow(BreakFlag flag) {}
+#endif
+   }
+}
+
 namespace Rococo
 {
    void Throw(int32 errorCode, cstr format, ...)

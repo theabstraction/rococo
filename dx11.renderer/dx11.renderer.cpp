@@ -16,7 +16,6 @@
 #include <rococo.dx11.renderer.win32.h>
 
 #include "dx11helpers.inl"
-#include "..\rococo.os.win32\rococo.ultraclock.inl"
 #include "dx11buffers.inl"
 
 #include "rococo.textures.h"
@@ -1301,11 +1300,40 @@ namespace
       host.device->QueryInterface(IID_PPV_ARGS(&host.debug));
 	}
 
+   struct UltraClock : public IUltraClock
+   {
+      OS::ticks start;
+      OS::ticks frameStart;
+      OS::ticks frameDelta;
+      Seconds dt;
+
+      virtual OS::ticks FrameStart() const
+      {
+         return frameStart;
+      }
+      
+      virtual OS::ticks Start() const
+      {
+         return start;
+      }
+
+      virtual OS::ticks FrameDelta() const
+      {
+         return frameDelta;
+      }
+
+      virtual Seconds DT() const
+      {
+         return dt;
+      }
+   };
+
 	void MainLoop(MainWindowHandler& mainWindow, HANDLE hInstanceLock, IApp& app)
 	{
-		OS::UltraClock uc;
-
+      UltraClock uc;
 		OS::ticks lastTick = uc.start;
+
+      float hz = (float) OS::CpuHz();
 
 		DWORD sleepMS = 5;
 		MSG msg = { 0 };
@@ -1334,7 +1362,7 @@ namespace
 
 			uc.frameDelta = uc.frameStart - lastTick;
 
-         float dt0 = uc.frameDelta / (float)uc.hz;
+         float dt0 = uc.frameDelta / (float) hz;
          dt0 = max(0.0f, dt0);
          dt0 = min(dt0, 0.05f);
          uc.dt = Seconds{ dt0 };

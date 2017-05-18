@@ -94,7 +94,6 @@
     <ClCompile Include="sexy.compiler.util.cpp" />
     <ClCompile Include="sexy.namespaces.cpp" />
     <ClCompile Include="sexy.natives.helpers.cpp" />
-    <ClCompile Include="sexy.os.win32.cpp" />
     <ClCompile Include="sexy.parsering.cpp" />
     <ClCompile Include="sexy.s-parser.util.cpp" />
     <ClCompile Include="sexy.strings.2.cpp" />

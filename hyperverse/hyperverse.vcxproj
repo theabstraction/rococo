@@ -119,8 +119,7 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\lib</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>copy.sexy.to.game.debug.bat $(SolutionDir)</Command>
     </PreBuildEvent>
     <CustomBuildStep>
       <Command>..\sexy\Bin\x64Debug\sexy.bennyhill.exe $(ProjectDir) hv.sxh hv.sxh.h</Command>
@@ -170,8 +169,7 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\lib</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>copy.sexy.to.game.release.bat $(SolutionDir)</Command>
     </PreBuildEvent>
     <CustomBuildStep>
       <Command>..\sexy\Bin\x64Debug\sexy.bennyhill.exe $(ProjectDir) hv.sxh hv.sxh.h</Command>

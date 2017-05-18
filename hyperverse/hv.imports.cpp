@@ -2,7 +2,14 @@
 #include <sexy.lib.util.h>
 #include <sexy.lib.script.h>
 
-#include "..\rococo.os.win32\rococo.imports.inl"
+#ifdef _DEBUG
+# pragma comment(lib, "rococo.maths.debug.lib")
+# pragma comment(lib, "rococo.sexy.ide.debug.lib")
+#else
+# pragma comment(lib, "rococo.maths.lib")
+# pragma comment(lib, "rococo.sexy.ide.lib")
+#endif
+
 #include "..\dx11.renderer\dx11.imports.inl"
 
 #ifdef _DEBUG
