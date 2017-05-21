@@ -1100,6 +1100,7 @@ jinit_memory_mgr (j_common_ptr cinfo)
    * If your system doesn't support getenv(), define NO_GETENV to disable
    * this feature.
    */
+#define NO_GETENV
 #ifndef NO_GETENV
 	{ 
 		char * memenv;

@@ -4,11 +4,14 @@ LIB_DIR = ../../lib/
 BIN_DIR = ../bin/mac/
 ROCOCO_DIR = ../../rococo.util/
 
-$(BIN_DIR)sexy.script.test: $(LIB_DIR)rococo.util.mac.lib $(LIB_DIR)sexy.utilities.mac.lib $(LIB_DIR)sexy.s-parser.mac.lib $(LIB_DIR)sexy.vm.mac.lib $(LIB_DIR)sexy.compiler.mac.lib $(LIB_DIR)sexy.script.mac.lib $(BIN_DIR)sexy.nativelib.maths.mac.dylib $(BIN_DIR)sexy.nativelib.reflection.mac.dylib $(BIN_DIR)sexy.vm.test $(BIN_DIR)sexy.compiler.test $(BIN_DIR)sexy.parser.test			
+$(BIN_DIR)sexy.script.test: $(LIB_DIR)rococo.util.mac.lib $(LIB_DIR)rococo.tiff.mac.lib $(LIB_DIR)sexy.utilities.mac.lib $(LIB_DIR)sexy.s-parser.mac.lib $(LIB_DIR)sexy.vm.mac.lib $(LIB_DIR)sexy.compiler.mac.lib $(LIB_DIR)sexy.script.mac.lib $(BIN_DIR)sexy.nativelib.maths.mac.dylib $(BIN_DIR)sexy.nativelib.reflection.mac.dylib $(BIN_DIR)sexy.vm.test $(BIN_DIR)sexy.compiler.test $(BIN_DIR)sexy.parser.test			
 	make -f script.test.mak
 	
 $(LIB_DIR)sexy.utilities.mac.lib: utilities.mak
 	make -f utilities.mak
+	
+$(LIB_DIR)rococo.tiff.mac.lib: ../../mac/tiff.mak
+	make -C ../../mac/ -f tiff.mak
 	
 $(LIB_DIR)sexy.s-parser.mac.lib: s-parser.mak
 	make -f s-parser.mak
@@ -56,6 +59,7 @@ clean:
 	make -f parser.test.mak        clean
 	make -f script.test.mak        clean
 	make -C ../../mac -f utils.mak clean
+	make -C ../../mac -f tiff.mak clean
 	
 test:
 	cd $(BIN_DIR);./sexy.parser.test;./sexy.vm.test;./sexy.compiler.test;./sexy.script.test;

@@ -153,6 +153,10 @@ emit_message (j_common_ptr cinfo, int msg_level)
  * Few applications should need to override this method.
  */
 
+#ifndef WIN32
+#define sprintf_s snprintf
+#endif
+
 METHODDEF(void)
 format_message (j_common_ptr cinfo, char * buffer)
 {

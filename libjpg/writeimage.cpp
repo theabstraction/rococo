@@ -38,11 +38,15 @@ namespace
 	public:
 		AutoFileHandle(const char* filename)
 		{
-			errno_t status = fopen_s(&file, (const char*)filename, "wb");
-			if (status != 0)
+#ifdef _WIN32
+			errno_t status = fopen_s(&file, (const char*)filename, "wb");	
+         if (status != 0)
 			{
 				file = NULL;
 			}
+#else
+         file = fopen((const char*)filename, "wb");
+#endif
 		}
 
 		~AutoFileHandle()

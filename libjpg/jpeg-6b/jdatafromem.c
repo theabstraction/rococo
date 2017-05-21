@@ -11,15 +11,15 @@
 
 #include "jdatastream.h"
 
-struct InMemorySourceManager
+typedef struct 
 {
 	struct jpeg_source_mgr publicFields;
 	struct DataStream* dataStream;
-};
+} InMemorySourceManager;
 
 METHODDEF(void) init_source (j_decompress_ptr cinfo)
 {
-	struct InMemorySourceManager* src = (struct InMemorySourceManager*) cinfo->src;
+	InMemorySourceManager* src = (InMemorySourceManager*) cinfo->src;
 	src->dataStream->readPosition = src->dataStream->sourceData;
 }
 
@@ -27,7 +27,7 @@ METHODDEF(boolean) fill_input_buffer (j_decompress_ptr cinfo)
 {
 	static unsigned char s_endEOI[2] = { 0xFF, 0xD9 };
 
-	struct InMemorySourceManager* src = (struct InMemorySourceManager*) cinfo->src;
+	InMemorySourceManager* src = (InMemorySourceManager*) cinfo->src;
 
 	if (src->dataStream->dataLengthBytes == 0)
 	{
@@ -61,7 +61,7 @@ METHODDEF(boolean) fill_input_buffer (j_decompress_ptr cinfo)
 
 METHODDEF(void) skip_input_data (j_decompress_ptr cinfo, long num_bytes)
 {
-	struct InMemorySourceManager* src = (struct InMemorySourceManager*) cinfo->src;
+	InMemorySourceManager* src = (InMemorySourceManager*) cinfo->src;
 
 	if (num_bytes > 0)
 	{
@@ -81,14 +81,14 @@ METHODDEF(void) term_source (j_decompress_ptr cinfo)
 
 GLOBAL(void) jpeg_inmemory_source (j_decompress_ptr cinfo, struct DataStream *dataStream)
 {
-	struct InMemorySourceManager* src;
+	InMemorySourceManager* src;
 
 	if (cinfo->src == NULL)
 	{
-		cinfo->src = (struct jpeg_source_mgr *) (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT, SIZEOF(struct InMemorySourceManager));
+		cinfo->src = (struct jpeg_source_mgr *) (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT, SIZEOF(InMemorySourceManager));
 	}
 
-	src = (struct InMemorySourceManager*) cinfo->src;
+	src = (InMemorySourceManager*) cinfo->src;
 
 	src->publicFields.init_source = init_source;
 	src->publicFields.fill_input_buffer = fill_input_buffer;

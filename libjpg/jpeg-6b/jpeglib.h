@@ -13,6 +13,8 @@
 #ifndef JPEGLIB_H
 #define JPEGLIB_H
 
+#include "jdatastream.h"
+
 /*
  * First we include the configuration files that record how this
  * installation of the JPEG library is set up.  jconfig.h can be
@@ -910,7 +912,7 @@ EXTERN(void) jpeg_destroy_decompress JPP((j_decompress_ptr cinfo));
 EXTERN(void) jpeg_stdio_dest JPP((j_compress_ptr cinfo, FILE * outfile));
 EXTERN(void) jpeg_stdio_src JPP((j_decompress_ptr cinfo, FILE * infile));
 
-EXTERN(void) jpeg_inmemory_source (j_decompress_ptr cinfo, struct DataStream *dataStream);
+EXTERN(void) jpeg_inmemory_source (j_decompress_ptr cinfo, DataStream *dataStream);
 
 /* Default parameter setup for compression */
 EXTERN(void) jpeg_set_defaults JPP((j_compress_ptr cinfo));

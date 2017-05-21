@@ -151,7 +151,7 @@ namespace Rococo
 			{
 				jpeg_start_decompress(&cinfo);
 
-				int stride = cinfo.image_width * sizeof(__int32);
+				int stride = cinfo.image_width * 4;
 				JSAMPARRAY buffer = (*cinfo.mem->alloc_sarray) ((j_common_ptr)&cinfo, JPOOL_IMAGE, cinfo.image_width * cinfo.num_components, 1);
 
 				contigBuffer = (uint8*) Allocate(cinfo.image_height * stride);
