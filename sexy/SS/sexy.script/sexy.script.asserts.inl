@@ -523,12 +523,12 @@ namespace Rococo { namespace Sex
 		return child.String();
 	}
 
-	void StreamArg(strbuilder& streamer, csexstr name, const IStructure& type)
+	void StreamArg(StringBuilder& streamer, csexstr name, const IStructure& type)
 	{
 		streamer << SEXTEXT(" (") << GetFriendlyName(type) << SEXTEXT(" ") << name << SEXTEXT(")");
 	}
 
-	void StreamFullMethod(strbuilder& streamer, const IArchetype& callee)
+	void StreamFullMethod(StringBuilder& streamer, const IArchetype& callee)
 	{
 		streamer << callee.Name() << SEXTEXT(" ");
 

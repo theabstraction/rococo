@@ -20,7 +20,8 @@ namespace
 
       void Name(DebugLine& line, VisitorName name)
       {
-         SafeCopy(line.key, name, _TRUNCATE);
+         StackStringBuilder sb(line.key, sizeof(line.key));
+         sb << name;
       }
 
       void AddBlankLine()
@@ -75,26 +76,22 @@ namespace
          DebugLine line;
          Name(line, name);
        
-         SafeCopy(line.value, "(", _TRUNCATE);
+         StackStringBuilder sb(line.key, sizeof(line.key));
+         sb <<  "(";
          
-         size_t index = 1;
          for (size_t i = 0; i < nComponents; ++i)
          {
-            size_t capacity = DebugLine::VALUE_LEN - index;
+            size_t capacity = sizeof(line.key) - sb.Length();
             if (capacity < 12)
             {
-               SafeFormat(line.value + index, capacity, _TRUNCATE, "...");
+               sb << "...";
                break;
             }
 
-            int nChars = SafeFormat(line.value + index, capacity, _TRUNCATE, "%+12.4f", vector[i]);
-            if (nChars > 0)
-            {
-               index += nChars;
-            }
+            sb.AppendFormat("%+12.4f", vector[i]);
          }
 
-         SafeFormat(line.value + index, DebugLine::VALUE_LEN - index, _TRUNCATE, ")");
+         sb << ")";
 
          lines.push_back(line);
          AddBlankLine();

@@ -1,4 +1,4 @@
-# Make file for Utilities module in the Rococo.Sexy library
+# Make file for jpg module in the Rococo.Sexy library
 
 .SUFFIXES:
 

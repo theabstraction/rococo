@@ -104,7 +104,9 @@ namespace
 			{
 				return false;
 			}
-			SafeCopy(data, capacity, buffer, _TRUNCATE);
+
+         StackStringBuilder sb(data, capacity);
+         sb << buffer;
 			return true;
 		}
 

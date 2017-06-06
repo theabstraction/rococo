@@ -57,25 +57,27 @@ namespace
 
 	void FormatWithVariant(rchar* desc, size_t capacity, const Variant& var)
 	{
+      StackStringBuilder sb(desc, capacity);
+
 		switch (var.type)
 		{
 		case EVariantType_Int32:
-			SecureFormat(desc, capacity, "%d", var.value.int32Value);
+			sb << var.value.int32Value;
 			break;
 		case EVariantType_Uint32:
-			SecureFormat(desc, capacity, "%u", var.value.uint32Value);
+         sb << var.value.uint32Value;
 			break;
 		case EVariantType_Float:
-			SecureFormat(desc, capacity, "%f", var.value.floatValue);
+			sb << var.value.floatValue;
 			break;
 		case EVariantType_Double:
-			SecureFormat(desc, capacity, "%lf", var.value.doubleValue);
+			sb << var.value.doubleValue;
 			break;
 		case EVariantType_String:
-			SafeCopy(desc, capacity, var.value.textValue.text, _TRUNCATE);
+			sb << var.value.textValue.text;
 			break;
 		default:
-			SafeFormat(desc, capacity, capacity, "? Unknown ?");
+			sb << "? Unknown ?";
 		}
 	}
 
@@ -138,7 +140,10 @@ namespace
 			ParseInt32(v, s);
 			break;
 		case EVariantType_String:
-			SecureCopy(v.var.value.textValue.text, v.var.value.textValue.capacity, s);
+         {
+            StackStringBuilder sb(v.var.value.textValue.text, v.var.value.textValue.capacity);
+            sb << s;
+         }
 			break;
 		default:
 			Throw(0, "Var type %d Not implemented for parsering.", v.var.type);
@@ -490,7 +495,9 @@ namespace
 
          AddToolTip(*v.StaticControl, variableDesc);
 
-			SecureCopy(v.name, variableName);
+         StackStringBuilder sb(v.name, v.NAME_CAPACITY);
+         sb << variableName;
+
 			v.var.value.int32Value = defaultValue;
 			v.minimum.int32Value = minimum;
 			v.maximum.int32Value = maximum;
@@ -526,8 +533,9 @@ namespace
 			v.SpecialButtonControl = Windows::AddPushButton(*tab, buttonRect, "Edit Script", nextId++, WS_VISIBLE | BS_PUSHBUTTON, WS_EX_CLIENTEDGE);
          AddToolTip(*v.StaticControl, variableDesc);
 
-			SecureCopy(v.name, variableName);
-
+         StackStringBuilder sb(v.name, v.NAME_CAPACITY);
+         sb << variableName;
+			
 			v.var.type = EVariantType_None;
 
 			variables.push_back(v);
@@ -556,7 +564,8 @@ namespace
 			v.ComboControl = AddComboBox(*tab, comboRect, editor, nextId++, WS_VISIBLE | CBS_SIMPLE | CBS_HASSTRINGS | CBS_DISABLENOSCROLL, 0, WS_EX_STATICEDGE);
          AddToolTip(*v.StaticControl, variableDesc);
 
-			SecureCopy(v.name, variableName);
+         StackStringBuilder sb(v.name, v.NAME_CAPACITY);
+         sb << variableName;
 
 			v.var.value.textValue.capacity = capacityIncludingNullCharacter;
 			v.var.value.textValue.text = buffer;
@@ -599,7 +608,8 @@ namespace
 			v.EditControl = AddEditor(*tab, GetDefaultEditRect(), editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
          AddToolTip(*v.StaticControl, variableDesc);
 
-			SecureCopy(v.name, variableName);
+         StackStringBuilder sb(v.name, v.NAME_CAPACITY);
+         sb << variableName;
 
 			v.var.value.textValue.capacity = capacity;
 			v.var.value.textValue.text = buffer;
@@ -634,7 +644,9 @@ namespace
 			v.EditControl = AddEditor(*tab, editRect, editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
 			v.SpecialButtonControl = Windows::AddPushButton(*tab, buttonRect, "...", nextId++, WS_VISIBLE | BS_PUSHBUTTON, WS_EX_CLIENTEDGE);
          AddToolTip(*v.StaticControl, variableDesc);
-			SecureCopy(v.name, variableName);
+
+         StackStringBuilder sb(v.name, v.NAME_CAPACITY);
+         sb << variableName;
 
 			v.var.value.textValue.capacity = capacity;
 			v.var.value.textValue.text = buffer;

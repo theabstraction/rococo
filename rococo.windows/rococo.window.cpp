@@ -89,7 +89,8 @@ namespace Rococo
          font.hwndOwner = hParent;
          
          LOGFONTA f = { 0 };
-         SafeCopy(f.lfFaceName, "Courier New", _TRUNCATE);
+         StackStringBuilder sb(f.lfFaceName, sizeof(f.lfFaceName));
+         sb << "Courier New";
 
          font.lpLogFont = &f;
          font.Flags = CF_FIXEDPITCHONLY | CF_FORCEFONTEXIST | CF_INITTOLOGFONTSTRUCT;
@@ -118,7 +119,10 @@ namespace Rococo
 			hSmallIcon = _hSmallIcon;
 
 			LOGFONTA defaultTitleFont = { 0 };
-			SecureCopy(defaultTitleFont.lfFaceName, "Courier New");
+         {
+            StackStringBuilder sb(defaultTitleFont.lfFaceName, sizeof(defaultTitleFont.lfFaceName));
+            sb << "Courier New";
+         }
 			defaultTitleFont.lfHeight = -11;
 
 			hTitleFont = CreateFontIndirectA(titleFont ? titleFont : & defaultTitleFont);
@@ -128,7 +132,10 @@ namespace Rococo
 			}
 
 			LOGFONTA defaultControlFont = { 0 };
-			SecureCopy(defaultControlFont.lfFaceName, "Courier New");
+         {
+            StackStringBuilder sb(defaultControlFont.lfFaceName, sizeof(defaultControlFont.lfFaceName));
+            sb << "Courier New";
+         }
 			defaultControlFont.lfHeight = -11;
 
 			hControlFont = CreateFontIndirectA(controlFont ? controlFont : &defaultControlFont);

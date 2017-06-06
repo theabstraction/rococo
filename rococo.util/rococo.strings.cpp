@@ -16,92 +16,6 @@ namespace
 {
 	using namespace Rococo;
 
-	class SafeStringBuilder : public IStringBuilder
-	{
-	public:
-		SafeStringBuilder(size_t _capacity): buffer(nullptr), capacity(_capacity), offset(0)
-		{
-			buffer = new rchar[capacity];
-			buffer[0] = 0;
-		}
-
-		virtual operator cstr () const
-		{
-			return buffer;
-		}
-
-		virtual int AppendFormat(cstr format, ...)
-		{
-			if (offset >= capacity - 1)
-			{
-				return 0;
-			}
-
-			va_list args;
-			va_start(args, format);
-			int result = SafeVFormat(buffer + offset, capacity - offset, _TRUNCATE, format, args);
-
-			if (result > 0)
-			{
-				offset += result;
-			}
-			return result;
-		}
-
-		virtual void Free()
-		{
-			delete this;
-		}
-	private:
-		~SafeStringBuilder()
-		{
-			delete[] buffer;
-		}
-
-		rchar* buffer;
-		size_t capacity;
-		size_t offset;
-	};
-
-	class SafeStackStringBuilder : public IStringBuilder
-	{
-	private:
-		SafeStackString& sss;
-		size_t offset;
-	public:
-		SafeStackStringBuilder(SafeStackString& _sss) : sss(_sss), offset(0)
-		{
-			
-		}
-
-		virtual operator cstr () const
-		{
-			return sss.Buffer();
-		}
-
-		virtual int AppendFormat(cstr format, ...)
-		{
-			if (offset >= sss.Capacity() - 1)
-			{
-				return 0;
-			}
-
-			va_list args;
-			va_start(args, format);
-			int result = SafeVFormat(sss.Buffer() + offset, sss.Capacity() - offset, _TRUNCATE, format, args);
-
-			if (result > 0)
-			{
-				offset += result;
-			}
-			return result;
-		}
-
-		virtual void Free()
-		{
-		}
-	};
-
 	class ExpandingBuffer : public IExpandingBuffer
 	{
 		std::vector<uint8> internalBuffer;
@@ -164,17 +78,6 @@ namespace Rococo
 	bool operator == (const fstring& a, const fstring& b)
 	{
 		return a.length == b.length && StrCmpN(a.buffer, b.buffer, a.length) == 0;
-	}
-
-	IStringBuilder* CreateSafeStringBuilder(size_t capacity)
-	{
-		return new SafeStringBuilder(capacity);
-	}
-
-	IStringBuilder* CreateSafeStackStringBuilder(SafeStackString& sss)
-	{
-		static_assert(sizeof(SafeStackStringBuilder) < SafeStackString::OPAQUE_CAPACITY, "OPAQUE_CAPACITY insufficient");
-		return new (sss.Data()) SafeStackStringBuilder(sss);
 	}
 
 	void SplitString(const char* text, size_t length, cstr seperators, IEventCallback<cstr>& onSubString)
@@ -261,5 +164,103 @@ namespace Rococo
    bool Eq(const char* a, const char* b)
    {
       return strcmp(a, b) == 0;
+   }
+
+   StackStringBuilder::StackStringBuilder(char* _buffer, size_t _capacity) :
+      buffer(_buffer), capacity(_capacity), length(0)
+   {
+      buffer[0] = 0;
+   }
+
+   StackStringBuilder::StackStringBuilder(char* _buffer, size_t _capacity, eOpenType type):
+      buffer(_buffer), capacity(_capacity)
+   {
+      size_t ulen = strlen(buffer);
+      if (ulen > 0x000000007FFFFFFF)
+      {
+         Throw(0, "Maximum string length exceeded");
+      }
+      length = (int32)ulen;
+      if (length >= capacity)
+      {
+         length = (int32) (capacity - 1);
+         buffer[capacity - 1] = 0;
+      }
+   }
+
+   int32 StackStringBuilder::Length() const
+   {
+      return length;
+   }
+
+   StringBuilder& StackStringBuilder::AppendFormat(const char* format, ...)
+   {
+      size_t ulen = (size_t)length;
+      if (ulen == capacity) return *this;
+
+      va_list args;
+      va_start(args, format);
+      int charsCopied = _vsnprintf_s(buffer + ulen, capacity - ulen, _TRUNCATE, format, args);
+      if (charsCopied > 0)
+      {
+         length += charsCopied;
+         if ((size_t)length > capacity)
+         {
+            if (Rococo::OS::IsDebugging())
+            {
+               // vsnprintf_s appears buggy
+               Rococo::OS::TripDebugger();
+            }
+            Throw(0, "_vsnprintf_s appears to be bugged");
+         }
+      }
+      else if (charsCopied < 0)
+      {
+         length = (int32)(capacity - 1);
+         buffer[length] = 0;
+      }
+
+      return *this;
+   }
+
+   StringBuilder& StackStringBuilder::operator << (cstr text)
+   {
+      return AppendFormat("%s", text);
+   }
+
+   StringBuilder& StackStringBuilder::operator << (int32 value)
+   {
+      return AppendFormat("%d", value);
+   }
+
+   StringBuilder& StackStringBuilder::operator << (uint32 value)
+   {
+      return AppendFormat("%u", value);
+   }
+
+   StringBuilder& StackStringBuilder::operator << (int64 value)
+   {
+      return AppendFormat("%lld", value);
+   }
+
+   StringBuilder& StackStringBuilder::operator << (uint64 value)
+   {
+      return AppendFormat("%llu", value);
+   }
+
+   StringBuilder& StackStringBuilder::operator << (float value)
+   {
+      return AppendFormat("%f", value);
+   }
+
+   StringBuilder& StackStringBuilder::operator << (double value)
+   {
+      return AppendFormat("%lf", value);
+   }
+
+   void StackStringBuilder::Clear()
+   {
+      buffer[0] = 0;
+      length = 0;
    }
 }

@@ -120,7 +120,9 @@ namespace
          sysDebug.AddString("Continue", MENU_EXECUTE_CONTINUE, "F5");
 
          logFont = LOGFONTA{ 0 };
-         SafeCopy(logFont.lfFaceName, "Courier New", _TRUNCATE);
+         StackStringBuilder sb(logFont.lfFaceName, sizeof(logFont.lfFaceName));
+         sb << "Courier New";
+
          logFont.lfHeight = -11;
 
          hFont = CreateFontIndirectA(&logFont);
@@ -294,7 +296,9 @@ namespace
             { IDEPANE_ID_API,          "API" },
             { IDEPANE_ID_LOG,          "Log" }
          });
-         SafeCopy(name, 256, idToName[id], _TRUNCATE);
+
+         StackStringBuilder sb(name, 256);
+         sb << idToName[id];
       }
 
       virtual IDEPANE_ID GetMigratingId()

@@ -172,7 +172,7 @@ namespace
 		q.firstEntity = nullptr;
 	}
 
-	bool __fastcall DoSpheresOverlap(Vec2 centre, float maxRangeSq, const Entry& entry)
+	bool DoSpheresOverlap(Vec2 centre, float maxRangeSq, const Entry& entry)
 	{
 		float ds2 = Square(entry.boundingSphere.centre.x - centre.x) + Square(entry.boundingSphere.centre.y - centre.y);
 		return ds2 < maxRangeSq;

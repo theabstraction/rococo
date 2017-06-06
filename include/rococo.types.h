@@ -94,6 +94,45 @@ namespace Rococo
       return fstring{ msg, (int32)length };
    }
 
+   struct StringBuilder
+   {
+      virtual StringBuilder& AppendFormat(const char* format, ...) = 0;
+      virtual StringBuilder& operator << (cstr text) = 0;
+      virtual StringBuilder& operator << (int32 value) = 0;
+      virtual StringBuilder& operator << (uint32 value) = 0;
+      virtual StringBuilder& operator << (int64 value) = 0;
+      virtual StringBuilder& operator << (uint64 value) = 0;
+      virtual StringBuilder& operator << (float value) = 0;
+      virtual StringBuilder& operator << (double value) = 0;
+      virtual fstring operator * () const = 0;
+      virtual void Clear() = 0;
+      virtual int32 Length() const = 0;
+
+      enum eOpenType { BUILD_EXISTING = 0 };
+   };
+
+   class StackStringBuilder : public StringBuilder
+   {
+   private:
+      char* buffer;
+      size_t capacity;
+      int32 length;
+   public:
+      StackStringBuilder(char* _buffer, size_t _capacity);
+      StackStringBuilder(char* _buffer, size_t _capacity, eOpenType type);
+      fstring operator * () const override { return fstring{ buffer, length }; }
+      StringBuilder& AppendFormat(const char* format, ...) override;
+      StringBuilder& operator << (cstr text) override;
+      StringBuilder& operator << (int32 value)  override;
+      StringBuilder& operator << (uint32 value) override;
+      StringBuilder& operator << (int64 value)  override;
+      StringBuilder& operator << (uint64 value) override;
+      StringBuilder& operator << (float value) override;
+      StringBuilder& operator << (double value) override;
+      void Clear() override;
+      int32 Length() const override;
+   };
+
    struct ILock
    {
       virtual void Lock() = 0;
@@ -467,17 +506,6 @@ namespace Rococo
       va_list args;
       va_start(args, format);
       return _vsnprintf_s(buffer, capacity, maxCount, format, args);
-   }
-
-   void strcpy_s(char* dest, size_t capacity, const char* source);
-   void strncpy_s(char* dest, size_t capacity, const char* source, size_t maxCount);
-   void strcat_s(char* dest, size_t capacity, const char* source);
-   void strncat_s(char* dest, size_t capacity, const char* source, size_t maxCount);
-
-   template<size_t _Size>
-   inline void strcat_s(char(&buffer)[_Size], const char* source)
-   {
-      strcat_s(buffer, _Size, source);
    }
 
 # define _MAX_PATH 260 // There is no good answer for this

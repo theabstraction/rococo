@@ -176,6 +176,7 @@ namespace
 	{
 		rchar data[_MAX_PATH];
 		operator rchar*() { return data; }
+      operator cstr() const { return data; }
 	};
 
 	void GetContentDirectory(cstr contentIndicatorName, FilePath& path, IOS& os)
@@ -183,14 +184,16 @@ namespace
 		FilePath binDirectory;
 		os.GetBinDirectoryAbsolute(binDirectory, os.MaxPath());
 
-		path = binDirectory;
+      StackStringBuilder sb(path.data, _MAX_PATH);
+      sb << binDirectory.data;
 
       if (strstr(contentIndicatorName, "\\") != nullptr)
       {
          // The indicator is part of a path
          if (os.IsFileExistant(contentIndicatorName))
          { 
-            SecureFormat(path.data, "%s", contentIndicatorName);
+            sb.Clear();
+            sb << contentIndicatorName;
             MakeContainerDirectory(path);
             return;
          }
@@ -204,7 +207,8 @@ namespace
 			SecureFormat(indicator.data, "%s%s", path.data, contentIndicatorName);
 			if (os.IsFileExistant(indicator))
 			{
-				SecureCat(path.data, "content\\");
+            StackStringBuilder sb(path.data, _MAX_PATH, StringBuilder::BUILD_EXISTING);
+				sb << "content\\";
 				return;
 			}
 

@@ -129,7 +129,7 @@ namespace Rococo
       };
 
       void InitClassMembers(CCompileEnvironment& ce, csexstr id);
-      void StreamSTCEX(strbuilder& sb, const Compiler::STCException& ex);
+      void StreamSTCEX(StringBuilder& sb, const Compiler::STCException& ex);
       bool TryCompileFunctionCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, VARTYPE type, const IStructure* derivedType, const IArchetype* returnArchetype);
 
       class CScripts;

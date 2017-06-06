@@ -283,7 +283,8 @@ namespace
 
 	CSVStream::CSVStream(cstr _filename, const char* _buffer, size_t _nBytes) : buffer(_buffer), nBytes(_nBytes)
 	{
-		SecureCopy(this->filename, _filename);
+      StackStringBuilder sb(filename, _MAX_PATH);
+		sb << _filename;
 		SetCSVToStart(buffer, nBytes, cursor);
 	}
 

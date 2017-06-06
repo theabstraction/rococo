@@ -1,4 +1,4 @@
-# Make file for VM module in the Rococo.Sexy library
+# Make file for compiler module in the Rococo.Sexy library
 
 COMPILER_OBJS = sexy.codebuilder.obj sexy.compiler.obj sexy.compiler.os.obj
 COMPILER_SRCS = $(COMPILER_OBJS,.obj=.cpp) 

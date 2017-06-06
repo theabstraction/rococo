@@ -28,8 +28,9 @@ namespace Rococo
    
       void StringPopulator::Populate(csexstr text)
       {
-         SafeCat(builder->buffer, builder->capacity, text, _TRUNCATE);
-         builder->length = StringLength(builder->buffer);
+         StackStringBuilder sb(builder->buffer, builder->capacity, StringBuilder::BUILD_EXISTING);
+         sb << text;
+         builder->length = sb.Length();
       }
 
       const IStructure& GetDefaultProxy(csexstr fqNS, csexstr interfaceName, csexstr proxyName, IPublicScriptSystem& ss)

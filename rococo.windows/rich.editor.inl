@@ -79,7 +79,9 @@ namespace
 
 			size_t len = min(rlen(text), nChars);
 			rchar* segmentBuffer = (rchar*)_alloca(sizeof(rchar)* len + 2);
-			SafeCopy(segmentBuffer, len + 1, text, len);
+
+         StackStringBuilder sb(segmentBuffer, len + 1);
+			sb << text;
 
 			// hwnd = rich edit hwnd
 			SendMessage(hWndEditor, EM_EXSETSEL, 0, (LPARAM)&cr);

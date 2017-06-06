@@ -63,7 +63,9 @@ namespace
             Throw(0, "Sprite directories must be inside the content directory. Use the '!<directory>' notation");
          }
 
-         SafeCopy(onFileFound.shortdir, directoryName, _TRUNCATE);
+         StackStringBuilder sb(onFileFound.shortdir, _MAX_PATH);
+         sb << directoryName;
+
          EndDirectoryWithSlash(onFileFound.shortdir, IO::MAX_PATHLEN);
    
          SafeFormat(onFileFound.directory, _TRUNCATE, "%s%s", renderer.Installation().Content(), (onFileFound.shortdir+1));

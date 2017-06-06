@@ -144,7 +144,8 @@ namespace
 				return false;
 			}
 
-			SecureCopy(buffer, capacity, stackbuffer);
+         StackStringBuilder sb(buffer, capacity);
+         sb << stackbuffer;
 
 			return true;
 		}

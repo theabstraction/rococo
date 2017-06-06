@@ -38,7 +38,9 @@ namespace
             Throw(0, "Call MeshBuilder.End() first");
          }
          Strings::ValidateFQNameIdentifier(fqName);
-         SafeCopy(name, fqName, _TRUNCATE);
+
+         StackStringBuilder sb(name, sizeof(name));
+         sb << fqName;
       }
 
       virtual void AddTriangle(const Vertex& a, const Vertex& b, const Vertex& c)

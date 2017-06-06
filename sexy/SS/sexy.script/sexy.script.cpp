@@ -83,7 +83,8 @@ namespace Rococo
             return;
          }
 
-         SafeCopy(defaultNativeSourcePath, 255, pathname, _TRUNCATE);
+         StackStringBuilder sb(defaultNativeSourcePath, 256);
+         sb.AppendFormat("%s", pathname);
 
          // Terminate with slash
          AddSlashToDirectory(defaultNativeSourcePath);
@@ -442,13 +443,14 @@ namespace Rococo
 		{
 			try
 			{
+            StackStringBuilder sb(srcEnvironment, 256);
             if (pip.NativeSourcePath != 0)
             {
-               SafeCopy(srcEnvironment, _MAX_PATH-1, pip.NativeSourcePath, _TRUNCATE);
+               sb.AppendFormat("%s", pip.NativeSourcePath);
             }
             else if (*defaultNativeSourcePath != 0)
             {
-               SafeCopy(srcEnvironment, _MAX_PATH - 1, defaultNativeSourcePath, _TRUNCATE);
+               sb.AppendFormat("%s", defaultNativeSourcePath);
             }
             else
             {

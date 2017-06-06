@@ -1,4 +1,4 @@
-# Make file for maths native lib in the Rococo.Sexy library
+# Make file for reflection native lib in the Rococo.Sexy library
 
 COMMON_DIR = ../Common/
 ROCOCO_HEADERS = ../../include/

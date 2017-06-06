@@ -39,7 +39,8 @@ namespace
          if (ev == evStatusUpate)
          {
             auto& evs = As<StatusEvent>(ev);
-            SafeCopy(text, evs.status, _TRUNCATE);
+            StackStringBuilder sb(text, sizeof(text));
+            sb << evs.status;
             updateHighlight = 255;
          }
       }

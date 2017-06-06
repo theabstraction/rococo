@@ -2757,7 +2757,7 @@ namespace Rococo { namespace Script
 		Throw(s, streamer);
 	}
 
-	void StreamSTCEX(strbuilder& streamer, const STCException& ex)
+	void StreamSTCEX(StringBuilder& streamer, const STCException& ex)
 	{
 		streamer << SEXTEXT("Compiler exception code: ") << ex.Code() << SEXTEXT(".\n") << SEXTEXT("Source: ") << ex.Source() << SEXTEXT("\n. Message: ") << ex.Message();
 	}

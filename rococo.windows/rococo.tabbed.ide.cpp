@@ -93,58 +93,60 @@ namespace
 
    class IDEWriterViaSexy : public IIDEWriter
    {
-      AutoFree<Rococo::IStringBuilder> sb;
       int depth;
+
+      rchar writeBuffer[32768];
+      StackStringBuilder sb;
    public:
       IDEWriterViaSexy() :
-         depth(0), sb(CreateSafeStringBuilder(32768ULL))
+         depth(0), sb(writeBuffer, sizeof(writeBuffer))
       {
       }
 
       void Commit(cstr filename)
       {
-         IO::SaveUserFile(filename, *sb);
+         IO::SaveUserFile(filename, writeBuffer);
       }
 
       virtual void AppendDepth()
       {
          for (int i = 0; i < depth; ++i)
          {
-            sb->AppendFormat("  ");
+            sb.AppendFormat("  ");
          }
       }
 
       virtual void WriteText(cstr propName, cstr value) // TODO->escape sequences
       {
          AppendDepth();
-         sb->AppendFormat("(%s string \"%s\")\n", propName, value);
+         sb.AppendFormat("(%s string \"%s\")\n", propName, value);
       }
 
       virtual void WriteInt(cstr propName, int32 value)
       {
          AppendDepth();
-         sb->AppendFormat("(%s int32 0x%X)\n", propName, value);
+         sb.AppendFormat("(%s int32 0x%X)\n", propName, value);
       }
 
       virtual void WriteSetOfIds(cstr propName, IIterator<IDEPANE_ID>& container)
       {
          AppendDepth();
-         sb->AppendFormat("(%s array IDEPANE_ID ", propName);
+         sb.AppendFormat("(%s array IDEPANE_ID ", propName);
 
          container.Begin();
          while (!container.IsEnd())
          {
             auto id = container.Next();
-            sb->AppendFormat(" 0x%X", id.value);
+            sb.AppendFormat(" 0x%X", id.value);
          }
 
-         sb->AppendFormat(")\n");
+         sb.AppendFormat(")\n");
       }
 
       virtual void PushChild()
       {
          AppendDepth();
-         sb->AppendFormat("(child \n");
+         sb.AppendFormat("(child \n");
          depth++;
       }
 
@@ -152,7 +154,7 @@ namespace
       {
          depth--;
          AppendDepth();
-         sb->AppendFormat(")\n");
+         sb.AppendFormat(")\n");
       }
    };
 
@@ -698,21 +700,23 @@ namespace
 
                UINT pos = 0;
 
+               StackStringBuilder sb_name(name, sizeof(name));
+
                if (moveTabIndex >= 0)
                {
                   if (paneIds.size() > 1)
                   {
                      item.wID = ELayout_Horizontal;
-                     SafeCopy(name, "Split Horiztonally", _TRUNCATE);
+                     sb_name << "Split Horiztonally";
                      InsertMenuItemA(hMenu, pos++, MF_BYPOSITION, &item);
 
                      item.wID = ELayout_Vertical;
-                     SafeCopy(name, "Split Vertically", _TRUNCATE);
+                     sb_name << "Split Vertically";
                      InsertMenuItemA(hMenu, pos++, MF_BYPOSITION, &item);
                   }
 
                   item.wID = EMenuCommand_MigrateFrom;
-                  SafeCopy(name, "Migrate From", _TRUNCATE);
+                  sb_name << "Migrate From";
                   InsertMenuItemA(hMenu, pos++, MF_BYPOSITION, &item);
                }
 
@@ -721,7 +725,7 @@ namespace
                   item.fState = MF_DISABLED;
                }
                item.wID = EMenuCommand_MigrateTo;
-               SafeCopy(name, "Migrate To", _TRUNCATE);
+               sb_name << "Migrate To";
                InsertMenuItemA(hMenu, pos++, MF_BYPOSITION, &item);
             }
          }
@@ -1452,7 +1456,8 @@ namespace
 
       if (GetAtomicArg(sheight, 0) != "FontHeight") ThrowSex(sfont, "Expecting (FontHeight int32 ...)");
 
-      SafeCopy(logFont.lfFaceName, sfont[2].String()->Buffer, _TRUNCATE);
+      StackStringBuilder sb(logFont.lfFaceName, sizeof(logFont.lfFaceName));
+      sb << sfont[2].String()->Buffer;
 
       VariantValue height;
       Parse::TryParse(height, VARTYPE_Int32, GetAtomicArg(sheight, 2).String()->Buffer);

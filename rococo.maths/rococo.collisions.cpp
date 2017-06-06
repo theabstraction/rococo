@@ -566,7 +566,7 @@ namespace Rococo
 
       const float epsilon = 0.001f;
 
-      if (Fx == 0 && Gx != 0 || Fx != 0 && Gx == 0)
+      if ((Fx == 0 && Gx != 0) || (Fx != 0 && Gx == 0))
       {
          return false;
       }

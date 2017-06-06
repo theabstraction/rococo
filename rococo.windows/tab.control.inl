@@ -75,7 +75,8 @@ namespace
 					auto i = tooltips.find((size_t)item.lParam);
 					
 					cstr src = i == tooltips.end() ? "" : i->second.c_str();
-					SafeCopy(text, src, _TRUNCATE);
+               StackStringBuilder sb(text, sizeof(text));
+					sb << src;
 					
 					info->hinst = nullptr;
 					return TRUE;

@@ -1,4 +1,4 @@
-# Make file for VM Test module in the Rococo.Sexy library
+# Make file for Parser Test module in the Rococo.Sexy library
 
 COMMON_DIR = ../Common/
 ROCOCO_HEADERS = ../../include/

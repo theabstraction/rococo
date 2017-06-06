@@ -45,7 +45,8 @@ namespace
 			this->specIndex = specIndex;
 
 			int charsInSet;
-			csv >> StringBuffer(specName, 64);
+         StringBuffer specCapture(specName, 64);
+			csv >> specCapture;
 			csv >> fontHeight;
 			csv >> fontAscent;
 			csv >> charsInSet;
@@ -74,7 +75,8 @@ namespace
 				}
 
 				Glyph& g = glyphs[charValue];
-				csv >> ValidateItem("ABC");
+            ValidateItem vABC("ABC");
+				csv >> vABC;
 				csv >> g.A;
 				csv >> g.B;
 				csv >> g.C;
@@ -112,7 +114,9 @@ namespace
 			CSVStream csv(sourceName, csvData, nBytes);
 
 			int32 width, height;
-			csv >> ValidateItem("NumberOfSpecs") >> numberOfGlyphSets >> width >> height;
+
+         ValidateItem vSpecs("NumberOfSpecs");
+			csv >> vSpecs >> numberOfGlyphSets >> width >> height;
 
 			scale.x = (float)width;
 			scale.y = (float)height;
@@ -125,7 +129,8 @@ namespace
 			{
 				csv.AdvanceToNextLine();
 				int specIndex;
-				csv >> ValidateItem("Spec") >> specIndex;
+            ValidateItem vSpec("Spec");
+				csv >> vSpec >> specIndex;
 
 				if (specIndex != j) Throw(0, "Spec index %d did not match j = %d in %s", specIndex, j, sourceName);
 

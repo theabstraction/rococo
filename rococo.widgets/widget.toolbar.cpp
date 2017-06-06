@@ -20,10 +20,13 @@ namespace
       GuiRect renderLocation;
       bool isOn{ false };
 
-      Button(EventId _id, cstr name, cstr resource) : id(_id)
+      Button(EventId _id, cstr _name, cstr _resource) : id(_id)
       {
-         SafeCopy(this->name, name, _TRUNCATE);
-         SafeCopy(this->resource, resource, _TRUNCATE);
+         StackStringBuilder sb_name(name, sizeof(name));
+         sb_name << _name;
+
+         StackStringBuilder sb_resource(resource, sizeof(resource));
+         sb_resource << _resource;
       }
    };
 
