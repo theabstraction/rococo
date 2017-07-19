@@ -40,26 +40,29 @@ namespace Rococo
 		}
 	}
 
-	void ShowErrorBox(IWindow& parent, IException& ex, cstr caption)
-	{
-		if (ex.ErrorCode() == 0)
-		{
-			ShowMessageBox(parent, ex.Message(), caption, MB_ICONERROR);
-		}
-		else
-		{
-			rchar codeMsg[512];
-			rchar bigMsg[512];
-			if (FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, ex.ErrorCode(), 0, codeMsg, 512, nullptr) <= 0)
-			{
-				SafeFormat(bigMsg, _TRUNCATE, "%s. Code 0x%x", ex.Message(), ex.ErrorCode());
-			}
-			else
-			{
-				SafeFormat(bigMsg, _TRUNCATE, "%s\nCode 0x%x: %s", ex.Message(), ex.ErrorCode(), codeMsg);
-			}
+   namespace OS
+   {
+      void ShowErrorBox(IWindow& parent, IException& ex, cstr caption)
+      {
+         if (ex.ErrorCode() == 0)
+         {
+            ShowMessageBox(parent, ex.Message(), caption, MB_ICONERROR);
+         }
+         else
+         {
+            rchar codeMsg[512];
+            rchar bigMsg[512];
+            if (FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, ex.ErrorCode(), 0, codeMsg, 512, nullptr) <= 0)
+            {
+               SafeFormat(bigMsg, sizeof(bigMsg), "%s. Code 0x%x", ex.Message(), ex.ErrorCode());
+            }
+            else
+            {
+               SafeFormat(bigMsg, sizeof(bigMsg), "%s\nCode 0x%x: %s", ex.Message(), ex.ErrorCode(), codeMsg);
+            }
 
-			ShowMessageBox(parent, bigMsg, caption, MB_ICONERROR);
-		}
-	}
-}
+            ShowMessageBox(parent, bigMsg, caption, MB_ICONERROR);
+         }
+      }
+   }//OS
+}//Rococo

@@ -39,7 +39,7 @@
 #endif
 
 
-#ifdef WIN32
+#ifdef _WIN32
 # pragma once
 # define IMPORT_FROM_DLL extern "C" __declspec(dllimport)
 # define EXPORT_FROM_DLL extern "C" __declspec(dllexport)

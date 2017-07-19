@@ -10,6 +10,8 @@
 
 #include <vector>
 #include <rococo.io.h>
+
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
 namespace
@@ -58,6 +60,36 @@ namespace Rococo
    size_t rlen(cstr s)
    {
       return strlen(s);
+   }
+
+   int SafeFormat(char* buffer, size_t capacity, const char* format, ...)
+   {
+      va_list args;
+      va_start(args, format);
+      return SafeVFormat(buffer, capacity, format, args);
+   }
+
+   int SecureFormat(char* buffer, size_t capacity, const char* format, ...)
+   {
+      va_list args;
+      va_start(args, format);
+      int count = SafeVFormat(buffer, capacity, format, args);
+      if (count == -1)
+      {
+         Throw(0, "SecureFormat failed. Buffer length exceeded. Format String: %s", format);
+      }
+      return count;
+   }
+
+   int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args)
+   {
+      int count = vsnprintf(buffer, capacity, format, args);
+      if (count >= capacity)
+      {
+         return -1;
+      }
+
+      return count;
    }
 
 	fstring to_fstring(cstr const msg)
@@ -200,7 +232,7 @@ namespace Rococo
 
       va_list args;
       va_start(args, format);
-      int charsCopied = _vsnprintf_s(buffer + ulen, capacity - ulen, _TRUNCATE, format, args);
+      int charsCopied = SafeVFormat(buffer + ulen, capacity - ulen, format, args);
       if (charsCopied > 0)
       {
          length += charsCopied;

@@ -216,7 +216,7 @@ namespace Rococo
 			if (!splitter.SplitTail(OUT body, OUT publicName))
 			{
 				SEXCHAR fullError[2048];
-				StringPrint(fullError, 2048, SEXTEXT("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
+            SafeFormat(fullError, 2048, SEXTEXT("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
 				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, SEXTEXT(""), NULL);
 				Throw(nativeError);
 			}
@@ -240,7 +240,7 @@ namespace Rococo
 			if (!splitter.SplitTail(OUT body, OUT publicName))
 			{
 				SEXCHAR fullError[2048];
-				StringPrint(fullError, 2048, SEXTEXT("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
+            SafeFormat(fullError, 2048, SEXTEXT("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
 				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, SEXTEXT(""), NULL);
 				Throw(nativeError);
 			}
@@ -253,7 +253,7 @@ namespace Rococo
 			if (!f->TryResolveArguments())
 			{
 				SEXCHAR fullError[2048];
-				StringPrint(fullError, 2048, SEXTEXT("%s: Could not resolve all arguments. Check the log."), nf.Archetype.c_str());
+            SafeFormat(fullError, 2048, SEXTEXT("%s: Could not resolve all arguments. Check the log."), nf.Archetype.c_str());
 				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, SEXTEXT(""), NULL);
 				Throw(nativeError);
 			}
@@ -271,7 +271,7 @@ namespace Rococo
 			catch (IException& e)
 			{
 				SEXCHAR fullError[2048];
-				StringPrint(fullError, 2048, SEXTEXT("%s: %s"), nf.Archetype.c_str(), e.Message());
+            SafeFormat(fullError, 2048, SEXTEXT("%s: %s"), nf.Archetype.c_str(), e.Message());
 				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, SEXTEXT(""), NULL);
 				Throw(nativeError);
 			}							
@@ -309,7 +309,7 @@ namespace Rococo
 		if (archetype.NumberOfElements() == 1)
 		{
 			SEXCHAR fullError[512];
-			StringPrint(fullError, 512, SEXTEXT("Element defined in %s had one element. Ensure that the native call spec is not encapsulated in parenthesis"), ns.FullName()->Buffer);
+         SafeFormat(fullError, 512, SEXTEXT("Element defined in %s had one element. Ensure that the native call spec is not encapsulated in parenthesis"), ns.FullName()->Buffer);
 			Throw(archetype, fullError);
 		}
 
@@ -328,7 +328,7 @@ namespace Rococo
 		if (mapIndex < 0)
 		{
 			SEXCHAR fullError[512];
-			StringPrint(fullError, 512, SEXTEXT("Cannot find the mapping token -> in the archetype: %s.%s"), ns.FullName()->Buffer, publicName);
+         SafeFormat(fullError, 512, SEXTEXT("Cannot find the mapping token -> in the archetype: %s.%s"), ns.FullName()->Buffer, publicName);
 			Throw(archetype, fullError);
 		}
 
@@ -461,7 +461,7 @@ namespace Rococo
 			catch(IException& innerEx)
 			{
             rchar message[1024];
-            SafeFormat(message, _TRUNCATE, SEXTEXT("%s:\nFailed to get sexy environment.\nUse Rococo::Script::SetDefaultNativeSourcePath(...) or ProgramInitParameters or environment variable SEXY_NATIVE_SRC_DIR"), innerEx.Message());
+            SafeFormat(message, sizeof(message), SEXTEXT("%s:\nFailed to get sexy environment.\nUse Rococo::Script::SetDefaultNativeSourcePath(...) or ProgramInitParameters or environment variable SEXY_NATIVE_SRC_DIR"), innerEx.Message());
             _logger.Write(message);
             Rococo::Throw(innerEx.ErrorCode(), SEXTEXT("%s"), message);
 			}
@@ -993,17 +993,17 @@ namespace Rococo
 					IStructure& s = module.GetStructure(i);
 					if (s.Prototype().IsClass)
 					{		
-						StringPrint(symbol, 256, SEXTEXT("%s-typeInfo"), s.Name());
+                  SafeFormat(symbol, 256, SEXTEXT("%s-typeInfo"), s.Name());
 						AddSymbol(symbol, s.GetVirtualTable(0));		
 
 						for(int k = 1; k <= s.InterfaceCount(); ++k)
 						{					
-							StringPrint(symbol, 256, SEXTEXT("%s-vTable%d"), s.Name(), k);
+							SafeFormat(symbol, 256, SEXTEXT("%s-vTable%d"), s.Name(), k);
 							AddSymbol(symbol, s.GetVirtualTable(k));						
 						}						
 					}
 
-					StringPrint(symbol, 256, SEXTEXT("typeof(%s)"), s.Name());
+               SafeFormat(symbol, 256, SEXTEXT("typeof(%s)"), s.Name());
 					AddSymbol(symbol, &s);
 				}
 			}
@@ -1119,7 +1119,7 @@ namespace Rococo
 			CopyStringToSexChar(sxArchetype, 256, archetype, len+1);
 
 			SEXCHAR srcName[MAX_ARCHETYPE_LEN + 64];
-			StringPrint(srcName, MAX_ARCHETYPE_LEN + 64, SEXTEXT("Source: '%s'"), sxArchetype);
+         SafeFormat(srcName, MAX_ARCHETYPE_LEN + 64, SEXTEXT("Source: '%s'"), sxArchetype);
 			Auto<ISourceCode> src = SParser().ProxySourceBuffer(sxArchetype, (int)len, Vec2i{ 0,0 }, srcName);
 
 			try
@@ -1171,7 +1171,7 @@ namespace Rococo
             SEXCHAR srcCode[MAX_NATIVE_SRC_LEN];
 
             SEXCHAR fullPath[_MAX_PATH];
-            StringPrint(fullPath, _MAX_PATH, SEXTEXT("%s%s"), srcEnvironment, sexySourceFile);
+            SafeFormat(fullPath, _MAX_PATH, SEXTEXT("%s%s"), srcEnvironment, sexySourceFile);
 
             try
             {
@@ -1201,7 +1201,7 @@ namespace Rococo
 		virtual void AddNativeLibrary(const Rococo::SEXCHAR* dynamicLinkLibOfNativeCalls)
 		{
          SEXCHAR srcEnvironmentDll[_MAX_PATH];
-         SafeFormat(srcEnvironmentDll, _TRUNCATE, SEXTEXT("%s%s"), srcEnvironment, dynamicLinkLibOfNativeCalls);
+         SafeFormat(srcEnvironmentDll, sizeof(srcEnvironmentDll), SEXTEXT("%s%s"), srcEnvironment, dynamicLinkLibOfNativeCalls);
 
          FN_CreateLib create;
 
@@ -1315,7 +1315,7 @@ extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystem* CreateScriptV_1_2_0_0
 	catch(Rococo::IException& ex)
 	{
 		SEXCHAR errLog[256];
-		StringPrint(errLog, 256, SEXTEXT("Sexy CreateScriptV_1_1_0_0(...) returning NULL. Error: %d, %s."), ex.ErrorCode(), ex.Message());
+      SafeFormat(errLog, 256, SEXTEXT("Sexy CreateScriptV_1_1_0_0(...) returning NULL. Error: %d, %s."), ex.ErrorCode(), ex.Message());
 		logger.Write(errLog);
 		return NULL;
 	}

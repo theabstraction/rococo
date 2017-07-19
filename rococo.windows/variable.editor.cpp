@@ -212,7 +212,7 @@ namespace
 			spec.nMaxFile = v.var.value.textValue.capacity;
 
 			rchar title[256];
-			SecureFormat(title, "%s: Select file name", v.name);
+			SecureFormat(title, sizeof(title), "%s: Select file name", v.name);
 			spec.lpstrTitle = title;
 
 			spec.Flags = 0;
@@ -347,7 +347,7 @@ namespace
 				tabControl = nullptr;
 			}
 
-         hwndTip = CreateWindowExW(NULL, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON,
+         hwndTip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON,
             CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
             *supervisor, NULL, GetWindowInstance(*supervisor), NULL);
 
@@ -488,7 +488,7 @@ namespace
 			tabControl->GetTabName(tabControl->TabCount()-1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
 
 			rchar editor[256];
-			SecureFormat(editor, "Edit_%s", variableName);
+			SecureFormat(editor, sizeof(editor), "Edit_%s", variableName);
 
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.EditControl = AddEditor(*tab, GetDefaultEditRect(), editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
@@ -554,7 +554,7 @@ namespace
 			tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
 
 			rchar editor[256];
-			SecureFormat(editor, "Edit_%s", variableName);
+			SecureFormat(editor, sizeof(editor), "Edit_%s", variableName);
 
 			GuiRect labelRect = GetDefaultLabelRect();
 			GuiRect comboRect = GetDefaultEditRect();
@@ -602,7 +602,7 @@ namespace
 			}
 
 			rchar editor[256];
-			SecureFormat(editor, "Edit_%s", variableName);
+			SecureFormat(editor, sizeof(editor), "Edit_%s", variableName);
 
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.EditControl = AddEditor(*tab, GetDefaultEditRect(), editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
@@ -632,7 +632,7 @@ namespace
 			tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
 
 			rchar editor[256];
-			SecureFormat(editor, "Edit_%s", variableName);
+			SecureFormat(editor, sizeof(editor), "Edit_%s", variableName);
 
 			GuiRect editRect = GetDefaultEditRect();
 			editRect.right -= 40;

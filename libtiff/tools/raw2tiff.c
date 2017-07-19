@@ -1,11 +1,11 @@
-/* $Id: raw2tiff.c,v 1.25 2010-03-10 18:56:49 bfriesen Exp $
+/* $Id: raw2tiff.c,v 1.21 2006/02/07 11:08:31 dron Exp $
  *
  * Project:  libtiff tools
  * Purpose:  Convert raw byte sequences in TIFF images
- * Author:   Andrey Kiselev, dron@ak4719.spb.edu
+ * Author:   Andrey Kiselev, dron@remotesensing.org
  *
  ******************************************************************************
- * Copyright (c) 2002, Andrey Kiselev <dron@ak4719.spb.edu>
+ * Copyright (c) 2002, Andrey Kiselev <dron@remotesensing.org>
  *
  * Permission to use, copy, modify, distribute, and sell this software and 
  * its documentation for any purpose is hereby granted without fee, provided
@@ -51,10 +51,6 @@
 
 #if HAVE_IO_H
 # include <io.h>
-#endif
-
-#ifdef NEED_LIBPORT
-# include "libport.h"
 #endif
 
 #include "tiffio.h"
@@ -274,13 +270,8 @@ main(int argc, char* argv[])
 	}
 	bufsize = width * nbands * depth;
 	buf1 = (unsigned char *)_TIFFmalloc(bufsize);
-
-	rowsperstrip = TIFFDefaultStripSize(out, rowsperstrip);
-	if (rowsperstrip > length) {
-		rowsperstrip = length;
-	}
-	TIFFSetField(out, TIFFTAG_ROWSPERSTRIP, rowsperstrip );
-
+	TIFFSetField(out, TIFFTAG_ROWSPERSTRIP,
+		     TIFFDefaultStripSize(out, rowsperstrip));
 	lseek(fd, hdr_size, SEEK_SET);		/* Skip the file header */
 	for (row = 0; row < length; row++) {
 		switch(interleaving) {
@@ -642,10 +633,3 @@ usage(void)
 }
 
 /* vim: set ts=8 sts=8 sw=8 noet: */
-/*
- * Local Variables:
- * mode: c
- * c-basic-offset: 8
- * fill-column: 78
- * End:
- */

@@ -180,9 +180,8 @@ public:
 	void Throw(int errCode, const char* hint)
 	{
 		char msg[1024];
-
 		char errBuffer[256];
-		strerror_s(errBuffer, errCode);
+      OS::Format_C_Error(errCode, errBuffer, sizeof(errBuffer));
 		sprintf_s(msg, 1024, "Error %d - %s: %s: '%s'\r\n",  errCode, errBuffer, hint, asciiPath);
 		throw std::runtime_error(msg);
 	}

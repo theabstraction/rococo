@@ -6,7 +6,10 @@
 #undef max
 
 #include <rococo.api.h>
+
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
+
 #include <rococo.window.h>
 #include <rococo.maths.h>
 
@@ -257,7 +260,7 @@ namespace
 
 			local.hWnd = hWnd;
 
-			ShowErrorBox(local, ex, "Rococo Window Exception!");
+			OS::ShowErrorBox(local, ex, "Rococo Window Exception!");
 			PostQuitMessage(ex.ErrorCode());
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
@@ -516,7 +519,7 @@ namespace Rococo
 			va_start(args, format);
 
 			rchar* text = (rchar*)_malloca(capacity * sizeof(rchar));
-			SafeVFormat(text, capacity, _TRUNCATE, format, args);
+			Rococo::SafeVFormat(text, capacity, format, args);
 
 			SetWindowTextA(hWnd, text);
 

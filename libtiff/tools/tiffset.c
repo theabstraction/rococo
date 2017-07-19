@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tiffset.c,v 1.17 2012-07-29 15:45:30 tgl Exp $
+ * $Id: tiffset.c,v 1.11 2005/09/13 14:13:42 dron Exp $
  *
  * Project:  libtiff tools
  * Purpose:  Mainline for setting metadata in existing TIFF files.
@@ -27,6 +27,14 @@
  * LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 
  * OF THIS SOFTWARE.
  ******************************************************************************
+ *
+ * $Log: tiffset.c,v $
+ * Revision 1.11  2005/09/13 14:13:42  dron
+ * Avoid warnings.
+ *
+ * Revision 1.10  2005/02/24 14:47:11  fwarmerdam
+ * Updated header.
+ *
  */
 
 
@@ -40,8 +48,6 @@ static char* usageMsg[] = {
 "usage: tiffset [options] filename",
 "where options are:",
 " -s <tagname> [count] <value>...   set the tag value",
-" -d <dirno> set the directory",
-" -sd <diroff> set the subdirectory",
 " -sf <tagname> <filename>  read the tag value from file (for ASCII tags only)",
 NULL
 };
@@ -55,10 +61,10 @@ usage(void)
 	exit(-1);
 }
 
-static const TIFFField *
+static const TIFFFieldInfo *
 GetField(TIFF *tiff, const char *tagname)
 {
-    const TIFFField *fip;
+    const TIFFFieldInfo *fip;
 
     if( atoi(tagname) > 0 )
         fip = TIFFFieldWithTag(tiff, (ttag_t)atoi(tagname));
@@ -66,8 +72,8 @@ GetField(TIFF *tiff, const char *tagname)
         fip = TIFFFieldWithName(tiff, tagname);
 
     if (!fip) {
-        fprintf( stderr, "Field name \"%s\" is not recognised.\n", tagname );
-        return (TIFFField *)NULL;
+        fprintf( stderr, "Field name %s not recognised.\n", tagname );
+        return (TIFFFieldInfo *)NULL;
     }
 
     return fip;
@@ -87,26 +93,8 @@ main(int argc, char* argv[])
         return 2;
 
     for( arg_index = 1; arg_index < argc-1; arg_index++ ) {
-	if (strcmp(argv[arg_index],"-d") == 0 && arg_index < argc-2) {
-	    arg_index++;
-	    if( TIFFSetDirectory(tiff, atoi(argv[arg_index]) ) != 1 )
-            {
-               fprintf( stderr, "Failed to set directory=%s\n", argv[arg_index] );
-               return 6;
-            }
-	    arg_index++;
-	}
-	if (strcmp(argv[arg_index],"-sd") == 0 && arg_index < argc-2) {
-	    arg_index++;
-	    if( TIFFSetSubDirectory(tiff, atoi(argv[arg_index]) ) != 1 )
-            {
-               fprintf( stderr, "Failed to set sub directory=%s\n", argv[arg_index] );
-               return 7;
-            }
-	    arg_index++;
-	}
         if (strcmp(argv[arg_index],"-s") == 0 && arg_index < argc-3) {
-            const TIFFField *fip;
+            const TIFFFieldInfo *fip;
             const char *tagname;
 
             arg_index++;
@@ -117,25 +105,24 @@ main(int argc, char* argv[])
                 return 3;
 
             arg_index++;
-            if (TIFFFieldDataType(fip) == TIFF_ASCII) {
-                if (TIFFSetField(tiff, TIFFFieldTag(fip), argv[arg_index]) != 1)
+            if (fip->field_type == TIFF_ASCII) {
+                if (TIFFSetField(tiff, fip->field_tag, argv[arg_index]) != 1)
                     fprintf( stderr, "Failed to set %s=%s\n",
-                             TIFFFieldName(fip), argv[arg_index] );
-            } else if (TIFFFieldWriteCount(fip) > 0
-		       || TIFFFieldWriteCount(fip) == TIFF_VARIABLE) {
+                             fip->field_name, argv[arg_index] );
+            } else if (fip->field_writecount > 0) {
                 int     ret = 1;
                 short   wc;
 
-                if (TIFFFieldWriteCount(fip) == TIFF_VARIABLE)
+                if (fip->field_writecount == TIFF_VARIABLE)
                         wc = atoi(argv[arg_index++]);
                 else
-                        wc = TIFFFieldWriteCount(fip);
+                        wc = fip->field_writecount;
 
                 if (argc - arg_index < wc) {
                     fprintf( stderr,
                              "Number of tag values is not enough. "
                              "Expected %d values for %s tag, got %d\n",
-                             wc, TIFFFieldName(fip), argc - arg_index);
+                             wc, fip->field_name, argc - arg_index);
                     return 4;
                 }
                     
@@ -143,7 +130,7 @@ main(int argc, char* argv[])
                         int     i, size;
                         void    *array;
 
-                        switch (TIFFFieldDataType(fip)) {
+                        switch (fip->field_type) {
                                 /*
                                  * XXX: We can't use TIFFDataWidth()
                                  * to determine the space needed to store
@@ -185,7 +172,7 @@ main(int argc, char* argv[])
                                 return 4;
                         }
 
-                        switch (TIFFFieldDataType(fip)) {
+                        switch (fip->field_type) {
                             case TIFF_BYTE:
                                 for (i = 0; i < wc; i++)
                                     ((uint8 *)array)[i] = atoi(argv[arg_index+i]);
@@ -225,49 +212,38 @@ main(int argc, char* argv[])
                                 break;
                         }
                 
-                        if (TIFFFieldPassCount(fip)) {
-                                ret = TIFFSetField(tiff, TIFFFieldTag(fip),
+                        if (fip->field_passcount) {
+                                ret = TIFFSetField(tiff, fip->field_tag,
                                                    wc, array);
-                        } else if (TIFFFieldTag(fip) == TIFFTAG_PAGENUMBER
-				   || TIFFFieldTag(fip) == TIFFTAG_HALFTONEHINTS
-				   || TIFFFieldTag(fip) == TIFFTAG_YCBCRSUBSAMPLING
-				   || TIFFFieldTag(fip) == TIFFTAG_DOTRANGE) {
-       				if (TIFFFieldDataType(fip) == TIFF_BYTE) {
-					ret = TIFFSetField(tiff, TIFFFieldTag(fip),
-						((uint8 *)array)[0], ((uint8 *)array)[1]);
-				} else if (TIFFFieldDataType(fip) == TIFF_SHORT) {
-					ret = TIFFSetField(tiff, TIFFFieldTag(fip),
-						((uint16 *)array)[0], ((uint16 *)array)[1]);
-				}
-			} else {
-                                ret = TIFFSetField(tiff, TIFFFieldTag(fip),
+                        } else {
+                                ret = TIFFSetField(tiff, fip->field_tag,
                                                    array);
                         }
 
                         _TIFFfree(array);
                 } else {
-                        switch (TIFFFieldDataType(fip)) {
+                        switch (fip->field_type) {
                             case TIFF_BYTE:
                             case TIFF_SHORT:
                             case TIFF_SBYTE:
                             case TIFF_SSHORT:
-                                ret = TIFFSetField(tiff, TIFFFieldTag(fip),
+                                ret = TIFFSetField(tiff, fip->field_tag,
                                                    atoi(argv[arg_index++]));
                                 break;
                             case TIFF_LONG:
                             case TIFF_SLONG:
                             case TIFF_IFD:
-                                ret = TIFFSetField(tiff, TIFFFieldTag(fip),
+                                ret = TIFFSetField(tiff, fip->field_tag,
                                                    atol(argv[arg_index++]));
                                 break;
                             case TIFF_DOUBLE:
-                                ret = TIFFSetField(tiff, TIFFFieldTag(fip),
+                                ret = TIFFSetField(tiff, fip->field_tag,
                                                    atof(argv[arg_index++]));
                                 break;
                             case TIFF_RATIONAL:
                             case TIFF_SRATIONAL:
                             case TIFF_FLOAT:
-                                ret = TIFFSetField(tiff, TIFFFieldTag(fip),
+                                ret = TIFFSetField(tiff, fip->field_tag,
                                                    (float)atof(argv[arg_index++]));
                                 break;
                             default:
@@ -276,14 +252,14 @@ main(int argc, char* argv[])
                 }
 
                 if (ret != 1)
-                    fprintf(stderr, "Failed to set %s\n", TIFFFieldName(fip));
+                    fprintf(stderr, "Failed to set %s\n", fip->field_name);
                 arg_index += wc;
             }
         } else if (strcmp(argv[arg_index],"-sf") == 0 && arg_index < argc-3) {
             FILE    *fp;
-            const TIFFField *fip;
+            const TIFFFieldInfo *fip;
             char    *text;
-            size_t  len;
+            int     len;
 
             arg_index++;
             fip = GetField(tiff, argv[arg_index]);
@@ -291,10 +267,10 @@ main(int argc, char* argv[])
             if (!fip)
                 return 3;
 
-            if (TIFFFieldDataType(fip) != TIFF_ASCII) {
+            if (fip->field_type != TIFF_ASCII) {
                 fprintf( stderr,
                          "Only ASCII tags can be set from file. "
-                         "%s is not ASCII tag.\n", TIFFFieldName(fip) );
+                         "%s is not ASCII tag.\n", fip->field_name );
                 return 5;
             }
 
@@ -311,9 +287,9 @@ main(int argc, char* argv[])
 
             fclose( fp );
 
-            if(TIFFSetField( tiff, TIFFFieldTag(fip), text ) != 1) {
+            if(TIFFSetField( tiff, fip->field_tag, text ) != 1) {
                 fprintf(stderr, "Failed to set %s from file %s\n", 
-                        TIFFFieldName(fip), argv[arg_index]);
+                        fip->field_name, argv[arg_index]);
             }
 
             _TIFFfree( text );
@@ -331,10 +307,3 @@ main(int argc, char* argv[])
 }
 
 /* vim: set ts=8 sts=8 sw=8 noet: */
-/*
- * Local Variables:
- * mode: c
- * c-basic-offset: 8
- * fill-column: 78
- * End:
- */

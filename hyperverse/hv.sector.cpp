@@ -101,7 +101,7 @@ namespace
       void RebuildWalls()
       {
          rchar name[32];
-         SafeFormat(name, _TRUNCATE, "sector.walls.%u", id);
+         SafeFormat(name, sizeof(name), "sector.walls.%u", id);
          auto& mb = instances.MeshBuilder();
          mb.Clear();
          mb.Begin(to_fstring(name));
@@ -314,7 +314,7 @@ namespace
       void RebuildFloors()
       {
          rchar name[32];
-         SafeFormat(name, _TRUNCATE, "sector.floor.%u", id);
+         SafeFormat(name, sizeof(name), "sector.floor.%u", id);
 
          auto& mb = instances.MeshBuilder();
          mb.Begin(to_fstring(name));
@@ -332,7 +332,7 @@ namespace
       void RebuildCeiling()
       {
          rchar name[32];
-         SafeFormat(name, _TRUNCATE, "sector.ceiling.%u", id);
+         SafeFormat(name, sizeof(name), "sector.ceiling.%u", id);
 
          auto& mb = instances.MeshBuilder();
          mb.Begin(to_fstring(name));
@@ -448,7 +448,7 @@ namespace
       void InvokeSectorDialog(Rococo::Windows::IWindow& parent) override
       {
          rchar title[32];
-         SafeFormat(title, _TRUNCATE, "Sector %u", id);
+         SafeFormat(title, sizeof(title), "Sector %u", id);
          AutoFree<IVariableEditor> editor = CreateVariableEditor(parent, { 640, 400 }, 120, title, "Floor and Ceiling", "Edit floor and ceiling parameters");
          editor->AddIntegerEditor("Altitiude", "Altitiude - centimetres", 0, 100000, (int32)( z0 * 100.0f));
          editor->AddIntegerEditor("Height", "Height - centimetres", 250, 100000, (int32)( (z1 - z0) * 100.0f));

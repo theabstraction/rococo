@@ -110,7 +110,7 @@ namespace Rococo { namespace OS
 		while (StripLastSubpath(data))
 		{
 			SEXCHAR fullpath[_MAX_PATH];
-			StringPrint(fullpath, _MAX_PATH, SEXTEXT("%s%s"), data, SEXTEXT("src_indicator.txt"));
+         SafeFormat(fullpath, _MAX_PATH, SEXTEXT("%s%s"), data, SEXTEXT("src_indicator.txt"));
 			if (IsFileExistant(fullpath))
 			{
 				StringCat(data, SEXTEXT("NativeSource\\"), (int32) capacity);
@@ -156,7 +156,7 @@ namespace Rococo { namespace OS
       } ex;
       va_list args;
       va_start(args, format);
-      SafeVFormat(ex.message, _TRUNCATE, format, args);
+      SafeVFormat(ex.message, sizeof(ex.message), format, args);
       ex.exceptionNumber = errCode;
       throw ex;
    }
@@ -166,7 +166,7 @@ namespace Rococo { namespace OS
    Rococo::Script::FN_CreateLib GetLibCreateFunction(const SEXCHAR* dynamicLinkLibOfNativeCalls, bool throwOnError)
 	{
 	   SEXCHAR linkLib[_MAX_PATH];
-		StringPrint(linkLib, _MAX_PATH, SEXTEXT("%s.dll"), dynamicLinkLibOfNativeCalls);
+      SafeFormat(linkLib, _MAX_PATH, SEXTEXT("%s.dll"), dynamicLinkLibOfNativeCalls);
       HMODULE lib = LoadLibrary(linkLib);
       if (lib == nullptr)
 		{

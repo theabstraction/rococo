@@ -1,6 +1,6 @@
-# $Id: nmake.opt,v 1.18 2006/06/07 16:33:45 dron Exp $
+# $Id: nmake.opt,v 1.14 2005/10/07 17:27:10 dron Exp $
 #
-# Copyright (C) 2004, Andrey Kiselev <dron@ak4719.spb.edu>
+# Copyright (C) 2004, Andrey Kiselev <dron@remotesensing.org>
 #
 # Permission to use, copy, modify, distribute, and sell this software and 
 # its documentation for any purpose is hereby granted without fee, provided
@@ -60,6 +60,12 @@ LOGLUV_SUPPORT	= 1
 #JPEG_LIB 	= $(JPEGDIR)/Release/jpeg.lib
 
 #
+# Uncomment following lines to enable Old JPEG support
+# (modified IJG JPEG library required, read the contrib\ojpeg\README first).
+#
+#OJPEG_SUPPORT = 1
+
+#
 # Uncomment and edit following lines to enable ZIP support
 # (required for Deflate compression and Pixar log-format)
 #
@@ -67,14 +73,6 @@ LOGLUV_SUPPORT	= 1
 #ZLIBDIR 	= d:/projects/zlib-1.2.1
 #ZLIB_INCLUDE	= -I$(ZLIBDIR)
 #ZLIB_LIB 	= $(ZLIBDIR)/zlib.lib
-
-#
-# Uncomment and edit following lines to enable ISO JBIG support
-#
-#JBIG_SUPPORT	= 1
-#JBIGDIR 	= d:/projects/jbigkit
-#JBIG_INCLUDE	= -I$(JBIGDIR)/libjbig
-#JBIG_LIB 	= $(JBIGDIR)/libjbig/jbig.lib
 
 #
 # Uncomment following line to enable Pixar log-format algorithm
@@ -112,9 +110,9 @@ CHECK_JPEG_YCBCR_SUBSAMPLING = 1
 #
 # Pick debug or optimized build flags.  We default to an optimized build
 # with no debugging information.
-# NOTE: /EHsc option required if you want to build the C++ stream API
+# NOTE: /GX option required if you want to build the C++ stream API
 #
-OPTFLAGS =	/Ox /MD /EHsc /W3 /D_CRT_SECURE_NO_DEPRECATE
+OPTFLAGS =	/Ox /MD /GX /W3
 #OPTFLAGS = 	/Zi 
 
 #
@@ -129,8 +127,8 @@ USE_WIN_CRT_LIB = 1
 # for the option reference.
 #
 MAKE	=	nmake /nologo
-CC	=	cl /nologo /MACHINE:X86
-CXX	=	cl /nologo /MACHINE:X86
+CC	=	cl /nologo
+CXX	=	cl /nologo
 AR	=	lib /nologo
 LD	=	link /nologo
 
@@ -183,7 +181,10 @@ EXTRAFLAGS	= -DLOGLUV_SUPPORT $(EXTRAFLAGS)
 
 !IFDEF JPEG_SUPPORT
 LIBS		= $(LIBS) $(JPEG_LIB)
-EXTRAFLAGS	= -DJPEG_SUPPORT -DOJPEG_SUPPORT $(EXTRAFLAGS)
+EXTRAFLAGS	= -DJPEG_SUPPORT $(EXTRAFLAGS)
+!IFDEF OJPEG_SUPPORT
+EXTRAFLAGS	= -DOJPEG_SUPPORT $(EXTRAFLAGS)
+!ENDIF
 !ENDIF
 
 !IFDEF ZIP_SUPPORT
@@ -192,11 +193,6 @@ EXTRAFLAGS	= -DZIP_SUPPORT $(EXTRAFLAGS)
 !IFDEF PIXARLOG_SUPPORT
 EXTRAFLAGS	= -DPIXARLOG_SUPPORT $(EXTRAFLAGS)
 !ENDIF
-!ENDIF
-
-!IFDEF JBIG_SUPPORT
-LIBS		= $(LIBS) $(JBIG_LIB)
-EXTRAFLAGS	= -DJBIG_SUPPORT $(EXTRAFLAGS)
 !ENDIF
 
 !IFDEF STRIPCHOP_SUPPORT
@@ -211,8 +207,3 @@ EXTRAFLAGS	= -DDEFAULT_EXTRASAMPLE_AS_ALPHA $(EXTRAFLAGS)
 EXTRAFLAGS	= -DCHECK_JPEG_YCBCR_SUBSAMPLING $(EXTRAFLAGS)
 !ENDIF
 
-!IFDEF USE_WIN_CRT_LIB
-EXTRAFLAGS	= -DAVOID_WIN32_FILEIO $(EXTRAFLAGS)
-!ELSE
-EXTRAFLAGS	= -DUSE_WIN32_FILEIO $(EXTRAFLAGS)
-!ENDIF

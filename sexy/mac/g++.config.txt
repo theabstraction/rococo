@@ -1,0 +1,1 @@
+-g -std=c++14 -stdlib=libc++ -mmacosx-version-min=10.8 -I../Common/ -I../../include/

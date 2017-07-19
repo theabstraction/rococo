@@ -21,22 +21,23 @@ JPG_OBJ_AND_DIRS = $(addprefix $(OBJ_DIR),$(JPG_OBJS))
 
 CPP_COMPILER = g++
 C_COMPILER = gcc
-C_FLAGS = -g -c
-CPP_FLAGS = -g -c -std=c++11
+C_FLAGS = @gcc.config.txt
+CPP_FLAGS = @g++.config.txt
 LIBGEN = ar
 LIBGEN_FLAGS = cr
 	
 $(LIB_DIR)rococo.jpg.mac.lib: $(JPG_OBJ_AND_DIRS) $(OBJ_DIR)rococo.jpg.readimage.objp  $(OBJ_DIR)rococo.jpg.writeimage.objp
-	$(LIBGEN) $(LIBGEN_FLAGS) $(LIB_DIR)rococo.jpg.mac.lib $(JPG_OBJ_AND_DIRS)
+	$(LIBGEN) $(LIBGEN_FLAGS) $(LIB_DIR)rococo.jpg.mac.lib $(JPG_OBJ_AND_DIRS) $(OBJ_DIR)rococo.jpg.readimage.objp  $(OBJ_DIR)rococo.jpg.writeimage.objp
 
 $(OBJ_DIR)%.obj : $(addprefix $(JPG_DIR),$(notdir %.c))
 	$(C_COMPILER) $(C_FLAGS) -I$(ROCOCO_HEADERS) $< -o $@
 	
+	
 $(OBJ_DIR)rococo.jpg.readimage.objp : ../libjpg/readimage.cpp
-	$(CPP_COMPILER) $(CPP_FLAGS) -I$(ROCOCO_HEADERS) -I$(JPG_DIR) $< -o $@
+	$(CPP_COMPILER) $(CPP_FLAGS) -I$(JPG_DIR) $< -o $@
 		
 $(OBJ_DIR)rococo.jpg.writeimage.objp : ../libjpg/writeimage.cpp
-	$(CPP_COMPILER) $(CPP_FLAGS) -I$(ROCOCO_HEADERS) -I$(JPG_DIR) $< -o $@
+	$(CPP_COMPILER) $(CPP_FLAGS) -I$(JPG_DIR) $< -o $@
 
 clean:
 	rm -f $(LIB_DIR)rococo.jpg.mac.lib $(JPG_OBJ_AND_DIRS) $(OBJ_DIR)rococo.jpg.readimage.objp $(OBJ_DIR)rococo.jpg.writeimage.objp

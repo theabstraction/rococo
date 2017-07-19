@@ -1,5 +1,7 @@
 #include <rococo.types.h>
 #include <stdarg.h>
+
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
 namespace Rococo
@@ -27,7 +29,7 @@ namespace Rococo
             }
          } ex;
 
-         SafeVFormat(ex.msg, _TRUNCATE, format, args);
+         SafeVFormat(ex.msg, sizeof(ex.msg), format, args);
 
          ex.errorCode = errorCode;
 

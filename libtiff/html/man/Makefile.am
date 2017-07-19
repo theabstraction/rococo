@@ -1,6 +1,6 @@
 # Tag Image File Format (TIFF) Software
 #
-# Copyright (C) 2004, Andrey Kiselev <dron@ak4719.spb.edu>
+# Copyright (C) 2004, Andrey Kiselev <dron@remotesensing.org>
 #
 # Permission to use, copy, modify, distribute, and sell this software and 
 # its documentation for any purpose is hereby granted without fee, provided
@@ -39,12 +39,6 @@ docfiles = \
 	TIFFcolor.3tiff.html \
 	TIFFDataWidth.3tiff.html \
 	TIFFError.3tiff.html \
-	TIFFFieldDataType.3tiff.html \
-	TIFFFieldName.3tiff.html \
-	TIFFFieldPassCount.3tiff.html \
-	TIFFFieldReadCount.3tiff.html \
-	TIFFFieldTag.3tiff.html \
-	TIFFFieldWriteCount.3tiff.html \
 	TIFFFlush.3tiff.html \
 	TIFFGetField.3tiff.html \
 	TIFFmemory.3tiff.html \
@@ -76,7 +70,6 @@ docfiles = \
 	TIFFWriteRawTile.3tiff.html \
 	TIFFWriteScanline.3tiff.html \
 	TIFFWriteTile.3tiff.html \
-	bmp2tiff.1.html \
 	fax2ps.1.html \
 	fax2tiff.1.html \
 	gif2tiff.1.html \
@@ -93,7 +86,6 @@ docfiles = \
 	tiff2rgba.1.html \
 	tiffcmp.1.html \
 	tiffcp.1.html \
-	tiffcrop.1.html \
 	tiffdither.1.html \
 	tiffdump.1.html \
 	tiffgt.1.html \
@@ -109,9 +101,9 @@ INDEXSTART = '<HTML><HEAD><TITLE>Libtiff HTML manpage index</TITLE></HEAD><BODY 
 INDEXEND = '</ul></BODY></HTML>'
 
 .PHONY: index
-index:
+index: $(docfiles)
 	${ECHO} ${INDEXSTART} > $(indexfile)
-	for i in $(docfiles); do					\
+	for i in $^; do							\
 		${ECHO} '<li><A HREF='$$i'>'$$i'</a>' >> $(indexfile);  \
 	done
 	${ECHO} ${INDEXEND} >> $(indexfile)
@@ -119,7 +111,7 @@ index:
 manpages = $(docfiles:.html=)
 
 .PHONY: htmldoc
-htmldoc:
+htmldoc: index
 	for i in $(manpages); do					\
 		${GROFF} $(MANSRCDIR)/$$i > $(HTMLMANDIR)/$$i.html;	\
 	done

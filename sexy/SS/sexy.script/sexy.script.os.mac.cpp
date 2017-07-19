@@ -60,7 +60,7 @@ namespace Rococo { namespace OS
       while (StripLastSubpath(data))
       {
          SEXCHAR fullpath[_MAX_PATH];
-         StringPrint(fullpath, _MAX_PATH, SEXTEXT("%s%s"), data, SEXTEXT("src_indicator.txt"));
+         SafeFormat(fullpath, _MAX_PATH, SEXTEXT("%s%s"), data, SEXTEXT("src_indicator.txt"));
          if (OS::IsFileExistant(fullpath))
          {
             StringCat(data, SEXTEXT("NativeSource/"), (int32)capacity);
@@ -96,7 +96,7 @@ namespace Rococo { namespace OS
    Rococo::Script::FN_CreateLib GetLibCreateFunction(const SEXCHAR* dynamicLinkLibOfNativeCalls, bool throwOnError)
 	{
 	   SEXCHAR linkLib[_MAX_PATH];
-		StringPrint(linkLib, _MAX_PATH, SEXTEXT("%s.mac.dylib"), dynamicLinkLibOfNativeCalls);
+      SafeFormat(linkLib, _MAX_PATH, SEXTEXT("%s.mac.dylib"), dynamicLinkLibOfNativeCalls);
       void* lib = dlopen(linkLib, RTLD_NOW | RTLD_GLOBAL);
       if (lib == nullptr)
 		{

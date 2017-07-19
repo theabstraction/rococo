@@ -1,6 +1,6 @@
 # Tag Image File Format (TIFF) Software
 #
-# Copyright (C) 2004, Andrey Kiselev <dron@ak4719.spb.edu>
+# Copyright (C) 2004, Andrey Kiselev <dron@remotesensing.org>
 #
 # Permission to use, copy, modify, distribute, and sell this software and 
 # its documentation for any purpose is hereby granted without fee, provided
@@ -25,5 +25,5 @@
 
 EXTRA_DIST = README
 
-SUBDIRS = addtiffo dbs iptcutil mfs pds ras stream tags win_dib
+SUBDIRS = acorn addtiffo dbs iptcutil mac-cw mac-mpw mfs ojpeg pds ras stream tags win_dib
 

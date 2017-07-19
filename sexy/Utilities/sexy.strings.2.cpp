@@ -66,6 +66,9 @@
 
 #include <sexy.types.h>
 
+#define ROCOCO_USE_SAFE_V_FORMAT
+#include <rococo.strings.h>
+
 #ifdef _WIN32
 #include <malloc.h>
 #endif
@@ -291,53 +294,12 @@ namespace Rococo
 		csexstr root, tail;
 		if (splitter.SplitTail(root, tail))
 		{
-			StringPrint(token, SEXTEXT("%s._ref_%s"), root, tail);
+			SafeFormat(token.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s._ref_%s"), root, tail);
 		}
 		else
 		{
-			StringPrint(token, SEXTEXT("_ref_%s"), name);
+         SafeFormat(token.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("_ref_%s"), name);
 		}
-	}
-
-	int CALLTYPE_C StringPrintV(char* buf, size_t sizeInChars, va_list argList, const char* format)
-	{
-		return _vsnprintf_s(buf, sizeInChars, _TRUNCATE, format, argList);
-	}
-
-#ifdef SEXCHAR_IS_WIDE
-	int CALLTYPE_C StringPrintV(rchar* buf, size_t sizeInChars, va_list argList, cstr format)
-	{
-		return _vsnwprintf_s(buf, sizeInChars, _TRUNCATE, format, argList);
-	}
-#endif
-	int CALLTYPE_C StringPrint(char* buf, size_t sizeInChars, const char* format, ...) // N.B if you are having crashes passing a SEXCHAR array try casting it to (const SEXCHAR*)
-	{
-		va_list args;
-		va_start(args,format);
-		return _vsnprintf_s(buf, sizeInChars, _TRUNCATE, format, args);
-	}
-
-#ifdef SEXCHAR_IS_WIDE
-	int CALLTYPE_C StringPrint(rchar* buf, size_t sizeInChars, cstr format, ...)
-	{
-		va_list args;
-		va_start(args,format);
-		return _vsnwprintf_s(buf, sizeInChars, _TRUNCATE, format, args);
-	}
-#endif
-
-	int CALLTYPE_C StringPrint(TokenBuffer& buf, const SEXCHAR* format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-
-		int status = StringPrintV(buf.Text, buf.MAX_TOKEN_CHARS, args, format);
-		if (status == -1)
-		{
-			throw std::invalid_argument("The string buffer exceeded the maximum allowed characters");
-		}
-
-		return status;
 	}
 
 	int32 CALLTYPE_C StringLength(const char* s)
@@ -351,6 +313,13 @@ namespace Rococo
 
 		return (int32) l;
 	}
+
+   int CALLTYPE_C StringPrint(TokenBuffer& token, const char* format, ...)
+   {
+      va_list args;
+      va_start(args, format);
+      return SafeVFormat(token.Text, TokenBuffer::MAX_TOKEN_CHARS, format, args);
+   }
 
 #ifdef SEXCHAR_IS_WIDE
 	int32 CALLTYPE_C StringLength(cstr s)
@@ -396,15 +365,17 @@ namespace Rococo
    }
 #endif
 
+#ifdef _WIN32
 	void CALLTYPE_C CopyString(char* dest, size_t capacity, const char* source)
 	{
 		strcpy_s(dest, capacity, source);
 	}
-
-	void CALLTYPE_C CopyString(char* dest, size_t capacity, const char* source, int maxChars)
-	{
-		strncpy_s(dest, capacity, source, maxChars < 0 ? _TRUNCATE : maxChars);
-	}
+#else
+   void CALLTYPE_C CopyString(char* dest, size_t capacity, const char* source)
+   {
+      strncpy(dest, source, capacity);
+   }
+#endif
 
 #ifdef SEXCHAR_IS_WIDE
 	void CALLTYPE_C CopyString(rchar* dest, const char* source, int maxChars)
@@ -417,10 +388,18 @@ namespace Rococo
 		wcscat_s(buf, maxChars, source);
 	}
 #endif
+
+#ifdef _WIN32
 	void CALLTYPE_C StringCat(char* buf, const char* source, int maxChars)
 	{
 		strcat_s(buf, maxChars, source);
 	}
+#else
+   void CALLTYPE_C StringCat(char* buf, const char* source, int maxChars)
+   {
+      strncat(buf, source, maxChars);
+   }
+#endif
 
 	bool CALLTYPE_C IsCapital(SEXCHAR c)
 	{
@@ -488,7 +467,7 @@ namespace Rococo
 
 			if (endPos - startPos >= 64)
 			{
-				StringPrint(specimen, 64, SEXTEXT("%.28s... ...%.28s"), startPos, endPos-28);
+				Rococo::SafeFormat(specimen, 64, SEXTEXT("%.28s... ...%.28s"), startPos, endPos-28);
 			}
 			else
 			{

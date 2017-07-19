@@ -909,14 +909,14 @@ namespace
          if (index < 0 || index >= s.NumberOfElements())
          {
             rchar msg[1024];
-            SafeFormat(msg, _TRUNCATE, "Expression too short. Expected an int32 in position %d: %s", index, helper);
+            SafeFormat(msg, sizeof(msg), "Expression too short. Expected an int32 in position %d: %s", index, helper);
             ThrowSex(s, msg);
          }
 
          if (!IsAtomic(s[index]))
          {
             rchar msg[1024];
-            SafeFormat(msg, _TRUNCATE, "Expecting atomic argument in position %d: %s", index, helper);
+            SafeFormat(msg, sizeof(msg), "Expecting atomic argument in position %d: %s", index, helper);
             ThrowSex(s[index], msg);
          }
 
@@ -924,7 +924,7 @@ namespace
          if (Rococo::Parse::PARSERESULT_GOOD != Rococo::Parse::TryParse(value, VARTYPE_Int32, s[index].String()->Buffer))
          {
             rchar msg[1024];
-            SafeFormat(msg, _TRUNCATE, "Expecting int32 argument in position %d: %s", index, helper);
+            SafeFormat(msg, sizeof(msg), "Expecting int32 argument in position %d: %s", index, helper);
             ThrowSex(s[index], msg);
          }
 
@@ -1469,7 +1469,7 @@ namespace
       CSParserProxy parser;
 
       rchar savename[_MAX_PATH];
-      SafeFormat(savename, _TRUNCATE, "%s.ide.sxy", appName);
+      SafeFormat(savename, sizeof(savename), "%s.ide.sxy", appName);
       rchar fullpath[_MAX_PATH];
       IO::GetUserPath(fullpath, _MAX_PATH, savename);
 

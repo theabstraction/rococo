@@ -54,6 +54,9 @@
     <ClCompile Include="rococo.allocators.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rococo.ide.stdout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.ringbuffer.h">
@@ -68,6 +71,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="copy.sexy.to.game.release.bat">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rococo.dialogs.osx.mm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\mac\utils.mak">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

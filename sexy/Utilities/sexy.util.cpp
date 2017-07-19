@@ -32,6 +32,7 @@
 */
 
 #include "sexy.types.h"
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include "sexy.strings.h"
 #include "sexy.compiler.public.h"
 #include <sexy.compiler.h>
@@ -49,7 +50,7 @@ namespace Rococo
 		va_start(args, format);
 
 		SEXCHAR msg[1024];
-		StringPrintV(msg, 1024, args, format);
+		SafeVFormat(msg, sizeof(msg), format, args);
 		log.Write(msg);
 	}
 }

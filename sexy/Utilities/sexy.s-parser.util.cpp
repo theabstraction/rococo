@@ -32,6 +32,7 @@
 */
 
 #include <sexy.types.h>
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <sexy.strings.h>
 #include "sexy.s-parser.h"
 #include <sexy.compiler.public.h>
@@ -64,9 +65,9 @@ namespace Rococo
          endPos(end),
          source(_source)
       {
-         CopyString(srcName, MAX_ERRMSG_LEN, name, -1);
-         CopyString(errText, MAX_ERRMSG_LEN, err, -1);
-         CopyString(specimenText, MAX_ERRMSG_LEN, specimen, -1);
+         CopyString(srcName, MAX_ERRMSG_LEN, name);
+         CopyString(errText, MAX_ERRMSG_LEN, err);
+         CopyString(specimenText, MAX_ERRMSG_LEN, specimen);
       }
 
       void Throw(ParseException& ex)
@@ -81,7 +82,7 @@ namespace Rococo
          va_start(args, format);
 
          rchar message[4096];
-         SafeVFormat(message, _TRUNCATE, format, args);
+         SafeVFormat(message, sizeof(message), format, args);
 
          SEXCHAR specimen[64];
          GetSpecimen(specimen, e);

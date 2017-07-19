@@ -1,4 +1,4 @@
-/* $Id: fax2tiff.c,v 1.22 2010-03-10 18:56:49 bfriesen Exp $ */
+/* $Id: fax2tiff.c,v 1.16 2005/10/31 14:48:59 dron Exp $ */
 
 /*
  * Copyright (c) 1990-1997 Sam Leffler
@@ -44,11 +44,11 @@
 # include <io.h>
 #endif
 
-#ifdef NEED_LIBPORT
-# include "libport.h"
-#endif
-
 #include "tiffiop.h"
+
+#ifndef BINMODE
+# define	BINMODE
+#endif
 
 #ifndef EXIT_SUCCESS
 # define EXIT_SUCCESS	0
@@ -258,17 +258,13 @@ main(int argc, char* argv[])
 	else if (compression_in == COMPRESSION_CCITTFAX4)
 		TIFFSetField(faxTIFF, TIFFTAG_GROUP4OPTIONS, group4options_in);
 	for (pn = 0; optind < argc; pn++, optind++) {
-		in = fopen(argv[optind], "rb");
+		in = fopen(argv[optind], "r" BINMODE);
 		if (in == NULL) {
 			fprintf(stderr,
 			    "%s: %s: Can not open\n", argv[0], argv[optind]);
 			continue;
 		}
-#if defined(_WIN32) && defined(USE_WIN32_FILEIO)
-                TIFFSetClientdata(faxTIFF, (thandle_t)_get_osfhandle(fileno(in)));
-#else
                 TIFFSetClientdata(faxTIFF, (thandle_t)fileno(in));
-#endif
 		TIFFSetFileName(faxTIFF, (const char*)argv[optind]);
 		TIFFSetField(out, TIFFTAG_IMAGEWIDTH, xsize);
 		TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, 1);
@@ -351,14 +347,14 @@ copyFaxFile(TIFF* tifin, TIFF* tifout)
 	uint16 badrun;
 	int ok;
 
-	tifin->tif_rawdatasize = (tmsize_t)TIFFGetFileSize(tifin);
+	tifin->tif_rawdatasize = TIFFGetFileSize(tifin);
 	tifin->tif_rawdata = _TIFFmalloc(tifin->tif_rawdatasize);
 	if (tifin->tif_rawdata == NULL) {
-		TIFFError(tifin->tif_name, "Not enough memory");
+		TIFFError(tifin->tif_name, "%s: Not enough memory");
 		return (0);
 	}
 	if (!ReadOK(tifin, tifin->tif_rawdata, tifin->tif_rawdatasize)) {
-		TIFFError(tifin->tif_name, "Read error at scanline 0");
+		TIFFError(tifin->tif_name, "%s: Read error at scanline 0");
 		return (0);
 	}
 	tifin->tif_rawcp = tifin->tif_rawdata;
@@ -460,10 +456,3 @@ usage(void)
 }
 
 /* vim: set ts=8 sts=8 sw=8 noet: */
-/*
- * Local Variables:
- * mode: c
- * c-basic-offset: 8
- * fill-column: 78
- * End:
- */

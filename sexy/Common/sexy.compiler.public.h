@@ -474,8 +474,8 @@ namespace Rococo { namespace Compiler
 	public:
 		STCException(ERRORCODE _code, csexstr _source, csexstr _msg): code(_code)
 		{
-			CopyString(message, MAX_MSG_LEN, _msg, -1);
-			CopyString(source, MAX_MSG_LEN, _source, -1);
+			CopyString(message, MAX_MSG_LEN, _msg);
+			CopyString(source, MAX_MSG_LEN, _source);
 		}
 
 		virtual csexstr Source() const

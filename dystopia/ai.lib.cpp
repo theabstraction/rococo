@@ -137,7 +137,7 @@ namespace Dystopia
 										HintMessage3D hint;
 										hint.duration = 2.5_seconds;
 										hint.position = level.GetPosition(level.GetPlayerId());
-										SafeFormat(hint.message, _TRUNCATE, L"clip empty!");
+										SafeFormat(hint.message, L"clip empty!");
 										hintBox->PostForLater(hint, true);
 									}
 								}

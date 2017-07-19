@@ -1,7 +1,7 @@
-/* $Id: check_tag.c,v 1.3 2008/04/15 14:19:37 dron Exp $ */
+/* $Id: check_tag.c,v 1.1 2004/10/01 14:16:37 dron Exp $ */
 
 /*
- * Copyright (c) 2004, Andrey Kiselev  <dron@ak4719.spb.edu>
+ * Copyright (c) 2004, Andrey Kiselev  <dron@remotesensing.org>
  *
  * Permission to use, copy, modify, distribute, and sell this software and 
  * its documentation for any purpose is hereby granted without fee, provided
@@ -26,15 +26,15 @@
 /*
  * TIFF Library
  *
- * Helper testing routines.
+ * Module to test LONG tags read/write functions.
  */
 
 #include "tiffio.h"
 
 int
-CheckShortField(TIFF *tif, const ttag_t field, const uint16 value)
+CheckShortField(TIFF *tif, ttag_t field, uint16 value)
 {
-	uint16 tmp = 123;
+	uint16 tmp = 0;
 
 	if (!TIFFGetField(tif, field, &tmp)) {
 		fprintf (stderr, "Problem fetching tag %lu.\n",
@@ -51,28 +51,9 @@ CheckShortField(TIFF *tif, const ttag_t field, const uint16 value)
 }
 
 int
-CheckShortPairedField(TIFF *tif, const ttag_t field, const uint16 *values)
+CheckLongField(TIFF *tif, ttag_t field, uint32 value)
 {
-	uint16 tmp[2] = { 123, 456 };
-
-	if (!TIFFGetField(tif, field, tmp, tmp + 1)) {
-		fprintf (stderr, "Problem fetching tag %lu.\n",
-			 (unsigned long) field);
-		return -1;
-	}
-	if (tmp[0] != values[0] || tmp[1] != values[1]) {
-		fprintf (stderr, "Wrong SHORT PAIR fetched for tag %lu.\n",
-			 (unsigned long) field);
-		return -1;
-	}
-
-	return 0;
-}
-
-int
-CheckLongField(TIFF *tif, const ttag_t field, const uint32 value)
-{
-	uint32 tmp = 123;
+	uint32 tmp = 0;
 
 	if (!TIFFGetField(tif, field, &tmp)) {
 		fprintf (stderr, "Problem fetching tag %lu.\n",

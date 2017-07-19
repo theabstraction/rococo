@@ -60,7 +60,7 @@ namespace Rococo
          deletedFiles.insert(_filename);
       }
 
-		int errcode = fopen_s(&hFile, _filename, "ab");
+		int errcode = OS::OpenForAppend((void**)&hFile, _filename);
 		if (hFile == nullptr)
 		{
 			Throw(errcode, SEXTEXT("Error opening/creating %s for appending"), _filename);	
@@ -77,8 +77,8 @@ namespace Rococo
 		va_list args;
 		va_start(args, format);
 
-		SEXCHAR buf[256];
-		int nChars = StringPrintV(buf, 256, args, format);
+		rchar buf[256];
+		int nChars = SafeVFormat(buf, sizeof(buf), format, args);
 
 		char abuf[256];
 		for(int i = 0; i < nChars; ++i)

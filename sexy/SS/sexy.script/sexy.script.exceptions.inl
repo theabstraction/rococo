@@ -164,7 +164,7 @@ namespace Rococo
          }
 
          SEXCHAR symbol[256];
-         StringPrint(symbol, 256, SEXTEXT("&%s"), (csexstr)ex.String()->Buffer);
+         SafeFormat(symbol, 256, SEXTEXT("&%s"), (csexstr)ex.String()->Buffer);
          ce.Builder.AddSymbol(symbol);
          ce.Builder.AssignVariableRefToTemp(ex.String()->Buffer, 0 /* D4 */); // Push a ref to the exception on the stack
 

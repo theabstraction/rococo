@@ -396,6 +396,8 @@ namespace Rococo
 		}
 	}
 
+#ifdef _WIN32
+
 	Matrix4x4 InvertMatrix(const Matrix4x4& matrix)
 	{
 		Matrix4x4 invMatrix;
@@ -410,17 +412,22 @@ namespace Rococo
 		return tMatrix;
 	}
 
+#endif
+
 	float Dot(const Vec4& a, const Vec4& b)
 	{
 		return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 	}
 
-	Matrix4x4 operator * (const Matrix4x4& a, const Matrix4x4& b)
+
+#ifdef _WIN32
+   Matrix4x4 operator * (const Matrix4x4& a, const Matrix4x4& b)
 	{
 		Matrix4x4 result;
 		Multiply(result, a, b);
 		return result;
 	}
+#endif
 
 	Vec4 operator * (const Matrix4x4& R, const Vec4& v)
 	{
@@ -516,7 +523,7 @@ namespace Rococo
 			virtual int32 ErrorCode() const { return 0; }
 		} ex;
 
-		SafeFormat(ex.msg, _TRUNCATE, "%s", format);
+		SafeFormat(ex.msg, sizeof(ex.msg), "%s", format);
 
 		OS::TripDebugger();
 

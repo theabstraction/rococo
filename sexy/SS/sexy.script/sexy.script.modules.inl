@@ -895,7 +895,7 @@ namespace Rococo { namespace Script
 					nullPtr.vPtrValue =  GetInterfacePtrFromNullInstancePtr(argType.GetInterface(0).UniversalNullInstance());
 
 					SEXCHAR symbol[128];
-					StringPrint(symbol, 128, SEXTEXT("%s = null object"), arg.Name());
+               SafeFormat(symbol, 128, SEXTEXT("%s = null object"), arg.Name());
 					f.Builder().AddSymbol(symbol);
 					f.Builder().Assembler().Append_SetStackFrameImmediate(def.SFOffset, nullPtr, BITCOUNT_POINTER);
 				}
@@ -3460,7 +3460,7 @@ namespace Rococo { namespace Script
 					for(int i = 1; i < interfaceCount; i++)
 					{
 						SEXCHAR vtableName[32];
-						StringPrint(vtableName, 32, SEXTEXT("_vTable%d"), i);
+                  SafeFormat(vtableName, 32, SEXTEXT("_vTable%d"), i);
 						s.AddMember(NameString::From(vtableName), TypeString::From(SEXTEXT("Pointer")));
 					}					
 				}

@@ -5,6 +5,8 @@
 #include <Psapi.h>
 
 #include <rococo.api.h>
+
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
 #include <stdlib.h>
@@ -22,8 +24,18 @@
 
 #pragma comment(lib, "Shlwapi.lib")
 
+#include <stdlib.h>
+
 namespace Rococo
 {
+   namespace IO
+   {
+      void UseBufferlessStdout()
+      {
+         setvbuf(stdout, nullptr, _IONBF, 0);
+      }
+   }
+
    bool FileModifiedArgs::Matches(cstr resource)
    {
       cstr a = this->resourceName;
@@ -54,7 +66,7 @@ namespace Rococo
 
    void FileModifiedArgs::GetPingPath(rchar* path, size_t capacity)
    {
-      SafeFormat(path, capacity, _TRUNCATE, "!%s", resourceName);
+      SafeFormat(path, capacity, "!%s", resourceName);
 
       for (rchar* p = path; *p != 0; p++)
       {
@@ -67,6 +79,51 @@ namespace Rococo
 {
    namespace OS
    {
+      void SanitizePath(char* path)
+      {
+         for (char* s = path; *s != 0; ++s)
+         {
+            if (*s == '/') *s = '\\';
+         }
+      }
+
+      void UILoop(uint32 milliseconds)
+      {
+         MSG msg;
+
+         ticks count  = OS::CpuTicks();
+         ticks target = count + (OS::CpuHz() * milliseconds / 1000);
+
+         while (target < OS::CpuTicks())
+         {
+            MsgWaitForMultipleObjects(0, nullptr, FALSE, 25, QS_ALLINPUT);
+
+            while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+            {
+               TranslateMessage(&msg);
+               DispatchMessage(&msg);
+            }
+         }
+      }
+
+      void Format_C_Error(int errorCode, rchar* buffer, size_t capacity)
+      {
+         if (0 == FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, buffer, (DWORD) capacity, NULL))
+         {
+            SafeFormat(buffer, capacity, "Unknown error code (%d)", errorCode);
+         }
+      }
+
+      int OpenForAppend(void** fp, cstr name)
+      {
+         return fopen_s((FILE**)fp, name, "ab");
+      }
+
+      int OpenForRead(void** fp, cstr name)
+      {
+         return fopen_s((FILE**) fp, name, "rb");
+      }
+
       ticks CpuTicks()
       {
          LARGE_INTEGER ticks;
@@ -174,7 +231,8 @@ namespace
 
 	struct FilePath
 	{
-		rchar data[_MAX_PATH];
+      enum { CAPACITY = 260 };
+		rchar data[CAPACITY];
 		operator rchar*() { return data; }
       operator cstr() const { return data; }
 	};
@@ -204,7 +262,7 @@ namespace
 		while (len > 0)
 		{
 			FilePath indicator;
-			SecureFormat(indicator.data, "%s%s", path.data, contentIndicatorName);
+			SecureFormat(indicator.data, FilePath::CAPACITY, "%s%s", path.data, contentIndicatorName);
 			if (os.IsFileExistant(indicator))
 			{
             StackStringBuilder sb(path.data, _MAX_PATH, StringBuilder::BUILD_EXISTING);
@@ -267,7 +325,7 @@ namespace
 			os.ConvertUnixPathToSysPath(resourcePath + 1, sysPath, _MAX_PATH);
 			
 			FilePath absPath;
-			SecureFormat(absPath.data, "%s%s", contentDirectory.data, sysPath.data);
+			SecureFormat(absPath.data, FilePath::CAPACITY, "%s%s", contentDirectory.data, sysPath.data);
 
 			os.LoadAbsolute(absPath, buffer, maxFileLength);
 		}
@@ -405,7 +463,7 @@ namespace
 				if (i->Action == FILE_ACTION_MODIFIED)
 				{
 					rchar nullTerminatedFilename[_MAX_PATH];
-					SafeFormat(nullTerminatedFilename, _TRUNCATE, "%S", info.FileName);
+					SafeFormat(nullTerminatedFilename, sizeof(nullTerminatedFilename), "%S", info.FileName);
 					OnModified(nullTerminatedFilename);
 				}
 
@@ -624,7 +682,7 @@ namespace Rococo
          va_list arglist;
          va_start(arglist,format);
          char line[4096];
-         vsnprintf_s(line, _TRUNCATE, format, arglist);
+         SafeVFormat(line, sizeof(line), format, arglist);
          OutputDebugStringA(line);
 #endif
       }
@@ -636,7 +694,7 @@ namespace Rococo
       {
          wchar_t* path;
          SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
-         SafeFormat(fullpath, capacity, _TRUNCATE, "%S\\%s", path, shortname);
+         SafeFormat(fullpath, capacity, "%S\\%s", path, shortname);
       }
 
       void DeleteUserFile(cstr filename)
@@ -645,7 +703,7 @@ namespace Rococo
          SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
 
          rchar fullpath[_MAX_PATH];
-         SafeFormat(fullpath, _TRUNCATE, "%S\\%s", path, filename);
+         SafeFormat(fullpath, sizeof(fullpath), "%S\\%s", path, filename);
 
          DeleteFileA(fullpath);
       }
@@ -656,7 +714,7 @@ namespace Rococo
          SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
 
          rchar fullpath[_MAX_PATH];
-         SafeFormat(fullpath, _TRUNCATE, "%S\\%s", path, filename);
+         SafeFormat(fullpath, sizeof(fullpath), "%S\\%s", path, filename);
 
          HANDLE hFile = CreateFileA(fullpath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
          if (hFile != INVALID_HANDLE_VALUE)
@@ -851,7 +909,7 @@ namespace Rococo
             Throw(hr, "pfd->GetResult");
          }
          
-         SafeFormat(name, capacity, _TRUNCATE, "%S", _name);
+         SafeFormat(name, capacity, "%S", _name);
 
          CoTaskMemFree(_name);
 
@@ -907,7 +965,7 @@ namespace Rococo
 
          rchar fullpath[MAX_PATH];
          bool isSlashed = GetFinalNull(directory)[-1] == L'\\' || GetFinalNull(directory)[-1] == L'/';
-         SafeFormat(fullpath, _TRUNCATE, "%s%s*.*", directory, isSlashed ? "" : "\\");
+         SafeFormat(fullpath, sizeof(fullpath), "%s%s*.*", directory, isSlashed ? "" : "\\");
 
          WIN32_FIND_DATAA findData;
          hSearch.hSearch = FindFirstFileA(fullpath, &findData);

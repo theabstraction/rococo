@@ -1,7 +1,4 @@
 #include "windows.test.h"
-#include <stdarg.h>
-#include <rococo.strings.h>
-
 #include "resource.h"
 
 #ifdef _DEBUG
@@ -41,7 +38,7 @@ namespace Rococo
 		va_start(args, format);
 
 		TestException ex;
-		SafeVFormat(ex.msg, _TRUNCATE, format, args);
+		Rococo::SafeVFormat(ex.msg, sizeof(ex.msg), format, args);
 
 		ex.errorCode = errorCode;
 
@@ -194,7 +191,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	}
 	catch (IException& ex)
 	{
-		ShowErrorBox(NoParent(), ex, "Test threw an exception");
+		OS::ShowErrorBox(NoParent(), ex, "Test threw an exception");
 	}
 
 	return 0;

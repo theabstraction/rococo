@@ -609,7 +609,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			csexstr className = name.c_str();
 
 			TokenBuffer destrName;
-			StringPrint(destrName, SEXTEXT("%s.Destruct"), className);
+         SafeFormat(destrName.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s.Destruct"), className);
 			const IFunction* destructor = module.FindFunction(destrName);
 
 			IProgramObject& object = (IProgramObject&) module.Object();
@@ -670,7 +670,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 					const IArchetype& method = interf.GetMethod(k);
 
 					TokenBuffer qualifiedMethodName;
-					StringPrint(qualifiedMethodName, SEXTEXT("%s.%s"), name.c_str(), method.Name());
+               SafeFormat(qualifiedMethodName.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s.%s"), name.c_str(), method.Name());
 					IFunction* implementation = module.FindFunction(qualifiedMethodName);
 					if (implementation == NULL)
 					{

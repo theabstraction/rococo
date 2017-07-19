@@ -1,6 +1,8 @@
 #include <stdarg.h>
 
 #include <rococo.types.h>
+
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
 #include <stdio.h>
@@ -48,7 +50,7 @@ namespace Rococo
 
       struct : public IException
       {
-         rchar msg[256];
+         rchar msg[2048];
          int32 errorCode;
 
          virtual cstr Message() const
@@ -62,7 +64,7 @@ namespace Rococo
          }
       } ex;
 
-      _vsnprintf_s(ex.msg, 256, _TRUNCATE, format, args);
+      SafeVFormat(ex.msg, sizeof(ex.msg), format, args);
 
       ex.errorCode = errorCode;
 

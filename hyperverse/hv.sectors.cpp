@@ -50,7 +50,7 @@ namespace
          catch (IException& ex)
          {
             s->Free();
-            ShowErrorBox(Windows::NoParent(), ex, "Algorithmic error creating sector. Try something simpler");
+            OS::ShowErrorBox(Windows::NoParent(), ex, "Algorithmic error creating sector. Try something simpler");
 
 #ifdef _DEBUG
             if (QueryYesNo(Windows::NoParent(), "Try again?"))

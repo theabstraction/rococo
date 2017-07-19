@@ -89,7 +89,7 @@ namespace Rococo
          if (IsNullType(s)) return true;
 
          TokenBuffer destrName;
-         StringPrint(destrName, SEXTEXT("%s.Destruct"), s.Name());
+         SafeFormat(destrName.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s.Destruct"), s.Name());
          if (s.Module().FindFunction(destrName) != NULL) return true;
          if (AreEqual(s.Name(), SEXTEXT("_Array"))) return true;
          if (AreEqual(s.Name(), SEXTEXT("_Lock"))) return true;
@@ -122,8 +122,8 @@ namespace Rococo
          va_list args;
          va_start(args, format);
 
-         SEXCHAR msg[128];
-         StringPrintV(msg, 128, args, format);
+         rchar msg[128];
+         SafeVFormat(msg, sizeof(msg), format, args);
          builder.AddSymbol(msg);
       }
 

@@ -442,12 +442,18 @@ namespace Rococo
       typedef int64 ticks;
       void PrintDebug(const char* format, ...);
       void TripDebugger();
+      void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr caption);
       bool IsDebugging();
       void BreakOnThrow(BreakFlag flag);
       ticks CpuTicks();
       ticks CpuHz();
       bool StripLastSubpath(rchar* fullpath);
       bool IsFileExistant(cstr path);
+      void Format_C_Error(int errorCode, rchar* buffer, size_t capacity);
+      int OpenForAppend(void** fp, cstr name);
+      int OpenForRead(void** fp, cstr name);
+      void UILoop(uint32 milliseconds);
+      void SanitizePath(char* path);
    }
 
 #if !defined(_W64)
@@ -471,44 +477,10 @@ namespace Rococo
 #define POINTERS_ARE_64_BIT
 
 #ifndef _WIN32
-# include <stdarg.h>
-# define _TRUNCATE ((size_t)-1)
    typedef int32 errno_t;
    void memcpy_s(void *dest, size_t destSize, const void *src, size_t count);
-   int sscanf_s(const char* buffer, const char* format, ...);
-   int sprintf_s(char* buffer, size_t capacity, const char* format, ...);
-   int _vsnprintf_s(char* buffer, size_t capacity, size_t maxCount, const char* format, va_list args);
-
-   template<size_t _Size>
-   inline int _snprintf_s(char(&buffer)[_Size], size_t maxCount, const char* format, ...)
-   {
-      va_list args;
-      va_start(args, format);
-      return _vsnprintf_s(buffer, _Size, maxCount, format, args);
-   }
-
-   template<size_t _Size>
-   inline int _vsnprintf_s(char(&buffer)[_Size], size_t maxCount, const char* format, va_list args)
-   {
-      return _vsnprintf_s(buffer, _Size, maxCount, format, args);
-   }
-
-   template<size_t _Size>
-   inline int sprintf_s(char(&buffer)[_Size], const char* format, ...)
-   {
-      va_list args;
-      va_start(args, format);
-      return _vsnprintf_s(buffer, _Size, _TRUNCATE, format, args);
-   }
-
-   inline int _snprintf_s(char *buffer, size_t capacity, size_t maxCount, const char* format, ...)
-   {
-      va_list args;
-      va_start(args, format);
-      return _vsnprintf_s(buffer, capacity, maxCount, format, args);
-   }
-
-# define _MAX_PATH 260 // There is no good answer for this
+   
+   enum { _MAX_PATH = 260 };
 #endif
 
 }

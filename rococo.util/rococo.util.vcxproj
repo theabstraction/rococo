@@ -101,6 +101,9 @@
     <ClCompile Include="rococo.allocators.cpp" />
     <ClCompile Include="rococo.base.cpp" />
     <ClCompile Include="rococo.flow.cpp" />
+    <ClCompile Include="rococo.ide.stdout.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="rococo.observer.cpp" />
     <ClCompile Include="rococo.os.mac.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -119,8 +122,13 @@
     <ClInclude Include="..\include\rococo.textures.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\mac\utils.mak" />
     <None Include="copy.sexy.to.game.debug.bat" />
     <None Include="copy.sexy.to.game.release.bat" />
+    <None Include="rococo.dialogs.osx.mm">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

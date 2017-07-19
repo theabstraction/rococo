@@ -576,7 +576,7 @@ namespace
 		ID_ENTITY roadId = c.e->level.Builder().AddSolid(Vec3{ midPoint.x, midPoint.y, 0.0f }, id, SolidFlags_RoadSection);
 
 		rchar streetName[256];
-		SafeFormat(streetName, _TRUNCATE, L"%I64u-%I64u %s", streetAddress, streetAddress + 1, name);
+		SafeFormat(streetName, L"%I64u-%I64u %s", streetAddress, streetAddress + 1, name);
 		c.e->level.Builder().Name(roadId, to_fstring(streetName));
 	}
 
@@ -836,16 +836,16 @@ namespace
 		randomName[0] = 0;
 
 		cstr c = alpha[Next(rng, sizeof(alpha) / sizeof(cstr))];
-		SafeCat(randomName, 256, c, _TRUNCATE);
+		SafeCat(randomName, 256, c);
 
 		cstr v = beta[Next(rng, sizeof(beta) / sizeof(cstr))];
-		SafeCat(randomName, 256, v, _TRUNCATE);
+		SafeCat(randomName, 256, v);
 
-		SafeCat(randomName, 256, L" ", _TRUNCATE);
+		SafeCat(randomName, 256, L" ");
 
 		cstr fn = finalNames[Next(rng, sizeof(finalNames) / sizeof(cstr))];
 
-		SafeCat(randomName, 256, fn, _TRUNCATE);
+		SafeCat(randomName, 256, fn);
 
 		randomName[0] = toupper(randomName[0]);
 	}
@@ -926,7 +926,7 @@ namespace Dystopia
 			customLoadScene.clearColour = RGBA((network.roads.size() - j) / (float) (network.roads.size()), 0, 0);
 
 			rchar text[256];
-			SafeFormat(text, _TRUNCATE, L"Generating housing along %s", streets.names[j].c_str());
+			SafeFormat(text, L"Generating housing along %s", streets.names[j].c_str());
 			customLoadScene.text = text;
 			e.renderer.Render(customLoadScene);
 

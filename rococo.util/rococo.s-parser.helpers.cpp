@@ -64,6 +64,8 @@ namespace
 #include <rococo.os.win32.h>
 
 #include <rococo.maths.h>
+
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
 namespace Rococo
@@ -112,7 +114,7 @@ namespace
                auto& arg = f.GetArgument(i + f.NumberOfOutputs());
                auto argName = f.GetArgName(i + f.NumberOfOutputs());
 
-               SafeFormat(desc, _TRUNCATE, "%s %s", Sanitize(arg.Name()), argName);
+               SafeFormat(desc, sizeof(desc), "%s %s", Sanitize(arg.Name()), argName);
                tree.AddChild(inputId, desc, Visitors::CheckState_Clear);
             }
          }
@@ -127,7 +129,7 @@ namespace
             auto& arg = f.GetArgument(0);
             auto argName = f.GetArgName(0);
 
-            SafeFormat(desc, _TRUNCATE, "%s %s - Get Accessor", Sanitize(arg.Name()), argName);
+            SafeFormat(desc, sizeof(desc), "%s %s - Get Accessor", Sanitize(arg.Name()), argName);
             tree.AddChild(outputId, desc, Visitors::CheckState_Clear);
          }
          else
@@ -137,7 +139,7 @@ namespace
                auto& arg = f.GetArgument(i);
                auto argName = f.GetArgName(i);
 
-               SafeFormat(desc, _TRUNCATE, "%s %s", Sanitize(arg.Name()), argName);
+               SafeFormat(desc, sizeof(desc), "%s %s", Sanitize(arg.Name()), argName);
                tree.AddChild(outputId, desc, Visitors::CheckState_Clear);
             }
          }
@@ -180,10 +182,10 @@ namespace
                if (childStructuresId.value == 0) childStructuresId = tree->AddChild(rootId, "[Structures]", CheckState_Clear);
 
                rchar desc[256];
-               SafeFormat(desc, _TRUNCATE, "%s.%s", ns->FullName()->Buffer, alias);
+               SafeFormat(desc, sizeof(desc), "%s.%s", ns->FullName()->Buffer, alias);
                auto typeId = tree->AddChild(childStructuresId, desc, CheckState_Clear);
 
-               SafeFormat(desc, _TRUNCATE, "%s - %d bytes. Defined in %s", Parse::VarTypeName(s.VarType()), s.SizeOfStruct(), s.Module().Name());
+               SafeFormat(desc, sizeof(desc), "%s - %d bytes. Defined in %s", Parse::VarTypeName(s.VarType()), s.SizeOfStruct(), s.Module().Name());
                auto typeDescId = tree->AddChild(typeId, desc, CheckState_Clear);
 
                if (s.VarType() == VARTYPE_Derivative)
@@ -191,7 +193,7 @@ namespace
                   for (int32 i = 0; i < s.MemberCount(); ++i)
                   {
                      cstr fieldType = s.GetMember(i).UnderlyingType() ? s.GetMember(i).UnderlyingType()->Name() : "Unknown Type";
-                     SafeFormat(desc, _TRUNCATE, "%s %s", fieldType, s.GetMember(i).Name());
+                     SafeFormat(desc, sizeof(desc), "%s %s", fieldType, s.GetMember(i).Name());
                      tree->AddChild(typeId, desc, CheckState_Clear);
                   }
                }
@@ -219,10 +221,10 @@ namespace
                TREE_NODE_ID typeId;
                rchar desc[256];
 
-               SafeFormat(desc, _TRUNCATE, "%s.%s", ns->FullName()->Buffer, alias);
+               SafeFormat(desc, sizeof(desc), "%s.%s", ns->FullName()->Buffer, alias);
                typeId = tree->AddChild(childFunctionsId, desc, CheckState_Clear);
 
-               SafeFormat(desc, _TRUNCATE, "Defined in %s", f.Module().Name());
+               SafeFormat(desc, sizeof(desc), "Defined in %s", f.Module().Name());
                tree->AddChild(typeId, desc, CheckState_Clear);
 
                AddArguments(f, *tree, typeId);
@@ -251,11 +253,11 @@ namespace
 
                if (base)
                {
-                  SafeFormat(desc, _TRUNCATE, "%s.%s extending %s", ns.FullName()->Buffer, inter.Name(), base->Name());
+                  SafeFormat(desc, sizeof(desc), "%s.%s extending %s", ns.FullName()->Buffer, inter.Name(), base->Name());
                }
                else
                {
-                  SafeFormat(desc, _TRUNCATE, "%s.%s", ns.FullName()->Buffer, inter.Name());
+                  SafeFormat(desc, sizeof(desc), "%s.%s", ns.FullName()->Buffer, inter.Name());
                }
 
                auto interId = tree.AddChild(interfaceId, desc, CheckState_Clear);
@@ -263,7 +265,7 @@ namespace
                for (int j = 0; j < inter.MethodCount(); ++j)
                {
                   auto& method = inter.GetMethod(j);
-                  SafeFormat(desc, _TRUNCATE, "method %s", method.Name());
+                  SafeFormat(desc, sizeof(desc), "method %s", method.Name());
                   auto methodId = tree.AddChild(interId, desc, CheckState_Clear);
                   AddArguments(method, tree, methodId);
                }
@@ -283,10 +285,10 @@ namespace
                TREE_NODE_ID typeId;
                rchar desc[256];
 
-               SafeFormat(desc, _TRUNCATE, "%s.%s - creates objects of type %s", ns->FullName()->Buffer, alias, f.InterfaceType()->Buffer);
+               SafeFormat(desc, sizeof(desc), "%s.%s - creates objects of type %s", ns->FullName()->Buffer, alias, f.InterfaceType()->Buffer);
                typeId = tree->AddChild(childFactoryId, desc, CheckState_Clear);
 
-               SafeFormat(desc, _TRUNCATE, "Defined in %s", f.Constructor().Module().Name());
+               SafeFormat(desc, sizeof(desc), "Defined in %s", f.Constructor().Module().Name());
                tree->AddChild(typeId, desc, CheckState_Clear);
 
                AddArguments(f.Constructor(), *tree, typeId);
@@ -359,7 +361,7 @@ namespace Rococo
 		va_start(args, format);
 
 		rchar msg[512];
-		SafeVFormat(msg, _TRUNCATE, format, args);
+		SafeVFormat(msg, sizeof(msg), format, args);
 
 		auto start = s.Start();
 		auto end = s.End();
@@ -757,7 +759,7 @@ namespace Rococo
             }
             
             rchar desc[256];
-            SafeFormat(desc, _TRUNCATE, "%p %s - %s", sf, f->Module().Name(), f->Name());
+            SafeFormat(desc, sizeof(desc), "%p %s - %s", sf, f->Module().Name(), f->Name());
 
             auto sfNode = tree.AddRootItem(desc, CheckState_Clear);
             tree.SetId(sfNode, depth + 1);
@@ -771,11 +773,11 @@ namespace Rococo
                   rchar desc[256];
                   if (v.Value[0] != 0)
                   {
-                     SafeFormat(desc, _TRUNCATE, "%p %s: %s %s = %s", v.Address + SF, v.Location, v.Type, v.Name, v.Value);
+                     SafeFormat(desc, sizeof(desc), "%p %s: %s %s = %s", v.Address + SF, v.Location, v.Type, v.Name, v.Value);
                   }
                   else
                   {
-                     SafeFormat(desc, _TRUNCATE, "%p %s: %s %s", v.Address + SF, v.Location, v.Type, v.Name);
+                     SafeFormat(desc, sizeof(desc), "%p %s: %s %s", v.Address + SF, v.Location, v.Type, v.Name);
                   }
                   auto node = tree->AddChild(sfNode, desc, CheckState_NoCheckBox);
                   tree->SetId(node, depth+1);
@@ -835,8 +837,8 @@ namespace Rococo
 				if (count < maxCount)
 				{
 					rchar wname[128], wvalue[128];
-					SafeFormat(wname, _TRUNCATE, "%s", name);
-					SafeFormat(wvalue, _TRUNCATE, "%s", value);
+					SafeFormat(wname, 128, "%s", name);
+					SafeFormat(wvalue, 128, "%s", value);
 
 					cstr row[] = { wname, wvalue, nullptr };
 					uiList->AddRow(row);
@@ -889,7 +891,7 @@ namespace Rococo
       debugger.InitDisassembly(section.Id);
 
 		rchar metaData[256];
-		SafeFormat(metaData, _TRUNCATE, "%s %s (Id #%d) - %d bytes\n\n", f->Name(), f->Module().Name(), (int32)section.Id, (int32)functionLength);
+		SafeFormat(metaData, sizeof(metaData), "%s %s (Id #%d) - %d bytes\n\n", f->Name(), f->Module().Name(), (int32)section.Id, (int32)functionLength);
 		debugger.AddDisassembly(RGBAb(128,128,0), metaData);
 
 		int lineCount = 1;
@@ -915,27 +917,27 @@ namespace Rococo
          if (isHighlight)
          {
             debugger.AddDisassembly(RGBAb(128,0,0), "*", RGBAb(255, 255, 255), true);
-            SafeFormat(assemblyLine, _TRUNCATE, "%p", fstart + i);
+            SafeFormat(assemblyLine, sizeof(assemblyLine), "%p", fstart + i);
             debugger.AddDisassembly(RGBAb(255, 255, 255), assemblyLine, RGBAb(0, 0, 255));
-            SafeFormat(assemblyLine, _TRUNCATE, " %s %s ", rep.OpcodeText, rep.ArgText);
+            SafeFormat(assemblyLine, sizeof(assemblyLine), " %s %s ", rep.OpcodeText, rep.ArgText);
             debugger.AddDisassembly(RGBAb(255, 255, 255), assemblyLine, RGBAb(0, 0, 255));
 
             if (symbol.Text[0] != 0)
             {
-               SafeFormat(assemblyLine, _TRUNCATE, "// %s", symbol.Text);
+               SafeFormat(assemblyLine, sizeof(assemblyLine), "// %s", symbol.Text);
                debugger.AddDisassembly(RGBAb(32, 128, 0), assemblyLine);
             }
          }
          else
          {
-            SafeFormat(assemblyLine, _TRUNCATE, " %p", fstart + i);
+            SafeFormat(assemblyLine, sizeof(assemblyLine), " %p", fstart + i);
             debugger.AddDisassembly(RGBAb(0, 0, 0), assemblyLine);
-            SafeFormat(assemblyLine, _TRUNCATE, " %s %s ", rep.OpcodeText, rep.ArgText);
+            SafeFormat(assemblyLine, sizeof(assemblyLine), " %s %s ", rep.OpcodeText, rep.ArgText);
             debugger.AddDisassembly(RGBAb(128, 0, 0), assemblyLine);
 
             if (symbol.Text[0] != 0)
             {
-               SafeFormat(assemblyLine, _TRUNCATE, "// %s", symbol.Text);
+               SafeFormat(assemblyLine, sizeof(assemblyLine), "// %s", symbol.Text);
                debugger.AddDisassembly(RGBAb(0, 128, 0), assemblyLine);
             }
          }

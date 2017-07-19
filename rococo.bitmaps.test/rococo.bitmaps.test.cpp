@@ -98,7 +98,7 @@ public:
          item.mask = LVIF_IMAGE | LVIF_TEXT;
          item.iImage = i;
             
-         SafeFormat(text, _TRUNCATE, "Texture #%d", i);
+         SafeFormat(text, sizeof(text), "Texture #%d", i);
          item.pszText = text;
          ListView_InsertItem(imageView->ListViewHandle(), &item);
       }
@@ -302,7 +302,7 @@ void Main()
          if (Eq(ext, ".tiff") || Eq(ext, ".tif") || Eq(ext, ".jpg") || Eq(ext, ".jpeg"))
          {
             rchar filename[MAX_PATH];
-            SafeFormat(filename, _TRUNCATE, "%s\\%s", root, pathname);
+            SafeFormat(filename, sizeof(filename), "%s\\%s", root, pathname);
             builder->AddBitmap(filename);
          }      
       }
@@ -330,7 +330,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
    }
    catch (IException& ex)
    {
-      Rococo::ShowErrorBox(NullParent(), ex, "Bitmap Test Dialog - Exception");
+      Rococo::OS::ShowErrorBox(NullParent(), ex, "Bitmap Test Dialog - Exception");
    }
 
    return 0;

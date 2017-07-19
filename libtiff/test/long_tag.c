@@ -1,7 +1,7 @@
-/* $Id: long_tag.c,v 1.4 2008/03/28 01:42:06 bfriesen Exp $ */
+/* $Id: long_tag.c,v 1.2 2004/10/01 14:16:37 dron Exp $ */
 
 /*
- * Copyright (c) 2004, Andrey Kiselev  <dron@ak4719.spb.edu>
+ * Copyright (c) 2004, Andrey Kiselev  <dron@remotesensing.org>
  *
  * Permission to use, copy, modify, distribute, and sell this software and 
  * its documentation for any purpose is hereby granted without fee, provided
@@ -60,10 +60,8 @@ int
 main(int argc, char **argv)
 {
 	TIFF		*tif;
-	unsigned int	i;
+	int		i;
 	unsigned char	buf[3] = { 0, 127, 255 };
-        (void) argc;
-        (void) argv;
 
 	/* Test whether we can write tags. */
 	tif = TIFFOpen(filename, "w");

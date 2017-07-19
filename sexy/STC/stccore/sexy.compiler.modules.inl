@@ -102,7 +102,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		virtual IFunctionBuilder& DeclareClosure(IFunctionBuilder& parent, bool mayUseParentSF, const void* definition)
 		{
 			SEXCHAR name[32];
-			StringPrint(name, 32, SEXTEXT("_Closure%s%u"), parent.Name(), closures.size());
+			SafeFormat(name, 32, SEXTEXT("_Closure%s%u"), parent.Name(), closures.size());
 			Function* f = new Function(FunctionPrototype(name, false), *this, &parent, mayUseParentSF, definition);
 			closures.push_back(f);
 			return *f;

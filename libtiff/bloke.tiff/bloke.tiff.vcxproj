@@ -57,7 +57,7 @@
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)libtiff\libtiff\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)libtiff\libtiff\;$(SolutionDir)libjpg\jpeg-6b\;$(SolutionDir)zlib\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -73,7 +73,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)libtiff\libtiff\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)libtiff\libtiff\;$(SolutionDir)libjpg\jpeg-6b\;$(SolutionDir)zlib\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -123,7 +123,6 @@
     <ClCompile Include="..\libtiff\tif_tile.c" />
     <ClCompile Include="..\libtiff\tif_version.c" />
     <ClCompile Include="..\libtiff\tif_warning.c" />
-    <ClCompile Include="..\libtiff\tif_win32.c" />
     <ClCompile Include="..\libtiff\tif_write.c" />
     <ClCompile Include="..\libtiff\tif_zip.c" />
   </ItemGroup>

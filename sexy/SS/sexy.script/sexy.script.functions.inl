@@ -245,7 +245,7 @@ namespace Rococo
 
 	      SEXCHAR debugInfo[256];
 	      csexstr format = (value->Length > 24) ? SEXTEXT(" = '%.24s...'") : SEXTEXT(" = '%s'");
-	      StringPrint(debugInfo, 256, format, (csexstr) value->Buffer);
+	      SafeFormat(debugInfo, 256, format, (csexstr) value->Buffer);
 	      ce.Builder.AddSymbol(debugInfo);
 
 	      VariantValue ptr;
@@ -641,7 +641,7 @@ namespace Rococo
 	      }
 
 	      TokenBuffer symbol;
-	      StringPrint(symbol, SEXTEXT(" -> %s"), outputVar);
+         SafeFormat(symbol.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT(" -> %s"), outputVar);
 	      builder.AddSymbol(symbol);
 
 	      const IStructure* exprOutputStruct = outputDef.ResolvedType;
@@ -806,7 +806,7 @@ namespace Rococo
 		      }
 
 		      SEXCHAR stackAllocHint[256];
-		      StringPrint(stackAllocHint, 256, SEXTEXT("Output for %s"), callee.Name());
+            SafeFormat(stackAllocHint, 256, SEXTEXT("Output for %s"), callee.Name());
 		      ce.Builder.AddSymbol(stackAllocHint);
 
 		      ce.Builder.Assembler().Append_StackAlloc(outputStackAllocByteCount);
@@ -890,7 +890,7 @@ namespace Rococo
       int CompileCloseCallHeader(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, csexstr closureVariable)
       {
 	      TokenBuffer parentSF;
-	      StringPrint(parentSF, SEXTEXT("%s.parentSF"), closureVariable); 
+         SafeFormat(parentSF.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s.parentSF"), closureVariable);
 
 	      MemberDef def;
 	      ce.Builder.TryGetVariableByName(OUT def, parentSF);
@@ -910,11 +910,11 @@ namespace Rococo
 	      int inputStackAllocByteCount = PushInputs(ce, s, archetype, false, 1);
 
 	      TokenBuffer pathToId;
-	      StringPrint(pathToId, SEXTEXT("%s.bytecodeId"), closureVariable);
+         SafeFormat(pathToId.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s.bytecodeId"), closureVariable);
 	      ce.Builder.AssignVariableToTemp(pathToId, 0); // Copy the closure bytecode id to D4
 
 	      TokenBuffer callSymbol;
-	      StringPrint(callSymbol, SEXTEXT("call %s %s"), archetype.Name(), closureVariable);
+         SafeFormat(callSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("call %s %s"), archetype.Name(), closureVariable);
 	      ce.Builder.AddSymbol(callSymbol);
 	      ce.Builder.Assembler().Append_CallByIdIndirect(VM::REGISTER_D4);
 
@@ -2106,7 +2106,7 @@ namespace Rococo
       void AddArchiveRegister(CCompileEnvironment& ce, int saveTempDepth, int restoreTempDepth, BITCOUNT bits)
       {
 	      SEXCHAR declText[256];
-	      StringPrint(declText, 256, SEXTEXT("save D%d. restore to D%d"), saveTempDepth + 4, restoreTempDepth + 4);
+         SafeFormat(declText, 256, SEXTEXT("save D%d. restore to D%d"), saveTempDepth + 4, restoreTempDepth + 4);
 	      ce.Builder.AddSymbol(declText);
 	      ce.Builder.ArchiveRegister(saveTempDepth, restoreTempDepth, bits, (void*)GetTryCatchExpression(ce.Script));
       }

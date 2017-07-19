@@ -1,6 +1,6 @@
 # Tag Image File Format (TIFF) Software
 #
-# Copyright (C) 2004, Andrey Kiselev <dron@ak4719.spb.edu>
+# Copyright (C) 2004, Andrey Kiselev <dron@remotesensing.org>
 #
 # Permission to use, copy, modify, distribute, and sell this software and 
 # its documentation for any purpose is hereby granted without fee, provided
@@ -45,7 +45,6 @@ bin_PROGRAMS = \
 	tiff2rgba \
 	tiffcmp \
 	tiffcp \
-	tiffcrop \
 	tiffdither \
 	tiffdump \
 	tiffinfo \
@@ -57,10 +56,6 @@ bin_PROGRAMS += tiffgt
 endif
 
 EXTRA_PROGRAMS = sgi2tiff sgisv ycbcr
-
-if HAVE_RPATH
-AM_LDFLAGS = $(LIBDIR)
-endif
 
 bmp2tiff_SOURCES = bmp2tiff.c
 bmp2tiff_LDADD = $(LIBTIFF) $(LIBPORT)
@@ -110,9 +105,6 @@ tiffcmp_LDADD = $(LIBTIFF) $(LIBPORT)
 tiffcp_SOURCES = tiffcp.c
 tiffcp_LDADD = $(LIBTIFF) $(LIBPORT)
 
-tiffcrop_SOURCES = tiffcrop.c
-tiffcrop_LDADD = $(LIBTIFF) $(LIBPORT)
-
 tiffdither_SOURCES = tiffdither.c
 tiffdither_LDADD = $(LIBTIFF) $(LIBPORT)
 
@@ -135,7 +127,7 @@ tiffgt_SOURCES = tiffgt.c
 tiffgt_CFLAGS = $(CFLAGS) $(GLUT_CFLAGS) $(AM_CFLAGS)
 tiffgt_LDADD = $(LIBTIFF) $(LIBPORT) $(X_LIBS) $(GLUT_LIBS)
 
-AM_CPPFLAGS = -I$(top_srcdir)/libtiff
+INCLUDES = -I$(top_srcdir)/libtiff
 
 echo:
 	(echo $(CFLAGS))

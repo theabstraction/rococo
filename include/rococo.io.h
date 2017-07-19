@@ -5,6 +5,8 @@ namespace Rococo
 {
 	namespace IO
 	{
+      void UseBufferlessStdout();
+
 		ROCOCOAPI IStreamer
 		{
 			virtual void Close() = 0; // Closes the IO object responsible for the stream

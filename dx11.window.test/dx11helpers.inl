@@ -27,7 +27,7 @@ namespace Rococo
 		va_start(args, format);
 
 		DX11Exception ex;
-		SafeVFormat(ex.msg, _TRUNCATE, format, args);
+		SafeVFormat(ex.msg, format, args);
 
 		ex.errorCode = errorCode;
 

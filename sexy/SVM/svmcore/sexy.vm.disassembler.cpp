@@ -34,6 +34,9 @@
 #include "sexy.vm.stdafx.h"
 #include "sexy.vm.cpu.h"
 
+#define ROCOCO_USE_SAFE_V_FORMAT
+#include <rococo.strings.h>
+
 #include <stdarg.h>
 
 using namespace Rococo;
@@ -61,7 +64,7 @@ namespace
 	{
 		va_list args;
 		va_start(args, fmt);
-		StringPrintV(rep.ArgText, IDisassembler::MAX_FULL_TEXT_LEN, args, fmt);
+		SafeVFormat(rep.ArgText, sizeof(rep.ArgText), fmt, args);
 		va_end(args);
 	}
 
@@ -82,7 +85,7 @@ namespace
 		{
 			for(int i = 0; i < 256; ++i)
 			{
-				StringPrint(names[i].buf, 6, SEXTEXT("D%d"), i);
+				SafeFormat(names[i].buf, 6, SEXTEXT("D%d"), i);
 			}
 		}
 
@@ -1127,7 +1130,7 @@ namespace
 				rep.ByteCount = 1 + sizeof(ID_API_CALLBACK);
 				ID_API_CALLBACK *pID = (ID_API_CALLBACK *) (ins->ToPC() + 1);
 				csexstr symbol = core.GetCallbackSymbolName(*pID);
-				CopyString(rep.OpcodeText, MAX_ARG_LEN, SEXTEXT("Invoke"), -1);
+				CopyString(rep.OpcodeText, MAX_ARG_LEN, SEXTEXT("Invoke"));
 				format(rep, SEXTEXT("%s"), symbol != NULL ? symbol : SEXTEXT("<Unknown id>"));
 			}
 			else
@@ -1135,12 +1138,12 @@ namespace
 				FormatBinding& fb = s_formatters[ins->Opcode];
 				if (fb.Formatter != NULL)
 				{
-					CopyString(rep.OpcodeText, MAX_ARG_LEN, fb.OpcodeText, -1);
+					CopyString(rep.OpcodeText, MAX_ARG_LEN, fb.OpcodeText);
 					fb.Formatter(*ins, OUT rep);
 				}
 				else
 				{
-					CopyString(rep.OpcodeText, MAX_ARG_LEN, SEXTEXT("UnknownOpcode"), -1);
+					CopyString(rep.OpcodeText, MAX_ARG_LEN, SEXTEXT("UnknownOpcode"));
 				}
 			}
 		}

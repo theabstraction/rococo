@@ -56,7 +56,7 @@ void Main(HANDLE hInstanceLock)
    AutoFree<IConfigSupervisor> config(CreateConfig());
 
    rchar srcpath[_MAX_PATH];
-   SecureFormat(srcpath, "%sscripts\\native\\", installation->Content());
+   SecureFormat(srcpath, sizeof(srcpath), "%sscripts\\native\\", installation->Content());
 
    Rococo::Script::SetDefaultNativeSourcePath(srcpath);
 
@@ -139,7 +139,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
    }
    catch (IException& ex)
    {
-      ShowErrorBox(NoParent(), ex, "Hyperverse - Fatal Error");
+      OS::ShowErrorBox(NoParent(), ex, "Hyperverse - Fatal Error");
    }
 
    CloseHandle(hInstanceLock);

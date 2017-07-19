@@ -78,20 +78,10 @@ using namespace Rococo::Compiler;
 
 namespace
 {
-#ifdef _WIN32
-	void FormatSysMessage(SEXCHAR* text, size_t capacity, int msgNumber)
-	{
-		if (!FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, msgNumber, 0, text, (DWORD) capacity, NULL))
-		{
-			StringPrint(text, capacity, SEXTEXT("Code %d ( 0x%x )"), msgNumber, msgNumber);
-		}
-	}
-#else // OSX etc
    void FormatSysMessage(SEXCHAR* text, size_t capacity, int msgNumber)
    {
-      strerror_r(msgNumber, text, capacity);
+      OS::Format_C_Error(msgNumber, text, capacity);
    }
-#endif
 
 	typedef void (*FN_TEST)(IPublicScriptSystem& ss);
 
@@ -172,20 +162,20 @@ namespace
 			const IModule& m = obj.GetModule(i);
 
 			SEXCHAR msg[256];
-			StringPrint(msg, 256, SEXTEXT("\r\nModule %s"), m.Name()); 
+			SafeFormat(msg, 256, SEXTEXT("\r\nModule %s"), m.Name()); 
 			log.Write(msg);
 
 			for(int j = 0; j < m.StructCount(); ++j)
 			{
 				const IStructure& s = m.GetStructure(j);
 
-				StringPrint(msg, 256, SEXTEXT("\r\nstruct %s - %d bytes"), s.Name(), s.SizeOfStruct()); 
+            SafeFormat(msg, 256, SEXTEXT("\r\nstruct %s - %d bytes"), s.Name(), s.SizeOfStruct());
 				log.Write(msg);
 
 				for(int k = 0; k < s.MemberCount(); ++k)
 				{
 					const IMember& member = s.GetMember(k);
-					StringPrint(msg, 256, SEXTEXT("  %s %s"), member.UnderlyingType()->Name(), member.Name()); 
+               SafeFormat(msg, 256, SEXTEXT("  %s %s"), member.UnderlyingType()->Name(), member.Name());
 					log.Write(msg);
 				}
 			}
@@ -11181,56 +11171,17 @@ namespace
 		TEST(TestDoubleArrowsInFunction);	
 	}
 
-#ifdef _WIN32
-
-   int64 TimerTicks()
-   {
-      LARGE_INTEGER ticks;
-      QueryPerformanceCounter(&ticks);
-      return ticks.QuadPart;
-   }
-
-   int64 TimerHz()
-   {
-      LARGE_INTEGER hz;
-      QueryPerformanceFrequency(&hz);
-      return hz.QuadPart;
-   }
-
-#else
-# include <unistd.h>
-# include <sys/sysctl.h>
-# include <mach/mach.h>
-# include <mach/mach_time.h>
-
-   int64 TimerTicks()
-   {
-      return (int64)mach_absolute_time();
-   }
-
-   int64 TimerHz()
-   {
-      mach_timebase_info_data_t info = { 0 };
-      mach_timebase_info(&info);
-      return 1000000000 * info.numer / info.denom;
-   }
-
-#endif
-	
 	void RunTests()
 	{	
       int64 start, end, hz;
-      start = TimerTicks();
+      start = OS::CpuTicks();
 
-     // for(int i = 0; i < 100; i++)
-     //    TEST(TestNullObject);
-
+      RunPositiveFailures();
 	   RunPositiveSuccesses();	
       RunCollectionTests();
-		RunPositiveFailures(); 
       
-      end = TimerTicks();
-      hz = TimerHz();
+      end = OS::CpuTicks();
+      hz = OS::CpuHz();
 
       double dt = (double)(end - start) / (double)hz;
       printf("\nAll tests completed in %.2f seconds\n", dt); 

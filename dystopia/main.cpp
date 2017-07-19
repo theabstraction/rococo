@@ -83,7 +83,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	}
 	catch (IException& ex)
 	{
-		ShowErrorBox(NoParent(), ex, L"Dystopia threw an exception");
+		OS::ShowErrorBox(NoParent(), ex, L"Dystopia threw an exception");
 	}
 
 	CloseHandle(hInstanceLock);

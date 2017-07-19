@@ -9,16 +9,71 @@
 
 #include <rococo.api.h>
 #include <rococo.imaging.h>
+
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
 #include <tiffiop.h>
 
 namespace
 {
+   using namespace Rococo;
+
    Rococo::IAllocator* tiffAllocator = nullptr;
+
+   void defaultErrorHandler(const char* module, const char* format, va_list args)
+   {
+      char msg[1024];
+      SafeVFormat(msg, sizeof(msg), format, args);
+
+      char totalmsg[1024];
+      SafeFormat(totalmsg, sizeof(totalmsg), "%s:\n\t%s", module, msg);
+
+      if (OS::IsDebugging)
+      {
+         OS::PrintDebug("%s\n", totalmsg);
+         OS::TripDebugger();
+      }
+   }
+
+   void defaultWarningHandler(const char* module, const char* format, va_list args)
+   {
+      char msg[1024];
+      SafeVFormat(msg, sizeof(msg), format, args);
+
+      char totalmsg[1024];
+      SafeFormat(totalmsg, sizeof(totalmsg), "%s:\n\t%s", module, msg);
+
+      if (OS::IsDebugging)
+      {
+         OS::PrintDebug("%s\n", totalmsg);
+      }
+   }
 }
 
-void* _TIFFmalloc(tmsize_t s)
+TIFFErrorHandler _TIFFerrorHandler = defaultErrorHandler;
+TIFFErrorHandler _TIFFwarningHandler = defaultWarningHandler;
+
+void _TIFFmemset(tdata_t target, int value, tsize_t capacity)
+{
+   memset(target, value, capacity);
+}
+
+extern void _TIFFmemcpy(tdata_t dest, const tdata_t src, tsize_t capacity)
+{
+#ifdef _WIN32
+   memcpy_s(dest, capacity, src, capacity);
+#else
+   memcpy(dest, src, capacity);
+#endif
+}
+
+int _TIFFmemcmp(const tdata_t a, const tdata_t b, tsize_t len)
+{
+   return memcmp(a, b, len);
+}
+
+void* _TIFFmalloc(tsize_t s)
 {
    return tiffAllocator ? tiffAllocator->Allocate((size_t)s) : malloc((size_t) s);
 }
@@ -35,7 +90,7 @@ void _TIFFfree(void* p)
    }
 }
 
-void* _TIFFrealloc(void* p, tmsize_t s)
+void* _TIFFrealloc(void* p, tsize_t s)
 {
    return tiffAllocator ? tiffAllocator->Reallocate(p, (size_t) s) : realloc(p, (size_t) s);
 }
@@ -101,7 +156,7 @@ namespace
 
 		static void _OnError(const char* module, const char* format, va_list args)
 		{
-			_vsnprintf_s(errorBuffer, errorCapacity, errorCapacity, format, args);
+			SafeVFormat(errorBuffer, errorCapacity, format, args);
 		}
 
 		static char* errorBuffer;
@@ -158,7 +213,7 @@ namespace
 
 			bool isGood = false;
 
-			TIFF* tif = TIFFClientOpen(filename, "r", this, Read, Write, Seek, Close, GetFileLength, MapFile, UnmapFile);
+			TIFF* tif = TIFFClientOpen(filename, "r", (thandle_t) this, Read, Write, Seek, Close, GetFileLength, MapFile, UnmapFile);
 			if (tif)
 			{
 				Rococo::uint32 width, height;
@@ -184,7 +239,7 @@ namespace
 					}
 					else
 					{
-						SafeFormat(errorBuffer, errorCapacity, _TRUNCATE, "Failed to parse TIFF F_A8R8G8B8-32bit memory image");
+						SafeFormat(errorBuffer, errorCapacity, "Failed to parse TIFF F_A8R8G8B8-32bit memory image");
 					}
 					_TIFFfree(raster);
 				}
@@ -204,7 +259,7 @@ namespace
 						}
 						else
 						{
-							_snprintf_s(errorBuffer, errorCapacity, errorCapacity, "Error reading scanline for 8-bit TIFF file");
+							SafeFormat(errorBuffer, errorCapacity, "Error reading scanline for 8-bit TIFF file");
 							break;
 						}
 					}

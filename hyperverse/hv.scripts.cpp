@@ -78,7 +78,7 @@ namespace HV
             e.installation.OS().FireUnstable();
 
             rchar msg[1024];
-            SafeFormat(msg, _TRUNCATE, "Error: Do you wish to debug?\n\t%s\n\t%s", source, message);
+            SafeFormat(msg, sizeof(msg), "Error: Do you wish to debug?\n\t%s\n\t%s", source, message);
             if (HV::QueryYesNo(e.mainWindow, msg))
             {
                return IDE::EScriptExceptionFlow_Retry;

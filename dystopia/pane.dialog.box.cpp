@@ -34,7 +34,7 @@ namespace
 					name[nTokenChars - 1] = 0;
 
 					cstr pscript = s + 1;
-					wcsncpy_s(script, pscript, _TRUNCATE);
+					wcsncpy_s(script, pscript);
 				}
 			}
 		}

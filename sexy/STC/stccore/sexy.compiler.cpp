@@ -36,6 +36,8 @@
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 #include "sexy.compiler.helpers.h"
+
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
 
@@ -285,7 +287,7 @@ namespace Rococo
 		   va_start(args, format);
 
 		   SEXCHAR message[256];
-		   StringPrintV(message, 256, args, format);
+		   SafeVFormat(message, 256, format, args);
 		   STCException e(code, source, message);	
 		   Throw(e);
 	   }
@@ -293,9 +295,9 @@ namespace Rococo
 	   void HighLightText(SEXCHAR* outputBuffer, size_t nBytesOutput, csexstr highlightPos, csexstr wholeString)
 	   {
 		   SEXCHAR charbuf[4];
-		   StringPrint(charbuf, 4, SEXTEXT("[%c]"), *highlightPos);
+         SafeFormat(charbuf, 4, SEXTEXT("[%c]"), *highlightPos);
 		   int startChars = (int32)(highlightPos - wholeString);
-		   CopyString(outputBuffer, nBytesOutput, wholeString, std::min<int32>((int32)nBytesOutput, startChars));
+		   CopyString(outputBuffer, std::min<int32>((int32)nBytesOutput, startChars), wholeString);
 		   StringCat(outputBuffer, charbuf, (int32) nBytesOutput);
 		   StringCat(outputBuffer, highlightPos+1, (int32) nBytesOutput);
 	   }

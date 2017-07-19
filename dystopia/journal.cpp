@@ -170,7 +170,7 @@ namespace
 			if (g.State() == GoalState_Complete)
 			{
 				rchar newBody[4096];
-				SafeFormat(newBody, _TRUNCATE, L"This goal was completed - \"%s\"", g.Body());
+				SafeFormat(newBody, L"This goal was completed - \"%s\"", g.Body());
 				HistoricEvent he;
 				he.title = g.Title();
 				he.body = newBody;
@@ -207,7 +207,7 @@ namespace
 			else if (g.State() == GoalState_Failed)
 			{
 				rchar newBody[4096];
-				SafeFormat(newBody, _TRUNCATE, L"You failed to complete this goal - \"%s\"", g.Body());
+				SafeFormat(newBody, L"You failed to complete this goal - \"%s\"", g.Body());
 				HistoricEvent he;
 				he.title = g.Title();
 				he.body = newBody;

@@ -459,8 +459,8 @@ namespace SexyDotNet { namespace Host
 		virtual void OnMember(IPublicScriptSystem& ss, csexstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem)
 		{
 			NativeVariableDesc desc;
-			CopyString(desc.Name, NativeVariableDesc::NAME_CAPACITY, childName, -1);
-			CopyString(desc.Type, NativeVariableDesc::TYPE_CAPACITY, Compiler::GetTypeName(*member.UnderlyingType()), -1);
+			CopyString(desc.Name, NativeVariableDesc::NAME_CAPACITY, childName);
+			CopyString(desc.Type, NativeVariableDesc::TYPE_CAPACITY, Compiler::GetTypeName(*member.UnderlyingType()));
 			if (member.IsPseudoVariable()) StringCat(desc.Type, SEXTEXT("(pseudo)"), NativeVariableDesc::TYPE_CAPACITY);
 
 			char value[NativeVariableDesc::VALUE_CAPACITY];

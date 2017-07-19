@@ -68,11 +68,11 @@ namespace
 
 		if (keyCommand)
 		{
-			SecureFormat(text, "%s\t%s", name, keyCommand);
+			SecureFormat(text, sizeof(text), "%s\t%s", name, keyCommand);
 		}
 		else
 		{
-			SecureFormat(text, "%s", name);
+			SecureFormat(text, sizeof(text), "%s", name);
 		}
 
 		AppendMenuA(hMenu, MF_STRING, id, text);

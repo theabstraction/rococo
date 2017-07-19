@@ -265,7 +265,7 @@ namespace
          b->span.y = min(span.y, 512);
          b->span.y = max(4, span.y);
          
-         SafeCopy(b->text, text, _TRUNCATE);
+         SafeCopy(b->text, text);
 
          auto& f = GetTopmostFrame();
          
@@ -608,7 +608,7 @@ namespace
          va_start(args, format);
 
          rchar errmsg[256];
-         SafeVFormat(errmsg, _TRUNCATE, format, args);
+         SafeVFormat(errmsg, format, args);
 
          Graphics::DrawRectangle(gc, rect, RGBAb(64, 64, 64, 128), RGBAb(64, 64, 64, 128));
          Graphics::RenderCentredText(gc, errmsg, RGBAb(255, 255, 255), 2, Centre(rect));

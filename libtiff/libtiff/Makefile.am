@@ -1,6 +1,6 @@
 # Tag Image File Format (TIFF) Software
 #
-# Copyright (C) 2004, Andrey Kiselev <dron@ak4719.spb.edu>
+# Copyright (C) 2004, Andrey Kiselev <dron@remotesensing.org>
 #
 # Permission to use, copy, modify, distribute, and sell this software and 
 # its documentation for any purpose is hereby granted without fee, provided
@@ -25,39 +25,28 @@
 
 LIBPORT = $(top_builddir)/port/libport.la
 LIBTIFF = $(top_builddir)/libtiff/libtiff.la
-libtiffincludedir = $(includedir)
 
-EXTRA_DIST = Makefile.vc \
-	     SConstruct \
-	     tif_config.h-vms \
-	     tif_config.vc.h \
-	     tif_config.wince.h \
-	     tiffconf.vc.h \
-	     tiffconf.wince.h \
-	     libtiff.def \
-	     libtiff.map \
-	     libtiffxx.map
+EXTRA_DIST = Makefile.vc SConstruct tif_config.h.vc tiffconf.h.vc libtiff.def \
+	     $(EXTRA_SRCS)
 
-libtiffinclude_HEADERS = \
+HDRS = \
 	tiff.h \
+        tiffconf.h \
 	tiffio.h \
 	tiffvers.h
 
 if HAVE_CXX
-libtiffinclude_HEADERS += tiffio.hxx
+HDRS +=	tiffio.hxx
 endif
 
-noinst_HEADERS = \
+EXTRA_HDRS = \
 	t4.h \
 	tif_dir.h \
 	tif_predict.h \
 	tiffiop.h \
 	uvcode.h
 
-nodist_libtiffinclude_HEADERS = \
-	tiffconf.h
-
-libtiff_la_SOURCES = \
+SRCS = \
 	tif_aux.c \
 	tif_close.c \
 	tif_codec.c \
@@ -74,11 +63,8 @@ libtiff_la_SOURCES = \
 	tif_fax3sm.c \
 	tif_flush.c \
 	tif_getimage.c \
-	tif_jbig.c \
 	tif_jpeg.c \
-	tif_jpeg_12.c \
 	tif_luv.c \
-	tif_lzma.c \
 	tif_lzw.c \
 	tif_next.c \
 	tif_ojpeg.c \
@@ -92,46 +78,48 @@ libtiff_la_SOURCES = \
 	tif_swab.c \
 	tif_thunder.c \
 	tif_tile.c \
+	tif_unix.c \
 	tif_version.c \
 	tif_warning.c \
 	tif_write.c \
 	tif_zip.c
 
-libtiffxx_la_SOURCES = \
+SRCSXX = \
 	tif_stream.cxx
 
-if WIN32_IO
-EXTRA_DIST += tif_unix.c
-libtiff_la_SOURCES += tif_win32.c
-else
-EXTRA_DIST += tif_win32.c
-libtiff_la_SOURCES += tif_unix.c
-endif
+EXTRA_SRCS = \
+	tif_acorn.c \
+	tif_apple.c \
+	tif_atari.c \
+	tif_msdos.c \
+	tif_next.c \
+	tif_win3.c \
+	tif_win32.c
+
+libtiffincludedir = $(includedir)
+libtiffinclude_HEADERS = $(HDRS)
+noinst_HEADERS = $(EXTRA_HDRS)
 
 lib_LTLIBRARIES = libtiff.la
 if HAVE_CXX
 lib_LTLIBRARIES += libtiffxx.la
 endif
 
+libtiff_la_SOURCES = $(SRCS)
 libtiff_la_LDFLAGS = \
 	-no-undefined \
-	-version-info $(LIBTIFF_VERSION_INFO)
+	-version-number $(LIBTIFF_VERSION_INFO)
 if HAVE_RPATH
 libtiff_la_LDFLAGS += $(LIBDIR)
 endif
-if HAVE_LD_VERSION_SCRIPT
-libtiff_la_LDFLAGS += -Wl,--version-script=$(srcdir)/libtiff.map
-endif
 libtiff_la_LIBADD = $(LIBPORT)
 
+libtiffxx_la_SOURCES = $(SRCSXX)
 libtiffxx_la_LDFLAGS = \
 	-no-undefined \
-	-version-info $(LIBTIFF_VERSION_INFO)
+	-version-number $(LIBTIFF_VERSION_INFO)
 if HAVE_RPATH
 libtiffxx_la_LDFLAGS += $(LIBDIR)
-endif
-if HAVE_LD_VERSION_SCRIPT
-libtiffxx_la_LDFLAGS += -Wl,--version-script=$(srcdir)/libtiffxx.map
 endif
 libtiffxx_la_LIBADD = $(LIBTIFF) $(LIBPORT)
 libtiffxx_la_DEPENDENCIES = libtiff.la

@@ -1,9 +1,9 @@
-/* $Id: tiffgt.c,v 1.10 2010-07-01 15:56:56 dron Exp $ */
+/* $Id: tiffgt.c,v 1.6 2006/02/09 16:00:34 dron Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
  * Copyright (c) 1991-1997 Silicon Graphics, Inc.
- * Copyright (c) 2003, Andrey Kiselev <dron@ak4719.spb.edu>
+ * Copyright (c) 2003, Andrey Kiselev <dron@remotesensing.org>
  *
  * Permission to use, copy, modify, distribute, and sell this software and 
  * its documentation for any purpose is hereby granted without fee, provided
@@ -40,7 +40,6 @@
 #endif
 
 #include "tiffio.h"
-#include "tiffiop.h"
 
 #ifndef HAVE_GETOPT
 extern int getopt(int, char**, char*);
@@ -205,7 +204,7 @@ initImage(void)
         if (photo != (uint16) -1)
                 TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, photo);
         if (!TIFFRGBAImageBegin(&img, tif, stoponerr, title)) {
-                TIFFError(filelist[fileindex], "%s", title);
+                TIFFError(filelist[fileindex], title);
                 TIFFClose(tif);
                 tif = NULL;
                 return -1;
@@ -225,24 +224,21 @@ initImage(void)
                 w = xmax;
         }
 
-	if (w != width || h != height) {
-		uint32 rastersize =
-			_TIFFMultiply32(tif, img.width, img.height, "allocating raster buffer");
-		if (raster != NULL)
-			_TIFFfree(raster), raster = NULL;
-		raster = (uint32*) _TIFFCheckMalloc(tif, rastersize, sizeof (uint32),
-						    "allocating raster buffer");
-		if (raster == NULL) {
-			width = height = 0;
-			TIFFError(filelist[fileindex], "No space for raster buffer");
-			cleanup_and_exit();
-		}
-		width = w;
-		height = h;
-	}
-	TIFFRGBAImageGet(&img, raster, img.width, img.height);
+        if (w != width || h != height) {
+            if (raster != NULL)
+                _TIFFfree(raster), raster = NULL;
+            raster = (uint32*) _TIFFmalloc(img.width * img.height * sizeof (uint32));
+            if (raster == NULL) {
+                width = height = 0;
+                TIFFError(filelist[fileindex], "No space for raster buffer");
+                cleanup_and_exit();
+            }
+            width = w;
+            height = h;
+        }
+        TIFFRGBAImageGet(&img, raster, img.width, img.height);
 #if HOST_BIGENDIAN
-	TIFFSwabArrayOfLong(raster,img.width*img.height);
+        TIFFSwabArrayOfLong(raster,img.width*img.height);
 #endif
 	return 0;
 }
@@ -457,10 +453,3 @@ photoArg(const char* arg)
 }
 
 /* vim: set ts=8 sts=8 sw=8 noet: */
-/*
- * Local Variables:
- * mode: c
- * c-basic-offset: 8
- * fill-column: 78
- * End:
- */

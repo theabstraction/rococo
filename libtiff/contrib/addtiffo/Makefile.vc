@@ -24,5 +24,4 @@ tif_ovrcache.obj:	tif_ovrcache.c
 	$(CC) -c $(CFLAGS) tif_ovrcache.c
 
 clean:
-	-del *.obj
-	-del  addtiffo.exe
+	del *.obj addtiffo.exe

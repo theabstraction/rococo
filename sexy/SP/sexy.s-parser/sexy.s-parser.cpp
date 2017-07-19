@@ -32,13 +32,12 @@
 */
 
 #include "sexy.s-parser.stdafx.h"
+
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
 
 #include <rococo.io.h>
-
-#include <stdarg.h>
-
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -54,12 +53,12 @@ using namespace Rococo::Sex;
 
 namespace
 {
-	class CSexParser;
-	class CSExpression;
+   class CSexParser;
+   class CSExpression;
 
-	void Release(CSParserTree* tree);
-	CSParserTree* ConstructTransform(CSParserTree& prototype, const Vec2i& start, const Vec2i& end, CSExpression* original);
-	const ISExpression* GetOriginal(CSParserTree& tree);
+   void Release(CSParserTree* tree);
+   CSParserTree* ConstructTransform(CSParserTree& prototype, const Vec2i& start, const Vec2i& end, CSExpression* original);
+   const ISExpression* GetOriginal(CSParserTree& tree);
 
 	struct FileReader
 	{
@@ -67,26 +66,12 @@ namespace
 
 		FileReader(const csexstr name, long& len)
 		{
-#ifdef _WIN32
-# ifdef SEXCHAR_IS_WIDE
-			errno_t errNo = _wfopen_s(&fp, name, SEXTEXT("rb"));
-# else
-			errno_t errNo = fopen_s(&fp, name, "rb");
-# endif
-#else
-         fp = fopen(name, "rb");
-         errno_t errNo = (fp == nullptr) ? errno : 0;
-#endif
+         errno_t errNo = OS::OpenForRead((void**) &fp, name);
+
 			if (errNo != 0)
 			{
 				char err[256];
-
-#ifdef _WIN32
-				strerror_s(err, 256, errNo);
-#else
-            strerror_r(errNo, err, 256);
-#endif
-
+            OS::Format_C_Error(errNo, err, sizeof(err));
 				sexstringstream<1024> streamer;
 				streamer.sb << SEXTEXT("Error ") << errNo << SEXTEXT(" opening file: ") << err;
 				
@@ -861,29 +846,29 @@ namespace
 
 			for (uint32 i = 0; i < 32; ++i)
 			{
-				sprintf_s(maprcharToSequence[i].text, "&x%x", i);
+				SafeFormat(maprcharToSequence[i].text, 8, "&x%x", i);
 				maprcharToSequence[i].len = 6;
 			}
 
 			for (uint32 i = 32; i <= 255; ++i)
 			{
-				sprintf_s(maprcharToSequence[i].text, "%c", i);
+            SafeFormat(maprcharToSequence[i].text, 8, "%c", i);
 				maprcharToSequence[i].len = 1;
 			}
 
-			sprintf_s(maprcharToSequence[L'\r'].text, "&r");
+         SafeFormat(maprcharToSequence[L'\r'].text, 8, "&r");
 			maprcharToSequence[L'\r'].len = 2;
 
-			sprintf_s(maprcharToSequence[L'\n'].text, "&n");
+         SafeFormat(maprcharToSequence[L'\n'].text, 8, "&n");
 			maprcharToSequence[L'\n'].len = 2;
 
-			sprintf_s(maprcharToSequence[L'\t'].text, "&t");
+         SafeFormat(maprcharToSequence[L'\t'].text, 8, "&t");
 			maprcharToSequence[L'\t'].len = 2;
 
-			sprintf_s(maprcharToSequence[L'\"'].text, "&q");
+         SafeFormat(maprcharToSequence[L'\"'].text, 8, "&q");
 			maprcharToSequence[L'\"'].len = 2;
 
-			sprintf_s(maprcharToSequence[L'&'].text, "&&");
+         SafeFormat(maprcharToSequence[L'&'].text, 8, "&&");
 			maprcharToSequence[L'&'].len = 2;
 		}
 	}
@@ -912,7 +897,7 @@ namespace
 		va_list args;
 		va_start(args, format);
 
-		SafeVFormat(ex.msg, _TRUNCATE, format, args);
+		SafeVFormat(ex.msg, sizeof(ex.msg), format, args);
 
 		ex.errorCode = 0;
 

@@ -425,7 +425,7 @@ namespace
 				{
 					customLoadScene.clearColour.red = 1.0f - index / (float) spawnPoints.size();
 					rchar text[256];
-					SafeFormat(text, _TRUNCATE, L"Spawning %I64u of %I64u enemies", index, spawnPoints.size());
+					SafeFormat(text, L"Spawning %I64u of %I64u enemies", index, spawnPoints.size());
 					customLoadScene.text = text;
 					e.renderer.Render(customLoadScene);
 				}

@@ -93,7 +93,11 @@ namespace Rococo
 # define __SEXFUNCTION__ SEXSTRINGIFY2(__FUNCTION__)
 #endif
 
+#ifdef _WIN32
    const SEXCHAR OS_DIRECTORY_SLASH = (SEXCHAR) '\\';
+#else
+   const SEXCHAR OS_DIRECTORY_SLASH = (SEXCHAR) '/';
+#endif
 
 	typedef const SEXCHAR* csexstr;
 
@@ -133,7 +137,7 @@ namespace Rococo
 
    ROCOCOAPI IStringPopulator
    {
-      virtual void Populate(csexstr text);
+      virtual void Populate(csexstr text) = 0;
    };
 
 #pragma pack(pop)
@@ -148,23 +152,17 @@ namespace Rococo
 
 	void GetRefName(OUT TokenBuffer& token, csexstr name);
 
-	int CALLTYPE_C StringPrintV(char* buf, size_t sizeInChars, va_list args, const char* format);
-	int CALLTYPE_C StringPrintV(rchar* buf, size_t sizeInChars, va_list args, cstr format);
-	int CALLTYPE_C StringPrint(char* buf, size_t sizeInChars, const char* format, ...);
-	int CALLTYPE_C StringPrint(rchar* buf, size_t sizeInChars, cstr format, ...);
-	int CALLTYPE_C StringPrint(TokenBuffer& buf, const SEXCHAR* format, ...);
-
    int CALLTYPE_C WriteToStandardOutput(const char* text, ...);
 	int CALLTYPE_C WriteToStandardOutput(cstr text, ...);
+
+   int CALLTYPE_C StringPrint(TokenBuffer& token, const char* format, ...);
 
 	int32 CALLTYPE_C StringLength(const char* s);
 	int32 CALLTYPE_C StringLength(cstr s);
 	void CALLTYPE_C CopyChars(SEXCHAR* dest, const sexstring source);
 	void CALLTYPE_C CopyString(char* dest, size_t capacity, const char* source);
-	void CALLTYPE_C CopyString(char* dest, size_t destCapacity, const char* source, int maxChars); // use maxChars -1 to truncate
-
+	
 	void CALLTYPE_C StringCat(rchar* buf, cstr source, int maxChars);
-	void CALLTYPE_C StringCat(char* buf, const char* source, int maxChars);
 
 	bool TryParseSexHex(SEXCHAR& finalChar, csexstr s);
 	bool ParseEscapeCharacter(SEXCHAR& finalChar, SEXCHAR c);
@@ -246,8 +244,8 @@ namespace Rococo
 #ifdef _WIN64
       BITCOUNT_POINTER = 64
 #else
-# ifdef _Win32
-      BITCOUNT_POINTER = 32
+# ifdef _WIN32
+# error "32-bit Windows is no longer supported"
 # else
       BITCOUNT_POINTER = 64
 # endif

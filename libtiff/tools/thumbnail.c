@@ -1,4 +1,4 @@
-/* $Id: thumbnail.c,v 1.16 2010-07-02 12:02:56 dron Exp $ */
+/* $Id: thumbnail.c,v 1.9 2005/06/23 10:54:02 dron Exp $ */
 
 /*
  * Copyright (c) 1994-1997 Sam Leffler
@@ -33,10 +33,6 @@
 
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>
-#endif
-
-#ifdef NEED_LIBPORT
-# include "libport.h"
 #endif
 
 #include "tiffio.h"
@@ -104,8 +100,6 @@ main(int argc, char* argv[])
     if (out == NULL)
 	return 2;
     in = TIFFOpen(argv[optind], "r");
-    if( in == NULL )
-        return 2;
 
     thumbnail = (uint8*) _TIFFmalloc(tnw * tnh);
     if (!thumbnail) {
@@ -165,16 +159,6 @@ cpTag(TIFF* in, TIFF* out, uint16 tag, uint16 count, TIFFDataType type)
 		  CopyField(tag, longv);
 		}
 		break;
-	case TIFF_LONG8:
-		{ uint64 longv8;
-		  CopyField(tag, longv8);
-		}
-		break;
-	case TIFF_SLONG8:
-		{ int64 longv8;
-		  CopyField(tag, longv8);
-		}
-		break;
 	case TIFF_RATIONAL:
 		if (count == 1) {
 			float floatv;
@@ -198,11 +182,7 @@ cpTag(TIFF* in, TIFF* out, uint16 tag, uint16 count, TIFFDataType type)
 			CopyField(tag, doubleav);
 		}
 		break;
-	case TIFF_IFD8:
-		{ toff_t ifd8;
-		  CopyField(tag, ifd8);
-		}
-		break;          default:
+          default:
                 TIFFError(TIFFFileName(in),
                           "Data type %d is not supported, tag %d skipped.",
                           tag, type);
@@ -250,7 +230,7 @@ static struct cpTag {
     { TIFFTAG_DATETIME,			1, TIFF_ASCII },
     { TIFFTAG_ARTIST,			1, TIFF_ASCII },
     { TIFFTAG_HOSTCOMPUTER,		1, TIFF_ASCII },
-    { TIFFTAG_WHITEPOINT,		2, TIFF_RATIONAL },
+    { TIFFTAG_WHITEPOINT,		1, TIFF_RATIONAL },
     { TIFFTAG_PRIMARYCHROMATICITIES,	(uint16) -1,TIFF_RATIONAL },
     { TIFFTAG_HALFTONEHINTS,		2, TIFF_SHORT },
     { TIFFTAG_BADFAXLINES,		1, TIFF_LONG },
@@ -286,18 +266,18 @@ cpStrips(TIFF* in, TIFF* out)
 
     if (buf) {
 	tstrip_t s, ns = TIFFNumberOfStrips(in);
-	uint64 *bytecounts;
+	tsize_t *bytecounts;
 
 	TIFFGetField(in, TIFFTAG_STRIPBYTECOUNTS, &bytecounts);
 	for (s = 0; s < ns; s++) {
-	  if (bytecounts[s] > (uint64) bufsize) {
-		buf = (unsigned char *)_TIFFrealloc(buf, (tmsize_t)bytecounts[s]);
+	    if (bytecounts[s] > bufsize) {
+		buf = (unsigned char *)_TIFFrealloc(buf, bytecounts[s]);
 		if (!buf)
 		    goto bad;
-		bufsize = (tmsize_t)bytecounts[s];
+		bufsize = bytecounts[s];
 	    }
-	    if (TIFFReadRawStrip(in, s, buf, (tmsize_t)bytecounts[s]) < 0 ||
-		TIFFWriteRawStrip(out, s, buf, (tmsize_t)bytecounts[s]) < 0) {
+	    if (TIFFReadRawStrip(in, s, buf, bytecounts[s]) < 0 ||
+		TIFFWriteRawStrip(out, s, buf, bytecounts[s]) < 0) {
 		_TIFFfree(buf);
 		return 0;
 	    }
@@ -320,18 +300,18 @@ cpTiles(TIFF* in, TIFF* out)
 
     if (buf) {
 	ttile_t t, nt = TIFFNumberOfTiles(in);
-	uint64 *bytecounts;
+	tsize_t *bytecounts;
 
 	TIFFGetField(in, TIFFTAG_TILEBYTECOUNTS, &bytecounts);
 	for (t = 0; t < nt; t++) {
-	    if (bytecounts[t] > (uint64) bufsize) {
-		buf = (unsigned char *)_TIFFrealloc(buf, (tmsize_t)bytecounts[t]);
+	    if (bytecounts[t] > bufsize) {
+		buf = (unsigned char *)_TIFFrealloc(buf, bytecounts[t]);
 		if (!buf)
 		    goto bad;
-		bufsize = (tmsize_t)bytecounts[t];
+		bufsize = bytecounts[t];
 	    }
-	    if (TIFFReadRawTile(in, t, buf, (tmsize_t)bytecounts[t]) < 0 ||
-		TIFFWriteRawTile(out, t, buf, (tmsize_t)bytecounts[t]) < 0) {
+	    if (TIFFReadRawTile(in, t, buf, bytecounts[t]) < 0 ||
+		TIFFWriteRawTile(out, t, buf, bytecounts[t]) < 0) {
 		_TIFFfree(buf);
 		return 0;
 	    }
@@ -573,7 +553,7 @@ generateThumbnail(TIFF* in, TIFF* out)
     uint16 bps, spp;
     tsize_t rowsize, rastersize;
     tstrip_t s, ns = TIFFNumberOfStrips(in);
-    toff_t diroff[1];
+    uint32 diroff[1];
 
     TIFFGetField(in, TIFFTAG_IMAGEWIDTH, &sw);
     TIFFGetField(in, TIFFTAG_IMAGELENGTH, &sh);
@@ -614,7 +594,7 @@ generateThumbnail(TIFF* in, TIFF* out)
     cpTag(in, out, TIFFTAG_IMAGEDESCRIPTION,	(uint16) -1, TIFF_ASCII);
     cpTag(in, out, TIFFTAG_DATETIME,		(uint16) -1, TIFF_ASCII);
     cpTag(in, out, TIFFTAG_HOSTCOMPUTER,	(uint16) -1, TIFF_ASCII);
-    diroff[0] = 0UL;
+    diroff[0] = 0;
     TIFFSetField(out, TIFFTAG_SUBIFD, 1, diroff);
     return (TIFFWriteEncodedStrip(out, 0, thumbnail, tnw*tnh) != -1 &&
             TIFFWriteDirectory(out) != -1);
@@ -650,10 +630,3 @@ usage(void)
 }
 
 /* vim: set ts=8 sts=8 sw=8 noet: */
-/*
- * Local Variables:
- * mode: c
- * c-basic-offset: 8
- * fill-column: 78
- * End:
- */

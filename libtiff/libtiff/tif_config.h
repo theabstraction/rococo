@@ -69,7 +69,9 @@
 # endif
 #endif
 
-#define lfind _lfind
+#ifdef _WIN32
+# define lfind _lfind
+#endif
 /*
  * Local Variables:
  * mode: c

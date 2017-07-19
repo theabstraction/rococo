@@ -4,6 +4,7 @@
 #include <sexy.types.h>
 #include <stdio.h>
 #include <sexy.s-parser.h>
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include "sexy.strings.h"
 #include <sexy.stdstrings.h>
 #include <unordered_map>

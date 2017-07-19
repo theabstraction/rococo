@@ -638,6 +638,10 @@ namespace Rococo { namespace Parse
 		return true;
 	}
 
+#ifndef _WIN32
+# define sscanf_s sscanf
+#endif
+
 	inline int ScanString(const char* decimalDigits, float32& value)
 	{
 		return sscanf_s(decimalDigits, "%f", &value);

@@ -527,7 +527,7 @@ namespace
             }
             else
             {
-               SafeFormat(cppName, _TRUNCATE, SEXTEXT("%s* %s = "), z->second->ic.asCppInterface.FQName(), StringFrom(svalue));
+               SafeFormat(cppName, sizeof(cppName), SEXTEXT("%s* %s = "), z->second->ic.asCppInterface.FQName(), StringFrom(svalue));
                outputPrefix.push_back(cppName);
                outputIsInterface = true;
             }
@@ -537,7 +537,7 @@ namespace
             GetFQCppStructName(compressedName, cppName, 256, k->second.cppType.c_str());
            
             SEXCHAR moreHacks[256];
-            SafeFormat(moreHacks, _TRUNCATE, SEXTEXT("%s %s = "), cppName, StringFrom(svalue));
+            SafeFormat(moreHacks, sizeof(moreHacks) , SEXTEXT("%s %s = "), cppName, StringFrom(svalue));
             outputPrefix.push_back(moreHacks);
          }
 		}

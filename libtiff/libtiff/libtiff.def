@@ -12,28 +12,18 @@ EXPORTS TIFFOpen
 	TIFFGetTagListEntry
 	TIFFGetTagListCount
 	TIFFReadDirectory
-	TIFFScanlineSize64
 	TIFFScanlineSize
-	TIFFStripSize64
 	TIFFStripSize
-	TIFFVStripSize64
 	TIFFVStripSize
-	TIFFRawStripSize64
 	TIFFRawStripSize
-	TIFFTileRowSize64
 	TIFFTileRowSize
-	TIFFTileSize64
 	TIFFTileSize
-	TIFFVTileSize64
 	TIFFVTileSize
 	TIFFFileno
-	TIFFSetFileno
 	TIFFGetMode
 	TIFFIsTiled
 	TIFFIsByteSwapped
 	TIFFIsBigEndian
-	TIFFIsMSB2LSB
-	TIFFIsUpSampled
 	TIFFCIELabToRGBInit
 	TIFFCIELabToXYZ
 	TIFFXYZToRGB
@@ -45,8 +35,6 @@ EXPORTS TIFFOpen
 	TIFFCurrentTile
 	TIFFDataWidth
 	TIFFReadBufferSetup
-	TIFFWriteBufferSetup
-	TIFFSetupStrips
 	TIFFLastDirectory
 	TIFFSetDirectory
 	TIFFSetSubDirectory
@@ -61,17 +49,17 @@ EXPORTS TIFFOpen
 	TIFFWriteScanline
 	TIFFReadRGBAImage
 	TIFFReadRGBAImageOriented
+	TIFFPrintDirectory
+	TIFFReadScanline
+	TIFFWriteScanline
+	TIFFReadRGBAImage
 	TIFFFdOpen
 	TIFFClientOpen
 	TIFFFileName
 	TIFFError
-	TIFFErrorExt
 	TIFFWarning
-	TIFFWarningExt
 	TIFFSetErrorHandler
-	TIFFSetErrorHandlerExt
 	TIFFSetWarningHandler
-	TIFFSetWarningHandlerExt
 	TIFFComputeTile
 	TIFFCheckTile
 	TIFFNumberOfTiles
@@ -80,7 +68,6 @@ EXPORTS TIFFOpen
 	TIFFComputeStrip
 	TIFFNumberOfStrips
 	TIFFRGBAImageBegin
-	TIFFRGBAImageGet
 	TIFFRGBAImageEnd
 	TIFFReadEncodedStrip
 	TIFFReadRawStrip
@@ -93,20 +80,16 @@ EXPORTS TIFFOpen
 	TIFFWriteEncodedTile
 	TIFFWriteRawTile
 	TIFFSetWriteOffset
-	TIFFSwabFloat
 	TIFFSwabDouble
 	TIFFSwabShort
 	TIFFSwabLong
 	TIFFSwabArrayOfShort
 	TIFFSwabArrayOfLong
-	TIFFSwabArrayOfFloat
 	TIFFSwabArrayOfDouble
-	TIFFSwabArrayOfTriples
 	TIFFReverseBits
 	TIFFGetBitRevTable
 	TIFFDefaultStripSize
 	TIFFDefaultTileSize
-	TIFFRasterScanlineSize64
 	TIFFRasterScanlineSize
 	_TIFFmalloc
 	_TIFFrealloc
@@ -114,17 +97,10 @@ EXPORTS TIFFOpen
 	_TIFFmemset
 	_TIFFmemcpy
 	_TIFFmemcmp
-	_TIFFCheckMalloc
 	TIFFCreateDirectory
+	TIFFDefaultStripSize
 	TIFFSetTagExtender
-	TIFFFieldWithName
-	TIFFFieldWithTag
-	TIFFFieldTag
-	TIFFFieldName
-	TIFFFieldDataType
-	TIFFFieldPassCount
-	TIFFFieldReadCount
-	TIFFFieldWriteCount
+	TIFFMergeFieldInfo
 	TIFFCurrentDirOffset
 	TIFFWriteCheck
 	TIFFRGBAImageOK
@@ -142,17 +118,6 @@ EXPORTS TIFFOpen
 	TIFFGetUnmapFileProc
 	TIFFIsCODECConfigured
 	TIFFGetConfiguredCODECs
- 	TIFFFindCODEC
- 	TIFFRegisterCODEC
- 	TIFFUnRegisterCODEC
 	TIFFFreeDirectory
 	TIFFReadCustomDirectory
 	TIFFReadEXIFDirectory
- 	TIFFAccessTagMethods
- 	TIFFGetClientInfo
- 	TIFFSetClientInfo
-	TIFFSwabLong8
-	TIFFSwabArrayOfLong8
-	TIFFFindField
-	TIFFUnsetField
-	TIFFMergeFieldInfo

@@ -51,7 +51,7 @@ namespace
 	{
 		if (!SexyFormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, msgNumber, 0, text, (DWORD) capacity, NULL))
 		{
-			StringPrint(text, capacity, SEXTEXT("Code %d ( 0x%x )"), msgNumber, msgNumber);
+         SafeFormat(text, capacity, SEXTEXT("Code %d ( 0x%x )"), msgNumber, msgNumber);
 		}
 	}
 
@@ -162,20 +162,20 @@ namespace
 			const IModule& m = obj.GetModule(i);
 
 			SEXCHAR msg[256];
-			StringPrint(msg, 256, SEXTEXT("\r\nModule %s"), m.Name()); 
+         SafeFormat(msg, 256, SEXTEXT("\r\nModule %s"), m.Name());
 			log.Write(msg);
 
 			for(int j = 0; j < m.StructCount(); ++j)
 			{
 				const IStructure& s = m.GetStructure(j);
 
-				StringPrint(msg, 256, SEXTEXT("\r\nstruct %s - %d bytes"), s.Name(), s.SizeOfStruct()); 
+            SafeFormat(msg, 256, SEXTEXT("\r\nstruct %s - %d bytes"), s.Name(), s.SizeOfStruct());
 				log.Write(msg);
 
 				for(int k = 0; k < s.MemberCount(); ++k)
 				{
 					const IMember& member = s.GetMember(k);
-					StringPrint(msg, 256, SEXTEXT("  %s %s"), member.UnderlyingType()->Name(), member.Name()); 
+               SafeFormat(msg, 256, SEXTEXT("  %s %s"), member.UnderlyingType()->Name(), member.Name());
 					log.Write(msg);
 				}
 			}

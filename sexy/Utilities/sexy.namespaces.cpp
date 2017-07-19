@@ -44,7 +44,7 @@ namespace Rococo
 	public:
 		NamespaceException(csexstr _msg)
 		{
-			CopyString(msg, 1024, _msg, -1);
+			CopyString(msg, 1024, _msg);
 		}
 
 		virtual int ErrorCode() const { return -1; }

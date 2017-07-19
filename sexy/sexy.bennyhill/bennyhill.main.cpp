@@ -179,7 +179,7 @@ void GenerateFiles(const ParseContext& pc, const EnumContext& ec, cr_sex senumDe
 
 void GetFileSpec(SEXCHAR filename[_MAX_PATH], csexstr root, csexstr scriptName, csexstr extension)
 {
-	StringPrint(filename, _MAX_PATH, SEXTEXT("%s%s%s"), root, scriptName, extension);
+   SafeFormat(filename, _MAX_PATH, SEXTEXT("%s%s%s"), root, scriptName, extension);
 }
 
 void AppendNativeFunction(cr_sex functionDef, sexstring ns, const ParseContext& pc, FileAppender& outputFile)
@@ -353,7 +353,7 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 	sexstring filePrefix = sFilePrefix.String();
 
 	SEXCHAR sexyFile[_MAX_PATH];
-	StringPrint(sexyFile, _MAX_PATH, SEXTEXT("%s%s.inl"), pc.cppRootDirectory, filePrefix->Buffer);
+   SafeFormat(sexyFile, _MAX_PATH, SEXTEXT("%s%s.inl"), pc.cppRootDirectory, filePrefix->Buffer);
 
 	FileAppender sexyAppender(sexyFile);
 
@@ -503,12 +503,12 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 
 			csexstr sexyFilename = ssexyFilename.String()->Buffer;
 
-			StringPrint(ec.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
-			StringPrint(ec.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
+         SafeFormat(ec.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
+         SafeFormat(ec.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
 
 			ec.asCppEnum.Set(sinterfaceName.String()->Buffer);
 			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
-			StringPrint(ec.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
+         SafeFormat(ec.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 		}
 		else if (scmd == SEXTEXT("as.sxy"))
 		{
@@ -521,7 +521,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 			cr_sex ssexyFilename = sdirective.GetElement(2);
 			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, SEXTEXT("Expecting string literal"));
 			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
-			StringPrint(ec.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
+         SafeFormat(ec.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 		}
 		else if (scmd == SEXTEXT("as.cpp"))
 		{
@@ -536,8 +536,8 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 
 			csexstr sexyFilename = ssexyFilename.String()->Buffer;
 
-			StringPrint(ec.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
-			StringPrint(ec.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
+         SafeFormat(ec.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
+         SafeFormat(ec.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
 
 			ec.asCppEnum.Set(sstructName.String()->Buffer);
 		}
@@ -557,12 +557,12 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 		Throw(senumDef, SEXTEXT("Missing as.sxy or as.both"));
 	}
 
-	if (ec.appendSexyFile[0] == 0) StringPrint(ec.appendSexyFile, _MAX_PATH, SEXTEXT("%s.sxh.sxy"), pc.scriptInputSansExtension);
+	if (ec.appendSexyFile[0] == 0) SafeFormat(ec.appendSexyFile, _MAX_PATH, SEXTEXT("%s.sxh.sxy"), pc.scriptInputSansExtension);
 
 	if (ec.appendCppHeaderFile[0] == 0)
 	{
-		StringPrint(ec.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, pc.scriptName);
-		StringPrint(ec.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.cpp"), pc.cppRootDirectory, pc.scriptName);
+      SafeFormat(ec.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, pc.scriptName);
+      SafeFormat(ec.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.cpp"), pc.cppRootDirectory, pc.scriptName);
 	}
 
    pc.enums.push_back(def);
@@ -599,12 +599,12 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
 
 			csexstr sexyFilename = ssexyFilename.String()->Buffer;
 
-			StringPrint(ic.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
-			StringPrint(ic.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
+         SafeFormat(ic.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
+         SafeFormat(ic.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
 
 			ic.asCppInterface.Set(sinterfaceName.String()->Buffer);
 			CopyString(ic.asSexyInterface, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
-			StringPrint(ic.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
+         SafeFormat(ic.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 		}
 		else if (AreEqual(ssname, SEXTEXT("as.sxy")))
 		{
@@ -616,7 +616,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
 
          if (directive.NumberOfElements() == 4)
          {
-            SafeFormat(ic.inheritanceString, _TRUNCATE, SEXTEXT("%s"), directive[3].String()->Buffer);
+            SafeFormat(ic.inheritanceString, 128, SEXTEXT("%s"), directive[3].String()->Buffer);
          }
          else
          {
@@ -626,7 +626,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
 			cr_sex ssexyFilename = directive.GetElement(2);
 			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename,  SEXTEXT("Expecting string literal"));
 			CopyString(ic.asSexyInterface, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
-			StringPrint(ic.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
+         SafeFormat(ic.appendSexyFile, _MAX_PATH, SEXTEXT("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 		}
 		else if (AreEqual(ssname, SEXTEXT("as.cpp")))
 		{
@@ -641,8 +641,8 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
 
 			csexstr sexyFilename = ssexyFilename.String()->Buffer;
 
-			StringPrint(ic.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
-			StringPrint(ic.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
+         SafeFormat(ic.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
+         SafeFormat(ic.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
 
 			ic.asCppInterface.Set(sstructName.String()->Buffer);
 		}
@@ -710,12 +710,12 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
 		Throw(interfaceDef, SEXTEXT("Missing as.sxy or as.both"));
 	}
 
-	if (ic.appendSexyFile[0] == 0) StringPrint(ic.appendSexyFile, _MAX_PATH, SEXTEXT("%s.sxh.sxy"), pc.scriptInputSansExtension);
+	if (ic.appendSexyFile[0] == 0) SafeFormat(ic.appendSexyFile, _MAX_PATH, SEXTEXT("%s.sxh.sxy"), pc.scriptInputSansExtension);
 
 	if (ic.appendCppHeaderFile[0] == 0) 
 	{
-		StringPrint(ic.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, pc.scriptName);
-		StringPrint(ic.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.cpp"), pc.cppRootDirectory, pc.scriptName);
+      SafeFormat(ic.appendCppHeaderFile, _MAX_PATH, SEXTEXT("%s%s.sxh.h"), pc.cppRootDirectory, pc.scriptName);
+      SafeFormat(ic.appendCppImplFile, _MAX_PATH, SEXTEXT("%s%s.sxh.cpp"), pc.cppRootDirectory, pc.scriptName);
 	}
 
 	if (ic.factories.empty())

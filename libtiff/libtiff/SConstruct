@@ -1,8 +1,8 @@
-# $Id: SConstruct,v 1.4 2007/02/24 15:03:50 dron Exp $
+# $Id: SConstruct,v 1.1 2005/07/12 12:36:13 dron Exp $
 
 # Tag Image File Format (TIFF) Software
 #
-# Copyright (C) 2005, Andrey Kiselev <dron@ak4719.spb.edu>
+# Copyright (C) 2005, Andrey Kiselev <dron@remotesensing.org>
 #
 # Permission to use, copy, modify, distribute, and sell this software and 
 # its documentation for any purpose is hereby granted without fee, provided
@@ -46,7 +46,6 @@ SRCS = [ \
 	'tif_fax3sm.c', \
 	'tif_flush.c', \
 	'tif_getimage.c', \
-	'tif_jbig.c', \
 	'tif_jpeg.c', \
 	'tif_luv.c', \
 	'tif_lzw.c', \
@@ -70,4 +69,3 @@ SRCS = [ \
 
 StaticLibrary('tiff', SRCS)
 SharedLibrary('tiff', SRCS)
-

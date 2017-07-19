@@ -25,7 +25,7 @@ namespace Dystopia
 
 		void SetName(cstr name, uint32 index)
 		{
-			SafeCopy(keys[index].keyName, name, _TRUNCATE);
+			SafeCopy(keys[index].keyName, name);
 		}
 
 		void MapKeys(ISParserTree& tree)

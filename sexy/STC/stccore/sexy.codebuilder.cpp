@@ -310,7 +310,7 @@ namespace
 	void CodeBuilder::ArchiveRegister(int saveTempDepth, int restoreTempDepth, BITCOUNT bits, void* userData)
 	{
 		TokenBuffer name;
-		StringPrint(name, SEXTEXT("_archive_D%d_%d"), saveTempDepth + 4, nextId++);
+      SafeFormat(name.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("_archive_D%d_%d"), saveTempDepth + 4, nextId++);
 
 		const IStructure& type =  (bits == BITCOUNT_32) ? Module().Object().Common().TypeInt32() :  Module().Object().Common().TypeInt64();
 
@@ -322,7 +322,7 @@ namespace
 	void CodeBuilder::AddArgVariable(csexstr desc, const IStructure& type, void* userData)
 	{
 		TokenBuffer name;
-		StringPrint(name, SEXTEXT("_arg_%s_%d"), desc, nextId++);
+      SafeFormat(name.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("_arg_%s_%d"), desc, nextId++);
 
 		const IStructure* argType = NULL;
 
@@ -1176,7 +1176,7 @@ namespace
 		functionEndPosition = Assembler().WritePosition();
 
 		TokenBuffer symbol;
-		StringPrint(symbol, SEXTEXT("%d bytes"), functionEndPosition);
+      SafeFormat(symbol.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%d bytes"), functionEndPosition);
 		AddSymbol(symbol);
 		Assembler().Append_Return();		
 
@@ -2182,14 +2182,14 @@ namespace
 		}
 
 		TokenBuffer vTableSymbol;
-		StringPrint(vTableSymbol, SEXTEXT("%s._typeInfo"), classType.Name());
+      SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s._typeInfo"), classType.Name());
 		builder.AddSymbol(vTableSymbol);
 
 		VariantValue v;
 		v.uint8PtrValue = (uint8*) classType.GetVirtualTable(0);
 		builder.Assembler().Append_SetStackFrameImmediate(sfOffset, v, BITCOUNT_POINTER);
 		
-		StringPrint(vTableSymbol, SEXTEXT("%s._allocSize"), classType.Name());
+      SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s._allocSize"), classType.Name());
 		builder.AddSymbol(vTableSymbol);
 
 		v.int32Value = classType.SizeOfStruct();
@@ -2198,7 +2198,7 @@ namespace
 		for(int i = 0; i < classType.InterfaceCount(); i++)
 		{
 			const IInterface& interf = classType.GetInterface(i);
-			StringPrint(vTableSymbol, SEXTEXT("%s.%s._vTable"), classType.Name(), interf.Name());
+         SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s.%s._vTable"), classType.Name(), interf.Name());
 			builder.AddSymbol(vTableSymbol);
 
 			v.uint8PtrValue = (uint8*) classType.GetVirtualTable(i+1);

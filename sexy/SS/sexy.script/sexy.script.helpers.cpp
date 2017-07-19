@@ -39,7 +39,6 @@
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 
-#include <stdarg.h>
 #include <string>
 
 using namespace Rococo;
@@ -136,11 +135,7 @@ namespace Rococo
 
          AsciiName(csexstr name)
          {
-#ifndef SEXCHAR_IS_WIDE
-            sprintf_s(data, 64, "%s", name);
-#else
-            sprintf_s(data, 64, "%S", name);
-#endif
+            SafeFormat(data, 64, "%s", name);
          }
       };
 
@@ -149,40 +144,40 @@ namespace Rococo
          switch (type)
          {
          case VARTYPE_Bad:
-            StringPrint(buffer, bufferCapacity, "Bad type");
+            SafeFormat(buffer, bufferCapacity, "Bad type");
             break;
          case VARTYPE_Bool:
          {
             const Rococo::int32 value = *(const Rococo::int32*) pVariableData;
-            if (value == 0 || value == 1) StringPrint(buffer, bufferCapacity, (value == 1 ? "true" : "false"));
-            else StringPrint(buffer, bufferCapacity, "%d", value, value);
+            if (value == 0 || value == 1) SafeFormat(buffer, bufferCapacity, (value == 1 ? "true" : "false"));
+            else SafeFormat(buffer, bufferCapacity, "%d", value, value);
          }
          break;
          case VARTYPE_Derivative:
-            StringPrint(buffer, bufferCapacity, "");
+            SafeFormat(buffer, bufferCapacity, "");
             break;
          case VARTYPE_Int32:
          {
             const Rococo::int32* pValue = (const Rococo::int32*) pVariableData;
-            StringPrint(buffer, bufferCapacity, "%d (0x%X)", *pValue, *pValue);
+            SafeFormat(buffer, bufferCapacity, "%d (0x%X)", *pValue, *pValue);
          }
          break;
          case VARTYPE_Int64:
          {
             const Rococo::int64* pValue = (const Rococo::int64*) pVariableData;
-            StringPrint(buffer, bufferCapacity, "%ld (0x%lX)", *pValue, *pValue);
+            SafeFormat(buffer, bufferCapacity, "%ld (0x%lX)", *pValue, *pValue);
          }
          break;
          case VARTYPE_Float32:
          {
             const float* pValue = (const float*)pVariableData;
-            StringPrint(buffer, bufferCapacity, "%g", *pValue);
+            SafeFormat(buffer, bufferCapacity, "%g", *pValue);
          }
          break;
          case VARTYPE_Float64:
          {
             const double* pValue = (const double*)pVariableData;
-            StringPrint(buffer, bufferCapacity, "%lg", *pValue);
+            SafeFormat(buffer, bufferCapacity, "%lg", *pValue);
          }
          break;
          case VARTYPE_Pointer:
@@ -192,16 +187,16 @@ namespace Rococo
             Rococo::csexstr symbol = ss.GetSymbol(ptr);
             if (symbol == NULL)
             {
-               StringPrint(buffer, bufferCapacity, "0x%p", ptr);
+               SafeFormat(buffer, bufferCapacity, "0x%p", ptr);
             }
             else
             {
-               StringPrint(buffer, bufferCapacity, sizeof(SEXCHAR) == 1 ? "%s" : "%S", symbol);
+               SafeFormat(buffer, bufferCapacity, sizeof(SEXCHAR) == 1 ? "%s" : "%S", symbol);
             }
          }
          break;
          default:
-            StringPrint(buffer, bufferCapacity, "Unknown type");
+            SafeFormat(buffer, bufferCapacity, "Unknown type");
          }
       }
 
@@ -242,24 +237,35 @@ namespace Rococo
    }
 }
 
+#ifdef _WIN32
+# define PROTECT  __try
+# define CATCH  __except(1)
+#else
+namespace Rococo
+{
+   struct SignalException
+   {
+      int dummy;
+   };
+}
+# define PROTECT try
+# define CATCH  catch(SignalException& ex)
+#endif
+
 namespace Rococo
 { 
    namespace Script
    {
 	   SCRIPTEXPORT_API void FormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, VARTYPE type, const void* pVariableData)
 	   {
-   #ifdef _WIN32
-		   __try
-   #endif
+         PROTECT
 		   {
 			   ProtectedFormatValue(ss, buffer, bufferCapacity, type, pVariableData);
 		   }
-   #ifdef _WIN32
-		   __except(1)
+         CATCH
 		   {
-			   strcpy_s(buffer, bufferCapacity, "Bad pointer");
+			   CopyString(buffer, bufferCapacity, "Bad pointer");
 		   }
-   #endif
 	   }
 
 	   SCRIPTEXPORT_API void ForeachStackLevel(Rococo::Compiler::IPublicProgramObject& obj, ICallStackEnumerationCallback& cb)
@@ -286,7 +292,7 @@ namespace Rococo
 				   else
 				   {
 					   char desc[128];
-					   sprintf_s(desc, 128, "---Unknown function. ID_BYTECODE %u---", (uint32) (size_t) runningId);
+					   SafeFormat(desc, 128, "---Unknown function. ID_BYTECODE %u---", (uint32) (size_t) runningId);
 					   cb.OnStackLevel(currentFrame, desc);
 				   }
 			   }
@@ -308,23 +314,23 @@ namespace Rococo
 	   {
 		   char value[128];
 
-		   sprintf_s(value, 128, "0x%p", cpu.PC());
+		   SafeFormat(value, 128, "0x%p", cpu.PC());
 		   cb.OnRegister("PC", value);
 
-		   sprintf_s(value, 128, "0x%p", cpu.SP());
+         SafeFormat(value, 128, "0x%p", cpu.SP());
 		   cb.OnRegister("SP", value);
 
-		   sprintf_s(value, 128, "0x%p", cpu.SF());
+         SafeFormat(value, 128, "0x%p", cpu.SF());
 		   cb.OnRegister("SF", value);
 
-		   sprintf_s(value, 128, "0x%X", cpu.SR());
+         SafeFormat(value, 128, "0x%X", cpu.SR());
 		   cb.OnRegister("SR", value);
 
 		   for(int i = 4; i < 256; ++i)
 		   {
 			   char name[16];
-			   sprintf_s(name, 16, "D%u", i);
-			   sprintf_s(value, 128, "%lld / 0x%llX", cpu.D[i].int64Value, cpu.D[i].int64Value);
+            SafeFormat(name, 16, "D%u", i);
+            SafeFormat(value, 128, "%lld / 0x%llX", cpu.D[i].int64Value, cpu.D[i].int64Value);
 			   cb.OnRegister(name, value);
 		   }
 	   }
@@ -413,11 +419,8 @@ namespace Rococo
 
 	   SCRIPTEXPORT_API const uint8* GetReturnAddress(CPU& cpu, const uint8* sf)
 	   {
-   #ifdef _WIN32
-		   __try
-   #endif
+         PROTECT
 		   {
-
 			   if (sf >= cpu.StackStart + 4 && sf < cpu.StackEnd)
 			   {
 				   uint8* pValue = ((Rococo::uint8*) sf) - sizeof(size_t) ;
@@ -429,12 +432,9 @@ namespace Rococo
 				   }
 			   }
 		   }
-   #ifdef _WIN32
-		   __except(1)
-
+         CATCH
 		   {
 		   }
-   #endif
 
 		   return NULL;		
 	   }
@@ -699,18 +699,14 @@ namespace Rococo
 			   else
 			   {
 				   const void** ppData = (const void**) pVariableData;
-   #ifdef _WIN32
-				   __try
-   #endif
+               PROTECT
 				   {
 					   FormatVariableDesc(variable, "0x%p (-> 0x%p)", pVariableData, *ppData);
 				   }
-   #ifdef _WIN32
-				   __except(1)
+               CATCH  
 				   {
 					   FormatVariableDesc(variable, "Bad pointer");
 				   }
-   #endif
 				
 				   AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
 				   FormatVariableDescType(variable, "*%s", desc.data);
@@ -746,9 +742,8 @@ namespace Rococo
 	   SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const IStructure& s, csexstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback)
 	   {
 		   if (s.VarType() != VARTYPE_Derivative) return true;
-   #ifdef _WIN32
-		   __try
-   #endif
+
+         PROTECT
 		   {
   
 			   CClassHeader* concreteInstancePtr = NULL;
@@ -782,12 +777,10 @@ namespace Rococo
 
 			   return true;
 		   }
-   #ifdef _WIN32
-		   __except(1)
+         CATCH
 		   {
 			   return false;
 		   }
-   #endif
 	   }
 
 	   SCRIPTEXPORT_API const Rococo::uint8* GetInstance(const MemberDef& def, const IStructure* pseudoType, const Rococo::uint8* SF)

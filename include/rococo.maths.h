@@ -156,8 +156,10 @@ namespace Rococo
 	Vec2  GetIntersect(Vec2 A, Vec2 D, Vec2 B, Vec2 E);
 	Radians GetHeadingOfVector(float DX, float DY);
 
+#ifdef _WIN32
 	// Multiply matrix Ra x Rb to make RaRb. This has the property that Ra X Rb x v = (Ra x Rb) x v = Ra x (Rb x v)
 	void Multiply(Matrix4x4& product, const Matrix4x4& Ra, const Matrix4x4& Rb);
+#endif
 
 	Matrix4x4 operator * (const Matrix4x4& a, const Matrix4x4& b);
 	Vec4 operator * (const Vec4& v, const Matrix4x4& R);
@@ -391,11 +393,10 @@ namespace Rococo
 	// heading is the angle that the world is rotated anticlockwise
 	void GetIsometricTransforms(Matrix4x4& worldMatrix, Matrix4x4& inverseWorldMatrixProj, Matrix4x4& worldMatrixAndProj, float scale, float aspectRatio, cr_vec3 centre, Degrees phi, Degrees viewTheta, Metres cameraHeight);
 
-	void InvertMatrix(const Matrix4x4& matrix, Matrix4x4& inverseMatrix);
-	void TransposeMatrix(const Matrix4x4& matrix, Matrix4x4& transposeOfMatrix);
-
+#ifdef _WIN32
 	Matrix4x4 InvertMatrix(const Matrix4x4& matrix);
 	Matrix4x4 TransposeMatrix(const Matrix4x4& matrix);
+#endif
 
 	inline Degrees operator - (Degrees theta) { return Degrees{ -theta.quantity }; }
 

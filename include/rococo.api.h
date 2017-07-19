@@ -45,9 +45,25 @@ namespace Rococo
 	struct Metres;
 	struct Quat;
 
+#ifdef _WIN32
+   namespace Windows
+   {
+      struct IWindow; // defined in rococo.windows.h which provides HWND
+   }
+#else
+   ROCOCO_ID(ID_OSWINDOW, uint64, 0);
+
+   namespace Windows
+   {
+      struct IWindow
+      {
+         virtual operator ID_OSWINDOW() const = 0;
+      };
+   }
+#endif
+
 	namespace Windows
 	{
-		struct IWindow;
 		IWindow& NoParent();
 		int ShowMessageBox(IWindow& window, cstr text, cstr caption, uint32 uType);
 	}
@@ -61,8 +77,6 @@ namespace Rococo
       struct ITreePopulator;
       struct IListPopulator;
 	}
-
-	void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr caption);
 
 	struct IRenderer;
 	struct IInstallation;
@@ -186,7 +200,6 @@ namespace Rococo
 
 	ROCOCOAPI IDebuggerWindow: public ILogger
 	{
-     
 		virtual void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor = RGBAb(255,255,255), bool bringToView = false) = 0;
       virtual void BeginStackUpdate() = 0;
       virtual void EndStackUpdate() = 0;

@@ -9,6 +9,7 @@
 #include <windows.h>
 #include <rococo.window.h>
 
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
 #include <rococo.visitors.h>
@@ -424,7 +425,7 @@ namespace
          rchar text[4096];
          va_list args;
          va_start(args, format);
-         int len = SafeVFormat(text, 4094,  _TRUNCATE, format, args);
+         int len = SafeVFormat(text, 4094, format, args);
 
          if (len > 0)
          {
@@ -452,7 +453,7 @@ namespace
          rchar text[4096];
          va_list args;
          va_start(args, format);
-         int len = SafeVFormat(text, 4094, _TRUNCATE, format, args);
+         int len = SafeVFormat(text, 4094, format, args);
 
          logSegments.push_back({ colour, text });
 

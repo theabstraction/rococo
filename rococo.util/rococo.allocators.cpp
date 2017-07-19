@@ -5,13 +5,13 @@
 #ifdef _WIN32
 # include <rococo.os.win32.h>
 #else
-
+# include <stdio.h>
 namespace
 {
       using namespace Rococo;
       void OutputDebugStringA(cstr text)
       {
-         puts(text);
+         printf("%s\n", text);
       }
 
       typedef void* HANDLE;
@@ -63,7 +63,7 @@ namespace
       ~CheckedAllocator()
       {
          rchar text[1024];
-         SafeFormat(text, _TRUNCATE, "\nCheckedAllocator: Allocs: %u, Frees: %u, Reallocs: %u\n\n", allocCount, freeCount, reallocCount);
+         SafeFormat(text, sizeof(text), "\nCheckedAllocator: Allocs: %u, Frees: %u, Reallocs: %u\n\n", allocCount, freeCount, reallocCount);
          OutputDebugStringA(text);
       }
 
@@ -106,7 +106,7 @@ namespace
       ~BlockAllocator()
       {
          rchar text[1024];
-         SafeFormat(text, _TRUNCATE, "\nBlockAllocator(%p) Allocs: %u, Frees: %u, Reallocs: %u\n\n", hHeap, allocCount, freeCount, reallocCount);
+         SafeFormat(text, sizeof(text), "\nBlockAllocator(%p) Allocs: %u, Frees: %u, Reallocs: %u\n\n", hHeap, allocCount, freeCount, reallocCount);
          OutputDebugStringA(text);
 
          HeapDestroy(hHeap);

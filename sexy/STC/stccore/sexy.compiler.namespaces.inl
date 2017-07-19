@@ -91,11 +91,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 		SEXCHAR* fullNamebuffer = (SEXCHAR*) alloca(capacity * sizeof(SEXCHAR));
 		if (_parent->FullName()->Length > 0)
 		{
-			StringPrint(fullNamebuffer, capacity, SEXTEXT("%s.%s"), _parent->FullName()->Buffer, _name);
+			SafeFormat(fullNamebuffer, capacity, SEXTEXT("%s.%s"), _parent->FullName()->Buffer, _name);
 		}
 		else
 		{
-			StringPrint(fullNamebuffer, capacity, SEXTEXT("%s"), _name);
+         SafeFormat(fullNamebuffer, capacity, SEXTEXT("%s"), _name);
 		}
 
 		fullname = CreateSexString(fullNamebuffer);

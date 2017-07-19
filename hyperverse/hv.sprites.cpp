@@ -52,7 +52,7 @@ namespace
             virtual void OnEvent(cstr filename)
             {
                rchar contentRelativePath[IO::MAX_PATHLEN];
-               SafeFormat(contentRelativePath, _TRUNCATE, "%s%s", shortdir, filename);             
+               SafeFormat(contentRelativePath, IO::MAX_PATHLEN, "%s%s", shortdir, filename);
                sprites->AddSprite(to_fstring(contentRelativePath));
             }
          } onFileFound;
@@ -68,7 +68,7 @@ namespace
 
          EndDirectoryWithSlash(onFileFound.shortdir, IO::MAX_PATHLEN);
    
-         SafeFormat(onFileFound.directory, _TRUNCATE, "%s%s", renderer.Installation().Content(), (onFileFound.shortdir+1));
+         SafeFormat(onFileFound.directory, IO::MAX_PATHLEN, "%s%s", renderer.Installation().Content(), (onFileFound.shortdir+1));
          IO::ForEachFileInDirectory(onFileFound.directory, onFileFound);
       }
 

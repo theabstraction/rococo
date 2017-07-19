@@ -4,8 +4,6 @@ VM_OBJS = sexy.vm.assembler.obj sexy.vm.core.obj sexy.vm.obj sexy.vm.disassemble
         sexy.vm.stdafx.obj sexy.vm.symbols.obj
 VM_SRCS = $(VM_OBJS,.obj=.cpp) 
 
-COMMON_DIR = ../Common/
-ROCOCO_HEADERS = ../../include/
 OBJ_DIR = ../../intermediate.mac/
 VM_DIR = ../svm/svmcore/
 LIB_DIR = ../../lib/
@@ -14,7 +12,7 @@ VM_SRC_AND_DIRS = $(addprefix $(VM_DIR),$(VM_SRCS))
 VM_OBJ_AND_DIRS = $(addprefix $(OBJ_DIR),$(VM_OBJS))
 
 CPP_COMPILER = g++
-CPP_FLAGS = -g -std=c++14
+CPP_FLAGS = @g++.config.txt
 LIBGEN = ar
 LIBGEN_FLAGS = cr
 	
@@ -22,7 +20,7 @@ $(LIB_DIR)sexy.vm.mac.lib: $(VM_OBJ_AND_DIRS)
 	$(LIBGEN) $(LIBGEN_FLAGS) $(LIB_DIR)sexy.vm.mac.lib $(VM_OBJ_AND_DIRS)
 
 $(OBJ_DIR)%.obj : $(addprefix $(VM_DIR),$(notdir %.cpp))
-	$(CPP_COMPILER) $(CPP_FLAGS) -I$(COMMON_DIR) -I$(ROCOCO_HEADERS) -c $< -o $@
+	$(CPP_COMPILER) $(CPP_FLAGS) -c $< -o $@
 
 clean:
 	rm -f $(VM_OBJ_AND_DIRS) $(LIB_DIR)sexy.vm.mac.lib

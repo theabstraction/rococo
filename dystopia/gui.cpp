@@ -60,7 +60,7 @@ namespace
 
          va_list arglist;
          va_start(arglist, format);
-         SafeVFormat(msg.text, DebugMessage::CAPACITY, _TRUNCATE, format, arglist);
+         SafeVFormat(msg.text, DebugMessage::CAPACITY, format, arglist);
 
          debugList.push_back(msg);
       }
@@ -104,7 +104,7 @@ namespace
 		virtual void Add3DHint(const Vec3& worldPos, const fstring& message, float duration)
 		{
 			HintMessage3D msg;
-			SafeCopy(msg.message, message.buffer, _TRUNCATE);
+			SafeCopy(msg.message, message.buffer);
 			msg.position = worldPos;
 			msg.duration = duration;
 

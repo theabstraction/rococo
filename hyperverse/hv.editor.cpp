@@ -86,7 +86,7 @@ namespace
          Vec2 worldCursor = GetWorldPosition(metrics.cursorPosition);
 
          rchar originText[24];
-         SafeFormat(originText, _TRUNCATE, "(%4.1f,%4.1f)", worldCursor.x, worldCursor.y);
+         SafeFormat(originText, sizeof(originText), "(%4.1f,%4.1f)", worldCursor.x, worldCursor.y);
 
          Vec2i centre{ metrics.screenSpan.x >> 1, metrics.screenSpan.y >> 1 };
          Rococo::Graphics::DrawRectangle(grc, { centre.x - 70,0,centre.x + 70, 20 }, RGBAb(64, 64, 64, 224), RGBAb(64, 64, 64, 224));

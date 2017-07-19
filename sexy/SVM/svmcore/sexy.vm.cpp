@@ -42,6 +42,21 @@
 # include <stdlib.h> // for posix_memalign and free
 #endif
 
+#ifdef _WIN32
+# define PROTECT  __try
+# define CATCH  __except(1)
+#else
+namespace Rococo
+{
+   struct SignalException
+   {
+      int dummy;
+   };
+}
+# define PROTECT try
+# define CATCH  catch(SignalException& ex)
+#endif
+
 using namespace Rococo;
 using namespace Rococo::VM;
 
@@ -495,24 +510,17 @@ namespace
 			size_t functionStart = program->GetFunctionAddress(codeId);
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 
-#ifdef _WIN32
-			__try
+         PROTECT
 			{
 				while(cpu.SF() > context && status == EXECUTERESULT_RUNNING)
 				{
 					Advance();
 				}
 			}
-			__except(EXCEPTION_EXECUTE_HANDLER)
+			CATCH
 			{
 				return EXECUTERESULT_SEH;
 			}
-#else
-         while (cpu.SF() > context && status == EXECUTERESULT_RUNNING)
-         {
-            Advance();
-         }
-#endif
 
 			if (status == EXECUTERESULT_RUNNING) status = EXECUTERESULT_RETURNED;
 

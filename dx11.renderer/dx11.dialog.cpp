@@ -67,7 +67,7 @@ namespace
          {
             int secsLeft = (int)((float)delta.QuadPart / (float)hz.QuadPart);
             rchar txt[64];
-            SafeFormat(txt, _TRUNCATE, "Confirming in %d seconds", secsLeft);
+            SafeFormat(txt, sizeof(txt), "Confirming in %d seconds", secsLeft);
             SetWindowTextA(*countdownTimerLabel, txt);
          }
 
@@ -167,7 +167,7 @@ namespace Rococo
       void FormatModeString(const DXGI_MODE_DESC& mode, rchar modeDesc[64])
       {
          UINT hz = (UINT)(mode.RefreshRate.Numerator / (float)mode.RefreshRate.Denominator);
-         SafeFormat(modeDesc, 64, _TRUNCATE, "%d x %d - %d Hz", mode.Width, mode.Height, hz);
+         SafeFormat(modeDesc, 64, "%d x %d - %d Hz", mode.Width, mode.Height, hz);
       }
 
       bool FormatOutputString(IDXGIOutput& output, rchar outputString[64], UINT index)
@@ -183,7 +183,7 @@ namespace Rococo
             int width = odesc.DesktopCoordinates.right - odesc.DesktopCoordinates.left;
             int height = odesc.DesktopCoordinates.bottom - odesc.DesktopCoordinates.top;
 
-            SafeFormat(outputString, 64, _TRUNCATE, "Output #%d: %d x %d", index, width, height);
+            SafeFormat(outputString, 64, "Output #%d: %d x %d", index, width, height);
             return true;
          }
          else
@@ -209,7 +209,7 @@ namespace Rococo
             int width = modeList[0].Width;
             int height = modeList[0].Height;
 
-            SafeFormat(outputString, 64, _TRUNCATE, "Output #%d: %d x %d", index, width, height);
+            SafeFormat(outputString, 64, "Output #%d: %d x %d", index, width, height);
             return true;
          }
       }

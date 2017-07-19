@@ -164,18 +164,18 @@ namespace
 				int32 y = 30 * (1 + (int32)i);
 
 				rchar text[64];
-				SafeFormat(text, _TRUNCATE, L"%s:", b.name);
+				SafeFormat(text, L"%s:", b.name);
 				Graphics::RenderVerticalCentredText(grc, text, RGBAb(255, 255, 255, 192), 2, { 30,y });
 
-				SafeFormat(text, _TRUNCATE, L"%3d / %3d", stat.current, stat.cap);
+				SafeFormat(text, L"%3d / %3d", stat.current, stat.cap);
 				Graphics::RenderVerticalCentredText(grc, text, RGBAb(255, 255, 255, 192), 2, { 130,y });
 			}
 
 			rchar text[64];
-			SafeFormat(text, _TRUNCATE, L"Social Status: lower lower class (double minus)");
+			SafeFormat(text, L"Social Status: lower lower class (double minus)");
 			Graphics::RenderVerticalCentredText(grc, text, RGBAb(255, 255, 255, 192), 2, { 330,30 });
 
-			SafeFormat(text, _TRUNCATE, L"Security clearance: none");
+			SafeFormat(text, L"Security clearance: none");
 			Graphics::RenderVerticalCentredText(grc, text, RGBAb(255, 255, 255, 192), 2, { 330,60 });
 
 			GuiRect infoRect(rect.left + 20, rect.top + 100, rect.right - 20, rect.bottom - 20);
@@ -204,14 +204,14 @@ namespace
 			GetBuildVersion(major, minor);
 
 			rchar versionText[64];
-			SafeFormat(versionText, _TRUNCATE, L"Build %u.%04u", major, minor);
+			SafeFormat(versionText, L"Build %u.%04u", major, minor);
 
 			Graphics::RenderHorizontalCentredText(grc, versionText, RGBAb(255, 255, 255), 9, { rect.right - 240,rect.top });
 
          auto mem = ProcessMemory();
          
          rchar memoryUsage[64];
-         SafeFormat(memoryUsage, _TRUNCATE, L"Mem: %I64u MB/%I64u MB", mem.current >> 20, mem.peak >> 20);
+         SafeFormat(memoryUsage, L"Mem: %I64u MB/%I64u MB", mem.current >> 20, mem.peak >> 20);
 
          Graphics::RenderHorizontalCentredText(grc, memoryUsage, RGBAb(255, 255, 255), 9, { rect.right - 240,rect.top + 20 });
 		}

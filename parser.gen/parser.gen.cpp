@@ -41,7 +41,7 @@ cr_sex ValidateDirective(cr_sex s, cstr sdirective)
    if (s[0] != sdirective)
    {
       rchar msg[1024];
-      SafeFormat(msg, _TRUNCATE, L"Expecting %s", sdirective);
+      SafeFormat(msg, L"Expecting %s", sdirective);
       Throw(s, msg);
    }
 

@@ -9,6 +9,8 @@
 
 #include <Rococo.api.h>
 #include <Rococo.window.h>
+
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
 #endif

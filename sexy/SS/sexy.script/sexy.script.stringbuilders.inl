@@ -446,7 +446,7 @@ namespace
 		MergeFormats(format, *sb, suffix);
 
 		SEXCHAR rep[32];
-		int nChars = StringPrint(rep, 32, format, value);
+		int nChars = SafeFormat(rep, 32, format, value);
 		AppendString(*sb, rep, nChars);
 		WriteOutput(0, sb->Header.length, e);
 	}
@@ -465,7 +465,7 @@ namespace
 		MergeFormats(format, *sb, suffix);
 
 		SEXCHAR rep[64];
-		int nChars = StringPrint(rep, 64, format, value);
+		int nChars = SafeFormat(rep, 64, format, value);
 		AppendString(*sb, rep, nChars);
 		WriteOutput(0, sb->Header.length, e);
 	}
@@ -496,7 +496,7 @@ namespace
 		MergeFormats(format, *sb, suffix);
 
 		SEXCHAR rep[32];
-		int nChars = StringPrint(rep, 32, format, value);
+		int nChars = SafeFormat(rep, 32, format, value);
 		AppendString(*sb, rep, nChars);
 		WriteOutput(0, sb->Header.length, e);
 	}
@@ -527,7 +527,7 @@ namespace
 		MergeFormats(format, *sb, suffix);
 
 		SEXCHAR rep[64];
-		int nChars = StringPrint(rep, 64, format, value);
+		int nChars = SafeFormat(rep, 64, format, value);
 		AppendString(*sb, rep, nChars);
 		WriteOutput(0, sb->Header.length, e);
 	}
@@ -555,7 +555,7 @@ namespace
 		ReadInput(1, value, e);
 
 		SEXCHAR rep[64];
-		int nChars = StringPrint(rep, 64, SEXTEXT("0x%X"), value);
+		int nChars = SafeFormat(rep, 64, SEXTEXT("0x%X"), value);
 		AppendString(*sb, rep, nChars);
 		
 		WriteOutput(0, sb->Header.length, e);

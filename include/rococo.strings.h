@@ -1,23 +1,26 @@
-#ifndef Rococo_Strings_H
-#define Rococo_Strings_H
+#pragma once
 
 #ifdef SEXCHAR_IS_WIDE
-#error "Wide characters no longer supported."
-#else
-#include <stdio.h>
-#include <string.h>
-
-#ifndef _TRUNCATE
-# define _TRUNCATE ((size_t)-1)
+# error "Wide characters no longer supported."
 #endif
 
-#define SecureFormat sprintf_s // Needs include <wchar.h>. If the output buffer is exhausted it will throw an exception
-#define SafeFormat _snprintf_s // Needs include <wchar.h>. With _TRUNCATE in the MaxCount position, it will truncate buffer overruns, rather than throw
-#define SafeVFormat _vsnprintf_s // Needs include <wchar.h>. With _TRUNCATE in the MaxCount position, it will truncate buffer overruns, rather than throw
+#ifdef ROCOCO_USE_SAFE_V_FORMAT
+# include <stdarg.h>
 #endif
 
 namespace Rococo
 {
+   int SecureFormat(char* buffer, size_t capacity, const char* format, ...);
+   int SafeFormat(char* buffer, size_t capacity, const char* format, ...);
+
+#ifdef ROCOCO_USE_SAFE_V_FORMAT
+   int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args);
+
+# ifndef _WIN32
+   int sscanf_s(const char* buffer, const char* format, ...);
+# endif
+#endif
+
 	struct IStringBuffer
 	{
 		virtual rchar* GetBufferStart() = 0;
@@ -30,5 +33,3 @@ namespace Rococo
 
    bool Eq(cstr a, cstr b);
 }
-
-#endif // Rococo_Strings_H

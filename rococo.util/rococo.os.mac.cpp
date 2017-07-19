@@ -8,9 +8,17 @@
 #include <unistd.h>
 #include <sys/sysctl.h>
 #include <rococo.io.h>
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 #include <errno.h>
 #include <mach-o/dyld.h>
+#include <CoreServices/CoreServices.h>
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+#include <unistd.h>
+#include <os/lock.h>
+#include <new>
+#include <rococo.api.h>
 
 namespace
 {
@@ -19,6 +27,39 @@ namespace
 
 namespace Rococo
 {
+   ThreadLock::ThreadLock()
+   {
+      static_assert(sizeof(implementation) >= sizeof(os_unfair_lock), "Increase backing store for OSSpinLock");
+      auto* pLock = reinterpret_cast<os_unfair_lock*>(this->implementation);
+      new (pLock) os_unfair_lock();
+   }
+
+   ThreadLock::~ThreadLock()
+   {
+      auto* pLock = reinterpret_cast<os_unfair_lock*>(this->implementation);
+      pLock->~os_unfair_lock();
+   }
+
+   void ThreadLock::Lock()
+   {
+      auto* pLock = reinterpret_cast<os_unfair_lock*>(this->implementation);
+      os_unfair_lock_lock(pLock);
+   }
+
+   void ThreadLock::Unlock()
+   {
+      auto* pLock = reinterpret_cast<os_unfair_lock*>(this->implementation);
+      os_unfair_lock_unlock(pLock);
+   }
+
+   namespace IO
+   {
+      void UseBufferlessStdout()
+      {
+         setbuf(stdout, nullptr);
+      }
+   }
+
    void memcpy_s(void *dest, size_t destSize, const void *src, size_t count)
    {
       memcpy(dest, src, count);
@@ -96,7 +137,7 @@ namespace Rococo
 
    void FileModifiedArgs::GetPingPath(rchar* path, size_t capacity)
    {
-      SafeFormat(path, capacity, _TRUNCATE, "!%s", resourceName);
+      SafeFormat(path, capacity, "!%s", resourceName);
    }
 }
 
@@ -104,6 +145,48 @@ namespace Rococo
 {
    namespace OS
    {
+      void SanitizePath(char* path)
+      {
+         for (char* s = path; *s != 0; ++s)
+         {
+            if (*s == '\\') *s = '/';
+         }
+      }
+
+      void UILoop(uint32 milliseconds)
+      {
+         usleep(milliseconds * 1000);
+      }
+
+      void PrintDebug(const char* format, ...)
+      {
+#if _DEBUG
+         va_list arglist;
+         va_start(arglist, format);
+         char line[4096];
+         SafeVFormat(line, sizeof(line), format, arglist);
+         printf("DBG: %s\n", line);
+#endif
+      }
+      void Format_C_Error(int errorCode, rchar* buffer, size_t capacity)
+      {
+         strerror_r(errorCode, buffer, capacity);
+      }
+
+      int OpenForAppend(void** _fp, cstr name)
+      {
+         FILE** fp = (FILE**)_fp;
+         *fp = fopen(name, "ab");
+         return (*fp == nullptr) ? errno : 0;
+      }
+
+      int OpenForRead(void** _fp, cstr name)
+      {
+         FILE** fp = (FILE**)_fp;
+         *fp = fopen(name, "rb");
+         return (*fp == nullptr) ? errno : 0;
+      }
+
       void ValidateBuild()
       {
          static_assert(sizeof(int64) == 8, "Bad int64");
@@ -144,20 +227,8 @@ namespace Rococo
 
       void TripDebugger()
       {
-         __builtin_trap();;
-      }
-
-      void SetBreakPoints(int flags)
-      {
-         breakFlags = flags;
-      }
-
-      void BreakOnThrow(BreakFlag flag)
-      {
-         if ((breakFlags & flag) != 0 && IsDebugging())
-         {
-            TripDebugger();
-         }
+         __asm__ volatile("int $0x03");
+         // __builtin_trap();;
       }
 
       bool IsFileExistant(cstr filename)
@@ -186,6 +257,19 @@ namespace Rococo
          }
 
          return false;
+      }
+
+      ticks CpuTicks()
+      {
+         return mach_absolute_time();
+      }
+
+      ticks CpuHz()
+      {
+         mach_timebase_info_data_t theTimeBaseInfo;
+         mach_timebase_info(&theTimeBaseInfo);
+
+         return (ticks) (1.0e9 * ((double) theTimeBaseInfo.denom / (double) theTimeBaseInfo.numer));
       }
 
       MemoryUsage ProcessMemory()
@@ -283,7 +367,7 @@ namespace
          // The indicator is part of a path
          if (os.IsFileExistant(contentIndicatorName))
          {
-            SecureFormat(path.data, "%s", contentIndicatorName);
+            SecureFormat(path.data, sizeof(path.data), "%s", contentIndicatorName);
             MakeContainerDirectory(path);
             return;
          }
@@ -294,10 +378,11 @@ namespace
       while (len > 0)
       {
          FilePath indicator;
-         SecureFormat(indicator.data, "%s%s", path.data, contentIndicatorName);
+         StackStringBuilder sb(indicator.data, sizeof(indicator.data));
+         sb.AppendFormat("%s%s", path.data, contentIndicatorName);
          if (os.IsFileExistant(indicator))
          {
-            SecureCat(path.data, "content/");
+            sb << "content/";
             return;
          }
 
@@ -356,7 +441,7 @@ namespace
          os.ConvertUnixPathToSysPath(resourcePath + 1, sysPath, _MAX_PATH);
 
          FilePath absPath;
-         SecureFormat(absPath.data, "%s%s", contentDirectory.data, sysPath.data);
+         SecureFormat(absPath.data, sizeof(absPath), "%s%s", contentDirectory.data, sysPath.data);
 
          os.LoadAbsolute(absPath, buffer, maxFileLength);
       }
@@ -386,6 +471,11 @@ namespace
       virtual void Free()
       {
          delete this;
+      }
+
+      virtual void Monitor(cstr absPath)
+      {
+
       }
 
       virtual void UTF8ToUnicode(const char* s, wchar_t* unicode, size_t cbUtf8count, size_t unicodeCapacity)
@@ -490,3 +580,35 @@ namespace
    };
 }
 
+namespace Rococo
+{
+   IInstallationSupervisor* CreateInstallation(cstr contentIndicatorName, IOS& os)
+   {
+      return new Installation(contentIndicatorName, os);
+   }
+}
+
+namespace Rococo
+{
+   IOSSupervisor* GetOS()
+   {
+      return new OSX();
+   }
+
+   namespace Windows
+   {
+      IWindow& NoParent()
+      {
+         struct NullWindow : public IWindow
+         {
+            virtual operator ID_OSWINDOW() const
+            {
+               return ID_OSWINDOW::Invalid();
+            }
+         };
+
+         static NullWindow nullWindow;
+         return nullWindow;
+      }
+   }
+}

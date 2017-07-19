@@ -40,7 +40,7 @@ namespace
 	void FormatModeString(const DXGI_MODE_DESC& mode, rchar modeDesc[64])
 	{
 		UINT hz = (UINT)(mode.RefreshRate.Numerator / (float)mode.RefreshRate.Denominator);
-		SafeFormat(modeDesc, 64, _TRUNCATE, L"%d x %d - %d Hz", mode.Width, mode.Height, hz);
+		SafeFormat(modeDesc, 64, L"%d x %d - %d Hz", mode.Width, mode.Height, hz);
 	}
 
 	bool FormatOutputString(IDXGIOutput& output, rchar outputString[64], UINT index)
@@ -56,7 +56,7 @@ namespace
 			int width = odesc.DesktopCoordinates.right - odesc.DesktopCoordinates.left;
 			int height = odesc.DesktopCoordinates.bottom - odesc.DesktopCoordinates.top;
 
-			SafeFormat(outputString, 64, _TRUNCATE, L"Output #%d: %d x %d", index, width, height);
+			SafeFormat(outputString, 64, L"Output #%d: %d x %d", index, width, height);
 			return true;
 		}
 		else
@@ -82,7 +82,7 @@ namespace
 			int width = modeList[0].Width;
 			int height = modeList[0].Height;
 
-			SafeFormat(outputString, 64, _TRUNCATE, L"Output #%d: %d x %d", index, width, height);
+			SafeFormat(outputString, 64, L"Output #%d: %d x %d", index, width, height);
 			return true;
 		}
 	}
@@ -338,7 +338,7 @@ namespace
 			{
 				int secsLeft = (int) ((float) delta.QuadPart / (float) hz.QuadPart);
 				rchar txt[64];
-				SafeFormat(txt, _TRUNCATE, L"Confirming in %d seconds", secsLeft);
+				SafeFormat(txt, L"Confirming in %d seconds", secsLeft);
 				SetWindowText(*countdownTimerLabel, txt);
 			}
 

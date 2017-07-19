@@ -1,5 +1,6 @@
 #include "hv.h"
 #include <vector>
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 #include <stdarg.h>
 
@@ -64,7 +65,7 @@ namespace
          for (int i : {0, 1, 2, 3})
          {
             auto& r = row[i];
-            SafeFormat(line[i].value, _TRUNCATE, "(%+12.4f %+12.4f %+12.4f %+12.4f    )", r.x, r.y, r.z, r.w);
+            SafeFormat(line[i].value, 128, "(%+12.4f %+12.4f %+12.4f %+12.4f    )", r.x, r.y, r.z, r.w);
             lines.push_back(line[i]);
          }
 
@@ -104,7 +105,7 @@ namespace
 
          size_t len = rlen(line.key);
 
-         SafeFormat(line.value, _TRUNCATE, "( %+12.4f    )", vector[0]);
+         SafeFormat(line.value, 128, "( %+12.4f    )", vector[0]);
 
          lines.push_back(line);
 
@@ -113,7 +114,7 @@ namespace
             DebugLine line;
             FillNameWithSpaces(line, len);
 
-            SafeFormat(line.value, _TRUNCATE, "( %+12.4f    )", vector[i]);
+            SafeFormat(line.value, 128, "( %+12.4f    )", vector[i]);
             lines.push_back(line);
          }
       }
@@ -122,7 +123,7 @@ namespace
       {
          DebugLine line;
          Name(line, name);
-         SafeFormat(line.value, _TRUNCATE, "%+12.4f", value);
+         SafeFormat(line.value, line.VALUE_LEN, "%+12.4f", value);
          lines.push_back(line);
       }
 
@@ -130,7 +131,7 @@ namespace
       {
          DebugLine line;
          Name(line, name);
-         SafeFormat(line.value, _TRUNCATE, "%8d", value);
+         SafeFormat(line.value, line.VALUE_LEN, "%8d", value);
          lines.push_back(line);;
       }
 
@@ -138,7 +139,7 @@ namespace
       {
          DebugLine line;
          Name(line, name);
-         SafeFormat(line.value, _TRUNCATE, "0x%.8X", value);
+         SafeFormat(line.value, line.VALUE_LEN, "0x%.8X", value);
          lines.push_back(line);
       }
 
@@ -146,7 +147,7 @@ namespace
       {
          DebugLine line;
          Name(line, name);
-         SafeFormat(line.value, _TRUNCATE, "%s", value ? "true" : "false");
+         SafeFormat(line.value, line.VALUE_LEN, "%s", value ? "true" : "false");
          lines.push_back(line);
       }
 
@@ -154,7 +155,7 @@ namespace
       {
          DebugLine line;
          Name(line, name);
-         SafeFormat(line.value, _TRUNCATE, "%lld", value);
+         SafeFormat(line.value, line.VALUE_LEN, "%lld", value);
          lines.push_back(line);
       }
 
@@ -162,7 +163,7 @@ namespace
       {
          DebugLine line;
          Name(line, name);
-         SafeFormat(line.value, _TRUNCATE, "%.8x:%.8x", (int32)(value >> 32), (int32) (value & 0xFFFFFFFF));
+         SafeFormat(line.value, line.VALUE_LEN, "%.8x:%.8x", (int32)(value >> 32), (int32) (value & 0xFFFFFFFF));
          lines.push_back(line);
       }
 
@@ -170,7 +171,7 @@ namespace
       {
          DebugLine line;
          Name(line, name);
-         SafeFormat(line.value, _TRUNCATE, "%p", ptr);
+         SafeFormat(line.value, line.VALUE_LEN, "%p", ptr);
          lines.push_back(line);
       }
 
@@ -182,7 +183,7 @@ namespace
          va_list args;
          va_start(args, format);
 
-         SafeFormat(line.value, _TRUNCATE, format, args);
+         SafeVFormat(line.value, line.VALUE_LEN, format, args);
 
          lines.push_back(line);
       }

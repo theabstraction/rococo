@@ -148,40 +148,40 @@ namespace
 		switch(type)
 		{
 		case VARTYPE_Bad:
-			StringPrint(rvalue, bufferLen, SEXTEXT("Bad type"));
+         SafeFormat(rvalue, bufferLen, SEXTEXT("Bad type"));
 			break;
 		case VARTYPE_Bool:
 			{
 				const int32 value = *(const int32*) pVariableData;
-				if (value == 0 || value == 1) StringPrint(rvalue, bufferLen, value == 1 ? SEXTEXT("true") : SEXTEXT("false"));
-				else  StringPrint(rvalue, bufferLen, SEXTEXT("%d (%8.8x)"), value, value);
+				if (value == 0 || value == 1) SafeFormat(rvalue, bufferLen, value == 1 ? SEXTEXT("true") : SEXTEXT("false"));
+				else  SafeFormat(rvalue, bufferLen, SEXTEXT("%d (%8.8x)"), value, value);
 			}
 			break;
 		case VARTYPE_Derivative:
-         StringPrint(rvalue, bufferLen, SEXTEXT(""));
+         SafeFormat(rvalue, bufferLen, SEXTEXT(""));
 			break;
 		case VARTYPE_Int32:
 			{
 				const int32* pValue = (const int32*) pVariableData;
-            StringPrint(rvalue, bufferLen, SEXTEXT("%d (%8.8x)"), *pValue, *pValue);
+            SafeFormat(rvalue, bufferLen, SEXTEXT("%d (%8.8x)"), *pValue, *pValue);
 			}
 			break;
 		case VARTYPE_Int64:
 			{
 				const int64* pValue = (const int64*) pVariableData;
-            StringPrint(rvalue, bufferLen, SEXTEXT("%lld (%8llx)"), *pValue, *pValue);
+            SafeFormat(rvalue, bufferLen, SEXTEXT("%lld (%8llx)"), *pValue, *pValue);
 			}
 			break;
 		case VARTYPE_Float32:
 			{
 				const float32* pValue = (const float32*) pVariableData;
-            StringPrint(rvalue, bufferLen, SEXTEXT("%g"), *pValue);
+            SafeFormat(rvalue, bufferLen, SEXTEXT("%g"), *pValue);
 			}
 			break;
 		case VARTYPE_Float64:
 			{
 				const float64* pValue = (const float64*) pVariableData;
-            StringPrint(rvalue, bufferLen, SEXTEXT("%lg"), *pValue);
+            SafeFormat(rvalue, bufferLen, SEXTEXT("%lg"), *pValue);
 			}
 			break;
 		case VARTYPE_Pointer:
@@ -191,7 +191,7 @@ namespace
 				csexstr symbol = ss.GetSymbol(ptr);
 				if (symbol == NULL)
 				{
-               StringPrint(rvalue, bufferLen, SEXTEXT("%p"), ptr);
+               SafeFormat(rvalue, bufferLen, SEXTEXT("%p"), ptr);
 				}
 				else
 				{
@@ -208,11 +208,11 @@ namespace
 				};
 
 				const Closure* pValue = (const Closure*)pVariableData;
-            StringPrint(rvalue, bufferLen, SEXTEXT("Id: %llu. SF: 0x%llX"), pValue->id, (size_t) pValue->parentSF);
+            SafeFormat(rvalue, bufferLen, SEXTEXT("Id: %llu. SF: 0x%llX"), pValue->id, (size_t) pValue->parentSF);
 			}
 			break;
 		default:
-         StringPrint(rvalue, bufferLen, SEXTEXT("Unknown type"));
+         SafeFormat(rvalue, bufferLen, SEXTEXT("Unknown type"));
 		}
 	}
 
@@ -227,7 +227,7 @@ namespace
 		}
 		__except(1)
 		{
-			wcscpy_s(unicodeValue, bufferLen, L"Bad pointer");
+         _snwprintf_s(unicodeValue, bufferLen, _TRUNCATE, L"%s", L"Bad pointer");
 		}
 	}
 }

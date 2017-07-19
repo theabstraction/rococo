@@ -42,7 +42,7 @@
 #error include "sexy.compiler.pubic.h"
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 # pragma pack(push,1)
 #endif
 

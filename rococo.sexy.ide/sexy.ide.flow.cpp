@@ -3,16 +3,12 @@
 #include <sexy.types.h>
 #include <sexy.compiler.public.h>
 #include <sexy.debug.types.h>
+#include <sexy.vm.h>
+#include <sexy.vm.cpu.h>
 #include <sexy.script.h>
 #include <Sexy.S-Parser.h>
 
-#include <windows.h>
-#include <rococo.window.h>
-
 #include <rococo.strings.h>
-
-#include <rococo.visitors.h>
-#include <commctrl.h>
 
 using namespace Rococo;
 using namespace Rococo::IDE;

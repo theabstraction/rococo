@@ -44,11 +44,11 @@ namespace
 
 		if (*cppPath == '$')
 		{
-			StringPrint(pc.cppRootDirectory, _MAX_PATH, SEXTEXT("%s%s"), pc.projectRoot, cppPath + 1);
+			SafeFormat(pc.cppRootDirectory, _MAX_PATH, SEXTEXT("%s%s"), pc.projectRoot, cppPath + 1);
 		}
 		else
 		{
-			StringPrint(pc.cppRootDirectory, _MAX_PATH, SEXTEXT("%s"), cppPath);
+         SafeFormat(pc.cppRootDirectory, _MAX_PATH, SEXTEXT("%s"), cppPath);
 		}
 	}
 
@@ -58,7 +58,7 @@ namespace
 		if (sconfigItem.NumberOfElements() != 2) Throw(sconfigItem, SEXTEXT("Expecting (cpp.exception <cpp-exception name>)."));
 
 		csexstr cppException = StringFrom(sconfigItem.GetElement(1));
-		StringPrint(pc.cppException, 128, SEXTEXT("%s"), cppException);
+      SafeFormat(pc.cppException, 128, SEXTEXT("%s"), cppException);
 	}
 
 	void ParseTypeFile(cr_sex sconfigItem, ParseContext& pc)
@@ -73,26 +73,26 @@ namespace
 		csexstr cppPrefix = SEXTEXT("$cpp$");
 		if (AreEqual(cppTypesPath, projectPrefix, StringLength(projectPrefix)))
 		{
-			StringPrint(pc.cppTypesFilename, _MAX_PATH, SEXTEXT("%s%s"), pc.projectRoot, cppTypesPath + StringLength(projectPrefix));
+         SafeFormat(pc.cppTypesFilename, _MAX_PATH, SEXTEXT("%s%s"), pc.projectRoot, cppTypesPath + StringLength(projectPrefix));
 		}
 		else if (AreEqual(cppTypesPath, cppPrefix, StringLength(cppPrefix)))
 		{
-			StringPrint(pc.cppTypesFilename, _MAX_PATH, SEXTEXT("%s%s"), pc.cppRootDirectory, cppTypesPath + StringLength(cppPrefix));
+         SafeFormat(pc.cppTypesFilename, _MAX_PATH, SEXTEXT("%s%s"), pc.cppRootDirectory, cppTypesPath + StringLength(cppPrefix));
 		}
 		else
 		{
-			StringPrint(pc.cppTypesFilename, _MAX_PATH, SEXTEXT("%s"), cppTypesPath);
+         SafeFormat(pc.cppTypesFilename, _MAX_PATH, SEXTEXT("%s"), cppTypesPath);
 		}
 
 		csexstr sexyTypesPath = StringFrom(sconfigItem.GetElement(1));
 
 		if (AreEqual(sexyTypesPath, projectPrefix, StringLength(projectPrefix)))
 		{
-			StringPrint(pc.sexyTypesFilename, _MAX_PATH, SEXTEXT("%s%s"), pc.projectRoot, sexyTypesPath + StringLength(projectPrefix));
+         SafeFormat(pc.sexyTypesFilename, _MAX_PATH, SEXTEXT("%s%s"), pc.projectRoot, sexyTypesPath + StringLength(projectPrefix));
 		}
 		else
 		{
-			StringPrint(pc.sexyTypesFilename, _MAX_PATH, SEXTEXT("%s"), sexyTypesPath);
+         SafeFormat(pc.sexyTypesFilename, _MAX_PATH, SEXTEXT("%s"), sexyTypesPath);
 		}
 	}
 
@@ -158,7 +158,7 @@ namespace
 		}
 		else
 		{
-			StringPrint(cppTypeShortName, 256, SEXTEXT("%s"), cppType);
+			SafeFormat(cppTypeShortName, 256, SEXTEXT("%s"), cppType);
 			return 0;
 		}
 	}
@@ -340,11 +340,11 @@ namespace
 
 		if (*configPath == '$')
 		{
-			StringPrint(fullconfigPath, _MAX_PATH, SEXTEXT("%s%s"), pc.projectRoot, configPath + 1);
+			SafeFormat(fullconfigPath, _MAX_PATH, SEXTEXT("%s%s"), pc.projectRoot, configPath + 1);
 		}
 		else
 		{
-			StringPrint(fullconfigPath, _MAX_PATH, SEXTEXT("%s"), configPath);
+         SafeFormat(fullconfigPath, _MAX_PATH, SEXTEXT("%s"), configPath);
 		}
 
 		CSParserProxy spp;

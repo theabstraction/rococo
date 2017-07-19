@@ -316,7 +316,9 @@ namespace
 		size_t len = cursor.Length() + 1;
 		char* token = (char*)alloca(len);
 		GetCSVItem(filename, cursor, token, len);
-		if (sscanf_s(token, "%d", &item) != 1)
+
+      item = atoi(token);
+		if (item == 0 && token[0] != '0')
 		{
 			Throw(0, "Expecting int32 in '%s' at column %d line %d", filename, cursor.tokenIndex, cursor.lineNumber);
 		}
@@ -328,7 +330,8 @@ namespace
 		size_t len = cursor.Length() + 1;
 		char* token = (char*)alloca(len);
 		GetCSVItem(filename, cursor, token, len);
-		if (sscanf_s(token, "%f", &item) != 1)
+      item = (float)atof(token);
+      if (item == 0 && token[0] != '0')
 		{
 			Throw(0, "Expecting float in '%s' at column %d line %d", filename, cursor.tokenIndex, cursor.lineNumber);
 		}

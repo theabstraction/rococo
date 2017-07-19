@@ -1,3 +1,4 @@
+# pragma once
 /*
 	Sexy Scripting Language - Copright(c)2013. Mark Anthony Taylor. All rights reserved.
 
@@ -36,8 +37,7 @@
 
 #include "sexy.vm.h"
 
-#ifdef WIN32
-# pragma once
+#ifdef _WIN32
 # define ALIGN_ON_CACHELINE __declspec( align( 128 ) )
 #else
 # define ALIGN_ON_CACHELINE

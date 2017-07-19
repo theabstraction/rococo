@@ -697,10 +697,10 @@ namespace Rococo { namespace Script
 			StringPrint(token, SEXTEXT("%s.length"), variableName);
 
 			SEXCHAR value[32];
-			StringPrint(value, 32, SEXTEXT("%d"), sc->length);
+         SafeFormat(value, 32, SEXTEXT("%d"), sc->length);
 			ce.Builder.AssignLiteral(NameString::From(token), value);
 
-			StringPrint(token, SEXTEXT("%s.buffer"), variableName);
+         StringPrint(token, SEXTEXT("%s.buffer"), variableName);
 			ce.Builder.AssignPointer(NameString::From(token), sc->pointer);
 
 			TokenBuffer vTableBuffer;
@@ -1058,7 +1058,7 @@ namespace Rococo { namespace Script
 
       csexstr instrumentName = varStruct.Name();
       SEXCHAR functionName[Rococo::NAMESPACE_MAX_LENGTH];
-      SafeFormat(functionName, _TRUNCATE, SEXTEXT("%s%s%s"), operation, atype.Name(), btype.Name());
+      SafeFormat(functionName, sizeof(functionName), SEXTEXT("%s%s%s"), operation, atype.Name(), btype.Name());
 
       auto* overloadFn = FindFunction(directive, functionName, ce.Script.ProgramModule());
       if (!overloadFn)
@@ -1213,7 +1213,7 @@ namespace Rococo { namespace Script
 	void AddVariableAndSymbol(CCompileEnvironment& ce, csexstr type, csexstr name)
 	{
 		SEXCHAR declText[256];
-		StringPrint(declText, 256, SEXTEXT("%s %s"), type, name);
+      SafeFormat(declText, 256, SEXTEXT("%s %s"), type, name);
 		ce.Builder.AddSymbol(declText);
 
 		AddVariable(ce, NameString::From(name), TypeString::From(type));
@@ -2453,7 +2453,7 @@ namespace Rococo { namespace Script
 			}
 
 			SEXCHAR symbol[256];
-			StringPrint(symbol, 256, SEXTEXT("%s = %s"), lhs, rhs);
+         SafeFormat(symbol, 256, SEXTEXT("%s = %s"), lhs, rhs);
 
 			NamespaceSplitter splitter(rhs);
 
@@ -2558,7 +2558,7 @@ namespace Rococo { namespace Script
 
 		SEXCHAR debugInfo[256];
 		csexstr format = (rhs->Length > 24) ? SEXTEXT(" = '%.24s...'") : SEXTEXT(" = '%s'");
-		StringPrint(debugInfo, 256, format, (csexstr) rhs->Buffer);
+      SafeFormat(debugInfo, 256, format, (csexstr) rhs->Buffer);
 		ce.Builder.AddSymbol(debugInfo);
 
 		VariantValue ptr;

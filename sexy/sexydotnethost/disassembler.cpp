@@ -25,11 +25,11 @@ namespace
 
 		if (symbol[0] == 0)
 		{
-			Rococo::StringPrint(assemblyLine, 256, SEXTEXT("%p %s %s"), code + pcOffset, rep.OpcodeText, rep.ArgText);
+			Rococo::SafeFormat(assemblyLine, 256, SEXTEXT("%p %s %s"), code + pcOffset, rep.OpcodeText, rep.ArgText);
 		}
 		else
 		{
-			Rococo::StringPrint(assemblyLine, 256, SEXTEXT("%p %s %s // %s"), code + pcOffset, rep.OpcodeText, rep.ArgText, symbol);
+			Rococo::SafeFormat(assemblyLine, 256, SEXTEXT("%p %s %s // %s"), code + pcOffset, rep.OpcodeText, rep.ArgText, symbol);
 		}
 
 		if (rep.ByteCount == 0)

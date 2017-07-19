@@ -39,18 +39,6 @@ namespace Rococo
 	cstr GetSubString(cstr s, const rchar *subString) { return wcsstr(s, subString); }
 #endif
 
-	void StrNCopy(char* dest, size_t count, const char* src, size_t maxCount)
-	{
-		strncpy_s(dest, count, src, maxCount);
-	}
-
-#ifdef SEXCHAR_IS_WIDE
-	errno_t StrNCopy(rchar* dest, size_t count, cstr src, size_t maxCount)
-	{
-		return wcsncpy_s(dest, count, _In_z_ src, maxCount);
-	}
-#endif
-
 	bool AreEqual(sexstring a, sexstring b)
 	{
 		return a->Length == b->Length && Compare(a->Buffer, b->Buffer) == 0;

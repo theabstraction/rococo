@@ -3,7 +3,7 @@
 #include "Sexy.vm.test.stdafx.h"
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
-
+#include <rococo.io.h>
 #include <vector>
 
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
@@ -32,39 +32,6 @@ namespace
 	{
 		printf("Validation failed in %s[%d]: %s\r\n", filename, lineNumber, expression);
 	}
-
-#ifdef _WIN32
-
-	int64 TimerTicks()
-	{
-		LARGE_INTEGER ticks;
-		QueryPerformanceCounter(&ticks);
-		return ticks.QuadPart;
-	}
-
-	int64 TimerHz()
-	{
-		LARGE_INTEGER hz;
-		QueryPerformanceFrequency(&hz);
-		return hz.QuadPart;
-	}
-
-#else
-
-   int64 TimerTicks()
-   {
-      return (int64)mach_absolute_time();
-   }
-
-   int64 TimerHz()
-   {
-      mach_timebase_info_data_t info = {  0  };
-      mach_timebase_info(&info);
-      return 1000000000 * info.numer / info.denom;
-   }
-
-#endif
-
 
 	void Run(IAssembler& a, IVirtualMachine& vm, IProgramMemory& pm)
 	{
@@ -962,8 +929,14 @@ namespace
 
 	void TestPerformance(IAssembler& a, IVirtualMachine& vm, IProgramMemory& pm)
 	{
+      const int factor =
+#ifdef _DEBUG
+         10;
+#else
+         30;
+#endif
 		VariantValue v;
-		v.int32Value = 1000 * 1000;
+		v.int32Value = factor * 1000 * 1000;
 		a.Append_SetRegisterImmediate(REGISTER_D4, v, BITCOUNT_32);
 
 		int32 subtractPos = (int32) a.WritePosition();
@@ -977,17 +950,17 @@ namespace
 		a.Append_BranchIf(CONDITION_IF_NOT_EQUAL, subtractPos - branchPos);
 		a.Append_Exit(REGISTER_D4);
 
-		int64 startTime = TimerTicks();
+		int64 startTime = OS::CpuTicks();
 		RunProtected(a,vm,pm);
-		int64 endTime = TimerTicks();
+		int64 endTime = OS::CpuTicks();
 
 		int64 dt = endTime - startTime;
 
 		double DT = (double) dt;
-		double DTHZ = (double) TimerHz();
+		double DTHZ = (double) OS::CpuHz();
 		double timespan = DT / DTHZ;
 
-		double ips = 3000000.0 / timespan;
+		double ips = factor * 3.0 * 1000 * 1000.0 / timespan;
 
 		printf("............................................Mips: %lg subtract-test-branch\r\n", ips / 1000000.0);
 
@@ -1181,25 +1154,14 @@ namespace
 		va_end(args);
 
       char errBuffer[256];
-#ifdef _WIN32
-		if (0 == FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, error, 0, errBuffer, 256, NULL))
-		{
-			printf("\r\nCode %d(0x%X)", error, error);		
-		}
-		else
-		{
-			printf("\r\nCode %d(0x%X): %s", error, error, errBuffer);
-		}
-#else
-      strerror_r(error, errBuffer, 256);
+      OS::Format_C_Error(error, errBuffer, sizeof(errBuffer));
       printf("\r\nCode %d(0x%X): %s", error, error, errBuffer);
-#endif
 	}
 }
 
 int main(int argc, char* argv[])
 {
-   setbuf(stdout, nullptr);
+   Rococo::IO::UseBufferlessStdout();
 
 	CoreSpec spec;
 	spec.SizeOfStruct = sizeof(CoreSpec);

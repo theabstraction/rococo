@@ -8,6 +8,7 @@
 #endif
 
 #include "Sexy.Types.h"
+#include <rococo.strings.h>
 
 #include <stdio.h>
 #include <tchar.h>
@@ -80,7 +81,7 @@ void FormatSysMessage(SEXCHAR* text, size_t capacity, int msgNumber)
 #else
    if (!FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, msgNumber, 0, text, (DWORD)capacity, NULL))
    {
-      StringPrint(text, capacity, SEXTEXT("Code %d ( 0x%x )"), msgNumber, msgNumber);
+      Rococo::SafeFormat(text, capacity, SEXTEXT("Code %d ( 0x%x )"), msgNumber, msgNumber);
    }
 #endif
 }

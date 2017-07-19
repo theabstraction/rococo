@@ -57,32 +57,6 @@ namespace
 	} 
 }
 
-namespace Rococo
-{
-	void ShowErrorBox(IException& ex, cstr caption)
-	{
-		if (ex.ErrorCode() == 0)
-		{
-			MessageBox(nullptr, ex.Message(), caption, MB_ICONERROR);
-		}
-		else
-		{
-			rchar codeMsg[512];
-			rchar bigMsg[512];
-			if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, ex.ErrorCode(), 0, codeMsg, 512, nullptr) <= 0)
-			{
-				SafeFormat(bigMsg, _TRUNCATE, L"%s. Code 0x%x", ex.Message(), ex.ErrorCode());
-			}
-			else
-			{
-				SafeFormat(bigMsg, _TRUNCATE, L"%s\nCode 0x%x: %s", ex.Message(), ex.ErrorCode(), codeMsg);
-			}
-			
-			MessageBox(nullptr, bigMsg, caption, MB_ICONERROR);
-		}
-	}
-}
-
 namespace
 {
 	using namespace Rococo;
@@ -1150,7 +1124,7 @@ public:
 		renderer.GetGuiMetrics(metrics);
 
 		rchar info[256];
-		SafeFormat(info, _TRUNCATE, L"Mouse: (%d,%d)", metrics.cursorPosition.x, metrics.cursorPosition.y);
+		SafeFormat(info, L"Mouse: (%d,%d)", metrics.cursorPosition.x, metrics.cursorPosition.y);
 
 		HorizontalCentredText hw(0, info, FontColourFromRGBAb(RGBAb{ 255, 255, 255, 255 }));
 		gr.RenderText(Vec2i(25, 25), hw);
@@ -1239,7 +1213,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	}
 	catch (IException& ex)
 	{
-		ShowErrorBox(ex, L"DX11 64-bit Rococo API Window threw an exception");
+		OS::ShowErrorBox(ex, L"DX11 64-bit Rococo API Window threw an exception");
 	}
 
 	CloseHandle(hInstanceLock);

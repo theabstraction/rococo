@@ -50,7 +50,7 @@ namespace
 		if (ammo)
 		{
 			rchar scount[8];
-			SafeFormat(scount, _TRUNCATE, L"%u", ammo->count);
+			SafeFormat(scount, L"%u", ammo->count);
 			
 			Graphics::StackSpaceGraphics ss;
 			{
