@@ -33,7 +33,7 @@ namespace
       {
          Clear();
 
-         publisher.Attach(this);
+         publisher.Attach(this, HV::Events::Player::OnPlayerViewChange);
       }
 
       ~Camera()

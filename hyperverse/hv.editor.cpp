@@ -564,7 +564,8 @@ namespace
          windowTree(CreateWindowTree()),
          statusbar(CreateStatusBar(_publisher))
       {      
-         publisher.Attach(this);
+         publisher.Attach(this, "editor.ui.vertices"_event);
+         publisher.Attach(this, "editor.ui.sectors"_event);
          toolbar->AddButton("load", "editor.ui.load"_event, "!textures/toolbars/load.tif");
          toolbar->AddButton("save", "editor.ui.save"_event, "!textures/toolbars/save.tif");
          toolbar->AddButton("vertices", "editor.ui.vertices"_event, "!textures/toolbars/builder.tif");

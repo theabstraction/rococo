@@ -299,16 +299,16 @@ namespace Rococo
 
 		void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag)
 		{
-			GuiRect topRect{ rect.left - width.x, rect.top - width.y, rect.right, rect.top };
+			GuiRect topRect{ rect.left - width.x, rect.top, rect.right, rect.top + width.y};
 			DrawRectangle(grc, topRect, diag, diag);
 
-			GuiRect bottomRect{ rect.left - width.x, rect.bottom, rect.right, rect.bottom + width.y };
+			GuiRect bottomRect{ rect.left - width.x, rect.bottom - width.y, rect.right, rect.bottom };
 			DrawRectangle(grc, bottomRect, backdiag, backdiag);
 
 			GuiRect leftRect{ rect.left - width.x, rect.top, rect.left, rect.bottom };
 			DrawRectangle(grc, leftRect, backdiag, backdiag);
 
-			GuiRect rightRect{ rect.right, rect.top - width.y, rect.right + width.x, rect.bottom + width.y };
+			GuiRect rightRect{ rect.right - width.x, rect.top, rect.right, rect.bottom};
 			DrawRectangle(grc, rightRect, diag, diag);
 		}
 

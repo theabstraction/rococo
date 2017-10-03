@@ -33,7 +33,7 @@ namespace Rococo
 			virtual Vec2 GetCursor() = 0;
 			virtual GuiRectf GetClipRect() const = 0;
 			virtual void SetClipRect(const GuiRectf& rect) = 0;
-			virtual void SetCursor(const Vec2& bottomLeftOfNextGlyph) = 0;
+			virtual void SetCursor(const Vec2& topLeftOfNextGlyph) = 0;
 			virtual void SetFirstColumnIndex(int index) = 0;
 			virtual void SetTextColour(FontColour colour) = 0;
 			virtual void SetShadow(bool isEnabled) = 0;

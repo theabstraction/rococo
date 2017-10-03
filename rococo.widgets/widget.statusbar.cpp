@@ -26,7 +26,7 @@ namespace
    public:
       StatusBar(IPublisher& _publisher) : publisher(_publisher), text{0}
       {
-         publisher.Attach(this);
+         publisher.Attach(this, evStatusUpate);
       }
 
       ~StatusBar()
@@ -75,7 +75,7 @@ namespace Rococo
       {
          StatusEvent ev;
          ev.status = statustext;
-         Publish(publisher, ev);
+         publisher.Publish(ev);
       }
    }
 }

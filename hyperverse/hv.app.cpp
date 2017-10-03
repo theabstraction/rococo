@@ -29,7 +29,7 @@ namespace
       {
          HV::Events::OS::OnFileChangedEvent ev;
          ev.args = &args;
-         Publish(e.publisher, ev);
+         e.publisher.Publish(ev);
 
          if (Eq(Rococo::GetFileExtension(args.resourceName), ".sxy"))
          {
@@ -70,7 +70,7 @@ namespace
                HV::Events::Player::OnPlayerActionEvent pae;
                pae.Name = action;
                pae.start = key.isPressed;
-               Rococo::Events::Publish(e.publisher, pae);
+               e.publisher.Publish(pae);
             }
          }
       }

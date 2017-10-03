@@ -6,13 +6,13 @@
 #include <sexy.vm.h>
 #include <sexy.vm.cpu.h>
 #include <sexy.script.h>
-#include <Sexy.S-Parser.h>
+#include <sexy.s-parser.h>
 
 #include <rococo.strings.h>
 
 using namespace Rococo;
-using namespace Rococo::IDE;
 using namespace Rococo::Windows;
+using namespace Rococo::Windows::IDE;
 
 
 using namespace Rococo::Sex;
@@ -198,74 +198,77 @@ namespace
 
 namespace Rococo 
 {
-   namespace IDE
+   namespace Windows
    {
-      int32 ExecuteSexyScriptLoop(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler)
+      namespace IDE
       {
-         ScriptLogger logger(debugger);
-
-         Auto<ISourceCode> src;
-         Auto<ISParserTree> tree;
-
-         while (true)
+         int32 ExecuteSexyScriptLoop(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler)
          {
-            Script::CScriptSystemProxy ssp(Rococo::Compiler::ProgramInitParameters(maxBytes), logger);
-            Script::IPublicScriptSystem& ss = ssp();
-            if (&ss == nullptr)
-            {
-               switch (exceptionHandler.GetScriptExceptionFlow("SexyScriptSystem", "Failed to create script system"))
-               {
-               case EScriptExceptionFlow_Ignore:
-                  return 0;
-               case EScriptExceptionFlow_Retry:
-               case EScriptExceptionFlow_Terminate:
-                  Throw(0, "Failed to create script system");
-               }
-            }
+            ScriptLogger logger(debugger);
 
-            try
-            {
-               ISParserTree* tree = sources.GetSource(resourcePath);
-               int32 exitCode = ExecuteSexyScript(*tree, debugger, ss, sources, param, onCompile);
-               return exitCode;
-            }
-            catch (ParseException& ex)
-            {
-               LogParseException(ex, debugger);
+            Auto<ISourceCode> src;
+            Auto<ISParserTree> tree;
 
-               switch (exceptionHandler.GetScriptExceptionFlow(ex.Name(), ex.Message()))
-               {
-               case EScriptExceptionFlow_Ignore:
-                  return 0;
-               case EScriptExceptionFlow_Retry:
-                  break;
-               case EScriptExceptionFlow_Terminate:
-                  Throw(ex.ErrorCode(), "%s:\r\n%s", ex.Name(), ex.Message());
-                  break;
-               }
-            }
-            catch (IException& ex)
+            while (true)
             {
-               switch (exceptionHandler.GetScriptExceptionFlow("--app--", ex.Message()))
+               Script::CScriptSystemProxy ssp(Rococo::Compiler::ProgramInitParameters(maxBytes), logger);
+               Script::IPublicScriptSystem& ss = ssp();
+               if (!IsPointerValid(&ss))
                {
-               case EScriptExceptionFlow_Ignore:
-                  return 0;
-               case EScriptExceptionFlow_Retry:
-                  break;
-               case EScriptExceptionFlow_Terminate:
-                  Throw(ex.ErrorCode(), "%s", ex.Message());
-                  return 0;
+                  switch (exceptionHandler.GetScriptExceptionFlow("SexyScriptSystem", "Failed to create script system"))
+                  {
+                  case EScriptExceptionFlow_Ignore:
+                     return 0;
+                  case EScriptExceptionFlow_Retry:
+                  case EScriptExceptionFlow_Terminate:
+                     Throw(0, "Failed to create script system");
+                  }
                }
-            }
 
-            sources.Release(resourcePath);
-            DebuggerLoop(ss, debugger);
+               try
+               {
+                  ISParserTree* tree = sources.GetSource(resourcePath);
+                  int32 exitCode = ExecuteSexyScript(*tree, debugger, ss, sources, param, onCompile);
+                  return exitCode;
+               }
+               catch (ParseException& ex)
+               {
+                  LogParseException(ex, debugger);
+
+                  switch (exceptionHandler.GetScriptExceptionFlow(ex.Name(), ex.Message()))
+                  {
+                  case EScriptExceptionFlow_Ignore:
+                     return 0;
+                  case EScriptExceptionFlow_Retry:
+                     break;
+                  case EScriptExceptionFlow_Terminate:
+                     Throw(ex.ErrorCode(), "%s:\r\n%s", ex.Name(), ex.Message());
+                     break;
+                  }
+               }
+               catch (IException& ex)
+               {
+                  switch (exceptionHandler.GetScriptExceptionFlow("--app--", ex.Message()))
+                  {
+                  case EScriptExceptionFlow_Ignore:
+                     return 0;
+                  case EScriptExceptionFlow_Retry:
+                     break;
+                  case EScriptExceptionFlow_Terminate:
+                     Throw(ex.ErrorCode(), "%s", ex.Message());
+                     return 0;
+                  }
+               }
+
+               sources.Release(resourcePath);
+               DebuggerLoop(ss, debugger);
+            }
          }
-      }
 
-      IPersistentScript* CreatePersistentScript(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler)
-      {
-         return new PersistentScript(maxBytes, sources, debugger, resourcePath, maxScriptSizeBytes, onCompile, exceptionHandler);
-      }
-   }// IDE
+         IPersistentScript* CreatePersistentScript(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler)
+         {
+            return new PersistentScript(maxBytes, sources, debugger, resourcePath, maxScriptSizeBytes, onCompile, exceptionHandler);
+         }
+      }// IDE
+   }
 } // Rococo

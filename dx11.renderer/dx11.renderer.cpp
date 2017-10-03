@@ -1409,7 +1409,18 @@ namespace
       virtual void OnMouseEvent(const RAWMOUSE& m)
       {
          renderer->OnMouseEvent(m);
-         if (app) app->OnMouseEvent((const MouseEvent&)m);
+
+         MouseEvent me;
+         memcpy(&me, &m, sizeof(m));
+
+         POINT p;
+         GetCursorPos(&p);
+         ScreenToClient(renderer->Window(), &p);
+
+         me.cursorPos.x = p.x;
+         me.cursorPos.y = p.y;
+
+         if (app) app->OnMouseEvent(me);
       }
 
       virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)

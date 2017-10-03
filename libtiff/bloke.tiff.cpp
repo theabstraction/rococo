@@ -29,7 +29,7 @@ namespace
       char totalmsg[1024];
       SafeFormat(totalmsg, sizeof(totalmsg), "%s:\n\t%s", module, msg);
 
-      if (OS::IsDebugging)
+      if (OS::IsDebugging())
       {
          OS::PrintDebug("%s\n", totalmsg);
          OS::TripDebugger();
@@ -44,7 +44,7 @@ namespace
       char totalmsg[1024];
       SafeFormat(totalmsg, sizeof(totalmsg), "%s:\n\t%s", module, msg);
 
-      if (OS::IsDebugging)
+      if (OS::IsDebugging())
       {
          OS::PrintDebug("%s\n", totalmsg);
       }

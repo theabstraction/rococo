@@ -64,7 +64,7 @@ namespace HV
 {
    void RunEnvironmentScript(Cosmos& e, cstr name)
    {
-      class ScriptContext: public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
+      class ScriptContext: public IEventCallback<ScriptCompileArgs>, public Windows::IDE::IScriptExceptionHandler
       {
          Cosmos& e;
 
@@ -73,7 +73,7 @@ namespace HV
 
          }
 
-         virtual IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message)
+         virtual Windows::IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message)
          {
             e.installation.OS().FireUnstable();
 
@@ -81,11 +81,11 @@ namespace HV
             SafeFormat(msg, sizeof(msg), "Error: Do you wish to debug?\n\t%s\n\t%s", source, message);
             if (HV::QueryYesNo(e.mainWindow, msg))
             {
-               return IDE::EScriptExceptionFlow_Retry;
+               return Windows::IDE::EScriptExceptionFlow_Retry;
             }
             else
             {
-               return IDE::EScriptExceptionFlow_Terminate;
+               return Windows::IDE::EScriptExceptionFlow_Terminate;
             }
          }
 
@@ -114,7 +114,7 @@ namespace HV
          {
             try
             {
-               IDE::ExecuteSexyScriptLoop(1024_kilobytes, e.sources, e.debugger, name, 0, (int32)128_kilobytes, *this, *this);
+               Windows::IDE::ExecuteSexyScriptLoop(1024_kilobytes, e.sources, e.debugger, name, 0, (int32)128_kilobytes, *this, *this);
             }
             catch (IException&)
             {

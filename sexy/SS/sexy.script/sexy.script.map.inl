@@ -932,6 +932,9 @@ namespace Rococo
                case VARTYPE_Pointer:
                   AppendInvoke(ce, ((int)BITCOUNT_POINTER == 32) ? GetMapCallbacks(ce).MapNodeGet32 : GetMapCallbacks(ce).MapNodeGet64, s);
                   break;
+               default:
+                  Throw(s, SEXTEXT("Unexpected type in map invoke"));
+                  break;
                }
             }
             else

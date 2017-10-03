@@ -35,13 +35,13 @@ namespace
                mmre.dz = 0;
             }
 
-            Publish(publisher, mmre);
+            publisher.Publish(mmre);
        
             Input::OnMouseChangedEvent mce;
             mce.flags = rm.usButtonFlags & Input::MouseFlags_LRMW;
             if (mce.flags != 0)
             {
-               Publish(publisher, mce);
+               publisher.Publish(mce);
             }
          }
       }

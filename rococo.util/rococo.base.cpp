@@ -16,6 +16,11 @@ namespace
 
 namespace Rococo
 {
+   bool IsPointerValid(const void* ptr)
+   {
+      return ptr != nullptr;
+   }
+
    namespace OS
    {
       void SetBreakPoints(int flags)

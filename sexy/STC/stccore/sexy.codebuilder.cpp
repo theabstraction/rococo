@@ -342,11 +342,11 @@ namespace
 
 	void CodeBuilder::AddArgVariable(csexstr desc, const TypeString& typeName, void* userData)
 	{
-		const IStructure& type = *MatchStructure(Module().Object().Log(), typeName.c_str(), Module());
+		const IStructure* type = MatchStructure(Module().Object().Log(), typeName.c_str(), Module());
 
-		if (&type != NULL)
+		if (type != nullptr)
 		{
-			AddArgVariable(desc, type, userData);	
+			AddArgVariable(desc, *type, userData);	
 		}
 		else
 		{
@@ -1206,7 +1206,7 @@ namespace
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Variable [%s] already defined in this scope"), name.c_str());
 		}
 
-		if (&type != NULL)
+		if (IsPointerValid(&type))
 		{
 			Variable *v = new Variable(Assembler().WritePosition(), name, type, sectionIndex, userData, sizeof(size_t), VARLOCATION_TEMP, true);
 			variables.push_back(v);
@@ -1222,7 +1222,7 @@ namespace
 		}
 		else
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not add variable [%s]"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not add variable [%s]. Type null"), name.c_str());
 		}
 	}
 
@@ -1261,7 +1261,7 @@ namespace
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Variable [%s] already defined in this scope"), name.c_str());
 		}
 
-		if (&type != NULL)
+		if (IsPointerValid(&type))
 		{
 			Variable *v = new Variable(Assembler().WritePosition(), name, type, sectionIndex, NULL, 0, VARLOCATION_NONE);
 			variables.push_back(v);
@@ -1269,7 +1269,7 @@ namespace
 		}
 		else
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not add variable [%s]"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not add variable [%s]. Type null"), name.c_str());
 		}
 	}
 
@@ -1280,7 +1280,7 @@ namespace
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Variable [%s] already defined in this scope"), name.c_str());
 		}
 
-		if (&type != NULL)
+		if (IsPointerValid(&type))
 		{
 			Variable *v = new Variable(Assembler().WritePosition(), name, type, sectionIndex, userData, -1, VARLOCATION_TEMP);
 			variables.push_back(v);
@@ -1296,7 +1296,7 @@ namespace
 		}
 		else
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not add variable [%s]"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not add variable [%s]. Type null"), name.c_str());
 		}
 	}
 
@@ -1308,9 +1308,9 @@ namespace
 		}
 
 		const IInterface& interf = Module().Object().Common().SysTypeIException();
-		if (&interf == NULL)
+		if (!IsPointerValid(&interf))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot find IException in intrinsics module"), name);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot find Sys.Type.IException in intrinsics module"), name);
 		}
 
 		const IStructure& nullObjectType = interf.NullObjectType();

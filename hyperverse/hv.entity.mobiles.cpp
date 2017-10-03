@@ -18,7 +18,7 @@ namespace
 
       Mobiles(IInstancesSupervisor& _instances, IPublisher& _publisher) : instances(_instances), publisher(_publisher)
       {
-         publisher.Attach(this);
+         publisher.Attach(this, OnTryMoveMobile);
       }
 
       ~Mobiles()

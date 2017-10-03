@@ -1,0 +1,154 @@
+(' #file.type rococo.mplat.panel)
+
+(' #include 
+	"!scripts/mplat.sxh.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Rococo)
+(using Sys.Maths)
+(using Sys.Type)
+
+(function SetTransparentBackground (IPane pane)-> :
+	(pane.SetColourBk1   0x00000000 0x00000000)
+	(pane.SetColourBk2   0x00000000 0x00000000)
+	(pane.SetColourEdge1 0x00000000 0x00000000)
+	(pane.SetColourEdge2 0x00000000 0x00000000)
+)
+
+(function AddCredit (IString text)(IPaneContainer builder)(IString cmd)(Bool defer)-> :
+	(Recti rect = (0 0)(20 60))
+	(ILabelPane label = (builder.AddLabel 1 text rect))
+	(IPane labelBase = label.Base)
+	(labelBase.SetColourFont 0xFFFFFFFF 0xFFFFFFFF)
+	(labelBase.SetColourBk1  0x00000000 0x00000000)
+	(labelBase.SetColourBk2  0x00000000 0x00000000)
+	(labelBase.SetColourEdge1 0x00000000 0x00000000)
+	(labelBase.SetColourEdge2 0x00000000 0x00000000)
+	(if (cmd.Length > 0)
+		(labelBase.SetCommand 1 defer cmd)
+	)
+	(label.SetAlignment 0 0 0 0)
+)
+
+// Norfolk & Durham, Simon Bailey, Mike Barton, John Glen MP
+(function AddLabel (IString text)(IPaneContainer builder)(IString cmd)(Bool defer)-> :
+	(Recti rect = (0 0)(20 70))
+	(ILabelPane label = (builder.AddLabel 0 text rect))
+	(IPane labelBase = label.Base)
+	(labelBase.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
+	(labelBase.SetColourBk1  0x00000000 0xFF200000)
+	(labelBase.SetColourBk2  0x00000000 0xFF800000)
+	(labelBase.SetColourEdge1 0xFF404040 0xFFBFBFBF)
+	(labelBase.SetColourEdge2 0xFF606060 0xFFFFFFFF)
+	(labelBase.SetCommand 1 defer cmd)
+	(label.SetAlignment 0 0 0 0)
+)
+
+(function AddSlider (IString text)(IPaneContainer builder)(Float32 minValue)(Float32 maxValue)-> :
+	(Recti rect = (0 0)(20 90))
+	(ISlider slider = (builder.AddSlider 1 text rect minValue maxValue))
+	(IPane sbase = slider.Base)
+	(sbase.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
+	(sbase.SetColourBk1  0x8F006000 0xFF008000)
+	(sbase.SetColourBk2  0x8F008800 0xFF00A800)
+	(sbase.SetColourEdge1 0xDFFFFFFF 0xFFFFFFFF)
+	(sbase.SetColourEdge2 0xDFFFFFFF 0xFFFFFFFF)
+)
+
+(function AddVec2iVec2i (Vec2i a)(Vec2i b)(Vec2i sum)-> :
+	(sum.x = (a.x + b.x))
+	(sum.y = (a.y + b.y))
+)
+
+(function SubtractVec2iVec2i (Vec2i a)(Vec2i b)(Vec2i dif)-> :
+	(dif.x = (a.x - b.x))
+	(dif.y = (a.y - b.y))
+)
+
+(function GetCentre (Recti rect)(Vec2i centre)-> :
+	(Vec2i sum = rect.topLeft + rect.bottomRight)
+	(centre.x = (sum.x / 2))
+	(centre.y = (sum.y / 2))
+)
+
+(function GetSpan (Recti rect)(Vec2i span) -> :
+	(span.x = (rect.bottomRight.x - rect.topLeft.x))
+	(span.y = (rect.bottomRight.y - rect.topLeft.y))
+)
+
+(function GetCentredRect (Int32 dx)(Int32 dy)(Recti container)(Recti centredRect)-> :
+	(Vec2i span)
+	(GetSpan container span)
+	(Int32 dx2 = (dx / 2))
+	(Int32 dy2 = (dy / 2))
+	(Vec2i centre)
+	(centre.x = (span.x / 2))
+	(centre.y = (span.y / 2))
+	(Vec2i halfSpan = dx2 dy2)
+	(Vec2i topLeft = centre - halfSpan)
+	(Vec2i bottomRight = centre + halfSpan)
+	(centredRect.topLeft = topLeft)
+	(centredRect.bottomRight = bottomRight)
+)
+
+(function InflateRect (Int32 dx)(Int32 dy)(Recti container)(Recti rect)-> :
+	(rect.topLeft.x = (0 - dx))
+	(rect.topLeft.y = (0 - dy))
+	
+	(Vec2i span)
+	(GetSpan container span)
+	(rect.bottomRight.x = (span.x + dx))
+	(rect.bottomRight.y = (span.y + dy))
+)
+	
+(function Main (Int32 id)->(Int32 exitCode):
+	(IPaneBuilder builder (PaneBuilder))
+	(IPane pane = builder.Base)
+	(pane.SetColourBk1   0xFF000000 0xFF000000)
+	(pane.SetColourBk2   0xFF000000 0xFF000000)
+	(pane.SetColourEdge1 0xFFFFFFFF 0xFFFFFFFF)
+	(pane.SetColourEdge2 0xFFFFFFFF 0xFFFFFFFF)
+	
+	(Recti screen)
+	(pane.GetRect screen)
+	
+	(Recti containerRect)
+	(InflateRect -16 -16 screen containerRect)
+	(IPaneContainer container = (builder.AddContainer containerRect))
+	(IPane cbase = container.Base)
+	(cbase.SetColourBk1   0x00000000 0x00000000)
+	(cbase.SetColourBk2   0x00000000 0x00000000)
+	
+	(AddCredit "Programmed by"                           container "" false)
+	(AddCredit "Mark Anthony Taylor"                     container "" false)
+	(AddCredit ""                                        container "" false)
+	(AddCredit "Email"                                   container "" false)
+	(AddCredit "mark.anthony.taylor@gmail.com"           container "" false)
+	(AddCredit ""                                        container "" false)
+	(AddCredit "Website"                                 container "" false)
+	(AddCredit "http://www.shyreman.com"                 container "" false)
+	(AddCredit ""                                        container "" false)
+	(AddCredit "Copyright(c)2017. All rights reserved"   container "" false)
+	
+	(cbase.AlignLeftEdges 4 false)
+	(cbase.AlignRightEdges 4 false)
+	(cbase.LayoutVertically 4 -1)
+	
+	(Recti menuRect = (10 10) (180 140))
+	
+	(IPaneContainer menu = (container.AddContainer menuRect))
+	(IPane mbase = menu.Base)
+	(mbase.SetColourBk1   0x00000000 0x00000000)
+	(mbase.SetColourBk2   0x00000000 0x00000000)
+	(mbase.SetColourEdge1 0x00000000 0x00000000)
+	(mbase.SetColourEdge2 0x00000000 0x00000000)
+	
+	(AddLabel "Back"                menu "gui.pop" false)
+	
+	(mbase.AlignLeftEdges 4 false)
+	(mbase.AlignRightEdges 4 false)
+	(mbase.LayoutVertically 4 -1)
+)

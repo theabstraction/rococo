@@ -17,9 +17,12 @@ namespace Rococo
       virtual void OnCreate() = 0;
    };
 
-   namespace IDE
+   namespace Windows
    {
-      struct IScriptExceptionHandler;
+      namespace IDE
+      {
+         struct IScriptExceptionHandler;
+      }
    }
 }
 

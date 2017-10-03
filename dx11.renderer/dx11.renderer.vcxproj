@@ -106,7 +106,6 @@
     <ClCompile Include="dx11.renderer.cpp" />
     <ClCompile Include="dx11.swapchain.cpp" />
     <ClCompile Include="dx11.textures.cpp" />
-    <ClCompile Include="renderer.utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bitmap.cache.cpp">

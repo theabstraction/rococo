@@ -848,7 +848,7 @@ namespace Rococo { namespace Script
 
 		const IStructure& s = f.GetArgument(ArgCount(f)-1);
 
-		if (&s == NULL)
+		if (!IsPointerValid(&s))
 			Throw(fdef, SEXTEXT("Expecting class to be defined in the same module in which the class-method is defined"));
 
 		if (AreEqual(methodName, SEXTEXT("Destruct")))

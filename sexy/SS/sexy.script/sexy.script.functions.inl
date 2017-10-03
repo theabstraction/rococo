@@ -515,7 +515,7 @@ namespace Rococo
       {
 	      cr_sex inputExpression = s.GetElement(index);
 
-	      if (&inputStruct == NULL)
+	      if (!IsPointerValid(&inputStruct))
 	      {
 		      Throw(inputExpression, SEXTEXT("Function input type has not been resolved"));
 	      }
@@ -734,7 +734,7 @@ namespace Rococo
 
       void ValidateCorrectOutput(cr_sex s, const IStructure& outputStruct, VARTYPE returnType)
       {
-	      if (&outputStruct == NULL)
+	      if (!IsPointerValid(&outputStruct))
 	      {
 		      Throw(s, SEXTEXT("Output structure was NULL. Internal algorithmic error."));
 	      }
@@ -1848,10 +1848,9 @@ namespace Rococo
 		      return &ce.Object.Common().SysTypeIString().NullObjectType();
 	      case EXPRESSION_TYPE_COMPOUND:
 		      return GuessTypeCompound(ce, arg);
-		      break;
+         default:
+            return nullptr;
 	      }
-
-	      return NULL;
       }
 
       // Only safe to call from TryCompileAsFunctionCall(...)

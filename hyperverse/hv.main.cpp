@@ -4,7 +4,6 @@
 #include <rococo.os.win32.h>
 
 #include <rococo.libs.inl>
-#include <rococo.window.h>
 
 #include <rococo.strings.h>
 #include <rococo.renderer.h>
@@ -51,7 +50,7 @@ void Main(HANDLE hInstanceLock)
 
    AutoFree<IDX11Window> mainWindow(CreateDX11Window(*installation));
    AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation));
-   AutoFree<IDebuggerWindow> debuggerWindow(Rococo::IDE::CreateDebuggerWindow(mainWindow->Window()));
+   AutoFree<IDebuggerWindow> debuggerWindow(Rococo::Windows::IDE::CreateDebuggerWindow(mainWindow->Window()));
 
    AutoFree<IConfigSupervisor> config(CreateConfig());
 

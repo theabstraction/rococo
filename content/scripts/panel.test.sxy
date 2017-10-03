@@ -1,0 +1,86 @@
+(' #file.type rococo.mplat.panel)
+
+(' #include 
+	"!scripts/mplat.sxh.sxy"
+)
+
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Rococo)
+(using Sys.Maths)
+
+(function SetTransparentBackground (IPane pane)-> :
+	(pane.SetColourBk1   0x00000000 0x00000000)
+	(pane.SetColourBk2   0x00000000 0x00000000)
+	(pane.SetColourEdge1 0x00000000 0x00000000)
+	(pane.SetColourEdge2 0x00000000 0x00000000)
+)
+
+(function SetDefaultLabelStyle (ILabelPane label)-> :
+	(SetTransparentBackground label.Base)
+	(label.SetAlignment 1 0 0 0)
+)
+
+(function AddLabelAndAttribute (IString text)(IString key)(IPaneBuilder builder)(Int32 x0)(Int32 y0)(Int32 x1)(Int32 y1)-> :
+	(Recti rect = (x0 y0)(x1 y1))
+	(ILabelPane label = (builder.AddLabel 8 text rect))
+	(IPane labelBase = label.Base)
+	(labelBase.SetColourFont 0xFFE0E0E0 0xFFFFFFFF)
+	(SetDefaultLabelStyle label)
+	
+	(Int32 x2 = (x1 + 26))
+	(Recti attrRect = (x1 y0)(x2 y1))
+	(ITextOutputPane textOut = (builder.AddTextOutput 8 key attrRect))
+	(SetTransparentBackground textOut.Base)
+	(textOut.SetAlignment 1 0 0 0)
+)
+	
+(function Main (Int32 id)->(Int32 exitCode):
+	(IPaneBuilder pane (PaneBuilder))
+	(Recti button = (20 20)(164 112))
+	(IPaneContainer p1 = (pane.AddContainer button))
+	(IPane base = p1.Base)
+	(base.SetColourBk1   0xFF000000 0xFF000000)
+	(base.SetColourBk2   0xFF000000 0xFF000000)
+	
+	(Int32 x0 = (button.topLeft.x + 2))
+	(Int32 x1 = (x0 + 110))
+	(Int32 y0 = (button.topLeft.y + 2))
+	(Int32 dy = 14)
+	(Int32 rowPadding = 0)
+	(Int32 y1 = (y0 + dy))
+	
+	(AddLabelAndAttribute "Strength: " "strength.update.text" pane x0 y0 x1 y1)
+	
+	(y0 = (y0 + rowPadding))
+	(y0 = (y0 + dy))
+	(y1 = (y0 + dy))
+	
+	(AddLabelAndAttribute "Linguistics: " "linguistics.update.text" pane  x0 y0 x1 y1)
+	
+	(y0 = (y0 + rowPadding))
+	(y0 = (y0 + dy))
+	(y1 = (y0 + dy))
+	
+	(AddLabelAndAttribute "Puissance: " "puissance.update.text" pane  x0 y0 x1 y1)
+	
+	(y0 = (y0 + rowPadding))
+	(y0 = (y0 + dy))
+	(y1 = (y0 + dy))
+	
+	(AddLabelAndAttribute "Agility: " "agility.update.text" pane  x0 y0 x1 y1)
+	
+	(y0 = (y0 + rowPadding))
+	(y0 = (y0 + dy))
+	(y1 = (y0 + dy))
+	
+	(AddLabelAndAttribute "Resilience: " "resilience.update.text" pane  x0 y0 x1 y1)
+	
+	(y0 = (y0 + rowPadding))
+	(y0 = (y0 + dy))
+	(y1 = (y0 + dy))
+	
+	(AddLabelAndAttribute "Beauty: " "beauty.update.text" pane  x0 y0 x1 y1)
+)

@@ -304,7 +304,27 @@ namespace
 
 		virtual void OnGlyph(int column, const GuiRectf* clipRect, const Glyph& g, float height, FontColour colour, bool isShadowed, GuiRectf& outputRect)
 		{
-			bool isVisible = clipRect == NULL || (IsPointIn(*clipRect, builder->cursor) || IsPointIn(*clipRect, builder->cursor + Vec2{ g.A + g.B, height }));
+         bool isVisible = true;
+         if (clipRect != nullptr)
+         {
+            if (builder->cursor.y + height < clipRect->top)
+            {
+               isVisible = false;
+            }
+            else if (builder->cursor.y > clipRect->bottom)
+            {
+               isVisible = false;
+            }
+            else if ((builder->cursor.x + g.A + g.B) < clipRect->left)
+            {
+               isVisible = false;
+            }
+            else if (builder->cursor.x > clipRect->right)
+            {
+               isVisible = false;
+            }
+         }
+            
 			GuiRectf glyphClipRect = clipRect == NULL ? GuiRectf(0, 0, 16384.0f, 16384.0f) : *clipRect;
 
 			// Since it is visible the lowest line in the glyph must be below the top line in the clip rect, and the top line in the glyph above the bottom line in the clip rect

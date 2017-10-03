@@ -1,0 +1,82 @@
+(config $config.xc) 
+
+(interface 
+	(as.sxy Rococo.IPane "../content/scripts/mplat")
+	(as.cpp Rococo.IPane "mplat")
+	(context factory Rococo.IPane)
+	(methods
+		(SetColourBk1 (RGBAb normal)(RGBAb hilight)->)
+		(SetColourBk2 (RGBAb normal)(RGBAb hilight)->)
+		(SetColourEdge1 (RGBAb normal)(RGBAb hilight)->)
+		(SetColourEdge2 (RGBAb normal)(RGBAb hilight)->)
+		(SetColourFont (RGBAb normal)(RGBAb hilight)->)
+		(IsVisible -> (Bool isVisible))
+		(SetVisible (Bool isVisible)->)
+		(GetRect(Rect rect))
+		(SetRect(const Rect rect)->)
+		
+		///////////////////// child layout /////////////////////
+		(AlignLeftEdges (Int32 x)(Bool preserveSpan) ->)
+		(AlignRightEdges (Int32 x)(Bool preserveSpan) ->)
+		
+		/* vertBorder -ve -> align from bottom, vertSpacing -ve -> spread out vertically */
+		(LayoutVertically(Int32 vertBorder)(Int32 vertSpacing)->) 	
+		////////////////////////////////////////////////////////
+		
+		(SetCommand (Int32 stateIndex)(Bool deferAction)(IString text)->)
+	)
+)
+
+(interface 
+	(as.sxy Rococo.IPaneContainer "../content/scripts/mplat")
+	(as.cpp Rococo.IPaneContainer "mplat")
+	(context factory Rococo.IPaneContainer)
+	(methods
+		(AddContainer (const Rect rect)->(Rococo.IPaneContainer container))
+		(AddLabel (Int32 fontIndex)(IString text) (const Rect rect)->(Rococo.ILabelPane label))
+		(AddSlider (Int32 fontIndex)(IString text) (const Rect rect)(Float32 minValue)(Float32 maxValue) ->(Rococo.ISlider slider))
+		(Base -> (Rococo.IPane base))
+	)
+)
+
+(interface 
+	(as.sxy Rococo.ILabelPane "../content/scripts/mplat")
+	(as.cpp Rococo.ILabelPane "mplat")
+	(context factory Rococo.ILabelPane)
+	(methods
+		(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY))
+		(Base -> (Rococo.IPane base))
+	)
+)
+
+(interface 
+	(as.sxy Rococo.ISlider "../content/scripts/mplat")
+	(as.cpp Rococo.ISlider "mplat")
+	(context factory Rococo.ISlider)
+	(methods
+		(Base -> (Rococo.IPane base))
+	)
+)
+
+(interface 
+	(as.sxy Rococo.ITextOutputPane "../content/scripts/mplat")
+	(as.cpp Rococo.ITextOutputPane "mplat")
+	(context factory Rococo.ITextOutputPane)
+	(methods
+		(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY))
+		(Base -> (Rococo.IPane base))
+	)
+)
+
+(interface 
+	(as.sxy Rococo.IPaneBuilder "../content/scripts/mplat")
+	(as.cpp Rococo.IPaneBuilder "mplat")
+	(context factory Rococo.IPaneBuilder)
+	(methods
+		(AddContainer (const Rect rect)->(Rococo.IPaneContainer container))
+		(AddLabel (Int32 fontIndex)(IString text) (const Rect rect)->(Rococo.ILabelPane label))
+		(AddTextOutput  (Int32 fontIndex)(IString key) (const Rect rect)->(Rococo.ITextOutputPane textBox))
+		(Base -> (Rococo.IPane base))
+	)
+	(factory Rococo.PaneBuilder)
+)

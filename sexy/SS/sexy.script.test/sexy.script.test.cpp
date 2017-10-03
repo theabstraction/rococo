@@ -182,7 +182,6 @@ namespace
 		}
 	}
 
-
 	void ShowFailure(const char* expression, const char* filename, int lineNumber)
 	{
 		printf("Validation failed in %s[%d]: %s\r\n", filename, lineNumber, expression);
@@ -195,6 +194,9 @@ namespace
 		case EXPRESSION_TYPE_ATOMIC:
 			totalOutput += WriteToStandardOutput(SEXTEXT(" %s"), (csexstr) s.String()->Buffer);
 			break;
+      case EXPRESSION_TYPE_NULL:
+         totalOutput += WriteToStandardOutput(SEXTEXT("()"));
+         break;
 		case EXPRESSION_TYPE_STRING_LITERAL:
 			totalOutput += WriteToStandardOutput(SEXTEXT(" \"%s\""), (csexstr) s.String()->Buffer);
 			break;
@@ -297,7 +299,7 @@ namespace
 		CScriptSystemProxy ssp(pip, s_logger);
 		
       auto& ss = ssp();
-		if (&ss == NULL) exit(-1);
+		if (!IsPointerValid(&ss)) exit(-1);
 
 		try
 		{

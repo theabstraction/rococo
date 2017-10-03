@@ -100,7 +100,7 @@ public:
             
          SafeFormat(text, sizeof(text), "Texture #%d", i);
          item.pszText = text;
-         ListView_InsertItem(imageView->ListViewHandle(), &item);
+         SendMessage(imageView->ListViewHandle(), LVM_INSERTITEMA, 0, (LPARAM)&item);
       }
 
       return dialogWindow->BlockModal(modalHandler.ModalControl(), owner, this);

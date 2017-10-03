@@ -22,9 +22,6 @@
     <ClCompile Include="dx11.renderer.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="renderer.utils.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="dx11.gui.cpp">
       <Filter>Sources</Filter>
     </ClCompile>

@@ -1,7 +1,3 @@
-(using Sys)
-(using Sys.Type)
-(using Sys.Reflection)
-
 (struct Vec3i
 	(Int32 x y z)
 )
@@ -11,7 +7,7 @@
 )
 
 (struct Rectf
-	(Vec2f bottomLeft topRight)
+	(Vec2f topLeft bottomRight)
 )
 
 (struct Vec3f
@@ -48,7 +44,7 @@
 )
 
 (struct Rectlf
-	(Vec2lf bottomLeft topRight)
+	(Vec2lf topLeft bottomRight)
 )
 
 (struct Vec3lf
@@ -111,39 +107,11 @@
 )
 
 (function GetRectiSpan (Recti r) -> (Vec2i ds):
-	(ds.x = ((r.bottomRight.x - r.topLeft.x) + 1))
-	(ds.y = ((r.bottomRight.y - r.topLeft.y) + 1))
+	(ds.x = (r.bottomRight.x - r.topLeft.x))
+	(ds.y = (r.bottomRight.y - r.topLeft.y))
 )
 
 (alias Vec2i Sys.Maths.Vec2i)
 (alias Recti Sys.Maths.Recti)
-(alias Sys.Type.Float32 Sys.Maths.Radians)
-(alias Sys.Type.Float32 Sys.Maths.Degrees)
 
-(macro Sys.Maths.e in out 
-	(ValidateSubscriptRange in.ChildCount 1 1 "Usage: (#e)")
-	(out.AddAtomic "2.7182818284590452353602874713527")
-)
-
-(macro Sys.Maths.pi in out 
-	(ValidateSubscriptRange in.ChildCount 1 1 "Usage: (#pi)")
-	(out.AddAtomic "3.1415926535897932384626433832795")
-)
-
-(macro Sys.Maths.degreesToRads in out
-	(ValidateSubscriptRange in.ChildCount 1 1 "Usage: (#degreesToRads theta)")
-	(IExpressionBuilder child)
-	(child.AddAtomic "0.01745329251994329576923690768489")
-	(child.AddAtomic "*")
-	(child.Copy (in 1))
-)
-
-(namespace Sys.SI)
-(alias Sys.Type.Float32 Sys.SI.Seconds)
-(alias Sys.Type.Float32 Sys.SI.Kilograms)
-(alias Sys.Type.Float32 Sys.SI.Metres)
-
-(struct FPSAngles
-	(Float32 heading elevation tilt)
-)
-(alias FPSAngles Sys.Maths.FPSAngles)
+(macro Sys.Maths.e in out (out.AddAtomic "2.7182818284590452353602874713527"))

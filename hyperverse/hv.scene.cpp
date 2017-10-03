@@ -12,7 +12,7 @@ namespace
    using namespace HV;
    using namespace HV::Graphics;
 
-   class Scene : public ISceneSupervisor, public HV::Graphics::ISceneBuilderSupervisor, public IObserver
+   class Scene : public ISceneSupervisor, public HV::Graphics::ISceneBuilderSupervisor
    {
       HV::Entities::IInstancesSupervisor& instances;
       std::vector<ID_ENTITY> entities;
@@ -28,15 +28,9 @@ namespace
       Scene(HV::Entities::IInstancesSupervisor& _instances, HV::Graphics::ICameraSupervisor& _camera, IPublisher& _publisher) :
          instances(_instances), camera(_camera), publisher(_publisher)
       {
-         publisher.Attach(this);
       }
       
       ~Scene()
-      {
-         publisher.Detach(this);
-      }
-
-      virtual void OnEvent(Event& ev)
       {
       }
 

@@ -318,7 +318,7 @@ namespace Rococo
          mutable EventHash id{ 0 };
 
       public:
-         EventId(cstr const _name, EventHash _hash) : name(_name), hash(_hash) { }
+         EventId(const char* const _name, EventHash _hash) : name(_name), hash(_hash) { }
          EventId(const EventId& src) : name(src.name), hash(src.hash), id(src.id) {}
          EventId operator = (const EventId& src) = delete;
 
@@ -336,7 +336,16 @@ namespace Rococo
          int64 sizeInBytes;
          operator EventId() const { return id; }
 
-         Event(EventId _id) : id(_id) {}
+         Event(EventId _id) : id(_id), sizeInBytes(0) {}
+      };
+
+      // Used by GUI panels to request an upate to a label or field just before rendering.
+      // A request is sent out by the gui panel, and the formatter object responds with the same id, but setting isRequested to false
+      struct TextOutputEvent : Event
+      {
+         TextOutputEvent(EventId id) : Event(id) {}
+         bool isRequested;
+         char value[128];
       };
 
       inline bool operator == (const EventId& a, const EventId& b)
@@ -356,9 +365,21 @@ namespace Rococo
 
       ROCOCOAPI IPublisher
       {
-         virtual void Attach(IObserver* observer) = 0;
+         virtual void Attach(IObserver* observer, const EventId& id) = 0;
+         virtual void Deliver() = 0;
          virtual void Detach(IObserver* observer) = 0;
-         virtual void Publish(Event& ev) = 0;
+         virtual void RawPost(const Event& ev, bool isLossy) = 0;
+         virtual void RawPublish(Event& ev) = 0;
+         template<class T> inline void Post(T& ev, bool isLossy)
+         {
+            ev.sizeInBytes = sizeof(T);
+            RawPost(ev, isLossy);
+         }
+         template<class T> inline void Publish(T& ev)
+         {
+            ev.sizeInBytes = sizeof(T);
+            RawPublish(ev);
+         }
       };
 
       ROCOCOAPI IPublisherSupervisor : public IPublisher
@@ -367,12 +388,6 @@ namespace Rococo
       };
 
       IPublisherSupervisor* CreatePublisher();
-
-      template<class T> inline void Publish(IPublisher& publisher, T& ev)
-      {
-         ev.sizeInBytes = sizeof(T);
-         publisher.Publish(ev);
-      }
 
       void ThrowBadEvent(const Event& ev);
 

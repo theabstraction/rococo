@@ -98,7 +98,7 @@ namespace
             tmm.straffeDelta = clock.DT() * straffeDelta * speeds.y;
             tmm.entityId = playerId;
             tmm.delta = { 0,0,0 };
-            Rococo::Events::Publish(publisher, tmm);
+            publisher.Publish(tmm);
          }
       }
 
@@ -218,7 +218,7 @@ namespace
             tmm.straffeDelta = clock.DT() * straffeDelta * speeds.y;
             tmm.entityId = playerId;
             tmm.delta = { Degrees { headingDelta }, Degrees { 0 }, Degrees { 0 } };
-            Rococo::Events::Publish(publisher, tmm);
+            publisher.Publish(tmm);
             headingDelta = 0;
          }
 
@@ -227,7 +227,7 @@ namespace
             HV::Events::Player::OnPlayerViewChangeEvent pvce;
             pvce.playerEntityId = playerId;
             pvce.elevationDelta = elevationDelta;
-            Rococo::Events::Publish(publisher, pvce);
+            publisher.Publish(pvce);
             elevationDelta = 0;
          }
       }
@@ -346,7 +346,8 @@ namespace
       PlayerSupervisor(Rococo::Events::IPublisher& _publisher):
          publisher(_publisher)
       {
-         publisher.Attach(this);
+         publisher.Attach(this, HV::Events::Player::OnPlayerAction);
+         publisher.Attach(this, Input::OnMouseMoveRelative);
       }
 
       ~PlayerSupervisor()

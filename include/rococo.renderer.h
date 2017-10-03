@@ -1,7 +1,7 @@
 #ifndef ROCOCO_RENDERER_H
 #define ROCOCO_RENDERER_H
 
-#include <rococo.types.h>
+#include <rococo.api.h>
 #include <rococo.maths.h>
 #include <rococo.io.h>
 
@@ -95,7 +95,6 @@ namespace Rococo
 		virtual auto OnFrameUpdated(const IUltraClock& clock) -> uint32 = 0; // returns number of ms to sleep per frame as hint
 		virtual void OnKeyboardEvent(const KeyboardEvent& k) = 0;
 		virtual void OnMouseEvent(const MouseEvent& me) = 0;
-      virtual cstr Title() const = 0;
 	};
 
 	struct GuiMetrics
@@ -128,11 +127,6 @@ namespace Rococo
 		virtual void SetCursorBitmap(ID_TEXTURE bitmapId, Vec2i hotspotOffset, Vec2 uvTopLeft, Vec2 uvBottomRight) = 0;
 		virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices) = 0;
       virtual Windows::IWindow& Window() = 0;     
-	};
-
-	ROCOCOAPI IAppFactory
-	{
-		virtual IApp* CreateApp(IRenderer& renderer, Windows::IWindow& ownerWindow) = 0;
 	};
 
 	namespace Graphics

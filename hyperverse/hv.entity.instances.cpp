@@ -55,7 +55,7 @@ namespace
 
    typedef std::unordered_map<ID_ENTITY, EntityImpl*, ID_ENTITY> MapIdToEntity;
 
-   struct Instances : public IInstancesSupervisor, public IObserver
+   struct Instances : public IInstancesSupervisor
    {      
       MapIdToEntity idToEntity;
       std::unordered_map<std::string, ID_TEXTURE> nameToTextureId;
@@ -68,13 +68,10 @@ namespace
       Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, IPublisher& _publisher) :
          meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
       {
-         publisher.Attach(this);
       }
 
       ~Instances()
       {
-         publisher.Detach(this);
-
          Clear();
       }
 
@@ -161,10 +158,6 @@ namespace
       {
          auto i = idToEntity.find(id);
          return i == idToEntity.end() ? nullptr : i->second;
-      }
-
-      virtual void OnEvent(Event& ev)
-      {
       }
 
       std::vector<const Matrix4x4*> modelStack;

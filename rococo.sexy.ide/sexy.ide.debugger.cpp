@@ -22,7 +22,6 @@
 #include <rococo.io.h>
 
 using namespace Rococo;
-using namespace Rococo::IDE;
 using namespace Rococo::Windows;
 using namespace Rococo::Windows::IDE;
 using namespace Rococo::Visitors;
@@ -693,11 +692,14 @@ namespace
 
 namespace Rococo
 {
-   namespace IDE
+   namespace Windows
    {
-      IDebuggerWindow* CreateDebuggerWindow(IWindow& parent)
+      namespace IDE
       {
-         return TabbedDebuggerWindowHandler::Create(parent);
+         IDebuggerWindow* CreateDebuggerWindow(IWindow& parent)
+         {
+            return TabbedDebuggerWindowHandler::Create(parent);
+         }
       }
    }
 }

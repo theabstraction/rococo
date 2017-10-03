@@ -8,39 +8,42 @@ namespace Rococo
    namespace Windows
    {
       struct IWindow;
-   }
 
-   namespace IDE
-   {
-      enum EScriptExceptionFlow
+      namespace IDE
       {
-         EScriptExceptionFlow_Terminate,
-         EScriptExceptionFlow_Retry,
-         EScriptExceptionFlow_Ignore
-      };
+         enum EScriptExceptionFlow
+         {
+            EScriptExceptionFlow_Terminate,
+            EScriptExceptionFlow_Retry,
+            EScriptExceptionFlow_Ignore
+         };
 
-      ROCOCOAPI IScriptExceptionHandler
-      {
-         virtual void Free() = 0;
-         virtual EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) = 0;
-      };
+         ROCOCOAPI IScriptExceptionHandler
+         {
+            virtual void Free() = 0;
+            virtual EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) = 0;
+         };
 
-      ROCOCOAPI IPersistentScript
-      {
-         virtual void ExecuteFunction(ArchetypeCallback bytecodeId, IArgEnumerator& args, IScriptExceptionHandler& exceptionHandler) = 0;
-         virtual void ExecuteFunction(cstr name, IArgEnumerator& arg, IScriptExceptionHandler& exceptionHandlers) = 0;
-         virtual void Free() = 0;
-      };
+         ROCOCOAPI IPersistentScript
+         {
+            virtual void ExecuteFunction(ArchetypeCallback bytecodeId, IArgEnumerator& args, IScriptExceptionHandler& exceptionHandler) = 0;
+            virtual void ExecuteFunction(cstr name, IArgEnumerator& arg, IScriptExceptionHandler& exceptionHandlers) = 0;
+            virtual void Free() = 0;
+         };
+      }
    }
 }
 
 namespace Rococo
 {
-   namespace IDE
+   namespace Windows
    {
-      IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent);
-      IPersistentScript* CreatePersistentScript(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler);
-      int32 ExecuteSexyScriptLoop(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler);
+      namespace IDE
+      {
+         IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent);
+         IPersistentScript* CreatePersistentScript(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler);
+         int32 ExecuteSexyScriptLoop(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler);
+      }
    }
 }
 

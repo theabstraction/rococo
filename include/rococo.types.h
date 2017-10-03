@@ -111,6 +111,8 @@ namespace Rococo
       enum eOpenType { BUILD_EXISTING = 0 };
    };
 
+   bool IsPointerValid(const void* ptr);
+
    class StackStringBuilder : public StringBuilder
    {
    private:

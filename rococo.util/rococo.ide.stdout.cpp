@@ -31,7 +31,7 @@ namespace
 
       virtual void InitDisassembly(size_t codeId)
       {
-         printf("Disassembly for id %llu\n", codeId);
+         printf("Disassembly for id %llu\n", (unsigned long long) codeId);
       }
 
       virtual void AddSourceCode(cstr name, cstr sourceCode)

@@ -88,7 +88,6 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\bloke.imaging.h" />
     <ClInclude Include="jpeg-6b\cderror.h" />
     <ClInclude Include="jpeg-6b\cdjpeg.h" />
     <ClInclude Include="jpeg-6b\jchuff.h" />
