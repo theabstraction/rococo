@@ -1,11 +1,10 @@
 #include "hv.h"
 
+#include "rococo.mplat.h"
+
 #include <sexy.script.h>
 #include <sexy.vm.h>
 #include <sexy.vm.cpu.h>
-
-#include <rococo.sexy.ide.h>
-#include <rococo.strings.h>
 
 namespace // Script factories
 {
@@ -64,30 +63,9 @@ namespace HV
 {
    void RunEnvironmentScript(Cosmos& e, cstr name)
    {
-      class ScriptContext: public IEventCallback<ScriptCompileArgs>, public Windows::IDE::IScriptExceptionHandler
+      class ScriptContext: public IEventCallback<ScriptCompileArgs>
       {
          Cosmos& e;
-
-         virtual void Free()
-         {
-
-         }
-
-         virtual Windows::IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message)
-         {
-            e.installation.OS().FireUnstable();
-
-            rchar msg[1024];
-            SafeFormat(msg, sizeof(msg), "Error: Do you wish to debug?\n\t%s\n\t%s", source, message);
-            if (HV::QueryYesNo(e.mainWindow, msg))
-            {
-               return Windows::IDE::EScriptExceptionFlow_Retry;
-            }
-            else
-            {
-               return Windows::IDE::EScriptExceptionFlow_Terminate;
-            }
-         }
 
          virtual void OnEvent(ScriptCompileArgs& args)
          { 
@@ -112,15 +90,7 @@ namespace HV
 
          void Execute(cstr name)
          {
-            try
-            {
-               Windows::IDE::ExecuteSexyScriptLoop(1024_kilobytes, e.sources, e.debugger, name, 0, (int32)128_kilobytes, *this, *this);
-            }
-            catch (IException&)
-            {
-               Rococo::OS::ShutdownApp();
-               throw;
-            }
+            e.platform.utilities.RunEnvironmentScript(e.platform, *this, name);
          }
       } sc(e);
 

@@ -2,7 +2,7 @@
 
 using namespace Rococo;
 
-namespace Test
+namespace HV
 {
    IApp* CreateApp(Platform& platform);
 }
@@ -11,11 +11,12 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 {
    struct : IAppFactory
    {
-      IApp* CreateApp(Platform& platform) override
+      IApp* CreateApp(Platform& e) override
       {
-         return Test::CreateApp(platform);
+         return HV::CreateApp(e);
       }
    } factory;
 
-   return LoadPlatformDll_AndInit(hInstance, factory, "M-Platform Test App", MPLAT_RELEASE, nullptr, nullptr);
+   InitRococoWindows(hInstance, nullptr, nullptr, nullptr, nullptr);
+   return LoadPlatformDll_AndInit(hInstance, factory, "Hyperverse", MPLAT_DEBUG, nullptr, nullptr);
 }

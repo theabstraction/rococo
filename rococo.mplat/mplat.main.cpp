@@ -103,6 +103,12 @@ void _RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>
 class Utilities : public IUtilitiies
 {
 public:
+   bool QueryYesNo(Platform& platform, Windows::IWindow& parent, cstr question, cstr caption) override
+   {
+      cstr title = caption == nullptr ? platform.title : caption;
+      return ShowMessageBox(parent, question, title, MB_ICONQUESTION | MB_YESNO) == IDYES;
+   }
+
    void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name) override
    {
       return _RunEnvironmentScript(platform, _onScriptEvent, name);

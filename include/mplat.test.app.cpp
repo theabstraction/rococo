@@ -178,9 +178,10 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
 
    uint32 OnFrameUpdated(const IUltraClock& clock) override
    {
+      platform.os.EnumerateModifiedFiles(*this);
       platform.publisher.Deliver();
       platform.renderer.Render(*this);
-      platform.os.EnumerateModifiedFiles(*this);
+      
       return 2; // 2 millisecond sleep period
    }
 

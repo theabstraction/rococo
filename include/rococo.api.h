@@ -41,6 +41,7 @@ namespace Rococo
 		float radius;
 	};
 
+   struct Platform;
 	struct Gravity;
 	struct Metres;
 	struct Quat;

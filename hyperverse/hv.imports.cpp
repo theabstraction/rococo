@@ -3,15 +3,10 @@
 #include <sexy.lib.script.h>
 
 #ifdef _DEBUG
-# pragma comment(lib, "rococo.sexy.ide.debug.lib")
-#else
-# pragma comment(lib, "rococo.sexy.ide.lib")
-#endif
+# pragma comment(lib, "rococo.widgets.debug.lib")
+# pragma comment(lib, "rococo.windows.debug.lib")
 
-#include "..\dx11.renderer\dx11.imports.inl"
-
-#ifdef _DEBUG
-#pragma comment(lib, "rococo.widgets.debug.lib")
 #else
-#pragma comment(lib, "rococo.widgets.lib")
+# pragma comment(lib, "rococo.widgets.lib")
+# pragma comment(lib, "rococo.windows.lib")
 #endif

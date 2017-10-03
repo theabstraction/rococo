@@ -3,6 +3,7 @@
 #include <rococo.strings.h>
 #include <rococo.maths.h>
 #include <rococo.widgets.h>
+#include <rococo.mplat.h>
 
 #include <vector>
 #include <deque>
@@ -35,7 +36,9 @@ namespace
    public:
       ISectors& Sectors() { return *sectors; }
 
-      WorldMap(HV::Entities::IInstancesSupervisor& _instances) : instances(_instances), sectors(CreateSectors(_instances))
+      WorldMap(Platform& platform, HV::Entities::IInstancesSupervisor& _instances) : 
+         instances(_instances), 
+         sectors(CreateSectors(platform, _instances))
       {
          
       }
@@ -554,18 +557,21 @@ namespace
          }
       }
    public:
-      Editor(IPublisher& _publisher, HV::Entities::IInstancesSupervisor& _instances, IRenderer& renderer, Windows::IWindow& parent) :
-         publisher(_publisher),
+      Editor(Platform& platform, HV::Entities::IInstancesSupervisor& _instances) :
+         publisher(platform.publisher),
          instances(_instances),
-         map(_instances),
+         map(platform, _instances),
          editMode_SectorBuilder(publisher, map),
-         editMode_SectorEditor(publisher, map, parent),
-         toolbar(Widgets::CreateToolbar(publisher, renderer)),
+         editMode_SectorEditor(publisher, map, platform.renderer.Window()),
+         toolbar(Widgets::CreateToolbar(publisher, platform.renderer)),
          windowTree(CreateWindowTree()),
-         statusbar(CreateStatusBar(_publisher))
+         statusbar(CreateStatusBar(platform.publisher))
       {      
          publisher.Attach(this, "editor.ui.vertices"_event);
          publisher.Attach(this, "editor.ui.sectors"_event);
+         publisher.Attach(this, Rococo::Events::Input::OnMouseMoveRelative);
+         publisher.Attach(this, Rococo::Events::Input::OnMouseChanged);
+
          toolbar->AddButton("load", "editor.ui.load"_event, "!textures/toolbars/load.tif");
          toolbar->AddButton("save", "editor.ui.save"_event, "!textures/toolbars/save.tif");
          toolbar->AddButton("vertices", "editor.ui.vertices"_event, "!textures/toolbars/builder.tif");
@@ -583,8 +589,8 @@ namespace
 
 namespace HV
 {
-   IEditor* CreateEditor(IPublisher& publisher, HV::Entities::IInstancesSupervisor& instances, IRenderer& renderer, Windows::IWindow& parent)
+   IEditor* CreateEditor(Platform& platform, HV::Entities::IInstancesSupervisor& instances)
    {
-      return new Editor(publisher, instances, renderer, parent);
+      return new Editor(platform, instances);
    }
 }

@@ -1,4 +1,5 @@
 #include "hv.h"
+#include "rococo.mplat.h"
 #include <rococo.strings.h>
 #include <rococo.maths.h>
 
@@ -23,8 +24,11 @@ namespace
       const Metres defaultFloorLevel{ 0.0f };
       const Metres defaultRoomHeight{ 4.0f };
       std::vector<ISector*> sectors;
+      Platform& platform;
    public:
-      Sectors(HV::Entities::IInstancesSupervisor& _instances) : instances(_instances)
+      Sectors(Platform& _platform, HV::Entities::IInstancesSupervisor& _instances) :
+         platform(_platform),
+         instances(_instances)
       {
       }
 
@@ -53,7 +57,7 @@ namespace
             OS::ShowErrorBox(Windows::NoParent(), ex, "Algorithmic error creating sector. Try something simpler");
 
 #ifdef _DEBUG
-            if (QueryYesNo(Windows::NoParent(), "Try again?"))
+            if (platform.utilities.QueryYesNo(platform, Windows::NoParent(), "Try again?"))
             {
                OS::TripDebugger();
                OS::PrintDebug("\n\n\n // Troublesome perimeter: \n");
@@ -120,8 +124,8 @@ namespace
 
 namespace HV
 {
-   ISectors* CreateSectors(HV::Entities::IInstancesSupervisor& instances)
+   ISectors* CreateSectors(Platform& platform, HV::Entities::IInstancesSupervisor& instances)
    {
-      return new Sectors(instances);
+      return new Sectors(platform, instances);
    }
 }

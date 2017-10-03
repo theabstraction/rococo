@@ -81,6 +81,7 @@ namespace Rococo
 
    struct IUtilitiies
    {
+      virtual bool QueryYesNo(Platform& platform, Windows::IWindow& parent, cstr question, cstr caption = nullptr) = 0;
       virtual void RefreshResource(Platform& platform, cstr pingPath) = 0;
       virtual void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name) = 0;
    };
@@ -127,12 +128,12 @@ namespace Rococo
 {                                                                                          \
    using namespace Rococo;                                                                 \
    IGUIStack& g = guistack;                                                                \
-   ICommandHandler* handler = (ICommandHandler*)instance;                                  \
+   ICommandHandler* handler = reinterpret_cast<ICommandHandler*>(instance);                \
    struct ANON                                                                             \
    {                                                                                       \
       static void OnCommand(ICommandHandler *obj, cstr commandText)                        \
       {                                                                                    \
-         auto* pInstance = (classname*)obj;                                                \
+         auto* pInstance = reinterpret_cast<classname*>(obj);                              \
          pInstance->methodname(commandText);                                               \
       }                                                                                    \
    };                                                                                      \

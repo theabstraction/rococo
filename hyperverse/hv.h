@@ -219,7 +219,7 @@ namespace HV
       virtual IUIOverlay& Overlay() = 0;
    };
 
-   IEditor* CreateEditor(IPublisher& publisher, HV::Entities::IInstancesSupervisor& instances, IRenderer& renderer, Windows::IWindow& parent);
+   IEditor* CreateEditor(Platform& platform, HV::Entities::IInstancesSupervisor& instances);
 
    struct ObjectVertexBuffer
    {
@@ -272,17 +272,12 @@ namespace HV
       virtual ISector** end() = 0;
    };
 
-   ISectors* CreateSectors(HV::Entities::IInstancesSupervisor& instances);
+   ISectors* CreateSectors(Platform& platform, HV::Entities::IInstancesSupervisor& instances);
 
    struct Cosmos
    {
+      Platform& platform;
       IConfigSupervisor& config;
-      Rococo::Events::IPublisher& publisher;
-      IInstallation& installation;
-      ISourceCache& sources;
-      IDebuggerWindow& debugger;
-      Windows::IWindow& mainWindow;
-      IRenderer& renderer;
       Graphics::ISceneSupervisor& scene;
       Graphics::IMeshBuilderSupervisor& meshes;
       Entities::IInstancesSupervisor& instances;
