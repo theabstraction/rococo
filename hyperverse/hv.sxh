@@ -1,19 +1,6 @@
 (config $config.xc) 
 
 (interface
-	(as.sxy HV.Graphics.IMeshBuilder "../content/scripts/hv")
-	(as.cpp HV.Graphics.IMeshBuilder "hv")
-	(context factory HV.Graphics.IMeshBuilder)
-	(methods
-		(Begin (IString fqName))
-		(AddTriangle (const Vertex a)(const Vertex b)(const Vertex c))
-		(End)
-		(Clear)
-	)
-	(factory HV.Graphics.MeshBuilder)
-)
-
-(interface
 	(as.sxy HV.Entities.IInstances "../content/scripts/hv")
 	(as.cpp HV.Entities.IInstances "hv")
 	(context factory HV.Entities.IInstances)

@@ -139,8 +139,8 @@ namespace
                   auto pos = GetScreenPosition(worldPos);
                   v[j].x = (float) pos.x;
                   v[j].y = (float) pos.y;
-                  v[j].u = vertices.v[i + j].uv.x;
-                  v[j].v = vertices.v[i + j].uv.y;
+                  v[j].u = vertices.v[i + j].u;
+                  v[j].v = vertices.v[i + j].v;
                   v[j].colour = colour;
                   v[j].fontBlend = 0;
                   v[j].saturation = 1;

@@ -42,9 +42,9 @@ namespace
 
    struct VertexTriangle
    {
-      HV::Graphics::Vertex a;
-      HV::Graphics::Vertex b;
-      HV::Graphics::Vertex c;
+      Rococo::ObjectVertex a;
+      Rococo::ObjectVertex b;
+      Rococo::ObjectVertex c;
    };
 
    class Sector : public ISector
@@ -183,7 +183,7 @@ namespace
 
             Vec3 normal = Cross(delta, up);
 
-            HV::Graphics::Vertex PV0, PV1, QV0, QV1;
+            ObjectVertex PV0, PV1, QV0, QV1;
 
             PV0.position = P0;
             PV1.position = P1;
@@ -194,10 +194,10 @@ namespace
             PV0.emissiveColour = PV1.emissiveColour = QV0.emissiveColour = QV1.emissiveColour = RGBAb(0, 0, 0, 0);
             PV0.diffuseColour = PV1.diffuseColour = QV0.diffuseColour = QV1.diffuseColour = RGBAb(255, 255, 255, 0);
 
-            PV0.uv.y = QV0.uv.y = uvScale * z0;
-            PV1.uv.y = QV1.uv.y = uvScale * z1;
-            PV0.uv.x = PV1.uv.x = uvScale * u;
-            QV0.uv.x = QV1.uv.x = uvScale * (u + segmentLength);
+            PV0.v = QV0.v = uvScale * z0;
+            PV1.v = QV1.v = uvScale * z1;
+            PV0.u = PV1.u = uvScale * u;
+            QV0.u = QV1.u = uvScale * (u + segmentLength);
 
             u += segmentLength;
 
@@ -373,16 +373,20 @@ namespace
             virtual void Append(const Triangle2d& t)
             {
                Vec3 up{ 0, 0, 1 };
-               HV::Graphics::Vertex a, b, c;
+               ObjectVertex a, b, c;
                a.position = { t.A.x, t.A.y, z0 };
                b.position = { t.B.x, t.B.y, z0 };
                c.position = { t.C.x, t.C.y, z0 };
                a.normal = b.normal = c.normal = up;
                a.emissiveColour = b.emissiveColour = c.emissiveColour = RGBAb(0, 0, 0, 0);
                a.diffuseColour = b.diffuseColour = c.diffuseColour = RGBAb(255, 255, 255, 0);
-               a.uv = uvScale * Vec2{ t.A.x,t.A.y } +uvOffset;
-               b.uv = uvScale * Vec2{ t.B.x,t.B.y } +uvOffset;
-               c.uv = uvScale * Vec2{ t.C.x,t.C.y } +uvOffset;
+               a.u = Vec2{ uvScale * Vec2{ t.A.x,t.A.y } +uvOffset }.x;
+               a.v = Vec2{ uvScale * Vec2{ t.A.x,t.A.y } +uvOffset }.y;
+               b.u = Vec2{ uvScale * Vec2{ t.B.x,t.B.y } +uvOffset }.x;
+               b.v = Vec2{ uvScale * Vec2{ t.B.x,t.B.y } +uvOffset }.y;
+               c.u = Vec2{ uvScale * Vec2{ t.C.x,t.C.y } +uvOffset }.x;
+               c.v = Vec2{ uvScale * Vec2{ t.C.x,t.C.y } +uvOffset }.y;
+
                VertexTriangle T;
                T.a = a;
                T.b = b;

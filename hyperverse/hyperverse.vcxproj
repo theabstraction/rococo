@@ -125,7 +125,6 @@
     <ClCompile Include="hv.entity.mobiles.cpp" />
     <ClCompile Include="hv.events.cpp" />
     <ClCompile Include="hv.entity.instances.cpp" />
-    <ClCompile Include="hv.graphics.meshes.cpp" />
     <ClCompile Include="hv.keyboard.cpp" />
     <ClCompile Include="hv.main.mplat.cpp" />
     <ClCompile Include="hv.mouse.cpp" />
@@ -136,7 +135,6 @@
     <ClCompile Include="hv.sector.cpp" />
     <ClCompile Include="hv.sectors.cpp" />
     <ClCompile Include="hv.sprites.cpp" />
-    <ClCompile Include="hv.strings.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hv.defaults.h" />

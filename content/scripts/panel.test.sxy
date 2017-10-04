@@ -2,6 +2,7 @@
 
 (' #include 
 	"!scripts/mplat.sxh.sxy"
+	"!scripts/types.sxy"
 )
 
 

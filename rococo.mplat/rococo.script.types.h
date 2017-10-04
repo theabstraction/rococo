@@ -1,5 +1,4 @@
-namespace HV { namespace Graphics { 
-	struct Vertex
+	struct ObjectVertex
 	{
 		Vec3 position;
 		Vec3 normal;
@@ -7,4 +6,3 @@ namespace HV { namespace Graphics {
 		RGBAb diffuseColour;
 		Vec2 uv;
 	};
-}}

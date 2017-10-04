@@ -30,12 +30,6 @@
     <ClCompile Include="hv.scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hv.graphics.meshes.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="hv.strings.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hv.camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

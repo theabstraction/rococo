@@ -1,8 +1,7 @@
 #ifndef ROCOCO_HV
 #define ROCOCO_HV
 
-#include <rococo.api.h>
-#include <rococo.renderer.h>
+#include <rococo.mplat.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;
@@ -100,12 +99,6 @@ namespace HV
 
    IMathsVisitorSupervisor* CreateMathsVisitor();
 
-   namespace Strings
-   {
-      enum { MAX_FQ_NAME_LEN = 127 };
-      void ValidateFQNameIdentifier(cstr fqName);
-   }
-
    namespace Entities
    {
       ROCOCOAPI IInstancesSupervisor: public IInstances
@@ -115,18 +108,12 @@ namespace HV
          virtual IEntity* GetEntity(ID_ENTITY id) = 0;
          virtual void ConcatenateModelMatrices(ID_ENTITY id, Matrix4x4& result) = 0;
          virtual void ConcatenatePositionVectors(ID_ENTITY id, Vec3& position) = 0;
-         virtual Graphics::IMeshBuilder& MeshBuilder() = 0;
+         virtual Rococo::Graphics::IMeshBuilder& MeshBuilder() = 0;
       };
    }
 
    namespace Graphics
    {
-      ROCOCOAPI IMeshBuilderSupervisor: public IMeshBuilder
-      {
-         virtual void Free() = 0;
-         virtual bool TryGetByName(cstr name, ID_SYS_MESH& id) = 0;
-      }; 
-
       ROCOCOAPI ISceneBuilderSupervisor: public ISceneBuilder
       {
          virtual void Free() = 0;
@@ -153,14 +140,12 @@ namespace HV
       ISpriteSupervisor* CreateSpriteSupervisor(IRenderer & renderer);
 
       ISceneSupervisor* CreateScene(Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, Platform& platform);
-      ICameraSupervisor* CreateCamera(Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& render, IPublisher& publisher);
-      IMeshBuilderSupervisor* CreateMeshBuilder(IRenderer& renderer);
-      
+      ICameraSupervisor* CreateCamera(Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& render, IPublisher& publisher); 
    }
 
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& builder, IRenderer& renderer, IPublisher& publisher);
+      IInstancesSupervisor* CreateInstanceBuilder(Platform& platform);
    }
 
    ROCOCOAPI IPlayerSupervisor
@@ -221,7 +206,7 @@ namespace HV
 
    struct ObjectVertexBuffer
    {
-      const HV::Graphics::Vertex* v;
+      const ObjectVertex* v;
       const size_t VertexCount;
    };
 
@@ -277,7 +262,6 @@ namespace HV
       Platform& platform;
       IConfigSupervisor& config;
       Graphics::ISceneSupervisor& scene;
-      Graphics::IMeshBuilderSupervisor& meshes;
       Entities::IInstancesSupervisor& instances;
       Entities::IMobiles& mobiles;
       Graphics::ICameraSupervisor& camera;

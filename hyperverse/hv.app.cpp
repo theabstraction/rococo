@@ -17,7 +17,7 @@ namespace
       Platform& platform;
       bool editorActive{ false };
 
-      AutoFree<IMeshBuilderSupervisor> meshes;;
+      AutoFree<Rococo::Graphics::IMeshBuilderSupervisor> meshes;;
       AutoFree<IInstancesSupervisor> instances;
       AutoFree<IMobilesSupervisor> mobiles;
       AutoFree<ICameraSupervisor> camera;
@@ -36,8 +36,7 @@ namespace
       HVApp(Platform& _platform) : 
          platform(_platform),
          config(CreateConfig()),
-         meshes(CreateMeshBuilder(platform.renderer)),
-         instances(CreateInstanceBuilder(*meshes, platform.renderer, platform.publisher)),
+         instances(CreateInstanceBuilder(platform)),
          mobiles(CreateMobilesSupervisor(*instances, platform.publisher)),
          camera(CreateCamera(*instances, *mobiles, platform.renderer, platform.publisher)),
          scene(CreateScene(*instances, *camera, platform)),
@@ -47,7 +46,7 @@ namespace
          mathsVisitor(CreateMathsVisitor()),
          sprites(CreateSpriteSupervisor(platform.renderer)),
          editor(CreateEditor(platform, *instances)),
-         e { _platform, *config, *scene, *meshes, *instances, *mobiles, *camera, *sprites, *players, *keyboardSupervisor, *mouse, *mathsVisitor, *editor }
+         e { _platform, *config, *scene, *instances, *mobiles, *camera, *sprites, *players, *keyboardSupervisor, *mouse, *mathsVisitor, *editor }
       {
          Defaults::SetDefaults(*config);
 

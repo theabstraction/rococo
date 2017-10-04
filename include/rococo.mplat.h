@@ -1,11 +1,20 @@
 #pragma once
 
-#include <rococo.api.h>
+#include <rococo.renderer.h>
 
 #include <../rococo.mplat/mplat.sxh.h>
 
 namespace Rococo
 {
+   namespace Graphics
+   {
+      ROCOCOAPI IMeshBuilderSupervisor : public IMeshBuilder
+      {
+         virtual void Free() = 0;
+         virtual bool TryGetByName(cstr name, ID_SYS_MESH& id) = 0;
+      };
+   }
+
    struct Platform;
 
    struct ColourScheme
@@ -109,8 +118,13 @@ namespace Rococo
    {
       virtual bool QueryYesNo(Platform& platform, Windows::IWindow& parent, cstr question, cstr caption = nullptr) = 0;
       virtual void RefreshResource(Platform& platform, cstr pingPath) = 0;
-      virtual void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name) = 0;
+      virtual void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform) = 0;
    };
+
+   namespace Graphics
+   {
+      struct IMeshBuilder;
+   }
 
    struct Platform
    {
@@ -137,6 +151,9 @@ namespace Rococo
 
       // GUI stack
       IGUIStack& gui;
+
+      // Mesh builder object
+      Graphics::IMeshBuilderSupervisor& meshes;
 
       // Application title
       const char* const title;

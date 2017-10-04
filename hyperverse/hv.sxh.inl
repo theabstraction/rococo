@@ -52,96 +52,6 @@ namespace HV { namespace Graphics {
 	}
 }}// HV.Graphics.OrientationFlags
 
-// BennyHill generated Sexy native functions for HV::Graphics::IMeshBuilder 
-namespace
-{
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-	using namespace Rococo::Script;
-	using namespace Rococo::Compiler;
-
-	void NativeHVGraphicsIMeshBuilderBegin(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(IString*);
-		IString* _fqName;
-		ReadInput(_fqName, _sf, -_offset);
-		fstring fqName { _fqName->buffer, _fqName->length };
-
-
-		HV::Graphics::IMeshBuilder* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->Begin(fqName);
-	}
-	void NativeHVGraphicsIMeshBuilderAddTriangle(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::Graphics::Vertex* c;
-		_offset += sizeof(c);
-		ReadInput(c, _sf, -_offset);
-
-		HV::Graphics::Vertex* b;
-		_offset += sizeof(b);
-		ReadInput(b, _sf, -_offset);
-
-		HV::Graphics::Vertex* a;
-		_offset += sizeof(a);
-		ReadInput(a, _sf, -_offset);
-
-		HV::Graphics::IMeshBuilder* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AddTriangle(*a, *b, *c);
-	}
-	void NativeHVGraphicsIMeshBuilderEnd(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::Graphics::IMeshBuilder* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->End();
-	}
-	void NativeHVGraphicsIMeshBuilderClear(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::Graphics::IMeshBuilder* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->Clear();
-	}
-
-	void NativeGetHandleForHVGraphicsMeshBuilder(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::Graphics::IMeshBuilder* nceContext = reinterpret_cast<HV::Graphics::IMeshBuilder*>(_nce.context);
-		// Uses: HV::Graphics::IMeshBuilder* FactoryConstructHVGraphicsMeshBuilder(HV::Graphics::IMeshBuilder* _context);
-		HV::Graphics::IMeshBuilder* pObject = FactoryConstructHVGraphicsMeshBuilder(nceContext);
-		_offset += sizeof(IString*);
-		WriteOutput(pObject, _sf, -_offset);
-	}
-}
-
-namespace HV { namespace Graphics { 
-	void AddNativeCalls_HVGraphicsIMeshBuilder(Rococo::Script::IPublicScriptSystem& ss, HV::Graphics::IMeshBuilder* _nceContext)
-	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Graphics.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVGraphicsMeshBuilder, _nceContext, SEXTEXT("GetHandleForIMeshBuilder0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVGraphicsIMeshBuilderBegin, nullptr, SEXTEXT("IMeshBuilderBegin (Pointer hObject)(Sys.Type.IString fqName) -> "));
-		ss.AddNativeCall(ns, NativeHVGraphicsIMeshBuilderAddTriangle, nullptr, SEXTEXT("IMeshBuilderAddTriangle (Pointer hObject)(HV.Graphics.Vertex a)(HV.Graphics.Vertex b)(HV.Graphics.Vertex c) -> "));
-		ss.AddNativeCall(ns, NativeHVGraphicsIMeshBuilderEnd, nullptr, SEXTEXT("IMeshBuilderEnd (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeHVGraphicsIMeshBuilderClear, nullptr, SEXTEXT("IMeshBuilderClear (Pointer hObject) -> "));
-	}
-}}
 // BennyHill generated Sexy native functions for HV::IPlayer 
 namespace
 {
@@ -418,6 +328,90 @@ namespace HV { namespace Entities {
 		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesClear, nullptr, SEXTEXT("IInstancesClear (Pointer hObject) -> "));
 	}
 }}
+// BennyHill generated Sexy native functions for HV::ISprites 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeHVISpritesClear(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISprites* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Clear();
+	}
+	void NativeHVISpritesAddSprite(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _resourceName;
+		ReadInput(_resourceName, _sf, -_offset);
+		fstring resourceName { _resourceName->buffer, _resourceName->length };
+
+
+		HV::ISprites* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddSprite(resourceName);
+	}
+	void NativeHVISpritesAddEachSpriteInDirectory(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _directoryName;
+		ReadInput(_directoryName, _sf, -_offset);
+		fstring directoryName { _directoryName->buffer, _directoryName->length };
+
+
+		HV::ISprites* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddEachSpriteInDirectory(directoryName);
+	}
+	void NativeHVISpritesLoadAllSprites(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISprites* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->LoadAllSprites();
+	}
+
+	void NativeGetHandleForHVSprites(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISprites* nceContext = reinterpret_cast<HV::ISprites*>(_nce.context);
+		// Uses: HV::ISprites* FactoryConstructHVSprites(HV::ISprites* _context);
+		HV::ISprites* pObject = FactoryConstructHVSprites(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace HV { 
+	void AddNativeCalls_HVISprites(Rococo::Script::IPublicScriptSystem& ss, HV::ISprites* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVSprites, _nceContext, SEXTEXT("GetHandleForISprites0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVISpritesClear, nullptr, SEXTEXT("ISpritesClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVISpritesAddSprite, nullptr, SEXTEXT("ISpritesAddSprite (Pointer hObject)(Sys.Type.IString resourceName) -> "));
+		ss.AddNativeCall(ns, NativeHVISpritesAddEachSpriteInDirectory, nullptr, SEXTEXT("ISpritesAddEachSpriteInDirectory (Pointer hObject)(Sys.Type.IString directoryName) -> "));
+		ss.AddNativeCall(ns, NativeHVISpritesLoadAllSprites, nullptr, SEXTEXT("ISpritesLoadAllSprites (Pointer hObject) -> "));
+	}
+}
 // BennyHill generated Sexy native functions for HV::Graphics::ICamera 
 namespace
 {
@@ -666,90 +660,6 @@ namespace HV { namespace Graphics {
 		ss.AddNativeCall(ns, NativeHVGraphicsICameraAspectRatio, nullptr, SEXTEXT("ICameraAspectRatio (Pointer hObject) -> (Float32 widthOverHeight)"));
 	}
 }}
-// BennyHill generated Sexy native functions for HV::ISprites 
-namespace
-{
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-	using namespace Rococo::Script;
-	using namespace Rococo::Compiler;
-
-	void NativeHVISpritesClear(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::ISprites* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->Clear();
-	}
-	void NativeHVISpritesAddSprite(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(IString*);
-		IString* _resourceName;
-		ReadInput(_resourceName, _sf, -_offset);
-		fstring resourceName { _resourceName->buffer, _resourceName->length };
-
-
-		HV::ISprites* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AddSprite(resourceName);
-	}
-	void NativeHVISpritesAddEachSpriteInDirectory(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(IString*);
-		IString* _directoryName;
-		ReadInput(_directoryName, _sf, -_offset);
-		fstring directoryName { _directoryName->buffer, _directoryName->length };
-
-
-		HV::ISprites* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AddEachSpriteInDirectory(directoryName);
-	}
-	void NativeHVISpritesLoadAllSprites(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::ISprites* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->LoadAllSprites();
-	}
-
-	void NativeGetHandleForHVSprites(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::ISprites* nceContext = reinterpret_cast<HV::ISprites*>(_nce.context);
-		// Uses: HV::ISprites* FactoryConstructHVSprites(HV::ISprites* _context);
-		HV::ISprites* pObject = FactoryConstructHVSprites(nceContext);
-		_offset += sizeof(IString*);
-		WriteOutput(pObject, _sf, -_offset);
-	}
-}
-
-namespace HV { 
-	void AddNativeCalls_HVISprites(Rococo::Script::IPublicScriptSystem& ss, HV::ISprites* _nceContext)
-	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVSprites, _nceContext, SEXTEXT("GetHandleForISprites0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVISpritesClear, nullptr, SEXTEXT("ISpritesClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeHVISpritesAddSprite, nullptr, SEXTEXT("ISpritesAddSprite (Pointer hObject)(Sys.Type.IString resourceName) -> "));
-		ss.AddNativeCall(ns, NativeHVISpritesAddEachSpriteInDirectory, nullptr, SEXTEXT("ISpritesAddEachSpriteInDirectory (Pointer hObject)(Sys.Type.IString directoryName) -> "));
-		ss.AddNativeCall(ns, NativeHVISpritesLoadAllSprites, nullptr, SEXTEXT("ISpritesLoadAllSprites (Pointer hObject) -> "));
-	}
-}
 // BennyHill generated Sexy native functions for HV::Graphics::ISceneBuilder 
 namespace
 {

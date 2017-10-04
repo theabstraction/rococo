@@ -1,4 +1,4 @@
-#include "hv.h"
+#include <rococo.mplat.h>
 #include <unordered_map>
 #include <string>
 #include <vector>
@@ -6,17 +6,17 @@
 
 namespace
 {
-   using namespace HV;
-   using namespace HV::Graphics;
+   using namespace Rococo;
+   using namespace Rococo::Graphics;
 
-   struct MeshBuilder : public HV::Graphics::IMeshBuilderSupervisor
+   struct MeshBuilder : public Rococo::Graphics::IMeshBuilderSupervisor
    {
       std::unordered_map<std::string, ID_SYS_MESH> meshes;
-      rchar name[Strings::MAX_FQ_NAME_LEN + 1];
-      std::vector<Vertex> vertices;
+      rchar name[MAX_FQ_NAME_LEN + 1];
+      std::vector<ObjectVertex> vertices;
       IRenderer& renderer;
 
-      MeshBuilder(IRenderer& _renderer): renderer(_renderer)
+      MeshBuilder(IRenderer& _renderer) : renderer(_renderer)
       {
       }
 
@@ -37,13 +37,14 @@ namespace
          {
             Throw(0, "Call MeshBuilder.End() first");
          }
-         Strings::ValidateFQNameIdentifier(fqName);
+
+         ValidateFQNameIdentifier(fqName);
 
          StackStringBuilder sb(name, sizeof(name));
          sb << fqName;
       }
 
-      virtual void AddTriangle(const Vertex& a, const Vertex& b, const Vertex& c)
+      virtual void AddTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c)
       {
          if (*name == 0) Throw(0, "Call MeshBuilder.Begin() first");
          vertices.push_back(a);
@@ -53,19 +54,17 @@ namespace
 
       virtual void End()
       {
-         static_assert(sizeof(ObjectVertex) == sizeof(Vertex), "Packing error");
-         
          const ObjectVertex* v = vertices.empty() ? nullptr : (const ObjectVertex*)&vertices[0];
 
          auto i = meshes.find(name);
          if (i != meshes.end())
-         {     
-            renderer.UpdateMesh(i->second, v, (uint32) vertices.size());
+         {
+            renderer.UpdateMesh(i->second, v, (uint32)vertices.size());
          }
          else
          {
-            
-            auto id = renderer.CreateTriangleMesh(v, (uint32) vertices.size());
+
+            auto id = renderer.CreateTriangleMesh(v, (uint32)vertices.size());
             meshes[name] = id;
          }
 
@@ -89,7 +88,7 @@ namespace
    };
 }
 
-namespace HV
+namespace Rococo
 {
    namespace Graphics
    {

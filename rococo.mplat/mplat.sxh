@@ -91,3 +91,16 @@
 	)
 	(factory Rococo.PaneBuilder)
 )
+
+(interface
+	(as.sxy Rococo.Graphics.IMeshBuilder "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.IMeshBuilder "mplat")
+	(context factory Rococo.Graphics.IMeshBuilder)
+	(methods
+		(Begin (IString fqName))
+		(AddTriangle (const Vertex a)(const Vertex b)(const Vertex c))
+		(End)
+		(Clear)
+	)
+	(factory Rococo.Graphics.MeshBuilder)
+)

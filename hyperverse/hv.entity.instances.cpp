@@ -59,13 +59,13 @@ namespace
    {      
       MapIdToEntity idToEntity;
       std::unordered_map<std::string, ID_TEXTURE> nameToTextureId;
-      IMeshBuilderSupervisor& meshBuilder;
+      Rococo::Graphics::IMeshBuilderSupervisor& meshBuilder;
       IRenderer& renderer;
       IPublisher& publisher;
 
       int32 enumerationDepth{ 0 };
 
-      Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, IPublisher& _publisher) :
+      Instances(Rococo::Graphics::IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, IPublisher& _publisher) :
          meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
       {
       }
@@ -75,7 +75,7 @@ namespace
          Clear();
       }
 
-      virtual HV::Graphics::IMeshBuilder& MeshBuilder()
+      Rococo::Graphics::IMeshBuilder& MeshBuilder() override
       {
          return meshBuilder;
       }
@@ -278,9 +278,9 @@ namespace HV
 {
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& builder, IRenderer& renderer, IPublisher& publisher)
+      IInstancesSupervisor* CreateInstanceBuilder(Platform& platform)
       {
-         return new Instances(builder, renderer, publisher);
+         return new Instances(platform.meshes, platform.renderer, platform.publisher);
       }
    }
 }

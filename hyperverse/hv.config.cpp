@@ -9,7 +9,7 @@ namespace
 
    void ValidateKey(const fstring& name)
    {
-      Strings::ValidateFQNameIdentifier(name);
+      Rococo::ValidateFQNameIdentifier(name);
    }
 
    struct Config : public IConfigSupervisor

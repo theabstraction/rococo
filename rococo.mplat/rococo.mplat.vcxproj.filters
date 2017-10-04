@@ -13,12 +13,18 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Script Files">
+      <UniqueIdentifier>{0f9432ab-3347-4911-8807-9bb2b08796ef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mplat.main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mplat.graphics.meshes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -32,12 +38,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="config.xc">
-      <Filter>Source Files</Filter>
+      <Filter>Script Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="mplat.sxh">
-      <Filter>Source Files</Filter>
+      <Filter>Script Files</Filter>
     </CustomBuild>
   </ItemGroup>
 </Project>

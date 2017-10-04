@@ -63,6 +63,9 @@ namespace Rococo
    }
 #endif
 
+   enum { MAX_FQ_NAME_LEN = 127 };
+   void ValidateFQNameIdentifier(cstr fqName);
+
 	namespace Windows
 	{
 		IWindow& NoParent();

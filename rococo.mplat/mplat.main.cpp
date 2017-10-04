@@ -1,11 +1,7 @@
-#include <rococo.api.h>
-#include <rococo.renderer.h>
-#include <rococo.os.win32.h>
 #include <rococo.mplat.h>
+#include <rococo.os.win32.h>
 
 #include <rococo.window.h>
-
-#include <rococo.strings.h>
 #include <rococo.dx11.renderer.win32.h>
 #include <rococo.strings.h>
 
@@ -21,6 +17,11 @@
 #include <sexy.vm.cpu.h>
 
 Rococo::IPaneBuilder* FactoryConstructRococoPaneBuilder(Rococo::IPaneBuilder* _context)
+{
+   return _context;
+}
+
+Rococo::Graphics::IMeshBuilder* FactoryConstructRococoGraphicsMeshBuilder(Rococo::Graphics::IMeshBuilder* _context)
 {
    return _context;
 }
@@ -65,7 +66,7 @@ EventId CreateEventIdFromVolatileString(const char* volatileString)
    return EventId(s, (EventHash)FastHash(s));
 }
 
-void _RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name)
+void _RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform)
 {
    class ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
    {
@@ -95,6 +96,7 @@ void _RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>
 
       virtual void OnEvent(ScriptCompileArgs& args)
       {
+         Graphics::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.meshes);
          onScriptEvent.OnEvent(args);
       }
 
@@ -113,7 +115,11 @@ void _RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>
             throw;
          }
       }
+
+      bool addPlatform;
    } sc(platform, _onScriptEvent);
+
+   sc.addPlatform = addPlatform;
 
    sc.Execute(name);
 }
@@ -127,9 +133,9 @@ public:
       return ShowMessageBox(parent, question, title, MB_ICONQUESTION | MB_YESNO) == IDYES;
    }
 
-   void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name) override
+   void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform) override
    {
-      return _RunEnvironmentScript(platform, _onScriptEvent, name);
+      return _RunEnvironmentScript(platform, _onScriptEvent, name, addPlatform);
    }
 
    void RefreshResource(Platform& platform, cstr pingPath) override
@@ -1219,7 +1225,7 @@ public:
    void RefreshScript()
    {
       FreeAllChildren();
-      platform.utilities.RunEnvironmentScript(platform, *this, scriptFilename.c_str());
+      platform.utilities.RunEnvironmentScript(platform, *this, scriptFilename.c_str(), false);
    }
 
    void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
@@ -1247,6 +1253,14 @@ IPaneBuilderSupervisor* GuiStack::BindPanelToScript(cstr scriptName)
    return new ScriptedPanel(*platform, scriptName);
 }
 
+namespace Rococo
+{
+   namespace Graphics
+   {
+      IMeshBuilderSupervisor* CreateMeshBuilder(IRenderer& renderer);
+   }
+}
+
 void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 {
    AutoFree<IOSSupervisor> os = GetOS();
@@ -1265,9 +1279,11 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 
    Rococo::Script::SetDefaultNativeSourcePath(srcpath);
 
+   AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
+
    Utilities utils;
    GuiStack gui(*publisher, *sourceCache, mainWindow->Renderer(), utils);
-   Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui, title };
+   Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui,  *meshes, title };
    gui.platform = &platform;
 
    AutoFree<IApp> app(appFactory.CreateApp(platform));

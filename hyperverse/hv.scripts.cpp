@@ -11,11 +11,6 @@ namespace // Script factories
    using namespace HV;
    using namespace Rococo;
 
-   HV::Graphics::IMeshBuilder* FactoryConstructHVGraphicsMeshBuilder(HV::Graphics::IMeshBuilder* mb)
-   {
-      return mb;
-   }
-
    HV::Entities::IInstances* FactoryConstructHVEntitiesInstances(HV::Entities::IInstances* ins)
    {
       return ins;
@@ -76,7 +71,6 @@ namespace HV
 #endif
             Entities::AddNativeCalls_HVEntitiesIInstances(args.ss, &e.instances);
             Entities::AddNativeCalls_HVEntitiesIMobiles(args.ss, &e.mobiles);
-            Graphics::AddNativeCalls_HVGraphicsIMeshBuilder(args.ss, &e.meshes);
             Graphics::AddNativeCalls_HVGraphicsISceneBuilder(args.ss, &e.scene.Builder());
             Graphics::AddNativeCalls_HVGraphicsICamera(args.ss, &e.camera);   
             AddNativeCalls_HVISprites(args.ss, &e.sprites);
@@ -90,7 +84,7 @@ namespace HV
 
          void Execute(cstr name)
          {
-            e.platform.utilities.RunEnvironmentScript(e.platform, *this, name);
+            e.platform.utilities.RunEnvironmentScript(e.platform, *this, name, true);
          }
       } sc(e);
 

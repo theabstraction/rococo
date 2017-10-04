@@ -3,6 +3,7 @@
 (' #include 
 	"!scripts/hv.sxh.sxy"
 	"!scripts/types.sxy"
+	"!scripts/mplat.sxh.sxy"
 )
 
 (namespace EntryPoint)
@@ -17,6 +18,8 @@
 (using Sys.Type)
 (using Sys.Geometry.F32)
 (using Sys.Random)
+(using Rococo)
+(using Rococo.Graphics)
 
 /*
 	struct ObjectVertex
@@ -41,9 +44,9 @@
 	(IInstances instances (Instances))
 	(IMobiles mobiles (Mobiles))
 	
-	(Vertex bottomLeft  = (0 -1 0)(-1 0 0) 0x00000000 0xFFFFFFFF (0 0))
-	(Vertex bottomRight = (0  1 0)(-1 0 0) 0x00000000 0xFFFFFFFF (1 0))
-	(Vertex topRight    = (0  1 2)(-1 0 0) 0x00000000 0xFFFFFFFF (0 1))
+	(ObjectVertex bottomLeft  = (0 -1 0)(-1 0 0) 0x00000000 0xFFFFFFFF (0 0))
+	(ObjectVertex bottomRight = (0  1 0)(-1 0 0) 0x00000000 0xFFFFFFFF (1 0))
+	(ObjectVertex topRight    = (0  1 2)(-1 0 0) 0x00000000 0xFFFFFFFF (0 1))
 	
 	(IMeshBuilder mb (MeshBuilder))
 	(mb.Clear)
