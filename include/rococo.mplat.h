@@ -37,6 +37,22 @@ namespace Rococo
       char command[232];
    };
 
+   struct IUIElement
+   {
+      virtual void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) = 0;
+      virtual void OnMouseLClick(Vec2i cursorPos, bool clickedDown) = 0;
+      virtual void OnMouseRClick(Vec2i cursorPos, bool clickedDown) = 0;
+      virtual void Render(IGuiRenderContext& rc, const GuiRect& absRect) = 0;
+   };
+
+   struct UIPopulate : public Events::Event
+   {
+      UIPopulate();
+      static Events::EventId EvId();
+      IUIElement* renderElement;
+      cstr name;
+   };
+
    struct IPanelSupervisor: IPane
    {
       virtual void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) = 0;
@@ -56,6 +72,13 @@ namespace Rococo
       virtual void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) = 0;
    };
 
+   struct IPaneBuilderSupervisor : public IPaneBuilder
+   {
+      virtual void Free() = 0;
+      virtual void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) = 0;
+      virtual IPanelSupervisor* Supervisor() = 0;
+   };
+
    struct ICommandHandler
    {
 
@@ -66,13 +89,16 @@ namespace Rococo
    struct IGUIStack
    {
       virtual void AppendEvent(const MouseEvent& me) = 0;
-      virtual IPanelSupervisor* BindPanelToScript(cstr scriptName) = 0;
+      virtual IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName) = 0;
       virtual void Render(IGuiRenderContext& grc) = 0;
       virtual void PushTop(IPanelSupervisor* panel, bool isModal) = 0;
       virtual IPanelSupervisor* Pop() = 0;
       virtual IPanelSupervisor* Top() = 0;
       virtual void RegisterEventHandler(ICommandHandler* context, FN_OnCommand method, cstr cmd, cstr helpString = nullptr) = 0;
       virtual void UnregisterEventHandler(ICommandHandler* handler) = 0;
+      virtual void RegisterPopulator(cstr name, IUIElement* renderElement) = 0;
+      virtual void UnregisterPopulator(IUIElement* renderElement) = 0;
+
       template<class T> inline void UnregisterEventHandler(T* handler)
       {
          UnregisterEventHandler(reinterpret_cast<ICommandHandler*>(handler));
@@ -139,4 +165,4 @@ namespace Rococo
    };                                                                                      \
    g.RegisterEventHandler(handler, ANON::OnCommand, cmd, helpString);                      \
 }
-                     
+            

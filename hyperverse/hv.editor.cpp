@@ -230,9 +230,8 @@ namespace
       }
    };
 
-   ROCOCOAPI IEditMode: public IUITarget
+   ROCOCOAPI IEditMode: public IUIElement
    {
-      virtual void Render(IGuiRenderContext& grc) = 0; 
       virtual const ISector* GetHilight() const = 0;
    };
 
@@ -244,14 +243,9 @@ namespace
       Windows::IWindow& parent;
       ISector* lit{ nullptr };
 
-      void GetRect(GuiRect& rect) const override
+      void Render(IGuiRenderContext& grc, const GuiRect& rect)
       {
-         rect = { 0, 0, metrics.screenSpan.x, metrics.screenSpan.y };
-      }
 
-      void Render(IGuiRenderContext& grc) override
-      {
-         grc.Renderer().GetGuiMetrics(metrics);
       }
 
       void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
@@ -315,12 +309,7 @@ namespace
       GuiMetrics metrics;
       IPublisher& publisher;
 
-      void GetRect(GuiRect& rect) const override
-      {
-         rect = { 0, 0, metrics.screenSpan.x, metrics.screenSpan.y };
-      }
-
-      void Render(IGuiRenderContext& grc) override
+      void Render(IGuiRenderContext& grc, const GuiRect& absRect) override
       {
          grc.Renderer().GetGuiMetrics(metrics);
 
@@ -469,50 +458,31 @@ namespace
       const ISector* GetHilight() const override { return nullptr; }
    };
 
-   class Editor : public IEditor, public IUIOverlay, public IObserver
+   class Editor : public IEditor, public IUIElement, private IObserver
    {
-      IPublisher& publisher;
       HV::Entities::IInstancesSupervisor& instances;
       WorldMap map;
       EditMode_SectorBuilder editMode_SectorBuilder;
       EditMode_SectorEditor editMode_SectorEditor;
-      AutoFree<IWindowTree> windowTree;
       IEditMode* editMode;
       GuiMetrics metrics;
-      bool isActive{ false };
-      AutoFree<IToolbar> toolbar;
       AutoFree<IStatusBar> statusbar;
+      Platform& platform;
+      EventId modeEventId = "editor.edit_mode"_event;
 
-      void Render(IGuiRenderContext& grc) override
+      void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override
       {
-         if (!isActive) return;
-
-         grc.Renderer().GetGuiMetrics(metrics);
-         map.Render(grc, editMode->GetHilight());
-
-         editMode->Render(grc);
-
-         map.RenderTopGui(grc);
-
-         toolbar->Render(grc, true, 4, RGBAb(224, 224, 224), RGBAb(128, 128, 128));
-
-         GuiRect statusRect{ 0, metrics.screenSpan.y - 24, metrics.screenSpan.x, metrics.screenSpan.y };
-         statusbar->Render(grc, statusRect);
+         editMode->OnMouseMove(cursorPos, delta, dWheel);
       }
 
-      IUIOverlay& Overlay() override
+      void OnMouseLClick(Vec2i cursorPos, bool clickedDown)  override
       {
-         return *this;
+         editMode->OnMouseLClick(cursorPos, clickedDown);
       }
 
-      virtual void Activate(bool isActive)
+      void OnMouseRClick(Vec2i cursorPos, bool clickedDown)  override
       {
-         this->isActive = isActive;
-      }
-
-      void Free() override
-      {
-         delete this;
+         editMode->OnMouseRClick(cursorPos, clickedDown);
       }
 
       enum Mode
@@ -526,63 +496,87 @@ namespace
          if (mode == Mode_Vertex)
          {
             editMode = &editMode_SectorBuilder.Mode();
-            toolbar->SetToggleOn("vertices");
-            toolbar->SetToggleOff("sectors");
          }
          else
          {
             editMode = &editMode_SectorEditor.Mode();
-            toolbar->SetToggleOff("vertices");
-            toolbar->SetToggleOn("sectors");
          }
-
-         windowTree->Clear();
-         windowTree->AddTarget(editMode, 0);
-         windowTree->AddTarget(toolbar, 1);
       }
 
       void OnEvent(Event& ev) override
       {
-         if (isActive)
+         if (ev.id == modeEventId)
          {
-            if (ev == "editor.ui.vertices"_event)
+            auto& toe = As<TextOutputEvent>(ev);
+            if (toe.isGetting)
             {
-               SetMode(Mode_Vertex);
+               SafeFormat(toe.text, sizeof(toe.text), "%s", (editMode = &editMode_SectorBuilder.Mode()) ? "v" : "s");
             }
-            else if (ev == "editor.ui.sectors"_event)
+            else
             {
-               SetMode(Mode_Sector);
+               if (*toe.text && Eq(toe.text, "v"))
+               {
+                  SetMode(Mode_Vertex);
+               }
+               else
+               {
+                  SetMode(Mode_Sector);
+               }
             }
-            RouteEventToUI(ev, metrics.cursorPosition, *windowTree);
          }
       }
-   public:
-      Editor(Platform& platform, HV::Entities::IInstancesSupervisor& _instances) :
-         publisher(platform.publisher),
-         instances(_instances),
-         map(platform, _instances),
-         editMode_SectorBuilder(publisher, map),
-         editMode_SectorEditor(publisher, map, platform.renderer.Window()),
-         toolbar(Widgets::CreateToolbar(publisher, platform.renderer)),
-         windowTree(CreateWindowTree()),
-         statusbar(CreateStatusBar(platform.publisher))
-      {      
-         publisher.Attach(this, "editor.ui.vertices"_event);
-         publisher.Attach(this, "editor.ui.sectors"_event);
-         publisher.Attach(this, Rococo::Events::Input::OnMouseMoveRelative);
-         publisher.Attach(this, Rococo::Events::Input::OnMouseChanged);
 
-         toolbar->AddButton("load", "editor.ui.load"_event, "!textures/toolbars/load.tif");
-         toolbar->AddButton("save", "editor.ui.save"_event, "!textures/toolbars/save.tif");
-         toolbar->AddButton("vertices", "editor.ui.vertices"_event, "!textures/toolbars/builder.tif");
-         toolbar->AddButton("sectors", "editor.ui.sectors"_event, "!textures/toolbars/sectors.tif");
-         toolbar->SetToggleColours(RGBAb(255, 255, 255), RGBAb(128, 128, 128));
+      void Render(IGuiRenderContext& grc, const GuiRect& absRect) override
+      {
+         grc.Renderer().GetGuiMetrics(metrics);
+         map.Render(grc, editMode->GetHilight());
+
+         editMode->Render(grc, absRect);
+
+         map.RenderTopGui(grc);
+
+         GuiRect statusRect{ absRect.left, absRect.bottom - 24, absRect.right, absRect.bottom };
+         statusbar->Render(grc, statusRect);
+      }
+
+      void Free() override
+      {
+         delete this;
+      }
+
+      void OnEditorNew(cstr command)
+      {
+
+      }
+
+      void OnEditorLoad(cstr command)
+      {
+
+      }
+
+   public:
+      Editor(Platform& _platform, HV::Entities::IInstancesSupervisor& _instances) :
+         platform(_platform),
+         instances(_instances),
+         map(_platform, _instances),
+         editMode_SectorBuilder(_platform.publisher, map),
+         editMode_SectorEditor(_platform.publisher, map, _platform.renderer.Window()),
+         statusbar(CreateStatusBar(_platform.publisher))
+      {      
+         REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorNew, "editor.new", nullptr);
+         REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorLoad, "editor.load", nullptr);
+
+         platform.publisher.Attach(this, modeEventId);
+
          SetMode(Mode_Vertex);
+
+         platform.gui.RegisterPopulator("sector_editor", this);
       }
 
       ~Editor()
       {
-         publisher.Detach(this);
+         platform.gui.UnregisterPopulator(this);
+         platform.publisher.Detach(this);
       }
    };
 }

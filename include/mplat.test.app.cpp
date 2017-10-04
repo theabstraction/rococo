@@ -47,13 +47,10 @@ struct TestAttributes: IObserver
       {
          if (ev.id == i.id)
          {
-            auto& request = As<TextOutputEvent>(ev);
-            if (request.isRequested)
+            auto& toe = As<TextOutputEvent>(ev);
+            if (toe.isGetting)
             {
-               TextOutputEvent response(ev.id);
-               response.isRequested = false;
-               SafeFormat(response.value, sizeof(response.value), "%d", i.value);
-               publisher.Publish(response);
+               SafeFormat(toe.text, sizeof(toe.text), "%d", i.value);
             }
          }
       }
@@ -68,12 +65,12 @@ struct TestAttributes: IObserver
 struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
 {
    Platform& platform;
-   AutoFree<IPanelSupervisor> testPanel;
-   AutoFree<IPanelSupervisor> introPanel;
-   AutoFree<IPanelSupervisor> soundPanel;
-   AutoFree<IPanelSupervisor> creditsPanel;
-   AutoFree<IPanelSupervisor> graphicsPanel;
-   AutoFree<IPanelSupervisor> quitPanel;
+   AutoFree<IPaneBuilderSupervisor> testPanel;
+   AutoFree<IPaneBuilderSupervisor> introPanel;
+   AutoFree<IPaneBuilderSupervisor> soundPanel;
+   AutoFree<IPaneBuilderSupervisor> creditsPanel;
+   AutoFree<IPaneBuilderSupervisor> graphicsPanel;
+   AutoFree<IPaneBuilderSupervisor> quitPanel;
 
    TestAttributes attributes;
 
@@ -86,8 +83,8 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
       graphicsPanel = platform.gui.BindPanelToScript("!scripts/panel.graphics.sxy");
       quitPanel = platform.gui.BindPanelToScript("!scripts/panel.quit.sxy");
 
-      platform.gui.PushTop(testPanel, true);
-      platform.gui.PushTop(introPanel, true);
+      platform.gui.PushTop(testPanel->Supervisor(), true);
+      platform.gui.PushTop(introPanel->Supervisor(), true);
 
       REGISTER_UI_EVENT_HANDLER(platform.gui, this, TestApp, OnCommandPushSound,  "gui.push.sound", nullptr);
       REGISTER_UI_EVENT_HANDLER(platform.gui, this, TestApp, OnCommandPushCredits, "gui.push.credits", nullptr);
@@ -122,14 +119,14 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
       auto ss = metrics.screenSpan;
 
       GuiRect testRect{ ss.x >> 1, 0, ss.x, ss.y };
-      testPanel->SetRect(testRect);
+      testPanel->Supervisor()->SetRect(testRect);
 
       GuiRect fullRect{ 0, 0, ss.x, ss.y };
-      introPanel->SetRect(fullRect);
-      soundPanel->SetRect(fullRect);
-      creditsPanel->SetRect(fullRect);
-      graphicsPanel->SetRect(fullRect);
-      quitPanel->SetRect(fullRect);
+      introPanel->Supervisor()->SetRect(fullRect);
+      soundPanel->Supervisor()->SetRect(fullRect);
+      creditsPanel->Supervisor()->SetRect(fullRect);
+      graphicsPanel->Supervisor()->SetRect(fullRect);
+      quitPanel->Supervisor()->SetRect(fullRect);
 
       platform.gui.Render(grc);
    }
@@ -146,22 +143,22 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
 
    void OnCommandPushGraphics(cstr uiCommand)
    {
-      platform.gui.PushTop(graphicsPanel, true);
+      platform.gui.PushTop(graphicsPanel->Supervisor(), true);
    }
 
    void OnCommandPushQuit(cstr uiCommand)
    {
-      platform.gui.PushTop(quitPanel, true);
+      platform.gui.PushTop(quitPanel->Supervisor(), true);
    }
 
    void OnCommandPushSound(cstr uiCommand)
    {
-      platform.gui.PushTop(soundPanel, true);
+      platform.gui.PushTop(soundPanel->Supervisor(), true);
    }
 
    void OnCommandPushCredits(cstr uiCommand)
    {
-      platform.gui.PushTop(creditsPanel, true);
+      platform.gui.PushTop(creditsPanel->Supervisor(), true);
    }
 
    void OnCommandPop(cstr uiCommand)

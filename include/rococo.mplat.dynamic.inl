@@ -22,7 +22,7 @@ namespace Rococo
 
    typedef int(*FN_M_Platorm_Dll_Win64_Main)(HINSTANCE hInstance, IAppFactory& factory, const char* appName, HICON hLarge, HICON hSmall);
 
-   int LoadPlatformDll_AndInit(HINSTANCE hInstance, IAppFactory& factory, const char* appName, const char* moduleName, HICON hLarge, HICON hSmall)
+   int LoadPlatformDll_AndRun(HINSTANCE hInstance, IAppFactory& factory, const char* appName, const char* moduleName, HICON hLarge, HICON hSmall)
    {
       auto module = LoadLibraryA(moduleName);
       if (module == nullptr)
@@ -40,11 +40,13 @@ namespace Rococo
          return err;
       }
 
-      auto init = (FN_M_Platorm_Dll_Win64_Main)addr;
+      auto run = (FN_M_Platorm_Dll_Win64_Main)addr;
 
-      return init(hInstance, factory, appName, hLarge, hSmall);
+      int retValue = run(hInstance, factory, appName, hLarge, hSmall);
 
       FreeLibrary(module);
+
+      return retValue;
    }
 
    using namespace Rococo::Events;

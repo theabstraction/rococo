@@ -1,5 +1,5 @@
-#include "hv.h"
 #include "hv.events.h"
+#include <rococo.mplat.h>
 
 #include <vector>
 #include <algorithm>
@@ -19,14 +19,14 @@ namespace
       std::vector<ObjectInstance> drawQueue;
       HV::Graphics::ICameraSupervisor& camera;
 
-      IPublisher& publisher;
+      Platform& platform;
 
       RGBA clearColour{ 0,0,0,1 };
       Vec3 sun{ 0, 0, -1 };
 
    public:
-      Scene(HV::Entities::IInstancesSupervisor& _instances, HV::Graphics::ICameraSupervisor& _camera, IPublisher& _publisher) :
-         instances(_instances), camera(_camera), publisher(_publisher)
+      Scene(HV::Entities::IInstancesSupervisor& _instances, HV::Graphics::ICameraSupervisor& _camera, Platform& _platform) :
+         instances(_instances), camera(_camera), platform(_platform)
       {
       }
       
@@ -72,6 +72,7 @@ namespace
 
       virtual void RenderGui(IGuiRenderContext& grc)
       {
+         platform.gui.Render(grc);
       }
 
       void FlushDrawQueue(ID_SYS_MESH meshId, ID_TEXTURE textureId, IRenderContext& rc)
@@ -147,9 +148,9 @@ namespace HV
 {
    namespace Graphics
    {
-      ISceneSupervisor* CreateScene(Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, IPublisher& publisher)
+      ISceneSupervisor* CreateScene(Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, Platform& platform)
       {
-         return new  Scene(instances, camera, publisher);
+         return new  Scene(instances, camera, platform);
       }
    }
 }

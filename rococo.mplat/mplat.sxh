@@ -11,6 +11,7 @@
 		(SetColourEdge2 (RGBAb normal)(RGBAb hilight)->)
 		(SetColourFont (RGBAb normal)(RGBAb hilight)->)
 		(IsVisible -> (Bool isVisible))
+		(IsNormalized -> (Bool isNormalized))
 		(SetVisible (Bool isVisible)->)
 		(GetRect(Rect rect))
 		(SetRect(const Rect rect)->)
@@ -24,6 +25,7 @@
 		////////////////////////////////////////////////////////
 		
 		(SetCommand (Int32 stateIndex)(Bool deferAction)(IString text)->)
+		(SetPopulator (Int32 stateIndex)(IString populatorName)->)
 	)
 )
 
@@ -35,6 +37,18 @@
 		(AddContainer (const Rect rect)->(Rococo.IPaneContainer container))
 		(AddLabel (Int32 fontIndex)(IString text) (const Rect rect)->(Rococo.ILabelPane label))
 		(AddSlider (Int32 fontIndex)(IString text) (const Rect rect)(Float32 minValue)(Float32 maxValue) ->(Rococo.ISlider slider))
+		(AddTextOutput  (Int32 fontIndex)(IString key) (const Rect rect)->(Rococo.ITextOutputPane textBox))
+		(AddRadioButton (Int32 fontIndex)(IString text)(IString key)(IString value) (const Rect rect)->(Rococo.IRadioButton radio))
+		(Base -> (Rococo.IPane base))
+	)
+)
+
+(interface 
+	(as.sxy Rococo.IRadioButton "../content/scripts/mplat")
+	(as.cpp Rococo.IRadioButton "mplat")
+	(context factory Rococo.IRadioButton)
+	(methods
+		(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY))
 		(Base -> (Rococo.IPane base))
 	)
 )
@@ -73,10 +87,7 @@
 	(as.cpp Rococo.IPaneBuilder "mplat")
 	(context factory Rococo.IPaneBuilder)
 	(methods
-		(AddContainer (const Rect rect)->(Rococo.IPaneContainer container))
-		(AddLabel (Int32 fontIndex)(IString text) (const Rect rect)->(Rococo.ILabelPane label))
-		(AddTextOutput  (Int32 fontIndex)(IString key) (const Rect rect)->(Rococo.ITextOutputPane textBox))
-		(Base -> (Rococo.IPane base))
+		(Root -> (Rococo.IPaneContainer container))
 	)
 	(factory Rococo.PaneBuilder)
 )

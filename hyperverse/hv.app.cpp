@@ -29,6 +29,7 @@ namespace
       AutoFree<ISpriteSupervisor> sprites;
       AutoFree<IEditor> editor;
       AutoFree<IConfigSupervisor> config;
+      AutoFree<IPaneBuilderSupervisor> editorPanel;
 
       Cosmos e; // Put this as the last member, since other members need to be constructed first
    public:
@@ -39,7 +40,7 @@ namespace
          instances(CreateInstanceBuilder(*meshes, platform.renderer, platform.publisher)),
          mobiles(CreateMobilesSupervisor(*instances, platform.publisher)),
          camera(CreateCamera(*instances, *mobiles, platform.renderer, platform.publisher)),
-         scene(CreateScene(*instances, *camera, platform.publisher)),
+         scene(CreateScene(*instances, *camera, platform)),
          players(CreatePlayerSupervisor(platform.publisher)),
          keyboardSupervisor(CreateKeyboardSupervisor()),
          mouse(CreateMouse(platform.publisher)),
@@ -51,13 +52,15 @@ namespace
          Defaults::SetDefaults(*config);
 
          RunEnvironmentScript(e, "!scripts/hv/config.sxy");
-
          RunEnvironmentScript(e, "!scripts/hv/keys.sxy");
          RunEnvironmentScript(e, "!scripts/hv/controls.sxy");
          RunEnvironmentScript(e, "!scripts/hv/main.sxy");
 
          e.platform.renderer.AddOverlay(1000, &mathsVisitor->Overlay());
-         e.platform.renderer.AddOverlay(1001, &e.editor.Overlay());
+
+         editorPanel = e.platform.gui.BindPanelToScript("!scripts/panel.editor.sxy");
+
+         editorActive = false;
       }
 
       virtual void Free()
@@ -92,9 +95,14 @@ namespace
       virtual uint32 OnFrameUpdated(const IUltraClock& clock)
       {
          e.platform.installation.OS().EnumerateModifiedFiles(*this);
+         e.platform.publisher.Deliver();
          e.players.Update(clock);
          e.camera.Update(clock);
    //    e.camera.Venue().ShowVenue(e.mathsDebugger);
+         GuiMetrics metrics;
+         e.platform.renderer.GetGuiMetrics(metrics);
+         GuiRect fullRect{ 0,0,metrics.screenSpan.x, metrics.screenSpan.y };
+         editorPanel->Root()->Base()->SetRect(fullRect);
          e.platform.renderer.Render(e.scene);
          return 5;
       }
@@ -108,7 +116,21 @@ namespace
             if (Eq(action, "gui.editor.toggle") && key.isPressed)
             {
                editorActive = !editorActive;
-               e.editor.Activate(editorActive);
+
+               if (editorActive)
+               {
+                  if (e.platform.gui.Top() != editorPanel->Supervisor())
+                  {
+                     e.platform.gui.PushTop(editorPanel->Supervisor(), true);
+                  }
+               }
+               else
+               {
+                  if (e.platform.gui.Top() == editorPanel->Supervisor())
+                  {
+                     e.platform.gui.Pop();
+                  }
+               }
             }
             else
             {
@@ -122,6 +144,7 @@ namespace
 
       virtual void OnMouseEvent(const MouseEvent& me)
       {
+         e.platform.gui.AppendEvent(me);
          e.mouse.TranslateMouseEvent(me);
       }
    };

@@ -17,5 +17,5 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
       }
    } factory;
 
-   return LoadPlatformDll_AndInit(hInstance, factory, "M-Platform Test App", MPLAT_RELEASE, nullptr, nullptr);
+   return LoadPlatformDll_AndRun(hInstance, factory, "M-Platform Test App", MPLAT_RELEASE, nullptr, nullptr);
 }

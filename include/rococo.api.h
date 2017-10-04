@@ -345,8 +345,8 @@ namespace Rococo
       struct TextOutputEvent : Event
       {
          TextOutputEvent(EventId id) : Event(id) {}
-         bool isRequested;
-         char value[128];
+         bool isGetting;
+         char text[128];
       };
 
       inline bool operator == (const EventId& a, const EventId& b)

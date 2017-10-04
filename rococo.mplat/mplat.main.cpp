@@ -47,6 +47,24 @@ bool QueryYesNo(IWindow& ownerWindow, cstr message)
    return ShowMessageBox(Windows::NullParent(), message, title, MB_ICONQUESTION | MB_YESNO) == IDYES;
 }
 
+const char* CreatePersistentString(const char* volatileString)
+{
+   static std::unordered_set<std::string> persistentStrings;
+   auto i = persistentStrings.find(volatileString);
+   if (i == persistentStrings.end())
+   {
+      i = persistentStrings.insert(std::string(volatileString)).first;
+   }
+
+   return i->c_str();
+}
+
+EventId CreateEventIdFromVolatileString(const char* volatileString)
+{
+   auto* s = CreatePersistentString(volatileString);
+   return EventId(s, (EventHash)FastHash(s));
+}
+
 void _RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name)
 {
    class ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
@@ -144,6 +162,7 @@ class GuiStack : public IGUIStack, public IObserver
    IUtilitiies& utilities;
 
    std::unordered_map<std::string, CommandHandler> handlers;
+   std::unordered_map<std::string, IUIElement*> renderElements;
 public:
    Platform* platform;
 
@@ -154,6 +173,7 @@ public:
       utilities(_utilities)
    {
       publisher.Attach(this, UIInvoke::EvId());
+      publisher.Attach(this, UIPopulate::EvId());
    }
 
    ~GuiStack()
@@ -206,6 +226,37 @@ public:
             FN_OnCommand method = i->second.method;
             ICommandHandler* obj = i->second.handler;
             method(obj, ui.command);
+         }
+      }
+      else if (ev.id == UIPopulate::EvId())
+      {
+         auto& pop = As<UIPopulate>(ev);
+         
+         auto i = renderElements.find(pop.name);
+         if (i != renderElements.end())
+         {
+            pop.renderElement = i->second;
+         }
+      }
+   }
+
+   void RegisterPopulator(cstr name, IUIElement* renderElement) override
+   {
+      renderElements[name] = renderElement;
+   }
+
+   void UnregisterPopulator(IUIElement* renderElement) override
+   {
+      auto i = renderElements.begin();
+      while (i != renderElements.end())
+      {
+         if (i->second == renderElement)
+         {
+            i = renderElements.erase(i);
+         }
+         else
+         {
+            i++;
          }
       }
    }
@@ -288,7 +339,7 @@ public:
       return panels.empty() ? nullptr : panels.back().panel;
    }
 
-   IPanelSupervisor* BindPanelToScript(cstr scriptName) override;
+   IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName) override;
 };
 
 class BasePanel : public IPanelSupervisor
@@ -306,6 +357,13 @@ class BasePanel : public IPanelSupervisor
 
    std::vector<UICommand> commands;
 
+   struct UIPopulator
+   {
+      std::string name;
+   };
+
+   std::vector<UIPopulator> populators;
+
    ColourScheme scheme
    {
       RGBAb(160,160,160, 192),
@@ -319,6 +377,7 @@ class BasePanel : public IPanelSupervisor
       RGBAb(224,224,224, 255),
       RGBAb(255,255,255, 255),
    };
+
 public:
    void SetCommand(int32 stateIndex, boolean32 deferAction, const fstring& text) override
    {
@@ -358,8 +417,30 @@ public:
       }
    }
 
-   void AppendEventToChildren(const MouseEvent& me, const Vec2i& absTopLeft)
+   void SetPopulator(int32 stateIndex, const fstring& populatorName) override
    {
+      if (stateIndex < 0 || stateIndex > 4)
+      {
+         Throw(0, "BasePanel::SetCommand: stateIndex %d out of bounds [0,4]", stateIndex);
+      }
+
+      if (stateIndex >= populators.size())
+      {
+         populators.resize(stateIndex + 1);
+      }
+
+      if (populatorName.length >= 192)
+      {
+         Throw(0, "BasePanel::SetPopulator(...): Maximum length for populator name is 192 chars");
+      }
+
+      populators[stateIndex] = { std::string(populatorName) };
+   }
+
+   void AppendEventToChildren(IPublisher& publisher, const MouseEvent& me, const Vec2i& absTopLeft, int stateIndex = 0)
+   {
+      int32 hitCount = 0;
+
       for (auto i : children)
       {
          auto& rect = i->ClientRect();
@@ -369,6 +450,35 @@ public:
          if (IsPointInRect(me.cursorPos, childRect))
          {
             i->AppendEvent(me, topLeft);
+            hitCount++;
+         }
+      }
+
+      if (hitCount == 0 && stateIndex >= 0 && stateIndex < (int32)populators.size())
+      {
+         if (!populators[stateIndex].name.empty())
+         {
+            UIPopulate populate;
+            populate.renderElement = nullptr;
+            populate.name = populators[stateIndex].name.c_str();
+            publisher.Publish(populate);
+
+            if (populate.renderElement)
+            {
+               if (me.HasFlag(MouseEvent::LUp) || me.HasFlag(MouseEvent::LDown))
+               {
+                  populate.renderElement->OnMouseLClick(me.cursorPos, me.HasFlag(MouseEvent::LDown));
+               }
+               else if (me.HasFlag(MouseEvent::RUp) || me.HasFlag(MouseEvent::RDown))
+               {
+                  populate.renderElement->OnMouseRClick(me.cursorPos, me.HasFlag(MouseEvent::RDown));
+               }
+               else
+               {
+                  int dz = ((int32)(short)me.buttonData) / 120;
+                  populate.renderElement->OnMouseMove(me.cursorPos, { me.dx, me.dy }, dz);
+               }
+            }
          }
       }
    }
@@ -475,7 +585,7 @@ public:
       return isVisible;
    }
 
-   bool IsNormalized() const
+   boolean32 IsNormalized() override
    {
       return rect.right > rect.left && rect.bottom > rect.top;
    }
@@ -566,6 +676,23 @@ public:
       scheme.hi_fontColour = hilight;
    }
 
+   void Populate(IPublisher& publisher, IGuiRenderContext& grc, int32 stateIndex, const Vec2i& topLeft)
+   {
+      if (stateIndex >= 0 && stateIndex < (int32)populators.size())
+      {
+         UIPopulate populate;
+         populate.renderElement = nullptr;
+         populate.name = populators[stateIndex].name.c_str();      
+         publisher.Publish(populate);
+
+         if (populate.renderElement)
+         {
+            GuiRect absRect = GuiRect { 0, 0, Width(rect), Height(rect) } + topLeft;
+            populate.renderElement->Render(grc, absRect);
+         }
+      }
+   }
+
    void RenderBackground(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality)
    {
       GuiMetrics metrics;
@@ -625,8 +752,10 @@ public:
       return container;
    }
 
+   Rococo::ITextOutputPane* AddTextOutput(int32 fontIndex, const fstring& eventKey, const GuiRect& rect) override;
    Rococo::ILabelPane* AddLabel(int32 fontIndex, const fstring& text, const GuiRect& rect) override;
    Rococo::ISlider* AddSlider(int32 fontIndex, const fstring& text, const GuiRect& rect, float minValue, float maxValue) override;
+   Rococo::IRadioButton* AddRadioButton(int32 fontIndex, const fstring& text, const fstring& key, const fstring& value, const GuiRect& rect) override;
 
    IPane* Base() override
    {
@@ -641,11 +770,12 @@ public:
 
    void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft)
    {
-      AppendEventToChildren(me, absTopLeft);
+      AppendEventToChildren(platform.publisher, me, absTopLeft, 0);
    }
 
    void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
    {
+      Populate(platform.publisher, grc, 0, topLeft);
       RenderChildren(grc, topLeft, modality);
    }
 };
@@ -718,6 +848,99 @@ void RenderLabel(IGuiRenderContext& grc, cstr text, const GuiRect& absRect, int 
 
    grc.RenderText(pos, job, &clipRect);
 }
+
+class PanelRadioButton : public BasePanel, public IRadioButton, public IObserver
+{
+   int32 fontIndex = 1;
+   rchar text[128];
+   EventId id;
+   rchar value[128];
+   int32 horzAlign = 0;
+   int32 vertAlign = 0;
+   Vec2i padding{ 0,0 };
+   IPublisher& publisher;
+
+   int32 stateIndex = 0;
+public:
+   PanelRadioButton(IPublisher& _publisher, int _fontIndex, cstr _text, cstr _key, cstr _value) :
+      id(CreateEventIdFromVolatileString(_key)),
+      fontIndex(_fontIndex), publisher(_publisher)
+   {
+      CopyString(text, sizeof(text), _text);
+      CopyString(value, sizeof(value), _value);
+
+      publisher.Attach(this, id);
+   }
+
+   ~PanelRadioButton()
+   {
+      publisher.Detach(this);
+   }
+
+   void OnEvent(Event& ev) override
+   {
+      if (ev.id == id)
+      {
+         auto& toe = As<TextOutputEvent>(ev);
+         if (!toe.isGetting)
+         {
+            stateIndex = (toe.text && Eq(toe.text, value)) ? 1 : 0;
+         }
+      }
+   }
+
+   void Free() override
+   {
+      delete this;
+   }
+
+   IPane* Base() override
+   {
+      return this;
+   }
+
+   void SetAlignment(int32 horz, int32 vert, int32 paddingX, int paddingY)
+   {
+      horzAlign = horz;
+      vertAlign = vert;
+      padding = { paddingX, paddingY };
+   }
+
+   void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
+   {
+      if (stateIndex == 0 && me.HasFlag(me.LUp) || me.HasFlag(me.RUp))
+      {
+         TextOutputEvent toe(id);
+         toe.isGetting = false;
+         SecureFormat(toe.text, sizeof(toe.text), value);
+         publisher.Publish(toe);
+      }
+   }
+
+   void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
+   {
+      GuiMetrics metrics;
+      grc.Renderer().GetGuiMetrics(metrics);
+
+      auto p = metrics.cursorPosition;
+
+      GuiRect absRect = GuiRect { 0, 0, Width(ClientRect()), Height(ClientRect()) } + topLeft;
+      auto& scheme = Scheme();
+
+      if (stateIndex != 0)
+      {
+         Graphics::DrawRectangle(grc, absRect, scheme.hi_topLeft, scheme.hi_bottomRight);
+         Graphics::DrawBorderAround(grc, absRect, Vec2i{ 1, 1 }, scheme.hi_topLeftEdge, scheme.hi_bottomRightEdge);
+      }
+      else
+      {
+         Graphics::DrawRectangle(grc, absRect, scheme.topLeft, scheme.bottomRight);
+         Graphics::DrawBorderAround(grc, absRect, Vec2i{ 1, 1 }, scheme.topLeftEdge, scheme.bottomRightEdge);
+      }
+
+      RenderLabel(grc, text, absRect, horzAlign, vertAlign, padding, fontIndex, scheme, !modality.isUnderModal);
+   }
+};
 
 class PanelLabel : public BasePanel, public ILabelPane
 {
@@ -852,41 +1075,7 @@ public:
    }
 };
 
-Rococo::ILabelPane* PanelContainer::AddLabel(int32 fontIndex, const fstring& text, const GuiRect& rect)
-{
-   auto* label = new PanelLabel(platform.publisher, fontIndex, text);
-   AddChild(label);
-   label->SetRect(rect);
-   return label;
-}
-
-Rococo::ISlider* PanelContainer::AddSlider(int32 fontIndex, const fstring& text, const GuiRect& rect, float minValue, float maxValue)
-{
-   auto* s = new PanelSlider(platform.publisher, platform.renderer, fontIndex, text, minValue, maxValue);
-   AddChild(s);
-   s->SetRect(rect);
-   return s;
-}
-
-const char* CreatePersistentString(const char* volatileString)
-{
-   static std::unordered_set<std::string> persistentStrings;
-   auto i = persistentStrings.find(volatileString);
-   if (i == persistentStrings.end())
-   {
-      i = persistentStrings.insert(std::string(volatileString)).first;
-   }
-
-   return i->c_str();
-}
-
-EventId CreateEventIdFromVolatileString(const char* volatileString)
-{
-   auto* s = CreatePersistentString(volatileString);
-   return EventId(s, (EventHash)FastHash(s));
-}
-
-class PanelTextOutput : public BasePanel, public ITextOutputPane, public IObserver
+class PanelTextOutput : public BasePanel, public ITextOutputPane
 {
    int32 fontIndex = 1;
    int32 horzAlign = 0;
@@ -894,30 +1083,15 @@ class PanelTextOutput : public BasePanel, public ITextOutputPane, public IObserv
    Vec2i padding{ 0,0 };
    IPublisher& publisher;
    EventId id;
-   char text[128] = { 0 };
 public:
    PanelTextOutput(IPublisher& _publisher, int _fontIndex, cstr _key) :
       id(CreateEventIdFromVolatileString(_key)),
       publisher(_publisher), fontIndex(_fontIndex)
    {
-      publisher.Attach(this, id);
    }
 
    ~PanelTextOutput()
    {
-      publisher.Detach(this);
-   }
-
-   virtual void OnEvent(Event& ev)
-   {
-      if (ev.id == id)
-      {
-         auto& toe = As<TextOutputEvent>(ev);
-         if (!toe.isRequested)
-         {
-            SecureFormat(text, sizeof(text), "%s", toe.value);
-         }
-      }
    }
 
    void Free() override
@@ -950,21 +1124,53 @@ public:
       GuiRect absRect{ topLeft.x, topLeft.y, topLeft.x + span.x, topLeft.y + span.y };
 
       TextOutputEvent event(id);
-      event.isRequested = true;
-      event.value[0] = 0;
+      event.isGetting = true;
+      *event.text = 0;
       publisher.Publish(event);
 
-      RenderLabel(grc, text, absRect, horzAlign, vertAlign, padding, fontIndex, Scheme(), !modality.isUnderModal);
+      RenderLabel(grc, event.text, absRect, horzAlign, vertAlign, padding, fontIndex, Scheme(), !modality.isUnderModal);
    }
 };
 
-class ScriptedPanel : public BasePanel, IEventCallback<ScriptCompileArgs>, IPaneBuilder, IObserver
+Rococo::ILabelPane* PanelContainer::AddLabel(int32 fontIndex, const fstring& text, const GuiRect& rect)
+{
+   auto* label = new PanelLabel(platform.publisher, fontIndex, text);
+   AddChild(label);
+   label->SetRect(rect);
+   return label;
+}
+
+Rococo::ISlider* PanelContainer::AddSlider(int32 fontIndex, const fstring& text, const GuiRect& rect, float minValue, float maxValue)
+{
+   auto* s = new PanelSlider(platform.publisher, platform.renderer, fontIndex, text, minValue, maxValue);
+   AddChild(s);
+   s->SetRect(rect);
+   return s;
+}
+
+Rococo::ITextOutputPane* PanelContainer::AddTextOutput(int32 fontIndex, const fstring& eventKey, const GuiRect& rect)
+{
+   auto* to = new PanelTextOutput(platform.publisher, fontIndex, eventKey);
+   AddChild(to);
+   to->SetRect(rect);
+   return to;
+}
+
+Rococo::IRadioButton* PanelContainer::AddRadioButton(int32 fontIndex, const fstring& text, const fstring& key, const fstring& value, const GuiRect& rect)
+{
+   auto* radio = new PanelRadioButton(platform.publisher, fontIndex, text, key, value);
+   AddChild(radio);
+   radio->SetRect(rect);
+   return radio;
+}
+
+class ScriptedPanel : IEventCallback<ScriptCompileArgs>, IObserver, public IPaneBuilderSupervisor, public PanelContainer
 {
    GuiRect lastRect{ 0, 0, 0, 0 };
    std::string scriptFilename;
    Platform& platform;
 public:
-   ScriptedPanel(Platform& _platform, cstr _scriptFilename) :
+   ScriptedPanel(Platform& _platform, cstr _scriptFilename) : PanelContainer(_platform),
       platform(_platform),
       scriptFilename(_scriptFilename)
    {
@@ -973,12 +1179,7 @@ public:
 
    ~ScriptedPanel()
    {
-      platform.publisher.Detach(this);
-   }
-
-   void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft)
-   {
-      AppendEventToChildren(me, absTopLeft);
+      platform.publisher.Detach(this);  
    }
 
    void OnEvent(Event& ev) override
@@ -988,45 +1189,19 @@ public:
          auto& fue = As<FileUpdatedEvent>(ev);
          if (Rococo::Eq(fue.pingPath, scriptFilename.c_str()))
          {
-            FreeAllChildren();
             platform.sourceCache.Release(fue.pingPath);
             RefreshScript();
          }
       }
    }
 
-   Rococo::IPaneContainer* AddContainer(const GuiRect& rect) override
-   {
-      auto* container = new PanelContainer(platform);
-      AddChild(container);
-      container->SetRect(rect);
-      return container;
-   }
-
-   Rococo::ILabelPane* AddLabel(int32 fontIndex, const fstring& text, const GuiRect& rect)
-   {
-      auto* label = new PanelLabel(platform.publisher, fontIndex, text);
-      AddChild(label);
-      label->SetRect(rect);
-      return label;
-   }
-
-   ITextOutputPane* AddTextOutput(int32 fontIndex, const fstring& eventKey, const GuiRect& rect) override
-   {
-      auto* to = new PanelTextOutput(platform.publisher, fontIndex, eventKey);
-      AddChild(to);
-      to->SetRect(rect);
-      return to;
-   }
-
-   IPane* Base() override
+   IPaneContainer* Root() override
    {
       return this;
    }
 
    void Free() override
    {
-      FreeAllChildren();
       delete this;
    }
 
@@ -1036,6 +1211,7 @@ public:
       AddNativeCalls_RococoILabelPane(args.ss, nullptr);
       AddNativeCalls_RococoIPaneBuilder(args.ss, this);
       AddNativeCalls_RococoITextOutputPane(args.ss, nullptr);
+      AddNativeCalls_RococoIRadioButton(args.ss, nullptr);
       AddNativeCalls_RococoIPane(args.ss, nullptr);
       AddNativeCalls_RococoISlider(args.ss, nullptr);
    }
@@ -1048,21 +1224,25 @@ public:
 
    void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
    {
-      auto& currentRect = ClientRect();
       if (IsVisible() && IsNormalized())
       {
-         if (lastRect != currentRect)
+         if (lastRect != BasePanel::ClientRect())
          {
-            lastRect = currentRect;
+            lastRect = BasePanel::ClientRect();
             RefreshScript();
          }
       }
 
-      RenderChildren(grc, topLeft, modality);
+      PanelContainer::Render(grc, topLeft, modality);
+   }
+
+   virtual IPanelSupervisor* Supervisor()
+   {
+      return this;
    }
 };
 
-IPanelSupervisor* GuiStack::BindPanelToScript(cstr scriptName)
+IPaneBuilderSupervisor* GuiStack::BindPanelToScript(cstr scriptName)
 {
    return new ScriptedPanel(*platform, scriptName);
 }
@@ -1075,6 +1255,8 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
    os->Monitor(installation->Content());
 
    AutoFree<IDX11Window> mainWindow(CreateDX11Window(*installation));
+   SetWindowTextA(mainWindow->Window(), title);
+
    AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation));
    AutoFree<IDebuggerWindow> debuggerWindow(Windows::IDE::CreateDebuggerWindow(mainWindow->Window()));
 
@@ -1089,9 +1271,6 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
    gui.platform = &platform;
 
    AutoFree<IApp> app(appFactory.CreateApp(platform));
-
-   SetWindowTextA(mainWindow->Window(), title);
-
    mainWindow->Run(hInstanceLock, *app);
 }
 
@@ -1108,6 +1287,17 @@ namespace Rococo
 
    }
 
+   UIPopulate::UIPopulate() : Event(EvId())
+   {
+
+   }
+
+   Events::EventId UIPopulate::EvId()
+   {
+      static EventId invokeEvent = "ui.populate"_event;
+      return invokeEvent;
+   }
+
    int M_Platorm_Win64_Main(HINSTANCE hInstance, IAppFactory& factory, cstr title, HICON hLarge, HICON hSmall)
    {
       Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
@@ -1122,7 +1312,6 @@ namespace Rococo
       HANDLE hInstanceLock = CreateEventA(nullptr, TRUE, FALSE, filename);
 
       int err = GetLastError();
-      HRESULT hr = HRESULT_FROM_WIN32(err);
       if (err == ERROR_ALREADY_EXISTS)
       {
          SetEvent(hInstanceLock);
@@ -1131,7 +1320,8 @@ namespace Rococo
          {
             ShowMessageBox(Windows::NoParent(), "Application is already running", filename, MB_ICONEXCLAMATION);
          }
-         return -1;
+
+         return err;
       }
 
       int errCode = 0;

@@ -110,7 +110,8 @@
 	
 (function Main (Int32 id)->(Int32 exitCode):
 	(IPaneBuilder builder (PaneBuilder))
-	(IPane pane = builder.Base)
+	(IPaneContainer root = builder.Root)
+	(IPane pane = root.Base)
 	(SetOpaqueBackground pane)
 	
 	(Recti screen)
@@ -118,7 +119,7 @@
 	
 	(Recti containerRect)
 	(InflateRect -16 -16 screen containerRect)
-	(IPaneContainer container = (builder.AddContainer containerRect))
+	(IPaneContainer container = (root.AddContainer containerRect))
 	(IPane cbase = container.Base)
 	(cbase.SetColourBk1   0xE0101010 0xE0101010)
 	(cbase.SetColourBk2   0xE0202020 0xE0202020)

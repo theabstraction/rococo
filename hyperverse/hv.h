@@ -152,7 +152,7 @@ namespace HV
 
       ISpriteSupervisor* CreateSpriteSupervisor(IRenderer & renderer);
 
-      ISceneSupervisor* CreateScene(Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, IPublisher& publisher);
+      ISceneSupervisor* CreateScene(Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, Platform& platform);
       ICameraSupervisor* CreateCamera(Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& render, IPublisher& publisher);
       IMeshBuilderSupervisor* CreateMeshBuilder(IRenderer& renderer);
       
@@ -214,9 +214,7 @@ namespace HV
 
    ROCOCOAPI IEditor
    {
-      virtual void Activate(bool isActive) = 0;
       virtual void Free() = 0;
-      virtual IUIOverlay& Overlay() = 0;
    };
 
    IEditor* CreateEditor(Platform& platform, HV::Entities::IInstancesSupervisor& instances);

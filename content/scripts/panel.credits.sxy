@@ -106,7 +106,8 @@
 	
 (function Main (Int32 id)->(Int32 exitCode):
 	(IPaneBuilder builder (PaneBuilder))
-	(IPane pane = builder.Base)
+	(IPaneContainer root = builder.Root)
+	(IPane pane = root.Base)
 	(pane.SetColourBk1   0xFF000000 0xFF000000)
 	(pane.SetColourBk2   0xFF000000 0xFF000000)
 	(pane.SetColourEdge1 0xFFFFFFFF 0xFFFFFFFF)
@@ -117,7 +118,7 @@
 	
 	(Recti containerRect)
 	(InflateRect -16 -16 screen containerRect)
-	(IPaneContainer container = (builder.AddContainer containerRect))
+	(IPaneContainer container = (root.AddContainer containerRect))
 	(IPane cbase = container.Base)
 	(cbase.SetColourBk1   0x00000000 0x00000000)
 	(cbase.SetColourBk2   0x00000000 0x00000000)
