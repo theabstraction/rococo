@@ -122,11 +122,6 @@ namespace HV
       ICameraSupervisor* CreateCamera(Rococo::Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& render);
    }
 
-   namespace Entities
-   {
-      struct OnTryMoveMobileEvent;
-   }
-
    ROCOCOAPI IPlayerSupervisor
    {
       virtual void Free() = 0;
@@ -158,9 +153,17 @@ namespace HV
 
    IConfigSupervisor* CreateConfig();
 
+   namespace Events
+   {
+      namespace Entities
+      {
+         struct OnTryMoveMobileEvent;
+      }
+   }
+
    ROCOCOAPI IMobilesSupervisor: public Entities::IMobiles
    {
-      virtual void Append(OnTryMoveMobileEvent& tmm) = 0;
+      virtual void Append(Events::Entities::OnTryMoveMobileEvent& tmm) = 0;
       virtual void Free() = 0;
    };
 
@@ -238,7 +241,6 @@ namespace HV
 
    ROCOCOAPI IGameModeSupervisor: public IGameMode
    {
-      virtual void Append(Entities::OnTryMoveMobileEvent& tmm) = 0;
       virtual void Free() = 0;
    };
 
