@@ -1,0 +1,28 @@
+(' #file.type rococo.mplat.panel)
+
+(' #include 
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/types.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Rococo)
+(using Sys.Maths)
+(using Sys.Type)
+
+(function SetTransparentBackground (IPane pane)-> :
+	(pane.SetColourBk1   0x00000000 0x00000000)
+	(pane.SetColourBk2   0x00000000 0x00000000)
+	(pane.SetColourEdge1 0x00000000 0x00000000)
+	(pane.SetColourEdge2 0x00000000 0x00000000)
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(IPaneBuilder builder (PaneBuilder))
+	(IPaneContainer root = builder.Root)
+	(IPane fullScreen = root.Base)
+	(SetTransparentBackground fullScreen)
+	(fullScreen.SetPopulator 0 "fps")
+)

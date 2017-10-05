@@ -29,6 +29,21 @@
 	)
 )
 
+(interface
+	(as.sxy Rococo.Entities.IInstances "../content/scripts/mplat")
+	(as.cpp Rococo.Entities.IInstances "mplat")
+	(context factory Rococo.Entities.IInstances)
+	(methods
+		(AddBody (IString modelName)(IString texture)(const Matrix4x4 model)(const Vec3 scale)(IdEntity parentId)->(IdEntity entityId))
+		(AddGhost (const Matrix4x4 model)(const Vec3 scale)(IdEntity parentId)->(IdEntity entityId))
+		(GetScale (IdEntity entityId)(Vec3 scale))
+		(SetScale (IdEntity entityId)(const Vec3 scale))
+		(TryGetModelToWorldMatrix (IdEntity entityId)(Matrix4x4 position)->(Bool existant))
+		(Clear)
+	)
+	(factory Rococo.Entities.Instances)
+)
+
 (interface 
 	(as.sxy Rococo.IPaneContainer "../content/scripts/mplat")
 	(as.cpp Rococo.IPaneContainer "mplat")

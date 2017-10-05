@@ -16,12 +16,13 @@ namespace
    using namespace HV;
    using namespace Rococo;
    using namespace Rococo::Widgets;
+   using namespace Rococo::Entities;
 
 
    class WorldMap
    {
    private:
-      HV::Entities::IInstancesSupervisor& instances;
+      IInstancesSupervisor& instances;
       int32 gridlinePixelWidth{ 8 };
       Metres gridlineMetricWidth{ 2.0f };
       Vec2 gridCentre{ 0, 0 }; // Always uses integral co-ordinates
@@ -36,9 +37,9 @@ namespace
    public:
       ISectors& Sectors() { return *sectors; }
 
-      WorldMap(Platform& platform, HV::Entities::IInstancesSupervisor& _instances) : 
-         instances(_instances), 
-         sectors(CreateSectors(platform, _instances))
+      WorldMap(Platform& platform) : 
+         instances(platform.instances), 
+         sectors(CreateSectors(platform))
       {
          
       }
@@ -460,7 +461,6 @@ namespace
 
    class Editor : public IEditor, public IUIElement, private IObserver
    {
-      HV::Entities::IInstancesSupervisor& instances;
       WorldMap map;
       EditMode_SectorBuilder editMode_SectorBuilder;
       EditMode_SectorEditor editMode_SectorEditor;
@@ -555,10 +555,9 @@ namespace
       }
 
    public:
-      Editor(Platform& _platform, HV::Entities::IInstancesSupervisor& _instances) :
+      Editor(Platform& _platform) :
          platform(_platform),
-         instances(_instances),
-         map(_platform, _instances),
+         map(_platform),
          editMode_SectorBuilder(_platform.publisher, map),
          editMode_SectorEditor(_platform.publisher, map, _platform.renderer.Window()),
          statusbar(CreateStatusBar(_platform.publisher))
@@ -583,8 +582,8 @@ namespace
 
 namespace HV
 {
-   IEditor* CreateEditor(Platform& platform, HV::Entities::IInstancesSupervisor& instances)
+   IEditor* CreateEditor(Platform& platform)
    {
-      return new Editor(platform, instances);
+      return new Editor(platform);
    }
 }

@@ -1358,6 +1358,15 @@ namespace
 				}
 			}
 
+         RECT rect;
+         GetClientRect(mainWindow.Window(), &rect);
+
+         if ((rect.right - rect.left) == 0)
+         {
+            sleepMS = 1000;
+            continue;
+         }
+
 			QueryPerformanceCounter((LARGE_INTEGER*)&uc.frameStart);
 
 			uc.frameDelta = uc.frameStart - lastTick;
@@ -1367,9 +1376,8 @@ namespace
          dt0 = min(dt0, 0.05f);
          uc.dt = Seconds{ dt0 };
 
-			sleepMS = app.OnFrameUpdated(uc);
-
-			lastTick = uc.frameStart;
+         sleepMS = app.OnFrameUpdated(uc);
+         lastTick = uc.frameStart;
 		}
 	}
 } // anon

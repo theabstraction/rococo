@@ -2,10 +2,46 @@
 
 #include <rococo.renderer.h>
 
+namespace Rococo
+{
+   ROCOCO_ID(ID_ENTITY, int64, 0);
+}
+
 #include <../rococo.mplat/mplat.sxh.h>
 
 namespace Rococo
 {
+   namespace Entities
+   {
+      ROCOCOAPI IEntity
+      {
+         virtual const Vec3 Position() const = 0;
+         virtual Matrix4x4& Model() = 0;
+         virtual ID_ENTITY ParentId() const = 0;
+         virtual const ID_ENTITY* begin() const = 0;
+         virtual const ID_ENTITY* end() const = 0;
+         virtual ID_SYS_MESH MeshId() const = 0;
+         virtual ID_TEXTURE TextureId() const = 0;
+      };
+
+      ROCOCOAPI IEntityCallback
+      {
+         virtual void OnEntity(int64 index, IEntity& entity, ID_ENTITY id) = 0;
+      };
+
+      ROCOCOAPI IInstancesSupervisor : public IInstances
+      {
+         virtual void ForAll(IEntityCallback& cb) = 0;
+         virtual void Free() = 0;
+         virtual IEntity* GetEntity(ID_ENTITY id) = 0;
+         virtual void ConcatenateModelMatrices(ID_ENTITY id, Matrix4x4& result) = 0;
+         virtual void ConcatenatePositionVectors(ID_ENTITY id, Vec3& position) = 0;
+         virtual Rococo::Graphics::IMeshBuilder& MeshBuilder() = 0;
+      };
+
+     
+   }
+
    namespace Graphics
    {
       ROCOCOAPI IMeshBuilderSupervisor : public IMeshBuilder
@@ -13,6 +49,11 @@ namespace Rococo
          virtual void Free() = 0;
          virtual bool TryGetByName(cstr name, ID_SYS_MESH& id) = 0;
       };
+   }
+
+   namespace Entities
+   {
+      IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer);
    }
 
    struct Platform;
@@ -154,6 +195,9 @@ namespace Rococo
 
       // Mesh builder object
       Graphics::IMeshBuilderSupervisor& meshes;
+
+      // Entity instances
+      Entities::IInstancesSupervisor& instances;
 
       // Application title
       const char* const title;

@@ -39,16 +39,10 @@
     <ClCompile Include="hv.keyboard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hv.mouse.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hv.config.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="hv.defaultconfig.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="hv.entity.instances.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="hv.maths.visitor.cpp">
@@ -73,6 +67,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="hv.main.mplat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hv.fps.logic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

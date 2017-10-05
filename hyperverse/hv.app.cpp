@@ -11,43 +11,46 @@ namespace
    using namespace HV;
    using namespace HV::Graphics;
    using namespace HV::Entities;
+   using namespace Rococo::Entities;
 
-   class HVApp : public IApp, public IEventCallback<FileModifiedArgs>
+   class HVApp : public IApp, public IEventCallback<FileModifiedArgs>, public IScene
    {
       Platform& platform;
       bool editorActive{ false };
 
-      AutoFree<Rococo::Graphics::IMeshBuilderSupervisor> meshes;;
-      AutoFree<IInstancesSupervisor> instances;
       AutoFree<IMobilesSupervisor> mobiles;
       AutoFree<ICameraSupervisor> camera;
       AutoFree<ISceneSupervisor> scene;
       AutoFree<IPlayerSupervisor> players;
       AutoFree<IKeyboardSupervisor> keyboardSupervisor;
-      AutoFree<IMouse> mouse;
       AutoFree<IMathsVisitorSupervisor> mathsVisitor;
       AutoFree<ISpriteSupervisor> sprites;
       AutoFree<IEditor> editor;
       AutoFree<IConfigSupervisor> config;
       AutoFree<IPaneBuilderSupervisor> editorPanel;
+      AutoFree<IPaneBuilderSupervisor> fpsPanel;
 
       Cosmos e; // Put this as the last member, since other members need to be constructed first
+
+      IGameMode* mode;
+      AutoFree<IGameModeSupervisor> fpsLogic;
    public:
       HVApp(Platform& _platform) : 
          platform(_platform),
          config(CreateConfig()),
-         instances(CreateInstanceBuilder(platform)),
-         mobiles(CreateMobilesSupervisor(*instances, platform.publisher)),
-         camera(CreateCamera(*instances, *mobiles, platform.renderer, platform.publisher)),
-         scene(CreateScene(*instances, *camera, platform)),
-         players(CreatePlayerSupervisor(platform.publisher)),
+         mobiles(CreateMobilesSupervisor(platform.instances, platform.publisher)),
+         camera(CreateCamera(platform.instances, *mobiles, platform.renderer)),
+         scene(CreateScene(platform.instances, *camera, platform)),
+         players(CreatePlayerSupervisor(platform)),
          keyboardSupervisor(CreateKeyboardSupervisor()),
-         mouse(CreateMouse(platform.publisher)),
          mathsVisitor(CreateMathsVisitor()),
          sprites(CreateSpriteSupervisor(platform.renderer)),
-         editor(CreateEditor(platform, *instances)),
-         e { _platform, *config, *scene, *instances, *mobiles, *camera, *sprites, *players, *keyboardSupervisor, *mouse, *mathsVisitor, *editor }
+         editor(CreateEditor(platform)),
+         e { _platform, *config, *scene, *mobiles, *camera, *sprites, *players, *keyboardSupervisor, *mathsVisitor, *editor },
+         fpsLogic(CreateFPSGameLogic(e))
       {
+         mode = fpsLogic;
+
          Defaults::SetDefaults(*config);
 
          RunEnvironmentScript(e, "!scripts/hv/config.sxy");
@@ -58,8 +61,30 @@ namespace
          e.platform.renderer.AddOverlay(1000, &mathsVisitor->Overlay());
 
          editorPanel = e.platform.gui.BindPanelToScript("!scripts/panel.editor.sxy");
+         fpsPanel = e.platform.gui.BindPanelToScript("!scripts/panel.fps.sxy");
+
+         e.platform.gui.PushTop(fpsPanel->Supervisor(), true);    
 
          editorActive = false;
+      }
+
+      virtual RGBA GetClearColour() const
+      {
+         return e.scene.GetClearColour();
+      }
+
+      virtual void RenderGui(IGuiRenderContext& grc)
+      {
+         GuiMetrics metrics;
+         grc.Renderer().GetGuiMetrics(metrics);
+         GuiRect fullScreen = { 0, 0, metrics.screenSpan.x, metrics.screenSpan.y };
+         fpsPanel->Supervisor()->SetRect(fullScreen);
+         platform.gui.Render(grc);
+      }
+
+      virtual void RenderObjects(IRenderContext& rc)
+      {
+         e.scene.RenderObjects(rc);
       }
 
       virtual void Free()
@@ -93,16 +118,20 @@ namespace
 
       virtual uint32 OnFrameUpdated(const IUltraClock& clock)
       {
-         e.platform.installation.OS().EnumerateModifiedFiles(*this);
-         e.platform.publisher.Deliver();
-         e.players.Update(clock);
-         e.camera.Update(clock);
-   //    e.camera.Venue().ShowVenue(e.mathsDebugger);
          GuiMetrics metrics;
          e.platform.renderer.GetGuiMetrics(metrics);
+
+         e.platform.installation.OS().EnumerateModifiedFiles(*this);
+         e.platform.publisher.Deliver();
+
+         mode->UpdateAI(clock);
+
+         e.camera.Update(clock);
+   //    e.camera.Venue().ShowVenue(e.mathsDebugger);
+
          GuiRect fullRect{ 0,0,metrics.screenSpan.x, metrics.screenSpan.y };
          editorPanel->Root()->Base()->SetRect(fullRect);
-         e.platform.renderer.Render(e.scene);
+         e.platform.renderer.Render(*this);
          return 5;
       }
 
@@ -122,6 +151,8 @@ namespace
                   {
                      e.platform.gui.PushTop(editorPanel->Supervisor(), true);
                   }
+
+                  mode->Activate();
                }
                else
                {
@@ -129,14 +160,16 @@ namespace
                   {
                      e.platform.gui.Pop();
                   }
+
+                  mode->Deactivate();
                }
             }
             else
             {
                HV::Events::Player::OnPlayerActionEvent pae;
                pae.Name = action;
-               pae.start = key.isPressed;
-               e.platform.publisher.Publish(pae);
+               pae.start = key.isPressed;         
+               mode->Append(pae);
             }
          }
       }
@@ -144,7 +177,6 @@ namespace
       virtual void OnMouseEvent(const MouseEvent& me)
       {
          e.platform.gui.AppendEvent(me);
-         e.mouse.TranslateMouseEvent(me);
       }
    };
 }

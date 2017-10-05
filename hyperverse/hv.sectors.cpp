@@ -20,15 +20,13 @@ namespace
 
    class Sectors: public ISectors
    {
-      HV::Entities::IInstancesSupervisor&  instances;
       const Metres defaultFloorLevel{ 0.0f };
       const Metres defaultRoomHeight{ 4.0f };
       std::vector<ISector*> sectors;
       Platform& platform;
    public:
-      Sectors(Platform& _platform, HV::Entities::IInstancesSupervisor& _instances) :
-         platform(_platform),
-         instances(_instances)
+      Sectors(Platform& _platform) :
+         platform(_platform)
       {
       }
 
@@ -45,7 +43,7 @@ namespace
 
       void AddSector(const Vec2* positionArray, size_t nVertices) override
       {
-         auto* s = CreateSector(instances, *this);
+         auto* s = CreateSector(platform.instances, *this);
          try
          {
             s->Build(positionArray, nVertices, defaultFloorLevel, defaultFloorLevel + defaultRoomHeight);
@@ -124,8 +122,8 @@ namespace
 
 namespace HV
 {
-   ISectors* CreateSectors(Platform& platform, HV::Entities::IInstancesSupervisor& instances)
+   ISectors* CreateSectors(Platform& platform)
    {
-      return new Sectors(platform, instances);
+      return new Sectors(platform);
    }
 }

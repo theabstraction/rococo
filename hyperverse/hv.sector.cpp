@@ -14,6 +14,7 @@
 namespace
 {
    using namespace Rococo;
+   using namespace Rococo::Entities;
    using namespace HV;
 
    void ValidateArray(const Vec2* positionArray, size_t nVertices)
@@ -49,7 +50,7 @@ namespace
 
    class Sector : public ISector
    {   
-      Entities::IInstancesSupervisor& instances;
+      IInstancesSupervisor& instances;
       ISectors& co_sectors;
 
       // 2-D map co-ordinates of sector perimeter
@@ -219,7 +220,7 @@ namespace
          RebuildWalls();
       }
    public:
-      Sector(Entities::IInstancesSupervisor& _instances, ISectors& _co_sectors) :
+      Sector(IInstancesSupervisor& _instances, ISectors& _co_sectors) :
          instances(_instances),
          id(nextSectorId++),
          co_sectors(_co_sectors)
@@ -478,7 +479,7 @@ namespace
 
 namespace HV
 {
-   ISector* CreateSector(Entities::IInstancesSupervisor& instances, ISectors& co_sectors)
+   ISector* CreateSector(IInstancesSupervisor& instances, ISectors& co_sectors)
    {
       return new Sector(instances, co_sectors);
    }

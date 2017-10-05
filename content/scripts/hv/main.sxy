@@ -20,6 +20,7 @@
 (using Sys.Random)
 (using Rococo)
 (using Rococo.Graphics)
+(using Rococo.Entities)
 
 /*
 	struct ObjectVertex
@@ -38,7 +39,6 @@
 	(ScaleVector delta t scaledDelta)
 	(projectedPoint = scaledDelta + origin)
 )
-
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(IInstances instances (Instances))
@@ -88,7 +88,6 @@
 
 	(IPlayer player (Player 0))
 	(player.SetPlayerEntity playerId)
-	(player.SetControlFPS)
 	
 	(ICamera camera (Camera))
 	(camera.SetRHProjection 60 0.3 1000)

@@ -8,8 +8,6 @@ using namespace Rococo::Events;
 
 namespace HV
 {
-   ROCOCO_ID(ID_ENTITY, int64, 0);
-
    struct IPlayerSupervisor;
 }
 
@@ -52,22 +50,6 @@ namespace HV
       operator const fstring() { return key; }
    };
 
-   ROCOCOAPI IEntity
-   {
-      virtual const Vec3 Position() const = 0;
-      virtual Matrix4x4& Model() = 0;
-      virtual ID_ENTITY ParentId() const = 0;
-      virtual const ID_ENTITY* begin() const = 0;
-      virtual const ID_ENTITY* end() const = 0;
-      virtual ID_SYS_MESH MeshId() const = 0;
-      virtual ID_TEXTURE TextureId() const = 0;
-   };
-
-   ROCOCOAPI IEntityCallback
-   {
-      virtual void OnEntity(int64 index, IEntity& entity, ID_ENTITY id) = 0;
-   };
-
    typedef cstr VisitorName;
 
    ROCOCOAPI IMathsVisitor
@@ -99,17 +81,13 @@ namespace HV
 
    IMathsVisitorSupervisor* CreateMathsVisitor();
 
-   namespace Entities
+   namespace Events
    {
-      ROCOCOAPI IInstancesSupervisor: public IInstances
+      namespace Player
       {
-         virtual void ForAll(IEntityCallback& cb) = 0;
-         virtual void Free() = 0;
-         virtual IEntity* GetEntity(ID_ENTITY id) = 0;
-         virtual void ConcatenateModelMatrices(ID_ENTITY id, Matrix4x4& result) = 0;
-         virtual void ConcatenatePositionVectors(ID_ENTITY id, Vec3& position) = 0;
-         virtual Rococo::Graphics::IMeshBuilder& MeshBuilder() = 0;
-      };
+         struct OnPlayerActionEvent;
+         struct OnPlayerViewChangeEvent;
+      }
    }
 
    namespace Graphics
@@ -121,6 +99,7 @@ namespace HV
 
       ROCOCOAPI ICameraSupervisor : public ICamera
       {
+         virtual void Append(Events::Player::OnPlayerViewChangeEvent& pvce) = 0;
          virtual void Free() = 0;
          virtual void Update(const IUltraClock& clock) = 0;
          virtual IMathsVenue& Venue() = 0;
@@ -139,23 +118,22 @@ namespace HV
 
       ISpriteSupervisor* CreateSpriteSupervisor(IRenderer & renderer);
 
-      ISceneSupervisor* CreateScene(Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, Platform& platform);
-      ICameraSupervisor* CreateCamera(Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& render, IPublisher& publisher); 
+      ISceneSupervisor* CreateScene(Rococo::Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, Platform& platform);
+      ICameraSupervisor* CreateCamera(Rococo::Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& render);
    }
 
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(Platform& platform);
+      struct OnTryMoveMobileEvent;
    }
 
    ROCOCOAPI IPlayerSupervisor
    {
       virtual void Free() = 0;
       virtual IPlayer* GetPlayer(int32 index) = 0;
-      virtual void Update(const IUltraClock& clock) = 0;
    };
 
-   IPlayerSupervisor* CreatePlayerSupervisor(Rococo::Events::IPublisher& publisher);
+   IPlayerSupervisor* CreatePlayerSupervisor(Platform& platform);
 
    struct Key
    {
@@ -172,14 +150,6 @@ namespace HV
 
    IKeyboardSupervisor* CreateKeyboardSupervisor();
 
-   ROCOCOAPI IMouse
-   {
-      virtual void TranslateMouseEvent(const MouseEvent& ev) = 0;
-      virtual void Free() = 0;
-   };
-
-   IMouse* CreateMouse(IPublisher& publisher);
-
    ROCOCOAPI IConfigSupervisor: public IConfig
    {
       virtual cstr GetText(cstr name) const = 0;
@@ -190,10 +160,11 @@ namespace HV
 
    ROCOCOAPI IMobilesSupervisor: public Entities::IMobiles
    {
+      virtual void Append(OnTryMoveMobileEvent& tmm) = 0;
       virtual void Free() = 0;
    };
 
-   IMobilesSupervisor* CreateMobilesSupervisor(Entities::IInstancesSupervisor& instances, IPublisher& publisher);
+   IMobilesSupervisor* CreateMobilesSupervisor(Rococo::Entities::IInstancesSupervisor& instances, IPublisher& publisher);
   
    bool QueryYesNo(Windows::IWindow& ownerWindow, cstr message);
 
@@ -202,7 +173,7 @@ namespace HV
       virtual void Free() = 0;
    };
 
-   IEditor* CreateEditor(Platform& platform, HV::Entities::IInstancesSupervisor& instances);
+   IEditor* CreateEditor(Platform& platform);
 
    struct ObjectVertexBuffer
    {
@@ -241,7 +212,7 @@ namespace HV
       virtual void RemoveWallSegment(Segment segment) = 0;
    };
 
-   ISector* CreateSector(Entities::IInstancesSupervisor&  instances, ISectors& co_sectors);
+   ISector* CreateSector(Rococo::Entities::IInstancesSupervisor&  instances, ISectors& co_sectors);
 
    ROCOCOAPI ISectors
    {
@@ -255,23 +226,37 @@ namespace HV
       virtual ISector** end() = 0;
    };
 
-   ISectors* CreateSectors(Platform& platform, HV::Entities::IInstancesSupervisor& instances);
+   ISectors* CreateSectors(Platform& platform);
+
+   ROCOCOAPI IGameMode
+   {    
+      virtual void Activate() = 0;
+      virtual void Deactivate() = 0;
+      virtual void Append(Events::Player::OnPlayerActionEvent& ev) = 0;
+      virtual void UpdateAI(const IUltraClock& clock) = 0;
+   };
+
+   ROCOCOAPI IGameModeSupervisor: public IGameMode
+   {
+      virtual void Append(Entities::OnTryMoveMobileEvent& tmm) = 0;
+      virtual void Free() = 0;
+   };
 
    struct Cosmos
    {
       Platform& platform;
       IConfigSupervisor& config;
       Graphics::ISceneSupervisor& scene;
-      Entities::IInstancesSupervisor& instances;
-      Entities::IMobiles& mobiles;
+      IMobilesSupervisor& mobiles;
       Graphics::ICameraSupervisor& camera;
       Graphics::ISpriteSupervisor& sprites;
       IPlayerSupervisor& players;
       IKeyboardSupervisor& keyboard;
-      IMouse& mouse;
       IMathsVisitorSupervisor& mathsDebugger;
       IEditor& editor;
    };
+
+   IGameModeSupervisor* CreateFPSGameLogic(Cosmos& e);
 
    IApp* CreateHVApp(Cosmos& e);
    void RunEnvironmentScript(Cosmos& e, cstr name);

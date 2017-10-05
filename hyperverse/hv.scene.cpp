@@ -9,12 +9,13 @@
 namespace
 {
    using namespace Rococo;
+   using namespace Rococo::Entities;
    using namespace HV;
    using namespace HV::Graphics;
 
    class Scene : public ISceneSupervisor, public HV::Graphics::ISceneBuilderSupervisor
    {
-      HV::Entities::IInstancesSupervisor& instances;
+      IInstancesSupervisor& instances;
       std::vector<ID_ENTITY> entities;
       std::vector<ObjectInstance> drawQueue;
       HV::Graphics::ICameraSupervisor& camera;
@@ -25,7 +26,7 @@ namespace
       Vec3 sun{ 0, 0, -1 };
 
    public:
-      Scene(HV::Entities::IInstancesSupervisor& _instances, HV::Graphics::ICameraSupervisor& _camera, Platform& _platform) :
+      Scene(IInstancesSupervisor& _instances, HV::Graphics::ICameraSupervisor& _camera, Platform& _platform) :
          instances(_instances), camera(_camera), platform(_platform)
       {
       }
@@ -72,7 +73,6 @@ namespace
 
       virtual void RenderGui(IGuiRenderContext& grc)
       {
-         platform.gui.Render(grc);
       }
 
       void FlushDrawQueue(ID_SYS_MESH meshId, ID_TEXTURE textureId, IRenderContext& rc)
@@ -148,7 +148,7 @@ namespace HV
 {
    namespace Graphics
    {
-      ISceneSupervisor* CreateScene(Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, Platform& platform)
+      ISceneSupervisor* CreateScene(IInstancesSupervisor& instances, ICameraSupervisor& camera, Platform& platform)
       {
          return new  Scene(instances, camera, platform);
       }

@@ -5,9 +5,11 @@ namespace
 {
    using namespace HV;
    using namespace HV::Graphics;
+   using namespace Rococo::Entities;
    using namespace HV::Entities;
+   using namespace HV::Events::Player;
 
-   class Camera : public ICameraSupervisor, public IObserver, public IMathsVenue
+   class Camera : public ICameraSupervisor , public IMathsVenue
    {
       Matrix4x4 world;
       Matrix4x4 projection;
@@ -19,26 +21,21 @@ namespace
       IInstancesSupervisor& instances;
       IMobiles& mobiles;
       IRenderer& renderer;
-      IPublisher& publisher;
       Degrees elevation{ 0 };
       Degrees heading{ 0 };
       bool isDirty{ false };
       bool isFPSlinked{ false };   
    public:
-      Camera(IInstancesSupervisor& _instances, IMobiles& _mobiles, IRenderer& _renderer, IPublisher& _publisher) :
+      Camera(IInstancesSupervisor& _instances, IMobiles& _mobiles, IRenderer& _renderer) :
          instances(_instances),
          mobiles(_mobiles),
-         renderer(_renderer),
-         publisher(_publisher)
+         renderer(_renderer)
       {
          Clear();
-
-         publisher.Attach(this, HV::Events::Player::OnPlayerViewChange);
       }
 
       ~Camera()
       {
-         publisher.Detach(this);
       }
 
       IMathsVenue& Venue()
@@ -80,19 +77,15 @@ namespace
          visitor.ShowPointer("this", this);
       }
 
-      virtual void OnEvent(Event& ev)
+      virtual void Append(OnPlayerViewChangeEvent& pvce)
       {
-         if (ev == HV::Events::Player::OnPlayerViewChange)
+         if (pvce.elevationDelta != 0 && orientationGuideId == pvce.playerEntityId)
          {
-            auto& pvce = Rococo::Events::As <HV::Events::Player::OnPlayerViewChangeEvent>(ev);
-            if (pvce.elevationDelta != 0 && orientationGuideId == pvce.playerEntityId)
-            {
-               float newElevation = elevation + (float)pvce.elevationDelta * 0.25f;
-               newElevation = min(89.0f, newElevation);
-               newElevation = max(-89.0f, newElevation);
-               elevation = Degrees{ newElevation };
-               isFPSlinked = true;
-            }
+            float newElevation = elevation + (float)pvce.elevationDelta * 0.25f;
+            newElevation = min(89.0f, newElevation);
+            newElevation = max(-89.0f, newElevation);
+            elevation = Degrees{ newElevation };
+            isFPSlinked = true;
          }
       }
 
@@ -304,9 +297,9 @@ namespace HV
 {
    namespace Graphics
    {
-      ICameraSupervisor* CreateCamera(IInstancesSupervisor& instances, IMobiles& mobiles, IRenderer& renderer, IPublisher& publisher)
+      ICameraSupervisor* CreateCamera(IInstancesSupervisor& instances, IMobiles& mobiles, IRenderer& renderer)
       {
-         return new Camera(instances, mobiles, renderer, publisher);
+         return new Camera(instances, mobiles, renderer);
       }
    }
 }

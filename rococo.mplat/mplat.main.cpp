@@ -21,6 +21,11 @@ Rococo::IPaneBuilder* FactoryConstructRococoPaneBuilder(Rococo::IPaneBuilder* _c
    return _context;
 }
 
+Rococo::Entities::IInstances* FactoryConstructRococoEntitiesInstances(Rococo::Entities::IInstances* ins)
+{
+   return ins;
+}
+
 Rococo::Graphics::IMeshBuilder* FactoryConstructRococoGraphicsMeshBuilder(Rococo::Graphics::IMeshBuilder* _context)
 {
    return _context;
@@ -97,6 +102,7 @@ void _RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>
       virtual void OnEvent(ScriptCompileArgs& args)
       {
          Graphics::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.meshes);
+         Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.instances);
          onScriptEvent.OnEvent(args);
       }
 
@@ -1280,10 +1286,11 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
    Rococo::Script::SetDefaultNativeSourcePath(srcpath);
 
    AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
+   AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer());
 
    Utilities utils;
    GuiStack gui(*publisher, *sourceCache, mainWindow->Renderer(), utils);
-   Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui,  *meshes, title };
+   Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui,  *meshes, *instances, title };
    gui.platform = &platform;
 
    AutoFree<IApp> app(appFactory.CreateApp(platform));

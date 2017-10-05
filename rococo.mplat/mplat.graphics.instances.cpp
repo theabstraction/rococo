@@ -1,4 +1,4 @@
-#include "hv.events.h"
+#include <rococo.mplat.h>
 #include <unordered_map>
 #include <string>
 #include <vector>
@@ -8,10 +8,9 @@
 
 namespace
 {
-   using namespace HV;
-   using namespace HV::Graphics;
-   using namespace HV::Events;
-   using namespace HV::Entities;
+   using namespace Rococo;
+   using namespace Rococo::Graphics;
+   using namespace Rococo::Entities;
 
    int64 nextId = 1;
 
@@ -61,12 +60,11 @@ namespace
       std::unordered_map<std::string, ID_TEXTURE> nameToTextureId;
       Rococo::Graphics::IMeshBuilderSupervisor& meshBuilder;
       IRenderer& renderer;
-      IPublisher& publisher;
 
       int32 enumerationDepth{ 0 };
 
-      Instances(Rococo::Graphics::IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, IPublisher& _publisher) :
-         meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
+      Instances(Rococo::Graphics::IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer) :
+         meshBuilder(_meshBuilder), renderer(_renderer)
       {
       }
 
@@ -87,15 +85,15 @@ namespace
          {
             Throw(0, "Bad model matrix. Determinant was %f", d);
          }
+         
+         ID_ENTITY id(nextId++);
 
          if (parentId != 0)
          {
             auto i = idToEntity.find(parentId);
-            if (i == idToEntity.end()) Throw(0, "Cannot find parent entit;y with id #%d", parentId.value);
-            i->second->children.push_back(ID_ENTITY(nextId));
+            if (i == idToEntity.end()) Throw(0, "Cannot find parent entity with id #%d", parentId.value);
+            i->second->children.push_back(id);
          }
-
-         ID_ENTITY id(nextId++);
 
          auto* e = new EntityImpl;
          e->model = model;
@@ -274,13 +272,13 @@ namespace
    };
 }
 
-namespace HV
+namespace Rococo
 {
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(Platform& platform)
+      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& meshes, IRenderer& renderer)
       {
-         return new Instances(platform.meshes, platform.renderer, platform.publisher);
+         return new Instances(meshes, renderer);
       }
    }
 }

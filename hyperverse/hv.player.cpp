@@ -7,308 +7,20 @@ namespace
    using namespace HV::Events;
    using namespace Rococo::Events;
 
-   ROCOCOAPI IControlMethod
-   {
-      virtual void Clear() = 0;
-      virtual void Free() = 0;
-      virtual void OnEvent(Event& ev) = 0;
-      virtual void Update(ID_ENTITY playerId, const IUltraClock& clock, IPublisher& publisher) = 0;
-   };
 
-   struct NullControl : public IControlMethod
-   {
-      virtual void Clear()
-      {
-
-      }
-
-      virtual void Free()
-      {
-         delete this;
-      }
-
-      virtual void OnEvent(Event& ev)
-      {
-
-      }
-
-      virtual void Update(ID_ENTITY playerId, const IUltraClock& clock, IPublisher& publisher)
-      {
-      }
-   };
-
-   struct FourWayScroller : public IControlMethod
-   {
-   public:
-      typedef void (FourWayScroller::*ACTION_FUNCTION)(bool start);
-      static std::unordered_map<std::string, ACTION_FUNCTION> nameToAction;
-
-      bool isMovingForward{ false };
-      bool isMovingBackward{ false };
-      bool isMovingLeft{ false };
-      bool isMovingRight{ false };
-      bool isAutoRun{ false };
-
-      Vec3 speeds;
-
-      FourWayScroller(cr_vec3 _speeds) :
-         speeds(_speeds)
-      {
-      }
-
-      virtual void Clear() override
-      {
-         isMovingBackward = isMovingForward = isMovingLeft = isMovingRight = false;
-      }
-
-      virtual void Free()
-      {
-         delete this;
-      }
-
-      virtual void OnEvent(Event& ev)
-      {
-         if (ev == HV::Events::Player::OnPlayerAction)
-         {
-            auto& pae = As<HV::Events::Player::OnPlayerActionEvent>(ev);
-
-            auto i = nameToAction.find(pae.Name);
-            if (i != nameToAction.end())
-            {
-               ((*this).*(i->second))(pae.start);
-            }
-         }
-      }
-
-      virtual void Update(ID_ENTITY playerId, const IUltraClock& clock, IPublisher& publisher)
-      {
-         HV::Events::Entities::OnTryMoveMobileEvent tmm;
-
-         float forwardDelta = 0;
-         if (isMovingForward || isAutoRun) forwardDelta += 1.0f;
-         if (isMovingBackward) forwardDelta -= 1.0f;
-
-         float straffeDelta = 0;
-         if (isMovingLeft) straffeDelta -= 1.0f;
-         if (isMovingRight) straffeDelta += 1.0f;
-
-         if (forwardDelta != 0 || straffeDelta != 0)
-         {
-            tmm.fowardDelta = clock.DT() * ((forwardDelta > 0) ? forwardDelta * speeds.x : forwardDelta * speeds.z);
-            tmm.straffeDelta = clock.DT() * straffeDelta * speeds.y;
-            tmm.entityId = playerId;
-            tmm.delta = { 0,0,0 };
-            publisher.Publish(tmm);
-         }
-      }
-
-      void OnForward(bool start)
-      {
-         isMovingForward = start;
-         isAutoRun = false;
-      }
-
-      void OnBackward(bool start)
-      {
-         isMovingBackward = start;
-         isAutoRun = false;
-      }
-
-
-      void OnStraffeLeft(bool start)
-      {
-         isMovingLeft = start;
-      }
-
-
-      void OnStraffeRight(bool start)
-      {
-         isMovingRight = start;
-      }
-
-      void OnJump(bool start)
-      {
-
-      }
-
-      void OnAutoRun(bool start)
-      {
-         isAutoRun = true;
-      }
-   };
-
-   std::unordered_map<std::string, FourWayScroller::ACTION_FUNCTION> FourWayScroller::nameToAction =
-   {
-      { "move.fps.forward",         &FourWayScroller::OnForward },
-      { "move.fps.backward",        &FourWayScroller::OnBackward },
-      { "move.fps.straffeleft",     &FourWayScroller::OnStraffeLeft },
-      { "move.fps.strafferight",    &FourWayScroller::OnStraffeRight },
-      { "move.fps.jump",            &FourWayScroller::OnJump },
-      { "move.fps.autorun",         &FourWayScroller::OnAutoRun }
-   };
-
-   struct FPSControl: public IControlMethod
-   {
-   public:
-      typedef void (FPSControl::*ACTION_FUNCTION)(bool start);
-      static std::unordered_map<std::string, ACTION_FUNCTION> nameToAction;
- 
-      bool isMovingForward{ false };
-      bool isMovingBackward{ false };
-      bool isMovingLeft{ false };
-      bool isMovingRight{ false };
-      bool isAutoRun{ false };
-
-      float headingDelta{ 0 };
-      float elevationDelta{ 0 };
-
-      Vec3 speeds;
-
-      FPSControl(cr_vec3 _speeds):
-         speeds(_speeds)
-      {
-      }
-
-      virtual void Clear() override
-      {
-         isMovingBackward = isMovingForward = isMovingLeft = isMovingRight = false;
-         headingDelta = elevationDelta = 0;
-      }
-
-      virtual void Free()
-      {
-         delete this;
-      }
-
-      virtual void OnEvent(Event& ev)
-      {
-         if (ev == HV::Events::Player::OnPlayerAction)
-         {
-            auto& pae = As<HV::Events::Player::OnPlayerActionEvent>(ev);
-
-            auto i = nameToAction.find(pae.Name);
-            if (i != nameToAction.end())
-            {
-               ((*this).*(i->second))(pae.start);
-            }
-         }
-         else if (ev == Input::OnMouseMoveRelative)
-         {
-            auto& mmr = As<Input::OnMouseMoveRelativeEvent>(ev);
-            headingDelta += 0.25f * mmr.dx;
-            elevationDelta -= mmr.dy;
-         }
-      }
-
-      virtual void Update(ID_ENTITY playerId, const IUltraClock& clock, IPublisher& publisher)
-      {
-         HV::Events::Entities::OnTryMoveMobileEvent tmm;
-
-         float forwardDelta = 0;
-         if (isMovingForward || isAutoRun) forwardDelta += 1.0f;
-         if (isMovingBackward) forwardDelta -= 1.0f;
-
-         float straffeDelta = 0;
-         if (isMovingLeft) straffeDelta -= 1.0f;
-         if (isMovingRight) straffeDelta += 1.0f;
-
-         if (forwardDelta != 0 || straffeDelta != 0 || headingDelta != 0)
-         {
-            tmm.fowardDelta = clock.DT() * ((forwardDelta > 0) ? forwardDelta * speeds.x : forwardDelta * speeds.z);
-            tmm.straffeDelta = clock.DT() * straffeDelta * speeds.y;
-            tmm.entityId = playerId;
-            tmm.delta = { Degrees { headingDelta }, Degrees { 0 }, Degrees { 0 } };
-            publisher.Publish(tmm);
-            headingDelta = 0;
-         }
-
-         if (elevationDelta)
-         {
-            HV::Events::Player::OnPlayerViewChangeEvent pvce;
-            pvce.playerEntityId = playerId;
-            pvce.elevationDelta = elevationDelta;
-            publisher.Publish(pvce);
-            elevationDelta = 0;
-         }
-      }
-     
-      void OnForward(bool start)
-      {
-         isMovingForward = start;
-         isAutoRun = false;
-      }
-
-      void OnBackward(bool start)
-      {
-         isMovingBackward = start;
-         isAutoRun = false;
-      }
-
-      
-      void OnStraffeLeft(bool start)
-      {
-         isMovingLeft = start;
-      }
-
-      
-      void OnStraffeRight(bool start)
-      {
-         isMovingRight = start;
-      }
-
-      void OnJump(bool start)
-      {
-
-      }
-
-      void OnAutoRun(bool start)
-      {
-         isAutoRun = true;
-      }
-   };
-
-   std::unordered_map<std::string, FPSControl::ACTION_FUNCTION> FPSControl::nameToAction =
-   {
-      { "move.fps.forward",         &FPSControl::OnForward },
-      { "move.fps.backward",        &FPSControl::OnBackward },
-      { "move.fps.straffeleft",     &FPSControl::OnStraffeLeft },
-      { "move.fps.strafferight",    &FPSControl::OnStraffeRight },
-      { "move.fps.jump",            &FPSControl::OnJump },
-      { "move.fps.autorun",         &FPSControl::OnAutoRun }
-   };
-
-   class Player : public IPlayer, public IObserver
+   class Player : public IPlayer
    {
       ID_ENTITY playerId;
-      AutoFree<IControlMethod> control;
-
-      Vec3 speeds{ 10.0f, 10.0f, 5.0f };
    public:
-      Player() : control{ new NullControl }
+      Player()
       {
 
-      }
-
-      virtual void SetSpeed(float forward, float backward, float straffe)
-      {
-         speeds.x = forward;
-         speeds.y = straffe;
-         speeds.z = backward;
       }
 
       virtual void Clear()
       {
       }
 
-      virtual void OnEvent(Event& ev)
-      {
-         control->OnEvent(ev);
-      }
-
-      virtual void Update(const IUltraClock& clock, IPublisher& publisher)
-      {
-         control->Update(playerId, clock, publisher);
-      }
 
       virtual void SetPlayerEntity(ID_ENTITY id)
       {
@@ -319,50 +31,18 @@ namespace
       {
          return playerId;
       }
-
-      virtual void SetControl4WayScroller()
-      {
-         control = new FourWayScroller(speeds);
-      }
-
-      virtual void SetControlFPS()
-      {
-         control = new FPSControl(speeds);
-      }
-
-      virtual void SetControlNone()
-      {
-         control = new NullControl();
-      }
    };
 
-   class PlayerSupervisor : public IPlayerSupervisor, public IObserver
+   class PlayerSupervisor : public IPlayerSupervisor
    {
-      ID_ENTITY playerId;
-      Rococo::Events::IPublisher& publisher;
-
       Player player;
    public:
-      PlayerSupervisor(Rococo::Events::IPublisher& _publisher):
-         publisher(_publisher)
+      PlayerSupervisor(Platform& _platform)
       {
-         publisher.Attach(this, HV::Events::Player::OnPlayerAction);
-         publisher.Attach(this, Input::OnMouseMoveRelative);
       }
 
       ~PlayerSupervisor()
       {
-         publisher.Detach(this);
-      }
-
-      virtual void OnEvent(Event& ev)
-      {
-         player.OnEvent(ev);
-      }
-
-      virtual void Update(const IUltraClock& clock)
-      {
-         player.Update(clock, publisher);
       }
 
       virtual IPlayer* GetPlayer(int32 index)
@@ -384,8 +64,8 @@ namespace
 
 namespace HV
 {
-   IPlayerSupervisor* CreatePlayerSupervisor(Rococo::Events::IPublisher& publisher)
+   IPlayerSupervisor* CreatePlayerSupervisor(Platform& platform)
    {
-      return new PlayerSupervisor(publisher);
+      return new PlayerSupervisor(platform);
    }
 }

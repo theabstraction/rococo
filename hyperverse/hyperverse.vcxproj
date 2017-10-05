@@ -124,10 +124,9 @@
     <ClCompile Include="hv.editor.cpp" />
     <ClCompile Include="hv.entity.mobiles.cpp" />
     <ClCompile Include="hv.events.cpp" />
-    <ClCompile Include="hv.entity.instances.cpp" />
+    <ClCompile Include="hv.fps.logic.cpp" />
     <ClCompile Include="hv.keyboard.cpp" />
     <ClCompile Include="hv.main.mplat.cpp" />
-    <ClCompile Include="hv.mouse.cpp" />
     <ClCompile Include="hv.maths.visitor.cpp" />
     <ClCompile Include="hv.player.cpp" />
     <ClCompile Include="hv.scene.cpp" />

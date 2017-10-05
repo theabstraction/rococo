@@ -11,11 +11,6 @@ namespace // Script factories
    using namespace HV;
    using namespace Rococo;
 
-   HV::Entities::IInstances* FactoryConstructHVEntitiesInstances(HV::Entities::IInstances* ins)
-   {
-      return ins;
-   }
-
    HV::Graphics::ISceneBuilder* FactoryConstructHVGraphicsSceneBuilder(HV::Graphics::ISceneBuilder* sb)
    {
       return sb;
@@ -69,7 +64,6 @@ namespace HV
 #else
             args.ss.AddNativeLibrary(SEXTEXT("rococo.sexy.mathsex"));
 #endif
-            Entities::AddNativeCalls_HVEntitiesIInstances(args.ss, &e.instances);
             Entities::AddNativeCalls_HVEntitiesIMobiles(args.ss, &e.mobiles);
             Graphics::AddNativeCalls_HVGraphicsISceneBuilder(args.ss, &e.scene.Builder());
             Graphics::AddNativeCalls_HVGraphicsICamera(args.ss, &e.camera);   

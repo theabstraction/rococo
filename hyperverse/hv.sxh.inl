@@ -52,282 +52,6 @@ namespace HV { namespace Graphics {
 	}
 }}// HV.Graphics.OrientationFlags
 
-// BennyHill generated Sexy native functions for HV::IPlayer 
-namespace
-{
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-	using namespace Rococo::Script;
-	using namespace Rococo::Compiler;
-
-	void NativeHVIPlayerSetPlayerEntity(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		ID_ENTITY id;
-		_offset += sizeof(id);
-		ReadInput(id, _sf, -_offset);
-
-		HV::IPlayer* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetPlayerEntity(id);
-	}
-	void NativeHVIPlayerGetPlayerEntity(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::IPlayer* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		ID_ENTITY id = _pObject->GetPlayerEntity();
-		_offset += sizeof(id);
-		WriteOutput(id, _sf, -_offset);
-	}
-	void NativeHVIPlayerSetControlFPS(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::IPlayer* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetControlFPS();
-	}
-	void NativeHVIPlayerSetControl4WayScroller(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::IPlayer* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetControl4WayScroller();
-	}
-	void NativeHVIPlayerSetControlNone(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::IPlayer* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetControlNone();
-	}
-	void NativeHVIPlayerSetSpeed(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		float straffe;
-		_offset += sizeof(straffe);
-		ReadInput(straffe, _sf, -_offset);
-
-		float backward;
-		_offset += sizeof(backward);
-		ReadInput(backward, _sf, -_offset);
-
-		float forward;
-		_offset += sizeof(forward);
-		ReadInput(forward, _sf, -_offset);
-
-		HV::IPlayer* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetSpeed(forward, backward, straffe);
-	}
-
-	void NativeGetHandleForHVGraphicsPlayer(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		int32 index;
-		_offset += sizeof(index);
-		ReadInput(index, _sf, -_offset);
-
-		HV::IPlayerSupervisor* nceContext = reinterpret_cast<HV::IPlayerSupervisor*>(_nce.context);
-		// Uses: HV::IPlayer* FactoryConstructHVGraphicsPlayer(HV::IPlayerSupervisor* _context, int32 _index);
-		HV::IPlayer* pObject = FactoryConstructHVGraphicsPlayer(nceContext, index);
-		_offset += sizeof(IString*);
-		WriteOutput(pObject, _sf, -_offset);
-	}
-}
-
-namespace HV { 
-	void AddNativeCalls_HVIPlayer(Rococo::Script::IPublicScriptSystem& ss, HV::IPlayerSupervisor* _nceContext)
-	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVGraphicsPlayer, _nceContext, SEXTEXT("GetHandleForIPlayer0 (Int32 index) -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVIPlayerSetPlayerEntity, nullptr, SEXTEXT("IPlayerSetPlayerEntity (Pointer hObject)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeHVIPlayerGetPlayerEntity, nullptr, SEXTEXT("IPlayerGetPlayerEntity (Pointer hObject) -> (Int64 id)"));
-		ss.AddNativeCall(ns, NativeHVIPlayerSetControlFPS, nullptr, SEXTEXT("IPlayerSetControlFPS (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeHVIPlayerSetControl4WayScroller, nullptr, SEXTEXT("IPlayerSetControl4WayScroller (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeHVIPlayerSetControlNone, nullptr, SEXTEXT("IPlayerSetControlNone (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeHVIPlayerSetSpeed, nullptr, SEXTEXT("IPlayerSetSpeed (Pointer hObject)(Float32 forward)(Float32 backward)(Float32 straffe) -> "));
-	}
-}
-// BennyHill generated Sexy native functions for HV::Entities::IInstances 
-namespace
-{
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-	using namespace Rococo::Script;
-	using namespace Rococo::Compiler;
-
-	void NativeHVEntitiesIInstancesAddBody(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		ID_ENTITY parentId;
-		_offset += sizeof(parentId);
-		ReadInput(parentId, _sf, -_offset);
-
-		Vec3* scale;
-		_offset += sizeof(scale);
-		ReadInput(scale, _sf, -_offset);
-
-		Matrix4x4* model;
-		_offset += sizeof(model);
-		ReadInput(model, _sf, -_offset);
-
-		_offset += sizeof(IString*);
-		IString* _texture;
-		ReadInput(_texture, _sf, -_offset);
-		fstring texture { _texture->buffer, _texture->length };
-
-
-		_offset += sizeof(IString*);
-		IString* _modelName;
-		ReadInput(_modelName, _sf, -_offset);
-		fstring modelName { _modelName->buffer, _modelName->length };
-
-
-		HV::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		ID_ENTITY entityId = _pObject->AddBody(modelName, texture, *model, *scale, parentId);
-		_offset += sizeof(entityId);
-		WriteOutput(entityId, _sf, -_offset);
-	}
-	void NativeHVEntitiesIInstancesAddGhost(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		ID_ENTITY parentId;
-		_offset += sizeof(parentId);
-		ReadInput(parentId, _sf, -_offset);
-
-		Vec3* scale;
-		_offset += sizeof(scale);
-		ReadInput(scale, _sf, -_offset);
-
-		Matrix4x4* model;
-		_offset += sizeof(model);
-		ReadInput(model, _sf, -_offset);
-
-		HV::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		ID_ENTITY entityId = _pObject->AddGhost(*model, *scale, parentId);
-		_offset += sizeof(entityId);
-		WriteOutput(entityId, _sf, -_offset);
-	}
-	void NativeHVEntitiesIInstancesGetScale(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Vec3* scale;
-		_offset += sizeof(scale);
-		ReadInput(scale, _sf, -_offset);
-
-		ID_ENTITY entityId;
-		_offset += sizeof(entityId);
-		ReadInput(entityId, _sf, -_offset);
-
-		HV::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetScale(entityId, *scale);
-	}
-	void NativeHVEntitiesIInstancesSetScale(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Vec3* scale;
-		_offset += sizeof(scale);
-		ReadInput(scale, _sf, -_offset);
-
-		ID_ENTITY entityId;
-		_offset += sizeof(entityId);
-		ReadInput(entityId, _sf, -_offset);
-
-		HV::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetScale(entityId, *scale);
-	}
-	void NativeHVEntitiesIInstancesTryGetModelToWorldMatrix(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Matrix4x4* position;
-		_offset += sizeof(position);
-		ReadInput(position, _sf, -_offset);
-
-		ID_ENTITY entityId;
-		_offset += sizeof(entityId);
-		ReadInput(entityId, _sf, -_offset);
-
-		HV::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		boolean32 existant = _pObject->TryGetModelToWorldMatrix(entityId, *position);
-		_offset += sizeof(existant);
-		WriteOutput(existant, _sf, -_offset);
-	}
-	void NativeHVEntitiesIInstancesClear(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->Clear();
-	}
-
-	void NativeGetHandleForHVEntitiesInstances(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::Entities::IInstances* nceContext = reinterpret_cast<HV::Entities::IInstances*>(_nce.context);
-		// Uses: HV::Entities::IInstances* FactoryConstructHVEntitiesInstances(HV::Entities::IInstances* _context);
-		HV::Entities::IInstances* pObject = FactoryConstructHVEntitiesInstances(nceContext);
-		_offset += sizeof(IString*);
-		WriteOutput(pObject, _sf, -_offset);
-	}
-}
-
-namespace HV { namespace Entities { 
-	void AddNativeCalls_HVEntitiesIInstances(Rococo::Script::IPublicScriptSystem& ss, HV::Entities::IInstances* _nceContext)
-	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Entities.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVEntitiesInstances, _nceContext, SEXTEXT("GetHandleForIInstances0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesAddBody, nullptr, SEXTEXT("IInstancesAddBody (Pointer hObject)(Sys.Type.IString modelName)(Sys.Type.IString texture)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId)"));
-		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesAddGhost, nullptr, SEXTEXT("IInstancesAddGhost (Pointer hObject)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId)"));
-		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesGetScale, nullptr, SEXTEXT("IInstancesGetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
-		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesSetScale, nullptr, SEXTEXT("IInstancesSetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
-		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesTryGetModelToWorldMatrix, nullptr, SEXTEXT("IInstancesTryGetModelToWorldMatrix (Pointer hObject)(Int64 entityId)(Sys.Maths.Matrix4x4 position) -> (Bool existant)"));
-		ss.AddNativeCall(ns, NativeHVEntitiesIInstancesClear, nullptr, SEXTEXT("IInstancesClear (Pointer hObject) -> "));
-	}
-}}
 // BennyHill generated Sexy native functions for HV::ISprites 
 namespace
 {
@@ -1025,6 +749,66 @@ namespace HV { namespace Entities {
 		ss.AddNativeCall(ns, NativeHVEntitiesIMobilesSetAngles, nullptr, SEXTEXT("IMobilesSetAngles (Pointer hObject)(Int64 id)(Sys.Maths.FPSAngles angles) -> "));
 	}
 }}
+// BennyHill generated Sexy native functions for HV::IPlayer 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeHVIPlayerSetPlayerEntity(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		HV::IPlayer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetPlayerEntity(id);
+	}
+	void NativeHVIPlayerGetPlayerEntity(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::IPlayer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		ID_ENTITY id = _pObject->GetPlayerEntity();
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
+	}
+
+	void NativeGetHandleForHVGraphicsPlayer(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		HV::IPlayerSupervisor* nceContext = reinterpret_cast<HV::IPlayerSupervisor*>(_nce.context);
+		// Uses: HV::IPlayer* FactoryConstructHVGraphicsPlayer(HV::IPlayerSupervisor* _context, int32 _index);
+		HV::IPlayer* pObject = FactoryConstructHVGraphicsPlayer(nceContext, index);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace HV { 
+	void AddNativeCalls_HVIPlayer(Rococo::Script::IPublicScriptSystem& ss, HV::IPlayerSupervisor* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVGraphicsPlayer, _nceContext, SEXTEXT("GetHandleForIPlayer0 (Int32 index) -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVIPlayerSetPlayerEntity, nullptr, SEXTEXT("IPlayerSetPlayerEntity (Pointer hObject)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeHVIPlayerGetPlayerEntity, nullptr, SEXTEXT("IPlayerGetPlayerEntity (Pointer hObject) -> (Int64 id)"));
+	}
+}
 // BennyHill generated Sexy native functions for HV::IKeyboard 
 namespace
 {
