@@ -11,11 +11,6 @@ namespace // Script factories
    using namespace HV;
    using namespace Rococo;
 
-   HV::ISprites* FactoryConstructHVSprites(HV::ISprites* sprites)
-   {
-      return sprites;
-   }
-
    HV::IPlayer* FactoryConstructHVPlayer(HV::IPlayerSupervisor* players, int32 index)
    {
       return players->GetPlayer(index);
@@ -44,7 +39,6 @@ namespace HV
 #else
             args.ss.AddNativeLibrary(SEXTEXT("rococo.sexy.mathsex"));
 #endif
-            AddNativeCalls_HVISprites(args.ss, &e.sprites);
             AddNativeCalls_HVIPlayer(args.ss, &e.players);
             AddNativeCalls_HVIConfig(args.ss, &e.config);   
          }

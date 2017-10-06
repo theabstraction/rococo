@@ -59,16 +59,6 @@ namespace HV
       }
    }
 
-   namespace Graphics
-   {
-      ROCOCOAPI ISpriteSupervisor : public ISprites
-      {
-         virtual void Free() = 0;
-      };
-
-      ISpriteSupervisor* CreateSpriteSupervisor(IRenderer & renderer);
-   }
-
    ROCOCOAPI IPlayerSupervisor
    {
       virtual void Free() = 0;
@@ -164,7 +154,6 @@ namespace HV
    {
       Platform& platform;
       IConfigSupervisor& config;
-      Graphics::ISpriteSupervisor& sprites;
       IPlayerSupervisor& players;
       IEditor& editor;
    };

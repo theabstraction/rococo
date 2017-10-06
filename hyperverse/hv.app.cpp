@@ -18,7 +18,6 @@ namespace
       bool editorActive{ false };
 
       AutoFree<IPlayerSupervisor> players;
-      AutoFree<ISpriteSupervisor> sprites;
       AutoFree<IEditor> editor;
       AutoFree<IConfigSupervisor> config;
       AutoFree<IPaneBuilderSupervisor> editorPanel;
@@ -33,9 +32,8 @@ namespace
          platform(_platform),
          config(CreateConfig()),
          players(CreatePlayerSupervisor(platform)),
-         sprites(CreateSpriteSupervisor(platform.renderer)),
          editor(CreateEditor(platform)),
-         e { _platform, *config, *sprites, *players, *editor },
+         e { _platform, *config, *players, *editor },
          fpsLogic(CreateFPSGameLogic(e))
       {
          mode = fpsLogic;

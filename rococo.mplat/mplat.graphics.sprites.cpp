@@ -1,4 +1,4 @@
-#include "hv.h"
+#include <rococo.mplat.h>
 
 #include <rococo.io.h>
 #include <rococo.renderer.h>
@@ -9,8 +9,8 @@
 
 namespace
 {
-   using namespace HV;
-   using namespace HV::Graphics;
+   using namespace Rococo;
+   using namespace Rococo::Graphics;
 
    struct Sprites : public ISpriteSupervisor
    {
@@ -42,7 +42,7 @@ namespace
       }
 
       void AddEachSpriteInDirectory(const fstring& directoryName)
-      { 
+      {
          struct : IEventCallback<cstr>
          {
             Sprites* sprites;
@@ -67,8 +67,8 @@ namespace
          sb << directoryName;
 
          EndDirectoryWithSlash(onFileFound.shortdir, IO::MAX_PATHLEN);
-   
-         SafeFormat(onFileFound.directory, IO::MAX_PATHLEN, "%s%s", renderer.Installation().Content(), (onFileFound.shortdir+1));
+
+         SafeFormat(onFileFound.directory, IO::MAX_PATHLEN, "%s%s", renderer.Installation().Content(), (onFileFound.shortdir + 1));
          IO::ForEachFileInDirectory(onFileFound.directory, onFileFound);
       }
 
@@ -84,7 +84,7 @@ namespace
    };
 }
 
-namespace HV
+namespace Rococo
 {
    namespace Graphics
    {

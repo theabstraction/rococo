@@ -295,7 +295,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIKeyboardBindAction, nullptr, SEXTEXT("IKeyboardBindAction (Pointer hObject)(Sys.Type.IString keyName)(Sys.Type.IString actionName) -> "));
 	}
 }
-// BennyHill generated Sexy native functions for Rococo::ILabelPane 
+// BennyHill generated Sexy native functions for Rococo::IRadioButton 
 namespace
 {
 	using namespace Rococo;
@@ -303,7 +303,7 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeRococoILabelPaneSetAlignment(NativeCallEnvironment& _nce)
+	void NativeRococoIRadioButtonSetAlignment(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -323,17 +323,17 @@ namespace
 		_offset += sizeof(horz);
 		ReadInput(horz, _sf, -_offset);
 
-		Rococo::ILabelPane* _pObject;
+		Rococo::IRadioButton* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetAlignment(horz, vert, paddingX, paddingY);
 	}
-	void NativeRococoILabelPaneBase(NativeCallEnvironment& _nce)
+	void NativeRococoIRadioButtonBase(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::ILabelPane* _pObject;
+		Rococo::IRadioButton* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
@@ -347,13 +347,97 @@ namespace
 }
 
 namespace Rococo { 
-	void AddNativeCalls_RococoILabelPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::ILabelPane* _nceContext)
+	void AddNativeCalls_RococoIRadioButton(Rococo::Script::IPublicScriptSystem& ss, Rococo::IRadioButton* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneSetAlignment, nullptr, SEXTEXT("ILabelPaneSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneBase, nullptr, SEXTEXT("ILabelPaneBase (Pointer hObject) -> (Rococo.IPane base)"));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetAlignment, nullptr, SEXTEXT("IRadioButtonSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonBase, nullptr, SEXTEXT("IRadioButtonBase (Pointer hObject) -> (Rococo.IPane base)"));
 	}
 }
+// BennyHill generated Sexy native functions for Rococo::Graphics::ISprites 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoGraphicsISpritesClear(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::ISprites* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Clear();
+	}
+	void NativeRococoGraphicsISpritesAddSprite(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _resourceName;
+		ReadInput(_resourceName, _sf, -_offset);
+		fstring resourceName { _resourceName->buffer, _resourceName->length };
+
+
+		Rococo::Graphics::ISprites* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddSprite(resourceName);
+	}
+	void NativeRococoGraphicsISpritesAddEachSpriteInDirectory(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _directoryName;
+		ReadInput(_directoryName, _sf, -_offset);
+		fstring directoryName { _directoryName->buffer, _directoryName->length };
+
+
+		Rococo::Graphics::ISprites* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddEachSpriteInDirectory(directoryName);
+	}
+	void NativeRococoGraphicsISpritesLoadAllSprites(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::ISprites* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->LoadAllSprites();
+	}
+
+	void NativeGetHandleForRococoGraphicsSprites(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::ISprites* nceContext = reinterpret_cast<Rococo::Graphics::ISprites*>(_nce.context);
+		// Uses: Rococo::Graphics::ISprites* FactoryConstructRococoGraphicsSprites(Rococo::Graphics::ISprites* _context);
+		Rococo::Graphics::ISprites* pObject = FactoryConstructRococoGraphicsSprites(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { namespace Graphics { 
+	void AddNativeCalls_RococoGraphicsISprites(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::ISprites* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Graphics.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsSprites, _nceContext, SEXTEXT("GetHandleForISprites0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISpritesClear, nullptr, SEXTEXT("ISpritesClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISpritesAddSprite, nullptr, SEXTEXT("ISpritesAddSprite (Pointer hObject)(Sys.Type.IString resourceName) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISpritesAddEachSpriteInDirectory, nullptr, SEXTEXT("ISpritesAddEachSpriteInDirectory (Pointer hObject)(Sys.Type.IString directoryName) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISpritesLoadAllSprites, nullptr, SEXTEXT("ISpritesLoadAllSprites (Pointer hObject) -> "));
+	}
+}}
 // BennyHill generated Sexy native functions for Rococo::Entities::IMobiles 
 namespace
 {
@@ -1248,7 +1332,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerBase, nullptr, SEXTEXT("IPaneContainerBase (Pointer hObject) -> (Rococo.IPane base)"));
 	}
 }
-// BennyHill generated Sexy native functions for Rococo::IRadioButton 
+// BennyHill generated Sexy native functions for Rococo::ILabelPane 
 namespace
 {
 	using namespace Rococo;
@@ -1256,7 +1340,7 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeRococoIRadioButtonSetAlignment(NativeCallEnvironment& _nce)
+	void NativeRococoILabelPaneSetAlignment(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -1276,17 +1360,17 @@ namespace
 		_offset += sizeof(horz);
 		ReadInput(horz, _sf, -_offset);
 
-		Rococo::IRadioButton* _pObject;
+		Rococo::ILabelPane* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetAlignment(horz, vert, paddingX, paddingY);
 	}
-	void NativeRococoIRadioButtonBase(NativeCallEnvironment& _nce)
+	void NativeRococoILabelPaneBase(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::IRadioButton* _pObject;
+		Rococo::ILabelPane* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
@@ -1300,11 +1384,11 @@ namespace
 }
 
 namespace Rococo { 
-	void AddNativeCalls_RococoIRadioButton(Rococo::Script::IPublicScriptSystem& ss, Rococo::IRadioButton* _nceContext)
+	void AddNativeCalls_RococoILabelPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::ILabelPane* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetAlignment, nullptr, SEXTEXT("IRadioButtonSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonBase, nullptr, SEXTEXT("IRadioButtonBase (Pointer hObject) -> (Rococo.IPane base)"));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetAlignment, nullptr, SEXTEXT("ILabelPaneSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneBase, nullptr, SEXTEXT("ILabelPaneBase (Pointer hObject) -> (Rococo.IPane base)"));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::ISlider 

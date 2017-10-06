@@ -39,9 +39,6 @@
     <ClCompile Include="hv.imports.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hv.sprites.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hv.editor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

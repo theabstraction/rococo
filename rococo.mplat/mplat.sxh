@@ -13,6 +13,19 @@
 )
 
 (interface 
+	(as.sxy Rococo.Graphics.ISprites "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.ISprites "mplat")
+	(context factory Rococo.Graphics.ISprites)
+	(methods
+		(Clear)
+		(AddSprite (IString resourceName))
+		(AddEachSpriteInDirectory (IString directoryName))
+		(LoadAllSprites)
+	)
+	(factory Rococo.Graphics.Sprites)
+)
+
+(interface 
 	(as.sxy Rococo.IPane "../content/scripts/mplat.pane")
 	(as.cpp Rococo.IPane "mplat")
 	(context factory Rococo.IPane)

@@ -128,7 +128,6 @@
     <ClCompile Include="hv.scripts.cpp" />
     <ClCompile Include="hv.sector.cpp" />
     <ClCompile Include="hv.sectors.cpp" />
-    <ClCompile Include="hv.sprites.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hv.defaults.h" />

@@ -3,6 +3,11 @@
 #include <sexy.script.h>
 #include <sexy.vm.cpu.h>
 
+Rococo::Graphics::ISprites* FactoryConstructRococoGraphicsSprites(Rococo::Graphics::ISprites* _context)
+{
+   return _context;
+}
+
 Rococo::IKeyboard* FactoryConstructRococoKeyboard(Rococo::IKeyboard* _context)
 {
    return _context;
@@ -97,6 +102,7 @@ namespace Rococo
                   Entities::AddNativeCalls_RococoEntitiesIMobiles(args.ss, &platform.mobiles);
                   Graphics::AddNativeCalls_RococoGraphicsICamera(args.ss, &platform.camera);
                   Graphics::AddNativeCalls_RococoGraphicsISceneBuilder(args.ss, &platform.scene.Builder());
+                  Graphics::AddNativeCalls_RococoGraphicsISprites(args.ss, &platform.sprites);
                   AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
                }
                onScriptEvent.OnEvent(args);

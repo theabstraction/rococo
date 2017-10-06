@@ -118,6 +118,13 @@ namespace Rococo
       };
 
       ISceneSupervisor* CreateScene(Rococo::Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera);
+
+      ROCOCOAPI ISpriteSupervisor : public ISprites
+      {
+         virtual void Free() = 0;
+      };
+
+      ISpriteSupervisor* CreateSpriteSupervisor(IRenderer & renderer);
    }
 
    namespace Entities
@@ -288,6 +295,8 @@ namespace Rococo
       Entities::IInstancesSupervisor& instances;
 
       Entities::IMobilesSupervisor& mobiles;
+
+      Graphics::ISpriteSupervisor& sprites;
 
       Graphics::ICameraSupervisor& camera;
 

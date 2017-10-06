@@ -1232,9 +1232,11 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 
    AutoFree<IKeyboardSupervisor> keyboard = CreateKeyboardSupervisor();
 
+   AutoFree<Graphics::ISpriteSupervisor> sprites = Graphics::CreateSpriteSupervisor(mainWindow->Renderer());
+
    Utilities utils;
    GuiStack gui(*publisher, *sourceCache, mainWindow->Renderer(), utils);
-   Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *meshes, *instances, *mobiles, *camera, *scene, *mathsVisitor, title };
+   Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *meshes, *instances, *mobiles, *sprites, *camera, *scene, *mathsVisitor, title };
    gui.platform = &platform;
 
    AutoFree<IApp> app(appFactory.CreateApp(platform));

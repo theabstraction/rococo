@@ -12,19 +12,6 @@
 )
 
 (interface 
-	(as.sxy HV.ISprites "../content/scripts/hv")
-	(as.cpp HV.ISprites "hv")
-	(context factory HV.ISprites)
-	(methods
-		(Clear)
-		(AddSprite (IString resourceName))
-		(AddEachSpriteInDirectory (IString directoryName))
-		(LoadAllSprites)
-	)
-	(factory HV.Sprites)
-)
-
-(interface 
 	(as.sxy HV.IConfig "../content/scripts/hv")
 	(as.cpp HV.IConfig "hv")
 	(context factory HV.IConfig)
