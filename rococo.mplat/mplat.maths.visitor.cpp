@@ -1,4 +1,4 @@
-#include "hv.h"
+#include <rococo.mplat.h>
 #include <vector>
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
@@ -6,7 +6,7 @@
 
 namespace
 {
-   using namespace HV;
+   using namespace Rococo;
 
    struct DebugLine
    {
@@ -266,7 +266,7 @@ namespace
    };
 }
 
-namespace HV
+namespace Rococo
 {
    IMathsVisitorSupervisor* CreateMathsVisitor()
    {

@@ -2,11 +2,9 @@
 #include <rococo.os.win32.h>
 
 #include <rococo.window.h>
+#include <rococo.sexy.ide.h>
 #include <rococo.dx11.renderer.win32.h>
 #include <rococo.strings.h>
-
-#include <sexy.script.h>
-#include <rococo.sexy.ide.h>
 
 #include <vector>
 #include <algorithm>
@@ -14,29 +12,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <sexy.vm.cpu.h>
-
-Rococo::Entities::IMobiles* FactoryConstructRococoEntitiesMobiles(Rococo::Entities::IMobiles* _context)
-{
-   return _context;
-}
-
-Rococo::IPaneBuilder* FactoryConstructRococoPaneBuilder(Rococo::IPaneBuilder* _context)
-{
-   return _context;
-}
-
-Rococo::Entities::IInstances* FactoryConstructRococoEntitiesInstances(Rococo::Entities::IInstances* ins)
-{
-   return ins;
-}
-
-Rococo::Graphics::IMeshBuilder* FactoryConstructRococoGraphicsMeshBuilder(Rococo::Graphics::IMeshBuilder* _context)
-{
-   return _context;
-}
-
-#include "mplat.sxh.inl"
 
 #include <rococo.fonts.h>
 
@@ -51,12 +26,21 @@ struct FileUpdatedEvent : public Event
    cstr pingPath;
 };
 
-bool QueryYesNo(IWindow& ownerWindow, cstr message)
+namespace Rococo
 {
-   rchar title[256];
-   GetWindowTextA(ownerWindow, title, 256);
-   return ShowMessageBox(Windows::NullParent(), message, title, MB_ICONQUESTION | MB_YESNO) == IDYES;
+   namespace M
+   {
+      bool QueryYesNo(IWindow& ownerWindow, cstr message)
+      {
+         rchar title[256];
+         GetWindowTextA(ownerWindow, title, 256);
+         return ShowMessageBox(Windows::NullParent(), message, title, MB_ICONQUESTION | MB_YESNO) == IDYES;
+      }
+
+      void InitScriptSystem(IInstallation& installation);
+   }
 }
+
 
 const char* CreatePersistentString(const char* volatileString)
 {
@@ -76,64 +60,12 @@ EventId CreateEventIdFromVolatileString(const char* volatileString)
    return EventId(s, (EventHash)FastHash(s));
 }
 
-void _RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform)
+namespace Rococo
 {
-   class ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
+   namespace M
    {
-      Platform& platform;
-      IEventCallback<ScriptCompileArgs>& onScriptEvent;
-
-      virtual void Free()
-      {
-
-      }
-
-      virtual IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message)
-      {
-         platform.installation.OS().FireUnstable();
-
-         rchar msg[1024];
-         SafeFormat(msg, sizeof(msg), "Error: Do you wish to debug?\n\t%s\n\t%s", source, message);
-         if (QueryYesNo(platform.renderer.Window(), msg))
-         {
-            return IDE::EScriptExceptionFlow_Retry;
-         }
-         else
-         {
-            return IDE::EScriptExceptionFlow_Terminate;
-         }
-      }
-
-      virtual void OnEvent(ScriptCompileArgs& args)
-      {
-         Graphics::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.meshes);
-         Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.instances);
-         Entities::AddNativeCalls_RococoEntitiesIMobiles(args.ss, &platform.mobiles);
-         onScriptEvent.OnEvent(args);
-      }
-
-   public:
-      ScriptContext(Platform& _platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent) : platform(_platform), onScriptEvent(_onScriptEvent){}
-
-      void Execute(cstr name)
-      {
-         try
-         {
-            IDE::ExecuteSexyScriptLoop(1024_kilobytes, platform.sourceCache, platform.debuggerWindow, name, 0, (int32)128_kilobytes, *this, *this);
-         }
-         catch (IException&)
-         {
-            Rococo::OS::ShutdownApp();
-            throw;
-         }
-      }
-
-      bool addPlatform;
-   } sc(platform, _onScriptEvent);
-
-   sc.addPlatform = addPlatform;
-
-   sc.Execute(name);
+      void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform);
+   }
 }
 
 class Utilities : public IUtilitiies
@@ -147,7 +79,7 @@ public:
 
    void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform) override
    {
-      return _RunEnvironmentScript(platform, _onScriptEvent, name, addPlatform);
+      return M::RunEnvironmentScript(platform, _onScriptEvent, name, addPlatform);
    }
 
    void RefreshResource(Platform& platform, cstr pingPath) override
@@ -884,8 +816,8 @@ public:
       id(CreateEventIdFromVolatileString(_key)),
       fontIndex(_fontIndex), publisher(_publisher)
    {
-      CopyString(text, sizeof(text), _text);
-      CopyString(value, sizeof(value), _value);
+      SafeFormat(text, sizeof(text), "%s", _text);
+      SafeFormat(value, sizeof(value), "%s", _value);
 
       publisher.Attach(this, id);
    }
@@ -971,7 +903,7 @@ class PanelLabel : public BasePanel, public ILabelPane
 public:
    PanelLabel(IPublisher& _publisher, int _fontIndex, cstr _text): fontIndex(_fontIndex), publisher(_publisher)
    {
-      CopyString(text, sizeof(text), _text);
+      SafeFormat(text, sizeof(text), "%s", _text);
    }
 
    void Free() override
@@ -1027,7 +959,7 @@ public:
    PanelSlider(IPublisher& _publisher, IRenderer& _renderer, int _fontIndex, cstr _text, float _minValue, float _maxValue) :
       publisher(_publisher), renderer(_renderer), fontIndex(_fontIndex), minValue(_minValue), maxValue(_maxValue)
    {
-      CopyString(text, sizeof(text), _text);
+      SafeFormat(text, sizeof(text), "%s", _text);
       value = 0.5f * (maxValue + minValue);
    }
 
@@ -1286,21 +1218,25 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
    AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation));
    AutoFree<IDebuggerWindow> debuggerWindow(Windows::IDE::CreateDebuggerWindow(mainWindow->Window()));
 
-   rchar srcpath[Rococo::IO::MAX_PATHLEN];
-   SecureFormat(srcpath, sizeof(srcpath), "%sscripts\\native\\", installation->Content());
-
-   Rococo::Script::SetDefaultNativeSourcePath(srcpath);
+   Rococo::M::InitScriptSystem(*installation);
 
    AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
    AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer());
    AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
 
+   AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor();
+
+   AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
+
    Utilities utils;
    GuiStack gui(*publisher, *sourceCache, mainWindow->Renderer(), utils);
-   Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui,  *meshes, *instances, *mobiles, title };
+   Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui,  *meshes, *instances, *mobiles, *camera, *mathsVisitor, title };
    gui.platform = &platform;
 
    AutoFree<IApp> app(appFactory.CreateApp(platform));
+
+   platform.renderer.AddOverlay(1000, &mathsVisitor->Overlay());
+
    mainWindow->Run(hInstanceLock, *app);
 }
 
@@ -1330,8 +1266,6 @@ namespace Rococo
 
    int M_Platorm_Win64_Main(HINSTANCE hInstance, IAppFactory& factory, cstr title, HICON hLarge, HICON hSmall)
    {
-      Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
-
       rchar filename[1024];
       GetModuleFileNameA(nullptr, filename, 1024);
       for (char* p = filename; *p != 0; p++)

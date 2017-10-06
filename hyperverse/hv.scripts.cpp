@@ -16,11 +16,6 @@ namespace // Script factories
       return sb;
    }
 
-   HV::Graphics::ICamera* FactoryConstructHVGraphicsCamera(HV::Graphics::ICamera* camera)
-   {
-      return camera;
-   }
-
    HV::ISprites* FactoryConstructHVSprites(HV::ISprites* sprites)
    {
       return sprites;
@@ -60,7 +55,6 @@ namespace HV
             args.ss.AddNativeLibrary(SEXTEXT("rococo.sexy.mathsex"));
 #endif
             Graphics::AddNativeCalls_HVGraphicsISceneBuilder(args.ss, &e.scene.Builder());
-            Graphics::AddNativeCalls_HVGraphicsICamera(args.ss, &e.camera);   
             AddNativeCalls_HVISprites(args.ss, &e.sprites);
             AddNativeCalls_HVIKeyboard(args.ss, &e.keyboard);
             AddNativeCalls_HVIPlayer(args.ss, &e.players);

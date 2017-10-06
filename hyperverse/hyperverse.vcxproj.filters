@@ -30,9 +30,6 @@
     <ClCompile Include="hv.scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hv.camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hv.player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -43,9 +40,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="hv.defaultconfig.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="hv.maths.visitor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="hv.imports.cpp">

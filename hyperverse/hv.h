@@ -50,37 +50,6 @@ namespace HV
       operator const fstring() { return key; }
    };
 
-   typedef cstr VisitorName;
-
-   ROCOCOAPI IMathsVisitor
-   {
-      virtual void Clear() = 0;
-      virtual void Show(VisitorName name, const Matrix4x4& m) = 0;
-      virtual void ShowRow(VisitorName name, const float* vector, const size_t nComponents) = 0;
-      virtual void ShowColumn(VisitorName name, const float* vector, const size_t nComponents) = 0;
-      virtual void ShowDecimal(VisitorName name, const int32 value) = 0;
-      virtual void Show(VisitorName name, const float value) = 0;
-      virtual void ShowHex(VisitorName name, const int32 value) = 0;
-      virtual void ShowBool(VisitorName name, const bool value) = 0;
-      virtual void ShowDecimal(VisitorName name, const int64 value) = 0;
-      virtual void ShowHex(VisitorName name, const int64 value) = 0;
-      virtual void ShowPointer(VisitorName name, const void* ptr) = 0;
-      virtual void ShowString(VisitorName name, cstr format, ...) = 0;
-   };
-
-   ROCOCOAPI IMathsVenue
-   {
-      virtual void ShowVenue(IMathsVisitor& visitor) = 0;
-   };
-
-   ROCOCOAPI IMathsVisitorSupervisor: public IMathsVisitor
-   {
-      virtual IUIOverlay& Overlay() = 0;
-      virtual void Free() = 0;
-   };
-
-   IMathsVisitorSupervisor* CreateMathsVisitor();
-
    namespace Events
    {
       namespace Player
@@ -97,14 +66,6 @@ namespace HV
          virtual void Free() = 0;
       };
 
-      ROCOCOAPI ICameraSupervisor : public ICamera
-      {
-         virtual void Append(Events::Player::OnPlayerViewChangeEvent& pvce) = 0;
-         virtual void Free() = 0;
-         virtual void Update(const IUltraClock& clock) = 0;
-         virtual IMathsVenue& Venue() = 0;
-      };
-
       ROCOCOAPI ISceneSupervisor : public IScene
       {
          virtual void Free() = 0;
@@ -118,8 +79,8 @@ namespace HV
 
       ISpriteSupervisor* CreateSpriteSupervisor(IRenderer & renderer);
 
-      ISceneSupervisor* CreateScene(Rococo::Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, Platform& platform);
-      ICameraSupervisor* CreateCamera(Rococo::Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& render);
+      ISceneSupervisor* CreateScene(Rococo::Entities::IInstancesSupervisor& instances, Rococo::Graphics::ICameraSupervisor& camera, Platform& platform);
+      Rococo::Graphics::ICameraSupervisor* CreateCamera(Rococo::Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& render);
    }
 
    ROCOCOAPI IPlayerSupervisor
@@ -233,11 +194,9 @@ namespace HV
       Platform& platform;
       IConfigSupervisor& config;
       Graphics::ISceneSupervisor& scene;
-      Graphics::ICameraSupervisor& camera;
       Graphics::ISpriteSupervisor& sprites;
       IPlayerSupervisor& players;
       IKeyboardSupervisor& keyboard;
-      IMathsVisitorSupervisor& mathsDebugger;
       IEditor& editor;
    };
 

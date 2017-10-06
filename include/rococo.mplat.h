@@ -11,6 +11,39 @@ namespace Rococo
 
 namespace Rococo
 {
+   typedef cstr VisitorName;
+
+   ROCOCOAPI IMathsVisitor
+   {
+      virtual void Clear() = 0;
+      virtual void Show(VisitorName name, const Matrix4x4& m) = 0;
+      virtual void ShowRow(VisitorName name, const float* vector, const size_t nComponents) = 0;
+      virtual void ShowColumn(VisitorName name, const float* vector, const size_t nComponents) = 0;
+      virtual void ShowDecimal(VisitorName name, const int32 value) = 0;
+      virtual void Show(VisitorName name, const float value) = 0;
+      virtual void ShowHex(VisitorName name, const int32 value) = 0;
+      virtual void ShowBool(VisitorName name, const bool value) = 0;
+      virtual void ShowDecimal(VisitorName name, const int64 value) = 0;
+      virtual void ShowHex(VisitorName name, const int64 value) = 0;
+      virtual void ShowPointer(VisitorName name, const void* ptr) = 0;
+      virtual void ShowString(VisitorName name, cstr format, ...) = 0;
+   };
+
+   ROCOCOAPI IMathsVenue
+   {
+      virtual void ShowVenue(IMathsVisitor& visitor) = 0;
+   };
+
+   ROCOCOAPI IMathsVisitorSupervisor : public IMathsVisitor
+   {
+      virtual IUIOverlay& Overlay() = 0;
+      virtual void Free() = 0;
+   };
+
+   IMathsVisitorSupervisor* CreateMathsVisitor();
+
+   void Run_MPLat_EnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform);
+
    namespace Entities
    {
       ROCOCOAPI IEntity
@@ -47,6 +80,16 @@ namespace Rococo
          virtual void Free() = 0;
          virtual bool TryGetByName(cstr name, ID_SYS_MESH& id) = 0;
       };
+
+      ROCOCOAPI ICameraSupervisor : public ICamera
+      {
+         virtual void ElevateView(ID_ENTITY entityId, Degrees delta) = 0;
+         virtual void Free() = 0;
+         virtual void Update(const IUltraClock& clock) = 0;
+         virtual IMathsVenue& Venue() = 0;
+      };
+
+      ICameraSupervisor* CreateCamera(Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& renderer);
    }
 
    namespace Entities
@@ -215,6 +258,10 @@ namespace Rococo
       Entities::IInstancesSupervisor& instances;
 
       Entities::IMobilesSupervisor& mobiles;
+
+      Graphics::ICameraSupervisor& camera;
+
+      IMathsVisitorSupervisor& mathsVisitor;
 
       // Application title
       const char* const title;

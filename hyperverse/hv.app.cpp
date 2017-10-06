@@ -17,11 +17,9 @@ namespace
       Platform& platform;
       bool editorActive{ false };
 
-      AutoFree<ICameraSupervisor> camera;
       AutoFree<ISceneSupervisor> scene;
       AutoFree<IPlayerSupervisor> players;
       AutoFree<IKeyboardSupervisor> keyboardSupervisor;
-      AutoFree<IMathsVisitorSupervisor> mathsVisitor;
       AutoFree<ISpriteSupervisor> sprites;
       AutoFree<IEditor> editor;
       AutoFree<IConfigSupervisor> config;
@@ -36,14 +34,12 @@ namespace
       HVApp(Platform& _platform) : 
          platform(_platform),
          config(CreateConfig()),
-         camera(CreateCamera(platform.instances, _platform.mobiles, platform.renderer)),
-         scene(CreateScene(platform.instances, *camera, platform)),
+         scene(CreateScene(platform.instances, platform.camera, platform)),
          players(CreatePlayerSupervisor(platform)),
          keyboardSupervisor(CreateKeyboardSupervisor()),
-         mathsVisitor(CreateMathsVisitor()),
          sprites(CreateSpriteSupervisor(platform.renderer)),
          editor(CreateEditor(platform)),
-         e { _platform, *config, *scene, *camera, *sprites, *players, *keyboardSupervisor, *mathsVisitor, *editor },
+         e { _platform, *config, *scene, *sprites, *players, *keyboardSupervisor, *editor },
          fpsLogic(CreateFPSGameLogic(e))
       {
          mode = fpsLogic;
@@ -54,8 +50,6 @@ namespace
          RunEnvironmentScript(e, "!scripts/hv/keys.sxy");
          RunEnvironmentScript(e, "!scripts/hv/controls.sxy");
          RunEnvironmentScript(e, "!scripts/hv/main.sxy");
-
-         e.platform.renderer.AddOverlay(1000, &mathsVisitor->Overlay());
 
          editorPanel = e.platform.gui.BindPanelToScript("!scripts/panel.editor.sxy");
          fpsPanel = e.platform.gui.BindPanelToScript("!scripts/panel.fps.sxy");
@@ -123,7 +117,7 @@ namespace
 
          mode->UpdateAI(clock);
 
-         e.camera.Update(clock);
+         e.platform.camera.Update(clock);
    //    e.camera.Venue().ShowVenue(e.mathsDebugger);
 
          GuiRect fullRect{ 0,0,metrics.screenSpan.x, metrics.screenSpan.y };

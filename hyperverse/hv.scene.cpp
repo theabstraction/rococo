@@ -12,13 +12,14 @@ namespace
    using namespace Rococo::Entities;
    using namespace HV;
    using namespace HV::Graphics;
+   using namespace Rococo::Graphics;
 
    class Scene : public ISceneSupervisor, public HV::Graphics::ISceneBuilderSupervisor
    {
       IInstancesSupervisor& instances;
       std::vector<ID_ENTITY> entities;
       std::vector<ObjectInstance> drawQueue;
-      HV::Graphics::ICameraSupervisor& camera;
+      Rococo::Graphics::ICameraSupervisor& camera;
 
       Platform& platform;
 
@@ -26,7 +27,7 @@ namespace
       Vec3 sun{ 0, 0, -1 };
 
    public:
-      Scene(IInstancesSupervisor& _instances, HV::Graphics::ICameraSupervisor& _camera, Platform& _platform) :
+      Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera, Platform& _platform) :
          instances(_instances), camera(_camera), platform(_platform)
       {
       }

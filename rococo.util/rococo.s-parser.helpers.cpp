@@ -265,9 +265,12 @@ namespace
                for (int j = 0; j < inter.MethodCount(); ++j)
                {
                   auto& method = inter.GetMethod(j);
-                  SafeFormat(desc, sizeof(desc), "method %s", method.Name());
-                  auto methodId = tree.AddChild(interId, desc, CheckState_Clear);
-                  AddArguments(method, tree, methodId);
+                  if (&method != nullptr)
+                  {
+                     SafeFormat(desc, sizeof(desc), "method %s", method.Name());
+                     auto methodId = tree.AddChild(interId, desc, CheckState_Clear);
+                     AddArguments(method, tree, methodId);
+                  }
                }
             }
          }

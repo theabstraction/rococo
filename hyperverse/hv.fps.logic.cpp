@@ -83,7 +83,7 @@ public:
       elevationDelta -= delta.y;
    }
 
-   void GetPlayerDelta(ID_ENTITY playerId, float dt, Entities::MoveMobileArgs& mm, OnPlayerViewChangeEvent& pvce)
+   void GetPlayerDelta(ID_ENTITY playerId, float dt, Entities::MoveMobileArgs& mm, Degrees& viewElevationDelta)
    {
       float forwardDelta = 0;
       if (isMovingForward || isAutoRun) forwardDelta += 1.0f;
@@ -102,12 +102,8 @@ public:
          headingDelta = 0;
       }
 
-      if (elevationDelta)
-      {
-         pvce.playerEntityId = playerId;
-         pvce.elevationDelta = elevationDelta;
-         elevationDelta = 0;
-      }
+      viewElevationDelta = Degrees{ -elevationDelta };
+      elevationDelta = 0;
    }
 };
 
@@ -165,16 +161,16 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 
       float dt = clock.DT();
 
-      OnPlayerViewChangeEvent pvce;
+      Degrees viewElevationDelta;
 
       Entities::MoveMobileArgs mm;
-      fpsControl.GetPlayerDelta(player->GetPlayerEntity(), dt, mm, pvce);
+      fpsControl.GetPlayerDelta(player->GetPlayerEntity(), dt, mm, viewElevationDelta);
 
       e.platform.mobiles.TryMoveMobile(mm);
 
-      if (pvce.elevationDelta != 0)
+      if (viewElevationDelta != 0)
       {
-         e.camera.Append(pvce);
+         e.platform.camera.ElevateView(player->GetPlayerEntity(), viewElevationDelta);
       }
    }
 

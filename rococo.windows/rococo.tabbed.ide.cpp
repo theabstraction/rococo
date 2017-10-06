@@ -374,15 +374,6 @@ namespace
       int32 menuId;
    };
 
-   const std::vector<TabContextMenuItem> tileSubMenuItems =
-   {
-      { "Tabbed View",        ELayout_Tabbed },
-      { "Split Horiztonally", ELayout_Horizontal },
-      { "Split Vertically  ", ELayout_Vertical },
-      { "Migrate From",       EMenuCommand_MigrateFrom },
-      { "Migrate To",         EMenuCommand_MigrateTo }
-   };
-
    class IDESpatialManager : public StandardWindowHandler, private ITabControlEvents, public ISpatialManager
    {
    private:
@@ -542,17 +533,27 @@ namespace
          sectionB = IDESpatialManager::Create(*window, database);
          splitterControl = IDESplitterWindow::Create(window);
 
-         // The first panel always goes in section A
-         sectionA->AddPane(paneIds[0]);
-
-         for (int32 i = 1; i < moveTabIndex; ++i)
+         if (paneIds.size() == 2)
          {
-            sectionA->AddPane(paneIds[i]);
+            sectionA->AddPane(paneIds[0]);
+            sectionB->AddPane(paneIds[1]);
          }
-
-         for (int32 i = moveTabIndex; i < paneIds.size(); ++i)
+         else
          {
-            sectionB->AddPane(paneIds[i]);
+            if (moveTabIndex == (int32)paneIds.size() - 1)
+            {
+               moveTabIndex--;
+            }
+
+            for (int32 i = 0; i <= moveTabIndex; ++i)
+            {
+               sectionA->AddPane(paneIds[i]);
+            }
+
+            for (int32 i = moveTabIndex+1; i < paneIds.size(); ++i)
+            {
+               sectionB->AddPane(paneIds[i]);
+            }
          }
 
          RECT rect;
@@ -709,15 +710,18 @@ namespace
                      item.wID = ELayout_Horizontal;
                      sb_name << "Split Horiztonally";
                      InsertMenuItemA(hMenu, pos++, MF_BYPOSITION, &item);
+                     sb_name.Clear();
 
                      item.wID = ELayout_Vertical;
                      sb_name << "Split Vertically";
                      InsertMenuItemA(hMenu, pos++, MF_BYPOSITION, &item);
+                     sb_name.Clear();
                   }
 
                   item.wID = EMenuCommand_MigrateFrom;
                   sb_name << "Migrate From";
                   InsertMenuItemA(hMenu, pos++, MF_BYPOSITION, &item);
+                  sb_name.Clear();
                }
 
                if (database.GetMigratingId() == IDEPANE_ID::Invalid())

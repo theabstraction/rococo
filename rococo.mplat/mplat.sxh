@@ -1,7 +1,7 @@
 (config $config.xc) 
 
 (interface 
-	(as.sxy Rococo.IPane "../content/scripts/mplat")
+	(as.sxy Rococo.IPane "../content/scripts/mplat.pane")
 	(as.cpp Rococo.IPane "mplat")
 	(context factory Rococo.IPane)
 	(methods
@@ -41,6 +41,40 @@
 	(factory Rococo.Entities.Mobiles)
 )
 
+(enum Int32
+	(as.sxy Rococo.Graphics.OrientationFlags "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.OrientationFlags "mplat")
+	(
+		(None 0)
+		(Heading 1)
+		(Elevation 2)
+		(Tilt 4)
+	)
+)
+
+(interface
+	(as.sxy Rococo.Graphics.ICamera "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.ICamera "mplat")
+	(context factory Rococo.Graphics.ICamera)
+	(methods
+		(Clear)
+		(SetRHProjection (Degrees fov)(Float32 near)(Float32 far))
+		(SetProjection (const Matrix4x4 proj))
+		(SetPosition (const Vec3 position))
+		(SetOrientation (const Quat orientation))
+		(FollowEntity (IdEntity id))
+		(MoveToEntity (IdEntity id))
+		(OrientateWithEntity (IdEntity id)(Int32 flags))
+		(OrientateToEntity(IdEntity id)(Int32 flags))
+		(GetPosition (Vec3 position))
+		(GetOrientation (Quat orientation))
+		(GetWorld (Matrix4x4 world))
+		(GetWorldAndProj (Matrix4x4 worldAndProj))
+		(AspectRatio -> (Float32 widthOverHeight))
+	)
+	(factory Rococo.Graphics.Camera)
+)
+
 (interface
 	(as.sxy Rococo.Entities.IInstances "../content/scripts/mplat")
 	(as.cpp Rococo.Entities.IInstances "mplat")
@@ -57,7 +91,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.IPaneContainer "../content/scripts/mplat")
+	(as.sxy Rococo.IPaneContainer "../content/scripts/mplat.pane")
 	(as.cpp Rococo.IPaneContainer "mplat")
 	(context factory Rococo.IPaneContainer)
 	(methods
@@ -71,7 +105,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.IRadioButton "../content/scripts/mplat")
+	(as.sxy Rococo.IRadioButton "../content/scripts/mplat.pane")
 	(as.cpp Rococo.IRadioButton "mplat")
 	(context factory Rococo.IRadioButton)
 	(methods
@@ -81,7 +115,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.ILabelPane "../content/scripts/mplat")
+	(as.sxy Rococo.ILabelPane "../content/scripts/mplat.pane")
 	(as.cpp Rococo.ILabelPane "mplat")
 	(context factory Rococo.ILabelPane)
 	(methods
@@ -91,7 +125,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.ISlider "../content/scripts/mplat")
+	(as.sxy Rococo.ISlider "../content/scripts/mplat.pane")
 	(as.cpp Rococo.ISlider "mplat")
 	(context factory Rococo.ISlider)
 	(methods
@@ -100,7 +134,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.ITextOutputPane "../content/scripts/mplat")
+	(as.sxy Rococo.ITextOutputPane "../content/scripts/mplat.pane")
 	(as.cpp Rococo.ITextOutputPane "mplat")
 	(context factory Rococo.ITextOutputPane)
 	(methods
@@ -110,7 +144,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.IPaneBuilder "../content/scripts/mplat")
+	(as.sxy Rococo.IPaneBuilder "../content/scripts/mplat.pane")
 	(as.cpp Rococo.IPaneBuilder "mplat")
 	(context factory Rococo.IPaneBuilder)
 	(methods

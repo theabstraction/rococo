@@ -118,7 +118,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="hv.app.cpp" />
-    <ClCompile Include="hv.camera.cpp" />
     <ClCompile Include="hv.config.cpp" />
     <ClCompile Include="hv.defaultconfig.cpp" />
     <ClCompile Include="hv.editor.cpp" />
@@ -126,7 +125,6 @@
     <ClCompile Include="hv.fps.logic.cpp" />
     <ClCompile Include="hv.keyboard.cpp" />
     <ClCompile Include="hv.main.mplat.cpp" />
-    <ClCompile Include="hv.maths.visitor.cpp" />
     <ClCompile Include="hv.player.cpp" />
     <ClCompile Include="hv.scene.cpp" />
     <ClCompile Include="hv.scripts.cpp" />

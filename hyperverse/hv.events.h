@@ -43,15 +43,6 @@ namespace HV
             cstr Name;
             float delta;
          };
-
-         extern EventId OnPlayerViewChange;
-
-         struct OnPlayerViewChangeEvent : public Event
-         {
-            OnPlayerViewChangeEvent() : Event(OnPlayerViewChange) {}
-            ID_ENTITY playerEntityId;
-            float32 elevationDelta;
-         };
       } // Player
    } // 
 } // HV

@@ -1,3 +1,57 @@
+namespace Rococo { namespace Graphics { 
+	bool TryParse(const Rococo::fstring& s, OrientationFlags& value)
+	{
+		if (s ==  "OrientationFlags_None"_fstring)
+		{
+			value = OrientationFlags_None;
+		}
+		else if (s ==  "OrientationFlags_Heading"_fstring)
+		{
+			value = OrientationFlags_Heading;
+		}
+		else if (s ==  "OrientationFlags_Elevation"_fstring)
+		{
+			value = OrientationFlags_Elevation;
+		}
+		else if (s ==  "OrientationFlags_Tilt"_fstring)
+		{
+			value = OrientationFlags_Tilt;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool TryShortParse(const Rococo::fstring& s, OrientationFlags& value)
+	{
+		if (s ==  "None"_fstring)
+		{
+			value = OrientationFlags_None;
+		}
+		else if (s ==  "Heading"_fstring)
+		{
+			value = OrientationFlags_Heading;
+		}
+		else if (s ==  "Elevation"_fstring)
+		{
+			value = OrientationFlags_Elevation;
+		}
+		else if (s ==  "Tilt"_fstring)
+		{
+			value = OrientationFlags_Tilt;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+}}// Rococo.Graphics.OrientationFlags
+
 // BennyHill generated Sexy native functions for Rococo::ILabelPane 
 namespace
 {
@@ -424,6 +478,313 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIPaneSetPopulator, nullptr, SEXTEXT("IPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
 	}
 }
+// BennyHill generated Sexy native functions for Rococo::ITextOutputPane 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoITextOutputPaneSetAlignment(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 paddingY;
+		_offset += sizeof(paddingY);
+		ReadInput(paddingY, _sf, -_offset);
+
+		int32 paddingX;
+		_offset += sizeof(paddingX);
+		ReadInput(paddingX, _sf, -_offset);
+
+		int32 vert;
+		_offset += sizeof(vert);
+		ReadInput(vert, _sf, -_offset);
+
+		int32 horz;
+		_offset += sizeof(horz);
+		ReadInput(horz, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetAlignment(horz, vert, paddingX, paddingY);
+	}
+	void NativeRococoITextOutputPaneBase(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::IPane* base = _pObject->Base();
+		_offset += sizeof(CReflectedClass*);
+		auto& _baseStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("Rococo"),SEXTEXT("IPane"), SEXTEXT("ProxyIPane"), _nce.ss);
+		CReflectedClass* _sxybase = _nce.ss.Represent(_baseStruct, base);
+		WriteOutput(&_sxybase->header._vTables[0], _sf, -_offset);
+	}
+
+}
+
+namespace Rococo { 
+	void AddNativeCalls_RococoITextOutputPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::ITextOutputPane* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetAlignment, nullptr, SEXTEXT("ITextOutputPaneSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneBase, nullptr, SEXTEXT("ITextOutputPaneBase (Pointer hObject) -> (Rococo.IPane base)"));
+	}
+}
+// BennyHill generated Sexy native functions for Rococo::Graphics::ICamera 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoGraphicsICameraClear(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Clear();
+	}
+	void NativeRococoGraphicsICameraSetRHProjection(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float far;
+		_offset += sizeof(far);
+		ReadInput(far, _sf, -_offset);
+
+		float near;
+		_offset += sizeof(near);
+		ReadInput(near, _sf, -_offset);
+
+		Degrees fov;
+		_offset += sizeof(fov);
+		ReadInput(fov, _sf, -_offset);
+
+		Rococo::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetRHProjection(fov, near, far);
+	}
+	void NativeRococoGraphicsICameraSetProjection(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Matrix4x4* proj;
+		_offset += sizeof(proj);
+		ReadInput(proj, _sf, -_offset);
+
+		Rococo::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetProjection(*proj);
+	}
+	void NativeRococoGraphicsICameraSetPosition(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec3* position;
+		_offset += sizeof(position);
+		ReadInput(position, _sf, -_offset);
+
+		Rococo::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetPosition(*position);
+	}
+	void NativeRococoGraphicsICameraSetOrientation(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Quat* orientation;
+		_offset += sizeof(orientation);
+		ReadInput(orientation, _sf, -_offset);
+
+		Rococo::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetOrientation(*orientation);
+	}
+	void NativeRococoGraphicsICameraFollowEntity(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Rococo::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->FollowEntity(id);
+	}
+	void NativeRococoGraphicsICameraMoveToEntity(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Rococo::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->MoveToEntity(id);
+	}
+	void NativeRococoGraphicsICameraOrientateWithEntity(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 flags;
+		_offset += sizeof(flags);
+		ReadInput(flags, _sf, -_offset);
+
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Rococo::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->OrientateWithEntity(id, flags);
+	}
+	void NativeRococoGraphicsICameraOrientateToEntity(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 flags;
+		_offset += sizeof(flags);
+		ReadInput(flags, _sf, -_offset);
+
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Rococo::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->OrientateToEntity(id, flags);
+	}
+	void NativeRococoGraphicsICameraGetPosition(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec3* position;
+		_offset += sizeof(position);
+		ReadInput(position, _sf, -_offset);
+
+		Rococo::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetPosition(*position);
+	}
+	void NativeRococoGraphicsICameraGetOrientation(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Quat* orientation;
+		_offset += sizeof(orientation);
+		ReadInput(orientation, _sf, -_offset);
+
+		Rococo::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetOrientation(*orientation);
+	}
+	void NativeRococoGraphicsICameraGetWorld(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Matrix4x4* world;
+		_offset += sizeof(world);
+		ReadInput(world, _sf, -_offset);
+
+		Rococo::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetWorld(*world);
+	}
+	void NativeRococoGraphicsICameraGetWorldAndProj(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Matrix4x4* worldAndProj;
+		_offset += sizeof(worldAndProj);
+		ReadInput(worldAndProj, _sf, -_offset);
+
+		Rococo::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetWorldAndProj(*worldAndProj);
+	}
+	void NativeRococoGraphicsICameraAspectRatio(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		float widthOverHeight = _pObject->AspectRatio();
+		_offset += sizeof(widthOverHeight);
+		WriteOutput(widthOverHeight, _sf, -_offset);
+	}
+
+	void NativeGetHandleForRococoGraphicsCamera(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::ICamera* nceContext = reinterpret_cast<Rococo::Graphics::ICamera*>(_nce.context);
+		// Uses: Rococo::Graphics::ICamera* FactoryConstructRococoGraphicsCamera(Rococo::Graphics::ICamera* _context);
+		Rococo::Graphics::ICamera* pObject = FactoryConstructRococoGraphicsCamera(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { namespace Graphics { 
+	void AddNativeCalls_RococoGraphicsICamera(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::ICamera* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Graphics.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsCamera, _nceContext, SEXTEXT("GetHandleForICamera0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraClear, nullptr, SEXTEXT("ICameraClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraSetRHProjection, nullptr, SEXTEXT("ICameraSetRHProjection (Pointer hObject)(Sys.Maths.Degrees fov)(Float32 near)(Float32 far) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraSetProjection, nullptr, SEXTEXT("ICameraSetProjection (Pointer hObject)(Sys.Maths.Matrix4x4 proj) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraSetPosition, nullptr, SEXTEXT("ICameraSetPosition (Pointer hObject)(Sys.Maths.Vec3 position) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraSetOrientation, nullptr, SEXTEXT("ICameraSetOrientation (Pointer hObject)(Sys.Maths.Quat orientation) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraFollowEntity, nullptr, SEXTEXT("ICameraFollowEntity (Pointer hObject)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraMoveToEntity, nullptr, SEXTEXT("ICameraMoveToEntity (Pointer hObject)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraOrientateWithEntity, nullptr, SEXTEXT("ICameraOrientateWithEntity (Pointer hObject)(Int64 id)(Int32 flags) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraOrientateToEntity, nullptr, SEXTEXT("ICameraOrientateToEntity (Pointer hObject)(Int64 id)(Int32 flags) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetPosition, nullptr, SEXTEXT("ICameraGetPosition (Pointer hObject)(Sys.Maths.Vec3 position) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetOrientation, nullptr, SEXTEXT("ICameraGetOrientation (Pointer hObject)(Sys.Maths.Quat orientation) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetWorld, nullptr, SEXTEXT("ICameraGetWorld (Pointer hObject)(Sys.Maths.Matrix4x4 world) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetWorldAndProj, nullptr, SEXTEXT("ICameraGetWorldAndProj (Pointer hObject)(Sys.Maths.Matrix4x4 worldAndProj) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraAspectRatio, nullptr, SEXTEXT("ICameraAspectRatio (Pointer hObject) -> (Float32 widthOverHeight)"));
+	}
+}}
 // BennyHill generated Sexy native functions for Rococo::ISlider 
 namespace
 {
@@ -616,49 +977,6 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesClear, nullptr, SEXTEXT("IInstancesClear (Pointer hObject) -> "));
 	}
 }}
-// BennyHill generated Sexy native functions for Rococo::IPaneBuilder 
-namespace
-{
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-	using namespace Rococo::Script;
-	using namespace Rococo::Compiler;
-
-	void NativeRococoIPaneBuilderRoot(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::IPaneBuilder* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		Rococo::IPaneContainer* container = _pObject->Root();
-		_offset += sizeof(CReflectedClass*);
-		auto& _containerStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("Rococo"),SEXTEXT("IPaneContainer"), SEXTEXT("ProxyIPaneContainer"), _nce.ss);
-		CReflectedClass* _sxycontainer = _nce.ss.Represent(_containerStruct, container);
-		WriteOutput(&_sxycontainer->header._vTables[0], _sf, -_offset);
-	}
-
-	void NativeGetHandleForRococoPaneBuilder(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::IPaneBuilder* nceContext = reinterpret_cast<Rococo::IPaneBuilder*>(_nce.context);
-		// Uses: Rococo::IPaneBuilder* FactoryConstructRococoPaneBuilder(Rococo::IPaneBuilder* _context);
-		Rococo::IPaneBuilder* pObject = FactoryConstructRococoPaneBuilder(nceContext);
-		_offset += sizeof(IString*);
-		WriteOutput(pObject, _sf, -_offset);
-	}
-}
-
-namespace Rococo { 
-	void AddNativeCalls_RococoIPaneBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::IPaneBuilder* _nceContext)
-	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoPaneBuilder, _nceContext, SEXTEXT("GetHandleForIPaneBuilder0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneBuilderRoot, nullptr, SEXTEXT("IPaneBuilderRoot (Pointer hObject) -> (Rococo.IPaneContainer container)"));
-	}
-}
 // BennyHill generated Sexy native functions for Rococo::IPaneContainer 
 namespace
 {
@@ -905,7 +1223,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIRadioButtonBase, nullptr, SEXTEXT("IRadioButtonBase (Pointer hObject) -> (Rococo.IPane base)"));
 	}
 }
-// BennyHill generated Sexy native functions for Rococo::ITextOutputPane 
+// BennyHill generated Sexy native functions for Rococo::IPaneBuilder 
 namespace
 {
 	using namespace Rococo;
@@ -913,55 +1231,39 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeRococoITextOutputPaneSetAlignment(NativeCallEnvironment& _nce)
+	void NativeRococoIPaneBuilderRoot(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		int32 paddingY;
-		_offset += sizeof(paddingY);
-		ReadInput(paddingY, _sf, -_offset);
-
-		int32 paddingX;
-		_offset += sizeof(paddingX);
-		ReadInput(paddingX, _sf, -_offset);
-
-		int32 vert;
-		_offset += sizeof(vert);
-		ReadInput(vert, _sf, -_offset);
-
-		int32 horz;
-		_offset += sizeof(horz);
-		ReadInput(horz, _sf, -_offset);
-
-		Rococo::ITextOutputPane* _pObject;
+		Rococo::IPaneBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetAlignment(horz, vert, paddingX, paddingY);
-	}
-	void NativeRococoITextOutputPaneBase(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::ITextOutputPane* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		Rococo::IPane* base = _pObject->Base();
+		Rococo::IPaneContainer* container = _pObject->Root();
 		_offset += sizeof(CReflectedClass*);
-		auto& _baseStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("Rococo"),SEXTEXT("IPane"), SEXTEXT("ProxyIPane"), _nce.ss);
-		CReflectedClass* _sxybase = _nce.ss.Represent(_baseStruct, base);
-		WriteOutput(&_sxybase->header._vTables[0], _sf, -_offset);
+		auto& _containerStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("Rococo"),SEXTEXT("IPaneContainer"), SEXTEXT("ProxyIPaneContainer"), _nce.ss);
+		CReflectedClass* _sxycontainer = _nce.ss.Represent(_containerStruct, container);
+		WriteOutput(&_sxycontainer->header._vTables[0], _sf, -_offset);
 	}
 
+	void NativeGetHandleForRococoPaneBuilder(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IPaneBuilder* nceContext = reinterpret_cast<Rococo::IPaneBuilder*>(_nce.context);
+		// Uses: Rococo::IPaneBuilder* FactoryConstructRococoPaneBuilder(Rococo::IPaneBuilder* _context);
+		Rococo::IPaneBuilder* pObject = FactoryConstructRococoPaneBuilder(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
 }
 
 namespace Rococo { 
-	void AddNativeCalls_RococoITextOutputPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::ITextOutputPane* _nceContext)
+	void AddNativeCalls_RococoIPaneBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::IPaneBuilder* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetAlignment, nullptr, SEXTEXT("ITextOutputPaneSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneBase, nullptr, SEXTEXT("ITextOutputPaneBase (Pointer hObject) -> (Rococo.IPane base)"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoPaneBuilder, _nceContext, SEXTEXT("GetHandleForIPaneBuilder0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoIPaneBuilderRoot, nullptr, SEXTEXT("IPaneBuilderRoot (Pointer hObject) -> (Rococo.IPaneContainer container)"));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::Graphics::IMeshBuilder 

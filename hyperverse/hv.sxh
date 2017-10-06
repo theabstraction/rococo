@@ -13,40 +13,6 @@
 	(factory HV.Graphics.SceneBuilder)
 )
 
-(enum Int32
-	(as.sxy HV.Graphics.OrientationFlags "../content/scripts/hv")
-	(as.cpp HV.Graphics.OrientationFlags "hv")
-	(
-		(None 0)
-		(Heading 1)
-		(Elevation 2)
-		(Tilt 4)
-	)
-)
-
-(interface
-	(as.sxy HV.Graphics.ICamera "../content/scripts/hv")
-	(as.cpp HV.Graphics.ICamera "hv")
-	(context factory HV.Graphics.ICamera)
-	(methods
-		(Clear)
-		(SetRHProjection (Degrees fov)(Float32 near)(Float32 far))
-		(SetProjection (const Matrix4x4 proj))
-		(SetPosition (const Vec3 position))
-		(SetOrientation (const Quat orientation))
-		(FollowEntity (IdEntity id))
-		(MoveToEntity (IdEntity id))
-		(OrientateWithEntity (IdEntity id)(Int32 flags))
-		(OrientateToEntity(IdEntity id)(Int32 flags))
-		(GetPosition (Vec3 position))
-		(GetOrientation (Quat orientation))
-		(GetWorld (Matrix4x4 world))
-		(GetWorldAndProj (Matrix4x4 worldAndProj))
-		(AspectRatio -> (Float32 widthOverHeight))
-	)
-	(factory HV.Graphics.Camera)
-)
-
 (interface
 	(as.sxy HV.IPlayer "../content/scripts/hv")
 	(as.cpp HV.IPlayer "hv")
