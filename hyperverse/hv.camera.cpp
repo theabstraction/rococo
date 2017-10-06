@@ -6,7 +6,6 @@ namespace
    using namespace HV;
    using namespace HV::Graphics;
    using namespace Rococo::Entities;
-   using namespace HV::Entities;
    using namespace HV::Events::Player;
 
    class Camera : public ICameraSupervisor , public IMathsVenue

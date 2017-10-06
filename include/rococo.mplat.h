@@ -38,8 +38,6 @@ namespace Rococo
          virtual void ConcatenatePositionVectors(ID_ENTITY id, Vec3& position) = 0;
          virtual Rococo::Graphics::IMeshBuilder& MeshBuilder() = 0;
       };
-
-     
    }
 
    namespace Graphics
@@ -53,6 +51,23 @@ namespace Rococo
 
    namespace Entities
    {
+      struct MoveMobileArgs
+      {
+         ID_ENTITY entityId;
+         float fowardDelta;
+         float straffeDelta;
+         FPSAngles delta;
+         FPSAngles angles;
+      };
+
+      ROCOCOAPI IMobilesSupervisor : public Entities::IMobiles
+      {
+         virtual bool TryMoveMobile(const MoveMobileArgs& tmm) = 0;
+         virtual void Free() = 0;
+      };
+
+      IMobilesSupervisor* CreateMobilesSupervisor(Entities::IInstancesSupervisor& instances);
+
       IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer);
    }
 
@@ -198,6 +213,8 @@ namespace Rococo
 
       // Entity instances
       Entities::IInstancesSupervisor& instances;
+
+      Entities::IMobilesSupervisor& mobiles;
 
       // Application title
       const char* const title;

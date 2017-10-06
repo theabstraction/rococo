@@ -152,22 +152,6 @@ namespace HV
    };
 
    IConfigSupervisor* CreateConfig();
-
-   namespace Events
-   {
-      namespace Entities
-      {
-         struct OnTryMoveMobileEvent;
-      }
-   }
-
-   ROCOCOAPI IMobilesSupervisor: public Entities::IMobiles
-   {
-      virtual void Append(Events::Entities::OnTryMoveMobileEvent& tmm) = 0;
-      virtual void Free() = 0;
-   };
-
-   IMobilesSupervisor* CreateMobilesSupervisor(Rococo::Entities::IInstancesSupervisor& instances, IPublisher& publisher);
   
    bool QueryYesNo(Windows::IWindow& ownerWindow, cstr message);
 
@@ -249,7 +233,6 @@ namespace HV
       Platform& platform;
       IConfigSupervisor& config;
       Graphics::ISceneSupervisor& scene;
-      IMobilesSupervisor& mobiles;
       Graphics::ICameraSupervisor& camera;
       Graphics::ISpriteSupervisor& sprites;
       IPlayerSupervisor& players;

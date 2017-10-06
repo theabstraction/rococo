@@ -48,9 +48,6 @@
     <ClCompile Include="hv.maths.visitor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hv.entity.mobiles.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hv.imports.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

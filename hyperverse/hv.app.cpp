@@ -10,7 +10,6 @@ namespace
 {
    using namespace HV;
    using namespace HV::Graphics;
-   using namespace HV::Entities;
    using namespace Rococo::Entities;
 
    class HVApp : public IApp, public IEventCallback<FileModifiedArgs>, public IScene
@@ -18,7 +17,6 @@ namespace
       Platform& platform;
       bool editorActive{ false };
 
-      AutoFree<IMobilesSupervisor> mobiles;
       AutoFree<ICameraSupervisor> camera;
       AutoFree<ISceneSupervisor> scene;
       AutoFree<IPlayerSupervisor> players;
@@ -38,15 +36,14 @@ namespace
       HVApp(Platform& _platform) : 
          platform(_platform),
          config(CreateConfig()),
-         mobiles(CreateMobilesSupervisor(platform.instances, platform.publisher)),
-         camera(CreateCamera(platform.instances, *mobiles, platform.renderer)),
+         camera(CreateCamera(platform.instances, _platform.mobiles, platform.renderer)),
          scene(CreateScene(platform.instances, *camera, platform)),
          players(CreatePlayerSupervisor(platform)),
          keyboardSupervisor(CreateKeyboardSupervisor()),
          mathsVisitor(CreateMathsVisitor()),
          sprites(CreateSpriteSupervisor(platform.renderer)),
          editor(CreateEditor(platform)),
-         e { _platform, *config, *scene, *mobiles, *camera, *sprites, *players, *keyboardSupervisor, *mathsVisitor, *editor },
+         e { _platform, *config, *scene, *camera, *sprites, *players, *keyboardSupervisor, *mathsVisitor, *editor },
          fpsLogic(CreateFPSGameLogic(e))
       {
          mode = fpsLogic;

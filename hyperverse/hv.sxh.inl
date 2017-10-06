@@ -476,6 +476,149 @@ namespace HV { namespace Graphics {
 		ss.AddNativeCall(ns, NativeHVGraphicsISceneBuilderSetSunDirection, nullptr, SEXTEXT("ISceneBuilderSetSunDirection (Pointer hObject)(Sys.Maths.Vec3 sun) -> "));
 	}
 }}
+// BennyHill generated Sexy native functions for HV::IPlayer 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeHVIPlayerSetPlayerEntity(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		HV::IPlayer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetPlayerEntity(id);
+	}
+	void NativeHVIPlayerGetPlayerEntity(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::IPlayer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		ID_ENTITY id = _pObject->GetPlayerEntity();
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
+	}
+
+	void NativeGetHandleForHVGraphicsPlayer(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		HV::IPlayerSupervisor* nceContext = reinterpret_cast<HV::IPlayerSupervisor*>(_nce.context);
+		// Uses: HV::IPlayer* FactoryConstructHVGraphicsPlayer(HV::IPlayerSupervisor* _context, int32 _index);
+		HV::IPlayer* pObject = FactoryConstructHVGraphicsPlayer(nceContext, index);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace HV { 
+	void AddNativeCalls_HVIPlayer(Rococo::Script::IPublicScriptSystem& ss, HV::IPlayerSupervisor* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVGraphicsPlayer, _nceContext, SEXTEXT("GetHandleForIPlayer0 (Int32 index) -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVIPlayerSetPlayerEntity, nullptr, SEXTEXT("IPlayerSetPlayerEntity (Pointer hObject)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeHVIPlayerGetPlayerEntity, nullptr, SEXTEXT("IPlayerGetPlayerEntity (Pointer hObject) -> (Int64 id)"));
+	}
+}
+// BennyHill generated Sexy native functions for HV::IKeyboard 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeHVIKeyboardClearActions(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::IKeyboard* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ClearActions();
+	}
+	void NativeHVIKeyboardSetKeyName(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 scancode;
+		_offset += sizeof(scancode);
+		ReadInput(scancode, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		HV::IKeyboard* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetKeyName(name, scancode);
+	}
+	void NativeHVIKeyboardBindAction(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _actionName;
+		ReadInput(_actionName, _sf, -_offset);
+		fstring actionName { _actionName->buffer, _actionName->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _keyName;
+		ReadInput(_keyName, _sf, -_offset);
+		fstring keyName { _keyName->buffer, _keyName->length };
+
+
+		HV::IKeyboard* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->BindAction(keyName, actionName);
+	}
+
+	void NativeGetHandleForHVKeyboard(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::IKeyboard* nceContext = reinterpret_cast<HV::IKeyboard*>(_nce.context);
+		// Uses: HV::IKeyboard* FactoryConstructHVKeyboard(HV::IKeyboard* _context);
+		HV::IKeyboard* pObject = FactoryConstructHVKeyboard(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace HV { 
+	void AddNativeCalls_HVIKeyboard(Rococo::Script::IPublicScriptSystem& ss, HV::IKeyboard* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVKeyboard, _nceContext, SEXTEXT("GetHandleForIKeyboard0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVIKeyboardClearActions, nullptr, SEXTEXT("IKeyboardClearActions (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVIKeyboardSetKeyName, nullptr, SEXTEXT("IKeyboardSetKeyName (Pointer hObject)(Sys.Type.IString name)(Int32 scancode) -> "));
+		ss.AddNativeCall(ns, NativeHVIKeyboardBindAction, nullptr, SEXTEXT("IKeyboardBindAction (Pointer hObject)(Sys.Type.IString keyName)(Sys.Type.IString actionName) -> "));
+	}
+}
 // BennyHill generated Sexy native functions for HV::IConfig 
 namespace
 {
@@ -666,229 +809,5 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVIConfigGetFloat, nullptr, SEXTEXT("IConfigGetFloat (Pointer hObject)(Sys.Type.IString name) -> (Float32 value)"));
 		ss.AddNativeCall(ns, NativeHVIConfigGetBool, nullptr, SEXTEXT("IConfigGetBool (Pointer hObject)(Sys.Type.IString name) -> (Bool value)"));
 		ss.AddNativeCall(ns, NativeHVIConfigGetText, nullptr, SEXTEXT("IConfigGetText (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IStringBuilder text) -> "));
-	}
-}
-// BennyHill generated Sexy native functions for HV::Entities::IMobiles 
-namespace
-{
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-	using namespace Rococo::Script;
-	using namespace Rococo::Compiler;
-
-	void NativeHVEntitiesIMobilesLink(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		ID_ENTITY id;
-		_offset += sizeof(id);
-		ReadInput(id, _sf, -_offset);
-
-		HV::Entities::IMobiles* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->Link(id);
-	}
-	void NativeHVEntitiesIMobilesGetAngles(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		FPSAngles* angles;
-		_offset += sizeof(angles);
-		ReadInput(angles, _sf, -_offset);
-
-		ID_ENTITY id;
-		_offset += sizeof(id);
-		ReadInput(id, _sf, -_offset);
-
-		HV::Entities::IMobiles* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetAngles(id, *angles);
-	}
-	void NativeHVEntitiesIMobilesSetAngles(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		FPSAngles* angles;
-		_offset += sizeof(angles);
-		ReadInput(angles, _sf, -_offset);
-
-		ID_ENTITY id;
-		_offset += sizeof(id);
-		ReadInput(id, _sf, -_offset);
-
-		HV::Entities::IMobiles* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetAngles(id, *angles);
-	}
-
-	void NativeGetHandleForHVEntitiesMobiles(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::Entities::IMobiles* nceContext = reinterpret_cast<HV::Entities::IMobiles*>(_nce.context);
-		// Uses: HV::Entities::IMobiles* FactoryConstructHVEntitiesMobiles(HV::Entities::IMobiles* _context);
-		HV::Entities::IMobiles* pObject = FactoryConstructHVEntitiesMobiles(nceContext);
-		_offset += sizeof(IString*);
-		WriteOutput(pObject, _sf, -_offset);
-	}
-}
-
-namespace HV { namespace Entities { 
-	void AddNativeCalls_HVEntitiesIMobiles(Rococo::Script::IPublicScriptSystem& ss, HV::Entities::IMobiles* _nceContext)
-	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Entities.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVEntitiesMobiles, _nceContext, SEXTEXT("GetHandleForIMobiles0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVEntitiesIMobilesLink, nullptr, SEXTEXT("IMobilesLink (Pointer hObject)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeHVEntitiesIMobilesGetAngles, nullptr, SEXTEXT("IMobilesGetAngles (Pointer hObject)(Int64 id)(Sys.Maths.FPSAngles angles) -> "));
-		ss.AddNativeCall(ns, NativeHVEntitiesIMobilesSetAngles, nullptr, SEXTEXT("IMobilesSetAngles (Pointer hObject)(Int64 id)(Sys.Maths.FPSAngles angles) -> "));
-	}
-}}
-// BennyHill generated Sexy native functions for HV::IPlayer 
-namespace
-{
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-	using namespace Rococo::Script;
-	using namespace Rococo::Compiler;
-
-	void NativeHVIPlayerSetPlayerEntity(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		ID_ENTITY id;
-		_offset += sizeof(id);
-		ReadInput(id, _sf, -_offset);
-
-		HV::IPlayer* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetPlayerEntity(id);
-	}
-	void NativeHVIPlayerGetPlayerEntity(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::IPlayer* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		ID_ENTITY id = _pObject->GetPlayerEntity();
-		_offset += sizeof(id);
-		WriteOutput(id, _sf, -_offset);
-	}
-
-	void NativeGetHandleForHVGraphicsPlayer(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		int32 index;
-		_offset += sizeof(index);
-		ReadInput(index, _sf, -_offset);
-
-		HV::IPlayerSupervisor* nceContext = reinterpret_cast<HV::IPlayerSupervisor*>(_nce.context);
-		// Uses: HV::IPlayer* FactoryConstructHVGraphicsPlayer(HV::IPlayerSupervisor* _context, int32 _index);
-		HV::IPlayer* pObject = FactoryConstructHVGraphicsPlayer(nceContext, index);
-		_offset += sizeof(IString*);
-		WriteOutput(pObject, _sf, -_offset);
-	}
-}
-
-namespace HV { 
-	void AddNativeCalls_HVIPlayer(Rococo::Script::IPublicScriptSystem& ss, HV::IPlayerSupervisor* _nceContext)
-	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVGraphicsPlayer, _nceContext, SEXTEXT("GetHandleForIPlayer0 (Int32 index) -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVIPlayerSetPlayerEntity, nullptr, SEXTEXT("IPlayerSetPlayerEntity (Pointer hObject)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeHVIPlayerGetPlayerEntity, nullptr, SEXTEXT("IPlayerGetPlayerEntity (Pointer hObject) -> (Int64 id)"));
-	}
-}
-// BennyHill generated Sexy native functions for HV::IKeyboard 
-namespace
-{
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-	using namespace Rococo::Script;
-	using namespace Rococo::Compiler;
-
-	void NativeHVIKeyboardClearActions(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::IKeyboard* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->ClearActions();
-	}
-	void NativeHVIKeyboardSetKeyName(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		int32 scancode;
-		_offset += sizeof(scancode);
-		ReadInput(scancode, _sf, -_offset);
-
-		_offset += sizeof(IString*);
-		IString* _name;
-		ReadInput(_name, _sf, -_offset);
-		fstring name { _name->buffer, _name->length };
-
-
-		HV::IKeyboard* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetKeyName(name, scancode);
-	}
-	void NativeHVIKeyboardBindAction(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(IString*);
-		IString* _actionName;
-		ReadInput(_actionName, _sf, -_offset);
-		fstring actionName { _actionName->buffer, _actionName->length };
-
-
-		_offset += sizeof(IString*);
-		IString* _keyName;
-		ReadInput(_keyName, _sf, -_offset);
-		fstring keyName { _keyName->buffer, _keyName->length };
-
-
-		HV::IKeyboard* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->BindAction(keyName, actionName);
-	}
-
-	void NativeGetHandleForHVKeyboard(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::IKeyboard* nceContext = reinterpret_cast<HV::IKeyboard*>(_nce.context);
-		// Uses: HV::IKeyboard* FactoryConstructHVKeyboard(HV::IKeyboard* _context);
-		HV::IKeyboard* pObject = FactoryConstructHVKeyboard(nceContext);
-		_offset += sizeof(IString*);
-		WriteOutput(pObject, _sf, -_offset);
-	}
-}
-
-namespace HV { 
-	void AddNativeCalls_HVIKeyboard(Rococo::Script::IPublicScriptSystem& ss, HV::IKeyboard* _nceContext)
-	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVKeyboard, _nceContext, SEXTEXT("GetHandleForIKeyboard0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVIKeyboardClearActions, nullptr, SEXTEXT("IKeyboardClearActions (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeHVIKeyboardSetKeyName, nullptr, SEXTEXT("IKeyboardSetKeyName (Pointer hObject)(Sys.Type.IString name)(Int32 scancode) -> "));
-		ss.AddNativeCall(ns, NativeHVIKeyboardBindAction, nullptr, SEXTEXT("IKeyboardBindAction (Pointer hObject)(Sys.Type.IString keyName)(Sys.Type.IString actionName) -> "));
 	}
 }

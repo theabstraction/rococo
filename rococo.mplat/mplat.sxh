@@ -30,6 +30,18 @@
 )
 
 (interface
+	(as.sxy Rococo.Entities.IMobiles "../content/scripts/mplat")
+	(as.cpp Rococo.Entities.IMobiles "mplat")
+	(context factory Rococo.Entities.IMobiles)
+	(methods
+		(Link (IdEntity id))
+		(GetAngles (IdEntity id)(FPSAngles angles))
+		(SetAngles (IdEntity id)(const FPSAngles angles))
+	)
+	(factory Rococo.Entities.Mobiles)
+)
+
+(interface
 	(as.sxy Rococo.Entities.IInstances "../content/scripts/mplat")
 	(as.cpp Rococo.Entities.IInstances "mplat")
 	(context factory Rococo.Entities.IInstances)

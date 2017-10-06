@@ -13,18 +13,6 @@
 	(factory HV.Graphics.SceneBuilder)
 )
 
-(interface
-	(as.sxy HV.Entities.IMobiles "../content/scripts/hv")
-	(as.cpp HV.Entities.IMobiles "hv")
-	(context factory HV.Entities.IMobiles)
-	(methods
-		(Link (IdEntity id))
-		(GetAngles (IdEntity id)(FPSAngles angles))
-		(SetAngles (IdEntity id)(const FPSAngles angles))
-	)
-	(factory HV.Entities.Mobiles)
-)
-
 (enum Int32
 	(as.sxy HV.Graphics.OrientationFlags "../content/scripts/hv")
 	(as.cpp HV.Graphics.OrientationFlags "hv")

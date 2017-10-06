@@ -16,6 +16,11 @@
 
 #include <sexy.vm.cpu.h>
 
+Rococo::Entities::IMobiles* FactoryConstructRococoEntitiesMobiles(Rococo::Entities::IMobiles* _context)
+{
+   return _context;
+}
+
 Rococo::IPaneBuilder* FactoryConstructRococoPaneBuilder(Rococo::IPaneBuilder* _context)
 {
    return _context;
@@ -103,6 +108,7 @@ void _RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>
       {
          Graphics::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.meshes);
          Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.instances);
+         Entities::AddNativeCalls_RococoEntitiesIMobiles(args.ss, &platform.mobiles);
          onScriptEvent.OnEvent(args);
       }
 
@@ -1287,10 +1293,11 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 
    AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
    AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer());
+   AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
 
    Utilities utils;
    GuiStack gui(*publisher, *sourceCache, mainWindow->Renderer(), utils);
-   Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui,  *meshes, *instances, title };
+   Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui,  *meshes, *instances, *mobiles, title };
    gui.platform = &platform;
 
    AutoFree<IApp> app(appFactory.CreateApp(platform));

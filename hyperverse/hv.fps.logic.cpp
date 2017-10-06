@@ -5,7 +5,6 @@
 using namespace HV;
 using namespace HV::Events;
 using namespace HV::Events::Player;
-using namespace HV::Events::Entities;
 
 class FPSControl
 {
@@ -84,7 +83,7 @@ public:
       elevationDelta -= delta.y;
    }
 
-   void GetPlayerDelta(ID_ENTITY playerId, float dt, OnTryMoveMobileEvent& tmm, OnPlayerViewChangeEvent& pvce)
+   void GetPlayerDelta(ID_ENTITY playerId, float dt, Entities::MoveMobileArgs& mm, OnPlayerViewChangeEvent& pvce)
    {
       float forwardDelta = 0;
       if (isMovingForward || isAutoRun) forwardDelta += 1.0f;
@@ -96,10 +95,10 @@ public:
 
       if (forwardDelta != 0 || straffeDelta != 0 || headingDelta != 0)
       {
-         tmm.fowardDelta = dt * ((forwardDelta > 0) ? forwardDelta * speeds.x : forwardDelta * speeds.z);
-         tmm.straffeDelta = dt * straffeDelta * speeds.y;
-         tmm.entityId = playerId;
-         tmm.delta = { Degrees{ headingDelta }, Degrees{ 0 }, Degrees{ 0 } };
+         mm.fowardDelta = dt * ((forwardDelta > 0) ? forwardDelta * speeds.x : forwardDelta * speeds.z);
+         mm.straffeDelta = dt * straffeDelta * speeds.y;
+         mm.entityId = playerId;
+         mm.delta = { Degrees{ headingDelta }, Degrees{ 0 }, Degrees{ 0 } };
          headingDelta = 0;
       }
 
@@ -168,10 +167,10 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 
       OnPlayerViewChangeEvent pvce;
 
-      OnTryMoveMobileEvent tmm;
-      fpsControl.GetPlayerDelta(player->GetPlayerEntity(), dt, tmm, pvce);
+      Entities::MoveMobileArgs mm;
+      fpsControl.GetPlayerDelta(player->GetPlayerEntity(), dt, mm, pvce);
 
-      e.mobiles.Append(tmm);
+      e.platform.mobiles.TryMoveMobile(mm);
 
       if (pvce.elevationDelta != 0)
       {

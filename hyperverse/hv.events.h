@@ -53,20 +53,5 @@ namespace HV
             float32 elevationDelta;
          };
       } // Player
-
-      namespace Entities
-      {
-         extern EventId OnTryMoveMobile;
-
-         struct OnTryMoveMobileEvent : public Event
-         {
-            OnTryMoveMobileEvent() : Event(OnTryMoveMobile) {}
-            ID_ENTITY entityId;
-            float fowardDelta;
-            float straffeDelta;
-            FPSAngles delta; 
-            FPSAngles angles;
-         };
-      }
    } // 
 } // HV

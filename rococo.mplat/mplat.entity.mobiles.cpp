@@ -1,22 +1,18 @@
-#include "hv.events.h"
+#include <rococo.mplat.h>
 #include <unordered_map>
 
-using namespace HV;
-using namespace Rococo::Entities;
-using namespace HV::Events::Entities;
 using namespace Rococo;
-using namespace Rococo::Events;
+using namespace Rococo::Entities;
 
 namespace
 {
    struct Mobiles : public IMobilesSupervisor
    {
       IInstancesSupervisor& instances;
-      IPublisher& publisher;
 
       std::unordered_map<ID_ENTITY, FPSAngles, ID_ENTITY> mapIdToAngles;
 
-      Mobiles(IInstancesSupervisor& _instances, IPublisher& _publisher) : instances(_instances), publisher(_publisher)
+      Mobiles(IInstancesSupervisor& _instances) : instances(_instances)
       {
       }
 
@@ -24,7 +20,7 @@ namespace
       {
       }
 
-      virtual void Append(OnTryMoveMobileEvent& tmm)
+      virtual bool TryMoveMobile(const MoveMobileArgs& tmm)
       {
          auto i = mapIdToAngles.find(tmm.entityId);
          if (i != mapIdToAngles.end())
@@ -38,6 +34,10 @@ namespace
             if (angles.tilt.quantity > 90.0f) angles.tilt.quantity = 90.0f;
 
             auto* entity = instances.GetEntity(tmm.entityId);
+            if (!entity)
+            {
+               Throw(0, "Mobile with id # %llx did not match an entity", tmm.entityId.value);
+            }
 
             auto& modelRef = entity->Model();
             Vec3 pos = modelRef.GetPosition();
@@ -53,7 +53,10 @@ namespace
             model.SetPosition(pos + df + dr);
 
             modelRef = model;
+            return true;
          }
+
+         return false;
       }
          
       virtual void Link(ID_ENTITY id)
@@ -99,10 +102,13 @@ namespace
    };
 }
 
-namespace HV
+namespace Rococo
 {
-   IMobilesSupervisor* CreateMobilesSupervisor(IInstancesSupervisor& instances, IPublisher& publisher)
+   namespace Entities
    {
-      return new Mobiles(instances, publisher);
+      IMobilesSupervisor* CreateMobilesSupervisor(IInstancesSupervisor& instances)
+      {
+         return new Mobiles(instances);
+      }
    }
 }

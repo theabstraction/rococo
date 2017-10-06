@@ -40,11 +40,6 @@ namespace // Script factories
    {
       return config;
    }
-
-   HV::Entities::IMobiles* FactoryConstructHVEntitiesMobiles(HV::Entities::IMobiles* mobs)
-   {
-      return mobs;
-   }
 }
 
 #include "hv.sxh.inl"
@@ -64,7 +59,6 @@ namespace HV
 #else
             args.ss.AddNativeLibrary(SEXTEXT("rococo.sexy.mathsex"));
 #endif
-            Entities::AddNativeCalls_HVEntitiesIMobiles(args.ss, &e.mobiles);
             Graphics::AddNativeCalls_HVGraphicsISceneBuilder(args.ss, &e.scene.Builder());
             Graphics::AddNativeCalls_HVGraphicsICamera(args.ss, &e.camera);   
             AddNativeCalls_HVISprites(args.ss, &e.sprites);
