@@ -66,14 +66,6 @@ namespace HV
    };
 
    IPlayerSupervisor* CreatePlayerSupervisor(Platform& platform);
-
-   ROCOCOAPI IConfigSupervisor: public IConfig
-   {
-      virtual cstr GetText(cstr name) const = 0;
-      virtual void Free() = 0;
-   };
-
-   IConfigSupervisor* CreateConfig();
   
    bool QueryYesNo(Windows::IWindow& ownerWindow, cstr message);
 
@@ -153,7 +145,6 @@ namespace HV
    struct Cosmos
    {
       Platform& platform;
-      IConfigSupervisor& config;
       IPlayerSupervisor& players;
       IEditor& editor;
    };

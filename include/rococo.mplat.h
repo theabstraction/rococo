@@ -13,6 +13,14 @@ namespace Rococo
 {
    typedef cstr VisitorName;
 
+   ROCOCOAPI IConfigSupervisor : public IConfig
+   {
+      virtual cstr GetText(cstr name) const = 0;
+      virtual void Free() = 0;
+   };
+
+   IConfigSupervisor* CreateConfig();
+
    ROCOCOAPI IMathsVisitor
    {
       virtual void Clear() = 0;
@@ -287,6 +295,8 @@ namespace Rococo
       IGUIStack& gui;
 
       IKeyboardSupervisor& keyboard;
+
+      IConfigSupervisor& config;
 
       // Mesh builder object
       Graphics::IMeshBuilderSupervisor& meshes;

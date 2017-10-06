@@ -3,6 +3,11 @@
 #include <sexy.script.h>
 #include <sexy.vm.cpu.h>
 
+Rococo::IConfig* FactoryConstructRococoConfig(Rococo::IConfig* _context)
+{
+   return _context;
+}
+
 Rococo::Graphics::ISprites* FactoryConstructRococoGraphicsSprites(Rococo::Graphics::ISprites* _context)
 {
    return _context;
@@ -105,6 +110,9 @@ namespace Rococo
                   Graphics::AddNativeCalls_RococoGraphicsISprites(args.ss, &platform.sprites);
                   AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
                }
+
+               AddNativeCalls_RococoIConfig(args.ss, &platform.config);
+
                onScriptEvent.OnEvent(args);
             }
 

@@ -19,7 +19,6 @@ namespace
 
       AutoFree<IPlayerSupervisor> players;
       AutoFree<IEditor> editor;
-      AutoFree<IConfigSupervisor> config;
       AutoFree<IPaneBuilderSupervisor> editorPanel;
       AutoFree<IPaneBuilderSupervisor> fpsPanel;
 
@@ -30,15 +29,14 @@ namespace
    public:
       HVApp(Platform& _platform) : 
          platform(_platform),
-         config(CreateConfig()),
          players(CreatePlayerSupervisor(platform)),
          editor(CreateEditor(platform)),
-         e { _platform, *config, *players, *editor },
+         e { _platform, *players, *editor },
          fpsLogic(CreateFPSGameLogic(e))
       {
          mode = fpsLogic;
 
-         Defaults::SetDefaults(*config);
+         Defaults::SetDefaults(e.platform.config);
 
          RunEnvironmentScript(e, "!scripts/hv/config.sxy");
          RunEnvironmentScript(e, "!scripts/hv/keys.sxy");

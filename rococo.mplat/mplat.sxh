@@ -13,6 +13,24 @@
 )
 
 (interface 
+	(as.sxy Rococo.IConfig "../content/scripts/mplat")
+	(as.cpp Rococo.IConfig "mplat")
+	(context factory Rococo.IConfig)
+	(methods
+		(Int   (IString name)(Int32 value))
+		(Float (IString name)(Float32 value))
+		(Bool  (IString name)(Bool value))
+		(Text  (IString name) (IString value))
+
+		(GetInt    (IString name)->(Int32 value))
+		(GetFloat  (IString name)->(Float32 value))
+		(GetBool   (IString name)->(Bool value))
+		(GetText   (IString name)(IStringBuilder text))
+	)
+	(factory Rococo.Config)
+)
+
+(interface 
 	(as.sxy Rococo.Graphics.ISprites "../content/scripts/mplat")
 	(as.cpp Rococo.Graphics.ISprites "mplat")
 	(context factory Rococo.Graphics.ISprites)

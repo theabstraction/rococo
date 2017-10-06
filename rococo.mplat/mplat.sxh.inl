@@ -295,7 +295,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIKeyboardBindAction, nullptr, SEXTEXT("IKeyboardBindAction (Pointer hObject)(Sys.Type.IString keyName)(Sys.Type.IString actionName) -> "));
 	}
 }
-// BennyHill generated Sexy native functions for Rococo::IRadioButton 
+// BennyHill generated Sexy native functions for Rococo::IConfig 
 namespace
 {
 	using namespace Rococo;
@@ -303,55 +303,188 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeRococoIRadioButtonSetAlignment(NativeCallEnvironment& _nce)
+	void NativeRococoIConfigInt(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		int32 paddingY;
-		_offset += sizeof(paddingY);
-		ReadInput(paddingY, _sf, -_offset);
+		int32 value;
+		_offset += sizeof(value);
+		ReadInput(value, _sf, -_offset);
 
-		int32 paddingX;
-		_offset += sizeof(paddingX);
-		ReadInput(paddingX, _sf, -_offset);
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
 
-		int32 vert;
-		_offset += sizeof(vert);
-		ReadInput(vert, _sf, -_offset);
 
-		int32 horz;
-		_offset += sizeof(horz);
-		ReadInput(horz, _sf, -_offset);
-
-		Rococo::IRadioButton* _pObject;
+		Rococo::IConfig* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetAlignment(horz, vert, paddingX, paddingY);
+		_pObject->Int(name, value);
 	}
-	void NativeRococoIRadioButtonBase(NativeCallEnvironment& _nce)
+	void NativeRococoIConfigFloat(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::IRadioButton* _pObject;
+		float value;
+		_offset += sizeof(value);
+		ReadInput(value, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::IConfig* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		Rococo::IPane* base = _pObject->Base();
-		_offset += sizeof(CReflectedClass*);
-		auto& _baseStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("Rococo"),SEXTEXT("IPane"), SEXTEXT("ProxyIPane"), _nce.ss);
-		CReflectedClass* _sxybase = _nce.ss.Represent(_baseStruct, base);
-		WriteOutput(&_sxybase->header._vTables[0], _sf, -_offset);
+		_pObject->Float(name, value);
+	}
+	void NativeRococoIConfigBool(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 value;
+		_offset += sizeof(value);
+		ReadInput(value, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::IConfig* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Bool(name, value);
+	}
+	void NativeRococoIConfigText(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _value;
+		ReadInput(_value, _sf, -_offset);
+		fstring value { _value->buffer, _value->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::IConfig* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Text(name, value);
+	}
+	void NativeRococoIConfigGetInt(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::IConfig* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 value = _pObject->GetInt(name);
+		_offset += sizeof(value);
+		WriteOutput(value, _sf, -_offset);
+	}
+	void NativeRococoIConfigGetFloat(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::IConfig* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		float value = _pObject->GetFloat(name);
+		_offset += sizeof(value);
+		WriteOutput(value, _sf, -_offset);
+	}
+	void NativeRococoIConfigGetBool(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::IConfig* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 value = _pObject->GetBool(name);
+		_offset += sizeof(value);
+		WriteOutput(value, _sf, -_offset);
+	}
+	void NativeRococoIConfigGetText(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(VirtualTable*);
+		VirtualTable* text;
+		ReadInput(text, _sf, -_offset);
+		Rococo::Helpers::StringPopulator _textPopulator(_nce, text);
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::IConfig* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetText(name, _textPopulator);
 	}
 
+	void NativeGetHandleForRococoConfig(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IConfig* nceContext = reinterpret_cast<Rococo::IConfig*>(_nce.context);
+		// Uses: Rococo::IConfig* FactoryConstructRococoConfig(Rococo::IConfig* _context);
+		Rococo::IConfig* pObject = FactoryConstructRococoConfig(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
 }
 
 namespace Rococo { 
-	void AddNativeCalls_RococoIRadioButton(Rococo::Script::IPublicScriptSystem& ss, Rococo::IRadioButton* _nceContext)
+	void AddNativeCalls_RococoIConfig(Rococo::Script::IPublicScriptSystem& ss, Rococo::IConfig* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetAlignment, nullptr, SEXTEXT("IRadioButtonSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonBase, nullptr, SEXTEXT("IRadioButtonBase (Pointer hObject) -> (Rococo.IPane base)"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoConfig, _nceContext, SEXTEXT("GetHandleForIConfig0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoIConfigInt, nullptr, SEXTEXT("IConfigInt (Pointer hObject)(Sys.Type.IString name)(Int32 value) -> "));
+		ss.AddNativeCall(ns, NativeRococoIConfigFloat, nullptr, SEXTEXT("IConfigFloat (Pointer hObject)(Sys.Type.IString name)(Float32 value) -> "));
+		ss.AddNativeCall(ns, NativeRococoIConfigBool, nullptr, SEXTEXT("IConfigBool (Pointer hObject)(Sys.Type.IString name)(Bool value) -> "));
+		ss.AddNativeCall(ns, NativeRococoIConfigText, nullptr, SEXTEXT("IConfigText (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString value) -> "));
+		ss.AddNativeCall(ns, NativeRococoIConfigGetInt, nullptr, SEXTEXT("IConfigGetInt (Pointer hObject)(Sys.Type.IString name) -> (Int32 value)"));
+		ss.AddNativeCall(ns, NativeRococoIConfigGetFloat, nullptr, SEXTEXT("IConfigGetFloat (Pointer hObject)(Sys.Type.IString name) -> (Float32 value)"));
+		ss.AddNativeCall(ns, NativeRococoIConfigGetBool, nullptr, SEXTEXT("IConfigGetBool (Pointer hObject)(Sys.Type.IString name) -> (Bool value)"));
+		ss.AddNativeCall(ns, NativeRococoIConfigGetText, nullptr, SEXTEXT("IConfigGetText (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IStringBuilder text) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::Graphics::ISprites 
@@ -1330,6 +1463,65 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddTextOutput, nullptr, SEXTEXT("IPaneContainerAddTextOutput (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString key)(Sys.Maths.Recti rect) -> (Rococo.ITextOutputPane textBox)"));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddRadioButton, nullptr, SEXTEXT("IPaneContainerAddRadioButton (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Type.IString key)(Sys.Type.IString value)(Sys.Maths.Recti rect) -> (Rococo.IRadioButton radio)"));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerBase, nullptr, SEXTEXT("IPaneContainerBase (Pointer hObject) -> (Rococo.IPane base)"));
+	}
+}
+// BennyHill generated Sexy native functions for Rococo::IRadioButton 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoIRadioButtonSetAlignment(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 paddingY;
+		_offset += sizeof(paddingY);
+		ReadInput(paddingY, _sf, -_offset);
+
+		int32 paddingX;
+		_offset += sizeof(paddingX);
+		ReadInput(paddingX, _sf, -_offset);
+
+		int32 vert;
+		_offset += sizeof(vert);
+		ReadInput(vert, _sf, -_offset);
+
+		int32 horz;
+		_offset += sizeof(horz);
+		ReadInput(horz, _sf, -_offset);
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetAlignment(horz, vert, paddingX, paddingY);
+	}
+	void NativeRococoIRadioButtonBase(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::IPane* base = _pObject->Base();
+		_offset += sizeof(CReflectedClass*);
+		auto& _baseStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("Rococo"),SEXTEXT("IPane"), SEXTEXT("ProxyIPane"), _nce.ss);
+		CReflectedClass* _sxybase = _nce.ss.Represent(_baseStruct, base);
+		WriteOutput(&_sxybase->header._vTables[0], _sf, -_offset);
+	}
+
+}
+
+namespace Rococo { 
+	void AddNativeCalls_RococoIRadioButton(Rococo::Script::IPublicScriptSystem& ss, Rococo::IRadioButton* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetAlignment, nullptr, SEXTEXT("IRadioButtonSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonBase, nullptr, SEXTEXT("IRadioButtonBase (Pointer hObject) -> (Rococo.IPane base)"));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::ILabelPane 

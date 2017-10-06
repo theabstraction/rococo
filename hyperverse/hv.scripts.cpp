@@ -15,11 +15,6 @@ namespace // Script factories
    {
       return players->GetPlayer(index);
    }
-
-   HV::IConfig* FactoryConstructHVConfig(HV::IConfig* config)
-   {
-      return config;
-   }
 }
 
 #include "hv.sxh.inl"
@@ -40,7 +35,6 @@ namespace HV
             args.ss.AddNativeLibrary(SEXTEXT("rococo.sexy.mathsex"));
 #endif
             AddNativeCalls_HVIPlayer(args.ss, &e.players);
-            AddNativeCalls_HVIConfig(args.ss, &e.config);   
          }
 
       public:
