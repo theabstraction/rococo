@@ -52,6 +52,249 @@ namespace Rococo { namespace Graphics {
 	}
 }}// Rococo.Graphics.OrientationFlags
 
+// BennyHill generated Sexy native functions for Rococo::Entities::IInstances 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoEntitiesIInstancesAddBody(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY parentId;
+		_offset += sizeof(parentId);
+		ReadInput(parentId, _sf, -_offset);
+
+		Vec3* scale;
+		_offset += sizeof(scale);
+		ReadInput(scale, _sf, -_offset);
+
+		Matrix4x4* model;
+		_offset += sizeof(model);
+		ReadInput(model, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _texture;
+		ReadInput(_texture, _sf, -_offset);
+		fstring texture { _texture->buffer, _texture->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _modelName;
+		ReadInput(_modelName, _sf, -_offset);
+		fstring modelName { _modelName->buffer, _modelName->length };
+
+
+		Rococo::Entities::IInstances* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		ID_ENTITY entityId = _pObject->AddBody(modelName, texture, *model, *scale, parentId);
+		_offset += sizeof(entityId);
+		WriteOutput(entityId, _sf, -_offset);
+	}
+	void NativeRococoEntitiesIInstancesAddGhost(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY parentId;
+		_offset += sizeof(parentId);
+		ReadInput(parentId, _sf, -_offset);
+
+		Vec3* scale;
+		_offset += sizeof(scale);
+		ReadInput(scale, _sf, -_offset);
+
+		Matrix4x4* model;
+		_offset += sizeof(model);
+		ReadInput(model, _sf, -_offset);
+
+		Rococo::Entities::IInstances* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		ID_ENTITY entityId = _pObject->AddGhost(*model, *scale, parentId);
+		_offset += sizeof(entityId);
+		WriteOutput(entityId, _sf, -_offset);
+	}
+	void NativeRococoEntitiesIInstancesGetScale(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec3* scale;
+		_offset += sizeof(scale);
+		ReadInput(scale, _sf, -_offset);
+
+		ID_ENTITY entityId;
+		_offset += sizeof(entityId);
+		ReadInput(entityId, _sf, -_offset);
+
+		Rococo::Entities::IInstances* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetScale(entityId, *scale);
+	}
+	void NativeRococoEntitiesIInstancesSetScale(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec3* scale;
+		_offset += sizeof(scale);
+		ReadInput(scale, _sf, -_offset);
+
+		ID_ENTITY entityId;
+		_offset += sizeof(entityId);
+		ReadInput(entityId, _sf, -_offset);
+
+		Rococo::Entities::IInstances* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetScale(entityId, *scale);
+	}
+	void NativeRococoEntitiesIInstancesTryGetModelToWorldMatrix(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Matrix4x4* position;
+		_offset += sizeof(position);
+		ReadInput(position, _sf, -_offset);
+
+		ID_ENTITY entityId;
+		_offset += sizeof(entityId);
+		ReadInput(entityId, _sf, -_offset);
+
+		Rococo::Entities::IInstances* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 existant = _pObject->TryGetModelToWorldMatrix(entityId, *position);
+		_offset += sizeof(existant);
+		WriteOutput(existant, _sf, -_offset);
+	}
+	void NativeRococoEntitiesIInstancesClear(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Entities::IInstances* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Clear();
+	}
+
+	void NativeGetHandleForRococoEntitiesInstances(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Entities::IInstances* nceContext = reinterpret_cast<Rococo::Entities::IInstances*>(_nce.context);
+		// Uses: Rococo::Entities::IInstances* FactoryConstructRococoEntitiesInstances(Rococo::Entities::IInstances* _context);
+		Rococo::Entities::IInstances* pObject = FactoryConstructRococoEntitiesInstances(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { namespace Entities { 
+	void AddNativeCalls_RococoEntitiesIInstances(Rococo::Script::IPublicScriptSystem& ss, Rococo::Entities::IInstances* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Entities.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesInstances, _nceContext, SEXTEXT("GetHandleForIInstances0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddBody, nullptr, SEXTEXT("IInstancesAddBody (Pointer hObject)(Sys.Type.IString modelName)(Sys.Type.IString texture)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddGhost, nullptr, SEXTEXT("IInstancesAddGhost (Pointer hObject)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetScale, nullptr, SEXTEXT("IInstancesGetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesSetScale, nullptr, SEXTEXT("IInstancesSetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesTryGetModelToWorldMatrix, nullptr, SEXTEXT("IInstancesTryGetModelToWorldMatrix (Pointer hObject)(Int64 entityId)(Sys.Maths.Matrix4x4 position) -> (Bool existant)"));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesClear, nullptr, SEXTEXT("IInstancesClear (Pointer hObject) -> "));
+	}
+}}
+// BennyHill generated Sexy native functions for Rococo::IKeyboard 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoIKeyboardClearActions(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IKeyboard* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ClearActions();
+	}
+	void NativeRococoIKeyboardSetKeyName(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 scancode;
+		_offset += sizeof(scancode);
+		ReadInput(scancode, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::IKeyboard* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetKeyName(name, scancode);
+	}
+	void NativeRococoIKeyboardBindAction(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _actionName;
+		ReadInput(_actionName, _sf, -_offset);
+		fstring actionName { _actionName->buffer, _actionName->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _keyName;
+		ReadInput(_keyName, _sf, -_offset);
+		fstring keyName { _keyName->buffer, _keyName->length };
+
+
+		Rococo::IKeyboard* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->BindAction(keyName, actionName);
+	}
+
+	void NativeGetHandleForRococoKeyboard(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IKeyboard* nceContext = reinterpret_cast<Rococo::IKeyboard*>(_nce.context);
+		// Uses: Rococo::IKeyboard* FactoryConstructRococoKeyboard(Rococo::IKeyboard* _context);
+		Rococo::IKeyboard* pObject = FactoryConstructRococoKeyboard(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { 
+	void AddNativeCalls_RococoIKeyboard(Rococo::Script::IPublicScriptSystem& ss, Rococo::IKeyboard* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoKeyboard, _nceContext, SEXTEXT("GetHandleForIKeyboard0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoIKeyboardClearActions, nullptr, SEXTEXT("IKeyboardClearActions (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoIKeyboardSetKeyName, nullptr, SEXTEXT("IKeyboardSetKeyName (Pointer hObject)(Sys.Type.IString name)(Int32 scancode) -> "));
+		ss.AddNativeCall(ns, NativeRococoIKeyboardBindAction, nullptr, SEXTEXT("IKeyboardBindAction (Pointer hObject)(Sys.Type.IString keyName)(Sys.Type.IString actionName) -> "));
+	}
+}
 // BennyHill generated Sexy native functions for Rococo::ILabelPane 
 namespace
 {
@@ -818,198 +1061,6 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsICameraAspectRatio, nullptr, SEXTEXT("ICameraAspectRatio (Pointer hObject) -> (Float32 widthOverHeight)"));
 	}
 }}
-// BennyHill generated Sexy native functions for Rococo::ISlider 
-namespace
-{
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-	using namespace Rococo::Script;
-	using namespace Rococo::Compiler;
-
-	void NativeRococoISliderBase(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::ISlider* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		Rococo::IPane* base = _pObject->Base();
-		_offset += sizeof(CReflectedClass*);
-		auto& _baseStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("Rococo"),SEXTEXT("IPane"), SEXTEXT("ProxyIPane"), _nce.ss);
-		CReflectedClass* _sxybase = _nce.ss.Represent(_baseStruct, base);
-		WriteOutput(&_sxybase->header._vTables[0], _sf, -_offset);
-	}
-
-}
-
-namespace Rococo { 
-	void AddNativeCalls_RococoISlider(Rococo::Script::IPublicScriptSystem& ss, Rococo::ISlider* _nceContext)
-	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoISliderBase, nullptr, SEXTEXT("ISliderBase (Pointer hObject) -> (Rococo.IPane base)"));
-	}
-}
-// BennyHill generated Sexy native functions for Rococo::Entities::IInstances 
-namespace
-{
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-	using namespace Rococo::Script;
-	using namespace Rococo::Compiler;
-
-	void NativeRococoEntitiesIInstancesAddBody(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		ID_ENTITY parentId;
-		_offset += sizeof(parentId);
-		ReadInput(parentId, _sf, -_offset);
-
-		Vec3* scale;
-		_offset += sizeof(scale);
-		ReadInput(scale, _sf, -_offset);
-
-		Matrix4x4* model;
-		_offset += sizeof(model);
-		ReadInput(model, _sf, -_offset);
-
-		_offset += sizeof(IString*);
-		IString* _texture;
-		ReadInput(_texture, _sf, -_offset);
-		fstring texture { _texture->buffer, _texture->length };
-
-
-		_offset += sizeof(IString*);
-		IString* _modelName;
-		ReadInput(_modelName, _sf, -_offset);
-		fstring modelName { _modelName->buffer, _modelName->length };
-
-
-		Rococo::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		ID_ENTITY entityId = _pObject->AddBody(modelName, texture, *model, *scale, parentId);
-		_offset += sizeof(entityId);
-		WriteOutput(entityId, _sf, -_offset);
-	}
-	void NativeRococoEntitiesIInstancesAddGhost(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		ID_ENTITY parentId;
-		_offset += sizeof(parentId);
-		ReadInput(parentId, _sf, -_offset);
-
-		Vec3* scale;
-		_offset += sizeof(scale);
-		ReadInput(scale, _sf, -_offset);
-
-		Matrix4x4* model;
-		_offset += sizeof(model);
-		ReadInput(model, _sf, -_offset);
-
-		Rococo::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		ID_ENTITY entityId = _pObject->AddGhost(*model, *scale, parentId);
-		_offset += sizeof(entityId);
-		WriteOutput(entityId, _sf, -_offset);
-	}
-	void NativeRococoEntitiesIInstancesGetScale(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Vec3* scale;
-		_offset += sizeof(scale);
-		ReadInput(scale, _sf, -_offset);
-
-		ID_ENTITY entityId;
-		_offset += sizeof(entityId);
-		ReadInput(entityId, _sf, -_offset);
-
-		Rococo::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetScale(entityId, *scale);
-	}
-	void NativeRococoEntitiesIInstancesSetScale(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Vec3* scale;
-		_offset += sizeof(scale);
-		ReadInput(scale, _sf, -_offset);
-
-		ID_ENTITY entityId;
-		_offset += sizeof(entityId);
-		ReadInput(entityId, _sf, -_offset);
-
-		Rococo::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetScale(entityId, *scale);
-	}
-	void NativeRococoEntitiesIInstancesTryGetModelToWorldMatrix(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Matrix4x4* position;
-		_offset += sizeof(position);
-		ReadInput(position, _sf, -_offset);
-
-		ID_ENTITY entityId;
-		_offset += sizeof(entityId);
-		ReadInput(entityId, _sf, -_offset);
-
-		Rococo::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		boolean32 existant = _pObject->TryGetModelToWorldMatrix(entityId, *position);
-		_offset += sizeof(existant);
-		WriteOutput(existant, _sf, -_offset);
-	}
-	void NativeRococoEntitiesIInstancesClear(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Entities::IInstances* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->Clear();
-	}
-
-	void NativeGetHandleForRococoEntitiesInstances(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Entities::IInstances* nceContext = reinterpret_cast<Rococo::Entities::IInstances*>(_nce.context);
-		// Uses: Rococo::Entities::IInstances* FactoryConstructRococoEntitiesInstances(Rococo::Entities::IInstances* _context);
-		Rococo::Entities::IInstances* pObject = FactoryConstructRococoEntitiesInstances(nceContext);
-		_offset += sizeof(IString*);
-		WriteOutput(pObject, _sf, -_offset);
-	}
-}
-
-namespace Rococo { namespace Entities { 
-	void AddNativeCalls_RococoEntitiesIInstances(Rococo::Script::IPublicScriptSystem& ss, Rococo::Entities::IInstances* _nceContext)
-	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Entities.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesInstances, _nceContext, SEXTEXT("GetHandleForIInstances0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddBody, nullptr, SEXTEXT("IInstancesAddBody (Pointer hObject)(Sys.Type.IString modelName)(Sys.Type.IString texture)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddGhost, nullptr, SEXTEXT("IInstancesAddGhost (Pointer hObject)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetScale, nullptr, SEXTEXT("IInstancesGetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesSetScale, nullptr, SEXTEXT("IInstancesSetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesTryGetModelToWorldMatrix, nullptr, SEXTEXT("IInstancesTryGetModelToWorldMatrix (Pointer hObject)(Int64 entityId)(Sys.Maths.Matrix4x4 position) -> (Bool existant)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesClear, nullptr, SEXTEXT("IInstancesClear (Pointer hObject) -> "));
-	}
-}}
 // BennyHill generated Sexy native functions for Rococo::IPaneContainer 
 namespace
 {
@@ -1254,6 +1305,38 @@ namespace Rococo {
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
 		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetAlignment, nullptr, SEXTEXT("IRadioButtonSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
 		ss.AddNativeCall(ns, NativeRococoIRadioButtonBase, nullptr, SEXTEXT("IRadioButtonBase (Pointer hObject) -> (Rococo.IPane base)"));
+	}
+}
+// BennyHill generated Sexy native functions for Rococo::ISlider 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoISliderBase(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::IPane* base = _pObject->Base();
+		_offset += sizeof(CReflectedClass*);
+		auto& _baseStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("Rococo"),SEXTEXT("IPane"), SEXTEXT("ProxyIPane"), _nce.ss);
+		CReflectedClass* _sxybase = _nce.ss.Represent(_baseStruct, base);
+		WriteOutput(&_sxybase->header._vTables[0], _sf, -_offset);
+	}
+
+}
+
+namespace Rococo { 
+	void AddNativeCalls_RococoISlider(Rococo::Script::IPublicScriptSystem& ss, Rococo::ISlider* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeRococoISliderBase, nullptr, SEXTEXT("ISliderBase (Pointer hObject) -> (Rococo.IPane base)"));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::ITextOutputPane 

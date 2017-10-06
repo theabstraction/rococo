@@ -1,4 +1,4 @@
-#include "hv.h"
+#include <rococo.mplat.h>
 #include <array>
 #include <unordered_map>
 
@@ -6,11 +6,11 @@
 
 namespace
 {
-   using namespace HV;
+   using namespace Rococo;
 
    class Keyboard : public IKeyboardSupervisor
    {
-      std::array<std::string,512> codes;
+      std::array<std::string, 512> codes;
       std::unordered_map<std::string, std::string> actionBinds;
       HKL hLocale;
    public:
@@ -64,7 +64,7 @@ namespace
                };
             }
          }
-         
+
          return Key
          {
             nullptr,
@@ -84,7 +84,7 @@ namespace
    };
 }
 
-namespace HV
+namespace Rococo
 {
    IKeyboardSupervisor* CreateKeyboardSupervisor()
    {

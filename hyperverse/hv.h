@@ -77,21 +77,6 @@ namespace HV
 
    IPlayerSupervisor* CreatePlayerSupervisor(Platform& platform);
 
-   struct Key
-   {
-      cstr KeyName;
-      bool isPressed;
-   };
-
-   ROCOCOAPI IKeyboardSupervisor: public IKeyboard
-   {
-      virtual cstr GetAction(cstr keyName) = 0;
-      virtual Key GetKeyFromEvent(const KeyboardEvent& ke) = 0;
-      virtual void Free() = 0;
-   };
-
-   IKeyboardSupervisor* CreateKeyboardSupervisor();
-
    ROCOCOAPI IConfigSupervisor: public IConfig
    {
       virtual cstr GetText(cstr name) const = 0;
@@ -181,7 +166,6 @@ namespace HV
       IConfigSupervisor& config;
       Graphics::ISpriteSupervisor& sprites;
       IPlayerSupervisor& players;
-      IKeyboardSupervisor& keyboard;
       IEditor& editor;
    };
 

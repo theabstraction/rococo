@@ -11,18 +11,6 @@
 	(factory HV.Player (Int32 index))
 )
 
-(interface
-	(as.sxy HV.IKeyboard "../content/scripts/hv")
-	(as.cpp HV.IKeyboard "hv")
-	(context factory HV.IKeyboard)
-	(methods
-		(ClearActions)
-		(SetKeyName (IString name)(Int32 scancode))
-		(BindAction (IString keyName)(IString actionName))
-	)
-	(factory HV.Keyboard)
-)
-
 (interface 
 	(as.sxy HV.ISprites "../content/scripts/hv")
 	(as.cpp HV.ISprites "hv")

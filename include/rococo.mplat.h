@@ -73,6 +73,21 @@ namespace Rococo
       };
    }
 
+   struct Key
+   {
+      cstr KeyName;
+      bool isPressed;
+   };
+
+   ROCOCOAPI IKeyboardSupervisor : public IKeyboard
+   {
+      virtual cstr GetAction(cstr keyName) = 0;
+      virtual Key GetKeyFromEvent(const KeyboardEvent& ke) = 0;
+      virtual void Free() = 0;
+   };
+
+   IKeyboardSupervisor* CreateKeyboardSupervisor();
+
    namespace Graphics
    {
       ROCOCOAPI IMeshBuilderSupervisor : public IMeshBuilder
@@ -263,6 +278,8 @@ namespace Rococo
 
       // GUI stack
       IGUIStack& gui;
+
+      IKeyboardSupervisor& keyboard;
 
       // Mesh builder object
       Graphics::IMeshBuilderSupervisor& meshes;

@@ -21,11 +21,6 @@ namespace // Script factories
       return players->GetPlayer(index);
    }
 
-   HV::IKeyboard* FactoryConstructHVKeyboard(HV::IKeyboard* kb)
-   {
-      return kb;
-   }
-
    HV::IConfig* FactoryConstructHVConfig(HV::IConfig* config)
    {
       return config;
@@ -50,7 +45,6 @@ namespace HV
             args.ss.AddNativeLibrary(SEXTEXT("rococo.sexy.mathsex"));
 #endif
             AddNativeCalls_HVISprites(args.ss, &e.sprites);
-            AddNativeCalls_HVIKeyboard(args.ss, &e.keyboard);
             AddNativeCalls_HVIPlayer(args.ss, &e.players);
             AddNativeCalls_HVIConfig(args.ss, &e.config);   
          }

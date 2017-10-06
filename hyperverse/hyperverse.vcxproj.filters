@@ -30,9 +30,6 @@
     <ClCompile Include="hv.player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hv.keyboard.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hv.config.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

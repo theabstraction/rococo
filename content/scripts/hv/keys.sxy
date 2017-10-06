@@ -1,6 +1,7 @@
 (' #file.type rococo.hv)
 
 (' #include
+	"!scripts/mplat.sxh.sxy"
 	"!scripts/hv.sxh.sxy"
 	"!scripts/types.sxy"
 )
@@ -11,7 +12,7 @@
 (using Sys.Maths)
 (using Sys.Type)
 (using Sys.Reflection)
-
+(using Rococo)
 (using HV)
 
 (macro HV.addkeys in out

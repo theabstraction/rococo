@@ -1,6 +1,7 @@
 (' #file.type rococo.hv)
 
 (' #include 
+	"!scripts/mplat.sxh.sxy"
 	"!scripts/hv/hv.types.sxy"
 	"!scripts/hv.sxh.sxy"
 	"!scripts/types.sxy"
@@ -10,6 +11,7 @@
 	(alias Main EntryPoint.Main)
 	
 (using HV)
+(using Rococo)
 
 
 (function Main (Int32 id)->(Int32 exitCode):

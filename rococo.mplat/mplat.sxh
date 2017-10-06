@@ -1,5 +1,17 @@
 (config $config.xc) 
 
+(interface
+	(as.sxy Rococo.IKeyboard "../content/scripts/mplat")
+	(as.cpp Rococo.IKeyboard "mplat")
+	(context factory Rococo.IKeyboard)
+	(methods
+		(ClearActions)
+		(SetKeyName (IString name)(Int32 scancode))
+		(BindAction (IString keyName)(IString actionName))
+	)
+	(factory Rococo.Keyboard)
+)
+
 (interface 
 	(as.sxy Rococo.IPane "../content/scripts/mplat.pane")
 	(as.cpp Rococo.IPane "mplat")

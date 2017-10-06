@@ -18,7 +18,6 @@ namespace
       bool editorActive{ false };
 
       AutoFree<IPlayerSupervisor> players;
-      AutoFree<IKeyboardSupervisor> keyboardSupervisor;
       AutoFree<ISpriteSupervisor> sprites;
       AutoFree<IEditor> editor;
       AutoFree<IConfigSupervisor> config;
@@ -34,10 +33,9 @@ namespace
          platform(_platform),
          config(CreateConfig()),
          players(CreatePlayerSupervisor(platform)),
-         keyboardSupervisor(CreateKeyboardSupervisor()),
          sprites(CreateSpriteSupervisor(platform.renderer)),
          editor(CreateEditor(platform)),
-         e { _platform, *config, *sprites, *players, *keyboardSupervisor, *editor },
+         e { _platform, *config, *sprites, *players, *editor },
          fpsLogic(CreateFPSGameLogic(e))
       {
          mode = fpsLogic;
@@ -126,8 +124,8 @@ namespace
 
       virtual void OnKeyboardEvent(const KeyboardEvent& keyboardEvent)
       {
-         Key key = e.keyboard.GetKeyFromEvent(keyboardEvent);
-         auto* action = e.keyboard.GetAction(key.KeyName);
+         Key key = e.platform.keyboard.GetKeyFromEvent(keyboardEvent);
+         auto* action = e.platform.keyboard.GetAction(key.KeyName);
          if (action)
          {  
             if (Eq(action, "gui.editor.toggle") && key.isPressed)
