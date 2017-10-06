@@ -1,19 +1,6 @@
 (config $config.xc) 
 
 (interface
-	(as.sxy HV.Graphics.ISceneBuilder "../content/scripts/hv")
-	(as.cpp HV.Graphics.ISceneBuilder "hv")
-	(context factory HV.Graphics.ISceneBuilder)
-	(methods
-		(AddStatics  (IdEntity entityId))
-		(Clear)
-		(SetClearColour (Float32 red)(Float32 green)(Float32 blue))
-		(SetSunDirection (const Vec3 sun))
-	)
-	(factory HV.Graphics.SceneBuilder)
-)
-
-(interface
 	(as.sxy HV.IPlayer "../content/scripts/hv")
 	(as.cpp HV.IPlayer "hv")
 	(context factory HV.IPlayerSupervisor)
@@ -21,7 +8,7 @@
 		(SetPlayerEntity (IdEntity id))
 		(GetPlayerEntity -> (IdEntity id))
 	)
-	(factory HV.Graphics.Player (Int32 index))
+	(factory HV.Player (Int32 index))
 )
 
 (interface

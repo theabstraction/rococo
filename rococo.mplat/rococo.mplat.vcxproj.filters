@@ -27,19 +27,22 @@
     <ClCompile Include="mplat.graphics.meshes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mplat.graphics.instances.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mplat.graphics.camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mplat.entity.mobiles.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mplat.maths.visitor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mplat.scripts.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mplat.graphics.scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mplat.entities.instances.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mplat.entities.mobiles.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

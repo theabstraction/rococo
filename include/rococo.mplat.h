@@ -90,6 +90,19 @@ namespace Rococo
       };
 
       ICameraSupervisor* CreateCamera(Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& renderer);
+
+      ROCOCOAPI ISceneBuilderSupervisor : public ISceneBuilder
+      {
+         virtual void Free() = 0;
+      };
+
+      ROCOCOAPI ISceneSupervisor : public IScene
+      {
+         virtual void Free() = 0;
+         virtual ISceneBuilderSupervisor&  Builder() = 0;
+      };
+
+      ISceneSupervisor* CreateScene(Rococo::Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera);
    }
 
    namespace Entities
@@ -260,6 +273,8 @@ namespace Rococo
       Entities::IMobilesSupervisor& mobiles;
 
       Graphics::ICameraSupervisor& camera;
+
+      Graphics::ISceneSupervisor& scene;
 
       IMathsVisitorSupervisor& mathsVisitor;
 

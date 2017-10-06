@@ -97,15 +97,16 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="mplat.entity.mobiles.cpp" />
+    <ClCompile Include="mplat.entities.mobiles.cpp" />
     <ClCompile Include="mplat.graphics.camera.cpp" />
-    <ClCompile Include="mplat.graphics.instances.cpp" />
+    <ClCompile Include="mplat.entities.instances.cpp" />
     <ClCompile Include="mplat.graphics.meshes.cpp" />
     <ClCompile Include="mplat.main.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="mplat.maths.visitor.cpp" />
+    <ClCompile Include="mplat.graphics.scene.cpp" />
     <ClCompile Include="mplat.scripts.cpp" />
   </ItemGroup>
   <ItemGroup>

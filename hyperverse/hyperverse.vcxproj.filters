@@ -27,9 +27,6 @@
     <ClCompile Include="hv.scripts.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hv.scene.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hv.player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

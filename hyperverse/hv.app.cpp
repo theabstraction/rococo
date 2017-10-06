@@ -17,7 +17,6 @@ namespace
       Platform& platform;
       bool editorActive{ false };
 
-      AutoFree<ISceneSupervisor> scene;
       AutoFree<IPlayerSupervisor> players;
       AutoFree<IKeyboardSupervisor> keyboardSupervisor;
       AutoFree<ISpriteSupervisor> sprites;
@@ -34,12 +33,11 @@ namespace
       HVApp(Platform& _platform) : 
          platform(_platform),
          config(CreateConfig()),
-         scene(CreateScene(platform.instances, platform.camera, platform)),
          players(CreatePlayerSupervisor(platform)),
          keyboardSupervisor(CreateKeyboardSupervisor()),
          sprites(CreateSpriteSupervisor(platform.renderer)),
          editor(CreateEditor(platform)),
-         e { _platform, *config, *scene, *sprites, *players, *keyboardSupervisor, *editor },
+         e { _platform, *config, *sprites, *players, *keyboardSupervisor, *editor },
          fpsLogic(CreateFPSGameLogic(e))
       {
          mode = fpsLogic;
@@ -61,7 +59,7 @@ namespace
 
       virtual RGBA GetClearColour() const
       {
-         return e.scene.GetClearColour();
+         return e.platform.scene.GetClearColour();
       }
 
       virtual void RenderGui(IGuiRenderContext& grc)
@@ -75,7 +73,7 @@ namespace
 
       virtual void RenderObjects(IRenderContext& rc)
       {
-         e.scene.RenderObjects(rc);
+         e.platform.scene.RenderObjects(rc);
       }
 
       virtual void Free()

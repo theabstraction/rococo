@@ -61,26 +61,12 @@ namespace HV
 
    namespace Graphics
    {
-      ROCOCOAPI ISceneBuilderSupervisor: public ISceneBuilder
-      {
-         virtual void Free() = 0;
-      };
-
-      ROCOCOAPI ISceneSupervisor : public IScene
-      {
-         virtual void Free() = 0;
-         virtual ISceneBuilderSupervisor&  Builder() = 0;
-      };
-
       ROCOCOAPI ISpriteSupervisor : public ISprites
       {
          virtual void Free() = 0;
       };
 
       ISpriteSupervisor* CreateSpriteSupervisor(IRenderer & renderer);
-
-      ISceneSupervisor* CreateScene(Rococo::Entities::IInstancesSupervisor& instances, Rococo::Graphics::ICameraSupervisor& camera, Platform& platform);
-      Rococo::Graphics::ICameraSupervisor* CreateCamera(Rococo::Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& render);
    }
 
    ROCOCOAPI IPlayerSupervisor
@@ -193,7 +179,6 @@ namespace HV
    {
       Platform& platform;
       IConfigSupervisor& config;
-      Graphics::ISceneSupervisor& scene;
       Graphics::ISpriteSupervisor& sprites;
       IPlayerSupervisor& players;
       IKeyboardSupervisor& keyboard;

@@ -1228,9 +1228,11 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 
    AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
 
+   AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera);
+
    Utilities utils;
    GuiStack gui(*publisher, *sourceCache, mainWindow->Renderer(), utils);
-   Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui,  *meshes, *instances, *mobiles, *camera, *mathsVisitor, title };
+   Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui,  *meshes, *instances, *mobiles, *camera, *scene, *mathsVisitor, title };
    gui.platform = &platform;
 
    AutoFree<IApp> app(appFactory.CreateApp(platform));

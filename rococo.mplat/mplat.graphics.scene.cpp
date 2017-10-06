@@ -1,4 +1,3 @@
-#include "hv.events.h"
 #include <rococo.mplat.h>
 
 #include <vector>
@@ -10,25 +9,21 @@ namespace
 {
    using namespace Rococo;
    using namespace Rococo::Entities;
-   using namespace HV;
-   using namespace HV::Graphics;
    using namespace Rococo::Graphics;
 
-   class Scene : public ISceneSupervisor, public HV::Graphics::ISceneBuilderSupervisor
+   class Scene : public ISceneSupervisor, public ISceneBuilderSupervisor
    {
       IInstancesSupervisor& instances;
       std::vector<ID_ENTITY> entities;
       std::vector<ObjectInstance> drawQueue;
       Rococo::Graphics::ICameraSupervisor& camera;
 
-      Platform& platform;
-
       RGBA clearColour{ 0,0,0,1 };
       Vec3 sun{ 0, 0, -1 };
 
    public:
-      Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera, Platform& _platform) :
-         instances(_instances), camera(_camera), platform(_platform)
+      Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera) :
+         instances(_instances), camera(_camera)
       {
       }
       
@@ -86,18 +81,6 @@ namespace
 
       virtual void RenderObjects(IRenderContext& rc)
       {
-         Clear();
-         struct ANON: public IEntityCallback
-         {
-            std::vector<ID_ENTITY>* entities;
-            virtual void OnEntity(int64 index, IEntity& entity, ID_ENTITY id)
-            {
-               entities->push_back(id);
-            }
-         } addToScene;
-         addToScene.entities = &entities;
-         instances.ForAll(addToScene);
-
          drawQueue.clear();
 
          GlobalState state;
@@ -145,13 +128,13 @@ namespace
    };
 }
 
-namespace HV
+namespace Rococo
 {
    namespace Graphics
    {
-      ISceneSupervisor* CreateScene(IInstancesSupervisor& instances, ICameraSupervisor& camera, Platform& platform)
+      ISceneSupervisor* CreateScene(IInstancesSupervisor& instances, ICameraSupervisor& camera)
       {
-         return new  Scene(instances, camera, platform);
+         return new  Scene(instances, camera);
       }
    }
 }

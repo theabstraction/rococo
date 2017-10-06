@@ -478,7 +478,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIPaneSetPopulator, nullptr, SEXTEXT("IPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
 	}
 }
-// BennyHill generated Sexy native functions for Rococo::ITextOutputPane 
+// BennyHill generated Sexy native functions for Rococo::Graphics::ISceneBuilder 
 namespace
 {
 	using namespace Rococo;
@@ -486,57 +486,90 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeRococoITextOutputPaneSetAlignment(NativeCallEnvironment& _nce)
+	void NativeRococoGraphicsISceneBuilderAddStatics(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		int32 paddingY;
-		_offset += sizeof(paddingY);
-		ReadInput(paddingY, _sf, -_offset);
+		ID_ENTITY entityId;
+		_offset += sizeof(entityId);
+		ReadInput(entityId, _sf, -_offset);
 
-		int32 paddingX;
-		_offset += sizeof(paddingX);
-		ReadInput(paddingX, _sf, -_offset);
-
-		int32 vert;
-		_offset += sizeof(vert);
-		ReadInput(vert, _sf, -_offset);
-
-		int32 horz;
-		_offset += sizeof(horz);
-		ReadInput(horz, _sf, -_offset);
-
-		Rococo::ITextOutputPane* _pObject;
+		Rococo::Graphics::ISceneBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetAlignment(horz, vert, paddingX, paddingY);
+		_pObject->AddStatics(entityId);
 	}
-	void NativeRococoITextOutputPaneBase(NativeCallEnvironment& _nce)
+	void NativeRococoGraphicsISceneBuilderClear(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::ITextOutputPane* _pObject;
+		Rococo::Graphics::ISceneBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		Rococo::IPane* base = _pObject->Base();
-		_offset += sizeof(CReflectedClass*);
-		auto& _baseStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("Rococo"),SEXTEXT("IPane"), SEXTEXT("ProxyIPane"), _nce.ss);
-		CReflectedClass* _sxybase = _nce.ss.Represent(_baseStruct, base);
-		WriteOutput(&_sxybase->header._vTables[0], _sf, -_offset);
+		_pObject->Clear();
 	}
-
-}
-
-namespace Rococo { 
-	void AddNativeCalls_RococoITextOutputPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::ITextOutputPane* _nceContext)
+	void NativeRococoGraphicsISceneBuilderSetClearColour(NativeCallEnvironment& _nce)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetAlignment, nullptr, SEXTEXT("ITextOutputPaneSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneBase, nullptr, SEXTEXT("ITextOutputPaneBase (Pointer hObject) -> (Rococo.IPane base)"));
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float blue;
+		_offset += sizeof(blue);
+		ReadInput(blue, _sf, -_offset);
+
+		float green;
+		_offset += sizeof(green);
+		ReadInput(green, _sf, -_offset);
+
+		float red;
+		_offset += sizeof(red);
+		ReadInput(red, _sf, -_offset);
+
+		Rococo::Graphics::ISceneBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetClearColour(red, green, blue);
+	}
+	void NativeRococoGraphicsISceneBuilderSetSunDirection(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec3* sun;
+		_offset += sizeof(sun);
+		ReadInput(sun, _sf, -_offset);
+
+		Rococo::Graphics::ISceneBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetSunDirection(*sun);
+	}
+
+	void NativeGetHandleForRococoGraphicsSceneBuilder(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::ISceneBuilder* nceContext = reinterpret_cast<Rococo::Graphics::ISceneBuilder*>(_nce.context);
+		// Uses: Rococo::Graphics::ISceneBuilder* FactoryConstructRococoGraphicsSceneBuilder(Rococo::Graphics::ISceneBuilder* _context);
+		Rococo::Graphics::ISceneBuilder* pObject = FactoryConstructRococoGraphicsSceneBuilder(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
 	}
 }
+
+namespace Rococo { namespace Graphics { 
+	void AddNativeCalls_RococoGraphicsISceneBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::ISceneBuilder* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Graphics.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsSceneBuilder, _nceContext, SEXTEXT("GetHandleForISceneBuilder0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderAddStatics, nullptr, SEXTEXT("ISceneBuilderAddStatics (Pointer hObject)(Int64 entityId) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderClear, nullptr, SEXTEXT("ISceneBuilderClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetClearColour, nullptr, SEXTEXT("ISceneBuilderSetClearColour (Pointer hObject)(Float32 red)(Float32 green)(Float32 blue) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetSunDirection, nullptr, SEXTEXT("ISceneBuilderSetSunDirection (Pointer hObject)(Sys.Maths.Vec3 sun) -> "));
+	}
+}}
 // BennyHill generated Sexy native functions for Rococo::Graphics::ICamera 
 namespace
 {
@@ -1221,6 +1254,65 @@ namespace Rococo {
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
 		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetAlignment, nullptr, SEXTEXT("IRadioButtonSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
 		ss.AddNativeCall(ns, NativeRococoIRadioButtonBase, nullptr, SEXTEXT("IRadioButtonBase (Pointer hObject) -> (Rococo.IPane base)"));
+	}
+}
+// BennyHill generated Sexy native functions for Rococo::ITextOutputPane 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoITextOutputPaneSetAlignment(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 paddingY;
+		_offset += sizeof(paddingY);
+		ReadInput(paddingY, _sf, -_offset);
+
+		int32 paddingX;
+		_offset += sizeof(paddingX);
+		ReadInput(paddingX, _sf, -_offset);
+
+		int32 vert;
+		_offset += sizeof(vert);
+		ReadInput(vert, _sf, -_offset);
+
+		int32 horz;
+		_offset += sizeof(horz);
+		ReadInput(horz, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetAlignment(horz, vert, paddingX, paddingY);
+	}
+	void NativeRococoITextOutputPaneBase(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::IPane* base = _pObject->Base();
+		_offset += sizeof(CReflectedClass*);
+		auto& _baseStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("Rococo"),SEXTEXT("IPane"), SEXTEXT("ProxyIPane"), _nce.ss);
+		CReflectedClass* _sxybase = _nce.ss.Represent(_baseStruct, base);
+		WriteOutput(&_sxybase->header._vTables[0], _sf, -_offset);
+	}
+
+}
+
+namespace Rococo { 
+	void AddNativeCalls_RococoITextOutputPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::ITextOutputPane* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetAlignment, nullptr, SEXTEXT("ITextOutputPaneSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneBase, nullptr, SEXTEXT("ITextOutputPaneBase (Pointer hObject) -> (Rococo.IPane base)"));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IPaneBuilder 

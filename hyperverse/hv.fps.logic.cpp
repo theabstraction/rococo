@@ -6,6 +6,8 @@ using namespace HV;
 using namespace HV::Events;
 using namespace HV::Events::Player;
 
+using namespace Rococo::Entities;
+
 class FPSControl
 {
 private:
@@ -153,6 +155,25 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
       delete this;
    }
 
+   void PopulateScene()
+   {
+      e.platform.scene.Builder().Clear();
+
+      struct ANON : public IEntityCallback
+      {
+         Rococo::Graphics::ISceneBuilderSupervisor& builder;
+
+         virtual void OnEntity(int64 index, IEntity& entity, ID_ENTITY id)
+         {
+            builder.AddStatics(id);
+         }
+
+         ANON(Rococo::Graphics::ISceneBuilderSupervisor& _builder) : builder(_builder) {}
+      } addToScene(e.platform.scene.Builder());
+
+      e.platform.instances.ForAll(addToScene);
+   }
+
    void UpdateAI(const IUltraClock& clock) override
    {
       e.platform.gui.RegisterPopulator("fps", this);
@@ -172,6 +193,8 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
       {
          e.platform.camera.ElevateView(player->GetPlayerEntity(), viewElevationDelta);
       }
+
+      PopulateScene();
    }
 
    void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override

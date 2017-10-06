@@ -11,17 +11,12 @@ namespace // Script factories
    using namespace HV;
    using namespace Rococo;
 
-   HV::Graphics::ISceneBuilder* FactoryConstructHVGraphicsSceneBuilder(HV::Graphics::ISceneBuilder* sb)
-   {
-      return sb;
-   }
-
    HV::ISprites* FactoryConstructHVSprites(HV::ISprites* sprites)
    {
       return sprites;
    }
 
-   HV::IPlayer* FactoryConstructHVGraphicsPlayer(HV::IPlayerSupervisor* players, int32 index)
+   HV::IPlayer* FactoryConstructHVPlayer(HV::IPlayerSupervisor* players, int32 index)
    {
       return players->GetPlayer(index);
    }
@@ -54,7 +49,6 @@ namespace HV
 #else
             args.ss.AddNativeLibrary(SEXTEXT("rococo.sexy.mathsex"));
 #endif
-            Graphics::AddNativeCalls_HVGraphicsISceneBuilder(args.ss, &e.scene.Builder());
             AddNativeCalls_HVISprites(args.ss, &e.sprites);
             AddNativeCalls_HVIKeyboard(args.ss, &e.keyboard);
             AddNativeCalls_HVIPlayer(args.ss, &e.players);

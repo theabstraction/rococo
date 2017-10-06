@@ -76,6 +76,19 @@
 )
 
 (interface
+	(as.sxy Rococo.Graphics.ISceneBuilder "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.ISceneBuilder "mplat")
+	(context factory Rococo.Graphics.ISceneBuilder)
+	(methods
+		(AddStatics  (IdEntity entityId))
+		(Clear)
+		(SetClearColour (Float32 red)(Float32 green)(Float32 blue))
+		(SetSunDirection (const Vec3 sun))
+	)
+	(factory Rococo.Graphics.SceneBuilder)
+)
+
+(interface
 	(as.sxy Rococo.Entities.IInstances "../content/scripts/mplat")
 	(as.cpp Rococo.Entities.IInstances "mplat")
 	(context factory Rococo.Entities.IInstances)
