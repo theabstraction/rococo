@@ -4,7 +4,7 @@
 #include <rococo.maths.h>
 
 #include <vector>
-#include <deque>
+#include <algorithm>
 
 namespace
 {
@@ -43,7 +43,7 @@ namespace
 
       void AddSector(const Vec2* positionArray, size_t nVertices) override
       {
-         auto* s = CreateSector(platform.instances, *this);
+         auto* s = CreateSector(platform, *this);
          try
          {
             s->Build(positionArray, nVertices, defaultFloorLevel, defaultFloorLevel + defaultRoomHeight);
@@ -52,10 +52,10 @@ namespace
          catch (IException& ex)
          {
             s->Free();
-            OS::ShowErrorBox(Windows::NoParent(), ex, "Algorithmic error creating sector. Try something simpler");
+            platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, "Algorithmic error creating sector. Try something simpler");
 
 #ifdef _DEBUG
-            if (platform.utilities.QueryYesNo(platform, Windows::NoParent(), "Try again?"))
+            if (platform.utilities.QueryYesNo(platform, platform.renderer.Window(), "Try again?"))
             {
                OS::TripDebugger();
                OS::PrintDebug("\n\n\n // Troublesome perimeter: \n");
@@ -70,6 +70,27 @@ namespace
             }
 #endif
          }
+      }
+
+      void Delete(ISector* sector) override
+      {
+         struct
+         {
+            ISector* a;
+
+            bool operator()(ISector* b) const
+            {
+               return a == b;
+            }
+         } match{ sector };
+         sectors.erase(std::remove_if(sectors.begin(), sectors.end(), match), sectors.end());
+
+         for (auto& s : sectors)
+         {
+            s->Rebuild();
+         }
+
+         sector->Free();
       }
 
       void Free() override

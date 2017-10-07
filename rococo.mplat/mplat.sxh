@@ -218,6 +218,7 @@
 		(AddTriangle (const Vertex a)(const Vertex b)(const Vertex c))
 		(End)
 		(Clear)
+		(Delete (IString fqName))
 	)
 	(factory Rococo.Graphics.MeshBuilder)
 )

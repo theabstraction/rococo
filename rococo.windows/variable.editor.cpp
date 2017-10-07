@@ -331,7 +331,7 @@ namespace
 			nextY = 28;
 		}
 
-		void Construct(cstr appQueryName, cstr defaultTab, cstr defaultTooltip, const POINT* topLeft)
+		void Construct(cstr appQueryName, cstr defaultTab, cstr defaultTooltip, const Vec2i* topLeft)
 		{
 			WindowConfig config;
 			Windows::SetOverlappedWindowConfig(config, windowSpan, SW_HIDE, hwndOwner, appQueryName, WS_OVERLAPPED | WS_SYSMENU, 0);
@@ -413,7 +413,7 @@ namespace
 			Resize();
 		}
 	public:
-		static VariableEditor* Create(HWND hwndOwner, const Vec2i& span, int labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const POINT* topLeft)
+		static VariableEditor* Create(HWND hwndOwner, const Vec2i& span, int labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const Vec2i* topLeft)
 		{
 			VariableEditor* editor = new VariableEditor(span, labelWidth, hwndOwner, eventHandler);
 			editor->Construct(appQueryName, defaultTab, defaultTooltip, topLeft);
@@ -543,7 +543,7 @@ namespace
 			nextY = buttonRect.bottom + 2;
 		}
 
-		virtual void AddSelection(cstr variableName, cstr variableDesc, rchar* buffer, DWORD capacityIncludingNullCharacter, ISelection& selection, IStringValidator* validator)
+		virtual void AddSelection(cstr variableName, cstr variableDesc, rchar* buffer, uint32 capacityIncludingNullCharacter, ISelection& selection, IStringValidator* validator)
 		{
 			if (nextY > windowSpan.y - 30)
 			{
@@ -584,7 +584,7 @@ namespace
 			nextY = 28;
 		}
 
-		virtual void AddStringEditor(cstr variableName, cstr variableDesc, rchar* buffer, DWORD capacity, IStringValidator* validator)
+		virtual void AddStringEditor(cstr variableName, cstr variableDesc, rchar* buffer, uint32 capacity, IStringValidator* validator)
 		{
 			if (nextY > windowSpan.y - 30)
 			{
@@ -621,7 +621,7 @@ namespace
 			nextY += 22;
 		}
 
-		virtual void AddFilenameEditor(cstr variableName, cstr variableDesc, rchar* buffer, DWORD capacity, cstr filter, IStringValidator* validator = nullptr)
+		virtual void AddFilenameEditor(cstr variableName, cstr variableDesc, rchar* buffer, uint32 capacity, cstr filter, IStringValidator* validator = nullptr)
 		{
 			if (nextY > windowSpan.y - 30)
 			{
@@ -817,8 +817,8 @@ namespace
 
 namespace Rococo
 {
-	IVariableEditor* CreateVariableEditor(HWND hwndOwner, const Vec2i& span, int labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const POINT* topLeft)
+	IVariableEditor* CreateVariableEditor(Windows::IWindow& parent, const Vec2i& span, int labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const Vec2i* topLeft)
 	{
-		return VariableEditor::Create(hwndOwner, span, labelWidth, appQueryName, defaultTab, defaultTooltip, eventHandler, topLeft);
+		return VariableEditor::Create(parent, span, labelWidth, appQueryName, defaultTab, defaultTooltip, eventHandler, topLeft);
 	}
 }

@@ -70,12 +70,17 @@ public:
       headingDelta = elevationDelta = 0;
    }
 
-   void Append(OnPlayerActionEvent& ev)
+   bool Append(OnPlayerActionEvent& ev)
    {
       auto i = nameToAction.find(ev.Name);
       if (i != nameToAction.end())
       {
          ((*this).*(i->second))(ev.start);
+         return true;
+      }
+      else
+      {
+         return false;
       }
    }
 
@@ -145,9 +150,9 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
       fpsControl.Clear();
    }
 
-   void Append(OnPlayerActionEvent& ev) override
+   bool Append(OnPlayerActionEvent& ev)
    {
-      fpsControl.Append(ev);
+      return fpsControl.Append(ev);
    }
 
    void Free() override
@@ -195,6 +200,21 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
       }
 
       PopulateScene();
+   }
+
+   bool OnKeyboardEvent(const KeyboardEvent& k)
+   {
+      Key key = e.platform.keyboard.GetKeyFromEvent(k);
+      auto* action = e.platform.keyboard.GetAction(key.KeyName);
+      if (action)
+      {
+          HV::Events::Player::OnPlayerActionEvent pae;
+          pae.Name = action;
+          pae.start = key.isPressed;
+          return Append(pae);
+      }
+
+      return false;
    }
 
    void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override

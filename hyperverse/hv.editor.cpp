@@ -251,13 +251,34 @@ namespace
    {
       WorldMap& map;
       GuiMetrics metrics;
-      IPublisher& publisher;
+      Platform& platform;
       Windows::IWindow& parent;
       ISector* lit{ nullptr };
 
-      void Render(IGuiRenderContext& grc, const GuiRect& rect)
+      void Render(IGuiRenderContext& grc, const GuiRect& rect) override
       {
 
+      }
+
+      bool OnKeyboardEvent(const KeyboardEvent& k) override
+      {
+         Key key = platform.keyboard.GetKeyFromEvent(k);
+
+         auto* action = platform.keyboard.GetAction(key.KeyName);
+         if (action && Eq(action, "gui.editor.sector.delete"))
+         {
+            if (!key.isPressed)
+            {
+               if (lit)
+               {
+                  map.Sectors().Delete(lit);
+                  lit = nullptr;
+               }
+            }
+            return true;
+         }
+
+         return false;
       }
 
       void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
@@ -304,8 +325,8 @@ namespace
          }
       }
    public:
-      EditMode_SectorEditor(IPublisher& _publisher, WorldMap& _map, Windows::IWindow& _parent) : 
-         publisher(_publisher), 
+      EditMode_SectorEditor(Platform& _platform, WorldMap& _map, Windows::IWindow& _parent) : 
+         platform(_platform),
          map(_map),
          parent(_parent)
       { }
@@ -337,6 +358,11 @@ namespace
             Vec2i start = map.GetScreenPosition(lineList[lineList.size() - 1]);
             Rococo::Graphics::DrawLine(grc, 2, start, metrics.cursorPosition, RGBAb(255, 255, 0));
          }
+      }
+
+      bool OnKeyboardEvent(const KeyboardEvent& key)
+      {
+         return false;
       }
 
       void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
@@ -482,6 +508,11 @@ namespace
       EventId modeEventId = "editor.edit_mode"_event;
       IPlayerSupervisor& players;
 
+      bool OnKeyboardEvent(const KeyboardEvent& key) override
+      {
+         return editMode->OnKeyboardEvent(key);
+      }
+
       void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override
       {
          editMode->OnMouseMove(cursorPos, delta, dWheel);
@@ -572,7 +603,7 @@ namespace
          players(_players),
          map(_platform),
          editMode_SectorBuilder(_platform.publisher, map),
-         editMode_SectorEditor(_platform.publisher, map, _platform.renderer.Window()),
+         editMode_SectorEditor(_platform, map, _platform.renderer.Window()),
          statusbar(CreateStatusBar(_platform.publisher))
       {      
          REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorNew, "editor.new", nullptr);

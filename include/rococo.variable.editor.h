@@ -24,16 +24,16 @@ namespace Rococo
 	{
 		virtual void AddIntegerEditor(cstr variableName, cstr variableDesc, int minimum, int maximum, int defaultValue) = 0;
 		virtual void AddPushButton(cstr variableName, cstr variableDesc) = 0;
-		virtual void AddSelection(cstr variableName, cstr variableDesc, rchar* buffer, DWORD capacityIncludingNullCharacter, ISelection& selection, IStringValidator* validator = nullptr) = 0;
-		virtual void AddStringEditor(cstr variableName, cstr variableDesc, rchar* buffer, DWORD capacityIncludingNullCharacter, IStringValidator* validator = nullptr) = 0;
+		virtual void AddSelection(cstr variableName, cstr variableDesc, rchar* buffer, uint32 capacityIncludingNullCharacter, ISelection& selection, IStringValidator* validator = nullptr) = 0;
+		virtual void AddStringEditor(cstr variableName, cstr variableDesc, rchar* buffer, uint32 capacityIncludingNullCharacter, IStringValidator* validator = nullptr) = 0;
 		virtual void AddTab(cstr tabName, cstr tabToolTip) = 0;
-		virtual void AddFilenameEditor(cstr variableName, cstr variableDesc, rchar* buffer, DWORD capacityIncludingNullCharacter, cstr filter, IStringValidator* validator = nullptr) = 0;
+		virtual void AddFilenameEditor(cstr variableName, cstr variableDesc, rchar* buffer, uint32 capacityIncludingNullCharacter, cstr filter, IStringValidator* validator = nullptr) = 0;
 		virtual bool IsModalDialogChoiceYes() = 0;
 		virtual int GetInteger(cstr variableName) = 0;
 		virtual void Free() = 0;
 	};
 
-	IVariableEditor* CreateVariableEditor(HWND hWndOwner, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler = nullptr, const POINT* topLeft = nullptr);
+	IVariableEditor* CreateVariableEditor(Windows::IWindow& parent, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler = nullptr, const Vec2i* topLeft = nullptr);
 }
 
 #endif

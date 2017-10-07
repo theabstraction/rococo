@@ -111,15 +111,18 @@ namespace HV
       virtual int32 GetPerimeterIndex(Vec2 a) = 0;
       virtual void InvokeSectorDialog(Rococo::Windows::IWindow& parent) = 0; 
       virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
+      virtual void Rebuild() = 0;
       virtual void RemoveWallSegment(const Segment& segment, const Vec2& a, const Vec2& b, float oppositeElevation, float oppositeHeight) = 0;
    };
 
-   ISector* CreateSector(Rococo::Entities::IInstancesSupervisor&  instances, ISectors& co_sectors);
+   ISector* CreateSector(Platform& platform, ISectors& co_sectors);
 
    ROCOCOAPI ISectors
    {
       virtual void AddSector(const Vec2* perimeter, size_t nVertices) = 0;
       virtual void Free() = 0;
+
+      virtual void Delete(ISector* sector) = 0;
 
       virtual ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b) = 0;
       virtual SectorAndSegment GetFirstSectorWithPoint(Vec2 a) = 0;
@@ -134,7 +137,6 @@ namespace HV
    {    
       virtual void Activate() = 0;
       virtual void Deactivate() = 0;
-      virtual void Append(Events::Player::OnPlayerActionEvent& ev) = 0;
       virtual void UpdateAI(const IUltraClock& clock) = 0;
    };
 

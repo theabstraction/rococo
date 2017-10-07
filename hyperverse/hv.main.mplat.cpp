@@ -17,6 +17,5 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
       }
    } factory;
 
-   InitRococoWindows(hInstance, nullptr, nullptr, nullptr, nullptr);
    return LoadPlatformDll_AndRun(hInstance, factory, "Hyperverse", MPLAT_DEBUG, nullptr, nullptr);
 }

@@ -120,39 +120,35 @@ namespace
 
       virtual void OnKeyboardEvent(const KeyboardEvent& keyboardEvent)
       {
-         Key key = e.platform.keyboard.GetKeyFromEvent(keyboardEvent);
-         auto* action = e.platform.keyboard.GetAction(key.KeyName);
-         if (action)
-         {  
-            if (Eq(action, "gui.editor.toggle") && key.isPressed)
+         if (!e.platform.gui.AppendEvent(keyboardEvent))
+         {
+            Key key = e.platform.keyboard.GetKeyFromEvent(keyboardEvent);
+            auto* action = e.platform.keyboard.GetAction(key.KeyName);
+            if (action)
             {
-               editorActive = !editorActive;
-
-               if (editorActive)
+               if (Eq(action, "gui.editor.toggle") && key.isPressed)
                {
-                  if (e.platform.gui.Top() != editorPanel->Supervisor())
-                  {
-                     e.platform.gui.PushTop(editorPanel->Supervisor(), true);
-                  }
+                  editorActive = !editorActive;
 
-                  mode->Activate();
-               }
-               else
-               {
-                  if (e.platform.gui.Top() == editorPanel->Supervisor())
+                  if (editorActive)
                   {
-                     e.platform.gui.Pop();
-                  }
+                     if (e.platform.gui.Top() != editorPanel->Supervisor())
+                     {
+                        e.platform.gui.PushTop(editorPanel->Supervisor(), true);
+                     }
 
-                  mode->Deactivate();
+                     mode->Activate();
+                  }
+                  else
+                  {
+                     if (e.platform.gui.Top() == editorPanel->Supervisor())
+                     {
+                        e.platform.gui.Pop();
+                     }
+
+                     mode->Deactivate();
+                  }
                }
-            }
-            else
-            {
-               HV::Events::Player::OnPlayerActionEvent pae;
-               pae.Name = action;
-               pae.start = key.isPressed;         
-               mode->Append(pae);
             }
          }
       }

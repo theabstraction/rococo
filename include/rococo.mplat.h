@@ -190,6 +190,8 @@ namespace Rococo
 
    struct IUIElement
    {
+      // Route a keyboard event to the element. Returns false to redirect event to the parent element
+      virtual bool OnKeyboardEvent(const KeyboardEvent& key) = 0;
       virtual void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) = 0;
       virtual void OnMouseLClick(Vec2i cursorPos, bool clickedDown) = 0;
       virtual void OnMouseRClick(Vec2i cursorPos, bool clickedDown) = 0;
@@ -206,7 +208,8 @@ namespace Rococo
 
    struct IPanelSupervisor: IPane
    {
-      virtual void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) = 0;
+      virtual bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) = 0;
+      virtual void AppendEvent(const MouseEvent& me,  const Vec2i& absTopLeft) = 0;
 
       virtual const GuiRect& ClientRect() const = 0;
       virtual void SetScheme(const ColourScheme& scheme) = 0;
@@ -240,6 +243,7 @@ namespace Rococo
    struct IGUIStack
    {
       virtual void AppendEvent(const MouseEvent& me) = 0;
+      virtual bool AppendEvent(const KeyboardEvent& ke) = 0; // Returns true if some UI control consumed the keyboard event
       virtual IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName) = 0;
       virtual void Render(IGuiRenderContext& grc) = 0;
       virtual void PushTop(IPanelSupervisor* panel, bool isModal) = 0;
@@ -256,11 +260,16 @@ namespace Rococo
       }
    };
 
+   struct IVariableEditor;
+   struct IVariableEditorEventHandler;
+
    struct IUtilitiies
    {
       virtual bool QueryYesNo(Platform& platform, Windows::IWindow& parent, cstr question, cstr caption = nullptr) = 0;
       virtual void RefreshResource(Platform& platform, cstr pingPath) = 0;
       virtual void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform) = 0;
+      virtual void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr message) = 0;
+      virtual IVariableEditor* CreateVariableEditor(Windows::IWindow& parent, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler = nullptr, const Vec2i* topLeft = nullptr) = 0;
    };
 
    namespace Graphics

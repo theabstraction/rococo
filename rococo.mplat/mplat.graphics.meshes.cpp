@@ -20,18 +20,29 @@ namespace
       {
       }
 
-      virtual void Clear()
+      void Clear() override
       {
          name[0] = 0;
          vertices.clear();
       }
 
-      virtual void Free()
+      void Delete(const fstring& fqName) override
+      {
+         auto i = meshes.find((cstr) fqName);
+         if (i != meshes.end())
+         {
+            auto id = i->second;
+            renderer.DeleteMesh(id);
+            meshes.erase(i);
+         }
+      }
+
+      void Free() override
       {
          delete this;
       }
 
-      virtual void Begin(const fstring& fqName)
+      void Begin(const fstring& fqName) override
       {
          if (*name != 0)
          {
@@ -44,7 +55,7 @@ namespace
          sb << fqName;
       }
 
-      virtual void AddTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c)
+      void AddTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c) override
       {
          if (*name == 0) Throw(0, "Call MeshBuilder.Begin() first");
          vertices.push_back(a);
@@ -52,7 +63,7 @@ namespace
          vertices.push_back(c);
       }
 
-      virtual void End()
+      void End() override
       {
          const ObjectVertex* v = vertices.empty() ? nullptr : (const ObjectVertex*)&vertices[0];
 

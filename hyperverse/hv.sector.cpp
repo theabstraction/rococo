@@ -7,8 +7,6 @@
 
 #include <rococo.rings.inl>
 
-#include <rococo.os.win32.h>
-#include <rococo.window.h>
 #include <rococo.variable.editor.h>
 
 namespace
@@ -73,6 +71,8 @@ namespace
       std::vector<VertexTriangle> wallTriangles;
       std::vector<VertexTriangle> floorTriangles;
       std::vector<VertexTriangle> ceilingTriangles;
+
+      IUtilitiies& utilities;
      
       float uvScale{ 0.2f };
       Vec2 uvOffset{ 0,0 };
@@ -145,14 +145,25 @@ namespace
             {
                wallSegments.erase(i);
                gapSegments.push_back({ a, b, oppositeElevation, oppositeHeight });
-               RaiseWallsFromSegments();
                break;
             }
-         }  
+         } 
+
+         for (auto& s : gapSegments)
+         {
+            if (s.a == a && s.b == b)
+            {
+               s.z0 = oppositeElevation;
+               s.z1 = oppositeHeight;
+            }
+         }
+         
+         RaiseWallsFromSegments();  // This is always called to trigger floor & ceiling drop re-calculation
       }
 
       void BuildWalls(IRing<Vec2>& perimeter)
       {
+         gapSegments.clear(); 
          wallSegments.clear();
 
          for (size_t i = 0; i < perimeter.ElementCount(); i++)
@@ -171,7 +182,6 @@ namespace
                   {
                      deleteSection = true;
                      s->RemoveWallSegment(segment, q, p, z0, z1);
-
                      gapSegments.push_back({ p, q, s->Z0(), s->Z1() });
                      break;
                   }
@@ -186,6 +196,54 @@ namespace
          RaiseWallsFromSegments();
       }
 
+      float AddWallSegment(const Vec2& p, const Vec2& q, float h0, float h1, float u)
+      {
+         Vec3 up{ 0, 0, 1 };
+         Vec3 P0 = { p.x, p.y, h0 };
+         Vec3 Q0 = { q.x, q.y, h0 };
+         Vec3 P1 = { p.x, p.y, h1 };
+         Vec3 Q1 = { q.x, q.y, h1 };
+
+         Vec3 delta = Q0 - P0;
+
+         float segmentLength = round(Length(delta));
+
+         Vec3 normal = Cross(delta, up);
+
+         ObjectVertex PV0, PV1, QV0, QV1;
+
+         PV0.position = P0;
+         PV1.position = P1;
+         QV0.position = Q0;
+         QV1.position = Q1;
+
+         PV0.normal = PV1.normal = QV0.normal = QV1.normal = normal;
+         PV0.emissiveColour = PV1.emissiveColour = QV0.emissiveColour = QV1.emissiveColour = RGBAb(0, 0, 0, 0);
+         PV0.diffuseColour = PV1.diffuseColour = QV0.diffuseColour = QV1.diffuseColour = RGBAb(255, 255, 255, 0);
+
+         PV0.v = QV0.v = uvScale * h0;
+         PV1.v = QV1.v = uvScale * h1;
+         PV0.u = PV1.u = uvScale * u;
+         QV0.u = QV1.u = uvScale * (u + segmentLength);
+
+         u += segmentLength;
+
+         VertexTriangle t0;
+         t0.a = PV0;
+         t0.b = PV1;
+         t0.c = QV0;
+
+         VertexTriangle t1;
+         t1.a = PV1;
+         t1.b = QV1;
+         t1.c = QV0;
+
+         wallTriangles.push_back(t0);
+         wallTriangles.push_back(t1);
+
+         return u;
+      }
+
       void RaiseWallsFromSegments()
       {
          float u = 0;
@@ -197,52 +255,11 @@ namespace
             Vec2 p = floorPerimeter[segment.perimeterIndexStart];
             Vec2 q = floorPerimeter[segment.perimeterIndexEnd];
 
-            Vec3 up{ 0, 0, 1 };
-            Vec3 P0 = { p.x, p.y, z0 };
-            Vec3 Q0 = { q.x, q.y, z0 };
-            Vec3 P1 = { p.x, p.y, z1 };
-            Vec3 Q1 = { q.x, q.y, z1 };
-
-            Vec3 delta = Q0 - P0;
-
-            float segmentLength = round(Length(delta));
-
-            Vec3 normal = Cross(delta, up);
-
-            ObjectVertex PV0, PV1, QV0, QV1;
-
-            PV0.position = P0;
-            PV1.position = P1;
-            QV0.position = Q0;
-            QV1.position = Q1;
-
-            PV0.normal = PV1.normal = QV0.normal = QV1.normal = normal;
-            PV0.emissiveColour = PV1.emissiveColour = QV0.emissiveColour = QV1.emissiveColour = RGBAb(0, 0, 0, 0);
-            PV0.diffuseColour = PV1.diffuseColour = QV0.diffuseColour = QV1.diffuseColour = RGBAb(255, 255, 255, 0);
-
-            PV0.v = QV0.v = uvScale * z0;
-            PV1.v = QV1.v = uvScale * z1;
-            PV0.u = PV1.u = uvScale * u;
-            QV0.u = QV1.u = uvScale * (u + segmentLength);
-
-            u += segmentLength;
-
-            VertexTriangle t0;
-            t0.a = PV0;
-            t0.b = PV1;
-            t0.c = QV0;
-
-            VertexTriangle t1;
-            t1.a = PV1;
-            t1.b = QV1;
-            t1.c = QV0;
-
-            wallTriangles.push_back(t0);
-            wallTriangles.push_back(t1);
+            u = AddWallSegment(p, q, z0, z1, u);
          }
 
          for (auto& gap : gapSegments)
-         {/*
+         {
             float foreignHeight = gap.z1;
             float currentHeight = z1;
 
@@ -253,55 +270,12 @@ namespace
                   foreignHeight = z0;
                }
 
-               Vec2 q = gap.a;
-               Vec2 p = gap.b;
+               Vec2 p = gap.a;
+               Vec2 q = gap.b;
 
-               Vec3 up{ 0, 0, 1 };
-               Vec3 P0 = { p.x, p.y, foreignHeight };
-               Vec3 Q0 = { q.x, q.y, foreignHeight };
-               Vec3 P1 = { p.x, p.y, z1 };
-               Vec3 Q1 = { q.x, q.y, z1 };
-
-               Vec3 delta = Q0 - P0;
-
-               float segmentLength = round(Length(delta));
-
-               Vec3 normal = Cross(delta, up);
-
-               ObjectVertex PV0, PV1, QV0, QV1;
-
-               PV0.position = P0;
-               PV1.position = P1;
-               QV0.position = Q0;
-               QV1.position = Q1;
-
-               PV0.normal = PV1.normal = QV0.normal = QV1.normal = normal;
-               PV0.emissiveColour = PV1.emissiveColour = QV0.emissiveColour = QV1.emissiveColour = RGBAb(0, 0, 0, 0);
-               PV0.diffuseColour = PV1.diffuseColour = QV0.diffuseColour = QV1.diffuseColour = RGBAb(255, 255, 255, 0);
-
-               PV0.v = QV0.v = uvScale * foreignHeight;
-               PV1.v = QV1.v = uvScale * z1;
-               PV0.u = PV1.u = uvScale * u;
-               QV0.u = QV1.u = uvScale * (u + segmentLength);
-
-               u += segmentLength;
-
-               VertexTriangle t0;
-               t0.a = PV0;
-               t0.b = PV1;
-               t0.c = QV0;
-
-               VertexTriangle t1;
-               t1.a = PV1;
-               t1.b = QV1;
-               t1.c = QV0;
-
-               wallTriangles.push_back(t0);
-               wallTriangles.push_back(t1);
+               AddWallSegment(p, q, foreignHeight, z1, 0);
             }
 
-            */
-            /*
             float foreignFloorHeight = gap.z0;
             if (foreignFloorHeight > z0)
             {
@@ -310,65 +284,36 @@ namespace
                   foreignFloorHeight = z1;
                }
 
-               Vec2 q = gap.a;
-               Vec2 p = gap.b;
+               Vec2 p = gap.a;
+               Vec2 q = gap.b;
 
-               Vec3 up{ 0, 0, 1 };
-               Vec3 P0 = { p.x, p.y, z0 };
-               Vec3 Q0 = { q.x, q.y, z0 };
-               Vec3 P1 = { p.x, p.y, foreignFloorHeight };
-               Vec3 Q1 = { q.x, q.y, foreignFloorHeight };
-
-               Vec3 delta = Q0 - P0;
-
-               float segmentLength = round(Length(delta));
-
-               Vec3 normal = Cross(delta, up);
-
-               ObjectVertex PV0, PV1, QV0, QV1;
-
-               PV0.position = P0;
-               PV1.position = P1;
-               QV0.position = Q0;
-               QV1.position = Q1;
-
-               PV0.normal = PV1.normal = QV0.normal = QV1.normal = normal;
-               PV0.emissiveColour = PV1.emissiveColour = QV0.emissiveColour = QV1.emissiveColour = RGBAb(0, 0, 0, 0);
-               PV0.diffuseColour = PV1.diffuseColour = QV0.diffuseColour = QV1.diffuseColour = RGBAb(255, 255, 255, 0);
-
-               PV0.v = QV0.v = uvScale * z0;
-               PV1.v = QV1.v = uvScale * foreignFloorHeight;
-               PV0.u = PV1.u = uvScale * u;
-               QV0.u = QV1.u = uvScale * (u + segmentLength);
-
-               u += segmentLength;
-
-               VertexTriangle t0;
-               t0.a = PV0;
-               t0.b = PV1;
-               t0.c = QV0;
-
-               VertexTriangle t1;
-               t1.a = PV1;
-               t1.b = QV1;
-               t1.c = QV0;
-
-               wallTriangles.push_back(t0);
-               wallTriangles.push_back(t1);
+               AddWallSegment(p, q, z0, foreignFloorHeight, 0);
             }
-
-            */
          }
 
          RebuildWallsGraphicMesh();
       }
    public:
-      Sector(IInstancesSupervisor& _instances, ISectors& _co_sectors) :
-         instances(_instances),
+      Sector(Platform& _platform, ISectors& _co_sectors) :
+         instances(_platform.instances),
+         utilities(_platform.utilities),
          id(nextSectorId++),
          co_sectors(_co_sectors)
       {
 
+      }
+
+      ~Sector()
+      {
+         rchar name[32];
+         SafeFormat(name, sizeof(name), "sector.floor.%u", id);
+         instances.MeshBuilder().Delete(to_fstring(name));
+
+         SafeFormat(name, sizeof(name), "sector.ceiling.%u", id);
+         instances.MeshBuilder().Delete(to_fstring(name));
+
+         SafeFormat(name, sizeof(name), "sector.walls.%u", id);
+         instances.MeshBuilder().Delete(to_fstring(name));
       }
 
       virtual ObjectVertexBuffer FloorVertices() const
@@ -493,7 +438,6 @@ namespace
 
       void Rebuild()
       {
-         gapSegments.clear();
          BuildWalls(Ring<Vec2>(&floorPerimeter[0], floorPerimeter.size()));
 
          size_t len = sizeof(Vec2) * floorPerimeter.size();
@@ -598,9 +542,10 @@ namespace
       {
          rchar title[32];
          SafeFormat(title, sizeof(title), "Sector %u", id);
-         AutoFree<IVariableEditor> editor = CreateVariableEditor(parent, { 640, 400 }, 120, title, "Floor and Ceiling", "Edit floor and ceiling parameters");
+         AutoFree<IVariableEditor> editor = utilities.CreateVariableEditor(parent, { 640, 400 }, 120, title, "Floor and Ceiling", "Edit floor and ceiling parameters");
          editor->AddIntegerEditor("Altitiude", "Altitiude - centimetres", 0, 100000, (int32)( z0 * 100.0f));
          editor->AddIntegerEditor("Height", "Height - centimetres", 250, 100000, (int32)( (z1 - z0) * 100.0f));
+
          if (editor->IsModalDialogChoiceYes())
          {
             int Z0 = editor->GetInteger("Altitiude");
@@ -623,8 +568,8 @@ namespace
 
 namespace HV
 {
-   ISector* CreateSector(IInstancesSupervisor& instances, ISectors& co_sectors)
+   ISector* CreateSector(Platform& platform, ISectors& co_sectors)
    {
-      return new Sector(instances, co_sectors);
+      return new Sector(platform, co_sectors);
    }
 }

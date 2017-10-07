@@ -436,6 +436,18 @@ namespace
 			meshBuffers.clear();
 		}
 
+      virtual void DeleteMesh(ID_SYS_MESH id)
+      {
+         if (id.value >= meshBuffers.size()) Throw(0, "DX11AppRenderer::DeleteMesh(...): Bad ID_SYS_MESH");
+
+         if (meshBuffers[id.value].dx11Buffer)
+         {
+            meshBuffers[id.value].dx11Buffer->Release();
+            meshBuffers[id.value].dx11Buffer = nullptr;
+            meshBuffers[id.value].numberOfVertices = 0;
+         }
+      }
+
 		virtual void SetMeshTexture(ID_TEXTURE textureId, int textureIndex)
 		{
 			size_t index = textureId.value - 1;

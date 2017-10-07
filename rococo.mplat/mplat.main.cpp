@@ -12,8 +12,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
-
 #include <rococo.fonts.h>
+#include <rococo.variable.editor.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;
@@ -82,11 +82,21 @@ public:
       return M::RunEnvironmentScript(platform, _onScriptEvent, name, addPlatform);
    }
 
+   void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr message) override
+   {
+      OS::ShowErrorBox(parent, ex, message);
+   }
+
    void RefreshResource(Platform& platform, cstr pingPath) override
    {
       FileUpdatedEvent fileUpdated;
       fileUpdated.pingPath = pingPath;
       platform.publisher.Publish(fileUpdated);
+   }
+
+   IVariableEditor* CreateVariableEditor(Windows::IWindow& window, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const Vec2i* topLeft) override
+   {
+      return Rococo::CreateVariableEditor(window, span, labelWidth, appQueryName, defaultTab, defaultTooltip, eventHandler, topLeft);
    }
 };
 
@@ -145,6 +155,25 @@ public:
             }
          }
       }
+   }
+
+   bool AppendEvent(const KeyboardEvent& ke)
+   {
+      GuiMetrics metrics;
+      renderer.GetGuiMetrics(metrics);
+
+      for (auto i = panels.rbegin(); i != panels.rend(); ++i)
+      {
+         if (IsPointInRect(metrics.cursorPosition, i->panel->ClientRect()))
+         {
+            if (i->panel->AppendEvent(ke, metrics.cursorPosition, { 0,0 }))
+            {
+               return true;
+            }
+         }
+      }
+
+      return false;
    }
 
    void OnEvent(Event& ev) override
@@ -433,6 +462,45 @@ public:
       }
    }
 
+   bool AppendEventToChildren(IPublisher& publisher, const KeyboardEvent& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft, int stateIndex = 0)
+   {
+      for (auto i : children)
+      {
+         auto& rect = i->ClientRect();
+         auto topLeft = TopLeft(i->ClientRect()) + absTopLeft;
+         auto span = Span(rect);
+         GuiRect childRect{ topLeft.x, topLeft.y, topLeft.x + span.x, topLeft.y + span.y };
+         if (IsPointInRect(focusPoint, childRect))
+         {
+            if (i->AppendEvent(ke, focusPoint, topLeft))
+            {
+               return true;
+            }
+         }
+      }
+
+      if (stateIndex >= 0 && stateIndex < (int32)populators.size())
+      {
+         if (!populators[stateIndex].name.empty())
+         {
+            UIPopulate populate;
+            populate.renderElement = nullptr;
+            populate.name = populators[stateIndex].name.c_str();
+            publisher.Publish(populate);
+
+            if (populate.renderElement)
+            {         
+               if (populate.renderElement->OnKeyboardEvent(ke))
+               {
+                  return true;
+               }
+            }
+         }
+      }
+
+      return false;
+   }
+
    void AlignLeftEdges(int32 x, boolean32 preserveSpan) override
    {
       for (auto i : children)
@@ -718,6 +786,11 @@ public:
       delete this;
    }
 
+   bool AppendEvent(const KeyboardEvent& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft)
+   {
+      return AppendEventToChildren(platform.publisher, ke, focusPoint, absTopLeft, 0);
+   }
+
    void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft)
    {
       AppendEventToChildren(platform.publisher, me, absTopLeft, 0);
@@ -856,6 +929,11 @@ public:
       padding = { paddingX, paddingY };
    }
 
+   bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+   {
+      return false;
+   }
+
    void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
    {
       if (stateIndex == 0 && me.HasFlag(me.LUp) || me.HasFlag(me.RUp))
@@ -935,6 +1013,11 @@ public:
       }
    }
 
+   bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+   {
+      return false;
+   }
+
    void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
    {
       RenderBackground(grc, topLeft, modality);
@@ -971,6 +1054,11 @@ public:
    IPane* Base() override
    {
       return this;
+   }
+
+   bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+   {
+      return false;
    }
 
    void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
@@ -1059,6 +1147,11 @@ public:
       horzAlign = horz;
       vertAlign = vert;
       padding = { paddingX, paddingY };
+   }
+
+   bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+   {
+      return false;
    }
 
    void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
