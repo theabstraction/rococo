@@ -74,7 +74,7 @@ namespace HV
       virtual void Free() = 0;
    };
 
-   IEditor* CreateEditor(Platform& platform);
+   IEditor* CreateEditor(Platform& platform, IPlayerSupervisor& players);
 
    struct ObjectVertexBuffer
    {
@@ -103,14 +103,15 @@ namespace HV
       virtual bool DoesLineCrossSector(Vec2 a, Vec2 b) = 0;
       virtual ObjectVertexBuffer FloorVertices() const = 0;
       virtual void Free() = 0;
-     
+      virtual float Z0() const = 0;
+      virtual float Z1() const = 0;  
       virtual Segment GetSegment(Vec2 p, Vec2 q) = 0;
       virtual int32 GetFloorTriangleIndexContainingPoint(Vec2 p) = 0;
       virtual RGBAb GetGuiColour(float intensity) const = 0;
       virtual int32 GetPerimeterIndex(Vec2 a) = 0;
       virtual void InvokeSectorDialog(Rococo::Windows::IWindow& parent) = 0; 
       virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
-      virtual void RemoveWallSegment(Segment segment) = 0;
+      virtual void RemoveWallSegment(const Segment& segment, const Vec2& a, const Vec2& b, float oppositeElevation, float oppositeHeight) = 0;
    };
 
    ISector* CreateSector(Rococo::Entities::IInstancesSupervisor&  instances, ISectors& co_sectors);
@@ -153,6 +154,11 @@ namespace HV
 
    IApp* CreateHVApp(Cosmos& e);
    void RunEnvironmentScript(Cosmos& e, cstr name);
+
+   namespace Graphics
+   {
+      void DrawPointer(IGuiRenderContext& grc, Vec2i pos, Degrees heading, RGBAb shadowColour, RGBAb bodyColour);
+   }
 }
 
 

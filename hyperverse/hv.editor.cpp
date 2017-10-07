@@ -23,6 +23,7 @@ namespace
    {
    private:
       IInstancesSupervisor& instances;
+      IMobiles& mobiles;
       int32 gridlinePixelWidth{ 8 };
       Metres gridlineMetricWidth{ 2.0f };
       Vec2 gridCentre{ 0, 0 }; // Always uses integral co-ordinates
@@ -39,6 +40,7 @@ namespace
 
       WorldMap(Platform& platform) : 
          instances(platform.instances), 
+         mobiles(platform.mobiles),
          sectors(CreateSectors(platform))
       {
          
@@ -85,7 +87,7 @@ namespace
          }
       }
 
-      void RenderTopGui(IGuiRenderContext& grc)
+      void RenderTopGui(IGuiRenderContext& grc, ID_ENTITY cameraId)
       {
          Vec2 worldCursor = GetWorldPosition(metrics.cursorPosition);
 
@@ -95,6 +97,15 @@ namespace
          Vec2i centre{ metrics.screenSpan.x >> 1, metrics.screenSpan.y >> 1 };
          Rococo::Graphics::DrawRectangle(grc, { centre.x - 70,0,centre.x + 70, 20 }, RGBAb(64, 64, 64, 224), RGBAb(64, 64, 64, 224));
          Rococo::Graphics::RenderCentredText(grc, originText, RGBAb(255, 255, 255), 9, { metrics.screenSpan.x >> 1, 8 });
+
+         auto* entity = instances.GetEntity(cameraId);
+         Vec3 entityPos = entity->Position();
+         auto labelPos = GetScreenPosition({ entityPos.x, entityPos.y });
+
+         FPSAngles angles;
+         mobiles.GetAngles(cameraId, angles);
+
+         HV::Graphics::DrawPointer(grc, labelPos, angles.heading, RGBAb(0, 0, 0), RGBAb(255, 255, 0));
       }
 
       void Render(IGuiRenderContext& grc, const ISector* litSector)
@@ -469,6 +480,7 @@ namespace
       AutoFree<IStatusBar> statusbar;
       Platform& platform;
       EventId modeEventId = "editor.edit_mode"_event;
+      IPlayerSupervisor& players;
 
       void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override
       {
@@ -533,7 +545,7 @@ namespace
 
          editMode->Render(grc, absRect);
 
-         map.RenderTopGui(grc);
+         map.RenderTopGui(grc, players.GetPlayer(0)->GetPlayerEntity());
 
          GuiRect statusRect{ absRect.left, absRect.bottom - 24, absRect.right, absRect.bottom };
          statusbar->Render(grc, statusRect);
@@ -555,8 +567,9 @@ namespace
       }
 
    public:
-      Editor(Platform& _platform) :
+      Editor(Platform& _platform, IPlayerSupervisor& _players) :
          platform(_platform),
+         players(_players),
          map(_platform),
          editMode_SectorBuilder(_platform.publisher, map),
          editMode_SectorEditor(_platform.publisher, map, _platform.renderer.Window()),
@@ -582,8 +595,8 @@ namespace
 
 namespace HV
 {
-   IEditor* CreateEditor(Platform& platform)
+   IEditor* CreateEditor(Platform& platform, IPlayerSupervisor& players)
    {
-      return new Editor(platform);
+      return new Editor(platform, players);
    }
 }

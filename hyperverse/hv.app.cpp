@@ -30,7 +30,7 @@ namespace
       HVApp(Platform& _platform) : 
          platform(_platform),
          players(CreatePlayerSupervisor(platform)),
-         editor(CreateEditor(platform)),
+         editor(CreateEditor(platform, *players)),
          e { _platform, *players, *editor },
          fpsLogic(CreateFPSGameLogic(e))
       {
