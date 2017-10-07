@@ -883,7 +883,7 @@ class PanelRadioButton : public BasePanel, public IRadioButton, public IObserver
    Vec2i padding{ 0,0 };
    IPublisher& publisher;
 
-   int32 stateIndex = 0;
+   int32 stateIndex = -1; // indeterminate
 public:
    PanelRadioButton(IPublisher& _publisher, int _fontIndex, cstr _text, cstr _key, cstr _value) :
       id(CreateEventIdFromVolatileString(_key)),
@@ -949,6 +949,14 @@ public:
    {
       GuiMetrics metrics;
       grc.Renderer().GetGuiMetrics(metrics);
+
+      if (stateIndex == -1)
+      {
+         TextOutputEvent toe(id);
+         toe.isGetting = true;
+         publisher.Publish(toe);
+         stateIndex = (toe.text && Eq(toe.text, value)) ? 1 : 0;
+      }
 
       auto p = metrics.cursorPosition;
 

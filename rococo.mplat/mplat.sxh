@@ -138,6 +138,7 @@
 	(methods
 		(AddBody (IString modelName)(IString texture)(const Matrix4x4 model)(const Vec3 scale)(IdEntity parentId)->(IdEntity entityId))
 		(AddGhost (const Matrix4x4 model)(const Vec3 scale)(IdEntity parentId)->(IdEntity entityId))
+		(Delete (IdEntity id))
 		(GetScale (IdEntity entityId)(Vec3 scale))
 		(SetScale (IdEntity entityId)(const Vec3 scale))
 		(TryGetModelToWorldMatrix (IdEntity entityId)(Matrix4x4 position)->(Bool existant))

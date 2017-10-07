@@ -137,6 +137,16 @@ namespace
          return Add(ID_SYS_MESH::Invalid(), ID_TEXTURE::Invalid(), model, scale, parentId);
       }
 
+      virtual void Delete(ID_ENTITY id)
+      {
+         auto i = idToEntity.find(id);
+         if (i != idToEntity.end())
+         {
+            delete i->second;
+            idToEntity.erase(i);
+         }
+      }
+
       virtual boolean32 TryGetModelToWorldMatrix(ID_ENTITY entityId, Matrix4x4& model)
       {
          auto i = idToEntity.find(entityId);

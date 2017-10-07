@@ -120,6 +120,20 @@ namespace
 		_offset += sizeof(entityId);
 		WriteOutput(entityId, _sf, -_offset);
 	}
+	void NativeRococoEntitiesIInstancesDelete(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Rococo::Entities::IInstances* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Delete(id);
+	}
 	void NativeRococoEntitiesIInstancesGetScale(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -206,6 +220,7 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesInstances, _nceContext, SEXTEXT("GetHandleForIInstances0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddBody, nullptr, SEXTEXT("IInstancesAddBody (Pointer hObject)(Sys.Type.IString modelName)(Sys.Type.IString texture)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddGhost, nullptr, SEXTEXT("IInstancesAddGhost (Pointer hObject)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesDelete, nullptr, SEXTEXT("IInstancesDelete (Pointer hObject)(Int64 id) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetScale, nullptr, SEXTEXT("IInstancesGetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesSetScale, nullptr, SEXTEXT("IInstancesSetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesTryGetModelToWorldMatrix, nullptr, SEXTEXT("IInstancesTryGetModelToWorldMatrix (Pointer hObject)(Int64 entityId)(Sys.Maths.Matrix4x4 position) -> (Bool existant)"));

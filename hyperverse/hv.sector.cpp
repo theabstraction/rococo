@@ -314,6 +314,10 @@ namespace
 
          SafeFormat(name, sizeof(name), "sector.walls.%u", id);
          instances.MeshBuilder().Delete(to_fstring(name));
+
+         instances.Delete(wallId);
+         instances.Delete(floorId);
+         instances.Delete(ceilingId);
       }
 
       virtual ObjectVertexBuffer FloorVertices() const
