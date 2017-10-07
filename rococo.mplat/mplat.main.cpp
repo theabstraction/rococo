@@ -774,6 +774,7 @@ public:
    Rococo::ILabelPane* AddLabel(int32 fontIndex, const fstring& text, const GuiRect& rect) override;
    Rococo::ISlider* AddSlider(int32 fontIndex, const fstring& text, const GuiRect& rect, float minValue, float maxValue) override;
    Rococo::IRadioButton* AddRadioButton(int32 fontIndex, const fstring& text, const fstring& key, const fstring& value, const GuiRect& rect) override;
+   Rococo::IScroller* AddScroller(const fstring& key, const GuiRect& rect, boolean32 isVertical) override;
 
    IPane* Base() override
    {
@@ -1121,6 +1122,189 @@ public:
    }
 };
 
+class PanelScrollbar : public BasePanel, public IScroller, IObserver
+{
+   std::string key;
+   IPublisher& publisher;
+   IRenderer& renderer;
+   int32 minValue = 0;
+   int32 maxValue = 0;
+   int32 value = 0;
+   int32 pageSize = 0;
+   boolean32 isVertical;
+   EventId setScrollId;
+   EventId getScrollId;
+   EventId uiScrollId;
+public:
+   PanelScrollbar(IPublisher& _publisher, IRenderer& _renderer, cstr _key, boolean32 _isVertical) :
+      publisher(_publisher), renderer(_renderer), key(_key), isVertical(_isVertical), 
+      setScrollId(""_event), getScrollId(""_event), uiScrollId(""_event)
+   {
+      char eventText[256];
+     
+      {
+         SecureFormat(eventText, sizeof(eventText), "%s_set", _key);
+         EventId id = CreateEventIdFromVolatileString(eventText);
+         memcpy(&setScrollId, &id, sizeof(id));
+      }
+
+      {
+         SecureFormat(eventText, sizeof(eventText), "%s_get", _key);
+         EventId id = CreateEventIdFromVolatileString(eventText);
+         memcpy(&getScrollId, &id, sizeof(id));
+      }
+
+      {
+         SecureFormat(eventText, sizeof(eventText), "%s_ui", _key);
+         EventId id = CreateEventIdFromVolatileString(eventText);
+         memcpy(&uiScrollId, &id, sizeof(id));
+      }
+
+      publisher.Attach(this, getScrollId);
+      publisher.Attach(this, setScrollId);
+   }
+
+   ~PanelScrollbar()
+   {
+      publisher.Detach(this);
+   }
+
+   void OnEvent(Event& ev) override
+   {
+      auto& s = As<ScrollEvent>(ev);
+
+      if (ev.id == setScrollId)
+      {     
+         minValue = s.logicalMinValue;
+         maxValue = s.logicalMaxValue;
+         value = s.logicalValue;
+         pageSize = s.logicalPageSize;
+      }
+      else if (ev.id == getScrollId)
+      {
+         s.logicalMinValue = minValue;
+         s.logicalMaxValue = maxValue;
+         s.logicalValue = value;
+         s.logicalPageSize = pageSize;
+      }
+   }
+
+   void Free() override
+   {
+      delete this;
+   }
+
+   IPane* Base() override
+   {
+      return this;
+   }
+
+   bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+   {
+      return false;
+   }
+
+   int32 PixelRange() const
+   {
+      auto span = Span(ClientRect());
+      return isVertical ? span.y : span.x;
+   }
+
+   int32 LogicalRange() const
+   {
+      return maxValue - minValue;
+   }
+
+   int32 PixelSelectValue(const Vec2i& relPos) const
+   {
+      return (isVertical) ? relPos.y : relPos.x;
+   }
+
+   int32 LogicalValue(int32 pixelValue)
+   {
+      float pr = (float)PixelRange();
+      return pr == 0 ? 0 : (int32)((pixelValue / pr * (float) LogicalRange())) + minValue;
+   }
+
+   int32 PixelValue(int32 logicalValue)
+   {
+      float lr = (float)LogicalRange();
+      return lr == 0 ? 0 : (int32)((logicalValue / lr) * (float)PixelRange());
+   }
+
+   int32 PageSizeInPixels()
+   {
+      float lr = (float)LogicalRange();
+      return lr == 0 ? 0 : (int32)((pageSize / lr) * (float) PixelRange());
+   }
+
+   void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
+   {
+      if (me.HasFlag(me.LUp))
+      {
+         GuiMetrics metrics;
+         renderer.GetGuiMetrics(metrics);
+
+         auto ds = metrics.cursorPosition - absTopLeft;
+
+         int32 pixelValue = PixelSelectValue(ds);
+         int32 logicalValue = LogicalValue(pixelValue);
+         if (logicalValue >= minValue && logicalValue < maxValue)
+         {
+            value = logicalValue;
+
+            ScrollEvent s(uiScrollId);
+            s.logicalMinValue = minValue;
+            s.logicalMaxValue = maxValue;
+            s.logicalValue = value;
+            s.logicalPageSize = pageSize;
+            s.fromScrollbar = true;
+            publisher.Publish(s);
+         }
+      }
+   }
+
+   void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
+   {
+      if (LogicalRange() == 0)
+      {
+         ScrollEvent ev(uiScrollId);
+         ev.fromScrollbar = false;
+         publisher.Publish(ev);
+        
+         maxValue = ev.logicalMaxValue;
+         minValue = ev.logicalMinValue;
+         value = ev.logicalValue;
+         pageSize = ev.logicalPageSize;
+      }
+
+      auto span = Span(ClientRect());
+
+      GuiRect absRect = GuiRect { 0, 0, span.x, span.y } + topLeft;
+
+      GuiMetrics metrics;
+      grc.Renderer().GetGuiMetrics(metrics);
+
+      bool lit = !modality.isUnderModal && IsPointInRect(metrics.cursorPosition, absRect);
+      Graphics::DrawRectangle(grc, absRect, lit ? Scheme().hi_topLeft : Scheme().topLeft, lit ? Scheme().hi_bottomRight : Scheme().bottomRight);
+      Graphics::DrawBorderAround(grc, absRect, { 1,1 }, lit ? Scheme().hi_topLeftEdge : Scheme().topLeftEdge, lit ? Scheme().hi_bottomRightEdge : Scheme().bottomRightEdge);
+
+      GuiRect sliderRect;
+
+      if (isVertical)
+      {
+         sliderRect = GuiRect{ 1, 1, span.x - 2, PageSizeInPixels() } +Vec2i{ 0, PixelValue(value) } + topLeft;
+      }
+      else
+      {
+         sliderRect = GuiRect{ 1, 1, PageSizeInPixels(), span.y - 2 } +Vec2i{ PixelValue(value), 0 } + topLeft;
+      }
+
+      Graphics::DrawRectangle(grc, sliderRect, lit ? Scheme().hi_fontColour : Scheme().fontColour, lit ? Scheme().hi_fontColour : Scheme().fontColour);
+      Graphics::DrawBorderAround(grc, sliderRect, { 1,1 }, lit ? Scheme().hi_topLeftEdge : Scheme().topLeftEdge, lit ? Scheme().hi_bottomRightEdge : Scheme().bottomRightEdge);
+   }
+};
+
 class PanelTextOutput : public BasePanel, public ITextOutputPane
 {
    int32 fontIndex = 1;
@@ -1215,6 +1399,14 @@ Rococo::IRadioButton* PanelContainer::AddRadioButton(int32 fontIndex, const fstr
    return radio;
 }
 
+Rococo::IScroller* PanelContainer::AddScroller(const fstring& key, const GuiRect& rect, boolean32 isVertical)
+{
+   auto* scroller = new PanelScrollbar(platform.publisher, platform.renderer, key, isVertical);
+   AddChild(scroller);
+   scroller->SetRect(rect);
+   return scroller;
+}
+
 class ScriptedPanel : IEventCallback<ScriptCompileArgs>, IObserver, public IPaneBuilderSupervisor, public PanelContainer
 {
    GuiRect lastRect{ 0, 0, 0, 0 };
@@ -1265,6 +1457,7 @@ public:
       AddNativeCalls_RococoIRadioButton(args.ss, nullptr);
       AddNativeCalls_RococoIPane(args.ss, nullptr);
       AddNativeCalls_RococoISlider(args.ss, nullptr);
+      AddNativeCalls_RococoIScroller(args.ss, nullptr);
    }
 
    void RefreshScript()

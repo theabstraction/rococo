@@ -53,6 +53,16 @@
 	(radio.SetAlignment -1 0 0 0)
 )
 
+(function AddScroller(IString key)(IPaneContainer container)(Recti rect)-> :
+	(IScroller scroller = (container.AddScroller key rect true))
+	(IPane sbase = scroller.Base)
+	(sbase.SetColourFont  0xFF808080 0xFF909090)
+	(sbase.SetColourBk1   0xFF606060 0xFF808080)
+	(sbase.SetColourBk2   0xFF606060 0xFF808080)
+	(sbase.SetColourEdge1 0xDFFFFFFF 0xFFFFFFFF)
+	(sbase.SetColourEdge2 0xDFFFFFFF 0xFFFFFFFF)
+)
+
 (function AddVec2iVec2i (Vec2i a)(Vec2i b)(Vec2i sum)-> :
 	(sum.x = (a.x + b.x))
 	(sum.y = (a.y + b.y))
@@ -95,8 +105,8 @@
 	
 	(Vec2i span)
 	(GetSpan container span)
-	(rect.bottomRight.x = (span.x + dx))
-	(rect.bottomRight.y = (span.y + dy))
+	(rect.bottomRight.x = (span.x + (2 * dx)))
+	(rect.bottomRight.y = (span.y + (2 * dy)))
 )
 	
 (function Main (Int32 id)->(Int32 exitCode):
@@ -131,4 +141,28 @@
 	(mbase.AlignLeftEdges 4 false)
 	(mbase.AlignRightEdges 4 false)
 	(mbase.LayoutVertically 4 -1)
+	
+	(Vec2i containerSpan = containerRect.bottomRight - containerRect.topLeft)
+	(Recti toolsRect)
+	(toolsRect.topLeft.x = (containerSpan.x - 200))
+	(toolsRect.topLeft.y = 4)
+	(toolsRect.bottomRight.x = (containerSpan.x - 18))
+	(toolsRect.bottomRight.y = (containerSpan.y - 48))
+	
+	(IPaneContainer toolContainer = (container.AddContainer toolsRect))
+	(IPane tbase = toolContainer.Base)
+	(tbase.SetColourBk1   0xAF000000 0xAF000000)
+	(tbase.SetColourBk2   0x4F000000 0x4F000000)
+	(tbase.SetColourEdge1 0x4F808080 0x4FFCFCCF)
+	(tbase.SetColourEdge2 0x4FA0A0A0 0x4FFFFFFF)
+	
+	(Vec2i toolSpan = toolsRect.bottomRight - toolsRect.topLeft)
+	
+	(Recti vscroll)
+	(vscroll.topLeft.x = (toolSpan.x - 20))
+	(vscroll.topLeft.y = 4)
+	(vscroll.bottomRight.x = (toolSpan.x - 2))
+	(vscroll.bottomRight.y = (toolSpan.y - 2))
+	(AddScroller "editor.tools.vscroll" toolContainer vscroll)
+	
 )

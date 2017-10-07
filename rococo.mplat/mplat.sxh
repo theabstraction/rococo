@@ -155,6 +155,7 @@
 		(AddContainer (const Rect rect)->(Rococo.IPaneContainer container))
 		(AddLabel (Int32 fontIndex)(IString text) (const Rect rect)->(Rococo.ILabelPane label))
 		(AddSlider (Int32 fontIndex)(IString text) (const Rect rect)(Float32 minValue)(Float32 maxValue) ->(Rococo.ISlider slider))
+		(AddScroller (IString key) (const Rect rect)(Bool isVertical)->(Rococo.IScroller scroller))
 		(AddTextOutput  (Int32 fontIndex)(IString key) (const Rect rect)->(Rococo.ITextOutputPane textBox))
 		(AddRadioButton (Int32 fontIndex)(IString text)(IString key)(IString value) (const Rect rect)->(Rococo.IRadioButton radio))
 		(Base -> (Rococo.IPane base))
@@ -185,6 +186,15 @@
 	(as.sxy Rococo.ISlider "../content/scripts/mplat.pane")
 	(as.cpp Rococo.ISlider "mplat")
 	(context factory Rococo.ISlider)
+	(methods
+		(Base -> (Rococo.IPane base))
+	)
+)
+
+(interface 
+	(as.sxy Rococo.IScroller "../content/scripts/mplat.pane")
+	(as.cpp Rococo.IScroller "mplat")
+	(context factory Rococo.IScroller)
 	(methods
 		(Base -> (Rococo.IPane base))
 	)

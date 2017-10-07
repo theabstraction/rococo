@@ -496,6 +496,10 @@ namespace
       const ISector* GetHilight() const override { return nullptr; }
    };
 
+   EventId vScrollChanged = "editor.tools.vscroll_ui"_event;
+   EventId vScrollSet = "editor.tools.vscroll_set"_event;
+   EventId vScrollGet = "editor.tools.vscroll_get"_event;
+
    class Editor : public IEditor, public IUIElement, private IObserver
    {
       WorldMap map;
@@ -567,6 +571,17 @@ namespace
                }
             }
          }
+         else if (ev.id == vScrollChanged)
+         {
+            auto& s = As<ScrollEvent>(ev);
+            if (!s.fromScrollbar)
+            {
+               s.logicalMaxValue = 1000;
+               s.logicalMinValue = 0;
+               s.logicalValue = 500;
+               s.logicalPageSize = 100;
+            }
+         }
       }
 
       void Render(IGuiRenderContext& grc, const GuiRect& absRect) override
@@ -610,6 +625,8 @@ namespace
          REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorLoad, "editor.load", nullptr);
 
          platform.publisher.Attach(this, modeEventId);
+         platform.publisher.Attach(this, vScrollChanged);
+         platform.publisher.Attach(this, vScrollGet);
 
          SetMode(Mode_Vertex);
 

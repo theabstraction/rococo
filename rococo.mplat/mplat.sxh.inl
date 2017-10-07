@@ -1383,6 +1383,34 @@ namespace
 		CReflectedClass* _sxyslider = _nce.ss.Represent(_sliderStruct, slider);
 		WriteOutput(&_sxyslider->header._vTables[0], _sf, -_offset);
 	}
+	void NativeRococoIPaneContainerAddScroller(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 isVertical;
+		_offset += sizeof(isVertical);
+		ReadInput(isVertical, _sf, -_offset);
+
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _key;
+		ReadInput(_key, _sf, -_offset);
+		fstring key { _key->buffer, _key->length };
+
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::IScroller* scroller = _pObject->AddScroller(key, *rect, isVertical);
+		_offset += sizeof(CReflectedClass*);
+		auto& _scrollerStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("Rococo"),SEXTEXT("IScroller"), SEXTEXT("ProxyIScroller"), _nce.ss);
+		CReflectedClass* _sxyscroller = _nce.ss.Represent(_scrollerStruct, scroller);
+		WriteOutput(&_sxyscroller->header._vTables[0], _sf, -_offset);
+	}
 	void NativeRococoIPaneContainerAddTextOutput(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -1475,6 +1503,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddContainer, nullptr, SEXTEXT("IPaneContainerAddContainer (Pointer hObject)(Sys.Maths.Recti rect) -> (Rococo.IPaneContainer container)"));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddLabel, nullptr, SEXTEXT("IPaneContainerAddLabel (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Maths.Recti rect) -> (Rococo.ILabelPane label)"));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddSlider, nullptr, SEXTEXT("IPaneContainerAddSlider (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Maths.Recti rect)(Float32 minValue)(Float32 maxValue) -> (Rococo.ISlider slider)"));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddScroller, nullptr, SEXTEXT("IPaneContainerAddScroller (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Recti rect)(Bool isVertical) -> (Rococo.IScroller scroller)"));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddTextOutput, nullptr, SEXTEXT("IPaneContainerAddTextOutput (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString key)(Sys.Maths.Recti rect) -> (Rococo.ITextOutputPane textBox)"));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddRadioButton, nullptr, SEXTEXT("IPaneContainerAddRadioButton (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Type.IString key)(Sys.Type.IString value)(Sys.Maths.Recti rect) -> (Rococo.IRadioButton radio)"));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerBase, nullptr, SEXTEXT("IPaneContainerBase (Pointer hObject) -> (Rococo.IPane base)"));
@@ -1537,6 +1566,38 @@ namespace Rococo {
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
 		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetAlignment, nullptr, SEXTEXT("IRadioButtonSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
 		ss.AddNativeCall(ns, NativeRococoIRadioButtonBase, nullptr, SEXTEXT("IRadioButtonBase (Pointer hObject) -> (Rococo.IPane base)"));
+	}
+}
+// BennyHill generated Sexy native functions for Rococo::IScroller 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoIScrollerBase(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::IPane* base = _pObject->Base();
+		_offset += sizeof(CReflectedClass*);
+		auto& _baseStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("Rococo"),SEXTEXT("IPane"), SEXTEXT("ProxyIPane"), _nce.ss);
+		CReflectedClass* _sxybase = _nce.ss.Represent(_baseStruct, base);
+		WriteOutput(&_sxybase->header._vTables[0], _sf, -_offset);
+	}
+
+}
+
+namespace Rococo { 
+	void AddNativeCalls_RococoIScroller(Rococo::Script::IPublicScriptSystem& ss, Rococo::IScroller* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeRococoIScrollerBase, nullptr, SEXTEXT("IScrollerBase (Pointer hObject) -> (Rococo.IPane base)"));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::ILabelPane 

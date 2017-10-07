@@ -333,6 +333,19 @@ namespace Rococo
    {
       virtual IApp* CreateApp(Platform& platform) = 0;
    };
+
+   namespace Events
+   {
+      struct ScrollEvent : public Events::Event
+      {
+         ScrollEvent(EventId id) : Event(id) {}
+         int32 logicalMinValue;
+         int32 logicalMaxValue;
+         int32 logicalValue;
+         int32 logicalPageSize;
+         boolean32 fromScrollbar;
+      };
+   }
 }
 
 #define REGISTER_UI_EVENT_HANDLER(guistack, instance, classname, methodname, cmd, helpString)  \
