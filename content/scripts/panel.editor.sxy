@@ -151,18 +151,32 @@
 	
 	(IPaneContainer toolContainer = (container.AddContainer toolsRect))
 	(IPane tbase = toolContainer.Base)
-	(tbase.SetColourBk1   0xAF000000 0xAF000000)
-	(tbase.SetColourBk2   0x4F000000 0x4F000000)
-	(tbase.SetColourEdge1 0x4F808080 0x4FFCFCCF)
-	(tbase.SetColourEdge2 0x4FA0A0A0 0x4FFFFFFF)
+	(tbase.SetColourBk1   0xFF808080 0xFF808080)
+	(tbase.SetColourBk2   0xFF808080 0xFF808080)
+	(tbase.SetColourEdge1 0x80FFFFFF 0xFFFFFFFF)
+	(tbase.SetColourEdge2 0x60FFFFFF 0xDFFFFFFF)
 	
 	(Vec2i toolSpan = toolsRect.bottomRight - toolsRect.topLeft)
 	
 	(Recti vscroll)
 	(vscroll.topLeft.x = (toolSpan.x - 20))
-	(vscroll.topLeft.y = 4)
+	(vscroll.topLeft.y = 24)
 	(vscroll.bottomRight.x = (toolSpan.x - 2))
 	(vscroll.bottomRight.y = (toolSpan.y - 2))
 	(AddScroller "editor.tools.vscroll" toolContainer vscroll)
+	
+	(Recti imageListRect)
+	(imageListRect.topLeft.x = 4)
+	(imageListRect.topLeft.y = vscroll.topLeft.y)
+	(imageListRect.bottomRight.x = (vscroll.topLeft.x - 4))
+	(imageListRect.bottomRight.y = (vscroll.bottomRight.y - 4))
+	
+	(IPaneContainer imageList = (toolContainer.AddContainer imageListRect))
+	(IPane ibase = imageList.Base)
+	(ibase.SetColourBk1   0x00000000 0x00000000)
+	(ibase.SetColourBk2   0x00000000 0x00000000)
+	(ibase.SetColourEdge1 0x20FFFFFF 0x4FFFFFFF)
+	(ibase.SetColourEdge2 0x10FFFFFF 0x3FFFFFFF)
+	(ibase.SetPopulator 0 "editor.tools.imagelist")
 	
 )

@@ -70,7 +70,42 @@ namespace Rococo
 
 class Utilities : public IUtilitiies
 {
+   IInstallation& installation;
 public:
+   Utilities(IInstallation& _installation) : installation(_installation) {}
+
+   void EnumerateFiles(IEventCallback<cstr>& cb, cstr pingPathDirectory) override
+   {
+      struct : IEventCallback<cstr>
+      {
+         rchar shortdir[IO::MAX_PATHLEN];
+         rchar directory[IO::MAX_PATHLEN];
+         IEventCallback<cstr>* cb;
+
+         virtual void OnEvent(cstr filename)
+         {
+            rchar contentRelativePath[IO::MAX_PATHLEN];
+            SafeFormat(contentRelativePath, IO::MAX_PATHLEN, "%s%s", shortdir, filename);
+            cb->OnEvent(contentRelativePath);
+         }
+      } onFileFound;
+
+      onFileFound.cb = &cb;
+
+      if (pingPathDirectory == nullptr || pingPathDirectory[0] != '!')
+      {
+         Throw(0, "Directories must be inside the content directory. Use the '!<directory>' notation");
+      }
+
+      StackStringBuilder sb(onFileFound.shortdir, _MAX_PATH);
+      sb << pingPathDirectory;
+
+      EndDirectoryWithSlash(onFileFound.shortdir, IO::MAX_PATHLEN);
+
+      SafeFormat(onFileFound.directory, IO::MAX_PATHLEN, "%s%s", installation.Content(), (onFileFound.shortdir + 1));
+      IO::ForEachFileInDirectory(onFileFound.directory, onFileFound);
+   }
+
    bool QueryYesNo(Platform& platform, Windows::IWindow& parent, cstr question, cstr caption) override
    {
       cstr title = caption == nullptr ? platform.title : caption;
@@ -1295,6 +1330,8 @@ public:
 
    void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
    {
+      int32 oldValue = value;
+
       if (me.HasFlag(me.LDown))
       {
          Vec2i ds = me.cursorPos - absTopLeft;
@@ -1337,6 +1374,18 @@ public:
          int32 delta = (int32)( ((short) me.buttonData) / 120 );
          value -= rowSize * delta;
          CapValue(value);
+      }
+
+      if (oldValue != value)
+      {
+         ScrollEvent s(uiScrollId);
+         s.logicalMinValue = minValue;
+         s.logicalMaxValue = maxValue;
+         s.logicalValue = value;
+         s.logicalPageSize = pageSize;
+         s.fromScrollbar = true;
+         s.rowSize = rowSize;
+         publisher.Publish(s);
       }
 
       if (me.HasFlag(me.LUp))
@@ -1666,7 +1715,7 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 
    AutoFree<IConfigSupervisor> config = CreateConfig();
 
-   Utilities utils;
+   Utilities utils(*installation);
    GuiStack gui(*publisher, *sourceCache, mainWindow->Renderer(), utils);
    Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *sprites, *camera, *scene, *mathsVisitor, title };
    gui.platform = &platform;

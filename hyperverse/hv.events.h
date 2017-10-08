@@ -4,6 +4,18 @@ namespace HV
 {
    namespace Events
    {
+      extern EventId changeDefaultTextureId;
+
+      struct ChangeDefaultTextureEvent : public Event
+      {
+         ChangeDefaultTextureEvent() : Event(changeDefaultTextureId)
+         {
+
+         }
+
+         cstr wallName;
+      };
+
       namespace OS
       {
          extern EventId OnTick;

@@ -41,9 +41,11 @@ namespace
       ISector** begin() { return (sectors.empty() ? nullptr : &sectors[0]); }
       ISector** end() { return (sectors.empty() ? nullptr : &sectors[0] + sectors.size()); }
 
-      void AddSector(const Vec2* positionArray, size_t nVertices) override
+      void AddSector(cstr wallTexture, const Vec2* positionArray, size_t nVertices) override
       {
          auto* s = CreateSector(platform, *this);
+         s->SetWallTexture(wallTexture);
+
          try
          {
             s->Build(positionArray, nVertices, defaultFloorLevel, defaultFloorLevel + defaultRoomHeight);
@@ -66,7 +68,7 @@ namespace
                }
                OS::PrintDebug("};\n\n\n");
 
-               AddSector(positionArray, nVertices);
+               AddSector(wallTexture,  positionArray, nVertices);
             }
 #endif
          }

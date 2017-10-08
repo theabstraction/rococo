@@ -78,6 +78,7 @@ namespace Rococo
          virtual void ConcatenateModelMatrices(ID_ENTITY id, Matrix4x4& result) = 0;
          virtual void ConcatenatePositionVectors(ID_ENTITY id, Vec3& position) = 0;
          virtual Rococo::Graphics::IMeshBuilder& MeshBuilder() = 0;
+         virtual ID_TEXTURE ReadyTexture(cstr pingName) = 0;
       };
    }
 
@@ -265,6 +266,7 @@ namespace Rococo
 
    struct IUtilitiies
    {
+      virtual void EnumerateFiles(IEventCallback<cstr>& cb, cstr pingPathDirectory) = 0;
       virtual bool QueryYesNo(Platform& platform, Windows::IWindow& parent, cstr question, cstr caption = nullptr) = 0;
       virtual void RefreshResource(Platform& platform, cstr pingPath) = 0;
       virtual void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform) = 0;

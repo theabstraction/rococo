@@ -115,19 +115,7 @@ namespace
             Throw(0, "Cannot find model: %s", modelName.buffer);
          }
 
-         ID_TEXTURE textureId;
-         auto i = nameToTextureId.find(texture.buffer);
-         if (i == nameToTextureId.end())
-         {
-            AutoFree<IExpandingBuffer> fileImage = CreateExpandingBuffer(0);
-            renderer.Installation().LoadResource(texture, *fileImage, 64_megabytes);
-            textureId = renderer.LoadTexture(*fileImage, texture);
-            nameToTextureId[texture.buffer] = textureId;
-         }
-         else
-         {
-            textureId = i->second;
-         }
+         ID_TEXTURE textureId = ReadyTexture(texture);
 
          return Add(meshId, textureId, model, scale, parentId);
       }
@@ -230,6 +218,25 @@ namespace
          {
             cb.OnEntity(count++, *i.second, i.first);
          }
+      }
+
+      ID_TEXTURE ReadyTexture(cstr pingName) override
+      {
+         ID_TEXTURE textureId;
+         auto i = nameToTextureId.find(pingName);
+         if (i == nameToTextureId.end())
+         {
+            AutoFree<IExpandingBuffer> fileImage = CreateExpandingBuffer(0);
+            renderer.Installation().LoadResource(pingName, *fileImage, 64_megabytes);
+            textureId = renderer.LoadTexture(*fileImage, pingName);
+            nameToTextureId[pingName] = textureId;
+         }
+         else
+         {
+            textureId = i->second;
+         }
+
+         return textureId;
       }
 
       virtual void GetScale(ID_ENTITY entityId, Vec3& scale)

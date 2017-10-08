@@ -1,4 +1,4 @@
-#include "hv.h"
+#include "hv.events.h"
 #include <rococo.strings.h>
 #include <rococo.maths.h>
 
@@ -72,6 +72,8 @@ namespace
       std::vector<VertexTriangle> floorTriangles;
       std::vector<VertexTriangle> ceilingTriangles;
 
+      std::string wallTexture = "!textures/walls/metal1.jpg";;
+
       IUtilitiies& utilities;
      
       float uvScale{ 0.2f };
@@ -134,7 +136,7 @@ namespace
 
          mb.End();
 
-         wallId = instances.AddBody(to_fstring(name), "!textures/walls/metal1.jpg"_fstring, Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+         wallId = instances.AddBody(to_fstring(name), to_fstring(wallTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
       void RemoveWallSegment(const Segment& segment, const Vec2& a, const Vec2& b, float oppositeElevation, float oppositeHeight)
@@ -293,14 +295,16 @@ namespace
 
          RebuildWallsGraphicMesh();
       }
+
+      Platform& platform;
    public:
       Sector(Platform& _platform, ISectors& _co_sectors) :
          instances(_platform.instances),
          utilities(_platform.utilities),
          id(nextSectorId++),
+         platform(_platform),
          co_sectors(_co_sectors)
       {
-
       }
 
       ~Sector()
@@ -318,6 +322,11 @@ namespace
          instances.Delete(wallId);
          instances.Delete(floorId);
          instances.Delete(ceilingId);
+      }
+
+      virtual void SetWallTexture(cstr filename)
+      {
+         if (filename) wallTexture = filename;
       }
 
       virtual ObjectVertexBuffer FloorVertices() const

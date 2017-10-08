@@ -4,10 +4,11 @@
 #include <rococo.maths.h>
 #include <rococo.widgets.h>
 #include <rococo.mplat.h>
+#include <rococo.textures.h>
 
 #include <vector>
-#include <deque>
-#include<algorithm>
+#include <algorithm>
+#include <unordered_map>
 
 #include <rococo.rings.inl>
 
@@ -17,7 +18,6 @@ namespace
    using namespace Rococo;
    using namespace Rococo::Widgets;
    using namespace Rococo::Entities;
-
 
    class WorldMap
    {
@@ -360,6 +360,8 @@ namespace
          }
       }
 
+      std::string wallTexture;
+
       bool OnKeyboardEvent(const KeyboardEvent& key)
       {
          return false;
@@ -467,7 +469,7 @@ namespace
 
             if (lineList.size() >= 3)
             {
-               map.Sectors().AddSector(&lineList[0], lineList.size());
+               map.Sectors().AddSector(wallTexture.empty() ? nullptr : wallTexture.c_str(), &lineList[0], lineList.size());
                SetStatus("Sector created", publisher);
             }
             lineList.clear();
@@ -492,6 +494,12 @@ namespace
       EditMode_SectorBuilder(IPublisher& _publisher, WorldMap& _map) : publisher(_publisher), map(_map) 
       {
       }
+
+      void SetWallTexture(cstr texture)
+      {
+         wallTexture = texture;
+      }
+
       IEditMode& Mode() { return *this; }
       const ISector* GetHilight() const override { return nullptr; }
    };
@@ -499,6 +507,291 @@ namespace
    EventId vScrollChanged = "editor.tools.vscroll_ui"_event;
    EventId vScrollSet = "editor.tools.vscroll_set"_event;
    EventId vScrollGet = "editor.tools.vscroll_get"_event;
+
+   class TextureList : public IUIElement, public IObserver
+   {
+      Platform& platform;
+
+      std::unordered_map<std::string, ID_TEXTURE> files;
+      std::vector<std::string> q;
+      std::vector<std::string> readyList;
+
+      std::string selectedItem;
+
+      int32 scrollPosition = 0;
+   public:
+      TextureList(Platform& _platform) : platform(_platform)
+      {
+         platform.gui.RegisterPopulator("editor.tools.imagelist", this);
+
+         struct : IEventCallback<cstr>
+         {
+            std::unordered_map<std::string, ID_TEXTURE>* files;
+            virtual void OnEvent(cstr filename)
+            {
+               files->insert(std::make_pair(filename, ID_TEXTURE::Invalid()));
+            }
+         } anon;
+         anon.files = &files;
+
+         platform.utilities.EnumerateFiles(anon, "!textures/hv/");
+         PushAllOnQueue();
+
+         platform.publisher.Attach(this, vScrollChanged);
+         platform.publisher.Attach(this, vScrollGet);
+      }
+
+      ~TextureList()
+      {
+         platform.publisher.Detach(this);
+         platform.gui.UnregisterPopulator(this);
+      }
+
+      void PushAllOnQueue()
+      {
+         for (auto& f : files)
+         {
+            q.push_back(f.first);
+         }
+      }
+
+      cstr GetSelectedTexture() const
+      {
+         return selectedItem.empty() ? nullptr : selectedItem.c_str();
+      }
+
+      bool OnKeyboardEvent(const KeyboardEvent& key) override
+      {
+         return false;
+      }
+
+      void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override
+      {    
+      }
+
+      void OnMouseLClick(Vec2i cursorPos, bool clickedDown)  override
+      {
+         if (clickedDown)
+         {
+            struct : IEventCallback<ImageCallbackArgs>
+            {
+               Vec2i cursorPos;
+               std::string target;
+               virtual void OnEvent(ImageCallbackArgs& args)
+               {
+                  GuiRect itemRect{ (int32) args.target.left, (int32) args.target.top, (int32) args.target.right, (int32) args.target.bottom };
+                  if (IsPointInRect(cursorPos, itemRect))
+                  {
+                     target = args.filename;
+                  }
+               }
+            } selectItem;
+
+            selectItem.cursorPos = cursorPos;
+            selectItem.target = selectedItem;
+
+            EnumerateVisibleImages(selectItem, lastRect);
+
+            selectedItem = selectItem.target;
+
+            HV::Events::ChangeDefaultTextureEvent ev;
+            ev.wallName = selectedItem.c_str();
+            platform.publisher.Publish(ev);
+         }
+      }
+
+      void OnMouseRClick(Vec2i cursorPos, bool clickedDown)  override
+      {
+      }
+
+      bool DequeSome()
+      {
+         auto start = OS::CpuTicks();
+
+         bool updated = false;
+
+         while (!q.empty())
+         {
+            updated = true;
+
+            auto top = q.back();
+
+            auto id = platform.instances.ReadyTexture(top.c_str());
+
+            files[top] = id;
+
+            q.pop_back();
+
+            readyList.push_back(top);
+
+            auto now = OS::CpuTicks();
+            auto dt = now - start;
+
+            if (dt > (OS::CpuHz() >> 2))
+            {
+               // We've capped texture loading so that frame rate does not fall far below 4 framea per second
+               break;
+            }
+         }
+
+         return updated;
+      }
+
+      int32 lastDy = 0;
+      int32 lastPageSize = 0;
+      GuiRect lastRect = { 0,0,0,0 };
+
+      void OnEvent(Event& ev) override
+      {
+         if (ev.id == vScrollChanged)
+         {
+            auto& se = As<ScrollEvent>(ev);
+            if (!se.fromScrollbar)
+            {
+               se.fromScrollbar = false;
+               se.logicalMaxValue = lastDy;
+               se.logicalMinValue = 0;
+               se.logicalPageSize = lastPageSize;
+               se.rowSize = lastDy / 4;
+               se.logicalValue = scrollPosition;
+            }
+            else
+            {
+               scrollPosition = se.logicalValue;
+            }
+         }
+      }
+
+      struct ImageCallbackArgs
+      {
+         GuiRectf target;
+         cstr filename;
+         float txUVtop;
+         float txUVbottom;
+         ID_TEXTURE textureId;
+      };
+
+      void EnumerateVisibleImages(IEventCallback<ImageCallbackArgs>& cb, const GuiRect& absRect)
+      {
+         float x0 = absRect.left + 1.0f;
+         float x1 = absRect.right - 1.0f;
+
+         int32 width = Width(absRect) - 2;
+
+         float y = absRect.top + 1.0f - scrollPosition;
+         float dy = (float)width;
+
+         lastDy = (int32)dy;
+         lastPageSize = (int32)Height(absRect) - 2;
+
+         for (auto& f : readyList)
+         {
+            auto id = files[f];
+
+            float y1 = y + dy;
+
+            float h = 1.0f;
+
+            float b = y1;
+
+            if (y1 >= absRect.bottom)
+            {
+               h = (absRect.bottom - y) / dy;
+               b = (float)absRect.bottom - 1;
+            }
+
+            if (y1 > absRect.top)
+            {
+               float g = 0;
+               float t = y;
+
+               if (y <= absRect.top)
+               {
+                  g = (absRect.top + 1 - y) / dy;
+                  t = (float)(absRect.top + 1);
+               }
+
+               ImageCallbackArgs args;
+               args.filename = f.c_str();
+               args.target = GuiRectf{ x0, t, x1, b };
+               args.textureId = id;
+               args.txUVbottom = h;
+               args.txUVtop = g;
+
+               cb.OnEvent(args);
+            }
+
+            if (h < 1.0f)
+            {
+               break;
+            }
+
+            y = y1;
+         }
+      }
+
+      void Render(IGuiRenderContext& grc, const GuiRect& absRect) override
+      {
+         bool updated = DequeSome();
+
+         if (updated)
+         {
+            ScrollEvent se("editor.tools.vscroll_set"_event);
+            se.fromScrollbar = false;
+            se.logicalMaxValue = (int32) readyList.size() * lastDy;
+            se.logicalMinValue = 0;
+            se.logicalPageSize = lastPageSize;
+            se.rowSize = lastDy / 4;
+            se.logicalValue = scrollPosition;
+            platform.publisher.Publish(se);
+         }
+
+         lastRect = absRect;
+
+         struct : IEventCallback<ImageCallbackArgs>
+         {
+            IGuiRenderContext* grc;
+            std::string* target;
+
+            virtual void OnEvent(ImageCallbackArgs& args)
+            {
+               grc->SelectTexture(args.textureId);
+
+               float x0 = args.target.left;
+               float x1 = args.target.right;
+               float t = args.target.top;
+               float b = args.target.bottom;
+
+               float g = args.txUVtop;
+               float h = args.txUVbottom;
+
+               GuiVertex v[6] =
+               {
+                  { x0, t, 0, 0, RGBAb(255,255,255), 0, g, 0 },
+                  { x1, t, 0, 0, RGBAb(255,255,255), 1, g, 0 },
+                  { x1, b, 0, 0, RGBAb(255,255,255), 1, h, 0 },
+                  { x0, t, 0, 0, RGBAb(255,255,255), 0, g, 0 },
+                  { x0, b, 0, 0, RGBAb(255,255,255), 0, h, 0 },
+                  { x1, b, 0, 0, RGBAb(255,255,255), 1, h, 0 }
+               };
+
+               grc->AddTriangle(v);
+               grc->AddTriangle(v + 3);
+
+               if (args.filename == *target)
+               {
+                  GuiRect hilight{ (int32)args.target.left+1, (int32)args.target.top+1, (int32)args.target.right-1, (int32)args.target.bottom-1 };
+                  Rococo::Graphics::DrawBorderAround(*grc, hilight, Vec2i{ 2,2 }, RGBAb(224, 224, 224), RGBAb(255, 255, 255));
+               }
+            }
+         } renderImages;
+
+         renderImages.grc = &grc;
+         renderImages.target = &selectedItem;
+
+         EnumerateVisibleImages(renderImages, absRect);
+      }
+   };
 
    class Editor : public IEditor, public IUIElement, private IObserver
    {
@@ -511,6 +804,7 @@ namespace
       Platform& platform;
       EventId modeEventId = "editor.edit_mode"_event;
       IPlayerSupervisor& players;
+      TextureList textureList;
 
       bool OnKeyboardEvent(const KeyboardEvent& key) override
       {
@@ -571,17 +865,10 @@ namespace
                }
             }
          }
-         else if (ev.id == vScrollChanged)
+         else if (ev.id == HV::Events::changeDefaultTextureId)
          {
-            auto& s = As<ScrollEvent>(ev);
-            if (!s.fromScrollbar)
-            {
-               s.logicalMaxValue = 4000;
-               s.logicalMinValue = 0;
-               s.logicalValue = 0;
-               s.logicalPageSize = 1000;
-               s.rowSize = 25;
-            }
+            auto& cdt = As<HV::Events::ChangeDefaultTextureEvent>(ev);
+            editMode_SectorBuilder.SetWallTexture(cdt.wallName);
          }
       }
 
@@ -618,16 +905,16 @@ namespace
          platform(_platform),
          players(_players),
          map(_platform),
+         textureList(_platform),
          editMode_SectorBuilder(_platform.publisher, map),
          editMode_SectorEditor(_platform, map, _platform.renderer.Window()),
-         statusbar(CreateStatusBar(_platform.publisher))
+         statusbar(CreateStatusBar(_platform.publisher))    
       {      
          REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorNew, "editor.new", nullptr);
          REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorLoad, "editor.load", nullptr);
 
          platform.publisher.Attach(this, modeEventId);
-         platform.publisher.Attach(this, vScrollChanged);
-         platform.publisher.Attach(this, vScrollGet);
+         platform.publisher.Attach(this, HV::Events::changeDefaultTextureId);
 
          SetMode(Mode_Vertex);
 
@@ -647,5 +934,10 @@ namespace HV
    IEditor* CreateEditor(Platform& platform, IPlayerSupervisor& players)
    {
       return new Editor(platform, players);
+   }
+
+   namespace Events
+   {
+      EventId changeDefaultTextureId = "editor.set.default.texture"_event;
    }
 }
