@@ -1,21 +1,18 @@
-(' #file.type rococo.hv)
+(' #file.type rococo.script.vkeys)
 
 (' #include
-	"!scripts/mplat.sxh.sxy"
-	"!scripts/hv.sxh.sxy"
 	"!scripts/types.sxy"
+	"!scripts/mplat.sxh.sxy"
 )
 
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
 	
-(using Sys.Maths)
 (using Sys.Type)
 (using Sys.Reflection)
 (using Rococo)
-(using HV)
 
-(macro HV.addkeys in out
+(macro Rococo.addkeys in out
 	(#for (Int32 i = 1) (i < in.ChildCount) (#inc i)
 		(IExpression child = (in i))
 		(IExpression code = (child 0))
@@ -30,7 +27,7 @@
 (function Main (Int32 id)->(Int32 exitCode):
 	(IKeyboard k (Keyboard))
 	(#addkeys 
-	// (Vkey-code vs Label)
+	// (Vkey-code vs Label) -> some of these labels are hardcoded inside MPlat, so if you change them UI functionality may be lost
 		(1 LBUTTON)
 		(2 RBUTTON)
 		(3 CANCEL)

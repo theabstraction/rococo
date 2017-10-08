@@ -1,18 +1,14 @@
-(' #file.type rococo.hv)
+(' #file.type hv.control.binding)
 
 (' #include 
 	"!scripts/mplat.sxh.sxy"
-	"!scripts/hv/hv.types.sxy"
-	"!scripts/hv.sxh.sxy"
 	"!scripts/types.sxy"
 )
 
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
 	
-(using HV)
 (using Rococo)
-
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(IKeyboard k (Keyboard))
