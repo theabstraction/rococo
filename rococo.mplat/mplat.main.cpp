@@ -1130,14 +1130,16 @@ class PanelScrollbar : public BasePanel, public IScroller, IObserver
    int32 minValue = 0;
    int32 maxValue = 0;
    int32 value = 0;
+   int32 rowSize = 0;
    int32 pageSize = 0;
    boolean32 isVertical;
    EventId setScrollId;
    EventId getScrollId;
    EventId uiScrollId;
+   IKeyboardSupervisor& keyboard;
 public:
-   PanelScrollbar(IPublisher& _publisher, IRenderer& _renderer, cstr _key, boolean32 _isVertical) :
-      publisher(_publisher), renderer(_renderer), key(_key), isVertical(_isVertical), 
+   PanelScrollbar(IPublisher& _publisher, IRenderer& _renderer, IKeyboardSupervisor& _keyboard, cstr _key, boolean32 _isVertical) :
+      publisher(_publisher), renderer(_renderer), key(_key), isVertical(_isVertical), keyboard(_keyboard),
       setScrollId(""_event), getScrollId(""_event), uiScrollId(""_event)
    {
       char eventText[256];
@@ -1179,6 +1181,7 @@ public:
          maxValue = s.logicalMaxValue;
          value = s.logicalValue;
          pageSize = s.logicalPageSize;
+         rowSize = s.rowSize;
       }
       else if (ev.id == getScrollId)
       {
@@ -1186,6 +1189,7 @@ public:
          s.logicalMaxValue = maxValue;
          s.logicalValue = value;
          s.logicalPageSize = pageSize;
+         s.rowSize = rowSize;
       }
    }
 
@@ -1199,8 +1203,46 @@ public:
       return this;
    }
 
-   bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+   bool AppendEvent(const KeyboardEvent& k, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
    {
+      Key key = keyboard.GetKeyFromEvent(k);
+      if (key.isPressed)
+      {
+         bool consume = true;
+
+         if (Eq(key.KeyName, "HOME"))
+         {
+            value = minValue;
+         }
+         else if (Eq(key.KeyName, "END"))
+         {
+            value = maxValue - pageSize;
+         }
+         else if (Eq(key.KeyName, "PGUP"))
+         {
+            value -= pageSize;
+         }
+         else if (Eq(key.KeyName, "PGDOWN"))
+         {
+            value += pageSize;
+         }
+         else if (Eq(key.KeyName, "UP"))
+         {
+            value -= rowSize;
+         }
+         else if (Eq(key.KeyName, "DOWN"))
+         {
+            value += rowSize;
+         }
+         else
+         {
+            consume = false;
+         }
+
+         CapValue(value);
+
+         return consume;
+      }
       return false;
    }
 
@@ -1226,6 +1268,16 @@ public:
       return pr == 0 ? 0 : (int32)((pixelValue / pr * (float) LogicalRange())) + minValue;
    }
 
+   void CapValue(int32 candidateValue)
+   {
+      if (candidateValue < minValue) value = minValue;
+      else if (candidateValue + pageSize > maxValue) value = maxValue - pageSize;
+      else
+      {
+         value = candidateValue;
+      }
+   }
+
    int32 PixelValue(int32 logicalValue)
    {
       float lr = (float)LogicalRange();
@@ -1238,31 +1290,63 @@ public:
       return lr == 0 ? 0 : (int32)((pageSize / lr) * (float) PixelRange());
    }
 
+   Vec2i grabPoint{ -1,-1 };
+   int32 grabPixelValue = -1;
+
    void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
    {
+      if (me.HasFlag(me.LDown))
+      {
+         Vec2i ds = me.cursorPos - absTopLeft;
+         int32 pixelValue = PixelSelectValue(ds);
+         if (pixelValue < PixelValue(value))
+         {
+            value -= pageSize;
+         }
+         else if (pixelValue > PixelValue(value + pageSize))
+         {
+            value += pageSize;
+         }
+         else
+         {
+            grabPoint = me.cursorPos;
+            grabPixelValue = PixelValue(value);
+         }
+
+         CapValue(value);
+      }
+
+      if (me.HasFlag(me.RDown))
+      {
+         Vec2i ds = me.cursorPos - absTopLeft;
+         int32 pixelValue = PixelSelectValue(ds);
+         if (pixelValue < PixelValue(value))
+         {
+            value -= rowSize;
+         }
+         else if (pixelValue > PixelValue(value + pageSize))
+         {
+            value += rowSize;
+         }
+
+         CapValue(value);
+      }
+
+      if (me.HasFlag(me.MouseWheel))
+      {
+         int32 delta = (int32)( ((short) me.buttonData) / 120 );
+         value -= rowSize * delta;
+         CapValue(value);
+      }
+
       if (me.HasFlag(me.LUp))
       {
-         GuiMetrics metrics;
-         renderer.GetGuiMetrics(metrics);
-
-         auto ds = metrics.cursorPosition - absTopLeft;
-
-         int32 pixelValue = PixelSelectValue(ds);
-         int32 logicalValue = LogicalValue(pixelValue);
-         if (logicalValue >= minValue && logicalValue < maxValue)
-         {
-            value = logicalValue;
-
-            ScrollEvent s(uiScrollId);
-            s.logicalMinValue = minValue;
-            s.logicalMaxValue = maxValue;
-            s.logicalValue = value;
-            s.logicalPageSize = pageSize;
-            s.fromScrollbar = true;
-            publisher.Publish(s);
-         }
+         grabPoint = { -1,-1 };
+         grabPixelValue = -1;
       }
    }
+
+   int trapCount = 0;
 
    void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
    {
@@ -1270,12 +1354,12 @@ public:
       {
          ScrollEvent ev(uiScrollId);
          ev.fromScrollbar = false;
-         publisher.Publish(ev);
-        
+         publisher.Publish(ev); 
          maxValue = ev.logicalMaxValue;
          minValue = ev.logicalMinValue;
          value = ev.logicalValue;
          pageSize = ev.logicalPageSize;
+         rowSize = ev.rowSize;
       }
 
       auto span = Span(ClientRect());
@@ -1286,6 +1370,58 @@ public:
       grc.Renderer().GetGuiMetrics(metrics);
 
       bool lit = !modality.isUnderModal && IsPointInRect(metrics.cursorPosition, absRect);
+
+      if (lit)
+      {
+         trapCount = 0;
+
+         if (grabPoint.x >= 0)
+         {
+            Vec2i delta = metrics.cursorPosition - grabPoint;
+            int32 dPixels = isVertical ? delta.y : delta.x;
+            int32 pixelPos = grabPixelValue + dPixels;
+            int32 newValue = LogicalValue(pixelPos);
+
+            if (dPixels != 0)
+            {
+               if (newValue < minValue)
+               {
+                  value = minValue;
+                  grabPoint = metrics.cursorPosition;
+                  grabPixelValue = 0;
+               }
+               else if (newValue + pageSize > maxValue)
+               {
+                  value = maxValue - pageSize;
+                  grabPoint = metrics.cursorPosition;
+                  grabPixelValue = PixelValue(value);
+               }
+               else 
+               {
+                  value = newValue;
+               }
+
+               ScrollEvent s(uiScrollId);
+               s.logicalMinValue = minValue;
+               s.logicalMaxValue = maxValue;
+               s.logicalValue = value;
+               s.logicalPageSize = pageSize;
+               s.fromScrollbar = true;
+               s.rowSize = rowSize;
+               publisher.Publish(s);
+            }
+         }
+      }
+      else
+      {
+         trapCount++;
+         if (trapCount > 50)
+         {
+            trapCount = 0;
+            grabPoint = { -1,-1 };
+         }
+      }
+
       Graphics::DrawRectangle(grc, absRect, lit ? Scheme().hi_topLeft : Scheme().topLeft, lit ? Scheme().hi_bottomRight : Scheme().bottomRight);
       Graphics::DrawBorderAround(grc, absRect, { 1,1 }, lit ? Scheme().hi_topLeftEdge : Scheme().topLeftEdge, lit ? Scheme().hi_bottomRightEdge : Scheme().bottomRightEdge);
 
@@ -1401,7 +1537,7 @@ Rococo::IRadioButton* PanelContainer::AddRadioButton(int32 fontIndex, const fstr
 
 Rococo::IScroller* PanelContainer::AddScroller(const fstring& key, const GuiRect& rect, boolean32 isVertical)
 {
-   auto* scroller = new PanelScrollbar(platform.publisher, platform.renderer, key, isVertical);
+   auto* scroller = new PanelScrollbar(platform.publisher, platform.renderer, platform.keyboard, key, isVertical);
    AddChild(scroller);
    scroller->SetRect(rect);
    return scroller;

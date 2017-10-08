@@ -343,6 +343,7 @@ namespace Rococo
          int32 logicalMaxValue;
          int32 logicalValue;
          int32 logicalPageSize;
+         int32 rowSize; // Value delta for right clicks and mouse wheel events
          boolean32 fromScrollbar;
       };
    }

@@ -54,7 +54,8 @@ namespace
 
          if (rke.MakeCode < codes.size())
          {
-            auto& name = codes[rke.MakeCode];
+            USHORT vKeyCode = rke.VKey;
+            auto& name = codes[vKeyCode];
             if (!name.empty())
             {
                return Key

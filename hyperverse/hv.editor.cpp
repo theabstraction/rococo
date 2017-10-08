@@ -576,10 +576,11 @@ namespace
             auto& s = As<ScrollEvent>(ev);
             if (!s.fromScrollbar)
             {
-               s.logicalMaxValue = 1000;
+               s.logicalMaxValue = 4000;
                s.logicalMinValue = 0;
-               s.logicalValue = 500;
-               s.logicalPageSize = 100;
+               s.logicalValue = 0;
+               s.logicalPageSize = 1000;
+               s.rowSize = 25;
             }
          }
       }
