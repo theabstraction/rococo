@@ -43,6 +43,10 @@
 
 (function AddRadio (IString text)(IPaneContainer builder)(IString key)(IString value)-> :
 	(Recti rect = (0 0)(20 16))
+	(AddRadioAt rect text builder key value -1)
+)
+
+(function AddRadioAt (Recti rect)(IString text)(IPaneContainer builder)(IString key)(IString value)(Int32 align)-> :
 	(IRadioButton radio = (builder.AddRadioButton 8 text key value rect))
 	(IPane labelBase = radio.Base)
 	(labelBase.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
@@ -50,7 +54,7 @@
 	(labelBase.SetColourBk2  0xFF000020 0xFF0000A0)
 	(labelBase.SetColourEdge1 0xFF404040 0xFFBFBFBF)
 	(labelBase.SetColourEdge2 0xFF606060 0xFFFFFFFF)
-	(radio.SetAlignment -1 0 0 0)
+	(radio.SetAlignment align 0 0 0)
 )
 
 (function AddScroller(IString key)(IPaneContainer container)(Recti rect)-> :
@@ -155,6 +159,15 @@
 	(tbase.SetColourBk2   0xFF808080 0xFF808080)
 	(tbase.SetColourEdge1 0x80FFFFFF 0xFFFFFFFF)
 	(tbase.SetColourEdge2 0x60FFFFFF 0xDFFFFFFF)
+	
+	(Recti radioRect1 = (4 4)(22 21))
+	(AddRadioAt radioRect1 "W" toolContainer "editor.texture.target" "w" 0)
+	
+	(Recti radioRect2 = (24 4)(42 21))
+	(AddRadioAt radioRect2 "F" toolContainer "editor.texture.target" "f" 0)
+	
+	(Recti radioRect3 = (44 4)(62 21))
+	(AddRadioAt radioRect3 "C" toolContainer "editor.texture.target" "c" 0)
 	
 	(Vec2i toolSpan = toolsRect.bottomRight - toolsRect.topLeft)
 	

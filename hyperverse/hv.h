@@ -97,6 +97,13 @@ namespace HV
       Segment segment;
    };
 
+   struct SectorPalette
+   {
+      cstr wallTextureName;
+      cstr floorTextureName;
+      cstr ceilingTextureName;
+   };
+
    ROCOCOAPI ISector
    {
       virtual void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) = 0;
@@ -113,14 +120,14 @@ namespace HV
       virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
       virtual void Rebuild() = 0;
       virtual void RemoveWallSegment(const Segment& segment, const Vec2& a, const Vec2& b, float oppositeElevation, float oppositeHeight) = 0;
-      virtual void SetWallTexture(cstr filename) = 0;
+      virtual void SetPalette(const SectorPalette& palette) = 0;
    };
 
    ISector* CreateSector(Platform& platform, ISectors& co_sectors);
 
    ROCOCOAPI ISectors
    {
-      virtual void AddSector(cstr wallTextureName, const Vec2* perimeter, size_t nVertices) = 0;
+      virtual void AddSector(const SectorPalette& palette, const Vec2* perimeter, size_t nVertices) = 0;
       virtual void Free() = 0;
 
       virtual void Delete(ISector* sector) = 0;

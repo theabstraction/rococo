@@ -360,7 +360,12 @@ namespace
          }
       }
 
-      std::string wallTexture;
+      std::string defaultTextures[3] =
+      {
+         "!textures/hv/wall_1.jpg",
+         "!textures/hv/floor_1.jpg",
+         "!textures/hv/ceiling_1.jpg"
+      };
 
       bool OnKeyboardEvent(const KeyboardEvent& key)
       {
@@ -469,7 +474,8 @@ namespace
 
             if (lineList.size() >= 3)
             {
-               map.Sectors().AddSector(wallTexture.empty() ? nullptr : wallTexture.c_str(), &lineList[0], lineList.size());
+               SectorPalette palette{ defaultTextures[0].c_str(), defaultTextures[1].c_str(), defaultTextures[2].c_str() };
+               map.Sectors().AddSector(palette, &lineList[0], lineList.size());
                SetStatus("Sector created", publisher);
             }
             lineList.clear();
@@ -495,9 +501,15 @@ namespace
       {
       }
 
-      void SetWallTexture(cstr texture)
+      void SetTexture(int32 index, cstr name)
       {
-         wallTexture = texture;
+         defaultTextures[index] = name;
+      }
+
+      cstr GetTexture(int32 state)
+      {
+         if (state < 0 || state >= 3) Throw(0, "Bad index to EditMode_SectorBuilder::GetTexture(%d)", state);
+         return defaultTextures[state].c_str();
       }
 
       IEditMode& Mode() { return *this; }
@@ -545,6 +557,37 @@ namespace
       {
          platform.publisher.Detach(this);
          platform.gui.UnregisterPopulator(this);
+      }
+
+      void ScrollTo(cstr filename)
+      {
+         int index = -1;
+         for (int32 i = 0; i < (int32) readyList.size(); i++)
+         {
+            if (Eq(readyList[i].c_str(), filename))
+            {
+               index = i;
+               break;
+            }
+         }
+
+         if (index < 0) return;
+
+         scrollPosition = index * lastDy;
+         selectedItem = filename;
+
+         ScrollEvent se(vScrollSet);
+         se.fromScrollbar = false;
+         se.logicalMaxValue = (int32) readyList.size() * lastDy;
+
+         scrollPosition = min(scrollPosition, se.logicalMaxValue - lastPageSize);
+
+         se.logicalMinValue = 0;
+         se.logicalPageSize = lastPageSize;
+         se.rowSize = lastDy / 4;
+         se.logicalValue = scrollPosition;
+         
+         platform.publisher.Publish(se);
       }
 
       void PushAllOnQueue()
@@ -649,7 +692,7 @@ namespace
             if (!se.fromScrollbar)
             {
                se.fromScrollbar = false;
-               se.logicalMaxValue = lastDy;
+               se.logicalMaxValue = (int32) readyList.size() * lastDy;
                se.logicalMinValue = 0;
                se.logicalPageSize = lastPageSize;
                se.rowSize = lastDy / 4;
@@ -793,91 +836,147 @@ namespace
       }
    };
 
-   class Editor : public IEditor, public IUIElement, private IObserver
+   class ToggleEventHandler;
+   struct ToggleStateChanged
    {
-      WorldMap map;
-      EditMode_SectorBuilder editMode_SectorBuilder;
-      EditMode_SectorEditor editMode_SectorEditor;
-      IEditMode* editMode;
-      GuiMetrics metrics;
-      AutoFree<IStatusBar> statusbar;
-      Platform& platform;
-      EventId modeEventId = "editor.edit_mode"_event;
-      IPlayerSupervisor& players;
-      TextureList textureList;
+      ToggleEventHandler* handler;
+   };
 
-      bool OnKeyboardEvent(const KeyboardEvent& key) override
+   class ToggleEventHandler : public IObserver
+   {
+      std::vector<cstr> names;
+      IPublisher& publisher;
+      EventId id;
+      int state = 0;
+      IEventCallback<ToggleStateChanged>* eventHandler;
+
+   public:
+      ToggleEventHandler(cstr handlerName, IPublisher& _publisher, std::vector<cstr> _names) :
+         id(handlerName, FastHash(handlerName)), publisher(_publisher), names(_names)
       {
-         return editMode->OnKeyboardEvent(key);
+         publisher.Attach(this, id);
       }
 
-      void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override
+      ~ToggleEventHandler()
       {
-         editMode->OnMouseMove(cursorPos, delta, dWheel);
+         publisher.Detach(this);
       }
 
-      void OnMouseLClick(Vec2i cursorPos, bool clickedDown)  override
+      void AddHandler(IEventCallback<ToggleStateChanged>* _eventHandler)
       {
-         editMode->OnMouseLClick(cursorPos, clickedDown);
+         eventHandler = _eventHandler;
       }
 
-      void OnMouseRClick(Vec2i cursorPos, bool clickedDown)  override
+      int State() const
       {
-         editMode->OnMouseRClick(cursorPos, clickedDown);
+         return state;
       }
 
-      enum Mode
+      void SetState(int index)
       {
-         Mode_Vertex,
-         Mode_Sector
-      };
-
-      void SetMode(Mode mode)
-      {
-         if (mode == Mode_Vertex)
+         if (index < 0 || index >= (int32)names.size())
          {
-            editMode = &editMode_SectorBuilder.Mode();
+            Throw(0, "ToggleEventHandler::SetState. Index out of bounds: %d. [0,%d]", index, names.size());
          }
-         else
-         {
-            editMode = &editMode_SectorEditor.Mode();
-         }
+
+         this->state = index;
       }
 
       void OnEvent(Event& ev) override
       {
-         if (ev.id == modeEventId)
+         if (ev.id == id)
          {
             auto& toe = As<TextOutputEvent>(ev);
             if (toe.isGetting)
             {
-               SafeFormat(toe.text, sizeof(toe.text), "%s", (editMode = &editMode_SectorBuilder.Mode()) ? "v" : "s");
+               SafeFormat(toe.text, sizeof(toe.text), "%s", names[state]);
             }
             else
             {
-               if (*toe.text && Eq(toe.text, "v"))
+               for (int32 i = 0; i < names.size(); ++i)
                {
-                  SetMode(Mode_Vertex);
-               }
-               else
-               {
-                  SetMode(Mode_Sector);
+                  if (Eq(names[i], toe.text))
+                  {
+                     this->state = i;
+
+                     if (eventHandler)
+                     {
+                        eventHandler->OnEvent(ToggleStateChanged{ this });
+                     }
+                     break;
+                  }
                }
             }
          }
-         else if (ev.id == HV::Events::changeDefaultTextureId)
+      }
+   };
+
+   class Editor : public IEditor, public IUIElement, private IObserver, IEventCallback<ToggleStateChanged>
+   {
+      WorldMap map;
+      EditMode_SectorBuilder editMode_SectorBuilder;
+      EditMode_SectorEditor editMode_SectorEditor;
+      GuiMetrics metrics;
+      AutoFree<IStatusBar> statusbar;
+      Platform& platform;
+      IPlayerSupervisor& players;
+      TextureList textureList;
+
+      ToggleEventHandler editModeHandler;
+      ToggleEventHandler textureTargetHandler;
+
+      bool OnKeyboardEvent(const KeyboardEvent& key) override
+      {
+         return EditMode().OnKeyboardEvent(key);
+      }
+
+      void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override
+      {
+         EditMode().OnMouseMove(cursorPos, delta, dWheel);
+      }
+
+      void OnMouseLClick(Vec2i cursorPos, bool clickedDown)  override
+      {
+         EditMode().OnMouseLClick(cursorPos, clickedDown);
+      }
+
+      void OnMouseRClick(Vec2i cursorPos, bool clickedDown)  override
+      {
+         EditMode().OnMouseRClick(cursorPos, clickedDown);
+      }
+
+      IEditMode& EditMode()
+      {
+         return editModeHandler.State() == 0 ? editMode_SectorBuilder.Mode() : editMode_SectorEditor.Mode();
+      }
+
+      void OnEvent(ToggleStateChanged& ev)
+      {
+         if (ev.handler == &textureTargetHandler)
+         {
+            int state = textureTargetHandler.State();
+            cstr textureName = editMode_SectorBuilder.GetTexture(state);
+            textureList.ScrollTo(textureName);
+         }
+      }
+         
+      void OnEvent(Event& ev) override
+      {
+         if (ev.id == HV::Events::changeDefaultTextureId)
          {
             auto& cdt = As<HV::Events::ChangeDefaultTextureEvent>(ev);
-            editMode_SectorBuilder.SetWallTexture(cdt.wallName);
+
+            int32 textureTargetIndex = textureTargetHandler.State();
+            editMode_SectorBuilder.SetTexture(textureTargetIndex, cdt.wallName);
          }
       }
 
       void Render(IGuiRenderContext& grc, const GuiRect& absRect) override
       {
          grc.Renderer().GetGuiMetrics(metrics);
-         map.Render(grc, editMode->GetHilight());
+         map.Render(grc, EditMode().GetHilight());
 
-         editMode->Render(grc, absRect);
+         EditMode().Render(grc, absRect);
 
          map.RenderTopGui(grc, players.GetPlayer(0)->GetPlayerEntity());
 
@@ -908,15 +1007,19 @@ namespace
          textureList(_platform),
          editMode_SectorBuilder(_platform.publisher, map),
          editMode_SectorEditor(_platform, map, _platform.renderer.Window()),
-         statusbar(CreateStatusBar(_platform.publisher))    
+         statusbar(CreateStatusBar(_platform.publisher)),
+         editModeHandler("editor.edit_mode", _platform.publisher, { "v", "s" }),
+         textureTargetHandler("editor.texture.target", _platform.publisher, { "w", "f", "c"})
       {      
          REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorNew, "editor.new", nullptr);
          REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorLoad, "editor.load", nullptr);
 
-         platform.publisher.Attach(this, modeEventId);
          platform.publisher.Attach(this, HV::Events::changeDefaultTextureId);
 
-         SetMode(Mode_Vertex);
+         editModeHandler.SetState(0);
+         textureTargetHandler.SetState(0);
+
+         textureTargetHandler.AddHandler(this);
 
          platform.gui.RegisterPopulator("sector_editor", this);
       }

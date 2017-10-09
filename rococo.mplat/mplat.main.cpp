@@ -1276,6 +1276,18 @@ public:
 
          CapValue(value);
 
+         if (consume)
+         {
+            ScrollEvent s(uiScrollId);
+            s.logicalMinValue = minValue;
+            s.logicalMaxValue = maxValue;
+            s.logicalValue = value;
+            s.logicalPageSize = pageSize;
+            s.fromScrollbar = true;
+            s.rowSize = rowSize;
+            publisher.Publish(s);
+         }
+
          return consume;
       }
       return false;

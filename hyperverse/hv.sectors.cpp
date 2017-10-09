@@ -41,10 +41,10 @@ namespace
       ISector** begin() { return (sectors.empty() ? nullptr : &sectors[0]); }
       ISector** end() { return (sectors.empty() ? nullptr : &sectors[0] + sectors.size()); }
 
-      void AddSector(cstr wallTexture, const Vec2* positionArray, size_t nVertices) override
+      void AddSector(const SectorPalette& palette, const Vec2* positionArray, size_t nVertices) override
       {
          auto* s = CreateSector(platform, *this);
-         s->SetWallTexture(wallTexture);
+         s->SetPalette(palette);
 
          try
          {
@@ -68,7 +68,7 @@ namespace
                }
                OS::PrintDebug("};\n\n\n");
 
-               AddSector(wallTexture,  positionArray, nVertices);
+               AddSector(palette,  positionArray, nVertices);
             }
 #endif
          }

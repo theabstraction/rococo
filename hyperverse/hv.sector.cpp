@@ -72,7 +72,9 @@ namespace
       std::vector<VertexTriangle> floorTriangles;
       std::vector<VertexTriangle> ceilingTriangles;
 
-      std::string wallTexture = "!textures/walls/metal1.jpg";;
+      std::string wallTexture = "!textures/walls/metal1.jpg";
+      std::string floorTexture = "!textures/walls/metal1.jpg";;
+      std::string ceilingTexture = "!textures/walls/metal1.jpg";;
 
       IUtilitiies& utilities;
      
@@ -324,9 +326,11 @@ namespace
          instances.Delete(ceilingId);
       }
 
-      virtual void SetWallTexture(cstr filename)
+      virtual void SetPalette(const SectorPalette& palette)
       {
-         if (filename) wallTexture = filename;
+         wallTexture = palette.wallTextureName;
+         floorTexture = palette.floorTextureName;
+         ceilingTexture = palette.ceilingTextureName;
       }
 
       virtual ObjectVertexBuffer FloorVertices() const
@@ -428,7 +432,7 @@ namespace
 
          mb.End();
 
-         floorId = instances.AddBody(to_fstring(name), "!textures/walls/metal1.jpg"_fstring, Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+         floorId = instances.AddBody(to_fstring(name), to_fstring(floorTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
       void RebuildCeilingGraphicMesh()
@@ -446,7 +450,7 @@ namespace
 
          mb.End();
 
-         ceilingId = instances.AddBody(to_fstring(name), "!textures/walls/metal1.jpg"_fstring, Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+         ceilingId = instances.AddBody(to_fstring(name), to_fstring(ceilingTexture.c_str()) , Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
       void Rebuild()
