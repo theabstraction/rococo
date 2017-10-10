@@ -1080,6 +1080,23 @@ namespace
 				{
 					ResizeBuffers(span);
 				}
+
+            BOOL isFullScreen;
+            IDXGIOutput* output = nullptr;
+            mainSwapChain->GetFullscreenState(&isFullScreen, &output);
+            if (isFullScreen)
+            {
+               output->Release();
+            }
+            else
+            {
+               // Style can ben lost when dialog invoked in full screen mode. So add it here
+               DWORD style = GetWindowLong(hWnd, GWL_STYLE);
+               if ((style & WS_CAPTION) == 0)
+               {
+                  SetWindowLong(hWnd, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
+               }
+            }
 			}
 		}
 
