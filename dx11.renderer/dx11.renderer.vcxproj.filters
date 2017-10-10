@@ -1,13 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <FxCompile Include="gui.ps.hlsl" />
     <FxCompile Include="gui.vs.hlsl" />
     <FxCompile Include="object.vs.hlsl" />
     <FxCompile Include="object.ps.hlsl" />
     <FxCompile Include="depth.ps.hlsl" />
     <FxCompile Include="sprite.ps.hlsl" />
     <FxCompile Include="sprite.vs..hlsl" />
+    <FxCompile Include="gui.ps.hlsl">
+      <Filter>Sources</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bitmap.cache.cpp">

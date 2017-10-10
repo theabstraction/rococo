@@ -18,8 +18,18 @@ namespace
       std::vector<ObjectInstance> drawQueue;
       Rococo::Graphics::ICameraSupervisor& camera;
 
+      enum { MAX_LIGHTS = 1 };
+
+      struct Light
+      {
+         Vec3 dir;
+         Vec3 pos;
+      } lights[MAX_LIGHTS] =
+      { 
+         Vec3 { 1, 0, 0 }, Vec3{0, 0, 1}
+      };
+
       RGBA clearColour{ 0,0,0,1 };
-      Vec3 sun{ 0, 0, -1 };
 
    public:
       Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera) :
@@ -38,13 +48,14 @@ namespace
          clearColour.blue = blue;
       }
 
-      virtual void SetSunDirection(const Vec3& sun)
+      virtual void SetLight(const Vec3& dir, const Vec3& pos, int index)
       {
-         this->sun = sun;
-         if (!TryNormalize(sun, this->sun))
+         if (index < 0 || index >= MAX_LIGHTS)
          {
-            this->sun = { 0,0,0 }; // night
+            Throw(0, "Bad light index %d. Domain is [0,%d]", index, MAX_LIGHTS);
          }
+
+         lights[index] = Light{ dir, pos };
       }
 
       virtual void Free()
@@ -84,7 +95,8 @@ namespace
          drawQueue.clear();
 
          GlobalState state;
-         state.sunlightDirection = HomogenizeNormal(sun);
+         state.lightDir = { lights[0].dir.x, lights[0].dir.y, lights[0].dir.z, 0.0f };
+         state.lightPos = { lights[0].pos.x, lights[0].pos.y, lights[0].pos.z, 1.0f };
 
          camera.GetWorld(state.worldMatrix);
          camera.GetWorldAndProj(state.worldMatrixAndProj);

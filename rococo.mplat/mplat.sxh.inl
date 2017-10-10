@@ -1028,19 +1028,27 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetClearColour(red, green, blue);
 	}
-	void NativeRococoGraphicsISceneBuilderSetSunDirection(NativeCallEnvironment& _nce)
+	void NativeRococoGraphicsISceneBuilderSetLight(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Vec3* sun;
-		_offset += sizeof(sun);
-		ReadInput(sun, _sf, -_offset);
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Vec3* pos;
+		_offset += sizeof(pos);
+		ReadInput(pos, _sf, -_offset);
+
+		Vec3* dir;
+		_offset += sizeof(dir);
+		ReadInput(dir, _sf, -_offset);
 
 		Rococo::Graphics::ISceneBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetSunDirection(*sun);
+		_pObject->SetLight(*dir, *pos, index);
 	}
 
 	void NativeGetHandleForRococoGraphicsSceneBuilder(NativeCallEnvironment& _nce)
@@ -1063,7 +1071,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderAddStatics, nullptr, SEXTEXT("ISceneBuilderAddStatics (Pointer hObject)(Int64 entityId) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderClear, nullptr, SEXTEXT("ISceneBuilderClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetClearColour, nullptr, SEXTEXT("ISceneBuilderSetClearColour (Pointer hObject)(Float32 red)(Float32 green)(Float32 blue) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetSunDirection, nullptr, SEXTEXT("ISceneBuilderSetSunDirection (Pointer hObject)(Sys.Maths.Vec3 sun) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetLight, nullptr, SEXTEXT("ISceneBuilderSetLight (Pointer hObject)(Sys.Maths.Vec3 dir)(Sys.Maths.Vec3 pos)(Int32 index) -> "));
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::ICamera 

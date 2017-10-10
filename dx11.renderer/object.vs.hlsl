@@ -10,8 +10,9 @@ struct ObjectVertex
 struct ScreenVertex
 {
 	float4 position : SV_POSITION;
-	float4 colour: COLOR0;
+   float4 normal : NORMAL;
 	float2 uv: TEXCOORD;
+   float4 worldPosition: TEXCOORD1;
 };
 
 #pragma pack_matrix(row_major)
@@ -20,7 +21,8 @@ cbuffer globalState
 {
 	float4x4 worldMatrixAndProj;
 	float4x4 worldMatrix;
-	float4 sunlightDirection;
+   float4 lightDir;
+	float4 lightPos;
 };
 
 cbuffer perInstanceData
@@ -34,18 +36,12 @@ ScreenVertex main(ObjectVertex v)
 	ScreenVertex sv;
 
 	float4 instancePos = mul(instanceMatrix, v.position);
-	sv.position = mul(worldMatrixAndProj, instancePos);
-
+	
 	v.normal.w = 0;
-	float4 normal = mul(instanceMatrix, v.normal);
-	float f = -dot(normal.xyz, sunlightDirection.xyz);
-   float incidence = clamp(f, 0.0f, 1.0f);
-   float ambience = 0.25f;
-	float illumination = ambience + incidence;
 
-   float4 totalEmission = v.emissiveColour + highlightColour;
-   float4 totalIlluminated = illumination * v.diffuseColour;
-	sv.colour = totalEmission + totalIlluminated;
+   sv.position = mul(worldMatrixAndProj, instancePos);
+	sv.normal = v.normal;
+   sv.worldPosition = instancePos;
 	sv.uv = v.uv;
 
 	return sv;

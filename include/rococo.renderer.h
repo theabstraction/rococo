@@ -66,7 +66,8 @@ namespace Rococo
 	{
 		Matrix4x4 worldMatrixAndProj;
 		Matrix4x4 worldMatrix;
-		Vec4 sunlightDirection;
+		Vec4 lightDir;
+      Vec4 lightPos;
 	};
 
 	ROCOCOAPI IRenderContext // Provides draw calls - do not cache

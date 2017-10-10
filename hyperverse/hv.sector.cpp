@@ -321,6 +321,8 @@ namespace
          case 1:  return floorTexture.c_str();
          case 2:  return ceilingTexture.c_str();
          }
+
+         return nullptr;
       }
 
       virtual void SetTexture(int32 state, cstr texture)

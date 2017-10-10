@@ -126,7 +126,7 @@
 		(AddStatics  (IdEntity entityId))
 		(Clear)
 		(SetClearColour (Float32 red)(Float32 green)(Float32 blue))
-		(SetSunDirection (const Vec3 sun))
+		(SetLight(const Vec3 dir)(const Vec3 pos)(Int32 index))
 	)
 	(factory Rococo.Graphics.SceneBuilder)
 )

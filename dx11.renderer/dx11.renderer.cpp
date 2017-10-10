@@ -262,7 +262,8 @@ namespace
 		Fonts::IFontSupervisor* fonts;
 		
 		AutoRelease<ID3D11Buffer> vector4Buffer;
-		AutoRelease<ID3D11Buffer> globalStateBuffer;
+		AutoRelease<ID3D11Buffer> vs_globalStateBuffer;
+      AutoRelease<ID3D11Buffer> ps_globalStateBuffer;
 
 		RAWMOUSE lastMouseEvent;
 		Vec2i screenSpan;
@@ -344,7 +345,8 @@ namespace
 			GuiScale nullVector{ 0,0,0,0 };
          DX11::CopyStructureToBuffer(dc, vector4Buffer, nullVector);
 
-			globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
+			vs_globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
+         ps_globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
 
 			installation.LoadResource("!gui.vs", *scratchBuffer, 64_kilobytes);
 			idGuiVS = CreateGuiVertexShader("gui.vs", scratchBuffer->GetData(), scratchBuffer->Length());
@@ -609,7 +611,7 @@ namespace
 		ID_PIXEL_SHADER CreatePixelShader(cstr name, const byte* shaderCode, size_t shaderLength)
 		{
 			if (name == nullptr || rlen(name) > 1024) Throw(0, "Bad <name> for pixel shader");
-			if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 16384) Throw(0, "Bad shader code for pixel shader %s", name);
+			if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 65536) Throw(0, "Bad shader code for pixel shader %s", name);
 
 			DX11PixelShader* shader = new DX11PixelShader;
 			HRESULT hr = device.CreatePixelShader(shaderCode, shaderLength, nullptr, &shader->ps);
@@ -803,8 +805,11 @@ namespace
 
 		virtual void SetGlobalState(const GlobalState& gs)
 		{
-         DX11::CopyStructureToBuffer(dc, globalStateBuffer, gs);
-			dc.VSSetConstantBuffers(0, 1, &globalStateBuffer);
+         DX11::CopyStructureToBuffer(dc, vs_globalStateBuffer, gs);
+			dc.VSSetConstantBuffers(0, 1, &vs_globalStateBuffer);
+
+         DX11::CopyStructureToBuffer(dc, ps_globalStateBuffer, gs);
+         dc.PSSetConstantBuffers(0, 1, &ps_globalStateBuffer);
 		}
 
 		void DrawCursor()

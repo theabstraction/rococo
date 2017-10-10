@@ -184,22 +184,29 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
       e.platform.gui.RegisterPopulator("fps", this);
 
       auto* player = e.players.GetPlayer(0);
+      auto id = player->GetPlayerEntity();
 
       float dt = clock.DT();
 
       Degrees viewElevationDelta;
 
       Entities::MoveMobileArgs mm;
-      fpsControl.GetPlayerDelta(player->GetPlayerEntity(), dt, mm, viewElevationDelta);
+      fpsControl.GetPlayerDelta(id, dt, mm, viewElevationDelta);
 
       e.platform.mobiles.TryMoveMobile(mm);
 
       if (viewElevationDelta != 0)
       {
-         e.platform.camera.ElevateView(player->GetPlayerEntity(), viewElevationDelta);
+         e.platform.camera.ElevateView(id, viewElevationDelta);
       }
 
       PopulateScene();
+
+      Matrix4x4 m;
+      e.platform.camera.GetWorld(m);
+      Vec3 dir{ -m.row2.x, -m.row2.y, -m.row2.z };
+      Vec3 pos = e.platform.instances.GetEntity(id)->Position();
+      e.platform.scene.Builder().SetLight(dir, pos, 0);
    }
 
    bool OnKeyboardEvent(const KeyboardEvent& k)
