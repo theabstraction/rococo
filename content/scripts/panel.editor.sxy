@@ -169,6 +169,12 @@
 	(Recti radioRect3 = (44 4)(62 21))
 	(AddRadioAt radioRect3 "C" toolContainer "editor.texture.target" "c" 0)
 	
+	(Recti radioRect4 = (120 4)(138 21))
+	(AddRadioAt radioRect4 "L" toolContainer "editor.texture.lock" "L" 0)
+	
+	(Recti radioRect5 = (140 4)(158 21))
+	(AddRadioAt radioRect5 "U" toolContainer "editor.texture.lock" "U" 0)
+	
 	(Vec2i toolSpan = toolsRect.bottomRight - toolsRect.topLeft)
 	
 	(Recti vscroll)

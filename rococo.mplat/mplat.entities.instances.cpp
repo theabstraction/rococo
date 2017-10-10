@@ -271,6 +271,17 @@ namespace
 
          i->second->scale = scale;
       }
+
+      virtual void SetTexture(ID_ENTITY id, const fstring& texture)
+      {
+         auto i = idToEntity.find(id);
+         if (i == idToEntity.end())
+         {
+            Throw(0, "SetScale - no such entity");
+         }
+
+         i->second->textureId = ReadyTexture(texture);
+      }
    
       virtual void Clear()
       {

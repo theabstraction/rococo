@@ -252,6 +252,7 @@ namespace
       WorldMap& map;
       GuiMetrics metrics;
       Platform& platform;
+      IEditorState* editor;
       Windows::IWindow& parent;
       ISector* lit{ nullptr };
 
@@ -317,7 +318,7 @@ namespace
                {
                   if (lit == s)
                   {
-                     lit->InvokeSectorDialog(parent);
+                     lit->InvokeSectorDialog(parent, *editor);
                   }
                   lit = s;
                }
@@ -328,10 +329,12 @@ namespace
       EditMode_SectorEditor(Platform& _platform, WorldMap& _map, Windows::IWindow& _parent) : 
          platform(_platform),
          map(_map),
-         parent(_parent)
+         parent(_parent),
+         editor(nullptr)
       { }
       IEditMode& Mode() { return *this; }
       const ISector* GetHilight() const override { return lit; }
+      void SetEditor(IEditorState* editor) { this->editor = editor; }
    };
 
    class EditMode_SectorBuilder: private IEditMode
@@ -506,6 +509,11 @@ namespace
          defaultTextures[index] = name;
       }
 
+      cstr GetTexture(int32 index) const
+      {
+         return defaultTextures[index].c_str();
+      }
+
       cstr GetTexture(int32 state)
       {
          if (state < 0 || state >= 3) Throw(0, "Bad index to EditMode_SectorBuilder::GetTexture(%d)", state);
@@ -547,6 +555,12 @@ namespace
          anon.files = &files;
 
          platform.utilities.EnumerateFiles(anon, "!textures/hv/");
+
+         if (anon.files->empty())
+         {
+            Throw(0, "No textures found under !textures/hv/");
+         }
+
          PushAllOnQueue();
 
          platform.publisher.Attach(this, vScrollChanged);
@@ -557,6 +571,37 @@ namespace
       {
          platform.publisher.Detach(this);
          platform.gui.UnregisterPopulator(this);
+      }
+
+      int32 GetIndexOf(cstr name)
+      {
+         for (int32 i = 0; i < (int32)readyList.size(); ++i)
+         {
+            if (Eq(readyList[i].c_str(), name))
+            {
+               return i;
+            }
+         }
+
+         return -1;
+      }
+
+      cstr GetNeighbour(cstr name, bool forward)
+      {
+         int32 index = GetIndexOf(name);
+         if (forward) index++; else index--;
+
+         if (index >= (int32)readyList.size())
+         {
+            index = (int32)readyList.size() - 1;
+         }
+
+         if (index < 0)
+         {
+            index = 0;
+         }
+
+         return readyList[index].c_str();
       }
 
       void ScrollTo(cstr filename)
@@ -670,9 +715,9 @@ namespace
             auto now = OS::CpuTicks();
             auto dt = now - start;
 
-            if (dt > (OS::CpuHz() >> 2))
+            if (dt > (OS::CpuHz() >> 5))
             {
-               // We've capped texture loading so that frame rate does not fall far below 4 framea per second
+               // We've capped texture loading so that frame rate does not fall far below 32 framea per second
                break;
             }
          }
@@ -911,7 +956,7 @@ namespace
       }
    };
 
-   class Editor : public IEditor, public IUIElement, private IObserver, IEventCallback<ToggleStateChanged>
+   class Editor : public IEditor, public IUIElement, private IObserver, IEventCallback<ToggleStateChanged>, public IEditorState
    {
       WorldMap map;
       EditMode_SectorBuilder editMode_SectorBuilder;
@@ -924,6 +969,24 @@ namespace
 
       ToggleEventHandler editModeHandler;
       ToggleEventHandler textureTargetHandler;
+      ToggleEventHandler scrollLock;
+
+      virtual bool IsScrollLocked() const
+      {
+         return scrollLock.State() == 1;
+      }
+
+      virtual void SetNeighbourTextureAt(Vec2 pos, bool forward)
+      {
+         auto* sector = map.Sectors().GetFirstSectorContainingPoint(pos);
+         if (sector)
+         {
+            int state = textureTargetHandler.State();
+            cstr textureName = sector->GetTexture(state);
+            cstr nextName = textureList.GetNeighbour(textureName, forward);
+            sector->SetTexture(state, nextName);
+         }
+      }
 
       bool OnKeyboardEvent(const KeyboardEvent& key) override
       {
@@ -1009,7 +1072,8 @@ namespace
          editMode_SectorEditor(_platform, map, _platform.renderer.Window()),
          statusbar(CreateStatusBar(_platform.publisher)),
          editModeHandler("editor.edit_mode", _platform.publisher, { "v", "s" }),
-         textureTargetHandler("editor.texture.target", _platform.publisher, { "w", "f", "c"})
+         textureTargetHandler("editor.texture.target", _platform.publisher, { "w", "f", "c"}),
+         scrollLock("editor.texture.lock", _platform.publisher, { "U", "L" })
       {      
          REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorNew, "editor.new", nullptr);
          REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorLoad, "editor.load", nullptr);
@@ -1018,16 +1082,24 @@ namespace
 
          editModeHandler.SetState(0);
          textureTargetHandler.SetState(0);
+         scrollLock.SetState(0);
 
          textureTargetHandler.AddHandler(this);
 
          platform.gui.RegisterPopulator("sector_editor", this);
+
+         editMode_SectorEditor.SetEditor(this);
       }
 
       ~Editor()
       {
          platform.gui.UnregisterPopulator(this);
          platform.publisher.Detach(this);
+      }
+
+      virtual cstr TextureName(int index) const
+      {
+         return editMode_SectorBuilder.GetTexture(index);
       }
    };
 }

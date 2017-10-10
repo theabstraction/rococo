@@ -141,6 +141,7 @@
 		(Delete (IdEntity id))
 		(GetScale (IdEntity entityId)(Vec3 scale))
 		(SetScale (IdEntity entityId)(const Vec3 scale))
+		(SetTexture (IdEntity entityId)(IString texture))
 		(TryGetModelToWorldMatrix (IdEntity entityId)(Matrix4x4 position)->(Bool existant))
 		(Clear)
 	)

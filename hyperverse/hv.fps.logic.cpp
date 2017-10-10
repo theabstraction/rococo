@@ -220,6 +220,17 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
    void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
    {
       auto* player = e.players.GetPlayer(0);
+
+      if (dWheel != 0)
+      {
+         if (e.editor.IsScrollLocked())
+         {
+            auto id = player->GetPlayerEntity();
+            auto pos = e.platform.instances.GetEntity(id)->Position();
+            e.editor.SetNeighbourTextureAt({ pos.x, pos.y }, dWheel > 0);
+         }
+      }
+
       fpsControl.OnMouseMove(cursorPos, delta, dWheel);
    }
 

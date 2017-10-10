@@ -138,6 +138,10 @@ namespace
 
          mb.End();
 
+         if (wallId)
+         {
+            instances.Delete(wallId);
+         }
          wallId = instances.AddBody(to_fstring(name), to_fstring(wallTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
@@ -309,6 +313,41 @@ namespace
       {
       }
 
+      virtual cstr GetTexture(int32 state) const
+      {
+         switch (state)
+         {
+         case 0:  return wallTexture.c_str();
+         case 1:  return floorTexture.c_str();
+         case 2:  return ceilingTexture.c_str();
+         }
+      }
+
+      virtual void SetTexture(int32 state, cstr texture)
+      {
+         switch (state)
+         {
+         case 0:
+         {
+            wallTexture = texture;
+            instances.SetTexture(wallId, to_fstring(texture));
+            break;
+         }
+         case 1:
+         {
+            floorTexture = texture;
+            instances.SetTexture(floorId, to_fstring(texture));
+            break;
+         }
+         case 2:
+         {
+            ceilingTexture = texture;
+            instances.SetTexture(ceilingId, to_fstring(texture));
+            break;
+         }
+         }
+      }
+
       ~Sector()
       {
          rchar name[32];
@@ -432,6 +471,10 @@ namespace
 
          mb.End();
 
+         if (floorId)
+         {
+            instances.Delete(floorId);
+         }
          floorId = instances.AddBody(to_fstring(name), to_fstring(floorTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
@@ -450,6 +493,10 @@ namespace
 
          mb.End();
 
+         if (ceilingId)
+         {
+            instances.Delete(ceilingId);
+         }
          ceilingId = instances.AddBody(to_fstring(name), to_fstring(ceilingTexture.c_str()) , Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
@@ -555,13 +602,45 @@ namespace
          delete this;
       }
 
-      void InvokeSectorDialog(Rococo::Windows::IWindow& parent) override
+      void InvokeSectorDialog(Rococo::Windows::IWindow& parent, IEditorState& state) override
       {
+         struct : IVariableEditorEventHandler
+         {
+            IEditorState* state;
+
+            std::string textures[3];
+
+            virtual void OnButtonClicked(cstr variableName)
+            {
+               if (Eq(variableName, "SetDefaultWall"))
+               {
+                  textures[0] = state->TextureName(0);
+               }
+               else if (Eq(variableName, "SetDefaultFloor"))
+               {
+                  textures[1] = state->TextureName(1);
+               }
+               else if (Eq(variableName, "SetDefaultCeiling"))
+               {
+                  textures[2] = state->TextureName(2);
+               }
+            }
+         } handler;
+
+         handler.state = &state;
+         handler.textures[0] = this->wallTexture;
+         handler.textures[1] = this->floorTexture;
+         handler.textures[2] = this->ceilingTexture;
+
          rchar title[32];
          SafeFormat(title, sizeof(title), "Sector %u", id);
-         AutoFree<IVariableEditor> editor = utilities.CreateVariableEditor(parent, { 640, 400 }, 120, title, "Floor and Ceiling", "Edit floor and ceiling parameters");
+         AutoFree<IVariableEditor> editor = utilities.CreateVariableEditor(parent, { 640, 400 }, 120, title, "Walls, Floor and Ceiling", "Edit mesh parameters", &handler);
          editor->AddIntegerEditor("Altitiude", "Altitiude - centimetres", 0, 100000, (int32)( z0 * 100.0f));
          editor->AddIntegerEditor("Height", "Height - centimetres", 250, 100000, (int32)( (z1 - z0) * 100.0f));
+         editor->AddTab("Textures", "Set and get default textures");
+         editor->AddPushButton("SetDefaultWall", state.TextureName(0));
+         editor->AddPushButton("SetDefaultFloor", state.TextureName(1));
+         editor->AddPushButton("SetDefaultCeiling", state.TextureName(2));
 
          if (editor->IsModalDialogChoiceYes())
          {
@@ -576,6 +655,10 @@ namespace
 
             z0 = (float)Z0 / 100;
             z1 = z0 + (float)Z1 / 100;
+
+            wallTexture = handler.textures[0];
+            floorTexture = handler.textures[1];
+            ceilingTexture = handler.textures[2];
 
             Rebuild();
          }

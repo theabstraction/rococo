@@ -71,6 +71,8 @@ namespace HV
 
    ROCOCOAPI IEditor
    {
+      virtual bool IsScrollLocked() const = 0;
+      virtual void SetNeighbourTextureAt(Vec2 pos, bool forward) = 0;
       virtual void Free() = 0;
    };
 
@@ -104,6 +106,11 @@ namespace HV
       cstr ceilingTextureName;
    };
 
+   ROCOCOAPI IEditorState
+   {
+      virtual cstr TextureName(int index) const = 0;
+   };
+
    ROCOCOAPI ISector
    {
       virtual void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) = 0;
@@ -116,11 +123,13 @@ namespace HV
       virtual int32 GetFloorTriangleIndexContainingPoint(Vec2 p) = 0;
       virtual RGBAb GetGuiColour(float intensity) const = 0;
       virtual int32 GetPerimeterIndex(Vec2 a) = 0;
-      virtual void InvokeSectorDialog(Rococo::Windows::IWindow& parent) = 0; 
+      virtual void InvokeSectorDialog(Rococo::Windows::IWindow& parent, IEditorState& state) = 0;
       virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
       virtual void Rebuild() = 0;
       virtual void RemoveWallSegment(const Segment& segment, const Vec2& a, const Vec2& b, float oppositeElevation, float oppositeHeight) = 0;
       virtual void SetPalette(const SectorPalette& palette) = 0;
+      virtual cstr GetTexture(int32 state) const = 0;
+      virtual void SetTexture(int32 state, cstr texture) = 0;
    };
 
    ISector* CreateSector(Platform& platform, ISectors& co_sectors);

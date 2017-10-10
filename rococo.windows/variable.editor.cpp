@@ -19,6 +19,14 @@
 
 #include <CommCtrl.h>
 
+namespace Rococo
+{
+   namespace Windows
+   {
+      void SetControlFont(HWND hControlWindow);
+   }
+}
+
 namespace
 {
 	using namespace Rococo;
@@ -525,13 +533,14 @@ namespace
 
 			GuiRect labelRect = GetDefaultLabelRect();
 
-			GuiRect buttonRect = labelRect;
-			buttonRect.left = labelRect.right + 20;
-			buttonRect.right = ClientArea(*supervisor).right - 20;
+         GuiRect buttonRect = GetDefaultEditRect();
 			
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableDesc, -1, WS_VISIBLE | SS_RIGHT, 0);
-			v.SpecialButtonControl = Windows::AddPushButton(*tab, buttonRect, "Edit Script", nextId++, WS_VISIBLE | BS_PUSHBUTTON, WS_EX_CLIENTEDGE);
+			v.SpecialButtonControl = Windows::AddPushButton(*tab, buttonRect, variableDesc, nextId++, WS_VISIBLE | BS_PUSHBUTTON, WS_EX_CLIENTEDGE);
          AddToolTip(*v.StaticControl, variableDesc);
+
+      //   SetControlFont(*v.StaticControl);
+      //   SetControlFont(*v.SpecialButtonControl);
 
          StackStringBuilder sb(v.name, v.NAME_CAPACITY);
          sb << variableName;
