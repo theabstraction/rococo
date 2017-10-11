@@ -63,6 +63,7 @@ namespace
          Vec2 b;
          float z0;
          float z1;
+         ISector* other;
       };
 
       std::vector<Gap> gapSegments;
@@ -145,14 +146,14 @@ namespace
          wallId = instances.AddBody(to_fstring(name), to_fstring(wallTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
-      void RemoveWallSegment(const Segment& segment, const Vec2& a, const Vec2& b, float oppositeElevation, float oppositeHeight)
+      void RemoveWallSegment(const Segment& segment, const Vec2& a, const Vec2& b, float oppositeElevation, float oppositeHeight, ISector* other)
       {
          for (auto i = wallSegments.begin(); i != wallSegments.end(); ++i)
          {
             if (i->perimeterIndexStart == segment.perimeterIndexStart && i->perimeterIndexEnd == segment.perimeterIndexEnd)
             {
                wallSegments.erase(i);
-               gapSegments.push_back({ a, b, oppositeElevation, oppositeHeight });
+               gapSegments.push_back({ a, b, oppositeElevation, oppositeHeight, other });
                break;
             }
          } 
@@ -167,6 +168,20 @@ namespace
          }
          
          RaiseWallsFromSegments();  // This is always called to trigger floor & ceiling drop re-calculation
+         RebuildFloorAndCeiling();
+      }
+
+      bool IsCorridor() const
+      {
+         if (!Is4PointRectangular()) return false;
+         if (gapSegments.size() != 2) return false;
+         if (gapSegments[0].other->Is4PointRectangular() || gapSegments[1].other->Is4PointRectangular())
+         {
+            return false;
+         }
+         Vec2 ab = gapSegments[0].b - gapSegments[0].a;
+         Vec2 cd = gapSegments[1].b - gapSegments[1].a;
+         return Dot(ab, cd) != 0;
       }
 
       void BuildWalls(IRing<Vec2>& perimeter)
@@ -189,8 +204,8 @@ namespace
                   if (segment.perimeterIndexStart >= 0)
                   {
                      deleteSection = true;
-                     s->RemoveWallSegment(segment, q, p, z0, z1);
-                     gapSegments.push_back({ p, q, s->Z0(), s->Z1() });
+                     s->RemoveWallSegment(segment, q, p, z0, z1, this);
+                     gapSegments.push_back({ p, q, s->Z0(), s->Z1(), s });
                      break;
                   }
                }
@@ -252,50 +267,138 @@ namespace
          return u;
       }
 
-      void RaiseWallsFromSegments()
+      float AddSlopedWallSegment(const Vec2& p, const Vec2& q, float pFloor, float qFloor, float pCeiling, float qCeiling, float u)
       {
-         float u = 0;
+         Vec3 up{ 0, 0, 1 };
+         Vec3 P0 = { p.x, p.y, pFloor };
+         Vec3 Q0 = { q.x, q.y, qFloor };
+         Vec3 P1 = { p.x, p.y, pCeiling };
+         Vec3 Q1 = { q.x, q.y, qCeiling };
 
-         wallTriangles.clear();
+         Vec3 delta = Q0 - P0;
 
-         for(auto segment: wallSegments)
+         float segmentLength = round(Length(delta));
+
+         Vec3 normal = Cross(delta, up);
+
+         ObjectVertex PV0, PV1, QV0, QV1;
+
+         PV0.position = P0;
+         PV1.position = P1;
+         QV0.position = Q0;
+         QV1.position = Q1;
+
+         PV0.normal = PV1.normal = QV0.normal = QV1.normal = Normalize(normal);
+         PV0.emissiveColour = PV1.emissiveColour = QV0.emissiveColour = QV1.emissiveColour = RGBAb(0, 0, 0, 0);
+         PV0.diffuseColour = PV1.diffuseColour = QV0.diffuseColour = QV1.diffuseColour = RGBAb(255, 255, 255, 0);
+
+         PV0.v = uvScale * pFloor;
+         QV0.v = uvScale * qFloor;
+         PV1.v = uvScale * pCeiling;
+         QV1.v = uvScale * qCeiling;
+         PV0.u = PV1.u = uvScale * u;
+         QV0.u = QV1.u = uvScale * (u + segmentLength);
+
+         u += segmentLength;
+
+         VertexTriangle t0;
+         t0.a = PV0;
+         t0.b = PV1;
+         t0.c = QV0;
+
+         VertexTriangle t1;
+         t1.a = PV1;
+         t1.b = QV1;
+         t1.c = QV0;
+
+         wallTriangles.push_back(t0);
+         wallTriangles.push_back(t1);
+
+         return u;
+      }
+
+      void RaiseSlopeBetweenGaps()
+      {
+         float h00, h01, h10, h11;
+
+         Vec2 p = floorPerimeter[wallSegments[0].perimeterIndexStart];
+         Vec2 q = floorPerimeter[wallSegments[0].perimeterIndexEnd];
+
+         if (gapSegments[0].a == p || gapSegments[0].b == p)
          {
-            Vec2 p = floorPerimeter[segment.perimeterIndexStart];
-            Vec2 q = floorPerimeter[segment.perimeterIndexEnd];
-
-            u = AddWallSegment(p, q, z0, z1, u);
+            h00 = gapSegments[0].z0;
+            h01 = gapSegments[1].z0;
+            h10 = gapSegments[0].z1;
+            h11 = gapSegments[1].z1;
+         }
+         else
+         {
+            h00 = gapSegments[1].z0;
+            h01 = gapSegments[0].z0;
+            h10 = gapSegments[1].z1;
+            h11 = gapSegments[0].z1;
          }
 
-         for (auto& gap : gapSegments)
+         AddSlopedWallSegment(p, q, h00, h01, h10, h11, 0.0f);
+
+         p = floorPerimeter[wallSegments[1].perimeterIndexStart];
+         q = floorPerimeter[wallSegments[1].perimeterIndexEnd];
+
+         AddSlopedWallSegment(p, q, h01, h00, h11, h10, 0.0f);
+      }
+
+      void RaiseWallsFromSegments()
+      {
+         wallTriangles.clear();
+
+         bool isCorridor = IsCorridor();
+         if (isCorridor)
          {
-            float foreignHeight = gap.z1;
-            float currentHeight = z1;
+            RaiseSlopeBetweenGaps();
+         }
+         else
+         {
+            float u = 0;
 
-            if (foreignHeight < currentHeight)
+            for (auto segment : wallSegments)
             {
-               if (foreignHeight < z0)
-               {
-                  foreignHeight = z0;
-               }
+               Vec2 p = floorPerimeter[segment.perimeterIndexStart];
+               Vec2 q = floorPerimeter[segment.perimeterIndexEnd];
 
-               Vec2 p = gap.a;
-               Vec2 q = gap.b;
-
-               AddWallSegment(p, q, foreignHeight, z1, 0);
+               u = AddWallSegment(p, q, z0, z1, u);
             }
 
-            float foreignFloorHeight = gap.z0;
-            if (foreignFloorHeight > z0)
+            for (auto& gap : gapSegments)
             {
-               if (foreignFloorHeight > z1)
+               float foreignHeight = gap.z1;
+               float currentHeight = z1;
+
+               if (foreignHeight < currentHeight && !gap.other->IsCorridor() && !IsCorridor())
                {
-                  foreignFloorHeight = z1;
+                  if (foreignHeight < z0)
+                  {
+                     foreignHeight = z0;
+                  }
+
+                  Vec2 p = gap.a;
+                  Vec2 q = gap.b;
+
+                  AddWallSegment(p, q, foreignHeight, z1, 0);
                }
 
-               Vec2 p = gap.a;
-               Vec2 q = gap.b;
+               float foreignFloorHeight = gap.z0;
+               if (foreignFloorHeight > z0 && !gap.other->IsCorridor() && !IsCorridor())
+               {
+                  if (foreignFloorHeight > z1)
+                  {
+                     foreignFloorHeight = z1;
+                  }
 
-               AddWallSegment(p, q, z0, foreignFloorHeight, 0);
+                  Vec2 p = gap.a;
+                  Vec2 q = gap.b;
+
+                  AddWallSegment(p, q, z0, foreignFloorHeight, 0);
+               }
             }
          }
 
@@ -502,10 +605,36 @@ namespace
          ceilingId = instances.AddBody(to_fstring(name), to_fstring(ceilingTexture.c_str()) , Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
+      void GetVerticalMetrics(const Vec2& perimeterVertex, float& z0, float& z1)
+      {
+         if (IsCorridor())
+         {
+            if (gapSegments[0].a == perimeterVertex || gapSegments[0].b == perimeterVertex)
+            {
+               z0 = gapSegments[0].z0;
+               z1 = gapSegments[0].z1;
+            }
+            else
+            {
+               z0 = gapSegments[1].z0;
+               z1 = gapSegments[1].z1;
+            }
+         }
+         else
+         {
+            z0 = this->z0;
+            z1 = this->z1;
+         }
+      }
+
       void Rebuild()
       {
          BuildWalls(Ring<Vec2>(&floorPerimeter[0], floorPerimeter.size()));
+         RebuildFloorAndCeiling();
+      }
 
+      void RebuildFloorAndCeiling()
+      {
          size_t len = sizeof(Vec2) * floorPerimeter.size();
          Vec2* tempArray = (Vec2*)alloca(len);
 
@@ -524,14 +653,25 @@ namespace
             Vec2 uvOffset;
             std::vector<VertexTriangle>* floorTriangles;
             std::vector<VertexTriangle>* ceilingTriangles;
+            Sector* This;
 
             virtual void Append(const Triangle2d& t)
             {
                Vec3 up{ 0, 0, 1 };
                ObjectVertex a, b, c;
-               a.position = { t.A.x, t.A.y, z0 };
-               b.position = { t.B.x, t.B.y, z0 };
-               c.position = { t.C.x, t.C.y, z0 };
+
+               float hA0, hA1;
+               This->GetVerticalMetrics(t.A, hA0, hA1);
+
+               float hB0, hB1;
+               This->GetVerticalMetrics(t.B, hB0, hB1);
+
+               float hC0, hC1;
+               This->GetVerticalMetrics(t.C, hC0, hC1);
+
+               a.position = { t.A.x, t.A.y, hA0 };
+               b.position = { t.B.x, t.B.y, hB0 };
+               c.position = { t.C.x, t.C.y, hC0 };
                a.normal = b.normal = c.normal = up;
                a.emissiveColour = b.emissiveColour = c.emissiveColour = RGBAb(0, 0, 0, 0);
                a.diffuseColour = b.diffuseColour = c.diffuseColour = RGBAb(255, 255, 255, 0);
@@ -548,7 +688,9 @@ namespace
                T.c = c;
                floorTriangles->push_back(T);
                a.normal = b.normal = c.normal = -up;
-               a.position.z = b.position.z = c.position.z = z1;
+               a.position.z = hA1;
+               b.position.z = hB1;
+               c.position.z = hC1;
                T.a = b;
                T.b = a;
                T.c = c;
@@ -565,6 +707,7 @@ namespace
          builder.uvScale = uvScale;
          builder.floorTriangles = &floorTriangles;
          builder.ceilingTriangles = &ceilingTriangles;
+         builder.This = this;
 
          TesselateByEarClip(builder, ring);
 
@@ -580,7 +723,7 @@ namespace
          ValidateArray(positionArray, nVertices);
 
          Ring<Vec2> ring_of_unknown_sense(positionArray, nVertices);
- 
+
          if (IsClockwiseSequential(ring_of_unknown_sense))
          {
             for (size_t i = 0; i != nVertices; i++)
@@ -635,10 +778,19 @@ namespace
          handler.textures[2] = this->ceilingTexture;
 
          rchar title[32];
-         SafeFormat(title, sizeof(title), "Sector %u", id);
+
+         if (Is4PointRectangular())
+         {
+            SafeFormat(title, sizeof(title), "Sector %u - (4 point rectangle)", id);
+         }
+         else
+         {
+            SafeFormat(title, sizeof(title), "Sector %u", id);
+         }
+
          AutoFree<IVariableEditor> editor = utilities.CreateVariableEditor(parent, { 640, 400 }, 120, title, "Walls, Floor and Ceiling", "Edit mesh parameters", &handler);
-         editor->AddIntegerEditor("Altitiude", "Altitiude - centimetres", 0, 100000, (int32)( z0 * 100.0f));
-         editor->AddIntegerEditor("Height", "Height - centimetres", 250, 100000, (int32)( (z1 - z0) * 100.0f));
+         editor->AddIntegerEditor("Altitiude", "Altitiude - centimetres", 0, 100000, (int32)(z0 * 100.0f));
+         editor->AddIntegerEditor("Height", "Height - centimetres", 250, 100000, (int32)((z1 - z0) * 100.0f));
          editor->AddTab("Textures", "Set and get default textures");
          editor->AddPushButton("SetDefaultWall", state.TextureName(0));
          editor->AddPushButton("SetDefaultFloor", state.TextureName(1));
@@ -664,6 +816,38 @@ namespace
 
             Rebuild();
          }
+      }
+
+      bool Is4PointRectangular() const
+      {
+         if (floorPerimeter.size() != 4) return false;
+
+         Vec2 ab = floorPerimeter[1] - floorPerimeter[0];
+         Vec2 bc = floorPerimeter[2] - floorPerimeter[1];
+         Vec2 cd = floorPerimeter[3] - floorPerimeter[2];
+         Vec2 da = floorPerimeter[0] - floorPerimeter[3];
+
+         if (Dot(ab,bc) != 0)
+         {
+            return false;
+         }
+
+         if (Dot(bc,cd) != 0)
+         {
+            return false;
+         }
+
+         if (Dot(cd, da) != 0)
+         {
+            return false;
+         }
+
+         if (Dot(da, ab) != 0)
+         {
+            return false;
+         }
+
+         return true;
       }
    };
 }

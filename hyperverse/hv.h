@@ -126,10 +126,12 @@ namespace HV
       virtual void InvokeSectorDialog(Rococo::Windows::IWindow& parent, IEditorState& state) = 0;
       virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
       virtual void Rebuild() = 0;
-      virtual void RemoveWallSegment(const Segment& segment, const Vec2& a, const Vec2& b, float oppositeElevation, float oppositeHeight) = 0;
+      virtual void RemoveWallSegment(const Segment& segment, const Vec2& a, const Vec2& b, float oppositeElevation, float oppositeHeight, ISector* other) = 0;
       virtual void SetPalette(const SectorPalette& palette) = 0;
       virtual cstr GetTexture(int32 state) const = 0;
       virtual void SetTexture(int32 state, cstr texture) = 0;
+      virtual bool Is4PointRectangular() const = 0; // The sector has four points and its perimeter in 2D space is a rectangle or square
+      virtual bool IsCorridor() const = 0; // The sector Is4PointRectangular & two opposing edges are portals to other sectors and neither is itself a 4PtRect
    };
 
    ISector* CreateSector(Platform& platform, ISectors& co_sectors);

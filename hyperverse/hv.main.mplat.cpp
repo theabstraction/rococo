@@ -17,5 +17,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
       }
    } factory;
 
-   return LoadPlatformDll_AndRun(hInstance, factory, "Hyperverse", MPLAT_DEBUG, nullptr, nullptr);
+   cstr lib = IsDebuggerPresent() ? MPLAT_DEBUG : MPLAT_RELEASE;
+
+   return LoadPlatformDll_AndRun(hInstance, factory, "Hyperverse", lib, nullptr, nullptr);
 }
