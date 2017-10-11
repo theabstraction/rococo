@@ -179,21 +179,115 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
       e.platform.instances.ForAll(addToScene);
    }
 
-   void UpdateAI(const IUltraClock& clock) override
+   struct Triangle
    {
-      e.platform.gui.RegisterPopulator("fps", this);
+      Vec3 a;
+      Vec3 b;
+      Vec3 c;
+   };
 
+   Vec3 ComputeCollisionAgainstTriangle(cr_vec3 start, cr_vec3 end, ID_ENTITY id, float dt, ISector& sector)
+   {
+   }
+
+   struct CollisionParameters
+   {
+      Vec3 start;
+      Vec3 end;
+      ID_ENTITY playerId;
+      float dt;
+      float jumpSpeed;
+   };
+
+   bool GetTriangleHeight(const Triangle& t, cr_vec2 P, float& result)
+   {
+      // Triangle is in a plane (P - A).N = 0 where A is a point in plane, N is normal and P is any other point in plane
+      // Expands to P.N = A.N: 
+      // Px.Nx + Py.Ny + Pz.Nz = A.N
+      // Pz = [A.N - (Px.Nx + Py.Ny)] / Nz
+
+      Vec3 N = Cross(t.b - t.a, t.c - t.b);
+
+      if (fabs(N.z) <= 0.001f) return false;
+
+      result = (Dot(t.a, N) - (P.x * N.x + P.y * N.y)) / N.z;
+      return true;
+   }
+
+   Vec3 ComputeCollisionInSector(CollisionParameters& cp, ISector& sector)
+   {
+      int32 index = sector.GetFloorTriangleIndexContainingPoint({ cp.end.x, cp.end.y });
+      if (index >= 0)
+      {
+         auto* v = sector.FloorVertices().v;
+         Triangle t;
+         t.a = v[3 * index].position;
+         t.b = v[3 * index + 1].position;
+         t.c = v[3 * index + 2].position;
+
+         float h;   
+         if (GetTriangleHeight(t, { cp.end.x, cp.end.y }, h))
+         {
+            h += 1.65f; // Player's eye level
+
+            if (cp.end.z < h)
+            {
+               cp.end.z = h;
+               cp.jumpSpeed = 0.0f;
+            }
+            else if (cp.end.z > h )
+            {
+               Vec3 g = { 0, 0, -9.81f };
+               Vec3 afterGravity = cp.end + (0.5f * cp.dt * cp.dt * g) + (cp.dt * Vec3{ 0, 0, cp.jumpSpeed });
+
+               if (afterGravity.z < h)
+               {
+                  cp.end.z = h;
+                  cp.jumpSpeed = 0.0f;
+               }
+               else
+               {
+                  cp.jumpSpeed += g.z * cp.dt;
+                  cp.end = afterGravity;
+               }
+            }
+         }
+      }
+     
+      return cp.end;
+   }
+
+   Vec3 CorrectPosition(CollisionParameters& cp)
+   {
+      auto* toSector = e.sectors.GetFirstSectorContainingPoint({ cp.end.x, cp.end.y });
+      if (!toSector) return cp.end;
+      return ComputeCollisionInSector(cp, *toSector);
+   }
+
+   void UpdatePlayer(float dt)
+   {
       auto* player = e.players.GetPlayer(0);
       auto id = player->GetPlayerEntity();
-
-      float dt = clock.DT();
 
       Degrees viewElevationDelta;
 
       Entities::MoveMobileArgs mm;
       fpsControl.GetPlayerDelta(id, dt, mm, viewElevationDelta);
 
+      auto pe = e.platform.instances.GetEntity(id);
+
+      Vec3 before = pe->Position();
+
       e.platform.mobiles.TryMoveMobile(mm);
+
+      Vec3 after = pe->Position();
+
+      CollisionParameters cp{ before, after, id, dt, player->JumpSpeed() };
+      Vec3 final = CorrectPosition(cp);
+
+      player->JumpSpeed() = cp.jumpSpeed;
+
+      pe->Model().SetPosition(final);
 
       if (viewElevationDelta != 0)
       {
@@ -205,8 +299,13 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
       Matrix4x4 m;
       e.platform.camera.GetWorld(m);
       Vec3 dir{ -m.row2.x, -m.row2.y, -m.row2.z };
-      Vec3 pos = e.platform.instances.GetEntity(id)->Position();
-      e.platform.scene.Builder().SetLight(dir, pos, 0);
+      e.platform.scene.Builder().SetLight(dir, final, 0);
+   }
+
+   void UpdateAI(const IUltraClock& clock) override
+   {
+      e.platform.gui.RegisterPopulator("fps", this);
+      UpdatePlayer(clock.DT());
    }
 
    bool OnKeyboardEvent(const KeyboardEvent& k)

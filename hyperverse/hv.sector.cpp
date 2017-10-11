@@ -39,13 +39,6 @@ namespace
 
    uint32 nextSectorId = 1;
 
-   struct VertexTriangle
-   {
-      Rococo::ObjectVertex a;
-      Rococo::ObjectVertex b;
-      Rococo::ObjectVertex c;
-   };
-
    class Sector : public ISector
    {   
       IInstancesSupervisor& instances;
@@ -373,7 +366,7 @@ namespace
                float foreignHeight = gap.z1;
                float currentHeight = z1;
 
-               if (foreignHeight < currentHeight && !gap.other->IsCorridor() && !IsCorridor())
+               if (foreignHeight < currentHeight && !(gap.other->IsCorridor() || IsCorridor()))
                {
                   if (foreignHeight < z0)
                   {
@@ -387,7 +380,7 @@ namespace
                }
 
                float foreignFloorHeight = gap.z0;
-               if (foreignFloorHeight > z0 && !gap.other->IsCorridor() && !IsCorridor())
+               if (foreignFloorHeight > z0 && !(gap.other->IsCorridor() || IsCorridor()))
                {
                   if (foreignFloorHeight > z1)
                   {
@@ -657,7 +650,6 @@ namespace
 
             virtual void Append(const Triangle2d& t)
             {
-               Vec3 up{ 0, 0, 1 };
                ObjectVertex a, b, c;
 
                float hA0, hA1;
@@ -672,6 +664,9 @@ namespace
                a.position = { t.A.x, t.A.y, hA0 };
                b.position = { t.B.x, t.B.y, hB0 };
                c.position = { t.C.x, t.C.y, hC0 };
+
+               Vec3 up = -Normalize(Cross(b.position - a.position, c.position - b.position));
+
                a.normal = b.normal = c.normal = up;
                a.emissiveColour = b.emissiveColour = c.emissiveColour = RGBAb(0, 0, 0, 0);
                a.diffuseColour = b.diffuseColour = c.diffuseColour = RGBAb(255, 255, 255, 0);

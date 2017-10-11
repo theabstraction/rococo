@@ -34,6 +34,13 @@ namespace Rococo
 		float v;
 	};
 
+   struct VertexTriangle
+   {
+      ObjectVertex a;
+      ObjectVertex b;
+      ObjectVertex c;
+   };
+
 	struct IRenderer;
 
 	ROCOCO_ID(ID_VERTEX_SHADER,size_t,-1)

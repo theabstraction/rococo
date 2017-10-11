@@ -16,23 +16,27 @@ namespace
    {
       Platform& platform;
       bool editorActive{ false };
-
+ 
+      AutoFree<ISectors> sectors;
       AutoFree<IPlayerSupervisor> players;
       AutoFree<IEditor> editor;
       AutoFree<IPaneBuilderSupervisor> editorPanel;
       AutoFree<IPaneBuilderSupervisor> fpsPanel;
+     
 
       Cosmos e; // Put this as the last member, since other members need to be constructed first
 
       IGameMode* mode;
       AutoFree<IGameModeSupervisor> fpsLogic;
+      
    public:
       HVApp(Platform& _platform) : 
          platform(_platform),
+         sectors(CreateSectors(_platform)),
          players(CreatePlayerSupervisor(platform)),
-         editor(CreateEditor(platform, *players)),
-         e { _platform, *players, *editor },
-         fpsLogic(CreateFPSGameLogic(e))
+         editor(CreateEditor(platform, *players, *sectors)),
+         e { _platform, *players, *editor, *sectors },
+         fpsLogic(CreateFPSGameLogic(e))  
       {
          mode = fpsLogic;
 

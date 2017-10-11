@@ -76,16 +76,16 @@ namespace HV
       virtual void Free() = 0;
    };
 
-   IEditor* CreateEditor(Platform& platform, IPlayerSupervisor& players);
+   struct ISectors;
+   struct ISector;
+
+   IEditor* CreateEditor(Platform& platform, IPlayerSupervisor& players, ISectors& sectors);
 
    struct ObjectVertexBuffer
    {
       const ObjectVertex* v;
       const size_t VertexCount;
    };
-
-   struct ISectors;
-   struct ISector;
 
    struct Segment
    {
@@ -169,6 +169,7 @@ namespace HV
       Platform& platform;
       IPlayerSupervisor& players;
       IEditor& editor;
+      ISectors& sectors;
    };
 
    IGameModeSupervisor* CreateFPSGameLogic(Cosmos& e);

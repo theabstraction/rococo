@@ -34,14 +34,14 @@ namespace
       Vec2i grabbedOffset{ 0,0 };
       GuiMetrics metrics { 0 };   
 
-      AutoFree<ISectors> sectors;
+      ISectors& sectors;
    public:
-      ISectors& Sectors() { return *sectors; }
+      ISectors& Sectors() { return sectors; }
 
-      WorldMap(Platform& platform) : 
+      WorldMap(Platform& platform, ISectors& _sectors) :
          instances(platform.instances), 
          mobiles(platform.mobiles),
-         sectors(CreateSectors(platform))
+         sectors(_sectors)
       {
          
       }
@@ -137,7 +137,7 @@ namespace
 
          const float scale = gridlinePixelWidth / gridlineMetricWidth;
 
-         for (ISector* sector : *sectors)
+         for (ISector* sector : sectors)
          {
             float dim = !litSector ? 0.9f : 0.7f;
             RGBAb colour = sector->GetGuiColour(sector == litSector ? 1.0f : dim);
@@ -1063,10 +1063,10 @@ namespace
       }
 
    public:
-      Editor(Platform& _platform, IPlayerSupervisor& _players) :
+      Editor(Platform& _platform, IPlayerSupervisor& _players, ISectors& sectors) :
          platform(_platform),
          players(_players),
-         map(_platform),
+         map(_platform, sectors),
          textureList(_platform),
          editMode_SectorBuilder(_platform.publisher, map),
          editMode_SectorEditor(_platform, map, _platform.renderer.Window()),
@@ -1106,9 +1106,9 @@ namespace
 
 namespace HV
 {
-   IEditor* CreateEditor(Platform& platform, IPlayerSupervisor& players)
+   IEditor* CreateEditor(Platform& platform, IPlayerSupervisor& players, ISectors& sectors)
    {
-      return new Editor(platform, players);
+      return new Editor(platform, players, sectors);
    }
 
    namespace Events

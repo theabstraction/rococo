@@ -11,6 +11,7 @@ namespace
    class Player : public IPlayer
    {
       ID_ENTITY playerId;
+      float jumpSpeed = 0;
    public:
       Player()
       {
@@ -30,6 +31,11 @@ namespace
       virtual ID_ENTITY GetPlayerEntity()
       {
          return playerId;
+      }
+
+      virtual float& JumpSpeed()
+      {
+         return jumpSpeed;
       }
    };
 

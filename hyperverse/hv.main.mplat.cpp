@@ -7,6 +7,12 @@ namespace HV
    IApp* CreateApp(Platform& platform);
 }
 
+#ifdef _DEBUG
+# define MPLAT_LIB MPLAT_DEBUG
+#else
+# define MPLAT_LIB MPLAT_RELEASE
+#endif
+
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
    struct : IAppFactory
@@ -17,7 +23,5 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
       }
    } factory;
 
-   cstr lib = IsDebuggerPresent() ? MPLAT_DEBUG : MPLAT_RELEASE;
-
-   return LoadPlatformDll_AndRun(hInstance, factory, "Hyperverse", lib, nullptr, nullptr);
+   return LoadPlatformDll_AndRun(hInstance, factory, "Hyperverse", MPLAT_LIB, nullptr, nullptr);
 }
