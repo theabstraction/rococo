@@ -283,7 +283,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
    Vec3 ComputeWallCollision(const CollisionParameters& cp, cr_vec2 p, cr_vec2 q, float& t)
    {
       Edge edge{ ToVec3(p, 0), ToVec3(q, 0) };
-      Sphere playerSphere{ Flatten(cp.start), 1.5_metres };
+      Sphere playerSphere{ Flatten(cp.start), 1.0_metres };
       auto c = Rococo::CollideEdgeAndSphere(edge, playerSphere, Flatten(cp.end));
 
       if (c.contactType == ContactType_Penetration)
@@ -481,7 +481,9 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
       float z0 = to.Z0();
       float z1 = to.Z1();
 
-      if ((ground > z0 - 0.5f) && end.z < (z1 - 2.48_metres))
+      const float maxClimbableHeight = 1.65f;
+
+      if ((ground > z0 - maxClimbableHeight) && end.z < (z1 - 2.48_metres))
       {
          return true;
       }
@@ -630,14 +632,41 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
       CollisionParameters cp{ before, after, id, dt, player->JumpSpeed() };
       Vec3 final = CorrectPosition(cp, player->JumpSpeed());
 
+      float dz = final.z - before.z;
+
+      if (dz < 0)
+      {
+         // Going down
+         player->DuckFactor() = 1.0f;
+      }
+      else if (dz == 0)
+      {
+
+      }
+      else
+      {
+         player->DuckFactor() = 1.0f - dz / player->Height();
+         if (player->DuckFactor() < 0.5f)
+         {
+            player->DuckFactor() = 0.5f;
+         }
+      }
+
       pe->Model().SetPosition(final);
 
-      Vec3 playerPosToCamera = Vec3{ 0, 0, 1.65_metres };
+      Vec3 playerPosToCamera = Vec3{ 0, 0, player->Height() * player->DuckFactor() };
 
-      if (viewElevationDelta != 0)
+      if (player->DuckFactor() < 1.0f)
       {
-         e.platform.camera.ElevateView(id, viewElevationDelta, playerPosToCamera);
+         player->DuckFactor() += dt;
+
+         if (player->DuckFactor() > 1.0f)
+         {
+            player->DuckFactor() = 1.0f;
+         }
       }
+
+      e.platform.camera.ElevateView(id, viewElevationDelta, playerPosToCamera);
 
       PopulateScene();
 

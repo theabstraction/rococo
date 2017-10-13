@@ -83,10 +83,11 @@ namespace
             float newElevation = elevation + (float)delta * 0.25f;
             newElevation = min(89.0f, newElevation);
             newElevation = max(-89.0f, newElevation);
-            elevation = Degrees{ newElevation };
-            this->relativePos = relativePos;
+            elevation = Degrees{ newElevation };           
             isFPSlinked = true;
          }
+         
+         this->relativePos = relativePos;
       }
 
       virtual void Clear()

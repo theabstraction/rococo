@@ -12,6 +12,8 @@ namespace
    {
       ID_ENTITY playerId;
       float jumpSpeed = 0;
+      const float height = 1.65_metres;
+      float duckFactor = 1.0f;
    public:
       Player()
       {
@@ -36,6 +38,16 @@ namespace
       virtual float& JumpSpeed()
       {
          return jumpSpeed;
+      }
+
+      virtual float Height() const
+      {
+         return height;
+      }
+
+      virtual float& DuckFactor()
+      {
+         return duckFactor;
       }
    };
 
