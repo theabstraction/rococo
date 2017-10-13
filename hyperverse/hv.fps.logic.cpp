@@ -382,7 +382,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
       return cp.end;
    }
 
-   Vec3 ComputeWallCollisionInSector(const CollisionParameters& cp, ISector& sector)
+   Vec3 ComputeWallCollisionInSector(const CollisionParameters& cp, ISector& sector, bool scanGaps = true)
    {
       if (cp.start == cp.end) return cp.end;
 
@@ -414,12 +414,42 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
          }
       }
 
+      if (scanGaps)
+      {
+         auto* gaps = sector.Gaps(count);
+         for (size_t i = 0; i < count; ++i)
+         {
+            auto& g = gaps[i];
+
+            float ithTime = 1.0f;
+            Vec3 ithResult = ComputeWallCollision(cp, g.a, g.b, ithTime);
+            if (ithTime < collisionTime)
+            {
+               // A gap collision means player bounding sphere has entered a neighbouring sector
+               // So we must check that we have not interfaced with materials in that sector
+
+               Vec3 foreignTarget = ComputeWallCollisionInSector(cp, *g.other, false);
+               if (foreignTarget != cp.end)
+               {
+                  // Stop the movement dead
+                  return cp.start;
+               }
+
+               if (!IsAscendable(cp.start, cp.end, sector, *g.other))
+               {
+                  collisionTime = ithTime;
+                  destinationPoint = ithResult;
+               }
+            }
+         }
+      }
+
       return destinationPoint;
    }
 
-   Vec3 ComputeFloorCollisionInSector(const CollisionParameters& cp, ISector& sector, float& jumpSpeed)
+   float GetHeightAtPointInSector(cr_vec3 p, ISector& sector)
    {
-      int32 index = sector.GetFloorTriangleIndexContainingPoint({ cp.end.x, cp.end.y });
+      int32 index = sector.GetFloorTriangleIndexContainingPoint( {p.x, p.y});
       if (index >= 0)
       {
          auto* v = sector.FloorVertices().v;
@@ -428,32 +458,62 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
          t.b = v[3 * index + 1].position;
          t.c = v[3 * index + 2].position;
 
-         float h;   
-         if (GetTriangleHeight(t, { cp.end.x, cp.end.y }, h))
+         float h;
+         if (GetTriangleHeight(t, { p.x,p.y }, h))
          {
-            h += 1.65f; // Player's eye level
+            return h;
+         }
+      }
 
-            if (cp.end.z < h)
-            {
-               jumpSpeed = 0.0f;
-               return Vec3{ cp.end.x, cp.end.y, h };             
-            }
-            else if (cp.end.z > h )
-            {
-               Vec3 g = { 0, 0, -9.81f };
-               Vec3 afterGravity = cp.end + (0.5f * cp.dt * cp.dt * g) + (cp.dt * Vec3{ 0, 0, cp.jumpSpeed });
+      return 0.0f;
+   }
 
-               if (afterGravity.z < h)
-               {
-                  jumpSpeed = 0.0f;
-                  return Vec3{ cp.end.x, cp.end.y, h };
-               }
-               else
-               {
-                  jumpSpeed = cp.jumpSpeed + g.z * cp.dt;
-                  return afterGravity;
-               }
-            }
+   bool IsAscendable(cr_vec3 start, cr_vec3 end, ISector& from, ISector& to)
+   {
+      if (from.IsCorridor() || to.IsCorridor())
+      {
+         // Corridors are asendable at both ends.
+         return true;
+      }
+
+      float ground = end.z - 1.65f;
+
+      float z0 = to.Z0();
+      float z1 = to.Z1();
+
+      if ((ground > z0 - 0.5f) && end.z < (z1 - 0.84f))
+      {
+         return true;
+      }
+
+      return false;
+   }
+
+   Vec3 ComputeFloorCollisionInSector(const CollisionParameters& cp, ISector& sector, float& jumpSpeed)
+   {
+      float h = GetHeightAtPointInSector(cp.end, sector);
+
+      h += 1.65f; // Player's eye level
+
+      if (cp.end.z < h)
+      {
+         jumpSpeed = 0.0f;
+         return Vec3{ cp.end.x, cp.end.y, h };             
+      }
+      else if (cp.end.z > h )
+      {
+         Vec3 g = { 0, 0, -9.81f };
+         Vec3 afterGravity = cp.end + (0.5f * cp.dt * cp.dt * g) + (cp.dt * Vec3{ 0, 0, cp.jumpSpeed });
+
+         if (afterGravity.z < h)
+         {
+            jumpSpeed = 0.0f;
+            return Vec3{ cp.end.x, cp.end.y, h };
+         }
+         else
+         {
+            jumpSpeed = cp.jumpSpeed + g.z * cp.dt;
+            return afterGravity;
          }
       }
      
@@ -534,12 +594,18 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
             return cp.start;
          }
 
+         if (!IsAscendable(cp.start, cp.end, *fromSector, *toSector))
+         {
+            return cp.start;
+         }
+
          Vec3 finalPos = ComputeFloorCollisionInSector(cp, *toSector, jumpSpeed);
          return finalPos;
       }
       else
       {
          auto result = ComputeWallCollisionInSector(cp, *fromSector);
+
          result.z = cp.start.z;
          CollisionParameters cp2 = { cp.start, result, cp.playerId, cp.dt, cp.jumpSpeed };
          return ComputeFloorCollisionInSector(cp2, *fromSector, jumpSpeed);
