@@ -174,7 +174,11 @@ namespace
                Vec2 p = ring[i];
                Vec2 q = ring[i + 1];
 
-               Rococo::Graphics::DrawLine(grc, 2, GetScreenPosition(p), GetScreenPosition(q), RGBAb(255, 255, 255));
+               Vec2i pos = GetScreenPosition(p);
+               Rococo::Graphics::DrawLine(grc, 2, pos, GetScreenPosition(q), RGBAb(255, 255, 255));
+
+               GuiRect pixelRect = GuiRect{ -6, -6, 6, 6 } + pos;
+               Rococo::Graphics::DrawRectangle(grc, pixelRect, RGBAb(255, 255, 255, 64), RGBAb(255, 255, 255, 64));
             };
          }
       }
