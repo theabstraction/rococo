@@ -93,6 +93,15 @@ namespace HV
       int32 perimeterIndexEnd;
    };
 
+   struct Gap
+   {
+      Vec2 a;
+      Vec2 b;
+      float z0;
+      float z1;
+      ISector* other;
+   };
+
    struct SectorAndSegment
    {
       ISector* sector;
@@ -116,6 +125,7 @@ namespace HV
       virtual void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) = 0;
       virtual bool DoesLineCrossSector(Vec2 a, Vec2 b) = 0;
       virtual ObjectVertexBuffer FloorVertices() const = 0;
+      virtual const Gap* Gaps(size_t& count) const = 0;
       virtual void Free() = 0;
       virtual float Z0() const = 0;
       virtual float Z1() const = 0;  
@@ -132,6 +142,7 @@ namespace HV
       virtual void SetTexture(int32 state, cstr texture) = 0;
       virtual bool Is4PointRectangular() const = 0; // The sector has four points and its perimeter in 2D space is a rectangle or square
       virtual bool IsCorridor() const = 0; // The sector Is4PointRectangular & two opposing edges are portals to other sectors and neither is itself a 4PtRect
+      virtual const Segment* GetWallSegments(size_t& count) const = 0;
    };
 
    ISector* CreateSector(Platform& platform, ISectors& co_sectors);

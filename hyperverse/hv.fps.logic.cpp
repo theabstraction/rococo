@@ -1,6 +1,7 @@
 #include "hv.h"
 #include "hv.events.h"
 #include <unordered_map>
+#include <rococo.maths.h>
 
 using namespace HV;
 using namespace HV::Events;
@@ -186,8 +187,28 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
       Vec3 c;
    };
 
-   Vec3 ComputeCollisionAgainstTriangle(cr_vec3 start, cr_vec3 end, ID_ENTITY id, float dt, ISector& sector)
+   bool IsPathAcrossGap(cr_vec3 start, cr_vec3 end, ISector& from, ISector& to)
    {
+      size_t count;
+      auto gaps = from.Gaps(count);
+
+      for (size_t i = 0; i < count; ++i)
+      {
+         auto& gap = gaps[i];
+         if (gap.other == &to)
+         {
+            Edge edge{ ToVec3( gap.a, 0 ), ToVec3 ( gap.b, 0) };
+            Sphere playerSphere{ Flatten(start), 1.0_metres };
+            auto c = Rococo::CollideEdgeAndSphere(edge, playerSphere, Flatten(end));
+
+            if (c.contactType == ContactType_Edge || c.contactType == ContactType_Penetration)
+            {
+               return true;
+            }
+         }
+      }
+
+      return false;
    }
 
    struct CollisionParameters
@@ -214,7 +235,189 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
       return true;
    }
 
-   Vec3 ComputeCollisionInSector(CollisionParameters& cp, ISector& sector)
+   Vec3 ToVec3(cr_vec2 p, float z)
+   {
+      return Vec3{ p.x, p.y, z };
+   }
+
+   Vec3 Flatten(cr_vec3 p) 
+   {
+      return Vec3{ p.x, p.y, 0 };
+   }
+
+   Vec3 ApplyElasticCollision(Vec3 normal, const CollisionParameters& cp, float t, cr_vec3 touchPoint, const Sphere& sphere)
+   {
+      // N.B normal must oppose our direction
+      Vec3 trajectory = cp.end - cp.start;
+
+      if (Dot(normal, trajectory) > 0)
+      {
+         normal = -normal;
+      }
+
+      // m is mass of sphere.
+      // Incoming velocity v is (end - start)
+      // Outgoing velocity V is (Vx Vy)
+
+      // For elastic collision, |v| = |V|, v.v = V.V
+
+      // Momentum impulse = m.J.normal where J is the scalar magnitude of the impulse
+
+      // mV = mv + m.J.normal
+
+      // V = v + J.normal
+      // V.V = v.v + J.J + 2.v.normal.J. Now consider v.v - V.V = 0:
+      // J.J = -2.J.(v.normal)
+      // J = -2.v.normal
+
+      float J = -2.0f * Dot(trajectory, normal);
+
+      t = 0.5f; // That should stop feedback
+
+      Vec3 bounceTrajectory = trajectory + J * normal;
+      Vec3 delta =  ( t * trajectory) + (1.0f - t) * bounceTrajectory;
+      Vec3 bounceTo = cp.start + delta;
+      return bounceTo;
+   }
+      
+   Vec3 ComputeWallCollision(const CollisionParameters& cp, cr_vec2 p, cr_vec2 q, float& t)
+   {
+      Edge edge{ ToVec3(p, 0), ToVec3(q, 0) };
+      Sphere playerSphere{ Flatten(cp.start), 1.5_metres };
+      auto c = Rococo::CollideEdgeAndSphere(edge, playerSphere, Flatten(cp.end));
+
+      if (c.contactType == ContactType_Penetration)
+      {
+         // Tangled in the mesh
+         Vec3 displacement = c.touchPoint - Flatten(cp.start);
+        
+         // We could be leaving a line behind (safe), or we have further penetration (bad)
+         if (Dot(displacement, cp.end - cp.start) > 0)
+         {
+            // Bad, we are making penetration worse
+            t = 0;
+            return cp.start;
+         }
+         else
+         {
+            // Leaving point behind
+            t = 1.0f;
+            return cp.end;
+         }
+
+         return cp.start;
+      }
+
+      if (c.contactType == ContactType_None)
+      {
+         t = 1.0f;
+         return cp.end;
+      }
+
+      t = c.t;
+
+      if (c.t > 1)
+      {
+         t = 1.0f;
+         return cp.end;
+      }
+
+      if (c.contactType == ContactType_Edge) // see diagrams/collision.sphere.vs.edge.png
+      {
+         /*  Collision normal = | (q -p) *  K | */
+         Vec3 pq = ToVec3(q - p, 0);
+
+         Vec3 N = Cross(pq, Vec3{ 0, 0, 1 });
+
+         float modN = Length(N);
+         if (modN < 0.01f)
+         {
+            if (Rococo::OS::IsDebugging())
+            {
+               // Fix the geometry
+               Rococo::OS::TripDebugger();
+            }
+
+            t = 1.1f;
+            return cp.end;
+         }
+
+         Vec3 normal = N * (1.0f / modN);
+         
+         return ApplyElasticCollision(normal, cp, c.t, c.touchPoint, playerSphere);
+      }
+      else if (c.contactType == ContactType_Vertex)
+      {
+         /*   Collision normal = | (C - p)|  */
+         Vec3 C = Flatten(c.t * (cp.end - cp.start) + cp.start);
+         Vec3 N = C - c.touchPoint;
+
+         float modN = Length(N);
+         if (modN < 0.01f)
+         {
+            // Degenerate case, stop collision
+            return cp.start;
+         }
+
+         if (Dot(N, cp.end - cp.start) < 0)
+         {
+            Vec3 normal = N * (1.0f / modN);
+            t = c.t;
+            return ApplyElasticCollision(normal, cp, c.t, c.touchPoint, playerSphere);
+         }
+         else
+         {
+            t = 1.0f;
+            return cp.end;
+         }
+      }
+      else
+      {
+         t = 0;
+         // Degenerate case, stop collision
+         return cp.start;
+      }
+
+      t = 1.0f;
+      return cp.end;
+   }
+
+   Vec3 ComputeWallCollisionInSector(const CollisionParameters& cp, ISector& sector)
+   {
+      if (cp.start == cp.end) return cp.end;
+
+      size_t count;
+      auto segments = sector.GetWallSegments(count);
+
+      size_t nVertices;
+      auto v = sector.WallVertices(nVertices);
+
+      float collisionTime = 1.0f;
+      Vec3 destinationPoint = cp.end;
+
+      for (size_t i = 0; i < count; ++i)
+      {
+         auto& s = segments[i];
+         s.perimeterIndexStart;
+         s.perimeterIndexEnd;
+
+         auto p = v[s.perimeterIndexStart];
+         auto q = v[s.perimeterIndexEnd];
+
+         float ithTime = 1.0f;
+         Vec3 ithResult = ComputeWallCollision(cp, p, q, ithTime);
+
+         if (ithTime < collisionTime)
+         {
+            collisionTime = ithTime;
+            destinationPoint = ithResult;
+         }
+      }
+
+      return destinationPoint;
+   }
+
+   Vec3 ComputeFloorCollisionInSector(const CollisionParameters& cp, ISector& sector, float& jumpSpeed)
    {
       int32 index = sector.GetFloorTriangleIndexContainingPoint({ cp.end.x, cp.end.y });
       if (index >= 0)
@@ -232,8 +435,8 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 
             if (cp.end.z < h)
             {
-               cp.end.z = h;
-               cp.jumpSpeed = 0.0f;
+               jumpSpeed = 0.0f;
+               return Vec3{ cp.end.x, cp.end.y, h };             
             }
             else if (cp.end.z > h )
             {
@@ -242,26 +445,105 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 
                if (afterGravity.z < h)
                {
-                  cp.end.z = h;
-                  cp.jumpSpeed = 0.0f;
+                  jumpSpeed = 0.0f;
+                  return Vec3{ cp.end.x, cp.end.y, h };
                }
                else
                {
-                  cp.jumpSpeed += g.z * cp.dt;
-                  cp.end = afterGravity;
+                  jumpSpeed = cp.jumpSpeed + g.z * cp.dt;
+                  return afterGravity;
                }
             }
          }
       }
      
+      jumpSpeed = cp.jumpSpeed;
       return cp.end;
    }
 
-   Vec3 CorrectPosition(CollisionParameters& cp)
+   Vec3 GetRandomPointInSector(ISector& sector)
    {
+      auto f = sector.FloorVertices();
+
+      size_t nTriangles = f.VertexCount / 3;
+
+      size_t index = rand() % nTriangles;
+
+      auto p1 = f.v[3 * index].position;
+      auto p2 = f.v[3 * index + 1].position;
+      auto p3 = f.v[3 * index + 2].position;
+
+      float t = 0.5f * ( rand() / (float)RAND_MAX ) + 0.25f; // Gives random between 0.25 and 0.75
+
+      Vec3 mid1_2 = 0.5f * (p1 + p2);
+      Vec3 mid = Lerp(mid1_2, p3, t);
+      return mid;
+   }
+
+   Vec3 CorrectPosition(const CollisionParameters& cp, float& jumpSpeed)
+   {
+      jumpSpeed = cp.jumpSpeed;
+
+      auto* fromSector = e.sectors.GetFirstSectorContainingPoint({ cp.start.x, cp.start.y });
+      if (!fromSector)
+      {
+         // Generally it is a bad thing for the start point to be outside all sectors
+         // We must have made a mistake setting up that position
+         // First sector is usually the entrance, so port to there
+         if (e.sectors.begin() != e.sectors.end())
+         {
+            ISector* firstSector = *e.sectors.begin();
+            Vec3 p = GetRandomPointInSector(*firstSector);
+            CollisionParameters cp2 = { p, p, cp.playerId, cp.dt, cp.jumpSpeed };
+            return ComputeFloorCollisionInSector(cp2, *firstSector, jumpSpeed);
+         }
+         else
+         {
+            return cp.start;
+         }
+      }
+
       auto* toSector = e.sectors.GetFirstSectorContainingPoint({ cp.end.x, cp.end.y });
-      if (!toSector) return cp.end;
-      return ComputeCollisionInSector(cp, *toSector);
+      if (!toSector)
+      {
+         // Totally disallow any movement that would take us out of the sector cosmology
+         return cp.start;
+      }
+
+      if (fromSector != toSector)
+      {
+         // Sector transition. We are only allowed to transition through a gap that connects sectors
+
+         auto result = ComputeWallCollisionInSector(cp, *fromSector);
+         if (result != cp.end)
+         {
+            // If we are transitioning but we first collide with walls in the sector from which we leave, then stop things short
+            return cp.start;
+         }
+
+         result = ComputeWallCollisionInSector(cp, *toSector);
+         if (result != cp.end)
+         {
+            // If we are transitioning but we collide with walls in the sector to from we head, then stop things short
+            return  cp.start;
+         }
+
+         // Okay no collisions, but we still have to be moving through a gap
+         if (!IsPathAcrossGap(cp.start, cp.end, *fromSector, *toSector))
+         {
+            return cp.start;
+         }
+
+         Vec3 finalPos = ComputeFloorCollisionInSector(cp, *toSector, jumpSpeed);
+         return finalPos;
+      }
+      else
+      {
+         auto result = ComputeWallCollisionInSector(cp, *fromSector);
+         result.z = cp.start.z;
+         CollisionParameters cp2 = { cp.start, result, cp.playerId, cp.dt, cp.jumpSpeed };
+         return ComputeFloorCollisionInSector(cp2, *fromSector, jumpSpeed);
+      } 
    }
 
    void UpdatePlayer(float dt)
@@ -283,9 +565,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
       Vec3 after = pe->Position();
 
       CollisionParameters cp{ before, after, id, dt, player->JumpSpeed() };
-      Vec3 final = CorrectPosition(cp);
-
-      player->JumpSpeed() = cp.jumpSpeed;
+      Vec3 final = CorrectPosition(cp, player->JumpSpeed());
 
       pe->Model().SetPosition(final);
 

@@ -326,7 +326,14 @@ namespace Rococo
 	}
 
 	Collision CollideEdgeAndSphere(const Edge& edge, const Sphere& sphere, cr_vec3 target)
-	{
+   {
+      // First of all, if the sphere penetrates the edge, then a collision is deemed to be at time zero
+      // and the collision point is the nearest point of the edge to the centre of the sphere
+      // Every point X on a line is parameterized by k: X(k) = P + Qk
+      // Distance squared to centre A is (P + Qk - A).(P + Qk - A) = A.A + P.P - 2.P.A - 2.A + Q.Q.k^2 + 2.(P-A).Q.k
+      // Turning point at dS/dk = 2Q.Q.k + 2(P-A).Q = 0
+      // k = (A-P).Q / Q.Q
+
 		// Any point G on surface of sphere centred at C is such that: (G - C)(G - C) = R*R, where R is radius of sphere
 
 		// target defines line with formula: C(t) = A + (B - A).t  = A + D.t, define D = B - A
@@ -348,22 +355,60 @@ namespace Rococo
 
 		// If the roots are real, gives two roots of t that give intersect of line with sphere
 
-		cr_vec3 A = sphere.centre;
-		cr_vec3 P = edge.a;
-		cr_vec3 Q = edge.b - edge.a;
-		Vec3 D = target - A;
+      cr_vec3 A = sphere.centre;
+      cr_vec3 P = edge.a;
+      cr_vec3 Q = edge.b - edge.a;
+      Vec3 D = target - A;
 
-		float ooQQ = 1.0f / (Q*Q);
+      float QQ = LengthSq(Q);
+      if (QQ == 0)
+      {
+         return Collision{ P, 0, ContactType_None, true };
+      }
 
-		float k0 = ((A - P) * Q) * ooQQ;
+      float ooQQ = 1.0f / QQ;
+
+      float k0 = ((A - P) * Q) * ooQQ;
+
+      Vec3 nearestPoint = P + Q * k0;
+      Vec3 S = nearestPoint - A;
+
 		float k = (D * Q) * ooQQ;
 
-		Vec3 S = P - A + Q * k0;
 		Vec3 T = Q * k - D;
 
 		float a = T*T;
 		float b = 2.0f *S*T;
 		float c = S*S - Square(sphere.radius);
+
+      if (c < 0)
+      {
+         // We start out with penetration of the infinite line
+         if (k0 >= 0 && k0 <= 1)
+         {
+            // The nearest point is between the two end vertices
+            return  Collision{ nearestPoint, 0, ContactType_Penetration, false };
+         }
+
+         float dsA_2 = LengthSq(edge.a - A);
+         float dsB_2 = LengthSq(edge.b - A);
+
+         if (dsA_2 < Sq(sphere.radius) || dsB_2 < Sq(sphere.radius))
+         {
+            if (dsA_2 > dsB_2)
+            {
+               return Collision{ edge.b, 0, ContactType_Vertex , false };
+            }
+            else
+            {
+               return Collision{ edge.a, 0, ContactType_Vertex , false };
+            }
+         }
+         else
+         {
+            return Collision{ P, 0, ContactType_None, false };
+         }
+      }
 
 		float t0, t1;
 		if (!TryGetRealRoots(t0, t1, a, b, c))
@@ -390,6 +435,11 @@ namespace Rococo
 		{
 			return NoCollision();
 		}
+
+      if (t0 < 0)
+      {
+         return NoCollision();
+      }
 
 		float u = k0 + k * t0;
 

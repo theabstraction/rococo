@@ -19,7 +19,7 @@ void validate(bool condition, const char* expr, const char* filename, int lineNu
 {
 	if (!condition)
 	{
-		Throw(0, "Error validating %S at %S @line %d", expr, filename, lineNumber);
+		Throw(0, "Error validating %s at %s @line %d", expr, filename, lineNumber);
 	}
 }
 
@@ -338,9 +338,24 @@ void  ValidateProjectionLib()
    VALIDATE(xn.w == x0.w);
 }
 
+void validatePenetration()
+{
+   // We need to test case when edge is within sphere
+   Sphere penetrator{ Vec3{ 0, -0.9f, 0.0f }, 1.0f };
+   auto c = CollideEdgeAndSphere(Edge{ { -10, 0, 0 },{ 10, 0, 0 } }, penetrator, Vec3{ 0, 1.2f, 0 });
+   VALIDATE(c.contactType == ContactType_Penetration);
+   VALIDATE(c.t == 0);
+
+   bool match = c.touchPoint == Vec3{ 0, 0, 0 };
+   VALIDATE(match);
+}
+
 void test()
 {
 	printf("rococo.maths.test running...\n");
+
+   validatePenetration();
+   return;
 
 	ValidateVectorLib();
 	ValidatePolynomialLib();

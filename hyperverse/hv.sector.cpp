@@ -50,15 +50,6 @@ namespace
       // Indices into floor perimeter for each section of solid wall
       std::vector<Segment> wallSegments;
 
-      struct Gap
-      {
-         Vec2 a;
-         Vec2 b;
-         float z0;
-         float z1;
-         ISector* other;
-      };
-
       std::vector<Gap> gapSegments;
 
       // Triangle list for the physics and graphics meshes
@@ -115,6 +106,26 @@ namespace
          }
 
          return{ -1,-1 };
+      }
+
+      virtual const Segment* GetWallSegments(size_t& count) const
+      {
+         count = wallSegments.size();
+         return wallSegments.empty() ? nullptr : &wallSegments[0];
+      }
+
+      const Gap* Gaps(size_t& count) const
+      {
+         if (gapSegments.empty())
+         {
+            count = 0;
+            return nullptr;
+         }
+         else
+         {
+            count = gapSegments.size();
+            return &gapSegments[0];
+         }
       }
 
       void RebuildWallsGraphicMesh()
@@ -665,7 +676,13 @@ namespace
                b.position = { t.B.x, t.B.y, hB0 };
                c.position = { t.C.x, t.C.y, hC0 };
 
-               Vec3 up = -Normalize(Cross(b.position - a.position, c.position - b.position));
+               Vec3 upAny = Cross(b.position - a.position, c.position - b.position);
+               if (upAny.x == 0 && upAny.y == 0 && upAny.z == 0)
+               {
+                  return;
+               }
+
+               Vec3 up = -Normalize(upAny);
 
                a.normal = b.normal = c.normal = up;
                a.emissiveColour = b.emissiveColour = c.emissiveColour = RGBAb(0, 0, 0, 0);
