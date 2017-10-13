@@ -107,7 +107,7 @@ namespace Rococo
 
       ROCOCOAPI ICameraSupervisor : public ICamera
       {
-         virtual void ElevateView(ID_ENTITY entityId, Degrees delta) = 0;
+         virtual void ElevateView(ID_ENTITY entityId, Degrees delta, cr_vec3 relativePos) = 0;
          virtual void Free() = 0;
          virtual void Update(const IUltraClock& clock) = 0;
          virtual IMathsVenue& Venue() = 0;

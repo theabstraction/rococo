@@ -476,12 +476,12 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
          return true;
       }
 
-      float ground = end.z - 1.65f;
+      float ground = end.z;
 
       float z0 = to.Z0();
       float z1 = to.Z1();
 
-      if ((ground > z0 - 0.5f) && end.z < (z1 - 0.84f))
+      if ((ground > z0 - 0.5f) && end.z < (z1 - 2.48_metres))
       {
          return true;
       }
@@ -492,9 +492,6 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
    Vec3 ComputeFloorCollisionInSector(const CollisionParameters& cp, ISector& sector, float& jumpSpeed)
    {
       float h = GetHeightAtPointInSector(cp.end, sector);
-
-      h += 1.65f; // Player's eye level
-
       if (cp.end.z < h)
       {
          jumpSpeed = 0.0f;
@@ -635,9 +632,11 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 
       pe->Model().SetPosition(final);
 
+      Vec3 playerPosToCamera = Vec3{ 0, 0, 1.65_metres };
+
       if (viewElevationDelta != 0)
       {
-         e.platform.camera.ElevateView(id, viewElevationDelta);
+         e.platform.camera.ElevateView(id, viewElevationDelta, playerPosToCamera);
       }
 
       PopulateScene();
@@ -645,7 +644,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
       Matrix4x4 m;
       e.platform.camera.GetWorld(m);
       Vec3 dir{ -m.row2.x, -m.row2.y, -m.row2.z };
-      e.platform.scene.Builder().SetLight(dir, final, 0);
+      e.platform.scene.Builder().SetLight(dir, final + playerPosToCamera, 0);
    }
 
    void UpdateAI(const IUltraClock& clock) override

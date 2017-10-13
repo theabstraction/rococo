@@ -23,6 +23,7 @@ namespace
       Degrees heading{ 0 };
       bool isDirty{ false };
       bool isFPSlinked{ false };
+      Vec3 relativePos;
    public:
       Camera(IInstancesSupervisor& _instances, IMobiles& _mobiles, IRenderer& _renderer) :
          instances(_instances),
@@ -75,7 +76,7 @@ namespace
          visitor.ShowPointer("this", this);
       }
 
-      virtual void ElevateView(ID_ENTITY entityId, Degrees delta)
+      virtual void ElevateView(ID_ENTITY entityId, Degrees delta, cr_vec3 relativePos)
       {
          if (delta != 0 && orientationGuideId == entityId)
          {
@@ -83,12 +84,14 @@ namespace
             newElevation = min(89.0f, newElevation);
             newElevation = max(-89.0f, newElevation);
             elevation = Degrees{ newElevation };
+            this->relativePos = relativePos;
             isFPSlinked = true;
          }
       }
 
       virtual void Clear()
       {
+         relativePos = Vec3{ 0,0,0 };
          projection = world = Matrix4x4::Identity();
          followingId = orientationGuideId = ID_ENTITY::Invalid();
          orientation = Quat{ { 0, 0, 0 }, 1.0 };
@@ -198,7 +201,7 @@ namespace
                Matrix4x4 Rz = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ angles.heading });
                Matrix4x4 Rx = Matrix4x4::RotateRHAnticlockwiseX(Degrees{ worldToCameraElevation });
 
-               Matrix4x4 T = Matrix4x4::Translate(-position);
+               Matrix4x4 T = Matrix4x4::Translate(-position-relativePos);
 
                // Lean is not yet implemented
                world = Rx * Rz * T;
