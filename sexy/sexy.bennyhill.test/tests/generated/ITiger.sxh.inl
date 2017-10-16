@@ -1,15 +1,15 @@
 namespace Sys { namespace Animals { 
 	bool TryParse(const Rococo::fstring& s, AnimalType& value)
 	{
-		if (s == L"AnimalType_Cat"_fstring)
+		if (s ==  "AnimalType_Cat"_fstring)
 		{
 			value = AnimalType_Cat;
 		}
-		else if (s == L"AnimalType_Dog"_fstring)
+		else if (s ==  "AnimalType_Dog"_fstring)
 		{
 			value = AnimalType_Dog;
 		}
-		else if (s == L"AnimalType_Tiger"_fstring)
+		else if (s ==  "AnimalType_Tiger"_fstring)
 		{
 			value = AnimalType_Tiger;
 		}
@@ -23,15 +23,15 @@ namespace Sys { namespace Animals {
 
 	bool TryShortParse(const Rococo::fstring& s, AnimalType& value)
 	{
-		if (s == L"Cat"_fstring)
+		if (s ==  "Cat"_fstring)
 		{
 			value = AnimalType_Cat;
 		}
-		else if (s == L"Dog"_fstring)
+		else if (s ==  "Dog"_fstring)
 		{
 			value = AnimalType_Dog;
 		}
-		else if (s == L"Tiger"_fstring)
+		else if (s ==  "Tiger"_fstring)
 		{
 			value = AnimalType_Tiger;
 		}

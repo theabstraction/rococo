@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -15,18 +15,19 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>BennyHill</RootNamespace>
     <ProjectName>sexy.bennyhill.test</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -95,15 +96,19 @@
     <ClCompile Include="bennyhill.test.stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="gettermethod.sxh" />
-    <None Include="method1v1.sxh" />
-    <None Include="method3v3.sxh" />
-    <None Include="nullinterface.sxh" />
-    <None Include="settermethod.sxh" />
-    <None Include="simplestmethod.sxh" />
-    <None Include="stringmethod1.sxh" />
     <None Include="tests\config.xc" />
+    <None Include="tests\gettermethod.sxh" />
+    <None Include="tests\maths.functions.sxh" />
+    <None Include="tests\method1v1.sxh" />
+    <None Include="tests\method3v3.sxh" />
+    <None Include="tests\nullinterface.and.factory.sxh" />
+    <None Include="tests\nullinterface.sxh" />
+    <None Include="tests\parseenum.sxh" />
     <None Include="tests\returninterface.sxh" />
+    <None Include="tests\settermethod.sxh" />
+    <None Include="tests\simplestmethod.sxh" />
+    <None Include="tests\stringmethod1.sxh" />
+    <None Include="tests\types.sxy" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

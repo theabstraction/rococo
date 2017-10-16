@@ -7,7 +7,7 @@ namespace Rococo
 {
 	Collision NoCollision()
 	{
-		return 
+		return
 		{
 			Vec3{ 0,0,0 },
 			1.0e20f,
@@ -294,9 +294,9 @@ namespace Rococo
 
 	void ForEachEdge(const Quadrilateral& q, IEnumerator<Edge>& processEdges)
 	{
-		processEdges({ q.v.sw, q.v.se});
+		processEdges({ q.v.sw, q.v.se });
 		processEdges({ q.v.se, q.v.ne });
-		processEdges({ q.v.ne, q.v.nw});
+		processEdges({ q.v.ne, q.v.nw });
 		processEdges({ q.v.nw, q.v.sw });
 	}
 
@@ -326,52 +326,52 @@ namespace Rococo
 	}
 
 	Collision CollideEdgeAndSphere(const Edge& edge, const Sphere& sphere, cr_vec3 target)
-   {
-      // First of all, if the sphere penetrates the edge, then a collision is deemed to be at time zero
-      // and the collision point is the nearest point of the edge to the centre of the sphere
-      // Every point X on a line is parameterized by k: X(k) = P + Qk
-      // Distance squared to centre A is (P + Qk - A).(P + Qk - A) = A.A + P.P - 2.P.A - 2.A + Q.Q.k^2 + 2.(P-A).Q.k
-      // Turning point at dS/dk = 2Q.Q.k + 2(P-A).Q = 0
-      // k = (A-P).Q / Q.Q
+	{
+		// First of all, if the sphere penetrates the edge, then a collision is deemed to be at time zero
+		// and the collision point is the nearest point of the edge to the centre of the sphere
+		// Every point X on a line is parameterized by k: X(k) = P + Qk
+		// Distance squared to centre A is (P + Qk - A).(P + Qk - A) = A.A + P.P - 2.P.A - 2.A + Q.Q.k^2 + 2.(P-A).Q.k
+		// Turning point at dS/dk = 2Q.Q.k + 2(P-A).Q = 0
+		// k = (A-P).Q / Q.Q
 
-		// Any point G on surface of sphere centred at C is such that: (G - C)(G - C) = R*R, where R is radius of sphere
+		  // Any point G on surface of sphere centred at C is such that: (G - C)(G - C) = R*R, where R is radius of sphere
 
-		// target defines line with formula: C(t) = A + (B - A).t  = A + D.t, define D = B - A
-		// Point P is any point on edge, and Q is direction of edge. Any point on edge is P + Qu
-		// if O is nearest point on line to sphere, (O - P).(O - C) = 0 then (P + uQ - C).(P + uQ - P) = 0
-		// (P + uQ - C).uQ = 0 => (P + uQ - C).Q = 0
-		// P.Q + uQ.Q - C.Q = 0
-		// u = (C.Q - P.Q) / Q.Q
+		  // target defines line with formula: C(t) = A + (B - A).t  = A + D.t, define D = B - A
+		  // Point P is any point on edge, and Q is direction of edge. Any point on edge is P + Qu
+		  // if O is nearest point on line to sphere, (O - P).(O - C) = 0 then (P + uQ - C).(P + uQ - P) = 0
+		  // (P + uQ - C).uQ = 0 => (P + uQ - C).Q = 0
+		  // P.Q + uQ.Q - C.Q = 0
+		  // u = (C.Q - P.Q) / Q.Q
 
-		// u = (A - P + D.t).Q / Q.Q = k.t + k0
-		// u = k.t + k0
-		// (O - C)(O - C) = R*R
-		// (P + Qu - A - D.t).(P + Qu - A - D.t) - R*R = 0
-		// Replace u with t: 
-		// ((P - A + Q.k0) + (Q.k - D).t).((P - A + Q.k0) + (Q.k - D).t) - R*R = 0
-		// Define S = P - A + Q.k0 and T = Q.k - D
-		// (S + Tt).(S + Tt) - R*R = 0
-		// T*T.t*t + 2S.Tt + S.S - R*R = 0
+		  // u = (A - P + D.t).Q / Q.Q = k.t + k0
+		  // u = k.t + k0
+		  // (O - C)(O - C) = R*R
+		  // (P + Qu - A - D.t).(P + Qu - A - D.t) - R*R = 0
+		  // Replace u with t: 
+		  // ((P - A + Q.k0) + (Q.k - D).t).((P - A + Q.k0) + (Q.k - D).t) - R*R = 0
+		  // Define S = P - A + Q.k0 and T = Q.k - D
+		  // (S + Tt).(S + Tt) - R*R = 0
+		  // T*T.t*t + 2S.Tt + S.S - R*R = 0
 
-		// If the roots are real, gives two roots of t that give intersect of line with sphere
+		  // If the roots are real, gives two roots of t that give intersect of line with sphere
 
-      cr_vec3 A = sphere.centre;
-      cr_vec3 P = edge.a;
-      cr_vec3 Q = edge.b - edge.a;
-      Vec3 D = target - A;
+		cr_vec3 A = sphere.centre;
+		cr_vec3 P = edge.a;
+		cr_vec3 Q = edge.b - edge.a;
+		Vec3 D = target - A;
 
-      float QQ = LengthSq(Q);
-      if (QQ == 0)
-      {
-         return Collision{ P, 0, ContactType_None, true };
-      }
+		float QQ = LengthSq(Q);
+		if (QQ == 0)
+		{
+			return Collision{ P, 0, ContactType_None, true };
+		}
 
-      float ooQQ = 1.0f / QQ;
+		float ooQQ = 1.0f / QQ;
 
-      float k0 = ((A - P) * Q) * ooQQ;
+		float k0 = ((A - P) * Q) * ooQQ;
 
-      Vec3 nearestPoint = P + Q * k0;
-      Vec3 S = nearestPoint - A;
+		Vec3 nearestPoint = P + Q * k0;
+		Vec3 S = nearestPoint - A;
 
 		float k = (D * Q) * ooQQ;
 
@@ -381,34 +381,34 @@ namespace Rococo
 		float b = 2.0f *S*T;
 		float c = S*S - Square(sphere.radius);
 
-      if (c < 0)
-      {
-         // We start out with penetration of the infinite line
-         if (k0 >= 0 && k0 <= 1)
-         {
-            // The nearest point is between the two end vertices
-            return  Collision{ nearestPoint, 0, ContactType_Penetration, false };
-         }
+		if (c < 0)
+		{
+			// We start out with penetration of the infinite line
+			if (k0 >= 0 && k0 <= 1)
+			{
+				// The nearest point is between the two end vertices
+				return  Collision{ nearestPoint, 0, ContactType_Penetration, false };
+			}
 
-         float dsA_2 = LengthSq(edge.a - A);
-         float dsB_2 = LengthSq(edge.b - A);
+			float dsA_2 = LengthSq(edge.a - A);
+			float dsB_2 = LengthSq(edge.b - A);
 
-         if (dsA_2 < Sq(sphere.radius) || dsB_2 < Sq(sphere.radius))
-         {
-            if (dsA_2 > dsB_2)
-            {
-               return Collision{ edge.b, 0, ContactType_Vertex , false };
-            }
-            else
-            {
-               return Collision{ edge.a, 0, ContactType_Vertex , false };
-            }
-         }
-         else
-         {
-            return Collision{ P, 0, ContactType_None, false };
-         }
-      }
+			if (dsA_2 < Sq(sphere.radius) || dsB_2 < Sq(sphere.radius))
+			{
+				if (dsA_2 > dsB_2)
+				{
+					return Collision{ edge.b, 0, ContactType_Vertex , false };
+				}
+				else
+				{
+					return Collision{ edge.a, 0, ContactType_Vertex , false };
+				}
+			}
+			else
+			{
+				return Collision{ P, 0, ContactType_None, false };
+			}
+		}
 
 		float t0, t1;
 		if (!TryGetRealRoots(t0, t1, a, b, c))
@@ -436,10 +436,10 @@ namespace Rococo
 			return NoCollision();
 		}
 
-      if (t0 < 0)
-      {
-         return NoCollision();
-      }
+		if (t0 < 0)
+		{
+			return NoCollision();
+		}
 
 		float u = k0 + k * t0;
 
@@ -467,7 +467,7 @@ namespace Rococo
 		cr_vec3 A = sphere.centre;
 		Vec3 D = target - A;
 		float R = sphere.radius;
-		
+
 		float a = D * D;
 		float b = 2.0f * (A*D - D*v);
 		float c = -2.0f * A*v + A*A + v*v - R*R;
@@ -479,7 +479,7 @@ namespace Rococo
 		}
 
 		float t = std::min(t0, t1);
-		
+
 		return Collision
 		{
 			v,
@@ -551,191 +551,180 @@ namespace Rococo
 		return collideWithVertex.vCollision;
 	}
 
-   bool GetLineIntersect(Vec2 a, Vec2 b, Vec2 c, Vec2 d, float& t, float& u)
-   {
-      // let F = b-a, and G = d-c
-      // P(t) = a + F.t
-      // Q(u) = c + G.u
+	bool GetLineIntersect(Vec2 a, Vec2 b, Vec2 c, Vec2 d, float& t, float& u)
+	{
+		// let F = b-a, and G = d-c
+		// P(t) = a + F.t
+		// Q(u) = c + G.u
 
-      // At intersect P(t)=Q(u)
-      // a + F.t = c + G.u
+		// At intersect P(t)=Q(u)
+		// a + F.t = c + G.u
 
-      // ax + Fx.t = cx + Gx.u
-      // ay + Fy.t = cy + Gy.u
+		// ax + Fx.t = cx + Gx.u
+		// ay + Fy.t = cy + Gy.u
 
-      // Fy.ax + FxFy.t = Fy.cx + Fy.Gx.u
-      // Fx.ay + FxFy.t = Fx.cy + Fx.Gy.u
+		// Fy.ax + FxFy.t = Fy.cx + Fy.Gx.u
+		// Fx.ay + FxFy.t = Fx.cy + Fx.Gy.u
 
-      // Fx.ay - Fy.ax = Fx.cy - Fy.cx + u(Fx.Gy - Fy.Gx)
-      // [ Fx(ay - cy) + Fy(cx - ax) ] / (Fx.Gy - Fy.Gx) = u
+		// Fx.ay - Fy.ax = Fx.cy - Fy.cx + u(Fx.Gy - Fy.Gx)
+		// [ Fx(ay - cy) + Fy(cx - ax) ] / (Fx.Gy - Fy.Gx) = u
 
-      float Fx = b.x - a.x;
-      float Fy = b.y - a.y;
+		float Fx = b.x - a.x;
+		float Fy = b.y - a.y;
 
-      float Gx = d.x - c.x;
-      float Gy = d.y - c.y;
+		float Gx = d.x - c.x;
+		float Gy = d.y - c.y;
 
-      float LHS = Fx * (a.y - c.y) + Fy * (c.x - a.x);
-      float RHS = Fx*Gy - Fy*Gx;
+		float LHS = Fx * (a.y - c.y) + Fy * (c.x - a.x);
+		float RHS = Fx*Gy - Fy*Gx;
 
-      const float epsilon = 0.001f;
+		const float epsilon = 0.001f;
 
-      if (RHS > -epsilon && RHS < epsilon)
-      {
-         u = 0;
-         t = 0;
-         return false;
-      }
+		if (RHS > -epsilon && RHS < epsilon)
+		{
+			u = 0;
+			t = 0;
+			return false;
+		}
 
-      u = LHS / RHS;
+		u = LHS / RHS;
 
-      if (Fx != 0)
-      {
-         t = ((c.x - a.x) + Gx * u) / Fx;
-      }
-      else
-      {
-         t = ((c.y - a.y) + Gy * u) / Fy;
-      }
+		if (Fx != 0)
+		{
+			t = ((c.x - a.x) + Gx * u) / Fx;
+		}
+		else
+		{
+			t = ((c.y - a.y) + Gy * u) / Fy;
+		}
 
-      return true;
-   }
+		return true;
+	}
 
-   bool DoParallelLinesIntersect(Vec2 a, Vec2 b, Vec2 c, Vec2 d)
-   {
-      // Two parallel line segments only intersect if they are part of the same infinite line
+	bool DoParallelLinesIntersect(Vec2 a, Vec2 b, Vec2 c, Vec2 d)
+	{
+		// Two parallel line segments only intersect if they are part of the same infinite line
 
-      float Fx = b.x - a.x;
-      float Fy = b.y - a.y;
+		float Fx = b.x - a.x;
+		float Fy = b.y - a.y;
 
-      float Gx = d.x - c.x;
-      float Gy = d.y - c.y;
+		float Gx = d.x - c.x;
+		float Gy = d.y - c.y;
 
-      // P(t) = a + F.t
-      // Q(u) = c + G.t
+		// P(t) = a + F.t
+		// Q(u) = c + G.t
 
-      const float epsilon = 0.001f;
+		const float epsilon = 0.001f;
 
-      if ((Fx == 0 && Gx != 0) || (Fx != 0 && Gx == 0))
-      {
-         return false;
-      }
+		if ((Fx == 0 && Gx != 0) || (Fx != 0 && Gx == 0))
+		{
+			return false;
+		}
 
-      struct ANON
-      {
-         static bool Intersects_0_1(float u0, float u1)
-         {
-            const float epsilon = 0.001f;
-            if ((u0 <= epsilon && u1 >= 1.0f + epsilon) || (u0 >= 1.0f + epsilon && u1 <= epsilon))
-            {
-               // ab is a subset of cd
-               return true;
-            }
-            else if (u0 >= -epsilon && u0 <= 1.0f + epsilon)
-            {
-               // Point c is in the line segment ab
-               return true;
-            }
-            else if (u1 >= -epsilon && u1 <= 1.0f + epsilon)
-            {
-               // Point d is in the line segment ab
-               return true;
-            }
-            else
-            {
-               return false;
-            }
-         }
-      };
+		struct ANON
+		{
+			static bool Intersects_0_1(float u0, float u1)
+			{
+				const float epsilon = 0.001f;
+				if ((u0 <= epsilon && u1 >= 1.0f + epsilon) || (u0 >= 1.0f + epsilon && u1 <= epsilon))
+				{
+					// ab is a subset of cd
+					return true;
+				}
+				else if (u0 >= -epsilon && u0 <= 1.0f + epsilon)
+				{
+					// Point c is in the line segment ab
+					return true;
+				}
+				else if (u1 >= -epsilon && u1 <= 1.0f + epsilon)
+				{
+					// Point d is in the line segment ab
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+		};
 
-      if (Fx == 0)
-      {
-         // Two vertical line segments
-         if (a.x != c.x)
-         {
-            return false;
-         }
+		if (Fx == 0)
+		{
+			// Two vertical line segments
+			if (a.x != c.x)
+			{
+				return false;
+			}
 
-         // Establish u0 at t = 0 and t = 1
-         float u0 = (a.y - c.y) / Gy;
-         float u1 = (b.y - c.y) / Gy;
-         
-         return ANON::Intersects_0_1(u0, u1);
-      }
-      else
-      {
-         float gradF = Fy / Fx;
-         float gradG = Gy / Gx;
+			// Establish u0 at t = 0 and t = 1
+			float u0 = (a.y - c.y) / Gy;
+			float u1 = (b.y - c.y) / Gy;
 
-         if (fabsf(gradF - gradG) > epsilon)
-         {
-            return false;
-         }
+			return ANON::Intersects_0_1(u0, u1);
+		}
+		else
+		{
+			float gradF = Fy / Fx;
+			float gradG = Gy / Gx;
 
-         if (Gy == 0)
-         {
-            if (a.y != c.y)
-            {
-               return false;
-            }
-         }
-         else
-         {
-            // If the line segments are part of the same line then a = c + Gu
-            Vec2 ca = c - a; // = Gu
-            float uX = ca.x / Gx;
-            float uY = ca.y / Gy;
+			if (fabsf(gradF - gradG) > epsilon)
+			{
+				return false;
+			}
 
-            if (fabsf(uX - uY) > epsilon)
-            {
-               return false;
-            }
-         }
+			if (Gy == 0)
+			{
+				if (a.y != c.y)
+				{
+					return false;
+				}
+			}
+			else
+			{
+				// If the line segments are part of the same line then a = c + Gu
+				Vec2 ca = c - a; // = Gu
+				float uX = ca.x / Gx;
+				float uY = ca.y / Gy;
 
-         float u0 = (a.x - c.x) / Gx;
-         float u1 = (b.x - c.x) / Gx;
+				if (fabsf(uX - uY) > epsilon)
+				{
+					return false;
+				}
+			}
 
-         return ANON::Intersects_0_1(u0, u1);
-      }
-   }
+			float u0 = (a.x - c.x) / Gx;
+			float u1 = (b.x - c.x) / Gx;
 
-   IntersectCounts CountLineIntersects(Vec2 origin, Vec2 direction, const Vec2* positionArray, size_t nVertices, float edgeEpsilon)
-   {
-      edgeEpsilon = fabsf(edgeEpsilon);
+			return ANON::Intersects_0_1(u0, u1);
+		}
+	}
 
-      if (nVertices < 2)
-      {
-         Throw(0, "CountLineIntersects failed - insufficient vertices in positionArray");
-      }
+	IntersectCounts CountLineIntersects(Vec2 origin, Vec2 direction, Vec2 a, Vec2 b)
+	{
+		IntersectCounts counts = { 0 };
 
-      IntersectCounts counts = { 0 };
-      for (size_t i = 0; i < nVertices - 1; ++i)
-      {
-         Vec2 a = positionArray[i];
-         Vec2 b = positionArray[i+1];
+		float t, u;
+		if (GetLineIntersect(a, b, origin, origin + direction, t, u))
+		{
+			if (t >= 0 && t <= 1)
+			{
+				// Intersection occurs within segment
+				if (u > 0)
+				{
+					counts.forwardCount++;
+				}
+				else if (u < 0)
+				{
+					counts.backwardCount++;
+				}
+			}
+		}
+		else
+		{
+			// Co-incident lines
+			if (b != origin) counts.coincidence++;
+		}
 
-         float t, u;
-         if (GetLineIntersect(a, b, origin, origin + direction, t, u))
-         {
-            if ((t > -edgeEpsilon && t < edgeEpsilon) || ((t > 1 - edgeEpsilon) && t < (1 + edgeEpsilon)))
-            {
-               counts.edgeCases++;
-            }
-            else if (t >= 0 && t <= 1)
-            {
-               // Intersection occurs within segment
-               if (u > 0)
-               {
-                  counts.forwardCount++;
-               }
-               else if (u < 0)
-               {
-                  counts.backwardCount++;
-               }
-            }
-         }
-      }
-
-      return counts;
-   }
+		return counts;
+	}
 }

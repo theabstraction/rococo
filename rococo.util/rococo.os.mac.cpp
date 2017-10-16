@@ -107,7 +107,7 @@ namespace Rococo
 
 namespace Rococo
 {
-   bool FileModifiedArgs::Matches(cstr resource)
+   bool FileModifiedArgs::Matches(cstr resource) const
    {
       cstr a = this->resourceName;
       cstr b = resource;
@@ -135,7 +135,7 @@ namespace Rococo
       return *b == 0;
    }
 
-   void FileModifiedArgs::GetPingPath(rchar* path, size_t capacity)
+   void FileModifiedArgs::GetPingPath(rchar* path, size_t capacity) const
    {
       SafeFormat(path, capacity, "!%s", resourceName);
    }

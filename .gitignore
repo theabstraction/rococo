@@ -30,3 +30,10 @@
 *.VC.opendb
 *.VC.db
 *.force
+*.tmp
+*.lnk
+*.jbf
+*.aps
+sexy/bin/
+sexy/sexydotnet/obj/
+sexy/intermediate/

@@ -8,4 +8,5 @@
 	(MultMatrix4x4fMatrix4x4f (Matrix4x4 a)(Matrix4x4 b)(Matrix4x4 product)-> : Rococo::Maths::MultiplyMatrixByRef)
 	(Length (Vec3 a) -> (Float32 len) : Rococo::Maths::Length)
 	(Normalize (Vec3 n) -> : Rococo::Maths::NormalizeInPlace)
+	(GetNormal (Triangle t)(Vec3 normal) -> : Rococo::Maths::GetNormal)
 )

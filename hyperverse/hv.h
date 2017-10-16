@@ -9,6 +9,13 @@ using namespace Rococo::Events;
 namespace HV
 {
    struct IPlayerSupervisor;
+
+   struct IPlayerBase
+   {
+      virtual float& JumpSpeed() = 0;
+      virtual float& DuckFactor() = 0;
+      virtual float Height() const = 0;
+   };
 }
 
 #include "hv.script.types.h"
@@ -120,8 +127,21 @@ namespace HV
       virtual cstr TextureName(int index) const = 0;
    };
 
+   enum SectorFlag : int64
+   {
+      SectorFlag_None = 0,
+      SectorFlag_Occlude_Players = 1,
+      SectorFlag_Occlude_Friends = 2,
+      SectorFlag_Occlude_Enemies = 4,
+      SectorFlag_Has_Door = 8
+   };
+
    ROCOCOAPI ISector
    {
+      virtual void AddFlag(SectorFlag flag) = 0;
+      virtual void RemoveFlag(SectorFlag flag) = 0;
+      virtual bool IsFlagged(SectorFlag flag) const = 0;
+
       virtual void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) = 0;
       virtual bool DoesLineCrossSector(Vec2 a, Vec2 b) = 0;
       virtual ObjectVertexBuffer FloorVertices() const = 0;
@@ -143,6 +163,7 @@ namespace HV
       virtual bool Is4PointRectangular() const = 0; // The sector has four points and its perimeter in 2D space is a rectangle or square
       virtual bool IsCorridor() const = 0; // The sector Is4PointRectangular & two opposing edges are portals to other sectors and neither is itself a 4PtRect
       virtual const Segment* GetWallSegments(size_t& count) const = 0;
+	  virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
    };
 
    ISector* CreateSector(Platform& platform, ISectors& co_sectors);
@@ -159,6 +180,8 @@ namespace HV
       virtual ISector* GetFirstSectorContainingPoint(Vec2 a) = 0;
       virtual ISector** begin() = 0;
       virtual ISector** end() = 0;
+
+	  virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
    };
 
    ISectors* CreateSectors(Platform& platform);

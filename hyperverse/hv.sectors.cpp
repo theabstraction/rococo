@@ -140,6 +140,14 @@ namespace
 
          return nullptr;
       }
+
+	  void OnSectorScriptChanged(const FileModifiedArgs& args) override
+	  {
+		  for (auto i : sectors)
+		  {
+			  i->OnSectorScriptChanged(args);
+		  }
+	  }
    };
 }
 

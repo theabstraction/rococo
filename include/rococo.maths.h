@@ -86,10 +86,11 @@ namespace Rococo
       int32 forwardCount;
       int32 backwardCount;
       int32 edgeCases;
+	  int32 coincidence;
    };
 
    // Count the number of times a vector crosses a permeter, used to determine whether a surface faces inside or outside a sector
-   IntersectCounts CountLineIntersects(Vec2 origin, Vec2 direction, const Vec2* positionArray, size_t nVertices, float edgeEpsilon);
+   IntersectCounts CountLineIntersects(Vec2 origin, Vec2 direction, Vec2 p, Vec2 q);
 
    // Generally in the Rococo libs code/assume that matrices are used to pre-multiply column vectors
    // If this is not the case, then make sure you comment/document that matrices go against the convention
@@ -235,6 +236,13 @@ namespace Rococo
       size_t CountInternalPoints(const Vec2* points, size_t nPoints);
       bool IsInternal(Vec2 p) const;
       bool IsInternalOrOnEdge(Vec2 p) const;
+   };
+
+   struct Triangle
+   {
+	   Vec3 A;
+	   Vec3 B;
+	   Vec3 C;
    };
 
    ROCOCOAPI I2dMeshBuilder

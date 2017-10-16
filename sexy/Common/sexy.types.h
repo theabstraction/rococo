@@ -135,11 +135,6 @@ namespace Rococo
 		csexstr buffer;
 	};
 
-   ROCOCOAPI IStringPopulator
-   {
-      virtual void Populate(csexstr text) = 0;
-   };
-
 #pragma pack(pop)
 
 	typedef sexstring_header* sexstring;

@@ -40,6 +40,11 @@
 
 namespace Rococo
 {
+   namespace Compiler
+   {
+      struct IStructure;
+   }
+
 	namespace Debugger
 	{
 		struct ICallStackEnumerationCallback
@@ -62,6 +67,9 @@ namespace Rococo
 			char Location[LOCATION_CAPACITY];
 
 			ptrdiff_t Address;
+         const Compiler::IStructure* s;
+         csexstr parentName;
+         const uint8* instance;
 		};
 
 		 struct IVariableEnumeratorCallback

@@ -1,0 +1,189 @@
+(' #file.type rococo.hv)
+
+(' #include 
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv.sxh.sxy"
+	"!scripts/types.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+
+(using HV)
+(using Rococo)
+(using Rococo.Graphics)
+(using Sys.Type)
+(using Sys.Maths)
+(using Sys.Geometry.F32)
+(using Sys.Random)
+
+(function AddQuad (IMeshBuilder mb) (Vec3 topLeft)(Vec3 topRight)(Vec3 bottomRight)(Vec3 bottomLeft)(Float32 uScale)(Float32 vScale)-> :
+	(Triangle t)
+	(t.a.x = topLeft.x)
+	(t.a.y = topLeft.y)
+	(t.a.z = topLeft.z)
+	(t.b.x = topRight.x)
+	(t.b.y = topRight.y)
+	(t.b.z = topRight.z)
+	(t.c.x = bottomRight.x)
+	(t.c.y = bottomRight.y)
+	(t.c.z = bottomRight.z)
+	(Vec3 n)
+	(GetNormal t n)
+	
+	(Vec3 top = topRight - topLeft)
+	(Vec3 left = topLeft - bottomLeft)
+	(Float32 u = (uScale * (Length top)))
+	(Float32 v = (vScale * (Length left)))
+	
+	(ObjectVertex a = (topLeft.x      topLeft.y     topLeft.z)      (n.x n.y n.z)  0x00000000 0xFFFFFFFF (0 0))
+	(ObjectVertex b	= (topRight.x     topRight.y    topRight.z)     (n.x n.y n.z)  0x00000000 0xFFFFFFFF (u 0))
+	(ObjectVertex c = (bottomRight.x  bottomRight.y bottomRight.z)  (n.x n.y n.z)  0x00000000 0xFFFFFFFF (u v))	
+	(ObjectVertex d = (bottomLeft.x   bottomLeft.y  bottomLeft.z)   (n.x n.y n.z)  0x00000000 0xFFFFFFFF (0 v))	
+	
+	(mb.AddTriangle a b c)
+	(mb.AddTriangle c d a)
+)
+
+(function AddBox (IMeshBuilder mb)(Vec3 v)(Vec3 w)(Float32 uScale)(Float32 vScale)-> :
+	(Vec3 usw   = v.x v.y w.z)
+	(Vec3 use   = w.x v.y w.z)
+	(Vec3 lse   = w.x v.y v.z)
+	(Vec3 lsw   = v.x v.y v.z)
+	
+	(Vec3 unw   = v.x w.y w.z)
+	(Vec3 une   = w.x w.y w.z)
+	(Vec3 lne   = w.x w.y v.z)
+	(Vec3 lnw   = v.x w.y v.z)
+	
+	(AddQuad mb usw use lse lsw uScale vScale) // south
+	(AddQuad mb une unw lnw lne uScale vScale) // north
+	(AddQuad mb lsw lse lne lnw uScale vScale) // lower
+	(AddQuad mb unw une use usw uScale vScale) // upper
+	(AddQuad mb unw usw lsw lnw uScale vScale) // left
+	(AddQuad mb use une lne lse uScale vScale) // right
+)
+
+(archetype HV.ObjectFunction (IMeshBuilder mb)->)
+
+(function AddObject (IString texture)(IString localName)(ObjectFunction f)-> :
+	(ICorridor corridor (Corridor))
+	(IStringBuilder meshName (StringBuilder 256))
+	(corridor.GetComponentMeshName localName meshName)
+	
+	(IMeshBuilder mb (MeshBuilder))
+	(mb.Clear)
+	(mb.Begin meshName)
+	
+	(f mb)
+	
+	(mb.End)
+	
+	(corridor.CentreComponent localName meshName texture)
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(ICorridor corridor (Corridor))
+	(Vec3 span)
+	(corridor.GetSpan span)
+	(Float32 x0 = (0.5 * (0 - span.x)))
+	(Float32 x1 = (0.5 * span.x))
+	(Float32 halfWidth = (AnyOf 0.1 0.5))
+	(Float32 y0 = (0 - halfWidth))
+	(Float32 y1 = halfWidth)
+	(Float32 z0 = 2.5)
+	(Float32 z1 = span.z)
+	
+	(ObjectFunction door = 
+		(closure (IMeshBuilder mb)-> :
+			(Vec3 v = x0 y0 z0)
+			(Vec3 w = 0 y1 z1)
+			(Float32 uvScale = (AnyOf 0.1 1.0))
+			(AddBox mb v w uvScale uvScale)
+		)
+	)
+	(AddObject "!textures/walls/metal2.jpg" "door" door)
+	
+	(Float32 pillarWidth =  (AnyOf 0.1 0.5))
+	
+	(ObjectFunction pillars = 
+		(closure (IMeshBuilder mb)-> :
+			(Float32 east = (x0 + pillarWidth))
+			(Float32 west  = (x1 - pillarWidth))
+			(Float32 south = (y0 - pillarWidth))
+			(Float32 north = (y1 + pillarWidth))
+			(Float32 uvScale = (AnyOf 0.1 1.0))
+			(
+				(Vec3 v = x0 south  -1.0)
+				(Vec3 w = east  y0  z1)
+				(AddBox mb v w uvScale uvScale)
+				(Vec3 v1 = x0      y1  -1.0)
+				(Vec3 w1 = east north  z1)
+				(AddBox mb v1 w1  uvScale uvScale)
+			)
+			
+			(
+				(Vec3 v = west south -1.0)
+				(Vec3 w = x1    y0  z1)
+				(AddBox mb v w  uvScale uvScale)
+				(Vec3 v1 = west    y1  -1.0)
+				(Vec3 w1 = x1   north  z1)
+				(AddBox mb v1 w1 uvScale uvScale)
+			)
+		)
+	)
+	(AddObject "!textures/walls/metal3.jpg" "door.pillars" pillars)
+	
+	
+	(ObjectFunction topRods = 
+		(closure (IMeshBuilder mb)-> :
+			(Float32 rodHeight = (AnyOf 0.1 0.5))
+			(Float32 rodWidth  = (AnyOf 0.1 0.5))
+			(Float32 z = (z1 - rodHeight))
+			(Float32 south = (y0 - rodWidth))
+			(Float32 north = (y1 + rodWidth))
+			(Float32 uvScale = (AnyOf 0.1 1.0))
+			(Vec3 v = x0 south     z)
+			(Vec3 w = x1  y0      z1)
+			(AddBox mb v w uvScale uvScale)
+			(Vec3 v1 = x0      y1       z)
+			(Vec3 w1 = x1   north      z1)
+			(AddBox mb v1 w1 uvScale uvScale)
+		)
+	)
+	(AddObject "!textures/walls/metal3.jpg" "door.top.rods" topRods)
+	
+	(ObjectFunction rails = 
+		(closure (IMeshBuilder mb)-> :
+			(Float32 quadLeft = (x0 + 0.01))
+			(Float32 uvScale = (AnyOf 0.1 1.0))
+			(Float32 z = (z1 - 0.01))
+			(
+				(Vec3 topLeft = quadLeft y0 z1)
+				(Vec3 topRight = quadLeft y1 z1)
+				(Vec3 bottomRight = quadLeft y1 -1.0)
+				(Vec3 bottomLeft = quadLeft y0 -1.0)
+				(AddQuad mb topLeft topRight bottomRight bottomLeft uvScale uvScale)
+			)
+			
+			(Float32 quadRight = (x1 - 0.01))
+			(
+				(Vec3 topLeft = quadRight y1 z1)
+				(Vec3 topRight = quadRight y0 z1)
+				(Vec3 bottomRight = quadRight y0 -1.0)
+				(Vec3 bottomLeft = quadRight y1 -1.0)
+				(AddQuad mb topLeft topRight bottomRight bottomLeft uvScale uvScale)
+			)
+			
+			(
+				(Vec3 topLeft = x0 y0 z)
+				(Vec3 topRight = x1 y0 z)
+				(Vec3 bottomRight = x1 y1 z)
+				(Vec3 bottomLeft = x0 y1 z)
+				(AddQuad mb topLeft topRight bottomRight bottomLeft uvScale uvScale)
+			)
+		)
+	)
+	(AddObject "!textures/walls/black.tif" "door.rails" rails)
+)

@@ -442,7 +442,7 @@ namespace
 				}
             else if (isStringBuilder)
             {
-               appender.Append(SEXTEXT("\t\t_offset += sizeof(VirtualTable*);\n"));
+               appender.Append(SEXTEXT("\t\t_offset += sizeof(VirtualTable**);\n"));
             }
 				else
 				{
@@ -450,7 +450,7 @@ namespace
 				}
 
 				if (isString) appender.Append(SEXTEXT("\t\tIString* _%s;\n"), fieldName);
-            if (isStringBuilder) appender.Append(SEXTEXT("\t\tVirtualTable* %s;\n"), fieldName);
+            if (isStringBuilder) appender.Append(SEXTEXT("\t\tVirtualTable** %s;\n"), fieldName);
 
 				appender.Append(isString ? SEXTEXT("\t\tReadInput(_%s, _sf, -_offset);\n") : SEXTEXT("\t\tReadInput(%s, _sf, -_offset);\n"), fieldName);
 

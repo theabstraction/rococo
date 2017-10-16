@@ -85,8 +85,8 @@ namespace Rococo
    struct FileModifiedArgs
    {
       cstr resourceName;
-      bool Matches(cstr resource);
-      void GetPingPath(rchar* path, size_t capacity);
+      bool Matches(cstr resource) const;
+      void GetPingPath(rchar* path, size_t capacity) const;
    };
 
    struct MemoryUsage

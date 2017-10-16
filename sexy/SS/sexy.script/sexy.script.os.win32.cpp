@@ -142,25 +142,6 @@ namespace Rococo { namespace OS
 		}
 	}
 
-   void Throw(int errCode, csexstr format, ...)
-   {
-      class OSException : public Rococo::IException
-      {
-      public:
-         enum { CAPACITY = 1024 };
-         int exceptionNumber;
-         rchar message[CAPACITY];
-
-         virtual int ErrorCode() const { return exceptionNumber; }
-         virtual cstr Message() const { return message; }
-      } ex;
-      va_list args;
-      va_start(args, format);
-      SafeVFormat(ex.message, sizeof(ex.message), format, args);
-      ex.exceptionNumber = errCode;
-      throw ex;
-   }
-
 	typedef void (*FN_AddNativeSexyCalls)(Rococo::Script::IScriptSystem& ss);
 
    Rococo::Script::FN_CreateLib GetLibCreateFunction(const SEXCHAR* dynamicLinkLibOfNativeCalls, bool throwOnError)

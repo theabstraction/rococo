@@ -350,19 +350,73 @@ void validatePenetration()
    VALIDATE(match);
 }
 
+#include "rococo.rings.inl"
+
+void validateTeselator()
+{
+	{
+		const Vec2 triangle[3] =
+		{
+			{ 1.0f ,1.0f },
+			{ 0.0f, 0.0f },
+			{ 0.0f, 1.0f }
+		};
+
+		Ring<Vec2> clockwiseTri(triangle, 3);
+		VALIDATE(IsClockwiseSequential(clockwiseTri));
+	}
+
+	{
+		const Vec2 triangle[3] =
+		{
+			{ 0.0f, 0.0f },
+			{ 1.0f ,1.0f },
+			{ 0.0f, 1.0f }
+		};
+
+		Ring<Vec2> anticlockwiseTri(triangle, 3);
+		VALIDATE(!IsClockwiseSequential(anticlockwiseTri));
+	}
+
+	Vec2 perimeter[5] =
+	{
+		{ 0.0f, 2.0f },
+		{ 2.0f, 2.0f },
+		{ 2.0f, 0.0f },
+		{ 0.0f, 0.0f },
+		{ 1.0f, 1.0f }
+	};
+
+	RingManipulator<Vec2> ring(perimeter, 5);
+
+	Ring<Vec2> clockwisePerimeter(perimeter, 5);
+	VALIDATE(IsClockwiseSequential(clockwisePerimeter));
+
+	struct :I2dMeshBuilder
+	{
+		void Append(const Triangle2d& t) override
+		{
+		}
+	} builder;
+
+	TesselateByEarClip(builder, ring);
+}
+
 void test()
 {
 	printf("rococo.maths.test running...\n");
 
-   validatePenetration();
-   return;
+	validateTeselator();
+
+	validatePenetration();
+	return;
 
 	ValidateVectorLib();
 	ValidatePolynomialLib();
 	ValidateMatrixLib();
-//	ValidateQuadTreeLib();
+	//	ValidateQuadTreeLib();
 	ValidateCollisionLib();
-   ValidateProjectionLib();
+	ValidateProjectionLib();
 
 	printf("rococo.maths.test finished\n");
 }

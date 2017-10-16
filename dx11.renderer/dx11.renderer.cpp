@@ -221,924 +221,956 @@ namespace
       }
    };
 
-	class DX11AppRenderer :
-      public IRenderer, 
-      public IRenderContext,
-      public IGuiRenderContext,
-      public Fonts::IGlyphRenderer,
-      public IResourceLoader
-	{
-	private:
-		ID3D11Device& device;
-		ID3D11DeviceContext& dc;
-		IDXGIFactory& factory;
-      IInstallation& installation;
-
-      DX11TextureArray textureArray;
-
-      AutoFree<ITextureArrayBuilderSupervisor> textureArrayBuilder;
-
-		AutoRelease<IDXGISwapChain> mainSwapChain;
-		AutoRelease<ID3D11RenderTargetView> mainBackBufferView;
-		AutoRelease<ID3D11DepthStencilView> depthStencilView;
-
-		std::vector<DX11VertexShader*> vertexShaders;
-		std::vector<DX11PixelShader*> pixelShaders;
-		AutoRelease<ID3D11Buffer> guiBuffer;
-
-		std::vector<GuiVertex> guiVertices;
-
-		enum { GUI_BUFFER_VERTEX_CAPACITY = 3 * 512 };
-
-		AutoRelease<ID3D11Texture2D> fontTexture;
-		AutoRelease<ID3D11SamplerState> spriteSampler;
-      AutoRelease<ID3D11SamplerState> objectSampler;
-		AutoRelease<ID3D11ShaderResourceView> fontBinding;
-		AutoRelease<ID3D11RasterizerState> spriteRaterizering;
-		AutoRelease<ID3D11RasterizerState> objectRaterizering;
-		AutoRelease<ID3D11BlendState> alphaBlend;
-		AutoRelease<ID3D11BlendState> disableBlend;
-
-		Fonts::IFontSupervisor* fonts;
-		
-		AutoRelease<ID3D11Buffer> vector4Buffer;
-		AutoRelease<ID3D11Buffer> vs_globalStateBuffer;
-      AutoRelease<ID3D11Buffer> ps_globalStateBuffer;
-
-		RAWMOUSE lastMouseEvent;
-		Vec2i screenSpan;
-
-		HWND hRenderWindow;
-
-		ID_VERTEX_SHADER idGuiVS;
-		ID_PIXEL_SHADER idGuiPS;
-
-		ID_VERTEX_SHADER idObjVS;
-      ID_PIXEL_SHADER idObjPS;
-      ID_PIXEL_SHADER idObjDepthPS;
-
-      ID_VERTEX_SHADER idSpriteVS;
-      ID_PIXEL_SHADER idSpritePS;
-
-		AutoRelease<ID3D11Buffer> instanceBuffer;
-
-		AutoRelease<ID3D11DepthStencilState> guiDepthState;
-		AutoRelease<ID3D11DepthStencilState> objDepthState;
-
-		std::vector<DX11::TextureBind> textures;
-		std::unordered_map<std::string, ID_TEXTURE> mapNameToTexture;
-
-      std::vector<Overlay> overlays;
-
-		struct Cursor
-		{
-			ID_TEXTURE bitmapId;
-			Vec2 uvTopLeft;
-			Vec2 uvBottomRight;
-			Vec2i hotspotOffset;
-		} cursor;
-
-		ID_TEXTURE lastTextureId;
-
-      AutoFree<IExpandingBuffer> scratchBuffer;
-      DX11::TextureLoader textureLoader;
-
-      virtual void Load(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad)
-      {
-         StandardLoadFromCompressedTextureBuffer(name, onLoad, installation, *scratchBuffer);
-      }
-	public:
-		Windows::IWindow* window;
-      bool isBuildingAlphaBlendedSprites{ false };
-
-		DX11AppRenderer(ID3D11Device& _device, ID3D11DeviceContext& _dc, IDXGIFactory& _factory, IInstallation& _installation) :
-			device(_device), dc(_dc), factory(_factory), fonts(nullptr), hRenderWindow(0),
-			window(nullptr), cursor{ ID_TEXTURE(), {0,0}, {1,1}, {0,0} }, installation(_installation),
-         textureArray(_device, _dc),
-         textureArrayBuilder(CreateTextureArrayBuilder(*this, textureArray)),
-         scratchBuffer(CreateExpandingBuffer(16_kilobytes)),
-         textureLoader(_installation, _device, _dc, *scratchBuffer)
-		{
-			static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
-			guiBuffer = DX11::CreateDynamicVertexBuffer<GuiVertex>(device, GUI_BUFFER_VERTEX_CAPACITY);
-
-			spriteSampler = DX11::CreateSpriteSampler(device);
-         objectSampler = DX11::CreateObjectSampler(device);
-         objDepthState = DX11::CreateObjectDepthStencilState(device);
-         guiDepthState = DX11::CreateGuiDepthStencilState(device);
-         spriteRaterizering = DX11::CreateSpriteRasterizer(device);
-         objectRaterizering = DX11::CreateObjectRasterizer(device);
-         alphaBlend = DX11::CreateAlphaBlend(device);
-         disableBlend = DX11::CreateNoBlend(device);
-
-         DX11::TextureBind fb = textureLoader.LoadAlphaBitmap("!font1.tif");
-         fontTexture = fb.texture;
-         fontBinding = fb.view;
-
-			cstr csvName = "!font1.csv";
-			installation.LoadResource(csvName, *scratchBuffer, 256_kilobytes);
-			fonts = Fonts::LoadFontCSV(csvName, (const char*)scratchBuffer->GetData(), scratchBuffer->Length());
-
-			// Create the buffer.
-			vector4Buffer = DX11::CreateConstantBuffer<Vec4>(device);
-
-			GuiScale nullVector{ 0,0,0,0 };
-         DX11::CopyStructureToBuffer(dc, vector4Buffer, nullVector);
-
-			vs_globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
-         ps_globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
-
-			installation.LoadResource("!gui.vs", *scratchBuffer, 64_kilobytes);
-			idGuiVS = CreateGuiVertexShader("gui.vs", scratchBuffer->GetData(), scratchBuffer->Length());
-
-			installation.LoadResource("!gui.ps", *scratchBuffer, 64_kilobytes);
-			idGuiPS = CreatePixelShader("gui.ps", scratchBuffer->GetData(), scratchBuffer->Length());
-
-			installation.LoadResource("!object.vs", *scratchBuffer, 64_kilobytes);
-			idObjVS = CreateObjectVertexShader("object.vs", scratchBuffer->GetData(), scratchBuffer->Length());
-
-			installation.LoadResource("!object.ps", *scratchBuffer, 64_kilobytes);
-			idObjPS = CreatePixelShader("object.ps", scratchBuffer->GetData(), scratchBuffer->Length());
-
-         installation.LoadResource("!depth.ps", *scratchBuffer, 64_kilobytes);
-         idObjDepthPS = CreatePixelShader("depth.ps", scratchBuffer->GetData(), scratchBuffer->Length());
-
-         installation.LoadResource("!sprite.vs", *scratchBuffer, 64_kilobytes);
-         idSpriteVS = CreateGuiVertexShader("sprite.vs", scratchBuffer->GetData(), scratchBuffer->Length());
-
-         installation.LoadResource("!sprite.ps", *scratchBuffer, 64_kilobytes);
-         idSpritePS = CreatePixelShader("sprite.ps", scratchBuffer->GetData(), scratchBuffer->Length());
-
-			instanceBuffer = DX11::CreateConstantBuffer<ObjectInstance>(device);
-		}
-
-		~DX11AppRenderer()
-		{
-			ClearContext();
-
-			if (fonts)
-			{
-				fonts->Free();
-			}
-
-			ClearMeshes();
-
-			for (auto& x : vertexShaders)
-			{
-				delete x;
-			}
-
-			for (auto& x : pixelShaders)
-			{
-				delete x;
-			}
-
-			for (auto& t : textures)
-			{
-				if (t.texture) t.texture->Release();
-				if (t.view) t.view->Release();
-			}
-		}
-
-      void Free()
-      {
-         delete this;
-      }
-
-      virtual ITextureArrayBuilder& SpriteBuilder()
-      {
-         return *textureArrayBuilder;
-      }
-
-      virtual void AddSpriteTriangle(bool alphaBlend, const GuiVertex triangle[3])
-      {
-         if (this->isBuildingAlphaBlendedSprites != alphaBlend || !guiVertices.empty())
-         {
-            FlushLayer();
-            this->isBuildingAlphaBlendedSprites = alphaBlend;     
-         }
-
-         textureArray.spriteTriangles.push_back(triangle[0]);
-         textureArray.spriteTriangles.push_back(triangle[1]);
-         textureArray.spriteTriangles.push_back(triangle[2]);
-
-         if (textureArray.spriteTriangles.size() > 8192)
-         {
-            FlushLayer();
-         }
-      }
-
-		virtual void ClearMeshes()
-		{
-			for (auto& x : meshBuffers)
-			{
-            if (x.dx11Buffer) x.dx11Buffer->Release();
-			}
-
-			meshBuffers.clear();
-		}
-
-      virtual void DeleteMesh(ID_SYS_MESH id)
-      {
-         if (id.value >= meshBuffers.size()) Throw(0, "DX11AppRenderer::DeleteMesh(...): Bad ID_SYS_MESH");
-
-         if (meshBuffers[id.value].dx11Buffer)
-         {
-            meshBuffers[id.value].dx11Buffer->Release();
-            meshBuffers[id.value].dx11Buffer = nullptr;
-            meshBuffers[id.value].numberOfVertices = 0;
-         }
-      }
-
-		virtual void SetMeshTexture(ID_TEXTURE textureId, int textureIndex)
-		{
-			size_t index = textureId.value - 1;
-			if (index >= textures.size())
-			{
-				Throw(0, "Bad texture id");
-			}
-
-			auto& t = textures[index];
-
-			if (textureId != lastTextureId)
-			{
-            if (t.view == nullptr)
-            {
-               D3D11_SHADER_RESOURCE_VIEW_DESC desc;
-               ZeroMemory(&desc, sizeof(desc));
-
-               desc.Texture2D.MipLevels = -1;
-               desc.Texture2D.MostDetailedMip = 0;
-
-               desc.Format = DXGI_FORMAT_UNKNOWN;
-               desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-
-               VALIDATEDX11(device.CreateShaderResourceView(t.texture, &desc, &t.view));
-            }
-				lastTextureId = textureId;
-				dc.PSSetShaderResources(textureIndex, 1, &t.view);
-			}
-		}
-
-      virtual IInstallation& Installation()
-      {
-         return installation;
-      }
-
-		virtual IRenderer& Renderer()
-		{
-			return *this;
-		}
-
-		virtual ID_TEXTURE LoadTexture(IBuffer& buffer, cstr uniqueName)
-		{
-			auto i = mapNameToTexture.find(uniqueName);
-			if (i != mapNameToTexture.end())
-			{
-				return i->second;
-			}
-
-         auto bind = textureLoader.LoadColourBitmap(uniqueName);		
-			textures.push_back(bind);
-
-			auto id = ID_TEXTURE(textures.size());
-			mapNameToTexture.insert(std::make_pair(uniqueName, id));
-			return id;
-		}
-
-		virtual auto SelectTexture(ID_TEXTURE id) -> Vec2i
-		{
-			size_t index = id.value - 1;
-			if (index >= textures.size())
-			{
-				Throw(0, "Bad texture id");
-			}
-			
-			auto& t = textures[index];
-
-			D3D11_TEXTURE2D_DESC desc;
-			t.texture->GetDesc(&desc);
-
-			if (id != lastTextureId)
-			{
-				FlushLayer();
-				lastTextureId = id;
-				dc.PSSetShaderResources(1, 1, &t.view);
-			}
-
-			return Vec2i{ (int32) desc.Width, (int32) desc.Height };
-		}
-
-		void SyncViewport()
-		{
-			RECT rect;
-			GetClientRect(hRenderWindow, &rect);
-
-			D3D11_VIEWPORT viewport;
-			ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
-
-			viewport.TopLeftX = 0;
-			viewport.TopLeftY = 0;
-			viewport.Width = FLOAT(rect.right - rect.left);
-			viewport.Height = FLOAT(rect.bottom - rect.top);
-			viewport.MinDepth = 0.0f;
-			viewport.MaxDepth = 1.0f;
-
-			dc.RSSetViewports(1, &viewport);
-
-			screenSpan.x = (int32)viewport.Width;
-			screenSpan.y = (int32)viewport.Height;
-		}
-
-		void BindMainWindow(HWND hRenderWindow)
-		{
-			this->hRenderWindow = hRenderWindow;
-
-			DXGI_SWAP_CHAIN_DESC swapChainDesc = DX11::GetSwapChainDescription(hRenderWindow);
-			VALIDATEDX11(factory.CreateSwapChain((ID3D11Device*)&device, &swapChainDesc, &mainSwapChain));
-
-			AutoRelease<ID3D11Texture2D> backBuffer;
-			VALIDATEDX11(mainSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
-
-			VALIDATEDX11(device.CreateRenderTargetView(backBuffer, nullptr, &mainBackBufferView));
-
-			auto depthDesc = DX11::GetDepthDescription(hRenderWindow);
-
-			AutoRelease<ID3D11Texture2D> depthBuffer;
-			VALIDATEDX11(device.CreateTexture2D(&depthDesc, nullptr, &depthBuffer));
-			VALIDATEDX11(device.CreateDepthStencilView(depthBuffer, nullptr, &depthStencilView));
-
-			SyncViewport();
-		}
-
-		ID_VERTEX_SHADER CreateVertexShader(cstr name, const byte* shaderCode, size_t shaderLength, const D3D11_INPUT_ELEMENT_DESC* vertexDesc, UINT nElements)
-		{
-			if (name == nullptr || rlen(name) > 1024) Throw(0, "Bad <name> for vertex shader");
-			if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 65536) Throw(0, "Bad shader code for vertex shader %s", name);
-
-			DX11VertexShader* shader = new DX11VertexShader;
-			HRESULT hr = device.CreateInputLayout(vertexDesc, nElements, shaderCode, shaderLength, &shader->inputLayout);
-			if FAILED(hr)
-			{
-				delete shader;
-				Throw(hr, "device.CreateInputLayout failed with shader %s", name);
-				return ID_VERTEX_SHADER();
-			}
-
-			hr = device.CreateVertexShader(shaderCode, shaderLength, nullptr, &shader->vs);
-			if FAILED(hr)
-			{
-				delete shader;
-				Throw(hr, "device.CreateVertexShader failed with shader %s", name);
-				return ID_VERTEX_SHADER::Invalid();
-			}
-
-			shader->name = name;
-			vertexShaders.push_back(shader);
-			return ID_VERTEX_SHADER(vertexShaders.size() - 1);
-		}
-
-		ID_VERTEX_SHADER CreateGuiVertexShader(cstr name, const byte* shaderCode, size_t shaderLength)
-		{
-			return CreateVertexShader(name, shaderCode, shaderLength, DX11::GetGuiVertexDesc(), DX11::NumberOfGuiVertexElements());
-		}
-
-		virtual ID_VERTEX_SHADER CreateObjectVertexShader(cstr name, const uint8* shaderCode, size_t shaderLength)
-		{
-			return CreateVertexShader(name, shaderCode, shaderLength, DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
-		}
-
-		ID_PIXEL_SHADER CreatePixelShader(cstr name, const byte* shaderCode, size_t shaderLength)
-		{
-			if (name == nullptr || rlen(name) > 1024) Throw(0, "Bad <name> for pixel shader");
-			if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 65536) Throw(0, "Bad shader code for pixel shader %s", name);
-
-			DX11PixelShader* shader = new DX11PixelShader;
-			HRESULT hr = device.CreatePixelShader(shaderCode, shaderLength, nullptr, &shader->ps);
-			if FAILED(hr)
-			{
-				delete shader;
-				Throw(hr, "device.CreatePixelShader failed with shader %s", name);
-				return ID_PIXEL_SHADER::Invalid();
-			}
-
-			shader->name = name;
-			pixelShaders.push_back(shader);
-			return ID_PIXEL_SHADER(pixelShaders.size() - 1);
-		}
-
-		void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect)
-		{
-			char stackBuffer[128];
-			Fonts::IGlyphRenderPipeline* pipeline = Fonts::CreateGlyphRenderPipeline(stackBuffer, sizeof(stackBuffer), *this);
-
-			GuiRectf qrect(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
-
-			if (clipRect != nullptr)
-			{
-				qrect.left = (float)clipRect->left;
-				qrect.right = (float)clipRect->right;
-				qrect.top = (float)clipRect->top;
-				qrect.bottom = (float)clipRect->bottom;
-			}
-			RouteDrawTextBasic(pos, job, *fonts, *pipeline, qrect);
-		}
-
-      virtual void AddOverlay(int zorder, IUIOverlay* overlay)
-      {
-         auto i = std::find(overlays.begin(), overlays.end(), overlay);
-         if (i == overlays.end())
-         {
-            overlays.push_back({ zorder, overlay });
-         }
-         else
-         {
-            i->zOrder = zorder;
-         }
-
-         std::sort(overlays.begin(), overlays.end());
-      }
-
-      virtual void RemoveOverlay(IUIOverlay* overlay)
-      {
-         auto i = std::remove(overlays.begin(), overlays.end(), overlay);
-         overlays.erase(i, overlays.end());
-      }
-
-		Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect)
-		{
-			char stackBuffer[128];
-			SpanEvaluator spanEvaluator;
-			Fonts::IGlyphRenderPipeline* pipeline = Fonts::CreateGlyphRenderPipeline(stackBuffer, sizeof(stackBuffer), spanEvaluator);
-
-			GuiRectf qrect(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
-
-			if (clipRect != nullptr)
-			{
-				qrect.left = (float)clipRect->left;
-				qrect.right = (float)clipRect->right;
-				qrect.top = (float)clipRect->top;
-				qrect.bottom = (float)clipRect->bottom;
-			}
-			RouteDrawTextBasic(pos, job, *fonts, *pipeline, qrect);
-
-			Vec2i span = Quantize(spanEvaluator.Span());
-         if (span.x < 0) span.x = 0;
-         if (span.y < 0) span.y = 0;
-         return span;
-		}
-
-		void UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid)
-		{
-			if (vid.value >= vertexShaders.size()) Throw(0, "Bad vertex shader Id in call to UseShaders");
-			if (pid.value >= pixelShaders.size()) Throw(0, "Bad pixel shader Id in call to UseShaders");
-
-			auto& vs = *vertexShaders[vid.value];
-			auto& ps = *pixelShaders[pid.value];
-
-			dc.IASetInputLayout(vs.inputLayout);
-			dc.VSSetShader(vs.vs, nullptr, 0);
-			dc.PSSetShader(ps.ps, nullptr, 0);
-		}
-
-		void ClearContext()
-		{
-			dc.IASetInputLayout(nullptr);
-			dc.VSSetShader(nullptr, nullptr, 0);
-			dc.PSSetShader(nullptr, nullptr, 0);
-			dc.PSSetShaderResources(0, 0, nullptr);
-		}
-
-		void SwitchToWindowMode()
-		{
-			BOOL isFullScreen;
-			AutoRelease<IDXGIOutput> output;
-			if SUCCEEDED(mainSwapChain->GetFullscreenState(&isFullScreen, &output))
-			{
-				if (isFullScreen)
-				{
-					mainSwapChain->SetFullscreenState(false, nullptr);
-				}
-			}
-		}
-
-		void OnMouseEvent(const RAWMOUSE& m)
-		{
-			lastMouseEvent = m;
-		}
-
-		virtual void GetGuiMetrics(GuiMetrics& metrics) const
-		{
-			POINT p;
-			GetCursorPos(&p);
-			ScreenToClient(hRenderWindow, &p);
-
-			metrics.cursorPosition = Vec2i{ p.x, p.y };
-			metrics.screenSpan = screenSpan;
-		}
-
-		struct MeshBuffer
-		{
-			ID3D11Buffer* dx11Buffer;
-			UINT numberOfVertices;
-			D3D_PRIMITIVE_TOPOLOGY topology;
-		};
-
-		std::vector<MeshBuffer> meshBuffers;
-
-		virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices)
-		{
-			ID3D11Buffer* meshBuffer = vertices ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
-			meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST });
-			int32 index = (int32) meshBuffers.size();
-			return ID_SYS_MESH(index-1);
-		}
-
-		virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices)
-		{
-			if (rendererId.value < 0 || rendererId.value >= meshBuffers.size())
-			{
-				Throw(E_INVALIDARG, "renderer.UpdateMesh(ID_MESH id, ....) - Bad id ");
-			}
-
-			ID3D11Buffer* newMesh = vertices != nullptr ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
-			meshBuffers[rendererId.value].numberOfVertices = nVertices;
-
-         if (meshBuffers[rendererId.value].dx11Buffer) meshBuffers[rendererId.value].dx11Buffer->Release();
-			meshBuffers[rendererId.value].dx11Buffer = newMesh;
-		}
-
-		virtual void Draw(ID_SYS_MESH id, const ObjectInstance* instances, uint32 nInstances)
-		{
-			if (id.value < 0 || id.value >= meshBuffers.size()) Throw(E_INVALIDARG, "renderer.DrawObject(ID_MESH id) - Bad id ");
-
-			auto& buffer = meshBuffers[id.value];
-
-         if (!buffer.dx11Buffer)
-            return;
-
-			ID3D11Buffer* buffers[] = { buffer.dx11Buffer };
-
-			dc.IASetPrimitiveTopology(buffer.topology);
-			
-			UINT strides[] = { sizeof(ObjectVertex) };
-			UINT offsets[]{ 0 };
-			dc.IASetVertexBuffers(0, 1, buffers, strides, offsets);
-
-			for (uint32 i = 0; i < nInstances; i++ )
-			{
-				// dc.DrawInstances crashed the debugger, replace with single instance render call for now
-            DX11::CopyStructureToBuffer(dc, instanceBuffer, instances + i, sizeof(ObjectInstance));
-				dc.VSSetConstantBuffers(1, 1, &instanceBuffer);
-				dc.Draw(buffer.numberOfVertices, 0);
-			}
-			
-			dc.VSSetConstantBuffers(0, 0, nullptr);
-		}
-
-		virtual Windows::IWindow& Window()
-		{
-			return *window;
-		}
-
-		GlobalState g;
-
-		virtual void SetGlobalState(const GlobalState& gs)
-		{
-         DX11::CopyStructureToBuffer(dc, vs_globalStateBuffer, gs);
-			dc.VSSetConstantBuffers(0, 1, &vs_globalStateBuffer);
-
-         DX11::CopyStructureToBuffer(dc, ps_globalStateBuffer, gs);
-         dc.PSSetConstantBuffers(0, 1, &ps_globalStateBuffer);
-		}
-
-		void DrawCursor()
-		{
-			if (cursor.bitmapId != ID_TEXTURE::Invalid())
-			{
-				GuiMetrics metrics;
-				GetGuiMetrics(metrics);
-
-				Vec2i span = SelectTexture(cursor.bitmapId);
-
-				float u0 = cursor.uvTopLeft.x;
-				float u1 = cursor.uvBottomRight.x;
-				float v0 = cursor.uvTopLeft.y;
-				float v1 = cursor.uvBottomRight.y;
-
-				Vec2 p { (float) metrics.cursorPosition.x, (float) metrics.cursorPosition.y };
-
-				float x0 = p.x + cursor.hotspotOffset.x;
-				float x1 = x0 + (float)span.x;
-				float y0 = p.y + cursor.hotspotOffset.y;
-				float y1 = y0 + (float)span.y;
-
-				GuiVertex quad[6]
-				{
-					GuiVertex{ x0, y0, 0.0f, 0.0f, RGBAb(128,0,0), u0, v0, 0.0f },
-					GuiVertex{ x1, y0, 0.0f, 0.0f, RGBAb(0,128,0), u1, v0, 0.0f },
-					GuiVertex{ x1, y1, 0.0f, 0.0f, RGBAb(0,0,128), u1, v1, 0.0f },
-					GuiVertex{ x1, y1, 0.0f, 0.0f, RGBAb(128,0,0), u1, v1, 0.0f },
-					GuiVertex{ x0, y1, 0.0f, 0.0f, RGBAb(0,128,0), u0, v1, 0.0f },
-					GuiVertex{ x0, y0, 0.0f, 0.0f, RGBAb(0,0,128), u0, v0, 0.0f }
-				};
-
-				AddTriangle(quad);
-				AddTriangle(quad + 3);
-
-				SetCursor(0);
-			}
-			else
-			{
-				SetCursor(LoadCursor(nullptr, IDC_ARROW));
-			}
-		}
-
-		virtual void Render(IScene& scene)
-		{
-			if (mainBackBufferView.IsNull()) return;
-
-			lastTextureId = ID_TEXTURE::Invalid();
-
-			dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
-
-			RGBA clearColour = scene.GetClearColour();
-
-         if (clearColour.alpha > 0)
-         {
-            dc.ClearRenderTargetView(mainBackBufferView, (const FLOAT*)&clearColour);
-         }
-
-			dc.ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-			FLOAT blendFactorUnused[] = { 0,0,0,0 };
-			dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
-			UseShaders(idObjVS, idObjPS);
-
-         dc.PSSetSamplers(0, 1, &objectSampler);
-			dc.RSSetState(objectRaterizering);
-			dc.OMSetDepthStencilState(objDepthState, 0);
-
-			scene.RenderObjects(*this);
-			scene.RenderGui(*this);
-
-         for (auto& o : overlays)
-         {
-            o.overlay->Render(*this);
-         }
-
-			FlushLayer();
-
-			DrawCursor();
-
-			FlushLayer();
-
-         renderState = RenderState_None;
-
-			dc.PSSetShaderResources(0, 0, nullptr);
-			dc.PSSetSamplers(0, 0, nullptr);
-
-			mainSwapChain->Present(1, 0);
-
-         dc.OMSetBlendState(nullptr, nullptr, 0);
-         dc.RSSetState(nullptr);
-			dc.OMSetDepthStencilState(nullptr, 0);
-			dc.OMSetRenderTargets(0, nullptr, nullptr);
-			dc.IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
-		}
-
-		void AddTriangle(const GuiVertex triangle[3])
-		{
-			guiVertices.push_back(triangle[0]);
-			guiVertices.push_back(triangle[1]);
-			guiVertices.push_back(triangle[2]);
-		}
-
-		RGBAb FontColourToSysColour(Fonts::FontColour colour)
-		{
-			RGBAb* pCol = (RGBAb*)&colour;
-			return *pCol;
-		}
-
-		virtual void DrawGlyph(const Vec2& uvTopLeft, const Vec2& posTopLeft, float dx, float dy, Fonts::FontColour fcolour)
-		{
-			float x = posTopLeft.x;
-			float y = posTopLeft.y;
-
-			RGBAb colour = FontColourToSysColour(fcolour);
-
-			guiVertices.push_back(GuiVertex{ x,           y, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x,      uvTopLeft.y,      0.0f }); // topLeft
-			guiVertices.push_back(GuiVertex{ x,      y + dy, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x,      uvTopLeft.y + dy, 0.0f }); // bottomLeft
-			guiVertices.push_back(GuiVertex{ x + dx, y + dy, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x + dx, uvTopLeft.y + dy, 0.0f }); // bottomRigh
-			guiVertices.push_back(GuiVertex{ x,           y, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x,      uvTopLeft.y,      0.0f }); // topLeft
-			guiVertices.push_back(GuiVertex{ x + dx,      y, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x + dx, uvTopLeft.y,      0.0f }); // TopRight
-			guiVertices.push_back(GuiVertex{ x + dx, y + dy, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x + dx, uvTopLeft.y + dy, 0.0f }); // bottomRight
-		}
-
-      enum RenderState
-      {
-         RenderState_None,
-         RenderState_Gui,
-         RenderState_Sprites
-      } renderState{ RenderState_None };
-
-		void FlushLayer()
-		{
-			size_t nVerticesLeftToRender = guiVertices.size();
-			while (nVerticesLeftToRender > 0)
-			{
-            if (renderState != RenderState_Gui)
-            {
-               renderState = RenderState_Gui;
-
-               UseShaders(idGuiVS, idGuiPS);
-               dc.PSSetSamplers(0, 1, &spriteSampler);
-               dc.PSSetShaderResources(0, 1, &fontBinding);
-               dc.RSSetState(spriteRaterizering);
-
-               FLOAT blendFactorUnused[] = { 0,0,0,0 };
-               dc.OMSetBlendState(alphaBlend, blendFactorUnused, 0xffffffff);
-
-               GuiScale guiScaleVector;
-               guiScaleVector.OOScreenWidth = 1.0f / screenSpan.x;
-               guiScaleVector.OOScreenHeight = 1.0f / screenSpan.y;
-               guiScaleVector.OOFontWidth = fonts->TextureSpan().z;
-               guiScaleVector.OOFontHeight = fonts->TextureSpan().w;
-
-               DX11::CopyStructureToBuffer(dc, vector4Buffer, &guiScaleVector, sizeof(GuiScale));
-
-               dc.VSSetConstantBuffers(0, 1, &vector4Buffer);
-               dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-               dc.OMSetDepthStencilState(guiDepthState, 0);
-            }
-
-				size_t startIndex = guiVertices.size() - nVerticesLeftToRender;
-				size_t chunk = min(nVerticesLeftToRender, (size_t)GUI_BUFFER_VERTEX_CAPACITY);
-
-				D3D11_MAPPED_SUBRESOURCE x;
-				VALIDATEDX11(dc.Map(guiBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &x));
-				memcpy(x.pData, &guiVertices[startIndex], chunk * sizeof(GuiVertex));
-				dc.Unmap(guiBuffer, 0);
-
-				UINT stride = sizeof(GuiVertex);
-				UINT offset = 0;
-				dc.IASetVertexBuffers(0, 1, &guiBuffer, &stride, &offset);
-				dc.Draw((UINT)chunk, 0);
-
-				nVerticesLeftToRender -= chunk;
-			};
-
-			guiVertices.clear();
-
-         size_t nSpriteVerticesLeftToRender = textureArray.spriteTriangles.size();
-         while (nSpriteVerticesLeftToRender > 0)
-         {
-            if (isBuildingAlphaBlendedSprites)
-            {
-               FLOAT blendFactorUnused[] = { 0,0,0,0 };
-               dc.OMSetBlendState(alphaBlend, blendFactorUnused, 0xffffffff);
-            }
-            else
-            {
-               FLOAT blendFactorUnused[] = { 0,0,0,0 };
-               dc.OMSetBlendState(this->disableBlend, blendFactorUnused, 0xffffffff);
-            }
-
-            if (renderState != RenderState_Sprites)
-            {
-               renderState = RenderState_Sprites;
-
-               UseShaders(idSpriteVS, idSpritePS);
-
-               dc.PSSetSamplers(0, 1, &spriteSampler);
-               ID3D11ShaderResourceView* views[1] = { textureArray.View() };
-               dc.PSSetShaderResources(0, 1, views);
-               dc.RSSetState(spriteRaterizering);
-
-               Vec4 guiScaleVector;
-               guiScaleVector.x = 1.0f / screenSpan.x;
-               guiScaleVector.y = 1.0f / screenSpan.y;
-               guiScaleVector.z = 1.0f / (float32) textureArray.width;
-               guiScaleVector.w = 0.0f;
-
-               DX11::CopyStructureToBuffer(dc, vector4Buffer, &guiScaleVector, sizeof(Vec4));
-
-               dc.VSSetConstantBuffers(0, 1, &vector4Buffer);
-               dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-               dc.OMSetDepthStencilState(guiDepthState, 0);
-            }
-
-            size_t startIndex = textureArray.spriteTriangles.size() - nSpriteVerticesLeftToRender;
-            size_t chunk = min(nSpriteVerticesLeftToRender, (size_t)GUI_BUFFER_VERTEX_CAPACITY);
-
-            D3D11_MAPPED_SUBRESOURCE x;
-            VALIDATEDX11(dc.Map(guiBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &x));
-            memcpy(x.pData, &textureArray.spriteTriangles[startIndex], chunk * sizeof(GuiVertex));
-            dc.Unmap(guiBuffer, 0);
-
-            UINT stride = sizeof(GuiVertex);
-            UINT offset = 0;
-            dc.IASetVertexBuffers(0, 1, &guiBuffer, &stride, &offset);
-            dc.Draw((UINT)chunk, 0);
-
-            nSpriteVerticesLeftToRender -= chunk;
-
-            textureArray.spriteTriangles.clear();
-         }
-		}
-
-		void ResizeBuffers(const Vec2i& span)
-		{
-			mainBackBufferView.Detach();
-
-			VALIDATEDX11(mainSwapChain->ResizeBuffers(1, span.x, span.y, DXGI_FORMAT_R8G8B8A8_UNORM, 0));
-
-			AutoRelease<ID3D11Texture2D> backBuffer;
-			VALIDATEDX11(mainSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
-			VALIDATEDX11(device.CreateRenderTargetView(backBuffer, nullptr, &mainBackBufferView));
-
-			depthStencilView.Detach();
-
-			AutoRelease<ID3D11Texture2D> depthBuffer;
-
-			auto depthDesc = DX11::GetDepthDescription(hRenderWindow);
-			VALIDATEDX11(device.CreateTexture2D(&depthDesc, nullptr, &depthBuffer));
-			VALIDATEDX11(device.CreateDepthStencilView(depthBuffer, nullptr, &depthStencilView));
-
-			SyncViewport();
-		}
-
-		virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
-		{
-			if (span.x > 0 && span.y > 0)
-			{
-				D3D11_TEXTURE2D_DESC desc;
-				{
-					AutoRelease<ID3D11Texture2D> backBuffer;
-					VALIDATEDX11(mainSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
-					backBuffer->GetDesc(&desc);
-				}
-
-				if (desc.Width != span.x || desc.Height != span.y)
-				{
-					ResizeBuffers(span);
-				}
-
-            BOOL isFullScreen;
-            IDXGIOutput* output = nullptr;
-            mainSwapChain->GetFullscreenState(&isFullScreen, &output);
-            if (isFullScreen)
-            {
-               output->Release();
-            }
-            else
-            {
-               // Style can ben lost when dialog invoked in full screen mode. So add it here
-               DWORD style = GetWindowLong(hWnd, GWL_STYLE);
-               if ((style & WS_CAPTION) == 0)
-               {
-                  SetWindowLong(hWnd, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
-               }
-            }
-			}
-		}
-
-		void SetCursorBitmap(ID_TEXTURE idBitmap, Vec2i hotspotOffset, Vec2 uvTopLeft, Vec2 uvBottomRight)
-		{
-			cursor.bitmapId = idBitmap;
-			cursor.uvTopLeft = uvTopLeft;
-			cursor.uvBottomRight = uvBottomRight;
-			cursor.hotspotOffset = hotspotOffset;
-		}
-	};
-
-	struct DX11Host
-	{
-      DX11Host()
-      {
-
-      }
-
-      ~DX11Host()
-      {
-         device = nullptr;
-         dc = nullptr;
-         adapter = nullptr;
-         factory = nullptr;
-         if (debug)
-         {
-         //   debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-            debug = nullptr;
-         }
-      }
-		AutoRelease<IDXGIAdapter> adapter;
-		AutoRelease<ID3D11DeviceContext> dc;
-		AutoRelease<ID3D11Device> device;
-		AutoRelease<IDXGIFactory> factory;
-      AutoRelease<ID3D11Debug> debug;
-	};
+   class DX11AppRenderer :
+	   public IRenderer,
+	   public IRenderContext,
+	   public IGuiRenderContext,
+	   public Fonts::IGlyphRenderer,
+	   public IResourceLoader
+   {
+   private:
+	   ID3D11Device& device;
+	   ID3D11DeviceContext& dc;
+	   IDXGIFactory& factory;
+	   IInstallation& installation;
+
+	   DX11TextureArray textureArray;
+
+	   AutoFree<ITextureArrayBuilderSupervisor> textureArrayBuilder;
+
+	   AutoRelease<IDXGISwapChain> mainSwapChain;
+	   AutoRelease<ID3D11RenderTargetView> mainBackBufferView;
+	   AutoRelease<ID3D11DepthStencilView> depthStencilView;
+
+	   std::vector<DX11VertexShader*> vertexShaders;
+	   std::vector<DX11PixelShader*> pixelShaders;
+	   AutoRelease<ID3D11Buffer> guiBuffer;
+
+	   std::vector<GuiVertex> guiVertices;
+
+	   enum { GUI_BUFFER_VERTEX_CAPACITY = 3 * 512 };
+
+	   AutoRelease<ID3D11Texture2D> fontTexture;
+	   AutoRelease<ID3D11SamplerState> spriteSampler;
+	   AutoRelease<ID3D11SamplerState> objectSampler;
+	   AutoRelease<ID3D11ShaderResourceView> fontBinding;
+	   AutoRelease<ID3D11RasterizerState> spriteRaterizering;
+	   AutoRelease<ID3D11RasterizerState> objectRaterizering;
+	   AutoRelease<ID3D11BlendState> alphaBlend;
+	   AutoRelease<ID3D11BlendState> disableBlend;
+
+	   Fonts::IFontSupervisor* fonts;
+
+	   AutoRelease<ID3D11Buffer> vector4Buffer;
+	   AutoRelease<ID3D11Buffer> vs_globalStateBuffer;
+	   AutoRelease<ID3D11Buffer> ps_globalStateBuffer;
+
+	   RAWMOUSE lastMouseEvent;
+	   Vec2i screenSpan;
+
+	   HWND hRenderWindow;
+
+	   ID_VERTEX_SHADER idGuiVS;
+	   ID_PIXEL_SHADER idGuiPS;
+
+	   ID_VERTEX_SHADER idObjVS;
+	   ID_PIXEL_SHADER idObjPS;
+	   ID_PIXEL_SHADER idObjDepthPS;
+
+	   ID_VERTEX_SHADER idSpriteVS;
+	   ID_PIXEL_SHADER idSpritePS;
+
+	   AutoRelease<ID3D11Buffer> instanceBuffer;
+
+	   AutoRelease<ID3D11DepthStencilState> guiDepthState;
+	   AutoRelease<ID3D11DepthStencilState> objDepthState;
+
+	   std::vector<DX11::TextureBind> textures;
+	   std::unordered_map<std::string, ID_TEXTURE> mapNameToTexture;
+
+	   std::vector<Overlay> overlays;
+
+	   struct Cursor
+	   {
+		   ID_TEXTURE bitmapId;
+		   Vec2 uvTopLeft;
+		   Vec2 uvBottomRight;
+		   Vec2i hotspotOffset;
+	   } cursor;
+
+	   ID_TEXTURE lastTextureId;
+
+	   AutoFree<IExpandingBuffer> scratchBuffer;
+	   DX11::TextureLoader textureLoader;
+
+	   virtual void Load(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad)
+	   {
+		   StandardLoadFromCompressedTextureBuffer(name, onLoad, installation, *scratchBuffer);
+	   }
+   public:
+	   Windows::IWindow* window;
+	   bool isBuildingAlphaBlendedSprites{ false };
+
+	   DX11AppRenderer(ID3D11Device& _device, ID3D11DeviceContext& _dc, IDXGIFactory& _factory, IInstallation& _installation) :
+		   device(_device), dc(_dc), factory(_factory), fonts(nullptr), hRenderWindow(0),
+		   window(nullptr), cursor{ ID_TEXTURE(), {0,0}, {1,1}, {0,0} }, installation(_installation),
+		   textureArray(_device, _dc),
+		   textureArrayBuilder(CreateTextureArrayBuilder(*this, textureArray)),
+		   scratchBuffer(CreateExpandingBuffer(16_kilobytes)),
+		   textureLoader(_installation, _device, _dc, *scratchBuffer)
+	   {
+		   static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
+		   guiBuffer = DX11::CreateDynamicVertexBuffer<GuiVertex>(device, GUI_BUFFER_VERTEX_CAPACITY);
+
+		   spriteSampler = DX11::CreateSpriteSampler(device);
+		   objectSampler = DX11::CreateObjectSampler(device);
+		   objDepthState = DX11::CreateObjectDepthStencilState(device);
+		   guiDepthState = DX11::CreateGuiDepthStencilState(device);
+		   spriteRaterizering = DX11::CreateSpriteRasterizer(device);
+		   objectRaterizering = DX11::CreateObjectRasterizer(device);
+		   alphaBlend = DX11::CreateAlphaBlend(device);
+		   disableBlend = DX11::CreateNoBlend(device);
+
+		   DX11::TextureBind fb = textureLoader.LoadAlphaBitmap("!font1.tif");
+		   fontTexture = fb.texture;
+		   fontBinding = fb.view;
+
+		   cstr csvName = "!font1.csv";
+		   installation.LoadResource(csvName, *scratchBuffer, 256_kilobytes);
+		   fonts = Fonts::LoadFontCSV(csvName, (const char*)scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   // Create the buffer.
+		   vector4Buffer = DX11::CreateConstantBuffer<Vec4>(device);
+
+		   GuiScale nullVector{ 0,0,0,0 };
+		   DX11::CopyStructureToBuffer(dc, vector4Buffer, nullVector);
+
+		   vs_globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
+		   ps_globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
+
+		   installation.LoadResource("!gui.vs", *scratchBuffer, 64_kilobytes);
+		   idGuiVS = CreateGuiVertexShader("gui.vs", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!gui.ps", *scratchBuffer, 64_kilobytes);
+		   idGuiPS = CreatePixelShader("gui.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!object.vs", *scratchBuffer, 64_kilobytes);
+		   idObjVS = CreateObjectVertexShader("object.vs", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!object.ps", *scratchBuffer, 64_kilobytes);
+		   idObjPS = CreatePixelShader("object.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!depth.ps", *scratchBuffer, 64_kilobytes);
+		   idObjDepthPS = CreatePixelShader("depth.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!sprite.vs", *scratchBuffer, 64_kilobytes);
+		   idSpriteVS = CreateGuiVertexShader("sprite.vs", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!sprite.ps", *scratchBuffer, 64_kilobytes);
+		   idSpritePS = CreatePixelShader("sprite.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   instanceBuffer = DX11::CreateConstantBuffer<ObjectInstance>(device);
+	   }
+
+	   ~DX11AppRenderer()
+	   {
+		   ClearContext();
+
+		   if (fonts)
+		   {
+			   fonts->Free();
+		   }
+
+		   ClearMeshes();
+
+		   for (auto& x : vertexShaders)
+		   {
+			   delete x;
+		   }
+
+		   for (auto& x : pixelShaders)
+		   {
+			   delete x;
+		   }
+
+		   for (auto& t : textures)
+		   {
+			   if (t.texture) t.texture->Release();
+			   if (t.view) t.view->Release();
+		   }
+	   }
+
+	   void Free()
+	   {
+		   delete this;
+	   }
+
+	   virtual ITextureArrayBuilder& SpriteBuilder()
+	   {
+		   return *textureArrayBuilder;
+	   }
+
+	   virtual void AddSpriteTriangle(bool alphaBlend, const GuiVertex triangle[3])
+	   {
+		   if (this->isBuildingAlphaBlendedSprites != alphaBlend || !guiVertices.empty())
+		   {
+			   FlushLayer();
+			   this->isBuildingAlphaBlendedSprites = alphaBlend;
+		   }
+
+		   textureArray.spriteTriangles.push_back(triangle[0]);
+		   textureArray.spriteTriangles.push_back(triangle[1]);
+		   textureArray.spriteTriangles.push_back(triangle[2]);
+
+		   if (textureArray.spriteTriangles.size() > 8192)
+		   {
+			   FlushLayer();
+		   }
+	   }
+
+	   virtual void ClearMeshes()
+	   {
+		   for (auto& x : meshBuffers)
+		   {
+			   if (x.dx11Buffer) x.dx11Buffer->Release();
+		   }
+
+		   meshBuffers.clear();
+	   }
+
+	   virtual void DeleteMesh(ID_SYS_MESH id)
+	   {
+		   if (id.value >= meshBuffers.size()) Throw(0, "DX11AppRenderer::DeleteMesh(...): Bad ID_SYS_MESH");
+
+		   if (meshBuffers[id.value].dx11Buffer)
+		   {
+			   meshBuffers[id.value].dx11Buffer->Release();
+			   meshBuffers[id.value].dx11Buffer = nullptr;
+			   meshBuffers[id.value].numberOfVertices = 0;
+		   }
+	   }
+
+	   virtual void SetMeshTexture(ID_TEXTURE textureId, int textureIndex)
+	   {
+		   size_t index = textureId.value - 1;
+		   if (index >= textures.size())
+		   {
+			   Throw(0, "Bad texture id");
+		   }
+
+		   auto& t = textures[index];
+
+		   if (textureId != lastTextureId)
+		   {
+			   if (t.view == nullptr)
+			   {
+				   D3D11_SHADER_RESOURCE_VIEW_DESC desc;
+				   ZeroMemory(&desc, sizeof(desc));
+
+				   desc.Texture2D.MipLevels = -1;
+				   desc.Texture2D.MostDetailedMip = 0;
+
+				   desc.Format = DXGI_FORMAT_UNKNOWN;
+				   desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+
+				   VALIDATEDX11(device.CreateShaderResourceView(t.texture, &desc, &t.view));
+			   }
+			   lastTextureId = textureId;
+			   dc.PSSetShaderResources(textureIndex, 1, &t.view);
+		   }
+	   }
+
+	   virtual IInstallation& Installation()
+	   {
+		   return installation;
+	   }
+
+	   virtual IRenderer& Renderer()
+	   {
+		   return *this;
+	   }
+
+	   virtual ID_TEXTURE LoadTexture(IBuffer& buffer, cstr uniqueName)
+	   {
+		   auto i = mapNameToTexture.find(uniqueName);
+		   if (i != mapNameToTexture.end())
+		   {
+			   return i->second;
+		   }
+
+		   auto bind = textureLoader.LoadColourBitmap(uniqueName);
+		   textures.push_back(bind);
+
+		   auto id = ID_TEXTURE(textures.size());
+		   mapNameToTexture.insert(std::make_pair(uniqueName, id));
+		   return id;
+	   }
+
+	   virtual auto SelectTexture(ID_TEXTURE id) -> Vec2i
+	   {
+		   size_t index = id.value - 1;
+		   if (index >= textures.size())
+		   {
+			   Throw(0, "Bad texture id");
+		   }
+
+		   auto& t = textures[index];
+
+		   D3D11_TEXTURE2D_DESC desc;
+		   t.texture->GetDesc(&desc);
+
+		   if (id != lastTextureId)
+		   {
+			   FlushLayer();
+			   lastTextureId = id;
+			   dc.PSSetShaderResources(1, 1, &t.view);
+		   }
+
+		   return Vec2i{ (int32)desc.Width, (int32)desc.Height };
+	   }
+
+	   void SyncViewport()
+	   {
+		   RECT rect;
+		   GetClientRect(hRenderWindow, &rect);
+
+		   D3D11_VIEWPORT viewport;
+		   ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+
+		   viewport.TopLeftX = 0;
+		   viewport.TopLeftY = 0;
+		   viewport.Width = FLOAT(rect.right - rect.left);
+		   viewport.Height = FLOAT(rect.bottom - rect.top);
+		   viewport.MinDepth = 0.0f;
+		   viewport.MaxDepth = 1.0f;
+
+		   dc.RSSetViewports(1, &viewport);
+
+		   screenSpan.x = (int32)viewport.Width;
+		   screenSpan.y = (int32)viewport.Height;
+	   }
+
+	   void BindMainWindow(HWND hRenderWindow)
+	   {
+		   this->hRenderWindow = hRenderWindow;
+
+		   DXGI_SWAP_CHAIN_DESC swapChainDesc = DX11::GetSwapChainDescription(hRenderWindow);
+		   VALIDATEDX11(factory.CreateSwapChain((ID3D11Device*)&device, &swapChainDesc, &mainSwapChain));
+
+		   AutoRelease<ID3D11Texture2D> backBuffer;
+		   VALIDATEDX11(mainSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
+
+		   VALIDATEDX11(device.CreateRenderTargetView(backBuffer, nullptr, &mainBackBufferView));
+
+		   auto depthDesc = DX11::GetDepthDescription(hRenderWindow);
+
+		   AutoRelease<ID3D11Texture2D> depthBuffer;
+		   VALIDATEDX11(device.CreateTexture2D(&depthDesc, nullptr, &depthBuffer));
+		   VALIDATEDX11(device.CreateDepthStencilView(depthBuffer, nullptr, &depthStencilView));
+
+		   SyncViewport();
+	   }
+
+	   ID_VERTEX_SHADER CreateVertexShader(cstr name, const byte* shaderCode, size_t shaderLength, const D3D11_INPUT_ELEMENT_DESC* vertexDesc, UINT nElements)
+	   {
+		   if (name == nullptr || rlen(name) > 1024) Throw(0, "Bad <name> for vertex shader");
+		   if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 65536) Throw(0, "Bad shader code for vertex shader %s", name);
+
+		   DX11VertexShader* shader = new DX11VertexShader;
+		   HRESULT hr = device.CreateInputLayout(vertexDesc, nElements, shaderCode, shaderLength, &shader->inputLayout);
+		   if FAILED(hr)
+		   {
+			   delete shader;
+			   Throw(hr, "device.CreateInputLayout failed with shader %s", name);
+			   return ID_VERTEX_SHADER();
+		   }
+
+		   hr = device.CreateVertexShader(shaderCode, shaderLength, nullptr, &shader->vs);
+		   if FAILED(hr)
+		   {
+			   delete shader;
+			   Throw(hr, "device.CreateVertexShader failed with shader %s", name);
+			   return ID_VERTEX_SHADER::Invalid();
+		   }
+
+		   shader->name = name;
+		   vertexShaders.push_back(shader);
+		   return ID_VERTEX_SHADER(vertexShaders.size() - 1);
+	   }
+
+	   ID_VERTEX_SHADER CreateGuiVertexShader(cstr name, const byte* shaderCode, size_t shaderLength)
+	   {
+		   return CreateVertexShader(name, shaderCode, shaderLength, DX11::GetGuiVertexDesc(), DX11::NumberOfGuiVertexElements());
+	   }
+
+	   virtual ID_VERTEX_SHADER CreateObjectVertexShader(cstr name, const uint8* shaderCode, size_t shaderLength)
+	   {
+		   return CreateVertexShader(name, shaderCode, shaderLength, DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
+	   }
+
+	   ID_PIXEL_SHADER CreatePixelShader(cstr name, const byte* shaderCode, size_t shaderLength)
+	   {
+		   if (name == nullptr || rlen(name) > 1024) Throw(0, "Bad <name> for pixel shader");
+		   if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 65536) Throw(0, "Bad shader code for pixel shader %s", name);
+
+		   DX11PixelShader* shader = new DX11PixelShader;
+		   HRESULT hr = device.CreatePixelShader(shaderCode, shaderLength, nullptr, &shader->ps);
+		   if FAILED(hr)
+		   {
+			   delete shader;
+			   Throw(hr, "device.CreatePixelShader failed with shader %s", name);
+			   return ID_PIXEL_SHADER::Invalid();
+		   }
+
+		   shader->name = name;
+		   pixelShaders.push_back(shader);
+		   return ID_PIXEL_SHADER(pixelShaders.size() - 1);
+	   }
+
+	   void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect)
+	   {
+		   char stackBuffer[128];
+		   Fonts::IGlyphRenderPipeline* pipeline = Fonts::CreateGlyphRenderPipeline(stackBuffer, sizeof(stackBuffer), *this);
+
+		   GuiRectf qrect(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
+
+		   if (clipRect != nullptr)
+		   {
+			   qrect.left = (float)clipRect->left;
+			   qrect.right = (float)clipRect->right;
+			   qrect.top = (float)clipRect->top;
+			   qrect.bottom = (float)clipRect->bottom;
+		   }
+		   RouteDrawTextBasic(pos, job, *fonts, *pipeline, qrect);
+	   }
+
+	   virtual void AddOverlay(int zorder, IUIOverlay* overlay)
+	   {
+		   auto i = std::find(overlays.begin(), overlays.end(), overlay);
+		   if (i == overlays.end())
+		   {
+			   overlays.push_back({ zorder, overlay });
+		   }
+		   else
+		   {
+			   i->zOrder = zorder;
+		   }
+
+		   std::sort(overlays.begin(), overlays.end());
+	   }
+
+	   virtual void RemoveOverlay(IUIOverlay* overlay)
+	   {
+		   auto i = std::remove(overlays.begin(), overlays.end(), overlay);
+		   overlays.erase(i, overlays.end());
+	   }
+
+	   Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect)
+	   {
+		   char stackBuffer[128];
+		   SpanEvaluator spanEvaluator;
+		   Fonts::IGlyphRenderPipeline* pipeline = Fonts::CreateGlyphRenderPipeline(stackBuffer, sizeof(stackBuffer), spanEvaluator);
+
+		   GuiRectf qrect(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
+
+		   if (clipRect != nullptr)
+		   {
+			   qrect.left = (float)clipRect->left;
+			   qrect.right = (float)clipRect->right;
+			   qrect.top = (float)clipRect->top;
+			   qrect.bottom = (float)clipRect->bottom;
+		   }
+		   RouteDrawTextBasic(pos, job, *fonts, *pipeline, qrect);
+
+		   Vec2i span = Quantize(spanEvaluator.Span());
+		   if (span.x < 0) span.x = 0;
+		   if (span.y < 0) span.y = 0;
+		   return span;
+	   }
+
+	   void UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid)
+	   {
+		   if (vid.value >= vertexShaders.size()) Throw(0, "Bad vertex shader Id in call to UseShaders");
+		   if (pid.value >= pixelShaders.size()) Throw(0, "Bad pixel shader Id in call to UseShaders");
+
+		   auto& vs = *vertexShaders[vid.value];
+		   auto& ps = *pixelShaders[pid.value];
+
+		   dc.IASetInputLayout(vs.inputLayout);
+		   dc.VSSetShader(vs.vs, nullptr, 0);
+		   dc.PSSetShader(ps.ps, nullptr, 0);
+	   }
+
+	   void ClearContext()
+	   {
+		   dc.IASetInputLayout(nullptr);
+		   dc.VSSetShader(nullptr, nullptr, 0);
+		   dc.PSSetShader(nullptr, nullptr, 0);
+		   dc.PSSetShaderResources(0, 0, nullptr);
+	   }
+
+	   void SwitchToWindowMode()
+	   {
+		   BOOL isFullScreen;
+		   AutoRelease<IDXGIOutput> output;
+		   if SUCCEEDED(mainSwapChain->GetFullscreenState(&isFullScreen, &output))
+		   {
+			   if (isFullScreen)
+			   {
+				   mainSwapChain->SetFullscreenState(false, nullptr);
+			   }
+		   }
+	   }
+
+	   void OnMouseEvent(const RAWMOUSE& m)
+	   {
+		   lastMouseEvent = m;
+	   }
+
+	   virtual void GetGuiMetrics(GuiMetrics& metrics) const
+	   {
+		   POINT p;
+		   GetCursorPos(&p);
+		   ScreenToClient(hRenderWindow, &p);
+
+		   metrics.cursorPosition = Vec2i{ p.x, p.y };
+		   metrics.screenSpan = screenSpan;
+	   }
+
+	   struct MeshBuffer
+	   {
+		   ID3D11Buffer* dx11Buffer;
+		   UINT numberOfVertices;
+		   D3D_PRIMITIVE_TOPOLOGY topology;
+	   };
+
+	   std::vector<MeshBuffer> meshBuffers;
+
+	   virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices)
+	   {
+		   ID3D11Buffer* meshBuffer = vertices ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
+		   meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST });
+		   int32 index = (int32)meshBuffers.size();
+		   return ID_SYS_MESH(index - 1);
+	   }
+
+	   virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices)
+	   {
+		   if (rendererId.value < 0 || rendererId.value >= meshBuffers.size())
+		   {
+			   Throw(E_INVALIDARG, "renderer.UpdateMesh(ID_MESH id, ....) - Bad id ");
+		   }
+
+		   ID3D11Buffer* newMesh = vertices != nullptr ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
+		   meshBuffers[rendererId.value].numberOfVertices = nVertices;
+
+		   if (meshBuffers[rendererId.value].dx11Buffer) meshBuffers[rendererId.value].dx11Buffer->Release();
+		   meshBuffers[rendererId.value].dx11Buffer = newMesh;
+	   }
+
+	   virtual void Draw(ID_SYS_MESH id, const ObjectInstance* instances, uint32 nInstances)
+	   {
+		   if (id.value < 0 || id.value >= meshBuffers.size()) Throw(E_INVALIDARG, "renderer.DrawObject(ID_MESH id) - Bad id ");
+
+		   auto& buffer = meshBuffers[id.value];
+
+		   if (!buffer.dx11Buffer)
+			   return;
+
+		   ID3D11Buffer* buffers[] = { buffer.dx11Buffer };
+
+		   dc.IASetPrimitiveTopology(buffer.topology);
+
+		   UINT strides[] = { sizeof(ObjectVertex) };
+		   UINT offsets[]{ 0 };
+		   dc.IASetVertexBuffers(0, 1, buffers, strides, offsets);
+
+		   for (uint32 i = 0; i < nInstances; i++)
+		   {
+			   // dc.DrawInstances crashed the debugger, replace with single instance render call for now
+			   DX11::CopyStructureToBuffer(dc, instanceBuffer, instances + i, sizeof(ObjectInstance));
+			   dc.VSSetConstantBuffers(1, 1, &instanceBuffer);
+			   dc.Draw(buffer.numberOfVertices, 0);
+		   }
+
+		   dc.VSSetConstantBuffers(0, 0, nullptr);
+	   }
+
+	   virtual Windows::IWindow& Window()
+	   {
+		   return *window;
+	   }
+
+	   GlobalState g;
+
+	   virtual void SetGlobalState(const GlobalState& gs)
+	   {
+		   DX11::CopyStructureToBuffer(dc, vs_globalStateBuffer, gs);
+		   dc.VSSetConstantBuffers(0, 1, &vs_globalStateBuffer);
+
+		   DX11::CopyStructureToBuffer(dc, ps_globalStateBuffer, gs);
+		   dc.PSSetConstantBuffers(0, 1, &ps_globalStateBuffer);
+	   }
+
+	   void DrawCursor()
+	   {
+		   if (cursor.bitmapId != ID_TEXTURE::Invalid())
+		   {
+			   GuiMetrics metrics;
+			   GetGuiMetrics(metrics);
+
+			   Vec2i span = SelectTexture(cursor.bitmapId);
+
+			   float u0 = cursor.uvTopLeft.x;
+			   float u1 = cursor.uvBottomRight.x;
+			   float v0 = cursor.uvTopLeft.y;
+			   float v1 = cursor.uvBottomRight.y;
+
+			   Vec2 p{ (float)metrics.cursorPosition.x, (float)metrics.cursorPosition.y };
+
+			   float x0 = p.x + cursor.hotspotOffset.x;
+			   float x1 = x0 + (float)span.x;
+			   float y0 = p.y + cursor.hotspotOffset.y;
+			   float y1 = y0 + (float)span.y;
+
+			   GuiVertex quad[6]
+			   {
+				   GuiVertex{ x0, y0, 0.0f, 0.0f, RGBAb(128,0,0), u0, v0, 0.0f },
+				   GuiVertex{ x1, y0, 0.0f, 0.0f, RGBAb(0,128,0), u1, v0, 0.0f },
+				   GuiVertex{ x1, y1, 0.0f, 0.0f, RGBAb(0,0,128), u1, v1, 0.0f },
+				   GuiVertex{ x1, y1, 0.0f, 0.0f, RGBAb(128,0,0), u1, v1, 0.0f },
+				   GuiVertex{ x0, y1, 0.0f, 0.0f, RGBAb(0,128,0), u0, v1, 0.0f },
+				   GuiVertex{ x0, y0, 0.0f, 0.0f, RGBAb(0,0,128), u0, v0, 0.0f }
+			   };
+
+			   AddTriangle(quad);
+			   AddTriangle(quad + 3);
+
+			   SetCursor(0);
+		   }
+		   else
+		   {
+			   SetCursor(LoadCursor(nullptr, IDC_ARROW));
+		   }
+	   }
+
+	   virtual void Render(IScene& scene)
+	   {
+		   if (mainBackBufferView.IsNull()) return;
+
+		   lastTextureId = ID_TEXTURE::Invalid();
+
+		   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
+
+		   RGBA clearColour = scene.GetClearColour();
+
+		   if (clearColour.alpha > 0)
+		   {
+			   dc.ClearRenderTargetView(mainBackBufferView, (const FLOAT*)&clearColour);
+		   }
+
+		   dc.ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+		   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
+		   UseShaders(idObjVS, idObjPS);
+
+		   dc.PSSetSamplers(0, 1, &objectSampler);
+		   dc.RSSetState(objectRaterizering);
+		   dc.OMSetDepthStencilState(objDepthState, 0);
+
+		   scene.RenderObjects(*this);
+		   scene.RenderGui(*this);
+
+		   for (auto& o : overlays)
+		   {
+			   o.overlay->Render(*this);
+		   }
+
+		   FlushLayer();
+
+		   DrawCursor();
+
+		   FlushLayer();
+
+		   renderState = RenderState_None;
+
+		   dc.PSSetShaderResources(0, 0, nullptr);
+		   dc.PSSetSamplers(0, 0, nullptr);
+
+		   mainSwapChain->Present(1, 0);
+
+		   dc.OMSetBlendState(nullptr, nullptr, 0);
+		   dc.RSSetState(nullptr);
+		   dc.OMSetDepthStencilState(nullptr, 0);
+		   dc.OMSetRenderTargets(0, nullptr, nullptr);
+		   dc.IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
+	   }
+
+	   void AddTriangle(const GuiVertex triangle[3])
+	   {
+		   guiVertices.push_back(triangle[0]);
+		   guiVertices.push_back(triangle[1]);
+		   guiVertices.push_back(triangle[2]);
+	   }
+
+	   RGBAb FontColourToSysColour(Fonts::FontColour colour)
+	   {
+		   RGBAb* pCol = (RGBAb*)&colour;
+		   return *pCol;
+	   }
+
+	   virtual void DrawGlyph(const Vec2& uvTopLeft, const Vec2& posTopLeft, float dx, float dy, Fonts::FontColour fcolour)
+	   {
+		   float x = posTopLeft.x;
+		   float y = posTopLeft.y;
+
+		   RGBAb colour = FontColourToSysColour(fcolour);
+
+		   guiVertices.push_back(GuiVertex{ x,           y, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x,      uvTopLeft.y,      0.0f }); // topLeft
+		   guiVertices.push_back(GuiVertex{ x,      y + dy, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x,      uvTopLeft.y + dy, 0.0f }); // bottomLeft
+		   guiVertices.push_back(GuiVertex{ x + dx, y + dy, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x + dx, uvTopLeft.y + dy, 0.0f }); // bottomRigh
+		   guiVertices.push_back(GuiVertex{ x,           y, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x,      uvTopLeft.y,      0.0f }); // topLeft
+		   guiVertices.push_back(GuiVertex{ x + dx,      y, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x + dx, uvTopLeft.y,      0.0f }); // TopRight
+		   guiVertices.push_back(GuiVertex{ x + dx, y + dy, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x + dx, uvTopLeft.y + dy, 0.0f }); // bottomRight
+	   }
+
+	   enum RenderState
+	   {
+		   RenderState_None,
+		   RenderState_Gui,
+		   RenderState_Sprites
+	   } renderState{ RenderState_None };
+
+	   void FlushLayer()
+	   {
+		   size_t nVerticesLeftToRender = guiVertices.size();
+		   while (nVerticesLeftToRender > 0)
+		   {
+			   if (renderState != RenderState_Gui)
+			   {
+				   renderState = RenderState_Gui;
+
+				   UseShaders(idGuiVS, idGuiPS);
+				   dc.PSSetSamplers(0, 1, &spriteSampler);
+				   dc.PSSetShaderResources(0, 1, &fontBinding);
+				   dc.RSSetState(spriteRaterizering);
+
+				   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+				   dc.OMSetBlendState(alphaBlend, blendFactorUnused, 0xffffffff);
+
+				   GuiScale guiScaleVector;
+				   guiScaleVector.OOScreenWidth = 1.0f / screenSpan.x;
+				   guiScaleVector.OOScreenHeight = 1.0f / screenSpan.y;
+				   guiScaleVector.OOFontWidth = fonts->TextureSpan().z;
+				   guiScaleVector.OOFontHeight = fonts->TextureSpan().w;
+
+				   DX11::CopyStructureToBuffer(dc, vector4Buffer, &guiScaleVector, sizeof(GuiScale));
+
+				   dc.VSSetConstantBuffers(0, 1, &vector4Buffer);
+				   dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+				   dc.OMSetDepthStencilState(guiDepthState, 0);
+			   }
+
+			   size_t startIndex = guiVertices.size() - nVerticesLeftToRender;
+			   size_t chunk = min(nVerticesLeftToRender, (size_t)GUI_BUFFER_VERTEX_CAPACITY);
+
+			   D3D11_MAPPED_SUBRESOURCE x;
+			   VALIDATEDX11(dc.Map(guiBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &x));
+			   memcpy(x.pData, &guiVertices[startIndex], chunk * sizeof(GuiVertex));
+			   dc.Unmap(guiBuffer, 0);
+
+			   UINT stride = sizeof(GuiVertex);
+			   UINT offset = 0;
+			   dc.IASetVertexBuffers(0, 1, &guiBuffer, &stride, &offset);
+			   dc.Draw((UINT)chunk, 0);
+
+			   nVerticesLeftToRender -= chunk;
+		   };
+
+		   guiVertices.clear();
+
+		   size_t nSpriteVerticesLeftToRender = textureArray.spriteTriangles.size();
+		   while (nSpriteVerticesLeftToRender > 0)
+		   {
+			   if (isBuildingAlphaBlendedSprites)
+			   {
+				   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+				   dc.OMSetBlendState(alphaBlend, blendFactorUnused, 0xffffffff);
+			   }
+			   else
+			   {
+				   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+				   dc.OMSetBlendState(this->disableBlend, blendFactorUnused, 0xffffffff);
+			   }
+
+			   if (renderState != RenderState_Sprites)
+			   {
+				   renderState = RenderState_Sprites;
+
+				   UseShaders(idSpriteVS, idSpritePS);
+
+				   dc.PSSetSamplers(0, 1, &spriteSampler);
+				   ID3D11ShaderResourceView* views[1] = { textureArray.View() };
+				   dc.PSSetShaderResources(0, 1, views);
+				   dc.RSSetState(spriteRaterizering);
+
+				   Vec4 guiScaleVector;
+				   guiScaleVector.x = 1.0f / screenSpan.x;
+				   guiScaleVector.y = 1.0f / screenSpan.y;
+				   guiScaleVector.z = 1.0f / (float32)textureArray.width;
+				   guiScaleVector.w = 0.0f;
+
+				   DX11::CopyStructureToBuffer(dc, vector4Buffer, &guiScaleVector, sizeof(Vec4));
+
+				   dc.VSSetConstantBuffers(0, 1, &vector4Buffer);
+				   dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+				   dc.OMSetDepthStencilState(guiDepthState, 0);
+			   }
+
+			   size_t startIndex = textureArray.spriteTriangles.size() - nSpriteVerticesLeftToRender;
+			   size_t chunk = min(nSpriteVerticesLeftToRender, (size_t)GUI_BUFFER_VERTEX_CAPACITY);
+
+			   D3D11_MAPPED_SUBRESOURCE x;
+			   VALIDATEDX11(dc.Map(guiBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &x));
+			   memcpy(x.pData, &textureArray.spriteTriangles[startIndex], chunk * sizeof(GuiVertex));
+			   dc.Unmap(guiBuffer, 0);
+
+			   UINT stride = sizeof(GuiVertex);
+			   UINT offset = 0;
+			   dc.IASetVertexBuffers(0, 1, &guiBuffer, &stride, &offset);
+			   dc.Draw((UINT)chunk, 0);
+
+			   nSpriteVerticesLeftToRender -= chunk;
+
+			   textureArray.spriteTriangles.clear();
+		   }
+	   }
+
+	   void ResizeBuffers(const Vec2i& span)
+	   {
+		   mainBackBufferView.Detach();
+
+		   VALIDATEDX11(mainSwapChain->ResizeBuffers(1, span.x, span.y, DXGI_FORMAT_R8G8B8A8_UNORM, 0));
+
+		   AutoRelease<ID3D11Texture2D> backBuffer;
+		   VALIDATEDX11(mainSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
+		   VALIDATEDX11(device.CreateRenderTargetView(backBuffer, nullptr, &mainBackBufferView));
+
+		   depthStencilView.Detach();
+
+		   AutoRelease<ID3D11Texture2D> depthBuffer;
+
+		   auto depthDesc = DX11::GetDepthDescription(hRenderWindow);
+		   VALIDATEDX11(device.CreateTexture2D(&depthDesc, nullptr, &depthBuffer));
+		   VALIDATEDX11(device.CreateDepthStencilView(depthBuffer, nullptr, &depthStencilView));
+
+		   SyncViewport();
+	   }
+
+	   virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
+	   {
+		   if (span.x > 0 && span.y > 0)
+		   {
+			   D3D11_TEXTURE2D_DESC desc;
+			   {
+				   AutoRelease<ID3D11Texture2D> backBuffer;
+				   VALIDATEDX11(mainSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
+				   backBuffer->GetDesc(&desc);
+			   }
+
+			   if (desc.Width != span.x || desc.Height != span.y)
+			   {
+				   ResizeBuffers(span);
+			   }
+
+			   BOOL isFullScreen;
+			   IDXGIOutput* output = nullptr;
+			   mainSwapChain->GetFullscreenState(&isFullScreen, &output);
+			   if (isFullScreen)
+			   {
+				   output->Release();
+			   }
+			   else
+			   {
+				   // Style can ben lost when dialog invoked in full screen mode. So add it here
+				   DWORD style = GetWindowLong(hWnd, GWL_STYLE);
+				   if ((style & WS_CAPTION) == 0)
+				   {
+					   SetWindowLong(hWnd, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
+				   }
+			   }
+		   }
+	   }
+
+	   void SetCursorBitmap(ID_TEXTURE idBitmap, Vec2i hotspotOffset, Vec2 uvTopLeft, Vec2 uvBottomRight) override
+	   {
+		   cursor.bitmapId = idBitmap;
+		   cursor.uvTopLeft = uvTopLeft;
+		   cursor.uvBottomRight = uvBottomRight;
+		   cursor.hotspotOffset = hotspotOffset;
+	   }
+
+	   void SetCursorVisibility(bool isVisible) override
+	   {
+		   if (isVisible)
+		   {
+			   for (int i = 0; i < 3; ++i)
+			   {
+				   int index = ShowCursor(TRUE);
+				   if (index >= 0)
+				   {
+					   ClipCursor(nullptr);
+					   SetCapture(nullptr);
+					   return;
+				   }
+			   }
+		   }
+		   else
+		   {
+			   for (int i = 0; i < 3; ++i)
+			   {
+				   int index = ShowCursor(FALSE);
+				   if (index < 0)
+				   {
+					   RECT rect;
+					   GetClientRect(hRenderWindow, &rect);
+					   ClipCursor(&rect);
+					   SetCapture(hRenderWindow);
+					   return;
+				   }
+			   }
+		   }
+	   }
+   };
+
+   struct DX11Host
+   {
+	   DX11Host()
+	   {
+
+	   }
+
+	   ~DX11Host()
+	   {
+		   device = nullptr;
+		   dc = nullptr;
+		   adapter = nullptr;
+		   factory = nullptr;
+		   if (debug)
+		   {
+			   //   debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+			   debug = nullptr;
+		   }
+	   }
+	   AutoRelease<IDXGIAdapter> adapter;
+	   AutoRelease<ID3D11DeviceContext> dc;
+	   AutoRelease<ID3D11Device> device;
+	   AutoRelease<IDXGIFactory> factory;
+	   AutoRelease<ID3D11Debug> debug;
+   };
 
 	class MainWindowHandler : public StandardWindowHandler
 	{
@@ -1362,155 +1394,155 @@ namespace
       }
    };
 
-	void MainLoop(MainWindowHandler& mainWindow, HANDLE hInstanceLock, IApp& app)
-	{
-      UltraClock uc;
-		OS::ticks lastTick = uc.start;
+   void MainLoop(MainWindowHandler& mainWindow, HANDLE hInstanceLock, IApp& app)
+   {
+	   UltraClock uc;
+	   OS::ticks lastTick = uc.start;
 
-      float hz = (float) OS::CpuHz();
+	   float hz = (float)OS::CpuHz();
 
-		DWORD sleepMS = 5;
-		MSG msg = { 0 };
-		while (msg.message != WM_QUIT)
-		{
-			DWORD status = MsgWaitForMultipleObjectsEx(1, &hInstanceLock, sleepMS, QS_ALLEVENTS, MWMO_ALERTABLE);
+	   DWORD sleepMS = 5;
+	   MSG msg = { 0 };
+	   while (msg.message != WM_QUIT)
+	   {
+		   DWORD status = MsgWaitForMultipleObjectsEx(1, &hInstanceLock, sleepMS, QS_ALLEVENTS, MWMO_ALERTABLE);
 
-			if (status == WAIT_OBJECT_0)
-			{
-				ResetEvent(hInstanceLock);
-				SetForegroundWindow(mainWindow.Window());
-			}
+		   if (status == WAIT_OBJECT_0)
+		   {
+			   ResetEvent(hInstanceLock);
+			   SetForegroundWindow(mainWindow.Window());
+		   }
 
-			while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
+		   while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+		   {
+			   TranslateMessage(&msg);
+			   DispatchMessage(&msg);
 
-				if (msg.message == WM_QUIT)
-				{
-					return;
-				}
-			}
+			   if (msg.message == WM_QUIT)
+			   {
+				   return;
+			   }
+		   }
 
-         RECT rect;
-         GetClientRect(mainWindow.Window(), &rect);
+		   RECT rect;
+		   GetClientRect(mainWindow.Window(), &rect);
 
-         if ((rect.right - rect.left) == 0)
-         {
-            sleepMS = 1000;
-            continue;
-         }
+		   if ((rect.right - rect.left) == 0)
+		   {
+			   sleepMS = 1000;
+			   continue;
+		   }
 
-			QueryPerformanceCounter((LARGE_INTEGER*)&uc.frameStart);
+		   QueryPerformanceCounter((LARGE_INTEGER*)&uc.frameStart);
 
-			uc.frameDelta = uc.frameStart - lastTick;
+		   uc.frameDelta = uc.frameStart - lastTick;
 
-         float dt0 = uc.frameDelta / (float) hz;
-         dt0 = max(0.0f, dt0);
-         dt0 = min(dt0, 0.05f);
-         uc.dt = Seconds{ dt0 };
+		   float dt0 = uc.frameDelta / (float)hz;
+		   dt0 = max(0.0f, dt0);
+		   dt0 = min(dt0, 0.05f);
+		   uc.dt = Seconds{ dt0 };
 
-         sleepMS = app.OnFrameUpdated(uc);
-         lastTick = uc.frameStart;
-		}
-	}
-} // anon
+		   sleepMS = app.OnFrameUpdated(uc);
+		   lastTick = uc.frameStart;
+	   }
+   }
+}
 
 namespace
 {
-   class DX11Window : public IDX11Window, public IAppEventHandler, public IEventCallback<SysUnstableArgs>
-   {
-      IInstallation& installation;
-      DX11Host host;
-      IApp* app{ nullptr };    
-      DX11AppRenderer* renderer{ nullptr };
-      AutoFree<MainWindowHandler> mainWindowHandler;
-      std::vector<GuiVertex> spriteQueue;
+	class DX11Window : public IDX11Window, public IAppEventHandler, public IEventCallback<SysUnstableArgs>
+	{
+		IInstallation& installation;
+		DX11Host host;
+		IApp* app{ nullptr };
+		DX11AppRenderer* renderer{ nullptr };
+		AutoFree<MainWindowHandler> mainWindowHandler;
+		std::vector<GuiVertex> spriteQueue;
 
-      IWindow& Window()
-      {
-         return mainWindowHandler->Window();
-      }
+		IWindow& Window()
+		{
+			return mainWindowHandler->Window();
+		}
 
-      virtual void BindMainWindow(HWND hWnd)
-      {
-         renderer->BindMainWindow(hWnd);
-      }
+		virtual void BindMainWindow(HWND hWnd)
+		{
+			renderer->BindMainWindow(hWnd);
+		}
 
-      virtual bool OnClose()
-      {
-         renderer->SwitchToWindowMode();
-         return true;
-      }
+		virtual bool OnClose()
+		{
+			renderer->SwitchToWindowMode();
+			return true;
+		}
 
-      virtual void OnKeyboardEvent(const RAWKEYBOARD& k)
-      {
-         if (app) app->OnKeyboardEvent((const KeyboardEvent&)k);
-      }
+		virtual void OnKeyboardEvent(const RAWKEYBOARD& k)
+		{
+			if (app) app->OnKeyboardEvent((const KeyboardEvent&)k);
+		}
 
-      virtual void OnMouseEvent(const RAWMOUSE& m)
-      {
-         renderer->OnMouseEvent(m);
+		virtual void OnMouseEvent(const RAWMOUSE& m)
+		{
+			renderer->OnMouseEvent(m);
 
-         MouseEvent me;
-         memcpy(&me, &m, sizeof(m));
+			MouseEvent me;
+			memcpy(&me, &m, sizeof(m));
 
-         POINT p;
-         GetCursorPos(&p);
-         ScreenToClient(renderer->Window(), &p);
+			POINT p;
+			GetCursorPos(&p);
+			ScreenToClient(renderer->Window(), &p);
 
-         me.cursorPos.x = p.x;
-         me.cursorPos.y = p.y;
+			me.cursorPos.x = p.x;
+			me.cursorPos.y = p.y;
 
-         if (app) app->OnMouseEvent(me);
-      }
+			if (app) app->OnMouseEvent(me);
+		}
 
-      virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
-      {
-         renderer->OnSize(hWnd, span, type);
-      }
+		virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
+		{
+			renderer->OnSize(hWnd, span, type);
+		}
 
-      virtual void OnEvent(SysUnstableArgs& arg)
-      {
-         renderer->SwitchToWindowMode();
-      }
+		virtual void OnEvent(SysUnstableArgs& arg)
+		{
+			renderer->SwitchToWindowMode();
+		}
 
-      virtual IRenderer& Renderer()
-      {
-         return *renderer;
-      }
-   public:
-      DX11Window(IInstallation& _installation): installation(_installation)
-      {
-         Create_DX11_0_Host(0, host);
-         renderer = new  DX11AppRenderer(*host.device, *host.dc, *host.factory, installation);
-         mainWindowHandler = MainWindowHandler::Create(*this);
-         VALIDATEDX11(host.factory->MakeWindowAssociation(mainWindowHandler->Window(), 0));
-         renderer->window = &mainWindowHandler->Window();
-         installation.OS().SetUnstableHandler(this);
-      }
+		virtual IRenderer& Renderer()
+		{
+			return *renderer;
+		}
+	public:
+		DX11Window(IInstallation& _installation) : installation(_installation)
+		{
+			Create_DX11_0_Host(0, host);
+			renderer = new  DX11AppRenderer(*host.device, *host.dc, *host.factory, installation);
+			mainWindowHandler = MainWindowHandler::Create(*this);
+			VALIDATEDX11(host.factory->MakeWindowAssociation(mainWindowHandler->Window(), 0));
+			renderer->window = &mainWindowHandler->Window();
+			installation.OS().SetUnstableHandler(this);
+		}
 
-      virtual void Free()
-      {
-         installation.OS().SetUnstableHandler(nullptr);
-         renderer->Free();
-         delete this;
-      } 
+		virtual void Free()
+		{
+			installation.OS().SetUnstableHandler(nullptr);
+			renderer->Free();
+			delete this;
+		}
 
-      void Run(HANDLE hInstanceLock, IApp& app)
-      {
-         this->app = &app;
-         MainLoop(*mainWindowHandler, hInstanceLock, app);
-         this->app = nullptr;
-      }
-   };
+		void Run(HANDLE hInstanceLock, IApp& app)
+		{
+			this->app = &app;
+			MainLoop(*mainWindowHandler, hInstanceLock, app);
+			this->app = nullptr;
+		}
+	};
 }
 
 namespace Rococo
 { 
-   IDX11Window* CreateDX11Window(IInstallation& installation)
-   {
-      return new DX11Window(installation);
-   }
+	IDX11Window* CreateDX11Window(IInstallation& installation)
+	{
+		return new DX11Window(installation);
+	}
 }
 

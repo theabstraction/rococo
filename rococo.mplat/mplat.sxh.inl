@@ -479,8 +479,8 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(VirtualTable*);
-		VirtualTable* text;
+		_offset += sizeof(VirtualTable**);
+		VirtualTable** text;
 		ReadInput(text, _sf, -_offset);
 		Rococo::Helpers::StringPopulator _textPopulator(_nce, text);
 		_offset += sizeof(IString*);

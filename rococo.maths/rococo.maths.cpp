@@ -163,62 +163,62 @@ namespace // globals
 
 namespace Rococo
 {
-   Matrix4x4 Matrix4x4::GetRHProjectionMatrix(Degrees fov, float32 aspectRatio, float near, float far)
-   {
-      if (fov < 0.001f || fov > 179.0f)                Throw(0, "Field-of-view out of range. Must be 0.001 <= fov <= 179.");
-      if (aspectRatio < 0.01f || aspectRatio > 100.0f) Throw(0, "Aspect ratio outside of sane range. Must be 0.01 <= AR <= 100.");
-      if (near <= 0 || near > 100000.0f)               Throw(0, "Near plane outside of sane range. Range: 0 < near < 100000");
-      if (far <= near || far > 100000.0f)              Throw(0, "Far plane outside of sane range. Range: near < far <= 100000");
+	Matrix4x4 Matrix4x4::GetRHProjectionMatrix(Degrees fov, float32 aspectRatio, float near, float far)
+	{
+		if (fov < 0.001f || fov > 179.0f)                Throw(0, "Field-of-view out of range. Must be 0.001 <= fov <= 179.");
+		if (aspectRatio < 0.01f || aspectRatio > 100.0f) Throw(0, "Aspect ratio outside of sane range. Must be 0.01 <= AR <= 100.");
+		if (near <= 0 || near > 100000.0f)               Throw(0, "Near plane outside of sane range. Range: 0 < near < 100000");
+		if (far <= near || far > 100000.0f)              Throw(0, "Far plane outside of sane range. Range: near < far <= 100000");
 
-      float32 tanhalffov = tanf(fov.ToRadians() / 2.0f);
+		float32 tanhalffov = tanf(fov.ToRadians() / 2.0f);
 
-      /*
-      The camera sits at the origin looking down, therefore only  -far < z < -near is visible
-      Thus z is negative to be visible.
-      To stop x and y flipping directions in screen space, their quotient has to be positive
-      So the w divide has to be positive. To make divide positive with -ve z, we need to multiply z by -1
-      So we have matrix
-      (A  0  0  0)
-      (0  B  0  0)
-      (0  0  C  D)
-      (0  0 -1  0)
-      When z - -far, proj(z) = proj(-far) = 1, thus (C.-far + D) / (-1)(-far) = 1, or D - C.far = far
-      When z = -near, proj(z) = proj(-near) = 0, thus D = C.near
-      // Thus C.near - C.far = far, and thus C = far / (near-far)
-      With D = (far.near) / (near -far)
-      // Note that near < far, thus C and D are negative
+		/*
+		The camera sits at the origin looking down, therefore only  -far < z < -near is visible
+		Thus z is negative to be visible.
+		To stop x and y flipping directions in screen space, their quotient has to be positive
+		So the w divide has to be positive. To make divide positive with -ve z, we need to multiply z by -1
+		So we have matrix
+		(A  0  0  0)
+		(0  B  0  0)
+		(0  0  C  D)
+		(0  0 -1  0)
+		When z - -far, proj(z) = proj(-far) = 1, thus (C.-far + D) / (-1)(-far) = 1, or D - C.far = far
+		When z = -near, proj(z) = proj(-near) = 0, thus D = C.near
+		// Thus C.near - C.far = far, and thus C = far / (near-far)
+		With D = (far.near) / (near -far)
+		// Note that near < far, thus C and D are negative
 
-      */
+		*/
 
-      float32 B = 1.0f / tanhalffov;
-      float32 A = B / aspectRatio;
-      float32 C = far / (near - far);
-      float32 D = (far * near) / (near - far);
+		float32 B = 1.0f / tanhalffov;
+		float32 A = B / aspectRatio;
+		float32 C = far / (near - far);
+		float32 D = (far * near) / (near - far);
 
-      return Matrix4x4
-      {
-         { A,	 0,  0,   0 },
-         { 0,   B,  0,   0 },
-         { 0,   0,  C,   D },
-         { 0,   0, -1,   0 }
-      };
-   }
+		return Matrix4x4
+		{
+		   { A,	 0,  0,   0 },
+		   { 0,   B,  0,   0 },
+		   { 0,   0,  C,   D },
+		   { 0,   0, -1,   0 }
+		};
+	}
 
-   void ExpandZoneToContain(GuiRect& rect, const Vec2i& p)
-   {
-      if (p.x < rect.left) rect.left = p.x;
-      if (p.x > rect.right) rect.right = p.x;
-      if (p.y < rect.top) rect.top = p.y;
-      if (p.y > rect.bottom) rect.bottom = p.y;
-   }
+	void ExpandZoneToContain(GuiRect& rect, const Vec2i& p)
+	{
+		if (p.x < rect.left) rect.left = p.x;
+		if (p.x > rect.right) rect.right = p.x;
+		if (p.y < rect.top) rect.top = p.y;
+		if (p.y > rect.bottom) rect.bottom = p.y;
+	}
 
-   void ExpandZoneToContain(GuiRectf& rect, const Vec2& p)
-   {
-      if (p.x < rect.left) rect.left = p.x;
-      if (p.x > rect.right) rect.right = p.x;
-      if (p.y < rect.top) rect.top = p.y;
-      if (p.y > rect.bottom) rect.bottom = p.y;
-   }
+	void ExpandZoneToContain(GuiRectf& rect, const Vec2& p)
+	{
+		if (p.x < rect.left) rect.left = p.x;
+		if (p.x > rect.right) rect.right = p.x;
+		if (p.y < rect.top) rect.top = p.y;
+		if (p.y > rect.bottom) rect.bottom = p.y;
+	}
 
 	Vec2  GetIntersect(Vec2 A, Vec2 D, Vec2 B, Vec2 E)
 	{
@@ -359,7 +359,7 @@ namespace Rococo
 		if (DX == 0 && DY == 0) return 0.0_degrees;
 		float f = DY / (Square(DX) + Square(DY));
 		f = min(1.0f, max(-1.0f, f));
-		
+
 		float theta = acosf(f);
 
 		if (DX < 0)
@@ -421,7 +421,7 @@ namespace Rococo
 
 
 #ifdef _WIN32
-   Matrix4x4 operator * (const Matrix4x4& a, const Matrix4x4& b)
+	Matrix4x4 operator * (const Matrix4x4& a, const Matrix4x4& b)
 	{
 		Matrix4x4 result;
 		Multiply(result, a, b);
@@ -612,7 +612,7 @@ namespace Rococo
 		float deltaTheta = (maxTheta - minTheta) * 0.05f; // This gives 20 estimates
 
 		float a = 0.5f * g * Square(S) / Square(projectileSpeed);
-		
+
 		float bestTheta = minTheta;
 		float bestError = 1.0e30f;
 
@@ -649,186 +649,187 @@ namespace Rococo
 		return (p.x >= rect.left && p.x <= rect.right && p.y >= rect.top && p.y <= rect.bottom);
 	}
 
-   bool Triangle2d::IsInternal(Vec2 p) const
-   {
-      float Fa = Cross(B - A, p - B);
-      float Fb = Cross(C - B, p - C);
-      float Fc = Cross(A - C, p - A);
+	bool Triangle2d::IsInternal(Vec2 p) const
+	{
+		float Fa = Cross(B - A, p - B);
+		float Fb = Cross(C - B, p - C);
+		float Fc = Cross(A - C, p - A);
 
-      if (Fa < 0 && Fb < 0 && Fc < 0)
-      {
-         return true;
-      }
+		if (Fa < 0 && Fb < 0 && Fc < 0)
+		{
+			return true;
+		}
 
-      return false;
-   }
+		return false;
+	}
 
-   bool Triangle2d::IsInternalOrOnEdge(Vec2 p) const
-   {
-      float Fa = Cross(B - A, p - B);
-      float Fb = Cross(C - B, p - C);
-      float Fc = Cross(A - C, p - A);
+	bool Triangle2d::IsInternalOrOnEdge(Vec2 p) const
+	{
+		float Fa = Cross(B - A, p - B);
+		float Fb = Cross(C - B, p - C);
+		float Fc = Cross(A - C, p - A);
 
-      if (Fa <= 0 && Fb <= 0 && Fc <= 0)
-      {
-         return true;
-      }
+		if (Fa <= 0 && Fb <= 0 && Fc <= 0)
+		{
+			return true;
+		}
 
-      return false;
-   }  
-   
-   size_t Triangle2d::CountInternalPoints(const Vec2* points, size_t nPoints)
-   {
-      size_t count = 0;
-      for (size_t i = 0; i < nPoints; ++i)
-      {
-         auto p = points[i];
-         if (IsInternal(p))
-         {
-            count++;
-         }
-      }
+		return false;
+	}
 
-      return count;
-   }
+	size_t Triangle2d::CountInternalPoints(const Vec2* points, size_t nPoints)
+	{
+		size_t count = 0;
+		for (size_t i = 0; i < nPoints; ++i)
+		{
+			auto p = points[i];
+			if (IsInternal(p))
+			{
+				count++;
+			}
+		}
 
-   bool IsOdd(int32 i)
-   {
-      return (i % 2) == 1;
-   }
+		return count;
+	}
 
-   bool DoesLineIntersectRing(Vec2 origin, Vec2 normal, IRingManipulator<Vec2>& ring)
-   {
-      IntersectCounts counts = { 0 };
-      for (size_t i = 0; i < ring.ElementCount(); ++i)
-      {
-         Vec2 q0 = ring[i];
-         Vec2 q1 = ring[i + 1];
+	bool IsOdd(int32 i)
+	{
+		return (i % 2) == 1;
+	}
 
-         Vec2 specimen[2];
-         specimen[0] = q0;
-         specimen[1] = q1;
+	bool DoesLineIntersectRing(Vec2 origin, Vec2 normal, IRingManipulator<Vec2>& ring)
+	{
+		IntersectCounts counts = { 0 };
+		for (size_t i = 0; i < ring.ElementCount(); ++i)
+		{
+			Vec2 q0 = ring[i];
+			Vec2 q1 = ring[i + 1];
 
-         if (q0 != origin && q1 != origin)
-         {
-            auto count = CountLineIntersects(origin, normal, specimen, 2, 0.001f);
-            counts.forwardCount += count.forwardCount;
-            counts.backwardCount += count.backwardCount;
-            counts.edgeCases += count.edgeCases;
-         }
-      }
+			if (q0 != origin)
+			{
+				auto count = CountLineIntersects(origin, normal, q0, q1);
+				counts.forwardCount += count.forwardCount;
+				counts.backwardCount += count.backwardCount;
+				counts.edgeCases += count.edgeCases;
+				counts.coincidence += count.coincidence;
+			}
+		}
 
-      return counts.forwardCount > 0;
-   }
+		return counts.forwardCount + counts.coincidence > 0;
+	}
 
-   bool IsClockwiseSequential(IRing<Vec2>& ring)
-   {
-      for (size_t j = 0; j < ring.ElementCount(); ++j)
-      {
-         Vec2 p0 = ring[j];
-         Vec2 p1 = ring[j + 1];
+	bool IsClockwiseSequential(IRing<Vec2>& ring)
+	{
+		Vec2 p0 = ring[0];
+		Vec2 p1 = ring[1];
 
-         Vec2 centre = (p0 + p1) * 0.5f;
-         Vec2 dp = p1 - p0;
-         Vec3 normal = Cross({ dp.x, dp.y, 0 }, { 0, 0, 1 });
+		Vec2 centre = (p0 + p1) * 0.5f;
+		Vec2 dp = p1 - p0;
 
-         // Take a segment from the perimeter and generate its normal
-         // Count the number of timest that normal crosses the perimeter
+		Vec2 normal = { dp.y, -dp.x };
+			
+		// Count the number of times that normal crosses the perimeter
+		int32 forwardCount = 0;
+		for (size_t i = 1; i < ring.ElementCount(); ++i)
+		{
+			Vec2 q0 = ring[i];
+			Vec2 q1 = ring[i + 1];
 
-         IntersectCounts counts = { 0 };
-         for (size_t i = j + 1; i < ring.ElementCount() + j; ++i)
-         {
-            Vec2 q0 = ring[i];
-            Vec2 q1 = ring[i + 1];
+			Vec2 other_normal = { q1.y - q0.y, q0.x - q1.x };
 
-            Vec2 specimen[2];
-            specimen[0] = q0;
-            specimen[1] = q1;
-            auto count = CountLineIntersects(centre, { normal.x, normal.y }, specimen, 2, 0.001f);
-            counts.forwardCount += count.forwardCount;
-            counts.backwardCount += count.backwardCount;
-            counts.edgeCases += count.edgeCases;
-         }
+			float dot = Dot(normal, other_normal);
 
-         // If its odd, then the segment is facing inside the enclosed region
-         if (counts.edgeCases == 0)
-         {
-            if (IsOdd(counts.forwardCount))
-            {
-               if (IsOdd(counts.backwardCount))
-               {
-                  Throw(0, "IsClockwiseSequential: Unexpected - forwardcount and backward count both odd!");
-               }
+			float t, u;
+			if (GetLineIntersect(q0, q1, centre, centre + normal, t, u))
+			{
+				if (u > 0) 
+				{
+					if (dot > 0)
+					{
+						// entering edge
+						if (t >= 0 && t < 1)
+						{
+							forwardCount--;
+						}
+					}
+					else if (dot == 0)
+					{
+						// Normal runs along edge
+					}
+					else
+					{
+						// leaving edge
+						if (t > 0 && t <= 1)
+						{
+							forwardCount++;
+						}
+					}
+				}
+			}
+		}
 
-               return true;
-            }
-            else
-            {
-               // Iteration needs to go backwardds to go clockwise aroun the perimeter
-               if (!IsOdd(counts.backwardCount))
-               {
-                  Throw(0, "IsClockwiseSequential: Unexpected - forwardcount and backward count both even!");
-               }
+		return forwardCount > 0;
+	}
 
-               return false;
-            }
-         }
-      }
+	void TesselateByEarClip(I2dMeshBuilder& builder, IRingManipulator<Vec2>& ring)
+	{
+		if (ring.ElementCount() < 3)
+		{
+			Throw(0, "Cannot tesselate ring with fewer than 3 elements");
+		}
 
-      Throw(0, "IsClockwiseSequential: Every calculation to evaluate chirality was an edge case");
-      return false;
-   }
+		// Algorithm assumes ring is enumerated clockwise
+		// If it is not clockwise the algorithm will throw the exception at the end of the function
 
-   void TesselateByEarClip(I2dMeshBuilder& builder, IRingManipulator<Vec2>& ring)
-   {
-      if (ring.ElementCount() < 3)
-      {
-         Throw(0, "Cannot tesselate ring with fewer than 3 elements");
-      }
+		// Enumerate vertices looking for an angle < 180 degrees (i.e convex angles). Cross product positive
 
-      size_t i = 0;
-      while (i < ring.ElementCount())
-      {
-         Triangle2d t;
-         t.A = ring[i];
-         t.B = ring[i + 1];
-         t.C = ring[i + 2];
+		size_t i = 0;
+		while (i < ring.ElementCount() && ring.ElementCount() >= 3)
+		{
+			Triangle2d t{ ring[i], ring[i + 1], ring[i + 2] };
 
-         Vec2 ab = t.B - t.A;
-         Vec2 bc = t.C - t.B;
+			Vec2 ab = t.B - t.A;
+			Vec2 bc = t.C - t.B;
 
-         float k = Cross(ab, bc);
-         if (k <= 0) // clockwise, we have an ear
-         {
-            // If we have an ear, we can eliminate B
-            // For the case ab and bc are parallel k = 0, but since they share a point B, are part of the same line, so we can eliminate b
+			float k = Cross(ab, bc);
+			if (k == 0)
+			{
+				// abc is a straight line, hence b is redundant
+				ring.Erase(i + 1);
+				i = 0;
+				continue;
+			}
+			else if (k < 0) // clockwise, we have an ear
+			{
+				// If we have an ear, we can eliminate B providing the triangle does not intersect any internal points
 
-            if (!DoesLineIntersectRing(t.A, t.C - t.A, ring) && t.CountInternalPoints(ring.Array(), ring.ElementCount()) == 0)
-            {
-               if (Dot(ab,bc) != Length(ab)*Length(bc)) builder.Append(t);
-               ring.Erase(i + 1);
+				size_t firstTestVertex = i + 3;
+				size_t lastTestVertex = firstTestVertex + ring.ElementCount() - 3;
 
-               if (ring.ElementCount() < 3)
-               {
-                  return;
-               }
+				bool hasInternalPoint = false;
+				for (size_t j = firstTestVertex; j < lastTestVertex; ++j)
+				{
+					Vec2 p = ring[j];
 
-               i = 0;
-               continue;
-            }
-            else
-            {
-               // Convex, but it crossed the ring
-            }
-         }
-         else
-         {
-            // Concave, not an ear
-         }
+					if (t.IsInternalOrOnEdge(p))
+					{
+						// Skip ear, there was an internal point
+						hasInternalPoint = true;
+						break;
+					}
+				}
 
-         i++;
-      }
+				if (!hasInternalPoint)
+				{
+					builder.Append(t);
+					ring.Erase(i + 1);
+					i = 0;
+					continue;
+				}
+			}
 
-      Throw(0, "Could not tesselate mesh. Iterated through all mesh and did not find ears");
-   }
+
+			i++;
+		}
+	}
 }

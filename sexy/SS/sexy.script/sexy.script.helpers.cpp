@@ -72,28 +72,28 @@ namespace Rococo
       {
          va_list args;
          va_start(args, format);
-         SafeFormat(variable.Value, VariableDesc::VALUE_CAPACITY, format, args);
+         SafeVFormat(variable.Value, VariableDesc::VALUE_CAPACITY, format, args);
       }
 
       void FormatVariableDescLocation(VariableDesc& variable, const char* format, ...)
       {
          va_list args;
          va_start(args, format);
-         SafeFormat(variable.Location, VariableDesc::LOCATION_CAPACITY, format, args);
+         SafeVFormat(variable.Location, VariableDesc::LOCATION_CAPACITY, format, args);
       }
 
       void FormatVariableDescName(VariableDesc& variable, const char* format, ...)
       {
          va_list args;
          va_start(args, format);
-         SafeFormat(variable.Name, VariableDesc::NAME_CAPACITY, format, args);
+         SafeVFormat(variable.Name, VariableDesc::NAME_CAPACITY, format, args);
       }
 
       void FormatVariableDescType(VariableDesc& variable, const char* format, ...)
       {
          va_list args;
          va_start(args, format);
-         SafeFormat(variable.Type, VariableDesc::TYPE_CAPACITY, format, args);
+         SafeVFormat(variable.Type, VariableDesc::TYPE_CAPACITY, format, args);
       }
 
       void AddSFToVarEnum(VariableDesc& variable, const Rococo::uint8* SF)
@@ -632,7 +632,7 @@ namespace Rococo
 		   const Rococo::Compiler::IStructure* lastPseudo = NULL;
 		   csexstr lastPseudoName;
 
-		   VariableDesc variable;
+         VariableDesc variable = { 0 };
 		
 		   AddSFToVarEnum(variable, sf);
 		   variableEnum.OnVariable(0, variable);
@@ -645,6 +645,8 @@ namespace Rococo
 
 		   for(int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
 		   {
+            VariableDesc variable = { 0 };
+
 			   MemberDef def;
 			   csexstr name;
 			   f->Code().GetLocalVariableSymbolByIndex(OUT def, OUT name, i);
@@ -667,6 +669,10 @@ namespace Rococo
 			   if (def.Usage == ARGUMENTUSAGE_BYVALUE)
 			   {
 				   FormatValue(ss, variable.Value, variable.VALUE_CAPACITY, def.ResolvedType->VarType(), pVariableData);
+
+               variable.s = def.ResolvedType;
+               variable.instance = (const uint8*)pVariableData;
+               variable.parentName = nullptr;
 
 				   if (lastPseudo != NULL && lastPseudoName != NULL)
 				   {
@@ -719,6 +725,7 @@ namespace Rococo
 			   {
 			   case VARLOCATION_NONE:
 				   variable.Address = 0;
+               variable.instance = 0;
 				   FormatVariableDescLocation(variable, "Pseudo");				
 				   break;
 			   case VARLOCATION_INPUT:

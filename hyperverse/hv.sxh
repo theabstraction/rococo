@@ -1,12 +1,26 @@
 (config $config.xc) 
 
 (interface
-	(as.sxy HV.IPlayer "../content/scripts/hv")
-	(as.cpp HV.IPlayer "hv")
+	(as.sxy HV.IPlayer "../content/scripts/hv" ": public IPlayerBase")
+	(as.cpp HV.IPlayer "hv" )
 	(context factory HV.IPlayerSupervisor)
 	(methods
 		(SetPlayerEntity (IdEntity id))
 		(GetPlayerEntity -> (IdEntity id))
 	)
 	(factory HV.Player (Int32 index))
+)
+
+(interface
+	(as.sxy HV.ICorridor "../content/scripts/hv")
+	(as.cpp HV.ICorridor "hv")
+	(context factory HV.ICorridor)
+	(methods
+		(GetSpan (Vec3 span))
+		(IsSloped -> (Bool isSloped))
+		(CentreComponent (IString componentName)(IString meshName)(IString textureName))
+		(ClearComponents (IString componentName))
+		(GetComponentMeshName (IString componentName)(IStringBuilder meshName))
+	)
+	(factory HV.Corridor)
 )

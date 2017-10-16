@@ -198,6 +198,11 @@ namespace Rococo
       return strcmp(a, b) == 0;
    }
 
+   bool StartsWith(cstr bigString, cstr prefix)
+   {
+	   return strncmp(bigString, prefix, strlen(prefix)) == 0;
+   }
+
    StackStringBuilder::StackStringBuilder(char* _buffer, size_t _capacity) :
       buffer(_buffer), capacity(_capacity), length(0)
    {

@@ -64,8 +64,6 @@
 #include "sexy.s-parser.h"
 #include "sexy.compiler.h"
 
-#include "sexy.lib.util.h"
-
 
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 

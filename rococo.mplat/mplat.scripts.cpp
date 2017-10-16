@@ -109,6 +109,8 @@ namespace Rococo
                   Graphics::AddNativeCalls_RococoGraphicsISceneBuilder(args.ss, &platform.scene.Builder());
                   Graphics::AddNativeCalls_RococoGraphicsISprites(args.ss, &platform.sprites);
                   AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
+
+				  args.ss.AddNativeLibrary("rococo.sexy.mathsex");
                }
 
                AddNativeCalls_RococoIConfig(args.ss, &platform.config);

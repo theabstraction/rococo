@@ -89,6 +89,11 @@ namespace Rococo
       operator cstr() const { return buffer; }
    };
 
+   ROCOCOAPI IStringPopulator
+   {
+      virtual void Populate(cstr text) = 0;
+   };
+
    inline ROCOCO_CONSTEXPR fstring operator"" _fstring(cstr msg, size_t length)
    {
       return fstring{ msg, (int32)length };

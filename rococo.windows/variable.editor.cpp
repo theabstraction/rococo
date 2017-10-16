@@ -50,6 +50,7 @@ namespace
 	enum EVariantType
 	{
 		EVariantType_None,
+		EVariantType_Bool,
 		EVariantType_Int32,
 		EVariantType_Uint32,
 		EVariantType_Float,
@@ -65,15 +66,18 @@ namespace
 
 	void FormatWithVariant(rchar* desc, size_t capacity, const Variant& var)
 	{
-      StackStringBuilder sb(desc, capacity);
+		StackStringBuilder sb(desc, capacity);
 
 		switch (var.type)
 		{
 		case EVariantType_Int32:
 			sb << var.value.int32Value;
 			break;
+		case EVariantType_Bool:
+			sb << var.value.int32Value;
+			break;
 		case EVariantType_Uint32:
-         sb << var.value.uint32Value;
+			sb << var.value.uint32Value;
 			break;
 		case EVariantType_Float:
 			sb << var.value.floatValue;
@@ -96,6 +100,7 @@ namespace
 		IWindowSupervisor* StaticControl;
 		IWindowSupervisor* EditControl;
 		IComboBoxSupervisor* ComboControl;
+		ICheckbox* CheckBox;
 		IWindowSupervisor* SpecialButtonControl;
 		Variant var;
 		UVariant minimum;
@@ -144,15 +149,16 @@ namespace
 	{
 		switch (v.var.type)
 		{
+		case EVariantType_Bool:
 		case EVariantType_Int32:
 			ParseInt32(v, s);
 			break;
 		case EVariantType_String:
-         {
-            StackStringBuilder sb(v.var.value.textValue.text, v.var.value.textValue.capacity);
-            sb << s;
-         }
-			break;
+		{
+			StackStringBuilder sb(v.var.value.textValue.text, v.var.value.textValue.capacity);
+			sb << s;
+		}
+		break;
 		default:
 			Throw(0, "Var type %d Not implemented for parsering.", v.var.type);
 		}
@@ -175,7 +181,7 @@ namespace
 		IButton* cancelButton;
 		ITabControl* tabControl;
 		IParentWindowSupervisor* tab;
-      HWND hwndTip{ nullptr };
+		HWND hwndTip{ nullptr };
 
 		ModalDialogHandler dlg;
 		ControlId nextId;
@@ -194,19 +200,20 @@ namespace
 					if (v.EditControl) ShowWindow(*v.EditControl, vis);
 					if (v.StaticControl) ShowWindow(*v.StaticControl, vis);
 					if (v.SpecialButtonControl) ShowWindow(*v.SpecialButtonControl, vis);
+					if (v.CheckBox) ShowWindow(*v.CheckBox, vis);
 				}
 			}
 		}
 
-      virtual void OnPretranslateMessage(MSG& msg)
-      {
-         SendMessage(hwndTip, TTM_RELAYEVENT, 0, (LPARAM) &msg);
-      }
+		virtual void OnPretranslateMessage(MSG& msg)
+		{
+			SendMessage(hwndTip, TTM_RELAYEVENT, 0, (LPARAM)&msg);
+		}
 
-      virtual void OnTabRightClicked(int index, const POINT& screenPos)
-      {
+		virtual void OnTabRightClicked(int index, const POINT& screenPos)
+		{
 
-      }
+		}
 
 		void OpenFilenameEditor(VariableDesc& v)
 		{
@@ -250,7 +257,7 @@ namespace
 					{
 						eventHandler->OnButtonClicked(v.name);
 					}
-					
+
 					return;
 				}
 			}
@@ -275,7 +282,7 @@ namespace
 				PostMessage(hControlCode, EM_SCROLLCARET, 0, 0);
 				return 0L;
 			}
-			
+
 			if (notificationCode == BN_CLICKED)
 			{
 				switch (id)
@@ -297,7 +304,7 @@ namespace
 					break;
 				default:
 					break;
-				}	
+				}
 
 				dlg.TerminateDialog(id);
 			}
@@ -314,11 +321,11 @@ namespace
 		{
 			Resize();
 		}
-		
+
 		enum { CONTROL_BUTTON_LINE = 30 };
 
 		void Resize()
-		{		
+		{
 			GuiRect rect = ClientArea(*supervisor);
 			if (tabControl) MoveWindow(*tabControl, 0, 0, rect.right, rect.bottom - CONTROL_BUTTON_LINE, TRUE);
 			if (tab) MoveWindow(*tab, 0, 0, rect.right, rect.bottom - CONTROL_BUTTON_LINE, TRUE);
@@ -355,9 +362,9 @@ namespace
 				tabControl = nullptr;
 			}
 
-         hwndTip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON,
-            CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-            *supervisor, NULL, GetWindowInstance(*supervisor), NULL);
+			hwndTip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON,
+				CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+				*supervisor, NULL, GetWindowInstance(*supervisor), NULL);
 
 
 			if (topLeft) MoveWindow(*supervisor, topLeft->x, topLeft->y, windowSpan.x, windowSpan.y, TRUE);
@@ -379,7 +386,7 @@ namespace
 			int buttonWidth = 80;
 
 			okButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x - buttonWidth - 20, buttonsTop, centre.x - 20, buttonsBottom), "&OK", IDOK, WS_VISIBLE | BS_DEFPUSHBUTTON, 0);
-			cancelButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x + 20, buttonsTop, centre.x + buttonWidth + 20, buttonsBottom), "&Cance", IDCANCEL, WS_VISIBLE | BS_PUSHBUTTON, 0);
+			cancelButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x + 20, buttonsTop, centre.x + buttonWidth + 20, buttonsBottom), "&Cancel", IDCANCEL, WS_VISIBLE | BS_PUSHBUTTON, 0);
 
 			struct ANON
 			{
@@ -401,17 +408,17 @@ namespace
 					This->OnSize(hWnd, span, type);
 				}
 
-            static void OnPreTranslate(void* context, MSG& msg)
-            {
-               VariableEditor* This = (VariableEditor*)context;
-               This->OnPretranslateMessage(msg);
-            }
+				static void OnPreTranslate(void* context, MSG& msg)
+				{
+					VariableEditor* This = (VariableEditor*)context;
+					This->OnPretranslateMessage(msg);
+				}
 			};
 
 			dlg.Router().RouteControlCommand(this, ANON::OnControlCommand);
 			dlg.Router().RouteClose(this, ANON::OnClose);
 			dlg.Router().RouteSize(this, ANON::OnSize);
-         dlg.Router().RoutePreTranslate(this, ANON::OnPreTranslate);
+			dlg.Router().RoutePreTranslate(this, ANON::OnPreTranslate);
 
 			GuiRect windowArea = WindowArea(*supervisor);
 			POINT pos;
@@ -444,13 +451,12 @@ namespace
 					{
 						Throw(0, "Validated control missing an edit box");
 					}
+
+					rchar* liveBuffer = (rchar*)alloca(sizeof(rchar)* v.var.value.textValue.capacity + 2);
+					GetWindowTextA(*v.EditControl, liveBuffer, v.var.value.textValue.capacity);
+					if (!v.validator->ValidateAndReportErrors(liveBuffer))
 					{
-						rchar* liveBuffer = (rchar*)alloca(sizeof(rchar)* v.var.value.textValue.capacity + 2);
-						GetWindowTextA(*v.EditControl, liveBuffer, v.var.value.textValue.capacity);
-						if (!v.validator->ValidateAndReportErrors(liveBuffer))
-						{
-							return false;
-						}
+						return false;
 					}
 				}
 			}
@@ -459,31 +465,54 @@ namespace
 		}
 
 		GuiRect GetDefaultLabelRect()
-		{ 
+		{
 			return GuiRect(nextX, nextY + 2, nextX + labelWidth, nextY + 20);
 		}
 
 		GuiRect GetDefaultEditRect()
-		{ 
+		{
 			GuiRect clientrect = ClientArea(*supervisor);
 			return  GuiRect(nextX + labelWidth + 10, nextY, clientrect.right - 10, nextY + 22);
 		}
 
-      void AddToolTip(HWND hwndTool, cstr pszText)
-      {
-         // Associate the tooltip with the tool.
-         TOOLINFOA toolInfo = { 0 };
-         toolInfo.cbSize = sizeof(toolInfo);
-         toolInfo.hwnd = *supervisor;
-         toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
-         toolInfo.uId = (UINT_PTR)hwndTool;
-         toolInfo.lpszText = (rchar*) pszText;
-         GetClientRect(hwndTool, &toolInfo.rect);
-         SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
+		void AddToolTip(HWND hwndTool, cstr pszText)
+		{
+			// Associate the tooltip with the tool.
+			TOOLINFOA toolInfo = { 0 };
+			toolInfo.cbSize = sizeof(toolInfo);
+			toolInfo.hwnd = *supervisor;
+			toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+			toolInfo.uId = (UINT_PTR)hwndTool;
+			toolInfo.lpszText = (rchar*)pszText;
+			GetClientRect(hwndTool, &toolInfo.rect);
+			SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
 
-         SendMessage(hwndTip, TTM_ACTIVATE, TRUE, 0);
-      }
+			SendMessage(hwndTip, TTM_ACTIVATE, TRUE, 0);
+		}
 
+		virtual void AddBooleanEditor(cstr variableName, bool state)
+		{
+			if (nextY > windowSpan.y - 30)
+			{
+				Throw(0, "Too many editors added to variable editor.\nCannot add editor for: %s\n", variableName);
+			}
+
+			VariableDesc v = { 0 };
+			tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
+
+			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
+			v.CheckBox = AddCheckBox(*tab, GetDefaultEditRect(), "", nextId++, BS_AUTOCHECKBOX | WS_VISIBLE, 0);
+
+			StackStringBuilder sb(v.name, v.NAME_CAPACITY);
+			sb << variableName;
+
+			v.var.value.int32Value = state ? 1 : 0;
+			v.var.type = EVariantType_Bool;
+
+			variables.push_back(v);
+
+			nextY += 22;
+		}
 
 		virtual void AddIntegerEditor(cstr variableName, cstr variableDesc, int minimum, int maximum, int defaultValue)
 		{
@@ -493,7 +522,7 @@ namespace
 			}
 
 			VariableDesc v = { 0 };
-			tabControl->GetTabName(tabControl->TabCount()-1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
+			tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
 
 			rchar editor[256];
 			SecureFormat(editor, sizeof(editor), "Edit_%s", variableName);
@@ -501,10 +530,10 @@ namespace
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.EditControl = AddEditor(*tab, GetDefaultEditRect(), editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
 
-         AddToolTip(*v.StaticControl, variableDesc);
+			AddToolTip(*v.StaticControl, variableDesc);
 
-         StackStringBuilder sb(v.name, v.NAME_CAPACITY);
-         sb << variableName;
+			StackStringBuilder sb(v.name, v.NAME_CAPACITY);
+			sb << variableName;
 
 			v.var.value.int32Value = defaultValue;
 			v.minimum.int32Value = minimum;
@@ -533,18 +562,18 @@ namespace
 
 			GuiRect labelRect = GetDefaultLabelRect();
 
-         GuiRect buttonRect = GetDefaultEditRect();
-			
+			GuiRect buttonRect = GetDefaultEditRect();
+
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableDesc, -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.SpecialButtonControl = Windows::AddPushButton(*tab, buttonRect, variableDesc, nextId++, WS_VISIBLE | BS_PUSHBUTTON, WS_EX_CLIENTEDGE);
-         AddToolTip(*v.StaticControl, variableDesc);
+			AddToolTip(*v.StaticControl, variableDesc);
 
-      //   SetControlFont(*v.StaticControl);
-      //   SetControlFont(*v.SpecialButtonControl);
+			//   SetControlFont(*v.StaticControl);
+			//   SetControlFont(*v.SpecialButtonControl);
 
-         StackStringBuilder sb(v.name, v.NAME_CAPACITY);
-         sb << variableName;
-			
+			StackStringBuilder sb(v.name, v.NAME_CAPACITY);
+			sb << variableName;
+
 			v.var.type = EVariantType_None;
 
 			variables.push_back(v);
@@ -571,10 +600,10 @@ namespace
 
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.ComboControl = AddComboBox(*tab, comboRect, editor, nextId++, WS_VISIBLE | CBS_SIMPLE | CBS_HASSTRINGS | CBS_DISABLENOSCROLL, 0, WS_EX_STATICEDGE);
-         AddToolTip(*v.StaticControl, variableDesc);
+			AddToolTip(*v.StaticControl, variableDesc);
 
-         StackStringBuilder sb(v.name, v.NAME_CAPACITY);
-         sb << variableName;
+			StackStringBuilder sb(v.name, v.NAME_CAPACITY);
+			sb << variableName;
 
 			v.var.value.textValue.capacity = capacityIncludingNullCharacter;
 			v.var.value.textValue.text = buffer;
@@ -615,10 +644,10 @@ namespace
 
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.EditControl = AddEditor(*tab, GetDefaultEditRect(), editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
-         AddToolTip(*v.StaticControl, variableDesc);
+			AddToolTip(*v.StaticControl, variableDesc);
 
-         StackStringBuilder sb(v.name, v.NAME_CAPACITY);
-         sb << variableName;
+			StackStringBuilder sb(v.name, v.NAME_CAPACITY);
+			sb << variableName;
 
 			v.var.value.textValue.capacity = capacity;
 			v.var.value.textValue.text = buffer;
@@ -652,10 +681,10 @@ namespace
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.EditControl = AddEditor(*tab, editRect, editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
 			v.SpecialButtonControl = Windows::AddPushButton(*tab, buttonRect, "...", nextId++, WS_VISIBLE | BS_PUSHBUTTON, WS_EX_CLIENTEDGE);
-         AddToolTip(*v.StaticControl, variableDesc);
+			AddToolTip(*v.StaticControl, variableDesc);
 
-         StackStringBuilder sb(v.name, v.NAME_CAPACITY);
-         sb << variableName;
+			StackStringBuilder sb(v.name, v.NAME_CAPACITY);
+			sb << variableName;
 
 			v.var.value.textValue.capacity = capacity;
 			v.var.value.textValue.text = buffer;
@@ -688,6 +717,10 @@ namespace
 				if (v.var.type == EVariantType_Int32)
 				{
 					SendMessage(*v.EditControl, EM_SETLIMITTEXT, 11, 0);
+				}
+				else if (v.var.type == EVariantType_Bool)
+				{
+					v.CheckBox->SetCheckState(v.var.value.int32Value != 0 ? Visitors::CheckState_Ticked : Visitors::CheckState_Clear);
 				}
 				else if (v.var.type == EVariantType_String)
 				{
@@ -747,13 +780,17 @@ namespace
 					int index = v.ComboControl->GetCurrentSelection();
 					v.ComboControl->GetString(index, v.var.value.textValue.text, v.var.value.textValue.capacity);
 				}
+				else if (v.CheckBox != nullptr)
+				{
+					v.var.value.int32Value = v.CheckBox->GetCheckState() == Visitors::CheckState_Ticked ? 1 : 0;
+				}
 			}
 		}
 
 		virtual bool IsModalDialogChoiceYes()
 		{
 			PrepareModal();
-			
+
 			DWORD exitCode = dlg.BlockModal(*supervisor, hwndOwner);
 
 			SyncWithInputBuffers();
@@ -798,7 +835,7 @@ namespace
 
 		virtual int GetInteger(cstr variableName)
 		{
-			for(const VariableDesc& v: variables)
+			for (const VariableDesc& v : variables)
 			{
 				if (strcmp(variableName, v.name) == 0)
 				{
@@ -809,6 +846,27 @@ namespace
 					else
 					{
 						Throw(0, "VariableEditor::GetInteger('%s'): variable is not an Int32", variableName);
+					}
+				}
+			}
+
+			Throw(0, "VariableEditor::GetInteger('%s'). Item not found", variableName);
+			return 0;
+		}
+
+		virtual bool GetBoolean(cstr variableName)
+		{
+			for (const VariableDesc& v : variables)
+			{
+				if (strcmp(variableName, v.name) == 0)
+				{
+					if (v.var.type == EVariantType_Bool)
+					{
+						return v.var.value.int32Value == 1;
+					}
+					else
+					{
+						Throw(0, "VariableEditor::GetBoolean('%s'): variable is not a Bool", variableName);
 					}
 				}
 			}

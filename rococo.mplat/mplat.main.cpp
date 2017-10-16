@@ -126,6 +126,9 @@ public:
    {
       FileUpdatedEvent fileUpdated;
       fileUpdated.pingPath = pingPath;
+
+	  platform.sourceCache.Release(pingPath);
+
       platform.publisher.Publish(fileUpdated);
    }
 
@@ -1629,7 +1632,6 @@ public:
          auto& fue = As<FileUpdatedEvent>(ev);
          if (Rococo::Eq(fue.pingPath, scriptFilename.c_str()))
          {
-            platform.sourceCache.Release(fue.pingPath);
             RefreshScript();
          }
       }

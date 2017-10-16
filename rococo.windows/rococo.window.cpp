@@ -38,21 +38,6 @@ namespace
 	HINSTANCE hRichEditor = nullptr;
 	HFONT hTitleFont = nullptr;
 	HFONT hControlFont = nullptr;
-
-	void Cleanup()
-	{
-		if (hTitleFont)
-		{
-			DeleteObject(hTitleFont);
-			hTitleFont = nullptr;
-		}
-
-		if (hControlFont)
-		{
-			DeleteObject(hControlFont);
-			hControlFont = nullptr;
-		}
-	}
 }
 
 namespace Rococo
@@ -153,7 +138,25 @@ namespace Rococo
 
          InitCommonControls();
 
-			atexit(Cleanup);
+         struct ANON
+         {
+            static void Cleanup()
+            {
+               if (hTitleFont)
+               {
+                  DeleteObject(hTitleFont);
+                  hTitleFont = nullptr;
+               }
+
+               if (hControlFont)
+               {
+                  DeleteObject(hControlFont);
+                  hControlFont = nullptr;
+               }
+            }
+         };
+
+			atexit(ANON::Cleanup);
 		}
 
 		void ValidateInit()
@@ -285,7 +288,15 @@ namespace
 		classDef.lpszMenuName = NULL;
 		classDef.lpfnWndProc = DefWindowProcA; // DefCustomWindowProc;
 
-		return RegisterClassExA(&classDef);
+		auto atom = RegisterClassExA(&classDef);
+
+      if (atom == 0)
+      {
+         int err = GetLastError();
+         Throw(err, "Error creating custom atom. Bad hIcon/hInstance maybe?");
+      }
+
+      return atom;
 	}
 
 	typedef std::vector<IWindowSupervisor*> TWindows;

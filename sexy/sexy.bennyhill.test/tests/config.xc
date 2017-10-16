@@ -19,7 +19,7 @@
 
 // System defined strings. They are defined as structs to stop them being used as output values, which is not yet implemented.
 (struct IString Sys.Type.IString fstring)
-(struct IStringBuilder Sys.Type.IStringBuilder Sexy.IStringPopulator)
+(struct IStringBuilder Sys.Type.IStringBuilder Rococo.IStringPopulator)
 
 (primitive Pointer Pointer uintptr_t)
 

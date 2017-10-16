@@ -117,6 +117,21 @@ namespace
 		Rococo::Maths::NormalizeInPlace(*n);
 	}
 
+	void NativeSysGeometryF32GetNormal(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec3* normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::Triangle* t;
+		_offset += sizeof(t);
+		ReadInput(t, _sf, -_offset);
+
+		Rococo::Maths::GetNormal(*t, *normal);
+	}
+
 }
 
 namespace Sys { namespace Geometry { namespace F32 { 
@@ -130,5 +145,6 @@ namespace Sys { namespace Geometry { namespace F32 {
 		ss.AddNativeCall(ns, NativeSysGeometryF32MultMatrix4x4fMatrix4x4f, nullptr, SEXTEXT("MultMatrix4x4fMatrix4x4f(Sys.Maths.Matrix4x4 a)(Sys.Maths.Matrix4x4 b)(Sys.Maths.Matrix4x4 product) -> "));
 		ss.AddNativeCall(ns, NativeSysGeometryF32Length, nullptr, SEXTEXT("Length(Sys.Maths.Vec3 a) -> (Float32 len)"));
 		ss.AddNativeCall(ns, NativeSysGeometryF32Normalize, nullptr, SEXTEXT("Normalize(Sys.Maths.Vec3 n) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32GetNormal, nullptr, SEXTEXT("GetNormal(Sys.Maths.Triangle t)(Sys.Maths.Vec3 normal) -> "));
 	}
 }}}

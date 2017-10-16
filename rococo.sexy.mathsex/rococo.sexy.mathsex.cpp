@@ -107,6 +107,17 @@ namespace Rococo
          a.y *= scale;
          a.z *= scale;
       }
+
+	  void GetNormal(const Triangle& t, Vec3& normal)
+	  {
+		  Vec3 ba = t.A - t.B;
+		  Vec3 bc = t.C - t.B;
+		  Vec3 product = Cross(ba, bc);
+		  if (!TryNormalize(product, normal))
+		  {
+			  normal = { 0,0,0 };
+		  }
+	  }
    }
 }
 

@@ -388,7 +388,7 @@ namespace
 				Throw(interfaceDef, SEXTEXT("Singletons must not define a destructor"));
 			}
 
-			appender.Append(SEXTEXT("\t("));
+			appender.Append(SEXTEXT("\t(method "));
 			AppendProxyName(appender, ic.asSexyInterface, interfaceDef);
 			appender.Append(SEXTEXT(".Destruct -> : "));
 			

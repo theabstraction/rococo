@@ -17,6 +17,13 @@ namespace // Script factories
    }
 }
 
+using namespace HV;
+
+namespace HV
+{
+   HV::ICorridor* FactoryConstructHVCorridor(HV::ICorridor* _context);
+}
+
 #include "hv.sxh.inl"
 
 namespace HV

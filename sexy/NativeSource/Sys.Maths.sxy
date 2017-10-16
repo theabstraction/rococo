@@ -72,8 +72,22 @@
 	(Vec3lf v)
 )
 
-(alias Vec3i Sys.Maths.Vec3i)
+(struct Triangle3Df
+	(Vec3f a)
+	(Vec3f b)
+	(Vec3f c)
+)
 
+(struct FPSAngles
+	(Float32 heading)
+	(Float32 elevation)
+	(Float32 tilt)
+)
+
+(alias FPSAngles Sys.Maths.FPSAngles)
+
+(alias Vec3i Sys.Maths.Vec3i)
+(alias Triangle3Df Sys.Maths.Triangle)
 (alias Vec2f Sys.Maths.Vec2)
 (alias Rectf Sys.Maths.Rectf)
 (alias Vec3f Sys.Maths.Vec3)
@@ -92,6 +106,9 @@
 (alias Quadlf Sys.Maths.Quadlf)
 (alias Vec4lf Sys.Maths.Vec4lf)
 (alias Quatlf Sys.Maths.Quatlf)
+
+(alias Sys.Type.Float32 Sys.Maths.Degrees)
+(alias Sys.Type.Float32 Sys.Maths.Radians)
 
 (struct Vec2i 
 	(Int32 x y)

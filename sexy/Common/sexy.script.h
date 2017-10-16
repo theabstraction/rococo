@@ -320,7 +320,7 @@ namespace Rococo {
       {
          Script::CClassSysTypeStringBuilder* builder;
       public:
-         StringPopulator(Script::NativeCallEnvironment& _nce, Compiler::VirtualTable* vTableBuilder);
+         StringPopulator(Script::NativeCallEnvironment& _nce, Compiler::VirtualTable** vTableBuilder);
          void Populate(csexstr text) override;
       };
       const Compiler::IStructure& GetDefaultProxy(csexstr fqNS, csexstr interfaceName, csexstr proxyName, Script::IPublicScriptSystem& ss);

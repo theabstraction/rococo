@@ -3,17 +3,39 @@
 #include <rococo.maths.h>
 
 #include <vector>
-#include <deque>
+//#include <unordered_map>
+#include <algorithm>
 
 #include <rococo.rings.inl>
 
 #include <rococo.variable.editor.h>
+
+namespace HV
+{
+   HV::ICorridor* FactoryConstructHVCorridor(HV::ICorridor* _context)
+   {
+      return _context;
+   }
+}
 
 namespace
 {
    using namespace Rococo;
    using namespace Rococo::Entities;
    using namespace HV;
+
+   struct Component
+   {
+      std::string name;
+      std::string meshName;
+      ID_ENTITY id;
+   };
+
+   bool operator == (const Component& a, const fstring& b)
+   {
+      return a.name.length() == b.length && Eq(a.name.c_str(), b);
+   }
+
 
    void ValidateArray(const Vec2* positionArray, size_t nVertices)
    {
@@ -39,7 +61,9 @@ namespace
 
    uint32 nextSectorId = 1;
 
-   class Sector : public ISector
+   const char* const genDoorScript = "!scripts/hv/sector/gen.door.sxy";
+
+   class Sector : public ISector, public ICorridor
    {   
       IInstancesSupervisor& instances;
       ISectors& co_sectors;
@@ -87,6 +111,29 @@ namespace
       ID_ENTITY wallId;
       
       rchar name[32];
+
+      int64 sectorFlags = 0;
+
+      virtual void AddFlag(SectorFlag flag)
+      {
+         sectorFlags |= flag;
+      }
+
+      virtual void RemoveFlag(SectorFlag flag)
+      {
+         sectorFlags &= ~flag;
+      }
+
+      virtual bool IsFlagged(SectorFlag flag) const
+      {
+         return (sectorFlags & flag) != 0;
+      }
+
+      virtual void SetFlag(SectorFlag flag, bool value)
+      {
+         if (value) AddFlag(flag);
+         else RemoveFlag(flag);
+      }
       
       Segment GetSegment(Vec2 p, Vec2 q) override
       {
@@ -132,6 +179,9 @@ namespace
       {
          rchar name[32];
          SafeFormat(name, sizeof(name), "sector.walls.%u", id);
+
+         DeleteWalls();
+
          auto& mb = instances.MeshBuilder();
          mb.Clear();
          mb.Begin(to_fstring(name));
@@ -143,10 +193,6 @@ namespace
 
          mb.End();
 
-         if (wallId)
-         {
-            instances.Delete(wallId);
-         }
          wallId = instances.AddBody(to_fstring(name), to_fstring(wallTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
@@ -173,6 +219,11 @@ namespace
          
          RaiseWallsFromSegments();  // This is always called to trigger floor & ceiling drop re-calculation
          RebuildFloorAndCeiling();
+
+         if (IsCorridor() && IsFlagged(SectorFlag_Has_Door))
+         {
+            RunSectorGenScript(genDoorScript);
+         }
       }
 
       bool IsCorridor() const
@@ -457,21 +508,47 @@ namespace
          }
       }
 
+      void DeleteFloor()
+      {
+         if (floorId)
+         {
+            instances.Delete(floorId);
+            floorId = ID_ENTITY::Invalid();
+
+            rchar name[32];
+            SafeFormat(name, sizeof(name), "sector.floor.%u", id);
+            instances.MeshBuilder().Delete(to_fstring(name));
+         }
+      }
+
+      void DeleteCeiling()
+      {
+         if (ceilingId)
+         {
+            instances.Delete(ceilingId);
+            ceilingId = ID_ENTITY::Invalid();
+
+            rchar name[32];
+            SafeFormat(name, sizeof(name), "sector.ceiling.%u", id);
+            instances.MeshBuilder().Delete(to_fstring(name));
+         }
+      }
+
+      void DeleteWalls()
+      {
+         if (wallId)
+         {
+            SafeFormat(name, sizeof(name), "sector.walls.%u", id);
+            instances.MeshBuilder().Delete(to_fstring(name));
+            instances.Delete(wallId);
+         }
+      }
+
       ~Sector()
       {
-         rchar name[32];
-         SafeFormat(name, sizeof(name), "sector.floor.%u", id);
-         instances.MeshBuilder().Delete(to_fstring(name));
-
-         SafeFormat(name, sizeof(name), "sector.ceiling.%u", id);
-         instances.MeshBuilder().Delete(to_fstring(name));
-
-         SafeFormat(name, sizeof(name), "sector.walls.%u", id);
-         instances.MeshBuilder().Delete(to_fstring(name));
-
-         instances.Delete(wallId);
-         instances.Delete(floorId);
-         instances.Delete(ceilingId);
+         DeleteFloor();
+         DeleteCeiling();
+         DeleteWalls();
       }
 
       virtual void SetPalette(const SectorPalette& palette)
@@ -569,6 +646,8 @@ namespace
       {
          rchar name[32];
          SafeFormat(name, sizeof(name), "sector.floor.%u", id);
+         
+         DeleteFloor();
 
          auto& mb = instances.MeshBuilder();
          mb.Begin(to_fstring(name));
@@ -580,10 +659,6 @@ namespace
 
          mb.End();
 
-         if (floorId)
-         {
-            instances.Delete(floorId);
-         }
          floorId = instances.AddBody(to_fstring(name), to_fstring(floorTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
@@ -591,6 +666,8 @@ namespace
       {
          rchar name[32];
          SafeFormat(name, sizeof(name), "sector.ceiling.%u", id);
+
+         DeleteCeiling();
 
          auto& mb = instances.MeshBuilder();
          mb.Begin(to_fstring(name));
@@ -602,10 +679,6 @@ namespace
 
          mb.End();
 
-         if (ceilingId)
-         {
-            instances.Delete(ceilingId);
-         }
          ceilingId = instances.AddBody(to_fstring(name), to_fstring(ceilingTexture.c_str()) , Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
@@ -631,10 +704,123 @@ namespace
          }
       }
 
+      virtual void GetSpan(Vec3& span)
+      {
+         // Return span of corridor in generation co-ordinates
+         // In such a system:
+         //                  the corridor faces North, 
+         //                  0 is ground height, that runs West to East (x=0) mid-way North to South (Y = 0)
+         //                  Z is up
+
+         if (gapSegments.size() != 2) Throw(0, "Expecting two gaps in sector");
+
+         auto& g = gapSegments[0];
+         auto& h = gapSegments[1];
+
+         if (g.a.x - g.b.x == 0)
+         {
+            // corridor is West-East. 
+            span.x = fabsf(g.a.y - g.b.y);
+            span.y = fabsf(g.a.x - h.a.x);
+         }
+         else
+         {
+            // corridor is North-South
+            span.x = fabsf(g.a.x - g.b.x);
+            span.y = fabsf(g.a.y - h.a.y);
+         }
+
+         if (IsSloped())
+         {
+            span.z = fabsf(0.5f * (g.z1 + h.z1) - 0.5f* (g.z0 + h.z0));
+         }
+         else
+         {
+            span.z = z1 - z0;
+         }
+      }
+
+      boolean32 IsSloped()
+      {
+         return (gapSegments[0].z0 != gapSegments[1].z0) || (gapSegments[0].z1 != gapSegments[1].z1);
+      }
+
+      std::vector<Component> components;
+
+      virtual void ClearComponents(const fstring& componentName)
+      {
+         components.erase(std::remove(components.begin(), components.end(), componentName), components.end());
+      }
+
+      virtual void CentreComponent(const fstring& componentName, const fstring& meshName, const fstring& textureName)
+      {
+         Vec2 centre = 0.5f * (floorPerimeter[0] + floorPerimeter[2]);
+         float z = IsSloped() ? (0.5f * (gapSegments[0].z0 + gapSegments[1].z0)) : z0;
+
+         auto& g = gapSegments[0];
+         auto& h = gapSegments[0];
+
+         Matrix4x4 Rz;
+
+         if (g.a.x - g.b.x == 0)
+         {
+            // corridor is West-East, so rotate the component 90 degrees
+            Rz = Matrix4x4::RotateRHAnticlockwiseZ(90_degrees);
+         }
+         else
+         {
+            Rz = Matrix4x4::Identity();
+         }
+
+         Matrix4x4 model = Matrix4x4::Translate({ centre.x, centre.y, z }) * Rz;
+
+         auto id = platform.instances.AddBody(meshName, textureName, model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());;
+
+         for (auto& c : components)
+         {
+            if (Eq(componentName, c.name.c_str()) && Eq(meshName, c.meshName.c_str()))
+            {
+               platform.instances.Delete(c.id);
+               c.id = id;
+               return;
+            }
+         }
+
+         Component c{ componentName, meshName, id };
+         components.push_back(c);
+      }
+
+      virtual void GetComponentMeshName(const fstring& componentName, Rococo::IStringPopulator& meshName)
+      {
+         char fullMeshName[256];
+         SafeFormat(fullMeshName, 256, "sector.%d.%s", id, (cstr)componentName);
+         meshName.Populate(fullMeshName);
+      }
+
+      void RunSectorGenScript(cstr name)
+      {
+         struct : IEventCallback<ScriptCompileArgs>
+         {
+            ICorridor *corridor;
+            virtual void OnEvent(ScriptCompileArgs& args)
+            {
+               AddNativeCalls_HVICorridor(args.ss, corridor);
+            }
+         } scriptCallback;
+         scriptCallback.corridor = this;
+
+         platform.utilities.RunEnvironmentScript(platform, scriptCallback, name, true);
+      }
+
       void Rebuild()
       {
          BuildWalls(Ring<Vec2>(&floorPerimeter[0], floorPerimeter.size()));
          RebuildFloorAndCeiling();
+
+         if (IsCorridor() && IsFlagged(SectorFlag_Has_Door))
+         {
+            RunSectorGenScript("!scripts/hv/sector/gen.door.sxy");
+         }
       }
 
       void RebuildFloorAndCeiling()
@@ -800,13 +986,24 @@ namespace
             SafeFormat(title, sizeof(title), "Sector %u", id);
          }
 
-         AutoFree<IVariableEditor> editor = utilities.CreateVariableEditor(parent, { 640, 400 }, 120, title, "Walls, Floor and Ceiling", "Edit mesh parameters", &handler);
+		 Vec2i topLeft = { 240, 240 };
+         AutoFree<IVariableEditor> editor = utilities.CreateVariableEditor(parent, { 640, 400 }, 120, title, "Walls, Floor and Ceiling", "Edit mesh parameters", &handler, &topLeft);
          editor->AddIntegerEditor("Altitiude", "Altitiude - centimetres", 0, 100000, (int32)(z0 * 100.0f));
          editor->AddIntegerEditor("Height", "Height - centimetres", 250, 100000, (int32)((z1 - z0) * 100.0f));
          editor->AddTab("Textures", "Set and get default textures");
          editor->AddPushButton("SetDefaultWall", state.TextureName(0));
          editor->AddPushButton("SetDefaultFloor", state.TextureName(1));
          editor->AddPushButton("SetDefaultCeiling", state.TextureName(2));
+
+         editor->AddTab("Occlusion", "Set occlusion properties");
+         editor->AddBooleanEditor("Players", IsFlagged(SectorFlag_Occlude_Players));
+         editor->AddBooleanEditor("Friends", IsFlagged(SectorFlag_Occlude_Friends));
+         editor->AddBooleanEditor("Enemies", IsFlagged(SectorFlag_Occlude_Enemies));
+
+		 if (Is4PointRectangular())
+		 {
+            editor->AddBooleanEditor("Door",    IsFlagged(SectorFlag_Has_Door));
+         }
 
          if (editor->IsModalDialogChoiceYes())
          {
@@ -825,6 +1022,15 @@ namespace
             wallTexture = handler.textures[0];
             floorTexture = handler.textures[1];
             ceilingTexture = handler.textures[2];
+
+            SetFlag(SectorFlag_Occlude_Players, editor->GetBoolean("Players"));
+            SetFlag(SectorFlag_Occlude_Enemies, editor->GetBoolean("Enemies"));
+            SetFlag(SectorFlag_Occlude_Friends, editor->GetBoolean("Friends"));
+
+			if (Is4PointRectangular())
+			{
+				SetFlag(SectorFlag_Has_Door, editor->GetBoolean("Door"));
+			}
 
             Rebuild();
          }
@@ -861,6 +1067,14 @@ namespace
 
          return true;
       }
+
+	  void OnSectorScriptChanged(const FileModifiedArgs& args) override
+	  {
+		  if (args.Matches(genDoorScript) && IsCorridor() && IsFlagged(SectorFlag_Has_Door))
+	      {
+		      RunSectorGenScript(genDoorScript);
+		  }
+	  }
    };
 }
 

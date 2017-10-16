@@ -15,15 +15,15 @@ namespace Rococo
       using namespace Rococo::Script;
       using namespace Rococo::Compiler;
      
-      StringPopulator::StringPopulator(NativeCallEnvironment& _nce, VirtualTable* vTableBuilder)
+      StringPopulator::StringPopulator(NativeCallEnvironment& _nce, VirtualTable** vTableBuilder)
       {
-         char* _instance = ((char*)vTableBuilder) + vTableBuilder->OffsetToInstance;
-         CClassDesc* _abstractClass = reinterpret_cast<CClassDesc*>(_instance);
-         if (_abstractClass->structDef != _nce.ss.PublicProgramObject().GetSysType(SEXY_CLASS_ID_STRINGBUILDER))
+         char* _instance = ((char*)vTableBuilder) + (*vTableBuilder)->OffsetToInstance;
+         auto* sb = reinterpret_cast<CClassSysTypeStringBuilder*>(_instance);
+         if (sb->header._typeInfo->structDef != _nce.ss.PublicProgramObject().GetSysType(SEXY_CLASS_ID_STRINGBUILDER))
          {
             _nce.ss.ThrowFromNativeCode(0, SEXTEXT("Builder was not a Sys.Type.StringBuilder"));
          }
-         builder = reinterpret_cast<CClassSysTypeStringBuilder*>(_abstractClass);
+         builder = sb;
       }
    
       void StringPopulator::Populate(csexstr text)

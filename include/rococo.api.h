@@ -26,11 +26,6 @@ namespace DirectX
 
 namespace Rococo
 {
-   struct IStringPopulator;
-}
-
-namespace Rococo
-{
 	struct Quat;
 
 	ROCOCO_ID(ID_BITMAP, uint64, -1)

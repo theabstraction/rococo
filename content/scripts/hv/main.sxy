@@ -42,17 +42,6 @@
 	(IInstances instances (Instances))
 	(IMobiles mobiles (Mobiles))
 	
-	(ObjectVertex bottomLeft  = (0 -1 0)(-1 0 0) 0x00000000 0xFFFFFFFF (0 0))
-	(ObjectVertex bottomRight = (0  1 0)(-1 0 0) 0x00000000 0xFFFFFFFF (1 0))
-	(ObjectVertex topRight    = (0  1 2)(-1 0 0) 0x00000000 0xFFFFFFFF (0 1))
-	
-	(IMeshBuilder mb (MeshBuilder))
-	(mb.Clear)
-	(mb.Begin "wall.1")
-	(mb.AddTriangle topRight bottomRight bottomLeft)
-	(mb.AddTriangle topRight bottomLeft bottomRight)
-	(mb.End)
-	
 	(ISprites sprites (Sprites))
 	(sprites.AddEachSpriteInDirectory "!textures/toolbars")
 	(sprites.LoadAllSprites)
@@ -73,17 +62,6 @@
 	
 	(ISceneBuilder scene (SceneBuilder))
 	
-	(Matrix4x4 model =
-		(1 0 0 20)
-		(0 1 0 0)
-		(0 0 1 0)
-		(0 0 0 1)
-	)
-	
-	(Vec3 scale = 1 1 1)
-	(Int64 cubeId = (instances.AddBody "wall.1" "!textures/walls/brick1.jpg" model scale 0))
-	(scene.AddStatics cubeId)
-
 	(IPlayer player (Player 0))
 	(player.SetPlayerEntity playerId)
 	

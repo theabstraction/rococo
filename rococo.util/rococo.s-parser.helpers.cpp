@@ -739,12 +739,13 @@ namespace Rococo
 	using namespace Rococo::Compiler;
 	using namespace Rococo::VM;
 	using namespace Rococo::Visitors;
+   using namespace Rococo::Script;
 
-	void PopulateStackTree(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, int depth)
+	void PopulateStackTree(IPublicScriptSystem& ss, IDebuggerWindow& debugger, int depth)
 	{
       struct : Visitors::ITreePopulator
       {
-         Script::IPublicScriptSystem* ss;
+         IPublicScriptSystem* ss;
          int depth;
 
          virtual void Populate(Visitors::IUITree& tree)
@@ -756,7 +757,7 @@ namespace Rococo
             const IFunction* f = nullptr;
 
             size_t fnOffset;
-            if (!Rococo::Script::GetCallDescription(sf, pc, f, fnOffset, *ss, depth) || !f)
+            if (!GetCallDescription(sf, pc, f, fnOffset, *ss, depth) || !f)
             {
                return;
             }
@@ -776,26 +777,62 @@ namespace Rococo
                   rchar desc[256];
                   if (v.Value[0] != 0)
                   {
-                     SafeFormat(desc, sizeof(desc), "%p %s: %s %s = %s", v.Address + SF, v.Location, v.Type, v.Name, v.Value);
+                     SafeFormat(desc, sizeof(desc), "[%d] %p %s: %s %s = %s", v.Address, v.Address + SF, v.Location, v.Type, v.Name, v.Value);
                   }
                   else
                   {
-                     SafeFormat(desc, sizeof(desc), "%p %s: %s %s", v.Address + SF, v.Location, v.Type, v.Name);
+                     SafeFormat(desc, sizeof(desc), "[%d] %p %s: %s %s", v.Address, v.Address + SF, v.Location, v.Type, v.Name);
                   }
                   auto node = tree->AddChild(sfNode, desc, CheckState_NoCheckBox);
                   tree->SetId(node, depth+1);
+
+                  struct: MemberEnumeratorCallback
+                  {
+                     TREE_NODE_ID parentId;
+                     IUITree* tree;
+                     int depth;
+                     const uint8* instance;
+
+                     void OnMember(IPublicScriptSystem& ss, csexstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem) override
+                     {
+                        char prefix[256] = { 0 };
+
+                        if (member.IsPseudoVariable())
+                        {
+                           SafeFormat(prefix, sizeof(prefix), SEXTEXT("(pseudo) "));
+                        }
+
+                        char value[256];
+                        FormatValue(ss, value, sizeof(value), member.UnderlyingType()->VarType(), sfItem);
+
+                        char memberDesc[256];
+                        SafeFormat(memberDesc, sizeof(memberDesc), "[+%d] %s%p %s: %s", (sfItem - instance), prefix, sfItem, member.Name(), value);
+
+                        auto node = tree->AddChild(parentId, memberDesc, CheckState_NoCheckBox);
+                        tree->SetId(node, depth + 1);
+                     }
+                  } addMember;
+
+                  addMember.instance = v.instance;
+                  addMember.parentId = node;
+                  addMember.tree = tree;
+                  addMember.depth = depth + 1;
+
+                  if (v.s) GetMembers(*ss, *v.s, v.parentName, v.instance, 0, addMember);
                }
 
                int32 depth;
                TREE_NODE_ID sfNode;
                IUITree* tree;
                const uint8* SF;
+               Script::IPublicScriptSystem* ss;
             } addToTree;
 
             addToTree.tree = &tree;
             addToTree.SF = sf;
             addToTree.sfNode = sfNode;
             addToTree.depth = depth;
+            addToTree.ss = ss;
 
             Script::ForeachVariable(*ss, addToTree, depth);
          }

@@ -1,4 +1,5 @@
 #include <rococo.mplat.dynamic.inl>
+#include "resource.h"
 
 using namespace Rococo;
 
