@@ -18,32 +18,56 @@
 (using Sys.Geometry.F32)
 (using Sys.Random)
 
-(function AddQuad (IMeshBuilder mb) (Vec3 topLeft)(Vec3 topRight)(Vec3 bottomRight)(Vec3 bottomLeft)(Float32 uScale)(Float32 vScale)-> :
-	(Triangle t)
-	(t.a.x = topLeft.x)
-	(t.a.y = topLeft.y)
-	(t.a.z = topLeft.z)
-	(t.b.x = topRight.x)
-	(t.b.y = topRight.y)
-	(t.b.z = topRight.z)
-	(t.c.x = bottomRight.x)
-	(t.c.y = bottomRight.y)
-	(t.c.z = bottomRight.z)
+(function AddTriangle (IMeshBuilder mb) (Triangle t)(Triangle2d uv)-> :
 	(Vec3 n)
 	(GetNormal t n)
 	
-	(Vec3 top = topRight - topLeft)
-	(Vec3 left = topLeft - bottomLeft)
+	(ObjectVertex a = (t.a.x t.a.y t.a.z) (n.x n.y n.z) 0x00000000 0xFFFFFFFF (uv.a.x uv.a.y))
+	(ObjectVertex b	= (t.b.x t.b.y t.b.z) (n.x n.y n.z) 0x00000000 0xFFFFFFFF (uv.b.x uv.b.y))
+	(ObjectVertex c = (t.c.x t.c.y t.c.z) (n.x n.y n.z) 0x00000000 0xFFFFFFFF (uv.c.x uv.c.y))	
+	
+	(mb.AddTriangle a b c)
+)
+
+(function AddQuad (IMeshBuilder mb) (Quadf quad)(Float32 uScale)(Float32 vScale)-> :
+	(Triangle t)
+	(t.a.x = quad.a.x)
+	(t.a.y = quad.a.y)
+	(t.a.z = quad.a.z)
+	(t.b.x = quad.b.x)
+	(t.b.y = quad.b.y)
+	(t.b.z = quad.b.z)
+	(t.c.x = quad.c.x)
+	(t.c.y = quad.c.y)
+	(t.c.z = quad.c.z)
+	(Vec3 n)
+	(GetNormal t n)
+	
+	(Vec3 top = quad.b - quad.a)
+	(Vec3 left = quad.a - quad.d)
 	(Float32 u = (uScale * (Length top)))
 	(Float32 v = (vScale * (Length left)))
 	
-	(ObjectVertex a = (topLeft.x      topLeft.y     topLeft.z)      (n.x n.y n.z)  0x00000000 0xFFFFFFFF (0 0))
-	(ObjectVertex b	= (topRight.x     topRight.y    topRight.z)     (n.x n.y n.z)  0x00000000 0xFFFFFFFF (u 0))
-	(ObjectVertex c = (bottomRight.x  bottomRight.y bottomRight.z)  (n.x n.y n.z)  0x00000000 0xFFFFFFFF (u v))	
-	(ObjectVertex d = (bottomLeft.x   bottomLeft.y  bottomLeft.z)   (n.x n.y n.z)  0x00000000 0xFFFFFFFF (0 v))	
+	(ObjectVertex a = (quad.a.x quad.a.y quad.a.z) (n.x n.y n.z)  0x00000000 0xFFFFFFFF (0 0))
+	(ObjectVertex b	= (quad.b.x quad.b.y quad.b.z) (n.x n.y n.z)  0x00000000 0xFFFFFFFF (u 0))
+	(ObjectVertex c = (quad.c.x quad.c.y quad.c.z) (n.x n.y n.z)  0x00000000 0xFFFFFFFF (u v))	
+	(ObjectVertex d = (quad.d.x quad.d.y quad.d.z) (n.x n.y n.z)  0x00000000 0xFFFFFFFF (0 v))	
 	
 	(mb.AddTriangle a b c)
 	(mb.AddTriangle c d a)
+)
+
+(function CopyVec3 (Vec3 mutable)(Vec3 constant)-> :
+	(mutable.x = constant.x)
+	(mutable.y = constant.y)
+	(mutable.z = constant.z)
+)
+
+(function SetQuad (Quadf q)(Vec3 a)(Vec3 b)(Vec3 c)(Vec3 d)-> :
+	(CopyVec3 q.a a)
+	(CopyVec3 q.b b)
+	(CopyVec3 q.c c)
+	(CopyVec3 q.d d)
 )
 
 (function AddBox (IMeshBuilder mb)(Vec3 v)(Vec3 w)(Float32 uScale)(Float32 vScale)-> :
@@ -57,12 +81,29 @@
 	(Vec3 lne   = w.x w.y v.z)
 	(Vec3 lnw   = v.x w.y v.z)
 	
-	(AddQuad mb usw use lse lsw uScale vScale) // south
-	(AddQuad mb une unw lnw lne uScale vScale) // north
-	(AddQuad mb lsw lse lne lnw uScale vScale) // lower
-	(AddQuad mb unw une use usw uScale vScale) // upper
-	(AddQuad mb unw usw lsw lnw uScale vScale) // left
-	(AddQuad mb use une lne lse uScale vScale) // right
+	(Quadf south)
+	(SetQuad south usw use lse lsw)
+	(AddQuad mb south uScale vScale) // south
+	
+	(Quadf north)
+	(SetQuad north une unw lnw lne)
+	(AddQuad mb north uScale vScale) // north
+	
+	(Quadf lower)
+	(SetQuad lower lsw lse lne lnw)
+	(AddQuad mb lower uScale vScale) // lower
+	
+	(Quadf upper)
+	(SetQuad upper unw une use usw)
+	(AddQuad mb upper uScale vScale) // upper
+	
+	(Quadf left)
+	(SetQuad left unw usw lsw lnw)
+	(AddQuad mb left uScale vScale) // left
+	
+	(Quadf right)
+	(SetQuad right use une lne lse)
+	(AddQuad mb right uScale vScale) // right
 )
 
 (archetype HV.ObjectFunction (IMeshBuilder mb)->)
@@ -83,6 +124,12 @@
 	(corridor.CentreComponent localName meshName texture)
 )
 
+(function SetVec3 (Vec3 v)(Float32 x)(Float32 y)(Float32 z)-> :
+	(v.x = x)
+	(v.y = y)
+	(v.z = z)
+)
+
 (function Main (Int32 id)->(Int32 exitCode):
 	(ICorridor corridor (Corridor))
 	(Vec3 span)
@@ -100,7 +147,47 @@
 			(Vec3 v = x0 y0 z0)
 			(Vec3 w = 0 y1 z1)
 			(Float32 uvScale = (AnyOf 0.1 1.0))
-			(AddBox mb v w uvScale uvScale)
+			
+			(IRimTesselator rim (RimTesselator))
+			
+			(rim.Clear)
+			(rim.MakeElipse 20 0.45 0.5)/*
+			(rim.AddPointXY -0.5   0)
+			(rim.AddPointXY  0.5   0)
+			(rim.AddPointXY  0.5 1.0)
+			(rim.AddPointXY  0.0 1.5)
+			(rim.AddPointXY -0.5 1.0)
+			(rim.CloseLoop)*/
+			
+			(Matrix4x4 transform =
+				(1 0  0 0)
+				(0 0 -1 0)
+				(0 1  0 1)
+				(0 0  0 1)
+			)
+			(rim.SetTransform transform)
+			
+			(
+				(Int32 count = rim.PerimeterVertices)
+				(#for (Int32 i = 0)(i < count)(#inc i)
+					(Quadf q)
+					(rim.GetRimQuad -0.25 0.25 i q)			
+					(AddQuad mb q uvScale uvScale)			
+				)
+			)
+			
+			(
+				(Int32 triangles = rim.TesselateUniform)
+				(#for (Int32 i = 0)(i < triangles)(#inc i)
+					(Triangle t)
+					(Triangle2d uv)
+					(rim.GetTopTriangle i t uv 0.25)
+					(AddTriangle mb t uv)
+					(rim.GetBottomTriangle i t uv -0.25)
+					(AddTriangle mb t uv)
+				)
+				//(AddBox mb v w uvScale uvScale)
+			)
 		)
 	)
 	(AddObject "!textures/walls/metal2.jpg" "door" door)
@@ -154,34 +241,38 @@
 	)
 	(AddObject "!textures/walls/metal3.jpg" "door.top.rods" topRods)
 	
+	
 	(ObjectFunction rails = 
 		(closure (IMeshBuilder mb)-> :
 			(Float32 quadLeft = (x0 + 0.01))
 			(Float32 uvScale = (AnyOf 0.1 1.0))
 			(Float32 z = (z1 - 0.01))
 			(
-				(Vec3 topLeft = quadLeft y0 z1)
-				(Vec3 topRight = quadLeft y1 z1)
-				(Vec3 bottomRight = quadLeft y1 -1.0)
-				(Vec3 bottomLeft = quadLeft y0 -1.0)
-				(AddQuad mb topLeft topRight bottomRight bottomLeft uvScale uvScale)
+				(Quadf q)
+				(SetVec3 q.a quadLeft y0 z1)
+				(SetVec3 q.b quadLeft y1 z1)
+				(SetVec3 q.c quadLeft y1 -1.0)
+				(SetVec3 q.d quadLeft y0 -1.0)
+				(AddQuad mb q uvScale uvScale)
 			)
 			
 			(Float32 quadRight = (x1 - 0.01))
 			(
-				(Vec3 topLeft = quadRight y1 z1)
-				(Vec3 topRight = quadRight y0 z1)
-				(Vec3 bottomRight = quadRight y0 -1.0)
-				(Vec3 bottomLeft = quadRight y1 -1.0)
-				(AddQuad mb topLeft topRight bottomRight bottomLeft uvScale uvScale)
+				(Quadf q)
+				(SetVec3 q.a quadRight y1 z1)
+				(SetVec3 q.b quadRight y0 z1)
+				(SetVec3 q.c quadRight y0 -1.0)
+				(SetVec3 q.d quadRight y1 -1.0)
+				(AddQuad mb q uvScale uvScale)
 			)
 			
 			(
-				(Vec3 topLeft = x0 y0 z)
-				(Vec3 topRight = x1 y0 z)
-				(Vec3 bottomRight = x1 y1 z)
-				(Vec3 bottomLeft = x0 y1 z)
-				(AddQuad mb topLeft topRight bottomRight bottomLeft uvScale uvScale)
+				(Quadf q)
+				(SetVec3 q.a x0 y0 z)
+				(SetVec3 q.b x1 y0 z)
+				(SetVec3 q.c x1 y1 z)
+				(SetVec3 q.d x0 y1 z)
+				(AddQuad mb q uvScale uvScale)
 			)
 		)
 	)

@@ -1337,6 +1337,8 @@ namespace Rococo { namespace Script
 			zeroRef.charPtrValue = 0;
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, zeroRef, BITCOUNT_64);
 			ce.Builder.AssignTempToVariable(0, idoffset);
+
+			AddSymbol(ce.Builder, SEXTEXT("%s -> (Null-Function Null-SF)"), id);
 		}
 	}
 

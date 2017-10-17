@@ -277,7 +277,18 @@ namespace Rococo
    namespace Graphics
    {
       struct IMeshBuilder;
+	  ROCOCOAPI IRimTesselatorSupervisor: public IRimTesselator
+	  {
+		  virtual void Free() = 0;
+	  };
+
+	  IRimTesselatorSupervisor* CreateRimTesselator();
    }
+
+   struct Tesselators
+   {
+	   Graphics::IRimTesselatorSupervisor& rim;
+   };
 
    struct Platform
    {
@@ -322,6 +333,8 @@ namespace Rococo
       Graphics::ICameraSupervisor& camera;
 
       Graphics::ISceneSupervisor& scene;
+
+	  Tesselators& tesselators;
 
       IMathsVisitorSupervisor& mathsVisitor;
 

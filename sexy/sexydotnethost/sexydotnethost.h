@@ -233,7 +233,7 @@ namespace SexyDotNet { namespace Host
 	};
 
 	public delegate void TerminationHandler(int code);
-	public delegate void LogHandler(Char* logText);
+	public delegate void LogHandler(Byte* logText);
 	public delegate bool RouteSysMessagesHandler();
 
 	public ref class SexyScriptLanguage

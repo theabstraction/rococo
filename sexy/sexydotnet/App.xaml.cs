@@ -21,10 +21,10 @@ namespace SexyDotNet
 
     public static class Logger
     {
-        // TODO -> fix marshalling so that pointers are not used
-        unsafe public static void Log(char* text)
+        unsafe public static void Log(byte* text)
         {
-            Program.Log(new String(text));
+            String s = new string((sbyte*)text);
+            Program.Log(s);
         }
     }
 

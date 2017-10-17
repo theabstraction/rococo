@@ -3,6 +3,11 @@
 #include <sexy.script.h>
 #include <sexy.vm.cpu.h>
 
+Rococo::Graphics::IRimTesselator* FactoryConstructRococoGraphicsRimTesselator(Rococo::Graphics::IRimTesselator* _context)
+{
+	return _context;
+}
+
 Rococo::IConfig* FactoryConstructRococoConfig(Rococo::IConfig* _context)
 {
    return _context;
@@ -108,6 +113,7 @@ namespace Rococo
                   Graphics::AddNativeCalls_RococoGraphicsICamera(args.ss, &platform.camera);
                   Graphics::AddNativeCalls_RococoGraphicsISceneBuilder(args.ss, &platform.scene.Builder());
                   Graphics::AddNativeCalls_RococoGraphicsISprites(args.ss, &platform.sprites);
+				  Graphics::AddNativeCalls_RococoGraphicsIRimTesselator(args.ss, &platform.tesselators.rim);
                   AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
 
 				  args.ss.AddNativeLibrary("rococo.sexy.mathsex");

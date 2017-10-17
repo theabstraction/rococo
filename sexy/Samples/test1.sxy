@@ -1,13 +1,24 @@
 (namespace EntryPoint)
+ (alias Main EntryPoint.Main)
+
+(using Sys.Maths)
+(using Sys.Reflection)
+(using Sys.Type.Formatters)
+(using Sys.Type)
+
+(archetype EntryPoint.VoidToVoid ->)
+
+(function Double (Int32 x)->(Int32 y) :
+	(y = (2 * x))
+)
 
 (function Main -> (Int32 result):
-			
-	(EntryPoint.IPlayer player)
-	(player.GetId -> result)
-)	
-			
-(alias Main EntryPoint.Main)
-
-(interface EntryPoint.IPlayer				
-	(GetId -> (Int32 value))
+	(Int32 x = 17)
+	(VoidToVoid g = 
+			(closure -> :
+				(Int32 z = (Double x))
+				(result = z)
+			)
+	)
+	(g)
 )

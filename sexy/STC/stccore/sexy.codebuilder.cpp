@@ -367,6 +367,9 @@ namespace
 	void CodeBuilder::PushVariable(const MemberDef& def)
 	{
 		const IStructure& s = *def.ResolvedType;
+
+		if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+
 		BITCOUNT bc = GetBitCount(s.VarType());
 		if (s.VarType() != VARTYPE_Derivative)
 		{
@@ -415,6 +418,9 @@ namespace
 				Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);
 			}		
 		}
+
+		if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_D6, VM::REGISTER_SF); }
+
 	}
 
 	void CodeBuilder::AddSymbol(csexstr text)

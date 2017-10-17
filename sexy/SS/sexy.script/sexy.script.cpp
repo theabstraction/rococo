@@ -50,46 +50,46 @@ using namespace Rococo::VM;
 
 namespace
 {
-   SEXCHAR defaultNativeSourcePath[256] = { 0 };
+	SEXCHAR defaultNativeSourcePath[256] = { 0 };
 
-   // Careful that we had enough buffer space
-   void AddSlashToDirectory(SEXCHAR* buffer)
-   {
-      // Terminate with slash
+	// Careful that we had enough buffer space
+	void AddSlashToDirectory(SEXCHAR* buffer)
+	{
+		// Terminate with slash
 
-      SEXCHAR* s = buffer;
-      for (; *s != 0; s++)
-      {
+		SEXCHAR* s = buffer;
+		for (; *s != 0; s++)
+		{
 
-      }
+		}
 
-      if (s[-1] != '\\' && s[-1] != '/')
-      {
-         s[0] = OS_DIRECTORY_SLASH;
-         s[1] = 0;
-      }
-   }
+		if (s[-1] != '\\' && s[-1] != '/')
+		{
+			s[0] = OS_DIRECTORY_SLASH;
+			s[1] = 0;
+		}
+	}
 }
 
 namespace Rococo
 {
-   namespace Script
-   {
-      void SetDefaultNativeSourcePath(csexstr pathname)
-      {
-         if (pathname == nullptr)
-         {
-            defaultNativeSourcePath[0] = 0;
-            return;
-         }
+	namespace Script
+	{
+		void SetDefaultNativeSourcePath(csexstr pathname)
+		{
+			if (pathname == nullptr)
+			{
+				defaultNativeSourcePath[0] = 0;
+				return;
+			}
 
-         StackStringBuilder sb(defaultNativeSourcePath, 256);
-         sb.AppendFormat("%s", pathname);
+			StackStringBuilder sb(defaultNativeSourcePath, 256);
+			sb.AppendFormat("%s", pathname);
 
-         // Terminate with slash
-         AddSlashToDirectory(defaultNativeSourcePath);
-      }
-   }
+			// Terminate with slash
+			AddSlashToDirectory(defaultNativeSourcePath);
+		}
+	}
 }
 
 namespace Rococo
@@ -101,7 +101,7 @@ namespace Rococo
 
 	namespace Script
 	{
-		typedef std::unordered_map<CStringKey,csexstr,::hashCStringKey> TMapMethodToMember;
+		typedef std::unordered_map<CStringKey, csexstr, ::hashCStringKey> TMapMethodToMember;
 	}
 
 	namespace Compiler
@@ -119,12 +119,12 @@ namespace Rococo
 #define VM_CALLBACK(x) void VM_CALLBACK_CONVENTION OnInvoke##x(VariantValue* registers, void* context)
 
 namespace Rococo {
-   namespace Script
-   {
-      const SEXCHAR* const THIS_POINTER_TOKEN = SEXTEXT("this");
+	namespace Script
+	{
+		const SEXCHAR* const THIS_POINTER_TOKEN = SEXTEXT("this");
 
-   } // Script
-} // Sexy
+	} // Script
+} // Rococo
 
 #include "sexy.script.util.inl"
 #include "sexy.script.asserts.inl"
@@ -368,7 +368,7 @@ namespace Rococo
 		s->AddMember(NameString::From(SEXTEXT("_vTable1")), TypeString::From(SEXTEXT("Pointer")));
 	}
 
-	class CScriptSystem: public IScriptSystem 
+	class CScriptSystem : public IScriptSystem
 	{
 	private:
 		TStringBuilders stringBuilders;
@@ -397,7 +397,7 @@ namespace Rococo
 
 		TMapMethodToMember methodMap;
 
-		typedef std::unordered_map<const Sex::ISExpression*,Script::CClassExpression*> TSReflectMap;
+		typedef std::unordered_map<const Sex::ISExpression*, Script::CClassExpression*> TSReflectMap;
 		TSReflectMap sreflectMap;
 
 		void InstallNullFunction()
@@ -407,7 +407,7 @@ namespace Rococo
 			nullFunction.Builder().End();
 			nullFunction.Builder().Assembler().Clear();
 		}
-		
+
 		IStructure* stringConstantStruct;
 
 		IModuleBuilder& ReflectionModule()
@@ -430,7 +430,7 @@ namespace Rococo
 		TReflectedPointers reflectedPointers;
 		TReflectedPointers representations;
 
-		CScriptSystemClass* reflectionRoot;		
+		CScriptSystemClass* reflectionRoot;
 		TAllocationMap alignedAllocationMap;
 
 		ArrayCallbacks arrayCallbacks;
@@ -439,41 +439,41 @@ namespace Rococo
 
 		int nextId;
 	public:
-		CScriptSystem(const ProgramInitParameters& pip, ILog& _logger): progObjProxy(pip, _logger), nativeCallIndex(1), stringConstantStruct(NULL), reflectionRoot(NULL), nextId(0)
+		CScriptSystem(const ProgramInitParameters& pip, ILog& _logger) : progObjProxy(pip, _logger), nativeCallIndex(1), stringConstantStruct(NULL), reflectionRoot(NULL), nextId(0)
 		{
 			try
 			{
-            StackStringBuilder sb(srcEnvironment, 256);
-            if (pip.NativeSourcePath != 0)
-            {
-               sb.AppendFormat("%s", pip.NativeSourcePath);
-            }
-            else if (*defaultNativeSourcePath != 0)
-            {
-               sb.AppendFormat("%s", defaultNativeSourcePath);
-            }
-            else
-            {
-               OS::GetEnvVariable(srcEnvironment, _MAX_PATH, SEXTEXT("SEXY_NATIVE_SRC_DIR"));
-            }
-            AddSlashToDirectory(srcEnvironment);
+				StackStringBuilder sb(srcEnvironment, 256);
+				if (pip.NativeSourcePath != 0)
+				{
+					sb.AppendFormat("%s", pip.NativeSourcePath);
+				}
+				else if (*defaultNativeSourcePath != 0)
+				{
+					sb.AppendFormat("%s", defaultNativeSourcePath);
+				}
+				else
+				{
+					OS::GetEnvVariable(srcEnvironment, _MAX_PATH, SEXTEXT("SEXY_NATIVE_SRC_DIR"));
+				}
+				AddSlashToDirectory(srcEnvironment);
 			}
-			catch(IException& innerEx)
+			catch (IException& innerEx)
 			{
-            rchar message[1024];
-            SafeFormat(message, sizeof(message), SEXTEXT("%s:\nFailed to get sexy environment.\nUse Rococo::Script::SetDefaultNativeSourcePath(...) or ProgramInitParameters or environment variable SEXY_NATIVE_SRC_DIR"), innerEx.Message());
-            _logger.Write(message);
-            Rococo::Throw(innerEx.ErrorCode(), SEXTEXT("%s"), message);
+				rchar message[1024];
+				SafeFormat(message, sizeof(message), SEXTEXT("%s:\nFailed to get sexy environment.\nUse Rococo::Script::SetDefaultNativeSourcePath(...) or ProgramInitParameters or environment variable SEXY_NATIVE_SRC_DIR"), innerEx.Message());
+				_logger.Write(message);
+				Rococo::Throw(innerEx.ErrorCode(), SEXTEXT("%s"), message);
 			}
-			
+
 			scripts = new CScripts(progObjProxy(), *this);
-			
+
 			nativeInt32 = &progObjProxy().AddIntrinsicStruct(SEXTEXT("Int32"), sizeof(int32), VARTYPE_Int32, NULL);
 			nativeInt64 = &progObjProxy().AddIntrinsicStruct(SEXTEXT("Int64"), sizeof(int64), VARTYPE_Int64, NULL);
 			nativeFloat32 = &progObjProxy().AddIntrinsicStruct(SEXTEXT("Float32"), sizeof(float32), VARTYPE_Float32, NULL);
 			nativeFloat64 = &progObjProxy().AddIntrinsicStruct(SEXTEXT("Float64"), sizeof(float64), VARTYPE_Float64, NULL);
 			nativeBool = &progObjProxy().AddIntrinsicStruct(SEXTEXT("Bool"), sizeof(int32), VARTYPE_Bool, NULL);
-			nativePtr = &progObjProxy().AddIntrinsicStruct(SEXTEXT("Pointer"), sizeof(size_t), VARTYPE_Pointer, NULL);	
+			nativePtr = &progObjProxy().AddIntrinsicStruct(SEXTEXT("Pointer"), sizeof(size_t), VARTYPE_Pointer, NULL);
 
 			try
 			{
@@ -481,11 +481,11 @@ namespace Rococo
 				AddCommonSource(SEXTEXT("Sys.Type.sxy")); // Module 1
 				AddCommonSource(SEXTEXT("Sys.Maths.sxy")); // Module 2			
 				AddCommonSource(SEXTEXT("Sys.Reflection.sxy")); // Module 3
-			
+
 				AddNativeLibrary(SEXTEXT("Sexy.NativeLib.Reflection"));
 				AddNativeLibrary(SEXTEXT("Sexy.NativeLib.Maths"));
 			}
-			catch(IException&)
+			catch (IException&)
 			{
 				_logger.Write(SEXTEXT("Sexy: Error reading common source files."));
 				delete scripts;
@@ -559,20 +559,20 @@ namespace Rococo
 			mapCallbacks.MapNodeGetRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodeGetRef, this, SEXTEXT("MapNodeGetRef"));
 			mapCallbacks.MapNodePop = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodePop, this, SEXTEXT("MapNodePop"));
 			mapCallbacks.MapNodeReleaseRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodeReleaseRef, this, SEXTEXT("MapNodeReleaseRef"));
-			
+
 			methodMap[SEXTEXT("Capacity")] = SEXTEXT("_elementCapacity");
 			methodMap[SEXTEXT("Length")] = SEXTEXT("_length");
 		}
-		
+
 		~CScriptSystem()
 		{
-			for(auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
+			for (auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
 			{
 				NativeFunction* nf = i->second;
 				delete nf;
 			}
 
-			for(auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
+			for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
 			{
 				INativeLib* lib = *i;
 				lib->Release();
@@ -604,13 +604,13 @@ namespace Rococo
 					return NULL;
 				}
 
-				CReflectedClass* rep = (CReflectedClass*) AlignedMalloc(sizeof(size_t), sizeof(CReflectedClass));
+				CReflectedClass* rep = (CReflectedClass*)AlignedMalloc(sizeof(size_t), sizeof(CReflectedClass));
 				rep->context = pSourceInstance;
-				rep->header._typeInfo = (CClassDesc*) st.GetVirtualTable(0);
+				rep->header._typeInfo = (CClassDesc*)st.GetVirtualTable(0);
 				rep->header._allocSize = sizeof(CReflectedClass);
 				rep->header._vTables[0].Root = st.GetVirtualTable(1);
 
-				i = representations.insert(std::make_pair(pSourceInstance,rep)).first;
+				i = representations.insert(std::make_pair(pSourceInstance, rep)).first;
 			}
 
 			return i->second;
@@ -629,7 +629,7 @@ namespace Rococo
 
 		virtual void EnumRepresentations(IRepresentationEnumeratorCallback& callback)
 		{
-			for(auto i = representations.begin(); i != representations.end();)
+			for (auto i = representations.begin(); i != representations.end();)
 			{
 				ENUM_REPRESENT result = callback.OnRepresentation(i->second);
 				if (result == ENUM_REPRESENT_BREAK)
@@ -638,7 +638,7 @@ namespace Rococo
 				}
 				else if (result == ENUM_REPRESENT_CONTINUE)
 				{
-					++i;					
+					++i;
 				}
 				else // delete
 				{
@@ -681,25 +681,25 @@ namespace Rococo
 
 			if (capacity <= 0 || alignment <= 0)
 			{
-				 alignedData = NULL;
+				alignedData = NULL;
 			}
 			else
 			{
 				if (alignment != 1)
 				{
 					uint8* data = new uint8[capacity + alignment];
-		
-					size_t tooManyBytes = (size_t) data & alignment;
+
+					size_t tooManyBytes = (size_t)data & alignment;
 					if (tooManyBytes != 0)
 					{
 						size_t paddingBytes = alignment - tooManyBytes;
-						alignedData = data + paddingBytes;			
+						alignedData = data + paddingBytes;
 					}
 					else
 					{
 						alignedData = data;
 					}
-				
+
 					alignedAllocationMap[alignedData] = data;
 				}
 				else
@@ -719,7 +719,7 @@ namespace Rococo
 			auto i = alignedAllocationMap.find(alignedData);
 			if (i != alignedAllocationMap.end())
 			{
-				uint8* raw = (uint8*) i->second;
+				uint8* raw = (uint8*)i->second;
 				delete raw;
 
 				alignedAllocationMap.erase(i);
@@ -746,12 +746,12 @@ namespace Rococo
 			return arrayCallbacks;
 		}
 
-		const ListCallbacks& GetListCallbacks() const 
+		const ListCallbacks& GetListCallbacks() const
 		{
 			return listCallbacks;
 		}
 
-		const MapCallbacks& GetMapCallbacks() const 
+		const MapCallbacks& GetMapCallbacks() const
 		{
 			return mapCallbacks;
 		}
@@ -759,7 +759,7 @@ namespace Rococo
 		virtual CReflectedClass* GetReflectedClass(void* ptr)
 		{
 			auto i = reflectedPointers.find(ptr);
-			return i != reflectedPointers.end()	? i->second : NULL;
+			return i != reflectedPointers.end() ? i->second : NULL;
 		}
 
 		IStructure* GetClassFromModuleElseLog(IModuleBuilder& module, csexstr className)
@@ -771,14 +771,14 @@ namespace Rococo
 				StringPrint(token, SEXTEXT("Cannot find %s in module %s"), className, module.Name());
 				progObjProxy().Log().Write(token);
 				return NULL;
-			} 
+			}
 			return s;
 		}
 
-		virtual CReflectedClass* CreateReflectionClass(csexstr className, void* context) 
+		virtual CReflectedClass* CreateReflectionClass(csexstr className, void* context)
 		{
 			IStructure* s = GetClassFromModuleElseLog(ReflectionModule(), className);
-				
+
 			if (s->SizeOfStruct() != sizeof(CReflectedClass))
 			{
 				TokenBuffer token;
@@ -787,7 +787,7 @@ namespace Rococo
 				return NULL;
 			}
 
-			CReflectedClass* instance = (CReflectedClass*) DynamicCreateClass(*s, 0);
+			CReflectedClass* instance = (CReflectedClass*)DynamicCreateClass(*s, 0);
 			reflectedPointers.insert(std::make_pair(context, instance));
 			instance->context = context;
 			return instance;
@@ -804,7 +804,7 @@ namespace Rococo
 			{
 				builderContainer.BuilderPtr = builder;
 				builderContainer.Header._allocSize = sizeof(builderContainer);
-				builderContainer.Header._typeInfo = (CClassDesc*) s->GetVirtualTable(0);
+				builderContainer.Header._typeInfo = (CClassDesc*)s->GetVirtualTable(0);
 				builderContainer.Header._vTables[0].Root = s->GetVirtualTable(1);
 				return true;
 			}
@@ -815,22 +815,22 @@ namespace Rococo
 			int nBytes = s.SizeOfStruct();
 			if (nBytes <= 0)
 			{
-            Rococo::Throw(0, SEXTEXT("The structure size was not postive"));
+				Rococo::Throw(0, SEXTEXT("The structure size was not postive"));
 			}
 
 			CClassHeader* instance = (CClassHeader*) new char[nBytes];
 
 			if (s.Prototype().IsClass)
 			{
-				instance->_typeInfo = (CClassDesc*) s.GetVirtualTable(0);
+				instance->_typeInfo = (CClassDesc*)s.GetVirtualTable(0);
 				instance->_allocSize = nBytes;
 
-				for(int i = 0; i < s.InterfaceCount(); ++i)
+				for (int i = 0; i < s.InterfaceCount(); ++i)
 				{
-					instance->_vTables[i].Root = (ID_BYTECODE*) s.GetVirtualTable(i+1);
+					instance->_vTables[i].Root = (ID_BYTECODE*)s.GetVirtualTable(i + 1);
 				}
 			}
-	
+
 			return instance;
 		}
 
@@ -843,12 +843,12 @@ namespace Rococo
 		{
 			IModuleBuilder& reflectionModule = ReflectionModule();
 			IStructure* expressStruct = reflectionModule.FindStructure(SEXTEXT("Expression"));
-			if (expressStruct == NULL) 
+			if (expressStruct == NULL)
 			{
-            Rococo::Throw(0, SEXTEXT("Cannot find 'Expression' in the reflection module"));
+				Rococo::Throw(0, SEXTEXT("Cannot find 'Expression' in the reflection module"));
 			}
 
-			CClassExpression* express = (CClassExpression*) DynamicCreateClass(*expressStruct, 0);
+			CClassExpression* express = (CClassExpression*)DynamicCreateClass(*expressStruct, 0);
 			express->ExpressionPtr = (Rococo::Sex::ISExpression*) &s;
 			return express;
 		}
@@ -874,7 +874,7 @@ namespace Rococo
 			if (i == reflectedStrings.end())
 			{
 				const IStructure& stringConstantStruct = *SysTypeMemoModule().FindStructure(SEXTEXT("StringConstant"));
-				CStringConstant* pSC = (CStringConstant*) DynamicCreateClass(stringConstantStruct, 0);
+				CStringConstant* pSC = (CStringConstant*)DynamicCreateClass(stringConstantStruct, 0);
 				pSC->pointer = s;
 				pSC->length = StringLength(s);
 				pSC->srcExpression = NULL;
@@ -892,7 +892,7 @@ namespace Rococo
 			if (reflectionRoot == NULL)
 			{
 				const IStructure& classStruct = *ReflectionModule().FindStructure(SEXTEXT("ScriptSystem"));
-				reflectionRoot = (CScriptSystemClass*) DynamicCreateClass(classStruct, 0);
+				reflectionRoot = (CScriptSystemClass*)DynamicCreateClass(classStruct, 0);
 			}
 
 			return reflectionRoot;
@@ -913,9 +913,9 @@ namespace Rococo
 			return sexParserProxy();
 		}
 
-		virtual IModule* AddTree(ISParserTree& tree) 
+		virtual IModule* AddTree(ISParserTree& tree)
 		{
-			CScript* m = scripts->CreateModule(tree);	
+			CScript* m = scripts->CreateModule(tree);
 			return &m->ProgramModule();
 		}
 
@@ -930,8 +930,8 @@ namespace Rococo
 			sysTypes.Alias(SEXTEXT("Int64"), *nativeInt64);
 			sysTypes.Alias(SEXTEXT("Float32"), *nativeFloat32);
 			sysTypes.Alias(SEXTEXT("Float64"), *nativeFloat64);
-			sysTypes.Alias(SEXTEXT("Bool"), *nativeBool);		
-			sysTypes.Alias(SEXTEXT("Pointer"), *nativePtr);	
+			sysTypes.Alias(SEXTEXT("Bool"), *nativeBool);
+			sysTypes.Alias(SEXTEXT("Pointer"), *nativePtr);
 
 			AddNativeCall(sysTypes, Print, NULL, SEXTEXT("NativePrint (Sys.Type.Pointer s) -> (Int32 charCount)"), false);
 		}
@@ -953,12 +953,12 @@ namespace Rococo
 			AddNativeCall(sysNative, StringBuilderAppendInt64, &stringBuilders, SEXTEXT("StringBuilderAppendInt64 (Pointer buffer) (Int64 x) -> (Int32 newLength)"), false);
 			AddNativeCall(sysNative, StringBuilderAppendFloat32, &stringBuilders, SEXTEXT("StringBuilderAppendFloat32 (Pointer buffer) (Float32 x) -> (Int32 newLength)"), false);
 			AddNativeCall(sysNative, StringBuilderAppendFloat64, &stringBuilders, SEXTEXT("StringBuilderAppendFloat64 (Pointer buffer) (Float64 x) -> (Int32 newLength)"), false);
-			AddNativeCall(sysNative, StringBuilderAppendBool, &stringBuilders, SEXTEXT("StringBuilderAppendBool (Pointer buffer) (Bool x) -> (Int32 newLength)"), false);			
-			AddNativeCall(sysNative, StringBuilderAppendPointer, &stringBuilders, SEXTEXT("StringBuilderAppendPointer (Pointer buffer) (Pointer x) -> (Int32 newLength)"), false);			
+			AddNativeCall(sysNative, StringBuilderAppendBool, &stringBuilders, SEXTEXT("StringBuilderAppendBool (Pointer buffer) (Bool x) -> (Int32 newLength)"), false);
+			AddNativeCall(sysNative, StringBuilderAppendPointer, &stringBuilders, SEXTEXT("StringBuilderAppendPointer (Pointer buffer) (Pointer x) -> (Int32 newLength)"), false);
 			AddNativeCall(sysNative, StringBuilderClear, &stringBuilders, SEXTEXT("StringBuilderClear (Pointer buffer) ->"), false);
-			AddNativeCall(sysNative, StringBuilderAppendAsDecimal, &stringBuilders, SEXTEXT("StringBuilderAppendAsDecimal (Pointer buffer) ->"), false);	
-			AddNativeCall(sysNative, StringBuilderAppendAsHex, &stringBuilders, SEXTEXT("StringBuilderAppendAsHex (Pointer buffer) -> "), false);	
-			AddNativeCall(sysNative, StringBuilderAppendAsSpec, &stringBuilders, SEXTEXT("StringBuilderAppendAsSpec (Pointer buffer) (Int32 type) -> "), false);	
+			AddNativeCall(sysNative, StringBuilderAppendAsDecimal, &stringBuilders, SEXTEXT("StringBuilderAppendAsDecimal (Pointer buffer) ->"), false);
+			AddNativeCall(sysNative, StringBuilderAppendAsHex, &stringBuilders, SEXTEXT("StringBuilderAppendAsHex (Pointer buffer) -> "), false);
+			AddNativeCall(sysNative, StringBuilderAppendAsSpec, &stringBuilders, SEXTEXT("StringBuilderAppendAsSpec (Pointer buffer) (Int32 type) -> "), false);
 			AddNativeCall(sysNative, StringBuilderSetFormat, &stringBuilders, SEXTEXT("StringBuilderSetFormat  (Pointer buffer) (Int32 precision) (Int32 width) (Bool isZeroPrefixed) (Bool isRightAligned)->"), false);
 			AddNativeCall(sysNative, StringCompare, NULL, SEXTEXT("StringCompare  (Pointer s) (Pointer t) -> (Int32 diff)"), false);
 			AddNativeCall(sysNative, StringCompareI, NULL, SEXTEXT("StringCompareI  (Pointer s) (Pointer t) -> (Int32 diff)"), false);
@@ -984,26 +984,26 @@ namespace Rococo
 
 		void BuildExtraSymbols()
 		{
-			for(int j = 0; j < progObjProxy().ModuleCount(); ++j)
+			for (int j = 0; j < progObjProxy().ModuleCount(); ++j)
 			{
 				IModuleBuilder& module = progObjProxy().GetModule(j);
-				for(int i = 0; i < module.StructCount(); ++i)
+				for (int i = 0; i < module.StructCount(); ++i)
 				{
 					SEXCHAR symbol[256];
 					IStructure& s = module.GetStructure(i);
 					if (s.Prototype().IsClass)
-					{		
-                  SafeFormat(symbol, 256, SEXTEXT("%s-typeInfo"), s.Name());
-						AddSymbol(symbol, s.GetVirtualTable(0));		
+					{
+						SafeFormat(symbol, 256, SEXTEXT("%s-typeInfo"), s.Name());
+						AddSymbol(symbol, s.GetVirtualTable(0));
 
-						for(int k = 1; k <= s.InterfaceCount(); ++k)
-						{					
+						for (int k = 1; k <= s.InterfaceCount(); ++k)
+						{
 							SafeFormat(symbol, 256, SEXTEXT("%s-vTable%d"), s.Name(), k);
-							AddSymbol(symbol, s.GetVirtualTable(k));						
-						}						
+							AddSymbol(symbol, s.GetVirtualTable(k));
+						}
 					}
 
-               SafeFormat(symbol, 256, SEXTEXT("typeof(%s)"), s.Name());
+					SafeFormat(symbol, 256, SEXTEXT("typeof(%s)"), s.Name());
 					AddSymbol(symbol, &s);
 				}
 			}
@@ -1017,34 +1017,34 @@ namespace Rococo
 			scripts->ExceptionLogic().Clear();
 			progObjProxy().GetRootNamespace().Clear();
 
-			for(auto i = reflectedStrings.begin(); i != reflectedStrings.end(); ++i)
+			for (auto i = reflectedStrings.begin(); i != reflectedStrings.end(); ++i)
 			{
 				FreeDynamicClass(&i->second->header);
 			}
 
 			reflectedStrings.clear();
 
-			for(auto j = sreflectMap.begin(); j != sreflectMap.end(); ++j)
+			for (auto j = sreflectMap.begin(); j != sreflectMap.end(); ++j)
 			{
 				FreeDynamicClass(&j->second->Header);
 			}
 
 			FreeDynamicClass(&reflectionRoot->header);
 
-			for(auto k = sreflectMap.begin(); k != sreflectMap.end(); ++k)
+			for (auto k = sreflectMap.begin(); k != sreflectMap.end(); ++k)
 			{
 				FreeDynamicClass(&k->second->Header);
 			}
 
-			for(auto i = alignedAllocationMap.begin(); i != alignedAllocationMap.end(); ++i)
+			for (auto i = alignedAllocationMap.begin(); i != alignedAllocationMap.end(); ++i)
 			{
-				uint8* buffer = (uint8*) i->second;
+				uint8* buffer = (uint8*)i->second;
 				delete buffer;
 			}
 
 			alignedAllocationMap.clear();
 
-			for(auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
+			for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
 			{
 				INativeLib* lib = *i;
 				lib->ClearResources();
@@ -1062,19 +1062,19 @@ namespace Rococo
 			DefineSysNative(sysNative);
 
 			progObjProxy().ResolveNativeTypes();
-		
+
 			scripts->ExceptionLogic().InstallThrowHandler();
-         
-         for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
-         {
-            INativeLib* lib = *i;
-            lib->AddNativeCalls();
-         }
+
+			for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
+			{
+				INativeLib* lib = *i;
+				lib->AddNativeCalls();
+			}
 
 			InstallNativeCallNamespaces(IN nativeCalls, REF ProgramObject().GetRootNamespace());
 			scripts->CompileNamespaces();
 			scripts->CompileDeclarations();
-	
+
 			InstallNullFunction();
 			InstallNativeCalls(IN nativeCalls, REF ProgramObject().GetRootNamespace());
 
@@ -1096,30 +1096,30 @@ namespace Rococo
 		}
 
 		virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, csexstr archetype, bool checkName)
-		{		
-			enum { MAX_ARCHETYPE_LEN = 256};
+		{
+			enum { MAX_ARCHETYPE_LEN = 256 };
 
 			if (callback == NULL)
 			{
-            Rococo::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...callback...): The [callback] pointer was NULL"));
+				Rococo::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...callback...): The [callback] pointer was NULL"));
 			}
-			
+
 			if (archetype == NULL)
 			{
-            Rococo::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...archetype...): The [archetype] pointer was NULL"));
+				Rococo::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...archetype...): The [archetype] pointer was NULL"));
 			}
 
 			size_t len = StringLength(archetype);
-			if (len > (MAX_ARCHETYPE_LEN-1))
+			if (len > (MAX_ARCHETYPE_LEN - 1))
 			{
-            Rococo::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...archetype...): The [archetype] string length exceed the maximum"));
+				Rococo::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...archetype...): The [archetype] string length exceed the maximum"));
 			}
 
 			SEXCHAR sxArchetype[MAX_ARCHETYPE_LEN];
-			CopyStringToSexChar(sxArchetype, 256, archetype, len+1);
+			CopyStringToSexChar(sxArchetype, 256, archetype, len + 1);
 
 			SEXCHAR srcName[MAX_ARCHETYPE_LEN + 64];
-         SafeFormat(srcName, MAX_ARCHETYPE_LEN + 64, SEXTEXT("Source: '%s'"), sxArchetype);
+			SafeFormat(srcName, MAX_ARCHETYPE_LEN + 64, SEXTEXT("Source: '%s'"), sxArchetype);
 			Auto<ISourceCode> src = SParser().ProxySourceBuffer(sxArchetype, (int)len, Vec2i{ 0,0 }, srcName);
 
 			try
@@ -1127,71 +1127,71 @@ namespace Rococo
 				Auto<ISParserTree> tree = SParser().CreateTree(src());
 
 				AddNativeCallViaTree(REF nativeCalls, REF ProgramObject().IntrinsicModule(), IN *this, IN ns, IN callback, IN context, IN tree(), IN nativeCallIndex, IN checkName);
-				nativeCallIndex++;		
+				nativeCallIndex++;
 			}
 			catch (ParseException& e)
 			{
 				ParseException ex(e.Start(), e.End(), archetype, e.Message(), e.Specimen(), NULL);
 				throw ex;
-			}			
+			}
 		}
 
-      static std::unordered_map<stdstring, ISParserTree*> commonGlobalSources;
+		static std::unordered_map<stdstring, ISParserTree*> commonGlobalSources;
 
 		virtual void AddCommonSource(const Rococo::SEXCHAR *sexySourceFile)
 		{
-         struct Anon
-         {
-            static void CleanupGlobalSources()
-            {
-               for (auto& i : commonGlobalSources)
-               {
-                  ISourceCode& src = const_cast<ISourceCode&>(i.second->Source());
-                  src.Release();
-                  i.second->Release();
-               }
-            }
-         };
+			struct Anon
+			{
+				static void CleanupGlobalSources()
+				{
+					for (auto& i : commonGlobalSources)
+					{
+						ISourceCode& src = const_cast<ISourceCode&>(i.second->Source());
+						src.Release();
+						i.second->Release();
+					}
+				}
+			};
 
-         static bool cleanupQueued = false;
-         if (!cleanupQueued)
-         {
-            atexit(Anon::CleanupGlobalSources);
-            cleanupQueued = true;
-         }
+			static bool cleanupQueued = false;
+			if (!cleanupQueued)
+			{
+				atexit(Anon::CleanupGlobalSources);
+				cleanupQueued = true;
+			}
 
-         CommonSource src;
-         src.SexySourceCode = sexySourceFile;
+			CommonSource src;
+			src.SexySourceCode = sexySourceFile;
 
-         auto i = commonGlobalSources.find(sexySourceFile);
-         if (i == commonGlobalSources.end())
-         {
-            enum { MAX_NATIVE_SRC_LEN = 32768 };
+			auto i = commonGlobalSources.find(sexySourceFile);
+			if (i == commonGlobalSources.end())
+			{
+				enum { MAX_NATIVE_SRC_LEN = 32768 };
 
-            SEXCHAR srcCode[MAX_NATIVE_SRC_LEN];
+				SEXCHAR srcCode[MAX_NATIVE_SRC_LEN];
 
-            SEXCHAR fullPath[_MAX_PATH];
-            SafeFormat(fullPath, _MAX_PATH, SEXTEXT("%s%s"), srcEnvironment, sexySourceFile);
+				SEXCHAR fullPath[_MAX_PATH];
+				SafeFormat(fullPath, _MAX_PATH, SEXTEXT("%s%s"), srcEnvironment, sexySourceFile);
 
-            try
-            {
-               LoadAsciiTextFile(srcCode, MAX_NATIVE_SRC_LEN, fullPath);
-            }
-            catch (Rococo::IException&)
-            {
-               throw;
-            }
+				try
+				{
+					LoadAsciiTextFile(srcCode, MAX_NATIVE_SRC_LEN, fullPath);
+				}
+				catch (Rococo::IException&)
+				{
+					throw;
+				}
 
-            src.Src = sexParserProxy().DuplicateSourceBuffer(srcCode, -1, Vec2i{ 0,0 }, fullPath);
-            src.Tree = sexParserProxy().CreateTree(*src.Src);
+				src.Src = sexParserProxy().DuplicateSourceBuffer(srcCode, -1, Vec2i{ 0,0 }, fullPath);
+				src.Tree = sexParserProxy().CreateTree(*src.Src);
 
-            commonGlobalSources.insert(std::make_pair(sexySourceFile, src.Tree));
-         }
-         else
-         {
-            src.Tree = i->second;
-            src.Src = const_cast<ISourceCode*>( &i->second->Source() );
-         }
+				commonGlobalSources.insert(std::make_pair(sexySourceFile, src.Tree));
+			}
+			else
+			{
+				src.Tree = i->second;
+				src.Src = const_cast<ISourceCode*>(&i->second->Source());
+			}
 
 			AddTree(*src.Tree);
 
@@ -1200,14 +1200,14 @@ namespace Rococo
 
 		virtual void AddNativeLibrary(const Rococo::SEXCHAR* dynamicLinkLibOfNativeCalls)
 		{
-         SEXCHAR srcEnvironmentDll[_MAX_PATH];
-         SafeFormat(srcEnvironmentDll, sizeof(srcEnvironmentDll), SEXTEXT("%s%s"), srcEnvironment, dynamicLinkLibOfNativeCalls);
+			SEXCHAR srcEnvironmentDll[_MAX_PATH];
+			SafeFormat(srcEnvironmentDll, sizeof(srcEnvironmentDll), SEXTEXT("%s%s"), srcEnvironment, dynamicLinkLibOfNativeCalls);
 
-         FN_CreateLib create;
+			FN_CreateLib create;
 
-         create = Rococo::OS::GetLibCreateFunction(srcEnvironmentDll, false);
-         if (!create) 
-            create = Rococo::OS::GetLibCreateFunction(dynamicLinkLibOfNativeCalls, true);
+			create = Rococo::OS::GetLibCreateFunction(srcEnvironmentDll, false);
+			if (!create)
+				create = Rococo::OS::GetLibCreateFunction(dynamicLinkLibOfNativeCalls, true);
 
 			INativeLib* lib = create(*this);
 			nativeLibs.push_back(lib);
@@ -1301,9 +1301,9 @@ namespace Rococo
 		return script.GetGlobalValue(buffer);
 	}
 
-   std::unordered_map<stdstring, ISParserTree*> CScriptSystem::commonGlobalSources;
-} // Script
-} // Sexy
+    std::unordered_map<stdstring, ISParserTree*> CScriptSystem::commonGlobalSources;
+	} // Script
+}//Rococo
 
 extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystem* CreateScriptV_1_2_0_0(const ProgramInitParameters& pip, ILog& logger)
 {

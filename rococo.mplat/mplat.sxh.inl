@@ -1929,3 +1929,270 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderDelete, nullptr, SEXTEXT("IMeshBuilderDelete (Pointer hObject)(Sys.Type.IString fqName) -> "));
 	}
 }}
+// BennyHill generated Sexy native functions for Rococo::Graphics::IRimTesselator 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoGraphicsIRimTesselatorAddPoint(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2* p;
+		_offset += sizeof(p);
+		ReadInput(p, _sf, -_offset);
+
+		Rococo::Graphics::IRimTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddPoint(*p);
+	}
+	void NativeRococoGraphicsIRimTesselatorAddPointXY(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float y;
+		_offset += sizeof(y);
+		ReadInput(y, _sf, -_offset);
+
+		float x;
+		_offset += sizeof(x);
+		ReadInput(x, _sf, -_offset);
+
+		Rococo::Graphics::IRimTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddPointXY(x, y);
+	}
+	void NativeRococoGraphicsIRimTesselatorCloseLoop(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::IRimTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->CloseLoop();
+	}
+	void NativeRococoGraphicsIRimTesselatorMakeElipse(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float sy;
+		_offset += sizeof(sy);
+		ReadInput(sy, _sf, -_offset);
+
+		float sx;
+		_offset += sizeof(sx);
+		ReadInput(sx, _sf, -_offset);
+
+		int32 numberOfSides;
+		_offset += sizeof(numberOfSides);
+		ReadInput(numberOfSides, _sf, -_offset);
+
+		Rococo::Graphics::IRimTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->MakeElipse(numberOfSides, sx, sy);
+	}
+	void NativeRococoGraphicsIRimTesselatorClear(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::IRimTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Clear();
+	}
+	void NativeRococoGraphicsIRimTesselatorScale(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float sy;
+		_offset += sizeof(sy);
+		ReadInput(sy, _sf, -_offset);
+
+		float sx;
+		_offset += sizeof(sx);
+		ReadInput(sx, _sf, -_offset);
+
+		Rococo::Graphics::IRimTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Scale(sx, sy);
+	}
+	void NativeRococoGraphicsIRimTesselatorPerimeterVertices(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::IRimTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 count = _pObject->PerimeterVertices();
+		_offset += sizeof(count);
+		WriteOutput(count, _sf, -_offset);
+	}
+	void NativeRococoGraphicsIRimTesselatorGetRimQuad(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Quad* quad;
+		_offset += sizeof(quad);
+		ReadInput(quad, _sf, -_offset);
+
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		float zLow;
+		_offset += sizeof(zLow);
+		ReadInput(zLow, _sf, -_offset);
+
+		float zHigh;
+		_offset += sizeof(zHigh);
+		ReadInput(zHigh, _sf, -_offset);
+
+		Rococo::Graphics::IRimTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetRimQuad(zHigh, zLow, index, *quad);
+	}
+	void NativeRococoGraphicsIRimTesselatorGetRimVertex(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2* p;
+		_offset += sizeof(p);
+		ReadInput(p, _sf, -_offset);
+
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Rococo::Graphics::IRimTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetRimVertex(index, *p);
+	}
+	void NativeRococoGraphicsIRimTesselatorTesselateUniform(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::IRimTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 nTrianglesPerFace = _pObject->TesselateUniform();
+		_offset += sizeof(nTrianglesPerFace);
+		WriteOutput(nTrianglesPerFace, _sf, -_offset);
+	}
+	void NativeRococoGraphicsIRimTesselatorGetBottomTriangle(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float z;
+		_offset += sizeof(z);
+		ReadInput(z, _sf, -_offset);
+
+		Triangle2d* uv;
+		_offset += sizeof(uv);
+		ReadInput(uv, _sf, -_offset);
+
+		Triangle* pos;
+		_offset += sizeof(pos);
+		ReadInput(pos, _sf, -_offset);
+
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Rococo::Graphics::IRimTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetBottomTriangle(index, *pos, *uv, z);
+	}
+	void NativeRococoGraphicsIRimTesselatorGetTopTriangle(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float z;
+		_offset += sizeof(z);
+		ReadInput(z, _sf, -_offset);
+
+		Triangle2d* uv;
+		_offset += sizeof(uv);
+		ReadInput(uv, _sf, -_offset);
+
+		Triangle* pos;
+		_offset += sizeof(pos);
+		ReadInput(pos, _sf, -_offset);
+
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Rococo::Graphics::IRimTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetTopTriangle(index, *pos, *uv, z);
+	}
+	void NativeRococoGraphicsIRimTesselatorSetTransform(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Matrix4x4* transform;
+		_offset += sizeof(transform);
+		ReadInput(transform, _sf, -_offset);
+
+		Rococo::Graphics::IRimTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetTransform(*transform);
+	}
+
+	void NativeGetHandleForRococoGraphicsRimTesselator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::IRimTesselator* nceContext = reinterpret_cast<Rococo::Graphics::IRimTesselator*>(_nce.context);
+		// Uses: Rococo::Graphics::IRimTesselator* FactoryConstructRococoGraphicsRimTesselator(Rococo::Graphics::IRimTesselator* _context);
+		Rococo::Graphics::IRimTesselator* pObject = FactoryConstructRococoGraphicsRimTesselator(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { namespace Graphics { 
+	void AddNativeCalls_RococoGraphicsIRimTesselator(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::IRimTesselator* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Graphics.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsRimTesselator, _nceContext, SEXTEXT("GetHandleForIRimTesselator0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorAddPoint, nullptr, SEXTEXT("IRimTesselatorAddPoint (Pointer hObject)(Sys.Maths.Vec2 p) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorAddPointXY, nullptr, SEXTEXT("IRimTesselatorAddPointXY (Pointer hObject)(Float32 x)(Float32 y) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorCloseLoop, nullptr, SEXTEXT("IRimTesselatorCloseLoop (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorMakeElipse, nullptr, SEXTEXT("IRimTesselatorMakeElipse (Pointer hObject)(Int32 numberOfSides)(Float32 sx)(Float32 sy) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorClear, nullptr, SEXTEXT("IRimTesselatorClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorScale, nullptr, SEXTEXT("IRimTesselatorScale (Pointer hObject)(Float32 sx)(Float32 sy) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorPerimeterVertices, nullptr, SEXTEXT("IRimTesselatorPerimeterVertices (Pointer hObject) -> (Int32 count)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorGetRimQuad, nullptr, SEXTEXT("IRimTesselatorGetRimQuad (Pointer hObject)(Float32 zHigh)(Float32 zLow)(Int32 index)(Sys.Maths.Quadf quad) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorGetRimVertex, nullptr, SEXTEXT("IRimTesselatorGetRimVertex (Pointer hObject)(Int32 index)(Sys.Maths.Vec2 p) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorTesselateUniform, nullptr, SEXTEXT("IRimTesselatorTesselateUniform (Pointer hObject) -> (Int32 nTrianglesPerFace)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorGetBottomTriangle, nullptr, SEXTEXT("IRimTesselatorGetBottomTriangle (Pointer hObject)(Int32 index)(Sys.Maths.Triangle pos)(Sys.Maths.Triangle2d uv)(Float32 z) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorGetTopTriangle, nullptr, SEXTEXT("IRimTesselatorGetTopTriangle (Pointer hObject)(Int32 index)(Sys.Maths.Triangle pos)(Sys.Maths.Triangle2d uv)(Float32 z) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorSetTransform, nullptr, SEXTEXT("IRimTesselatorSetTransform (Pointer hObject)(Sys.Maths.Matrix4x4 transform) -> "));
+	}
+}}

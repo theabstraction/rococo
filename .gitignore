@@ -34,6 +34,7 @@
 *.lnk
 *.jbf
 *.aps
+*.metagen
 sexy/bin/
 sexy/sexydotnet/obj/
 sexy/intermediate/

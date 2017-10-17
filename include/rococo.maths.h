@@ -245,6 +245,15 @@ namespace Rococo
 	   Vec3 C;
    };
 
+   // In General, quads are tesselated clockwise a -> b -> c -> d -> a
+   struct Quad
+   {
+	   Vec3 a;
+	   Vec3 b;
+	   Vec3 c;
+	   Vec3 d;
+   };
+
    ROCOCOAPI I2dMeshBuilder
    {
       virtual void Append(const Triangle2d& t) = 0;

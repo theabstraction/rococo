@@ -3692,7 +3692,7 @@ namespace
 			SEXTEXT(" (alias Main EntryPoint.Main)")
 			SEXTEXT("")
 			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT(" (Sys.Type.IString s(Sys.Type.Memo \"Hello World\"))")
+			SEXTEXT(" (Sys.Type.IString s(Sys.Type.Memo \"Hello World - !\"))")
 			SEXTEXT(" (Sys.Print s -> result)")
 			SEXTEXT(")")
 			;
@@ -3712,7 +3712,7 @@ namespace
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);
 		int32 x = vm.PopInt32();
-		validate(x == 11);
+		validate(x == 15);
 	}
 
 	void TestMemoString2(IPublicScriptSystem& ss)
@@ -3725,7 +3725,7 @@ namespace
 			SEXTEXT("(using Sys.Type)")
 			SEXTEXT("")
 			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT(" (IString s(Memo \"Hello World\"))")
+			SEXTEXT(" (IString s(Memo \"Hello World -- ? \"))")
 			SEXTEXT(" (Sys.Print s -> result)")
 			SEXTEXT(")")
 			;
@@ -3739,7 +3739,7 @@ namespace
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);
 		int32 x = vm.PopInt32();
-		validate(x == 11);
+		validate(x == 17);
 	}
 
 	void TestDynamicCast(IPublicScriptSystem& ss)
@@ -4626,7 +4626,7 @@ namespace
   
 		SEXTEXT("(function Main -> (Int32 result):")
 		SEXTEXT("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
-		SEXTEXT("	(s.AppendIString \"Hello World!\")")
+		SEXTEXT("	(s.AppendIString \"Hello World!*\")")
 		SEXTEXT("	(Sys.Print s -> result)")
 		SEXTEXT(")");
 
@@ -4641,7 +4641,7 @@ namespace
 		ValidateExecution(result);
 
 		int x = vm.PopInt32();
-		validate(x == 12);
+		validate(x == 13);
 	}
 
 	void TestStringBuilderBig(IPublicScriptSystem& ss)
@@ -4657,7 +4657,7 @@ namespace
   
 		SEXTEXT("(function Main -> (Int32 result):")
 		SEXTEXT("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
-		SEXTEXT("	(#Sys.Type.build  s \"Hello World! \" NewLine)")
+		SEXTEXT("	(#Sys.Type.build  s \"Hello World![] \" NewLine)")
 //		SEXTEXT("	(#Sys.Type.build  s \"Decimal: \" Decimal 1234 \". Hex: 0x\" Hex 1234 NewLine)")
 //		SEXTEXT("	(#Sys.Type.build  s \"E form: \" SpecE 3.e-2 \". F form: \" SpecF 3.e-2 \". G form: \" SpecG 3.e-2 NewLine)")
 //		SEXTEXT("	(cast s -> IString str)")
@@ -4707,7 +4707,7 @@ namespace
   
 		SEXTEXT("(function Main -> (Int32 result):")
 		SEXTEXT("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
-		SEXTEXT("	(#Sys.Type.build  s \"Hello World! \" NewLine)")
+		SEXTEXT("	(#Sys.Type.build  s \"Hello World!(@) \" NewLine)")
 		SEXTEXT("	(GoPrint s)(result = 12)")
 		SEXTEXT(")");
 
@@ -4723,6 +4723,48 @@ namespace
 
 		int x = vm.PopInt32();
 		validate(x == 12);
+	}
+
+	void TestCaptureInFunctionAllInClosure(IPublicScriptSystem& ss)
+	{
+		csexstr srcCode =
+			SEXTEXT("(namespace EntryPoint)")
+			SEXTEXT("(alias Main EntryPoint.Main)")
+
+			SEXTEXT("(using Sys.Maths)")
+			SEXTEXT("(using Sys.Reflection)")
+			SEXTEXT("(using Sys.Type.Formatters)")
+			SEXTEXT("(using Sys.Type)")
+
+			SEXTEXT("(archetype EntryPoint.VoidToVoid ->)")
+
+			SEXTEXT("(function Double(Int32 x)->(Int32 y) :")
+			SEXTEXT("	(y = (2 * x))")
+			SEXTEXT(")")
+
+			SEXTEXT("(function Main -> (Int32 result): ")
+			SEXTEXT("	(Int32 x = 17)")
+			SEXTEXT("	(VoidToVoid g =")
+			SEXTEXT("		(closure -> :")
+			SEXTEXT("			(Int32 z = (Double x))")
+			SEXTEXT("			(result = z)")
+			SEXTEXT("		)")
+			SEXTEXT("	)")
+			SEXTEXT("	(g)")
+			SEXTEXT(")");
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestCaptureInFunctionAllInClosure"));
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 34);
 	}
 
 	void TestDerivedInterfaces(IPublicScriptSystem& ss)
@@ -10919,20 +10961,20 @@ namespace
 
 	void RunPositiveSuccesses()
 	{
-      TEST(TestLinkedList6);
+		TEST(TestLinkedList6);
 
 		validate(true);
-      TEST(TestDestructor);
-      TEST(TestNullObject);
-      TEST(TestNullArchetype);
-      TEST(TestOperatorOverload3);
-      TEST(TestOperatorOverload2);
-      TEST(TestOperatorOverload);
-      
+		TEST(TestDestructor);
+		TEST(TestNullObject);
+		TEST(TestNullArchetype);
+		TEST(TestOperatorOverload3);
+		TEST(TestOperatorOverload2);
+		TEST(TestOperatorOverload);
+
 		TEST(TestNullArchetypeArg);
 		TEST(TestMacroAsArgument1);
 
-	//	TEST(TestArrayOfArchetypes); // -> currently disabled, since arrays are 32-bit and 64-bits only, and closures are 128 bits.
+		//	TEST(TestArrayOfArchetypes); // -> currently disabled, since arrays are 32-bit and 64-bits only, and closures are 128 bits.
 		TEST(TestClosureCapture);
 		TEST(TestClosureCapture2);
 		TEST(TestArchetypePropagation);
@@ -10941,7 +10983,7 @@ namespace
 		TEST(TestEmbeddedArchetype);
 		TEST(TestClosure);
 		TEST(TestClosureWithVariable);
-		TEST(TestReturnClosureWithVariableSucceed);	
+		TEST(TestReturnClosureWithVariableSucceed);
 		TEST(TestArchetypeCall);
 
 		TEST(TestRefTypesInsideClosure);
@@ -10981,8 +11023,8 @@ namespace
 		TEST(TestAssignInt64Variable);
 		TEST(TestAssignFloat32Variable);
 		TEST(TestAssignFloat64Variable);
-      TEST(TestAssignMatrixVariable);
-      TEST(TestAssignVectorVariableByRef);
+		TEST(TestAssignMatrixVariable);
+		TEST(TestAssignVectorVariableByRef);
 		TEST(TestLocalVariable);
 		TEST(TestBooleanLiteralVsLiteralMatches);
 		TEST(TestBooleanMismatch);
@@ -11014,13 +11056,13 @@ namespace
 		TEST(TestInt32CompoundArithmetic);
 		TEST(TestFloatCompoundArithmetic);
 		TEST(TestFloatLiteralArithmetic);
-      TEST(TestFloatArithmeticByMember);
+		TEST(TestFloatArithmeticByMember);
 		TEST(TestIfThen3);
 		TEST(TestFunctionCall1);
 		TEST(TestFunctionCall2);
 		TEST(TestFunctionCall3);
 		TEST(TestFunctionCall4);
-		      
+
 		TEST(TestFunctionCallRecursion1);
 		TEST(TestFunctionCallRecursion2);
 		TEST(TestFunctionCallMultiOutput1);
@@ -11028,21 +11070,21 @@ namespace
 		TEST(TestStructure2);
 		TEST(TestStructure3);
 		TEST(TestStructure4);
-		
+
 		TEST(TestWhileLoop1);
 		TEST(TestNestedWhileLoops);
 		TEST(TestWhileLoopBreak);
 		TEST(TestWhileLoopContinue);
 		TEST(TestDoWhile);
 		TEST(TestDoWhileBreak);
-		TEST(TestDoWhileContinue);	
+		TEST(TestDoWhileContinue);
 		TEST(TestArchetypeDeclaration);
 
 		TEST(TestNativeCall);
 		TEST(TestNativeCall2);
 		TEST(TestNativeCall3);
-		TEST(TestInterfaceDefinition);			
-	
+		TEST(TestInterfaceDefinition);
+
 		TEST(TestConstructor);
 		TEST(TestClassDefinition);
 		TEST(TestClassInstance);
@@ -11051,19 +11093,19 @@ namespace
 		TEST(TestDerivedInterfaces2);
 
 		TEST(TestVirtualFromVirtual);
-				
-		TEST(TestCatch);	
-		TEST(TestCatchArg);	
-				
+
+		TEST(TestCatch);
+		TEST(TestCatchArg);
+
 		TEST(TestTryFinallyWithoutThrow);
 		TEST(TestDeepCatch);
 		TEST(TestExceptionDestruct);
 		TEST(TestThrowFromCatch);
-		
+
 		TEST(TestSizeOf);
 		TEST(TestCatchInstanceArg);
 		TEST(TestTryWithoutThrow);
-		TEST(TestInterfacePropagation);	
+		TEST(TestInterfacePropagation);
 		TEST(TestInstancePropagation);
 		TEST(TestInstanceMemberPropagation);
 		TEST(TestMultipleInterfaces);
@@ -11072,15 +11114,15 @@ namespace
 		TEST(TestNullMemberInit);
 		TEST(TestNullRefInit);
 
-		TEST(TestMemoString);		
+		TEST(TestMemoString);
 		TEST(TestMemoString2);
 		TEST(TestStringConstant);
-		TEST(TestPrint);		
+		TEST(TestPrint);
 		TEST(TestPrintViaInstance);
 		TEST(TestNullString);
 
 		TEST(TestInlinedFactory);
-		
+
 		TEST(TestRecti1);
 		TEST(TestRecti2);
 		TEST(TestRecti3);
@@ -11093,14 +11135,14 @@ namespace
 
 		TEST(TestReflectionGetCurrentExpression);
 		TEST(TestReflectionGetParent);
-		TEST(TestReflectionGetChild_BadIndex);					
+		TEST(TestReflectionGetChild_BadIndex);
 		TEST(TestReflectionGetChild);
 		TEST(TestReflectionGetAtomic);
 
 		TEST(TestModuleCount);
 		TEST(TestPrintModules);
 		TEST(TestPrintStructs);
-		
+
 		TEST(TestSysThrow);
 		TEST(TestSysThrow2);
 
@@ -11112,11 +11154,11 @@ namespace
 		TEST(TestAppendSubstring);
 		TEST(TestStringbuilderTruncate);
 
-      
+
 		TEST(TestMallocAligned);
 		TEST(TestGetSysMessage);
 
-    
+
 		TEST(TestInternalDestructorsCalled);
 		TEST(TestInternalDestructorsCalled2);
 
@@ -11127,13 +11169,13 @@ namespace
 		TEST(TestMemberwiseInit);
 
 		TEST(TestStructStringPassByRef);
-     
+
 		TEST(TestMeshStruct4);
 		TEST(TestMeshStruct3);
 		TEST(TestMeshStruct2);
 		TEST(TestMeshStruct);
 		TEST(TestEmptyString);
- 
+
 		TEST(TestYield);
 		TEST(TestStructByRefAssign);
 		TEST(TestAssignVectorComponentsFromParameters);
@@ -11147,16 +11189,18 @@ namespace
 		TEST(TestMultipleDerivation2);
 		TEST(TestMultipleDerivation);
 
-      TEST(TestCompareGetAccessorWithOne);
-      TEST(TestCompareGetAccessorWithOne2);
+		TEST(TestCompareGetAccessorWithOne);
+		TEST(TestCompareGetAccessorWithOne2);
+
+		TEST(TestCaptureInFunctionAllInClosure);
 
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 	}
 
 	void RunPositiveFailures()
-	{		
+	{
 		TEST(TestMissingMethod);
-      TEST(TestDuplicateVariable);
+		TEST(TestDuplicateVariable);
 		TEST(TestDuplicateFunctionError);
 		TEST(TestDuplicateStructureError);
 		TEST(TestBigNamespaceError);
@@ -11168,29 +11212,29 @@ namespace
 		TEST(TestDuplicateArchetypeError);
 		TEST(TestReturnClosureWithVariableFail);
 		TEST(TestDestructorThrows);
-		TEST(TestDoubleArrowsInFunction);	
+		TEST(TestDoubleArrowsInFunction);
 	}
 
 	void RunTests()
-	{	
-      int64 start, end, hz;
-      start = OS::CpuTicks();
+	{
+		int64 start, end, hz;
+		start = OS::CpuTicks();
 
-      RunPositiveFailures();
-	   RunPositiveSuccesses();	
-      RunCollectionTests();
-      
-      end = OS::CpuTicks();
-      hz = OS::CpuHz();
+		RunPositiveFailures();
+		RunPositiveSuccesses();
+		RunCollectionTests();
 
-      double dt = (double)(end - start) / (double)hz;
-      printf("\nAll tests completed in %.2f seconds\n", dt); 
+		end = OS::CpuTicks();
+		hz = OS::CpuHz();
+
+		double dt = (double)(end - start) / (double)hz;
+		printf("\nAll tests completed in %.2f seconds\n", dt);
 	}
 }
 
 int main(int argc, char* argv[])
 {
-   Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 	RunTests();
 	return 0;
 }

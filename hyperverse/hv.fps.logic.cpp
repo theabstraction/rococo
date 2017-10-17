@@ -204,7 +204,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 			if (gap.other == &to)
 			{
 				Edge edge{ ToVec3(gap.a, 0), ToVec3(gap.b, 0) };
-				Sphere playerSphere{ Flatten(start), 1.0_metres };
+				Sphere playerSphere{ Flatten(start), 0.9_metres };
 				auto c = Rococo::CollideEdgeAndSphere(edge, playerSphere, Flatten(end));
 
 				if (c.contactType == ContactType_Edge || c.contactType == ContactType_Penetration)
@@ -289,7 +289,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 	Vec3 ComputeWallCollision(const CollisionParameters& cp, cr_vec2 p, cr_vec2 q, float& t)
 	{
 		Edge edge{ ToVec3(p, 0), ToVec3(q, 0) };
-		Sphere playerSphere{ Flatten(cp.start), 1.0_metres };
+		Sphere playerSphere{ Flatten(cp.start), 0.9_metres };
 		auto c = Rococo::CollideEdgeAndSphere(edge, playerSphere, Flatten(cp.end));
 
 		if (c.contactType == ContactType_Penetration)

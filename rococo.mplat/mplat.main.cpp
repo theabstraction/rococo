@@ -1729,9 +1729,13 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 
    AutoFree<IConfigSupervisor> config = CreateConfig();
 
+   AutoFree<Graphics::IRimTesselatorSupervisor> rimTesselator = Graphics::CreateRimTesselator();;
+
    Utilities utils(*installation);
    GuiStack gui(*publisher, *sourceCache, mainWindow->Renderer(), utils);
-   Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *sprites, *camera, *scene, *mathsVisitor, title };
+
+   Tesselators tesselators{ *rimTesselator };
+   Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *sprites, *camera, *scene, tesselators, *mathsVisitor, title };
    gui.platform = &platform;
 
    AutoFree<IApp> app(appFactory.CreateApp(platform));
