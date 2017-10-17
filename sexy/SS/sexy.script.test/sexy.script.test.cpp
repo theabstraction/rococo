@@ -9574,6 +9574,34 @@ namespace
 		validate(value == 3);		
 	}
 
+	void TestMemberwise2(IPublicScriptSystem& ss)
+	{
+		csexstr srcCode =
+			SEXTEXT("(namespace EntryPoint)\n")
+			SEXTEXT("(using Sys.Maths)\n")
+			SEXTEXT("(struct MatObject (Vec3i a b))\n")
+			SEXTEXT("(function Main -> (Int32 result):\n")
+			SEXTEXT("	(Vec3i i = 12 0 0)\n")
+			SEXTEXT("	(Vec3i j = 0  3 0)\n")
+			SEXTEXT("	(MatObject mo = i j)\n")
+			SEXTEXT("   (result = (mo.a.x / mo.b.y))\n")
+			SEXTEXT(")\n")
+			SEXTEXT("(alias Main EntryPoint.Main)\n")
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMemberwise2"));
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+
+		int32 value = vm.PopInt32();
+		validate(value == 4);
+	}
+
 	void TestStructStringPassByRef(IPublicScriptSystem& ss)
 	{
 		csexstr srcCode =
@@ -10812,85 +10840,85 @@ namespace
       validate(z == -3.0f);
    }
 
-	void RunCollectionTests()
-	{
-      TEST(TestMap);  
-      TEST(TestMap2);
-      TEST(TestMap3);
-      TEST(TestMap4);
-      TEST(TestMap5);
-      TEST(TestMap6);
-      TEST(TestMap7);
-      TEST(TestMapOfArchetypes);
-      TEST(TestMapOverwriteValue);
-      TEST(TestMapOverwriteValue64);
-      TEST(TestMapIndexedByInt32);
-      TEST(TestMapIndexedByFloat64);
-      TEST(TestDeleteKey);
-      TEST(TestMapValueStruct);
-      TEST(TestMapValueConstruct);
-      TEST(TestMapForeach1);
-      TEST(TestMapForeach2);
+   void RunCollectionTests()
+   {
+	   TEST(TestMap);
+	   TEST(TestMap2);
+	   TEST(TestMap3);
+	   TEST(TestMap4);
+	   TEST(TestMap5);
+	   TEST(TestMap6);
+	   TEST(TestMap7);
+	   TEST(TestMapOfArchetypes);
+	   TEST(TestMapOverwriteValue);
+	   TEST(TestMapOverwriteValue64);
+	   TEST(TestMapIndexedByInt32);
+	   TEST(TestMapIndexedByFloat64);
+	   TEST(TestDeleteKey);
+	   TEST(TestMapValueStruct);
+	   TEST(TestMapValueConstruct);
+	   TEST(TestMapForeach1);
+	   TEST(TestMapForeach2);
 
-      TEST(TestMapInStruct);
-      TEST(TestMapInMap);
-      TEST(TestMapStrongTyping);
-      TEST(TestMapThrowAndCleanup);
-      TEST(TestMapThrowAndCleanup2);
-		TEST(TestArrayInt32);
-		TEST(TestArrayInt32_2);
-		TEST(TestArrayInt32_3);
-		TEST(TestArrayInt32_4);
-		TEST(TestArrayInt32_5);
-		TEST(TestArrayInt32_6);
-		TEST(TestArrayInt32_7);
-		TEST(TestArrayInt32_8);
-		TEST(TestArrayInt32_9);
-		TEST(TestArrayFloat64);
-		TEST(TestArrayStruct);
-		TEST(TestArrayStruct_2);
-		TEST(TestArrayStruct_3);
+	   TEST(TestMapInStruct);
+	   TEST(TestMapInMap);
+	   TEST(TestMapStrongTyping);
+	   TEST(TestMapThrowAndCleanup);
+	   TEST(TestMapThrowAndCleanup2);
+	   TEST(TestArrayInt32);
+	   TEST(TestArrayInt32_2);
+	   TEST(TestArrayInt32_3);
+	   TEST(TestArrayInt32_4);
+	   TEST(TestArrayInt32_5);
+	   TEST(TestArrayInt32_6);
+	   TEST(TestArrayInt32_7);
+	   TEST(TestArrayInt32_8);
+	   TEST(TestArrayInt32_9);
+	   TEST(TestArrayFloat64);
+	   TEST(TestArrayStruct);
+	   TEST(TestArrayStruct_2);
+	   TEST(TestArrayStruct_3);
 
-		TEST(TestArrayStrongTyping);
-		TEST(TestArrayStrongTyping2);
-		TEST(TestArrayStrongTyping3);
+	   TEST(TestArrayStrongTyping);
+	   TEST(TestArrayStrongTyping2);
+	   TEST(TestArrayStrongTyping3);
 
-		TEST(TestConstructInArray);
-		TEST(TestArrayForeachOnce);
-		TEST(TestArrayForeachWithinForEach);
-		TEST(TestArrayForeachAndThrow);
-		TEST(TestArrayForeachEachElementInArray);
-		TEST(TestArrayForeachEachElementInArrayWithoutIndex);
-		TEST(TestArrayElementDeconstruct);
-		TEST(TestArrayElementDeconstructWhenThrown);
-		TEST(TestArrayWithinArrayDeconstruct);
-		TEST(TestArrayElementLockRef);
+	   TEST(TestConstructInArray);
+	   TEST(TestArrayForeachOnce);
+	   TEST(TestArrayForeachWithinForEach);
+	   TEST(TestArrayForeachAndThrow);
+	   TEST(TestArrayForeachEachElementInArray);
+	   TEST(TestArrayForeachEachElementInArrayWithoutIndex);
+	   TEST(TestArrayElementDeconstruct);
+	   TEST(TestArrayElementDeconstructWhenThrown);
+	   TEST(TestArrayWithinArrayDeconstruct);
+	   TEST(TestArrayElementLockRef);
 
-		TEST(TestLinkedList);
-		TEST(TestLinkedList2);
-		TEST(TestLinkedList3);
-		TEST(TestLinkedList4);
-		TEST(TestLinkedList6);
-		TEST(TestLinkedList7);
-		TEST(TestLinkedList8);
-		TEST(TestLinkedList9);
-		TEST(TestLinkedList10);
-		TEST(TestLinkedList11);
-		TEST(TestLinkedListForeach1);
-		TEST(TestLinkedListForeach2);
-		TEST(TestLinkedListForeach3);
-		TEST(TestLinkedListForeach4);
-		TEST(TestLinkedListForeach5);
-		TEST(TestLinkedListForeach6);
-		TEST(TestLinkedListForeach7);
-      TEST(TestLinkedListOfArchetypes);
-		TEST(TestLinkedListOfLists);
+	   TEST(TestLinkedList);
+	   TEST(TestLinkedList2);
+	   TEST(TestLinkedList3);
+	   TEST(TestLinkedList4);
+	   TEST(TestLinkedList6);
+	   TEST(TestLinkedList7);
+	   TEST(TestLinkedList8);
+	   TEST(TestLinkedList9);
+	   TEST(TestLinkedList10);
+	   TEST(TestLinkedList11);
+	   TEST(TestLinkedListForeach1);
+	   TEST(TestLinkedListForeach2);
+	   TEST(TestLinkedListForeach3);
+	   TEST(TestLinkedListForeach4);
+	   TEST(TestLinkedListForeach5);
+	   TEST(TestLinkedListForeach6);
+	   TEST(TestLinkedListForeach7);
+	   TEST(TestLinkedListOfArchetypes);
+	   TEST(TestLinkedListOfLists);
 
-		TEST(TestListStruct);
-		TEST(TestListStruct2);
+	   TEST(TestListStruct);
+	   TEST(TestListStruct2);
 
-		TEST(TestListStrongTyping);
-	}
+	   TEST(TestListStrongTyping);
+   }
 
 	void TestMaths()
 	{
@@ -11219,6 +11247,8 @@ namespace
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
+
+		TEST(TestMemberwise2);
 
 		RunPositiveFailures();
 		RunPositiveSuccesses();

@@ -741,7 +741,12 @@ namespace Rococo { namespace Script
 					return;
 				}
 
-				if (!IsCompound(src))
+				if (IsAtomic(src))
+				{
+					ce.Builder.AssignVariableToVariable(src.String()->Buffer, variableName);
+					return;
+				}
+				else if (!IsCompound(src))
 				{
 					sexstringstream<1024> streamer;
 					streamer.sb << memberType.Name() << SEXTEXT(" is a derived type, and requires a compound initializer");
