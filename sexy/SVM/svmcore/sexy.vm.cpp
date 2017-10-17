@@ -188,6 +188,7 @@ namespace
 			ActivateInstruction(CopyMemoryBig);
 			ActivateInstruction(Copy32Bits);
 			ActivateInstruction(Copy64Bits);
+			ActivateInstruction(CopySFVariableFromRef);
 			ActivateInstruction(Invoke);
 			ActivateInstruction(InvokeBy);
 			ActivateInstruction(Return);
@@ -1571,6 +1572,31 @@ namespace
 			*(int32*) target = *(const int32*) source;
 
 			cpu.AdvancePC(3);			
+		}
+
+		OPCODE_CALLBACK(CopySFVariableFromRef)
+		{
+			const Ins* I = NextInstruction();
+
+#pragma pack(push,1)
+			struct Args // This is how OPCODES should have been implemented. MAT
+			{
+				uint8 instruction;
+				int32 targetSFOffset;
+				int32 sourcePtrSFOffset;
+				int32 sourceMemberOffset;
+				size_t nBytesSource;
+			};
+#pragma pack(pop)
+
+			const Args* args = (const Args*) I;
+			cpu.AdvancePC(sizeof(Args));
+
+			uint8* sf = cpu.SF();
+			uint8* target = sf + args->targetSFOffset;
+			const uint8** ppSource = (const uint8**) (sf + args->sourcePtrSFOffset);
+			const uint8* source = (*ppSource) + args->sourceMemberOffset;
+			memcpy(target, source, args->nBytesSource);
 		}
 	
 		OPCODE_CALLBACK(CopyMemory)

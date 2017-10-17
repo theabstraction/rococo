@@ -177,6 +177,7 @@ namespace Rococo { namespace VM
 			CopySFMemoryNear,
 			CopyMemory,
 			CopyMemoryBig,		
+			CopySFVariableFromRef,
 			Copy32Bits,
 			Copy64Bits,
 			IncrementPtr,

@@ -990,6 +990,23 @@ namespace
 		rep.ByteCount = 6;
 	}
 
+	void FormatCopySFVariableFromRef(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+#pragma	pack(push, 1)
+		struct Args // This is how OPCODES should have been implemented. MAT
+		{
+			uint8 instruction;
+			int32 targetSFOffset;
+			int32 sourcePtrSFOffset;
+			int32 sourceMemberOffset;
+			size_t nBytesSource;
+		};
+#pragma pack(pop)
+		const Args& args = (const Args&) I;
+		format(rep, SEXTEXT("SF(%d)=(*SF(%d).%d). %lu bytes"), args.targetSFOffset, args.sourcePtrSFOffset, args.sourceMemberOffset, args.nBytesSource);
+		rep.ByteCount = sizeof(Args);
+	}
+
 	void BuildFormatTable()
 	{
 		EnableFormatter(BooleanNot);
@@ -999,6 +1016,7 @@ namespace
 		EnableFormatter(CopyMemory);
 		EnableFormatter(Copy32Bits);
 		EnableFormatter(Copy64Bits);
+		EnableFormatter(CopySFVariableFromRef);
 		EnableFormatter(SetRegisterImmediate64);
 		EnableFormatter(SetRegisterImmediate32);
 		EnableFormatter(IncrementPtr);

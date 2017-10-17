@@ -805,6 +805,15 @@ namespace
 			}
 		}
 
+		virtual void Append_CopySFVariableFromRef(int32 targetSFOffset, int32 sourcePtrSFOffset, int32 sourceMemberOffset, size_t nBytesSource)
+		{
+			AddSingleByteInstruction(Opcodes::CopySFVariableFromRef);
+			AddArgument(targetSFOffset);
+			AddArgument(sourcePtrSFOffset);
+			AddArgument(sourceMemberOffset);
+			AddArgument(nBytesSource);
+		}
+
 		virtual void Append_IncrementPtr(DINDEX sourceAndTarget, int32 value)
 		{
 			if (value == 0) return;

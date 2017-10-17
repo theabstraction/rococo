@@ -1606,9 +1606,9 @@ namespace
 		{
 			size_t nBytesSource = sourceDef.AllocSize;
 
-			if (sourceDef.ResolvedType->VarType() == VARTYPE_Derivative)
+			if (targetDef.IsParentValue || sourceDef.IsParentValue)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Error assigning %s to %s. The source was of derivative type"), source, target);
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot handle this case for a closure upvalue"));
 			}
 
 			if (sourceDef.ResolvedType->VarType() != targetDef.ResolvedType->VarType())
@@ -1616,12 +1616,14 @@ namespace
 				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Type mismatch %s to %s (%s vs %s)"), source, target, sourceDef.ResolvedType->Name(), targetDef.ResolvedType->Name());
 			}
 
-			if (targetDef.IsParentValue || sourceDef.IsParentValue)
+			if (sourceDef.ResolvedType->VarType() == VARTYPE_Derivative && (nBytesSource != 8 && nBytesSource != 4))
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot handle this case for a closure upvalue"));
+				Assembler().Append_CopySFVariableFromRef(targetDef.SFOffset + targetDef.MemberOffset, sourceDef.SFOffset, sourceDef.MemberOffset, nBytesSource);			
 			}
-
-			Assembler().Append_SetSFValueFromSFMemberRef(sourceDef.SFOffset, sourceDef.MemberOffset, targetDef.MemberOffset + targetDef.SFOffset, nBytesSource);	
+			else
+			{
+				Assembler().Append_SetSFValueFromSFMemberRef(sourceDef.SFOffset, sourceDef.MemberOffset, targetDef.MemberOffset + targetDef.SFOffset, nBytesSource);
+			}
 		}
 		else // source is by value, target is by ref, oft used by set accessors
 		{

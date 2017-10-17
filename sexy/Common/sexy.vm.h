@@ -329,6 +329,7 @@ namespace Rococo { namespace VM
 
 		virtual void Append_SetSFMemberRefFromSFValue(int32 targetSFOffset, int32 targetMemberOffset, int32 SFSourceValueOffset, size_t nBytesSource) = 0;
 		virtual void Append_SetSFValueFromSFMemberRef(int32 sourceSFOffset, int32 sourceMemberOffset, int32 SFTargetValueOffset, size_t nBytesSource) = 0;
+		virtual void Append_CopySFVariableFromRef(int32 targetSFOffset, int32 sourceSFOffset, int32 sourceMemberOffset, size_t nBytesSource) = 0;
 		virtual void Append_SetSFMemberByRefFromRegister(DINDEX Dsource, int32 sfOffset, int32 memberOffset, BITCOUNT bitcount) = 0;
 		virtual void Append_TripDebugger() = 0;
 

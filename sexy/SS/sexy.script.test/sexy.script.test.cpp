@@ -417,6 +417,31 @@ namespace
 		validate(result == 0xABCDEF01);
 	}
 
+	void TestAssignDerivativeFromRef(IPublicScriptSystem& ss)
+	{
+		csexstr srcCode =
+			SEXTEXT("(namespace EntryPoint)")
+			SEXTEXT("(using Sys.Maths)")
+			SEXTEXT("(function F (Vec3i w) -> (Int32 sum): ")
+			SEXTEXT("	(Vec3i v = w)")
+			SEXTEXT("	(sum = (v.x / v.y))")
+			SEXTEXT(")")
+			SEXTEXT("(function Main -> (Int32 result):")
+			SEXTEXT("	(Vec3i v = 12 4 7)")
+			SEXTEXT("	(F v -> result)")
+			SEXTEXT(")")
+			SEXTEXT("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignDerivativeFromRef"));
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		vm.Push(100); // Allocate stack space for the int32 result
+
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		int32 result = vm.PopInt32();
+		validate(result == 3);
+	}
+
 	void TestAssignFloat32Literal(IPublicScriptSystem& ss)
 	{
 		csexstr srcCode =
@@ -10989,8 +11014,9 @@ namespace
 
 	void RunPositiveSuccesses()
 	{
+		TEST(TestAssignDerivativeFromRef);
 		TEST(TestLinkedList6);
-
+		TEST(TestMemberwise2);
 		validate(true);
 		TEST(TestDestructor);
 		TEST(TestNullObject);
@@ -11248,10 +11274,8 @@ namespace
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		TEST(TestMemberwise2);
-
-		RunPositiveFailures();
 		RunPositiveSuccesses();
+		RunPositiveFailures();	
 		RunCollectionTests();
 
 		end = OS::CpuTicks();
