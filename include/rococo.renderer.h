@@ -34,47 +34,52 @@ namespace Rococo
 		float v;
 	};
 
-   struct VertexTriangle
-   {
-      ObjectVertex a;
-      ObjectVertex b;
-      ObjectVertex c;
-   };
+	struct VertexTriangle
+	{
+		ObjectVertex a;
+		ObjectVertex b;
+		ObjectVertex c;
+	};
 
 	struct IRenderer;
 
-	ROCOCO_ID(ID_VERTEX_SHADER,size_t,-1)
-	ROCOCO_ID(ID_PIXEL_SHADER, size_t, -1)
-	ROCOCO_ID(ID_TEXTURE, size_t, -1)
+	ROCOCO_ID(ID_VERTEX_SHADER, size_t, -1)
+		ROCOCO_ID(ID_PIXEL_SHADER, size_t, -1)
+		ROCOCO_ID(ID_TEXTURE, size_t, -1)
 
-   namespace Textures
-   {
-      struct BitmapLocation;
-   }
-	
+		namespace Textures
+	{
+		struct BitmapLocation;
+	}
+
 	ROCOCOAPI IGuiRenderContext // Provides draw calls - do not cache
 	{
 		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
 		virtual void FlushLayer() = 0;
-      virtual void AddSpriteTriangle(bool alphaBlend, const GuiVertex triangle[3]) = 0;
+		virtual void AddSpriteTriangle(bool alphaBlend, const GuiVertex triangle[3]) = 0;
 		virtual Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
 		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
 		virtual IRenderer& Renderer() = 0;
-		virtual auto SelectTexture(ID_TEXTURE id) -> Vec2i = 0; // select texture and returns span
+		virtual auto SelectTexture(ID_TEXTURE id)->Vec2i = 0; // select texture and returns span
 	};
 
 	struct ObjectInstance
 	{
 		Matrix4x4 orientation;
 		RGBA highlightColour;
-	};	
-	
+	};
+
+	struct GlobalLight
+	{
+		Vec4 lightDir;
+		Vec4 lightPos;
+	};
+
 	struct GlobalState
 	{
 		Matrix4x4 worldMatrixAndProj;
 		Matrix4x4 worldMatrix;
-		Vec4 lightDir;
-      Vec4 lightPos;
+		GlobalLight lights[2];
 	};
 
 	ROCOCOAPI IRenderContext // Provides draw calls - do not cache
@@ -85,10 +90,10 @@ namespace Rococo
 		virtual void SetMeshTexture(ID_TEXTURE textureId, int textureIndex) = 0;
 	};
 
-   ROCOCOAPI IUIOverlay
-   {
-      virtual void Render(IGuiRenderContext& gc) = 0;
-   };
+	ROCOCOAPI IUIOverlay
+	{
+	   virtual void Render(IGuiRenderContext& gc) = 0;
+	};
 
 	ROCOCOAPI IScene
 	{
@@ -100,7 +105,7 @@ namespace Rococo
 	ROCOCOAPI IApp
 	{
 		virtual void Free() = 0;
-		virtual auto OnFrameUpdated(const IUltraClock& clock) -> uint32 = 0; // returns number of ms to sleep per frame as hint
+		virtual auto OnFrameUpdated(const IUltraClock& clock)->uint32 = 0; // returns number of ms to sleep per frame as hint
 		virtual void OnKeyboardEvent(const KeyboardEvent& k) = 0;
 		virtual void OnMouseEvent(const MouseEvent& me) = 0;
 	};
@@ -116,41 +121,43 @@ namespace Rococo
 		struct IWindow;
 	}
 
-   namespace Textures
-   {
-      struct ITextureArrayBuilder;
-   }
+	namespace Textures
+	{
+		struct ITextureArrayBuilder;
+	}
 
 	ROCOCOAPI IRenderer
 	{
-      virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
+	  virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
 	  virtual void ClearMeshes() = 0;
-      virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
-      virtual void DeleteMesh(ID_SYS_MESH id) = 0;
-      virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
-      virtual IInstallation& Installation() = 0;	
-      virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, cstr uniqueName) = 0;
-      virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
+	  virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
+	  virtual void DeleteMesh(ID_SYS_MESH id) = 0;
+	  virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
+	  virtual IInstallation& Installation() = 0;
+	  virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, cstr uniqueName) = 0;
+	  virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
 	  virtual void Render(IScene& scene) = 0;
-      virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
+	  virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
 	  virtual void SetCursorBitmap(ID_TEXTURE bitmapId, Vec2i hotspotOffset, Vec2 uvTopLeft, Vec2 uvBottomRight) = 0;
 	  virtual void SetCursorVisibility(bool isVisible) = 0;
 	  virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices) = 0;
-      virtual Windows::IWindow& Window() = 0;     
+	  virtual void UpdatePixelShader(cstr pingPath) = 0;
+	  virtual void UpdateVertexShader(cstr pingPath) = 0;
+	  virtual Windows::IWindow& Window() = 0;
 	};
 
 	namespace Graphics
 	{
 		Vec2i GetScreenCentre(const GuiMetrics& metrics);
-      Vec2i RenderHorizontalCentredText(IGuiRenderContext& gr, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle);
+		Vec2i RenderHorizontalCentredText(IGuiRenderContext& gr, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle);
 		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middleLeft);
-      Vec2i RenderTopLeftAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topLeft);
-      Vec2i RenderTopRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topRight);
+		Vec2i RenderTopLeftAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topLeft);
+		Vec2i RenderTopRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topRight);
 
-      Vec2i RenderCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middle);
+		Vec2i RenderCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middle);
 		void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag);
 		void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag);
-      void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour);
+		void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour);
 
 		struct alignas(16) StackSpaceGraphics
 		{
@@ -162,8 +169,8 @@ namespace Rococo
 		float GetAspectRatio(const IRenderer& renderer);
 		Vec2 PixelSpaceToScreenSpace(const Vec2i& v, IRenderer& renderer);
 
-      void DrawSprite(const Vec2i& position, const Textures::BitmapLocation& location, IGuiRenderContext& gc, bool alphaBlend);
-	} // Graphics
+		void DrawSprite(const Vec2i& position, const Textures::BitmapLocation& location, IGuiRenderContext& gc, bool alphaBlend);
+	}// Graphics
 } // Rococo
 
 #endif

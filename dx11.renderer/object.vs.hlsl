@@ -1,7 +1,7 @@
 struct ObjectVertex
 {
 	float4 position : POSITION;
-	float4 normal : NORMAL;
+	float4 normal : NORMAL;	
 	float4 emissiveColour: COLOR0;
 	float4 diffuseColour: COLOR1;
 	float2 uv: TEXCOORD;

@@ -349,25 +349,25 @@ namespace
 		   ps_globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
 
 		   installation.LoadResource("!gui.vs", *scratchBuffer, 64_kilobytes);
-		   idGuiVS = CreateGuiVertexShader("gui.vs", scratchBuffer->GetData(), scratchBuffer->Length());
+		   idGuiVS = CreateGuiVertexShader("!gui.vs", scratchBuffer->GetData(), scratchBuffer->Length());
 
 		   installation.LoadResource("!gui.ps", *scratchBuffer, 64_kilobytes);
-		   idGuiPS = CreatePixelShader("gui.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+		   idGuiPS = CreatePixelShader("!gui.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
 		   installation.LoadResource("!object.vs", *scratchBuffer, 64_kilobytes);
-		   idObjVS = CreateObjectVertexShader("object.vs", scratchBuffer->GetData(), scratchBuffer->Length());
+		   idObjVS = CreateObjectVertexShader("!object.vs", scratchBuffer->GetData(), scratchBuffer->Length());
 
 		   installation.LoadResource("!object.ps", *scratchBuffer, 64_kilobytes);
-		   idObjPS = CreatePixelShader("object.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+		   idObjPS = CreatePixelShader("!object.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
 		   installation.LoadResource("!depth.ps", *scratchBuffer, 64_kilobytes);
-		   idObjDepthPS = CreatePixelShader("depth.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+		   idObjDepthPS = CreatePixelShader("!depth.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
 		   installation.LoadResource("!sprite.vs", *scratchBuffer, 64_kilobytes);
-		   idSpriteVS = CreateGuiVertexShader("sprite.vs", scratchBuffer->GetData(), scratchBuffer->Length());
+		   idSpriteVS = CreateGuiVertexShader("!sprite.vs", scratchBuffer->GetData(), scratchBuffer->Length());
 
 		   installation.LoadResource("!sprite.ps", *scratchBuffer, 64_kilobytes);
-		   idSpritePS = CreatePixelShader("sprite.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+		   idSpritePS = CreatePixelShader("!sprite.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
 		   instanceBuffer = DX11::CreateConstantBuffer<ObjectInstance>(device);
 	   }
@@ -397,6 +397,80 @@ namespace
 		   {
 			   if (t.texture) t.texture->Release();
 			   if (t.view) t.view->Release();
+		   }
+	   }
+
+	   void UpdatePixelShader(cstr pingPath) override
+	   {
+		   for (auto& i : pixelShaders)
+		   {
+			   if (Eq(pingPath, i->name.c_str()))
+			   {
+				   if (!i->ps)
+				   {
+					   lastError[0] = 0;
+				   }
+
+				   i->ps = nullptr;
+				   installation.LoadResource(pingPath, *scratchBuffer, 64_kilobytes);
+				   HRESULT hr = device.CreatePixelShader(scratchBuffer->GetData(), scratchBuffer->Length(), nullptr, &i->ps);
+				   if FAILED(hr)
+				   {
+					   SafeFormat(lastError, sizeof(lastError), "device.CreatePixelShader for %s returned 0x%X", pingPath, hr);
+				   }
+				   break;
+			   }
+		   }
+	   }
+
+	   char lastError[256] = { 0 };
+
+	   void UpdateVertexShader(cstr pingPath) override
+	   {
+		   for (auto& i : vertexShaders)
+		   {
+			   if (Eq(pingPath, i->name.c_str()))
+			   {
+				   if (!i->vs)
+				   {
+					   lastError[0] = 0;
+				   }
+
+				   i->vs = nullptr;
+				   i->inputLayout = nullptr;
+				   installation.LoadResource(pingPath, *scratchBuffer, 64_kilobytes);
+
+				   const D3D11_INPUT_ELEMENT_DESC *elements = nullptr;
+				   uint32 nElements;
+
+				   if (Eq(pingPath, "!gui.vs"))
+				   {
+					   elements = DX11::GetGuiVertexDesc();
+					   nElements = DX11::NumberOfGuiVertexElements();
+				   }
+				   else
+				   {
+					   elements = DX11::GetObjectVertexDesc();
+					   nElements = DX11::NumberOfObjectVertexElements();
+				   }
+
+				   HRESULT hr = device.CreateInputLayout(elements, nElements, scratchBuffer->GetData(), scratchBuffer->Length(), &i->inputLayout);
+				   if SUCCEEDED(hr)
+				   {
+					   hr = device.CreateVertexShader(scratchBuffer->GetData(), scratchBuffer->Length(), nullptr, &i->vs);
+					   if FAILED(hr)
+					   {
+						   SafeFormat(lastError, sizeof(lastError), "device.CreateVertexShader for %s returned 0x%X", pingPath, hr);
+						   i->inputLayout = nullptr;
+					   }
+				   }
+				   else
+				   {
+					   i->inputLayout = nullptr;
+					   SafeFormat(lastError, sizeof(lastError), "device.CreateInputLayout for %s returned 0x%X", pingPath, hr);
+				   }
+				   break;
+			   }
 		   }
 	   }
 
@@ -688,7 +762,7 @@ namespace
 		   return span;
 	   }
 
-	   void UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid)
+	   bool UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid)
 	   {
 		   if (vid.value >= vertexShaders.size()) Throw(0, "Bad vertex shader Id in call to UseShaders");
 		   if (pid.value >= pixelShaders.size()) Throw(0, "Bad pixel shader Id in call to UseShaders");
@@ -696,9 +770,36 @@ namespace
 		   auto& vs = *vertexShaders[vid.value];
 		   auto& ps = *pixelShaders[pid.value];
 
-		   dc.IASetInputLayout(vs.inputLayout);
-		   dc.VSSetShader(vs.vs, nullptr, 0);
-		   dc.PSSetShader(ps.ps, nullptr, 0);
+		   if (vs.vs == nullptr)
+		   {
+			   if (lastError[0] == 0)
+			   {
+				   SafeFormat(lastError, sizeof(lastError), "Vertex Shader null for %s", vs.name.c_str());
+			   }
+		   }
+
+		   if (ps.ps == nullptr)
+		   {
+			   if (lastError[0] == 0)
+			   {
+				   SafeFormat(lastError, sizeof(lastError), "Pixel Shader null for %s", ps.name.c_str());
+			   }
+		   }
+
+		   if (vs.vs == nullptr || ps.ps == nullptr)
+		   {
+			   dc.IASetInputLayout(nullptr);
+			   dc.VSSetShader(nullptr, nullptr, 0);
+			   dc.PSSetShader(nullptr, nullptr, 0);
+			   return false;
+		   }
+		   else
+		   {
+			   dc.IASetInputLayout(vs.inputLayout);
+			   dc.VSSetShader(vs.vs, nullptr, 0);
+			   dc.PSSetShader(ps.ps, nullptr, 0);
+			   return true;
+		   }
 	   }
 
 	   void ClearContext()
@@ -862,29 +963,37 @@ namespace
 
 		   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
 
-		   RGBA clearColour = scene.GetClearColour();
-
-		   if (clearColour.alpha > 0)
-		   {
-			   dc.ClearRenderTargetView(mainBackBufferView, (const FLOAT*)&clearColour);
-		   }
-
 		   dc.ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
 		   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
-		   UseShaders(idObjVS, idObjPS);
 
-		   dc.PSSetSamplers(0, 1, &objectSampler);
-		   dc.RSSetState(objectRaterizering);
-		   dc.OMSetDepthStencilState(objDepthState, 0);
-
-		   scene.RenderObjects(*this);
-		   scene.RenderGui(*this);
-
-		   for (auto& o : overlays)
+		   if (UseShaders(idObjVS, idObjPS))
 		   {
-			   o.overlay->Render(*this);
+			   dc.PSSetSamplers(0, 1, &objectSampler);
+			   dc.RSSetState(objectRaterizering);
+			   dc.OMSetDepthStencilState(objDepthState, 0);
+
+			   RGBA clearColour = scene.GetClearColour();
+			   if (clearColour.alpha > 0)
+			   {
+				   dc.ClearRenderTargetView(mainBackBufferView, (const FLOAT*)&clearColour);
+			   }
+
+			   scene.RenderObjects(*this);
+			   scene.RenderGui(*this);
+
+			   for (auto& o : overlays)
+			   {
+				   o.overlay->Render(*this);
+			   }
+
+		   }
+		   else
+		   {
+			   FLOAT errorColour[4] = { 0.25f, 0.0f, 0.0f, 1.0f };
+			   dc.ClearRenderTargetView(mainBackBufferView, errorColour);
+			   Graphics::RenderTopLeftAlignedText(*this, lastError, RGBAb(255, 255, 255, 255), 8, { 0,0 });
 		   }
 
 		   FlushLayer();
@@ -894,6 +1003,8 @@ namespace
 		   FlushLayer();
 
 		   renderState = RenderState_None;
+
+		   ClearContext();
 
 		   dc.PSSetShaderResources(0, 0, nullptr);
 		   dc.PSSetSamplers(0, 0, nullptr);
@@ -949,9 +1060,13 @@ namespace
 		   {
 			   if (renderState != RenderState_Gui)
 			   {
+				   if (!UseShaders(idGuiVS, idGuiPS))
+				   {
+					   Throw(0, "Error setting Gui shaders");
+				   }
+
 				   renderState = RenderState_Gui;
 
-				   UseShaders(idGuiVS, idGuiPS);
 				   dc.PSSetSamplers(0, 1, &spriteSampler);
 				   dc.PSSetShaderResources(0, 1, &fontBinding);
 				   dc.RSSetState(spriteRaterizering);
@@ -1009,7 +1124,10 @@ namespace
 			   {
 				   renderState = RenderState_Sprites;
 
-				   UseShaders(idSpriteVS, idSpritePS);
+				   if (!UseShaders(idSpriteVS, idSpritePS))
+				   {
+					   Throw(0, "Could not set sprite shaders");
+				   }
 
 				   dc.PSSetSamplers(0, 1, &spriteSampler);
 				   ID3D11ShaderResourceView* views[1] = { textureArray.View() };

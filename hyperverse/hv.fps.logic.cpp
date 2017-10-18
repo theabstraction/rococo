@@ -171,19 +171,36 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 	{
 		e.platform.scene.Builder().Clear();
 
-		struct ANON : public IEntityCallback
+		struct ANON : public IEventCallback<VisibleSector>, public IEventCallback<const ID_ENTITY>
 		{
 			Rococo::Graphics::ISceneBuilderSupervisor& builder;
 
-			virtual void OnEntity(int64 index, IEntity& entity, ID_ENTITY id)
+			virtual void OnEvent(const ID_ENTITY& id)
 			{
 				builder.AddStatics(id);
+			}
+
+			virtual void OnEvent(VisibleSector& sv)
+			{
+				sv.sector.ForEveryObjectInSector(*this);		
 			}
 
 			ANON(Rococo::Graphics::ISceneBuilderSupervisor& _builder) : builder(_builder) {}
 		} addToScene(e.platform.scene.Builder());
 
-		e.platform.instances.ForAll(addToScene);
+		Vec3 eye;
+		e.platform.camera.GetPosition(eye);
+
+		Matrix4x4 world;
+		e.platform.camera.GetWorld(world);
+
+		Vec3 dir{ -world.row2.x, -world.row2.y, -world.row2.z };
+
+		auto nSectors = e.sectors.ForEverySectorVisibleAt(eye, dir, addToScene);
+		if (nSectors == 0)
+		{
+			// Nothing rendered
+		}
 	}
 
 	struct Triangle
@@ -412,6 +429,20 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 
 			float ithTime = 1.0f;
 			Vec3 ithResult = ComputeWallCollision(cp, p, q, ithTime);
+
+			if (ithTime < collisionTime)
+			{
+				collisionTime = ithTime;
+				destinationPoint = ithResult;
+			}
+		}
+
+		size_t barrierCount;
+		auto b = sector.Barriers(barrierCount);
+		for (size_t i = 0; i < barrierCount; ++i)
+		{
+			float ithTime = 1.0f;
+			Vec3 ithResult = ComputeWallCollision(cp, b[i].p, b[i].q, ithTime);
 
 			if (ithTime < collisionTime)
 			{
@@ -683,6 +714,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 		e.platform.camera.GetWorld(m);
 		Vec3 dir{ -m.row2.x, -m.row2.y, -m.row2.z };
 		e.platform.scene.Builder().SetLight(dir, final + playerPosToCamera, 0);
+		e.platform.scene.Builder().SetLight(Vec3{ 1,0,0 }, Vec3{ 0, 0, 0.5f }, 1);
 	}
 
 	void UpdateAI(const IUltraClock& clock) override

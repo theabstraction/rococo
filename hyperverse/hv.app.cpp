@@ -56,7 +56,14 @@ namespace ANON
 
 	   virtual RGBA GetClearColour() const
 	   {
-		   return e.platform.scene.GetClearColour();
+		   if (e.sectors.begin() == e.sectors.end())
+		   {
+			   return RGBA(0, 0.25f, 0);
+		   }
+		   else
+		   {
+			   return e.platform.scene.GetClearColour();
+		   }
 	   }
 
 	   virtual void RenderGui(IGuiRenderContext& grc)
@@ -89,24 +96,31 @@ namespace ANON
 		   ev.args = &args;
 		   e.platform.publisher.Publish(ev);
 
-		   if (Eq(Rococo::GetFileExtension(args.resourceName), ".sxy"))
+		   rchar pingname[1024];
+		   args.GetPingPath(pingname, 1024);
+
+		   auto ext = Rococo::GetFileExtension(args.resourceName);
+		   if (Eq(ext, ".sxy"))
 		   {
-			   rchar pingname[1024];
-			   args.GetPingPath(pingname, 1024);
 			   e.platform.utilities.RefreshResource(e.platform, pingname);
+
+			   if (args.Matches("!scripts/hv/main.sxy"))
+			   {
+				   HV::RunEnvironmentScript(e, "!scripts/hv/main.sxy");
+			   }
+
+			   if (StartsWith(pingname, "!scripts/hv/sector/"))
+			   {
+				   sectors->OnSectorScriptChanged(args);
+			   }
 		   }
-
-		   if (args.Matches("!scripts/hv/main.sxy"))
+		   else if (Eq(ext, ".ps"))
 		   {
-			   HV::RunEnvironmentScript(e, "!scripts/hv/main.sxy");
+			   e.platform.renderer.UpdatePixelShader(pingname);
 		   }
-
-		   char pingPath[IO::MAX_PATHLEN];
-		   args.GetPingPath(pingPath, IO::MAX_PATHLEN);
-
-		   if (StartsWith(pingPath, "!scripts/hv/sector/"))
+		   else if (Eq(ext, ".vs"))
 		   {
-			   sectors->OnSectorScriptChanged(args);
+			   e.platform.renderer.UpdateVertexShader(pingname);
 		   }
 	   }
 
@@ -126,7 +140,26 @@ namespace ANON
 		   GuiRect fullRect{ 0,0,metrics.screenSpan.x, metrics.screenSpan.y };
 		   editorPanel->Root()->Base()->SetRect(fullRect);
 		   e.platform.renderer.Render(*this);
-		   return 5;
+
+		   if (editorActive)
+		   {
+			   if (editor->IsLoading())
+			   {
+				   return 5;
+			   }
+			   else
+			   {
+				   return 100;
+			   }
+		   }
+		   else if (e.sectors.begin() == e.sectors.end())
+		   {
+			   return 100;
+		   }
+		   else
+		   {
+			   return 5;
+		   }
 	   }
 
 	   virtual void OnKeyboardEvent(const KeyboardEvent& keyboardEvent)

@@ -138,9 +138,14 @@ namespace
 			p = perimeter[index % (int32) perimeter.size()];
 		}
 
-		int32 TesselateUniform()
+		void ClearFaces() override
 		{
-			if (!topFaces.empty()) Throw(0, "The Rim is currently tesselated. Use Clear to delete current faces");
+			topFaces.clear();
+		}
+
+		int32 TesselateUniform() override
+		{
+			if (!topFaces.empty()) Throw(0, "The Rim is currently tesselated. Use Clear or ClearFaces to delete current faces");
 			if (perimeter.empty()) Throw(0, "RimTesselator::TesselateUniform - perimeter empty");
 			if (!isOriented) Orientate();
 

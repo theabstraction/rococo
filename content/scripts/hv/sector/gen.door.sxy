@@ -39,10 +39,10 @@
 	(Float32 u = (uScale * (Length top)))
 	(Float32 v = (vScale * (Length left)))
 	
-	(ObjectVertex a = (quad.a.x quad.a.y quad.a.z) (n.x n.y n.z)  0x00000000 0xFFFFFFFF (0 0))
-	(ObjectVertex b	= (quad.b.x quad.b.y quad.b.z) (n.x n.y n.z)  0x00000000 0xFFFFFFFF (u 0))
-	(ObjectVertex c = (quad.c.x quad.c.y quad.c.z) (n.x n.y n.z)  0x00000000 0xFFFFFFFF (u v))	
-	(ObjectVertex d = (quad.d.x quad.d.y quad.d.z) (n.x n.y n.z)  0x00000000 0xFFFFFFFF (0 v))	
+	(ObjectVertex a = quad.a n  0x00000000 0xFFFFFFFF (0 0))
+	(ObjectVertex b	= quad.b n  0x00000000 0xFFFFFFFF (u 0))
+	(ObjectVertex c = quad.c n  0x00000000 0xFFFFFFFF (u v))	
+	(ObjectVertex d = quad.d n  0x00000000 0xFFFFFFFF (0 v))	
 	
 	(mb.AddTriangle a b c)
 	(mb.AddTriangle c d a)
@@ -96,6 +96,26 @@
 	(corridor.CentreComponent localName meshName texture)
 )
 
+(function AddRimObject (IMeshBuilder mb)(IRimTesselator rim)(Float32 uvScale)(Float32 z0)(Float32 z1)-> :
+	(rim.ClearFaces)
+	(Int32 count = rim.PerimeterVertices)
+	(#for (Int32 i = 0)(i < count)(#inc i)
+		(Quadf q)
+		(rim.GetRimQuad z0 z1 i q)			
+		(AddQuad mb q uvScale uvScale)			
+	)
+	
+	(Int32 triangles = rim.TesselateUniform)
+	(#for (Int32 j = 0)(j < triangles)(#inc j)
+		(Triangle t)
+		(Triangle2d uv)
+		(rim.GetTopTriangle j t uv z1)
+		(AddTriangle mb t uv)
+		(rim.GetBottomTriangle j t uv z0)
+		(AddTriangle mb t uv)
+	)
+)
+
 (function Main (Int32 id)->(Int32 exitCode):
 	(ICorridor corridor (Corridor))
 	(Vec3 span)
@@ -105,107 +125,102 @@
 	(Float32 halfWidth = (AnyOf 0.1 0.5))
 	(Float32 y0 = (0 - halfWidth))
 	(Float32 y1 = halfWidth)
-	(Float32 z0 = 2.5)
+	(Float32 z0 = 0)
 	(Float32 z1 = span.z)
+	
+	(Float32 f =  (AnyOf 0.65 0.8))
+	(Float32 t0 = (f * y0))
+	(Float32 t1 = (f * y1))
 	
 	(ObjectFunction door = 
 		(closure (IMeshBuilder mb)-> :
-			(Vec3 v = x0 y0 z0)
-			(Vec3 w = 0 y1 z1)
+			(Vec3 v = x0 t0 z0)
+			(Vec3 w = x1 t1 z1)
 			(Float32 uvScale = (AnyOf 0.1 1.0))
-			
-			(IRimTesselator rim (RimTesselator))
-			
-			(rim.Clear)
-			(rim.MakeElipse 20 x1 x1)/*
-			(rim.AddPointXY -0.5   0)
-			(rim.AddPointXY  0.5   0)
-			(rim.AddPointXY  0.5 1.0)
-			(rim.AddPointXY  0.0 1.5)
-			(rim.AddPointXY -0.5 1.0)
-			(rim.CloseLoop)*/
-			
-			(Matrix4x4 transform =
-				(1 0  0 0)
-				(0 0 -1 0)
-				(0 1  0 1)
-				(0 0  0 1)
-			)
-			(rim.SetTransform transform)
-			
-			(
-				(Int32 count = rim.PerimeterVertices)
-				(#for (Int32 i = 0)(i < count)(#inc i)
-					(Quadf q)
-					(rim.GetRimQuad -0.25 0.25 i q)			
-					(AddQuad mb q uvScale uvScale)			
-				)
-			)
-			
-			(
-				(Int32 triangles = rim.TesselateUniform)
-				(#for (Int32 i = 0)(i < triangles)(#inc i)
-					(Triangle t)
-					(Triangle2d uv)
-					(rim.GetTopTriangle i t uv 0.25)
-					(AddTriangle mb t uv)
-					(rim.GetBottomTriangle i t uv -0.25)
-					(AddTriangle mb t uv)
-				)
-				//(AddBox mb v w uvScale uvScale)
-			)
+			(AddBox mb v w uvScale uvScale)
 		)
 	)
+
 	(AddObject "!textures/walls/metal2.jpg" "door" door)
 	
-	(Float32 pillarWidth =  (AnyOf 0.1 0.5))
+	(Float32 pillarWidth =  (AnyOf 0.1 0.45))
+	(Float32 baseWidth =  (AnyOf 0.1 0.45))
+	(Float32 capWidth =  (AnyOf 0.35 0.5))
 	
 	(ObjectFunction pillars = 
 		(closure (IMeshBuilder mb)-> :
-			(Float32 east = (x0 + pillarWidth))
-			(Float32 west  = (x1 - pillarWidth))
-			(Float32 south = (y0 - pillarWidth))
-			(Float32 north = (y1 + pillarWidth))
+			(IRimTesselator rim (RimTesselator))
+			
+			(Float32 xA = (x0 + pillarWidth))
+			(Float32 xB = (x1 - pillarWidth))
+			
+			(Float32 xA1 = (x0 + baseWidth))
+			(Float32 xB1 = (x1 - baseWidth))
+			
+			(Float32 dy1 = (halfWidth + pillarWidth))
+			(Float32 dy2 = (0 - dy1))
+			(Float32 zB = (z1 - pillarWidth))
+			   
+			(rim.Clear)
+			
+			(rim.AddPointXY x0  z0)
+			(rim.AddPointXY x0  z1)
+			(rim.AddPointXY x1  z1)
+			(rim.AddPointXY x1  z0)
+			(rim.AddPointXY xB1  z0)
+			(rim.AddPointXY xB  (zB - capWidth))
+			(rim.AddPointXY (xB - capWidth) zB)
+			(rim.AddPointXY (xA + capWidth) zB)
+			(rim.AddPointXY xA (zB - capWidth))
+			(rim.AddPointXY xA1  z0)
+			(rim.CloseLoop)
+			
 			(Float32 uvScale = (AnyOf 0.1 1.0))
+			
+			(Matrix4x4 transform1 =
+				(1 0  0  0)
+				(0 0 -1 dy1)
+				(0 1  0  0)
+				(0 0  0  1)
+			)
+			
+			(rim.SetTransform transform1)
+			(AddRimObject mb rim uvScale (0 - pillarWidth) pillarWidth)
+			
+			(Matrix4x4 transform2 =
+				(1 0  0  0)
+				(0 0 -1 dy2)
+				(0 1  0  0)
+				(0 0  0  1)
+			)
+			
+			(rim.SetTransform transform2)
+			(AddRimObject mb rim uvScale (0 - pillarWidth) pillarWidth)
+			
 			(
-				(Vec3 v = x0 south  -1.0)
-				(Vec3 w = east  y0  z1)
-				(AddBox mb v w uvScale uvScale)
-				(Vec3 v1 = x0      y1  -1.0)
-				(Vec3 w1 = east north  z1)
-				(AddBox mb v1 w1  uvScale uvScale)
+				(Float32 switchY0 = ((y0 - ( 2 * pillarWidth)) - 0.25) )
+				(Float32 switchY1 = ((y0 - ( 2 * pillarWidth)) - 0.1) )
+				(Float32 switchZ0 = 1.5)
+				(Float32 switchZ1 = 1.55)
+				(Float32 switchX0 = (x0 + 0.025))
+				(Vec3 v = x0       switchY0 z0)
+				(Vec3 w = switchX0 switchY1 switchZ1)
+				(AddBox mb v w uvScale uvScale) // switch base
 			)
 			
 			(
-				(Vec3 v = west south -1.0)
-				(Vec3 w = x1    y0  z1)
-				(AddBox mb v w  uvScale uvScale)
-				(Vec3 v1 = west    y1  -1.0)
-				(Vec3 w1 = x1   north  z1)
-				(AddBox mb v1 w1 uvScale uvScale)
+				(Float32 switchY0 = ((y1 + ( 2 * pillarWidth)) + 0.1) )
+				(Float32 switchY1 = ((y1 + ( 2 * pillarWidth)) + 0.25) )
+				(Float32 switchZ0 = 1.5)
+				(Float32 switchZ1 = 1.55)
+				(Float32 switchX0 = (x1 - 0.025))
+				(Vec3 v = switchX0    switchY0 z0)
+				(Vec3 w = x1          switchY1 switchZ1)
+				(AddBox mb v w uvScale uvScale) // switch base
 			)
 		)
 	)
 	(AddObject "!textures/walls/metal3.jpg" "door.pillars" pillars)
-	
-	
-	(ObjectFunction topRods = 
-		(closure (IMeshBuilder mb)-> :
-			(Float32 rodHeight = (AnyOf 0.1 0.5))
-			(Float32 rodWidth  = (AnyOf 0.1 0.5))
-			(Float32 z = (z1 - rodHeight))
-			(Float32 south = (y0 - rodWidth))
-			(Float32 north = (y1 + rodWidth))
-			(Float32 uvScale = (AnyOf 0.1 1.0))
-			(Vec3 v = x0 south     z)
-			(Vec3 w = x1  y0      z1)
-			(AddBox mb v w uvScale uvScale)
-			(Vec3 v1 = x0      y1       z)
-			(Vec3 w1 = x1   north      z1)
-			(AddBox mb v1 w1 uvScale uvScale)
-		)
-	)
-	(AddObject "!textures/walls/metal3.jpg" "door.top.rods" topRods)
 	
 	
 	(ObjectFunction rails = 

@@ -1010,6 +1010,10 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float alpha;
+		_offset += sizeof(alpha);
+		ReadInput(alpha, _sf, -_offset);
+
 		float blue;
 		_offset += sizeof(blue);
 		ReadInput(blue, _sf, -_offset);
@@ -1026,7 +1030,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetClearColour(red, green, blue);
+		_pObject->SetClearColour(red, green, blue, alpha);
 	}
 	void NativeRococoGraphicsISceneBuilderSetLight(NativeCallEnvironment& _nce)
 	{
@@ -1070,7 +1074,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsSceneBuilder, _nceContext, SEXTEXT("GetHandleForISceneBuilder0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderAddStatics, nullptr, SEXTEXT("ISceneBuilderAddStatics (Pointer hObject)(Int64 entityId) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderClear, nullptr, SEXTEXT("ISceneBuilderClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetClearColour, nullptr, SEXTEXT("ISceneBuilderSetClearColour (Pointer hObject)(Float32 red)(Float32 green)(Float32 blue) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetClearColour, nullptr, SEXTEXT("ISceneBuilderSetClearColour (Pointer hObject)(Float32 red)(Float32 green)(Float32 blue)(Float32 alpha) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetLight, nullptr, SEXTEXT("ISceneBuilderSetLight (Pointer hObject)(Sys.Maths.Vec3 dir)(Sys.Maths.Vec3 pos)(Int32 index) -> "));
 	}
 }}
@@ -2011,6 +2015,16 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Clear();
 	}
+	void NativeRococoGraphicsIRimTesselatorClearFaces(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::IRimTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ClearFaces();
+	}
 	void NativeRococoGraphicsIRimTesselatorScale(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -2186,6 +2200,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorCloseLoop, nullptr, SEXTEXT("IRimTesselatorCloseLoop (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorMakeElipse, nullptr, SEXTEXT("IRimTesselatorMakeElipse (Pointer hObject)(Int32 numberOfSides)(Float32 sx)(Float32 sy) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorClear, nullptr, SEXTEXT("IRimTesselatorClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorClearFaces, nullptr, SEXTEXT("IRimTesselatorClearFaces (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorScale, nullptr, SEXTEXT("IRimTesselatorScale (Pointer hObject)(Float32 sx)(Float32 sy) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorPerimeterVertices, nullptr, SEXTEXT("IRimTesselatorPerimeterVertices (Pointer hObject) -> (Int32 count)"));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorGetRimQuad, nullptr, SEXTEXT("IRimTesselatorGetRimQuad (Pointer hObject)(Float32 zHigh)(Float32 zLow)(Int32 index)(Sys.Maths.Quadf quad) -> "));

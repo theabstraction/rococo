@@ -78,6 +78,7 @@ namespace HV
 
    ROCOCOAPI IEditor
    {
+	  virtual bool IsLoading() const = 0;
       virtual bool IsScrollLocked() const = 0;
       virtual void SetNeighbourTextureAt(Vec2 pos, bool forward) = 0;
       virtual void Free() = 0;
@@ -136,12 +137,32 @@ namespace HV
       SectorFlag_Has_Door = 8
    };
 
+   struct Barrier
+   {
+	   Vec2 p; // barrier LHS
+	   Vec2 q; // barrier RHS 
+	   float z0; // Bottom level above ground
+	   float z1; // Top level above ground. z1 > z0
+   };
+
+   struct VisibleSector
+   {
+	   ISector& sector;
+   };
+
    ROCOCOAPI ISector
    {
       virtual void AddFlag(SectorFlag flag) = 0;
       virtual void RemoveFlag(SectorFlag flag) = 0;
       virtual bool IsFlagged(SectorFlag flag) const = 0;
 
+	  // Iteration frames are used by some iteration functions to mark sectors as having been enumrerated
+	  // Generally the frame count is incremented each function call
+	  // 0x81000000000 to 0x82000000000 are from calls to ForEverySectorVisibleAt
+	  virtual int64 IterationFrame() const = 0;
+	  virtual void SetIterationFrame(int64 value) = 0;
+
+	  virtual const Barrier* Barriers(size_t& barrierCount) const = 0;
       virtual void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) = 0;
       virtual bool DoesLineCrossSector(Vec2 a, Vec2 b) = 0;
       virtual ObjectVertexBuffer FloorVertices() const = 0;
@@ -164,6 +185,8 @@ namespace HV
       virtual bool IsCorridor() const = 0; // The sector Is4PointRectangular & two opposing edges are portals to other sectors and neither is itself a 4PtRect
       virtual const Segment* GetWallSegments(size_t& count) const = 0;
 	  virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
+
+	  virtual void ForEveryObjectInSector(IEventCallback<const ID_ENTITY>& cb) const = 0;
    };
 
    ISector* CreateSector(Platform& platform, ISectors& co_sectors);
@@ -182,6 +205,8 @@ namespace HV
       virtual ISector** end() = 0;
 
 	  virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
+
+	  virtual size_t ForEverySectorVisibleAt(cr_vec3 eye, cr_vec3 direction, IEventCallback<VisibleSector>& cb) = 0;
    };
 
    ISectors* CreateSectors(Platform& platform);

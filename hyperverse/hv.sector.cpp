@@ -93,6 +93,14 @@ namespace
       float z0; // Floor height
       float z1; // Ceiling height (> floor height)
 
+	  std::vector<Barrier> barriers;
+
+	  const Barrier* Barriers(size_t& barrierCount) const override
+	  {
+		  barrierCount = barriers.size();
+		  return barriers.empty() ? nullptr : &barriers[0];
+	  }
+
       virtual float Z0() const
       {
          return z0;
@@ -222,6 +230,7 @@ namespace
 
          if (IsCorridor() && IsFlagged(SectorFlag_Has_Door))
          {
+			ResetBarriers();
             RunSectorGenScript(genDoorScript);
          }
       }
@@ -812,6 +821,37 @@ namespace
          platform.utilities.RunEnvironmentScript(platform, scriptCallback, name, true);
       }
 
+	  void ResetBarriers()
+	  {
+		  barriers.clear();
+		
+		  if (IsCorridor() && IsFlagged(SectorFlag_Has_Door))
+		  {
+			  Barrier b{};
+			  auto& g = gapSegments[0];
+			  auto& h = gapSegments[1];
+
+			  b.z0 = 0.5f * (g.z0 + h.z0);
+			  b.z1 = 0.5f * (g.z1 + h.z1);
+
+			  if (g.a.x - g.b.x == 0)
+			  {
+				  // corridor is West-East. 
+				  b.p.x = b.q.x = 0.5f * (g.a.x + h.a.x);
+				  b.p.y = g.a.y;
+				  b.q.y = g.b.y;
+			  }
+			  else
+			  {
+				  // corridor is North-South
+				  b.p.y = b.q.y = 0.5f * (g.a.y + h.a.y);
+				  b.p.x = g.a.x;
+				  b.q.x = g.b.x;
+			  }  
+			  barriers.push_back(b);
+		  }	
+	  }
+
       void Rebuild()
       {
          BuildWalls(Ring<Vec2>(&floorPerimeter[0], floorPerimeter.size()));
@@ -819,6 +859,7 @@ namespace
 
          if (IsCorridor() && IsFlagged(SectorFlag_Has_Door))
          {
+			ResetBarriers();
             RunSectorGenScript("!scripts/hv/sector/gen.door.sxy");
          }
       }
@@ -1072,8 +1113,33 @@ namespace
 	  {
 		  if (args.Matches(genDoorScript) && IsCorridor() && IsFlagged(SectorFlag_Has_Door))
 	      {
+			  ResetBarriers();
 		      RunSectorGenScript(genDoorScript);
 		  }
+	  }
+
+	  void ForEveryObjectInSector(IEventCallback<const ID_ENTITY>& cb) const override
+	  {
+		  cb.OnEvent(wallId);
+		  cb.OnEvent(floorId);
+		  cb.OnEvent(ceilingId);
+
+		  for (const auto& c : components)
+		  {
+			  cb.OnEvent(c.id);
+		  }
+	  }
+
+	  int64 iterationFrame = 0;
+
+	  int64 IterationFrame() const override
+	  {
+		  return iterationFrame;
+	  }
+
+	  void SetIterationFrame(int64 value) override
+	  {
+		  iterationFrame = value;
 	  }
    };
 }

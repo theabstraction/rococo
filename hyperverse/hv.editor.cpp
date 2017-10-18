@@ -577,6 +577,11 @@ namespace
 			platform.gui.UnregisterPopulator(this);
 		}
 
+		bool IsLoading() const
+		{
+			return !q.empty();
+		}
+
 		int32 GetIndexOf(cstr name)
 		{
 			for (int32 i = 0; i < (int32)readyList.size(); ++i)
@@ -1104,6 +1109,11 @@ namespace
 		virtual cstr TextureName(int index) const
 		{
 			return editMode_SectorBuilder.GetTexture(index);
+		}
+
+		bool IsLoading() const override
+		{
+			return textureList.IsLoading();
 		}
 	};
 }

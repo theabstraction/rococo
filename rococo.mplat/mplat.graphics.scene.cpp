@@ -18,16 +18,7 @@ namespace
       std::vector<ObjectInstance> drawQueue;
       Rococo::Graphics::ICameraSupervisor& camera;
 
-      enum { MAX_LIGHTS = 1 };
-
-      struct Light
-      {
-         Vec3 dir;
-         Vec3 pos;
-      } lights[MAX_LIGHTS] =
-      { 
-         Vec3 { 1, 0, 0 }, Vec3{0, 0, 1}
-      };
+	  GlobalState state;
 
       RGBA clearColour{ 0,0,0,1 };
 
@@ -35,27 +26,32 @@ namespace
       Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera) :
          instances(_instances), camera(_camera)
       {
+		  state.lights[0].lightDir = Vec4{ 1, 0, 0, 0 };
+		  state.lights[0].lightPos = Vec4{ 1, 0, 0, 1 };
+		  state.lights[1].lightDir = Vec4{ 1, 0, 0, 0 };
+		  state.lights[1].lightPos = Vec4{ 0, 0, 0, 1 };
       }
       
       ~Scene()
       {
       }
 
-      virtual void SetClearColour(float32 red, float32 green, float32 blue)
+      virtual void SetClearColour(float32 red, float32 green, float32 blue, float alpha)
       {
          clearColour.red = red;
          clearColour.green = green;
          clearColour.blue = blue;
+		 clearColour.alpha = alpha;
       }
 
-      virtual void SetLight(const Vec3& dir, const Vec3& pos, int index)
-      {
-         if (index < 0 || index >= MAX_LIGHTS)
-         {
-            Throw(0, "Bad light index %d. Domain is [0,%d]", index, MAX_LIGHTS);
-         }
+	  virtual void SetLight(const Vec3& dir, const Vec3& pos, int index)
+	  {
+		  if (index < 0 || index >= (sizeof(GlobalState::lights) / sizeof(GlobalLight)))
+		  {
+			  Throw(0, "Bad light index %d. Domain is [0,%d]", index, (sizeof(GlobalState::lights) / sizeof(GlobalLight)));
+		  }
 
-         lights[index] = Light{ dir, pos };
+		  state.lights[index] = GlobalLight{ Vec4 { dir.x, dir.y, dir.z, 0}, Vec4 {pos.x, pos.y, pos.z, 1.0f }  };
       }
 
       virtual void Free()
@@ -93,10 +89,6 @@ namespace
       virtual void RenderObjects(IRenderContext& rc)
       {
          drawQueue.clear();
-
-         GlobalState state;
-         state.lightDir = { lights[0].dir.x, lights[0].dir.y, lights[0].dir.z, 0.0f };
-         state.lightPos = { lights[0].pos.x, lights[0].pos.y, lights[0].pos.z, 1.0f };
 
          camera.GetWorld(state.worldMatrix);
          camera.GetWorldAndProj(state.worldMatrixAndProj);

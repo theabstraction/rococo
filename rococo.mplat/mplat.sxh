@@ -125,7 +125,7 @@
 	(methods
 		(AddStatics  (IdEntity entityId))
 		(Clear)
-		(SetClearColour (Float32 red)(Float32 green)(Float32 blue))
+		(SetClearColour (Float32 red)(Float32 green)(Float32 blue)(Float32 alpha))
 		(SetLight(const Vec3 dir)(const Vec3 pos)(Int32 index))
 	)
 	(factory Rococo.Graphics.SceneBuilder)
@@ -245,6 +245,7 @@
 		(CloseLoop)
 		(MakeElipse (Int32 numberOfSides)(Float32 sx)(Float32 sy))
 		(Clear)
+		(ClearFaces)
 		(Scale (Float32 sx)(Float32 sy))
 		(PerimeterVertices -> (Int32 count))
 		(GetRimQuad(Float32 zHigh)(Float32 zLow)(Int32 index)(Quad quad))

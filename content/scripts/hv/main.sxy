@@ -66,9 +66,9 @@
 	(player.SetPlayerEntity playerId)
 	
 	(ICamera camera (Camera))
-	(camera.SetRHProjection 45 0.15 200)
+	(camera.SetRHProjection 45 0.15 1000)
 	(camera.FollowEntity playerId)
 	(camera.OrientateWithEntity playerId (#OrientationFlagsHeading))
 	
-	(scene.SetClearColour 1.0 1.0 1.0)
+	(scene.SetClearColour 1.0 1.0 1.0 0.0)
 )
