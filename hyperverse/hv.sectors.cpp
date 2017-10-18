@@ -43,9 +43,9 @@ namespace
 	   Frustum2d(cr_vec3 _eye, cr_vec3 _direction, Radians halfFov, Metres nearPlane, Metres farPlane)
 	   {
 		   eye = { _eye.x, _eye.y };
-		   direction = Normalize(Vec2{ _direction.x, _direction.y });
+		   Vec2 direction = Normalize(Vec2{ _direction.x, _direction.y });
 
-		   Vec2 farplaneDirection = Normalize(Vec2{ direction.y, -direction.x });
+		   Vec2 farplaneDirection = Vec2{ direction.y, -direction.x };
 
 		   Metres halfFarLength{ farPlane * tan(halfFov) };
 		   Metres halfNearLength{ nearPlane * tan(halfFov) };
@@ -57,8 +57,21 @@ namespace
 		   nearRight = eye + direction * nearPlane + farplaneDirection * halfNearLength;
 	   }
 
+	   Frustum2d(cr_vec2 _eye, cr_vec2 leftPoint, cr_vec2 rightPoint, Metres nearPlane, Metres farPlane)
+	   {
+		   eye = _eye;
+
+		   Vec2 leftDirection = Normalize(leftPoint - eye);
+		   Vec2 rightDirection = Normalize(rightPoint - eye);
+
+		   farLeft = eye + leftDirection * farPlane;
+		   farRight = eye + rightDirection * farPlane;
+
+		   nearLeft = eye + leftDirection * nearPlane;
+		   nearRight = eye + rightDirection * nearPlane;
+	   }
+
 	   Vec2 eye;
-	   Vec2 direction;
 
 	   Vec2 nearLeft;
 	   Vec2 nearRight;
@@ -179,7 +192,8 @@ namespace
 				  Vec2 leftPoint, rightPoint;
 				  if (f.CanSeeThrough(gap->a, gap->b, leftPoint, rightPoint))
 				  {
-					  RecurseVisibilityScanOnGaps(f, *gap->other, cb, count);
+					  Frustum2d childFrustum(f.eye, leftPoint, rightPoint, 0.15_metres, 1000_metres);
+					  RecurseVisibilityScanOnGaps(childFrustum, *gap->other, cb, count);
 				  }
 			  }
 		  }
