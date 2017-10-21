@@ -181,3 +181,104 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVICorridorGetComponentMeshName, nullptr, SEXTEXT("ICorridorGetComponentMeshName (Pointer hObject)(Sys.Type.IString componentName)(Sys.Type.IStringBuilder meshName) -> "));
 	}
 }
+// BennyHill generated Sexy native functions for HV::ISectorBuilder 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeHVISectorBuilderAddVertex(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float y;
+		_offset += sizeof(y);
+		ReadInput(y, _sf, -_offset);
+
+		float x;
+		_offset += sizeof(x);
+		ReadInput(x, _sf, -_offset);
+
+		HV::ISectorBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddVertex(x, y);
+	}
+	void NativeHVISectorBuilderClear(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Clear();
+	}
+	void NativeHVISectorBuilderCreate(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _ceilingTexture;
+		ReadInput(_ceilingTexture, _sf, -_offset);
+		fstring ceilingTexture { _ceilingTexture->buffer, _ceilingTexture->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _floorTexture;
+		ReadInput(_floorTexture, _sf, -_offset);
+		fstring floorTexture { _floorTexture->buffer, _floorTexture->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _wallTexture;
+		ReadInput(_wallTexture, _sf, -_offset);
+		fstring wallTexture { _wallTexture->buffer, _wallTexture->length };
+
+
+		int64 flags;
+		_offset += sizeof(flags);
+		ReadInput(flags, _sf, -_offset);
+
+		int32 height;
+		_offset += sizeof(height);
+		ReadInput(height, _sf, -_offset);
+
+		int32 altitude;
+		_offset += sizeof(altitude);
+		ReadInput(altitude, _sf, -_offset);
+
+		HV::ISectorBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 id = _pObject->Create(altitude, height, flags, wallTexture, floorTexture, ceilingTexture);
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
+	}
+
+	void NativeGetHandleForHVSectors(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectors* nceContext = reinterpret_cast<HV::ISectors*>(_nce.context);
+		// Uses: HV::ISectorBuilder* FactoryConstructHVSectors(HV::ISectors* _context);
+		HV::ISectorBuilder* pObject = FactoryConstructHVSectors(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace HV { 
+	void AddNativeCalls_HVISectorBuilder(Rococo::Script::IPublicScriptSystem& ss, HV::ISectors* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVSectors, _nceContext, SEXTEXT("GetHandleForISectors0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderAddVertex, nullptr, SEXTEXT("ISectorsAddVertex (Pointer hObject)(Float32 x)(Float32 y) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderClear, nullptr, SEXTEXT("ISectorsClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderCreate, nullptr, SEXTEXT("ISectorsCreate (Pointer hObject)(Int32 altitude)(Int32 height)(Int64 flags)(Sys.Type.IString wallTexture)(Sys.Type.IString floorTexture)(Sys.Type.IString ceilingTexture) -> (Int32 id)"));
+	}
+}

@@ -309,23 +309,28 @@ namespace
 		virtual void LoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength)
 		{
 			if (resourcePath == nullptr || rlen(resourcePath) < 2) Throw(E_INVALIDARG, "Win32OS::LoadResource failed: <resourcePath> was blank");
-			if (resourcePath[0] != '!') Throw(E_INVALIDARG, "Win32OS::LoadResource failed: <%s> did not begin with ping '!' character", resourcePath);
-
-			if (rlen(resourcePath) + rlen(contentDirectory) >= _MAX_PATH)
-			{
-				Throw(E_INVALIDARG, "Win32OS::LoadResource failed: %s%s - filename was too long", contentDirectory, resourcePath + 1);
-			}
-
-         if (strstr(resourcePath, "..") != nullptr)
-         {
-            Throw(E_INVALIDARG, "Win32OS::LoadResource failed: %s - parent directory sequence '..' is forbidden", resourcePath);
-         }
-
-			FilePath sysPath;
-			os.ConvertUnixPathToSysPath(resourcePath + 1, sysPath, _MAX_PATH);
-			
+		
 			FilePath absPath;
-			SecureFormat(absPath.data, FilePath::CAPACITY, "%s%s", contentDirectory.data, sysPath.data);
+			if (resourcePath[0] == '!')
+			{
+				if (rlen(resourcePath) + rlen(contentDirectory) >= _MAX_PATH)
+				{
+					Throw(E_INVALIDARG, "Win32OS::LoadResource failed: %s%s - filename was too long", contentDirectory, resourcePath + 1);
+				}
+
+				if (strstr(resourcePath, "..") != nullptr)
+				{
+					Throw(E_INVALIDARG, "Win32OS::LoadResource failed: %s - parent directory sequence '..' is forbidden", resourcePath);
+				}
+
+				FilePath sysPath;
+				os.ConvertUnixPathToSysPath(resourcePath + 1, sysPath, _MAX_PATH);
+				SecureFormat(absPath.data, FilePath::CAPACITY, "%s%s", contentDirectory.data, sysPath.data);
+			}
+			else
+			{
+				SafeFormat(absPath.data, FilePath::CAPACITY, "%s", resourcePath);
+			}
 
 			os.LoadAbsolute(absPath, buffer, maxFileLength);
 		}

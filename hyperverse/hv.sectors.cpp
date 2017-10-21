@@ -114,7 +114,7 @@ namespace
 	   return true;
    }
 
-   class Sectors: public ISectors
+   class Sectors: public ISectors, public ISectorBuilder
    {
       const Metres defaultFloorLevel{ 0.0f };
       const Metres defaultRoomHeight{ 4.0f };
@@ -128,11 +128,88 @@ namespace
 
       ~Sectors()
       {
-         for (auto* s : sectors)
-         {
-            s->Free();
-         }
+		  Clear();
       }
+
+	  void Clear()
+	  {
+		  for (auto* s : sectors)
+		  {
+			  s->Free();
+		  }
+
+		  sectors.clear();
+		  vertices.clear();
+	  }
+
+	  virtual void SaveAsFunction(StringBuilder& sb)
+	  {
+		  sb.AppendFormat("(using HV)\n\n");
+
+		  sb.AppendFormat("(function AddSectorsToLevel -> :\n");
+		  sb.AppendFormat("\t(ISectors sectors (Sectors))\n\n");
+		  sb.AppendFormat("\t(sectors.Clear)\n\n");
+
+		  uint32 index = 0;
+		  for (auto s : sectors)
+		  {
+			  sb.AppendFormat("\t(AddSector%u sectors)%s\n", index++, index == 0 ? " // entrance" : "");
+		  }
+
+		  sb.AppendFormat(")\n\n");
+
+		  index = 0;
+		  for (auto s : sectors)
+		  {
+			  sb.AppendFormat("(function AddSector%u (ISectors sectors) -> :\n", index++);
+
+			  int z0 = (int) (s->Z0() * 100);
+			  int z1 = (int) (s->Z1() * 100);
+			  sb.AppendFormat("\t(Int64 flags = %llu) // 0x%llX", s->Flags(), s->Flags());
+
+			  if (s->Flags() == 0)
+			  {
+				  sb.AppendFormat(" None");
+			  }
+
+			  if (s->IsFlagged(SectorFlag_Occlude_Players))
+			  {
+				  sb.AppendFormat(" Occlude_Players");
+			  }
+
+			  if (s->IsFlagged(SectorFlag_Occlude_Friends))
+			  {
+				  sb.AppendFormat(" Occlude_Friends");
+			  }
+
+			  if (s->IsFlagged(SectorFlag_Occlude_Enemies))
+			  {
+				  sb.AppendFormat(" Occlude_Enemies");
+			  }
+
+			  if (s->IsFlagged(SectorFlag_Has_Door))
+			  {
+				  sb.AppendFormat(" Has_Door");
+			  }
+
+			  sb.AppendFormat("\n\n");
+
+			  sb.AppendFormat("\t(IString wall = \"%s\")\n", s->GetTexture(0));
+			  sb.AppendFormat("\t(IString floor = \"%s\")\n", s->GetTexture(1));
+			  sb.AppendFormat("\t(IString ceiling = \"%s\")\n\n", s->GetTexture(2));
+
+			  size_t nVertices;
+			  auto* v = s->WallVertices(nVertices);
+
+			  for (size_t i = 0; i < nVertices; i++)
+			  {
+				  sb.AppendFormat("\t(sectors.AddVertex %f %f)\n", v[i].x, v[i].y);
+			  }
+
+			  sb.AppendFormat("\n\t(sectors.Create %d %d flags wall floor ceiling)\n", z0, z1 - z0);
+			  sb.AppendFormat(")\n\n");
+		  }
+	  }
 
 	  void ResetConfig()
 	  {
@@ -277,6 +354,44 @@ namespace
 		  dirty.clear();
 	  }
 
+	  std::vector<Vec2> vertices;
+
+	  void AddVertex(float x, float y) override
+	  {
+		  vertices.push_back(Vec2{ x, y });
+	  }
+
+	  int32 Create(int32 altitude, int32 height, int64 flags, const fstring& wallTexture, const fstring& floorTexture, const fstring& ceilingTexture) override
+	  {
+		  SectorPalette palette
+		  {
+			  wallTexture,
+			  floorTexture,
+			  ceilingTexture
+		  };
+
+		  auto* s = CreateSector(platform, *this);
+		  s->SetPalette(palette);
+		  s->AddFlag((SectorFlag)flags);
+
+		  try
+		  {
+			  dirty.clear();
+			  s->Build(&vertices[0], vertices.size(), 0.01f * altitude, 0.01f * (altitude + height ));
+			  sectors.push_back(s);
+			  RebuildDirtySectors(s->IterationFrame());
+		  }
+		  catch (IException&)
+		  {
+			  vertices.clear();
+			  throw;
+		  }
+
+		  vertices.clear();
+
+		  return s->Id();
+	  }
+
       void AddSector(const SectorPalette& palette, const Vec2* positionArray, size_t nVertices) override
       {
          auto* s = CreateSector(platform, *this);
@@ -383,6 +498,11 @@ namespace
 		  {
 			  i->OnSectorScriptChanged(args);
 		  }
+	  }
+
+	  virtual ISectorBuilder* Builder()
+	  {
+		  return this;
 	  }
    };
 }

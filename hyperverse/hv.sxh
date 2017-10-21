@@ -24,3 +24,15 @@
 	)
 	(factory HV.Corridor)
 )
+
+(interface
+	(as.sxy HV.ISectors "../content/scripts/hv")
+	(as.cpp HV.ISectorBuilder "hv" )
+	(context factory HV.ISectors)
+	(methods
+		(AddVertex (Float32 x)(Float32 y))
+		(Clear)
+		(Create (Int32 altitude)(Int32 height)(Int64 flags)(IString wallTexture)(IString floorTexture)(IString ceilingTexture)->(Int32 id))
+	)
+	(factory HV.Sectors)
+)

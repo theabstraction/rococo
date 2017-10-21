@@ -139,6 +139,7 @@
 	
 	(AddLabel "New" menu "editor.new" false)
 	(AddLabel "Load" menu "editor.load" false)
+	(AddLabel "Save" menu "editor.save" false)
 	(AddRadio "Vertices" menu "editor.edit_mode" "v")
 	(AddRadio "Sectors" menu "editor.edit_mode" "s")
 	

@@ -487,6 +487,11 @@ namespace
       {
       }
 
+	  virtual uint32 Id() const
+	  {
+		  return id;
+	  }
+
       virtual cstr GetTexture(int32 state) const
       {
          switch (state)
@@ -1061,6 +1066,11 @@ namespace
       {
          delete this;
       }
+
+	  virtual int64 Flags() const
+	  {
+		  return sectorFlags;
+	  }
 
       void InvokeSectorDialog(Rococo::Windows::IWindow& parent, IEditorState& state) override
       {

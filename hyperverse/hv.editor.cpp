@@ -337,8 +337,22 @@ namespace
 			editor(nullptr)
 		{ }
 		IEditMode& Mode() { return *this; }
-		const ISector* GetHilight() const override { return lit; }
+		const ISector* GetHilight() const override
+		{
+			if (lit)
+			{
+				for (auto s : map.Sectors())
+				{
+					if (s == lit)
+					{
+						return lit;
+					}
+				}
+			}
+			return nullptr;;
+		}
 		void SetEditor(IEditorState* editor) { this->editor = editor; }
+		void CancelHilight() { lit = nullptr; }
 	};
 
 	class EditMode_SectorBuilder : private IEditMode
@@ -975,6 +989,8 @@ namespace
 		ToggleEventHandler textureTargetHandler;
 		ToggleEventHandler scrollLock;
 
+		char levelpath[IO::MAX_PATHLEN] = { 0 };
+
 		virtual bool IsScrollLocked() const
 		{
 			return scrollLock.State() == 1;
@@ -1058,12 +1074,85 @@ namespace
 
 		void OnEditorNew(cstr command)
 		{
-
+			map.Sectors().Builder()->Clear();
+			editMode_SectorEditor.CancelHilight();
 		}
 
 		void OnEditorLoad(cstr command)
 		{
+			LoadDesc ld;
+			ld.caption = "Select a level file to load";
+			ld.ext = "*.sxy";
+			ld.extDesc = "Sexy script level-file (.sxy)";
+			ld.shortName = nullptr;
+			*ld.path = 0;
 
+			if (platform.utilities.GetLoadLocation(platform.renderer.Window(), ld))
+			{
+				Load(ld.path);
+				SafeFormat(levelpath, sizeof(levelpath), "%s", ld.path);
+				platform.utilities.AddSubtitle(platform, ld.shortName);
+			}
+		}
+
+		void OnEditorSave(cstr command)
+		{
+			SaveDesc sd;
+			sd.caption = "Select a level file to save";
+			sd.ext = "*.sxy";
+			sd.extDesc = "Sexy script level-file (.sxy)";
+			sd.shortName = nullptr;
+
+			SafeFormat(sd.path, sizeof(sd.path), "%s", levelpath);
+
+			if (platform.utilities.GetSaveLocation(platform.renderer.Window(), sd))
+			{
+				Save(levelpath);
+				SafeFormat(levelpath, sizeof(levelpath), "%s", sd.path);
+				platform.utilities.AddSubtitle(platform, sd.shortName);
+			}
+		}
+
+		void Load(cstr filename)
+		{
+			HV::Events::SetNextLevelEvent setNextLevelEvent;
+			setNextLevelEvent.name = filename;
+
+			platform.publisher.Publish(setNextLevelEvent);
+		}
+
+		void Save(cstr filename)
+		{
+			std::vector<char> buffer;
+			buffer.resize(1024_kilobytes);
+
+			char* buffer0 = &buffer[0];
+			memset(buffer0, 0, buffer.size());
+
+			StackStringBuilder sb(buffer0, buffer.size());
+
+			sb.AppendFormat("(' #file.type hv.level)\n\n");
+
+			sb.AppendFormat("(' #include\n\t\"!scripts/mplat.sxh.sxy\""
+				"\n\t\"!scripts/hv.sxh.sxy\""
+				"\n\t\"!scripts/types.sxy\""
+				")\n\n");
+
+			sb.AppendFormat("(namespace EntryPoint)\n\t(alias Main EntryPoint.Main)\n\n");
+			sb.AppendFormat("(function Main(Int32 id)->(Int32 exitCode) :\n");
+			sb.AppendFormat("\t(AddSectorsToLevel)\n");
+			sb.AppendFormat(")\n\n");
+
+			map.Sectors().SaveAsFunction(sb);
+
+			try
+			{
+				platform.utilities.SaveBinary(filename, buffer0, sb.Length());
+			}
+			catch (IException& ex)
+			{
+				platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, ex.Message());
+			};
 		}
 
 	public:
@@ -1081,6 +1170,7 @@ namespace
 		{
 			REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorNew, "editor.new", nullptr);
 			REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorLoad, "editor.load", nullptr);
+			REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorSave, "editor.save", nullptr);
 
 			platform.publisher.Attach(this, HV::Events::changeDefaultTextureId);
 

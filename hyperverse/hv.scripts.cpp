@@ -8,13 +8,18 @@
 
 namespace // Script factories
 {
-   using namespace HV;
-   using namespace Rococo;
+	using namespace HV;
+	using namespace Rococo;
 
-   HV::IPlayer* FactoryConstructHVPlayer(HV::IPlayerSupervisor* players, int32 index)
-   {
-      return players->GetPlayer(index);
-   }
+	HV::IPlayer* FactoryConstructHVPlayer(HV::IPlayerSupervisor* players, int32 index)
+	{
+		return players->GetPlayer(index);
+	}
+
+	HV::ISectorBuilder* FactoryConstructHVSectors(HV::ISectors* _context)
+	{
+		return _context->Builder();
+	}
 }
 
 using namespace HV;
@@ -42,6 +47,7 @@ namespace HV
             args.ss.AddNativeLibrary(SEXTEXT("rococo.sexy.mathsex"));
 #endif
             AddNativeCalls_HVIPlayer(args.ss, &e.players);
+			AddNativeCalls_HVISectorBuilder(args.ss, &e.sectors);
          }
 
       public:

@@ -6,12 +6,14 @@
 #include "hv.events.h"
 #include "hv.defaults.h"
 
+#include <string>
+
 namespace HV
 {
    using namespace HV::Graphics;
    using namespace Rococo::Entities;
 
-   class App : public IApp, public IEventCallback<FileModifiedArgs>, public IScene
+   class App : public IApp, public IEventCallback<FileModifiedArgs>, public IScene, public IObserver
    {
 	   Platform& platform;
 	   bool editorActive{ false };
@@ -27,6 +29,16 @@ namespace HV
 	   IGameMode* mode;
 	   AutoFree<IGameModeSupervisor> fpsLogic;
 
+	   std::string nextLevelName;
+
+	   virtual void OnEvent(Event& ev)
+	   {
+		   if (ev.id == HV::Events::setNextLevelEventId)
+		   {
+			   auto& nl = As<HV::Events::SetNextLevelEvent>(ev);
+			   nextLevelName = nl.name;
+		   }
+	   }
    public:
 	   App(Platform& _platform) :
 		   platform(_platform),
@@ -51,6 +63,13 @@ namespace HV
 		   e.platform.gui.PushTop(fpsPanel->Supervisor(), true);
 
 		   editorActive = false;
+
+		   e.platform.publisher.Attach(this, HV::Events::setNextLevelEventId);
+	   }
+
+	   ~App()
+	   {
+		   e.platform.publisher.Detach(this);
 	   }
 
 	   RGBA GetClearColour() const override
@@ -94,7 +113,11 @@ namespace HV
 		   args.GetPingPath(pingname, 1024);
 
 		   auto ext = Rococo::GetFileExtension(args.resourceName);
-		   if (Eq(ext, ".sxy"))
+		   if (!ext)
+		   {
+
+		   }
+		   else if (Eq(ext, ".sxy"))
 		   {
 			   e.platform.utilities.RefreshResource(e.platform, pingname);
 
@@ -125,6 +148,13 @@ namespace HV
 
 		   e.platform.installation.OS().EnumerateModifiedFiles(*this);
 		   e.platform.publisher.Deliver();
+
+		   if (!nextLevelName.empty())
+		   {
+			   RunEnvironmentScript(e, nextLevelName.c_str());
+			   nextLevelName.clear();
+			   e.platform.sourceCache.Release(nextLevelName.c_str());
+		   }
 
 		   mode->UpdateAI(clock);
 

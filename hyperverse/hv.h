@@ -9,6 +9,7 @@ using namespace Rococo::Events;
 namespace HV
 {
    struct IPlayerSupervisor;
+   struct ISectors;
 
    struct IPlayerBase
    {
@@ -157,6 +158,9 @@ namespace HV
       virtual void AddFlag(SectorFlag flag) = 0;
       virtual void RemoveFlag(SectorFlag flag) = 0;
       virtual bool IsFlagged(SectorFlag flag) const = 0;
+	  virtual int64 Flags() const = 0;
+
+	  virtual uint32 Id() const = 0;
 
 	  // Iteration frames are used by some iteration functions to mark sectors as having been enumrerated
 	  // Generally the frame count is incremented each function call
@@ -198,6 +202,7 @@ namespace HV
 
    ROCOCOAPI ISectors
    {
+	  virtual ISectorBuilder* Builder() = 0;
 	  virtual void Free() = 0;
 
 	  virtual void AddDirty(ISector* dirtySector) = 0;
@@ -215,6 +220,8 @@ namespace HV
 	  virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
 	  virtual size_t ForEverySectorVisibleBy(cr_m4x4 cameraMatrix, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb) = 0;
 	  virtual void ResetConfig() = 0;
+
+	  virtual void SaveAsFunction(StringBuilder& sb) = 0;
    };
 
    ISectors* CreateSectors(Platform& platform);

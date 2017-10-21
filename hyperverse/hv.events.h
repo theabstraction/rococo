@@ -16,6 +16,14 @@ namespace HV
          cstr wallName;
       };
 
+	  extern EventId setNextLevelEventId;
+
+	  struct SetNextLevelEvent : public Event
+	  {
+		  SetNextLevelEvent() : Event(setNextLevelEventId) {}
+		  cstr name;
+	  };
+
       namespace OS
       {
          extern EventId OnTick;

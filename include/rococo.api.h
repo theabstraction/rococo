@@ -30,36 +30,36 @@ namespace Rococo
 
 	ROCOCO_ID(ID_BITMAP, uint64, -1)
 
-	struct Sphere
+		struct Sphere
 	{
 		Vec3 centre;
 		float radius;
 	};
 
-   struct Platform;
+	struct Platform;
 	struct Gravity;
 	struct Metres;
 	struct Quat;
 
 #ifdef _WIN32
-   namespace Windows
-   {
-      struct IWindow; // defined in rococo.windows.h which provides HWND
-   }
+	namespace Windows
+	{
+		struct IWindow; // defined in rococo.windows.h which provides HWND
+	}
 #else
-   ROCOCO_ID(ID_OSWINDOW, uint64, 0);
+	ROCOCO_ID(ID_OSWINDOW, uint64, 0);
 
-   namespace Windows
-   {
-      struct IWindow
-      {
-         virtual operator ID_OSWINDOW() const = 0;
-      };
-   }
+	namespace Windows
+	{
+		struct IWindow
+		{
+			virtual operator ID_OSWINDOW() const = 0;
+		};
+	}
 #endif
 
-   enum { MAX_FQ_NAME_LEN = 127 };
-   void ValidateFQNameIdentifier(cstr fqName);
+	enum { MAX_FQ_NAME_LEN = 127 };
+	void ValidateFQNameIdentifier(cstr fqName);
 
 	namespace Windows
 	{
@@ -73,8 +73,8 @@ namespace Rococo
 		struct TREE_NODE_ID;
 		struct IUITree;
 		struct IUIList;
-      struct ITreePopulator;
-      struct IListPopulator;
+		struct ITreePopulator;
+		struct IListPopulator;
 	}
 
 	struct IRenderer;
@@ -83,15 +83,14 @@ namespace Rococo
 	struct IRenderContext;
 	struct IBuffer;
 
-   ROCOCOAPI IUltraClock
-   {
-      virtual OS::ticks FrameStart() const = 0;	// The time of the current render frame
-      virtual OS::ticks Start() const = 0;		// The time at which the mainloop started
-      virtual OS::ticks FrameDelta() const = 0;	// The time between the previous frame and the current frame.
-      virtual Seconds DT() const = 0; // Get a sanitized timestep in seconds
-   };
+	ROCOCOAPI IUltraClock
+	{
+	   virtual OS::ticks FrameStart() const = 0;	// The time of the current render frame
+	   virtual OS::ticks Start() const = 0;		// The time at which the mainloop started
+	   virtual OS::ticks FrameDelta() const = 0;	// The time between the previous frame and the current frame.
+	   virtual Seconds DT() const = 0; // Get a sanitized timestep in seconds
+	};
 
-	struct IStringBuilder;
 	struct IRandom;
 	struct KeyboardEvent;
 	struct MouseEvent;
@@ -128,13 +127,13 @@ namespace Rococo
 	//    ids 0x21000000 t0 0x21FFFFFF are procedurally generated houses created in C++.
 	//    ids 0x40000000 to 0x41000000 are gameplay generated meshes such as explosions created in C++.
 	//	  ids 0x41000001 to 0x42000000 are skeletal animation meshes
-   ROCOCO_ID(ID_MESH, int32, 0)
+	ROCOCO_ID(ID_MESH, int32, 0)
 
-   // ID_SYS_MESH are renderer defined indices that are generated when meshes are loaded into the renderer
-   ROCOCO_ID(ID_SYS_MESH, size_t, (size_t)-1)
+		// ID_SYS_MESH are renderer defined indices that are generated when meshes are loaded into the renderer
+		ROCOCO_ID(ID_SYS_MESH, size_t, (size_t)-1)
 
-   ROCOCO_ID(ID_WIDGET, int32, 0);
-   ROCOCO_ID(ID_UI_EVENT_TYPE, int64, 0);
+		ROCOCO_ID(ID_WIDGET, int32, 0);
+	ROCOCO_ID(ID_UI_EVENT_TYPE, int64, 0);
 
 	bool operator == (const fstring& a, const fstring& b);
 
@@ -143,9 +142,9 @@ namespace Rococo
 	fstring to_fstring(cstr const msg);
 
 #ifdef _WIN32
-   typedef size_t lsize_t;
+	typedef size_t lsize_t;
 #else
-   typedef unsigned long long lsize_t;
+	typedef unsigned long long lsize_t;
 #endif
 
 	inline lsize_t operator "" _megabytes(lsize_t mb)
@@ -167,50 +166,50 @@ namespace Rococo
 		virtual void StepOver() = 0;
 		virtual void StepNextSymbol() = 0;
 		virtual void StepNext() = 0;
-      virtual void PopulateAPITree(Visitors::IUITree& tree) = 0;
-      virtual void RefreshAtDepth(int stackDepth) = 0; // Refresh source and disassembly, but do not refresh the stack view
+	  virtual void PopulateAPITree(Visitors::IUITree& tree) = 0;
+	  virtual void RefreshAtDepth(int stackDepth) = 0; // Refresh source and disassembly, but do not refresh the stack view
 	};
 
 	ROCOCOAPI ILogger
 	{
-      virtual void AddLogSection(RGBAb colour, cstr format, ...) = 0;
-      virtual void ClearLog() = 0;
+	  virtual void AddLogSection(RGBAb colour, cstr format, ...) = 0;
+	  virtual void ClearLog() = 0;
 		virtual int Log(cstr format, ...) = 0;
 	};
 
-   namespace IO
-   {
-      struct IUnicode16Writer;
-      bool ChooseDirectory(rchar* name, size_t capacity);
-      void ForEachFileInDirectory(cstr directory, IEventCallback<cstr>& onFile);
-   }
+	namespace IO
+	{
+		struct IUnicode16Writer;
+		bool ChooseDirectory(rchar* name, size_t capacity);
+		void ForEachFileInDirectory(cstr directory, IEventCallback<cstr>& onFile);
+	}
 
-   namespace OS
-   {
-      void ShutdownApp();
-   }
+	namespace OS
+	{
+		void ShutdownApp();
+	}
 
-   struct IDebuggerWindow;
-   
-   ROCOCOAPI IDebuggerPopulator
-   {
-      virtual void Populate(IDebuggerWindow& debugger) = 0;
-   };
+	struct IDebuggerWindow;
 
-	ROCOCOAPI IDebuggerWindow: public ILogger
+	ROCOCOAPI IDebuggerPopulator
+	{
+	   virtual void Populate(IDebuggerWindow& debugger) = 0;
+	};
+
+	ROCOCOAPI IDebuggerWindow : public ILogger
 	{
 		virtual void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor = RGBAb(255,255,255), bool bringToView = false) = 0;
-      virtual void BeginStackUpdate() = 0;
-      virtual void EndStackUpdate() = 0;
-      virtual void InitDisassembly(size_t codeId) = 0;
-      virtual void AddSourceCode(cstr name, cstr sourceCode) = 0;
+		virtual void BeginStackUpdate() = 0;
+		virtual void EndStackUpdate() = 0;
+		virtual void InitDisassembly(size_t codeId) = 0;
+		virtual void AddSourceCode(cstr name, cstr sourceCode) = 0;
 		virtual void Free() = 0;
 		virtual Windows::IWindow& GetDebuggerWindowControl() = 0;
-      virtual void PopulateStackView(Visitors::ITreePopulator& populator) = 0;
-      virtual void PopulateRegisterView(Visitors::IListPopulator& populator) = 0;
-      virtual void Run(IDebuggerPopulator& populator, IDebugControl& control) = 0;
-      virtual void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message) = 0;
-		virtual void ShowWindow(bool show, IDebugControl* debugControl) = 0;   
+		virtual void PopulateStackView(Visitors::ITreePopulator& populator) = 0;
+		virtual void PopulateRegisterView(Visitors::IListPopulator& populator) = 0;
+		virtual void Run(IDebuggerPopulator& populator, IDebugControl& control) = 0;
+		virtual void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message) = 0;
+		virtual void ShowWindow(bool show, IDebugControl* debugControl) = 0;
 	};
 }
 
@@ -305,131 +304,131 @@ namespace Rococo
 		virtual void Seed(uint32 value) = 0;
 	};
 
-   namespace Events
-   {
-      typedef int32 EventHash;
+	namespace Events
+	{
+		typedef int32 EventHash;
 
-      class EventId
-      {
-      private:
-         cstr name;
-         EventHash hash;
-         mutable EventHash id{ 0 };
+		class EventId
+		{
+		private:
+			cstr name;
+			EventHash hash;
+			mutable EventHash id{ 0 };
 
-      public:
-         EventId(const char* const _name, EventHash _hash) : name(_name), hash(_hash) { }
-         EventId(const EventId& src) : name(src.name), hash(src.hash), id(src.id) {}
-         EventId operator = (const EventId& src) = delete;
+		public:
+			EventId(const char* const _name, EventHash _hash) : name(_name), hash(_hash) { }
+			EventId(const EventId& src) : name(src.name), hash(src.hash), id(src.id) {}
+			EventId operator = (const EventId& src) = delete;
 
-         cstr Name() const  { return name; }
-         operator cstr() const { return name; }
+			cstr Name() const { return name; }
+			operator cstr() const { return name; }
 
-         operator EventHash() const;
-      };
+			operator EventHash() const;
+		};
 
-      EventId operator "" _event(cstr name, size_t len);
+		EventId operator "" _event(cstr name, size_t len);
 
-      struct Event
-      {
-         EventId id;
-         int64 sizeInBytes;
-         operator EventId() const { return id; }
+		struct Event
+		{
+			EventId id;
+			int64 sizeInBytes;
+			operator EventId() const { return id; }
 
-         Event(EventId _id) : id(_id), sizeInBytes(0) {}
-      };
+			Event(EventId _id) : id(_id), sizeInBytes(0) {}
+		};
 
-      // Used by GUI panels to request an upate to a label or field just before rendering.
-      // A request is sent out by the gui panel, and the formatter object responds with the same id, but setting isRequested to false
-      struct TextOutputEvent : Event
-      {
-         TextOutputEvent(EventId id) : Event(id) {}
-         bool isGetting;
-         char text[128];
-      };
+		// Used by GUI panels to request an upate to a label or field just before rendering.
+		// A request is sent out by the gui panel, and the formatter object responds with the same id, but setting isRequested to false
+		struct TextOutputEvent : Event
+		{
+			TextOutputEvent(EventId id) : Event(id) {}
+			bool isGetting;
+			char text[128];
+		};
 
-      inline bool operator == (const EventId& a, const EventId& b)
-      {
-         return (EventHash)a == (EventHash)b;
-      }
+		inline bool operator == (const EventId& a, const EventId& b)
+		{
+			return (EventHash)a == (EventHash)b;
+		}
 
-      inline bool operator != (const EventId& a, const EventId& b)
-      {
-         return !(a == b);
-      }
+		inline bool operator != (const EventId& a, const EventId& b)
+		{
+			return !(a == b);
+		}
 
-      ROCOCOAPI IObserver
-      {
-         virtual void OnEvent(Event& ev) = 0;
-      };
+		ROCOCOAPI IObserver
+		{
+		   virtual void OnEvent(Event& ev) = 0;
+		};
 
-      ROCOCOAPI IPublisher
-      {
-         virtual void Attach(IObserver* observer, const EventId& id) = 0;
-         virtual void Deliver() = 0;
-         virtual void Detach(IObserver* observer) = 0;
-         virtual void RawPost(const Event& ev, bool isLossy) = 0;
-         virtual void RawPublish(Event& ev) = 0;
-         template<class T> inline void Post(T& ev, bool isLossy)
-         {
-            ev.sizeInBytes = sizeof(T);
-            RawPost(ev, isLossy);
-         }
-         template<class T> inline void Publish(T& ev)
-         {
-            ev.sizeInBytes = sizeof(T);
-            RawPublish(ev);
-         }
-      };
+		ROCOCOAPI IPublisher
+		{
+		   virtual void Attach(IObserver* observer, const EventId& id) = 0;
+		   virtual void Deliver() = 0;
+		   virtual void Detach(IObserver* observer) = 0;
+		   virtual void RawPost(const Event& ev, bool isLossy) = 0;
+		   virtual void RawPublish(Event& ev) = 0;
+		   template<class T> inline void Post(T& ev, bool isLossy)
+		   {
+			  ev.sizeInBytes = sizeof(T);
+			  RawPost(ev, isLossy);
+		   }
+		   template<class T> inline void Publish(T& ev)
+		   {
+			  ev.sizeInBytes = sizeof(T);
+			  RawPublish(ev);
+		   }
+		};
 
-      ROCOCOAPI IPublisherSupervisor : public IPublisher
-      {
-         virtual void Free() = 0;
-      };
+		ROCOCOAPI IPublisherSupervisor : public IPublisher
+		{
+		   virtual void Free() = 0;
+		};
 
-      IPublisherSupervisor* CreatePublisher();
+		IPublisherSupervisor* CreatePublisher();
 
-      void ThrowBadEvent(const Event& ev);
+		void ThrowBadEvent(const Event& ev);
 
-      template<class T> inline T& As(Event& ev)
-      {
-         T& t = static_cast<T&>(ev);
-         if (t.sizeInBytes != sizeof(T)) ThrowBadEvent(ev);
-         return t;
-      }
+		template<class T> inline T& As(Event& ev)
+		{
+			T& t = static_cast<T&>(ev);
+			if (t.sizeInBytes != sizeof(T)) ThrowBadEvent(ev);
+			return t;
+		}
 
-      namespace Input
-      {
-         enum MouseFlags : int32
-         {
-            MouseFlags_LDown = 0x0001,
-            MouseFlags_LUp = 0x0002,
-            MouseFlags_RDown = 0x0004,
-            MouseFlags_RUp = 0x0008,
-            MouseFlags_MDown = 0x0010,
-            MouseFlags_MUp = 0x0020,
-            MouseFlags_Wheel = 0x0400,
-            MouseFlags_LRMW = 0x043F
-         };
+		namespace Input
+		{
+			enum MouseFlags : int32
+			{
+				MouseFlags_LDown = 0x0001,
+				MouseFlags_LUp = 0x0002,
+				MouseFlags_RDown = 0x0004,
+				MouseFlags_RUp = 0x0008,
+				MouseFlags_MDown = 0x0010,
+				MouseFlags_MUp = 0x0020,
+				MouseFlags_Wheel = 0x0400,
+				MouseFlags_LRMW = 0x043F
+			};
 
-         extern EventId OnMouseMoveRelative;
+			extern EventId OnMouseMoveRelative;
 
-         struct OnMouseMoveRelativeEvent : public Event
-         {
-            OnMouseMoveRelativeEvent() : Event(OnMouseMoveRelative) {}
-            int32 dx;
-            int32 dy;
-            int32 dz;
-         };
+			struct OnMouseMoveRelativeEvent : public Event
+			{
+				OnMouseMoveRelativeEvent() : Event(OnMouseMoveRelative) {}
+				int32 dx;
+				int32 dy;
+				int32 dz;
+			};
 
-         extern EventId OnMouseChanged;
+			extern EventId OnMouseChanged;
 
-         struct OnMouseChangedEvent : public Event
-         {
-            OnMouseChangedEvent() : Event(OnMouseChanged) {}
-            int32 flags;
-         };
-      }
-   } // Events
+			struct OnMouseChangedEvent : public Event
+			{
+				OnMouseChangedEvent() : Event(OnMouseChanged) {}
+				int32 flags;
+			};
+		}
+	} // Events
 
 	namespace Random
 	{
@@ -449,7 +448,7 @@ namespace Rococo
 		private:
 			struct alignas(16) OpaqueBlock
 			{
-				uint8 opaque[6*1024];
+				uint8 opaque[6 * 1024];
 			} block;
 		};
 	}

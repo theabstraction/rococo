@@ -15,6 +15,8 @@
 #include <rococo.fonts.h>
 #include <rococo.variable.editor.h>
 
+#include <Commdlg.h>
+
 using namespace Rococo;
 using namespace Rococo::Events;
 using namespace Rococo::Windows;
@@ -73,6 +75,80 @@ class Utilities : public IUtilitiies
    IInstallation& installation;
 public:
    Utilities(IInstallation& _installation) : installation(_installation) {}
+
+   void AddSubtitle(Platform& platform, cstr subtitle)
+   {
+	   char fullTitle[256];
+
+	   if (subtitle && subtitle[0])
+	   {
+		   SafeFormat(fullTitle, sizeof(fullTitle), "%s - %s", platform.title, subtitle);
+	   }
+	   else
+	   {
+		   SafeFormat(fullTitle, sizeof(fullTitle), "%s", platform.title);
+	   }
+
+	   SetWindowTextA(platform.renderer.Window(), fullTitle);
+   }
+
+   bool GetLoadLocation(Windows::IWindow& parent, LoadDesc& ld) override
+   {
+	   char filter[128];
+	   SecureFormat(filter, sizeof(filter), "%s%c%s%c%c", ld.extDesc, 0, ld.ext, 0, 0);
+
+	   OPENFILENAMEA dialog = { 0 };
+	   dialog.lStructSize = sizeof(dialog);
+	   dialog.hwndOwner = parent;
+	   dialog.lpstrFilter = filter;
+	   dialog.nFilterIndex = 1;
+	   dialog.lpstrFile = ld.path;
+	   dialog.nMaxFile = sizeof(ld.path);
+	   dialog.lpstrTitle = ld.caption;
+	   dialog.Flags = OFN_CREATEPROMPT | OFN_ENABLESIZING | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
+	   dialog.lpstrDefExt = ld.ext;
+
+	   if (GetOpenFileNameA(&dialog))
+	   {
+		   ld.shortName = ld.path + dialog.nFileOffset;
+		   return true;
+	   }
+	   else
+	   {
+		   int error = GetLastError();
+		   if (error != 0) Throw(error, "Error GetOpenFileNameA");
+		   return false;
+	   }
+   }
+
+   bool GetSaveLocation(Windows::IWindow& parent, SaveDesc& sd) override
+   {
+	   char filter[128];
+	   SecureFormat(filter, sizeof(filter), "%s%c%s%c%c", sd.extDesc, 0, sd.ext, 0, 0);
+
+	   OPENFILENAMEA dialog = { 0 };
+	   dialog.lStructSize = sizeof(dialog);
+	   dialog.hwndOwner = parent;
+	   dialog.lpstrFilter = filter;
+	   dialog.nFilterIndex = 1;
+	   dialog.lpstrFile = sd.path;
+	   dialog.nMaxFile = sizeof(sd.path);
+	   dialog.lpstrTitle = sd.caption;
+	   dialog.Flags = OFN_CREATEPROMPT | OFN_ENABLESIZING | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
+	   dialog.lpstrDefExt = sd.ext;
+	    
+	   if (GetSaveFileNameA(&dialog))
+	   {
+		   sd.shortName = sd.path + dialog.nFileOffset;
+		   return true;
+	   }
+	   else
+	   {
+		   int error = GetLastError();
+		   if (error != 0) Throw(error, "Error GetSaveFileNameA");
+		   return false;
+	   }
+   }
 
    void EnumerateFiles(IEventCallback<cstr>& cb, cstr pingPathDirectory) override
    {
@@ -135,6 +211,20 @@ public:
    IVariableEditor* CreateVariableEditor(Windows::IWindow& window, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const Vec2i* topLeft) override
    {
       return Rococo::CreateVariableEditor(window, span, labelWidth, appQueryName, defaultTab, defaultTooltip, eventHandler, topLeft);
+   }
+
+   virtual void SaveBinary(cstr pathname, const void* buffer, size_t nChars)
+   {
+	   FileHandle fh = CreateFileA(pathname, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+	   if (fh == INVALID_HANDLE_VALUE)
+	   {
+		   Throw(GetLastError(), "Error saving %s", pathname);
+	   }
+
+	   if (!WriteFile(fh, buffer, (DWORD)nChars, nullptr, nullptr))
+	   {
+		   Throw(GetLastError(), "Error writing %s", pathname);
+	   }
    }
 };
 
