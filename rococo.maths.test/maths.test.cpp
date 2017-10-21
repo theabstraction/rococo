@@ -402,9 +402,52 @@ void validateTeselator()
 	TesselateByEarClip(builder, ring);
 }
 
+void validateConeCode()
+{
+	{
+		Vec3 eye = { 0, 0, 0 };
+		Vec3 dir = { 0, 1, 0 };
+		auto coneAngle = 45_degrees;
+		Vec3 pos1 = { -4 , 1, 0 };
+		auto cc = GetLineParameterAlongConeJoiningLineToPointAndCrossingNearestPointOnConeToPoint(eye, dir, coneAngle, pos1);
+		VALIDATE(cc.t == 5.0f);
+	}
+
+	{
+		Vec3 eye = { -1, 0, 0 };
+		Vec3 dir = { 1,  0, 0 };
+		auto coneAngle = 45_degrees;
+		Vec3 pos1 = { 1 , 4, 0 };
+		auto cc = GetLineParameterAlongConeJoiningLineToPointAndCrossingNearestPointOnConeToPoint(eye, dir, coneAngle, pos1);
+		VALIDATE(cc.t == 6.0f);
+	}
+
+	{
+		Vec3 eye = { 0, 0, 0 };
+		Vec3 dir = { 1,  0, 0 };
+		auto coneAngle = 45_degrees;
+		Vec3 pos1 = { -4 , 8, 0 };
+		auto cc = GetLineParameterAlongConeJoiningLineToPointAndCrossingNearestPointOnConeToPoint(eye, dir, coneAngle, pos1);
+		VALIDATE(cc.t == -12.0f);
+	}
+
+	{
+		Vec3 eye = { 0, 0, 0 };
+		Vec3 dir = { 1,  0, 0 };
+		auto coneAngle = 45_degrees;
+		Vec3 pos1 = { 4, 5, 0 };
+
+		float radius = sqrtf(0.5f);
+		VALIDATE(IsOutsideCone(eye, dir, coneAngle, { pos1, radius - 0.01f }));
+		VALIDATE(!IsOutsideCone(eye, dir, coneAngle, { pos1, radius + 0.01f }));
+	}
+}
+
 void test()
 {
 	printf("rococo.maths.test running...\n");
+
+	validateConeCode();
 
 	validateTeselator();
 

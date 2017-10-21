@@ -194,9 +194,12 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 		Matrix4x4 world;
 		e.platform.camera.GetWorld(world);
 
+		Matrix4x4 camera;
+		e.platform.camera.GetWorldAndProj(camera);
+
 		Vec3 dir{ -world.row2.x, -world.row2.y, -world.row2.z };
 
-		auto nSectors = e.sectors.ForEverySectorVisibleAt(eye, dir, addToScene);
+		auto nSectors = e.sectors.ForEverySectorVisibleBy(camera, eye, dir, addToScene);
 		if (nSectors == 0)
 		{
 			// Nothing rendered

@@ -86,6 +86,26 @@ namespace Rococo
       inverseWorldMatrixProj = InvertMatrix(worldMatrixAndProj);
    }
 
+   LineClassify ClassifyPtAgainstPlane(Vec2 a, Vec2 b, Vec2 p)
+   {
+	   Vec2 ab = b - a;
+	   Vec2 ap = p - a;
+
+	   float f = Cross(ab, ap);
+	   if (f > 0)
+	   {
+		   return LineClassify_Left;
+	   }
+	   else if (f < 0)
+	   {
+		   return LineClassify_Right;
+	   }
+	   else
+	   {
+		   return LineClassify_OnLine;
+	   }
+   }
+
    void TransposeMatrix(const Matrix4x4& matrix, Matrix4x4& transposeOfMatrix)
    {
       using namespace DirectX;

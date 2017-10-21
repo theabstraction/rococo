@@ -108,6 +108,8 @@ namespace HV
       float z0;
       float z1;
       ISector* other;
+	  Sphere bounds;
+	  mutable int64 iterationFrame;
    };
 
    struct SectorAndSegment
@@ -177,7 +179,7 @@ namespace HV
       virtual void InvokeSectorDialog(Rococo::Windows::IWindow& parent, IEditorState& state) = 0;
       virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
       virtual void Rebuild() = 0;
-      virtual void RemoveWallSegment(const Segment& segment, const Vec2& a, const Vec2& b, float oppositeElevation, float oppositeHeight, ISector* other) = 0;
+      virtual void RemoveWallSegment(const Segment& segment, const Vec2& a, const Vec2& b, float Z0, float Z1, ISector* other) = 0;
       virtual void SetPalette(const SectorPalette& palette) = 0;
       virtual cstr GetTexture(int32 state) const = 0;
       virtual void SetTexture(int32 state, cstr texture) = 0;
@@ -193,9 +195,9 @@ namespace HV
 
    ROCOCOAPI ISectors
    {
-      virtual void AddSector(const SectorPalette& palette, const Vec2* perimeter, size_t nVertices) = 0;
-      virtual void Free() = 0;
+	  virtual void Free() = 0;
 
+      virtual void AddSector(const SectorPalette& palette, const Vec2* perimeter, size_t nVertices) = 0;
       virtual void Delete(ISector* sector) = 0;
 
       virtual ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b) = 0;
@@ -205,8 +207,8 @@ namespace HV
       virtual ISector** end() = 0;
 
 	  virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
-
-	  virtual size_t ForEverySectorVisibleAt(cr_vec3 eye, cr_vec3 direction, IEventCallback<VisibleSector>& cb) = 0;
+	  virtual size_t ForEverySectorVisibleBy(cr_m4x4 cameraMatrix, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb) = 0;
+	  virtual void ResetConfig() = 0;
    };
 
    ISectors* CreateSectors(Platform& platform);

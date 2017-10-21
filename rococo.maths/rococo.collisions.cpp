@@ -727,4 +727,86 @@ namespace Rococo
 
 		return counts;
 	}
+
+	// Assumes direction normalized. Check out cone.vs.sphere.png
+	// There is a cone and back-cone, and one root of t for each
+	ConeCheck GetLineParameterAlongConeJoiningLineToPointAndCrossingNearestPointOnConeToPoint(cr_vec3 eye, cr_vec3 dir, Radians coneAngle, cr_vec3 pos)
+	{
+		// A sphere touches the cone and its normal on the cone intersects the central line
+		// If the line is parameterized by t, where
+		// P(t) = E + D.t  where E is the eye of the cone and D is its normalized direction
+		// then (C - P(t)) . D = |C-P(t)|sin (theta)
+
+		// [(C - E - D.t).D]^2 = [C - E - D.t].[C - E - D.t] sin*2(theta)
+
+		// Define A = C - E and s = sin^2(theta)
+		// [A - D.t].D * [A - D.t].D = [A - D.t].[A - D.t].s
+
+		// (A.D - t)(A.D - t) = A.As - 2A.Dst + t^2.s
+
+		// Define B = A.D
+		// (B - t)(B - t) = A.As - 2Bst + t^2s
+
+		// B.B + t^2 - 2B.t = A.As - 2Bst + t^2s
+
+		// t^2(1 - s) - 2B(1 - s)t + (B.B - A.As) = 0
+
+		// Get two roots t0 and t1
+
+		float s = Sq(Sin(coneAngle)); // N.B gives 0 <= s <= 1, positive or zero
+		float a = 1.0f - s;
+
+		Vec3 A = pos - eye;
+
+		float B = Dot(A, dir);
+
+		float b = -2.0f * B * a;
+
+		float c = B * B - Dot(A, A) * s;
+
+		float t0, t1;
+		if (!TryGetRealRoots(t0, t1, a, b, c))
+		{
+			Throw(0, "Could not determine t for cone equation");
+		}
+
+		if (t0 > t1) std::swap(t0, t1);
+		float midpoint = 0.5f * (t0 + t1);
+
+		return  ConeCheck{ (midpoint < 0) ? t0 : t1 };
+	}
+
+	bool IsOutsideCone(cr_vec3 eye, cr_vec3 dir, Radians coneAngle, const Sphere& sphere)
+	{
+		// A sphere touches the cone and its normal on the cone intersects the central line
+		// If the line is parameterized by t, where
+		// P(t) = E + D.t  where E is the eye of the cone and D is its normalized direction
+		// then (C - P(t)) . D = |C-P(t)|sin (theta)
+
+		// Distance from E to P(t) is Q(t) = Root(P(t) - E).(P(t) - E)
+
+		// Distance from cone to P(t) along line is F(t) = Q(t)sin(coneAngle)
+
+		// Distance from sphere to P(t) is G(t) = Root(C - P(t))
+
+		// If G(t) > F(f) + radius then sphere is outside code
+
+		ConeCheck cc = GetLineParameterAlongConeJoiningLineToPointAndCrossingNearestPointOnConeToPoint(eye, dir, coneAngle, sphere.centre);
+		if (cc.t > 0)
+		{
+			
+			float spineLength = cc.t;
+			float coneAdjacentLen = spineLength * Sin(coneAngle);
+
+			float touchLen = coneAdjacentLen + sphere.radius;
+
+			float linePtToCentreSq = LengthSq(sphere.centre - (eye + dir * cc.t));
+
+			return linePtToCentreSq > Sq(touchLen);
+		}
+		else
+		{
+			return LengthSq(eye - sphere.centre) < Sq(sphere.radius);
+		}
+	}
 }

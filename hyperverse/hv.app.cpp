@@ -6,13 +6,12 @@
 #include "hv.events.h"
 #include "hv.defaults.h"
 
-namespace ANON
+namespace HV
 {
-   using namespace HV;
    using namespace HV::Graphics;
    using namespace Rococo::Entities;
 
-   class HVApp : public IApp, public IEventCallback<FileModifiedArgs>, public IScene
+   class App : public IApp, public IEventCallback<FileModifiedArgs>, public IScene
    {
 	   Platform& platform;
 	   bool editorActive{ false };
@@ -29,7 +28,7 @@ namespace ANON
 	   AutoFree<IGameModeSupervisor> fpsLogic;
 
    public:
-	   HVApp(Platform& _platform) :
+	   App(Platform& _platform) :
 		   platform(_platform),
 		   sectors(CreateSectors(_platform)),
 		   players(CreatePlayerSupervisor(platform)),
@@ -54,7 +53,7 @@ namespace ANON
 		   editorActive = false;
 	   }
 
-	   virtual RGBA GetClearColour() const
+	   RGBA GetClearColour() const override
 	   {
 		   if (e.sectors.begin() == e.sectors.end())
 		   {
@@ -66,7 +65,7 @@ namespace ANON
 		   }
 	   }
 
-	   virtual void RenderGui(IGuiRenderContext& grc)
+	   void RenderGui(IGuiRenderContext& grc) override
 	   {
 		   GuiMetrics metrics;
 		   grc.Renderer().GetGuiMetrics(metrics);
@@ -75,22 +74,17 @@ namespace ANON
 		   platform.gui.Render(grc);
 	   }
 
-	   virtual void RenderObjects(IRenderContext& rc)
+	   void RenderObjects(IRenderContext& rc)  override
 	   {
 		   e.platform.scene.RenderObjects(rc);
 	   }
 
-	   virtual void Free()
+	   void Free() override
 	   {
 		   delete this;
 	   }
 
-	   virtual void OnCreated()
-	   {
-		 
-	   }
-
-	   virtual void OnEvent(FileModifiedArgs& args)
+	   void OnEvent(FileModifiedArgs& args) override
 	   {
 		   HV::Events::OS::OnFileChangedEvent ev;
 		   ev.args = &args;
@@ -124,7 +118,7 @@ namespace ANON
 		   }
 	   }
 
-	   virtual uint32 OnFrameUpdated(const IUltraClock& clock)
+	   uint32 OnFrameUpdated(const IUltraClock& clock) override
 	   {
 		   GuiMetrics metrics;
 		   e.platform.renderer.GetGuiMetrics(metrics);
@@ -162,7 +156,7 @@ namespace ANON
 		   }
 	   }
 
-	   virtual void OnKeyboardEvent(const KeyboardEvent& keyboardEvent)
+	   void OnKeyboardEvent(const KeyboardEvent& keyboardEvent) override
 	   {
 		   if (!e.platform.gui.AppendEvent(keyboardEvent))
 		   {
@@ -197,7 +191,7 @@ namespace ANON
 		   }
 	   }
 
-	   virtual void OnMouseEvent(const MouseEvent& me)
+	   void OnMouseEvent(const MouseEvent& me) override
 	   {
 		   e.platform.gui.AppendEvent(me);
 	   }
@@ -208,6 +202,6 @@ namespace HV
 {
    IApp* CreateApp(Platform& p)
    {
-      return new ANON::HVApp(p);
+      return new HV::App(p);
    }
 }

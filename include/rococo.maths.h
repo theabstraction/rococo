@@ -45,56 +45,73 @@ namespace Rococo
 		float s;
 
 		Quat() : v{ 0,0,0 }, s(1.0f) {}
-		Quat(cr_vec3 _v, float _s) :  v(_v), s(_s) {}
+		Quat(cr_vec3 _v, float _s) : v(_v), s(_s) {}
 
 		inline operator DirectX::XMFLOAT4* () { return reinterpret_cast<DirectX::XMFLOAT4*> (this); }
 		inline operator const DirectX::XMFLOAT4* () const { return reinterpret_cast<const DirectX::XMFLOAT4*> (this); }
 	};
 
-   template<class T>
-   ROCOCOAPI IRingManipulator
-   {
-      virtual size_t ElementCount() const = 0;
-      virtual T operator[](size_t index) const = 0;
-      virtual bool IsEmpty() const = 0;
-      virtual void Erase(size_t index) = 0;
-      virtual T* Array() = 0;
-   };
+	template<class T>
+	ROCOCOAPI IRingManipulator
+	{
+	   virtual size_t ElementCount() const = 0;
+	   virtual T operator[](size_t index) const = 0;
+	   virtual bool IsEmpty() const = 0;
+	   virtual void Erase(size_t index) = 0;
+	   virtual T* Array() = 0;
+	};
 
-   template<class T>
-   ROCOCOAPI IRing
-   {
-      virtual size_t ElementCount() const = 0;
-      virtual T operator[](size_t index) const = 0;
-      virtual bool IsEmpty() const = 0;
-      virtual const T* Array() const = 0;
-   };
+	template<class T>
+	ROCOCOAPI IRing
+	{
+	   virtual size_t ElementCount() const = 0;
+	   virtual T operator[](size_t index) const = 0;
+	   virtual bool IsEmpty() const = 0;
+	   virtual const T* Array() const = 0;
+	};
 
-   bool IsClockwiseSequential(IRing<Vec2>& ring);
+	enum LineClassify
+	{
+		LineClassify_Left = 1,
+		LineClassify_Right = 2,
+		LineClassify_OnLine = 3,
+	};
+
+	LineClassify ClassifyPtAgainstPlane(Vec2 a, Vec2 b, Vec2 p);
+
+	bool IsClockwiseSequential(IRing<Vec2>& ring);
 
 	typedef const Quat& cr_quat;
 
 	Quat InterpolateRotations(cr_quat a, cr_quat b, float t);
 
-   bool GetLineIntersect(Vec2 a, Vec2 b, Vec2 c, Vec2 d, float& t, float& u);
+	bool GetLineIntersect(Vec2 a, Vec2 b, Vec2 c, Vec2 d, float& t, float& u);
 
-   // Determine whether two parallel line segments are on the same line and touch
-   bool DoParallelLinesIntersect(Vec2 a, Vec2 b, Vec2 c, Vec2 d);
+	// Determine whether two parallel line segments are on the same line and touch
+	bool DoParallelLinesIntersect(Vec2 a, Vec2 b, Vec2 c, Vec2 d);
 
-   struct IntersectCounts
-   {
-      int32 forwardCount;
-      int32 backwardCount;
-      int32 edgeCases;
-	  int32 coincidence;
-   };
+	struct ConeCheck
+	{
+		float t;
+	};
 
-   // Count the number of times a vector crosses a permeter, used to determine whether a surface faces inside or outside a sector
-   IntersectCounts CountLineIntersects(Vec2 origin, Vec2 direction, Vec2 p, Vec2 q);
+	ConeCheck GetLineParameterAlongConeJoiningLineToPointAndCrossingNearestPointOnConeToPoint(cr_vec3 eye, cr_vec3 dir, Radians coneAngle, cr_vec3 pos);
+	bool IsOutsideCone(cr_vec3 eye, cr_vec3 dir, Radians coneAngle, const Sphere& sphere);
 
-   // Generally in the Rococo libs code/assume that matrices are used to pre-multiply column vectors
-   // If this is not the case, then make sure you comment/document that matrices go against the convention
-	struct alignas(4) Matrix4x4 
+	struct IntersectCounts
+	{
+		int32 forwardCount;
+		int32 backwardCount;
+		int32 edgeCases;
+		int32 coincidence;
+	};
+
+	// Count the number of times a vector crosses a permeter, used to determine whether a surface faces inside or outside a sector
+	IntersectCounts CountLineIntersects(Vec2 origin, Vec2 direction, Vec2 p, Vec2 q);
+
+	// Generally in the Rococo libs code/assume that matrices are used to pre-multiply column vectors
+	// If this is not the case, then make sure you comment/document that matrices go against the convention
+	struct alignas(4) Matrix4x4
 	{
 		Vec4 row0;
 		Vec4 row1;
@@ -130,29 +147,29 @@ namespace Rococo
 		}
 
 		static void FromQuat(const Quat& quat, Matrix4x4& m);
-      static void FromQuatAndThenTranspose(const Quat& quat, Matrix4x4& m);
-      static void GetRotationQuat(const Matrix4x4& m, Quat& quat);
+		static void FromQuatAndThenTranspose(const Quat& quat, Matrix4x4& m);
+		static void GetRotationQuat(const Matrix4x4& m, Quat& quat);
 
 		Vec3 GetForwardDirection() const;
 		Vec3 GetRightDirection() const;
 		Vec3 GetUpDirection() const;
 
-      // Returns a matrix in a RH system for a camera located at the origin, with stuff below z = -near visible
-      // Used to pre-multiply column vector to transform into screen space
-      static Matrix4x4 GetRHProjectionMatrix(Degrees fov, float32 aspectRatio, float near, float far);
+		// Returns a matrix in a RH system for a camera located at the origin, with stuff below z = -near visible
+		// Used to pre-multiply column vector to transform into screen space
+		static Matrix4x4 GetRHProjectionMatrix(Degrees fov, float32 aspectRatio, float near, float far);
 	};
 
-   float Determinant(const Matrix4x4& m);
+	float Determinant(const Matrix4x4& m);
 
-   inline Vec4 HomogenizeNormal(cr_vec3 normal)
-   {
-      return Vec4{ normal.x, normal.y, normal.z, 0.0f };
-   }
+	inline Vec4 HomogenizeNormal(cr_vec3 normal)
+	{
+		return Vec4{ normal.x, normal.y, normal.z, 0.0f };
+	}
 
-   inline Vec4 HomogenizePosition(cr_vec3 normal)
-   {
-      return Vec4{ normal.x, normal.y, normal.z, 1.0f };
-   }
+	inline Vec4 HomogenizePosition(cr_vec3 normal)
+	{
+		return Vec4{ normal.x, normal.y, normal.z, 1.0f };
+	}
 
 	Vec2  GetIntersect(Vec2 A, Vec2 D, Vec2 B, Vec2 E);
 	Radians GetHeadingOfVector(float DX, float DY);
@@ -182,7 +199,7 @@ namespace Rococo
 	{
 		float quantity;
 		operator float() const { return quantity; }
-		operator Degrees () const; 
+		operator Degrees () const;
 	};
 
 	inline Radians operator - (Radians r)
@@ -199,24 +216,24 @@ namespace Rococo
 		Radians ToRadians() const { return Radians{ DEGREES_TO_RADIANS_QUOTIENT() * quantity }; }
 	};
 
-   struct FPSAngles
-   {
-      Degrees heading;   // 0 is North, 90 is East, 180 is South, 270 is West
-      Degrees elevation; // 0 is horizontal, 90 is up, -90 is down
-      Degrees tilt;      // -ve is lean left angle, +ve is lean right angle
-   };
+	struct FPSAngles
+	{
+		Degrees heading;   // 0 is North, 90 is East, 180 is South, 270 is West
+		Degrees elevation; // 0 is horizontal, 90 is up, -90 is down
+		Degrees tilt;      // -ve is lean left angle, +ve is lean right angle
+	};
 
 	inline Radians::operator Degrees () const { return Degrees{ quantity * RADIANS_TO_DEGREES_QUOTIENT() }; }
 
 	inline Degrees operator "" _degrees(long double literalValue)
 	{
-		return Degrees{ (float) literalValue };
+		return Degrees{ (float)literalValue };
 	}
 
-   inline Degrees operator "" _degrees(unsigned long long literalValue)
-   {
-      return Degrees{ (float)literalValue };
-   }
+	inline Degrees operator "" _degrees(unsigned long long literalValue)
+	{
+		return Degrees{ (float)literalValue };
+	}
 
 	inline float Sin(Radians radians) { return sinf(radians.quantity); }
 	inline float Cos(Radians radians) { return cosf(radians.quantity); }
@@ -227,41 +244,41 @@ namespace Rococo
 		operator float() const { return g; }
 	};
 
-   struct Triangle2d
-   {
-      Vec2 A;
-      Vec2 B;
-      Vec2 C;
+	struct Triangle2d
+	{
+		Vec2 A;
+		Vec2 B;
+		Vec2 C;
 
-      size_t CountInternalPoints(const Vec2* points, size_t nPoints);
-      bool IsInternal(Vec2 p) const;
-      bool IsInternalOrOnEdge(Vec2 p) const;
-   };
+		size_t CountInternalPoints(const Vec2* points, size_t nPoints);
+		bool IsInternal(Vec2 p) const;
+		bool IsInternalOrOnEdge(Vec2 p) const;
+	};
 
-   struct Triangle
-   {
-	   Vec3 A;
-	   Vec3 B;
-	   Vec3 C;
-   };
+	struct Triangle
+	{
+		Vec3 A;
+		Vec3 B;
+		Vec3 C;
+	};
 
-   // In General, quads are tesselated clockwise a -> b -> c -> d -> a
-   struct Quad
-   {
-	   Vec3 a;
-	   Vec3 b;
-	   Vec3 c;
-	   Vec3 d;
-   };
+	// In General, quads are tesselated clockwise a -> b -> c -> d -> a
+	struct Quad
+	{
+		Vec3 a;
+		Vec3 b;
+		Vec3 c;
+		Vec3 d;
+	};
 
-   ROCOCOAPI I2dMeshBuilder
-   {
-      virtual void Append(const Triangle2d& t) = 0;
-   };
+	ROCOCOAPI I2dMeshBuilder
+	{
+	   virtual void Append(const Triangle2d& t) = 0;
+	};
 
-   void TesselateByEarClip(I2dMeshBuilder& tb, IRingManipulator<Vec2>& ring);
+	void TesselateByEarClip(I2dMeshBuilder& tb, IRingManipulator<Vec2>& ring);
 
-   bool IsOdd(int32 i);
+	bool IsOdd(int32 i);
 
 	inline Vec2 operator - (const Vec2& a, const Vec2& b) { return Vec2{ a.x - b.x, a.y - b.y }; }
 	inline Vec2 operator + (const Vec2& a, const Vec2& b) { return Vec2{ a.x + b.x, a.y + b.y }; }
@@ -270,24 +287,24 @@ namespace Rococo
 	inline Vec2 operator * (const Vec2& q, float f) { return Vec2{ q.x * f, q.y * f }; }
 	inline Vec2 operator * (float f, const Vec2& q) { return Vec2{ q.x * f, q.y * f }; }
 	inline void operator += (Vec2& a, const Vec2& b) { a.x += b.x; a.y += b.y; }
-	inline void operator -= (Vec2& a, const Vec2& b) { a.x -= b.x; a.y -= b.y;  }
-   inline bool operator == (Vec2 a, Vec2 b) { return a.x == b.x && a.y == b.y; }
-   inline bool operator != (Vec2 a, Vec2 b) { return !(a == b); }
+	inline void operator -= (Vec2& a, const Vec2& b) { a.x -= b.x; a.y -= b.y; }
+	inline bool operator == (Vec2 a, Vec2 b) { return a.x == b.x && a.y == b.y; }
+	inline bool operator != (Vec2 a, Vec2 b) { return !(a == b); }
 
-   /*
+	/*
 
-   |i  j  k |
-   |ax ay az|
-   |bx by bz|
+	|i  j  k |
+	|ax ay az|
+	|bx by bz|
 
-   */
+	*/
 
-   // N.B if a is i and b is j, then the cross product is k
-   // i x j is counter-clockwise and cross product is positive
-   inline float Cross(Vec2 a, Vec2 b)
-   {
-      return a.x * b.y - a.y * b.x;
-   }
+	// N.B if a is i and b is j, then the cross product is k
+	// i x j is counter-clockwise and cross product is positive
+	inline float Cross(Vec2 a, Vec2 b)
+	{
+		return a.x * b.y - a.y * b.x;
+	}
 
 	inline bool operator == (const Vec2i& a, const Vec2i& b) { return a.x == b.x && a.y == b.y; }
 	inline bool operator != (const Vec2i& a, const Vec2i& b) { return !(a == b); }
@@ -299,10 +316,10 @@ namespace Rococo
 	inline bool operator == (const Vec3& a, const Vec3& b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
 	inline bool operator != (const Vec3& a, const Vec3& b) { return !(a == b); }
 
-   inline void operator += (Vec3& a, const Vec3& b) { a.x += b.x; a.y += b.y; a.z += b.z; }
-   inline void operator -= (Vec3& a, const Vec3& b) { a.x -= b.x; a.y -= b.y; a.z -= b.z; }
+	inline void operator += (Vec3& a, const Vec3& b) { a.x += b.x; a.y += b.y; a.z += b.z; }
+	inline void operator -= (Vec3& a, const Vec3& b) { a.x -= b.x; a.y -= b.y; a.z -= b.z; }
 
-   inline Vec3 operator - (cr_vec3 a) { return Vec3{ -a.x, -a.y, -a.z }; }
+	inline Vec3 operator - (cr_vec3 a) { return Vec3{ -a.x, -a.y, -a.z }; }
 
 	inline float Dot(cr_vec3 a, cr_vec3 b) { return a.x*b.x + a.y*b.y + a.z*b.z; }
 
@@ -333,7 +350,7 @@ namespace Rococo
 
 	inline GuiRectf Dequantize(const GuiRect& v)
 	{
-		return GuiRectf((float)v.left, (float)v.top, (float) v.right, (float) v.bottom);
+		return GuiRectf((float)v.left, (float)v.top, (float)v.right, (float)v.bottom);
 	}
 
 	inline GuiRectf operator + (const GuiRectf& quad, Vec2 offset)
@@ -450,7 +467,7 @@ namespace Rococo
 		virtual void DeleteEntity(const Sphere& boundingSphere, uint64 id) = 0;
 		virtual void EnumerateItems(const Sphere& boundingSphere, IObjectEnumerator& cb) = 0;
 		virtual void GetStats(QuadStats& stats) = 0;
-		
+
 	};
 
 	ROCOCOAPI IQuadTreeSupervisor : public IQuadTree

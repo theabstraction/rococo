@@ -112,7 +112,7 @@ namespace
 
       virtual void GetPosition(Vec3& position)
       {
-         position = this->position;
+         position = this->position + this->relativePos;
       }
 
       virtual void GetOrientation(Quat& orientation)

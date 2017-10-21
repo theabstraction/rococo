@@ -118,7 +118,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="hv.app.cpp" />
-    <ClCompile Include="hv.config.cpp" />
     <ClCompile Include="hv.defaultconfig.cpp" />
     <ClCompile Include="hv.editor.cpp" />
     <ClCompile Include="hv.events.cpp" />

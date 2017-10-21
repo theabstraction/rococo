@@ -111,14 +111,12 @@ namespace
          return z1;
       }
    
-      uint32 id;
+      uint32 id; // unique sector Id
 
-      // Once instance for each major mesh of the sector
+      // One instance for each major mesh of the sector
       ID_ENTITY floorId;
       ID_ENTITY ceilingId;
       ID_ENTITY wallId;
-      
-      rchar name[32];
 
       int64 sectorFlags = 0;
 
@@ -204,24 +202,28 @@ namespace
          wallId = instances.AddBody(to_fstring(name), to_fstring(wallTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
-      void RemoveWallSegment(const Segment& segment, const Vec2& a, const Vec2& b, float oppositeElevation, float oppositeHeight, ISector* other)
+      void RemoveWallSegment(const Segment& segment, const Vec2& a, const Vec2& b, float Z0, float Z1, ISector* other)
       {
          for (auto i = wallSegments.begin(); i != wallSegments.end(); ++i)
          {
-            if (i->perimeterIndexStart == segment.perimeterIndexStart && i->perimeterIndexEnd == segment.perimeterIndexEnd)
-            {
-               wallSegments.erase(i);
-               gapSegments.push_back({ a, b, oppositeElevation, oppositeHeight, other });
-               break;
-            }
+			 if (i->perimeterIndexStart == segment.perimeterIndexStart && i->perimeterIndexEnd == segment.perimeterIndexEnd)
+			 {
+				 wallSegments.erase(i);
+
+				 Vec3 centre = { 0.5f * (a.x + b.x), 0.5f * (a.y + b.y), 0.5f * (Z0 + Z1) };
+				 float radius = Length(Vec3{ a.x, a.y, Z0 } -centre);
+				 Sphere bounds{ centre, radius };
+				 gapSegments.push_back({ a, b, Z0, Z1, other, bounds, 0 });
+				 break;
+			 }
          } 
 
          for (auto& s : gapSegments)
          {
             if (s.a == a && s.b == b)
             {
-               s.z0 = oppositeElevation;
-               s.z1 = oppositeHeight;
+               s.z0 = Z0;
+               s.z1 = Z1;
             }
          }
          
@@ -269,7 +271,12 @@ namespace
                   {
                      deleteSection = true;
                      s->RemoveWallSegment(segment, q, p, z0, z1, this);
-                     gapSegments.push_back({ p, q, s->Z0(), s->Z1(), s });
+
+					 Vec3 centre = { 0.5f * (p.x + q.x), 0.5f * (p.y + q.y), 0.5f * (s->Z0() + s->Z1()) };
+					 float radius = Length(Vec3{ p.x, q.y, s->Z0() } - centre);
+					 Sphere bounds{ centre, radius };
+
+                     gapSegments.push_back({ p, q, s->Z0(), s->Z1(), s, bounds, 0 });
                      break;
                   }
                }
@@ -545,12 +552,13 @@ namespace
 
       void DeleteWalls()
       {
-         if (wallId)
-         {
-            SafeFormat(name, sizeof(name), "sector.walls.%u", id);
-            instances.MeshBuilder().Delete(to_fstring(name));
-            instances.Delete(wallId);
-         }
+		  if (wallId)
+		  {
+			  rchar name[32];
+			  SafeFormat(name, sizeof(name), "sector.walls.%u", id);
+			  instances.MeshBuilder().Delete(to_fstring(name));
+			  instances.Delete(wallId);
+		  }
       }
 
       ~Sector()
@@ -577,16 +585,22 @@ namespace
          intensity = max(0.0f, intensity);
          intensity = min(1.0f, intensity);
 
+		 Random::RandomMT mt;
+		 Random::Seed(mt, id + 1);
+
+		 uint32 index = id % 3;
+
          uint32 rgb[3] = { 0 };
 
-         Random::RandomMT mt;
-         Random::Seed(mt, id + 1);
-         uint32 index = mt() % 3;
          rgb[index] = mt() % 256;
+		 rgb[(index+1)%3] = mt() % 256;
+		 rgb[(index+2)%3] = mt() % 256;
 
-         uint32 nextIndex = index + 1 + mt() % 2;
-
-         rgb[nextIndex % 3] = 255 - rgb[index];
+		 uint32 sum = rgb[0] + rgb[1] + rgb[2];
+		 if (sum > 512)
+		 {
+			 rgb[index] = 0;
+		 }
 
          return RGBAb(
             (uint32)(rgb[0] * intensity), 

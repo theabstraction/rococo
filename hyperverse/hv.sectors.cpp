@@ -11,144 +11,107 @@ namespace
    using namespace Rococo;
    using namespace HV;
 
-   enum LineClassify
+   Vec3 GetNormal(const Gap& gap)
    {
-	   LineClassify_Left = 1,
-	   LineClassify_Right = 2,
-	   LineClassify_OnLine = 3,
-   };
-
-   LineClassify ClassifyPtAgainstPlane(Vec2 a, Vec2 b, Vec2 p)
-   {
-	   Vec2 ab = b - a;
-	   Vec2 ap = p - a;
-
-	   float f = Cross(ab, ap);
-	   if (f > 0)
-	   {
-		   return LineClassify_Left;
-	   }
-	   else if (f < 0)
-	   {
-		   return LineClassify_Right;
-	   }
-	   else
-	   {
-		   return LineClassify_OnLine;
-	   }
+	   Vec3 top = { gap.b.x - gap.a.x, gap.a.y - gap.a.y, 0 };
+	   return Vec3 { top.y, -top.x, 0 };
    }
 
-   struct Frustum2d
+   // Determine if we can look through a gap to see the sector beyond
+   // If we are in the home sector, then don't worry too much if the gap is slightly behind the near plane
+   // As we may be on the edge of the home sector, and our near plane just over the gap into the next sector
+   bool CanSeeThrough(const Matrix4x4& camera, cr_vec3 forward, const Gap& gap, Vec2& leftPoint, Vec2& rightPoint, bool fromHome)
    {
-	   Frustum2d(cr_vec3 _eye, cr_vec3 _direction, Radians halfFov, Metres nearPlane, Metres farPlane)
+	   Vec4 qGap[4] =
 	   {
-		   eye = { _eye.x, _eye.y };
-		   Vec2 direction = Normalize(Vec2{ _direction.x, _direction.y });
+		   { gap.a.x, gap.a.y, gap.z1, 1 },
+		   { gap.b.x, gap.b.y, gap.z1, 1 },
+		   { gap.b.x, gap.b.y, gap.z0, 1 },
+		   { gap.a.x, gap.a.y, gap.z0, 1 }
+	   };
 
-		   Vec2 farplaneDirection = Vec2{ direction.y, -direction.x };
+	   Vec4 qScreen[4];
 
-		   Metres halfFarLength{ farPlane * tan(halfFov) };
-		   Metres halfNearLength{ nearPlane * tan(halfFov) };
-
-		   farLeft = eye + direction * farPlane - farplaneDirection * halfFarLength;
-		   farRight = eye + direction * farPlane + farplaneDirection * halfFarLength;
-
-		   nearLeft = eye + direction * nearPlane - farplaneDirection * halfNearLength;
-		   nearRight = eye + direction * nearPlane + farplaneDirection * halfNearLength;
+	   for (int i = 0; i < 4; ++i)
+	   {
+		   qScreen[i] = camera * qGap[i];
 	   }
 
-	   Frustum2d(cr_vec2 _eye, cr_vec2 leftPoint, cr_vec2 rightPoint, Metres nearPlane, Metres farPlane)
+	   Vec3 qScreenV[4];
+	   for (int i = 0; i < 4; ++i)
 	   {
-		   eye = _eye;
-
-		   Vec2 leftDirection = Normalize(leftPoint - eye);
-		   Vec2 rightDirection = Normalize(rightPoint - eye);
-
-		   farLeft = eye + leftDirection * farPlane;
-		   farRight = eye + rightDirection * farPlane;
-
-		   nearLeft = eye + leftDirection * nearPlane;
-		   nearRight = eye + rightDirection * nearPlane;
+		   qScreenV[i] = ((const Vec3&) qScreen[i]) * (1.0f / qScreen[i].w);
 	   }
 
-	   Vec2 eye;
+	   Vec3 ab1 = qScreenV[1] - qScreenV[0];
+	   Vec3 bc1 = qScreenV[2] - qScreenV[1];
+	   float tri1Normal = Cross(Flatten(ab1), Flatten(bc1));
 
-	   Vec2 nearLeft;
-	   Vec2 nearRight;
-	   Vec2 farLeft;
-	   Vec2 farRight;
+	   Vec3 ab2 = qScreenV[3] - qScreenV[2];
+	   Vec3 bc2 = qScreenV[0] - qScreenV[3];
+	   float tri2Normal = Cross(Flatten(ab2), Flatten(bc2));
 
-	   bool CanSeeThrough(Vec2 a, Vec2 b, Vec2& leftPoint, Vec2& rightPoint) const
+	   const Vec3* v = qScreenV;
+
+	   int j = 0;
+
+	   for (int i = 0; i < 4; i++)
 	   {
-		   LineClassify Cab = ClassifyPtAgainstPlane(eye, b, a);
-
-		   if (Cab == LineClassify_OnLine) return false;
-
-		   if (Cab == LineClassify_Right)
+		   if (qScreen[i].w < 0)
 		   {
-			   // The gap is in the frustum, but we are looking at it from behind, so cannot see through it
-			   return false;
+			   j--;
 		   }
-
-		   auto CLa = ClassifyPtAgainstPlane(nearLeft, farLeft, a);
-		   auto CLb = ClassifyPtAgainstPlane(nearLeft, farLeft, b);
-
-		   leftPoint = farLeft;
-		   rightPoint = farRight;
-
-		   if (CLa != LineClassify_Right && CLb != LineClassify_Right)
+		   else if (qScreen[i].w > 0)
 		   {
-			   // both segments to the left of the frustum or sit on the left edge
-			   return false;
+			   j++;
 		   }
+	   }
 
-		   auto CRa = ClassifyPtAgainstPlane(nearRight, farRight, a);
-		   auto CRb = ClassifyPtAgainstPlane(nearRight, farRight, b);
-
-		   if (CRa != LineClassify_Left && CRb != LineClassify_Left)
+	   if (j == 4 || j == -4)
+	   {
+		   if (tri1Normal > 0 && tri2Normal > 0)
 		   {
-			   // both segments to the right of the view frustum or sit on the right edge
-			   return false;
-		   }
+			   // Edge case -> the eye may be in one sector, and the near plane just over the gap
+			   // This flips triangles, but we are still looking into the sector.
+			   // If this is so our view direction opposes the normal  of the gap
 
-		   auto CFa = ClassifyPtAgainstPlane(farLeft, farRight, a);
-		   auto CFb = ClassifyPtAgainstPlane(farLeft, farRight, b);
-
-		   if (CFa != LineClassify_Right && CFb != LineClassify_Right)
-		   {
-			   // both segments outside the view frustum far plane
-			   return false;
-		   }
-
-		   // N.B we do not clip against the eye, because even if the segment is between eye and the near plane
-		   // Then what lies beyond the plane is visible and needs to be rendered
-		   if (CLa == LineClassify_Right && CRa == LineClassify_Left)
-		   {
-			   // a is somewhere in the middle zone
-			   if (eye != a)
+			   if (fromHome)
 			   {
-				   leftPoint = a;
+				   if (Dot(forward, GetNormal(gap)))
+				   {
+					   return true;
+				   }
 			   }
+
+			   return false;
 		   }
 
-		   if (CLb == LineClassify_Right && CRb == LineClassify_Left)
+		   if (v[0].x <= -1 && v[1].x <= -1 && v[2].x <= -1 && v[3].x <= -1)
 		   {
-			   // a is somewhere in the middle zone
-			   if (eye != b)
-			   {
-				   rightPoint = b;
-			   }
+			   // Everything to left of screen, so gap is not visible
+			   return false;
 		   }
 
-		   return true;
-	   }
-   };
+		   if (v[0].x >= 1 && v[1].x >= 1 && v[2].x >= 1 && v[3].x >= 1)
+		   {
+			   // Everything to right of screen, so gap is not visible
+			   return false;
+		   }
 
-   // If [array] represents a ring, then GetRingElement(i...) returns the ith element using modular arithmetic
-   template<class T>
-   T GetRingElement(size_t index, const T* array, size_t capacity)
-   {
-      return array[index % capacity];
+		   if (v[0].y >= 1 && v[1].y >= 1 && v[2].y >= 1 && v[3].y >= 1)
+		   {
+			   // Everything to top of screen, so gap is not visible
+			   return false;
+		   }
+
+		   if (v[0].y <= -1 && v[1].y <= -1 && v[2].y <= -1 && v[3].y <= -1)
+		   {
+			   // Everything to bottom of screen, so gap is not visible
+			   return false;
+		   }
+	   }
+
+	   return true;
    }
 
    class Sectors: public ISectors
@@ -171,15 +134,89 @@ namespace
          }
       }
 
+	  void ResetConfig()
+	  {
+
+	  }
+
 	  int64 iterationFrame = 0x81000000000;
 
-	  void RecurseVisibilityScanOnGaps(Frustum2d& f, ISector& current, IEventCallback<VisibleSector>& cb, size_t& count)
+	  void CallbackOnce(ISector& sector, IEventCallback<VisibleSector>& cb, int64 iterationFrame)
+	  {
+		  if (sector.IterationFrame() != iterationFrame)
+		  {
+			  sector.SetIterationFrame(iterationFrame);
+			  cb.OnEvent(VisibleSector{ sector });
+		  }
+	  }
+
+	  bool IsInLineOfSight(const Gap& gap, cr_vec3 eye)
+	  {
+		  Vec2 qGap[2] =
+		  {
+			  gap.a, 
+			  gap.b
+		  };
+
+		  for (auto k : lineOfSight)
+		  {
+			  if ((k->a == gap.a && k->b == gap.b) || (k->a == gap.b && k->b == gap.a))
+			  {
+				  // Prevent any gap being counted twice in any direction
+				  return false;
+			  }
+		  }
+
+		  for (auto k : lineOfSight)
+		  {
+			  // Use k to generate a cone and check bounds of gap fits in cone
+			  
+			  Vec3 displacement = k->bounds.centre - eye;
+			  if (LengthSq(displacement) > Sq(k->bounds.radius + 0.1f))
+			  {
+				  float d = Length(k->bounds.centre - eye);
+				  Radians coneAngle{ asinf(k->bounds.radius / d) };
+				  if (IsOutsideCone(eye, Normalize(displacement), coneAngle, gap.bounds))
+				  {
+					  return false;
+				  }
+			  }
+		  }
+
+		  for (auto k : lineOfSight)
+		  {
+			  int j = 0;
+			  for (int i = 0; i < 2; ++i)
+			  {
+				  auto l = ClassifyPtAgainstPlane(k->a, k->b, qGap[i]);
+				  if (l == LineClassify_Left)
+				  {
+					  j++;
+				  }
+				  else if (l == LineClassify_Right)
+				  {
+					  j--;
+				  }
+			  }	  
+
+			  auto l = ClassifyPtAgainstPlane(k->a, k->b, Flatten(eye));
+
+			  if (j == 2)
+			  {
+				  return l == LineClassify_Right;
+			  }
+			  else if (j == -2)
+			  {
+				  return l == LineClassify_Left;
+			  }
+		  }
+
+		  return true;
+	  }
+
+	  void RecurseVisibilityScanOnGapsBy(const Matrix4x4& cameraMatrix, cr_vec3 eye, cr_vec3 forward, ISector& current, IEventCallback<VisibleSector>& cb, size_t& count, bool fromHome)
 	  {
 		  count++;
-
-		  current.SetIterationFrame(iterationFrame);
-
-		  cb.OnEvent(VisibleSector{ current });
 
 		  size_t numberOfGaps;
 		  auto* gaps = current.Gaps(numberOfGaps);
@@ -187,29 +224,34 @@ namespace
 		  {
 			  auto* gap = gaps++;
 
-			  if (gap->other->IterationFrame() != iterationFrame)
+			  Vec2 a1, b1;
+			  if (CanSeeThrough(cameraMatrix, forward, *gap, a1, b1, fromHome))
 			  {
-				  Vec2 leftPoint, rightPoint;
-				  if (f.CanSeeThrough(gap->a, gap->b, leftPoint, rightPoint))
+				  if (IsInLineOfSight(*gap, eye))
 				  {
-					  Frustum2d childFrustum(f.eye, leftPoint, rightPoint, 0.15_metres, 1000_metres);
-					  RecurseVisibilityScanOnGaps(childFrustum, *gap->other, cb, count);
+					  lineOfSight.push_back(gap);
+					  CallbackOnce(*gap->other, cb, iterationFrame);
+					  RecurseVisibilityScanOnGapsBy(cameraMatrix, eye, forward, *gap->other, cb, count, false);
+					  lineOfSight.pop_back();
 				  }
 			  }
 		  }
 	  }
 
-	  size_t ForEverySectorVisibleAt(cr_vec3 eye, cr_vec3 direction, IEventCallback<VisibleSector>& cb)
+	  std::vector<const Gap*> lineOfSight; // Quick, nasty but effective BSP test
+
+	  size_t ForEverySectorVisibleBy(const Matrix4x4& cameraMatrix, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb)
 	  {
 		  iterationFrame++;
 
-		  Frustum2d f(eye, direction, 45_degrees, 0.15_metres, 1000_metres);
+		  lineOfSight.clear();
 
 		  size_t count = 0;
-		  ISector* home = GetFirstSectorContainingPoint(f.eye);
+		  ISector* home = GetFirstSectorContainingPoint({ eye.x, eye.y });
 		  if (home)
 		  {
-			  RecurseVisibilityScanOnGaps(f, *home, cb, count);
+			  CallbackOnce(*home, cb, iterationFrame);
+			  RecurseVisibilityScanOnGapsBy(cameraMatrix, eye, forward, *home, cb, count, true);
 		  }
 
 		  return count;
