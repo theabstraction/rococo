@@ -36,22 +36,6 @@ namespace
       return a.name.length() == b.length && Eq(a.name.c_str(), b);
    }
 
-
-   void ValidateArray(const Vec2* positionArray, size_t nVertices)
-   {
-      // N.B we use modular arithmetic to connect final vertex with beginning
-      // So we do not duplicate end vertex in the array with the beginning
-      if (nVertices < 3 || positionArray[0] == positionArray[nVertices - 1])
-      {
-         Throw(0, "ValidateArray: Bad position array");
-      }
-
-      if (nVertices > 256)
-      {
-         Throw(0, "ValidateArray: Too many elements in mesh. Maximum is 256. Simplify");
-      }
-   }
-
    // If [array] represents a ring, then GetRingElement(i...) returns the ith element using modular arithmetic
    template<class T>
    T GetRingElement(size_t index, const T* array, size_t capacity)
@@ -68,7 +52,7 @@ namespace
       IInstancesSupervisor& instances;
       ISectors& co_sectors;
 
-      // 2-D map co-ordinates of sector perimeter
+      // 2-D map co-ordinates of sector perimeter. Advances clockwise
       std::vector<Vec2> floorPerimeter;
 
       // Indices into floor perimeter for each section of solid wall
@@ -143,20 +127,27 @@ namespace
       
       Segment GetSegment(Vec2 p, Vec2 q) override
       {
-         int32 index_p = GetPerimeterIndex(p);
-         int32 index_q = GetPerimeterIndex(q);
+		  if (!floorPerimeter.empty())
+		  {
+			  int32 index_p = GetPerimeterIndex(p);
+			  int32 index_q = GetPerimeterIndex(q);
 
-         if (index_p >= 0 && index_q >= 0)
-         {
-            if (((index_p + 1) % floorPerimeter.size()) == index_q)
-            {
-               return{ index_p, index_q };
-            }
-            if (((index_q + 1) % floorPerimeter.size()) == index_p)
-            {
-               return{ index_q, index_p };
-            }
-         }
+			  if (index_p >= 0 && index_q >= 0)
+			  {
+				  if (((index_p + 1) % floorPerimeter.size()) == index_q)
+				  {
+					  return{ index_p, index_q };
+				  }
+				  if (((index_q + 1) % floorPerimeter.size()) == index_p)
+				  {
+					  return{ index_q, index_p };
+				  }
+			  }
+		  }
+		  else
+		  {
+			  // Decoupled from the co-sectors
+		  }
 
          return{ -1,-1 };
       }
@@ -181,7 +172,7 @@ namespace
          }
       }
 
-      void RebuildWallsGraphicMesh()
+      void UpdatedWallGraphicMesh()
       {
          rchar name[32];
          SafeFormat(name, sizeof(name), "sector.walls.%u", id);
@@ -202,41 +193,6 @@ namespace
          wallId = instances.AddBody(to_fstring(name), to_fstring(wallTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
-      void RemoveWallSegment(const Segment& segment, const Vec2& a, const Vec2& b, float Z0, float Z1, ISector* other)
-      {
-         for (auto i = wallSegments.begin(); i != wallSegments.end(); ++i)
-         {
-			 if (i->perimeterIndexStart == segment.perimeterIndexStart && i->perimeterIndexEnd == segment.perimeterIndexEnd)
-			 {
-				 wallSegments.erase(i);
-
-				 Vec3 centre = { 0.5f * (a.x + b.x), 0.5f * (a.y + b.y), 0.5f * (Z0 + Z1) };
-				 float radius = Length(Vec3{ a.x, a.y, Z0 } -centre);
-				 Sphere bounds{ centre, radius };
-				 gapSegments.push_back({ a, b, Z0, Z1, other, bounds, 0 });
-				 break;
-			 }
-         } 
-
-         for (auto& s : gapSegments)
-         {
-            if (s.a == a && s.b == b)
-            {
-               s.z0 = Z0;
-               s.z1 = Z1;
-            }
-         }
-         
-         RaiseWallsFromSegments();  // This is always called to trigger floor & ceiling drop re-calculation
-         RebuildFloorAndCeiling();
-
-         if (IsCorridor() && IsFlagged(SectorFlag_Has_Door))
-         {
-			ResetBarriers();
-            RunSectorGenScript(genDoorScript);
-         }
-      }
-
       bool IsCorridor() const
       {
          if (!Is4PointRectangular()) return false;
@@ -250,7 +206,20 @@ namespace
          return Dot(ab, cd) != 0;
       }
 
-      void BuildWalls(IRing<Vec2>& perimeter)
+	  const Gap* GetGapAtSegment(const Vec2& a, const Vec2& b) const
+	  {
+		  for (auto& g : gapSegments)
+		  {
+			  if (g.a == a && g.b == b)
+			  {
+				  return &g;
+			  }
+		  }
+
+		  return nullptr;
+	  }
+
+      void BuildGapsAndTesselateWalls(IRing<Vec2>& perimeter)
       {
          gapSegments.clear(); 
          wallSegments.clear();
@@ -262,32 +231,49 @@ namespace
 
             bool deleteSection = false;
 
-            for (auto* s : co_sectors)
-            {
-               if (s != static_cast<ISector*>(this))
-               {
-                  Segment segment = s->GetSegment(q, p);
-                  if (segment.perimeterIndexStart >= 0)
-                  {
-                     deleteSection = true;
-                     s->RemoveWallSegment(segment, q, p, z0, z1, this);
+			for (auto* other : co_sectors)
+			{
+				if (other != static_cast<ISector*>(this))
+				{
+					Segment segment = other->GetSegment(q, p);
+					if (segment.perimeterIndexStart >= 0)
+					{
+						deleteSection = true;
 
-					 Vec3 centre = { 0.5f * (p.x + q.x), 0.5f * (p.y + q.y), 0.5f * (s->Z0() + s->Z1()) };
-					 float radius = Length(Vec3{ p.x, q.y, s->Z0() } - centre);
-					 Sphere bounds{ centre, radius };
+						auto* otherGap = other->GetGapAtSegment(q, p);
+						if (!otherGap || otherGap->z0 != z0 || otherGap->z1 != z1)
+						{
+							co_sectors.AddDirty(other);
+						}
 
-                     gapSegments.push_back({ p, q, s->Z0(), s->Z1(), s, bounds, 0 });
-                     break;
-                  }
-               }
-            }
+						float gz0, gz1;
+						if (other->IsCorridor())
+						{
+							gz0 = z0;
+							gz1 = z1;
+						}
+						else
+						{
+							gz0 = other->Z0();
+							gz1 = other->Z1();
+						}
+
+						Vec3 centre = { 0.5f * (p.x + q.x), 0.5f * (p.y + q.y), 0.5f * (gz0 + gz1) };
+						float radius = Length(Vec3{ p.x, q.y, z0 - centre.z });
+						Sphere bounds{ centre, radius };
+
+						gapSegments.push_back({ p, q, gz0, gz1, other, bounds, 0 });
+						break;
+					}
+				}
+			}
 
             if (deleteSection) continue;
 
             wallSegments.push_back({ (int32) i, (int32) (i + 1) % (int32)perimeter.ElementCount() });
          }
 
-         RaiseWallsFromSegments();
+		 TesselateWallsFromSegments();
       }
 
       float AddWallSegment(const Vec2& p, const Vec2& q, float h0, float h1, float u)
@@ -418,7 +404,53 @@ namespace
          AddSlopedWallSegment(p, q, h01, h00, h11, h10, 0.0f);
       }
 
-      void RaiseWallsFromSegments()
+	  void CreateFlatWallsBetweenGaps()
+	  {
+		  float u = 0;
+
+		  for (auto segment : wallSegments)
+		  {
+			  Vec2 p = floorPerimeter[segment.perimeterIndexStart];
+			  Vec2 q = floorPerimeter[segment.perimeterIndexEnd];
+
+			  u = AddWallSegment(p, q, z0, z1, u);
+		  }
+
+		  for (auto& gap : gapSegments)
+		  {
+			  float foreignHeight = gap.z1;
+			  float currentHeight = z1;
+
+			  if (foreignHeight < currentHeight && !(gap.other->IsCorridor() || IsCorridor()))
+			  {
+				  if (foreignHeight < z0)
+				  {
+					  foreignHeight = z0;
+				  }
+
+				  Vec2 p = gap.a;
+				  Vec2 q = gap.b;
+
+				  AddWallSegment(p, q, foreignHeight, z1, 0);
+			  }
+
+			  float foreignFloorHeight = gap.z0;
+			  if (foreignFloorHeight > z0 && !(gap.other->IsCorridor() || IsCorridor()))
+			  {
+				  if (foreignFloorHeight > z1)
+				  {
+					  foreignFloorHeight = z1;
+				  }
+
+				  Vec2 p = gap.a;
+				  Vec2 q = gap.b;
+
+				  AddWallSegment(p, q, z0, foreignFloorHeight, 0);
+			  }
+		  }
+	  }
+
+      void TesselateWallsFromSegments()
       {
          wallTriangles.clear();
 
@@ -429,51 +461,10 @@ namespace
          }
          else
          {
-            float u = 0;
-
-            for (auto segment : wallSegments)
-            {
-               Vec2 p = floorPerimeter[segment.perimeterIndexStart];
-               Vec2 q = floorPerimeter[segment.perimeterIndexEnd];
-
-               u = AddWallSegment(p, q, z0, z1, u);
-            }
-
-            for (auto& gap : gapSegments)
-            {
-               float foreignHeight = gap.z1;
-               float currentHeight = z1;
-
-               if (foreignHeight < currentHeight && !(gap.other->IsCorridor() || IsCorridor()))
-               {
-                  if (foreignHeight < z0)
-                  {
-                     foreignHeight = z0;
-                  }
-
-                  Vec2 p = gap.a;
-                  Vec2 q = gap.b;
-
-                  AddWallSegment(p, q, foreignHeight, z1, 0);
-               }
-
-               float foreignFloorHeight = gap.z0;
-               if (foreignFloorHeight > z0 && !(gap.other->IsCorridor() || IsCorridor()))
-               {
-                  if (foreignFloorHeight > z1)
-                  {
-                     foreignFloorHeight = z1;
-                  }
-
-                  Vec2 p = gap.a;
-                  Vec2 q = gap.b;
-
-                  AddWallSegment(p, q, z0, foreignFloorHeight, 0);
-               }
-            }
+			 CreateFlatWallsBetweenGaps();
          }
 
-         RebuildWallsGraphicMesh();
+		 UpdatedWallGraphicMesh();
       }
 
       Platform& platform;
@@ -665,13 +656,13 @@ namespace
          return false;
       }
 
-      void RebuildFloorGraphicMesh()
+      void UpdateFloorGraphicMesh()
       {
+		 DeleteFloor();
+
          rchar name[32];
          SafeFormat(name, sizeof(name), "sector.floor.%u", id);
          
-         DeleteFloor();
-
          auto& mb = instances.MeshBuilder();
          mb.Begin(to_fstring(name));
 
@@ -685,7 +676,7 @@ namespace
          floorId = instances.AddBody(to_fstring(name), to_fstring(floorTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
       }
 
-      void RebuildCeilingGraphicMesh()
+      void UpdateCeilingGraphicMesh()
       {
          rchar name[32];
          SafeFormat(name, sizeof(name), "sector.ceiling.%u", id);
@@ -866,19 +857,28 @@ namespace
 		  }	
 	  }
 
-      void Rebuild()
-      {
-         BuildWalls(Ring<Vec2>(&floorPerimeter[0], floorPerimeter.size()));
-         RebuildFloorAndCeiling();
+	  void Rebuild(int64 iterationFrame)
+	  {
+		  if (IterationFrame() == iterationFrame)
+		  {
+			 return;
+		  }
+		  else
+		  {
+			  SetIterationFrame(iterationFrame);
+		  }
 
-         if (IsCorridor() && IsFlagged(SectorFlag_Has_Door))
-         {
-			ResetBarriers();
-            RunSectorGenScript("!scripts/hv/sector/gen.door.sxy");
-         }
-      }
+		  BuildGapsAndTesselateWalls(Ring<Vec2>(&floorPerimeter[0], floorPerimeter.size()));
+		  TesselateFloorAndCeiling();
 
-      void RebuildFloorAndCeiling()
+		  if (IsCorridor() && IsFlagged(SectorFlag_Has_Door))
+		  {
+			  ResetBarriers();
+			  RunSectorGenScript("!scripts/hv/sector/gen.door.sxy");
+		  }
+	  }
+
+      void TesselateFloorAndCeiling()
       {
          size_t len = sizeof(Vec2) * floorPerimeter.size();
          Vec2* tempArray = (Vec2*)alloca(len);
@@ -964,36 +964,63 @@ namespace
 
          TesselateByEarClip(builder, ring);
 
-         RebuildFloorGraphicMesh();
-         RebuildCeilingGraphicMesh();
+		 UpdateFloorGraphicMesh();
+		 UpdateCeilingGraphicMesh();
       }
 
-      void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) override
-      {
-         this->z0 = z0;
-         this->z1 = z1;
+	  void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) override
+	  {
+		  if (!floorPerimeter.empty())
+		  {
+			  Throw(0, "The floor perimeter is already built");
+		  }
 
-         ValidateArray(positionArray, nVertices);
+		  this->z0 = z0;
+		  this->z1 = z1;
 
-         Ring<Vec2> ring_of_unknown_sense(positionArray, nVertices);
+		  if (nVertices < 3 || positionArray[0] == positionArray[nVertices - 1])
+		  {
+			  Throw(0, "Sector::Build: Bad position array");
+		  }
 
-         if (IsClockwiseSequential(ring_of_unknown_sense))
-         {
-            for (size_t i = 0; i != nVertices; i++)
-            {
-               floorPerimeter.push_back(positionArray[i]);
-            }
-         }
-         else
-         {
-            for (int32 i = (int32)nVertices - 1; i >= 0; i--)
-            {
-               floorPerimeter.push_back(positionArray[i]);
-            }
-         }
+		  if (nVertices > 256)
+		  {
+			  Throw(0, "Sector::Build: Too many elements in mesh. Maximum is 256. Simplify");
+		  }
 
-         Rebuild();
-      }
+		  for (size_t i = 0; i != nVertices; i++)
+		  {
+			  floorPerimeter.push_back(positionArray[i]);
+		  }
+
+		  Ring<Vec2> ring_of_unknown_sense(positionArray, nVertices);
+
+		  if (!IsClockwiseSequential(ring_of_unknown_sense))
+		  {
+			  std::reverse(floorPerimeter.begin(), floorPerimeter.end());
+		  }
+
+		  static int64 constructIterationFrame = 0x840000000000;
+		  Rebuild(constructIterationFrame++);
+	  }
+
+	  virtual void Decouple()
+	  {
+		  static int64 decoupleIterationFrame = 0x820000000000;
+		  decoupleIterationFrame++;
+
+		  floorPerimeter.clear();
+		  wallSegments.clear();
+
+		  SetIterationFrame(decoupleIterationFrame);
+
+		  for (auto& g : gapSegments)
+		  {
+			  g.other->Rebuild(decoupleIterationFrame);
+		  }
+
+		  gapSegments.clear();
+	  }
 
       void Free() override
       {
@@ -1087,7 +1114,12 @@ namespace
 				SetFlag(SectorFlag_Has_Door, editor->GetBoolean("Door"));
 			}
 
-            Rebuild();
+			static int64 updateHeightIterationFrame = 0x830000000000;
+			updateHeightIterationFrame++;
+
+            Rebuild(updateHeightIterationFrame);
+
+			co_sectors.RebuildDirtySectors(updateHeightIterationFrame);
          }
       }
 

@@ -260,6 +260,23 @@ namespace
       ISector** begin() { return (sectors.empty() ? nullptr : &sectors[0]); }
       ISector** end() { return (sectors.empty() ? nullptr : &sectors[0] + sectors.size()); }
 
+	  std::vector<ISector*> dirty;
+
+	  void AddDirty(ISector* dirtySector) override
+	  {
+		  dirty.push_back(dirtySector);
+	  }
+
+	  void RebuildDirtySectors(int64 iterationFrame)
+	  {
+		  for (auto& s : dirty)
+		  {
+			  s->Rebuild(iterationFrame);
+		  }
+
+		  dirty.clear();
+	  }
+
       void AddSector(const SectorPalette& palette, const Vec2* positionArray, size_t nVertices) override
       {
          auto* s = CreateSector(platform, *this);
@@ -267,8 +284,10 @@ namespace
 
          try
          {
+			dirty.clear();
             s->Build(positionArray, nVertices, defaultFloorLevel, defaultFloorLevel + defaultRoomHeight);
             sectors.push_back(s);
+			RebuildDirtySectors(s->IterationFrame());
          }
          catch (IException& ex)
          {
@@ -306,10 +325,7 @@ namespace
          } match{ sector };
          sectors.erase(std::remove_if(sectors.begin(), sectors.end(), match), sectors.end());
 
-         for (auto& s : sectors)
-         {
-            s->Rebuild();
-         }
+		 sector->Decouple();
 
          sector->Free();
       }

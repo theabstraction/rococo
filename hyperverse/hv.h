@@ -164,11 +164,15 @@ namespace HV
 	  virtual int64 IterationFrame() const = 0;
 	  virtual void SetIterationFrame(int64 value) = 0;
 
+	  virtual const Gap* GetGapAtSegment(const Vec2& a, const Vec2& b) const = 0;
+
 	  virtual const Barrier* Barriers(size_t& barrierCount) const = 0;
       virtual void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) = 0;
       virtual bool DoesLineCrossSector(Vec2 a, Vec2 b) = 0;
       virtual ObjectVertexBuffer FloorVertices() const = 0;
       virtual const Gap* Gaps(size_t& count) const = 0;
+
+	  virtual void Decouple() = 0; // Called to take the sector out of the world, prior to deletion
       virtual void Free() = 0;
       virtual float Z0() const = 0;
       virtual float Z1() const = 0;  
@@ -178,8 +182,7 @@ namespace HV
       virtual int32 GetPerimeterIndex(Vec2 a) = 0;
       virtual void InvokeSectorDialog(Rococo::Windows::IWindow& parent, IEditorState& state) = 0;
       virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
-      virtual void Rebuild() = 0;
-      virtual void RemoveWallSegment(const Segment& segment, const Vec2& a, const Vec2& b, float Z0, float Z1, ISector* other) = 0;
+      virtual void Rebuild(int64 iterationFrame) = 0;
       virtual void SetPalette(const SectorPalette& palette) = 0;
       virtual cstr GetTexture(int32 state) const = 0;
       virtual void SetTexture(int32 state, cstr texture) = 0;
@@ -197,14 +200,17 @@ namespace HV
    {
 	  virtual void Free() = 0;
 
-      virtual void AddSector(const SectorPalette& palette, const Vec2* perimeter, size_t nVertices) = 0;
-      virtual void Delete(ISector* sector) = 0;
+	  virtual void AddDirty(ISector* dirtySector) = 0;
+	  virtual void RebuildDirtySectors(int64 iterationFrame) = 0;
 
-      virtual ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b) = 0;
-      virtual SectorAndSegment GetFirstSectorWithPoint(Vec2 a) = 0;
-      virtual ISector* GetFirstSectorContainingPoint(Vec2 a) = 0;
-      virtual ISector** begin() = 0;
-      virtual ISector** end() = 0;
+	  virtual void AddSector(const SectorPalette& palette, const Vec2* perimeter, size_t nVertices) = 0;
+	  virtual void Delete(ISector* sector) = 0;
+
+	  virtual ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b) = 0;
+	  virtual SectorAndSegment GetFirstSectorWithPoint(Vec2 a) = 0;
+	  virtual ISector* GetFirstSectorContainingPoint(Vec2 a) = 0;
+	  virtual ISector** begin() = 0;
+	  virtual ISector** end() = 0;
 
 	  virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
 	  virtual size_t ForEverySectorVisibleBy(cr_m4x4 cameraMatrix, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb) = 0;
