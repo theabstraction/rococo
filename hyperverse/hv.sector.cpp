@@ -265,6 +265,15 @@ namespace
 						gapSegments.push_back({ p, q, gz0, gz1, other, bounds, 0 });
 						break;
 					}
+					else
+					{
+						Segment segment = other->GetSegment(p, q);
+						if (segment.perimeterIndexStart >= 0)
+						{
+							// Encapsulation
+							Throw(0, "Sector::Build - sector intersectors existing sectors");
+						}
+					}
 				}
 			}
 
@@ -637,6 +646,12 @@ namespace
 
       bool DoesLineCrossSector(Vec2 a, Vec2 b) override
       {
+		 int32 index = GetFloorTriangleIndexContainingPoint(b);
+		 if (index >= 0)
+		 {
+			 return true;
+		 }
+
          size_t nVertices = floorPerimeter.size();
          for (size_t i = 0; i <= nVertices; ++i)
          {
@@ -646,7 +661,7 @@ namespace
             float t, u;
             if (GetLineIntersect(a, b, c, d, t, u))
             {
-               if (u > 0 && u < 1 && t > 0 && t < 1)
+               if (u > 0 && u < 1 && t > 0 && t <= 1)
                {
                   return true;
                }
@@ -970,6 +985,8 @@ namespace
 
 	  void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) override
 	  {
+		  // N.B the sector is not part of the co-sectors collection until this function returns
+
 		  if (!floorPerimeter.empty())
 		  {
 			  Throw(0, "The floor perimeter is already built");
@@ -1002,6 +1019,24 @@ namespace
 
 		  static int64 constructIterationFrame = 0x840000000000;
 		  Rebuild(constructIterationFrame++);
+
+		  for (auto* other : co_sectors)
+		  {
+			  size_t nVertices;
+			  auto* v = other->WallVertices(nVertices);
+			  for (size_t i = 0; i < nVertices; ++i)
+			  {
+				  int j = GetPerimeterIndex(v[i]);
+				  if (j < 0)
+				  {
+					  int index = GetFloorTriangleIndexContainingPoint(v[i]);
+					  if (index >= 0)
+					  {
+						  Throw(0, "Sector::Build: Sector would have intersected another");
+					  }
+				  }
+			  }
+		  }
 	  }
 
 	  virtual void Decouple()

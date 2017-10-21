@@ -289,27 +289,28 @@ namespace
             sectors.push_back(s);
 			RebuildDirtySectors(s->IterationFrame());
          }
-         catch (IException& ex)
-         {
-            s->Free();
-            platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, "Algorithmic error creating sector. Try something simpler");
+		 catch (IException& ex)
+		 {
+			 dirty.clear();
+			 s->Free();
+			 platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, "Algorithmic error creating sector. Try something simpler");
 
 #ifdef _DEBUG
-            if (platform.utilities.QueryYesNo(platform, platform.renderer.Window(), "Try again?"))
-            {
-               OS::TripDebugger();
-               OS::PrintDebug("\n\n\n // Troublesome perimeter: \n");
-               OS::PrintDebug("const Vec2 perimeter[%d] = { ", nVertices);
-               for (const Vec2* p = positionArray; p < positionArray + nVertices; p++)
-               {
-                  OS::PrintDebug("{%f,%f},", p->x, p->y);
-               }
-               OS::PrintDebug("};\n\n\n");
+			 if (platform.utilities.QueryYesNo(platform, platform.renderer.Window(), "Try again?"))
+			 {
+				 OS::TripDebugger();
+				 OS::PrintDebug("\n\n\n // Troublesome perimeter: \n");
+				 OS::PrintDebug("const Vec2 perimeter[%d] = { ", nVertices);
+				 for (const Vec2* p = positionArray; p < positionArray + nVertices; p++)
+				 {
+					 OS::PrintDebug("{%f,%f},", p->x, p->y);
+				 }
+				 OS::PrintDebug("};\n\n\n");
 
-               AddSector(palette,  positionArray, nVertices);
-            }
+				 AddSector(palette, positionArray, nVertices);
+			 }
 #endif
-         }
+		 }
       }
 
       void Delete(ISector* sector) override
@@ -348,7 +349,7 @@ namespace
          return nullptr;
       }
 
-      SectorAndSegment GetFirstSectorWithPoint(Vec2 a)  override
+      SectorAndSegment GetFirstSectorWithVertex(Vec2 a)  override
       {
          for (auto* s : sectors)
          {

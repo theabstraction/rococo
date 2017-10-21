@@ -441,28 +441,23 @@ namespace
 
 			if (lineList.empty())
 			{
-				// First point is not allowed to be in or on any sector
-				SectorAndSegment sns = map.Sectors().GetFirstSectorWithPoint(worldPosition);
-				if (sns.sector != nullptr)
+				SectorAndSegment sns = map.Sectors().GetFirstSectorWithVertex(worldPosition);
+				if (sns.sector == nullptr)
 				{
-					SetStatus("A new sector's first point must lie outside all other sectors", publisher);
-					return;
-				}
-
-				ISector* sector = map.Sectors().GetFirstSectorContainingPoint(worldPosition);
-				if (sector != nullptr)
-				{
-					SetStatus("A new sector's first point must lie outside all other sectors", publisher);
-					return;
+					ISector* sector = map.Sectors().GetFirstSectorContainingPoint(worldPosition);
+					if (sector != nullptr)
+					{
+						SetStatus("A new sector's first point must lie outside all other sectors", publisher);
+						return;
+					}
 				}
 			}
-
-			if (!lineList.empty())
+			else
 			{
 				Vec2 a = *lineList.rbegin();
 				Vec2 b = worldPosition;
 
-				SectorAndSegment sns = map.Sectors().GetFirstSectorWithPoint(b);
+				SectorAndSegment sns = map.Sectors().GetFirstSectorWithVertex(b);
 				if (sns.sector == nullptr)
 				{
 					auto* first = map.Sectors().GetFirstSectorCrossingLine(a, b);

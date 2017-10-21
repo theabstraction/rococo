@@ -207,7 +207,7 @@ namespace HV
 	  virtual void Delete(ISector* sector) = 0;
 
 	  virtual ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b) = 0;
-	  virtual SectorAndSegment GetFirstSectorWithPoint(Vec2 a) = 0;
+	  virtual SectorAndSegment GetFirstSectorWithVertex(Vec2 a) = 0;
 	  virtual ISector* GetFirstSectorContainingPoint(Vec2 a) = 0;
 	  virtual ISector** begin() = 0;
 	  virtual ISector** end() = 0;
