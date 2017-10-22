@@ -258,7 +258,7 @@ namespace
 		Platform& platform;
 		IEditorState* editor;
 		Windows::IWindow& parent;
-		ISector* lit{ nullptr };
+		size_t litIndex = -1;
 
 		void Render(IGuiRenderContext& grc, const GuiRect& rect) override
 		{
@@ -274,10 +274,13 @@ namespace
 			{
 				if (!key.isPressed)
 				{
-					if (lit)
+					auto& s = map.Sectors();
+
+					size_t nSectors = s.end() - s.begin();
+					if (litIndex < nSectors)
 					{
-						map.Sectors().Delete(lit);
-						lit = nullptr;
+						s.Delete(s.begin()[litIndex]);
+						litIndex = -1;
 					}
 				}
 				return true;
@@ -320,13 +323,29 @@ namespace
 					int32 index = s->GetFloorTriangleIndexContainingPoint(wp);
 					if (index >= 0)
 					{
-						if (lit == s)
+						auto& secs = map.Sectors();
+
+						size_t nSectors = secs.end() - secs.begin();
+						if (litIndex < nSectors)
 						{
-							lit->InvokeSectorDialog(parent, *editor);
+							if (secs.begin()[litIndex] == s)
+							{
+								secs.begin()[litIndex]->InvokeSectorDialog(parent, *editor);
+							}
 						}
-						lit = s;
+
+						for (size_t i = 0; i < nSectors; ++i)
+						{
+							if (secs.begin()[i] == s)
+							{
+								litIndex = i;
+								return;
+							}
+						}
 					}
 				}
+
+				litIndex = -1;
 			}
 		}
 	public:
@@ -339,20 +358,13 @@ namespace
 		IEditMode& Mode() { return *this; }
 		const ISector* GetHilight() const override
 		{
-			if (lit)
-			{
-				for (auto s : map.Sectors())
-				{
-					if (s == lit)
-					{
-						return lit;
-					}
-				}
-			}
-			return nullptr;;
+			auto& secs = map.Sectors();
+			size_t nSectors = secs.end() - secs.begin();
+			return (litIndex < nSectors) ? secs.begin()[litIndex] : nullptr;
 		}
+
 		void SetEditor(IEditorState* editor) { this->editor = editor; }
-		void CancelHilight() { lit = nullptr; }
+		void CancelHilight() { litIndex = -1; }
 	};
 
 	class EditMode_SectorBuilder : private IEditMode
