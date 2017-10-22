@@ -4,12 +4,14 @@
 #include <vector>
 #include <rococo.strings.h>
 
+#include <algorithm>
+
 namespace
 {
    using namespace Rococo;
    using namespace Rococo::Graphics;
 
-   struct MeshBuilder : public Rococo::Graphics::IMeshBuilderSupervisor
+   struct MeshBuilder : public Rococo::Graphics::IMeshBuilderSupervisor, IMathsVenue
    {
       std::unordered_map<std::string, ID_SYS_MESH> meshes;
       rchar name[MAX_FQ_NAME_LEN + 1];
@@ -37,10 +39,51 @@ namespace
          }
       }
 
+	  struct NameBinding
+	  {
+		  std::pair<std::string, ID_SYS_MESH> item;
+
+		  bool operator < (const NameBinding& other) const
+		  {
+			  return item.first < other.item.first;
+		  }
+
+		  bool operator == (const NameBinding& other) const
+		  {
+			  return item.first == other.item.first;
+		  }
+	  };
+
+	  std::vector<NameBinding> names;
+
+	  void ShowVenue(IMathsVisitor& visitor)
+	  {
+		  for (auto& m : meshes)
+		  {
+			  names.push_back({ m });
+		  }
+
+		  std::sort(names.begin(), names.end());
+
+		  for(auto& m: names)
+		  {
+			  char desc[256];
+			  renderer.GetMeshDesc(desc, m.item.second);
+			  visitor.ShowString(m.item.first.c_str(), "%5llu %s", m.item.second.value, desc);
+		  }
+
+		  names.clear();
+	  }
+
       void Free() override
       {
          delete this;
       }
+
+	  IMathsVenue* Venue()
+	  {
+		  return this;
+	  }
 
       void Begin(const fstring& fqName) override
       {

@@ -126,6 +126,9 @@ namespace Rococo
 		struct ITextureArrayBuilder;
 	}
 
+	struct IMathsVisitor;
+	struct IMathsVenue;
+
 	ROCOCOAPI IRenderer
 	{
 	  virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
@@ -133,6 +136,7 @@ namespace Rococo
 	  virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
 	  virtual void DeleteMesh(ID_SYS_MESH id) = 0;
 	  virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
+	  virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id) = 0;
 	  virtual IInstallation& Installation() = 0;
 	  virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, cstr uniqueName) = 0;
 	  virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
@@ -140,10 +144,13 @@ namespace Rococo
 	  virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
 	  virtual void SetCursorBitmap(ID_TEXTURE bitmapId, Vec2i hotspotOffset, Vec2 uvTopLeft, Vec2 uvBottomRight) = 0;
 	  virtual void SetCursorVisibility(bool isVisible) = 0;
+	  virtual void ShowWindowVenue(IMathsVisitor& visitor) = 0;
+	  virtual IMathsVenue* TextureVenue() = 0;
 	  virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices) = 0;
 	  virtual void UpdatePixelShader(cstr pingPath) = 0;
 	  virtual void UpdateVertexShader(cstr pingPath) = 0;
 	  virtual Windows::IWindow& Window() = 0;
+	  virtual IMathsVenue* Venue() = 0;
 	};
 
 	namespace Graphics

@@ -245,11 +245,14 @@ namespace Rococo
 		const uint8* callerSF;
 	};
 
+	struct IMathsVenue;
+
 	ROCOCOAPI ISourceCache
 	{
 		virtual Rococo::Sex::ISParserTree* GetSource(cstr resourceName) = 0;
 		virtual void Free() = 0;
 		virtual void Release(cstr resourceName) = 0;
+		virtual IMathsVenue* Venue() = 0;
 	};
 
 	struct IArgStack

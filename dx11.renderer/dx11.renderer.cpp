@@ -20,6 +20,8 @@
 
 #include "rococo.textures.h"
 
+#include "rococo.visitors.h"
+
 namespace
 {
 	using namespace Rococo;
@@ -97,6 +99,36 @@ namespace
    }
 
    using namespace Rococo::Textures;
+
+   void ShowWindowVenue(HWND hWnd, IMathsVisitor& visitor)
+   {
+	   POINT pt;
+	   GetCursorPos(&pt);
+
+	   visitor.ShowString("Abs Mouse Cursor:", "(%d %d)", pt.x, pt.y);
+
+	   ScreenToClient(hWnd, &pt);
+
+	   visitor.ShowString("Rel Mouse Cursor:", "(%d %d)", pt.x, pt.y);
+
+	   visitor.ShowPointer("HANDLE", hWnd);
+	   RECT rect;
+	   GetClientRect(hWnd, &rect);
+	   visitor.ShowString("-> Client Rect", "(%d %d) to (%d %d)", rect.left, rect.top, rect.right, rect.bottom);
+
+	   GetWindowRect(hWnd, &rect);
+	   visitor.ShowString("-> Window Rect", "(%d %d) to (%d %d)", rect.left, rect.top, rect.right, rect.bottom);
+
+	   LONG x = GetWindowLongA(hWnd, GWL_STYLE);
+	   visitor.ShowString("-> GWL_STYLE", "0x%8.8X", x);
+
+	   x = GetWindowLongA(hWnd, GWL_EXSTYLE);
+	   visitor.ShowString("-> GWL_EXSTYLE", "0x%8.8X", x);
+
+	   HWND hParent = GetParent(hWnd);
+	   if (hParent) visitor.ShowPointer("-> Parent", hParent);
+	   else			visitor.ShowString("-> Parent", "None (top-level window)");
+   }
 
    struct DX11TextureArray : public ITextureArray
    {
@@ -226,9 +258,11 @@ namespace
 	   public IRenderContext,
 	   public IGuiRenderContext,
 	   public Fonts::IGlyphRenderer,
-	   public IResourceLoader
+	   public IResourceLoader, 
+	   public IMathsVenue
    {
    private:
+	   OS::ticks lastTick;
 	   ID3D11Device& device;
 	   ID3D11DeviceContext& dc;
 	   IDXGIFactory& factory;
@@ -370,6 +404,8 @@ namespace
 		   idSpritePS = CreatePixelShader("!sprite.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
 		   instanceBuffer = DX11::CreateConstantBuffer<ObjectInstance>(device);
+
+		   lastTick = OS::CpuTicks();
 	   }
 
 	   ~DX11AppRenderer()
@@ -398,6 +434,153 @@ namespace
 			   if (t.texture) t.texture->Release();
 			   if (t.view) t.view->Release();
 		   }
+	   }
+
+	   struct : IMathsVenue
+	   {
+		   DX11AppRenderer* This;
+		   virtual void ShowVenue(IMathsVisitor& visitor)
+		   {
+			   This->ShowTextureVenue(visitor);
+		   }
+	   } textureVenue;
+
+	   virtual IMathsVenue* TextureVenue()
+	   {
+		   textureVenue.This = this;
+		   return &textureVenue;
+	   }
+
+	   void ShowTextureVenue(IMathsVisitor& visitor)
+	   {
+		   for (auto& t : mapNameToTexture)
+		   {
+			   auto& tx = textures[t.second.value-1];
+
+			   D3D11_TEXTURE2D_DESC desc;
+			   tx.texture->GetDesc(&desc);
+			   visitor.ShowString(t.first.c_str(), " #%4llu - 0x%p. %d x %d texels. %d levels", t.second.value, (const void*) tx.texture, desc.Width, desc.Height, desc.MipLevels);
+		   }
+	   }
+
+	   virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id)
+	   {
+		   if (!id || id.value >= meshBuffers.size())
+		   {
+			   SafeFormat(desc, 256, "invalid id");
+		   }
+		   else
+		   {
+			   auto& m = meshBuffers[id.value - 1];
+
+			   if (m.dx11Buffer)
+			   {
+				   D3D11_BUFFER_DESC bdesc;
+				   m.dx11Buffer->GetDesc(&bdesc);
+				   SafeFormat(desc, 256, " %p %6d vertices. %6u bytes", m.dx11Buffer, m.numberOfVertices, bdesc.ByteWidth);
+			   }
+			   else
+			   {
+				   SafeFormat(desc, 256, "Null object");
+			   }
+		   }
+	   }
+
+	   virtual void ShowVenue(IMathsVisitor& visitor)
+	   {
+#ifdef _DEBUG
+		   visitor.ShowString("Renderer", "DirectX 11.1 Rococo MPLAT - Debug");
+#else
+		   visitor.ShowString("Renderer", "DirectX 11.1 Rococo MPLAT - Release");
+#endif
+		   visitor.ShowString("Screen Span", "%d x %d pixels", screenSpan.x, screenSpan.y);
+		   visitor.ShowString("Last error", "%s", *lastError ? lastError : "- none -");
+
+		   UINT flags = device.GetCreationFlags();
+
+		   if (flags & D3D11_CREATE_DEVICE_SINGLETHREADED)
+		   {
+			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_SINGLETHREADED");
+		   }
+
+		   if (flags & D3D11_CREATE_DEVICE_DEBUG)
+		   {
+			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_DEBUG");
+		   }
+
+		   if (flags & D3D11_CREATE_DEVICE_SWITCH_TO_REF)
+		   {
+			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_SWITCH_TO_REF");
+		   }
+
+		   if (flags & D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS)
+		   {
+			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS");
+		   }
+
+		   if (flags & D3D11_CREATE_DEVICE_BGRA_SUPPORT)
+		   {
+			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_BGRA_SUPPORT");
+		   }
+
+		   if (flags & D3D11_CREATE_DEVICE_DEBUGGABLE)
+		   {
+			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_DEBUGGABLE");
+		   }
+
+		   if (flags & D3D11_CREATE_DEVICE_PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY)
+		   {
+			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY");
+		   }
+
+		   if (flags & D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT)
+		   {
+			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT");
+		   }
+
+		   if (flags & D3D11_CREATE_DEVICE_VIDEO_SUPPORT)
+		   {
+			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_VIDEO_SUPPORT");
+		   }
+
+		   D3D11_RENDER_TARGET_VIEW_DESC desc;
+		   mainBackBufferView->GetDesc(&desc);
+
+		   visitor.ShowString("BackBuffer format", "%u", desc.Format);
+
+		   D3D11_DEPTH_STENCIL_VIEW_DESC dsDesc;
+		   depthStencilView->GetDesc(&dsDesc);
+
+		   visitor.ShowString("DepthStencil format", "%u", dsDesc.Format);
+
+		   visitor.ShowDecimal("Number of textures", (int64)textures.size());
+		   visitor.ShowDecimal("Number of meshes", (int64)meshBuffers.size());
+		   visitor.ShowDecimal("Mesh updates", meshUpdateCount);
+
+		   visitor.ShowDecimal("Cursor texture Id ", cursor.bitmapId);
+		   visitor.ShowString("Cursor hotspot delta", "(%+d %+d)", cursor.hotspotOffset.x, cursor.hotspotOffset.y);
+
+		   double hz = (double)OS::CpuHz();
+
+		   double ticks_to_ms = 1000.0 / hz;
+
+		   visitor.ShowString("Frame Profiles", "---------------");
+		   visitor.ShowString("AI+Logic Time", "%3.0lf ms", AIcost * ticks_to_ms);
+		   visitor.ShowString("UI Render Time", "%3.0lf ms", guiCost * ticks_to_ms);
+		   visitor.ShowString("3D Render Time", "%3.0lf ms", objCost * ticks_to_ms);
+		   visitor.ShowString("Present Cost", "%3.0lf ms", presentCost * ticks_to_ms);
+		   visitor.ShowString("Total Frame Time", "%3.0lf ms", frameTime * ticks_to_ms);
+		   visitor.ShowString("Frame Rate", "%.0lf FPS", hz / frameTime);
+	   }
+
+	   IMathsVenue* Venue()
+	   {
+		   return this;
+	   }
+
+	   void ShowWindowVenue(IMathsVisitor& visitor)
+	   {
+		   ::ShowWindowVenue(hRenderWindow, visitor);
 	   }
 
 	   void UpdatePixelShader(cstr pingPath) override
@@ -846,12 +1029,14 @@ namespace
 	   };
 
 	   std::vector<MeshBuffer> meshBuffers;
+	   int64 meshUpdateCount = 0;
 
 	   virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices)
 	   {
 		   ID3D11Buffer* meshBuffer = vertices ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
 		   meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST });
 		   int32 index = (int32)meshBuffers.size();
+		   meshUpdateCount++;
 		   return ID_SYS_MESH(index - 1);
 	   }
 
@@ -861,6 +1046,8 @@ namespace
 		   {
 			   Throw(E_INVALIDARG, "renderer.UpdateMesh(ID_MESH id, ....) - Bad id ");
 		   }
+
+		   meshUpdateCount++;
 
 		   ID3D11Buffer* newMesh = vertices != nullptr ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
 		   meshBuffers[rendererId.value].numberOfVertices = nVertices;
@@ -955,8 +1142,17 @@ namespace
 		   }
 	   }
 
+	   int64 AIcost = 0;
+	   int64 guiCost = 0;
+	   int64 objCost = 0;
+	   int64 presentCost = 0;
+	   int64 frameTime = 0;
+
 	   virtual void Render(IScene& scene)
 	   {
+		   auto now = OS::CpuTicks();
+		   AIcost = now - lastTick;
+
 		   if (mainBackBufferView.IsNull()) return;
 
 		   lastTextureId = ID_TEXTURE::Invalid();
@@ -979,21 +1175,30 @@ namespace
 			   {
 				   dc.ClearRenderTargetView(mainBackBufferView, (const FLOAT*)&clearColour);
 			   }
+		   
+			   now = OS::CpuTicks();
 
 			   scene.RenderObjects(*this);
+
+			   objCost = OS::CpuTicks() - now;
+
+			   now = OS::CpuTicks();
+
 			   scene.RenderGui(*this);
 
 			   for (auto& o : overlays)
 			   {
 				   o.overlay->Render(*this);
 			   }
-
 		   }
 		   else
 		   {
 			   FLOAT errorColour[4] = { 0.25f, 0.0f, 0.0f, 1.0f };
 			   dc.ClearRenderTargetView(mainBackBufferView, errorColour);
 			   Graphics::RenderTopLeftAlignedText(*this, lastError, RGBAb(255, 255, 255, 255), 8, { 0,0 });
+
+			   now = OS::CpuTicks();
+			   objCost = 0;
 		   }
 
 		   FlushLayer();
@@ -1002,6 +1207,8 @@ namespace
 
 		   FlushLayer();
 
+		   guiCost = OS::CpuTicks() - now;
+
 		   renderState = RenderState_None;
 
 		   ClearContext();
@@ -1009,13 +1216,23 @@ namespace
 		   dc.PSSetShaderResources(0, 0, nullptr);
 		   dc.PSSetSamplers(0, 0, nullptr);
 
+		   now = OS::CpuTicks();
+
 		   mainSwapChain->Present(1, 0);
+
+		   presentCost = OS::CpuTicks() - now;
 
 		   dc.OMSetBlendState(nullptr, nullptr, 0);
 		   dc.RSSetState(nullptr);
 		   dc.OMSetDepthStencilState(nullptr, 0);
 		   dc.OMSetRenderTargets(0, nullptr, nullptr);
 		   dc.IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
+
+		   now = OS::CpuTicks();
+
+		   frameTime = now - lastTick;
+
+		   lastTick = now;
 	   }
 
 	   void AddTriangle(const GuiVertex triangle[3])
@@ -1516,14 +1733,29 @@ namespace
    {
 	   UltraClock uc;
 	   OS::ticks lastTick = uc.start;
+	   OS::ticks frameCost = 0;
 
 	   float hz = (float)OS::CpuHz();
 
-	   DWORD sleepMS = 5;
+	   uint32 sleepMS = 5;
 	   MSG msg = { 0 };
 	   while (msg.message != WM_QUIT)
 	   {
+		   int64 msCost = frameCost / (OS::CpuHz() / 1000);
+
+		   int64 iSleepMS = sleepMS - msCost;
+
+		   if (iSleepMS < 0)
+		   {
+			   sleepMS = 0;
+		   }
+		   else if (sleepMS > (uint32) iSleepMS)
+		   {
+			   sleepMS = (uint32) iSleepMS;
+		   }
 		   DWORD status = MsgWaitForMultipleObjectsEx(1, &hInstanceLock, sleepMS, QS_ALLEVENTS, MWMO_ALERTABLE);
+
+		   OS::ticks now = OS::CpuTicks();
 
 		   if (status == WAIT_OBJECT_0)
 		   {
@@ -1561,6 +1793,9 @@ namespace
 		   uc.dt = Seconds{ dt0 };
 
 		   sleepMS = app.OnFrameUpdated(uc);
+
+		   frameCost = OS::CpuTicks() - now;
+
 		   lastTick = uc.frameStart;
 	   }
    }
@@ -1575,7 +1810,6 @@ namespace
 		IApp* app{ nullptr };
 		DX11AppRenderer* renderer{ nullptr };
 		AutoFree<MainWindowHandler> mainWindowHandler;
-		std::vector<GuiVertex> spriteQueue;
 
 		IWindow& Window()
 		{

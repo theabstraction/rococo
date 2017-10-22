@@ -15,7 +15,7 @@ namespace
       rchar value[VALUE_LEN];
    };
 
-   class MathsVisitor: public IMathsVisitorSupervisor, public IUIOverlay
+   class MathsVisitor: public IMathsVisitorSupervisor
    {
       std::vector<DebugLine> lines;
 
@@ -77,12 +77,12 @@ namespace
          DebugLine line;
          Name(line, name);
        
-         StackStringBuilder sb(line.key, sizeof(line.key));
+         StackStringBuilder sb(line.value, sizeof(line.value));
          sb <<  "(";
          
          for (size_t i = 0; i < nComponents; ++i)
          {
-            size_t capacity = sizeof(line.key) - sb.Length();
+            size_t capacity = sizeof(line.value) - sb.Length();
             if (capacity < 12)
             {
                sb << "...";
@@ -171,7 +171,7 @@ namespace
       {
          DebugLine line;
          Name(line, name);
-         SafeFormat(line.value, line.VALUE_LEN, "%p", ptr);
+         SafeFormat(line.value, line.VALUE_LEN, "0x%p", ptr);
          lines.push_back(line);
       }
 
@@ -198,12 +198,7 @@ namespace
          delete this;
       }
 
-      virtual IUIOverlay& Overlay()
-      {
-         return *this;
-      }
-
-      virtual void Render(IGuiRenderContext& gc)
+      virtual void Render(IGuiRenderContext& gc, const GuiRect& absRect, int padding)
       {
          GuiMetrics metrics;
          gc.Renderer().GetGuiMetrics(metrics);
@@ -217,7 +212,7 @@ namespace
 
          int32 keyMaxWidth = 0;
 
-         GuiRect screenRect{ 0, 0,  metrics.screenSpan.x, metrics.screenSpan.y };
+         GuiRect screenRect{ absRect };
 
          for (auto& line : lines)
          {
@@ -226,8 +221,10 @@ namespace
             keyMaxWidth = max(keyMaxWidth, span.x);
          }
 
-         GuiRect keyRect{ 0, 0, keyMaxWidth, metrics.screenSpan.y };
-         GuiRect valueRect{ keyMaxWidth, 0, metrics.screenSpan.x, metrics.screenSpan.y };
+		 keyMaxWidth += padding;
+
+         GuiRect keyRect = { absRect.left, absRect.top, absRect.left + keyMaxWidth, absRect.bottom };
+         GuiRect valueRect{ absRect.left + keyMaxWidth, absRect.top, absRect.right, absRect.bottom };
 
          for (auto& line : lines)
          {

@@ -175,7 +175,7 @@ namespace
       void UpdatedWallGraphicMesh()
       {
          rchar name[32];
-         SafeFormat(name, sizeof(name), "sector.walls.%u", id);
+         SafeFormat(name, sizeof(name), "sector.%u.walls", id);
 
          DeleteWalls();
 
@@ -537,7 +537,7 @@ namespace
             floorId = ID_ENTITY::Invalid();
 
             rchar name[32];
-            SafeFormat(name, sizeof(name), "sector.floor.%u", id);
+            SafeFormat(name, sizeof(name), "sector.%u.floor", id);
             instances.MeshBuilder().Delete(to_fstring(name));
          }
       }
@@ -550,7 +550,7 @@ namespace
             ceilingId = ID_ENTITY::Invalid();
 
             rchar name[32];
-            SafeFormat(name, sizeof(name), "sector.ceiling.%u", id);
+            SafeFormat(name, sizeof(name), "sector.%u.ceiling", id);
             instances.MeshBuilder().Delete(to_fstring(name));
          }
       }
@@ -560,7 +560,7 @@ namespace
 		  if (wallId)
 		  {
 			  rchar name[32];
-			  SafeFormat(name, sizeof(name), "sector.walls.%u", id);
+			  SafeFormat(name, sizeof(name), "sector.%u.walls", id);
 			  instances.MeshBuilder().Delete(to_fstring(name));
 			  instances.Delete(wallId);
 		  }
@@ -681,7 +681,7 @@ namespace
 		 DeleteFloor();
 
          rchar name[32];
-         SafeFormat(name, sizeof(name), "sector.floor.%u", id);
+         SafeFormat(name, sizeof(name), "sector.%u.floor", id);
          
          auto& mb = instances.MeshBuilder();
          mb.Begin(to_fstring(name));
@@ -699,7 +699,7 @@ namespace
       void UpdateCeilingGraphicMesh()
       {
          rchar name[32];
-         SafeFormat(name, sizeof(name), "sector.ceiling.%u", id);
+         SafeFormat(name, sizeof(name), "sector.%u.ceiling", id);
 
          DeleteCeiling();
 

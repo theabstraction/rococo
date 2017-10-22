@@ -17,12 +17,14 @@ namespace HV
    {
 	   Platform& platform;
 	   bool editorActive{ false };
+	   bool overlayActive{ false };
 
 	   AutoFree<ISectors> sectors;
 	   AutoFree<IPlayerSupervisor> players;
 	   AutoFree<IEditor> editor;
 	   AutoFree<IPaneBuilderSupervisor> editorPanel;
 	   AutoFree<IPaneBuilderSupervisor> fpsPanel;
+	   AutoFree<IPaneBuilderSupervisor> overlayPanel;
 
 	   Cosmos e; // Put this as the last member, since other members need to be constructed first
 
@@ -59,6 +61,7 @@ namespace HV
 
 		   editorPanel = e.platform.gui.BindPanelToScript("!scripts/panel.editor.sxy");
 		   fpsPanel = e.platform.gui.BindPanelToScript("!scripts/panel.fps.sxy");
+		   overlayPanel = e.platform.gui.BindPanelToScript("!scripts/panel.overlay.sxy");
 
 		   e.platform.gui.PushTop(fpsPanel->Supervisor(), true);
 
@@ -90,6 +93,10 @@ namespace HV
 		   grc.Renderer().GetGuiMetrics(metrics);
 		   GuiRect fullScreen = { 0, 0, metrics.screenSpan.x, metrics.screenSpan.y };
 		   fpsPanel->Supervisor()->SetRect(fullScreen);
+
+
+		   overlayPanel->Supervisor()->SetRect(fullScreen);
+
 		   platform.gui.Render(grc);
 	   }
 
@@ -186,6 +193,59 @@ namespace HV
 		   }
 	   }
 
+	   void ActivateEditor()
+	   {
+		   if (!editorActive)
+		   {
+			   if (e.platform.gui.Top() != editorPanel->Supervisor())
+			   {
+				   e.platform.gui.PushTop(editorPanel->Supervisor(), true);
+				   mode->Deactivate();
+
+				   editorActive = true;
+			   }
+		   }
+	   }
+
+	   void DeactivateEditor()
+	   {
+		   if (editorActive)
+		   {
+			   if (e.platform.gui.Top() == editorPanel->Supervisor())
+			   {
+				   e.platform.gui.Pop();
+				   if (!overlayActive) mode->Activate();
+				   editorActive = false;
+			   }
+		   }
+	   }
+
+	   void ActivateOverlay()
+	   {
+		   if (!overlayActive)
+		   {
+			   if (e.platform.gui.Top() != overlayPanel->Supervisor())
+			   {
+				   e.platform.gui.PushTop(overlayPanel->Supervisor(), true);
+				   mode->Deactivate();
+				   overlayActive = true;
+			   }
+		   }
+	   }
+
+	   void DeactivateOverlay()
+	   {
+		   if (overlayActive)
+		   {
+			   if (e.platform.gui.Top() == overlayPanel->Supervisor())
+			   {
+				   e.platform.gui.Pop();
+				   if (!editorActive) mode->Activate();
+				   overlayActive = false;
+			   }
+		   }
+	   }
+
 	   void OnKeyboardEvent(const KeyboardEvent& keyboardEvent) override
 	   {
 		   if (!e.platform.gui.AppendEvent(keyboardEvent))
@@ -196,25 +256,24 @@ namespace HV
 			   {
 				   if (Eq(action, "gui.editor.toggle") && key.isPressed)
 				   {
-					   editorActive = !editorActive;
-
-					   if (editorActive)
+					   if (!editorActive)
 					   {
-						   if (e.platform.gui.Top() != editorPanel->Supervisor())
-						   {
-							   e.platform.gui.PushTop(editorPanel->Supervisor(), true);
-						   }
-
-						   mode->Deactivate();
+						   ActivateEditor();
 					   }
 					   else
 					   {
-						   if (e.platform.gui.Top() == editorPanel->Supervisor())
-						   {
-							   e.platform.gui.Pop();
-						   }
-
-						   mode->Activate();
+						   DeactivateEditor();
+					   }
+				   }
+				   else if (Eq(action, "gui.overlay.toggle") && key.isPressed)
+				   {
+					   if (!overlayActive)
+					   {
+						   ActivateOverlay();
+					   }
+					   else
+					   {
+						   DeactivateOverlay();
 					   }
 				   }
 			   }

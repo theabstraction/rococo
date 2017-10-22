@@ -678,7 +678,7 @@ namespace Rococo
 
 
 
-	class SourceCache : public ISourceCache
+	class SourceCache : public ISourceCache, private IMathsVenue
 	{
 	private:
 		struct Binding
@@ -711,6 +711,19 @@ namespace Rococo
 			{
 				i.second.code->Release();
 				if (i.second.tree) i.second.tree->Release();
+			}
+		}
+
+		IMathsVenue* Venue()
+		{
+			return this;
+		}
+
+		virtual void ShowVenue(IMathsVisitor& visitor)
+		{
+			for (auto i : sources)
+			{
+				visitor.ShowString(i.first.c_str(), "%8d bytes", i.second.code->SourceLength());
 			}
 		}
 

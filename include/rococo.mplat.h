@@ -1,6 +1,7 @@
 #pragma once
 
 #include <rococo.renderer.h>
+#include <rococo.visitors.h>
 
 namespace Rococo
 {
@@ -11,8 +12,6 @@ namespace Rococo
 
 namespace Rococo
 {
-   typedef cstr VisitorName;
-
    ROCOCOAPI IConfigSupervisor : public IConfig
    {
       virtual cstr GetText(cstr name) const = 0;
@@ -21,30 +20,9 @@ namespace Rococo
 
    IConfigSupervisor* CreateConfig();
 
-   ROCOCOAPI IMathsVisitor
-   {
-      virtual void Clear() = 0;
-      virtual void Show(VisitorName name, const Matrix4x4& m) = 0;
-      virtual void ShowRow(VisitorName name, const float* vector, const size_t nComponents) = 0;
-      virtual void ShowColumn(VisitorName name, const float* vector, const size_t nComponents) = 0;
-      virtual void ShowDecimal(VisitorName name, const int32 value) = 0;
-      virtual void Show(VisitorName name, const float value) = 0;
-      virtual void ShowHex(VisitorName name, const int32 value) = 0;
-      virtual void ShowBool(VisitorName name, const bool value) = 0;
-      virtual void ShowDecimal(VisitorName name, const int64 value) = 0;
-      virtual void ShowHex(VisitorName name, const int64 value) = 0;
-      virtual void ShowPointer(VisitorName name, const void* ptr) = 0;
-      virtual void ShowString(VisitorName name, cstr format, ...) = 0;
-   };
-
-   ROCOCOAPI IMathsVenue
-   {
-      virtual void ShowVenue(IMathsVisitor& visitor) = 0;
-   };
-
    ROCOCOAPI IMathsVisitorSupervisor : public IMathsVisitor
    {
-      virtual IUIOverlay& Overlay() = 0;
+      virtual void Render(IGuiRenderContext& grc, const GuiRect& absRect, int padding) = 0;
       virtual void Free() = 0;
    };
 
@@ -103,6 +81,7 @@ namespace Rococo
       {
          virtual void Free() = 0;
          virtual bool TryGetByName(cstr name, ID_SYS_MESH& id) = 0;
+		 virtual IMathsVenue* Venue() = 0;
       };
 
       ROCOCOAPI ICameraSupervisor : public ICamera
