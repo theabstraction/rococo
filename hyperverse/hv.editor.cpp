@@ -289,6 +289,10 @@ namespace
 			return false;
 		}
 
+		void OnRawMouseEvent(const MouseEvent& key) override
+		{
+		}
+
 		void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
 		{
 			if (dWheel < 0)
@@ -403,6 +407,10 @@ namespace
 		bool OnKeyboardEvent(const KeyboardEvent& key)
 		{
 			return false;
+		}
+
+		void OnRawMouseEvent(const MouseEvent& key) override
+		{
 		}
 
 		void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
@@ -681,6 +689,10 @@ namespace
 		bool OnKeyboardEvent(const KeyboardEvent& key) override
 		{
 			return false;
+		}
+
+		void OnRawMouseEvent(const MouseEvent& key) override
+		{
 		}
 
 		void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override
@@ -1023,6 +1035,10 @@ namespace
 		bool OnKeyboardEvent(const KeyboardEvent& key) override
 		{
 			return EditMode().OnKeyboardEvent(key);
+		}
+
+		void OnRawMouseEvent(const MouseEvent& key) override
+		{
 		}
 
 		void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override

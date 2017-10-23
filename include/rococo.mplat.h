@@ -22,11 +22,17 @@ namespace Rococo
 
    ROCOCOAPI IMathsVisitorSupervisor : public IMathsVisitor
    {
-      virtual void Render(IGuiRenderContext& grc, const GuiRect& absRect, int padding) = 0;
-      virtual void Free() = 0;
+		virtual bool AppendKeyboardEvent(const KeyboardEvent& key) = 0;
+		virtual void AppendMouseEvent(const MouseEvent& ev) = 0;
+
+		virtual void Render(IGuiRenderContext& grc, const GuiRect& absRect, int padding) = 0;
+		virtual void Free() = 0;
    };
 
-   IMathsVisitorSupervisor* CreateMathsVisitor();
+   struct IUtilitiies;
+   struct IKeyboardSupervisor;
+
+   IMathsVisitorSupervisor* CreateMathsVisitor(IUtilitiies& utilities, IKeyboardSupervisor& keyboard);
 
    void Run_MPLat_EnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform);
 
@@ -172,6 +178,7 @@ namespace Rococo
    {
       // Route a keyboard event to the element. Returns false to redirect event to the parent element
       virtual bool OnKeyboardEvent(const KeyboardEvent& key) = 0;
+	  virtual void OnRawMouseEvent(const MouseEvent& ev) = 0;
       virtual void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) = 0;
       virtual void OnMouseLClick(Vec2i cursorPos, bool clickedDown) = 0;
       virtual void OnMouseRClick(Vec2i cursorPos, bool clickedDown) = 0;
@@ -261,9 +268,26 @@ namespace Rococo
 	   cstr shortName;
    };
 
+   namespace Events
+   {
+	   struct ScrollEvent;
+   }
+
+   struct IScrollbar
+   {
+	   virtual void GetScroller(Events::ScrollEvent& s) = 0;
+	   virtual void SetScroller(const Events::ScrollEvent& s) = 0;
+
+	   virtual bool AppendEvent(const KeyboardEvent& k, Events::ScrollEvent& updateStatus) = 0;
+	   virtual bool AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft, Events::ScrollEvent& updateStatus) = 0;
+	   virtual void Free() = 0;
+	   virtual void Render(IGuiRenderContext& grc, const GuiRect& absRect, const Modality& modality, RGBAb hilightColour, RGBAb baseColour, RGBAb hilightEdge, RGBAb baseEdge, IEventCallback<Events::ScrollEvent>& populator, Events::EventId populationEventId) = 0;
+   };
+
    struct IUtilitiies
    {
 	   virtual void AddSubtitle(Platform& platform, cstr subtitle) = 0;
+	   virtual IScrollbar* CreateScrollbar(IKeyboardSupervisor& keyboard, bool _isVertical) = 0;
 	   virtual void EnumerateFiles(IEventCallback<cstr>& cb, cstr pingPathDirectory) = 0;
 	   virtual bool GetSaveLocation(Windows::IWindow& parent, SaveDesc& sd) = 0;
 	   virtual bool GetLoadLocation(Windows::IWindow& parent, LoadDesc& sd) = 0;

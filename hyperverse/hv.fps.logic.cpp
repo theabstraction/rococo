@@ -741,6 +741,11 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 		return false;
 	}
 
+	void OnRawMouseEvent(const MouseEvent& me) override
+	{
+
+	}
+
 	void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
 	{
 		auto* player = e.players.GetPlayer(0);

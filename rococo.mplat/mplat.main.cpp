@@ -78,6 +78,8 @@ class Utilities : public IUtilitiies
 public:
 	Utilities(IInstallation& _installation) : installation(_installation) {}
 
+	IScrollbar* CreateScrollbar(IKeyboardSupervisor& keyboard, bool _isVertical) override;
+
 	void AddSubtitle(Platform& platform, cstr subtitle)
 	{
 		char fullTitle[256];
@@ -1326,8 +1328,22 @@ public:
 
 			if (tabSelect >= tabs.size()) tabSelect = 0;
 		
-			return consume;
+			if (consume) return true;
 		}
+
+		if (tabSelect < tabs.size())
+		{
+			UIPopulate populate;
+			populate.renderElement = nullptr;
+			populate.name = tabs[tabSelect].panelText.c_str();
+			publisher.Publish(populate);
+
+			if (populate.renderElement)
+			{
+				return populate.renderElement->OnKeyboardEvent(k);
+			}
+		}
+
 		return false;
 	}
 
@@ -1373,6 +1389,19 @@ public:
 					tabSelect = startIndex;
 				}
 				return;
+			}
+		}
+
+		if (tabSelect < tabs.size())
+		{
+			UIPopulate populate;
+			populate.renderElement = nullptr;
+			populate.name = tabs[tabSelect].panelText.c_str();
+			publisher.Publish(populate);
+
+			if (populate.renderElement)
+			{
+				return populate.renderElement->OnRawMouseEvent(me);
 			}
 		}
 	}
@@ -1671,145 +1700,24 @@ public:
 	}
 };
 
-class PanelScrollbar : public BasePanel, public IScroller, IObserver
+class Scrollbar: public IScrollbar
 {
-	std::string key;
-	IPublisher& publisher;
-	IRenderer& renderer;
+	int trapCount = 0;
+	Vec2i grabPoint{ -1,-1 };
+	bool isVertical = false;
+	int32 grabPixelValue = 0;
+	Vec2i span{ 0,0 };
+
 	int32 minValue = 0;
 	int32 maxValue = 0;
 	int32 value = 0;
 	int32 rowSize = 0;
 	int32 pageSize = 0;
-	boolean32 isVertical;
-	EventId setScrollId;
-	EventId getScrollId;
-	EventId uiScrollId;
+
 	IKeyboardSupervisor& keyboard;
-public:
-	PanelScrollbar(IPublisher& _publisher, IRenderer& _renderer, IKeyboardSupervisor& _keyboard, cstr _key, boolean32 _isVertical) :
-		publisher(_publisher), renderer(_renderer), key(_key), isVertical(_isVertical), keyboard(_keyboard),
-		setScrollId(""_event), getScrollId(""_event), uiScrollId(""_event)
-	{
-		char eventText[256];
-
-		{
-			SecureFormat(eventText, sizeof(eventText), "%s_set", _key);
-			EventId id = CreateEventIdFromVolatileString(eventText);
-			memcpy(&setScrollId, &id, sizeof(id));
-		}
-
-		{
-			SecureFormat(eventText, sizeof(eventText), "%s_get", _key);
-			EventId id = CreateEventIdFromVolatileString(eventText);
-			memcpy(&getScrollId, &id, sizeof(id));
-		}
-
-		{
-			SecureFormat(eventText, sizeof(eventText), "%s_ui", _key);
-			EventId id = CreateEventIdFromVolatileString(eventText);
-			memcpy(&uiScrollId, &id, sizeof(id));
-		}
-
-		publisher.Attach(this, getScrollId);
-		publisher.Attach(this, setScrollId);
-	}
-
-	~PanelScrollbar()
-	{
-		publisher.Detach(this);
-	}
-
-	void OnEvent(Event& ev) override
-	{
-		auto& s = As<ScrollEvent>(ev);
-
-		if (ev.id == setScrollId)
-		{
-			minValue = s.logicalMinValue;
-			maxValue = s.logicalMaxValue;
-			value = s.logicalValue;
-			pageSize = s.logicalPageSize;
-			rowSize = s.rowSize;
-		}
-		else if (ev.id == getScrollId)
-		{
-			s.logicalMinValue = minValue;
-			s.logicalMaxValue = maxValue;
-			s.logicalValue = value;
-			s.logicalPageSize = pageSize;
-			s.rowSize = rowSize;
-		}
-	}
-
-	void Free() override
-	{
-		delete this;
-	}
-
-	IPane* Base() override
-	{
-		return this;
-	}
-
-	bool AppendEvent(const KeyboardEvent& k, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
-	{
-		Key key = keyboard.GetKeyFromEvent(k);
-		if (key.isPressed)
-		{
-			bool consume = true;
-
-			if (Eq(key.KeyName, "HOME"))
-			{
-				value = minValue;
-			}
-			else if (Eq(key.KeyName, "END"))
-			{
-				value = maxValue - pageSize;
-			}
-			else if (Eq(key.KeyName, "PGUP"))
-			{
-				value -= pageSize;
-			}
-			else if (Eq(key.KeyName, "PGDOWN"))
-			{
-				value += pageSize;
-			}
-			else if (Eq(key.KeyName, "UP"))
-			{
-				value -= rowSize;
-			}
-			else if (Eq(key.KeyName, "DOWN"))
-			{
-				value += rowSize;
-			}
-			else
-			{
-				consume = false;
-			}
-
-			CapValue(value);
-
-			if (consume)
-			{
-				ScrollEvent s(uiScrollId);
-				s.logicalMinValue = minValue;
-				s.logicalMaxValue = maxValue;
-				s.logicalValue = value;
-				s.logicalPageSize = pageSize;
-				s.fromScrollbar = true;
-				s.rowSize = rowSize;
-				publisher.Publish(s);
-			}
-
-			return consume;
-		}
-		return false;
-	}
 
 	int32 PixelRange() const
 	{
-		auto span = Span(ClientRect());
 		return isVertical ? span.y : span.x;
 	}
 
@@ -1851,10 +1759,93 @@ public:
 		return lr == 0 ? 0 : (int32)((pageSize / lr) * (float)PixelRange());
 	}
 
-	Vec2i grabPoint{ -1,-1 };
-	int32 grabPixelValue = -1;
+public:
+	Scrollbar(IKeyboardSupervisor& _keyboard, bool _isVertical): 
+		keyboard(_keyboard), isVertical(_isVertical)
+	{
+	}
 
-	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
+	~Scrollbar()
+	{
+	}
+
+	void Free() override
+	{
+		delete this;
+	}
+
+	void GetScroller(ScrollEvent& s)
+	{
+		s.logicalMinValue = minValue;
+		s.logicalMaxValue = maxValue;
+		s.logicalValue = value;
+		s.logicalPageSize = pageSize;
+		s.rowSize = rowSize;
+	}
+
+	void SetScroller(const ScrollEvent& s)
+	{
+		minValue = s.logicalMinValue;
+		maxValue = s.logicalMaxValue;
+		value = s.logicalValue;
+		pageSize = s.logicalPageSize;
+		rowSize = s.rowSize;
+	}
+
+	bool AppendEvent(const KeyboardEvent& k, ScrollEvent& updateStatus)
+	{
+		Key key = keyboard.GetKeyFromEvent(k);
+		if (key.isPressed)
+		{
+			bool consume = true;
+
+			if (Eq(key.KeyName, "HOME"))
+			{
+				value = minValue;
+			}
+			else if (Eq(key.KeyName, "END"))
+			{
+				value = maxValue - pageSize;
+			}
+			else if (Eq(key.KeyName, "PGUP"))
+			{
+				value -= pageSize;
+			}
+			else if (Eq(key.KeyName, "PGDOWN"))
+			{
+				value += pageSize;
+			}
+			else if (Eq(key.KeyName, "UP"))
+			{
+				value -= rowSize;
+			}
+			else if (Eq(key.KeyName, "DOWN"))
+			{
+				value += rowSize;
+			}
+			else
+			{
+				consume = false;
+			}
+
+			CapValue(value);
+
+			if (consume)
+			{
+				updateStatus.logicalMinValue = minValue;
+				updateStatus.logicalMaxValue = maxValue;
+				updateStatus.logicalValue = value;
+				updateStatus.logicalPageSize = pageSize;
+				updateStatus.fromScrollbar = true;
+				updateStatus.rowSize = rowSize;
+			}
+
+			return consume;
+		}
+		return false;
+	}
+
+	bool AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft, ScrollEvent& updateStatus) override
 	{
 		int32 oldValue = value;
 
@@ -1904,14 +1895,13 @@ public:
 
 		if (oldValue != value)
 		{
-			ScrollEvent s(uiScrollId);
-			s.logicalMinValue = minValue;
-			s.logicalMaxValue = maxValue;
-			s.logicalValue = value;
-			s.logicalPageSize = pageSize;
-			s.fromScrollbar = true;
-			s.rowSize = rowSize;
-			publisher.Publish(s);
+			updateStatus.logicalMinValue = minValue;
+			updateStatus.logicalMaxValue = maxValue;
+			updateStatus.logicalValue = value;
+			updateStatus.logicalPageSize = pageSize;
+			updateStatus.fromScrollbar = true;
+			updateStatus.rowSize = rowSize;
+			return true;
 		}
 
 		if (me.HasFlag(me.LUp))
@@ -1919,30 +1909,31 @@ public:
 			grabPoint = { -1,-1 };
 			grabPixelValue = -1;
 		}
+
+		return false;
 	}
 
-	int trapCount = 0;
 
-	void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
+	void Render(IGuiRenderContext& grc, const GuiRect& absRect, const Modality& modality, RGBAb hilightColour, RGBAb baseColour, RGBAb hilightEdge, RGBAb baseEdge, IEventCallback<ScrollEvent>& populator, EventId populationEventId)
 	{
+		GuiMetrics metrics;
+		grc.Renderer().GetGuiMetrics(metrics);
+
+		span = Span(absRect);
+
 		if (LogicalRange() == 0)
 		{
-			ScrollEvent ev(uiScrollId);
+			ScrollEvent ev(populationEventId);
 			ev.fromScrollbar = false;
-			publisher.Publish(ev);
+
+			populator.OnEvent(ev);
+
 			maxValue = ev.logicalMaxValue;
 			minValue = ev.logicalMinValue;
 			value = ev.logicalValue;
 			pageSize = ev.logicalPageSize;
 			rowSize = ev.rowSize;
 		}
-
-		auto span = Span(ClientRect());
-
-		GuiRect absRect = GuiRect{ 0, 0, span.x, span.y } +topLeft;
-
-		GuiMetrics metrics;
-		grc.Renderer().GetGuiMetrics(metrics);
 
 		bool lit = !modality.isUnderModal && IsPointInRect(metrics.cursorPosition, absRect);
 
@@ -1976,14 +1967,15 @@ public:
 						value = newValue;
 					}
 
-					ScrollEvent s(uiScrollId);
+					ScrollEvent s(populationEventId);
 					s.logicalMinValue = minValue;
 					s.logicalMaxValue = maxValue;
 					s.logicalValue = value;
 					s.logicalPageSize = pageSize;
 					s.fromScrollbar = true;
 					s.rowSize = rowSize;
-					publisher.Publish(s);
+
+					populator.OnEvent(s);
 				}
 			}
 		}
@@ -1997,22 +1989,124 @@ public:
 			}
 		}
 
-		Graphics::DrawRectangle(grc, absRect, lit ? Scheme().hi_topLeft : Scheme().topLeft, lit ? Scheme().hi_bottomRight : Scheme().bottomRight);
-		Graphics::DrawBorderAround(grc, absRect, { 1,1 }, lit ? Scheme().hi_topLeftEdge : Scheme().topLeftEdge, lit ? Scheme().hi_bottomRightEdge : Scheme().bottomRightEdge);
+		Graphics::DrawRectangle(grc, absRect, lit ? hilightColour : baseColour, lit ? hilightColour : baseColour);
+		Graphics::DrawBorderAround(grc, absRect, { 1,1 }, lit ? hilightEdge : baseEdge, lit ? hilightEdge : baseEdge);
 
 		GuiRect sliderRect;
 
 		if (isVertical)
 		{
-			sliderRect = GuiRect{ 1, 1, span.x - 2, PageSizeInPixels() } +Vec2i{ 0, PixelValue(value) } +topLeft;
+			sliderRect = GuiRect{ 1, 1, span.x - 2, PageSizeInPixels() } +Vec2i{ 0, PixelValue(value) } + TopLeft(absRect);
 		}
 		else
 		{
-			sliderRect = GuiRect{ 1, 1, PageSizeInPixels(), span.y - 2 } +Vec2i{ PixelValue(value), 0 } +topLeft;
+			sliderRect = GuiRect{ 1, 1, PageSizeInPixels(), span.y - 2 } +Vec2i{ PixelValue(value), 0 } + TopLeft(absRect);
 		}
 
-		Graphics::DrawRectangle(grc, sliderRect, lit ? Scheme().hi_fontColour : Scheme().fontColour, lit ? Scheme().hi_fontColour : Scheme().fontColour);
-		Graphics::DrawBorderAround(grc, sliderRect, { 1,1 }, lit ? Scheme().hi_topLeftEdge : Scheme().topLeftEdge, lit ? Scheme().hi_bottomRightEdge : Scheme().bottomRightEdge);
+		Graphics::DrawRectangle(grc, sliderRect, lit ? hilightColour : baseColour, lit ? hilightColour : baseColour);
+		Graphics::DrawBorderAround(grc, sliderRect, { 1,1 }, lit ? hilightEdge : baseEdge, lit ? hilightEdge : baseEdge);
+	}
+};
+
+class PanelScrollbar : public BasePanel, public IScroller, IObserver, IEventCallback<ScrollEvent>
+{
+	Scrollbar scrollbar;
+	IPublisher& publisher;
+	EventId setScrollId;
+	EventId getScrollId;
+	EventId uiScrollId;
+
+
+	void OnEvent(Event& ev) override
+	{
+		auto& s = As<ScrollEvent>(ev);
+
+		if (ev.id == setScrollId)
+		{
+			scrollbar.SetScroller(s);
+		}
+		else if (ev.id == getScrollId)
+		{
+			scrollbar.GetScroller(s);
+		}
+	}
+
+	void OnEvent(ScrollEvent& uiUpdate)
+	{
+		publisher.Publish(uiUpdate);
+	}
+public:
+	PanelScrollbar(IPublisher& _publisher, IKeyboardSupervisor& keyboard, cstr _key, boolean32 isVertical) :
+		scrollbar(keyboard, isVertical), publisher(_publisher),
+		setScrollId(""_event), getScrollId(""_event), uiScrollId(""_event)
+	{
+		char eventText[256];
+
+		{
+			SecureFormat(eventText, sizeof(eventText), "%s_set", _key);
+			EventId id = CreateEventIdFromVolatileString(eventText);
+			memcpy(&setScrollId, &id, sizeof(id));
+		}
+
+		{
+			SecureFormat(eventText, sizeof(eventText), "%s_get", _key);
+			EventId id = CreateEventIdFromVolatileString(eventText);
+			memcpy(&getScrollId, &id, sizeof(id));
+		}
+
+		{
+			SecureFormat(eventText, sizeof(eventText), "%s_ui", _key);
+			EventId id = CreateEventIdFromVolatileString(eventText);
+			memcpy(&uiScrollId, &id, sizeof(id));
+		}
+
+		publisher.Attach(this, getScrollId);
+		publisher.Attach(this, setScrollId);
+	}
+
+	~PanelScrollbar()
+	{
+		publisher.Detach(this);
+	}
+
+	void Free() override
+	{
+		delete this;
+	}
+
+	IPane* Base() override
+	{
+		return this;
+	}
+
+	bool AppendEvent(const KeyboardEvent& k, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+	{
+		ScrollEvent updateStatus(uiScrollId);
+		updateStatus.fromScrollbar = true;
+		if (scrollbar.AppendEvent(k, updateStatus))
+		{
+			publisher.Publish(updateStatus);
+			return true;
+		}
+
+		return false;
+	}
+
+	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
+	{
+		ScrollEvent updateStatus(uiScrollId);
+		updateStatus.fromScrollbar = true;
+		if (scrollbar.AppendEvent(me, absTopLeft, updateStatus))
+		{
+			publisher.Publish(updateStatus);
+		}
+	}
+
+	void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
+	{
+		auto span = Span(ClientRect());
+		GuiRect absRect = GuiRect{ 0, 0, span.x, span.y } +topLeft;
+		scrollbar.Render(grc, absRect, modality, Scheme().hi_topLeft, Scheme().topLeft, Scheme().hi_topLeftEdge, Scheme().topLeftEdge, *this, uiScrollId);
 	}
 };
 
@@ -2121,10 +2215,15 @@ Rococo::IRadioButton* PanelContainer::AddRadioButton(int32 fontIndex, const fstr
 
 Rococo::IScroller* PanelContainer::AddScroller(const fstring& key, const GuiRect& rect, boolean32 isVertical)
 {
-   auto* scroller = new PanelScrollbar(platform.publisher, platform.renderer, platform.keyboard, key, isVertical);
+   auto* scroller = new PanelScrollbar(platform.publisher, platform.keyboard, key, isVertical);
    AddChild(scroller);
    scroller->SetRect(rect);
    return scroller;
+}
+
+IScrollbar* Utilities::CreateScrollbar(IKeyboardSupervisor& keyboard, bool _isVertical)
+{
+	return new Scrollbar(keyboard, _isVertical);
 }
 
 class ScriptedPanel : IEventCallback<ScriptCompileArgs>, IObserver, public IPaneBuilderSupervisor, public PanelContainer
@@ -2403,7 +2502,12 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 
 	bool OnKeyboardEvent(const KeyboardEvent& key)  override
 	{
-		return false;
+		return platform.mathsVisitor.AppendKeyboardEvent(key);
+	}
+
+	void OnRawMouseEvent(const MouseEvent& me) override
+	{
+		platform.mathsVisitor.AppendMouseEvent(me);
 	}
 
 	void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override
@@ -2448,22 +2552,17 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
 	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer());
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
-
-	AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor();
-
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
-
 	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera);
-
 	AutoFree<IKeyboardSupervisor> keyboard = CreateKeyboardSupervisor();
-
 	AutoFree<Graphics::ISpriteSupervisor> sprites = Graphics::CreateSpriteSupervisor(mainWindow->Renderer());
-
 	AutoFree<IConfigSupervisor> config = CreateConfig();
-
 	AutoFree<Graphics::IRimTesselatorSupervisor> rimTesselator = Graphics::CreateRimTesselator();;
 
 	Utilities utils(*installation);
+
+	AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor(utils, *keyboard);
+
 	GuiStack gui(*publisher, *sourceCache, mainWindow->Renderer(), utils);
 
 	Tesselators tesselators{ *rimTesselator };
