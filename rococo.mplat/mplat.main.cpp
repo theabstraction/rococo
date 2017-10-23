@@ -1309,7 +1309,6 @@ public:
 			else if (Eq(key.KeyName, "LEFT"))
 			{
 				tabSelect--;
-				if (tabSelect == -1) tabSelect = 0;
 			}
 			else if (Eq(key.KeyName, "RIGHT"))
 			{
@@ -1319,12 +1318,13 @@ public:
 			else if (Eq(key.KeyName, "TAB"))
 			{
 				tabSelect++;
-				if (tabSelect >= tabs.size()) tabSelect = 0;
 			}
 			else
 			{
 				consume = false;
 			}
+
+			if (tabSelect >= tabs.size()) tabSelect = 0;
 		
 			return consume;
 		}
@@ -1344,7 +1344,36 @@ public:
 				}
 			}
 
-			tabSelect = -1;
+			if (IsPointInRect(me.cursorPos, leftButtonRect))
+			{
+				startIndex--;
+				if (startIndex < 0) startIndex = 0;
+				tabSelect--;
+				if (tabSelect < 0) tabSelect = 0;
+				return;
+			}
+			else if (IsPointInRect(me.cursorPos, rightButtonRect))
+			{
+				startIndex++;
+				tabSelect++;
+
+				if (tabSelect >= tabs.size())
+				{
+					tabSelect = tabs.size() - 1;
+					if (tabSelect == -1) tabSelect = 0;
+				}
+
+				if (startIndex >= (int32)tabs.size())
+				{
+					startIndex = 0;
+				}
+
+				if (startIndex > tabSelect)
+				{
+					tabSelect = startIndex;
+				}
+				return;
+			}
 		}
 	}
 
@@ -1378,6 +1407,117 @@ public:
 		Graphics::RenderVerticalCentredText(grc, tab.caption.c_str(), fontColour, fontIndex, middleLeft);
 	}
 
+	int32 startIndex = 0; // The first tab index rendered on the tab control row
+	int32 endIndex = 0; // The end iterator for iterating through tabs
+	GuiRect leftButtonRect = { -1,-1,-1,-1 };
+	GuiRect rightButtonRect = { -1,-1,-1,-1 };
+
+	void DrawTriangleFacingLeft(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
+	{
+		GuiVertex triangle[3] =
+		{
+			{
+				(float) container.left,
+				(float)((container.top + container.bottom) >> 1),
+				1.0f,
+				0.0f,
+				colour,
+				0,
+				0
+			},
+			{
+				(float)container.right,
+				(float)container.top,
+				1.0f,
+				0.0f,
+				colour,
+				0,
+				0
+			},
+			{
+				(float)container.right,
+				(float)container.bottom,
+				1.0f,
+				0.0f,
+				colour,
+				0.0f,
+				0
+			}
+		};
+		grc.AddTriangle(triangle);
+	}
+
+	void DrawTriangleFacingRight(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
+	{
+		GuiVertex triangle[3] =
+		{
+			{
+				(float)container.left,
+				(float)container.top,
+				1.0f,
+				0.0f,
+				colour,
+				0,
+				0
+			},
+			{
+				(float)container.left,
+				(float)container.bottom,
+				1.0f,
+				0.0f,
+				colour,
+				0,
+				0
+			},
+			{
+				(float)container.right,
+				(float)((container.top + container.bottom) >> 1),
+				1.0f,
+				0.0f,
+				colour,
+				0,
+				0
+			}
+		};
+		grc.AddTriangle(triangle);
+	}
+
+	int32 DetermineFinalTabIndex(int32 startingFrom, int32 left, int32 right, int32 buttonWidth) const
+	{
+		int32 finalIndex = (int32)tabs.size();
+
+		int32 x = left;
+
+		for (int32 i = startingFrom; i < finalIndex; ++i)
+		{
+			auto& t = tabs[i];
+
+			int32 rhs = x + t.width;
+			if (rhs >= right)
+			{
+				// We don't have enough width to display all the tabs
+				// Strip tabs until we have enough spaace to display tab buttons
+				while (x + buttonWidth > right)
+				{
+					i--;
+
+					if (i < startIndex)
+					{
+						return -1;
+					}
+
+					x -= tabs[i].width;
+				}
+
+				return i;
+			}
+
+			x = rhs;
+		}
+
+		return finalIndex;
+	}
+
 	void RenderControls(IGuiRenderContext& grc, const Vec2i& topLeft)
 	{
 		GuiRect rect;
@@ -1387,7 +1527,7 @@ public:
 
 		int dy = tabHeight;
 
-		GuiRect controlRect{ absRect.left + 1, topLeft.y + 1, absRect.right - 2, topLeft.y + tabHeight - 2 };
+		GuiRect controlRect{ absRect.left + 1, topLeft.y + 1, absRect.right - 2, topLeft.y + tabHeight};
 		Graphics::DrawRectangle(grc, controlRect, RGBAb(0, 0, 96, 255), RGBAb(0, 0, 128, 255));
 
 		GuiMetrics metrics;
@@ -1395,7 +1535,48 @@ public:
 
 		int x = absRect.left;
 
-		for (size_t i = 0; i < tabs.size(); ++i)
+		int32 availableWidth = Width(absRect);
+
+		int32 tabButtonWidth = 20;
+
+		if (tabSelect != -1 && (startIndex > (int32)tabSelect))
+		{
+			startIndex = (int32)tabSelect;
+		}
+
+		if (startIndex > 0 && startIndex < (int32) tabs.size())
+		{
+			leftButtonRect = GuiRect{ controlRect.left + 6, controlRect.top + 3, controlRect.left -6 + tabButtonWidth, controlRect.bottom - 3 };
+			x = controlRect.left + tabButtonWidth;
+		}
+		else
+		{
+			leftButtonRect = GuiRect{ -1,-1,-1,-1 };
+			x = absRect.left;
+		}
+
+		endIndex = DetermineFinalTabIndex(startIndex, x, absRect.right, tabButtonWidth);
+
+		if (tabSelect != -1 && tabSelect >= endIndex)
+		{
+			for (int32 i = 0; i < (int32)tabs.size(); ++i)
+			{
+				int jEnd = DetermineFinalTabIndex(i, x, absRect.right, tabButtonWidth);
+				if (jEnd > tabSelect)
+				{
+					startIndex = i;
+					endIndex = jEnd;
+					break;
+				}
+			}
+		}
+
+		for (auto& t : tabs)
+		{
+			t.lastRect = { -1,-1,-1,-1 };
+		}
+
+		for (size_t i = startIndex; i < endIndex; ++i)
 		{
 			auto& t = tabs[i];
 
@@ -1404,6 +1585,18 @@ public:
 			RenderTabButton(grc, t, IsPointInRect(metrics.cursorPosition, t.lastRect), i);
 
 			x += Width(t.lastRect);
+		}
+
+		DrawTriangleFacingLeft(grc, leftButtonRect, RGBAb(255, 255, 255));
+
+		if (endIndex < tabs.size())
+		{
+			rightButtonRect = GuiRect{ absRect.right + 6 - tabButtonWidth, controlRect.top + 3, absRect.right - 6, controlRect.bottom - 3 };
+			DrawTriangleFacingRight(grc, rightButtonRect, RGBAb(255, 255, 255));
+		}
+		else
+		{
+			rightButtonRect = { -1,-1,-1,-1 };
 		}
 	}
 
