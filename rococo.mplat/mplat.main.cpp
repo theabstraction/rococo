@@ -75,8 +75,9 @@ namespace Rococo
 class Utilities : public IUtilitiies
 {
 	IInstallation& installation;
+	IRenderer& renderer;
 public:
-	Utilities(IInstallation& _installation) : installation(_installation) {}
+	Utilities(IInstallation& _installation, IRenderer& _renderer) : installation(_installation), renderer(_renderer) {}
 
 	IScrollbar* CreateScrollbar(IKeyboardSupervisor& keyboard, bool _isVertical) override;
 
@@ -112,6 +113,8 @@ public:
 		dialog.Flags = OFN_CREATEPROMPT | OFN_ENABLESIZING | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
 		dialog.lpstrDefExt = ld.ext;
 
+		renderer.SwitchToWindowMode();
+
 		if (GetOpenFileNameA(&dialog))
 		{
 			ld.shortName = ld.path + dialog.nFileOffset;
@@ -140,6 +143,8 @@ public:
 		dialog.lpstrTitle = sd.caption;
 		dialog.Flags = OFN_CREATEPROMPT | OFN_ENABLESIZING | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
 		dialog.lpstrDefExt = sd.ext;
+
+		renderer.SwitchToWindowMode();
 
 		if (GetSaveFileNameA(&dialog))
 		{
@@ -189,6 +194,7 @@ public:
 	bool QueryYesNo(Platform& platform, Windows::IWindow& parent, cstr question, cstr caption) override
 	{
 		cstr title = caption == nullptr ? platform.title : caption;
+		renderer.SwitchToWindowMode();
 		return ShowMessageBox(parent, question, title, MB_ICONQUESTION | MB_YESNO) == IDYES;
 	}
 
@@ -199,6 +205,7 @@ public:
 
 	void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr message) override
 	{
+		renderer.SwitchToWindowMode();
 		OS::ShowErrorBox(parent, ex, message);
 	}
 
@@ -214,6 +221,7 @@ public:
 
 	IVariableEditor* CreateVariableEditor(Windows::IWindow& window, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const Vec2i* topLeft) override
 	{
+		renderer.SwitchToWindowMode();
 		return Rococo::CreateVariableEditor(window, span, labelWidth, appQueryName, defaultTab, defaultTooltip, eventHandler, topLeft);
 	}
 
@@ -2559,7 +2567,7 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 	AutoFree<IConfigSupervisor> config = CreateConfig();
 	AutoFree<Graphics::IRimTesselatorSupervisor> rimTesselator = Graphics::CreateRimTesselator();;
 
-	Utilities utils(*installation);
+	Utilities utils(*installation, mainWindow->Renderer());
 
 	AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor(utils, *keyboard);
 

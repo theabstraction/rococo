@@ -145,6 +145,7 @@ namespace Rococo
 	  virtual void SetCursorBitmap(ID_TEXTURE bitmapId, Vec2i hotspotOffset, Vec2 uvTopLeft, Vec2 uvBottomRight) = 0;
 	  virtual void SetCursorVisibility(bool isVisible) = 0;
 	  virtual void ShowWindowVenue(IMathsVisitor& visitor) = 0;
+	  virtual void SwitchToWindowMode() = 0;
 	  virtual IMathsVenue* TextureVenue() = 0;
 	  virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices) = 0;
 	  virtual void UpdatePixelShader(cstr pingPath) = 0;

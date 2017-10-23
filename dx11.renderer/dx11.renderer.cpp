@@ -580,6 +580,7 @@ namespace
 
 	   void ShowWindowVenue(IMathsVisitor& visitor)
 	   {
+		   visitor.ShowString("IsFullScreen", isFullScreen ? "TRUE" : "FALSE");
 		   ::ShowWindowVenue(hRenderWindow, visitor);
 	   }
 
@@ -1405,6 +1406,8 @@ namespace
 		   SyncViewport();
 	   }
 
+	   BOOL isFullScreen = FALSE;
+
 	   virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
 	   {
 		   if (span.x > 0 && span.y > 0)
@@ -1416,26 +1419,12 @@ namespace
 				   backBuffer->GetDesc(&desc);
 			   }
 
-			   if (desc.Width != span.x || desc.Height != span.y)
-			   {
-				   ResizeBuffers(span);
-			   }
+			   ResizeBuffers(span);
 
-			   BOOL isFullScreen;
-			   IDXGIOutput* output = nullptr;
+			   AutoRelease<IDXGIOutput> output;
 			   mainSwapChain->GetFullscreenState(&isFullScreen, &output);
-			   if (isFullScreen)
+			   if (!isFullScreen)
 			   {
-				   output->Release();
-			   }
-			   else
-			   {
-				   // Style can ben lost when dialog invoked in full screen mode. So add it here
-				   DWORD style = GetWindowLong(hWnd, GWL_STYLE);
-				   if ((style & WS_CAPTION) == 0)
-				   {
-					   SetWindowLong(hWnd, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
-				   }
 			   }
 		   }
 	   }
@@ -1613,9 +1602,9 @@ namespace
 			}
 
 
-         eventBuffer->Resize(sizeofBuffer);
+			eventBuffer->Resize(sizeofBuffer);
 
-         char* buffer = (char*) eventBuffer->GetData();
+			char* buffer = (char*)eventBuffer->GetData();
 
 			if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, buffer, &sizeofBuffer, sizeof(RAWINPUTHEADER)) == (UINT)-1)
 			{
