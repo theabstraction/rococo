@@ -14,7 +14,7 @@ namespace
    struct MeshBuilder : public Rococo::Graphics::IMeshBuilderSupervisor, IMathsVenue
    {
       std::unordered_map<std::string, ID_SYS_MESH> meshes;
-      rchar name[MAX_FQ_NAME_LEN + 1];
+	  rchar name[MAX_FQ_NAME_LEN + 1] = { 0 };
       std::vector<ObjectVertex> vertices;
       IRenderer& renderer;
 

@@ -22,102 +22,52 @@
 	(AddSector0 sectors) // entrance
 	(AddSector1 sectors)
 	(AddSector2 sectors)
-	(AddSector3 sectors)
-	(AddSector4 sectors)
-	(AddSector5 sectors)
 )
 
 (function AddSector0 (ISectors sectors) -> :
 	(Int64 flags = 0) // 0x0 None
 
-	(IString wall = "!textures/hv/wall_6.jpg")
-	(IString floor = "!textures/hv/floor_1.jpg")
+	(IString wall = "!textures/hv/rock_5.jpg")
+	(IString floor = "!textures/hv/wall_3.jpg")
 	(IString ceiling = "!textures/hv/floor_15.jpg")
 
+	(sectors.AddVertex -2.000000 2.000000)
 	(sectors.AddVertex 2.000000 2.000000)
+	(sectors.AddVertex 4.000000 2.000000)
 	(sectors.AddVertex 2.000000 -2.000000)
 	(sectors.AddVertex -2.000000 -2.000000)
-	(sectors.AddVertex -2.000000 2.000000)
+	(sectors.AddVertex -4.000000 2.000000)
 
-	(sectors.Create 0 1400 flags wall floor ceiling)
+	(sectors.Create 0 400 flags wall floor ceiling)
 )
 
 (function AddSector1 (ISectors sectors) -> :
-	(Int64 flags = 0) // 0x0 None
+	(Int64 flags = 8) // 0x8 Has_Door
 
-	(IString wall = "!textures/hv/wall_6.jpg")
-	(IString floor = "!textures/hv/floor_1.jpg")
+	(IString wall = "!textures/hv/rock_5.jpg")
+	(IString floor = "!textures/hv/wall_3.jpg")
 	(IString ceiling = "!textures/hv/floor_15.jpg")
 
-	(sectors.AddVertex 2.000000 6.000000)
+	(sectors.AddVertex 2.000000 14.000000)
 	(sectors.AddVertex 2.000000 2.000000)
 	(sectors.AddVertex -2.000000 2.000000)
-	(sectors.AddVertex -2.000000 6.000000)
+	(sectors.AddVertex -2.000000 14.000000)
 
-	(sectors.Create 100 1400 flags wall floor ceiling)
+	(sectors.Create 0 400 flags wall floor ceiling)
 )
 
 (function AddSector2 (ISectors sectors) -> :
 	(Int64 flags = 0) // 0x0 None
 
-	(IString wall = "!textures/hv/wall_6.jpg")
+	(IString wall = "!textures/hv/wall_1.jpg")
 	(IString floor = "!textures/hv/floor_1.jpg")
-	(IString ceiling = "!textures/hv/floor_15.jpg")
+	(IString ceiling = "!textures/hv/ceiling_1.jpg")
 
-	(sectors.AddVertex 4.000000 10.000000)
-	(sectors.AddVertex 2.000000 6.000000)
-	(sectors.AddVertex -2.000000 6.000000)
-	(sectors.AddVertex -4.000000 10.000000)
+	(sectors.AddVertex 4.000000 18.000000)
+	(sectors.AddVertex 2.000000 14.000000)
+	(sectors.AddVertex -2.000000 14.000000)
+	(sectors.AddVertex -4.000000 18.000000)
 
 	(sectors.Create 0 400 flags wall floor ceiling)
-)
-
-(function AddSector3 (ISectors sectors) -> :
-	(Int64 flags = 0) // 0x0 None
-
-	(IString wall = "!textures/hv/wall_6.jpg")
-	(IString floor = "!textures/hv/floor_1.jpg")
-	(IString ceiling = "!textures/hv/floor_15.jpg")
-
-	(sectors.AddVertex -10.000000 8.000000)
-	(sectors.AddVertex -4.000000 10.000000)
-	(sectors.AddVertex -2.000000 6.000000)
-	(sectors.AddVertex -10.000000 4.000000)
-
-	(sectors.Create 0 1200 flags wall floor ceiling)
-)
-
-(function AddSector4 (ISectors sectors) -> :
-	(Int64 flags = 8) // 0x8 Has_Door
-
-	(IString wall = "!textures/hv/wall_6.jpg")
-	(IString floor = "!textures/hv/floor_1.jpg")
-	(IString ceiling = "!textures/hv/floor_15.jpg")
-
-	(sectors.AddVertex -18.000000 8.000000)
-	(sectors.AddVertex -10.000000 8.000000)
-	(sectors.AddVertex -10.000000 4.000000)
-	(sectors.AddVertex -18.000000 4.000000)
-
-	(sectors.Create 0 400 flags wall floor ceiling)
-)
-
-(function AddSector5 (ISectors sectors) -> :
-	(Int64 flags = 0) // 0x0 None
-
-	(IString wall = "!textures/hv/wall_6.jpg")
-	(IString floor = "!textures/hv/floor_1.jpg")
-	(IString ceiling = "!textures/hv/floor_15.jpg")
-
-	(sectors.AddVertex -20.000000 10.000000)
-	(sectors.AddVertex -18.000000 8.000000)
-	(sectors.AddVertex -18.000000 4.000000)
-	(sectors.AddVertex -20.000000 2.000000)
-	(sectors.AddVertex -24.000000 2.000000)
-	(sectors.AddVertex -26.000000 4.000000)
-	(sectors.AddVertex -26.000000 8.000000)
-	(sectors.AddVertex -24.000000 10.000000)
-
-	(sectors.Create 200 1400 flags wall floor ceiling)
 )
 

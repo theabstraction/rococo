@@ -48,8 +48,26 @@ namespace
          return children.empty() ? ((ID_ENTITY*) nullptr) : &children[children.size()];
       }
 
-      virtual ID_SYS_MESH MeshId() const { return meshId; }
-      virtual ID_TEXTURE TextureId() const { return textureId;  }
+      virtual ID_SYS_MESH MeshId() const 
+	  {
+		  return meshId;
+	  }
+
+      virtual ID_TEXTURE TextureId() const 
+	  {
+		  return textureId;
+	  }
+
+	  virtual void SetTexture(ID_TEXTURE id)
+	  {
+		  textureId = id;
+	  }
+
+	  virtual void SetMesh(ID_SYS_MESH id)
+	  {
+		  meshId = id;
+	  }
+
    };
 
    typedef std::unordered_map<ID_ENTITY, EntityImpl*, ID_ENTITY> MapIdToEntity;

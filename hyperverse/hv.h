@@ -195,7 +195,7 @@ namespace HV
       virtual const Segment* GetWallSegments(size_t& count) const = 0;
 	  virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
 
-	  virtual void ForEveryObjectInSector(IEventCallback<const ID_ENTITY>& cb) const = 0;
+	  virtual void ForEveryObjectInSector(IEventCallback<const ID_ENTITY>& cb) = 0;
    };
 
    ISector* CreateSector(Platform& platform, ISectors& co_sectors);

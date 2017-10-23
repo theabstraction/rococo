@@ -129,10 +129,10 @@ namespace Rococo
 	//	  ids 0x41000001 to 0x42000000 are skeletal animation meshes
 	ROCOCO_ID(ID_MESH, int32, 0)
 
-		// ID_SYS_MESH are renderer defined indices that are generated when meshes are loaded into the renderer
-		ROCOCO_ID(ID_SYS_MESH, size_t, (size_t)-1)
+	// ID_SYS_MESH are renderer defined indices that are generated when meshes are loaded into the renderer
+	ROCOCO_ID(ID_SYS_MESH, size_t, -1)
 
-		ROCOCO_ID(ID_WIDGET, int32, 0);
+	ROCOCO_ID(ID_WIDGET, int32, 0);
 	ROCOCO_ID(ID_UI_EVENT_TYPE, int64, 0);
 
 	bool operator == (const fstring& a, const fstring& b);

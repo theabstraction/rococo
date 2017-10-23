@@ -177,20 +177,30 @@ namespace
          rchar name[32];
          SafeFormat(name, sizeof(name), "sector.%u.walls", id);
 
-         DeleteWalls();
+		 auto& mb = instances.MeshBuilder();
+		 mb.Clear();
+		 mb.Begin(to_fstring(name));
 
-         auto& mb = instances.MeshBuilder();
-         mb.Clear();
-         mb.Begin(to_fstring(name));
+		 for (auto& t : wallTriangles)
+		 {
+			 mb.AddTriangle(t.a, t.b, t.c);
+		 }
 
-         for (auto& t: wallTriangles)
-         {
-            mb.AddTriangle(t.a, t.b, t.c);
-         }
+		 mb.End();
 
-         mb.End();
+		 if (!wallId)
+		 {
+			 wallId = instances.AddBody(to_fstring(name), to_fstring(wallTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+		 }
+		 else
+		 {
+			 auto entity = instances.GetEntity(wallId);
+			 entity->SetTexture(instances.ReadyTexture(wallTexture.c_str()));
 
-         wallId = instances.AddBody(to_fstring(name), to_fstring(wallTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+			 ID_SYS_MESH meshId;
+			 platform.meshes.TryGetByName(name, meshId);
+			 entity->SetMesh(meshId);
+		 }
       }
 
       bool IsCorridor() const
@@ -473,7 +483,7 @@ namespace
 			 CreateFlatWallsBetweenGaps();
          }
 
-		 UpdatedWallGraphicMesh();
+		 isDirty = true;
       }
 
       Platform& platform;
@@ -561,8 +571,8 @@ namespace
 		  {
 			  rchar name[32];
 			  SafeFormat(name, sizeof(name), "sector.%u.walls", id);
-			  instances.MeshBuilder().Delete(to_fstring(name));
 			  instances.Delete(wallId);
+			  instances.MeshBuilder().Delete(to_fstring(name)); 
 		  }
       }
 
@@ -678,8 +688,6 @@ namespace
 
       void UpdateFloorGraphicMesh()
       {
-		 DeleteFloor();
-
          rchar name[32];
          SafeFormat(name, sizeof(name), "sector.%u.floor", id);
          
@@ -693,15 +701,24 @@ namespace
 
          mb.End();
 
-         floorId = instances.AddBody(to_fstring(name), to_fstring(floorTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+		 if (!floorId)
+		 {
+			 floorId = instances.AddBody(to_fstring(name), to_fstring(floorTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+		 }
+		 else
+		 {
+			 ID_SYS_MESH meshId;
+			 platform.meshes.TryGetByName(name, meshId);
+			 auto* entity = instances.GetEntity(floorId);
+			 entity->SetMesh(meshId);
+			 entity->SetTexture(instances.ReadyTexture(floorTexture.c_str()));
+		 }
       }
 
       void UpdateCeilingGraphicMesh()
       {
          rchar name[32];
          SafeFormat(name, sizeof(name), "sector.%u.ceiling", id);
-
-         DeleteCeiling();
 
          auto& mb = instances.MeshBuilder();
          mb.Begin(to_fstring(name));
@@ -713,7 +730,18 @@ namespace
 
          mb.End();
 
-         ceilingId = instances.AddBody(to_fstring(name), to_fstring(ceilingTexture.c_str()) , Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+		 if (!ceilingId)
+		 {
+			 ceilingId = instances.AddBody(to_fstring(name), to_fstring(ceilingTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+		 }
+		 else
+		 {
+			 ID_SYS_MESH meshId;
+			 platform.meshes.TryGetByName(name, meshId);
+			 auto* entity = instances.GetEntity(ceilingId);
+			 entity->SetMesh(meshId);
+			 entity->SetTexture(instances.ReadyTexture(ceilingTexture.c_str()));
+		 }
       }
 
       void GetVerticalMetrics(const Vec2& perimeterVertex, float& z0, float& z1)
@@ -783,6 +811,11 @@ namespace
 
       virtual void ClearComponents(const fstring& componentName)
       {
+		 for (auto& c : components)
+		 {
+			 platform.instances.Delete(c.id);
+		 }
+
          components.erase(std::remove(components.begin(), components.end(), componentName), components.end());
       }
 
@@ -984,8 +1017,7 @@ namespace
 
          TesselateByEarClip(builder, ring);
 
-		 UpdateFloorGraphicMesh();
-		 UpdateCeilingGraphicMesh();
+		 isDirty = true;
       }
 
 	  void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) override
@@ -1209,8 +1241,18 @@ namespace
 		  }
 	  }
 
-	  void ForEveryObjectInSector(IEventCallback<const ID_ENTITY>& cb) const override
+	  bool isDirty = false;
+
+	  void ForEveryObjectInSector(IEventCallback<const ID_ENTITY>& cb) override
 	  {
+		  if (isDirty)
+		  {
+			  UpdateCeilingGraphicMesh();
+			  UpdateFloorGraphicMesh();
+			  UpdatedWallGraphicMesh();
+			  isDirty = false;
+		  }
+
 		  cb.OnEvent(wallId);
 		  cb.OnEvent(floorId);
 		  cb.OnEvent(ceilingId);

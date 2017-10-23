@@ -351,6 +351,17 @@ namespace
 			  s->Rebuild(iterationFrame);
 		  }
 
+		  for (auto& s : dirty)
+		  {
+			  if (s->IsCorridor())
+			  {
+				  size_t count;
+				  auto* g = s->Gaps(count);
+				  g[0].other->Rebuild(iterationFrame);
+				  g[1].other->Rebuild(iterationFrame);
+			  }
+		  }
+
 		  dirty.clear();
 	  }
 

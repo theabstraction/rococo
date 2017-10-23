@@ -47,6 +47,8 @@ namespace Rococo
          virtual const ID_ENTITY* end() const = 0;
          virtual ID_SYS_MESH MeshId() const = 0;
          virtual ID_TEXTURE TextureId() const = 0;
+		 virtual void SetTexture(ID_TEXTURE id) = 0;
+		 virtual void SetMesh(ID_SYS_MESH id) = 0;
       };
 
       ROCOCOAPI IEntityCallback

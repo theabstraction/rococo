@@ -471,7 +471,7 @@ namespace
 		   }
 		   else
 		   {
-			   auto& m = meshBuffers[id.value - 1];
+			   auto& m = meshBuffers[id.value];
 
 			   if (m.dx11Buffer)
 			   {
@@ -698,7 +698,7 @@ namespace
 
 	   virtual void DeleteMesh(ID_SYS_MESH id)
 	   {
-		   if (id.value >= meshBuffers.size()) Throw(0, "DX11AppRenderer::DeleteMesh(...): Bad ID_SYS_MESH");
+		   if (id.value < 0 || id.value >= meshBuffers.size()) Throw(0, "DX11AppRenderer::DeleteMesh(...): Bad ID_SYS_MESH");
 
 		   if (meshBuffers[id.value].dx11Buffer)
 		   {
@@ -1037,7 +1037,6 @@ namespace
 		   ID3D11Buffer* meshBuffer = vertices ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
 		   meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST });
 		   int32 index = (int32)meshBuffers.size();
-		   meshUpdateCount++;
 		   return ID_SYS_MESH(index - 1);
 	   }
 
