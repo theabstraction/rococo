@@ -28,7 +28,7 @@
 
 // Norfolk & Durham, Simon Bailey, Mike Barton, John Glen MP
 (function AddLabel (IString text)(IPaneContainer builder)(IString cmd)(Bool defer)-> :
-	(Recti rect = (0 0)(20 70))
+	(Recti rect = 0 0 20 70)
 	(ILabelPane label = (builder.AddLabel 0 text rect))
 	(IPane labelBase = label.Base)
 	(labelBase.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
@@ -41,7 +41,7 @@
 )
 
 (function AddTitleLabel (IString text)(IPaneContainer builder)-> :
-	(Recti rect = (0 0)(20 90))
+	(Recti rect = 0 0 20 90)
 	(ILabelPane label = (builder.AddLabel 0 text rect))
 	(IPane labelBase = label.Base)
 	(labelBase.SetColourFont 0xFFFFFFFF 0xFFFFFFFF)
@@ -53,7 +53,7 @@
 )
 
 (function AddSlider (IString text)(IPaneContainer builder)(Float32 minValue)(Float32 maxValue)-> :
-	(Recti rect = (0 0)(20 90))
+	(Recti rect = 0 0 20 90)
 	(ISlider slider = (builder.AddSlider 1 text rect minValue maxValue))
 	(IPane sbase = slider.Base)
 	(sbase.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
@@ -63,52 +63,6 @@
 	(sbase.SetColourEdge2 0xDFFFFFFF 0xFFFFFFFF)
 )
 
-(function AddVec2iVec2i (Vec2i a)(Vec2i b)(Vec2i sum)-> :
-	(sum.x = (a.x + b.x))
-	(sum.y = (a.y + b.y))
-)
-
-(function SubtractVec2iVec2i (Vec2i a)(Vec2i b)(Vec2i dif)-> :
-	(dif.x = (a.x - b.x))
-	(dif.y = (a.y - b.y))
-)
-
-(function GetCentre (Recti rect)(Vec2i centre)-> :
-	(Vec2i sum = rect.topLeft + rect.bottomRight)
-	(centre.x = (sum.x / 2))
-	(centre.y = (sum.y / 2))
-)
-
-(function GetSpan (Recti rect)(Vec2i span) -> :
-	(span.x = (rect.bottomRight.x - rect.topLeft.x))
-	(span.y = (rect.bottomRight.y - rect.topLeft.y))
-)
-
-(function GetCentredRect (Int32 dx)(Int32 dy)(Recti container)(Recti centredRect)-> :
-	(Vec2i span)
-	(GetSpan container span)
-	(Int32 dx2 = (dx / 2))
-	(Int32 dy2 = (dy / 2))
-	(Vec2i centre)
-	(centre.x = (span.x / 2))
-	(centre.y = (span.y / 2))
-	(Vec2i halfSpan = dx2 dy2)
-	(Vec2i topLeft = centre - halfSpan)
-	(Vec2i bottomRight = centre + halfSpan)
-	(centredRect.topLeft = topLeft)
-	(centredRect.bottomRight = bottomRight)
-)
-
-(function InflateRect (Int32 dx)(Int32 dy)(Recti container)(Recti rect)-> :
-	(rect.topLeft.x = (0 - dx))
-	(rect.topLeft.y = (0 - dy))
-	
-	(Vec2i span)
-	(GetSpan container span)
-	(rect.bottomRight.x = (span.x + dx))
-	(rect.bottomRight.y = (span.y + dy))
-)
-	
 (function Main (Int32 id)->(Int32 exitCode):
 	(IPaneBuilder builder (PaneBuilder))
 	(IPaneContainer root = builder.Root)
@@ -134,12 +88,12 @@
 	(cbase.AlignRightEdges 40 false)
 	(cbase.LayoutVertically 4 -1)
 	
-	(Recti menuRect = (10 10) (180 140))
+	(Recti menuRect = 10 10 180 140)
 	(IPaneContainer menu = (container.AddContainer menuRect))
 	(IPane mbase = menu.Base)
 	(SetTransparentBackground mbase)
 
-	(AddLabel "Back"            menu "gui.pop" false)
+	(AddLabel "Back" menu "gui.pop" false)
 	
 	(mbase.AlignLeftEdges 4 false)
 	(mbase.AlignRightEdges 4 false)

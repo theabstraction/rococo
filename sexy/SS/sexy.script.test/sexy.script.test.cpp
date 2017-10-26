@@ -3878,8 +3878,8 @@ namespace
 			SEXTEXT(" (alias Main EntryPoint.Main)")
 
 			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (Recti rect = (1 2) (3 4))")
-			SEXTEXT("  (result = rect.topLeft.x)")
+			SEXTEXT("  (Recti rect = 1 2 3 4)")
+			SEXTEXT("  (result = rect.left)")
 			SEXTEXT(")");
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestRecti1"));
@@ -3911,8 +3911,8 @@ namespace
 			SEXTEXT(" (alias Main EntryPoint.Main)")
 
 			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (Recti rect = (1 2) (3 4))")
-			SEXTEXT("  (result = rect.topLeft.y)")
+			SEXTEXT("  (Recti rect = 1 2 3 4)")
+			SEXTEXT("  (result = rect.top)")
 			SEXTEXT(")");
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestRecti2"));
@@ -3944,8 +3944,8 @@ namespace
 			SEXTEXT(" (alias Main EntryPoint.Main)")
 
 			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (Recti rect = (1 2) (3 4))")
-			SEXTEXT("  (result = rect.bottomRight.x)")
+			SEXTEXT("  (Recti rect = 1 2 3 4)")
+			SEXTEXT("  (result = rect.right)")
 			SEXTEXT(")");
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestRecti3"));
@@ -3977,8 +3977,8 @@ namespace
 			SEXTEXT(" (alias Main EntryPoint.Main)")
 
 			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (Recti rect = (1 2) (3 4))")
-			SEXTEXT("  (result = rect.bottomRight.y)")
+			SEXTEXT("  (Recti rect = 1 2 3 4)")
+			SEXTEXT("  (result = rect.bottom)")
 			SEXTEXT(")");
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestRecti4"));
@@ -4013,7 +4013,7 @@ namespace
 			SEXTEXT(" (alias Main EntryPoint.Main)")
 
 			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (Recti rect = (40 520) (680 40))")
+			SEXTEXT("  (Recti rect = 40 520 680 40))")
 			SEXTEXT("  (IWin32Window window (CreateWindow \"Sexy Test Window\" rect))")
 			SEXTEXT("  (window.Show)")
 

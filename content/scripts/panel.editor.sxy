@@ -27,7 +27,7 @@
 )
 
 (function AddLabel (IString text)(IPaneContainer builder)(IString cmd)(Bool defer)-> :
-	(Recti rect = (0 0)(20 16))
+	(Recti rect = 0 0 20 16)
 	(ILabelPane label = (builder.AddLabel 8 text rect))
 	(IPane labelBase = label.Base)
 	(labelBase.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
@@ -42,7 +42,7 @@
 )
 
 (function AddRadio (IString text)(IPaneContainer builder)(IString key)(IString value)-> :
-	(Recti rect = (0 0)(20 16))
+	(Recti rect = 0 0 20 16)
 	(AddRadioAt rect text builder key value -1)
 )
 
@@ -67,52 +67,6 @@
 	(sbase.SetColourEdge2 0xDFFFFFFF 0xFFFFFFFF)
 )
 
-(function AddVec2iVec2i (Vec2i a)(Vec2i b)(Vec2i sum)-> :
-	(sum.x = (a.x + b.x))
-	(sum.y = (a.y + b.y))
-)
-
-(function SubtractVec2iVec2i (Vec2i a)(Vec2i b)(Vec2i dif)-> :
-	(dif.x = (a.x - b.x))
-	(dif.y = (a.y - b.y))
-)
-
-(function GetCentre (Recti rect)(Vec2i centre)-> :
-	(Vec2i sum = rect.topLeft + rect.bottomRight)
-	(centre.x = (sum.x / 2))
-	(centre.y = (sum.y / 2))
-)
-
-(function GetSpan (Recti rect)(Vec2i span) -> :
-	(span.x = (rect.bottomRight.x - rect.topLeft.x))
-	(span.y = (rect.bottomRight.y - rect.topLeft.y))
-)
-
-(function GetCentredRect (Int32 dx)(Int32 dy)(Recti container)(Recti centredRect)-> :
-	(Vec2i span)
-	(GetSpan container span)
-	(Int32 dx2 = (dx / 2))
-	(Int32 dy2 = (dy / 2))
-	(Vec2i centre)
-	(centre.x = (span.x / 2))
-	(centre.y = (span.y / 2))
-	(Vec2i halfSpan = dx2 dy2)
-	(Vec2i topLeft = centre - halfSpan)
-	(Vec2i bottomRight = centre + halfSpan)
-	(centredRect.topLeft = topLeft)
-	(centredRect.bottomRight = bottomRight)
-)
-
-(function InflateRect (Int32 dx)(Int32 dy)(Recti container)(Recti rect)-> :
-	(rect.topLeft.x = (0 - dx))
-	(rect.topLeft.y = (0 - dy))
-	
-	(Vec2i span)
-	(GetSpan container span)
-	(rect.bottomRight.x = (span.x + (2 * dx)))
-	(rect.bottomRight.y = (span.y + (2 * dy)))
-)
-	
 (function Main (Int32 id)->(Int32 exitCode):
 	(IPaneBuilder builder (PaneBuilder))
 	(IPaneContainer root = builder.Root)
@@ -129,7 +83,7 @@
 	(SetTransparentBackground cbase)
 	(cbase.SetPopulator 0 "sector_editor")
 	
-	(Recti menuRect = (10 10) (110 98))
+	(Recti menuRect = 10 10 110 98)
 	(IPaneContainer menu = (container.AddContainer menuRect))
 	(IPane mbase = menu.Base)
 	(mbase.SetColourBk1   0xAF000000 0xAF000000)
@@ -147,12 +101,14 @@
 	(mbase.AlignRightEdges 4 false)
 	(mbase.LayoutVertically 4 -1)
 	
-	(Vec2i containerSpan = containerRect.bottomRight - containerRect.topLeft)
+	(Vec2i containerSpan)
+	(GetSpan containerRect containerSpan)
+	
 	(Recti toolsRect)
-	(toolsRect.topLeft.x = (containerSpan.x - 200))
-	(toolsRect.topLeft.y = 4)
-	(toolsRect.bottomRight.x = (containerSpan.x - 18))
-	(toolsRect.bottomRight.y = (containerSpan.y - 48))
+	(toolsRect.left = (containerSpan.x - 200))
+	(toolsRect.top = 4)
+	(toolsRect.right = (containerSpan.x - 18))
+	(toolsRect.bottom = (containerSpan.y - 48))
 	
 	(IPaneContainer toolContainer = (container.AddContainer toolsRect))
 	(IPane tbase = toolContainer.Base)
@@ -161,35 +117,36 @@
 	(tbase.SetColourEdge1 0x80FFFFFF 0xFFFFFFFF)
 	(tbase.SetColourEdge2 0x60FFFFFF 0xDFFFFFFF)
 	
-	(Recti radioRect1 = (4 4)(22 21))
+	(Recti radioRect1 = 4 4 22 21)
 	(AddRadioAt radioRect1 "W" toolContainer "editor.texture.target" "w" 0)
 	
-	(Recti radioRect2 = (24 4)(42 21))
+	(Recti radioRect2 = 24 4 42 21)
 	(AddRadioAt radioRect2 "F" toolContainer "editor.texture.target" "f" 0)
 	
-	(Recti radioRect3 = (44 4)(62 21))
+	(Recti radioRect3 = 44 4 62 21)
 	(AddRadioAt radioRect3 "C" toolContainer "editor.texture.target" "c" 0)
 	
-	(Recti radioRect4 = (120 4)(138 21))
+	(Recti radioRect4 = 120 4 138 21)
 	(AddRadioAt radioRect4 "L" toolContainer "editor.texture.lock" "L" 0)
 	
-	(Recti radioRect5 = (140 4)(158 21))
+	(Recti radioRect5 = 140 4 158 21)
 	(AddRadioAt radioRect5 "U" toolContainer "editor.texture.lock" "U" 0)
 	
-	(Vec2i toolSpan = toolsRect.bottomRight - toolsRect.topLeft)
+	(Vec2i toolSpan)
+	(GetSpan toolsRect toolSpan)
 	
 	(Recti vscroll)
-	(vscroll.topLeft.x = (toolSpan.x - 20))
-	(vscroll.topLeft.y = 24)
-	(vscroll.bottomRight.x = (toolSpan.x - 2))
-	(vscroll.bottomRight.y = (toolSpan.y - 2))
+	(vscroll.left = (toolSpan.x - 20))
+	(vscroll.top = 24)
+	(vscroll.right = (toolSpan.x - 2))
+	(vscroll.bottom = (toolSpan.y - 2))
 	(AddScroller "editor.tools.vscroll" toolContainer vscroll)
 	
 	(Recti imageListRect)
-	(imageListRect.topLeft.x = 4)
-	(imageListRect.topLeft.y = vscroll.topLeft.y)
-	(imageListRect.bottomRight.x = (vscroll.topLeft.x - 4))
-	(imageListRect.bottomRight.y = (vscroll.bottomRight.y - 4))
+	(imageListRect.left = 4)
+	(imageListRect.top = vscroll.top)
+	(imageListRect.right = (vscroll.left - 4))
+	(imageListRect.bottom = (vscroll.bottom - 4))
 	
 	(IPaneContainer imageList = (toolContainer.AddContainer imageListRect))
 	(IPane ibase = imageList.Base)

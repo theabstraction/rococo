@@ -225,10 +225,10 @@ namespace
 			Vec2 dh_dxyC = Get_DH_DXY(i+1, j+1);
 			Vec2 dh_dxyD = Get_DH_DXY(i,   j+1);
 
-			Vec3 Na = Normalize({ -dh_dxyA.x, dh_dxyA.y, 1.0f });
-			Vec3 Nb = Normalize({ -dh_dxyB.x, dh_dxyB.y, 1.0f });
-			Vec3 Nc = Normalize({ -dh_dxyC.x, dh_dxyC.y, 1.0f });
-			Vec3 Nd = Normalize({ -dh_dxyD.x, dh_dxyD.y, 1.0f });
+			Vec3 Na = Normalize({ -dh_dxyA.x, -dh_dxyA.y, 1.0f });
+			Vec3 Nb = Normalize({ -dh_dxyB.x, -dh_dxyB.y, 1.0f });
+			Vec3 Nc = Normalize({ -dh_dxyC.x, -dh_dxyC.y, 1.0f });
+			Vec3 Nd = Normalize({ -dh_dxyD.x, -dh_dxyD.y, 1.0f });
 
 			TransformNormal(basis, Na, subNormals.a);
 			TransformNormal(basis, Nb, subNormals.b);

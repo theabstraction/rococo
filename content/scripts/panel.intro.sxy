@@ -22,7 +22,7 @@
 // Norfolk & Durham, Simon Bailey, Mike Barton, John Glen MP
 
 (function AddLabel (IString text)(IPaneContainer builder)(IString cmd)(Bool defer)-> :
-	(Recti rect = (0 0)(20 90))
+	(Recti rect = 0 0 20 90)
 	(ILabelPane label = (builder.AddLabel 0 text rect))
 	(IPane labelBase = label.Base)
 	(labelBase.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
@@ -36,52 +36,6 @@
 	(label.SetAlignment 0 0 0 0)
 )
 
-(function AddVec2iVec2i (Vec2i a)(Vec2i b)(Vec2i sum)-> :
-	(sum.x = (a.x + b.x))
-	(sum.y = (a.y + b.y))
-)
-
-(function SubtractVec2iVec2i (Vec2i a)(Vec2i b)(Vec2i dif)-> :
-	(dif.x = (a.x - b.x))
-	(dif.y = (a.y - b.y))
-)
-
-(function GetCentre (Recti rect)(Vec2i centre)-> :
-	(Vec2i sum = rect.topLeft + rect.bottomRight)
-	(centre.x = (sum.x / 2))
-	(centre.y = (sum.y / 2))
-)
-
-(function GetSpan (Recti rect)(Vec2i span) -> :
-	(span.x = (rect.bottomRight.x - rect.topLeft.x))
-	(span.y = (rect.bottomRight.y - rect.topLeft.y))
-)
-
-(function GetCentredRect (Int32 dx)(Int32 dy)(Recti container)(Recti centredRect)-> :
-	(Vec2i span)
-	(GetSpan container span)
-	(Int32 dx2 = (dx / 2))
-	(Int32 dy2 = (dy / 2))
-	(Vec2i centre)
-	(centre.x = (span.x / 2))
-	(centre.y = (span.y / 2))
-	(Vec2i halfSpan = dx2 dy2)
-	(Vec2i topLeft = centre - halfSpan)
-	(Vec2i bottomRight = centre + halfSpan)
-	(centredRect.topLeft = topLeft)
-	(centredRect.bottomRight = bottomRight)
-)
-
-(function InflateRect (Int32 dx)(Int32 dy)(Recti container)(Recti rect)-> :
-	(rect.topLeft.x = (0 - dx))
-	(rect.topLeft.y = (0 - dy))
-	
-	(Vec2i span)
-	(GetSpan container span)
-	(rect.bottomRight.x = (span.x + dx))
-	(rect.bottomRight.y = (span.y + dy))
-)
-	
 (function Main (Int32 id)->(Int32 exitCode):
 	(IPaneBuilder builder (PaneBuilder))
 	(IPaneContainer root = builder.Root)
@@ -98,7 +52,7 @@
 	(cbase.SetColourBk1   0xE0101010 0xE0101010)
 	(cbase.SetColourBk2   0xE0202020 0xE0202020)
 	
-	(Recti menuRect = (10 10)(500 558))
+	(Recti menuRect = 10 10 500 558)
 	
 	(IPaneContainer menu = (container.AddContainer menuRect))
 	(IPane mbase = menu.Base)

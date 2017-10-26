@@ -336,10 +336,10 @@
 
 			(ft.GetPerturbedSubQuad x y q uv qN)
 
-			(ObjectVertex a = q.a qN.a 0x00000000 0xFFFFFFFF uv.topLeft)
-			(ObjectVertex b	= q.b qN.b 0x00000000 0xFFFFFFFF (uv.bottomRight.x uv.topLeft.y))
-			(ObjectVertex c = q.c qN.c 0x00000000 0xFFFFFFFF uv.bottomRight)	
-			(ObjectVertex d = q.d qN.d 0x00000000 0xFFFFFFFF (uv.topLeft.x uv.bottomRight.y))
+			(ObjectVertex a = q.a qN.a 0x00000000 0xFFFFFFFF (uv.left  uv.top))
+			(ObjectVertex b	= q.b qN.b 0x00000000 0xFFFFFFFF (uv.right uv.top))
+			(ObjectVertex c = q.c qN.c 0x00000000 0xFFFFFFFF (uv.right uv.bottom))
+			(ObjectVertex d = q.d qN.d 0x00000000 0xFFFFFFFF (uv.left  uv.bottom))
 			
 			(sector.AddWallTriangle a b c)
 			(sector.AddWallTriangle c d a)
