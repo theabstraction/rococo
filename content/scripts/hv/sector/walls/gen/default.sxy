@@ -377,7 +377,7 @@
 		(WallSegment seg)
 		(sector.GetSegment i seg)
 		
-		(ft.InitByFixedCellWidth seg.quad 0.5 0.5)
+		(ft.InitByFixedCellWidth seg.quad 0.3 0.3)
 		
 		(Float32 u1 = (u + (0.25 * seg.span.x)))
 		
@@ -390,9 +390,9 @@
 		
 		(Int32 nColumns = ft.NumberOfColumns)
 		(Int32 nRows = ft.NumberOfRows)
-		(#for (Int32 x = 1)(x < (nColumns - 1))(#inc x)
-			(#for (Int32 y = 1)(y < (nRows - 1))(#inc y)
-				(ft.RandomizeField x y 0 0.5)
+		(#for (Int32 x = 1)(x < nColumns)(#inc x)
+			(#for (Int32 y = 1)(y < nRows)(#inc y)
+				(ft.RandomizeField x y 0 0.1)
 			)
 		)
 		

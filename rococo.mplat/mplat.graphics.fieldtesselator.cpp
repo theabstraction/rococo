@@ -68,8 +68,8 @@ namespace
 
 			delta = { 1.0f / columns, 1.0f / rows };
 
-			heights.resize((rows+2) * (columns+2));
-			memset(&heights[0], 0, (rows + 2) * (columns + 2) * sizeof(float));
+			heights.resize((rows+3) * (columns+3));
+			memset(&heights[0], 0, (rows + 3) * (columns + 3) * sizeof(float));
 		}
 	public:
 		FieldTesselator()
@@ -225,10 +225,10 @@ namespace
 			Vec2 dh_dxyC = Get_DH_DXY(i+1, j+1);
 			Vec2 dh_dxyD = Get_DH_DXY(i,   j+1);
 
-			Vec3 Na = Normalize({ -dh_dxyA.x, -dh_dxyA.y, 1.0f });
-			Vec3 Nb = Normalize({ -dh_dxyB.x, -dh_dxyB.y, 1.0f });
-			Vec3 Nc = Normalize({ -dh_dxyC.x, -dh_dxyC.y, 1.0f });
-			Vec3 Nd = Normalize({ -dh_dxyD.x, -dh_dxyD.y, 1.0f });
+			Vec3 Na = Normalize({ -dh_dxyA.x, dh_dxyA.y, 1.0f });
+			Vec3 Nb = Normalize({ -dh_dxyB.x, dh_dxyB.y, 1.0f });
+			Vec3 Nc = Normalize({ -dh_dxyC.x, dh_dxyC.y, 1.0f });
+			Vec3 Nd = Normalize({ -dh_dxyD.x, dh_dxyD.y, 1.0f });
 
 			TransformNormal(basis, Na, subNormals.a);
 			TransformNormal(basis, Nb, subNormals.b);
@@ -238,12 +238,12 @@ namespace
 
 		float& GetHeight(int i, int j)
 		{
-			return heights[i + 1 + (j + 1) *  (columns + 2)];
+			return heights[i + 1 + (j + 1) *  (columns + 3)];
 		}
 
 		float GetHeight(int i, int j) const
 		{
-			return heights[i + 1 + (j + 1) * (columns + 2)];
+			return heights[i + 1 + (j + 1) * (columns + 3)];
 		}
 
 		Vec2 Get_DH_DXY(int i, int j) const
@@ -296,7 +296,7 @@ namespace
 				Throw(0, "FieldTesselator::LevelField - j1 (%d) out of bounds [0,%d) ", j1, rows);
 			}
 
-			float* pRow0 = &heights[i0 + 1 + (j0 + 1) *  (columns + 2)];
+			float* pRow0 = &heights[i0 + 1 + (j0 + 1) *  (columns + 3)];
 
 			for (int32 j = j0; j <= j1; ++j)
 			{
@@ -307,7 +307,7 @@ namespace
 					*pRow++ = dH;
 				}
 
-				pRow0 += (columns + 1);
+				pRow0 += (columns + 3);
 			}
 		}
 
