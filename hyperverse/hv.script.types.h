@@ -1,10 +1,24 @@
-namespace HV { namespace Graphics { 
-	struct Vertex
+namespace HV { 
+	struct WallSegment
 	{
-		Vec3 position;
+		Quad quad;
+		Vec3 tangent;
+		Vec3 vertical;
 		Vec3 normal;
-		RGBAb emissiveColour;
-		RGBAb diffuseColour;
-		Vec2 uv;
+		Vec2 span;
+		boolean32 leftEdgeIsGap;
+		boolean32 rightEdgeIsGap;
 	};
-}}
+}
+namespace HV { 
+	struct GapSegment
+	{
+		Quad quad;
+		Vec3 tangent;
+		Vec3 vertical;
+		Vec3 normal;
+		boolean32 leadsToCorridor;
+		float otherZ0;
+		float otherZ1;
+	};
+}

@@ -38,6 +38,7 @@
 (struct Vec4 Sys.Maths.Vec4 Vec4)
 (struct Quat Sys.Maths.Quat Quat)
 (struct Rect Sys.Maths.Recti GuiRect)
+(struct Rectf Sys.Maths.Rectf GuiRectf)
 (struct Matrix4x4 Sys.Maths.Matrix4x4 Matrix4x4)
 (struct IString Sys.Type.IString fstring)
 (struct IStringBuilder Sys.Type.IStringBuilder IStringPopulator)

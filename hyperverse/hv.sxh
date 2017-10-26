@@ -36,3 +36,19 @@
 	)
 	(factory HV.Sectors)
 )
+
+// Only available during wall generation
+
+(interface
+	(as.sxy HV.ISectorWallTesselator "../content/scripts/hv")
+	(as.cpp HV.ISectorWallTesselator "hv")
+	(context factory HV.ISectorWallTesselator)
+	(methods
+		(NumberOfSegments -> (Int32 count))
+		(NumberOfGaps -> (Int32 count))
+		(GetSegment (Int32 ringIndex)(WallSegment segment))
+		(GetGap (Int32 ringIndex)(GapSegment segment))
+		(AddWallTriangle (const Vertex a)(const Vertex b)(const Vertex c))
+	)
+	(factory HV.SectorWallTesselator)
+)

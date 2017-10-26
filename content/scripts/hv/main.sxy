@@ -4,6 +4,7 @@
 	"!scripts/hv.sxh.sxy"
 	"!scripts/types.sxy"
 	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv/hv.types.sxy"
 )
 
 (namespace EntryPoint)

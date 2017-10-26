@@ -3,6 +3,19 @@
 #include <sexy.script.h>
 #include <sexy.vm.cpu.h>
 
+namespace Rococo
+{
+	namespace Graphics
+	{
+		IFieldTesselator* CreateFieldTesselator();
+	}
+}
+
+Rococo::Graphics::IFieldTesselator* FactoryConstructRococoGraphicsFieldTesselator(Rococo::Graphics::IFieldTesselator* _context)
+{
+	return Rococo::Graphics::CreateFieldTesselator();
+}
+
 Rococo::Graphics::IRimTesselator* FactoryConstructRococoGraphicsRimTesselator(Rococo::Graphics::IRimTesselator* _context)
 {
 	return _context;
@@ -114,6 +127,7 @@ namespace Rococo
                   Graphics::AddNativeCalls_RococoGraphicsISceneBuilder(args.ss, &platform.scene.Builder());
                   Graphics::AddNativeCalls_RococoGraphicsISprites(args.ss, &platform.sprites);
 				  Graphics::AddNativeCalls_RococoGraphicsIRimTesselator(args.ss, &platform.tesselators.rim);
+				  Graphics::AddNativeCalls_RococoGraphicsIFieldTesselator(args.ss, nullptr);
                   AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
 
 				  args.ss.AddNativeLibrary("rococo.sexy.mathsex");

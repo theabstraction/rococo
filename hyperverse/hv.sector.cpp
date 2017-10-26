@@ -423,16 +423,129 @@ namespace
          AddSlopedWallSegment(p, q, h01, h00, h11, h10, 0.0f);
       }
 
+	  void RunSectorGenWallScript()
+	  {
+		  if (wallSegments.empty()) return;
+
+		  // Script has to iterate through wallSegments and append to wallTriangles
+		  struct ANON: IEventCallback<ScriptCompileArgs>, public HV::ISectorWallTesselator
+		  {
+			  Sector* This;
+
+			  ANON(Sector* _This): This(_This)
+			  {
+			  }
+
+			  virtual int32 NumberOfSegments()
+			  {
+				  return (int32) This->wallSegments.size();
+			  }
+
+			  virtual int32 NumberOfGaps()
+			  {
+				  return (int32) This->gapSegments.size();
+			  }
+
+			  virtual void GetSegment(int32 index, HV::WallSegment& segment)
+			  {
+				  if (index < 0) Throw(0, "ISectorWallTesselator::GetSegment(...): Index %d < 0", index);
+				  int32 i = index % (int32) This->wallSegments.size();
+				  auto& s = This->wallSegments[i];
+
+				  Vec2 p = This->floorPerimeter[s.perimeterIndexStart];
+				  Vec2 q = This->floorPerimeter[s.perimeterIndexEnd];
+
+				  float z0 = This->Z0();
+				  float z1 = This->Z1();
+
+				  segment.quad.a = { p.x, p.y, z1 };
+				  segment.quad.b = { q.x, q.y, z1 };
+				  segment.quad.c = { q.x, q.y, z0 };
+				  segment.quad.d = { p.x, p.y, z0 };
+				  
+				  Vec3 rawTangent  = Vec3 { q.x - p.x, q.y - p.y, 0 };
+
+				  segment.vertical = { 0, 0, 1 };
+				  segment.normal   = Normalize({ rawTangent.y, -rawTangent.x, 0 });
+
+				  segment.leftEdgeIsGap = false;
+				  segment.rightEdgeIsGap = false;
+
+				  for (auto& gap : This->gapSegments)
+				  {
+					  if (gap.a == q)
+					  {
+						  segment.leftEdgeIsGap = true;
+					  }
+					  else if (gap.b == p)
+					  {
+						  segment.rightEdgeIsGap = true;
+					  }
+				  }
+
+				  float tangentLen = Length(rawTangent);
+				  segment.tangent = rawTangent * (1.0f / tangentLen);
+				  segment.span = { tangentLen, segment.quad.a.z - segment.quad.d.z };
+			  }
+
+			  virtual void GetGap(int32 index, HV::GapSegment& segment)
+			  {
+				  if (index < 0) Throw(0, "ISectorWallTesselator::GetGap(...): Index %d < 0", index);
+				  if (This->gapSegments.empty()) Throw(0, "ISectorWallTesselator::GetGap(...) : There are no gaps");
+				  auto& gap = This->gapSegments[index % (int32)This->gapSegments.size()];
+
+				  segment.quad.a = { gap.a.x, gap.a.y, gap.z1 };
+				  segment.quad.b = { gap.b.x, gap.b.y, gap.z1 };
+				  segment.quad.c = { gap.b.x, gap.b.y, gap.z0 };
+				  segment.quad.d = { gap.a.x, gap.a.y, gap.z0 };
+				 
+				  Vec3 tangent = segment.quad.b - segment.quad.a;
+
+				  segment.normal = Normalize(Vec3{ tangent.y, -tangent.x, 0 });
+				  segment.vertical = { 0,0,1 };
+				  segment.leadsToCorridor = gap.other->IsCorridor();
+				  segment.otherZ0 = This->Z0();
+				  segment.otherZ1 = This->Z1();
+			  }
+
+			  virtual void AddWallTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c)
+			  {
+				  enum { MAX = 1000 };
+				  if (This->floorTriangles.size() > MAX)
+				  {
+					  Throw(0, "ISectorWallTesselator::AddWallTriangle maximum %d triangles reached", MAX);
+				  }
+
+				  This->wallTriangles.push_back({ a,b,c });
+			  }
+
+			  virtual void OnEvent(ScriptCompileArgs& args)
+			  {
+				  This->wallTriangles.clear();
+				  AddNativeCalls_HVISectorWallTesselator(args.ss, this);
+			  }
+		  } scriptCallback(this);  
+
+		  platform.utilities.RunEnvironmentScript(platform, scriptCallback, "!scripts/hv/sector/walls/gen/default.sxy", true);
+	  }
+
 	  void CreateFlatWallsBetweenGaps()
 	  {
 		  float u = 0;
 
-		  for (auto segment : wallSegments)
+		  if (IsFlagged(SectorFlag_ScriptedWalls))
 		  {
-			  Vec2 p = floorPerimeter[segment.perimeterIndexStart];
-			  Vec2 q = floorPerimeter[segment.perimeterIndexEnd];
+			  RunSectorGenWallScript();
+		  }
+		  else
+		  {
+			  for (auto segment : wallSegments)
+			  {
+				  Vec2 p = floorPerimeter[segment.perimeterIndexStart];
+				  Vec2 q = floorPerimeter[segment.perimeterIndexEnd];
 
-			  u = AddWallSegment(p, q, z0, z1, u);
+				  u = AddWallSegment(p, q, z0, z1, u);
+			  }
 		  }
 
 		  for (auto& gap : gapSegments)
@@ -1159,6 +1272,11 @@ namespace
          editor->AddBooleanEditor("Friends", IsFlagged(SectorFlag_Occlude_Friends));
          editor->AddBooleanEditor("Enemies", IsFlagged(SectorFlag_Occlude_Enemies));
 
+		 editor->AddTab("Scripting", "Set generation logic");
+		 editor->AddBooleanEditor("Script Walls", IsFlagged(SectorFlag_ScriptedWalls));
+		 editor->AddBooleanEditor("Script Ceiling", IsFlagged(SectorFlag_ScriptedCeiling));
+		 editor->AddBooleanEditor("Script Floors", IsFlagged(SectorFlag_ScriptedFloor));
+
 		 if (Is4PointRectangular())
 		 {
             editor->AddBooleanEditor("Door",    IsFlagged(SectorFlag_Has_Door));
@@ -1182,9 +1300,13 @@ namespace
             floorTexture = handler.textures[1];
             ceilingTexture = handler.textures[2];
 
-            SetFlag(SectorFlag_Occlude_Players, editor->GetBoolean("Players"));
-            SetFlag(SectorFlag_Occlude_Enemies, editor->GetBoolean("Enemies"));
-            SetFlag(SectorFlag_Occlude_Friends, editor->GetBoolean("Friends"));
+            SetFlag(SectorFlag_ScriptedWalls,   editor->GetBoolean("Script Walls"));
+            SetFlag(SectorFlag_ScriptedCeiling, editor->GetBoolean("Script Ceiling"));
+            SetFlag(SectorFlag_ScriptedFloor,   editor->GetBoolean("Script Floors"));
+
+			SetFlag(SectorFlag_Occlude_Players, editor->GetBoolean("Players"));
+			SetFlag(SectorFlag_Occlude_Enemies, editor->GetBoolean("Enemies"));
+			SetFlag(SectorFlag_Occlude_Friends, editor->GetBoolean("Friends"));
 
 			if (Is4PointRectangular())
 			{
@@ -1234,10 +1356,20 @@ namespace
 
 	  void OnSectorScriptChanged(const FileModifiedArgs& args) override
 	  {
+		  static int64 anySectorScriptChangedUpdate = 0x900000000000;
+
 		  if (args.Matches(genDoorScript) && IsCorridor() && IsFlagged(SectorFlag_Has_Door))
 	      {
 			  ResetBarriers();
 		      RunSectorGenScript(genDoorScript);
+		  }
+
+		  char path[256];
+		  args.GetPingPath(path, 256);
+
+		  if (strstr(path,"hv/sector/walls/") && IsFlagged(SectorFlag_ScriptedWalls))
+		  {
+			  Rebuild(anySectorScriptChangedUpdate++);
 		  }
 	  }
 

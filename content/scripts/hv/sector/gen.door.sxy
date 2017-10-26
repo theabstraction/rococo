@@ -3,6 +3,7 @@
 (' #include 
 	"!scripts/mplat.sxh.sxy"
 	"!scripts/hv.sxh.sxy"
+	"!scripts/hv/hv.types.sxy"
 	"!scripts/types.sxy"
 )
 

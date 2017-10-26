@@ -1,24 +1,7 @@
 (namespace EntryPoint)
- (alias Main EntryPoint.Main)
-
-(using Sys.Maths)
-(using Sys.Reflection)
-(using Sys.Type.Formatters)
-(using Sys.Type)
-
-(archetype EntryPoint.VoidToVoid ->)
-
-(function Double (Int32 x)->(Int32 y) :
-	(y = (2 * x))
+(function Main -> (Bool x):
+	(Int32 a = 1)
+	(Int32 b = 3)
+	(x = (a < (b - 1)))
 )
-
-(function Main -> (Int32 result):
-	(Int32 x = 17)
-	(VoidToVoid g = 
-			(closure -> :
-				(Int32 z = (Double x))
-				(result = z)
-			)
-	)
-	(g)
-)
+(alias Main EntryPoint.Main)

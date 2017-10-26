@@ -832,6 +832,27 @@ namespace
 		validate(z == 1);
 	}
 
+	void TestBooleanCompareVarToCompound(IPublicScriptSystem& ss)
+	{
+		csexstr srcCode =
+			SEXTEXT("(namespace EntryPoint)\n")
+			SEXTEXT("(function Main -> (Bool x):\n")
+			SEXTEXT("     (Int32 a = 1)\n")
+			SEXTEXT("     (Int32 b = 3)\n")
+			SEXTEXT("     (x = (a < (b - 1)))\n")
+			SEXTEXT(")\n")
+			SEXTEXT("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompareVarToCompound"));
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(100); // Allocate stack space for the int32 x
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		int32 x = vm.PopInt32();
+		validate(x == 1);
+	}
+
 	void TestBooleanCompoundExpressions1(IPublicScriptSystem& ss)
 	{
 		csexstr srcCode =
@@ -11014,6 +11035,7 @@ namespace
 
 	void RunPositiveSuccesses()
 	{
+		TEST(TestBooleanCompareVarToCompound);
 		TEST(TestAssignDerivativeFromRef);
 		TEST(TestLinkedList6);
 		TEST(TestMemberwise2);

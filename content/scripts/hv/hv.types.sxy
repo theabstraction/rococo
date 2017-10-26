@@ -1,9 +1,22 @@
-(struct FPSAngles
-	(Float32 
-		heading    // 0 is North, 90 is East, 180 is South, 270 is West
-        elevation // 0 is horizontal, 90 is up, -90 is down
-        tilt      // -ve is lean left angle, +ve is lean right angle
-    )
+(struct WallSegment
+	(Sys.Maths.Quadf quad)
+	(Sys.Maths.Vec3 tangent)
+	(Sys.Maths.Vec3 vertical)
+	(Sys.Maths.Vec3 normal)
+	(Sys.Maths.Vec2 span)
+	(Bool leftEdgeIsGap)
+	(Bool rightEdgeIsGap)
 )
+(alias WallSegment HV.WallSegment)
 
-(alias FPSAngles HV.FPSAngles)
+(struct GapSegment
+	(Sys.Maths.Quadf quad)
+	(Sys.Maths.Vec3 tangent)
+	(Sys.Maths.Vec3 vertical)
+	(Sys.Maths.Vec3 normal)
+	(Bool leadsToCorridor)
+	(Float32 otherZ0)
+	(Float32 otherZ1)
+)
+(alias GapSegment HV.GapSegment)
+

@@ -1,0 +1,404 @@
+(' #file.type rococo.hv)
+
+(' #include 
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv.sxh.sxy"
+	"!scripts/hv/hv.types.sxy"
+	"!scripts/types.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+
+(using HV)
+(using Rococo)
+(using Rococo.Graphics)
+(using Sys.Type)
+(using Sys.Maths)
+(using Sys.Geometry.F32)
+(using Sys.Random)
+
+(function AddQuad (ISectorWallTesselator sector) (Quadf quad)(Float32 vStart)(Float32 uStart)->(Float32 uEnd)(Float32 vEnd) :
+	(Triangle t = quad.a quad.b quad.c)
+	(Vec3 n)
+	(GetNormal t n)
+	
+	(Vec3 top = quad.b - quad.a)
+	(Vec3 left = quad.a - quad.d)
+	
+	(Float32 uLen = (0.25 * (Length top)))
+	(Float32 vLen = (0.25 * (Length left)))
+	
+	(vEnd = (vStart + vLen))
+	(uEnd = (uStart + uLen))
+
+	(ObjectVertex a = quad.a n  0x00000000 0xFFFFFFFF (uStart   vEnd))
+	(ObjectVertex b	= quad.b n  0x00000000 0xFFFFFFFF (uEnd     vEnd))
+	(ObjectVertex c = quad.c n  0x00000000 0xFFFFFFFF (uEnd   vStart))	
+	(ObjectVertex d = quad.d n  0x00000000 0xFFFFFFFF (uStart vStart))
+	
+	(sector.AddWallTriangle a b c)
+	(sector.AddWallTriangle c d a)
+)
+
+(function AddReverseQuad (ISectorWallTesselator sector) (Quadf quad)(Float32 vStart)(Float32 uStart)->(Float32 uEnd)(Float32 vEnd) :
+	(Triangle t = quad.b quad.a quad.c)
+	(Vec3 n)
+	(GetNormal t n)
+	
+	(Vec3 top = quad.b - quad.a)
+	(Vec3 left = quad.a - quad.d)
+	
+	(Float32 uLen = (0.25 * (Length top)))
+	(Float32 vLen = (0.25 * (Length left)))
+	
+	(vEnd = (vStart + vLen))
+	(uEnd = (uStart + uLen))
+
+	(ObjectVertex a = quad.a n  0x00000000 0xFFFFFFFF (uStart   vEnd))
+	(ObjectVertex b	= quad.b n  0x00000000 0xFFFFFFFF (uEnd     vEnd))
+	(ObjectVertex c = quad.c n  0x00000000 0xFFFFFFFF (uEnd   vStart))	
+	(ObjectVertex d = quad.d n  0x00000000 0xFFFFFFFF (uStart vStart))
+	
+	(sector.AddWallTriangle b a c)
+	(sector.AddWallTriangle d c a)
+)
+
+(function AddTriangle (ISectorWallTesselator sector) (Triangle t)(Triangle2d uv)-> :
+	(Vec3 n)
+	(GetNormal t n)
+	
+	(ObjectVertex a = t.a n 0x00000000 0xFFFFFFFF uv.a)
+	(ObjectVertex b	= t.b n 0x00000000 0xFFFFFFFF uv.b)
+	(ObjectVertex c = t.c n 0x00000000 0xFFFFFFFF uv.c)	
+	
+	(sector.AddWallTriangle a b c)
+)
+
+(function AddReverseTriangle (ISectorWallTesselator sector) (Triangle t)(Triangle2d uv)-> :
+	(Vec3 n)
+	(GetNormal t n)
+	(Vec3 np = -1.0 * n)
+	
+	(ObjectVertex a = t.a np 0x00000000 0xFFFFFFFF uv.a)
+	(ObjectVertex b	= t.b np 0x00000000 0xFFFFFFFF uv.b)
+	(ObjectVertex c = t.c np 0x00000000 0xFFFFFFFF uv.c)	
+	
+	(sector.AddWallTriangle b a c)
+)
+
+(function AddRecessToWall  (WallSegment segment)(ISectorWallTesselator sector)(IRimTesselator rim)-> :
+	(rim.ClearFaces)
+		
+	(Matrix4x4 rotate =
+		(segment.tangent.x   segment.vertical.x   segment.normal.x   0)
+		(segment.tangent.y   segment.vertical.y   segment.normal.y   0)
+		(segment.tangent.z   segment.vertical.z   segment.normal.z   0)
+		(0                  0                  0                     1)
+	)
+	
+	(Float32 sx = (0.5 * segment.span.x))
+	(Float32 sy = (1.0 * segment.span.y))
+	
+	(Matrix4x4 scale =
+		(1   0  0  0)
+		(0   1  0  0)
+		(0   0  1  0)
+		(0   0  0  1)
+	)
+	
+	(rim.Scale sx sy)
+	
+	(Vec3 sum = segment.quad.c + segment.quad.d)
+	(Vec3 origin = 0.5 * sum)
+	
+	(Matrix4x4 translate =
+		(1              0               0  origin.x)
+		(0              1               0  origin.y)
+		(0              0               1  origin.z)
+		(0              0               0  1)
+	)
+	
+	(Matrix4x4 sr = rotate * scale)
+	(Matrix4x4 tsr = translate * sr)
+	
+	(rim.SetTransform tsr)
+	
+	(Int32 count = rim.PerimeterVertices)
+	
+	(Float32 z0 = -0.1)
+	(Float32 z1 = -0.0)
+	
+	(Float32 u = 0)
+	(Float32 v = segment.quad.c.z)
+	(#for (Int32 i = 0)(i < count)(#inc i)
+		(Quadf q)
+		(rim.GetRimQuad z0 z1 i q)		
+		(AddReverseQuad sector q 0 v -> u v)			
+	)
+	
+	(Int32 triangles = rim.TesselateUniform)
+	
+	(Triangle t)
+	(Triangle2d uv)
+	
+	(#for (Int32 j = 0)(j < triangles)(#inc j)
+		(rim.GetBottomTriangle j t uv z0)
+		(AddReverseTriangle sector t uv)
+	)
+	
+)
+
+(function AddRimFrameToWall  (WallSegment segment)(ISectorWallTesselator sector)(IRimTesselator rim)-> :
+	(rim.ClearFaces)
+		
+	(Matrix4x4 rotate =
+		(segment.tangent.x   segment.vertical.x   segment.normal.x   0)
+		(segment.tangent.y   segment.vertical.y   segment.normal.y   0)
+		(segment.tangent.z   segment.vertical.z   segment.normal.z   0)
+		(0                  0                  0                     1)
+	)
+	
+	(Float32 sx = (0.5 * segment.span.x))
+	(Float32 sy = (1.0 * segment.span.y))
+	
+	(Matrix4x4 scale =
+		(1   0  0  0)
+		(0   1  0  0)
+		(0   0  1  0)
+		(0   0  0  1)
+	)
+	
+	(rim.Scale sx sy)
+	
+	(Vec3 sum = segment.quad.c + segment.quad.d)
+	(Vec3 origin = 0.5 * sum)
+	
+	(Matrix4x4 translate =
+		(1              0               0  origin.x)
+		(0              1               0  origin.y)
+		(0              0               1  origin.z)
+		(0              0               0  1)
+	)
+	
+	(Matrix4x4 sr = rotate * scale)
+	(Matrix4x4 tsr = translate * sr)
+	
+	(rim.SetTransform tsr)
+	
+	(Float32 z0 = -0.1)
+	(Float32 z1 =  0.0)
+	
+	(Int32 triangles = rim.TesselateUniform)
+	
+	(Triangle t)
+	(Triangle2d uv)
+	
+	(#for (Int32 j = 0)(j < triangles)(#inc j)
+		(rim.GetTopTriangle j t uv z1)
+		(AddTriangle sector t uv)
+	)
+)
+
+(function BuildArchVertices (IRimTesselator rim)-> :
+	(rim.AddPointXY -0.9     0)
+	(rim.AddPointXY -0.8   0.4)
+	(rim.AddPointXY -0.6   0.6)
+	(rim.AddPointXY -0.5   0.8)
+	(rim.AddPointXY  0.0  0.85)
+	(rim.AddPointXY  0.5   0.8)
+	(rim.AddPointXY  0.6   0.6)
+	(rim.AddPointXY  0.8   0.4)
+	(rim.AddPointXY  0.9     0) 	
+)
+
+(function TesselateArch (WallSegment segment)(ISectorWallTesselator sector)(Float32 uStart)->(Float32 uEnd) :
+	(Float32 uvScale = 0.5)
+	
+	(Float32 u0 = uStart)
+	(Float32 u1 = (u0 + (segment.span.x * uvScale)))
+	(uEnd = u1)
+	
+	(IRimTesselator rim (RimTesselator))	
+	(rim.Clear)
+	(BuildArchVertices rim)	
+	(rim.CloseLoop)	
+	(AddRecessToWall segment sector rim) 
+	
+	(rim.Clear)
+	(BuildArchVertices rim)
+	(rim.AddPointXY     1 0)
+	(rim.AddPointXY     1 1)
+	(rim.AddPointXY    -1 1)
+	(rim.AddPointXY    -1 0)
+	(rim.CloseLoop)	
+	
+	(AddRimFrameToWall segment sector rim)
+)
+
+(function GetPosAndNormal (Vec3 tangent)(Vec3 vertical)(Vec3 normal)(Vec3 origin)(Float32 s)(Float32 t)(Int32 i)(Int32 j)(Int32 xDivs)(Int32 yDivs)(Float32 dX)(Float32 dY)(Vec3 pos)(Vec3 vNormal)-> :
+	(Vec3 dx = tangent * s)
+	(Vec3 dy = vertical * t)
+	(Vec3 dxy = dx + dy)
+	(Vec3 p = dxy + origin)
+	
+	(Float32 displ = 0)
+	
+	(Int32 iMax = (xDivs - 1))
+	(Int32 jMax = (yDivs - 1))
+	
+	(if ((i != 0) and (i < iMax))
+		(if ((j != 0) and (j < jMax))
+			(displ = (GetRandomFromField i j 0))
+		)
+	)
+	
+	(Int32 i1 = i)
+	(Int32 i2 = (i1 + 1))
+	(Int32 i0 = (i1 - 1))
+	
+	(Int32 j1 = j)
+	(Int32 j2 = (j1 + 1))
+	(Int32 j0 = (j1 - 1))
+
+	(Float32 f = (displ * 0.2))
+	
+	(Float32 dh = f)
+	(Vec3 dNormal = normal * dh)
+	(Vec3 pdn = dNormal + p)
+	(pos = pdn)
+	
+	(Float32 dhdx = 0)
+	(if (i == 0)
+		(if ((j > 0) and (j < jMax))
+			(dhdx = (GetRandomFromField i2 j1 0))
+		)
+	)
+	(if (i == iMax)
+		(if ((j > 0) and (j < jMax))
+			(dhdx = (0 - (GetRandomFromField i0 j1 0)))
+		)
+	)
+	
+	(if ((i != 0) and (i != iMax))
+		(dhdx = ((GetRandomFromField i2 j1 0) - (GetRandomFromField i0 j1 0)))
+	)
+	
+	(Float32 dHdX = (0 - ((dhdx * f) / (2.0 * dX))))
+	
+	(Float32 dhdy = 0)
+	(if (j == 0)
+		(if ((i > 0) and (i < iMax))
+			(dhdy = (GetRandomFromField i1 j2 0))
+		)
+	)
+	(if (j == jMax)
+		(if ((i > 0) and (i < iMax))
+			(dhdy = (0 - (GetRandomFromField i1 j1 0)))
+		)
+	)
+	
+	(if ((j != 0) and (j != iMax))
+		(dhdy = ((GetRandomFromField i1 j2 0) - (GetRandomFromField i1 j0 0)))
+	)
+	
+	(Float32 dHdY = (0 - ((dhdy * f) / (2 * dY))))
+	
+	
+	(Vec4 sNormal = dHdX dHdY 1 0)
+
+	(Matrix4x4 transform =
+		(tangent.x vertical.x normal.x 0)
+		(tangent.y vertical.y normal.y 0)
+		(tangent.z vertical.z normal.z 0)
+		(0         0          0        1)
+	)
+	
+	(Vec4 s2Normal = transform * sNormal)
+	
+	(Vec3 s3Normal = s2Normal.x s2Normal.y s2Normal.z)
+	
+	(Normalize s3Normal)
+	
+	(vNormal = s3Normal)
+)
+
+(function TesselateNoisyQuad (IFieldTesselator ft)(WallSegment segment)(ISectorWallTesselator sector)-> :
+	(Int32 nColumns = ft.NumberOfColumns)
+	(Int32 nRows = ft.NumberOfRows)
+		
+	(#for (Int32 x = 0)(x < nColumns)(#inc x)
+		(#for (Int32 y = 0)(y < nRows)(#inc y)		
+			(Quadf q)
+			(Rectf uv)
+			(Quadf qN)		
+
+			(ft.GetPerturbedSubQuad x y q uv qN)
+
+			(ObjectVertex a = q.a qN.a 0x00000000 0xFFFFFFFF uv.topLeft)
+			(ObjectVertex b	= q.b qN.b 0x00000000 0xFFFFFFFF (uv.bottomRight.x uv.topLeft.y))
+			(ObjectVertex c = q.c qN.c 0x00000000 0xFFFFFFFF uv.bottomRight)	
+			(ObjectVertex d = q.d qN.d 0x00000000 0xFFFFFFFF (uv.topLeft.x uv.bottomRight.y))
+			
+			(sector.AddWallTriangle a b c)
+			(sector.AddWallTriangle c d a)
+		)
+	)
+)
+
+(function TesselateSegment (WallSegment segment)(ISectorWallTesselator sector)(Float32 uStart)->(Float32 uEnd) :
+	(Float32 uvScale = 0.5)
+	
+	(Float32 u0 = uStart)
+	(Float32 u1 = (u0 + (segment.span.x * uvScale)))
+	(uEnd = u1)
+
+	(Float32 v0 = (segment.quad.d.z * uvScale))
+	(Float32 v1 = (segment.quad.a.z * uvScale))
+	
+	(ObjectVertex a = segment.quad.a segment.normal 0x00000000 0xFFFFFFFF (u0 v0))
+	(ObjectVertex b	= segment.quad.b segment.normal 0x00000000 0xFFFFFFFF (u1 v0))
+	(ObjectVertex c = segment.quad.c segment.normal 0x00000000 0xFFFFFFFF (u1 v1))	
+	(ObjectVertex d = segment.quad.d segment.normal 0x00000000 0xFFFFFFFF (u0 v1))	
+	
+	(sector.AddWallTriangle a b c)
+	(sector.AddWallTriangle c d a)
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(ISectorWallTesselator sector (SectorWallTesselator))
+	(Int32 nSegments = sector.NumberOfSegments)
+	(Float32 u = 0)
+	
+	(IFieldTesselator ft (FieldTesselator))
+			
+	(#for (Int32 i = 0)(i < nSegments)(#inc i)
+		(WallSegment seg)
+		(sector.GetSegment i seg)
+		
+		(ft.InitByFixedCellWidth seg.quad 0.5 0.5)
+		
+		(Float32 u1 = (u + (0.25 * seg.span.x)))
+		
+		(Float32 v0 = (0.25 * seg.quad.a.z))
+		(Float32 v1 = (0.25 * seg.quad.c.z))
+		(Vec2 uvA = u  v0)
+		(Vec2 uvC = u1 v1)
+		
+		(ft.SetUV uvA uvC)
+		
+		(Int32 nColumns = ft.NumberOfColumns)
+		(Int32 nRows = ft.NumberOfRows)
+		(#for (Int32 x = 1)(x < (nColumns - 1))(#inc x)
+			(#for (Int32 y = 1)(y < (nRows - 1))(#inc y)
+				(ft.RandomizeField x y 0 0.5)
+			)
+		)
+		
+		
+		(TesselateNoisyQuad ft seg sector)
+		(u = u1)
+	//	(TesselateArch seg sector u -> u)
+	)
+)

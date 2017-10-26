@@ -12,6 +12,7 @@
 #include <rococo.api.h>
 
 #include <random>
+#include <vector>
 
 namespace
 {
@@ -72,6 +73,16 @@ namespace Rococo
          c = a - b;
       }
 
+	  void ScaleVector3(const Vec3& a, float f, Vec3& fa)
+	  {
+		  fa = a * f;
+	  }
+
+	  void ScaleVector3(float f, const Vec3& a, Vec3& fa)
+	  {
+		  fa = a * f;
+	  }
+
       void MultiplyMatrixByRef(const Matrix4x4& a, const Matrix4x4& b, Matrix4x4& c)
       {
          Multiply(c, a, b);
@@ -117,6 +128,16 @@ namespace Rococo
 		  {
 			  normal = { 0,0,0 };
 		  }
+	  }
+
+	  void LerpVec3(const Vec3& a, const Vec3& b, float t, Vec3& mixed)
+	  {
+		  mixed = a * (1.0f - t) + b * t;
+	  }
+
+	  void TransformVector(const Matrix4x4& m, const Vec4& v, Vec4& mv)
+	  {
+		  mv = m * v;
 	  }
    }
 }

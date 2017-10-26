@@ -268,3 +268,23 @@
 	)
 	(factory Rococo.Graphics.RimTesselator)
 )
+
+(interface (as.sxy Rococo.Graphics.IFieldTesselator "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.IFieldTesselator "mplat")
+	(context factory Rococo.Graphics.IFieldTesselator)
+	(methods
+		(Destruct)
+		(InitByFixedCellWidth (const Quad positions)(Float32 maxCellWidth)(Float32 maxCellHeight))
+		(InitByDivisions (const Quad positions)(Int32 xDivs)(Int32 yDivs))
+		(SetUV (const Vec2 uvA) (const Vec2 uvC))
+		(NumberOfColumns -> (Int32 cols))
+		(NumberOfRows -> (Int32 rows))
+		(GetFlatSubQuad (Int32 i)(Int32 j)(Quad subQuad)(Rectf subUV)) // (0 0) -> top left. Average out perturbation and push quad along normal
+		(GetPerturbedSubQuad (Int32 i)(Int32 j)(Quad subQuad)(Rectf subUV)(Quad subNormals)) // (0 0) -> top left. Move each vertex out along normal. Use heigh gradient to modify normals
+		(PerturbField (Int32 i)(Int32 j)(Float32 dH))
+		(LevelField (Int32 i0)(Int32 j0)(Int32 i1)(Int32 j1)(Float32 dH))
+		(RandomizeField (Int32 i)(Int32 j)(Float32 minValue)(Float32 maxValue))
+		(GetBasis (Matrix4x4 transform))
+	)
+	(factory Rococo.Graphics.FieldTesselator)
+)

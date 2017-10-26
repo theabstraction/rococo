@@ -577,7 +577,10 @@ namespace Rococo
             ce.Builder.AssignVariableToTemp(varName, Rococo::ROOT_TEMPDEPTH + A);
          }
 
-         TryCompileArithmeticExpression(ce, s, true, type);
+		 AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + A, Rococo::ROOT_TEMPDEPTH + A, GetBitCount(type));
+		 TryCompileArithmeticExpression(ce, s, true, type);
+		 ce.Builder.PopLastVariables(1);
+
          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + B, GetBitCount(type));
 
          AddBinaryComparison(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, type);
@@ -634,7 +637,7 @@ namespace Rococo
                }
                else
                {
-                  CompileBinaryCompareAtomicVsCompound(ce, parent, right.String()->Buffer, op, left, true);
+                  CompileBinaryCompareAtomicVsCompound(ce, parent, left.String()->Buffer, op, right, true);
                }
             }
          }

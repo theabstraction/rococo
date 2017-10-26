@@ -137,7 +137,10 @@ namespace HV
       SectorFlag_Occlude_Players = 1,
       SectorFlag_Occlude_Friends = 2,
       SectorFlag_Occlude_Enemies = 4,
-      SectorFlag_Has_Door = 8
+      SectorFlag_Has_Door = 8,
+	  SectorFlag_ScriptedWalls = 16,
+	  SectorFlag_ScriptedFloor = 32,
+	  SectorFlag_ScriptedCeiling = 64,
    };
 
    struct Barrier

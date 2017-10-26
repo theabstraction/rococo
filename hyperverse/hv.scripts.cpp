@@ -20,6 +20,11 @@ namespace // Script factories
 	{
 		return _context->Builder();
 	}
+
+	HV::ISectorWallTesselator* FactoryConstructHVSectorWallTesselator(HV::ISectorWallTesselator* _context)
+	{
+		return _context;
+	}
 }
 
 using namespace HV;

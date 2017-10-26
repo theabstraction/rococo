@@ -58,6 +58,121 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVIPlayerGetPlayerEntity, nullptr, SEXTEXT("IPlayerGetPlayerEntity (Pointer hObject) -> (Int64 id)"));
 	}
 }
+// BennyHill generated Sexy native functions for HV::ISectorWallTesselator 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeHVISectorWallTesselatorNumberOfSegments(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorWallTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 count = _pObject->NumberOfSegments();
+		_offset += sizeof(count);
+		WriteOutput(count, _sf, -_offset);
+	}
+	void NativeHVISectorWallTesselatorNumberOfGaps(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorWallTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 count = _pObject->NumberOfGaps();
+		_offset += sizeof(count);
+		WriteOutput(count, _sf, -_offset);
+	}
+	void NativeHVISectorWallTesselatorGetSegment(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::WallSegment* segment;
+		_offset += sizeof(segment);
+		ReadInput(segment, _sf, -_offset);
+
+		int32 ringIndex;
+		_offset += sizeof(ringIndex);
+		ReadInput(ringIndex, _sf, -_offset);
+
+		HV::ISectorWallTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetSegment(ringIndex, *segment);
+	}
+	void NativeHVISectorWallTesselatorGetGap(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::GapSegment* segment;
+		_offset += sizeof(segment);
+		ReadInput(segment, _sf, -_offset);
+
+		int32 ringIndex;
+		_offset += sizeof(ringIndex);
+		ReadInput(ringIndex, _sf, -_offset);
+
+		HV::ISectorWallTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetGap(ringIndex, *segment);
+	}
+	void NativeHVISectorWallTesselatorAddWallTriangle(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ObjectVertex* c;
+		_offset += sizeof(c);
+		ReadInput(c, _sf, -_offset);
+
+		ObjectVertex* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		ObjectVertex* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		HV::ISectorWallTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddWallTriangle(*a, *b, *c);
+	}
+
+	void NativeGetHandleForHVSectorWallTesselator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorWallTesselator* nceContext = reinterpret_cast<HV::ISectorWallTesselator*>(_nce.context);
+		// Uses: HV::ISectorWallTesselator* FactoryConstructHVSectorWallTesselator(HV::ISectorWallTesselator* _context);
+		HV::ISectorWallTesselator* pObject = FactoryConstructHVSectorWallTesselator(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace HV { 
+	void AddNativeCalls_HVISectorWallTesselator(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorWallTesselator* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVSectorWallTesselator, _nceContext, SEXTEXT("GetHandleForISectorWallTesselator0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorNumberOfSegments, nullptr, SEXTEXT("ISectorWallTesselatorNumberOfSegments (Pointer hObject) -> (Int32 count)"));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorNumberOfGaps, nullptr, SEXTEXT("ISectorWallTesselatorNumberOfGaps (Pointer hObject) -> (Int32 count)"));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetSegment, nullptr, SEXTEXT("ISectorWallTesselatorGetSegment (Pointer hObject)(Int32 ringIndex)(HV.WallSegment segment) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetGap, nullptr, SEXTEXT("ISectorWallTesselatorGetGap (Pointer hObject)(Int32 ringIndex)(HV.GapSegment segment) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorAddWallTriangle, nullptr, SEXTEXT("ISectorWallTesselatorAddWallTriangle (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c) -> "));
+	}
+}
 // BennyHill generated Sexy native functions for HV::ICorridor 
 namespace
 {

@@ -1,9 +1,0 @@
-(struct Vertex
-	(Sys.Maths.Vec3 position)
-	(Sys.Maths.Vec3 normal)
-	(Int32 emissiveColour)
-	(Int32 diffuseColour)
-	(Sys.Maths.Vec2 uv)
-)
-(alias Vertex HV.Graphics.Vertex)
-

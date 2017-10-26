@@ -138,6 +138,13 @@ namespace Rococo
          return hz.QuadPart;
       }
 
+	  ticks UTCTime()
+	  {
+		  FILETIME ft;
+		  GetSystemTimeAsFileTime(&ft);
+		  return *(ticks*)&ft;
+	  }
+
       void TripDebugger()
       {
          if (IsDebuggerPresent())

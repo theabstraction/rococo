@@ -454,6 +454,7 @@ namespace Rococo
       void BreakOnThrow(BreakFlag flag);
       ticks CpuTicks();
       ticks CpuHz();
+	  ticks UTCTime();
       bool StripLastSubpath(rchar* fullpath);
       bool IsFileExistant(cstr path);
       void Format_C_Error(int errorCode, rchar* buffer, size_t capacity);
