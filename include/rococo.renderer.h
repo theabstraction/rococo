@@ -16,7 +16,7 @@ namespace Rococo
 	{
 		float x;
 		float y;
-		float saturation; // currently ignored, meant to weigh between texture and colour
+		float saturation; // 1.0 -> use colour, 0.0 -> use bitmap texture
 		float fontBlend; // 0 -> normal triangle, 1 -> modulate with font texture
 		RGBAb colour;
 		float u;
@@ -44,10 +44,10 @@ namespace Rococo
 	struct IRenderer;
 
 	ROCOCO_ID(ID_VERTEX_SHADER, size_t, -1)
-		ROCOCO_ID(ID_PIXEL_SHADER, size_t, -1)
-		ROCOCO_ID(ID_TEXTURE, size_t, -1)
+	ROCOCO_ID(ID_PIXEL_SHADER, size_t, -1)
+	ROCOCO_ID(ID_TEXTURE, size_t, -1)
 
-		namespace Textures
+	namespace Textures
 	{
 		struct BitmapLocation;
 	}
@@ -177,8 +177,10 @@ namespace Rococo
 		float GetAspectRatio(const IRenderer& renderer);
 		Vec2 PixelSpaceToScreenSpace(const Vec2i& v, IRenderer& renderer);
 
+		void RenderBitmap_ShrinkAndPreserveAspectRatio(IGuiRenderContext& rc, ID_TEXTURE id, const GuiRect& absRect);
+		void StretchBitmap(IGuiRenderContext& rc, const GuiRect& absRect);
 		void DrawSprite(const Vec2i& position, const Textures::BitmapLocation& location, IGuiRenderContext& gc, bool alphaBlend);
-	}// Graphics
+	} // Graphics
 } // Rococo
 
 #endif

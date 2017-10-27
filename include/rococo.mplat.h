@@ -25,7 +25,13 @@ namespace Rococo
 		virtual bool AppendKeyboardEvent(const KeyboardEvent& key) = 0;
 		virtual void AppendMouseEvent(const MouseEvent& ev) = 0;
 
+		virtual void CancelSelect() = 0;
+
 		virtual void Render(IGuiRenderContext& grc, const GuiRect& absRect, int padding) = 0;
+
+		virtual cstr SelectedKey() const = 0;
+		virtual cstr SelectedValue() const = 0;
+
 		virtual void Free() = 0;
    };
 
@@ -234,6 +240,7 @@ namespace Rococo
       virtual void AppendEvent(const MouseEvent& me) = 0;
       virtual bool AppendEvent(const KeyboardEvent& ke) = 0; // Returns true if some UI control consumed the keyboard event
       virtual IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName) = 0;
+	  virtual IPaneBuilderSupervisor* CreateOverlay() = 0;
       virtual void Render(IGuiRenderContext& grc) = 0;
       virtual void PushTop(IPanelSupervisor* panel, bool isModal) = 0;
       virtual IPanelSupervisor* Pop() = 0;

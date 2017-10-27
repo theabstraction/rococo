@@ -3,6 +3,7 @@
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 #include <stdarg.h>
+#include <rococo.ui.h>
 
 namespace
 {
@@ -14,6 +15,7 @@ namespace
       enum size_t { KEY_LEN = 64, VALUE_LEN = 128 };
       rchar key[KEY_LEN];
       rchar value[VALUE_LEN];
+	  bool isSelectable = false;
    };
 
    class MathsVisitor : public IMathsVisitorSupervisor, public IEventCallback<ScrollEvent>
@@ -21,6 +23,7 @@ namespace
 	   AutoFree<IScrollbar> scrollbar;
 	   std::vector<DebugLine> lines;
 	   GuiRect scrollRect;
+	   bool queueMouseUp = false;
 
 	   void Name(DebugLine& line, VisitorName name)
 	   {
@@ -193,6 +196,21 @@ namespace
 		   lines.push_back(line);
 	   }
 
+	   virtual void ShowSelectableString(VisitorName name, cstr format, ...)
+	   {
+		   DebugLine line;
+		   Name(line, name);
+
+		   va_list args;
+		   va_start(args, format);
+
+		   SafeVFormat(line.value, line.VALUE_LEN, format, args);
+
+		   line.isSelectable = true;
+
+		   lines.push_back(line);
+	   }
+
 	   virtual void Clear()
 	   {
 		   lines.clear();
@@ -230,6 +248,11 @@ namespace
 		   {
 			   pos = se.logicalValue;
 		   }
+
+		   if (ev.HasFlag(MouseEvent::LUp))
+		   {
+			   queueMouseUp = true;
+		   }
 	   }
 
 	   void RenderScrollbar(IGuiRenderContext& gc, const GuiRect& absRect)
@@ -249,6 +272,25 @@ namespace
 
 	   int32 knownHeight = 0;
 	   int32 pos = 0;
+
+	   std::string selectedKey;
+	   std::string selectedValue;
+
+	   void CancelSelect()
+	   {
+		   selectedKey.clear();
+		   selectedValue.clear();
+	   }
+
+	   cstr SelectedKey() const override
+	   {
+		   return selectedKey.empty() ? nullptr : selectedKey.c_str();
+	   }
+
+	   cstr SelectedValue() const override
+	   {
+		   return selectedValue.empty() ? nullptr : selectedValue.c_str();
+	   }
 
 	   void RenderStringList(IGuiRenderContext& gc, const GuiRect& absRect, int padding)
 	   {
@@ -317,15 +359,67 @@ namespace
 
 				   if (keyRect.top >= absRect.top)
 				   {
+					   RGBAb backColour = RGBAb(0, 0, 0, 192);
+
 					   GuiRect keyback{ keyRect.left, keyRect.top, keyRect.right, keyRect.top + span.y };
-					   Rococo::Graphics::DrawRectangle(gc, keyback, RGBAb(0, 0, 0, 192), RGBAb(0, 0, 0, 192));
+					  
+					   if (line.isSelectable)
+					   {
+						   if (IsPointInRect(metrics.cursorPosition, keyback))
+						   {
+							   backColour = RGBAb(32, 16, 16, 255);
+						   }
+
+						   if (!selectedKey.empty() && Eq(line.key, selectedKey.c_str()))
+						   {
+							   if (!selectedValue.empty() && Eq(line.value, selectedValue.c_str()))
+							   {
+								   backColour = RGBAb(64, 64, 64, 255);
+							   }
+						   }
+					   }
+
+					   Rococo::Graphics::DrawRectangle(gc, keyback, backColour, backColour);
 
 					   gc.RenderText(TopLeft(keyRect), job);
 
 					   auto& job2 = Rococo::Graphics::CreateLeftAlignedText(ssg, valueRect, 0, 0, fontIndex, line.value, valueColour);
 					   auto span2 = gc.EvalSpan({ 0,0 }, job);
+					  
 					   GuiRect valueback{ valueRect.left, valueRect.top, valueRect.left + span2.x + 4, valueRect.top + span2.y };
-					   Rococo::Graphics::DrawRectangle(gc, valueback, RGBAb(0, 0, 0, 192), RGBAb(0, 0, 0, 192));
+
+					   if (line.isSelectable)
+					   {
+						   if (IsPointInRect(metrics.cursorPosition, keyback) || IsPointInRect(metrics.cursorPosition, valueback))
+						   {
+							   backColour = RGBAb(32, 16, 16, 255);
+						   }
+
+						   if (!selectedKey.empty() && Eq(line.key, selectedKey.c_str()))
+						   {
+							   if (!selectedValue.empty() && Eq(line.value, selectedValue.c_str()))
+							   {
+								   backColour = RGBAb(64, 64, 64, 255);
+							   }
+						   }
+					   }
+					   Rococo::Graphics::DrawRectangle(gc, valueback, backColour, backColour);
+					   
+					   if (queueMouseUp && IsPointInRect(metrics.cursorPosition, valueback))
+					   {
+						   queueMouseUp = false;
+
+						   if (line.isSelectable)
+						   {
+							   selectedKey = line.key;
+							   selectedValue = line.value;
+						   }
+						   else
+						   {
+							   selectedKey.clear();
+							   selectedValue.clear();
+						   }
+					   }
 
 					   gc.RenderText(TopLeft(valueRect), job);
 					   dy = max(span2.y, span.y);

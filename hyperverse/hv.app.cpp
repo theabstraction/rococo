@@ -61,7 +61,7 @@ namespace HV
 
 		   editorPanel = e.platform.gui.BindPanelToScript("!scripts/panel.editor.sxy");
 		   fpsPanel = e.platform.gui.BindPanelToScript("!scripts/panel.fps.sxy");
-		   overlayPanel = e.platform.gui.BindPanelToScript("!scripts/panel.overlay.sxy");
+		   overlayPanel = e.platform.gui.CreateOverlay();
 
 		   e.platform.gui.PushTop(fpsPanel->Supervisor(), true);
 
@@ -93,9 +93,6 @@ namespace HV
 		   grc.Renderer().GetGuiMetrics(metrics);
 		   GuiRect fullScreen = { 0, 0, metrics.screenSpan.x, metrics.screenSpan.y };
 		   fpsPanel->Supervisor()->SetRect(fullScreen);
-
-
-		   overlayPanel->Supervisor()->SetRect(fullScreen);
 
 		   platform.gui.Render(grc);
 	   }
@@ -195,7 +192,7 @@ namespace HV
 
 	   void ActivateEditor()
 	   {
-		   if (!editorActive)
+		   if (!editorActive && !overlayActive)
 		   {
 			   if (e.platform.gui.Top() != editorPanel->Supervisor())
 			   {

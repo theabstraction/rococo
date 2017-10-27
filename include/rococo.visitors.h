@@ -67,6 +67,7 @@ namespace Rococo
 		virtual void ShowHex(VisitorName name, const int64 value) = 0;
 		virtual void ShowPointer(VisitorName name, const void* ptr) = 0;
 		virtual void ShowString(VisitorName name, cstr format, ...) = 0;
+		virtual void ShowSelectableString(VisitorName name, cstr format, ...) = 0;
 	};
 
 	ROCOCOAPI IMathsVenue

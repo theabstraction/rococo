@@ -451,15 +451,40 @@ namespace
 		   return &textureVenue;
 	   }
 
+	   struct TextureItem
+	   {
+		   ID_TEXTURE id;
+		   std::string name;
+
+		   bool operator < (const TextureItem& other)
+		   {
+			   return name < other.name;
+		   }
+	   };
+
+	   std::vector<TextureItem> orderedTextureList;
+
+
+
 	   void ShowTextureVenue(IMathsVisitor& visitor)
 	   {
-		   for (auto& t : mapNameToTexture)
+		   if (orderedTextureList.empty())
 		   {
-			   auto& tx = textures[t.second.value-1];
+			   for (auto& t : mapNameToTexture)
+			   {
+				   orderedTextureList.push_back({ t.second, t.first });
+			   }
+
+			   std::sort(orderedTextureList.begin(), orderedTextureList.end());
+		   }
+
+		   for (auto& t : orderedTextureList)
+		   {
+			   auto& tx = textures[t.id.value-1];
 
 			   D3D11_TEXTURE2D_DESC desc;
 			   tx.texture->GetDesc(&desc);
-			   visitor.ShowString(t.first.c_str(), " #%4llu - 0x%p. %d x %d texels. %d levels", t.second.value, (const void*) tx.texture, desc.Width, desc.Height, desc.MipLevels);
+			   visitor.ShowSelectableString(t.name.c_str(), " #%4llu - 0x%p. %d x %d texels. %d levels", t.id.value, (const void*) tx.texture, desc.Width, desc.Height, desc.MipLevels);
 		   }
 	   }
 
@@ -761,6 +786,9 @@ namespace
 
 		   auto id = ID_TEXTURE(textures.size());
 		   mapNameToTexture.insert(std::make_pair(uniqueName, id));
+
+		   orderedTextureList.clear();
+
 		   return id;
 	   }
 

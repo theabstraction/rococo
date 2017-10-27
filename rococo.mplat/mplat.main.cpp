@@ -163,32 +163,37 @@ public:
 	{
 		struct : IEventCallback<cstr>
 		{
-			rchar shortdir[IO::MAX_PATHLEN];
-			rchar directory[IO::MAX_PATHLEN];
-			IEventCallback<cstr>* cb;
-
+			std::vector<std::string> allResults;
 			virtual void OnEvent(cstr filename)
 			{
-				rchar contentRelativePath[IO::MAX_PATHLEN];
-				SafeFormat(contentRelativePath, IO::MAX_PATHLEN, "%s%s", shortdir, filename);
-				cb->OnEvent(contentRelativePath);
+				allResults.push_back(filename);
 			}
 		} onFileFound;
-
-		onFileFound.cb = &cb;
 
 		if (pingPathDirectory == nullptr || pingPathDirectory[0] != '!')
 		{
 			Throw(0, "Directories must be inside the content directory. Use the '!<directory>' notation");
 		}
 
-		StackStringBuilder sb(onFileFound.shortdir, _MAX_PATH);
+		rchar shortdir[IO::MAX_PATHLEN];
+		rchar directory[IO::MAX_PATHLEN];
+
+		StackStringBuilder sb(shortdir, _MAX_PATH);
 		sb << pingPathDirectory;
 
-		EndDirectoryWithSlash(onFileFound.shortdir, IO::MAX_PATHLEN);
+		EndDirectoryWithSlash(shortdir, IO::MAX_PATHLEN);
 
-		SafeFormat(onFileFound.directory, IO::MAX_PATHLEN, "%s%s", installation.Content(), (onFileFound.shortdir + 1));
-		IO::ForEachFileInDirectory(onFileFound.directory, onFileFound);
+		SafeFormat(directory, IO::MAX_PATHLEN, "%s%s", installation.Content(), (shortdir + 1));
+		IO::ForEachFileInDirectory(directory, onFileFound);
+
+		std::sort(onFileFound.allResults.begin(), onFileFound.allResults.end());
+
+		for (auto& s : onFileFound.allResults)
+		{
+			rchar contentRelativePath[IO::MAX_PATHLEN];
+			SafeFormat(contentRelativePath, IO::MAX_PATHLEN, "%s%s", shortdir, s.c_str());
+			cb.OnEvent(contentRelativePath);
+		}
 	}
 
 	bool QueryYesNo(Platform& platform, Windows::IWindow& parent, cstr question, cstr caption) override
@@ -459,6 +464,8 @@ public:
 	}
 
 	IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName) override;
+
+	IPaneBuilderSupervisor* CreateOverlay() override;
 };
 
 class BasePanel : public IPanelSupervisor
@@ -2316,6 +2323,320 @@ public:
 IPaneBuilderSupervisor* GuiStack::BindPanelToScript(cstr scriptName)
 {
    return new ScriptedPanel(*platform, scriptName);
+}
+
+struct PanelDelegate: public IPanelSupervisor
+{
+	IPaneBuilderSupervisor* current;
+
+	void Free() override
+	{
+		delete this;
+	}
+
+	bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+	{
+		return current->Supervisor()->AppendEvent(me, focusPoint, absTopLeft);
+	}
+
+	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
+	{
+		current->Supervisor()->AppendEvent(me, absTopLeft);
+	}
+
+	const GuiRect& ClientRect() const override
+	{
+		return current->Supervisor()->ClientRect();
+	}
+
+	void SetScheme(const ColourScheme& scheme) override
+	{
+		current->Supervisor()->SetScheme(scheme);
+	}
+
+	const ColourScheme& Scheme() const override
+	{
+		return current->Supervisor()->Scheme();
+	}
+
+	IPanelSupervisor* operator[](int index) override
+	{
+		return (*current->Supervisor())[index];
+	}
+
+	int Children() const override
+	{
+		return current->Supervisor()->Children();
+	}
+
+	void AddChild(IPanelSupervisor* child) override
+	{
+		return current->Supervisor()->AddChild(child);
+	}
+
+	void RemoveChild(IPanelSupervisor* child) override
+	{
+		current->Supervisor()->RemoveChild(child);
+	}
+
+	void FreeAllChildren() override
+	{
+		current->Supervisor()->FreeAllChildren();
+	}
+
+	void SetColourBk1(RGBAb normal, RGBAb hilight) override
+	{
+		return current->Supervisor()->SetColourBk1(normal, hilight);
+	}
+
+	void SetColourBk2(RGBAb normal, RGBAb hilight) override
+	{
+		return current->Supervisor()->SetColourBk2(normal, hilight);
+	}
+
+	void SetColourEdge1(RGBAb normal, RGBAb hilight) override
+	{
+		return  current->Supervisor()->SetColourEdge1(normal, hilight);
+	}
+
+	void SetColourEdge2(RGBAb normal, RGBAb hilight) override
+	{
+		return  current->Supervisor()->SetColourEdge2(normal, hilight);
+	}
+
+	void SetColourFont(RGBAb normal, RGBAb hilight) override
+	{
+		return  current->Supervisor()->SetColourFont(normal, hilight);
+	}
+
+	boolean32/* isVisible */ IsVisible() override
+	{
+		return  current->Supervisor()->IsVisible();
+	}
+
+	boolean32/* isNormalized */ IsNormalized() override
+	{
+		return  current->Supervisor()->IsNormalized();
+	}
+
+	void SetVisible(boolean32 isVisible) override
+	{
+		return  current->Supervisor()->SetVisible(isVisible);
+	}
+
+	void GetRect(GuiRect& rect) override
+	{
+		return  current->Supervisor()->GetRect(rect);
+	}
+
+	void SetRect(const GuiRect& rect) override
+	{
+		return  current->Supervisor()->SetRect(rect);
+	}
+
+	void AlignLeftEdges(int32 x, boolean32 preserveSpan) override
+	{
+		return  current->Supervisor()->AlignLeftEdges(x, preserveSpan);
+	}
+
+	void AlignRightEdges(int32 x, boolean32 preserveSpan) override
+	{
+		return  current->Supervisor()->AlignRightEdges(x, preserveSpan);
+	}
+
+	void LayoutVertically(int32 vertBorder, int32 vertSpacing) override
+	{
+		return  current->Supervisor()->LayoutVertically(vertBorder, vertSpacing);
+	}
+
+	void SetCommand(int32 stateIndex, boolean32 deferAction, const fstring& text) override
+	{
+		return  current->Supervisor()->SetCommand(stateIndex, deferAction, text);
+	}
+
+	void SetPopulator(int32 stateIndex, const fstring& populatorName) override
+	{
+		return  current->Supervisor()->SetPopulator(stateIndex, populatorName);
+	}
+
+	void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
+	{
+		return current->Render(grc, topLeft, modality);
+	}
+
+	IPaneContainer* Root()
+	{
+		return current->Root();
+	}
+};
+
+IPaneBuilderSupervisor* GuiStack::CreateOverlay()
+{
+	struct OverlayPanel: public IPaneBuilderSupervisor, PanelDelegate, public IUIElement, public IObserver
+	{
+		struct ANON: public IUIElement
+		{
+			Platform& platform;
+			ANON(Platform& _platform) : platform(_platform) {}
+
+			virtual bool OnKeyboardEvent(const KeyboardEvent& key)
+			{
+				return false;
+			}
+
+			virtual void OnRawMouseEvent(const MouseEvent& ev)
+			{
+
+			}
+
+			virtual void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)
+			{
+
+			}
+
+			virtual void OnMouseLClick(Vec2i cursorPos, bool clickedDown)
+			{
+				if (!clickedDown)
+				{
+					platform.mathsVisitor.CancelSelect();
+				}
+			}
+
+			virtual void OnMouseRClick(Vec2i cursorPos, bool clickedDown)
+			{
+				if (!clickedDown)
+				{
+					platform.mathsVisitor.CancelSelect();
+				}
+			}
+
+			virtual void Render(IGuiRenderContext& rc, const GuiRect& absRect)
+			{
+				
+			}
+		} textureCancel;
+
+		AutoFree<IPaneBuilderSupervisor> tabbedPanel;
+		AutoFree<IPaneBuilderSupervisor> txFocusPanel;
+		Platform& platform;
+		EventId stnId = "selected.texture.name"_event;
+
+		OverlayPanel(Platform& _platform) :
+			platform(_platform),
+			textureCancel(_platform),
+			tabbedPanel(new ScriptedPanel(_platform, "!scripts/panel.overlay.sxy")),
+			txFocusPanel(new ScriptedPanel(_platform, "!scripts/panel.texture.sxy"))
+		{
+			current = tabbedPanel;
+			platform.gui.RegisterPopulator("texture_view", this);
+			platform.gui.RegisterPopulator("texture_cancel", &textureCancel);
+			platform.publisher.Attach(this, "selected.texture.name"_event);
+		}
+
+		~OverlayPanel()
+		{
+			platform.gui.UnregisterPopulator(&textureCancel);
+			platform.gui.UnregisterPopulator(this);
+			platform.publisher.Detach(this);
+		}
+
+		void OnEvent(Event& ev) override
+		{
+			if (ev.id == stnId)
+			{
+				auto& toe = As<TextOutputEvent>(ev);
+				if (toe.isGetting)
+				{
+					auto* key = platform.mathsVisitor.SelectedKey();
+					if (key)
+					{
+						SafeFormat(toe.text, sizeof(toe.text), "%s", key);
+					}
+				}
+			}
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		virtual bool OnKeyboardEvent(const KeyboardEvent& key)
+		{
+			return false;
+		}
+
+		virtual void OnRawMouseEvent(const MouseEvent& ev)
+		{
+
+		}
+
+		virtual void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)
+		{
+
+		}
+
+		virtual void OnMouseLClick(Vec2i cursorPos, bool clickedDown)
+		{
+
+		}
+
+		virtual void OnMouseRClick(Vec2i cursorPos, bool clickedDown)
+		{
+
+		}
+
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& absRect)
+		{
+			auto* key = platform.mathsVisitor.SelectedKey();
+			if (key)
+			{
+				auto* ext = Rococo::GetFileExtension(key);
+				if (*key == '!')
+				{
+					if (Eq(ext, ".jpg") || Eq(ext, ".jpeg") || Eq(ext, ".tif") || Eq(ext, ".tiff"))
+					{
+						auto id = platform.instances.ReadyTexture(key);
+						Graphics::RenderBitmap_ShrinkAndPreserveAspectRatio(rc, id, absRect);
+					}
+				}
+			}
+		}
+
+		void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
+		{
+			auto* key = platform.mathsVisitor.SelectedKey();
+			auto* value = platform.mathsVisitor.SelectedValue();
+
+			if (key != nullptr)
+			{
+				current = txFocusPanel;
+			}
+			else
+			{
+				current = tabbedPanel;
+			}
+
+			GuiMetrics metrics;
+			grc.Renderer().GetGuiMetrics(metrics);
+
+			GuiRect fullScreen = { 0, 0, metrics.screenSpan.x, metrics.screenSpan.y };
+			SetRect(fullScreen);
+
+			return current->Render(grc, topLeft, modality);
+		}
+
+		IPanelSupervisor* Supervisor() override
+		{
+			return this;
+		}
+
+		virtual Rococo::IPaneContainer* Root()
+		{
+			return PanelDelegate::Root();
+		}
+	};
+	return new OverlayPanel(*platform);
 }
 
 namespace Rococo
