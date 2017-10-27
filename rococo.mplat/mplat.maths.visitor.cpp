@@ -203,9 +203,12 @@ namespace
 		   delete this;
 	   }
 
-	   void OnEvent(Events::ScrollEvent& ev)
+	   void OnEvent(Events::ScrollEvent& se)
 	   {
-
+		   if (se.fromScrollbar)
+		   {
+			   pos = se.logicalValue;
+		   }
 	   }
 
 	   bool AppendKeyboardEvent(const KeyboardEvent& key) override
