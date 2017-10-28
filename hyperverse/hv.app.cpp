@@ -87,6 +87,16 @@ namespace HV
 		   }
 	   }
 
+	   const Light* GetLights(size_t& nLights) const
+	   {
+		   return e.platform.scene.GetLights(nLights);
+	   }
+
+	   void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc)
+	   {
+		   return e.platform.scene.RenderShadowPass(drd, rc);
+	   }
+
 	   void RenderGui(IGuiRenderContext& grc) override
 	   {
 		   GuiMetrics metrics;

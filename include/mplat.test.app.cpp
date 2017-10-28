@@ -109,6 +109,12 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
       return RGBA(0.0f, 0.0f, 0.0f, 1.0f);
    }
 
+   const Light* GetLights(size_t& nLights) const override
+   {
+	   nLights = 0;
+	   return nullptr;
+   }
+
    void RenderGui(IGuiRenderContext& grc) override
    {
       using namespace Graphics;
@@ -134,6 +140,11 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
    void RenderObjects(IRenderContext& rc) override
    {
          
+   }
+
+   void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc) override
+   {
+
    }
 
    void OnCommandQuit(cstr uiCommand)

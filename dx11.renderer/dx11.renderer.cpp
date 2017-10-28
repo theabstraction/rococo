@@ -984,18 +984,12 @@ namespace
 
 		   if (vs.vs == nullptr)
 		   {
-			   if (lastError[0] == 0)
-			   {
-				   SafeFormat(lastError, sizeof(lastError), "Vertex Shader null for %s", vs.name.c_str());
-			   }
+			   Throw(0, "Vertex Shader null for %s", vs.name.c_str());
 		   }
 
 		   if (ps.ps == nullptr)
 		   {
-			   if (lastError[0] == 0)
-			   {
-				   SafeFormat(lastError, sizeof(lastError), "Pixel Shader null for %s", ps.name.c_str());
-			   }
+			   Throw(0, "Pixel Shader null for %s", ps.name.c_str());
 		   }
 
 		   if (vs.vs == nullptr || ps.ps == nullptr)
@@ -1176,6 +1170,11 @@ namespace
 	   int64 presentCost = 0;
 	   int64 frameTime = 0;
 
+	   void SetLight(const Light& light)
+	   {
+
+	   }
+
 	   virtual void Render(IScene& scene)
 	   {
 		   auto now = OS::CpuTicks();
@@ -1192,41 +1191,43 @@ namespace
 		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
 		   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
 
-		   if (UseShaders(idObjVS, idObjPS))
+		   RGBA clearColour = scene.GetClearColour();
+		   if (clearColour.alpha > 0)
 		   {
+			   dc.ClearRenderTargetView(mainBackBufferView, (const FLOAT*)&clearColour);
+		   }
+
+		   now = OS::CpuTicks();
+
+		   size_t nLights = 0;
+		   const Light* lights = scene.GetLights(nLights);
+		   for (size_t i = 0; i < nLights; ++i)
+		   {
+			   UseShaders(idObjVS, idObjPS);
+
+			   SetLight(lights[i]);
+
+			   DepthRenderData drd;
+			   scene.RenderShadowPass(drd, *this);
+
+			   UseShaders(idObjVS, idObjPS);
+
 			   dc.PSSetSamplers(0, 1, &objectSampler);
 			   dc.RSSetState(objectRaterizering);
 			   dc.OMSetDepthStencilState(objDepthState, 0);
 
-			   RGBA clearColour = scene.GetClearColour();
-			   if (clearColour.alpha > 0)
-			   {
-				   dc.ClearRenderTargetView(mainBackBufferView, (const FLOAT*)&clearColour);
-			   }
-		   
-			   now = OS::CpuTicks();
-
 			   scene.RenderObjects(*this);
-
-			   objCost = OS::CpuTicks() - now;
-
-			   now = OS::CpuTicks();
-
-			   scene.RenderGui(*this);
-
-			   for (auto& o : overlays)
-			   {
-				   o.overlay->Render(*this);
-			   }
 		   }
-		   else
-		   {
-			   FLOAT errorColour[4] = { 0.25f, 0.0f, 0.0f, 1.0f };
-			   dc.ClearRenderTargetView(mainBackBufferView, errorColour);
-			   Graphics::RenderTopLeftAlignedText(*this, lastError, RGBAb(255, 255, 255, 255), 8, { 0,0 });
 
-			   now = OS::CpuTicks();
-			   objCost = 0;
+		   objCost = OS::CpuTicks() - now;
+
+		   now = OS::CpuTicks();
+
+		   scene.RenderGui(*this);
+
+		   for (auto& o : overlays)
+		   {
+			   o.overlay->Render(*this);
 		   }
 
 		   FlushLayer();

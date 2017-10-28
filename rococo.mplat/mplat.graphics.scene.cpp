@@ -22,6 +22,8 @@ namespace
 
       RGBA clearColour{ 0,0,0,1 };
 
+	  Light lights[2] = { 0 };
+
    public:
       Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera) :
          instances(_instances), camera(_camera)
@@ -36,6 +38,17 @@ namespace
       {
       }
 
+	  virtual const Light* GetLights(size_t& nCount) const
+	  {
+		  nCount = 2;
+		  return lights;
+	  }
+
+	  virtual void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc)
+	  {
+
+	  }
+
       virtual void SetClearColour(float32 red, float32 green, float32 blue, float alpha)
       {
          clearColour.red = red;
@@ -46,12 +59,19 @@ namespace
 
 	  virtual void SetLight(const Vec3& dir, const Vec3& pos, int index)
 	  {
-		  if (index < 0 || index >= (sizeof(GlobalState::lights) / sizeof(GlobalLight)))
+		  if (index < 0 || index >= 2)
 		  {
-			  Throw(0, "Bad light index %d. Domain is [0,%d]", index, (sizeof(GlobalState::lights) / sizeof(GlobalLight)));
+			  // Not enough lights, and so since index represents priority, it is silently dropped
+			  return;
 		  }
 
 		  state.lights[index] = GlobalLight{ Vec4 { dir.x, dir.y, dir.z, 0}, Vec4 {pos.x, pos.y, pos.z, 1.0f }  };
+
+		  lights[index].colour = RGBAb(255, 255, 255);
+		  lights[index].direction = dir;
+		  lights[index].fov = 90_degrees;
+		  lights[index].intensity = 1.0f;
+		  lights[index].position = pos;
       }
 
       virtual void Free()

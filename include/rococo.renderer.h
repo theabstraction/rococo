@@ -95,11 +95,35 @@ namespace Rococo
 	   virtual void Render(IGuiRenderContext& gc) = 0;
 	};
 
+	struct Light
+	{
+		Vec3 position;
+		Vec3 direction;
+		float intensity;
+		RGBAb colour;
+		Degrees fov;
+	};
+
+	struct DepthRenderData
+	{
+		Matrix4x4 worldToCamera;
+		Matrix4x4 worldToScreen;
+		Vec3 eye;
+		Vec3 direction;
+		Vec3 right;
+		Vec3 up;
+		float nearPlane;
+		float farPlane;
+		Degrees fov;
+	};
+
 	ROCOCOAPI IScene
 	{
 		virtual RGBA GetClearColour() const = 0;
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
-		virtual void RenderObjects(IRenderContext& rc) = 0;
+		virtual void RenderObjects(IRenderContext& rc) = 0; // Do not change lights from here
+		virtual const Light* GetLights(size_t& nCount) const = 0;	// Called prior to the shadow pass. 
+		virtual void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc) = 0; // Do not change lights from here
 	};
 
 	ROCOCOAPI IApp
