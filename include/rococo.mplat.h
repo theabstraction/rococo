@@ -91,42 +91,54 @@ namespace Rococo
 
    namespace Graphics
    {
-      ROCOCOAPI IMeshBuilderSupervisor : public IMeshBuilder
-      {
-         virtual void Free() = 0;
-         virtual bool TryGetByName(cstr name, ID_SYS_MESH& id) = 0;
-		 virtual IMathsVenue* Venue() = 0;
-      };
+	   ROCOCOAPI IMeshBuilderSupervisor : public IMeshBuilder
+	   {
+		  virtual void Free() = 0;
+		  virtual bool TryGetByName(cstr name, ID_SYS_MESH& id) = 0;
+		  virtual IMathsVenue* Venue() = 0;
+	   };
 
-      ROCOCOAPI ICameraSupervisor : public ICamera
-      {
-         virtual void ElevateView(ID_ENTITY entityId, Degrees delta, cr_vec3 relativePos) = 0;
-         virtual void Free() = 0;
-         virtual void Update(const IUltraClock& clock) = 0;
-         virtual IMathsVenue& Venue() = 0;
-      };
+	   ROCOCOAPI ICameraSupervisor : public ICamera
+	   {
+		  virtual void ElevateView(ID_ENTITY entityId, Degrees delta, cr_vec3 relativePos) = 0;
+		  virtual void Free() = 0;
+		  virtual void Update(const IUltraClock& clock) = 0;
+		  virtual IMathsVenue& Venue() = 0;
+	   };
 
-      ICameraSupervisor* CreateCamera(Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& renderer);
+	   ICameraSupervisor* CreateCamera(Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& renderer);
 
-      ROCOCOAPI ISceneBuilderSupervisor : public ISceneBuilder
-      {
-         virtual void Free() = 0;
-      };
+	   ROCOCOAPI IScenePopulator
+	   {
+			// Called to trigger scene population prior to shadow generation
+			// DO NOT SET LIGHTS here, as it was the light array that caused this function to be called
+			virtual void PopulateShadowCasters(ISceneBuilder& sb, const DepthRenderData& drd) = 0;
 
-      ROCOCOAPI ISceneSupervisor : public IScene
-      {
-         virtual void Free() = 0;
-         virtual ISceneBuilderSupervisor&  Builder() = 0;
-      };
+			// Called to trigger scene population prior to rendering
+			// DO NOT SET LIGHTS here, as it was the light array that caused this function to be called
+			virtual void PopulateScene(ISceneBuilder& sb) = 0;
+	   };
 
-      ISceneSupervisor* CreateScene(Rococo::Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera);
+	   ROCOCOAPI ISceneBuilderSupervisor : public ISceneBuilder
+	   {
+		  virtual void Free() = 0;
+	   };
 
-      ROCOCOAPI ISpriteSupervisor : public ISprites
-      {
-         virtual void Free() = 0;
-      };
+	   ROCOCOAPI ISceneSupervisor : public IScene
+	   {
+		  virtual void Free() = 0;
+		  virtual ISceneBuilderSupervisor&  Builder() = 0;
+		  virtual void SetPopulator(IScenePopulator* populator) = 0;
+	   };
 
-      ISpriteSupervisor* CreateSpriteSupervisor(IRenderer & renderer);
+	   ISceneSupervisor* CreateScene(Rococo::Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera);
+
+	   ROCOCOAPI ISpriteSupervisor : public ISprites
+	   {
+		  virtual void Free() = 0;
+	   };
+
+	   ISpriteSupervisor* CreateSpriteSupervisor(IRenderer & renderer);
    }
 
    namespace Entities

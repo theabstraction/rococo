@@ -24,7 +24,7 @@ namespace Rococo
 	   float Dy = direction.y;
 	   float Dx = direction.x;
 
-	   float DS = Sq(Dx) + Sq(Dy);
+	   float DS = sqrtf(Sq(Dx) + Sq(Dy));
 
 	   Matrix4x4 rotZ;
 
@@ -47,7 +47,7 @@ namespace Rococo
 	   }
 
 	   float cP = direction.z;
-	   float sP = 1 - Sq(cP);
+	   float sP = sqrtf(1 - Sq(cP));
 
 	   Matrix4x4 rotY
 	   {

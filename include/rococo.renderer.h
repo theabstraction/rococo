@@ -106,7 +106,7 @@ namespace Rococo
 		Metres farPlane;
 	};
 
-	struct DepthRenderData
+	struct DepthRenderData // N.B if size is not multiple of 16 bytes this will crash DX11 renderer
 	{
 		Matrix4x4 worldToCamera;
 		Matrix4x4 worldToScreen;
@@ -117,6 +117,7 @@ namespace Rococo
 		float nearPlane;
 		float farPlane;
 		Radians fov;
+		float unused;
 	};
 
 	ROCOCOAPI IScene

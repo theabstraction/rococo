@@ -8,6 +8,7 @@ using namespace HV::Events;
 using namespace HV::Events::Player;
 
 using namespace Rococo::Entities;
+using namespace Rococo::Graphics;
 
 class FPSControl
 {
@@ -125,7 +126,7 @@ std::unordered_map<std::string, FPSControl::ACTION_FUNCTION> FPSControl::nameToA
    { "move.fps.autorun",         &FPSControl::OnAutoRun }
 };
 
-struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
+struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public IScenePopulator
 {
 	Cosmos& e;
 
@@ -136,11 +137,14 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 	FPSGameLogic(Cosmos& _e) : e(_e)
 	{
 		fpsControl.speeds = Vec3{ 10.0f, 5.0f, 5.0f };
+
+		e.platform.scene.SetPopulator(this);
 	}
 
 	~FPSGameLogic()
 	{
 		e.platform.gui.UnregisterPopulator(this);
+		e.platform.scene.SetPopulator(nullptr);
 	}
 
 	void Activate()
@@ -167,26 +171,38 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 		delete this;
 	}
 
-	void PopulateScene()
+	struct SectorToScene : public IEventCallback<VisibleSector>, public IEventCallback<const ID_ENTITY>
 	{
-		e.platform.scene.Builder().Clear();
+		ISceneBuilder& builder;
 
-		struct ANON : public IEventCallback<VisibleSector>, public IEventCallback<const ID_ENTITY>
+		virtual void OnEvent(const ID_ENTITY& id)
 		{
-			Rococo::Graphics::ISceneBuilderSupervisor& builder;
+			builder.AddStatics(id);
+		}
 
-			virtual void OnEvent(const ID_ENTITY& id)
-			{
-				builder.AddStatics(id);
-			}
+		virtual void OnEvent(VisibleSector& sv)
+		{
+			sv.sector.ForEveryObjectInSector(*this);
+		}
 
-			virtual void OnEvent(VisibleSector& sv)
-			{
-				sv.sector.ForEveryObjectInSector(*this);		
-			}
+		SectorToScene(ISceneBuilder& _builder) : builder(_builder) {}
+	};
 
-			ANON(Rococo::Graphics::ISceneBuilderSupervisor& _builder) : builder(_builder) {}
-		} addToScene(e.platform.scene.Builder());
+	virtual void PopulateShadowCasters(ISceneBuilder& sb, const DepthRenderData& drd)  override
+	{
+		sb.Clear();
+
+		SectorToScene addToScene(sb);
+		auto nSectors = e.sectors.ForEverySectorVisibleBy(drd.worldToScreen, drd.eye, drd.direction, addToScene);
+		if (nSectors == 0)
+		{
+			// Nothing rendered
+		}
+	}
+
+	void PopulateScene(ISceneBuilder& sb) override
+	{
+		sb.Clear();
 
 		Vec3 eye;
 		e.platform.camera.GetPosition(eye);
@@ -199,6 +215,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 
 		Vec3 dir{ -world.row2.x, -world.row2.y, -world.row2.z };
 
+		SectorToScene addToScene(sb);
 		auto nSectors = e.sectors.ForEverySectorVisibleBy(camera, eye, dir, addToScene);
 		if (nSectors == 0)
 		{
@@ -711,13 +728,11 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 
 		e.platform.camera.ElevateView(id, viewElevationDelta, playerPosToCamera);
 
-		PopulateScene();
-
 		Matrix4x4 m;
 		e.platform.camera.GetWorld(m);
 		Vec3 dir{ m.row0.z, m.row1.z, m.row2.z };
 		e.platform.scene.Builder().SetLight(dir, final + playerPosToCamera, 0);
-		e.platform.scene.Builder().SetLight(Vec3{ 1,0,0 }, Vec3{ 0, 0, 0.5f }, 1);
+		e.platform.scene.Builder().SetLight(Vec3{ 0, 0, 0 }, Vec3{ 0, 0, 0 }, 1);
 	}
 
 	void UpdateAI(const IUltraClock& clock) override

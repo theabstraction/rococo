@@ -24,6 +24,7 @@ namespace
 
 	  Light lights[2] = { 0 };
 
+	  IScenePopulator* populator = nullptr;
    public:
       Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera) :
          instances(_instances), camera(_camera)
@@ -38,15 +39,52 @@ namespace
       {
       }
 
-	  virtual const Light* GetLights(size_t& nCount) const
+	  const Light* GetLights(size_t& nCount) const override
 	  {
 		  nCount = 2;
 		  return lights;
 	  }
 
-	  virtual void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc)
+	  void SetPopulator(IScenePopulator* populator) override
 	  {
+		  this->populator = populator;
+	  }
 
+	  void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc) override
+	  {
+		  if (populator)
+		  {
+			  populator->PopulateShadowCasters(*this, drd);
+		  }
+
+		  drawQueue.clear();
+
+		  ID_SYS_MESH meshId;
+
+		  for (auto i : entities)
+		  {
+			  IEntity* entity = instances.GetEntity(i);
+			  if (!entity)
+			  {
+				  Throw(0, "Unexpected missing entity");
+			  }
+
+			  if (!entity->TextureId())
+			  {
+				  continue;
+			  }
+
+			  if (entity->MeshId() != meshId)
+			  {
+				  FlushDrawQueue_NoTexture(meshId, rc);
+				  meshId = entity->MeshId();
+			  }
+
+			  ObjectInstance instance{ entity->Model(), RGBA(0, 0, 0, 0) };
+			  drawQueue.push_back(instance);
+		  }
+
+		  FlushDrawQueue_NoTexture(meshId, rc);
 	  }
 
       virtual void SetClearColour(float32 red, float32 green, float32 blue, float alpha)
@@ -108,8 +146,20 @@ namespace
          drawQueue.clear();
       }
 
+	  void FlushDrawQueue_NoTexture(ID_SYS_MESH meshId , IRenderContext& rc)
+	  {
+		  if (drawQueue.empty()) return;
+		  rc.Draw(meshId, &drawQueue[0], (uint32)drawQueue.size());
+		  drawQueue.clear();
+	  }
+
       virtual void RenderObjects(IRenderContext& rc)
       {
+		  if (populator)
+		  {
+			  populator->PopulateScene(*this);
+		  }
+
          drawQueue.clear();
 
          camera.GetWorld(state.worldMatrix);

@@ -262,58 +262,14 @@ namespace
 
 	   drd.eye = light.position;
 	   drd.fov = light.fov;
-	  
-	   Matrix4x4 r_2_l
-	   {
-		   {1, 0, 0, 0},
-		   {0, 1, 0, 0},
-		   {0, 0,-1, 0},
-		   {0, 0, 0, 1}
-	   };
 
-	   float Dy = drd.direction.y;
-	   float Dx = drd.direction.x;
-
-	   float DS = Sq(Dx) + Sq(Dy);
-
-	   Matrix4x4 rotZ;
-
-	   if (DS < 0.0003f)
-	   {
-		   rotZ = Matrix4x4::Identity();
-	   }
-	   else
-	   {
-		   float cT = Dx / DS;
-		   float sT = -Dy / DS;
-		   // Rotate direction onto x axis
-		   rotZ =
-		   {
-			   { cT, -sT,     0,       0},
-			   { sT,  cT,     0,       0},
-			   { 0,    0,     1,       0},
-			   { 0,    0,     0,       1}
-		   };
-	   }
-
-	   float cP = drd.direction.z;
-	   float sP = 1 - Sq(cP);
-
-	   Matrix4x4 rotY
-	   {
-		   { cP,  0, -sP, 0 },
-		   { 0,   1,   0, 0 },
-		   { sP,  0,  cP, 0 },
-		   {  0,  0,   0, 1 }
-	   };
-
-	   Matrix4x4 directionToCameraRot = rotY * rotZ;
+	   Matrix4x4 directionToCameraRot = RotateDirectionToZ(drd.direction);
 
 	   Matrix4x4 cameraToDirectionRot = TransposeMatrix(directionToCameraRot);
 	   TransformNormal(cameraToDirectionRot, { 1, 0, 0 }, drd.right);
-	   TransformNormal(cameraToDirectionRot, { 0, 1, 0 }, drd.up);
+	   TransformNormal(cameraToDirectionRot, { 0, -1, 0 }, drd.up);
 
-	   Vec3 normal = Cross(drd.right, drd.up);
+	   Vec3 normal = Cross(drd.right, -drd.up);
 	   Vec3 dN = drd.direction - normal;
 
 	   float DN = Length(dN);
@@ -327,9 +283,17 @@ namespace
 	   drd.nearPlane = light.nearPlane;
 	   drd.farPlane = light.farPlane;
 
+	   Matrix4x4 flipVertical
+	   {
+		   { 1,  0,  0, 0 },
+		   { 0, -1,  0, 0 },
+		   { 0,  0,  1, 0 },
+		   { 0,  0,  0, 1 }
+	   };
+
 	   Matrix4x4 cameraToScreen = Matrix4x4::GetRHProjectionMatrix(light.fov, 1.0f, drd.nearPlane, drd.farPlane);
 
-	   drd.worldToScreen = cameraToScreen * drd.worldToCamera;
+	   drd.worldToScreen = cameraToScreen * flipVertical * drd.worldToCamera;
 
 	   return true;
    }
@@ -357,6 +321,12 @@ namespace
 	   AutoRelease<ID3D11RenderTargetView> mainBackBufferView;
 	   AutoRelease<ID3D11DepthStencilView> depthStencilView;
 
+	   // Shadows
+	   AutoRelease<ID3D11Texture2D> shadowBuffer;
+	   AutoRelease<ID3D11RenderTargetView> shadowBufferView;
+	   AutoRelease<ID3D11Texture2D> shadowDepthStencilTexture;
+	   AutoRelease<ID3D11DepthStencilView> shadowDepthStencilView;
+
 	   std::vector<DX11VertexShader*> vertexShaders;
 	   std::vector<DX11PixelShader*> pixelShaders;
 	   AutoRelease<ID3D11Buffer> guiBuffer;
@@ -380,6 +350,9 @@ namespace
 	   AutoRelease<ID3D11Buffer> vs_globalStateBuffer;
 	   AutoRelease<ID3D11Buffer> ps_globalStateBuffer;
 
+	   AutoRelease<ID3D11Buffer> vs_ShadowStateBuffer;
+	   AutoRelease<ID3D11Buffer> ps_ShadowStateBuffer;
+
 	   RAWMOUSE lastMouseEvent;
 	   Vec2i screenSpan;
 
@@ -391,6 +364,9 @@ namespace
 	   ID_VERTEX_SHADER idObjVS;
 	   ID_PIXEL_SHADER idObjPS;
 	   ID_PIXEL_SHADER idObjDepthPS;
+
+	   ID_VERTEX_SHADER idObjVS_Shadows;
+	   ID_PIXEL_SHADER idObjPS_Shadows;
 
 	   ID_VERTEX_SHADER idSpriteVS;
 	   ID_PIXEL_SHADER idSpritePS;
@@ -463,6 +439,9 @@ namespace
 		   vs_globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
 		   ps_globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
 
+		   vs_ShadowStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
+		   ps_ShadowStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
+
 		   installation.LoadResource("!gui.vs", *scratchBuffer, 64_kilobytes);
 		   idGuiVS = CreateGuiVertexShader("!gui.vs", scratchBuffer->GetData(), scratchBuffer->Length());
 
@@ -474,6 +453,12 @@ namespace
 
 		   installation.LoadResource("!object.ps", *scratchBuffer, 64_kilobytes);
 		   idObjPS = CreatePixelShader("!object.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!shadow.vs", *scratchBuffer, 64_kilobytes);
+		   idObjVS_Shadows = CreateObjectVertexShader("!shadow.vs", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!shadow.ps", *scratchBuffer, 64_kilobytes);
+		   idObjPS_Shadows = CreatePixelShader("!shadow.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
 		   installation.LoadResource("!depth.ps", *scratchBuffer, 64_kilobytes);
 		   idObjDepthPS = CreatePixelShader("!depth.ps", scratchBuffer->GetData(), scratchBuffer->Length());
@@ -933,6 +918,25 @@ namespace
 		   VALIDATEDX11(device.CreateTexture2D(&depthDesc, nullptr, &depthBuffer));
 		   VALIDATEDX11(device.CreateDepthStencilView(depthBuffer, nullptr, &depthStencilView));
 
+		   D3D11_TEXTURE2D_DESC shadowBufferDesc = { 0 };
+		   shadowBufferDesc.MipLevels = 1;
+		   shadowBufferDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		   shadowBufferDesc.Height = 1024;
+		   shadowBufferDesc.Width = 1024;
+		   shadowBufferDesc.ArraySize = 1;
+		   shadowBufferDesc.SampleDesc.Count = 1;
+		   shadowBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		   shadowBufferDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+
+		   VALIDATEDX11(device.CreateTexture2D(&shadowBufferDesc, nullptr, &shadowBuffer));
+		   VALIDATEDX11(device.CreateRenderTargetView(shadowBuffer, nullptr, &shadowBufferView));
+
+		   depthDesc.Width = shadowBufferDesc.Width;
+		   depthDesc.Height = shadowBufferDesc.Height;
+
+		   VALIDATEDX11(device.CreateTexture2D(&depthDesc, nullptr, &shadowDepthStencilTexture));
+		   VALIDATEDX11(device.CreateDepthStencilView(shadowDepthStencilTexture, nullptr, &shadowDepthStencilView));
+
 		   SyncViewport();
 	   }
 
@@ -1273,26 +1277,38 @@ namespace
 
 		   now = OS::CpuTicks();
 
+		   dc.PSSetSamplers(0, 1, &objectSampler);
+		   dc.RSSetState(objectRaterizering);
+		   dc.OMSetDepthStencilState(objDepthState, 0);
+
 		   size_t nLights = 0;
 		   const Light* lights = scene.GetLights(nLights);
 		   for (size_t i = 0; i < nLights; ++i)
 		   {
-			   UseShaders(idObjVS, idObjPS);
-
 			   DepthRenderData drd;
 			   if (PrepareDepthRenderFromLight(lights[i], drd))
 			   {
+				   dc.OMSetRenderTargets(1, &shadowBufferView, shadowDepthStencilView);
+
+				   UseShaders(idObjVS_Shadows, idObjPS_Shadows);
+
+				   DX11::CopyStructureToBuffer(dc, vs_ShadowStateBuffer, drd);
+				   dc.VSSetConstantBuffers(0, 1, &vs_ShadowStateBuffer);
+
+				   DX11::CopyStructureToBuffer(dc, ps_ShadowStateBuffer, drd);
+				   dc.PSSetConstantBuffers(0, 1, &ps_ShadowStateBuffer);
+
 				   scene.RenderShadowPass(drd, *this);
 
 				   UseShaders(idObjVS, idObjPS);
 
-				   dc.PSSetSamplers(0, 1, &objectSampler);
-				   dc.RSSetState(objectRaterizering);
-				   dc.OMSetDepthStencilState(objDepthState, 0);
+				   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
 
 				   scene.RenderObjects(*this);
 			   }
 		   }
+
+		   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
 
 		   objCost = OS::CpuTicks() - now;
 

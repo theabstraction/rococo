@@ -7,9 +7,9 @@
     <FxCompile Include="depth.ps.hlsl" />
     <FxCompile Include="sprite.ps.hlsl" />
     <FxCompile Include="sprite.vs..hlsl" />
-    <FxCompile Include="gui.ps.hlsl">
-      <Filter>Sources</Filter>
-    </FxCompile>
+    <FxCompile Include="gui.ps.hlsl" />
+    <FxCompile Include="shadow.vs.hlsl" />
+    <FxCompile Include="shadow.ps.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bitmap.cache.cpp">
@@ -52,13 +52,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\rococo.os.win32\rococo.ultraclock.inl">
-      <Filter>Sources</Filter>
-    </None>
     <None Include="dx11helpers.inl">
       <Filter>Headers</Filter>
     </None>
     <None Include="dx11buffers.inl">
+      <Filter>Headers</Filter>
+    </None>
+    <None Include="..\rococo.os.win32\rococo.ultraclock.inl">
       <Filter>Headers</Filter>
     </None>
   </ItemGroup>
