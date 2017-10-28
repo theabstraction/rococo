@@ -102,6 +102,8 @@ namespace Rococo
 		float intensity;
 		RGBAb colour;
 		Degrees fov;
+		Metres nearPlane;
+		Metres farPlane;
 	};
 
 	struct DepthRenderData
@@ -114,7 +116,7 @@ namespace Rococo
 		Vec3 up;
 		float nearPlane;
 		float farPlane;
-		Degrees fov;
+		Radians fov;
 	};
 
 	ROCOCOAPI IScene

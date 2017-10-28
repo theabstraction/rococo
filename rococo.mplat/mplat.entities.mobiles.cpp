@@ -26,12 +26,12 @@ namespace
          if (i != mapIdToAngles.end())
          {
             auto& angles = i->second;
-            angles.elevation.quantity += fmodf(tmm.delta.elevation, 360.0f);
-            angles.heading.quantity += fmodf(tmm.delta.heading, 360.0f);
-            angles.tilt.quantity += tmm.delta.tilt;
+            angles.elevation.degrees += fmodf(tmm.delta.elevation, 360.0f);
+            angles.heading.degrees += fmodf(tmm.delta.heading, 360.0f);
+            angles.tilt.degrees += tmm.delta.tilt;
 
-            if (angles.tilt.quantity < -90.0f) angles.tilt.quantity = -90.0f;
-            if (angles.tilt.quantity > 90.0f) angles.tilt.quantity = 90.0f;
+            if (angles.tilt.degrees < -90.0f) angles.tilt.degrees = -90.0f;
+            if (angles.tilt.degrees > 90.0f) angles.tilt.degrees = 90.0f;
 
             auto* entity = instances.GetEntity(tmm.entityId);
             if (!entity)
@@ -42,7 +42,7 @@ namespace
             auto& modelRef = entity->Model();
             Vec3 pos = modelRef.GetPosition();
 
-            Matrix4x4 model = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ - angles.heading.quantity });
+            Matrix4x4 model = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ - angles.heading.degrees });
 
             auto forward = model.GetForwardDirection();
             auto right = model.GetRightDirection();

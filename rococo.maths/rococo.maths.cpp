@@ -19,6 +19,47 @@ namespace Rococo
       return xdet.m128_f32[0];
    }
 
+   Matrix4x4 RotateDirectionToZ(cr_vec3 direction)
+   {
+	   float Dy = direction.y;
+	   float Dx = direction.x;
+
+	   float DS = Sq(Dx) + Sq(Dy);
+
+	   Matrix4x4 rotZ;
+
+	   if (DS < 0.0003f)
+	   {
+		   rotZ = Matrix4x4::Identity();
+	   }
+	   else
+	   {
+		   float cT = Dx / DS;
+		   float sT = -Dy / DS;
+		   // Rotate direction onto x axis
+		   rotZ =
+		   {
+			   { cT, -sT,     0,       0 },
+			   { sT,  cT,     0,       0 },
+			   { 0,    0,     1,       0 },
+			   { 0,    0,     0,       1 }
+		   };
+	   }
+
+	   float cP = direction.z;
+	   float sP = 1 - Sq(cP);
+
+	   Matrix4x4 rotY
+	   {
+		   { cP,  0, -sP, 0 },
+		   { 0,   1,   0, 0 },
+		   { sP,  0,  cP, 0 },
+		   { 0,  0,   0, 1 }
+	   };
+
+	   return rotY * rotZ;
+   }
+
    void XMVectorToVec4(DirectX::XMVECTOR xv, Vec4& v)
    {
       v.x = xv.m128_f32[0];

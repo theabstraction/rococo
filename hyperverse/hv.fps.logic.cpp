@@ -715,7 +715,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement
 
 		Matrix4x4 m;
 		e.platform.camera.GetWorld(m);
-		Vec3 dir{ -m.row2.x, -m.row2.y, -m.row2.z };
+		Vec3 dir{ m.row0.z, m.row1.z, m.row2.z };
 		e.platform.scene.Builder().SetLight(dir, final + playerPosToCamera, 0);
 		e.platform.scene.Builder().SetLight(Vec3{ 1,0,0 }, Vec3{ 0, 0, 0.5f }, 1);
 	}

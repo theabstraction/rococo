@@ -253,6 +253,87 @@ namespace
       }
    };
 
+   bool PrepareDepthRenderFromLight(const Light& light, DepthRenderData& drd)
+   {
+	   if (!TryNormalize(light.direction, drd.direction))
+	   {
+		   return false;
+	   }
+
+	   drd.eye = light.position;
+	   drd.fov = light.fov;
+	  
+	   Matrix4x4 r_2_l
+	   {
+		   {1, 0, 0, 0},
+		   {0, 1, 0, 0},
+		   {0, 0,-1, 0},
+		   {0, 0, 0, 1}
+	   };
+
+	   float Dy = drd.direction.y;
+	   float Dx = drd.direction.x;
+
+	   float DS = Sq(Dx) + Sq(Dy);
+
+	   Matrix4x4 rotZ;
+
+	   if (DS < 0.0003f)
+	   {
+		   rotZ = Matrix4x4::Identity();
+	   }
+	   else
+	   {
+		   float cT = Dx / DS;
+		   float sT = -Dy / DS;
+		   // Rotate direction onto x axis
+		   rotZ =
+		   {
+			   { cT, -sT,     0,       0},
+			   { sT,  cT,     0,       0},
+			   { 0,    0,     1,       0},
+			   { 0,    0,     0,       1}
+		   };
+	   }
+
+	   float cP = drd.direction.z;
+	   float sP = 1 - Sq(cP);
+
+	   Matrix4x4 rotY
+	   {
+		   { cP,  0, -sP, 0 },
+		   { 0,   1,   0, 0 },
+		   { sP,  0,  cP, 0 },
+		   {  0,  0,   0, 1 }
+	   };
+
+	   Matrix4x4 directionToCameraRot = rotY * rotZ;
+
+	   Matrix4x4 cameraToDirectionRot = TransposeMatrix(directionToCameraRot);
+	   TransformNormal(cameraToDirectionRot, { 1, 0, 0 }, drd.right);
+	   TransformNormal(cameraToDirectionRot, { 0, 1, 0 }, drd.up);
+
+	   Vec3 normal = Cross(drd.right, drd.up);
+	   Vec3 dN = drd.direction - normal;
+
+	   float DN = Length(dN);
+	   if (DN > 0.01f)
+	   {
+		   Throw(0, "Error computing right and up vectors for lighting calculation");
+	   }
+
+	   drd.worldToCamera = directionToCameraRot * Matrix4x4::Translate(-drd.eye);
+
+	   drd.nearPlane = light.nearPlane;
+	   drd.farPlane = light.farPlane;
+
+	   Matrix4x4 cameraToScreen = Matrix4x4::GetRHProjectionMatrix(light.fov, 1.0f, drd.nearPlane, drd.farPlane);
+
+	   drd.worldToScreen = cameraToScreen * drd.worldToCamera;
+
+	   return true;
+   }
+
    class DX11AppRenderer :
 	   public IRenderer,
 	   public IRenderContext,
@@ -463,8 +544,6 @@ namespace
 	   };
 
 	   std::vector<TextureItem> orderedTextureList;
-
-
 
 	   void ShowTextureVenue(IMathsVisitor& visitor)
 	   {
@@ -1170,11 +1249,6 @@ namespace
 	   int64 presentCost = 0;
 	   int64 frameTime = 0;
 
-	   void SetLight(const Light& light)
-	   {
-
-	   }
-
 	   virtual void Render(IScene& scene)
 	   {
 		   auto now = OS::CpuTicks();
@@ -1205,18 +1279,19 @@ namespace
 		   {
 			   UseShaders(idObjVS, idObjPS);
 
-			   SetLight(lights[i]);
-
 			   DepthRenderData drd;
-			   scene.RenderShadowPass(drd, *this);
+			   if (PrepareDepthRenderFromLight(lights[i], drd))
+			   {
+				   scene.RenderShadowPass(drd, *this);
 
-			   UseShaders(idObjVS, idObjPS);
+				   UseShaders(idObjVS, idObjPS);
 
-			   dc.PSSetSamplers(0, 1, &objectSampler);
-			   dc.RSSetState(objectRaterizering);
-			   dc.OMSetDepthStencilState(objDepthState, 0);
+				   dc.PSSetSamplers(0, 1, &objectSampler);
+				   dc.RSSetState(objectRaterizering);
+				   dc.OMSetDepthStencilState(objDepthState, 0);
 
-			   scene.RenderObjects(*this);
+				   scene.RenderObjects(*this);
+			   }
 		   }
 
 		   objCost = OS::CpuTicks() - now;

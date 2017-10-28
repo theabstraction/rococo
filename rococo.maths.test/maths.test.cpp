@@ -170,6 +170,17 @@ void ValidateMatrixLib()
 	VALIDATE(Approx(pPrimedInv.x, 5.0f));
 	VALIDATE(Approx(pPrimedInv.y, 8.0f));
 	VALIDATE(Approx(pPrimedInv.z, 10.0f));
+
+	{
+		Matrix4x4 rotDirToZ = RotateDirectionToZ({ 0,0,1 });
+
+		Vec3 Nz;
+		TransformNormal(rotDirToZ, { 0,0,1 }, Nz);
+
+		VALIDATE(Nz.x == 0);
+		VALIDATE(Nz.y == 0);
+		VALIDATE(Nz.z == 1.0f);
+	}
 }
 
 void ValidateVectorLib()
@@ -452,7 +463,6 @@ void test()
 	validateTeselator();
 
 	validatePenetration();
-	return;
 
 	ValidateVectorLib();
 	ValidatePolynomialLib();

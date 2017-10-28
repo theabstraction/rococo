@@ -330,7 +330,7 @@ namespace Rococo
 		// First of all, if the sphere penetrates the edge, then a collision is deemed to be at time zero
 		// and the collision point is the nearest point of the edge to the centre of the sphere
 		// Every point X on a line is parameterized by k: X(k) = P + Qk
-		// Distance squared to centre A is (P + Qk - A).(P + Qk - A) = A.A + P.P - 2.P.A - 2.A + Q.Q.k^2 + 2.(P-A).Q.k
+		// Distance squared to centre A is (P + Qk - A).(P + Qk - A) = A.A + P.P - 2.P.A + Q.Q.k^2 + 2.(P-A).Q.k
 		// Turning point at dS/dk = 2Q.Q.k + 2(P-A).Q = 0
 		// k = (A-P).Q / Q.Q
 
@@ -508,7 +508,7 @@ namespace Rococo
 			virtual void operator()(const Edge& edge)
 			{
 				Collision col = CollideEdgeAndSphere(edge, sphere, target);
-				if (col.t >= 0 && col.t < edgeCollision.t)
+				if (col.contactType == ContactType_Edge && col.t >= 0 && col.t < edgeCollision.t)
 				{
 					edgeCollision = col;
 				}

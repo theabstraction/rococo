@@ -197,8 +197,8 @@ namespace Rococo
 
 	struct Radians
 	{
-		float quantity;
-		operator float() const { return quantity; }
+		float radians;
+		operator float() const { return radians; }
 		operator Degrees () const;
 	};
 
@@ -209,11 +209,11 @@ namespace Rococo
 
 	struct Degrees
 	{
-		float quantity;
-		operator float() const { return quantity; }
+		float degrees;
+		operator float() const { return degrees; }
 
-		operator Radians () const { return Radians{ DEGREES_TO_RADIANS_QUOTIENT() * quantity }; }
-		Radians ToRadians() const { return Radians{ DEGREES_TO_RADIANS_QUOTIENT() * quantity }; }
+		operator Radians () const { return Radians{ DEGREES_TO_RADIANS_QUOTIENT() * degrees }; }
+		Radians ToRadians() const { return Radians{ DEGREES_TO_RADIANS_QUOTIENT() * degrees }; }
 	};
 
 	struct FPSAngles
@@ -223,7 +223,7 @@ namespace Rococo
 		Degrees tilt;      // -ve is lean left angle, +ve is lean right angle
 	};
 
-	inline Radians::operator Degrees () const { return Degrees{ quantity * RADIANS_TO_DEGREES_QUOTIENT() }; }
+	inline Radians::operator Degrees () const { return Degrees{ radians * RADIANS_TO_DEGREES_QUOTIENT() }; }
 
 	inline Degrees operator "" _degrees(long double literalValue)
 	{
@@ -235,8 +235,8 @@ namespace Rococo
 		return Degrees{ (float)literalValue };
 	}
 
-	inline float Sin(Radians radians) { return sinf(radians.quantity); }
-	inline float Cos(Radians radians) { return cosf(radians.quantity); }
+	inline float Sin(Radians theta) { return sinf(theta.radians); }
+	inline float Cos(Radians theta) { return cosf(theta.radians); }
 
 	struct Gravity
 	{
@@ -434,7 +434,7 @@ namespace Rococo
 	Matrix4x4 TransposeMatrix(const Matrix4x4& matrix);
 #endif
 
-	inline Degrees operator - (Degrees theta) { return Degrees{ -theta.quantity }; }
+	inline Degrees operator - (Degrees theta) { return Degrees{ -theta.degrees }; }
 
 	Vec2i TopCentre(const GuiRect& rect);
 	bool IsPointInRect(const Vec2i& p, const GuiRect& rect);
@@ -478,6 +478,8 @@ namespace Rococo
 	};
 
 	IQuadTreeSupervisor* CreateLooseQuadTree(float width, float minBoundingRadius);
+
+	Matrix4x4 RotateDirectionToZ(cr_vec3 direction);
 
 	struct Edge
 	{

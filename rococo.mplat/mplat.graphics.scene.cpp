@@ -72,6 +72,8 @@ namespace
 		  lights[index].fov = 90_degrees;
 		  lights[index].intensity = 1.0f;
 		  lights[index].position = pos;
+		  lights[index].nearPlane = 0.01_metres;
+		  lights[index].farPlane = 25_metres;
       }
 
       virtual void Free()
