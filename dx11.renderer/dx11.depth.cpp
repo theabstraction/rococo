@@ -30,7 +30,7 @@ namespace Rococo
          D3D11_DEPTH_STENCIL_DESC desc;
          ZeroMemory(&desc, sizeof(desc));
          desc.DepthEnable = TRUE;
-         desc.DepthFunc = D3D11_COMPARISON_LESS;
+         desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
          desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 
          ID3D11DepthStencilState* dss = nullptr;

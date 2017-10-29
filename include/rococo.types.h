@@ -291,7 +291,7 @@ namespace Rococo
       float blue;
       float alpha;
 
-      RGBA(float _r, float _g, float _b, float _a = 1.0f) : red(_r), green(_g), blue(_b), alpha(_a) {}
+      RGBA(float _r = 1.0f, float _g = 0.0f, float _b = 0.0f, float _a = 1.0f) : red(_r), green(_g), blue(_b), alpha(_a) {}
    };
 
    template<class T> ROCOCOAPI IVectorEnumerator

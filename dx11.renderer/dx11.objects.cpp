@@ -75,5 +75,23 @@ namespace Rococo
          VALIDATEDX11(device.CreateBlendState(&disableBlendDesc, &noBlend));
          return noBlend;
       }
+
+	  ID3D11BlendState* CreateAdditiveBlend(ID3D11Device& device)
+	  {
+		  D3D11_BLEND_DESC blendDesc;
+		  ZeroMemory(&blendDesc, sizeof(blendDesc));
+		  blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		  blendDesc.RenderTarget[0].BlendEnable = TRUE;
+		  blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		  blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+		  blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_DEST_COLOR;
+		  blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		  blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+		  blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_MAX;
+
+		  ID3D11BlendState* d11Blend = nullptr;
+		  VALIDATEDX11(device.CreateBlendState(&blendDesc, &d11Blend));
+		  return d11Blend;
+	  }
    }
 }

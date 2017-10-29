@@ -730,10 +730,33 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 
 		Matrix4x4 m;
 		e.platform.camera.GetWorld(m);
-		Vec3 dir{ m.row0.z, m.row1.z, m.row2.z };
-		e.platform.scene.Builder().SetLight(dir, final + playerPosToCamera, 0);
-		e.platform.scene.Builder().SetLight(Vec3{ 0, 0, 0 }, Vec3{ 0, 0, 0 }, 1);
+		Vec3 dir{ -m.row2.x, -m.row2.y, -m.row2.z };
+
+		LightSpec light;
+		light.ambience = RGBA(0.2f, 0.2f, 0.2f, 1.0f);
+		light.diffuse = RGBA(1.5f, 1.5f, 1.5f, 1.0f);
+		light.direction = dir;
+		light.position = final + playerPosToCamera;
+		light.cutoffPower = 32.0f;
+		light.cutoffAngle = 20_degrees;
+		light.fov = 45_degrees;
+		light.attenuation = -0.15f;
+		e.platform.scene.Builder().SetLight(light, 0);
+
+		spinningLightTheta += 45.0f * dt;
+		spinningLightTheta = fmodf(spinningLightTheta, 360.0f);
+
+		Vec4 spinningDir = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ spinningLightTheta }) * Vec4 { 1, 0, 0, 0 };
+
+		LightSpec spinningLight = light;
+		spinningLight.direction = spinningDir;
+		spinningLight.position = final + Vec3{ 0, 0, 2.5f};
+		spinningLight.ambience = RGBA(0, 0, 0, 0);
+
+		e.platform.scene.Builder().SetLight(spinningLight, 1);
 	}
+
+	float spinningLightTheta = 0;
 
 	void UpdateAI(const IUltraClock& clock) override
 	{

@@ -22,6 +22,8 @@
 
 #include "rococo.visitors.h"
 
+#include <random>
+
 namespace
 {
 	using namespace Rococo;
@@ -260,23 +262,14 @@ namespace
 		   return false;
 	   }
 
-	   drd.eye = light.position;
+	   drd.eye = Vec4::FromVec3(light.position, 1.0f);
 	   drd.fov = light.fov;
 
 	   Matrix4x4 directionToCameraRot = RotateDirectionToZ(drd.direction);
 
 	   Matrix4x4 cameraToDirectionRot = TransposeMatrix(directionToCameraRot);
-	   TransformNormal(cameraToDirectionRot, { 1, 0, 0 }, drd.right);
-	   TransformNormal(cameraToDirectionRot, { 0, -1, 0 }, drd.up);
-
-	   Vec3 normal = Cross(drd.right, -drd.up);
-	   Vec3 dN = drd.direction - normal;
-
-	   float DN = Length(dN);
-	   if (DN > 0.01f)
-	   {
-		   Throw(0, "Error computing right and up vectors for lighting calculation");
-	   }
+	   drd.right = cameraToDirectionRot * Vec4 { 1, 0, 0, 0 };
+	   drd.up = cameraToDirectionRot * Vec4 { 0, -1, 0, 0 };
 
 	   drd.worldToCamera = directionToCameraRot * Matrix4x4::Translate(-drd.eye);
 
@@ -291,9 +284,18 @@ namespace
 		   { 0,  0,  0, 1 }
 	   };
 
-	   Matrix4x4 cameraToScreen = Matrix4x4::GetRHProjectionMatrix(light.fov, 1.0f, drd.nearPlane, drd.farPlane);
+	   Matrix4x4 cameraToScreen = Matrix4x4::GetRHProjectionMatrix(drd.fov, 1.0f, drd.nearPlane, drd.farPlane);
 
 	   drd.worldToScreen = cameraToScreen * flipVertical * drd.worldToCamera;
+
+	   OS::ticks t = OS::CpuTicks();
+	   OS::ticks ticksPerSecond = OS::CpuHz();
+
+	   OS::ticks oneMinute = ticksPerSecond * 60;
+
+	   OS::ticks secondOfMinute = t % oneMinute;
+	    
+	   drd.time = Seconds{ (secondOfMinute / (float)ticksPerSecond) * 0.9999f };
 
 	   return true;
    }
@@ -307,6 +309,7 @@ namespace
 	   public IMathsVenue
    {
    private:
+	   std::default_random_engine rng;
 	   OS::ticks lastTick;
 	   ID3D11Device& device;
 	   ID3D11DeviceContext& dc;
@@ -343,6 +346,7 @@ namespace
 	   AutoRelease<ID3D11RasterizerState> objectRaterizering;
 	   AutoRelease<ID3D11BlendState> alphaBlend;
 	   AutoRelease<ID3D11BlendState> disableBlend;
+	   AutoRelease<ID3D11BlendState> additiveBlend;
 
 	   Fonts::IFontSupervisor* fonts;
 
@@ -352,6 +356,9 @@ namespace
 
 	   AutoRelease<ID3D11Buffer> vs_ShadowStateBuffer;
 	   AutoRelease<ID3D11Buffer> ps_ShadowStateBuffer;
+
+	   AutoRelease<ID3D11Buffer> vs_LightStateBuffer;
+	   AutoRelease<ID3D11Buffer> ps_LightStateBuffer;
 
 	   RAWMOUSE lastMouseEvent;
 	   Vec2i screenSpan;
@@ -421,6 +428,7 @@ namespace
 		   objectRaterizering = DX11::CreateObjectRasterizer(device);
 		   alphaBlend = DX11::CreateAlphaBlend(device);
 		   disableBlend = DX11::CreateNoBlend(device);
+		   additiveBlend = DX11::CreateAdditiveBlend(device);
 
 		   DX11::TextureBind fb = textureLoader.LoadAlphaBitmap("!font1.tif");
 		   fontTexture = fb.texture;
@@ -441,6 +449,9 @@ namespace
 
 		   vs_ShadowStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
 		   ps_ShadowStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
+
+		   vs_LightStateBuffer = DX11::CreateConstantBuffer<Light>(device);
+		   ps_LightStateBuffer = DX11::CreateConstantBuffer<Light>(device);
 
 		   installation.LoadResource("!gui.vs", *scratchBuffer, 64_kilobytes);
 		   idGuiVS = CreateGuiVertexShader("!gui.vs", scratchBuffer->GetData(), scratchBuffer->Length());
@@ -472,6 +483,7 @@ namespace
 		   instanceBuffer = DX11::CreateConstantBuffer<ObjectInstance>(device);
 
 		   lastTick = OS::CpuTicks();
+		   rng.seed(123456U);
 	   }
 
 	   ~DX11AppRenderer()
@@ -1186,7 +1198,7 @@ namespace
 			   dc.Draw(buffer.numberOfVertices, 0);
 		   }
 
-		   dc.VSSetConstantBuffers(0, 0, nullptr);
+	//	   dc.VSSetConstantBuffers(0, 0, nullptr);
 	   }
 
 	   virtual Windows::IWindow& Window()
@@ -1201,8 +1213,8 @@ namespace
 		   DX11::CopyStructureToBuffer(dc, vs_globalStateBuffer, gs);
 		   dc.VSSetConstantBuffers(0, 1, &vs_globalStateBuffer);
 
-		   DX11::CopyStructureToBuffer(dc, ps_globalStateBuffer, gs);
-		   dc.PSSetConstantBuffers(0, 1, &ps_globalStateBuffer);
+		   //DX11::CopyStructureToBuffer(dc, ps_globalStateBuffer, gs);
+		   //dc.PSSetConstantBuffers(0, 1, &ps_globalStateBuffer);
 	   }
 
 	   void DrawCursor()
@@ -1267,7 +1279,8 @@ namespace
 		   dc.ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
-		   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
+		//   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
+		   dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
 
 		   RGBA clearColour = scene.GetClearColour();
 		   if (clearColour.alpha > 0)
@@ -1288,6 +1301,12 @@ namespace
 			   DepthRenderData drd;
 			   if (PrepareDepthRenderFromLight(lights[i], drd))
 			   {
+				   float f = 1.0f / rng.max();
+				   drd.randoms.x = rng() * f;
+				   drd.randoms.y = rng() * f;
+				   drd.randoms.z = rng() * f;
+				   drd.randoms.w = rng() * f;
+
 				   dc.OMSetRenderTargets(1, &shadowBufferView, shadowDepthStencilView);
 
 				   UseShaders(idObjVS_Shadows, idObjPS_Shadows);
@@ -1303,6 +1322,18 @@ namespace
 				   UseShaders(idObjVS, idObjPS);
 
 				   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
+
+				   Light light = lights[i];
+				   light.randoms = drd.randoms;
+				   light.time = drd.time;
+				   light.right = drd.right;
+				   light.up = drd.up;
+
+				   DX11::CopyStructureToBuffer(dc, vs_LightStateBuffer, light);
+				   dc.VSSetConstantBuffers(2, 1, &vs_LightStateBuffer);
+
+				   DX11::CopyStructureToBuffer(dc, ps_LightStateBuffer, light);
+				   dc.PSSetConstantBuffers(0, 1, &ps_LightStateBuffer);
 
 				   scene.RenderObjects(*this);
 			   }
@@ -2002,6 +2033,9 @@ namespace Rococo
 { 
 	IDX11Window* CreateDX11Window(IInstallation& installation)
 	{
+		static_assert(sizeof(DepthRenderData) % 16 == 0, "DX11 requires size of DepthRenderData to be multipe of 16 bytes");
+		static_assert(sizeof(GlobalState) % 16 == 0, "DX11 requires size of GlobalState to be multipe of 16 bytes");
+		static_assert(sizeof(Light) % 16 == 0, "DX11 requires size of Light to be multipe of 16 bytes");
 		return new DX11Window(installation);
 	}
 }

@@ -8,6 +8,21 @@ namespace Rococo
    ROCOCO_ID(ID_ENTITY, int64, 0);
 }
 
+namespace Rococo
+{
+	struct LightSpec
+	{
+		Vec3 position;
+		Vec3 direction;
+		Degrees fov;
+		RGBA diffuse;
+		RGBA ambience;
+		Degrees cutoffAngle;
+		float cutoffPower;
+		float attenuation;
+	};
+}
+
 #include <../rococo.mplat/mplat.sxh.h>
 
 namespace Rococo

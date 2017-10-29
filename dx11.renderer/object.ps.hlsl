@@ -1,49 +1,101 @@
 struct PixelVertex
 {
 	float4 position : SV_POSITION;
-	float4 normal : NORMAL; 
+	float4 normal : TEXCOORD2;
 	float2 uv: TEXCOORD;
     float4 worldPosition: TEXCOORD1;
 };
 
+#pragma pack_matrix(row_major)
+
 struct Light
 {
-	float4 lightDir;
-	float4 lightPos;
+	float4 position;
+	float4 direction;
+	float4 right;
+	float4 up;
+	float4 colour;
+	float4 ambient;
+	float4 randoms; // 4 random quotients 0.0 - 1.0
+	float cosHalfFov;
+	float fov;
+	float nearPlane;
+	float farPlane;
+	float time; // Can be used for animation 0 - ~59.99, cycles every minute
+	float cutoffCosAngle; // What angle to trigger cutoff of light
+	float cutoffPower; // Exponent of cutoff rate. Range 1 to 64 is cool
+	float attenuationRate; // Point lights vary as inverse square, so 0.5 ish
 };
 
-cbuffer globalState
+cbuffer light
 {
-   float4x4 worldMatrixAndProj;
-   float4x4 worldMatrix;
-   Light lights[2];
+	Light light;
 };
 
 Texture2D g_Texture: register(t1);
 SamplerState txSampler;
 
+float4 per_pixel_lighting(PixelVertex p)
+{
+	float4 texel = g_Texture.Sample(txSampler, p.uv).xyzw;
+
+	float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
+
+	float R2 = dot(lightToPixelVec, lightToPixelVec);
+
+	float3 lightToPixelDir = normalize(lightToPixelVec);
+
+	float f = dot(lightToPixelDir, light.direction.xyz);
+
+	float falloff = 1.0f;
+
+	if (f < light.cutoffCosAngle) falloff = pow(1.0f - (light.cutoffCosAngle - f), light.cutoffPower);
+
+	if (f < 0) f = 0;
+	 
+	float g = -dot(light.direction.xyz, normalize(p.normal.xyz));
+
+	float intensity = clamp(f * g, 0, 1.0f) * pow(R2, light.attenuationRate) * falloff;
+
+	float4 diffCol = float4 (texel.x * intensity * light.colour.x, texel.y * intensity * light.colour.y, texel.z * intensity * light.colour.z, 1.0f);
+	float4 ambCol = float4 (texel.x * light.ambient.x, texel.y * light.ambient.y, texel.z * light.ambient.z, 1.0f);
+
+	return float4(diffCol.x + ambCol.x, diffCol.y + ambCol.y, diffCol.z + ambCol.z, 1.0f);
+}
+
+float4 no_lighting(PixelVertex p)
+{
+	float4 texel = g_Texture.Sample(txSampler, p.uv).xyzw;
+	return texel;
+}
+
+float4 visualize_vector(PixelVertex p, float3 vec)
+{
+	float3 v = normalize(vec);
+	return float4 (v.x, v.y, v.z, 1.0f);
+}
+
+float4 visualize_time(PixelVertex p)
+{
+	return float4 (light.time / 60.0f, 0.0f, 0.0f, 1.0f);
+}
+
+float4 visualize_red(PixelVertex p)
+{
+	return float4 (1.0f, 0, 0, 1.0f);
+}
+
+float4 visualize_blue(PixelVertex p)
+{
+	return float4 (0, 0, 1.0f, 1.0f);
+}
+
+float4 visualize_light_colour(PixelVertex p)
+{
+	return light.colour;
+}
+
 float4 main(PixelVertex p) : SV_TARGET
 {
-	// float fogBlend = p.position.w * 0.03f;
-	 float4 texel = g_Texture.Sample(txSampler, p.uv).xyzw;
-	 // float3 texel2 = lerp(texel.xyz * p.colour.xyz, p.colour.xyz, p.colour.w);
-	 // float4 srcColour = float4(texel2.xyz, 1.0f);
-
-	  float totalIntensity = 0;
-
-	  for (int i = 0; i < 2; i++)
-	  {
-		  float3 lightDelta = p.worldPosition.xyz - lights[i].lightPos.xyz;
-
-		  float g = dot(lightDelta, lightDelta);
-
-		  float intensity = 0.1f + 10.0f / (g + 0.1f);
-
-		  float3 lightDir = normalize(lightDelta);
-		  float f = -dot(lightDir, normalize(p.normal.xyz));
-
-		  totalIntensity += clamp(f * intensity, 0, 1.0f);
-	  }
-	  
-	  return float4 (texel.x * totalIntensity, texel.y * totalIntensity, texel.z * totalIntensity, 1.0f);
+	return per_pixel_lighting(p);
 }

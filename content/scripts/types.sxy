@@ -7,3 +7,15 @@
 )
 (alias ObjectVertex Rococo.ObjectVertex)
 
+(struct LightSpec
+	(Sys.Maths.Vec3 position)
+	(Sys.Maths.Vec3 direction)
+	(Sys.Maths.Degrees fov)
+	(Sys.Maths.Vec4 diffuse)
+	(Sys.Maths.Vec4 ambience)
+	(Sys.Maths.Degrees cutoffAngle)
+	(Float32 cutoffPower)
+	(Float32 attenuation)
+)
+(alias LightSpec Rococo.LightSpec)
+

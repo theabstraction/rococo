@@ -24,6 +24,7 @@
 (primitive Metres Sys.SI.Metres Metres)
 (primitive Kilograms Sys.SI.Kilograms Kilograms)
 (primitive RGBAb Int32 RGBAb)
+(primitive RGBA Sys.Maths.Vec4 RGBA)
 
 (primitive Pointer Pointer uintptr_t)
 (primitive IdMesh Int32 ID_MESH)
@@ -58,4 +59,15 @@
 	(RGBAb emissiveColour)
 	(RGBAb diffuseColour)
 	(Vec2 uv)
+)
+
+(defstruct LightSpec Rococo.LightSpec LightSpec
+	(Vec3 position)
+	(Vec3 direction)
+	(Degrees fov)
+	(RGBA diffuse)
+	(RGBA ambience)
+	(Degrees cutoffAngle)
+	(Float32 cutoffPower)
+	(Float32 attenuation)
 )

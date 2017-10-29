@@ -69,17 +69,10 @@ namespace Rococo
 		RGBA highlightColour;
 	};
 
-	struct GlobalLight
-	{
-		Vec4 lightDir;
-		Vec4 lightPos;
-	};
-
 	struct GlobalState
 	{
 		Matrix4x4 worldMatrixAndProj;
 		Matrix4x4 worldMatrix;
-		GlobalLight lights[2];
 	};
 
 	ROCOCOAPI IRenderContext // Provides draw calls - do not cache
@@ -95,30 +88,41 @@ namespace Rococo
 	   virtual void Render(IGuiRenderContext& gc) = 0;
 	};
 
+#pragma pack(push,4)
 	struct Light
 	{
-		Vec3 position;
-		Vec3 direction;
-		float intensity;
-		RGBAb colour;
-		Degrees fov;
+		Vec4 position;
+		Vec4 direction;
+		Vec4 right;
+		Vec4 up;
+		RGBA colour = RGBA(1,1,1,1);
+		RGBA ambient = RGBA(0, 0, 0, 0);
+		Vec4 randoms; // 4 random quotients 0.0 - 1.0
+		float cosHalfFov;
+		Radians fov;
 		Metres nearPlane;
 		Metres farPlane;
+		Seconds time; // Can be used for animation 0 - ~59.99, cycles every minute
+		float cutoffCosAngle; // Angle beyond which light is severely diminished, 0.5ish to 1.0
+		float cutoffPower = 16.0f; // Exponent of cutoff rate. Range 1 to 16 is cool
+		float attenuationRate = -0.15f; // Point lights vary as inverse square, so 0.5 ish
 	};
 
 	struct DepthRenderData // N.B if size is not multiple of 16 bytes this will crash DX11 renderer
 	{
 		Matrix4x4 worldToCamera;
 		Matrix4x4 worldToScreen;
-		Vec3 eye;
-		Vec3 direction;
-		Vec3 right;
-		Vec3 up;
-		float nearPlane;
-		float farPlane;
+		Vec4 eye;
+		Vec4 direction;
+		Vec4 right;
+		Vec4 up;
+		Metres nearPlane;
+		Metres farPlane;
 		Radians fov;
-		float unused;
+		Seconds time; // Can be used for animation 0 - ~59.99, cycles every minute
+		Vec4 randoms; // 4 random quotients 0.0 - 1.0
 	};
+#pragma pack(pop)
 
 	ROCOCOAPI IScene
 	{

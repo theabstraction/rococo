@@ -29,10 +29,6 @@ namespace
       Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera) :
          instances(_instances), camera(_camera)
       {
-		  state.lights[0].lightDir = Vec4{ 1, 0, 0, 0 };
-		  state.lights[0].lightPos = Vec4{ 1, 0, 0, 1 };
-		  state.lights[1].lightDir = Vec4{ 1, 0, 0, 0 };
-		  state.lights[1].lightPos = Vec4{ 0, 0, 0, 1 };
       }
       
       ~Scene()
@@ -95,7 +91,7 @@ namespace
 		 clearColour.alpha = alpha;
       }
 
-	  virtual void SetLight(const Vec3& dir, const Vec3& pos, int index)
+	  virtual void SetLight(const LightSpec& spec,  int index)
 	  {
 		  if (index < 0 || index >= 2)
 		  {
@@ -103,15 +99,18 @@ namespace
 			  return;
 		  }
 
-		  state.lights[index] = GlobalLight{ Vec4 { dir.x, dir.y, dir.z, 0}, Vec4 {pos.x, pos.y, pos.z, 1.0f }  };
-
-		  lights[index].colour = RGBAb(255, 255, 255);
-		  lights[index].direction = dir;
-		  lights[index].fov = 90_degrees;
-		  lights[index].intensity = 1.0f;
-		  lights[index].position = pos;
+		  lights[index] = { 0 };
+		  lights[index].colour = spec.diffuse;
+		  lights[index].direction = Vec4::FromVec3(spec.direction,0.0f);
+		  lights[index].fov = spec.fov;
+		  lights[index].cosHalfFov = cosf(lights[index].fov * 0.5f);
+		  lights[index].position = Vec4::FromVec3(spec.position, 1.0f);
 		  lights[index].nearPlane = 0.01_metres;
 		  lights[index].farPlane = 25_metres;
+		  lights[index].attenuationRate = spec.attenuation;
+		  lights[index].cutoffPower = spec.cutoffPower;
+		  lights[index].cutoffCosAngle = Cos(spec.cutoffAngle);
+		  lights[index].ambient = spec.ambience;
       }
 
       virtual void Free()
