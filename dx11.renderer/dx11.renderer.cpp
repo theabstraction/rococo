@@ -24,6 +24,8 @@
 
 #include <random>
 
+#include <Dxgi1_3.h>
+
 namespace
 {
 	using namespace Rococo;
@@ -43,6 +45,18 @@ namespace
 	struct DX11PixelShader : public DX11Shader
 	{
 		AutoRelease<ID3D11PixelShader> ps;
+	};
+
+	struct TextureDescState
+	{
+		float width;
+		float height;
+		float inverseWidth;
+		float inverseHeight;
+		float redActive;
+		float greenActive;
+		float blueActive;
+		float alphaActive;
 	};
 
 	struct IAppEventHandler
@@ -262,10 +276,11 @@ namespace
 		   return false;
 	   }
 
+	   drd.direction.w = 0;
 	   drd.eye = Vec4::FromVec3(light.position, 1.0f);
 	   drd.fov = light.fov;
 
-	   Matrix4x4 directionToCameraRot = RotateDirectionToZ(drd.direction);
+	   Matrix4x4 directionToCameraRot = RotateDirectionToNegZ(drd.direction);
 
 	   Matrix4x4 cameraToDirectionRot = TransposeMatrix(directionToCameraRot);
 	   drd.right = cameraToDirectionRot * Vec4 { 1, 0, 0, 0 };
@@ -276,17 +291,9 @@ namespace
 	   drd.nearPlane = light.nearPlane;
 	   drd.farPlane = light.farPlane;
 
-	   Matrix4x4 flipVertical
-	   {
-		   { 1,  0,  0, 0 },
-		   { 0, -1,  0, 0 },
-		   { 0,  0,  1, 0 },
-		   { 0,  0,  0, 1 }
-	   };
-
 	   Matrix4x4 cameraToScreen = Matrix4x4::GetRHProjectionMatrix(drd.fov, 1.0f, drd.nearPlane, drd.farPlane);
 
-	   drd.worldToScreen = cameraToScreen * flipVertical * drd.worldToCamera;
+	   drd.worldToScreen = cameraToScreen * drd.worldToCamera;
 
 	   OS::ticks t = OS::CpuTicks();
 	   OS::ticks ticksPerSecond = OS::CpuHz();
@@ -325,10 +332,9 @@ namespace
 	   AutoRelease<ID3D11DepthStencilView> depthStencilView;
 
 	   // Shadows
-	   AutoRelease<ID3D11Texture2D> shadowBuffer;
-	   AutoRelease<ID3D11RenderTargetView> shadowBufferView;
 	   AutoRelease<ID3D11Texture2D> shadowDepthStencilTexture;
 	   AutoRelease<ID3D11DepthStencilView> shadowDepthStencilView;
+	   AutoRelease<ID3D11ShaderResourceView> shadowBufferView;
 
 	   std::vector<DX11VertexShader*> vertexShaders;
 	   std::vector<DX11PixelShader*> pixelShaders;
@@ -341,6 +347,7 @@ namespace
 	   AutoRelease<ID3D11Texture2D> fontTexture;
 	   AutoRelease<ID3D11SamplerState> spriteSampler;
 	   AutoRelease<ID3D11SamplerState> objectSampler;
+	   AutoRelease<ID3D11SamplerState> shadowSampler;
 	   AutoRelease<ID3D11ShaderResourceView> fontBinding;
 	   AutoRelease<ID3D11RasterizerState> spriteRaterizering;
 	   AutoRelease<ID3D11RasterizerState> objectRaterizering;
@@ -359,6 +366,8 @@ namespace
 
 	   AutoRelease<ID3D11Buffer> vs_LightStateBuffer;
 	   AutoRelease<ID3D11Buffer> ps_LightStateBuffer;
+
+	   AutoRelease<ID3D11Buffer> ps_TextureDescBuffer;
 
 	   RAWMOUSE lastMouseEvent;
 	   Vec2i screenSpan;
@@ -422,6 +431,7 @@ namespace
 
 		   spriteSampler = DX11::CreateSpriteSampler(device);
 		   objectSampler = DX11::CreateObjectSampler(device);
+		   shadowSampler = DX11::CreateShadowSampler(device);
 		   objDepthState = DX11::CreateObjectDepthStencilState(device);
 		   guiDepthState = DX11::CreateGuiDepthStencilState(device);
 		   spriteRaterizering = DX11::CreateSpriteRasterizer(device);
@@ -452,6 +462,8 @@ namespace
 
 		   vs_LightStateBuffer = DX11::CreateConstantBuffer<Light>(device);
 		   ps_LightStateBuffer = DX11::CreateConstantBuffer<Light>(device);
+
+		   ps_TextureDescBuffer = DX11::CreateConstantBuffer<TextureDescState>(device);
 
 		   installation.LoadResource("!gui.vs", *scratchBuffer, 64_kilobytes);
 		   idGuiVS = CreateGuiVertexShader("!gui.vs", scratchBuffer->GetData(), scratchBuffer->Length());
@@ -868,6 +880,14 @@ namespace
 		   return id;
 	   }
 
+	   enum { TEXTURE_CBUFFER_INDEX = 7};
+
+	   ID_TEXTURE FindTexture(cstr name) const
+	   {
+		   auto i = mapNameToTexture.find(name);
+		   return i != mapNameToTexture.end() ? i->second : ID_TEXTURE::Invalid();
+	   }
+
 	   virtual auto SelectTexture(ID_TEXTURE id) -> Vec2i
 	   {
 		   size_t index = id.value - 1;
@@ -886,6 +906,43 @@ namespace
 			   FlushLayer();
 			   lastTextureId = id;
 			   dc.PSSetShaderResources(1, 1, &t.view);
+
+			   float dx = (float) desc.Width;
+			   float dy = (float) desc.Height;
+
+			   TextureDescState state;
+
+			   if (desc.Format == DXGI_FORMAT_R32_FLOAT)
+			   {
+				   state =
+				   {
+						dx,
+						dy,
+						1.0f / dx,
+						1.0f / dy,
+						1.0f,
+						0.0f,
+						0.0f,
+						0.0f
+				   };
+			   }
+			   else
+			   {
+				   state =
+				   {
+					   dx,
+					   dy,
+					   1.0f / dx,
+					   1.0f / dy,
+					   1.0f,
+					   1.0f,
+					   1.0f,
+					   1.0f
+				   };
+			   }
+
+			   DX11::CopyStructureToBuffer(dc, instanceBuffer, &state, sizeof(TextureDescState));
+			   dc.PSSetConstantBuffers(TEXTURE_CBUFFER_INDEX, 1, &ps_TextureDescBuffer);
 		   }
 
 		   return Vec2i{ (int32)desc.Width, (int32)desc.Height };
@@ -932,22 +989,39 @@ namespace
 
 		   D3D11_TEXTURE2D_DESC shadowBufferDesc = { 0 };
 		   shadowBufferDesc.MipLevels = 1;
-		   shadowBufferDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		   shadowBufferDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 		   shadowBufferDesc.Height = 1024;
 		   shadowBufferDesc.Width = 1024;
 		   shadowBufferDesc.ArraySize = 1;
 		   shadowBufferDesc.SampleDesc.Count = 1;
 		   shadowBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		   shadowBufferDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+		   shadowBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+		//   shadowBufferDesc.MiscFlags = 
+		//    shadowBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
+		   VALIDATEDX11(device.CreateTexture2D(&shadowBufferDesc, nullptr, &shadowDepthStencilTexture));
 
-		   VALIDATEDX11(device.CreateTexture2D(&shadowBufferDesc, nullptr, &shadowBuffer));
-		   VALIDATEDX11(device.CreateRenderTargetView(shadowBuffer, nullptr, &shadowBufferView));
+		   D3D11_DEPTH_STENCIL_VIEW_DESC shadowDepthStencilViewDesc;
+		   shadowDepthStencilViewDesc.Flags = 0;
+		   shadowDepthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
+		   shadowDepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		   shadowDepthStencilViewDesc.Texture2D.MipSlice = 0;
+		   VALIDATEDX11(device.CreateDepthStencilView(shadowDepthStencilTexture, &shadowDepthStencilViewDesc, &shadowDepthStencilView));
 
-		   depthDesc.Width = shadowBufferDesc.Width;
-		   depthDesc.Height = shadowBufferDesc.Height;
+		   D3D11_SHADER_RESOURCE_VIEW_DESC shadowTextureResourceViewDesc;
+		   ZeroMemory(&shadowTextureResourceViewDesc, sizeof(shadowTextureResourceViewDesc));
+		   shadowTextureResourceViewDesc.Texture2D.MipLevels = 1;
+		   shadowTextureResourceViewDesc.Texture2D.MostDetailedMip = 0;
+		   shadowTextureResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		   shadowTextureResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		   VALIDATEDX11(device.CreateShaderResourceView(shadowDepthStencilTexture, &shadowTextureResourceViewDesc, &shadowBufferView));
 
-		   VALIDATEDX11(device.CreateTexture2D(&depthDesc, nullptr, &shadowDepthStencilTexture));
-		   VALIDATEDX11(device.CreateDepthStencilView(shadowDepthStencilTexture, nullptr, &shadowDepthStencilView));
+		   textures.push_back(DX11::TextureBind{ shadowDepthStencilTexture, shadowBufferView });
+
+		   ID_TEXTURE id(textures.size());
+		   mapNameToTexture["<sys>/textures/2d/shadows/buffer.1.r32f"] = id;
+
+		   shadowDepthStencilTexture->AddRef();
+		   shadowBufferView->AddRef();
 
 		   SyncViewport();
 	   }
@@ -1108,7 +1182,9 @@ namespace
 		   dc.IASetInputLayout(nullptr);
 		   dc.VSSetShader(nullptr, nullptr, 0);
 		   dc.PSSetShader(nullptr, nullptr, 0);
-		   dc.PSSetShaderResources(0, 0, nullptr);
+
+		   ID3D11ShaderResourceView* nullView = nullptr;
+		   dc.PSSetShaderResources(0, 1, &nullView);
 	   }
 
 	   void SwitchToWindowMode()
@@ -1278,10 +1354,6 @@ namespace
 
 		   dc.ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
-		//   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
-		   dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
-
 		   RGBA clearColour = scene.GetClearColour();
 		   if (clearColour.alpha > 0)
 		   {
@@ -1291,9 +1363,11 @@ namespace
 		   now = OS::CpuTicks();
 
 		   dc.PSSetSamplers(0, 1, &objectSampler);
+		   dc.PSSetSamplers(1, 1, &shadowSampler);
 		   dc.RSSetState(objectRaterizering);
 		   dc.OMSetDepthStencilState(objDepthState, 0);
 
+		   bool builtFirstPass = false;
 		   size_t nLights = 0;
 		   const Light* lights = scene.GetLights(nLights);
 		   for (size_t i = 0; i < nLights; ++i)
@@ -1307,7 +1381,7 @@ namespace
 				   drd.randoms.z = rng() * f;
 				   drd.randoms.w = rng() * f;
 
-				   dc.OMSetRenderTargets(1, &shadowBufferView, shadowDepthStencilView);
+				   dc.OMSetRenderTargets(0, nullptr, shadowDepthStencilView);
 
 				   UseShaders(idObjVS_Shadows, idObjPS_Shadows);
 
@@ -1317,17 +1391,40 @@ namespace
 				   DX11::CopyStructureToBuffer(dc, ps_ShadowStateBuffer, drd);
 				   dc.PSSetConstantBuffers(0, 1, &ps_ShadowStateBuffer);
 
+				   D3D11_VIEWPORT viewport;
+				   ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+
+				   D3D11_TEXTURE2D_DESC desc;
+				   shadowDepthStencilTexture->GetDesc(&desc);
+
+				   viewport.TopLeftX = 0;
+				   viewport.TopLeftY = 0;
+				   viewport.Width = (FLOAT) desc.Width;
+				   viewport.Height = (FLOAT) desc.Height;
+				   viewport.MinDepth = 0.0f;
+				   viewport.MaxDepth = 1.0f;
+
+				   dc.RSSetViewports(1, &viewport);
+
+				   dc.ClearDepthStencilView(shadowDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+				   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+				   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
+
 				   scene.RenderShadowPass(drd, *this);
+
+				   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
 
 				   UseShaders(idObjVS, idObjPS);
 
-				   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
+				   SyncViewport();
 
 				   Light light = lights[i];
 				   light.randoms = drd.randoms;
 				   light.time = drd.time;
 				   light.right = drd.right;
 				   light.up = drd.up;
+				   light.worldToShadowBuffer = drd.worldToScreen;
 
 				   DX11::CopyStructureToBuffer(dc, vs_LightStateBuffer, light);
 				   dc.VSSetConstantBuffers(2, 1, &vs_LightStateBuffer);
@@ -1335,9 +1432,35 @@ namespace
 				   DX11::CopyStructureToBuffer(dc, ps_LightStateBuffer, light);
 				   dc.PSSetConstantBuffers(0, 1, &ps_LightStateBuffer);
 
+				   if (builtFirstPass)
+				   {
+					   dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
+				   }
+				   else
+				   {
+					   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
+					   builtFirstPass = true;
+				   }
+
+				   dc.PSSetShaderResources(2, 1, &shadowBufferView);
+
 				   scene.RenderObjects(*this);
+
+				   ID3D11ShaderResourceView* nullView = nullptr;
+				   dc.PSSetShaderResources(2, 1, &nullView);
+
+				   ID3D11Buffer* nullBuffer = nullptr;
+				   dc.VSSetConstantBuffers(2, 1, &nullBuffer);
+				   dc.VSSetConstantBuffers(1, 1, &nullBuffer);
+				   dc.VSSetConstantBuffers(0, 1, &nullBuffer);
+				   dc.PSSetConstantBuffers(2, 1, &nullBuffer);
+				   dc.PSSetConstantBuffers(1, 1, &nullBuffer);
+				   dc.PSSetConstantBuffers(0, 1, &nullBuffer);
 			   }
 		   }
+
+		   ID3D11ShaderResourceView* nullView = nullptr;
+		   dc.PSSetShaderResources(2, 1, &nullView);
 
 		   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
 
@@ -1364,8 +1487,13 @@ namespace
 
 		   ClearContext();
 
-		   dc.PSSetShaderResources(0, 0, nullptr);
-		   dc.PSSetSamplers(0, 0, nullptr);
+		   dc.PSSetShaderResources(0, 1, &nullView);
+		   dc.PSSetShaderResources(1, 1, &nullView);
+		   dc.PSSetShaderResources(2, 1, &nullView);
+
+		   ID3D11SamplerState* nullState = nullptr;
+		   dc.PSSetSamplers(0, 1, &nullState);
+		   dc.PSSetSamplers(1, 1, &nullState);
 
 		   now = OS::CpuTicks();
 
@@ -1377,7 +1505,12 @@ namespace
 		   dc.RSSetState(nullptr);
 		   dc.OMSetDepthStencilState(nullptr, 0);
 		   dc.OMSetRenderTargets(0, nullptr, nullptr);
-		   dc.IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
+
+		   ID3D11Buffer* nullBuffer = nullptr;
+		   UINT nStrides = 0;
+
+		   dc.IASetVertexBuffers(0, 1, &nullBuffer, &nStrides, &nStrides);
+		   dc.PSSetConstantBuffers(TEXTURE_CBUFFER_INDEX, 1, &nullBuffer);
 
 		   now = OS::CpuTicks();
 
@@ -1635,14 +1768,14 @@ namespace
 		   factory = nullptr;
 		   if (debug)
 		   {
-			   //   debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+			   debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 			   debug = nullptr;
 		   }
 	   }
-	   AutoRelease<IDXGIAdapter> adapter;
+	   AutoRelease<IDXGIAdapter1> adapter;
 	   AutoRelease<ID3D11DeviceContext> dc;
 	   AutoRelease<ID3D11Device> device;
-	   AutoRelease<IDXGIFactory> factory;
+	   AutoRelease<IDXGIFactory2> factory;
 	   AutoRelease<ID3D11Debug> debug;
    };
 
@@ -1813,31 +1946,67 @@ namespace
 
 	void Create_DX11_0_Host(UINT adapterIndex, DX11Host& host)
 	{
-		VALIDATEDX11(CreateDXGIFactory(IID_IDXGIFactory, (void**)&host.factory));
-		VALIDATEDX11(host.factory->EnumAdapters(adapterIndex, &host.adapter));
+		cstr cmd = GetCommandLineA();
 
-		D3D_FEATURE_LEVEL featureLevelNeeded[] = { D3D_FEATURE_LEVEL_11_0 };
-		D3D_FEATURE_LEVEL featureLevelFound;
+		VALIDATEDX11(CreateDXGIFactory2(0, IID_IDXGIFactory2, (void**)&host.factory));
+		VALIDATEDX11(host.factory->EnumAdapters1(adapterIndex, &host.adapter));
 
-      UINT flags;
-
-#ifdef _DEBUG
-      flags = D3D11_CREATE_DEVICE_DEBUG;
-#else
-      flags = 0;
-#endif
-      flags |= D3D11_CREATE_DEVICE_SINGLETHREADED;
-
-		VALIDATEDX11(D3D11CreateDevice(host.adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, flags,
-			featureLevelNeeded, 1, D3D11_SDK_VERSION, &host.device, &featureLevelFound, &host.dc
-			));
-
-		if (featureLevelFound != D3D_FEATURE_LEVEL_11_0)
+		if (strstr(cmd, "-adapter.list"))
 		{
-			Throw(0, "DX 11.0 is required for this application");
+			OS::PrintDebug("Adapter List:\n");
+			for (UINT i = 0; i < 100; ++i)
+			{
+				AutoRelease<IDXGIAdapter1> testAdapters;
+				if (host.factory->EnumAdapters1(i, &testAdapters) == DXGI_ERROR_NOT_FOUND)
+				{
+					break;
+				}
+
+				DXGI_ADAPTER_DESC1 desc;
+				testAdapters->GetDesc1(&desc);
+
+				OS::PrintDebug("Adapter #%u: %S rev %u %s\n", i, desc.Description, desc.Revision, (i == adapterIndex) ? "- selected." : "");
+				OS::PrintDebug(" Sys Mem: %lluMB\n", desc.DedicatedSystemMemory / 1_megabytes);
+				OS::PrintDebug(" Vid Mem: %lluMB\n", desc.DedicatedVideoMemory / 1_megabytes);
+				OS::PrintDebug(" Shared Mem: %lluMB\n", desc.SharedSystemMemory / 1_megabytes);
+			}
+		}
+		else
+		{
+			DXGI_ADAPTER_DESC1 desc;
+			host.adapter->GetDesc1(&desc);
+
+			OS::PrintDebug("Adapter #%u: %S rev %u - selected.\n", adapterIndex, desc.Description, desc.Revision);
+			OS::PrintDebug(" Sys Mem: %lluMB\n", desc.DedicatedSystemMemory / 1_megabytes);
+			OS::PrintDebug(" Vid Mem: %lluMB\n", desc.DedicatedVideoMemory / 1_megabytes);
+			OS::PrintDebug(" Shared Mem: %lluMB\n", desc.SharedSystemMemory / 1_megabytes);
+			OS::PrintDebug(" --> add -adapter.list on command line to see all adapters\n");
 		}
 
-      host.device->QueryInterface(IID_PPV_ARGS(&host.debug));
+		DXGI_ADAPTER_DESC desc;
+		host.adapter->GetDesc(&desc);
+
+		D3D_FEATURE_LEVEL featureLevelNeeded[] = { D3D_FEATURE_LEVEL_11_1 };
+		D3D_FEATURE_LEVEL featureLevelFound;
+
+		UINT flags;
+
+#ifdef _DEBUG
+		flags = D3D11_CREATE_DEVICE_DEBUG;
+#else
+		flags = 0;
+#endif
+		flags |= D3D11_CREATE_DEVICE_SINGLETHREADED;
+
+		VALIDATEDX11(D3D11CreateDevice(host.adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, flags,
+			featureLevelNeeded, 1, D3D11_SDK_VERSION, &host.device, &featureLevelFound, &host.dc));
+
+		if (featureLevelFound != D3D_FEATURE_LEVEL_11_1)
+		{
+			Throw(0, "DX 11.1 is required for this application");
+		}
+
+		host.device->QueryInterface(IID_PPV_ARGS(&host.debug));
 	}
 
    struct UltraClock : public IUltraClock
@@ -1922,7 +2091,7 @@ namespace
 			   continue;
 		   }
 
-		   QueryPerformanceCounter((LARGE_INTEGER*)&uc.frameStart);
+		   uc.frameStart = OS::CpuTicks();
 
 		   uc.frameDelta = uc.frameStart - lastTick;
 
@@ -2005,7 +2174,18 @@ namespace
 	public:
 		DX11Window(IInstallation& _installation) : installation(_installation)
 		{
-			Create_DX11_0_Host(0, host);
+			cstr cmd = GetCommandLineA();
+
+			auto adapterPrefix = "-adapter.index:"_fstring;
+			cstr indexPtr = strstr(cmd, adapterPrefix);
+
+			UINT index = 0;
+			if (indexPtr != nullptr)
+			{
+				index = atoi(indexPtr + adapterPrefix.length);
+			}
+
+			Create_DX11_0_Host(index, host);
 			renderer = new  DX11AppRenderer(*host.device, *host.dc, *host.factory, installation);
 			mainWindowHandler = MainWindowHandler::Create(*this);
 			VALIDATEDX11(host.factory->MakeWindowAssociation(mainWindowHandler->Window(), 0));

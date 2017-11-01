@@ -25,6 +25,7 @@ namespace Rococo
 
       ID3D11SamplerState* CreateSpriteSampler(ID3D11Device& device);
       ID3D11SamplerState* CreateObjectSampler(ID3D11Device& device);
+	  ID3D11SamplerState* CreateShadowSampler(ID3D11Device& device);
       ID3D11RasterizerState* CreateSpriteRasterizer(ID3D11Device& device);
       ID3D11RasterizerState* CreateObjectRasterizer(ID3D11Device& device);
       ID3D11BlendState* CreateAlphaBlend(ID3D11Device& device);

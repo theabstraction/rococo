@@ -9,16 +9,18 @@ struct ObjectVertex
 
 struct ScreenVertex
 {
-	float4 position : SV_POSITION;
+	float4 position : SV_POSITION0;
 	float4 normal : TEXCOORD2;
 	float2 uv: TEXCOORD;
 	float4 worldPosition: TEXCOORD1;
+	float4 shadowPos: TEXCOORD3;
 };
 
 #pragma pack_matrix(row_major)
 
 struct Light
 {
+	float4x4 worldToShadowBuffer;
 	float4 position;
 	float4 direction;
 	float4 right;
@@ -61,6 +63,7 @@ ScreenVertex main(ObjectVertex v)
 	sv.position = mul(worldMatrixAndProj, instancePos);
 	sv.normal = mul(instanceMatrix, v.normal);
 	sv.worldPosition = instancePos;
+	sv.shadowPos = mul(light.worldToShadowBuffer, instancePos);
 	sv.uv = v.uv;
 	return sv;
 }

@@ -2600,6 +2600,14 @@ IPaneBuilderSupervisor* GuiStack::CreateOverlay()
 						Graphics::RenderBitmap_ShrinkAndPreserveAspectRatio(rc, id, absRect);
 					}
 				}
+				else if (*key == '<')
+				{
+					if (Eq(ext, ".r32f"))
+					{
+						auto id = platform.renderer.FindTexture(key);
+						if (id) Graphics::RenderBitmap_ShrinkAndPreserveAspectRatio(rc, id, absRect);
+					}
+				}
 			}
 		}
 
@@ -2871,7 +2879,10 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 	AutoFree<Rococo::Events::IPublisherSupervisor> publisher(Events::CreatePublisher());
 	os->Monitor(installation->Content());
 
+	OS::PrintDebug("Starting mainWindow!\n");
+
 	AutoFree<IDX11Window> mainWindow(CreateDX11Window(*installation));
+
 	SetWindowTextA(mainWindow->Window(), title);
 
 	AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation));

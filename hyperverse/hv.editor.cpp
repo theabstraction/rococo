@@ -1135,7 +1135,7 @@ namespace
 
 			if (platform.utilities.GetSaveLocation(platform.renderer.Window(), sd))
 			{
-				Save(levelpath);
+				Save(sd.path);
 				SafeFormat(levelpath, sizeof(levelpath), "%s", sd.path);
 				platform.utilities.AddSubtitle(platform, sd.shortName);
 			}
@@ -1164,6 +1164,7 @@ namespace
 			sb.AppendFormat("(' #include\n\t\"!scripts/mplat.sxh.sxy\""
 				"\n\t\"!scripts/hv.sxh.sxy\""
 				"\n\t\"!scripts/types.sxy\""
+				"\n\t\"!scripts/hv/hv.types.sxy\""
 				")\n\n");
 
 			sb.AppendFormat("(namespace EntryPoint)\n\t(alias Main EntryPoint.Main)\n\n");

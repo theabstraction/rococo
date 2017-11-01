@@ -2016,11 +2016,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		GuiRectf* subUV;
-		_offset += sizeof(subUV);
-		ReadInput(subUV, _sf, -_offset);
-
-		Quad* subQuad;
+		QuadVertices* subQuad;
 		_offset += sizeof(subQuad);
 		ReadInput(subQuad, _sf, -_offset);
 
@@ -2036,23 +2032,15 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetFlatSubQuad(i, j, *subQuad, *subUV);
+		_pObject->GetFlatSubQuad(i, j, *subQuad);
 	}
 	void NativeRococoGraphicsIFieldTesselatorGetPerturbedSubQuad(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Quad* subNormals;
-		_offset += sizeof(subNormals);
-		ReadInput(subNormals, _sf, -_offset);
-
-		GuiRectf* subUV;
-		_offset += sizeof(subUV);
-		ReadInput(subUV, _sf, -_offset);
-
-		Quad* subQuad;
-		_offset += sizeof(subQuad);
-		ReadInput(subQuad, _sf, -_offset);
+		QuadVertices* q;
+		_offset += sizeof(q);
+		ReadInput(q, _sf, -_offset);
 
 		int32 j;
 		_offset += sizeof(j);
@@ -2066,7 +2054,123 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetPerturbedSubQuad(i, j, *subQuad, *subUV, *subNormals);
+		_pObject->GetPerturbedSubQuad(i, j, *q);
+	}
+	void NativeRococoGraphicsIFieldTesselatorGetStackBondedBrick(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float cementThicknessRatio;
+		_offset += sizeof(cementThicknessRatio);
+		ReadInput(cementThicknessRatio, _sf, -_offset);
+
+		QuadVertices* q;
+		_offset += sizeof(q);
+		ReadInput(q, _sf, -_offset);
+
+		int32 j;
+		_offset += sizeof(j);
+		ReadInput(j, _sf, -_offset);
+
+		int32 i;
+		_offset += sizeof(i);
+		ReadInput(i, _sf, -_offset);
+
+		Rococo::Graphics::IFieldTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetStackBondedBrick(i, j, *q, cementThicknessRatio);
+	}
+	void NativeRococoGraphicsIFieldTesselatorGetStretchBondedBrick(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float cementThicknessRatio;
+		_offset += sizeof(cementThicknessRatio);
+		ReadInput(cementThicknessRatio, _sf, -_offset);
+
+		QuadVertices* bottom;
+		_offset += sizeof(bottom);
+		ReadInput(bottom, _sf, -_offset);
+
+		QuadVertices* right;
+		_offset += sizeof(right);
+		ReadInput(right, _sf, -_offset);
+
+		QuadVertices* left;
+		_offset += sizeof(left);
+		ReadInput(left, _sf, -_offset);
+
+		QuadVertices* top;
+		_offset += sizeof(top);
+		ReadInput(top, _sf, -_offset);
+
+		QuadVertices* q;
+		_offset += sizeof(q);
+		ReadInput(q, _sf, -_offset);
+
+		int32 j;
+		_offset += sizeof(j);
+		ReadInput(j, _sf, -_offset);
+
+		int32 i;
+		_offset += sizeof(i);
+		ReadInput(i, _sf, -_offset);
+
+		Rococo::Graphics::IFieldTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetStretchBondedBrick(i, j, *q, *top, *left, *right, *bottom, cementThicknessRatio);
+	}
+	void NativeRococoGraphicsIFieldTesselatorGetBrickJoinRight(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float cementThicknessRatio;
+		_offset += sizeof(cementThicknessRatio);
+		ReadInput(cementThicknessRatio, _sf, -_offset);
+
+		QuadVertices* q;
+		_offset += sizeof(q);
+		ReadInput(q, _sf, -_offset);
+
+		int32 j;
+		_offset += sizeof(j);
+		ReadInput(j, _sf, -_offset);
+
+		int32 i;
+		_offset += sizeof(i);
+		ReadInput(i, _sf, -_offset);
+
+		Rococo::Graphics::IFieldTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetBrickJoinRight(i, j, *q, cementThicknessRatio);
+	}
+	void NativeRococoGraphicsIFieldTesselatorGetBrickBedTop(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float cementThicknessRatio;
+		_offset += sizeof(cementThicknessRatio);
+		ReadInput(cementThicknessRatio, _sf, -_offset);
+
+		QuadVertices* q;
+		_offset += sizeof(q);
+		ReadInput(q, _sf, -_offset);
+
+		int32 row;
+		_offset += sizeof(row);
+		ReadInput(row, _sf, -_offset);
+
+		Rococo::Graphics::IFieldTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetBrickBedTop(row, *q, cementThicknessRatio);
 	}
 	void NativeRococoGraphicsIFieldTesselatorPerturbField(NativeCallEnvironment& _nce)
 	{
@@ -2184,8 +2288,12 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorSetUV, nullptr, SEXTEXT("IFieldTesselatorSetUV (Pointer hObject)(Sys.Maths.Vec2 uvA)(Sys.Maths.Vec2 uvC) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorNumberOfColumns, nullptr, SEXTEXT("IFieldTesselatorNumberOfColumns (Pointer hObject) -> (Int32 cols)"));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorNumberOfRows, nullptr, SEXTEXT("IFieldTesselatorNumberOfRows (Pointer hObject) -> (Int32 rows)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetFlatSubQuad, nullptr, SEXTEXT("IFieldTesselatorGetFlatSubQuad (Pointer hObject)(Int32 i)(Int32 j)(Sys.Maths.Quadf subQuad)(Sys.Maths.Rectf subUV) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetPerturbedSubQuad, nullptr, SEXTEXT("IFieldTesselatorGetPerturbedSubQuad (Pointer hObject)(Int32 i)(Int32 j)(Sys.Maths.Quadf subQuad)(Sys.Maths.Rectf subUV)(Sys.Maths.Quadf subNormals) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetFlatSubQuad, nullptr, SEXTEXT("IFieldTesselatorGetFlatSubQuad (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices subQuad) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetPerturbedSubQuad, nullptr, SEXTEXT("IFieldTesselatorGetPerturbedSubQuad (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetStackBondedBrick, nullptr, SEXTEXT("IFieldTesselatorGetStackBondedBrick (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Float32 cementThicknessRatio) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetStretchBondedBrick, nullptr, SEXTEXT("IFieldTesselatorGetStretchBondedBrick (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Rococo.QuadVertices top)(Rococo.QuadVertices left)(Rococo.QuadVertices right)(Rococo.QuadVertices bottom)(Float32 cementThicknessRatio) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetBrickJoinRight, nullptr, SEXTEXT("IFieldTesselatorGetBrickJoinRight (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Float32 cementThicknessRatio) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetBrickBedTop, nullptr, SEXTEXT("IFieldTesselatorGetBrickBedTop (Pointer hObject)(Int32 row)(Rococo.QuadVertices q)(Float32 cementThicknessRatio) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorPerturbField, nullptr, SEXTEXT("IFieldTesselatorPerturbField (Pointer hObject)(Int32 i)(Int32 j)(Float32 dH) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorLevelField, nullptr, SEXTEXT("IFieldTesselatorLevelField (Pointer hObject)(Int32 i0)(Int32 j0)(Int32 i1)(Int32 j1)(Float32 dH) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorRandomizeField, nullptr, SEXTEXT("IFieldTesselatorRandomizeField (Pointer hObject)(Int32 i)(Int32 j)(Float32 minValue)(Float32 maxValue) -> "));

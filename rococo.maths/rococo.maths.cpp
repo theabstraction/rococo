@@ -19,7 +19,7 @@ namespace Rococo
       return xdet.m128_f32[0];
    }
 
-   Matrix4x4 RotateDirectionToZ(cr_vec3 direction)
+   Matrix4x4 RotateDirectionToNegZ(cr_vec3 direction)
    {
 	   float Dy = direction.y;
 	   float Dx = direction.x;
@@ -34,13 +34,13 @@ namespace Rococo
 	   }
 	   else
 	   {
-		   float cT = Dx / DS;
 		   float sT = -Dy / DS;
-		   // Rotate direction onto x axis
+		   float cT = Dx / DS;
+		   // Rotate direction onto y axis
 		   rotZ =
 		   {
-			   { cT, -sT,     0,       0 },
-			   { sT,  cT,     0,       0 },
+			   { sT, -cT,     0,       0 },
+			   { cT,  sT,     0,       0 },
 			   { 0,    0,     1,       0 },
 			   { 0,    0,     0,       1 }
 		   };
@@ -49,15 +49,15 @@ namespace Rococo
 	   float cP = direction.z;
 	   float sP = sqrtf(1 - Sq(cP));
 
-	   Matrix4x4 rotY
+	   Matrix4x4 rotX
 	   {
-		   { cP,  0, -sP, 0 },
-		   { 0,   1,   0, 0 },
-		   { sP,  0,  cP, 0 },
-		   { 0,  0,   0, 1 }
+		   {  1,   0,   0,  0 },
+		   {  0,  -cP,  sP,  0 },
+		   {  0,  -sP,  -cP,  0 },
+		   {  0,   0,   0,  1 }
 	   };
 
-	   return rotY * rotZ;
+	   return rotX * rotZ;
    }
 
    void XMVectorToVec4(DirectX::XMVECTOR xv, Vec4& v)
@@ -258,7 +258,7 @@ namespace Rococo
 
 		return Matrix4x4
 		{
-		   { A,	 0,  0,   0 },
+		   { A,	  0,  0,   0 },
 		   { 0,   B,  0,   0 },
 		   { 0,   0,  C,   D },
 		   { 0,   0, -1,   0 }
@@ -445,7 +445,7 @@ namespace Rococo
 		}
 	}
 
-	void TransformNormals(const Vec3* vertices, size_t nElements, cr_m4x4 transform, Vec3* transformedVertices)
+	void TransformDirections(const Vec3* vertices, size_t nElements, cr_m4x4 transform, Vec3* transformedVertices)
 	{
 		for (size_t i = 0; i < nElements; ++i)
 		{
@@ -457,7 +457,7 @@ namespace Rococo
 		}
 	}
 
-	void TransformNormal(cr_m4x4 m, cr_vec3 v, Vec3& np)
+	void TransformDirection(cr_m4x4 m, cr_vec3 v, Vec3& np)
 	{
 		np.x = m.row0.x * v.x + m.row0.y * v.y + m.row0.z * v.z;
 		np.y = m.row1.x * v.x + m.row1.y * v.y + m.row1.z * v.z;

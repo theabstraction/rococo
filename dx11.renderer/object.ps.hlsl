@@ -1,15 +1,17 @@
 struct PixelVertex
 {
-	float4 position : SV_POSITION;
+	float4 position : SV_POSITION0;
 	float4 normal : TEXCOORD2;
 	float2 uv: TEXCOORD;
     float4 worldPosition: TEXCOORD1;
+	float4 shadowPos: TEXCOORD3;
 };
 
 #pragma pack_matrix(row_major)
 
 struct Light
 {
+	float4x4 worldToShadowBuffer;
 	float4 position;
 	float4 direction;
 	float4 right;
@@ -35,32 +37,56 @@ cbuffer light
 Texture2D g_Texture: register(t1);
 SamplerState txSampler;
 
+Texture2D g_ShadowMap: register(t2);
+SamplerState shadowSampler;
+
 float4 per_pixel_lighting(PixelVertex p)
 {
-	float4 texel = g_Texture.Sample(txSampler, p.uv).xyzw;
+	float4 texel = g_Texture.Sample(txSampler, p.uv);
 
 	float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
 
-	float R2 = dot(lightToPixelVec, lightToPixelVec);
+	float oow = 1.0f / p.shadowPos.w;
 
-	float3 lightToPixelDir = normalize(lightToPixelVec);
+	float depth = p.shadowPos.z * oow - 0.01f;
 
-	float f = dot(lightToPixelDir, light.direction.xyz);
+	float2 shadowUV = p.shadowPos.xy * oow;
 
-	float falloff = 1.0f;
+	float shadowDepth = g_ShadowMap.Sample(shadowSampler, p.uv).x;
+	
+	float normalizedDepth = (depth + 1.0f) * 0.5f;
 
-	if (f < light.cutoffCosAngle) falloff = pow(1.0f - (light.cutoffCosAngle - f), light.cutoffPower);
+	float delta = depth - shadowDepth;
 
-	if (f < 0) f = 0;
-	 
-	float g = -dot(light.direction.xyz, normalize(p.normal.xyz));
+	// return float4(shadowDepth, shadowDepth, shadowDepth, 1.0f);
 
-	float intensity = clamp(f * g, 0, 1.0f) * pow(R2, light.attenuationRate) * falloff;
+	float4 ambience = float4(texel.x * light.ambient.x, texel.y * light.ambient.y, texel.z * light.ambient.z, 1.0f);
 
-	float4 diffCol = float4 (texel.x * intensity * light.colour.x, texel.y * intensity * light.colour.y, texel.z * intensity * light.colour.z, 1.0f);
-	float4 ambCol = float4 (texel.x * light.ambient.x, texel.y * light.ambient.y, texel.z * light.ambient.z, 1.0f);
+	if (depth < 20000.0f)
+	{
+		float R2 = dot(lightToPixelVec, lightToPixelVec);
 
-	return float4(diffCol.x + ambCol.x, diffCol.y + ambCol.y, diffCol.z + ambCol.z, 1.0f);
+		float3 lightToPixelDir = normalize(lightToPixelVec);
+
+		float f = dot(lightToPixelDir, light.direction.xyz);
+
+		float falloff = 1.0f;
+
+		if (f < light.cutoffCosAngle) falloff = pow(1.0f - (light.cutoffCosAngle - f), light.cutoffPower);
+
+		if (f < 0) f = 0;
+
+		float g = -dot(light.direction.xyz, normalize(p.normal.xyz));
+
+		float intensity = clamp(f * g, 0, 1.0f) * pow(R2, light.attenuationRate) * falloff;
+
+		float4 diffCol = float4 (texel.x * intensity * light.colour.x, texel.y * intensity * light.colour.y, texel.z * intensity * light.colour.z, 0.0f);
+		return diffCol + ambience;
+	}
+	else
+	{
+		return ambience;
+	}
 }
 
 float4 no_lighting(PixelVertex p)

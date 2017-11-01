@@ -1121,7 +1121,7 @@ namespace Rococo
 	{
 		try
 		{
-			EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(true, false));
+			EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, false));
 			return result;
 		}
 		catch (IException& ex)

@@ -35,6 +35,8 @@ namespace
 		Vec2 delta = { 0 }; // Spatial difference between neighbouring cells along tangent and vertical
 		Vec2 deltaUVs = { 0 }; // UV deltas between neighbouring cells
 
+		Vec2 brickDelta = { 0 }; // Like delta, but accomodating half bricks at one end
+
 		void InitBasis()
 		{
 			rawTangent = macroQuad.b - macroQuad.a;
@@ -67,6 +69,9 @@ namespace
 			rows = max(rows, 1);
 
 			delta = { 1.0f / columns, 1.0f / rows };
+
+			brickDelta.y = delta.y;
+			brickDelta.x = 1.0f / (columns - 0.5f);
 
 			heights.resize((rows+3) * (columns+3));
 			memset(&heights[0], 0, (rows + 3) * (columns + 3) * sizeof(float));
@@ -139,7 +144,7 @@ namespace
 			return rows;
 		}
 
-		void GetFlatSubQuad(int32 i, int32 j, Quad& subQuad, GuiRectf& subUV) override
+		void GetFlatSubQuad(int32 i, int32 j, QuadVertices& q) override
 		{
 			if (i < 0 || i >= columns)
 			{
@@ -171,18 +176,310 @@ namespace
 
 			Vec3 DN = normal * h;
 
-			subQuad.a = macroQuad.a + DT0 - DV0 + DN;
-			subQuad.b = macroQuad.a + DT0 - DV0 + DN;
-			subQuad.c = macroQuad.a + DT1 - DV1 + DN;
-			subQuad.d = macroQuad.a + DT1 - DV1 + DN;
+			q.positions.a = macroQuad.a + DT0 - DV0 + DN;
+			q.positions.b = macroQuad.a + DT1 - DV0 + DN;
+			q.positions.c = macroQuad.a + DT1 - DV1 + DN;
+			q.positions.d = macroQuad.a + DT0 - DV1 + DN;
 
-			subUV.left   = uvA.x + deltaUVs.x * DX0;
-			subUV.top    = uvA.y + deltaUVs.y * DY0;
-			subUV.right  = uvA.x * deltaUVs.x * DX1;
-			subUV.bottom = uvA.y + deltaUVs.y * DY1;
+			q.uv.left   = uvA.x + deltaUVs.x * i;
+			q.uv.top    = uvA.y + deltaUVs.y * j;
+			q.uv.right  = uvA.x + deltaUVs.x * (i+1);
+			q.uv.bottom = uvA.y + deltaUVs.y * (j+1);
+
+			q.normals.a = normal;
+			q.normals.b = normal;
+			q.normals.c = normal;
+			q.normals.d = normal;
 		}
 
-		void GetPerturbedSubQuad(int32 i, int32 j, Quad& subQuad, GuiRectf& subUV, Quad& subNormals) override
+		void GetStackBondedBrick(int32 i, int32 j, QuadVertices& q, float cementThicknessRatio) override
+		{
+			if (i < 0 || i >= columns)
+			{
+				Throw(0, "FieldTesselator::GetStackBondedBrick - i (%d) out of bounds [0,%d) ", i, columns);
+			}
+
+			if (j < 0 || j >= rows)
+			{
+				Throw(0, "FieldTesselator::GetStackBondedBrick - j (%d) out of bounds [0,%d) ", j, rows);
+			}
+
+			float DX0 = i * delta.x;
+			float DY0 = j * delta.y;
+			float DX1 = DX0 + delta.x;
+			float DY1 = DY0 + delta.y;
+
+			const float cementThickness = cementThicknessRatio * delta.x;
+
+			float DX0_INNER = DX0 + cementThickness;
+			float DX1_INNER = DX1 - cementThickness;
+			float DY0_INNER = DY0 + cementThickness;
+			float DY1_INNER = DY1 - cementThickness;
+
+			Vec3 DT0 = DX0_INNER * rawTangent;
+			Vec3 DT1 = DX1_INNER * rawTangent;
+
+			Vec3 DV0 = DY0_INNER * rawVertical;
+			Vec3 DV1 = DY1_INNER * rawVertical;
+
+			Vec3 DN = normal * 0.0f;
+
+			q.positions.a = macroQuad.a + DT0 - DV0 + DN;
+			q.positions.b = macroQuad.a + DT1 - DV0 + DN;
+			q.positions.c = macroQuad.a + DT1 - DV1 + DN;
+			q.positions.d = macroQuad.a + DT0 - DV1 + DN;
+
+			q.uv.left   = uvA.x + deltaUVs.x * DX0_INNER / delta.x;
+			q.uv.top    = uvA.y + deltaUVs.y * DY0_INNER / delta.y;
+			q.uv.right  = uvA.x + deltaUVs.x * DX1_INNER / delta.x;
+			q.uv.bottom = uvA.y + deltaUVs.y * DY1_INNER / delta.y;
+
+			q.normals.a = normal;
+			q.normals.b = normal;
+			q.normals.c = normal;
+			q.normals.d = normal;
+		}
+
+		void GetBrickJoinRight(int32 i, int32 j, QuadVertices& q, float cementThicknessRatio)
+		{
+			if (i < 0 || i >= columns)
+			{
+				Throw(0, "FieldTesselator::GetBrickJoinRight - i (%d) out of bounds [0,%d) ", i, columns - 1);
+			}
+
+			if (j < 0 || j >= rows)
+			{
+				Throw(0, "FieldTesselator::GetBrickJoinRight - j (%d) out of bounds [0,%d) ", j, rows);
+			}
+
+			if (i == columns - 1)
+			{
+				q.positions.a = q.positions.b = q.positions.b = q.positions.d = macroQuad.a;
+				return;
+			}
+
+			const float cementThickness = cementThicknessRatio * brickDelta.y * 1.0f / span.y;
+
+			float Y = j * delta.y + cementThickness;
+
+			boolean32 isOdd = (j % 2);
+
+			float DX0;
+
+			if (i == 0)
+			{
+				DX0 = isOdd ? brickDelta.x : (0.5f  * brickDelta.x);
+			}
+			else
+			{
+				if (isOdd)
+				{
+					DX0 = (i + 1) * brickDelta.x;
+				}
+				else
+				{
+					DX0 = (i + 1 - 0.5f) * brickDelta.x;
+				}
+			}
+
+			float DX1 = DX0 + 2.0f * cementThickness;
+
+			float DY0 = Y + cementThickness;
+			float DY1 = Y + delta.y - cementThickness;
+
+			Vec3 DT0 = DX0 * rawTangent;
+			Vec3 DT1 = DX1 * rawTangent;
+
+			Vec3 DV0 = DY0 * rawVertical;
+			Vec3 DV1 = DY1 * rawVertical;
+
+			Vec3 DN = normal * 0.0f;
+
+			q.positions.a = macroQuad.a + DT0 - DV0 + DN;
+			q.positions.b = macroQuad.a + DT1 - DV0 + DN;
+			q.positions.c = macroQuad.a + DT1 - DV1 + DN;
+			q.positions.d = macroQuad.a + DT0 - DV1 + DN;
+
+			q.uv.left = uvA.x + deltaUVs.x * DX0 * columns;
+			q.uv.top = uvA.y + deltaUVs.y * DY0 * rows;
+			q.uv.right = uvA.x + deltaUVs.x * DX1 * columns;
+			q.uv.bottom = uvA.y + deltaUVs.y * DY1 * rows;
+
+			q.normals.a = normal;
+			q.normals.b = normal;
+			q.normals.c = normal;
+			q.normals.d = normal;
+		}
+
+		void GetBrickBedTop(int32 row, QuadVertices& q, float cementThicknessRatio)
+		{
+			if (row < 0 || row >= rows)
+			{
+				Throw(0, "FieldTesselator::GetBrickBed - row (%d) out of bounds [0,%d) ", row, rows);
+			}
+
+			const float cementThickness = cementThicknessRatio * brickDelta.y * 1.0f / span.y;
+
+			float Y = row * delta.y + cementThickness;
+
+			float DY0 = Y - cementThickness;
+			float DY1 = Y + cementThickness;
+
+			Vec3 DT0 = 0.0f * rawTangent;
+			Vec3 DT1 = 1.0f * rawTangent;
+
+			Vec3 DV0 = DY0 * rawVertical;
+			Vec3 DV1 = DY1 * rawVertical;
+
+			Vec3 DN = normal * 0.0f;
+
+			q.positions.a = macroQuad.a + DT0 - DV0 + DN;
+			q.positions.b = macroQuad.a + DT1 - DV0 + DN;
+			q.positions.c = macroQuad.a + DT1 - DV1 + DN;
+			q.positions.d = macroQuad.a + DT0 - DV1 + DN;
+
+			q.uv.left = uvA.x;
+			q.uv.top = uvA.y + deltaUVs.y * DY0 * rows;
+			q.uv.right = uvA.x + deltaUVs.x * columns;
+			q.uv.bottom = uvA.y + deltaUVs.y * DY1 * rows;
+
+			q.normals.a = normal;
+			q.normals.b = normal;
+			q.normals.c = normal;
+			q.normals.d = normal;
+		}
+
+		void GetStretchBondedBrick(int32 i, int32 j, QuadVertices& q, QuadVertices& top, QuadVertices& left, QuadVertices& right, QuadVertices& bottom, float cementThicknessRatio)  override
+		{
+			if (i < 0 || i >= columns)
+			{
+				Throw(0, "FieldTesselator::GetStretchBondedBrick - i (%d) out of bounds [0,%d) ", i, columns);
+			}
+
+			if (j < 0 || j >= rows)
+			{
+				Throw(0, "FieldTesselator::GetStretchBondedBrick - j (%d) out of bounds [0,%d) ", j, rows);
+			}
+
+			if (columns < 2)
+			{
+				Throw(0, "FieldTesselator::GetStretchBondedBrick - columns (%d) needs to be >= 2 for stretched bricks", columns);
+			}
+
+			boolean32 isOdd = (j % 2);
+
+			const float cementThickness = cementThicknessRatio * brickDelta.y / span.y;
+
+			float DX0;
+			float DX1;
+
+			if (i == 0)
+			{
+				DX0 = 0;
+				DX1 = isOdd ? brickDelta.x : (0.5f * brickDelta.x);
+			}
+			else if (i == (columns - 1))
+			{
+				DX1 = 1.0f;
+				DX0 = DX1 - ( !isOdd ? brickDelta.x : (0.5f * brickDelta.x) );
+			}
+			else
+			{
+				if (isOdd)
+				{
+					DX0 = i * brickDelta.x;
+					DX1 = DX0 + brickDelta.x;
+				}
+				else
+				{
+					DX0 = (i - 0.5f) * brickDelta.x;
+					DX1 = DX0 + brickDelta.x;
+				}
+			}
+			
+
+			float DY0 = j * delta.y + 1.0f * cementThickness;
+			float DY1 = DY0 + delta.y;
+
+			float DX0_INNER = (i == 0) ? 0.0f : (DX0 + 2.0f * cementThickness);
+			float DX1_INNER = (i == columns - 1) ? 1.0f : DX1;
+			float DY0_INNER = DY0 + cementThickness;
+			float DY1_INNER = DY1 - cementThickness;
+
+			Vec3 DT0 = DX0_INNER * rawTangent;
+			Vec3 DT1 = DX1_INNER * rawTangent;
+
+			Vec3 DV0 = DY0_INNER * rawVertical;
+			Vec3 DV1 = DY1_INNER * rawVertical;
+
+			Vec3 DN = normal * cementThickness * span.y;
+
+			q.positions.a = macroQuad.a + DT0 - DV0 + DN;
+			q.positions.b = macroQuad.a + DT1 - DV0 + DN;
+			q.positions.c = macroQuad.a + DT1 - DV1 + DN;
+			q.positions.d = macroQuad.a + DT0 - DV1 + DN;
+
+			q.uv.left = uvA.x + deltaUVs.x * DX0_INNER / delta.x;
+			q.uv.top = uvA.y + deltaUVs.y * DY0_INNER / delta.y;
+			q.uv.right = uvA.x + deltaUVs.x * DX1_INNER / delta.x;
+			q.uv.bottom = uvA.y + deltaUVs.y * DY1_INNER / delta.y;
+
+			q.normals.a = normal;
+			q.normals.b = normal;
+			q.normals.c = normal;
+			q.normals.d = normal;
+
+			top.positions.d = q.positions.a;
+			top.positions.c = q.positions.b;
+			top.positions.a = top.positions.d - DN;
+			top.positions.b = top.positions.c - DN;
+
+			top.normals.a = top.normals.b = top.normals.c = top.normals.d = Normalize(rawVertical);
+
+			top.uv.left = q.uv.left;
+			top.uv.right = q.uv.right;
+			top.uv.bottom = q.uv.top;
+			top.uv.top = top.uv.bottom + cementThickness;
+
+			bottom.positions.a = q.positions.d;
+			bottom.positions.b = q.positions.c;
+			bottom.positions.d = bottom.positions.a - DN;
+			bottom.positions.c = bottom.positions.b - DN;
+
+			bottom.normals.a = bottom.normals.b = bottom.normals.c = bottom.normals.d = -top.normals.a;
+
+			bottom.uv.left = q.uv.left;
+			bottom.uv.right = q.uv.right;
+			bottom.uv.top = q.uv.bottom;
+			bottom.uv.bottom = top.uv.top - cementThickness;
+
+			left.positions.a = bottom.positions.d;
+			left.positions.b = top.positions.a;
+			left.positions.c = top.positions.d;
+			left.positions.d = q.positions.d;
+
+			left.normals.a = left.normals.b = left.normals.c = left.normals.d = -Normalize(rawTangent);
+
+			left.uv.left = q.uv.bottom;
+			left.uv.right = q.uv.top;
+			left.uv.bottom = q.uv.left;
+			left.uv.top = left.uv.bottom - cementThickness;
+
+			right.positions.a = q.positions.b;
+			right.positions.b = top.positions.b;
+			right.positions.c = bottom.positions.c;
+			right.positions.d = q.positions.c;
+
+			right.normals.a = right.normals.b = right.normals.c = right.normals.d = -left.normals.a;
+
+			right.uv.left = left.uv.top;
+			right.uv.right = left.uv.bottom;
+			right.uv.bottom = left.uv.left;
+			right.uv.top = left.uv.right;
+		}
+
+
+		void GetPerturbedSubQuad(int32 i, int32 j, QuadVertices& q) override
 		{
 			if (i < 0 || i >= columns)
 			{
@@ -210,15 +507,15 @@ namespace
 			float hC = GetHeight(i + 1, j + 1);
 			float hD = GetHeight(i, j + 1);
 
-			subQuad.a = macroQuad.a + DT0 - DV0 + hA * normal;
-			subQuad.b = macroQuad.a + DT1 - DV0 + hB * normal;
-			subQuad.c = macroQuad.a + DT1 - DV1 + hC * normal;
-			subQuad.d = macroQuad.a + DT0 - DV1 + hD * normal;
+			q.positions.a = macroQuad.a + DT0 - DV0 + hA * normal;
+			q.positions.b = macroQuad.a + DT1 - DV0 + hB * normal;
+			q.positions.c = macroQuad.a + DT1 - DV1 + hC * normal;
+			q.positions.d = macroQuad.a + DT0 - DV1 + hD * normal;
 
-			subUV.left   = uvA.x + deltaUVs.x * i;
-			subUV.top    = uvA.y + deltaUVs.y * j;
-			subUV.right  = uvA.x + deltaUVs.x * (i + 1);
-			subUV.bottom = uvA.y + deltaUVs.y * (j + 1);	
+			q.uv.left   = uvA.x + deltaUVs.x * i;
+			q.uv.top    = uvA.y + deltaUVs.y * j;
+			q.uv.right  = uvA.x + deltaUVs.x * (i + 1);
+			q.uv.bottom = uvA.y + deltaUVs.y * (j + 1);
 
 			Vec2 dh_dxyA = Get_DH_DXY(i,     j);
 			Vec2 dh_dxyB = Get_DH_DXY(i+1,   j);
@@ -230,10 +527,10 @@ namespace
 			Vec3 Nc = Normalize({ -dh_dxyC.x, dh_dxyC.y, 1.0f });
 			Vec3 Nd = Normalize({ -dh_dxyD.x, dh_dxyD.y, 1.0f });
 
-			TransformNormal(basis, Na, subNormals.a);
-			TransformNormal(basis, Nb, subNormals.b);
-			TransformNormal(basis, Nc, subNormals.c);
-			TransformNormal(basis, Nd, subNormals.d);
+			TransformDirection(basis, Na, q.normals.a);
+			TransformDirection(basis, Nb, q.normals.b);
+			TransformDirection(basis, Nc, q.normals.c);
+			TransformDirection(basis, Nd, q.normals.d);
 		}
 
 		float& GetHeight(int i, int j)

@@ -91,6 +91,7 @@ namespace Rococo
 #pragma pack(push,4)
 	struct Light
 	{
+		Matrix4x4 worldToShadowBuffer;
 		Vec4 position;
 		Vec4 direction;
 		Vec4 right;
@@ -166,6 +167,7 @@ namespace Rococo
 	  virtual void ClearMeshes() = 0;
 	  virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
 	  virtual void DeleteMesh(ID_SYS_MESH id) = 0;
+	  virtual ID_TEXTURE FindTexture(cstr name) const = 0;
 	  virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
 	  virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id) = 0;
 	  virtual IInstallation& Installation() = 0;

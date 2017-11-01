@@ -19,3 +19,10 @@
 )
 (alias LightSpec Rococo.LightSpec)
 
+(struct QuadVertices
+	(Sys.Maths.Quadf positions)
+	(Sys.Maths.Rectf uv)
+	(Sys.Maths.Quadf normals)
+)
+(alias QuadVertices Rococo.QuadVertices)
+

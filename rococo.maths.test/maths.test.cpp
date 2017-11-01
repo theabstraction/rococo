@@ -172,24 +172,24 @@ void ValidateMatrixLib()
 	VALIDATE(Approx(pPrimedInv.z, 10.0f));
 
 	{
-		Matrix4x4 rotDirToZ = RotateDirectionToZ({ 0,0,1 });
+		Matrix4x4 rotDirToZ = RotateDirectionToNegZ({ 0,0,-1 });
 
 		Vec3 Nz;
-		TransformNormal(rotDirToZ, { 0,0,1 }, Nz);
+		TransformDirection(rotDirToZ, { 0,0,1 }, Nz);
 
 		VALIDATE(Nz.x == 0);
 		VALIDATE(Nz.y == 0);
 		VALIDATE(Nz.z == 1.0f);
 
 		Vec3 Ny;
-		TransformNormal(rotDirToZ, { 0,1,0 }, Ny);
+		TransformDirection(rotDirToZ, { 0,1,0 }, Ny);
 
 		VALIDATE(Ny.x == 0);
 		VALIDATE(Ny.y == 1.0f);
 		VALIDATE(Ny.z == 0);
 
 		Vec3 Nx;
-		TransformNormal(rotDirToZ, { 1,0,0 }, Nx);
+		TransformDirection(rotDirToZ, { 1,0,0 }, Nx);
 
 		VALIDATE(Nx.x == 1.0f);
 		VALIDATE(Nx.y == 0.0f);
@@ -197,24 +197,24 @@ void ValidateMatrixLib()
 	}
 
 	{
-		Matrix4x4 rotDirToZ = RotateDirectionToZ({ 0,0,-1 });
+		Matrix4x4 rotDirToZ = RotateDirectionToNegZ({ 0,0,1 });
 
 		Vec3 Nz;
-		TransformNormal(rotDirToZ, { 0,0,-1 }, Nz);
+		TransformDirection(rotDirToZ, { 0,0,-1 }, Nz);
 
 		VALIDATE(Nz.x == 0);
 		VALIDATE(Nz.y == 0);
 		VALIDATE(Nz.z == 1.0f);
 
 		Vec3 Ny;
-		TransformNormal(rotDirToZ, { 0,1,0 }, Ny);
+		TransformDirection(rotDirToZ, { 0,1,0 }, Ny);
 
-		VALIDATE(Ny.x == 0);
-		VALIDATE(Ny.y == 1.0f);
-		VALIDATE(Ny.z == 0);
+		VALIDATE(Ny.x ==    0);
+		VALIDATE(Ny.y == -1.0f);
+		VALIDATE(Ny.z ==    0);
 
 		Vec3 Nx;
-		TransformNormal(rotDirToZ, { -1,0,0 }, Nx);
+		TransformDirection(rotDirToZ, { 1,0,0 }, Nx);
 
 		VALIDATE(Nx.x == 1.0f);
 		VALIDATE(Nx.y == 0.0f);
@@ -222,53 +222,53 @@ void ValidateMatrixLib()
 	}
 
 	{
-		Matrix4x4 rotDirToZ = RotateDirectionToZ({ 1,0,0 });
+		Matrix4x4 rotDirToZ = RotateDirectionToNegZ({ 1,0,0 });
 
 		Vec3 Nz;
-		TransformNormal(rotDirToZ, { 1, 0, 0 }, Nz);
+		TransformDirection(rotDirToZ, { 1, 0, 0 }, Nz);
 
 		VALIDATE(Nz.x ==  0);
 		VALIDATE(Nz.y ==  0);
-		VALIDATE(Nz.z ==  1);
+		VALIDATE(Nz.z == -1);
 
 		Vec3 Ny;
-		TransformNormal(rotDirToZ, { 0,1,0 }, Ny);
+		TransformDirection(rotDirToZ, { 0,1,0 }, Ny);
 
-		VALIDATE(Ny.x == 0);
-		VALIDATE(Ny.y == 1.0f);
+		VALIDATE(Ny.x == -1.0);
+		VALIDATE(Ny.y == 0);
 		VALIDATE(Ny.z == 0);
 
 		Vec3 Nx;
-		TransformNormal(rotDirToZ, { 0,0,1 }, Nx);
+		TransformDirection(rotDirToZ, { 0,0,1 }, Nx);
 
-		VALIDATE(Nx.x == -1.0f);
-		VALIDATE(Nx.y == 0.0f);
+		VALIDATE(Nx.x == 0.0f);
+		VALIDATE(Nx.y == 1.0f);
 		VALIDATE(Nx.z == 0);
 	}
 
 	{
-		Matrix4x4 rotDirToZ = RotateDirectionToZ({ 0,1,0 });
-
-		Vec3 Nz;
-		TransformNormal(rotDirToZ, { 0, 1, 0 }, Nz);
-
-		VALIDATE(Nz.x == 0);
-		VALIDATE(Nz.y == 0);
-		VALIDATE(Nz.z == 1);
+		Matrix4x4 rotDirToZ = RotateDirectionToNegZ({ 0,0,-1 });
 
 		Vec3 Ny;
-		TransformNormal(rotDirToZ, { -1,0,0 }, Ny);
+		TransformDirection(rotDirToZ, { 0, 1, 0 }, Ny);
 
-		VALIDATE(Ny.x == 0);
-		VALIDATE(Ny.y == 1.0f);
-		VALIDATE(Ny.z == 0);
+		VALIDATE(Ny.x ==  0);
+		VALIDATE(Ny.y ==  1);
+		VALIDATE(Ny.z ==  0);
 
 		Vec3 Nx;
-		TransformNormal(rotDirToZ, { 0,0,-1 }, Nx);
+		TransformDirection(rotDirToZ, {  1,0,0 }, Nx);
+
+		VALIDATE(Nx.x == 1.0f);
+		VALIDATE(Nx.y == 0);
+		VALIDATE(Nx.z == 0);
+
+		Vec3 Nz;
+		TransformDirection(rotDirToZ, { 0,0,1 }, Nz);
 
 		VALIDATE(Nx.x == 1.0f);
 		VALIDATE(Nx.y == 0.0f);
-		VALIDATE(Nx.z == 0);
+		VALIDATE(Nx.z == 0.0f);
 	}
 }
 

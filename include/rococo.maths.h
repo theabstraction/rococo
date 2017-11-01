@@ -325,7 +325,7 @@ namespace Rococo
 
 	inline float operator * (cr_vec3 a, cr_vec3 b) { return Dot(a, b); }
 
-	void TransformNormal(cr_m4x4, cr_vec3 n, Vec3& np);
+	void TransformDirection(cr_m4x4, cr_vec3 n, Vec3& np);
 
 	inline Vec3 Cross(cr_vec3 a, cr_vec3 b)
 	{
@@ -450,7 +450,7 @@ namespace Rococo
 	};
 
 	void TransformPositions(const Vec3* vertices, size_t nElements, cr_m4x4 transform, Vec3* transformedVertices);
-	void TransformNormals(const Vec3* vertices, size_t nElements, cr_m4x4 transform, Vec3* transformedVertices);
+	void TransformDirections(const Vec3* vertices, size_t nElements, cr_m4x4 transform, Vec3* transformedVertices);
 
 	inline const Vec2& AsVec2(cr_vec3 & v)
 	{
@@ -479,7 +479,7 @@ namespace Rococo
 
 	IQuadTreeSupervisor* CreateLooseQuadTree(float width, float minBoundingRadius);
 
-	Matrix4x4 RotateDirectionToZ(cr_vec3 direction);
+	Matrix4x4 RotateDirectionToNegZ(cr_vec3 direction);
 
 	struct Edge
 	{

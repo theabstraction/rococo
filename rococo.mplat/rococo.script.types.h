@@ -17,3 +17,9 @@
 		float cutoffPower;
 		float attenuation;
 	};
+	struct QuadVertices
+	{
+		Quad positions;
+		GuiRectf uv;
+		Quad normals;
+	};

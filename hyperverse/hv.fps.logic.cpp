@@ -750,8 +750,8 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 
 		LightSpec spinningLight = light;
 		spinningLight.direction = spinningDir;
-		spinningLight.position = final + Vec3{ 0, 0, 2.5f};
-		spinningLight.ambience = RGBA(0, 0, 0, 0);
+		spinningLight.position = Vec3{ 0, 0, 2.5f};
+		spinningLight.ambience = RGBA(0.1f, 0.1f, 0.1f, 1.0f);
 
 		e.platform.scene.Builder().SetLight(spinningLight, 1);
 	}

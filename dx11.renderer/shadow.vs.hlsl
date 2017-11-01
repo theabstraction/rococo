@@ -10,6 +10,7 @@ struct ObjectVertex
 struct ScreenVertex
 {
 	float4 position : SV_POSITION;
+	float4 worldPosition : TEXCOORD;
 };
 
 #pragma pack_matrix(row_major)
@@ -41,5 +42,6 @@ ScreenVertex main(ObjectVertex v)
 
 	ScreenVertex sv;
 	sv.position = mul(worldToScreen, instancePos);
+	sv.worldPosition = instancePos;
 	return sv;
 }

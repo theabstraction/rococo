@@ -21,6 +21,13 @@ namespace Rococo
 		float cutoffPower;
 		float attenuation;
 	};
+
+	struct QuadVertices
+	{
+		Quad positions;
+		GuiRectf uv;
+		Quad normals;
+	};
 }
 
 #include <../rococo.mplat/mplat.sxh.h>

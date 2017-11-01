@@ -71,3 +71,9 @@
 	(Float32 cutoffPower)
 	(Float32 attenuation)
 )
+
+(defstruct QuadVertices Rococo.QuadVertices QuadVertices
+	(Quad positions)
+	(Rectf uv)
+	(Quad normals)
+)

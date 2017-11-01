@@ -181,7 +181,7 @@ namespace
 
             if (isFPSlinked)
             {
-               // With the identify world matrix, the camera is facing up, and x is to the right, and up is to the south
+               // With the identity world matrix, the camera is facing up, and x is to the right, and up is to the south
                // If a rotation to 0 elevation faces the camera forward with up vertical and x still to the right
                // We rotate the camera 90 degrees clockwise around the x-axis to point it so.
                // If the camera is viewing a particle at point P in the world, we can transform the point P into camera space

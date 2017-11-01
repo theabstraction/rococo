@@ -510,6 +510,10 @@ namespace
 
 			  virtual void AddWallTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c)
 			  {
+				  if (a.position == b.position) return;
+				  if (a.position == c.position) return;
+				  if (b.position == c.position) return;
+
 				  enum { MAX = 1000 };
 				  if (This->floorTriangles.size() > MAX)
 				  {
