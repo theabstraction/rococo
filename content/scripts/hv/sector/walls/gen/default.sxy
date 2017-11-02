@@ -404,10 +404,11 @@
 )
 
 (function AddQuadToWall (ISectorWallTesselator sector)(QuadVertices q)-> :
-	(ObjectVertex a = q.positions.a q.normals.a 0x00000000 0xFFFFFFFF (q.uv.left  q.uv.top))
-	(ObjectVertex b	= q.positions.b q.normals.b 0x00000000 0xFFFFFFFF (q.uv.right q.uv.top))
-	(ObjectVertex c = q.positions.c q.normals.c 0x00000000 0xFFFFFFFF (q.uv.right q.uv.bottom))
-	(ObjectVertex d = q.positions.d q.normals.d 0x00000000 0xFFFFFFFF (q.uv.left  q.uv.bottom))
+	(MaterialVertexData mat = 0x00000000 0.0)
+	(ObjectVertex a = q.positions.a q.normals.a (q.uv.left  q.uv.top)    mat)
+	(ObjectVertex b	= q.positions.b q.normals.b (q.uv.right q.uv.top)    mat)
+	(ObjectVertex c = q.positions.c q.normals.c (q.uv.right q.uv.bottom) mat)
+	(ObjectVertex d = q.positions.d q.normals.d (q.uv.left  q.uv.bottom) mat)
 	(sector.AddWallTriangle a b c)
 	(sector.AddWallTriangle c d a)
 )
@@ -441,7 +442,7 @@
 	)
 	
 	(#for (Int32 j = 0)(j < nRows)(#inc j)	
-			(QuadVertices q)	
+		(QuadVertices q)	
 		(ft.GetBrickBedTop j q 0.5)	
 		(AddQuadToWall sector q)
 	)

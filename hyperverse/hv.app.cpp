@@ -13,6 +13,9 @@ namespace HV
    using namespace HV::Graphics;
    using namespace Rococo::Entities;
 
+   auto populateBusyCategoryId = "busy.category"_event;
+   auto populateBusyResourceId = "busy.resource"_event;
+
    class App : public IApp, public IEventCallback<FileModifiedArgs>, public IScene, public IObserver
    {
 	   Platform& platform;
@@ -25,6 +28,7 @@ namespace HV
 	   AutoFree<IPaneBuilderSupervisor> editorPanel;
 	   AutoFree<IPaneBuilderSupervisor> fpsPanel;
 	   AutoFree<IPaneBuilderSupervisor> overlayPanel;
+	   AutoFree<IPaneBuilderSupervisor> openingPanel;
 
 	   Cosmos e; // Put this as the last member, since other members need to be constructed first
 
@@ -33,12 +37,73 @@ namespace HV
 
 	   std::string nextLevelName;
 
+	   void OnBusy(const Rococo::Events::BusyEvent& be)
+	   {
+		   struct BusyEventCapture : public IObserver
+		   {
+			   IPublisher& publisher;
+			   const Rococo::Events::BusyEvent& be;
+			   BusyEventCapture(IPublisher& _publisher, const Rococo::Events::BusyEvent& _be) : publisher(_publisher), be(_be)
+			   {
+				   publisher.Attach(this, populateBusyCategoryId);
+				   publisher.Attach(this, populateBusyResourceId);
+			   }
+
+			   ~BusyEventCapture()
+			   {
+				   publisher.Detach(this);
+			   }
+
+			   virtual void OnEvent(Event& ev)
+			   {
+				   if (ev.id == populateBusyCategoryId)
+				   {
+					   auto& te = As<TextOutputEvent>(ev);
+					   if (te.isGetting)
+					   {
+						   SafeFormat(te.text, sizeof(te.text), "%s", be.message);
+					   }
+				   }
+				   else if (ev.id == populateBusyResourceId)
+				   {
+					   auto& te = As<TextOutputEvent>(ev);
+					   if (te.isGetting)
+					   {
+						   SafeFormat(te.text, sizeof(te.text), "%s", be.resourceName);
+					   }
+				   }
+			   }
+		   } ec(e.platform.publisher, be);
+
+		   e.platform.gui.PushTop(openingPanel->Supervisor(), true);
+		   platform.renderer.Render(*this);
+		   e.platform.gui.Pop();
+	   }
+
 	   virtual void OnEvent(Event& ev)
 	   {
 		   if (ev.id == HV::Events::setNextLevelEventId)
 		   {
 			   auto& nl = As<HV::Events::SetNextLevelEvent>(ev);
 			   nextLevelName = nl.name;
+		   }
+		   else if (ev.id == Rococo::Events::BuysEventId)
+		   {
+			   auto& be = As <Rococo::Events::BusyEvent>(ev);
+			   if (be.isNowBusy)
+			   {
+				   if (e.platform.gui.Top() != openingPanel->Supervisor())
+				   {
+					   OnBusy(be);
+				   }
+			   }
+		   }
+		   else if (ev.id == populateBusyCategoryId)
+		   {
+		   }
+
+		   else if (ev.id == populateBusyResourceId)
+		   {
 		   }
 	   }
    public:
@@ -61,6 +126,8 @@ namespace HV
 
 		   editorPanel = e.platform.gui.BindPanelToScript("!scripts/panel.editor.sxy");
 		   fpsPanel = e.platform.gui.BindPanelToScript("!scripts/panel.fps.sxy");
+		   openingPanel = e.platform.gui.BindPanelToScript("!scripts/panel.opening.sxy");
+
 		   overlayPanel = e.platform.gui.CreateOverlay();
 
 		   e.platform.gui.PushTop(fpsPanel->Supervisor(), true);
@@ -68,6 +135,7 @@ namespace HV
 		   editorActive = false;
 
 		   e.platform.publisher.Attach(this, HV::Events::setNextLevelEventId);
+		   e.platform.publisher.Attach(this, Rococo::Events::BuysEventId);
 	   }
 
 	   ~App()
@@ -103,6 +171,7 @@ namespace HV
 		   grc.Renderer().GetGuiMetrics(metrics);
 		   GuiRect fullScreen = { 0, 0, metrics.screenSpan.x, metrics.screenSpan.y };
 		   fpsPanel->Supervisor()->SetRect(fullScreen);
+		   openingPanel->Supervisor()->SetRect(fullScreen);
 
 		   platform.gui.Render(grc);
 	   }
@@ -290,6 +359,11 @@ namespace HV
 	   void OnMouseEvent(const MouseEvent& me) override
 	   {
 		   e.platform.gui.AppendEvent(me);
+	   }
+
+	   void OnCreate() override
+	   {
+		   RunEnvironmentScript(e, "!scripts/hv/app.created.sxy");
 	   }
    };
 }

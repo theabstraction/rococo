@@ -25,6 +25,7 @@
 #include <random>
 
 #include <Dxgi1_3.h>
+#include <comdef.h>
 
 namespace
 {
@@ -219,6 +220,12 @@ namespace
          this->width = width;
       }
 
+	  void Resize(size_t nElements)
+	  {
+		  Clear();
+		  arrayCapacity = count = nElements;
+	  }
+
       virtual void WriteSubImage(size_t index, const Imaging::F_A8R8G8B8* pixels, const GuiRect& targetLocation)
       {
          if (width > 0 && tb.texture == nullptr)
@@ -323,9 +330,10 @@ namespace
 	   IDXGIFactory& factory;
 	   IInstallation& installation;
 
-	   DX11TextureArray textureArray;
+	   DX11TextureArray spriteArray;
+	   DX11TextureArray materialArray;
 
-	   AutoFree<ITextureArrayBuilderSupervisor> textureArrayBuilder;
+	   AutoFree<ITextureArrayBuilderSupervisor> spriteArrayBuilder;
 
 	   AutoRelease<IDXGISwapChain> mainSwapChain;
 	   AutoRelease<ID3D11RenderTargetView> mainBackBufferView;
@@ -394,6 +402,7 @@ namespace
 
 	   std::vector<DX11::TextureBind> textures;
 	   std::unordered_map<std::string, ID_TEXTURE> mapNameToTexture;
+	   std::unordered_map<std::string, MaterialId> nameToMaterialId;
 
 	   std::vector<Overlay> overlays;
 
@@ -421,8 +430,9 @@ namespace
 	   DX11AppRenderer(ID3D11Device& _device, ID3D11DeviceContext& _dc, IDXGIFactory& _factory, IInstallation& _installation) :
 		   device(_device), dc(_dc), factory(_factory), fonts(nullptr), hRenderWindow(0),
 		   window(nullptr), cursor{ ID_TEXTURE(), {0,0}, {1,1}, {0,0} }, installation(_installation),
-		   textureArray(_device, _dc),
-		   textureArrayBuilder(CreateTextureArrayBuilder(*this, textureArray)),
+		   spriteArray(_device, _dc),
+		   materialArray(_device, dc),
+		   spriteArrayBuilder(CreateTextureArrayBuilder(*this, spriteArray)),
 		   scratchBuffer(CreateExpandingBuffer(16_kilobytes)),
 		   textureLoader(_installation, _device, _dc, *scratchBuffer)
 	   {
@@ -778,7 +788,7 @@ namespace
 
 	   virtual ITextureArrayBuilder& SpriteBuilder()
 	   {
-		   return *textureArrayBuilder;
+		   return *spriteArrayBuilder;
 	   }
 
 	   virtual void AddSpriteTriangle(bool alphaBlend, const GuiVertex triangle[3])
@@ -789,11 +799,11 @@ namespace
 			   this->isBuildingAlphaBlendedSprites = alphaBlend;
 		   }
 
-		   textureArray.spriteTriangles.push_back(triangle[0]);
-		   textureArray.spriteTriangles.push_back(triangle[1]);
-		   textureArray.spriteTriangles.push_back(triangle[2]);
+		   spriteArray.spriteTriangles.push_back(triangle[0]);
+		   spriteArray.spriteTriangles.push_back(triangle[1]);
+		   spriteArray.spriteTriangles.push_back(triangle[2]);
 
-		   if (textureArray.spriteTriangles.size() > 8192)
+		   if (spriteArray.spriteTriangles.size() > 8192)
 		   {
 			   FlushLayer();
 		   }
@@ -878,6 +888,101 @@ namespace
 		   orderedTextureList.clear();
 
 		   return id;
+	   }
+
+	   virtual void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder)
+	   {
+		   int32 txWidth = builder.TexelWidth();
+		   materialArray.ResetWidth(builder.TexelWidth());
+		   materialArray.Resize(builder.Count());
+
+		   for (size_t i = 0; i < builder.Count(); ++i)
+		   {
+			   struct ANON : IEventCallback<MaterialTextureArrayBuilderArgs>, Imaging::IImageLoadEvents
+			   {
+				   DX11AppRenderer* This;
+				   size_t i;
+				   int32 txWidth;
+				   cstr name; // valid for duration of OnEvent callback
+
+				   virtual void OnEvent(MaterialTextureArrayBuilderArgs& args)
+				   {
+					   name = args.name;
+					   
+					   auto ext = GetFileExtension(args.name);
+					   if (EqI(ext, ".tif") || EqI(ext, ".tiff"))
+					   {
+						   Rococo::Imaging::DecompressTiff(*this, args.buffer.GetData(), args.buffer.Length());
+					   }
+					   else if (EqI(ext, ".jpg") || EqI(ext, ".jpeg"))
+					   {
+						   Rococo::Imaging::DecompressJPeg(*this, args.buffer.GetData(), args.buffer.Length());
+					   }
+					   else
+					   {
+						   Throw(0, "Error loading material texture: %s: Only extensions allowed are tif, tiff, jpg and jpeg", name);
+					   }
+
+					   This->nameToMaterialId[args.name] = (MaterialId)i;
+				   }
+
+				   virtual void OnError(const char* message)
+				   {
+					   Throw(0, "Error loading material texture: %s: %s", name, message);
+				   }
+
+				   virtual void OnARGBImage(const Vec2i& span, const Imaging::F_A8R8G8B8* data)
+				   {
+					   if (span.x != txWidth || span.y != txWidth)
+					   {
+						   Throw(0, "Error loading texture %s. Only %d x %d dimensions supported", name, txWidth, txWidth);
+					   }
+
+					   DX11TextureArray& m = This->materialArray;
+					   Imaging::F_A8R8G8B8* pixels = const_cast<Imaging::F_A8R8G8B8*>( data );
+
+					   struct ABGR8
+					   {
+						   uint8 alpha;
+						   uint8 blue;
+						   uint8 green;
+						   uint8 red;
+
+						   ABGR8() {}
+						   ABGR8(uint32 x) { ABGR8* pCol = (ABGR8*)&x; *this = *pCol; }
+						   ABGR8(uint8 _red, uint8 _green, uint8 _blue, uint8 _alpha = 255) : red(_red), green(_green), blue(_blue), alpha(_alpha) {}
+					   };
+
+					   RGBAb* target = (RGBAb*)data;
+					   for (int i = 0; i < span.x * span.y; ++i)
+					   {
+						   Imaging::F_A8R8G8B8 col = data[i];
+						   RGBAb twizzled(col.r, col.g, col.b, col.a);
+						   target[i] = twizzled;
+					   }
+
+					   m.WriteSubImage(i, pixels, GuiRect{ 0, 0, txWidth, txWidth });
+				   }
+
+				   virtual void OnAlphaImage(const Vec2i& span, const uint8* data)
+				   {
+					   Throw(0, "Error loading texture %s. Only RGB and ARGB formats supported", name);
+				   }
+
+			   } onTexture;
+			   onTexture.This = this;
+			   onTexture.i = i;
+			   onTexture.txWidth = txWidth;
+
+			   nameToMaterialId.clear();
+			   builder.LoadTextureForIndex(i, onTexture);
+		   }
+	   }
+
+	   MaterialId GetMaterialId(cstr name) const
+	   {
+		   auto i = nameToMaterialId.find(name);
+		   return i != nameToMaterialId.end() ? i->second : -1.0f;
 	   }
 
 	   enum { TEXTURE_CBUFFER_INDEX = 7};
@@ -996,8 +1101,6 @@ namespace
 		   shadowBufferDesc.SampleDesc.Count = 1;
 		   shadowBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 		   shadowBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-		//   shadowBufferDesc.MiscFlags = 
-		//    shadowBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
 		   VALIDATEDX11(device.CreateTexture2D(&shadowBufferDesc, nullptr, &shadowDepthStencilTexture));
 
 		   D3D11_DEPTH_STENCIL_VIEW_DESC shadowDepthStencilViewDesc;
@@ -1032,7 +1135,18 @@ namespace
 		   if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 65536) Throw(0, "Bad shader code for vertex shader %s", name);
 
 		   DX11VertexShader* shader = new DX11VertexShader;
-		   HRESULT hr = device.CreateInputLayout(vertexDesc, nElements, shaderCode, shaderLength, &shader->inputLayout);
+		   HRESULT hr;
+		   
+		   try
+		   {
+			   hr = device.CreateInputLayout(vertexDesc, nElements, shaderCode, shaderLength, &shader->inputLayout);
+		   }
+		   catch (_com_error& e)
+		   {
+			   const wchar_t* msg = e.ErrorMessage();
+			   Throw(e.Error(), "device.CreateInputLayout failed for shader %s: %S. %s\n", name, msg, (cstr) e.Description());
+		   }
+
 		   if FAILED(hr)
 		   {
 			   delete shader;
@@ -1367,6 +1481,9 @@ namespace
 		   dc.RSSetState(objectRaterizering);
 		   dc.OMSetDepthStencilState(objDepthState, 0);
 
+		   ID3D11ShaderResourceView* views[1] = { materialArray.View() };
+		   dc.PSSetShaderResources(6, 1, views);
+
 		   bool builtFirstPass = false;
 		   size_t nLights = 0;
 		   const Light* lights = scene.GetLights(nLights);
@@ -1506,6 +1623,9 @@ namespace
 		   dc.OMSetDepthStencilState(nullptr, 0);
 		   dc.OMSetRenderTargets(0, nullptr, nullptr);
 
+		   ID3D11ShaderResourceView* mats[1] = { nullptr };
+		   dc.PSSetShaderResources(6, 1, mats);
+
 		   ID3D11Buffer* nullBuffer = nullptr;
 		   UINT nStrides = 0;
 
@@ -1607,7 +1727,7 @@ namespace
 
 		   guiVertices.clear();
 
-		   size_t nSpriteVerticesLeftToRender = textureArray.spriteTriangles.size();
+		   size_t nSpriteVerticesLeftToRender = spriteArray.spriteTriangles.size();
 		   while (nSpriteVerticesLeftToRender > 0)
 		   {
 			   if (isBuildingAlphaBlendedSprites)
@@ -1631,14 +1751,14 @@ namespace
 				   }
 
 				   dc.PSSetSamplers(0, 1, &spriteSampler);
-				   ID3D11ShaderResourceView* views[1] = { textureArray.View() };
+				   ID3D11ShaderResourceView* views[1] = { spriteArray.View() };
 				   dc.PSSetShaderResources(0, 1, views);
 				   dc.RSSetState(spriteRaterizering);
 
 				   Vec4 guiScaleVector;
 				   guiScaleVector.x = 1.0f / screenSpan.x;
 				   guiScaleVector.y = 1.0f / screenSpan.y;
-				   guiScaleVector.z = 1.0f / (float32)textureArray.width;
+				   guiScaleVector.z = 1.0f / (float32)spriteArray.width;
 				   guiScaleVector.w = 0.0f;
 
 				   DX11::CopyStructureToBuffer(dc, vector4Buffer, &guiScaleVector, sizeof(Vec4));
@@ -1649,12 +1769,12 @@ namespace
 				   dc.OMSetDepthStencilState(guiDepthState, 0);
 			   }
 
-			   size_t startIndex = textureArray.spriteTriangles.size() - nSpriteVerticesLeftToRender;
+			   size_t startIndex = spriteArray.spriteTriangles.size() - nSpriteVerticesLeftToRender;
 			   size_t chunk = min(nSpriteVerticesLeftToRender, (size_t)GUI_BUFFER_VERTEX_CAPACITY);
 
 			   D3D11_MAPPED_SUBRESOURCE x;
 			   VALIDATEDX11(dc.Map(guiBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &x));
-			   memcpy(x.pData, &textureArray.spriteTriangles[startIndex], chunk * sizeof(GuiVertex));
+			   memcpy(x.pData, &spriteArray.spriteTriangles[startIndex], chunk * sizeof(GuiVertex));
 			   dc.Unmap(guiBuffer, 0);
 
 			   UINT stride = sizeof(GuiVertex);
@@ -1664,7 +1784,7 @@ namespace
 
 			   nSpriteVerticesLeftToRender -= chunk;
 
-			   textureArray.spriteTriangles.clear();
+			   spriteArray.spriteTriangles.clear();
 		   }
 	   }
 
@@ -1772,10 +1892,10 @@ namespace
 			   debug = nullptr;
 		   }
 	   }
-	   AutoRelease<IDXGIAdapter1> adapter;
+	   AutoRelease<IDXGIAdapter> adapter;
 	   AutoRelease<ID3D11DeviceContext> dc;
 	   AutoRelease<ID3D11Device> device;
-	   AutoRelease<IDXGIFactory2> factory;
+	   AutoRelease<IDXGIFactory> factory;
 	   AutoRelease<ID3D11Debug> debug;
    };
 
@@ -1948,22 +2068,22 @@ namespace
 	{
 		cstr cmd = GetCommandLineA();
 
-		VALIDATEDX11(CreateDXGIFactory2(0, IID_IDXGIFactory2, (void**)&host.factory));
-		VALIDATEDX11(host.factory->EnumAdapters1(adapterIndex, &host.adapter));
+		VALIDATEDX11(CreateDXGIFactory(IID_IDXGIFactory, (void**)&host.factory));
+		VALIDATEDX11(host.factory->EnumAdapters(adapterIndex, &host.adapter));
 
 		if (strstr(cmd, "-adapter.list"))
 		{
 			OS::PrintDebug("Adapter List:\n");
 			for (UINT i = 0; i < 100; ++i)
 			{
-				AutoRelease<IDXGIAdapter1> testAdapters;
-				if (host.factory->EnumAdapters1(i, &testAdapters) == DXGI_ERROR_NOT_FOUND)
+				AutoRelease<IDXGIAdapter> testAdapters;
+				if (host.factory->EnumAdapters(i, &testAdapters) == DXGI_ERROR_NOT_FOUND)
 				{
 					break;
 				}
 
-				DXGI_ADAPTER_DESC1 desc;
-				testAdapters->GetDesc1(&desc);
+				DXGI_ADAPTER_DESC desc;
+				testAdapters->GetDesc(&desc);
 
 				OS::PrintDebug("Adapter #%u: %S rev %u %s\n", i, desc.Description, desc.Revision, (i == adapterIndex) ? "- selected." : "");
 				OS::PrintDebug(" Sys Mem: %lluMB\n", desc.DedicatedSystemMemory / 1_megabytes);
@@ -1973,8 +2093,8 @@ namespace
 		}
 		else
 		{
-			DXGI_ADAPTER_DESC1 desc;
-			host.adapter->GetDesc1(&desc);
+			DXGI_ADAPTER_DESC desc;
+			host.adapter->GetDesc(&desc);
 
 			OS::PrintDebug("Adapter #%u: %S rev %u - selected.\n", adapterIndex, desc.Description, desc.Revision);
 			OS::PrintDebug(" Sys Mem: %lluMB\n", desc.DedicatedSystemMemory / 1_megabytes);
@@ -1998,8 +2118,13 @@ namespace
 #endif
 		flags |= D3D11_CREATE_DEVICE_SINGLETHREADED;
 
-		VALIDATEDX11(D3D11CreateDevice(host.adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, flags,
-			featureLevelNeeded, 1, D3D11_SDK_VERSION, &host.device, &featureLevelFound, &host.dc));
+		HRESULT hr = D3D11CreateDevice(host.adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, flags,
+			featureLevelNeeded, 1, D3D11_SDK_VERSION, &host.device, &featureLevelFound, &host.dc);
+
+		if FAILED(hr)
+		{
+			Throw(hr, "D3D11CreateDevice failed");
+		}
 
 		if (featureLevelFound != D3D_FEATURE_LEVEL_11_1)
 		{

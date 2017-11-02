@@ -70,6 +70,11 @@ namespace Rococo
 	{
 		void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform);
 	}
+
+	namespace Events
+	{
+		EventId BuysEventId = "mplat.busy"_event;
+	}
 }
 
 class Utilities : public IUtilitiies
@@ -2891,7 +2896,7 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 	Rococo::M::InitScriptSystem(*installation);
 
 	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
-	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer());
+	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher);
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
 	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera);
@@ -2913,6 +2918,8 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 	AutoFree<IApp> app(appFactory.CreateApp(platform));
 
 	PlatformTabs tabs(platform);
+
+	app->OnCreate();
 	mainWindow->Run(hInstanceLock, *app);
 }
 

@@ -292,10 +292,10 @@ namespace
             wallSegments.push_back({ (int32) i, (int32) (i + 1) % (int32)perimeter.ElementCount() });
          }
 
-		 TesselateWallsFromSegments();
+		 TesselateWallsFromSegments(0.0f);
       }
 
-      float AddWallSegment(const Vec2& p, const Vec2& q, float h0, float h1, float u)
+      float AddWallSegment(const Vec2& p, const Vec2& q, float h0, float h1, float u, MaterialId id)
       {
          Vec3 up{ 0, 0, 1 };
          Vec3 P0 = { p.x, p.y, h0 };
@@ -317,13 +317,12 @@ namespace
          QV1.position = Q1;
 
          PV0.normal = PV1.normal = QV0.normal = QV1.normal = normal;
-         PV0.emissiveColour = PV1.emissiveColour = QV0.emissiveColour = QV1.emissiveColour = RGBAb(0, 0, 0, 0);
-         PV0.diffuseColour = PV1.diffuseColour = QV0.diffuseColour = QV1.diffuseColour = RGBAb(255, 255, 255, 0);
+		 PV0.material = PV1.material = QV0.material = QV1.material = { RGBAb(0, 0, 0, 0), id };
 
-         PV0.v = QV0.v = uvScale * h0;
-         PV1.v = QV1.v = uvScale * h1;
-         PV0.u = PV1.u = uvScale * u;
-         QV0.u = QV1.u = uvScale * (u + segmentLength);
+         PV0.uv.y = QV0.uv.y = uvScale * h0;
+         PV1.uv.y = QV1.uv.y = uvScale * h1;
+         PV0.uv.x = PV1.uv.x = uvScale * u;
+         QV0.uv.x = QV1.uv.x = uvScale * (u + segmentLength);
 
          u += segmentLength;
 
@@ -343,7 +342,7 @@ namespace
          return u;
       }
 
-      float AddSlopedWallSegment(const Vec2& p, const Vec2& q, float pFloor, float qFloor, float pCeiling, float qCeiling, float u)
+      float AddSlopedWallSegment(const Vec2& p, const Vec2& q, float pFloor, float qFloor, float pCeiling, float qCeiling, float u, MaterialId id)
       {
          Vec3 up{ 0, 0, 1 };
          Vec3 P0 = { p.x, p.y, pFloor };
@@ -365,15 +364,14 @@ namespace
          QV1.position = Q1;
 
          PV0.normal = PV1.normal = QV0.normal = QV1.normal = Normalize(normal);
-         PV0.emissiveColour = PV1.emissiveColour = QV0.emissiveColour = QV1.emissiveColour = RGBAb(0, 0, 0, 0);
-         PV0.diffuseColour = PV1.diffuseColour = QV0.diffuseColour = QV1.diffuseColour = RGBAb(255, 255, 255, 0);
+		 PV0.material = PV1.material = QV0.material = QV1.material = { RGBAb(0, 0, 0, 0), id };
 
-         PV0.v = uvScale * pFloor;
-         QV0.v = uvScale * qFloor;
-         PV1.v = uvScale * pCeiling;
-         QV1.v = uvScale * qCeiling;
-         PV0.u = PV1.u = uvScale * u;
-         QV0.u = QV1.u = uvScale * (u + segmentLength);
+         PV0.uv.y = uvScale * pFloor;
+         QV0.uv.y = uvScale * qFloor;
+         PV1.uv.y = uvScale * pCeiling;
+         QV1.uv.y = uvScale * qCeiling;
+         PV0.uv.x = PV1.uv.x = uvScale * u;
+         QV0.uv.x = QV1.uv.x = uvScale * (u + segmentLength);
 
          u += segmentLength;
 
@@ -393,7 +391,7 @@ namespace
          return u;
       }
 
-      void RaiseSlopeBetweenGaps()
+      void RaiseSlopeBetweenGaps(MaterialId id)
       {
          float h00, h01, h10, h11;
 
@@ -415,12 +413,12 @@ namespace
             h11 = gapSegments[0].z1;
          }
 
-         AddSlopedWallSegment(p, q, h00, h01, h10, h11, 0.0f);
+         AddSlopedWallSegment(p, q, h00, h01, h10, h11, 0.0f, id);
 
          p = floorPerimeter[wallSegments[1].perimeterIndexStart];
          q = floorPerimeter[wallSegments[1].perimeterIndexEnd];
 
-         AddSlopedWallSegment(p, q, h01, h00, h11, h10, 0.0f);
+         AddSlopedWallSegment(p, q, h01, h00, h11, h10, 0.0f, id);
       }
 
 	  void RunSectorGenWallScript()
@@ -533,7 +531,7 @@ namespace
 		  platform.utilities.RunEnvironmentScript(platform, scriptCallback, "!scripts/hv/sector/walls/gen/default.sxy", true);
 	  }
 
-	  void CreateFlatWallsBetweenGaps()
+	  void CreateFlatWallsBetweenGaps(MaterialId id)
 	  {
 		  float u = 0;
 
@@ -548,7 +546,7 @@ namespace
 				  Vec2 p = floorPerimeter[segment.perimeterIndexStart];
 				  Vec2 q = floorPerimeter[segment.perimeterIndexEnd];
 
-				  u = AddWallSegment(p, q, z0, z1, u);
+				  u = AddWallSegment(p, q, z0, z1, u, id);
 			  }
 		  }
 
@@ -567,7 +565,7 @@ namespace
 				  Vec2 p = gap.a;
 				  Vec2 q = gap.b;
 
-				  AddWallSegment(p, q, foreignHeight, z1, 0);
+				  AddWallSegment(p, q, foreignHeight, z1, 0, id);
 			  }
 
 			  float foreignFloorHeight = gap.z0;
@@ -581,23 +579,23 @@ namespace
 				  Vec2 p = gap.a;
 				  Vec2 q = gap.b;
 
-				  AddWallSegment(p, q, z0, foreignFloorHeight, 0);
+				  AddWallSegment(p, q, z0, foreignFloorHeight, 0, id);
 			  }
 		  }
 	  }
 
-      void TesselateWallsFromSegments()
+      void TesselateWallsFromSegments(MaterialId id)
       {
          wallTriangles.clear();
 
          bool isCorridor = IsCorridor();
          if (isCorridor)
          {
-            RaiseSlopeBetweenGaps();
+            RaiseSlopeBetweenGaps(id);
          }
          else
          {
-			 CreateFlatWallsBetweenGaps();
+			 CreateFlatWallsBetweenGaps(id);
          }
 
 		 isDirty = true;
@@ -1039,7 +1037,7 @@ namespace
 		  }
 
 		  BuildGapsAndTesselateWalls(Ring<Vec2>(&floorPerimeter[0], floorPerimeter.size()));
-		  TesselateFloorAndCeiling();
+		  TesselateFloorAndCeiling(1.0f, 2.0f);
 
 		  if (IsCorridor() && IsFlagged(SectorFlag_Has_Door))
 		  {
@@ -1048,7 +1046,7 @@ namespace
 		  }
 	  }
 
-      void TesselateFloorAndCeiling()
+      void TesselateFloorAndCeiling(MaterialId floorId, MaterialId ceilingId)
       {
          size_t len = sizeof(Vec2) * floorPerimeter.size();
          Vec2* tempArray = (Vec2*)alloca(len);
@@ -1069,6 +1067,9 @@ namespace
             std::vector<VertexTriangle>* floorTriangles;
             std::vector<VertexTriangle>* ceilingTriangles;
             Sector* This;
+
+			MaterialId floorId;
+			MaterialId ceilingId;
 
             virtual void Append(const Triangle2d& t)
             {
@@ -1096,14 +1097,14 @@ namespace
                Vec3 up = -Normalize(upAny);
 
                a.normal = b.normal = c.normal = up;
-               a.emissiveColour = b.emissiveColour = c.emissiveColour = RGBAb(0, 0, 0, 0);
-               a.diffuseColour = b.diffuseColour = c.diffuseColour = RGBAb(255, 255, 255, 0);
-               a.u = Vec2{ uvScale * Vec2{ t.A.x,t.A.y } +uvOffset }.x;
-               a.v = Vec2{ uvScale * Vec2{ t.A.x,t.A.y } +uvOffset }.y;
-               b.u = Vec2{ uvScale * Vec2{ t.B.x,t.B.y } +uvOffset }.x;
-               b.v = Vec2{ uvScale * Vec2{ t.B.x,t.B.y } +uvOffset }.y;
-               c.u = Vec2{ uvScale * Vec2{ t.C.x,t.C.y } +uvOffset }.x;
-               c.v = Vec2{ uvScale * Vec2{ t.C.x,t.C.y } +uvOffset }.y;
+			   a.material = b.material = c.material = { RGBAb(0, 0, 0, 0), floorId };
+
+               a.uv.x = Vec2{ uvScale * Vec2{ t.A.x,t.A.y } +uvOffset }.x;
+               a.uv.y = Vec2{ uvScale * Vec2{ t.A.x,t.A.y } +uvOffset }.y;
+               b.uv.x = Vec2{ uvScale * Vec2{ t.B.x,t.B.y } +uvOffset }.x;
+               b.uv.y = Vec2{ uvScale * Vec2{ t.B.x,t.B.y } +uvOffset }.y;
+               c.uv.x = Vec2{ uvScale * Vec2{ t.C.x,t.C.y } +uvOffset }.x;
+               c.uv.y = Vec2{ uvScale * Vec2{ t.C.x,t.C.y } +uvOffset }.y;
 
                VertexTriangle T;
                T.a = a;
@@ -1117,6 +1118,8 @@ namespace
                T.a = b;
                T.b = a;
                T.c = c;
+
+			   T.a.material.materialId = T.b.material.materialId = T.c.material.materialId = ceilingId;
                ceilingTriangles->push_back(T);
             }
          } builder;
@@ -1124,6 +1127,8 @@ namespace
          floorTriangles.clear();
          ceilingTriangles.clear();
 
+		 builder.ceilingId = ceilingId;
+		 builder.floorId = floorId;
          builder.z0 = z0;
          builder.z1 = z1;
          builder.uvOffset = uvOffset;

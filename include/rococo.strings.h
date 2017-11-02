@@ -32,5 +32,6 @@ namespace Rococo
    cstr GetFileExtension(cstr s);
 
    bool Eq(cstr a, cstr b);
+   bool EqI(cstr a, cstr b);
    bool StartsWith(cstr bigString, cstr prefix);
 }

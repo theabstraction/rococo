@@ -991,18 +991,39 @@ namespace Rococo
             return;
          }
 
-         if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
-         {
-            onFile.OnEvent(findData.cFileName);
-         }
-
-         while (FindNextFileA(hSearch, &findData))
+         do
          {
             if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
             {
                onFile.OnEvent(findData.cFileName);
             }
-         }
+			else
+			{
+				if (*findData.cFileName != '.')
+				{
+					struct : IEventCallback<cstr>
+					{
+						char stem[IO::MAX_PATHLEN];
+
+						IEventCallback<cstr>* caller;
+						virtual void OnEvent(cstr name)
+						{
+							char subsubpath[IO::MAX_PATHLEN];
+							SecureFormat(subsubpath, IO::MAX_PATHLEN, "%s%s", stem, name);
+							caller->OnEvent(subsubpath);
+						}
+					} subpathResult; 
+
+					char subpath[IO::MAX_PATHLEN];
+					SecureFormat(subpath, IO::MAX_PATHLEN, "%s%s%s\\", directory, isSlashed ? "" : "\\" , findData.cFileName);
+					subpathResult.caller = &onFile;
+
+					SecureFormat(subpathResult.stem, IO::MAX_PATHLEN, "%s\\", findData.cFileName);
+
+					ForEachFileInDirectory(subpath, subpathResult);
+				}
+			}
+		 } while (FindNextFileA(hSearch, &findData));
       }
    } // IO
 }

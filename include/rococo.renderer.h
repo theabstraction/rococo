@@ -24,14 +24,20 @@ namespace Rococo
 		float textureIndex; // When used in sprite calls, this indexes the texture in the texture array
 	};
 
+	typedef float MaterialId;
+
+	struct MaterialVetexData
+	{
+		RGBAb colour;
+		MaterialId materialId;
+	};
+
 	struct ObjectVertex
 	{
 		Vec3 position;
 		Vec3 normal;
-		RGBAb emissiveColour;
-		RGBAb diffuseColour;
-		float u;
-		float v;
+		Vec2 uv;
+		MaterialVetexData material;
 	};
 
 	struct VertexTriangle
@@ -137,6 +143,7 @@ namespace Rococo
 	ROCOCOAPI IApp
 	{
 		virtual void Free() = 0;
+		virtual void OnCreate() = 0;
 		virtual auto OnFrameUpdated(const IUltraClock& clock)->uint32 = 0; // returns number of ms to sleep per frame as hint
 		virtual void OnKeyboardEvent(const KeyboardEvent& k) = 0;
 		virtual void OnMouseEvent(const MouseEvent& me) = 0;
@@ -161,6 +168,19 @@ namespace Rococo
 	struct IMathsVisitor;
 	struct IMathsVenue;
 
+	struct MaterialTextureArrayBuilderArgs
+	{
+		IBuffer& buffer;
+		cstr name;
+	};
+
+	ROCOCOAPI IMaterialTextureArrayBuilder
+	{
+		virtual size_t Count() const = 0;
+		virtual int32 TexelWidth() const = 0;
+		virtual void LoadTextureForIndex(size_t index, IEventCallback<MaterialTextureArrayBuilderArgs>& onLoad) = 0;
+	};
+
 	ROCOCOAPI IRenderer
 	{
 	  virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
@@ -171,6 +191,8 @@ namespace Rococo
 	  virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
 	  virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id) = 0;
 	  virtual IInstallation& Installation() = 0;
+	  virtual void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder) = 0;
+	  virtual MaterialId GetMaterialId(cstr name) const = 0;
 	  virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, cstr uniqueName) = 0;
 	  virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
 	  virtual void Render(IScene& scene) = 0;

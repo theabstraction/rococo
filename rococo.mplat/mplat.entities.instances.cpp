@@ -78,11 +78,12 @@ namespace
       std::unordered_map<std::string, ID_TEXTURE> nameToTextureId;
       Rococo::Graphics::IMeshBuilderSupervisor& meshBuilder;
       IRenderer& renderer;
+	  Events::IPublisher& publisher;
 
       int32 enumerationDepth{ 0 };
 
-      Instances(Rococo::Graphics::IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer) :
-         meshBuilder(_meshBuilder), renderer(_renderer)
+      Instances(Rococo::Graphics::IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher) :
+         meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
       {
       }
 
@@ -279,6 +280,92 @@ namespace
          position = i->second->model.GetPosition();
       }
 
+	  virtual void LoadMaterialArray(const fstring& folder, int32 txWidth)
+	  {
+		  struct: public IEventCallback<cstr>, IMaterialTextureArrayBuilder
+		  {
+			  int32 txWidth;
+			  std::vector<std::string> filenames;
+			  IInstallation* installation;
+			  AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(4_megabytes);
+			  Events::IPublisher* publisher;
+			  Instances* This;
+
+			  char absPath[IO::MAX_PATHLEN];
+
+			  virtual void OnEvent(cstr name)
+			  {
+				  auto ext = GetFileExtension(name);
+				  if (Eq(ext, ".jpeg") || Eq(ext, ".jpg") || Eq(ext, "tif") || Eq(ext, "tiff"))
+				  {
+					  char absName[IO::MAX_PATHLEN];
+					  SecureFormat(absName, IO::MAX_PATHLEN, "%s%s", absPath, name);
+					  filenames.push_back(absName);
+				  }
+			  }
+
+			  virtual size_t Count() const
+			  {
+				  return filenames.size();
+			  }
+
+			  virtual int32 TexelWidth() const
+			  {
+				  return txWidth;
+			  }
+
+			  virtual void LoadTextureForIndex(size_t index, IEventCallback<MaterialTextureArrayBuilderArgs>& onLoad)
+			  {
+				  auto path = filenames[index].c_str();
+
+				  Events::BusyEvent be;
+				  be.isNowBusy = true;
+				  be.message = "Loading textures";
+				  be.resourceName = path;
+				  publisher->Publish(be);
+
+				  installation->LoadResource(path, *buffer, 64_megabytes);
+				  MaterialTextureArrayBuilderArgs args{ *buffer, path };
+				  onLoad.OnEvent(args);
+			  }
+		  } z;
+
+		  z.txWidth = txWidth;
+		  z.installation = &renderer.Installation();
+		  z.publisher = &publisher;
+		  z.This = this;
+
+		  if (folder.length == 0 || folder == nullptr || *folder != '!')
+		  {
+			  Throw(0, "Expecting first character to be '!'");
+		  }
+
+		  char unixpath[IO::MAX_PATHLEN];
+		  SecureFormat(unixpath, IO::MAX_PATHLEN, "%s", folder.buffer + 1);
+
+		  char syspath[IO::MAX_PATHLEN];
+		  z.installation->OS().ConvertUnixPathToSysPath(unixpath, syspath, IO::MAX_PATHLEN);
+
+		  SafeFormat(z.absPath, IO::MAX_PATHLEN, "%s%s", z.installation->Content(), syspath);
+			
+		  IO::ForEachFileInDirectory(z.absPath, z);
+
+		  if (z.filenames.empty()) return;
+
+		  Events::BusyEvent be;
+		  be.isNowBusy = true;
+		  be.message = "Loading textures";
+		  be.resourceName = "";
+		  publisher.Publish(be);
+
+		  renderer.LoadMaterialTextureArray(z);
+
+		  be.isNowBusy = false;
+		  be.message = "";
+		  be.resourceName = "";
+		  publisher.Publish(be);
+	  }
+
       virtual void SetScale(ID_ENTITY id, const Vec3& scale)
       {
          auto i = idToEntity.find(id);
@@ -322,9 +409,9 @@ namespace Rococo
 {
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& meshes, IRenderer& renderer)
+      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher)
       {
-         return new Instances(meshes, renderer);
+         return new Instances(meshes, renderer, publisher);
       }
    }
 }

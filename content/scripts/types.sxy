@@ -1,9 +1,14 @@
+(struct MaterialVertexData
+	(Int32 materialColour)
+	(Float32 materialIndex)
+)
+(alias MaterialVertexData Rococo.MaterialVertexData)
+
 (struct ObjectVertex
 	(Sys.Maths.Vec3 position)
 	(Sys.Maths.Vec3 normal)
-	(Int32 emissiveColour)
-	(Int32 diffuseColour)
 	(Sys.Maths.Vec2 uv)
+	(Rococo.MaterialVertexData mat)
 )
 (alias ObjectVertex Rococo.ObjectVertex)
 

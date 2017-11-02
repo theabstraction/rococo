@@ -182,7 +182,7 @@ namespace Rococo
 
       IMobilesSupervisor* CreateMobilesSupervisor(Entities::IInstancesSupervisor& instances);
 
-      IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer);
+      IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher);
    }
 
    struct Platform;
@@ -314,6 +314,16 @@ namespace Rococo
    namespace Events
    {
 	   struct ScrollEvent;
+
+	   extern EventId BuysEventId;
+
+	   struct BusyEvent : public Events::Event
+	   {
+			BusyEvent(): Events::Event(BuysEventId) {}
+			boolean32 isNowBusy;
+			cstr message;
+			cstr resourceName;
+	   };
    }
 
    struct IScrollbar

@@ -2,7 +2,7 @@ struct PixelVertex
 {
 	float4 position : SV_POSITION0;
 	float4 normal : TEXCOORD2;
-	float2 uv: TEXCOORD;
+	float3 uv_material: TEXCOORD;
     float4 worldPosition: TEXCOORD1;
 	float4 shadowPos: TEXCOORD3;
 };
@@ -34,7 +34,7 @@ cbuffer light
 	Light light;
 };
 
-Texture2D g_Texture: register(t1);
+Texture2DArray g_materials: register(t6);
 SamplerState txSampler;
 
 Texture2D g_ShadowMap: register(t2);
@@ -42,7 +42,7 @@ SamplerState shadowSampler;
 
 float4 per_pixel_lighting(PixelVertex p)
 {
-	float4 texel = g_Texture.Sample(txSampler, p.uv);
+	float4 texel = g_materials.Sample(txSampler, p.uv_material);
 
 	float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
 
@@ -52,7 +52,7 @@ float4 per_pixel_lighting(PixelVertex p)
 
 	float2 shadowUV = p.shadowPos.xy * oow;
 
-	float shadowDepth = g_ShadowMap.Sample(shadowSampler, p.uv).x;
+	float shadowDepth = g_ShadowMap.Sample(shadowSampler, shadowUV).x;
 	
 	float normalizedDepth = (depth + 1.0f) * 0.5f;
 
@@ -91,7 +91,7 @@ float4 per_pixel_lighting(PixelVertex p)
 
 float4 no_lighting(PixelVertex p)
 {
-	float4 texel = g_Texture.Sample(txSampler, p.uv).xyzw;
+	float4 texel = g_materials.Sample(txSampler, p.uv_material).xyzw;
 	return texel;
 }
 

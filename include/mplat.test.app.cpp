@@ -202,6 +202,11 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
    {
       platform.gui.AppendEvent(me);
    }
+
+   void OnCreate() override
+   {
+
+   }
 };
 
 namespace Test

@@ -2,16 +2,16 @@ struct ObjectVertex
 {
 	float4 position : POSITION;
 	float4 normal : NORMAL;	
-	float4 emissiveColour: COLOR0;
-	float4 diffuseColour: COLOR1;
-	float2 uv: TEXCOORD;
+	float2 uv: TEXCOORD0;
+	float4 colour: COLOR0;
+	float  materialIndex: TEXCOORD1;
 };
 
 struct ScreenVertex
 {
 	float4 position : SV_POSITION0;
 	float4 normal : TEXCOORD2;
-	float2 uv: TEXCOORD;
+	float3 uv_material: TEXCOORD;
 	float4 worldPosition: TEXCOORD1;
 	float4 shadowPos: TEXCOORD3;
 };
@@ -64,6 +64,7 @@ ScreenVertex main(ObjectVertex v)
 	sv.normal = mul(instanceMatrix, v.normal);
 	sv.worldPosition = instancePos;
 	sv.shadowPos = mul(light.worldToShadowBuffer, instancePos);
-	sv.uv = v.uv;
+	sv.uv_material.xy = v.uv.xy;
+	sv.uv_material.z = v.materialIndex;
 	return sv;
 }

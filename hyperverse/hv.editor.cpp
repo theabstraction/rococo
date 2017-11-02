@@ -151,8 +151,8 @@ namespace
 						auto pos = GetScreenPosition(worldPos);
 						v[j].x = (float)pos.x;
 						v[j].y = (float)pos.y;
-						v[j].u = vertices.v[i + j].u;
-						v[j].v = vertices.v[i + j].v;
+						v[j].u = vertices.v[i + j].uv.x;
+						v[j].v = vertices.v[i + j].uv.y;
 						v[j].colour = colour;
 						v[j].fontBlend = 0;
 						v[j].saturation = 1;
@@ -587,6 +587,8 @@ namespace
 			} anon;
 			anon.files = &files;
 
+			/*
+
 			platform.utilities.EnumerateFiles(anon, "!textures/hv/");
 
 			if (anon.files->empty())
@@ -595,6 +597,8 @@ namespace
 			}
 
 			PushAllOnQueue();
+
+			*/
 
 			platform.publisher.Attach(this, vScrollChanged);
 			platform.publisher.Attach(this, vScrollGet);

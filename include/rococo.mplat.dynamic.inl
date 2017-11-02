@@ -15,45 +15,51 @@
 
 namespace Rococo
 {
-   using namespace Rococo::Windows;
+	using namespace Rococo::Windows;
 
-   const char* const MPLAT_RELEASE = "rococo.mplat.dynamic.dll";
-   const char* const MPLAT_DEBUG = "rococo.mplat.dynamic.debug.dll";
+	const char* const MPLAT_RELEASE = "rococo.mplat.dynamic.dll";
+	const char* const MPLAT_DEBUG = "rococo.mplat.dynamic.debug.dll";
 
-   typedef int(*FN_M_Platorm_Dll_Win64_Main)(HINSTANCE hInstance, IAppFactory& factory, const char* appName, HICON hLarge, HICON hSmall);
+	typedef int(*FN_M_Platorm_Dll_Win64_Main)(HINSTANCE hInstance, IAppFactory& factory, const char* appName, HICON hLarge, HICON hSmall);
 
-   int LoadPlatformDll_AndRun(HINSTANCE hInstance, IAppFactory& factory, const char* appName, const char* moduleName, HICON hLarge, HICON hSmall)
-   {
-      auto module = LoadLibraryA(moduleName);
-      if (module == nullptr)
-      {
-         int err = GetLastError();
-         MessageBoxA(nullptr, "Could not load Dll", moduleName, MB_ICONERROR);
-         return err;
-      }
+	int LoadPlatformDll_AndRun(HINSTANCE hInstance, IAppFactory& factory, const char* appName, const char* moduleName, HICON hLarge, HICON hSmall)
+	{
+		auto module = LoadLibraryA(moduleName);
+		if (module == nullptr)
+		{
+			int err = GetLastError();
+			MessageBoxA(nullptr, "Could not load Dll", moduleName, MB_ICONERROR);
+			return err;
+		}
 
-      auto addr = GetProcAddress(module, "M_Platorm_Dll_Win64_Main");
-      if (addr == nullptr)
-      {
-         int err = GetLastError();
-         MessageBoxA(nullptr, "Could not find entrypoint in M_Platorm_Dll_Win64_Main", moduleName, MB_ICONERROR);
-         return err;
-      }
+		auto addr = GetProcAddress(module, "M_Platorm_Dll_Win64_Main");
+		if (addr == nullptr)
+		{
+			int err = GetLastError();
+			MessageBoxA(nullptr, "Could not find entrypoint in M_Platorm_Dll_Win64_Main", moduleName, MB_ICONERROR);
+			return err;
+		}
 
-      auto run = (FN_M_Platorm_Dll_Win64_Main)addr;
+		auto run = (FN_M_Platorm_Dll_Win64_Main)addr;
 
-      int retValue = run(hInstance, factory, appName, hLarge, hSmall);
+		int retValue = run(hInstance, factory, appName, hLarge, hSmall);
 
-      FreeLibrary(module);
+		FreeLibrary(module);
 
-      return retValue;
-   }
+		return retValue;
+	}
 
-   using namespace Rococo::Events;
+	using namespace Rococo::Events;
 
-   Events::EventId UIInvoke::EvId()
-   {
-      static EventId invokeEvent = "ui.invoke"_event;
-      return invokeEvent;
-   }
+	Events::EventId UIInvoke::EvId()
+	{
+		static EventId invokeEvent = "ui.invoke"_event;
+		return invokeEvent;
+	}
+
+	namespace Events
+	{
+		EventId BuysEventId = "mplat.busy"_event;
+	}
 }
+

@@ -198,6 +198,11 @@ namespace Rococo
       return strcmp(a, b) == 0;
    }
 
+   bool EqI(const char* a, const char* b)
+   {
+	   return _stricmp(a, b) == 0;
+   }
+
    bool StartsWith(cstr bigString, cstr prefix)
    {
 	   return strncmp(bigString, prefix, strlen(prefix)) == 0;

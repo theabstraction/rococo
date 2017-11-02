@@ -1,0 +1,18 @@
+(' #file.type rococo)
+
+(' #include 
+	"!scripts/types.sxy"
+	"!scripts/mplat.sxh.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Entities)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(IInstances instances (Instances))
+	(instances.LoadMaterialArray "!textures/hv/materials/hi-rez/" 1024)
+)
