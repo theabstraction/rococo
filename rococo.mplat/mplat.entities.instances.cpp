@@ -19,11 +19,10 @@ namespace
       Matrix4x4 model;
       ID_ENTITY parentId; 
       ID_SYS_MESH meshId;
-      ID_TEXTURE textureId;
       Vec3 scale{ 1.0f, 1.0f, 1.0f };       
       std::vector<ID_ENTITY> children;
 
-      virtual const Vec3 Position() const
+      virtual Vec3 Position() const
       {
          return model.GetPosition();
       }
@@ -51,16 +50,6 @@ namespace
       virtual ID_SYS_MESH MeshId() const 
 	  {
 		  return meshId;
-	  }
-
-      virtual ID_TEXTURE TextureId() const 
-	  {
-		  return textureId;
-	  }
-
-	  virtual void SetTexture(ID_TEXTURE id)
-	  {
-		  textureId = id;
 	  }
 
 	  virtual void SetMesh(ID_SYS_MESH id)
@@ -97,7 +86,7 @@ namespace
          return meshBuilder;
       }
 
-      ID_ENTITY Add(ID_SYS_MESH meshId, ID_TEXTURE textureId, const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId)
+      ID_ENTITY Add(ID_SYS_MESH meshId, const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId)
       {
          float d = Determinant(model);
          if (d < 0.975f || d > 1.025f)
@@ -118,7 +107,6 @@ namespace
          e->model = model;
          e->parentId = parentId;
          e->meshId = meshId;
-         e->textureId = textureId;
          e->scale = scale;
 
          idToEntity.insert(std::make_pair(id, e));
@@ -126,7 +114,7 @@ namespace
          return id;
       }
 
-      virtual ID_ENTITY AddBody(const fstring& modelName, const fstring& texture, const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId)
+      virtual ID_ENTITY AddBody(const fstring& modelName, const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId)
       {
          ID_SYS_MESH meshId;
          if (!meshBuilder.TryGetByName(modelName, meshId))
@@ -134,14 +122,12 @@ namespace
             Throw(0, "Cannot find model: %s", modelName.buffer);
          }
 
-         ID_TEXTURE textureId = ReadyTexture(texture);
-
-         return Add(meshId, textureId, model, scale, parentId);
+         return Add(meshId, model, scale, parentId);
       }
 
       virtual ID_ENTITY AddGhost(const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId)
       {
-         return Add(ID_SYS_MESH::Invalid(), ID_TEXTURE::Invalid(), model, scale, parentId);
+         return Add(ID_SYS_MESH::Invalid(), model, scale, parentId);
       }
 
       virtual void Delete(ID_ENTITY id)
@@ -237,25 +223,6 @@ namespace
          {
             cb.OnEntity(count++, *i.second, i.first);
          }
-      }
-
-      ID_TEXTURE ReadyTexture(cstr pingName) override
-      {
-         ID_TEXTURE textureId;
-         auto i = nameToTextureId.find(pingName);
-         if (i == nameToTextureId.end())
-         {
-            AutoFree<IExpandingBuffer> fileImage = CreateExpandingBuffer(0);
-            renderer.Installation().LoadResource(pingName, *fileImage, 64_megabytes);
-            textureId = renderer.LoadTexture(*fileImage, pingName);
-            nameToTextureId[pingName] = textureId;
-         }
-         else
-         {
-            textureId = i->second;
-         }
-
-         return textureId;
       }
 
       virtual void GetScale(ID_ENTITY entityId, Vec3& scale)
@@ -375,17 +342,6 @@ namespace
          }
 
          i->second->scale = scale;
-      }
-
-      virtual void SetTexture(ID_ENTITY id, const fstring& texture)
-      {
-         auto i = idToEntity.find(id);
-         if (i == idToEntity.end())
-         {
-            Throw(0, "SetScale - no such entity");
-         }
-
-         i->second->textureId = ReadyTexture(texture);
       }
    
       virtual void Clear()

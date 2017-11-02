@@ -65,11 +65,6 @@ namespace
 				  Throw(0, "Unexpected missing entity");
 			  }
 
-			  if (!entity->TextureId())
-			  {
-				  continue;
-			  }
-
 			  if (entity->MeshId() != meshId)
 			  {
 				  FlushDrawQueue_NoTexture(meshId, rc);
@@ -137,10 +132,9 @@ namespace
       {
       }
 
-      void FlushDrawQueue(ID_SYS_MESH meshId, ID_TEXTURE textureId, IRenderContext& rc)
+      void FlushDrawQueue(ID_SYS_MESH meshId, IRenderContext& rc)
       {
          if (drawQueue.empty()) return;
-         rc.SetMeshTexture(textureId, 1);
          rc.Draw(meshId, &drawQueue[0], (uint32)drawQueue.size());
          drawQueue.clear();
       }
@@ -167,7 +161,6 @@ namespace
          rc.SetGlobalState(state);
 
          ID_SYS_MESH meshId;
-         ID_TEXTURE textureId;
 
          for (auto i : entities)
          {
@@ -177,23 +170,17 @@ namespace
                Throw(0, "Unexpected missing entity");
             }
 
-            if (!entity->TextureId())
+            if (entity->MeshId() != meshId)
             {
-               continue;
-            }
-
-            if (entity->MeshId() != meshId || entity->TextureId() != textureId)
-            {
-               FlushDrawQueue(meshId, textureId, rc);
+               FlushDrawQueue(meshId, rc);
                meshId = entity->MeshId();
-               textureId = entity->TextureId();
             }
            
             ObjectInstance instance{ entity->Model(), RGBA(0, 0, 0, 0) };
             drawQueue.push_back(instance);
          }
 
-         FlushDrawQueue(meshId, textureId, rc);
+         FlushDrawQueue(meshId, rc);
       }
 
       virtual RGBA GetClearColour() const

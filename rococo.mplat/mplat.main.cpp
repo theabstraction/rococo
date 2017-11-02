@@ -2601,8 +2601,7 @@ IPaneBuilderSupervisor* GuiStack::CreateOverlay()
 				{
 					if (Eq(ext, ".jpg") || Eq(ext, ".jpeg") || Eq(ext, ".tif") || Eq(ext, ".tiff"))
 					{
-						auto id = platform.instances.ReadyTexture(key);
-						Graphics::RenderBitmap_ShrinkAndPreserveAspectRatio(rc, id, absRect);
+					//	Graphics::RenderBitmap_ShrinkAndPreserveAspectRatio(rc, id, absRect);
 					}
 				}
 				else if (*key == '<')
@@ -2610,7 +2609,7 @@ IPaneBuilderSupervisor* GuiStack::CreateOverlay()
 					if (Eq(ext, ".r32f"))
 					{
 						auto id = platform.renderer.FindTexture(key);
-						if (id) Graphics::RenderBitmap_ShrinkAndPreserveAspectRatio(rc, id, absRect);
+					//	if (id) Graphics::RenderBitmap_ShrinkAndPreserveAspectRatio(rc, id, absRect);
 					}
 				}
 			}

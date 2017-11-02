@@ -190,13 +190,11 @@ namespace
 
 		 if (!wallId)
 		 {
-			 wallId = instances.AddBody(to_fstring(name), to_fstring(wallTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+			 wallId = instances.AddBody(to_fstring(name), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
 		 }
 		 else
 		 {
 			 auto entity = instances.GetEntity(wallId);
-			 entity->SetTexture(instances.ReadyTexture(wallTexture.c_str()));
-
 			 ID_SYS_MESH meshId;
 			 platform.meshes.TryGetByName(name, meshId);
 			 entity->SetMesh(meshId);
@@ -636,19 +634,16 @@ namespace
          case 0:
          {
             wallTexture = texture;
-            instances.SetTexture(wallId, to_fstring(texture));
             break;
          }
          case 1:
          {
             floorTexture = texture;
-            instances.SetTexture(floorId, to_fstring(texture));
             break;
          }
          case 2:
          {
             ceilingTexture = texture;
-            instances.SetTexture(ceilingId, to_fstring(texture));
             break;
          }
          }
@@ -818,7 +813,7 @@ namespace
 
 		 if (!floorId)
 		 {
-			 floorId = instances.AddBody(to_fstring(name), to_fstring(floorTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+			 floorId = instances.AddBody(to_fstring(name), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
 		 }
 		 else
 		 {
@@ -826,7 +821,6 @@ namespace
 			 platform.meshes.TryGetByName(name, meshId);
 			 auto* entity = instances.GetEntity(floorId);
 			 entity->SetMesh(meshId);
-			 entity->SetTexture(instances.ReadyTexture(floorTexture.c_str()));
 		 }
       }
 
@@ -847,7 +841,7 @@ namespace
 
 		 if (!ceilingId)
 		 {
-			 ceilingId = instances.AddBody(to_fstring(name), to_fstring(ceilingTexture.c_str()), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+			 ceilingId = instances.AddBody(to_fstring(name), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
 		 }
 		 else
 		 {
@@ -855,7 +849,6 @@ namespace
 			 platform.meshes.TryGetByName(name, meshId);
 			 auto* entity = instances.GetEntity(ceilingId);
 			 entity->SetMesh(meshId);
-			 entity->SetTexture(instances.ReadyTexture(ceilingTexture.c_str()));
 		 }
       }
 
@@ -956,7 +949,7 @@ namespace
 
          Matrix4x4 model = Matrix4x4::Translate({ centre.x, centre.y, z }) * Rz;
 
-         auto id = platform.instances.AddBody(meshName, textureName, model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());;
+         auto id = platform.instances.AddBody(meshName, model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());;
 
          for (auto& c : components)
          {

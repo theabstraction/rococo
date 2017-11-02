@@ -738,39 +738,6 @@ namespace
 		{
 		}
 
-		bool DequeSome()
-		{
-			auto start = OS::CpuTicks();
-
-			bool updated = false;
-
-			while (!q.empty())
-			{
-				updated = true;
-
-				auto top = q.back();
-
-				auto id = platform.instances.ReadyTexture(top.c_str());
-
-				files[top] = id;
-
-				q.pop_back();
-
-				readyList.push_back(top);
-
-				auto now = OS::CpuTicks();
-				auto dt = now - start;
-
-				if (dt > (OS::CpuHz() >> 5))
-				{
-					// We've capped texture loading so that frame rate does not fall far below 32 framea per second
-					break;
-				}
-			}
-
-			return updated;
-		}
-
 		int32 lastDy = 0;
 		int32 lastPageSize = 0;
 		GuiRect lastRect = { 0,0,0,0 };
@@ -866,7 +833,7 @@ namespace
 
 		void Render(IGuiRenderContext& grc, const GuiRect& absRect) override
 		{
-			bool updated = DequeSome();
+			bool updated = false;
 
 			if (updated)
 			{

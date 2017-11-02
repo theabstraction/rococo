@@ -68,14 +68,12 @@ namespace Rococo
    {
       ROCOCOAPI IEntity
       {
-         virtual const Vec3 Position() const = 0;
+         virtual Vec3 Position() const = 0;
          virtual Matrix4x4& Model() = 0;
          virtual ID_ENTITY ParentId() const = 0;
          virtual const ID_ENTITY* begin() const = 0;
          virtual const ID_ENTITY* end() const = 0;
          virtual ID_SYS_MESH MeshId() const = 0;
-         virtual ID_TEXTURE TextureId() const = 0;
-		 virtual void SetTexture(ID_TEXTURE id) = 0;
 		 virtual void SetMesh(ID_SYS_MESH id) = 0;
       };
 
@@ -92,7 +90,6 @@ namespace Rococo
          virtual void ConcatenateModelMatrices(ID_ENTITY id, Matrix4x4& result) = 0;
          virtual void ConcatenatePositionVectors(ID_ENTITY id, Vec3& position) = 0;
          virtual Rococo::Graphics::IMeshBuilder& MeshBuilder() = 0;
-         virtual ID_TEXTURE ReadyTexture(cstr pingName) = 0;
       };
    }
 
