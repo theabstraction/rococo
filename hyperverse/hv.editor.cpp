@@ -149,14 +149,12 @@ namespace
 					{
 						Vec2 worldPos{ vertices.v[i + j].position.x, vertices.v[i + j].position.y };
 						auto pos = GetScreenPosition(worldPos);
-						v[j].x = (float)pos.x;
-						v[j].y = (float)pos.y;
-						v[j].u = vertices.v[i + j].uv.x;
-						v[j].v = vertices.v[i + j].uv.y;
+						v[j].pos.x = (float)pos.x;
+						v[j].pos.y = (float)pos.y;
+						v[j].vd.uv = vertices.v[i + j].uv;
+						v[j].vd.fontBlend = 0;
 						v[j].colour = colour;
-						v[j].fontBlend = 0;
-						v[j].saturation = 1;
-						v[j].textureIndex = 1;
+						v[j].sd = { 1.0f, 0.0f, 0.0f, 0.0f };
 					}
 
 					grc.AddTriangle(v);
@@ -564,42 +562,11 @@ namespace
 	class TextureList : public IUIElement, public IObserver
 	{
 		Platform& platform;
-
-		std::unordered_map<std::string, ID_TEXTURE> files;
-		std::vector<std::string> q;
-		std::vector<std::string> readyList;
-
-		std::string selectedItem;
-
 		int32 scrollPosition = 0;
 	public:
 		TextureList(Platform& _platform) : platform(_platform)
 		{
 			platform.gui.RegisterPopulator("editor.tools.imagelist", this);
-
-			struct : IEventCallback<cstr>
-			{
-				std::unordered_map<std::string, ID_TEXTURE>* files;
-				virtual void OnEvent(cstr filename)
-				{
-					files->insert(std::make_pair(filename, ID_TEXTURE::Invalid()));
-				}
-			} anon;
-			anon.files = &files;
-
-			/*
-
-			platform.utilities.EnumerateFiles(anon, "!textures/hv/");
-
-			if (anon.files->empty())
-			{
-				Throw(0, "No textures found under !textures/hv/");
-			}
-
-			PushAllOnQueue();
-
-			*/
-
 			platform.publisher.Attach(this, vScrollChanged);
 			platform.publisher.Attach(this, vScrollGet);
 		}
@@ -610,62 +577,27 @@ namespace
 			platform.gui.UnregisterPopulator(this);
 		}
 
-		bool IsLoading() const
-		{
-			return !q.empty();
-		}
-
 		int32 GetIndexOf(cstr name)
 		{
-			for (int32 i = 0; i < (int32)readyList.size(); ++i)
-			{
-				if (Eq(readyList[i].c_str(), name))
-				{
-					return i;
-				}
-			}
-
 			return -1;
 		}
 
 		cstr GetNeighbour(cstr name, bool forward)
 		{
-			int32 index = GetIndexOf(name);
-			if (forward) index++; else index--;
-
-			if (index >= (int32)readyList.size())
-			{
-				index = (int32)readyList.size() - 1;
-			}
-
-			if (index < 0)
-			{
-				index = 0;
-			}
-
-			return readyList[index].c_str();
+			return "none";
 		}
 
 		void ScrollTo(cstr filename)
 		{
 			int index = -1;
-			for (int32 i = 0; i < (int32)readyList.size(); i++)
-			{
-				if (Eq(readyList[i].c_str(), filename))
-				{
-					index = i;
-					break;
-				}
-			}
 
 			if (index < 0) return;
 
 			scrollPosition = index * lastDy;
-			selectedItem = filename;
 
 			ScrollEvent se(vScrollSet);
 			se.fromScrollbar = false;
-			se.logicalMaxValue = (int32)readyList.size() * lastDy;
+			se.logicalMaxValue = 0 * lastDy;
 
 			scrollPosition = min(scrollPosition, se.logicalMaxValue - lastPageSize);
 
@@ -677,17 +609,9 @@ namespace
 			platform.publisher.Publish(se);
 		}
 
-		void PushAllOnQueue()
-		{
-			for (auto& f : files)
-			{
-				q.push_back(f.first);
-			}
-		}
-
 		cstr GetSelectedTexture() const
 		{
-			return selectedItem.empty() ? nullptr : selectedItem.c_str();
+			return "none";
 		}
 
 		bool OnKeyboardEvent(const KeyboardEvent& key) override
@@ -722,14 +646,12 @@ namespace
 				} selectItem;
 
 				selectItem.cursorPos = cursorPos;
-				selectItem.target = selectedItem;
+				selectItem.target = "none";
 
 				EnumerateVisibleImages(selectItem, lastRect);
 
-				selectedItem = selectItem.target;
-
 				HV::Events::ChangeDefaultTextureEvent ev;
-				ev.wallName = selectedItem.c_str();
+				ev.wallName = "none";
 				platform.publisher.Publish(ev);
 			}
 		}
@@ -750,7 +672,7 @@ namespace
 				if (!se.fromScrollbar)
 				{
 					se.fromScrollbar = false;
-					se.logicalMaxValue = (int32)readyList.size() * lastDy;
+					se.logicalMaxValue = 0 * lastDy;
 					se.logicalMinValue = 0;
 					se.logicalPageSize = lastPageSize;
 					se.rowSize = lastDy / 4;
@@ -769,7 +691,7 @@ namespace
 			cstr filename;
 			float txUVtop;
 			float txUVbottom;
-			ID_TEXTURE textureId;
+			MaterialId matid;
 		};
 
 		void EnumerateVisibleImages(IEventCallback<ImageCallbackArgs>& cb, const GuiRect& absRect)
@@ -785,10 +707,11 @@ namespace
 			lastDy = (int32)dy;
 			lastPageSize = (int32)Height(absRect) - 2;
 
-			for (auto& f : readyList)
-			{
-				auto id = files[f];
+			MaterialArrayMetrics metrics;
+			platform.renderer.GetMaterialArrayMetrics(metrics);
 
+			for (MaterialId i = 0; i < metrics.NumberOfElements; i = i + 1)
+			{
 				float y1 = y + dy;
 
 				float h = 1.0f;
@@ -813,9 +736,9 @@ namespace
 					}
 
 					ImageCallbackArgs args;
-					args.filename = f.c_str();
+					args.filename = platform.renderer.GetMaterialTextureName(i);
 					args.target = GuiRectf{ x0, t, x1, b };
-					args.textureId = id;
+					args.matid = i;
 					args.txUVbottom = h;
 					args.txUVtop = g;
 
@@ -839,7 +762,7 @@ namespace
 			{
 				ScrollEvent se("editor.tools.vscroll_set"_event);
 				se.fromScrollbar = false;
-				se.logicalMaxValue = (int32)readyList.size() * lastDy;
+				se.logicalMaxValue = 0 * lastDy;
 				se.logicalMinValue = 0;
 				se.logicalPageSize = lastPageSize;
 				se.rowSize = lastDy / 4;
@@ -856,8 +779,6 @@ namespace
 
 				virtual void OnEvent(ImageCallbackArgs& args)
 				{
-					grc->SelectTexture(args.textureId);
-
 					float x0 = args.target.left;
 					float x1 = args.target.right;
 					float t = args.target.top;
@@ -866,20 +787,22 @@ namespace
 					float g = args.txUVtop;
 					float h = args.txUVbottom;
 
+					SpriteVertexData solid{ 1.0f, 0, 0, 0 };
+
 					GuiVertex v[6] =
 					{
-					   { x0, t, 0, 0, RGBAb(255,255,255), 0, g, 0 },
-					   { x1, t, 0, 0, RGBAb(255,255,255), 1, g, 0 },
-					   { x1, b, 0, 0, RGBAb(255,255,255), 1, h, 0 },
-					   { x0, t, 0, 0, RGBAb(255,255,255), 0, g, 0 },
-					   { x0, b, 0, 0, RGBAb(255,255,255), 0, h, 0 },
-					   { x1, b, 0, 0, RGBAb(255,255,255), 1, h, 0 }
+					   { {x0, t}, {{0, g}, 0}, solid, RGBAb(255,255,255) },
+					   { {x1, t}, {{1, g}, 0}, solid, RGBAb(255,255,255) },
+					   { {x1, b}, {{1, h}, 0}, solid, RGBAb(255,255,255) },
+					   { {x0, t}, {{0, g}, 0}, solid, RGBAb(255,255,255) },
+					   { {x0, b}, {{0, h}, 0}, solid, RGBAb(255,255,255) },
+					   { {x1, b}, {{1, h}, 0}, solid, RGBAb(255,255,255) }
 					};
 
 					grc->AddTriangle(v);
 					grc->AddTriangle(v + 3);
 
-					if (args.filename == *target)
+					if (target && args.filename == *target)
 					{
 						GuiRect hilight{ (int32)args.target.left + 1, (int32)args.target.top + 1, (int32)args.target.right - 1, (int32)args.target.bottom - 1 };
 						Rococo::Graphics::DrawBorderAround(*grc, hilight, Vec2i{ 2,2 }, RGBAb(224, 224, 224), RGBAb(255, 255, 255));
@@ -888,7 +811,7 @@ namespace
 			} renderImages;
 
 			renderImages.grc = &grc;
-			renderImages.target = &selectedItem;
+			renderImages.target = nullptr;
 
 			EnumerateVisibleImages(renderImages, absRect);
 		}
@@ -1194,11 +1117,6 @@ namespace
 		virtual cstr TextureName(int index) const
 		{
 			return editMode_SectorBuilder.GetTexture(index);
-		}
-
-		bool IsLoading() const override
-		{
-			return textureList.IsLoading();
 		}
 	};
 }

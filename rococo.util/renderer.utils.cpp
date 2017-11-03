@@ -210,87 +210,91 @@ namespace Rococo
 			return span;
 		}
 
-      Vec2i RenderTopLeftAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topLeft)
-      {
-         HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
-         Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
-         grc.RenderText(Vec2i{ topLeft.x, topLeft.y }, job);
-         return span;
-      }
-
-      Vec2i RenderTopRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topRight)
-      {
-         HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
-         Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
-         grc.RenderText(Vec2i{ topRight.x - span.x, topRight.y }, job);
-         return span;
-      }
-
-      Vec2i RenderHorizontalCentredText(IGuiRenderContext& grc, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle)
+		Vec2i RenderTopLeftAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topLeft)
 		{
-			HorizontalCentredText job(fontSize, txt, FontColourFromRGBAb(colour));
-         Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
-         grc.RenderText(Vec2i{ topMiddle.x - (span.x >> 1), topMiddle.y }, job);
-         return span;
+			HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
+			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
+			grc.RenderText(Vec2i{ topLeft.x, topLeft.y }, job);
+			return span;
 		}
 
-      Vec2i RenderCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middle)
-      {
-         HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
-         Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
-         grc.RenderText(Vec2i{ middle.x - (span.x >> 1), middle.y - (span.y >> 1) }, job);
-         return span;
-      }
+		Vec2i RenderTopRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topRight)
+		{
+			HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
+			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
+			grc.RenderText(Vec2i{ topRight.x - span.x, topRight.y }, job);
+			return span;
+		}
 
-      void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour)
-      {
-         Vec2i delta = end - start;
+		Vec2i RenderHorizontalCentredText(IGuiRenderContext& grc, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle)
+		{
+			HorizontalCentredText job(fontSize, txt, FontColourFromRGBAb(colour));
+			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
+			grc.RenderText(Vec2i{ topMiddle.x - (span.x >> 1), topMiddle.y }, job);
+			return span;
+		}
 
-         int dx2 = Sq(delta.x);
-         int dy2 = Sq(delta.y);
+		Vec2i RenderCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middle)
+		{
+			HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
+			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
+			grc.RenderText(Vec2i{ middle.x - (span.x >> 1), middle.y - (span.y >> 1) }, job);
+			return span;
+		}
 
-         Vec2 offset;
-         if (dy2 > dx2) // Move vertical than horizontal
-         {
-            offset = { (float) pixelthickness, 0 };
-         }
-         else
-         {
-            offset = { 0, (float) pixelthickness };
-         }
+		void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour)
+		{
+			Vec2i delta = end - start;
 
-         Vec2 bottomLeft = Vec2{ (float) start.x,  (float) start.y };
-         Vec2 topLeft = bottomLeft + offset;
+			int dx2 = Sq(delta.x);
+			int dy2 = Sq(delta.y);
 
-         Vec2 bottomRight = Vec2{ (float) end.x,  (float) end.y };
-         Vec2 topRight = bottomRight + offset;
-         
+			Vec2 offset;
+			if (dy2 > dx2) // Move vertical than horizontal
+			{
+				offset = { (float)pixelthickness, 0 };
+			}
+			else
+			{
+				offset = { 0, (float)pixelthickness };
+			}
 
-         GuiVertex q[] =
-         {
-            { topLeft.x,     topLeft.y,       1.0f, 0, colour, 0, 0, 0 },
-            { bottomLeft.x,  bottomLeft.y,    1.0f, 0, colour, 0, 0, 0 },
-            { bottomRight.x, bottomRight.y,   1.0f, 0, colour, 0, 0, 0 },
-            { bottomRight.x, bottomRight.y,   1.0f, 0, colour, 0, 0, 0 },
-            { topRight.x,    topRight.y,      1.0f, 0, colour, 0, 0, 0 },
-            { topLeft.x,     topLeft.y,       1.0f, 0, colour, 0, 0, 0 },
-         };
+			Vec2 bottomLeft = Vec2{ (float)start.x,  (float)start.y };
+			Vec2 topLeft = bottomLeft + offset;
 
-         grc.AddTriangle(q);
-         grc.AddTriangle(q + 3);
-      }
+			Vec2 bottomRight = Vec2{ (float)end.x,  (float)end.y };
+			Vec2 topRight = bottomRight + offset;
+
+			BaseVertexData noFont{ {0,0}, 0 };
+			SpriteVertexData solidColour{ 1.0f, 0.0f, 0.0f, 0.0f };
+
+			GuiVertex q[] =
+			{
+				{ topLeft,      noFont, solidColour, colour },
+				{ bottomLeft,   noFont, solidColour, colour },
+				{ bottomRight,  noFont, solidColour, colour },
+				{ bottomRight,  noFont, solidColour, colour },
+				{ topRight,     noFont, solidColour, colour },
+				{ topLeft,      noFont, solidColour, colour },
+			};
+
+			grc.AddTriangle(q);
+			grc.AddTriangle(q + 3);
+		}
 
 		void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag)
 		{
 			GuiRectf rect{ (float)grect.left, (float)grect.top, (float)grect.right, (float)grect.bottom };
+			BaseVertexData noFont{ {0, 0}, 0 };
+			SpriteVertexData solid{ 1.0f, 0, 0, 0 };
 			GuiVertex q[] =
 			{
-				{ rect.left,  rect.top,    1.0f, 0, diag,     0, 0, 0 },
-				{ rect.right, rect.top,    1.0f, 0, backdiag, 0, 0, 0 },
-				{ rect.right, rect.bottom, 1.0f, 0, diag,     0, 0, 0 },
-				{ rect.right, rect.bottom, 1.0f, 0, diag,     0, 0, 0 },
-				{ rect.left,  rect.bottom, 1.0f, 0, backdiag, 0, 0, 0 },
-				{ rect.left,  rect.top,    1.0f, 0, diag,     0, 0, 0 },
+				{ {rect.left,  rect.top},    noFont, solid, diag },
+				{ {rect.right, rect.top},    noFont, solid, backdiag },
+				{ {rect.right, rect.bottom}, noFont, solid, diag },
+				{ {rect.right, rect.bottom}, noFont, solid, diag },
+				{ {rect.left,  rect.bottom}, noFont, solid, backdiag },
+				{ {rect.left,  rect.top},    noFont, solid, diag }
 			};
 
 			grc.AddTriangle(q);
@@ -299,7 +303,7 @@ namespace Rococo
 
 		void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag)
 		{
-			GuiRect topRect{ rect.left - width.x, rect.top, rect.right, rect.top + width.y};
+			GuiRect topRect{ rect.left - width.x, rect.top, rect.right, rect.top + width.y };
 			DrawRectangle(grc, topRect, diag, diag);
 
 			GuiRect bottomRect{ rect.left - width.x, rect.bottom - width.y, rect.right, rect.bottom };
@@ -308,7 +312,7 @@ namespace Rococo
 			GuiRect leftRect{ rect.left - width.x, rect.top, rect.left, rect.bottom };
 			DrawRectangle(grc, leftRect, backdiag, backdiag);
 
-			GuiRect rightRect{ rect.right - width.x, rect.top, rect.right, rect.bottom};
+			GuiRect rightRect{ rect.right - width.x, rect.top, rect.right, rect.bottom };
 			DrawRectangle(grc, rightRect, diag, diag);
 		}
 

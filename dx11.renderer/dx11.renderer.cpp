@@ -157,8 +157,6 @@ namespace
       size_t arrayCapacity{ 0 };
       size_t count{ 0 };
 
-      std::vector<GuiVertex> spriteTriangles;
-
       ID3D11ShaderResourceView* View()
       {
          if (tb.view == nullptr)
@@ -392,9 +390,6 @@ namespace
 	   ID_VERTEX_SHADER idObjVS_Shadows;
 	   ID_PIXEL_SHADER idObjPS_Shadows;
 
-	   ID_VERTEX_SHADER idSpriteVS;
-	   ID_PIXEL_SHADER idSpritePS;
-
 	   AutoRelease<ID3D11Buffer> instanceBuffer;
 
 	   AutoRelease<ID3D11DepthStencilState> guiDepthState;
@@ -403,14 +398,13 @@ namespace
 	   std::vector<DX11::TextureBind> textures;
 	   std::unordered_map<std::string, ID_TEXTURE> mapNameToTexture;
 	   std::unordered_map<std::string, MaterialId> nameToMaterialId;
+	   std::vector<std::string> idToMaterialName;
 
 	   std::vector<Overlay> overlays;
 
 	   struct Cursor
 	   {
-		   ID_TEXTURE bitmapId;
-		   Vec2 uvTopLeft;
-		   Vec2 uvBottomRight;
+		   BitmapLocation sprite;
 		   Vec2i hotspotOffset;
 	   } cursor;
 
@@ -429,7 +423,7 @@ namespace
 
 	   DX11AppRenderer(ID3D11Device& _device, ID3D11DeviceContext& _dc, IDXGIFactory& _factory, IInstallation& _installation) :
 		   device(_device), dc(_dc), factory(_factory), fonts(nullptr), hRenderWindow(0),
-		   window(nullptr), cursor{ ID_TEXTURE(), {0,0}, {1,1}, {0,0} }, installation(_installation),
+		   window(nullptr), cursor{ BitmapLocation { {0,0,0,0}, -1 }, { 0,0 } }, installation(_installation),
 		   spriteArray(_device, _dc),
 		   materialArray(_device, dc),
 		   spriteArrayBuilder(CreateTextureArrayBuilder(*this, spriteArray)),
@@ -495,12 +489,6 @@ namespace
 
 		   installation.LoadResource("!depth.ps", *scratchBuffer, 64_kilobytes);
 		   idObjDepthPS = CreatePixelShader("!depth.ps", scratchBuffer->GetData(), scratchBuffer->Length());
-
-		   installation.LoadResource("!sprite.vs", *scratchBuffer, 64_kilobytes);
-		   idSpriteVS = CreateGuiVertexShader("!sprite.vs", scratchBuffer->GetData(), scratchBuffer->Length());
-
-		   installation.LoadResource("!sprite.ps", *scratchBuffer, 64_kilobytes);
-		   idSpritePS = CreatePixelShader("!sprite.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
 		   instanceBuffer = DX11::CreateConstantBuffer<ObjectInstance>(device);
 
@@ -584,6 +572,19 @@ namespace
 			   tx.texture->GetDesc(&desc);
 			   visitor.ShowSelectableString(t.name.c_str(), " #%4llu - 0x%p. %d x %d texels. %d levels", t.id.value, (const void*) tx.texture, desc.Width, desc.Height, desc.MipLevels);
 		   }
+	   }
+
+	   virtual cstr GetMaterialTextureName(MaterialId id) const
+	   {
+		   size_t index = (size_t)id;
+		   if (index >= materialArray.TextureCount()) return nullptr;
+		   return idToMaterialName[index].c_str();
+	   }
+
+	   virtual void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const
+	   {
+		   metrics.NumberOfElements = (int32) materialArray.TextureCount();
+		   metrics.Width = materialArray.MaxWidth();
 	   }
 
 	   virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id)
@@ -680,7 +681,7 @@ namespace
 		   visitor.ShowDecimal("Number of meshes", (int64)meshBuffers.size());
 		   visitor.ShowDecimal("Mesh updates", meshUpdateCount);
 
-		   visitor.ShowDecimal("Cursor texture Id ", cursor.bitmapId);
+		   visitor.ShowString("Cursor bitmap", "Id: %d. {%d,%d}-{%d,%d}", cursor.sprite.textureIndex, cursor.sprite.txUV.left, cursor.sprite.txUV.top, cursor.sprite.txUV.right, cursor.sprite.txUV.bottom );
 		   visitor.ShowString("Cursor hotspot delta", "(%+d %+d)", cursor.hotspotOffset.x, cursor.hotspotOffset.y);
 
 		   double hz = (double)OS::CpuHz();
@@ -791,24 +792,6 @@ namespace
 		   return *spriteArrayBuilder;
 	   }
 
-	   virtual void AddSpriteTriangle(bool alphaBlend, const GuiVertex triangle[3])
-	   {
-		   if (this->isBuildingAlphaBlendedSprites != alphaBlend || !guiVertices.empty())
-		   {
-			   FlushLayer();
-			   this->isBuildingAlphaBlendedSprites = alphaBlend;
-		   }
-
-		   spriteArray.spriteTriangles.push_back(triangle[0]);
-		   spriteArray.spriteTriangles.push_back(triangle[1]);
-		   spriteArray.spriteTriangles.push_back(triangle[2]);
-
-		   if (spriteArray.spriteTriangles.size() > 8192)
-		   {
-			   FlushLayer();
-		   }
-	   }
-
 	   virtual void ClearMeshes()
 	   {
 		   for (auto& x : meshBuffers)
@@ -895,6 +878,8 @@ namespace
 		   int32 txWidth = builder.TexelWidth();
 		   materialArray.ResetWidth(builder.TexelWidth());
 		   materialArray.Resize(builder.Count());
+		   nameToMaterialId.clear();
+		   idToMaterialName.clear();
 
 		   for (size_t i = 0; i < builder.Count(); ++i)
 		   {
@@ -924,6 +909,8 @@ namespace
 					   }
 
 					   This->nameToMaterialId[args.name] = (MaterialId)i;
+					   auto t = This->nameToMaterialId.find(args.name);
+					   This->idToMaterialName[i] = t->first;
 				   }
 
 				   virtual void OnError(const char* message)
@@ -974,6 +961,7 @@ namespace
 			   onTexture.i = i;
 			   onTexture.txWidth = txWidth;
 
+			   idToMaterialName.resize(builder.Count());
 			   nameToMaterialId.clear();
 			   builder.LoadTextureForIndex(i, onTexture);
 		   }
@@ -1409,17 +1397,17 @@ namespace
 
 	   void DrawCursor()
 	   {
-		   if (cursor.bitmapId != ID_TEXTURE::Invalid())
+		   if (cursor.sprite.textureIndex >= 0)
 		   {
 			   GuiMetrics metrics;
 			   GetGuiMetrics(metrics);
 
-			   Vec2i span = SelectTexture(cursor.bitmapId);
+			   Vec2i span = Span(cursor.sprite.txUV);
 
-			   float u0 = cursor.uvTopLeft.x;
-			   float u1 = cursor.uvBottomRight.x;
-			   float v0 = cursor.uvTopLeft.y;
-			   float v1 = cursor.uvBottomRight.y;
+			   float u0 = (float)cursor.sprite.txUV.left;
+			   float u1 = (float)cursor.sprite.txUV.right;
+			   float v0 = (float)cursor.sprite.txUV.top;
+			   float v1 = (float)cursor.sprite.txUV.bottom;
 
 			   Vec2 p{ (float)metrics.cursorPosition.x, (float)metrics.cursorPosition.y };
 
@@ -1428,14 +1416,19 @@ namespace
 			   float y0 = p.y + cursor.hotspotOffset.y;
 			   float y1 = y0 + (float)span.y;
 
+			   BaseVertexData noFont{ { 0,0 }, 0 };
+			   SpriteVertexData solidColour{ 1.0f, 0.0f, 0.0f, 0.0f };
+
+			   SpriteVertexData drawSprite{ 0, (float) cursor.sprite.textureIndex, 0, 0 };
+
 			   GuiVertex quad[6]
 			   {
-				   GuiVertex{ x0, y0, 0.0f, 0.0f, RGBAb(128,0,0), u0, v0, 0.0f },
-				   GuiVertex{ x1, y0, 0.0f, 0.0f, RGBAb(0,128,0), u1, v0, 0.0f },
-				   GuiVertex{ x1, y1, 0.0f, 0.0f, RGBAb(0,0,128), u1, v1, 0.0f },
-				   GuiVertex{ x1, y1, 0.0f, 0.0f, RGBAb(128,0,0), u1, v1, 0.0f },
-				   GuiVertex{ x0, y1, 0.0f, 0.0f, RGBAb(0,128,0), u0, v1, 0.0f },
-				   GuiVertex{ x0, y0, 0.0f, 0.0f, RGBAb(0,0,128), u0, v0, 0.0f }
+				   GuiVertex{ {x0, y0}, {{u0, v0}, 0.0f}, drawSprite, RGBAb(128,0,0)},
+				   GuiVertex{ {x1, y0}, {{u1, v0}, 0.0f}, drawSprite, RGBAb(0,128,0)},
+				   GuiVertex{ {x1, y1}, {{u1, v1}, 0.0f}, drawSprite, RGBAb(0,0,128)},
+				   GuiVertex{ {x1, y1}, {{u1, v1}, 0.0f}, drawSprite, RGBAb(128,0,0)},
+				   GuiVertex{ {x0, y1}, {{u0, v1}, 0.0f}, drawSprite, RGBAb(0,128,0)},
+				   GuiVertex{ {x0, y0}, {{u0, v0}, 0.0f}, drawSprite, RGBAb(0,0,128)}
 			   };
 
 			   AddTriangle(quad);
@@ -1592,6 +1585,31 @@ namespace
 			   o.overlay->Render(*this);
 		   }
 
+		   if (!UseShaders(idGuiVS, idGuiPS))
+		   {
+			   Throw(0, "Error setting Gui shaders");
+		   }
+
+		   dc.PSSetSamplers(0, 1, &spriteSampler);
+		   dc.PSSetShaderResources(0, 1, &fontBinding);
+		   dc.RSSetState(spriteRaterizering);
+
+		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+		   dc.OMSetBlendState(alphaBlend, blendFactorUnused, 0xffffffff);
+
+		   GuiScale guiScaleVector;
+		   guiScaleVector.OOScreenWidth = 1.0f / screenSpan.x;
+		   guiScaleVector.OOScreenHeight = 1.0f / screenSpan.y;
+		   guiScaleVector.OOFontWidth = fonts->TextureSpan().z;
+		   guiScaleVector.OOFontHeight = fonts->TextureSpan().w;
+
+		   DX11::CopyStructureToBuffer(dc, vector4Buffer, &guiScaleVector, sizeof(GuiScale));
+
+		   dc.VSSetConstantBuffers(0, 1, &vector4Buffer);
+		   dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		   dc.OMSetDepthStencilState(guiDepthState, 0);
+
 		   FlushLayer();
 
 		   DrawCursor();
@@ -1599,8 +1617,6 @@ namespace
 		   FlushLayer();
 
 		   guiCost = OS::CpuTicks() - now;
-
-		   renderState = RenderState_None;
 
 		   ClearContext();
 
@@ -1659,56 +1675,21 @@ namespace
 
 		   RGBAb colour = FontColourToSysColour(fcolour);
 
-		   guiVertices.push_back(GuiVertex{ x,           y, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x,      uvTopLeft.y,      0.0f }); // topLeft
-		   guiVertices.push_back(GuiVertex{ x,      y + dy, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x,      uvTopLeft.y + dy, 0.0f }); // bottomLeft
-		   guiVertices.push_back(GuiVertex{ x + dx, y + dy, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x + dx, uvTopLeft.y + dy, 0.0f }); // bottomRigh
-		   guiVertices.push_back(GuiVertex{ x,           y, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x,      uvTopLeft.y,      0.0f }); // topLeft
-		   guiVertices.push_back(GuiVertex{ x + dx,      y, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x + dx, uvTopLeft.y,      0.0f }); // TopRight
-		   guiVertices.push_back(GuiVertex{ x + dx, y + dy, 1.0f, 1.0f, (RGBAb)colour, uvTopLeft.x + dx, uvTopLeft.y + dy, 0.0f }); // bottomRight
-	   }
+		   SpriteVertexData drawFont{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-	   enum RenderState
-	   {
-		   RenderState_None,
-		   RenderState_Gui,
-		   RenderState_Sprites
-	   } renderState{ RenderState_None };
+		   guiVertices.push_back(GuiVertex{ {x,           y}, {{ uvTopLeft.x,      uvTopLeft.y},      1 }, drawFont, (RGBAb)colour }); // topLeft
+		   guiVertices.push_back(GuiVertex{ {x,      y + dy}, {{ uvTopLeft.x,      uvTopLeft.y + dy}, 1 }, drawFont, (RGBAb)colour }); // bottomLeft
+		   guiVertices.push_back(GuiVertex{ {x + dx, y + dy}, {{ uvTopLeft.x + dx, uvTopLeft.y + dy}, 1 }, drawFont, (RGBAb)colour }); // bottomRigh
+		   guiVertices.push_back(GuiVertex{ {x,           y}, {{ uvTopLeft.x,      uvTopLeft.y},      1 }, drawFont, (RGBAb)colour }); // topLeft
+		   guiVertices.push_back(GuiVertex{ {x + dx,      y}, {{ uvTopLeft.x + dx, uvTopLeft.y},      1 }, drawFont, (RGBAb)colour }); // TopRight
+		   guiVertices.push_back(GuiVertex{ {x + dx, y + dy}, {{ uvTopLeft.x + dx, uvTopLeft.y + dy}, 1 }, drawFont, (RGBAb)colour }); // bottomRight
+	   }
 
 	   void FlushLayer()
 	   {
 		   size_t nVerticesLeftToRender = guiVertices.size();
 		   while (nVerticesLeftToRender > 0)
 		   {
-			   if (renderState != RenderState_Gui)
-			   {
-				   if (!UseShaders(idGuiVS, idGuiPS))
-				   {
-					   Throw(0, "Error setting Gui shaders");
-				   }
-
-				   renderState = RenderState_Gui;
-
-				   dc.PSSetSamplers(0, 1, &spriteSampler);
-				   dc.PSSetShaderResources(0, 1, &fontBinding);
-				   dc.RSSetState(spriteRaterizering);
-
-				   FLOAT blendFactorUnused[] = { 0,0,0,0 };
-				   dc.OMSetBlendState(alphaBlend, blendFactorUnused, 0xffffffff);
-
-				   GuiScale guiScaleVector;
-				   guiScaleVector.OOScreenWidth = 1.0f / screenSpan.x;
-				   guiScaleVector.OOScreenHeight = 1.0f / screenSpan.y;
-				   guiScaleVector.OOFontWidth = fonts->TextureSpan().z;
-				   guiScaleVector.OOFontHeight = fonts->TextureSpan().w;
-
-				   DX11::CopyStructureToBuffer(dc, vector4Buffer, &guiScaleVector, sizeof(GuiScale));
-
-				   dc.VSSetConstantBuffers(0, 1, &vector4Buffer);
-				   dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-				   dc.OMSetDepthStencilState(guiDepthState, 0);
-			   }
-
 			   size_t startIndex = guiVertices.size() - nVerticesLeftToRender;
 			   size_t chunk = min(nVerticesLeftToRender, (size_t)GUI_BUFFER_VERTEX_CAPACITY);
 
@@ -1726,66 +1707,6 @@ namespace
 		   };
 
 		   guiVertices.clear();
-
-		   size_t nSpriteVerticesLeftToRender = spriteArray.spriteTriangles.size();
-		   while (nSpriteVerticesLeftToRender > 0)
-		   {
-			   if (isBuildingAlphaBlendedSprites)
-			   {
-				   FLOAT blendFactorUnused[] = { 0,0,0,0 };
-				   dc.OMSetBlendState(alphaBlend, blendFactorUnused, 0xffffffff);
-			   }
-			   else
-			   {
-				   FLOAT blendFactorUnused[] = { 0,0,0,0 };
-				   dc.OMSetBlendState(this->disableBlend, blendFactorUnused, 0xffffffff);
-			   }
-
-			   if (renderState != RenderState_Sprites)
-			   {
-				   renderState = RenderState_Sprites;
-
-				   if (!UseShaders(idSpriteVS, idSpritePS))
-				   {
-					   Throw(0, "Could not set sprite shaders");
-				   }
-
-				   dc.PSSetSamplers(0, 1, &spriteSampler);
-				   ID3D11ShaderResourceView* views[1] = { spriteArray.View() };
-				   dc.PSSetShaderResources(0, 1, views);
-				   dc.RSSetState(spriteRaterizering);
-
-				   Vec4 guiScaleVector;
-				   guiScaleVector.x = 1.0f / screenSpan.x;
-				   guiScaleVector.y = 1.0f / screenSpan.y;
-				   guiScaleVector.z = 1.0f / (float32)spriteArray.width;
-				   guiScaleVector.w = 0.0f;
-
-				   DX11::CopyStructureToBuffer(dc, vector4Buffer, &guiScaleVector, sizeof(Vec4));
-
-				   dc.VSSetConstantBuffers(0, 1, &vector4Buffer);
-				   dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-				   dc.OMSetDepthStencilState(guiDepthState, 0);
-			   }
-
-			   size_t startIndex = spriteArray.spriteTriangles.size() - nSpriteVerticesLeftToRender;
-			   size_t chunk = min(nSpriteVerticesLeftToRender, (size_t)GUI_BUFFER_VERTEX_CAPACITY);
-
-			   D3D11_MAPPED_SUBRESOURCE x;
-			   VALIDATEDX11(dc.Map(guiBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &x));
-			   memcpy(x.pData, &spriteArray.spriteTriangles[startIndex], chunk * sizeof(GuiVertex));
-			   dc.Unmap(guiBuffer, 0);
-
-			   UINT stride = sizeof(GuiVertex);
-			   UINT offset = 0;
-			   dc.IASetVertexBuffers(0, 1, &guiBuffer, &stride, &offset);
-			   dc.Draw((UINT)chunk, 0);
-
-			   nSpriteVerticesLeftToRender -= chunk;
-
-			   spriteArray.spriteTriangles.clear();
-		   }
 	   }
 
 	   void ResizeBuffers(const Vec2i& span)
@@ -1832,11 +1753,9 @@ namespace
 		   }
 	   }
 
-	   void SetCursorBitmap(ID_TEXTURE idBitmap, Vec2i hotspotOffset, Vec2 uvTopLeft, Vec2 uvBottomRight) override
+	   void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) override
 	   {
-		   cursor.bitmapId = idBitmap;
-		   cursor.uvTopLeft = uvTopLeft;
-		   cursor.uvBottomRight = uvBottomRight;
+		   cursor.sprite = sprite;
 		   cursor.hotspotOffset = hotspotOffset;
 	   }
 

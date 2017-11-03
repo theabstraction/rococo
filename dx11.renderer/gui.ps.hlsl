@@ -1,47 +1,46 @@
-struct Tx
-{
-	float u;
-	float v;
-	float saturation;
-	float fontBlend;
-};
-
 struct PixelVertex
 {
-	float4 position : SV_POSITION;
-	float4 colour : COLOR;
-	Tx tx : TEXCOORD0;
+	float4 position			: SV_POSITION;
+	float3 base				: TEXCOORD0;
+	float4 sd				: TEXCOORD1;
+	float4 colour			: COLOR;
 };
 
 Texture2D g_FontSprite: register(t0);
-Texture2D g_BitmapSprite: register(t1);
+Texture2DArray g_BitmapSprite: register(t7);
+Texture2DArray g_MaterialTextureArray: register(t6);
 SamplerState spriteSampler;
 
-struct TextureDescState
+struct BaseVertexData
 {
-	float width;
-	float height;
-	float inverseWidth;
-	float inverseHeight;
-	float redActive;
-	float greenActive;
-	float blueActive;
-	float alphaActive;
+	float2 uv;
+	float fontBlend; // 0 -> normal triangle, 1 -> modulate with font texture
 };
 
-cbuffer depthRenderData: register(b7)
+struct SpriteVertexData
 {
-	TextureDescState txDesc;
+	float lerpBitmapToColour; // 1.0 -> use colour, 0.0 -> use bitmap texture
+	float spriteIndex; // index the sprite texture in the texture array.
+	float matIndex; // index the texture in the material array
+	float spriteToMatLerpFactor; // 0 -> use textureIndex, 1 -> use matIndex, lerping in between
 };
 
 float4 main(PixelVertex p) : SV_TARGET
 {
-	float fontAlpha = g_FontSprite.Sample(spriteSampler, float2(p.tx.u, p.tx.v)).x;
-	float4 spritePixel = g_BitmapSprite.Sample(spriteSampler, float2(p.tx.u, p.tx.v));
+	SpriteVertexData svd;
+	svd.lerpBitmapToColour = p.sd.x;
+	svd.spriteIndex = p.sd.y;
+	svd.matIndex = p.sd.z;
+	svd.spriteToMatLerpFactor = p.sd.w;
 
-	spritePixel.w = txDesc.alphaActive * spritePixel.w + (1.0f - txDesc.alphaActive);
+	BaseVertexData base;
+	base.uv = p.base.xy;
+	base.fontBlend = p.base.z;
 
-	float saturatedAlpha = lerp(p.colour.w, fontAlpha * p.colour.w, p.tx.fontBlend);
-	p.colour.w = saturatedAlpha;
-	return lerp(spritePixel, p.colour, p.tx.saturation);
+	float4 spriteTexel = g_BitmapSprite.Sample(spriteSampler, float3(base.uv.x, base.uv.y, svd.spriteIndex));
+	float4 materialTexel = g_MaterialTextureArray.Sample(spriteSampler, float3(base.uv.x, base.uv.y, svd.matIndex));
+	float4 imageColour = lerp(spriteTexel, materialTexel, svd.spriteToMatLerpFactor);
+	float fontAlpha = g_FontSprite.Sample(spriteSampler, base.uv).x;
+	p.colour.w = lerp(p.colour.w, fontAlpha * p.colour.w, base.fontBlend);
+	return lerp(imageColour, p.colour, svd.lerpBitmapToColour);
 }

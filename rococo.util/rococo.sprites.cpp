@@ -9,69 +9,47 @@ namespace Rococo
 {
 	namespace Graphics
 	{
-		void StretchBitmap(IGuiRenderContext& rc, const GuiRect& absRect)
+		void StretchBitmap(IGuiRenderContext& rc, const GuiRect& absRect, MaterialId id)
 		{
+			SpriteVertexData useMaterial{ 0.0f, 0.0f, id, 1.0f };
+
 			GuiVertex v[6] =
 			{
 				{
-					(float) absRect.left,
-					(float) absRect.top,
-					0.0f,
-					0.0f,
-					RGBAb(255,255,255),
-					0,
-					0,
-					0
+					{ (float)absRect.left, (float)absRect.top},
+					{ { 0, 0}, 0 },
+					useMaterial,
+					RGBAb(255,255,255)
 				},
 				{
-					(float) absRect.right,
-					(float) absRect.top,
-					0.0f,
-					0.0f,
-					RGBAb(255,255,255),
-					1.0f,
-					0,
-					0
+					{ (float)absRect.right, (float)absRect.top },
+					{ { 1, 0 }, 0 },
+					useMaterial,
+					RGBAb(255,255,255)
 				},
 				{
-					(float) absRect.right,
-					(float) absRect.bottom,
-					0.0f,
-					0.0f,
-					RGBAb(255,255,255),
-					1.0f,
-					1.0f,
-					0
+					{(float)absRect.right,(float)absRect.bottom },
+					{ { 1, 1 }, 0 },
+					useMaterial,
+					RGBAb(255,255,255)
 				},
 				{
-					(float) absRect.right,
-					(float) absRect.bottom,
-					0.0f,
-					0.0f,
-					RGBAb(255,255,255),
-					1.0f,
-					1.0f,
-					0
+					{ (float)absRect.right, (float)absRect.bottom},
+					{ { 1, 1 }, 0 },
+					useMaterial,
+					RGBAb(255,255,255)
 				},
 				{
-					(float) absRect.left,
-					(float) absRect.bottom,
-					0.0f,
-					0.0f,
-					RGBAb(255,255,255),
-					0.0f,
-					1.0f,
-					0
+					{ (float)absRect.left, (float)absRect.bottom },
+					{ { 0, 1 }, 0 },
+					useMaterial,
+					RGBAb(255,255,255)
 				},
 				{
-					(float) absRect.left,
-					(float) absRect.top,
-					0.0f,
-					0.0f,
+					{ (float)absRect.left, (float)absRect.top },
+					{ { 0, 0 }, 0 },
+					useMaterial,
 					RGBAb(255,255,255),
-					0,
-					0,
-					0
 				}
 			};
 
@@ -79,14 +57,18 @@ namespace Rococo
 			rc.AddTriangle(v + 3);
 		}
 
-		void RenderBitmap_ShrinkAndPreserveAspectRatio(IGuiRenderContext& rc, ID_TEXTURE id, const GuiRect& absRect)
+		void RenderBitmap_ShrinkAndPreserveAspectRatio(IGuiRenderContext& rc, MaterialId id, const GuiRect& absRect)
 		{
-			Vec2i txSpan = rc.SelectTexture(id);
+			MaterialArrayMetrics metrics;
+			rc.Renderer().GetMaterialArrayMetrics(metrics);
+
+			Vec2 txSpan{ (float) metrics.Width,(float) metrics.Width };
+
 			Vec2i rectSpan = Span(absRect);
 
 			Vec2i centre = Centre(absRect);
 
-			float aspectRatio = txSpan.x / (float)txSpan.y;
+			float aspectRatio = txSpan.x / txSpan.y;
 
 			GuiRectf rect;
 
@@ -125,67 +107,45 @@ namespace Rococo
 				}
 			}
 
+			SpriteVertexData useMaterial{ 0.0f, 0.0f, id, 1.0f };
+
 			GuiVertex v[6] =
 			{
 				{
-					rect.left,
-					rect.top,
-					0.0f,
-					0.0f,
-					RGBAb(255,255,255),
-					0,
-					0,
-					0
+					{ rect.left,	rect.top },
+					{ { 0, 0 }, 0 },
+					useMaterial,
+					RGBAb(255,255,255)
 				},
 				{
-					rect.right,
-					rect.top,
-					0.0f,
-					0.0f,
-					RGBAb(255,255,255),
-					1.0f,
-					0,
-					0
+					{ rect.right, rect.top },
+					{ { 1, 0 }, 0 },
+					useMaterial,
+					RGBAb(255,255,255)
 				},
 				{
-					rect.right,
-					rect.bottom,
-					0.0f,
-					0.0f,
-					RGBAb(255,255,255),
-					1.0f,
-					1.0f,
-					0
+					{ rect.right, rect.bottom },
+					{ { 1, 1 }, 0 },
+					useMaterial,
+					RGBAb(255,255,255)
 				},
 				{
-					rect.right,
-					rect.bottom,
-					0.0f,
-					0.0f,
-					RGBAb(255,255,255),
-					1.0f,
-					1.0f,
-					0
+					{ rect.right, rect.bottom },
+					{ { 1, 1 }, 0 },
+					useMaterial,
+					RGBAb(255,255,255)
 				},
 				{
-					rect.left,
-					rect.bottom,
-					0.0f,
-					0.0f,
-					RGBAb(255,255,255),
-					0.0f,
-					1.0f,
-					0
+					{ rect.left, rect.bottom },
+					{ { 0, 1 }, 0 },
+					useMaterial,
+					RGBAb(255,255,255)
 				},
 				{
-					rect.left,
-					rect.top,
-					0.0f,
-					0.0f,
-					RGBAb(255,255,255),
-					0,
-					0,
-					0
+					{ rect.left, rect.top },
+					{ { 0, 0 }, 0 },
+					useMaterial,
+					RGBAb(255,255,255)
 				}
 			};
 
@@ -202,22 +162,27 @@ namespace Rococo
 			bottomRight.y = (float)(topLeftBitmap.y + location.txUV.bottom - location.txUV.top);
 
 			// [0 1]
-			// [2 3]
+			// [3 2]
 			GuiVertex quad[4] = { 0 };
-			quad[0].x = quad[2].x = topLeft.x;
-			quad[1].x = quad[3].x = bottomRight.x;
-			quad[0].y = quad[1].y = topLeft.y;
-			quad[2].y = quad[3].y = bottomRight.y;
+			quad[0].pos = topLeft;
+			quad[2].pos = bottomRight;
 
-			quad[0].u = quad[2].u = (float)location.txUV.left;
-			quad[1].u = quad[3].u = (float)location.txUV.right;
-			quad[0].v = quad[1].v = (float)location.txUV.top;
-			quad[2].v = quad[3].v = (float)location.txUV.bottom;
+			quad[1].pos = { bottomRight.x, topLeft.y };
+			quad[3].pos = { topLeft.x, bottomRight.y };	
 
-			quad[0].textureIndex = quad[1].textureIndex = quad[2].textureIndex = quad[3].textureIndex = (float)location.textureIndex;
+			quad[0].vd.uv.x = quad[3].vd.uv.x = (float)location.txUV.left;
+			quad[1].vd.uv.x = quad[2].vd.uv.x = (float)location.txUV.right;
+			quad[0].vd.uv.y = quad[1].vd.uv.y = (float)location.txUV.top;
+			quad[2].vd.uv.y = quad[3].vd.uv.y = (float)location.txUV.bottom;
 
-			gc.AddSpriteTriangle(alphaBlend, quad);
-			gc.AddSpriteTriangle(alphaBlend, quad + 1);
+			quad[0].vd.fontBlend = quad[1].vd.fontBlend = quad[2].vd.fontBlend = quad[3].vd.fontBlend = 0;
+			quad[0].sd = quad[1].sd = quad[2].sd = quad[3].sd = { 0, (float)location.textureIndex, 0, 0 };
+			quad[0].colour = quad[1].colour = quad[2].colour = quad[3].colour = RGBAb(0, 0, 0, 0);
+
+			GuiVertex TL[3] = { quad[0], quad[1], quad[2] };
+			GuiVertex BR[3] = { quad[2], quad[3], quad[0] };
+			gc.AddTriangle(TL);
+			gc.AddTriangle(BR);
 		}
 	}
 } // Rococo

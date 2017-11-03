@@ -79,7 +79,6 @@ namespace HV
 
    ROCOCOAPI IEditor
    {
-	  virtual bool IsLoading() const = 0;
       virtual bool IsScrollLocked() const = 0;
       virtual void SetNeighbourTextureAt(Vec2 pos, bool forward) = 0;
       virtual void Free() = 0;

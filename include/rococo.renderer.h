@@ -12,16 +12,26 @@ namespace Rococo
 		struct IDrawTextJob;
 	}
 
+	struct BaseVertexData
+	{
+		Vec2 uv;
+		float fontBlend; // 0 -> normal triangle, 1 -> modulate with font texture
+	};
+
+	struct SpriteVertexData
+	{
+		float lerpBitmapToColour; // 1.0 -> use colour, 0.0 -> use bitmap texture
+		float textureIndex; // When used in sprite calls, this indexes the texture in the texture array.
+		float matIndex; // index the texture in the material array
+		float textureToMatLerpFactor; // 0 -> use textureIndex, 1 -> use matIndex, lerping in between
+	};
+
 	struct GuiVertex
 	{
-		float x;
-		float y;
-		float saturation; // 1.0 -> use colour, 0.0 -> use bitmap texture
-		float fontBlend; // 0 -> normal triangle, 1 -> modulate with font texture
+		Vec2 pos;
+		BaseVertexData vd; // 3 floats
+		SpriteVertexData sd; // 4 floats
 		RGBAb colour;
-		float u;
-		float v;
-		float textureIndex; // When used in sprite calls, this indexes the texture in the texture array
 	};
 
 	typedef float MaterialId;
@@ -62,7 +72,6 @@ namespace Rococo
 	{
 		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
 		virtual void FlushLayer() = 0;
-		virtual void AddSpriteTriangle(bool alphaBlend, const GuiVertex triangle[3]) = 0;
 		virtual Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
 		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
 		virtual IRenderer& Renderer() = 0;
@@ -181,6 +190,12 @@ namespace Rococo
 		virtual void LoadTextureForIndex(size_t index, IEventCallback<MaterialTextureArrayBuilderArgs>& onLoad) = 0;
 	};
 
+	struct MaterialArrayMetrics
+	{
+		int32 Width;
+		int32 NumberOfElements;
+	};
+
 	ROCOCOAPI IRenderer
 	{
 	  virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
@@ -189,15 +204,17 @@ namespace Rococo
 	  virtual void DeleteMesh(ID_SYS_MESH id) = 0;
 	  virtual ID_TEXTURE FindTexture(cstr name) const = 0;
 	  virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
+	  virtual void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const = 0;
 	  virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id) = 0;
 	  virtual IInstallation& Installation() = 0;
 	  virtual void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder) = 0;
 	  virtual MaterialId GetMaterialId(cstr name) const = 0;
+	  virtual cstr GetMaterialTextureName(MaterialId id) const = 0;
 	  virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, cstr uniqueName) = 0;
 	  virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
 	  virtual void Render(IScene& scene) = 0;
 	  virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
-	  virtual void SetCursorBitmap(ID_TEXTURE bitmapId, Vec2i hotspotOffset, Vec2 uvTopLeft, Vec2 uvBottomRight) = 0;
+	  virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
 	  virtual void SetCursorVisibility(bool isVisible) = 0;
 	  virtual void ShowWindowVenue(IMathsVisitor& visitor) = 0;
 	  virtual void SwitchToWindowMode() = 0;

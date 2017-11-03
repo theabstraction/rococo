@@ -250,18 +250,11 @@ namespace HV
 
 		   if (editorActive)
 		   {
-			   if (editor->IsLoading())
-			   {
-				   return 5;
-			   }
-			   else
-			   {
-				   return 100;
-			   }
+				return 100;
 		   }
 		   else if (e.sectors.begin() == e.sectors.end())
 		   {
-			   return 100;
+				return 100;
 		   }
 		   else
 		   {

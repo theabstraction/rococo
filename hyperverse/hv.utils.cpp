@@ -27,21 +27,19 @@ namespace HV
          TransformPositions(tri, 6, R, triP);
 
          GuiVertex shadow[3];
-         for (int i = 0; i < 3; ++i)
-         {
-            shadow[i] = GuiVertex{ 0.0f, 0.0f, 1.0f, 0.0f, shadowColour, 0.0f, 0.0f, 0.0f };
-            shadow[i].x = triP[i].x;
-            shadow[i].y = triP[i].y;
-         }
+		 for (int i = 0; i < 3; ++i)
+		 {
+			 shadow[i] = GuiVertex{ {0, 0}, {{0,0}, 0}, { 1, 0, 0, 0 }, shadowColour };
+			 shadow[i].pos = { triP[i].x, triP[i].y };
+		 }
 
          grc.AddTriangle(shadow);
 
          GuiVertex light[3];
          for (int i = 0; i < 3; ++i)
          {
-            light[i] = GuiVertex{ 0.0f, 0.0f, 1.0f, 0.0f, bodyColour, 0.0f, 0.0f, 0.0f };
-            light[i].x = triP[i + 3].x;
-            light[i].y = triP[i + 3].y;
+            light[i] = GuiVertex{ { 0, 0 },{ { 0,0 }, 0 },{ 1, 0, 0, 0 }, bodyColour};
+            light[i].pos = { triP[i + 3].x, triP[i + 3].y };
          }
 
          grc.AddTriangle(light);

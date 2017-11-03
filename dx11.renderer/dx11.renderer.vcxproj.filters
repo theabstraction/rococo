@@ -4,17 +4,11 @@
     <FxCompile Include="gui.vs.hlsl" />
     <FxCompile Include="object.vs.hlsl" />
     <FxCompile Include="object.ps.hlsl" />
-    <FxCompile Include="depth.ps.hlsl" />
-    <FxCompile Include="sprite.ps.hlsl" />
-    <FxCompile Include="sprite.vs..hlsl" />
     <FxCompile Include="gui.ps.hlsl" />
     <FxCompile Include="shadow.vs.hlsl" />
     <FxCompile Include="shadow.ps.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="bitmap.cache.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="dx11.swapchain.cpp">
       <Filter>Sources</Filter>
     </ClCompile>

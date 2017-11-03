@@ -1463,34 +1463,28 @@ public:
 
 	void DrawTriangleFacingLeft(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
 	{
+		BaseVertexData noFont{ {0, 0}, 0 };
+		SpriteVertexData solid{ 1.0f, 0, 0, 0 };
+
 		GuiVertex triangle[3] =
 		{
 			{
-				(float) container.left,
-				(float)((container.top + container.bottom) >> 1),
-				1.0f,
-				0.0f,
-				colour,
-				0,
-				0
+				{ (float)container.left, (float)((container.top + container.bottom) >> 1) } ,
+				noFont,
+				solid,
+				colour
 			},
 			{
-				(float)container.right,
-				(float)container.top,
-				1.0f,
-				0.0f,
-				colour,
-				0,
-				0
+				{ (float)container.right, (float)container.top },
+				noFont,
+				solid,
+				colour
 			},
 			{
-				(float)container.right,
-				(float)container.bottom,
-				1.0f,
-				0.0f,
-				colour,
-				0.0f,
-				0
+				{ (float)container.right, (float)container.bottom },
+				noFont,
+				solid,
+				colour
 			}
 		};
 		grc.AddTriangle(triangle);
@@ -1498,34 +1492,28 @@ public:
 
 	void DrawTriangleFacingRight(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
 	{
+		BaseVertexData noFont{ { 0,0 }, 0 };
+		SpriteVertexData solidColour{ 1.0f, 0.0f, 0.0f, 0.0f };
+
 		GuiVertex triangle[3] =
 		{
 			{
-				(float)container.left,
-				(float)container.top,
-				1.0f,
-				0.0f,
-				colour,
-				0,
-				0
+				{ (float)container.left, (float)container.top },
+				noFont,
+				solidColour,
+				colour
 			},
 			{
-				(float)container.left,
-				(float)container.bottom,
-				1.0f,
-				0.0f,
-				colour,
-				0,
-				0
+				{ (float)container.left, (float)container.bottom },
+				noFont,
+				solidColour,
+				colour
 			},
 			{
-				(float)container.right,
-				(float)((container.top + container.bottom) >> 1),
-				1.0f,
-				0.0f,
-				colour,
-				0,
-				0
+				{ (float)container.right, (float)((container.top + container.bottom) >> 1) },
+				noFont,
+				solidColour,
+				colour
 			}
 		};
 		grc.AddTriangle(triangle);
