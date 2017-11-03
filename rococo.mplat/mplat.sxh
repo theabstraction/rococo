@@ -6,8 +6,9 @@
 	(context factory Rococo.IKeyboard)
 	(methods
 		(ClearActions)
-		(SetKeyName (IString name)(Int32 scancode))
+		(SetKeyName (IString name)(Int32 vkeyCode))
 		(BindAction (IString keyName)(IString actionName))
+		(SaveCppHeader)
 	)
 	(factory Rococo.Keyboard)
 )

@@ -1,6 +1,10 @@
 #ifndef BLOKE_UI_H
 #define BLOKE_UI_H
 
+#ifdef _WIN32
+# include <rococo.vkeys.win32.h>
+#endif
+
 namespace Rococo
 {
 	namespace Script

@@ -307,6 +307,10 @@ namespace Rococo
 		virtual void Seed(uint32 value) = 0;
 	};
 
+
+	struct KeyboardEvent;
+	struct MouseEvent;
+
 	namespace Events
 	{
 		typedef int32 EventHash;
@@ -347,6 +351,20 @@ namespace Rococo
 			TextOutputEvent(EventId id) : Event(id) {}
 			bool isGetting;
 			char text[128];
+		};
+
+		struct RouteKeyboard : Event
+		{
+			RouteKeyboard(EventId id, const KeyboardEvent& _ke) : Event(id), ke(&_ke) {}
+			const KeyboardEvent* ke;
+			bool consume;
+		};
+
+		struct RouteMouse : Event
+		{
+			RouteMouse(EventId id, const MouseEvent& _me) : Event(id), me(&_me) {}
+			const MouseEvent* me;
+			Vec2i absTopleft;
 		};
 
 		inline bool operator == (const EventId& a, const EventId& b)

@@ -264,9 +264,9 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		int32 scancode;
-		_offset += sizeof(scancode);
-		ReadInput(scancode, _sf, -_offset);
+		int32 vkeyCode;
+		_offset += sizeof(vkeyCode);
+		ReadInput(vkeyCode, _sf, -_offset);
 
 		_offset += sizeof(IString*);
 		IString* _name;
@@ -278,7 +278,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetKeyName(name, scancode);
+		_pObject->SetKeyName(name, vkeyCode);
 	}
 	void NativeRococoIKeyboardBindAction(NativeCallEnvironment& _nce)
 	{
@@ -302,6 +302,16 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->BindAction(keyName, actionName);
 	}
+	void NativeRococoIKeyboardSaveCppHeader(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IKeyboard* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SaveCppHeader();
+	}
 
 	void NativeGetHandleForRococoKeyboard(NativeCallEnvironment& _nce)
 	{
@@ -321,8 +331,9 @@ namespace Rococo {
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoKeyboard, _nceContext, SEXTEXT("GetHandleForIKeyboard0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeRococoIKeyboardClearActions, nullptr, SEXTEXT("IKeyboardClearActions (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoIKeyboardSetKeyName, nullptr, SEXTEXT("IKeyboardSetKeyName (Pointer hObject)(Sys.Type.IString name)(Int32 scancode) -> "));
+		ss.AddNativeCall(ns, NativeRococoIKeyboardSetKeyName, nullptr, SEXTEXT("IKeyboardSetKeyName (Pointer hObject)(Sys.Type.IString name)(Int32 vkeyCode) -> "));
 		ss.AddNativeCall(ns, NativeRococoIKeyboardBindAction, nullptr, SEXTEXT("IKeyboardBindAction (Pointer hObject)(Sys.Type.IString keyName)(Sys.Type.IString actionName) -> "));
+		ss.AddNativeCall(ns, NativeRococoIKeyboardSaveCppHeader, nullptr, SEXTEXT("IKeyboardSaveCppHeader (Pointer hObject) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IConfig 

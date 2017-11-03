@@ -4,6 +4,8 @@
 
 #include <rococo.os.win32.h>
 
+#include <rococo.strings.h>
+
 namespace
 {
    using namespace Rococo;
@@ -73,15 +75,32 @@ namespace
          };
       }
 
-      virtual void SetKeyName(const fstring& name, int32 scancode)
+      virtual void SetKeyName(const fstring& name, int32 vkeyCode)
       {
-         if (scancode < 0 || scancode >= codes.size())
+         if (vkeyCode < 0 || vkeyCode >= codes.size())
          {
             Throw(0, "Bad scancode. 0 <= scancode < %u", codes.size());
          }
 
-         codes[scancode] = name.buffer;
+         codes[vkeyCode] = name.buffer;
       }
+
+	  virtual void SaveCppHeader()
+	  {
+		  char text[8192];
+		  StackStringBuilder ssb(text, sizeof(text));
+
+		  ssb << "namespace Rococo { namespace IO {\n";
+		  ssb << " enum VKCode\n {\n";
+		  for (size_t vk = 0; vk < codes.size(); ++vk)
+		  {
+			  if (codes[vk].size() > 0) ssb.AppendFormat("  VKCode_%s = %u,\n", codes[vk].c_str(), vk);
+		  }
+		  ssb.AppendFormat("  VKCode_None = 0\n");
+		  ssb << " };\n}}\n";
+		  
+		  IO::SaveUserFile("rococo.vkeys.win32.h", text);
+	  }
    };
 }
 

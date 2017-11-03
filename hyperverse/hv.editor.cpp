@@ -5,6 +5,7 @@
 #include <rococo.widgets.h>
 #include <rococo.mplat.h>
 #include <rococo.textures.h>
+#include <rococo.ui.h>
 
 #include <vector>
 #include <algorithm>
@@ -558,11 +559,14 @@ namespace
 	EventId vScrollChanged = "editor.tools.vscroll_ui"_event;
 	EventId vScrollSet = "editor.tools.vscroll_set"_event;
 	EventId vScrollGet = "editor.tools.vscroll_get"_event;
+	EventId vScrollSendKey = "editor.tools.vscroll_sendkey"_event;
+	EventId vScrollSendMouse = "editor.tools.vscroll_sendmouse"_event;
 
 	class TextureList : public IUIElement, public IObserver
 	{
 		Platform& platform;
 		int32 scrollPosition = 0;
+		Vec2i absTopLeft = { 0,0 };
 	public:
 		TextureList(Platform& _platform) : platform(_platform)
 		{
@@ -616,11 +620,17 @@ namespace
 
 		bool OnKeyboardEvent(const KeyboardEvent& key) override
 		{
-			return false;
+			RouteKeyboard rk(vScrollSendKey, key);
+			rk.consume = false;
+			platform.publisher.Publish(rk);
+			return rk.consume;
 		}
 
 		void OnRawMouseEvent(const MouseEvent& key) override
 		{
+			RouteMouse rm(vScrollSendMouse, key);
+			rm.absTopleft = absTopLeft;
+			platform.publisher.Publish(rm);
 		}
 
 		void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override
@@ -704,7 +714,6 @@ namespace
 			float y = absRect.top + 1.0f - scrollPosition;
 			float dy = (float)width;
 
-			lastDy = (int32)dy;
 			lastPageSize = (int32)Height(absRect) - 2;
 
 			MaterialArrayMetrics metrics;
@@ -756,13 +765,23 @@ namespace
 
 		void Render(IGuiRenderContext& grc, const GuiRect& absRect) override
 		{
-			bool updated = false;
+			int32 width = Width(absRect);
 
-			if (updated)
+			absTopLeft = TopLeft(absRect);
+
+			if (lastDy == 0 || lastDy != width)
 			{
+				lastDy = width;
+
+				MaterialArrayMetrics mam;
+				grc.Renderer().GetMaterialArrayMetrics(mam);
+
+				int maxValue = mam.NumberOfElements * lastDy;
+				lastPageSize = min(Height(absRect), maxValue);
+
 				ScrollEvent se("editor.tools.vscroll_set"_event);
 				se.fromScrollbar = false;
-				se.logicalMaxValue = 0 * lastDy;
+				se.logicalMaxValue = maxValue;
 				se.logicalMinValue = 0;
 				se.logicalPageSize = lastPageSize;
 				se.rowSize = lastDy / 4;
@@ -787,16 +806,16 @@ namespace
 					float g = args.txUVtop;
 					float h = args.txUVbottom;
 
-					SpriteVertexData solid{ 1.0f, 0, 0, 0 };
-
+					SpriteVertexData material{ 0, 0, args.matid, 1 };
+					RGBAb unused(0, 0, 0);
 					GuiVertex v[6] =
 					{
-					   { {x0, t}, {{0, g}, 0}, solid, RGBAb(255,255,255) },
-					   { {x1, t}, {{1, g}, 0}, solid, RGBAb(255,255,255) },
-					   { {x1, b}, {{1, h}, 0}, solid, RGBAb(255,255,255) },
-					   { {x0, t}, {{0, g}, 0}, solid, RGBAb(255,255,255) },
-					   { {x0, b}, {{0, h}, 0}, solid, RGBAb(255,255,255) },
-					   { {x1, b}, {{1, h}, 0}, solid, RGBAb(255,255,255) }
+					   { {x0, t}, {{0, g}, 0}, material, unused },
+					   { {x1, t}, {{1, g}, 0}, material, unused },
+					   { {x1, b}, {{1, h}, 0}, material, unused },
+					   { {x0, t}, {{0, g}, 0}, material, unused },
+					   { {x0, b}, {{0, h}, 0}, material, unused },
+					   { {x1, b}, {{1, h}, 0}, material, unused }
 					};
 
 					grc->AddTriangle(v);

@@ -596,6 +596,8 @@ public:
 
 				if (populate.renderElement)
 				{
+					populate.renderElement->OnRawMouseEvent(me);
+
 					if (me.HasFlag(MouseEvent::LUp) || me.HasFlag(MouseEvent::LDown))
 					{
 						populate.renderElement->OnMouseLClick(me.cursorPos, me.HasFlag(MouseEvent::LDown));
@@ -2023,19 +2025,41 @@ class PanelScrollbar : public BasePanel, public IScroller, IObserver, IEventCall
 	EventId setScrollId;
 	EventId getScrollId;
 	EventId uiScrollId;
-
+	EventId routeKeyId;
+	EventId routeMouseId;
 
 	void OnEvent(Event& ev) override
 	{
-		auto& s = As<ScrollEvent>(ev);
-
 		if (ev.id == setScrollId)
 		{
+			auto& s = As<ScrollEvent>(ev);
 			scrollbar.SetScroller(s);
 		}
 		else if (ev.id == getScrollId)
 		{
+			auto& s = As<ScrollEvent>(ev);
 			scrollbar.GetScroller(s);
+		}
+		else if (ev.id == routeKeyId)
+		{
+			auto& r = As<RouteKeyboard>(ev);
+
+			Events::ScrollEvent se(uiScrollId);
+			if (scrollbar.AppendEvent(*r.ke, se))
+			{
+				r.consume = true;
+				publisher.Publish(se);
+			}
+		}
+		else if (ev.id == routeMouseId)
+		{
+			auto& r = As<RouteMouse>(ev);
+
+			Events::ScrollEvent se(uiScrollId);
+			if (scrollbar.AppendEvent(*r.me, r.absTopleft, se))
+			{
+				publisher.Publish(se);
+			}
 		}
 	}
 
@@ -2046,7 +2070,7 @@ class PanelScrollbar : public BasePanel, public IScroller, IObserver, IEventCall
 public:
 	PanelScrollbar(IPublisher& _publisher, IKeyboardSupervisor& keyboard, cstr _key, boolean32 isVertical) :
 		scrollbar(keyboard, isVertical), publisher(_publisher),
-		setScrollId(""_event), getScrollId(""_event), uiScrollId(""_event)
+		setScrollId(""_event), getScrollId(""_event), uiScrollId(""_event), routeKeyId(""_event), routeMouseId(""_event)
 	{
 		char eventText[256];
 
@@ -2068,8 +2092,22 @@ public:
 			memcpy(&uiScrollId, &id, sizeof(id));
 		}
 
+		{
+			SecureFormat(eventText, sizeof(eventText), "%s_sendkey", _key);
+			EventId id = CreateEventIdFromVolatileString(eventText);
+			memcpy(&routeKeyId, &id, sizeof(id));
+		}
+
+		{
+			SecureFormat(eventText, sizeof(eventText), "%s_sendmouse", _key);
+			EventId id = CreateEventIdFromVolatileString(eventText);
+			memcpy(&routeMouseId, &id, sizeof(id));
+		}
+
 		publisher.Attach(this, getScrollId);
 		publisher.Attach(this, setScrollId);
+		publisher.Attach(this, routeKeyId);
+		publisher.Attach(this, routeMouseId);
 	}
 
 	~PanelScrollbar()
