@@ -44,26 +44,28 @@ float4 per_pixel_lighting(PixelVertex p)
 {
 	float4 texel = g_materials.Sample(txSampler, p.uv_material);
 
-	float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
-
 	float oow = 1.0f / p.shadowPos.w;
 
-	float depth = p.shadowPos.z * oow - 0.01f;
+	if (p.shadowPos.z < 0.1)
+	{
+		return float4(0, 0, 0, 1.0f);
+	}
 
-	float2 shadowUV = p.shadowPos.xy * oow;
+	float4 shadowXYZW = p.shadowPos * oow;
+	float depth = shadowXYZW.z;
+
+	float2 shadowUV = float2(1.0f + shadowXYZW.x, 1.0f - shadowXYZW.y) * 0.5f;
 
 	float shadowDepth = g_ShadowMap.Sample(shadowSampler, shadowUV).x;
 	
 	float normalizedDepth = (depth + 1.0f) * 0.5f;
 
-	float delta = depth - shadowDepth;
-
-	// return float4(shadowDepth, shadowDepth, shadowDepth, 1.0f);
-
 	float4 ambience = float4(texel.x * light.ambient.x, texel.y * light.ambient.y, texel.z * light.ambient.z, 1.0f);
 
-	if (depth < 20000.0f)
+	if (shadowDepth > depth)
 	{
+		float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
+
 		float R2 = dot(lightToPixelVec, lightToPixelVec);
 
 		float3 lightToPixelDir = normalize(lightToPixelVec);
@@ -81,6 +83,7 @@ float4 per_pixel_lighting(PixelVertex p)
 		float intensity = clamp(f * g, 0, 1.0f) * pow(R2, light.attenuationRate) * falloff;
 
 		float4 diffCol = float4 (texel.x * intensity * light.colour.x, texel.y * intensity * light.colour.y, texel.z * intensity * light.colour.z, 0.0f);
+	//	float4 diffCol = float4 (f, texel.y * intensity * light.colour.y, texel.z * intensity * light.colour.z, 0.0f);
 		return diffCol + ambience;
 	}
 	else

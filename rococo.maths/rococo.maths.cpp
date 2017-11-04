@@ -34,7 +34,7 @@ namespace Rococo
 	   }
 	   else
 	   {
-		   float sT = -Dy / DS;
+		   float sT = Dy / DS;
 		   float cT = Dx / DS;
 		   // Rotate direction onto y axis
 		   rotZ =

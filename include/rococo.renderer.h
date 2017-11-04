@@ -71,6 +71,7 @@ namespace Rococo
 	ROCOCOAPI IGuiRenderContext // Provides draw calls - do not cache
 	{
 		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
+		virtual void DrawCustomTexturedMesh(const GuiRect& absRect, ID_TEXTURE id, cstr pixelShader, const GuiVertex* vertices, size_t nCount) = 0;
 		virtual void FlushLayer() = 0;
 		virtual Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
 		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
@@ -249,7 +250,7 @@ namespace Rococo
 		float GetAspectRatio(const IRenderer& renderer);
 		Vec2 PixelSpaceToScreenSpace(const Vec2i& v, IRenderer& renderer);
 
-		void RenderBitmap_ShrinkAndPreserveAspectRatio(IGuiRenderContext& rc, ID_TEXTURE id, const GuiRect& absRect);
+		void RenderBitmap_ShrinkAndPreserveAspectRatio(IGuiRenderContext& rc, MaterialId id, const GuiRect& absRect);
 		void StretchBitmap(IGuiRenderContext& rc, const GuiRect& absRect);
 		void DrawSprite(const Vec2i& position, const Textures::BitmapLocation& location, IGuiRenderContext& gc, bool alphaBlend);
 	} // Graphics

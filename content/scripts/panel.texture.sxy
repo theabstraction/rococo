@@ -38,8 +38,8 @@
 	(IPaneBuilder builder (PaneBuilder))
 	(IPaneContainer root = builder.Root)
 	(IPane pane = root.Base)
-	(pane.SetColourBk1   0xE0000000 0xE0000000)
-	(pane.SetColourBk2   0xFF000000 0xFF000000)
+	(pane.SetColourBk1   0x10000000 0x10000000)
+	(pane.SetColourBk2   0x10000000 0x10000000)
 	(pane.SetColourEdge1 0xFFFFFFFF 0xFFFFFFFF)
 	(pane.SetColourEdge2 0xFFFFFFFF 0xFFFFFFFF)
 	
@@ -56,7 +56,7 @@
 	(ftpane.SetColourEdge2 0xFFFFFFFF 0xFFFFFFFF)
 	(ftpane.SetPopulator 0 "texture_cancel")
 	
-	(Recti rect = 110 10 652 30)
+	(Recti rect = 110 10 1000 30)
 	(AddTextOut "selected.texture.name" root rect)
 	
 	(Recti crossRect = 1 1 79 8)

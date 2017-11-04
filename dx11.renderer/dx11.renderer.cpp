@@ -289,7 +289,7 @@ namespace
 
 	   Matrix4x4 cameraToDirectionRot = TransposeMatrix(directionToCameraRot);
 	   drd.right = cameraToDirectionRot * Vec4 { 1, 0, 0, 0 };
-	   drd.up = cameraToDirectionRot * Vec4 { 0, -1, 0, 0 };
+	   drd.up = cameraToDirectionRot * Vec4 { 0, 1, 0, 0 };
 
 	   drd.worldToCamera = directionToCameraRot * Matrix4x4::Translate(-drd.eye);
 
@@ -417,6 +417,8 @@ namespace
 	   {
 		   StandardLoadFromCompressedTextureBuffer(name, onLoad, installation, *scratchBuffer);
 	   }
+
+	   std::unordered_map<std::string, ID_PIXEL_SHADER> nameToPixelShader;
    public:
 	   Windows::IWindow* window;
 	   bool isBuildingAlphaBlendedSprites{ false };
@@ -570,7 +572,16 @@ namespace
 
 			   D3D11_TEXTURE2D_DESC desc;
 			   tx.texture->GetDesc(&desc);
-			   visitor.ShowSelectableString(t.name.c_str(), " #%4llu - 0x%p. %d x %d texels. %d levels", t.id.value, (const void*) tx.texture, desc.Width, desc.Height, desc.MipLevels);
+			   char name[64];
+			   SafeFormat(name, 64, "TxId %u", t.id.value);
+			   visitor.ShowSelectableString(name, "  %s - 0x%p. %d x %d. %d levels", t.name.c_str(), (const void*) tx.texture, desc.Width, desc.Height, desc.MipLevels);
+		   }
+
+		   for (size_t i = 0; i < materialArray.TextureCount(); ++i)
+		   {	   
+			   char name[64];
+			   SafeFormat(name, 64, "MatId %u", i);
+			   visitor.ShowSelectableString(name, "  %s", idToMaterialName[i].c_str());
 		   }
 	   }
 
@@ -918,7 +929,7 @@ namespace
 					   Throw(0, "Error loading material texture: %s: %s", name, message);
 				   }
 
-				   virtual void OnARGBImage(const Vec2i& span, const Imaging::F_A8R8G8B8* data)
+				   virtual void OnARGBImage(const Vec2i& span, const Imaging::F_A8R8G8B8* pixels)
 				   {
 					   if (span.x != txWidth || span.y != txWidth)
 					   {
@@ -926,28 +937,6 @@ namespace
 					   }
 
 					   DX11TextureArray& m = This->materialArray;
-					   Imaging::F_A8R8G8B8* pixels = const_cast<Imaging::F_A8R8G8B8*>( data );
-
-					   struct ABGR8
-					   {
-						   uint8 alpha;
-						   uint8 blue;
-						   uint8 green;
-						   uint8 red;
-
-						   ABGR8() {}
-						   ABGR8(uint32 x) { ABGR8* pCol = (ABGR8*)&x; *this = *pCol; }
-						   ABGR8(uint8 _red, uint8 _green, uint8 _blue, uint8 _alpha = 255) : red(_red), green(_green), blue(_blue), alpha(_alpha) {}
-					   };
-
-					   RGBAb* target = (RGBAb*)data;
-					   for (int i = 0; i < span.x * span.y; ++i)
-					   {
-						   Imaging::F_A8R8G8B8 col = data[i];
-						   RGBAb twizzled(col.r, col.g, col.b, col.a);
-						   target[i] = twizzled;
-					   }
-
 					   m.WriteSubImage(i, pixels, GuiRect{ 0, 0, txWidth, txWidth });
 				   }
 
@@ -994,18 +983,21 @@ namespace
 		   D3D11_TEXTURE2D_DESC desc;
 		   t.texture->GetDesc(&desc);
 
+		   D3D11_SHADER_RESOURCE_VIEW_DESC vdesc;
+		   t.view->GetDesc(&vdesc);
+
 		   if (id != lastTextureId)
 		   {
 			   FlushLayer();
 			   lastTextureId = id;
-			   dc.PSSetShaderResources(1, 1, &t.view);
+			   dc.PSSetShaderResources(4, 1, &t.view);
 
 			   float dx = (float) desc.Width;
 			   float dy = (float) desc.Height;
 
 			   TextureDescState state;
 
-			   if (desc.Format == DXGI_FORMAT_R32_FLOAT)
+			   if (vdesc.Format == DXGI_FORMAT_R32_FLOAT)
 			   {
 				   state =
 				   {
@@ -1034,7 +1026,7 @@ namespace
 				   };
 			   }
 
-			   DX11::CopyStructureToBuffer(dc, instanceBuffer, &state, sizeof(TextureDescState));
+			   DX11::CopyStructureToBuffer(dc, ps_TextureDescBuffer, &state, sizeof(TextureDescState));
 			   dc.PSSetConstantBuffers(TEXTURE_CBUFFER_INDEX, 1, &ps_TextureDescBuffer);
 		   }
 
@@ -1092,6 +1084,7 @@ namespace
 		   VALIDATEDX11(device.CreateTexture2D(&shadowBufferDesc, nullptr, &shadowDepthStencilTexture));
 
 		   D3D11_DEPTH_STENCIL_VIEW_DESC shadowDepthStencilViewDesc;
+		   ZeroMemory(&shadowDepthStencilViewDesc, sizeof(shadowDepthStencilViewDesc));
 		   shadowDepthStencilViewDesc.Flags = 0;
 		   shadowDepthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
 		   shadowDepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
@@ -1448,6 +1441,39 @@ namespace
 	   int64 presentCost = 0;
 	   int64 frameTime = 0;
 
+	   virtual void DrawCustomTexturedMesh(const GuiRect& absRect, ID_TEXTURE id, cstr pixelShader, const GuiVertex* vertices, size_t nCount)
+	   {
+		   if (nCount > GUI_BUFFER_VERTEX_CAPACITY) Throw(0, "DX11AppRenderer.DrawCustomTexturedRect - too many triangles. Max vertices: %d", GUI_BUFFER_VERTEX_CAPACITY);
+
+		   FlushLayer();
+
+		   auto i = nameToPixelShader.find(pixelShader);
+		   if (i == nameToPixelShader.end())
+		   {
+			   installation.LoadResource(pixelShader, *scratchBuffer, 64_kilobytes);
+			   auto pxId = CreatePixelShader(pixelShader, scratchBuffer->GetData(), scratchBuffer->Length());
+			   i = nameToPixelShader.insert(std::make_pair(std::string(pixelShader), pxId)).first;
+		   }
+
+		   auto pxId = i->second;
+
+		   UseShaders(idGuiVS, pxId);
+
+		   SelectTexture(id);
+
+		   D3D11_MAPPED_SUBRESOURCE x;
+		   VALIDATEDX11(dc.Map(guiBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &x));
+		   memcpy(x.pData, vertices, nCount * sizeof(GuiVertex));
+		   dc.Unmap(guiBuffer, 0);
+
+		   UINT stride = sizeof(GuiVertex);
+		   UINT offset = 0;
+		   dc.IASetVertexBuffers(0, 1, &guiBuffer, &stride, &offset);
+		   dc.Draw((UINT)nCount, 0);
+
+		   UseShaders(idGuiVS, idGuiPS);
+	   }
+
 	   virtual void Render(IScene& scene)
 	   {
 		   auto now = OS::CpuTicks();
@@ -1578,18 +1604,6 @@ namespace
 
 		   now = OS::CpuTicks();
 
-		   scene.RenderGui(*this);
-
-		   for (auto& o : overlays)
-		   {
-			   o.overlay->Render(*this);
-		   }
-
-		   if (!UseShaders(idGuiVS, idGuiPS))
-		   {
-			   Throw(0, "Error setting Gui shaders");
-		   }
-
 		   dc.PSSetSamplers(0, 1, &spriteSampler);
 		   dc.PSSetShaderResources(0, 1, &fontBinding);
 		   dc.RSSetState(spriteRaterizering);
@@ -1610,6 +1624,18 @@ namespace
 
 		   dc.OMSetDepthStencilState(guiDepthState, 0);
 
+		   if (!UseShaders(idGuiVS, idGuiPS))
+		   {
+			   Throw(0, "Error setting Gui shaders");
+		   }
+
+		   scene.RenderGui(*this);
+
+		   for (auto& o : overlays)
+		   {
+			   o.overlay->Render(*this);
+		   }
+
 		   FlushLayer();
 
 		   DrawCursor();
@@ -1623,6 +1649,7 @@ namespace
 		   dc.PSSetShaderResources(0, 1, &nullView);
 		   dc.PSSetShaderResources(1, 1, &nullView);
 		   dc.PSSetShaderResources(2, 1, &nullView);
+		   dc.PSSetShaderResources(4, 1, &nullView);
 
 		   ID3D11SamplerState* nullState = nullptr;
 		   dc.PSSetSamplers(0, 1, &nullState);

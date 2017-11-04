@@ -733,10 +733,10 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		Vec3 dir{ -m.row2.x, -m.row2.y, -m.row2.z };
 
 		LightSpec light;
-		light.ambience = RGBA(0.2f, 0.2f, 0.2f, 1.0f);
-		light.diffuse = RGBA(1.5f, 1.5f, 1.5f, 1.0f);
-		light.direction = dir;
-		light.position = final + playerPosToCamera;
+		light.ambience = RGBA(0.1f, 0.1f, 0.1f, 1.0f);
+		light.diffuse = RGBA(1.25f, 1.25f, 1.25f, 1.0f);
+		light.direction = { 0, 1, 0 };
+		light.position = { 0, 0, 1.5f }; // final + playerPosToCamera;
 		light.cutoffPower = 32.0f;
 		light.cutoffAngle = 20_degrees;
 		light.fov = 45_degrees;
@@ -753,7 +753,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		spinningLight.position = Vec3{ 0, 0, 2.5f};
 		spinningLight.ambience = RGBA(0.1f, 0.1f, 0.1f, 1.0f);
 
-		e.platform.scene.Builder().SetLight(spinningLight, 1);
+	//	e.platform.scene.Builder().SetLight(spinningLight, 1);
 	}
 
 	float spinningLightTheta = 0;

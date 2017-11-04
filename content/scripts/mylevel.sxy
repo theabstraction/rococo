@@ -21,23 +21,62 @@
 	(sectors.Clear)
 
 	(AddSector0 sectors) // entrance
+	(AddSector1 sectors)
+	(AddSector2 sectors)
 )
 
 (function AddSector0 (ISectors sectors) -> :
 	(Int64 flags = 16) // 0x10
 
-	(IString wall = "!textures/hv/rock_2.jpg")
+	(IString wall = "!textures/hv/wall_1.jpg")
 	(IString floor = "!textures/hv/floor_1.jpg")
 	(IString ceiling = "!textures/hv/ceiling_1.jpg")
 
-	(sectors.AddVertex -6.000000 -2.000000)
-	(sectors.AddVertex -6.000000 4.000000)
-	(sectors.AddVertex -4.000000 6.000000)
-	(sectors.AddVertex 4.000000 6.000000)
-	(sectors.AddVertex 6.000000 4.000000)
-	(sectors.AddVertex 6.000000 -2.000000)
-	(sectors.AddVertex 2.000000 -4.000000)
-	(sectors.AddVertex -2.000000 -4.000000)
+	(sectors.AddVertex -2.000000 4.000000)
+	(sectors.AddVertex 2.000000 4.000000)
+	(sectors.AddVertex 2.000000 -2.000000)
+	(sectors.AddVertex -2.000000 -2.000000)
+
+	(sectors.Create 0 400 flags wall floor ceiling)
+)
+
+(function AddSector1 (ISectors sectors) -> :
+	(Int64 flags = 16) // 0x10
+
+	(IString wall = "!textures/hv/wall_1.jpg")
+	(IString floor = "!textures/hv/floor_1.jpg")
+	(IString ceiling = "!textures/hv/ceiling_1.jpg")
+
+	(sectors.AddVertex -4.000000 10.000000)
+	(sectors.AddVertex 4.000000 10.000000)
+	(sectors.AddVertex 4.000000 8.000000)
+	(sectors.AddVertex -2.000000 8.000000)
+	(sectors.AddVertex 2.000000 4.000000)
+	(sectors.AddVertex -2.000000 4.000000)
+	(sectors.AddVertex -8.000000 4.000000)
+	(sectors.AddVertex -8.000000 16.000000)
+	(sectors.AddVertex 4.000000 16.000000)
+	(sectors.AddVertex 4.000000 12.000000)
+	(sectors.AddVertex -4.000000 12.000000)
+
+	(sectors.Create 0 400 flags wall floor ceiling)
+)
+
+(function AddSector2 (ISectors sectors) -> :
+	(Int64 flags = 0) // 0x0 None
+
+	(IString wall = "!textures/hv/wall_1.jpg")
+	(IString floor = "!textures/hv/floor_1.jpg")
+	(IString ceiling = "!textures/hv/ceiling_1.jpg")
+
+	(sectors.AddVertex -4.000000 -14.000000)
+	(sectors.AddVertex -2.000000 -2.000000)
+	(sectors.AddVertex 2.000000 -2.000000)
+	(sectors.AddVertex 2.000000 -6.000000)
+	(sectors.AddVertex 0.000000 -6.000000)
+	(sectors.AddVertex -0.000000 -10.000000)
+	(sectors.AddVertex -2.000000 -12.000000)
+	(sectors.AddVertex -2.000000 -14.000000)
 
 	(sectors.Create 0 400 flags wall floor ceiling)
 )

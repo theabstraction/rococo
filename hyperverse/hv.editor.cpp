@@ -567,6 +567,7 @@ namespace
 		Platform& platform;
 		int32 scrollPosition = 0;
 		Vec2i absTopLeft = { 0,0 };
+		std::string target;
 	public:
 		TextureList(Platform& _platform) : platform(_platform)
 		{
@@ -583,12 +584,23 @@ namespace
 
 		int32 GetIndexOf(cstr name)
 		{
-			return -1;
+			return (int32) platform.renderer.GetMaterialId(name);
 		}
 
 		cstr GetNeighbour(cstr name, bool forward)
 		{
-			return "none";
+			int32 i = GetIndexOf(name);
+			
+			MaterialArrayMetrics mam;
+			platform.renderer.GetMaterialArrayMetrics(mam);
+
+			if (forward) i++;
+			else i--;
+
+			if (i < 0) i = 0;
+			if (i >= mam.NumberOfElements) i = mam.NumberOfElements - 1;
+
+			return platform.renderer.GetMaterialTextureName((float)i);
 		}
 
 		void ScrollTo(cstr filename)
@@ -626,9 +638,14 @@ namespace
 			return rk.consume;
 		}
 
-		void OnRawMouseEvent(const MouseEvent& key) override
+		void OnRawMouseEvent(const MouseEvent& me) override
 		{
-			RouteMouse rm(vScrollSendMouse, key);
+			if (me.HasFlag(MouseEvent::LDown) || me.HasFlag(MouseEvent::LUp))
+			{
+				// We handle Lbutton ourselves as 'left-click to select'
+				return;
+			}
+			RouteMouse rm(vScrollSendMouse, me);
 			rm.absTopleft = absTopLeft;
 			platform.publisher.Publish(rm);
 		}
@@ -660,8 +677,10 @@ namespace
 
 				EnumerateVisibleImages(selectItem, lastRect);
 
+				target = selectItem.target;
+
 				HV::Events::ChangeDefaultTextureEvent ev;
-				ev.wallName = "none";
+				ev.wallName = selectItem.target.c_str();
 				platform.publisher.Publish(ev);
 			}
 		}
@@ -794,7 +813,7 @@ namespace
 			struct : IEventCallback<ImageCallbackArgs>
 			{
 				IGuiRenderContext* grc;
-				std::string* target;
+				cstr target;
 
 				virtual void OnEvent(ImageCallbackArgs& args)
 				{
@@ -821,7 +840,7 @@ namespace
 					grc->AddTriangle(v);
 					grc->AddTriangle(v + 3);
 
-					if (target && args.filename == *target)
+					if (target && Eq(args.filename, target))
 					{
 						GuiRect hilight{ (int32)args.target.left + 1, (int32)args.target.top + 1, (int32)args.target.right - 1, (int32)args.target.bottom - 1 };
 						Rococo::Graphics::DrawBorderAround(*grc, hilight, Vec2i{ 2,2 }, RGBAb(224, 224, 224), RGBAb(255, 255, 255));
@@ -830,7 +849,7 @@ namespace
 			} renderImages;
 
 			renderImages.grc = &grc;
-			renderImages.target = nullptr;
+			renderImages.target = target.empty() ? nullptr : target.c_str();
 
 			EnumerateVisibleImages(renderImages, absRect);
 		}

@@ -2581,7 +2581,19 @@ IPaneBuilderSupervisor* GuiStack::CreateOverlay()
 					auto* key = platform.mathsVisitor.SelectedKey();
 					if (key)
 					{
-						SafeFormat(toe.text, sizeof(toe.text), "%s", key);
+						if (StartsWith(key, "MatId "))
+						{
+							int index = atoi(key + 6);
+							auto id = (MaterialId) index;
+							auto name = platform.renderer.GetMaterialTextureName(id);
+
+							if (!name) name = "--unknown--";
+							SafeFormat(toe.text, sizeof(toe.text), " %s: %s", key, name);
+						}
+						else
+						{
+							SafeFormat(toe.text, sizeof(toe.text), " %s", key);
+						}
 					}
 				}
 			}
@@ -2623,20 +2635,61 @@ IPaneBuilderSupervisor* GuiStack::CreateOverlay()
 			if (key)
 			{
 				auto* ext = Rococo::GetFileExtension(key);
-				if (*key == '!')
+				if (StartsWith(key, "MatId "))
 				{
-					if (Eq(ext, ".jpg") || Eq(ext, ".jpeg") || Eq(ext, ".tif") || Eq(ext, ".tiff"))
-					{
-					//	Graphics::RenderBitmap_ShrinkAndPreserveAspectRatio(rc, id, absRect);
-					}
+					int index = atoi(key + 6);
+					MaterialId id = (MaterialId)index;
+					Graphics::RenderBitmap_ShrinkAndPreserveAspectRatio(rc, id, absRect);
 				}
-				else if (*key == '<')
+				else if (StartsWith(key, "TxId "))
 				{
-					if (Eq(ext, ".r32f"))
+					int index = atoi(key + 5);
+
+					SpriteVertexData ignore{ 0.0f, 0.0f, 0.0f, 0.0f };
+					RGBAb none(0, 0, 0, 0);
+
+					GuiVertex quad[6] =
 					{
-						auto id = platform.renderer.FindTexture(key);
+						{
+							{ (float)absRect.left, (float)absRect.top },
+							{ { 0, 0 }, 0 },
+							ignore,
+							none
+						},
+						{
+							{ (float)absRect.right, (float)absRect.top },
+							{ { 1, 0 }, 0 },
+							ignore,
+							none
+						},
+						{
+							{ (float)absRect.right,(float)absRect.bottom },
+							{ { 1, 1 }, 0 },
+							ignore,
+							none
+						},
+						{
+							{ (float)absRect.right, (float)absRect.bottom },
+							{ { 1, 1 }, 0 },
+							ignore,
+							none
+						},
+						{
+							{ (float)absRect.left, (float)absRect.bottom },
+							{ { 0, 1 }, 0 },
+							ignore,
+							none
+						},
+						{
+							{ (float)absRect.left, (float)absRect.top },
+							{ { 0, 0 }, 0 },
+							ignore,
+							none
+						}
+					};
+
+					rc.DrawCustomTexturedMesh(absRect, ID_TEXTURE(index), "!r32f.ps", quad, 6);
 					//	if (id) Graphics::RenderBitmap_ShrinkAndPreserveAspectRatio(rc, id, absRect);
-					}
 				}
 			}
 		}
