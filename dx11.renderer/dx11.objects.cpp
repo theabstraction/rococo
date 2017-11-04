@@ -82,6 +82,24 @@ namespace Rococo
          return rs;
       }
 
+	  ID3D11RasterizerState* CreateShadowRasterizer(ID3D11Device& device)
+	  {
+		  D3D11_RASTERIZER_DESC rd;
+		  rd.FillMode = D3D11_FILL_SOLID;
+		  rd.CullMode = D3D11_CULL_FRONT;
+		  rd.FrontCounterClockwise = FALSE;
+		  rd.DepthBias = 0;
+		  rd.DepthBiasClamp = 0.0f;
+		  rd.SlopeScaledDepthBias = 0.0f;
+		  rd.DepthClipEnable = TRUE;
+		  rd.ScissorEnable = FALSE;
+		  rd.MultisampleEnable = FALSE;
+
+		  ID3D11RasterizerState* rs = nullptr;
+		  VALIDATEDX11(device.CreateRasterizerState(&rd, &rs));
+		  return rs;
+	  }
+
       ID3D11BlendState* CreateNoBlend(ID3D11Device& device)
       {
          D3D11_BLEND_DESC disableBlendDesc;

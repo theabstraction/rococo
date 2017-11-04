@@ -357,6 +357,7 @@ namespace
 	   AutoRelease<ID3D11ShaderResourceView> fontBinding;
 	   AutoRelease<ID3D11RasterizerState> spriteRaterizering;
 	   AutoRelease<ID3D11RasterizerState> objectRaterizering;
+	   AutoRelease<ID3D11RasterizerState> shadowRaterizering;
 	   AutoRelease<ID3D11BlendState> alphaBlend;
 	   AutoRelease<ID3D11BlendState> disableBlend;
 	   AutoRelease<ID3D11BlendState> additiveBlend;
@@ -442,6 +443,7 @@ namespace
 		   guiDepthState = DX11::CreateGuiDepthStencilState(device);
 		   spriteRaterizering = DX11::CreateSpriteRasterizer(device);
 		   objectRaterizering = DX11::CreateObjectRasterizer(device);
+		   shadowRaterizering = DX11::CreateShadowRasterizer(device);
 		   alphaBlend = DX11::CreateAlphaBlend(device);
 		   disableBlend = DX11::CreateNoBlend(device);
 		   additiveBlend = DX11::CreateAdditiveBlend(device);
@@ -1547,6 +1549,8 @@ namespace
 				   FLOAT blendFactorUnused[] = { 0,0,0,0 };
 				   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
 
+				   dc.RSSetState(shadowRaterizering);
+
 				   scene.RenderShadowPass(drd, *this);
 
 				   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
@@ -1579,6 +1583,7 @@ namespace
 				   }
 
 				   dc.PSSetShaderResources(2, 1, &shadowBufferView);
+				   dc.RSSetState(objectRaterizering);
 
 				   scene.RenderObjects(*this);
 

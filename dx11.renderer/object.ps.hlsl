@@ -46,13 +46,10 @@ float4 per_pixel_lighting(PixelVertex p)
 
 	float oow = 1.0f / p.shadowPos.w;
 
-	if (p.shadowPos.z < 0.1)
-	{
-		return float4(0, 0, 0, 1.0f);
-	}
+	float bias = 0;
 
 	float4 shadowXYZW = p.shadowPos;
-	shadowXYZW.z -= 0.001f;
+	shadowXYZW.z += bias;
 
 	shadowXYZW = shadowXYZW * oow;
 	float depth = shadowXYZW.z;

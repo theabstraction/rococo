@@ -726,6 +726,16 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 			}
 		}
 
+		Vec3 playerPosToLight= Vec3{ 0.2f, 0, player->Height() * player->DuckFactor() - 0.75f };
+
+		FPSAngles angles;
+		e.platform.mobiles.GetAngles(id, angles);
+
+		auto Rz = Matrix4x4::RotateRHAnticlockwiseZ(angles.heading);
+
+		Vec3 playerPosToLightWorld;
+		TransformPositions(&playerPosToLight, 1, Rz, &playerPosToLightWorld);
+
 		e.platform.camera.ElevateView(id, viewElevationDelta, playerPosToCamera);
 
 		Matrix4x4 m;
@@ -733,27 +743,27 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		Vec3 dir{ -m.row2.x, -m.row2.y, -m.row2.z };
 
 		LightSpec light;
-		light.ambience = RGBA(0.1f, 0.1f, 0.1f, 1.0f);
-		light.diffuse = RGBA(1.25f, 1.25f, 1.25f, 1.0f);
-		light.direction = { 0, 1, 0 };
-		light.position = { 0, 0, 1.5f }; // final + playerPosToCamera;
-		light.cutoffPower = 32.0f;
-		light.cutoffAngle = 20_degrees;
-		light.fov = 45_degrees;
-		light.attenuation = -0.15f;
+		light.ambience = RGBA(0.2f, 0.2f, 0.21f, 1.0f);
+		light.diffuse = RGBA(2.25f, 2.25f, 2.25f, 1.0f);
+		light.direction = dir;
+		light.position = final + playerPosToLightWorld;
+		light.cutoffPower = 64.0f;
+		light.cutoffAngle = 30_degrees;
+		light.fov = 90_degrees;
+		light.attenuation = -0.5f;
 		e.platform.scene.Builder().SetLight(light, 0);
 
 		spinningLightTheta += 45.0f * dt;
 		spinningLightTheta = fmodf(spinningLightTheta, 360.0f);
 
-		Vec4 spinningDir = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ spinningLightTheta }) * Vec4 { 1, 0, 0, 0 };
+		Vec4 spinningDir = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ spinningLightTheta }) * Vec4 { 1, 0, -0.1f, 0 };
 
 		LightSpec spinningLight = light;
 		spinningLight.direction = spinningDir;
 		spinningLight.position = Vec3{ 0, 0, 2.5f};
-		spinningLight.ambience = RGBA(0.1f, 0.1f, 0.1f, 1.0f);
+		spinningLight.ambience = RGBA(0.2f, 0.2f, 0.21f, 1.0f);
 
-	//	e.platform.scene.Builder().SetLight(spinningLight, 1);
+		e.platform.scene.Builder().SetLight(spinningLight, 1);
 	}
 
 	float spinningLightTheta = 0;
