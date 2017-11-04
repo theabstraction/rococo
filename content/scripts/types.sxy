@@ -24,10 +24,19 @@
 )
 (alias LightSpec Rococo.LightSpec)
 
+(struct QuadColours
+	(Int32 a)
+	(Int32 b)
+	(Int32 c)
+	(Int32 d)
+)
+(alias QuadColours Rococo.QuadColours)
+
 (struct QuadVertices
 	(Sys.Maths.Quadf positions)
 	(Sys.Maths.Rectf uv)
 	(Sys.Maths.Quadf normals)
+	(Rococo.QuadColours colours)
 )
 (alias QuadVertices Rococo.QuadVertices)
 

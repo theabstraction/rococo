@@ -5,6 +5,7 @@ struct PixelVertex
 	float3 uv_material: TEXCOORD;
     float4 worldPosition: TEXCOORD1;
 	float4 shadowPos: TEXCOORD3;
+	float4 colour: COLOR0;	// w component gives lerpColourToTexture
 };
 
 #pragma pack_matrix(row_major)
@@ -44,9 +45,11 @@ float4 per_pixel_lighting(PixelVertex p)
 {
 	float4 texel = g_materials.Sample(txSampler, p.uv_material);
 
+	texel = lerp(p.colour, texel, p.colour.w);
+
 	float oow = 1.0f / p.shadowPos.w;
 
-	float bias = 0;
+	float bias = -0.001f;
 
 	float4 shadowXYZW = p.shadowPos;
 	shadowXYZW.z += bias;

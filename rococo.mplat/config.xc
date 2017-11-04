@@ -77,8 +77,16 @@
 	(Float32 attenuation)
 )
 
+(defstruct QuadColours Rococo.QuadColours QuadColours
+	(RGBAb a)
+	(RGBAb b)
+	(RGBAb c)
+	(RGBAb d)
+)
+
 (defstruct QuadVertices Rococo.QuadVertices QuadVertices
 	(Quad positions)
 	(Rectf uv)
 	(Quad normals)
+	(QuadColours colours)
 )

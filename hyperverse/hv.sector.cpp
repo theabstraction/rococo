@@ -315,7 +315,7 @@ namespace
          QV1.position = Q1;
 
          PV0.normal = PV1.normal = QV0.normal = QV1.normal = normal;
-		 PV0.material = PV1.material = QV0.material = QV1.material = { RGBAb(0, 0, 0, 0), id };
+		 PV0.material = PV1.material = QV0.material = QV1.material = { RGBAb(0, 0, 0, 255), id };
 
          PV0.uv.y = QV0.uv.y = uvScale * h0;
          PV1.uv.y = QV1.uv.y = uvScale * h1;
@@ -362,7 +362,7 @@ namespace
          QV1.position = Q1;
 
          PV0.normal = PV1.normal = QV0.normal = QV1.normal = Normalize(normal);
-		 PV0.material = PV1.material = QV0.material = QV1.material = { RGBAb(0, 0, 0, 0), id };
+		 PV0.material = PV1.material = QV0.material = QV1.material = { RGBAb(0, 0, 0, 255), id };
 
          PV0.uv.y = uvScale * pFloor;
          QV0.uv.y = uvScale * qFloor;
@@ -1090,7 +1090,7 @@ namespace
                Vec3 up = -Normalize(upAny);
 
                a.normal = b.normal = c.normal = up;
-			   a.material = b.material = c.material = { RGBAb(0, 0, 0, 0), floorId };
+			   a.material = b.material = c.material = { RGBAb(0, 0, 0, 255), floorId };
 
                a.uv.x = Vec2{ uvScale * Vec2{ t.A.x,t.A.y } +uvOffset }.x;
                a.uv.y = Vec2{ uvScale * Vec2{ t.A.x,t.A.y } +uvOffset }.y;

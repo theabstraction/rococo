@@ -86,7 +86,7 @@ namespace Rococo
 	  {
 		  D3D11_RASTERIZER_DESC rd;
 		  rd.FillMode = D3D11_FILL_SOLID;
-		  rd.CullMode = D3D11_CULL_FRONT;
+		  rd.CullMode = D3D11_CULL_BACK;
 		  rd.FrontCounterClockwise = FALSE;
 		  rd.DepthBias = 0;
 		  rd.DepthBiasClamp = 0.0f;

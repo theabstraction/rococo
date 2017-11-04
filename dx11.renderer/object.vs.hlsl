@@ -14,6 +14,7 @@ struct ScreenVertex
 	float3 uv_material: TEXCOORD;
 	float4 worldPosition: TEXCOORD1;
 	float4 shadowPos: TEXCOORD3;
+	float4 colour: COLOR0;
 };
 
 #pragma pack_matrix(row_major)
@@ -66,5 +67,6 @@ ScreenVertex main(ObjectVertex v)
 	sv.shadowPos = mul(light.worldToShadowBuffer, instancePos);
 	sv.uv_material.xy = v.uv.xy;
 	sv.uv_material.z = v.materialIndex;
+	sv.colour = v.colour;
 	return sv;
 }

@@ -22,11 +22,20 @@ namespace Rococo
 		float attenuation;
 	};
 
+	struct QuadColours
+	{
+		RGBAb a;
+		RGBAb b;
+		RGBAb c;
+		RGBAb d;
+	};
+
 	struct QuadVertices
 	{
 		Quad positions;
 		GuiRectf uv;
 		Quad normals;
+		QuadColours colours;
 	};
 }
 

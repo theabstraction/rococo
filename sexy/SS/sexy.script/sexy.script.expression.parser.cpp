@@ -693,16 +693,16 @@ namespace Rococo
 				CStringConstant* sc = CreateStringConstant(ce.Script, valueStr->Length, valueStr->Buffer, &src);
 
 				ce.Builder.Append_InitializeVirtualTable(variableName, ce.Object.Common().TypeStringLiteral());
-				AddSymbol(ce.Builder, SEXTEXT("StringConstant %s"), (csexstr) valueStr->Buffer);
+				AddSymbol(ce.Builder, SEXTEXT("StringConstant %s"), (csexstr)valueStr->Buffer);
 
 				TokenBuffer token;
 				StringPrint(token, SEXTEXT("%s.length"), variableName);
 
 				SEXCHAR value[32];
-			 SafeFormat(value, 32, SEXTEXT("%d"), sc->length);
+				SafeFormat(value, 32, SEXTEXT("%d"), sc->length);
 				ce.Builder.AssignLiteral(NameString::From(token), value);
 
-			 StringPrint(token, SEXTEXT("%s.buffer"), variableName);
+				StringPrint(token, SEXTEXT("%s.buffer"), variableName);
 				ce.Builder.AssignPointer(NameString::From(token), sc->pointer);
 
 				TokenBuffer vTableBuffer;

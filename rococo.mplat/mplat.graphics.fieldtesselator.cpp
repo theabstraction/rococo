@@ -146,6 +146,7 @@ namespace
 
 		void GetFlatSubQuad(int32 i, int32 j, QuadVertices& q) override
 		{
+			SetNoColours(q);
 			if (i < 0 || i >= columns)
 			{
 				Throw(0, "FieldTesselator::GetSubQuad - i (%d) out of bounds [0,%d) ", i, columns);
@@ -194,6 +195,7 @@ namespace
 
 		void GetStackBondedBrick(int32 i, int32 j, QuadVertices& q, float cementThicknessRatio) override
 		{
+			RandomizeColours(q);
 			if (i < 0 || i >= columns)
 			{
 				Throw(0, "FieldTesselator::GetStackBondedBrick - i (%d) out of bounds [0,%d) ", i, columns);
@@ -242,6 +244,7 @@ namespace
 
 		void GetBrickJoinRight(int32 i, int32 j, QuadVertices& q, float cementThicknessRatio)
 		{
+			SetNoColours(q);
 			if (i < 0 || i >= columns)
 			{
 				Throw(0, "FieldTesselator::GetBrickJoinRight - i (%d) out of bounds [0,%d) ", i, columns - 1);
@@ -313,6 +316,7 @@ namespace
 
 		void GetBrickBedTop(int32 row, QuadVertices& q, float cementThicknessRatio)
 		{
+			SetNoColours(q);
 			if (row < 0 || row >= rows)
 			{
 				Throw(0, "FieldTesselator::GetBrickBed - row (%d) out of bounds [0,%d) ", row, rows);
@@ -349,6 +353,31 @@ namespace
 			q.normals.d = normal;
 		}
 
+		void SetNoColours(QuadVertices& q)
+		{
+			int32 r = 0;
+			int32 g = 0;
+			int32 b = 0;
+			q.colours.a = RGBAb(r, g, b, 255);
+			q.colours.b = RGBAb(r, g, b, 255);
+			q.colours.c = RGBAb(r, g, b, 255);
+			q.colours.d = RGBAb(r, g, b, 255);
+		}
+
+		void RandomizeColours(QuadVertices& q)
+		{
+			int32 r = 64 + rand() % 192;
+			int32 g = r;
+			int32 b = r;
+
+			int32 blend = 192 + rand() % 64;
+
+			q.colours.a = RGBAb(r, g, b, blend);
+			q.colours.b = RGBAb(r, g, b, blend);
+			q.colours.c = RGBAb(r, g, b, blend);
+			q.colours.d = RGBAb(r, g, b, blend);
+		}
+
 		void GetStretchBondedBrick(int32 i, int32 j, QuadVertices& q, QuadVertices& top, QuadVertices& left, QuadVertices& right, QuadVertices& bottom, float cementThicknessRatio)  override
 		{
 			if (i < 0 || i >= columns)
@@ -365,6 +394,12 @@ namespace
 			{
 				Throw(0, "FieldTesselator::GetStretchBondedBrick - columns (%d) needs to be >= 2 for stretched bricks", columns);
 			}
+
+			RandomizeColours(q);
+			RandomizeColours(top);
+			RandomizeColours(left);
+			RandomizeColours(right);
+			RandomizeColours(bottom);
 
 			boolean32 isOdd = (j % 2);
 
@@ -412,27 +447,83 @@ namespace
 			Vec3 DV0 = DY0_INNER * rawVertical;
 			Vec3 DV1 = DY1_INNER * rawVertical;
 
+			float hA = GetHeight(i, j);
+			float hB = GetHeight(i + 1, j);
+			float hC = GetHeight(i + 1, j + 1);
+			float hD = GetHeight(i, j + 1);
+
 			Vec3 DN = normal * cementThickness * span.y;
 
-			q.positions.a = macroQuad.a + DT0 - DV0 + DN;
-			q.positions.b = macroQuad.a + DT1 - DV0 + DN;
-			q.positions.c = macroQuad.a + DT1 - DV1 + DN;
-			q.positions.d = macroQuad.a + DT0 - DV1 + DN;
+			int index = rand() % 6;
+
+			Quad flatQuad;
+			flatQuad.a = macroQuad.a + DT0 - DV0;
+			flatQuad.b = macroQuad.a + DT1 - DV0;
+			flatQuad.c = macroQuad.a + DT1 - DV1;
+			flatQuad.d = macroQuad.a + DT0 - DV1;
+
+			q.positions.a = flatQuad.a + DN;
+			q.positions.b = flatQuad.b + DN;
+			q.positions.c = flatQuad.c + DN;
+			q.positions.d = flatQuad.d + DN;
+
+			Vec2 dz_ds = {0, 0};
+
+			if (i >= 0 && i <= (columns - 1))
+			{
+				if (index == 0)
+				{
+					q.positions.a += normal * span.y * (hA + hB);
+					q.positions.b += normal * span.y * (hA + hB);
+					dz_ds.y = -span.y * (hA + hB) / (delta.y * span.y);
+				}
+				else if (index == 1)
+				{
+					q.positions.c += normal * span.y * (hC + hD);
+					q.positions.d += normal * span.y * (hC + hD);
+					dz_ds.y = span.y * (hC + hD) / (delta.y * span.y);
+				}
+				else if (index == 2)
+				{
+					q.positions.a += normal * span.y * (hA + hD);
+					q.positions.d += normal * span.y * (hA + hD);
+					dz_ds.x = -span.y * (hA + hD) / (delta.x * span.x);
+				}
+				else if (index == 3)
+				{
+					q.positions.b += normal * span.y * (hB + hC);
+					q.positions.c += normal * span.y * (hB + hC);
+					dz_ds.x = span.y * (hB + hC) / (delta.x * span.x);
+				}
+				else
+				{
+					float h = hA + hB + hC + hD;
+					q.positions.a += normal * span.y * h;
+					q.positions.b += normal * span.y * h;
+					q.positions.c += normal * span.y * h;
+					q.positions.d += normal * span.y * h;
+				}
+			}
+
+			Vec3 brickspaceNormal = { 1.0f * -dz_ds.x, 1.0f * -dz_ds.y, 1 };
+
+			Vec3 realNormal;
+			TransformDirection(basis, Normalize(brickspaceNormal), realNormal);
 
 			q.uv.left = uvA.x + deltaUVs.x * DX0_INNER / delta.x;
 			q.uv.top = uvA.y + deltaUVs.y * DY0_INNER / delta.y;
 			q.uv.right = uvA.x + deltaUVs.x * DX1_INNER / delta.x;
 			q.uv.bottom = uvA.y + deltaUVs.y * DY1_INNER / delta.y;
 
-			q.normals.a = normal;
-			q.normals.b = normal;
-			q.normals.c = normal;
-			q.normals.d = normal;
+			q.normals.a = realNormal;
+			q.normals.b = realNormal;
+			q.normals.c = realNormal;
+			q.normals.d = realNormal;
 
 			top.positions.d = q.positions.a;
 			top.positions.c = q.positions.b;
-			top.positions.a = top.positions.d - DN;
-			top.positions.b = top.positions.c - DN;
+			top.positions.a = flatQuad.a;
+			top.positions.b = flatQuad.b;
 
 			top.normals.a = top.normals.b = top.normals.c = top.normals.d = Normalize(rawVertical);
 
@@ -443,8 +534,8 @@ namespace
 
 			bottom.positions.a = q.positions.d;
 			bottom.positions.b = q.positions.c;
-			bottom.positions.d = bottom.positions.a - DN;
-			bottom.positions.c = bottom.positions.b - DN;
+			bottom.positions.d = flatQuad.d;
+			bottom.positions.c = flatQuad.c;
 
 			bottom.normals.a = bottom.normals.b = bottom.normals.c = bottom.normals.d = -top.normals.a;
 
@@ -490,6 +581,8 @@ namespace
 			{
 				Throw(0, "FieldTesselator::GetSubQuad - j (%d) out of bounds [0,%d) ", j, rows);
 			}
+
+			RandomizeColours(q);
 
 			float DX0 = i * delta.x;
 			float DY0 = j * delta.y;
