@@ -52,6 +52,68 @@ namespace Rococo { namespace Graphics {
 	}
 }}// Rococo.Graphics.OrientationFlags
 
+namespace Rococo { namespace Graphics { 
+	bool TryParse(const Rococo::fstring& s, MaterialCategory& value)
+	{
+		if (s ==  "MaterialCategory_Rock"_fstring)
+		{
+			value = MaterialCategory_Rock;
+		}
+		else if (s ==  "MaterialCategory_Stone"_fstring)
+		{
+			value = MaterialCategory_Stone;
+		}
+		else if (s ==  "MaterialCategory_Marble"_fstring)
+		{
+			value = MaterialCategory_Marble;
+		}
+		else if (s ==  "MaterialCategory_Metal"_fstring)
+		{
+			value = MaterialCategory_Metal;
+		}
+		else if (s ==  "MaterialCategory_Wood"_fstring)
+		{
+			value = MaterialCategory_Wood;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool TryShortParse(const Rococo::fstring& s, MaterialCategory& value)
+	{
+		if (s ==  "Rock"_fstring)
+		{
+			value = MaterialCategory_Rock;
+		}
+		else if (s ==  "Stone"_fstring)
+		{
+			value = MaterialCategory_Stone;
+		}
+		else if (s ==  "Marble"_fstring)
+		{
+			value = MaterialCategory_Marble;
+		}
+		else if (s ==  "Metal"_fstring)
+		{
+			value = MaterialCategory_Metal;
+		}
+		else if (s ==  "Wood"_fstring)
+		{
+			value = MaterialCategory_Wood;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+}}// Rococo.Graphics.MaterialCategory
+
 // BennyHill generated Sexy native functions for Rococo::Entities::IInstances 
 namespace
 {
@@ -148,6 +210,58 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->LoadMaterialArray(folder, txWidth);
 	}
+	void NativeRococoEntitiesIInstancesCountMaterialsInCategory(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::MaterialCategory category;
+		_offset += sizeof(category);
+		ReadInput(category, _sf, -_offset);
+
+		Rococo::Entities::IInstances* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 count = _pObject->CountMaterialsInCategory(category);
+		_offset += sizeof(count);
+		WriteOutput(count, _sf, -_offset);
+	}
+	void NativeRococoEntitiesIInstancesGetMaterialId(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Rococo::Graphics::MaterialCategory category;
+		_offset += sizeof(category);
+		ReadInput(category, _sf, -_offset);
+
+		Rococo::Entities::IInstances* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		MaterialId id = _pObject->GetMaterialId(category, index);
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
+	}
+	void NativeRococoEntitiesIInstancesGetRandomMaterialId(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::MaterialCategory category;
+		_offset += sizeof(category);
+		ReadInput(category, _sf, -_offset);
+
+		Rococo::Entities::IInstances* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		MaterialId id = _pObject->GetRandomMaterialId(category);
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
+	}
 	void NativeRococoEntitiesIInstancesGetScale(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -236,6 +350,9 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddGhost, nullptr, SEXTEXT("IInstancesAddGhost (Pointer hObject)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesDelete, nullptr, SEXTEXT("IInstancesDelete (Pointer hObject)(Int64 id) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesLoadMaterialArray, nullptr, SEXTEXT("IInstancesLoadMaterialArray (Pointer hObject)(Sys.Type.IString folder)(Int32 txWidth) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesCountMaterialsInCategory, nullptr, SEXTEXT("IInstancesCountMaterialsInCategory (Pointer hObject)(Int32 category) -> (Int32 count)"));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetMaterialId, nullptr, SEXTEXT("IInstancesGetMaterialId (Pointer hObject)(Int32 category)(Int32 index) -> (Float32 id)"));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetRandomMaterialId, nullptr, SEXTEXT("IInstancesGetRandomMaterialId (Pointer hObject)(Int32 category) -> (Float32 id)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetScale, nullptr, SEXTEXT("IInstancesGetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesSetScale, nullptr, SEXTEXT("IInstancesSetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesTryGetModelToWorldMatrix, nullptr, SEXTEXT("IInstancesTryGetModelToWorldMatrix (Pointer hObject)(Int64 entityId)(Sys.Maths.Matrix4x4 position) -> (Bool existant)"));

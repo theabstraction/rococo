@@ -87,6 +87,14 @@ namespace Rococo
          }
       }
 
+	  void ToUnixPath(char* path)
+	  {
+		  for (char* s = path; *s != 0; ++s)
+		  {
+			  if (*s == '\\') *s = '/';
+		  }
+	  }
+
       void UILoop(uint32 milliseconds)
       {
          MSG msg;

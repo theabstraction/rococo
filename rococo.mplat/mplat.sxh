@@ -132,6 +132,18 @@
 	(factory Rococo.Graphics.SceneBuilder)
 )
 
+(enum Int32
+	(as.sxy Rococo.Graphics.MaterialCategory "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.MaterialCategory "mplat")
+	(
+		(Rock 0)
+		(Stone 1)
+		(Marble 2)
+		(Metal 3)
+		(Wood 4)
+	)
+)
+
 (interface
 	(as.sxy Rococo.Entities.IInstances "../content/scripts/mplat")
 	(as.cpp Rococo.Entities.IInstances "mplat")
@@ -141,6 +153,9 @@
 		(AddGhost (const Matrix4x4 model)(const Vec3 scale)(IdEntity parentId)->(IdEntity entityId))
 		(Delete (IdEntity id))
 		(LoadMaterialArray (IString folder)(Int32 txWidth))
+		(CountMaterialsInCategory (MaterialCategory category)->(Int32 count))
+		(GetMaterialId  (MaterialCategory category)(Int32 index)->(MaterialId id))
+		(GetRandomMaterialId (MaterialCategory category)->(MaterialId id))
 		(GetScale (IdEntity entityId)(Vec3 scale))
 		(SetScale (IdEntity entityId)(const Vec3 scale))
 		(TryGetModelToWorldMatrix (IdEntity entityId)(Matrix4x4 position)->(Bool existant))

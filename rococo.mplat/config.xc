@@ -47,8 +47,9 @@
 (struct Quad Sys.Maths.Quadf Quad)
 (struct Triangle Sys.Maths.Triangle Triangle)
 (struct Triangle2d Sys.Maths.Triangle2d Triangle2d)
-(struct MaterialId Float32 MaterialId)
 
+(primitive MaterialId Float32 MaterialId)
+(primitive MaterialCategory Int32 Rococo.Graphics.MaterialCategory)
 
 // (defstruct <name> <sexy-name> <cpp-name> (fields) )  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files. It creates new structures in the target specified in (cpp.types ...)
 // (fields) is a sequence of s-expressions of the format (<type> <name>) where <type> is either a primitive or struct defined BEFORE the parent defstruct and <name> is a unique name for the variable.

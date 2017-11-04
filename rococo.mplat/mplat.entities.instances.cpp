@@ -331,6 +331,89 @@ namespace
 		  be.message = "";
 		  be.resourceName = "";
 		  publisher.Publish(be);
+
+		  RefreshCategories();
+	  }
+
+	  std::unordered_map<MaterialCategory, std::vector<MaterialId>> categories;
+
+	  std::unordered_map<std::string, MaterialCategory> subdirToCatEnum =
+	  {
+		  { "/wood/", MaterialCategory_Wood },
+		  { "/stone/", MaterialCategory_Stone },
+		  { "/rock/", MaterialCategory_Rock },
+		  { "/metal/", MaterialCategory_Metal },
+		  { "/marble/", MaterialCategory_Marble },
+	  };
+
+	  void RefreshCategories()
+	  {
+		  categories.clear();
+
+		  MaterialArrayMetrics metrics;
+		  renderer.GetMaterialArrayMetrics(metrics);
+
+		  fstring content = to_fstring(renderer.Installation().Content());
+
+		  for (size_t i = 0; i < metrics.NumberOfElements; ++i)
+		  {
+			  auto id = (MaterialId)i;
+			  cstr name = renderer.GetMaterialTextureName(id);
+			  if (StartsWith(name, content))
+			  {
+				  char fullname[IO::MAX_PATHLEN];
+				  SafeFormat(fullname, IO::MAX_PATHLEN, "%s", name);
+				  OS::ToUnixPath(fullname);
+				  cstr subpath = fullname + content.length;
+
+				  for (auto& j : subdirToCatEnum)
+				  {
+					  if (strstr(subpath, j.first.c_str()))
+					  {
+						  auto c = categories.find(j.second);
+						  if (c == categories.end())
+						  {
+							  c = categories.insert(std::make_pair(j.second, std::vector<MaterialId>())).first;
+						  }
+
+						  c->second.push_back(id);
+						  break;
+					  }
+				  }
+			  }
+		  }
+	  }
+
+	  virtual int32 CountMaterialsInCategory(Rococo::Graphics::MaterialCategory category)
+	  {
+		  auto i = categories.find(category);
+		  return i == categories.end() ? 0 : (int32) i->second.size();
+	  }
+
+	  virtual MaterialId GetMaterialId(Rococo::Graphics::MaterialCategory category, int32 index)
+	  {
+		  auto i = categories.find(category);
+		  if (i == categories.end())
+		  {
+			  Throw(0, "Instances::GetMaterialId(...) -> No materials in category %d", category);
+		  }
+
+		  if (index < 0) Throw(0, "Instances::GetMaterialId(...) -> Index negative");
+
+		  int32 x = index % (int32)i->second.size();
+		  return i->second[x];
+	  }
+
+	  virtual MaterialId GetRandomMaterialId(Rococo::Graphics::MaterialCategory category)
+	  {
+		  auto i = categories.find(category);
+		  if (i == categories.end())
+		  {
+			  Throw(0, "Instances::GetMaterialId(...) -> No materials in category %d", category);
+		  }
+
+		  int32 index = rand() % (int32)i->second.size();
+		  return i->second[index];
 	  }
 
       virtual void SetScale(ID_ENTITY id, const Vec3& scale)

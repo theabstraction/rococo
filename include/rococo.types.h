@@ -462,6 +462,7 @@ namespace Rococo
       int OpenForRead(void** fp, cstr name);
       void UILoop(uint32 milliseconds);
       void SanitizePath(char* path);
+	  void ToUnixPath(char* path);
    }
 
 #if !defined(_W64)
