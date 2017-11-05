@@ -1,0 +1,5 @@
+(' #file.type rococo.hv)
+
+// This file is automatically included in any MPLAT environment script
+
+(alias Sys.Type.Float32 Rococo.Graphics.MaterialId)

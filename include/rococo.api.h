@@ -186,6 +186,7 @@ namespace Rococo
 
 	namespace OS
 	{
+		bool IsRunning();
 		void ShutdownApp();
 	}
 

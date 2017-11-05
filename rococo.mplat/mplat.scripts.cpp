@@ -112,6 +112,7 @@ namespace Rococo
                }
                else
                {
+				   OS::ShutdownApp();
                   return IDE::EScriptExceptionFlow_Terminate;
                }
             }

@@ -409,7 +409,7 @@ namespace
 		  auto i = categories.find(category);
 		  if (i == categories.end())
 		  {
-			  Throw(0, "Instances::GetMaterialId(...) -> No materials in category %d", category);
+			  Throw(0, "Instances::GetRandomMaterialId(...) -> No materials in category %d", category);
 		  }
 
 		  int32 index = rand() % (int32)i->second.size();

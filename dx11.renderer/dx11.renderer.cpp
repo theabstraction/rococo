@@ -2123,7 +2123,7 @@ namespace
 
 	   uint32 sleepMS = 5;
 	   MSG msg = { 0 };
-	   while (msg.message != WM_QUIT)
+	   while (msg.message != WM_QUIT && OS::IsRunning())
 	   {
 		   int64 msCost = frameCost / (OS::CpuHz() / 1000);
 

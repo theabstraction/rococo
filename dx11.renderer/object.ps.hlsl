@@ -49,7 +49,7 @@ float4 per_pixel_lighting(PixelVertex p)
 
 	float oow = 1.0f / p.shadowPos.w;
 
-	float bias = -0.001f;
+	float bias = -0.005f;
 
 	float4 shadowXYZW = p.shadowPos;
 	shadowXYZW.z += bias;

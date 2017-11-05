@@ -691,21 +691,29 @@ namespace Rococo
 
    namespace OS
    {
-      void ShutdownApp()
-      {
-         PostQuitMessage(0);
-      }
+	   bool isRunning = true;
 
-      void PrintDebug(const char* format, ...)
-      {
+	   bool IsRunning()
+	   {
+		   return isRunning;
+	   }
+
+	   void ShutdownApp()
+	   {
+		   isRunning = false;
+		   PostQuitMessage(0);
+	   }
+
+	   void PrintDebug(const char* format, ...)
+	   {
 #if _DEBUG
-         va_list arglist;
-         va_start(arglist,format);
-         char line[4096];
-         SafeVFormat(line, sizeof(line), format, arglist);
-         OutputDebugStringA(line);
+		   va_list arglist;
+		   va_start(arglist, format);
+		   char line[4096];
+		   SafeVFormat(line, sizeof(line), format, arglist);
+		   OutputDebugStringA(line);
 #endif
-      }
+	   }
    }
 
    namespace IO

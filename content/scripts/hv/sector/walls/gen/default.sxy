@@ -5,6 +5,7 @@
 	"!scripts/hv.sxh.sxy"
 	"!scripts/hv/hv.types.sxy"
 	"!scripts/types.sxy"
+	"!scripts/types.mplat.sxy"
 )
 
 (namespace EntryPoint)
@@ -13,6 +14,7 @@
 
 (using HV)
 (using Rococo)
+(using Rococo.Entities)
 (using Rococo.Graphics)
 (using Sys.Type)
 (using Sys.Maths)
@@ -403,11 +405,18 @@
 	)
 )
 
-(function AddQuadToWall (ISectorWallTesselator sector)(QuadVertices q)-> :
-	(MaterialVertexData mata = q.colours.a 0.0)
-	(MaterialVertexData matb = q.colours.b 0.0)
-	(MaterialVertexData matc = q.colours.c 0.0)
-	(MaterialVertexData matd = q.colours.d 0.0)
+(function SetColours (QuadColours q)(Int32 colour)-> :
+	(q.a = colour)
+	(q.b = colour)
+	(q.c = colour)
+	(q.d = colour)
+)
+
+(function AddQuadToWall (ISectorWallTesselator sector)(QuadVertices q)(MaterialId matId)-> :
+	(MaterialVertexData mata = q.colours.a matId)
+	(MaterialVertexData matb = q.colours.b matId)
+	(MaterialVertexData matc = q.colours.c matId)
+	(MaterialVertexData matd = q.colours.d matId)
 	(ObjectVertex a = q.positions.a q.normals.a (q.uv.left  q.uv.top)    mata)
 	(ObjectVertex b	= q.positions.b q.normals.b (q.uv.right q.uv.top)    matb)
 	(ObjectVertex c = q.positions.c q.normals.c (q.uv.right q.uv.bottom) matc)
@@ -419,6 +428,10 @@
 (function TesselateBrickwork (IFieldTesselator ft)(WallSegment segment)(ISectorWallTesselator sector)-> :
 	(Int32 nColumns = ft.NumberOfColumns)
 	(Int32 nRows = ft.NumberOfRows)
+	
+	(IInstances instances (Instances))
+	
+	(MaterialId matBrickId = (instances.GetRandomMaterialId (#MaterialCategoryRock)))
 		
 	(#for (Int32 i = 0)(i < nColumns)(#inc i)
 		(#for (Int32 j = 0)(j < nRows)(#inc j)		
@@ -427,27 +440,32 @@
 			(QuadVertices l)
 			(QuadVertices r)
 			(QuadVertices b)
-			(ft.GetStretchBondedBrick i j q t l r b 0.25)	
-			(AddQuadToWall sector q)
-			(AddQuadToWall sector t)
-			(AddQuadToWall sector l)
-			(AddQuadToWall sector r)
-			(AddQuadToWall sector b)
+			(ft.GetStretchBondedBrick i j q t l r b 0.125)	
+			(AddQuadToWall sector q matBrickId)
+			(AddQuadToWall sector t matBrickId)
+			(AddQuadToWall sector l matBrickId)
+			(AddQuadToWall sector r matBrickId)
+			(AddQuadToWall sector b matBrickId)
 		)
 	)
+	
+	(MaterialId matCementId = (instances.GetRandomMaterialId (#MaterialCategoryStone)))
 	
 	(#for (Int32 i = 0)(i < nColumns)(#inc i)
 		(#for (Int32 j = 0)(j < nRows)(#inc j)		
 			(QuadVertices q)	
-			(ft.GetBrickJoinRight i j q 0.25)			
-			(AddQuadToWall sector q)
+			(ft.GetBrickJoinRight i j q 0.125)		
+
+			(SetColours	q.colours 0x3F808080)		
+			(AddQuadToWall sector q matCementId)
 		)
 	)
 	
 	(#for (Int32 j = 0)(j < nRows)(#inc j)	
 		(QuadVertices q)	
-		(ft.GetBrickBedTop j q 0.25)	
-		(AddQuadToWall sector q)
+		(ft.GetBrickBedTop j q 0.125)	
+		(SetColours	q.colours 0x3F808080)		
+		(AddQuadToWall sector q matCementId)
 	)
 )
 

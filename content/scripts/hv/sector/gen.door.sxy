@@ -23,9 +23,11 @@
 	(Vec3 n)
 	(GetNormal t n)
 	
-	(ObjectVertex a = t.a n 0x00000000 0xFFFFFFFF uv.a)
-	(ObjectVertex b	= t.b n 0x00000000 0xFFFFFFFF uv.b)
-	(ObjectVertex c = t.c n 0x00000000 0xFFFFFFFF uv.c)	
+	(MaterialVertexData noColour = 0xFF000000 0.0)
+	
+	(ObjectVertex a = t.a n uv.a noColour)
+	(ObjectVertex b	= t.b n uv.b noColour)
+	(ObjectVertex c = t.c n uv.c noColour)	
 	
 	(mb.AddTriangle a b c)
 )
@@ -40,10 +42,12 @@
 	(Float32 u = (uScale * (Length top)))
 	(Float32 v = (vScale * (Length left)))
 	
-	(ObjectVertex a = quad.a n  0x00000000 0xFFFFFFFF (0 0))
-	(ObjectVertex b	= quad.b n  0x00000000 0xFFFFFFFF (u 0))
-	(ObjectVertex c = quad.c n  0x00000000 0xFFFFFFFF (u v))	
-	(ObjectVertex d = quad.d n  0x00000000 0xFFFFFFFF (0 v))	
+	(MaterialVertexData noColour = 0xFF000000 0.0)
+	
+	(ObjectVertex a = quad.a n (0 0) noColour)
+	(ObjectVertex b	= quad.b n (u 0) noColour)
+	(ObjectVertex c = quad.c n (u v) noColour)	
+	(ObjectVertex d = quad.d n (0 v) noColour)	
 	
 	(mb.AddTriangle a b c)
 	(mb.AddTriangle c d a)

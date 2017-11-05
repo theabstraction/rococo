@@ -290,7 +290,8 @@ namespace
             wallSegments.push_back({ (int32) i, (int32) (i + 1) % (int32)perimeter.ElementCount() });
          }
 
-		 TesselateWallsFromSegments(0.0f);
+		 auto wallMatId = platform.instances.GetRandomMaterialId(Rococo::Graphics::MaterialCategory_Stone);
+		 TesselateWallsFromSegments(wallMatId);
       }
 
       float AddWallSegment(const Vec2& p, const Vec2& q, float h0, float h1, float u, MaterialId id)
@@ -1030,7 +1031,11 @@ namespace
 		  }
 
 		  BuildGapsAndTesselateWalls(Ring<Vec2>(&floorPerimeter[0], floorPerimeter.size()));
-		  TesselateFloorAndCeiling(1.0f, 2.0f);
+
+		  auto floorMatId = platform.instances.GetRandomMaterialId(Rococo::Graphics::MaterialCategory_Rock);
+		  auto ceilingMatId = platform.instances.GetRandomMaterialId(Rococo::Graphics::MaterialCategory_Rock);
+
+		  TesselateFloorAndCeiling(floorMatId, ceilingMatId);
 
 		  if (IsCorridor() && IsFlagged(SectorFlag_Has_Door))
 		  {
@@ -1317,6 +1322,11 @@ namespace
 
 			static int64 updateHeightIterationFrame = 0x830000000000;
 			updateHeightIterationFrame++;
+
+			ClearComponents(""_fstring);
+			components.clear();
+
+			ResetBarriers();
 
             Rebuild(updateHeightIterationFrame);
 
