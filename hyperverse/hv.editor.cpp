@@ -1042,8 +1042,8 @@ namespace
 		{
 			LoadDesc ld;
 			ld.caption = "Select a level file to load";
-			ld.ext = "*.sxy";
-			ld.extDesc = "Sexy script level-file (.sxy)";
+			ld.ext = "*.level.sxy";
+			ld.extDesc = "Sexy script level-file (.level.sxy)";
 			ld.shortName = nullptr;
 			*ld.path = 0;
 
@@ -1059,8 +1059,8 @@ namespace
 		{
 			SaveDesc sd;
 			sd.caption = "Select a level file to save";
-			sd.ext = "*.sxy";
-			sd.extDesc = "Sexy script level-file (.sxy)";
+			sd.ext = "*.level.sxy";
+			sd.extDesc = "Sexy script level-file (.level.sxy)";
 			sd.shortName = nullptr;
 
 			SafeFormat(sd.path, sizeof(sd.path), "%s", levelpath);
