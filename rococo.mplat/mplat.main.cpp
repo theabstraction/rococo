@@ -84,7 +84,7 @@ class Utilities : public IUtilitiies
 public:
 	Utilities(IInstallation& _installation, IRenderer& _renderer) : installation(_installation), renderer(_renderer) {}
 
-	IScrollbar* CreateScrollbar(IKeyboardSupervisor& keyboard, bool _isVertical) override;
+	IScrollbar* CreateScrollbar(bool _isVertical) override;
 
 	void AddSubtitle(Platform& platform, cstr subtitle)
 	{
@@ -273,6 +273,8 @@ class GuiStack : public IGUIStack, public IObserver
 
 	std::unordered_map<std::string, CommandHandler> handlers;
 	std::unordered_map<std::string, IUIElement*> renderElements;
+
+	IKeyboardSink* keyboardSink = nullptr;
 public:
 	Platform* platform;
 
@@ -289,6 +291,36 @@ public:
 	~GuiStack()
 	{
 		publisher.Detach(this);
+	}
+
+	virtual void AttachKeyboardSink(IKeyboardSink* ks)
+	{
+		keyboardSink = ks;
+	}
+
+	virtual void DetachKeyboardSink(IKeyboardSink* ks)
+	{
+		if (ks == keyboardSink)
+		{
+			keyboardSink = nullptr;
+		}
+	}
+
+	virtual IKeyboardSink* CurrentKeyboardSink()
+	{
+		return keyboardSink;
+	}
+
+	bool overwriting = false;
+
+	virtual bool IsOverwriting() const
+	{
+		return overwriting;
+	}
+
+	virtual void ToggleOverwriteMode()
+	{
+		overwriting = !overwriting;
 	}
 
 	void AppendEvent(const MouseEvent& me) override
@@ -309,6 +341,16 @@ public:
 
 	bool AppendEvent(const KeyboardEvent& ke)
 	{
+		if (keyboardSink && keyboardSink->OnKeyboardEvent(ke))
+		{
+			return true;
+		}
+
+		if (ke.VKey == Rococo::IO::VKCode_INSERT && ke.IsUp())
+		{
+			ToggleOverwriteMode();
+		}
+
 		GuiMetrics metrics;
 		renderer.GetGuiMetrics(metrics);
 
@@ -1414,6 +1456,32 @@ public:
 			}
 		}
 
+		if (me.HasFlag(MouseEvent::LDown) || me.HasFlag(MouseEvent::LUp))
+		{
+			UIPopulate populate;
+			populate.renderElement = nullptr;
+			populate.name = tabs[tabSelect].panelText.c_str();
+			publisher.Publish(populate);
+
+			if (populate.renderElement)
+			{
+				return populate.renderElement->OnMouseLClick(me.cursorPos, me.HasFlag(MouseEvent::LDown));
+			}
+		}
+
+		if (me.HasFlag(MouseEvent::RDown) || me.HasFlag(MouseEvent::RUp))
+		{
+			UIPopulate populate;
+			populate.renderElement = nullptr;
+			populate.name = tabs[tabSelect].panelText.c_str();
+			publisher.Publish(populate);
+
+			if (populate.renderElement)
+			{
+				return populate.renderElement->OnMouseRClick(me.cursorPos, me.HasFlag(MouseEvent::RDown));
+			}
+		}
+
 		if (tabSelect < tabs.size())
 		{
 			UIPopulate populate;
@@ -1462,64 +1530,6 @@ public:
 	int32 endIndex = 0; // The end iterator for iterating through tabs
 	GuiRect leftButtonRect = { -1,-1,-1,-1 };
 	GuiRect rightButtonRect = { -1,-1,-1,-1 };
-
-	void DrawTriangleFacingLeft(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
-	{
-		BaseVertexData noFont{ {0, 0}, 0 };
-		SpriteVertexData solid{ 1.0f, 0, 0, 0 };
-
-		GuiVertex triangle[3] =
-		{
-			{
-				{ (float)container.left, (float)((container.top + container.bottom) >> 1) } ,
-				noFont,
-				solid,
-				colour
-			},
-			{
-				{ (float)container.right, (float)container.top },
-				noFont,
-				solid,
-				colour
-			},
-			{
-				{ (float)container.right, (float)container.bottom },
-				noFont,
-				solid,
-				colour
-			}
-		};
-		grc.AddTriangle(triangle);
-	}
-
-	void DrawTriangleFacingRight(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
-	{
-		BaseVertexData noFont{ { 0,0 }, 0 };
-		SpriteVertexData solidColour{ 1.0f, 0.0f, 0.0f, 0.0f };
-
-		GuiVertex triangle[3] =
-		{
-			{
-				{ (float)container.left, (float)container.top },
-				noFont,
-				solidColour,
-				colour
-			},
-			{
-				{ (float)container.left, (float)container.bottom },
-				noFont,
-				solidColour,
-				colour
-			},
-			{
-				{ (float)container.right, (float)((container.top + container.bottom) >> 1) },
-				noFont,
-				solidColour,
-				colour
-			}
-		};
-		grc.AddTriangle(triangle);
-	}
 
 	int32 DetermineFinalTabIndex(int32 startingFrom, int32 left, int32 right, int32 buttonWidth) const
 	{
@@ -1626,12 +1636,12 @@ public:
 			x += Width(t.lastRect);
 		}
 
-		DrawTriangleFacingLeft(grc, leftButtonRect, RGBAb(255, 255, 255));
+		Graphics::DrawTriangleFacingLeft(grc, leftButtonRect, RGBAb(255, 255, 255));
 
 		if (endIndex < tabs.size())
 		{
 			rightButtonRect = GuiRect{ absRect.right + 6 - tabButtonWidth, controlRect.top + 3, absRect.right - 6, controlRect.bottom - 3 };
-			DrawTriangleFacingRight(grc, rightButtonRect, RGBAb(255, 255, 255));
+			Graphics::DrawTriangleFacingRight(grc, rightButtonRect, RGBAb(255, 255, 255));
 		}
 		else
 		{
@@ -1706,7 +1716,7 @@ public:
 			Graphics::DrawLine(grc, 2, rmid, ne, Scheme().topLeftEdge);
 		}
 
-		RenderTabContent(grc, GuiRect{ nw.x + 4, nw.y + 4, se.x - 4, se.y - 4 }, tab.panelText.c_str());
+		RenderTabContent(grc, GuiRect{ nw.x+1, nw.y+1, se.x, se.y }, tab.panelText.c_str());
 	}
 };
 
@@ -1723,8 +1733,6 @@ class Scrollbar: public IScrollbar
 	int32 value = 0;
 	int32 rowSize = 0;
 	int32 pageSize = 0;
-
-	IKeyboardSupervisor& keyboard;
 
 	int32 PixelRange() const
 	{
@@ -1770,8 +1778,7 @@ class Scrollbar: public IScrollbar
 	}
 
 public:
-	Scrollbar(IKeyboardSupervisor& _keyboard, bool _isVertical): 
-		keyboard(_keyboard), isVertical(_isVertical)
+	Scrollbar(bool _isVertical):  isVertical(_isVertical)
 	{
 	}
 
@@ -1804,37 +1811,33 @@ public:
 
 	bool AppendEvent(const KeyboardEvent& k, ScrollEvent& updateStatus)
 	{
-		Key key = keyboard.GetKeyFromEvent(k);
-		if (key.isPressed)
+		using namespace Rococo::IO;
+
+		if (!k.IsUp())
 		{
 			bool consume = true;
 
-			if (Eq(key.KeyName, "HOME"))
+			switch (k.VKey)
 			{
+			case VKCode_HOME:
 				value = minValue;
-			}
-			else if (Eq(key.KeyName, "END"))
-			{
+				break;
+			case VKCode_END:
 				value = maxValue - pageSize;
-			}
-			else if (Eq(key.KeyName, "PGUP"))
-			{
+				break;
+			case VKCode_PGUP:
 				value -= pageSize;
-			}
-			else if (Eq(key.KeyName, "PGDOWN"))
-			{
+				break;
+			case VKCode_PGDOWN:
 				value += pageSize;
-			}
-			else if (Eq(key.KeyName, "UP"))
-			{
+				break;
+			case VKCode_UP:
 				value -= rowSize;
-			}
-			else if (Eq(key.KeyName, "DOWN"))
-			{
+				break;
+			case VKCode_DOWN:
 				value += rowSize;
-			}
-			else
-			{
+				break;
+			default:
 				consume = false;
 			}
 
@@ -2068,8 +2071,8 @@ class PanelScrollbar : public BasePanel, public IScroller, IObserver, IEventCall
 		publisher.Publish(uiUpdate);
 	}
 public:
-	PanelScrollbar(IPublisher& _publisher, IKeyboardSupervisor& keyboard, cstr _key, boolean32 isVertical) :
-		scrollbar(keyboard, isVertical), publisher(_publisher),
+	PanelScrollbar(IPublisher& _publisher, cstr _key, boolean32 isVertical) :
+		scrollbar(isVertical), publisher(_publisher),
 		setScrollId(""_event), getScrollId(""_event), uiScrollId(""_event), routeKeyId(""_event), routeMouseId(""_event)
 	{
 		char eventText[256];
@@ -2261,15 +2264,15 @@ Rococo::IRadioButton* PanelContainer::AddRadioButton(int32 fontIndex, const fstr
 
 Rococo::IScroller* PanelContainer::AddScroller(const fstring& key, const GuiRect& rect, boolean32 isVertical)
 {
-   auto* scroller = new PanelScrollbar(platform.publisher, platform.keyboard, key, isVertical);
+   auto* scroller = new PanelScrollbar(platform.publisher, key, isVertical);
    AddChild(scroller);
    scroller->SetRect(rect);
    return scroller;
 }
 
-IScrollbar* Utilities::CreateScrollbar(IKeyboardSupervisor& keyboard, bool _isVertical)
+IScrollbar* Utilities::CreateScrollbar(bool _isVertical)
 {
-	return new Scrollbar(keyboard, _isVertical);
+	return new Scrollbar(_isVertical);
 }
 
 class ScriptedPanel : IEventCallback<ScriptCompileArgs>, IObserver, public IPaneBuilderSupervisor, public PanelContainer
@@ -2985,7 +2988,7 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 
 	Utilities utils(*installation, mainWindow->Renderer());
 
-	AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor(utils, *keyboard);
+	AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor(utils);
 
 	GuiStack gui(*publisher, *sourceCache, mainWindow->Renderer(), utils);
 

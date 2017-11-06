@@ -69,7 +69,7 @@ namespace Rococo
    struct IUtilitiies;
    struct IKeyboardSupervisor;
 
-   IMathsVisitorSupervisor* CreateMathsVisitor(IUtilitiies& utilities, IKeyboardSupervisor& keyboard);
+   IMathsVisitorSupervisor* CreateMathsVisitor(IUtilitiies& utilities);
 
    void Run_MPLat_EnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform);
 
@@ -112,6 +112,7 @@ namespace Rococo
    {
       virtual cstr GetAction(cstr keyName) = 0;
       virtual Key GetKeyFromEvent(const KeyboardEvent& ke) = 0;
+	  virtual char TryGetAscii(const KeyboardEvent& ke) const = 0;
       virtual void Free() = 0;
    };
 
@@ -275,10 +276,17 @@ namespace Rococo
 
    typedef void(*FN_OnCommand)(ICommandHandler* context, cstr command);
 
+   struct IKeyboardSink;
+
    struct IGUIStack
    {
       virtual void AppendEvent(const MouseEvent& me) = 0;
       virtual bool AppendEvent(const KeyboardEvent& ke) = 0; // Returns true if some UI control consumed the keyboard event
+	  virtual void AttachKeyboardSink(IKeyboardSink* ks) = 0;
+	  virtual void DetachKeyboardSink(IKeyboardSink* ks) = 0;
+	  virtual bool IsOverwriting() const = 0;
+	  virtual void ToggleOverwriteMode() = 0;
+	  virtual IKeyboardSink* CurrentKeyboardSink() = 0;
       virtual IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName) = 0;
 	  virtual IPaneBuilderSupervisor* CreateOverlay() = 0;
       virtual void Render(IGuiRenderContext& grc) = 0;
@@ -346,7 +354,7 @@ namespace Rococo
    struct IUtilitiies
    {
 	   virtual void AddSubtitle(Platform& platform, cstr subtitle) = 0;
-	   virtual IScrollbar* CreateScrollbar(IKeyboardSupervisor& keyboard, bool _isVertical) = 0;
+	   virtual IScrollbar* CreateScrollbar(bool _isVertical) = 0;
 	   virtual void EnumerateFiles(IEventCallback<cstr>& cb, cstr pingPathDirectory) = 0;
 	   virtual bool GetSaveLocation(Windows::IWindow& parent, SaveDesc& sd) = 0;
 	   virtual bool GetLoadLocation(Windows::IWindow& parent, LoadDesc& sd) = 0;

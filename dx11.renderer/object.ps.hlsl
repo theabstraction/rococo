@@ -63,14 +63,16 @@ float4 per_pixel_lighting(PixelVertex p)
 	
 	float normalizedDepth = (depth + 1.0f) * 0.5f;
 
-	float4 ambience = float4(texel.x * light.ambient.x, texel.y * light.ambient.y, texel.z * light.ambient.z, 1.0f);
+	float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
+	float R2 = dot(lightToPixelVec, lightToPixelVec);
+
+	float ambientFalloff = 1.0f / (1.0f + 0.125f * R2);
+
+	float4 ambience = float4(ambientFalloff * texel.x * light.ambient.x, ambientFalloff * texel.y * light.ambient.y, ambientFalloff * texel.z * light.ambient.z, 1.0f);
+
 
 	if (shadowDepth > depth)
 	{
-		float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
-
-		float R2 = dot(lightToPixelVec, lightToPixelVec);
-
 		float3 lightToPixelDir = normalize(lightToPixelVec);
 
 		float f = dot(lightToPixelDir, light.direction.xyz);

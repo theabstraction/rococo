@@ -28,7 +28,7 @@
 
 (function AddLabel (IString text)(IPaneContainer builder)(IString cmd)(Bool defer)-> :
 	(Recti rect = 0 0 20 16)
-	(ILabelPane label = (builder.AddLabel 8 text rect))
+	(ILabelPane label = (builder.AddLabel 9 text rect))
 	(IPane labelBase = label.Base)
 	(labelBase.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
 	(labelBase.SetColourBk1  0x00000000 0xFF200000)
@@ -47,7 +47,7 @@
 )
 
 (function AddRadioAt (Recti rect)(IString text)(IPaneContainer builder)(IString key)(IString value)(Int32 align)-> :
-	(IRadioButton radio = (builder.AddRadioButton 8 text key value rect))
+	(IRadioButton radio = (builder.AddRadioButton 9 text key value rect))
 	(IPane labelBase = radio.Base)
 	(labelBase.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
 	(labelBase.SetColourBk1  0xFF000020 0xFF0000A0)
@@ -77,7 +77,7 @@
 	(pane.GetRect screen)
 	
 	(Recti containerRect)
-	(InflateRect -16 -16 screen containerRect)
+	(InflateRect -2 -2 screen containerRect)
 	(IPaneContainer container = (root.AddContainer containerRect))
 	(IPane cbase = container.Base)
 	(SetTransparentBackground cbase)
@@ -105,55 +105,20 @@
 	(GetSpan containerRect containerSpan)
 	
 	(Recti toolsRect)
-	(toolsRect.left = (containerSpan.x - 200))
+	(toolsRect.left = (containerSpan.x - 360))
 	(toolsRect.top = 4)
-	(toolsRect.right = (containerSpan.x - 18))
-	(toolsRect.bottom = (containerSpan.y - 48))
+	(toolsRect.right = (containerSpan.x))
+	(toolsRect.bottom = (containerSpan.y - 32))
 	
-	(IPaneContainer toolContainer = (container.AddContainer toolsRect))
-	(IPane tbase = toolContainer.Base)
+	(ITabContainer tabs = (container.AddTabContainer 20 8 toolsRect))
+	(IPane tbase = tabs.Base)
 	(tbase.SetColourBk1   0xFF808080 0xFF808080)
 	(tbase.SetColourBk2   0xFF808080 0xFF808080)
-	(tbase.SetColourEdge1 0x80FFFFFF 0xFFFFFFFF)
-	(tbase.SetColourEdge2 0x60FFFFFF 0xDFFFFFFF)
+	(tbase.SetColourEdge1 0xFF808080 0xFFFFFFFF)
+	(tbase.SetColourEdge2 0xFF808080 0xDFFFFFFF)
 	
-	(Recti radioRect1 = 4 4 22 21)
-	(AddRadioAt radioRect1 "W" toolContainer "editor.texture.target" "w" 0)
-	
-	(Recti radioRect2 = 24 4 42 21)
-	(AddRadioAt radioRect2 "F" toolContainer "editor.texture.target" "f" 0)
-	
-	(Recti radioRect3 = 44 4 62 21)
-	(AddRadioAt radioRect3 "C" toolContainer "editor.texture.target" "c" 0)
-	
-	(Recti radioRect4 = 120 4 138 21)
-	(AddRadioAt radioRect4 "L" toolContainer "editor.texture.lock" "L" 0)
-	
-	(Recti radioRect5 = 140 4 158 21)
-	(AddRadioAt radioRect5 "U" toolContainer "editor.texture.lock" "U" 0)
-	
-	(Vec2i toolSpan)
-	(GetSpan toolsRect toolSpan)
-	
-	(Recti vscroll)
-	(vscroll.left = (toolSpan.x - 20))
-	(vscroll.top = 24)
-	(vscroll.right = (toolSpan.x - 2))
-	(vscroll.bottom = (toolSpan.y - 2))
-	(AddScroller "editor.tools.vscroll" toolContainer vscroll)
-	
-	(Recti imageListRect)
-	(imageListRect.left = 4)
-	(imageListRect.top = vscroll.top)
-	(imageListRect.right = (vscroll.left - 4))
-	(imageListRect.bottom = (vscroll.bottom - 4))
-	
-	(IPaneContainer imageList = (toolContainer.AddContainer imageListRect))
-	(IPane ibase = imageList.Base)
-	(ibase.SetColourBk1   0x00000000 0x00000000)
-	(ibase.SetColourBk2   0x00000000 0x00000000)
-	(ibase.SetColourEdge1 0x20FFFFFF 0x4FFFFFFF)
-	(ibase.SetColourEdge2 0x10FFFFFF 0x3FFFFFFF)
-	(ibase.SetPopulator 0 "editor.tools.imagelist")
-	
+	(tabs.AddTab 60 "Walls"		"editor.tab.walls")
+	(tabs.AddTab 60 "Floor" 	"editor.tab.floor")
+	(tabs.AddTab 75 "Ceiling"	"editor.tab.ceiling")
+	(tabs.AddTab 60 "Doors"		"editor.tab.doors")
 )

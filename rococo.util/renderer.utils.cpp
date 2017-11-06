@@ -39,21 +39,40 @@ namespace
 		Fonts::FontColour colour;
 		int fontIndex;
 		float lastCellHeight;
+		IEventCallback<Rococo::Graphics::GlyphCallbackArgs>* cb;
+		int count = 0;
 	public:
 		GuiRectf target;
 
-		HorizontalCentredText(int _fontIndex, cstr _text, Fonts::FontColour _colour) :
-			text(_text), colour(_colour), fontIndex(_fontIndex), lastCellHeight(10.0f)
+		HorizontalCentredText(int _fontIndex, cstr _text, Fonts::FontColour _colour, IEventCallback<Rococo::Graphics::GlyphCallbackArgs>* _cb = nullptr) :
+			text(_text), colour(_colour), fontIndex(_fontIndex), lastCellHeight(10.0f), cb(_cb)
 		{
 			float minFloat = std::numeric_limits<float>::min();
 			float maxFloat = std::numeric_limits<float>::max();
 			target = GuiRectf(maxFloat, maxFloat, minFloat, minFloat);
 		}
 
+		void Reset(IEventCallback<Rococo::Graphics::GlyphCallbackArgs>* cb)
+		{
+			count = 0;
+			this->cb = cb;
+		}
+
 		void DrawNextGlyph(char c, Fonts::IGlyphBuilder& builder)
 		{
 			GuiRectf outputRect;
 			builder.AppendChar(c, outputRect);
+
+			if (cb)
+			{
+				Rococo::Graphics::GlyphCallbackArgs args;
+				args.index = count++;
+				args.rect.left = (int32)outputRect.left;
+				args.rect.right = (int32)outputRect.right;
+				args.rect.top = (int32)outputRect.top;
+				args.rect.bottom = (int32)outputRect.bottom;
+				cb->OnEvent(args);
+			}
 
 			lastCellHeight = outputRect.bottom - outputRect.top;
 
@@ -68,10 +87,6 @@ namespace
 			builder.SetTextColour(colour);
 			builder.SetShadow(false);
 			builder.SetFontIndex(fontIndex);
-
-			float fMin = -1000000.0f;
-			float fMax = 1000000.0f;
-			builder.SetClipRect(GuiRectf(fMin, fMin, fMax, fMax));
 
 			Vec2 firstGlyphPos = builder.GetCursor();
 
@@ -197,16 +212,124 @@ namespace Rococo
 {
 	namespace Graphics
 	{
+		void DrawTriangleFacingLeft(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
+		{
+			BaseVertexData noFont{ { 0, 0 }, 0 };
+			SpriteVertexData solid{ 1.0f, 0, 0, 0 };
+
+			GuiVertex triangle[3] =
+			{
+				{
+					{ (float)container.left, (float)((container.top + container.bottom) >> 1) } ,
+					noFont,
+					solid,
+					colour
+				},
+				{
+					{ (float)container.right, (float)container.top },
+					noFont,
+					solid,
+					colour
+				},
+				{
+					{ (float)container.right, (float)container.bottom },
+					noFont,
+					solid,
+					colour
+				}
+			};
+			grc.AddTriangle(triangle);
+		}
+
+		void DrawTriangleFacingRight(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
+		{
+			BaseVertexData noFont{ { 0,0 }, 0 };
+			SpriteVertexData solidColour{ 1.0f, 0.0f, 0.0f, 0.0f };
+
+			GuiVertex triangle[3] =
+			{
+				{
+					{ (float)container.left, (float)container.top },
+					noFont,
+					solidColour,
+					colour
+				},
+				{
+					{ (float)container.left, (float)container.bottom },
+					noFont,
+					solidColour,
+					colour
+				},
+				{
+					{ (float)container.right, (float)((container.top + container.bottom) >> 1) },
+					noFont,
+					solidColour,
+					colour
+				}
+			};
+			grc.AddTriangle(triangle);
+		}
 		Vec2i GetScreenCentre(const GuiMetrics& metrics)
 		{
 			return Vec2i{ metrics.screenSpan.x >> 1, metrics.screenSpan.y >> 1 };
 		}
 
-		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middleLeft)
+		Vec2i RenderVerticalCentredTextWithCallback(IGuiRenderContext& gr, int32 cursorPos, IEventCallback<GlyphCallbackArgs>& cb, cstr txt, RGBAb colour, int fontSize, const Vec2i& middleLeft, const GuiRect& clipRect)
+		{	
+			struct : IEventCallback<GlyphCallbackArgs>
+			{
+				GuiRect rect{ 0,0,0,0 };
+				GuiRect lastRect{ 0,0,0,0 };
+				int targetPos;
+				virtual void OnEvent(GlyphCallbackArgs& args)
+				{
+					if (args.index == targetPos)
+					{
+						rect = args.rect;
+					}
+
+					lastRect = args.rect;
+				}
+			} anon;
+			anon.targetPos = cursorPos;
+
+			HorizontalCentredText job(fontSize, txt, FontColourFromRGBAb(colour), &anon);
+			Vec2i span = gr.EvalSpan(Vec2i{ 0,0 }, job);
+
+			int dx = anon.rect.left - Width(clipRect);
+
+			if (anon.rect.left < Width(clipRect))
+			{
+				dx = 0;
+			}
+
+			if (cursorPos > 0 && anon.rect.left == anon.rect.right)
+			{
+				// All the way to the right
+
+				dx = span.x - Width(clipRect);
+			}
+
+			job.Reset(&cb);
+
+			if (span.x <= Width(clipRect) || cursorPos == 0)
+			{
+				gr.RenderText(Vec2i{ middleLeft.x, middleLeft.y - (span.y >> 1) }, job, &clipRect);
+			}
+			else
+			{
+				GuiRect finalClipRect = clipRect;
+				finalClipRect.left = max(middleLeft.x, clipRect.left);
+				gr.RenderText(Vec2i{ middleLeft.x - dx, middleLeft.y - (span.y >> 1) }, job, &finalClipRect);
+			}
+			return span;
+		}
+
+		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middleLeft, const GuiRect* clipRect)
 		{
 			HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
 			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
-			grc.RenderText(Vec2i{ middleLeft.x, middleLeft.y - (span.y >> 1) }, job);
+			grc.RenderText(Vec2i{ middleLeft.x, middleLeft.y - (span.y >> 1) }, job, clipRect);
 			return span;
 		}
 
@@ -234,11 +357,11 @@ namespace Rococo
 			return span;
 		}
 
-		Vec2i RenderCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middle)
+		Vec2i RenderCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middle, const GuiRect* clipRect)
 		{
 			HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
 			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
-			grc.RenderText(Vec2i{ middle.x - (span.x >> 1), middle.y - (span.y >> 1) }, job);
+			grc.RenderText(Vec2i{ middle.x - (span.x >> 1), middle.y - (span.y >> 1) }, job, clipRect);
 			return span;
 		}
 

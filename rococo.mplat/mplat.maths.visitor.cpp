@@ -51,8 +51,8 @@ namespace
 	   }
 
    public:
-	   MathsVisitor(IUtilitiies& utilities, IKeyboardSupervisor& keyboard):
-		   scrollbar(utilities.CreateScrollbar(keyboard, true))
+	   MathsVisitor(IUtilitiies& utilities):
+		   scrollbar(utilities.CreateScrollbar(true))
 	   {
 
 	   }
@@ -455,8 +455,8 @@ namespace
 
 namespace Rococo
 {
-   IMathsVisitorSupervisor* CreateMathsVisitor(IUtilitiies& utilities, IKeyboardSupervisor& keyboard)
+   IMathsVisitorSupervisor* CreateMathsVisitor(IUtilitiies& utilities)
    {
-      return new MathsVisitor(utilities, keyboard);
+      return new MathsVisitor(utilities);
    }
 }

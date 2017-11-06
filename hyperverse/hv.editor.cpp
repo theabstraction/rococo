@@ -584,13 +584,13 @@ namespace
 
 		int32 GetIndexOf(cstr name)
 		{
-			return (int32) platform.renderer.GetMaterialId(name);
+			return (int32)platform.renderer.GetMaterialId(name);
 		}
 
 		cstr GetNeighbour(cstr name, bool forward)
 		{
 			int32 i = GetIndexOf(name);
-			
+
 			MaterialArrayMetrics mam;
 			platform.renderer.GetMaterialArrayMetrics(mam);
 
@@ -930,6 +930,851 @@ namespace
 		}
 	};
 
+	ROCOCOAPI IBloodyPropertyType
+	{
+		virtual void Click(bool clickedDown, Vec2i pos) = 0;
+		virtual void Free() = 0;
+		virtual cstr Name() const = 0;
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour) = 0;
+		virtual RGBAb NameColour() const = 0;
+	};
+
+	class BloodyFloatBinding : public IBloodyPropertyType
+	{
+		float value = 0.0f;
+	public:
+		virtual void Free()
+		{
+			delete this;
+		}
+
+		virtual cstr Name() const
+		{
+			return "Float32";
+		}
+
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		{
+			char buffer[16];
+			SafeFormat(buffer, 16, "%f", value);
+			Rococo::Graphics::RenderVerticalCentredText(rc, buffer, colour, 9, { rect.left + 4, Centre(rect).y }, &rect);
+		}
+
+		RGBAb NameColour() const override
+		{
+			return RGBAb(64, 0, 0, 128);
+		}
+
+		void Click(bool clickedDown, Vec2i pos) override
+		{
+
+		}
+	};
+
+	class BloodyIntBinding : public IBloodyPropertyType
+	{
+		int32 value = 0;
+	public:
+		virtual void Free()
+		{
+			delete this;
+		}
+
+		virtual cstr Name() const
+		{
+			return "Int32";
+		}
+
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		{
+			char buffer[16];
+			SafeFormat(buffer, 16, "%d", value);
+			Rococo::Graphics::RenderVerticalCentredText(rc, buffer, colour, 9, { rect.left + 4, Centre(rect).y }, &rect);
+		}
+
+		RGBAb NameColour() const override
+		{
+			return RGBAb(48, 16, 0, 128);
+		}
+
+		void Click(bool clickedDown, Vec2i pos) override
+		{
+
+		}
+	};
+
+	class BloodyBoolBinding : public IBloodyPropertyType
+	{
+		bool value = false;
+	public:
+		virtual void Free()
+		{
+			delete this;
+		}
+
+		virtual cstr Name() const
+		{
+			return "bool";
+		}
+
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		{
+			char buffer[16];
+			SafeFormat(buffer, 16, "%s", value ? "true" : "false");
+			Rococo::Graphics::RenderVerticalCentredText(rc, buffer, colour, 9, { rect.left + 4, Centre(rect).y }, &rect);
+
+			int32 ds = Height(rect) - 4;
+			GuiRect tickRect{ rect.right - ds, rect.top + 2, rect.right - 2, rect.bottom - 2 };
+			Rococo::Graphics::DrawBorderAround(rc, tickRect, { 1,1 }, RGBAb(255, 255, 255), RGBAb(224, 224, 224));
+
+			if (value)
+			{
+				Vec2i centre = Centre(tickRect);
+				Rococo::Graphics::DrawLine(rc, 2, centre + Vec2i{ -6, -4 }, centre + Vec2i{ -2,+4 }, RGBAb(255, 128, 128, 255));
+				Rococo::Graphics::DrawLine(rc, 2, centre + Vec2i{ -2,4 }, centre + Vec2i{ 4, -12 }, RGBAb(255, 128, 128, 255));
+			}
+		}
+
+		RGBAb NameColour() const override
+		{
+			return RGBAb(0, 0, 64, 128);
+		}
+
+		void Click(bool clickedDown, Vec2i pos) override
+		{
+			if (clickedDown) value = !value;
+		}
+	};
+
+	class BloodyEnumInt32Binding : public IBloodyPropertyType, public IKeyboardSink
+	{
+		int32 value = 0;
+		std::string name;
+		std::unordered_map<std::string, int> constantsNameToValue;
+		std::unordered_map<int, std::string> constantsValueToName;
+		std::vector<std::string> orderedByName;
+		Platform& platform;
+	public:
+		BloodyEnumInt32Binding(Platform& _platform, cstr _name) : name(_name), platform(_platform)
+		{
+
+		}
+
+		~BloodyEnumInt32Binding()
+		{
+			platform.gui.DetachKeyboardSink(this);
+		}
+
+		virtual void AddEnumConstant(cstr key, int32 value)
+		{
+			constantsNameToValue[key] = value;
+			constantsValueToName[value] = key;
+			orderedByName.clear();
+		}
+
+		virtual void Free()
+		{
+			delete this;
+		}
+
+		virtual cstr Name() const
+		{
+			return name.c_str();
+		}
+
+		virtual bool OnKeyboardEvent(const KeyboardEvent& key)
+		{
+			if (!key.IsUp())
+			{
+				switch (key.VKey)
+				{
+				case IO::VKCode_ENTER:
+					platform.gui.DetachKeyboardSink(this);
+					break;
+				case IO::VKCode_HOME:
+					if (!orderedByName.empty())
+					{
+						auto i = constantsNameToValue.find(orderedByName[0]);
+						value = i != constantsNameToValue.end() ? i->second : value;
+					}
+					return true;
+				case IO::VKCode_END:
+					if (!orderedByName.empty())
+					{
+						auto i = constantsNameToValue.find(*orderedByName.rbegin());
+						value = i != constantsNameToValue.end() ? i->second : value;
+					}
+					return true;
+				case IO::VKCode_LEFT:
+					if (!orderedByName.empty())
+					{
+						value = GetLeftValue(value);
+					}
+					return true;
+				case IO::VKCode_RIGHT:
+					if (!orderedByName.empty())
+					{
+						value = GetRightValue(value);
+					}
+					return true;
+				case IO::VKCode_PGDOWN:
+				{
+					size_t delta = max(1ULL, orderedByName.size() / 10);
+					for (size_t i = 0; i < delta; ++i)
+					{
+						value = GetLeftValue(value);
+					}
+				}
+				return true;
+				case IO::VKCode_PGUP:
+				{
+					size_t delta = max(1ULL, orderedByName.size() / 10);
+					for (size_t i = 0; i < delta; ++i)
+					{
+						value = GetRightValue(value);
+					}
+				}
+				return true;
+				}
+
+				char c = platform.keyboard.TryGetAscii(key);
+				if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
+				{
+					for (size_t i = 0; i < orderedByName.size(); ++i)
+					{
+						char d = orderedByName[i][0];
+						if ((d >= 'A' && d <= 'Z') || (d >= 'A' && d <= 'Z'))
+						{
+							if ((c & ~32) == (d & ~32))
+							{
+								// case independent match
+								auto k = constantsNameToValue.find(orderedByName[i]);
+								value = (k != constantsNameToValue.end()) ? k->second : value;
+								return true;
+							}
+						}
+					}
+				}
+				else if (c > 0)
+				{
+					for (size_t i = 0; i < orderedByName.size(); ++i)
+					{
+						char d = orderedByName[i][0];
+						if (c == d)
+						{
+							auto k = constantsNameToValue.find(orderedByName[i]);
+							value = (k != constantsNameToValue.end()) ? k->second : value;
+							return true;
+						}
+					}
+				}
+			}
+			return true;
+		}
+
+		void RenderValue(IGuiRenderContext& rc, int32 v, const GuiRect& rect, RGBAb colour)
+		{
+			char buffer[64];
+			auto i = constantsValueToName.find(v);
+			if (i == constantsValueToName.end())
+			{
+				SafeFormat(buffer, sizeof(buffer), "uknown(%d)", v);
+			}
+			else
+			{
+				SafeFormat(buffer, sizeof(buffer), "%s", i->second);
+			}
+
+			Rococo::Graphics::RenderCentredText(rc, buffer, colour, 9, Centre(rect), &rect);
+		}
+
+		int GetLeftValue(int v)
+		{
+			if (orderedByName.empty()) return v;
+
+			auto i = constantsValueToName.find(v);
+			if (i != constantsValueToName.end())
+			{
+				auto& name = i->second;
+
+				if (orderedByName[0] == name)
+				{
+					return v;
+				}
+
+				for (size_t j = 1; j < orderedByName.size(); ++j)
+				{
+					if (orderedByName[j] == name)
+					{
+						auto k = constantsNameToValue.find(orderedByName[j - 1]);
+						if (k == constantsNameToValue.end())
+						{
+							break;
+						}
+						else
+						{
+							return k->second;
+						}
+					}
+				}
+			}
+
+			return max(v - 1, 0);
+		}
+
+		int GetRightValue(int v)
+		{
+			if (orderedByName.empty()) return v;
+
+			auto i = constantsValueToName.find(v);
+			if (i != constantsValueToName.end())
+			{
+				auto& name = i->second;
+
+				if (*orderedByName.rbegin() == name)
+				{
+					return v;
+				}
+
+				for (size_t j = 0; j < orderedByName.size() - 1; ++j)
+				{
+					if (orderedByName[j] == name)
+					{
+						auto k = constantsNameToValue.find(orderedByName[j + 1]);
+						if (k == constantsNameToValue.end())
+						{
+							break;
+						}
+						else
+						{
+							return k->second;
+						}
+					}
+				}
+			}
+
+			return  min(v + 1, 0x7FFFFFFF);
+		}
+
+		GuiRect absRect{ 0,0,0,0 };
+
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		{
+			if (orderedByName.empty())
+			{
+				for (auto& i : constantsNameToValue)
+				{
+					orderedByName.push_back(i.first.c_str());
+				}
+
+				std::sort(orderedByName.begin(), orderedByName.end());
+			}
+
+			absRect = rect;
+
+			GuiMetrics metrics;
+			rc.Renderer().GetGuiMetrics(metrics);
+
+			if (platform.gui.CurrentKeyboardSink() == this)
+			{
+				Rococo::Graphics::DrawRectangle(rc, rect, RGBAb(64, 0, 0, 128), RGBAb(64, 0, 0, 255));
+				Rococo::Graphics::DrawBorderAround(rc, rect, { 1,1 }, RGBAb(255, 255, 255, 255), RGBAb(224, 224, 224, 255));
+			}
+
+			int32 spinnerSpan = Height(rect);
+
+			int32 textSpan = Width(rect) - 2 * spinnerSpan;
+
+			int32 nVisibleValues = 3;
+
+			const int32 cellSpan = textSpan / nVisibleValues;
+
+			Vec2i centre = Centre(rect);
+
+			GuiRect currentValueRect{ centre.x - (cellSpan >> 1), rect.top, centre.x + (cellSpan >> 1), rect.bottom };
+
+			RenderValue(rc, value, currentValueRect, colour);
+
+			if (IsPointInRect(metrics.cursorPosition, rect))
+			{
+				GuiRect leftValueRect{ currentValueRect.left - cellSpan, rect.top, currentValueRect.left - 1, rect.bottom };
+				GuiRect rightValueRect{ currentValueRect.right + 1, rect.top,  currentValueRect.right + cellSpan, rect.bottom };
+
+				RGBAb dullColour(colour.red >> 1, colour.green >> 1, colour.blue >> 1);
+
+				int leftValue = GetLeftValue(value);
+				if (leftValue != value) RenderValue(rc, leftValue, leftValueRect, dullColour);
+
+				int rightValue = GetRightValue(value);
+				if (rightValue != value) RenderValue(rc, rightValue, rightValueRect, dullColour);
+
+				int32 clickBorder = 4;
+				GuiRect leftClickRect{ rect.left + clickBorder, rect.top + clickBorder, rect.left + spinnerSpan - clickBorder, rect.bottom - clickBorder };
+				Rococo::Graphics::DrawTriangleFacingLeft(rc, leftClickRect,  (leftValue != value) ? RGBAb(255, 255, 128) : RGBAb(64, 64, 64));
+
+				GuiRect rightClickRect{ rect.right - spinnerSpan + clickBorder, rect.top + clickBorder, rect.right - clickBorder, rect.bottom - clickBorder };
+				Rococo::Graphics::DrawTriangleFacingRight(rc, rightClickRect, (rightValue != value) ? RGBAb(255, 255, 128) : RGBAb(64, 64, 64));
+			}
+		}
+
+		RGBAb NameColour() const override
+		{
+			return RGBAb(16, 64, 16, 128);
+		}
+
+		void Click(bool clickedDown, Vec2i pos) override
+		{
+			if (!clickedDown)
+			{
+				auto centre = Centre(absRect);
+				if (pos.x > centre.x + 20) value = GetRightValue(value);
+				else if (pos.x < centre.x - 20) value = GetLeftValue(value);
+
+				if (platform.gui.CurrentKeyboardSink() == this)
+				{
+					platform.gui.DetachKeyboardSink(this);
+				}
+				else
+				{
+					platform.gui.AttachKeyboardSink(this);
+				}
+			}
+		}
+	};
+
+	class TextEditorBox: public IKeyboardSink
+	{
+		char* buffer;
+		int32 capacity;
+		int32 cursorPos = 0;
+		Platform& platform;
+	public:
+		TextEditorBox(Platform& _platform, char* _buffer, size_t _capacity) :
+			platform(_platform), buffer(_buffer), capacity((int32)_capacity) {}
+
+		~TextEditorBox()
+		{
+			platform.gui.DetachKeyboardSink(this);
+		}
+
+		void PushBufferRightOne()
+		{
+			int32 len = (int32) strlen(buffer);
+			if (len >= capacity - 1)
+			{
+				return;
+			}
+
+			for (int32 i = len; i > cursorPos; --i)
+			{
+				buffer[i] = buffer[i - 1];
+			}
+		}
+
+
+		void DeleteRight(int pos)
+		{
+			int32 len = (int32) strlen(buffer);
+
+			if (cursorPos > 0)
+			{
+				for (int32 i = pos; i < len+1; ++i)
+				{
+					buffer[i-1] = buffer[i];
+				}
+			}
+		}
+
+		void AddCharOverwrite(char c)
+		{
+			int len = (int) strlen(buffer);
+			if (cursorPos < len)
+			{
+				buffer[cursorPos++] = c;
+			}
+			else if (len < capacity - 1)
+			{
+				buffer[cursorPos++] = c;
+			}
+		}
+
+		void AddCharInsert(char c)
+		{
+			int len = (int)strlen(buffer);
+			if (len < capacity - 1)
+			{
+				PushBufferRightOne();
+				buffer[cursorPos++] = c;
+			}
+		}
+
+		virtual bool OnKeyboardEvent(const KeyboardEvent& key)
+		{
+			if (!key.IsUp())
+			{
+				switch (key.VKey)
+				{
+				case IO::VKCode_ENTER:
+					platform.gui.DetachKeyboardSink(this);
+					return true;
+				case IO::VKCode_BACKSPACE:
+					DeleteRight(cursorPos);
+					if (cursorPos > 0)
+					{
+						cursorPos--;
+					}
+					return true;
+				case IO::VKCode_DELETE:
+					DeleteRight(cursorPos+1);
+					return true;
+				case IO::VKCode_HOME:
+					cursorPos = 0;
+					return true;
+				case IO::VKCode_END:
+					cursorPos = (int32) strlen(buffer);
+					return true;
+				case IO::VKCode_LEFT:
+					if (cursorPos > 0)
+					{
+						cursorPos--;
+					}
+					return true;
+				case IO::VKCode_RIGHT:
+					if (cursorPos < (int32)strlen(buffer))
+					{
+						cursorPos++;
+					}
+					return true;
+				}
+
+				char c = platform.keyboard.TryGetAscii(key);
+				if (c >= 32)
+				{
+					if (platform.gui.IsOverwriting())
+					{
+						AddCharOverwrite(c);
+					}
+					else
+					{
+						AddCharInsert(c);
+					}
+					return true;
+				}
+			}
+			return false;
+		}
+
+		void Click(bool clickedDown)
+		{
+			if (clickedDown)
+			{
+				if (platform.gui.CurrentKeyboardSink() == this)
+				{
+					platform.gui.DetachKeyboardSink(this);
+				}
+				else
+				{
+					platform.gui.AttachKeyboardSink(this);
+				}
+			}
+		}
+
+		void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		{
+			if (cursorPos > (int32) strlen(buffer))
+			{
+				cursorPos = (int32) strlen(buffer);
+			}
+
+			int x = rect.left + 4;
+			int y = Centre(rect).y;
+
+			if (platform.gui.CurrentKeyboardSink() == this)
+			{
+				Rococo::Graphics::DrawRectangle (rc, rect, RGBAb(64, 0, 0, 128), RGBAb(64, 0, 0, 255));
+				Rococo::Graphics::DrawBorderAround(rc, rect, { 1,1 }, RGBAb(255, 255, 255, 255), RGBAb(224, 224, 224, 255));
+			}
+
+			struct : IEventCallback<Rococo::Graphics::GlyphCallbackArgs>
+			{
+				int targetPos;
+				GuiRect cursorRect{ 0,0,0,0 };
+				GuiRect lastRect;
+				virtual void OnEvent(Rococo::Graphics::GlyphCallbackArgs& args)
+				{
+					if (args.index == targetPos)
+					{
+						cursorRect = args.rect;
+					}
+
+					lastRect = args.rect;
+				}
+			} cb;
+
+			cb.lastRect = { x, rect.top, x, rect.bottom };
+			cb.targetPos = cursorPos;
+
+			GuiRect clipRect = { x, rect.top, rect.right - 10, rect.bottom };
+
+			int pos = platform.gui.CurrentKeyboardSink() == this ? cursorPos : 0;
+			Vec2i span = Rococo::Graphics::RenderVerticalCentredTextWithCallback(rc, pos, cb, buffer, colour, 9, { x, Centre(rect).y }, clipRect);
+
+			if (platform.gui.CurrentKeyboardSink() == this)
+			{
+				if (cb.cursorRect.left == cb.cursorRect.right)
+				{
+					cb.cursorRect = { cb.lastRect.right,  y - 5, cb.lastRect.right + 8,  y + 5 };
+				}
+
+				cb.cursorRect.right = cb.cursorRect.left + 8;
+
+				OS::ticks t = OS::CpuTicks();
+				OS::ticks hz = OS::CpuHz();
+				uint8 alpha = ((512 * t) / hz) % 255;
+
+				if (platform.gui.IsOverwriting())
+				{
+					Rococo::Graphics::DrawRectangle(rc, cb.cursorRect, RGBAb(255, 255, 255, alpha >> 1), RGBAb(255, 255, 255, alpha >> 1));
+				}
+				else
+				{
+					Rococo::Graphics::DrawLine(rc, 2, BottomLeft(cb.cursorRect), BottomRight(cb.cursorRect), RGBAb(255, 255, 255, alpha));
+				}
+			}
+		}
+	};
+
+	class BloodyPingPathBinding : public IBloodyPropertyType
+	{
+		char value[IO::MAX_PATHLEN] = { 0 };
+		Platform& platform;
+		TextEditorBox teb;
+	public:
+		BloodyPingPathBinding(Platform& _platform) : platform(_platform), teb(_platform, value, IO::MAX_PATHLEN)
+		{
+		}
+
+		virtual void Free()
+		{
+			delete this;
+		}
+
+		virtual cstr Name() const
+		{
+			return "Ping Path";
+		}
+
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		{
+			teb.Render(rc, rect, colour);
+		}
+
+		RGBAb NameColour() const override
+		{
+			return RGBAb(64, 64, 64, 128);
+		}
+
+		void Click(bool clickedDown, Vec2i pos) override
+		{
+			teb.Click(clickedDown);
+		}
+	};
+
+	class BloodyProperty
+	{
+		AutoFree<IBloodyPropertyType> prop;
+		std::string name;
+		GuiRect lastRect{ 0,0,0,0 };
+	public:
+		BloodyProperty(IBloodyPropertyType* _prop, cstr _name):
+			name(_name), prop(_prop)
+		{
+
+		}
+
+		cstr Name() const { return name.c_str(); }
+		IBloodyPropertyType& Prop() { return *prop; }
+		void SetRect(const GuiRect& rect) { lastRect = rect;  }
+		bool IsInRect(Vec2i p) const { return IsPointInRect(p, lastRect); }
+	};
+
+	class BloodyPropertySetEditor: public IUIElement, private IEventCallback<Rococo::Events::ScrollEvent>
+	{
+		std::vector<BloodyProperty*> properties;
+		Platform& platform;
+		AutoFree<IScrollbar> vscroll;
+
+		bool ValidateUnique(cstr name) const
+		{
+			for (auto i : properties)
+			{
+				if (Eq(i->Name(), name))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		void ValidateNotFound(cstr name) const
+		{
+			if (ValidateUnique(name)) Throw(0, "Duplicate property with name %s", name);
+		}
+
+		void Add(BloodyProperty* bp)
+		{
+			ValidateNotFound(bp->Name());
+			properties.push_back(bp);
+		}
+	public:
+		BloodyPropertySetEditor(Platform& _platform): 
+			platform(_platform),
+			vscroll(platform.utilities.CreateScrollbar(true))
+		{
+		}
+
+		~BloodyPropertySetEditor()
+		{
+			for (auto i : properties)
+			{
+				delete i;
+			}
+		}
+
+		void AddFloat(cstr name)
+		{
+			Add( new BloodyProperty(new BloodyFloatBinding, name) );
+		}
+
+		void AddInt(cstr name)
+		{
+			Add( new BloodyProperty(new BloodyIntBinding, name) );
+		}
+
+		void AddBool(cstr name)
+		{
+			Add( new BloodyProperty(new BloodyBoolBinding, name) );
+		}
+
+		void AddMaterialCategory(cstr name)
+		{
+			auto* beib = new BloodyEnumInt32Binding(platform, "MaterialCategory");
+			beib->AddEnumConstant("Rock",   Rococo::Graphics::MaterialCategory_Rock);
+			beib->AddEnumConstant("Stone",  Rococo::Graphics::MaterialCategory_Stone);
+			beib->AddEnumConstant("Marble", Rococo::Graphics::MaterialCategory_Marble);
+			beib->AddEnumConstant("Metal",  Rococo::Graphics::MaterialCategory_Metal);
+			beib->AddEnumConstant("Wood",   Rococo::Graphics::MaterialCategory_Wood);
+			Add( new BloodyProperty(beib, name));
+		}
+
+		void AddPingPath(cstr name)
+		{
+			Add(new BloodyProperty(new BloodyPingPathBinding(platform), name));
+		}
+		
+		virtual bool OnKeyboardEvent(const KeyboardEvent& key)
+		{
+			return false;
+		}
+
+		virtual void OnRawMouseEvent(const MouseEvent& ev)
+		{
+		}
+
+		virtual void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)
+		{
+
+		}
+
+		virtual void OnMouseLClick(Vec2i cursorPos, bool clickedDown)
+		{
+			for (auto i : properties)
+			{
+				if (i->IsInRect(cursorPos))
+				{
+					i->Prop().Click(clickedDown, cursorPos);
+					return;
+				}
+			}
+		}
+
+		virtual void OnMouseRClick(Vec2i cursorPos, bool clickedDown)
+		{
+
+		}
+
+		virtual void OnEvent(Rococo::Events::ScrollEvent& se)
+		{
+
+		}
+
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& absRect)
+		{
+			GuiRect scrollRect{ absRect.right - 20, absRect.top, absRect.right, absRect.bottom};
+
+			Modality modality;
+			modality.isModal = true;
+			modality.isTop = true;
+			modality.isUnderModal = false;
+			vscroll->Render(rc, scrollRect, modality, RGBAb(48, 48, 48, 240), RGBAb(32, 32, 32, 240), RGBAb(255, 255, 255), RGBAb(192, 192, 192), *this, ""_event);
+
+			GuiRect mainRect{ absRect.left, absRect.top, scrollRect.left-1, absRect.bottom };
+
+			GuiMetrics metrics;
+			rc.Renderer().GetGuiMetrics(metrics);
+			if (IsPointInRect(metrics.cursorPosition, mainRect))
+			{
+				Rococo::Graphics::DrawRectangle(rc, mainRect, RGBAb(0, 0, 24, 255), RGBAb(0, 0, 24, 192));
+			}
+			else
+			{
+				Rococo::Graphics::DrawRectangle(rc, mainRect, RGBAb(0, 0, 0, 255), RGBAb(0, 0, 0, 192));
+			}
+
+			int y = absRect.top + 2;
+
+			int odd = true;
+
+			for (auto p : properties)
+			{
+				int y1 = y + 20;
+				GuiRect rowRect{ absRect.left + 2, y, mainRect.right - 2, y1 };
+				RGBAb edge1 = IsPointInRect(metrics.cursorPosition, rowRect) ? RGBAb(255, 255, 255) : RGBAb(64, 64, 64, 64);
+				RGBAb edge2 = IsPointInRect(metrics.cursorPosition, rowRect) ?  RGBAb(224, 224, 224) : RGBAb(32, 32, 32, 64);
+
+				RGBAb fontColour = IsPointInRect(metrics.cursorPosition, rowRect) ? RGBAb(255, 255, 255) : RGBAb(224, 224, 224, 224);
+
+				GuiRect nameRect{ rowRect.left, y, rowRect.left + 100, y1 };
+				Rococo::Graphics::DrawRectangle(rc, nameRect, p->Prop().NameColour(), p->Prop().NameColour());
+				Rococo::Graphics::RenderVerticalCentredText(rc, p->Name(), fontColour, 9, { rowRect.left + 4, Centre(rowRect).y }, &nameRect);
+
+				GuiRect valueRect{ nameRect.right + 1, y, rowRect.right, y1 };
+				p->Prop().Render(rc, valueRect, fontColour);
+				p->SetRect(valueRect);
+				Rococo::Graphics::DrawBorderAround(rc, valueRect, { 1,1 }, edge1, edge2);
+
+				y = y1 + 3;
+				odd = !odd;
+			}
+		}
+	};
+
+	class WallEditor
+	{
+		BloodyPropertySetEditor editor;
+	public:
+		IUIElement& UIElement() { return editor; }
+
+		WallEditor(Platform& _platform): editor(_platform)
+		{
+			editor.AddMaterialCategory("brickwwork");
+			editor.AddMaterialCategory("cement");
+			editor.AddBool("scripted");
+			editor.AddPingPath("script");
+		}
+	};
+
 	class Editor : public IEditor, public IUIElement, private IObserver, IEventCallback<ToggleStateChanged>, public IEditorState
 	{
 		WorldMap map;
@@ -944,6 +1789,8 @@ namespace
 		ToggleEventHandler editModeHandler;
 		ToggleEventHandler textureTargetHandler;
 		ToggleEventHandler scrollLock;
+
+		WallEditor wallEditor;
 
 		char levelpath[IO::MAX_PATHLEN] = { 0 };
 
@@ -1127,7 +1974,8 @@ namespace
 			statusbar(CreateStatusBar(_platform.publisher)),
 			editModeHandler("editor.edit_mode", _platform.publisher, { "v", "s" }),
 			textureTargetHandler("editor.texture.target", _platform.publisher, { "w", "f", "c" }),
-			scrollLock("editor.texture.lock", _platform.publisher, { "U", "L" })
+			scrollLock("editor.texture.lock", _platform.publisher, { "U", "L" }),
+			wallEditor(_platform)
 		{
 			REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorNew, "editor.new", nullptr);
 			REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorLoad, "editor.load", nullptr);
@@ -1144,10 +1992,13 @@ namespace
 			platform.gui.RegisterPopulator("sector_editor", this);
 
 			editMode_SectorEditor.SetEditor(this);
+
+			platform.gui.RegisterPopulator("editor.tab.walls", &wallEditor.UIElement());
 		}
 
 		~Editor()
 		{
+			platform.gui.UnregisterPopulator(&wallEditor.UIElement());
 			platform.gui.UnregisterPopulator(this);
 			platform.publisher.Detach(this);
 		}

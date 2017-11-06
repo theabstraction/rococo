@@ -33,6 +33,11 @@ namespace Rococo
 		bool IsUp() const { return (Flags & 0x0001) != 0; }
 	};
 
+	ROCOCOAPI IKeyboardSink
+	{
+		virtual bool OnKeyboardEvent(const KeyboardEvent& key) = 0;
+	};
+
 	struct MouseEvent
 	{
 		uint16 flags;
