@@ -9,18 +9,10 @@ namespace Rococo
 {
 	namespace Imaging
 	{
-		struct F_A8R8G8B8
-		{
-			unsigned char b;
-			unsigned char g;
-			unsigned char r;
-			unsigned char a;
-		};
-
 		struct IImageLoadEvents
 		{
 			virtual void OnError(const char* message) = 0;
-			virtual void OnARGBImage(const Vec2i& span, const F_A8R8G8B8* data) = 0;
+			virtual void OnRGBAImage(const Vec2i& span, const RGBAb* data) = 0;
 			virtual void OnAlphaImage(const Vec2i& span, const uint8* data) = 0;
 		};
 		

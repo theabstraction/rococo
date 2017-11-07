@@ -5,6 +5,7 @@
 #include <rococo.sexy.ide.h>
 #include <rococo.dx11.renderer.win32.h>
 #include <rococo.strings.h>
+#include <rococo.imaging.h>
 
 #include <vector>
 #include <algorithm>
@@ -149,6 +150,21 @@ public:
 		dialog.Flags = OFN_CREATEPROMPT | OFN_ENABLESIZING | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
 		dialog.lpstrDefExt = sd.ext;
 
+		fstring fullPath = to_fstring(sd.path);
+
+		char initialPath[IO::MAX_PATHLEN];
+
+		if (fullPath.buffer[fullPath.length - 1] == '\\')
+		{
+			SafeFormat(initialPath, IO::MAX_PATHLEN, "%s", sd.path);
+			*sd.path = 0;
+			dialog.Flags = OFN_CREATEPROMPT | OFN_ENABLESIZING | OFN_OVERWRITEPROMPT;
+		}
+		else
+		{
+			dialog.Flags = OFN_CREATEPROMPT | OFN_ENABLESIZING | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
+		}
+
 		renderer.SwitchToWindowMode();
 
 		if (GetSaveFileNameA(&dialog))
@@ -158,7 +174,7 @@ public:
 		}
 		else
 		{
-			int error = GetLastError();
+			int error = CommDlgExtendedError();
 			if (error != 0) Throw(error, "Error GetSaveFileNameA");
 			return false;
 		}
@@ -188,7 +204,7 @@ public:
 
 		EndDirectoryWithSlash(shortdir, IO::MAX_PATHLEN);
 
-		SafeFormat(directory, IO::MAX_PATHLEN, "%s%s", installation.Content(), (shortdir + 1));
+		SafeFormat(directory, IO::MAX_PATHLEN, "%s%s", (cstr) installation.Content(), (shortdir + 1));
 		IO::ForEachFileInDirectory(directory, onFileFound);
 
 		std::sort(onFileFound.allResults.begin(), onFileFound.allResults.end());
@@ -2862,7 +2878,8 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 	IMathsVenue* venue = nullptr;
 	OSVenue osVenue;
 
-	PlatformTabs(Platform& _platform): platform(_platform)
+	PlatformTabs(Platform& _platform):
+		platform(_platform)
 	{
 		platform.publisher.Attach(this, UIPopulate::EvId());
 	}
@@ -2960,6 +2977,10 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 
 void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 {
+	AutoFree<IAllocatorSupervisor> imageAllocator = Memory::CreateBlockAllocator(0, 0);
+	Imaging::SetJpegAllocator(imageAllocator);
+	Imaging::SetTiffAllocator(imageAllocator);
+
 	AutoFree<IOSSupervisor> os = GetOS();
 	AutoFree<IInstallationSupervisor> installation = CreateInstallation("content.indicator.txt", *os);
 	AutoFree<Rococo::Events::IPublisherSupervisor> publisher(Events::CreatePublisher());

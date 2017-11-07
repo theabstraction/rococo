@@ -256,7 +256,7 @@ namespace
                Throw(0, "Could not load image %s:\n%S", name, message);
             }
 
-            virtual void OnARGBImage(const Vec2i& span, const Imaging::F_A8R8G8B8* data)
+            virtual void OnRGBAImage(const Vec2i& span, const RGBAb* data)
             {
                if (span.x <= maxWidth && span.y <= maxWidth)
                {
@@ -540,7 +540,7 @@ namespace
                   Throw(0, "Could not load image %s:\n%S", name, message);
                }
 
-               virtual void OnARGBImage(const Vec2i& span, const Imaging::F_A8R8G8B8* data)
+               virtual void OnRGBAImage(const Vec2i& span, const RGBAb* data)
                {
                   if (this->span.x != span.x || this->span.y != span.y)
                   {
@@ -590,19 +590,6 @@ namespace Rococo
 {
    namespace Textures
    {
-      const RGBAb* ConvertToRGBAbFormat(Imaging::F_A8R8G8B8* pixels, size_t bufferLength)
-      {
-         RGBAb* engineFormat = (RGBAb*)pixels;
-
-         for (size_t i = 0; i < bufferLength; ++i)
-         {
-            auto src = pixels[i];
-            engineFormat[i] = RGBAb(src.r, src.g, src.b, src.a);
-         }
-
-         return engineFormat;
-      }
-
       void StandardLoadFromCompressedTextureBuffer(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad, IInstallation& installation, IExpandingBuffer& buffer)
       {
          COMPRESSED_TYPE type;

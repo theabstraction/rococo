@@ -153,7 +153,7 @@ namespace Rococo
 			rc.AddTriangle(v + 3);
 		}
 
-		void DrawSprite(const Vec2i& topLeftBitmap, const BitmapLocation& location, IGuiRenderContext& gc, bool alphaBlend)
+		void DrawSprite(const Vec2i& topLeftBitmap, const BitmapLocation& location, IGuiRenderContext& gc)
 		{
 			Vec2 topLeft, bottomRight;
 			topLeft.x = (float)topLeftBitmap.x;
@@ -183,6 +183,16 @@ namespace Rococo
 			GuiVertex BR[3] = { quad[2], quad[3], quad[0] };
 			gc.AddTriangle(TL);
 			gc.AddTriangle(BR);
+		}
+
+		void DrawSpriteCentred(const GuiRect& rect, const Textures::BitmapLocation& location, IGuiRenderContext& gc)
+		{
+			GuiMetrics metrics;
+			gc.Renderer().GetGuiMetrics(metrics);
+
+			Vec2i sprSpan = Span(location.txUV);
+			Vec2i pos = Centre(rect) - Vec2i { sprSpan.x >> 1, sprSpan.y >> 1};
+			DrawSprite(pos, location, gc);
 		}
 	}
 } // Rococo

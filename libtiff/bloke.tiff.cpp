@@ -213,7 +213,7 @@ namespace
 
 			bool isGood = false;
 
-			TIFF* tif = TIFFClientOpen(filename, "r", (thandle_t) this, Read, Write, Seek, Close, GetFileLength, MapFile, UnmapFile);
+			TIFF* tif = TIFFClientOpen(filename, "r", (thandle_t)this, Read, Write, Seek, Close, GetFileLength, MapFile, UnmapFile);
 			if (tif)
 			{
 				Rococo::uint32 width, height;
@@ -230,11 +230,20 @@ namespace
 				if (samplesPerPixel == 3 || samplesPerPixel == 4)
 				{
 					nPixels = width * height;
-					F_A8R8G8B8* raster = (F_A8R8G8B8*)_TIFFmalloc(nPixels * sizeof (F_A8R8G8B8));
+					RGBAb* raster = (RGBAb*)_TIFFmalloc(nPixels * sizeof(RGBAb));
 
 					if (TIFFReadRGBAImageOriented(tif, width, height, (Rococo::uint32*) raster, ORIENTATION_TOPLEFT))
 					{
-                  loadEvents.OnARGBImage(Vec2i{ (Rococo::int32) width, (Rococo::int32) height }, raster);
+						uint32* p = (uint32*) raster;
+						uint32* rasterEnd = p + (width * height);
+
+						for (; p < rasterEnd; ++p)
+						{
+							RGBAb colour(TIFFGetR(*p), TIFFGetG(*p), TIFFGetB(*p), TIFFGetA(*p));
+							RGBAb *dest = (RGBAb*)p;
+							*dest = colour;
+						}
+						loadEvents.OnRGBAImage(Vec2i{ (Rococo::int32) width, (Rococo::int32) height }, raster);
 						isGood = true;
 					}
 					else
@@ -247,7 +256,7 @@ namespace
 				{
 					Rococo::uint32 len = (Rococo::uint32)TIFFScanlineSize(tif);
 					nPixels = width * height;
-					char* raster = (char*)_TIFFmalloc(nPixels * sizeof (char));
+					char* raster = (char*)_TIFFmalloc(nPixels * sizeof(char));
 
 					Rococo::uint32 j;
 					for (j = 0; j < height; j++)
@@ -266,11 +275,11 @@ namespace
 
 					if (j == height)
 					{
-                  loadEvents.OnAlphaImage(Vec2i{ (Rococo::int32) width,(Rococo::int32) height }, (const Rococo::uint8*) raster);
+						loadEvents.OnAlphaImage(Vec2i{ (Rococo::int32) width,(Rococo::int32) height }, (const Rococo::uint8*) raster);
 						isGood = true;
 					}
 
-               _TIFFfree(raster);
+					_TIFFfree(raster);
 				}
 
 				TIFFClose(tif);
@@ -296,7 +305,7 @@ namespace Rococo
 	{
 		bool DecompressTiff(IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes)
 		{
-			ImageReader reader("Tiff-File", (const char*) sourceBuffer, (toff_t) dataLengthBytes);
+			ImageReader reader("Tiff-File", (const char*)sourceBuffer, (toff_t)dataLengthBytes);
 
 			char errMessage[1024];
 			errMessage[0] = 0;
@@ -311,9 +320,9 @@ namespace Rococo
 			return isOk;
 		}
 
-      void SetTiffAllocator(IAllocator* _allocator)
-      {
-         tiffAllocator = _allocator;
-      }
+		void SetTiffAllocator(IAllocator* _allocator)
+		{
+			tiffAllocator = _allocator;
+		}
 	}
 }

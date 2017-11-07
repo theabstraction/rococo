@@ -82,7 +82,7 @@ namespace Rococo
       void InitScriptSystem(IInstallation& installation)
       {
          rchar srcpath[Rococo::IO::MAX_PATHLEN];
-         SecureFormat(srcpath, sizeof(srcpath), "%sscripts\\native\\", installation.Content());
+         SecureFormat(srcpath, sizeof(srcpath), "%sscripts\\native\\", (cstr) installation.Content());
 
          Rococo::Script::SetDefaultNativeSourcePath(srcpath);
          Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);

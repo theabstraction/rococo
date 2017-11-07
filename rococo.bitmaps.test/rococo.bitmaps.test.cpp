@@ -191,7 +191,7 @@ public:
    struct ImageTexture
    {
       HBITMAP hBitmap;
-      Imaging::F_A8R8G8B8* pixels;
+	  RGBAb* pixels;
    };
 
    int32 width{ 0 };
@@ -220,18 +220,18 @@ public:
          Throw(GetLastError(), "Could not create DIB section");
       }
 
-      imageTextures.push_back({ hBitmap, (Imaging::F_A8R8G8B8*) pBits });
+      imageTextures.push_back({ hBitmap, (RGBAb*) pBits });
    }
 
-   virtual void WriteSubImage(size_t index, const Rococo::Imaging::F_A8R8G8B8* subImagePixels, const GuiRect& targetLocation)
+   virtual void WriteSubImage(size_t index, const RGBAb* subImagePixels, const GuiRect& targetLocation)
    {
       int nRows = targetLocation.bottom - targetLocation.top;
 
-      Imaging::F_A8R8G8B8* targetline = imageTextures[index].pixels + width * targetLocation.top;
-      const Imaging::F_A8R8G8B8* sourceline = subImagePixels;
+      RGBAb* targetline = imageTextures[index].pixels + width * targetLocation.top;
+      const RGBAb* sourceline = subImagePixels;
 
       size_t xOffset = targetLocation.left;
-      size_t lineSize = sizeof(Imaging::F_A8R8G8B8) * (targetLocation.right - targetLocation.left);
+      size_t lineSize = sizeof(RGBAb) * (targetLocation.right - targetLocation.left);
 
       for (int j = 0; j < nRows; ++j)
       {

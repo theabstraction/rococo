@@ -171,21 +171,21 @@ namespace Rococo
 #pragma pack(pop)
 
 					RGB* inputBuffer = (RGB*)*buffer;
-					F_A8R8G8B8* outputBuffer = (F_A8R8G8B8*)(contigBuffer + stride * line);
+					RGBAb* outputBuffer = (RGBAb*)(contigBuffer + stride * line);
 
 					for (JDIMENSION i = 0; i < cinfo.image_width; ++i)
 					{
-						outputBuffer->r = inputBuffer->r;
-						outputBuffer->g = inputBuffer->g;
-						outputBuffer->b = inputBuffer->b;
-						outputBuffer->a = 255;
+						outputBuffer->red = inputBuffer->r;
+						outputBuffer->green = inputBuffer->g;
+						outputBuffer->blue = inputBuffer->b;
+						outputBuffer->alpha = 255;
 
 						outputBuffer++;
 						inputBuffer++;
 					}
 				}
 
-            loadEvents.OnARGBImage(Vec2i{ (int32) cinfo.image_width,(int32)cinfo.image_height }, (const F_A8R8G8B8*)contigBuffer);
+            loadEvents.OnRGBAImage(Vec2i{ (int32) cinfo.image_width,(int32)cinfo.image_height }, (const RGBAb*)contigBuffer);
 
 				Delete(contigBuffer);
 

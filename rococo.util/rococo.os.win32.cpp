@@ -299,48 +299,87 @@ namespace
 	{
 		IOS& os;
 		FilePath contentDirectory;
-
+		int32 len;
 	public:
 		Installation(cstr contentIndicatorName, IOS& _os): os(_os)
 		{
 			GetContentDirectory(contentIndicatorName, contentDirectory, os);
+			len = (int32)strlen(contentDirectory);
 		}
 
-		virtual void Free()
+		void Free()  override
 		{
 			delete this;
 		}
 
-		virtual IOS& OS()
+		IOS& OS()  override
 		{
 			return os;
 		}
 
-		virtual cstr Content() const
+		const fstring Content() const  override
 		{
-			return contentDirectory.data;
+			return fstring{ contentDirectory.data, len };
 		}
 
-		virtual void LoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength)
+		void ConvertPingPathToSysPath(cstr pingPath, char* sysPath, size_t sysPathCapacity) override
+		{
+			if (pingPath == nullptr || *pingPath != '!')
+			{
+				Throw(0, "ConvertPingPathToSysPath:: Ping path did not begin with ping character '!'");
+			}
+
+			auto rsc = to_fstring(pingPath);
+			if (rsc.length + len >= (int32) sysPathCapacity)
+			{
+				Throw(0, "ConvertPingPathToSysPath:: Ping path + content directory path exceeded maximum path length");
+			}
+
+			if (strstr(pingPath, "..") != nullptr)
+			{
+				Throw(0, "ConvertPingPathToSysPath: Illegal sequence in ping path: '..'");
+			}
+
+			SecureFormat(sysPath, sysPathCapacity, "%s", contentDirectory.data);
+			os.ConvertUnixPathToSysPath(pingPath + 1, sysPath + len, sysPathCapacity - len);
+		}
+
+		void ConvertSysPathToPingPath(cstr sysPath, char* pingPath, size_t pingPathCapacity) override
+		{
+			if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
+
+			const fstring s = to_fstring(sysPath);
+			auto p = strstr(sysPath, contentDirectory.data);
+
+			int32 netLength = s.length - len;
+			if (netLength < 0 || p != sysPath)
+			{
+				Throw(0, "ConvertSysPathToPingPath: path did not begin with the content folder %s", contentDirectory.data);
+			}
+
+			if (netLength >= (int32) pingPathCapacity)
+			{
+				Throw(0, "ConvertSysPathToPingPath: Insufficient space in ping path buffer");
+			}
+
+			if (strstr(sysPath, "..") != nullptr)
+			{
+				Throw(0, "ConvertSysPathToPingPath: Illegal sequence in ping path: '..'");
+			}
+
+			SafeFormat(pingPath, pingPathCapacity, "!%s", sysPath + len);
+
+			OS::ToUnixPath(pingPath);
+		}
+
+		void LoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) override
 		{
 			if (resourcePath == nullptr || rlen(resourcePath) < 2) Throw(E_INVALIDARG, "Win32OS::LoadResource failed: <resourcePath> was blank");
-		
+
 			FilePath absPath;
 			if (resourcePath[0] == '!')
 			{
-				if (rlen(resourcePath) + rlen(contentDirectory) >= _MAX_PATH)
-				{
-					Throw(E_INVALIDARG, "Win32OS::LoadResource failed: %s%s - filename was too long", contentDirectory, resourcePath + 1);
-				}
-
-				if (strstr(resourcePath, "..") != nullptr)
-				{
-					Throw(E_INVALIDARG, "Win32OS::LoadResource failed: %s - parent directory sequence '..' is forbidden", resourcePath);
-				}
-
-				FilePath sysPath;
-				os.ConvertUnixPathToSysPath(resourcePath + 1, sysPath, _MAX_PATH);
-				SecureFormat(absPath.data, FilePath::CAPACITY, "%s%s", contentDirectory.data, sysPath.data);
+				ConvertPingPathToSysPath(resourcePath, absPath.data, absPath.CAPACITY);
 			}
 			else
 			{

@@ -1003,10 +1003,46 @@ namespace
 		}
 	};
 
-	class BloodyBoolBinding : public IBloodyPropertyType
+	class BloodyBoolBinding : public IBloodyPropertyType, public IKeyboardSink
 	{
 		bool value = false;
+		Platform& platform;
 	public:
+		BloodyBoolBinding(Platform& _platform): platform(_platform)
+		{
+
+		}
+
+		~BloodyBoolBinding()
+		{
+			platform.gui.DetachKeyboardSink(this);
+		}
+
+		virtual bool OnKeyboardEvent(const KeyboardEvent& key)
+		{
+			if (!key.IsUp())
+			{
+				switch (key.VKey)
+				{
+				case IO::VKCode_ENTER:
+					platform.gui.DetachKeyboardSink(this);
+					break;
+				case IO::VKCode_HOME:
+					value = true;
+					return true;
+				case IO::VKCode_END:
+					value = false;
+					return true;
+				case IO::VKCode_LEFT:
+				case IO::VKCode_RIGHT:
+				case IO::VKCode_SPACEBAR:
+					value = !value;
+					return true;
+				}
+			}
+			return true;
+		}
+
 		virtual void Free()
 		{
 			delete this;
@@ -1019,6 +1055,12 @@ namespace
 
 		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
 		{
+			if (platform.gui.CurrentKeyboardSink() == this)
+			{
+				Rococo::Graphics::DrawRectangle(rc, rect, RGBAb(64, 0, 0, 128), RGBAb(64, 0, 0, 255));
+				Rococo::Graphics::DrawBorderAround(rc, rect, { 1,1 }, RGBAb(255, 255, 255, 255), RGBAb(224, 224, 224, 255));
+			}
+
 			char buffer[16];
 			SafeFormat(buffer, 16, "%s", value ? "true" : "false");
 			Rococo::Graphics::RenderVerticalCentredText(rc, buffer, colour, 9, { rect.left + 4, Centre(rect).y }, &rect);
@@ -1042,7 +1084,18 @@ namespace
 
 		void Click(bool clickedDown, Vec2i pos) override
 		{
-			if (clickedDown) value = !value;
+			if (clickedDown)
+			{
+				value = !value;
+				if (platform.gui.CurrentKeyboardSink() == this)
+				{
+					platform.gui.DetachKeyboardSink(this);
+				}
+				else
+				{
+					platform.gui.AttachKeyboardSink(this);
+				}
+			}
 		}
 	};
 
@@ -1348,9 +1401,10 @@ namespace
 		int32 capacity;
 		int32 cursorPos = 0;
 		Platform& platform;
+		bool defaultToEnd;
 	public:
-		TextEditorBox(Platform& _platform, char* _buffer, size_t _capacity) :
-			platform(_platform), buffer(_buffer), capacity((int32)_capacity) {}
+		TextEditorBox(Platform& _platform, char* _buffer, size_t _capacity, bool _defaultToEnd) :
+			platform(_platform), buffer(_buffer), capacity((int32)_capacity), defaultToEnd(_defaultToEnd) {}
 
 		~TextEditorBox()
 		{
@@ -1481,9 +1535,10 @@ namespace
 
 		void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
 		{
-			if (cursorPos > (int32) strlen(buffer))
+			int32 len = (int32)strlen(buffer);
+			if (cursorPos > len)
 			{
-				cursorPos = (int32) strlen(buffer);
+				cursorPos = len;
 			}
 
 			int x = rect.left + 4;
@@ -1516,9 +1571,10 @@ namespace
 
 			GuiRect clipRect = { x, rect.top, rect.right - 10, rect.bottom };
 
-			int pos = platform.gui.CurrentKeyboardSink() == this ? cursorPos : 0;
-			Vec2i span = Rococo::Graphics::RenderVerticalCentredTextWithCallback(rc, pos, cb, buffer, colour, 9, { x, Centre(rect).y }, clipRect);
+			int pos = platform.gui.CurrentKeyboardSink() == this ? cursorPos : (defaultToEnd ? len : 0);
 
+			Rococo::Graphics::RenderVerticalCentredTextWithCallback(rc, pos, cb, buffer, colour, 10, { x, Centre(rect).y }, clipRect);
+			
 			if (platform.gui.CurrentKeyboardSink() == this)
 			{
 				if (cb.cursorRect.left == cb.cursorRect.right)
@@ -1544,13 +1600,172 @@ namespace
 		}
 	};
 
+	class BloodyMaterialBinding : public IBloodyPropertyType
+	{
+		char value[IO::MAX_PATHLEN] = { "random" };
+		Platform& platform;
+		TextEditorBox teb;
+		MaterialId id = -1;
+	public:
+		BloodyMaterialBinding(Platform& _platform) : platform(_platform), teb(_platform, value, IO::MAX_PATHLEN, true)
+		{
+		}
+
+		virtual void Free()
+		{
+			delete this;
+		}
+
+		virtual cstr Name() const
+		{
+			return "MaterialId";
+		}
+
+		MaterialId GetLeftValue(MaterialId v)
+		{
+			if (v >= 0) v -= 1;
+			return v;
+		}
+
+		MaterialId GetRightValue(MaterialId v)
+		{
+			MaterialArrayMetrics metrics;
+			platform.renderer.GetMaterialArrayMetrics(metrics);
+			if (v < metrics.NumberOfElements - 1)
+			{
+				v += 1;
+			}
+			return v;
+		}
+
+		GuiRect leftClickRect;
+		GuiRect rightClickRect;
+
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		{
+			int32 spinnerSpan = Height(rect);
+
+			GuiRect editorRect{ rect.left + spinnerSpan, rect.top, rect.right - spinnerSpan, rect.bottom };
+
+			if (Eq("random", value) && platform.gui.CurrentKeyboardSink() != &teb)
+			{
+				Rococo::Graphics::RenderCentredText(rc, value, RGBAb(128, 0, 0, 255), 9, Centre(editorRect), &editorRect);
+			}
+			else
+			{
+				teb.Render(rc, editorRect, colour);
+			}
+
+			GuiMetrics metrics;
+			rc.Renderer().GetGuiMetrics(metrics);
+
+			MaterialId leftValue = GetLeftValue(id);
+			MaterialId rightValue = GetRightValue(id);
+
+			if (IsPointInRect(metrics.cursorPosition, rect))
+			{
+				RGBAb spinColour1 = IsPointInRect(metrics.cursorPosition, leftClickRect) ? RGBAb(255, 255, 128) : RGBAb(192, 192, 64);
+				int32 clickBorder = 4;
+				leftClickRect = GuiRect{ rect.left + clickBorder, rect.top + clickBorder, rect.left + spinnerSpan - clickBorder, rect.bottom - clickBorder };
+				Rococo::Graphics::DrawTriangleFacingLeft(rc, leftClickRect, (leftValue != id) ? spinColour1 : RGBAb(64, 64, 64));
+
+				RGBAb spinColour2 = IsPointInRect(metrics.cursorPosition, rightClickRect) ? RGBAb(255, 255, 128) : RGBAb(192, 192, 64);
+				rightClickRect = GuiRect{ rect.right - spinnerSpan + clickBorder, rect.top + clickBorder, rect.right - clickBorder, rect.bottom - clickBorder };
+				Rococo::Graphics::DrawTriangleFacingRight(rc, rightClickRect, (rightValue != id) ? spinColour2 : RGBAb(64, 64, 64));
+			}
+		}
+
+		RGBAb NameColour() const override
+		{
+			return RGBAb(96, 0, 96, 128);
+		}
+
+		void Click(bool clickedDown, Vec2i pos) override
+		{
+			bool consumed = false;
+
+			if (clickedDown)
+			{
+				auto oldId = id;
+
+				if (IsPointInRect(pos, leftClickRect))
+				{
+					id = GetLeftValue(id);
+					consumed = true;
+				}
+				else if (IsPointInRect(pos, rightClickRect))
+				{
+					id = GetRightValue(id);
+					consumed = true;
+				}
+
+				if (id == -1)
+				{
+					SafeFormat(value, sizeof(value), "random");
+				}
+				else if (oldId != id)
+				{
+					auto mat = platform.renderer.GetMaterialTextureName(id);
+					if (mat)
+					{
+						char sysName[IO::MAX_PATHLEN];
+						SafeFormat(sysName, sizeof(sysName), "%s", mat);
+
+						auto root = platform.installation.Content();
+
+						if (strstr(sysName, root))
+						{
+							cstr subPath = sysName + root.length;
+							SafeFormat(value, sizeof(value), "!%s", subPath);
+							OS::ToUnixPath(value);
+						}
+					}
+				}
+			}
+
+			if (!consumed) teb.Click(clickedDown);
+		}
+	};
+
+
+	class BloodySpacer : public IBloodyPropertyType
+	{
+	public:
+		BloodySpacer() 
+		{
+		}
+
+		virtual void Free()
+		{
+			delete this;
+		}
+
+		virtual cstr Name() const
+		{
+			return "Spacer";
+		}
+
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		{
+		}
+
+		RGBAb NameColour() const override
+		{
+			return RGBAb(0, 0, 0, 0);
+		}
+
+		void Click(bool clickedDown, Vec2i pos) override
+		{
+		}
+	};
+
 	class BloodyPingPathBinding : public IBloodyPropertyType
 	{
 		char value[IO::MAX_PATHLEN] = { 0 };
 		Platform& platform;
 		TextEditorBox teb;
 	public:
-		BloodyPingPathBinding(Platform& _platform) : platform(_platform), teb(_platform, value, IO::MAX_PATHLEN)
+		BloodyPingPathBinding(Platform& _platform) : platform(_platform), teb(_platform, value, IO::MAX_PATHLEN, true)
 		{
 		}
 
@@ -1564,9 +1779,40 @@ namespace
 			return "Ping Path";
 		}
 
+		GuiRect editorRect;
+		GuiRect buttonRect;
+
+		const fstring loadImage = "!textures/toolbars/load.tif"_fstring;
+
 		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
 		{
-			teb.Render(rc, rect, colour);
+			int span = Height(rect);
+			editorRect = GuiRect{ rect.left, rect.top, rect.right - span, rect.bottom };
+			teb.Render(rc, editorRect, colour);
+
+			buttonRect = GuiRect{ editorRect.right + 2, rect.top + 2, rect.right - 2, rect.bottom - 2 };
+
+			GuiMetrics metrics;
+			rc.Renderer().GetGuiMetrics(metrics);
+
+			Textures::BitmapLocation bml;
+			if (platform.renderer.SpriteBuilder().TryGetBitmapLocation(loadImage, bml))
+			{
+				Rococo::Graphics::DrawSpriteCentred(buttonRect, bml, rc);
+			}
+			else
+			{
+				Rococo::Graphics::RenderCentredText(rc, "~", RGBAb(255, 255, 255), 3, Centre(buttonRect), &buttonRect);
+			}
+
+			if (IsPointInRect(metrics.cursorPosition, rect))
+			{
+				Rococo::Graphics::DrawBorderAround(rc, buttonRect, { 1,1 }, RGBAb(255, 255, 255), RGBAb(224, 224, 224));
+			}
+			else
+			{
+				Rococo::Graphics::DrawBorderAround(rc, buttonRect, { 1,1 }, RGBAb(192, 192, 192), RGBAb(160, 160, 160));
+			}
 		}
 
 		RGBAb NameColour() const override
@@ -1576,7 +1822,70 @@ namespace
 
 		void Click(bool clickedDown, Vec2i pos) override
 		{
-			teb.Click(clickedDown);
+			if (IsPointInRect(pos, editorRect))
+			{
+				teb.Click(clickedDown);
+			}
+			else if (IsPointInRect(pos, buttonRect))
+			{
+				SaveDesc sd;
+				sd.caption = "Select or Create file";
+				sd.ext = "*.sxy";
+				sd.extDesc = "Sexy script (.sxy)";
+				sd.shortName = nullptr;
+
+				bool changed = false;
+
+				auto content = platform.installation.Content();
+
+				if (*value == '!')
+				{
+					char buffer[IO::MAX_PATHLEN];
+					platform.os.ConvertUnixPathToSysPath(value, buffer, IO::MAX_PATHLEN);
+					SafeFormat(sd.path, sizeof(sd.path), "%s%s", (cstr) content, buffer);
+
+					if (OS::IsFileExistant(sd.path))
+					{
+						changed = platform.utilities.GetSaveLocation(platform.renderer.Window(), sd);
+					}
+					else
+					{
+						if (platform.utilities.QueryYesNo(platform, platform.renderer.Window(), "Cannot locate file. Navigate to content?"))
+						{
+							SafeFormat(sd.path, sizeof(sd.path), "%s", (cstr)content);
+							changed = platform.utilities.GetSaveLocation(platform.renderer.Window(), sd);
+						}
+					}
+				}
+				else
+				{
+					if (platform.utilities.QueryYesNo(platform, platform.renderer.Window(), "Path did not begin with ping. Navigate to content?"))
+					{
+						SafeFormat(sd.path, sizeof(sd.path), "%s", (cstr)content);
+						changed = platform.utilities.GetSaveLocation(platform.renderer.Window(), sd);
+					}
+				}
+
+				if (changed)
+				{
+					if (strstr(sd.path, content) != sd.path)
+					{
+						try
+						{
+							Throw(0, "Path was not a subdirectory of the content folder\nChoose a secure ping path");
+						}
+						catch (IException& ex)
+						{
+							platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, platform.title);
+						}
+						return;
+					}
+
+					OS::ToUnixPath(sd.path + content.length);
+
+					SecureFormat(value, IO::MAX_PATHLEN, "!%s", sd.path + content.length);
+				}
+			}
 		}
 	};
 
@@ -1642,6 +1951,17 @@ namespace
 			}
 		}
 
+		void AddBool(cstr name)
+		{
+			Add( new BloodyProperty(new BloodyBoolBinding(platform), name) );
+		}
+
+
+		void AddSpacer()
+		{
+			properties.push_back(new BloodyProperty(new BloodySpacer(), ""));
+		}
+
 		void AddFloat(cstr name)
 		{
 			Add( new BloodyProperty(new BloodyFloatBinding, name) );
@@ -1652,20 +1972,21 @@ namespace
 			Add( new BloodyProperty(new BloodyIntBinding, name) );
 		}
 
-		void AddBool(cstr name)
-		{
-			Add( new BloodyProperty(new BloodyBoolBinding, name) );
-		}
-
 		void AddMaterialCategory(cstr name)
 		{
-			auto* beib = new BloodyEnumInt32Binding(platform, "MaterialCategory");
-			beib->AddEnumConstant("Rock",   Rococo::Graphics::MaterialCategory_Rock);
-			beib->AddEnumConstant("Stone",  Rococo::Graphics::MaterialCategory_Stone);
-			beib->AddEnumConstant("Marble", Rococo::Graphics::MaterialCategory_Marble);
-			beib->AddEnumConstant("Metal",  Rococo::Graphics::MaterialCategory_Metal);
-			beib->AddEnumConstant("Wood",   Rococo::Graphics::MaterialCategory_Wood);
-			Add( new BloodyProperty(beib, name));
+			auto* b = new BloodyEnumInt32Binding(platform, "MaterialCategory");
+			b->AddEnumConstant("Rock",   Rococo::Graphics::MaterialCategory_Rock);
+			b->AddEnumConstant("Stone",  Rococo::Graphics::MaterialCategory_Stone);
+			b->AddEnumConstant("Marble", Rococo::Graphics::MaterialCategory_Marble);
+			b->AddEnumConstant("Metal",  Rococo::Graphics::MaterialCategory_Metal);
+			b->AddEnumConstant("Wood",   Rococo::Graphics::MaterialCategory_Wood);
+			Add( new BloodyProperty(b, name));
+		}
+
+		void AddMaterialString(cstr name)
+		{
+			auto* b = new BloodyMaterialBinding(platform);
+			Add(new BloodyProperty(b, name));
 		}
 
 		void AddPingPath(cstr name)
@@ -1745,14 +2066,17 @@ namespace
 
 				RGBAb fontColour = IsPointInRect(metrics.cursorPosition, rowRect) ? RGBAb(255, 255, 255) : RGBAb(224, 224, 224, 224);
 
-				GuiRect nameRect{ rowRect.left, y, rowRect.left + 100, y1 };
-				Rococo::Graphics::DrawRectangle(rc, nameRect, p->Prop().NameColour(), p->Prop().NameColour());
-				Rococo::Graphics::RenderVerticalCentredText(rc, p->Name(), fontColour, 9, { rowRect.left + 4, Centre(rowRect).y }, &nameRect);
+				if (*p->Name())
+				{
+					GuiRect nameRect{ rowRect.left, y, rowRect.left + 100, y1 };
+					Rococo::Graphics::DrawRectangle(rc, nameRect, p->Prop().NameColour(), p->Prop().NameColour());
+					Rococo::Graphics::RenderVerticalCentredText(rc, p->Name(), fontColour, 9, { rowRect.left + 4, Centre(rowRect).y }, &nameRect);
 
-				GuiRect valueRect{ nameRect.right + 1, y, rowRect.right, y1 };
-				p->Prop().Render(rc, valueRect, fontColour);
-				p->SetRect(valueRect);
-				Rococo::Graphics::DrawBorderAround(rc, valueRect, { 1,1 }, edge1, edge2);
+					GuiRect valueRect{ nameRect.right + 1, y, rowRect.right, y1 };
+					p->Prop().Render(rc, valueRect, fontColour);
+					p->SetRect(valueRect);
+					Rococo::Graphics::DrawBorderAround(rc, valueRect, { 1,1 }, edge1, edge2);
+				}
 
 				y = y1 + 3;
 				odd = !odd;
@@ -1768,10 +2092,73 @@ namespace
 
 		WallEditor(Platform& _platform): editor(_platform)
 		{
+			editor.AddSpacer();
 			editor.AddMaterialCategory("brickwwork");
+			editor.AddMaterialString("brickwork id");
+			editor.AddSpacer();
 			editor.AddMaterialCategory("cement");
+			editor.AddMaterialString("cement id");
+			editor.AddSpacer();
 			editor.AddBool("scripted");
 			editor.AddPingPath("script");
+		}
+	};
+
+	class FloorEditor
+	{
+		BloodyPropertySetEditor editor;
+	public:
+		IUIElement& UIElement() { return editor; }
+
+		FloorEditor(Platform& _platform) : editor(_platform)
+		{
+			editor.AddSpacer();
+			editor.AddMaterialCategory("ground");
+			editor.AddMaterialString("ground id");
+			editor.AddSpacer();
+			editor.AddMaterialCategory("rim");
+			editor.AddMaterialString("rim id");
+		}
+	};
+
+	class CeilingEditor
+	{
+		BloodyPropertySetEditor editor;
+	public:
+		IUIElement& UIElement() { return editor; }
+
+		CeilingEditor(Platform& _platform) : editor(_platform)
+		{
+			editor.AddSpacer();
+			editor.AddMaterialCategory("ceiling");
+			editor.AddMaterialString("ceiling id");
+			editor.AddSpacer();
+			editor.AddMaterialCategory("rim");
+			editor.AddMaterialString("rim id");
+		}
+	};
+
+	class DoorEditor
+	{
+		BloodyPropertySetEditor editor;
+	public:
+		IUIElement& UIElement() { return editor; }
+
+		DoorEditor(Platform& _platform) : editor(_platform)
+		{
+			editor.AddBool("Has Door");
+			editor.AddSpacer();
+			editor.AddMaterialCategory("casing");
+			editor.AddMaterialString("casing id");
+			editor.AddSpacer();
+			editor.AddMaterialCategory("panels");
+			editor.AddMaterialString("panels id");
+			editor.AddSpacer();
+			editor.AddMaterialCategory("mullion");
+			editor.AddMaterialString("mullion id");
+			editor.AddSpacer();
+			editor.AddMaterialCategory("rail");
+			editor.AddMaterialString("rail id");
 		}
 	};
 
@@ -1791,6 +2178,9 @@ namespace
 		ToggleEventHandler scrollLock;
 
 		WallEditor wallEditor;
+		FloorEditor floorEditor;
+		CeilingEditor ceilingEditor;
+		DoorEditor doorEditor;
 
 		char levelpath[IO::MAX_PATHLEN] = { 0 };
 
@@ -1975,7 +2365,10 @@ namespace
 			editModeHandler("editor.edit_mode", _platform.publisher, { "v", "s" }),
 			textureTargetHandler("editor.texture.target", _platform.publisher, { "w", "f", "c" }),
 			scrollLock("editor.texture.lock", _platform.publisher, { "U", "L" }),
-			wallEditor(_platform)
+			wallEditor(_platform),
+			floorEditor(_platform),
+			ceilingEditor(_platform),
+			doorEditor(_platform)
 		{
 			REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorNew, "editor.new", nullptr);
 			REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorLoad, "editor.load", nullptr);
@@ -1994,11 +2387,17 @@ namespace
 			editMode_SectorEditor.SetEditor(this);
 
 			platform.gui.RegisterPopulator("editor.tab.walls", &wallEditor.UIElement());
+			platform.gui.RegisterPopulator("editor.tab.floor", &floorEditor.UIElement());
+			platform.gui.RegisterPopulator("editor.tab.ceiling", &ceilingEditor.UIElement());
+			platform.gui.RegisterPopulator("editor.tab.doors", &doorEditor.UIElement());
 		}
 
 		~Editor()
 		{
 			platform.gui.UnregisterPopulator(&wallEditor.UIElement());
+			platform.gui.UnregisterPopulator(&floorEditor.UIElement());
+			platform.gui.UnregisterPopulator(&ceilingEditor.UIElement());
+			platform.gui.UnregisterPopulator(&doorEditor.UIElement());
 			platform.gui.UnregisterPopulator(this);
 			platform.publisher.Detach(this);
 		}

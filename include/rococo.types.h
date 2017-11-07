@@ -426,7 +426,7 @@ namespace Rococo
 
    ROCOCOAPI IAllocatorSupervisor: public IAllocator
    {
-      virtual void Free() = 0;
+		virtual void Free() = 0;
    };
 
    ROCOCOAPI IHeapObject

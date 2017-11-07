@@ -5,11 +5,6 @@ namespace Rococo
 {
    struct IExpandingBuffer;
 
-   namespace Imaging
-   {
-      struct F_A8R8G8B8;
-   }
-
    namespace Textures
    {
       enum COMPRESSED_TYPE
@@ -53,15 +48,13 @@ namespace Rococo
       {
          virtual void AddTexture() = 0;
          virtual void ResetWidth(int32 width) = 0;     
-         virtual void WriteSubImage(size_t index, const Imaging::F_A8R8G8B8* pixels, const GuiRect& targetLocation) = 0;    
+         virtual void WriteSubImage(size_t index, const RGBAb* pixels, const GuiRect& targetLocation) = 0;
          virtual int32 MaxWidth() const = 0;
          virtual size_t TextureCount() const = 0;
       };
 
       void StandardLoadFromCompressedTextureBuffer(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad, IInstallation& installation, IExpandingBuffer& buffer);
       ITextureArrayBuilderSupervisor* CreateTextureArrayBuilder(IResourceLoader& loader, ITextureArray& textureArray);
-
-      const RGBAb* ConvertToRGBAbFormat(Imaging::F_A8R8G8B8* pixels, size_t bufferLength);
    }
 }
 

@@ -116,7 +116,7 @@ namespace
       {
          allocCount++;
          auto* ptr = HeapAlloc(hHeap, 0, capacity);
-         if (ptr == nullptr) Throw(0, "Insufficient memory in dedicated BlockAllocator heap for alloc operation");
+         if (ptr == nullptr) Throw(GetLastError(), "Insufficient memory in dedicated BlockAllocator heap for alloc operation");
          return ptr;
       }
 

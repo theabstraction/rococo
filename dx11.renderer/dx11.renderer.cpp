@@ -96,7 +96,7 @@ namespace
 		float OOScreenWidth;
 		float OOScreenHeight;
 		float OOFontWidth;
-		float OOFontHeight;
+		float OOSpriteWidth;
 	};
 
    struct Overlay
@@ -224,7 +224,7 @@ namespace
 		  arrayCapacity = count = nElements;
 	  }
 
-      virtual void WriteSubImage(size_t index, const Imaging::F_A8R8G8B8* pixels, const GuiRect& targetLocation)
+      virtual void WriteSubImage(size_t index, const RGBAb* pixels, const GuiRect& targetLocation)
       {
          if (width > 0 && tb.texture == nullptr)
          {
@@ -249,7 +249,6 @@ namespace
          {
             UINT subresourceIndex = D3D11CalcSubresource(0, (UINT)index, 1);
             Vec2i span = Span(targetLocation);
-            const RGBAb* src = ConvertToRGBAbFormat((Imaging::F_A8R8G8B8*) pixels, span.x * span.y);
             D3D11_BOX box;
             box.left = targetLocation.left;
             box.right = targetLocation.right;
@@ -259,7 +258,7 @@ namespace
             box.bottom = targetLocation.bottom;
 
             UINT srcDepth = span.x * span.y * sizeof(RGBAb);
-            dc.UpdateSubresource(tb.texture, subresourceIndex, &box, src, span.x * sizeof(RGBAb), srcDepth);
+            dc.UpdateSubresource(tb.texture, subresourceIndex, &box, pixels, span.x * sizeof(RGBAb), srcDepth);
          }
       }
 
@@ -931,7 +930,7 @@ namespace
 					   Throw(0, "Error loading material texture: %s: %s", name, message);
 				   }
 
-				   virtual void OnARGBImage(const Vec2i& span, const Imaging::F_A8R8G8B8* pixels)
+				   virtual void OnRGBAImage(const Vec2i& span, const RGBAb* pixels)
 				   {
 					   if (span.x != txWidth || span.y != txWidth)
 					   {
@@ -1620,7 +1619,7 @@ namespace
 		   guiScaleVector.OOScreenWidth = 1.0f / screenSpan.x;
 		   guiScaleVector.OOScreenHeight = 1.0f / screenSpan.y;
 		   guiScaleVector.OOFontWidth = fonts->TextureSpan().z;
-		   guiScaleVector.OOFontHeight = fonts->TextureSpan().w;
+		   guiScaleVector.OOSpriteWidth = 1.0f / spriteArray.width;
 
 		   DX11::CopyStructureToBuffer(dc, vector4Buffer, &guiScaleVector, sizeof(GuiScale));
 
@@ -1633,6 +1632,9 @@ namespace
 		   {
 			   Throw(0, "Error setting Gui shaders");
 		   }
+
+		   ID3D11ShaderResourceView* spriteviews[1] = { spriteArray.View() };
+		   dc.PSSetShaderResources(7, 1, spriteviews);
 
 		   scene.RenderGui(*this);
 
@@ -1655,6 +1657,7 @@ namespace
 		   dc.PSSetShaderResources(1, 1, &nullView);
 		   dc.PSSetShaderResources(2, 1, &nullView);
 		   dc.PSSetShaderResources(4, 1, &nullView);
+		   dc.PSSetShaderResources(7, 1, &nullView);
 
 		   ID3D11SamplerState* nullState = nullptr;
 		   dc.PSSetSamplers(0, 1, &nullState);
@@ -1707,7 +1710,7 @@ namespace
 
 		   RGBAb colour = FontColourToSysColour(fcolour);
 
-		   SpriteVertexData drawFont{ 1.0f, 0.0f, 0.0f, 0.0f };
+		   SpriteVertexData drawFont{ 1.0f, 0.0f, 0.0f, 1.0f };
 
 		   guiVertices.push_back(GuiVertex{ {x,           y}, {{ uvTopLeft.x,      uvTopLeft.y},      1 }, drawFont, (RGBAb)colour }); // topLeft
 		   guiVertices.push_back(GuiVertex{ {x,      y + dy}, {{ uvTopLeft.x,      uvTopLeft.y + dy}, 1 }, drawFont, (RGBAb)colour }); // bottomLeft

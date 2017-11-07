@@ -9,7 +9,7 @@ struct SpriteVertexData
 	float saturation; // 1.0 -> use colour, 0.0 -> use bitmap texture
 	float spriteIndex; // Indexes the texture in the sprite array.
 	float matIndex; // Indexes the texture in the material array
-	float spriteToMatLerpFactor; // 0 -> use textureIndex, 1 -> use matIndex, lerping in between
+	float spriteToMatLerpFactor; // 0 -> use spriteIndex, 1 -> use matIndex, lerping in between
 };
 
 struct GuiVertex
@@ -33,7 +33,7 @@ struct GuiScale
 	float OOScreenWidth;
 	float OOScreenHeight;
 	float OOFontWidth;
-	float OOFontHeight;
+	float OOSpriteWidth;
 };
 
 GuiScale guiScale;
@@ -49,7 +49,7 @@ PixelVertex main(GuiVertex v)
 	sv.colour = v.colour;
 	sv.base = v.base;
 	sv.sd = v.sd;
-	sv.base.xy = lerp(sv.base.xy,  v.base.xy * guiScale.OOFontWidth, v.base.z);
-
+	sv.base.xy = lerp(sv.base.xy, v.base.xy * guiScale.OOFontWidth, v.base.z);
+	sv.base.xy = lerp(v.base.xy * guiScale.OOSpriteWidth, sv.base.xy, sv.sd.w);
 	return sv;
 }

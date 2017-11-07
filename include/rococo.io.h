@@ -115,8 +115,10 @@ namespace Rococo
 
 	ROCOCOAPI IInstallation
 	{
-		virtual cstr Content() const = 0;
+		virtual const fstring Content() const = 0;
 		virtual void LoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
+		virtual void ConvertPingPathToSysPath(cstr pingPath, char* sysPath, size_t sysPathCapacity) = 0;
+		virtual void ConvertSysPathToPingPath(cstr sysPath, char* pingPath, size_t pingPathCapacity) = 0;
 		virtual IOS& OS() = 0;
 	};
 

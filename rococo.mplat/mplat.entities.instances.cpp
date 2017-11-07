@@ -313,7 +313,7 @@ namespace
 		  char syspath[IO::MAX_PATHLEN];
 		  z.installation->OS().ConvertUnixPathToSysPath(unixpath, syspath, IO::MAX_PATHLEN);
 
-		  SafeFormat(z.absPath, IO::MAX_PATHLEN, "%s%s", z.installation->Content(), syspath);
+		  SafeFormat(z.absPath, IO::MAX_PATHLEN, "%s%s", (cstr) z.installation->Content(), syspath);
 			
 		  IO::ForEachFileInDirectory(z.absPath, z);
 
@@ -353,7 +353,7 @@ namespace
 		  MaterialArrayMetrics metrics;
 		  renderer.GetMaterialArrayMetrics(metrics);
 
-		  fstring content = to_fstring(renderer.Installation().Content());
+		  auto content = renderer.Installation().Content();
 
 		  for (size_t i = 0; i < metrics.NumberOfElements; ++i)
 		  {

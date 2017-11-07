@@ -71,7 +71,7 @@ namespace
 		 char sysPath[IO::MAX_PATHLEN];
 		 renderer.Installation().OS().ConvertUnixPathToSysPath(directoryName, sysPath, IO::MAX_PATHLEN);
 
-         SafeFormat(onFileFound.directory, IO::MAX_PATHLEN, "%s%s", renderer.Installation().Content(), (sysPath + 1));
+         SafeFormat(onFileFound.directory, IO::MAX_PATHLEN, "%s%s", (cstr) renderer.Installation().Content(), (sysPath + 1));
          IO::ForEachFileInDirectory(onFileFound.directory, onFileFound);
       }
 

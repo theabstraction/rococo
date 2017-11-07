@@ -25,7 +25,7 @@ namespace
          Throw(0, "Could not load %s\n%S", name.c_str(), message);
       }
 
-      virtual void OnARGBImage(const Vec2i& span, const Imaging::F_A8R8G8B8* data)
+      virtual void OnRGBAImage(const Vec2i& span, const RGBAb* data)
       {
          if (!allowColour)
          {
@@ -62,19 +62,6 @@ namespace
             ABGR8(uint8 _red, uint8 _green, uint8 _blue, uint8 _alpha = 255) : red(_red), green(_green), blue(_blue), alpha(_alpha) {}
          };
 
-         RGBAb* target = (RGBAb*)data;
-         for (int i = 0; i < span.x * span.y; ++i)
-         {
-            Imaging::F_A8R8G8B8 col = data[i];
-            RGBAb twizzled(col.r, col.g, col.b, col.a);
-            target[i] = twizzled;
-         }
-         /*
-         D3D11_SUBRESOURCE_DATA level0Def;
-         level0Def.pSysMem = data;
-         level0Def.SysMemPitch = span.x * sizeof(RGBAb);
-         level0Def.SysMemSlicePitch = 0;
-         */
          VALIDATEDX11(device.CreateTexture2D(&colourSprite, nullptr, &texture));
          dc.UpdateSubresource(texture, 0, nullptr, data, span.x * sizeof(RGBAb), 0);
       }

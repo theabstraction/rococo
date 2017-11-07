@@ -400,11 +400,13 @@ namespace
    {
       IOS& os;
       FilePath contentDirectory;
+	  int32 len;
 
    public:
       Installation(cstr contentIndicatorName, IOS& _os) : os(_os)
       {
          GetContentDirectory(contentIndicatorName, contentDirectory, os);
+		 len = strlen(contentDirectory.data);
       }
 
       virtual void Free()
@@ -417,9 +419,9 @@ namespace
          return os;
       }
 
-      virtual cstr Content() const
+      virtual const fstring Content() const
       {
-         return contentDirectory.data;
+		  return fstring{ contentDirectory.data, len };
       }
 
       virtual void LoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength)

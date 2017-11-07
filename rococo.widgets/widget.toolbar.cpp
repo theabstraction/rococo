@@ -237,7 +237,7 @@ namespace
                Graphics::DrawBorderAround(rc, b->renderLocation, { 1,1 }, highlightBorder, highlightBorder);
             }
 
-            Graphics::DrawSprite(TopLeft(b->renderLocation), b->bitmap, rc, true);
+            Graphics::DrawSprite(TopLeft(b->renderLocation), b->bitmap, rc);
          }
 
          return rect;
