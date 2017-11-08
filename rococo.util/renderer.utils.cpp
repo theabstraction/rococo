@@ -349,6 +349,15 @@ namespace Rococo
 			return span;
 		}
 
+		Vec2i RenderRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const GuiRect& rect)
+		{
+			HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
+			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
+			Vec2i centre = Centre(rect);
+			grc.RenderText(Vec2i{ rect.right - span.x - 2, centre.y - (span.y >> 1) }, job, &rect);
+			return span;
+		}
+
 		Vec2i RenderHorizontalCentredText(IGuiRenderContext& grc, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle)
 		{
 			HorizontalCentredText job(fontSize, txt, FontColourFromRGBAb(colour));

@@ -737,6 +737,11 @@ namespace Rococo
 		   return isRunning;
 	   }
 
+	   void BeepWarning()
+	   {
+		   MessageBeep(MB_ICONWARNING);
+	   }
+
 	   void ShutdownApp()
 	   {
 		   isRunning = false;

@@ -172,47 +172,47 @@ namespace
          }
       }
 
-      void UpdatedWallGraphicMesh()
-      {
-         rchar name[32];
-         SafeFormat(name, sizeof(name), "sector.%u.walls", id);
+	  void UpdatedWallGraphicMesh()
+	  {
+		  rchar name[32];
+		  SafeFormat(name, sizeof(name), "sector.%u.walls", id);
 
-		 auto& mb = instances.MeshBuilder();
-		 mb.Clear();
-		 mb.Begin(to_fstring(name));
+		  auto& mb = instances.MeshBuilder();
+		  mb.Clear();
+		  mb.Begin(to_fstring(name));
 
-		 for (auto& t : wallTriangles)
-		 {
-			 mb.AddTriangle(t.a, t.b, t.c);
-		 }
+		  for (auto& t : wallTriangles)
+		  {
+			  mb.AddTriangle(t.a, t.b, t.c);
+		  }
 
-		 mb.End();
+		  mb.End();
 
-		 if (!wallId)
-		 {
-			 wallId = instances.AddBody(to_fstring(name), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
-		 }
-		 else
-		 {
-			 auto entity = instances.GetEntity(wallId);
-			 ID_SYS_MESH meshId;
-			 platform.meshes.TryGetByName(name, meshId);
-			 entity->SetMesh(meshId);
-		 }
-      }
+		  if (!wallId)
+		  {
+			  wallId = instances.AddBody(to_fstring(name), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+		  }
+		  else
+		  {
+			  auto entity = instances.GetEntity(wallId);
+			  ID_SYS_MESH meshId;
+			  platform.meshes.TryGetByName(name, meshId);
+			  entity->SetMesh(meshId);
+		  }
+	  }
 
-      bool IsCorridor() const
-      {
-         if (!Is4PointRectangular()) return false;
-         if (gapSegments.size() != 2) return false;
-         if (gapSegments[0].other->Is4PointRectangular() || gapSegments[1].other->Is4PointRectangular())
-         {
-            return false;
-         }
-         Vec2 ab = gapSegments[0].b - gapSegments[0].a;
-         Vec2 cd = gapSegments[1].b - gapSegments[1].a;
-         return Dot(ab, cd) != 0;
-      }
+	  bool IsCorridor() const
+	  {
+		  if (!Is4PointRectangular()) return false;
+		  if (gapSegments.size() != 2) return false;
+		  if (gapSegments[0].other->Is4PointRectangular() || gapSegments[1].other->Is4PointRectangular())
+		  {
+			  return false;
+		  }
+		  Vec2 ab = gapSegments[0].b - gapSegments[0].a;
+		  Vec2 cd = gapSegments[1].b - gapSegments[1].a;
+		  return Dot(ab, cd) != 0;
+	  }
 
 	  const Gap* GetGapAtSegment(const Vec2& a, const Vec2& b) const
 	  {
@@ -340,6 +340,13 @@ namespace
 
          return u;
       }
+
+	  IPropertyHost* host = nullptr;
+
+	  virtual void Assign(IPropertyHost* host)
+	  {
+		  this->host = host;
+	  }
 
       float AddSlopedWallSegment(const Vec2& p, const Vec2& q, float pFloor, float qFloor, float pCeiling, float qCeiling, float u, MaterialId id)
       {
@@ -692,6 +699,11 @@ namespace
          DeleteFloor();
          DeleteCeiling();
          DeleteWalls();
+
+		 if (host)
+		 {
+			 host->SetPropertyTarget(nullptr);
+		 }
       }
 
       virtual void SetPalette(const SectorPalette& palette)
@@ -1417,6 +1429,70 @@ namespace
 	  void SetIterationFrame(int64 value) override
 	  {
 		  iterationFrame = value;
+	  }
+
+	  void GetProperties(cstr category, IBloodyPropertySetEditor& editor) override
+	  {
+		  if (Eq(category, "walls"))
+		  {
+			  editor.AddSpacer();
+			  editor.AddMaterialCategory("brickwork mat", Rococo::Graphics::MaterialCategory_Rock);
+			  editor.AddMaterialString("brickwork id", platform.renderer.GetMaterialTextureName(wallId));
+			  editor.AddColour("brick colour", RGBAb(0,0,0,0));
+
+			  editor.AddSpacer();
+			  editor.AddMaterialCategory("cement", Rococo::Graphics::MaterialCategory_Rock);
+			  editor.AddMaterialString("cement id", "random");
+			  editor.AddColour("cement colour", RGBAb(0, 0, 0, 0));
+		  }
+		  else if (Eq(category, "ceiling"))
+		  {
+			  editor.AddSpacer();
+			  editor.AddMaterialCategory("ceiling mat", Rococo::Graphics::MaterialCategory_Rock);
+			  editor.AddMaterialString("ceiling id", "random");
+			  editor.AddColour("ceiling colour", RGBAb(0, 0, 0, 0));
+			  editor.AddSpacer();
+			  editor.AddInt("altitude (cm)", false, 0);
+		  }
+		  else if (Eq(category, "floor"))
+		  {
+			  editor.AddSpacer();
+			  editor.AddMaterialCategory("floor mat", Rococo::Graphics::MaterialCategory_Rock);
+			  editor.AddMaterialString("floor id", "random");
+			  editor.AddColour("floor colour", RGBAb(0, 0, 0, 0));
+			  editor.AddSpacer();
+			  editor.AddInt("height (cm)", false, 400);
+			  editor.AddSpacer();
+			  editor.AddBool("occlude players", false);
+			  editor.AddBool("occlude friends", false);
+			  editor.AddBool("occlude enemies", false);
+		  }
+		  else if (Eq(category, "door"))
+		  {
+			  editor.AddSpacer();
+			  editor.AddMaterialCategory("panel mat", Rococo::Graphics::MaterialCategory_Rock);
+			  editor.AddMaterialString("panel id", "random");
+			  editor.AddColour("panel colour", RGBAb(0, 0, 0, 0));
+
+			  editor.AddSpacer();
+			  editor.AddMaterialCategory("mullion mat", Rococo::Graphics::MaterialCategory_Rock);
+			  editor.AddMaterialString("mullion id", "random");
+			  editor.AddColour("mullion colour", RGBAb(0, 0, 0, 0));
+
+			  editor.AddSpacer();
+			  editor.AddMaterialCategory("rail mat", Rococo::Graphics::MaterialCategory_Rock);
+			  editor.AddMaterialString("rail id", "random");
+			  editor.AddColour("rail colour", RGBAb(0, 0, 0, 0));
+
+			  editor.AddSpacer();
+			  editor.AddMaterialCategory("casing mat", Rococo::Graphics::MaterialCategory_Rock);
+			  editor.AddMaterialString("casing id", "random");
+			  editor.AddColour("casing colour", RGBAb(0, 0, 0, 0));
+
+			  editor.AddSpacer();
+			  editor.AddBool("has door", false);
+			  editor.AddPingPath("door script", "");
+		  }
 	  }
    };
 }

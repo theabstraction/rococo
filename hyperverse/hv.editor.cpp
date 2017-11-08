@@ -333,7 +333,7 @@ namespace
 						{
 							if (secs.begin()[litIndex] == s)
 							{
-								secs.begin()[litIndex]->InvokeSectorDialog(parent, *editor);
+								// secs.begin()[litIndex]->InvokeSectorDialog(parent, *editor);
 							}
 						}
 
@@ -342,6 +342,7 @@ namespace
 							if (secs.begin()[i] == s)
 							{
 								litIndex = i;
+								editor->SetPropertyTarget(secs.begin()[litIndex]);
 								return;
 							}
 						}
@@ -349,6 +350,7 @@ namespace
 				}
 
 				litIndex = -1;
+				editor->SetPropertyTarget(nullptr);
 			}
 		}
 	public:
@@ -941,8 +943,13 @@ namespace
 
 	class BloodyFloatBinding : public IBloodyPropertyType
 	{
-		float value = 0.0f;
+		float value;
 	public:
+		BloodyFloatBinding(float _value) : value(_value)
+		{
+
+		}
+
 		virtual void Free()
 		{
 			delete this;
@@ -971,44 +978,12 @@ namespace
 		}
 	};
 
-	class BloodyIntBinding : public IBloodyPropertyType
-	{
-		int32 value = 0;
-	public:
-		virtual void Free()
-		{
-			delete this;
-		}
-
-		virtual cstr Name() const
-		{
-			return "Int32";
-		}
-
-		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
-		{
-			char buffer[16];
-			SafeFormat(buffer, 16, "%d", value);
-			Rococo::Graphics::RenderVerticalCentredText(rc, buffer, colour, 9, { rect.left + 4, Centre(rect).y }, &rect);
-		}
-
-		RGBAb NameColour() const override
-		{
-			return RGBAb(48, 16, 0, 128);
-		}
-
-		void Click(bool clickedDown, Vec2i pos) override
-		{
-
-		}
-	};
-
 	class BloodyBoolBinding : public IBloodyPropertyType, public IKeyboardSink
 	{
-		bool value = false;
+		bool value;
 		Platform& platform;
 	public:
-		BloodyBoolBinding(Platform& _platform): platform(_platform)
+		BloodyBoolBinding(Platform& _platform, bool _value): platform(_platform), value(_value)
 		{
 
 		}
@@ -1395,6 +1370,28 @@ namespace
 		}
 	};
 
+	struct IValidator
+	{
+		virtual bool IsLegal(char c, int charPos) const = 0;
+		virtual void OnDetached(char* buffer) = 0;
+	};
+
+	struct PositiveIntegerValidator : public IValidator
+	{
+		bool IsLegal(char c, int ccursorPos) const override
+		{
+			return c >= '0' && c <= '9';
+		}
+
+		void OnDetached(char* buffer) override
+		{
+			if (*buffer == 0)
+			{
+				SafeFormat(buffer, 2, "0");
+			}
+		}
+	};
+
 	class TextEditorBox: public IKeyboardSink
 	{
 		char* buffer;
@@ -1402,9 +1399,10 @@ namespace
 		int32 cursorPos = 0;
 		Platform& platform;
 		bool defaultToEnd;
+		IValidator& validator;
 	public:
-		TextEditorBox(Platform& _platform, char* _buffer, size_t _capacity, bool _defaultToEnd) :
-			platform(_platform), buffer(_buffer), capacity((int32)_capacity), defaultToEnd(_defaultToEnd) {}
+		TextEditorBox(Platform& _platform, char* _buffer, size_t _capacity, bool _defaultToEnd, IValidator& _validator) :
+			platform(_platform), buffer(_buffer), capacity((int32)_capacity), defaultToEnd(_defaultToEnd), validator(_validator) {}
 
 		~TextEditorBox()
 		{
@@ -1430,12 +1428,9 @@ namespace
 		{
 			int32 len = (int32) strlen(buffer);
 
-			if (cursorPos > 0)
+			for (int32 i = pos; i < len; ++i)
 			{
-				for (int32 i = pos; i < len+1; ++i)
-				{
-					buffer[i-1] = buffer[i];
-				}
+				buffer[i] = buffer[i+1];
 			}
 		}
 
@@ -1470,16 +1465,17 @@ namespace
 				{
 				case IO::VKCode_ENTER:
 					platform.gui.DetachKeyboardSink(this);
+					validator.OnDetached(buffer);
 					return true;
 				case IO::VKCode_BACKSPACE:
-					DeleteRight(cursorPos);
 					if (cursorPos > 0)
 					{
+						DeleteRight(cursorPos-1);
 						cursorPos--;
 					}
 					return true;
 				case IO::VKCode_DELETE:
-					DeleteRight(cursorPos+1);
+					DeleteRight(cursorPos);
 					return true;
 				case IO::VKCode_HOME:
 					cursorPos = 0;
@@ -1502,17 +1498,25 @@ namespace
 				}
 
 				char c = platform.keyboard.TryGetAscii(key);
-				if (c >= 32)
+
+				if (!validator.IsLegal(c, cursorPos))
 				{
-					if (platform.gui.IsOverwriting())
+					OS::BeepWarning();
+				}
+				else
+				{
+					if (c >= 32)
 					{
-						AddCharOverwrite(c);
+						if (platform.gui.IsOverwriting())
+						{
+							AddCharOverwrite(c);
+						}
+						else
+						{
+							AddCharInsert(c);
+						}
+						return true;
 					}
-					else
-					{
-						AddCharInsert(c);
-					}
-					return true;
 				}
 			}
 			return false;
@@ -1525,6 +1529,7 @@ namespace
 				if (platform.gui.CurrentKeyboardSink() == this)
 				{
 					platform.gui.DetachKeyboardSink(this);
+					validator.OnDetached(buffer);
 				}
 				else
 				{
@@ -1600,15 +1605,276 @@ namespace
 		}
 	};
 
-	class BloodyMaterialBinding : public IBloodyPropertyType
+	class BloodyIntBinding : public IBloodyPropertyType, public IValidator
+	{
+		int32 value;
+		TextEditorBox teb;
+		Platform& platform;
+		char buffer[12];
+		bool addHexView;
+	public:
+		BloodyIntBinding(Platform& _platform, bool _addHexView, int _value) :
+			platform(_platform),
+			teb(_platform, buffer, 12, false, *this),
+			addHexView(_addHexView),
+			value(_value)
+		{
+			SafeFormat(buffer, 12, "%d", _value);
+		}
+
+		virtual bool IsLegal(char c, int charPos) const
+		{
+			if (charPos == 0)
+			{
+				if (buffer[0] != '-' && c == '-')
+				{
+					return true;
+				}
+
+				if (buffer[0] == '-' && platform.gui.IsOverwriting())
+				{
+					return false;
+				}
+			}
+			return c >= '0' && c <= '9';
+		}
+
+		virtual void OnDetached(char* buffer)
+		{
+			value = atoi(buffer);
+			SafeFormat(buffer, 10, "%d", value);
+		}
+
+		virtual void Free()
+		{
+			delete this;
+		}
+
+		virtual cstr Name() const
+		{
+			return "Int32";
+		}
+
+		GuiRect tebRect;
+
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		{
+			tebRect = rect;
+			teb.Render(rc, tebRect, colour);
+			 
+			if (addHexView && platform.gui.CurrentKeyboardSink() != &teb)
+			{
+				char hex[12];
+				SafeFormat(hex, 12, "0x%8.8X", value);
+
+				RGBAb dullColour(colour.red, colour.green, colour.blue, colour.alpha >> 1);
+				GuiRect hexRect{ rect.left, rect.top, rect.right - 8, rect.bottom };
+				Rococo::Graphics::RenderRightAlignedText(rc, hex, dullColour, 9, hexRect);
+			}
+		}
+
+		RGBAb NameColour() const override
+		{
+			return RGBAb(48, 16, 0, 128);
+		}
+
+		void Click(bool clickedDown, Vec2i pos) override
+		{
+			if (IsPointInRect(pos, tebRect))
+			{
+				teb.Click(clickedDown);
+			}
+		}
+	};
+
+	class BloodyColour : public IBloodyPropertyType, public IKeyboardSink
+	{
+		RGBAb value;
+		std::string name;
+
+		Platform& platform;
+
+		PositiveIntegerValidator piv;
+
+		char rbuffer[4] = "255";
+		char gbuffer[4] = "0";
+		char bbuffer[4] = "0";
+		char abuffer[4] = "255";
+
+		TextEditorBox rbox;
+		TextEditorBox gbox;
+		TextEditorBox bbox;
+		TextEditorBox abox;
+
+		TextEditorBox* teb[4] = { &rbox, &gbox, &bbox, &abox };
+	public:
+		BloodyColour(Platform& _platform, cstr _name, RGBAb _colour) :
+			name(_name),
+			platform(_platform),
+			rbox(_platform, rbuffer, 4, false, piv),
+			gbox(_platform, gbuffer, 4, false, piv),
+			bbox(_platform, bbuffer, 4, false, piv),
+			abox(_platform, abuffer, 4, false, piv),
+			value(_colour)
+		{
+
+		}
+
+		~BloodyColour()
+		{
+			platform.gui.DetachKeyboardSink(this);
+		}
+
+		virtual void Free()
+		{
+			delete this;
+		}
+
+		virtual cstr Name() const
+		{
+			return name.c_str();
+		}
+
+		virtual bool OnKeyboardEvent(const KeyboardEvent& key)
+		{
+			if (!key.IsUp())
+			{
+				switch (key.VKey)
+				{
+				case IO::VKCode_ENTER:
+					return true;
+				case IO::VKCode_HOME:
+					return true;
+				case IO::VKCode_END:
+					return true;
+				case IO::VKCode_LEFT:
+					return true;
+				case IO::VKCode_RIGHT:
+					return true;
+				case IO::VKCode_PGDOWN:
+					return true;
+				case IO::VKCode_PGUP:
+					return true;
+				}
+			}
+			return true;
+		}
+
+		GuiRect absRect{ 0,0,0,0 };
+
+		GuiRect tebRect[4];
+
+		void ParseValue()
+		{
+			int32 red = atoi(rbuffer);
+			int32 green = atoi(gbuffer);
+			int32 blue = atoi(bbuffer);
+			int32 alpha = atoi(abuffer);
+
+			value.red = (uint8)red;
+			value.green = (uint8)green;
+			value.blue = (uint8)blue;
+			value.alpha = (uint8)alpha;
+		}
+
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		{
+			ParseValue();
+
+			absRect = rect;
+
+			GuiMetrics metrics;
+			rc.Renderer().GetGuiMetrics(metrics);
+
+			int span = Height(rect);
+
+			GuiRect buttonRect{ rect.left + 2, rect.top + 2, rect.left + span - 2, rect.bottom - 2 };
+
+			RGBAb fullColour{ value.red, value.green, value.blue, 255 };
+			Rococo::Graphics::DrawRectangle(rc, buttonRect, fullColour, value);
+
+			if (IsPointInRect(metrics.cursorPosition, buttonRect))
+			{
+				Rococo::Graphics::DrawBorderAround(rc, buttonRect, { 1,1 }, RGBAb(255, 255, 255), RGBAb(224, 224, 224));
+			}
+			else
+			{
+				Rococo::Graphics::DrawBorderAround(rc, buttonRect, { 1,1 }, RGBAb(192, 192, 192), RGBAb(160, 160, 160));
+			}
+
+			int32 cellSpan = (Width(rect) - Width(buttonRect)) / 4;
+
+			TextEditorBox* teb[] = { &rbox, &gbox, &bbox, &abox };
+			RGBAb fontColours[4] = { RGBAb(255,0,0,255), RGBAb(0,255,0,255), RGBAb(0,0,255,255), RGBAb(128,128,128,255) };
+
+			int32 x = buttonRect.right + 1;
+			for (int i = 0; i < 4; ++i)
+			{
+				tebRect[i] = GuiRect{ x, rect.top, x + cellSpan-2, rect.bottom };
+				if (i == 3) tebRect[i].right = rect.right - 1;
+				teb[i]->Render(rc, tebRect[i], fontColours[i]);
+
+				Rococo::Graphics::DrawBorderAround(rc, tebRect[i], { 1,1 }, RGBAb(192, 192, 192, 32), RGBAb(160, 160, 160, 32));
+
+				x += cellSpan;
+			}
+		}
+
+		RGBAb NameColour() const override
+		{
+			return RGBAb(64, 32, 32, 128);
+		}
+
+		void Click(bool clickedDown, Vec2i pos) override
+		{	
+			for (int i = 0; i < 4; ++i)
+			{
+				if (IsPointInRect(pos, tebRect[i]))
+				{
+					teb[i]->Click(clickedDown);
+					break;
+				}
+			}
+		}
+	};
+
+	class BloodyMaterialBinding : public IBloodyPropertyType, public IValidator
 	{
 		char value[IO::MAX_PATHLEN] = { "random" };
 		Platform& platform;
 		TextEditorBox teb;
 		MaterialId id = -1;
+
 	public:
-		BloodyMaterialBinding(Platform& _platform) : platform(_platform), teb(_platform, value, IO::MAX_PATHLEN, true)
+		BloodyMaterialBinding(Platform& _platform, cstr matString) : 
+			platform(_platform),
+			teb(_platform, value, IO::MAX_PATHLEN, true, *this)
 		{
+			SafeFormat(value, IO::MAX_PATHLEN, "%s", matString);
+		}
+
+		virtual bool IsLegal(char c, int charPos) const
+		{
+			return true;
+		}
+
+		void OnDetached(char* buffer) override
+		{
+			char sysPath[IO::MAX_PATHLEN];
+			try
+			{
+				platform.installation.ConvertPingPathToSysPath(value, sysPath, IO::MAX_PATHLEN);
+				id = platform.renderer.GetMaterialId(sysPath);
+			}
+			catch (IException&)
+			{
+				id = -1;
+			}
+
+			if (*buffer == 0)
+			{
+				SafeFormat(buffer, IO::MAX_PATHLEN, "random");
+			}
 		}
 
 		virtual void Free()
@@ -1653,7 +1919,7 @@ namespace
 			}
 			else
 			{
-				teb.Render(rc, editorRect, colour);
+				teb.Render(rc, editorRect, id < 0 ? RGBAb(255, 64, 64, 255) : colour);
 			}
 
 			GuiMetrics metrics;
@@ -1691,6 +1957,10 @@ namespace
 				if (IsPointInRect(pos, leftClickRect))
 				{
 					id = GetLeftValue(id);
+					if (id == -1)
+					{
+						SafeFormat(value, sizeof(value), "random");
+					}
 					consumed = true;
 				}
 				else if (IsPointInRect(pos, rightClickRect))
@@ -1701,7 +1971,10 @@ namespace
 
 				if (id == -1)
 				{
-					SafeFormat(value, sizeof(value), "random");
+					if (*value == 0)
+					{
+						SafeFormat(value, sizeof(value), "random");
+					}
 				}
 				else if (oldId != id)
 				{
@@ -1759,14 +2032,36 @@ namespace
 		}
 	};
 
-	class BloodyPingPathBinding : public IBloodyPropertyType
+	class BloodyPingPathBinding : public IBloodyPropertyType, public IValidator
 	{
 		char value[IO::MAX_PATHLEN] = { 0 };
 		Platform& platform;
 		TextEditorBox teb;
+		bool validated = false;
 	public:
-		BloodyPingPathBinding(Platform& _platform) : platform(_platform), teb(_platform, value, IO::MAX_PATHLEN, true)
+		BloodyPingPathBinding(Platform& _platform, cstr pingPath) : platform(_platform), 
+			teb(_platform, value, IO::MAX_PATHLEN, true, *this)
 		{
+			SafeFormat(value, IO::MAX_PATHLEN, "%s", pingPath);
+		}
+
+		virtual bool IsLegal(char c, int cursorPos) const
+		{
+			return true;
+		}
+
+		void OnDetached(char* buffer)
+		{
+			char sysPath[IO::MAX_PATHLEN];
+			try
+			{
+				platform.installation.ConvertPingPathToSysPath(buffer, sysPath, IO::MAX_PATHLEN);
+				validated = OS::IsFileExistant(sysPath);
+			}
+			catch (IException&)
+			{
+				validated = false;
+			}
 		}
 
 		virtual void Free()
@@ -1787,10 +2082,12 @@ namespace
 		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
 		{
 			int span = Height(rect);
-			editorRect = GuiRect{ rect.left, rect.top, rect.right - span, rect.bottom };
-			teb.Render(rc, editorRect, colour);
+			editorRect = GuiRect{ rect.left + span, rect.top, rect.right, rect.bottom };
 
-			buttonRect = GuiRect{ editorRect.right + 2, rect.top + 2, rect.right - 2, rect.bottom - 2 };
+			RGBAb colour2 = validated ? colour : RGBAb(255, 64, 64);
+			teb.Render(rc, editorRect, colour2);
+
+			buttonRect = GuiRect{ rect.left, rect.top + 2, editorRect.left - 1, rect.bottom - 2 };
 
 			GuiMetrics metrics;
 			rc.Renderer().GetGuiMetrics(metrics);
@@ -1805,13 +2102,9 @@ namespace
 				Rococo::Graphics::RenderCentredText(rc, "~", RGBAb(255, 255, 255), 3, Centre(buttonRect), &buttonRect);
 			}
 
-			if (IsPointInRect(metrics.cursorPosition, rect))
+			if (IsPointInRect(metrics.cursorPosition, buttonRect))
 			{
 				Rococo::Graphics::DrawBorderAround(rc, buttonRect, { 1,1 }, RGBAb(255, 255, 255), RGBAb(224, 224, 224));
-			}
-			else
-			{
-				Rococo::Graphics::DrawBorderAround(rc, buttonRect, { 1,1 }, RGBAb(192, 192, 192), RGBAb(160, 160, 160));
 			}
 		}
 
@@ -1884,6 +2177,8 @@ namespace
 					OS::ToUnixPath(sd.path + content.length);
 
 					SecureFormat(value, IO::MAX_PATHLEN, "!%s", sd.path + content.length);
+
+					OnDetached(value);
 				}
 			}
 		}
@@ -1895,7 +2190,7 @@ namespace
 		std::string name;
 		GuiRect lastRect{ 0,0,0,0 };
 	public:
-		BloodyProperty(IBloodyPropertyType* _prop, cstr _name):
+		BloodyProperty(IBloodyPropertyType* _prop, cstr _name) :
 			name(_name), prop(_prop)
 		{
 
@@ -1907,7 +2202,7 @@ namespace
 		bool IsInRect(Vec2i p) const { return IsPointInRect(p, lastRect); }
 	};
 
-	class BloodyPropertySetEditor: public IUIElement, private IEventCallback<Rococo::Events::ScrollEvent>
+	class BloodyPropertySetEditor: public IUIElement, private IEventCallback<Rococo::Events::ScrollEvent>, public IBloodyPropertySetEditorSupervisor
 	{
 		std::vector<BloodyProperty*> properties;
 		Platform& platform;
@@ -1945,34 +2240,44 @@ namespace
 
 		~BloodyPropertySetEditor()
 		{
+			Clear();
+		}
+
+		void Clear()
+		{
 			for (auto i : properties)
 			{
 				delete i;
 			}
+			properties.clear();
 		}
 
-		void AddBool(cstr name)
+		virtual void Free()
 		{
-			Add( new BloodyProperty(new BloodyBoolBinding(platform), name) );
+			delete this;
 		}
 
+		void AddBool(cstr name, bool value) override
+		{
+			Add( new BloodyProperty(new BloodyBoolBinding(platform, value), name) );
+		}
 
-		void AddSpacer()
+		void AddSpacer() override
 		{
 			properties.push_back(new BloodyProperty(new BloodySpacer(), ""));
 		}
 
-		void AddFloat(cstr name)
+		void AddFloat(cstr name, float value) override
 		{
-			Add( new BloodyProperty(new BloodyFloatBinding, name) );
+			Add( new BloodyProperty(new BloodyFloatBinding(value), name) );
 		}
 
-		void AddInt(cstr name)
+		void AddInt(cstr name, bool addHexView, int value) override
 		{
-			Add( new BloodyProperty(new BloodyIntBinding, name) );
+			Add( new BloodyProperty(new BloodyIntBinding(platform, addHexView, value), name) );
 		}
 
-		void AddMaterialCategory(cstr name)
+		void AddMaterialCategory(cstr name, Rococo::Graphics::MaterialCategory cat) override
 		{
 			auto* b = new BloodyEnumInt32Binding(platform, "MaterialCategory");
 			b->AddEnumConstant("Rock",   Rococo::Graphics::MaterialCategory_Rock);
@@ -1983,15 +2288,21 @@ namespace
 			Add( new BloodyProperty(b, name));
 		}
 
-		void AddMaterialString(cstr name)
+		void AddColour(cstr name, RGBAb colour) override
 		{
-			auto* b = new BloodyMaterialBinding(platform);
+			auto* b = new BloodyColour(platform, "Colour", colour);
 			Add(new BloodyProperty(b, name));
 		}
 
-		void AddPingPath(cstr name)
+		void AddMaterialString(cstr name, cstr matString) override
 		{
-			Add(new BloodyProperty(new BloodyPingPathBinding(platform), name));
+			auto* b = new BloodyMaterialBinding(platform, matString);
+			Add(new BloodyProperty(b, name));
+		}
+
+		void AddPingPath(cstr name, cstr pingPath) override
+		{
+			Add(new BloodyProperty(new BloodyPingPathBinding(platform, pingPath), name));
 		}
 		
 		virtual bool OnKeyboardEvent(const KeyboardEvent& key)
@@ -2068,7 +2379,7 @@ namespace
 
 				if (*p->Name())
 				{
-					GuiRect nameRect{ rowRect.left, y, rowRect.left + 100, y1 };
+					GuiRect nameRect{ rowRect.left, y, rowRect.left + 130, y1 };
 					Rococo::Graphics::DrawRectangle(rc, nameRect, p->Prop().NameColour(), p->Prop().NameColour());
 					Rococo::Graphics::RenderVerticalCentredText(rc, p->Name(), fontColour, 9, { rowRect.left + 4, Centre(rowRect).y }, &nameRect);
 
@@ -2081,84 +2392,6 @@ namespace
 				y = y1 + 3;
 				odd = !odd;
 			}
-		}
-	};
-
-	class WallEditor
-	{
-		BloodyPropertySetEditor editor;
-	public:
-		IUIElement& UIElement() { return editor; }
-
-		WallEditor(Platform& _platform): editor(_platform)
-		{
-			editor.AddSpacer();
-			editor.AddMaterialCategory("brickwwork");
-			editor.AddMaterialString("brickwork id");
-			editor.AddSpacer();
-			editor.AddMaterialCategory("cement");
-			editor.AddMaterialString("cement id");
-			editor.AddSpacer();
-			editor.AddBool("scripted");
-			editor.AddPingPath("script");
-		}
-	};
-
-	class FloorEditor
-	{
-		BloodyPropertySetEditor editor;
-	public:
-		IUIElement& UIElement() { return editor; }
-
-		FloorEditor(Platform& _platform) : editor(_platform)
-		{
-			editor.AddSpacer();
-			editor.AddMaterialCategory("ground");
-			editor.AddMaterialString("ground id");
-			editor.AddSpacer();
-			editor.AddMaterialCategory("rim");
-			editor.AddMaterialString("rim id");
-		}
-	};
-
-	class CeilingEditor
-	{
-		BloodyPropertySetEditor editor;
-	public:
-		IUIElement& UIElement() { return editor; }
-
-		CeilingEditor(Platform& _platform) : editor(_platform)
-		{
-			editor.AddSpacer();
-			editor.AddMaterialCategory("ceiling");
-			editor.AddMaterialString("ceiling id");
-			editor.AddSpacer();
-			editor.AddMaterialCategory("rim");
-			editor.AddMaterialString("rim id");
-		}
-	};
-
-	class DoorEditor
-	{
-		BloodyPropertySetEditor editor;
-	public:
-		IUIElement& UIElement() { return editor; }
-
-		DoorEditor(Platform& _platform) : editor(_platform)
-		{
-			editor.AddBool("Has Door");
-			editor.AddSpacer();
-			editor.AddMaterialCategory("casing");
-			editor.AddMaterialString("casing id");
-			editor.AddSpacer();
-			editor.AddMaterialCategory("panels");
-			editor.AddMaterialString("panels id");
-			editor.AddSpacer();
-			editor.AddMaterialCategory("mullion");
-			editor.AddMaterialString("mullion id");
-			editor.AddSpacer();
-			editor.AddMaterialCategory("rail");
-			editor.AddMaterialString("rail id");
 		}
 	};
 
@@ -2177,10 +2410,10 @@ namespace
 		ToggleEventHandler textureTargetHandler;
 		ToggleEventHandler scrollLock;
 
-		WallEditor wallEditor;
-		FloorEditor floorEditor;
-		CeilingEditor ceilingEditor;
-		DoorEditor doorEditor;
+		BloodyPropertySetEditor wallEditor;
+		BloodyPropertySetEditor floorEditor;
+		BloodyPropertySetEditor ceilingEditor;
+		BloodyPropertySetEditor doorEditor;
 
 		char levelpath[IO::MAX_PATHLEN] = { 0 };
 
@@ -2248,6 +2481,30 @@ namespace
 
 				int32 textureTargetIndex = textureTargetHandler.State();
 				editMode_SectorBuilder.SetTexture(textureTargetIndex, cdt.wallName);
+			}
+		}
+
+		IPropertyTarget* target = nullptr;
+
+		virtual void SetPropertyTargetToSuccessor()
+		{
+			target = nullptr;
+		}
+
+		virtual void SetPropertyTarget(IPropertyTarget* target)
+		{
+			wallEditor.Clear();
+			floorEditor.Clear();
+			ceilingEditor.Clear();
+			doorEditor.Clear();
+
+			if (target)
+			{
+				target->Assign(this);
+				target->GetProperties("walls", wallEditor);
+				target->GetProperties("floor", floorEditor);
+				target->GetProperties("ceiling", ceilingEditor);
+				target->GetProperties("door", doorEditor);
 			}
 		}
 
@@ -2386,18 +2643,18 @@ namespace
 
 			editMode_SectorEditor.SetEditor(this);
 
-			platform.gui.RegisterPopulator("editor.tab.walls", &wallEditor.UIElement());
-			platform.gui.RegisterPopulator("editor.tab.floor", &floorEditor.UIElement());
-			platform.gui.RegisterPopulator("editor.tab.ceiling", &ceilingEditor.UIElement());
-			platform.gui.RegisterPopulator("editor.tab.doors", &doorEditor.UIElement());
+			platform.gui.RegisterPopulator("editor.tab.walls", &wallEditor);
+			platform.gui.RegisterPopulator("editor.tab.floor", &floorEditor);
+			platform.gui.RegisterPopulator("editor.tab.ceiling", &ceilingEditor);
+			platform.gui.RegisterPopulator("editor.tab.doors", &doorEditor);
 		}
 
 		~Editor()
 		{
-			platform.gui.UnregisterPopulator(&wallEditor.UIElement());
-			platform.gui.UnregisterPopulator(&floorEditor.UIElement());
-			platform.gui.UnregisterPopulator(&ceilingEditor.UIElement());
-			platform.gui.UnregisterPopulator(&doorEditor.UIElement());
+			platform.gui.UnregisterPopulator(&wallEditor);
+			platform.gui.UnregisterPopulator(&floorEditor);
+			platform.gui.UnregisterPopulator(&ceilingEditor);
+			platform.gui.UnregisterPopulator(&doorEditor);
 			platform.gui.UnregisterPopulator(this);
 			platform.publisher.Detach(this);
 		}

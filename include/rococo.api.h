@@ -188,6 +188,7 @@ namespace Rococo
 	{
 		bool IsRunning();
 		void ShutdownApp();
+		void BeepWarning();
 	}
 
 	struct IDebuggerWindow;

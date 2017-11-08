@@ -147,7 +147,6 @@ public:
 		dialog.lpstrFile = sd.path;
 		dialog.nMaxFile = sizeof(sd.path);
 		dialog.lpstrTitle = sd.caption;
-		dialog.Flags = OFN_CREATEPROMPT | OFN_ENABLESIZING | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
 		dialog.lpstrDefExt = sd.ext;
 
 		fstring fullPath = to_fstring(sd.path);
@@ -158,11 +157,11 @@ public:
 		{
 			SafeFormat(initialPath, IO::MAX_PATHLEN, "%s", sd.path);
 			*sd.path = 0;
-			dialog.Flags = OFN_CREATEPROMPT | OFN_ENABLESIZING | OFN_OVERWRITEPROMPT;
+			dialog.Flags = OFN_ENABLESIZING;
 		}
 		else
 		{
-			dialog.Flags = OFN_CREATEPROMPT | OFN_ENABLESIZING | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
+			dialog.Flags =  OFN_ENABLESIZING;
 		}
 
 		renderer.SwitchToWindowMode();

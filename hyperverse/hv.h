@@ -125,8 +125,23 @@ namespace HV
       cstr ceilingTextureName;
    };
 
-   ROCOCOAPI IEditorState
+   struct IPropertyHost;
+
+   ROCOCOAPI IPropertyTarget
    {
+	   virtual void Assign(IPropertyHost* host) = 0; // N.B a property target must never by Next to itself
+	   virtual void GetProperties(cstr category, IBloodyPropertySetEditor& editor) = 0;
+   };
+
+   ROCOCOAPI IPropertyHost
+   {
+	   virtual void SetPropertyTarget(IPropertyTarget* target) = 0;
+	   virtual void SetPropertyTargetToSuccessor() = 0;
+   };
+
+   ROCOCOAPI IEditorState: public IPropertyHost
+   {
+
       virtual cstr TextureName(int index) const = 0;
    };
 
@@ -155,7 +170,7 @@ namespace HV
 	   ISector& sector;
    };
 
-   ROCOCOAPI ISector
+   ROCOCOAPI ISector: public IPropertyTarget
    {
       virtual void AddFlag(SectorFlag flag) = 0;
       virtual void RemoveFlag(SectorFlag flag) = 0;

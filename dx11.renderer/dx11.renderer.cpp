@@ -893,6 +893,8 @@ namespace
 		   nameToMaterialId.clear();
 		   idToMaterialName.clear();
 
+		   idToMaterialName.resize(builder.Count());
+
 		   for (size_t i = 0; i < builder.Count(); ++i)
 		   {
 			   struct ANON : IEventCallback<MaterialTextureArrayBuilderArgs>, Imaging::IImageLoadEvents
@@ -951,8 +953,6 @@ namespace
 			   onTexture.i = i;
 			   onTexture.txWidth = txWidth;
 
-			   idToMaterialName.resize(builder.Count());
-			   nameToMaterialId.clear();
 			   builder.LoadTextureForIndex(i, onTexture);
 		   }
 	   }

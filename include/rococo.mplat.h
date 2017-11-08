@@ -43,11 +43,29 @@ namespace Rococo
 
 namespace Rococo
 {
-   ROCOCOAPI IConfigSupervisor : public IConfig
-   {
-      virtual cstr GetText(cstr name) const = 0;
-      virtual void Free() = 0;
-   };
+	ROCOCOAPI IBloodyPropertySetEditor
+	{
+		virtual void AddBool(cstr name, bool value) = 0;
+		virtual void AddSpacer() = 0;
+		virtual void AddFloat(cstr name, float value) = 0;
+		virtual void AddInt(cstr name, bool addHexView, int value) = 0;
+		virtual void AddMaterialCategory(cstr name, Rococo::Graphics::MaterialCategory cat) = 0;
+		virtual void AddColour(cstr name, RGBAb colour) = 0;
+		virtual void AddMaterialString(cstr name, cstr value) = 0;
+		virtual void AddPingPath(cstr name, cstr value) = 0;
+		virtual void Clear();
+	};
+
+	ROCOCOAPI IBloodyPropertySetEditorSupervisor : public IBloodyPropertySetEditor
+	{
+		virtual void Free() = 0;
+	};
+
+	ROCOCOAPI IConfigSupervisor : public IConfig
+	{
+		virtual cstr GetText(cstr name) const = 0;
+		virtual void Free() = 0;
+	};
 
    IConfigSupervisor* CreateConfig();
 

@@ -105,7 +105,7 @@
 	(GetSpan containerRect containerSpan)
 	
 	(Recti toolsRect)
-	(toolsRect.left = (containerSpan.x - 360))
+	(toolsRect.left = (containerSpan.x - 460))
 	(toolsRect.top = 4)
 	(toolsRect.right = (containerSpan.x))
 	(toolsRect.bottom = (containerSpan.y - 32))
