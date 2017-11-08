@@ -156,6 +156,17 @@ namespace
 		  sb.AppendFormat("\t(ISectors sectors (Sectors))\n\n");
 		  sb.AppendFormat("\t(sectors.Clear)\n\n");
 
+		  /*
+		  sb.AppendFormat("\n(IString bodyClassBrickwork = \"brickwork\")\n");
+		  sb.AppendFormat("\n(IString bodyClassCement    = \"cement\")\n");
+		  sb.AppendFormat("\n(IString bodyClassFloor     = \"floor\")\n");
+		  sb.AppendFormat("\n(IString bodyClassCeiling   = \"ceiling\")\n");
+		  sb.AppendFormat("\n(IString bodyClassMullions  = \"mulliions\")\n");
+		  sb.AppendFormat("\n(IString bodyClassPanels	 = \"panels\")\n");
+		  sb.AppendFormat("\n(IString bodyClassCasing    = \"casing\")\n");
+		  sb.AppendFormat("\n(IString bodyClassRails     = \"rails\")\n");
+		  */
+
 		  uint32 index = 0;
 		  for (auto s : sectors)
 		  {
@@ -172,8 +183,6 @@ namespace
 			  int z0 = (int) (s->Z0() * 100);
 			  int z1 = (int) (s->Z1() * 100);
 
-			  sb.AppendFormat("\n\n");
-
 			  size_t nVertices;
 			  auto* v = s->WallVertices(nVertices);
 
@@ -182,7 +191,8 @@ namespace
 				  sb.AppendFormat("\t(sectors.AddVertex %f %f)\n", v[i].x, v[i].y);
 			  }
 
-			  sb.AppendFormat("\n\t(sectors.Create %d %d flags wall floor ceiling)\n", z0, z1 - z0);
+			  s->SaveTemplate(sb);
+
 			  sb.AppendFormat(")\n\n");
 		  }
 	  }
@@ -378,6 +388,15 @@ namespace
 		  {
 			  i = temp.nameToMaterials.insert(std::make_pair(std::string(bodyClass), new Material)).first;
 		  } 
+
+		  i->second->category = cat;
+		  i->second->mvd.colour = colour;
+		  SafeFormat(i->second->persistentName, IO::MAX_PATHLEN, "%s", (cstr)persistentId);
+		  i->second->mvd.materialId = platform.renderer.GetMaterialId(i->second->persistentName);
+		  if (i->second->mvd.materialId < 0)
+		  {
+			  i->second->mvd.materialId = platform.instances.GetRandomMaterialId(cat);
+		  }
 	  }
 
 	  int32 CreateFromTemplate(int32 altitude, int32 height) override

@@ -80,8 +80,8 @@ namespace
 	   // So use heap generated argument in nameToMaterial. Do not refactor pointer to Material as Material!
 	   std::unordered_map<std::string, Material*> nameToMaterial;
 
-	   char doorScript[IO::MAX_PATHLEN] = "!scripts/hv/sector/gen.door.sxy";
-	   char wallScript[IO::MAX_PATHLEN] = "!scripts/hv/sector/gen.walls.sxy";
+	   char doorScript[IO::MAX_PATHLEN] = { 0 };
+	   char wallScript[IO::MAX_PATHLEN] = { 0 };
 	   bool hasDoor = false;
 	   bool scriptWalls = false;
 
@@ -544,7 +544,8 @@ namespace
 
 		  try
 		  {
-			  platform.utilities.RunEnvironmentScript(platform, scriptCallback, wallScript, true, false);
+			  cstr theWallScript = *wallScript ? wallScript : "!scripts/hv/sector/gen.walls.sxy";
+			  platform.utilities.RunEnvironmentScript(platform, scriptCallback, theWallScript, true, false);
 			  return true;
 		  }
 		  catch (IException& ex)
@@ -1097,7 +1098,8 @@ namespace
 		  if (IsCorridor() && hasDoor)
 		  {
 			  ResetBarriers();
-			  RunSectorGenScript("!scripts/hv/sector/gen.door.sxy");
+
+			  cstr theDoorScript = *doorScript ? doorScript : "!scripts/hv/sector/gen.door.sxy";
 		  }
 	  }
 
@@ -1417,6 +1419,25 @@ namespace
 		  editor.AddColour(colour, &i->second->mvd.colour);
 	  }
 
+	  void SaveTemplate(StringBuilder& sb)
+	  {
+		  for (auto& i : nameToMaterial)
+		  {
+			  char bodyClass[16];
+			  SafeFormat(bodyClass, 16, "\"%s\"", i.first.c_str());
+			  sb.AppendFormat("\n\t(sectors.SetTemplateMaterial %-12s %2d 0x%8.8x \"%s\")", bodyClass, i.second->category, *(int32*)&i.second->mvd.colour, i.second->persistentName);
+		  }
+
+		  if (Is4PointRectangular())
+		  {
+			  sb.AppendFormat("\n\n\t(sectors.SetTemplateDoorScript %s \"%s\")", hasDoor ? "true" : "false", doorScript);
+		  }
+
+		  sb.AppendFormat("\n\t(sectors.SetTemplateWallScript %s \"%s\")\n", scriptWalls ? "true" : "false", wallScript);
+
+		  sb.AppendFormat("\n\t(sectors.CreateFromTemplate %d %d)\n", elevationInCm, heightInCm);
+	  }
+
 	  void GetProperties(cstr category, IBloodyPropertySetEditor& editor) override
 	  {
 		  char msg[256];
@@ -1437,6 +1458,7 @@ namespace
 			  AddToProperties(GraphicsEx::BodyComponentMatClass_Cement, editor);
 			  editor.AddSpacer();
 			  editor.AddBool("script walls", &scriptWalls);
+			  editor.AddMessage("Defaults to !scripts/hv/sector/gen.walls.sxy");
 			  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN);
 		  }
 		  else if (Eq(category, "ceiling"))
@@ -1462,6 +1484,7 @@ namespace
 
 				  editor.AddSpacer();
 				  editor.AddBool("has door", &hasDoor);
+				  editor.AddMessage("Defaults to !scripts/hv/sector/gen.door.sxy");
 				  editor.AddPingPath("door script", doorScript, IO::MAX_PATHLEN);
 			  }
 			  else
@@ -1471,7 +1494,7 @@ namespace
 				  editor.AddSpacer();
 				  editor.AddSpacer();
 				  editor.AddMessage("Only sectors that are corridors can have doors");
-				  editor.AddMessage("Corridors have four vertices and are rectangular");
+				  editor.AddMessage("Corridors are rectangular and have four vertices");
 				  editor.AddMessage("Doors will not show unless opposite sides of a");
 				  editor.AddMessage("corridor are linked to non-corridor sectors");
 			  }

@@ -205,6 +205,7 @@ namespace HV
 
 	  virtual void ForEveryObjectInSector(IEventCallback<const ID_ENTITY>& cb) = 0;
 
+	  virtual void SaveTemplate(StringBuilder& sb) = 0;
 	  virtual void SetTemplate(MatEnumerator& enumerator) = 0;
    };
 
