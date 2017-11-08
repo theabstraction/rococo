@@ -106,7 +106,7 @@ namespace
 			FPSAngles angles;
 			mobiles.GetAngles(cameraId, angles);
 
-			HV::Graphics::DrawPointer(grc, labelPos, angles.heading, RGBAb(0, 0, 0), RGBAb(255, 255, 0));
+			HV::GraphicsEx::DrawPointer(grc, labelPos, angles.heading, RGBAb(0, 0, 0), RGBAb(255, 255, 0));
 		}
 
 		void Render(IGuiRenderContext& grc, const ISector* litSector)
@@ -511,8 +511,7 @@ namespace
 
 				if (lineList.size() >= 3)
 				{
-					SectorPalette palette{ defaultTextures[0].c_str(), defaultTextures[1].c_str(), defaultTextures[2].c_str() };
-					map.Sectors().AddSector(palette, &lineList[0], lineList.size());
+					map.Sectors().AddSector(&lineList[0], lineList.size());
 					SetStatus("Sector created", publisher);
 				}
 				lineList.clear();
@@ -1083,7 +1082,7 @@ namespace
 		std::vector<std::string> orderedByName;
 		Platform& platform;
 	public:
-		BloodyEnumInt32Binding(Platform& _platform, cstr _name) : name(_name), platform(_platform)
+		BloodyEnumInt32Binding(Platform& _platform, cstr _name, int _value) : name(_name), platform(_platform), value(_value)
 		{
 
 		}
@@ -1717,7 +1716,10 @@ namespace
 			abox(_platform, abuffer, 4, false, piv),
 			value(_colour)
 		{
-
+			SafeFormat(rbuffer, 4, "%u", value.red);
+			SafeFormat(gbuffer, 4, "%u", value.green);
+			SafeFormat(bbuffer, 4, "%u", value.blue);
+			SafeFormat(abuffer, 4, "%u", value.alpha);
 		}
 
 		~BloodyColour()
@@ -2032,6 +2034,39 @@ namespace
 		}
 	};
 
+	class BloodyMessage : public IBloodyPropertyType
+	{
+		std::string msg;
+	public:
+		BloodyMessage(cstr message): msg(message)
+		{
+		}
+
+		virtual void Free()
+		{
+			delete this;
+		}
+
+		virtual cstr Name() const
+		{
+			return "Spacer";
+		}
+
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		{
+			Graphics::RenderCentredText(rc, msg.c_str(), colour, 9, Centre(rect), &rect);
+		}
+
+		RGBAb NameColour() const override
+		{
+			return RGBAb(0, 0, 0, 0);
+		}
+
+		void Click(bool clickedDown, Vec2i pos) override
+		{
+		}
+	};
+
 	class BloodyPingPathBinding : public IBloodyPropertyType, public IValidator
 	{
 		char value[IO::MAX_PATHLEN] = { 0 };
@@ -2279,13 +2314,18 @@ namespace
 
 		void AddMaterialCategory(cstr name, Rococo::Graphics::MaterialCategory cat) override
 		{
-			auto* b = new BloodyEnumInt32Binding(platform, "MaterialCategory");
+			auto* b = new BloodyEnumInt32Binding(platform, "MaterialCategory", cat);
 			b->AddEnumConstant("Rock",   Rococo::Graphics::MaterialCategory_Rock);
 			b->AddEnumConstant("Stone",  Rococo::Graphics::MaterialCategory_Stone);
 			b->AddEnumConstant("Marble", Rococo::Graphics::MaterialCategory_Marble);
 			b->AddEnumConstant("Metal",  Rococo::Graphics::MaterialCategory_Metal);
 			b->AddEnumConstant("Wood",   Rococo::Graphics::MaterialCategory_Wood);
 			Add( new BloodyProperty(b, name));
+		}
+
+		void AddMessage(cstr text)
+		{
+			properties.push_back(new BloodyProperty(new BloodyMessage(text), ""));
 		}
 
 		void AddColour(cstr name, RGBAb colour) override
@@ -2357,11 +2397,11 @@ namespace
 			rc.Renderer().GetGuiMetrics(metrics);
 			if (IsPointInRect(metrics.cursorPosition, mainRect))
 			{
-				Rococo::Graphics::DrawRectangle(rc, mainRect, RGBAb(0, 0, 24, 255), RGBAb(0, 0, 24, 192));
+				Graphics::DrawRectangle(rc, mainRect, RGBAb(0, 0, 24, 255), RGBAb(0, 0, 24, 192));
 			}
 			else
 			{
-				Rococo::Graphics::DrawRectangle(rc, mainRect, RGBAb(0, 0, 0, 255), RGBAb(0, 0, 0, 192));
+				Graphics::DrawRectangle(rc, mainRect, RGBAb(0, 0, 0, 255), RGBAb(0, 0, 0, 192));
 			}
 
 			int y = absRect.top + 2;
@@ -2380,13 +2420,17 @@ namespace
 				if (*p->Name())
 				{
 					GuiRect nameRect{ rowRect.left, y, rowRect.left + 130, y1 };
-					Rococo::Graphics::DrawRectangle(rc, nameRect, p->Prop().NameColour(), p->Prop().NameColour());
-					Rococo::Graphics::RenderVerticalCentredText(rc, p->Name(), fontColour, 9, { rowRect.left + 4, Centre(rowRect).y }, &nameRect);
+					Graphics::DrawRectangle(rc, nameRect, p->Prop().NameColour(), p->Prop().NameColour());
+					Graphics::RenderVerticalCentredText(rc, p->Name(), fontColour, 9, { rowRect.left + 4, Centre(rowRect).y }, &nameRect);
 
 					GuiRect valueRect{ nameRect.right + 1, y, rowRect.right, y1 };
 					p->Prop().Render(rc, valueRect, fontColour);
 					p->SetRect(valueRect);
-					Rococo::Graphics::DrawBorderAround(rc, valueRect, { 1,1 }, edge1, edge2);
+					Graphics::DrawBorderAround(rc, valueRect, { 1,1 }, edge1, edge2);
+				}
+				else
+				{
+					p->Prop().Render(rc, rowRect, RGBAb(255, 255, 255));
 				}
 
 				y = y1 + 3;
@@ -2486,9 +2530,15 @@ namespace
 			ceilingEditor.Clear();
 			doorEditor.Clear();
 
-			if (target)
+			if (this->target != nullptr)
 			{
-				this->target = target;
+				this->target->Assign(nullptr);
+			}
+			
+			this->target = target;
+
+			if (target)
+			{		
 				target->Assign(this);
 				target->GetProperties("walls", wallEditor);
 				target->GetProperties("floor", floorEditor);

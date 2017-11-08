@@ -10,7 +10,6 @@
 
 namespace HV
 {
-   using namespace HV::Graphics;
    using namespace Rococo::Entities;
 
    auto populateBusyCategoryId = "busy.category"_event;

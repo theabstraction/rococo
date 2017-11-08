@@ -36,7 +36,7 @@ namespace Rococo
 
 	typedef float MaterialId;
 
-	struct MaterialVetexData
+	struct MaterialVertexData
 	{
 		RGBAb colour;
 		MaterialId materialId;
@@ -47,7 +47,14 @@ namespace Rococo
 		Vec3 position;
 		Vec3 normal;
 		Vec2 uv;
-		MaterialVetexData material;
+		MaterialVertexData material;
+	};
+
+	typedef cstr BodyComponentMatClass;
+
+	ROCOCOAPI IMaterialPalette
+	{
+		virtual bool TryGetMaterial(BodyComponentMatClass name, MaterialVertexData& vd) const = 0;
 	};
 
 	struct VertexTriangle

@@ -370,15 +370,7 @@ namespace
 
 	  int32 Create(int32 altitude, int32 height, int64 flags, const fstring& wallTexture, const fstring& floorTexture, const fstring& ceilingTexture) override
 	  {
-		  SectorPalette palette
-		  {
-			  wallTexture,
-			  floorTexture,
-			  ceilingTexture
-		  };
-
 		  auto* s = CreateSector(platform, *this);
-		  s->SetPalette(palette);
 		  s->AddFlag((SectorFlag)flags);
 
 		  try
@@ -399,10 +391,9 @@ namespace
 		  return s->Id();
 	  }
 
-      void AddSector(const SectorPalette& palette, const Vec2* positionArray, size_t nVertices) override
+      void AddSector(const Vec2* positionArray, size_t nVertices) override
       {
          auto* s = CreateSector(platform, *this);
-         s->SetPalette(palette);
 
          try
          {
@@ -429,7 +420,7 @@ namespace
 				 }
 				 OS::PrintDebug("};\n\n\n");
 
-				 AddSector(palette, positionArray, nVertices);
+				 AddSector(positionArray, nVertices);
 			 }
 #endif
 		 }

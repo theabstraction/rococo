@@ -117,13 +117,6 @@ namespace HV
       Segment segment;
    };
 
-   struct SectorPalette
-   {
-      cstr wallTextureName;
-      cstr floorTextureName;
-      cstr ceilingTextureName;
-   };
-
    struct IPropertyHost;
 
    ROCOCOAPI IPropertyTarget
@@ -203,7 +196,6 @@ namespace HV
       virtual void InvokeSectorDialog(Rococo::Windows::IWindow& parent, IEditorState& state) = 0;
       virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
       virtual void Rebuild(int64 iterationFrame) = 0;
-      virtual void SetPalette(const SectorPalette& palette) = 0;
       virtual bool Is4PointRectangular() const = 0; // The sector has four points and its perimeter in 2D space is a rectangle or square
       virtual bool IsCorridor() const = 0; // The sector Is4PointRectangular & two opposing edges are portals to other sectors and neither is itself a 4PtRect
       virtual const Segment* GetWallSegments(size_t& count) const = 0;
@@ -222,7 +214,7 @@ namespace HV
 	  virtual void AddDirty(ISector* dirtySector) = 0;
 	  virtual void RebuildDirtySectors(int64 iterationFrame) = 0;
 
-	  virtual void AddSector(const SectorPalette& palette, const Vec2* perimeter, size_t nVertices) = 0;
+	  virtual void AddSector(const Vec2* perimeter, size_t nVertices) = 0;
 	  virtual void Delete(ISector* sector) = 0;
 
 	  virtual ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b) = 0;
@@ -265,9 +257,18 @@ namespace HV
    IApp* CreateHVApp(Cosmos& e);
    void RunEnvironmentScript(Cosmos& e, cstr name);
 
-   namespace Graphics
+   namespace GraphicsEx
    {
       void DrawPointer(IGuiRenderContext& grc, Vec2i pos, Degrees heading, RGBAb shadowColour, RGBAb bodyColour);
+
+	  extern BodyComponentMatClass BodyComponentMatClass_Brickwork;
+	  extern BodyComponentMatClass BodyComponentMatClass_Cement;
+	  extern BodyComponentMatClass BodyComponentMatClass_Floor;
+	  extern BodyComponentMatClass BodyComponentMatClass_Ceiling;
+	  extern BodyComponentMatClass BodyComponentMatClass_Door_Mullions;
+	  extern BodyComponentMatClass BodyComponentMatClass_Door_Panels;
+	  extern BodyComponentMatClass BodyComponentMatClass_Door_Casing;
+	  extern BodyComponentMatClass BodyComponentMatClass_Door_Rails;
    }
 }
 

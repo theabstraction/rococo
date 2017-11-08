@@ -3,7 +3,7 @@
 #include <rococo.maths.h>
 
 #include <vector>
-//#include <unordered_map>
+#include <unordered_map>
 #include <algorithm>
 
 #include <rococo.rings.inl>
@@ -47,7 +47,7 @@ namespace
 
    const char* const genDoorScript = "!scripts/hv/sector/gen.door.sxy";
 
-   class Sector : public ISector, public ICorridor
+   class Sector : public ISector, public ICorridor, IMaterialPalette
    {   
       IInstancesSupervisor& instances;
       ISectors& co_sectors;
@@ -74,6 +74,31 @@ namespace
       float z1; // Ceiling height (> floor height)
 
 	  std::vector<Barrier> barriers;
+
+	  struct Material
+	  {
+		  MaterialVertexData mvd;
+		  std::string persistentName;
+		  Rococo::Graphics::MaterialCategory category;
+	  };
+
+	  std::unordered_map<std::string, Material> nameToMaterial;
+
+	  bool TryGetMaterial(BodyComponentMatClass name, MaterialVertexData& vd) const override
+	  {
+		  auto i = nameToMaterial.find(name);
+		  if (i == nameToMaterial.end())
+		  {
+			  vd.colour = RGBAb(0, 0, 0, 255);
+			  vd.materialId = -1;
+			  return false;
+		  }
+		  else
+		  {
+			  vd = i->second.mvd;
+			  return true;
+		  }
+	  }
 
 	  const Barrier* Barriers(size_t& barrierCount) const override
 	  {
@@ -286,8 +311,8 @@ namespace
             wallSegments.push_back({ (int32) i, (int32) (i + 1) % (int32)perimeter.ElementCount() });
          }
 
-		 auto wallMatId = platform.instances.GetRandomMaterialId(Rococo::Graphics::MaterialCategory_Stone);
-		 TesselateWallsFromSegments(wallMatId);
+		 auto walls = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Brickwork);
+		 TesselateWallsFromSegments(walls->second.mvd.materialId);
       }
 
       float AddWallSegment(const Vec2& p, const Vec2& q, float h0, float h1, float u, MaterialId id)
@@ -604,6 +629,35 @@ namespace
       }
 
       Platform& platform;
+
+	  void PrepMat(BodyComponentMatClass bcmc, cstr persistentName, Graphics::MaterialCategory cat)
+	  {
+		  Material mat;
+		  mat.category = cat;
+		  mat.persistentName = persistentName;
+		  mat.mvd.colour = RGBAb(0, 0, 0, 0);
+		  mat.mvd.materialId = platform.renderer.GetMaterialId(persistentName);
+		  if (mat.mvd.materialId < 0)
+		  {
+			  mat.mvd.materialId = platform.instances.GetRandomMaterialId(cat);
+			  mat.mvd.colour.red = rand() % 256;
+			  mat.mvd.colour.green = rand() % 256;
+			  mat.mvd.colour.blue = rand() % 256;
+			  mat.mvd.colour.alpha = rand() % 64;
+		  }
+
+		  nameToMaterial[bcmc] = mat;
+	  }
+
+	  Graphics::MaterialCategory RandomWoodOrMetal()
+	  {
+		  return  ((rand() % 2) == 0) ? Graphics::MaterialCategory_Metal : Graphics::MaterialCategory_Wood;
+	  }
+
+	  Graphics::MaterialCategory RandomRockOrMarble()
+	  {
+		  return  ((rand() % 2) == 0) ? Graphics::MaterialCategory_Rock : Graphics::MaterialCategory_Marble;
+	  }
    public:
       Sector(Platform& _platform, ISectors& _co_sectors) :
          instances(_platform.instances),
@@ -612,6 +666,16 @@ namespace
          platform(_platform),
          co_sectors(_co_sectors)
       {
+		  PrepMat(GraphicsEx::BodyComponentMatClass_Brickwork, "random", Graphics::MaterialCategory_Stone);
+		  PrepMat(GraphicsEx::BodyComponentMatClass_Cement,    "random", Graphics::MaterialCategory_Rock);
+		  PrepMat(GraphicsEx::BodyComponentMatClass_Floor,     "random", RandomRockOrMarble());
+		  PrepMat(GraphicsEx::BodyComponentMatClass_Ceiling,   "random", RandomRockOrMarble());
+
+
+		  PrepMat(GraphicsEx::BodyComponentMatClass_Door_Mullions, "random", RandomWoodOrMetal());
+		  PrepMat(GraphicsEx::BodyComponentMatClass_Door_Rails,   "random", RandomWoodOrMetal());
+		  PrepMat(GraphicsEx::BodyComponentMatClass_Door_Panels,  "random", RandomWoodOrMetal());
+		  PrepMat(GraphicsEx::BodyComponentMatClass_Door_Casing,  "random", RandomWoodOrMetal());
       }
 
 	  virtual uint32 Id() const
@@ -666,10 +730,6 @@ namespace
 		 {
 			 host->SetPropertyTarget(nullptr);
 		 }
-      }
-
-      virtual void SetPalette(const SectorPalette& palette)
-      {
       }
 
       virtual ObjectVertexBuffer FloorVertices() const
@@ -1003,10 +1063,10 @@ namespace
 
 		  BuildGapsAndTesselateWalls(Ring<Vec2>(&floorPerimeter[0], floorPerimeter.size()));
 
-		  auto floorMatId = platform.instances.GetRandomMaterialId(Rococo::Graphics::MaterialCategory_Rock);
-		  auto ceilingMatId = platform.instances.GetRandomMaterialId(Rococo::Graphics::MaterialCategory_Rock);
+		  auto floor = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Floor);
+		  auto ceiling = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Ceiling);
 
-		  TesselateFloorAndCeiling(floorMatId, ceilingMatId);
+		  TesselateFloorAndCeiling(floor->second.mvd.materialId, ceiling->second.mvd.materialId);
 
 		  if (IsCorridor() && IsFlagged(SectorFlag_Has_Door))
 		  {
@@ -1369,35 +1429,56 @@ namespace
 		  iterationFrame = value;
 	  }
 
+	  void AddToProperties(BodyComponentMatClass bcmc, IBloodyPropertySetEditor& editor)
+	  {
+		  auto i = nameToMaterial.find(bcmc);
+
+		  char name[32];
+		  SafeFormat(name, sizeof(name), "%s mat", bcmc);
+
+		  editor.AddSpacer();
+		  editor.AddMaterialCategory(name, i->second.category);
+
+		  char id[32];
+		  SafeFormat(id, sizeof(id), "%s id", bcmc);
+		  editor.AddMaterialString(id, i->second.persistentName.c_str());
+
+		  char colour[32];
+		  SafeFormat(colour, sizeof(colour), "%s colour", bcmc);
+		  editor.AddColour(colour, i->second.mvd.colour);
+	  }
+
 	  void GetProperties(cstr category, IBloodyPropertySetEditor& editor) override
 	  {
+		  char msg[256];
+
+		  if (Is4PointRectangular())
+		  {
+			  SafeFormat(msg, sizeof(msg), "Sector #%u%s", id, IsCorridor() ? " (corridor)" : " (4 pt rectangle)");
+		  }
+		  else
+		  {
+			  SafeFormat(msg, sizeof(msg), "Sector #%u", id);
+		  }
+		  editor.AddMessage(msg);
+
 		  if (Eq(category, "walls"))
 		  {
+			  AddToProperties(GraphicsEx::BodyComponentMatClass_Brickwork, editor);
+			  AddToProperties(GraphicsEx::BodyComponentMatClass_Cement, editor);
 			  editor.AddSpacer();
-			  editor.AddMaterialCategory("brickwork mat", Rococo::Graphics::MaterialCategory_Rock);
-			  editor.AddMaterialString("brickwork id", platform.renderer.GetMaterialTextureName(wallId));
-			  editor.AddColour("brick colour", RGBAb(0,0,0,0));
-
-			  editor.AddSpacer();
-			  editor.AddMaterialCategory("cement", Rococo::Graphics::MaterialCategory_Rock);
-			  editor.AddMaterialString("cement id", "random");
-			  editor.AddColour("cement colour", RGBAb(0, 0, 0, 0));
+			  editor.AddBool("script walls", false);
+			  editor.AddPingPath("wall script", "!scripts/hv/sector/gen.walls.sxy");
 		  }
 		  else if (Eq(category, "ceiling"))
 		  {
-			  editor.AddSpacer();
-			  editor.AddMaterialCategory("ceiling mat", Rococo::Graphics::MaterialCategory_Rock);
-			  editor.AddMaterialString("ceiling id", "random");
-			  editor.AddColour("ceiling colour", RGBAb(0, 0, 0, 0));
+			  AddToProperties(GraphicsEx::BodyComponentMatClass_Ceiling, editor);
 			  editor.AddSpacer();
 			  editor.AddInt("altitude (cm)", false, 0);
 		  }
 		  else if (Eq(category, "floor"))
 		  {
-			  editor.AddSpacer();
-			  editor.AddMaterialCategory("floor mat", Rococo::Graphics::MaterialCategory_Rock);
-			  editor.AddMaterialString("floor id", "random");
-			  editor.AddColour("floor colour", RGBAb(0, 0, 0, 0));
+			  AddToProperties(GraphicsEx::BodyComponentMatClass_Floor, editor);
 			  editor.AddSpacer();
 			  editor.AddInt("height (cm)", false, 400);
 			  editor.AddSpacer();
@@ -1407,29 +1488,28 @@ namespace
 		  }
 		  else if (Eq(category, "door"))
 		  {
-			  editor.AddSpacer();
-			  editor.AddMaterialCategory("panel mat", Rococo::Graphics::MaterialCategory_Rock);
-			  editor.AddMaterialString("panel id", "random");
-			  editor.AddColour("panel colour", RGBAb(0, 0, 0, 0));
+			  if (IsCorridor())
+			  {
+				  AddToProperties(GraphicsEx::BodyComponentMatClass_Door_Panels, editor);
+				  AddToProperties(GraphicsEx::BodyComponentMatClass_Door_Mullions, editor);
+				  AddToProperties(GraphicsEx::BodyComponentMatClass_Door_Rails, editor);
+				  AddToProperties(GraphicsEx::BodyComponentMatClass_Door_Casing, editor);
 
-			  editor.AddSpacer();
-			  editor.AddMaterialCategory("mullion mat", Rococo::Graphics::MaterialCategory_Rock);
-			  editor.AddMaterialString("mullion id", "random");
-			  editor.AddColour("mullion colour", RGBAb(0, 0, 0, 0));
-
-			  editor.AddSpacer();
-			  editor.AddMaterialCategory("rail mat", Rococo::Graphics::MaterialCategory_Rock);
-			  editor.AddMaterialString("rail id", "random");
-			  editor.AddColour("rail colour", RGBAb(0, 0, 0, 0));
-
-			  editor.AddSpacer();
-			  editor.AddMaterialCategory("casing mat", Rococo::Graphics::MaterialCategory_Rock);
-			  editor.AddMaterialString("casing id", "random");
-			  editor.AddColour("casing colour", RGBAb(0, 0, 0, 0));
-
-			  editor.AddSpacer();
-			  editor.AddBool("has door", false);
-			  editor.AddPingPath("door script", "");
+				  editor.AddSpacer();
+				  editor.AddBool("has door", false);
+				  editor.AddPingPath("door script", genDoorScript);
+			  }
+			  else
+			  {
+				  editor.AddSpacer();
+				  editor.AddSpacer();
+				  editor.AddSpacer();
+				  editor.AddSpacer();
+				  editor.AddMessage("Only sectors that are corridors can have doors");
+				  editor.AddMessage("Corridors have four vertices and are rectangular");
+				  editor.AddMessage("Doors will not show unless opposite sides of a");
+				  editor.AddMessage("corridor are linked to non-corridor sectors");
+			  }
 		  }
 	  }
    };
@@ -1441,4 +1521,19 @@ namespace HV
    {
       return new Sector(platform, co_sectors);
    }
+}
+
+namespace HV
+{
+	namespace GraphicsEx
+	{
+		BodyComponentMatClass BodyComponentMatClass_Brickwork			= "brickwork";
+		BodyComponentMatClass BodyComponentMatClass_Cement				= "cement";
+		BodyComponentMatClass BodyComponentMatClass_Floor				= "floor";
+		BodyComponentMatClass BodyComponentMatClass_Ceiling				= "ceiling";
+		BodyComponentMatClass BodyComponentMatClass_Door_Mullions		= "mulliions";
+		BodyComponentMatClass BodyComponentMatClass_Door_Panels			= "panels";
+		BodyComponentMatClass BodyComponentMatClass_Door_Casing			= "casing";
+		BodyComponentMatClass BodyComponentMatClass_Door_Rails			= "rails";
+	}
 }

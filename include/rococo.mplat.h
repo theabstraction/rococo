@@ -50,6 +50,7 @@ namespace Rococo
 		virtual void AddFloat(cstr name, float value) = 0;
 		virtual void AddInt(cstr name, bool addHexView, int value) = 0;
 		virtual void AddMaterialCategory(cstr name, Rococo::Graphics::MaterialCategory cat) = 0;
+		virtual void AddMessage(cstr message) = 0;
 		virtual void AddColour(cstr name, RGBAb colour) = 0;
 		virtual void AddMaterialString(cstr name, cstr value) = 0;
 		virtual void AddPingPath(cstr name, cstr value) = 0;

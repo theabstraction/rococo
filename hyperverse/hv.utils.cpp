@@ -2,7 +2,7 @@
 
 namespace HV
 {
-   namespace Graphics
+   namespace GraphicsEx
    {
       void DrawPointer(IGuiRenderContext& grc, Vec2i pos, Degrees heading, RGBAb shadowColour, RGBAb bodyColour)
       {
