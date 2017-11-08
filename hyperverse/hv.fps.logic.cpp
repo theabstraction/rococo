@@ -804,7 +804,6 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 			{
 				auto id = player->GetPlayerEntity();
 				auto pos = e.platform.instances.GetEntity(id)->Position();
-				e.editor.SetNeighbourTextureAt({ pos.x, pos.y }, dWheel > 0);
 			}
 		}
 

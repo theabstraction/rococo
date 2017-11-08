@@ -194,10 +194,6 @@ namespace
 
 			  sb.AppendFormat("\n\n");
 
-			  sb.AppendFormat("\t(IString wall = \"%s\")\n", s->GetTexture(0));
-			  sb.AppendFormat("\t(IString floor = \"%s\")\n", s->GetTexture(1));
-			  sb.AppendFormat("\t(IString ceiling = \"%s\")\n\n", s->GetTexture(2));
-
 			  size_t nVertices;
 			  auto* v = s->WallVertices(nVertices);
 

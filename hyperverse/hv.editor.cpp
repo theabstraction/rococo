@@ -2422,18 +2422,6 @@ namespace
 			return scrollLock.State() == 1;
 		}
 
-		virtual void SetNeighbourTextureAt(Vec2 pos, bool forward)
-		{
-			auto* sector = map.Sectors().GetFirstSectorContainingPoint(pos);
-			if (sector)
-			{
-				int state = textureTargetHandler.State();
-				cstr textureName = sector->GetTexture(state);
-				cstr nextName = textureList.GetNeighbour(textureName, forward);
-				sector->SetTexture(state, nextName);
-			}
-		}
-
 		bool OnKeyboardEvent(const KeyboardEvent& key) override
 		{
 			return EditMode().OnKeyboardEvent(key);
@@ -2500,6 +2488,7 @@ namespace
 
 			if (target)
 			{
+				this->target = target;
 				target->Assign(this);
 				target->GetProperties("walls", wallEditor);
 				target->GetProperties("floor", floorEditor);
@@ -2657,6 +2646,9 @@ namespace
 			platform.gui.UnregisterPopulator(&doorEditor);
 			platform.gui.UnregisterPopulator(this);
 			platform.publisher.Detach(this);
+
+			if (target) target->Assign(nullptr);
+			target = nullptr;
 		}
 
 		virtual cstr TextureName(int index) const

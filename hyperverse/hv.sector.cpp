@@ -65,10 +65,6 @@ namespace
       std::vector<VertexTriangle> floorTriangles;
       std::vector<VertexTriangle> ceilingTriangles;
 
-      std::string wallTexture = "!textures/walls/metal1.jpg";
-      std::string floorTexture = "!textures/walls/metal1.jpg";;
-      std::string ceilingTexture = "!textures/walls/metal1.jpg";;
-
       IUtilitiies& utilities;
      
       float uvScale{ 0.2f };
@@ -623,40 +619,6 @@ namespace
 		  return id;
 	  }
 
-      virtual cstr GetTexture(int32 state) const
-      {
-         switch (state)
-         {
-         case 0:  return wallTexture.c_str();
-         case 1:  return floorTexture.c_str();
-         case 2:  return ceilingTexture.c_str();
-         }
-
-         return nullptr;
-      }
-
-      virtual void SetTexture(int32 state, cstr texture)
-      {
-         switch (state)
-         {
-         case 0:
-         {
-            wallTexture = texture;
-            break;
-         }
-         case 1:
-         {
-            floorTexture = texture;
-            break;
-         }
-         case 2:
-         {
-            ceilingTexture = texture;
-            break;
-         }
-         }
-      }
-
       void DeleteFloor()
       {
          if (floorId)
@@ -708,9 +670,6 @@ namespace
 
       virtual void SetPalette(const SectorPalette& palette)
       {
-         wallTexture = palette.wallTextureName;
-         floorTexture = palette.floorTextureName;
-         ceilingTexture = palette.ceilingTextureName;
       }
 
       virtual ObjectVertexBuffer FloorVertices() const
@@ -1246,25 +1205,10 @@ namespace
 
             virtual void OnButtonClicked(cstr variableName)
             {
-               if (Eq(variableName, "SetDefaultWall"))
-               {
-                  textures[0] = state->TextureName(0);
-               }
-               else if (Eq(variableName, "SetDefaultFloor"))
-               {
-                  textures[1] = state->TextureName(1);
-               }
-               else if (Eq(variableName, "SetDefaultCeiling"))
-               {
-                  textures[2] = state->TextureName(2);
-               }
             }
          } handler;
 
          handler.state = &state;
-         handler.textures[0] = this->wallTexture;
-         handler.textures[1] = this->floorTexture;
-         handler.textures[2] = this->ceilingTexture;
 
          rchar title[32];
 
@@ -1282,9 +1226,6 @@ namespace
          editor->AddIntegerEditor("Altitiude", "Altitiude - centimetres", 0, 100000, (int32)(z0 * 100.0f));
          editor->AddIntegerEditor("Height", "Height - centimetres", 250, 100000, (int32)((z1 - z0) * 100.0f));
          editor->AddTab("Textures", "Set and get default textures");
-         editor->AddPushButton("SetDefaultWall", state.TextureName(0));
-         editor->AddPushButton("SetDefaultFloor", state.TextureName(1));
-         editor->AddPushButton("SetDefaultCeiling", state.TextureName(2));
 
          editor->AddTab("Occlusion", "Set occlusion properties");
          editor->AddBooleanEditor("Players", IsFlagged(SectorFlag_Occlude_Players));
@@ -1315,9 +1256,6 @@ namespace
             z0 = (float)Z0 / 100;
             z1 = z0 + (float)Z1 / 100;
 
-            wallTexture = handler.textures[0];
-            floorTexture = handler.textures[1];
-            ceilingTexture = handler.textures[2];
 
             SetFlag(SectorFlag_ScriptedWalls,   editor->GetBoolean("Script Walls"));
             SetFlag(SectorFlag_ScriptedCeiling, editor->GetBoolean("Script Ceiling"));

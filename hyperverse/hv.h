@@ -80,7 +80,6 @@ namespace HV
    ROCOCOAPI IEditor
    {
       virtual bool IsScrollLocked() const = 0;
-      virtual void SetNeighbourTextureAt(Vec2 pos, bool forward) = 0;
       virtual void Free() = 0;
    };
 
@@ -205,8 +204,6 @@ namespace HV
       virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
       virtual void Rebuild(int64 iterationFrame) = 0;
       virtual void SetPalette(const SectorPalette& palette) = 0;
-      virtual cstr GetTexture(int32 state) const = 0;
-      virtual void SetTexture(int32 state, cstr texture) = 0;
       virtual bool Is4PointRectangular() const = 0; // The sector has four points and its perimeter in 2D space is a rectangle or square
       virtual bool IsCorridor() const = 0; // The sector Is4PointRectangular & two opposing edges are portals to other sectors and neither is itself a 4PtRect
       virtual const Segment* GetWallSegments(size_t& count) const = 0;
