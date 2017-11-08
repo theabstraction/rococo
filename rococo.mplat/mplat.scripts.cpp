@@ -88,12 +88,13 @@ namespace Rococo
          Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
       }
 
-      void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform)
+      void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail)
       {
-         class ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
+         struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
          {
             Platform& platform;
             IEventCallback<ScriptCompileArgs>& onScriptEvent;
+			bool shutdownOnFail;
 
             virtual void Free()
             {
@@ -112,7 +113,7 @@ namespace Rococo
                }
                else
                {
-				   OS::ShutdownApp();
+				  if (shutdownOnFail) OS::ShutdownApp();
                   return IDE::EScriptExceptionFlow_Terminate;
                }
             }
@@ -139,7 +140,6 @@ namespace Rococo
                onScriptEvent.OnEvent(args);
             }
 
-         public:
             ScriptContext(Platform& _platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent) : platform(_platform), onScriptEvent(_onScriptEvent) {}
 
             void Execute(cstr name)
@@ -150,7 +150,7 @@ namespace Rococo
                }
                catch (IException&)
                {
-                  Rococo::OS::ShutdownApp();
+				  if (shutdownOnFail) Rococo::OS::ShutdownApp();
                   throw;
                }
             }
@@ -159,7 +159,8 @@ namespace Rococo
          } sc(platform, _onScriptEvent);
 
          sc.addPlatform = addPlatform;
-
+		 sc.shutdownOnFail = shutdownOnFail;
+		 
          sc.Execute(name);
       }
    }

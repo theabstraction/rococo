@@ -43,25 +43,6 @@ namespace Rococo
 
 namespace Rococo
 {
-	ROCOCOAPI IBloodyPropertySetEditor
-	{
-		virtual void AddBool(cstr name, bool value) = 0;
-		virtual void AddSpacer() = 0;
-		virtual void AddFloat(cstr name, float value) = 0;
-		virtual void AddInt(cstr name, bool addHexView, int value) = 0;
-		virtual void AddMaterialCategory(cstr name, Rococo::Graphics::MaterialCategory cat) = 0;
-		virtual void AddMessage(cstr message) = 0;
-		virtual void AddColour(cstr name, RGBAb colour) = 0;
-		virtual void AddMaterialString(cstr name, cstr value) = 0;
-		virtual void AddPingPath(cstr name, cstr value) = 0;
-		virtual void Clear();
-	};
-
-	ROCOCOAPI IBloodyPropertySetEditorSupervisor : public IBloodyPropertySetEditor
-	{
-		virtual void Free() = 0;
-	};
-
 	ROCOCOAPI IConfigSupervisor : public IConfig
 	{
 		virtual cstr GetText(cstr name) const = 0;
@@ -253,6 +234,28 @@ namespace Rococo
       virtual void Render(IGuiRenderContext& rc, const GuiRect& absRect) = 0;
    };
 
+   ROCOCOAPI IBloodyPropertySetEditor : public IUIElement
+   {
+	   virtual void AddBool(cstr name, bool* value) = 0;
+	   virtual void AddSpacer() = 0;
+	   virtual void AddFloat(cstr name, float* value) = 0;
+	   virtual void AddInt(cstr name, bool addHexView, int* value) = 0;
+	   virtual void AddMaterialCategory(cstr name, Graphics::MaterialCategory *cat) = 0;
+	   virtual void AddMessage(cstr message) = 0;
+	   virtual void AddColour(cstr name, RGBAb* colour) = 0;
+	   virtual void AddMaterialString(cstr name, char* value, size_t valueLen) = 0;
+	   virtual void AddPingPath(cstr name, char* value, size_t valueLen) = 0;
+	   virtual void Clear();
+   };
+
+   ROCOCOAPI IBloodyPropertySetEditorSupervisor : public IBloodyPropertySetEditor
+   {
+	   virtual void Free() = 0;
+   };
+
+   IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty);
+
+
    struct UIPopulate : public Events::Event
    {
       UIPopulate();
@@ -379,10 +382,11 @@ namespace Rococo
 	   virtual bool GetLoadLocation(Windows::IWindow& parent, LoadDesc& sd) = 0;
 	   virtual bool QueryYesNo(Platform& platform, Windows::IWindow& parent, cstr question, cstr caption = nullptr) = 0;
 	   virtual void RefreshResource(Platform& platform, cstr pingPath) = 0;
-	   virtual void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform) = 0;
+	   virtual void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail = true) = 0;
 	   virtual void SaveBinary(cstr pathname, const void* buffer, size_t nChars) = 0;
 	   virtual void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr message) = 0;
 	   virtual IVariableEditor* CreateVariableEditor(Windows::IWindow& parent, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler = nullptr, const Vec2i* topLeft = nullptr) = 0;
+	   virtual IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty) = 0;
    };
 
    namespace Graphics

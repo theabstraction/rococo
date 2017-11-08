@@ -332,32 +332,10 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Clear();
 	}
-	void NativeHVISectorBuilderCreate(NativeCallEnvironment& _nce)
+	void NativeHVISectorBuilderCreateFromTemplate(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(IString*);
-		IString* _ceilingTexture;
-		ReadInput(_ceilingTexture, _sf, -_offset);
-		fstring ceilingTexture { _ceilingTexture->buffer, _ceilingTexture->length };
-
-
-		_offset += sizeof(IString*);
-		IString* _floorTexture;
-		ReadInput(_floorTexture, _sf, -_offset);
-		fstring floorTexture { _floorTexture->buffer, _floorTexture->length };
-
-
-		_offset += sizeof(IString*);
-		IString* _wallTexture;
-		ReadInput(_wallTexture, _sf, -_offset);
-		fstring wallTexture { _wallTexture->buffer, _wallTexture->length };
-
-
-		int64 flags;
-		_offset += sizeof(flags);
-		ReadInput(flags, _sf, -_offset);
-
 		int32 height;
 		_offset += sizeof(height);
 		ReadInput(height, _sf, -_offset);
@@ -370,9 +348,79 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		int32 id = _pObject->Create(altitude, height, flags, wallTexture, floorTexture, ceilingTexture);
+		int32 id = _pObject->CreateFromTemplate(altitude, height);
 		_offset += sizeof(id);
 		WriteOutput(id, _sf, -_offset);
+	}
+	void NativeHVISectorBuilderSetTemplateWallScript(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _scriptName;
+		ReadInput(_scriptName, _sf, -_offset);
+		fstring scriptName { _scriptName->buffer, _scriptName->length };
+
+
+		boolean32 useScript;
+		_offset += sizeof(useScript);
+		ReadInput(useScript, _sf, -_offset);
+
+		HV::ISectorBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetTemplateWallScript(useScript, scriptName);
+	}
+	void NativeHVISectorBuilderSetTemplateDoorScript(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _scriptName;
+		ReadInput(_scriptName, _sf, -_offset);
+		fstring scriptName { _scriptName->buffer, _scriptName->length };
+
+
+		boolean32 hasDoor;
+		_offset += sizeof(hasDoor);
+		ReadInput(hasDoor, _sf, -_offset);
+
+		HV::ISectorBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetTemplateDoorScript(hasDoor, scriptName);
+	}
+	void NativeHVISectorBuilderSetTemplateMaterial(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _persistentId;
+		ReadInput(_persistentId, _sf, -_offset);
+		fstring persistentId { _persistentId->buffer, _persistentId->length };
+
+
+		RGBAb colour;
+		_offset += sizeof(colour);
+		ReadInput(colour, _sf, -_offset);
+
+		Rococo::Graphics::MaterialCategory cat;
+		_offset += sizeof(cat);
+		ReadInput(cat, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _bodyClass;
+		ReadInput(_bodyClass, _sf, -_offset);
+		fstring bodyClass { _bodyClass->buffer, _bodyClass->length };
+
+
+		HV::ISectorBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetTemplateMaterial(bodyClass, cat, colour, persistentId);
 	}
 
 	void NativeGetHandleForHVSectors(NativeCallEnvironment& _nce)
@@ -394,6 +442,9 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeGetHandleForHVSectors, _nceContext, SEXTEXT("GetHandleForISectors0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeHVISectorBuilderAddVertex, nullptr, SEXTEXT("ISectorsAddVertex (Pointer hObject)(Float32 x)(Float32 y) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorBuilderClear, nullptr, SEXTEXT("ISectorsClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorBuilderCreate, nullptr, SEXTEXT("ISectorsCreate (Pointer hObject)(Int32 altitude)(Int32 height)(Int64 flags)(Sys.Type.IString wallTexture)(Sys.Type.IString floorTexture)(Sys.Type.IString ceilingTexture) -> (Int32 id)"));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderCreateFromTemplate, nullptr, SEXTEXT("ISectorsCreateFromTemplate (Pointer hObject)(Int32 altitude)(Int32 height) -> (Int32 id)"));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderSetTemplateWallScript, nullptr, SEXTEXT("ISectorsSetTemplateWallScript (Pointer hObject)(Bool useScript)(Sys.Type.IString scriptName) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderSetTemplateDoorScript, nullptr, SEXTEXT("ISectorsSetTemplateDoorScript (Pointer hObject)(Bool hasDoor)(Sys.Type.IString scriptName) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderSetTemplateMaterial, nullptr, SEXTEXT("ISectorsSetTemplateMaterial (Pointer hObject)(Sys.Type.IString bodyClass)(Int32 cat)(Int32 colour)(Sys.Type.IString persistentId) -> "));
 	}
 }

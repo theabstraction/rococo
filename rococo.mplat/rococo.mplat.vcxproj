@@ -97,6 +97,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="mplat.bloody.cpp" />
     <ClCompile Include="mplat.config.cpp" />
     <ClCompile Include="mplat.entities.mobiles.cpp" />
     <ClCompile Include="mplat.graphics.camera.cpp" />

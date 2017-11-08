@@ -123,6 +123,7 @@ namespace HV
    {
 	   virtual void Assign(IPropertyHost* host) = 0; // N.B a property target must never by Next to itself
 	   virtual void GetProperties(cstr category, IBloodyPropertySetEditor& editor) = 0;
+	   virtual void NotifyChanged() = 0;
    };
 
    ROCOCOAPI IPropertyHost
@@ -135,18 +136,6 @@ namespace HV
    {
 
       virtual cstr TextureName(int index) const = 0;
-   };
-
-   enum SectorFlag : int64
-   {
-      SectorFlag_None = 0,
-      SectorFlag_Occlude_Players = 1,
-      SectorFlag_Occlude_Friends = 2,
-      SectorFlag_Occlude_Enemies = 4,
-      SectorFlag_Has_Door = 8,
-	  SectorFlag_ScriptedWalls = 16,
-	  SectorFlag_ScriptedFloor = 32,
-	  SectorFlag_ScriptedCeiling = 64,
    };
 
    struct Barrier
@@ -162,13 +151,26 @@ namespace HV
 	   ISector& sector;
    };
 
+   struct Material
+   {
+	   MaterialVertexData mvd;
+	   char persistentName[IO::MAX_PATHLEN];
+	   Rococo::Graphics::MaterialCategory category;
+   };
+
+   struct MaterialArgs
+   {
+	   Material* mat;
+	   BodyComponentMatClass bcmc;
+   };
+
+   ROCOCOAPI MatEnumerator
+   {
+	   virtual void Enumerate(IEventCallback<MaterialArgs>& cb) = 0;
+   };
+
    ROCOCOAPI ISector: public IPropertyTarget
    {
-      virtual void AddFlag(SectorFlag flag) = 0;
-      virtual void RemoveFlag(SectorFlag flag) = 0;
-      virtual bool IsFlagged(SectorFlag flag) const = 0;
-	  virtual int64 Flags() const = 0;
-
 	  virtual uint32 Id() const = 0;
 
 	  // Iteration frames are used by some iteration functions to mark sectors as having been enumrerated
@@ -193,7 +195,7 @@ namespace HV
       virtual int32 GetFloorTriangleIndexContainingPoint(Vec2 p) = 0;
       virtual RGBAb GetGuiColour(float intensity) const = 0;
       virtual int32 GetPerimeterIndex(Vec2 a) = 0;
-      virtual void InvokeSectorDialog(Rococo::Windows::IWindow& parent, IEditorState& state) = 0;
+      virtual void InvokeSectorRebuild(bool force) = 0;
       virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
       virtual void Rebuild(int64 iterationFrame) = 0;
       virtual bool Is4PointRectangular() const = 0; // The sector has four points and its perimeter in 2D space is a rectangle or square
@@ -202,6 +204,8 @@ namespace HV
 	  virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
 
 	  virtual void ForEveryObjectInSector(IEventCallback<const ID_ENTITY>& cb) = 0;
+
+	  virtual void SetTemplate(MatEnumerator& enumerator) = 0;
    };
 
    ISector* CreateSector(Platform& platform, ISectors& co_sectors);

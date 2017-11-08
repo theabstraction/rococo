@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
 
 namespace
 {
@@ -129,6 +130,11 @@ namespace
       ~Sectors()
       {
 		  Clear();
+
+		  for (auto i : temp.nameToMaterials)
+		  {
+			  delete i.second;
+		  }
       }
 
 	  void Clear()
@@ -165,32 +171,6 @@ namespace
 
 			  int z0 = (int) (s->Z0() * 100);
 			  int z1 = (int) (s->Z1() * 100);
-			  sb.AppendFormat("\t(Int64 flags = %llu) // 0x%llX", s->Flags(), s->Flags());
-
-			  if (s->Flags() == 0)
-			  {
-				  sb.AppendFormat(" None");
-			  }
-
-			  if (s->IsFlagged(SectorFlag_Occlude_Players))
-			  {
-				  sb.AppendFormat(" Occlude_Players");
-			  }
-
-			  if (s->IsFlagged(SectorFlag_Occlude_Friends))
-			  {
-				  sb.AppendFormat(" Occlude_Friends");
-			  }
-
-			  if (s->IsFlagged(SectorFlag_Occlude_Enemies))
-			  {
-				  sb.AppendFormat(" Occlude_Enemies");
-			  }
-
-			  if (s->IsFlagged(SectorFlag_Has_Door))
-			  {
-				  sb.AppendFormat(" Has_Door");
-			  }
 
 			  sb.AppendFormat("\n\n");
 
@@ -368,10 +348,57 @@ namespace
 		  vertices.push_back(Vec2{ x, y });
 	  }
 
-	  int32 Create(int32 altitude, int32 height, int64 flags, const fstring& wallTexture, const fstring& floorTexture, const fstring& ceilingTexture) override
+	  struct
 	  {
+		  std::string door_scriptName;
+		  bool door_useScript;
+
+		  std::string wall_scriptName;
+		  bool wall_useScript;
+
+		  std::unordered_map<std::string, Material*> nameToMaterials;
+	  } temp;
+
+	  void SetTemplateWallScript(boolean32 useScript, const fstring& scriptName) override
+	  {
+		  temp.wall_useScript = useScript;
+		  temp.wall_scriptName = scriptName;
+	  }
+
+	  void SetTemplateDoorScript(boolean32 hasDoor, const fstring& scriptName)  override
+	  {
+		  temp.door_useScript = hasDoor;
+		  temp.door_scriptName = scriptName;
+	  }
+
+	  void SetTemplateMaterial(const fstring& bodyClass, Graphics::MaterialCategory cat, RGBAb colour, const fstring& persistentId)  override
+	  {
+		  auto i = temp.nameToMaterials.find((cstr) bodyClass);
+		  if (i == temp.nameToMaterials.end())
+		  {
+			  i = temp.nameToMaterials.insert(std::make_pair(std::string(bodyClass), new Material)).first;
+		  } 
+	  }
+
+	  int32 CreateFromTemplate(int32 altitude, int32 height) override
+	  {
+		  struct : MatEnumerator
+		  {
+			  Sectors* This;
+			  virtual void Enumerate(IEventCallback<MaterialArgs>& cb)
+			  {
+				  for (auto i : This->temp.nameToMaterials)
+				  {
+					  MaterialArgs args{ i.second, i.first.c_str() };
+					  cb.OnEvent(args);
+				  }
+			  }
+		  } mats;
+
+		  mats.This = this;
+
 		  auto* s = CreateSector(platform, *this);
-		  s->AddFlag((SectorFlag)flags);
+		  s->SetTemplate(mats);
 
 		  try
 		  {

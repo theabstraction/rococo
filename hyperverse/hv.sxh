@@ -32,7 +32,10 @@
 	(methods
 		(AddVertex (Float32 x)(Float32 y))
 		(Clear)
-		(Create (Int32 altitude)(Int32 height)(Int64 flags)(IString wallTexture)(IString floorTexture)(IString ceilingTexture)->(Int32 id))
+		(CreateFromTemplate (Int32 altitude)(Int32 height)->(Int32 id))
+		(SetTemplateWallScript (Bool useScript) (IString scriptName))
+		(SetTemplateDoorScript (Bool hasDoor) (IString scriptName))
+		(SetTemplateMaterial(IString bodyClass) (MaterialCategory cat)(RGBAb colour)(IString persistentId))	
 	)
 	(factory HV.Sectors)
 )

@@ -45,60 +45,66 @@ namespace
 
    uint32 nextSectorId = 1;
 
-   const char* const genDoorScript = "!scripts/hv/sector/gen.door.sxy";
+   class Sector : public ISector, public ICorridor, IMaterialPalette, public IEventCallback<MaterialArgs>
+   {
+	   IInstancesSupervisor& instances;
+	   ISectors& co_sectors;
 
-   class Sector : public ISector, public ICorridor, IMaterialPalette
-   {   
-      IInstancesSupervisor& instances;
-      ISectors& co_sectors;
+	   // 2-D map co-ordinates of sector perimeter. Advances clockwise
+	   std::vector<Vec2> floorPerimeter;
 
-      // 2-D map co-ordinates of sector perimeter. Advances clockwise
-      std::vector<Vec2> floorPerimeter;
+	   // Indices into floor perimeter for each section of solid wall
+	   std::vector<Segment> wallSegments;
 
-      // Indices into floor perimeter for each section of solid wall
-      std::vector<Segment> wallSegments;
+	   std::vector<Gap> gapSegments;
 
-      std::vector<Gap> gapSegments;
+	   // Triangle list for the physics and graphics meshes
+	   std::vector<VertexTriangle> wallTriangles;
+	   std::vector<VertexTriangle> floorTriangles;
+	   std::vector<VertexTriangle> ceilingTriangles;
 
-      // Triangle list for the physics and graphics meshes
-      std::vector<VertexTriangle> wallTriangles;
-      std::vector<VertexTriangle> floorTriangles;
-      std::vector<VertexTriangle> ceilingTriangles;
+	   IUtilitiies& utilities;
 
-      IUtilitiies& utilities;
-     
-      float uvScale{ 0.2f };
-      Vec2 uvOffset{ 0,0 };
+	   float uvScale{ 0.2f };
+	   Vec2 uvOffset{ 0,0 };
 
-      float z0; // Floor height
-      float z1; // Ceiling height (> floor height)
+	   float z0; // Floor height
+	   float z1; // Ceiling height (> floor height)
 
-	  std::vector<Barrier> barriers;
+	   int32 elevationInCm;
+	   int32 heightInCm;
 
-	  struct Material
-	  {
-		  MaterialVertexData mvd;
-		  std::string persistentName;
-		  Rococo::Graphics::MaterialCategory category;
-	  };
+	   std::vector<Barrier> barriers;
 
-	  std::unordered_map<std::string, Material> nameToMaterial;
+	   // N.B we need addresses of material fields to remain constant when map is resized
+	   // So use heap generated argument in nameToMaterial. Do not refactor pointer to Material as Material!
+	   std::unordered_map<std::string, Material*> nameToMaterial;
 
-	  bool TryGetMaterial(BodyComponentMatClass name, MaterialVertexData& vd) const override
-	  {
-		  auto i = nameToMaterial.find(name);
-		  if (i == nameToMaterial.end())
-		  {
-			  vd.colour = RGBAb(0, 0, 0, 255);
-			  vd.materialId = -1;
-			  return false;
-		  }
-		  else
-		  {
-			  vd = i->second.mvd;
-			  return true;
-		  }
-	  }
+	   char doorScript[IO::MAX_PATHLEN] = "!scripts/hv/sector/gen.door.sxy";
+	   char wallScript[IO::MAX_PATHLEN] = "!scripts/hv/sector/gen.walls.sxy";
+	   bool hasDoor = false;
+	   bool scriptWalls = false;
+
+	   bool TryGetMaterial(BodyComponentMatClass name, MaterialVertexData& vd) const override
+	   {
+		   auto i = nameToMaterial.find(name);
+		   if (i == nameToMaterial.end())
+		   {
+			   vd.colour = RGBAb(0, 0, 0, 255);
+			   vd.materialId = -1;
+			   return false;
+		   }
+		   else
+		   {
+			   vd = i->second->mvd;
+			   return true;
+		   }
+	   }
+
+	   virtual void SetTemplate(MatEnumerator& enumerator)
+	   {
+		   enumerator.Enumerate(*this);
+	   }
 
 	  const Barrier* Barriers(size_t& barrierCount) const override
 	  {
@@ -122,29 +128,6 @@ namespace
       ID_ENTITY floorId;
       ID_ENTITY ceilingId;
       ID_ENTITY wallId;
-
-      int64 sectorFlags = 0;
-
-      virtual void AddFlag(SectorFlag flag)
-      {
-         sectorFlags |= flag;
-      }
-
-      virtual void RemoveFlag(SectorFlag flag)
-      {
-         sectorFlags &= ~flag;
-      }
-
-      virtual bool IsFlagged(SectorFlag flag) const
-      {
-         return (sectorFlags & flag) != 0;
-      }
-
-      virtual void SetFlag(SectorFlag flag, bool value)
-      {
-         if (value) AddFlag(flag);
-         else RemoveFlag(flag);
-      }
       
       Segment GetSegment(Vec2 p, Vec2 q) override
       {
@@ -312,7 +295,7 @@ namespace
          }
 
 		 auto walls = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Brickwork);
-		 TesselateWallsFromSegments(walls->second.mvd.materialId);
+		 TesselateWallsFromSegments(walls->second->mvd.materialId);
       }
 
       float AddWallSegment(const Vec2& p, const Vec2& q, float h0, float h1, float u, MaterialId id)
@@ -366,7 +349,11 @@ namespace
 
 	  virtual void Assign(IPropertyHost* host)
 	  {
-		  this->host = host;
+		  if (!deleting)
+		  {
+			  InvokeSectorRebuild(false);
+			  this->host = host;
+		  }
 	  }
 
       float AddSlopedWallSegment(const Vec2& p, const Vec2& q, float pFloor, float qFloor, float pCeiling, float qCeiling, float u, MaterialId id)
@@ -448,9 +435,9 @@ namespace
          AddSlopedWallSegment(p, q, h01, h00, h11, h10, 0.0f, id);
       }
 
-	  void RunSectorGenWallScript()
+	  bool RunSectorGenWallScript()
 	  {
-		  if (wallSegments.empty()) return;
+		  if (wallSegments.empty()) return false;
 
 		  // Script has to iterate through wallSegments and append to wallTriangles
 		  struct ANON: IEventCallback<ScriptCompileArgs>, public HV::ISectorWallTesselator
@@ -555,16 +542,27 @@ namespace
 			  }
 		  } scriptCallback(this);  
 
-		  platform.utilities.RunEnvironmentScript(platform, scriptCallback, "!scripts/hv/sector/walls/gen/default.sxy", true);
+		  try
+		  {
+			  platform.utilities.RunEnvironmentScript(platform, scriptCallback, wallScript, true, false);
+			  return true;
+		  }
+		  catch (IException& ex)
+		  {
+			  char title[256];
+			  SafeFormat(title, 256, "sector %u: %s failed", id, wallScript);
+			  platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, title);
+			  return false;
+		  }
 	  }
 
 	  void CreateFlatWallsBetweenGaps(MaterialId id)
 	  {
 		  float u = 0;
 
-		  if (IsFlagged(SectorFlag_ScriptedWalls))
+		  if (scriptWalls && RunSectorGenWallScript())
 		  {
-			  RunSectorGenWallScript();
+
 		  }
 		  else
 		  {
@@ -632,18 +630,18 @@ namespace
 
 	  void PrepMat(BodyComponentMatClass bcmc, cstr persistentName, Graphics::MaterialCategory cat)
 	  {
-		  Material mat;
-		  mat.category = cat;
-		  mat.persistentName = persistentName;
-		  mat.mvd.colour = RGBAb(0, 0, 0, 0);
-		  mat.mvd.materialId = platform.renderer.GetMaterialId(persistentName);
-		  if (mat.mvd.materialId < 0)
+		  auto mat = new Material;
+		  mat->category = cat;
+		  memcpy(mat->persistentName, persistentName, IO::MAX_PATHLEN);
+		  mat->mvd.colour = RGBAb(0, 0, 0, 0);
+		  mat->mvd.materialId = platform.renderer.GetMaterialId(persistentName);
+		  if (mat->mvd.materialId < 0)
 		  {
-			  mat.mvd.materialId = platform.instances.GetRandomMaterialId(cat);
-			  mat.mvd.colour.red = rand() % 256;
-			  mat.mvd.colour.green = rand() % 256;
-			  mat.mvd.colour.blue = rand() % 256;
-			  mat.mvd.colour.alpha = rand() % 64;
+			  mat->mvd.materialId = platform.instances.GetRandomMaterialId(cat);
+			  mat->mvd.colour.red = rand() % 256;
+			  mat->mvd.colour.green = rand() % 256;
+			  mat->mvd.colour.blue = rand() % 256;
+			  mat->mvd.colour.alpha = rand() % 64;
 		  }
 
 		  nameToMaterial[bcmc] = mat;
@@ -677,6 +675,17 @@ namespace
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Door_Panels,  "random", RandomWoodOrMetal());
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Door_Casing,  "random", RandomWoodOrMetal());
       }
+
+	  void OnEvent(MaterialArgs& args)
+	  {
+		  auto i = nameToMaterial.find(args.bcmc);
+		  if (i == nameToMaterial.end())
+		  {
+			  i = nameToMaterial.insert(std::make_pair(std::string(args.bcmc), new Material())).first;
+		  }
+
+		  *i->second = *args.mat;
+	  }
 
 	  virtual uint32 Id() const
 	  {
@@ -720,6 +729,8 @@ namespace
 		  }
       }
 
+	  bool deleting = false;
+
       ~Sector()
       {
          DeleteFloor();
@@ -728,7 +739,13 @@ namespace
 
 		 if (host)
 		 {
+			 deleting = true;
 			 host->SetPropertyTarget(nullptr);
+		 }
+
+		 for (auto m : nameToMaterial)
+		 {
+			 delete m.second;
 		 }
       }
 
@@ -1016,14 +1033,23 @@ namespace
          } scriptCallback;
          scriptCallback.corridor = this;
 
-         platform.utilities.RunEnvironmentScript(platform, scriptCallback, name, true);
+		 try
+		 {
+			 platform.utilities.RunEnvironmentScript(platform, scriptCallback, name, true);
+		 }
+		 catch (IException& ex)
+		 {
+			 char title[256];
+			 SafeFormat(title, 256, "sector %u: %s failed", id, name);
+			 platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, title);
+		 }
       }
 
 	  void ResetBarriers()
 	  {
 		  barriers.clear();
 		
-		  if (IsCorridor() && IsFlagged(SectorFlag_Has_Door))
+		  if (IsCorridor() && hasDoor)
 		  {
 			  Barrier b{};
 			  auto& g = gapSegments[0];
@@ -1066,9 +1092,9 @@ namespace
 		  auto floor = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Floor);
 		  auto ceiling = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Ceiling);
 
-		  TesselateFloorAndCeiling(floor->second.mvd.materialId, ceiling->second.mvd.materialId);
+		  TesselateFloorAndCeiling(floor->second->mvd.materialId, ceiling->second->mvd.materialId);
 
-		  if (IsCorridor() && IsFlagged(SectorFlag_Has_Door))
+		  if (IsCorridor() && hasDoor)
 		  {
 			  ResetBarriers();
 			  RunSectorGenScript("!scripts/hv/sector/gen.door.sxy");
@@ -1175,6 +1201,9 @@ namespace
 	  {
 		  // N.B the sector is not part of the co-sectors collection until this function returns
 
+		  elevationInCm = (int32)(z0 * 100.0f);
+		  heightInCm = (int32)((z1 -z0) * 100.0f);
+			  
 		  if (!floorPerimeter.empty())
 		  {
 			  Throw(0, "The floor perimeter is already built");
@@ -1250,99 +1279,39 @@ namespace
          delete this;
       }
 
-	  virtual int64 Flags() const
+	  bool dirty = true;
+
+	  void NotifyChanged()
 	  {
-		  return sectorFlags;
+		  dirty = true;
 	  }
 
-      void InvokeSectorDialog(Rococo::Windows::IWindow& parent, IEditorState& state) override
-      {
-         struct : IVariableEditorEventHandler
-         {
-            IEditorState* state;
+	  void InvokeSectorRebuild(bool force) override
+	  {
+		  if (dirty || force)
+		  {
+			  dirty = false;
+		  }
+		  else
+		  {
+			  return;
+		  }
 
-            std::string textures[3];
+		  z0 = (float)elevationInCm / 100;
+		  z1 = z0 + (float)heightInCm / 100;
 
-            virtual void OnButtonClicked(cstr variableName)
-            {
-            }
-         } handler;
+		  static int64 updateHeightIterationFrame = 0x830000000000;
+		  updateHeightIterationFrame++;
 
-         handler.state = &state;
+		  ClearComponents(""_fstring);
+		  components.clear();
 
-         rchar title[32];
+		  ResetBarriers();
 
-         if (Is4PointRectangular())
-         {
-            SafeFormat(title, sizeof(title), "Sector %u - (4 point rectangle)", id);
-         }
-         else
-         {
-            SafeFormat(title, sizeof(title), "Sector %u", id);
-         }
+		  Rebuild(updateHeightIterationFrame);
 
-		 Vec2i topLeft = { 240, 240 };
-         AutoFree<IVariableEditor> editor = utilities.CreateVariableEditor(parent, { 640, 400 }, 120, title, "Walls, Floor and Ceiling", "Edit mesh parameters", &handler, &topLeft);
-         editor->AddIntegerEditor("Altitiude", "Altitiude - centimetres", 0, 100000, (int32)(z0 * 100.0f));
-         editor->AddIntegerEditor("Height", "Height - centimetres", 250, 100000, (int32)((z1 - z0) * 100.0f));
-         editor->AddTab("Textures", "Set and get default textures");
-
-         editor->AddTab("Occlusion", "Set occlusion properties");
-         editor->AddBooleanEditor("Players", IsFlagged(SectorFlag_Occlude_Players));
-         editor->AddBooleanEditor("Friends", IsFlagged(SectorFlag_Occlude_Friends));
-         editor->AddBooleanEditor("Enemies", IsFlagged(SectorFlag_Occlude_Enemies));
-
-		 editor->AddTab("Scripting", "Set generation logic");
-		 editor->AddBooleanEditor("Script Walls", IsFlagged(SectorFlag_ScriptedWalls));
-		 editor->AddBooleanEditor("Script Ceiling", IsFlagged(SectorFlag_ScriptedCeiling));
-		 editor->AddBooleanEditor("Script Floors", IsFlagged(SectorFlag_ScriptedFloor));
-
-		 if (Is4PointRectangular())
-		 {
-            editor->AddBooleanEditor("Door",    IsFlagged(SectorFlag_Has_Door));
-         }
-
-         if (editor->IsModalDialogChoiceYes())
-         {
-            int Z0 = editor->GetInteger("Altitiude");
-            int Z1 = editor->GetInteger("Height");
-
-            Z0 = min(10000, Z0);
-            Z0 = max(0, Z0);
-
-            Z1 = min(100000, Z1);
-            Z1 = max(250, Z1);
-
-            z0 = (float)Z0 / 100;
-            z1 = z0 + (float)Z1 / 100;
-
-
-            SetFlag(SectorFlag_ScriptedWalls,   editor->GetBoolean("Script Walls"));
-            SetFlag(SectorFlag_ScriptedCeiling, editor->GetBoolean("Script Ceiling"));
-            SetFlag(SectorFlag_ScriptedFloor,   editor->GetBoolean("Script Floors"));
-
-			SetFlag(SectorFlag_Occlude_Players, editor->GetBoolean("Players"));
-			SetFlag(SectorFlag_Occlude_Enemies, editor->GetBoolean("Enemies"));
-			SetFlag(SectorFlag_Occlude_Friends, editor->GetBoolean("Friends"));
-
-			if (Is4PointRectangular())
-			{
-				SetFlag(SectorFlag_Has_Door, editor->GetBoolean("Door"));
-			}
-
-			static int64 updateHeightIterationFrame = 0x830000000000;
-			updateHeightIterationFrame++;
-
-			ClearComponents(""_fstring);
-			components.clear();
-
-			ResetBarriers();
-
-            Rebuild(updateHeightIterationFrame);
-
-			co_sectors.RebuildDirtySectors(updateHeightIterationFrame);
-         }
-      }
+		  co_sectors.RebuildDirtySectors(updateHeightIterationFrame);
+	  }
 
       bool Is4PointRectangular() const
       {
@@ -1380,16 +1349,16 @@ namespace
 	  {
 		  static int64 anySectorScriptChangedUpdate = 0x900000000000;
 
-		  if (args.Matches(genDoorScript) && IsCorridor() && IsFlagged(SectorFlag_Has_Door))
+		  if (args.Matches(doorScript) && IsCorridor() && hasDoor)
 	      {
 			  ResetBarriers();
-		      RunSectorGenScript(genDoorScript);
+		      RunSectorGenScript(doorScript);
 		  }
 
 		  char path[256];
 		  args.GetPingPath(path, 256);
 
-		  if (strstr(path,"hv/sector/walls/") && IsFlagged(SectorFlag_ScriptedWalls))
+		  if (strstr(path, wallScript) && scriptWalls)
 		  {
 			  Rebuild(anySectorScriptChangedUpdate++);
 		  }
@@ -1437,15 +1406,15 @@ namespace
 		  SafeFormat(name, sizeof(name), "%s mat", bcmc);
 
 		  editor.AddSpacer();
-		  editor.AddMaterialCategory(name, i->second.category);
+		  editor.AddMaterialCategory(name, &i->second->category);
 
 		  char id[32];
 		  SafeFormat(id, sizeof(id), "%s id", bcmc);
-		  editor.AddMaterialString(id, i->second.persistentName.c_str());
+		  editor.AddMaterialString(id, i->second->persistentName, IO::MAX_PATHLEN);
 
 		  char colour[32];
 		  SafeFormat(colour, sizeof(colour), "%s colour", bcmc);
-		  editor.AddColour(colour, i->second.mvd.colour);
+		  editor.AddColour(colour, &i->second->mvd.colour);
 	  }
 
 	  void GetProperties(cstr category, IBloodyPropertySetEditor& editor) override
@@ -1467,24 +1436,20 @@ namespace
 			  AddToProperties(GraphicsEx::BodyComponentMatClass_Brickwork, editor);
 			  AddToProperties(GraphicsEx::BodyComponentMatClass_Cement, editor);
 			  editor.AddSpacer();
-			  editor.AddBool("script walls", false);
-			  editor.AddPingPath("wall script", "!scripts/hv/sector/gen.walls.sxy");
+			  editor.AddBool("script walls", &scriptWalls);
+			  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN);
 		  }
 		  else if (Eq(category, "ceiling"))
 		  {
 			  AddToProperties(GraphicsEx::BodyComponentMatClass_Ceiling, editor);
 			  editor.AddSpacer();
-			  editor.AddInt("altitude (cm)", false, 0);
+			  editor.AddInt("altitude (cm)", false, &elevationInCm);
 		  }
 		  else if (Eq(category, "floor"))
 		  {
 			  AddToProperties(GraphicsEx::BodyComponentMatClass_Floor, editor);
 			  editor.AddSpacer();
-			  editor.AddInt("height (cm)", false, 400);
-			  editor.AddSpacer();
-			  editor.AddBool("occlude players", false);
-			  editor.AddBool("occlude friends", false);
-			  editor.AddBool("occlude enemies", false);
+			  editor.AddInt("height (cm)", false, &heightInCm);
 		  }
 		  else if (Eq(category, "door"))
 		  {
@@ -1496,8 +1461,8 @@ namespace
 				  AddToProperties(GraphicsEx::BodyComponentMatClass_Door_Casing, editor);
 
 				  editor.AddSpacer();
-				  editor.AddBool("has door", false);
-				  editor.AddPingPath("door script", genDoorScript);
+				  editor.AddBool("has door", &hasDoor);
+				  editor.AddPingPath("door script", doorScript, IO::MAX_PATHLEN);
 			  }
 			  else
 			  {

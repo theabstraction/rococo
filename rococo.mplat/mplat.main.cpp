@@ -69,7 +69,7 @@ namespace Rococo
 {
 	namespace M
 	{
-		void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform);
+		void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail);
 	}
 
 	namespace Events
@@ -86,6 +86,11 @@ public:
 	Utilities(IInstallation& _installation, IRenderer& _renderer) : installation(_installation), renderer(_renderer) {}
 
 	IScrollbar* CreateScrollbar(bool _isVertical) override;
+
+	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty) override
+	{
+		return Rococo::CreateBloodyPropertySetEditor(_platform, _onDirty);
+	}
 
 	void AddSubtitle(Platform& platform, cstr subtitle)
 	{
@@ -223,9 +228,9 @@ public:
 		return ShowMessageBox(parent, question, title, MB_ICONQUESTION | MB_YESNO) == IDYES;
 	}
 
-	void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform) override
+	void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail) override
 	{
-		return M::RunEnvironmentScript(platform, _onScriptEvent, name, addPlatform);
+		return M::RunEnvironmentScript(platform, _onScriptEvent, name, addPlatform, shutdownOnFail);
 	}
 
 	void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr message) override
