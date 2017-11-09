@@ -193,7 +193,7 @@ namespace
 			q.normals.d = normal;
 		}
 
-		void GetStackBondedBrick(int32 i, int32 j, QuadVertices& q, float cementThicknessRatio) override
+		void GetStackBondedBrick(int32 i, int32 j, QuadVertices& q, Metres cementWidth) override
 		{
 			RandomizeColours(q);
 			if (i < 0 || i >= columns)
@@ -211,12 +211,12 @@ namespace
 			float DX1 = DX0 + delta.x;
 			float DY1 = DY0 + delta.y;
 
-			const float cementThickness = cementThicknessRatio * delta.x;
+			const Vec2 cementDelta{ cementWidth / span.x, cementWidth / span.y };
 
-			float DX0_INNER = DX0 + cementThickness;
-			float DX1_INNER = DX1 - cementThickness;
-			float DY0_INNER = DY0 + cementThickness;
-			float DY1_INNER = DY1 - cementThickness;
+			float DX0_INNER = DX0 + cementDelta.x;
+			float DX1_INNER = DX1 - cementDelta.x;
+			float DY0_INNER = DY0 + cementDelta.y;
+			float DY1_INNER = DY1 - cementDelta.y;
 
 			Vec3 DT0 = DX0_INNER * rawTangent;
 			Vec3 DT1 = DX1_INNER * rawTangent;
@@ -242,7 +242,7 @@ namespace
 			q.normals.d = normal;
 		}
 
-		void GetBrickJoinRight(int32 i, int32 j, QuadVertices& q, float cementThicknessRatio)
+		void GetBrickJoinRight(int32 i, int32 j, QuadVertices& q, Metres cementWidth) override
 		{
 			SetNoColours(q);
 			if (i < 0 || i >= columns)
@@ -261,9 +261,9 @@ namespace
 				return;
 			}
 
-			const float cementThickness = cementThicknessRatio * brickDelta.y * 1.0f / span.y;
+			const Vec2 cementDelta{ cementWidth / span.x, cementWidth / span.y };
 
-			float Y = j * delta.y + cementThickness;
+			float Y = j * delta.y + cementDelta.y;
 
 			boolean32 isOdd = (j % 2);
 
@@ -285,10 +285,10 @@ namespace
 				}
 			}
 
-			float DX1 = DX0 + 2.0f * cementThickness;
+			float DX1 = DX0 + 2.0f * cementDelta.x;
 
-			float DY0 = Y + cementThickness;
-			float DY1 = Y + delta.y - cementThickness;
+			float DY0 = Y + cementDelta.y;
+			float DY1 = Y + delta.y - cementDelta.y;
 
 			Vec3 DT0 = DX0 * rawTangent;
 			Vec3 DT1 = DX1 * rawTangent;
@@ -314,7 +314,7 @@ namespace
 			q.normals.d = normal;
 		}
 
-		void GetBrickBedTop(int32 row, QuadVertices& q, float cementThicknessRatio)
+		void GetBrickBedTop(int32 row, QuadVertices& q, Metres cementWidth)
 		{
 			SetNoColours(q);
 			if (row < 0 || row >= rows)
@@ -322,12 +322,12 @@ namespace
 				Throw(0, "FieldTesselator::GetBrickBed - row (%d) out of bounds [0,%d) ", row, rows);
 			}
 
-			const float cementThickness = cementThicknessRatio * brickDelta.y * 1.0f / span.y;
+			Vec2 cementDelta{ cementWidth / span.x, cementWidth / span.y };
+		
+			float Y = row * delta.y + cementDelta.y;
 
-			float Y = row * delta.y + cementThickness;
-
-			float DY0 = Y - cementThickness;
-			float DY1 = Y + cementThickness;
+			float DY0 = Y - cementDelta.y;
+			float DY1 = Y + cementDelta.y;
 
 			Vec3 DT0 = 0.0f * rawTangent;
 			Vec3 DT1 = 1.0f * rawTangent;
@@ -378,7 +378,7 @@ namespace
 			q.colours.d = RGBAb(r, g, b, blend);
 		}
 
-		void GetStretchBondedBrick(int32 i, int32 j, QuadVertices& q, QuadVertices& top, QuadVertices& left, QuadVertices& right, QuadVertices& bottom, float cementThicknessRatio)  override
+		void GetStretchBondedBrick(int32 i, int32 j, QuadVertices& q, QuadVertices& top, QuadVertices& left, QuadVertices& right, QuadVertices& bottom, Metres cementWidth, Metres extrusionBase)  override
 		{
 			if (i < 0 || i >= columns)
 			{
@@ -403,7 +403,7 @@ namespace
 
 			boolean32 isOdd = (j % 2);
 
-			const float cementThickness = cementThicknessRatio * brickDelta.y / span.y;
+			const Vec2 cementDelta { cementWidth / span.x, cementWidth / span.y };
 
 			float DX0;
 			float DX1;
@@ -433,13 +433,13 @@ namespace
 			}
 			
 
-			float DY0 = j * delta.y + 1.0f * cementThickness;
+			float DY0 = j * delta.y + cementDelta.y;
 			float DY1 = DY0 + delta.y;
 
-			float DX0_INNER = (i == 0) ? 0.0f : (DX0 + 2.0f * cementThickness);
+			float DX0_INNER = (i == 0) ? 0.0f : (DX0 + 2.0f * cementDelta.x);
 			float DX1_INNER = (i == columns - 1) ? 1.0f : DX1;
-			float DY0_INNER = DY0 + cementThickness;
-			float DY1_INNER = DY1 - cementThickness;
+			float DY0_INNER = DY0 + cementDelta.y;
+			float DY1_INNER = DY1 - cementDelta.y;
 
 			Vec3 DT0 = DX0_INNER * rawTangent;
 			Vec3 DT1 = DX1_INNER * rawTangent;
@@ -452,7 +452,7 @@ namespace
 			float hC = GetHeight(i + 1, j + 1);
 			float hD = GetHeight(i, j + 1);
 
-			Vec3 DN = normal * cementThickness * span.y;
+			Vec3 DN = normal * extrusionBase;
 
 			int index = rand() % 6;
 
@@ -473,35 +473,40 @@ namespace
 			{
 				if (index == 0)
 				{
-					q.positions.a += normal * span.y * (hA + hB);
-					q.positions.b += normal * span.y * (hA + hB);
-					dz_ds.y = -span.y * (hA + hB) / (delta.y * span.y);
+					float dz = extrusionBase * (hA + hB);
+					q.positions.a += normal * dz;
+					q.positions.b += normal * dz;
+					dz_ds.y = -dz / (delta.y * span.y);
 				}
 				else if (index == 1)
 				{
-					q.positions.c += normal * span.y * (hC + hD);
-					q.positions.d += normal * span.y * (hC + hD);
-					dz_ds.y = span.y * (hC + hD) / (delta.y * span.y);
+					float dz = extrusionBase * (hC + hD);
+					q.positions.c += normal * dz;
+					q.positions.d += normal * dz;
+					dz_ds.y = -dz / (delta.y * span.y);
 				}
 				else if (index == 2)
 				{
-					q.positions.a += normal * span.y * (hA + hD);
-					q.positions.d += normal * span.y * (hA + hD);
-					dz_ds.x = -span.y * (hA + hD) / (delta.x * span.x);
+					float dz = extrusionBase * (hA + hD);
+					q.positions.a += normal * dz;
+					q.positions.d += normal * dz;
+					dz_ds.x = -dz / (delta.x * span.x);
 				}
 				else if (index == 3)
 				{
-					q.positions.b += normal * span.y * (hB + hC);
-					q.positions.c += normal * span.y * (hB + hC);
-					dz_ds.x = span.y * (hB + hC) / (delta.x * span.x);
+					float dz = extrusionBase * (hB + hC);
+					q.positions.b += normal * dz;
+					q.positions.c += normal * dz;
+					dz_ds.x = dz / (delta.x * span.x);
 				}
 				else
 				{
 					float h = hA + hB + hC + hD;
-					q.positions.a += normal * span.y * h;
-					q.positions.b += normal * span.y * h;
-					q.positions.c += normal * span.y * h;
-					q.positions.d += normal * span.y * h;
+					float dz = extrusionBase * h;
+					q.positions.a += normal * dz;
+					q.positions.b += normal * dz;
+					q.positions.c += normal * dz;
+					q.positions.d += normal * dz;
 				}
 			}
 
@@ -530,7 +535,7 @@ namespace
 			top.uv.left = q.uv.left;
 			top.uv.right = q.uv.right;
 			top.uv.bottom = q.uv.top;
-			top.uv.top = top.uv.bottom + cementThickness;
+			top.uv.top = top.uv.bottom + cementDelta.y;
 
 			bottom.positions.a = q.positions.d;
 			bottom.positions.b = q.positions.c;
@@ -542,7 +547,7 @@ namespace
 			bottom.uv.left = q.uv.left;
 			bottom.uv.right = q.uv.right;
 			bottom.uv.top = q.uv.bottom;
-			bottom.uv.bottom = top.uv.top - cementThickness;
+			bottom.uv.bottom = top.uv.top - cementWidth;
 
 			left.positions.a = bottom.positions.d;
 			left.positions.b = top.positions.a;
@@ -554,7 +559,7 @@ namespace
 			left.uv.left = q.uv.bottom;
 			left.uv.right = q.uv.top;
 			left.uv.bottom = q.uv.left;
-			left.uv.top = left.uv.bottom - cementThickness;
+			left.uv.top = left.uv.bottom - cementWidth;
 
 			right.positions.a = q.positions.b;
 			right.positions.b = top.positions.b;

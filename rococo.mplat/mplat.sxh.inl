@@ -2182,9 +2182,9 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		float cementThicknessRatio;
-		_offset += sizeof(cementThicknessRatio);
-		ReadInput(cementThicknessRatio, _sf, -_offset);
+		Metres cementWidth;
+		_offset += sizeof(cementWidth);
+		ReadInput(cementWidth, _sf, -_offset);
 
 		QuadVertices* q;
 		_offset += sizeof(q);
@@ -2202,15 +2202,19 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetStackBondedBrick(i, j, *q, cementThicknessRatio);
+		_pObject->GetStackBondedBrick(i, j, *q, cementWidth);
 	}
 	void NativeRococoGraphicsIFieldTesselatorGetStretchBondedBrick(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		float cementThicknessRatio;
-		_offset += sizeof(cementThicknessRatio);
-		ReadInput(cementThicknessRatio, _sf, -_offset);
+		Metres extrusionBase;
+		_offset += sizeof(extrusionBase);
+		ReadInput(extrusionBase, _sf, -_offset);
+
+		Metres cementWidth;
+		_offset += sizeof(cementWidth);
+		ReadInput(cementWidth, _sf, -_offset);
 
 		QuadVertices* bottom;
 		_offset += sizeof(bottom);
@@ -2244,15 +2248,15 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetStretchBondedBrick(i, j, *q, *top, *left, *right, *bottom, cementThicknessRatio);
+		_pObject->GetStretchBondedBrick(i, j, *q, *top, *left, *right, *bottom, cementWidth, extrusionBase);
 	}
 	void NativeRococoGraphicsIFieldTesselatorGetBrickJoinRight(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		float cementThicknessRatio;
-		_offset += sizeof(cementThicknessRatio);
-		ReadInput(cementThicknessRatio, _sf, -_offset);
+		Metres cementWidth;
+		_offset += sizeof(cementWidth);
+		ReadInput(cementWidth, _sf, -_offset);
 
 		QuadVertices* q;
 		_offset += sizeof(q);
@@ -2270,15 +2274,15 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetBrickJoinRight(i, j, *q, cementThicknessRatio);
+		_pObject->GetBrickJoinRight(i, j, *q, cementWidth);
 	}
 	void NativeRococoGraphicsIFieldTesselatorGetBrickBedTop(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		float cementThicknessRatio;
-		_offset += sizeof(cementThicknessRatio);
-		ReadInput(cementThicknessRatio, _sf, -_offset);
+		Metres cementWidth;
+		_offset += sizeof(cementWidth);
+		ReadInput(cementWidth, _sf, -_offset);
 
 		QuadVertices* q;
 		_offset += sizeof(q);
@@ -2292,7 +2296,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetBrickBedTop(row, *q, cementThicknessRatio);
+		_pObject->GetBrickBedTop(row, *q, cementWidth);
 	}
 	void NativeRococoGraphicsIFieldTesselatorPerturbField(NativeCallEnvironment& _nce)
 	{
@@ -2412,10 +2416,10 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorNumberOfRows, nullptr, SEXTEXT("IFieldTesselatorNumberOfRows (Pointer hObject) -> (Int32 rows)"));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetFlatSubQuad, nullptr, SEXTEXT("IFieldTesselatorGetFlatSubQuad (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices subQuad) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetPerturbedSubQuad, nullptr, SEXTEXT("IFieldTesselatorGetPerturbedSubQuad (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetStackBondedBrick, nullptr, SEXTEXT("IFieldTesselatorGetStackBondedBrick (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Float32 cementThicknessRatio) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetStretchBondedBrick, nullptr, SEXTEXT("IFieldTesselatorGetStretchBondedBrick (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Rococo.QuadVertices top)(Rococo.QuadVertices left)(Rococo.QuadVertices right)(Rococo.QuadVertices bottom)(Float32 cementThicknessRatio) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetBrickJoinRight, nullptr, SEXTEXT("IFieldTesselatorGetBrickJoinRight (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Float32 cementThicknessRatio) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetBrickBedTop, nullptr, SEXTEXT("IFieldTesselatorGetBrickBedTop (Pointer hObject)(Int32 row)(Rococo.QuadVertices q)(Float32 cementThicknessRatio) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetStackBondedBrick, nullptr, SEXTEXT("IFieldTesselatorGetStackBondedBrick (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Sys.SI.Metres cementWidth) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetStretchBondedBrick, nullptr, SEXTEXT("IFieldTesselatorGetStretchBondedBrick (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Rococo.QuadVertices top)(Rococo.QuadVertices left)(Rococo.QuadVertices right)(Rococo.QuadVertices bottom)(Sys.SI.Metres cementWidth)(Sys.SI.Metres extrusionBase) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetBrickJoinRight, nullptr, SEXTEXT("IFieldTesselatorGetBrickJoinRight (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Sys.SI.Metres cementWidth) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetBrickBedTop, nullptr, SEXTEXT("IFieldTesselatorGetBrickBedTop (Pointer hObject)(Int32 row)(Rococo.QuadVertices q)(Sys.SI.Metres cementWidth) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorPerturbField, nullptr, SEXTEXT("IFieldTesselatorPerturbField (Pointer hObject)(Int32 i)(Int32 j)(Float32 dH) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorLevelField, nullptr, SEXTEXT("IFieldTesselatorLevelField (Pointer hObject)(Int32 i0)(Int32 j0)(Int32 i1)(Int32 j1)(Float32 dH) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorRandomizeField, nullptr, SEXTEXT("IFieldTesselatorRandomizeField (Pointer hObject)(Int32 i)(Int32 j)(Float32 minValue)(Float32 maxValue) -> "));

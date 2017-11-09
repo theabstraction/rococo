@@ -18,7 +18,7 @@ namespace HV
    }
 }
 
-namespace
+namespace ANON
 {
    using namespace Rococo;
    using namespace Rococo::Entities;
@@ -45,7 +45,7 @@ namespace
 
    uint32 nextSectorId = 1;
 
-   class Sector : public ISector, public ICorridor, IMaterialPalette, public IEventCallback<MaterialArgs>
+   struct Sector : public ISector, public ICorridor, IMaterialPalette, public IEventCallback<MaterialArgs>
    {
 	   IInstancesSupervisor& instances;
 	   ISectors& co_sectors;
@@ -71,7 +71,7 @@ namespace
 	   float z0; // Floor height
 	   float z1; // Ceiling height (> floor height)
 
-	   int32 elevationInCm;
+	   int32 altitudeInCm;
 	   int32 heightInCm;
 
 	   std::vector<Barrier> barriers;
@@ -231,72 +231,96 @@ namespace
 		  return nullptr;
 	  }
 
-      void BuildGapsAndTesselateWalls(IRing<Vec2>& perimeter)
-      {
-         gapSegments.clear(); 
-         wallSegments.clear();
+	  typedef std::unordered_map<ISector*, uint32> TDirtySectors;
 
-         for (size_t i = 0; i < perimeter.ElementCount(); i++)
-         {
-            Vec2 p = perimeter[i];
-            Vec2 q = perimeter[i + 1];
+	  void CorrectOppositeGap(const Gap& notThisOne, TDirtySectors& dirty)
+	  {
+		  if (!IsCorridor())
+		  {
+			  Throw(0, "Expecting corridor at sector %u", id);
+		  }
 
-            bool deleteSection = false;
+		  Gap& g = (gapSegments[0].a == notThisOne.a) ? gapSegments[1] : gapSegments[0];
+		 
+		  g.z0 = g.other->Z0();
+		  g.z1 = g.other->Z1();
 
-			for (auto* other : co_sectors)
-			{
-				if (other != static_cast<ISector*>(this))
-				{
-					Segment segment = other->GetSegment(q, p);
-					if (segment.perimeterIndexStart >= 0)
-					{
-						deleteSection = true;
+		  auto& other = *(Sector*) g.other;
+		  auto* otherGap = const_cast<Gap*>(other.GetGapAtSegment(g.b, g.a));
 
-						auto* otherGap = other->GetGapAtSegment(q, p);
-						if (!otherGap || otherGap->z0 != z0 || otherGap->z1 != z1)
-						{
-							co_sectors.AddDirty(other);
-						}
+		  if (otherGap == nullptr)
+		  {
+			 Throw(0, "Expecting gap sector %u from %u", other.Id(), Id());
+		  }
 
-						float gz0, gz1;
-						if (other->IsCorridor())
-						{
-							gz0 = z0;
-							gz1 = z1;
-						}
-						else
-						{
-							gz0 = other->Z0();
-							gz1 = other->Z1();
-						}
+		  otherGap->z0 = g.z0;
+		  otherGap->z1 = g.z1;
 
-						Vec3 centre = { 0.5f * (p.x + q.x), 0.5f * (p.y + q.y), 0.5f * (gz0 + gz1) };
-						float radius = Length(Vec3{ p.x, q.y, z0 - centre.z });
-						Sphere bounds{ centre, radius };
+		  MakeBounds(g);
 
-						gapSegments.push_back({ p, q, gz0, gz1, other, bounds, 0 });
-						break;
-					}
-					else
-					{
-						Segment segment = other->GetSegment(p, q);
-						if (segment.perimeterIndexStart >= 0)
-						{
-							// Encapsulation
-							Throw(0, "Sector::Build - sector intersectors existing sectors");
-						}
-					}
-				}
-			}
+		  otherGap->bounds = g.bounds;
 
-            if (deleteSection) continue;
+		  dirty[&other] = 0;
+	  }
 
-            wallSegments.push_back({ (int32) i, (int32) (i + 1) % (int32)perimeter.ElementCount() });
-         }
+	  void TesselateWalls()
+	  {
+		  auto walls = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Brickwork);
+		  TesselateWallsFromSegments(walls->second->mvd.materialId);
+	  }
 
-		 auto walls = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Brickwork);
-		 TesselateWallsFromSegments(walls->second->mvd.materialId);
-      }
+	  void MakeBounds(Gap& g)
+	  {
+		  Vec3 topLeft = { g.a.x, g.a.y, g.z1 };
+		  Vec3 bottomRight = { g.b.x, g.b.y, g.z0 };
+		  Vec3 centre = 0.5f * (topLeft + bottomRight);
+		  Metres radius{ Length(topLeft - centre) };
+		  g.bounds = Sphere{ centre, radius };
+	  }
+
+	  void FinalizeGaps()
+	  {
+		  TDirtySectors dirtList;
+
+		  for (auto& g : gapSegments)
+		  {
+			  g.z0 = g.other->Z0();
+			  g.z1 = g.other->Z1();
+
+			  MakeBounds(g);
+
+			  auto* otherGap = const_cast<Gap*>(g.other->GetGapAtSegment(g.b, g.a));
+			  if (!otherGap)
+			  {
+				  Throw(0, "Expecting gap in sector %u to sector %u", g.other->Id(), id);
+			  }
+
+			  otherGap->bounds = g.bounds;
+
+			  if (IsCorridor())
+			  {
+				  otherGap->z0 = g.z0;
+				  otherGap->z1 = g.z1;
+			  }
+			  else
+			  {
+				  otherGap->z0 = Z0();
+				  otherGap->z1 = Z1();
+
+				  if (g.other->IsCorridor())
+				  {
+					  ((Sector*)g.other)->CorrectOppositeGap(*otherGap, dirtList);
+				  }
+			  }
+
+			  dirtList[g.other] = 0;
+		  }
+
+		  for (auto& politician : dirtList)
+		  {
+			  politician.first->Rebuild();
+		  }
+	  }
 
       float AddWallSegment(const Vec2& p, const Vec2& q, float h0, float h1, float u, MaterialId id)
       {
@@ -351,8 +375,8 @@ namespace
 	  {
 		  if (!deleting)
 		  {
-			  InvokeSectorRebuild(false);
 			  this->host = host;
+			  InvokeSectorRebuild(false);
 		  }
 	  }
 
@@ -1077,18 +1101,9 @@ namespace
 		  }	
 	  }
 
-	  void Rebuild(int64 iterationFrame)
+	  void Rebuild()
 	  {
-		  if (IterationFrame() == iterationFrame)
-		  {
-			 return;
-		  }
-		  else
-		  {
-			  SetIterationFrame(iterationFrame);
-		  }
-
-		  BuildGapsAndTesselateWalls(Ring<Vec2>(&floorPerimeter[0], floorPerimeter.size()));
+		  TesselateWalls();
 
 		  auto floor = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Floor);
 		  auto ceiling = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Ceiling);
@@ -1100,6 +1115,7 @@ namespace
 			  ResetBarriers();
 
 			  cstr theDoorScript = *doorScript ? doorScript : "!scripts/hv/sector/gen.door.sxy";
+			  RunSectorGenScript(theDoorScript);
 		  }
 	  }
 
@@ -1199,11 +1215,127 @@ namespace
 		 isDirty = true;
       }
 
+	  void RemoveWallSegment(Vec2 p, Vec2 q)
+	  {
+		  struct
+		  {
+			  Vec2 p;
+			  Vec2 q;
+			  Sector* This;
+			  bool operator()(const Segment& segment) const
+			  {
+				  auto P = This->floorPerimeter[segment.perimeterIndexStart];
+				  auto Q = This->floorPerimeter[segment.perimeterIndexEnd];
+
+				  return p == P && q == Q;
+			  }
+		  } segmentMatch{ p,q, this };
+
+		  auto i = std::remove_if(wallSegments.begin(), wallSegments.end(), segmentMatch);
+		  wallSegments.erase(i, wallSegments.end());
+	  }
+
+	  void FillGap(Vec2 a, Vec2 b)
+	  {
+		  struct
+		  {
+			  Vec2 p;
+			  Vec2 q;
+			  bool operator()(const Gap& gap) const
+			  {
+				  return p == gap.a && q == gap.b;
+			  }
+		  } segmentMatch{ a, b };
+
+		  auto i = std::remove_if(gapSegments.begin(), gapSegments.end(), segmentMatch);
+		  gapSegments.erase(i, gapSegments.end());
+
+		  // Now add the wall
+		  auto leftIndex = GetPerimeterIndex(a);
+		  auto rightIndex = GetPerimeterIndex(b);
+
+		  if (leftIndex < 0 || rightIndex < 0)
+		  {
+			  Throw(0, "Unexpected mismatch between gap vertex");
+		  }
+
+		  Segment s{ leftIndex, rightIndex };
+		  wallSegments.push_back(s);
+
+		  struct
+		  {
+			  bool operator ()(const Segment& a, const Segment& b) const
+			  {
+				  return a.perimeterIndexStart < b.perimeterIndexStart;
+			  }
+		  } byLeftIndex;
+		  std::sort(wallSegments.begin(), wallSegments.end(), byLeftIndex);
+
+		  dirty = true;
+	  }
+	  
+	  void AddGap(Vec2 p, Vec2 q, ISector* other)
+	  {
+		  gapSegments.push_back({ p, q, -1, -1, other, Sphere{ { 0,0,0 },0 }, 0 });
+	  }
+
+	  void BuildGapsAndSegments(IRing<Vec2>& perimeter)
+	  {
+		  gapSegments.clear();
+		  wallSegments.clear();
+
+		  for (size_t i = 0; i < perimeter.ElementCount(); i++)
+		  {
+			  Vec2 p = perimeter[i];
+			  Vec2 q = perimeter[i + 1];
+
+			  bool deleteSection = false;
+
+			  for (auto* other : co_sectors)
+			  {
+				  if (other != static_cast<ISector*>(this))
+				  {
+					  Segment segment = other->GetSegment(q, p);
+					  if (segment.perimeterIndexStart >= 0)
+					  {
+						  deleteSection = true;
+
+						  auto* otherGap = other->GetGapAtSegment(q, p);
+
+						  if (!otherGap)
+						  {
+							  Sector* otherGapConcrete = (Sector*) other;
+							  otherGapConcrete->AddGap(q, p, this);
+							  otherGapConcrete->RemoveWallSegment(q, p);
+						  }
+
+						  AddGap(p, q, other);
+						  break;
+					  }
+					  else
+					  {
+						  Segment segment = other->GetSegment(p, q);
+						  if (segment.perimeterIndexStart >= 0)
+						  {
+							  // Encapsulation
+							  Throw(0, "Sector::Build - sector intersects existing sectors");
+						  }
+					  }
+				  }
+			  }
+
+			  if (!deleteSection)
+			  {
+				  wallSegments.push_back({ (int32)i, (int32)(i + 1) % (int32)perimeter.ElementCount() });
+			  }
+		  }
+	  }
+
 	  void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) override
 	  {
 		  // N.B the sector is not part of the co-sectors collection until this function returns
 
-		  elevationInCm = (int32)(z0 * 100.0f);
+		  altitudeInCm = (int32)(z0 * 100.0f);
 		  heightInCm = (int32)((z1 -z0) * 100.0f);
 			  
 		  if (!floorPerimeter.empty())
@@ -1236,8 +1368,10 @@ namespace
 			  std::reverse(floorPerimeter.begin(), floorPerimeter.end());
 		  }
 
-		  static int64 constructIterationFrame = 0x840000000000;
-		  Rebuild(constructIterationFrame++);
+		  Ring<Vec2> clockwiseRing(&floorPerimeter[0], floorPerimeter.size());
+		  BuildGapsAndSegments(clockwiseRing);
+		  FinalizeGaps();
+		  Rebuild();
 
 		  for (auto* other : co_sectors)
 		  {
@@ -1270,7 +1404,8 @@ namespace
 
 		  for (auto& g : gapSegments)
 		  {
-			  g.other->Rebuild(decoupleIterationFrame);
+			  auto *concreteSector = (Sector*) g.other;
+			  concreteSector->FillGap(g.b, g.a);
 		  }
 
 		  gapSegments.clear();
@@ -1293,26 +1428,18 @@ namespace
 		  if (dirty || force)
 		  {
 			  dirty = false;
+
+			  z0 = (float)altitudeInCm / 100;
+			  z1 = z0 + (float)heightInCm / 100;
+
+			  ClearComponents(""_fstring);
+			  components.clear();
+
+			  ResetBarriers();
+
+			  FinalizeGaps();
+			  Rebuild();
 		  }
-		  else
-		  {
-			  return;
-		  }
-
-		  z0 = (float)elevationInCm / 100;
-		  z1 = z0 + (float)heightInCm / 100;
-
-		  static int64 updateHeightIterationFrame = 0x830000000000;
-		  updateHeightIterationFrame++;
-
-		  ClearComponents(""_fstring);
-		  components.clear();
-
-		  ResetBarriers();
-
-		  Rebuild(updateHeightIterationFrame);
-
-		  co_sectors.RebuildDirtySectors(updateHeightIterationFrame);
 	  }
 
       bool Is4PointRectangular() const
@@ -1362,7 +1489,8 @@ namespace
 
 		  if (strstr(path, wallScript) && scriptWalls)
 		  {
-			  Rebuild(anySectorScriptChangedUpdate++);
+			  FinalizeGaps();
+			  Rebuild();
 		  }
 	  }
 
@@ -1435,7 +1563,7 @@ namespace
 
 		  sb.AppendFormat("\n\t(sectors.SetTemplateWallScript %s \"%s\")\n", scriptWalls ? "true" : "false", wallScript);
 
-		  sb.AppendFormat("\n\t(sectors.CreateFromTemplate %d %d)\n", elevationInCm, heightInCm);
+		  sb.AppendFormat("\n\t(sectors.CreateFromTemplate %d %d)\n", altitudeInCm, heightInCm);
 	  }
 
 	  void GetProperties(cstr category, IBloodyPropertySetEditor& editor) override
@@ -1465,13 +1593,14 @@ namespace
 		  {
 			  AddToProperties(GraphicsEx::BodyComponentMatClass_Ceiling, editor);
 			  editor.AddSpacer();
-			  editor.AddInt("altitude (cm)", false, &elevationInCm);
+			  editor.AddInt("height (cm)", false, &heightInCm);
+			  
 		  }
 		  else if (Eq(category, "floor"))
 		  {
 			  AddToProperties(GraphicsEx::BodyComponentMatClass_Floor, editor);
 			  editor.AddSpacer();
-			  editor.AddInt("height (cm)", false, &heightInCm);
+			  editor.AddInt("altitude (cm)", false, &altitudeInCm);
 		  }
 		  else if (Eq(category, "door"))
 		  {
@@ -1507,7 +1636,7 @@ namespace HV
 {
    ISector* CreateSector(Platform& platform, ISectors& co_sectors)
    {
-      return new Sector(platform, co_sectors);
+      return new ANON::Sector(platform, co_sectors);
    }
 }
 

@@ -1097,7 +1097,7 @@ namespace Rococo
 
 		virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, csexstr archetype, bool checkName)
 		{
-			enum { MAX_ARCHETYPE_LEN = 256 };
+			enum { MAX_ARCHETYPE_LEN = 1024 };
 
 			if (callback == NULL)
 			{
@@ -1116,7 +1116,7 @@ namespace Rococo
 			}
 
 			SEXCHAR sxArchetype[MAX_ARCHETYPE_LEN];
-			CopyStringToSexChar(sxArchetype, 256, archetype, len + 1);
+			CopyStringToSexChar(sxArchetype, MAX_ARCHETYPE_LEN, archetype, len + 1);
 
 			SEXCHAR srcName[MAX_ARCHETYPE_LEN + 64];
 			SafeFormat(srcName, MAX_ARCHETYPE_LEN + 64, SEXTEXT("Source: '%s'"), sxArchetype);

@@ -1244,6 +1244,11 @@ namespace
 			char sysPath[IO::MAX_PATHLEN];
 			try
 			{
+				if (*buffer == 0)
+				{
+					validated = false;
+					return;
+				}
 				platform.installation.ConvertPingPathToSysPath(buffer, sysPath, len);
 				validated = OS::IsFileExistant(sysPath);
 			}

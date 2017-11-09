@@ -109,6 +109,11 @@
 (alias Sys.Type.Float32 Sys.Maths.Degrees)
 (alias Sys.Type.Float32 Sys.Maths.Radians)
 
+(namespace Sys.SI)
+(alias Sys.Type.Float32 Sys.SI.Metres)
+(alias Sys.Type.Float32 Sys.SI.Seconds)
+(alias Sys.Type.Float32 Sys.SI.Kilograms)
+
 (struct Vec2i 
 	(Int32 x y)
 )

@@ -297,10 +297,10 @@
 		(NumberOfRows -> (Int32 rows))
 		(GetFlatSubQuad (Int32 i)(Int32 j)(QuadVertices subQuad)) // (0 0) -> top left. Average out perturbation and push quad along normal
 		(GetPerturbedSubQuad (Int32 i)(Int32 j)(QuadVertices q)) // (0 0) -> top left. Move each vertex out along normal. Use heigh gradient to modify normals
-		(GetStackBondedBrick (Int32 i)(Int32 j)(QuadVertices q)(Float32 cementThicknessRatio)) // (0 0) -> top left. Move each sub quad out along normal.
-		(GetStretchBondedBrick (Int32 i)(Int32 j)(QuadVertices q)(QuadVertices top)(QuadVertices left)(QuadVertices right)(QuadVertices bottom)(Float32 cementThicknessRatio)) // (0 0) -> top left. Move each sub quad out along normal.
-		(GetBrickJoinRight (Int32 i)(Int32 j)(QuadVertices q)(Float32 cementThicknessRatio)) 
-		(GetBrickBedTop (Int32 row)(QuadVertices q)(Float32 cementThicknessRatio)) 
+		(GetStackBondedBrick (Int32 i)(Int32 j)(QuadVertices q)(Metres cementWidth)) // (0 0) -> top left. Move each sub quad out along normal.
+		(GetStretchBondedBrick (Int32 i)(Int32 j)(QuadVertices q)(QuadVertices top)(QuadVertices left)(QuadVertices right)(QuadVertices bottom)(Metres cementWidth)(Metres extrusionBase)) // (0 0) -> top left. Move each sub quad out along normal.
+		(GetBrickJoinRight (Int32 i)(Int32 j)(QuadVertices q)(Metres cementWidth)) 
+		(GetBrickBedTop (Int32 row)(QuadVertices q)(Metres cementWidth)) 
 		(PerturbField (Int32 i)(Int32 j)(Float32 dH))
 		(LevelField (Int32 i0)(Int32 j0)(Int32 i1)(Int32 j1)(Float32 dH))
 		(RandomizeField (Int32 i)(Int32 j)(Float32 minValue)(Float32 maxValue))

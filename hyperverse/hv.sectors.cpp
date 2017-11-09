@@ -323,34 +323,6 @@ namespace
       ISector** begin() { return (sectors.empty() ? nullptr : &sectors[0]); }
       ISector** end() { return (sectors.empty() ? nullptr : &sectors[0] + sectors.size()); }
 
-	  std::vector<ISector*> dirty;
-
-	  void AddDirty(ISector* dirtySector) override
-	  {
-		  dirty.push_back(dirtySector);
-	  }
-
-	  void RebuildDirtySectors(int64 iterationFrame)
-	  {
-		  for (auto& s : dirty)
-		  {
-			  s->Rebuild(iterationFrame);
-		  }
-
-		  for (auto& s : dirty)
-		  {
-			  if (s->IsCorridor())
-			  {
-				  size_t count;
-				  auto* g = s->Gaps(count);
-				  g[0].other->Rebuild(iterationFrame);
-				  g[1].other->Rebuild(iterationFrame);
-			  }
-		  }
-
-		  dirty.clear();
-	  }
-
 	  std::vector<Vec2> vertices;
 
 	  void AddVertex(float x, float y) override
@@ -421,10 +393,8 @@ namespace
 
 		  try
 		  {
-			  dirty.clear();
 			  s->Build(&vertices[0], vertices.size(), 0.01f * altitude, 0.01f * (altitude + height ));
 			  sectors.push_back(s);
-			  RebuildDirtySectors(s->IterationFrame());
 		  }
 		  catch (IException&)
 		  {
@@ -443,14 +413,11 @@ namespace
 
          try
          {
-			dirty.clear();
             s->Build(positionArray, nVertices, defaultFloorLevel, defaultFloorLevel + defaultRoomHeight);
             sectors.push_back(s);
-			RebuildDirtySectors(s->IterationFrame());
          }
 		 catch (IException& ex)
 		 {
-			 dirty.clear();
 			 s->Free();
 			 platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, "Algorithmic error creating sector. Try something simpler");
 

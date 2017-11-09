@@ -197,7 +197,7 @@ namespace HV
       virtual int32 GetPerimeterIndex(Vec2 a) = 0;
       virtual void InvokeSectorRebuild(bool force) = 0;
       virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
-      virtual void Rebuild(int64 iterationFrame) = 0;
+      virtual void Rebuild() = 0;
       virtual bool Is4PointRectangular() const = 0; // The sector has four points and its perimeter in 2D space is a rectangle or square
       virtual bool IsCorridor() const = 0; // The sector Is4PointRectangular & two opposing edges are portals to other sectors and neither is itself a 4PtRect
       virtual const Segment* GetWallSegments(size_t& count) const = 0;
@@ -215,9 +215,6 @@ namespace HV
    {
 	  virtual ISectorBuilder* Builder() = 0;
 	  virtual void Free() = 0;
-
-	  virtual void AddDirty(ISector* dirtySector) = 0;
-	  virtual void RebuildDirtySectors(int64 iterationFrame) = 0;
 
 	  virtual void AddSector(const Vec2* perimeter, size_t nVertices) = 0;
 	  virtual void Delete(ISector* sector) = 0;

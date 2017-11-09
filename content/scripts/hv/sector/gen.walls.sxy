@@ -440,7 +440,7 @@
 			(QuadVertices l)
 			(QuadVertices r)
 			(QuadVertices b)
-			(ft.GetStretchBondedBrick i j q t l r b 0.125)	
+			(ft.GetStretchBondedBrick i j q t l r b 0.02 0.05)	
 			(AddQuadToWall sector q matBrickId)
 			(AddQuadToWall sector t matBrickId)
 			(AddQuadToWall sector l matBrickId)
@@ -454,7 +454,7 @@
 	(#for (Int32 i = 0)(i < nColumns)(#inc i)
 		(#for (Int32 j = 0)(j < nRows)(#inc j)		
 			(QuadVertices q)	
-			(ft.GetBrickJoinRight i j q 0.125)		
+			(ft.GetBrickJoinRight i j q 0.02)		
 
 			(SetColours	q.colours 0x3F808080)		
 			(AddQuadToWall sector q matCementId)
@@ -463,7 +463,7 @@
 	
 	(#for (Int32 j = 0)(j < nRows)(#inc j)	
 		(QuadVertices q)	
-		(ft.GetBrickBedTop j q 0.125)	
+		(ft.GetBrickBedTop j q 0.02)	
 		(SetColours	q.colours 0x3F808080)		
 		(AddQuadToWall sector q matCementId)
 	)
@@ -480,7 +480,7 @@
 		(WallSegment seg)
 		(sector.GetSegment i seg)
 		
-		(ft.InitByFixedCellWidth seg.quad 1.0 0.5)
+		(ft.InitByFixedCellWidth seg.quad 2.0 1.0)
 		
 		(Float32 u1 = (u + (0.25 * seg.span.x)))
 		
@@ -495,7 +495,7 @@
 		(Int32 nRows = ft.NumberOfRows)
 		(#for (Int32 x = 0)(x < nColumns)(#inc x)
 			(#for (Int32 y = 0)(y < nRows)(#inc y)
-				(ft.RandomizeField x y 0 0.01)
+				(ft.RandomizeField x y 0 1.0)
 			)
 		)
 		
