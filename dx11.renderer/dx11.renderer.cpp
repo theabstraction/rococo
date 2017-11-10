@@ -37,6 +37,15 @@ namespace
 		std::string name;
 	};
 
+	struct AmbientData
+	{
+		RGBA localLight;
+		float fogConstant = -0.2218f; // light = e(Rk). Where R is distance. k = -0.2218 gives modulation of 1/256 at 25 metres, reducing full brightness to dark
+		float a = 0;
+		float b = 0;
+		float c = 0;
+	};
+
 	struct DX11VertexShader : public DX11Shader
 	{
 		AutoRelease<ID3D11InputLayout> inputLayout;
@@ -375,6 +384,8 @@ namespace
 
 	   AutoRelease<ID3D11Buffer> ps_TextureDescBuffer;
 
+	   AutoRelease<ID3D11Buffer> ps_AmbientBuffer;
+
 	   RAWMOUSE lastMouseEvent;
 	   Vec2i screenSpan;
 
@@ -385,6 +396,8 @@ namespace
 
 	   ID_VERTEX_SHADER idObjVS;
 	   ID_PIXEL_SHADER idObjPS;
+	   ID_VERTEX_SHADER idObjAmbientVS;
+	   ID_PIXEL_SHADER idObjAmbientPS;
 	   ID_PIXEL_SHADER idObjDepthPS;
 
 	   ID_VERTEX_SHADER idObjVS_Shadows;
@@ -472,6 +485,8 @@ namespace
 
 		   ps_TextureDescBuffer = DX11::CreateConstantBuffer<TextureDescState>(device);
 
+		   ps_AmbientBuffer = DX11::CreateConstantBuffer<AmbientData>(device);
+
 		   installation.LoadResource("!gui.vs", *scratchBuffer, 64_kilobytes);
 		   idGuiVS = CreateGuiVertexShader("!gui.vs", scratchBuffer->GetData(), scratchBuffer->Length());
 
@@ -483,6 +498,12 @@ namespace
 
 		   installation.LoadResource("!object.ps", *scratchBuffer, 64_kilobytes);
 		   idObjPS = CreatePixelShader("!object.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!ambient.ps", *scratchBuffer, 64_kilobytes);
+		   idObjAmbientPS = CreatePixelShader("!ambient.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!ambient.vs", *scratchBuffer, 64_kilobytes);
+		   idObjAmbientVS = CreateObjectVertexShader("!ambient.vs", scratchBuffer->GetData(), scratchBuffer->Length());
 
 		   installation.LoadResource("!shadow.vs", *scratchBuffer, 64_kilobytes);
 		   idObjVS_Shadows = CreateObjectVertexShader("!shadow.vs", scratchBuffer->GetData(), scratchBuffer->Length());
@@ -1369,8 +1390,6 @@ namespace
 			   dc.VSSetConstantBuffers(1, 1, &instanceBuffer);
 			   dc.Draw(buffer.numberOfVertices, 0);
 		   }
-
-	//	   dc.VSSetConstantBuffers(0, 0, nullptr);
 	   }
 
 	   virtual Windows::IWindow& Window()
@@ -1384,9 +1403,6 @@ namespace
 	   {
 		   DX11::CopyStructureToBuffer(dc, vs_globalStateBuffer, gs);
 		   dc.VSSetConstantBuffers(0, 1, &vs_globalStateBuffer);
-
-		   //DX11::CopyStructureToBuffer(dc, ps_globalStateBuffer, gs);
-		   //dc.PSSetConstantBuffers(0, 1, &ps_globalStateBuffer);
 	   }
 
 	   void DrawCursor()
@@ -1585,21 +1601,48 @@ namespace
 				   dc.RSSetState(objectRaterizering);
 
 				   scene.RenderObjects(*this);
-
-				   ID3D11ShaderResourceView* nullView = nullptr;
-				   dc.PSSetShaderResources(2, 1, &nullView);
-
-				   ID3D11Buffer* nullBuffer = nullptr;
-				   dc.VSSetConstantBuffers(2, 1, &nullBuffer);
-				   dc.VSSetConstantBuffers(1, 1, &nullBuffer);
-				   dc.VSSetConstantBuffers(0, 1, &nullBuffer);
-				   dc.PSSetConstantBuffers(2, 1, &nullBuffer);
-				   dc.PSSetConstantBuffers(1, 1, &nullBuffer);
-				   dc.PSSetConstantBuffers(0, 1, &nullBuffer);
 			   }
 		   }
 
+		   if (UseShaders(idObjAmbientVS, idObjAmbientPS))
+		   {
+			   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+			   SyncViewport();
+
+			   if (builtFirstPass)
+			   {
+				   dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
+			   }
+			   else
+			   {
+				   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
+				   builtFirstPass = true;
+			   }
+
+			   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
+
+			   dc.RSSetState(objectRaterizering);
+
+			   AmbientData ad;
+			   ad.localLight = lights[0].ambient;
+			   ad.fogConstant = lights[0].fogConstant;
+			   DX11::CopyStructureToBuffer(dc, ps_AmbientBuffer, ad);
+			   dc.PSSetConstantBuffers(0, 1, &ps_AmbientBuffer);
+
+			   scene.RenderObjects(*this);
+		   }
+
 		   ID3D11ShaderResourceView* nullView = nullptr;
+		   dc.PSSetShaderResources(2, 1, &nullView);
+
+		   ID3D11Buffer* nullBuffer = nullptr;
+		   dc.VSSetConstantBuffers(2, 1, &nullBuffer);
+		   dc.VSSetConstantBuffers(1, 1, &nullBuffer);
+		   dc.VSSetConstantBuffers(0, 1, &nullBuffer);
+		   dc.PSSetConstantBuffers(2, 1, &nullBuffer);
+		   dc.PSSetConstantBuffers(1, 1, &nullBuffer);
+		   dc.PSSetConstantBuffers(0, 1, &nullBuffer);
+
 		   dc.PSSetShaderResources(2, 1, &nullView);
 
 		   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
@@ -1677,7 +1720,6 @@ namespace
 		   ID3D11ShaderResourceView* mats[1] = { nullptr };
 		   dc.PSSetShaderResources(6, 1, mats);
 
-		   ID3D11Buffer* nullBuffer = nullptr;
 		   UINT nStrides = 0;
 
 		   dc.IASetVertexBuffers(0, 1, &nullBuffer, &nStrides, &nStrides);

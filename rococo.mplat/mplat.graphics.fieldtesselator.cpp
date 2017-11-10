@@ -476,7 +476,7 @@ namespace
 					float dz = extrusionBase * (hA + hB);
 					q.positions.a += normal * dz;
 					q.positions.b += normal * dz;
-					dz_ds.y = -dz / (delta.y * span.y);
+					dz_ds.y = dz / (delta.y * span.y);
 				}
 				else if (index == 1)
 				{
@@ -535,7 +535,7 @@ namespace
 			top.uv.left = q.uv.left;
 			top.uv.right = q.uv.right;
 			top.uv.bottom = q.uv.top;
-			top.uv.top = top.uv.bottom + cementDelta.y;
+			top.uv.top = top.uv.bottom + extrusionBase;
 
 			bottom.positions.a = q.positions.d;
 			bottom.positions.b = q.positions.c;
@@ -547,7 +547,7 @@ namespace
 			bottom.uv.left = q.uv.left;
 			bottom.uv.right = q.uv.right;
 			bottom.uv.top = q.uv.bottom;
-			bottom.uv.bottom = top.uv.top - cementWidth;
+			bottom.uv.bottom = top.uv.top - extrusionBase;
 
 			left.positions.a = bottom.positions.d;
 			left.positions.b = top.positions.a;
@@ -559,7 +559,7 @@ namespace
 			left.uv.left = q.uv.bottom;
 			left.uv.right = q.uv.top;
 			left.uv.bottom = q.uv.left;
-			left.uv.top = left.uv.bottom - cementWidth;
+			left.uv.top = left.uv.bottom - extrusionBase;
 
 			right.positions.a = q.positions.b;
 			right.positions.b = top.positions.b;

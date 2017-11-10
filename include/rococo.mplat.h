@@ -16,10 +16,13 @@ namespace Rococo
 		Vec3 direction;
 		Degrees fov;
 		RGBA diffuse;
-		RGBA ambience;
+		RGBA ambience;	// Only the nearest light's ambience is used for ambient lighting, and it is modulated by fog
 		Degrees cutoffAngle;
 		float cutoffPower;
 		float attenuation;
+		Metres nearPlane;
+		Metres farPlane;
+		float fogConstant; // fog = e^(range * fogExponent); // Take natural log of both sides to compute exponent, which should be negative
 	};
 
 	struct QuadColours

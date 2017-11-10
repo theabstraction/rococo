@@ -12,6 +12,19 @@ using namespace HV::Events::Player;
 using namespace Rococo::Entities;
 using namespace Rococo::Graphics;
 
+typedef std::unordered_map<ISector*, int32> TSectorSet;
+
+void Insert(TSectorSet& set, ISector* sector)
+{
+	set.insert(std::make_pair(sector, 0));
+}
+
+bool IsPresent(const TSectorSet& set, ISector* sector)
+{
+	auto i = set.find(sector);
+	return i != set.end();
+}
+
 class FPSControl
 {
 private:
@@ -190,6 +203,10 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		SectorToScene(ISceneBuilder& _builder) : builder(_builder) {}
 	};
 
+	typedef std::vector<ISector*> TSectorVector;
+
+	TSectorVector illuminatedRooms;
+
 	virtual void PopulateShadowCasters(ISceneBuilder& sb, const DepthRenderData& drd)  override
 	{
 		sb.Clear();
@@ -202,9 +219,11 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		}
 	}
 
-	void PopulateScene(ISceneBuilder& sb) override
+	TSectorSet visibleSectorsThisTimestep;
+
+	void ComputerVisibleSectorsThisTimestep()
 	{
-		sb.Clear();
+		visibleSectorsThisTimestep.clear();
 
 		Vec3 eye;
 		e.platform.camera.GetPosition(eye);
@@ -217,11 +236,33 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 
 		Vec3 dir{ -world.row2.x, -world.row2.y, -world.row2.z };
 
-		SectorToScene addToScene(sb);
-		auto nSectors = e.sectors.ForEverySectorVisibleBy(camera, eye, dir, addToScene);
+		struct : IEventCallback<VisibleSector>
+		{
+			TSectorSet* visibleSectorsThisTimestep;
+
+			void OnEvent(VisibleSector& v) override
+			{
+				Insert(*visibleSectorsThisTimestep, &v.sector);
+			}
+		} builder;
+
+		builder.visibleSectorsThisTimestep = &visibleSectorsThisTimestep;
+
+		auto nSectors = e.sectors.ForEverySectorVisibleBy(camera, eye, dir, builder);
 		if (nSectors == 0)
 		{
 			// Nothing rendered
+		}
+	}
+
+	void PopulateScene(ISceneBuilder& sb) override
+	{
+		sb.Clear();
+
+		SectorToScene addToScene(sb);
+		for (auto s : visibleSectorsThisTimestep)
+		{
+			addToScene.OnEvent(VisibleSector{ *s.first });
 		}
 	}
 
@@ -670,6 +711,50 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		}
 	}
 
+	bool IsLightVisible(const LightSpec& light)
+	{
+		illuminatedRooms.clear();
+
+		struct : IEventCallback<VisibleSector>
+		{
+			TSectorVector* illuminatedRooms;
+			void OnEvent(VisibleSector& v)
+			{
+				illuminatedRooms->push_back(&v.sector);
+			}
+		} build;
+
+		build.illuminatedRooms = &illuminatedRooms;
+
+		Vec3 normDirection;
+		if (!TryNormalize(light.direction, normDirection))
+		{
+			return false;
+		}
+
+		Matrix4x4 directionToCameraRot = RotateDirectionToNegZ(normDirection);
+		Matrix4x4 cameraToDirectionRot = TransposeMatrix(directionToCameraRot);	
+		Matrix4x4 worldToCamera = directionToCameraRot * Matrix4x4::Translate(-light.position);
+
+		Matrix4x4 cameraToScreen = Matrix4x4::GetRHProjectionMatrix(light.fov, 1.0f, light.nearPlane, light.farPlane);
+
+		Matrix4x4 worldToScreen = cameraToScreen * worldToCamera;
+
+		e.sectors.ForEverySectorVisibleBy(worldToScreen, light.position, normDirection, build);
+
+		bool foundOne = false;
+
+		for (auto s : illuminatedRooms)
+		{
+			if (IsPresent(visibleSectorsThisTimestep, s))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	void UpdatePlayer(float dt)
 	{
 		auto* player = e.players.GetPlayer(0);
@@ -745,14 +830,17 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		Vec3 dir{ -m.row2.x, -m.row2.y, -m.row2.z };
 
 		LightSpec light;
-		light.ambience = RGBA(0.2f, 0.2f, 0.21f, 1.0f);
-		light.diffuse = RGBA(2.25f, 2.25f, 2.25f, 1.0f);
+		light.ambience = RGBA(0.125f, 0.125f, 0.125f, 1.0f);
+		light.diffuse = RGBA(10.0f, 10.0f, 10.0f, 1.0f);
 		light.direction = dir;
 		light.position = final + playerPosToLightWorld;
 		light.cutoffPower = 64.0f;
 		light.cutoffAngle = 30_degrees;
 		light.fov = 90_degrees;
 		light.attenuation = -0.5f;
+		light.nearPlane = 0.1_metres;
+		light.farPlane = 50_metres;
+		light.fogConstant = -0.1f;
 
 		lightBuilder.push_back(light);
 
@@ -767,19 +855,20 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 
 		struct : IEventCallback<VisibleSector>
 		{
-			std::vector<LightSpec>* lightBuilder;
+			FPSGameLogic* This;
+
 			virtual void OnEvent(VisibleSector& v)
 			{
 				size_t nLights;
 				auto sl = v.sector.Lights(nLights);
 				for (size_t i = 0; i < nLights; ++i)
 				{
-					lightBuilder->push_back(sl[i]);
+					This->lightBuilder.push_back(sl[i]);
 				}
 			}
 		} addLightsFromeSector;
 
-		addLightsFromeSector.lightBuilder = &lightBuilder;
+		addLightsFromeSector.This = this;
 
 		auto nSectors = e.sectors.ForEverySectorVisibleBy(camera, eye, dir, addLightsFromeSector);
 		if (nSectors == 0)
@@ -801,9 +890,14 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 
 		e.platform.scene.Builder().ClearLights();
 
+		int32 targetIndex = 0;
+
 		for (int32 i = 0; i < lightBuilder.size(); ++i)
 		{
-			e.platform.scene.Builder().SetLight(lightBuilder[i], i);
+			if (IsLightVisible(lightBuilder[i]))
+			{
+				e.platform.scene.Builder().SetLight(lightBuilder[i], targetIndex++);
+			}
 		}
 
 		lightBuilder.clear();
@@ -816,6 +910,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 	void UpdateAI(const IUltraClock& clock) override
 	{
 		e.platform.gui.RegisterPopulator("fps", this);
+		ComputerVisibleSectorsThisTimestep();
 		UpdatePlayer(clock.DT());
 	}
 

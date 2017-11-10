@@ -4,6 +4,7 @@ struct PixelVertex
 	float4 normal : TEXCOORD2;
 	float3 uv_material: TEXCOORD;
     float4 worldPosition: TEXCOORD1;
+	float4 cameraSpacePosition: TEXCOORD4;
 	float4 shadowPos: TEXCOORD3;
 	float4 colour: COLOR0;	// w component gives lerpColourToTexture
 };
@@ -19,7 +20,8 @@ struct Light
 	float4 up;
 	float4 colour;
 	float4 ambient;
-	float4 randoms; // 4 random quotients 0.0 - 1.0
+	float fogConstant;
+	float3 randoms; // 4 random quotients 0.0 - 1.0
 	float cosHalfFov;
 	float fov;
 	float nearPlane;
@@ -49,7 +51,7 @@ float4 per_pixel_lighting(PixelVertex p)
 
 	float oow = 1.0f / p.shadowPos.w;
 
-	float bias = -0.01f;
+	float bias = -0.0025f;
 
 	float4 shadowXYZW = p.shadowPos;
 	shadowXYZW.z += bias;
@@ -66,11 +68,6 @@ float4 per_pixel_lighting(PixelVertex p)
 	float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
 	float R2 = dot(lightToPixelVec, lightToPixelVec);
 
-	float ambientFalloff = 1.0f / (1.0f + 0.125f * R2);
-
-	float4 ambience = float4(ambientFalloff * texel.x * light.ambient.x, ambientFalloff * texel.y * light.ambient.y, ambientFalloff * texel.z * light.ambient.z, 1.0f);
-
-
 	if (shadowDepth > depth)
 	{
 		float3 lightToPixelDir = normalize(lightToPixelVec);
@@ -85,15 +82,16 @@ float4 per_pixel_lighting(PixelVertex p)
 
 		float g = -dot(light.direction.xyz, normalize(p.normal.xyz));
 
-		float intensity = clamp(f * g, 0, 1.0f) * pow(R2, light.attenuationRate) * falloff;
+		float range = length(p.cameraSpacePosition.xyz);
+		float fogging = exp(range * light.fogConstant);
 
-		float4 diffCol = float4 (texel.x * intensity * light.colour.x, texel.y * intensity * light.colour.y, texel.z * intensity * light.colour.z, 0.0f);
-	//	float4 diffCol = float4 (f, texel.y * intensity * light.colour.y, texel.z * intensity * light.colour.z, 0.0f);
-		return diffCol + ambience;
+		float intensity = clamp(f * g, 0, 1.0f) * pow(R2, light.attenuationRate) * falloff * fogging;
+
+		return float4 (texel.x * intensity * light.colour.x, texel.y * intensity * light.colour.y, texel.z * intensity * light.colour.z, 1.0f);
 	}
 	else
 	{
-		return ambience;
+		return float4(0,0,0,1);
 	}
 }
 

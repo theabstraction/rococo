@@ -277,7 +277,7 @@ namespace
 		  return true;
 	  }
 
-	  void RecurseVisibilityScanOnGapsBy(const Matrix4x4& cameraMatrix, cr_vec3 eye, cr_vec3 forward, ISector& current, IEventCallback<VisibleSector>& cb, size_t& count, bool fromHome)
+	  void RecurseVisibilityScanOnGapsBy(const Matrix4x4& cameraMatrix, cr_vec3 eye, cr_vec3 forward, ISector& current, IEventCallback<VisibleSector>& cb, size_t& count, bool fromHome, int64 iterationFrame)
 	  {
 		  count++;
 
@@ -294,7 +294,7 @@ namespace
 				  {
 					  lineOfSight.push_back(gap);
 					  CallbackOnce(*gap->other, cb, iterationFrame);
-					  RecurseVisibilityScanOnGapsBy(cameraMatrix, eye, forward, *gap->other, cb, count, false);
+					  RecurseVisibilityScanOnGapsBy(cameraMatrix, eye, forward, *gap->other, cb, count, false, iterationFrame);
 					  lineOfSight.pop_back();
 				  }
 			  }
@@ -303,8 +303,17 @@ namespace
 
 	  std::vector<const Gap*> lineOfSight; // Quick, nasty but effective BSP test
 
+	  bool isScanning = false;
+
 	  size_t ForEverySectorVisibleBy(const Matrix4x4& cameraMatrix, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb)
 	  {
+		  if (isScanning)
+		  {
+			  Throw(0, "Cannot nest ForEverySectorVisibleBe");
+		  }
+
+		  isScanning = true;
+
 		  iterationFrame++;
 
 		  lineOfSight.clear();
@@ -314,8 +323,10 @@ namespace
 		  if (home)
 		  {
 			  CallbackOnce(*home, cb, iterationFrame);
-			  RecurseVisibilityScanOnGapsBy(cameraMatrix, eye, forward, *home, cb, count, true);
+			  RecurseVisibilityScanOnGapsBy(cameraMatrix, eye, forward, *home, cb, count, true, iterationFrame);
 		  }
+
+		  isScanning = false;
 
 		  return count;
 	  }

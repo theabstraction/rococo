@@ -228,7 +228,7 @@ namespace HV
 	  virtual ISector** end() = 0;
 
 	  virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
-	  virtual size_t ForEverySectorVisibleBy(cr_m4x4 cameraMatrix, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb) = 0;
+	  virtual size_t ForEverySectorVisibleBy(cr_m4x4 worldToScreen, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb) = 0;
 	  virtual void ResetConfig() = 0;
 
 	  virtual void SaveAsFunction(StringBuilder& sb) = 0;

@@ -433,6 +433,9 @@
 	
 	(MaterialId matBrickId = (instances.GetRandomMaterialId (#MaterialCategoryRock)))
 		
+	(Float32 cementWidth = 0.05)	
+	(Float32 extrusion = 0.15)
+		
 	(#for (Int32 i = 0)(i < nColumns)(#inc i)
 		(#for (Int32 j = 0)(j < nRows)(#inc j)		
 			(QuadVertices q)
@@ -440,7 +443,7 @@
 			(QuadVertices l)
 			(QuadVertices r)
 			(QuadVertices b)
-			(ft.GetStretchBondedBrick i j q t l r b 0.02 0.05)	
+			(ft.GetStretchBondedBrick i j q t l r b cementWidth extrusion)	
 			(AddQuadToWall sector q matBrickId)
 			(AddQuadToWall sector t matBrickId)
 			(AddQuadToWall sector l matBrickId)
@@ -454,7 +457,7 @@
 	(#for (Int32 i = 0)(i < nColumns)(#inc i)
 		(#for (Int32 j = 0)(j < nRows)(#inc j)		
 			(QuadVertices q)	
-			(ft.GetBrickJoinRight i j q 0.02)		
+			(ft.GetBrickJoinRight i j q cementWidth)		
 
 			(SetColours	q.colours 0x3F808080)		
 			(AddQuadToWall sector q matCementId)
@@ -463,7 +466,7 @@
 	
 	(#for (Int32 j = 0)(j < nRows)(#inc j)	
 		(QuadVertices q)	
-		(ft.GetBrickBedTop j q 0.02)	
+		(ft.GetBrickBedTop j q cementWidth)	
 		(SetColours	q.colours 0x3F808080)		
 		(AddQuadToWall sector q matCementId)
 	)

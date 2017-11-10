@@ -1126,7 +1126,7 @@ namespace ANON
 			  Vec3 dir = Normalize(target - eye);
 
 			  LightSpec light;
-			  light.ambience = RGBA(0.2f, 0.2f, 0.21f, 1.0f);
+			  light.ambience = RGBA(0.0f, 0.0f, 0.0f, 1.0f);
 			  light.diffuse = RGBA(2.25f, 2.25f, 2.25f, 1.0f);
 			  light.direction = dir;
 			  light.position = eye;
@@ -1134,6 +1134,9 @@ namespace ANON
 			  light.cutoffAngle = 30_degrees;
 			  light.fov = 90_degrees;
 			  light.attenuation = -0.5f;
+			  light.nearPlane = 0.1_metres;
+			  light.farPlane = 25_metres;
+			  light.fogConstant = -0.1f;
 
 			  lights.push_back(light);
 		  }
@@ -1153,6 +1156,9 @@ namespace ANON
 			  light.cutoffAngle = 30_degrees;
 			  light.fov = 90_degrees;
 			  light.attenuation = -0.5f;
+			  light.nearPlane = 0.1_metres;
+			  light.farPlane = 25_metres;
+			  light.fogConstant = -0.1f;
 
 			  lights.push_back(light);
 		  }

@@ -106,12 +106,13 @@ namespace
 		  lights[index].fov = spec.fov;
 		  lights[index].cosHalfFov = cosf(lights[index].fov * 0.5f);
 		  lights[index].position = Vec4::FromVec3(spec.position, 1.0f);
-		  lights[index].nearPlane = 0.1_metres;
-		  lights[index].farPlane = 50_metres;
+		  lights[index].nearPlane = spec.nearPlane;
+		  lights[index].farPlane = spec.farPlane;
 		  lights[index].attenuationRate = spec.attenuation;
 		  lights[index].cutoffPower = spec.cutoffPower;
 		  lights[index].cutoffCosAngle = Cos(spec.cutoffAngle);
 		  lights[index].ambient = spec.ambience;
+		  lights[index].fogConstant = spec.fogConstant;
       }
 
       virtual void Free()

@@ -121,7 +121,8 @@ namespace Rococo
 		Vec4 up;
 		RGBA colour = RGBA(1,1,1,1);
 		RGBA ambient = RGBA(0, 0, 0, 0);
-		Vec4 randoms; // 4 random quotients 0.0 - 1.0
+		float fogConstant;
+		Vec3 randoms; // 3 random quotients 0.0 - 1.0
 		float cosHalfFov;
 		Radians fov;
 		Metres nearPlane;

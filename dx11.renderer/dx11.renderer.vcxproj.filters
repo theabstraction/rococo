@@ -8,6 +8,8 @@
     <FxCompile Include="shadow.vs.hlsl" />
     <FxCompile Include="shadow.ps.hlsl" />
     <FxCompile Include="r32f.ps.hlsl" />
+    <FxCompile Include="ambient.ps.hlsl" />
+    <FxCompile Include="ambient.vs.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11.swapchain.cpp">
