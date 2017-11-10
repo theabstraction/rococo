@@ -126,6 +126,7 @@
 	(methods
 		(AddStatics  (IdEntity entityId))
 		(Clear)
+		(ClearLights)
 		(SetClearColour (Float32 red)(Float32 green)(Float32 blue)(Float32 alpha))
 		(SetLight(const LightSpec light)(Int32 index))
 	)

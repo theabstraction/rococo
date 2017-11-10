@@ -121,4 +121,5 @@
 	(tabs.AddTab 60 "Floor" 	"editor.tab.floor")
 	(tabs.AddTab 75 "Ceiling"	"editor.tab.ceiling")
 	(tabs.AddTab 60 "Doors"		"editor.tab.doors")
+	(tabs.AddTab 64 "Lights"	"editor.tab.lights")
 )

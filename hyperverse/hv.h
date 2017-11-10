@@ -207,6 +207,8 @@ namespace HV
 
 	  virtual void SaveTemplate(StringBuilder& sb) = 0;
 	  virtual void SetTemplate(MatEnumerator& enumerator) = 0;
+
+	  virtual const LightSpec* Lights(size_t& numberOfLights) const = 0;
    };
 
    ISector* CreateSector(Platform& platform, ISectors& co_sectors);

@@ -85,6 +85,14 @@ namespace ANON
 	   bool hasDoor = false;
 	   bool scriptWalls = false;
 
+	   std::vector<LightSpec> lights;
+
+	   const LightSpec* Lights(size_t& numberOfLights) const override
+	   {
+		   numberOfLights = lights.size();
+		   return !lights.empty() ? &lights[0] : nullptr;
+	   }
+
 	   bool TryGetMaterial(BodyComponentMatClass name, MaterialVertexData& vd) const override
 	   {
 		   auto i = nameToMaterial.find(name);
@@ -1101,6 +1109,55 @@ namespace ANON
 		  }	
 	  }
 
+	  void RandomizeLight()
+	  {
+		  lights.clear();
+
+		  if (IsCorridor())
+		  {
+			  int gIndex = rand() % 2;
+			  auto& g0 = gapSegments[gIndex];
+			  Vec3 eye = g0.bounds.centre;
+			  eye.z = g0.z1;
+
+			  auto& g1 = gapSegments[1 - gIndex];
+			  Vec3 target = g1.bounds.centre;
+
+			  Vec3 dir = Normalize(target - eye);
+
+			  LightSpec light;
+			  light.ambience = RGBA(0.2f, 0.2f, 0.21f, 1.0f);
+			  light.diffuse = RGBA(2.25f, 2.25f, 2.25f, 1.0f);
+			  light.direction = dir;
+			  light.position = eye;
+			  light.cutoffPower = 64.0f;
+			  light.cutoffAngle = 30_degrees;
+			  light.fov = 90_degrees;
+			  light.attenuation = -0.5f;
+
+			  lights.push_back(light);
+		  }
+		  else
+		  {
+			  auto index = rand() % (int32) ceilingTriangles.size();
+			  auto& t = ceilingTriangles[index];
+			  auto eye = (t.a.position + t.b.position + t.c.position) * 0.33333f + Vec3{ 0, 0, -0.1f };
+			  Vec3 dir = { 0, 0, -1 };
+
+			  LightSpec light;
+			  light.ambience = RGBA(0.2f, 0.2f, 0.21f, 1.0f);
+			  light.diffuse = RGBA(2.25f, 2.25f, 2.25f, 1.0f);
+			  light.direction = dir;
+			  light.position = eye;
+			  light.cutoffPower = 64.0f;
+			  light.cutoffAngle = 30_degrees;
+			  light.fov = 90_degrees;
+			  light.attenuation = -0.5f;
+
+			  lights.push_back(light);
+		  }
+	  }
+
 	  void Rebuild()
 	  {
 		  TesselateWalls();
@@ -1117,6 +1174,8 @@ namespace ANON
 			  cstr theDoorScript = *doorScript ? doorScript : "!scripts/hv/sector/gen.door.sxy";
 			  RunSectorGenScript(theDoorScript);
 		  }
+
+		  RandomizeLight();
 	  }
 
       void TesselateFloorAndCeiling(MaterialId floorId, MaterialId ceilingId)

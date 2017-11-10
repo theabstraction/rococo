@@ -119,8 +119,8 @@ namespace Rococo
 		  blendDesc.RenderTarget[0].BlendEnable = TRUE;
 		  blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 		  blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-		  blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_DEST_COLOR;
-		  blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		  blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+		  blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
 		  blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
 		  blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_MAX;
 

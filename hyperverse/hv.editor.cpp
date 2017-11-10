@@ -948,6 +948,7 @@ namespace
 		AutoFree<IBloodyPropertySetEditorSupervisor> floorEditor;
 		AutoFree<IBloodyPropertySetEditorSupervisor> ceilingEditor;
 		AutoFree<IBloodyPropertySetEditorSupervisor> doorEditor;
+		AutoFree<IBloodyPropertySetEditorSupervisor> lightEditor;
 
 		char levelpath[IO::MAX_PATHLEN] = { 0 };
 
@@ -1024,6 +1025,7 @@ namespace
 			floorEditor->Clear();
 			ceilingEditor->Clear();
 			doorEditor->Clear();
+			lightEditor->Clear();
 
 			if (this->target != nullptr)
 			{
@@ -1039,6 +1041,7 @@ namespace
 				target->GetProperties("floor", *floorEditor);
 				target->GetProperties("ceiling", *ceilingEditor);
 				target->GetProperties("door", *doorEditor);
+				target->GetProperties("lights", *lightEditor);
 			}
 		}
 
@@ -1172,6 +1175,7 @@ namespace
 			floorEditor = platform.utilities.CreateBloodyPropertySetEditor(_platform, *this);
 			ceilingEditor = platform.utilities.CreateBloodyPropertySetEditor(_platform, *this);
 			doorEditor = platform.utilities.CreateBloodyPropertySetEditor(_platform, *this);
+			lightEditor = platform.utilities.CreateBloodyPropertySetEditor(_platform, *this);
 
 			platform.publisher.Attach(this, HV::Events::changeDefaultTextureId);
 
@@ -1189,6 +1193,7 @@ namespace
 			platform.gui.RegisterPopulator("editor.tab.floor", &(*floorEditor));
 			platform.gui.RegisterPopulator("editor.tab.ceiling", &(*ceilingEditor));
 			platform.gui.RegisterPopulator("editor.tab.doors", &(*doorEditor));
+			platform.gui.RegisterPopulator("editor.tab.lights", &(*lightEditor));
 		}
 
 		~Editor()
@@ -1197,6 +1202,7 @@ namespace
 			platform.gui.UnregisterPopulator(&(*floorEditor));
 			platform.gui.UnregisterPopulator(&(*ceilingEditor));
 			platform.gui.UnregisterPopulator(&(*doorEditor));
+			platform.gui.UnregisterPopulator(&(*lightEditor));
 			platform.gui.UnregisterPopulator(this);
 			platform.publisher.Detach(this);
 

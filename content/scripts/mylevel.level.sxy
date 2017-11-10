@@ -63,7 +63,7 @@
 	(sectors.SetTemplateMaterial "panels"      4 0x0044f214 "random")
 	(sectors.SetTemplateWallScript false "")
 
-	(sectors.CreateFromTemplate 200 400)
+	(sectors.CreateFromTemplate 100 400)
 )
 
 (function AddSector2 (ISectors sectors) -> :
@@ -102,7 +102,7 @@
 	(sectors.SetTemplateMaterial "rails"       3 0x358fd348 "random")
 	(sectors.SetTemplateMaterial "casing"      4 0x04878178 "random")
 	(sectors.SetTemplateMaterial "panels"      3 0x00e52a1d "random")
-	(sectors.SetTemplateWallScript true "")
+	(sectors.SetTemplateWallScript false "")
 
 	(sectors.CreateFromTemplate 0 1000)
 )

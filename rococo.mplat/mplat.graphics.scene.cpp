@@ -22,7 +22,8 @@ namespace
 
       RGBA clearColour{ 0,0,0,1 };
 
-	  Light lights[2] = { 0 };
+	  enum { MAX_LIGHTS = 8 };
+	  Light lights[MAX_LIGHTS] = { 0 };
 
 	  IScenePopulator* populator = nullptr;
    public:
@@ -37,7 +38,7 @@ namespace
 
 	  const Light* GetLights(size_t& nCount) const override
 	  {
-		  nCount = 2;
+		  nCount = MAX_LIGHTS;
 		  return lights;
 	  }
 
@@ -86,9 +87,14 @@ namespace
 		 clearColour.alpha = alpha;
       }
 
+	  void ClearLights() override
+	  {
+		  memset(lights, 0, sizeof(lights));
+	  }
+
 	  virtual void SetLight(const LightSpec& spec,  int index)
 	  {
-		  if (index < 0 || index >= 2)
+		  if (index < 0 || index >= MAX_LIGHTS)
 		  {
 			  // Not enough lights, and so since index represents priority, it is silently dropped
 			  return;

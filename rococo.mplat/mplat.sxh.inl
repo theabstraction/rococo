@@ -1128,6 +1128,16 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Clear();
 	}
+	void NativeRococoGraphicsISceneBuilderClearLights(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::ISceneBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ClearLights();
+	}
 	void NativeRococoGraphicsISceneBuilderSetClearColour(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -1192,6 +1202,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsSceneBuilder, _nceContext, SEXTEXT("GetHandleForISceneBuilder0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderAddStatics, nullptr, SEXTEXT("ISceneBuilderAddStatics (Pointer hObject)(Int64 entityId) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderClear, nullptr, SEXTEXT("ISceneBuilderClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderClearLights, nullptr, SEXTEXT("ISceneBuilderClearLights (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetClearColour, nullptr, SEXTEXT("ISceneBuilderSetClearColour (Pointer hObject)(Float32 red)(Float32 green)(Float32 blue)(Float32 alpha) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetLight, nullptr, SEXTEXT("ISceneBuilderSetLight (Pointer hObject)(Rococo.LightSpec light)(Int32 index) -> "));
 	}

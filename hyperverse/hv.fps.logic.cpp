@@ -3,6 +3,8 @@
 #include <unordered_map>
 #include <rococo.maths.h>
 
+#include <algorithm>
+
 using namespace HV;
 using namespace HV::Events;
 using namespace HV::Events::Player;
@@ -751,20 +753,63 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		light.cutoffAngle = 30_degrees;
 		light.fov = 90_degrees;
 		light.attenuation = -0.5f;
-		e.platform.scene.Builder().SetLight(light, 0);
 
-		spinningLightTheta += 45.0f * dt;
-		spinningLightTheta = fmodf(spinningLightTheta, 360.0f);
+		lightBuilder.push_back(light);
 
-		Vec4 spinningDir = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ spinningLightTheta }) * Vec4 { 1, 0, -0.1f, 0 };
+		Vec3 eye;
+		e.platform.camera.GetPosition(eye);
 
-		LightSpec spinningLight = light;
-		spinningLight.direction = spinningDir;
-		spinningLight.position = Vec3{ 0, 0, 2.5f};
-		spinningLight.ambience = RGBA(0.2f, 0.2f, 0.21f, 1.0f);
+		Matrix4x4 world;
+		e.platform.camera.GetWorld(world);
 
-		e.platform.scene.Builder().SetLight(spinningLight, 1);
+		Matrix4x4 camera;
+		e.platform.camera.GetWorldAndProj(camera);
+
+		struct : IEventCallback<VisibleSector>
+		{
+			std::vector<LightSpec>* lightBuilder;
+			virtual void OnEvent(VisibleSector& v)
+			{
+				size_t nLights;
+				auto sl = v.sector.Lights(nLights);
+				for (size_t i = 0; i < nLights; ++i)
+				{
+					lightBuilder->push_back(sl[i]);
+				}
+			}
+		} addLightsFromeSector;
+
+		addLightsFromeSector.lightBuilder = &lightBuilder;
+
+		auto nSectors = e.sectors.ForEverySectorVisibleBy(camera, eye, dir, addLightsFromeSector);
+		if (nSectors == 0)
+		{
+			// Nothing rendered
+		}
+
+		struct
+		{
+			bool operator ()(const LightSpec& a, const LightSpec& b) const
+			{
+				return LengthSq(a.position - eye) < LengthSq(b.position - eye);
+			}
+
+			Vec3 eye;
+		} byDistanceFromPlayer{ final };
+
+		std::sort(lightBuilder.begin(), lightBuilder.end(), byDistanceFromPlayer);
+
+		e.platform.scene.Builder().ClearLights();
+
+		for (int32 i = 0; i < lightBuilder.size(); ++i)
+		{
+			e.platform.scene.Builder().SetLight(lightBuilder[i], i);
+		}
+
+		lightBuilder.clear();
 	}
+
+	std::vector<LightSpec> lightBuilder;
 
 	float spinningLightTheta = 0;
 
