@@ -2,7 +2,7 @@ struct PixelVertex
 {
 	float4 position : SV_POSITION0;
 	float4 normal: NORMAL;
-	float3 uv_material: TEXCOORD;
+	float4 uv_material_and_gloss: TEXCOORD;
     float4 cameraSpacePosition: TEXCOORD1;
 	float4 worldPosition: TEXCOORD2;
 	float4 colour: COLOR0;	// w component gives lerpColourToTexture
@@ -40,7 +40,7 @@ cbuffer globalState: register(b1)
 
 float4 per_pixel_lighting(PixelVertex p)
 {
-	float4 texel = g_materials.Sample(txSampler, p.uv_material);
+	float4 texel = g_materials.Sample(txSampler, p.uv_material_and_gloss.xyz);
 	texel.xyz = lerp(p.colour.xyz, texel.xyz, p.colour.w);
 
 	float3 incident = normalize(p.worldPosition.xyz - eye.xyz);
@@ -48,7 +48,7 @@ float4 per_pixel_lighting(PixelVertex p)
 	float3 reflectionVector = reflect(normalize(incident.xyz), normalize(p.normal.xyz));
 	float4 reflectionColor = g_cubeMap.Sample(txSampler, reflectionVector);
 
-	texel.xyz = lerp(texel.xyz, reflectionColor.xyz, 0.25f);
+	texel.xyz = lerp(texel.xyz, reflectionColor.xyz, p.uv_material_and_gloss.w);
 
 	float range = length(p.cameraSpacePosition.xyz);	
 	float fogging = exp( range * ambience.fogConstant);

@@ -40,6 +40,7 @@ namespace Rococo
 	{
 		RGBAb colour;
 		MaterialId materialId;
+		float gloss = 0;
 	};
 
 	struct ObjectVertex

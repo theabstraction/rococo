@@ -21,20 +21,18 @@
 (using Sys.Geometry.F32)
 (using Sys.Random)
 
-(function AddTriangle (IMeshBuilder mb) (Triangle t)(Triangle2d uv)(MaterialId id)-> :
+(function AddTriangle (IMeshBuilder mb) (Triangle t)(Triangle2d uv)(MaterialVertexData mat)-> :
 	(Vec3 n)
 	(GetNormal t n)
 	
-	(MaterialVertexData noColour = 0xFF000000 id)
-	
-	(ObjectVertex a = t.a n uv.a noColour)
-	(ObjectVertex b	= t.b n uv.b noColour)
-	(ObjectVertex c = t.c n uv.c noColour)	
+	(ObjectVertex a = t.a n uv.a mat)
+	(ObjectVertex b	= t.b n uv.b mat)
+	(ObjectVertex c = t.c n uv.c mat)	
 	
 	(mb.AddTriangle a b c)
 )
 
-(function AddQuad (IMeshBuilder mb) (Quadf quad)(Float32 uScale)(Float32 vScale)(MaterialId id)-> :
+(function AddQuad (IMeshBuilder mb) (Quadf quad)(Float32 uScale)(Float32 vScale)(MaterialVertexData mat)-> :
 	(Triangle t = quad.a quad.b quad.c)
 	(Vec3 n)
 	(GetNormal t n)
@@ -44,18 +42,16 @@
 	(Float32 u = (uScale * (Length top)))
 	(Float32 v = (vScale * (Length left)))
 	
-	(MaterialVertexData noColour = 0xFF000000 id)
-	
-	(ObjectVertex a = quad.a n (0 0) noColour)
-	(ObjectVertex b	= quad.b n (u 0) noColour)
-	(ObjectVertex c = quad.c n (u v) noColour)	
-	(ObjectVertex d = quad.d n (0 v) noColour)	
+	(ObjectVertex a = quad.a n (0 0) mat)
+	(ObjectVertex b	= quad.b n (u 0) mat)
+	(ObjectVertex c = quad.c n (u v) mat)	
+	(ObjectVertex d = quad.d n (0 v) mat)	
 	
 	(mb.AddTriangle a b c)
 	(mb.AddTriangle c d a)
 )
 
-(function AddBox (IMeshBuilder mb)(Vec3 v)(Vec3 w)(Float32 uScale)(Float32 vScale)(MaterialId id)-> :
+(function AddBox (IMeshBuilder mb)(Vec3 v)(Vec3 w)(Float32 uScale)(Float32 vScale)(MaterialVertexData mat)-> :
 	(Vec3 usw   = v.x v.y w.z)
 	(Vec3 use   = w.x v.y w.z)
 	(Vec3 lse   = w.x v.y v.z)
@@ -67,22 +63,22 @@
 	(Vec3 lnw   = v.x w.y v.z)
 	
 	(Quadf south = usw use lse lsw)
-	(AddQuad mb south uScale vScale id) // south
+	(AddQuad mb south uScale vScale mat) // south
 	
 	(Quadf north = une unw lnw lne)
-	(AddQuad mb north uScale vScale id) // north
+	(AddQuad mb north uScale vScale mat) // north
 	
 	(Quadf lower = lsw lse lne lnw)
-	(AddQuad mb lower uScale vScale id) // lower
+	(AddQuad mb lower uScale vScale mat) // lower
 	
 	(Quadf upper = unw une use usw)
-	(AddQuad mb upper uScale vScale id) // upper
+	(AddQuad mb upper uScale vScale mat) // upper
 	
 	(Quadf left = unw usw lsw lnw)
-	(AddQuad mb left uScale vScale id) // left
+	(AddQuad mb left uScale vScale mat) // left
 	
 	(Quadf right = use une lne lse)
-	(AddQuad mb right uScale vScale id) // right
+	(AddQuad mb right uScale vScale mat) // right
 )
 
 (archetype HV.ObjectFunction (IMeshBuilder mb)->)
@@ -103,13 +99,13 @@
 	(corridor.CentreComponent localName meshName texture)
 )
 
-(function AddRimObject (IMeshBuilder mb)(IRimTesselator rim)(Float32 uvScale)(Float32 z0)(Float32 z1)(MaterialId id)-> :
+(function AddRimObject (IMeshBuilder mb)(IRimTesselator rim)(Float32 uvScale)(Float32 z0)(Float32 z1)(MaterialVertexData mat)-> :
 	(rim.ClearFaces)
 	(Int32 count = rim.PerimeterVertices)
 	(#for (Int32 i = 0)(i < count)(#inc i)
 		(Quadf q)
 		(rim.GetRimQuad z0 z1 i q)			
-		(AddQuad mb q uvScale uvScale id)			
+		(AddQuad mb q uvScale uvScale mat)			
 	)
 	
 	(Int32 triangles = rim.TesselateUniform)
@@ -117,9 +113,9 @@
 		(Triangle t)
 		(Triangle2d uv)
 		(rim.GetTopTriangle j t uv z1)
-		(AddTriangle mb t uv id)
+		(AddTriangle mb t uv mat)
 		(rim.GetBottomTriangle j t uv z0)
-		(AddTriangle mb t uv id)
+		(AddTriangle mb t uv mat)
 	)
 )
 
@@ -141,13 +137,14 @@
 	
 	(IInstances instances (Instances))
 	(MaterialId doorMatId = (instances.GetRandomMaterialId (#MaterialCategoryMetal)))
+	(MaterialVertexData mat = 0xFF000000 doorMatId 0.8)
 	
 	(ObjectFunction door = 
 		(closure (IMeshBuilder mb)-> :
 			(Vec3 v = x0 t0 z0)
 			(Vec3 w = x1 t1 z1)
 			(Float32 uvScale = (AnyOf 0.1 1.0))
-			(AddBox mb v w uvScale uvScale doorMatId)
+			(AddBox mb v w uvScale uvScale mat)
 		)
 	)
 
@@ -158,6 +155,7 @@
 	(Float32 capWidth =  (AnyOf 0.35 0.5))
 	
 	(MaterialId pillarMatId = (instances.GetRandomMaterialId (#MaterialCategoryStone)))
+	(MaterialVertexData pillarMat = 0xFF000000 pillarMatId 0.0)
 	
 	(ObjectFunction pillars = 
 		(closure (IMeshBuilder mb)-> :
@@ -197,7 +195,7 @@
 			)
 			
 			(rim.SetTransform transform1)
-			(AddRimObject mb rim uvScale (0 - pillarWidth) pillarWidth pillarMatId)
+			(AddRimObject mb rim uvScale (0 - pillarWidth) pillarWidth pillarMat)
 			
 			(Matrix4x4 transform2 =
 				(1 0  0  0)
@@ -207,7 +205,7 @@
 			)
 			
 			(rim.SetTransform transform2)
-			(AddRimObject mb rim uvScale (0 - pillarWidth) pillarWidth pillarMatId)
+			(AddRimObject mb rim uvScale (0 - pillarWidth) pillarWidth pillarMat)
 			
 			(
 				(Float32 switchY0 = ((y0 - ( 2 * pillarWidth)) - 0.25) )
@@ -217,7 +215,7 @@
 				(Float32 switchX0 = (x0 + 0.025))
 				(Vec3 v = x0       switchY0 z0)
 				(Vec3 w = switchX0 switchY1 switchZ1)
-				(AddBox mb v w uvScale uvScale pillarMatId) // switch base
+				(AddBox mb v w uvScale uvScale pillarMat) // switch base
 			)
 			
 			(
@@ -228,13 +226,14 @@
 				(Float32 switchX0 = (x1 - 0.025))
 				(Vec3 v = switchX0    switchY0 z0)
 				(Vec3 w = x1          switchY1 switchZ1)
-				(AddBox mb v w uvScale uvScale pillarMatId) // switch base
+				(AddBox mb v w uvScale uvScale pillarMat) // switch base
 			)
 		)
 	)
 	(AddObject "!textures/walls/metal3.jpg" "door.pillars" pillars)
 	
 	(MaterialId railsMatId = (instances.GetRandomMaterialId (#MaterialCategoryRock)))
+	(MaterialVertexData railsMat = 0xFF000000 railsMatId 0.0)
 	
 	(ObjectFunction rails = 
 		(closure (IMeshBuilder mb)-> :
@@ -248,7 +247,7 @@
 					(quadLeft y1 -1.0)
 					(quadLeft y0 -1.0)
 				)
-				(AddQuad mb q uvScale uvScale railsMatId)
+				(AddQuad mb q uvScale uvScale railsMat)
 			)
 			
 			(Float32 quadRight = (x1 - 0.01))
@@ -259,7 +258,7 @@
 					(quadRight y0 -1.0)
 					(quadRight y1 -1.0)
 				)
-				(AddQuad mb q uvScale uvScale railsMatId)
+				(AddQuad mb q uvScale uvScale railsMat)
 			)
 			
 			(
@@ -269,7 +268,7 @@
 					(x1 y1 z)
 					(x0 y1 z)
 				)
-				(AddQuad mb q uvScale uvScale railsMatId)
+				(AddQuad mb q uvScale uvScale railsMat)
 			)
 		)
 	)

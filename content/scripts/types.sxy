@@ -1,6 +1,7 @@
 (struct MaterialVertexData
 	(Int32 materialColour)
 	(Float32 materialIndex)
+	(Float32 gloss)
 )
 (alias MaterialVertexData Rococo.MaterialVertexData)
 

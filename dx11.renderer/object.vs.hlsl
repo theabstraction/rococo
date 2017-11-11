@@ -4,7 +4,7 @@ struct ObjectVertex
 	float4 normal : NORMAL;
 	float2 uv: TEXCOORD0;
 	float4 colour: COLOR0;
-	float  materialIndex : TEXCOORD1;
+	float2 materialIndexAndGloss : TEXCOORD1;
 };
 
 struct ScreenVertex
@@ -15,7 +15,6 @@ struct ScreenVertex
 	float4 normal : TEXCOORD2;
 	float4 shadowPos: TEXCOORD3;
 	float4 cameraSpacePosition: TEXCOORD4;
-//	float4 eyeToPositionDirection: TEXCOORD5;
 	float4 colour: COLOR0;
 };
 
@@ -70,7 +69,7 @@ ScreenVertex main(ObjectVertex v)
 	sv.shadowPos = mul(light.worldToShadowBuffer, instancePos);
 	sv.cameraSpacePosition = mul(worldMatrix, instancePos);
 	sv.uv_material.xy = v.uv.xy;
-	sv.uv_material.z = v.materialIndex;
+	sv.uv_material.z = v.materialIndexAndGloss.x;
 	sv.colour = v.colour;
 
 //	float4 eyeToPos = instancePos - eye;

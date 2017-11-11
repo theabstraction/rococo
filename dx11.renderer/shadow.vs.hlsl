@@ -4,7 +4,7 @@ struct ObjectVertex
 	float4 normal : NORMAL;
 	float2 uv: TEXCOORD0;
 	float4 colour: COLOR0;
-	float  materialIndex : TEXCOORD1;
+	float2 materialIndexAndGloss  : TEXCOORD1;
 };
 
 

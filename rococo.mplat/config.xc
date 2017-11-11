@@ -58,6 +58,7 @@
 (defstruct MaterialVertexData Rococo.MaterialVertexData MaterialVertexData
 	(RGBAb materialColour)
 	(MaterialId materialIndex)
+	(Float32 gloss)
 )
 
 (defstruct Vertex Rococo.ObjectVertex ObjectVertex

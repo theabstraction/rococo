@@ -413,10 +413,10 @@
 )
 
 (function AddQuadToWall (ISectorWallTesselator sector)(QuadVertices q)(MaterialId matId)-> :
-	(MaterialVertexData mata = q.colours.a matId)
-	(MaterialVertexData matb = q.colours.b matId)
-	(MaterialVertexData matc = q.colours.c matId)
-	(MaterialVertexData matd = q.colours.d matId)
+	(MaterialVertexData mata = q.colours.a matId 0)
+	(MaterialVertexData matb = q.colours.b matId 0)
+	(MaterialVertexData matc = q.colours.c matId 0)
+	(MaterialVertexData matd = q.colours.d matId 0)
 	(ObjectVertex a = q.positions.a q.normals.a (q.uv.left  q.uv.top)    mata)
 	(ObjectVertex b	= q.positions.b q.normals.b (q.uv.right q.uv.top)    matb)
 	(ObjectVertex c = q.positions.c q.normals.c (q.uv.right q.uv.bottom) matc)
