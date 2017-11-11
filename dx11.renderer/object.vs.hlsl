@@ -1,20 +1,21 @@
 struct ObjectVertex
 {
 	float4 position : POSITION;
-	float4 normal : NORMAL;	
+	float4 normal : NORMAL;
 	float2 uv: TEXCOORD0;
 	float4 colour: COLOR0;
-	float  materialIndex: TEXCOORD1;
+	float  materialIndex : TEXCOORD1;
 };
 
 struct ScreenVertex
 {
 	float4 position : SV_POSITION0;
-	float4 normal : TEXCOORD2;
 	float3 uv_material: TEXCOORD;
 	float4 worldPosition: TEXCOORD1;
-	float4 cameraSpacePosition: TEXCOORD4;
+	float4 normal : TEXCOORD2;
 	float4 shadowPos: TEXCOORD3;
+	float4 cameraSpacePosition: TEXCOORD4;
+//	float4 eyeToPositionDirection: TEXCOORD5;
 	float4 colour: COLOR0;
 };
 
@@ -44,6 +45,7 @@ cbuffer globalState
 {
 	float4x4 worldMatrixAndProj;
 	float4x4 worldMatrix;
+	float4 eye;
 };
 
 cbuffer perInstanceData
@@ -70,5 +72,9 @@ ScreenVertex main(ObjectVertex v)
 	sv.uv_material.xy = v.uv.xy;
 	sv.uv_material.z = v.materialIndex;
 	sv.colour = v.colour;
+
+//	float4 eyeToPos = instancePos - eye;
+
+//	sv.eyeToPositionDirection = float4(normalize(eyeToPos.xyz),0);
 	return sv;
 }

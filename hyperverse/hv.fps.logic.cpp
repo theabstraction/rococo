@@ -239,9 +239,11 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		struct : IEventCallback<VisibleSector>
 		{
 			TSectorSet* visibleSectorsThisTimestep;
+			ISector* home{ nullptr };
 
 			void OnEvent(VisibleSector& v) override
 			{
+				if (!home) home = &v.sector;
 				Insert(*visibleSectorsThisTimestep, &v.sector);
 			}
 		} builder;
@@ -252,6 +254,11 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		if (nSectors == 0)
 		{
 			// Nothing rendered
+		}
+
+		if (builder.home)
+		{
+			builder.home->SyncEnvironmentMapToSector();
 		}
 	}
 

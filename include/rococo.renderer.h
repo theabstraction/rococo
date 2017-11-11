@@ -96,6 +96,7 @@ namespace Rococo
 	{
 		Matrix4x4 worldMatrixAndProj;
 		Matrix4x4 worldMatrix;
+		Vec4 eye;
 	};
 
 	ROCOCOAPI IRenderContext // Provides draw calls - do not cache
@@ -226,6 +227,7 @@ namespace Rococo
 	  virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
 	  virtual void SetCursorVisibility(bool isVisible) = 0;
 	  virtual void ShowWindowVenue(IMathsVisitor& visitor) = 0;
+	  virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
 	  virtual void SwitchToWindowMode() = 0;
 	  virtual IMathsVenue* TextureVenue() = 0;
 	  virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices) = 0;

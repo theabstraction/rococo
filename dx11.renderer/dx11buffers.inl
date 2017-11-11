@@ -56,10 +56,10 @@ namespace Rococo
          bufferDesc.MiscFlags = 0;
          bufferDesc.StructureByteStride = 0;
 
-         D3D11_SUBRESOURCE_DATA initial;
+		 D3D11_SUBRESOURCE_DATA initial = { 0 };
          initial.pSysMem = vertices;
 
-         ID3D11Buffer* buffer;
+         ID3D11Buffer* buffer = nullptr;
          VALIDATEDX11(device.CreateBuffer(&bufferDesc, &initial, &buffer));
 
          return buffer;

@@ -16,6 +16,7 @@ namespace Rococo
 
       ID3D11DepthStencilState* CreateGuiDepthStencilState(ID3D11Device& device);
       ID3D11DepthStencilState* CreateObjectDepthStencilState(ID3D11Device& device);
+	  ID3D11DepthStencilState* CreateObjectDepthStencilState_NoWrite(ID3D11Device& device);
 
       const D3D11_INPUT_ELEMENT_DESC* const GetGuiVertexDesc();
       const uint32 NumberOfGuiVertexElements();

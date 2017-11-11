@@ -1,11 +1,12 @@
 struct PixelVertex
 {
 	float4 position : SV_POSITION0;
-	float4 normal : TEXCOORD2;
 	float3 uv_material: TEXCOORD;
     float4 worldPosition: TEXCOORD1;
-	float4 cameraSpacePosition: TEXCOORD4;
+	float4 normal : TEXCOORD2;
 	float4 shadowPos: TEXCOORD3;
+	float4 cameraSpacePosition: TEXCOORD4;
+//	float4 eyeToPositionDirection: TEXCOORD5;
 	float4 colour: COLOR0;	// w component gives lerpColourToTexture
 };
 
@@ -32,9 +33,16 @@ struct Light
 	float attenuationRate; // Point lights vary as inverse square, so 0.5 ish
 };
 
-cbuffer light
+cbuffer light: register(b0)
 {
 	Light light;
+};
+
+cbuffer globalState: register(b1)
+{
+	float4x4 worldMatrixAndProj;
+	float4x4 worldMatrix;
+	float4 eye;
 };
 
 Texture2DArray g_materials: register(t6);
@@ -45,10 +53,6 @@ SamplerState shadowSampler;
 
 float4 per_pixel_lighting(PixelVertex p)
 {
-	float4 texel = g_materials.Sample(txSampler, p.uv_material);
-
-	texel = lerp(p.colour, texel, p.colour.w);
-
 	float oow = 1.0f / p.shadowPos.w;
 
 	float bias = -0.0025f;
@@ -70,6 +74,9 @@ float4 per_pixel_lighting(PixelVertex p)
 
 	if (shadowDepth > depth)
 	{
+		float4 texel = g_materials.Sample(txSampler, p.uv_material);
+		texel = lerp(p.colour, texel, p.colour.w);
+
 		float3 lightToPixelDir = normalize(lightToPixelVec);
 
 		float f = dot(lightToPixelDir, light.direction.xyz);

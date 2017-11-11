@@ -1,8 +1,10 @@
 struct PixelVertex
 {
 	float4 position : SV_POSITION0;
+	float4 normal: NORMAL;
 	float3 uv_material: TEXCOORD;
     float4 cameraSpacePosition: TEXCOORD1;
+	float4 worldPosition: TEXCOORD2;
 	float4 colour: COLOR0;	// w component gives lerpColourToTexture
 };
 
@@ -11,6 +13,9 @@ struct PixelVertex
 Texture2DArray g_materials: register(t6);
 SamplerState txSampler;
 
+TextureCube g_cubeMap: register(t3);
+
+
 struct AmbientData
 {
 	float4 localLight;
@@ -18,17 +23,32 @@ struct AmbientData
 	float a;
 	float b;
 	float c;
+	float4 eye;
 };
 
-cbuffer ambience
+cbuffer ambience: register(b0)
 {
 	AmbientData ambience;
 }
+
+cbuffer globalState: register(b1)
+{
+	float4x4 worldMatrixAndProj;
+	float4x4 worldMatrix;
+	float4 eye;
+};
 
 float4 per_pixel_lighting(PixelVertex p)
 {
 	float4 texel = g_materials.Sample(txSampler, p.uv_material);
 	texel.xyz = lerp(p.colour.xyz, texel.xyz, p.colour.w);
+
+	float3 incident = normalize(p.worldPosition.xyz - eye.xyz);
+
+	float3 reflectionVector = reflect(normalize(incident.xyz), normalize(p.normal.xyz));
+	float4 reflectionColor = g_cubeMap.Sample(txSampler, reflectionVector);
+
+	texel.xyz = lerp(texel.xyz, reflectionColor.xyz, 0.25f);
 
 	float range = length(p.cameraSpacePosition.xyz);	
 	float fogging = exp( range * ambience.fogConstant);

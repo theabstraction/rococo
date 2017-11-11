@@ -87,6 +87,15 @@ namespace ANON
 
 	   std::vector<LightSpec> lights;
 
+	   void SyncEnvironmentMapToSector() override
+	   {
+		   int32 wallId     = (int32) nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Brickwork)->second->mvd.materialId;
+		   int32 groundId   = (int32) nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Floor)->second->mvd.materialId;
+		   int32 ceilingId  = (int32) nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Ceiling)->second->mvd.materialId;
+
+		   platform.renderer.SyncCubeTexture(wallId, wallId, wallId, wallId, groundId, ceilingId);
+	   }
+
 	   const LightSpec* Lights(size_t& numberOfLights) const override
 	   {
 		   numberOfLights = lights.size();
@@ -342,7 +351,7 @@ namespace ANON
 
          float segmentLength = round(Length(delta));
 
-         Vec3 normal = Cross(delta, up);
+         Vec3 normal = Normalize( Cross(delta, up) );
 
          ObjectVertex PV0, PV1, QV0, QV1;
 

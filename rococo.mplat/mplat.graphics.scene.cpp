@@ -22,7 +22,7 @@ namespace
 
       RGBA clearColour{ 0,0,0,1 };
 
-	  enum { MAX_LIGHTS = 8 };
+	  enum { MAX_LIGHTS = 1 };
 	  Light lights[MAX_LIGHTS] = { 0 };
 
 	  IScenePopulator* populator = nullptr;
@@ -164,6 +164,8 @@ namespace
 
          camera.GetWorld(state.worldMatrix);
          camera.GetWorldAndProj(state.worldMatrixAndProj);
+		 camera.GetPosition(state.eye);
+		 state.eye.w = 1.0f;
 
          rc.SetGlobalState(state);
 

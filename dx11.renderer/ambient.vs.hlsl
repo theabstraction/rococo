@@ -10,8 +10,10 @@ struct ObjectVertex
 struct ScreenVertex
 {
 	float4 position : SV_POSITION0;
+	float4 normal : NORMAL;
 	float3 uv_material: TEXCOORD;
-	float4 worldPosition: TEXCOORD1;
+	float4 cameraSpacePosition: TEXCOORD1;
+	float4 worldPosition: TEXCOORD2;
 	float4 colour: COLOR0;
 };
 
@@ -35,7 +37,9 @@ ScreenVertex main(ObjectVertex v)
 
 	float4 instancePos = mul(instanceMatrix, v.position);
 	sv.position = mul(worldMatrixAndProj, instancePos);
-	sv.worldPosition = mul(worldMatrix, instancePos);
+	sv.normal = v.normal;
+	sv.cameraSpacePosition = mul(worldMatrix, instancePos);
+	sv.worldPosition = instancePos;
 	sv.uv_material.xy = v.uv.xy;
 	sv.uv_material.z = v.materialIndex;
 	sv.colour = v.colour;

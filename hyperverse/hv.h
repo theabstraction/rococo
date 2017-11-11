@@ -209,6 +209,8 @@ namespace HV
 	  virtual void SetTemplate(MatEnumerator& enumerator) = 0;
 
 	  virtual const LightSpec* Lights(size_t& numberOfLights) const = 0;
+
+	  virtual void SyncEnvironmentMapToSector() = 0;
    };
 
    ISector* CreateSector(Platform& platform, ISectors& co_sectors);

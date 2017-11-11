@@ -27,7 +27,7 @@
 #include <Dxgi1_3.h>
 #include <comdef.h>
 
-namespace
+namespace ANON
 {
 	using namespace Rococo;
 	using namespace Rococo::Windows;
@@ -373,8 +373,7 @@ namespace
 	   Fonts::IFontSupervisor* fonts;
 
 	   AutoRelease<ID3D11Buffer> vector4Buffer;
-	   AutoRelease<ID3D11Buffer> vs_globalStateBuffer;
-	   AutoRelease<ID3D11Buffer> ps_globalStateBuffer;
+	   AutoRelease<ID3D11Buffer> globalStateBuffer;
 
 	   AutoRelease<ID3D11Buffer> vs_ShadowStateBuffer;
 	   AutoRelease<ID3D11Buffer> ps_ShadowStateBuffer;
@@ -385,6 +384,9 @@ namespace
 	   AutoRelease<ID3D11Buffer> ps_TextureDescBuffer;
 
 	   AutoRelease<ID3D11Buffer> ps_AmbientBuffer;
+
+	   AutoRelease<ID3D11Texture2D> cubeTexture;
+	   AutoRelease<ID3D11ShaderResourceView> cubeTextureView;
 
 	   RAWMOUSE lastMouseEvent;
 	   Vec2i screenSpan;
@@ -407,6 +409,9 @@ namespace
 
 	   AutoRelease<ID3D11DepthStencilState> guiDepthState;
 	   AutoRelease<ID3D11DepthStencilState> objDepthState;
+	   AutoRelease<ID3D11DepthStencilState> objDepthState_NoWrite;
+
+	   AutoRelease<ID3D11ShaderResourceView> envMap;
 
 	   std::vector<DX11::TextureBind> textures;
 	   std::unordered_map<std::string, ID_TEXTURE> mapNameToTexture;
@@ -452,6 +457,7 @@ namespace
 		   objectSampler = DX11::CreateObjectSampler(device);
 		   shadowSampler = DX11::CreateShadowSampler(device);
 		   objDepthState = DX11::CreateObjectDepthStencilState(device);
+		   objDepthState_NoWrite = DX11::CreateObjectDepthStencilState_NoWrite(device);
 		   guiDepthState = DX11::CreateGuiDepthStencilState(device);
 		   spriteRaterizering = DX11::CreateSpriteRasterizer(device);
 		   objectRaterizering = DX11::CreateObjectRasterizer(device);
@@ -474,8 +480,7 @@ namespace
 		   GuiScale nullVector{ 0,0,0,0 };
 		   DX11::CopyStructureToBuffer(dc, vector4Buffer, nullVector);
 
-		   vs_globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
-		   ps_globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
+		   globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
 
 		   vs_ShadowStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
 		   ps_ShadowStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
@@ -545,6 +550,70 @@ namespace
 		   {
 			   if (t.texture) t.texture->Release();
 			   if (t.view) t.view->Release();
+		   }
+	   }
+
+	   int32 cubeMaterialId[6] = { -1,-1,-1,-1,-1,-1 };
+
+	   /* 6 material ids determine the environmental texture */
+	   void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) override
+	   {
+		   int32 newMaterialids[6] = { XMaxFace, XMinFace, YMaxFace, YMinFace, ZMaxFace, ZMinFace };
+
+		   if (cubeTexture)
+		   {
+			   D3D11_TEXTURE2D_DESC desc;
+			   cubeTexture->GetDesc(&desc);
+
+			   if (desc.Width != materialArray.width)
+			   {
+				   cubeTexture = nullptr;
+				   cubeTextureView = nullptr;
+			   }
+		   }
+
+		   if (!cubeTexture)
+		   {
+			   D3D11_TEXTURE2D_DESC desc;
+			   ZeroMemory(&desc, sizeof(desc));
+			   desc.Width = materialArray.width;
+			   desc.Height = materialArray.width;
+			   desc.ArraySize = 6;
+			   desc.SampleDesc.Count = 1;
+			   desc.SampleDesc.Quality = 0;
+			   desc.MipLevels = 1;
+			   desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			   desc.Usage = D3D11_USAGE_DEFAULT;
+			   desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			   desc.CPUAccessFlags = 0;
+			   desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+			   ID3D11Texture2D* pTexCube = nullptr;
+			   VALIDATEDX11(device.CreateTexture2D(&desc, nullptr, &pTexCube));
+			   cubeTexture = pTexCube;
+
+			   ID3D11ShaderResourceView* view = nullptr;
+			   VALIDATEDX11(device.CreateShaderResourceView(pTexCube, nullptr, &view));
+
+			   cubeTextureView = view;
+		   }
+
+		   for (UINT i = 0; i < 6; ++i)
+		   {
+			   if (cubeMaterialId[i] != newMaterialids[i])
+			   {
+				   cubeMaterialId[i] = newMaterialids[i];
+
+				   D3D11_BOX srcbox;
+				   srcbox.left = 0;
+				   srcbox.top = 0;
+				   srcbox.front = 0;
+				   srcbox.right = materialArray.width;
+				   srcbox.bottom = materialArray.width;
+				   srcbox.back = 1;
+				  
+				   dc.CopySubresourceRegion(cubeTexture, i, 0, 0, 0, materialArray.tb.texture, cubeMaterialId[i], &srcbox);
+			   }
 		   }
 	   }
 
@@ -738,7 +807,7 @@ namespace
 	   void ShowWindowVenue(IMathsVisitor& visitor)
 	   {
 		   visitor.ShowString("IsFullScreen", isFullScreen ? "TRUE" : "FALSE");
-		   ::ShowWindowVenue(hRenderWindow, visitor);
+		   ANON::ShowWindowVenue(hRenderWindow, visitor);
 	   }
 
 	   void UpdatePixelShader(cstr pingPath) override
@@ -875,6 +944,11 @@ namespace
 			   lastTextureId = textureId;
 			   dc.PSSetShaderResources(textureIndex, 1, &t.view);
 		   }
+	   }
+
+	   virtual void BuildEnvironmentalMap(int32 topIndex, int32 bottomIndex, int32 leftIndex, int32 rightIndex, int frontIndex, int32 backIndex)
+	   {
+		   envMap = nullptr;
 	   }
 
 	   virtual IInstallation& Installation()
@@ -1401,8 +1475,9 @@ namespace
 
 	   virtual void SetGlobalState(const GlobalState& gs)
 	   {
-		   DX11::CopyStructureToBuffer(dc, vs_globalStateBuffer, gs);
-		   dc.VSSetConstantBuffers(0, 1, &vs_globalStateBuffer);
+		   DX11::CopyStructureToBuffer(dc, globalStateBuffer, gs);
+		   dc.VSSetConstantBuffers(0, 1, &globalStateBuffer);
+		   dc.PSSetConstantBuffers(1, 1, &globalStateBuffer);
 	   }
 
 	   void DrawCursor()
@@ -1520,6 +1595,8 @@ namespace
 		   ID3D11ShaderResourceView* views[1] = { materialArray.View() };
 		   dc.PSSetShaderResources(6, 1, views);
 
+		   dc.PSSetShaderResources(3, 1, &cubeTextureView);
+
 		   bool builtFirstPass = false;
 		   size_t nLights = 0;
 		   const Light* lights = scene.GetLights(nLights);
@@ -1590,6 +1667,7 @@ namespace
 				   if (builtFirstPass)
 				   {
 					   dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
+					   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
 				   }
 				   else
 				   {
@@ -1601,6 +1679,8 @@ namespace
 				   dc.RSSetState(objectRaterizering);
 
 				   scene.RenderObjects(*this);
+
+				   dc.OMSetDepthStencilState(objDepthState, 0);
 			   }
 		   }
 
@@ -1612,6 +1692,7 @@ namespace
 			   if (builtFirstPass)
 			   {
 				   dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
+				   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
 			   }
 			   else
 			   {
@@ -1626,6 +1707,7 @@ namespace
 			   AmbientData ad;
 			   ad.localLight = lights[0].ambient;
 			   ad.fogConstant = lights[0].fogConstant;
+
 			   DX11::CopyStructureToBuffer(dc, ps_AmbientBuffer, ad);
 			   dc.PSSetConstantBuffers(0, 1, &ps_AmbientBuffer);
 
@@ -1634,6 +1716,8 @@ namespace
 
 		   ID3D11ShaderResourceView* nullView = nullptr;
 		   dc.PSSetShaderResources(2, 1, &nullView);
+
+		   dc.PSSetShaderResources(3, 1, &nullView);
 
 		   ID3D11Buffer* nullBuffer = nullptr;
 		   dc.VSSetConstantBuffers(2, 1, &nullBuffer);
@@ -2230,7 +2314,7 @@ namespace
    }
 }
 
-namespace
+namespace ANON
 {
 	class DX11Window : public IDX11Window, public IAppEventHandler, public IEventCallback<SysUnstableArgs>
 	{
@@ -2337,7 +2421,7 @@ namespace Rococo
 		static_assert(sizeof(DepthRenderData) % 16 == 0, "DX11 requires size of DepthRenderData to be multipe of 16 bytes");
 		static_assert(sizeof(GlobalState) % 16 == 0, "DX11 requires size of GlobalState to be multipe of 16 bytes");
 		static_assert(sizeof(Light) % 16 == 0, "DX11 requires size of Light to be multipe of 16 bytes");
-		return new DX11Window(installation);
+		return new ANON::DX11Window(installation);
 	}
 }
 
