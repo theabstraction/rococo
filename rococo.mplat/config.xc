@@ -92,3 +92,9 @@
 	(Quad normals)
 	(QuadColours colours)
 )
+
+(defstruct ObjectTriangle Rococo.ObjectTriangle ObjectTriangle
+	(Vertex a)
+	(Vertex b)
+	(Vertex c)
+)

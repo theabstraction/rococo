@@ -1,0 +1,130 @@
+(' #file.type rococo.hv)
+
+(' #include 
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv.sxh.sxy"
+	"!scripts/hv/hv.types.sxy"
+	"!scripts/types.sxy"
+	"!scripts/types.mplat.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+
+(using HV)
+(using Rococo)
+(using Rococo.Entities)
+(using Rococo.Graphics)
+(using Sys.Type)
+(using Sys.Maths)
+(using Sys.Geometry.F32)
+(using Sys.Random)
+
+(function AddQuad (ISectorWallTesselator sector) (Quadf quad)(Float32 vStart)(Float32 uStart)(MaterialVertexData mat)->(Float32 uEnd)(Float32 vEnd) :
+	(Triangle t = quad.a quad.b quad.c)
+	(Vec3 n)
+	(GetNormal t n)
+	
+	(Vec3 top = quad.b - quad.a)
+	(Vec3 left = quad.a - quad.d)
+	
+	(Float32 uLen = (0.25 * (Length top)))
+	(Float32 vLen = (0.25 * (Length left)))
+	
+	(vEnd = (vStart + vLen))
+	(uEnd = (uStart + uLen))
+
+	(ObjectVertex a = quad.a n  (uStart   vEnd) mat)
+	(ObjectVertex b	= quad.b n  (uEnd     vEnd) mat)
+	(ObjectVertex c = quad.c n  (uEnd   vStart) mat)	
+	(ObjectVertex d = quad.d n  (uStart vStart) mat)
+	
+	(sector.AddWallTriangle a b c)
+	(sector.AddWallTriangle c d a)
+)
+
+(function AddTriangle (ISectorWallTesselator sector) (Triangle t)(Triangle2d uv)(MaterialVertexData mat)-> :
+	(Vec3 n)
+	(GetNormal t n)
+	
+	(ObjectVertex a = t.a n uv.a mat)
+	(ObjectVertex b	= t.b n uv.b mat)
+	(ObjectVertex c = t.c n uv.c mat)	
+	
+	(sector.AddWallTriangle a b c)
+)
+
+(function TesselateWallAndShelf (WallSegment segment)(ISectorWallTesselator sector)(IQuadStackTesselator qst)(Float32 uStart)->(Float32 uEnd) :
+	(Float32 uvScale = 0.0325)
+	
+	(Float32 u0 = uStart)
+	(Float32 u1 = (u0 + (segment.span.x * uvScale)))
+	(uEnd = u1)
+	
+	(IInstances instances (Instances))
+	
+	(MaterialId matBrickId = (instances.GetRandomMaterialId (#MaterialCategoryRock)))
+	(MaterialVertexData brick = 0xFF000000 matBrickId 0.0)
+	
+	(MaterialId shelfId = (instances.GetRandomMaterialId (#MaterialCategoryWood)))
+	(MaterialVertexData shelf = 0x8F000000 shelfId 0.0)
+	
+	(Float32 y0 = (Sys.Random.AnyOf 0.6 0.9))
+	(Float32 y1 = (Sys.Random.AnyOf 0.1 0.4))
+	
+	(Float32 x0 = (Sys.Random.AnyOf 0.1 0.3))
+	(Float32 x1 = (1.0 - x0))
+	
+	(Float32 depth = (Sys.Random.AnyOf 0.5 1.1))
+	
+	(Rectf hole = x0 y0 x1 y1)
+	
+	(qst.Clear)
+		
+	(QuadVertices qv)
+	(qv.positions = segment.quad)
+	(qv.normals.a = segment.normal)
+	(qv.normals.b = segment.normal)
+	(qv.normals.c = segment.normal)
+	(qv.normals.d = segment.normal)
+	(qv.uv.left = u0)
+	(qv.uv.right = u1)
+	(qv.uv.top = (segment.quad.a.z * uvScale))
+	(qv.uv.right = u1)
+	(qv.uv.bottom = (segment.quad.d.z * uvScale))
+	
+	(qst.PushQuad qv brick)
+	
+	(qst.SplitAcrossTangent 0.1 0xFF000000 0xFF000000 0x1F000000 brick brick)
+	(qst.MoveOutputToInputWithMat brick)
+	(qst.SplitAcrossTangent 0.9 0x1F000000 0xFF000000 0xFF000000 brick brick)
+	(qst.MoveOutputToInputWithMat brick)
+	(qst.Intrude hole depth uvScale brick brick)
+	
+	(Vec3 up = 0 0 1)
+	(qst.MoveOutputToInputWithNormalDotRange up 0.99 1.0)
+	(qst.AddRod -0.1 1.0 0 1 0.05 0.25 shelf)
+	(qst.MoveInputToOutput)
+	
+	(ObjectTriangle topLeft)
+	(ObjectTriangle bottomRight)
+	(while (qst.PopOutputAsTriangles topLeft bottomRight)
+		(sector.AddWallTriangle topLeft.a topLeft.b topLeft.c)
+		(sector.AddWallTriangle bottomRight.a bottomRight.b bottomRight.c)
+	)
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(ISectorWallTesselator sector (SectorWallTesselator))
+	(Int32 nSegments = sector.NumberOfSegments)
+	(Float32 u = 0)
+	
+	(IQuadStackTesselator qst (QuadStackTesselator))
+		
+	(#for (Int32 i = 0)(i < nSegments)(#inc i)
+		(WallSegment seg)
+		(sector.GetSegment i seg)
+		(TesselateWallAndShelf seg sector qst u -> u)
+	)
+)

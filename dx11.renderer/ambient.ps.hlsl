@@ -43,7 +43,7 @@ float4 per_pixel_lighting(PixelVertex p)
 	float4 texel = g_materials.Sample(txSampler, p.uv_material_and_gloss.xyz);
 	texel.xyz = lerp(p.colour.xyz, texel.xyz, p.colour.w);
 
-	float3 incident = normalize(p.worldPosition.xyz - eye.xyz);
+	float3 incident = -normalize(p.worldPosition.xyz - eye.xyz);
 
 	float3 reflectionVector = reflect(normalize(incident.xyz), normalize(p.normal.xyz));
 	float4 reflectionColor = g_cubeMap.Sample(txSampler, reflectionVector);

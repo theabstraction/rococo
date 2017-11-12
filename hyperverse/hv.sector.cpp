@@ -585,7 +585,7 @@ namespace ANON
 
 		  try
 		  {
-			  cstr theWallScript = *wallScript ? wallScript : "!scripts/hv/sector/gen.walls.sxy";
+			  cstr theWallScript = *wallScript ? wallScript : "!scripts/hv/sector/walls/stretch.bricks.sxy";
 			  platform.utilities.RunEnvironmentScript(platform, scriptCallback, theWallScript, true, false);
 			  return true;
 		  }
@@ -711,11 +711,16 @@ namespace ANON
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Floor,     "random", RandomRockOrMarble());
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Ceiling,   "random", RandomRockOrMarble());
 
-
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Door_Mullions, "random", RandomWoodOrMetal());
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Door_Rails,   "random", RandomWoodOrMetal());
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Door_Panels,  "random", RandomWoodOrMetal());
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Door_Casing,  "random", RandomWoodOrMetal());
+
+		  cstr wscript = co_sectors.GetTemplateWallScript(scriptWalls);
+		  SafeFormat(wallScript, IO::MAX_PATHLEN, "%s", wscript);
+
+		  cstr dscript = co_sectors.GetTemplateDoorScript(hasDoor);
+		  SafeFormat(doorScript, IO::MAX_PATHLEN, "%s", dscript);
       }
 
 	  void OnEvent(MaterialArgs& args)
@@ -1660,8 +1665,8 @@ namespace ANON
 			  AddToProperties(GraphicsEx::BodyComponentMatClass_Cement, editor);
 			  editor.AddSpacer();
 			  editor.AddBool("script walls", &scriptWalls);
-			  editor.AddMessage("Defaults to !scripts/hv/sector/gen.walls.sxy");
-			  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN);
+			  editor.AddMessage("Default: !scripts/hv/sector/walls/stretch.bricks.sxy");
+			  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN, "!scripts/hv/sector/walls/");
 		  }
 		  else if (Eq(category, "ceiling"))
 		  {
@@ -1688,7 +1693,7 @@ namespace ANON
 				  editor.AddSpacer();
 				  editor.AddBool("has door", &hasDoor);
 				  editor.AddMessage("Defaults to !scripts/hv/sector/gen.door.sxy");
-				  editor.AddPingPath("door script", doorScript, IO::MAX_PATHLEN);
+				  editor.AddPingPath("door script", doorScript, IO::MAX_PATHLEN, "!scripts/hv/sector/");
 			  }
 			  else
 			  {

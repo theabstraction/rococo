@@ -234,6 +234,9 @@ namespace HV
 	  virtual void ResetConfig() = 0;
 
 	  virtual void SaveAsFunction(StringBuilder& sb) = 0;
+
+	  virtual cstr GetTemplateDoorScript(bool& hasDoor) const = 0;
+	  virtual cstr GetTemplateWallScript(bool& usesScript) const = 0;
    };
 
    ISectors* CreateSectors(Platform& platform);

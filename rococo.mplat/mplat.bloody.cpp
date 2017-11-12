@@ -1219,13 +1219,19 @@ namespace
 		Platform& platform;
 		TextEditorBox teb;
 		bool validated = false;
+		std::string contentSubDir;
 	public:
-		BloodyPingPathBinding(Platform& _platform, IEventCallback<IBloodyPropertyType>& dirtNotifier, char* pingPath, size_t _len) :
+		BloodyPingPathBinding(Platform& _platform, IEventCallback<IBloodyPropertyType>& dirtNotifier, char* pingPath, size_t _len, cstr _contentSubDir) :
 			platform(_platform),
 			value(pingPath),
 			len(_len),
+			contentSubDir(_contentSubDir),
 			teb(_platform, *this, dirtNotifier, value, _len, true, *this)
 		{
+			char sysSubDir[IO::MAX_PATHLEN];
+			platform.installation.ConvertPingPathToSysPath(_contentSubDir, sysSubDir, IO::MAX_PATHLEN);
+			contentSubDir = sysSubDir;
+
 			if (value == nullptr)
 			{
 				Throw(0, "BloodyPingPathBinding: null value");
@@ -1339,7 +1345,7 @@ namespace
 					{
 						if (platform.utilities.QueryYesNo(platform, platform.renderer.Window(), "Cannot locate file. Navigate to content?"))
 						{
-							SafeFormat(sd.path, sizeof(sd.path), "%s", (cstr)content);
+							SafeFormat(sd.path, sizeof(sd.path), "%s", contentSubDir.c_str());
 							changed = platform.utilities.GetSaveLocation(platform.renderer.Window(), sd);
 						}
 					}
@@ -1348,7 +1354,7 @@ namespace
 				{
 					if (platform.utilities.QueryYesNo(platform, platform.renderer.Window(), "Path did not begin with ping. Navigate to content?"))
 					{
-						SafeFormat(sd.path, sizeof(sd.path), "%s", (cstr)content);
+						SafeFormat(sd.path, sizeof(sd.path), "%s", contentSubDir.c_str());
 						changed = platform.utilities.GetSaveLocation(platform.renderer.Window(), sd);
 					}
 				}
@@ -1510,9 +1516,9 @@ namespace
 			Add(new BloodyProperty(b, name));
 		}
 
-		void AddPingPath(cstr name, char* pingPath, size_t len) override
+		void AddPingPath(cstr name, char* pingPath, size_t len, cstr defaultSubDir) override
 		{
-			Add(new BloodyProperty(new BloodyPingPathBinding(platform, *this, pingPath, len), name));
+			Add(new BloodyProperty(new BloodyPingPathBinding(platform, *this, pingPath, len, defaultSubDir), name));
 		}
 
 		virtual bool OnKeyboardEvent(const KeyboardEvent& key)

@@ -767,7 +767,7 @@ namespace Rococo
 		float t0, t1;
 		if (!TryGetRealRoots(t0, t1, a, b, c))
 		{
-			Throw(0, "Could not determine t for cone equation");
+			Throw(0, "Could not determine t for cone equation.\n eye (%f, %f %f),\n dir (%f, %f, %f),\n coneAngle (%f),\n pos (%f, %f, %f)", eye.x, eye.y, eye.z, dir.x, dir.y, dir.z, coneAngle, pos.x, pos.y, pos.z);
 		}
 
 		if (t0 > t1) std::swap(t0, t1);

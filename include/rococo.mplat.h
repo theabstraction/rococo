@@ -40,6 +40,13 @@ namespace Rococo
 		Quad normals;
 		QuadColours colours;
 	};
+
+	struct ObjectTriangle
+	{
+		ObjectVertex a;
+		ObjectVertex b;
+		ObjectVertex c;
+	};
 }
 
 #include <../rococo.mplat/mplat.sxh.h>
@@ -171,6 +178,8 @@ namespace Rococo
 	   };
 
 	   ISpriteSupervisor* CreateSpriteSupervisor(IRenderer & renderer);
+
+	   IQuadStackTesselator* CreateQuadStackTesselator();
    }
 
    namespace Entities
@@ -247,7 +256,7 @@ namespace Rococo
 	   virtual void AddMessage(cstr message) = 0;
 	   virtual void AddColour(cstr name, RGBAb* colour) = 0;
 	   virtual void AddMaterialString(cstr name, char* value, size_t valueLen) = 0;
-	   virtual void AddPingPath(cstr name, char* value, size_t valueLen) = 0;
+	   virtual void AddPingPath(cstr name, char* value, size_t valueLen, cstr defaultSubDir) = 0;
 	   virtual void Clear();
    };
 

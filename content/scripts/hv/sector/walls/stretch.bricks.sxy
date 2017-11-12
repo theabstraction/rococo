@@ -1,0 +1,125 @@
+(' #file.type rococo.hv)
+
+(' #include 
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv.sxh.sxy"
+	"!scripts/hv/hv.types.sxy"
+	"!scripts/types.sxy"
+	"!scripts/types.mplat.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+
+(using HV)
+(using Rococo)
+(using Rococo.Entities)
+(using Rococo.Graphics)
+(using Sys.Type)
+(using Sys.Maths)
+(using Sys.Geometry.F32)
+(using Sys.Random)
+
+(function SetColours (QuadColours q)(Int32 colour)-> :
+	(q.a = colour)
+	(q.b = colour)
+	(q.c = colour)
+	(q.d = colour)
+)
+
+(function AddQuadToWall (ISectorWallTesselator sector)(QuadVertices q)(MaterialId matId)-> :
+	(MaterialVertexData mata = q.colours.a matId 0)
+	(MaterialVertexData matb = q.colours.b matId 0)
+	(MaterialVertexData matc = q.colours.c matId 0)
+	(MaterialVertexData matd = q.colours.d matId 0)
+	(ObjectVertex a = q.positions.a q.normals.a (q.uv.left  q.uv.top)    mata)
+	(ObjectVertex b	= q.positions.b q.normals.b (q.uv.right q.uv.top)    matb)
+	(ObjectVertex c = q.positions.c q.normals.c (q.uv.right q.uv.bottom) matc)
+	(ObjectVertex d = q.positions.d q.normals.d (q.uv.left  q.uv.bottom) matd)
+	(sector.AddWallTriangle a b c)
+	(sector.AddWallTriangle c d a)
+)
+
+(function TesselateBrickwork (IFieldTesselator ft)(WallSegment segment)(ISectorWallTesselator sector)-> :
+	(Int32 nColumns = ft.NumberOfColumns)
+	(Int32 nRows = ft.NumberOfRows)
+	
+	(IInstances instances (Instances))
+	
+	(MaterialId matBrickId = (instances.GetRandomMaterialId (#MaterialCategoryRock)))
+		
+	(Float32 cementWidth = 0.05)	
+	(Float32 extrusion = 0.15)
+		
+	(#for (Int32 i = 0)(i < nColumns)(#inc i)
+		(#for (Int32 j = 0)(j < nRows)(#inc j)		
+			(QuadVertices q)
+			(QuadVertices t)
+			(QuadVertices l)
+			(QuadVertices r)
+			(QuadVertices b)
+			(ft.GetStretchBondedBrick i j q t l r b cementWidth extrusion)	
+			(AddQuadToWall sector q matBrickId)
+			(AddQuadToWall sector t matBrickId)
+			(AddQuadToWall sector l matBrickId)
+			(AddQuadToWall sector r matBrickId)
+			(AddQuadToWall sector b matBrickId)
+		)
+	)
+	
+	(MaterialId matCementId = (instances.GetRandomMaterialId (#MaterialCategoryStone)))
+	
+	(#for (Int32 i = 0)(i < nColumns)(#inc i)
+		(#for (Int32 j = 0)(j < nRows)(#inc j)		
+			(QuadVertices q)	
+			(ft.GetBrickJoinRight i j q cementWidth)		
+
+			(SetColours	q.colours 0x3F808080)		
+			(AddQuadToWall sector q matCementId)
+		)
+	)
+	
+	(#for (Int32 j = 0)(j < nRows)(#inc j)	
+		(QuadVertices q)	
+		(ft.GetBrickBedTop j q cementWidth)	
+		(SetColours	q.colours 0x3F808080)		
+		(AddQuadToWall sector q matCementId)
+	)
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(ISectorWallTesselator sector (SectorWallTesselator))
+	(Int32 nSegments = sector.NumberOfSegments)
+	(Float32 u = 0)
+	
+	(IFieldTesselator ft (FieldTesselator))
+			
+	(#for (Int32 i = 0)(i < nSegments)(#inc i)
+		(WallSegment seg)
+		(sector.GetSegment i seg)
+		
+		(ft.InitByFixedCellWidth seg.quad 2.0 1.0)
+		
+		(Float32 u1 = (u + (0.25 * seg.span.x)))
+		
+		(Float32 v0 = (0.25 * seg.quad.a.z))
+		(Float32 v1 = (0.25 * seg.quad.c.z))
+		(Vec2 uvA = u  v0)
+		(Vec2 uvC = u1 v1)
+		
+		(ft.SetUV uvA uvC)
+		
+		(Int32 nColumns = ft.NumberOfColumns)
+		(Int32 nRows = ft.NumberOfRows)
+		(#for (Int32 x = 0)(x < nColumns)(#inc x)
+			(#for (Int32 y = 0)(y < nRows)(#inc y)
+				(ft.RandomizeField x y 0 1.0)
+			)
+		)
+		
+		(TesselateBrickwork ft seg sector)
+		(u = u1)
+	//	(TesselateArch seg sector u -> u)
+	)
+)

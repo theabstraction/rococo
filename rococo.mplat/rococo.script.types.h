@@ -2,6 +2,7 @@
 	{
 		RGBAb materialColour;
 		MaterialId materialIndex;
+		float gloss;
 	};
 	struct ObjectVertex
 	{
@@ -34,4 +35,10 @@
 		GuiRectf uv;
 		Quad normals;
 		QuadColours colours;
+	};
+	struct ObjectTriangle
+	{
+		ObjectVertex a;
+		ObjectVertex b;
+		ObjectVertex c;
 	};

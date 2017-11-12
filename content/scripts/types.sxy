@@ -41,3 +41,10 @@
 )
 (alias QuadVertices Rococo.QuadVertices)
 
+(struct ObjectTriangle
+	(Rococo.ObjectVertex a)
+	(Rococo.ObjectVertex b)
+	(Rococo.ObjectVertex c)
+)
+(alias ObjectTriangle Rococo.ObjectTriangle)
+

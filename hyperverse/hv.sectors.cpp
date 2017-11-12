@@ -364,6 +364,18 @@ namespace
 		  temp.door_scriptName = scriptName;
 	  }
 
+	  cstr GetTemplateDoorScript(bool& hasDoor) const override
+	  {
+		  hasDoor = this->temp.door_useScript;
+		  return temp.door_scriptName.empty() ? "" : temp.door_scriptName.c_str();
+	  }
+
+	  cstr GetTemplateWallScript(bool& usesScript) const override
+	  {
+		  usesScript = this->temp.wall_useScript;
+		  return temp.wall_scriptName.empty() ? "" : temp.wall_scriptName.c_str();
+	  }
+
 	  void SetTemplateMaterial(const fstring& bodyClass, Graphics::MaterialCategory cat, RGBAb colour, const fstring& persistentId)  override
 	  {
 		  auto i = temp.nameToMaterials.find((cstr) bodyClass);
