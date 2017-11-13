@@ -42,39 +42,39 @@ cbuffer globalState: register(b1)
 	float4x4 worldMatrixAndProj;
 	float4x4 worldMatrix;
 	float4 eye;
+	float4 viewDir;
 };
 
 Texture2DArray g_materials: register(t6);
 SamplerState txSampler;
 
 Texture2D g_ShadowMap: register(t2);
-SamplerState shadowSampler;
+
+SamplerState shadowSamplerLookup
+{
+	// sampler state
+	Filter = COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	AddressU = MIRROR;
+	AddressV = MIRROR;
+};
 
 TextureCube g_cubeMap: register(t3);
 
 float4 per_pixel_lighting(PixelVertex p)
 {
-	float oow = 1.0f / p.shadowPos.w;
-
-	float bias = -0.0025f;
-
-	float4 shadowXYZW = p.shadowPos;
-	shadowXYZW.z += bias;
-
-	shadowXYZW = shadowXYZW * oow;
-	float depth = shadowXYZW.z;
-
+	float4 shadowXYZW = p.shadowPos / p.shadowPos.w;
 	float2 shadowUV = float2(1.0f + shadowXYZW.x, 1.0f - shadowXYZW.y) * 0.5f;
 
-	float shadowDepth = g_ShadowMap.Sample(shadowSampler, shadowUV).x;
-	
-	float normalizedDepth = (depth + 1.0f) * 0.5f;
+	float bias = -0.00001f;
+	float shadowDepth = g_ShadowMap.Sample(shadowSamplerLookup, shadowUV).x + bias;
 
-	float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
-	float R2 = dot(lightToPixelVec, lightToPixelVec);
+	float isLit = shadowDepth > shadowXYZW.z;
 
-	if (shadowDepth > depth)
+	if (isLit)
 	{
+		float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
+		float R2 = dot(lightToPixelVec, lightToPixelVec);
+
 		float4 texel = g_materials.Sample(txSampler, p.uv_material_and_gloss.xyz);
 		texel = lerp(p.colour, texel, p.colour.w);
 
@@ -86,7 +86,7 @@ float4 per_pixel_lighting(PixelVertex p)
 
 		float3 lightToPixelDir = normalize(lightToPixelVec);
 
-		float f = dot(lightToPixelDir, light.direction.xyz);
+		float f = dot(lightToPixelDir, normalize(light.direction.xyz));
 
 		float falloff = 1.0f;
 
@@ -94,12 +94,20 @@ float4 per_pixel_lighting(PixelVertex p)
 
 		if (f < 0) f = 0;
 
-		float g = -dot(light.direction.xyz, normalize(p.normal.xyz));
+		float3 normal = normalize(p.normal.xyz);
+		float g = -dot(lightToPixelDir, normal);
 
 		float range = length(p.cameraSpacePosition.xyz);
 		float fogging = exp(range * light.fogConstant);
 
-		float intensity = clamp(f * g, 0, 1.0f) * pow(R2, light.attenuationRate) * falloff * fogging;
+		float3 r = reflect(lightToPixelDir.xyz, normal);
+
+		float dotProduct = -dot(r, viewDir.xyz);
+		float shine = 120.0f;
+		float specular = p.uv_material_and_gloss.w * max(pow(dotProduct, shine), 0);
+		
+		float diffuse = pow(f,16.0f) * g * pow(R2, light.attenuationRate);
+		float intensity = (diffuse + specular) * falloff * fogging;
 
 		return float4 (texel.x * intensity * light.colour.x, texel.y * intensity * light.colour.y, texel.z * intensity * light.colour.z, 1.0f);
 	}
@@ -120,32 +128,6 @@ float4 no_lighting(PixelVertex p)
 
 	texel.xyz = lerp(texel.xyz, reflectionColor.xyz, p.uv_material_and_gloss.w);
 	return texel;
-}
-
-float4 visualize_vector(PixelVertex p, float3 vec)
-{
-	float3 v = normalize(vec);
-	return float4 (v.x, v.y, v.z, 1.0f);
-}
-
-float4 visualize_time(PixelVertex p)
-{
-	return float4 (light.time / 60.0f, 0.0f, 0.0f, 1.0f);
-}
-
-float4 visualize_red(PixelVertex p)
-{
-	return float4 (1.0f, 0, 0, 1.0f);
-}
-
-float4 visualize_blue(PixelVertex p)
-{
-	return float4 (0, 0, 1.0f, 1.0f);
-}
-
-float4 visualize_light_colour(PixelVertex p)
-{
-	return light.colour;
 }
 
 float4 main(PixelVertex p) : SV_TARGET

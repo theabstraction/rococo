@@ -1127,6 +1127,8 @@ namespace ANON
 	  {
 		  lights.clear();
 
+		  LightSpec light;
+
 		  if (IsCorridor())
 		  {
 			  int gIndex = rand() % 2;
@@ -1139,20 +1141,10 @@ namespace ANON
 
 			  Vec3 dir = Normalize(target - eye);
 
-			  LightSpec light;
 			  light.ambience = RGBA(0.0f, 0.0f, 0.0f, 1.0f);
 			  light.diffuse = RGBA(2.25f, 2.25f, 2.25f, 1.0f);
 			  light.direction = dir;
 			  light.position = eye;
-			  light.cutoffPower = 64.0f;
-			  light.cutoffAngle = 30_degrees;
-			  light.fov = 90_degrees;
-			  light.attenuation = -0.5f;
-			  light.nearPlane = 0.1_metres;
-			  light.farPlane = 25_metres;
-			  light.fogConstant = -0.1f;
-
-			  lights.push_back(light);
 		  }
 		  else
 		  {
@@ -1161,21 +1153,21 @@ namespace ANON
 			  auto eye = (t.a.position + t.b.position + t.c.position) * 0.33333f + Vec3{ 0, 0, -0.1f };
 			  Vec3 dir = { 0, 0, -1 };
 
-			  LightSpec light;
 			  light.ambience = RGBA(0.2f, 0.2f, 0.21f, 1.0f);
 			  light.diffuse = RGBA(2.25f, 2.25f, 2.25f, 1.0f);
 			  light.direction = dir;
 			  light.position = eye;
-			  light.cutoffPower = 64.0f;
-			  light.cutoffAngle = 30_degrees;
-			  light.fov = 90_degrees;
-			  light.attenuation = -0.5f;
-			  light.nearPlane = 0.1_metres;
-			  light.farPlane = 25_metres;
-			  light.fogConstant = -0.1f;
-
-			  lights.push_back(light);
 		  }
+
+		  light.cutoffPower = 64.0f;
+		  light.cutoffAngle = 30_degrees;
+		  light.fov = 90_degrees;
+		  light.attenuation = -0.5f;
+		  light.nearPlane = 0.5_metres;
+		  light.farPlane = 25_metres;
+		  light.fogConstant = -0.1f;
+
+		  lights.push_back(light);
 	  }
 
 	  void Rebuild()

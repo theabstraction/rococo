@@ -837,15 +837,15 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		Vec3 dir{ -m.row2.x, -m.row2.y, -m.row2.z };
 
 		LightSpec light;
-		light.ambience = RGBA(0.125f, 0.125f, 0.125f, 1.0f);
-		light.diffuse = RGBA(10.0f, 10.0f, 10.0f, 1.0f);
+		light.ambience = RGBA(0.0625f, 0.0625f, 0.0625f, 1.0f);
+		light.diffuse = RGBA(4.0f, 4.0f, 4.0f, 1.0f);
 		light.direction = dir;
 		light.position = final + playerPosToLightWorld;
-		light.cutoffPower = 64.0f;
+		light.cutoffPower = 32.0f;
 		light.cutoffAngle = 30_degrees;
 		light.fov = 90_degrees;
-		light.attenuation = -0.5f;
-		light.nearPlane = 0.1_metres;
+		light.attenuation = -0.35f;
+		light.nearPlane = 0.02_metres;
 		light.farPlane = 50_metres;
 		light.fogConstant = -0.1f;
 

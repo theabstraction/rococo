@@ -1,6 +1,6 @@
 struct ObjectVertex
 {
-	float4 position : POSITION;
+	float3 position : POSITION;
 	float3 normal : NORMAL;
 	float2 uv: TEXCOORD0;
 	float4 colour: COLOR0;
@@ -64,7 +64,7 @@ ScreenVertex main(ObjectVertex v)
 
 
 
-	float4 instancePos = mul(instanceMatrix, v.position);
+	float4 instancePos = mul(instanceMatrix, float4(v.position,1.0f));
 	sv.position = mul(worldMatrixAndProj, instancePos);
 	sv.normal = mul(instanceMatrix, float4(v.normal.xyz,0.0f));
 	sv.worldPosition = instancePos;

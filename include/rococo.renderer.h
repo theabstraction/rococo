@@ -98,6 +98,7 @@ namespace Rococo
 		Matrix4x4 worldMatrixAndProj;
 		Matrix4x4 worldMatrix;
 		Vec4 eye;
+		Vec4 viewDIr;
 	};
 
 	ROCOCOAPI IRenderContext // Provides draw calls - do not cache
