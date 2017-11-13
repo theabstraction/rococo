@@ -37,9 +37,10 @@ namespace ANON
 		std::vector<QuadItem> output;
 		std::vector<QuadItem> temp;
 
+		Matrix4x4 basis = Matrix4x4::Identity();
+
 		QuadStackTesselator()
 		{
-
 		}
 
 		void Clear() override
@@ -48,9 +49,31 @@ namespace ANON
 			output.clear();
 		}
 
+		void ClearInput() override
+		{
+			input.clear();
+
+		}
+
+		void ClearOutput() override
+		{
+			output.clear();
+		}
+
+
 		void Destruct() override
 		{
 			delete this;
+		}
+
+		void MoveOutputToInput()
+		{
+			for (auto& item : output)
+			{
+				input.push_back(item);
+			}
+
+			output.clear();
 		}
 
 		void MoveOutputToInputWithMat(const MaterialVertexData& mat)
@@ -72,8 +95,10 @@ namespace ANON
 			std::swap(temp, output);
 		}
 
-		void MoveOutputToInputWithNormalDotRange(const Vec3& normal, float minDot, float maxDot)
+		void MoveOutputToInputWithNormalDotRange(const Vec3& modelNormal, float minDot, float maxDot)
 		{
+			Vec3 normal;
+			TransformDirection(basis, modelNormal, normal);
 			for (auto& item : output)
 			{
 				float d = Dot(item.q.normals.a, normal);
@@ -461,6 +486,40 @@ namespace ANON
 			input.clear();
 		}
 
+		void ScaleEdges(float left, float right, float low, float high, boolean32 preserveUVs) override
+		{
+			for (auto& item : input)
+			{
+				Vec3 tangent = item.q.positions.b - item.q.positions.a;
+				Vec3 vertical = item.q.positions.a - item.q.positions.d;
+
+				Quad scaledQuad;
+				scaledQuad.a = item.q.positions.a + tangent * left + vertical * high;
+				scaledQuad.b = item.q.positions.b + tangent * right + vertical * high;
+				scaledQuad.c = item.q.positions.c + tangent * right + vertical * low;
+				scaledQuad.d = item.q.positions.d + tangent * left + vertical * low;
+
+				item.q.positions = scaledQuad;
+
+				if (!preserveUVs)
+				{
+					GuiRectf scaledUv;
+					Vec2 uvSpan = Span(item.q.uv);
+					
+					scaledUv.left = item.q.uv.left + uvSpan.x * left;
+					scaledUv.right = item.q.uv.right + uvSpan.x * right;
+					scaledUv.top = item.q.uv.top + uvSpan.y * high;
+					scaledUv.bottom = item.q.uv.bottom + uvSpan.y * low;
+
+					item.q.uv = scaledUv;
+				}
+
+				output.push_back(item);
+			}
+
+			input.clear();
+		}
+
 		void SplitAcrossTangent(float v, RGBAb topColour, RGBAb middleColour, RGBAb lowColour, const MaterialVertexData& topMat, const MaterialVertexData& bottomMat)
 		{
 			for (auto& item : input)
@@ -562,6 +621,18 @@ namespace ANON
 			output.pop_back();
 
 			return true;
+		}
+
+		void SetBasis(cr_vec3 tangent, cr_vec3 normal, cr_vec3 vertical)
+		{
+			basis =
+				Matrix4x4
+				{
+					{ tangent.x, normal.x, vertical.x, 0.0f },
+					{ tangent.y, normal.y, vertical.y, 0.0f },
+					{ tangent.z, normal.z, vertical.z, 0.0f },
+					{      0.0f,     0.0f,       0.0f, 1.0f }
+				};
 		}
 	};
 }

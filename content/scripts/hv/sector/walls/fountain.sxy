@@ -1,0 +1,102 @@
+(' #file.type rococo.hv)
+
+(' #include 
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv.sxh.sxy"
+	"!scripts/hv/hv.types.sxy"
+	"!scripts/types.sxy"
+	"!scripts/types.mplat.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+
+(using HV)
+(using Rococo)
+(using Rococo.Entities)
+(using Rococo.Graphics)
+(using Sys.Type)
+(using Sys.Maths)
+(using Sys.Geometry.F32)
+(using Sys.Random)
+
+(function TesselateWallAndShelf (WallSegment segment)(ISectorWallTesselator sector)(IQuadStackTesselator qst)(Float32 uStart)->(Float32 uEnd) :
+	(Float32 uvScale = 0.0325)
+	
+	(Float32 u0 = uStart)
+	(Float32 u1 = (u0 + (segment.span.x * uvScale)))
+	(uEnd = u1)
+	
+	(IInstances instances (Instances))
+	
+	(MaterialId matBrickId = (instances.GetRandomMaterialId (#MaterialCategoryRock)))
+	(MaterialVertexData brick = 0xFF000000 matBrickId 0.05)
+	(MaterialVertexData brickSides = 0xFF000001 matBrickId 0.0)
+	(MaterialVertexData brickBack = 0x7F003002 matBrickId 0.1)
+	(MaterialVertexData water = 0x00FF8080 matBrickId 0.5)
+	
+	(MaterialId shelfId = (instances.GetRandomMaterialId (#MaterialCategoryWood)))
+	(MaterialVertexData shelf = 0x8F000000 shelfId 0.05)
+	
+	(Float32 y0 = (AnyOf 0.6 0.9))
+	(Float32 y1 = (AnyOf 0.05 0.1))
+	
+	(Float32 x0 = (AnyOf 0.1 0.3))
+	(Float32 x1 = (1.0 - x0))
+	
+	(Float32 depth = (AnyOf 0.5 1.1))
+	
+	(Rectf hole = x0 y0 x1 y1)
+	
+	(qst.SetBasis segment.tangent segment.normal segment.vertical)
+	
+	(qst.Clear)
+		
+	(QuadVertices qv)
+	(qv.positions = segment.quad)
+	(qv.normals.a = segment.normal)
+	(qv.normals.b = segment.normal)
+	(qv.normals.c = segment.normal)
+	(qv.normals.d = segment.normal)
+	(qv.uv.left = u0)
+	(qv.uv.right = u1)
+	(qv.uv.top = (segment.quad.a.z * uvScale))
+	(qv.uv.right = u1)
+	(qv.uv.bottom = (segment.quad.d.z * uvScale))
+	
+	(qst.PushQuad qv brick)
+	
+	(qst.SplitAcrossTangent 0.1 0xFF000000 0xFF000000 0x1F000000 brick brick)
+	(qst.MoveOutputToInputWithMat brick)
+	(qst.SplitAcrossTangent 0.9 0x1F000000 0xFF000000 0xFF000000 brick brick)
+	(qst.MoveOutputToInputWithMat brick)
+	(qst.Intrude hole depth uvScale brickSides brickBack)
+	
+	(Vec3 up = 0 0 1)
+	(qst.MoveOutputToInputWithNormalDotRange up 0.99 1.0)
+	
+	(Rectf basinRect = 0.1 0.9 0.9 0.1)
+	(qst.Intrude basinRect 0.1 uvScale brickSides water)
+	
+	(ObjectTriangle topLeft)
+	(ObjectTriangle bottomRight)
+	(while (qst.PopOutputAsTriangles topLeft bottomRight)
+		(sector.AddWallTriangle topLeft.a topLeft.b topLeft.c)
+		(sector.AddWallTriangle bottomRight.a bottomRight.b bottomRight.c)
+	)
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(ISectorWallTesselator sector (SectorWallTesselator))
+	(Int32 nSegments = sector.NumberOfSegments)
+	(Float32 u = 0)
+	
+	(IQuadStackTesselator qst (QuadStackTesselator))
+		
+	(#for (Int32 i = 0)(i < nSegments)(#inc i)
+		(WallSegment seg)
+		(sector.GetSegment i seg)
+		(TesselateWallAndShelf seg sector qst u -> u)
+	)
+)
