@@ -117,6 +117,28 @@ namespace ANON
 			std::swap(temp, output);
 		}
 
+		void MoveInputToOutputWithNormalDotRange(const Vec3& modelNormal, float minDot, float maxDot)
+		{
+			Vec3 normal;
+			TransformDirection(basis, modelNormal, normal);
+			for (auto& item : input)
+			{
+				float d = Dot(item.q.normals.a, normal);
+				if (d >= minDot && d <= maxDot)
+				{
+					output.push_back(item);
+				}
+				else
+				{
+					temp.push_back(item);
+				}
+			}
+
+			input.clear();
+
+			std::swap(temp, input);
+		}
+
 		enum FaceFilter
 		{
 			FaceFilter_None = 0,
@@ -322,6 +344,61 @@ namespace ANON
 				box2.bottomRightSouth = Lerp(box1.bottomLeftSouth, box1.bottomRightSouth, t1);
 
 				AddBox(FaceFilter_North | FaceFilter_South | FaceFilter_Top | FaceFilter_Bottom | FaceFilter_Left | FaceFilter_Right, box2, uvScale, rodMat);
+			}
+		}
+
+		void AddRodAbs(Metres dx0, Metres dy0, Metres dx1, Metres dy1, Metres thickness, float uvScale, const MaterialVertexData& rodMat) override
+		{
+			if (dx0 >= dx1)
+			{
+				Throw(0, "AddRodAbs: dx0 must be < dx1. %f > %f", dx0, dx1);
+			}
+
+			if (dy0 <= dy1)
+			{
+				Throw(0, "AddRodAbs: dy0 must be > dy1. %f > %f", dy0, dy1);
+			}
+
+			if (thickness < 0)
+			{
+				Throw(0, "AddRodAbs: thickness must be > 0: %f", thickness);
+			}
+
+			uint32 flags;
+
+			if (thickness < 0.001)
+			{
+				thickness = 0.001_metres;
+				flags = FaceFilter_Top | FaceFilter_Bottom;
+			}
+			else
+			{
+				flags = FaceFilter_North | FaceFilter_South | FaceFilter_Top | FaceFilter_Bottom | FaceFilter_Left | FaceFilter_Right;
+			}
+
+			for (auto& item : input)
+			{
+				Vec3 dN = thickness * GetNormal(item.q);
+
+				BoxVertices box;
+
+				Vec3 centre = 0.5f * (item.q.positions.a + item.q.positions.c);
+				Vec3 tangent = Normalize(item.q.positions.b - item.q.positions.a);
+				Vec3 vertical = Normalize(item.q.positions.a - item.q.positions.d);
+
+				box.bottomLeftNorth = centre + tangent * dx0 + vertical * dy0;
+				box.topLeftNorth    = centre + tangent * dx0 + vertical * dy0 + dN;
+
+				box.bottomLeftSouth = centre + tangent * dx0 + vertical * dy1;
+				box.topLeftSouth    = centre + tangent * dx0 + vertical * dy1 + dN;
+
+				box.bottomRightNorth = centre + tangent * dx1 + vertical * dy0;
+				box.topRightNorth    = centre + tangent * dx1 + vertical * dy0 + dN;
+
+				box.bottomRightSouth = centre + tangent * dx1 + vertical * dy1;
+				box.topRightSouth    = centre + tangent * dx1 + vertical * dy1 + dN;
+
+				AddBox(flags, box, uvScale, rodMat);
 			}
 		}
 
@@ -623,7 +700,7 @@ namespace ANON
 			return true;
 		}
 
-		void SetBasis(cr_vec3 tangent, cr_vec3 normal, cr_vec3 vertical)
+		void SetBasis(cr_vec3 tangent, cr_vec3 normal, cr_vec3 vertical) override
 		{
 			basis =
 				Matrix4x4
@@ -633,6 +710,22 @@ namespace ANON
 					{ tangent.z, normal.z, vertical.z, 0.0f },
 					{      0.0f,     0.0f,       0.0f, 1.0f }
 				};
+		}
+
+		void SetMaterial(const MaterialVertexData& mat)  override
+		{
+			for (auto& item : input)
+			{
+				item.mat = mat;
+			}
+		}
+
+		void SetTextureRect(const GuiRectf& rect) override
+		{
+			for (auto& item : input)
+			{
+				item.q.uv = rect;
+			}
 		}
 	};
 }

@@ -64,7 +64,6 @@ namespace
    struct Instances : public IInstancesSupervisor
    {      
       MapIdToEntity idToEntity;
-      std::unordered_map<std::string, ID_TEXTURE> nameToTextureId;
       Rococo::Graphics::IMeshBuilderSupervisor& meshBuilder;
       IRenderer& renderer;
 	  Events::IPublisher& publisher;
@@ -402,6 +401,13 @@ namespace
 
 		  int32 x = index % (int32)i->second.size();
 		  return i->second[x];
+	  }
+
+	  virtual MaterialId GetMaterialDirect(const fstring& pingPath)
+	  {
+		  char sysPath[IO::MAX_PATHLEN];
+		  renderer.Installation().ConvertPingPathToSysPath(pingPath, sysPath, IO::MAX_PATHLEN);
+		  return renderer.GetMaterialId(sysPath);
 	  }
 
 	  virtual MaterialId GetRandomMaterialId(Rococo::Graphics::MaterialCategory category)

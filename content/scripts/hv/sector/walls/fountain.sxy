@@ -37,7 +37,11 @@
 	(MaterialVertexData water = 0x00FF8080 matBrickId 0.5)
 	
 	(MaterialId shelfId = (instances.GetRandomMaterialId (#MaterialCategoryWood)))
-	(MaterialVertexData shelf = 0x8F000000 shelfId 0.05)
+	(MaterialVertexData pictureFrame = 0xFFFFFFFF shelfId 0.05)
+	(MaterialVertexData pictureFrameOuter = 0xFFFFFFFE shelfId 0.05)
+	
+	(MaterialId matPortraitId = (instances.GetMaterialDirect "!textures/hv/materials/hi-rez/portraits/various_x4.jpg"))
+	(MaterialVertexData portrait = 0xFF000000 matPortraitId 0.85)
 	
 	(Float32 y0 = (AnyOf 0.6 0.9))
 	(Float32 y1 = (AnyOf 0.05 0.1))
@@ -78,6 +82,24 @@
 	
 	(Rectf basinRect = 0.1 0.9 0.9 0.1)
 	(qst.Intrude basinRect 0.1 uvScale brickSides water)
+	
+	(qst.MoveOutputToInputWithMat brickBack)
+	(qst.AddRodAbs -0.75 0.75 0.75 -0.75 0.2 0.25 pictureFrame)
+	(qst.MoveInputToOutput)
+	
+	(qst.MoveOutputToInputWithMat pictureFrame)
+	
+	(Vec3 out = 0 1 0)
+	(qst.MoveInputToOutputWithNormalDotRange out 0.99 1.0)
+	
+	(qst.SetMaterial pictureFrameOuter)
+	(qst.MoveInputToOutput)
+	
+	(qst.MoveOutputToInputWithMat pictureFrame)
+	(qst.SetMaterial portrait)
+	(Rectf topLeftPicture = 0 0 0.5 0.5)
+	(qst.SetTextureRect topLeftPicture)
+	(qst.MoveInputToOutput)
 	
 	(ObjectTriangle topLeft)
 	(ObjectTriangle bottomRight)
