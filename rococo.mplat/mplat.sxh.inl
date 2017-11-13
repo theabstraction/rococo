@@ -1132,6 +1132,32 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SplitAcrossTangent(v, topColour, middleColour, lowColour, *topMat, *bottomMat);
 	}
+	void NativeRococoGraphicsIQuadStackTesselatorTileMosaic(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Metres roughSize;
+		_offset += sizeof(roughSize);
+		ReadInput(roughSize, _sf, -_offset);
+
+		GuiRectf* uvRect;
+		_offset += sizeof(uvRect);
+		ReadInput(uvRect, _sf, -_offset);
+
+		MaterialVertexData* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		MaterialVertexData* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		Rococo::Graphics::IQuadStackTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->TileMosaic(*a, *b, *uvRect, roughSize);
+	}
 
 	void NativeGetHandleForRococoGraphicsQuadStackTesselator(NativeCallEnvironment& _nce)
 	{
@@ -1169,6 +1195,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSetMaterial, nullptr, SEXTEXT("IQuadStackTesselatorSetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSetTextureRect, nullptr, SEXTEXT("IQuadStackTesselatorSetTextureRect (Pointer hObject)(Sys.Maths.Rectf rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSplitAcrossTangent, nullptr, SEXTEXT("IQuadStackTesselatorSplitAcrossTangent (Pointer hObject)(Float32 v)(Int32 topColour)(Int32 middleColour)(Int32 lowColour)(Rococo.MaterialVertexData topMat)(Rococo.MaterialVertexData bottomMat) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorTileMosaic, nullptr, SEXTEXT("IQuadStackTesselatorTileMosaic (Pointer hObject)(Rococo.MaterialVertexData a)(Rococo.MaterialVertexData b)(Sys.Maths.Rectf uvRect)(Sys.SI.Metres roughSize) -> "));
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Entities::IMobiles 

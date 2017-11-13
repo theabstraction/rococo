@@ -727,6 +727,51 @@ namespace ANON
 				item.q.uv = rect;
 			}
 		}
+
+		void TileMosaic(const MaterialVertexData& a, const MaterialVertexData& b, const GuiRectf& uvRect, Metres roughSize) override
+		{
+			for (auto& item : input)
+			{
+				Vec3 tangent = item.q.positions.b - item.q.positions.a;
+				Vec3 vertical = item.q.positions.a - item.q.positions.d;
+
+				Vec2 span{ Length(tangent), Length(vertical) };
+
+				int DX = min(max((int)(span.x / roughSize), 1), 100);
+				int DY = min(max((int)(span.y / roughSize), 1), 100);
+
+				Vec3 bottomLeft = item.q.positions.d;
+
+				Vec3 DT = tangent * (1.0f /DX );
+				Vec3 DV = vertical * (1.0f / DY);
+
+				for (int j = 0; j < DY; ++j)
+				{
+					for (int i = 0; i < DX; ++i)
+					{
+						QuadItem subItem;
+						subItem.mat = ((i + j) % 2) == 0 ? a : b;
+						subItem.q.normals = item.q.normals;
+						subItem.q.uv = uvRect;
+
+						Vec3 DI0 = DT * (float)i;
+						Vec3 DI1 = DT * (float)(i + 1.0f);
+						Vec3 DJ0 = DV * (float)j;
+						Vec3 DJ1 = DV * (float)(j + 1.0f);
+
+						subItem.q.positions.a = bottomLeft + DI0 + DJ1;
+						subItem.q.positions.b = bottomLeft + DI1 + DJ1;
+						subItem.q.positions.c = bottomLeft + DI1 + DJ0;
+						subItem.q.positions.d = bottomLeft + DI0 + DJ0;
+
+						subItem.q.colours.a = subItem.q.colours.b = subItem.q.colours.c = subItem.q.colours.d = subItem.mat.colour;
+						output.push_back(subItem);
+					}
+				}
+			}
+
+			input.clear();
+		}
 	};
 }
 

@@ -334,6 +334,7 @@
 			(SetMaterial (const MaterialVertexData mat))
 			(SetTextureRect (const Rectf rect))
 			(SplitAcrossTangent(Float32 v)(RGBAb topColour)(RGBAb middleColour)(RGBAb lowColour)(const MaterialVertexData topMat)(const MaterialVertexData bottomMat))
+			(TileMosaic(const MaterialVertexData a)(const MaterialVertexData b)(const Rectf uvRect)(Metres roughSize))
 	)
 	(factory Rococo.Graphics.QuadStackTesselator)
 )

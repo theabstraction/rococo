@@ -42,7 +42,7 @@
 	(sectors.SetTemplateMaterial "rails"       3 0x12b3de47 "random")
 	(sectors.SetTemplateMaterial "casing"      4 0x38097d5a "random")
 	(sectors.SetTemplateMaterial "panels"      4 0x268bbb43 "random")
-	(sectors.SetTemplateWallScript true "!scripts/hv/sector/walls/fountain.sxy")
+	(sectors.SetTemplateWallScript true "!scripts/hv/sector/walls/mosaic.sxy")
 
 	(sectors.CreateFromTemplate 0 400)
 )

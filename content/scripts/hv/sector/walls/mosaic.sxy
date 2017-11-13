@@ -1,0 +1,85 @@
+(' #file.type rococo.hv)
+
+(' #include 
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv.sxh.sxy"
+	"!scripts/hv/hv.types.sxy"
+	"!scripts/types.sxy"
+	"!scripts/types.mplat.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+
+(using HV)
+(using Rococo)
+(using Rococo.Entities)
+(using Rococo.Graphics)
+(using Sys.Type)
+(using Sys.Maths)
+(using Sys.Geometry.F32)
+(using Sys.Random)
+
+(function TesselateWallAndShelf (WallSegment segment)(ISectorWallTesselator sector)(IQuadStackTesselator qst)(Float32 uStart)->(Float32 uEnd) :
+	(Float32 uvScale = 0.0325)
+	
+	(Float32 u0 = uStart)
+	(Float32 u1 = (u0 + (segment.span.x * uvScale)))
+	(uEnd = u1)
+	
+	(IInstances instances (Instances))
+	
+	(MaterialId mosaicMatId = (instances.GetMaterialDirect "!textures/hv/materials/hi-rez/mosaics/m1.jpg" ))
+	(MaterialVertexData black = 0x3F000000 mosaicMatId 0.15)
+	(MaterialVertexData white = 0x3FFFFFFF mosaicMatId 0.15)
+
+	(MaterialId skirtMatId = (instances.GetRandomMaterialId (#MaterialCategoryMarble)))
+	(MaterialVertexData skirt = 0x3F000000 skirtMatId 0.05)
+	
+	(qst.SetBasis segment.tangent segment.normal segment.vertical)
+	
+	(qst.Clear)
+		
+	(QuadVertices qv)
+	(qv.positions = segment.quad)
+	(qv.normals.a = segment.normal)
+	(qv.normals.b = segment.normal)
+	(qv.normals.c = segment.normal)
+	(qv.normals.d = segment.normal)
+	(qv.uv.left = u0)
+	(qv.uv.right = u1)
+	(qv.uv.top = (segment.quad.a.z * uvScale))
+	(qv.uv.right = u1)
+	(qv.uv.bottom = (segment.quad.d.z * uvScale))
+	
+	(qst.PushQuad qv black)
+	(qst.SplitAcrossTangent 0.9 0x00000000 0x3F000000 0x3F000000 skirt black)
+	(qst.MoveOutputToInputWithMat black)
+	(qst.SplitAcrossTangent 0.1 0x3F000000 0x3F000000 0x00000000 black skirt)
+	(qst.MoveOutputToInputWithMat black)
+	
+	(Rectf uv = 0 0 0.5 0.5)
+	(qst.TileMosaic black white uv 0.5)
+	
+	(ObjectTriangle topLeft)
+	(ObjectTriangle bottomRight)
+	(while (qst.PopOutputAsTriangles topLeft bottomRight)
+		(sector.AddWallTriangle topLeft.a topLeft.b topLeft.c)
+		(sector.AddWallTriangle bottomRight.a bottomRight.b bottomRight.c)
+	)
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(ISectorWallTesselator sector (SectorWallTesselator))
+	(Int32 nSegments = sector.NumberOfSegments)
+	(Float32 u = 0)
+	
+	(IQuadStackTesselator qst (QuadStackTesselator))
+		
+	(#for (Int32 i = 0)(i < nSegments)(#inc i)
+		(WallSegment seg)
+		(sector.GetSegment i seg)
+		(TesselateWallAndShelf seg sector qst u -> u)
+	)
+)
