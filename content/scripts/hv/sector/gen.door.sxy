@@ -83,7 +83,7 @@
 
 (archetype HV.ObjectFunction (IMeshBuilder mb)->)
 
-(function AddObject (IString texture)(IString localName)(ObjectFunction f)-> :
+(function AddObject (IString localName)(ObjectFunction f)-> :
 	(ICorridor corridor (Corridor))
 	(IStringBuilder meshName (StringBuilder 256))
 	(corridor.GetComponentMeshName localName meshName)
@@ -96,7 +96,7 @@
 	
 	(mb.End)
 	
-	(corridor.CentreComponent localName meshName texture)
+	(corridor.CentreComponent localName meshName)
 )
 
 (function AddRimObject (IMeshBuilder mb)(IRimTesselator rim)(Float32 uvScale)(Float32 z0)(Float32 z1)(MaterialVertexData mat)-> :
@@ -137,7 +137,7 @@
 	
 	(IInstances instances (Instances))
 	(MaterialId doorMatId = (instances.GetRandomMaterialId (#MaterialCategoryMetal)))
-	(MaterialVertexData mat = 0xFF000000 doorMatId 0.8)
+	(MaterialVertexData mat = 0xFF000000 doorMatId 0.2)
 	
 	(ObjectFunction door = 
 		(closure (IMeshBuilder mb)-> :
@@ -148,14 +148,14 @@
 		)
 	)
 
-	(AddObject "!textures/walls/metal2.jpg" "door" door)
+	(AddObject "door" door)
 	
 	(Float32 pillarWidth =  (AnyOf 0.1 0.45))
 	(Float32 baseWidth =  (AnyOf 0.1 0.45))
 	(Float32 capWidth =  (AnyOf 0.35 0.5))
 	
 	(MaterialId pillarMatId = (instances.GetRandomMaterialId (#MaterialCategoryStone)))
-	(MaterialVertexData pillarMat = 0xFF000000 pillarMatId 0.0)
+	(MaterialVertexData pillarMat = 0x7F000000 pillarMatId 0.0)
 	
 	(ObjectFunction pillars = 
 		(closure (IMeshBuilder mb)-> :
@@ -230,7 +230,7 @@
 			)
 		)
 	)
-	(AddObject "!textures/walls/metal3.jpg" "door.pillars" pillars)
+	(AddObject "door.pillars" pillars)
 	
 	(MaterialId railsMatId = (instances.GetRandomMaterialId (#MaterialCategoryRock)))
 	(MaterialVertexData railsMat = 0xFF000000 railsMatId 0.0)
@@ -272,5 +272,5 @@
 			)
 		)
 	)
-	(AddObject "!textures/walls/black.tif" "door.rails" rails)
+	(AddObject "door.rails" rails)
 )

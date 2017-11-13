@@ -212,12 +212,6 @@ namespace
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
-		IString* _textureName;
-		ReadInput(_textureName, _sf, -_offset);
-		fstring textureName { _textureName->buffer, _textureName->length };
-
-
-		_offset += sizeof(IString*);
 		IString* _meshName;
 		ReadInput(_meshName, _sf, -_offset);
 		fstring meshName { _meshName->buffer, _meshName->length };
@@ -233,7 +227,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->CentreComponent(componentName, meshName, textureName);
+		_pObject->CentreComponent(componentName, meshName);
 	}
 	void NativeHVICorridorClearComponents(NativeCallEnvironment& _nce)
 	{
@@ -291,7 +285,7 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeGetHandleForHVCorridor, _nceContext, SEXTEXT("GetHandleForICorridor0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeHVICorridorGetSpan, nullptr, SEXTEXT("ICorridorGetSpan (Pointer hObject)(Sys.Maths.Vec3 span) -> "));
 		ss.AddNativeCall(ns, NativeHVICorridorIsSloped, nullptr, SEXTEXT("ICorridorIsSloped (Pointer hObject) -> (Bool isSloped)"));
-		ss.AddNativeCall(ns, NativeHVICorridorCentreComponent, nullptr, SEXTEXT("ICorridorCentreComponent (Pointer hObject)(Sys.Type.IString componentName)(Sys.Type.IString meshName)(Sys.Type.IString textureName) -> "));
+		ss.AddNativeCall(ns, NativeHVICorridorCentreComponent, nullptr, SEXTEXT("ICorridorCentreComponent (Pointer hObject)(Sys.Type.IString componentName)(Sys.Type.IString meshName) -> "));
 		ss.AddNativeCall(ns, NativeHVICorridorClearComponents, nullptr, SEXTEXT("ICorridorClearComponents (Pointer hObject)(Sys.Type.IString componentName) -> "));
 		ss.AddNativeCall(ns, NativeHVICorridorGetComponentMeshName, nullptr, SEXTEXT("ICorridorGetComponentMeshName (Pointer hObject)(Sys.Type.IString componentName)(Sys.Type.IStringBuilder meshName) -> "));
 	}

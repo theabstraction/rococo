@@ -18,7 +18,7 @@
 	(methods
 		(GetSpan (Vec3 span))
 		(IsSloped -> (Bool isSloped))
-		(CentreComponent (IString componentName)(IString meshName)(IString textureName))
+		(CentreComponent (IString componentName)(IString meshName))
 		(ClearComponents (IString componentName))
 		(GetComponentMeshName (IString componentName)(IStringBuilder meshName))
 	)

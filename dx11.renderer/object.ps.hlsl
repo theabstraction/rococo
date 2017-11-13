@@ -1,12 +1,11 @@
 struct PixelVertex
 {
 	float4 position : SV_POSITION0;
-	float3 uv_material: TEXCOORD;
+	float4 uv_material_and_gloss: TEXCOORD;
     float4 worldPosition: TEXCOORD1;
 	float4 normal : TEXCOORD2;
 	float4 shadowPos: TEXCOORD3;
 	float4 cameraSpacePosition: TEXCOORD4;
-//	float4 eyeToPositionDirection: TEXCOORD5;
 	float4 colour: COLOR0;	// w component gives lerpColourToTexture
 };
 
@@ -51,6 +50,8 @@ SamplerState txSampler;
 Texture2D g_ShadowMap: register(t2);
 SamplerState shadowSampler;
 
+TextureCube g_cubeMap: register(t3);
+
 float4 per_pixel_lighting(PixelVertex p)
 {
 	float oow = 1.0f / p.shadowPos.w;
@@ -74,8 +75,14 @@ float4 per_pixel_lighting(PixelVertex p)
 
 	if (shadowDepth > depth)
 	{
-		float4 texel = g_materials.Sample(txSampler, p.uv_material);
+		float4 texel = g_materials.Sample(txSampler, p.uv_material_and_gloss.xyz);
 		texel = lerp(p.colour, texel, p.colour.w);
+
+		float3 incident = normalize(p.worldPosition.xyz - eye.xyz);
+		float3 reflectionVector = reflect(incident.xyz, normalize(p.normal.xyz));
+		float4 reflectionColor = g_cubeMap.Sample(txSampler, reflectionVector);
+
+		texel.xyz = lerp(texel.xyz, reflectionColor.xyz, p.uv_material_and_gloss.w);
 
 		float3 lightToPixelDir = normalize(lightToPixelVec);
 
@@ -104,7 +111,14 @@ float4 per_pixel_lighting(PixelVertex p)
 
 float4 no_lighting(PixelVertex p)
 {
-	float4 texel = g_materials.Sample(txSampler, p.uv_material).xyzw;
+	float4 texel = g_materials.Sample(txSampler, p.uv_material_and_gloss.xyz).xyzw;
+	texel = lerp(p.colour, texel, p.colour.w);
+
+	float3 incident = normalize(p.worldPosition.xyz - eye.xyz);
+	float3 reflectionVector = reflect(incident.xyz, normalize(p.normal.xyz));
+	float4 reflectionColor = g_cubeMap.Sample(txSampler, reflectionVector);
+
+	texel.xyz = lerp(texel.xyz, reflectionColor.xyz, p.uv_material_and_gloss.w);
 	return texel;
 }
 

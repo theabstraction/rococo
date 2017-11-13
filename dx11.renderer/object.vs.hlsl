@@ -1,7 +1,7 @@
 struct ObjectVertex
 {
 	float4 position : POSITION;
-	float4 normal : NORMAL;
+	float3 normal : NORMAL;
 	float2 uv: TEXCOORD0;
 	float4 colour: COLOR0;
 	float2 materialIndexAndGloss : TEXCOORD1;
@@ -10,7 +10,7 @@ struct ObjectVertex
 struct ScreenVertex
 {
 	float4 position : SV_POSITION0;
-	float3 uv_material: TEXCOORD;
+	float4 uv_material_and_gloss: TEXCOORD;
 	float4 worldPosition: TEXCOORD1;
 	float4 normal : TEXCOORD2;
 	float4 shadowPos: TEXCOORD3;
@@ -40,20 +40,20 @@ struct Light
 	float attenuationRate; // Point lights vary as inverse square, so 0.5 ish
 };
 
-cbuffer globalState
+cbuffer globalState: register(b0)
 {
 	float4x4 worldMatrixAndProj;
 	float4x4 worldMatrix;
 	float4 eye;
 };
 
-cbuffer perInstanceData
+cbuffer perInstanceData: register(b1)
 {
 	float4x4 instanceMatrix;
 	float4 highlightColour;
 }
 
-cbuffer light
+cbuffer light: register(b2)
 {
 	Light light;
 };
@@ -62,18 +62,17 @@ ScreenVertex main(ObjectVertex v)
 {
 	ScreenVertex sv;
 
+
+
 	float4 instancePos = mul(instanceMatrix, v.position);
 	sv.position = mul(worldMatrixAndProj, instancePos);
-	sv.normal = mul(instanceMatrix, v.normal);
+	sv.normal = mul(instanceMatrix, float4(v.normal.xyz,0.0f));
 	sv.worldPosition = instancePos;
 	sv.shadowPos = mul(light.worldToShadowBuffer, instancePos);
 	sv.cameraSpacePosition = mul(worldMatrix, instancePos);
-	sv.uv_material.xy = v.uv.xy;
-	sv.uv_material.z = v.materialIndexAndGloss.x;
+	sv.uv_material_and_gloss.xy = v.uv.xy;
+	sv.uv_material_and_gloss.z = v.materialIndexAndGloss.x;
+	sv.uv_material_and_gloss.w = v.materialIndexAndGloss.y;
 	sv.colour = v.colour;
-
-//	float4 eyeToPos = instancePos - eye;
-
-//	sv.eyeToPositionDirection = float4(normalize(eyeToPos.xyz),0);
 	return sv;
 }

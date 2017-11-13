@@ -1023,7 +1023,7 @@ namespace ANON
          components.erase(std::remove(components.begin(), components.end(), componentName), components.end());
       }
 
-      virtual void CentreComponent(const fstring& componentName, const fstring& meshName, const fstring& textureName)
+      virtual void CentreComponent(const fstring& componentName, const fstring& meshName)
       {
          Vec2 centre = 0.5f * (floorPerimeter[0] + floorPerimeter[2]);
          float z = IsSloped() ? (0.5f * (gapSegments[0].z0 + gapSegments[1].z0)) : z0;
