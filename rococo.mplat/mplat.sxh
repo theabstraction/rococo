@@ -159,6 +159,7 @@
 		(GetMaterialDirect (IString pingPath)->(MaterialId id))
 		(GetRandomMaterialId (MaterialCategory category)->(MaterialId id))
 		(GetScale (IdEntity entityId)(Vec3 scale))
+		(SetMaterialMacro (IString pingPath))
 		(SetScale (IdEntity entityId)(const Vec3 scale))
 		(TryGetModelToWorldMatrix (IdEntity entityId)(Matrix4x4 position)->(Bool existant))
 		(Clear)

@@ -1131,14 +1131,14 @@ namespace
 						char sysName[IO::MAX_PATHLEN];
 						SafeFormat(sysName, sizeof(sysName), "%s", mat);
 
-						auto root = platform.installation.Content();
-
-						if (strstr(sysName, root))
+						try
 						{
-							cstr subPath = sysName + root.length;
-							SafeFormat(value, sizeof(value), "!%s", subPath);
-							OS::ToUnixPath(value);
+							platform.installation.ConvertSysPathToMacroPath(sysName, value, len, "#m");
 						}
+						catch (IException& ex)
+						{
+							SafeFormat(value, len, "%s", ex.Message());
+						}			
 					}
 				}
 			}

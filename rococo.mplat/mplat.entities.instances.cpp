@@ -259,7 +259,7 @@ namespace
 
 			  char absPath[IO::MAX_PATHLEN];
 
-			  virtual void OnEvent(cstr name)
+			  void OnEvent(cstr name) override
 			  {
 				  auto ext = GetFileExtension(name);
 				  if (Eq(ext, ".jpeg") || Eq(ext, ".jpg") || Eq(ext, "tif") || Eq(ext, "tiff"))
@@ -270,17 +270,17 @@ namespace
 				  }
 			  }
 
-			  virtual size_t Count() const
+			  size_t Count() const override
 			  {
 				  return filenames.size();
 			  }
 
-			  virtual int32 TexelWidth() const
+			  int32 TexelWidth() const override
 			  {
 				  return txWidth;
 			  }
 
-			  virtual void LoadTextureForIndex(size_t index, IEventCallback<MaterialTextureArrayBuilderArgs>& onLoad)
+			  void LoadTextureForIndex(size_t index, IEventCallback<MaterialTextureArrayBuilderArgs>& onLoad) override
 			  {
 				  auto path = filenames[index].c_str();
 
@@ -301,19 +301,8 @@ namespace
 		  z.publisher = &publisher;
 		  z.This = this;
 
-		  if (folder.length == 0 || folder == nullptr || *folder != '!')
-		  {
-			  Throw(0, "Expecting first character to be '!'");
-		  }
-
-		  char unixpath[IO::MAX_PATHLEN];
-		  SecureFormat(unixpath, IO::MAX_PATHLEN, "%s", folder.buffer + 1);
-
-		  char syspath[IO::MAX_PATHLEN];
-		  z.installation->OS().ConvertUnixPathToSysPath(unixpath, syspath, IO::MAX_PATHLEN);
-
-		  SafeFormat(z.absPath, IO::MAX_PATHLEN, "%s%s", (cstr) z.installation->Content(), syspath);
-			
+		  z.installation->ConvertPingPathToSysPath(folder, z.absPath, IO::MAX_PATHLEN);
+	
 		  IO::ForEachFileInDirectory(z.absPath, z);
 
 		  if (z.filenames.empty()) return;
@@ -383,13 +372,13 @@ namespace
 		  }
 	  }
 
-	  virtual int32 CountMaterialsInCategory(Rococo::Graphics::MaterialCategory category)
+	  int32 CountMaterialsInCategory(Rococo::Graphics::MaterialCategory category) override
 	  {
 		  auto i = categories.find(category);
 		  return i == categories.end() ? 0 : (int32) i->second.size();
 	  }
 
-	  virtual MaterialId GetMaterialId(Rococo::Graphics::MaterialCategory category, int32 index)
+	  MaterialId GetMaterialId(Rococo::Graphics::MaterialCategory category, int32 index) override
 	  {
 		  auto i = categories.find(category);
 		  if (i == categories.end())
@@ -403,14 +392,14 @@ namespace
 		  return i->second[x];
 	  }
 
-	  virtual MaterialId GetMaterialDirect(const fstring& pingPath)
+	  MaterialId GetMaterialDirect(const fstring& pingPath) override
 	  {
 		  char sysPath[IO::MAX_PATHLEN];
 		  renderer.Installation().ConvertPingPathToSysPath(pingPath, sysPath, IO::MAX_PATHLEN);
 		  return renderer.GetMaterialId(sysPath);
 	  }
 
-	  virtual MaterialId GetRandomMaterialId(Rococo::Graphics::MaterialCategory category)
+	  MaterialId GetRandomMaterialId(Rococo::Graphics::MaterialCategory category) override
 	  {
 		  auto i = categories.find(category);
 		  if (i == categories.end())
@@ -422,7 +411,12 @@ namespace
 		  return i->second[index];
 	  }
 
-      virtual void SetScale(ID_ENTITY id, const Vec3& scale)
+	  void SetMaterialMacro(const fstring& pingPath) override
+	  {
+		  renderer.Installation().Macro("#m", pingPath);
+	  }
+
+      void SetScale(ID_ENTITY id, const Vec3& scale) override
       {
          auto i = idToEntity.find(id);
          if (i == idToEntity.end())

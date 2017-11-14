@@ -298,6 +298,22 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->GetScale(entityId, *scale);
 	}
+	void NativeRococoEntitiesIInstancesSetMaterialMacro(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _pingPath;
+		ReadInput(_pingPath, _sf, -_offset);
+		fstring pingPath { _pingPath->buffer, _pingPath->length };
+
+
+		Rococo::Entities::IInstances* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetMaterialMacro(pingPath);
+	}
 	void NativeRococoEntitiesIInstancesSetScale(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -373,6 +389,7 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetMaterialDirect, nullptr, SEXTEXT("IInstancesGetMaterialDirect (Pointer hObject)(Sys.Type.IString pingPath) -> (Float32 id)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetRandomMaterialId, nullptr, SEXTEXT("IInstancesGetRandomMaterialId (Pointer hObject)(Int32 category) -> (Float32 id)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetScale, nullptr, SEXTEXT("IInstancesGetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesSetMaterialMacro, nullptr, SEXTEXT("IInstancesSetMaterialMacro (Pointer hObject)(Sys.Type.IString pingPath) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesSetScale, nullptr, SEXTEXT("IInstancesSetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesTryGetModelToWorldMatrix, nullptr, SEXTEXT("IInstancesTryGetModelToWorldMatrix (Pointer hObject)(Int64 entityId)(Sys.Maths.Matrix4x4 position) -> (Bool existant)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesClear, nullptr, SEXTEXT("IInstancesClear (Pointer hObject) -> "));

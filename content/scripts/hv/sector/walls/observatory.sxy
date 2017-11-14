@@ -80,7 +80,7 @@
 	(Float32 x0 = (Sys.Random.AnyOf 0.1 0.4))
 	(Float32 x1 = (Sys.Random.AnyOf 0.6 0.9))
 	
-	(Float32 depth = (Sys.Random.AnyOf 0.5 1.5))
+	(Float32 depth = (Sys.Random.AnyOf 0.25 0.75))
 	
 	(Rectf hole = x0 y0 x1 y1)
 	

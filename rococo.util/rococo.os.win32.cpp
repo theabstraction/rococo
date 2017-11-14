@@ -15,6 +15,7 @@
 #include <process.h>
 
 #include <vector>
+#include <unordered_map>
 
 #include <shlobj.h>
 #include <comip.h>
@@ -79,13 +80,13 @@ namespace Rococo
 {
    namespace OS
    {
-      void SanitizePath(char* path)
-      {
-         for (char* s = path; *s != 0; ++s)
-         {
-            if (*s == '/') *s = '\\';
-         }
-      }
+	  void ToSysPath(char* path)
+	  {
+		  for (char* s = path; *s != 0; ++s)
+		  {
+			  if (*s == '/') *s = '\\';
+		  }
+	  }
 
 	  void ToUnixPath(char* path)
 	  {
@@ -300,6 +301,7 @@ namespace
 		IOS& os;
 		FilePath contentDirectory;
 		int32 len;
+		std::unordered_map<std::string, std::string> macroToSubdir;
 	public:
 		Installation(cstr contentIndicatorName, IOS& _os): os(_os)
 		{
@@ -322,26 +324,87 @@ namespace
 			return fstring{ contentDirectory.data, len };
 		}
 
-		void ConvertPingPathToSysPath(cstr pingPath, char* sysPath, size_t sysPathCapacity) override
+		cstr GetFirstSlash(cstr path)
 		{
-			if (pingPath == nullptr || *pingPath != '!')
+			for (cstr p = path + 1; *p != 0; p++)
 			{
-				Throw(0, "ConvertPingPathToSysPath:: Ping path did not begin with ping character '!'");
+				if (*p == '/')
+				{
+					return p;
+				}
 			}
 
-			auto rsc = to_fstring(pingPath);
-			if (rsc.length + len >= (int32) sysPathCapacity)
+			return nullptr;
+		}
+
+		void ConvertPingPathToSysPath(cstr pingPath, char* sysPath, size_t sysPathCapacity) override
+		{
+			if (pingPath == nullptr || *pingPath == 0)
 			{
-				Throw(0, "ConvertPingPathToSysPath:: Ping path + content directory path exceeded maximum path length");
+				Throw(0, "Installation::ConvertPingPathToSysPath(...) Ping path was blank");
+			}
+
+			auto macroDir = "";
+			const char* subdir = nullptr;
+
+			if (*pingPath == '!')
+			{
+				subdir = pingPath + 1;
+			}
+			else if (*pingPath == '#')
+			{
+				auto slash = GetFirstSlash(pingPath + 1);
+				if (slash == nullptr)
+				{
+					Throw(0, "Installation::ConvertPingPathToSysPath(\"%s\"): expecting forward slash character in pingPath", pingPath);
+				}
+
+				subdir = slash + 1;
+
+				char macro[IO::MAX_PATHLEN];
+				memcpy_s(macro, sizeof(macro), pingPath, slash - pingPath);
+				macro[slash - pingPath] = 0;
+
+				auto i = macroToSubdir.find(macro);
+				if (i == macroToSubdir.end())
+				{
+					Throw(0, "Installation::ConvertPingPathToSysPath(\"%s\"): unknown macro: %s", macro, pingPath);
+				}
+
+				macroDir = i->second.c_str();
+			}
+			else
+			{
+				Throw(0, "Installation::ConvertPingPathToSysPath(\"%s\"): unknown prefix. Expecting ! or #", pingPath);
 			}
 
 			if (strstr(pingPath, "..") != nullptr)
 			{
-				Throw(0, "ConvertPingPathToSysPath: Illegal sequence in ping path: '..'");
+				Throw(0, "Installation::ConvertPingPathToSysPath(...) Illegal sequence in ping path: '..'");
 			}
 
-			SecureFormat(sysPath, sysPathCapacity, "%s", contentDirectory.data);
-			os.ConvertUnixPathToSysPath(pingPath + 1, sysPath + len, sysPathCapacity - len);
+			int fulllen = SecureFormat(sysPath, sysPathCapacity, "%s%s%s", contentDirectory.data, macroDir+1, subdir);
+			OS::ToSysPath(sysPath);
+		}
+
+		void ConvertSysPathToMacroPath(cstr sysPath, char* pingPath, size_t pingPathCapacity, cstr macro) override
+		{
+			char fullPingPath[IO::MAX_PATHLEN];
+			ConvertSysPathToPingPath(sysPath, fullPingPath, IO::MAX_PATHLEN);
+
+			auto i = macroToSubdir.find(macro);
+			if (i == macroToSubdir.end())
+			{
+				Throw(0, "Installation::ConvertSysPathToMacroPath(...) No macro defined: %s", macro);
+			}
+
+			cstr expansion = i->second.c_str();
+			if (strstr(fullPingPath, expansion) == nullptr)
+			{
+				Throw(0, "Installation::ConvertSysPathToMacroPath(...\"%s\", \"%s\") Path not prefixed by macro: %s", sysPath, macro, expansion);
+			}
+
+			SecureFormat(pingPath, pingPathCapacity, "%s/%s", macro, fullPingPath + i->second.size());
 		}
 
 		void ConvertSysPathToPingPath(cstr sysPath, char* pingPath, size_t pingPathCapacity) override
@@ -367,7 +430,7 @@ namespace
 				Throw(0, "ConvertSysPathToPingPath: Illegal sequence in ping path: '..'");
 			}
 
-			SafeFormat(pingPath, pingPathCapacity, "!%s", sysPath + len);
+			SecureFormat(pingPath, pingPathCapacity, "!%s", sysPath + len);
 
 			OS::ToUnixPath(pingPath);
 		}
@@ -377,7 +440,7 @@ namespace
 			if (resourcePath == nullptr || rlen(resourcePath) < 2) Throw(E_INVALIDARG, "Win32OS::LoadResource failed: <resourcePath> was blank");
 
 			FilePath absPath;
-			if (resourcePath[0] == '!')
+			if (resourcePath[0] == '!' || resourcePath[0] == '#')
 			{
 				ConvertPingPathToSysPath(resourcePath, absPath.data, absPath.CAPACITY);
 			}
@@ -387,6 +450,35 @@ namespace
 			}
 
 			os.LoadAbsolute(absPath, buffer, maxFileLength);
+		}
+
+		void Macro(cstr name, cstr pingFolder) override
+		{
+			if (name == nullptr || *name != '#')
+			{
+				Throw(0, "Installation::Macro(name, ...): [name] did not begin with a hash '#' character");
+			}
+
+			if (pingFolder == nullptr || *pingFolder != '!')
+			{
+				Throw(0, "Installation::Macro(..., pingFolder): [pingFolder] did not begin with a ping '!' character");
+			}
+
+			char pingRoot[IO::MAX_PATHLEN - 1];
+			int len = SecureFormat(pingRoot, sizeof(pingRoot), "%s", pingFolder);
+			OS::ToUnixPath(pingRoot);
+			if (pingRoot[len - 1] != '/')
+			{
+				Throw(0, "Installation::Macro(..., pingFolder): %s did not end with slash '/' character");
+			}
+
+			auto i = macroToSubdir.find(name);
+			if (i != macroToSubdir.end())
+			{
+				Throw(0, "Installation::Macro(\"%s\", ...) - macro already defined", name);
+			}
+
+			macroToSubdir[name] = pingFolder;
 		}
 	};
 

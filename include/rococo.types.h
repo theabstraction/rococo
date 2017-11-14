@@ -461,7 +461,7 @@ namespace Rococo
       int OpenForAppend(void** fp, cstr name);
       int OpenForRead(void** fp, cstr name);
       void UILoop(uint32 milliseconds);
-      void SanitizePath(char* path);
+	  void ToSysPath(char* path);
 	  void ToUnixPath(char* path);
    }
 

@@ -14,5 +14,6 @@
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(IInstances instances (Instances))
-	(instances.LoadMaterialArray "!textures/hv/materials/hi-rez/" 1024)
+	(instances.SetMaterialMacro "!textures/hv/materials/hi-rez/" )
+	(instances.LoadMaterialArray "#m/" 1024)
 )
