@@ -264,7 +264,7 @@ namespace HV
    IGameModeSupervisor* CreateFPSGameLogic(Cosmos& e);
 
    IApp* CreateHVApp(Cosmos& e);
-   void RunEnvironmentScript(Cosmos& e, cstr name);
+   void RunEnvironmentScript(Cosmos& e, cstr name, bool releaseSource = false);
 
    namespace GraphicsEx
    {

@@ -154,6 +154,19 @@ namespace Rococo
 		  return *(ticks*)&ft;
 	  }
 
+	  void FormatTime(ticks utcTime, char* buffer, size_t nBytes)
+	  {
+		  SYSTEMTIME st;
+		  char localDate[255], localTime[255];
+
+		  FileTimeToLocalFileTime((FILETIME*)&utcTime, (FILETIME*) &utcTime);
+		  FileTimeToSystemTime((FILETIME*)&utcTime, &st);
+
+		  GetDateFormatA(LOCALE_USER_DEFAULT, DATE_SHORTDATE, &st, NULL, localDate, 255);
+		  GetTimeFormatA(LOCALE_USER_DEFAULT, 0, &st, NULL, localTime, 255);
+		  SafeFormat(buffer, nBytes, "%s %s", localTime, localDate);
+	  }
+
       void TripDebugger()
       {
          if (IsDebuggerPresent())
@@ -332,7 +345,7 @@ namespace
 				ConvertPingPathToSysPath(a, sysPathA, IO::MAX_PATHLEN);
 
 				char sysPathB[IO::MAX_PATHLEN];
-				ConvertPingPathToSysPath(b, sysPathA, IO::MAX_PATHLEN);
+				ConvertPingPathToSysPath(b, sysPathB, IO::MAX_PATHLEN);
 
 				return Eq(sysPathA, sysPathB);
 			}
@@ -631,9 +644,15 @@ namespace
 			{
 				if (i->Action == FILE_ACTION_MODIFIED)
 				{
-					rchar nullTerminatedFilename[_MAX_PATH];
-					SafeFormat(nullTerminatedFilename, sizeof(nullTerminatedFilename), "%S", info.FileName);
-					OnModified(nullTerminatedFilename);
+					if (info.FileNameLength < _MAX_PATH)
+					{
+						rchar nullTerminatedFilename[_MAX_PATH] = { 0 };
+						for (DWORD i = 0; i < info.FileNameLength; ++i)
+						{
+							nullTerminatedFilename[i] = (char) info.FileName[i];
+						}
+						OnModified(nullTerminatedFilename);
+					}
 				}
 
 				if (!i->NextEntryOffset) break;

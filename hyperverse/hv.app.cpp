@@ -118,10 +118,10 @@ namespace HV
 
 		   Defaults::SetDefaults(e.platform.config);
 
-		   RunEnvironmentScript(e, "!scripts/hv/config.sxy");
-		   RunEnvironmentScript(e, "!scripts/hv/keys.sxy");
-		   RunEnvironmentScript(e, "!scripts/hv/controls.sxy");
-		   RunEnvironmentScript(e, "!scripts/hv/main.sxy");
+		   RunEnvironmentScript(e, "!scripts/hv/config.sxy", true);
+		   RunEnvironmentScript(e, "!scripts/hv/keys.sxy", true);
+		   RunEnvironmentScript(e, "!scripts/hv/controls.sxy", true);
+		   RunEnvironmentScript(e, "!scripts/hv/main.sxy", true);
 
 		   editorPanel = e.platform.gui.BindPanelToScript("!scripts/panel.editor.sxy");
 		   fpsPanel = e.platform.gui.BindPanelToScript("!scripts/panel.fps.sxy");
@@ -205,7 +205,7 @@ namespace HV
 
 			   if (args.Matches("!scripts/hv/main.sxy"))
 			   {
-				   HV::RunEnvironmentScript(e, "!scripts/hv/main.sxy");
+				   HV::RunEnvironmentScript(e, "!scripts/hv/main.sxy", true);
 			   }
 
 			   if (StartsWith(pingname, "!scripts/hv/sector/"))
@@ -234,8 +234,8 @@ namespace HV
 		   if (!nextLevelName.empty())
 		   {
 			   RunEnvironmentScript(e, nextLevelName.c_str());
-			   nextLevelName.clear();
 			   e.platform.sourceCache.Release(nextLevelName.c_str());
+			   nextLevelName.clear();
 		   }
 
 		   mode->UpdateAI(clock);
@@ -354,7 +354,7 @@ namespace HV
 
 	   void OnCreate() override
 	   {
-		   RunEnvironmentScript(e, "!scripts/hv/app.created.sxy");
+		   RunEnvironmentScript(e, "!scripts/hv/app.created.sxy", true);
 	   }
    };
 }

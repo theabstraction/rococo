@@ -1084,9 +1084,18 @@ namespace
 
 			if (platform.utilities.GetLoadLocation(platform.renderer.Window(), ld))
 			{
-				Load(ld.path);
-				SafeFormat(levelpath, sizeof(levelpath), "%s", ld.path);
-				platform.utilities.AddSubtitle(platform, ld.shortName);
+				try
+				{
+					char pingPath[IO::MAX_PATHLEN];
+					platform.installation.ConvertSysPathToPingPath(ld.path, pingPath, IO::MAX_PATHLEN);
+					Load(pingPath);
+					SafeFormat(levelpath, sizeof(levelpath), "%s", ld.path);
+					platform.utilities.AddSubtitle(platform, ld.shortName);
+				}
+				catch (IException& ex)
+				{
+					platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, "Level find must be within content folder");
+				}
 			}
 		}
 
@@ -1108,10 +1117,10 @@ namespace
 			}
 		}
 
-		void Load(cstr filename)
+		void Load(cstr pingName)
 		{
 			HV::Events::SetNextLevelEvent setNextLevelEvent;
-			setNextLevelEvent.name = filename;
+			setNextLevelEvent.name = pingName;
 
 			platform.publisher.Publish(setNextLevelEvent);
 		}

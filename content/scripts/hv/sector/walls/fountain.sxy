@@ -30,11 +30,14 @@
 	
 	(IInstances instances (Instances))
 	
-	(MaterialId matBrickId = (instances.GetRandomMaterialId (#MaterialCategoryRock)))
-	(MaterialVertexData brick = 0xFF000000 matBrickId 0.05)
-	(MaterialVertexData brickSides = 0xFF000001 matBrickId 0.0)
-	(MaterialVertexData brickBack = 0x7F003002 matBrickId 0.1)
-	(MaterialVertexData water = 0x00FF8080 matBrickId 0.5)
+	(MaterialVertexData brick)
+	(sector.GetMaterial brick "brickwork")
+	
+	(MaterialId matBrickId = brick.materialIndex)
+	(brick.gloss = 0.0001)
+	(MaterialVertexData brickSides = brick.materialColour matBrickId 0.001)
+	(MaterialVertexData brickBack = brick.materialColour matBrickId 0.0021)
+	(MaterialVertexData water = 0x00FFA0A0 matBrickId 0.03125)
 	
 	(MaterialId shelfId = (instances.GetRandomMaterialId (#MaterialCategoryWood)))
 	(MaterialVertexData pictureFrame = 0xFFFFFFFF shelfId 0.05)
@@ -71,9 +74,9 @@
 	
 	(qst.PushQuad qv brick)
 	
-	(qst.SplitAcrossTangent 0.1 0xFF000000 0xFF000000 0x1F000000 brick brick)
+	(qst.SplitAcrossTangent 0.1 brick.materialColour brick.materialColour  0x1F000000 brick brick)
 	(qst.MoveOutputToInputWithMat brick)
-	(qst.SplitAcrossTangent 0.9 0x1F000000 0xFF000000 0xFF000000 brick brick)
+	(qst.SplitAcrossTangent 0.9 0x1F000000 brick.materialColour brick.materialColour  brick brick)
 	(qst.MoveOutputToInputWithMat brick)
 	(qst.Intrude hole depth uvScale brickSides brickBack)
 	

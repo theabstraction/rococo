@@ -1598,7 +1598,8 @@ namespace ANON
 		  char path[256];
 		  args.GetPingPath(path, 256);
 
-		  if (platform.installation.DoPingsMatch(path, wallScript) && scriptWalls)
+		  cstr theWallScript = *wallScript ? wallScript : "!scripts/hv/sector/walls/stretch.bricks.sxy";
+		  if (platform.installation.DoPingsMatch(path, theWallScript) && scriptWalls)
 		  {
 			  FinalizeGaps();
 			  Rebuild();

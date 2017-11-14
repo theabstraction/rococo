@@ -224,8 +224,8 @@
 	
 	(IInstances instances (Instances))
 	
-	(MaterialId matBrickId = (instances.GetRandomMaterialId (#MaterialCategoryRock)))
-	(MaterialVertexData brick = 0xFF000000 matBrickId 0.0)
+	(MaterialVertexData brick)
+	(sector.GetMaterial brick "brickwork")
 	
 	(IRimTesselator rim (RimTesselator))	
 	(rim.Clear)
@@ -241,9 +241,10 @@
 	(rim.AddPointXY    -1 0)
 	(rim.CloseLoop)	
 	
-	(MaterialId matMarbleId = (instances.GetRandomMaterialId (#MaterialCategoryMarble)))
-	(MaterialVertexData marble = 0xFF000000 matMarbleId 0.0)
-	(AddRimFrameToWall segment sector rim marble)
+	(MaterialVertexData cement)
+	(sector.GetMaterial cement "cement")
+	
+	(AddRimFrameToWall segment sector rim cement)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):

@@ -38,7 +38,7 @@ namespace HV
 
 namespace HV
 {
-   void RunEnvironmentScript(Cosmos& e, cstr name)
+   void RunEnvironmentScript(Cosmos& e, cstr name, bool releaseAfterUse)
    {
       class ScriptContext: public IEventCallback<ScriptCompileArgs>
       {
@@ -65,5 +65,10 @@ namespace HV
       } sc(e);
 
       sc.Execute(name);
+
+	  if (releaseAfterUse)
+	  {
+		  e.platform.sourceCache.Release(name);
+	  }
    }
 }

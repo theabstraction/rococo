@@ -455,6 +455,7 @@ namespace Rococo
       ticks CpuTicks();
       ticks CpuHz();
 	  ticks UTCTime();
+	  void FormatTime(ticks utcTime, char* buffer, size_t nBytes);
       bool StripLastSubpath(rchar* fullpath);
       bool IsFileExistant(cstr path);
       void Format_C_Error(int errorCode, rchar* buffer, size_t capacity);

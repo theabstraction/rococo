@@ -685,6 +685,7 @@ namespace Rococo
 		{
 			ISParserTree* tree;
 			ISourceCode* code;
+			OS::ticks loadTime;
 		};
 		std::unordered_map<std::string, Binding> sources;
 		AutoFree<IExpandingBuffer> fileBuffer;
@@ -721,9 +722,13 @@ namespace Rococo
 
 		virtual void ShowVenue(IMathsVisitor& visitor)
 		{
+			visitor.ShowString("", "   File Length     Timestamp");
+
 			for (auto i : sources)
 			{
-				visitor.ShowString(i.first.c_str(), "%8d bytes", i.second.code->SourceLength());
+				char theTime[256];
+				OS::FormatTime(i.second.loadTime, theTime, 256);
+				visitor.ShowString(i.first.c_str(), "%8d bytes      %8.8s", i.second.code->SourceLength(), theTime);
 			}
 		}
 
@@ -734,7 +739,10 @@ namespace Rococo
 
 		virtual ISParserTree* GetSource(cstr resourceName)
 		{
-			auto i = sources.find(resourceName);
+			char sysPath[IO::MAX_PATHLEN];
+			installation.ConvertPingPathToSysPath(resourceName, sysPath, IO::MAX_PATHLEN);
+
+			auto i = sources.find(sysPath);
 			if (i != sources.end())
 			{
 				if (i->second.tree == nullptr)
@@ -749,22 +757,25 @@ namespace Rococo
 				}
 			}
 
-			installation.LoadResource(resourceName, *fileBuffer, 64_megabytes);
+			installation.LoadResource(sysPath, *fileBuffer, 64_megabytes);
 
-			ISourceCode* src = DuplicateSourceCode(installation.OS(), *unicodeBuffer, spp(), *fileBuffer, resourceName);
-			sources[resourceName] = Binding{ nullptr, src };
+			ISourceCode* src = DuplicateSourceCode(installation.OS(), *unicodeBuffer, spp(), *fileBuffer, sysPath);
+			sources[sysPath] = Binding{ nullptr, src, 0 };
 
 			// We have cached the source, so that if tree generation creates an exception, the source codes is still existant
 
 			ISParserTree* tree = spp().CreateTree(*src);
-			sources[resourceName] = Binding{ tree, src };
+			sources[sysPath] = Binding{ tree, src, OS::UTCTime() };
 
 			return tree;
 		}
 
 		virtual void Release(cstr resourceName)
 		{
-			auto i = sources.find(resourceName);
+			char sysPath[IO::MAX_PATHLEN];
+			installation.ConvertPingPathToSysPath(resourceName, sysPath, IO::MAX_PATHLEN);
+
+			auto i = sources.find(sysPath);
 			if (i != sources.end())
 			{
 				i->second.code->Release();

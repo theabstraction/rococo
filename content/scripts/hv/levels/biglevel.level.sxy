@@ -66,10 +66,10 @@
 	(sectors.AddVertex -22.000000 4.000000)
 	(sectors.AddVertex -20.000000 4.000000)
 
-	(sectors.SetTemplateMaterial "brickwork"   1 0xe084be23 "random")
+	(sectors.SetTemplateMaterial "brickwork"   1 0xe084beaf "random")
 	(sectors.SetTemplateMaterial "mulliions"   3 0xdb0d5e24 "random")
 	(sectors.SetTemplateMaterial "floor"       2 0xeae9bbf1 "random")
-	(sectors.SetTemplateMaterial "cement"      0 0xcf52aed6 "random")
+	(sectors.SetTemplateMaterial "cement"      0 0x800c0e23 "random")
 	(sectors.SetTemplateMaterial "ceiling"     2 0xcb873cdb "random")
 	(sectors.SetTemplateMaterial "rails"       3 0xd1b3de47 "random")
 	(sectors.SetTemplateMaterial "casing"      4 0xf7097d5a "random")
@@ -236,7 +236,7 @@
 	(sectors.AddVertex -24.000000 6.000000)
 	(sectors.AddVertex -28.000000 10.000000)
 
-	(sectors.SetTemplateMaterial "brickwork"   1 0xf1befe8d "random")
+	(sectors.SetTemplateMaterial "brickwork"   1 0x2000008d "#m/metal/white.metal.1.jpg")
 	(sectors.SetTemplateMaterial "mulliions"   3 0xea4146c2 "random")
 	(sectors.SetTemplateMaterial "floor"       2 0xc67e8c06 "random")
 	(sectors.SetTemplateMaterial "cement"      0 0xcfa0ff71 "random")
@@ -257,7 +257,7 @@
 
 	(sectors.SetTemplateMaterial "brickwork"   1 0xc9899f7d "random")
 	(sectors.SetTemplateMaterial "mulliions"   3 0xca335366 "random")
-	(sectors.SetTemplateMaterial "floor"       0 0xd8147b72 "random")
+	(sectors.SetTemplateMaterial "floor"       1 0xd8147b72 "#m/mud/clay.2.jpg")
 	(sectors.SetTemplateMaterial "cement"      0 0xceb8fd1b "random")
 	(sectors.SetTemplateMaterial "ceiling"     2 0xf944f00d "random")
 	(sectors.SetTemplateMaterial "rails"       4 0xeb4c5e10 "random")
