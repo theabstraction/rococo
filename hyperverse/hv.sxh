@@ -52,6 +52,7 @@
 		(GetSegment (Int32 ringIndex)(WallSegment segment))
 		(GetGap (Int32 ringIndex)(GapSegment segment))
 		(AddWallTriangle (const Vertex a)(const Vertex b)(const Vertex c))
+		(GetMaterial (MaterialVertexData mat)(IString componentClass))
 	)
 	(factory HV.SectorWallTesselator)
 )

@@ -241,7 +241,6 @@ namespace HV
 		   mode->UpdateAI(clock);
 
 		   e.platform.camera.Update(clock);
-		   //    e.camera.Venue().ShowVenue(e.mathsDebugger);
 
 		   GuiRect fullRect{ 0,0,metrics.screenSpan.x, metrics.screenSpan.y };
 		   editorPanel->Root()->Base()->SetRect(fullRect);
@@ -364,6 +363,7 @@ namespace HV
 {
    IApp* CreateApp(Platform& p)
    {
+	   p.installation.Macro("#walls", "!scripts/hv/sector/walls/");
       return new HV::App(p);
    }
 }

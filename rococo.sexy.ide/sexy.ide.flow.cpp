@@ -24,9 +24,10 @@ namespace
 	{
 		IDebuggerWindow& debugger;
 		ScriptLogger(IDebuggerWindow& _debugger) : debugger(_debugger) {}
-
+		char lastError[1024] = { 0 };
 		virtual void Write(csexstr text)
 		{
+			SafeFormat(lastError, sizeof(lastError), "%s", text);
 			debugger.Log("%s", text);
 		}
 
@@ -211,17 +212,18 @@ namespace Rococo
 
 				while (OS::IsRunning())
 				{
+					logger.lastError[0] = 0;
 					Script::CScriptSystemProxy ssp(Rococo::Compiler::ProgramInitParameters(maxBytes), logger);
 					Script::IPublicScriptSystem& ss = ssp();
 					if (!IsPointerValid(&ss))
 					{
-						switch (exceptionHandler.GetScriptExceptionFlow("SexyScriptSystem", "Failed to create script system"))
+						switch (exceptionHandler.GetScriptExceptionFlow("SexyScriptSystem", logger.lastError))
 						{
 						case EScriptExceptionFlow_Ignore:
 							return 0;
 						case EScriptExceptionFlow_Retry:
 						case EScriptExceptionFlow_Terminate:
-							Throw(0, "Failed to create script system");
+							Throw(0, "Failed to create script system: %s", logger.lastError);
 						}
 					}
 

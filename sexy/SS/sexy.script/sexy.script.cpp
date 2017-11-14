@@ -485,9 +485,11 @@ namespace Rococo
 				AddNativeLibrary(SEXTEXT("Sexy.NativeLib.Reflection"));
 				AddNativeLibrary(SEXTEXT("Sexy.NativeLib.Maths"));
 			}
-			catch (IException&)
+			catch (IException& ex)
 			{
-				_logger.Write(SEXTEXT("Sexy: Error reading common source files."));
+				char msg[2048];
+				SafeFormat(msg, sizeof(msg), "Sexy: Error reading native files: %s", ex.Message());
+				_logger.Write(msg);
 				delete scripts;
 				throw;
 			}

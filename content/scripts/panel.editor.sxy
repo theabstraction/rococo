@@ -71,7 +71,7 @@
 	(IPaneBuilder builder (PaneBuilder))
 	(IPaneContainer root = builder.Root)
 	(IPane pane = root.Base)
-	(SetOpaqueBackground pane)
+	(SetTransparentBackground pane)
 	
 	(Recti screen)
 	(pane.GetRect screen)
@@ -83,7 +83,7 @@
 	(SetTransparentBackground cbase)
 	(cbase.SetPopulator 0 "sector_editor")
 	
-	(Recti menuRect = 10 10 110 98)
+	(Recti menuRect = 10 10 110 130)
 	(IPaneContainer menu = (container.AddContainer menuRect))
 	(IPane mbase = menu.Base)
 	(mbase.SetColourBk1   0xAF000000 0xAF000000)
@@ -96,6 +96,8 @@
 	(AddLabel "Save" menu "editor.save" false)
 	(AddRadio "Vertices" menu "editor.edit_mode" "v")
 	(AddRadio "Sectors" menu "editor.edit_mode" "s")
+	(AddRadio "Opaque" menu "editor.transparency" "o")
+	(AddRadio "Clear" menu "editor.transparency" "t")
 	
 	(mbase.AlignLeftEdges 4 false)
 	(mbase.AlignRightEdges 4 false)

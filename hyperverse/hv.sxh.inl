@@ -148,6 +148,26 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddWallTriangle(*a, *b, *c);
 	}
+	void NativeHVISectorWallTesselatorGetMaterial(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _componentClass;
+		ReadInput(_componentClass, _sf, -_offset);
+		fstring componentClass { _componentClass->buffer, _componentClass->length };
+
+
+		MaterialVertexData* mat;
+		_offset += sizeof(mat);
+		ReadInput(mat, _sf, -_offset);
+
+		HV::ISectorWallTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetMaterial(*mat, componentClass);
+	}
 
 	void NativeGetHandleForHVSectorWallTesselator(NativeCallEnvironment& _nce)
 	{
@@ -171,6 +191,7 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetSegment, nullptr, SEXTEXT("ISectorWallTesselatorGetSegment (Pointer hObject)(Int32 ringIndex)(HV.WallSegment segment) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetGap, nullptr, SEXTEXT("ISectorWallTesselatorGetGap (Pointer hObject)(Int32 ringIndex)(HV.GapSegment segment) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorAddWallTriangle, nullptr, SEXTEXT("ISectorWallTesselatorAddWallTriangle (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetMaterial, nullptr, SEXTEXT("ISectorWallTesselatorGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ICorridor 

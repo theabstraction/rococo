@@ -221,7 +221,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 
 	TSectorSet visibleSectorsThisTimestep;
 
-	void ComputerVisibleSectorsThisTimestep()
+	void ComputeVisibleSectorsThisTimestep()
 	{
 		visibleSectorsThisTimestep.clear();
 
@@ -917,8 +917,8 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 	void UpdateAI(const IUltraClock& clock) override
 	{
 		e.platform.gui.RegisterPopulator("fps", this);
-		ComputerVisibleSectorsThisTimestep();
 		UpdatePlayer(clock.DT());
+		ComputeVisibleSectorsThisTimestep();
 	}
 
 	bool OnKeyboardEvent(const KeyboardEvent& k)

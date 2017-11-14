@@ -109,7 +109,7 @@ namespace
 			HV::GraphicsEx::DrawPointer(grc, labelPos, angles.heading, RGBAb(0, 0, 0), RGBAb(255, 255, 0));
 		}
 
-		void Render(IGuiRenderContext& grc, const ISector* litSector)
+		void Render(IGuiRenderContext& grc, const ISector* litSector, bool isTransparent)
 		{
 			grc.Renderer().GetGuiMetrics(metrics);
 
@@ -129,9 +129,11 @@ namespace
 				pixelOffset.y = (-delta.y - grabbedOffset.y) % gridlinePixelWidth;
 			}
 
-			Rococo::Graphics::DrawRectangle(grc, { 0,0,metrics.screenSpan.x, metrics.screenSpan.y }, RGBAb(0, 0, 0, 224), RGBAb(0, 0, 0, 224));
-
-			DrawGridLines(grc);
+			if (!isTransparent)
+			{
+				Rococo::Graphics::DrawRectangle(grc, { 0,0,metrics.screenSpan.x, metrics.screenSpan.y }, RGBAb(0, 0, 0, 224), RGBAb(0, 0, 0, 224));
+				DrawGridLines(grc);
+			}
 
 			Vec2i centreOffseti = GetScreenPosition(Vec2{ 0, 0 });
 			Vec2 centreOffset{ (float)centreOffseti.x, (float)centreOffseti.y };
@@ -943,6 +945,7 @@ namespace
 		ToggleEventHandler editModeHandler;
 		ToggleEventHandler textureTargetHandler;
 		ToggleEventHandler scrollLock;
+		ToggleEventHandler transparency;
 
 		AutoFree<IBloodyPropertySetEditorSupervisor> wallEditor;
 		AutoFree<IBloodyPropertySetEditorSupervisor> floorEditor;
@@ -1048,7 +1051,7 @@ namespace
 		void Render(IGuiRenderContext& grc, const GuiRect& absRect) override
 		{
 			grc.Renderer().GetGuiMetrics(metrics);
-			map.Render(grc, EditMode().GetHilight());
+			map.Render(grc, EditMode().GetHilight(), transparency.State() == 1);
 
 			EditMode().Render(grc, absRect);
 
@@ -1076,7 +1079,8 @@ namespace
 			ld.ext = "*.level.sxy";
 			ld.extDesc = "Sexy script level-file (.level.sxy)";
 			ld.shortName = nullptr;
-			*ld.path = 0;
+
+			platform.installation.ConvertPingPathToSysPath("!scripts/hv/levels/*.level.sxy", ld.path, sizeof(ld.path));
 
 			if (platform.utilities.GetLoadLocation(platform.renderer.Window(), ld))
 			{
@@ -1165,7 +1169,8 @@ namespace
 			statusbar(CreateStatusBar(_platform.publisher)),
 			editModeHandler("editor.edit_mode", _platform.publisher, { "v", "s" }),
 			textureTargetHandler("editor.texture.target", _platform.publisher, { "w", "f", "c" }),
-			scrollLock("editor.texture.lock", _platform.publisher, { "U", "L" })
+			scrollLock("editor.texture.lock", _platform.publisher, { "U", "L" }),
+			transparency("editor.transparency", _platform.publisher, {"o", "t"})
 		{
 			REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorNew, "editor.new", nullptr);
 			REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorLoad, "editor.load", nullptr);
@@ -1179,6 +1184,7 @@ namespace
 
 			platform.publisher.Attach(this, HV::Events::changeDefaultTextureId);
 
+			transparency.SetState(0);
 			editModeHandler.SetState(0);
 			textureTargetHandler.SetState(0);
 			scrollLock.SetState(0);

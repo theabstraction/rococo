@@ -28,15 +28,11 @@
 	(q.d = colour)
 )
 
-(function AddQuadToWall (ISectorWallTesselator sector)(QuadVertices q)(MaterialId matId)-> :
-	(MaterialVertexData mata = q.colours.a matId 0)
-	(MaterialVertexData matb = q.colours.b matId 0)
-	(MaterialVertexData matc = q.colours.c matId 0)
-	(MaterialVertexData matd = q.colours.d matId 0)
-	(ObjectVertex a = q.positions.a q.normals.a (q.uv.left  q.uv.top)    mata)
-	(ObjectVertex b	= q.positions.b q.normals.b (q.uv.right q.uv.top)    matb)
-	(ObjectVertex c = q.positions.c q.normals.c (q.uv.right q.uv.bottom) matc)
-	(ObjectVertex d = q.positions.d q.normals.d (q.uv.left  q.uv.bottom) matd)
+(function AddQuadToWall (ISectorWallTesselator sector)(QuadVertices q)(MaterialVertexData mat)-> :
+	(ObjectVertex a = q.positions.a q.normals.a (q.uv.left  q.uv.top)    mat)
+	(ObjectVertex b	= q.positions.b q.normals.b (q.uv.right q.uv.top)    mat)
+	(ObjectVertex c = q.positions.c q.normals.c (q.uv.right q.uv.bottom) mat)
+	(ObjectVertex d = q.positions.d q.normals.d (q.uv.left  q.uv.bottom) mat)
 	(sector.AddWallTriangle a b c)
 	(sector.AddWallTriangle c d a)
 )
@@ -47,7 +43,8 @@
 	
 	(IInstances instances (Instances))
 	
-	(MaterialId matBrickId = (instances.GetRandomMaterialId (#MaterialCategoryRock)))
+	(MaterialVertexData brick)
+	(sector.GetMaterial brick "brickwork")
 		
 	(Float32 cementWidth = 0.05)	
 	(Float32 extrusion = 0.15)
@@ -60,15 +57,19 @@
 			(QuadVertices r)
 			(QuadVertices b)
 			(ft.GetStretchBondedBrick i j q t l r b cementWidth extrusion)	
-			(AddQuadToWall sector q matBrickId)
-			(AddQuadToWall sector t matBrickId)
-			(AddQuadToWall sector l matBrickId)
-			(AddQuadToWall sector r matBrickId)
-			(AddQuadToWall sector b matBrickId)
+			(AddQuadToWall sector q brick)
+			(AddQuadToWall sector t brick)
+			(AddQuadToWall sector l brick)
+			(AddQuadToWall sector r brick)
+			(AddQuadToWall sector b brick)
 		)
 	)
 	
-	(MaterialId matCementId = (instances.GetRandomMaterialId (#MaterialCategoryStone)))
+	(MaterialVertexData cement)
+	(sector.GetMaterial cement "cement")
+	
+//	(MaterialId matCementId = (instances.GetRandomMaterialId (#MaterialCategoryStone)))
+//	(MaterialVertexData cement = 0x3F808080 matCementId 0.0)
 	
 	(#for (Int32 i = 0)(i < nColumns)(#inc i)
 		(#for (Int32 j = 0)(j < nRows)(#inc j)		
@@ -76,7 +77,7 @@
 			(ft.GetBrickJoinRight i j q cementWidth)		
 
 			(SetColours	q.colours 0x3F808080)		
-			(AddQuadToWall sector q matCementId)
+			(AddQuadToWall sector q cement)
 		)
 	)
 	
@@ -84,7 +85,7 @@
 		(QuadVertices q)	
 		(ft.GetBrickBedTop j q cementWidth)	
 		(SetColours	q.colours 0x3F808080)		
-		(AddQuadToWall sector q matCementId)
+		(AddQuadToWall sector q cement)
 	)
 )
 
@@ -120,6 +121,5 @@
 		
 		(TesselateBrickwork ft seg sector)
 		(u = u1)
-	//	(TesselateArch seg sector u -> u)
 	)
 )

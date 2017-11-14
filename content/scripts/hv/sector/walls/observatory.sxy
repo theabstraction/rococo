@@ -64,8 +64,8 @@
 	
 	(IInstances instances (Instances))
 	
-	(MaterialId matBrickId = (instances.GetRandomMaterialId (#MaterialCategoryRock)))
-	(MaterialVertexData brick = 0xFF000000 matBrickId 0.0)
+	(MaterialVertexData brick)
+	(sector.GetMaterial brick "brickwork")
 	
 	(MaterialId metId = (instances.GetRandomMaterialId (#MaterialCategoryMetal)))
 	(MaterialVertexData metal = 0x8F000000 metId 0.1)
@@ -103,9 +103,9 @@
 	(qv.colours.d = brick.materialColour)
 	
 	(qst.PushQuad qv brick)
-	(qst.SplitAcrossTangent 0.1 0xFF000000 0xFF000000 0x1F000000 brick brick)
+	(qst.SplitAcrossTangent 0.1 brick.materialColour brick.materialColour 0x1F000000 brick brick)
 	(qst.MoveOutputToInputWithMat brick)
-	(qst.SplitAcrossTangent 0.9 0x1F000000 0xFF000000 0xFF000000 brick brick)
+	(qst.SplitAcrossTangent 0.9 0x1F000000 brick.materialColour brick.materialColour brick brick)
 	(qst.MoveOutputToInputWithMat brick)
 	
 	(qst.Intrude hole depth uvScale metal glass)

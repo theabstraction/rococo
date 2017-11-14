@@ -283,7 +283,7 @@ namespace ANON
 	  void TesselateWalls()
 	  {
 		  auto walls = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Brickwork);
-		  TesselateWallsFromSegments(walls->second->mvd.materialId);
+		  TesselateWallsFromSegments(walls->second->mvd);
 	  }
 
 	  void MakeBounds(Gap& g)
@@ -339,7 +339,7 @@ namespace ANON
 		  }
 	  }
 
-      float AddWallSegment(const Vec2& p, const Vec2& q, float h0, float h1, float u, MaterialId id)
+      float AddWallSegment(const Vec2& p, const Vec2& q, float h0, float h1, float u, const MaterialVertexData& brickwork)
       {
          Vec3 up{ 0, 0, 1 };
          Vec3 P0 = { p.x, p.y, h0 };
@@ -361,7 +361,7 @@ namespace ANON
          QV1.position = Q1;
 
          PV0.normal = PV1.normal = QV0.normal = QV1.normal = normal;
-		 PV0.material = PV1.material = QV0.material = QV1.material = { RGBAb(0, 0, 0, 255), id };
+		 PV0.material = PV1.material = QV0.material = QV1.material = brickwork;
 
          PV0.uv.y = QV0.uv.y = uvScale * h0;
          PV1.uv.y = QV1.uv.y = uvScale * h1;
@@ -393,11 +393,29 @@ namespace ANON
 		  if (!deleting)
 		  {
 			  this->host = host;
+
+			  for (auto& mb : nameToMaterial)
+			  {
+				  try
+				  {
+					  if (*mb.second->persistentName == '!' || *mb.second->persistentName == '#')
+					  {
+						  mb.second->mvd.materialId = platform.instances.GetMaterialDirect(to_fstring(mb.second->persistentName));
+						  continue;
+					  }
+				  }
+				  catch (IException&)
+				  {
+				  }
+
+				  mb.second->mvd.materialId = platform.instances.GetRandomMaterialId(mb.second->category);
+			  }
+
 			  InvokeSectorRebuild(false);
 		  }
 	  }
 
-      float AddSlopedWallSegment(const Vec2& p, const Vec2& q, float pFloor, float qFloor, float pCeiling, float qCeiling, float u, MaterialId id)
+      float AddSlopedWallSegment(const Vec2& p, const Vec2& q, float pFloor, float qFloor, float pCeiling, float qCeiling, float u, const MaterialVertexData& brickwork)
       {
          Vec3 up{ 0, 0, 1 };
          Vec3 P0 = { p.x, p.y, pFloor };
@@ -419,7 +437,7 @@ namespace ANON
          QV1.position = Q1;
 
          PV0.normal = PV1.normal = QV0.normal = QV1.normal = Normalize(normal);
-		 PV0.material = PV1.material = QV0.material = QV1.material = { RGBAb(0, 0, 0, 255), id };
+		 PV0.material = PV1.material = QV0.material = QV1.material = brickwork;
 
          PV0.uv.y = uvScale * pFloor;
          QV0.uv.y = uvScale * qFloor;
@@ -446,7 +464,7 @@ namespace ANON
          return u;
       }
 
-      void RaiseSlopeBetweenGaps(MaterialId id)
+      void RaiseSlopeBetweenGaps(const MaterialVertexData& brickwork)
       {
          float h00, h01, h10, h11;
 
@@ -468,12 +486,12 @@ namespace ANON
             h11 = gapSegments[0].z1;
          }
 
-         AddSlopedWallSegment(p, q, h00, h01, h10, h11, 0.0f, id);
+         AddSlopedWallSegment(p, q, h00, h01, h10, h11, 0.0f, brickwork);
 
          p = floorPerimeter[wallSegments[1].perimeterIndexStart];
          q = floorPerimeter[wallSegments[1].perimeterIndexEnd];
 
-         AddSlopedWallSegment(p, q, h01, h00, h11, h10, 0.0f, id);
+         AddSlopedWallSegment(p, q, h01, h00, h11, h10, 0.0f, brickwork);
       }
 
 	  bool RunSectorGenWallScript()
@@ -489,17 +507,17 @@ namespace ANON
 			  {
 			  }
 
-			  virtual int32 NumberOfSegments()
+			  int32 NumberOfSegments() override
 			  {
 				  return (int32) This->wallSegments.size();
 			  }
 
-			  virtual int32 NumberOfGaps()
+			  int32 NumberOfGaps() override
 			  {
 				  return (int32) This->gapSegments.size();
 			  }
 
-			  virtual void GetSegment(int32 index, HV::WallSegment& segment)
+			  void GetSegment(int32 index, HV::WallSegment& segment) override
 			  {
 				  if (index < 0) Throw(0, "ISectorWallTesselator::GetSegment(...): Index %d < 0", index);
 				  int32 i = index % (int32) This->wallSegments.size();
@@ -541,7 +559,7 @@ namespace ANON
 				  segment.span = { tangentLen, segment.quad.a.z - segment.quad.d.z };
 			  }
 
-			  virtual void GetGap(int32 index, HV::GapSegment& segment)
+			  void GetGap(int32 index, HV::GapSegment& segment) override
 			  {
 				  if (index < 0) Throw(0, "ISectorWallTesselator::GetGap(...): Index %d < 0", index);
 				  if (This->gapSegments.empty()) Throw(0, "ISectorWallTesselator::GetGap(...) : There are no gaps");
@@ -561,7 +579,7 @@ namespace ANON
 				  segment.otherZ1 = This->Z1();
 			  }
 
-			  virtual void AddWallTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c)
+			  void AddWallTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c) override
 			  {
 				  if (a.position == b.position) return;
 				  if (a.position == c.position) return;
@@ -576,10 +594,18 @@ namespace ANON
 				  This->wallTriangles.push_back({ a,b,c });
 			  }
 
-			  virtual void OnEvent(ScriptCompileArgs& args)
+			  void OnEvent(ScriptCompileArgs& args) override
 			  {
 				  This->wallTriangles.clear();
 				  AddNativeCalls_HVISectorWallTesselator(args.ss, this);
+			  }
+
+			  void GetMaterial(MaterialVertexData& mat, const fstring& componentClass) override
+			  {
+				  if (!This->TryGetMaterial(componentClass, mat))
+				  {
+					  Throw(0, "ISectorWallTesselator::GetMaterial(...) Unknown component class: %s", (cstr)componentClass);
+				  }
 			  }
 		  } scriptCallback(this);  
 
@@ -598,7 +624,7 @@ namespace ANON
 		  }
 	  }
 
-	  void CreateFlatWallsBetweenGaps(MaterialId id)
+	  void CreateFlatWallsBetweenGaps(const MaterialVertexData& brickwork)
 	  {
 		  float u = 0;
 
@@ -613,7 +639,7 @@ namespace ANON
 				  Vec2 p = floorPerimeter[segment.perimeterIndexStart];
 				  Vec2 q = floorPerimeter[segment.perimeterIndexEnd];
 
-				  u = AddWallSegment(p, q, z0, z1, u, id);
+				  u = AddWallSegment(p, q, z0, z1, u, brickwork);
 			  }
 		  }
 
@@ -632,7 +658,7 @@ namespace ANON
 				  Vec2 p = gap.a;
 				  Vec2 q = gap.b;
 
-				  AddWallSegment(p, q, foreignHeight, z1, 0, id);
+				  AddWallSegment(p, q, foreignHeight, z1, 0, brickwork);
 			  }
 
 			  float foreignFloorHeight = gap.z0;
@@ -646,23 +672,23 @@ namespace ANON
 				  Vec2 p = gap.a;
 				  Vec2 q = gap.b;
 
-				  AddWallSegment(p, q, z0, foreignFloorHeight, 0, id);
+				  AddWallSegment(p, q, z0, foreignFloorHeight, 0, brickwork);
 			  }
 		  }
 	  }
 
-      void TesselateWallsFromSegments(MaterialId id)
+      void TesselateWallsFromSegments(const MaterialVertexData& brickwork)
       {
          wallTriangles.clear();
 
          bool isCorridor = IsCorridor();
          if (isCorridor)
          {
-            RaiseSlopeBetweenGaps(id);
+            RaiseSlopeBetweenGaps(brickwork);
          }
          else
          {
-			 CreateFlatWallsBetweenGaps(id);
+			 CreateFlatWallsBetweenGaps(brickwork);
          }
 
 		 isDirty = true;
@@ -683,7 +709,7 @@ namespace ANON
 			  mat->mvd.colour.red = rand() % 256;
 			  mat->mvd.colour.green = rand() % 256;
 			  mat->mvd.colour.blue = rand() % 256;
-			  mat->mvd.colour.alpha = rand() % 64;
+			  mat->mvd.colour.alpha = 191 + rand() % 64;
 		  }
 
 		  nameToMaterial[bcmc] = mat;
@@ -1177,7 +1203,7 @@ namespace ANON
 		  auto floor = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Floor);
 		  auto ceiling = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Ceiling);
 
-		  TesselateFloorAndCeiling(floor->second->mvd.materialId, ceiling->second->mvd.materialId);
+		  TesselateFloorAndCeiling(floor->second->mvd, ceiling->second->mvd);
 
 		  if (IsCorridor() && hasDoor)
 		  {
@@ -1190,7 +1216,7 @@ namespace ANON
 		  RandomizeLight();
 	  }
 
-      void TesselateFloorAndCeiling(MaterialId floorId, MaterialId ceilingId)
+      void TesselateFloorAndCeiling(const MaterialVertexData& floorMat, const MaterialVertexData& ceilingMat)
       {
          size_t len = sizeof(Vec2) * floorPerimeter.size();
          Vec2* tempArray = (Vec2*)alloca(len);
@@ -1212,8 +1238,8 @@ namespace ANON
             std::vector<VertexTriangle>* ceilingTriangles;
             Sector* This;
 
-			MaterialId floorId;
-			MaterialId ceilingId;
+			MaterialVertexData floorMat;
+			MaterialVertexData ceilingMat;
 
             virtual void Append(const Triangle2d& t)
             {
@@ -1241,7 +1267,7 @@ namespace ANON
                Vec3 up = -Normalize(upAny);
 
                a.normal = b.normal = c.normal = up;
-			   a.material = b.material = c.material = { RGBAb(0, 0, 0, 255), floorId };
+			   a.material = b.material = c.material = floorMat;
 
                a.uv.x = Vec2{ uvScale * Vec2{ t.A.x,t.A.y } +uvOffset }.x;
                a.uv.y = Vec2{ uvScale * Vec2{ t.A.x,t.A.y } +uvOffset }.y;
@@ -1263,7 +1289,7 @@ namespace ANON
                T.b = a;
                T.c = c;
 
-			   T.a.material.materialId = T.b.material.materialId = T.c.material.materialId = ceilingId;
+			   T.a.material = T.b.material = T.c.material = ceilingMat;
                ceilingTriangles->push_back(T);
             }
          } builder;
@@ -1271,8 +1297,8 @@ namespace ANON
          floorTriangles.clear();
          ceilingTriangles.clear();
 
-		 builder.ceilingId = ceilingId;
-		 builder.floorId = floorId;
+		 builder.ceilingMat = ceilingMat;
+		 builder.floorMat = floorMat;
          builder.z0 = z0;
          builder.z1 = z1;
          builder.uvOffset = uvOffset;
@@ -1492,6 +1518,20 @@ namespace ANON
 	  void NotifyChanged()
 	  {
 		  dirty = true;
+		  char sysPath[IO::MAX_PATHLEN];
+
+		  if (*wallScript)
+		  {
+			  try
+			  {
+				  platform.installation.ConvertPingPathToSysPath(wallScript, sysPath, IO::MAX_PATHLEN);
+				  platform.installation.ConvertSysPathToMacroPath(sysPath, wallScript, IO::MAX_PATHLEN, "#walls");
+			  }
+			  catch (IException&)
+			  {
+
+			  }
+		  }
 	  }
 
 	  void InvokeSectorRebuild(bool force) override
@@ -1558,7 +1598,7 @@ namespace ANON
 		  char path[256];
 		  args.GetPingPath(path, 256);
 
-		  if (strstr(path, wallScript) && scriptWalls)
+		  if (platform.installation.DoPingsMatch(path, wallScript) && scriptWalls)
 		  {
 			  FinalizeGaps();
 			  Rebuild();
@@ -1616,6 +1656,10 @@ namespace ANON
 		  char colour[32];
 		  SafeFormat(colour, sizeof(colour), "%s colour", bcmc);
 		  editor.AddColour(colour, &i->second->mvd.colour);
+
+		  char gloss[32];
+		  SafeFormat(gloss, sizeof(gloss), "%s gloss", bcmc);
+		  editor.AddFloat(gloss, &i->second->mvd.gloss, 0, 1);
 	  }
 
 	  void SaveTemplate(StringBuilder& sb)
@@ -1657,8 +1701,22 @@ namespace ANON
 			  AddToProperties(GraphicsEx::BodyComponentMatClass_Cement, editor);
 			  editor.AddSpacer();
 			  editor.AddBool("script walls", &scriptWalls);
-			  editor.AddMessage("Default: !scripts/hv/sector/walls/stretch.bricks.sxy");
-			  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN, "!scripts/hv/sector/walls/");
+			  editor.AddMessage("Default: #walls/stretch.bricks.sxy");
+
+			  try
+			  {
+				  char sysPath[IO::MAX_PATHLEN];
+				  if (*wallScript)
+				  {
+					  platform.installation.ConvertPingPathToSysPath(wallScript, sysPath, IO::MAX_PATHLEN);
+					  platform.installation.ConvertSysPathToMacroPath(sysPath, wallScript, IO::MAX_PATHLEN, "#walls");
+				  }
+				  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN, "!scripts/hv/sector/walls/*.sxy");
+			  }
+			  catch (IException&)
+			  {
+				  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN, "!scripts/hv/sector/walls/*.sxy");
+			  }
 		  }
 		  else if (Eq(category, "ceiling"))
 		  {

@@ -505,6 +505,15 @@ void validateTeselator()
 void validateConeCode()
 {
 	{
+		Vec3 eye = { 4.550099f, 1.103791f, 1.991499f };
+		Vec3 dir = { -0.867786f, 0.496937f, 0.000863f };
+		auto coneAngle = 0_degrees;
+		Vec3 pos1 = { -18.f , 14.f, 2.f };
+		auto cc = GetLineParameterAlongConeJoiningLineToPointAndCrossingNearestPointOnConeToPoint(eye, dir, coneAngle, pos1);
+	//	VALIDATE(cc.t == 5.0f);
+	}
+
+	{
 		Vec3 eye = { 0, 0, 0 };
 		Vec3 dir = { 0, 1, 0 };
 		auto coneAngle = 45_degrees;

@@ -767,7 +767,16 @@ namespace Rococo
 		float t0, t1;
 		if (!TryGetRealRoots(t0, t1, a, b, c))
 		{
-			Throw(0, "Could not determine t for cone equation.\n eye (%f, %f %f),\n dir (%f, %f, %f),\n coneAngle (%f),\n pos (%f, %f, %f)", eye.x, eye.y, eye.z, dir.x, dir.y, dir.z, coneAngle, pos.x, pos.y, pos.z);
+			// Sometimes small rounding errors prevent the solution, so handle case 4ac slightly larger than b squared
+			float delta = Sq(b) - 4.0f * a * c;
+			if (delta < -0.1f)
+			{
+				// Can't think of genuine case when there are no solutions to the problem
+				Throw(0, "Could not determine t for cone equation.\n eye (%f, %f %f),\n dir (%f, %f, %f),\n coneAngle (%f),\n pos (%f, %f, %f). Delta: %f", eye.x, eye.y, eye.z, dir.x, dir.y, dir.z, coneAngle, pos.x, pos.y, pos.z, delta);
+			}
+
+			// Assume delta is zero then root is -b / 2a
+			t0 = t1 = -b / (2.0f * a);
 		}
 
 		if (t0 > t1) std::swap(t0, t1);

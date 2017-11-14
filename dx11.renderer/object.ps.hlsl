@@ -102,7 +102,7 @@ float4 per_pixel_lighting(PixelVertex p)
 
 		float3 r = reflect(lightToPixelDir.xyz, normal);
 
-		float dotProduct = -dot(r, viewDir.xyz);
+		float dotProduct = dot(r, incident);
 		float shine = 240.0f;
 		float specular = p.uv_material_and_gloss.w * max(pow(dotProduct, shine), 0);
 		

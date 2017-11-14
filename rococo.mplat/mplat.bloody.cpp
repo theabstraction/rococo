@@ -22,15 +22,301 @@ namespace
 		virtual RGBAb NameColour() const = 0;
 	};
 
-	class BloodyFloatBinding : public IBloodyPropertyType
+	ROCOCOAPI IValidator
+	{
+		virtual bool IsLegal(char c, int charPos) const = 0;
+		virtual void OnDetached(char* buffer) = 0;
+	};
+
+	class TextEditorBox : public IKeyboardSink
+	{
+		char* buffer;
+		int32 capacity;
+		int32 cursorPos = 0;
+		Platform& platform;
+		bool defaultToEnd;
+		IValidator& validator;
+		IEventCallback<IBloodyPropertyType>& dirtNotifier;
+		IBloodyPropertyType& owner;
+	public:
+		TextEditorBox(Platform& _platform, IBloodyPropertyType& _owner, IEventCallback<IBloodyPropertyType>& _dirtNotifier, char* _buffer, size_t _capacity, bool _defaultToEnd, IValidator& _validator) :
+			platform(_platform),
+			owner(_owner),
+			dirtNotifier(_dirtNotifier),
+			buffer(_buffer),
+			capacity((int32)_capacity),
+			defaultToEnd(_defaultToEnd),
+			validator(_validator)
+		{
+		}
+
+		~TextEditorBox()
+		{
+			platform.gui.DetachKeyboardSink(this);
+		}
+
+		void Notify()
+		{
+			dirtNotifier.OnEvent(owner);
+		}
+
+		void PushBufferRightOne()
+		{
+			int32 len = (int32)strlen(buffer);
+			if (len >= capacity - 1)
+			{
+				return;
+			}
+
+			for (int32 i = len; i > cursorPos; --i)
+			{
+				buffer[i] = buffer[i - 1];
+			}
+		}
+
+
+		void DeleteRight(int pos)
+		{
+			int32 len = (int32)strlen(buffer);
+
+			for (int32 i = pos; i < len; ++i)
+			{
+				buffer[i] = buffer[i + 1];
+			}
+		}
+
+		void AddCharOverwrite(char c)
+		{
+			int len = (int)strlen(buffer);
+			if (cursorPos < len)
+			{
+				buffer[cursorPos++] = c;
+			}
+			else if (len < capacity - 1)
+			{
+				buffer[cursorPos++] = c;
+			}
+		}
+
+		void AddCharInsert(char c)
+		{
+			int len = (int)strlen(buffer);
+			if (len < capacity - 1)
+			{
+				PushBufferRightOne();
+				buffer[cursorPos++] = c;
+			}
+		}
+
+		virtual bool OnKeyboardEvent(const KeyboardEvent& key)
+		{
+			dirtNotifier.OnEvent(owner);
+
+			if (!key.IsUp())
+			{
+				switch (key.VKey)
+				{
+				case IO::VKCode_ENTER:
+					platform.gui.DetachKeyboardSink(this);
+					validator.OnDetached(buffer);
+					return true;
+				case IO::VKCode_BACKSPACE:
+					if (cursorPos > 0)
+					{
+						DeleteRight(cursorPos - 1);
+						cursorPos--;
+					}
+					return true;
+				case IO::VKCode_DELETE:
+					DeleteRight(cursorPos);
+					return true;
+				case IO::VKCode_HOME:
+					cursorPos = 0;
+					return true;
+				case IO::VKCode_END:
+					cursorPos = (int32)strlen(buffer);
+					return true;
+				case IO::VKCode_LEFT:
+					if (cursorPos > 0)
+					{
+						cursorPos--;
+					}
+					return true;
+				case IO::VKCode_RIGHT:
+					if (cursorPos < (int32)strlen(buffer))
+					{
+						cursorPos++;
+					}
+					return true;
+				}
+
+				char c = platform.keyboard.TryGetAscii(key);
+
+				if (!validator.IsLegal(c, cursorPos))
+				{
+					OS::BeepWarning();
+				}
+				else
+				{
+					if (c >= 32)
+					{
+						if (platform.gui.IsOverwriting())
+						{
+							AddCharOverwrite(c);
+						}
+						else
+						{
+							AddCharInsert(c);
+						}
+						return true;
+					}
+				}
+			}
+			return true;
+		}
+
+		void Click(bool clickedDown)
+		{
+			dirtNotifier.OnEvent(owner);
+
+			if (clickedDown)
+			{
+				if (platform.gui.CurrentKeyboardSink() == this)
+				{
+					platform.gui.DetachKeyboardSink(this);
+					validator.OnDetached(buffer);
+				}
+				else
+				{
+					platform.gui.AttachKeyboardSink(this);
+				}
+			}
+		}
+
+		void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		{
+			int32 len = (int32)strlen(buffer);
+			if (cursorPos > len)
+			{
+				cursorPos = len;
+			}
+
+			int x = rect.left + 4;
+			int y = Centre(rect).y;
+
+			if (platform.gui.CurrentKeyboardSink() == this)
+			{
+				Rococo::Graphics::DrawRectangle(rc, rect, RGBAb(64, 0, 0, 128), RGBAb(64, 0, 0, 255));
+				Rococo::Graphics::DrawBorderAround(rc, rect, { 1,1 }, RGBAb(255, 255, 255, 255), RGBAb(224, 224, 224, 255));
+			}
+
+			struct : IEventCallback<Rococo::Graphics::GlyphCallbackArgs>
+			{
+				int targetPos;
+				GuiRect cursorRect{ 0,0,0,0 };
+				GuiRect lastRect;
+				virtual void OnEvent(Rococo::Graphics::GlyphCallbackArgs& args)
+				{
+					if (args.index == targetPos)
+					{
+						cursorRect = args.rect;
+					}
+
+					lastRect = args.rect;
+				}
+			} cb;
+
+			cb.lastRect = { x, rect.top, x, rect.bottom };
+			cb.targetPos = cursorPos;
+
+			GuiRect clipRect = { x, rect.top, rect.right - 10, rect.bottom };
+
+			int pos = platform.gui.CurrentKeyboardSink() == this ? cursorPos : (defaultToEnd ? len : 0);
+
+			Rococo::Graphics::RenderVerticalCentredTextWithCallback(rc, pos, cb, buffer, colour, 10, { x, Centre(rect).y }, clipRect);
+
+			if (platform.gui.CurrentKeyboardSink() == this)
+			{
+				if (cb.cursorRect.left == cb.cursorRect.right)
+				{
+					cb.cursorRect = { cb.lastRect.right,  y - 5, cb.lastRect.right + 8,  y + 5 };
+				}
+
+				cb.cursorRect.right = cb.cursorRect.left + 8;
+
+				OS::ticks t = OS::CpuTicks();
+				OS::ticks hz = OS::CpuHz();
+				uint8 alpha = ((512 * t) / hz) % 255;
+
+				if (platform.gui.IsOverwriting())
+				{
+					Rococo::Graphics::DrawRectangle(rc, cb.cursorRect, RGBAb(255, 255, 255, alpha >> 1), RGBAb(255, 255, 255, alpha >> 1));
+				}
+				else
+				{
+					Rococo::Graphics::DrawLine(rc, 2, BottomLeft(cb.cursorRect), BottomRight(cb.cursorRect), RGBAb(255, 255, 255, alpha));
+				}
+			}
+		}
+	};
+
+	class BloodyFloatBinding : public IBloodyPropertyType, public IValidator
 	{
 		float *value;
+		float minValue;
+		float maxValue;
+		TextEditorBox teb;
+		Platform& platform;
+		char buffer[12];
 	public:
-		BloodyFloatBinding(IEventCallback<IBloodyPropertyType>& onNotify, float* _value) : value(_value)
+		BloodyFloatBinding(Platform& _platform, IEventCallback<IBloodyPropertyType>& onNotify, float* _value, float _minValue, float _maxValue) : 
+			value(_value),
+			minValue(_minValue),
+			maxValue(_maxValue),
+			platform(_platform),
+			teb(_platform, *this, onNotify, buffer, 12, false, *this)
 		{
 			if (value == nullptr)
 			{
 				Throw(0, "BloodyFloatBinding: null value");
+			}
+
+			SafeFormat(buffer, 12, "%f", *_value);
+		}
+
+		virtual bool IsLegal(char c, int charPos) const
+		{
+			if (c >= '0' && c <= '9')
+			{
+				return true;
+			}
+
+			if (charPos == 0)
+			{
+				if (c == '+' || c == '-')
+				{
+					return true;
+				}
+			}
+
+			if (c == '.')
+			{
+				if (strstr(buffer, ".") == nullptr)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		virtual void OnDetached(char* buffer)
+		{
+			if (1 == sscanf_s(buffer, "%f", value))
+			{
+				if (*value < minValue) *value = minValue;
+				if (*value > maxValue) *value = maxValue;
+				SafeFormat(buffer, 12, "%f", *value);
 			}
 		}
 
@@ -44,11 +330,12 @@ namespace
 			return "Float32";
 		}
 
+		GuiRect tebRect;
+
 		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
 		{
-			char buffer[16];
-			SafeFormat(buffer, 16, "%f", *value);
-			Rococo::Graphics::RenderVerticalCentredText(rc, buffer, colour, 9, { rect.left + 4, Centre(rect).y }, &rect);
+			tebRect = rect;
+			teb.Render(rc, tebRect, colour);
 		}
 
 		RGBAb NameColour() const override
@@ -58,7 +345,10 @@ namespace
 
 		void Click(bool clickedDown, Vec2i pos) override
 		{
-
+			if (IsPointInRect(pos, tebRect))
+			{
+				teb.Click(clickedDown);
+			}
 		}
 	};
 
@@ -480,12 +770,6 @@ namespace
 		}
 	};
 
-	ROCOCOAPI IValidator
-	{
-		virtual bool IsLegal(char c, int charPos) const = 0;
-		virtual void OnDetached(char* buffer) = 0;
-	};
-
 	struct PositiveIntegerValidator : public IValidator
 	{
 		bool IsLegal(char c, int ccursorPos) const override
@@ -498,238 +782,6 @@ namespace
 			if (*buffer == 0)
 			{
 				SafeFormat(buffer, 2, "0");
-			}
-		}
-	};
-
-	class TextEditorBox : public IKeyboardSink
-	{
-		char* buffer;
-		int32 capacity;
-		int32 cursorPos = 0;
-		Platform& platform;
-		bool defaultToEnd;
-		IValidator& validator;
-		IEventCallback<IBloodyPropertyType>& dirtNotifier;
-		IBloodyPropertyType& owner;
-	public:
-		TextEditorBox(Platform& _platform, IBloodyPropertyType& _owner, IEventCallback<IBloodyPropertyType>& _dirtNotifier, char* _buffer, size_t _capacity, bool _defaultToEnd, IValidator& _validator) :
-			platform(_platform),
-			owner(_owner),
-			dirtNotifier(_dirtNotifier),
-			buffer(_buffer),
-			capacity((int32)_capacity),
-			defaultToEnd(_defaultToEnd),
-			validator(_validator)
-		{
-		}
-
-		~TextEditorBox()
-		{
-			platform.gui.DetachKeyboardSink(this);
-		}
-
-		void Notify()
-		{
-			dirtNotifier.OnEvent(owner);
-		}
-
-		void PushBufferRightOne()
-		{
-			int32 len = (int32)strlen(buffer);
-			if (len >= capacity - 1)
-			{
-				return;
-			}
-
-			for (int32 i = len; i > cursorPos; --i)
-			{
-				buffer[i] = buffer[i - 1];
-			}
-		}
-
-
-		void DeleteRight(int pos)
-		{
-			int32 len = (int32)strlen(buffer);
-
-			for (int32 i = pos; i < len; ++i)
-			{
-				buffer[i] = buffer[i + 1];
-			}
-		}
-
-		void AddCharOverwrite(char c)
-		{
-			int len = (int)strlen(buffer);
-			if (cursorPos < len)
-			{
-				buffer[cursorPos++] = c;
-			}
-			else if (len < capacity - 1)
-			{
-				buffer[cursorPos++] = c;
-			}
-		}
-
-		void AddCharInsert(char c)
-		{
-			int len = (int)strlen(buffer);
-			if (len < capacity - 1)
-			{
-				PushBufferRightOne();
-				buffer[cursorPos++] = c;
-			}
-		}
-
-		virtual bool OnKeyboardEvent(const KeyboardEvent& key)
-		{
-			dirtNotifier.OnEvent(owner);
-
-			if (!key.IsUp())
-			{
-				switch (key.VKey)
-				{
-				case IO::VKCode_ENTER:
-					platform.gui.DetachKeyboardSink(this);
-					validator.OnDetached(buffer);
-					return true;
-				case IO::VKCode_BACKSPACE:
-					if (cursorPos > 0)
-					{
-						DeleteRight(cursorPos - 1);
-						cursorPos--;
-					}
-					return true;
-				case IO::VKCode_DELETE:
-					DeleteRight(cursorPos);
-					return true;
-				case IO::VKCode_HOME:
-					cursorPos = 0;
-					return true;
-				case IO::VKCode_END:
-					cursorPos = (int32)strlen(buffer);
-					return true;
-				case IO::VKCode_LEFT:
-					if (cursorPos > 0)
-					{
-						cursorPos--;
-					}
-					return true;
-				case IO::VKCode_RIGHT:
-					if (cursorPos < (int32)strlen(buffer))
-					{
-						cursorPos++;
-					}
-					return true;
-				}
-
-				char c = platform.keyboard.TryGetAscii(key);
-
-				if (!validator.IsLegal(c, cursorPos))
-				{
-					OS::BeepWarning();
-				}
-				else
-				{
-					if (c >= 32)
-					{
-						if (platform.gui.IsOverwriting())
-						{
-							AddCharOverwrite(c);
-						}
-						else
-						{
-							AddCharInsert(c);
-						}
-						return true;
-					}
-				}
-			}
-			return true;
-		}
-
-		void Click(bool clickedDown)
-		{
-			dirtNotifier.OnEvent(owner);
-
-			if (clickedDown)
-			{
-				if (platform.gui.CurrentKeyboardSink() == this)
-				{
-					platform.gui.DetachKeyboardSink(this);
-					validator.OnDetached(buffer);
-				}
-				else
-				{
-					platform.gui.AttachKeyboardSink(this);
-				}
-			}
-		}
-
-		void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
-		{
-			int32 len = (int32)strlen(buffer);
-			if (cursorPos > len)
-			{
-				cursorPos = len;
-			}
-
-			int x = rect.left + 4;
-			int y = Centre(rect).y;
-
-			if (platform.gui.CurrentKeyboardSink() == this)
-			{
-				Rococo::Graphics::DrawRectangle(rc, rect, RGBAb(64, 0, 0, 128), RGBAb(64, 0, 0, 255));
-				Rococo::Graphics::DrawBorderAround(rc, rect, { 1,1 }, RGBAb(255, 255, 255, 255), RGBAb(224, 224, 224, 255));
-			}
-
-			struct : IEventCallback<Rococo::Graphics::GlyphCallbackArgs>
-			{
-				int targetPos;
-				GuiRect cursorRect{ 0,0,0,0 };
-				GuiRect lastRect;
-				virtual void OnEvent(Rococo::Graphics::GlyphCallbackArgs& args)
-				{
-					if (args.index == targetPos)
-					{
-						cursorRect = args.rect;
-					}
-
-					lastRect = args.rect;
-				}
-			} cb;
-
-			cb.lastRect = { x, rect.top, x, rect.bottom };
-			cb.targetPos = cursorPos;
-
-			GuiRect clipRect = { x, rect.top, rect.right - 10, rect.bottom };
-
-			int pos = platform.gui.CurrentKeyboardSink() == this ? cursorPos : (defaultToEnd ? len : 0);
-
-			Rococo::Graphics::RenderVerticalCentredTextWithCallback(rc, pos, cb, buffer, colour, 10, { x, Centre(rect).y }, clipRect);
-
-			if (platform.gui.CurrentKeyboardSink() == this)
-			{
-				if (cb.cursorRect.left == cb.cursorRect.right)
-				{
-					cb.cursorRect = { cb.lastRect.right,  y - 5, cb.lastRect.right + 8,  y + 5 };
-				}
-
-				cb.cursorRect.right = cb.cursorRect.left + 8;
-
-				OS::ticks t = OS::CpuTicks();
-				OS::ticks hz = OS::CpuHz();
-				uint8 alpha = ((512 * t) / hz) % 255;
-
-				if (platform.gui.IsOverwriting())
-				{
-					Rococo::Graphics::DrawRectangle(rc, cb.cursorRect, RGBAb(255, 255, 255, alpha >> 1), RGBAb(255, 255, 255, alpha >> 1));
-				}
-				else
-				{
-					Rococo::Graphics::DrawLine(rc, 2, BottomLeft(cb.cursorRect), BottomRight(cb.cursorRect), RGBAb(255, 255, 255, alpha));
-				}
 			}
 		}
 	};
@@ -1478,9 +1530,9 @@ namespace
 			properties.push_back(new BloodyProperty(new BloodySpacer(), ""));
 		}
 
-		void AddFloat(cstr name, float* value) override
+		void AddFloat(cstr name, float* value, float minValue, float maxValue) override
 		{
-			Add(new BloodyProperty(new BloodyFloatBinding(*this, value), name));
+			Add(new BloodyProperty(new BloodyFloatBinding(platform, *this, value, minValue, maxValue), name));
 		}
 
 		void AddInt(cstr name, bool addHexView, int* value) override

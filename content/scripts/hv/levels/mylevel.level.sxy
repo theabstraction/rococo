@@ -1,0 +1,377 @@
+(' #file.type hv.level)
+
+(' #include
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv.sxh.sxy"
+	"!scripts/types.sxy"
+	"!scripts/hv/hv.types.sxy")
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(function Main(Int32 id)->(Int32 exitCode) :
+	(AddSectorsToLevel)
+)
+
+(using HV)
+
+(function AddSectorsToLevel -> :
+	(ISectors sectors (Sectors))
+
+	(sectors.Clear)
+
+	(AddSector0 sectors) // entrance
+	(AddSector1 sectors)
+	(AddSector2 sectors)
+	(AddSector3 sectors)
+	(AddSector4 sectors)
+	(AddSector5 sectors)
+	(AddSector6 sectors)
+	(AddSector7 sectors)
+	(AddSector8 sectors)
+	(AddSector9 sectors)
+	(AddSector10 sectors)
+	(AddSector11 sectors)
+	(AddSector12 sectors)
+	(AddSector13 sectors)
+)
+
+(function AddSector0 (ISectors sectors) -> :
+	(sectors.AddVertex -20.000000 6.000000)
+	(sectors.AddVertex -16.000000 6.000000)
+	(sectors.AddVertex -16.000000 4.000000)
+	(sectors.AddVertex -14.000000 4.000000)
+	(sectors.AddVertex -14.000000 6.000000)
+	(sectors.AddVertex -10.000000 6.000000)
+	(sectors.AddVertex -10.000000 4.000000)
+	(sectors.AddVertex -6.000000 4.000000)
+	(sectors.AddVertex -6.000000 6.000000)
+	(sectors.AddVertex -2.000000 6.000000)
+	(sectors.AddVertex -2.000000 4.000000)
+	(sectors.AddVertex -0.000000 4.000000)
+	(sectors.AddVertex 0.000000 0.000000)
+	(sectors.AddVertex -2.000000 0.000000)
+	(sectors.AddVertex -4.000000 -2.000000)
+	(sectors.AddVertex -8.000000 -2.000000)
+	(sectors.AddVertex -10.000000 0.000000)
+	(sectors.AddVertex -12.000000 -2.000000)
+	(sectors.AddVertex -16.000000 -2.000000)
+	(sectors.AddVertex -18.000000 0.000000)
+	(sectors.AddVertex -20.000000 -2.000000)
+	(sectors.AddVertex -24.000000 -2.000000)
+	(sectors.AddVertex -26.000000 0.000000)
+	(sectors.AddVertex -26.000000 4.000000)
+	(sectors.AddVertex -24.000000 6.000000)
+	(sectors.AddVertex -22.000000 6.000000)
+	(sectors.AddVertex -22.000000 4.000000)
+	(sectors.AddVertex -20.000000 4.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"   1 0xe084be23 "random")
+	(sectors.SetTemplateMaterial "mulliions"   3 0xdb0d5e24 "random")
+	(sectors.SetTemplateMaterial "floor"       2 0xeae9bbf1 "random")
+	(sectors.SetTemplateMaterial "cement"      0 0xcf52aed6 "random")
+	(sectors.SetTemplateMaterial "ceiling"     2 0xcb873cdb "random")
+	(sectors.SetTemplateMaterial "rails"       3 0xd1b3de47 "random")
+	(sectors.SetTemplateMaterial "casing"      4 0xf7097d5a "random")
+	(sectors.SetTemplateMaterial "panels"      4 0xe58bbb43 "random")
+	(sectors.SetTemplateWallScript true "")
+
+	(sectors.CreateFromTemplate 0 400)
+)
+
+(function AddSector1 (ISectors sectors) -> :
+	(sectors.AddVertex 16.000000 0.000000)
+	(sectors.AddVertex 0.000000 0.000000)
+	(sectors.AddVertex 0.000000 4.000000)
+	(sectors.AddVertex 16.000000 4.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"   1 0xc9890d13 "random")
+	(sectors.SetTemplateMaterial "mulliions"   4 0xd34faddc "random")
+	(sectors.SetTemplateMaterial "floor"       0 0xf57840ee "random")
+	(sectors.SetTemplateMaterial "cement"      0 0xdf32aedb "random")
+	(sectors.SetTemplateMaterial "ceiling"     2 0xddf63249 "random")
+	(sectors.SetTemplateMaterial "rails"       3 0xead06640 "random")
+	(sectors.SetTemplateMaterial "casing"      3 0xe09d9122 "random")
+	(sectors.SetTemplateMaterial "panels"      3 0xe03b32b7 "random")
+
+	(sectors.SetTemplateDoorScript true "")
+	(sectors.SetTemplateWallScript true "")
+
+	(sectors.CreateFromTemplate 0 400)
+)
+
+(function AddSector2 (ISectors sectors) -> :
+	(sectors.AddVertex 26.000000 8.000000)
+	(sectors.AddVertex 28.000000 6.000000)
+	(sectors.AddVertex 28.000000 -2.000000)
+	(sectors.AddVertex 26.000000 -4.000000)
+	(sectors.AddVertex 20.000000 -4.000000)
+	(sectors.AddVertex 18.000000 -2.000000)
+	(sectors.AddVertex 16.000000 -2.000000)
+	(sectors.AddVertex 16.000000 0.000000)
+	(sectors.AddVertex 16.000000 4.000000)
+	(sectors.AddVertex 16.000000 6.000000)
+	(sectors.AddVertex 18.000000 6.000000)
+	(sectors.AddVertex 20.000000 8.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"   1 0xc199cab0 "random")
+	(sectors.SetTemplateMaterial "mulliions"   4 0xd514bfd6 "random")
+	(sectors.SetTemplateMaterial "floor"       0 0xe8d599c5 "random")
+	(sectors.SetTemplateMaterial "cement"      0 0xeb499d72 "random")
+	(sectors.SetTemplateMaterial "ceiling"     0 0xd2ccc9ea "random")
+	(sectors.SetTemplateMaterial "rails"       3 0xc2668edc "random")
+	(sectors.SetTemplateMaterial "casing"      4 0xdc1ed1cd "random")
+	(sectors.SetTemplateMaterial "panels"      4 0xe8ff6149 "random")
+	(sectors.SetTemplateWallScript false "")
+
+	(sectors.CreateFromTemplate 400 800)
+)
+
+(function AddSector3 (ISectors sectors) -> :
+	(sectors.AddVertex -4.000000 12.000000)
+	(sectors.AddVertex 14.000000 12.000000)
+	(sectors.AddVertex 18.000000 16.000000)
+	(sectors.AddVertex 20.000000 14.000000)
+	(sectors.AddVertex 26.000000 14.000000)
+	(sectors.AddVertex 26.000000 8.000000)
+	(sectors.AddVertex 20.000000 8.000000)
+	(sectors.AddVertex 18.000000 10.000000)
+	(sectors.AddVertex 14.000000 6.000000)
+	(sectors.AddVertex -2.000000 6.000000)
+	(sectors.AddVertex -6.000000 6.000000)
+	(sectors.AddVertex -6.000000 10.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"   1 0xe946f815 "random")
+	(sectors.SetTemplateMaterial "mulliions"   3 0xedad11bb "random")
+	(sectors.SetTemplateMaterial "floor"       0 0xf6d46867 "random")
+	(sectors.SetTemplateMaterial "cement"      0 0xd80e7396 "random")
+	(sectors.SetTemplateMaterial "ceiling"     0 0xf56857d0 "random")
+	(sectors.SetTemplateMaterial "rails"       3 0xda52fe79 "random")
+	(sectors.SetTemplateMaterial "casing"      4 0xf40bce28 "random")
+	(sectors.SetTemplateMaterial "panels"      4 0xc4f43ce5 "random")
+	(sectors.SetTemplateWallScript true "#walls/store_room.sxy")
+
+	(sectors.CreateFromTemplate 0 1000)
+)
+
+(function AddSector4 (ISectors sectors) -> :
+	(sectors.AddVertex -10.000000 -8.000000)
+	(sectors.AddVertex -10.000000 -4.000000)
+	(sectors.AddVertex -8.000000 -2.000000)
+	(sectors.AddVertex -4.000000 -2.000000)
+	(sectors.AddVertex -2.000000 -4.000000)
+	(sectors.AddVertex -2.000000 -8.000000)
+	(sectors.AddVertex -4.000000 -10.000000)
+	(sectors.AddVertex -8.000000 -10.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"   1 0xccc9c2d0 "random")
+	(sectors.SetTemplateMaterial "mulliions"   3 0xd6870ba9 "random")
+	(sectors.SetTemplateMaterial "floor"       2 0xf0144061 "random")
+	(sectors.SetTemplateMaterial "cement"      0 0xf86a49d4 "random")
+	(sectors.SetTemplateMaterial "ceiling"     2 0xc02811a5 "random")
+	(sectors.SetTemplateMaterial "rails"       3 0xd91d15f1 "random")
+	(sectors.SetTemplateMaterial "casing"      4 0xc186a79a "random")
+	(sectors.SetTemplateMaterial "panels"      4 0xfdc0e19b "random")
+	(sectors.SetTemplateWallScript true "#walls/store_room.sxy")
+
+	(sectors.CreateFromTemplate 0 400)
+)
+
+(function AddSector5 (ISectors sectors) -> :
+	(sectors.AddVertex -18.000000 -4.000000)
+	(sectors.AddVertex -16.000000 -2.000000)
+	(sectors.AddVertex -12.000000 -2.000000)
+	(sectors.AddVertex -12.000000 -10.000000)
+	(sectors.AddVertex -16.000000 -10.000000)
+	(sectors.AddVertex -18.000000 -8.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"   1 0xe2d9e79a "random")
+	(sectors.SetTemplateMaterial "mulliions"   4 0xcbe2a5e2 "random")
+	(sectors.SetTemplateMaterial "floor"       2 0xdd66a16c "random")
+	(sectors.SetTemplateMaterial "cement"      0 0xe7389055 "random")
+	(sectors.SetTemplateMaterial "ceiling"     0 0xd8fe9c30 "random")
+	(sectors.SetTemplateMaterial "rails"       4 0xe9386547 "random")
+	(sectors.SetTemplateMaterial "casing"      3 0xe5b163c2 "random")
+	(sectors.SetTemplateMaterial "panels"      3 0xf97982a9 "random")
+	(sectors.SetTemplateWallScript true "#walls/observatory.sxy")
+
+	(sectors.CreateFromTemplate 0 400)
+)
+
+(function AddSector6 (ISectors sectors) -> :
+	(sectors.AddVertex -28.000000 -10.000000)
+	(sectors.AddVertex -28.000000 -4.000000)
+	(sectors.AddVertex -24.000000 -4.000000)
+	(sectors.AddVertex -24.000000 -2.000000)
+	(sectors.AddVertex -20.000000 -2.000000)
+	(sectors.AddVertex -20.000000 -10.000000)
+	(sectors.AddVertex -18.000000 -12.000000)
+	(sectors.AddVertex -18.000000 -16.000000)
+	(sectors.AddVertex -22.000000 -16.000000)
+	(sectors.AddVertex -24.000000 -14.000000)
+	(sectors.AddVertex -26.000000 -14.000000)
+	(sectors.AddVertex -28.000000 -12.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"   1 0xdf623e6d "random")
+	(sectors.SetTemplateMaterial "mulliions"   3 0xfe03c2cb "random")
+	(sectors.SetTemplateMaterial "floor"       0 0xecf15e89 "random")
+	(sectors.SetTemplateMaterial "cement"      0 0xf8bf3412 "random")
+	(sectors.SetTemplateMaterial "ceiling"     0 0xdda1286c "random")
+	(sectors.SetTemplateMaterial "rails"       4 0xc4140f84 "random")
+	(sectors.SetTemplateMaterial "casing"      4 0xc736468e "random")
+	(sectors.SetTemplateMaterial "panels"      4 0xc4c96128 "random")
+	(sectors.SetTemplateWallScript true "#walls/mosaic.sxy")
+
+	(sectors.CreateFromTemplate 0 400)
+)
+
+(function AddSector7 (ISectors sectors) -> :
+	(sectors.AddVertex -28.000000 16.000000)
+	(sectors.AddVertex -26.000000 18.000000)
+	(sectors.AddVertex -20.000000 18.000000)
+	(sectors.AddVertex -18.000000 16.000000)
+	(sectors.AddVertex -18.000000 12.000000)
+	(sectors.AddVertex -20.000000 10.000000)
+	(sectors.AddVertex -22.000000 6.000000)
+	(sectors.AddVertex -24.000000 6.000000)
+	(sectors.AddVertex -28.000000 10.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"   1 0xf1befe8d "random")
+	(sectors.SetTemplateMaterial "mulliions"   3 0xea4146c2 "random")
+	(sectors.SetTemplateMaterial "floor"       2 0xc67e8c06 "random")
+	(sectors.SetTemplateMaterial "cement"      0 0xcfa0ff71 "random")
+	(sectors.SetTemplateMaterial "ceiling"     0 0xc1bed04d "random")
+	(sectors.SetTemplateMaterial "rails"       3 0xef707f30 "random")
+	(sectors.SetTemplateMaterial "casing"      4 0xfbe60b13 "random")
+	(sectors.SetTemplateMaterial "panels"      4 0xe9953286 "random")
+	(sectors.SetTemplateWallScript true "#walls/fountain.sxy")
+
+	(sectors.CreateFromTemplate 0 400)
+)
+
+(function AddSector8 (ISectors sectors) -> :
+	(sectors.AddVertex -8.000000 12.000000)
+	(sectors.AddVertex -18.000000 12.000000)
+	(sectors.AddVertex -18.000000 16.000000)
+	(sectors.AddVertex -8.000000 16.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"   1 0xc9899f7d "random")
+	(sectors.SetTemplateMaterial "mulliions"   3 0xca335366 "random")
+	(sectors.SetTemplateMaterial "floor"       0 0xd8147b72 "random")
+	(sectors.SetTemplateMaterial "cement"      0 0xceb8fd1b "random")
+	(sectors.SetTemplateMaterial "ceiling"     2 0xf944f00d "random")
+	(sectors.SetTemplateMaterial "rails"       4 0xeb4c5e10 "random")
+	(sectors.SetTemplateMaterial "casing"      4 0xd4cfadaa "random")
+	(sectors.SetTemplateMaterial "panels"      4 0xf305e673 "random")
+
+	(sectors.SetTemplateDoorScript false "")
+	(sectors.SetTemplateWallScript false "")
+
+	(sectors.CreateFromTemplate 0 400)
+)
+
+(function AddSector9 (ISectors sectors) -> :
+	(sectors.AddVertex -4.000000 18.000000)
+	(sectors.AddVertex -2.000000 16.000000)
+	(sectors.AddVertex -4.000000 14.000000)
+	(sectors.AddVertex -4.000000 12.000000)
+	(sectors.AddVertex -6.000000 10.000000)
+	(sectors.AddVertex -8.000000 12.000000)
+	(sectors.AddVertex -8.000000 16.000000)
+	(sectors.AddVertex -6.000000 18.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"   1 0xd39dd8ff "random")
+	(sectors.SetTemplateMaterial "mulliions"   3 0xd9b04c95 "random")
+	(sectors.SetTemplateMaterial "floor"       0 0xccf8c19c "random")
+	(sectors.SetTemplateMaterial "cement"      0 0xd82779f4 "random")
+	(sectors.SetTemplateMaterial "ceiling"     0 0xf7642320 "random")
+	(sectors.SetTemplateMaterial "rails"       4 0xfce7992d "random")
+	(sectors.SetTemplateMaterial "casing"      3 0xe44167e9 "random")
+	(sectors.SetTemplateMaterial "panels"      4 0xec80b1de "random")
+	(sectors.SetTemplateWallScript true "#walls/arch.recess.sxy")
+
+	(sectors.CreateFromTemplate 200 600)
+)
+
+(function AddSector10 (ISectors sectors) -> :
+	(sectors.AddVertex 34.000000 8.000000)
+	(sectors.AddVertex 32.000000 6.000000)
+	(sectors.AddVertex 28.000000 6.000000)
+	(sectors.AddVertex 26.000000 8.000000)
+	(sectors.AddVertex 26.000000 14.000000)
+	(sectors.AddVertex 34.000000 14.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"   1 0xd4a05f20 "random")
+	(sectors.SetTemplateMaterial "mulliions"   4 0xd9a30183 "random")
+	(sectors.SetTemplateMaterial "floor"       2 0xc159bc6b "random")
+	(sectors.SetTemplateMaterial "cement"      0 0xd038c633 "random")
+	(sectors.SetTemplateMaterial "ceiling"     0 0xd6abb282 "random")
+	(sectors.SetTemplateMaterial "rails"       3 0xcfd6ab5e "random")
+	(sectors.SetTemplateMaterial "casing"      3 0xcd9a0ce4 "random")
+	(sectors.SetTemplateMaterial "panels"      4 0xc48352bc "random")
+	(sectors.SetTemplateWallScript false "")
+
+	(sectors.CreateFromTemplate 100 800)
+)
+
+(function AddSector11 (ISectors sectors) -> :
+	(sectors.AddVertex 32.000000 -2.000000)
+	(sectors.AddVertex 28.000000 -2.000000)
+	(sectors.AddVertex 28.000000 6.000000)
+	(sectors.AddVertex 32.000000 6.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"   1 0xd12d0409 "random")
+	(sectors.SetTemplateMaterial "mulliions"   3 0xe54c5a00 "random")
+	(sectors.SetTemplateMaterial "floor"       0 0xf11e8db1 "random")
+	(sectors.SetTemplateMaterial "cement"      0 0xda815823 "random")
+	(sectors.SetTemplateMaterial "ceiling"     0 0xf65d747f "random")
+	(sectors.SetTemplateMaterial "rails"       4 0xc70a6254 "random")
+	(sectors.SetTemplateMaterial "casing"      4 0xc1c5df1d "random")
+	(sectors.SetTemplateMaterial "panels"      4 0xc71f3b84 "random")
+
+	(sectors.SetTemplateDoorScript false "")
+	(sectors.SetTemplateWallScript false "")
+
+	(sectors.CreateFromTemplate 200 800)
+)
+
+(function AddSector12 (ISectors sectors) -> :
+	(sectors.AddVertex 26.000000 -4.000000)
+	(sectors.AddVertex 28.000000 -2.000000)
+	(sectors.AddVertex 32.000000 -2.000000)
+	(sectors.AddVertex 26.000000 -8.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"   1 0xc964eaf3 "random")
+	(sectors.SetTemplateMaterial "mulliions"   3 0xf1ca3827 "random")
+	(sectors.SetTemplateMaterial "floor"       0 0xc34ec8a2 "random")
+	(sectors.SetTemplateMaterial "cement"      0 0xf38026a9 "random")
+	(sectors.SetTemplateMaterial "ceiling"     0 0xfcd590c4 "random")
+	(sectors.SetTemplateMaterial "rails"       3 0xfd90e1c7 "random")
+	(sectors.SetTemplateMaterial "casing"      4 0xe75c469f "random")
+	(sectors.SetTemplateMaterial "panels"      3 0xc7781eac "random")
+	(sectors.SetTemplateWallScript false "")
+
+	(sectors.CreateFromTemplate 300 600)
+)
+
+(function AddSector13 (ISectors sectors) -> :
+	(sectors.AddVertex 20.000000 -4.000000)
+	(sectors.AddVertex 26.000000 -4.000000)
+	(sectors.AddVertex 26.000000 -8.000000)
+	(sectors.AddVertex 20.000000 -8.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"   1 0xd2e68c96 "random")
+	(sectors.SetTemplateMaterial "mulliions"   3 0xde60512b "random")
+	(sectors.SetTemplateMaterial "floor"       0 0xd4c5f39f "random")
+	(sectors.SetTemplateMaterial "cement"      0 0xfd53e110 "random")
+	(sectors.SetTemplateMaterial "ceiling"     2 0xf3e8066e "random")
+	(sectors.SetTemplateMaterial "rails"       4 0xf338edfd "random")
+	(sectors.SetTemplateMaterial "casing"      4 0xc5d20c7b "random")
+	(sectors.SetTemplateMaterial "panels"      3 0xe54fdc57 "random")
+
+	(sectors.SetTemplateDoorScript false "")
+	(sectors.SetTemplateWallScript false "")
+
+	(sectors.CreateFromTemplate 400 400)
+)
+

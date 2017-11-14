@@ -324,7 +324,25 @@ namespace
 			return fstring{ contentDirectory.data, len };
 		}
 
-		cstr GetFirstSlash(cstr path)
+		bool DoPingsMatch(cstr a, cstr b) const override
+		{
+			try
+			{
+				char sysPathA[IO::MAX_PATHLEN];
+				ConvertPingPathToSysPath(a, sysPathA, IO::MAX_PATHLEN);
+
+				char sysPathB[IO::MAX_PATHLEN];
+				ConvertPingPathToSysPath(b, sysPathA, IO::MAX_PATHLEN);
+
+				return Eq(sysPathA, sysPathB);
+			}
+			catch (IException&)
+			{
+				return false;
+			}
+		}
+
+		cstr GetFirstSlash(cstr path) const
 		{
 			for (cstr p = path + 1; *p != 0; p++)
 			{
@@ -337,7 +355,7 @@ namespace
 			return nullptr;
 		}
 
-		void ConvertPingPathToSysPath(cstr pingPath, char* sysPath, size_t sysPathCapacity) override
+		void ConvertPingPathToSysPath(cstr pingPath, char* sysPath, size_t sysPathCapacity) const override
 		{
 			if (pingPath == nullptr || *pingPath == 0)
 			{
@@ -387,7 +405,7 @@ namespace
 			OS::ToSysPath(sysPath);
 		}
 
-		void ConvertSysPathToMacroPath(cstr sysPath, char* pingPath, size_t pingPathCapacity, cstr macro) override
+		void ConvertSysPathToMacroPath(cstr sysPath, char* pingPath, size_t pingPathCapacity, cstr macro) const override
 		{
 			char fullPingPath[IO::MAX_PATHLEN];
 			ConvertSysPathToPingPath(sysPath, fullPingPath, IO::MAX_PATHLEN);
@@ -407,7 +425,7 @@ namespace
 			SecureFormat(pingPath, pingPathCapacity, "%s/%s", macro, fullPingPath + i->second.size());
 		}
 
-		void ConvertSysPathToPingPath(cstr sysPath, char* pingPath, size_t pingPathCapacity) override
+		void ConvertSysPathToPingPath(cstr sysPath, char* pingPath, size_t pingPathCapacity) const override
 		{
 			if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
 
