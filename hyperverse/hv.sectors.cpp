@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <unordered_map>
 
-namespace
+namespace ANON
 {
    using namespace Rococo;
    using namespace HV;
@@ -421,6 +421,7 @@ namespace
 		  }
 		  catch (IException&)
 		  {
+			  s->Free();
 			  vertices.clear();
 			  throw;
 		  }
@@ -430,13 +431,13 @@ namespace
 		  return s->Id();
 	  }
 
-      void AddSector(const Vec2* positionArray, size_t nVertices) override
+      void AddSector(const Vec2* floorPlan, size_t nVertices) override
       {
          auto* s = CreateSector(platform, *this);
 
          try
          {
-            s->Build(positionArray, nVertices, defaultFloorLevel, defaultFloorLevel + defaultRoomHeight);
+            s->Build(floorPlan, nVertices, defaultFloorLevel, defaultFloorLevel + defaultRoomHeight);
             sectors.push_back(s);
          }
 		 catch (IException& ex)
@@ -450,13 +451,13 @@ namespace
 				 OS::TripDebugger();
 				 OS::PrintDebug("\n\n\n // Troublesome perimeter: \n");
 				 OS::PrintDebug("const Vec2 perimeter[%d] = { ", nVertices);
-				 for (const Vec2* p = positionArray; p < positionArray + nVertices; p++)
+				 for (const Vec2* p = floorPlan; p < floorPlan + nVertices; p++)
 				 {
 					 OS::PrintDebug("{%f,%f},", p->x, p->y);
 				 }
 				 OS::PrintDebug("};\n\n\n");
 
-				 AddSector(positionArray, nVertices);
+				 AddSector(floorPlan, nVertices);
 			 }
 #endif
 		 }
@@ -502,29 +503,37 @@ namespace
       {
          for (auto* s : sectors)
          {
-            int32 seg = s->GetPerimeterIndex(a);
-            if (seg >= 0)
-            {
-               return{ s, seg };
-            }
+			 if (IsPointInBox(s->AABB(), a))
+			 {
+				 int32 seg = s->GetPerimeterIndex(a);
+				 if (seg >= 0)
+				 {
+					 return{ s, seg };
+				 }
+			 }
          }
 
          return{ nullptr, -1 };
       }
 
-      ISector* GetFirstSectorContainingPoint(Vec2 a)  override
-      {
-         for (auto* s : sectors)
-         {
-            int32 i = s->GetFloorTriangleIndexContainingPoint(a);
-            if (i >= 0)
-            {
-               return s;
-            }
-         }
+	  ISector* GetFirstSectorContainingPoint(Vec2 a)  override
+	  {
+		  for (auto* s : sectors)
+		  {
+			  auto& aabb = s->AABB();
 
-         return nullptr;
-      }
+			  if (IsPointInBox(aabb, a))
+			  {
+				  int32 i = s->GetFloorTriangleIndexContainingPoint(a);
+				  if (i >= 0)
+				  {
+					  return s;
+				  }
+			  }
+		  }
+
+		  return nullptr;
+	  }
 
 	  void OnSectorScriptChanged(const FileModifiedArgs& args) override
 	  {
@@ -545,6 +554,6 @@ namespace HV
 {
    ISectors* CreateSectors(Platform& platform)
    {
-      return new Sectors(platform);
+      return new ANON::Sectors(platform);
    }
 }

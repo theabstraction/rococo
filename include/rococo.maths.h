@@ -90,6 +90,8 @@ namespace Rococo
 	// Determine whether two parallel line segments are on the same line and touch
 	bool DoParallelLinesIntersect(Vec2 a, Vec2 b, Vec2 c, Vec2 d);
 
+	bool IsPointInBox(const AABB2d& aabb, Vec2 p);
+
 	struct ConeCheck
 	{
 		float t;

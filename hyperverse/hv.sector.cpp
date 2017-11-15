@@ -45,6 +45,22 @@ namespace ANON
 
    uint32 nextSectorId = 1;
 
+   void AddPointToAABB(AABB2d& rect, cr_vec2 p)
+   {
+	   if (rect.left  > p.x) rect.left = p.x;
+	   if (rect.right < p.x) rect.right = p.x;
+	   if (rect.bottom > p.y) rect.bottom = p.y;
+	   if (rect.top < p.y) rect.top = p.y;
+   }
+
+   void Expand(AABB2d& rect, Metres ds)
+   {
+	   rect.left -= ds;
+	   rect.right += ds;
+	   rect.bottom -= ds;
+	   rect.top += ds;
+   }
+
    struct Sector : public ISector, public ICorridor, IMaterialPalette, public IEventCallback<MaterialArgs>
    {
 	   IInstancesSupervisor& instances;
@@ -86,6 +102,13 @@ namespace ANON
 	   bool scriptWalls = false;
 
 	   std::vector<LightSpec> lights;
+
+	   AABB2d aabb;
+
+	   const AABB2d& AABB() const override
+	   {
+		   return aabb;
+	   }
 
 	   void SyncEnvironmentMapToSector() override
 	   {
@@ -274,6 +297,7 @@ namespace ANON
 		  otherGap->z1 = g.z1;
 
 		  MakeBounds(g);
+		  MakeBounds(*otherGap);
 
 		  otherGap->bounds = g.bounds;
 
@@ -329,6 +353,8 @@ namespace ANON
 					  ((Sector*)g.other)->CorrectOppositeGap(*otherGap, dirtList);
 				  }
 			  }
+
+			  MakeBounds(*otherGap);
 
 			  dirtList[g.other] = 0;
 		  }
@@ -674,6 +700,13 @@ namespace ANON
 
 				  AddWallSegment(p, q, z0, foreignFloorHeight, 0, brickwork);
 			  }
+
+			  if (gap.other->IsCorridor())
+			  {
+				  gap.z0 = z0;
+				  gap.z1 = z1;
+				  MakeBounds(gap);
+			  }
 		  }
 	  }
 
@@ -730,7 +763,8 @@ namespace ANON
          utilities(_platform.utilities),
          id(nextSectorId++),
          platform(_platform),
-         co_sectors(_co_sectors)
+         co_sectors(_co_sectors),
+		 aabb(EmptyAABB2dBox())
       {
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Brickwork, "random", Graphics::MaterialCategory_Stone);
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Cement,    "random", Graphics::MaterialCategory_Rock);
@@ -804,23 +838,24 @@ namespace ANON
 
 	  bool deleting = false;
 
-      ~Sector()
-      {
-         DeleteFloor();
-         DeleteCeiling();
-         DeleteWalls();
+	  ~Sector()
+	  {
+		  Decouple();
+		  DeleteFloor();
+		  DeleteCeiling();
+		  DeleteWalls();
 
-		 if (host)
-		 {
-			 deleting = true;
-			 host->SetPropertyTarget(nullptr);
-		 }
+		  if (host)
+		  {
+			  deleting = true;
+			  host->SetPropertyTarget(nullptr);
+		  }
 
-		 for (auto m : nameToMaterial)
-		 {
-			 delete m.second;
-		 }
-      }
+		  for (auto m : nameToMaterial)
+		  {
+			  delete m.second;
+		  }
+	  }
 
       virtual ObjectVertexBuffer FloorVertices() const
       {
@@ -1428,7 +1463,7 @@ namespace ANON
 		  }
 	  }
 
-	  void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) override
+	  void Build(const Vec2* floorPlan, size_t nVertices, float z0, float z1) override
 	  {
 		  // N.B the sector is not part of the co-sectors collection until this function returns
 
@@ -1437,28 +1472,31 @@ namespace ANON
 			  
 		  if (!floorPerimeter.empty())
 		  {
-			  Throw(0, "The floor perimeter is already built");
+			  Throw(0, "The floor perimeter has already been built");
 		  }
 
 		  this->z0 = z0;
 		  this->z1 = z1;
 
-		  if (nVertices < 3 || positionArray[0] == positionArray[nVertices - 1])
+		  if (nVertices < 3 || floorPlan[0] == floorPlan[nVertices - 1])
 		  {
-			  Throw(0, "Sector::Build: Bad position array");
+			  Throw(0, "Sector::Build: Bad floor plan. Algorithimic error - first point must not match end point.");
 		  }
 
 		  if (nVertices > 256)
 		  {
-			  Throw(0, "Sector::Build: Too many elements in mesh. Maximum is 256. Simplify");
+			  Throw(0, "Sector::Build: Too many elements in the floor plan. Maximum is 256. Simplify");
 		  }
 
 		  for (size_t i = 0; i != nVertices; i++)
 		  {
-			  floorPerimeter.push_back(positionArray[i]);
+			  AddPointToAABB(aabb, floorPlan[i]);
+			  floorPerimeter.push_back(floorPlan[i]);
 		  }
 
-		  Ring<Vec2> ring_of_unknown_sense(positionArray, nVertices);
+		  Expand(aabb, 0.1_metres); // Add a skin to remove rounding error issues.
+
+		  Ring<Vec2> ring_of_unknown_sense(floorPlan, nVertices);
 
 		  if (!IsClockwiseSequential(ring_of_unknown_sense))
 		  {

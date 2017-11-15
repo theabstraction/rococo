@@ -154,6 +154,24 @@ namespace Rococo
       XMStoreFloat4x4((DirectX::XMFLOAT4X4*) &transposeOfMatrix, XMMatrixTranspose(t));
    }
 
+   bool IsPointInBox(const AABB2d& aabb, Vec2 p)
+   {
+	   if (p.x >= aabb.left && p.x <= aabb.right)
+	   {
+		   if (p.y >= aabb.bottom && p.y <= aabb.top)
+		   {
+			   return true;
+		   }
+	   }
+
+	   return false;
+   }
+
+   AABB2d EmptyAABB2dBox()
+   {
+	   return { 1.0e37f, 1.0e37f, -1.0e37f, -1.0e37f };
+   }
+
    void InvertMatrix(const Matrix4x4& matrix, Matrix4x4& inverseMatrix)
    {
       using namespace DirectX;

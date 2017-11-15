@@ -315,6 +315,16 @@ namespace Rococo
       GuiRectf(float _left, float _top, float _right, float _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
    };
 
+   struct AABB2d
+   {
+	   float left;
+	   float bottom;
+	   float right;
+	   float top;
+   };
+
+   AABB2d EmptyAABB2dBox();
+
    template<class T> inline T max(T a, T b)
    {
       return a > b ? a : b;

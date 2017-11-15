@@ -171,6 +171,7 @@ namespace HV
 
    ROCOCOAPI ISector: public IPropertyTarget
    {
+	  virtual const AABB2d& AABB() const = 0;
 	  virtual uint32 Id() const = 0;
 
 	  // Iteration frames are used by some iteration functions to mark sectors as having been enumrerated
