@@ -60,6 +60,13 @@ namespace ANON
 			output.clear();
 		}
 
+		void CopyInputToOutput() override
+		{
+			for (auto& item : input)
+			{
+				output.push_back(item);
+			}
+		}
 
 		void Destruct() override
 		{
@@ -817,6 +824,31 @@ namespace ANON
 			for (auto& item : input)
 			{
 				item.q.uv = rect;
+			}
+		}
+
+		void Shrink(const GuiRectf& rect)
+		{
+			for (auto& item : input)
+			{
+				Vec3 tangent = item.q.positions.b - item.q.positions.a;
+				Vec3 vertical = item.q.positions.a - item.q.positions.d;
+
+				Quad innerQuad;
+				innerQuad.a = rect.left * tangent + rect.top * vertical + item.q.positions.d;
+				innerQuad.b = rect.right * tangent + rect.top * vertical + item.q.positions.d;
+				innerQuad.c = rect.right * tangent + rect.bottom * vertical + item.q.positions.d;
+				innerQuad.d = rect.left * tangent + rect.bottom * vertical + item.q.positions.d;
+
+				item.q.positions = innerQuad;
+
+				GuiRectf uv;
+				uv.left = Lerp(item.q.uv.left, item.q.uv.right, rect.left);
+				uv.right = Lerp(item.q.uv.left, item.q.uv.right, rect.right);
+				uv.top = Lerp(item.q.uv.bottom, item.q.uv.top, rect.top);
+				uv.bottom = Lerp(item.q.uv.bottom, item.q.uv.top, rect.bottom);
+
+				item.q.uv = uv;
 			}
 		}
 

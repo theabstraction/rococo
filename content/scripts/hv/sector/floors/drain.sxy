@@ -40,6 +40,12 @@
 	(MaterialVertexData floor)
 	(sector.GetMaterial floor "floor")
 	
+	(MaterialVertexData rod)
+	(sector.GetMaterial rod "rails")
+	
+	(MaterialVertexData brace)
+	(sector.GetMaterial brace "casing")
+	
 	(MaterialVertexData cfloor = floor)
 	(cfloor.gloss = 1.2)
 	
@@ -48,7 +54,7 @@
 	
 	(MaterialVertexData water)
 	(sector.GetMaterial water "brickwork")
-	(water.materialColour = 0x3FFF8080)
+	(water.materialColour = 0x3F8080A0)
 	(water.gloss = 0.2)
 		
 	(qst.PushQuad floorQuad floor)
@@ -56,16 +62,13 @@
 	(Rectf uv = 0 0 1 1)
 	(qst.SetTextureRect uv)
 	
-	(qst.SplitThreeRows floor cfloor floor 0.3333 0.666)
+	(Rectf hole = 0.1 0.9 0.9 0.1)
+	(qst.Intrude hole 15 0.5 floor water)
 	
-	(qst.MoveOutputToInputWithMat cfloor)
-	(qst.SplitThreeColumns floor cfloor floor 0.3333 0.666)
-	
-	(qst.MoveOutputToInputWithMat cfloor)
-	(qst.AddRod 0 1 0 1 0.25 0.5 panels)
-	(qst.ClearInput)
-	
-	(qst.MoveOutputToInputWithMat panels)
+	(Vec3 right = 1 0 0)
+	(qst.MoveOutputToInputWithNormalDotRange right 0.99 1)
+	(Rectf flowpipe = 0.5 0.4 0.9 0.2)
+	(qst.Intrude flowpipe 5 0.5 water water)
 	
 	(VertexTriangle topLeft)
 	(VertexTriangle bottomRight)
@@ -74,14 +77,43 @@
 		(sector.AddFloorTriangle bottomRight)
 	)
 	
-	(Vec3 up = 0 0 1)
-	(qst.MoveInputToOutput)
-	(qst.MoveOutputToInputWithNormalDotRange up 0.99 1.0)
+	(floorQuad.positions.a.z = (floorQuad.positions.a.z - 0.15))
+	(floorQuad.positions.b.z = (floorQuad.positions.b.z - 0.15))
+	(floorQuad.positions.c.z = (floorQuad.positions.c.z - 0.15))
+	(floorQuad.positions.d.z = (floorQuad.positions.d.z - 0.15))
 	
-	(Rectf hole = 0.1 0.9 0.9 0.1)
-	(qst.Intrude hole 0.2 0.5 panels water)
+	(qst.PushQuad floorQuad floor)
+	(qst.Shrink hole)
+	
+	(Float32 y = 0.05)
+	(#for (Int32 j = 0)(j < 10)(#inc j)
+		(qst.AddRod 0 1 y (y + 0.05) 0.10 0.5 panels)
+		(y = (y + 0.1))
+	)
 	
 	(qst.ClearInput)
+	
+	(floorQuad.positions.a.z = (floorQuad.positions.a.z - 0.05))
+	(floorQuad.positions.b.z = (floorQuad.positions.b.z - 0.05))
+	(floorQuad.positions.c.z = (floorQuad.positions.c.z - 0.05))
+	(floorQuad.positions.d.z = (floorQuad.positions.d.z - 0.05))
+	
+	(qst.PushQuad floorQuad floor)
+	(qst.Shrink hole)
+	
+	(qst.AddRod 0.475 0.525 0.0125 1 0.05 0.5 rod)
+	
+	(qst.ClearInput)
+	
+	(floorQuad.positions.a.z = (floorQuad.positions.a.z - 0.05))
+	(floorQuad.positions.b.z = (floorQuad.positions.b.z - 0.05))
+	(floorQuad.positions.c.z = (floorQuad.positions.c.z - 0.05))
+	(floorQuad.positions.d.z = (floorQuad.positions.d.z - 0.05))
+	
+	(qst.PushQuad floorQuad floor)
+	(qst.Shrink hole)
+	
+	(qst.AddRod 0.465 0.535 0 0.025 0.05 0.5 brace)
 		
 	(while (qst.PopOutputAsTriangles topLeft bottomRight)
 		(sector.AddFloorTriangle topLeft)
