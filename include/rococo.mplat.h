@@ -399,6 +399,7 @@ namespace Rococo
 	   virtual void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr message) = 0;
 	   virtual IVariableEditor* CreateVariableEditor(Windows::IWindow& parent, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler = nullptr, const Vec2i* topLeft = nullptr) = 0;
 	   virtual IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty) = 0;
+	   virtual IMathsVenue* Venue() = 0;
    };
 
    namespace Graphics

@@ -93,7 +93,7 @@ namespace Rococo
          Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
       }
 
-      void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail)
+      void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail)
       {
          struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
          {
@@ -148,11 +148,11 @@ namespace Rococo
 
             ScriptContext(Platform& _platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent) : platform(_platform), onScriptEvent(_onScriptEvent) {}
 
-            void Execute(cstr name)
+            void Execute(cstr name, ScriptPerformanceStats& stats)
             {
                try
                {
-                  IDE::ExecuteSexyScriptLoop(1024_kilobytes, platform.sourceCache, platform.debuggerWindow, name, 0, (int32)128_kilobytes, *this, *this);
+                  IDE::ExecuteSexyScriptLoop(stats, 1024_kilobytes, platform.sourceCache, platform.debuggerWindow, name, 0, (int32)128_kilobytes, *this, *this);
                }
                catch (IException&)
                {
@@ -167,7 +167,7 @@ namespace Rococo
          sc.addPlatform = addPlatform;
 		 sc.shutdownOnFail = shutdownOnFail;
 		 
-         sc.Execute(name);
+         sc.Execute(name, stats);
       }
    }
 }

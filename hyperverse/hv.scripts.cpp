@@ -25,6 +25,11 @@ namespace // Script factories
 	{
 		return _context;
 	}
+
+	HV::ISectorFloorTesselator* FactoryConstructHVSectorFloorTesselator(HV::ISectorFloorTesselator* _context)
+	{
+		return _context;
+	}
 }
 
 using namespace HV;

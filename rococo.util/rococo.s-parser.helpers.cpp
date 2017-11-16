@@ -1360,11 +1360,12 @@ namespace Rococo
 		args.PopOutputs(argStack);
 	};
 
-	int32 ExecuteSexyScript(ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile)
+	int ExecuteSexyScript(ScriptPerformanceStats& stats, ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile)
 	{
 		using namespace Rococo::Script;
 		using namespace Rococo::Compiler;
 
+		OS::ticks start = OS::CpuTicks();
 		InitSexyScript(mainModule, debugger, ss, sources, onCompile);
 
 		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
@@ -1385,7 +1386,13 @@ namespace Rococo
 
 		vm.Push(param);
 
+		stats.compileTime = OS::CpuTicks() - start;
+
+		start = OS::CpuTicks();
+
 		Execute(vm, ss, debugger);
+
+		stats.executeTime = OS::CpuTicks() - start;
 
 		int exitCode = vm.PopInt32();
 		return exitCode;

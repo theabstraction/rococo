@@ -93,8 +93,15 @@
 	(QuadColours colours)
 )
 
-(defstruct ObjectTriangle Rococo.ObjectTriangle ObjectTriangle
+(defstruct VertexTriangle Rococo.VertexTriangle VertexTriangle
 	(Vertex a)
 	(Vertex b)
 	(Vertex c)
+)
+
+(defstruct AABB2d Rococo.AAB2d AABB2d
+	(Float32 left)
+	(Float32 bottom)
+	(Float32 right)
+	(Float32 top)
 )

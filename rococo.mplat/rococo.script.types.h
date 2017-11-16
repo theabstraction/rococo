@@ -36,9 +36,16 @@
 		Quad normals;
 		QuadColours colours;
 	};
-	struct ObjectTriangle
+	struct VertexTriangle
 	{
 		ObjectVertex a;
 		ObjectVertex b;
 		ObjectVertex c;
+	};
+	struct AABB2d
+	{
+		float left;
+		float bottom;
+		float right;
+		float top;
 	};

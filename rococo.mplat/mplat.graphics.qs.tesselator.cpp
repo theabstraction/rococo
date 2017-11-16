@@ -655,7 +655,7 @@ namespace ANON
 			input.push_back({ quad,material });
 		}
 
-		boolean32 PopOutputAsTriangles(ObjectTriangle& topLeft, ObjectTriangle& bottomRight) override
+		boolean32 PopOutputAsTriangles(VertexTriangle& topLeft, VertexTriangle& bottomRight) override
 		{
 			if (output.empty())	return false;
 

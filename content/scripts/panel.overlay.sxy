@@ -85,6 +85,7 @@
 	(tabs.AddTab 65 "Meshes"		"overlay.meshes")
 	(tabs.AddTab 32 "OS"			"overlay.os")
 	(tabs.AddTab 120 "Script Cache"	"overlay.cache")
+	(tabs.AddTab 160 "Script Performance" "overlay.performance")
 	(IPane tbase = tabs.Base)
 	(tbase.SetColourBk1   0xE0200000 0xE0200000)
 	(tbase.SetColourBk2   0xE0000020 0xE0000020)

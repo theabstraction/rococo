@@ -69,7 +69,7 @@ namespace Rococo
 {
 	namespace M
 	{
-		void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail);
+		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail);
 	}
 
 	namespace Events
@@ -78,7 +78,7 @@ namespace Rococo
 	}
 }
 
-class Utilities : public IUtilitiies
+class Utilities : public IUtilitiies, public IMathsVenue
 {
 	IInstallation& installation;
 	IRenderer& renderer;
@@ -86,6 +86,11 @@ public:
 	Utilities(IInstallation& _installation, IRenderer& _renderer) : installation(_installation), renderer(_renderer) {}
 
 	IScrollbar* CreateScrollbar(bool _isVertical) override;
+
+	IMathsVenue* Venue() override
+	{
+		return this;
+	}
 
 	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty) override
 	{
@@ -228,9 +233,45 @@ public:
 		return ShowMessageBox(parent, question, title, MB_ICONQUESTION | MB_YESNO) == IDYES;
 	}
 
+	struct PerformanceStats
+	{
+		OS::ticks totalLoadCost = 0;
+		OS::ticks totalCompileCost = 0;
+		OS::ticks totalExecuteCost = 0;
+		int64 moduleCallCount = 0;
+	};
+
+	std::unordered_map<std::string, PerformanceStats> nameToStats;
+
+	void ShowVenue(IMathsVisitor& visitor) override
+	{
+		visitor.ShowString("", "Loading  Compiling  Execution Call-count");
+
+		for (auto i : nameToStats)
+		{
+			float cyclesPerMs = OS::CpuHz() / 1000.0f;
+			float loadCost = i.second.totalLoadCost / cyclesPerMs;
+			float compileCost = i.second.totalCompileCost / cyclesPerMs;
+			float executeCost = i.second.totalExecuteCost / cyclesPerMs;
+			visitor.ShowString(i.first.c_str(), " %4.0fms     %4.0fms     %4.0fms     %d", loadCost, compileCost, executeCost, i.second.moduleCallCount);
+		}
+	}
+
 	void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail) override
 	{
-		return M::RunEnvironmentScript(platform, _onScriptEvent, name, addPlatform, shutdownOnFail);
+		ScriptPerformanceStats stats = { 0 };
+		M::RunEnvironmentScript(stats, platform, _onScriptEvent, name, addPlatform, shutdownOnFail);
+
+		auto i = nameToStats.find(name);
+		if (i == nameToStats.end())
+		{
+			i = nameToStats.insert(std::make_pair(name, PerformanceStats{})).first;
+		}
+
+		i->second.totalCompileCost += stats.compileTime;
+		i->second.totalExecuteCost += stats.executeTime;
+		i->second.totalLoadCost += stats.loadTime;
+		i->second.moduleCallCount = i->second.moduleCallCount + 1;
 	}
 
 	void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr message) override
@@ -2939,6 +2980,11 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 		{
 			pop.renderElement = this;
 			venue = platform.sourceCache.Venue();
+		}
+		else if (Eq(pop.name, "overlay.performance"))
+		{
+			pop.renderElement = this;
+			venue = platform.utilities.Venue();
 		}
 		else
 		{

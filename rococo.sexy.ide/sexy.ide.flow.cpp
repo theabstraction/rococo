@@ -203,7 +203,7 @@ namespace Rococo
 	{
 		namespace IDE
 		{
-			int32 ExecuteSexyScriptLoop(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler)
+			int32 ExecuteSexyScriptLoop(ScriptPerformanceStats& stats, size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler)
 			{
 				ScriptLogger logger(debugger);
 
@@ -229,8 +229,10 @@ namespace Rococo
 
 					try
 					{
+						OS::ticks start = OS::CpuTicks();
 						ISParserTree* tree = sources.GetSource(resourcePath);
-						int32 exitCode = ExecuteSexyScript(*tree, debugger, ss, sources, param, onCompile);
+						stats.loadTime = OS::CpuTicks() - start;
+						int32 exitCode = ExecuteSexyScript(stats, *tree, debugger, ss, sources, param, onCompile);
 						return exitCode;
 					}
 					catch (ParseException& ex)

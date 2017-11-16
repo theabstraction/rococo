@@ -884,23 +884,23 @@ int main(int argc, char* argv[])
 	const char* projectRoot = argv[1];
 	const char* scriptInput = argv[2];
 	const char* touchFile = argv[3];
-	
+
 	printf("ProjectRoot: %s\n", projectRoot);
 	printf("ScriptInput: %s\n", scriptInput);
 	printf("TouchFile: %s\n", touchFile);
-	
+
 	int64 touchModifiedAt = GetLastModifiedDate(touchFile);
 	int64 scriptModifiedAt = GetLastModifiedDate(scriptInput);
 
-   if (touchModifiedAt == 0 && strcmp(touchFile, "null") != 0)
-   {
-      printf("!!! Warning: touchfile '%s' does not appear to exist !!! \n", touchFile);
-   }
+	if (touchModifiedAt == 0 && strcmp(touchFile, "null") != 0)
+	{
+		printf("!!! Warning: touchfile '%s' does not appear to exist !!! \n", touchFile);
+	}
 
-   if (scriptModifiedAt == 0)
-   {
-      printf("!!! Warning: scriptInput '%s' does not appear to exist !!!\n", scriptInput);
-   }
+	if (scriptModifiedAt == 0)
+	{
+		printf("!!! Warning: scriptInput '%s' does not appear to exist !!!\n", scriptInput);
+	}
 
 	if (scriptModifiedAt < touchModifiedAt)
 	{
@@ -908,10 +908,10 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
-	ParseContext pc = {0};
+	ParseContext pc = { 0 };
 	CopyCharToSEXCHAR(pc.projectRoot, projectRoot, _MAX_PATH);
 	CopyCharToSEXCHAR(pc.scriptInput, scriptInput, _MAX_PATH);
-	
+
 	StripToFilenameSansExtension(pc.scriptInput, pc.scriptName, pc.scriptInputSansExtension);
 
 	if (*pc.scriptName == 0)
@@ -920,15 +920,15 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
-   Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
-		
+	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+
 	CSParserProxy spp;
-   Auto<ISourceCode> src;
-   Auto<ISParserTree> tree;
+	Auto<ISourceCode> src;
+	Auto<ISParserTree> tree;
 
 	try
 	{
-      src = spp->LoadSource(pc.scriptInput, Vec2i{ 1,1 });
+		src = spp->LoadSource(pc.scriptInput, Vec2i{ 1,1 });
 		tree = spp->CreateTree(src());
 
 		if (tree->Root().NumberOfElements() == 0)
@@ -939,7 +939,7 @@ int main(int argc, char* argv[])
 
 		ParseInterfaceFile(tree->Root(), pc);
 	}
-	catch(ParseException& ex)
+	catch (ParseException& ex)
 	{
 		WriteToStandardOutput(SEXTEXT("%s. %s\nSpecimen: %s.\nPosition: %d.%d to %d.%d\n"), pc.scriptInput, ex.Message(), ex.Specimen(), ex.Start().x, ex.Start().y, ex.End().x, ex.End().y);
 
@@ -949,7 +949,7 @@ int main(int argc, char* argv[])
 		}
 		return -1;
 	}
-	catch(IException& iex)
+	catch (IException& iex)
 	{
 		WriteToStandardOutput(SEXTEXT("Error with bennyhill: %s"), iex.Message());
 

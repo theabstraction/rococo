@@ -329,7 +329,7 @@
 			(MoveOutputToInputWithNormalDotRange (const Vec3 normal)(Float32 minDot)(Float32 maxDot))
 			(MoveInputToOutputWithNormalDotRange (const Vec3 normal)(Float32 minDot)(Float32 maxDot))
 			(PushQuad (const QuadVertices quad)(const MaterialVertexData material))
-			(PopOutputAsTriangles (ObjectTriangle topLeft)(ObjectTriangle bottomRight)->(Bool wasPopped))
+			(PopOutputAsTriangles (VertexTriangle topLeft)(VertexTriangle bottomRight)->(Bool wasPopped))
 			(ScaleEdges (Float32 left)(Float32 right)(Float32 low)(Float32 high)(Bool preserveUVs))
 			(SetBasis (const Vec3 tangent)(const Vec3 normal)(const Vec3 vertical))
 			(SetMaterial (const MaterialVertexData mat))

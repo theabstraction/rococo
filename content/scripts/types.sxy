@@ -41,10 +41,18 @@
 )
 (alias QuadVertices Rococo.QuadVertices)
 
-(struct ObjectTriangle
+(struct VertexTriangle
 	(Rococo.ObjectVertex a)
 	(Rococo.ObjectVertex b)
 	(Rococo.ObjectVertex c)
 )
-(alias ObjectTriangle Rococo.ObjectTriangle)
+(alias VertexTriangle Rococo.VertexTriangle)
+
+(struct AAB2d
+	(Float32 left)
+	(Float32 bottom)
+	(Float32 right)
+	(Float32 top)
+)
+(alias AAB2d Rococo.AAB2d)
 

@@ -282,10 +282,17 @@ namespace Rococo
 		Rococo::Script::IPublicScriptSystem& ss;
 	};
 
+	struct ScriptPerformanceStats
+	{
+		OS::ticks loadTime;
+		OS::ticks compileTime;
+		OS::ticks executeTime;
+	};
+
 	void InitSexyScript(Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, IEventCallback<ScriptCompileArgs>& onCompile);
 	void ExecuteFunction(Rococo::ID_BYTECODE bytecodeId, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
 	void ExecuteFunction(cstr name, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
-	int32 ExecuteSexyScript(Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile);
+	int32 ExecuteSexyScript(ScriptPerformanceStats& stats, Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile);
 	ISourceCache* CreateSourceCache(IInstallation& installation);
 
 	void ThrowSex(Rococo::Sex::cr_sex s, cstr format, ...);

@@ -98,8 +98,11 @@ namespace ANON
 
 	   char doorScript[IO::MAX_PATHLEN] = { 0 };
 	   char wallScript[IO::MAX_PATHLEN] = { 0 };
+	   char floorScript[IO::MAX_PATHLEN] = { 0 };
+
 	   bool hasDoor = false;
 	   bool scriptWalls = false;
+	   bool scriptFloor = false;
 
 	   std::vector<LightSpec> lights;
 
@@ -637,8 +640,155 @@ namespace ANON
 
 		  try
 		  {
-			  cstr theWallScript = *wallScript ? wallScript : "!scripts/hv/sector/walls/stretch.bricks.sxy";
+			  cstr theWallScript = *wallScript ? wallScript : "#walls/stretch.bricks.sxy";
 			  platform.utilities.RunEnvironmentScript(platform, scriptCallback, theWallScript, true, false);
+			  return true;
+		  }
+		  catch (IException& ex)
+		  {
+			  char title[256];
+			  SafeFormat(title, 256, "sector %u: %s failed", id, wallScript);
+			  platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, title);
+			  return false;
+		  }
+	  }
+
+	  bool RunSectorGenFloorAndCeilingScript()
+	  {
+		  if (wallSegments.empty()) return false;
+
+		  // Script has to iterate through wallSegments and append to wallTriangles
+		  struct ANON : IEventCallback<ScriptCompileArgs>, public HV::ISectorFloorTesselator
+		  {
+			  Sector* This;
+			  float uvScale = 1.0f;
+
+			  ANON(Sector* _This) : This(_This)
+			  {
+			  }
+
+			  int32 NumberOfSquares() override
+			  {
+				  return (int32) This->completeSquares.size();
+			  }
+
+			  void GetSquare(int32 index, AABB2d& sq) override
+			  {
+				  int32 nElements = (int32)This->completeSquares.size();
+				  if (index < 0 || index >= nElements)
+				  {
+					  Throw(0, "SectorFloorTesselator::GetSquare(%d, ...): index out of range", index);
+				  }
+
+				  sq = This->completeSquares[index];
+			  }
+
+			  void CeilingQuad(int32 index, QuadVertices& q) override
+			  {
+				  int32 nElements = (int32)This->completeSquares.size();
+				  if (index < 0 || index >= nElements)
+				  {
+					  Throw(0, "SectorFloorTesselator::CeilingQuad(%d, ...): index out of range", index);
+				  }
+
+				  auto& aabb = This->completeSquares[index];
+
+				  q.positions.a = { aabb.left,  aabb.bottom, This->z1 };
+				  q.positions.b = { aabb.right, aabb.bottom, This->z1 };
+				  q.positions.c = { aabb.right, aabb.top, This->z1 };
+				  q.positions.d = { aabb.left,  aabb.top, This->z1 };
+
+				  q.normals.a = q.normals.b = q.normals.c = q.normals.d = { 0,0,-1 };
+
+				  q.colours.a = q.colours.b = q.colours.c = q.colours.d = RGBAb(128, 128, 128, 255);
+
+				  if (uvScale == 0)
+				  {
+					  q.uv.left = 0;
+					  q.uv.bottom = 0;
+					  q.uv.right = 1.0f;
+					  q.uv.top = 1.0f;
+				  }
+				  else
+				  {
+					  q.uv.left = uvScale * aabb.left;
+					  q.uv.right = uvScale * aabb.right;
+					  q.uv.top = uvScale * aabb.top;
+					  q.uv.bottom = uvScale * aabb.bottom;
+				  }
+			  }
+
+			  void SetUVScale(float scale)
+			  {
+				  uvScale = scale;
+			  }
+
+			  void FloorQuad(int32 index, QuadVertices& q) override
+			  {
+				  int32 nElements = (int32)This->completeSquares.size();
+				  if (index < 0 || index >= nElements)
+				  {
+					  Throw(0, "SectorFloorTesselator::FloorQuad(%d, ...): index out of range", index);
+				  }
+
+				  auto& aabb = This->completeSquares[index];
+
+				  q.positions.a = { aabb.left,  aabb.top, This->z0 };
+				  q.positions.b = { aabb.right, aabb.top, This->z0 };
+				  q.positions.c = { aabb.right, aabb.bottom, This->z0 };
+				  q.positions.d = { aabb.left,  aabb.bottom, This->z0 };
+
+				  q.normals.a = q.normals.b = q.normals.c = q.normals.d = { 0,0,1 };
+
+				  q.colours.a = q.colours.b = q.colours.c = q.colours.d = RGBAb(128, 128, 128, 255);
+
+				  if (uvScale == 0)
+				  {
+					  q.uv.left = 0;
+					  q.uv.bottom = 0;
+					  q.uv.right = 1.0f;
+					  q.uv.top = 1.0f;
+				  }
+				  else
+				  {
+					  q.uv.left = uvScale * aabb.left;
+					  q.uv.right = uvScale * aabb.right;
+					  q.uv.top = uvScale * aabb.top;
+					  q.uv.bottom = uvScale * aabb.bottom;
+				  }
+			  }
+
+			  void AddCeilingTriangle(const VertexTriangle& t) override
+			  {
+				  This->ceilingTriangles.push_back(t);
+			  }
+
+			  void AddFloorTriangle(const VertexTriangle& t) override
+			  {
+				  This->floorTriangles.push_back(t);
+			  }
+
+			  void OnEvent(ScriptCompileArgs& args) override
+			  {
+				  This->floorTriangles.clear();
+				  This->ceilingTriangles.clear();
+
+				  AddNativeCalls_HVISectorFloorTesselator(args.ss, this);
+			  }
+
+			  void GetMaterial(MaterialVertexData& mat, const fstring& componentClass) override
+			  {
+				  if (!This->TryGetMaterial(componentClass, mat))
+				  {
+					  Throw(0, "SectorFloorTesselator::GetMaterial(...) Unknown component class: %s", (cstr)componentClass);
+				  }
+			  }
+		  } scriptCallback(this);
+
+		  try
+		  {
+			  cstr theFloorScript = *floorScript ? floorScript : "#floors/square.mosaics.sxy";
+			  platform.utilities.RunEnvironmentScript(platform, scriptCallback, theFloorScript, true, false);
 			  return true;
 		  }
 		  catch (IException& ex)
@@ -953,33 +1103,47 @@ namespace ANON
          return false;
       }
 
-      void UpdateFloorGraphicMesh()
-      {
-         rchar name[32];
-         SafeFormat(name, sizeof(name), "sector.%u.floor", id);
-         
-         auto& mb = instances.MeshBuilder();
-         mb.Begin(to_fstring(name));
+	  void UpdateFloorGraphicMesh()
+	  {
+		  rchar name[32];
+		  SafeFormat(name, sizeof(name), "sector.%u.floor", id);
 
-         for (auto& t : floorTriangles)
-         {
-            mb.AddTriangle(t.a, t.b, t.c);
-         }
+		  auto& mb = instances.MeshBuilder();
+		  mb.Begin(to_fstring(name));
 
-         mb.End();
+		  for (auto& t : floorTriangles)
+		  {
+			  if (t.a.material.gloss <= 1.0f)
+			  {
+				  mb.AddTriangle(t.a, t.b, t.c);
+			  }
+		  }
 
-		 if (!floorId)
-		 {
-			 floorId = instances.AddBody(to_fstring(name), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
-		 }
-		 else
-		 {
-			 ID_SYS_MESH meshId;
-			 platform.meshes.TryGetByName(name, meshId);
-			 auto* entity = instances.GetEntity(floorId);
-			 entity->SetMesh(meshId);
-		 }
-      }
+		  mb.End();
+
+		  struct
+		  {
+			  bool operator()(const VertexTriangle& t) const
+			  {
+				  return t.a.material.gloss <= 1.0f;
+			  }
+		  } if_floor_glossy;
+
+		  auto i = std::remove_if(floorTriangles.begin(), floorTriangles.end(), if_floor_glossy);
+		  floorTriangles.erase(i, floorTriangles.end());
+
+		  if (!floorId)
+		  {
+			  floorId = instances.AddBody(to_fstring(name), Matrix4x4::Identity(), { 1,1,1 }, ID_ENTITY::Invalid());
+		  }
+		  else
+		  {
+			  ID_SYS_MESH meshId;
+			  platform.meshes.TryGetByName(name, meshId);
+			  auto* entity = instances.GetEntity(floorId);
+			  entity->SetMesh(meshId);
+		  }
+	  }
 
       void UpdateCeilingGraphicMesh()
       {
@@ -1188,6 +1352,8 @@ namespace ANON
 	  {
 		  lights.clear();
 
+		  if (ceilingTriangles.empty()) return;
+
 		  LightSpec light;
 
 		  if (IsCorridor())
@@ -1231,14 +1397,60 @@ namespace ANON
 		  lights.push_back(light);
 	  }
 
+	  bool IsAxisAlignedRectangular() const
+	  {
+		  Ring<Vec2> ring(&floorPerimeter[0], floorPerimeter.size());
+
+		  for (size_t i = 0; i < floorPerimeter.size(); ++i)
+		  {
+			  auto p = ring[i];
+			  auto q = ring[i + 1];
+			  auto r = ring[i + 2];
+
+			  Vec2 pq = q - p;
+			  Vec2 qr = r - q;
+
+			  if (pq.x != 0 && pq.y != 0)
+			  {
+				  return false;
+			  }
+
+			  if (qr.x != 0 && qr.y != 0)
+			  {
+				  return false;
+			  }
+
+			  if (Cross(pq, qr) < 0)
+			  {
+				  return false;
+			  }
+		  }
+
+		  return true;
+	  }
+
 	  void Rebuild()
 	  {
 		  TesselateWalls();
 
 		  auto floor = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Floor);
 		  auto ceiling = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Ceiling);
+		  
+		  if (scriptFloor)
+		  {
+			  if (!IsAxisAlignedRectangular())
+			  {
+				  TesselateFloorAndCeiling(floor->second->mvd, ceiling->second->mvd);
+			  }
 
-		  TesselateFloorAndCeiling(floor->second->mvd, ceiling->second->mvd);
+			  if (completeSquares.empty()) BuildFloorRectangles();
+			  RunSectorGenFloorAndCeilingScript();
+		  }
+		  else
+		  {
+			  TesselateFloorAndCeiling(floor->second->mvd, ceiling->second->mvd);
+			  if (completeSquares.empty()) BuildFloorRectangles();
+		  }
 
 		  if (IsCorridor() && hasDoor)
 		  {
@@ -1316,6 +1528,11 @@ namespace ANON
                T.b = b;
                T.c = c;
                floorTriangles->push_back(T);
+
+			   VertexTriangle PhysicsT = T;
+			   PhysicsT.a.material.gloss = 1.1f;
+			   floorTriangles->push_back(PhysicsT); // physics mesh
+
                a.normal = b.normal = c.normal = -up;
                a.position.z = hA1;
                b.position.z = hB1;
@@ -1405,7 +1622,7 @@ namespace ANON
 
 		  dirty = true;
 	  }
-	  
+
 	  void AddGap(Vec2 p, Vec2 q, ISector* other)
 	  {
 		  gapSegments.push_back({ p, q, -1, -1, other, Sphere{ { 0,0,0 },0 }, 0 });
@@ -1436,7 +1653,7 @@ namespace ANON
 
 						  if (!otherGap)
 						  {
-							  Sector* otherGapConcrete = (Sector*) other;
+							  Sector* otherGapConcrete = (Sector*)other;
 							  otherGapConcrete->AddGap(q, p, this);
 							  otherGapConcrete->RemoveWallSegment(q, p);
 						  }
@@ -1461,6 +1678,153 @@ namespace ANON
 				  wallSegments.push_back({ (int32)i, (int32)(i + 1) % (int32)perimeter.ElementCount() });
 			  }
 		  }
+	  }
+
+	  bool IsInSector(Vec2 p)
+	  {
+		  return GetPerimeterIndex(p) >= 0 || GetFloorTriangleIndexContainingPoint(p) >= 0;
+	  }
+
+	  bool DoesSegmentCrossPerimeter(Vec2 p, Vec2 q)
+	  {
+		  size_t nVertices = floorPerimeter.size();
+		  for (size_t i = 0; i <= nVertices; ++i)
+		  {
+			  auto c = GetRingElement(i, &floorPerimeter[0], nVertices);
+			  auto d = GetRingElement(i + 1, &floorPerimeter[0], nVertices);
+
+			  float t, u;
+			  if (GetLineIntersect(p, q, c, d, t, u))
+			  {
+				  if (u > 0 && u < 1 && t > 0 && t < 1)
+				  {
+					  return true;
+				  }
+			  }
+		  }
+
+		  return false;
+	  }
+
+	  bool IsFullyOccupied(std::vector<int>& occupancyMatrix, int DX, int DY, int span, int startX, int startY)
+	  {
+		  for (int j = startY; j < startY + span; ++j)
+		  {
+			  for (int i = startX; i < startX + span; ++i)
+			  {
+				  if (occupancyMatrix[i + DX * j] == 0)
+				  {
+					  return false;
+				  }
+			  }
+		  }
+
+		  return true;
+	  }
+
+	  void SetEntriesToZero(std::vector<int>& occupancyMatrix, int DX, int DY, int span, int startX, int startY)
+	  {
+		  for (int j = startY; j < startY + span; ++j)
+		  {
+			  for (int i = startX; i < startX + span; ++i)
+			  {
+				  occupancyMatrix[i + DX * j] = 0;
+			  }
+		  }
+	  }
+
+	  std::vector<AABB2d> completeSquares;
+
+	  void ExtractSquares(std::vector<int>& occupancyMatrix, int DX, int DY)
+	  {
+		  int DS = min(DX, DY);
+
+		  for (int ds = DS; ds > 0; ds--)
+		  {
+			  for (int j = 0; j <= DY - ds; ++j)
+			  {
+				  for (int i = 0; i <= DX - ds; ++i)
+				  {
+					  if (IsFullyOccupied(occupancyMatrix, DX, DY, ds, i, j))
+					  {
+						  AABB2d square;
+						  square.left   = i + floorf(aabb.left) + 1.0f;
+						  square.right  = i + ds + floorf(aabb.left) + 1.0f;
+						  square.bottom = j + floorf(aabb.bottom) + 1.0f;
+						  square.top    = j + ds + floorf(aabb.bottom) + 1.0f;
+						  completeSquares.push_back(square);
+
+						  SetEntriesToZero(occupancyMatrix, DX, DY, ds, i, j);
+					  }
+				  }
+			  }
+		  }
+	  }
+
+	  void BuildFloorRectangles()
+	  {
+		  int nX = 0;
+		  int nY = 0;
+		  for (float x = aabb.left + 1.0f; x < aabb.right; x += 1.0f)
+		  {
+			  nX++;
+		  }
+
+		  for (float y = aabb.bottom + 1.0f; y < aabb.top; y += 1.0f)
+		  {
+			  nY++;
+		  }
+
+		  static std::vector<int> floorRectArray;
+		  floorRectArray.resize(nX * nY);
+
+		  for (auto& i : floorRectArray)
+		  {
+			  i = 0;
+		  }
+
+		  int X = 0;
+
+		  for (float x = aabb.left + 1.0f; x < aabb.right; x += 1.0f)
+		  {
+			  int Y = 0;
+
+			  for (float y = aabb.bottom + 1.0f; y < aabb.top; y += 1.0f)
+			  {
+				  float x0 = floorf(x);
+				  float y0 = floorf(y);
+				  float x1 = x0 + 1.0f;
+				  float y1 = y0 + 1.0f;
+				  
+				  Vec2 p00{ x0, y0 };
+				  Vec2 p01{ x1, y0 };
+				  Vec2 p10{ x0, y1 };
+				  Vec2 p11{ x1, y1 };
+
+				  if (IsInSector(p00) && IsInSector(p01) && IsInSector(p10) && IsInSector(p11))
+				  {
+					  if (!DoesSegmentCrossPerimeter(p00, p01))
+					  {
+						  if (!DoesSegmentCrossPerimeter(p01, p11))
+						  {
+							  if (!DoesSegmentCrossPerimeter(p11, p10))
+							  {
+								  if (!DoesSegmentCrossPerimeter(p10, p00))
+								  {
+									  floorRectArray[X + Y * nX] = 1;
+								  }
+							  }
+						  }
+					  }
+				  }
+
+				  Y++;
+			  }
+
+			  X++;
+		  }
+
+		  ExtractSquares(floorRectArray, nX, nY);
 	  }
 
 	  void Build(const Vec2* floorPlan, size_t nVertices, float z0, float z1) override
@@ -1504,9 +1868,6 @@ namespace ANON
 		  }
 
 		  Ring<Vec2> clockwiseRing(&floorPerimeter[0], floorPerimeter.size());
-		  BuildGapsAndSegments(clockwiseRing);
-		  FinalizeGaps();
-		  Rebuild();
 
 		  for (auto* other : co_sectors)
 		  {
@@ -1525,6 +1886,10 @@ namespace ANON
 				  }
 			  }
 		  }
+
+		  BuildGapsAndSegments(clockwiseRing);
+		  FinalizeGaps();
+		  Rebuild();
 	  }
 
 	  virtual void Decouple()
@@ -1636,7 +2001,7 @@ namespace ANON
 		  char path[256];
 		  args.GetPingPath(path, 256);
 
-		  cstr theWallScript = *wallScript ? wallScript : "!scripts/hv/sector/walls/stretch.bricks.sxy";
+		  cstr theWallScript = *wallScript ? wallScript : "#walls/stretch.bricks.sxy";
 		  if (platform.installation.DoPingsMatch(path, theWallScript) && scriptWalls)
 		  {
 			  FinalizeGaps();
@@ -1728,6 +2093,10 @@ namespace ANON
 		  {
 			  SafeFormat(msg, sizeof(msg), "Sector #%u%s", id, IsCorridor() ? " (corridor)" : " (4 pt rectangle)");
 		  }
+		  else if (IsAxisAlignedRectangular())
+		  {
+			  SafeFormat(msg, sizeof(msg), "Sector #%u%s", id, " Axis-Aligned rectangular room");
+		  }
 		  else
 		  {
 			  SafeFormat(msg, sizeof(msg), "Sector #%u", id);
@@ -1769,6 +2138,10 @@ namespace ANON
 			  AddToProperties(GraphicsEx::BodyComponentMatClass_Floor, editor);
 			  editor.AddSpacer();
 			  editor.AddInt("altitude (cm)", false, &altitudeInCm);
+			  editor.AddSpacer();
+			  editor.AddBool("use script", &scriptFloor);
+			  editor.AddMessage("Default: \"#floors/square.mosaics.sxy\"");
+			  editor.AddPingPath("script file", floorScript, IO::MAX_PATHLEN, "#floors/*.sxy");
 		  }
 		  else if (Eq(category, "door"))
 		  {

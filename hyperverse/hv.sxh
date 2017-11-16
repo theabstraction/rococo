@@ -56,3 +56,20 @@
 	)
 	(factory HV.SectorWallTesselator)
 )
+
+(interface
+	(as.sxy HV.ISectorFloorTesselator "../content/scripts/hv")
+	(as.cpp HV.ISectorFloorTesselator "hv")
+	(context factory HV.ISectorFloorTesselator)
+	(methods
+		(NumberOfSquares -> (Int32 count))
+		(GetSquare (Int32 index)(AABB2d sq))
+		(CeilingQuad (Int32 index)(QuadVertices q))
+		(FloorQuad (Int32 index)(QuadVertices q))
+		(AddCeilingTriangle (const VertexTriangle t))	
+		(AddFloorTriangle (const VertexTriangle t)) // If gloss > 1.0 physics hull else graphics hull
+		(GetMaterial (MaterialVertexData mat)(IString componentClass))
+		(SetUVScale (Float32 scale))
+	)
+	(factory HV.SectorFloorTesselator)
+)

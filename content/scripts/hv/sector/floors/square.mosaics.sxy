@@ -1,0 +1,82 @@
+(' #file.type rococo.hv)
+
+(' #include 
+	"!scripts/hv.sxh.sxy"
+	"!scripts/types.sxy"
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv/hv.types.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Sys.Maths)
+(using Sys.Maths.I32)
+(using Sys.Maths.F32)
+(using HV)
+(using Sys.Type)
+(using Sys.Geometry.F32)
+(using Sys.Random)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Entities)
+
+(function GenerateGraphicsMesh (QuadVertices q)(ISectorFloorTesselator sector)(IQuadStackTesselator qst) -> :
+	(MaterialVertexData white)
+	(sector.GetMaterial white "floor")
+	
+	(MaterialVertexData black)
+	(sector.GetMaterial black "floor")
+	
+	(black.materialColour = 0x4F000000)
+	(white.materialColour = 0x4FFFFFFF)
+	
+	(qst.PushQuad q white)
+	
+	(Rectf uv = 0 0 1 1)
+	(qst.TileMosaic black white uv 0.5)
+		
+	(VertexTriangle topLeft)
+	(VertexTriangle bottomRight)
+	(while (qst.PopOutputAsTriangles topLeft bottomRight)
+		(sector.AddFloorTriangle topLeft)
+		(sector.AddFloorTriangle bottomRight)
+	)
+)
+
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(IInstances instances (Instances))
+	
+	(ISectorFloorTesselator sector (SectorFloorTesselator))
+	(IQuadStackTesselator qst (QuadStackTesselator))
+	
+	// First generate the physics mesh
+	(Int32 nSquares = sector.NumberOfSquares)
+	(#for(Int32 i = 0)(i < nSquares)(#inc i)
+		(QuadVertices q)
+		(sector.FloorQuad i q)
+		
+		// N.B mat gloss > 1 => physics hull
+		(MaterialVertexData physics)
+		(sector.GetMaterial physics "floor")
+		(physics.gloss = 2)
+		
+		(qst.PushQuad q physics)
+		(qst.MoveInputToOutput)
+		
+		(VertexTriangle physicsHullTL)
+		(VertexTriangle physicsHullBR)
+		(while (qst.PopOutputAsTriangles physicsHullTL physicsHullBR)
+			(sector.AddFloorTriangle physicsHullTL)
+			(sector.AddFloorTriangle physicsHullBR)
+		)
+	)
+	
+	// Next generate the graphics mesh
+	(#for(Int32 i = 0)(i < nSquares)(#inc i)
+		(QuadVertices q)
+		(sector.FloorQuad i q)	
+		(GenerateGraphicsMesh q sector qst)
+	)
+)
