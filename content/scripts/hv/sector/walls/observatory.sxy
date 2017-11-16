@@ -118,8 +118,8 @@
 	(qst.AddRod 0.49    1 0.45 0.55  0.08 0.25  frame)
 	(qst.MoveInputToOutput)
 	
-	(ObjectTriangle topLeft)
-	(ObjectTriangle bottomRight)
+	(VertexTriangle topLeft)
+	(VertexTriangle bottomRight)
 	(while (qst.PopOutputAsTriangles topLeft bottomRight)
 		(sector.AddWallTriangle topLeft.a topLeft.b topLeft.c)
 		(sector.AddWallTriangle bottomRight.a bottomRight.b bottomRight.c)

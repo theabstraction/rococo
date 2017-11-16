@@ -40,13 +40,6 @@ namespace Rococo
 		Quad normals;
 		QuadColours colours;
 	};
-
-	struct ObjectTriangle
-	{
-		ObjectVertex a;
-		ObjectVertex b;
-		ObjectVertex c;
-	};
 }
 
 #include <../rococo.mplat/mplat.sxh.h>

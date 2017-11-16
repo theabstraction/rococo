@@ -107,8 +107,8 @@
 	(qst.AddRod -0.1 1.0 0 1 0.05 0.25 shelf)
 	(qst.MoveInputToOutput)
 	
-	(ObjectTriangle topLeft)
-	(ObjectTriangle bottomRight)
+	(VertexTriangle topLeft)
+	(VertexTriangle bottomRight)
 	(while (qst.PopOutputAsTriangles topLeft bottomRight)
 		(sector.AddWallTriangle topLeft.a topLeft.b topLeft.c)
 		(sector.AddWallTriangle bottomRight.a bottomRight.b bottomRight.c)

@@ -62,8 +62,8 @@
 	(Rectf uv = 0 0 1 1)
 	(qst.TileMosaic black white uv 0.5)
 	
-	(ObjectTriangle topLeft)
-	(ObjectTriangle bottomRight)
+	(VertexTriangle topLeft)
+	(VertexTriangle bottomRight)
 	(while (qst.PopOutputAsTriangles topLeft bottomRight)
 		(sector.AddWallTriangle topLeft.a topLeft.b topLeft.c)
 		(sector.AddWallTriangle bottomRight.a bottomRight.b bottomRight.c)
