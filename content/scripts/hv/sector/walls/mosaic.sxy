@@ -30,12 +30,14 @@
 	
 	(IInstances instances (Instances))
 	
-	(MaterialId mosaicMatId = (instances.GetMaterialDirect "!textures/hv/materials/hi-rez/mosaics/m1.jpg" ))
-	(MaterialVertexData black = 0x3F000000 mosaicMatId 0.15)
-	(MaterialVertexData white = 0x3FFFFFFF mosaicMatId 0.15)
-
-	(MaterialId skirtMatId = (instances.GetRandomMaterialId (#MaterialCategoryMarble)))
-	(MaterialVertexData skirt = 0x3F000000 skirtMatId 0.05)
+	(MaterialVertexData black)
+	(sector.GetMaterial black "brickwork")
+	
+	(MaterialVertexData white)
+	(sector.GetMaterial white "cement")
+	
+	(MaterialVertexData skirt)
+	(sector.GetMaterial skirt "rails")
 	
 	(qst.SetBasis segment.tangent segment.normal segment.vertical)
 	
@@ -54,9 +56,9 @@
 	(qv.uv.bottom = (segment.quad.d.z * uvScale))
 	
 	(qst.PushQuad qv black)
-	(qst.SplitAcrossTangent 0.9 0x00000000 0x3F000000 0x3F000000 skirt black)
+	(qst.SplitAcrossTangent 0.9 0x00000000 black.materialColour black.materialColour skirt black)
 	(qst.MoveOutputToInputWithMat black)
-	(qst.SplitAcrossTangent 0.1 0x3F000000 0x3F000000 0x00000000 black skirt)
+	(qst.SplitAcrossTangent 0.1 black.materialColour black.materialColour 0x00000000 black skirt)
 	(qst.MoveOutputToInputWithMat black)
 	
 	(Rectf uv = 0 0 1 1)

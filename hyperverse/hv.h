@@ -195,7 +195,7 @@ namespace HV
       virtual Segment GetSegment(Vec2 p, Vec2 q) = 0;
       virtual int32 GetFloorTriangleIndexContainingPoint(Vec2 p) = 0;
       virtual RGBAb GetGuiColour(float intensity) const = 0;
-      virtual int32 GetPerimeterIndex(Vec2 a) = 0;
+      virtual int32 GetPerimeterIndex(Vec2 a) const = 0;
       virtual void InvokeSectorRebuild(bool force) = 0;
       virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
       virtual void Rebuild() = 0;
@@ -271,6 +271,7 @@ namespace HV
    {
       void DrawPointer(IGuiRenderContext& grc, Vec2i pos, Degrees heading, RGBAb shadowColour, RGBAb bodyColour);
 
+	  extern BodyComponentMatClass BodyComponentMatClass_Physics_Hull;
 	  extern BodyComponentMatClass BodyComponentMatClass_Brickwork;
 	  extern BodyComponentMatClass BodyComponentMatClass_Cement;
 	  extern BodyComponentMatClass BodyComponentMatClass_Floor;

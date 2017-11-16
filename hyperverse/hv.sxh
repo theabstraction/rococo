@@ -63,6 +63,7 @@
 	(context factory HV.ISectorFloorTesselator)
 	(methods
 		(NumberOfSquares -> (Int32 count))
+		(FoundationsExist -> (Bool exists))
 		(GetSquare (Int32 index)(AABB2d sq))
 		(CeilingQuad (Int32 index)(QuadVertices q))
 		(FloorQuad (Int32 index)(QuadVertices q))

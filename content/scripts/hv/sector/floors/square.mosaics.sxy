@@ -21,7 +21,7 @@
 (using Rococo.Graphics)
 (using Rococo.Entities)
 
-(function GenerateGraphicsMesh (QuadVertices q)(ISectorFloorTesselator sector)(IQuadStackTesselator qst) -> :
+(function GenerateGraphicsMesh (QuadVertices floorQuad)(QuadVertices ceilingQuad)(ISectorFloorTesselator sector)(IQuadStackTesselator qst) -> :
 	(MaterialVertexData white)
 	(sector.GetMaterial white "floor")
 	
@@ -31,7 +31,15 @@
 	(black.materialColour = 0x4F000000)
 	(white.materialColour = 0x4FFFFFFF)
 	
-	(qst.PushQuad q white)
+	(qst.PushQuad floorQuad white)
+	
+	(if (sector.FoundationsExist)
+		(qst.AddRod 0 1 0 1 0.05 0.25 black)
+		(qst.ClearInput)
+	
+		(Vec3 up = 0 0 1)
+		(qst.MoveOutputToInputWithNormalDotRange up 0.99 1.0)
+	)
 	
 	(Rectf uv = 0 0 1 1)
 	(qst.TileMosaic black white uv 0.5)
@@ -42,6 +50,21 @@
 		(sector.AddFloorTriangle topLeft)
 		(sector.AddFloorTriangle bottomRight)
 	)
+	
+	(if (sector.FoundationsExist == false)
+		(MaterialVertexData ceiling)
+		(sector.GetMaterial ceiling "ceiling")
+
+		(qst.PushQuad ceilingQuad ceiling)
+		(qst.TileMosaic black white uv 0.5)
+
+		(VertexTriangle roofTL)
+		(VertexTriangle roofBR)
+		(while (qst.PopOutputAsTriangles roofTL roofBR)
+			(sector.AddCeilingTriangle roofTL)
+			(sector.AddCeilingTriangle roofBR)
+		)
+	)
 )
 
 
@@ -51,32 +74,35 @@
 	(ISectorFloorTesselator sector (SectorFloorTesselator))
 	(IQuadStackTesselator qst (QuadStackTesselator))
 	
-	// First generate the physics mesh
 	(Int32 nSquares = sector.NumberOfSquares)
-	(#for(Int32 i = 0)(i < nSquares)(#inc i)
-		(QuadVertices q)
-		(sector.FloorQuad i q)
-		
-		// N.B mat gloss > 1 => physics hull
-		(MaterialVertexData physics)
-		(sector.GetMaterial physics "floor")
-		(physics.gloss = 2)
-		
-		(qst.PushQuad q physics)
-		(qst.MoveInputToOutput)
-		
-		(VertexTriangle physicsHullTL)
-		(VertexTriangle physicsHullBR)
-		(while (qst.PopOutputAsTriangles physicsHullTL physicsHullBR)
-			(sector.AddFloorTriangle physicsHullTL)
-			(sector.AddFloorTriangle physicsHullBR)
+	
+	(if (sector.FoundationsExist == false)
+		// First generate the physics mesh
+		(#for(Int32 i = 0)(i < nSquares)(#inc i)
+			(QuadVertices q)
+			(sector.FloorQuad i q)
+			
+			(MaterialVertexData barrier)
+			(sector.GetMaterial barrier "physics.hull")
+
+			(qst.PushQuad q barrier)
+			(qst.MoveInputToOutput)
+			
+			(VertexTriangle physicsHullTL)
+			(VertexTriangle physicsHullBR)
+			(while (qst.PopOutputAsTriangles physicsHullTL physicsHullBR)
+				(sector.AddFloorTriangle physicsHullTL)
+				(sector.AddFloorTriangle physicsHullBR)
+			)
 		)
 	)
 	
 	// Next generate the graphics mesh
 	(#for(Int32 i = 0)(i < nSquares)(#inc i)
-		(QuadVertices q)
-		(sector.FloorQuad i q)	
-		(GenerateGraphicsMesh q sector qst)
+		(QuadVertices floor)
+		(QuadVertices ceiling)
+		(sector.FloorQuad i floor)	
+		(sector.CeilingQuad i ceiling)	
+		(GenerateGraphicsMesh floor ceiling sector qst)
 	)
 )

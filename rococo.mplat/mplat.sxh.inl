@@ -1115,6 +1115,66 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetTextureRect(*rect);
 	}
+	void NativeRococoGraphicsIQuadStackTesselatorSplitThreeColumns(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float x1;
+		_offset += sizeof(x1);
+		ReadInput(x1, _sf, -_offset);
+
+		float x0;
+		_offset += sizeof(x0);
+		ReadInput(x0, _sf, -_offset);
+
+		MaterialVertexData* c3;
+		_offset += sizeof(c3);
+		ReadInput(c3, _sf, -_offset);
+
+		MaterialVertexData* c2;
+		_offset += sizeof(c2);
+		ReadInput(c2, _sf, -_offset);
+
+		MaterialVertexData* c1;
+		_offset += sizeof(c1);
+		ReadInput(c1, _sf, -_offset);
+
+		Rococo::Graphics::IQuadStackTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SplitThreeColumns(*c1, *c2, *c3, x0, x1);
+	}
+	void NativeRococoGraphicsIQuadStackTesselatorSplitThreeRows(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float y1;
+		_offset += sizeof(y1);
+		ReadInput(y1, _sf, -_offset);
+
+		float y0;
+		_offset += sizeof(y0);
+		ReadInput(y0, _sf, -_offset);
+
+		MaterialVertexData* r3;
+		_offset += sizeof(r3);
+		ReadInput(r3, _sf, -_offset);
+
+		MaterialVertexData* r2;
+		_offset += sizeof(r2);
+		ReadInput(r2, _sf, -_offset);
+
+		MaterialVertexData* r1;
+		_offset += sizeof(r1);
+		ReadInput(r1, _sf, -_offset);
+
+		Rococo::Graphics::IQuadStackTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SplitThreeRows(*r1, *r2, *r3, y0, y1);
+	}
 	void NativeRococoGraphicsIQuadStackTesselatorSplitAcrossTangent(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -1211,6 +1271,8 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSetBasis, nullptr, SEXTEXT("IQuadStackTesselatorSetBasis (Pointer hObject)(Sys.Maths.Vec3 tangent)(Sys.Maths.Vec3 normal)(Sys.Maths.Vec3 vertical) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSetMaterial, nullptr, SEXTEXT("IQuadStackTesselatorSetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSetTextureRect, nullptr, SEXTEXT("IQuadStackTesselatorSetTextureRect (Pointer hObject)(Sys.Maths.Rectf rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSplitThreeColumns, nullptr, SEXTEXT("IQuadStackTesselatorSplitThreeColumns (Pointer hObject)(Rococo.MaterialVertexData c1)(Rococo.MaterialVertexData c2)(Rococo.MaterialVertexData c3)(Float32 x0)(Float32 x1) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSplitThreeRows, nullptr, SEXTEXT("IQuadStackTesselatorSplitThreeRows (Pointer hObject)(Rococo.MaterialVertexData r1)(Rococo.MaterialVertexData r2)(Rococo.MaterialVertexData r3)(Float32 y0)(Float32 y1) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSplitAcrossTangent, nullptr, SEXTEXT("IQuadStackTesselatorSplitAcrossTangent (Pointer hObject)(Float32 v)(Int32 topColour)(Int32 middleColour)(Int32 lowColour)(Rococo.MaterialVertexData topMat)(Rococo.MaterialVertexData bottomMat) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorTileMosaic, nullptr, SEXTEXT("IQuadStackTesselatorTileMosaic (Pointer hObject)(Rococo.MaterialVertexData a)(Rococo.MaterialVertexData b)(Sys.Maths.Rectf uvRect)(Sys.SI.Metres roughSize) -> "));
 	}

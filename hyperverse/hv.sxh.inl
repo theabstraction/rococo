@@ -483,6 +483,18 @@ namespace
 		_offset += sizeof(count);
 		WriteOutput(count, _sf, -_offset);
 	}
+	void NativeHVISectorFloorTesselatorFoundationsExist(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorFloorTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 exists = _pObject->FoundationsExist();
+		_offset += sizeof(exists);
+		WriteOutput(exists, _sf, -_offset);
+	}
 	void NativeHVISectorFloorTesselatorGetSquare(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -618,6 +630,7 @@ namespace HV {
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForHVSectorFloorTesselator, _nceContext, SEXTEXT("GetHandleForISectorFloorTesselator0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorNumberOfSquares, nullptr, SEXTEXT("ISectorFloorTesselatorNumberOfSquares (Pointer hObject) -> (Int32 count)"));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorFoundationsExist, nullptr, SEXTEXT("ISectorFloorTesselatorFoundationsExist (Pointer hObject) -> (Bool exists)"));
 		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorGetSquare, nullptr, SEXTEXT("ISectorFloorTesselatorGetSquare (Pointer hObject)(Int32 index)(Rococo.AAB2d sq) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorCeilingQuad, nullptr, SEXTEXT("ISectorFloorTesselatorCeilingQuad (Pointer hObject)(Int32 index)(Rococo.QuadVertices q) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorFloorQuad, nullptr, SEXTEXT("ISectorFloorTesselatorFloorQuad (Pointer hObject)(Int32 index)(Rococo.QuadVertices q) -> "));

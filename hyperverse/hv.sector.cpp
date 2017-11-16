@@ -615,7 +615,7 @@ namespace ANON
 				  if (b.position == c.position) return;
 
 				  enum { MAX = 1000 };
-				  if (This->floorTriangles.size() > MAX)
+				  if (This->wallTriangles.size() > MAX)
 				  {
 					  Throw(0, "ISectorWallTesselator::AddWallTriangle maximum %d triangles reached", MAX);
 				  }
@@ -758,6 +758,11 @@ namespace ANON
 				  }
 			  }
 
+			  boolean32 FoundationsExist() override
+			  {
+				  return !This->IsAxisAlignedRectangular();
+			  }
+
 			  void AddCeilingTriangle(const VertexTriangle& t) override
 			  {
 				  This->ceilingTriangles.push_back(t);
@@ -770,15 +775,28 @@ namespace ANON
 
 			  void OnEvent(ScriptCompileArgs& args) override
 			  {
+				  // N.B we reset mesh here, so that if the debug loop takes us here repeatedly
+				  // we clean up the damage from the previous script crash
 				  This->floorTriangles.clear();
 				  This->ceilingTriangles.clear();
+
+				  if (!This->IsAxisAlignedRectangular())
+				  {
+					  This->TesselateFloorAndCeiling();
+				  }
 
 				  AddNativeCalls_HVISectorFloorTesselator(args.ss, this);
 			  }
 
 			  void GetMaterial(MaterialVertexData& mat, const fstring& componentClass) override
 			  {
-				  if (!This->TryGetMaterial(componentClass, mat))
+				  if (Eq(GraphicsEx::BodyComponentMatClass_Physics_Hull, componentClass))
+				  {
+					  mat.colour = RGBAb(255, 0, 0, 0);
+					  mat.gloss = 1.1f;
+					  mat.materialId = -1;
+				  }
+				  else if (!This->TryGetMaterial(componentClass, mat))
 				  {
 					  Throw(0, "SectorFloorTesselator::GetMaterial(...) Unknown component class: %s", (cstr)componentClass);
 				  }
@@ -1063,7 +1081,7 @@ namespace ANON
          return -1;
       }
 
-      int32 GetPerimeterIndex(Vec2 a) override
+      int32 GetPerimeterIndex(Vec2 a) const override
       {
          for (int32 i = 0; i < floorPerimeter.size(); ++i)
          {
@@ -1420,7 +1438,8 @@ namespace ANON
 				  return false;
 			  }
 
-			  if (Cross(pq, qr) < 0)
+			  float x = Cross(pq, qr);
+			  if (x > 0)
 			  {
 				  return false;
 			  }
@@ -1431,25 +1450,17 @@ namespace ANON
 
 	  void Rebuild()
 	  {
+		  isDirty = true;
+
 		  TesselateWalls();
 
-		  auto floor = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Floor);
-		  auto ceiling = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Ceiling);
-		  
-		  if (scriptFloor)
+		  if (scriptFloor && !completeSquares.empty())
 		  {
-			  if (!IsAxisAlignedRectangular())
-			  {
-				  TesselateFloorAndCeiling(floor->second->mvd, ceiling->second->mvd);
-			  }
-
-			  if (completeSquares.empty()) BuildFloorRectangles();
 			  RunSectorGenFloorAndCeilingScript();
 		  }
 		  else
 		  {
-			  TesselateFloorAndCeiling(floor->second->mvd, ceiling->second->mvd);
-			  if (completeSquares.empty()) BuildFloorRectangles();
+			  TesselateFloorAndCeiling();
 		  }
 
 		  if (IsCorridor() && hasDoor)
@@ -1463,106 +1474,107 @@ namespace ANON
 		  RandomizeLight();
 	  }
 
-      void TesselateFloorAndCeiling(const MaterialVertexData& floorMat, const MaterialVertexData& ceilingMat)
-      {
-         size_t len = sizeof(Vec2) * floorPerimeter.size();
-         Vec2* tempArray = (Vec2*)alloca(len);
+	  void TesselateFloorAndCeiling()
+	  {
+		  auto floor = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Floor);
+		  auto ceiling = nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Ceiling);
 
-         for (size_t i = 0; i != floorPerimeter.size(); i++)
-         {
-            tempArray[i] = floorPerimeter[i];
-         }
+		  size_t len = sizeof(Vec2) * floorPerimeter.size();
+		  Vec2* tempArray = (Vec2*)alloca(len);
 
-         RingManipulator<Vec2> ring(tempArray, floorPerimeter.size());
+		  for (size_t i = 0; i != floorPerimeter.size(); i++)
+		  {
+			  tempArray[i] = floorPerimeter[i];
+		  }
 
-         struct ANON: I2dMeshBuilder
-         {
-            float z0;
-            float z1;
-            float uvScale;
-            Vec2 uvOffset;
-            std::vector<VertexTriangle>* floorTriangles;
-            std::vector<VertexTriangle>* ceilingTriangles;
-            Sector* This;
+		  RingManipulator<Vec2> ring(tempArray, floorPerimeter.size());
 
-			MaterialVertexData floorMat;
-			MaterialVertexData ceilingMat;
+		  struct ANON : I2dMeshBuilder
+		  {
+			  float z0;
+			  float z1;
+			  float uvScale;
+			  Vec2 uvOffset;
+			  std::vector<VertexTriangle>* floorTriangles;
+			  std::vector<VertexTriangle>* ceilingTriangles;
+			  Sector* This;
 
-            virtual void Append(const Triangle2d& t)
-            {
-               ObjectVertex a, b, c;
+			  MaterialVertexData floorMat;
+			  MaterialVertexData ceilingMat;
 
-               float hA0, hA1;
-               This->GetVerticalMetrics(t.A, hA0, hA1);
+			  virtual void Append(const Triangle2d& t)
+			  {
+				  ObjectVertex a, b, c;
 
-               float hB0, hB1;
-               This->GetVerticalMetrics(t.B, hB0, hB1);
+				  float hA0, hA1;
+				  This->GetVerticalMetrics(t.A, hA0, hA1);
 
-               float hC0, hC1;
-               This->GetVerticalMetrics(t.C, hC0, hC1);
+				  float hB0, hB1;
+				  This->GetVerticalMetrics(t.B, hB0, hB1);
 
-               a.position = { t.A.x, t.A.y, hA0 };
-               b.position = { t.B.x, t.B.y, hB0 };
-               c.position = { t.C.x, t.C.y, hC0 };
+				  float hC0, hC1;
+				  This->GetVerticalMetrics(t.C, hC0, hC1);
 
-               Vec3 upAny = Cross(b.position - a.position, c.position - b.position);
-               if (upAny.x == 0 && upAny.y == 0 && upAny.z == 0)
-               {
-                  return;
-               }
+				  a.position = { t.A.x, t.A.y, hA0 };
+				  b.position = { t.B.x, t.B.y, hB0 };
+				  c.position = { t.C.x, t.C.y, hC0 };
 
-               Vec3 up = -Normalize(upAny);
+				  Vec3 upAny = Cross(b.position - a.position, c.position - b.position);
+				  if (upAny.x == 0 && upAny.y == 0 && upAny.z == 0)
+				  {
+					  return;
+				  }
 
-               a.normal = b.normal = c.normal = up;
-			   a.material = b.material = c.material = floorMat;
+				  Vec3 up = -Normalize(upAny);
 
-               a.uv.x = Vec2{ uvScale * Vec2{ t.A.x,t.A.y } +uvOffset }.x;
-               a.uv.y = Vec2{ uvScale * Vec2{ t.A.x,t.A.y } +uvOffset }.y;
-               b.uv.x = Vec2{ uvScale * Vec2{ t.B.x,t.B.y } +uvOffset }.x;
-               b.uv.y = Vec2{ uvScale * Vec2{ t.B.x,t.B.y } +uvOffset }.y;
-               c.uv.x = Vec2{ uvScale * Vec2{ t.C.x,t.C.y } +uvOffset }.x;
-               c.uv.y = Vec2{ uvScale * Vec2{ t.C.x,t.C.y } +uvOffset }.y;
+				  a.normal = b.normal = c.normal = up;
+				  a.material = b.material = c.material = floorMat;
 
-               VertexTriangle T;
-               T.a = a;
-               T.b = b;
-               T.c = c;
-               floorTriangles->push_back(T);
+				  a.uv.x = Vec2{ uvScale * Vec2{ t.A.x,t.A.y } +uvOffset }.x;
+				  a.uv.y = Vec2{ uvScale * Vec2{ t.A.x,t.A.y } +uvOffset }.y;
+				  b.uv.x = Vec2{ uvScale * Vec2{ t.B.x,t.B.y } +uvOffset }.x;
+				  b.uv.y = Vec2{ uvScale * Vec2{ t.B.x,t.B.y } +uvOffset }.y;
+				  c.uv.x = Vec2{ uvScale * Vec2{ t.C.x,t.C.y } +uvOffset }.x;
+				  c.uv.y = Vec2{ uvScale * Vec2{ t.C.x,t.C.y } +uvOffset }.y;
 
-			   VertexTriangle PhysicsT = T;
-			   PhysicsT.a.material.gloss = 1.1f;
-			   floorTriangles->push_back(PhysicsT); // physics mesh
+				  VertexTriangle T;
+				  T.a = a;
+				  T.b = b;
+				  T.c = c;
+				  floorTriangles->push_back(T);
 
-               a.normal = b.normal = c.normal = -up;
-               a.position.z = hA1;
-               b.position.z = hB1;
-               c.position.z = hC1;
-               T.a = b;
-               T.b = a;
-               T.c = c;
+				  VertexTriangle PhysicsT = T;
+				  PhysicsT.a.material.gloss = 1.1f;
+				  floorTriangles->push_back(PhysicsT); // physics mesh
 
-			   T.a.material = T.b.material = T.c.material = ceilingMat;
-               ceilingTriangles->push_back(T);
-            }
-         } builder;
+				  a.normal = b.normal = c.normal = -up;
+				  a.position.z = hA1;
+				  b.position.z = hB1;
+				  c.position.z = hC1;
+				  T.a = b;
+				  T.b = a;
+				  T.c = c;
 
-         floorTriangles.clear();
-         ceilingTriangles.clear();
+				  T.a.material = T.b.material = T.c.material = ceilingMat;
+				  ceilingTriangles->push_back(T);
+			  }
+		  } builder;
 
-		 builder.ceilingMat = ceilingMat;
-		 builder.floorMat = floorMat;
-         builder.z0 = z0;
-         builder.z1 = z1;
-         builder.uvOffset = uvOffset;
-         builder.uvScale = uvScale;
-         builder.floorTriangles = &floorTriangles;
-         builder.ceilingTriangles = &ceilingTriangles;
-         builder.This = this;
+		  floorTriangles.clear();
+		  ceilingTriangles.clear();
 
-         TesselateByEarClip(builder, ring);
+		  builder.ceilingMat = ceiling->second->mvd;
+		  builder.floorMat = floor->second->mvd;
+		  builder.z0 = z0;
+		  builder.z1 = z1;
+		  builder.uvOffset = uvOffset;
+		  builder.uvScale = uvScale;
+		  builder.floorTriangles = &floorTriangles;
+		  builder.ceilingTriangles = &ceilingTriangles;
+		  builder.This = this;
 
-		 isDirty = true;
-      }
+		  TesselateByEarClip(builder, ring);
+	  }
 
 	  void RemoveWallSegment(Vec2 p, Vec2 q)
 	  {
@@ -1619,8 +1631,6 @@ namespace ANON
 			  }
 		  } byLeftIndex;
 		  std::sort(wallSegments.begin(), wallSegments.end(), byLeftIndex);
-
-		  dirty = true;
 	  }
 
 	  void AddGap(Vec2 p, Vec2 q, ISector* other)
@@ -1680,9 +1690,52 @@ namespace ANON
 		  }
 	  }
 
-	  bool IsInSector(Vec2 p)
+	  struct RayCrossingsEnum
 	  {
-		  return GetPerimeterIndex(p) >= 0 || GetFloorTriangleIndexContainingPoint(p) >= 0;
+		  int count = 0;
+		  bool fromVertex = false;
+	  };
+
+	  RayCrossingsEnum CountRayCrossingsThroughSector(Vec2 a, Vec2 dir) const
+	  {
+		  Ring<Vec2> ring(&floorPerimeter[0], floorPerimeter.size());
+
+		  RayCrossingsEnum rce;
+
+		  if (GetPerimeterIndex(a) >= 0)
+		  {
+			  rce.fromVertex = true;
+		  }
+
+		  for (size_t i = 0; i < floorPerimeter.size(); ++i)
+		  {
+			  Vec2 p = ring[i];
+			  Vec2 q = ring[i + 1];
+
+			  float t, u;
+			  if (GetLineIntersect(a, a + dir, p, q, t, u))
+			  {
+				  if (u >= 0 && u <= 1)
+				  {
+					  if (t == 0 || u == 0 || u == 1)
+					  {
+						  rce.fromVertex = true;
+					  }
+					  else if (t > 0)
+					  {
+						  rce.count++;
+					  }
+				  }
+			  }
+		  }
+
+		  return rce;
+	  }
+
+	  bool IsInSector(Vec2 p) const
+	  {
+		  auto result = CountRayCrossingsThroughSector(p, { 1,0 });
+		  return result.fromVertex || ((result.count % 2) == 1);
 	  }
 
 	  bool DoesSegmentCrossPerimeter(Vec2 p, Vec2 q)
@@ -1887,6 +1940,8 @@ namespace ANON
 			  }
 		  }
 
+		  if (completeSquares.empty()) BuildFloorRectangles();
+
 		  BuildGapsAndSegments(clockwiseRing);
 		  FinalizeGaps();
 		  Rebuild();
@@ -1916,11 +1971,11 @@ namespace ANON
          delete this;
       }
 
-	  bool dirty = true;
+	  bool propertiesChanged = true;
 
 	  void NotifyChanged()
 	  {
-		  dirty = true;
+		  propertiesChanged = true;
 		  char sysPath[IO::MAX_PATHLEN];
 
 		  if (*wallScript)
@@ -1939,9 +1994,9 @@ namespace ANON
 
 	  void InvokeSectorRebuild(bool force) override
 	  {
-		  if (dirty || force)
+		  if (propertiesChanged || force)
 		  {
-			  dirty = false;
+			  propertiesChanged = false;
 
 			  z0 = (float)altitudeInCm / 100;
 			  z1 = z0 + (float)heightInCm / 100;
@@ -1993,9 +2048,10 @@ namespace ANON
 		  static int64 anySectorScriptChangedUpdate = 0x900000000000;
 
 		  if (args.Matches(doorScript) && IsCorridor() && hasDoor)
-	      {
+		  {
+			  isDirty = true;
 			  ResetBarriers();
-		      RunSectorGenScript(doorScript);
+			  RunSectorGenScript(doorScript);
 		  }
 
 		  char path[256];
@@ -2006,6 +2062,13 @@ namespace ANON
 		  {
 			  FinalizeGaps();
 			  Rebuild();
+		  }
+
+		  cstr theFloorScript = *floorScript ? floorScript : "#floors/square.mosaic.sxy";
+		  if (platform.installation.DoPingsMatch(path, theFloorScript) && scriptFloor && !completeSquares.empty())
+		  {
+			  isDirty = true;
+			  RunSectorGenFloorAndCeilingScript();
 		  }
 	  }
 
@@ -2139,9 +2202,17 @@ namespace ANON
 			  editor.AddSpacer();
 			  editor.AddInt("altitude (cm)", false, &altitudeInCm);
 			  editor.AddSpacer();
-			  editor.AddBool("use script", &scriptFloor);
-			  editor.AddMessage("Default: \"#floors/square.mosaics.sxy\"");
-			  editor.AddPingPath("script file", floorScript, IO::MAX_PATHLEN, "#floors/*.sxy");
+
+			  if (!completeSquares.empty())
+			  {
+				  editor.AddBool("use script", &scriptFloor);
+				  editor.AddMessage("Default: \"#floors/square.mosaics.sxy\"");
+				  editor.AddPingPath("script file", floorScript, IO::MAX_PATHLEN, "#floors/*.sxy");
+			  }
+			  else
+			  {
+				  editor.AddMessage("Sector floor unsuitable for scripting");
+			  }
 		  }
 		  else if (Eq(category, "door"))
 		  {
@@ -2193,5 +2264,6 @@ namespace HV
 		BodyComponentMatClass BodyComponentMatClass_Door_Panels			= "panels";
 		BodyComponentMatClass BodyComponentMatClass_Door_Casing			= "casing";
 		BodyComponentMatClass BodyComponentMatClass_Door_Rails			= "rails";
+		BodyComponentMatClass BodyComponentMatClass_Physics_Hull		= "physics.hull";
 	}
 }

@@ -597,6 +597,98 @@ namespace ANON
 			input.clear();
 		}
 
+		virtual void SplitThreeColumns(const MaterialVertexData& c1, const MaterialVertexData& c2, const MaterialVertexData& c3, float x0, float x1)
+		{
+			for (auto& item : input)
+			{
+				QuadItem left;
+				QuadItem middle;
+				QuadItem right;
+
+				left.mat = c1;
+				middle.mat = c2;
+				right.mat = c3;
+
+				left.q = middle.q = right.q = item.q;
+
+				left.q.colours.c = left.q.colours.b = c2.colour;
+				right.q.colours.a = right.q.colours.d = c2.colour;
+
+				left.q.colours.a = left.q.colours.d = c1.colour;
+				right.q.colours.b = right.q.colours.c = c3.colour;
+
+				middle.q.colours.a = middle.q.colours.b = middle.q.colours.c = middle.q.colours.d = c2.colour;
+
+				left.q.positions.b = Lerp(item.q.positions.a, item.q.positions.b, x0);
+				left.q.positions.c = Lerp(item.q.positions.d, item.q.positions.c, x0);
+
+				right.q.positions.a = Lerp(item.q.positions.a, item.q.positions.b, x1);
+				right.q.positions.d = Lerp(item.q.positions.d, item.q.positions.c, x1);
+
+				middle.q.positions.a = left.q.positions.b;
+				middle.q.positions.b = right.q.positions.a;
+				middle.q.positions.d = left.q.positions.c;
+				middle.q.positions.c = right.q.positions.d;
+
+				left.q.uv.right = Lerp(item.q.uv.left, item.q.uv.right, x0);
+				middle.q.uv.left = left.q.uv.right;
+				right.q.uv.left = Lerp(item.q.uv.left, item.q.uv.right, x1);
+				middle.q.uv.right = right.q.uv.left;
+
+				output.push_back(left);
+				output.push_back(right);
+				output.push_back(middle);
+			}
+
+			input.clear();
+		}
+
+		virtual void SplitThreeRows(const MaterialVertexData& r1, const MaterialVertexData& r2, const MaterialVertexData& r3, float y0, float y1)
+		{
+			for (auto& item : input)
+			{
+				QuadItem bottom;
+				QuadItem middle;
+				QuadItem top;
+
+				bottom.mat = r1;
+				middle.mat = r2;
+				top.mat = r3;
+
+				top.q = middle.q = bottom.q = item.q;
+
+				bottom.q.colours.a = bottom.q.colours.b = r2.colour;
+				top.q.colours.c = top.q.colours.d = r2.colour;
+
+				bottom.q.colours.c = bottom.q.colours.d = r1.colour;
+				top.q.colours.a = top.q.colours.b = r3.colour;
+
+				middle.q.colours.a = middle.q.colours.b = middle.q.colours.c = middle.q.colours.d = r2.colour;
+
+				bottom.q.positions.a = Lerp(item.q.positions.d, item.q.positions.a, y0);
+				bottom.q.positions.b = Lerp(item.q.positions.c, item.q.positions.b, y0);
+
+				top.q.positions.d = Lerp(item.q.positions.d, item.q.positions.a, y1);
+				top.q.positions.c = Lerp(item.q.positions.c, item.q.positions.b, y1);
+
+				middle.q.positions.a = top.q.positions.d;
+				middle.q.positions.b = top.q.positions.c;
+				middle.q.positions.d = bottom.q.positions.a;
+				middle.q.positions.c = bottom.q.positions.b;
+
+				output.push_back(bottom);
+				output.push_back(middle);
+				output.push_back(top);
+
+				top.q.uv.bottom = Lerp(item.q.uv.bottom, item.q.uv.top, y1);
+				middle.q.uv.top = top.q.uv.bottom;
+				bottom.q.uv.top = Lerp(item.q.uv.bottom, item.q.uv.top, y0);
+				middle.q.uv.bottom = bottom.q.uv.top;
+			}
+
+			input.clear();
+		}
+
 		void SplitAcrossTangent(float v, RGBAb topColour, RGBAb middleColour, RGBAb lowColour, const MaterialVertexData& topMat, const MaterialVertexData& bottomMat)
 		{
 			for (auto& item : input)

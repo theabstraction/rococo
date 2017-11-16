@@ -334,6 +334,8 @@
 			(SetBasis (const Vec3 tangent)(const Vec3 normal)(const Vec3 vertical))
 			(SetMaterial (const MaterialVertexData mat))
 			(SetTextureRect (const Rectf rect))
+			(SplitThreeColumns (const MaterialVertexData c1) (const MaterialVertexData c2) (const MaterialVertexData c3)(Float32 x0)(Float32 x1))
+			(SplitThreeRows (const MaterialVertexData r1) (const MaterialVertexData r2) (const MaterialVertexData r3)(Float32 y0)(Float32 y1))
 			(SplitAcrossTangent(Float32 v)(RGBAb topColour)(RGBAb middleColour)(RGBAb lowColour)(const MaterialVertexData topMat)(const MaterialVertexData bottomMat))
 			(TileMosaic(const MaterialVertexData a)(const MaterialVertexData b)(const Rectf uvRect)(Metres roughSize))
 	)
