@@ -19,6 +19,25 @@ namespace
 		Rococo::Maths::AddVec3toVec3(*a, *b, *sum);
 	}
 
+	void NativeSysGeometryF32AddVec2fVec2f(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2* output;
+		_offset += sizeof(output);
+		ReadInput(output, _sf, -_offset);
+
+		Vec2* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		Vec2* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		Rococo::Maths::AddVec2toVec2(*a, *b, *output);
+	}
+
 	void NativeSysGeometryF32SubtractVec3fVec3f(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -38,6 +57,44 @@ namespace
 		Rococo::Maths::SubtractVec3fromVec3(*a, *b, *difference);
 	}
 
+	void NativeSysGeometryF32SubtractVec2fVec2f(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2* difference;
+		_offset += sizeof(difference);
+		ReadInput(difference, _sf, -_offset);
+
+		Vec2* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		Vec2* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		Rococo::Maths::SubtractVec2fromVec2(*a, *b, *difference);
+	}
+
+	void NativeSysGeometryF32MultiplyFloat32Vec2f(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2* scaledVector;
+		_offset += sizeof(scaledVector);
+		ReadInput(scaledVector, _sf, -_offset);
+
+		Vec2* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		float f;
+		_offset += sizeof(f);
+		ReadInput(f, _sf, -_offset);
+
+		Rococo::Maths::ScaleVector2(f, *a, *scaledVector);
+	}
+
 	void NativeSysGeometryF32Dot(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -50,9 +107,32 @@ namespace
 		_offset += sizeof(a);
 		ReadInput(a, _sf, -_offset);
 
-		float dotProduct = Rococo::Maths::Dot(*a, *b);
+		float dotProduct = Rococo::Dot(*a, *b);
 		_offset += sizeof(dotProduct);
 		WriteOutput(dotProduct, _sf, -_offset);
+	}
+
+	void NativeSysGeometryF32GetTriSpan(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2* span;
+		_offset += sizeof(span);
+		ReadInput(span, _sf, -_offset);
+
+		Vec3* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		Vec3* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		Vec3* d;
+		_offset += sizeof(d);
+		ReadInput(d, _sf, -_offset);
+
+		Rococo::Maths::GetTriSpan(*d, *a, *b, *span);
 	}
 
 	void NativeSysGeometryF32MultiplyVec3fVec3f(NativeCallEnvironment& _nce)
@@ -158,7 +238,7 @@ namespace
 		_offset += sizeof(a);
 		ReadInput(a, _sf, -_offset);
 
-		float len = Rococo::Maths::Length(*a);
+		float len = Rococo::Length(*a);
 		_offset += sizeof(len);
 		WriteOutput(len, _sf, -_offset);
 	}
@@ -219,8 +299,12 @@ namespace Sys { namespace Geometry { namespace F32 {
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Sys.Geometry.F32"));
 		ss.AddNativeCall(ns, NativeSysGeometryF32AddVec3fVec3f, nullptr, SEXTEXT("AddVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 sum) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32AddVec2fVec2f, nullptr, SEXTEXT("AddVec2fVec2f(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 output) -> "));
 		ss.AddNativeCall(ns, NativeSysGeometryF32SubtractVec3fVec3f, nullptr, SEXTEXT("SubtractVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 difference) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32SubtractVec2fVec2f, nullptr, SEXTEXT("SubtractVec2fVec2f(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 difference) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyFloat32Vec2f, nullptr, SEXTEXT("MultiplyFloat32Vec2f(Float32 f)(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 scaledVector) -> "));
 		ss.AddNativeCall(ns, NativeSysGeometryF32Dot, nullptr, SEXTEXT("Dot(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b) -> (Float32 dotProduct)"));
+		ss.AddNativeCall(ns, NativeSysGeometryF32GetTriSpan, nullptr, SEXTEXT("GetTriSpan(Sys.Maths.Vec3 d)(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec2 span) -> "));
 		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyVec3fVec3f, nullptr, SEXTEXT("MultiplyVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 crossProduct) -> "));
 		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyFloat32Vec3f, nullptr, SEXTEXT("MultiplyFloat32Vec3f(Float32 f)(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 scaledVector) -> "));
 		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyVec3fFloat32, nullptr, SEXTEXT("MultiplyVec3fFloat32(Sys.Maths.Vec3 a)(Float32 f)(Sys.Maths.Vec3 scaledVector) -> "));

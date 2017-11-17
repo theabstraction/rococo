@@ -73,12 +73,40 @@ namespace Rococo
          c = a - b;
       }
 
+	  void ScaleVector3(float f, const Vec3& a, Vec3& fa)
+	  {
+		  fa = a * f;
+	  }
+
 	  void ScaleVector3(const Vec3& a, float f, Vec3& fa)
 	  {
 		  fa = a * f;
 	  }
 
-	  void ScaleVector3(float f, const Vec3& a, Vec3& fa)
+	  void AddVec2toVec2(const Vec2& a, const Vec2& b, Vec2& c)
+	  {
+		  c = a + b;
+	  }
+
+	  void SubtractVec2fromVec2(const Vec2& a, const Vec2& b, Vec2& c)
+	  {
+		  c = a - b;
+	  }
+
+	  void GetTriSpan(cr_vec3 d, cr_vec3 a, cr_vec3 b, Vec2& span)
+	  {
+		  Vec3 vertical = a - d;
+		  Vec3 tangental = b - a;
+
+		  span = Vec2 { Length(tangental), Length(vertical) };
+	  }
+
+	  void ScaleVector2(const Vec2& a, float f, Vec2& fa)
+	  {
+		  fa = a * f;
+	  }
+
+	  void ScaleVector2( float f, const Vec2& a, Vec2& fa)
 	  {
 		  fa = a * f;
 	  }
@@ -86,18 +114,6 @@ namespace Rococo
       void MultiplyMatrixByRef(const Matrix4x4& a, const Matrix4x4& b, Matrix4x4& c)
       {
          Multiply(c, a, b);
-      }
-
-      float Dot(const Vec3& a, const Vec3& b)
-      {
-         return a.x * b.x + a.y * b.y + a.z * b.z;
-      }
-
-      float Length(const Vec3& a)
-      {
-         float ds2 = Rococo::Maths::Dot(a, a);
-         float ds = sqrtf(ds2);
-         return ds;
       }
 
       void CrossByRef(const Vec3& a, const Vec3& b, Vec3& c)
@@ -110,7 +126,7 @@ namespace Rococo
 
       void NormalizeInPlace(Vec3& a)
       {
-         float ds = Rococo::Maths::Length(a);
+         float ds = Length(a);
          if (ds == 0) Throw(0, "Cannot normalize null vector");
          float scale = 1.0f / ds;
 

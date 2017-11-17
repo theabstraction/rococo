@@ -169,6 +169,8 @@ namespace HV
 	   virtual void Enumerate(IEventCallback<MaterialArgs>& cb) = 0;
    };
 
+   struct ISectorLayout;
+
    ROCOCOAPI ISector: public IPropertyTarget
    {
 	  virtual const AABB2d& AABB() const = 0;
@@ -212,6 +214,8 @@ namespace HV
 	  virtual const LightSpec* Lights(size_t& numberOfLights) const = 0;
 
 	  virtual void SyncEnvironmentMapToSector() = 0;
+
+	  virtual ISectorLayout* Layout() = 0;
    };
 
    ISector* CreateSector(Platform& platform, ISectors& co_sectors);
@@ -238,6 +242,9 @@ namespace HV
 
 	  virtual cstr GetTemplateDoorScript(bool& hasDoor) const = 0;
 	  virtual cstr GetTemplateWallScript(bool& usesScript) const = 0;
+
+	  virtual void BindProperties(IBloodyPropertySetEditor& editor) = 0;
+	  virtual void NotifyChanged() = 0;
    };
 
    ISectors* CreateSectors(Platform& platform);

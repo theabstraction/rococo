@@ -61,7 +61,7 @@ namespace ANON
 	   rect.top += ds;
    }
 
-   struct Sector : public ISector, public ICorridor, IMaterialPalette, public IEventCallback<MaterialArgs>
+   struct Sector : public ISector, public ICorridor, IMaterialPalette, public IEventCallback<MaterialArgs>, public ISectorLayout
    {
 	   IInstancesSupervisor& instances;
 	   ISectors& co_sectors;
@@ -528,7 +528,7 @@ namespace ANON
 		  if (wallSegments.empty()) return false;
 
 		  // Script has to iterate through wallSegments and append to wallTriangles
-		  struct ANON: IEventCallback<ScriptCompileArgs>, public HV::ISectorWallTesselator
+		  struct ANON: IEventCallback<ScriptCompileArgs>, public HV::ISectorWallTesselator, public HV::ISectorComponents
 		  {
 			  Sector* This;
 
@@ -548,64 +548,12 @@ namespace ANON
 
 			  void GetSegment(int32 index, HV::WallSegment& segment) override
 			  {
-				  if (index < 0) Throw(0, "ISectorWallTesselator::GetSegment(...): Index %d < 0", index);
-				  int32 i = index % (int32) This->wallSegments.size();
-				  auto& s = This->wallSegments[i];
-
-				  Vec2 p = This->floorPerimeter[s.perimeterIndexStart];
-				  Vec2 q = This->floorPerimeter[s.perimeterIndexEnd];
-
-				  float z0 = This->Z0();
-				  float z1 = This->Z1();
-
-				  segment.quad.a = { p.x, p.y, z1 };
-				  segment.quad.b = { q.x, q.y, z1 };
-				  segment.quad.c = { q.x, q.y, z0 };
-				  segment.quad.d = { p.x, p.y, z0 };
-				  
-				  Vec3 rawTangent  = Vec3 { q.x - p.x, q.y - p.y, 0 };
-
-				  segment.vertical = { 0, 0, 1 };
-				  segment.normal   = Normalize({ rawTangent.y, -rawTangent.x, 0 });
-
-				  segment.leftEdgeIsGap = false;
-				  segment.rightEdgeIsGap = false;
-
-				  for (auto& gap : This->gapSegments)
-				  {
-					  if (gap.a == q)
-					  {
-						  segment.leftEdgeIsGap = true;
-					  }
-					  else if (gap.b == p)
-					  {
-						  segment.rightEdgeIsGap = true;
-					  }
-				  }
-
-				  float tangentLen = Length(rawTangent);
-				  segment.tangent = rawTangent * (1.0f / tangentLen);
-				  segment.span = { tangentLen, segment.quad.a.z - segment.quad.d.z };
+				  This->GetSegment(index, segment);
 			  }
 
 			  void GetGap(int32 index, HV::GapSegment& segment) override
 			  {
-				  if (index < 0) Throw(0, "ISectorWallTesselator::GetGap(...): Index %d < 0", index);
-				  if (This->gapSegments.empty()) Throw(0, "ISectorWallTesselator::GetGap(...) : There are no gaps");
-				  auto& gap = This->gapSegments[index % (int32)This->gapSegments.size()];
-
-				  segment.quad.a = { gap.a.x, gap.a.y, gap.z1 };
-				  segment.quad.b = { gap.b.x, gap.b.y, gap.z1 };
-				  segment.quad.c = { gap.b.x, gap.b.y, gap.z0 };
-				  segment.quad.d = { gap.a.x, gap.a.y, gap.z0 };
-				 
-				  Vec3 tangent = segment.quad.b - segment.quad.a;
-
-				  segment.normal = Normalize(Vec3{ tangent.y, -tangent.x, 0 });
-				  segment.vertical = { 0,0,1 };
-				  segment.leadsToCorridor = gap.other->IsCorridor();
-				  segment.otherZ0 = This->Z0();
-				  segment.otherZ1 = This->Z1();
+				  This->GetGap(index, segment);
 			  }
 
 			  void AddWallTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c) override
@@ -614,10 +562,10 @@ namespace ANON
 				  if (a.position == c.position) return;
 				  if (b.position == c.position) return;
 
-				  enum { MAX = 1000 };
+				  enum { MAX = 100000 };
 				  if (This->wallTriangles.size() > MAX)
 				  {
-					  Throw(0, "ISectorWallTesselator::AddWallTriangle maximum %d triangles reached", MAX);
+					  Throw(0, "ISectorWallTesselator::AddWallTriangle maximum %d triangles reached. Be kind to laptop users.", MAX);
 				  }
 
 				  This->wallTriangles.push_back({ a,b,c });
@@ -627,6 +575,7 @@ namespace ANON
 			  {
 				  This->wallTriangles.clear();
 				  AddNativeCalls_HVISectorWallTesselator(args.ss, this);
+				  AddNativeCalls_HVISectorComponents(args.ss, this);
 			  }
 
 			  void GetMaterial(MaterialVertexData& mat, const fstring& componentClass) override
@@ -635,6 +584,38 @@ namespace ANON
 				  {
 					  Throw(0, "ISectorWallTesselator::GetMaterial(...) Unknown component class: %s", (cstr)componentClass);
 				  }
+			  }
+
+			  std::string localName;
+			  std::string meshName;
+
+			  void AddTriangle(const VertexTriangle& t) override
+			  {
+				  This->platform.meshes.AddTriangleEx(t);
+			  }
+
+			  void BuildComponent(const fstring& componentName) override
+			  {
+				  this->localName = componentName;
+
+				  char fullMeshName[256];
+				  SafeFormat(fullMeshName, 256, "sector.%d.%s", This->id, (cstr)componentName);
+
+				  this->meshName = fullMeshName;
+
+				  This->platform.meshes.Clear();
+				  This->platform.meshes.Begin(to_fstring(fullMeshName));
+			  }
+
+			  void ClearComponents(const fstring& componentName) override
+			  {
+				  This->ClearComponents(componentName);
+			  }
+
+			  void CompleteComponent()  override
+			  {
+				  This->platform.meshes.End();
+				  This->AddComponent(Matrix4x4::Identity(), localName.c_str(), meshName.c_str());
 			  }
 		  } scriptCallback(this);  
 
@@ -676,48 +657,12 @@ namespace ANON
 
 			  void GetSquare(int32 index, AABB2d& sq) override
 			  {
-				  int32 nElements = (int32)This->completeSquares.size();
-				  if (index < 0 || index >= nElements)
-				  {
-					  Throw(0, "SectorFloorTesselator::GetSquare(%d, ...): index out of range", index);
-				  }
-
-				  sq = This->completeSquares[index];
+				  return This->GetSquare(index, sq);
 			  }
 
 			  void CeilingQuad(int32 index, QuadVertices& q) override
 			  {
-				  int32 nElements = (int32)This->completeSquares.size();
-				  if (index < 0 || index >= nElements)
-				  {
-					  Throw(0, "SectorFloorTesselator::CeilingQuad(%d, ...): index out of range", index);
-				  }
-
-				  auto& aabb = This->completeSquares[index];
-
-				  q.positions.a = { aabb.left,  aabb.bottom, This->z1 };
-				  q.positions.b = { aabb.right, aabb.bottom, This->z1 };
-				  q.positions.c = { aabb.right, aabb.top, This->z1 };
-				  q.positions.d = { aabb.left,  aabb.top, This->z1 };
-
-				  q.normals.a = q.normals.b = q.normals.c = q.normals.d = { 0,0,-1 };
-
-				  q.colours.a = q.colours.b = q.colours.c = q.colours.d = RGBAb(128, 128, 128, 255);
-
-				  if (uvScale == 0)
-				  {
-					  q.uv.left = 0;
-					  q.uv.bottom = 0;
-					  q.uv.right = 1.0f;
-					  q.uv.top = 1.0f;
-				  }
-				  else
-				  {
-					  q.uv.left = uvScale * aabb.left;
-					  q.uv.right = uvScale * aabb.right;
-					  q.uv.top = uvScale * aabb.top;
-					  q.uv.bottom = uvScale * aabb.bottom;
-				  }
+				  This->CeilingQuad(index, q);
 			  }
 
 			  void SetUVScale(float scale)
@@ -727,37 +672,7 @@ namespace ANON
 
 			  void FloorQuad(int32 index, QuadVertices& q) override
 			  {
-				  int32 nElements = (int32)This->completeSquares.size();
-				  if (index < 0 || index >= nElements)
-				  {
-					  Throw(0, "SectorFloorTesselator::FloorQuad(%d, ...): index out of range", index);
-				  }
-
-				  auto& aabb = This->completeSquares[index];
-
-				  q.positions.a = { aabb.left,  aabb.top, This->z0 };
-				  q.positions.b = { aabb.right, aabb.top, This->z0 };
-				  q.positions.c = { aabb.right, aabb.bottom, This->z0 };
-				  q.positions.d = { aabb.left,  aabb.bottom, This->z0 };
-
-				  q.normals.a = q.normals.b = q.normals.c = q.normals.d = { 0,0,1 };
-
-				  q.colours.a = q.colours.b = q.colours.c = q.colours.d = RGBAb(128, 128, 128, 255);
-
-				  if (uvScale == 0)
-				  {
-					  q.uv.left = 0;
-					  q.uv.bottom = 0;
-					  q.uv.right = 1.0f;
-					  q.uv.top = 1.0f;
-				  }
-				  else
-				  {
-					  q.uv.left = uvScale * aabb.left;
-					  q.uv.right = uvScale * aabb.right;
-					  q.uv.top = uvScale * aabb.top;
-					  q.uv.bottom = uvScale * aabb.bottom;
-				  }
+				  This->FloorQuad(index, q);
 			  }
 
 			  boolean32 FoundationsExist() override
@@ -1413,7 +1328,7 @@ namespace ANON
          } scriptCallback;
          scriptCallback.This = this;
 		 
-		 cstr genCorridor = *corridorScript ? corridorScript : "!scripts/hv/sector/gen.door.sxy";
+		 cstr genCorridor = *corridorScript ? corridorScript : "#corridor/gen.door.sxy";
 
 		 try
 		 {	
@@ -2283,6 +2198,8 @@ namespace ANON
 		  else if (Eq(category, "ceiling"))
 		  {
 			  AddToProperties(GraphicsEx::BodyComponentMatClass_Ceiling, editor);
+			  AddToProperties(GraphicsEx::BodyComponentMatClass_Door_Mullions, editor);
+			  AddToProperties(GraphicsEx::BodyComponentMatClass_Door_Rails, editor);
 			  editor.AddSpacer();
 			  editor.AddInt("height (cm)", false, &heightInCm);
 			  
@@ -2290,6 +2207,8 @@ namespace ANON
 		  else if (Eq(category, "floor"))
 		  {
 			  AddToProperties(GraphicsEx::BodyComponentMatClass_Floor, editor);
+			  AddToProperties(GraphicsEx::BodyComponentMatClass_Door_Casing, editor);
+			  AddToProperties(GraphicsEx::BodyComponentMatClass_Door_Panels, editor);
 			  editor.AddSpacer();
 			  editor.AddInt("altitude (cm)", false, &altitudeInCm);
 			  editor.AddSpacer();
@@ -2330,6 +2249,169 @@ namespace ANON
 				  editor.AddMessage("...and have only four vertices");
 			  }
 		  }
+	  }
+
+	  ISectorLayout* Layout() override
+	  {
+		  return this;
+	  }
+
+	  int32 CountSquares() override
+	  {
+		  return (int32)completeSquares.size();
+	  }
+
+	  void GetSquare(int32 sqIndex, AABB2d& sq)
+	  {
+		  int32 nElements = (int32)completeSquares.size();
+		  if (sqIndex < 0 || sqIndex >= nElements)
+		  {
+			  Throw(0, "Sector::GetSquare(%d, ...): index out of range", sqIndex);
+		  }
+
+		  sq = completeSquares[sqIndex];
+	  }
+
+	  void CeilingQuad(int32 index, QuadVertices& q) override
+	  {
+		  int32 nElements = (int32)completeSquares.size();
+		  if (index < 0 || index >= nElements)
+		  {
+			  Throw(0, "Sector::CeilingQuad(%d, ...): index out of range", index);
+		  }
+
+		  auto& aabb = completeSquares[index];
+
+		  q.positions.a = { aabb.left,  aabb.bottom, z1 };
+		  q.positions.b = { aabb.right, aabb.bottom, z1 };
+		  q.positions.c = { aabb.right, aabb.top, z1 };
+		  q.positions.d = { aabb.left,  aabb.top, z1 };
+
+		  q.normals.a = q.normals.b = q.normals.c = q.normals.d = { 0,0,-1 };
+
+		  q.colours.a = q.colours.b = q.colours.c = q.colours.d = RGBAb(128, 128, 128, 255);
+
+		  if (uvScale == 0)
+		  {
+			  q.uv.left = 0;
+			  q.uv.bottom = 0;
+			  q.uv.right = 1.0f;
+			  q.uv.top = 1.0f;
+		  }
+		  else
+		  {
+			  q.uv.left = uvScale * aabb.left;
+			  q.uv.right = uvScale * aabb.right;
+			  q.uv.top = uvScale * aabb.top;
+			  q.uv.bottom = uvScale * aabb.bottom;
+		  }
+	  }
+
+	  void FloorQuad(int32 index, QuadVertices& q) override
+	  {
+		  int32 nElements = (int32)completeSquares.size();
+		  if (index < 0 || index >= nElements)
+		  {
+			  Throw(0, "Sector::FloorQuad(%d, ...): index out of range", index);
+		  }
+
+		  auto& aabb = completeSquares[index];
+
+		  q.positions.a = { aabb.left,  aabb.top, z0 };
+		  q.positions.b = { aabb.right, aabb.top, z0 };
+		  q.positions.c = { aabb.right, aabb.bottom, z0 };
+		  q.positions.d = { aabb.left,  aabb.bottom, z0 };
+
+		  q.normals.a = q.normals.b = q.normals.c = q.normals.d = { 0,0,1 };
+
+		  q.colours.a = q.colours.b = q.colours.c = q.colours.d = RGBAb(128, 128, 128, 255);
+
+		  if (uvScale == 0)
+		  {
+			  q.uv.left = 0;
+			  q.uv.bottom = 0;
+			  q.uv.right = 1.0f;
+			  q.uv.top = 1.0f;
+		  }
+		  else
+		  {
+			  q.uv.left = uvScale * aabb.left;
+			  q.uv.right = uvScale * aabb.right;
+			  q.uv.top = uvScale * aabb.top;
+			  q.uv.bottom = uvScale * aabb.bottom;
+		  }
+	  }
+
+	  int32 NumberOfSegments() override
+	  {
+		  return (int32) wallSegments.size();
+	  }
+
+	  int32 NumberOfGaps() override
+	  {
+		  return (int32) gapSegments.size();
+	  }
+
+	  void GetSegment(int32 index, HV::WallSegment& segment) override
+	  {
+		  if (index < 0) Throw(0, "Sector::GetSegment(...): Index %d < 0", index);
+		  int32 i = index % (int32) wallSegments.size();
+		  auto& s = wallSegments[i];
+
+		  Vec2 p = floorPerimeter[s.perimeterIndexStart];
+		  Vec2 q = floorPerimeter[s.perimeterIndexEnd];
+
+		  float z0 = Z0();
+		  float z1 = Z1();
+
+		  segment.quad.a = { p.x, p.y, z1 };
+		  segment.quad.b = { q.x, q.y, z1 };
+		  segment.quad.c = { q.x, q.y, z0 };
+		  segment.quad.d = { p.x, p.y, z0 };
+
+		  Vec3 rawTangent = Vec3{ q.x - p.x, q.y - p.y, 0 };
+
+		  segment.vertical = { 0, 0, 1 };
+		  segment.normal = Normalize({ rawTangent.y, -rawTangent.x, 0 });
+
+		  segment.leftEdgeIsGap = false;
+		  segment.rightEdgeIsGap = false;
+
+		  for (auto& gap : gapSegments)
+		  {
+			  if (gap.a == q)
+			  {
+				  segment.leftEdgeIsGap = true;
+			  }
+			  else if (gap.b == p)
+			  {
+				  segment.rightEdgeIsGap = true;
+			  }
+		  }
+
+		  float tangentLen = Length(rawTangent);
+		  segment.tangent = rawTangent * (1.0f / tangentLen);
+		  segment.span = { tangentLen, segment.quad.a.z - segment.quad.d.z };
+	  }
+
+	  void GetGap(int32 index, HV::GapSegment& segment) override
+	  {
+		  if (index < 0) Throw(0, "Sector::GetGap(...): Index %d < 0", index);
+		  if (gapSegments.empty()) Throw(0, "Sector::GetGap(...) : There are no gaps");
+		  auto& gap = gapSegments[index % (int32)gapSegments.size()];
+
+		  segment.quad.a = { gap.a.x, gap.a.y, gap.z1 };
+		  segment.quad.b = { gap.b.x, gap.b.y, gap.z1 };
+		  segment.quad.c = { gap.b.x, gap.b.y, gap.z0 };
+		  segment.quad.d = { gap.a.x, gap.a.y, gap.z0 };
+
+		  Vec3 tangent = segment.quad.b - segment.quad.a;
+
+		  segment.normal = Normalize(Vec3{ tangent.y, -tangent.x, 0 });
+		  segment.vertical = { 0,0,1 };
+		  segment.leadsToCorridor = gap.other->IsCorridor();
+		  segment.otherZ0 = Z0();
+		  segment.otherZ1 = Z1();
 	  }
    };
 }

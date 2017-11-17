@@ -365,6 +365,8 @@ namespace HV
 	{
 		p.installation.Macro("#walls", "!scripts/hv/sector/walls/");
 		p.installation.Macro("#floors", "!scripts/hv/sector/floors/");
+		p.installation.Macro("#corridor", "!scripts/hv/sector/corridor/");
+		p.installation.Macro("#objects", "!scripts/hv/sector/objects/");
 		return new HV::App(p);
 	}
 }

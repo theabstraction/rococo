@@ -119,6 +119,7 @@
 	(tbase.SetColourEdge1 0xFF808080 0xFFFFFFFF)
 	(tbase.SetColourEdge2 0xFF808080 0xDFFFFFFF)
 	
+	(tabs.AddTab 65 "Objects"	"editor.tab.objects")
 	(tabs.AddTab 50 "Walls"		"editor.tab.walls")
 	(tabs.AddTab 50 "Floor" 	"editor.tab.floor")
 	(tabs.AddTab 60 "Ceiling"	"editor.tab.ceiling")

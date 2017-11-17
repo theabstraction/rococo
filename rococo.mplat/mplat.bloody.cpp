@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <algorithm>
 
-namespace
+namespace ANON
 {
 	using namespace Rococo;
 	using namespace Rococo::Graphics;
@@ -1231,6 +1231,61 @@ namespace
 		}
 	};
 
+
+	class BloodyEventButton : public IBloodyPropertyType
+	{
+		IPublisher& publisher;
+		EventId id;
+		std::string name;
+	public:
+		BloodyEventButton(IPublisher& _publisher, cstr _name, EventId _id): 
+			publisher(_publisher), id(_id), name(_name)
+		{
+		}
+
+		virtual void Free()
+		{
+			delete this;
+		}
+
+		virtual cstr Name() const
+		{
+			return "EventButton";
+		}
+
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		{
+			GuiMetrics metrics;
+			rc.Renderer().GetGuiMetrics(metrics);
+
+			if (IsPointInRect(metrics.cursorPosition, rect))
+			{
+				Graphics::DrawRectangle(rc, rect, RGBAb(192, 192, 192, 255), RGBAb(192, 192, 192, 255));
+				Graphics::RenderCentredText(rc, name.c_str(), RGBAb(0, 0, 0, 255), 9, Centre(rect), &rect);
+				Graphics::DrawBorderAround(rc, rect, { 1,1 }, RGBAb(255, 255, 255, 255), RGBAb(224, 224, 224, 255));
+			}
+			else
+			{
+				Graphics::DrawRectangle(rc, rect, RGBAb(160, 160, 160, 255), RGBAb(160, 160, 160, 255));
+				Graphics::RenderCentredText(rc, name.c_str(), RGBAb(0, 0, 0, 255), 9, Centre(rect), &rect);
+				Graphics::DrawBorderAround(rc, rect, { 1,1 }, RGBAb(224, 224, 224, 255), RGBAb(200, 200, 200, 255));
+			}
+		}
+
+		RGBAb NameColour() const override
+		{
+			return RGBAb(0, 0, 0, 0);
+		}
+
+		void Click(bool clickedDown, Vec2i pos) override
+		{
+			if (!clickedDown)
+			{
+				publisher.Publish(Event(id));
+			}
+		}
+	};
+
 	class BloodyMessage : public IBloodyPropertyType
 	{
 		std::string msg;
@@ -1525,6 +1580,11 @@ namespace
 			Add(new BloodyProperty(new BloodyBoolBinding(platform, *this, value), name));
 		}
 
+		void AddButton(cstr name, EventId id) override
+		{
+			properties.push_back(new BloodyProperty(new BloodyEventButton(platform.publisher, name, id), ""));
+		}
+
 		void AddSpacer() override
 		{
 			properties.push_back(new BloodyProperty(new BloodySpacer(), ""));
@@ -1658,6 +1718,7 @@ namespace
 				}
 				else
 				{
+					p->SetRect(rowRect);
 					p->Prop().Render(rc, rowRect, RGBAb(255, 255, 255));
 				}
 
@@ -1672,6 +1733,6 @@ namespace Rococo
 {
 	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty)
 	{
-		return new BloodyPropertySetEditor(_platform, _onDirty);
+		return new ANON::BloodyPropertySetEditor(_platform, _onDirty);
 	}
 }

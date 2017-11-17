@@ -250,6 +250,7 @@ namespace Rococo
 	   virtual void AddColour(cstr name, RGBAb* colour) = 0;
 	   virtual void AddMaterialString(cstr name, char* value, size_t valueLen) = 0;
 	   virtual void AddPingPath(cstr name, char* value, size_t valueLen, cstr defaultSubDir) = 0;
+	   virtual void AddButton(cstr name, Events::EventId id) = 0;
 	   virtual void Clear();
    };
 

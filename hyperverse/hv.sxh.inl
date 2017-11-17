@@ -377,13 +377,13 @@ namespace
 		_pObject->SetTemplateMaterial(bodyClass, cat, colour, persistentId);
 	}
 
-	void NativeGetHandleForHVSectors(NativeCallEnvironment& _nce)
+	void NativeGetHandleForHVSectorBuilder(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		HV::ISectors* nceContext = reinterpret_cast<HV::ISectors*>(_nce.context);
-		// Uses: HV::ISectorBuilder* FactoryConstructHVSectors(HV::ISectors* _context);
-		HV::ISectorBuilder* pObject = FactoryConstructHVSectors(nceContext);
+		// Uses: HV::ISectorBuilder* FactoryConstructHVSectorBuilder(HV::ISectors* _context);
+		HV::ISectorBuilder* pObject = FactoryConstructHVSectorBuilder(nceContext);
 		_offset += sizeof(IString*);
 		WriteOutput(pObject, _sf, -_offset);
 	}
@@ -393,7 +393,7 @@ namespace HV {
 	void AddNativeCalls_HVISectorBuilder(Rococo::Script::IPublicScriptSystem& ss, HV::ISectors* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVSectors, _nceContext, SEXTEXT("GetHandleForISectors0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVSectorBuilder, _nceContext, SEXTEXT("GetHandleForISectors0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeHVISectorBuilderAddVertex, nullptr, SEXTEXT("ISectorsAddVertex (Pointer hObject)(Float32 x)(Float32 y) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorBuilderClear, nullptr, SEXTEXT("ISectorsClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorBuilderCreateFromTemplate, nullptr, SEXTEXT("ISectorsCreateFromTemplate (Pointer hObject)(Int32 altitude)(Int32 height) -> (Int32 id)"));
@@ -402,7 +402,7 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVISectorBuilderSetTemplateMaterial, nullptr, SEXTEXT("ISectorsSetTemplateMaterial (Pointer hObject)(Sys.Type.IString bodyClass)(Int32 cat)(Int32 colour)(Sys.Type.IString persistentId) -> "));
 	}
 }
-// BennyHill generated Sexy native functions for HV::ISectorComponents 
+// BennyHill generated Sexy native functions for HV::ISectorLayout 
 namespace
 {
 	using namespace Rococo;
@@ -410,105 +410,147 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeHVISectorComponentsAddTriangle(NativeCallEnvironment& _nce)
+	void NativeHVISectorLayoutCountSquares(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		VertexTriangle* t;
-		_offset += sizeof(t);
-		ReadInput(t, _sf, -_offset);
-
-		HV::ISectorComponents* _pObject;
+		HV::ISectorLayout* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AddTriangle(*t);
+		int32 sqCount = _pObject->CountSquares();
+		_offset += sizeof(sqCount);
+		WriteOutput(sqCount, _sf, -_offset);
 	}
-	void NativeHVISectorComponentsBuildComponent(NativeCallEnvironment& _nce)
+	void NativeHVISectorLayoutGetSquare(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(IString*);
-		IString* _componentName;
-		ReadInput(_componentName, _sf, -_offset);
-		fstring componentName { _componentName->buffer, _componentName->length };
+		AABB2d* sq;
+		_offset += sizeof(sq);
+		ReadInput(sq, _sf, -_offset);
 
+		int32 sqIndex;
+		_offset += sizeof(sqIndex);
+		ReadInput(sqIndex, _sf, -_offset);
 
-		HV::ISectorComponents* _pObject;
+		HV::ISectorLayout* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->BuildComponent(componentName);
+		_pObject->GetSquare(sqIndex, *sq);
 	}
-	void NativeHVISectorComponentsClearComponents(NativeCallEnvironment& _nce)
+	void NativeHVISectorLayoutCeilingQuad(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(IString*);
-		IString* _componentName;
-		ReadInput(_componentName, _sf, -_offset);
-		fstring componentName { _componentName->buffer, _componentName->length };
+		QuadVertices* q;
+		_offset += sizeof(q);
+		ReadInput(q, _sf, -_offset);
 
+		int32 sqIndex;
+		_offset += sizeof(sqIndex);
+		ReadInput(sqIndex, _sf, -_offset);
 
-		HV::ISectorComponents* _pObject;
+		HV::ISectorLayout* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->ClearComponents(componentName);
+		_pObject->CeilingQuad(sqIndex, *q);
 	}
-	void NativeHVISectorComponentsCompleteComponent(NativeCallEnvironment& _nce)
+	void NativeHVISectorLayoutFloorQuad(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::ISectorComponents* _pObject;
+		QuadVertices* q;
+		_offset += sizeof(q);
+		ReadInput(q, _sf, -_offset);
+
+		int32 sqIndex;
+		_offset += sizeof(sqIndex);
+		ReadInput(sqIndex, _sf, -_offset);
+
+		HV::ISectorLayout* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->CompleteComponent();
+		_pObject->FloorQuad(sqIndex, *q);
 	}
-	void NativeHVISectorComponentsGetMaterial(NativeCallEnvironment& _nce)
+	void NativeHVISectorLayoutNumberOfSegments(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(IString*);
-		IString* _componentClass;
-		ReadInput(_componentClass, _sf, -_offset);
-		fstring componentClass { _componentClass->buffer, _componentClass->length };
-
-
-		MaterialVertexData* mat;
-		_offset += sizeof(mat);
-		ReadInput(mat, _sf, -_offset);
-
-		HV::ISectorComponents* _pObject;
+		HV::ISectorLayout* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetMaterial(*mat, componentClass);
+		int32 segCount = _pObject->NumberOfSegments();
+		_offset += sizeof(segCount);
+		WriteOutput(segCount, _sf, -_offset);
 	}
-
-	void NativeGetHandleForHVSectorComponents(NativeCallEnvironment& _nce)
+	void NativeHVISectorLayoutNumberOfGaps(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::ISectorComponents* nceContext = reinterpret_cast<HV::ISectorComponents*>(_nce.context);
-		// Uses: HV::ISectorComponents* FactoryConstructHVSectorComponents(HV::ISectorComponents* _context);
-		HV::ISectorComponents* pObject = FactoryConstructHVSectorComponents(nceContext);
-		_offset += sizeof(IString*);
-		WriteOutput(pObject, _sf, -_offset);
+		HV::ISectorLayout* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 gapCount = _pObject->NumberOfGaps();
+		_offset += sizeof(gapCount);
+		WriteOutput(gapCount, _sf, -_offset);
 	}
+	void NativeHVISectorLayoutGetSegment(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::WallSegment* segment;
+		_offset += sizeof(segment);
+		ReadInput(segment, _sf, -_offset);
+
+		int32 segIndex;
+		_offset += sizeof(segIndex);
+		ReadInput(segIndex, _sf, -_offset);
+
+		HV::ISectorLayout* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetSegment(segIndex, *segment);
+	}
+	void NativeHVISectorLayoutGetGap(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::GapSegment* segment;
+		_offset += sizeof(segment);
+		ReadInput(segment, _sf, -_offset);
+
+		int32 gapIndex;
+		_offset += sizeof(gapIndex);
+		ReadInput(gapIndex, _sf, -_offset);
+
+		HV::ISectorLayout* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetGap(gapIndex, *segment);
+	}
+
 }
 
 namespace HV { 
-	void AddNativeCalls_HVISectorComponents(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorComponents* _nceContext)
+	void AddNativeCalls_HVISectorLayout(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorLayout* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVSectorComponents, _nceContext, SEXTEXT("GetHandleForISectorComponents0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVISectorComponentsAddTriangle, nullptr, SEXTEXT("ISectorComponentsAddTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorComponentsBuildComponent, nullptr, SEXTEXT("ISectorComponentsBuildComponent (Pointer hObject)(Sys.Type.IString componentName) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorComponentsClearComponents, nullptr, SEXTEXT("ISectorComponentsClearComponents (Pointer hObject)(Sys.Type.IString componentName) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorComponentsCompleteComponent, nullptr, SEXTEXT("ISectorComponentsCompleteComponent (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorComponentsGetMaterial, nullptr, SEXTEXT("ISectorComponentsGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutCountSquares, nullptr, SEXTEXT("ISectorLayoutCountSquares (Pointer hObject) -> (Int32 sqCount)"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutGetSquare, nullptr, SEXTEXT("ISectorLayoutGetSquare (Pointer hObject)(Int32 sqIndex)(Rococo.AAB2d sq) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutCeilingQuad, nullptr, SEXTEXT("ISectorLayoutCeilingQuad (Pointer hObject)(Int32 sqIndex)(Rococo.QuadVertices q) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutFloorQuad, nullptr, SEXTEXT("ISectorLayoutFloorQuad (Pointer hObject)(Int32 sqIndex)(Rococo.QuadVertices q) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutNumberOfSegments, nullptr, SEXTEXT("ISectorLayoutNumberOfSegments (Pointer hObject) -> (Int32 segCount)"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutNumberOfGaps, nullptr, SEXTEXT("ISectorLayoutNumberOfGaps (Pointer hObject) -> (Int32 gapCount)"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutGetSegment, nullptr, SEXTEXT("ISectorLayoutGetSegment (Pointer hObject)(Int32 segIndex)(HV.WallSegment segment) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutGetGap, nullptr, SEXTEXT("ISectorLayoutGetGap (Pointer hObject)(Int32 gapIndex)(HV.GapSegment segment) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ISectorFloorTesselator 
@@ -686,5 +728,174 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorAddFloorTriangle, nullptr, SEXTEXT("ISectorFloorTesselatorAddFloorTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorGetMaterial, nullptr, SEXTEXT("ISectorFloorTesselatorGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorSetUVScale, nullptr, SEXTEXT("ISectorFloorTesselatorSetUVScale (Pointer hObject)(Float32 scale) -> "));
+	}
+}
+// BennyHill generated Sexy native functions for HV::ISectorEnumerator 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeHVISectorEnumeratorCount(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorEnumerator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 nCount = _pObject->Count();
+		_offset += sizeof(nCount);
+		WriteOutput(nCount, _sf, -_offset);
+	}
+	void NativeHVISectorEnumeratorGetSector(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		HV::ISectorEnumerator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		HV::ISectorLayout* layout = _pObject->GetSector(index);
+		_offset += sizeof(CReflectedClass*);
+		auto& _layoutStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("HV"),SEXTEXT("ISectorLayout"), SEXTEXT("ProxyISectorLayout"), _nce.ss);
+		CReflectedClass* _sxylayout = _nce.ss.Represent(_layoutStruct, layout);
+		WriteOutput(&_sxylayout->header._vTables[0], _sf, -_offset);
+	}
+
+	void NativeGetHandleForHVSectorEnumerator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorEnumerator* nceContext = reinterpret_cast<HV::ISectorEnumerator*>(_nce.context);
+		// Uses: HV::ISectorEnumerator* FactoryConstructHVSectorEnumerator(HV::ISectorEnumerator* _context);
+		HV::ISectorEnumerator* pObject = FactoryConstructHVSectorEnumerator(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace HV { 
+	void AddNativeCalls_HVISectorEnumerator(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorEnumerator* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVSectorEnumerator, _nceContext, SEXTEXT("GetHandleForISectorEnumerator0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVISectorEnumeratorCount, nullptr, SEXTEXT("ISectorEnumeratorCount (Pointer hObject) -> (Int32 nCount)"));
+		ss.AddNativeCall(ns, NativeHVISectorEnumeratorGetSector, nullptr, SEXTEXT("ISectorEnumeratorGetSector (Pointer hObject)(Int32 index) -> (HV.ISectorLayout layout)"));
+	}
+}
+// BennyHill generated Sexy native functions for HV::ISectorComponents 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeHVISectorComponentsAddTriangle(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		VertexTriangle* t;
+		_offset += sizeof(t);
+		ReadInput(t, _sf, -_offset);
+
+		HV::ISectorComponents* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddTriangle(*t);
+	}
+	void NativeHVISectorComponentsBuildComponent(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _componentName;
+		ReadInput(_componentName, _sf, -_offset);
+		fstring componentName { _componentName->buffer, _componentName->length };
+
+
+		HV::ISectorComponents* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->BuildComponent(componentName);
+	}
+	void NativeHVISectorComponentsClearComponents(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _componentName;
+		ReadInput(_componentName, _sf, -_offset);
+		fstring componentName { _componentName->buffer, _componentName->length };
+
+
+		HV::ISectorComponents* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ClearComponents(componentName);
+	}
+	void NativeHVISectorComponentsCompleteComponent(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorComponents* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->CompleteComponent();
+	}
+	void NativeHVISectorComponentsGetMaterial(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _componentClass;
+		ReadInput(_componentClass, _sf, -_offset);
+		fstring componentClass { _componentClass->buffer, _componentClass->length };
+
+
+		MaterialVertexData* mat;
+		_offset += sizeof(mat);
+		ReadInput(mat, _sf, -_offset);
+
+		HV::ISectorComponents* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetMaterial(*mat, componentClass);
+	}
+
+	void NativeGetHandleForHVSectorComponents(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorComponents* nceContext = reinterpret_cast<HV::ISectorComponents*>(_nce.context);
+		// Uses: HV::ISectorComponents* FactoryConstructHVSectorComponents(HV::ISectorComponents* _context);
+		HV::ISectorComponents* pObject = FactoryConstructHVSectorComponents(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace HV { 
+	void AddNativeCalls_HVISectorComponents(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorComponents* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVSectorComponents, _nceContext, SEXTEXT("GetHandleForISectorComponents0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVISectorComponentsAddTriangle, nullptr, SEXTEXT("ISectorComponentsAddTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorComponentsBuildComponent, nullptr, SEXTEXT("ISectorComponentsBuildComponent (Pointer hObject)(Sys.Type.IString componentName) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorComponentsClearComponents, nullptr, SEXTEXT("ISectorComponentsClearComponents (Pointer hObject)(Sys.Type.IString componentName) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorComponentsCompleteComponent, nullptr, SEXTEXT("ISectorComponentsCompleteComponent (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorComponentsGetMaterial, nullptr, SEXTEXT("ISectorComponentsGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
 	}
 }

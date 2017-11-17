@@ -115,438 +115,503 @@ namespace ANON
 	   return true;
    }
 
-   class Sectors: public ISectors, public ISectorBuilder
+   EventId onPopulateSectors = "onPopulateSectors"_event;
+
+   class Sectors : public ISectors, public ISectorBuilder, public Rococo::Events::IObserver
    {
-      const Metres defaultFloorLevel{ 0.0f };
-      const Metres defaultRoomHeight{ 4.0f };
-      std::vector<ISector*> sectors;
-      Platform& platform;
+	   const Metres defaultFloorLevel{ 0.0f };
+	   const Metres defaultRoomHeight{ 4.0f };
+	   std::vector<ISector*> sectors;
+	   Platform& platform;
    public:
-      Sectors(Platform& _platform) :
-         platform(_platform)
-      {
-      }
+	   Sectors(Platform& _platform) :
+		   platform(_platform)
+	   {
+		   platform.publisher.Attach(this, onPopulateSectors);
+	   }
 
-      ~Sectors()
-      {
-		  Clear();
+	   ~Sectors()
+	   {
+		   platform.publisher.Detach(this);
 
-		  for (auto i : temp.nameToMaterials)
-		  {
-			  delete i.second;
-		  }
-      }
+		   Clear();
 
-	  void Clear()
-	  {
-		  for (auto* s : sectors)
-		  {
-			  s->Free();
-		  }
+		   for (auto i : temp.nameToMaterials)
+		   {
+			   delete i.second;
+		   }
+	   }
 
-		  sectors.clear();
-		  vertices.clear();
-	  }
+	   void Clear()
+	   {
+		   for (auto* s : sectors)
+		   {
+			   s->Free();
+		   }
 
-	  virtual void SaveAsFunction(StringBuilder& sb)
-	  {
-		  sb.AppendFormat("(using HV)\n\n");
+		   sectors.clear();
+		   vertices.clear();
+	   }
 
-		  sb.AppendFormat("(function AddSectorsToLevel -> :\n");
-		  sb.AppendFormat("\t(ISectors sectors (Sectors))\n\n");
-		  sb.AppendFormat("\t(sectors.Clear)\n\n");
+	   virtual void SaveAsFunction(StringBuilder& sb)
+	   {
+		   sb.AppendFormat("(using HV)\n\n");
 
-		  /*
-		  sb.AppendFormat("\n(IString bodyClassBrickwork = \"brickwork\")\n");
-		  sb.AppendFormat("\n(IString bodyClassCement    = \"cement\")\n");
-		  sb.AppendFormat("\n(IString bodyClassFloor     = \"floor\")\n");
-		  sb.AppendFormat("\n(IString bodyClassCeiling   = \"ceiling\")\n");
-		  sb.AppendFormat("\n(IString bodyClassMullions  = \"mulliions\")\n");
-		  sb.AppendFormat("\n(IString bodyClassPanels	 = \"panels\")\n");
-		  sb.AppendFormat("\n(IString bodyClassCasing    = \"casing\")\n");
-		  sb.AppendFormat("\n(IString bodyClassRails     = \"rails\")\n");
-		  */
+		   sb.AppendFormat("(function AddSectorsToLevel -> :\n");
+		   sb.AppendFormat("\t(ISectors sectors (Sectors))\n\n");
+		   sb.AppendFormat("\t(sectors.Clear)\n\n");
 
-		  uint32 index = 0;
-		  for (auto s : sectors)
-		  {
-			  sb.AppendFormat("\t(AddSector%u sectors)%s\n", index++, index == 0 ? " // entrance" : "");
-		  }
+		   /*
+		   sb.AppendFormat("\n(IString bodyClassBrickwork = \"brickwork\")\n");
+		   sb.AppendFormat("\n(IString bodyClassCement    = \"cement\")\n");
+		   sb.AppendFormat("\n(IString bodyClassFloor     = \"floor\")\n");
+		   sb.AppendFormat("\n(IString bodyClassCeiling   = \"ceiling\")\n");
+		   sb.AppendFormat("\n(IString bodyClassMullions  = \"mulliions\")\n");
+		   sb.AppendFormat("\n(IString bodyClassPanels	 = \"panels\")\n");
+		   sb.AppendFormat("\n(IString bodyClassCasing    = \"casing\")\n");
+		   sb.AppendFormat("\n(IString bodyClassRails     = \"rails\")\n");
+		   */
 
-		  sb.AppendFormat(")\n\n");
+		   uint32 index = 0;
+		   for (auto s : sectors)
+		   {
+			   sb.AppendFormat("\t(AddSector%u sectors)%s\n", index++, index == 0 ? " // entrance" : "");
+		   }
 
-		  index = 0;
-		  for (auto s : sectors)
-		  {
-			  sb.AppendFormat("(function AddSector%u (ISectors sectors) -> :\n", index++);
+		   sb.AppendFormat(")\n\n");
 
-			  int z0 = (int) (s->Z0() * 100);
-			  int z1 = (int) (s->Z1() * 100);
+		   index = 0;
+		   for (auto s : sectors)
+		   {
+			   sb.AppendFormat("(function AddSector%u (ISectors sectors) -> :\n", index++);
 
-			  size_t nVertices;
-			  auto* v = s->WallVertices(nVertices);
+			   int z0 = (int)(s->Z0() * 100);
+			   int z1 = (int)(s->Z1() * 100);
 
-			  for (size_t i = 0; i < nVertices; i++)
-			  {
-				  sb.AppendFormat("\t(sectors.AddVertex %f %f)\n", v[i].x, v[i].y);
-			  }
+			   size_t nVertices;
+			   auto* v = s->WallVertices(nVertices);
 
-			  s->SaveTemplate(sb);
+			   for (size_t i = 0; i < nVertices; i++)
+			   {
+				   sb.AppendFormat("\t(sectors.AddVertex %f %f)\n", v[i].x, v[i].y);
+			   }
 
-			  sb.AppendFormat(")\n\n");
-		  }
-	  }
+			   s->SaveTemplate(sb);
 
-	  void ResetConfig()
-	  {
+			   sb.AppendFormat(")\n\n");
+		   }
+	   }
 
-	  }
+	   void ResetConfig()
+	   {
 
-	  int64 iterationFrame = 0x81000000000;
+	   }
 
-	  void CallbackOnce(ISector& sector, IEventCallback<VisibleSector>& cb, int64 iterationFrame)
-	  {
-		  if (sector.IterationFrame() != iterationFrame)
-		  {
-			  sector.SetIterationFrame(iterationFrame);
-			  cb.OnEvent(VisibleSector{ sector });
-		  }
-	  }
+	   int64 iterationFrame = 0x81000000000;
 
-	  bool IsInLineOfSight(const Gap& gap, cr_vec3 eye)
-	  {
-		  Vec2 qGap[2] =
-		  {
-			  gap.a, 
-			  gap.b
-		  };
+	   void CallbackOnce(ISector& sector, IEventCallback<VisibleSector>& cb, int64 iterationFrame)
+	   {
+		   if (sector.IterationFrame() != iterationFrame)
+		   {
+			   sector.SetIterationFrame(iterationFrame);
+			   cb.OnEvent(VisibleSector{ sector });
+		   }
+	   }
 
-		  for (auto k : lineOfSight)
-		  {
-			  if ((k->a == gap.a && k->b == gap.b) || (k->a == gap.b && k->b == gap.a))
-			  {
-				  // Prevent any gap being counted twice in any direction
-				  return false;
-			  }
-		  }
+	   bool IsInLineOfSight(const Gap& gap, cr_vec3 eye)
+	   {
+		   Vec2 qGap[2] =
+		   {
+			   gap.a,
+			   gap.b
+		   };
 
-		  for (auto k : lineOfSight)
-		  {
-			  // Use k to generate a cone and check bounds of gap fits in cone
-			  
-			  Vec3 displacement = k->bounds.centre - eye;
-			  if (LengthSq(displacement) > Sq(k->bounds.radius + 0.1f))
-			  {
-				  float d = Length(k->bounds.centre - eye);
-				  Radians coneAngle{ asinf(k->bounds.radius / d) };
-				  if (IsOutsideCone(eye, Normalize(displacement), coneAngle, gap.bounds))
-				  {
-					  return false;
-				  }
-			  }
-		  }
+		   for (auto k : lineOfSight)
+		   {
+			   if ((k->a == gap.a && k->b == gap.b) || (k->a == gap.b && k->b == gap.a))
+			   {
+				   // Prevent any gap being counted twice in any direction
+				   return false;
+			   }
+		   }
 
-		  for (auto k : lineOfSight)
-		  {
-			  int j = 0;
-			  for (int i = 0; i < 2; ++i)
-			  {
-				  auto l = ClassifyPtAgainstPlane(k->a, k->b, qGap[i]);
-				  if (l == LineClassify_Left)
-				  {
-					  j++;
-				  }
-				  else if (l == LineClassify_Right)
-				  {
-					  j--;
-				  }
-			  }	  
+		   for (auto k : lineOfSight)
+		   {
+			   // Use k to generate a cone and check bounds of gap fits in cone
 
-			  auto l = ClassifyPtAgainstPlane(k->a, k->b, Flatten(eye));
+			   Vec3 displacement = k->bounds.centre - eye;
+			   if (LengthSq(displacement) > Sq(k->bounds.radius + 0.1f))
+			   {
+				   float d = Length(k->bounds.centre - eye);
+				   Radians coneAngle{ asinf(k->bounds.radius / d) };
+				   if (IsOutsideCone(eye, Normalize(displacement), coneAngle, gap.bounds))
+				   {
+					   return false;
+				   }
+			   }
+		   }
 
-			  if (j == 2)
-			  {
-				  return l == LineClassify_Right;
-			  }
-			  else if (j == -2)
-			  {
-				  return l == LineClassify_Left;
-			  }
-		  }
+		   for (auto k : lineOfSight)
+		   {
+			   int j = 0;
+			   for (int i = 0; i < 2; ++i)
+			   {
+				   auto l = ClassifyPtAgainstPlane(k->a, k->b, qGap[i]);
+				   if (l == LineClassify_Left)
+				   {
+					   j++;
+				   }
+				   else if (l == LineClassify_Right)
+				   {
+					   j--;
+				   }
+			   }
 
-		  return true;
-	  }
+			   auto l = ClassifyPtAgainstPlane(k->a, k->b, Flatten(eye));
 
-	  void RecurseVisibilityScanOnGapsBy(const Matrix4x4& cameraMatrix, cr_vec3 eye, cr_vec3 forward, ISector& current, IEventCallback<VisibleSector>& cb, size_t& count, bool fromHome, int64 iterationFrame)
-	  {
-		  count++;
+			   if (j == 2)
+			   {
+				   return l == LineClassify_Right;
+			   }
+			   else if (j == -2)
+			   {
+				   return l == LineClassify_Left;
+			   }
+		   }
 
-		  size_t numberOfGaps;
-		  auto* gaps = current.Gaps(numberOfGaps);
-		  for (size_t i = 0; i < numberOfGaps; ++i)
-		  {
-			  auto* gap = gaps++;
+		   return true;
+	   }
 
-			  Vec2 a1, b1;
-			  if (CanSeeThrough(cameraMatrix, forward, *gap, a1, b1, fromHome))
-			  {
-				  if (IsInLineOfSight(*gap, eye))
-				  {
-					  lineOfSight.push_back(gap);
-					  CallbackOnce(*gap->other, cb, iterationFrame);
-					  RecurseVisibilityScanOnGapsBy(cameraMatrix, eye, forward, *gap->other, cb, count, false, iterationFrame);
-					  lineOfSight.pop_back();
-				  }
-			  }
-		  }
-	  }
+	   void RecurseVisibilityScanOnGapsBy(const Matrix4x4& cameraMatrix, cr_vec3 eye, cr_vec3 forward, ISector& current, IEventCallback<VisibleSector>& cb, size_t& count, bool fromHome, int64 iterationFrame)
+	   {
+		   count++;
 
-	  std::vector<const Gap*> lineOfSight; // Quick, nasty but effective BSP test
+		   size_t numberOfGaps;
+		   auto* gaps = current.Gaps(numberOfGaps);
+		   for (size_t i = 0; i < numberOfGaps; ++i)
+		   {
+			   auto* gap = gaps++;
 
-	  bool isScanning = false;
+			   Vec2 a1, b1;
+			   if (CanSeeThrough(cameraMatrix, forward, *gap, a1, b1, fromHome))
+			   {
+				   if (IsInLineOfSight(*gap, eye))
+				   {
+					   lineOfSight.push_back(gap);
+					   CallbackOnce(*gap->other, cb, iterationFrame);
+					   RecurseVisibilityScanOnGapsBy(cameraMatrix, eye, forward, *gap->other, cb, count, false, iterationFrame);
+					   lineOfSight.pop_back();
+				   }
+			   }
+		   }
+	   }
 
-	  size_t ForEverySectorVisibleBy(const Matrix4x4& cameraMatrix, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb)
-	  {
-		  if (isScanning)
-		  {
-			  Throw(0, "Cannot nest ForEverySectorVisibleBe");
-		  }
+	   std::vector<const Gap*> lineOfSight; // Quick, nasty but effective BSP test
 
-		  isScanning = true;
+	   bool isScanning = false;
 
-		  iterationFrame++;
+	   size_t ForEverySectorVisibleBy(const Matrix4x4& cameraMatrix, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb)
+	   {
+		   if (isScanning)
+		   {
+			   Throw(0, "Cannot nest ForEverySectorVisibleBe");
+		   }
 
-		  lineOfSight.clear();
+		   isScanning = true;
 
-		  size_t count = 0;
-		  ISector* home = GetFirstSectorContainingPoint({ eye.x, eye.y });
-		  if (home)
-		  {
-			  CallbackOnce(*home, cb, iterationFrame);
-			  RecurseVisibilityScanOnGapsBy(cameraMatrix, eye, forward, *home, cb, count, true, iterationFrame);
-		  }
+		   iterationFrame++;
 
-		  isScanning = false;
+		   lineOfSight.clear();
 
-		  return count;
-	  }
+		   size_t count = 0;
+		   ISector* home = GetFirstSectorContainingPoint({ eye.x, eye.y });
+		   if (home)
+		   {
+			   CallbackOnce(*home, cb, iterationFrame);
+			   RecurseVisibilityScanOnGapsBy(cameraMatrix, eye, forward, *home, cb, count, true, iterationFrame);
+		   }
 
-      ISector** begin() { return (sectors.empty() ? nullptr : &sectors[0]); }
-      ISector** end() { return (sectors.empty() ? nullptr : &sectors[0] + sectors.size()); }
+		   isScanning = false;
 
-	  std::vector<Vec2> vertices;
+		   return count;
+	   }
 
-	  void AddVertex(float x, float y) override
-	  {
-		  vertices.push_back(Vec2{ x, y });
-	  }
+	   ISector** begin() { return (sectors.empty() ? nullptr : &sectors[0]); }
+	   ISector** end() { return (sectors.empty() ? nullptr : &sectors[0] + sectors.size()); }
 
-	  struct
-	  {
-		  std::string door_scriptName;
-		  bool door_useScript;
+	   std::vector<Vec2> vertices;
 
-		  std::string wall_scriptName;
-		  bool wall_useScript;
+	   void AddVertex(float x, float y) override
+	   {
+		   vertices.push_back(Vec2{ x, y });
+	   }
 
-		  std::unordered_map<std::string, Material*> nameToMaterials;
-	  } temp;
+	   struct
+	   {
+		   std::string door_scriptName;
+		   bool door_useScript;
 
-	  void SetTemplateWallScript(boolean32 useScript, const fstring& scriptName) override
-	  {
-		  temp.wall_useScript = useScript;
-		  temp.wall_scriptName = scriptName;
-	  }
+		   std::string wall_scriptName;
+		   bool wall_useScript;
 
-	  void SetTemplateDoorScript(boolean32 hasDoor, const fstring& scriptName)  override
-	  {
-		  temp.door_useScript = hasDoor;
-		  temp.door_scriptName = scriptName;
-	  }
+		   std::unordered_map<std::string, Material*> nameToMaterials;
+	   } temp;
 
-	  cstr GetTemplateDoorScript(bool& hasDoor) const override
-	  {
-		  hasDoor = this->temp.door_useScript;
-		  return temp.door_scriptName.empty() ? "" : temp.door_scriptName.c_str();
-	  }
+	   void SetTemplateWallScript(boolean32 useScript, const fstring& scriptName) override
+	   {
+		   temp.wall_useScript = useScript;
+		   temp.wall_scriptName = scriptName;
+	   }
 
-	  cstr GetTemplateWallScript(bool& usesScript) const override
-	  {
-		  usesScript = this->temp.wall_useScript;
-		  return temp.wall_scriptName.empty() ? "" : temp.wall_scriptName.c_str();
-	  }
+	   void SetTemplateDoorScript(boolean32 hasDoor, const fstring& scriptName)  override
+	   {
+		   temp.door_useScript = hasDoor;
+		   temp.door_scriptName = scriptName;
+	   }
 
-	  void SetTemplateMaterial(const fstring& bodyClass, Graphics::MaterialCategory cat, RGBAb colour, const fstring& persistentId)  override
-	  {
-		  auto i = temp.nameToMaterials.find((cstr) bodyClass);
-		  if (i == temp.nameToMaterials.end())
-		  {
-			  i = temp.nameToMaterials.insert(std::make_pair(std::string(bodyClass), new Material)).first;
-		  } 
+	   cstr GetTemplateDoorScript(bool& hasDoor) const override
+	   {
+		   hasDoor = this->temp.door_useScript;
+		   return temp.door_scriptName.empty() ? "" : temp.door_scriptName.c_str();
+	   }
 
-		  i->second->category = cat;
-		  i->second->mvd.colour = colour;
-		  SafeFormat(i->second->persistentName, IO::MAX_PATHLEN, "%s", (cstr)persistentId);
-		  i->second->mvd.materialId = platform.renderer.GetMaterialId(i->second->persistentName);
-		  if (i->second->mvd.materialId < 0)
-		  {
-			  i->second->mvd.materialId = platform.instances.GetRandomMaterialId(cat);
-		  }
-	  }
+	   cstr GetTemplateWallScript(bool& usesScript) const override
+	   {
+		   usesScript = this->temp.wall_useScript;
+		   return temp.wall_scriptName.empty() ? "" : temp.wall_scriptName.c_str();
+	   }
 
-	  int32 CreateFromTemplate(int32 altitude, int32 height) override
-	  {
-		  struct : MatEnumerator
-		  {
-			  Sectors* This;
-			  virtual void Enumerate(IEventCallback<MaterialArgs>& cb)
-			  {
-				  for (auto i : This->temp.nameToMaterials)
-				  {
-					  MaterialArgs args{ i.second, i.first.c_str() };
-					  cb.OnEvent(args);
-				  }
-			  }
-		  } mats;
+	   void SetTemplateMaterial(const fstring& bodyClass, Graphics::MaterialCategory cat, RGBAb colour, const fstring& persistentId)  override
+	   {
+		   auto i = temp.nameToMaterials.find((cstr)bodyClass);
+		   if (i == temp.nameToMaterials.end())
+		   {
+			   i = temp.nameToMaterials.insert(std::make_pair(std::string(bodyClass), new Material)).first;
+		   }
 
-		  mats.This = this;
+		   i->second->category = cat;
+		   i->second->mvd.colour = colour;
+		   SafeFormat(i->second->persistentName, IO::MAX_PATHLEN, "%s", (cstr)persistentId);
+		   i->second->mvd.materialId = platform.renderer.GetMaterialId(i->second->persistentName);
+		   if (i->second->mvd.materialId < 0)
+		   {
+			   i->second->mvd.materialId = platform.instances.GetRandomMaterialId(cat);
+		   }
+	   }
 
-		  auto* s = CreateSector(platform, *this);
-		  s->SetTemplate(mats);
+	   int32 CreateFromTemplate(int32 altitude, int32 height) override
+	   {
+		   struct : MatEnumerator
+		   {
+			   Sectors* This;
+			   virtual void Enumerate(IEventCallback<MaterialArgs>& cb)
+			   {
+				   for (auto i : This->temp.nameToMaterials)
+				   {
+					   MaterialArgs args{ i.second, i.first.c_str() };
+					   cb.OnEvent(args);
+				   }
+			   }
+		   } mats;
 
-		  try
-		  {
-			  s->Build(&vertices[0], vertices.size(), 0.01f * altitude, 0.01f * (altitude + height ));
-			  sectors.push_back(s);
-		  }
-		  catch (IException&)
-		  {
-			  s->Free();
-			  vertices.clear();
-			  throw;
-		  }
+		   mats.This = this;
 
-		  vertices.clear();
+		   auto* s = CreateSector(platform, *this);
+		   s->SetTemplate(mats);
 
-		  return s->Id();
-	  }
+		   try
+		   {
+			   s->Build(&vertices[0], vertices.size(), 0.01f * altitude, 0.01f * (altitude + height));
+			   sectors.push_back(s);
+		   }
+		   catch (IException&)
+		   {
+			   s->Free();
+			   vertices.clear();
+			   throw;
+		   }
 
-      void AddSector(const Vec2* floorPlan, size_t nVertices) override
-      {
-         auto* s = CreateSector(platform, *this);
+		   vertices.clear();
 
-         try
-         {
-            s->Build(floorPlan, nVertices, defaultFloorLevel, defaultFloorLevel + defaultRoomHeight);
-            sectors.push_back(s);
-         }
-		 catch (IException& ex)
-		 {
-			 s->Free();
-			 platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, "Algorithmic error creating sector. Try something simpler");
+		   return s->Id();
+	   }
+
+	   void AddSector(const Vec2* floorPlan, size_t nVertices) override
+	   {
+		   auto* s = CreateSector(platform, *this);
+
+		   try
+		   {
+			   s->Build(floorPlan, nVertices, defaultFloorLevel, defaultFloorLevel + defaultRoomHeight);
+			   sectors.push_back(s);
+		   }
+		   catch (IException& ex)
+		   {
+			   s->Free();
+			   platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, "Algorithmic error creating sector. Try something simpler");
 
 #ifdef _DEBUG
-			 if (platform.utilities.QueryYesNo(platform, platform.renderer.Window(), "Try again?"))
-			 {
-				 OS::TripDebugger();
-				 OS::PrintDebug("\n\n\n // Troublesome perimeter: \n");
-				 OS::PrintDebug("const Vec2 perimeter[%d] = { ", nVertices);
-				 for (const Vec2* p = floorPlan; p < floorPlan + nVertices; p++)
-				 {
-					 OS::PrintDebug("{%f,%f},", p->x, p->y);
-				 }
-				 OS::PrintDebug("};\n\n\n");
+			   if (platform.utilities.QueryYesNo(platform, platform.renderer.Window(), "Try again?"))
+			   {
+				   OS::TripDebugger();
+				   OS::PrintDebug("\n\n\n // Troublesome perimeter: \n");
+				   OS::PrintDebug("const Vec2 perimeter[%d] = { ", nVertices);
+				   for (const Vec2* p = floorPlan; p < floorPlan + nVertices; p++)
+				   {
+					   OS::PrintDebug("{%f,%f},", p->x, p->y);
+				   }
+				   OS::PrintDebug("};\n\n\n");
 
-				 AddSector(floorPlan, nVertices);
-			 }
+				   AddSector(floorPlan, nVertices);
+			   }
 #endif
-		 }
-      }
+		   }
+	   }
 
-      void Delete(ISector* sector) override
-      {
-         struct
-         {
-            ISector* a;
+	   void Delete(ISector* sector) override
+	   {
+		   struct
+		   {
+			   ISector* a;
 
-            bool operator()(ISector* b) const
-            {
-               return a == b;
-            }
-         } match{ sector };
-         sectors.erase(std::remove_if(sectors.begin(), sectors.end(), match), sectors.end());
+			   bool operator()(ISector* b) const
+			   {
+				   return a == b;
+			   }
+		   } match{ sector };
+		   sectors.erase(std::remove_if(sectors.begin(), sectors.end(), match), sectors.end());
 
-		 sector->Decouple();
+		   sector->Decouple();
 
-         sector->Free();
-      }
+		   sector->Free();
+	   }
 
-      void Free() override
-      {
-         delete this;
-      }
+	   void Free() override
+	   {
+		   delete this;
+	   }
 
-      ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b) override
-      {
-         for (auto* s : sectors)
-         {
-            if (s->DoesLineCrossSector(a, b))
-            {
-               return s;
-            }
-         }
+	   ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b) override
+	   {
+		   for (auto* s : sectors)
+		   {
+			   if (s->DoesLineCrossSector(a, b))
+			   {
+				   return s;
+			   }
+		   }
 
-         return nullptr;
-      }
+		   return nullptr;
+	   }
 
-      SectorAndSegment GetFirstSectorWithVertex(Vec2 a)  override
-      {
-         for (auto* s : sectors)
-         {
-			 if (IsPointInBox(s->AABB(), a))
-			 {
-				 int32 seg = s->GetPerimeterIndex(a);
-				 if (seg >= 0)
-				 {
-					 return{ s, seg };
-				 }
-			 }
-         }
+	   SectorAndSegment GetFirstSectorWithVertex(Vec2 a)  override
+	   {
+		   for (auto* s : sectors)
+		   {
+			   if (IsPointInBox(s->AABB(), a))
+			   {
+				   int32 seg = s->GetPerimeterIndex(a);
+				   if (seg >= 0)
+				   {
+					   return{ s, seg };
+				   }
+			   }
+		   }
 
-         return{ nullptr, -1 };
-      }
+		   return{ nullptr, -1 };
+	   }
 
-	  ISector* GetFirstSectorContainingPoint(Vec2 a)  override
-	  {
-		  for (auto* s : sectors)
-		  {
-			  auto& aabb = s->AABB();
+	   ISector* GetFirstSectorContainingPoint(Vec2 a)  override
+	   {
+		   for (auto* s : sectors)
+		   {
+			   auto& aabb = s->AABB();
 
-			  if (IsPointInBox(aabb, a))
-			  {
-				  int32 i = s->GetFloorTriangleIndexContainingPoint(a);
-				  if (i >= 0)
-				  {
-					  return s;
-				  }
-			  }
-		  }
+			   if (IsPointInBox(aabb, a))
+			   {
+				   int32 i = s->GetFloorTriangleIndexContainingPoint(a);
+				   if (i >= 0)
+				   {
+					   return s;
+				   }
+			   }
+		   }
 
-		  return nullptr;
-	  }
+		   return nullptr;
+	   }
 
-	  void OnSectorScriptChanged(const FileModifiedArgs& args) override
-	  {
-		  for (auto i : sectors)
-		  {
-			  i->OnSectorScriptChanged(args);
-		  }
-	  }
+	   void OnSectorScriptChanged(const FileModifiedArgs& args) override
+	   {
+		   for (auto i : sectors)
+		   {
+			   i->OnSectorScriptChanged(args);
+		   }
+	   }
 
-	  virtual ISectorBuilder* Builder()
-	  {
-		  return this;
-	  }
+	   ISectorBuilder* Builder()
+	   {
+		   return this;
+	   }
+
+	   char populateScript[IO::MAX_PATHLEN] = { 0 };
+
+	   void BindProperties(IBloodyPropertySetEditor& editor) override
+	   {
+		   editor.AddPingPath("Populate Script", populateScript, IO::MAX_PATHLEN, "#objects/pop.default.sxy");
+		   editor.AddButton("Populate", onPopulateSectors);
+	   }
+
+	   void NotifyChanged() override
+	   {
+		   if (*populateScript)
+		   {
+			   try
+			   {
+				   char sysPath[IO::MAX_PATHLEN];
+				   platform.installation.ConvertPingPathToSysPath(populateScript, sysPath, IO::MAX_PATHLEN);
+				   platform.installation.ConvertSysPathToMacroPath(sysPath, populateScript, IO::MAX_PATHLEN, "#objects");
+			   }
+			   catch (IException&)
+			   {
+
+			   }
+		   }
+	   }
+
+	   virtual void OnEvent(Event& ev)
+	   {
+		   if (ev.id == onPopulateSectors)
+		   {
+			   Populate();
+		   }
+	   }
+
+	   void Populate()
+	   {
+		   struct : IEventCallback<ScriptCompileArgs>, public ISectorEnumerator
+		   {
+			   Sectors* This;
+			   void OnEvent(ScriptCompileArgs& args) override
+			   {
+				   AddNativeCalls_HVISectorEnumerator(args.ss, this);
+			   }
+
+			   int32 Count() override
+			   {
+				   return (int32) This->sectors.size();
+			   }
+
+			   HV::ISectorLayout* GetSector(int32 index)  override
+			   {
+				   return This->sectors[index]->Layout();
+			   }
+		   } p;
+
+		   p.This = this;
+
+		   cstr thePopulateScript = *populateScript != 0 ? populateScript : "#objects/pop.default.sxy";
+		   platform.utilities.RunEnvironmentScript(platform, p, thePopulateScript, true, false);
+	   }
    };
 }
 

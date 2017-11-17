@@ -1,0 +1,34 @@
+(' #file.type rococo.hv)
+
+(' #include 
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv.sxh.sxy"
+	"!scripts/hv/hv.types.sxy"
+	"!scripts/types.sxy"
+	"!scripts/types.mplat.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+
+(using HV)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Entities)
+(using Sys.Type)
+(using Sys.Maths)
+(using Sys.Geometry.F32)
+(using Sys.Random)
+
+(function AddItemToSector (ISectorLayout sector)-> :
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(ISectorEnumerator sectors (SectorEnumerator))
+	(Int32 nSectors = sectors.Count)
+	(#for (Int32 i = 0)(i < nSectors)(#inc i)
+		(ISectorLayout sector = (sectors.GetSector i))
+		(AddItemToSector sector)
+	)
+)

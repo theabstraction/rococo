@@ -947,6 +947,7 @@ namespace
 		ToggleEventHandler scrollLock;
 		ToggleEventHandler transparency;
 
+		AutoFree<IBloodyPropertySetEditorSupervisor> objectLayoutEditor;
 		AutoFree<IBloodyPropertySetEditorSupervisor> wallEditor;
 		AutoFree<IBloodyPropertySetEditorSupervisor> floorEditor;
 		AutoFree<IBloodyPropertySetEditorSupervisor> ceilingEditor;
@@ -1166,7 +1167,10 @@ namespace
 			{
 				target->NotifyChanged();
 			}
+
+			map.Sectors().NotifyChanged();
 		}
+
 	public:
 		Editor(Platform& _platform, IPlayerSupervisor& _players, ISectors& sectors) :
 			platform(_platform),
@@ -1185,6 +1189,7 @@ namespace
 			REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorLoad, "editor.load", nullptr);
 			REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorSave, "editor.save", nullptr);
 
+			objectLayoutEditor = platform.utilities.CreateBloodyPropertySetEditor(_platform, *this);
 			wallEditor = platform.utilities.CreateBloodyPropertySetEditor(_platform, *this);
 			floorEditor = platform.utilities.CreateBloodyPropertySetEditor(_platform, *this);
 			ceilingEditor = platform.utilities.CreateBloodyPropertySetEditor(_platform, *this);
@@ -1204,15 +1209,19 @@ namespace
 
 			editMode_SectorEditor.SetEditor(this);
 
+			platform.gui.RegisterPopulator("editor.tab.objects", &(*objectLayoutEditor));
 			platform.gui.RegisterPopulator("editor.tab.walls", &(*wallEditor));
 			platform.gui.RegisterPopulator("editor.tab.floor", &(*floorEditor));
 			platform.gui.RegisterPopulator("editor.tab.ceiling", &(*ceilingEditor));
 			platform.gui.RegisterPopulator("editor.tab.corridor", &(*corridorEditor));
 			platform.gui.RegisterPopulator("editor.tab.lights", &(*lightEditor));
+
+			sectors.BindProperties(*objectLayoutEditor);
 		}
 
 		~Editor()
 		{
+			platform.gui.UnregisterPopulator(&(*objectLayoutEditor));
 			platform.gui.UnregisterPopulator(&(*wallEditor));
 			platform.gui.UnregisterPopulator(&(*floorEditor));
 			platform.gui.UnregisterPopulator(&(*ceilingEditor));

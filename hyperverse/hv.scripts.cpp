@@ -16,7 +16,7 @@ namespace // Script factories
 		return players->GetPlayer(index);
 	}
 
-	HV::ISectorBuilder* FactoryConstructHVSectors(HV::ISectors* _context)
+	HV::ISectorBuilder* FactoryConstructHVSectorBuilder(HV::ISectors* _context)
 	{
 		return _context->Builder();
 	}
@@ -32,6 +32,11 @@ namespace // Script factories
 	}
 
 	HV::ISectorComponents* FactoryConstructHVSectorComponents(HV::ISectorComponents* _context)
+	{
+		return _context;
+	}
+
+	HV::ISectorEnumerator* FactoryConstructHVSectorEnumerator(HV::ISectorEnumerator* _context)
 	{
 		return _context;
 	}

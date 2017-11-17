@@ -1,0 +1,133 @@
+(' #file.type rococo.hv)
+
+(' #include 
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv.sxh.sxy"
+	"!scripts/hv/hv.types.sxy"
+	"!scripts/types.sxy"
+	"!scripts/types.mplat.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+
+(using HV)
+(using Rococo)
+(using Rococo.Entities)
+(using Rococo.Graphics)
+(using Sys.Type)
+(using Sys.Maths)
+(using Sys.Geometry.F32)
+(using Sys.Random)
+
+(function TesselateBlankWall (QuadVertices q)(ISectorWallTesselator sector)(IQuadStackTesselator qst)-> :
+	(MaterialVertexData brickwork)
+	(sector.GetMaterial brickwork "brickwork")
+	
+	(qst.PushQuad q brickwork)
+	(qst.MoveInputToOutput)
+	
+	(VertexTriangle topLeft)
+	(VertexTriangle bottomRight)
+	(while (qst.PopOutputAsTriangles topLeft bottomRight)
+		(sector.AddWallTriangle topLeft.a topLeft.b topLeft.c)
+		(sector.AddWallTriangle bottomRight.a bottomRight.b bottomRight.c)
+	)
+)
+
+(function TesselateWallWithButton (QuadVertices q)(ISectorWallTesselator sector)(IQuadStackTesselator qst)-> :
+	(MaterialVertexData wall)
+	(sector.GetMaterial wall "brickwork")
+	
+	(MaterialVertexData cement)
+	(sector.GetMaterial cement "cement")
+	
+	(MaterialVertexData rod)
+	(sector.GetMaterial rod "rails")
+	
+	(Vec2 span)
+	(GetTriSpan q.positions.d q.positions.a q.positions.b span)
+	
+	(Vec2 deltaMetres = 0.1 -0.2)
+	
+	(Float32 relWidth = (0.20 / span.y))
+	(Float32 relHeight = (1.5 / span.y))
+	(Float32 relLength = (0.10 / span.x))
+	
+	(Vec2 centre = 0.5 0.5)
+	
+	(Float32 x0 = (centre.x - relLength))
+	(Float32 x1 = (centre.x + relLength))
+	
+	(Float32 y0 = relHeight)
+	(Float32 y1 = (relHeight + relWidth))
+	
+	(Rectf hole = x0 y1 x1 y0)
+	
+	(qst.PushQuad q wall)
+	(qst.Intrude hole 0.10 0.5 wall cement)
+	
+	(qst.MoveOutputToInputWithMat cement)
+	
+	(VertexTriangle topLeft)
+	(VertexTriangle bottomRight)
+	(while (qst.PopOutputAsTriangles topLeft bottomRight)
+		(sector.AddWallTriangle topLeft.a topLeft.b topLeft.c)
+		(sector.AddWallTriangle bottomRight.a bottomRight.b bottomRight.c)
+	)
+	
+	(ISectorComponents components (SectorComponents))
+	(components.BuildComponent "wall.button")
+	
+	(qst.AddRod 0.0 1 0 1 0.12 0.5 rod)
+	
+	(while (qst.PopOutputAsTriangles topLeft bottomRight)
+		(components.AddTriangle topLeft)
+		(components.AddTriangle bottomRight)
+	)
+	
+	(components.CompleteComponent)
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(ISectorWallTesselator sector (SectorWallTesselator))
+	(Int32 nSegments = sector.NumberOfSegments)
+	(Float32 u = 0)
+	
+	(IQuadStackTesselator qst (QuadStackTesselator))
+		
+	(#for (Int32 i = 0)(i < nSegments)(#inc i)
+		(WallSegment seg)
+		(sector.GetSegment i seg)
+		
+		(Float32 uvScale = 0.0325)
+	
+		(Float32 u0 = u)
+		(Float32 u1 = (u0 + (seg.span.x * uvScale)))
+		
+		(QuadVertices qv)
+		(qv.positions = seg.quad)
+		(qv.normals.a = seg.normal)
+		(qv.normals.b = seg.normal)
+		(qv.normals.c = seg.normal)
+		(qv.normals.d = seg.normal)
+		(qv.uv.left = u0)
+		(qv.uv.right = u1)
+		(qv.uv.top = (seg.quad.a.z * uvScale))
+		(qv.uv.right = u1)
+		(qv.uv.bottom = (seg.quad.d.z * uvScale))
+		
+		(qst.SetBasis seg.tangent seg.normal seg.vertical)
+	
+		(qst.Clear)
+	
+		(if (i == 0)
+			(TesselateWallWithButton qv sector qst)
+		else
+			(TesselateBlankWall qv sector qst)
+		)
+		
+		(u = u1)
+	)
+)

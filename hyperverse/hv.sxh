@@ -34,7 +34,36 @@
 		(SetTemplateDoorScript (Bool hasDoor) (IString scriptName))
 		(SetTemplateMaterial(IString bodyClass) (MaterialCategory cat)(RGBAb colour)(IString persistentId))	
 	)
-	(factory HV.Sectors)
+	(factory HV.SectorBuilder)
+)
+
+(interface
+	(as.sxy HV.ISectorLayout "../content/scripts/hv")
+	(as.cpp HV.ISectorLayout "hv" )
+	(context factory HV.ISectorLayout)
+	(methods
+		(CountSquares -> (Int32 sqCount))
+		(GetSquare (Int32 sqIndex)(AABB2d sq))
+		(CeilingQuad (Int32 sqIndex)(QuadVertices q))
+		(FloorQuad (Int32 sqIndex)(QuadVertices q))
+
+		(NumberOfSegments -> (Int32 segCount))
+		(NumberOfGaps -> (Int32 gapCount))
+
+		(GetSegment (Int32 segIndex)(WallSegment segment))
+		(GetGap (Int32 gapIndex)(GapSegment segment))
+	)
+)
+
+(interface
+	(as.sxy HV.ISectorEnumerator "../content/scripts/hv")
+	(as.cpp HV.ISectorEnumerator "hv" )
+	(context factory HV.ISectorEnumerator)
+	(methods
+		(Count -> (Int32 nCount))
+		(GetSector (Int32 index) -> (HV.ISectorLayout layout))
+	)
+	(factory HV.SectorEnumerator)
 )
 
 (interface
