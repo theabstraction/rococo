@@ -257,6 +257,7 @@
 	(context factory Rococo.Graphics.IMeshBuilder)
 	(methods
 		(Begin (IString fqName))
+		(AddTriangleEx (const VertexTriangle t))
 		(AddTriangle (const Vertex a)(const Vertex b)(const Vertex c))
 		(End)
 		(Clear)

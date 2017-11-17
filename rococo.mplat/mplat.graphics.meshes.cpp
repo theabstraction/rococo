@@ -92,8 +92,6 @@ namespace
             Throw(0, "Call MeshBuilder.End() first");
          }
 
-         ValidateFQNameIdentifier(fqName);
-
          StackStringBuilder sb(name, sizeof(name));
          sb << fqName;
       }
@@ -105,6 +103,14 @@ namespace
          vertices.push_back(b);
          vertices.push_back(c);
       }
+
+	  void AddTriangleEx(const VertexTriangle& t)
+	  {
+		  if (*name == 0) Throw(0, "Call MeshBuilder.Begin() first");
+		  vertices.push_back(t.a);
+		  vertices.push_back(t.b);
+		  vertices.push_back(t.c);
+	  }
 
       void End() override
       {

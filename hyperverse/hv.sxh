@@ -18,9 +18,6 @@
 	(methods
 		(GetSpan (Vec3 span))
 		(IsSloped -> (Bool isSloped))
-		(CentreComponent (IString componentName)(IString meshName))
-		(ClearComponents (IString componentName))
-		(GetComponentMeshName (IString componentName)(IStringBuilder meshName))
 	)
 	(factory HV.Corridor)
 )
@@ -38,6 +35,20 @@
 		(SetTemplateMaterial(IString bodyClass) (MaterialCategory cat)(RGBAb colour)(IString persistentId))	
 	)
 	(factory HV.Sectors)
+)
+
+(interface
+	(as.sxy HV.ISectorComponents "../content/scripts/hv")
+	(as.cpp HV.ISectorComponents "hv" )
+	(context factory HV.ISectorComponents)
+	(methods
+		(AddTriangle (const VertexTriangle t))
+		(BuildComponent (IString componentName))
+		(ClearComponents (IString componentName))
+		(CompleteComponent)
+		(GetMaterial (MaterialVertexData mat)(IString componentClass))
+	)
+	(factory HV.SectorComponents)
 )
 
 // Only available during wall generation

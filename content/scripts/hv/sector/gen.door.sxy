@@ -21,18 +21,20 @@
 (using Sys.Geometry.F32)
 (using Sys.Random)
 
-(function AddTriangle (IMeshBuilder mb) (Triangle t)(Triangle2d uv)(MaterialVertexData mat)-> :
+(function AddTriangle (ISectorComponents components)(Triangle t)(Triangle2d uv)(MaterialVertexData mat)-> :
 	(Vec3 n)
 	(GetNormal t n)
 	
-	(ObjectVertex a = t.a n uv.a mat)
-	(ObjectVertex b	= t.b n uv.b mat)
-	(ObjectVertex c = t.c n uv.c mat)	
+	(VertexTriangle vt = 
+		(t.a n uv.a mat)
+		(t.b n uv.b mat)
+		(t.c n uv.c mat)	
+	)
 	
-	(mb.AddTriangle a b c)
+	(components.AddTriangle vt)
 )
 
-(function AddQuad (IMeshBuilder mb) (Quadf quad)(Float32 uScale)(Float32 vScale)(MaterialVertexData mat)-> :
+(function AddQuad (ISectorComponents components)(Quadf quad)(Float32 uScale)(Float32 vScale)(MaterialVertexData mat)-> :
 	(Triangle t = quad.a quad.b quad.c)
 	(Vec3 n)
 	(GetNormal t n)
@@ -47,11 +49,13 @@
 	(ObjectVertex c = quad.c n (u v) mat)	
 	(ObjectVertex d = quad.d n (0 v) mat)	
 	
-	(mb.AddTriangle a b c)
-	(mb.AddTriangle c d a)
+	(VertexTriangle topLeft = a b c)
+	(VertexTriangle bottomRight = c d a)
+	(components.AddTriangle topLeft)
+	(components.AddTriangle bottomRight)
 )
 
-(function AddBox (IMeshBuilder mb)(Vec3 v)(Vec3 w)(Float32 uScale)(Float32 vScale)(MaterialVertexData mat)-> :
+(function AddBox (ISectorComponents components)(Vec3 v)(Vec3 w)(Float32 uScale)(Float32 vScale)(MaterialVertexData mat)-> :
 	(Vec3 usw   = v.x v.y w.z)
 	(Vec3 use   = w.x v.y w.z)
 	(Vec3 lse   = w.x v.y v.z)
@@ -63,49 +67,32 @@
 	(Vec3 lnw   = v.x w.y v.z)
 	
 	(Quadf south = usw use lse lsw)
-	(AddQuad mb south uScale vScale mat) // south
+	(AddQuad components south uScale vScale mat) // south
 	
 	(Quadf north = une unw lnw lne)
-	(AddQuad mb north uScale vScale mat) // north
+	(AddQuad components north uScale vScale mat) // north
 	
 	(Quadf lower = lsw lse lne lnw)
-	(AddQuad mb lower uScale vScale mat) // lower
+	(AddQuad components lower uScale vScale mat) // lower
 	
 	(Quadf upper = unw une use usw)
-	(AddQuad mb upper uScale vScale mat) // upper
+	(AddQuad components upper uScale vScale mat) // upper
 	
 	(Quadf left = unw usw lsw lnw)
-	(AddQuad mb left uScale vScale mat) // left
+	(AddQuad components left uScale vScale mat) // left
 	
 	(Quadf right = use une lne lse)
-	(AddQuad mb right uScale vScale mat) // right
+	(AddQuad components right uScale vScale mat) // right
 )
 
-(archetype HV.ObjectFunction (IMeshBuilder mb)->)
 
-(function AddObject (IString localName)(ObjectFunction f)-> :
-	(ICorridor corridor (Corridor))
-	(IStringBuilder meshName (StringBuilder 256))
-	(corridor.GetComponentMeshName localName meshName)
-	
-	(IMeshBuilder mb (MeshBuilder))
-	(mb.Clear)
-	(mb.Begin meshName)
-	
-	(f mb)
-	
-	(mb.End)
-	
-	(corridor.CentreComponent localName meshName)
-)
-
-(function AddRimObject (IMeshBuilder mb)(IRimTesselator rim)(Float32 uvScale)(Float32 z0)(Float32 z1)(MaterialVertexData mat)-> :
+(function AddRimObject (ISectorComponents components)(IRimTesselator rim)(Float32 uvScale)(Float32 z0)(Float32 z1)(MaterialVertexData mat)-> :
 	(rim.ClearFaces)
 	(Int32 count = rim.PerimeterVertices)
 	(#for (Int32 i = 0)(i < count)(#inc i)
 		(Quadf q)
 		(rim.GetRimQuad z0 z1 i q)			
-		(AddQuad mb q uvScale uvScale mat)			
+		(AddQuad components q uvScale uvScale mat)			
 	)
 	
 	(Int32 triangles = rim.TesselateUniform)
@@ -113,10 +100,229 @@
 		(Triangle t)
 		(Triangle2d uv)
 		(rim.GetTopTriangle j t uv z1)
-		(AddTriangle mb t uv mat)
+		(AddTriangle components t uv mat)
 		(rim.GetBottomTriangle j t uv z0)
-		(AddTriangle mb t uv mat)
+		(AddTriangle components t uv mat)
 	)
+)
+
+(function SetVec3 (Vec3 v)(Float32 x)(Float32 y)(Float32 z)-> :
+	(v.x = x)
+	(v.y = y)
+	(v.z = z)
+)
+
+(function MoveQuad (QuadVertices q)(Vec3 ds)-> :
+	(q.positions.a = q.positions.a + ds)
+	(q.positions.b = q.positions.b + ds)
+	(q.positions.c = q.positions.c + ds)
+	(q.positions.d = q.positions.d + ds)
+)
+
+(function SetNormal(QuadVertices q)(Float32 nX)(Float32 nY)(Float32 nZ)-> :
+	(SetVec3 q.normals.a nX nY nZ)
+	(SetVec3 q.normals.b nX nY nZ)
+	(SetVec3 q.normals.c nX nY nZ)
+	(SetVec3 q.normals.d nX nY nZ)
+)
+
+(function SetColour(QuadVertices q)(Int32 colour)-> :
+	(q.colours.a = colour)
+	(q.colours.b = colour)
+	(q.colours.c = colour)
+	(q.colours.d = colour)
+)
+
+(function MakeDoor (IQuadStackTesselator qst)(ISectorComponents components)(QuadVertices q)(Float32 doorWidth)-> :
+	(components.BuildComponent "door.body")
+	
+	(MaterialVertexData panels)
+	(components.GetMaterial panels "panels")
+	
+	(MaterialVertexData mullions)
+	(components.GetMaterial mullions "mullions")
+	
+	(MaterialVertexData scaffold = 0 0 0)
+
+	(Float32 halfWidth = (doorWidth * 0.5))
+	
+	(QuadVertices backFace)
+	(Vec3 backFaceDisp = 0 halfWidth 0)
+	(MoveQuad backFace backFaceDisp)
+	
+	(qst.PushQuad q scaffold)
+
+	(Rectf rect = 0.001 1 0.999 0)
+	(qst.Shrink rect)
+	
+	(qst.AddRod 0 1 0 1 0.5 0.5 mullions)
+	
+	(qst.ClearInput)
+	
+	(Vec3 north = 0 1 0)
+	(qst.MoveOutputToInputWithNormalDotRange north 0.99   1)
+	(qst.MoveOutputToInputWithNormalDotRange north -1 -0.99)
+	
+	(Rectf hole = 0.1 0.9 0.9 0.1)
+	(qst.SplitAcrossTangent 0.5 mullions.materialColour  mullions.materialColour mullions.materialColour mullions mullions)
+	(qst.MoveOutputToInputWithNormalDotRange north 0.99   1)
+	(qst.MoveOutputToInputWithNormalDotRange north -1 -0.99)
+	
+	(qst.SplitThreeColumns mullions mullions mullions 0.333333 0.666666)
+	(qst.MoveOutputToInputWithNormalDotRange north 0.99   1)
+	(qst.MoveOutputToInputWithNormalDotRange north -1 -0.99)
+	
+	(qst.Intrude hole 0.05 0.5 mullions panels)
+		
+	(VertexTriangle topLeft)
+	(VertexTriangle bottomRight)
+	(while (qst.PopOutputAsTriangles topLeft bottomRight)
+		(components.AddTriangle topLeft)
+		(components.AddTriangle bottomRight)
+	)
+
+	(components.CompleteComponent)
+)
+
+(function MakePillars (ISectorComponents components)(Vec3 bottomLeft)(Vec3 topRight)-> :
+	(Float32 x0 = bottomLeft.x)
+	(Float32 x1 = topRight.x)
+	(Float32 y0 = bottomLeft.y)
+	(Float32 y1 = topRight.y)
+	(Float32 z0 = bottomLeft.z)
+	(Float32 z1 = topRight.z)
+	
+	(Float32 halfWidth = y1)
+	
+	(Float32 pillarWidth =  (AnyOf 0.1 0.45))
+	(Float32 baseWidth =  (AnyOf 0.1 0.45))
+	(Float32 capWidth =  (AnyOf 0.35 0.5))
+	
+	(MaterialVertexData casing)
+	(components.GetMaterial casing "casing")
+	(components.BuildComponent "door.casing")
+	
+	(IRimTesselator rim (RimTesselator))
+	
+	(Float32 xA = (x0 + pillarWidth))
+	(Float32 xB = (x1 - pillarWidth))
+	
+	(Float32 xA1 = (x0 + baseWidth))
+	(Float32 xB1 = (x1 - baseWidth))
+	
+	(Float32 dy1 = (halfWidth + pillarWidth))
+	(Float32 dy2 = (0 - dy1))
+	(Float32 zB = (z1 - pillarWidth))
+	   
+	(rim.Clear)
+			
+	(rim.AddPointXY x0  z0)
+	(rim.AddPointXY x0  z1)
+	(rim.AddPointXY x1  z1)
+	(rim.AddPointXY x1  z0)
+	(rim.AddPointXY xB1  z0)
+	(rim.AddPointXY xB  (zB - capWidth))
+	(rim.AddPointXY (xB - capWidth) zB)
+	(rim.AddPointXY (xA + capWidth) zB)
+	(rim.AddPointXY xA (zB - capWidth))
+	(rim.AddPointXY xA1  z0)
+	(rim.CloseLoop)
+			
+	(Float32 uvScale = (AnyOf 0.1 1.0))
+	
+	(Matrix4x4 transform1 =
+		(1 0  0  0)
+		(0 0 -1 dy1)
+		(0 1  0  0)
+		(0 0  0  1)
+	)
+			
+	(rim.SetTransform transform1)
+	(AddRimObject components rim uvScale (0 - pillarWidth) pillarWidth casing)
+	
+	(Matrix4x4 transform2 =
+		(1 0  0  0)
+		(0 0 -1 dy2)
+		(0 1  0  0)
+		(0 0  0  1)
+	)
+			
+	(rim.SetTransform transform2)
+	(AddRimObject components rim uvScale (0 - pillarWidth) pillarWidth casing)
+	
+	(
+		(Float32 switchY0 = ((y0 - ( 2 * pillarWidth)) - 0.25) )
+		(Float32 switchY1 = ((y0 - ( 2 * pillarWidth)) - 0.1) )
+		(Float32 switchZ0 = 1.5)
+		(Float32 switchZ1 = 1.55)
+		(Float32 switchX0 = (x0 + 0.025))
+		(Vec3 v = x0       switchY0 z0)
+		(Vec3 w = switchX0 switchY1 switchZ1)
+		(AddBox components v w uvScale uvScale casing) // switch base
+	)
+	
+	(
+		(Float32 switchY0 = ((y1 + ( 2 * pillarWidth)) + 0.1) )
+		(Float32 switchY1 = ((y1 + ( 2 * pillarWidth)) + 0.25) )
+		(Float32 switchZ0 = 1.5)
+		(Float32 switchZ1 = 1.55)
+		(Float32 switchX0 = (x1 - 0.025))
+		(Vec3 v = switchX0    switchY0 z0)
+		(Vec3 w = x1          switchY1 switchZ1)
+		(AddBox components v w uvScale uvScale casing) // switch base
+	)
+	
+	(components.CompleteComponent)
+)
+
+(function MakeRails (ISectorComponents components)(Vec3 bottomLeft)(Vec3 topRight)-> :
+	(MaterialVertexData rails)
+	(components.GetMaterial rails "rails")
+	(components.BuildComponent "door.rails")
+	(rails.materialColour = 0)
+	
+	(Float32 x0 = bottomLeft.x)
+	(Float32 x1 = topRight.x)
+	(Float32 y0 = bottomLeft.y)
+	(Float32 y1 = topRight.y)
+	(Float32 z0 = bottomLeft.z)
+	(Float32 z1 = topRight.z)
+	
+	(Float32 quadLeft = (x0 + 0.01))
+	(Float32 uvScale = (AnyOf 0.1 1.0))
+	(Float32 z = (z1 - 0.01))
+	(
+		(Quadf q = 
+			(quadLeft y0 z1)
+			(quadLeft y1 z1)
+			(quadLeft y1 -1.0)
+			(quadLeft y0 -1.0)
+		)
+		(AddQuad components q uvScale uvScale rails)
+	)
+	
+	(Float32 quadRight = (x1 - 0.01))
+	(
+		(Quadf q = 
+			(quadRight y1 z1)
+			(quadRight y0 z1)
+			(quadRight y0 -1.0)
+			(quadRight y1 -1.0)
+		)
+		(AddQuad components q uvScale uvScale rails)
+	)
+	
+	(
+		(Quadf q = 
+			(x0 y0 z)
+			(x1 y0 z)
+			(x1 y1 z)
+			(x0 y1 z)
+		)
+		(AddQuad components q uvScale uvScale rails)
+	)
+	
+	(components.CompleteComponent)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):
@@ -135,142 +341,25 @@
 	(Float32 t0 = (f * y0))
 	(Float32 t1 = (f * y1))
 	
-	(IInstances instances (Instances))
-	(MaterialId doorMatId = (instances.GetRandomMaterialId (#MaterialCategoryMetal)))
-	(MaterialVertexData mat = 0xFF000000 doorMatId 0.2)
+	(Vec3 bottomLeft = x0 t0 z0)
+	(Vec3 topRight = x1 t1 z1)
 	
-	(ObjectFunction door = 
-		(closure (IMeshBuilder mb)-> :
-			(Vec3 v = x0 t0 z0)
-			(Vec3 w = x1 t1 z1)
-			(Float32 uvScale = (AnyOf 0.1 1.0))
-			(AddBox mb v w uvScale uvScale mat)
-		)
-	)
-
-	(AddObject "door" door)
+	(ISectorComponents components (SectorComponents))
+	(IQuadStackTesselator qst (QuadStackTesselator))
 	
-	(Float32 pillarWidth =  (AnyOf 0.1 0.45))
-	(Float32 baseWidth =  (AnyOf 0.1 0.45))
-	(Float32 capWidth =  (AnyOf 0.35 0.5))
+	(QuadVertices centreQuad)
+	(SetVec3 centreQuad.positions.a x0 0 z1)
+	(SetVec3 centreQuad.positions.b x1 0 z1)
+	(SetVec3 centreQuad.positions.c x1 0 z0)
+	(SetVec3 centreQuad.positions.d x0 0 z0)
+	(SetNormal centreQuad 0 -1 0)
+	(SetColour centreQuad 0xFFFFFFFF)
 	
-	(MaterialId pillarMatId = (instances.GetRandomMaterialId (#MaterialCategoryStone)))
-	(MaterialVertexData pillarMat = 0x7F000000 pillarMatId 0.0)
+	(Float32 uvScale = (AnyOf 0.1 1.0))
+	(Rectf uv = 0 0 uvScale uvScale)
+	(centreQuad.uv = uv)
 	
-	(ObjectFunction pillars = 
-		(closure (IMeshBuilder mb)-> :
-			(IRimTesselator rim (RimTesselator))
-			
-			(Float32 xA = (x0 + pillarWidth))
-			(Float32 xB = (x1 - pillarWidth))
-			
-			(Float32 xA1 = (x0 + baseWidth))
-			(Float32 xB1 = (x1 - baseWidth))
-			
-			(Float32 dy1 = (halfWidth + pillarWidth))
-			(Float32 dy2 = (0 - dy1))
-			(Float32 zB = (z1 - pillarWidth))
-			   
-			(rim.Clear)
-			
-			(rim.AddPointXY x0  z0)
-			(rim.AddPointXY x0  z1)
-			(rim.AddPointXY x1  z1)
-			(rim.AddPointXY x1  z0)
-			(rim.AddPointXY xB1  z0)
-			(rim.AddPointXY xB  (zB - capWidth))
-			(rim.AddPointXY (xB - capWidth) zB)
-			(rim.AddPointXY (xA + capWidth) zB)
-			(rim.AddPointXY xA (zB - capWidth))
-			(rim.AddPointXY xA1  z0)
-			(rim.CloseLoop)
-			
-			(Float32 uvScale = (AnyOf 0.1 1.0))
-			
-			(Matrix4x4 transform1 =
-				(1 0  0  0)
-				(0 0 -1 dy1)
-				(0 1  0  0)
-				(0 0  0  1)
-			)
-			
-			(rim.SetTransform transform1)
-			(AddRimObject mb rim uvScale (0 - pillarWidth) pillarWidth pillarMat)
-			
-			(Matrix4x4 transform2 =
-				(1 0  0  0)
-				(0 0 -1 dy2)
-				(0 1  0  0)
-				(0 0  0  1)
-			)
-			
-			(rim.SetTransform transform2)
-			(AddRimObject mb rim uvScale (0 - pillarWidth) pillarWidth pillarMat)
-			
-			(
-				(Float32 switchY0 = ((y0 - ( 2 * pillarWidth)) - 0.25) )
-				(Float32 switchY1 = ((y0 - ( 2 * pillarWidth)) - 0.1) )
-				(Float32 switchZ0 = 1.5)
-				(Float32 switchZ1 = 1.55)
-				(Float32 switchX0 = (x0 + 0.025))
-				(Vec3 v = x0       switchY0 z0)
-				(Vec3 w = switchX0 switchY1 switchZ1)
-				(AddBox mb v w uvScale uvScale pillarMat) // switch base
-			)
-			
-			(
-				(Float32 switchY0 = ((y1 + ( 2 * pillarWidth)) + 0.1) )
-				(Float32 switchY1 = ((y1 + ( 2 * pillarWidth)) + 0.25) )
-				(Float32 switchZ0 = 1.5)
-				(Float32 switchZ1 = 1.55)
-				(Float32 switchX0 = (x1 - 0.025))
-				(Vec3 v = switchX0    switchY0 z0)
-				(Vec3 w = x1          switchY1 switchZ1)
-				(AddBox mb v w uvScale uvScale pillarMat) // switch base
-			)
-		)
-	)
-	(AddObject "door.pillars" pillars)
-	
-	(MaterialId railsMatId = (instances.GetRandomMaterialId (#MaterialCategoryRock)))
-	(MaterialVertexData railsMat = 0xFF000000 railsMatId 0.0)
-	
-	(ObjectFunction rails = 
-		(closure (IMeshBuilder mb)-> :
-			(Float32 quadLeft = (x0 + 0.01))
-			(Float32 uvScale = (AnyOf 0.1 1.0))
-			(Float32 z = (z1 - 0.01))
-			(
-				(Quadf q = 
-					(quadLeft y0 z1)
-					(quadLeft y1 z1)
-					(quadLeft y1 -1.0)
-					(quadLeft y0 -1.0)
-				)
-				(AddQuad mb q uvScale uvScale railsMat)
-			)
-			
-			(Float32 quadRight = (x1 - 0.01))
-			(
-				(Quadf q = 
-					(quadRight y1 z1)
-					(quadRight y0 z1)
-					(quadRight y0 -1.0)
-					(quadRight y1 -1.0)
-				)
-				(AddQuad mb q uvScale uvScale railsMat)
-			)
-			
-			(
-				(Quadf q = 
-					(x0 y0 z)
-					(x1 y0 z)
-					(x1 y1 z)
-					(x0 y1 z)
-				)
-				(AddQuad mb q uvScale uvScale railsMat)
-			)
-		)
-	)
-	(AddObject "door.rails" rails)
+	(MakeDoor qst components centreQuad halfWidth)
+	(MakePillars components bottomLeft topRight)
+	(MakeRails components  bottomLeft topRight)
 )

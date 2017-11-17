@@ -30,6 +30,11 @@ namespace // Script factories
 	{
 		return _context;
 	}
+
+	HV::ISectorComponents* FactoryConstructHVSectorComponents(HV::ISectorComponents* _context)
+	{
+		return _context;
+	}
 }
 
 using namespace HV;

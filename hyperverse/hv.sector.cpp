@@ -96,11 +96,11 @@ namespace ANON
 	   // So use heap generated argument in nameToMaterial. Do not refactor pointer to Material as Material!
 	   std::unordered_map<std::string, Material*> nameToMaterial;
 
-	   char doorScript[IO::MAX_PATHLEN] = { 0 };
+	   char corridorScript[IO::MAX_PATHLEN] = { 0 };
 	   char wallScript[IO::MAX_PATHLEN] = { 0 };
 	   char floorScript[IO::MAX_PATHLEN] = { 0 };
 
-	   bool hasDoor = false;
+	   bool scriptCorridor = false;
 	   bool scriptWalls = false;
 	   bool scriptFloor = false;
 
@@ -658,10 +658,12 @@ namespace ANON
 		  if (wallSegments.empty()) return false;
 
 		  // Script has to iterate through wallSegments and append to wallTriangles
-		  struct ANON : IEventCallback<ScriptCompileArgs>, public HV::ISectorFloorTesselator
+		  struct ANON : IEventCallback<ScriptCompileArgs>, public HV::ISectorFloorTesselator, public ISectorComponents
 		  {
 			  Sector* This;
 			  float uvScale = 1.0f;
+			  std::string localName;
+			  std::string meshName;
 
 			  ANON(Sector* _This) : This(_This)
 			  {
@@ -786,6 +788,7 @@ namespace ANON
 				  }
 
 				  AddNativeCalls_HVISectorFloorTesselator(args.ss, this);
+				  AddNativeCalls_HVISectorComponents(args.ss, this);
 			  }
 
 			  void GetMaterial(MaterialVertexData& mat, const fstring& componentClass) override
@@ -801,6 +804,36 @@ namespace ANON
 					  Throw(0, "SectorFloorTesselator::GetMaterial(...) Unknown component class: %s", (cstr)componentClass);
 				  }
 			  }
+
+			  virtual void AddTriangle(const VertexTriangle& t)
+			  {
+				  This->platform.meshes.AddTriangleEx(t);
+			  }
+
+			  void BuildComponent(const fstring& componentName) override
+			  {
+				  this->localName = componentName;
+
+				  char fullMeshName[256];
+				  SafeFormat(fullMeshName, 256, "sector.%d.%s", This->id, (cstr)componentName);
+
+				  this->meshName = fullMeshName;
+
+				  This->platform.meshes.Clear();
+				  This->platform.meshes.Begin(to_fstring(fullMeshName));
+			  }
+
+			  void ClearComponents(const fstring& componentName) override
+			  {
+				  This->ClearComponents(componentName);
+			  }
+
+			  void CompleteComponent() override
+			  {
+				  This->platform.meshes.End();
+				  This->AddComponent(Matrix4x4::Identity(), localName.c_str(), meshName.c_str());
+			  }
+
 		  } scriptCallback(this);
 
 		  try
@@ -947,8 +980,8 @@ namespace ANON
 		  cstr wscript = co_sectors.GetTemplateWallScript(scriptWalls);
 		  SafeFormat(wallScript, IO::MAX_PATHLEN, "%s", wscript);
 
-		  cstr dscript = co_sectors.GetTemplateDoorScript(hasDoor);
-		  SafeFormat(doorScript, IO::MAX_PATHLEN, "%s", dscript);
+		  cstr cscript = co_sectors.GetTemplateDoorScript(scriptCorridor);
+		  SafeFormat(corridorScript, IO::MAX_PATHLEN, "%s", cscript);
       }
 
 	  void OnEvent(MaterialArgs& args)
@@ -1266,7 +1299,25 @@ namespace ANON
          components.erase(std::remove(components.begin(), components.end(), componentName), components.end());
       }
 
-      virtual void CentreComponent(const fstring& componentName, const fstring& meshName)
+	  void AddComponent(cr_m4x4 model, cstr componentName, cstr meshName)
+	  {
+		  auto id = platform.instances.AddBody(to_fstring(meshName), model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());;
+
+		  for (auto& c : components)
+		  {
+			  if (Eq(componentName, c.name.c_str()) && Eq(meshName, c.meshName.c_str()))
+			  {
+				  platform.instances.Delete(c.id);
+				  c.id = id;
+				  return;
+			  }
+		  }
+
+		  Component c{ componentName, meshName, id };
+		  components.push_back(c);
+	  }
+
+      void CorridorModelMatrix(Matrix4x4& model)
       {
          Vec2 centre = 0.5f * (floorPerimeter[0] + floorPerimeter[2]);
          float z = IsSloped() ? (0.5f * (gapSegments[0].z0 + gapSegments[1].z0)) : z0;
@@ -1286,22 +1337,7 @@ namespace ANON
             Rz = Matrix4x4::Identity();
          }
 
-         Matrix4x4 model = Matrix4x4::Translate({ centre.x, centre.y, z }) * Rz;
-
-         auto id = platform.instances.AddBody(meshName, model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());;
-
-         for (auto& c : components)
-         {
-            if (Eq(componentName, c.name.c_str()) && Eq(meshName, c.meshName.c_str()))
-            {
-               platform.instances.Delete(c.id);
-               c.id = id;
-               return;
-            }
-         }
-
-         Component c{ componentName, meshName, id };
-         components.push_back(c);
+		 model = Matrix4x4::Translate({ centre.x, centre.y, z }) * Rz; 
       }
 
       virtual void GetComponentMeshName(const fstring& componentName, Rococo::IStringPopulator& meshName)
@@ -1311,26 +1347,82 @@ namespace ANON
          meshName.Populate(fullMeshName);
       }
 
-      void RunSectorGenScript(cstr name)
+      void RunGenCorridorScript()
       {
-         struct : IEventCallback<ScriptCompileArgs>
+         struct : IEventCallback<ScriptCompileArgs>, public ICorridor, public ISectorComponents
          {
-            ICorridor *corridor;
-            virtual void OnEvent(ScriptCompileArgs& args)
+            Sector *This;
+			std::string localName;
+			std::string meshName;
+
+            void OnEvent(ScriptCompileArgs& args) override
             {
-               AddNativeCalls_HVICorridor(args.ss, corridor);
+               AddNativeCalls_HVICorridor(args.ss, this);
+			   AddNativeCalls_HVISectorComponents(args.ss, this);
             }
+
+			void GetSpan(Vec3& span) override
+			{
+				return This->GetSpan(span);
+			}
+
+			boolean32 IsSloped()  override
+			{
+				return This->IsSloped();
+			}
+
+			void AddTriangle(const VertexTriangle& t) override
+			{
+				This->platform.meshes.AddTriangleEx(t);
+			}
+
+			void BuildComponent(const fstring& componentName) override
+			{
+				this->localName = componentName;
+
+				char fullMeshName[256];
+				SafeFormat(fullMeshName, 256, "sector.%d.%s", This->id, (cstr)componentName);
+
+				this->meshName = fullMeshName;
+
+				This->platform.meshes.Clear();
+				This->platform.meshes.Begin(to_fstring(fullMeshName));
+			}
+
+			void ClearComponents(const fstring& componentName) override
+			{
+				This->ClearComponents(componentName);
+			}
+
+			void CompleteComponent() override
+			{
+				This->platform.meshes.End();
+
+				Matrix4x4 model;
+				This->CorridorModelMatrix(model);
+				This->AddComponent(model, localName.c_str(), meshName.c_str());
+			}
+
+			void GetMaterial(MaterialVertexData& mat, const fstring& componentClass) override
+			{
+				if (!This->TryGetMaterial(componentClass, mat))
+				{
+					Throw(0, "ISectorComponents::GetMaterial(...) Unknown component class: %s", (cstr)componentClass);
+				}
+			}
          } scriptCallback;
-         scriptCallback.corridor = this;
+         scriptCallback.This = this;
+		 
+		 cstr genCorridor = *corridorScript ? corridorScript : "!scripts/hv/sector/gen.door.sxy";
 
 		 try
-		 {
-			 platform.utilities.RunEnvironmentScript(platform, scriptCallback, name, true);
+		 {	
+			 platform.utilities.RunEnvironmentScript(platform, scriptCallback, genCorridor, true);
 		 }
 		 catch (IException& ex)
 		 {
 			 char title[256];
-			 SafeFormat(title, 256, "sector %u: %s failed", id, name);
+			 SafeFormat(title, 256, "sector %u: %s failed", id, genCorridor);
 			 platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, title);
 		 }
       }
@@ -1339,7 +1431,7 @@ namespace ANON
 	  {
 		  barriers.clear();
 		
-		  if (IsCorridor() && hasDoor)
+		  if (IsCorridor() && scriptCorridor)
 		  {
 			  Barrier b{};
 			  auto& g = gapSegments[0];
@@ -1463,12 +1555,10 @@ namespace ANON
 			  TesselateFloorAndCeiling();
 		  }
 
-		  if (IsCorridor() && hasDoor)
+		  if (IsCorridor() && scriptCorridor)
 		  {
 			  ResetBarriers();
-
-			  cstr theDoorScript = *doorScript ? doorScript : "!scripts/hv/sector/gen.door.sxy";
-			  RunSectorGenScript(theDoorScript);
+			  RunGenCorridorScript();
 		  }
 
 		  RandomizeLight();
@@ -2047,11 +2137,12 @@ namespace ANON
 	  {
 		  static int64 anySectorScriptChangedUpdate = 0x900000000000;
 
-		  if (args.Matches(doorScript) && IsCorridor() && hasDoor)
+		  cstr theCorridorScript = *corridorScript ? corridorScript : "!scripts/hv/sector/gen.door.sxy";
+		  if (args.Matches(theCorridorScript) && IsCorridor() && scriptCorridor)
 		  {
 			  isDirty = true;
 			  ResetBarriers();
-			  RunSectorGenScript(doorScript);
+			  RunGenCorridorScript();
 		  }
 
 		  char path[256];
@@ -2140,7 +2231,7 @@ namespace ANON
 
 		  if (Is4PointRectangular())
 		  {
-			  sb.AppendFormat("\n\n\t(sectors.SetTemplateDoorScript %s \"%s\")", hasDoor ? "true" : "false", doorScript);
+			  sb.AppendFormat("\n\n\t(sectors.SetTemplateDoorScript %s \"%s\")", scriptCorridor ? "true" : "false", corridorScript);
 		  }
 
 		  sb.AppendFormat("\n\t(sectors.SetTemplateWallScript %s \"%s\")\n", scriptWalls ? "true" : "false", wallScript);
@@ -2214,7 +2305,7 @@ namespace ANON
 				  editor.AddMessage("Sector floor unsuitable for scripting");
 			  }
 		  }
-		  else if (Eq(category, "door"))
+		  else if (Eq(category, "corridor"))
 		  {
 			  if (IsCorridor())
 			  {
@@ -2224,9 +2315,9 @@ namespace ANON
 				  AddToProperties(GraphicsEx::BodyComponentMatClass_Door_Casing, editor);
 
 				  editor.AddSpacer();
-				  editor.AddBool("has door", &hasDoor);
+				  editor.AddBool("script corridor", &scriptCorridor);
 				  editor.AddMessage("Defaults to !scripts/hv/sector/gen.door.sxy");
-				  editor.AddPingPath("door script", doorScript, IO::MAX_PATHLEN, "!scripts/hv/sector/");
+				  editor.AddPingPath("corridor script", corridorScript, IO::MAX_PATHLEN, "!scripts/hv/sector/*.sxy");
 			  }
 			  else
 			  {
@@ -2234,10 +2325,9 @@ namespace ANON
 				  editor.AddSpacer();
 				  editor.AddSpacer();
 				  editor.AddSpacer();
-				  editor.AddMessage("Only sectors that are corridors can have doors");
-				  editor.AddMessage("Corridors are rectangular and have four vertices");
-				  editor.AddMessage("Doors will not show unless opposite sides of a");
-				  editor.AddMessage("corridor are linked to non-corridor sectors");
+				  editor.AddMessage("Sector is not a corridor");
+				  editor.AddMessage("Corridors are rectangular");
+				  editor.AddMessage("...and have only four vertices");
 			  }
 		  }
 	  }
@@ -2260,7 +2350,7 @@ namespace HV
 		BodyComponentMatClass BodyComponentMatClass_Cement				= "cement";
 		BodyComponentMatClass BodyComponentMatClass_Floor				= "floor";
 		BodyComponentMatClass BodyComponentMatClass_Ceiling				= "ceiling";
-		BodyComponentMatClass BodyComponentMatClass_Door_Mullions		= "mulliions";
+		BodyComponentMatClass BodyComponentMatClass_Door_Mullions		= "mullions";
 		BodyComponentMatClass BodyComponentMatClass_Door_Panels			= "panels";
 		BodyComponentMatClass BodyComponentMatClass_Door_Casing			= "casing";
 		BodyComponentMatClass BodyComponentMatClass_Door_Rails			= "rails";
