@@ -22,7 +22,54 @@ namespace ANON
 {
    using namespace Rococo;
    using namespace Rococo::Entities;
+   using namespace Rococo::Graphics;
    using namespace HV;
+
+   struct TriangleListBinding : public  ITriangleList
+   {
+	   std::vector<VertexTriangle>& tris;
+
+	   TriangleListBinding(std::vector<VertexTriangle>& _tris): tris(_tris)
+	   {
+
+	   }
+
+	   void AddTriangleByVertices(ObjectVertex& a, ObjectVertex& b, ObjectVertex& c) override
+	   {
+		   if (a.position == b.position) return;
+		   if (a.position == c.position) return;
+		   if (b.position == c.position) return;
+
+		   VertexTriangle vt{ a, b, c };
+		   AddTriangle(vt);
+	   }
+
+	   void AddTriangle(VertexTriangle& abc) override
+	   {
+		   enum { MAX = 100000 };
+		   if (tris.size() > MAX)
+		   {
+			   Throw(0, "TriangleListBinding::AddTriangle... maximum %d triangles reached. Be kind to laptop users.", MAX);
+		   }
+		   tris.push_back(abc);
+	   }
+
+	   void AddQuad(ObjectVertex& a, ObjectVertex& b, ObjectVertex& c, ObjectVertex& d) override
+	   {
+		   AddTriangleByVertices(a, b, c);
+		   AddTriangleByVertices(c, d, a);
+	   }
+
+	   int32 CountVertices() override
+	   {
+		   return (int32)tris.size() * 3;
+	   }
+
+	   int32 CountTriangles()  override
+	   {
+		   return (int32)tris.size();
+	   }
+   };
 
    struct Component
    {
@@ -528,11 +575,15 @@ namespace ANON
 		  if (wallSegments.empty()) return false;
 
 		  // Script has to iterate through wallSegments and append to wallTriangles
-		  struct ANON: IEventCallback<ScriptCompileArgs>, public HV::ISectorWallTesselator, public HV::ISectorComponents
+		  struct ANON: 
+			  IEventCallback<ScriptCompileArgs>,
+			  public ISectorWallTesselator,
+			  public ISectorComponents,
+			  public TriangleListBinding
 		  {
 			  Sector* This;
 
-			  ANON(Sector* _This): This(_This)
+			  ANON(Sector* _This): This(_This), TriangleListBinding(_This->wallTriangles)
 			  {
 			  }
 
@@ -551,24 +602,14 @@ namespace ANON
 				  This->GetSegment(index, segment);
 			  }
 
-			  void GetGap(int32 index, HV::GapSegment& segment) override
+			  void GetGap(int32 index, GapSegment& segment) override
 			  {
 				  This->GetGap(index, segment);
 			  }
 
-			  void AddWallTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c) override
+			  ITriangleList* WallTriangles() override
 			  {
-				  if (a.position == b.position) return;
-				  if (a.position == c.position) return;
-				  if (b.position == c.position) return;
-
-				  enum { MAX = 100000 };
-				  if (This->wallTriangles.size() > MAX)
-				  {
-					  Throw(0, "ISectorWallTesselator::AddWallTriangle maximum %d triangles reached. Be kind to laptop users.", MAX);
-				  }
-
-				  This->wallTriangles.push_back({ a,b,c });
+				  return this;
 			  }
 
 			  void OnEvent(ScriptCompileArgs& args) override
@@ -576,6 +617,7 @@ namespace ANON
 				  This->wallTriangles.clear();
 				  AddNativeCalls_HVISectorWallTesselator(args.ss, this);
 				  AddNativeCalls_HVISectorComponents(args.ss, this);
+				  AddNativeCalls_HVITriangleList(args.ss, this);
 			  }
 
 			  void GetMaterial(MaterialVertexData& mat, const fstring& componentClass) override
@@ -2098,6 +2140,11 @@ namespace ANON
 		  {
 			  cb.OnEvent(c.id);
 		  }
+
+		  for (auto& id : scenery)
+		  {
+			  cb.OnEvent(id);
+		  }
 	  }
 
 	  int64 iterationFrame = 0;
@@ -2254,6 +2301,30 @@ namespace ANON
 	  ISectorLayout* Layout() override
 	  {
 		  return this;
+	  }
+
+	  std::vector<ID_ENTITY> scenery;
+
+	  ID_ENTITY AddScenery(const fstring& meshName)
+	  {
+		  if (!completeSquares.empty())
+		  {
+			  auto& aabb = completeSquares[rand() % completeSquares.size()];
+			  
+			  Vec2 centre{ 0.5f * (aabb.left + aabb.right), 0.5f * (aabb.top + aabb.bottom) };
+
+			  Vec3 pos{ centre.x, centre.y, 0.0f };
+			  pos.z = GetHeightAtPointInSector(pos, *this);
+
+			  Matrix4x4 model = Matrix4x4::Translate(pos);
+			  auto id = platform.instances.AddBody(meshName, model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());
+			  scenery.push_back(id);
+			  return id;
+		  }
+		  else
+		  {
+			  return ID_ENTITY::Invalid();
+		  }
 	  }
 
 	  int32 CountSquares() override
@@ -2421,6 +2492,27 @@ namespace HV
    ISector* CreateSector(Platform& platform, ISectors& co_sectors)
    {
       return new ANON::Sector(platform, co_sectors);
+   }
+
+   float GetHeightAtPointInSector(cr_vec3 p, ISector& sector)
+   {
+	   int32 index = sector.GetFloorTriangleIndexContainingPoint({ p.x, p.y });
+	   if (index >= 0)
+	   {
+		   auto* v = sector.FloorVertices().v;
+		   Triangle t;
+		   t.A = v[3 * index].position;
+		   t.B = v[3 * index + 1].position;
+		   t.C = v[3 * index + 2].position;
+
+		   float h;
+		   if (GetTriangleHeight(t, { p.x,p.y }, h))
+		   {
+			   return h;
+		   }
+	   }
+
+	   return 0.0f;
    }
 }
 

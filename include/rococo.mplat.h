@@ -173,6 +173,7 @@ namespace Rococo
 	   ISpriteSupervisor* CreateSpriteSupervisor(IRenderer & renderer);
 
 	   IQuadStackTesselator* CreateQuadStackTesselator();
+	   IRodTesselator* CreateRodTesselator(Platform& platform);
    }
 
    namespace Entities

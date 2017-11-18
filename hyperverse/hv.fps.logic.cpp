@@ -273,13 +273,6 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		}
 	}
 
-	struct Triangle
-	{
-		Vec3 a;
-		Vec3 b;
-		Vec3 c;
-	};
-
 	bool IsPathAcrossGap(cr_vec3 start, cr_vec3 end, ISector& from, ISector& to)
 	{
 		size_t count;
@@ -312,21 +305,6 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		float dt;
 		float jumpSpeed;
 	};
-
-	bool GetTriangleHeight(const Triangle& t, cr_vec2 P, float& result)
-	{
-		// Triangle is in a plane (P - A).N = 0 where A is a point in plane, N is normal and P is any other point in plane
-		// Expands to P.N = A.N: 
-		// Px.Nx + Py.Ny + Pz.Nz = A.N
-		// Pz = [A.N - (Px.Nx + Py.Ny)] / Nz
-
-		Vec3 N = Cross(t.b - t.a, t.c - t.b);
-
-		if (fabs(N.z) <= 0.001f) return false;
-
-		result = (Dot(t.a, N) - (P.x * N.x + P.y * N.y)) / N.z;
-		return true;
-	}
 
 	Vec3 ToVec3(cr_vec2 p, float z)
 	{
@@ -552,27 +530,6 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		}
 
 		return destinationPoint;
-	}
-
-	float GetHeightAtPointInSector(cr_vec3 p, ISector& sector)
-	{
-		int32 index = sector.GetFloorTriangleIndexContainingPoint({ p.x, p.y });
-		if (index >= 0)
-		{
-			auto* v = sector.FloorVertices().v;
-			Triangle t;
-			t.a = v[3 * index].position;
-			t.b = v[3 * index + 1].position;
-			t.c = v[3 * index + 2].position;
-
-			float h;
-			if (GetTriangleHeight(t, { p.x,p.y }, h))
-			{
-				return h;
-			}
-		}
-
-		return 0.0f;
 	}
 
 	bool IsAscendable(cr_vec3 start, cr_vec3 end, ISector& from, ISector& to)

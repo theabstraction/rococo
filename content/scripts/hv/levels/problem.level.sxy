@@ -16,7 +16,7 @@
 (using HV)
 
 (function AddSectorsToLevel -> :
-	(ISectors sectors (Sectors))
+	(ISectors sectors (SectorBuilder))
 
 	(sectors.Clear)
 
@@ -24,22 +24,22 @@
 )
 
 (function AddSector0 (ISectors sectors) -> :
-	(sectors.AddVertex 10.000000 4.000000)
-	(sectors.AddVertex 10.000000 -4.000000)
-	(sectors.AddVertex -2.000000 -4.000000)
-	(sectors.AddVertex -2.000000 4.000000)
+	(sectors.AddVertex 6.000000 4.000000)
+	(sectors.AddVertex 6.000000 -6.000000)
+	(sectors.AddVertex -4.000000 -6.000000)
+	(sectors.AddVertex -4.000000 4.000000)
 
-	(sectors.SetTemplateMaterial "brickwork"   1 0x18000000 "random")
+	(sectors.SetTemplateMaterial "brickwork"   2 0xe0202023 "#m/marble/blue.jpg")
 	(sectors.SetTemplateMaterial "floor"       2 0xeae9bbf1 "random")
-	(sectors.SetTemplateMaterial "cement"      0 0x40ffffff "random")
+	(sectors.SetTemplateMaterial "cement"      0 0xcf52aed6 "random")
 	(sectors.SetTemplateMaterial "mullions"    3 0xdb0d5e24 "random")
 	(sectors.SetTemplateMaterial "ceiling"     2 0xcb873cdb "random")
-	(sectors.SetTemplateMaterial "rails"       3 0x1eb3b2b2 "#m/marble/brown.1.jpg")
+	(sectors.SetTemplateMaterial "rails"       3 0xd1b3de47 "random")
 	(sectors.SetTemplateMaterial "casing"      4 0xf7097d5a "random")
 	(sectors.SetTemplateMaterial "panels"      4 0xe58bbb43 "random")
 
 	(sectors.SetTemplateDoorScript false "")
-	(sectors.SetTemplateWallScript true "#walls/mosaic.sxy")
+	(sectors.SetTemplateWallScript true "#walls/observatory.sxy")
 
 	(sectors.CreateFromTemplate 0 400)
 )

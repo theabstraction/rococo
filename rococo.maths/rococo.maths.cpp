@@ -84,6 +84,21 @@ namespace Rococo
       XMMatrixToM4x4(xm, m);
    }
 
+   bool GetTriangleHeight(const Triangle& t, cr_vec2 P, float& result)
+   {
+	   // Triangle is in a plane (P - A).N = 0 where A is a point in plane, N is normal and P is any other point in plane
+	   // Expands to P.N = A.N: 
+	   // Px.Nx + Py.Ny + Pz.Nz = A.N
+	   // Pz = [A.N - (Px.Nx + Py.Ny)] / Nz
+
+	   Vec3 N = Cross(t.B - t.A, t.C - t.B);
+
+	   if (fabs(N.z) <= 0.001f) return false;
+
+	   result = (Dot(t.A, N) - (P.x * N.x + P.y * N.y)) / N.z;
+	   return true;
+   }
+
    void Matrix4x4::GetRotationQuat(const Matrix4x4& m, Quat& quat)
    {
       using namespace DirectX;

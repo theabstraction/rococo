@@ -16,6 +16,11 @@ Rococo::Graphics::IQuadStackTesselator* FactoryConstructRococoGraphicsQuadStackT
 	return Rococo::Graphics::CreateQuadStackTesselator();
 }
 
+Rococo::Graphics::IRodTesselator* FactoryConstructRococoGraphicsRodTesselator(Rococo::Platform* platform)
+{
+	return Rococo::Graphics::CreateRodTesselator(*platform);
+}
+
 Rococo::Graphics::IFieldTesselator* FactoryConstructRococoGraphicsFieldTesselator(Rococo::Graphics::IFieldTesselator* _context)
 {
 	return Rococo::Graphics::CreateFieldTesselator();
@@ -136,6 +141,7 @@ namespace Rococo
 				  Graphics::AddNativeCalls_RococoGraphicsIRimTesselator(args.ss, &platform.tesselators.rim);
 				  Graphics::AddNativeCalls_RococoGraphicsIFieldTesselator(args.ss, nullptr);
 				  Graphics::AddNativeCalls_RococoGraphicsIQuadStackTesselator(args.ss, nullptr);
+				  Graphics::AddNativeCalls_RococoGraphicsIRodTesselator(args.ss, &platform);
                   AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
 
 				  args.ss.AddNativeLibrary("rococo.sexy.mathsex");

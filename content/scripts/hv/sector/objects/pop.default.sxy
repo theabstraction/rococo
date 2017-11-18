@@ -21,7 +21,18 @@
 (using Sys.Geometry.F32)
 (using Sys.Random)
 
-(function AddItemToSector (ISectorLayout sector)-> :
+(function AddItemToSector (ISectorLayout sector)(IString meshName)-> :
+	(sector.AddMiscScenery meshName "scenery.misc")
+)
+
+(function MakeRod (IString meshName) -> :
+	(IRodTesselator rod (RodTesselator))
+	(Vec2 topLeft = -0.05 0.05)
+	(Vec2 topRight = 0.05 0.05)
+	(Vec2 bottomRight = 0.05 -0.05)
+	(Vec2 bottomLeft = -0.05 -0.05)
+	(rod.AddBox  2.0 topLeft topRight bottomRight bottomLeft)
+	(rod.CopyToMeshBuilder meshName)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):
@@ -29,6 +40,9 @@
 	(Int32 nSectors = sectors.Count)
 	(#for (Int32 i = 0)(i < nSectors)(#inc i)
 		(ISectorLayout sector = (sectors.GetSector i))
-		(AddItemToSector sector)
+		
+		(IString rodName = "object.rod.1")
+		(MakeRod rodName)
+		(sector.AddScenery rodName)
 	)
 )

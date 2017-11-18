@@ -218,6 +218,8 @@ namespace HV
 	  virtual ISectorLayout* Layout() = 0;
    };
 
+   float GetHeightAtPointInSector(cr_vec3 p, ISector& sector);
+
    ISector* CreateSector(Platform& platform, ISectors& co_sectors);
 
    ROCOCOAPI ISectors

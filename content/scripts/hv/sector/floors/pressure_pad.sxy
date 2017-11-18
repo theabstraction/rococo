@@ -96,13 +96,7 @@
 		(components.AddTriangle bottomRight)
 	)
 	
-	(Matrix4x4 model =
-		(1 0 0 0)
-		(0 1 0 0)
-		(0 0 1 0)
-		(0 0 0 1)
-	)
-	(components.CompleteComponent model)
+	(components.CompleteComponent)
 )
 
 (function GenerateCeilingMesh (QuadVertices ceilingQuad)(ISectorFloorTesselator sector)(IQuadStackTesselator qst) -> :

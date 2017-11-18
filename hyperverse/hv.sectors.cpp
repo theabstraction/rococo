@@ -158,7 +158,7 @@ namespace ANON
 		   sb.AppendFormat("(using HV)\n\n");
 
 		   sb.AppendFormat("(function AddSectorsToLevel -> :\n");
-		   sb.AppendFormat("\t(ISectors sectors (Sectors))\n\n");
+		   sb.AppendFormat("\t(ISectors sectors (SectorBuilder))\n\n");
 		   sb.AppendFormat("\t(sectors.Clear)\n\n");
 
 		   /*
@@ -594,6 +594,7 @@ namespace ANON
 			   void OnEvent(ScriptCompileArgs& args) override
 			   {
 				   AddNativeCalls_HVISectorEnumerator(args.ss, this);
+				   AddNativeCalls_HVISectorLayout(args.ss, nullptr);
 			   }
 
 			   int32 Count() override

@@ -52,6 +52,8 @@
 
 		(GetSegment (Int32 segIndex)(WallSegment segment))
 		(GetGap (Int32 gapIndex)(GapSegment segment))
+		
+		(AddScenery (IString mesh) -> (IdEntity id))
 	)
 )
 
@@ -80,8 +82,19 @@
 	(factory HV.SectorComponents)
 )
 
-// Only available during wall generation
+(interface (as.sxy HV.ITriangleList "../content/scripts/hv")
+	(as.cpp HV.ITriangleList "hv")
+	(context factory HV.ITriangleList)
+	(methods
+		(AddTriangleByVertices (Vertex a)(Vertex b)(Vertex c))
+		(AddTriangle (VertexTriangle abc))
+		(AddQuad (Vertex a)(Vertex b)(Vertex c)(Vertex d))
+		(CountVertices -> (Int32 vertices))
+		(CountTriangles -> (Int32 triangles))
+	)
+)
 
+// Only available during wall generation
 (interface
 	(as.sxy HV.ISectorWallTesselator "../content/scripts/hv")
 	(as.cpp HV.ISectorWallTesselator "hv")
@@ -91,7 +104,7 @@
 		(NumberOfGaps -> (Int32 count))
 		(GetSegment (Int32 ringIndex)(WallSegment segment))
 		(GetGap (Int32 ringIndex)(GapSegment segment))
-		(AddWallTriangle (const Vertex a)(const Vertex b)(const Vertex c))
+		(WallTriangles -> (HV.ITriangleList triangles))
 		(GetMaterial (MaterialVertexData mat)(IString componentClass))
 	)
 	(factory HV.SectorWallTesselator)

@@ -21,40 +21,6 @@
 (using Sys.Geometry.F32)
 (using Sys.Random)
 
-(function AddQuad (ISectorWallTesselator sector) (Quadf quad)(Float32 vStart)(Float32 uStart)(MaterialVertexData mat)->(Float32 uEnd)(Float32 vEnd) :
-	(Triangle t = quad.a quad.b quad.c)
-	(Vec3 n)
-	(GetNormal t n)
-	
-	(Vec3 top = quad.b - quad.a)
-	(Vec3 left = quad.a - quad.d)
-	
-	(Float32 uLen = (0.25 * (Length top)))
-	(Float32 vLen = (0.25 * (Length left)))
-	
-	(vEnd = (vStart + vLen))
-	(uEnd = (uStart + uLen))
-
-	(ObjectVertex a = quad.a n  (uStart   vEnd) mat)
-	(ObjectVertex b	= quad.b n  (uEnd     vEnd) mat)
-	(ObjectVertex c = quad.c n  (uEnd   vStart) mat)	
-	(ObjectVertex d = quad.d n  (uStart vStart) mat)
-	
-	(sector.AddWallTriangle a b c)
-	(sector.AddWallTriangle c d a)
-)
-
-(function AddTriangle (ISectorWallTesselator sector) (Triangle t)(Triangle2d uv)(MaterialVertexData mat)-> :
-	(Vec3 n)
-	(GetNormal t n)
-	
-	(ObjectVertex a = t.a n uv.a mat)
-	(ObjectVertex b	= t.b n uv.b mat)
-	(ObjectVertex c = t.c n uv.c mat)	
-	
-	(sector.AddWallTriangle a b c)
-)
-
 (function TesselateWallAndShelf (WallSegment segment)(ISectorWallTesselator sector)(IQuadStackTesselator qst)(Float32 uStart)->(Float32 uEnd) :
 	(Float32 uvScale = 0.5)
 	
@@ -118,11 +84,13 @@
 	(qst.AddRod 0.49    1 0.45 0.55  0.08 0.25  frame)
 	(qst.MoveInputToOutput)
 	
+	(ITriangleList tris = sector.WallTriangles)
+	
 	(VertexTriangle topLeft)
 	(VertexTriangle bottomRight)
 	(while (qst.PopOutputAsTriangles topLeft bottomRight)
-		(sector.AddWallTriangle topLeft.a topLeft.b topLeft.c)
-		(sector.AddWallTriangle bottomRight.a bottomRight.b bottomRight.c)
+		(tris.AddTriangle topLeft)
+		(tris.AddTriangle bottomRight)
 	)
 )
 

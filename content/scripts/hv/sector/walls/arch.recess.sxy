@@ -21,7 +21,7 @@
 (using Sys.Geometry.F32)
 (using Sys.Random)
 
-(function AddQuad (ISectorWallTesselator sector) (Quadf quad)(Float32 vStart)(Float32 uStart)->(Float32 uEnd)(Float32 vEnd)(MaterialVertexData mat) :
+(function AddQuad (ITriangleList tris) (Quadf quad)(Float32 vStart)(Float32 uStart)->(Float32 uEnd)(Float32 vEnd)(MaterialVertexData mat) :
 	(Triangle t = quad.a quad.b quad.c)
 	(Vec3 n)
 	(GetNormal t n)
@@ -40,11 +40,10 @@
 	(ObjectVertex c = quad.c n  (uEnd   vStart) mat)	
 	(ObjectVertex d = quad.d n  (uStart vStart) mat)
 	
-	(sector.AddWallTriangle a b c)
-	(sector.AddWallTriangle c d a)
+	(tris.AddQuad a b c d)
 )
 
-(function AddReverseQuad (ISectorWallTesselator sector) (Quadf quad)(Float32 vStart)(Float32 uStart)(MaterialVertexData mat)->(Float32 uEnd)(Float32 vEnd) :
+(function AddReverseQuad (ITriangleList tris) (Quadf quad)(Float32 vStart)(Float32 uStart)(MaterialVertexData mat)->(Float32 uEnd)(Float32 vEnd) :
 	(Triangle t = quad.b quad.a quad.c)
 	(Vec3 n)
 	(GetNormal t n)
@@ -63,11 +62,10 @@
 	(ObjectVertex c = quad.c n  (uEnd   vStart) mat)	
 	(ObjectVertex d = quad.d n  (uStart vStart) mat)
 	
-	(sector.AddWallTriangle b a c)
-	(sector.AddWallTriangle d c a)
+	(tris.AddQuad d c b a)
 )
 
-(function AddTriangle (ISectorWallTesselator sector) (Triangle t)(Triangle2d uv)(MaterialVertexData mat)-> :
+(function AddTriangle (ITriangleList tris) (Triangle t)(Triangle2d uv)(MaterialVertexData mat)-> :
 	(Vec3 n)
 	(GetNormal t n)
 	
@@ -75,10 +73,10 @@
 	(ObjectVertex b	= t.b n uv.b mat)
 	(ObjectVertex c = t.c n uv.c mat)	
 	
-	(sector.AddWallTriangle a b c)
+	(tris.AddTriangle a b c)
 )
 
-(function AddReverseTriangle (ISectorWallTesselator sector) (Triangle t)(Triangle2d uv)(MaterialVertexData mat)-> :
+(function AddReverseTriangle (ITriangleList tris) (Triangle t)(Triangle2d uv)(MaterialVertexData mat)-> :
 	(Vec3 n)
 	(GetNormal t n)
 	(Vec3 np = -1.0 * n)
@@ -87,10 +85,10 @@
 	(ObjectVertex b	= t.b np uv.b mat)
 	(ObjectVertex c = t.c np uv.c mat)	
 	
-	(sector.AddWallTriangle b a c)
+	(tris.AddTriangle b a c)
 )
 
-(function AddRecessToWall  (WallSegment segment)(ISectorWallTesselator sector)(IRimTesselator rim)(MaterialVertexData mat)-> :
+(function AddRecessToWall  (WallSegment segment)(ITriangleList tris)(IRimTesselator rim)(MaterialVertexData mat)-> :
 	(rim.ClearFaces)
 		
 	(Matrix4x4 rotate =
@@ -137,7 +135,7 @@
 	(#for (Int32 i = 0)(i < count)(#inc i)
 		(Quadf q)
 		(rim.GetRimQuad z0 z1 i q)		
-		(AddReverseQuad sector q 0 v mat -> u v)			
+		(AddReverseQuad tris q 0 v mat -> u v)			
 	)
 	
 	(Int32 triangles = rim.TesselateUniform)
@@ -147,12 +145,12 @@
 	
 	(#for (Int32 j = 0)(j < triangles)(#inc j)
 		(rim.GetBottomTriangle j t uv z0)
-		(AddReverseTriangle sector t uv mat)
+		(AddReverseTriangle tris t uv mat)
 	)
 	
 )
 
-(function AddRimFrameToWall  (WallSegment segment)(ISectorWallTesselator sector)(IRimTesselator rim)(MaterialVertexData mat)-> :
+(function AddRimFrameToWall  (WallSegment segment)(ITriangleList tris)(IRimTesselator rim)(MaterialVertexData mat)-> :
 	(rim.ClearFaces)
 		
 	(Matrix4x4 rotate =
@@ -199,7 +197,7 @@
 	
 	(#for (Int32 j = 0)(j < triangles)(#inc j)
 		(rim.GetTopTriangle j t uv z1)
-		(AddTriangle sector t uv mat)
+		(AddTriangle tris t uv mat)
 	)
 )
 
@@ -231,7 +229,7 @@
 	(rim.Clear)
 	(BuildArchVertices rim)	
 	(rim.CloseLoop)	
-	(AddRecessToWall segment sector rim brick) 
+	(AddRecessToWall segment sector.WallTriangles rim brick) 
 	
 	(rim.Clear)
 	(BuildArchVertices rim)
@@ -244,15 +242,13 @@
 	(MaterialVertexData cement)
 	(sector.GetMaterial cement "cement")
 	
-	(AddRimFrameToWall segment sector rim cement)
+	(AddRimFrameToWall segment sector.WallTriangles rim cement)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(ISectorWallTesselator sector (SectorWallTesselator))
 	(Int32 nSegments = sector.NumberOfSegments)
 	(Float32 u = 0)
-	
-	(IFieldTesselator ft (FieldTesselator))
 			
 	(#for (Int32 i = 0)(i < nSegments)(#inc i)
 		(WallSegment seg)

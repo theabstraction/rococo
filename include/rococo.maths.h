@@ -264,6 +264,8 @@ namespace Rococo
 		Vec3 C;
 	};
 
+	bool GetTriangleHeight(const Triangle& t, cr_vec2 P, float& result);
+
 	// In General, quads are tesselated clockwise a -> b -> c -> d -> a
 	struct Quad
 	{

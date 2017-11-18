@@ -28,11 +28,13 @@
 	(qst.PushQuad q brickwork)
 	(qst.MoveInputToOutput)
 	
+	(ITriangleList tris = sector.WallTriangles)
+	
 	(VertexTriangle topLeft)
 	(VertexTriangle bottomRight)
 	(while (qst.PopOutputAsTriangles topLeft bottomRight)
-		(sector.AddWallTriangle topLeft.a topLeft.b topLeft.c)
-		(sector.AddWallTriangle bottomRight.a bottomRight.b bottomRight.c)
+		(tris.AddTriangle topLeft)
+		(tris.AddTriangle bottomRight)
 	)
 )
 
@@ -45,6 +47,8 @@
 	
 	(MaterialVertexData rod)
 	(sector.GetMaterial rod "rails")
+	
+	(ITriangleList tris = sector.WallTriangles)
 	
 	(Vec2 span)
 	(GetTriSpan q.positions.d q.positions.a q.positions.b span)
@@ -73,8 +77,8 @@
 	(VertexTriangle topLeft)
 	(VertexTriangle bottomRight)
 	(while (qst.PopOutputAsTriangles topLeft bottomRight)
-		(sector.AddWallTriangle topLeft.a topLeft.b topLeft.c)
-		(sector.AddWallTriangle bottomRight.a bottomRight.b bottomRight.c)
+		(tris.AddTriangle topLeft)
+		(tris.AddTriangle bottomRight)
 	)
 	
 	(ISectorComponents components (SectorComponents))

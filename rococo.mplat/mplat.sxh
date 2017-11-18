@@ -1,5 +1,118 @@
 (config $config.xc) 
 
+(interface 
+	(as.sxy Rococo.IPane "../content/scripts/mplat.pane")
+	(as.cpp Rococo.IPane "mplat")
+	(context factory Rococo.IPane)
+	(methods
+		(SetColourBk1 (RGBAb normal)(RGBAb hilight)->)
+		(SetColourBk2 (RGBAb normal)(RGBAb hilight)->)
+		(SetColourEdge1 (RGBAb normal)(RGBAb hilight)->)
+		(SetColourEdge2 (RGBAb normal)(RGBAb hilight)->)
+		(SetColourFont (RGBAb normal)(RGBAb hilight)->)
+		(IsVisible -> (Bool isVisible))
+		(IsNormalized -> (Bool isNormalized))
+		(SetVisible (Bool isVisible)->)
+		(GetRect(Rect rect))
+		(SetRect(const Rect rect)->)
+		
+		///////////////////// child layout /////////////////////
+		(AlignLeftEdges (Int32 x)(Bool preserveSpan) ->)
+		(AlignRightEdges (Int32 x)(Bool preserveSpan) ->)
+		
+		/* vertBorder -ve -> align from bottom, vertSpacing -ve -> spread out vertically */
+		(LayoutVertically(Int32 vertBorder)(Int32 vertSpacing)->) 	
+		////////////////////////////////////////////////////////
+		
+		(SetCommand (Int32 stateIndex)(Bool deferAction)(IString text)->)
+		(SetPopulator (Int32 stateIndex)(IString populatorName)->)
+	)
+)
+
+(interface 
+	(as.sxy Rococo.IPaneContainer "../content/scripts/mplat.pane")
+	(as.cpp Rococo.IPaneContainer "mplat")
+	(context factory Rococo.IPaneContainer)
+	(methods
+		(AddContainer (const Rect rect)->(Rococo.IPaneContainer container))
+		(AddTabContainer (Int32 tabHeight)(Int32 fontIndex)(const Rect rect)->(Rococo.ITabContainer container))
+		(AddLabel (Int32 fontIndex)(IString text) (const Rect rect)->(Rococo.ILabelPane label))
+		(AddSlider (Int32 fontIndex)(IString text) (const Rect rect)(Float32 minValue)(Float32 maxValue) ->(Rococo.ISlider slider))
+		(AddScroller (IString key) (const Rect rect)(Bool isVertical)->(Rococo.IScroller scroller))
+		(AddTextOutput  (Int32 fontIndex)(IString key) (const Rect rect)->(Rococo.ITextOutputPane textBox))
+		(AddRadioButton (Int32 fontIndex)(IString text)(IString key)(IString value) (const Rect rect)->(Rococo.IRadioButton radio))
+		(Base -> (Rococo.IPane base))
+	)
+)
+
+(interface 
+	(as.sxy Rococo.ITabContainer "../content/scripts/mplat.pane")
+	(as.cpp Rococo.ITabContainer "mplat")
+	(context factory Rococo.ITabContainer)
+	(methods
+		(AddTab (Int32 tabWidth)(IString caption)(IString panelText))
+		(Base -> (Rococo.IPane base))
+	)
+)
+
+(interface 
+	(as.sxy Rococo.IRadioButton "../content/scripts/mplat.pane")
+	(as.cpp Rococo.IRadioButton "mplat")
+	(context factory Rococo.IRadioButton)
+	(methods
+		(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY))
+		(Base -> (Rococo.IPane base))
+	)
+)
+
+(interface 
+	(as.sxy Rococo.ILabelPane "../content/scripts/mplat.pane")
+	(as.cpp Rococo.ILabelPane "mplat")
+	(context factory Rococo.ILabelPane)
+	(methods
+		(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY))
+		(Base -> (Rococo.IPane base))
+	)
+)
+
+(interface 
+	(as.sxy Rococo.ISlider "../content/scripts/mplat.pane")
+	(as.cpp Rococo.ISlider "mplat")
+	(context factory Rococo.ISlider)
+	(methods
+		(Base -> (Rococo.IPane base))
+	)
+)
+
+(interface 
+	(as.sxy Rococo.IScroller "../content/scripts/mplat.pane")
+	(as.cpp Rococo.IScroller "mplat")
+	(context factory Rococo.IScroller)
+	(methods
+		(Base -> (Rococo.IPane base))
+	)
+)
+
+(interface 
+	(as.sxy Rococo.ITextOutputPane "../content/scripts/mplat.pane")
+	(as.cpp Rococo.ITextOutputPane "mplat")
+	(context factory Rococo.ITextOutputPane)
+	(methods
+		(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY))
+		(Base -> (Rococo.IPane base))
+	)
+)
+
+(interface 
+	(as.sxy Rococo.IPaneBuilder "../content/scripts/mplat.pane")
+	(as.cpp Rococo.IPaneBuilder "mplat")
+	(context factory Rococo.IPaneBuilder)
+	(methods
+		(Root -> (Rococo.IPaneContainer container))
+	)
+	(factory Rococo.PaneBuilder)
+)
+
 (interface
 	(as.sxy Rococo.IKeyboard "../content/scripts/mplat")
 	(as.cpp Rococo.IKeyboard "mplat")
@@ -42,35 +155,6 @@
 		(LoadAllSprites)
 	)
 	(factory Rococo.Graphics.Sprites)
-)
-
-(interface 
-	(as.sxy Rococo.IPane "../content/scripts/mplat.pane")
-	(as.cpp Rococo.IPane "mplat")
-	(context factory Rococo.IPane)
-	(methods
-		(SetColourBk1 (RGBAb normal)(RGBAb hilight)->)
-		(SetColourBk2 (RGBAb normal)(RGBAb hilight)->)
-		(SetColourEdge1 (RGBAb normal)(RGBAb hilight)->)
-		(SetColourEdge2 (RGBAb normal)(RGBAb hilight)->)
-		(SetColourFont (RGBAb normal)(RGBAb hilight)->)
-		(IsVisible -> (Bool isVisible))
-		(IsNormalized -> (Bool isNormalized))
-		(SetVisible (Bool isVisible)->)
-		(GetRect(Rect rect))
-		(SetRect(const Rect rect)->)
-		
-		///////////////////// child layout /////////////////////
-		(AlignLeftEdges (Int32 x)(Bool preserveSpan) ->)
-		(AlignRightEdges (Int32 x)(Bool preserveSpan) ->)
-		
-		/* vertBorder -ve -> align from bottom, vertSpacing -ve -> spread out vertically */
-		(LayoutVertically(Int32 vertBorder)(Int32 vertSpacing)->) 	
-		////////////////////////////////////////////////////////
-		
-		(SetCommand (Int32 stateIndex)(Bool deferAction)(IString text)->)
-		(SetPopulator (Int32 stateIndex)(IString populatorName)->)
-	)
 )
 
 (interface
@@ -167,89 +251,6 @@
 	(factory Rococo.Entities.Instances)
 )
 
-(interface 
-	(as.sxy Rococo.IPaneContainer "../content/scripts/mplat.pane")
-	(as.cpp Rococo.IPaneContainer "mplat")
-	(context factory Rococo.IPaneContainer)
-	(methods
-		(AddContainer (const Rect rect)->(Rococo.IPaneContainer container))
-		(AddTabContainer (Int32 tabHeight)(Int32 fontIndex)(const Rect rect)->(Rococo.ITabContainer container))
-		(AddLabel (Int32 fontIndex)(IString text) (const Rect rect)->(Rococo.ILabelPane label))
-		(AddSlider (Int32 fontIndex)(IString text) (const Rect rect)(Float32 minValue)(Float32 maxValue) ->(Rococo.ISlider slider))
-		(AddScroller (IString key) (const Rect rect)(Bool isVertical)->(Rococo.IScroller scroller))
-		(AddTextOutput  (Int32 fontIndex)(IString key) (const Rect rect)->(Rococo.ITextOutputPane textBox))
-		(AddRadioButton (Int32 fontIndex)(IString text)(IString key)(IString value) (const Rect rect)->(Rococo.IRadioButton radio))
-		(Base -> (Rococo.IPane base))
-	)
-)
-
-(interface 
-	(as.sxy Rococo.ITabContainer "../content/scripts/mplat.pane")
-	(as.cpp Rococo.ITabContainer "mplat")
-	(context factory Rococo.ITabContainer)
-	(methods
-		(AddTab (Int32 tabWidth)(IString caption)(IString panelText))
-		(Base -> (Rococo.IPane base))
-	)
-)
-
-(interface 
-	(as.sxy Rococo.IRadioButton "../content/scripts/mplat.pane")
-	(as.cpp Rococo.IRadioButton "mplat")
-	(context factory Rococo.IRadioButton)
-	(methods
-		(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY))
-		(Base -> (Rococo.IPane base))
-	)
-)
-
-(interface 
-	(as.sxy Rococo.ILabelPane "../content/scripts/mplat.pane")
-	(as.cpp Rococo.ILabelPane "mplat")
-	(context factory Rococo.ILabelPane)
-	(methods
-		(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY))
-		(Base -> (Rococo.IPane base))
-	)
-)
-
-(interface 
-	(as.sxy Rococo.ISlider "../content/scripts/mplat.pane")
-	(as.cpp Rococo.ISlider "mplat")
-	(context factory Rococo.ISlider)
-	(methods
-		(Base -> (Rococo.IPane base))
-	)
-)
-
-(interface 
-	(as.sxy Rococo.IScroller "../content/scripts/mplat.pane")
-	(as.cpp Rococo.IScroller "mplat")
-	(context factory Rococo.IScroller)
-	(methods
-		(Base -> (Rococo.IPane base))
-	)
-)
-
-(interface 
-	(as.sxy Rococo.ITextOutputPane "../content/scripts/mplat.pane")
-	(as.cpp Rococo.ITextOutputPane "mplat")
-	(context factory Rococo.ITextOutputPane)
-	(methods
-		(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY))
-		(Base -> (Rococo.IPane base))
-	)
-)
-
-(interface 
-	(as.sxy Rococo.IPaneBuilder "../content/scripts/mplat.pane")
-	(as.cpp Rococo.IPaneBuilder "mplat")
-	(context factory Rococo.IPaneBuilder)
-	(methods
-		(Root -> (Rococo.IPaneContainer container))
-	)
-	(factory Rococo.PaneBuilder)
-)
 
 (interface
 	(as.sxy Rococo.Graphics.IMeshBuilder "../content/scripts/mplat")
@@ -343,4 +344,26 @@
 			(TileMosaic(const MaterialVertexData a)(const MaterialVertexData b)(const Rectf uvRect)(Metres roughSize))
 	)
 	(factory Rococo.Graphics.QuadStackTesselator)
+)
+
+(interface (as.sxy Rococo.Graphics.IRodTesselator "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.IRodTesselator "mplat")
+	(context factory Rococo.Platform)
+	(methods
+		(AddBox (Metres length)(const Vec2 a)(const Vec2 b)(const Vec2 c)(const Vec2 d))
+		(AddPrism (Metres length)(const Vec2 a)(const Vec2 b)(const Vec2 c))
+		(AddSphere (Metres radius)(Int32 nRings)(Int32 nDivs))
+		(AddTube (Metres length)(Metres bottomRadius)(Metres topRadius)(Int32 nDivs))
+		(Clear)		
+		(CopyToMeshBuilder (IString meshName))
+		(Destruct)
+		(PopNextTriangle (VertexTriangle t)->(Bool wasPopped))
+		(SetMaterialBottom (MaterialVertexData bottom))
+		(SetMaterialMiddle (MaterialVertexData middle))
+		(SetMaterialTop (MaterialVertexData top))
+		(SetUVScale (Float32 sUV))
+		(UseFaceNormals)
+		(UseSmoothNormals)
+	)
+	(factory Rococo.Graphics.RodTesselator)
 )

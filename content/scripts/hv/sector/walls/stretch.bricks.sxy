@@ -28,16 +28,15 @@
 	(q.d = colour)
 )
 
-(function AddQuadToWall (ISectorWallTesselator sector)(QuadVertices q)(MaterialVertexData mat)-> :
+(function AddQuadToWall (ITriangleList tris)(QuadVertices q)(MaterialVertexData mat)-> :
 	(ObjectVertex a = q.positions.a q.normals.a (q.uv.left  q.uv.top)    mat)
 	(ObjectVertex b	= q.positions.b q.normals.b (q.uv.right q.uv.top)    mat)
 	(ObjectVertex c = q.positions.c q.normals.c (q.uv.right q.uv.bottom) mat)
 	(ObjectVertex d = q.positions.d q.normals.d (q.uv.left  q.uv.bottom) mat)
-	(sector.AddWallTriangle a b c)
-	(sector.AddWallTriangle c d a)
+	(tris.AddQuad a b c d)
 )
 
-(function AddColouredQuadToWall (ISectorWallTesselator sector)(QuadVertices q)(MaterialVertexData mat)(Int32 aColour)(Int32 bColour)(Int32 cColour)(Int32 dColour)-> :
+(function AddColouredQuadToWall (ITriangleList tris)(QuadVertices q)(MaterialVertexData mat)(Int32 aColour)(Int32 bColour)(Int32 cColour)(Int32 dColour)-> :
 	(ObjectVertex a = q.positions.a q.normals.a (q.uv.left  q.uv.top)    mat)
 	(ObjectVertex b	= q.positions.b q.normals.b (q.uv.right q.uv.top)    mat)
 	(ObjectVertex c = q.positions.c q.normals.c (q.uv.right q.uv.bottom) mat)
@@ -46,8 +45,7 @@
 	(b.mat.materialColour = bColour)
 	(c.mat.materialColour = cColour)
 	(d.mat.materialColour = dColour)
-	(sector.AddWallTriangle a b c)
-	(sector.AddWallTriangle c d a)
+	(tris.AddQuad a b c d)
 )
 
 (function TesselateBrickwork (IFieldTesselator ft)(WallSegment segment)(ISectorWallTesselator sector)-> :
@@ -61,6 +59,8 @@
 		
 	(Float32 cementWidth = 0.05)	
 	(Float32 extrusion = 0.15)
+	
+	(ITriangleList tris = sector.WallTriangles)
 		
 	(#for (Int32 i = 0)(i < nColumns)(#inc i)
 		(QuadVertices q)
@@ -70,27 +70,27 @@
 		(QuadVertices b)
 		
 		(ft.GetStretchBondedBrick i 0 q t l r b cementWidth extrusion)	
-		(AddColouredQuadToWall sector q brick 0 0 brick.materialColour brick.materialColour)
-		(AddQuadToWall sector t brick)
-		(AddColouredQuadToWall sector l brick brick.materialColour 0 0 brick.materialColour)
-		(AddColouredQuadToWall sector r brick  0 0 brick.materialColour brick.materialColour)
-		(AddQuadToWall sector b brick)
+		(AddColouredQuadToWall tris q brick 0 0 brick.materialColour brick.materialColour)
+		(AddQuadToWall tris t brick)
+		(AddColouredQuadToWall tris l brick brick.materialColour 0 0 brick.materialColour)
+		(AddColouredQuadToWall tris r brick  0 0 brick.materialColour brick.materialColour)
+		(AddQuadToWall tris b brick)
 			
 		(#for (Int32 j = 1)(j < (nRows - 1))(#inc j)		
 			(ft.GetStretchBondedBrick i j q t l r b cementWidth extrusion)	
-			(AddQuadToWall sector q brick)
-			(AddQuadToWall sector t brick)
-			(AddQuadToWall sector l brick)
-			(AddQuadToWall sector r brick)
-			(AddQuadToWall sector b brick)
+			(AddQuadToWall tris q brick)
+			(AddQuadToWall tris t brick)
+			(AddQuadToWall tris l brick)
+			(AddQuadToWall tris r brick)
+			(AddQuadToWall tris b brick)
 		)
 		
 		(ft.GetStretchBondedBrick i (nRows - 1) q t l r b cementWidth extrusion)	
-		(AddColouredQuadToWall sector q brick brick.materialColour brick.materialColour 0 0)
-		(AddQuadToWall sector t brick)
-		(AddColouredQuadToWall sector l brick 0 brick.materialColour brick.materialColour  0)
-		(AddColouredQuadToWall sector r brick brick.materialColour brick.materialColour 0  0)
-		(AddQuadToWall sector b brick)
+		(AddColouredQuadToWall tris q brick brick.materialColour brick.materialColour 0 0)
+		(AddQuadToWall tris t brick)
+		(AddColouredQuadToWall tris l brick 0 brick.materialColour brick.materialColour  0)
+		(AddColouredQuadToWall tris r brick brick.materialColour brick.materialColour 0  0)
+		(AddQuadToWall tris b brick)
 	)
 	
 	(MaterialVertexData cement)
@@ -99,22 +99,22 @@
 	(#for (Int32 i = 0)(i < nColumns)(#inc i)
 		(QuadVertices q)	
 		(ft.GetBrickJoinRight i 0 q cementWidth)	
-		(AddColouredQuadToWall sector q cement 0 0 cement.materialColour cement.materialColour )
+		(AddColouredQuadToWall tris q cement 0 0 cement.materialColour cement.materialColour )
 		(#for (Int32 j = 1)(j < (nRows - 1))(#inc j)		
 			(ft.GetBrickJoinRight i j q cementWidth)			
-			(AddQuadToWall sector q cement)
+			(AddQuadToWall tris q cement)
 		)
 		(ft.GetBrickJoinRight i (nRows - 1) q cementWidth)	
-		(AddColouredQuadToWall sector q cement cement.materialColour cement.materialColour 0 0)
+		(AddColouredQuadToWall tris q cement cement.materialColour cement.materialColour 0 0)
 	)
 	
 	(QuadVertices q)
 	(ft.GetBrickBedTop 0 q cementWidth)	
-	(AddColouredQuadToWall sector q cement cement.materialColour cement.materialColour 0 0)	
+	(AddColouredQuadToWall tris q cement cement.materialColour cement.materialColour 0 0)	
 	
 	(#for (Int32 j = 1)(j < nRows)(#inc j)		
 		(ft.GetBrickBedTop j q cementWidth)		
-		(AddQuadToWall sector q cement)
+		(AddQuadToWall tris q cement)
 	)
 )
 
