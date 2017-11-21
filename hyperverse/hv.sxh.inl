@@ -1,3 +1,57 @@
+namespace HV { 
+	bool TryParse(const Rococo::fstring& s, AddItemFlags& value)
+	{
+		if (s ==  "AddItemFlags_None"_fstring)
+		{
+			value = AddItemFlags_None;
+		}
+		else if (s ==  "AddItemFlags_AlignEdge"_fstring)
+		{
+			value = AddItemFlags_AlignEdge;
+		}
+		else if (s ==  "AddItemFlags_RandomHeading"_fstring)
+		{
+			value = AddItemFlags_RandomHeading;
+		}
+		else if (s ==  "AddItemFlags_RandomPosition"_fstring)
+		{
+			value = AddItemFlags_RandomPosition;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool TryShortParse(const Rococo::fstring& s, AddItemFlags& value)
+	{
+		if (s ==  "None"_fstring)
+		{
+			value = AddItemFlags_None;
+		}
+		else if (s ==  "AlignEdge"_fstring)
+		{
+			value = AddItemFlags_AlignEdge;
+		}
+		else if (s ==  "RandomHeading"_fstring)
+		{
+			value = AddItemFlags_RandomHeading;
+		}
+		else if (s ==  "RandomPosition"_fstring)
+		{
+			value = AddItemFlags_RandomPosition;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+}// HV.AddItemFlags
+
 // BennyHill generated Sexy native functions for HV::IPlayer 
 namespace
 {
@@ -546,6 +600,38 @@ namespace
 		_offset += sizeof(id);
 		WriteOutput(id, _sf, -_offset);
 	}
+	void NativeHVISectorLayoutAddItemToCentre(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 addItemFlags;
+		_offset += sizeof(addItemFlags);
+		ReadInput(addItemFlags, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _mesh;
+		ReadInput(_mesh, _sf, -_offset);
+		fstring mesh { _mesh->buffer, _mesh->length };
+
+
+		HV::ISectorLayout* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		ID_ENTITY id = _pObject->AddItemToCentre(mesh, addItemFlags);
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
+	}
+	void NativeHVISectorLayoutDeleteScenery(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorLayout* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->DeleteScenery();
+	}
 
 }
 
@@ -562,6 +648,8 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVISectorLayoutGetSegment, nullptr, SEXTEXT("ISectorLayoutGetSegment (Pointer hObject)(Int32 segIndex)(HV.WallSegment segment) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutGetGap, nullptr, SEXTEXT("ISectorLayoutGetGap (Pointer hObject)(Int32 gapIndex)(HV.GapSegment segment) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutAddScenery, nullptr, SEXTEXT("ISectorLayoutAddScenery (Pointer hObject)(Sys.Type.IString mesh) -> (Int64 id)"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutAddItemToCentre, nullptr, SEXTEXT("ISectorLayoutAddItemToCentre (Pointer hObject)(Sys.Type.IString mesh)(Int32 addItemFlags) -> (Int64 id)"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutDeleteScenery, nullptr, SEXTEXT("ISectorLayoutDeleteScenery (Pointer hObject) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ITriangleList 
@@ -967,11 +1055,15 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveMesh;
+		_offset += sizeof(preserveMesh);
+		ReadInput(preserveMesh, _sf, -_offset);
+
 		HV::ISectorComponents* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->CompleteComponent();
+		_pObject->CompleteComponent(preserveMesh);
 	}
 	void NativeHVISectorComponentsGetMaterial(NativeCallEnvironment& _nce)
 	{
@@ -1014,7 +1106,7 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVISectorComponentsAddTriangle, nullptr, SEXTEXT("ISectorComponentsAddTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorComponentsBuildComponent, nullptr, SEXTEXT("ISectorComponentsBuildComponent (Pointer hObject)(Sys.Type.IString componentName) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorComponentsClearComponents, nullptr, SEXTEXT("ISectorComponentsClearComponents (Pointer hObject)(Sys.Type.IString componentName) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorComponentsCompleteComponent, nullptr, SEXTEXT("ISectorComponentsCompleteComponent (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorComponentsCompleteComponent, nullptr, SEXTEXT("ISectorComponentsCompleteComponent (Pointer hObject)(Bool preserveMesh) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorComponentsGetMaterial, nullptr, SEXTEXT("ISectorComponentsGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
 	}
 }

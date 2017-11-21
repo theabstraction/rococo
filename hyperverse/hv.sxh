@@ -37,6 +37,18 @@
 	(factory HV.SectorBuilder)
 )
 
+(enum Int32
+	(as.sxy HV.AddItemFlags "../content/scripts/hv")
+	(as.cpp HV.AddItemFlags "hv")
+	(
+		(None 0)
+		(AlignEdge 1)
+		(RandomHeading 2)
+		(RandomPosition 4)
+	)
+)
+
+		  
 (interface
 	(as.sxy HV.ISectorLayout "../content/scripts/hv")
 	(as.cpp HV.ISectorLayout "hv" )
@@ -54,6 +66,8 @@
 		(GetGap (Int32 gapIndex)(GapSegment segment))
 		
 		(AddScenery (IString mesh) -> (IdEntity id))
+		(AddItemToCentre(IString mesh)(Int32 addItemFlags) -> (IdEntity id))
+		(DeleteScenery)
 	)
 )
 
@@ -76,7 +90,7 @@
 		(AddTriangle (const VertexTriangle t))
 		(BuildComponent (IString componentName))
 		(ClearComponents (IString componentName))
-		(CompleteComponent)
+		(CompleteComponent (Bool preserveMesh))
 		(GetMaterial (MaterialVertexData mat)(IString componentClass))
 	)
 	(factory HV.SectorComponents)

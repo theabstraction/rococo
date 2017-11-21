@@ -10,6 +10,8 @@
 
 #include <rococo.variable.editor.h>
 
+#include <random>
+
 namespace HV
 {
    HV::ICorridor* FactoryConstructHVCorridor(HV::ICorridor* _context)
@@ -24,6 +26,32 @@ namespace ANON
    using namespace Rococo::Entities;
    using namespace Rococo::Graphics;
    using namespace HV;
+
+   Rococo::Random::RandomMT rng;
+
+   namespace Roll
+   {
+	   uint32 d(uint32 maxValue)
+	   {
+		   return (rng() % maxValue) + 1;
+	   }
+
+	   uint32 x(uint32 oneAboveMaxValue)
+	   {
+		   return rng() % oneAboveMaxValue;
+	   }
+
+	   // 50% chance to return true, else it returns false
+	   boolean32 FiftyFifty()
+	   {
+		   return (rng() % 2) == 0;
+	   }
+
+	   float AnyOf(float minValue, float maxValue)
+	   {
+		  return Rococo::Random::NextFloat(rng, minValue, maxValue);
+	   }
+   }
 
    struct TriangleListBinding : public  ITriangleList
    {
@@ -92,20 +120,32 @@ namespace ANON
 
    uint32 nextSectorId = 1;
 
-   void AddPointToAABB(AABB2d& rect, cr_vec2 p)
-   {
-	   if (rect.left  > p.x) rect.left = p.x;
-	   if (rect.right < p.x) rect.right = p.x;
-	   if (rect.bottom > p.y) rect.bottom = p.y;
-	   if (rect.top < p.y) rect.top = p.y;
-   }
-
    void Expand(AABB2d& rect, Metres ds)
    {
 	   rect.left -= ds;
 	   rect.right += ds;
 	   rect.bottom -= ds;
 	   rect.top += ds;
+   }
+
+   bool GetRandomOrientationAndBoundsToFitBoxInAnother(Matrix4x4& Rz, AABB& newBounds, const AABB& bounds, cr_vec2 containerSpan, int32 guesses)
+   {
+	   for (int i = 0; i < guesses; ++i)
+	   {
+		   auto theta = Degrees{ Roll::x(360) * 1.0f };
+		   Rz = Matrix4x4::RotateRHAnticlockwiseZ(theta);
+
+		   newBounds = bounds.RotateBounds(Rz);
+
+		   Vec3 newSpan = newBounds.Span();
+
+		   if (newSpan.x <= containerSpan.x && newSpan.y <= containerSpan.y)
+		   {
+			   return true;
+		   }
+	   }
+
+	   return false;
    }
 
    struct Sector : public ISector, public ICorridor, IMaterialPalette, public IEventCallback<MaterialArgs>, public ISectorLayout
@@ -155,7 +195,7 @@ namespace ANON
 
 	   AABB2d aabb;
 
-	   const AABB2d& AABB() const override
+	   const AABB2d& GetAABB() const override
 	   {
 		   return aabb;
 	   }
@@ -280,7 +320,7 @@ namespace ANON
 			  mb.AddTriangle(t.a, t.b, t.c);
 		  }
 
-		  mb.End();
+		  mb.End(false);
 
 		  if (!wallId)
 		  {
@@ -290,7 +330,8 @@ namespace ANON
 		  {
 			  auto entity = instances.GetEntity(wallId);
 			  ID_SYS_MESH meshId;
-			  platform.meshes.TryGetByName(name, meshId);
+			  AABB bounds;
+			  platform.meshes.TryGetByName(name, meshId, bounds);
 			  entity->SetMesh(meshId);
 		  }
 	  }
@@ -654,9 +695,9 @@ namespace ANON
 				  This->ClearComponents(componentName);
 			  }
 
-			  void CompleteComponent()  override
+			  void CompleteComponent(boolean32 preserveMesh)  override
 			  {
-				  This->platform.meshes.End();
+				  This->platform.meshes.End(preserveMesh);
 				  This->AddComponent(Matrix4x4::Identity(), localName.c_str(), meshName.c_str());
 			  }
 		  } scriptCallback(this);  
@@ -785,9 +826,9 @@ namespace ANON
 				  This->ClearComponents(componentName);
 			  }
 
-			  void CompleteComponent() override
+			  void CompleteComponent(boolean32 preserveMesh) override
 			  {
-				  This->platform.meshes.End();
+				  This->platform.meshes.End(preserveMesh);
 				  This->AddComponent(Matrix4x4::Identity(), localName.c_str(), meshName.c_str());
 			  }
 
@@ -921,8 +962,7 @@ namespace ANON
          utilities(_platform.utilities),
          id(nextSectorId++),
          platform(_platform),
-         co_sectors(_co_sectors),
-		 aabb(EmptyAABB2dBox())
+         co_sectors(_co_sectors)
       {
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Brickwork, "random", Graphics::MaterialCategory_Stone);
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Cement,    "random", Graphics::MaterialCategory_Rock);
@@ -969,6 +1009,16 @@ namespace ANON
             instances.MeshBuilder().Delete(to_fstring(name));
          }
       }
+
+	  void DeleteScenery() override
+	  {
+		  for (auto s : scenery)
+		  {
+			  platform.instances.Delete(s);
+		  }
+
+		  scenery.clear();
+	  }
 
       void DeleteCeiling()
       {
@@ -1127,7 +1177,7 @@ namespace ANON
 			  }
 		  }
 
-		  mb.End();
+		  mb.End(false);
 
 		  struct
 		  {
@@ -1147,7 +1197,8 @@ namespace ANON
 		  else
 		  {
 			  ID_SYS_MESH meshId;
-			  platform.meshes.TryGetByName(name, meshId);
+			  AABB bounds;
+			  platform.meshes.TryGetByName(name, meshId, bounds);
 			  auto* entity = instances.GetEntity(floorId);
 			  entity->SetMesh(meshId);
 		  }
@@ -1166,7 +1217,7 @@ namespace ANON
             mb.AddTriangle(t.a, t.b, t.c);
          }
 
-         mb.End();
+         mb.End(false);
 
 		 if (!ceilingId)
 		 {
@@ -1175,7 +1226,8 @@ namespace ANON
 		 else
 		 {
 			 ID_SYS_MESH meshId;
-			 platform.meshes.TryGetByName(name, meshId);
+			 AABB bounds;
+			 platform.meshes.TryGetByName(name, meshId, bounds);
 			 auto* entity = instances.GetEntity(ceilingId);
 			 entity->SetMesh(meshId);
 		 }
@@ -1351,9 +1403,9 @@ namespace ANON
 				This->ClearComponents(componentName);
 			}
 
-			void CompleteComponent() override
+			void CompleteComponent(boolean32 preserveMesh) override
 			{
-				This->platform.meshes.End();
+				This->platform.meshes.End(preserveMesh);
 
 				Matrix4x4 model;
 				This->CorridorModelMatrix(model);
@@ -1954,7 +2006,7 @@ namespace ANON
 
 		  for (size_t i = 0; i != nVertices; i++)
 		  {
-			  AddPointToAABB(aabb, floorPlan[i]);
+			  aabb << floorPlan[i];
 			  floorPerimeter.push_back(floorPlan[i]);
 		  }
 
@@ -2305,7 +2357,101 @@ namespace ANON
 
 	  std::vector<ID_ENTITY> scenery;
 
-	  ID_ENTITY AddScenery(const fstring& meshName)
+	  ID_ENTITY AddItemToCentre(const fstring& meshName, int addItemFlags) override
+	  {
+		  if (IsCorridor() || completeSquares.empty()) return ID_ENTITY::Invalid();
+
+		  auto& aabb = completeSquares[0];
+
+		  ID_SYS_MESH meshId;
+		  AABB bounds;
+		  if (!platform.meshes.TryGetByName(meshName, meshId, bounds)) return ID_ENTITY::Invalid();
+
+		  // First determine if it can fit in any orientation
+
+		  Vec2 mainSquareSpan = aabb.Span();
+		  Vec3 objectSpan = bounds.Span();
+		  Metres roomHeight{ z1 - z0 };
+
+		  Matrix4x4 Rz;
+
+		  if (objectSpan.z > roomHeight)
+		  {
+			  return ID_ENTITY::Invalid();
+		  }
+
+		  if (objectSpan.x > mainSquareSpan.x)
+		  {
+			  if (objectSpan.y > mainSquareSpan.x || objectSpan.x >= mainSquareSpan.y)
+			  {
+				  // No fit, whatever orientation
+				  return ID_ENTITY::Invalid();
+			  }
+
+			  // Can fit object by rotating it 90 degrees
+			  Rz = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ Roll::FiftyFifty() ? 90.0f : -90.0f });
+		  }
+		  else if (objectSpan.y > mainSquareSpan.x)
+		  {
+			  if (objectSpan.x <= mainSquareSpan.x)
+			  {
+				  // Can fit object by rotating it 90 degrees
+				  Rz = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ Roll::FiftyFifty() ? 90.0f : -90.0f });
+			  }
+			  else
+			  {
+				  // No fit, whatever orientation
+				  return ID_ENTITY::Invalid();
+			  }
+		  }
+		  else
+		  {
+			  if (objectSpan.x <= mainSquareSpan.y && objectSpan.y <= mainSquareSpan.x)
+			  {
+				  // Any orientation will do
+
+				  if ((addItemFlags & AddItemFlags_RandomHeading) == 0)
+				  {
+					  Rz = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ Roll::x(4)  * 90.0f });
+				  }
+				  else
+				  {
+					  AABB newBounds;
+					  if (!GetRandomOrientationAndBoundsToFitBoxInAnother(Rz, newBounds, bounds, mainSquareSpan, 30))
+					  {
+						  return ID_ENTITY::Invalid();
+					  }
+				  }
+			  }
+			  else
+			  {
+				  Rz = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ Roll::FiftyFifty()  ? 0 : 180.0f });
+			  }
+		  }
+
+		  AABB newBounds = bounds.RotateBounds(Rz);
+		  Vec3 newSpan = newBounds.Span();
+
+		  float dx = mainSquareSpan.x - newSpan.x;
+		  float dy = mainSquareSpan.y - newSpan.y;
+
+		  float x0 = ((addItemFlags & HV::AddItemFlags_RandomPosition) == 0) ? dx * 0.5f : Roll::AnyOf(0, dx);
+		  float y0 = ((addItemFlags & HV::AddItemFlags_RandomPosition) == 0) ? dy * 0.5f : Roll::AnyOf(0, dy);
+
+		  Vec3 originDisplacement = Vec3{ x0, y0, 0 } - newBounds.minXYZ;
+		  Vec2 tileBottomLeft = { aabb.left, aabb.bottom };
+		  Vec3 position = Vec3 { tileBottomLeft.x, tileBottomLeft.y, z0 } + originDisplacement;
+
+		  auto T = Matrix4x4::Translate(position);
+
+		  Matrix4x4 model = T * Rz;
+
+		  auto id = platform.instances.AddBody(meshName, model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());
+		  scenery.push_back(id);
+		  return id;
+	  }
+
+	  ID_ENTITY AddScenery(const fstring& meshName) override
 	  {
 		  if (!completeSquares.empty())
 		  {

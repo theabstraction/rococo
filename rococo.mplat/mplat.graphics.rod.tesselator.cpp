@@ -23,6 +23,8 @@ namespace ANON
 	{
 		Platform& platform;
 
+		std::vector<Vec2> vertices;
+
 		bool smoothNormals = true;
 		MaterialVertexData top { RGBAb(255, 255, 255), 0, 0 };
 		MaterialVertexData middle { RGBAb(128, 128, 128), 0, 0.1f };
@@ -47,19 +49,24 @@ namespace ANON
 
 		}
 
+		Vec3 Transform(cr_vec3 v)
+		{
+			return { v.x + origin.x, v.y + origin.y, v.z + origin.z };
+		}
+
 		void AddBox(Metres length, const Vec2& a, const Vec2& b, const Vec2& c, const Vec2& d) override
 		{
-			float z0 = origin.z;
-			float z1 = z0 + length;
+			float z0 = 0;
+			float z1 = length;
  
-			Vec3 usw { d.x, d.y, z1 };
-			Vec3 use { c.x, c.y, z1 };
-			Vec3 unw { a.x, a.y, z1 };
-			Vec3 une { b.x, b.y, z1 };
-			Vec3 lse { c.x, c.y, z0 };
-			Vec3 lsw { d.x, d.y, z0 };
-			Vec3 lne { b.x, b.y, z0 };
-			Vec3 lnw { a.x, a.y, z0 };
+			Vec3 usw = Transform({ d.x, d.y, z1 });
+			Vec3 use = Transform({ c.x, c.y, z1 });
+			Vec3 unw = Transform({ a.x, a.y, z1 });
+			Vec3 une = Transform({ b.x, b.y, z1 });
+			Vec3 lse = Transform({ c.x, c.y, z0 });
+			Vec3 lsw = Transform({ d.x, d.y, z0 });
+			Vec3 lne = Transform({ b.x, b.y, z0 });
+			Vec3 lnw = Transform({ a.x, a.y, z0 });
 
 			float vB = 0;
 			float vT = length * uvScale;
@@ -144,21 +151,459 @@ namespace ANON
 			};
 
 			AddQuad(upper);
+
+			origin += direction * length;
+		}
+
+		void Advance(Metres distance)
+		{
+			origin += direction * distance;
+		}
+
+		void AddPyramid(Metres length, const Vec2& a, const Vec2& b, const Vec2& c, const Vec2& d) override
+		{
+			float z0 = 0;
+			float z1 = length;
+
+			Vec3 apx = Transform({ 0,0, z1 });
+			Vec3 se = Transform({ c.x, c.y, z0 });
+			Vec3 sw = Transform({ d.x, d.y, z0 });
+			Vec3 ne = Transform({ b.x, b.y, z0 });
+			Vec3 nw = Transform({ a.x, a.y, z0 });
+
+			float vB = 0;
+			float vT = length * uvScale;
+			float uSW = 0;
+			float uSE = Length(se - sw) * uvScale;
+
+			MaterialVertexData topMat = { top.colour, middle.materialId, top.gloss };
+			MaterialVertexData botMat = { bottom.colour, middle.materialId, bottom.gloss };
+
+			Vec3 Ns = Normalize ( Cross(apx - se, sw - se) );
+
+			VertexTriangle south
+			{
+				{ apx,Ns,{ uSW, vT }, topMat },
+				{ se, Ns,{ uSE, vT }, topMat },
+				{ sw, Ns,{ uSE, vB }, topMat }
+			};
+
+			triangles.push_back(south);
+
+			float uNE = uSE + Length(ne - se) * uvScale;
+
+			Vec3 Ne = Normalize ( Cross (apx - ne, se - ne ) );
+			VertexTriangle east
+			{
+				{ apx,Ne,{ uSE, vT }, topMat },
+				{ ne, Ne,{ uNE, vT }, topMat },
+				{ se, Ne,{ uNE, vB }, topMat }
+			};
+
+			triangles.push_back(east);
+
+			Vec3 Nn = Normalize ( Cross (apx - ne, ne - nw) );
+
+			float uNW = uNE + Length(ne - nw) * uvScale;
+
+			VertexTriangle north
+			{
+				{ apx,Nn,{ uNE, vT }, topMat },
+				{ nw, Nn, { uNW, vT }, topMat },
+				{ ne, Nn,{ uNE, vB }, topMat },
+			};
+			triangles.push_back(north);
+
+			float uE = uNW + Length(ne - se) * uvScale;
+
+			Vec3 Nw = Normalize(Cross(apx - sw, nw - sw));
+
+			VertexTriangle west
+			{
+				{ apx, Nw,{ uNW, vT }, topMat },
+				{ sw, Nw,{ uE,  vT }, topMat },
+				{ nw, Nw,{ uE,  vB }, topMat }
+			};
+			triangles.push_back(west);
+
+			Vec3 Nl{ 0,0,-1 };
+
+			float du = Length(nw - ne) * uvScale;
+			float dv = Length(nw - sw) * uvScale;
+
+			ObjectQuad lower
+			{
+				{ sw, Nl,{ 0,  dv }, bottom },
+				{ se, Nl,{ du, dv }, bottom },
+				{ ne, Nl,{ du,  0 }, bottom },
+				{ nw, Nl,{ 0,   0 }, bottom }
+			};
+			AddQuad(lower);
+
+			origin += direction * length;
 		}
 
 		void AddPrism(Metres length, const Vec2& a, const Vec2& b, const Vec2& c) override
 		{
+			float z0 = 0;
+			float z1 = length;
 
+			Vec3 ua = Transform({ a.x, a.y, z1 });
+			Vec3 ub = Transform({ b.x, b.y, z1 });
+			Vec3 uc = Transform({ c.x, c.y, z1 });
+			Vec3 la = Transform({ a.x, a.y, z0 });
+			Vec3 lb = Transform({ b.x, b.y, z0 });
+			Vec3 lc = Transform({ c.x, c.y, z0 });
+
+			float vB = 0;
+			float vT = length * uvScale;
+
+			float uAtA = 0;
+			float uAtB = Length(ub - ua) * uvScale;
+			float uAtC = Length(ub - uc) * uvScale + uAtB;
+
+			MaterialVertexData topMat = { top.colour, middle.materialId, top.gloss };
+			MaterialVertexData botMat = { bottom.colour, middle.materialId, bottom.gloss };
+
+			Vec3 Nab = Normalize(Cross(ub - ua, lb - ub));
+
+			ObjectQuad AB
+			{
+				{ ub,Nab,{ uAtB, vT }, topMat },
+				{ ua,Nab,{ uAtA, vT }, topMat },
+				{ la,Nab,{ uAtA, vB }, botMat },
+				{ lb,Nab,{ uAtB, vB }, botMat },
+			};
+
+			AddQuad(AB);
+
+			Vec3 Nbc = Normalize(Cross(ub - uc, ub - lb));
+
+			ObjectQuad BC
+			{
+				{ uc, Nbc, { uAtC, vT }, topMat },
+				{ ub, Nbc, { uAtB, vT }, topMat },
+				{ lb, Nbc, { uAtB, vB }, botMat },
+				{ lc, Nbc, { uAtC, vB }, botMat },
+			};
+			AddQuad(BC);
+
+			Vec3 Nac = Normalize(Cross(uc - ua, uc - lc));
+
+			ObjectQuad AC
+			{
+				{ ua, Nac, { uAtA, vT }, topMat },
+				{ uc, Nac, { uAtC, vT }, topMat },
+				{ lc, Nac, { uAtC, vB }, botMat },
+				{ la, Nac, { uAtA, vB }, botMat },
+			};
+			AddQuad(AC);
+
+			Vec3 Nl{ 0,0,-1 };
+
+			VertexTriangle lower
+			{
+				{ la, Nl, { la.x * uvScale,  la.y * uvScale }, bottom },
+				{ lc, Nl, { lc.x * uvScale,  lc.y * uvScale }, bottom },
+				{ lb, Nl,{ lb.x * uvScale,   lb.y * uvScale }, bottom },
+			};
+			
+			triangles.push_back(lower);
+
+			Vec3 Nu{ 0,0,1 };
+
+			VertexTriangle upper
+			{
+				{ ua,  Nu,{ ua.x * uvScale,  ua.y * uvScale }, top },
+				{ ub,  Nu,{ ub.x * uvScale,  ub.y * uvScale }, top },
+				{ uc,  Nu,{ uc.x * uvScale,  uc.y * uvScale }, top }
+			};
+
+			triangles.push_back(lower);
+
+			origin += direction * length;
 		}
 
 		void AddSphere(Metres radius, int32 nRings, int32 nDivs) override
 		{
+			if (nRings < 4)
+			{
+				Throw(0, "RodTesselator::AddSphere(...) -> nRings needds to be >= 4");
+			}
 
+			if (nDivs < 3)
+			{
+				Throw(0, "RodTesselator::AddSphere(...) -> nDivs needds to be >= 3");
+			}
+
+			float dh = 2.0f * radius / nRings;
+			auto dTheta = Degrees{ 360.0f / nDivs };
+
+			float yTop = radius;
+			float yBottom = -radius;
+
+			float y0 = yBottom + dh;
+
+			float V = 0;
+
+			float theta0 = 0;
+			float theta = 0;
+			float s0 = 0;
+			float c0 = 1.0f;
+
+			origin += direction * radius;
+
+			for (int div = 0; div < nDivs; ++div)
+			{
+				theta += dTheta;
+
+				float s1 = Sin(Degrees{ theta });
+				float c1 = Cos(Degrees{ theta });
+
+				float R1 = sqrtf(radius*radius - y0*y0);
+
+				Triangle q{
+					{ 0, 0, -radius },
+					{ c0 * R1, s0 * R1, y0 },
+					{ c1 * R1, s1 * R1, y0 }
+				};
+
+				Triangle Nq
+				{
+					Normalize(q.A),
+					Normalize(q.B),
+					Normalize(q.C)
+				};
+
+				float DR = R1;
+				float DH = dh;
+				float DV = sqrtf(DH*DH + DR*DR);
+
+				VertexTriangle vt
+				{
+					{ q.A + origin, Nq.A,{ 0, 0 }, middle },
+					{ q.B + origin, Nq.B,{ R1 * theta0,  DV }, middle },
+					{ q.C + origin, Nq.C,{ R1 * theta,   DV }, middle },
+				};
+
+				triangles.push_back(vt);
+
+				float yTop = radius - dh;
+
+				R1 = sqrtf(radius*radius - yTop*yTop);
+
+				q = {
+					{ 0, 0, radius },
+					{ c1 * R1, s1 * R1, yTop },
+					{ c0 * R1, s0 * R1, yTop }
+				};
+
+				Nq = 
+				{
+					Normalize(q.A),
+					Normalize(q.B),
+					Normalize(q.C)
+				};
+
+				vt =
+				{
+					{ q.A + origin, Nq.A,{ 0, 0 }, middle },
+					{ q.B + origin, Nq.B,{ R1 * theta,  DV }, middle },
+					{ q.C + origin, Nq.C,{ R1 * theta0,   DV }, middle },
+				};
+
+				triangles.push_back(vt);
+
+				theta0 = theta;
+
+				s0 = s1;
+				c0 = c1;
+			}
+
+			for (int32 ring = 1; ring < nDivs - 1; ring++)
+			{
+				float y1 = y0 + dh;
+
+				float theta = 0;
+				float theta0 = 0;
+
+				float R0 = sqrtf(radius*radius - y0*y0);
+				float R1 = sqrtf(radius*radius - y1*y1);
+
+				float DR = fabsf(R0 - R1);
+				float DH = dh;
+				float DV = sqrtf(DH*DH + DR*DR);
+
+				float s0 = 0;
+				float c0 = 1.0f;
+
+				for (int div = 0; div < nDivs; ++div)
+				{
+					theta += dTheta;
+
+					float s1 = Sin(Degrees{ theta });
+					float c1 = Cos(Degrees{ theta });
+
+					Quad q{
+						{ c0 * R1, s0 * R1, y1 },
+						{ c1 * R1, s1 * R1, y1 },
+						{ c1 * R0, s1 * R0, y0 },
+						{ c0 * R0, s0 * R0, y0 }
+					};
+
+					Quad Nq
+					{
+						Normalize(q.a),
+						Normalize(q.b),
+						Normalize(q.c),
+						Normalize(q.d),
+					};
+
+					ObjectQuad oq
+					{
+						{q.a + origin, Nq.a, { R1 * theta0, V + DV }, middle },
+						{q.b + origin, Nq.b, { R1 * theta,  V + DV }, middle },
+						{q.c + origin, Nq.c, { R0 * theta,  V      }, middle },
+						{q.d + origin, Nq.d, { R0 * theta0, V      }, middle },
+					};
+
+					AddQuad(oq);
+
+					theta0 = theta;
+
+					s0 = s1;
+					c0 = c1;
+				}
+
+				y0 = y1;
+				V += DV;
+			}
+
+			origin += direction * radius;
+		}
+
+		void AddDisc(Metres radius, int32 nDivs, cr_vec3 normal)
+		{
+			float dTheta = Degrees{ 360.0f / nDivs };
+			float theta0 = 0;
+
+			float s0 = 0;
+			float c0 = 1;
+
+			for (int div = 0; div < nDivs; ++div)
+			{
+				float theta = theta0 + dTheta;
+
+				float s1 = Sin(Degrees{ theta });
+				float c1 = Cos(Degrees{ theta });
+
+				Triangle t
+				{
+					{ 0,    0,     0 },
+					{ c1 * radius, s1 * radius, 0 },
+					{ c0 * radius, s0 * radius, 0 }
+				};
+
+				Vec2 uvB = { t.B.x * uvScale, t.B.y * uvScale };
+				Vec2 uvC = { t.C.x * uvScale, t.C.y * uvScale };
+
+				VertexTriangle vt
+				{
+					{ t.A + origin, normal, {0,0}, middle },
+					{ t.B + origin, normal, uvB,  middle },
+					{ t.C + origin, normal, uvC,  middle }
+				};
+
+				triangles.push_back(vt);
+
+				s0 = s1;
+				c0 = c1;
+
+				theta0 = theta;
+			}
 		}
 
 		void AddTube(Metres length, Metres bottomRadius, Metres topRadius, int32 nDivs) override
 		{
+			if (nDivs < 3)
+			{
+				Throw(0, "RodTesselator::AddTube(...): nDivs must be >= 3");
+			}
 
+			AddDisc(bottomRadius, nDivs, { 0,0,-1 });
+
+			float dTheta = Degrees{ 360.0f / nDivs };
+			float theta0 = 0;
+
+			float s0 = 0;
+			float c0 = 1;
+
+			for (int div = 0; div < nDivs; ++div)
+			{
+				float theta = theta0 + dTheta;
+
+				float s1 = Sin(Degrees{ theta });
+				float c1 = Cos(Degrees{ theta });
+
+				Quad q{
+					{ c0 * topRadius, s0 * topRadius, length },
+					{ c1 * topRadius, s1 * topRadius, length },
+					{ c1 * bottomRadius, s1 * bottomRadius, 0 },
+					{ c0 * bottomRadius, s0 * bottomRadius, 0 }
+				};
+
+				struct
+				{
+					float R1;
+					float R0;
+					float length;
+
+					Vec3 operator()(float sinTheta, float cosTheta)
+					{
+						Vec3 gradTheta = { -sinTheta, cosTheta };
+						Vec3 gradLength = Vec3{ cosTheta, sinTheta, 0 } *(float)(R0 - R1) + Vec3{0, 0, 1};
+						return Normalize(Cross (gradTheta, gradLength));
+					}
+				} normal;
+
+				normal.length = length;
+				normal.R0 = bottomRadius;
+				normal.R1 = topRadius;
+
+				Quad Nq
+				{
+					normal(s0, c0),
+					normal(s1, c1),
+					normal(s1, c1),
+					normal(s0, c0),
+				};
+
+				float DV = length * uvScale;
+
+				ObjectQuad oq
+				{
+					{ q.a + origin, Nq.a,{ topRadius * theta0,   DV }, middle },
+					{ q.b + origin, Nq.b,{ topRadius * theta,    DV }, middle },
+					{ q.c + origin, Nq.c,{ bottomRadius * theta,  0 }, middle },
+					{ q.d + origin, Nq.d,{ bottomRadius * theta0, 0 }, middle },
+				};
+
+				AddQuad(oq);
+
+				s0 = s1;
+				c0 = c1;
+
+				theta0 = theta;
+			}
+
+			origin.z += length;
+
+			AddDisc(topRadius, nDivs, { 0,0,1 });
+		}
+
+		void AddVertex(cr_vec2 v) override
+		{
+			vertices.push_back(v);
 		}
 
 		void Clear() override
@@ -167,6 +612,22 @@ namespace ANON
 			direction = { 0, 0, 1 };
 			bitangent = { 1, 0, 0 };
 			origin = { 0,0,0 };
+			vertices.clear();
+		}
+
+		void ClearVertices() override
+		{
+			vertices.clear();
+		}
+
+		void CloseLoop() override
+		{
+			if (vertices.size() < 2)
+			{
+				Throw(0, "RodTesselator::CloseLoop(): vertex count must be >= 2");
+			}
+
+			vertices.push_back(vertices[0]);
 		}
 
 		void Destruct() override
@@ -187,7 +648,7 @@ namespace ANON
 			return true;
 		}
 
-		void CopyToMeshBuilder(const fstring& meshName)
+		void CopyToMeshBuilder(const fstring& meshName, boolean32 preserveMesh)
 		{
 			platform.meshes.Begin(meshName);
 
@@ -196,7 +657,109 @@ namespace ANON
 				platform.meshes.AddTriangleEx(t);
 			}
 
-			platform.meshes.End();
+			platform.meshes.End(preserveMesh);
+		}
+
+		void RaiseBox(Metres length)
+		{
+			if (vertices.size() < 2)
+			{
+				Throw(0, "RodTesselator::RaiseBox(...): Need at least 3 vertices to raise a box");
+			}
+
+			float u0 = 0;
+
+			for (size_t i = 0; i < vertices.size() - 1; ++i)
+			{
+				Vec2 c2d = vertices[i];
+				Vec2 d2d = vertices[i + 1];
+
+				float u1 = u0 + Length(d2d - c2d);
+
+				Vec3 a{ d2d.x, d2d.y, length };
+				Vec3 b{ c2d.x, c2d.y, length };
+				Vec3 c{ c2d.x, c2d.y, 0 };
+				Vec3 d{ d2d.x, d2d.y, 0 };	
+
+				ObjectQuad q;
+				q.a.position = a + origin;
+				q.b.position = b + origin;
+				q.c.position = c + origin;
+				q.d.position = d + origin;
+
+				q.a.normal = q.b.normal = q.c.normal = q.d.normal = Normalize(Cross(a - b, c - b));
+
+				q.a.uv.y = q.b.uv.y = length * uvScale;
+				q.c.uv.y = q.d.uv.y = 0;
+
+				q.a.uv.x = q.d.uv.x = u0;
+				q.b.uv.x = q.c.uv.x = u1;
+
+				q.a.material.colour = q.b.material.colour = top.colour;
+				q.d.material.colour = q.c.material.colour = bottom.colour;
+
+				q.a.material.gloss = q.b.material.gloss = top.gloss;
+				q.d.material.gloss = q.c.material.gloss = bottom.gloss;
+
+				q.a.material.materialId = q.b.material.materialId = middle.materialId;
+				q.d.material.materialId = q.c.material.materialId = middle.materialId;
+
+				AddQuad(q);
+
+				u1 = u0;
+			}
+
+			origin += direction * length;
+		}
+
+		void RaisePyramid(Metres length)
+		{
+			if (vertices.size() < 2)
+			{
+				Throw(0, "RodTesselator::RaiseBox(...): Need at least 3 vertices to raise a box");
+			}
+
+			float u0 = 0;
+
+			for (size_t i = 0; i < vertices.size() - 1; ++i)
+			{
+				Vec2 c2d = vertices[i];
+				Vec2 d2d = vertices[i + 1];
+
+				float u1 = u0 + Length(d2d - c2d);
+
+				Vec3 o{ 0, 0, length };
+				Vec3 c{ c2d.x, c2d.y, 0 };
+				Vec3 d{ d2d.x, d2d.y, 0 };
+
+				VertexTriangle q;
+				q.a.position = o + origin;
+				q.b.position = c + origin;
+				q.c.position = d + origin;
+
+				q.a.normal = q.b.normal = q.c.normal = Normalize(Cross(o - c, d - c));
+
+				q.a.uv.y = q.b.uv.y = length * uvScale;
+				q.c.uv.y = 0;
+
+				q.a.uv.x = u0;
+				q.b.uv.x = q.c.uv.x = u1;
+
+				q.a.material.colour = q.b.material.colour = top.colour;
+				q.c.material.colour = bottom.colour;
+
+				q.a.material.gloss = q.b.material.gloss = top.gloss;
+				q.c.material.gloss = bottom.gloss;
+
+				q.a.material.materialId = q.b.material.materialId = middle.materialId;
+				q.c.material.materialId = middle.materialId;
+
+				triangles.push_back(q);
+
+				u1 = u0;
+			}
+
+			origin += direction * length;
 		}
 
 		void SetMaterialBottom(MaterialVertexData& bottom) override
@@ -212,6 +775,11 @@ namespace ANON
 		void SetMaterialTop(MaterialVertexData& top) override
 		{
 			this->top = top;
+		}
+
+		void SetOrigin(cr_vec3 origin) override
+		{
+			this->origin = origin;
 		}
 
 		void UseFaceNormals() override

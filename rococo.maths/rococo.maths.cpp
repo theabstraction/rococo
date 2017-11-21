@@ -169,22 +169,112 @@ namespace Rococo
       XMStoreFloat4x4((DirectX::XMFLOAT4X4*) &transposeOfMatrix, XMMatrixTranspose(t));
    }
 
-   bool IsPointInBox(const AABB2d& aabb, Vec2 p)
+   AABB2d::AABB2d():
+	   left(1.0e37f), bottom(1.0e37f), top(-1.0e37f), right(-1.0e37f)
    {
-	   if (p.x >= aabb.left && p.x <= aabb.right)
+   }
+
+   void AABB2d::Empty()
+   {
+	   *this = AABB2d();
+   }
+
+   bool AABB2d::HoldsPoint(cr_vec2 p) const
+   {
+	   return p.x >= left && p.x <= right && p.y >= bottom && p.y <= top;
+   }
+
+   Vec2 AABB2d::Centre() const
+   {
+	   return 0.5f * Vec2{ right + left, top + bottom };
+   }
+
+   Vec2 AABB2d::Span() const
+   {
+	   return { right - left, top - bottom };
+   }
+
+   AABB2d& AABB2d::operator << (cr_vec2 p)
+   {
+	   left = min(left, p.x);
+	   right = max(right, p.x);
+	   bottom = min(bottom, p.y);
+	   top = max(top, p.y);
+	   return *this;
+   }
+
+   AABB::AABB():
+	   minXYZ{ 1.0e37f, 1.0e37f, 1.0e37f },
+	   maxXYZ{ -1.0e37f, -1.0e37f,-1.0e37f }
+   {
+
+   }
+  
+   void AABB::Empty()
+   {
+	   *this = AABB();
+   }
+
+   AABB& AABB::operator << (cr_vec3 p)
+   {
+	   minXYZ.x = min(p.x, minXYZ.x);
+	   minXYZ.y = min(p.y, minXYZ.y);
+	   minXYZ.z = min(p.z, minXYZ.z);
+
+	   maxXYZ.x = max(p.x, maxXYZ.x);
+	   maxXYZ.y = max(p.y, maxXYZ.y);
+	   maxXYZ.z = max(p.z, maxXYZ.z);
+
+	   return *this;
+   }
+
+   bool AABB::HoldsPoint(cr_vec3 p) const
+   {
+	   if (p.x >= minXYZ.x && p.x <= maxXYZ.x && p.y >= minXYZ.y && p.y <= maxXYZ.y && p.z > minXYZ.z && p.z < maxXYZ.z)
 	   {
-		   if (p.y >= aabb.bottom && p.y <= aabb.top)
-		   {
-			   return true;
-		   }
+		   return true;
 	   }
 
 	   return false;
    }
 
-   AABB2d EmptyAABB2dBox()
+   Vec3 AABB::Centre() const
    {
-	   return { 1.0e37f, 1.0e37f, -1.0e37f, -1.0e37f };
+	   return 0.5f * (maxXYZ + maxXYZ);
+   }
+
+   void AABB::GetBox(BoundingBox& box) const
+   {
+	   box.bottom.nw = { minXYZ.x, maxXYZ.y, minXYZ.z };
+	   box.bottom.ne = { maxXYZ.x, maxXYZ.y, minXYZ.z };
+	   box.bottom.se = { maxXYZ.x, minXYZ.y, minXYZ.z };
+	   box.bottom.sw = { minXYZ.x, minXYZ.y, minXYZ.z };
+	   box.top.nw = { minXYZ.x, maxXYZ.y, maxXYZ.z };
+	   box.top.ne = { maxXYZ.x, maxXYZ.y, maxXYZ.z };
+	   box.top.se = { maxXYZ.x, minXYZ.y, maxXYZ.z };
+	   box.top.sw = { minXYZ.x, minXYZ.y, maxXYZ.z };
+   }
+
+   Vec3 AABB::Span() const
+   {
+	   return maxXYZ - minXYZ;
+   }
+
+   AABB AABB::RotateBounds(const Matrix4x4& Rz) const
+   {
+		BoundingBox box;
+		GetBox(box);
+
+		Vec3 corners[8];
+		TransformPositions(box.First(), 8, Rz, corners);
+
+		AABB newBounds;
+		for (auto& v : corners)
+		{
+			newBounds << v;
+		}
+
+		return newBounds;
    }
 
    void InvertMatrix(const Matrix4x4& matrix, Matrix4x4& inverseMatrix)
@@ -634,7 +724,7 @@ namespace Rococo
 	// Return normalized vector. In the event of a null vector, an exception is thrown
 	Vec3 Normalize(cr_vec3 v)
 	{
-		const float epsilon = 0.0000001f;
+		const float epsilon = 10e-18f;
 		float l = LengthSq(v);
 		if (l <= epsilon)
 		{

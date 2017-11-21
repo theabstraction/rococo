@@ -96,7 +96,7 @@
 		(components.AddTriangle bottomRight)
 	)
 	
-	(components.CompleteComponent)
+	(components.CompleteComponent true)
 )
 
 (function GenerateCeilingMesh (QuadVertices ceilingQuad)(ISectorFloorTesselator sector)(IQuadStackTesselator qst) -> :

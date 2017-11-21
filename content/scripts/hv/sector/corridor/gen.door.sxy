@@ -181,7 +181,7 @@
 		(components.AddTriangle bottomRight)
 	)
 
-	(components.CompleteComponent)
+	(components.CompleteComponent false)
 )
 
 (function MakePillars (ISectorComponents components)(Vec3 bottomLeft)(Vec3 topRight)-> :
@@ -272,7 +272,7 @@
 		(AddBox components v w uvScale uvScale casing) // switch base
 	)
 	
-	(components.CompleteComponent)
+	(components.CompleteComponent false)
 )
 
 (function MakeRails (ISectorComponents components)(Vec3 bottomLeft)(Vec3 topRight)-> :
@@ -322,7 +322,7 @@
 		(AddQuad components q uvScale uvScale rails)
 	)
 	
-	(components.CompleteComponent)
+	(components.CompleteComponent false)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):

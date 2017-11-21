@@ -321,9 +321,15 @@ namespace Rococo
 	   float bottom;
 	   float right;
 	   float top;
-   };
+	   
+	   AABB2d();
+	   void Empty();
+	   bool HoldsPoint(cr_vec2 p) const;
+	   Vec2 Span() const;
+	   Vec2 Centre() const;
 
-   AABB2d EmptyAABB2dBox();
+	   AABB2d& operator << (cr_vec2 p);
+   };
 
    template<class T> inline T max(T a, T b)
    {
@@ -420,6 +426,40 @@ namespace Rococo
       {
          return Vec3{ pos.x, pos.y, z };
       }
+   };
+
+   struct BoundingBox
+   {
+	   struct Layer
+	   {
+		   Vec3 nw;
+		   Vec3 ne;
+		   Vec3 se;
+		   Vec3 sw;
+	   };
+
+	   Layer bottom;
+	   Layer top;
+
+	   const Vec3* First() const { return &bottom.nw; }
+   }; 
+
+   struct AABB
+   {
+	   Vec3 minXYZ;
+	   Vec3 maxXYZ;
+
+	   AABB();
+	   void Empty();
+
+	   AABB& operator << (cr_vec3 p);
+	   bool HoldsPoint(cr_vec3 p) const;
+
+	   Vec3 Centre() const;
+	   void GetBox(BoundingBox& box) const;
+	   Vec3 Span() const;
+
+	   AABB RotateBounds(const Matrix4x4& Rz) const;
    };
 
    inline const Vec2& Flatten(const Vec3& a)

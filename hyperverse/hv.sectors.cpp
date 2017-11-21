@@ -508,7 +508,7 @@ namespace ANON
 	   {
 		   for (auto* s : sectors)
 		   {
-			   if (IsPointInBox(s->AABB(), a))
+			   if (s->GetAABB().HoldsPoint(a))
 			   {
 				   int32 seg = s->GetPerimeterIndex(a);
 				   if (seg >= 0)
@@ -525,9 +525,9 @@ namespace ANON
 	   {
 		   for (auto* s : sectors)
 		   {
-			   auto& aabb = s->AABB();
+			   auto& aabb = s->GetAABB();
 
-			   if (IsPointInBox(aabb, a))
+			   if (aabb.HoldsPoint(a))
 			   {
 				   int32 i = s->GetFloorTriangleIndexContainingPoint(a);
 				   if (i >= 0)

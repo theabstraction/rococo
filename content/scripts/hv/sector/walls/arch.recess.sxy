@@ -73,7 +73,7 @@
 	(ObjectVertex b	= t.b n uv.b mat)
 	(ObjectVertex c = t.c n uv.c mat)	
 	
-	(tris.AddTriangle a b c)
+	(tris.AddTriangleByVertices a b c)
 )
 
 (function AddReverseTriangle (ITriangleList tris) (Triangle t)(Triangle2d uv)(MaterialVertexData mat)-> :
@@ -85,7 +85,7 @@
 	(ObjectVertex b	= t.b np uv.b mat)
 	(ObjectVertex c = t.c np uv.c mat)	
 	
-	(tris.AddTriangle b a c)
+	(tris.AddTriangleByVertices b a c)
 )
 
 (function AddRecessToWall  (WallSegment segment)(ITriangleList tris)(IRimTesselator rim)(MaterialVertexData mat)-> :

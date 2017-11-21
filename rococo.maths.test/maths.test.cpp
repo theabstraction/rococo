@@ -552,9 +552,26 @@ void validateConeCode()
 	}
 }
 
+void validateAABB()
+{
+	AABB aabb;
+	aabb << Vec3 {-2, -1, 0};
+	aabb << Vec3 { 2,  1, 1};
+
+	Matrix4x4 Rz = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ 45.0f });
+	AABB newBounds = aabb.RotateBounds(Rz);
+
+	VALIDATE(newBounds.minXYZ.x < -2.11 && newBounds.minXYZ.x > -2.13);
+	VALIDATE(newBounds.maxXYZ.x > 2.11 && newBounds.maxXYZ.x < 2.13);
+	VALIDATE(aabb.maxXYZ.z == newBounds.maxXYZ.z);
+	VALIDATE(aabb.minXYZ.z == newBounds.minXYZ.z);
+}
+
 void test()
 {
 	printf("rococo.maths.test running...\n");
+
+	validateAABB();
 
 	validateConeCode();
 

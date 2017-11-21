@@ -126,7 +126,7 @@ namespace Rococo
 	   ROCOCOAPI IMeshBuilderSupervisor : public IMeshBuilder
 	   {
 		  virtual void Free() = 0;
-		  virtual bool TryGetByName(cstr name, ID_SYS_MESH& id) = 0;
+		  virtual bool TryGetByName(cstr name, ID_SYS_MESH& id, AABB& bounds) = 0;
 		  virtual IMathsVenue* Venue() = 0;
 	   };
 

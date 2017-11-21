@@ -116,7 +116,8 @@ namespace
       virtual ID_ENTITY AddBody(const fstring& modelName, const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId)
       {
          ID_SYS_MESH meshId;
-         if (!meshBuilder.TryGetByName(modelName, meshId))
+		 AABB bounds;
+         if (!meshBuilder.TryGetByName(modelName, meshId, bounds))
          {
             Throw(0, "Cannot find model: %s", modelName.buffer);
          }

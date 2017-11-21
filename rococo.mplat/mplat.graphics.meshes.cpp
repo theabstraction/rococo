@@ -11,9 +11,17 @@ namespace
    using namespace Rococo;
    using namespace Rococo::Graphics;
 
+   struct MeshBinding
+   {
+	   ID_SYS_MESH id; // Mesh id as managed by the renderer
+	   AABB bounds; // Bounding box surrounding mesh
+	   ObjectVertex* pVertexArray;
+	   size_t nVertices;
+   };
+
    struct MeshBuilder : public Rococo::Graphics::IMeshBuilderSupervisor, IMathsVenue
    {
-      std::unordered_map<std::string, ID_SYS_MESH> meshes;
+      std::unordered_map<std::string, MeshBinding> meshes;
 	  rchar name[MAX_FQ_NAME_LEN + 1] = { 0 };
       std::vector<ObjectVertex> vertices;
       IRenderer& renderer;
@@ -21,6 +29,18 @@ namespace
       MeshBuilder(IRenderer& _renderer) : renderer(_renderer)
       {
       }
+
+	  ~MeshBuilder()
+	  {
+		  for (auto& i : meshes)
+		  {
+			  auto& mesh = i.second;
+			  renderer.DeleteMesh(mesh.id);
+			  delete[] mesh.pVertexArray;
+		  }
+
+		  meshes.clear();
+	  }
 
       void Clear() override
       {
@@ -33,15 +53,16 @@ namespace
          auto i = meshes.find((cstr) fqName);
          if (i != meshes.end())
          {
-            auto id = i->second;
-            renderer.DeleteMesh(id);
+            auto& mesh = i->second;
+            renderer.DeleteMesh(mesh.id);
+			delete[] mesh.pVertexArray;
             meshes.erase(i);
          }
       }
 
 	  struct NameBinding
 	  {
-		  std::pair<std::string, ID_SYS_MESH> item;
+		  std::pair<std::string, MeshBinding> item;
 
 		  bool operator < (const NameBinding& other) const
 		  {
@@ -68,8 +89,11 @@ namespace
 		  for(auto& m: names)
 		  {
 			  char desc[256];
-			  renderer.GetMeshDesc(desc, m.item.second);
-			  visitor.ShowString(m.item.first.c_str(), "%5llu %s", m.item.second.value, desc);
+			  renderer.GetMeshDesc(desc, m.item.second.id);
+
+			  auto& b = m.item.second.bounds;
+			  visitor.ShowString(m.item.first.c_str(), "%5llu %s", m.item.second.id.value, desc);
+		//	  visitor.ShowString(" -> bounds", "(%f, %f, %f) to (%f, %f, %f)", b.minXYZ.x, b.minXYZ.y, b.minXYZ.z, b.maxXYZ.x, b.maxXYZ.y, b.maxXYZ.z);
 		  }
 
 		  names.clear();
@@ -112,36 +136,60 @@ namespace
 		  vertices.push_back(t.c);
 	  }
 
-      void End() override
+      void End(boolean32 preserveMesh) override
       {
          const ObjectVertex* v = vertices.empty() ? nullptr : (const ObjectVertex*)&vertices[0];
+
+		 AABB boundingBox;
+
+		 for (auto& v : vertices)
+		 {
+			 boundingBox << v.position;
+		 }
+
+		 ObjectVertex* backup = nullptr;
+
+		 if (preserveMesh)
+		 {
+			 backup = new ObjectVertex[vertices.size()];
+			 memcpy(backup, &vertices[0], vertices.size() * sizeof(ObjectVertex));
+		 }
 
          auto i = meshes.find(name);
          if (i != meshes.end())
          {
-            renderer.UpdateMesh(i->second, v, (uint32)vertices.size());
+			i->second.bounds = boundingBox;
+            renderer.UpdateMesh(i->second.id, v, (uint32)vertices.size());
+
+			if (preserveMesh)
+			{
+				i->second.nVertices = vertices.size();
+				delete[] i->second.pVertexArray;
+				i->second.pVertexArray = backup;
+			}
          }
          else
          {
-
             auto id = renderer.CreateTriangleMesh(v, (uint32)vertices.size());
-            meshes[name] = id;
+			meshes[name] = MeshBinding { id, boundingBox, backup, vertices.size() };
          }
 
          Clear();
       }
 
-      virtual bool TryGetByName(cstr name, ID_SYS_MESH& id)
+      virtual bool TryGetByName(cstr name, ID_SYS_MESH& id, AABB& bounds)
       {
          auto i = meshes.find(name);
          if (i == meshes.end())
          {
             id = ID_SYS_MESH::Invalid();
+			bounds = AABB();
             return false;
          }
          else
          {
-            id = i->second;
+            id = i->second.id;
+			bounds = i->second.bounds;
             return true;
          }
       }

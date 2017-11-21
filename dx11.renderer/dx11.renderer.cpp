@@ -335,6 +335,8 @@ namespace ANON
 	   ID3D11DeviceContext& dc;
 	   IDXGIFactory& factory;
 	   IInstallation& installation;
+	   int64 trianglesThisFrame = 0;
+	   int64 entitiesThisFrame = 0;
 
 	   DX11TextureArray spriteArray;
 	   DX11TextureArray materialArray;
@@ -797,6 +799,8 @@ namespace ANON
 		   visitor.ShowString("Present Cost", "%3.0lf ms", presentCost * ticks_to_ms);
 		   visitor.ShowString("Total Frame Time", "%3.0lf ms", frameTime * ticks_to_ms);
 		   visitor.ShowString("Frame Rate", "%.0lf FPS", hz / frameTime);
+		   visitor.ShowString("", "");
+		   visitor.ShowString("Geometry this frame", "%lld triangles. %lld entities", trianglesThisFrame, entitiesThisFrame);
 	   }
 
 	   IMathsVenue* Venue()
@@ -1457,12 +1461,16 @@ namespace ANON
 		   UINT offsets[]{ 0 };
 		   dc.IASetVertexBuffers(0, 1, buffers, strides, offsets);
 
+		   entitiesThisFrame += (int64) nInstances;
+
 		   for (uint32 i = 0; i < nInstances; i++)
 		   {
 			   // dc.DrawInstances crashed the debugger, replace with single instance render call for now
 			   DX11::CopyStructureToBuffer(dc, instanceBuffer, instances + i, sizeof(ObjectInstance));
 			   dc.VSSetConstantBuffers(1, 1, &instanceBuffer);
 			   dc.Draw(buffer.numberOfVertices, 0);
+
+			   trianglesThisFrame += buffer.numberOfVertices / 3;
 		   }
 	   }
 
@@ -1568,6 +1576,9 @@ namespace ANON
 
 	   virtual void Render(IScene& scene)
 	   {
+		   trianglesThisFrame = 0;
+		   entitiesThisFrame = 0;
+
 		   auto now = OS::CpuTicks();
 		   AIcost = now - lastTick;
 

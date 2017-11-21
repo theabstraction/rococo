@@ -91,7 +91,7 @@
 		(components.AddTriangle bottomRight)
 	)
 	
-	(components.CompleteComponent)
+	(components.CompleteComponent true)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):
