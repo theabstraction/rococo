@@ -20,3 +20,16 @@
 )
 (alias GapSegment HV.GapSegment)
 
+(struct InsertItemSpec
+	(Int32 insertFlags)
+	(Sys.SI.Metres minDistance)
+	(Sys.SI.Metres maxDistance)
+	(Bool pointTowardsCentrePiece)
+)
+(alias InsertItemSpec HV.InsertItemSpec)
+
+(struct ObjectCreationSpec
+	(Bool unused)
+)
+(alias ObjectCreationSpec HV.ObjectCreationSpec)
+

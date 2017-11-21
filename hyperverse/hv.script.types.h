@@ -22,3 +22,18 @@ namespace HV {
 		float otherZ1;
 	};
 }
+namespace HV { 
+	struct InsertItemSpec
+	{
+		int32 insertFlags;
+		Metres minDistance;
+		Metres maxDistance;
+		boolean32 pointTowardsCentrePiece;
+	};
+}
+namespace HV { 
+	struct ObjectCreationSpec
+	{
+		boolean32 unused;
+	};
+}

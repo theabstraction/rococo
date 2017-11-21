@@ -65,8 +65,8 @@
 		(GetSegment (Int32 segIndex)(WallSegment segment))
 		(GetGap (Int32 gapIndex)(GapSegment segment))
 		
-		(AddScenery (IString mesh) -> (IdEntity id))
-		(AddItemToCentre(IString mesh)(Int32 addItemFlags) -> (IdEntity id))
+		(AddSceneryAroundObject (IString mesh)(IdEntity centrePieceId)(const InsertItemSpec iis)(const ObjectCreationSpec ocs)-> (IdEntity id))
+		(AddItemToLargestSquare(IString mesh)(Int32 addItemFlags)(const ObjectCreationSpec ocs)-> (IdEntity id))
 		(DeleteScenery)
 	)
 )

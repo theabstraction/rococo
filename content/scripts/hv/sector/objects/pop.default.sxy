@@ -35,7 +35,7 @@
 	(table.SetMaterialMiddle feet)
 	(table.SetMaterialBottom feet)
 	
-	(table.AddTube 0.05 0.1 0.08 5)
+	(table.AddTube 0.05 0.1 0.08 4)
 	
 	(MaterialId woodId = (instances.GetMaterialDirect "#m/wood/wood1.jpg"))
 	(MaterialVertexData wood = 0x7F000000 woodId 0.1)
@@ -43,14 +43,14 @@
 	(table.SetMaterialMiddle wood)
 	(table.SetMaterialBottom wood)
 	
-	(table.AddTube 0.40 0.05 0.05 5)
+	(table.AddTube 0.40 0.05 0.05 4)
 	
 	(MaterialVertexData bolt = 0x4000FFFF 0 0.3)
 	(table.SetMaterialTop bolt)
 	(table.SetMaterialMiddle bolt)
 	(table.SetMaterialBottom bolt)
 	
-	(table.AddTube 0.05 0.08 0.1 5)
+	(table.AddTube 0.05 0.08 0.1 4)
 )
 
 (function AddShortChairLeg (IRodTesselator table)(Vec3 origin)-> :
@@ -63,7 +63,7 @@
 	(table.SetMaterialMiddle feet)
 	(table.SetMaterialBottom feet)
 	
-	(table.AddTube 0.05 0.1 0.08 5)
+	(table.AddTube 0.05 0.1 0.08 4)
 	
 	(MaterialId woodId = (instances.GetMaterialDirect "#m/wood/wood1.jpg"))
 	(MaterialVertexData wood = 0x7F000000 woodId 0.1)
@@ -71,14 +71,14 @@
 	(table.SetMaterialMiddle wood)
 	(table.SetMaterialBottom wood)
 	
-	(table.AddTube 0.65 0.05 0.05 5)
+	(table.AddTube 0.65 0.05 0.05 4)
 	
 	(MaterialVertexData bolt = 0x4000FFFF 0 0.3)
 	(table.SetMaterialTop bolt)
 	(table.SetMaterialMiddle bolt)
 	(table.SetMaterialBottom bolt)
 	
-	(table.AddTube 0.05 0.08 0.1 5)
+	(table.AddTube 0.05 0.08 0.1 4)
 )
 
 (function AddLongChairLeg (IRodTesselator table)(Vec3 origin)-> :
@@ -91,7 +91,7 @@
 	(table.SetMaterialMiddle feet)
 	(table.SetMaterialBottom feet)
 	
-	(table.AddTube 0.05 0.1 0.08 5)
+	(table.AddTube 0.05 0.1 0.08 4)
 	
 	(MaterialId woodId = (instances.GetMaterialDirect "#m/wood/wood1.jpg"))
 	(MaterialVertexData wood = 0x7F000000 woodId 0.1)
@@ -99,16 +99,16 @@
 	(table.SetMaterialMiddle wood)
 	(table.SetMaterialBottom wood)
 	
-	(table.AddTube 0.40 0.05 0.05 5)
+	(table.AddTube 0.40 0.05 0.05 4)
 	
 	(MaterialVertexData bolt = 0x4000FFFF 0 0.3)
 	(table.SetMaterialTop bolt)
 	(table.SetMaterialMiddle bolt)
 	(table.SetMaterialBottom bolt)
 	
-	(table.AddTube 0.05 0.08 0.1 5)
-	(table.AddTube 1.0 0.04 0.04 5)
-	(table.AddTube 0.4 0.04 0.001 5)
+	(table.AddTube 0.05 0.08 0.1 4)
+	(table.AddTube 1.0 0.04 0.04 4)
+	(table.AddTube 0.4 0.04 0.001 4)
 )
 
 
@@ -247,7 +247,7 @@
 	(chair.SetMaterialMiddle bobble)
 	(chair.SetMaterialBottom bobble)
 	
-	(chair.AddSphere 0.05 15 15)
+	(chair.AddSphere 0.05 4 4)
 	
 	(chair.CopyToMeshBuilder meshName false)
 )
@@ -321,17 +321,29 @@
 (function Main (Int32 id)->(Int32 exitCode):
 	(ISectorEnumerator sectors (SectorEnumerator))
 	(Int32 nSectors = sectors.Count)
+			
+	(MakeSword "object.sword.1")
+	(MakeTable "object.table.1")
+	(MakeChair "object.chair.1")
+	
+	(Int32 addItemFlags = 0)
+	(addItemFlags = (addItemFlags + (#AddItemFlagsRandomHeading)))
+	(addItemFlags = (addItemFlags + (#AddItemFlagsRandomPosition)))
+	(addItemFlags = (addItemFlags + (#AddItemFlagsAlignEdge)))
+		
 	(#for (Int32 i = 0)(i < nSectors)(#inc i)
 		(ISectorLayout sector = (sectors.GetSector i))
 		(sector.DeleteScenery)
-		
-		(MakeSword "object.sword.1")
-	//	(sector.AddScenery "object.sword.1")
 			
-		(MakeTable "object.table.1")
-		(sector.AddItemToCentre "object.table.1" ((#AddItemFlagsRandomHeading) + (#AddItemFlagsRandomPosition)))
-		
-		(MakeChair "object.chair.1")
-	//	(sector.AddScenery "object.chair.1")
+		(ObjectCreationSpec ocs)
+		(Int64 tableId = (sector.AddItemToLargestSquare "object.table.1" addItemFlags ocs))
+		(if (tableId > 0)
+			(#for (Int32 k = 0)(k < 10)(#inc k)	
+				(HV.InsertItemSpec iis)
+				(iis.maxDistance = 5)
+				(iis.insertFlags = addItemFlags)
+				(sector.AddSceneryAroundObject "object.chair.1" tableId iis ocs)
+			)
+		)
 	)
 )

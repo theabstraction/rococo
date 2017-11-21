@@ -75,3 +75,15 @@
 	(Float32 otherZ0)
 	(Float32 otherZ1)
 )
+
+(defstruct InsertItemSpec HV.InsertItemSpec HV.InsertItemSpec
+	(Int32 insertFlags)
+	(Metres minDistance)
+	(Metres maxDistance)
+	(Bool pointTowardsCentrePiece)
+)
+
+(defstruct ObjectCreationSpec HV.ObjectCreationSpec HV.ObjectCreationSpec
+	(Bool unused)
+
+)

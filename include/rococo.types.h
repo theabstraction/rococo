@@ -444,6 +444,7 @@ namespace Rococo
 	   const Vec3* First() const { return &bottom.nw; }
    }; 
 
+   /* Axis-Aligned Bounding Box */
    struct AABB
    {
 	   Vec3 minXYZ;
@@ -454,6 +455,7 @@ namespace Rococo
 
 	   AABB& operator << (cr_vec3 p);
 	   bool HoldsPoint(cr_vec3 p) const;
+	   bool Intersects(const AABB& other) const;
 
 	   Vec3 Centre() const;
 	   void GetBox(BoundingBox& box) const;

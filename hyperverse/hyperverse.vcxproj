@@ -108,7 +108,7 @@
     </PreBuildEvent>
     <CustomBuildStep>
       <Command>..\sexy\Bin\x64Debug\sexy.bennyhill.exe $(ProjectDir) hv.sxh null</Command>
-      <Outputs>hv.sxh.h;hv.sxh.inl</Outputs>
+      <Outputs>hv.sxh.h;hv.sxh.inl;hv.script.types.h</Outputs>
       <Inputs>hv.sxh;config.xc</Inputs>
     </CustomBuildStep>
     <PreLinkEvent>
@@ -133,7 +133,6 @@
     <ClInclude Include="hv.defaults.h" />
     <ClInclude Include="hv.events.h" />
     <ClInclude Include="hv.h" />
-    <ClInclude Include="hv.script.types.h" />
     <ClInclude Include="hv.sxh.h" />
   </ItemGroup>
   <ItemGroup>

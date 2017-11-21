@@ -238,6 +238,41 @@ namespace Rococo
 	   return false;
    }
 
+   bool AABB::Intersects(const AABB& other) const
+   {
+	   if (other.maxXYZ.z > maxXYZ.z && other.minXYZ.z > maxXYZ.z)
+	   {
+		   return false;
+	   }
+
+	   if (other.maxXYZ.z < minXYZ.z && other.minXYZ.z < minXYZ.z)
+	   {
+		   return false;
+	   }
+
+	   if (other.maxXYZ.x > maxXYZ.x && other.minXYZ.x > maxXYZ.x)
+	   {
+		   return false;
+	   }
+
+	   if (other.maxXYZ.x < minXYZ.x && other.minXYZ.x < minXYZ.x)
+	   {
+		   return false;
+	   }
+
+	   if (other.maxXYZ.y > maxXYZ.y && other.minXYZ.y > maxXYZ.y)
+	   {
+		   return false;
+	   }
+
+	   if (other.maxXYZ.y < minXYZ.y && other.minXYZ.y < minXYZ.y)
+	   {
+		   return false;
+	   }
+
+	   return true;
+   }
+
    Vec3 AABB::Centre() const
    {
 	   return 0.5f * (maxXYZ + maxXYZ);

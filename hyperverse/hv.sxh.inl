@@ -582,10 +582,22 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->GetGap(gapIndex, *segment);
 	}
-	void NativeHVISectorLayoutAddScenery(NativeCallEnvironment& _nce)
+	void NativeHVISectorLayoutAddSceneryAroundObject(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ObjectCreationSpec* ocs;
+		_offset += sizeof(ocs);
+		ReadInput(ocs, _sf, -_offset);
+
+		HV::InsertItemSpec* iis;
+		_offset += sizeof(iis);
+		ReadInput(iis, _sf, -_offset);
+
+		ID_ENTITY centrePieceId;
+		_offset += sizeof(centrePieceId);
+		ReadInput(centrePieceId, _sf, -_offset);
+
 		_offset += sizeof(IString*);
 		IString* _mesh;
 		ReadInput(_mesh, _sf, -_offset);
@@ -596,14 +608,18 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		ID_ENTITY id = _pObject->AddScenery(mesh);
+		ID_ENTITY id = _pObject->AddSceneryAroundObject(mesh, centrePieceId, *iis, *ocs);
 		_offset += sizeof(id);
 		WriteOutput(id, _sf, -_offset);
 	}
-	void NativeHVISectorLayoutAddItemToCentre(NativeCallEnvironment& _nce)
+	void NativeHVISectorLayoutAddItemToLargestSquare(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ObjectCreationSpec* ocs;
+		_offset += sizeof(ocs);
+		ReadInput(ocs, _sf, -_offset);
+
 		int32 addItemFlags;
 		_offset += sizeof(addItemFlags);
 		ReadInput(addItemFlags, _sf, -_offset);
@@ -618,7 +634,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		ID_ENTITY id = _pObject->AddItemToCentre(mesh, addItemFlags);
+		ID_ENTITY id = _pObject->AddItemToLargestSquare(mesh, addItemFlags, *ocs);
 		_offset += sizeof(id);
 		WriteOutput(id, _sf, -_offset);
 	}
@@ -647,8 +663,8 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVISectorLayoutNumberOfGaps, nullptr, SEXTEXT("ISectorLayoutNumberOfGaps (Pointer hObject) -> (Int32 gapCount)"));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutGetSegment, nullptr, SEXTEXT("ISectorLayoutGetSegment (Pointer hObject)(Int32 segIndex)(HV.WallSegment segment) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutGetGap, nullptr, SEXTEXT("ISectorLayoutGetGap (Pointer hObject)(Int32 gapIndex)(HV.GapSegment segment) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutAddScenery, nullptr, SEXTEXT("ISectorLayoutAddScenery (Pointer hObject)(Sys.Type.IString mesh) -> (Int64 id)"));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutAddItemToCentre, nullptr, SEXTEXT("ISectorLayoutAddItemToCentre (Pointer hObject)(Sys.Type.IString mesh)(Int32 addItemFlags) -> (Int64 id)"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutAddSceneryAroundObject, nullptr, SEXTEXT("ISectorLayoutAddSceneryAroundObject (Pointer hObject)(Sys.Type.IString mesh)(Int64 centrePieceId)(HV.InsertItemSpec iis)(HV.ObjectCreationSpec ocs) -> (Int64 id)"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutAddItemToLargestSquare, nullptr, SEXTEXT("ISectorLayoutAddItemToLargestSquare (Pointer hObject)(Sys.Type.IString mesh)(Int32 addItemFlags)(HV.ObjectCreationSpec ocs) -> (Int64 id)"));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutDeleteScenery, nullptr, SEXTEXT("ISectorLayoutDeleteScenery (Pointer hObject) -> "));
 	}
 }

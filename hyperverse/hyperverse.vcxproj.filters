@@ -59,9 +59,6 @@
     <ClInclude Include="hv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hv.script.types.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="hv.defaults.h">
       <Filter>Header Files</Filter>
     </ClInclude>

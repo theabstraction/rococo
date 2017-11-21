@@ -128,25 +128,105 @@ namespace ANON
 	   rect.top += ds;
    }
 
+   bool TryGetOrientationAndBoundsToFitBoxInAnother(Matrix4x4& Rz, AABB& newBounds, const AABB& bounds, cr_vec2 containerSpan, Degrees theta)
+   {
+	   Rz = Matrix4x4::RotateRHAnticlockwiseZ(theta);
+
+	   newBounds = bounds.RotateBounds(Rz);
+
+	   Vec3 newSpan = newBounds.Span();
+
+	   if (newSpan.x <= containerSpan.x && newSpan.y <= containerSpan.y)
+	   {
+		   return true;
+	   }
+	   else
+	   {
+		   return false;
+	   }
+   }
+
    bool GetRandomOrientationAndBoundsToFitBoxInAnother(Matrix4x4& Rz, AABB& newBounds, const AABB& bounds, cr_vec2 containerSpan, int32 guesses)
    {
 	   for (int i = 0; i < guesses; ++i)
 	   {
-		   auto theta = Degrees{ Roll::x(360) * 1.0f };
-		   Rz = Matrix4x4::RotateRHAnticlockwiseZ(theta);
-
-		   newBounds = bounds.RotateBounds(Rz);
-
-		   Vec3 newSpan = newBounds.Span();
-
-		   if (newSpan.x <= containerSpan.x && newSpan.y <= containerSpan.y)
-		   {
-			   return true;
-		   }
+		   Degrees theta{ Roll::x(360) * 1.0f };
+		   return TryGetOrientationAndBoundsToFitBoxInAnother(Rz, newBounds, bounds, containerSpan, theta);
 	   }
 
 	   return false;
    }
+
+   bool TryGetRotationToFit(Matrix4x4& Rz, bool randomizeHeading, const AABB& bounds, cr_vec2 containerSpan)
+   {
+	   Vec3 objectSpan = bounds.Span();
+
+	   if (randomizeHeading)
+	   {
+		   AABB newBounds;
+		   return GetRandomOrientationAndBoundsToFitBoxInAnother(Rz, newBounds, bounds, containerSpan, 30);
+	   }
+	   else
+	   {
+		   int delta = Roll::x(4);
+		   for (int i = 0; i < 4; ++i)
+		   {
+			   Degrees angle{ fmodf(90.0f * (i + delta), 360.0f) };
+			   AABB newBounds;
+			   if (TryGetOrientationAndBoundsToFitBoxInAnother(Rz, newBounds, bounds, containerSpan, angle))
+			   {
+				   return true;
+			   }
+		   }
+
+		   return false;
+	   }
+   }
+
+   bool TryGetRandomTransformation(Matrix4x4& model, AABB& worldBounds, bool randomHeading, bool randomizePosition, const AABB& bounds, const AABB2d& container, float z0, float z1)
+   {
+	   Vec2 containerSpan = container.Span();
+	   Vec3 objectSpan = bounds.Span();
+
+	   if (objectSpan.z > (z1 - z0))
+	   {
+		   return false;
+	   }
+
+	   Matrix4x4 Rz;
+	   if (!TryGetRotationToFit(Rz, randomHeading, bounds, containerSpan))
+	   {
+		   return false;
+	   }
+	   else
+	   {
+		   AABB newBounds = bounds.RotateBounds(Rz);
+		   Vec3 newSpan = newBounds.Span();
+
+		   float dx = containerSpan.x - newSpan.x;
+		   float dy = containerSpan.y - newSpan.y;
+
+		   float x0 = !randomizePosition ? dx * 0.5f : Roll::AnyOf(0, dx);
+		   float y0 = !randomizePosition ? dy * 0.5f : Roll::AnyOf(0, dy);
+
+		   Vec3 originDisplacement = Vec3{ x0, y0, 0 } -newBounds.minXYZ;
+		   Vec2 tileBottomLeft = { container.left, container.bottom };
+		   Vec3 position = Vec3{ tileBottomLeft.x, tileBottomLeft.y, z0 } +originDisplacement;
+
+		   auto T = Matrix4x4::Translate(position);
+
+		   model = T * Rz;
+
+		   Vec3 tileOrigin{ tileBottomLeft.x, tileBottomLeft.y, 0 };
+
+		   worldBounds = AABB();
+		   worldBounds << (tileOrigin + Vec3{ x0, y0, z0 });
+		   worldBounds << (tileOrigin + Vec3{ x0 + newSpan.x, y0 + newSpan.y, z0 + newSpan.z });
+
+		   return true;
+	   }
+   }
+
 
    struct Sector : public ISector, public ICorridor, IMaterialPalette, public IEventCallback<MaterialArgs>, public ISectorLayout
    {
@@ -1014,7 +1094,7 @@ namespace ANON
 	  {
 		  for (auto s : scenery)
 		  {
-			  platform.instances.Delete(s);
+			  platform.instances.Delete(s.id);
 		  }
 
 		  scenery.clear();
@@ -2193,9 +2273,9 @@ namespace ANON
 			  cb.OnEvent(c.id);
 		  }
 
-		  for (auto& id : scenery)
+		  for (auto& s : scenery)
 		  {
-			  cb.OnEvent(id);
+			  cb.OnEvent(s.id);
 		  }
 	  }
 
@@ -2355,9 +2435,15 @@ namespace ANON
 		  return this;
 	  }
 
-	  std::vector<ID_ENTITY> scenery;
+	  struct SceneryBind
+	  {
+		  ID_ENTITY id;
+		  AABB worldBounds;
+	  };
 
-	  ID_ENTITY AddItemToCentre(const fstring& meshName, int addItemFlags) override
+	  std::vector<SceneryBind> scenery;
+
+	  ID_ENTITY AddItemToLargestSquare(const fstring& meshName, int addItemFlags, const HV::ObjectCreationSpec& obs) override
 	  {
 		  if (IsCorridor() || completeSquares.empty()) return ID_ENTITY::Invalid();
 
@@ -2367,111 +2453,166 @@ namespace ANON
 		  AABB bounds;
 		  if (!platform.meshes.TryGetByName(meshName, meshId, bounds)) return ID_ENTITY::Invalid();
 
-		  // First determine if it can fit in any orientation
-
-		  Vec2 mainSquareSpan = aabb.Span();
-		  Vec3 objectSpan = bounds.Span();
-		  Metres roomHeight{ z1 - z0 };
-
-		  Matrix4x4 Rz;
-
-		  if (objectSpan.z > roomHeight)
+		  AABB worldBounds;
+		  Matrix4x4 model;
+		  if (!TryGetRandomTransformation(model, worldBounds, addItemFlags & AddItemFlags_RandomHeading, addItemFlags & AddItemFlags_RandomPosition, bounds, aabb, z0, z1))
 		  {
 			  return ID_ENTITY::Invalid();
 		  }
 
-		  if (objectSpan.x > mainSquareSpan.x)
-		  {
-			  if (objectSpan.y > mainSquareSpan.x || objectSpan.x >= mainSquareSpan.y)
-			  {
-				  // No fit, whatever orientation
-				  return ID_ENTITY::Invalid();
-			  }
-
-			  // Can fit object by rotating it 90 degrees
-			  Rz = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ Roll::FiftyFifty() ? 90.0f : -90.0f });
-		  }
-		  else if (objectSpan.y > mainSquareSpan.x)
-		  {
-			  if (objectSpan.x <= mainSquareSpan.x)
-			  {
-				  // Can fit object by rotating it 90 degrees
-				  Rz = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ Roll::FiftyFifty() ? 90.0f : -90.0f });
-			  }
-			  else
-			  {
-				  // No fit, whatever orientation
-				  return ID_ENTITY::Invalid();
-			  }
-		  }
-		  else
-		  {
-			  if (objectSpan.x <= mainSquareSpan.y && objectSpan.y <= mainSquareSpan.x)
-			  {
-				  // Any orientation will do
-
-				  if ((addItemFlags & AddItemFlags_RandomHeading) == 0)
-				  {
-					  Rz = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ Roll::x(4)  * 90.0f });
-				  }
-				  else
-				  {
-					  AABB newBounds;
-					  if (!GetRandomOrientationAndBoundsToFitBoxInAnother(Rz, newBounds, bounds, mainSquareSpan, 30))
-					  {
-						  return ID_ENTITY::Invalid();
-					  }
-				  }
-			  }
-			  else
-			  {
-				  Rz = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ Roll::FiftyFifty()  ? 0 : 180.0f });
-			  }
-		  }
-
-		  AABB newBounds = bounds.RotateBounds(Rz);
-		  Vec3 newSpan = newBounds.Span();
-
-		  float dx = mainSquareSpan.x - newSpan.x;
-		  float dy = mainSquareSpan.y - newSpan.y;
-
-		  float x0 = ((addItemFlags & HV::AddItemFlags_RandomPosition) == 0) ? dx * 0.5f : Roll::AnyOf(0, dx);
-		  float y0 = ((addItemFlags & HV::AddItemFlags_RandomPosition) == 0) ? dy * 0.5f : Roll::AnyOf(0, dy);
-
-		  Vec3 originDisplacement = Vec3{ x0, y0, 0 } - newBounds.minXYZ;
-		  Vec2 tileBottomLeft = { aabb.left, aabb.bottom };
-		  Vec3 position = Vec3 { tileBottomLeft.x, tileBottomLeft.y, z0 } + originDisplacement;
-
-		  auto T = Matrix4x4::Translate(position);
-
-		  Matrix4x4 model = T * Rz;
-
 		  auto id = platform.instances.AddBody(meshName, model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());
-		  scenery.push_back(id);
+		  scenery.push_back({ id,worldBounds });
 		  return id;
 	  }
 
-	  ID_ENTITY AddScenery(const fstring& meshName) override
+	  bool TryGetScenery(ID_ENTITY id, AABB& worldBounds) const
 	  {
-		  if (!completeSquares.empty())
+		  for (auto& cp : scenery)
 		  {
-			  auto& aabb = completeSquares[rand() % completeSquares.size()];
-			  
-			  Vec2 centre{ 0.5f * (aabb.left + aabb.right), 0.5f * (aabb.top + aabb.bottom) };
-
-			  Vec3 pos{ centre.x, centre.y, 0.0f };
-			  pos.z = GetHeightAtPointInSector(pos, *this);
-
-			  Matrix4x4 model = Matrix4x4::Translate(pos);
-			  auto id = platform.instances.AddBody(meshName, model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());
-			  scenery.push_back(id);
-			  return id;
+			  if (cp.id == id)
+			  {
+				  worldBounds = cp.worldBounds;
+				  return true;
+			  }
 		  }
-		  else
-		  {
-			  return ID_ENTITY::Invalid();
-		  }
+
+		  return false;
 	  }
+
+	  struct PlacementCandidate
+	  {
+		  AABB worldBounds;
+		  Matrix4x4 model;
+	  };
+
+		bool DoesSceneryCollide(const AABB& aabb) const
+		{
+			for (auto& s : scenery)
+			{
+				if (s.worldBounds.Intersects(aabb))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		std::vector<PlacementCandidate> candidates;
+
+		virtual ID_ENTITY AddSceneryAroundObject(const fstring& mesh, ID_ENTITY centrePieceId, const HV::InsertItemSpec& iis, const HV::ObjectCreationSpec& ocs) override
+		{
+			if (IsCorridor() || completeSquares.empty()) return ID_ENTITY::Invalid();
+
+			auto& aabb = completeSquares[0];
+
+			AABB centreBounds;
+			if (!TryGetScenery(centrePieceId, centreBounds))
+			{
+				return ID_ENTITY::Invalid();
+			}
+
+			auto* e = platform.instances.GetEntity(centrePieceId);
+			if (e == nullptr)
+			{
+				return ID_ENTITY::Invalid();
+			}
+
+			ID_SYS_MESH meshId;
+			AABB bounds;
+			if (!platform.meshes.TryGetByName(mesh, meshId, bounds)) return ID_ENTITY::Invalid();
+
+			candidates.clear();
+
+			for (int i = 0; i < 100; i++)
+			{
+				AABB worldBounds;
+				Matrix4x4 model;
+				if (!TryGetRandomTransformation(model, worldBounds, iis.insertFlags & AddItemFlags_RandomHeading, iis.insertFlags & AddItemFlags_RandomPosition, bounds, aabb, z0, z1))
+				{
+					return ID_ENTITY::Invalid();
+				}
+
+				if (!DoesSceneryCollide(worldBounds))
+				{
+					candidates.push_back({ worldBounds, model });
+				}
+			}
+
+			if (candidates.empty())
+			{
+				return ID_ENTITY::Invalid();
+			}
+
+			struct
+			{
+				Vec3 centrePieceOrigin;
+				bool operator ()(const PlacementCandidate& a, const PlacementCandidate& b) const
+				{
+					auto Pa = a.worldBounds.Centre();
+					auto Pb = b.worldBounds.Centre();
+
+					float Rao = LengthSq(Pa - centrePieceOrigin);
+					float Rbo = LengthSq(Pb - centrePieceOrigin);
+
+					return Rao < Rbo;
+				}
+			} sortByRangeFromCentrePiece;
+
+			struct
+			{
+				float optimalRangeSq;
+				Vec3 centrePieceOrigin;
+
+				bool operator ()(const PlacementCandidate& a, const PlacementCandidate& b) const
+				{
+					auto Pa = a.worldBounds.Centre();
+					auto Pb = b.worldBounds.Centre();
+
+					Vec3 ao = centrePieceOrigin - Pa;
+					Vec3 bo = centrePieceOrigin - Pb;
+
+					float Rao = LengthSq(ao);
+					float Rbo = LengthSq(bo);
+
+					if (Rao < optimalRangeSq && Rbo < optimalRangeSq)
+					{
+						Vec3 ao_dir;
+						Vec3 bo_dir;
+						if (!TryNormalize(ao, ao_dir)) ao_dir = ao;
+						if (!TryNormalize(bo, bo_dir)) bo_dir = bo;
+
+						Vec3 aDir = a.model.GetForwardDirection();
+						Vec3 bDir = b.model.GetForwardDirection();
+
+						return Dot(aDir, ao_dir) > Dot(bDir, bo_dir);
+					}
+					else
+					{
+						return Rao < Rbo;
+					}
+				}
+			} sortByRangeFromCentrePieceAndOrientation;
+
+			bool sortByOrientation = iis.insertFlags & AddItemFlags_AlignEdge;
+
+			if (sortByOrientation)
+			{
+				sortByRangeFromCentrePieceAndOrientation.optimalRangeSq = Sq(iis.maxDistance.value);
+				sortByRangeFromCentrePieceAndOrientation.centrePieceOrigin = e->Position();
+				std::sort(candidates.begin(), candidates.end(), sortByRangeFromCentrePieceAndOrientation);
+			}
+			else
+			{
+				sortByRangeFromCentrePiece.centrePieceOrigin = e->Position();
+				std::sort(candidates.begin(), candidates.end(), sortByRangeFromCentrePiece);
+			}
+
+			auto id = platform.instances.AddBody(mesh, candidates[0].model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());
+			scenery.push_back({ id,candidates[0].worldBounds });
+
+			return id;
+		}
 
 	  int32 CountSquares() override
 	  {
@@ -2635,31 +2776,31 @@ namespace ANON
 
 namespace HV
 {
-   ISector* CreateSector(Platform& platform, ISectors& co_sectors)
-   {
-      return new ANON::Sector(platform, co_sectors);
-   }
+	ISector* CreateSector(Platform& platform, ISectors& co_sectors)
+	{
+		return new ANON::Sector(platform, co_sectors);
+	}
 
-   float GetHeightAtPointInSector(cr_vec3 p, ISector& sector)
-   {
-	   int32 index = sector.GetFloorTriangleIndexContainingPoint({ p.x, p.y });
-	   if (index >= 0)
-	   {
-		   auto* v = sector.FloorVertices().v;
-		   Triangle t;
-		   t.A = v[3 * index].position;
-		   t.B = v[3 * index + 1].position;
-		   t.C = v[3 * index + 2].position;
+	float GetHeightAtPointInSector(cr_vec3 p, ISector& sector)
+	{
+		int32 index = sector.GetFloorTriangleIndexContainingPoint({ p.x, p.y });
+		if (index >= 0)
+		{
+			auto* v = sector.FloorVertices().v;
+			Triangle t;
+			t.A = v[3 * index].position;
+			t.B = v[3 * index + 1].position;
+			t.C = v[3 * index + 2].position;
 
-		   float h;
-		   if (GetTriangleHeight(t, { p.x,p.y }, h))
-		   {
-			   return h;
-		   }
-	   }
+			float h;
+			if (GetTriangleHeight(t, { p.x,p.y }, h))
+			{
+				return h;
+			}
+		}
 
-	   return 0.0f;
-   }
+		return 0.0f;
+	}
 }
 
 namespace HV
