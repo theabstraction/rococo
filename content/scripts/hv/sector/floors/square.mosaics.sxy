@@ -28,8 +28,8 @@
 	(MaterialVertexData black)
 	(sector.GetMaterial black "floor")
 	
-	(black.materialColour = 0x4F000000)
-	(white.materialColour = 0x4FFFFFFF)
+	(AnyColour 0 30 0 30 0 30 80 129 -> black.colour)
+	(AnyColour 224 255 224 255 224 255 80 129 -> white.colour)
 	
 	(qst.PushQuad floorQuad white)
 	

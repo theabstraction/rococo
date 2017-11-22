@@ -120,6 +120,28 @@ namespace
          sb << fqName;
       }
 
+	  void AddMesh(cr_m4x4 transform, const fstring& mesh)
+	  {
+		  auto i = meshes.find((cstr)mesh);
+		  if (i == meshes.end())
+		  {
+			  Throw(0, "MeshBuilder::AddMesh(..., %s) fail. Mesh name not recognized", (cstr)mesh);
+		  }
+
+		  auto* v = i->second.pVertexArray;
+
+		  if (*name == 0) Throw(0, "Call MeshBuilder.Begin() first");
+
+		  for (size_t j = 0; j < i->second.nVertices; j++)
+		  {
+			  auto v0 = v[j];
+			  ObjectVertex v1 = v0;
+			  TransformPosition(transform, v0.position, v1.position);
+			  TransformDirection(transform, v0.normal, v1.normal);
+			  vertices.push_back(v1);
+		  }
+	  }
+
       void AddTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c) override
       {
          if (*name == 0) Throw(0, "Call MeshBuilder.Begin() first");
@@ -136,7 +158,7 @@ namespace
 		  vertices.push_back(t.c);
 	  }
 
-      void End(boolean32 preserveMesh) override
+      void End(boolean32 preserveCopy, boolean32 invisible) override
       {
          const ObjectVertex* v = vertices.empty() ? nullptr : (const ObjectVertex*)&vertices[0];
 
@@ -149,7 +171,7 @@ namespace
 
 		 ObjectVertex* backup = nullptr;
 
-		 if (preserveMesh)
+		 if (preserveCopy)
 		 {
 			 backup = new ObjectVertex[vertices.size()];
 			 memcpy(backup, &vertices[0], vertices.size() * sizeof(ObjectVertex));
@@ -161,7 +183,7 @@ namespace
 			i->second.bounds = boundingBox;
             renderer.UpdateMesh(i->second.id, v, (uint32)vertices.size());
 
-			if (preserveMesh)
+			if (preserveCopy)
 			{
 				i->second.nVertices = vertices.size();
 				delete[] i->second.pVertexArray;
@@ -170,12 +192,23 @@ namespace
          }
          else
          {
-            auto id = renderer.CreateTriangleMesh(v, (uint32)vertices.size());
+            auto id = renderer.CreateTriangleMesh(invisible ? nullptr : v, invisible ? 0 : (uint32)vertices.size());
 			meshes[name] = MeshBinding { id, boundingBox, backup, vertices.size() };
          }
 
          Clear();
       }
+
+	  void Span(Vec3& span, const fstring& name)
+	  {
+		  auto i = meshes.find((cstr)name);
+		  if (i == meshes.end())
+		  {
+			  Throw(0, "MeshBuilder::Span(...%s): mesh not found", (cstr)name);
+		  }
+
+		  span = i->second.bounds.Span();
+	  }
 
       virtual bool TryGetByName(cstr name, ID_SYS_MESH& id, AABB& bounds)
       {

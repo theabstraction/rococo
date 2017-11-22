@@ -54,7 +54,7 @@
 	
 	(MaterialVertexData water)
 	(sector.GetMaterial water "brickwork")
-	(water.materialColour = 0x3F8080A0)
+	(water.colour = 0x3F8080A0)
 	(water.gloss = 0.2)
 		
 	(qst.PushQuad floorQuad floor)

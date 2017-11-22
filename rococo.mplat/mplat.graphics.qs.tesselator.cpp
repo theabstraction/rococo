@@ -146,6 +146,17 @@ namespace ANON
 			std::swap(temp, input);
 		}
 
+		void Translate(const Vec3& v)
+		{
+			for (auto& item : input)
+			{
+				item.q.positions.a += v;
+				item.q.positions.b += v;
+				item.q.positions.c += v;
+				item.q.positions.d += v;
+			}
+		}
+
 		enum FaceFilter
 		{
 			FaceFilter_None = 0,

@@ -33,10 +33,10 @@
 	(MaterialVertexData brick)
 	(sector.GetMaterial brick "brickwork")
 	
-	(MaterialId matBrickId = brick.materialIndex)
+	(MaterialId matBrickId = brick.id)
 	(brick.gloss = 0.0001)
-	(MaterialVertexData brickSides = brick.materialColour matBrickId 0.001)
-	(MaterialVertexData brickBack = brick.materialColour matBrickId 0.0021)
+	(MaterialVertexData brickSides = brick.colour matBrickId 0.001)
+	(MaterialVertexData brickBack = brick.colour matBrickId 0.0021)
 	(MaterialVertexData water = 0x00FFA0A0 matBrickId 0.03125)
 	
 	(MaterialId shelfId = (instances.GetRandomMaterialId (#MaterialCategoryWood)))
@@ -46,13 +46,13 @@
 	(MaterialId matPortraitId = (instances.GetMaterialDirect "!textures/hv/materials/hi-rez/portraits/various_x4.jpg"))
 	(MaterialVertexData portrait = 0xFF000000 matPortraitId 0.85)
 	
-	(Float32 y0 = (AnyOf 0.6 0.9))
-	(Float32 y1 = (AnyOf 0.05 0.1))
+	(Float32 y0 = (AnyFloat 0.6 0.9))
+	(Float32 y1 = (AnyFloat 0.05 0.1))
 	
-	(Float32 x0 = (AnyOf 0.1 0.3))
+	(Float32 x0 = (AnyFloat 0.1 0.3))
 	(Float32 x1 = (1.0 - x0))
 	
-	(Float32 depth = (AnyOf 0.5 1.1))
+	(Float32 depth = (AnyFloat 0.5 1.1))
 	
 	(Rectf hole = x0 y0 x1 y1)
 	
@@ -74,9 +74,9 @@
 	
 	(qst.PushQuad qv brick)
 	
-	(qst.SplitAcrossTangent 0.1 brick.materialColour brick.materialColour  0x1F000000 brick brick)
+	(qst.SplitAcrossTangent 0.1 brick.colour brick.colour  0x1F000000 brick brick)
 	(qst.MoveOutputToInputWithMat brick)
-	(qst.SplitAcrossTangent 0.9 0x1F000000 brick.materialColour brick.materialColour  brick brick)
+	(qst.SplitAcrossTangent 0.9 0x1F000000 brick.colour brick.colour  brick brick)
 	(qst.MoveOutputToInputWithMat brick)
 	(qst.Intrude hole depth uvScale brickSides brickBack)
 	

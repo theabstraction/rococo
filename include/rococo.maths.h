@@ -327,7 +327,8 @@ namespace Rococo
 
 	inline float operator * (cr_vec3 a, cr_vec3 b) { return Dot(a, b); }
 
-	void TransformDirection(cr_m4x4, cr_vec3 n, Vec3& np);
+	void TransformDirection(cr_m4x4 t, cr_vec3 n, Vec3& tn);
+	void TransformPosition(cr_m4x4 t, cr_vec3 p, Vec3& tp);
 
 	inline Vec3 Cross(cr_vec3 a, cr_vec3 b)
 	{

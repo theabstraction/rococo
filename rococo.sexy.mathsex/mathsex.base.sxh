@@ -1,0 +1,6 @@
+(config $config.xc)
+
+(functions Sys.Type "mathsex.base"
+	(MakeColour (Int32 r)(Int32 g)(Int32 b)(Int32 a)->(RGBAb colour): Rococo::MakeColour)
+)
+

@@ -56,8 +56,8 @@
 // Field names must follow the naming rules for field variables in sexy, i.e, begin with a lowercase letter a-z and succeed with any sequence of alphanumerics.
 
 (defstruct MaterialVertexData Rococo.MaterialVertexData MaterialVertexData
-	(RGBAb materialColour)
-	(MaterialId materialIndex)
+	(RGBAb colour)
+	(MaterialId id)
 	(Float32 gloss)
 )
 

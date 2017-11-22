@@ -35,6 +35,34 @@ namespace Rococo
          rng.seed(a ^ b);
       }
 
+	  int32 Rand(int32 modulus)
+	  {
+		  if (modulus <= 2) Throw(0, "Rococo::Random::Rand(): Bad modulus - %d", modulus);
+		  return rng() % modulus;
+	  }
+
+	  int32 AnyInt(int32 minValue, int32 maxValue)
+	  {
+		  int32 range = (maxValue - minValue);
+		  if (range == 0)
+		  {
+			  return minValue;
+		  }
+
+		  int32 delta = Rand(range + 1);
+		  return delta + minValue;
+	  }
+
+	  RGBAb AnyColour(int32 rMin, int32 rMax, int32 gMin, int32 gMax, int32 bMin, int32 bMax, int32 aMin, int32 aMax)
+	  {
+		  int32 r = AnyInt(rMin, rMax);
+		  int32 g = AnyInt(gMin, gMax);
+		  int32 b = AnyInt(bMin, bMax);	
+		  int32 a = AnyInt(aMin, aMax);
+
+		  return RGBAb((uint8)r, (uint8)g, (uint8)b, (uint8)a);
+	  }
+
       int32 RollDie(int32 sides)
       {
          return (rng() % sides) + 1;
@@ -50,12 +78,17 @@ namespace Rococo
          return sum;
       }
 
-      float AnyOf(float minValue, float maxValue)
+      float AnyFloat(float minValue, float maxValue)
       {
          float32 range = maxValue - minValue;
          float f = rng() / (float) rng.max();
          return range * f + minValue;
       }
+   }
+
+   RGBAb MakeColour(int32 r, int32 g, int32 b, int32 a)
+   {
+	   return RGBAb( (uint8)r, (uint8)g, (uint8)b, (uint8)a);
    }
 
    namespace Maths
@@ -165,6 +198,7 @@ using namespace Rococo::Compiler;
 #include "mathsex.vectors.inl"
 #include "mathsex.random.inl"
 #include "mathsex.time.inl"
+#include "mathsex.base.inl"
 
 extern "C"
 {

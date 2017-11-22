@@ -622,6 +622,13 @@ namespace Rococo
 		np.z = m.row2.x * v.x + m.row2.y * v.y + m.row2.z * v.z;
 	}
 
+	void TransformPosition(cr_m4x4 m, cr_vec3 v, Vec3& tp)
+	{
+		tp.x = m.row0.x * v.x + m.row0.y * v.y + m.row0.z * v.z + m.row0.w;
+		tp.y = m.row1.x * v.x + m.row1.y * v.y + m.row1.z * v.z + m.row1.w;
+		tp.z = m.row2.x * v.x + m.row2.y * v.y + m.row2.z * v.z + m.row2.w;
+	}
+
 #ifdef _WIN32
 
 	Matrix4x4 InvertMatrix(const Matrix4x4& matrix)

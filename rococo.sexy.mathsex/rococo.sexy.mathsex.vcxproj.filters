@@ -39,5 +39,11 @@
     <None Include="mathsex.time.inl">
       <Filter>Generated Files</Filter>
     </None>
+    <None Include="mathsex.base.sxh">
+      <Filter>SXH</Filter>
+    </None>
+    <None Include="mathsex.base.inl">
+      <Filter>Generated Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

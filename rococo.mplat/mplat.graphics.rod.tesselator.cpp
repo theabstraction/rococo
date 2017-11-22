@@ -648,7 +648,7 @@ namespace ANON
 			return true;
 		}
 
-		void CopyToMeshBuilder(const fstring& meshName, boolean32 preserveMesh)
+		void CopyToMeshBuilder(const fstring& meshName, boolean32 preserveMesh, boolean32 isInvisible)
 		{
 			platform.meshes.Begin(meshName);
 
@@ -657,7 +657,12 @@ namespace ANON
 				platform.meshes.AddTriangleEx(t);
 			}
 
-			platform.meshes.End(preserveMesh);
+			platform.meshes.End(preserveMesh, isInvisible);
+		}
+
+		void GetOrigin(Vec3& origin)
+		{
+			origin = this->origin;
 		}
 
 		void RaiseBox(Metres length)

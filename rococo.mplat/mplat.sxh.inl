@@ -1850,6 +1850,20 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->TileMosaic(*a, *b, *uvRect, roughSize);
 	}
+	void NativeRococoGraphicsIQuadStackTesselatorTranslate(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec3* v;
+		_offset += sizeof(v);
+		ReadInput(v, _sf, -_offset);
+
+		Rococo::Graphics::IQuadStackTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Translate(*v);
+	}
 
 	void NativeGetHandleForRococoGraphicsQuadStackTesselator(NativeCallEnvironment& _nce)
 	{
@@ -1892,6 +1906,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSplitThreeRows, nullptr, SEXTEXT("IQuadStackTesselatorSplitThreeRows (Pointer hObject)(Rococo.MaterialVertexData r1)(Rococo.MaterialVertexData r2)(Rococo.MaterialVertexData r3)(Float32 y0)(Float32 y1) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSplitAcrossTangent, nullptr, SEXTEXT("IQuadStackTesselatorSplitAcrossTangent (Pointer hObject)(Float32 v)(Int32 topColour)(Int32 middleColour)(Int32 lowColour)(Rococo.MaterialVertexData topMat)(Rococo.MaterialVertexData bottomMat) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorTileMosaic, nullptr, SEXTEXT("IQuadStackTesselatorTileMosaic (Pointer hObject)(Rococo.MaterialVertexData a)(Rococo.MaterialVertexData b)(Sys.Maths.Rectf uvRect)(Sys.SI.Metres roughSize) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorTranslate, nullptr, SEXTEXT("IQuadStackTesselatorTranslate (Pointer hObject)(Sys.Maths.Vec3 v) -> "));
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Entities::IMobiles 
@@ -3019,21 +3034,25 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeRococoGraphicsIMeshBuilderBegin(NativeCallEnvironment& _nce)
+	void NativeRococoGraphicsIMeshBuilderAddMesh(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
-		IString* _fqName;
-		ReadInput(_fqName, _sf, -_offset);
-		fstring fqName { _fqName->buffer, _fqName->length };
+		IString* _sourceName;
+		ReadInput(_sourceName, _sf, -_offset);
+		fstring sourceName { _sourceName->buffer, _sourceName->length };
 
+
+		Matrix4x4* transform;
+		_offset += sizeof(transform);
+		ReadInput(transform, _sf, -_offset);
 
 		Rococo::Graphics::IMeshBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->Begin(fqName);
+		_pObject->AddMesh(*transform, sourceName);
 	}
 	void NativeRococoGraphicsIMeshBuilderAddTriangleEx(NativeCallEnvironment& _nce)
 	{
@@ -3071,10 +3090,30 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddTriangle(*a, *b, *c);
 	}
+	void NativeRococoGraphicsIMeshBuilderBegin(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _meshName;
+		ReadInput(_meshName, _sf, -_offset);
+		fstring meshName { _meshName->buffer, _meshName->length };
+
+
+		Rococo::Graphics::IMeshBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Begin(meshName);
+	}
 	void NativeRococoGraphicsIMeshBuilderEnd(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 invisible;
+		_offset += sizeof(invisible);
+		ReadInput(invisible, _sf, -_offset);
+
 		boolean32 preserveCopy;
 		_offset += sizeof(preserveCopy);
 		ReadInput(preserveCopy, _sf, -_offset);
@@ -3083,7 +3122,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->End(preserveCopy);
+		_pObject->End(preserveCopy, invisible);
 	}
 	void NativeRococoGraphicsIMeshBuilderClear(NativeCallEnvironment& _nce)
 	{
@@ -3111,6 +3150,26 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Delete(fqName);
 	}
+	void NativeRococoGraphicsIMeshBuilderSpan(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _fqName;
+		ReadInput(_fqName, _sf, -_offset);
+		fstring fqName { _fqName->buffer, _fqName->length };
+
+
+		Vec3* span;
+		_offset += sizeof(span);
+		ReadInput(span, _sf, -_offset);
+
+		Rococo::Graphics::IMeshBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Span(*span, fqName);
+	}
 
 	void NativeGetHandleForRococoGraphicsMeshBuilder(NativeCallEnvironment& _nce)
 	{
@@ -3129,12 +3188,14 @@ namespace Rococo { namespace Graphics {
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Graphics.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsMeshBuilder, _nceContext, SEXTEXT("GetHandleForIMeshBuilder0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderBegin, nullptr, SEXTEXT("IMeshBuilderBegin (Pointer hObject)(Sys.Type.IString fqName) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddMesh, nullptr, SEXTEXT("IMeshBuilderAddMesh (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Sys.Type.IString sourceName) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddTriangleEx, nullptr, SEXTEXT("IMeshBuilderAddTriangleEx (Pointer hObject)(Rococo.VertexTriangle t) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddTriangle, nullptr, SEXTEXT("IMeshBuilderAddTriangle (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderEnd, nullptr, SEXTEXT("IMeshBuilderEnd (Pointer hObject)(Bool preserveCopy) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderBegin, nullptr, SEXTEXT("IMeshBuilderBegin (Pointer hObject)(Sys.Type.IString meshName) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderEnd, nullptr, SEXTEXT("IMeshBuilderEnd (Pointer hObject)(Bool preserveCopy)(Bool invisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderClear, nullptr, SEXTEXT("IMeshBuilderClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderDelete, nullptr, SEXTEXT("IMeshBuilderDelete (Pointer hObject)(Sys.Type.IString fqName) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSpan, nullptr, SEXTEXT("IMeshBuilderSpan (Pointer hObject)(Sys.Maths.Vec3 span)(Sys.Type.IString fqName) -> "));
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IRimTesselator 
@@ -3619,6 +3680,10 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 invisible;
+		_offset += sizeof(invisible);
+		ReadInput(invisible, _sf, -_offset);
+
 		boolean32 preserveMesh;
 		_offset += sizeof(preserveMesh);
 		ReadInput(preserveMesh, _sf, -_offset);
@@ -3633,7 +3698,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->CopyToMeshBuilder(meshName, preserveMesh);
+		_pObject->CopyToMeshBuilder(meshName, preserveMesh, invisible);
 	}
 	void NativeRococoGraphicsIRodTesselatorDestruct(NativeCallEnvironment& _nce)
 	{
@@ -3644,6 +3709,20 @@ namespace
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Destruct();
+	}
+	void NativeRococoGraphicsIRodTesselatorGetOrigin(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec3* origin;
+		_offset += sizeof(origin);
+		ReadInput(origin, _sf, -_offset);
+
+		Rococo::Graphics::IRodTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetOrigin(*origin);
 	}
 	void NativeRococoGraphicsIRodTesselatorPopNextTriangle(NativeCallEnvironment& _nce)
 	{
@@ -3807,8 +3886,9 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorClear, nullptr, SEXTEXT("IRodTesselatorClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorClearVertices, nullptr, SEXTEXT("IRodTesselatorClearVertices (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorCloseLoop, nullptr, SEXTEXT("IRodTesselatorCloseLoop (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorCopyToMeshBuilder, nullptr, SEXTEXT("IRodTesselatorCopyToMeshBuilder (Pointer hObject)(Sys.Type.IString meshName)(Bool preserveMesh) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorCopyToMeshBuilder, nullptr, SEXTEXT("IRodTesselatorCopyToMeshBuilder (Pointer hObject)(Sys.Type.IString meshName)(Bool preserveMesh)(Bool invisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorDestruct, nullptr, SEXTEXT("IRodTesselatorDestruct (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorGetOrigin, nullptr, SEXTEXT("IRodTesselatorGetOrigin (Pointer hObject)(Sys.Maths.Vec3 origin) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorPopNextTriangle, nullptr, SEXTEXT("IRodTesselatorPopNextTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> (Bool wasPopped)"));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorRaiseBox, nullptr, SEXTEXT("IRodTesselatorRaiseBox (Pointer hObject)(Sys.SI.Metres length) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorRaisePyramid, nullptr, SEXTEXT("IRodTesselatorRaisePyramid (Pointer hObject)(Sys.SI.Metres length) -> "));

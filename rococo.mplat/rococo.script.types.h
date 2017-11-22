@@ -1,7 +1,7 @@
 	struct MaterialVertexData
 	{
-		RGBAb materialColour;
-		MaterialId materialIndex;
+		RGBAb colour;
+		MaterialId id;
 		float gloss;
 	};
 	struct ObjectVertex

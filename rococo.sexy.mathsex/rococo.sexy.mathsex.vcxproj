@@ -167,6 +167,15 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">config.xc</AdditionalInputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </CustomBuild>
+    <CustomBuild Include="mathsex.base.sxh">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\sexy\Bin\x64Debug\sexy.bennyhill.exe    $(ProjectDir)   mathsex.base.sxh  mathsex.base.inl</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\sexy\Bin\x64Debug\sexy.bennyhill.exe    $(ProjectDir)   mathsex.base.sxh  mathsex.base.inl</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mathsex.base.inl</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mathsex.base.inl</Outputs>
+    </CustomBuild>
+    <None Include="mathsex.base.inl" />
     <None Include="mathsex.random.inl" />
     <None Include="mathsex.time.inl" />
     <None Include="mathsex.vectors.inl" />

@@ -56,9 +56,9 @@
 	(qv.uv.bottom = (segment.quad.d.z * uvScale))
 	
 	(qst.PushQuad qv black)
-	(qst.SplitAcrossTangent 0.9 0x00000000 black.materialColour black.materialColour skirt black)
+	(qst.SplitAcrossTangent 0.9 0x00000000 black.colour black.colour skirt black)
 	(qst.MoveOutputToInputWithMat black)
-	(qst.SplitAcrossTangent 0.1 black.materialColour black.materialColour 0x00000000 black skirt)
+	(qst.SplitAcrossTangent 0.1 black.colour black.colour 0x00000000 black skirt)
 	(qst.MoveOutputToInputWithMat black)
 	
 	(Rectf uv = 0 0 1 1)

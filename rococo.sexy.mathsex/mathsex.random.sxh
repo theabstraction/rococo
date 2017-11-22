@@ -1,8 +1,14 @@
 (config $config.xc)
 
 (functions Sys.Random "mathsex.random"
-	(RollDie (Int32 sides)->(Int32 value): Rococo::Random::RollDie)
+	(AnyColour(Int32 rMin)(Int32 rMax)(Int32 gMin)(Int32 gMax)(Int32 bMin)(Int32 bMax)(Int32 aMin)(Int32 aMax)->(RGBAb colour): Rococo::Random::AnyColour)
+	(AnyFloat (Float32 minValue)(Float32 maxValue)->(Float32 value): Rococo::Random::AnyFloat)
+	(AnyInt (Int32 minValue)(Int32 maxValue)-> (Int32 value): Rococo::Random::AnyInt)
+	
+	(Rand (Int32 modulus)->(Int32 value): Rococo::Random::Rand)
+	
 	(RollDice (Int32 count)(Int32 sides)->(Int32 sum): Rococo::Random::RollDice)
+	(RollDie (Int32 sides)->(Int32 value): Rococo::Random::RollDie)
+	
 	(Seed (Int32 value)-> : Rococo::Random::Seed)
-	(AnyOf (Float32 minValue)(Float32 maxValue)->(Float32 value): Rococo::Random::AnyOf)
 )

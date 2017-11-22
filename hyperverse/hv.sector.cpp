@@ -400,7 +400,7 @@ namespace ANON
 			  mb.AddTriangle(t.a, t.b, t.c);
 		  }
 
-		  mb.End(false);
+		  mb.End(false, false);
 
 		  if (!wallId)
 		  {
@@ -777,7 +777,7 @@ namespace ANON
 
 			  void CompleteComponent(boolean32 preserveMesh)  override
 			  {
-				  This->platform.meshes.End(preserveMesh);
+				  This->platform.meshes.End(preserveMesh, false);
 				  This->AddComponent(Matrix4x4::Identity(), localName.c_str(), meshName.c_str());
 			  }
 		  } scriptCallback(this);  
@@ -908,7 +908,7 @@ namespace ANON
 
 			  void CompleteComponent(boolean32 preserveMesh) override
 			  {
-				  This->platform.meshes.End(preserveMesh);
+				  This->platform.meshes.End(preserveMesh, false);
 				  This->AddComponent(Matrix4x4::Identity(), localName.c_str(), meshName.c_str());
 			  }
 
@@ -1257,7 +1257,7 @@ namespace ANON
 			  }
 		  }
 
-		  mb.End(false);
+		  mb.End(false, false);
 
 		  struct
 		  {
@@ -1297,7 +1297,7 @@ namespace ANON
             mb.AddTriangle(t.a, t.b, t.c);
          }
 
-         mb.End(false);
+         mb.End(false, false);
 
 		 if (!ceilingId)
 		 {
@@ -1485,7 +1485,7 @@ namespace ANON
 
 			void CompleteComponent(boolean32 preserveMesh) override
 			{
-				This->platform.meshes.End(preserveMesh);
+				This->platform.meshes.End(preserveMesh, false);
 
 				Matrix4x4 model;
 				This->CorridorModelMatrix(model);
