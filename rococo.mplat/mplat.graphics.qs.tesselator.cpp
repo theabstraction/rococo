@@ -765,45 +765,45 @@ namespace ANON
 			input.push_back({ quad,material });
 		}
 
-		boolean32 PopOutputAsTriangles(VertexTriangle& topLeft, VertexTriangle& bottomRight) override
+		boolean32 PopOutputAsTriangles(VertexTriangle& t0, VertexTriangle& t1) override
 		{
 			if (output.empty())	return false;
 
 			const auto& item = output.back();
 
-			topLeft.a.position = item.q.positions.a;
-			topLeft.a.normal = item.q.normals.a;
-			topLeft.a.uv = { item.q.uv.left, item.q.uv.top };
-			topLeft.a.material = item.mat;
-			topLeft.a.material.colour = item.q.colours.a;
+			t0.a.position = item.q.positions.a;
+			t0.a.normal = item.q.normals.a;
+			t0.a.uv = { item.q.uv.left, item.q.uv.top };
+			t0.a.material = item.mat;
+			t0.a.material.colour = item.q.colours.a;
 
-			topLeft.b.position = item.q.positions.b;
-			topLeft.b.normal = item.q.normals.b;
-			topLeft.b.uv = { item.q.uv.right, item.q.uv.top };
-			topLeft.b.material = item.mat;
-			topLeft.b.material.colour = item.q.colours.b;
+			t0.b.position = item.q.positions.b;
+			t0.b.normal = item.q.normals.b;
+			t0.b.uv = { item.q.uv.right, item.q.uv.top };
+			t0.b.material = item.mat;
+			t0.b.material.colour = item.q.colours.b;
 
-			topLeft.c.position = item.q.positions.d;
-			topLeft.c.normal = item.q.normals.d;
-			topLeft.c.uv = { item.q.uv.left, item.q.uv.bottom };
-			topLeft.c.material = item.mat;
-			topLeft.c.material.colour = item.q.colours.d;
+			t0.c.position = item.q.positions.d;
+			t0.c.normal = item.q.normals.d;
+			t0.c.uv = { item.q.uv.left, item.q.uv.bottom };
+			t0.c.material = item.mat;
+			t0.c.material.colour = item.q.colours.d;
 
-			bottomRight.a = topLeft.b;
-			bottomRight.a.position = item.q.positions.b;
-			bottomRight.a.normal = item.q.normals.b;
-			bottomRight.a.uv = { item.q.uv.right, item.q.uv.top };
-			bottomRight.a.material = item.mat;
-			bottomRight.a.material.colour = item.q.colours.b;
+			t1.a = t0.b;
+			t1.a.position = item.q.positions.b;
+			t1.a.normal = item.q.normals.b;
+			t1.a.uv = { item.q.uv.right, item.q.uv.top };
+			t1.a.material = item.mat;
+			t1.a.material.colour = item.q.colours.b;
 
-			bottomRight.b = topLeft.c;
-			bottomRight.b.position = item.q.positions.c;
-			bottomRight.b.normal = item.q.normals.c;
-			bottomRight.b.uv = { item.q.uv.right, item.q.uv.bottom };
-			bottomRight.b.material = item.mat;
-			bottomRight.b.material.colour = item.q.colours.c;
+			t1.b = t0.c;
+			t1.b.position = item.q.positions.c;
+			t1.b.normal = item.q.normals.c;
+			t1.b.uv = { item.q.uv.right, item.q.uv.bottom };
+			t1.b.material = item.mat;
+			t1.b.material.colour = item.q.colours.c;
 
-			bottomRight.c = topLeft.c;
+			t1.c = t0.c;
 
 			output.pop_back();
 
