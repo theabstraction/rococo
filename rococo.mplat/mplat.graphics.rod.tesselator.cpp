@@ -353,6 +353,30 @@ namespace ANON
 
 			origin += direction * radius;
 
+			AddHats(nDivs, radius, dh, true, true, true);
+
+			for (int32 ring = 1; ring < nDivs - 1; ring++)
+			{	
+				float DV = AddRingSliceFromSphere(y0, dh, radius, nDivs, V, true);
+				y0 = y0 + dh;
+				V += DV;
+			}
+
+			origin += direction * radius;
+		}
+
+		void AddHats(int nDivs, float radius, float dh, bool facesOutwards, bool renderTop, bool renderBottom)
+		{
+			auto dTheta = Degrees{ 360.0f / nDivs };
+			float theta = 0;
+			float theta0 = 0;
+
+			float s0 = 0;
+			float c0 = 1.0f;
+
+			float yBottom = -radius;
+			float y0 = yBottom + dh;
+
 			for (int div = 0; div < nDivs; ++div)
 			{
 				theta += dTheta;
@@ -379,14 +403,39 @@ namespace ANON
 				float DH = dh;
 				float DV = sqrtf(DH*DH + DR*DR);
 
-				VertexTriangle vt
+				if (renderBottom)
 				{
-					{ q.A + origin, Nq.A,{ 0, 0 }, middle },
-					{ q.B + origin, Nq.B,{ R1 * theta0,  DV }, middle },
-					{ q.C + origin, Nq.C,{ R1 * theta,   DV }, middle },
-				};
+					if (facesOutwards)
+					{
+						VertexTriangle vt
+						{
+							{ q.A + origin, Nq.A,{ 0, 0 }, middle },
+							{ q.B + origin, Nq.B,{ R1 * theta0,  DV }, middle },
+							{ q.C + origin, Nq.C,{ R1 * theta,   DV }, middle },
+						};
 
-				triangles.push_back(vt);
+						vt.a.uv *= uvScale;
+						vt.b.uv *= uvScale;
+						vt.c.uv *= uvScale;
+
+						triangles.push_back(vt);
+					}
+					else
+					{
+						VertexTriangle vt
+						{
+							{ q.C + origin, -Nq.C,{ R1 * theta,   DV }, middle },
+							{ q.B + origin, -Nq.B,{ R1 * theta0,  DV }, middle },
+							{ q.A + origin, -Nq.A,{ 0, 0 }, middle }
+						};
+
+						vt.a.uv *= uvScale;
+						vt.b.uv *= uvScale;
+						vt.c.uv *= uvScale;
+
+						triangles.push_back(vt);
+					}
+				}
 
 				float yTop = radius - dh;
 
@@ -398,21 +447,128 @@ namespace ANON
 					{ c0 * R1, s0 * R1, yTop }
 				};
 
-				Nq = 
+				Nq =
 				{
 					Normalize(q.A),
 					Normalize(q.B),
 					Normalize(q.C)
 				};
 
-				vt =
+				if (renderTop)
 				{
-					{ q.A + origin, Nq.A,{ 0, 0 }, middle },
-					{ q.B + origin, Nq.B,{ R1 * theta,  DV }, middle },
-					{ q.C + origin, Nq.C,{ R1 * theta0,   DV }, middle },
+					if (facesOutwards)
+					{
+						VertexTriangle vt =
+						{
+							{ q.A + origin, Nq.A,{ 0, 0 }, middle },
+							{ q.B + origin, Nq.B,{ R1 * theta,  DV }, middle },
+							{ q.C + origin, Nq.C,{ R1 * theta0,   DV }, middle },
+						};
+
+						vt.a.uv *= uvScale;
+						vt.b.uv *= uvScale;
+						vt.c.uv *= uvScale;
+
+						triangles.push_back(vt);
+					}
+					else
+					{
+						VertexTriangle vt =
+						{
+							{ q.C + origin, -Nq.C,{ R1 * theta0,   DV }, middle },
+							{ q.B + origin, -Nq.B,{ R1 * theta,  DV }, middle },
+							{ q.A + origin, -Nq.A,{ 0, 0 }, middle },
+						};
+
+						vt.a.uv *= uvScale;
+						vt.b.uv *= uvScale;
+						vt.c.uv *= uvScale;
+
+						triangles.push_back(vt);
+					}
+				}
+
+				theta0 = theta;
+
+				s0 = s1;
+				c0 = c1;
+			}
+		}
+
+		float AddRingSliceFromSphere(float y0, float dh, float radius, int nDivs, float V, bool facesOutwards)
+		{
+			float y1 = y0 + dh;
+
+			auto dTheta = Degrees{ 360.0f / nDivs };
+			float theta = 0;
+			float theta0 = 0;
+
+			float R0 = sqrtf(radius*radius - y0*y0);
+			float R1 = sqrtf(radius*radius - y1*y1);
+
+			float DR = fabsf(R0 - R1);
+			float DH = dh;
+			float DV = sqrtf(DH*DH + DR*DR);
+
+			float s0 = 0;
+			float c0 = 1.0f;
+
+			for (int div = 0; div < nDivs; ++div)
+			{
+				theta += dTheta;
+
+				float s1 = Sin(Degrees{ theta });
+				float c1 = Cos(Degrees{ theta });
+
+				Quad q{
+					{ c0 * R1, s0 * R1, y1 },
+					{ c1 * R1, s1 * R1, y1 },
+					{ c1 * R0, s1 * R0, y0 },
+					{ c0 * R0, s0 * R0, y0 }
 				};
 
-				triangles.push_back(vt);
+				Quad Nq
+				{
+					Normalize(q.a),
+					Normalize(q.b),
+					Normalize(q.c),
+					Normalize(q.d),
+				};
+
+				if (facesOutwards)
+				{
+					ObjectQuad oq
+					{
+						{ q.a + origin, Nq.a,{ R1 * theta0, V + DV }, middle },
+						{ q.b + origin, Nq.b,{ R1 * theta,  V + DV }, middle },
+						{ q.c + origin, Nq.c,{ R0 * theta,  V }, middle },
+						{ q.d + origin, Nq.d,{ R0 * theta0, V }, middle },
+					};
+
+					oq.a.uv *= uvScale;
+					oq.b.uv *= uvScale;
+					oq.c.uv *= uvScale;
+					oq.d.uv *= uvScale;
+
+					AddQuad(oq);
+				}
+				else
+				{
+					ObjectQuad oq
+					{
+						{ q.d + origin, -Nq.d,{ R0 * theta0, V }, middle },
+						{ q.c + origin, -Nq.c,{ R0 * theta,  V }, middle },
+						{ q.b + origin, -Nq.b,{ R1 * theta,  V + DV }, middle },
+						{ q.a + origin, -Nq.a,{ R1 * theta0, V + DV }, middle },
+					};
+
+					oq.a.uv *= uvScale;
+					oq.b.uv *= uvScale;
+					oq.c.uv *= uvScale;
+					oq.d.uv *= uvScale;
+
+					AddQuad(oq);
+				}
 
 				theta0 = theta;
 
@@ -420,66 +576,154 @@ namespace ANON
 				c0 = c1;
 			}
 
-			for (int32 ring = 1; ring < nDivs - 1; ring++)
+			return DV;
+		}
+
+		void AddHollowDisc(float yOuter, float yInner, float outerRadius, float interRadius, int32 nDivs, float V, float DV)
+		{
+			auto dTheta = Degrees{ 360.0f / nDivs };
+			float theta = 0;
+			float theta0 = 0;
+
+			float y1 = yOuter;
+			float y0 = yInner;
+
+			float R1 = outerRadius;
+			float R0 = interRadius;
+
+			float s0 = 0;
+			float c0 = 1.0f;
+
+			for (int div = 0; div < nDivs; ++div)
 			{
-				float y1 = y0 + dh;
+				theta += dTheta;
 
-				float theta = 0;
-				float theta0 = 0;
+				float s1 = Sin(Degrees{ theta });
+				float c1 = Cos(Degrees{ theta });
 
-				float R0 = sqrtf(radius*radius - y0*y0);
-				float R1 = sqrtf(radius*radius - y1*y1);
+				Quad q{
+					{ c1 * R1, s1 * R1, y1 },
+					{ c0 * R1, s0 * R1, y1 },
+					{ c0 * R0, s0 * R0, y0 },
+					{ c1 * R0, s1 * R0, y0 }			
+				};
 
-				float DR = fabsf(R0 - R1);
-				float DH = dh;
-				float DV = sqrtf(DH*DH + DR*DR);
+				Vec3 normal = Normalize(Cross(q.a - q.b, q.c - q.b));
 
-				float s0 = 0;
-				float c0 = 1.0f;
-
-				for (int div = 0; div < nDivs; ++div)
+				ObjectQuad oq
 				{
-					theta += dTheta;
+					{ q.a + origin, normal, { R1 * theta0, V + DV }, top },
+					{ q.b + origin, normal, { R1 * theta,  V + DV }, top },
+					{ q.c + origin, normal, { R0 * theta,  V }, top },
+					{ q.d + origin, normal, { R0 * theta0, V }, top },
+				};
 
-					float s1 = Sin(Degrees{ theta });
-					float c1 = Cos(Degrees{ theta });
+				oq.a.uv *= uvScale;
+				oq.b.uv *= uvScale;
+				oq.c.uv *= uvScale;
+				oq.d.uv *= uvScale;
 
-					Quad q{
-						{ c0 * R1, s0 * R1, y1 },
-						{ c1 * R1, s1 * R1, y1 },
-						{ c1 * R0, s1 * R0, y0 },
-						{ c0 * R0, s0 * R0, y0 }
-					};
+				AddQuad(oq);
 
-					Quad Nq
-					{
-						Normalize(q.a),
-						Normalize(q.b),
-						Normalize(q.c),
-						Normalize(q.d),
-					};
+				theta0 = theta;
 
-					ObjectQuad oq
-					{
-						{q.a + origin, Nq.a, { R1 * theta0, V + DV }, middle },
-						{q.b + origin, Nq.b, { R1 * theta,  V + DV }, middle },
-						{q.c + origin, Nq.c, { R0 * theta,  V      }, middle },
-						{q.d + origin, Nq.d, { R0 * theta0, V      }, middle },
-					};
+				s0 = s1;
+				c0 = c1;
+			}
+		}
 
-					AddQuad(oq);
+		void AddBowl(Metres radius1, Metres radius2, int32 nRings, int32 startRing, int32 endRing, int32 nDivs) override
+		{
+			if (nRings < 4)
+			{
+				Throw(0, "RodTesselator::AddBowl(...) -> nRings needds to be >= 4");
+			}
 
-					theta0 = theta;
+			if (nDivs < 3)
+			{
+				Throw(0, "RodTesselator::AddBowl(...) -> nDivs needds to be >= 3");
+			}
 
-					s0 = s1;
-					c0 = c1;
-				}
+			float outerRadius = radius1;
+			float innerRadius = radius2;
 
-				y0 = y1;
+			if (outerRadius < innerRadius) std::swap(outerRadius, innerRadius);
+
+			float dh = 2.0f * outerRadius / nRings;
+			auto dTheta = Degrees{ 360.0f / nDivs };
+
+			float yTop = outerRadius;
+			float yBottom = -outerRadius;
+
+			float y0 = yBottom + dh;
+
+			float V = 0;
+
+			float theta0 = 0;
+			float theta = 0;
+			float s0 = 0;
+			float c0 = 1.0f;
+
+			float startDy = dh * (endRing - startRing + 2) * 0.5f;
+			origin += direction * startDy;
+
+			if (startRing == 0)
+			{
+				AddHats(nDivs, outerRadius, dh, true, false, true);
+			}
+
+			if (endRing >= nRings - 1)
+			{
+				AddHats(nDivs, outerRadius, dh, true, true, false);
+			}
+
+			for (int32 ring = max(1,startRing); ring < min(endRing, nRings - 1); ring++)
+			{
+				float DV = AddRingSliceFromSphere(y0, dh, outerRadius, nDivs, V, true);
+				y0 = y0 + dh;
 				V += DV;
 			}
 
-			origin += direction * radius;
+			float yOuter = y0;
+
+			dh = 2.0f * innerRadius / nRings;
+			y0 = -innerRadius + dh;
+
+			V = 0;
+
+			if (startRing == 0)
+			{
+				AddHats(nDivs, innerRadius, dh, false, false, true);
+			}
+
+			if (endRing >= nRings - 1)
+			{
+				AddHats(nDivs, innerRadius, dh, false, true, false);
+			}
+
+			startDy = dh * (startRing - 1);
+			y0 += startDy;
+
+			for (int32 ring = max(1, startRing); ring < min(endRing, nRings - 1); ring++)
+			{
+				float DV = AddRingSliceFromSphere(y0, dh, innerRadius, nDivs, V, false);
+				y0 = y0 + dh;
+				V += DV;
+			}
+
+			float yInner = y0;
+
+			float DV = outerRadius - innerRadius;
+
+			if (endRing < nRings - 1)
+			{
+				float R0 = sqrtf(outerRadius*outerRadius - yOuter*yOuter);
+				float R1 = sqrtf(innerRadius*innerRadius - yInner*yInner);
+
+				AddHollowDisc(yOuter, yInner, R0, R1, nDivs, V, DV);
+			}
+
+			origin += direction * outerRadius;
 		}
 
 		void AddDisc(Metres radius, int32 nDivs, cr_vec3 normal)
@@ -587,6 +831,11 @@ namespace ANON
 					{ q.c + origin, Nq.c,{ bottomRadius * theta,  0 }, middle },
 					{ q.d + origin, Nq.d,{ bottomRadius * theta0, 0 }, middle },
 				};
+
+				oq.a.uv *= uvScale;
+				oq.b.uv *= uvScale;
+				oq.c.uv *= uvScale;
+				oq.d.uv *= uvScale;
 
 				AddQuad(oq);
 
@@ -765,6 +1014,36 @@ namespace ANON
 			}
 
 			origin += direction * length;
+		}
+
+		void Scale(float sx, float sy, float sz) override
+		{
+			for (auto& t : triangles)
+			{
+				t.a.position.x *= sx;
+				t.a.position.y *= sy;
+				t.a.position.z *= sz;
+				t.b.position.x *= sx;
+				t.b.position.y *= sy;
+				t.b.position.z *= sz;
+				t.c.position.x *= sx;
+				t.c.position.y *= sy;
+				t.c.position.z *= sz;
+
+				t.a.normal.x /= sx;
+				t.a.normal.y /= sy;
+				t.a.normal.z /= sz;
+				t.b.normal.x /= sx;
+				t.b.normal.y /= sy;
+				t.b.normal.z /= sz;
+				t.c.normal.x /= sx;
+				t.c.normal.y /= sy;
+				t.c.normal.z /= sz;
+
+				t.a.normal = Normalize(t.a.normal);
+				t.b.normal = Normalize(t.b.normal);
+				t.c.normal = Normalize(t.c.normal);
+			}
 		}
 
 		void SetMaterialBottom(MaterialVertexData& bottom) override
