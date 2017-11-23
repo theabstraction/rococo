@@ -50,9 +50,10 @@
 	(barrel.SetMaterialMiddle porcelain)
 	(barrel.SetMaterialBottom porcelain)
 	
-	(barrel.SetUVScale 0.1)
-	(barrel.AddTube 0.05 0.40 0.32 16)
-	(barrel.AddBowl 0.40 0.32 12 1 9 16)
+	(barrel.SetUVScale 1)
+	(barrel.AddSphere 1.5 16 16)
+//	(barrel.AddTube 0.05 0.40 0.32 16)
+//	(barrel.AddBowl 0.40 0.32 12 1 9 16)
 	
 	(barrel.Scale 1 1 1)
 	

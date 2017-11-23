@@ -357,7 +357,7 @@ namespace ANON
 
 			for (int32 ring = 1; ring < nDivs - 1; ring++)
 			{	
-				float DV = AddRingSliceFromSphere(y0, dh, radius, nDivs, V, true);
+				float DV = AddRingSliceFromSphere(y0, dh, radius, nDivs, V, true, ring * dh / radius);
 				y0 = y0 + dh;
 				V += DV;
 			}
@@ -367,6 +367,11 @@ namespace ANON
 
 		void AddHats(int nDivs, float radius, float dh, bool facesOutwards, bool renderTop, bool renderBottom)
 		{
+			if (radius <= 0)
+			{
+				Throw(0, "RodTesselator::AddHats(...): radius was not positive");
+			}
+
 			auto dTheta = Degrees{ 360.0f / nDivs };
 			float theta = 0;
 			float theta0 = 0;
@@ -401,7 +406,20 @@ namespace ANON
 
 				float DR = R1;
 				float DH = dh;
-				float DV = sqrtf(DH*DH + DR*DR);
+				float DV = dh / radius;
+
+				float uscale = sqrtf(1 - Sq(1 - DV));
+				float ub = theta / 360.0f;
+				float uc = theta0 / 360.0f;
+
+				ub *= uscale;
+				uc *= uscale;
+
+				ub -= (uscale * 0.5f);
+				uc -= (uscale * 0.5f);
+
+				ub += 0.5f;
+				uc += 0.5f;
 
 				if (renderBottom)
 				{
@@ -409,14 +427,10 @@ namespace ANON
 					{
 						VertexTriangle vt
 						{
-							{ q.A + origin, Nq.A,{ 0, 0 }, middle },
-							{ q.B + origin, Nq.B,{ R1 * theta0,  DV }, middle },
-							{ q.C + origin, Nq.C,{ R1 * theta,   DV }, middle },
+							{ q.A + origin, Nq.A,{ 0.5f, 0 }, middle },
+							{ q.B + origin, Nq.B,{ ub * uscale, DV }, middle },
+							{ q.C + origin, Nq.C,{ uc * uscale, DV }, middle },
 						};
-
-						vt.a.uv *= uvScale;
-						vt.b.uv *= uvScale;
-						vt.c.uv *= uvScale;
 
 						triangles.push_back(vt);
 					}
@@ -424,14 +438,10 @@ namespace ANON
 					{
 						VertexTriangle vt
 						{
-							{ q.C + origin, -Nq.C,{ R1 * theta,   DV }, middle },
-							{ q.B + origin, -Nq.B,{ R1 * theta0,  DV }, middle },
-							{ q.A + origin, -Nq.A,{ 0, 0 }, middle }
+							{ q.C + origin, -Nq.C,{ uc * uscale, DV }, middle },
+							{ q.B + origin, -Nq.B,{ ub * uscale, DV }, middle },
+							{ q.A + origin, -Nq.A,{ 0.5f, 0 }, middle }
 						};
-
-						vt.a.uv *= uvScale;
-						vt.b.uv *= uvScale;
-						vt.c.uv *= uvScale;
 
 						triangles.push_back(vt);
 					}
@@ -460,14 +470,10 @@ namespace ANON
 					{
 						VertexTriangle vt =
 						{
-							{ q.A + origin, Nq.A,{ 0, 0 }, middle },
-							{ q.B + origin, Nq.B,{ R1 * theta,  DV }, middle },
-							{ q.C + origin, Nq.C,{ R1 * theta0,   DV }, middle },
+							{ q.A + origin, Nq.A,{ 0.5f, 0 }, middle },
+							{ q.B + origin, Nq.B,{ ub, DV }, middle },
+							{ q.C + origin, Nq.C,{ uc, DV }, middle },
 						};
-
-						vt.a.uv *= uvScale;
-						vt.b.uv *= uvScale;
-						vt.c.uv *= uvScale;
 
 						triangles.push_back(vt);
 					}
@@ -475,14 +481,10 @@ namespace ANON
 					{
 						VertexTriangle vt =
 						{
-							{ q.C + origin, -Nq.C,{ R1 * theta0,   DV }, middle },
-							{ q.B + origin, -Nq.B,{ R1 * theta,  DV }, middle },
-							{ q.A + origin, -Nq.A,{ 0, 0 }, middle },
+							{ q.C + origin, -Nq.C,{ uc, DV }, middle },
+							{ q.B + origin, -Nq.B,{ ub, DV }, middle },
+							{ q.A + origin, -Nq.A,{ 0.5f, 0 }, middle },
 						};
-
-						vt.a.uv *= uvScale;
-						vt.b.uv *= uvScale;
-						vt.c.uv *= uvScale;
 
 						triangles.push_back(vt);
 					}
@@ -495,7 +497,7 @@ namespace ANON
 			}
 		}
 
-		float AddRingSliceFromSphere(float y0, float dh, float radius, int nDivs, float V, bool facesOutwards)
+		float AddRingSliceFromSphere(float y0, float dh, float radius, int nDivs, float V, bool facesOutwards, float uFactor)
 		{
 			float y1 = y0 + dh;
 
@@ -508,7 +510,7 @@ namespace ANON
 
 			float DR = fabsf(R0 - R1);
 			float DH = dh;
-			float DV = sqrtf(DH*DH + DR*DR);
+			float DV = 0.5f * sqrtf(DH*DH + DR*DR) / radius;
 
 			float s0 = 0;
 			float c0 = 1.0f;
@@ -535,37 +537,47 @@ namespace ANON
 					Normalize(q.d),
 				};
 
+				float ua = theta0 / 360.0f;
+				float ub = theta / 360.0f;
+				float uc = theta / 360.0f;
+				float ud = theta0 / 360.0f;
+
+				float f = 1 - fabsf(uFactor - 1);
+
+				float uscale = sqrtf(1 - Sq(1 - f));
+
+				ua *= uscale;
+				ub *= uscale;
+				uc *= uscale;
+				ud *= uscale;
+
+				ua -= 0.5f * uscale;
+				ub -= 0.5f * uscale;
+				uc -= 0.5f * uscale;
+				ud -= 0.5f * uscale;
+
 				if (facesOutwards)
 				{
 					ObjectQuad oq
 					{
-						{ q.a + origin, Nq.a,{ R1 * theta0, V + DV }, middle },
-						{ q.b + origin, Nq.b,{ R1 * theta,  V + DV }, middle },
-						{ q.c + origin, Nq.c,{ R0 * theta,  V }, middle },
-						{ q.d + origin, Nq.d,{ R0 * theta0, V }, middle },
+						{ q.a + origin, Nq.a,{ ua, V + DV }, middle },
+						{ q.b + origin, Nq.b,{ ub, V + DV }, middle },
+						{ q.c + origin, Nq.c,{ uc, V }, middle },
+						{ q.d + origin, Nq.d,{ ud, V }, middle },
 					};
-
-					oq.a.uv *= uvScale;
-					oq.b.uv *= uvScale;
-					oq.c.uv *= uvScale;
-					oq.d.uv *= uvScale;
 
 					AddQuad(oq);
 				}
 				else
 				{
+
 					ObjectQuad oq
 					{
-						{ q.d + origin, -Nq.d,{ R0 * theta0, V }, middle },
-						{ q.c + origin, -Nq.c,{ R0 * theta,  V }, middle },
-						{ q.b + origin, -Nq.b,{ R1 * theta,  V + DV }, middle },
-						{ q.a + origin, -Nq.a,{ R1 * theta0, V + DV }, middle },
+						{ q.d + origin, -Nq.d,{ ua, V }, middle },
+						{ q.c + origin, -Nq.c,{ ub, V }, middle },
+						{ q.b + origin, -Nq.b,{ uc, V + DV }, middle },
+						{ q.a + origin, -Nq.a,{ ud, V + DV }, middle },
 					};
-
-					oq.a.uv *= uvScale;
-					oq.b.uv *= uvScale;
-					oq.c.uv *= uvScale;
-					oq.d.uv *= uvScale;
 
 					AddQuad(oq);
 				}
@@ -679,7 +691,7 @@ namespace ANON
 
 			for (int32 ring = max(1,startRing); ring < min(endRing, nRings - 1); ring++)
 			{
-				float DV = AddRingSliceFromSphere(y0, dh, outerRadius, nDivs, V, true);
+				float DV = AddRingSliceFromSphere(y0, dh, outerRadius, nDivs, V, true, ring * dh / outerRadius);
 				y0 = y0 + dh;
 				V += DV;
 			}
@@ -706,7 +718,7 @@ namespace ANON
 
 			for (int32 ring = max(1, startRing); ring < min(endRing, nRings - 1); ring++)
 			{
-				float DV = AddRingSliceFromSphere(y0, dh, innerRadius, nDivs, V, false);
+				float DV = AddRingSliceFromSphere(y0, dh, innerRadius, nDivs, V, false, ring * dh / outerRadius);
 				y0 = y0 + dh;
 				V += DV;
 			}
