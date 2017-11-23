@@ -603,6 +603,8 @@ namespace ANON
 			float R1 = outerRadius;
 			float R0 = interRadius;
 
+			float DR = R1 - R0;
+
 			float s0 = 0;
 			float c0 = 1.0f;
 
@@ -620,20 +622,26 @@ namespace ANON
 					{ c1 * R0, s1 * R0, y0 }			
 				};
 
-				Vec3 normal = Normalize(Cross(q.a - q.b, q.c - q.b));
+				float dy = y1 - y0;
+				float gz = dy;
+
+				Vec3 na = Normalize({ -c1 * gz, -s1 * gz, DR });
+				Vec3 nb = Normalize({ -c0 * gz, -s0 * gz, DR });
+				Vec3 nc = Normalize({ -c0 * gz, -s0 * gz, DR });
+				Vec3 nd = Normalize({ -c1 * gz, -s1 * gz, DR });
+
+				Vec2 ua = Vec2 { q.a.x, q.a.y } * uvScale;
+				Vec2 ub = Vec2 { q.b.x, q.b.y } * uvScale;
+				Vec2 uc = Vec2 { q.c.x, q.c.y } * uvScale;
+				Vec2 ud = Vec2 { q.d.x, q.d.y } * uvScale;
 
 				ObjectQuad oq
 				{
-					{ q.a + origin, normal, { R1 * theta0, V + DV }, top },
-					{ q.b + origin, normal, { R1 * theta,  V + DV }, top },
-					{ q.c + origin, normal, { R0 * theta,  V }, top },
-					{ q.d + origin, normal, { R0 * theta0, V }, top },
+					{ q.a + origin, na, ua, top },
+					{ q.b + origin, nb, ub, top },
+					{ q.c + origin, nc, uc, top },
+					{ q.d + origin, nd, ud, top },
 				};
-
-				oq.a.uv *= uvScale;
-				oq.b.uv *= uvScale;
-				oq.c.uv *= uvScale;
-				oq.d.uv *= uvScale;
 
 				AddQuad(oq);
 
@@ -760,8 +768,8 @@ namespace ANON
 					{ c0 * radius, s0 * radius, 0 }
 				};
 
-				Vec2 uvB = { t.B.x * uvScale, t.B.y * uvScale };
-				Vec2 uvC = { t.C.x * uvScale, t.C.y * uvScale };
+				Vec2 uvB = { t.B.x * uvScale * 0.25f, t.B.y * uvScale * 0.25f };
+				Vec2 uvC = { t.C.x * uvScale * 0.25f, t.C.y * uvScale * 0.25f };
 
 				VertexTriangle vt
 				{
@@ -834,20 +842,22 @@ namespace ANON
 					normal(s0, c0),
 				};
 
-				float DV = length * uvScale;
+				float DV = length * uvScale / (2.0f * PI());
+
+				float rad = 0.5f * uvScale *(topRadius + bottomRadius);
+
+				float ua = rad * theta0 / 360.0f;
+				float ub = rad * theta / 360.0f;
+				float uc = rad * theta / 360.0f;
+				float ud = rad * theta0 / 360.0f;
 
 				ObjectQuad oq
 				{
-					{ q.a + origin, Nq.a,{ topRadius * theta0,   DV }, middle },
-					{ q.b + origin, Nq.b,{ topRadius * theta,    DV }, middle },
-					{ q.c + origin, Nq.c,{ bottomRadius * theta,  0 }, middle },
-					{ q.d + origin, Nq.d,{ bottomRadius * theta0, 0 }, middle },
+					{ q.a + origin, Nq.a,{ ua, DV }, middle },
+					{ q.b + origin, Nq.b,{ ub, DV }, middle },
+					{ q.c + origin, Nq.c,{ uc, 0 }, middle },
+					{ q.d + origin, Nq.d,{ ud, 0 }, middle },
 				};
-
-				oq.a.uv *= uvScale;
-				oq.b.uv *= uvScale;
-				oq.c.uv *= uvScale;
-				oq.d.uv *= uvScale;
 
 				AddQuad(oq);
 

@@ -42,18 +42,18 @@
 	(IInstances instances (Instances))
 	
 	(MaterialVertexData porcelain)
-	(AnyColour 20 30 20 30 20 30 160 180 -> porcelain.colour)
+	(AnyColour 224 255 224 255 20 30 60 100 -> porcelain.colour)
 	(instances.GetRandomMaterialId (#MaterialCategoryRock) -> porcelain.id)
-	(porcelain.gloss = 0.01)
+	(porcelain.gloss = 0.4)
 	
 	(barrel.SetMaterialTop porcelain)
 	(barrel.SetMaterialMiddle porcelain)
 	(barrel.SetMaterialBottom porcelain)
 	
-	(barrel.SetUVScale 1)
-	(barrel.AddSphere 1.5 16 16)
-//	(barrel.AddTube 0.05 0.40 0.32 16)
-//	(barrel.AddBowl 0.40 0.32 12 1 9 16)
+	(barrel.SetUVScale 4)
+//	(barrel.AddSphere 1.5 16 16)
+//	(barrel.AddTube 0.5 1.40 1.32 16)
+	(barrel.AddBowl 0.40 0.35 12 0 4 16)
 	
 	(barrel.Scale 1 1 1)
 	
