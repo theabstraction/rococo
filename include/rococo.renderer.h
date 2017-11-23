@@ -212,7 +212,7 @@ namespace Rococo
 	{
 	  virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
 	  virtual void ClearMeshes() = 0;
-	  virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
+	  virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices, bool disableShadowCasting) = 0;
 	  virtual void DeleteMesh(ID_SYS_MESH id) = 0;
 	  virtual ID_TEXTURE FindTexture(cstr name) const = 0;
 	  virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;

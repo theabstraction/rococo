@@ -17,6 +17,7 @@ namespace
 	   AABB bounds; // Bounding box surrounding mesh
 	   ObjectVertex* pVertexArray;
 	   size_t nVertices;
+	   bool disableShadowCasting;
    };
 
    struct MeshBuilder : public Rococo::Graphics::IMeshBuilderSupervisor, IMathsVenue
@@ -25,6 +26,7 @@ namespace
 	  rchar name[MAX_FQ_NAME_LEN + 1] = { 0 };
       std::vector<ObjectVertex> vertices;
       IRenderer& renderer;
+	  bool disableShadowCasting = false;
 
       MeshBuilder(IRenderer& _renderer) : renderer(_renderer)
       {
@@ -46,7 +48,18 @@ namespace
       {
          name[0] = 0;
          vertices.clear();
+		 disableShadowCasting = false;
       }
+
+	  void DisableShadowCasting() override
+	  {
+		  if (*name != 0)
+		  {
+			  Throw(0, "MeshBuilder::DisableShadowCasting(): only valid between Begin and End");
+		  }
+
+		  disableShadowCasting = true;
+	  }
 
       void Delete(const fstring& fqName) override
       {
@@ -115,6 +128,8 @@ namespace
          {
             Throw(0, "Call MeshBuilder.End() first");
          }
+
+		 disableShadowCasting = false;
 
          StackStringBuilder sb(name, sizeof(name));
          sb << fqName;
@@ -192,8 +207,8 @@ namespace
          }
          else
          {
-            auto id = renderer.CreateTriangleMesh(invisible ? nullptr : v, invisible ? 0 : (uint32)vertices.size());
-			meshes[name] = MeshBinding { id, boundingBox, backup, vertices.size() };
+            auto id = renderer.CreateTriangleMesh(invisible ? nullptr : v, invisible ? 0 : (uint32)vertices.size(), disableShadowCasting);
+			meshes[name] = MeshBinding { id, boundingBox, backup, vertices.size(), disableShadowCasting };
          }
 
          Clear();

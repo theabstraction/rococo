@@ -1415,15 +1415,16 @@ namespace ANON
 		   ID3D11Buffer* dx11Buffer;
 		   UINT numberOfVertices;
 		   D3D_PRIMITIVE_TOPOLOGY topology;
+		   bool disableShadowCasting;
 	   };
 
 	   std::vector<MeshBuffer> meshBuffers;
 	   int64 meshUpdateCount = 0;
 
-	   virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices)
+	   virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices, bool disableShadowCasting)
 	   {
 		   ID3D11Buffer* meshBuffer = vertices ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
-		   meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST });
+		   meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, disableShadowCasting });
 		   int32 index = (int32)meshBuffers.size();
 		   return ID_SYS_MESH(index - 1);
 	   }
@@ -1444,6 +1445,8 @@ namespace ANON
 		   meshBuffers[rendererId.value].dx11Buffer = newMesh;
 	   }
 
+	   bool castingShadows = false;
+
 	   virtual void Draw(ID_SYS_MESH id, const ObjectInstance* instances, uint32 nInstances)
 	   {
 		   if (id.value < 0 || id.value >= meshBuffers.size()) Throw(E_INVALIDARG, "renderer.DrawObject(ID_MESH id) - Bad id ");
@@ -1451,6 +1454,9 @@ namespace ANON
 		   auto& buffer = meshBuffers[id.value];
 
 		   if (!buffer.dx11Buffer)
+			   return;
+
+		   if (castingShadows && buffer.disableShadowCasting)
 			   return;
 
 		   ID3D11Buffer* buffers[] = { buffer.dx11Buffer };
@@ -1654,7 +1660,9 @@ namespace ANON
 
 				   dc.RSSetState(shadowRaterizering);
 
+				   castingShadows = true;
 				   scene.RenderShadowPass(drd, *this);
+				   castingShadows = false;
 
 				   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
 

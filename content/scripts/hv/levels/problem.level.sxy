@@ -29,9 +29,9 @@
 	(sectors.AddVertex -6.000000 -8.000000)
 	(sectors.AddVertex -6.000000 6.000000)
 
-	(sectors.SetTemplateMaterial "brickwork"   1 0xe084be23 "random")
+	(sectors.SetTemplateMaterial "brickwork"   1 0x37151923 "#m/rock/granite1.jpg")
 	(sectors.SetTemplateMaterial "floor"       2 0xeae9bbf1 "random")
-	(sectors.SetTemplateMaterial "cement"      0 0xcf52aed6 "random")
+	(sectors.SetTemplateMaterial "cement"      1 0x37b6aed6 "random")
 	(sectors.SetTemplateMaterial "mullions"    3 0xdb0d5e24 "random")
 	(sectors.SetTemplateMaterial "ceiling"     2 0xcb873cdb "random")
 	(sectors.SetTemplateMaterial "rails"       3 0xd1b3de47 "random")
@@ -39,7 +39,7 @@
 	(sectors.SetTemplateMaterial "panels"      4 0xe58bbb43 "random")
 
 	(sectors.SetTemplateDoorScript false "")
-	(sectors.SetTemplateWallScript false "")
+	(sectors.SetTemplateWallScript true "#walls/arch.recess.sxy")
 
 	(sectors.CreateFromTemplate 0 400)
 )

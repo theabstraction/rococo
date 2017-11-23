@@ -44,7 +44,7 @@
 	(MaterialVertexData porcelain)
 	(AnyColour 224 255 224 255 20 30 60 100 -> porcelain.colour)
 	(instances.GetRandomMaterialId (#MaterialCategoryRock) -> porcelain.id)
-	(porcelain.gloss = 0.4)
+	(porcelain.gloss = 0.2)
 	
 	(barrel.SetMaterialTop porcelain)
 	(barrel.SetMaterialMiddle porcelain)

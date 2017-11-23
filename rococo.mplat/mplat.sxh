@@ -264,6 +264,7 @@
 		(End (Bool preserveCopy)(Bool invisible))
 		(Clear)
 		(Delete (IString fqName))
+		(DisableShadowCasting)
 		(Span (Vec3 span)(IString fqName))
 	)
 	(factory Rococo.Graphics.MeshBuilder)
