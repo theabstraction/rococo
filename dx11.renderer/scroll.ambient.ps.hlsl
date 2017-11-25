@@ -63,7 +63,7 @@ float4 per_pixel_lighting(PixelVertex p)
 
 	texel.xyz *= fogging;
 
-	return float4(texel.xyz * ambience.localLight.xyz, texel.w * 0.5f);
+	return float4(texel.xyz * ambience.localLight.xyz, texel.w * p.colour.w);
 }
 
 float4 main(PixelVertex p) : SV_TARGET

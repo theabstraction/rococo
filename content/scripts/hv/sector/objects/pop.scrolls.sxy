@@ -42,10 +42,10 @@
 		(-0.2 -1 0)
 	)
 	
-	(tt.AddBlankQuad positions 0xFFFFFFFF)
+	(tt.AddBlankQuad positions 0x40FFFFFF)
 	(tt.SetFormatQuad positions)
 	(tt.TrySetFontIndex 0)
-	(tt.AddLeftAlignedText 0 "&tBe careful of what you wish for, it might come true.") // Just a thought: it would be really nice if you were to stop having sex with Charles Manson")
+	(tt.AddLeftAlignedText 0x40FF0000 "&tBe careful of what you wish for, it might come true.") // Just a thought: it would be really nice if you were to stop having sex with Charles Manson")
 	(tt.SaveMesh meshName)
 	
 	(IMeshBuilder mb (MeshBuilder))
