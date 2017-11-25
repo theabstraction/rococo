@@ -1549,7 +1549,7 @@ namespace ANON
 		   if (m.alphaBlending)
 		   {
 			   dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
-	//		   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
+			   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
 		   }
 
 		   UINT strides[] = { sizeof(ObjectVertex) };
@@ -1577,7 +1577,7 @@ namespace ANON
 			   if (builtFirstPass)
 			   {
 				   dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
-		//		   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
+				   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
 			   }
 			   else
 			   {
