@@ -108,6 +108,7 @@
     <ClCompile Include="mplat.graphics.qs.tesselator.cpp" />
     <ClCompile Include="mplat.graphics.sprites.cpp" />
     <ClCompile Include="mplat.graphics.tess.rim.cpp" />
+    <ClCompile Include="mplat.graphics.text.tesselator.cpp" />
     <ClCompile Include="mplat.keyboard.cpp" />
     <ClCompile Include="mplat.main.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>

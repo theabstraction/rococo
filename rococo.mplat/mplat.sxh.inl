@@ -3150,15 +3150,57 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Delete(fqName);
 	}
-	void NativeRococoGraphicsIMeshBuilderDisableShadowCasting(NativeCallEnvironment& _nce)
+	void NativeRococoGraphicsIMeshBuilderSetShadowCasting(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 isActive;
+		_offset += sizeof(isActive);
+		ReadInput(isActive, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _fqName;
+		ReadInput(_fqName, _sf, -_offset);
+		fstring fqName { _fqName->buffer, _fqName->length };
+
+
 		Rococo::Graphics::IMeshBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->DisableShadowCasting();
+		_pObject->SetShadowCasting(fqName, isActive);
+	}
+	void NativeRococoGraphicsIMeshBuilderSetSpecialShader(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 alphaBlending;
+		_offset += sizeof(alphaBlending);
+		ReadInput(alphaBlending, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _psAmbientPingPath;
+		ReadInput(_psAmbientPingPath, _sf, -_offset);
+		fstring psAmbientPingPath { _psAmbientPingPath->buffer, _psAmbientPingPath->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _psSpotlightPingPath;
+		ReadInput(_psSpotlightPingPath, _sf, -_offset);
+		fstring psSpotlightPingPath { _psSpotlightPingPath->buffer, _psSpotlightPingPath->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _fqName;
+		ReadInput(_fqName, _sf, -_offset);
+		fstring fqName { _fqName->buffer, _fqName->length };
+
+
+		Rococo::Graphics::IMeshBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetSpecialShader(fqName, psSpotlightPingPath, psAmbientPingPath, alphaBlending);
 	}
 	void NativeRococoGraphicsIMeshBuilderSpan(NativeCallEnvironment& _nce)
 	{
@@ -3205,7 +3247,8 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderEnd, nullptr, SEXTEXT("IMeshBuilderEnd (Pointer hObject)(Bool preserveCopy)(Bool invisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderClear, nullptr, SEXTEXT("IMeshBuilderClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderDelete, nullptr, SEXTEXT("IMeshBuilderDelete (Pointer hObject)(Sys.Type.IString fqName) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderDisableShadowCasting, nullptr, SEXTEXT("IMeshBuilderDisableShadowCasting (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSetShadowCasting, nullptr, SEXTEXT("IMeshBuilderSetShadowCasting (Pointer hObject)(Sys.Type.IString fqName)(Bool isActive) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSetSpecialShader, nullptr, SEXTEXT("IMeshBuilderSetSpecialShader (Pointer hObject)(Sys.Type.IString fqName)(Sys.Type.IString psSpotlightPingPath)(Sys.Type.IString psAmbientPingPath)(Bool alphaBlending) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSpan, nullptr, SEXTEXT("IMeshBuilderSpan (Pointer hObject)(Sys.Maths.Vec3 span)(Sys.Type.IString fqName) -> "));
 	}
 }}
@@ -3725,6 +3768,10 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 castsShadows;
+		_offset += sizeof(castsShadows);
+		ReadInput(castsShadows, _sf, -_offset);
+
 		boolean32 invisible;
 		_offset += sizeof(invisible);
 		ReadInput(invisible, _sf, -_offset);
@@ -3743,7 +3790,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->CopyToMeshBuilder(meshName, preserveMesh, invisible);
+		_pObject->CopyToMeshBuilder(meshName, preserveMesh, invisible, castsShadows);
 	}
 	void NativeRococoGraphicsIRodTesselatorDestruct(NativeCallEnvironment& _nce)
 	{
@@ -3954,7 +4001,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorClear, nullptr, SEXTEXT("IRodTesselatorClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorClearVertices, nullptr, SEXTEXT("IRodTesselatorClearVertices (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorCloseLoop, nullptr, SEXTEXT("IRodTesselatorCloseLoop (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorCopyToMeshBuilder, nullptr, SEXTEXT("IRodTesselatorCopyToMeshBuilder (Pointer hObject)(Sys.Type.IString meshName)(Bool preserveMesh)(Bool invisible) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorCopyToMeshBuilder, nullptr, SEXTEXT("IRodTesselatorCopyToMeshBuilder (Pointer hObject)(Sys.Type.IString meshName)(Bool preserveMesh)(Bool invisible)(Bool castsShadows) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorDestruct, nullptr, SEXTEXT("IRodTesselatorDestruct (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorGetOrigin, nullptr, SEXTEXT("IRodTesselatorGetOrigin (Pointer hObject)(Sys.Maths.Vec3 origin) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorPopNextTriangle, nullptr, SEXTEXT("IRodTesselatorPopNextTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> (Bool wasPopped)"));
@@ -3968,5 +4015,171 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetUVScale, nullptr, SEXTEXT("IRodTesselatorSetUVScale (Pointer hObject)(Float32 sUV) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorUseFaceNormals, nullptr, SEXTEXT("IRodTesselatorUseFaceNormals (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorUseSmoothNormals, nullptr, SEXTEXT("IRodTesselatorUseSmoothNormals (Pointer hObject) -> "));
+	}
+}}
+// BennyHill generated Sexy native functions for Rococo::Graphics::ITextTesselator 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoGraphicsITextTesselatorAddBlankQuad(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb paperColour;
+		_offset += sizeof(paperColour);
+		ReadInput(paperColour, _sf, -_offset);
+
+		Quad* positions;
+		_offset += sizeof(positions);
+		ReadInput(positions, _sf, -_offset);
+
+		Rococo::Graphics::ITextTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddBlankQuad(*positions, paperColour);
+	}
+	void NativeRococoGraphicsITextTesselatorAddLeftAlignedText(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		RGBAb colour;
+		_offset += sizeof(colour);
+		ReadInput(colour, _sf, -_offset);
+
+		Rococo::Graphics::ITextTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddLeftAlignedText(colour, text);
+	}
+	void NativeRococoGraphicsITextTesselatorClear(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::ITextTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Clear();
+	}
+	void NativeRococoGraphicsITextTesselatorSaveMesh(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _meshName;
+		ReadInput(_meshName, _sf, -_offset);
+		fstring meshName { _meshName->buffer, _meshName->length };
+
+
+		Rococo::Graphics::ITextTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SaveMesh(meshName);
+	}
+	void NativeRococoGraphicsITextTesselatorSetUVScale(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float scaleFactor;
+		_offset += sizeof(scaleFactor);
+		ReadInput(scaleFactor, _sf, -_offset);
+
+		Rococo::Graphics::ITextTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetUVScale(scaleFactor);
+	}
+	void NativeRococoGraphicsITextTesselatorSetFormatQuad(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Quad* positions;
+		_offset += sizeof(positions);
+		ReadInput(positions, _sf, -_offset);
+
+		Rococo::Graphics::ITextTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetFormatQuad(*positions);
+	}
+	void NativeRococoGraphicsITextTesselatorTrySetFontIndex(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Rococo::Graphics::ITextTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isSet = _pObject->TrySetFontIndex(index);
+		_offset += sizeof(isSet);
+		WriteOutput(isSet, _sf, -_offset);
+	}
+	void NativeRococoGraphicsITextTesselatorTrySetFont(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float dotSize;
+		_offset += sizeof(dotSize);
+		ReadInput(dotSize, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::Graphics::ITextTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isSet = _pObject->TrySetFont(name, dotSize);
+		_offset += sizeof(isSet);
+		WriteOutput(isSet, _sf, -_offset);
+	}
+
+	void NativeGetHandleForRococoGraphicsTextTesselator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Platform* nceContext = reinterpret_cast<Rococo::Platform*>(_nce.context);
+		// Uses: Rococo::Graphics::ITextTesselator* FactoryConstructRococoGraphicsTextTesselator(Rococo::Platform* _context);
+		Rococo::Graphics::ITextTesselator* pObject = FactoryConstructRococoGraphicsTextTesselator(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { namespace Graphics { 
+	void AddNativeCalls_RococoGraphicsITextTesselator(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Graphics.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsTextTesselator, _nceContext, SEXTEXT("GetHandleForITextTesselator0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorAddBlankQuad, nullptr, SEXTEXT("ITextTesselatorAddBlankQuad (Pointer hObject)(Sys.Maths.Quadf positions)(Int32 paperColour) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorAddLeftAlignedText, nullptr, SEXTEXT("ITextTesselatorAddLeftAlignedText (Pointer hObject)(Int32 colour)(Sys.Type.IString text) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorClear, nullptr, SEXTEXT("ITextTesselatorClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorSaveMesh, nullptr, SEXTEXT("ITextTesselatorSaveMesh (Pointer hObject)(Sys.Type.IString meshName) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorSetUVScale, nullptr, SEXTEXT("ITextTesselatorSetUVScale (Pointer hObject)(Float32 scaleFactor) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorSetFormatQuad, nullptr, SEXTEXT("ITextTesselatorSetFormatQuad (Pointer hObject)(Sys.Maths.Quadf positions) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorTrySetFontIndex, nullptr, SEXTEXT("ITextTesselatorTrySetFontIndex (Pointer hObject)(Int32 index) -> (Bool isSet)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorTrySetFont, nullptr, SEXTEXT("ITextTesselatorTrySetFont (Pointer hObject)(Sys.Type.IString name)(Float32 dotSize) -> (Bool isSet)"));
 	}
 }}

@@ -181,7 +181,7 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
    {
       char pingPath[IO::MAX_PATHLEN];
       args.GetPingPath(pingPath, IO::MAX_PATHLEN);
-      platform.utilities.RefreshResource(platform, pingPath);
+      platform.utilities.RefreshResource(pingPath);
    }
 
    uint32 OnFrameUpdated(const IUltraClock& clock) override

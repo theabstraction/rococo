@@ -111,6 +111,28 @@ namespace Rococo
          return noBlend;
       }
 
+	  // Currently used to blend 2D text onto a 3D environment
+	  ID3D11BlendState* CreateAlphaAdditiveBlend(ID3D11Device& device)
+	  {
+		  D3D11_BLEND_DESC alphaBlendDesc;
+		  ZeroMemory(&alphaBlendDesc, sizeof(alphaBlendDesc));
+
+		  auto& blender = alphaBlendDesc.RenderTarget[0];
+
+		  blender.SrcBlendAlpha = D3D11_BLEND_ZERO;
+		  blender.SrcBlend = D3D11_BLEND_SRC_ALPHA;
+		  blender.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		  blender.DestBlendAlpha = D3D11_BLEND_ONE;
+		  blender.BlendOpAlpha = D3D11_BLEND_OP_MAX;
+		  blender.BlendEnable = TRUE;
+		  blender.BlendOp = D3D11_BLEND_OP_ADD;
+		  blender.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+		  ID3D11BlendState* alphaBlend = nullptr;
+		  VALIDATEDX11(device.CreateBlendState(&alphaBlendDesc, &alphaBlend));
+		  return alphaBlend;
+	  }
+
 	  ID3D11BlendState* CreateAdditiveBlend(ID3D11Device& device)
 	  {
 		  D3D11_BLEND_DESC blendDesc;

@@ -61,9 +61,6 @@ cbuffer light: register(b2)
 ScreenVertex main(ObjectVertex v)
 {
 	ScreenVertex sv;
-
-
-
 	float4 instancePos = mul(instanceMatrix, float4(v.position,1.0f));
 	sv.position = mul(worldMatrixAndProj, instancePos);
 	sv.normal = mul(instanceMatrix, float4(v.normal.xyz,0.0f));

@@ -1091,7 +1091,7 @@ namespace
 					platform.installation.ConvertSysPathToPingPath(ld.path, pingPath, IO::MAX_PATHLEN);
 					Load(pingPath);
 					SafeFormat(levelpath, sizeof(levelpath), "%s", ld.path);
-					platform.utilities.AddSubtitle(platform, ld.shortName);
+					platform.utilities.AddSubtitle(ld.shortName);
 				}
 				catch (IException& ex)
 				{
@@ -1114,7 +1114,7 @@ namespace
 			{
 				Save(sd.path);
 				SafeFormat(levelpath, sizeof(levelpath), "%s", sd.path);
-				platform.utilities.AddSubtitle(platform, sd.shortName);
+				platform.utilities.AddSubtitle(sd.shortName);
 			}
 		}
 
@@ -1189,12 +1189,12 @@ namespace
 			REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorLoad, "editor.load", nullptr);
 			REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorSave, "editor.save", nullptr);
 
-			objectLayoutEditor = platform.utilities.CreateBloodyPropertySetEditor(_platform, *this);
-			wallEditor = platform.utilities.CreateBloodyPropertySetEditor(_platform, *this);
-			floorEditor = platform.utilities.CreateBloodyPropertySetEditor(_platform, *this);
-			ceilingEditor = platform.utilities.CreateBloodyPropertySetEditor(_platform, *this);
-			corridorEditor = platform.utilities.CreateBloodyPropertySetEditor(_platform, *this);
-			lightEditor = platform.utilities.CreateBloodyPropertySetEditor(_platform, *this);
+			objectLayoutEditor = platform.utilities.CreateBloodyPropertySetEditor(*this);
+			wallEditor = platform.utilities.CreateBloodyPropertySetEditor(*this);
+			floorEditor = platform.utilities.CreateBloodyPropertySetEditor(*this);
+			ceilingEditor = platform.utilities.CreateBloodyPropertySetEditor(*this);
+			corridorEditor = platform.utilities.CreateBloodyPropertySetEditor(*this);
+			lightEditor = platform.utilities.CreateBloodyPropertySetEditor( *this);
 
 			platform.publisher.Attach(this, HV::Events::changeDefaultTextureId);
 

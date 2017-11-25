@@ -75,7 +75,7 @@ namespace HV
 
          void Execute(cstr name)
          {
-            e.platform.utilities.RunEnvironmentScript(e.platform, *this, name, true);
+            e.platform.utilities.RunEnvironmentScript(*this, name, true);
          }
       } sc(e);
 

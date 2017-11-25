@@ -53,7 +53,7 @@
 		while (origin.z < minHeight)
 	)
 	
-	(leg.CopyToMeshBuilder meshName true false)
+	(leg.CopyToMeshBuilder meshName true false true)
 )
 
 (function AddToMeshByPosition (IMeshBuilder mb)(Vec3 position)(IString subitemName)-> :

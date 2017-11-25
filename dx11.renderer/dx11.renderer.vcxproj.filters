@@ -10,6 +10,8 @@
     <FxCompile Include="r32f.ps.hlsl" />
     <FxCompile Include="ambient.ps.hlsl" />
     <FxCompile Include="ambient.vs.hlsl" />
+    <FxCompile Include="scroll.ambient.ps.hlsl" />
+    <FxCompile Include="scroll.spotlight.ps.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11.swapchain.cpp">

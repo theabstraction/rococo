@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2006
+VisualStudioVersion = 15.0.27004.2009
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.windows", "rococo.windows\rococo.windows.vcxproj", "{997A007C-24B0-44FE-A27E-0EE006D74128}"
 EndProject
@@ -123,6 +123,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.mplat.dynamic", "roc
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WindowFontAPI", "GisephoneFonts\WindowFontAPI\WindowFontAPI.vcxproj", "{6D76C0BE-96B8-4C1F-8B7A-FEBAB295AE96}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FontGenerator", "GisephoneFonts\FontGenerator\FontGenerator.csproj", "{1658528C-598E-438A-AC72-75E16A47CBF4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -288,6 +290,14 @@ Global
 		{6D76C0BE-96B8-4C1F-8B7A-FEBAB295AE96}.Release|x64.ActiveCfg = Release|x64
 		{6D76C0BE-96B8-4C1F-8B7A-FEBAB295AE96}.Release|x64.Build.0 = Release|x64
 		{6D76C0BE-96B8-4C1F-8B7A-FEBAB295AE96}.Release|x86.ActiveCfg = Release|x64
+		{1658528C-598E-438A-AC72-75E16A47CBF4}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{1658528C-598E-438A-AC72-75E16A47CBF4}.Debug|x64.ActiveCfg = Debug|x64
+		{1658528C-598E-438A-AC72-75E16A47CBF4}.Debug|x64.Build.0 = Debug|x64
+		{1658528C-598E-438A-AC72-75E16A47CBF4}.Debug|x86.ActiveCfg = Debug|x64
+		{1658528C-598E-438A-AC72-75E16A47CBF4}.Release|Any CPU.ActiveCfg = Release|x64
+		{1658528C-598E-438A-AC72-75E16A47CBF4}.Release|x64.ActiveCfg = Release|x64
+		{1658528C-598E-438A-AC72-75E16A47CBF4}.Release|x64.Build.0 = Release|x64
+		{1658528C-598E-438A-AC72-75E16A47CBF4}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -61,7 +61,7 @@
 	(Int32 stopperDivs = (AnyInt 4 6))
 	(bottle.AddTube stopperLength (AnyFloat 0.01 0.02) (AnyFloat 0.01 0.035) stopperDivs)
 	
-	(bottle.CopyToMeshBuilder meshName false false)
+	(bottle.CopyToMeshBuilder meshName false false true)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):

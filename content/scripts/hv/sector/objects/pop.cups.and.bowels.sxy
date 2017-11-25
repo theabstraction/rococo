@@ -32,7 +32,7 @@
 	(bowl.AddTube 0.01 0.18 0.24 16)
 	(bowl.AddBowl 0.25 0.18 12 2 7 16)
 	
-	(bowl.CopyToMeshBuilder meshName false false)
+	(bowl.CopyToMeshBuilder meshName false false true)
 )
 
 (function MakeBarrel (IString meshName) -> :
@@ -57,7 +57,7 @@
 	
 	(barrel.Scale 1 1 1)
 	
-	(barrel.CopyToMeshBuilder meshName false false)
+	(barrel.CopyToMeshBuilder meshName false false true)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):

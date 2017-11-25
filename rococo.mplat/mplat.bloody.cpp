@@ -1450,7 +1450,7 @@ namespace ANON
 					}
 					else
 					{
-						if (platform.utilities.QueryYesNo(platform, platform.renderer.Window(), "Cannot locate file. Navigate to content?"))
+						if (platform.utilities.QueryYesNo(platform.renderer.Window(), "Cannot locate file. Navigate to content?"))
 						{
 							SafeFormat(sd.path, sizeof(sd.path), "%s", contentSubDir.c_str());
 							changed = platform.utilities.GetSaveLocation(platform.renderer.Window(), sd);
@@ -1459,7 +1459,7 @@ namespace ANON
 				}
 				else
 				{
-					if (platform.utilities.QueryYesNo(platform, platform.renderer.Window(), "Path did not begin with ping. Navigate to content?"))
+					if (platform.utilities.QueryYesNo(platform.renderer.Window(), "Path did not begin with ping. Navigate to content?"))
 					{
 						SafeFormat(sd.path, sizeof(sd.path), "%s", contentSubDir.c_str());
 						changed = platform.utilities.GetSaveLocation(platform.renderer.Window(), sd);

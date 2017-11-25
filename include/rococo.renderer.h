@@ -208,13 +208,19 @@ namespace Rococo
 		int32 NumberOfElements;
 	};
 
+	namespace Fonts
+	{
+		struct IFont;
+	}
+
 	ROCOCOAPI IRenderer
 	{
 	  virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
 	  virtual void ClearMeshes() = 0;
-	  virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices, bool disableShadowCasting) = 0;
+	  virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
 	  virtual void DeleteMesh(ID_SYS_MESH id) = 0;
 	  virtual ID_TEXTURE FindTexture(cstr name) const = 0;
+	  virtual Fonts::IFont& FontMetrics() = 0;
 	  virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
 	  virtual void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const = 0;
 	  virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id) = 0;
@@ -228,6 +234,8 @@ namespace Rococo
 	  virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
 	  virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
 	  virtual void SetCursorVisibility(bool isVisible) = 0;
+	  virtual void SetShadowCasting(ID_SYS_MESH id, boolean32 isActive) = 0;
+	  virtual void SetSpecialShader(ID_SYS_MESH id, cstr psSpotlightPingPath, cstr psAmbientPingPath, bool alphaBlending) = 0;
 	  virtual void ShowWindowVenue(IMathsVisitor& visitor) = 0;
 	  virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
 	  virtual void SwitchToWindowMode() = 0;

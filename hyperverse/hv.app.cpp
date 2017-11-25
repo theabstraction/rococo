@@ -201,7 +201,7 @@ namespace HV
 			}
 			else if (Eq(ext, ".sxy"))
 			{
-				e.platform.utilities.RefreshResource(e.platform, pingname);
+				e.platform.utilities.RefreshResource(pingname);
 
 				if (args.Matches("!scripts/hv/main.sxy"))
 				{

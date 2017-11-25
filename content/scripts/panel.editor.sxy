@@ -27,7 +27,7 @@
 )
 
 (function AddLabel (IString text)(IPaneContainer builder)(IString cmd)(Bool defer)-> :
-	(Recti rect = 0 0 20 16)
+	(Recti rect = 0 0 20 18)
 	(ILabelPane label = (builder.AddLabel 9 text rect))
 	(IPane labelBase = label.Base)
 	(labelBase.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
@@ -83,7 +83,7 @@
 	(SetTransparentBackground cbase)
 	(cbase.SetPopulator 0 "sector_editor")
 	
-	(Recti menuRect = 10 10 110 130)
+	(Recti menuRect = 10 10 100 150)
 	(IPaneContainer menu = (container.AddContainer menuRect))
 	(IPane mbase = menu.Base)
 	(mbase.SetColourBk1   0xAF000000 0xAF000000)

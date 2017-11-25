@@ -369,6 +369,7 @@ namespace ANON
 	   AutoRelease<ID3D11RasterizerState> objectRaterizering;
 	   AutoRelease<ID3D11RasterizerState> shadowRaterizering;
 	   AutoRelease<ID3D11BlendState> alphaBlend;
+	   AutoRelease<ID3D11BlendState> alphaAdditiveBlend;
 	   AutoRelease<ID3D11BlendState> disableBlend;
 	   AutoRelease<ID3D11BlendState> additiveBlend;
 
@@ -465,6 +466,7 @@ namespace ANON
 		   objectRaterizering = DX11::CreateObjectRasterizer(device);
 		   shadowRaterizering = DX11::CreateShadowRasterizer(device);
 		   alphaBlend = DX11::CreateAlphaBlend(device);
+		   alphaAdditiveBlend = DX11::CreateAlphaAdditiveBlend(device);
 		   disableBlend = DX11::CreateNoBlend(device);
 		   additiveBlend = DX11::CreateAdditiveBlend(device);
 
@@ -553,6 +555,11 @@ namespace ANON
 			   if (t.texture) t.texture->Release();
 			   if (t.view) t.view->Release();
 		   }
+	   }
+
+	   Fonts::IFont& FontMetrics() override
+	   {
+		   return *fonts;
 	   }
 
 	   int32 cubeMaterialId[6] = { -1,-1,-1,-1,-1,-1 };
@@ -711,6 +718,19 @@ namespace ANON
 			   {
 				   SafeFormat(desc, 256, "Null object");
 			   }
+		   }
+	   }
+
+	   void SetShadowCasting(ID_SYS_MESH id, boolean32 isActive)
+	   {
+		   if (!id || id.value >= meshBuffers.size())
+		   {
+			   Throw(0, "DX11ApRenderer::SetShadowCasting(...): unknown id");
+		   }
+		   else
+		   {
+			   auto& m = meshBuffers[id.value];
+			   m.disableShadowCasting = !isActive;
 		   }
 	   }
 
@@ -1338,6 +1358,9 @@ namespace ANON
 		   return span;
 	   }
 
+	   ID_PIXEL_SHADER currentPixelShaderId;
+	   ID_VERTEX_SHADER currentVertexShaderId;
+
 	   bool UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid)
 	   {
 		   if (vid.value >= vertexShaders.size()) Throw(0, "Bad vertex shader Id in call to UseShaders");
@@ -1361,6 +1384,8 @@ namespace ANON
 			   dc.IASetInputLayout(nullptr);
 			   dc.VSSetShader(nullptr, nullptr, 0);
 			   dc.PSSetShader(nullptr, nullptr, 0);
+			   currentVertexShaderId = ID_VERTEX_SHADER();
+			   currentPixelShaderId = ID_PIXEL_SHADER();
 			   return false;
 		   }
 		   else
@@ -1368,6 +1393,8 @@ namespace ANON
 			   dc.IASetInputLayout(vs.inputLayout);
 			   dc.VSSetShader(vs.vs, nullptr, 0);
 			   dc.PSSetShader(ps.ps, nullptr, 0);
+			   currentVertexShaderId = vid;
+			   currentPixelShaderId = pid;
 			   return true;
 		   }
 	   }
@@ -1415,23 +1442,57 @@ namespace ANON
 		   ID3D11Buffer* dx11Buffer;
 		   UINT numberOfVertices;
 		   D3D_PRIMITIVE_TOPOLOGY topology;
+		   ID_PIXEL_SHADER psSpotlightShader;
+		   ID_PIXEL_SHADER psAmbientShader;
+		   bool alphaBlending;
 		   bool disableShadowCasting;
 	   };
 
 	   std::vector<MeshBuffer> meshBuffers;
 	   int64 meshUpdateCount = 0;
 
-	   virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices, bool disableShadowCasting)
+	   ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) override
 	   {
 		   ID3D11Buffer* meshBuffer = vertices ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
-		   meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, disableShadowCasting });
+		   meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, ID_PIXEL_SHADER(), ID_PIXEL_SHADER(), false, false});
 		   int32 index = (int32)meshBuffers.size();
 		   return ID_SYS_MESH(index - 1);
 	   }
 
-	   virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices)
+	   void SetSpecialShader(ID_SYS_MESH id, cstr psSpotlightPingPath, cstr psAmbientPingPath, bool alphaBlending) override
 	   {
-		   if (rendererId.value < 0 || rendererId.value >= meshBuffers.size())
+		   if (id.value < 0 || id.value >= meshBuffers.size())
+		   {
+			   Throw(E_INVALIDARG, "renderer.SetSpecialShader(ID_MESH id, ....) - Bad id ");
+		   }
+
+		   auto& m = meshBuffers[id.value];
+		   
+		   auto i = nameToPixelShader.find(psSpotlightPingPath);
+		   if (i == nameToPixelShader.end())
+		   {
+			   installation.LoadResource(psSpotlightPingPath, *scratchBuffer, 64_kilobytes);
+			   auto pxId = CreatePixelShader(psSpotlightPingPath, scratchBuffer->GetData(), scratchBuffer->Length());
+			   i = nameToPixelShader.insert(std::make_pair(std::string(psSpotlightPingPath), pxId)).first;
+		   }
+
+		   m.psSpotlightShader = i->second;
+		   
+		   i = nameToPixelShader.find(psAmbientPingPath);
+		   if (i == nameToPixelShader.end())
+		   {
+			   installation.LoadResource(psAmbientPingPath, *scratchBuffer, 64_kilobytes);
+			   auto pxId = CreatePixelShader(psAmbientPingPath, scratchBuffer->GetData(), scratchBuffer->Length());
+			   i = nameToPixelShader.insert(std::make_pair(std::string(psAmbientPingPath), pxId)).first;
+		   }
+
+		   m.psAmbientShader = i->second;
+		   m.alphaBlending = alphaBlending;
+	   }
+	   
+	   void UpdateMesh(ID_SYS_MESH id, const ObjectVertex* vertices, uint32 nVertices) override
+	   {
+		   if (id.value < 0 || id.value >= meshBuffers.size())
 		   {
 			   Throw(E_INVALIDARG, "renderer.UpdateMesh(ID_MESH id, ....) - Bad id ");
 		   }
@@ -1439,44 +1500,90 @@ namespace ANON
 		   meshUpdateCount++;
 
 		   ID3D11Buffer* newMesh = vertices != nullptr ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
-		   meshBuffers[rendererId.value].numberOfVertices = nVertices;
+		   meshBuffers[id.value].numberOfVertices = nVertices;
 
-		   if (meshBuffers[rendererId.value].dx11Buffer) meshBuffers[rendererId.value].dx11Buffer->Release();
-		   meshBuffers[rendererId.value].dx11Buffer = newMesh;
+		   if (meshBuffers[id.value].dx11Buffer) meshBuffers[id.value].dx11Buffer->Release();
+		   meshBuffers[id.value].dx11Buffer = newMesh;
 	   }
 
-	   bool castingShadows = false;
+	   enum RenderPhase
+	   {
+		   RenderPhase_None,
+		   RenderPhase_DetermineShadowVolumes,
+		   RenderPhase_DetermineSpotlight,
+		   RenderPhase_DetermineAmbient
+	   };
+
+	   RenderPhase phase = RenderPhase_None;
 
 	   virtual void Draw(ID_SYS_MESH id, const ObjectInstance* instances, uint32 nInstances)
 	   {
 		   if (id.value < 0 || id.value >= meshBuffers.size()) Throw(E_INVALIDARG, "renderer.DrawObject(ID_MESH id) - Bad id ");
 
-		   auto& buffer = meshBuffers[id.value];
+		   auto& m = meshBuffers[id.value];
 
-		   if (!buffer.dx11Buffer)
+		   if (!m.dx11Buffer)
 			   return;
 
-		   if (castingShadows && buffer.disableShadowCasting)
+		   if (phase == RenderPhase_DetermineShadowVolumes && m.disableShadowCasting)
 			   return;
 
-		   ID3D11Buffer* buffers[] = { buffer.dx11Buffer };
+		   ID3D11Buffer* buffers[] = { m.dx11Buffer };
 
-		   dc.IASetPrimitiveTopology(buffer.topology);
+		   entitiesThisFrame += (int64) nInstances;
+
+		   bool overrideShader = false;
+
+		   if (m.psSpotlightShader && phase == RenderPhase_DetermineSpotlight)
+		   {
+			   UseShaders(currentVertexShaderId, m.psSpotlightShader);
+			   overrideShader = true;
+		   }
+		   else if (m.psAmbientShader && phase == RenderPhase_DetermineAmbient)
+		   {
+			   UseShaders(currentVertexShaderId, m.psAmbientShader);
+			   overrideShader = true;
+		   }
+
+		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+		   if (m.alphaBlending)
+		   {
+			   dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
+	//		   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
+		   }
 
 		   UINT strides[] = { sizeof(ObjectVertex) };
 		   UINT offsets[]{ 0 };
+		   dc.IASetPrimitiveTopology(m.topology);
 		   dc.IASetVertexBuffers(0, 1, buffers, strides, offsets);
-
-		   entitiesThisFrame += (int64) nInstances;
 
 		   for (uint32 i = 0; i < nInstances; i++)
 		   {
 			   // dc.DrawInstances crashed the debugger, replace with single instance render call for now
 			   DX11::CopyStructureToBuffer(dc, instanceBuffer, instances + i, sizeof(ObjectInstance));
 			   dc.VSSetConstantBuffers(1, 1, &instanceBuffer);
-			   dc.Draw(buffer.numberOfVertices, 0);
+			   dc.Draw(m.numberOfVertices, 0);
 
-			   trianglesThisFrame += buffer.numberOfVertices / 3;
+			   trianglesThisFrame += m.numberOfVertices / 3;
+		   }
+
+		   if (overrideShader)
+		   {
+			   UseShaders(currentVertexShaderId, currentPixelShaderId);	   
+		   }
+		   
+		   if (m.alphaBlending)
+		   {
+			   if (builtFirstPass)
+			   {
+				   dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
+		//		   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
+			   }
+			   else
+			   {
+				   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
+				   builtFirstPass = true;
+			   }
 		   }
 	   }
 
@@ -1580,6 +1687,8 @@ namespace ANON
 		   UseShaders(idGuiVS, idGuiPS);
 	   }
 
+	   bool builtFirstPass = false;
+
 	   virtual void Render(IScene& scene)
 	   {
 		   trianglesThisFrame = 0;
@@ -1614,8 +1723,11 @@ namespace ANON
 
 		   dc.PSSetShaderResources(3, 1, &cubeTextureView);
 
-		   bool builtFirstPass = false;
+		   dc.PSSetShaderResources(0, 1, &fontBinding);
+
+		   builtFirstPass = false;
 		   size_t nLights = 0;
+
 		   const Light* lights = scene.GetLights(nLights);
 		   for (size_t i = 0; i < nLights; ++i)
 		   {
@@ -1660,9 +1772,8 @@ namespace ANON
 
 				   dc.RSSetState(shadowRaterizering);
 
-				   castingShadows = true;
+				   phase = RenderPhase_DetermineShadowVolumes;
 				   scene.RenderShadowPass(drd, *this);
-				   castingShadows = false;
 
 				   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
 
@@ -1697,7 +1808,9 @@ namespace ANON
 				   dc.PSSetShaderResources(2, 1, &shadowBufferView);
 				   dc.RSSetState(objectRaterizering);
 
+				   phase = RenderPhase_DetermineSpotlight;
 				   scene.RenderObjects(*this);
+				   phase = RenderPhase_None;
 
 				   dc.OMSetDepthStencilState(objDepthState, 0);
 			   }
@@ -1730,7 +1843,9 @@ namespace ANON
 			   DX11::CopyStructureToBuffer(dc, ps_AmbientBuffer, ad);
 			   dc.PSSetConstantBuffers(0, 1, &ps_AmbientBuffer);
 
+			   phase = RenderPhase_DetermineAmbient;
 			   scene.RenderObjects(*this);
+			   phase = RenderPhase_None;
 		   }
 
 		   ID3D11ShaderResourceView* nullView = nullptr;

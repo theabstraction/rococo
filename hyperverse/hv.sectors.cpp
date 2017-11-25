@@ -451,7 +451,7 @@ namespace ANON
 			   platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, "Algorithmic error creating sector. Try something simpler");
 
 #ifdef _DEBUG
-			   if (platform.utilities.QueryYesNo(platform, platform.renderer.Window(), "Try again?"))
+			   if (platform.utilities.QueryYesNo(platform.renderer.Window(), "Try again?"))
 			   {
 				   OS::TripDebugger();
 				   OS::PrintDebug("\n\n\n // Troublesome perimeter: \n");
@@ -611,7 +611,7 @@ namespace ANON
 		   p.This = this;
 
 		   cstr thePopulateScript = *populateScript != 0 ? populateScript : "#objects/pop.default.sxy";
-		   platform.utilities.RunEnvironmentScript(platform, p, thePopulateScript, true, false);
+		   platform.utilities.RunEnvironmentScript(p, thePopulateScript, true, false);
 	   }
    };
 }

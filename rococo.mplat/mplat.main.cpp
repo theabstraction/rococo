@@ -82,35 +82,50 @@ class Utilities : public IUtilitiies, public IMathsVenue
 {
 	IInstallation& installation;
 	IRenderer& renderer;
+	AutoFree<Graphics::ITextTesselatorSupervisor> textTesselator;
+	Platform* platform = nullptr;
 public:
-	Utilities(IInstallation& _installation, IRenderer& _renderer) : installation(_installation), renderer(_renderer) {}
+	Utilities(IInstallation& _installation, IRenderer& _renderer) : installation(_installation), renderer(_renderer) 
+	{
+	}
+
+	void SetPlatform(Platform& platform)
+	{
+		this->platform = &platform;
+		textTesselator = Graphics::CreateTextTesselator(platform);
+	}
 
 	IScrollbar* CreateScrollbar(bool _isVertical) override;
+
+	Graphics::ITextTesselator& GetTextTesselator() override
+	{
+		return *textTesselator;
+	}
 
 	IMathsVenue* Venue() override
 	{
 		return this;
 	}
 
-	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty) override
+	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty) override
 	{
-		return Rococo::CreateBloodyPropertySetEditor(_platform, _onDirty);
+		return Rococo::CreateBloodyPropertySetEditor(*platform, _onDirty);
 	}
 
-	void AddSubtitle(Platform& platform, cstr subtitle)
+	void AddSubtitle(cstr subtitle)
 	{
 		char fullTitle[256];
 
 		if (subtitle && subtitle[0])
 		{
-			SafeFormat(fullTitle, sizeof(fullTitle), "%s - %s", platform.title, subtitle);
+			SafeFormat(fullTitle, sizeof(fullTitle), "%s - %s", platform->title, subtitle);
 		}
 		else
 		{
-			SafeFormat(fullTitle, sizeof(fullTitle), "%s", platform.title);
+			SafeFormat(fullTitle, sizeof(fullTitle), "%s", platform->title);
 		}
 
-		SetWindowTextA(platform.renderer.Window(), fullTitle);
+		SetWindowTextA(platform->renderer.Window(), fullTitle);
 	}
 
 	bool GetLoadLocation(Windows::IWindow& parent, LoadDesc& ld) override
@@ -226,9 +241,9 @@ public:
 		}
 	}
 
-	bool QueryYesNo(Platform& platform, Windows::IWindow& parent, cstr question, cstr caption) override
+	bool QueryYesNo(Windows::IWindow& parent, cstr question, cstr caption) override
 	{
-		cstr title = caption == nullptr ? platform.title : caption;
+		cstr title = caption == nullptr ? platform->title : caption;
 		renderer.SwitchToWindowMode();
 		return ShowMessageBox(parent, question, title, MB_ICONQUESTION | MB_YESNO) == IDYES;
 	}
@@ -257,10 +272,10 @@ public:
 		}
 	}
 
-	void RunEnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail) override
+	void RunEnvironmentScript(IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail) override
 	{
 		ScriptPerformanceStats stats = { 0 };
-		M::RunEnvironmentScript(stats, platform, _onScriptEvent, name, addPlatform, shutdownOnFail);
+		M::RunEnvironmentScript(stats, *platform, _onScriptEvent, name, addPlatform, shutdownOnFail);
 
 		auto i = nameToStats.find(name);
 		if (i == nameToStats.end())
@@ -280,14 +295,14 @@ public:
 		OS::ShowErrorBox(parent, ex, message);
 	}
 
-	void RefreshResource(Platform& platform, cstr pingPath) override
+	void RefreshResource(cstr pingPath) override
 	{
 		FileUpdatedEvent fileUpdated;
 		fileUpdated.pingPath = pingPath;
 
-		platform.sourceCache.Release(pingPath);
+		platform->sourceCache.Release(pingPath);
 
-		platform.publisher.Publish(fileUpdated);
+		platform->publisher.Publish(fileUpdated);
 	}
 
 	IVariableEditor* CreateVariableEditor(Windows::IWindow& window, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const Vec2i* topLeft) override
@@ -2392,7 +2407,7 @@ public:
 	void RefreshScript()
 	{
 		FreeAllChildren();
-		platform.utilities.RunEnvironmentScript(platform, *this, scriptFilename.c_str(), false);
+		platform.utilities.RunEnvironmentScript(*this, scriptFilename.c_str(), false);
 	}
 
 	void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
@@ -3066,6 +3081,7 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 	Tesselators tesselators{ *rimTesselator };
 	Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *sprites, *camera, *scene, tesselators, *mathsVisitor, title };
 	gui.platform = &platform;
+	utils.SetPlatform(platform);
 
 	AutoFree<IApp> app(appFactory.CreateApp(platform));
 

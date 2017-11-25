@@ -156,7 +156,7 @@
 	(table.SetUVScale 0.25)
 	(table.AddBox 0.05 nw ne se sw)
 	
-	(table.CopyToMeshBuilder meshName false false)
+	(table.CopyToMeshBuilder meshName false false true)
 )
 
 (function MakeChair (IString meshName) -> :
@@ -249,7 +249,7 @@
 	
 	(chair.AddSphere 0.05 4 4)
 	
-	(chair.CopyToMeshBuilder meshName false false)
+	(chair.CopyToMeshBuilder meshName false false true)
 )
 
 (function MakeSword (IString meshName) -> :
@@ -315,7 +315,7 @@
 		(sword.ClearVertices)
 	)
 	
-	(sword.CopyToMeshBuilder meshName true false)
+	(sword.CopyToMeshBuilder meshName true false true)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):

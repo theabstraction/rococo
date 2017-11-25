@@ -919,7 +919,7 @@ namespace ANON
 			return true;
 		}
 
-		void CopyToMeshBuilder(const fstring& meshName, boolean32 preserveMesh, boolean32 isInvisible)
+		void CopyToMeshBuilder(const fstring& meshName, boolean32 preserveMesh, boolean32 isInvisible, boolean32 castsShadows)
 		{
 			platform.meshes.Begin(meshName);
 
@@ -929,6 +929,7 @@ namespace ANON
 			}
 
 			platform.meshes.End(preserveMesh, isInvisible);
+			platform.meshes.SetShadowCasting(meshName, castsShadows);
 		}
 
 		void GetOrigin(Vec3& origin)

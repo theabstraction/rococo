@@ -211,7 +211,7 @@ namespace ANON
 
 		   Vec3 originDisplacement = Vec3{ x0, y0, 0 } -newBounds.minXYZ;
 		   Vec2 tileBottomLeft = { container.left, container.bottom };
-		   Vec3 position = Vec3{ tileBottomLeft.x, tileBottomLeft.y, z0 } +originDisplacement;
+		   Vec3 position = Vec3{ tileBottomLeft.x, tileBottomLeft.y, z0 + 0.001f } +originDisplacement;
 
 		   auto T = Matrix4x4::Translate(position);
 
@@ -785,7 +785,7 @@ namespace ANON
 		  try
 		  {
 			  cstr theWallScript = *wallScript ? wallScript : "#walls/stretch.bricks.sxy";
-			  platform.utilities.RunEnvironmentScript(platform, scriptCallback, theWallScript, true, false);
+			  platform.utilities.RunEnvironmentScript(scriptCallback, theWallScript, true, false);
 			  return true;
 		  }
 		  catch (IException& ex)
@@ -917,7 +917,7 @@ namespace ANON
 		  try
 		  {
 			  cstr theFloorScript = *floorScript ? floorScript : "#floors/square.mosaics.sxy";
-			  platform.utilities.RunEnvironmentScript(platform, scriptCallback, theFloorScript, true, false);
+			  platform.utilities.RunEnvironmentScript(scriptCallback, theFloorScript, true, false);
 			  return true;
 		  }
 		  catch (IException& ex)
@@ -1506,7 +1506,7 @@ namespace ANON
 
 		 try
 		 {	
-			 platform.utilities.RunEnvironmentScript(platform, scriptCallback, genCorridor, true);
+			 platform.utilities.RunEnvironmentScript(scriptCallback, genCorridor, true);
 		 }
 		 catch (IException& ex)
 		 {

@@ -17,7 +17,6 @@ namespace
 	   AABB bounds; // Bounding box surrounding mesh
 	   ObjectVertex* pVertexArray;
 	   size_t nVertices;
-	   bool disableShadowCasting;
    };
 
    struct MeshBuilder : public Rococo::Graphics::IMeshBuilderSupervisor, IMathsVenue
@@ -26,7 +25,6 @@ namespace
 	  rchar name[MAX_FQ_NAME_LEN + 1] = { 0 };
       std::vector<ObjectVertex> vertices;
       IRenderer& renderer;
-	  bool disableShadowCasting = false;
 
       MeshBuilder(IRenderer& _renderer) : renderer(_renderer)
       {
@@ -48,17 +46,17 @@ namespace
       {
          name[0] = 0;
          vertices.clear();
-		 disableShadowCasting = false;
       }
 
-	  void DisableShadowCasting() override
+	  void SetShadowCasting(const fstring& meshName, boolean32 isActive) override
 	  {
-		  if (*name != 0)
+		  auto i = meshes.find((cstr)meshName);
+		  if (i == meshes.end())
 		  {
-			  Throw(0, "MeshBuilder::DisableShadowCasting(): only valid between Begin and End");
+			  Throw(0, "MeshBuilder::SetShadowCasating('%s') - mesh unknown. %s", (cstr)meshName);
 		  }
 
-		  disableShadowCasting = true;
+		  renderer.SetShadowCasting(i->second.id, isActive);
 	  }
 
       void Delete(const fstring& fqName) override
@@ -128,8 +126,6 @@ namespace
          {
             Throw(0, "Call MeshBuilder.End() first");
          }
-
-		 disableShadowCasting = false;
 
          StackStringBuilder sb(name, sizeof(name));
          sb << fqName;
@@ -207,12 +203,23 @@ namespace
          }
          else
          {
-            auto id = renderer.CreateTriangleMesh(invisible ? nullptr : v, invisible ? 0 : (uint32)vertices.size(), disableShadowCasting);
-			meshes[name] = MeshBinding { id, boundingBox, backup, vertices.size(), disableShadowCasting };
+            auto id = renderer.CreateTriangleMesh(invisible ? nullptr : v, invisible ? 0 : (uint32)vertices.size());
+			meshes[name] = MeshBinding { id, boundingBox, backup, vertices.size() };
          }
 
          Clear();
       }
+
+	  void SetSpecialShader(const fstring& fqName, const fstring& psSpotlightPingPath, const fstring& psAmbientPingPath, boolean32 alphaBlending)
+	  {
+		  auto i = meshes.find((cstr)fqName);
+		  if (i == meshes.end())
+		  {
+			  Throw(0, "MeshBuilder::SetSpecialShader(...%s): mesh not found", (cstr)name);
+		  }
+
+		  renderer.SetSpecialShader(i->second.id, psSpotlightPingPath, psAmbientPingPath, alphaBlending);
+	  }
 
 	  void Span(Vec3& span, const fstring& name)
 	  {
