@@ -63,7 +63,6 @@ float4 per_pixel_lighting(PixelVertex p)
 
 	texel.xyz *= fogging;
 
-	return texel;
 	return float4(texel.xyz * ambience.localLight.xyz, texel.w);
 }
 

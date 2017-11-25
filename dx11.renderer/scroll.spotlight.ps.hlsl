@@ -114,9 +114,7 @@ float4 per_pixel_lighting(PixelVertex p)
 		float diffuse = pow(f, 16.0f) * g * pow(R2, light.attenuationRate);
 		float intensity = diffuse * falloff * fogging;
 
-		texel.xyz *= intensity;
-
-		return float4 (texel.xyz * light.colour.xyz, texel.w);
+		return float4 (texel.xyz * intensity * light.colour.xyz, texel.w);
 	}
 	else
 	{
