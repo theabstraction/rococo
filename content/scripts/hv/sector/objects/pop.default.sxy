@@ -334,12 +334,36 @@
 	
 	(Int32 addItemFlags = 0)
 	(addItemFlags = (addItemFlags + (#AddItemFlagsAlignEdge)))
+	
+	(IParticleSystem particles (ParticleSystem))
+	(particles.Clear)
 		
+	(IInstances instances (Instances))
+	
 	(#for (Int32 i = 0)(i < nSectors)(#inc i)
 		(ISectorLayout sector = (sectors.GetSector i))
 		(sector.DeleteScenery)
+		(sector.ClearManagedEntities)
 			
 		(ObjectCreationSpec ocs)
-		(sector.AddItemToLargestSquare "object.bed.1" addItemFlags ocs)
+		(Int64 id = (sector.AddItemToLargestSquare "object.bed.1" addItemFlags ocs))
+		
+		(Matrix4x4 bedModel)
+		(if (instances.TryGetModelToWorldMatrix id bedModel)
+			(Matrix4x4 wickModel)
+			(wickModel = bedModel)
+			(wickModel.r2.w = (wickModel.r2.w + 1))
+			
+			(Int64 wickId = (instances.AddGhost wickModel 0))	
+			(particles.AddVerticalFlame 2355 4 wickId)
+			(sector.ManageEntity wickId)
+			
+			(Int64 dustId = (instances.AddGhost bedModel 0))	
+			
+			(Vec2 altitudes)
+			(sector.Altitude altitudes)
+			(particles.AddDust 50 8 altitudes.x altitudes.y dustId)
+			(sector.ManageEntity dustId)
+		)
 	)
 )

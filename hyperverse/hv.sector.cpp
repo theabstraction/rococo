@@ -275,29 +275,21 @@ namespace ANON
 
 	   AABB2d aabb;
 
-	   std::vector<ParticleVertex> particles;
+	   std::vector<ID_ENTITY> managedEntities;
 
-	   void AddParticles() override
+	   void Altitude(Vec2& altitudes)
 	   {
-		   if (particles.empty())
-		   {
-			   for (auto& i : completeSquares)
-			   {
-				   for (float f = 0; f < 5 * i.Span().x * i.Span().y; f += 1.0f)
-				   {
-					   float dz = z1 - z0 - 0.5f;
-					   float z = Roll::AnyOf(0, dz + 0.25f);
-					   float x = Roll::AnyOf(i.left, i.right);
-					   float y = Roll::AnyOf(i.top, i.bottom);
-					   particles.push_back({ x, y, z });
-				   }
-			   }
-		   }
+		   altitudes = { z0, z1 };
+	   }
 
-		   for (auto& p : particles)
-		   {
-			   platform.renderer.AddParticle(p);
-		   }
+	   void ClearManagedEntities() override
+	   {
+		   managedEntities.clear();
+	   }
+
+	   void ManageEntity(ID_ENTITY id)  override
+	   {
+		   managedEntities.push_back(id);
 	   }
 
 	   const AABB2d& GetAABB() const override
@@ -2301,6 +2293,11 @@ namespace ANON
 		  for (auto& s : scenery)
 		  {
 			  cb.OnEvent(s.id);
+		  }
+
+		  for (auto& m : managedEntities)
+		  {
+			  cb.OnEvent(m);
 		  }
 	  }
 

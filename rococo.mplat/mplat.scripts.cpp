@@ -71,6 +71,11 @@ Rococo::IPaneBuilder* FactoryConstructRococoPaneBuilder(Rococo::IPaneBuilder* _c
    return _context;
 }
 
+Rococo::Entities::IParticleSystem* FactoryConstructRococoEntitiesParticleSystem(Rococo::Platform* platform)
+{
+	return &platform->particles;
+}
+
 Rococo::Entities::IInstances* FactoryConstructRococoEntitiesInstances(Rococo::Entities::IInstances* ins)
 {
    return ins;
@@ -149,6 +154,7 @@ namespace Rococo
 				  Graphics::AddNativeCalls_RococoGraphicsIRodTesselator(args.ss, &platform);
 				  Graphics::AddNativeCalls_RococoGraphicsITextTesselator(args.ss, &platform);
                   AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
+				  Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
 
 				  args.ss.AddNativeLibrary("rococo.sexy.mathsex");
                }

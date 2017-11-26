@@ -56,8 +56,7 @@
 			(0 0 0  1)
 		)
 		
-		(Vec3 scale = 1 1 1)
-		(instances.AddGhost model scale 0 -> playerId)
+		(instances.AddGhost model 0 -> playerId)
 		(mobiles.Link playerId)
 	)
 	

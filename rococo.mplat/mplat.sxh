@@ -169,6 +169,19 @@
 	(factory Rococo.Entities.Mobiles)
 )
 
+(interface
+	(as.sxy Rococo.Entities.IParticleSystem "../content/scripts/mplat")
+	(as.cpp Rococo.Entities.IParticleSystem "mplat")
+	(context factory Rococo.Platform)
+	(methods
+		(AddVerticalFlame  (Float32 kelvin)(Float32 candles)(IdEntity id))
+		(AddDust  (Int32 particles)(Metres range)(Metres minHeight)(Metres maxHeight)(IdEntity id))
+		(Snuff (IdEntity id))
+		(Clear)
+	)
+	(factory Rococo.Entities.ParticleSystem)
+)
+
 (enum Int32
 	(as.sxy Rococo.Graphics.OrientationFlags "../content/scripts/mplat")
 	(as.cpp Rococo.Graphics.OrientationFlags "mplat")
@@ -235,7 +248,7 @@
 	(context factory Rococo.Entities.IInstances)
 	(methods
 		(AddBody (IString modelName)(const Matrix4x4 model)(const Vec3 scale)(IdEntity parentId)->(IdEntity entityId))
-		(AddGhost (const Matrix4x4 model)(const Vec3 scale)(IdEntity parentId)->(IdEntity entityId))
+		(AddGhost (const Matrix4x4 model)(IdEntity parentId)->(IdEntity entityId))
 		(Delete (IdEntity id))
 		(LoadMaterialArray (IString folder)(Int32 txWidth))
 		(CountMaterialsInCategory (MaterialCategory category)->(Int32 count))

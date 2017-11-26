@@ -522,6 +522,20 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->FloorQuad(sqIndex, *q);
 	}
+	void NativeHVISectorLayoutAltitude(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2* altitudes;
+		_offset += sizeof(altitudes);
+		ReadInput(altitudes, _sf, -_offset);
+
+		HV::ISectorLayout* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Altitude(*altitudes);
+	}
 	void NativeHVISectorLayoutNumberOfSegments(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -648,6 +662,30 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->DeleteScenery();
 	}
+	void NativeHVISectorLayoutClearManagedEntities(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorLayout* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ClearManagedEntities();
+	}
+	void NativeHVISectorLayoutManageEntity(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		HV::ISectorLayout* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ManageEntity(id);
+	}
 
 }
 
@@ -659,6 +697,7 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVISectorLayoutGetSquare, nullptr, SEXTEXT("ISectorLayoutGetSquare (Pointer hObject)(Int32 sqIndex)(Rococo.AAB2d sq) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutCeilingQuad, nullptr, SEXTEXT("ISectorLayoutCeilingQuad (Pointer hObject)(Int32 sqIndex)(Rococo.QuadVertices q) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutFloorQuad, nullptr, SEXTEXT("ISectorLayoutFloorQuad (Pointer hObject)(Int32 sqIndex)(Rococo.QuadVertices q) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutAltitude, nullptr, SEXTEXT("ISectorLayoutAltitude (Pointer hObject)(Sys.Maths.Vec2 altitudes) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutNumberOfSegments, nullptr, SEXTEXT("ISectorLayoutNumberOfSegments (Pointer hObject) -> (Int32 segCount)"));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutNumberOfGaps, nullptr, SEXTEXT("ISectorLayoutNumberOfGaps (Pointer hObject) -> (Int32 gapCount)"));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutGetSegment, nullptr, SEXTEXT("ISectorLayoutGetSegment (Pointer hObject)(Int32 segIndex)(HV.WallSegment segment) -> "));
@@ -666,6 +705,8 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVISectorLayoutAddSceneryAroundObject, nullptr, SEXTEXT("ISectorLayoutAddSceneryAroundObject (Pointer hObject)(Sys.Type.IString mesh)(Int64 centrePieceId)(HV.InsertItemSpec iis)(HV.ObjectCreationSpec ocs) -> (Int64 id)"));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutAddItemToLargestSquare, nullptr, SEXTEXT("ISectorLayoutAddItemToLargestSquare (Pointer hObject)(Sys.Type.IString mesh)(Int32 addItemFlags)(HV.ObjectCreationSpec ocs) -> (Int64 id)"));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutDeleteScenery, nullptr, SEXTEXT("ISectorLayoutDeleteScenery (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutClearManagedEntities, nullptr, SEXTEXT("ISectorLayoutClearManagedEntities (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutManageEntity, nullptr, SEXTEXT("ISectorLayoutManageEntity (Pointer hObject)(Int64 id) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ITriangleList 

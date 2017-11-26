@@ -203,6 +203,14 @@ namespace Rococo
       IMobilesSupervisor* CreateMobilesSupervisor(Entities::IInstancesSupervisor& instances);
 
       IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher);
+
+	  ROCOCOAPI IParticleSystemSupervisor: IParticleSystem
+	  {
+		  virtual void Free() = 0;
+		  virtual void GetParticles(ID_ENTITY id, IRenderer& renderer) = 0;
+	  };
+
+	  IParticleSystemSupervisor* CreateParticleSystem(IRenderer& renderer, IInstances& instances);
    }
 
    struct Platform;
@@ -459,6 +467,8 @@ namespace Rococo
 
       Entities::IMobilesSupervisor& mobiles;
 
+	  Entities::IParticleSystemSupervisor& particles;
+
       Graphics::ISpriteSupervisor& sprites;
 
       Graphics::ICameraSupervisor& camera;
@@ -468,8 +478,8 @@ namespace Rococo
 	  Tesselators& tesselators;
 
       IMathsVisitorSupervisor& mathsVisitor;
-
-      // Application title
+	
+	  // Application title
       const char* const title;
    };
 

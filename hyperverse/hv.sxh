@@ -58,6 +58,7 @@
 		(GetSquare (Int32 sqIndex)(AABB2d sq))
 		(CeilingQuad (Int32 sqIndex)(QuadVertices q))
 		(FloorQuad (Int32 sqIndex)(QuadVertices q))
+		(Altitude (Vec2 altitudes))
 
 		(NumberOfSegments -> (Int32 segCount))
 		(NumberOfGaps -> (Int32 gapCount))
@@ -68,6 +69,9 @@
 		(AddSceneryAroundObject (IString mesh)(IdEntity centrePieceId)(const InsertItemSpec iis)(const ObjectCreationSpec ocs)-> (IdEntity id))
 		(AddItemToLargestSquare(IString mesh)(Int32 addItemFlags)(const ObjectCreationSpec ocs)-> (IdEntity id))
 		(DeleteScenery)
+		
+		(ClearManagedEntities)
+		(ManageEntity (IdEntity id))
 	)
 )
 

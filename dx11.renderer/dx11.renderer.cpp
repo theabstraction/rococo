@@ -382,6 +382,7 @@ namespace ANON
 	   AutoRelease<ID3D11BlendState> alphaAdditiveBlend;
 	   AutoRelease<ID3D11BlendState> disableBlend;
 	   AutoRelease<ID3D11BlendState> additiveBlend;
+	   AutoRelease<ID3D11BlendState> plasmaBlend;
 
 	   Fonts::IFontSupervisor* fonts;
 
@@ -487,6 +488,7 @@ namespace ANON
 		   alphaAdditiveBlend = DX11::CreateAlphaAdditiveBlend(device);
 		   disableBlend = DX11::CreateNoBlend(device);
 		   additiveBlend = DX11::CreateAdditiveBlend(device);
+		   plasmaBlend = DX11::CreatePlasmaBlend(device);
 
 		   DX11::TextureBind fb = textureLoader.LoadAlphaBitmap("!font1.tif");
 		   fontTexture = fb.texture;
@@ -591,7 +593,7 @@ namespace ANON
 
 	   void AddParticle(const ParticleVertex& p) override
 	   {
-		   particles.push_back(p);
+		  particles.push_back(p);
 	   }
 
 	   void ClearParticles()
@@ -1605,6 +1607,7 @@ namespace ANON
 
 	   virtual void Draw(ID_SYS_MESH id, const ObjectInstance* instances, uint32 nInstances)
 	   {
+		   if (id == ID_SYS_MESH::Invalid()) return;
 		   if (id.value < 0 || id.value >= meshBuffers.size()) Throw(E_INVALIDARG, "renderer.DrawObject(ID_MESH id) - Bad id ");
 
 		   auto& m = meshBuffers[id.value];
@@ -1787,7 +1790,7 @@ namespace ANON
 		   dc.RSSetState(particleRaterizering);
 		   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
 		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
-		   dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
+		   dc.OMSetBlendState(plasmaBlend, blendFactorUnused, 0xffffffff);
 		   dc.GSSetConstantBuffers(0, 1, &globalStateBuffer);
 
 		   size_t qSize = particles.size();

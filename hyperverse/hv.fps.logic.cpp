@@ -189,6 +189,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 	struct SectorToScene : public IEventCallback<VisibleSector>, public IEventCallback<const ID_ENTITY>
 	{
 		ISceneBuilder& builder;
+		std::vector<ISector*>& foundSectors;
 
 		virtual void OnEvent(const ID_ENTITY& id)
 		{
@@ -198,20 +199,23 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		virtual void OnEvent(VisibleSector& sv)
 		{
 			sv.sector.ForEveryObjectInSector(*this);
+			foundSectors.push_back(&sv.sector);
 		}
 
-		SectorToScene(ISceneBuilder& _builder) : builder(_builder) {}
+		SectorToScene(ISceneBuilder& _builder, std::vector<ISector*>& _foundSectors) :
+			builder(_builder), foundSectors(_foundSectors) {}
 	};
 
 	typedef std::vector<ISector*> TSectorVector;
 
 	TSectorVector illuminatedRooms;
+	TSectorVector shadowCasterSectors;
 
 	virtual void PopulateShadowCasters(ISceneBuilder& sb, const DepthRenderData& drd)  override
 	{
 		sb.Clear();
-
-		SectorToScene addToScene(sb);
+		shadowCasterSectors.clear();
+		SectorToScene addToScene(sb, shadowCasterSectors);
 		auto nSectors = e.sectors.ForEverySectorVisibleBy(drd.worldToScreen, drd.eye, drd.direction, addToScene);
 		if (nSectors == 0)
 		{
@@ -262,11 +266,14 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		}
 	}
 
+	TSectorVector visibleSectors;
+
 	void PopulateScene(ISceneBuilder& sb) override
 	{
 		sb.Clear();
+		visibleSectors.clear();
 
-		SectorToScene addToScene(sb);
+		SectorToScene addToScene(sb, visibleSectors);
 		for (auto s : visibleSectorsThisTimestep)
 		{
 			addToScene.OnEvent(VisibleSector{ *s.first });
@@ -274,9 +281,35 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 
 		e.platform.renderer.ClearParticles();
 
-		for (auto i : visibleSectorsThisTimestep)
+		struct :IEventCallback<const ID_ENTITY>
 		{
-			i.first->AddParticles();
+			Platform* platform;
+
+			void OnEvent(const ID_ENTITY& id) override
+			{
+				platform->particles.GetParticles(id, platform->renderer);
+			}
+		} addParticles;
+
+		addParticles.platform = &e.platform;
+
+		if (!visibleSectors.empty())
+		{
+			// Add particles in curent sector and neighbouring visible sectors
+
+			auto& s0 = *visibleSectors[0];
+			s0.ForEveryObjectInSector(addParticles);
+
+			size_t gapCount;
+			auto gaps = s0.Gaps(gapCount);
+			for (size_t i = 0; i < gapCount; ++i)
+			{
+				auto j = std::find(visibleSectors.begin(), visibleSectors.end(), gaps->other);
+				if (j != visibleSectors.end())
+				{
+					(*j)->ForEveryObjectInSector(addParticles);
+				}
+			}
 		}
 	}
 

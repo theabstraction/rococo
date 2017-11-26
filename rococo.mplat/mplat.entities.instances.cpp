@@ -125,9 +125,9 @@ namespace
          return Add(meshId, model, scale, parentId);
       }
 
-      virtual ID_ENTITY AddGhost(const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId)
+      virtual ID_ENTITY AddGhost(const Matrix4x4& model, ID_ENTITY parentId)
       {
-         return Add(ID_SYS_MESH::Invalid(), model, scale, parentId);
+		  return Add(ID_SYS_MESH::Invalid(), model, { 1,1,1 }, parentId);
       }
 
       virtual void Delete(ID_ENTITY id)

@@ -3070,7 +3070,8 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 	AutoFree<IKeyboardSupervisor> keyboard = CreateKeyboardSupervisor();
 	AutoFree<Graphics::ISpriteSupervisor> sprites = Graphics::CreateSpriteSupervisor(mainWindow->Renderer());
 	AutoFree<IConfigSupervisor> config = CreateConfig();
-	AutoFree<Graphics::IRimTesselatorSupervisor> rimTesselator = Graphics::CreateRimTesselator();;
+	AutoFree<Graphics::IRimTesselatorSupervisor> rimTesselator = Graphics::CreateRimTesselator();
+	AutoFree<Entities::IParticleSystemSupervisor> particles = Entities::CreateParticleSystem(mainWindow->Renderer(), *instances);
 
 	Utilities utils(*installation, mainWindow->Renderer());
 
@@ -3079,7 +3080,7 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 	GuiStack gui(*publisher, *sourceCache, mainWindow->Renderer(), utils);
 
 	Tesselators tesselators{ *rimTesselator };
-	Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *sprites, *camera, *scene, tesselators, *mathsVisitor, title };
+	Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor, title };
 	gui.platform = &platform;
 	utils.SetPlatform(platform);
 

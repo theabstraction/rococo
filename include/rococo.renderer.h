@@ -54,6 +54,8 @@ namespace Rococo
 	struct ParticleVertex
 	{
 		Vec3 worldPosition;
+		RGBAb colour;
+		Vec4 geometry;
 	};
 
 	typedef cstr BodyComponentMatClass;

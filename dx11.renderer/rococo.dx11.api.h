@@ -37,6 +37,7 @@ namespace Rococo
 	  ID3D11BlendState* CreateAlphaAdditiveBlend(ID3D11Device& device);
       ID3D11BlendState* CreateAlphaBlend(ID3D11Device& device);
       ID3D11BlendState* CreateNoBlend(ID3D11Device& device);
+	  ID3D11BlendState* CreatePlasmaBlend(ID3D11Device& device);
 	  ID3D11BlendState* CreateAdditiveBlend(ID3D11Device& device);
 
       ROCOCOAPI ICountdownConfirmationDialog
