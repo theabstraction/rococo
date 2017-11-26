@@ -21,319 +21,48 @@
 (using Sys.Geometry.F32)
 (using Sys.Random)
 
-(function MakeLeg (IString meshName)(Float32 minHeight)(Float32 maxHeight)(Float32 minWidth)(Float32 maxWidth) -> :
-	(IRodTesselator leg (RodTesselator))
-	(IInstances instances (Instances))
-	
-	(Vec3 origin)
-	(do 
-		(leg.GetOrigin origin)
-		
-		(Float32 partLength = (AnyFloat  (maxHeight / 40) (maxHeight / 1.1)))
-		
-		(if ((partLength + origin.z) > maxHeight)
-			(partLength = (maxHeight - origin.z))
-		)
-		
-		(Float32 bottomRadius = (AnyFloat minWidth maxWidth))
-		(Float32 topRadius = (AnyFloat minWidth maxWidth))
-		
-		(MaterialVertexData mat)
-		
-		(instances.GetRandomMaterialId (#MaterialCategoryWood) -> mat.id)
-		(AnyFloat 0 0.2 -> mat.gloss)
-		(AnyColour 128 160 128 160 0 30 80 160 -> mat.colour)
-		
-		(leg.SetMaterialTop mat)
-		(leg.SetMaterialMiddle mat)
-		(leg.SetMaterialBottom mat)
-		
-		(leg.AddTube partLength bottomRadius topRadius ((RollDie 4) + 2))
-		
-		while (origin.z < minHeight)
-	)
-	
-	(leg.CopyToMeshBuilder meshName true false true)
+(function AddItemToSector (ISectorLayout sector)(IString meshName)-> :
+	(sector.AddMiscScenery meshName "scenery.misc")
 )
 
-(function AddToMeshByPosition (IMeshBuilder mb)(Vec3 position)(IString subitemName)-> :
-	(Matrix4x4 t =
-		(1 0 0 position.x)
-		(0 1 0 position.y)
-		(0 0 1 position.z)
-		(0 0 0          1)
+(function MakeScroll (IString meshName) -> :
+	(ITextTesselator tt (TextTesselator))
+	
+	(Quadf positions =
+		(-1  1 0)
+		( 1  1 0)
+		( 1 -1 0)
+		(-1 -1 0)
 	)
 	
-	(mb.AddMesh t subitemName)
-)
-
-(function MakeBed (IString meshName)(IString legName) -> :
-	(IInstances instances (Instances))
-
-	(Float32 width = (AnyFloat 1.0 1.8))
-	(Float32 length = (AnyFloat 2.0 2.2))
+	(Quadf backPaper =
+		(-0.2  1 0)
+		( 0.2  1 0)
+		( 0.2 -1 0)
+		(-0.2 -1 0)
+	)
 	
-	(Float32 x0 = (-0.5 * width) )
-	(Float32 x1 = ( 0.5 * width) )
-	(Float32 y0 = (-0.5 * length) )
-	(Float32 y1 = ( 0.5 * length) )
-	
-	(Vec3 nw = x0 y1 0)
-	(Vec3 ne = x1 y1 0)
-	(Vec3 se = x1 y0 0)
-	(Vec3 sw = x0 y0 0)
-	
-	(Vec3 nwFoot = 0.9 * nw)
-	(Vec3 neFoot = 0.9 * ne)
-	(Vec3 seFoot = 0.9 * se)
-	(Vec3 swFoot = 0.9 * sw)
+	(tt.AddBlankQuad positions 0x40FFFFFF)
+	(tt.SetFormatQuad positions)
+	(tt.TrySetFontIndex 0)
+	(tt.AddLeftAlignedText 0x40FF0000 "&tBe careful of what you wish for, it might come true.") // Just a thought: it would be really nice if you were to stop having sex with Charles Manson")
+	(tt.SaveMesh meshName)
 	
 	(IMeshBuilder mb (MeshBuilder))
-	(mb.Begin meshName)
-	
-	(AddToMeshByPosition mb nwFoot legName)
-	(AddToMeshByPosition mb neFoot legName)
-	(AddToMeshByPosition mb seFoot legName)
-	(AddToMeshByPosition mb swFoot legName)
-	
-	(Vec3 legSpan)
-	(mb.Span legSpan legName)
-	
-	(IRodTesselator frame (RodTesselator))
-	
-	(frame.Advance legSpan.z)
-	
-	(
-		(Vec2 nw0 = nw.x nw.y)
-		(Vec2 ne0 = ne.x ne.y)
-		(Vec2 se0 = se.x se.y)
-		(Vec2 sw0 = sw.x sw.y)
-		
-		(MaterialVertexData frameMat)
-		(instances.GetRandomMaterialId (#MaterialCategoryStone) -> frameMat.id)
-		(AnyFloat 0 0.2 -> frameMat.gloss)
-		(AnyColour 95 128 95 128 0 30 80 160 -> frameMat.colour)
-	
-		(frame.SetMaterialTop frameMat)
-		(frame.SetMaterialMiddle frameMat)
-		(frame.SetMaterialBottom frameMat)
-	
-		(frame.AddBox 0.25 nw0 ne0 se0 sw0)
-	)
-	
-	(MaterialVertexData bedMat)
-	(instances.GetRandomMaterialId (#MaterialCategoryWood) -> bedMat.id)
-	(AnyFloat 0 0.2 -> bedMat.gloss)
-	(AnyColour 128 160 128 160 0 30 80 160 -> bedMat.colour)
-	
-	(frame.SetMaterialTop bedMat)
-	(frame.SetMaterialMiddle bedMat)
-	(frame.SetMaterialBottom bedMat)
-	
-	(Vec3 centreBed = 0 0 legSpan.z)
-	
-	(Float32 headHeight = 0.25)
-	
-	(Float32 choice = (AnyFloat 0 1))
-	(if (choice < 0.333)
-		(if ((AnyFloat 0 1) > 0.5)
-			(frame.UseFaceNormals)
-		else
-			(frame.UseSmoothNormals)
-		)
-		
-		(Float32 r0 = (AnyFloat 0.04 0.07))
-		(Float32 r1 = (AnyFloat 0.04 0.07))
-		
-		(Float32 h = (AnyFloat 0.25 1.75))
-	
-		(Vec3 nw1 = nwFoot.x nwFoot.y legSpan.z)
-		(frame.SetOrigin nw1)
-		(frame.Advance 0.25)
-		(frame.AddTube h r0 r1 4)
-		
-		(Vec3 ne1 = neFoot.x neFoot.y legSpan.z)
-		(frame.SetOrigin ne1)
-		(frame.Advance 0.25)
-		(frame.AddTube h r0 r1 4)
-		
-		(Float32 nX = (0.5 * (neFoot.x + nwFoot.x)))
-		(Vec3 n1 = nX neFoot.y legSpan.z)
-		(frame.SetOrigin n1)
-		(frame.Advance 0.25)
-		(frame.AddTube h r0 r1 4)
-		
-		(headHeight = (0.25 + h))
-	else
-		(if (choice < 0.666)
-			(frame.SetOrigin centreBed)
-			(frame.Advance 0.25)
-			(Float32 xp0 = (x0 + 0.05))
-			(Float32 xp1 = (x1 - 0.05))
-			(Float32 yp1 = (y1 - 0.05))
-			(Float32 yp0 = (yp1 - 0.05))
-			
-			(Vec2 nwp = xp0 yp1)
-			(Vec2 nep = xp1 yp1)
-			(Vec2 sep = xp1 yp0)
-			(Vec2 swp = xp0 yp0)
-			
-			(frame.AddVertex nwp)
-			(frame.AddVertex nep)
-			(frame.AddVertex sep)
-			(frame.AddVertex swp)
-			(frame.CloseLoop)
-			
-			(Float32 h = (AnyFloat 0.25 1.75))
-			
-			(frame.RaiseBox h)
-			
-			(headHeight = (0.25 + h))
-		)
-	)
-	
-	(frame.SetOrigin centreBed)
-	(frame.Advance headHeight)
-	
-	(Float32 headCrossHeight = (AnyFloat 0.075 0.25))
-	
-	(
-		(Float32 hy1 = (nw.y - (AnyFloat 0.01 0.05)))
-		(Float32 hy0 = (nw.y - (legSpan.y - (AnyFloat 0.01 0.05))))
-		
-		(MaterialVertexData headMat)
-		(instances.GetRandomMaterialId (#MaterialCategoryWood) -> headMat.id)
-		(AnyFloat 0 0.2 -> headMat.gloss)
-		(AnyColour 128 160 128 160 0 30 80 224 -> headMat.colour)
-		
-		(frame.SetMaterialTop headMat)
-		(frame.SetMaterialMiddle headMat)
-		(frame.SetMaterialBottom headMat)
-		
-		(Vec2 nwH = nw.x hy1)
-		(Vec2 neH = ne.x hy1)
-		(Vec2 seH = se.x hy0)
-		(Vec2 swH = sw.x hy0)
-		(frame.AddBox headCrossHeight nwH neH seH swH)
-	)
-	
-	(
-		(Vec3 centreBed = 0 0 legSpan.z)
-		(frame.SetOrigin centreBed)
-		(frame.Advance 0.25)
-		
-		(MaterialVertexData mattress)
-		(instances.GetRandomMaterialId (#MaterialCategoryRock) -> mattress.id)
-		(mattress.gloss = 0)
-		(AnyColour 224 255 224 255 224 255 80 160 -> mattress.colour)
-		
-		(frame.SetMaterialTop mattress)
-		(frame.SetMaterialMiddle mattress)
-		(frame.SetMaterialBottom mattress)
-			
-		(Float32 xm0 = (x0 + 0.05))
-		(Float32 xm1 = (x1 - 0.05))
-		(Float32 ym0 = (y0 + 0.15))
-		(Float32 ym1 = (y1 - 0.15))
-		
-		(Vec2 nwm = xm0 ym1)
-		(Vec2 nem = xm1 ym1)
-		(Vec2 sem = xm1 ym0)
-		(Vec2 swm = xm0 ym0)
-		
-		(frame.AddBox (AnyFloat 0.075 0.1) nwm nem sem swm)
-		
-		(MaterialVertexData pillow)
-		(instances.GetRandomMaterialId (#MaterialCategoryRock) -> pillow.id)
-		(pillow.gloss = 0.025)
-		(AnyColour 240 255 240 255 240 255 80 160 -> pillow.colour)
-		
-		(frame.SetMaterialTop pillow)
-		(frame.SetMaterialMiddle pillow)
-		(frame.SetMaterialBottom pillow)
-		
-		(Float32 xp0 = (x0 + 0.15))
-		(Float32 xp1 = (x1 - 0.15))
-		(Float32 yp1 = (y1 - 0.175))
-		(Float32 yp0 = (yp1 - 0.30))
-		
-		(Vec2 nwp = xp0 yp1)
-		(Vec2 nep = xp1 yp1)
-		(Vec2 sep = xp1 yp0)
-		(Vec2 swp = xp0 yp0)
-		
-		(frame.AddBox (AnyFloat 0.05 0.1) nwp nep sep swp)
-	)
-	
-	(if (headHeight > 1.65)
-		(Vec3 centreBed = 0 0 legSpan.z)
-		(frame.SetOrigin centreBed)
-		(frame.Advance 0.25)
-		
-		(MaterialVertexData canopy)
-		(instances.GetRandomMaterialId (#MaterialCategoryRock) -> canopy.id)
-		(canopy.gloss = 0)
-		(AnyColour 224 255 224 255 224 255 80 160 -> canopy.colour)
-		
-		(frame.SetMaterialTop canopy)
-		(frame.SetMaterialMiddle canopy)
-		(frame.SetMaterialBottom canopy)
-			
-		(Float32 xm0 = x0)
-		(Float32 xm1 = x1)
-		(Float32 ym0 = y0)
-		(Float32 ym1 = y1)
-		
-		(Vec2 nwc = xm0 ym1)
-		(Vec2 nec = xm1 ym1)
-		(Vec2 sec = xm1 ym0)
-		(Vec2 swc = xm0 ym0)
-		
-		(frame.Advance headHeight)
-		(frame.Advance headCrossHeight)
-		(frame.Advance -0.25)
-		(frame.AddBox (AnyFloat 0.075 0.1) nwc nec sec swc)
-		
-		(Float32 r0 = (AnyFloat 0.04 0.07))
-		(Float32 r1 = (AnyFloat 0.04 0.07))
-		
-		(Float32 th = (headCrossHeight + (headHeight - 0.25)))
-		
-		(frame.SetMaterialTop bedMat)
-		(frame.SetMaterialMiddle bedMat)
-		(frame.SetMaterialBottom bedMat)
-	
-		(Vec3 sw1 = swFoot.x swFoot.y legSpan.z)
-		(frame.SetOrigin sw1)
-		(frame.Advance 0.25)
-		(frame.AddTube th r0 r1 4)
-		
-		(Vec3 se1 = seFoot.x seFoot.y legSpan.z)
-		(frame.SetOrigin se1)
-		(frame.Advance 0.25)
-		(frame.AddTube th r0 r1 4)
-	)
-	
-	(VertexTriangle t)
-	(while	((frame.PopNextTriangle t))
-		(mb.AddTriangleEx t)
-	)
-	
-	(mb.End true false)
+	(mb.SetSpecialShader meshName "!scroll.spotlight.ps" "!scroll.ambient.ps" true)
+	(mb.SetShadowCasting meshName false)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(ISectorEnumerator sectors (SectorEnumerator))
 	(Int32 nSectors = sectors.Count)
-	
-	(IMeshBuilder mb (MeshBuilder))
-	(mb.Clear)
-		
-	(MakeLeg "object.bed.leg.1" 0.2 0.4 0.05 0.1)
-	(MakeBed "object.bed.1" "object.bed.leg.1" )
-	
+			
 	(Int32 addItemFlags = 0)
+	(addItemFlags = (addItemFlags + (#AddItemFlagsRandomHeading)))
+//	(addItemFlags = (addItemFlags + (#AddItemFlagsRandomPosition)))
 	(addItemFlags = (addItemFlags + (#AddItemFlagsAlignEdge)))
+		
+	(IStringBuilder sb (StringBuilder 256))
 	
 	(IParticleSystem particles (ParticleSystem))
 	(particles.Clear)
@@ -343,27 +72,51 @@
 	(#for (Int32 i = 0)(i < nSectors)(#inc i)
 		(ISectorLayout sector = (sectors.GetSector i))
 		(sector.DeleteScenery)
-		(sector.ClearManagedEntities)
 			
-		(ObjectCreationSpec ocs)
-		(Int64 id = (sector.AddItemToLargestSquare "object.bed.1" addItemFlags ocs))
-		
-		(Matrix4x4 bedModel)
-		(if (instances.TryGetModelToWorldMatrix id bedModel)
-			(Matrix4x4 wickModel)
-			(wickModel = bedModel)
-			(wickModel.r2.w = (wickModel.r2.w + 1))
+		(#for (Int32 j = 1)(j < 2)(#inc j)
+			(ObjectCreationSpec ocs)
+			(sb.Clear)
+			(sb.AppendIString "object.scroll.")
+			(sb.AppendInt32 j)
+			(MakeScroll sb)
+			(Int64 scrollId = (sector.AddItemToLargestSquare sb addItemFlags ocs))
 			
-			(Int64 wickId = (instances.AddGhost wickModel 0))	
-			(particles.AddVerticalFlame 2355 4 wickId)
-			(sector.ManageEntity wickId)
-			
-			(Int64 dustId = (instances.AddGhost bedModel 0))	
-			
-			(Vec2 altitudes)
-			(sector.Altitude altitudes)
-			(particles.AddDust 50 8 altitudes.x altitudes.y dustId)
-			(sector.ManageEntity dustId)
+			(FlameDef flameDef)
+			(flameDef.minParticleSize = 0.015)
+			(flameDef.maxParticleSize = 0.05)
+			(flameDef.temperatureKelvin = 2500)
+			(flameDef.particleCount = 1000)
+			(flameDef.minLifeSpan = 0.4)
+			(flameDef.maxLifeSpan = 0.5)
+			(flameDef.initialVelocityRange = 0.2)
+			(flameDef.initialSpawnPosRange = 0.01)
+			(flameDef.attractorHeight = 1)
+			(flameDef.attractorMaxRange = 1.5)
+			(flameDef.attractorMaxRange = 0.5)
+			(flameDef.attractorSpawnPosRange = 0.1)
+			(flameDef.attractorAIduration = 0.1)
+			(flameDef.attractorResetProbability = 0.05)
+			(flameDef.attractorDriftFactor = 0.1)
+			(flameDef.attractorPerturbFactor = 0.1)
+			(flameDef.attractorForce = 50)
+
+			(Matrix4x4 model)
+			(if (instances.TryGetModelToWorldMatrix scrollId model)
+				(Matrix4x4 wickModel)
+				(wickModel = model)
+				(wickModel.r2.w = (wickModel.r2.w + 1))
+				
+				(Int64 wickId = (instances.AddGhost wickModel 0))	
+				(particles.AddVerticalFlame flameDef wickId)
+				(sector.ManageEntity wickId)
+				
+				(Int64 dustId = (instances.AddGhost model 0))	
+				
+				(Vec2 altitudes)
+				(sector.Altitude altitudes)
+				(particles.AddDust 50 8 altitudes.x altitudes.y dustId)
+				(sector.ManageEntity dustId)
+			)
 		)
 	)
 )

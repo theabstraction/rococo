@@ -64,6 +64,11 @@
 		
 	(IStringBuilder sb (StringBuilder 256))
 	
+	(IParticleSystem particles (ParticleSystem))
+	(particles.Clear)
+		
+	(IInstances instances (Instances))
+	
 	(#for (Int32 i = 0)(i < nSectors)(#inc i)
 		(ISectorLayout sector = (sectors.GetSector i))
 		(sector.DeleteScenery)
@@ -74,7 +79,64 @@
 			(sb.AppendIString "object.scroll.")
 			(sb.AppendInt32 j)
 			(MakeScroll sb)
-			(sector.AddItemToLargestSquare sb addItemFlags ocs)
+			(Int64 scrollId = (sector.AddItemToLargestSquare sb addItemFlags ocs))
+			
+			/*
+			(struct FlameDef
+				(Sys.SI.Metres minParticleSize)
+				(Sys.SI.Metres maxParticleSize)
+				(Float32 temperatureKelvin)
+				(Int32 particleCount)
+				(Sys.SI.Seconds lifespan)
+				(Float32 initialVelocityRange)
+				(Float32 initialSpawnPosRange)
+				(Sys.SI.Metres attractorHeight)
+				(Sys.SI.Metres attractorMaxRange)
+				(Sys.SI.Metres attractorMinRange)
+				(Sys.SI.Metres attractorSpawnPosRange)
+				(Sys.SI.Seconds attractorAIduration)
+				(Float32 attractorResetProbability)
+				(Float32 attractorDriftFactor)
+				(Float32 attractorPerturbFactor)
+			)
+			*/
+			
+			(FlameDef flameDef)
+			(flameDef.minParticleSize = 0.05)
+			(flameDef.maxParticleSize = 0.1)
+			(flameDef.temperatureKelvin = 2500)
+			(flameDef.particleCount = 1000)
+			(flameDef.minLifeSpan = 0.4)
+			(flameDef.maxLifeSpan = 0.5)
+			(flameDef.initialVelocityRange = 0.1)
+			(flameDef.initialSpawnPosRange = 0.1)
+			(flameDef.attractorHeight = 1)
+			(flameDef.attractorMaxRange = 1.5)
+			(flameDef.attractorMaxRange = 0.5)
+			(flameDef.attractorSpawnPosRange = 0.1)
+			(flameDef.attractorAIduration = 0.1)
+			(flameDef.attractorResetProbability = 0.05)
+			(flameDef.attractorDriftFactor = 0.1)
+			(flameDef.attractorPerturbFactor = 0.1)
+			(flameDef.attractorForce = 50)
+
+			(Matrix4x4 model)
+			(if (instances.TryGetModelToWorldMatrix scrollId model)
+				(Matrix4x4 wickModel)
+				(wickModel = model)
+				(wickModel.r2.w = (wickModel.r2.w + 1))
+				
+				(Int64 wickId = (instances.AddGhost wickModel 0))	
+				(particles.AddVerticalFlame flameDef wickId)
+				(sector.ManageEntity wickId)
+				
+				(Int64 dustId = (instances.AddGhost model 0))	
+				
+				(Vec2 altitudes)
+				(sector.Altitude altitudes)
+				(particles.AddDust 50 8 altitudes.x altitudes.y dustId)
+				(sector.ManageEntity dustId)
+			)
 		)
 	)
 )

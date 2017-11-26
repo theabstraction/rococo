@@ -51,7 +51,7 @@ namespace ANON
 		Metres maxHeight;
 		Vec3 windDirection{ 0,0,0 };
 
-		struct DustParticle: public ParticleVertex
+		struct DustParticle : public ParticleVertex
 		{
 			Vec3 velocity{ 0,0,-0.1f };
 			float life{ 0 };
@@ -155,15 +155,12 @@ namespace ANON
 		}
 	};
 
-	struct Flame: public ICloud
+	struct Flame : public ICloud
 	{
-		float kelvin;
-		float candles;
+		const FlameDef def;
 		Vec3 origin = Vec3{ 0,0,0 };
 		Vec3 attractor = Vec3{ 0,0,1 };
 		float nextTurbulence = 0;
-		float nextSoot = 0;
-		float sootBurn = 0;
 
 		OS::ticks lastTick = 0;
 
@@ -176,26 +173,25 @@ namespace ANON
 
 		std::vector<Fireball> fire;
 
-		Flame(float _candles, float _kelvin): 
-			fire(size_t( 100.0f * _candles) ),
-			candles(_candles),
-			kelvin(_kelvin)
+		Flame(const FlameDef& _def) :
+			def(_def),
+			fire(_def.particleCount)
 		{
 			for (auto& fb : fire)
 			{
 				Phoenix(fb);
-				fb.life = AnyFloat(0.1f, 0.5f);
+				fb.life = 0;
 			}
 		}
 
 		void Phoenix(Fireball& fb)
 		{
-			fb.life = AnyFloat(0.4f, 0.5f);
-			fb.p.worldPosition.x = AnyFloat(-0.01f, 0.01f);
-			fb.p.worldPosition.y = AnyFloat(-0.01f, 0.01f);
+			fb.life = AnyFloat(def.minLifeSpan, def.maxLifeSpan);
+			fb.p.worldPosition.x = AnyFloat(-1.0f, 1.0f) * def.initialSpawnPosRange;
+			fb.p.worldPosition.y = AnyFloat(-1.0f, 1.0f) * def.initialSpawnPosRange;
 			fb.p.worldPosition.z = AnyFloat(-0.01f, 0.01f);
-			fb.velocity.x = AnyFloat(-0.01f, 0.01f) * candles;
-			fb.velocity.y = AnyFloat(-0.01f, 0.01f)* candles;
+			fb.velocity.x = AnyFloat(-1.0f, 1.0f) * def.initialVelocityRange;
+			fb.velocity.y = AnyFloat(-1.0f, 1.0f)* def.initialVelocityRange;
 			fb.velocity.z = 1.0f;
 
 			Vec3 current = attractor - fb.p.worldPosition - origin;
@@ -204,33 +200,38 @@ namespace ANON
 
 			fb.p.worldPosition += origin;
 			fb.p.colour = RGBAb(0, 0, 255, 32);
-			fb.p.geometry = { AnyFloat(0.005f, 0.1f),0,0,0 };
+			fb.p.geometry = { AnyFloat(def.minParticleSize, def.maxParticleSize),0,0,0 };
+		}
+
+		void ResetAttractor()
+		{
+			this->attractor = origin + Vec3{ AnyFloat(-1.0f,1.0f), AnyFloat(-1.0f,1.0f), 0.0f } *def.attractorSpawnPosRange + Vec3{ 0, 0, def.attractorHeight };
 		}
 
 		void UpdateTurbulence(float dt)
 		{
-			float range = LengthSq(origin - attractor);
-			if (range > 2.0f || range < 0.5f)
+			float range = Length(origin - attractor);
+			if (range > def.attractorMaxRange || range < def.attractorMinRange)
 			{
-				this->attractor = origin + Vec3{ AnyFloat(-0.1f,0.1f), AnyFloat(-0.1f,0.1f), 1.0f };
+				ResetAttractor();
 			}
 
 			nextTurbulence += dt;
 
-			if (nextTurbulence > 0.125f)
+			if (nextTurbulence > def.attractorAIduration)
 			{
 				nextTurbulence = 0;
 
 				float choice = AnyFloat(0, 1.0f);
-				if (choice < 0.05f)
+				if (choice < def.attractorResetProbability)
 				{
-					this->attractor = Vec3{ AnyFloat(-0.1f,0.1f), AnyFloat(-0.1f,0.1f), 1.0f } +origin;
+					ResetAttractor();
 				}
 			}
 
 			Vec3 delta = attractor - origin;
-			this->attractor += 0.1f * dt * Vec3{ delta.x, delta.y, 0.0f };
-			this->attractor += Vec3{ AnyFloat(-0.01f,0.01f), AnyFloat(-0.01f,0.01f), 0.0f };
+			this->attractor += def.attractorDriftFactor * dt * Vec3{ delta.x, delta.y, 0.0f };
+			this->attractor += Vec3{ AnyFloat(-1.0f,1.0f), AnyFloat(-1.0f,1.0f), 0.0f } * def.attractorPerturbFactor;
 		}
 
 		RGBAb GetLightForTemperature(float temperature, float alpha)
@@ -273,7 +274,7 @@ namespace ANON
 			for (auto& fb : fire)
 			{
 				float tempFalloff = max(0.0f, 1.0f - (0.51f - fb.life) * 2.0f); // 0 to 1
-				float temperature = tempFalloff * kelvin;
+				float temperature = tempFalloff * def.temperatureKelvin;
 				fb.p.colour = GetLightForTemperature(temperature, tempFalloff);
 			}
 		}
@@ -296,7 +297,7 @@ namespace ANON
 			{
 				Vec3 toAttractor = Normalize(attractor - fb.p.worldPosition);
 				Vec3 convection{ toAttractor.x, toAttractor.y, 0 };
-				fb.velocity += 50.0f * dt * convection;
+				fb.velocity += def.attractorForce * dt * convection;
 			}
 		}
 
@@ -335,10 +336,10 @@ namespace ANON
 			OS::ticks tenMs = hz / 100;
 
 			ParticleVertex illumination;
-			illumination.colour = GetLightForTemperature(kelvin, 0.75f);
-			illumination.geometry.x = 0.0625f * candles;
+			illumination.colour = GetLightForTemperature(def.temperatureKelvin, 0.75f);
+			illumination.geometry.x = 0.0001f * def.particleCount;
 			illumination.worldPosition = Lerp(origin, attractor, 0.15f);
-	//		renderer.AddParticle(illumination);
+			//		renderer.AddParticle(illumination);
 
 			if (delta > tenMs)
 			{
@@ -386,16 +387,11 @@ namespace ANON
 			clouds[id] = d;
 		}
 
-		void AddVerticalFlame(float kelvin, float candles, ID_ENTITY id) override
+		void AddVerticalFlame(const FlameDef& flameDef, ID_ENTITY id) override
 		{
 			Snuff(id);
 
-			if (candles < 0.01f || candles > 100)
-			{
-				Throw(0, "ParticleSystem::AddVerticalFlame(....): [candles] must be 0.01 to 100");
-			}
-
-			auto f = new Flame(candles, kelvin);
+			auto f = new Flame(flameDef);
 
 			clouds[id] = f;
 		}

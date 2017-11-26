@@ -25,6 +25,27 @@ namespace Rococo
 		float fogConstant; // fog = e^(range * fogExponent); // Take natural log of both sides to compute exponent, which should be negative
 	};
 
+	struct FlameDef
+	{
+		Metres minParticleSize;
+		Metres maxParticleSize;
+		float temperatureKelvin;
+		int32 particleCount;
+		Seconds minLifeSpan;
+		Seconds maxLifeSpan;
+		float initialVelocityRange;
+		float initialSpawnPosRange;
+		Metres attractorHeight;
+		Metres attractorMaxRange;
+		Metres attractorMinRange;
+		Metres attractorSpawnPosRange;
+		Seconds attractorAIduration;
+		float attractorResetProbability;
+		float attractorDriftFactor;
+		float attractorPerturbFactor;
+		float attractorForce;
+	};
+
 	struct QuadColours
 	{
 		RGBAb a;

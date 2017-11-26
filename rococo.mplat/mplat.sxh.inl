@@ -2006,19 +2006,15 @@ namespace
 		_offset += sizeof(id);
 		ReadInput(id, _sf, -_offset);
 
-		float candles;
-		_offset += sizeof(candles);
-		ReadInput(candles, _sf, -_offset);
-
-		float kelvin;
-		_offset += sizeof(kelvin);
-		ReadInput(kelvin, _sf, -_offset);
+		FlameDef* flameDef;
+		_offset += sizeof(flameDef);
+		ReadInput(flameDef, _sf, -_offset);
 
 		Rococo::Entities::IParticleSystem* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AddVerticalFlame(kelvin, candles, id);
+		_pObject->AddVerticalFlame(*flameDef, id);
 	}
 	void NativeRococoEntitiesIParticleSystemAddDust(NativeCallEnvironment& _nce)
 	{
@@ -2092,7 +2088,7 @@ namespace Rococo { namespace Entities {
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Entities.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesParticleSystem, _nceContext, SEXTEXT("GetHandleForIParticleSystem0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemAddVerticalFlame, nullptr, SEXTEXT("IParticleSystemAddVerticalFlame (Pointer hObject)(Float32 kelvin)(Float32 candles)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemAddVerticalFlame, nullptr, SEXTEXT("IParticleSystemAddVerticalFlame (Pointer hObject)(Rococo.FlameDef flameDef)(Int64 id) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemAddDust, nullptr, SEXTEXT("IParticleSystemAddDust (Pointer hObject)(Int32 particles)(Sys.SI.Metres range)(Sys.SI.Metres minHeight)(Sys.SI.Metres maxHeight)(Int64 id) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemSnuff, nullptr, SEXTEXT("IParticleSystemSnuff (Pointer hObject)(Int64 id) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemClear, nullptr, SEXTEXT("IParticleSystemClear (Pointer hObject) -> "));
