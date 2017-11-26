@@ -51,6 +51,11 @@ namespace Rococo
 		MaterialVertexData material;
 	};
 
+	struct ParticleVertex
+	{
+		Vec3 worldPosition;
+	};
+
 	typedef cstr BodyComponentMatClass;
 
 	ROCOCOAPI IMaterialPalette
@@ -69,6 +74,7 @@ namespace Rococo
 
 	ROCOCO_ID(ID_VERTEX_SHADER, size_t, -1)
 	ROCOCO_ID(ID_PIXEL_SHADER, size_t, -1)
+	ROCOCO_ID(ID_GEOMETRY_SHADER, size_t, -1)
 	ROCOCO_ID(ID_TEXTURE, size_t, -1)
 
 	namespace Textures
@@ -99,6 +105,7 @@ namespace Rococo
 		Matrix4x4 worldMatrix;
 		Vec4 eye;
 		Vec4 viewDIr;
+		Vec4 aspect;
 	};
 
 	ROCOCOAPI IRenderContext // Provides draw calls - do not cache
@@ -216,7 +223,9 @@ namespace Rococo
 	ROCOCOAPI IRenderer
 	{
 	  virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
+	  virtual void AddParticle(const ParticleVertex& p) = 0;
 	  virtual void ClearMeshes() = 0;
+	  virtual void ClearParticles() = 0;
 	  virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
 	  virtual void DeleteMesh(ID_SYS_MESH id) = 0;
 	  virtual ID_TEXTURE FindTexture(cstr name) const = 0;

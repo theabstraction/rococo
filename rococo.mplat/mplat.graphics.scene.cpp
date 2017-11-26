@@ -171,6 +171,12 @@ namespace
 		 state.viewDIr = dir;
 		 state.eye.w = 1.0f;
 
+		 GuiMetrics metrics;
+		 rc.Renderer().GetGuiMetrics(metrics);
+
+		 float aspectRatio = metrics.screenSpan.y / (float) metrics.screenSpan.x;
+		 state.aspect = { aspectRatio,0,0,0 };
+
          rc.SetGlobalState(state);
 
          ID_SYS_MESH meshId;

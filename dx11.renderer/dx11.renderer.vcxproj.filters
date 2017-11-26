@@ -1,17 +1,48 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <FxCompile Include="gui.vs.hlsl" />
-    <FxCompile Include="object.vs.hlsl" />
-    <FxCompile Include="object.ps.hlsl" />
-    <FxCompile Include="gui.ps.hlsl" />
-    <FxCompile Include="shadow.vs.hlsl" />
-    <FxCompile Include="shadow.ps.hlsl" />
-    <FxCompile Include="r32f.ps.hlsl" />
-    <FxCompile Include="ambient.ps.hlsl" />
-    <FxCompile Include="ambient.vs.hlsl" />
-    <FxCompile Include="scroll.ambient.ps.hlsl" />
-    <FxCompile Include="scroll.spotlight.ps.hlsl" />
+    <FxCompile Include="gui.ps.hlsl">
+      <Filter>HLSL\GUI</Filter>
+    </FxCompile>
+    <FxCompile Include="gui.vs.hlsl">
+      <Filter>HLSL\GUI</Filter>
+    </FxCompile>
+    <FxCompile Include="r32f.ps.hlsl">
+      <Filter>HLSL\GUI</Filter>
+    </FxCompile>
+    <FxCompile Include="object.ps.hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
+    <FxCompile Include="ambient.ps.hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
+    <FxCompile Include="object.vs.hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
+    <FxCompile Include="scroll.ambient.ps.hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
+    <FxCompile Include="scroll.spotlight.ps.hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
+    <FxCompile Include="ambient.vs.hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
+    <FxCompile Include="shadow.ps.hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
+    <FxCompile Include="shadow.vs.hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
+    <FxCompile Include="plasma.ps.hlsl">
+      <Filter>HLSL\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="particle.vs.hlsl">
+      <Filter>HLSL\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="particle.gs.hlsl">
+      <Filter>HLSL\Particles</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11.swapchain.cpp">
@@ -33,6 +64,9 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="dx11.textures.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11.particles.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>
@@ -67,6 +101,18 @@
     </Filter>
     <Filter Include="Headers">
       <UniqueIdentifier>{0434006d-571d-46b7-947b-b01f592b9817}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLSL">
+      <UniqueIdentifier>{e73831d3-9110-4c7b-be51-0d2f83d5695b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLSL\Particles">
+      <UniqueIdentifier>{1aedfc45-247e-4955-b2e1-51c9498049cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLSL\GUI">
+      <UniqueIdentifier>{006a70ae-0206-403a-95f7-7378e6b7924f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLSL\Objects">
+      <UniqueIdentifier>{3c506f93-b117-4965-a7da-3aab9ebc94b3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

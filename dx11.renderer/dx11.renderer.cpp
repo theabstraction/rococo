@@ -52,6 +52,12 @@ namespace ANON
 		AutoRelease<ID3D11VertexShader> vs;
 	};
 
+	struct DX11GeometryShader : public DX11Shader
+	{
+		AutoRelease<ID3D11InputLayout> inputLayout;
+		AutoRelease<ID3D11GeometryShader> gs;
+	};
+
 	struct DX11PixelShader : public DX11Shader
 	{
 		AutoRelease<ID3D11PixelShader> ps;
@@ -354,11 +360,14 @@ namespace ANON
 
 	   std::vector<DX11VertexShader*> vertexShaders;
 	   std::vector<DX11PixelShader*> pixelShaders;
-	   AutoRelease<ID3D11Buffer> guiBuffer;
+	   std::vector<DX11GeometryShader*> geometryShaders;
 
+	   AutoRelease<ID3D11Buffer> guiBuffer;
+	   AutoRelease<ID3D11Buffer> particleBuffer;
 	   std::vector<GuiVertex> guiVertices;
 
 	   enum { GUI_BUFFER_VERTEX_CAPACITY = 3 * 512 };
+	   enum { PARTICLE_BUFFER_VERTEX_CAPACITY = 1024 };
 
 	   AutoRelease<ID3D11Texture2D> fontTexture;
 	   AutoRelease<ID3D11SamplerState> spriteSampler;
@@ -367,6 +376,7 @@ namespace ANON
 	   AutoRelease<ID3D11ShaderResourceView> fontBinding;
 	   AutoRelease<ID3D11RasterizerState> spriteRaterizering;
 	   AutoRelease<ID3D11RasterizerState> objectRaterizering;
+	   AutoRelease<ID3D11RasterizerState> particleRaterizering;
 	   AutoRelease<ID3D11RasterizerState> shadowRaterizering;
 	   AutoRelease<ID3D11BlendState> alphaBlend;
 	   AutoRelease<ID3D11BlendState> alphaAdditiveBlend;
@@ -405,6 +415,10 @@ namespace ANON
 	   ID_PIXEL_SHADER idObjAmbientPS;
 	   ID_PIXEL_SHADER idObjDepthPS;
 
+	   ID_VERTEX_SHADER idParticleVS;
+	   ID_PIXEL_SHADER idPlasmaPS;
+	   ID_GEOMETRY_SHADER idParticleGS;
+
 	   ID_VERTEX_SHADER idObjVS_Shadows;
 	   ID_PIXEL_SHADER idObjPS_Shadows;
 
@@ -440,6 +454,8 @@ namespace ANON
 	   }
 
 	   std::unordered_map<std::string, ID_PIXEL_SHADER> nameToPixelShader;
+
+	   std::vector<ParticleVertex> particles;
    public:
 	   Windows::IWindow* window;
 	   bool isBuildingAlphaBlendedSprites{ false };
@@ -455,6 +471,7 @@ namespace ANON
 	   {
 		   static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
 		   guiBuffer = DX11::CreateDynamicVertexBuffer<GuiVertex>(device, GUI_BUFFER_VERTEX_CAPACITY);
+		   particleBuffer = DX11::CreateDynamicVertexBuffer<ParticleVertex>(device, PARTICLE_BUFFER_VERTEX_CAPACITY);
 
 		   spriteSampler = DX11::CreateSpriteSampler(device);
 		   objectSampler = DX11::CreateObjectSampler(device);
@@ -464,6 +481,7 @@ namespace ANON
 		   guiDepthState = DX11::CreateGuiDepthStencilState(device);
 		   spriteRaterizering = DX11::CreateSpriteRasterizer(device);
 		   objectRaterizering = DX11::CreateObjectRasterizer(device);
+		   particleRaterizering = DX11::CreateParticleRasterizer(device);
 		   shadowRaterizering = DX11::CreateShadowRasterizer(device);
 		   alphaBlend = DX11::CreateAlphaBlend(device);
 		   alphaAdditiveBlend = DX11::CreateAlphaAdditiveBlend(device);
@@ -508,6 +526,15 @@ namespace ANON
 		   installation.LoadResource("!object.ps", *scratchBuffer, 64_kilobytes);
 		   idObjPS = CreatePixelShader("!object.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
+		   installation.LoadResource("!particle.vs", *scratchBuffer, 64_kilobytes);
+		   idParticleVS = CreateParticleVertexShader("!particle.vs", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!particle.gs", *scratchBuffer, 64_kilobytes);
+		   idParticleGS = CreateGeometryShader("!particle.gs", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!plasma.ps", *scratchBuffer, 64_kilobytes);
+		   idPlasmaPS = CreatePixelShader("!plasma.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+
 		   installation.LoadResource("!ambient.ps", *scratchBuffer, 64_kilobytes);
 		   idObjAmbientPS = CreatePixelShader("!ambient.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
@@ -550,11 +577,26 @@ namespace ANON
 			   delete x;
 		   }
 
+		   for (auto& x : geometryShaders)
+		   {
+			   delete x;
+		   }
+
 		   for (auto& t : textures)
 		   {
 			   if (t.texture) t.texture->Release();
 			   if (t.view) t.view->Release();
 		   }
+	   }
+
+	   void AddParticle(const ParticleVertex& p) override
+	   {
+		   particles.push_back(p);
+	   }
+
+	   void ClearParticles()
+	   {
+		   particles.clear();
 	   }
 
 	   Fonts::IFont& FontMetrics() override
@@ -820,7 +862,7 @@ namespace ANON
 		   visitor.ShowString("Total Frame Time", "%3.0lf ms", frameTime * ticks_to_ms);
 		   visitor.ShowString("Frame Rate", "%.0lf FPS", hz / frameTime);
 		   visitor.ShowString("", "");
-		   visitor.ShowString("Geometry this frame", "%lld triangles. %lld entities", trianglesThisFrame, entitiesThisFrame);
+		   visitor.ShowString("Geometry this frame", "%lld triangles. %lld entities, %lld particles", trianglesThisFrame, entitiesThisFrame, particles.size());
 	   }
 
 	   IMathsVenue* Venue()
@@ -1278,6 +1320,11 @@ namespace ANON
 		   return CreateVertexShader(name, shaderCode, shaderLength, DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
 	   }
 
+	   virtual ID_VERTEX_SHADER CreateParticleVertexShader(cstr name, const byte* shaderCode, size_t shaderLength)
+	   {
+		   return CreateVertexShader(name, shaderCode, shaderLength, DX11::GetParticleVertexDesc(), DX11::NumberOfParticleVertexElements());
+	   }
+
 	   ID_PIXEL_SHADER CreatePixelShader(cstr name, const byte* shaderCode, size_t shaderLength)
 	   {
 		   if (name == nullptr || rlen(name) > 1024) Throw(0, "Bad <name> for pixel shader");
@@ -1295,6 +1342,25 @@ namespace ANON
 		   shader->name = name;
 		   pixelShaders.push_back(shader);
 		   return ID_PIXEL_SHADER(pixelShaders.size() - 1);
+	   }
+
+	   ID_GEOMETRY_SHADER CreateGeometryShader(cstr name, const byte* shaderCode, size_t shaderLength)
+	   {
+		   if (name == nullptr || rlen(name) > 1024) Throw(0, "Bad <name> for geometry shader");
+		   if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 65536) Throw(0, "Bad shader code for geometry shader %s", name);
+
+		   DX11GeometryShader* shader = new DX11GeometryShader;
+		   HRESULT hr = device.CreateGeometryShader(shaderCode, shaderLength, nullptr, &shader->gs);
+		   if FAILED(hr)
+		   {
+			   delete shader;
+			   Throw(hr, "device.CreateGeometryShader failed with shader %s", name);
+			   return ID_GEOMETRY_SHADER::Invalid();
+		   }
+
+		   shader->name = name;
+		   geometryShaders.push_back(shader);
+		   return ID_GEOMETRY_SHADER(geometryShaders.size() - 1);
 	   }
 
 	   void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect)
@@ -1360,6 +1426,27 @@ namespace ANON
 
 	   ID_PIXEL_SHADER currentPixelShaderId;
 	   ID_VERTEX_SHADER currentVertexShaderId;
+
+	   bool UseGeometryShader(ID_GEOMETRY_SHADER gid)
+	   {
+		   if (!gid)
+		   {
+			   dc.GSSetShader(nullptr, nullptr, 0);
+			   return true;
+		   }
+
+		   if (gid.value >= geometryShaders.size()) Throw(0, "Bad shader Id in call to UseGeometryShader");
+
+		   auto& gs = *geometryShaders[gid.value];
+		   if (gs.gs == nullptr)
+		   {
+			   Throw(0, "Geometry Shader null for %s", gs.name.c_str());
+		   }
+
+		   dc.GSSetShader(gs.gs, nullptr, 0);
+
+		   return true;
+	   }
 
 	   bool UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid)
 	   {
@@ -1681,6 +1768,7 @@ namespace ANON
 
 		   UINT stride = sizeof(GuiVertex);
 		   UINT offset = 0;
+		   dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		   dc.IASetVertexBuffers(0, 1, &guiBuffer, &stride, &offset);
 		   dc.Draw((UINT)nCount, 0);
 
@@ -1688,6 +1776,44 @@ namespace ANON
 	   }
 
 	   bool builtFirstPass = false;
+
+	   void RenderParticles()
+	   {
+		   if (particles.empty()) return;
+		   if (!UseShaders(idParticleVS, idPlasmaPS)) return;
+		   if (!UseGeometryShader(idParticleGS)) return;
+
+		   dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+		   dc.RSSetState(particleRaterizering);
+		   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
+		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+		   dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
+		   dc.GSSetConstantBuffers(0, 1, &globalStateBuffer);
+
+		   size_t qSize = particles.size();
+
+		   const ParticleVertex* start = &particles[0];
+
+		   size_t i = 0;
+
+		   while (qSize > 0)
+		   {
+			   size_t chunkSize = min(qSize, (size_t)PARTICLE_BUFFER_VERTEX_CAPACITY);
+			   DX11::CopyStructureToBuffer(dc, particleBuffer, start + i, chunkSize * sizeof(ParticleVertex));
+
+			   UINT strides[1] = { sizeof(ParticleVertex) };
+			   UINT offsets[1] = { 0 };
+			  
+			   dc.IASetVertexBuffers(0, 1, &particleBuffer, strides, offsets);
+			   dc.Draw((UINT)chunkSize, 0);
+
+			   i += chunkSize;
+			   qSize -= chunkSize;
+		   }
+
+		   ID3D11Buffer* nullBuffer = nullptr;
+		   dc.GSSetConstantBuffers(0, 1, &nullBuffer);
+	   }
 
 	   virtual void Render(IScene& scene)
 	   {
@@ -1847,6 +1973,13 @@ namespace ANON
 			   scene.RenderObjects(*this);
 			   phase = RenderPhase_None;
 		   }
+
+		   
+		   RenderParticles();
+			
+		   UseGeometryShader(ID_GEOMETRY_SHADER::Invalid());
+
+
 
 		   ID3D11ShaderResourceView* nullView = nullptr;
 		   dc.PSSetShaderResources(2, 1, &nullView);

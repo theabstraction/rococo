@@ -2,7 +2,7 @@
 #include "rococo.renderer.h"
 #include "dx11helpers.inl"
 
-namespace
+namespace ANON
 {
    D3D11_INPUT_ELEMENT_DESC objectVertexDesc[] =
    {
@@ -21,13 +21,13 @@ namespace Rococo
       const D3D11_INPUT_ELEMENT_DESC* const GetObjectVertexDesc()
       {
          static_assert(sizeof(ObjectVertex) == 44, "Gui vertex data was not 40 bytes wide");
-         return objectVertexDesc;
+         return ANON::objectVertexDesc;
       }
 
       const uint32 NumberOfObjectVertexElements()
       {
-         static_assert(sizeof(objectVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC) == 5, "Vertex data was not 5 fields");
-         return sizeof(objectVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC);
+         static_assert(sizeof(ANON::objectVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC) == 5, "Vertex data was not 5 fields");
+         return sizeof(ANON::objectVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC);
       }
 
       ID3D11SamplerState* CreateObjectSampler(ID3D11Device& device)

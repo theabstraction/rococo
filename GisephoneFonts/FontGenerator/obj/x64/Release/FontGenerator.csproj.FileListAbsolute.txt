@@ -1,0 +1,8 @@
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\x64\Release\FontGenerator.csprojResolveAssemblyReference.cache
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\x64\Release\DeferredRenderView.baml
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\x64\Release\DeferredRenderView.g.cs
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\x64\Release\MainWindow.g.cs
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\x64\Release\App.g.cs
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\x64\Release\GeneratedInternalTypeHelper.g.cs
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\x64\Release\Gisephone.Fonts.Generator_MarkupCompile.cache
+C:\work\rococo\GisephoneFonts\FontGenerator\obj\x64\Release\Gisephone.Fonts.Generator_MarkupCompile.lref

@@ -173,6 +173,7 @@ namespace HV
 
    ROCOCOAPI ISector: public IPropertyTarget
    {
+	  virtual void AddParticles() = 0;
 	  virtual const AABB2d& GetAABB() const = 0;
 	  virtual uint32 Id() const = 0;
 

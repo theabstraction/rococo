@@ -271,6 +271,13 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		{
 			addToScene.OnEvent(VisibleSector{ *s.first });
 		}
+
+		e.platform.renderer.ClearParticles();
+
+		for (auto i : visibleSectorsThisTimestep)
+		{
+			i.first->AddParticles();
+		}
 	}
 
 	bool IsPathAcrossGap(cr_vec3 start, cr_vec3 end, ISector& from, ISector& to)
