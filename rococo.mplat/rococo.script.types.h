@@ -51,14 +51,16 @@
 	};
 	struct FlameDef
 	{
-		Metres minParticleSize;
-		Metres maxParticleSize;
-		float temperatureKelvin;
+		Metres minStartParticleSize;
+		Metres maxStartParticleSize;
+		Metres minEndParticleSize;
+		Metres maxEndParticleSize;
 		int32 particleCount;
 		Seconds minLifeSpan;
 		Seconds maxLifeSpan;
 		float initialVelocityRange;
 		float initialSpawnPosRange;
+		float jetSpeed;
 		Metres attractorHeight;
 		Metres attractorMaxRange;
 		Metres attractorMinRange;

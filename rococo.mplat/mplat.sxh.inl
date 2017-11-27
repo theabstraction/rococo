@@ -1998,7 +1998,7 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeRococoEntitiesIParticleSystemAddVerticalFlame(NativeCallEnvironment& _nce)
+	void NativeRococoEntitiesIParticleSystemApplySpectrum(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -2006,15 +2006,39 @@ namespace
 		_offset += sizeof(id);
 		ReadInput(id, _sf, -_offset);
 
-		FlameDef* flameDef;
-		_offset += sizeof(flameDef);
-		ReadInput(flameDef, _sf, -_offset);
+		Rococo::Entities::IParticleSystem* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ApplySpectrum(id);
+	}
+	void NativeRococoEntitiesIParticleSystemClearSpectrum(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Entities::IParticleSystem* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ClearSpectrum();
+	}
+	void NativeRococoEntitiesIParticleSystemSetSpectrum(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float relativeLifeTime;
+		_offset += sizeof(relativeLifeTime);
+		ReadInput(relativeLifeTime, _sf, -_offset);
+
+		RGBA* colour;
+		_offset += sizeof(colour);
+		ReadInput(colour, _sf, -_offset);
 
 		Rococo::Entities::IParticleSystem* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AddVerticalFlame(*flameDef, id);
+		_pObject->SetSpectrum(*colour, relativeLifeTime);
 	}
 	void NativeRococoEntitiesIParticleSystemAddDust(NativeCallEnvironment& _nce)
 	{
@@ -2046,6 +2070,34 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddDust(particles, range, minHeight, maxHeight, id);
 	}
+	void NativeRococoEntitiesIParticleSystemAddVerticalFlame(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		FlameDef* flameDef;
+		_offset += sizeof(flameDef);
+		ReadInput(flameDef, _sf, -_offset);
+
+		Rococo::Entities::IParticleSystem* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddVerticalFlame(*flameDef, id);
+	}
+	void NativeRococoEntitiesIParticleSystemClear(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Entities::IParticleSystem* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Clear();
+	}
 	void NativeRococoEntitiesIParticleSystemSnuff(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -2059,16 +2111,6 @@ namespace
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Snuff(id);
-	}
-	void NativeRococoEntitiesIParticleSystemClear(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Entities::IParticleSystem* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->Clear();
 	}
 
 	void NativeGetHandleForRococoEntitiesParticleSystem(NativeCallEnvironment& _nce)
@@ -2088,10 +2130,13 @@ namespace Rococo { namespace Entities {
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Entities.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesParticleSystem, _nceContext, SEXTEXT("GetHandleForIParticleSystem0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemAddVerticalFlame, nullptr, SEXTEXT("IParticleSystemAddVerticalFlame (Pointer hObject)(Rococo.FlameDef flameDef)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemApplySpectrum, nullptr, SEXTEXT("IParticleSystemApplySpectrum (Pointer hObject)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemClearSpectrum, nullptr, SEXTEXT("IParticleSystemClearSpectrum (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemSetSpectrum, nullptr, SEXTEXT("IParticleSystemSetSpectrum (Pointer hObject)(Sys.Maths.Vec4 colour)(Float32 relativeLifeTime) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemAddDust, nullptr, SEXTEXT("IParticleSystemAddDust (Pointer hObject)(Int32 particles)(Sys.SI.Metres range)(Sys.SI.Metres minHeight)(Sys.SI.Metres maxHeight)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemSnuff, nullptr, SEXTEXT("IParticleSystemSnuff (Pointer hObject)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemAddVerticalFlame, nullptr, SEXTEXT("IParticleSystemAddVerticalFlame (Pointer hObject)(Rococo.FlameDef flameDef)(Int64 id) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemClear, nullptr, SEXTEXT("IParticleSystemClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemSnuff, nullptr, SEXTEXT("IParticleSystemSnuff (Pointer hObject)(Int64 id) -> "));
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::ICamera 

@@ -24,7 +24,6 @@
 (primitive Metres Sys.SI.Metres Metres)
 (primitive Kilograms Sys.SI.Kilograms Kilograms)
 (primitive RGBAb Int32 RGBAb)
-(primitive RGBA Sys.Maths.Vec4 RGBA)
 
 (primitive Pointer Pointer uintptr_t)
 (primitive IdMesh Int32 ID_MESH)
@@ -47,6 +46,7 @@
 (struct Quad Sys.Maths.Quadf Quad)
 (struct Triangle Sys.Maths.Triangle Triangle)
 (struct Triangle2d Sys.Maths.Triangle2d Triangle2d)
+(struct RGBA Sys.Maths.Vec4 RGBA)
 
 (primitive MaterialId Float32 MaterialId)
 (primitive MaterialCategory Int32 Rococo.Graphics.MaterialCategory)
@@ -107,14 +107,16 @@
 )
 
 (defstruct FlameDef Rococo.FlameDef FlameDef
-	(Metres minParticleSize)
-	(Metres maxParticleSize)
-	(Float32 temperatureKelvin)
+	(Metres minStartParticleSize)
+	(Metres maxStartParticleSize)
+	(Metres minEndParticleSize)
+	(Metres maxEndParticleSize)
 	(Int32 particleCount)
 	(Seconds minLifeSpan)
 	(Seconds maxLifeSpan)
 	(Float32 initialVelocityRange)
 	(Float32 initialSpawnPosRange)
+	(Float32 jetSpeed)
 	(Metres attractorHeight)
 	(Metres attractorMaxRange)
 	(Metres attractorMinRange)

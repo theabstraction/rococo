@@ -174,10 +174,14 @@
 	(as.cpp Rococo.Entities.IParticleSystem "mplat")
 	(context factory Rococo.Platform)
 	(methods
-		(AddVerticalFlame  (const FlameDef flameDef)(IdEntity id))
+		(ApplySpectrum (IdEntity id))
+		(ClearSpectrum)
+		(SetSpectrum (const RGBA colour)(Float32 relativeLifeTime))
+		
 		(AddDust  (Int32 particles)(Metres range)(Metres minHeight)(Metres maxHeight)(IdEntity id))
-		(Snuff (IdEntity id))
+		(AddVerticalFlame  (const FlameDef flameDef)(IdEntity id))
 		(Clear)
+		(Snuff (IdEntity id))		
 	)
 	(factory Rococo.Entities.ParticleSystem)
 )

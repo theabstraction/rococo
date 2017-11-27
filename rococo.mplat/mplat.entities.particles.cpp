@@ -10,6 +10,97 @@ namespace ANON
 {
 	std::default_random_engine rng;
 
+	struct SpectrumBand
+	{
+		float relativeLifeTime;
+		RGBA keyColour;
+	};
+
+	bool operator < (const SpectrumBand& b, float f)
+	{
+		return b.relativeLifeTime < f;
+	}
+
+	typedef std::vector<SpectrumBand> Spectra;
+
+	void SetSpectrum(Spectra& dest, const Spectra& src)
+	{
+		dest.clear();
+		dest.reserve(src.size());
+		for (auto& i : src)
+		{
+			dest.push_back(i);
+		}
+	}
+
+	uint8 ToUint8(float f)
+	{
+		return (uint8)(int)(255.0f * f);
+	}
+
+	RGBAb ToRGBAb(const RGBA& c)
+	{
+		return RGBAb(ToUint8(c.red), ToUint8(c.green), ToUint8(c.blue), ToUint8(c.alpha));
+	}
+
+	RGBAb InterpolateColour(const Spectra& spectra, float relativeLifeLeft, const SpectrumBand& left, const SpectrumBand& right)
+	{
+		if (relativeLifeLeft <= left.relativeLifeTime)
+		{
+			return ToRGBAb(left.keyColour);
+		}
+		else if (relativeLifeLeft >= right.relativeLifeTime)
+		{
+			return ToRGBAb(right.keyColour);
+		}
+
+		float t = (relativeLifeLeft - left.relativeLifeTime) / (right.relativeLifeTime - left.relativeLifeTime);
+
+		return ToRGBAb(
+			RGBA(
+				Lerp(left.keyColour.red, right.keyColour.red, t),
+				Lerp(left.keyColour.green, right.keyColour.green, t),
+				Lerp(left.keyColour.blue, right.keyColour.blue, t),
+				Lerp(left.keyColour.alpha, right.keyColour.alpha, t)
+				));
+
+	}
+
+	RGBAb SearchColour(const Spectra& spectra, float relativeLifeLeft, size_t start, size_t end)
+	{
+		size_t middle = (start + end) >> 1;
+		if (middle == start)
+		{
+			return InterpolateColour(spectra, relativeLifeLeft, spectra[start], spectra[end]);
+		}
+		else if (spectra[middle] < relativeLifeLeft)
+		{
+			return SearchColour(spectra, relativeLifeLeft, middle, end);
+		}
+		else
+		{
+			return SearchColour(spectra, relativeLifeLeft, start, middle);
+		}
+	}
+
+	RGBAb GetColour(const Spectra& spectra, float relativeLifeLeft)
+	{
+		if (spectra.empty()) return RGBAb(255, 255, 255);
+
+		size_t start = 0;
+		size_t end = spectra.size();
+		size_t middle = (start + end) >> 1;
+
+		if (spectra[middle] < relativeLifeLeft)
+		{
+			return SearchColour(spectra, relativeLifeLeft, middle, end);
+		}
+		else
+		{
+			return SearchColour(spectra, relativeLifeLeft, start, middle);
+		}
+	}
+
 	void Seed(int64 value)
 	{
 		if (value == 0)
@@ -39,6 +130,7 @@ namespace ANON
 	{
 		virtual void Free() = 0;
 		virtual void GetParticles(IRenderer& renderer, cr_vec3 origin) = 0;
+		virtual void SetSpectrum(const Spectra& spectra) = 0;
 	};
 
 	struct Dust : public ICloud
@@ -50,6 +142,7 @@ namespace ANON
 		Metres minHeight;
 		Metres maxHeight;
 		Vec3 windDirection{ 0,0,0 };
+		Spectra spectra;
 
 		struct DustParticle : public ParticleVertex
 		{
@@ -66,6 +159,11 @@ namespace ANON
 			{
 				Phoenix(d);
 			}
+		}
+
+		void SetSpectrum(const Spectra& spectra)
+		{
+			ANON::SetSpectrum(this->spectra, spectra);
 		}
 
 		void Decimate(float dt)
@@ -161,6 +259,12 @@ namespace ANON
 		Vec3 origin = Vec3{ 0,0,0 };
 		Vec3 attractor = Vec3{ 0,0,1 };
 		float nextTurbulence = 0;
+		Spectra spectra;
+
+		void SetSpectrum(const Spectra& spectra)
+		{
+			ANON::SetSpectrum(this->spectra, spectra);
+		}
 
 		OS::ticks lastTick = 0;
 
@@ -168,6 +272,8 @@ namespace ANON
 		{
 			ParticleVertex p;
 			Vec3 velocity;
+			float startRadius;
+			float endRadius;
 			float life = 0.5f;
 		};
 
@@ -180,7 +286,8 @@ namespace ANON
 			for (auto& fb : fire)
 			{
 				Phoenix(fb);
-				fb.life = 0;
+				fb.life = AnyFloat(0.1f, 0.5f);
+				fb.p.geometry = { 0.1f,0,0,0 };
 			}
 		}
 
@@ -192,7 +299,7 @@ namespace ANON
 			fb.p.worldPosition.z = AnyFloat(-0.01f, 0.01f);
 			fb.velocity.x = AnyFloat(-1.0f, 1.0f) * def.initialVelocityRange;
 			fb.velocity.y = AnyFloat(-1.0f, 1.0f)* def.initialVelocityRange;
-			fb.velocity.z = 1.0f;
+			fb.velocity.z = def.jetSpeed;
 
 			Vec3 current = attractor - fb.p.worldPosition - origin;
 
@@ -200,7 +307,8 @@ namespace ANON
 
 			fb.p.worldPosition += origin;
 			fb.p.colour = RGBAb(0, 0, 255, 32);
-			fb.p.geometry = { AnyFloat(def.minParticleSize, def.maxParticleSize),0,0,0 };
+			fb.startRadius = AnyFloat(def.minStartParticleSize, def.maxStartParticleSize);
+			fb.endRadius = AnyFloat(def.minEndParticleSize, def.maxEndParticleSize);
 		}
 
 		void ResetAttractor()
@@ -234,48 +342,13 @@ namespace ANON
 			this->attractor += Vec3{ AnyFloat(-1.0f,1.0f), AnyFloat(-1.0f,1.0f), 0.0f } * def.attractorPerturbFactor;
 		}
 
-		RGBAb GetLightForTemperature(float temperature, float alpha)
-		{
-			float red = 0;
-			if (temperature > 750.0f)
-			{
-				red = min(255.0f, temperature - 750.0f);
-				if (temperature > 955.0f)
-				{
-					red *= expf((temperature - 955.0f) / -1000.0f);
-				}
-			}
-
-			float green = 0;
-			if (temperature > 1000.0f)
-			{
-				green = min(192.0f, 0.5f * (temperature - 1000.0f));
-				if (temperature > 1500.0f)
-				{
-					green *= expf((temperature - 1500.0f) / -1500.0f);
-				}
-			}
-
-			float blue = 0;
-			if (temperature > 1500.0f)
-			{
-				blue = min(255.0f, 0.25f * (temperature - 1500.0f));
-				if (temperature > 2500.0f)
-				{
-					blue *= expf((temperature - 2500.0f) / -2500.0f);
-				}
-			}
-
-			return RGBAb((uint8)(int32)red, (uint8)(int32)green, (uint8)(int32)blue, (uint8)(int32)(255.0f * alpha));
-		}
-
 		void Cool(float dt)
 		{
 			for (auto& fb : fire)
 			{
-				float tempFalloff = max(0.0f, 1.0f - (0.51f - fb.life) * 2.0f); // 0 to 1
-				float temperature = tempFalloff * def.temperatureKelvin;
-				fb.p.colour = GetLightForTemperature(temperature, tempFalloff);
+				float t = max(0.0f, 1.0f - (0.51f - fb.life) * 2.0f); // 0 to 1
+				fb.p.colour = GetColour(spectra, t);
+				fb.p.geometry.x = Lerp(fb.endRadius, fb.startRadius, t);
 			}
 		}
 
@@ -334,12 +407,6 @@ namespace ANON
 			OS::ticks hz = OS::CpuHz();
 
 			OS::ticks tenMs = hz / 100;
-
-			ParticleVertex illumination;
-			illumination.colour = GetLightForTemperature(def.temperatureKelvin, 0.75f);
-			illumination.geometry.x = 0.0001f * def.particleCount;
-			illumination.worldPosition = Lerp(origin, attractor, 0.15f);
-			//		renderer.AddParticle(illumination);
 
 			if (delta > tenMs)
 			{
@@ -427,6 +494,56 @@ namespace ANON
 					i->second->GetParticles(renderer, model.GetPosition());
 				}
 			}
+		}
+
+		Spectra spectra;
+		bool dirty = true;
+
+		void ApplySpectrum(ID_ENTITY id) override
+		{
+			if (dirty)
+			{
+				struct
+				{
+					bool operator ()(const SpectrumBand& a, const SpectrumBand& b)
+					{
+						return a.relativeLifeTime < b.relativeLifeTime;
+					}
+				} byTime;
+				std::sort(spectra.begin(), spectra.end(), byTime);
+			}
+
+			auto i = clouds.find(id);
+			if (i != clouds.end())
+			{
+				i->second->SetSpectrum(spectra);
+			}
+		}
+
+		void ClearSpectrum() override
+		{
+			spectra.clear();
+		}
+
+		void SetSpectrum(const RGBA& colour, float relativeLifeTime)  override
+		{
+			if (relativeLifeTime < 0 || relativeLifeTime > 1.0f)
+			{
+				Throw(0, "ParticleSystem::SetSpectrum(...): [relativeLifeTime] domain is [0,1] ");
+			}
+
+			dirty = true;
+
+			for (auto& b : spectra)
+			{
+				if (b.relativeLifeTime == relativeLifeTime)
+				{
+					b.keyColour = colour;
+					return;
+				}
+			}
+
+			spectra.push_back({ relativeLifeTime, colour });
 		}
 	};
 }
