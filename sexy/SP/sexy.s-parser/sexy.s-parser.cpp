@@ -51,7 +51,7 @@
 using namespace Rococo;
 using namespace Rococo::Sex;
 
-namespace
+namespace ANON
 {
    class CSexParser;
    class CSExpression;
@@ -169,7 +169,7 @@ namespace
 
 		virtual const ISExpression* GetOriginal() const
 		{
-			return ::GetOriginal(tree);
+			return ANON::GetOriginal(tree);
 		}
 
 		virtual void AddAtomic(csexstr token)
@@ -821,7 +821,7 @@ namespace
 	}
 }
 
-namespace
+namespace ANON
 {
 	struct EscapeSequence
 	{
@@ -874,7 +874,7 @@ namespace
 	}
 }
 
-namespace
+namespace ANON
 {
 	void ThrowBadArg(cstr format, ...)
 	{
@@ -920,18 +920,18 @@ namespace Rococo
 		{
 			if (*text == 0) return;
 
-			InitEscapeSequences();
+			ANON::InitEscapeSequences();
 
 			size_t segmentLength = 0;
 
 			for (cstr s = text; *s != 0; s++)
 			{
-				segmentLength += maprcharToSequence[(size_t)*s].len;
+				segmentLength += ANON::maprcharToSequence[(size_t)*s].len;
 			}
 
 			if (segmentLength > 0xFFFFFFFFull)
 			{
-				ThrowBadArg(SEXTEXT("EscapeScriptStringToAnsi -> string length too long"));
+				ANON::ThrowBadArg(SEXTEXT("EscapeScriptStringToAnsi -> string length too long"));
 			}
 
 			uint8* segment = (uint8*)alloca(segmentLength);
@@ -939,8 +939,8 @@ namespace Rococo
 			uint8* writePos = segment;
 			for (cstr s = text; *s != 0; s++)
 			{
-				memcpy(writePos, maprcharToSequence[(size_t)*s].text, maprcharToSequence[(size_t)*s].len);
-				writePos += maprcharToSequence[(size_t)*s].len;
+				memcpy(writePos, ANON::maprcharToSequence[(size_t)*s].text, ANON::maprcharToSequence[(size_t)*s].len);
+				writePos += ANON::maprcharToSequence[(size_t)*s].len;
 			}
 
 			writer.Write(segment, (uint32) segmentLength);
@@ -950,13 +950,13 @@ namespace Rococo
 		{
 			if (*text == 0) return;
 
-			InitEscapeSequences();
+			ANON::InitEscapeSequences();
 
 			size_t segmentLength = 1;
 
 			for (cstr s = text; *s != 0; s++)
 			{
-				segmentLength += maprcharToSequence[(size_t)*s].len;
+				segmentLength += ANON::maprcharToSequence[(size_t)*s].len;
 			}
 
 			rchar* segment = (rchar*)alloca(sizeof(rchar) * segmentLength);
@@ -964,8 +964,8 @@ namespace Rococo
 			rchar* writePos = segment;
 			for (cstr s = text; *s != 0; s++)
 			{
-				SecureFormat(writePos, segment + segmentLength - writePos, SEXTEXT("%s"), maprcharToSequence[(size_t)*s].text);
-				writePos += maprcharToSequence[(size_t)*s].len;
+				SecureFormat(writePos, segment + segmentLength - writePos, SEXTEXT("%s"), ANON::maprcharToSequence[(size_t)*s].text);
+				writePos += ANON::maprcharToSequence[(size_t)*s].len;
 			}
 
 			*writePos = 0;
@@ -978,5 +978,5 @@ namespace Rococo
 /////////////////////// Entry point ///////////////////////////
 SEXY_SPARSER_API Rococo::Sex::ISParser* Sexy_CreateSexParser()
 {
-	return new CSexParser();
+	return new ANON::CSexParser();
 }

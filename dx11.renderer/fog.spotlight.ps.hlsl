@@ -45,15 +45,15 @@ cbuffer globalState: register(b1)
 	float4 aspect;
 };
 
+Texture2DArray g_materials: register(t6);
 Texture2D g_ShadowMap: register(t2);
+TextureCube g_cubeMap: register(t3);
 
-SamplerState shadowSamplerLookup
-{
-	// sampler state
-	Filter = COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
-	AddressU = MIRROR;
-	AddressV = MIRROR;
-};
+SamplerState fontSampler: register(s0);
+SamplerState spriteSampler: register(s1);
+SamplerState matSampler: register(s2);
+SamplerState envSampler: register(s3);
+SamplerState shadowSampler: register(s4);
 
 float4 main(PixelVertex p) : SV_TARGET
 {
@@ -61,7 +61,7 @@ float4 main(PixelVertex p) : SV_TARGET
 	float2 shadowUV = float2(1.0f + shadowXYZW.x, 1.0f - shadowXYZW.y) * 0.5f;
 
 	float bias = -0.00001f;
-	float shadowDepth = g_ShadowMap.Sample(shadowSamplerLookup, shadowUV).x + bias;
+	float shadowDepth = g_ShadowMap.Sample(shadowSampler, shadowUV).x + bias;
 
 	float isLit = shadowDepth > shadowXYZW.z;
 
@@ -73,7 +73,7 @@ float4 main(PixelVertex p) : SV_TARGET
 		float r = dot(p.uv, p.uv);
 		float intensity = 0.2f * clamp(1 - r, 0, 1);
 		float4 texel = float4(p.colour.xyz, intensity * p.colour.w);
-		
+
 		float3 lightToPixelDir = normalize(lightToPixelVec);
 
 		float f = dot(lightToPixelDir, normalize(light.direction.xyz));
@@ -93,7 +93,7 @@ float4 main(PixelVertex p) : SV_TARGET
 		texel.xyz *= I;
 		texel.xyz *= light.colour.xyz;
 
-		return texel;
+		return float4(0, 0, 0, 0);
 	}
 	else
 	{

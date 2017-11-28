@@ -1765,17 +1765,17 @@ namespace Rococo
 
 		bool IsAssignment(cr_sex s)
 		{
-			if (s.NumberOfElements() != 3 && s.NumberOfElements() != 5)	
+			if (s.NumberOfElements() < 3)	
 			{
 				return false;
 			}
 
-			if (!IsAtomic(s.GetElement(0)))
+			if (!IsAtomic(s[0]))
 			{
 				return false;
 			}
 
-			cr_sex operatorExpr = s.GetElement(1);
+			cr_sex operatorExpr = s[1];
 			if (!IsAtomic(operatorExpr))
 			{
 				return false;
@@ -1851,14 +1851,12 @@ namespace Rococo
 			return true;
 		}
 
-		void CompileAsStructureAssignmentFromCompound(CCompileEnvironment& ce, const IStructure& varStruct, csexstr varName, cr_sex value)
+		bool CompileAsStructureAssignmentFromCompound(CCompileEnvironment& ce, const IStructure& varStruct, csexstr varName, cr_sex value)
 		{
 			if (value.NumberOfElements() == 1)
 			{
-				CompileAsStructureAssignmentFromCompound(ce, varStruct, varName, value.GetElement(0));
-				return;
+				return CompileAsStructureAssignmentFromCompound(ce, varStruct, varName, value.GetElement(0));
 			}
-
 
 			if (value.NumberOfElements() == 2)
 			{
@@ -1901,6 +1899,7 @@ namespace Rococo
 						ce.Builder.AssignVariableRefToTemp(varName, 1); // D5 contains the structure ptr
 
 						ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayGetByRef);
+						return true;
 					}
 					else
 					{
@@ -1912,9 +1911,11 @@ namespace Rococo
 					Throw(command, SEXTEXT("Expecting variable name"));
 				}
 			}
+
+			return false;
 		}
 
-		void CompileAsStructureAssignment(CCompileEnvironment& ce, const IStructure& varStruct, cr_sex directive)
+		bool CompileAsStructureAssignment(CCompileEnvironment& ce, const IStructure& varStruct, cr_sex directive)
 		{
 		  if (directive.NumberOfElements() == 3)
 		  {
@@ -1924,10 +1925,10 @@ namespace Rococo
 			 switch (rhs.Type())
 			 {
 			 case EXPRESSION_TYPE_COMPOUND:
-				CompileAsStructureAssignmentFromCompound(ce, varStruct, varName, rhs);
-				break;
+				return CompileAsStructureAssignmentFromCompound(ce, varStruct, varName, rhs);
 			 default:
 				Throw(directive, SEXTEXT("Non-compound structure assignment is not yet implemented"));
+				return false;
 			 }
 		  }
 		  else if (directive.NumberOfElements() == 5)
@@ -1941,17 +1942,18 @@ namespace Rococo
 				if (AreEqual(s, SEXTEXT("+"))) prefix = SEXTEXT("Add");
 				else  if (AreEqual(s, SEXTEXT("-"))) prefix = SEXTEXT("Subtract");
 				else  if (AreEqual(s, SEXTEXT("*"))) prefix = SEXTEXT("Multiply");
-				else Throw(directive, SEXTEXT("Unrecognized assignment syntax"));
+				else return false;
 				CompileBinaryOperatorOverload(prefix, ce, directive, varStruct, 0);
+				return true;
 			 }
 			 else
 			 {
-				Throw(directive, SEXTEXT("Unrecognized assignment syntax"));
+				return false;
 			 }
 		  }
 		  else
 		  {
-			 Throw(directive, SEXTEXT("Could not parse assignment"));
+			 return false;
 		  }
 		}
 
@@ -1989,8 +1991,15 @@ namespace Rococo
 					}
 					else
 					{
-						CompileAsStructureAssignment(ce, *varStruct, directive);
-						return true;
+						if (CompileAsStructureAssignment(ce, *varStruct, directive))
+						{
+							return true;
+						}
+						else
+						{
+							CompileAssignmentDirective(ce, directive, *varStruct, false);
+							return true;
+						}
 					}
 				}
 			}

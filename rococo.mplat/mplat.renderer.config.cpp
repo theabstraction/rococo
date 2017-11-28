@@ -10,7 +10,10 @@ namespace ANON
 	{
 		IRenderer& renderer;
 
-		RendererConfig(IRenderer& _renderer) : renderer(_renderer) {}
+		RendererConfig(IRenderer& _renderer) : renderer(_renderer) 
+		{
+			static_assert(sizeof(SampleStateDef) == 32, "Expecting someone taller");
+		}
 
 		void Free() override
 		{

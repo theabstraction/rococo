@@ -841,7 +841,7 @@ namespace Rococo
 						auto node = tree->AddChild(sfNode, desc, CheckState_NoCheckBox);
 						tree->SetId(node, depth + 1);
 
-						struct : MemberEnumeratorCallback
+						struct MyMemberEnumeratorCallback : MemberEnumeratorCallback
 						{
 							TREE_NODE_ID parentId;
 							IUITree* tree;
@@ -865,6 +865,19 @@ namespace Rococo
 
 								auto node = tree->AddChild(parentId, memberDesc, CheckState_NoCheckBox);
 								tree->SetId(node, depth + 1);
+
+								if (member.UnderlyingType()->VarType() == VARTYPE_Derivative)
+								{
+									if (member.UnderlyingType()->InterfaceCount() == 0)
+									{
+										MyMemberEnumeratorCallback subMember;
+										subMember.instance = instance;
+										subMember.parentId = node;
+										subMember.tree = tree;
+										subMember.depth = depth;
+										GetMembers(ss, *member.UnderlyingType(), member.Name(), sfItem, 0, subMember);
+									}
+								}
 							}
 						} addMember;
 

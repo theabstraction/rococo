@@ -418,7 +418,8 @@ namespace ANON
 	   ID_PIXEL_SHADER idFogAmbientPS;
 	   ID_PIXEL_SHADER idFogSpotlightPS;
 	   ID_GEOMETRY_SHADER idPlasmaGS;
-	   ID_GEOMETRY_SHADER idFogGS;
+	   ID_GEOMETRY_SHADER idFogSpotlightGS;
+	   ID_GEOMETRY_SHADER idFogAmbientGS;
 
 	   ID_VERTEX_SHADER idObjVS_Shadows;
 	   ID_PIXEL_SHADER idObjPS_Shadows;
@@ -534,8 +535,11 @@ namespace ANON
 		   installation.LoadResource("!plasma.gs", *scratchBuffer, 64_kilobytes);
 		   idPlasmaGS = CreateGeometryShader("!plasma.gs", scratchBuffer->GetData(), scratchBuffer->Length());
 
-		   installation.LoadResource("!fog.gs", *scratchBuffer, 64_kilobytes);
-		   idFogGS = CreateGeometryShader("!fog.gs", scratchBuffer->GetData(), scratchBuffer->Length());
+		   installation.LoadResource("!fog.spotlight.gs", *scratchBuffer, 64_kilobytes);
+		   idFogSpotlightGS = CreateGeometryShader("!fog.spotlight.gs", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!fog.ambient.gs", *scratchBuffer, 64_kilobytes);
+		   idFogAmbientGS = CreateGeometryShader("!fog.ambient.gs", scratchBuffer->GetData(), scratchBuffer->Length());
 
 		   installation.LoadResource("!plasma.ps", *scratchBuffer, 64_kilobytes);
 		   idPlasmaPS = CreatePixelShader("!plasma.ps", scratchBuffer->GetData(), scratchBuffer->Length());
@@ -1873,7 +1877,7 @@ namespace ANON
 		   dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 		   dc.RSSetState(particleRaterizering);
 		   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
-		   dc.GSSetConstantBuffers(0, 1, &globalStateBuffer);
+		   dc.GSSetConstantBuffers(1, 1, &globalStateBuffer);
 
 		   size_t qSize = particles.size();
 
@@ -1964,9 +1968,8 @@ namespace ANON
 
 			   DX11::CopyStructureToBuffer(dc, vs_LightStateBuffer, light);
 			   dc.VSSetConstantBuffers(2, 1, &vs_LightStateBuffer);
-
-			   DX11::CopyStructureToBuffer(dc, ps_LightStateBuffer, light);
-			   dc.PSSetConstantBuffers(0, 1, &ps_LightStateBuffer);
+			   dc.PSSetConstantBuffers(0, 1, &vs_LightStateBuffer);
+			   dc.GSSetConstantBuffers(0, 1, &vs_LightStateBuffer);
 
 			   if (builtFirstPass)
 			   {
@@ -1984,7 +1987,7 @@ namespace ANON
 
 			   phase = RenderPhase_DetermineSpotlight;
 			   scene.RenderObjects(*this);
-			   RenderParticles(fog, idFogSpotlightPS, idParticleVS, idFogGS);
+			   RenderParticles(fog, idFogSpotlightPS, idParticleVS, idFogSpotlightGS);
 			   phase = RenderPhase_None;
 
 			   dc.OMSetDepthStencilState(objDepthState, 0);
@@ -2067,7 +2070,7 @@ namespace ANON
 
 			   phase = RenderPhase_DetermineAmbient;
 			   scene.RenderObjects(*this);
-			   RenderParticles(fog, idFogAmbientPS, idParticleVS, idFogGS);
+			   RenderParticles(fog, idFogAmbientPS, idParticleVS, idFogAmbientGS);
 			   phase = RenderPhase_None;
 		   }
 	   }
@@ -2086,10 +2089,11 @@ namespace ANON
 
 	   void InitInvariantTextureViews()
 	   {
+		   dc.PSSetShaderResources(0, 1, &fontBinding);
+		   dc.PSSetShaderResources(3, 1, &cubeTextureView);
+
 		   ID3D11ShaderResourceView* materials[1] = { materialArray.View() };
 		   dc.PSSetShaderResources(6, 1, materials);
-		   dc.PSSetShaderResources(3, 1, &cubeTextureView);
-		   dc.PSSetShaderResources(0, 1, &fontBinding);
 
 		   ID3D11ShaderResourceView* spriteviews[1] = { spriteArray.View() };
 		   dc.PSSetShaderResources(7, 1, spriteviews);

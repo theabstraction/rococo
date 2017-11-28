@@ -31,7 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace
+namespace ANON
 {
 	using namespace Rococo;
 	using namespace Rococo::Sex;

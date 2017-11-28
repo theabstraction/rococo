@@ -12,7 +12,6 @@ struct PixelVertex
 
 Texture2DArray g_materials: register(t6);
 TextureCube g_cubeMap: register(t3);
-
 Texture2D g_FontSprite: register(t0);
 Texture2DArray g_BitmapSprite: register(t7);
 

@@ -14,7 +14,7 @@ struct PixelVertex
 
 #pragma pack_matrix(row_major)
 
-cbuffer camera: register(b0)
+cbuffer camera: register(b1)
 {
 	float4x4 worldMatrixAndProj;
 	float4x4 worldMatrix;

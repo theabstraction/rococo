@@ -49,7 +49,10 @@
     <FxCompile Include="plasma.gs.hlsl">
       <Filter>HLSL\Particles</Filter>
     </FxCompile>
-    <FxCompile Include="fog.gs.hlsl">
+    <FxCompile Include="fog.spotlight.gs.hlsl">
+      <Filter>HLSL\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="fog.ambient.gs.hlsl">
       <Filter>HLSL\Particles</Filter>
     </FxCompile>
   </ItemGroup>

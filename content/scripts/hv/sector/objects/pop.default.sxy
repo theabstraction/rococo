@@ -132,7 +132,7 @@
 				
 				(Vec2 altitudes)
 				(sector.Altitude altitudes)
-				(particles.AddDust 100 8 altitudes.x altitudes.y dustId)
+				(particles.AddDust 7000 8 altitudes.x altitudes.y dustId)
 				(sector.ManageEntity dustId)
 			)
 		)

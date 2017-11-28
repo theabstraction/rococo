@@ -1725,6 +1725,31 @@ namespace
 		validate(y == 25.0);
 	}
 
+	void TestStructWithVec4f(IPublicScriptSystem& ss)
+	{
+		csexstr srcCode =
+			SEXTEXT("(namespace EntryPoint)\n")
+			SEXTEXT("(struct Def\n")
+			SEXTEXT("	(Sys.Maths.Vec4 v)\n")
+			SEXTEXT(")\n")
+			SEXTEXT("(function Main -> (Float32 result):\n")
+			SEXTEXT("	 (Def d)")
+			SEXTEXT("    (d.v = 1 2 3 4)")
+			SEXTEXT("    (result = (d.v.x + d.v.w))")
+			SEXTEXT(")\n")
+			SEXTEXT("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStructWithVec4f"));
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(100.0f); // Allocate stack space for the float32 x
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		float32 x = vm.PopFloat32();
+		validate(x == 5.0f);
+	}
+
 	void TestStructure(IPublicScriptSystem& ss)
 	{
 		csexstr srcCode =
@@ -11035,6 +11060,8 @@ namespace
 
 	void RunPositiveSuccesses()
 	{
+		TEST(TestOperatorOverload2);
+		TEST(TestStructWithVec4f);
 		TEST(TestBooleanCompareVarToCompound);
 		TEST(TestAssignDerivativeFromRef);
 		TEST(TestLinkedList6);
@@ -11044,7 +11071,6 @@ namespace
 		TEST(TestNullObject);
 		TEST(TestNullArchetype);
 		TEST(TestOperatorOverload3);
-		TEST(TestOperatorOverload2);
 		TEST(TestOperatorOverload);
 
 		TEST(TestNullArchetypeArg);

@@ -17,15 +17,6 @@ struct PixelVertex
 
 #pragma pack_matrix(row_major)
 
-cbuffer camera: register(b0)
-{
-	float4x4 worldMatrixAndProj;
-	float4x4 worldMatrix;
-	float4 eye;
-	float4 viewDir;
-	float4 aspect;
-};
-
 struct Light
 {
 	float4x4 worldToShadowBuffer;
@@ -46,9 +37,18 @@ struct Light
 	float attenuationRate; // Point lights vary as inverse square, so 0.5 ish
 };
 
-cbuffer light: register(b2)
+cbuffer light: register(b0)
 {
 	Light light;
+};
+
+cbuffer camera: register(b1)
+{
+	float4x4 worldMatrixAndProj;
+	float4x4 worldMatrix;
+	float4 eye;
+	float4 viewDir;
+	float4 aspect;
 };
 
 void EmitPointEx(float4 p, ParticleVertex source, float4 cameraSpacePos, float4 shadowPos, float u, float v, inout TriangleStream<PixelVertex> output)
@@ -69,9 +69,11 @@ void main (point ParticleVertex p[1], inout TriangleStream<PixelVertex> output)
 {
 	float scale = p[0].geometry.x;
 
-	float4 pos = mul(worldMatrixAndProj, float4(p[0].position, 1.0f));
+	float4 worldPosition = float4(p[0].position, 1.0f);
 
-	float4 worldPosition = mul(worldMatrix, float4(p[0].position.xyz,1.0f));
+	float4 preScreenTransformPosition = mul(worldMatrixAndProj, worldPosition);
+
+	float4 cameraSpacePosition = mul(worldMatrix, worldPosition);
 
 	float4 shadowPos = mul(light.worldToShadowBuffer, worldPosition);
 
@@ -80,15 +82,15 @@ void main (point ParticleVertex p[1], inout TriangleStream<PixelVertex> output)
 	float4 up = float4(0, s, 0, 0);
 
 	float4 billboard[4];
-	billboard[0] = pos - right - up;
-	billboard[1] = pos + right - up;
-	billboard[2] = pos + right + up;
-	billboard[3] = pos - right + up;
+	billboard[0] = preScreenTransformPosition - right - up;
+	billboard[1] = preScreenTransformPosition + right - up;
+	billboard[2] = preScreenTransformPosition + right + up;
+	billboard[3] = preScreenTransformPosition - right + up;
 
-	EmitPointEx(billboard[0], p[0], worldPosition, shadowPos, -1, -1, output);
-	EmitPointEx(billboard[1], p[0], worldPosition, shadowPos,  1, -1, output);
-	EmitPointEx(billboard[2], p[0], worldPosition, shadowPos,  1,  1, output);
-	EmitPointEx(billboard[2], p[0], worldPosition, shadowPos,  1,  1, output);
-	EmitPointEx(billboard[3], p[0], worldPosition, shadowPos, -1,  1, output);
-	EmitPointEx(billboard[0], p[0], worldPosition, shadowPos, -1, -1, output);
+	EmitPointEx(billboard[0], p[0], cameraSpacePosition, shadowPos, -1, -1, output);
+	EmitPointEx(billboard[1], p[0], cameraSpacePosition, shadowPos,  1, -1, output);
+	EmitPointEx(billboard[2], p[0], cameraSpacePosition, shadowPos,  1,  1, output);
+	EmitPointEx(billboard[2], p[0], cameraSpacePosition, shadowPos,  1,  1, output);
+	EmitPointEx(billboard[3], p[0], cameraSpacePosition, shadowPos, -1,  1, output);
+	EmitPointEx(billboard[0], p[0], cameraSpacePosition, shadowPos, -1, -1, output);
 }
