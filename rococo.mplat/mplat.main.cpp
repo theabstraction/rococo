@@ -3072,7 +3072,7 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 	AutoFree<IConfigSupervisor> config = CreateConfig();
 	AutoFree<Graphics::IRimTesselatorSupervisor> rimTesselator = Graphics::CreateRimTesselator();
 	AutoFree<Entities::IParticleSystemSupervisor> particles = Entities::CreateParticleSystem(mainWindow->Renderer(), *instances);
-
+	AutoFree<Graphics::IRendererConfigSupervisor> rendererConfig = Graphics::CreateRendererConfig(mainWindow->Renderer());
 	Utilities utils(*installation, mainWindow->Renderer());
 
 	AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor(utils);
@@ -3080,7 +3080,7 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 	GuiStack gui(*publisher, *sourceCache, mainWindow->Renderer(), utils);
 
 	Tesselators tesselators{ *rimTesselator };
-	Platform platform{ *os, *installation, mainWindow->Renderer(), *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor, title };
+	Platform platform{ *os, *installation, mainWindow->Renderer(), *rendererConfig, *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor, title };
 	gui.platform = &platform;
 	utils.SetPlatform(platform);
 

@@ -117,11 +117,13 @@
     </ClCompile>
     <ClCompile Include="mplat.maths.visitor.cpp" />
     <ClCompile Include="mplat.graphics.scene.cpp" />
+    <ClCompile Include="mplat.renderer.config.cpp" />
     <ClCompile Include="mplat.scripts.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.mplat.h" />
     <ClInclude Include="mplat.sxh.h" />
+    <ClInclude Include="rococo.script.types.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="config.xc" />

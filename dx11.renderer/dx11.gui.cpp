@@ -28,23 +28,6 @@ namespace Rococo
          static_assert(sizeof(guiVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC) == 4, "Vertex data was not 4 fields");
          return sizeof(guiVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC);
       }
-
-      ID3D11SamplerState* CreateSpriteSampler(ID3D11Device& device)
-      {
-         D3D11_SAMPLER_DESC spriteSamplerDesc;
-         ZeroMemory(&spriteSamplerDesc, sizeof(spriteSamplerDesc));
-         spriteSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-         spriteSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-         spriteSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-         spriteSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-         spriteSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-         spriteSamplerDesc.MinLOD = 0;
-         spriteSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-         ID3D11SamplerState* spriteSampler = nullptr;
-         VALIDATEDX11(device.CreateSamplerState(&spriteSamplerDesc, &spriteSampler));
-         return spriteSampler;
-      }
       
       ID3D11RasterizerState* CreateSpriteRasterizer(ID3D11Device& device)
       {

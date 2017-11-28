@@ -416,3 +416,43 @@
 	)
 	(factory Rococo.Graphics.TextTesselator)
 )
+
+(enum Int32
+	(as.sxy Rococo.Graphics.SampleMethod "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.SampleMethod "mplat")
+	(
+		(Point 0)
+		(Linear 1)
+	)
+)
+
+(enum Int32
+	(as.sxy Rococo.Graphics.SampleFilter "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.SampleFilter "mplat")
+	(
+		(Border 0)
+		(Mirror 1)
+		(Wrap 2)
+	)
+)
+
+(enum Int32
+	(as.sxy Rococo.Graphics.SampleIndex "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.SampleIndex "mplat")
+	(
+		(Fonts  0)
+		(Sprites  1)
+		(Materials 2)
+		(EnvironmentalMap 3)
+		(ShadowMap 3)
+	)
+)
+
+(interface (as.sxy Rococo.Graphics.IRendererConfig "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.IRendererConfig "mplat")
+	(context factory Rococo.Platform)
+	(methods
+		(SetSampler (const SampleStateDef ssd)(SampleIndex index))
+	)
+	(factory Rococo.Graphics.RendererConfig)
+)

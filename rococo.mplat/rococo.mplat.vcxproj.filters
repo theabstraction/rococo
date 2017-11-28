@@ -75,12 +75,18 @@
     <ClCompile Include="mplat.entities.particles.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mplat.renderer.config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.mplat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mplat.sxh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rococo.script.types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

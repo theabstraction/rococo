@@ -40,7 +40,16 @@
     <FxCompile Include="particle.vs.hlsl">
       <Filter>HLSL\Particles</Filter>
     </FxCompile>
-    <FxCompile Include="particle.gs.hlsl">
+    <FxCompile Include="fog.spotlight.ps.hlsl">
+      <Filter>HLSL\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="fog.ambient.ps.hlsl">
+      <Filter>HLSL\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="plasma.gs.hlsl">
+      <Filter>HLSL\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="fog.gs.hlsl">
       <Filter>HLSL\Particles</Filter>
     </FxCompile>
   </ItemGroup>

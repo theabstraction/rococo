@@ -27,9 +27,6 @@ namespace Rococo
 	  const D3D11_INPUT_ELEMENT_DESC* const GetParticleVertexDesc();
 	  const uint32 NumberOfParticleVertexElements();
 
-      ID3D11SamplerState* CreateSpriteSampler(ID3D11Device& device);
-      ID3D11SamplerState* CreateObjectSampler(ID3D11Device& device);
-	  ID3D11SamplerState* CreateShadowSampler(ID3D11Device& device);
       ID3D11RasterizerState* CreateSpriteRasterizer(ID3D11Device& device);
       ID3D11RasterizerState* CreateObjectRasterizer(ID3D11Device& device);
 	  ID3D11RasterizerState* CreateParticleRasterizer(ID3D11Device& device);

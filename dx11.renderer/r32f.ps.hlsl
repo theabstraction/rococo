@@ -7,7 +7,12 @@ struct PixelVertex
 };
 
 Texture2D g_Texture: register(t4);	// Custom shaders all put texture in t4
-SamplerState spriteSampler;
+
+SamplerState fontSampler: register(s0);
+SamplerState spriteSampler: register(s1);
+SamplerState matSampler: register(s2);
+SamplerState envSampler: register(s3);
+SamplerState shadowSampler: register(s4);
 
 struct TextureDescState
 {
@@ -28,7 +33,7 @@ cbuffer textureState: register(b7)
 
 float4 main(PixelVertex p) : SV_TARGET
 {
-	float s = g_Texture.Sample(spriteSampler, p.base.xy).x;
+	float s = g_Texture.Sample(matSampler, p.base.xy).x;
 	float r = pow(s, 60.0f);
 	return float4(r, r, r, 1.0f);
 }

@@ -248,7 +248,7 @@ namespace ANON
 			{
 				uint8 col = Rand(255);
 				d.colour = RGBAb(col, col, col, 255);
-				renderer.AddParticle(d);
+				renderer.AddFog(d);
 			}
 		}
 	};
@@ -418,7 +418,7 @@ namespace ANON
 
 			for (auto& fb : fire)
 			{
-				renderer.AddParticle(fb.p);
+				renderer.AddPlasma(fb.p);
 			}
 		}
 	};

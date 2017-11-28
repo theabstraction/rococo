@@ -71,3 +71,13 @@
 		float attractorPerturbFactor;
 		float attractorForce;
 	};
+namespace Rococo { namespace Graphics { 
+	struct SampleStateDef
+	{
+		Rococo::Graphics::SampleMethod method;
+		Rococo::Graphics::SampleFilter u;
+		Rococo::Graphics::SampleFilter v;
+		Rococo::Graphics::SampleFilter w;
+		RGBA borderColour;
+	};
+}}

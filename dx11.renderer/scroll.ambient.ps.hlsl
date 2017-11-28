@@ -11,7 +11,6 @@ struct PixelVertex
 #pragma pack_matrix(row_major)
 
 Texture2DArray g_materials: register(t6);
-SamplerState txSampler;
 TextureCube g_cubeMap: register(t3);
 
 Texture2D g_FontSprite: register(t0);
@@ -39,18 +38,15 @@ cbuffer globalState : register(b1)
 	float4 eye;
 };
 
-SamplerState fontSamplerState
-{
-	// sampler state
-	Filter = FILTER_MIN_MAG_MIP_LINEAR;
-	AddressU = BORDER;
-	AddressV = BORDER;
-	BorderColor = float4(0,0,0,0);
-};
+SamplerState fontSampler: register(s0);
+SamplerState spriteSampler: register(s1);
+SamplerState matSampler: register(s2);
+SamplerState envSampler: register(s3);
+SamplerState shadowSampler: register(s4);
 
 float4 GetFontPixel(float3 uv_blend, float4 vertexColour)
 {
-	float fontIntensity = lerp(1.0f, g_FontSprite.Sample(fontSamplerState, uv_blend.xy).x, uv_blend.z);
+	float fontIntensity = lerp(1.0f, g_FontSprite.Sample(fontSampler, uv_blend.xy).x, uv_blend.z);
 	return float4(vertexColour.xyz, fontIntensity);
 }
 

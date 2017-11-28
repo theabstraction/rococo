@@ -222,12 +222,30 @@ namespace Rococo
 		struct IFont;
 	}
 
+	namespace Samplers
+	{
+		enum Filter : int32
+		{
+			Filter_Point = 0,
+			Filter_Linear = 1
+		};
+	
+		enum AddressMode : int32
+		{
+			AddressMode_Border = 0,
+			AddressMode_Mirror = 1,
+			AddressMode_Wrap = 2,
+		};
+	}
+
 	ROCOCOAPI IRenderer
 	{
 	  virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
-	  virtual void AddParticle(const ParticleVertex& p) = 0;
+	  virtual void AddFog(const ParticleVertex& fog) = 0;
+	  virtual void AddPlasma(const ParticleVertex& p) = 0;
 	  virtual void ClearMeshes() = 0;
-	  virtual void ClearParticles() = 0;
+	  virtual void ClearFog() = 0;
+	  virtual void ClearPlasma() = 0;
 	  virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
 	  virtual void DeleteMesh(ID_SYS_MESH id) = 0;
 	  virtual ID_TEXTURE FindTexture(cstr name) const = 0;
@@ -245,6 +263,7 @@ namespace Rococo
 	  virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
 	  virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
 	  virtual void SetCursorVisibility(bool isVisible) = 0;
+	  virtual void SetSampler(uint32 index, Samplers::Filter, Samplers::AddressMode u, Samplers::AddressMode v, Samplers::AddressMode w, const RGBA& borderColour) = 0;
 	  virtual void SetShadowCasting(ID_SYS_MESH id, boolean32 isActive) = 0;
 	  virtual void SetSpecialShader(ID_SYS_MESH id, cstr psSpotlightPingPath, cstr psAmbientPingPath, bool alphaBlending) = 0;
 	  virtual void ShowWindowVenue(IMathsVisitor& visitor) = 0;

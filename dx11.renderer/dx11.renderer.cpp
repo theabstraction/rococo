@@ -31,6 +31,7 @@ namespace ANON
 {
 	using namespace Rococo;
 	using namespace Rococo::Windows;
+	using namespace Rococo::Samplers;
 
 	struct DX11Shader
 	{
@@ -370,9 +371,6 @@ namespace ANON
 	   enum { PARTICLE_BUFFER_VERTEX_CAPACITY = 1024 };
 
 	   AutoRelease<ID3D11Texture2D> fontTexture;
-	   AutoRelease<ID3D11SamplerState> spriteSampler;
-	   AutoRelease<ID3D11SamplerState> objectSampler;
-	   AutoRelease<ID3D11SamplerState> shadowSampler;
 	   AutoRelease<ID3D11ShaderResourceView> fontBinding;
 	   AutoRelease<ID3D11RasterizerState> spriteRaterizering;
 	   AutoRelease<ID3D11RasterizerState> objectRaterizering;
@@ -414,11 +412,13 @@ namespace ANON
 	   ID_PIXEL_SHADER idObjPS;
 	   ID_VERTEX_SHADER idObjAmbientVS;
 	   ID_PIXEL_SHADER idObjAmbientPS;
-	   ID_PIXEL_SHADER idObjDepthPS;
 
 	   ID_VERTEX_SHADER idParticleVS;
 	   ID_PIXEL_SHADER idPlasmaPS;
-	   ID_GEOMETRY_SHADER idParticleGS;
+	   ID_PIXEL_SHADER idFogAmbientPS;
+	   ID_PIXEL_SHADER idFogSpotlightPS;
+	   ID_GEOMETRY_SHADER idPlasmaGS;
+	   ID_GEOMETRY_SHADER idFogGS;
 
 	   ID_VERTEX_SHADER idObjVS_Shadows;
 	   ID_PIXEL_SHADER idObjPS_Shadows;
@@ -456,7 +456,10 @@ namespace ANON
 
 	   std::unordered_map<std::string, ID_PIXEL_SHADER> nameToPixelShader;
 
-	   std::vector<ParticleVertex> particles;
+	   std::vector<ParticleVertex> fog;
+	   std::vector<ParticleVertex> plasma;
+
+	   ID3D11SamplerState* samplers[16] = { 0 };
    public:
 	   Windows::IWindow* window;
 	   bool isBuildingAlphaBlendedSprites{ false };
@@ -474,9 +477,6 @@ namespace ANON
 		   guiBuffer = DX11::CreateDynamicVertexBuffer<GuiVertex>(device, GUI_BUFFER_VERTEX_CAPACITY);
 		   particleBuffer = DX11::CreateDynamicVertexBuffer<ParticleVertex>(device, PARTICLE_BUFFER_VERTEX_CAPACITY);
 
-		   spriteSampler = DX11::CreateSpriteSampler(device);
-		   objectSampler = DX11::CreateObjectSampler(device);
-		   shadowSampler = DX11::CreateShadowSampler(device);
 		   objDepthState = DX11::CreateObjectDepthStencilState(device);
 		   objDepthState_NoWrite = DX11::CreateObjectDepthStencilState_NoWrite(device);
 		   guiDepthState = DX11::CreateGuiDepthStencilState(device);
@@ -531,11 +531,20 @@ namespace ANON
 		   installation.LoadResource("!particle.vs", *scratchBuffer, 64_kilobytes);
 		   idParticleVS = CreateParticleVertexShader("!particle.vs", scratchBuffer->GetData(), scratchBuffer->Length());
 
-		   installation.LoadResource("!particle.gs", *scratchBuffer, 64_kilobytes);
-		   idParticleGS = CreateGeometryShader("!particle.gs", scratchBuffer->GetData(), scratchBuffer->Length());
+		   installation.LoadResource("!plasma.gs", *scratchBuffer, 64_kilobytes);
+		   idPlasmaGS = CreateGeometryShader("!plasma.gs", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!fog.gs", *scratchBuffer, 64_kilobytes);
+		   idFogGS = CreateGeometryShader("!fog.gs", scratchBuffer->GetData(), scratchBuffer->Length());
 
 		   installation.LoadResource("!plasma.ps", *scratchBuffer, 64_kilobytes);
 		   idPlasmaPS = CreatePixelShader("!plasma.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!fog.spotlight.ps", *scratchBuffer, 64_kilobytes);
+		   idFogSpotlightPS = CreatePixelShader("!fog.spotlight.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!fog.ambient.ps", *scratchBuffer, 64_kilobytes);
+		   idFogAmbientPS = CreatePixelShader("!fog.ambient.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
 		   installation.LoadResource("!ambient.ps", *scratchBuffer, 64_kilobytes);
 		   idObjAmbientPS = CreatePixelShader("!ambient.ps", scratchBuffer->GetData(), scratchBuffer->Length());
@@ -549,9 +558,6 @@ namespace ANON
 		   installation.LoadResource("!shadow.ps", *scratchBuffer, 64_kilobytes);
 		   idObjPS_Shadows = CreatePixelShader("!shadow.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
-		   installation.LoadResource("!depth.ps", *scratchBuffer, 64_kilobytes);
-		   idObjDepthPS = CreatePixelShader("!depth.ps", scratchBuffer->GetData(), scratchBuffer->Length());
-
 		   instanceBuffer = DX11::CreateConstantBuffer<ObjectInstance>(device);
 
 		   lastTick = OS::CpuTicks();
@@ -560,7 +566,7 @@ namespace ANON
 
 	   ~DX11AppRenderer()
 	   {
-		   ClearContext();
+		   DetachContext();
 
 		   if (fonts)
 		   {
@@ -589,21 +595,89 @@ namespace ANON
 			   if (t.texture) t.texture->Release();
 			   if (t.view) t.view->Release();
 		   }
+
+		   for (auto& s : samplers)
+		   {
+			   if (s) s->Release();
+		   }
 	   }
 
-	   void AddParticle(const ParticleVertex& p) override
+	   void AddFog(const ParticleVertex& p) override
 	   {
-		  particles.push_back(p);
+		   fog.push_back(p);
 	   }
 
-	   void ClearParticles()
+	   void AddPlasma(const ParticleVertex& p) override
 	   {
-		   particles.clear();
+		  plasma.push_back(p);
+	   }
+
+	   void ClearPlasma() override
+	   {
+		   plasma.clear();
+	   }
+
+	   void ClearFog() override
+	   {
+		   fog.clear();
 	   }
 
 	   Fonts::IFont& FontMetrics() override
 	   {
 		   return *fonts;
+	   }
+
+	   D3D11_TEXTURE_ADDRESS_MODE From(AddressMode mode)
+	   {
+		   switch (mode)
+		   {
+		   case AddressMode_Border:
+			   return D3D11_TEXTURE_ADDRESS_BORDER;
+		   case AddressMode_Wrap:
+			   return D3D11_TEXTURE_ADDRESS_WRAP;
+		   case AddressMode_Mirror:
+			   return D3D11_TEXTURE_ADDRESS_MIRROR;
+		   default:
+			   return D3D11_TEXTURE_ADDRESS_CLAMP;
+		   }
+	   }
+
+	   void SetSampler(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour)
+	   {
+		   if (index >= 16) Throw(0, "DX11Renderer::SetSampler(%d, ...): Maximum index is 15");
+
+		   if (samplers[index])
+		   {
+			   samplers[index]->Release();
+		   }
+
+		   D3D11_SAMPLER_DESC desc;
+
+		   switch (filter)
+		   {
+		   case Filter_Point:
+			   desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+			   break;
+		   default:
+			   desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+			   break;
+		   }
+	
+		   desc.AddressU = From(u);
+		   desc.AddressV = From(v);
+		   desc.AddressW = From(w);
+		   desc.BorderColor[0] = borderColour.red;
+		   desc.BorderColor[1] = borderColour.green;
+		   desc.BorderColor[2] = borderColour.blue;
+		   desc.BorderColor[3] = borderColour.alpha;
+		   desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+		   desc.MaxAnisotropy = 1;
+		   desc.MipLODBias = 0;
+		   desc.MaxLOD = D3D11_FLOAT32_MAX;
+		   desc.MinLOD = 0;
+
+		   VALIDATEDX11(device.CreateSamplerState(&desc, &samplers[index]));
+		   dc.PSSetSamplers(index, 1, &samplers[index]);
 	   }
 
 	   int32 cubeMaterialId[6] = { -1,-1,-1,-1,-1,-1 };
@@ -864,7 +938,7 @@ namespace ANON
 		   visitor.ShowString("Total Frame Time", "%3.0lf ms", frameTime * ticks_to_ms);
 		   visitor.ShowString("Frame Rate", "%.0lf FPS", hz / frameTime);
 		   visitor.ShowString("", "");
-		   visitor.ShowString("Geometry this frame", "%lld triangles. %lld entities, %lld particles", trianglesThisFrame, entitiesThisFrame, particles.size());
+		   visitor.ShowString("Geometry this frame", "%lld triangles. %lld entities, %lld particles", trianglesThisFrame, entitiesThisFrame, plasma.size() + fog.size());
 	   }
 
 	   IMathsVenue* Venue()
@@ -1488,7 +1562,7 @@ namespace ANON
 		   }
 	   }
 
-	   void ClearContext()
+	   void DetachContext()
 	   {
 		   dc.IASetInputLayout(nullptr);
 		   dc.VSSetShader(nullptr, nullptr, 0);
@@ -1496,6 +1570,14 @@ namespace ANON
 
 		   ID3D11ShaderResourceView* nullView = nullptr;
 		   dc.PSSetShaderResources(0, 1, &nullView);
+
+		   ID3D11SamplerState* sampler = nullptr;
+		   for (UINT i = 0; i < 16; ++i)
+		   {
+			   dc.PSSetSamplers(i, 1, &sampler);
+			   dc.GSSetSamplers(i, 1, &sampler);
+			   dc.VSSetSamplers(i, 1, &sampler);
+		   }
 	   }
 
 	   void SwitchToWindowMode()
@@ -1780,17 +1862,17 @@ namespace ANON
 
 	   bool builtFirstPass = false;
 
-	   void RenderParticles()
+	   void RenderParticles(std::vector<ParticleVertex>& particles, ID_PIXEL_SHADER psID, ID_VERTEX_SHADER vsID, ID_GEOMETRY_SHADER gsID)
 	   {
 		   if (particles.empty()) return;
-		   if (!UseShaders(idParticleVS, idPlasmaPS)) return;
-		   if (!UseGeometryShader(idParticleGS)) return;
+		   if (!UseShaders(vsID, psID)) return;
+		   if (!UseGeometryShader(gsID)) return;
 
+		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+		   dc.OMSetBlendState(plasmaBlend, blendFactorUnused, 0xffffffff);
 		   dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 		   dc.RSSetState(particleRaterizering);
 		   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
-		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
-		   dc.OMSetBlendState(plasmaBlend, blendFactorUnused, 0xffffffff);
 		   dc.GSSetConstantBuffers(0, 1, &globalStateBuffer);
 
 		   size_t qSize = particles.size();
@@ -1816,139 +1898,75 @@ namespace ANON
 
 		   ID3D11Buffer* nullBuffer = nullptr;
 		   dc.GSSetConstantBuffers(0, 1, &nullBuffer);
+
+		   UseGeometryShader(ID_GEOMETRY_SHADER::Invalid());
 	   }
 
-	   virtual void Render(IScene& scene)
+	   void RenderSpotlightLitScene(const Light& lightSubset, IScene& scene)
 	   {
-		   trianglesThisFrame = 0;
-		   entitiesThisFrame = 0;
+		   Light light = lightSubset;
 
-		   auto now = OS::CpuTicks();
-		   AIcost = now - lastTick;
-
-		   if (mainBackBufferView.IsNull()) return;
-
-		   lastTextureId = ID_TEXTURE::Invalid();
-
-		   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
-
-		   dc.ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-		   RGBA clearColour = scene.GetClearColour();
-		   if (clearColour.alpha > 0)
+		   DepthRenderData drd;
+		   if (PrepareDepthRenderFromLight(light, drd))
 		   {
-			   dc.ClearRenderTargetView(mainBackBufferView, (const FLOAT*)&clearColour);
-		   }
+			   float f = 1.0f / rng.max();
+			   drd.randoms.x = rng() * f;
+			   drd.randoms.y = rng() * f;
+			   drd.randoms.z = rng() * f;
+			   drd.randoms.w = rng() * f;
 
-		   now = OS::CpuTicks();
+			   dc.OMSetRenderTargets(0, nullptr, shadowDepthStencilView);
 
-		   dc.PSSetSamplers(0, 1, &objectSampler);
-		   dc.PSSetSamplers(1, 1, &shadowSampler);
-		   dc.RSSetState(objectRaterizering);
-		   dc.OMSetDepthStencilState(objDepthState, 0);
+			   UseShaders(idObjVS_Shadows, idObjPS_Shadows);
 
-		   ID3D11ShaderResourceView* views[1] = { materialArray.View() };
-		   dc.PSSetShaderResources(6, 1, views);
+			   DX11::CopyStructureToBuffer(dc, vs_ShadowStateBuffer, drd);
+			   dc.VSSetConstantBuffers(0, 1, &vs_ShadowStateBuffer);
 
-		   dc.PSSetShaderResources(3, 1, &cubeTextureView);
+			   DX11::CopyStructureToBuffer(dc, ps_ShadowStateBuffer, drd);
+			   dc.PSSetConstantBuffers(0, 1, &ps_ShadowStateBuffer);
 
-		   dc.PSSetShaderResources(0, 1, &fontBinding);
+			   D3D11_VIEWPORT viewport;
+			   ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
 
-		   builtFirstPass = false;
-		   size_t nLights = 0;
+			   D3D11_TEXTURE2D_DESC desc;
+			   shadowDepthStencilTexture->GetDesc(&desc);
 
-		   const Light* lights = scene.GetLights(nLights);
-		   for (size_t i = 0; i < nLights; ++i)
-		   {
-			   DepthRenderData drd;
-			   if (PrepareDepthRenderFromLight(lights[i], drd))
-			   {
-				   float f = 1.0f / rng.max();
-				   drd.randoms.x = rng() * f;
-				   drd.randoms.y = rng() * f;
-				   drd.randoms.z = rng() * f;
-				   drd.randoms.w = rng() * f;
+			   viewport.TopLeftX = 0;
+			   viewport.TopLeftY = 0;
+			   viewport.Width = (FLOAT)desc.Width;
+			   viewport.Height = (FLOAT)desc.Height;
+			   viewport.MinDepth = 0.0f;
+			   viewport.MaxDepth = 1.0f;
 
-				   dc.OMSetRenderTargets(0, nullptr, shadowDepthStencilView);
+			   dc.RSSetViewports(1, &viewport);
 
-				   UseShaders(idObjVS_Shadows, idObjPS_Shadows);
+			   dc.ClearDepthStencilView(shadowDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-				   DX11::CopyStructureToBuffer(dc, vs_ShadowStateBuffer, drd);
-				   dc.VSSetConstantBuffers(0, 1, &vs_ShadowStateBuffer);
-
-				   DX11::CopyStructureToBuffer(dc, ps_ShadowStateBuffer, drd);
-				   dc.PSSetConstantBuffers(0, 1, &ps_ShadowStateBuffer);
-
-				   D3D11_VIEWPORT viewport;
-				   ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
-
-				   D3D11_TEXTURE2D_DESC desc;
-				   shadowDepthStencilTexture->GetDesc(&desc);
-
-				   viewport.TopLeftX = 0;
-				   viewport.TopLeftY = 0;
-				   viewport.Width = (FLOAT) desc.Width;
-				   viewport.Height = (FLOAT) desc.Height;
-				   viewport.MinDepth = 0.0f;
-				   viewport.MaxDepth = 1.0f;
-
-				   dc.RSSetViewports(1, &viewport);
-
-				   dc.ClearDepthStencilView(shadowDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-				   FLOAT blendFactorUnused[] = { 0,0,0,0 };
-				   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
-
-				   dc.RSSetState(shadowRaterizering);
-
-				   phase = RenderPhase_DetermineShadowVolumes;
-				   scene.RenderShadowPass(drd, *this);
-
-				   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
-
-				   UseShaders(idObjVS, idObjPS);
-
-				   SyncViewport();
-
-				   Light light = lights[i];
-				   light.randoms = drd.randoms;
-				   light.time = drd.time;
-				   light.right = drd.right;
-				   light.up = drd.up;
-				   light.worldToShadowBuffer = drd.worldToScreen;
-
-				   DX11::CopyStructureToBuffer(dc, vs_LightStateBuffer, light);
-				   dc.VSSetConstantBuffers(2, 1, &vs_LightStateBuffer);
-
-				   DX11::CopyStructureToBuffer(dc, ps_LightStateBuffer, light);
-				   dc.PSSetConstantBuffers(0, 1, &ps_LightStateBuffer);
-
-				   if (builtFirstPass)
-				   {
-					   dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
-					   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
-				   }
-				   else
-				   {
-					   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
-					   builtFirstPass = true;
-				   }
-
-				   dc.PSSetShaderResources(2, 1, &shadowBufferView);
-				   dc.RSSetState(objectRaterizering);
-
-				   phase = RenderPhase_DetermineSpotlight;
-				   scene.RenderObjects(*this);
-				   phase = RenderPhase_None;
-
-				   dc.OMSetDepthStencilState(objDepthState, 0);
-			   }
-		   }
-
-		   if (UseShaders(idObjAmbientVS, idObjAmbientPS))
-		   {
 			   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+			   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
+
+			   dc.RSSetState(shadowRaterizering);
+
+			   phase = RenderPhase_DetermineShadowVolumes;
+			   scene.RenderShadowPass(drd, *this);
+
+			   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
+
+			   UseShaders(idObjVS, idObjPS);
+
 			   SyncViewport();
+
+			   light.randoms = drd.randoms;
+			   light.time = drd.time;
+			   light.right = drd.right;
+			   light.up = drd.up;
+			   light.worldToShadowBuffer = drd.worldToScreen;
+
+			   DX11::CopyStructureToBuffer(dc, vs_LightStateBuffer, light);
+			   dc.VSSetConstantBuffers(2, 1, &vs_LightStateBuffer);
+
+			   DX11::CopyStructureToBuffer(dc, ps_LightStateBuffer, light);
+			   dc.PSSetConstantBuffers(0, 1, &ps_LightStateBuffer);
 
 			   if (builtFirstPass)
 			   {
@@ -1961,52 +1979,24 @@ namespace ANON
 				   builtFirstPass = true;
 			   }
 
-			   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
-
+			   dc.PSSetShaderResources(2, 1, &shadowBufferView);
 			   dc.RSSetState(objectRaterizering);
 
-			   AmbientData ad;
-			   ad.localLight = lights[0].ambient;
-			   ad.fogConstant = lights[0].fogConstant;
-
-			   DX11::CopyStructureToBuffer(dc, ps_AmbientBuffer, ad);
-			   dc.PSSetConstantBuffers(0, 1, &ps_AmbientBuffer);
-
-			   phase = RenderPhase_DetermineAmbient;
+			   phase = RenderPhase_DetermineSpotlight;
 			   scene.RenderObjects(*this);
+			   RenderParticles(fog, idFogSpotlightPS, idParticleVS, idFogGS);
 			   phase = RenderPhase_None;
+
+			   dc.OMSetDepthStencilState(objDepthState, 0);
 		   }
+	   }
 
-		   
-		   RenderParticles();
-			
-		   UseGeometryShader(ID_GEOMETRY_SHADER::Invalid());
-
-
-
-		   ID3D11ShaderResourceView* nullView = nullptr;
-		   dc.PSSetShaderResources(2, 1, &nullView);
-
-		   dc.PSSetShaderResources(3, 1, &nullView);
-
-		   ID3D11Buffer* nullBuffer = nullptr;
-		   dc.VSSetConstantBuffers(2, 1, &nullBuffer);
-		   dc.VSSetConstantBuffers(1, 1, &nullBuffer);
-		   dc.VSSetConstantBuffers(0, 1, &nullBuffer);
-		   dc.PSSetConstantBuffers(2, 1, &nullBuffer);
-		   dc.PSSetConstantBuffers(1, 1, &nullBuffer);
-		   dc.PSSetConstantBuffers(0, 1, &nullBuffer);
-
-		   dc.PSSetShaderResources(2, 1, &nullView);
-
+	   void RenderGui(IScene& scene)
+	   {
 		   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
 
-		   objCost = OS::CpuTicks() - now;
+		   OS::ticks now = OS::CpuTicks();
 
-		   now = OS::CpuTicks();
-
-		   dc.PSSetSamplers(0, 1, &spriteSampler);
-		   dc.PSSetShaderResources(0, 1, &fontBinding);
 		   dc.RSSetState(spriteRaterizering);
 
 		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
@@ -2030,9 +2020,6 @@ namespace ANON
 			   Throw(0, "Error setting Gui shaders");
 		   }
 
-		   ID3D11ShaderResourceView* spriteviews[1] = { spriteArray.View() };
-		   dc.PSSetShaderResources(7, 1, spriteviews);
-
 		   scene.RenderGui(*this);
 
 		   for (auto& o : overlays)
@@ -2047,25 +2034,93 @@ namespace ANON
 		   FlushLayer();
 
 		   guiCost = OS::CpuTicks() - now;
+	   }
 
-		   ClearContext();
+	   void RenderAmbient(IScene& scene, const Light& ambientLight)
+	   {
+		   if (UseShaders(idObjAmbientVS, idObjAmbientPS))
+		   {
+			   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+			   SyncViewport();
 
-		   dc.PSSetShaderResources(0, 1, &nullView);
-		   dc.PSSetShaderResources(1, 1, &nullView);
-		   dc.PSSetShaderResources(2, 1, &nullView);
-		   dc.PSSetShaderResources(4, 1, &nullView);
-		   dc.PSSetShaderResources(7, 1, &nullView);
+			   if (builtFirstPass)
+			   {
+				   dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
+				   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
+			   }
+			   else
+			   {
+				   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
+				   builtFirstPass = true;
+			   }
 
-		   ID3D11SamplerState* nullState = nullptr;
-		   dc.PSSetSamplers(0, 1, &nullState);
-		   dc.PSSetSamplers(1, 1, &nullState);
+			   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
 
-		   now = OS::CpuTicks();
+			   dc.RSSetState(objectRaterizering);
 
-		   mainSwapChain->Present(1, 0);
+			   AmbientData ad;
+			   ad.localLight = ambientLight.ambient;
+			   ad.fogConstant = ambientLight.fogConstant;
 
-		   presentCost = OS::CpuTicks() - now;
+			   DX11::CopyStructureToBuffer(dc, ps_AmbientBuffer, ad);
+			   dc.PSSetConstantBuffers(0, 1, &ps_AmbientBuffer);
 
+			   phase = RenderPhase_DetermineAmbient;
+			   scene.RenderObjects(*this);
+			   RenderParticles(fog, idFogAmbientPS, idParticleVS, idFogGS);
+			   phase = RenderPhase_None;
+		   }
+	   }
+
+	   void SetAndClearRenderBuffers(const RGBA& clearColour)
+	   {
+		   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
+
+		   dc.ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+		   if (clearColour.alpha > 0)
+		   {
+			   dc.ClearRenderTargetView(mainBackBufferView, (const FLOAT*)&clearColour);
+		   }
+	   }
+
+	   void InitInvariantTextureViews()
+	   {
+		   ID3D11ShaderResourceView* materials[1] = { materialArray.View() };
+		   dc.PSSetShaderResources(6, 1, materials);
+		   dc.PSSetShaderResources(3, 1, &cubeTextureView);
+		   dc.PSSetShaderResources(0, 1, &fontBinding);
+
+		   ID3D11ShaderResourceView* spriteviews[1] = { spriteArray.View() };
+		   dc.PSSetShaderResources(7, 1, spriteviews);
+
+		   dc.PSSetSamplers(0, 16, samplers);
+		   dc.GSSetSamplers(0, 16, samplers);
+		   dc.VSSetSamplers(0, 16, samplers);
+	   }
+
+	   void DetachTextureViews()
+	   {
+		   for (UINT i = 0; i < 10; ++i)
+		   {
+			   ID3D11ShaderResourceView* nullView = nullptr;
+			   dc.PSSetShaderResources(i, 1, &nullView);
+		   }
+	   }
+
+	   void DetachConstantBuffers()
+	   {
+		   ID3D11Buffer* nullBuffer = nullptr;
+		   for (UINT i = 0; i < 8; ++i)
+		   {
+			   dc.VSSetConstantBuffers(i, 1, &nullBuffer);
+			   dc.PSSetConstantBuffers(i, 1, &nullBuffer);
+			   dc.GSSetConstantBuffers(i, 1, &nullBuffer);
+		   }
+	   }
+
+	   void DetachMisc()
+	   {
 		   dc.OMSetBlendState(nullptr, nullptr, 0);
 		   dc.RSSetState(nullptr);
 		   dc.OMSetDepthStencilState(nullptr, 0);
@@ -2076,13 +2131,62 @@ namespace ANON
 
 		   UINT nStrides = 0;
 
+		   ID3D11Buffer* nullBuffer = nullptr;
 		   dc.IASetVertexBuffers(0, 1, &nullBuffer, &nStrides, &nStrides);
 		   dc.PSSetConstantBuffers(TEXTURE_CBUFFER_INDEX, 1, &nullBuffer);
+	   }
+
+	   void Render(IScene& scene) override
+	   {
+		   trianglesThisFrame = 0;
+		   entitiesThisFrame = 0;
+
+		   auto now = OS::CpuTicks();
+		   AIcost = now - lastTick;
+
+		   if (mainBackBufferView.IsNull()) return;
+
+		   lastTextureId = ID_TEXTURE::Invalid();
+
+		   SetAndClearRenderBuffers(scene.GetClearColour());
+	
+		   InitInvariantTextureViews();
 
 		   now = OS::CpuTicks();
 
-		   frameTime = now - lastTick;
+		   dc.RSSetState(objectRaterizering);
+		   dc.OMSetDepthStencilState(objDepthState, 0);
 
+		   builtFirstPass = false;
+
+		   size_t nLights = 0;
+		   const Light* lights = scene.GetLights(nLights);
+		   for (size_t i = 0; i < nLights; ++i)
+		   {
+			   RenderSpotlightLitScene(lights[i], scene);
+		   }
+
+		   RenderAmbient(scene, lights[0]);
+
+		   objCost = OS::CpuTicks() - now;
+	   
+		   RenderParticles(plasma, idPlasmaPS, idParticleVS, idPlasmaGS);
+
+		   RenderGui(scene);
+
+		   now = OS::CpuTicks();
+
+		   mainSwapChain->Present(1, 0);
+
+		   presentCost = OS::CpuTicks() - now;
+
+		   DetachTextureViews();
+		   DetachConstantBuffers();
+		   DetachMisc();
+		   DetachContext();
+
+		   now = OS::CpuTicks();
+		   frameTime = now - lastTick;
 		   lastTick = now;
 	   }
 

@@ -122,6 +122,7 @@ namespace HV
 			RunEnvironmentScript(e, "!scripts/hv/keys.sxy", true);
 			RunEnvironmentScript(e, "!scripts/hv/controls.sxy", true);
 			RunEnvironmentScript(e, "!scripts/hv/main.sxy", true);
+			RunEnvironmentScript(e, "!scripts/samplers.sxy", true);
 
 			editorPanel = e.platform.gui.BindPanelToScript("!scripts/panel.editor.sxy");
 			fpsPanel = e.platform.gui.BindPanelToScript("!scripts/panel.fps.sxy");

@@ -9,7 +9,12 @@ struct PixelVertex
 Texture2D g_FontSprite: register(t0);
 Texture2DArray g_BitmapSprite: register(t7);
 Texture2DArray g_MaterialTextureArray: register(t6);
-SamplerState spriteSampler;
+
+SamplerState fontSampler: register(s0);
+SamplerState spriteSampler: register(s1);
+SamplerState matSampler: register(s2);
+SamplerState envSampler: register(s3);
+SamplerState shadowSampler: register(s4);
 
 struct BaseVertexData
 {
@@ -38,9 +43,9 @@ float4 main(PixelVertex p) : SV_TARGET
 	base.fontBlend = p.base.z;
 
 	float4 spriteTexel = g_BitmapSprite.Sample(spriteSampler, float3(base.uv.x, base.uv.y, svd.spriteIndex));
-	float4 materialTexel = g_MaterialTextureArray.Sample(spriteSampler, float3(base.uv.x, base.uv.y, svd.matIndex));
+	float4 materialTexel = g_MaterialTextureArray.Sample(matSampler, float3(base.uv.x, base.uv.y, svd.matIndex));
 	float4 imageColour = lerp(spriteTexel, materialTexel, svd.spriteToMatLerpFactor);
-	float fontAlpha = g_FontSprite.Sample(spriteSampler, base.uv).x;
+	float fontAlpha = g_FontSprite.Sample(fontSampler, base.uv).x;
 	p.colour.w = lerp(p.colour.w, fontAlpha * p.colour.w, base.fontBlend);
 	return lerp(imageColour, p.colour, svd.lerpBitmapToColour);
 }

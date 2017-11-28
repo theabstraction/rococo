@@ -1,12 +1,11 @@
 struct PixelVertex
 {
 	float4 position : SV_POSITION0;
-	float4 uv_material_and_gloss: TEXCOORD;
-	float4 worldPosition: TEXCOORD1;
-	float4 normal : TEXCOORD2;
-	float4 shadowPos: TEXCOORD3;
-	float4 cameraSpacePosition: TEXCOORD4;
-	float4 colour: COLOR0;	// w component gives lerpColourToTexture
+	float3 cameraSpacePosition: TEXCOORD3;
+	float4 shadowPosition: TEXCOORD2;
+	float3 worldPosition: TEXCOORD1;
+	float2 uv: TEXCOORD0;
+	float4 colour: COLOR0;
 };
 
 #pragma pack_matrix(row_major)
@@ -43,43 +42,38 @@ cbuffer globalState: register(b1)
 	float4x4 worldMatrix;
 	float4 eye;
 	float4 viewDir;
+	float4 aspect;
 };
 
-Texture2DArray g_materials: register(t6);
 Texture2D g_ShadowMap: register(t2);
-TextureCube g_cubeMap: register(t3);
-Texture2D g_FontSprite: register(t0);
-Texture2DArray g_BitmapSprite: register(t7);
 
-SamplerState fontSampler: register(s0);
-SamplerState spriteSampler: register(s1);
-SamplerState matSampler: register(s2);
-SamplerState envSampler: register(s3);
-SamplerState shadowSampler: register(s4);
-
-float4 GetFontPixel(float3 uv_blend, float4 vertexColour)
+SamplerState shadowSamplerLookup
 {
-	float fontIntensity = lerp(1.0f, g_FontSprite.Sample(fontSampler, uv_blend.xy).x, uv_blend.z);
-	return float4(vertexColour.xyz, fontIntensity);
-}
+	// sampler state
+	Filter = COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	AddressU = MIRROR;
+	AddressV = MIRROR;
+};
 
-float4 per_pixel_lighting(PixelVertex p)
+float4 main(PixelVertex p) : SV_TARGET
 {
-	float4 shadowXYZW = p.shadowPos / p.shadowPos.w;
+	float4 shadowXYZW = p.shadowPosition / p.shadowPosition.w;
 	float2 shadowUV = float2(1.0f + shadowXYZW.x, 1.0f - shadowXYZW.y) * 0.5f;
 
 	float bias = -0.00001f;
-	float shadowDepth = g_ShadowMap.Sample(shadowSampler, shadowUV).x + bias;
+	float shadowDepth = g_ShadowMap.Sample(shadowSamplerLookup, shadowUV).x + bias;
 
 	float isLit = shadowDepth > shadowXYZW.z;
-
-	float4 texel = GetFontPixel(p.uv_material_and_gloss.xyw, p.colour);
 
 	if (isLit)
 	{
 		float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
 		float R2 = dot(lightToPixelVec, lightToPixelVec);
-	
+
+		float r = dot(p.uv, p.uv);
+		float intensity = 0.2f * clamp(1 - r, 0, 1);
+		float4 texel = float4(p.colour.xyz, intensity * p.colour.w);
+		
 		float3 lightToPixelDir = normalize(lightToPixelVec);
 
 		float f = dot(lightToPixelDir, normalize(light.direction.xyz));
@@ -90,24 +84,20 @@ float4 per_pixel_lighting(PixelVertex p)
 
 		if (f < 0) f = 0;
 
-		float3 normal = normalize(p.normal.xyz);
-		float g = -dot(lightToPixelDir, normal);
-
 		float range = length(p.cameraSpacePosition.xyz);
 		float fogging = exp(range * light.fogConstant);
 
-		float diffuse = pow(f, 16.0f) * g * pow(R2, light.attenuationRate);
-		float intensity = diffuse * falloff * fogging;
+		float diffuse = pow(f, 16.0f) * pow(R2, light.attenuationRate);
+		float I = diffuse * falloff * fogging;
 
-		return float4 (texel.xyz * intensity * light.colour.xyz, texel.w);
+		texel.xyz *= I;
+		texel.xyz *= light.colour.xyz;
+
+		return texel;
 	}
 	else
 	{
-		return float4(0, 0, 0, texel.w);
+		return float4(0, 0, 0, 0);
 	}
 }
 
-float4 main(PixelVertex p) : SV_TARGET
-{
-	return per_pixel_lighting(p);
-}

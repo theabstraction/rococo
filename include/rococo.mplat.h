@@ -48,6 +48,11 @@ namespace Rococo
 		float attractorForce;
 	};
 
+	namespace Graphics
+	{
+		struct SampleStateDef;
+	}
+
 	struct QuadColours
 	{
 		RGBAb a;
@@ -69,6 +74,18 @@ namespace Rococo
 
 namespace Rococo
 {
+	namespace Graphics
+	{
+		struct SampleStateDef
+		{
+			SampleMethod method;
+			SampleFilter u;
+			SampleFilter v;
+			SampleFilter w;
+			RGBA borderColour;
+		};
+	}
+
 	ROCOCOAPI IConfigSupervisor : public IConfig
 	{
 		virtual cstr GetText(cstr name) const = 0;
@@ -204,6 +221,13 @@ namespace Rococo
 
 	   IQuadStackTesselator* CreateQuadStackTesselator();
 	   IRodTesselator* CreateRodTesselator(Platform& platform);
+
+	   ROCOCOAPI IRendererConfigSupervisor: public IRendererConfig
+	   {
+		   virtual void Free() = 0;
+	   };
+
+	   IRendererConfigSupervisor* CreateRendererConfig(IRenderer& renderer);
    }
 
    namespace Entities
@@ -462,6 +486,8 @@ namespace Rococo
 
       // Renderer
       IRenderer& renderer;
+
+	  Graphics::IRendererConfig& rendererConfig;
 
       // Script source cache
       ISourceCache& sourceCache;

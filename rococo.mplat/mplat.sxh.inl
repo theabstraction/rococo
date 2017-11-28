@@ -114,6 +114,152 @@ namespace Rococo { namespace Graphics {
 	}
 }}// Rococo.Graphics.MaterialCategory
 
+namespace Rococo { namespace Graphics { 
+	bool TryParse(const Rococo::fstring& s, SampleMethod& value)
+	{
+		if (s ==  "SampleMethod_Point"_fstring)
+		{
+			value = SampleMethod_Point;
+		}
+		else if (s ==  "SampleMethod_Linear"_fstring)
+		{
+			value = SampleMethod_Linear;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool TryShortParse(const Rococo::fstring& s, SampleMethod& value)
+	{
+		if (s ==  "Point"_fstring)
+		{
+			value = SampleMethod_Point;
+		}
+		else if (s ==  "Linear"_fstring)
+		{
+			value = SampleMethod_Linear;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+}}// Rococo.Graphics.SampleMethod
+
+namespace Rococo { namespace Graphics { 
+	bool TryParse(const Rococo::fstring& s, SampleFilter& value)
+	{
+		if (s ==  "SampleFilter_Border"_fstring)
+		{
+			value = SampleFilter_Border;
+		}
+		else if (s ==  "SampleFilter_Mirror"_fstring)
+		{
+			value = SampleFilter_Mirror;
+		}
+		else if (s ==  "SampleFilter_Wrap"_fstring)
+		{
+			value = SampleFilter_Wrap;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool TryShortParse(const Rococo::fstring& s, SampleFilter& value)
+	{
+		if (s ==  "Border"_fstring)
+		{
+			value = SampleFilter_Border;
+		}
+		else if (s ==  "Mirror"_fstring)
+		{
+			value = SampleFilter_Mirror;
+		}
+		else if (s ==  "Wrap"_fstring)
+		{
+			value = SampleFilter_Wrap;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+}}// Rococo.Graphics.SampleFilter
+
+namespace Rococo { namespace Graphics { 
+	bool TryParse(const Rococo::fstring& s, SampleIndex& value)
+	{
+		if (s ==  "SampleIndex_Fonts"_fstring)
+		{
+			value = SampleIndex_Fonts;
+		}
+		else if (s ==  "SampleIndex_Sprites"_fstring)
+		{
+			value = SampleIndex_Sprites;
+		}
+		else if (s ==  "SampleIndex_Materials"_fstring)
+		{
+			value = SampleIndex_Materials;
+		}
+		else if (s ==  "SampleIndex_EnvironmentalMap"_fstring)
+		{
+			value = SampleIndex_EnvironmentalMap;
+		}
+		else if (s ==  "SampleIndex_ShadowMap"_fstring)
+		{
+			value = SampleIndex_ShadowMap;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool TryShortParse(const Rococo::fstring& s, SampleIndex& value)
+	{
+		if (s ==  "Fonts"_fstring)
+		{
+			value = SampleIndex_Fonts;
+		}
+		else if (s ==  "Sprites"_fstring)
+		{
+			value = SampleIndex_Sprites;
+		}
+		else if (s ==  "Materials"_fstring)
+		{
+			value = SampleIndex_Materials;
+		}
+		else if (s ==  "EnvironmentalMap"_fstring)
+		{
+			value = SampleIndex_EnvironmentalMap;
+		}
+		else if (s ==  "ShadowMap"_fstring)
+		{
+			value = SampleIndex_ShadowMap;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+}}// Rococo.Graphics.SampleIndex
+
 // BennyHill generated Sexy native functions for Rococo::ILabelPane 
 namespace
 {
@@ -4326,5 +4472,52 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorSetFormatQuad, nullptr, SEXTEXT("ITextTesselatorSetFormatQuad (Pointer hObject)(Sys.Maths.Quadf positions) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorTrySetFontIndex, nullptr, SEXTEXT("ITextTesselatorTrySetFontIndex (Pointer hObject)(Int32 index) -> (Bool isSet)"));
 		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorTrySetFont, nullptr, SEXTEXT("ITextTesselatorTrySetFont (Pointer hObject)(Sys.Type.IString name)(Float32 dotSize) -> (Bool isSet)"));
+	}
+}}
+// BennyHill generated Sexy native functions for Rococo::Graphics::IRendererConfig 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoGraphicsIRendererConfigSetSampler(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::SampleIndex index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Rococo::Graphics::SampleStateDef* ssd;
+		_offset += sizeof(ssd);
+		ReadInput(ssd, _sf, -_offset);
+
+		Rococo::Graphics::IRendererConfig* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetSampler(*ssd, index);
+	}
+
+	void NativeGetHandleForRococoGraphicsRendererConfig(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Platform* nceContext = reinterpret_cast<Rococo::Platform*>(_nce.context);
+		// Uses: Rococo::Graphics::IRendererConfig* FactoryConstructRococoGraphicsRendererConfig(Rococo::Platform* _context);
+		Rococo::Graphics::IRendererConfig* pObject = FactoryConstructRococoGraphicsRendererConfig(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { namespace Graphics { 
+	void AddNativeCalls_RococoGraphicsIRendererConfig(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Graphics.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsRendererConfig, _nceContext, SEXTEXT("GetHandleForIRendererConfig0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRendererConfigSetSampler, nullptr, SEXTEXT("IRendererConfigSetSampler (Pointer hObject)(Rococo.SampleStateDef ssd)(Int32 index) -> "));
 	}
 }}

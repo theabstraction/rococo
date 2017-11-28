@@ -43,22 +43,18 @@ cbuffer globalState: register(b1)
 	float4x4 worldMatrix;
 	float4 eye;
 	float4 viewDir;
+	float4 aspect;
 };
 
 Texture2DArray g_materials: register(t6);
-SamplerState txSampler;
-
 Texture2D g_ShadowMap: register(t2);
-
-SamplerState shadowSamplerLookup
-{
-	// sampler state
-	Filter = COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
-	AddressU = MIRROR;
-	AddressV = MIRROR;
-};
-
 TextureCube g_cubeMap: register(t3);
+
+SamplerState fontSampler: register(s0);
+SamplerState spriteSampler: register(s1);
+SamplerState matSampler: register(s2);
+SamplerState envSampler: register(s3);
+SamplerState shadowSampler: register(s4);
 
 float4 per_pixel_lighting(PixelVertex p)
 {
@@ -66,7 +62,7 @@ float4 per_pixel_lighting(PixelVertex p)
 	float2 shadowUV = float2(1.0f + shadowXYZW.x, 1.0f - shadowXYZW.y) * 0.5f;
 
 	float bias = -0.00001f;
-	float shadowDepth = g_ShadowMap.Sample(shadowSamplerLookup, shadowUV).x + bias;
+	float shadowDepth = g_ShadowMap.Sample(shadowSampler, shadowUV).x + bias;
 
 	float isLit = shadowDepth > shadowXYZW.z;
 
@@ -75,12 +71,12 @@ float4 per_pixel_lighting(PixelVertex p)
 		float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
 		float R2 = dot(lightToPixelVec, lightToPixelVec);
 
-		float4 texel = g_materials.Sample(txSampler, p.uv_material_and_gloss.xyz);
+		float4 texel = g_materials.Sample(matSampler, p.uv_material_and_gloss.xyz);
 		texel = lerp(p.colour, texel, p.colour.w);
 
 		float3 incident = normalize(p.worldPosition.xyz - eye.xyz);
 		float3 reflectionVector = reflect(incident.xyz, normalize(p.normal.xyz));
-		float4 reflectionColor = g_cubeMap.Sample(txSampler, reflectionVector);
+		float4 reflectionColor = g_cubeMap.Sample(envSampler, reflectionVector);
 
 		texel.xyz = lerp(texel.xyz, reflectionColor.xyz, p.uv_material_and_gloss.w);
 
@@ -109,7 +105,10 @@ float4 per_pixel_lighting(PixelVertex p)
 		float diffuse = pow(f,16.0f) * g * pow(R2, light.attenuationRate);
 		float intensity = (diffuse + specular) * falloff * fogging;
 
-		return float4 (texel.x * intensity * light.colour.x, texel.y * intensity * light.colour.y, texel.z * intensity * light.colour.z, 1.0f);
+		texel.xyz *= intensity;
+		texel.xyz *= light.colour.xyz;
+
+		return float4 (texel.xyz, 1.0f);
 	}
 	else
 	{
@@ -119,12 +118,12 @@ float4 per_pixel_lighting(PixelVertex p)
 
 float4 no_lighting(PixelVertex p)
 {
-	float4 texel = g_materials.Sample(txSampler, p.uv_material_and_gloss.xyz).xyzw;
+	float4 texel = g_materials.Sample(matSampler, p.uv_material_and_gloss.xyz).xyzw;
 	texel = lerp(p.colour, texel, p.colour.w);
 
 	float3 incident = normalize(p.worldPosition.xyz - eye.xyz);
 	float3 reflectionVector = reflect(incident.xyz, normalize(p.normal.xyz));
-	float4 reflectionColor = g_cubeMap.Sample(txSampler, reflectionVector);
+	float4 reflectionColor = g_cubeMap.Sample(envSampler, reflectionVector);
 
 	texel.xyz = lerp(texel.xyz, reflectionColor.xyz, p.uv_material_and_gloss.w);
 	return texel;
