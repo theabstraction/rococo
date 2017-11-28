@@ -33,8 +33,9 @@ float4 main(PixelVertex p) : SV_TARGET
 	float fogging = exp(range * ambience.fogConstant);
 
 	texel.xyz *= fogging;
+	texel.xyz * ambience.localLight.xyz;
 
-	return texel * ambience.localLight;
-	return float4( 1,1,1,1 );
+	return float4(texel.xyz, texel.w);
+	
 }
 

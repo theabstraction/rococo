@@ -36,6 +36,12 @@ namespace
       {
       }
 
+	  void GetCamera(Matrix4x4& proj, Matrix4x4& world) override
+	  {
+		  camera.GetWorld(world);
+		  camera.GetWorldAndProj(proj);
+	  }
+
 	  const Light* GetLights(size_t& nCount) const override
 	  {
 		  nCount = MAX_LIGHTS;
@@ -161,23 +167,6 @@ namespace
 		  }
 
          drawQueue.clear();
-
-         camera.GetWorld(state.worldMatrix);
-         camera.GetWorldAndProj(state.worldMatrixAndProj);
-		 camera.GetPosition(state.eye);
-		 
-		 Vec4 dir{ -state.worldMatrix.row2.x, -state.worldMatrix.row2.y, -state.worldMatrix.row2.z, 1.0f };
-
-		 state.viewDIr = dir;
-		 state.eye.w = 1.0f;
-
-		 GuiMetrics metrics;
-		 rc.Renderer().GetGuiMetrics(metrics);
-
-		 float aspectRatio = metrics.screenSpan.y / (float) metrics.screenSpan.x;
-		 state.aspect = { aspectRatio,0,0,0 };
-
-         rc.SetGlobalState(state);
 
          ID_SYS_MESH meshId;
 

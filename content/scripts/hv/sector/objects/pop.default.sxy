@@ -126,13 +126,13 @@
 				(Vec4 red = 1 0 0 0)
 				(particles.SetSpectrum red 0)
 				
-				(particles.ApplySpectrum wickId)
+				(particles.ApplySpectrum wickId) 
 				
 				(Int64 dustId = (instances.AddGhost model 0))	
 				
 				(Vec2 altitudes)
 				(sector.Altitude altitudes)
-				(particles.AddDust 7000 8 altitudes.x altitudes.y dustId)
+				(particles.AddDust 100 0.02 8 altitudes.x altitudes.y 0xFFFFFFFF dustId)
 				(sector.ManageEntity dustId)
 			)
 		)

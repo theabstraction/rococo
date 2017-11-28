@@ -137,7 +137,9 @@ namespace ANON
 	{
 		Vec3 origin = { 0,0,0 };
 		OS::ticks lastTick = 0;
+		RGBAb colour;
 		float velCountdown = 0;
+		Metres meanParticleSize;
 		Metres range;
 		Metres minHeight;
 		Metres maxHeight;
@@ -152,8 +154,13 @@ namespace ANON
 
 		std::vector<DustParticle> dust;
 
-		Dust(int32 nParticles, Metres _range, Metres _minHeight, Metres _maxHeight) :
-			dust(nParticles), range(_range), minHeight(_minHeight), maxHeight(_maxHeight)
+		Dust(int32 nParticles, Metres _meanParticleSize, Metres _range, Metres _minHeight, Metres _maxHeight, RGBAb _colour) :
+			dust(nParticles),
+			range(_range),
+			minHeight(_minHeight),
+			maxHeight(_maxHeight), 
+			meanParticleSize(_meanParticleSize),
+			colour(_colour)
 		{
 			for (auto& d : dust)
 			{
@@ -213,8 +220,11 @@ namespace ANON
 			d.worldPosition.y = AnyFloat(-range, range);
 			d.worldPosition.z = AnyFloat(minHeight, maxHeight);
 			d.velocity = { 0,0,-0.05f };
-			d.geometry = { AnyFloat(0.01f, 0.02f), 0, 0, 0 };
-			d.colour = RGBAb(255, 255, 255, 255);
+
+			float s = AnyFloat(0.5f, 1.5f);
+
+			d.geometry = { s * meanParticleSize, 0, 0, 0 };
+			d.colour = colour;
 			d.worldPosition += origin;
 			d.life = AnyFloat(3.0f, 5.0f);
 		}
@@ -246,8 +256,6 @@ namespace ANON
 
 			for (auto& d : dust)
 			{
-				uint8 col = Rand(255);
-				d.colour = RGBAb(col, col, col, 255);
 				renderer.AddFog(d);
 			}
 		}
@@ -445,11 +453,11 @@ namespace ANON
 			delete this;
 		}
 
-		void AddDust(int32 particles, Metres range, Metres minHeight, Metres maxHeight, ID_ENTITY id) override
+		void AddDust(int32 particles, Metres meanParticleSize, Metres range, Metres minHeight, Metres maxHeight, RGBAb colour, ID_ENTITY id) override
 		{
 			Snuff(id);
 
-			auto d = new Dust(particles, range, minHeight, maxHeight);
+			auto d = new Dust(particles, meanParticleSize, range, minHeight, maxHeight, colour);
 
 			clouds[id] = d;
 		}

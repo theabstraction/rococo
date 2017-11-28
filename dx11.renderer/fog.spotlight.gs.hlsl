@@ -89,8 +89,6 @@ void main (point ParticleVertex p[1], inout TriangleStream<PixelVertex> output)
 
 	EmitPointEx(billboard[0], p[0], cameraSpacePosition, shadowPos, -1, -1, output);
 	EmitPointEx(billboard[1], p[0], cameraSpacePosition, shadowPos,  1, -1, output);
-	EmitPointEx(billboard[2], p[0], cameraSpacePosition, shadowPos,  1,  1, output);
-	EmitPointEx(billboard[2], p[0], cameraSpacePosition, shadowPos,  1,  1, output);
 	EmitPointEx(billboard[3], p[0], cameraSpacePosition, shadowPos, -1,  1, output);
-	EmitPointEx(billboard[0], p[0], cameraSpacePosition, shadowPos, -1, -1, output);
+	EmitPointEx(billboard[2], p[0], cameraSpacePosition, shadowPos,  1,  1, output);
 }

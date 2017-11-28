@@ -23,8 +23,7 @@
 	(fontDef.u = (#SampleFilterBorder))
 	(fontDef.v = (#SampleFilterBorder))
 	(fontDef.w = (#SampleFilterBorder))
-	(fontDef.borderColour =	(0 0 0 1))
-	(trip)
+	(fontDef.borderColour =	0 0 0 0)
 	(rc.SetSampler fontDef (#SampleIndexFonts))
 
 	(SampleStateDef spriteDef)
@@ -32,7 +31,7 @@
 	(spriteDef.u = (#SampleFilterBorder))
 	(spriteDef.v = (#SampleFilterBorder))
 	(spriteDef.w = (#SampleFilterBorder))
-	(spriteDef.borderColour =	(0 0 0 0))
+	(spriteDef.borderColour  = 0 0 0 0)
 	(rc.SetSampler spriteDef (#SampleIndexSprites))
 
 	(SampleStateDef matDef)
@@ -40,7 +39,7 @@
 	(matDef.u = (#SampleFilterWrap))
 	(matDef.v = (#SampleFilterWrap))
 	(matDef.w = (#SampleFilterWrap))
-	(matDef.borderColour =	(0 0 0 0))
+	(matDef.borderColour  =	0 0 0 0)
 	(rc.SetSampler matDef (#SampleIndexMaterials))
 
 	(SampleStateDef eDef)
@@ -48,7 +47,7 @@
 	(eDef.u = (#SampleFilterWrap))
 	(eDef.v = (#SampleFilterWrap))
 	(eDef.w = (#SampleFilterWrap))
-	(eDef.borderColour =	(0 0 0 0))
+	(eDef.borderColour = 0 0 0 0)
 	(rc.SetSampler eDef (#SampleIndexEnvironmentalMap))
 
 	(SampleStateDef shadowDef)
@@ -56,6 +55,6 @@
 	(shadowDef.u = (#SampleFilterBorder))
 	(shadowDef.v = (#SampleFilterBorder))
 	(shadowDef.w = (#SampleFilterBorder))
-	(shadowDef.borderColour =	(0 0 0 0))
+	(shadowDef.borderColour = 0 0 0 0)
 	(rc.SetSampler shadowDef (#SampleIndexShadowMap))
 )

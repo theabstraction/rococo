@@ -178,7 +178,7 @@
 		(ClearSpectrum)
 		(SetSpectrum (const RGBA colour)(Float32 relativeLifeTime))
 		
-		(AddDust  (Int32 particles)(Metres range)(Metres minHeight)(Metres maxHeight)(IdEntity id))
+		(AddDust  (Int32 particles)(Metres meanParticleSize)(Metres range)(Metres minHeight)(Metres maxHeight)(RGBAb colour)(IdEntity id))
 		(AddVerticalFlame  (const FlameDef flameDef)(IdEntity id))
 		(Clear)
 		(Snuff (IdEntity id))		

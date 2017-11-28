@@ -106,7 +106,7 @@ namespace Rococo
 		Matrix4x4 worldMatrixAndProj;
 		Matrix4x4 worldMatrix;
 		Vec4 eye;
-		Vec4 viewDIr;
+		Vec4 viewDir;
 		Vec4 aspect;
 	};
 
@@ -114,7 +114,6 @@ namespace Rococo
 	{
 		virtual void Draw(ID_SYS_MESH id, const ObjectInstance* instance, uint32 nInstances) = 0;
 		virtual IRenderer& Renderer() = 0;
-		virtual void SetGlobalState(const GlobalState& gs) = 0;
 		virtual void SetMeshTexture(ID_TEXTURE textureId, int textureIndex) = 0;
 	};
 
@@ -163,6 +162,7 @@ namespace Rococo
 
 	ROCOCOAPI IScene
 	{
+		virtual void GetCamera(Matrix4x4& camera, Matrix4x4& world) = 0;
 		virtual RGBA GetClearColour() const = 0;
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
 		virtual void RenderObjects(IRenderContext& rc) = 0; // Do not change lights from here

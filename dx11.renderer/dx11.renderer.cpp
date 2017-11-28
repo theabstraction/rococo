@@ -1768,15 +1768,6 @@ namespace ANON
 		   return *window;
 	   }
 
-	   GlobalState g;
-
-	   virtual void SetGlobalState(const GlobalState& gs)
-	   {
-		   DX11::CopyStructureToBuffer(dc, globalStateBuffer, gs);
-		   dc.VSSetConstantBuffers(0, 1, &globalStateBuffer);
-		   dc.PSSetConstantBuffers(1, 1, &globalStateBuffer);
-	   }
-
 	   void DrawCursor()
 	   {
 		   if (cursor.sprite.textureIndex >= 0)
@@ -1872,8 +1863,6 @@ namespace ANON
 		   if (!UseShaders(vsID, psID)) return;
 		   if (!UseGeometryShader(gsID)) return;
 
-		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
-		   dc.OMSetBlendState(plasmaBlend, blendFactorUnused, 0xffffffff);
 		   dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 		   dc.RSSetState(particleRaterizering);
 		   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
@@ -1970,6 +1959,8 @@ namespace ANON
 			   dc.VSSetConstantBuffers(2, 1, &vs_LightStateBuffer);
 			   dc.PSSetConstantBuffers(0, 1, &vs_LightStateBuffer);
 			   dc.GSSetConstantBuffers(0, 1, &vs_LightStateBuffer);
+			   dc.VSSetConstantBuffers(0, 1, &globalStateBuffer);
+			   dc.PSSetConstantBuffers(1, 1, &globalStateBuffer);
 
 			   if (builtFirstPass)
 			   {
@@ -1987,6 +1978,8 @@ namespace ANON
 
 			   phase = RenderPhase_DetermineSpotlight;
 			   scene.RenderObjects(*this);
+
+			   dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
 			   RenderParticles(fog, idFogSpotlightPS, idParticleVS, idFogSpotlightGS);
 			   phase = RenderPhase_None;
 
@@ -2068,8 +2061,13 @@ namespace ANON
 			   DX11::CopyStructureToBuffer(dc, ps_AmbientBuffer, ad);
 			   dc.PSSetConstantBuffers(0, 1, &ps_AmbientBuffer);
 
+			   dc.VSSetConstantBuffers(0, 1, &globalStateBuffer);
+			   dc.PSSetConstantBuffers(1, 1, &globalStateBuffer);
+
 			   phase = RenderPhase_DetermineAmbient;
 			   scene.RenderObjects(*this);
+
+			   dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
 			   RenderParticles(fog, idFogAmbientPS, idParticleVS, idFogAmbientGS);
 			   phase = RenderPhase_None;
 		   }
@@ -2140,6 +2138,19 @@ namespace ANON
 		   dc.PSSetConstantBuffers(TEXTURE_CBUFFER_INDEX, 1, &nullBuffer);
 	   }
 
+	   void UpdateCameraState(IScene& scene)
+	   {
+		   GlobalState g;
+		   scene.GetCamera(g.worldMatrixAndProj, g.worldMatrix);
+
+		   float aspectRatio = screenSpan.y / (float)screenSpan.x;
+		   g.aspect = { aspectRatio,0,0,0 };
+		   g.eye = { g.worldMatrix.row0.w, g.worldMatrix.row1.w, g.worldMatrix.row2.w, 1.0f };
+		   g.viewDir = { -g.worldMatrix.row0.z, -g.worldMatrix.row1.z, -g.worldMatrix.row2.z, 0.0f };
+
+		   DX11::CopyStructureToBuffer(dc, globalStateBuffer, g);
+	   }
+
 	   void Render(IScene& scene) override
 	   {
 		   trianglesThisFrame = 0;
@@ -2163,6 +2174,8 @@ namespace ANON
 
 		   builtFirstPass = false;
 
+		   UpdateCameraState(scene);
+
 		   size_t nLights = 0;
 		   const Light* lights = scene.GetLights(nLights);
 		   for (size_t i = 0; i < nLights; ++i)
@@ -2174,6 +2187,8 @@ namespace ANON
 
 		   objCost = OS::CpuTicks() - now;
 	   
+		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+		   dc.OMSetBlendState(plasmaBlend, blendFactorUnused, 0xffffffff);
 		   RenderParticles(plasma, idPlasmaPS, idParticleVS, idPlasmaGS);
 
 		   RenderGui(scene);

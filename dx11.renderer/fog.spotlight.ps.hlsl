@@ -93,7 +93,7 @@ float4 main(PixelVertex p) : SV_TARGET
 		texel.xyz *= I;
 		texel.xyz *= light.colour.xyz;
 
-		return float4(0, 0, 0, 0);
+		return texel;
 	}
 	else
 	{
