@@ -10,7 +10,7 @@ struct PixelVertex
 	float4 colour: COLOR0;	// w component gives lerpColourToTexture
 };
 
-float4 per_pixel_lighting(PixelVertex p)
+float4 main(PixelVertex p): SV_TARGET
 {
 	float4 texel = SampleMaterial(p.uv_material_and_gloss.xyz, p.colour.w);
 	float3 incident = normalize(p.worldPosition.xyz - global.eye.xyz);
@@ -23,7 +23,3 @@ float4 per_pixel_lighting(PixelVertex p)
 	return texel * ambience.localLight;
 }
 
-float4 main(PixelVertex p) : SV_TARGET
-{
-	return per_pixel_lighting(p);
-}

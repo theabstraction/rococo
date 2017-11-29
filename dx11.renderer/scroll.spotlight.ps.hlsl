@@ -11,12 +11,6 @@ struct PixelVertex
 	float4 colour: COLOR0;	// w component gives lerpColourToTexture
 };
 
-float4 GetFontPixel(float3 uv_blend, float4 vertexColour)
-{
-	float fontIntensity = lerp(1.0f, tx_FontSprite.Sample(fontSampler, uv_blend.xy).x, uv_blend.z);
-	return float4(vertexColour.xyz, fontIntensity);
-}
-
 float4 per_pixel_lighting(PixelVertex p)
 {
 	float4 texel = GetFontPixel(p.uv_material_and_gloss.xyw, p.colour);

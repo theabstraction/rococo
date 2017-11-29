@@ -19,9 +19,7 @@ float4 per_pixel_lighting(PixelVertex p)
 		float R2 = dot(lightToPixelVec, lightToPixelVec);
 
 		float4 texel = SampleMaterial(p.uv_material_and_gloss.xyz, p.colour);
-
 		float3 incident = normalize(p.worldPosition.xyz - global.eye.xyz);
-
 		texel = ModulateWithEnvMap(texel, incident, p.normal.xyz, p.uv_material_and_gloss.w);
 
 		float3 lightToPixelDir = normalize(lightToPixelVec);
@@ -49,7 +47,7 @@ float4 per_pixel_lighting(PixelVertex p)
 	}
 	else
 	{
-		return float4(0,0,0,1);
+		return float4(0,0,0,0);
 	}
 }
 

@@ -85,3 +85,15 @@ struct DepthRenderDesc
 	float time;
 	float4 randoms;
 };
+
+struct TextureDescState
+{
+	float width;
+	float height;
+	float inverseWidth;
+	float inverseHeight;
+	float redActive;
+	float greenActive;
+	float blueActive;
+	float alphaActive;
+};

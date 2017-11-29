@@ -25,6 +25,11 @@ cbuffer InstanceState: register(b4)
 	ObjectInstance instance;
 }
 
+cbuffer textureState : register(b5)
+{
+	TextureDescState state;
+}
+
 SamplerState fontSampler: register(s0);
 SamplerState spriteSampler: register(s1);
 SamplerState matSampler: register(s2);
@@ -112,4 +117,10 @@ float GetClarity(float3 cameraSpacePosition)
 {
 	float range = length(cameraSpacePosition.xyz);
 	return exp(range * light.fogConstant);
+}
+
+float4 GetFontPixel(float3 uv_blend, float4 vertexColour)
+{
+	float fontIntensity = lerp(1.0f, tx_FontSprite.Sample(fontSampler, uv_blend.xy).x, uv_blend.z);
+	return float4(vertexColour.xyz, fontIntensity);
 }
