@@ -9,7 +9,6 @@ struct PixelVertex
 
 float4 main(PixelVertex p) : SV_TARGET
 {
-	float r = dot(p.uv, p.uv);
-	float intensity = 0.2f * clamp(1 - r, 0, 1);
-	return float4(p.colour.xyz, intensity * p.colour.w);
+	// float clarity = GetClarity(p.cameraSpacePosition.xyz);
+	return GetPointSpriteTexel(p.uv, p.colour);
 }

@@ -30,14 +30,12 @@ void main (point ParticleVertex p[1], inout TriangleStream<PixelVertex> output)
 
 	float4 worldPosition = float4(p[0].position, 1.0f);
 
-	float4 preScreenTransformPosition = mul(worldMatrixAndProj, worldPosition);
-
-	float4 cameraSpacePosition = mul(worldMatrix, worldPosition);
-
-	float4 shadowPos = mul(light.worldToShadowBuffer, worldPosition);
+	float4 preScreenTransformPosition = Transform_World_To_Screen(worldPosition);
+	float4 cameraSpacePosition = Transform_World_To_Camera(worldPosition);
+	float4 shadowPos = Transform_World_To_ShadowBuffer(worldPosition);
 
 	float s = scale;
-	float4 right = float4(s * aspect.x, 0, 0, 0);
+	float4 right = float4(s * global.aspect.x, 0, 0, 0);
 	float4 up = float4(0, s, 0, 0);
 
 	float4 billboard[4];

@@ -13,43 +13,25 @@ struct PixelVertex
 
 float4 per_pixel_lighting(PixelVertex p)
 {
-	float4 shadowXYZW = p.shadowPos / p.shadowPos.w;
-	float2 shadowUV = float2(1.0f + shadowXYZW.x, 1.0f - shadowXYZW.y) * 0.5f;
-
-	float bias = -0.00001f;
-	float shadowDepth = g_ShadowMap.Sample(shadowSampler, shadowUV).x + bias;
-
-	float isLit = shadowDepth > shadowXYZW.z;
-
-	if (isLit)
+	if (!IsInShadow(p.shadowPos))
 	{
 		float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
 		float R2 = dot(lightToPixelVec, lightToPixelVec);
 
-		float4 texel = g_materials.Sample(matSampler, p.uv_material_and_gloss.xyz);
-		texel = lerp(p.colour, texel, p.colour.w);
+		float4 texel = SampleMaterial(p.uv_material_and_gloss.xyz, p.colour);
 
-		float3 incident = normalize(p.worldPosition.xyz - eye.xyz);
-		float3 reflectionVector = reflect(incident.xyz, normalize(p.normal.xyz));
-		float4 reflectionColor = g_cubeMap.Sample(envSampler, reflectionVector);
+		float3 incident = normalize(p.worldPosition.xyz - global.eye.xyz);
 
-		texel.xyz = lerp(texel.xyz, reflectionColor.xyz, p.uv_material_and_gloss.w);
+		texel = ModulateWithEnvMap(texel, incident, p.normal.xyz, p.uv_material_and_gloss.w);
 
 		float3 lightToPixelDir = normalize(lightToPixelVec);
 
-		float f = dot(lightToPixelDir, normalize(light.direction.xyz));
+		float intensity = GetSpotlightIntensity(lightToPixelDir);
 
-		float falloff = 1.0f;
-
-		if (f < light.cutoffCosAngle) falloff = pow(1.0f - (light.cutoffCosAngle - f), light.cutoffPower);
-
-		if (f < 0) f = 0;
-
-		float3 normal = normalize(p.normal.xyz);
+		float3 normal = p.normal.xyz;
 		float g = -dot(lightToPixelDir, normal);
 
-		float range = length(p.cameraSpacePosition.xyz);
-		float fogging = exp(range * light.fogConstant);
+		float clarity = GetClarity(p.cameraSpacePosition.xyz);
 
 		float3 r = reflect(lightToPixelDir.xyz, normal);
 
@@ -57,10 +39,10 @@ float4 per_pixel_lighting(PixelVertex p)
 		float shine = 240.0f;
 		float specular = p.uv_material_and_gloss.w * max(pow(dotProduct, shine), 0);
 		
-		float diffuse = pow(f,16.0f) * g * pow(R2, light.attenuationRate);
-		float intensity = (diffuse + specular) * falloff * fogging;
+		float diffuse = g * pow(R2, light.attenuationRate);
+		float I = (diffuse + specular) * intensity * clarity;
 
-		texel.xyz *= intensity;
+		texel.xyz *= I;
 		texel.xyz *= light.colour.xyz;
 
 		return float4 (texel.xyz, 1.0f);
@@ -73,12 +55,12 @@ float4 per_pixel_lighting(PixelVertex p)
 
 float4 no_lighting(PixelVertex p)
 {
-	float4 texel = g_materials.Sample(matSampler, p.uv_material_and_gloss.xyz).xyzw;
+	float4 texel = tx_materials.Sample(matSampler, p.uv_material_and_gloss.xyz).xyzw;
 	texel = lerp(p.colour, texel, p.colour.w);
 
-	float3 incident = normalize(p.worldPosition.xyz - eye.xyz);
+	float3 incident = normalize(p.worldPosition.xyz - global.eye.xyz);
 	float3 reflectionVector = reflect(incident.xyz, normalize(p.normal.xyz));
-	float4 reflectionColor = g_cubeMap.Sample(envSampler, reflectionVector);
+	float4 reflectionColor = tx_cubeMap.Sample(envSampler, reflectionVector);
 
 	texel.xyz = lerp(texel.xyz, reflectionColor.xyz, p.uv_material_and_gloss.w);
 	return texel;

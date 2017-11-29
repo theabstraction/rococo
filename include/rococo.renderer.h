@@ -123,7 +123,6 @@ namespace Rococo
 	{
 		virtual void Draw(ID_SYS_MESH id, const ObjectInstance* instance, uint32 nInstances) = 0;
 		virtual IRenderer& Renderer() = 0;
-		virtual void SetMeshTexture(ID_TEXTURE textureId, int textureIndex) = 0;
 	};
 
 	ROCOCOAPI IUIOverlay
@@ -171,7 +170,7 @@ namespace Rococo
 
 	ROCOCOAPI IScene
 	{
-		virtual void GetCamera(Matrix4x4& camera, Matrix4x4& world) = 0;
+		virtual void GetCamera(Matrix4x4& camera, Matrix4x4& world, Vec4& eye, Vec4& viewDir) = 0;
 		virtual RGBA GetClearColour() const = 0;
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
 		virtual void RenderObjects(IRenderContext& rc) = 0; // Do not change lights from here

@@ -36,11 +36,13 @@ namespace
       {
       }
 
-	  void GetCamera(Matrix4x4& proj, Matrix4x4& world) override
+	  void GetCamera(Matrix4x4& proj, Matrix4x4& world, Vec4& eye, Vec4& viewDir) override
 	  {
 		  camera.GetWorld(world);
 		  camera.GetWorldAndProj(proj);
-	  }
+		  camera.GetPosition(eye);
+		  viewDir.FromVec3(world.GetForwardDirection(), 0);
+	  };
 
 	  const Light* GetLights(size_t& nCount) const override
 	  {

@@ -12,19 +12,13 @@ struct PixelVertex
 
 float4 per_pixel_lighting(PixelVertex p)
 {
-	float4 texel = g_materials.Sample(matSampler, p.uv_material_and_gloss.xyz);
-	texel.xyz = lerp(p.colour.xyz, texel.xyz, p.colour.w);
+	float4 texel = SampleMaterial(p.uv_material_and_gloss.xyz, p.colour.w);
+	float3 incident = normalize(p.worldPosition.xyz - global.eye.xyz);
+	texel = ModulateWithEnvMap(texel, incident, p.normal.xyz, p.uv_material_and_gloss.w);
 
-	float3 incident = normalize(p.worldPosition.xyz - eye.xyz);
-	float3 reflectionVector = reflect(incident.xyz, normalize(p.normal.xyz));
-	float4 reflectionColor = g_cubeMap.Sample(envSampler, reflectionVector);
-
-	texel.xyz = lerp(texel.xyz, reflectionColor.xyz, p.uv_material_and_gloss.w);
-
-	float range = length(p.cameraSpacePosition.xyz);	
-	float fogging = exp( range * ambience.fogConstant);
+	float clarity = GetClarity(p.cameraSpacePosition.xyz);
 	
-	texel.xyz *= fogging;
+	texel.xyz *= clarity;
 
 	return texel * ambience.localLight;
 }

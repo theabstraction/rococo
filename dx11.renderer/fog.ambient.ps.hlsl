@@ -10,14 +10,11 @@ struct PixelVertex
 
 float4 main(PixelVertex p) : SV_TARGET
 {
-	float r = dot(p.uv, p.uv);
-	float intensity = 0.2f * clamp(1 - r, 0, 1);
-	float4 texel = float4(p.colour.xyz, intensity * p.colour.w);
+	float4 texel = GetPointSpriteTexel(p.uv, p.colour);
 
-	float range = length(p.cameraSpacePosition.xyz);
-	float fogging = exp(range * ambience.fogConstant);
+	float clarity = GetClarity(p.cameraSpacePosition.xyz);
 
-	texel.xyz *= fogging;
+	texel.xyz *= clarity;
 	texel.xyz * ambience.localLight.xyz;
 
 	return float4(texel.xyz, texel.w);

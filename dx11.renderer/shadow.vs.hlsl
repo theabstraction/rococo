@@ -7,9 +7,9 @@ struct ScreenVertex
 
 ScreenVertex main(ObjectVertex v)
 {
-	float4 instancePos = mul(instanceMatrix, v.position);
+	float4 instancePos = Transform_Instance_To_World(v.position);
 
 	ScreenVertex sv;
-	sv.position = mul(drd.worldToScreen, instancePos);
+	sv.position = Transform_World_To_DepthBuffer(instancePos);
 	return sv;
 }

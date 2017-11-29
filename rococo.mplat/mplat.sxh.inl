@@ -167,6 +167,10 @@ namespace Rococo { namespace Graphics {
 		{
 			value = SampleFilter_Wrap;
 		}
+		else if (s ==  "SampleFilter_Clamp"_fstring)
+		{
+			value = SampleFilter_Clamp;
+		}
 		else
 		{
 			return false;
@@ -188,6 +192,10 @@ namespace Rococo { namespace Graphics {
 		else if (s ==  "Wrap"_fstring)
 		{
 			value = SampleFilter_Wrap;
+		}
+		else if (s ==  "Clamp"_fstring)
+		{
+			value = SampleFilter_Clamp;
 		}
 		else
 		{

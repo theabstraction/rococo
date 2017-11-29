@@ -433,6 +433,7 @@
 		(Border 0)
 		(Mirror 1)
 		(Wrap 2)
+		(Clamp 3)
 	)
 )
 
@@ -444,7 +445,7 @@
 		(Sprites  1)
 		(Materials 2)
 		(EnvironmentalMap 3)
-		(ShadowMap 3)
+		(ShadowMap 4)
 	)
 )
 

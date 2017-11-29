@@ -1042,36 +1042,6 @@ namespace ANON
 		   }
 	   }
 
-	   virtual void SetMeshTexture(ID_TEXTURE textureId, int textureIndex)
-	   {
-		   size_t index = textureId.value - 1;
-		   if (index >= textures.size())
-		   {
-			   Throw(0, "Bad texture id");
-		   }
-
-		   auto& t = textures[index];
-
-		   if (textureId != lastTextureId)
-		   {
-			   if (t.view == nullptr)
-			   {
-				   D3D11_SHADER_RESOURCE_VIEW_DESC desc;
-				   ZeroMemory(&desc, sizeof(desc));
-
-				   desc.Texture2D.MipLevels = -1;
-				   desc.Texture2D.MostDetailedMip = 0;
-
-				   desc.Format = DXGI_FORMAT_UNKNOWN;
-				   desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-
-				   VALIDATEDX11(device.CreateShaderResourceView(t.texture, &desc, &t.view));
-			   }
-			   lastTextureId = textureId;
-			   dc.PSSetShaderResources(textureIndex, 1, &t.view);
-		   }
-	   }
-
 	   virtual void BuildEnvironmentalMap(int32 topIndex, int32 bottomIndex, int32 leftIndex, int32 rightIndex, int frontIndex, int32 backIndex)
 	   {
 		   envMap = nullptr;
@@ -2105,12 +2075,10 @@ namespace ANON
 	   void UpdateGlobalState(IScene& scene)
 	   {
 		   GlobalState g;
-		   scene.GetCamera(g.worldMatrixAndProj, g.worldMatrix);
+		   scene.GetCamera(g.worldMatrixAndProj, g.worldMatrix, g.eye, g.viewDir);
 
 		   float aspectRatio = screenSpan.y / (float)screenSpan.x;
 		   g.aspect = { aspectRatio,0,0,0 };
-		   g.eye = { g.worldMatrix.row0.w, g.worldMatrix.row1.w, g.worldMatrix.row2.w, 1.0f };
-		   g.viewDir = { -g.worldMatrix.row0.z, -g.worldMatrix.row1.z, -g.worldMatrix.row2.z, 0.0f };
 
 		   g.guiScale.OOScreenWidth = 1.0f / screenSpan.x;
 		   g.guiScale.OOScreenHeight = 1.0f / screenSpan.y;

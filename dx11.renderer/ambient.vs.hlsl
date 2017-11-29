@@ -14,10 +14,10 @@ ScreenVertex main(ObjectVertex v)
 {
 	ScreenVertex sv;
 
-	float4 instancePos = mul(instanceMatrix, v.position);
-	sv.position = mul(worldMatrixAndProj, instancePos);
-	sv.normal = v.normal;
-	sv.cameraSpacePosition = mul(worldMatrix, instancePos);
+	float4 instancePos = Transform_Instance_To_World(v.position);
+	sv.position = Transform_World_To_Screen(instancePos);
+	sv.normal = Transform_Instance_To_World(v.normal);
+	sv.cameraSpacePosition = Transform_World_To_Camera(instancePos);
 	sv.worldPosition = instancePos;
 	sv.uv_material_gloss.xy = v.uv.xy;
 	sv.uv_material_gloss.zw = v.materialIndexAndGloss.xy;

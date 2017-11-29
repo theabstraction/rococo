@@ -176,9 +176,9 @@ namespace HV
 			platform.gui.Render(grc);
 		}
 
-		void GetCamera(Matrix4x4& proj, Matrix4x4& world) override
+		void GetCamera(Matrix4x4& proj, Matrix4x4& world, Vec4& eye, Vec4& viewDir) override
 		{
-			e.platform.scene.GetCamera(proj, world);
+			e.platform.scene.GetCamera(proj, world, eye, viewDir);
 		}
 
 		void RenderObjects(IRenderContext& rc)  override

@@ -12,7 +12,7 @@ struct PixelVertex
 
 float4 GetFontPixel(float3 uv_blend, float4 vertexColour)
 {
-	float fontIntensity = lerp(1.0f, g_FontSprite.Sample(fontSampler, uv_blend.xy).x, uv_blend.z);
+	float fontIntensity = lerp(1.0f, tx_FontSprite.Sample(fontSampler, uv_blend.xy).x, uv_blend.z);
 	return float4(vertexColour.xyz, fontIntensity);
 }
 
@@ -20,10 +20,9 @@ float4 per_pixel_lighting(PixelVertex p)
 {
 	float4 texel = GetFontPixel(p.uv_material_and_gloss.xyw, p.colour);
 
-	float range = length(p.cameraSpacePosition.xyz);
-	float fogging = exp(range * ambience.fogConstant);
+	float clarity = GetClarity(p.cameraSpacePosition.xyz);
 
-	texel.xyz *= fogging;
+	texel.xyz *= clarity;
 
 	return float4(texel.xyz * ambience.localLight.xyz, texel.w * p.colour.w);
 }

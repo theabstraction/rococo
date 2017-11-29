@@ -18,6 +18,22 @@ struct GuiScale
 	float OOSpriteWidth;
 };
 
+struct GlobalState
+{
+	float4x4 worldToScreenMatrix;
+	float4x4 worldToCameraMatrix;
+	GuiScale guiScale;
+	float4 eye;
+	float4 viewDir;
+	float4 aspect;
+};
+
+struct ObjectInstance
+{
+	float4x4 modelToWorldMatrix;
+	float4 highlightColour;
+};
+
 struct ObjectVertex
 {
 	float4 position : POSITION;
@@ -36,7 +52,7 @@ struct ParticleVertex
 
 struct Light
 {
-	float4x4 worldToShadowBuffer;
+	float4x4 worldToShadowBufferMatrix;
 	float4 position;
 	float4 direction;
 	float4 right;

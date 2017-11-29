@@ -14,12 +14,12 @@ struct ScreenVertex
 ScreenVertex main(ObjectVertex v)
 {
 	ScreenVertex sv;
-	float4 instancePos = mul(instanceMatrix, v.position);
-	sv.position = mul(worldMatrixAndProj, instancePos);
-	sv.normal = mul(instanceMatrix, float4(v.normal.xyz,0.0f));
+	float4 instancePos = Transform_Instance_To_World(v.position);
+	sv.position = Transform_World_To_Screen(instancePos);
+	sv.normal = Transform_Instance_To_World(float4(v.normal.xyz,0.0f));
 	sv.worldPosition = instancePos;
-	sv.shadowPos = mul(light.worldToShadowBuffer, instancePos);
-	sv.cameraSpacePosition = mul(worldMatrix, instancePos);
+	sv.shadowPos = Transform_World_To_ShadowBuffer(instancePos);
+	sv.cameraSpacePosition = Transform_World_To_Camera(instancePos);
 	sv.uv_material_and_gloss.xy = v.uv.xy;
 	sv.uv_material_and_gloss.z = v.materialIndexAndGloss.x;
 	sv.uv_material_and_gloss.w = v.materialIndexAndGloss.y;
