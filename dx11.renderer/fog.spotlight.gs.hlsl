@@ -1,9 +1,4 @@
-struct ParticleVertex
-{
-	float3 position : POSITION;
-	float4 colour: COLOR;
-	float4 geometry: TEXCOORD;
-};
+#include <mplat.api.hlsl>
 
 struct PixelVertex
 {
@@ -13,51 +8,6 @@ struct PixelVertex
 	float3 worldPosition: TEXCOORD1;
 	float2 uv: TEXCOORD0;
 	float4 colour: COLOR0;
-};
-
-#pragma pack_matrix(row_major)
-
-struct Light
-{
-	float4x4 worldToShadowBuffer;
-	float4 position;
-	float4 direction;
-	float4 right;
-	float4 up;
-	float4 colour;
-	float4 ambient;
-	float4 randoms; // 4 random quotients 0.0 - 1.0
-	float cosHalfFov;
-	float fov;
-	float nearPlane;
-	float farPlane;
-	float time; // Can be used for animation 0 - ~59.99, cycles every minute
-	float cutoffCosAngle; // What angle to trigger cutoff of light
-	float cutoffPower; // Exponent of cutoff rate. Range 1 to 64 is cool
-	float attenuationRate; // Point lights vary as inverse square, so 0.5 ish
-};
-
-struct GuiScale
-{
-	float OOScreenWidth;
-	float OOScreenHeight;
-	float OOFontWidth;
-	float OOSpriteWidth;
-};
-
-cbuffer GlobalState: register(b0)
-{
-	float4x4 worldMatrixAndProj;
-	float4x4 worldMatrix;
-	GuiScale guiScale;
-	float4 eye;
-	float4 viewDir;
-	float4 aspect;
-}
-
-cbuffer SpotlightData: register(b1)
-{
-	Light light;
 };
 
 void EmitPointEx(float4 p, ParticleVertex source, float4 cameraSpacePos, float4 shadowPos, float u, float v, inout TriangleStream<PixelVertex> output)

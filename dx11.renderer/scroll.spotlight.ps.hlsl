@@ -1,3 +1,5 @@
+#include "mplat.api.hlsl"
+
 struct PixelVertex
 {
 	float4 position : SV_POSITION0;
@@ -8,70 +10,6 @@ struct PixelVertex
 	float4 cameraSpacePosition: TEXCOORD4;
 	float4 colour: COLOR0;	// w component gives lerpColourToTexture
 };
-
-#pragma pack_matrix(row_major)
-
-struct Light
-{
-	float4x4 worldToShadowBuffer;
-	float4 position;
-	float4 direction;
-	float4 right;
-	float4 up;
-	float4 colour;
-	float4 ambient;
-	float fogConstant;
-	float3 randoms; // 4 random quotients 0.0 - 1.0
-	float cosHalfFov;
-	float fov;
-	float nearPlane;
-	float farPlane;
-	float time; // Can be used for animation 0 - ~59.99, cycles every minute
-	float cutoffCosAngle; // What angle to trigger cutoff of light
-	float cutoffPower; // Exponent of cutoff rate. Range 1 to 64 is cool
-	float attenuationRate; // Point lights vary as inverse square, so 0.5 ish
-};
-
-struct GuiScale
-{
-	float OOScreenWidth;
-	float OOScreenHeight;
-	float OOFontWidth;
-	float OOSpriteWidth;
-};
-
-cbuffer GlobalState: register(b0)
-{
-	float4x4 worldMatrixAndProj;
-	float4x4 worldMatrix;
-	GuiScale guiScale;
-	float4 eye;
-	float4 viewDir;
-	float4 aspect;
-}
-
-cbuffer SpotlightData: register(b1)
-{
-	Light light;
-};
-
-cbuffer IntanceData: register(b4)
-{
-	float4x4 instanceMatrix;
-	float4 highlightColour;
-}
-
-Texture2DArray g_materials: register(t6);
-Texture2D g_ShadowMap: register(t2);
-TextureCube g_cubeMap: register(t3);
-Texture2D g_FontSprite: register(t0);
-Texture2DArray g_BitmapSprite: register(t7);
-
-SamplerState fontSampler: register(s0);
-SamplerState spriteSampler: register(s1);
-SamplerState matSampler: register(s2);
-SamplerState envSampler: register(s3);
-SamplerState shadowSampler: register(s4);
 
 float4 GetFontPixel(float3 uv_blend, float4 vertexColour)
 {

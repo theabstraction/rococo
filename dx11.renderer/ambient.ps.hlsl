@@ -1,3 +1,5 @@
+#include "mplat.api.hlsl"
+
 struct PixelVertex
 {
 	float4 position : SV_POSITION0;
@@ -7,51 +9,6 @@ struct PixelVertex
 	float4 worldPosition: TEXCOORD2;
 	float4 colour: COLOR0;	// w component gives lerpColourToTexture
 };
-
-#pragma pack_matrix(row_major)
-
-Texture2DArray g_materials: register(t6);
-
-SamplerState fontSampler: register(s0);
-SamplerState spriteSampler: register(s1);
-SamplerState matSampler: register(s2);
-SamplerState envSampler: register(s3);
-SamplerState shadowSampler: register(s4);
-
-TextureCube g_cubeMap: register(t3);
-
-struct AmbientData
-{
-	float4 localLight;
-	float fogConstant; // light = e(Rk). Where R is distance. k = -0.2218 gives modulation of 1/256 at 25 metres, reducing full brightness to dark
-	float a;
-	float b;
-	float c;
-	float4 eye;
-};
-
-struct GuiScale
-{
-	float OOScreenWidth;
-	float OOScreenHeight;
-	float OOFontWidth;
-	float OOSpriteWidth;
-};
-
-cbuffer GlobalState: register(b0)
-{
-	float4x4 worldMatrixAndProj;
-	float4x4 worldMatrix;
-	GuiScale guiScale;
-	float4 eye;
-	float4 viewDir;
-	float4 aspect;
-}
-
-cbuffer AmbienceState: register(b2)
-{
-	AmbientData ambience;
-}
 
 float4 per_pixel_lighting(PixelVertex p)
 {

@@ -55,6 +55,9 @@
     <FxCompile Include="fog.ambient.gs.hlsl">
       <Filter>HLSL\Particles</Filter>
     </FxCompile>
+    <FxCompile Include="mplat.types.hlsl">
+      <Filter>HLSL\Headers</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11.swapchain.cpp">
@@ -106,6 +109,9 @@
     <None Include="..\rococo.os.win32\rococo.ultraclock.inl">
       <Filter>Headers</Filter>
     </None>
+    <None Include="mplat.api.hlsl">
+      <Filter>HLSL\Headers</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Sources">
@@ -125,6 +131,9 @@
     </Filter>
     <Filter Include="HLSL\Objects">
       <UniqueIdentifier>{3c506f93-b117-4965-a7da-3aab9ebc94b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLSL\Headers">
+      <UniqueIdentifier>{6efd6b5c-0162-4473-b1b9-6b72629ec741}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

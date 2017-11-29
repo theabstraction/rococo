@@ -1,9 +1,4 @@
-struct ParticleVertex
-{
-	float3 position : POSITION;
-	float4 colour: COLOR;
-	float4 geometry: TEXCOORD;
-};
+#include <mplat.api.hlsl>
 
 struct PixelVertex
 {
@@ -12,41 +7,6 @@ struct PixelVertex
 	float2 uv: TEXCOORD0;
 	float4 colour: COLOR0;
 };
-
-#pragma pack_matrix(row_major)
-
-struct AmbientData
-{
-	float4 localLight;
-	float fogConstant; // light = e(Rk). Where R is distance. k = -0.2218 gives modulation of 1/256 at 25 metres, reducing full brightness to dark
-	float a;
-	float b;
-	float c;
-	float4 eye;
-};
-
-struct GuiScale
-{
-	float OOScreenWidth;
-	float OOScreenHeight;
-	float OOFontWidth;
-	float OOSpriteWidth;
-};
-
-cbuffer GlobalState: register(b0)
-{
-	float4x4 worldMatrixAndProj;
-	float4x4 worldMatrix;
-	GuiScale guiScale;
-	float4 eye;
-	float4 viewDir;
-	float4 aspect;
-}
-
-cbuffer AmbienceState : register(b2)
-{
-	AmbientData ambience;
-}
 
 void EmitPointEx(float4 p, ParticleVertex source, float4 cameraSpacePos, float u, float v, inout TriangleStream<PixelVertex> output)
 {
