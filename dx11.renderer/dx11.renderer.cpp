@@ -107,14 +107,6 @@ namespace ANON
 		}
 	};
 
-	struct GuiScale
-	{
-		float OOScreenWidth;
-		float OOScreenHeight;
-		float OOFontWidth;
-		float OOSpriteWidth;
-	};
-
    struct Overlay
    {
       int32 zOrder;
@@ -386,16 +378,10 @@ namespace ANON
 
 	   AutoRelease<ID3D11Buffer> vector4Buffer;
 	   AutoRelease<ID3D11Buffer> globalStateBuffer;
-
-	   AutoRelease<ID3D11Buffer> vs_ShadowStateBuffer;
-	   AutoRelease<ID3D11Buffer> ps_ShadowStateBuffer;
-
-	   AutoRelease<ID3D11Buffer> vs_LightStateBuffer;
-	   AutoRelease<ID3D11Buffer> ps_LightStateBuffer;
-
-	   AutoRelease<ID3D11Buffer> ps_TextureDescBuffer;
-
-	   AutoRelease<ID3D11Buffer> ps_AmbientBuffer;
+	   AutoRelease<ID3D11Buffer> depthRenderStateBuffer;
+	   AutoRelease<ID3D11Buffer> lightStateBuffer;
+	   AutoRelease<ID3D11Buffer> textureDescBuffer;
+	   AutoRelease<ID3D11Buffer> ambientBuffer;
 
 	   AutoRelease<ID3D11Texture2D> cubeTexture;
 	   AutoRelease<ID3D11ShaderResourceView> cubeTextureView;
@@ -506,16 +492,10 @@ namespace ANON
 		   DX11::CopyStructureToBuffer(dc, vector4Buffer, nullVector);
 
 		   globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
-
-		   vs_ShadowStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
-		   ps_ShadowStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
-
-		   vs_LightStateBuffer = DX11::CreateConstantBuffer<Light>(device);
-		   ps_LightStateBuffer = DX11::CreateConstantBuffer<Light>(device);
-
-		   ps_TextureDescBuffer = DX11::CreateConstantBuffer<TextureDescState>(device);
-
-		   ps_AmbientBuffer = DX11::CreateConstantBuffer<AmbientData>(device);
+		   depthRenderStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
+		   lightStateBuffer = DX11::CreateConstantBuffer<Light>(device);
+		   textureDescBuffer = DX11::CreateConstantBuffer<TextureDescState>(device);
+		   ambientBuffer = DX11::CreateConstantBuffer<AmbientData>(device);
 
 		   installation.LoadResource("!gui.vs", *scratchBuffer, 64_kilobytes);
 		   idGuiVS = CreateGuiVertexShader("!gui.vs", scratchBuffer->GetData(), scratchBuffer->Length());
@@ -1204,7 +1184,15 @@ namespace ANON
 		   return i != nameToMaterialId.end() ? i->second : -1.0f;
 	   }
 
-	   enum { TEXTURE_CBUFFER_INDEX = 7};
+	   enum CBUFFER_INDEX
+	   { 
+		   CBUFFER_INDEX_GLOBAL_STATE = 0,
+		   CBUFFER_INDEX_CURRENT_SPOTLIGHT = 1,
+		   CBUFFER_INDEX_AMBIENT_LIGHT = 2,
+		   CBUFFER_INDEX_DEPTH_RENDER_DESC = 3,
+		   CBUFFER_INDEX_INSTANCE_BUFFER = 4,
+		   CBUFFER_INDEX_SELECT_TEXTURE_DESC = 5
+	   };
 
 	   ID_TEXTURE FindTexture(cstr name) const
 	   {
@@ -1268,8 +1256,8 @@ namespace ANON
 				   };
 			   }
 
-			   DX11::CopyStructureToBuffer(dc, ps_TextureDescBuffer, &state, sizeof(TextureDescState));
-			   dc.PSSetConstantBuffers(TEXTURE_CBUFFER_INDEX, 1, &ps_TextureDescBuffer);
+			   DX11::CopyStructureToBuffer(dc, textureDescBuffer, &state, sizeof(TextureDescState));
+			   dc.PSSetConstantBuffers(CBUFFER_INDEX_SELECT_TEXTURE_DESC, 1, &textureDescBuffer);
 		   }
 
 		   return Vec2i{ (int32)desc.Width, (int32)desc.Height };
@@ -1737,7 +1725,7 @@ namespace ANON
 		   {
 			   // dc.DrawInstances crashed the debugger, replace with single instance render call for now
 			   DX11::CopyStructureToBuffer(dc, instanceBuffer, instances + i, sizeof(ObjectInstance));
-			   dc.VSSetConstantBuffers(1, 1, &instanceBuffer);
+			   dc.VSSetConstantBuffers(CBUFFER_INDEX_INSTANCE_BUFFER, 1, &instanceBuffer);
 			   dc.Draw(m.numberOfVertices, 0);
 
 			   trianglesThisFrame += m.numberOfVertices / 3;
@@ -1866,7 +1854,6 @@ namespace ANON
 		   dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 		   dc.RSSetState(particleRaterizering);
 		   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
-		   dc.GSSetConstantBuffers(1, 1, &globalStateBuffer);
 
 		   size_t qSize = particles.size();
 
@@ -1889,9 +1876,6 @@ namespace ANON
 			   qSize -= chunkSize;
 		   }
 
-		   ID3D11Buffer* nullBuffer = nullptr;
-		   dc.GSSetConstantBuffers(0, 1, &nullBuffer);
-
 		   UseGeometryShader(ID_GEOMETRY_SHADER::Invalid());
 	   }
 
@@ -1912,11 +1896,9 @@ namespace ANON
 
 			   UseShaders(idObjVS_Shadows, idObjPS_Shadows);
 
-			   DX11::CopyStructureToBuffer(dc, vs_ShadowStateBuffer, drd);
-			   dc.VSSetConstantBuffers(0, 1, &vs_ShadowStateBuffer);
-
-			   DX11::CopyStructureToBuffer(dc, ps_ShadowStateBuffer, drd);
-			   dc.PSSetConstantBuffers(0, 1, &ps_ShadowStateBuffer);
+			   DX11::CopyStructureToBuffer(dc, depthRenderStateBuffer, drd);
+			   dc.VSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
+			   dc.PSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
 
 			   D3D11_VIEWPORT viewport;
 			   ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
@@ -1955,12 +1937,10 @@ namespace ANON
 			   light.up = drd.up;
 			   light.worldToShadowBuffer = drd.worldToScreen;
 
-			   DX11::CopyStructureToBuffer(dc, vs_LightStateBuffer, light);
-			   dc.VSSetConstantBuffers(2, 1, &vs_LightStateBuffer);
-			   dc.PSSetConstantBuffers(0, 1, &vs_LightStateBuffer);
-			   dc.GSSetConstantBuffers(0, 1, &vs_LightStateBuffer);
-			   dc.VSSetConstantBuffers(0, 1, &globalStateBuffer);
-			   dc.PSSetConstantBuffers(1, 1, &globalStateBuffer);
+			   DX11::CopyStructureToBuffer(dc, lightStateBuffer, light);
+			   dc.VSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
+			   dc.PSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
+			   dc.GSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
 
 			   if (builtFirstPass)
 			   {
@@ -1997,18 +1977,7 @@ namespace ANON
 
 		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
 		   dc.OMSetBlendState(alphaBlend, blendFactorUnused, 0xffffffff);
-
-		   GuiScale guiScaleVector;
-		   guiScaleVector.OOScreenWidth = 1.0f / screenSpan.x;
-		   guiScaleVector.OOScreenHeight = 1.0f / screenSpan.y;
-		   guiScaleVector.OOFontWidth = fonts->TextureSpan().z;
-		   guiScaleVector.OOSpriteWidth = 1.0f / spriteArray.width;
-
-		   DX11::CopyStructureToBuffer(dc, vector4Buffer, &guiScaleVector, sizeof(GuiScale));
-
-		   dc.VSSetConstantBuffers(0, 1, &vector4Buffer);
 		   dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 		   dc.OMSetDepthStencilState(guiDepthState, 0);
 
 		   if (!UseShaders(idGuiVS, idGuiPS))
@@ -2058,15 +2027,11 @@ namespace ANON
 			   ad.localLight = ambientLight.ambient;
 			   ad.fogConstant = ambientLight.fogConstant;
 
-			   DX11::CopyStructureToBuffer(dc, ps_AmbientBuffer, ad);
-			   dc.PSSetConstantBuffers(0, 1, &ps_AmbientBuffer);
-
-			   dc.VSSetConstantBuffers(0, 1, &globalStateBuffer);
-			   dc.PSSetConstantBuffers(1, 1, &globalStateBuffer);
+			   DX11::CopyStructureToBuffer(dc, ambientBuffer, ad);
+			   dc.PSSetConstantBuffers(CBUFFER_INDEX_AMBIENT_LIGHT, 1, &ambientBuffer);
 
 			   phase = RenderPhase_DetermineAmbient;
 			   scene.RenderObjects(*this);
-
 			   dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
 			   RenderParticles(fog, idFogAmbientPS, idParticleVS, idFogAmbientGS);
 			   phase = RenderPhase_None;
@@ -2135,10 +2100,9 @@ namespace ANON
 
 		   ID3D11Buffer* nullBuffer = nullptr;
 		   dc.IASetVertexBuffers(0, 1, &nullBuffer, &nStrides, &nStrides);
-		   dc.PSSetConstantBuffers(TEXTURE_CBUFFER_INDEX, 1, &nullBuffer);
 	   }
 
-	   void UpdateCameraState(IScene& scene)
+	   void UpdateGlobalState(IScene& scene)
 	   {
 		   GlobalState g;
 		   scene.GetCamera(g.worldMatrixAndProj, g.worldMatrix);
@@ -2148,7 +2112,16 @@ namespace ANON
 		   g.eye = { g.worldMatrix.row0.w, g.worldMatrix.row1.w, g.worldMatrix.row2.w, 1.0f };
 		   g.viewDir = { -g.worldMatrix.row0.z, -g.worldMatrix.row1.z, -g.worldMatrix.row2.z, 0.0f };
 
+		   g.guiScale.OOScreenWidth = 1.0f / screenSpan.x;
+		   g.guiScale.OOScreenHeight = 1.0f / screenSpan.y;
+		   g.guiScale.OOFontWidth = fonts->TextureSpan().z;
+		   g.guiScale.OOSpriteWidth = 1.0f / spriteArray.width;
+
 		   DX11::CopyStructureToBuffer(dc, globalStateBuffer, g);
+
+		   dc.VSSetConstantBuffers(CBUFFER_INDEX_GLOBAL_STATE, 1, &globalStateBuffer);
+		   dc.PSSetConstantBuffers(CBUFFER_INDEX_GLOBAL_STATE, 1, &globalStateBuffer);
+		   dc.GSSetConstantBuffers(CBUFFER_INDEX_GLOBAL_STATE, 1, &globalStateBuffer);
 	   }
 
 	   void Render(IScene& scene) override
@@ -2174,7 +2147,7 @@ namespace ANON
 
 		   builtFirstPass = false;
 
-		   UpdateCameraState(scene);
+		   UpdateGlobalState(scene);
 
 		   size_t nLights = 0;
 		   const Light* lights = scene.GetLights(nLights);

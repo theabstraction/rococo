@@ -16,7 +16,31 @@ struct ScreenVertex
 
 #pragma pack_matrix(row_major)
 
-cbuffer depthRenderData
+struct GuiScale
+{
+	float OOScreenWidth;
+	float OOScreenHeight;
+	float OOFontWidth;
+	float OOSpriteWidth;
+};
+
+cbuffer GlobalState: register(b0)
+{
+	float4x4 worldMatrixAndProj;
+	float4x4 worldMatrix;
+	GuiScale guiScale;
+	float4 eye;
+	float4 viewDir;
+	float4 aspect;
+}
+
+cbuffer InstanceData: register(b4)
+{
+	float4x4 instanceMatrix;
+	float4 highlightColour;
+}
+
+struct DepthRenderDesc
 {
 	float4x4 worldToCamera;
 	float4x4 worldToScreen;
@@ -31,18 +55,17 @@ cbuffer depthRenderData
 	float4 randoms;
 };
 
-cbuffer perInstanceData
+cbuffer DepthRenderData:  register(b3)
 {
-	float4x4 instanceMatrix;
-	float4 highlightColour;
-}
+	DepthRenderDesc d;
+};
 
 ScreenVertex main(ObjectVertex v)
 {
 	float4 instancePos = mul(instanceMatrix, v.position);
 
 	ScreenVertex sv;
-	sv.position = mul(worldToScreen, instancePos);
+	sv.position = mul(d.worldToScreen, instancePos);
 	sv.worldPosition = instancePos;
 	return sv;
 }

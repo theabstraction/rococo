@@ -30,17 +30,28 @@ struct AmbientData
 	float4 eye;
 };
 
-cbuffer ambience: register(b0)
+struct GuiScale
 {
-	AmbientData ambience;
-}
+	float OOScreenWidth;
+	float OOScreenHeight;
+	float OOFontWidth;
+	float OOSpriteWidth;
+};
 
-cbuffer globalState: register(b1)
+cbuffer GlobalState: register(b0)
 {
 	float4x4 worldMatrixAndProj;
 	float4x4 worldMatrix;
+	GuiScale guiScale;
 	float4 eye;
-};
+	float4 viewDir;
+	float4 aspect;
+}
+
+cbuffer AmbienceState: register(b2)
+{
+	AmbientData ambience;
+}
 
 float4 per_pixel_lighting(PixelVertex p)
 {

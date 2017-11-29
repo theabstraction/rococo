@@ -19,13 +19,25 @@ struct ScreenVertex
 
 #pragma pack_matrix(row_major)
 
-cbuffer globalState
+struct GuiScale
+{
+	float OOScreenWidth;
+	float OOScreenHeight;
+	float OOFontWidth;
+	float OOSpriteWidth;
+};
+
+cbuffer GlobalState: register(b0)
 {
 	float4x4 worldMatrixAndProj;
 	float4x4 worldMatrix;
-};
+	GuiScale guiScale;
+	float4 eye;
+	float4 viewDir;
+	float4 aspect;
+}
 
-cbuffer perInstanceData
+cbuffer InstanceState: register(b4)
 {
 	float4x4 instanceMatrix;
 	float4 highlightColour;

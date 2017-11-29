@@ -26,7 +26,25 @@ struct TextureDescState
 	float alphaActive;
 };
 
-cbuffer textureState: register(b7)
+struct GuiScale
+{
+	float OOScreenWidth;
+	float OOScreenHeight;
+	float OOFontWidth;
+	float OOSpriteWidth;
+};
+
+cbuffer GlobalState: register(b0)
+{
+	float4x4 worldMatrixAndProj;
+	float4x4 worldMatrix;
+	GuiScale guiScale;
+	float4 eye;
+	float4 viewDir;
+	float4 aspect;
+}
+
+cbuffer textureState: register(b5)
 {
 	TextureDescState state;
 }

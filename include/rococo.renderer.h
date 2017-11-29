@@ -101,10 +101,19 @@ namespace Rococo
 		RGBA highlightColour;
 	};
 
+	struct GuiScale
+	{
+		float OOScreenWidth;
+		float OOScreenHeight;
+		float OOFontWidth;
+		float OOSpriteWidth;
+	};
+
 	struct GlobalState
 	{
 		Matrix4x4 worldMatrixAndProj;
 		Matrix4x4 worldMatrix;
+		GuiScale guiScale;
 		Vec4 eye;
 		Vec4 viewDir;
 		Vec4 aspect;

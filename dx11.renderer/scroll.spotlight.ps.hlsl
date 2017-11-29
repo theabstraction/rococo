@@ -32,18 +32,34 @@ struct Light
 	float attenuationRate; // Point lights vary as inverse square, so 0.5 ish
 };
 
-cbuffer light: register(b0)
+struct GuiScale
+{
+	float OOScreenWidth;
+	float OOScreenHeight;
+	float OOFontWidth;
+	float OOSpriteWidth;
+};
+
+cbuffer GlobalState: register(b0)
+{
+	float4x4 worldMatrixAndProj;
+	float4x4 worldMatrix;
+	GuiScale guiScale;
+	float4 eye;
+	float4 viewDir;
+	float4 aspect;
+}
+
+cbuffer SpotlightData: register(b1)
 {
 	Light light;
 };
 
-cbuffer globalState: register(b1)
+cbuffer IntanceData: register(b4)
 {
-	float4x4 worldMatrixAndProj;
-	float4x4 worldMatrix;
-	float4 eye;
-	float4 viewDir;
-};
+	float4x4 instanceMatrix;
+	float4 highlightColour;
+}
 
 Texture2DArray g_materials: register(t6);
 Texture2D g_ShadowMap: register(t2);

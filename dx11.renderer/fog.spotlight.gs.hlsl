@@ -37,18 +37,27 @@ struct Light
 	float attenuationRate; // Point lights vary as inverse square, so 0.5 ish
 };
 
-cbuffer light: register(b0)
+struct GuiScale
 {
-	Light light;
+	float OOScreenWidth;
+	float OOScreenHeight;
+	float OOFontWidth;
+	float OOSpriteWidth;
 };
 
-cbuffer camera: register(b1)
+cbuffer GlobalState: register(b0)
 {
 	float4x4 worldMatrixAndProj;
 	float4x4 worldMatrix;
+	GuiScale guiScale;
 	float4 eye;
 	float4 viewDir;
 	float4 aspect;
+}
+
+cbuffer SpotlightData: register(b1)
+{
+	Light light;
 };
 
 void EmitPointEx(float4 p, ParticleVertex source, float4 cameraSpacePos, float4 shadowPos, float u, float v, inout TriangleStream<PixelVertex> output)

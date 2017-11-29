@@ -40,23 +40,34 @@ struct Light
 	float attenuationRate; // Point lights vary as inverse square, so 0.5 ish
 };
 
-cbuffer globalState: register(b0)
+struct GuiScale
+{
+	float OOScreenWidth;
+	float OOScreenHeight;
+	float OOFontWidth;
+	float OOSpriteWidth;
+};
+
+cbuffer GlobalState: register(b0)
 {
 	float4x4 worldMatrixAndProj;
 	float4x4 worldMatrix;
+	GuiScale guiScale;
 	float4 eye;
+	float4 viewDir;
+	float4 aspect;
+}
+
+cbuffer Spotlight: register(b1)
+{
+	Light light;
 };
 
-cbuffer perInstanceData: register(b1)
+cbuffer InstanceData: register(b4)
 {
 	float4x4 instanceMatrix;
 	float4 highlightColour;
 }
-
-cbuffer light: register(b2)
-{
-	Light light;
-};
 
 ScreenVertex main(ObjectVertex v)
 {

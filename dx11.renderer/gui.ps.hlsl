@@ -16,6 +16,24 @@ SamplerState matSampler: register(s2);
 SamplerState envSampler: register(s3);
 SamplerState shadowSampler: register(s4);
 
+struct GuiScale
+{
+	float OOScreenWidth;
+	float OOScreenHeight;
+	float OOFontWidth;
+	float OOSpriteWidth;
+};
+
+cbuffer GlobalState: register(b0)
+{
+	float4x4 worldMatrixAndProj;
+	float4x4 worldMatrix;
+	GuiScale guiScale;
+	float4 eye;
+	float4 viewDir;
+	float4 aspect;
+}
+
 struct BaseVertexData
 {
 	float2 uv;

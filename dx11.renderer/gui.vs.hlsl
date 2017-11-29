@@ -36,7 +36,15 @@ struct GuiScale
 	float OOSpriteWidth;
 };
 
-GuiScale guiScale;
+cbuffer GlobalState: register(b0)
+{
+	float4x4 worldMatrixAndProj;
+	float4x4 worldMatrix;
+	GuiScale guiScale;
+	float4 eye;
+	float4 viewDir;
+	float4 aspect;
+}
 
 PixelVertex main(GuiVertex v)
 {
