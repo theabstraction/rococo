@@ -246,6 +246,21 @@ namespace Rococo
 		};
 	}
 
+	namespace Graphics
+	{
+		enum ENVIRONMENTAL_MAP
+		{
+			ENVIRONMENTAL_MAP_PROCEDURAL,
+			ENVIRONMENTAL_MAP_FIXED_CUBE,
+			ENVIRONMENTAL_MAP_DYNAMIC_CUBE
+		};
+
+		struct RenderPhaseConfig
+		{
+			ENVIRONMENTAL_MAP EnvironmentalMap;
+		};
+	}
+
 	ROCOCOAPI IRenderer
 	{
 	  virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
@@ -267,7 +282,7 @@ namespace Rococo
 	  virtual cstr GetMaterialTextureName(MaterialId id) const = 0;
 	  virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, cstr uniqueName) = 0;
 	  virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
-	  virtual void Render(IScene& scene) = 0;
+	  virtual void Render(Graphics::RenderPhaseConfig& config, IScene& scene) = 0;
 	  virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
 	  virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
 	  virtual void SetCursorVisibility(bool isVisible) = 0;

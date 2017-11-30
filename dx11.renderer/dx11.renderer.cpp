@@ -399,6 +399,9 @@ namespace ANON
 	   ID_VERTEX_SHADER idObjAmbientVS;
 	   ID_PIXEL_SHADER idObjAmbientPS;
 
+	   ID_PIXEL_SHADER idObj_Spotlight_NoEnvMap_PS;
+	   ID_PIXEL_SHADER idObj_Ambient_NoEnvMap_PS;
+
 	   ID_VERTEX_SHADER idParticleVS;
 	   ID_PIXEL_SHADER idPlasmaPS;
 	   ID_PIXEL_SHADER idFogAmbientPS;
@@ -520,6 +523,12 @@ namespace ANON
 
 		   installation.LoadResource("!fog.ambient.gs", *scratchBuffer, 64_kilobytes);
 		   idFogAmbientGS = CreateGeometryShader("!fog.ambient.gs", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!obj.spotlight.no_env.ps", *scratchBuffer, 64_kilobytes);
+		   idObj_Spotlight_NoEnvMap_PS = CreatePixelShader("!obj.spotlight.no_env.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!obj.ambient.no_env.ps", *scratchBuffer, 64_kilobytes);
+		   idObj_Ambient_NoEnvMap_PS = CreatePixelShader("!obj.ambient.no_env.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
 		   installation.LoadResource("!plasma.ps", *scratchBuffer, 64_kilobytes);
 		   idPlasmaPS = CreatePixelShader("!plasma.ps", scratchBuffer->GetData(), scratchBuffer->Length());
@@ -1849,6 +1858,43 @@ namespace ANON
 		   UseGeometryShader(ID_GEOMETRY_SHADER::Invalid());
 	   }
 
+	   Graphics::RenderPhaseConfig phaseConfig;
+
+	   ID_PIXEL_SHADER GetObjectShaderPixelId(RenderPhase phase)
+	   {
+		   switch (phaseConfig.EnvironmentalMap)
+		   {
+		   case Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE:
+			   switch (phase)
+			   {
+			   case RenderPhase_DetermineAmbient:
+				   return idObjAmbientPS;
+			   case RenderPhase_DetermineSpotlight:
+				   return idObjPS;
+			   case RenderPhase_DetermineShadowVolumes:
+				   return idObjPS_Shadows;
+			   default:
+				   Throw(0, "Unknown render phase: %d", phase);
+			   }
+		   case Graphics::ENVIRONMENTAL_MAP_PROCEDURAL:
+			   switch (phase)
+			   {
+			   case RenderPhase_DetermineAmbient:
+				   return idObj_Ambient_NoEnvMap_PS;
+			   case RenderPhase_DetermineSpotlight:
+				   return idObj_Spotlight_NoEnvMap_PS;
+			   case RenderPhase_DetermineShadowVolumes:
+				   return idObjPS_Shadows;
+			   default:
+				   Throw(0, "Unknown render phase: %d", phase);
+			   }
+		   default:
+			   Throw(0, "Environemtn mode %d not implemented", phaseConfig.EnvironmentalMap);
+		   }
+
+		   return ID_PIXEL_SHADER();
+	   }
+
 	   void RenderSpotlightLitScene(const Light& lightSubset, IScene& scene)
 	   {
 		   Light light = lightSubset;
@@ -1897,7 +1943,10 @@ namespace ANON
 
 			   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
 
-			   UseShaders(idObjVS, idObjPS);
+			   phase = RenderPhase_DetermineSpotlight;
+
+			   ID_PIXEL_SHADER idPS = GetObjectShaderPixelId(phase);
+			   UseShaders(idObjVS, idPS);
 
 			   SyncViewport();
 
@@ -1926,7 +1975,6 @@ namespace ANON
 			   dc.PSSetShaderResources(2, 1, &shadowBufferView);
 			   dc.RSSetState(objectRaterizering);
 
-			   phase = RenderPhase_DetermineSpotlight;
 			   scene.RenderObjects(*this);
 
 			   dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
@@ -1973,7 +2021,10 @@ namespace ANON
 
 	   void RenderAmbient(IScene& scene, const Light& ambientLight)
 	   {
-		   if (UseShaders(idObjAmbientVS, idObjAmbientPS))
+		   phase = RenderPhase_DetermineAmbient;
+
+		   ID_PIXEL_SHADER idPS = GetObjectShaderPixelId(phase);
+		   if (UseShaders(idObjAmbientVS, idPS))
 		   {
 			   FLOAT blendFactorUnused[] = { 0,0,0,0 };
 			   SyncViewport();
@@ -2000,12 +2051,12 @@ namespace ANON
 			   DX11::CopyStructureToBuffer(dc, ambientBuffer, ad);
 			   dc.PSSetConstantBuffers(CBUFFER_INDEX_AMBIENT_LIGHT, 1, &ambientBuffer);
 
-			   phase = RenderPhase_DetermineAmbient;
 			   scene.RenderObjects(*this);
 			   dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
 			   RenderParticles(fog, idFogAmbientPS, idParticleVS, idFogAmbientGS);
-			   phase = RenderPhase_None;
 		   }
+		   
+		   phase = RenderPhase_None;
 	   }
 
 	   void SetAndClearRenderBuffers(const RGBA& clearColour)
@@ -2092,8 +2143,10 @@ namespace ANON
 		   dc.GSSetConstantBuffers(CBUFFER_INDEX_GLOBAL_STATE, 1, &globalStateBuffer);
 	   }
 
-	   void Render(IScene& scene) override
+	   void Render(Graphics::RenderPhaseConfig& config, IScene& scene) override
 	   {
+		   this->phaseConfig = config;
+
 		   trianglesThisFrame = 0;
 		   entitiesThisFrame = 0;
 

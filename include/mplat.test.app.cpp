@@ -195,7 +195,10 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
    {
       platform.os.EnumerateModifiedFiles(*this);
       platform.publisher.Deliver();
-      platform.renderer.Render(*this);
+
+	  Graphics::RenderPhaseConfig config;
+	  config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
+      platform.renderer.Render(config, *this);
       
       return 2; // 2 millisecond sleep period
    }

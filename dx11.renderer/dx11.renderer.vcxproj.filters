@@ -58,6 +58,13 @@
     <FxCompile Include="mplat.types.hlsl">
       <Filter>HLSL\Headers</Filter>
     </FxCompile>
+    <FxCompile Include="mplat.api.hlsl" />
+    <FxCompile Include="obj.ambient.no_env.ps.hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
+    <FxCompile Include="obj.spotlight.no_env.ps.hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11.swapchain.cpp">
@@ -108,9 +115,6 @@
     </None>
     <None Include="..\rococo.os.win32\rococo.ultraclock.inl">
       <Filter>Headers</Filter>
-    </None>
-    <None Include="mplat.api.hlsl">
-      <Filter>HLSL\Headers</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

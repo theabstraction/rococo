@@ -124,3 +124,20 @@ float4 GetFontPixel(float3 uv_blend, float4 vertexColour)
 	float fontIntensity = lerp(1.0f, tx_FontSprite.Sample(fontSampler, uv_blend.xy).x, uv_blend.z);
 	return float4(vertexColour.xyz, fontIntensity);
 }
+
+float GetSpecular(ObjectPixelVertex p, float3 incident, float3 lightDirection)
+{
+	float shine = 240.0f;
+	float3 r = reflect(lightDirection, p.normal.xyz);
+	float dotProduct = dot(r, incident);
+	float specular = p.uv_material_and_gloss.w * max(pow(dotProduct, shine), 0);
+	return specular;
+}
+
+float GetDiffuse(ObjectPixelVertex p, float3 lightToPixelVec, float3 lightToPixelDir)
+{
+	float R2 = dot(lightToPixelVec, lightToPixelVec);
+	float incidence = -dot(lightToPixelDir, p.normal.xyz);
+	float i2 = clamp(incidence, 0, 1);
+	return i2 * pow(R2, light.attenuationRate);
+}

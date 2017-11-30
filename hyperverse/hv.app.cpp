@@ -75,7 +75,10 @@ namespace HV
 			} ec(e.platform.publisher, be);
 
 			e.platform.gui.PushTop(openingPanel->Supervisor(), true);
-			platform.renderer.Render(*this);
+
+			Graphics::RenderPhaseConfig config;
+			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
+			platform.renderer.Render(config, *this);
 			e.platform.gui.Pop();
 		}
 
@@ -250,7 +253,10 @@ namespace HV
 
 			GuiRect fullRect{ 0,0,metrics.screenSpan.x, metrics.screenSpan.y };
 			editorPanel->Root()->Base()->SetRect(fullRect);
-			e.platform.renderer.Render(*this);
+
+			Graphics::RenderPhaseConfig config;
+			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
+			e.platform.renderer.Render(config, *this);
 
 			if (editorActive)
 			{

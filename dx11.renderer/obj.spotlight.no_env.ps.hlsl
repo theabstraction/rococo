@@ -6,24 +6,22 @@ float4 main(ObjectPixelVertex p) : SV_TARGET
 	{
 		float4 texel = SampleMaterial(p.uv_material_and_gloss.xyz, p.colour);
 		float3 incident = normalize(p.worldPosition.xyz - global.eye.xyz);
-		texel = ModulateWithEnvMap(texel, incident, p.normal.xyz, p.uv_material_and_gloss.w);
-
 		float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
 		float3 lightToPixelDir = normalize(lightToPixelVec);
 
 		float intensity = GetSpotlightIntensity(lightToPixelDir);
-		float diffuse = GetDiffuse(p, lightToPixelVec, lightToPixelDir);
 		float clarity = GetClarity(p.cameraSpacePosition.xyz);
+		float diffuse = GetDiffuse(p, lightToPixelVec, lightToPixelDir);
 		float specular = GetSpecular(p, incident, lightToPixelDir);
+
 		float I = (diffuse + specular) * intensity * clarity;
 
 		texel.xyz *= I;
-		texel.xyz *= light.colour.xyz;
 
-		return float4 (texel.xyz, 1.0f);
+		return texel * light.colour;
 	}
 	else
 	{
-		return float4(0,0,0,0);
+		return float4(0, 0, 0, 0);
 	}
 }
