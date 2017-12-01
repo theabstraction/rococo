@@ -346,10 +346,7 @@ namespace ANON
 	   AutoRelease<ID3D11RenderTargetView> mainBackBufferView;
 	   AutoRelease<ID3D11DepthStencilView> depthStencilView;
 
-	   // Shadows
-	   AutoRelease<ID3D11Texture2D> shadowDepthStencilTexture;
-	   AutoRelease<ID3D11DepthStencilView> shadowDepthStencilView;
-	   AutoRelease<ID3D11ShaderResourceView> shadowBufferView;
+	   ID_TEXTURE shadowBufferId;
 
 	   std::vector<DX11VertexShader*> vertexShaders;
 	   std::vector<DX11PixelShader*> pixelShaders;
@@ -1269,40 +1266,7 @@ namespace ANON
 		   VALIDATEDX11(device.CreateTexture2D(&depthDesc, nullptr, &depthBuffer));
 		   VALIDATEDX11(device.CreateDepthStencilView(depthBuffer, nullptr, &depthStencilView));
 
-		   D3D11_TEXTURE2D_DESC shadowBufferDesc = { 0 };
-		   shadowBufferDesc.MipLevels = 1;
-		   shadowBufferDesc.Format = DXGI_FORMAT_R32_TYPELESS;
-		   shadowBufferDesc.Height = 1024;
-		   shadowBufferDesc.Width = 1024;
-		   shadowBufferDesc.ArraySize = 1;
-		   shadowBufferDesc.SampleDesc.Count = 1;
-		   shadowBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		   shadowBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-		   VALIDATEDX11(device.CreateTexture2D(&shadowBufferDesc, nullptr, &shadowDepthStencilTexture));
-
-		   D3D11_DEPTH_STENCIL_VIEW_DESC shadowDepthStencilViewDesc;
-		   ZeroMemory(&shadowDepthStencilViewDesc, sizeof(shadowDepthStencilViewDesc));
-		   shadowDepthStencilViewDesc.Flags = 0;
-		   shadowDepthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
-		   shadowDepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-		   shadowDepthStencilViewDesc.Texture2D.MipSlice = 0;
-		   VALIDATEDX11(device.CreateDepthStencilView(shadowDepthStencilTexture, &shadowDepthStencilViewDesc, &shadowDepthStencilView));
-
-		   D3D11_SHADER_RESOURCE_VIEW_DESC shadowTextureResourceViewDesc;
-		   ZeroMemory(&shadowTextureResourceViewDesc, sizeof(shadowTextureResourceViewDesc));
-		   shadowTextureResourceViewDesc.Texture2D.MipLevels = 1;
-		   shadowTextureResourceViewDesc.Texture2D.MostDetailedMip = 0;
-		   shadowTextureResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		   shadowTextureResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;
-		   VALIDATEDX11(device.CreateShaderResourceView(shadowDepthStencilTexture, &shadowTextureResourceViewDesc, &shadowBufferView));
-
-		   textures.push_back(DX11::TextureBind{ shadowDepthStencilTexture, shadowBufferView });
-
-		   ID_TEXTURE id(textures.size());
-		   mapNameToTexture["<sys>/textures/2d/shadows/buffer.1.r32f"] = id;
-
-		   shadowDepthStencilTexture->AddRef();
-		   shadowBufferView->AddRef();
+		   shadowBufferId = CreateDepthTarget(1024, 1024);
 
 		   SyncViewport();
 	   }
@@ -1992,6 +1956,13 @@ namespace ANON
 		   return ID_PIXEL_SHADER();
 	   }
 
+	   DX11::TextureBind GetTexture(ID_TEXTURE id)
+	   {
+		   auto index = id.value - 1;
+		   if (index < 0 || index >= textures.size()) Throw(0, "Bad texture id: %llu", index);
+		   return textures[index];
+	   }
+
 	   void RenderSpotlightLitScene(const Light& lightSubset, IScene& scene)
 	   {
 		   Light light = lightSubset;
@@ -2005,7 +1976,9 @@ namespace ANON
 			   drd.randoms.z = rng() * f;
 			   drd.randoms.w = rng() * f;
 
-			   dc.OMSetRenderTargets(0, nullptr, shadowDepthStencilView);
+			   auto shadowBind = GetTexture(shadowBufferId);
+
+			   dc.OMSetRenderTargets(0, nullptr, shadowBind.depthView);
 
 			   UseShaders(idObjVS_Shadows, idObjPS_Shadows);
 
@@ -2013,22 +1986,17 @@ namespace ANON
 			   dc.VSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
 			   dc.PSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
 
-			   D3D11_VIEWPORT viewport;
-			   ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
-
 			   D3D11_TEXTURE2D_DESC desc;
-			   shadowDepthStencilTexture->GetDesc(&desc);
+			   shadowBind.texture->GetDesc(&desc);
 
-			   viewport.TopLeftX = 0;
-			   viewport.TopLeftY = 0;
+			   D3D11_VIEWPORT viewport = { 0 };
 			   viewport.Width = (FLOAT)desc.Width;
 			   viewport.Height = (FLOAT)desc.Height;
 			   viewport.MinDepth = 0.0f;
 			   viewport.MaxDepth = 1.0f;
-
 			   dc.RSSetViewports(1, &viewport);
 
-			   dc.ClearDepthStencilView(shadowDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+			   dc.ClearDepthStencilView(shadowBind.depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 			   FLOAT blendFactorUnused[] = { 0,0,0,0 };
 			   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
@@ -2069,7 +2037,7 @@ namespace ANON
 				   builtFirstPass = true;
 			   }
 
-			   dc.PSSetShaderResources(2, 1, &shadowBufferView);
+			   dc.PSSetShaderResources(2, 1, &shadowBind.shaderView);
 			   dc.RSSetState(objectRaterizering);
 
 			   scene.RenderObjects(*this);
