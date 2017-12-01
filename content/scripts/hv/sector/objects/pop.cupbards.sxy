@@ -167,7 +167,6 @@
 		
 	(#for (Int32 i = 0)(i < nSectors)(#inc i)
 		(ISectorLayout sector = (sectors.GetSector i))
-		(sector.DeleteScenery)
 			
 		(ObjectCreationSpec ocs)
 		(sector.AddItemToLargestSquare "object.cupboard.1" addItemFlags ocs)

@@ -55,15 +55,14 @@
     <FxCompile Include="fog.ambient.gs.hlsl">
       <Filter>HLSL\Particles</Filter>
     </FxCompile>
-    <FxCompile Include="mplat.types.hlsl">
-      <Filter>HLSL\Headers</Filter>
-    </FxCompile>
-    <FxCompile Include="mplat.api.hlsl" />
     <FxCompile Include="obj.ambient.no_env.ps.hlsl">
       <Filter>HLSL\Objects</Filter>
     </FxCompile>
     <FxCompile Include="obj.spotlight.no_env.ps.hlsl">
       <Filter>HLSL\Objects</Filter>
+    </FxCompile>
+    <FxCompile Include="mplat.api.hlsl">
+      <Filter>HLSL\Headers</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
@@ -113,8 +112,9 @@
     <None Include="dx11buffers.inl">
       <Filter>Headers</Filter>
     </None>
-    <None Include="..\rococo.os.win32\rococo.ultraclock.inl">
-      <Filter>Headers</Filter>
+    <None Include="mplat.api.hlsl" />
+    <None Include="mplat.types.hlsl">
+      <Filter>HLSL\Headers</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

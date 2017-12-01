@@ -254,6 +254,12 @@ namespace HV
 			GuiRect fullRect{ 0,0,metrics.screenSpan.x, metrics.screenSpan.y };
 			editorPanel->Root()->Base()->SetRect(fullRect);
 
+			Graphics::RenderPhaseConfig mirrorConfig;
+			mirrorConfig.renderTarget = mirrorTarget;
+			mirrorConfig.depthTarget = mirrorDepthTarget;
+			mirrorConfig.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_PROCEDURAL;
+	//		e.platform.renderer.Render(mirrorConfig, *this);
+
 			Graphics::RenderPhaseConfig config;
 			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
 			e.platform.renderer.Render(config, *this);
@@ -364,9 +370,14 @@ namespace HV
 			e.platform.gui.AppendEvent(me);
 		}
 
+		ID_TEXTURE mirrorTarget;
+		ID_TEXTURE mirrorDepthTarget;
+
 		void OnCreate() override
 		{
 			RunEnvironmentScript(e, "!scripts/hv/app.created.sxy", true);
+		//	mirrorTarget = e.platform.renderer.CreateRenderTarget(256, 256);
+		//	mirrorDepthTarget = e.platform.renderer.CreateDepthTarget(256, 256);
 		}
 	};
 }

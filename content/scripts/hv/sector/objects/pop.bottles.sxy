@@ -77,7 +77,6 @@
 	
 	(#for (Int32 i = 0)(i < nSectors)(#inc i)
 		(ISectorLayout sector = (sectors.GetSector i))
-		(sector.DeleteScenery)
 			
 		(#for (Int32 j = 1)(j < 50)(#inc j)
 			(ObjectCreationSpec ocs)

@@ -205,8 +205,11 @@ namespace ANON
       {
          if (tb.texture) tb.texture->Release();
          if (tb.shaderView) tb.shaderView->Release();
+		 if (tb.renderView) tb.renderView->Release();
+		 if (tb.depthView) tb.depthView->Release();
          tb.texture = nullptr;
          tb.shaderView = nullptr;
+		 tb.renderView = nullptr;
          count = 0;
          arrayCapacity = 0;
       }
@@ -362,21 +365,21 @@ namespace ANON
 	   enum { GUI_BUFFER_VERTEX_CAPACITY = 3 * 512 };
 	   enum { PARTICLE_BUFFER_VERTEX_CAPACITY = 1024 };
 
-	   AutoFree<Fonts::IFontSupervisor> fonts;
 	   AutoRelease<ID3D11Texture2D> fontTexture;
 	   AutoRelease<ID3D11ShaderResourceView> fontBinding;
-
 	   AutoRelease<ID3D11RasterizerState> spriteRaterizering;
 	   AutoRelease<ID3D11RasterizerState> objectRaterizering;
 	   AutoRelease<ID3D11RasterizerState> particleRaterizering;
 	   AutoRelease<ID3D11RasterizerState> shadowRaterizering;
-
 	   AutoRelease<ID3D11BlendState> alphaBlend;
 	   AutoRelease<ID3D11BlendState> alphaAdditiveBlend;
 	   AutoRelease<ID3D11BlendState> disableBlend;
 	   AutoRelease<ID3D11BlendState> additiveBlend;
 	   AutoRelease<ID3D11BlendState> plasmaBlend;
 
+	   Fonts::IFontSupervisor* fonts;
+
+	   AutoRelease<ID3D11Buffer> vector4Buffer;
 	   AutoRelease<ID3D11Buffer> globalStateBuffer;
 	   AutoRelease<ID3D11Buffer> depthRenderStateBuffer;
 	   AutoRelease<ID3D11Buffer> lightStateBuffer;
@@ -455,7 +458,7 @@ namespace ANON
 	   bool isBuildingAlphaBlendedSprites{ false };
 
 	   DX11AppRenderer(ID3D11Device& _device, ID3D11DeviceContext& _dc, IDXGIFactory& _factory, IInstallation& _installation) :
-		   device(_device), dc(_dc), factory(_factory), hRenderWindow(0),
+		   device(_device), dc(_dc), factory(_factory), fonts(nullptr), hRenderWindow(0),
 		   window(nullptr), cursor{ BitmapLocation { {0,0,0,0}, -1 }, { 0,0 } }, installation(_installation),
 		   spriteArray(_device, _dc),
 		   materialArray(_device, dc),
@@ -470,12 +473,10 @@ namespace ANON
 		   objDepthState = DX11::CreateObjectDepthStencilState(device);
 		   objDepthState_NoWrite = DX11::CreateObjectDepthStencilState_NoWrite(device);
 		   guiDepthState = DX11::CreateGuiDepthStencilState(device);
-
 		   spriteRaterizering = DX11::CreateSpriteRasterizer(device);
 		   objectRaterizering = DX11::CreateObjectRasterizer(device);
 		   particleRaterizering = DX11::CreateParticleRasterizer(device);
 		   shadowRaterizering = DX11::CreateShadowRasterizer(device);
-
 		   alphaBlend = DX11::CreateAlphaBlend(device);
 		   alphaAdditiveBlend = DX11::CreateAlphaAdditiveBlend(device);
 		   disableBlend = DX11::CreateNoBlend(device);
@@ -489,6 +490,12 @@ namespace ANON
 		   cstr csvName = "!font1.csv";
 		   installation.LoadResource(csvName, *scratchBuffer, 256_kilobytes);
 		   fonts = Fonts::LoadFontCSV(csvName, (const char*)scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   // Create the buffer.
+		   vector4Buffer = DX11::CreateConstantBuffer<Vec4>(device);
+
+		   GuiScale nullVector{ 0,0,0,0 };
+		   DX11::CopyStructureToBuffer(dc, vector4Buffer, nullVector);
 
 		   globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
 		   depthRenderStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
@@ -556,6 +563,12 @@ namespace ANON
 	   ~DX11AppRenderer()
 	   {
 		   DetachContext();
+
+		   if (fonts)
+		   {
+			   fonts->Free();
+		   }
+
 		   ClearMeshes();
 
 		   for (auto& x : vertexShaders)
@@ -605,6 +618,115 @@ namespace ANON
 	   void ClearFog() override
 	   {
 		   fog.clear();
+	   }
+
+	   ID_TEXTURE CreateDepthTarget(int32 width, int32 height) override
+	   {
+		   ID3D11Texture2D* tex2D = nullptr;
+		   ID3D11DepthStencilView* depthView = nullptr;
+		   ID3D11ShaderResourceView* srv = nullptr;
+
+		   try
+		   {
+			   D3D11_TEXTURE2D_DESC desc;
+			   desc.ArraySize = 1;
+			   desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+			   desc.CPUAccessFlags = 0;
+			   desc.Format = DXGI_FORMAT_R32_TYPELESS;
+			   desc.Height = height;
+			   desc.Width = width;
+			   desc.MipLevels = 1;
+			   desc.MiscFlags = 0;
+			   desc.SampleDesc.Count = 1;
+			   desc.SampleDesc.Quality = 0;
+			   desc.Usage = D3D11_USAGE_DEFAULT;
+			   VALIDATEDX11(device.CreateTexture2D(&desc, nullptr, &tex2D));
+
+			   D3D11_DEPTH_STENCIL_VIEW_DESC sdesc;
+			   sdesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+			   sdesc.Texture2D.MipSlice = 0;
+			   sdesc.Format = DXGI_FORMAT_D32_FLOAT;
+			   sdesc.Flags = 0;
+			   VALIDATEDX11(device.CreateDepthStencilView(tex2D, &sdesc, &depthView));
+
+			   D3D11_SHADER_RESOURCE_VIEW_DESC rdesc;
+			   rdesc.Texture2D.MipLevels = 1;
+			   rdesc.Texture2D.MostDetailedMip = 0;
+			   rdesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+			   rdesc.Format = DXGI_FORMAT_R32_FLOAT;
+			   VALIDATEDX11(device.CreateShaderResourceView(tex2D, &rdesc, &srv));
+		   }
+		   catch (IException&)
+		   {
+			   if (tex2D) tex2D->Release();
+			   if (depthView) depthView->Release();
+			   if (srv) srv->Release();
+			   throw;
+		   }
+
+		   textures.push_back(DX11::TextureBind{ tex2D, srv, nullptr, depthView });
+		   auto id = ID_TEXTURE(textures.size());
+
+		   char name[64];
+		   SafeFormat(name, sizeof(name), "DepthTarget_%u_%dx%d", id.value, width, height);
+
+		   mapNameToTexture[name] = id;
+
+		   return id;
+	   }
+
+	   ID_TEXTURE CreateRenderTarget(int32 width, int32 height) override
+	   {
+		   ID3D11Texture2D* tex2D = nullptr;
+		   ID3D11ShaderResourceView* srv = nullptr;
+		   ID3D11RenderTargetView* rtv = nullptr;
+
+		   try
+		   {
+			   D3D11_TEXTURE2D_DESC desc;
+			   desc.ArraySize = 1;
+			   desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+			   desc.CPUAccessFlags = 0;
+			   desc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
+			   desc.Height = height;
+			   desc.Width = width;
+			   desc.MipLevels = 1;
+			   desc.MiscFlags = 0;
+			   desc.SampleDesc.Count = 1;
+			   desc.SampleDesc.Quality = 0;
+			   desc.Usage = D3D11_USAGE_DEFAULT;
+			   VALIDATEDX11(device.CreateTexture2D(&desc, nullptr, &tex2D));
+
+			   D3D11_SHADER_RESOURCE_VIEW_DESC rdesc;
+			   rdesc.Texture2D.MipLevels = 1;
+			   rdesc.Texture2D.MostDetailedMip = 0;
+			   rdesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+			   rdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			   VALIDATEDX11(device.CreateShaderResourceView(tex2D, &rdesc, &srv));
+
+			   D3D11_RENDER_TARGET_VIEW_DESC rtdesc;
+			   rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+			   rtdesc.Texture2D.MipSlice = 0;
+			   rtdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			   VALIDATEDX11(device.CreateRenderTargetView(tex2D, &rtdesc, &rtv));
+		   }
+		   catch (IException&)
+		   {
+			   if (tex2D) tex2D->Release();
+			   if (rtv) rtv->Release();
+			   if (srv) srv->Release();
+			   throw;
+		   }
+
+		   textures.push_back(DX11::TextureBind{ tex2D, srv, rtv });
+		   auto id = ID_TEXTURE(textures.size());
+		  
+		   char name[64];
+		   SafeFormat(name, sizeof(name), "RenderTarget_%u_%dx%d", id.value, width, height);
+
+		   mapNameToTexture[name] = id;
+
+		   return id;
 	   }
 
 	   Fonts::IFont& FontMetrics() override
@@ -1236,14 +1358,38 @@ namespace ANON
 
 	   void SyncViewport()
 	   {
-		   RECT rect;
-		   GetClientRect(hRenderWindow, &rect);
+		   auto rt = GetRenderTargets();
 
 		   D3D11_VIEWPORT viewport = { 0 };
-		   viewport.Width = FLOAT(rect.right - rect.left);
-		   viewport.Height = FLOAT(rect.bottom - rect.top);
-		   viewport.MinDepth = 0.0f;
-		   viewport.MaxDepth = 1.0f;
+
+		   if (rt.renderView == mainBackBufferView)
+		   {
+			   RECT rect;
+			   GetClientRect(hRenderWindow, &rect);
+
+			   viewport.TopLeftX = 0;
+			   viewport.TopLeftY = 0;
+			   viewport.Width = FLOAT(rect.right - rect.left);
+			   viewport.Height = FLOAT(rect.bottom - rect.top);
+			   viewport.MinDepth = 0.0f;
+			   viewport.MaxDepth = 1.0f;
+		   }
+		   else
+		   {
+			   ID3D11Resource* resource = nullptr;
+			   rt.renderView->GetResource(&resource);
+			   auto* tx2d = static_cast<ID3D11Texture2D*>(resource);
+			   D3D11_TEXTURE2D_DESC desc;
+			   tx2d->GetDesc(&desc);
+			   resource->Release();
+
+			   viewport.TopLeftX = 0;
+			   viewport.TopLeftY = 0;
+			   viewport.Width = (float) desc.Width;
+			   viewport.Height = (float)desc.Height;
+			   viewport.MinDepth = 0.0f;
+			   viewport.MaxDepth = 1.0f;
+		   }
 
 		   dc.RSSetViewports(1, &viewport);
 
@@ -1304,7 +1450,7 @@ namespace ANON
 		   shadowDepthStencilTexture->AddRef();
 		   shadowBufferView->AddRef();
 
-		   SyncViewport();
+		//   SyncViewport();
 	   }
 
 	   ID_VERTEX_SHADER CreateVertexShader(cstr name, const byte* shaderCode, size_t shaderLength, const D3D11_INPUT_ELEMENT_DESC* vertexDesc, UINT nElements)
@@ -1377,115 +1523,6 @@ namespace ANON
 		   shader->name = name;
 		   pixelShaders.push_back(shader);
 		   return ID_PIXEL_SHADER(pixelShaders.size() - 1);
-	   }
-
-	   ID_TEXTURE CreateDepthTarget(int32 width, int32 height) override
-	   {
-		   ID3D11Texture2D* tex2D = nullptr;
-		   ID3D11DepthStencilView* depthView = nullptr;
-		   ID3D11ShaderResourceView* srv = nullptr;
-
-		   try
-		   {
-			   D3D11_TEXTURE2D_DESC desc;
-			   desc.ArraySize = 1;
-			   desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-			   desc.CPUAccessFlags = 0;
-			   desc.Format = DXGI_FORMAT_R32_TYPELESS;
-			   desc.Height = height;
-			   desc.Width = width;
-			   desc.MipLevels = 1;
-			   desc.MiscFlags = 0;
-			   desc.SampleDesc.Count = 1;
-			   desc.SampleDesc.Quality = 0;
-			   desc.Usage = D3D11_USAGE_DEFAULT;
-			   VALIDATEDX11(device.CreateTexture2D(&desc, nullptr, &tex2D));
-
-			   D3D11_DEPTH_STENCIL_VIEW_DESC sdesc;
-			   sdesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-			   sdesc.Texture2D.MipSlice = 0;
-			   sdesc.Format = DXGI_FORMAT_D32_FLOAT;
-			   sdesc.Flags = 0;
-			   VALIDATEDX11(device.CreateDepthStencilView(tex2D, &sdesc, &depthView));
-
-			   D3D11_SHADER_RESOURCE_VIEW_DESC rdesc;
-			   rdesc.Texture2D.MipLevels = 1;
-			   rdesc.Texture2D.MostDetailedMip = 0;
-			   rdesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			   rdesc.Format = DXGI_FORMAT_R32_FLOAT;
-			   VALIDATEDX11(device.CreateShaderResourceView(tex2D, &rdesc, &srv));
-		   }
-		   catch (IException&)
-		   {
-			   if (tex2D) tex2D->Release();
-			   if (depthView) depthView->Release();
-			   if (srv) srv->Release();
-			   throw;
-		   }
-
-		   textures.push_back(DX11::TextureBind{ tex2D, srv, nullptr, depthView });
-		   auto id = ID_TEXTURE(textures.size());
-
-		   char name[64];
-		   SafeFormat(name, sizeof(name), "DepthTarget_%u_%dx%d", id.value, width, height);
-
-		   mapNameToTexture[name] = id;
-
-		   return id;
-	   }
-
-	   ID_TEXTURE CreateRenderTarget(int32 width, int32 height) override
-	   {
-		   ID3D11Texture2D* tex2D = nullptr;
-		   ID3D11ShaderResourceView* srv = nullptr;
-		   ID3D11RenderTargetView* rtv = nullptr;
-
-		   try
-		   {
-			   D3D11_TEXTURE2D_DESC desc;
-			   desc.ArraySize = 1;
-			   desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-			   desc.CPUAccessFlags = 0;
-			   desc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
-			   desc.Height = height;
-			   desc.Width = width;
-			   desc.MipLevels = 1;
-			   desc.MiscFlags = 0;
-			   desc.SampleDesc.Count = 1;
-			   desc.SampleDesc.Quality = 0;
-			   desc.Usage = D3D11_USAGE_DEFAULT;
-			   VALIDATEDX11(device.CreateTexture2D(&desc, nullptr, &tex2D));
-
-			   D3D11_SHADER_RESOURCE_VIEW_DESC rdesc;
-			   rdesc.Texture2D.MipLevels = 1;
-			   rdesc.Texture2D.MostDetailedMip = 0;
-			   rdesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			   rdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			   VALIDATEDX11(device.CreateShaderResourceView(tex2D, &rdesc, &srv));
-
-			   D3D11_RENDER_TARGET_VIEW_DESC rtdesc;
-			   rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-			   rtdesc.Texture2D.MipSlice = 0;
-			   rtdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			   VALIDATEDX11(device.CreateRenderTargetView(tex2D, &rtdesc, &rtv));
-		   }
-		   catch (IException&)
-		   {
-			   if (tex2D) tex2D->Release();
-			   if (rtv) rtv->Release();
-			   if (srv) srv->Release();
-			   throw;
-		   }
-
-		   textures.push_back(DX11::TextureBind{ tex2D, srv, rtv });
-		   auto id = ID_TEXTURE(textures.size());
-
-		   char name[64];
-		   SafeFormat(name, sizeof(name), "RenderTarget_%u_%dx%d", id.value, width, height);
-
-		   mapNameToTexture[name] = id;
-
-		   return id;
 	   }
 
 	   ID_GEOMETRY_SHADER CreateGeometryShader(cstr name, const byte* shaderCode, size_t shaderLength)
@@ -1809,21 +1846,12 @@ namespace ANON
 
 		   if (overrideShader)
 		   {
-			   UseShaders(currentVertexShaderId, currentPixelShaderId);	   
+			   UseShaders(currentVertexShaderId, GetObjectShaderPixelId(phase));	   
 		   }
 		   
 		   if (m.alphaBlending)
 		   {
-			   if (builtFirstPass)
-			   {
-				   dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
-				   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
-			   }
-			   else
-			   {
-				   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
-				   builtFirstPass = true;
-			   }
+			   InitDefaultBlend();
 		   }
 	   }
 
@@ -1992,9 +2020,26 @@ namespace ANON
 		   return ID_PIXEL_SHADER();
 	   }
 
+	   void InitDefaultBlend()
+	   {
+		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+
+		   if (builtFirstPass)
+		   {
+			   dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
+			   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
+		   }
+		   else
+		   {
+			   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
+		   }
+	   }
+
 	   void RenderSpotlightLitScene(const Light& lightSubset, IScene& scene)
 	   {
 		   Light light = lightSubset;
+
+		   SyncViewport();
 
 		   DepthRenderData drd;
 		   if (PrepareDepthRenderFromLight(light, drd))
@@ -2038,7 +2083,9 @@ namespace ANON
 			   phase = RenderPhase_DetermineShadowVolumes;
 			   scene.RenderShadowPass(drd, *this);
 
-			   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
+			   auto rt = GetRenderTargets();
+
+			   dc.OMSetRenderTargets(1, &rt.renderView, rt.depthView);
 
 			   phase = RenderPhase_DetermineSpotlight;
 
@@ -2058,16 +2105,7 @@ namespace ANON
 			   dc.PSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
 			   dc.GSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
 
-			   if (builtFirstPass)
-			   {
-				   dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
-				   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
-			   }
-			   else
-			   {
-				   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
-				   builtFirstPass = true;
-			   }
+			   InitDefaultBlend();
 
 			   dc.PSSetShaderResources(2, 1, &shadowBufferView);
 			   dc.RSSetState(objectRaterizering);
@@ -2077,6 +2115,7 @@ namespace ANON
 			   dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
 			   RenderParticles(fog, idFogSpotlightPS, idParticleVS, idFogSpotlightGS);
 			   phase = RenderPhase_None;
+			   builtFirstPass = true;
 
 			   dc.OMSetDepthStencilState(objDepthState, 0);
 		   }
@@ -2084,7 +2123,8 @@ namespace ANON
 
 	   void RenderGui(IScene& scene)
 	   {
-		   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
+		   auto rt = GetRenderTargets();
+		   dc.OMSetRenderTargets(1, &rt.renderView, rt.depthView);
 
 		   OS::ticks now = OS::CpuTicks();
 
@@ -2126,18 +2166,10 @@ namespace ANON
 			   FLOAT blendFactorUnused[] = { 0,0,0,0 };
 			   SyncViewport();
 
-			   if (builtFirstPass)
-			   {
-				   dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
-				   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
-			   }
-			   else
-			   {
-				   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
-				   builtFirstPass = true;
-			   }
+			   InitDefaultBlend();
 
-			   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
+			   auto rt = GetRenderTargets();
+			   dc.OMSetRenderTargets(1, &rt.renderView, rt.depthView);
 
 			   dc.RSSetState(objectRaterizering);
 
@@ -2156,15 +2188,67 @@ namespace ANON
 		   phase = RenderPhase_None;
 	   }
 
+	   struct RenderTargets
+	   {
+		   ID3D11RenderTargetView* renderView;
+		   ID3D11DepthStencilView* depthView;
+	   };
+
+	   RenderTargets GetRenderTargets()
+	   {
+		   ID3D11RenderTargetView* renderView = nullptr;
+		   ID3D11DepthStencilView* depthView = nullptr;
+
+		   if (phaseConfig.renderTarget || phaseConfig.depthTarget)
+		   {
+			   if (!(phaseConfig.renderTarget && phaseConfig.depthTarget))
+			   {
+				   Throw(0, "RenderPhaseConfig -> Either a render target and depth target are both supplied, or neither is supplied");
+			   }
+
+			   if (phaseConfig.renderTarget.value >= textures.size())
+			   {
+				   Throw(0, "RenderPhaseConfig - bad render target id");
+			   }
+
+			   if (phaseConfig.depthTarget.value >= textures.size())
+			   {
+				   Throw(0, "RenderPhaseConfig - bad depth target id");
+			   }
+
+			   renderView = textures[phaseConfig.renderTarget.value-1].renderView;
+			   depthView = textures[phaseConfig.depthTarget.value-1].depthView;
+		   }
+		   else
+		   {
+			   depthView = depthStencilView;
+			   renderView = mainBackBufferView;
+		   }
+
+		   return RenderTargets{ renderView, depthView };
+	   }
+
 	   void SetAndClearRenderBuffers(const RGBA& clearColour)
 	   {
-		   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
+		   auto rt = GetRenderTargets();
+		   dc.OMSetRenderTargets(1, &rt.renderView, rt.depthView);
 
-		   dc.ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		   SyncViewport();
+
+		   dc.OMSetDepthStencilState(objDepthState, 0);
+
+		   if (rt.renderView == mainBackBufferView)
+		   {
+			   dc.ClearDepthStencilView(rt.depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		   }
+		   else
+		   {
+			   dc.ClearDepthStencilView(rt.depthView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+		   }
 
 		   if (clearColour.alpha > 0)
 		   {
-			   dc.ClearRenderTargetView(mainBackBufferView, (const FLOAT*)&clearColour);
+			   dc.ClearRenderTargetView(rt.renderView, (const FLOAT*)&clearColour);
 		   }
 	   }
 
@@ -2211,7 +2295,11 @@ namespace ANON
 		   dc.OMSetDepthStencilState(nullptr, 0);
 		   dc.OMSetRenderTargets(0, nullptr, nullptr);
 
+		   ID3D11ShaderResourceView* mats[1] = { nullptr };
+		   dc.PSSetShaderResources(6, 1, mats);
+
 		   UINT nStrides = 0;
+
 		   ID3D11Buffer* nullBuffer = nullptr;
 		   dc.IASetVertexBuffers(0, 1, &nullBuffer, &nStrides, &nStrides);
 	   }
@@ -2240,6 +2328,8 @@ namespace ANON
 	   {
 		   this->phaseConfig = config;
 
+		   SyncViewport();
+
 		   trianglesThisFrame = 0;
 		   entitiesThisFrame = 0;
 
@@ -2249,7 +2339,6 @@ namespace ANON
 		   if (mainBackBufferView.IsNull()) return;
 
 		   lastTextureId = ID_TEXTURE::Invalid();
-
 
 		   SetAndClearRenderBuffers(scene.GetClearColour());
 	
@@ -2283,7 +2372,8 @@ namespace ANON
 
 		   now = OS::CpuTicks();
 
-		   mainSwapChain->Present(1, 0);
+		   auto rt = GetRenderTargets();
+		   if (rt.renderView == mainBackBufferView) mainSwapChain->Present(1, 0);
 
 		   presentCost = OS::CpuTicks() - now;
 
@@ -2368,6 +2458,8 @@ namespace ANON
 		   auto depthDesc = DX11::GetDepthDescription(hRenderWindow);
 		   VALIDATEDX11(device.CreateTexture2D(&depthDesc, nullptr, &depthBuffer));
 		   VALIDATEDX11(device.CreateDepthStencilView(depthBuffer, nullptr, &depthStencilView));
+
+	//	   SyncViewport();
 	   }
 
 	   BOOL isFullScreen = FALSE;

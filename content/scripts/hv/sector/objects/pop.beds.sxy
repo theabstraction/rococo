@@ -337,9 +337,7 @@
 	
 	(#for (Int32 i = 0)(i < nSectors)(#inc i)
 		(ISectorLayout sector = (sectors.GetSector i))
-		(sector.DeleteScenery)
-		(sector.ClearManagedEntities)
-			
+	
 		(ObjectCreationSpec ocs)
 		(sector.AddItemToLargestSquare "object.bed.1" addItemFlags ocs)
 	)

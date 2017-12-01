@@ -164,7 +164,7 @@
 	(qst.MoveOutputToInputWithNormalDotRange north -1 -0.99)
 	
 	(Rectf hole = 0.1 0.9 0.9 0.1)
-	(qst.SplitAcrossTangent 0.5 mullions.materialColour  mullions.materialColour mullions.materialColour mullions mullions)
+	(qst.SplitAcrossTangent 0.5 mullions.colour  mullions.colour mullions.colour mullions mullions)
 	(qst.MoveOutputToInputWithNormalDotRange north 0.99   1)
 	(qst.MoveOutputToInputWithNormalDotRange north -1 -0.99)
 	
@@ -194,9 +194,9 @@
 	
 	(Float32 halfWidth = y1)
 	
-	(Float32 pillarWidth =  (AnyOf 0.1 0.45))
-	(Float32 baseWidth =  (AnyOf 0.1 0.45))
-	(Float32 capWidth =  (AnyOf 0.35 0.5))
+	(Float32 pillarWidth =  (AnyFloat 0.1 0.45))
+	(Float32 baseWidth =  (AnyFloat 0.1 0.45))
+	(Float32 capWidth =  (AnyFloat 0.35 0.5))
 	
 	(MaterialVertexData casing)
 	(components.GetMaterial casing "casing")
@@ -228,7 +228,7 @@
 	(rim.AddPointXY xA1  z0)
 	(rim.CloseLoop)
 			
-	(Float32 uvScale = (AnyOf 0.1 1.0))
+	(Float32 uvScale = (AnyFloat 0.1 1.0))
 	
 	(Matrix4x4 transform1 =
 		(1 0  0  0)
@@ -279,7 +279,7 @@
 	(MaterialVertexData rails)
 	(components.GetMaterial rails "rails")
 	(components.BuildComponent "door.rails")
-	(rails.materialColour = 0)
+	(rails.colour = 0)
 	
 	(Float32 x0 = bottomLeft.x)
 	(Float32 x1 = topRight.x)
@@ -289,7 +289,7 @@
 	(Float32 z1 = topRight.z)
 	
 	(Float32 quadLeft = (x0 + 0.01))
-	(Float32 uvScale = (AnyOf 0.1 1.0))
+	(Float32 uvScale = (AnyFloat 0.1 1.0))
 	(Float32 z = (z1 - 0.01))
 	(
 		(Quadf q = 
@@ -331,13 +331,13 @@
 	(corridor.GetSpan span)
 	(Float32 x0 = (0.5 * (0 - span.x)))
 	(Float32 x1 = (0.5 * span.x))
-	(Float32 halfWidth = (AnyOf 0.1 0.5))
+	(Float32 halfWidth = (AnyFloat 0.1 0.5))
 	(Float32 y0 = (0 - halfWidth))
 	(Float32 y1 = halfWidth)
 	(Float32 z0 = 0)
 	(Float32 z1 = span.z)
 	
-	(Float32 f =  (AnyOf 0.65 0.8))
+	(Float32 f =  (AnyFloat 0.65 0.8))
 	(Float32 t0 = (f * y0))
 	(Float32 t1 = (f * y1))
 	
@@ -355,7 +355,7 @@
 	(SetNormal centreQuad 0 -1 0)
 	(SetColour centreQuad 0xFFFFFFFF)
 	
-	(Float32 uvScale = (AnyOf 0.1 1.0))
+	(Float32 uvScale = (AnyFloat 0.1 1.0))
 	(Rectf uv = 0 0 uvScale uvScale)
 	(centreQuad.uv = uv)
 	

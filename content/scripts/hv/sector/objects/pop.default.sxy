@@ -25,32 +25,53 @@
 	(sector.AddMiscScenery meshName "scenery.misc")
 )
 
-(function MakeScroll (IString meshName) -> :
-	(ITextTesselator tt (TextTesselator))
+(function MakeCandle (IString meshName) -> :
+	(IRodTesselator candle (RodTesselator))
+	(candle.Clear)
 	
-	(Quadf positions =
-		(-1  1 0)
-		( 1  1 0)
-		( 1 -1 0)
-		(-1 -1 0)
+	(IInstances instances (Instances))
+	
+	(MaterialVertexData wax)
+	(AnyColour 224 255 224 255 224 255 0 0 -> wax.colour)
+	(wax.id = 0)
+	(wax.gloss = 0.05)
+	
+	(candle.SetMaterialTop wax)
+	(candle.SetMaterialMiddle wax)
+	(candle.SetMaterialBottom wax)
+	
+	(
+		(Float32 length = 0.25)
+		(Float32 bottomWidth = 0.02)
+		(Float32 topWidth  = 0.02)
+		(Int32 divs = (AnyInt 4 8))
+		(candle.AddTube length bottomWidth topWidth divs)
 	)
 	
-	(Quadf backPaper =
-		(-0.2  1 0)
-		( 0.2  1 0)
-		( 0.2 -1 0)
-		(-0.2 -1 0)
+	(MaterialVertexData wick)
+	(AnyColour 0 0 0 0 0 0 0 0 -> wick.colour)
+	(wick.id = 0)
+	(wick.gloss = 0.0)
+	
+	(MaterialVertexData wick2)
+	(AnyColour 255 255 0 0 0 0 0 0 -> wick.colour)
+	(wick.id = 0)
+	(wick.gloss = 0.0)
+	
+	(candle.SetMaterialTop wick2)
+	(candle.SetMaterialMiddle wick2)
+	(candle.SetMaterialBottom wick)
+	
+	(
+		(Float32 length = 0.02)
+		(Float32 bottomWidth = 0.002)
+		(Float32 topWidth  = 0.002)
+		(Int32 divs = 3)
+		(candle.AddTube length bottomWidth topWidth divs)
 	)
 	
-	(tt.AddBlankQuad positions 0x40FFFFFF)
-	(tt.SetFormatQuad positions)
-	(tt.TrySetFontIndex 0)
-	(tt.AddLeftAlignedText 0x40FF0000 "&tBe careful of what you wish for, it might come true.") // Just a thought: it would be really nice if you were to stop having sex with Charles Manson")
-	(tt.SaveMesh meshName)
 	
-	(IMeshBuilder mb (MeshBuilder))
-	(mb.SetSpecialShader meshName "!scroll.spotlight.ps" "!scroll.ambient.ps" true)
-	(mb.SetShadowCasting meshName false)
+	(candle.CopyToMeshBuilder meshName false false true)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):
@@ -59,7 +80,7 @@
 			
 	(Int32 addItemFlags = 0)
 	(addItemFlags = (addItemFlags + (#AddItemFlagsRandomHeading)))
-//	(addItemFlags = (addItemFlags + (#AddItemFlagsRandomPosition)))
+	(addItemFlags = (addItemFlags + (#AddItemFlagsRandomPosition)))
 	(addItemFlags = (addItemFlags + (#AddItemFlagsAlignEdge)))
 		
 	(IStringBuilder sb (StringBuilder 256))
@@ -76,10 +97,10 @@
 		(#for (Int32 j = 1)(j < 2)(#inc j)
 			(ObjectCreationSpec ocs)
 			(sb.Clear)
-			(sb.AppendIString "object.scroll.")
+			(sb.AppendIString "object.candle.")
 			(sb.AppendInt32 j)
-			(MakeScroll sb)
-			(Int64 scrollId = (sector.AddItemToLargestSquare sb addItemFlags ocs))
+			(MakeCandle sb)
+			(Int64 candleId = (sector.AddItemToLargestSquare sb addItemFlags ocs))
 			
 			(FlameDef flameDef)
 			(flameDef.minStartParticleSize = 0.01)
@@ -103,10 +124,10 @@
 			(flameDef.attractorForce = 30)
 
 			(Matrix4x4 model)
-			(if (instances.TryGetModelToWorldMatrix scrollId model)
+			(if (instances.TryGetModelToWorldMatrix candleId model)
 				(Matrix4x4 wickModel)
 				(wickModel = model)
-				(wickModel.r2.w = (wickModel.r2.w + 1))
+				(wickModel.r2.w = (wickModel.r2.w + 0.27))
 				
 				(Int64 wickId = (instances.AddGhost wickModel 0))	
 				(particles.AddVerticalFlame flameDef wickId)
