@@ -1,13 +1,5 @@
 #include "mplat.api.hlsl"
 
-struct PixelVertex
-{
-	float4 position			: SV_POSITION;
-	float3 base				: TEXCOORD0;
-	float4 sd				: TEXCOORD1;
-	float4 colour			: COLOR;
-};
-
 struct BaseVertexData
 {
 	float2 uv;
@@ -22,7 +14,7 @@ struct SpriteVertexData
 	float spriteToMatLerpFactor; // 0 -> use textureIndex, 1 -> use matIndex, lerping in between
 };
 
-float4 main(PixelVertex p) : SV_TARGET
+float4 main(GuiPixelVertex p) : SV_TARGET
 {
 	SpriteVertexData svd;
 	svd.lerpBitmapToColour = p.sd.x;

@@ -1231,14 +1231,16 @@ namespace ANON
 		   return Vec2i{ (int32)desc.Width, (int32)desc.Height };
 	   }
 
-	   void SyncViewport()
+	   void SyncViewport(ID_TEXTURE depthId)
 	   {
-		   RECT rect;
-		   GetClientRect(hRenderWindow, &rect);
+		   auto depth = GetTexture(depthId).texture;
+
+		   D3D11_TEXTURE2D_DESC desc;
+		   depth->GetDesc(&desc);
 
 		   D3D11_VIEWPORT viewport = { 0 };
-		   viewport.Width = FLOAT(rect.right - rect.left);
-		   viewport.Height = FLOAT(rect.bottom - rect.top);
+		   viewport.Width = FLOAT(desc.Width);
+		   viewport.Height = FLOAT(desc.Height);
 		   viewport.MinDepth = 0.0f;
 		   viewport.MaxDepth = 1.0f;
 
@@ -1265,7 +1267,7 @@ namespace ANON
 		   mainDepthBufferId = CreateDepthTarget(rect.right - rect.left, rect.bottom - rect.top);
 		   shadowBufferId = CreateDepthTarget(1024, 1024);
 
-		   SyncViewport();
+		   SyncViewport(mainDepthBufferId);
 	   }
 
 	   ID_VERTEX_SHADER CreateVertexShader(cstr name, const byte* shaderCode, size_t shaderLength, const D3D11_INPUT_ELEMENT_DESC* vertexDesc, UINT nElements)
@@ -1593,6 +1595,28 @@ namespace ANON
 
 	   void DetachContext()
 	   {
+		   for (UINT i = 0; i < 10; ++i)
+		   {
+			   ID3D11ShaderResourceView* nullView = nullptr;
+			   dc.PSSetShaderResources(i, 1, &nullView);
+		   }
+
+		   ID3D11Buffer* nullBuffer = nullptr;
+		   for (UINT i = 0; i < 8; ++i)
+		   {
+			   dc.VSSetConstantBuffers(i, 1, &nullBuffer);
+			   dc.PSSetConstantBuffers(i, 1, &nullBuffer);
+			   dc.GSSetConstantBuffers(i, 1, &nullBuffer);
+		   }
+
+		   dc.OMSetBlendState(nullptr, nullptr, 0);
+		   dc.RSSetState(nullptr);
+		   dc.OMSetDepthStencilState(nullptr, 0);
+		   dc.OMSetRenderTargets(0, nullptr, nullptr);
+
+		   UINT nStrides = 0;
+		   dc.IASetVertexBuffers(0, 1, &nullBuffer, &nStrides, &nStrides);
+
 		   dc.IASetInputLayout(nullptr);
 		   dc.VSSetShader(nullptr, nullptr, 0);
 		   dc.PSSetShader(nullptr, nullptr, 0);
@@ -1973,7 +1997,7 @@ namespace ANON
 			   drd.randoms.z = rng() * f;
 			   drd.randoms.w = rng() * f;
 
-			   auto shadowBind = GetTexture(shadowBufferId);
+			   auto shadowBind = GetTexture(phaseConfig.shadowBuffer);
 
 			   dc.OMSetRenderTargets(0, nullptr, shadowBind.depthView);
 
@@ -2003,14 +2027,15 @@ namespace ANON
 			   phase = RenderPhase_DetermineShadowVolumes;
 			   scene.RenderShadowPass(drd, *this);
 
-			   dc.OMSetRenderTargets(1, &mainBackBufferView, GetTexture(mainDepthBufferId).depthView);
+			   RenderTarget rt = GetCurrentRenderTarget();
+			   dc.OMSetRenderTargets(1, &rt.renderTargetView, rt.depthView);
 
 			   phase = RenderPhase_DetermineSpotlight;
 
 			   ID_PIXEL_SHADER idPS = GetObjectShaderPixelId(phase);
 			   UseShaders(idObjVS, idPS);
 
-			   SyncViewport();
+			   SyncViewport(phaseConfig.depthTarget);
 
 			   light.randoms = drd.randoms;
 			   light.time = drd.time;
@@ -2049,8 +2074,6 @@ namespace ANON
 
 	   void RenderGui(IScene& scene)
 	   {
-		   dc.OMSetRenderTargets(1, &mainBackBufferView, GetTexture(mainDepthBufferId).depthView);
-
 		   OS::ticks now = OS::CpuTicks();
 
 		   dc.RSSetState(spriteRaterizering);
@@ -2067,16 +2090,21 @@ namespace ANON
 
 		   scene.RenderGui(*this);
 
-		   for (auto& o : overlays)
+		   if (!phaseConfig.renderTarget)
 		   {
-			   o.overlay->Render(*this);
+			   for (auto& o : overlays)
+			   {
+				   o.overlay->Render(*this);
+			   }
 		   }
 
 		   FlushLayer();
 
-		   DrawCursor();
-
-		   FlushLayer();
+		   if (!phaseConfig.renderTarget)
+		   {
+			   DrawCursor();
+			   FlushLayer();
+		   }
 
 		   guiCost = OS::CpuTicks() - now;
 	   }
@@ -2089,7 +2117,7 @@ namespace ANON
 		   if (UseShaders(idObjAmbientVS, idPS))
 		   {
 			   FLOAT blendFactorUnused[] = { 0,0,0,0 };
-			   SyncViewport();
+			   SyncViewport(phaseConfig.depthTarget);
 
 			   if (builtFirstPass)
 			   {
@@ -2101,8 +2129,6 @@ namespace ANON
 				   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
 				   builtFirstPass = true;
 			   }
-
-			   dc.OMSetRenderTargets(1, &mainBackBufferView, GetTexture(mainDepthBufferId).depthView);
 
 			   dc.RSSetState(objectRaterizering);
 
@@ -2123,13 +2149,14 @@ namespace ANON
 
 	   void SetAndClearRenderBuffers(const RGBA& clearColour)
 	   {
-		   dc.OMSetRenderTargets(1, &mainBackBufferView, GetTexture(mainDepthBufferId).depthView);
+		   RenderTarget rt = GetCurrentRenderTarget();
+		   dc.OMSetRenderTargets(1, &rt.renderTargetView, rt.depthView);
 
-		   dc.ClearDepthStencilView(GetTexture(mainDepthBufferId).depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		   dc.ClearDepthStencilView(rt.depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		   if (clearColour.alpha > 0)
 		   {
-			   dc.ClearRenderTargetView(mainBackBufferView, (const FLOAT*)&clearColour);
+			   dc.ClearRenderTargetView(rt.renderTargetView, (const FLOAT*)&clearColour);
 		   }
 	   }
 
@@ -2147,38 +2174,6 @@ namespace ANON
 		   dc.PSSetSamplers(0, 16, samplers);
 		   dc.GSSetSamplers(0, 16, samplers);
 		   dc.VSSetSamplers(0, 16, samplers);
-	   }
-
-	   void DetachTextureViews()
-	   {
-		   for (UINT i = 0; i < 10; ++i)
-		   {
-			   ID3D11ShaderResourceView* nullView = nullptr;
-			   dc.PSSetShaderResources(i, 1, &nullView);
-		   }
-	   }
-
-	   void DetachConstantBuffers()
-	   {
-		   ID3D11Buffer* nullBuffer = nullptr;
-		   for (UINT i = 0; i < 8; ++i)
-		   {
-			   dc.VSSetConstantBuffers(i, 1, &nullBuffer);
-			   dc.PSSetConstantBuffers(i, 1, &nullBuffer);
-			   dc.GSSetConstantBuffers(i, 1, &nullBuffer);
-		   }
-	   }
-
-	   void DetachMisc()
-	   {
-		   dc.OMSetBlendState(nullptr, nullptr, 0);
-		   dc.RSSetState(nullptr);
-		   dc.OMSetDepthStencilState(nullptr, 0);
-		   dc.OMSetRenderTargets(0, nullptr, nullptr);
-
-		   UINT nStrides = 0;
-		   ID3D11Buffer* nullBuffer = nullptr;
-		   dc.IASetVertexBuffers(0, 1, &nullBuffer, &nStrides, &nStrides);
 	   }
 
 	   void UpdateGlobalState(IScene& scene)
@@ -2201,9 +2196,57 @@ namespace ANON
 		   dc.GSSetConstantBuffers(CBUFFER_INDEX_GLOBAL_STATE, 1, &globalStateBuffer);
 	   }
 
+	   struct RenderTarget
+	   {
+		   ID3D11RenderTargetView* renderTargetView;
+		   ID3D11DepthStencilView* depthView;
+	   };
+
+	   RenderTarget GetCurrentRenderTarget()
+	   {
+		   RenderTarget rt = { 0 };
+
+		   rt.depthView = GetTexture(phaseConfig.depthTarget).depthView;
+
+		   if (phaseConfig.renderTarget)
+		   {
+			   rt.renderTargetView = GetTexture(phaseConfig.renderTarget).renderView;
+		   }
+		   else
+		   {
+			   rt.renderTargetView = mainBackBufferView;
+		   }
+
+		   if (rt.depthView == nullptr)
+		   {
+			   Throw(0, "GetCurrentRenderTarget - bad depth buffer");
+		   }
+
+		   if (rt.renderTargetView == nullptr)
+		   {
+			   Throw(0, "GetCurrentRenderTarget - bad render target buffer");
+		   }
+
+		   return rt;
+	   }
+
 	   void Render(Graphics::RenderPhaseConfig& config, IScene& scene) override
 	   {
-		   this->phaseConfig = config;
+		   phaseConfig = config;
+
+		   if (!phaseConfig.shadowBuffer)
+		   {
+			   phaseConfig.shadowBuffer = shadowBufferId;
+			   if (GetTexture(phaseConfig.shadowBuffer).depthView == nullptr)
+			   {
+				   Throw(0, "No shadow depth buffer set for DX1AppRenderer::Render(...)");
+			   }
+		   }
+
+		   if (!phaseConfig.depthTarget)
+		   {
+			   phaseConfig.depthTarget = mainDepthBufferId;
+		   }
 
 		   trianglesThisFrame = 0;
 		   entitiesThisFrame = 0;
@@ -2215,6 +2258,7 @@ namespace ANON
 
 		   lastTextureId = ID_TEXTURE::Invalid();
 
+		   SyncViewport(phaseConfig.depthTarget);
 
 		   SetAndClearRenderBuffers(scene.GetClearColour());
 	
@@ -2228,6 +2272,9 @@ namespace ANON
 		   builtFirstPass = false;
 
 		   UpdateGlobalState(scene);
+
+		   RenderTarget rt = GetCurrentRenderTarget();
+		   dc.OMSetRenderTargets(1, &rt.renderTargetView, rt.depthView);
 
 		   size_t nLights = 0;
 		   const Light* lights = scene.GetLights(nLights);
@@ -2248,13 +2295,10 @@ namespace ANON
 
 		   now = OS::CpuTicks();
 
-		   mainSwapChain->Present(1, 0);
+		   if (!phaseConfig.renderTarget)  mainSwapChain->Present(1, 0);
 
 		   presentCost = OS::CpuTicks() - now;
 
-		   DetachTextureViews();
-		   DetachConstantBuffers();
-		   DetachMisc();
 		   DetachContext();
 
 		   now = OS::CpuTicks();

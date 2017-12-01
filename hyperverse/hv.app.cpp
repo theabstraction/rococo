@@ -172,11 +172,69 @@ namespace HV
 		{
 			GuiMetrics metrics;
 			grc.Renderer().GetGuiMetrics(metrics);
+			if (metrics.screenSpan.x < 257) return;
+
 			GuiRect fullScreen = { 0, 0, metrics.screenSpan.x, metrics.screenSpan.y };
 			fpsPanel->Supervisor()->SetRect(fullScreen);
 			openingPanel->Supervisor()->SetRect(fullScreen);
 
 			platform.gui.Render(grc);
+
+			if (metrics.screenSpan.x > 512 && mirrorTarget)
+			{
+				grc.SelectTexture(mirrorTarget);
+
+				GuiRect mirror;
+				mirror.left = Centre(fullScreen).x - 128;
+				mirror.right = mirror.left + 256;
+				mirror.top = 0;
+				mirror.bottom = 256;
+
+				SpriteVertexData ignore{ 0.0f, 0.0f, 0.0f, 1.0f };
+				RGBAb none(0, 0, 0, 0);
+
+				GuiVertex quad[6] =
+				{
+					{
+						{ (float)mirror.left, (float)mirror.top },
+						{ { 0, 0 }, 0 },
+						ignore,
+						none
+					},
+					{
+						{ (float)mirror.right, (float)mirror.top },
+						{ { 1, 0 }, 0 },
+						ignore,
+						none
+					},
+					{
+						{ (float)mirror.right,(float)mirror.bottom },
+						{ { 1, 1 }, 0 },
+						ignore,
+						none
+					},
+					{
+						{ (float)mirror.right, (float)mirror.bottom },
+						{ { 1, 1 }, 0 },
+						ignore,
+						none
+					},
+					{
+						{ (float)mirror.left, (float)mirror.bottom },
+						{ { 0, 1 }, 0 },
+						ignore,
+						none
+					},
+					{
+						{ (float)mirror.left, (float)mirror.top },
+						{ { 0, 0 }, 0 },
+						ignore,
+						none
+					}
+				};
+
+				grc.DrawCustomTexturedMesh(mirror, mirrorTarget, "!gui.texture.ps", quad, 6);
+			}
 		}
 
 		void GetCamera(Matrix4x4& proj, Matrix4x4& world, Vec4& eye, Vec4& viewDir) override
@@ -257,8 +315,9 @@ namespace HV
 			Graphics::RenderPhaseConfig mirrorConfig;
 			mirrorConfig.renderTarget = mirrorTarget;
 			mirrorConfig.depthTarget = mirrorDepthTarget;
+			mirrorConfig.shadowBuffer = mirrorShadowBuffer;
 			mirrorConfig.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_PROCEDURAL;
-	//		e.platform.renderer.Render(mirrorConfig, *this);
+			e.platform.renderer.Render(mirrorConfig, *this);
 
 			Graphics::RenderPhaseConfig config;
 			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
@@ -372,12 +431,14 @@ namespace HV
 
 		ID_TEXTURE mirrorTarget;
 		ID_TEXTURE mirrorDepthTarget;
+		ID_TEXTURE mirrorShadowBuffer;
 
 		void OnCreate() override
 		{
 			RunEnvironmentScript(e, "!scripts/hv/app.created.sxy", true);
-		//	mirrorTarget = e.platform.renderer.CreateRenderTarget(256, 256);
-		//	mirrorDepthTarget = e.platform.renderer.CreateDepthTarget(256, 256);
+			mirrorTarget = e.platform.renderer.CreateRenderTarget(256, 256);
+			mirrorDepthTarget = e.platform.renderer.CreateDepthTarget(256, 256);
+			mirrorShadowBuffer = e.platform.renderer.CreateDepthTarget(256, 256);
 		}
 	};
 }

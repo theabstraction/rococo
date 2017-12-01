@@ -1599,7 +1599,11 @@ public:
 		}
 
 		Vec2i middleLeft = { tab.lastRect.left + 6, 1 + ( (tab.lastRect.top + tab.lastRect.bottom) >> 1) };
-		Graphics::RenderVerticalCentredText(grc, tab.caption.c_str(), fontColour, fontIndex, middleLeft);
+
+		if (!tab.caption.empty())
+		{
+			Graphics::RenderVerticalCentredText(grc, tab.caption.c_str(), fontColour, fontIndex, middleLeft);
+		}
 	}
 
 	int32 startIndex = 0; // The first tab index rendered on the tab control row

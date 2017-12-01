@@ -9,8 +9,16 @@ namespace
 
    class Camera : public ICameraSupervisor, public IMathsVenue
    {
-      Matrix4x4 world;
-      Matrix4x4 projection;
+	   Matrix4x4 world;
+
+	   struct Projection
+	   {
+		  Degrees fov;
+		  Metres near;
+		  Metres far;
+	   } projectionParameters = { 0 };
+
+	  Matrix4x4 projection;
       Quat orientation;
       Vec3 position;
       int32 orientationFlags;
@@ -225,12 +233,9 @@ namespace
 
       virtual void SetRHProjection(Degrees fov, float near, float far)
       {
-         this->projection = Matrix4x4::GetRHProjectionMatrix(fov, AspectRatio(), near, far);
-      }
-
-      virtual void SetProjection(const Matrix4x4& proj)
-      {
-         this->projection = proj;
+		  projectionParameters.fov = fov;
+		  projectionParameters.near = Metres{ near };
+		  projectionParameters.far = Metres{ far };
       }
 
       virtual void GetWorld(Matrix4x4& worldToCamera)
@@ -250,6 +255,9 @@ namespace
       {
          Matrix4x4 world;
          GetWorld(world);
+
+		 projection = Matrix4x4::GetRHProjectionMatrix(projectionParameters.fov, AspectRatio(), projectionParameters.near, projectionParameters.far);
+
          worldAndProj = projection * world;
       }
 

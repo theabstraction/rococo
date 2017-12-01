@@ -43,6 +43,14 @@ struct ObjectVertex
 	float2 materialIndexAndGloss  : TEXCOORD1;
 };
 
+struct GuiPixelVertex
+{
+	float4 position			: SV_POSITION;
+	float3 base				: TEXCOORD0;
+	float4 sd				: TEXCOORD1;
+	float4 colour			: COLOR;
+};
+
 struct ObjectPixelVertex
 {
 	float4 position : SV_POSITION0;

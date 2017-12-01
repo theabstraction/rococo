@@ -260,6 +260,7 @@ namespace Rococo
 			ENVIRONMENTAL_MAP EnvironmentalMap;
 			ID_TEXTURE renderTarget;
 			ID_TEXTURE depthTarget;
+			ID_TEXTURE shadowBuffer;
 		};
 	}
 

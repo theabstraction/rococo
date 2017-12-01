@@ -2341,20 +2341,6 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetRHProjection(fov, near, far);
 	}
-	void NativeRococoGraphicsICameraSetProjection(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Matrix4x4* proj;
-		_offset += sizeof(proj);
-		ReadInput(proj, _sf, -_offset);
-
-		Rococo::Graphics::ICamera* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetProjection(*proj);
-	}
 	void NativeRococoGraphicsICameraSetPosition(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -2535,7 +2521,6 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsCamera, _nceContext, SEXTEXT("GetHandleForICamera0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeRococoGraphicsICameraClear, nullptr, SEXTEXT("ICameraClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsICameraSetRHProjection, nullptr, SEXTEXT("ICameraSetRHProjection (Pointer hObject)(Sys.Maths.Degrees fov)(Float32 near)(Float32 far) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsICameraSetProjection, nullptr, SEXTEXT("ICameraSetProjection (Pointer hObject)(Sys.Maths.Matrix4x4 proj) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsICameraSetPosition, nullptr, SEXTEXT("ICameraSetPosition (Pointer hObject)(Sys.Maths.Vec3 position) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsICameraSetOrientation, nullptr, SEXTEXT("ICameraSetOrientation (Pointer hObject)(Sys.Maths.Quat orientation) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsICameraFollowEntity, nullptr, SEXTEXT("ICameraFollowEntity (Pointer hObject)(Int64 id) -> "));

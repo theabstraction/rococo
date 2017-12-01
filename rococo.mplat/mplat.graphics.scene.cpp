@@ -41,7 +41,7 @@ namespace
 		  camera.GetWorld(world);
 		  camera.GetWorldAndProj(proj);
 		  camera.GetPosition(eye);
-		  viewDir.FromVec3(world.GetForwardDirection(), 0);
+		  viewDir = Vec4::FromVec3(world.GetForwardDirection(), 0);
 	  };
 
 	  const Light* GetLights(size_t& nCount) const override

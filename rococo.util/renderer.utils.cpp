@@ -429,8 +429,11 @@ namespace Rococo
 				{ {rect.left,  rect.top},    noFont, solid, diag }
 			};
 
-			grc.AddTriangle(q);
-			grc.AddTriangle(q + 3);
+			if (diag.alpha > 0 && backdiag.alpha > 0)
+			{
+				grc.AddTriangle(q);
+				grc.AddTriangle(q + 3);
+			}
 		}
 
 		void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag)

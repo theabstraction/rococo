@@ -61,8 +61,8 @@
     <FxCompile Include="obj.spotlight.no_env.ps.hlsl">
       <Filter>HLSL\Objects</Filter>
     </FxCompile>
-    <FxCompile Include="mplat.api.hlsl">
-      <Filter>HLSL\Headers</Filter>
+    <FxCompile Include="gui.texture.ps.hlsl">
+      <Filter>HLSL\GUI</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
@@ -112,8 +112,10 @@
     <None Include="dx11buffers.inl">
       <Filter>Headers</Filter>
     </None>
-    <None Include="mplat.api.hlsl" />
     <None Include="mplat.types.hlsl">
+      <Filter>HLSL\Headers</Filter>
+    </None>
+    <None Include="mplat.api.hlsl">
       <Filter>HLSL\Headers</Filter>
     </None>
   </ItemGroup>

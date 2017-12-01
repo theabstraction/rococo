@@ -204,7 +204,6 @@
 	(methods
 		(Clear)
 		(SetRHProjection (Degrees fov)(Float32 near)(Float32 far))
-		(SetProjection (const Matrix4x4 proj))
 		(SetPosition (const Vec3 position))
 		(SetOrientation (const Quat orientation))
 		(FollowEntity (IdEntity id))
