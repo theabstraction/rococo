@@ -344,8 +344,8 @@ namespace ANON
 
 	   AutoRelease<IDXGISwapChain> mainSwapChain;
 	   AutoRelease<ID3D11RenderTargetView> mainBackBufferView;
-	   AutoRelease<ID3D11DepthStencilView> depthStencilView;
-
+	   
+	   ID_TEXTURE mainDepthBufferId;
 	   ID_TEXTURE shadowBufferId;
 
 	   std::vector<DX11VertexShader*> vertexShaders;
@@ -897,7 +897,7 @@ namespace ANON
 		   visitor.ShowString("BackBuffer format", "%u", desc.Format);
 
 		   D3D11_DEPTH_STENCIL_VIEW_DESC dsDesc;
-		   depthStencilView->GetDesc(&dsDesc);
+		   GetTexture(mainDepthBufferId).depthView->GetDesc(&dsDesc);
 
 		   visitor.ShowString("DepthStencil format", "%u", dsDesc.Format);
 
@@ -1260,12 +1260,9 @@ namespace ANON
 
 		   VALIDATEDX11(device.CreateRenderTargetView(backBuffer, nullptr, &mainBackBufferView));
 
-		   auto depthDesc = DX11::GetDepthDescription(hRenderWindow);
-
-		   AutoRelease<ID3D11Texture2D> depthBuffer;
-		   VALIDATEDX11(device.CreateTexture2D(&depthDesc, nullptr, &depthBuffer));
-		   VALIDATEDX11(device.CreateDepthStencilView(depthBuffer, nullptr, &depthStencilView));
-
+		   RECT rect;
+		   GetClientRect(hRenderWindow, &rect);
+		   mainDepthBufferId = CreateDepthTarget(rect.right - rect.left, rect.bottom - rect.top);
 		   shadowBufferId = CreateDepthTarget(1024, 1024);
 
 		   SyncViewport();
@@ -1391,7 +1388,7 @@ namespace ANON
 		   auto id = ID_TEXTURE(textures.size());
 
 		   char name[64];
-		   SafeFormat(name, sizeof(name), "DepthTarget_%u_%dx%d", id.value, width, height);
+		   SafeFormat(name, sizeof(name), "DepthTarget_%llu", id.value);
 
 		   mapNameToTexture[name] = id;
 
@@ -1445,7 +1442,7 @@ namespace ANON
 		   auto id = ID_TEXTURE(textures.size());
 
 		   char name[64];
-		   SafeFormat(name, sizeof(name), "RenderTarget_%u_%dx%d", id.value, width, height);
+		   SafeFormat(name, sizeof(name), "RenderTarget_%llu", id.value);
 
 		   mapNameToTexture[name] = id;
 
@@ -1956,7 +1953,7 @@ namespace ANON
 		   return ID_PIXEL_SHADER();
 	   }
 
-	   DX11::TextureBind GetTexture(ID_TEXTURE id)
+	   DX11::TextureBind& GetTexture(ID_TEXTURE id)
 	   {
 		   auto index = id.value - 1;
 		   if (index < 0 || index >= textures.size()) Throw(0, "Bad texture id: %llu", index);
@@ -2006,7 +2003,7 @@ namespace ANON
 			   phase = RenderPhase_DetermineShadowVolumes;
 			   scene.RenderShadowPass(drd, *this);
 
-			   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
+			   dc.OMSetRenderTargets(1, &mainBackBufferView, GetTexture(mainDepthBufferId).depthView);
 
 			   phase = RenderPhase_DetermineSpotlight;
 
@@ -2052,7 +2049,7 @@ namespace ANON
 
 	   void RenderGui(IScene& scene)
 	   {
-		   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
+		   dc.OMSetRenderTargets(1, &mainBackBufferView, GetTexture(mainDepthBufferId).depthView);
 
 		   OS::ticks now = OS::CpuTicks();
 
@@ -2105,7 +2102,7 @@ namespace ANON
 				   builtFirstPass = true;
 			   }
 
-			   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
+			   dc.OMSetRenderTargets(1, &mainBackBufferView, GetTexture(mainDepthBufferId).depthView);
 
 			   dc.RSSetState(objectRaterizering);
 
@@ -2126,9 +2123,9 @@ namespace ANON
 
 	   void SetAndClearRenderBuffers(const RGBA& clearColour)
 	   {
-		   dc.OMSetRenderTargets(1, &mainBackBufferView, depthStencilView);
+		   dc.OMSetRenderTargets(1, &mainBackBufferView, GetTexture(mainDepthBufferId).depthView);
 
-		   dc.ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		   dc.ClearDepthStencilView(GetTexture(mainDepthBufferId).depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		   if (clearColour.alpha > 0)
 		   {
@@ -2329,13 +2326,17 @@ namespace ANON
 		   VALIDATEDX11(mainSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
 		   VALIDATEDX11(device.CreateRenderTargetView(backBuffer, nullptr, &mainBackBufferView));
 
-		   depthStencilView.Detach();
+		   RECT rect;
+		   GetClientRect(hRenderWindow, &rect);
 
-		   AutoRelease<ID3D11Texture2D> depthBuffer;
-
-		   auto depthDesc = DX11::GetDepthDescription(hRenderWindow);
-		   VALIDATEDX11(device.CreateTexture2D(&depthDesc, nullptr, &depthBuffer));
-		   VALIDATEDX11(device.CreateDepthStencilView(depthBuffer, nullptr, &depthStencilView));
+		   ID_TEXTURE newDepthBufferId = CreateDepthTarget(rect.right - rect.left, rect.bottom - rect.top);
+		   auto& theOld = GetTexture(mainDepthBufferId);
+		   auto& theNew = GetTexture(newDepthBufferId);
+		   std::swap(theOld, theNew);
+		   theNew.depthView->Release();
+		   theNew.shaderView->Release();
+		   theNew.texture->Release();
+		   textures.pop_back();
 	   }
 
 	   BOOL isFullScreen = FALSE;
