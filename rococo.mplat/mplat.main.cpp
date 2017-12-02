@@ -105,6 +105,11 @@ public:
 		return *textTesselator;
 	}
 
+	fstring ToShortString(Graphics::MaterialCategory value) const override
+	{
+		return Graphics::ToShortString(value);
+	}
+
 	IMathsVenue* Venue() override
 	{
 		return this;

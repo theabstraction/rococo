@@ -50,6 +50,22 @@ namespace Rococo { namespace Graphics {
 
 		return true;
 	}
+	fstring ToShortString(OrientationFlags value)
+	{
+		switch(value)
+		{
+			case OrientationFlags_None:
+				return "None"_fstring;
+			case OrientationFlags_Heading:
+				return "Heading"_fstring;
+			case OrientationFlags_Elevation:
+				return "Elevation"_fstring;
+			case OrientationFlags_Tilt:
+				return "Tilt"_fstring;
+			default:
+				return {"",0};
+		}
+	}
 }}// Rococo.Graphics.OrientationFlags
 
 namespace Rococo { namespace Graphics { 
@@ -112,6 +128,24 @@ namespace Rococo { namespace Graphics {
 
 		return true;
 	}
+	fstring ToShortString(MaterialCategory value)
+	{
+		switch(value)
+		{
+			case MaterialCategory_Rock:
+				return "Rock"_fstring;
+			case MaterialCategory_Stone:
+				return "Stone"_fstring;
+			case MaterialCategory_Marble:
+				return "Marble"_fstring;
+			case MaterialCategory_Metal:
+				return "Metal"_fstring;
+			case MaterialCategory_Wood:
+				return "Wood"_fstring;
+			default:
+				return {"",0};
+		}
+	}
 }}// Rococo.Graphics.MaterialCategory
 
 namespace Rococo { namespace Graphics { 
@@ -149,6 +183,18 @@ namespace Rococo { namespace Graphics {
 		}
 
 		return true;
+	}
+	fstring ToShortString(SampleMethod value)
+	{
+		switch(value)
+		{
+			case SampleMethod_Point:
+				return "Point"_fstring;
+			case SampleMethod_Linear:
+				return "Linear"_fstring;
+			default:
+				return {"",0};
+		}
 	}
 }}// Rococo.Graphics.SampleMethod
 
@@ -203,6 +249,22 @@ namespace Rococo { namespace Graphics {
 		}
 
 		return true;
+	}
+	fstring ToShortString(SampleFilter value)
+	{
+		switch(value)
+		{
+			case SampleFilter_Border:
+				return "Border"_fstring;
+			case SampleFilter_Mirror:
+				return "Mirror"_fstring;
+			case SampleFilter_Wrap:
+				return "Wrap"_fstring;
+			case SampleFilter_Clamp:
+				return "Clamp"_fstring;
+			default:
+				return {"",0};
+		}
 	}
 }}// Rococo.Graphics.SampleFilter
 
@@ -265,6 +327,24 @@ namespace Rococo { namespace Graphics {
 		}
 
 		return true;
+	}
+	fstring ToShortString(SampleIndex value)
+	{
+		switch(value)
+		{
+			case SampleIndex_Fonts:
+				return "Fonts"_fstring;
+			case SampleIndex_Sprites:
+				return "Sprites"_fstring;
+			case SampleIndex_Materials:
+				return "Materials"_fstring;
+			case SampleIndex_EnvironmentalMap:
+				return "EnvironmentalMap"_fstring;
+			case SampleIndex_ShadowMap:
+				return "ShadowMap"_fstring;
+			default:
+				return {"",0};
+		}
 	}
 }}// Rococo.Graphics.SampleIndex
 

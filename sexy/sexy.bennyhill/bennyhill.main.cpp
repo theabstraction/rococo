@@ -751,9 +751,9 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
 void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 {
 	bool hasConfig = false;
-   bool hasFunctions = false;
+	bool hasFunctions = false;
 
-	for(int i = 0; i < root.NumberOfElements(); ++i)
+	for (int i = 0; i < root.NumberOfElements(); ++i)
 	{
 		cr_sex topLevelItem = root.GetElement(i);
 
@@ -771,10 +771,10 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 		}
 		else if (AreEqual(SEXTEXT("functions"), cmd))
 		{
-         if (hasFunctions) Throw(command, SEXTEXT("Only one set of functions can be defined in the generator file"));
+			if (hasFunctions) Throw(command, SEXTEXT("Only one set of functions can be defined in the generator file"));
 			if (!hasConfig) Throw(command, SEXTEXT("Must define a (config <config-path>) entry before all functions"));
 			ParseFunctions(topLevelItem, pc);
-         hasFunctions = true;
+			hasFunctions = true;
 		}
 		else if (AreEqual(SEXTEXT("interface"), cmd))
 		{
@@ -789,26 +789,26 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 		else
 		{
 			Throw(command, SEXTEXT("Expecting 'interface or config or functions' in the command at position #0"));
-		}		
+		}
 	}
 
-   GenerateDeclarations(pc);
+	GenerateDeclarations(pc);
 
-   for(auto& i: pc.enums)
-   {
-      GenerateFiles(pc, i.ec, *i.sdef);
-   }
+	for (auto& i : pc.enums)
+	{
+		GenerateFiles(pc, i.ec, *i.sdef);
+	}
 
-   for (auto& i : pc.interfaces)
-   {
-      auto& def = *i.second;
-      GenerateFiles(pc, def.ic, *def.sdef, def.methods, *def.sdef);
-   }
+	for (auto& i : pc.interfaces)
+	{
+		auto& def = *i.second;
+		GenerateFiles(pc, def.ic, *def.sdef, def.methods, *def.sdef);
+	}
 
-   for (auto& i : pc.interfaces)
-   {
-      delete i.second;
-   }
+	for (auto& i : pc.interfaces)
+	{
+		delete i.second;
+	}
 }
 
 // Takes a path to a file, returns the end file name as target (sans extension), and the end path (sans extensiion)

@@ -2342,7 +2342,7 @@ namespace ANON
 		  {
 			  char bodyClass[16];
 			  SafeFormat(bodyClass, 16, "\"%s\"", i.first.c_str());
-			  sb.AppendFormat("\n\t(sectors.SetTemplateMaterial %-12s %2d 0x%8.8x \"%s\")", bodyClass, i.second->category, *(int32*)&i.second->mvd.colour, i.second->persistentName);
+			  sb.AppendFormat("\n\t(sectors.SetTemplateMaterial %-12s (#MaterialCategory%s) 0x%8.8x \"%s\")", bodyClass, platform.utilities.ToShortString(i.second->category).buffer, *(int32*)&i.second->mvd.colour, i.second->persistentName);
 		  }
 
 		  if (Is4PointRectangular())

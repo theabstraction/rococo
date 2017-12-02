@@ -14,6 +14,7 @@
 )
 
 (using HV)
+(using Rococo.Graphics)
 
 (function AddSectorsToLevel -> :
 	(ISectors sectors (SectorBuilder))
@@ -21,6 +22,7 @@
 	(sectors.Clear)
 
 	(AddSector0 sectors) // entrance
+	(AddSector1 sectors)
 )
 
 (function AddSector0 (ISectors sectors) -> :
@@ -29,16 +31,39 @@
 	(sectors.AddVertex -6.000000 -8.000000)
 	(sectors.AddVertex -6.000000 6.000000)
 
-	(sectors.SetTemplateMaterial "brickwork"   1 0x37000000 "#m/rock/granite1.jpg")
-	(sectors.SetTemplateMaterial "floor"       2 0xeae9bbf1 "random")
-	(sectors.SetTemplateMaterial "cement"      1 0x37e0e0e0 "random")
-	(sectors.SetTemplateMaterial "mullions"    3 0xdb0d5e24 "random")
-	(sectors.SetTemplateMaterial "ceiling"     2 0xcb873cdb "random")
-	(sectors.SetTemplateMaterial "rails"       3 0xd1b3de47 "random")
-	(sectors.SetTemplateMaterial "casing"      4 0xf7097d5a "random")
-	(sectors.SetTemplateMaterial "panels"      4 0xe58bbb43 "random")
+	(sectors.SetTemplateMaterial "brickwork"  (#MaterialCategoryStone) 0x37000000 "#m/rock/granite1.jpg")
+	(sectors.SetTemplateMaterial "floor"      (#MaterialCategoryRock) 0xeae9bbf1 "#m/rock/granite1.jpg")
+	(sectors.SetTemplateMaterial "cement"     (#MaterialCategoryStone) 0x37e0e0e0 "random")
+	(sectors.SetTemplateMaterial "mullions"   (#MaterialCategoryMetal) 0xdb0d5e24 "random")
+	(sectors.SetTemplateMaterial "ceiling"    (#MaterialCategoryMarble) 0xcb873cdb "random")
+	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryMetal) 0xd1b3de47 "random")
+	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryWood) 0xf7097d5a "random")
+	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xe58bbb43 "random")
 
 	(sectors.SetTemplateDoorScript false "")
+	(sectors.SetTemplateWallScript true "#walls/mosaic.sxy")
+
+	(sectors.CreateFromTemplate 0 400)
+)
+
+(function AddSector1 (ISectors sectors) -> :
+	(sectors.AddVertex -2.000000 16.000000)
+	(sectors.AddVertex -0.000000 14.000000)
+	(sectors.AddVertex 2.000000 14.000000)
+	(sectors.AddVertex 4.000000 16.000000)
+	(sectors.AddVertex 8.000000 16.000000)
+	(sectors.AddVertex 8.000000 6.000000)
+	(sectors.AddVertex -6.000000 6.000000)
+	(sectors.AddVertex -6.000000 16.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"  (#MaterialCategoryStone) 0xe4e29f71 "random")
+	(sectors.SetTemplateMaterial "floor"      (#MaterialCategoryMarble) 0xe889462a "random")
+	(sectors.SetTemplateMaterial "cement"     (#MaterialCategoryRock) 0xc6b49b0c "random")
+	(sectors.SetTemplateMaterial "mullions"   (#MaterialCategoryWood) 0xe8dadf26 "random")
+	(sectors.SetTemplateMaterial "ceiling"    (#MaterialCategoryRock) 0xc178767a "random")
+	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryWood) 0xd196e062 "random")
+	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryMetal) 0xebe30e6d "random")
+	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xc83fa639 "random")
 	(sectors.SetTemplateWallScript true "#walls/mosaic.sxy")
 
 	(sectors.CreateFromTemplate 0 400)

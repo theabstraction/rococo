@@ -155,22 +155,12 @@ namespace ANON
 
 	   virtual void SaveAsFunction(StringBuilder& sb)
 	   {
-		   sb.AppendFormat("(using HV)\n\n");
+		   sb.AppendFormat("(using HV)\n");
+		   sb.AppendFormat("(using Rococo.Graphics)\n\n");
 
 		   sb.AppendFormat("(function AddSectorsToLevel -> :\n");
 		   sb.AppendFormat("\t(ISectors sectors (SectorBuilder))\n\n");
 		   sb.AppendFormat("\t(sectors.Clear)\n\n");
-
-		   /*
-		   sb.AppendFormat("\n(IString bodyClassBrickwork = \"brickwork\")\n");
-		   sb.AppendFormat("\n(IString bodyClassCement    = \"cement\")\n");
-		   sb.AppendFormat("\n(IString bodyClassFloor     = \"floor\")\n");
-		   sb.AppendFormat("\n(IString bodyClassCeiling   = \"ceiling\")\n");
-		   sb.AppendFormat("\n(IString bodyClassMullions  = \"mulliions\")\n");
-		   sb.AppendFormat("\n(IString bodyClassPanels	 = \"panels\")\n");
-		   sb.AppendFormat("\n(IString bodyClassCasing    = \"casing\")\n");
-		   sb.AppendFormat("\n(IString bodyClassRails     = \"rails\")\n");
-		   */
 
 		   uint32 index = 0;
 		   for (auto s : sectors)
