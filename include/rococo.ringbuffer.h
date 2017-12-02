@@ -39,16 +39,17 @@ namespace Rococo
 		  writePos = (writePos + 1) % elementCount;
 	   }
 
-	   ELEMENT_TYPE* TryPopFront()
+	   bool TryPopFront(ELEMENT_TYPE& front)
 	   {
 		  if (readPos == writePos)
 		  {
-			 return nullptr;
+			 return false;
 		  }
 
-		  ELEMENT_TYPE* front = elements + readPos;
+		  ELEMENT_TYPE* p = elements + readPos;
+		  front = *p;
 		  readPos = (readPos + 1) % elementCount;
-		  return front;
+		  return true;
 	   }
 	};
 }

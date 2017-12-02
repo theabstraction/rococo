@@ -103,7 +103,7 @@ namespace
 			  renderer.GetMeshDesc(desc, m.item.second.id);
 
 			  auto& b = m.item.second.bounds;
-			  visitor.ShowString(m.item.first.c_str(), "%5llu %s", m.item.second.id.value, desc);
+			  visitor.ShowSelectableString("overlay.select.mesh", m.item.first.c_str(), "%5llu %s", m.item.second.id.value, desc);
 		//	  visitor.ShowString(" -> bounds", "(%f, %f, %f) to (%f, %f, %f)", b.minXYZ.x, b.minXYZ.y, b.minXYZ.z, b.maxXYZ.x, b.maxXYZ.y, b.maxXYZ.z);
 		  }
 
@@ -219,6 +219,42 @@ namespace
 		  }
 
 		  renderer.SetSpecialShader(i->second.id, psSpotlightPingPath, psAmbientPingPath, alphaBlending);
+	  }
+
+	  void SaveCSV(cstr name, IExpandingBuffer& buffer) override
+	  {
+		  auto i = meshes.find((cstr)name);
+		  if (i == meshes.end())
+		  {
+			  buffer.Resize(0);
+			  return;
+		  }
+
+		  if (i->second.pVertexArray)
+		  {
+			  auto count = i->second.nVertices;
+			  buffer.Resize(count * 256 + 256);
+
+			  StackStringBuilder sb((char*)buffer.GetData(), buffer.Length());
+
+			  sb << "Material Id # " << i->second.id.value << "," << name << "\n\n";
+			  sb << "TriangleId,VertexId,X,Y,Z,U,V,Nx,Ny,Nz,Colour,Mat,Gloss\n\n";
+
+			  for (size_t k = 0; k < count; ++k)
+			  {
+				  auto& v = i->second.pVertexArray[k];
+				  sb << k / 3 << "," << k << "," << v.position.x << "," << v.position.y << "," << v.position.z << ",";
+				  sb << v.uv.x << "," << v.uv.y << "," << v.normal.x << "," << v.normal.y << "," << v.normal.z << ",";
+				  sb.AppendFormat("0x%8.8X", *(int*)(&v.material.colour));
+				  sb << ",";
+				  sb << v.material.materialId << "," << v.material.gloss << "\n";
+			  }
+		  }
+		  else
+		  {
+			  buffer.Resize(0);
+			  return;
+		  }
 	  }
 
 	  void Span(Vec3& span, const fstring& name)

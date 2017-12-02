@@ -21,5 +21,5 @@
 	(k.BindAction "R" 		"move.fps.autorun")
 	(k.BindAction "E"		"gui.editor.toggle")
 	(k.BindAction "F1"		"gui.overlay.toggle")
-	(k.BindAction "BACKSPACE" "gui.editor.sector.delete")
+	(k.BindAction "BACKSPACE" "gui.editor.sector.delete")	
 )

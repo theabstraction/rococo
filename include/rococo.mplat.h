@@ -100,11 +100,9 @@ namespace Rococo
 		virtual void AppendMouseEvent(const MouseEvent& ev) = 0;
 
 		virtual void CancelSelect() = 0;
+		virtual void SelectAtPos(Vec2i pos) = 0;
 
 		virtual void Render(IGuiRenderContext& grc, const GuiRect& absRect, int padding) = 0;
-
-		virtual cstr SelectedKey() const = 0;
-		virtual cstr SelectedValue() const = 0;
 
 		virtual void Free() = 0;
    };
@@ -112,7 +110,7 @@ namespace Rococo
    struct IUtilitiies;
    struct IKeyboardSupervisor;
 
-   IMathsVisitorSupervisor* CreateMathsVisitor(IUtilitiies& utilities);
+   IMathsVisitorSupervisor* CreateMathsVisitor(IUtilitiies& utilities, Events::IPublisher& publisher);
 
    void Run_MPLat_EnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform);
 
@@ -166,6 +164,7 @@ namespace Rococo
 	   ROCOCOAPI IMeshBuilderSupervisor : public IMeshBuilder
 	   {
 		  virtual void Free() = 0;
+		  virtual void SaveCSV(cstr name, IExpandingBuffer& buffer) = 0;
 		  virtual bool TryGetByName(cstr name, ID_SYS_MESH& id, AABB& bounds) = 0;
 		  virtual IMathsVenue* Venue() = 0;
 	   };
@@ -376,6 +375,7 @@ namespace Rococo
 	  virtual void AttachKeyboardSink(IKeyboardSink* ks) = 0;
 	  virtual void DetachKeyboardSink(IKeyboardSink* ks) = 0;
 	  virtual bool IsOverwriting() const = 0;
+	  virtual void LogMessage(const char* format, ...) = 0;
 	  virtual void ToggleOverwriteMode() = 0;
 	  virtual IKeyboardSink* CurrentKeyboardSink() = 0;
       virtual IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName) = 0;

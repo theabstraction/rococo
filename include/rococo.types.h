@@ -516,6 +516,7 @@ namespace Rococo
       void UILoop(uint32 milliseconds);
 	  void ToSysPath(char* path);
 	  void ToUnixPath(char* path);
+	  void SaveClipBoardText(cstr text, Windows::IWindow& window);
    }
 
 #if !defined(_W64)

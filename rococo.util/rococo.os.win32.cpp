@@ -76,118 +76,140 @@ namespace Rococo
    }
 }
 
+#include <rococo.window.h>
+
 namespace Rococo
 {
-   namespace OS
-   {
-	  void ToSysPath(char* path)
-	  {
-		  for (char* s = path; *s != 0; ++s)
-		  {
-			  if (*s == '/') *s = '\\';
-		  }
-	  }
+	namespace OS
+	{
+		void SaveClipBoardText(cstr text, Windows::IWindow& window)
+		{
+			size_t len = strlen(text) + 1;
 
-	  void ToUnixPath(char* path)
-	  {
-		  for (char* s = path; *s != 0; ++s)
-		  {
-			  if (*s == '\\') *s = '/';
-		  }
-	  }
+			if (OpenClipboard(window))
+			{
+				HGLOBAL g = GlobalAlloc(GMEM_MOVEABLE, len);
+				char* lptstrCopy = (char*)GlobalLock(g);
+				memcpy(lptstrCopy, text, len);
+				GlobalUnlock(g);
+				EmptyClipboard();
+				if (!SetClipboardData(CF_TEXT, g))
+				{
+					GlobalFree(g);
+				}
 
-      void UILoop(uint32 milliseconds)
-      {
-         MSG msg;
+				CloseClipboard();
+			}
+		}
 
-         ticks count  = OS::CpuTicks();
-         ticks target = count + (OS::CpuHz() * milliseconds / 1000);
+		void ToSysPath(char* path)
+		{
+			for (char* s = path; *s != 0; ++s)
+			{
+				if (*s == '/') *s = '\\';
+			}
+		}
 
-         while (target < OS::CpuTicks())
-         {
-            MsgWaitForMultipleObjects(0, nullptr, FALSE, 25, QS_ALLINPUT);
+		void ToUnixPath(char* path)
+		{
+			for (char* s = path; *s != 0; ++s)
+			{
+				if (*s == '\\') *s = '/';
+			}
+		}
 
-            while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-            {
-               TranslateMessage(&msg);
-               DispatchMessage(&msg);
-            }
-         }
-      }
+		void UILoop(uint32 milliseconds)
+		{
+			MSG msg;
 
-      void Format_C_Error(int errorCode, rchar* buffer, size_t capacity)
-      {
-         if (0 == FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, buffer, (DWORD) capacity, NULL))
-         {
-            SafeFormat(buffer, capacity, "Unknown error code (%d)", errorCode);
-         }
-      }
+			ticks count = OS::CpuTicks();
+			ticks target = count + (OS::CpuHz() * milliseconds / 1000);
 
-      int OpenForAppend(void** fp, cstr name)
-      {
-         return fopen_s((FILE**)fp, name, "ab");
-      }
+			while (target < OS::CpuTicks())
+			{
+				MsgWaitForMultipleObjects(0, nullptr, FALSE, 25, QS_ALLINPUT);
 
-      int OpenForRead(void** fp, cstr name)
-      {
-         return fopen_s((FILE**) fp, name, "rb");
-      }
+				while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+				{
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+				}
+			}
+		}
 
-      ticks CpuTicks()
-      {
-         LARGE_INTEGER ticks;
-         QueryPerformanceCounter(&ticks);
-         return ticks.QuadPart;
-      }
+		void Format_C_Error(int errorCode, rchar* buffer, size_t capacity)
+		{
+			if (0 == FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, buffer, (DWORD)capacity, NULL))
+			{
+				SafeFormat(buffer, capacity, "Unknown error code (%d)", errorCode);
+			}
+		}
 
-      ticks CpuHz()
-      {
-         LARGE_INTEGER hz;
-         QueryPerformanceFrequency(&hz);
-         return hz.QuadPart;
-      }
+		int OpenForAppend(void** fp, cstr name)
+		{
+			return fopen_s((FILE**)fp, name, "ab");
+		}
 
-	  ticks UTCTime()
-	  {
-		  FILETIME ft;
-		  GetSystemTimeAsFileTime(&ft);
-		  return *(ticks*)&ft;
-	  }
+		int OpenForRead(void** fp, cstr name)
+		{
+			return fopen_s((FILE**)fp, name, "rb");
+		}
 
-	  void FormatTime(ticks utcTime, char* buffer, size_t nBytes)
-	  {
-		  SYSTEMTIME st;
-		  char localDate[255], localTime[255];
+		ticks CpuTicks()
+		{
+			LARGE_INTEGER ticks;
+			QueryPerformanceCounter(&ticks);
+			return ticks.QuadPart;
+		}
 
-		  FileTimeToLocalFileTime((FILETIME*)&utcTime, (FILETIME*) &utcTime);
-		  FileTimeToSystemTime((FILETIME*)&utcTime, &st);
+		ticks CpuHz()
+		{
+			LARGE_INTEGER hz;
+			QueryPerformanceFrequency(&hz);
+			return hz.QuadPart;
+		}
 
-		  GetDateFormatA(LOCALE_USER_DEFAULT, DATE_SHORTDATE, &st, NULL, localDate, 255);
-		  GetTimeFormatA(LOCALE_USER_DEFAULT, 0, &st, NULL, localTime, 255);
-		  SafeFormat(buffer, nBytes, "%s %s", localTime, localDate);
-	  }
+		ticks UTCTime()
+		{
+			FILETIME ft;
+			GetSystemTimeAsFileTime(&ft);
+			return *(ticks*)&ft;
+		}
 
-      void TripDebugger()
-      {
-         if (IsDebuggerPresent())
-         {
-            __debugbreak();
-         }
-      }
+		void FormatTime(ticks utcTime, char* buffer, size_t nBytes)
+		{
+			SYSTEMTIME st;
+			char localDate[255], localTime[255];
 
-      bool IsDebugging()
-      {
-         return IsDebuggerPresent() ? true : false;
-      }
-   }
+			FileTimeToLocalFileTime((FILETIME*)&utcTime, (FILETIME*)&utcTime);
+			FileTimeToSystemTime((FILETIME*)&utcTime, &st);
 
-   MemoryUsage ProcessMemory()
-   {
-      PROCESS_MEMORY_COUNTERS counters = { 0 };
-      counters.cb = sizeof(counters);
-      GetProcessMemoryInfo(GetCurrentProcess(), &counters, sizeof(counters));
-      return{ counters.PagefileUsage, counters.PeakPagefileUsage };
-   }
+			GetDateFormatA(LOCALE_USER_DEFAULT, DATE_SHORTDATE, &st, NULL, localDate, 255);
+			GetTimeFormatA(LOCALE_USER_DEFAULT, 0, &st, NULL, localTime, 255);
+			SafeFormat(buffer, nBytes, "%s %s", localTime, localDate);
+		}
+
+		void TripDebugger()
+		{
+			if (IsDebuggerPresent())
+			{
+				__debugbreak();
+			}
+		}
+
+		bool IsDebugging()
+		{
+			return IsDebuggerPresent() ? true : false;
+		}
+	}
+
+	MemoryUsage ProcessMemory()
+	{
+		PROCESS_MEMORY_COUNTERS counters = { 0 };
+		counters.cb = sizeof(counters);
+		GetProcessMemoryInfo(GetCurrentProcess(), &counters, sizeof(counters));
+		return{ counters.PagefileUsage, counters.PeakPagefileUsage };
+	}
 
 	bool DoesModifiedFilenameMatchResourceName(cstr modifiedFilename, cstr resourceName)
 	{

@@ -179,62 +179,6 @@ namespace HV
 			openingPanel->Supervisor()->SetRect(fullScreen);
 
 			platform.gui.Render(grc);
-
-			if (metrics.screenSpan.x > 512 && mirrorTarget)
-			{
-				grc.SelectTexture(mirrorTarget);
-
-				GuiRect mirror;
-				mirror.left = Centre(fullScreen).x - 128;
-				mirror.right = mirror.left + 256;
-				mirror.top = 0;
-				mirror.bottom = 256;
-
-				SpriteVertexData ignore{ 0.0f, 0.0f, 0.0f, 1.0f };
-				RGBAb none(0, 0, 0, 0);
-
-				GuiVertex quad[6] =
-				{
-					{
-						{ (float)mirror.left, (float)mirror.top },
-						{ { 0, 0 }, 0 },
-						ignore,
-						none
-					},
-					{
-						{ (float)mirror.right, (float)mirror.top },
-						{ { 1, 0 }, 0 },
-						ignore,
-						none
-					},
-					{
-						{ (float)mirror.right,(float)mirror.bottom },
-						{ { 1, 1 }, 0 },
-						ignore,
-						none
-					},
-					{
-						{ (float)mirror.right, (float)mirror.bottom },
-						{ { 1, 1 }, 0 },
-						ignore,
-						none
-					},
-					{
-						{ (float)mirror.left, (float)mirror.bottom },
-						{ { 0, 1 }, 0 },
-						ignore,
-						none
-					},
-					{
-						{ (float)mirror.left, (float)mirror.top },
-						{ { 0, 0 }, 0 },
-						ignore,
-						none
-					}
-				};
-
-				grc.DrawCustomTexturedMesh(mirror, mirrorTarget, "!gui.texture.ps", quad, 6);
-			}
 		}
 
 		void GetCamera(Matrix4x4& proj, Matrix4x4& world, Vec4& eye, Vec4& viewDir) override
@@ -261,6 +205,8 @@ namespace HV
 			rchar pingname[1024];
 			args.GetPingPath(pingname, 1024);
 
+			platform.gui.LogMessage("File modified: %s", pingname);
+
 			auto ext = Rococo::GetFileExtension(args.resourceName);
 			if (!ext)
 			{
@@ -272,20 +218,24 @@ namespace HV
 
 				if (args.Matches("!scripts/hv/main.sxy"))
 				{
+					platform.gui.LogMessage("Running !scripts/hv/main.sxy");
 					HV::RunEnvironmentScript(e, "!scripts/hv/main.sxy", true);
 				}
 
 				if (StartsWith(pingname, "!scripts/hv/sector/"))
 				{
+					platform.gui.LogMessage("Running sector script");
 					sectors->OnSectorScriptChanged(args);
 				}
 			}
 			else if (Eq(ext, ".ps"))
 			{
+				platform.gui.LogMessage("Updating pixel shader");
 				e.platform.renderer.UpdatePixelShader(pingname);
 			}
 			else if (Eq(ext, ".vs"))
 			{
+				platform.gui.LogMessage("Updating vertex shader");
 				e.platform.renderer.UpdateVertexShader(pingname);
 			}
 		}
@@ -311,13 +261,6 @@ namespace HV
 
 			GuiRect fullRect{ 0,0,metrics.screenSpan.x, metrics.screenSpan.y };
 			editorPanel->Root()->Base()->SetRect(fullRect);
-
-			Graphics::RenderPhaseConfig mirrorConfig;
-			mirrorConfig.renderTarget = mirrorTarget;
-			mirrorConfig.depthTarget = mirrorDepthTarget;
-			mirrorConfig.shadowBuffer = mirrorShadowBuffer;
-			mirrorConfig.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_PROCEDURAL;
-			e.platform.renderer.Render(mirrorConfig, *this);
 
 			Graphics::RenderPhaseConfig config;
 			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
@@ -429,16 +372,9 @@ namespace HV
 			e.platform.gui.AppendEvent(me);
 		}
 
-		ID_TEXTURE mirrorTarget;
-		ID_TEXTURE mirrorDepthTarget;
-		ID_TEXTURE mirrorShadowBuffer;
-
 		void OnCreate() override
 		{
 			RunEnvironmentScript(e, "!scripts/hv/app.created.sxy", true);
-			mirrorTarget = e.platform.renderer.CreateRenderTarget(256, 256);
-			mirrorDepthTarget = e.platform.renderer.CreateDepthTarget(256, 256);
-			mirrorShadowBuffer = e.platform.renderer.CreateDepthTarget(256, 256);
 		}
 	};
 }

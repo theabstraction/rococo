@@ -212,6 +212,54 @@ namespace Rococo
 {
 	namespace Graphics
 	{
+		void DrawTexture(IGuiRenderContext& grc, ID_TEXTURE id, const GuiRect& absRect)
+		{
+			SpriteVertexData ignore{ 0.0f, 0.0f, 0.0f, 1.0f };
+			RGBAb none(0, 0, 0, 0);
+
+			GuiVertex quad[6] =
+			{
+				{
+					{ (float)absRect.left, (float)absRect.top },
+					{ { 0, 0 }, 0 },
+					ignore,
+					none
+				},
+				{
+					{ (float)absRect.right, (float)absRect.top },
+					{ { 1, 0 }, 0 },
+					ignore,
+					none
+				},
+				{
+					{ (float)absRect.right,(float)absRect.bottom },
+					{ { 1, 1 }, 0 },
+					ignore,
+					none
+				},
+				{
+					{ (float)absRect.right, (float)absRect.bottom },
+					{ { 1, 1 }, 0 },
+					ignore,
+					none
+				},
+				{
+					{ (float)absRect.left, (float)absRect.bottom },
+					{ { 0, 1 }, 0 },
+					ignore,
+					none
+				},
+				{
+					{ (float)absRect.left, (float)absRect.top },
+					{ { 0, 0 }, 0 },
+					ignore,
+					none
+				}
+			};
+
+			grc.DrawCustomTexturedMesh(absRect, id, "!gui.texture.ps", quad, 6);
+		}
+
 		void DrawTriangleFacingLeft(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
 		{
 			BaseVertexData noFont{ { 0, 0 }, 0 };

@@ -10,9 +10,12 @@ namespace
    using namespace Rococo;
    using namespace Rococo::Events;
 
+   auto nullEvent = ""_event;
+
    struct DebugLine
    {
       enum size_t { KEY_LEN = 64, VALUE_LEN = 128 };
+	  EventId selectEvent = nullEvent;
       rchar key[KEY_LEN];
       rchar value[VALUE_LEN];
 	  bool isSelectable = false;
@@ -24,6 +27,8 @@ namespace
 	   std::vector<DebugLine> lines;
 	   GuiRect scrollRect;
 	   bool queueMouseUp = false;
+
+	   Events::IPublisher& publisher;
 
 	   void Name(DebugLine& line, VisitorName name)
 	   {
@@ -51,8 +56,10 @@ namespace
 	   }
 
    public:
-	   MathsVisitor(IUtilitiies& utilities):
-		   scrollbar(utilities.CreateScrollbar(true))
+	   MathsVisitor(IUtilitiies& utilities, IPublisher& _publisher) :
+		   scrollbar(utilities.CreateScrollbar(true)),
+		   publisher(_publisher)
+		   
 	   {
 
 	   }
@@ -196,9 +203,9 @@ namespace
 		   lines.push_back(line);
 	   }
 
-	   virtual void ShowSelectableString(VisitorName name, cstr format, ...)
+	   virtual void ShowSelectableString(cstr eventName, VisitorName name, cstr format, ...)
 	   {
-		   DebugLine line;
+		   DebugLine line{ EventId(eventName, (EventHash)FastHash(eventName)) };
 		   Name(line, name);
 
 		   va_list args;
@@ -241,6 +248,11 @@ namespace
 		   return false;
 	   }
 
+	   void SelectAtPos(Vec2i pos) override
+	   {
+		   queueMouseUp = true;
+	   }
+
 	   void AppendMouseEvent(const MouseEvent& ev) override
 	   {
 		   ScrollEvent se(""_event);
@@ -273,23 +285,11 @@ namespace
 	   int32 knownHeight = 0;
 	   int32 pos = 0;
 
-	   std::string selectedKey;
-	   std::string selectedValue;
+	   size_t selectedLine = -1;
 
 	   void CancelSelect()
 	   {
-		   selectedKey.clear();
-		   selectedValue.clear();
-	   }
-
-	   cstr SelectedKey() const override
-	   {
-		   return selectedKey.empty() ? nullptr : selectedKey.c_str();
-	   }
-
-	   cstr SelectedValue() const override
-	   {
-		   return selectedValue.empty() ? nullptr : selectedValue.c_str();
+		   selectedLine = -1;
 	   }
 
 	   void RenderStringList(IGuiRenderContext& gc, const GuiRect& absRect, int padding)
@@ -349,6 +349,8 @@ namespace
 		   keyRect.top -= pos;
 		   valueRect.top -= pos;
 
+		   size_t lineIndex = 0;
+
 		   for (auto& line : lines)
 		   {
 			   int32 dy = 0;
@@ -370,12 +372,9 @@ namespace
 							   backColour = RGBAb(32, 16, 16, 255);
 						   }
 
-						   if (!selectedKey.empty() && Eq(line.key, selectedKey.c_str()))
+						   if (selectedLine == lineIndex)
 						   {
-							   if (!selectedValue.empty() && Eq(line.value, selectedValue.c_str()))
-							   {
-								   backColour = RGBAb(64, 64, 64, 255);
-							   }
+							   backColour = RGBAb(64, 32, 32, 255);
 						   }
 					   }
 
@@ -395,12 +394,9 @@ namespace
 							   backColour = RGBAb(32, 16, 16, 255);
 						   }
 
-						   if (!selectedKey.empty() && Eq(line.key, selectedKey.c_str()))
+						   if (selectedLine == lineIndex)
 						   {
-							   if (!selectedValue.empty() && Eq(line.value, selectedValue.c_str()))
-							   {
-								   backColour = RGBAb(64, 64, 64, 255);
-							   }
+							   backColour = RGBAb(64, 32, 32, 255);
 						   }
 					   }
 					   Rococo::Graphics::DrawRectangle(gc, valueback, backColour, backColour);
@@ -411,13 +407,17 @@ namespace
 
 						   if (line.isSelectable)
 						   {
-							   selectedKey = line.key;
-							   selectedValue = line.value;
+							   selectedLine = lineIndex;
+							   if (*line.selectEvent.Name() != 0)
+							   {
+								   VisitorItemClicked clicked(line.selectEvent);
+								   clicked.key = line.key;					   
+								   publisher.Publish(clicked);
+							   }
 						   }
 						   else
 						   {
-							   selectedKey.clear();
-							   selectedValue.clear();
+							   CancelSelect();
 						   }
 					   }
 
@@ -437,6 +437,8 @@ namespace
 			   keyRect.top += dy;
 			   valueRect.top += dy;
 
+			   lineIndex++;
+
 			   if (keyRect.top >= keyRect.bottom)
 				   break;
 		   }
@@ -455,8 +457,8 @@ namespace
 
 namespace Rococo
 {
-   IMathsVisitorSupervisor* CreateMathsVisitor(IUtilitiies& utilities)
+   IMathsVisitorSupervisor* CreateMathsVisitor(IUtilitiies& utilities, IPublisher& publisher)
    {
-      return new MathsVisitor(utilities);
+      return new MathsVisitor(utilities, publisher);
    }
 }

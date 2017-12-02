@@ -264,6 +264,20 @@ namespace Rococo
 		};
 	}
 
+	enum TextureFormat
+	{
+		TextureFormat_32_BIT_FLOAT,
+		TextureFormat_RGBA_32_BIT,
+		TextureFormat_UNKNOWN
+	};
+
+	struct TextureDesc
+	{
+		uint32 width;
+		uint32 height;
+		TextureFormat format;
+	};
+
 	ROCOCOAPI IRenderer
 	{
 	  virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
@@ -281,6 +295,7 @@ namespace Rococo
 	  virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
 	  virtual void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const = 0;
 	  virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id) = 0;
+	  virtual bool TryGetTextureDesc(TextureDesc& desc, ID_TEXTURE id) const = 0;
 	  virtual IInstallation& Installation() = 0;
 	  virtual void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder) = 0;
 	  virtual MaterialId GetMaterialId(cstr name) const = 0;
@@ -339,6 +354,7 @@ namespace Rococo
 		float GetAspectRatio(const IRenderer& renderer);
 		Vec2 PixelSpaceToScreenSpace(const Vec2i& v, IRenderer& renderer);
 
+		void DrawTexture(IGuiRenderContext& grc, ID_TEXTURE id, const GuiRect& absRect);
 		void RenderBitmap_ShrinkAndPreserveAspectRatio(IGuiRenderContext& rc, MaterialId id, const GuiRect& absRect);
 		void StretchBitmap(IGuiRenderContext& rc, const GuiRect& absRect);
 		void DrawSprite(const Vec2i& topLeft, const Textures::BitmapLocation& location, IGuiRenderContext& gc);

@@ -324,7 +324,7 @@ namespace ANON
 	   public IRenderContext,
 	   public IGuiRenderContext,
 	   public Fonts::IGlyphRenderer,
-	   public IResourceLoader, 
+	   public IResourceLoader,
 	   public IMathsVenue
    {
    private:
@@ -344,7 +344,7 @@ namespace ANON
 
 	   AutoRelease<IDXGISwapChain> mainSwapChain;
 	   AutoRelease<ID3D11RenderTargetView> mainBackBufferView;
-	   
+
 	   ID_TEXTURE mainDepthBufferId;
 	   ID_TEXTURE shadowBufferId;
 
@@ -591,7 +591,7 @@ namespace ANON
 
 	   void AddPlasma(const ParticleVertex& p) override
 	   {
-		  plasma.push_back(p);
+		   plasma.push_back(p);
 	   }
 
 	   void ClearPlasma() override
@@ -644,7 +644,7 @@ namespace ANON
 			   desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 			   break;
 		   }
-	
+
 		   desc.AddressU = From(u);
 		   desc.AddressV = From(v);
 		   desc.AddressW = From(w);
@@ -720,7 +720,7 @@ namespace ANON
 				   srcbox.right = materialArray.width;
 				   srcbox.bottom = materialArray.width;
 				   srcbox.back = 1;
-				  
+
 				   dc.CopySubresourceRegion(cubeTexture, i, 0, 0, 0, materialArray.tb.texture, cubeMaterialId[i], &srcbox);
 			   }
 		   }
@@ -739,6 +739,37 @@ namespace ANON
 	   {
 		   textureVenue.This = this;
 		   return &textureVenue;
+	   }
+
+	   bool TryGetTextureDesc(TextureDesc& desc, ID_TEXTURE id) const
+	   {
+		   size_t index = id.value - 1;
+		   if (index < 0 || index >= textures.size())
+		   {
+			   return false;
+		   }
+
+		   const auto& t = textures[index];
+
+		   D3D11_TEXTURE2D_DESC edesc;
+		   t.texture->GetDesc(&edesc);
+
+		   desc.width = edesc.Width;
+		   desc.height = edesc.Height;
+		   
+		   switch(edesc.Format)
+		   {
+		   case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+			   desc.format = TextureFormat_RGBA_32_BIT;
+			   break;
+		   case DXGI_FORMAT_R32_TYPELESS:
+			   desc.format = TextureFormat_32_BIT_FLOAT;
+			   break;
+		   default:
+			   desc.format = TextureFormat_UNKNOWN;
+		   }
+
+		   return true;
 	   }
 
 	   struct TextureItem
@@ -774,14 +805,14 @@ namespace ANON
 			   tx.texture->GetDesc(&desc);
 			   char name[64];
 			   SafeFormat(name, 64, "TxId %u", t.id.value);
-			   visitor.ShowSelectableString(name, "  %s - 0x%p. %d x %d. %d levels", t.name.c_str(), (const void*) tx.texture, desc.Width, desc.Height, desc.MipLevels);
+			   visitor.ShowSelectableString("overlay.select.texture", name, "  %s - 0x%p. %d x %d. %d levels", t.name.c_str(), (const void*) tx.texture, desc.Width, desc.Height, desc.MipLevels);
 		   }
 
 		   for (size_t i = 0; i < materialArray.TextureCount(); ++i)
 		   {	   
 			   char name[64];
 			   SafeFormat(name, 64, "MatId %u", i);
-			   visitor.ShowSelectableString(name, "  %s", idToMaterialName[i].c_str());
+			   visitor.ShowSelectableString("overlay.select.material", name, "  %s", idToMaterialName[i].c_str());
 		   }
 	   }
 

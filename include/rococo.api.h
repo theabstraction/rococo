@@ -376,6 +376,12 @@ namespace Rococo
 			Vec2i absTopleft;
 		};
 
+		struct VisitorItemClicked : Event
+		{
+			VisitorItemClicked(EventId id) : Event(id) {}
+			cstr key;
+		};
+
 		inline bool operator == (const EventId& a, const EventId& b)
 		{
 			return (EventHash)a == (EventHash)b;

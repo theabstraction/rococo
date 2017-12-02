@@ -417,7 +417,7 @@ namespace ANON
 			  mb.AddTriangle(t.a, t.b, t.c);
 		  }
 
-		  mb.End(false, false);
+		  mb.End(true, false);
 
 		  if (!wallId)
 		  {
@@ -1274,7 +1274,7 @@ namespace ANON
 			  }
 		  }
 
-		  mb.End(false, false);
+		  mb.End(true, false);
 
 		  struct
 		  {
@@ -1314,7 +1314,7 @@ namespace ANON
             mb.AddTriangle(t.a, t.b, t.c);
          }
 
-         mb.End(false, false);
+         mb.End(true, false);
 
 		 if (!ceilingId)
 		 {

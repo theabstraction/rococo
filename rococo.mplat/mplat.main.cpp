@@ -4,8 +4,11 @@
 #include <rococo.window.h>
 #include <rococo.sexy.ide.h>
 #include <rococo.dx11.renderer.win32.h>
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 #include <rococo.imaging.h>
+
+#include <rococo.ringbuffer.h>
 
 #include <vector>
 #include <algorithm>
@@ -351,6 +354,20 @@ class GuiStack : public IGUIStack, public IObserver
 	std::unordered_map<std::string, IUIElement*> renderElements;
 
 	IKeyboardSink* keyboardSink = nullptr;
+
+	struct Message
+	{
+		char text[128];
+	};
+
+	struct VisibleMessage
+	{
+		Message message;
+		int32 y;
+	};
+	
+	OneReaderOneWriterCircleBuffer<Message> messageLog;
+	std::vector<VisibleMessage> scrollingMessages;
 public:
 	Platform* platform;
 
@@ -358,7 +375,8 @@ public:
 		publisher(_publisher),
 		sourceCache(_sourceCache),
 		renderer(_renderer),
-		utilities(_utilities)
+		utilities(_utilities),
+		messageLog(3)
 	{
 		publisher.Attach(this, UIInvoke::EvId());
 		publisher.Attach(this, UIPopulate::EvId());
@@ -369,12 +387,12 @@ public:
 		publisher.Detach(this);
 	}
 
-	virtual void AttachKeyboardSink(IKeyboardSink* ks)
+	void AttachKeyboardSink(IKeyboardSink* ks) override
 	{
 		keyboardSink = ks;
 	}
 
-	virtual void DetachKeyboardSink(IKeyboardSink* ks)
+	void DetachKeyboardSink(IKeyboardSink* ks) override
 	{
 		if (ks == keyboardSink)
 		{
@@ -382,19 +400,39 @@ public:
 		}
 	}
 
-	virtual IKeyboardSink* CurrentKeyboardSink()
+	void LogMessage(const char* format, ...)
+	{
+		va_list argList;
+		va_start(argList, format);
+
+		Message message;
+		SafeVFormat(message.text, sizeof(message), format, argList);
+
+		auto* next = messageLog.GetBackSlot();
+		while (next == nullptr)
+		{
+			Message front;
+			messageLog.TryPopFront(front);
+			next = messageLog.GetBackSlot();
+		}
+
+		*next = message;
+		messageLog.WriteBack();
+	}
+
+	IKeyboardSink* CurrentKeyboardSink() override
 	{
 		return keyboardSink;
 	}
 
 	bool overwriting = false;
 
-	virtual bool IsOverwriting() const
+	bool IsOverwriting() const  override
 	{
 		return overwriting;
 	}
 
-	virtual void ToggleOverwriteMode()
+	void ToggleOverwriteMode() override
 	{
 		overwriting = !overwriting;
 	}
@@ -529,6 +567,59 @@ public:
 		}
 	}
 
+	enum { MessageHeightPixels = 16 };
+
+	bool HasRoomForMessage(const GuiRect& logRect) const
+	{
+		if (scrollingMessages.empty())
+		{
+			return true;
+		}
+
+		auto& last = scrollingMessages.back();
+
+		if (last.y + MessageHeightPixels > logRect.bottom)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	OS::ticks lastScrollCheck = 0;
+	int logAlpha = 0;
+
+	void ScrollMessages(const GuiRect& logRect)
+	{
+		OS::ticks now = OS::CpuTicks();
+		OS::ticks dt = now - lastScrollCheck;
+
+		const int64 pixelsScrolledPerSecond = 24;
+		OS::ticks ticksPerScroll = OS::CpuHz() / pixelsScrolledPerSecond;
+
+		if (dt > ticksPerScroll)
+		{
+			lastScrollCheck = now;
+		}
+		else
+		{
+			return;
+		}
+
+		for (auto& m : scrollingMessages)
+		{
+			m.y--;
+		}
+
+		if (!scrollingMessages.empty())
+		{
+			if (scrollingMessages.front().y < logRect.top)
+			{
+				scrollingMessages.erase(scrollingMessages.begin());
+			}
+		}
+	}
+
 	void Render(IGuiRenderContext& grc) override
 	{
 		if (panels.empty()) return;
@@ -565,6 +656,44 @@ public:
 		modality.isTop = true;
 		modality.isModal = p.isModal;
 		p.panel->Render(grc, { rect.left, rect.top }, modality);
+
+		GuiMetrics metrics;
+		grc.Renderer().GetGuiMetrics(metrics);
+
+		GuiRect logRect;
+		logRect.left = 2;
+		logRect.right = 799;
+		logRect.bottom = metrics.screenSpan.y - 1;
+		logRect.top = logRect.bottom - 100;
+
+		if (logAlpha)
+		{
+			Graphics::DrawRectangle(grc, logRect, RGBAb(0, 0, 0, logAlpha), RGBAb(64, 64, 64, logAlpha));
+			Graphics::DrawBorderAround(grc, Expand(logRect, 1), { 1,1 }, RGBAb(192, 192, 192, logAlpha), RGBAb(255, 255, 255, logAlpha));
+		}
+
+		for (auto& m : scrollingMessages)
+		{
+			Graphics::RenderVerticalCentredText(grc, m.message.text, RGBAb(255, 255, 255), 9, { 4,m.y }, &logRect);
+		}
+
+		if (!messageLog.IsEmpty() && HasRoomForMessage(logRect))
+		{
+			VisibleMessage top;
+			if (messageLog.TryPopFront(top.message))
+			{
+				top.y = logRect.bottom;
+				scrollingMessages.push_back(top);
+				logAlpha = 192;
+			}
+		}
+
+		if (scrollingMessages.empty() && logAlpha > 0)
+		{
+			logAlpha--;
+		}
+
+		ScrollMessages(logRect);
 	}
 
 	void PushTop(IPanelSupervisor* panel, bool isModal) override
@@ -2586,12 +2715,17 @@ struct PanelDelegate: public IPanelSupervisor
 
 IPaneBuilderSupervisor* GuiStack::CreateOverlay()
 {
-	struct OverlayPanel: public IPaneBuilderSupervisor, PanelDelegate, public IUIElement, public IObserver
+	struct OverlayPanel : public IPaneBuilderSupervisor, PanelDelegate, public IUIElement, public IObserver
 	{
-		struct ANON: public IUIElement
+		struct ANON : public IUIElement
 		{
 			Platform& platform;
-			ANON(Platform& _platform) : platform(_platform) {}
+			OverlayPanel* overlay;
+			ANON(Platform& _platform, OverlayPanel* _overlay) :
+				overlay(_overlay),
+				platform(_platform)
+			{
+			}
 
 			virtual bool OnKeyboardEvent(const KeyboardEvent& key)
 			{
@@ -2613,6 +2747,7 @@ IPaneBuilderSupervisor* GuiStack::CreateOverlay()
 				if (!clickedDown)
 				{
 					platform.mathsVisitor.CancelSelect();
+					overlay->type = Type_None;
 				}
 			}
 
@@ -2621,12 +2756,13 @@ IPaneBuilderSupervisor* GuiStack::CreateOverlay()
 				if (!clickedDown)
 				{
 					platform.mathsVisitor.CancelSelect();
+					overlay->type = Type_None;
 				}
 			}
 
 			virtual void Render(IGuiRenderContext& rc, const GuiRect& absRect)
 			{
-				
+
 			}
 		} textureCancel;
 
@@ -2634,17 +2770,32 @@ IPaneBuilderSupervisor* GuiStack::CreateOverlay()
 		AutoFree<IPaneBuilderSupervisor> txFocusPanel;
 		Platform& platform;
 		EventId stnId = "selected.texture.name"_event;
+		EventId matClickedId = "overlay.select.material"_event;
+		EventId texClickedId = "overlay.select.texture"_event;
+		EventId meshClickedId = "overlay.select.mesh"_event;
+
+		enum Type
+		{
+			Type_None,
+			Type_Texture,
+			Type_Material
+		} type = Type_None;
+
+		std::string description;
 
 		OverlayPanel(Platform& _platform) :
 			platform(_platform),
-			textureCancel(_platform),
+			textureCancel(_platform, this),
 			tabbedPanel(new ScriptedPanel(_platform, "!scripts/panel.overlay.sxy")),
 			txFocusPanel(new ScriptedPanel(_platform, "!scripts/panel.texture.sxy"))
 		{
 			current = tabbedPanel;
 			platform.gui.RegisterPopulator("texture_view", this);
 			platform.gui.RegisterPopulator("texture_cancel", &textureCancel);
-			platform.publisher.Attach(this, "selected.texture.name"_event);
+			platform.publisher.Attach(this, stnId);
+			platform.publisher.Attach(this, matClickedId);
+			platform.publisher.Attach(this, texClickedId);
+			platform.publisher.Attach(this, meshClickedId);
 		}
 
 		~OverlayPanel()
@@ -2661,24 +2812,40 @@ IPaneBuilderSupervisor* GuiStack::CreateOverlay()
 				auto& toe = As<TextOutputEvent>(ev);
 				if (toe.isGetting)
 				{
-					auto* key = platform.mathsVisitor.SelectedKey();
-					if (key)
+					if (!description.empty())
 					{
-						if (StartsWith(key, "MatId "))
-						{
-							int index = atoi(key + 6);
-							auto id = (MaterialId) index;
-							auto name = platform.renderer.GetMaterialTextureName(id);
-
-							if (!name) name = "--unknown--";
-							SafeFormat(toe.text, sizeof(toe.text), " %s: %s", key, name);
-						}
-						else
-						{
-							SafeFormat(toe.text, sizeof(toe.text), " %s", key);
-						}
+						SafeFormat(toe.text, sizeof(toe.text), " %s", description.c_str());
+					}
+					else
+					{
+						*toe.text = 0;
 					}
 				}
+			}
+			else if (ev.id == matClickedId)
+			{
+				auto& mc = As<VisitorItemClicked>(ev);
+				description = mc.key;
+				type = Type_Material;
+			}
+			else if (ev.id == texClickedId)
+			{
+				auto& mc = As<VisitorItemClicked>(ev);
+				description = mc.key;
+				type = Type_Texture;
+			}
+			else if (ev.id == meshClickedId)
+			{
+				auto& mc = As<VisitorItemClicked>(ev);
+
+				AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(64_kilobytes);
+				platform.meshes.SaveCSV(mc.key, *buffer);
+				if (buffer->Length() > 0)
+				{
+					OS::SaveClipBoardText((cstr)buffer->GetData(), platform.renderer.Window());
+					platform.gui.LogMessage("Copied %s CSV to clipboard", mc.key);
+				}
+				type = Type_None;
 			}
 		}
 
@@ -2714,9 +2881,9 @@ IPaneBuilderSupervisor* GuiStack::CreateOverlay()
 
 		virtual void Render(IGuiRenderContext& rc, const GuiRect& absRect)
 		{
-			auto* key = platform.mathsVisitor.SelectedKey();
-			if (key)
+			if (type == Type_Material && !description.empty())
 			{
+				cstr key = description.c_str();
 				auto* ext = Rococo::GetFileExtension(key);
 				if (StartsWith(key, "MatId "))
 				{
@@ -2724,65 +2891,82 @@ IPaneBuilderSupervisor* GuiStack::CreateOverlay()
 					MaterialId id = (MaterialId)index;
 					Graphics::RenderBitmap_ShrinkAndPreserveAspectRatio(rc, id, absRect);
 				}
-				else if (StartsWith(key, "TxId "))
+			}
+			if (type == Type_Texture && !description.empty())
+			{
+				cstr key = description.c_str();
+				int index = atoi(key + 5);
+
+				ID_TEXTURE id(index);
+
+				TextureDesc desc;
+				if (!platform.renderer.TryGetTextureDesc(desc, id))
 				{
-					int index = atoi(key + 5);
+					type = Type_None;
+					return;
+				}
 
-					SpriteVertexData ignore{ 0.0f, 0.0f, 0.0f, 0.0f };
-					RGBAb none(0, 0, 0, 0);
+				SpriteVertexData ignore{ 0.0f, 0.0f, 0.0f, 0.0f };
+				RGBAb none(0, 0, 0, 0);
 
-					GuiVertex quad[6] =
+				GuiVertex quad[6] =
+				{
 					{
-						{
-							{ (float)absRect.left, (float)absRect.top },
-							{ { 0, 0 }, 0 },
-							ignore,
-							none
-						},
-						{
-							{ (float)absRect.right, (float)absRect.top },
-							{ { 1, 0 }, 0 },
-							ignore,
-							none
-						},
-						{
-							{ (float)absRect.right,(float)absRect.bottom },
-							{ { 1, 1 }, 0 },
-							ignore,
-							none
-						},
-						{
-							{ (float)absRect.right, (float)absRect.bottom },
-							{ { 1, 1 }, 0 },
-							ignore,
-							none
-						},
-						{
-							{ (float)absRect.left, (float)absRect.bottom },
-							{ { 0, 1 }, 0 },
-							ignore,
-							none
-						},
-						{
-							{ (float)absRect.left, (float)absRect.top },
-							{ { 0, 0 }, 0 },
-							ignore,
-							none
-						}
-					};
+						{ (float)absRect.left, (float)absRect.top },
+						{ { 0, 0 }, 0 },
+						ignore,
+						none
+					},
+					{
+						{ (float)absRect.right, (float)absRect.top },
+						{ { 1, 0 }, 0 },
+						ignore,
+						none
+					},
+					{
+						{ (float)absRect.right,(float)absRect.bottom },
+						{ { 1, 1 }, 0 },
+						ignore,
+						none
+					},
+					{
+						{ (float)absRect.right, (float)absRect.bottom },
+						{ { 1, 1 }, 0 },
+						ignore,
+						none
+					},
+					{
+						{ (float)absRect.left, (float)absRect.bottom },
+						{ { 0, 1 }, 0 },
+						ignore,
+						none
+					},
+					{
+						{ (float)absRect.left, (float)absRect.top },
+						{ { 0, 0 }, 0 },
+						ignore,
+						none
+					}
+				};
 
-					rc.DrawCustomTexturedMesh(absRect, ID_TEXTURE(index), "!r32f.ps", quad, 6);
-					//	if (id) Graphics::RenderBitmap_ShrinkAndPreserveAspectRatio(rc, id, absRect);
+				if (desc.format == TextureFormat_32_BIT_FLOAT)
+				{
+					rc.DrawCustomTexturedMesh(absRect, id, "!r32f.ps", quad, 6);
+				}
+				else if(desc.format == TextureFormat_RGBA_32_BIT)
+				{
+					rc.DrawCustomTexturedMesh(absRect, id, "!gui.texture.ps", quad, 6);
+				}
+				else
+				{
+					type = Type_None;
 				}
 			}
 		}
 
 		void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
 		{
-			auto* key = platform.mathsVisitor.SelectedKey();
-			auto* value = platform.mathsVisitor.SelectedValue();
-
-			if (key != nullptr)
+			if (type != Type_None)
 			{
 				current = txFocusPanel;
 			}
@@ -3027,7 +3211,7 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 
 	void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
 	{
-
+		if (!clickedDown) platform.mathsVisitor.SelectAtPos(cursorPos);
 	}
 
 	void OnMouseRClick(Vec2i cursorPos, bool clickedDown)  override
@@ -3079,7 +3263,7 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 	AutoFree<Graphics::IRendererConfigSupervisor> rendererConfig = Graphics::CreateRendererConfig(mainWindow->Renderer());
 	Utilities utils(*installation, mainWindow->Renderer());
 
-	AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor(utils);
+	AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor(utils, *publisher);
 
 	GuiStack gui(*publisher, *sourceCache, mainWindow->Renderer(), utils);
 
