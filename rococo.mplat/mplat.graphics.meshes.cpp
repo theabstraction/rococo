@@ -19,9 +19,16 @@ namespace
 	   size_t nVertices;
    };
 
+   struct MeshBindingEx
+   {
+	   MeshBinding* bind;
+	   std::string name;
+   };
+
    struct MeshBuilder : public Rococo::Graphics::IMeshBuilderSupervisor, IMathsVenue
    {
-      std::unordered_map<std::string, MeshBinding> meshes;
+      std::unordered_map<std::string, MeshBinding*> meshes;
+	  std::unordered_map<ID_SYS_MESH, MeshBindingEx, ID_SYS_MESH> idToName;
 	  rchar name[MAX_FQ_NAME_LEN + 1] = { 0 };
       std::vector<ObjectVertex> vertices;
       IRenderer& renderer;
@@ -34,12 +41,11 @@ namespace
 	  {
 		  for (auto& i : meshes)
 		  {
-			  auto& mesh = i.second;
-			  renderer.DeleteMesh(mesh.id);
-			  delete[] mesh.pVertexArray;
+			  auto mesh = i.second;
+			  renderer.DeleteMesh(mesh->id);
+			  delete[] mesh->pVertexArray;
+			  delete mesh;
 		  }
-
-		  meshes.clear();
 	  }
 
       void Clear() override
@@ -47,6 +53,38 @@ namespace
          name[0] = 0;
          vertices.clear();
       }
+
+	  const VertexTriangle* GetTriangles(ID_SYS_MESH id, size_t& nTriangles) const override
+	  {
+		  auto i = idToName.find(id);
+		  if (i == idToName.end() || i->second.bind->pVertexArray == nullptr)
+		  {
+			  nTriangles = 0;
+			  return nullptr;
+		  }
+
+		  nTriangles = i->second.bind->nVertices / 3;
+		  return (const VertexTriangle*)i->second.bind->pVertexArray;
+	  }
+
+	  AABB Bounds(ID_SYS_MESH id) const override
+	  {
+		  auto i = idToName.find(id);
+		  if (i == idToName.end())
+		  {
+			  return AABB();
+		  }
+		  else
+		  {
+			  return i->second.bind->bounds;
+		  }
+	  }
+
+	  const fstring GetName(ID_SYS_MESH id) const override
+	  {
+		  auto i = idToName.find(id);
+		  return i != idToName.end() ? fstring { i->second.name.c_str(), (int32) i->second.name.size() } : fstring{ "", 0 };
+	  }
 
 	  void SetShadowCasting(const fstring& meshName, boolean32 isActive) override
 	  {
@@ -56,7 +94,7 @@ namespace
 			  Throw(0, "MeshBuilder::SetShadowCasating('%s') - mesh unknown. %s", (cstr)meshName);
 		  }
 
-		  renderer.SetShadowCasting(i->second.id, isActive);
+		  renderer.SetShadowCasting(i->second->id, isActive);
 	  }
 
       void Delete(const fstring& fqName) override
@@ -64,16 +102,18 @@ namespace
          auto i = meshes.find((cstr) fqName);
          if (i != meshes.end())
          {
-            auto& mesh = i->second;
-            renderer.DeleteMesh(mesh.id);
-			delete[] mesh.pVertexArray;
+            auto mesh = i->second;
+            renderer.DeleteMesh(mesh->id);
+			delete[] mesh->pVertexArray;
             meshes.erase(i);
+			idToName.erase(mesh->id);
+			delete mesh;
          }
       }
 
 	  struct NameBinding
 	  {
-		  std::pair<std::string, MeshBinding> item;
+		  std::pair<std::string, MeshBinding*> item;
 
 		  bool operator < (const NameBinding& other) const
 		  {
@@ -100,10 +140,10 @@ namespace
 		  for(auto& m: names)
 		  {
 			  char desc[256];
-			  renderer.GetMeshDesc(desc, m.item.second.id);
+			  renderer.GetMeshDesc(desc, m.item.second->id);
 
-			  auto& b = m.item.second.bounds;
-			  visitor.ShowSelectableString("overlay.select.mesh", m.item.first.c_str(), "%5llu %s", m.item.second.id.value, desc);
+			  auto& b = m.item.second->bounds;
+			  visitor.ShowSelectableString("overlay.select.mesh", m.item.first.c_str(), "%5llu %s", m.item.second->id.value, desc);
 		//	  visitor.ShowString(" -> bounds", "(%f, %f, %f) to (%f, %f, %f)", b.minXYZ.x, b.minXYZ.y, b.minXYZ.z, b.maxXYZ.x, b.maxXYZ.y, b.maxXYZ.z);
 		  }
 
@@ -139,11 +179,11 @@ namespace
 			  Throw(0, "MeshBuilder::AddMesh(..., %s) fail. Mesh name not recognized", (cstr)mesh);
 		  }
 
-		  auto* v = i->second.pVertexArray;
+		  auto* v = i->second->pVertexArray;
 
 		  if (*name == 0) Throw(0, "Call MeshBuilder.Begin() first");
 
-		  for (size_t j = 0; j < i->second.nVertices; j++)
+		  for (size_t j = 0; j < i->second->nVertices; j++)
 		  {
 			  auto v0 = v[j];
 			  ObjectVertex v1 = v0;
@@ -191,20 +231,23 @@ namespace
          auto i = meshes.find(name);
          if (i != meshes.end())
          {
-			i->second.bounds = boundingBox;
-            renderer.UpdateMesh(i->second.id, v, (uint32)vertices.size());
+			i->second->bounds = boundingBox;
+            renderer.UpdateMesh(i->second->id, v, (uint32)vertices.size());
 
 			if (preserveCopy)
 			{
-				i->second.nVertices = vertices.size();
-				delete[] i->second.pVertexArray;
-				i->second.pVertexArray = backup;
+				i->second->nVertices = vertices.size();
+				delete[] i->second->pVertexArray;
+				i->second->pVertexArray = backup;
 			}
          }
          else
          {
             auto id = renderer.CreateTriangleMesh(invisible ? nullptr : v, invisible ? 0 : (uint32)vertices.size());
-			meshes[name] = MeshBinding { id, boundingBox, backup, vertices.size() };
+			auto binding = new MeshBinding{ id, boundingBox, backup, vertices.size() };
+			auto& s = std::string(name);
+			meshes[s] = binding;
+			idToName[id] = MeshBindingEx { binding, s };
          }
 
          Clear();
@@ -218,7 +261,7 @@ namespace
 			  Throw(0, "MeshBuilder::SetSpecialShader(...%s): mesh not found", (cstr)name);
 		  }
 
-		  renderer.SetSpecialShader(i->second.id, psSpotlightPingPath, psAmbientPingPath, alphaBlending);
+		  renderer.SetSpecialShader(i->second->id, psSpotlightPingPath, psAmbientPingPath, alphaBlending);
 	  }
 
 	  void SaveCSV(cstr name, IExpandingBuffer& buffer) override
@@ -230,19 +273,19 @@ namespace
 			  return;
 		  }
 
-		  if (i->second.pVertexArray)
+		  if (i->second->pVertexArray)
 		  {
-			  auto count = i->second.nVertices;
+			  auto count = i->second->nVertices;
 			  buffer.Resize(count * 256 + 256);
 
 			  StackStringBuilder sb((char*)buffer.GetData(), buffer.Length());
 
-			  sb << "Material Id # " << i->second.id.value << "," << name << "\n\n";
+			  sb << "Material Id # " << i->second->id.value << "," << name << "\n\n";
 			  sb << "TriangleId,VertexId,X,Y,Z,U,V,Nx,Ny,Nz,Colour,Mat,Gloss\n\n";
 
 			  for (size_t k = 0; k < count; ++k)
 			  {
-				  auto& v = i->second.pVertexArray[k];
+				  auto& v = i->second->pVertexArray[k];
 				  sb << k / 3 << "," << k << "," << v.position.x << "," << v.position.y << "," << v.position.z << ",";
 				  sb << v.uv.x << "," << v.uv.y << "," << v.normal.x << "," << v.normal.y << "," << v.normal.z << ",";
 				  sb.AppendFormat("0x%8.8X", *(int*)(&v.material.colour));
@@ -265,7 +308,7 @@ namespace
 			  Throw(0, "MeshBuilder::Span(...%s): mesh not found", (cstr)name);
 		  }
 
-		  span = i->second.bounds.Span();
+		  span = i->second->bounds.Span();
 	  }
 
       virtual bool TryGetByName(cstr name, ID_SYS_MESH& id, AABB& bounds)
@@ -279,8 +322,8 @@ namespace
          }
          else
          {
-            id = i->second.id;
-			bounds = i->second.bounds;
+            id = i->second->id;
+			bounds = i->second->bounds;
             return true;
          }
       }

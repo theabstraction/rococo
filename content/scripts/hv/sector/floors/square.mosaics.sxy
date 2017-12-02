@@ -34,7 +34,7 @@
 	(qst.PushQuad floorQuad white)
 	
 	(if (sector.FoundationsExist)
-		(qst.AddRod 0 1 0 1 0.05 0.25 black)
+		(qst.AddCuboid 0 1 0 1 0.05 0.25 black)
 		(qst.ClearInput)
 	
 		(Vec3 up = 0 0 1)

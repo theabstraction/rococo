@@ -338,8 +338,8 @@
 	(as.cpp Rococo.Graphics.IQuadStackTesselator "mplat")
 	(context factory Rococo.Graphics.IQuadStackTesselator)
 	(methods
-			(AddRod(Float32 v0)(Float32 v1)(Float32 t0)(Float32 t1)(Float32 thickness)(Float32 uvScale)(const MaterialVertexData rodMat))
-			(AddRodAbs(Metres dx0)(Metres dy0)(Metres dx1)(Metres dy1)(Metres thickness)(Float32 uvScale)(const MaterialVertexData rodMat))
+			(AddCuboid(Float32 v0)(Float32 v1)(Float32 t0)(Float32 t1)(Float32 thickness)(Float32 uvScale)(const MaterialVertexData rodMat))
+			(AddCuboidAbs(Metres dx0)(Metres dy0)(Metres dx1)(Metres dy1)(Metres thickness)(Float32 uvScale)(const MaterialVertexData rodMat))
 			(Clear)
 			(ClearInput)
 			(ClearOutput)

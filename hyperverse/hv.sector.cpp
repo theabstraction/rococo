@@ -53,6 +53,16 @@ namespace ANON
 	   }
    }
 
+   bool IsTriangleFacingUp(cr_m4x4 model, const VertexTriangle& t)
+   {
+	   Vec3 up{ 0, 0, 1 };
+	   Vec3 Na, Nb, Nc;
+	   TransformDirection(model, t.a.normal, Na);
+	   TransformDirection(model, t.a.normal, Nb);
+	   TransformDirection(model, t.a.normal, Nc);
+	   return (Na == up && Nb == up && Nc == up);
+   }
+
    struct TriangleListBinding : public  ITriangleList
    {
 	   std::vector<VertexTriangle>& tris;
@@ -227,6 +237,25 @@ namespace ANON
 	   }
    }
 
+   void SortQuadsByArea(std::vector<Quad>& quads)
+   {
+	   struct
+	   {
+		   static float AreaSq(const Quad& q)
+		   {
+			   Vec3 ab = q.b - q.a;
+			   Vec3 bc = q.c - q.b;
+			   Vec3 K = Cross(ab,bc);
+			   return LengthSq(K);
+		   }
+
+		   bool operator()(const Quad& p, const Quad& q) const
+		   {
+			   return AreaSq(p) > AreaSq(q);
+		   }
+	   } byAreaDescedning;
+	   std::sort(quads.begin(), quads.end(), byAreaDescedning);
+   }
 
    struct Sector : public ISector, public ICorridor, IMaterialPalette, public IEventCallback<MaterialArgs>, public ISectorLayout
    {
@@ -277,6 +306,15 @@ namespace ANON
 
 	   std::vector<ID_ENTITY> managedEntities;
 
+	   struct SceneryBind
+	   {
+		   ID_ENTITY id;
+		   AABB worldBounds;
+		   std::vector<Quad> levelSurfaces;
+	   };
+
+	   std::vector<SceneryBind> scenery;
+
 	   void Altitude(Vec2& altitudes)
 	   {
 		   altitudes = { z0, z1 };
@@ -287,6 +325,40 @@ namespace ANON
 		   managedEntities.clear();
 	   }
 
+	   void DeleteItemsWithMesh(const fstring& prefix) override
+	   {
+		   struct
+		   {
+			   Sector* This;
+			   const fstring prefix;
+			   bool operator()(const ID_ENTITY id) const
+			   {
+				   auto& p = This->platform;
+				   auto* e = p.instances.GetEntity(id);
+				   if (e)
+				   {
+					   auto meshId = e->MeshId();
+					   auto name = p.meshes.GetName(meshId);
+					   if (StartsWith(name, prefix))
+					   {
+						   return true;
+					   }
+				   }
+				   return false;
+			   }
+
+			   bool operator()(const SceneryBind& bind) const
+			   {
+				   return operator()(bind.id);
+			   }
+		   } meshPrefixed{ this, prefix };
+		   auto i = std::remove_if(managedEntities.begin(), managedEntities.end(), meshPrefixed);
+		   managedEntities.erase(i, managedEntities.end());
+
+		   auto j = std::remove_if(scenery.begin(), scenery.end(), meshPrefixed);
+		   scenery.erase(j, scenery.end());
+	   }
+
 	   void ManageEntity(ID_ENTITY id)  override
 	   {
 		   managedEntities.push_back(id);
@@ -295,6 +367,128 @@ namespace ANON
 	   const AABB2d& GetAABB() const override
 	   {
 		   return aabb;
+	   }
+
+	   void UseUpFacingQuads(ID_ENTITY id) override
+	   {
+		   for (auto& i : scenery)
+		   {
+			   if (i.id == id)
+			   {
+				   i.levelSurfaces.clear();
+
+				   auto* e = platform.instances.GetEntity(id);
+				   if (e)
+				   {
+					   const Vec3 up{ 0, 0, 1 };
+					   auto& model = e->Model();
+					   size_t triangleCount = 0;
+					   auto tris = platform.meshes.GetTriangles(e->MeshId(), triangleCount);
+
+					   if (triangleCount > 1)
+					   {
+						   for (auto k = 0; k < triangleCount - 1; ++k)
+						   {
+							   auto& t0 = tris[k];
+							   auto& t1 = tris[k+1];
+							   if (IsTriangleFacingUp(model, t0) && IsTriangleFacingUp(model, t1))
+							   {
+									// We may have a quad, if so then t0 forms abc and t1 forms cda
+								   if (t0.a.position == t1.c.position && t0.c.position == t1.a.position)
+								   {
+									   Quad q;
+									   q.a = t0.a.position;
+									   q.b = t0.b.position;
+									   q.c = t0.c.position;
+									   q.d = t1.b.position;
+									   i.levelSurfaces.push_back(q);
+									   k++;
+								   }
+							   }
+						   }
+					   }
+
+					   SortQuadsByArea(i.levelSurfaces);
+				   }
+			   }
+		   }
+	   }
+
+	   std::vector<SceneryBind*> randomizedSceneryList;
+
+	   bool IsQuadRectangular(const Quad& q)
+	   {
+		   Vec3 ab = q.b - q.a;
+		   Vec3 bc = q.c - q.b;
+		   Vec3 cd = q.d - q.c;
+		   Vec3 da = q.a - q.d;
+
+		   if (Dot(ab, bc) == 0 && Dot(bc, cd) == 0 && Dot(cd, da) == 0 && Dot(da, ab) == 0)
+		   {
+			   return true;
+		   }
+		   else
+		   {
+			   return false;
+		   }
+	   }
+
+	   bool TryPlaceItemOnQuad(const Quad& qModel, ID_ENTITY quadsEntityId, ID_ENTITY itemId)
+	   {
+		   auto e = platform.instances.GetEntity(quadsEntityId);
+		   auto item = platform.instances.GetEntity(itemId);
+		   if (e && item)
+		   {
+			   if (IsQuadRectangular(qModel) && qModel.a.x == qModel.b.x || qModel.a.y == qModel.b.y)
+			   {
+				   Quad qWorld;
+				   TransformPositions(&qModel.a, 4, e->Model(), &qWorld.a);
+
+				   auto bounds = platform.meshes.Bounds(item->MeshId());
+				   if (bounds.minXYZ.x < bounds.maxXYZ.x)
+				   {
+					   AABB2d minSquare;
+					   minSquare << AsVec2(qModel.a) << AsVec2(qModel.b) << AsVec2(qModel.c) << AsVec2(qModel.d);
+
+					   Matrix4x4 randomModel;
+					   AABB worldBounds;
+					   if (TryGetRandomTransformation(randomModel, worldBounds, true, true, bounds, minSquare, qModel.a.z, z1 - z0))
+					   {
+						   ManageEntity(itemId);
+						   item->Model() = e->Model() * randomModel;
+						   return true;
+					   }
+				   }
+			   }
+		   }
+
+		   return false;
+	   }
+
+	   boolean32 PlaceItemOnUpFacingQuad(ID_ENTITY id) override
+	   {
+		   randomizedSceneryList.clear();
+
+		   for (auto& i : scenery)
+		   {
+			   randomizedSceneryList.push_back(&i);
+		   }
+
+		   std::random_shuffle(randomizedSceneryList.begin(), randomizedSceneryList.end());
+
+		   for (auto&i : randomizedSceneryList)
+		   {
+			   if (!i->levelSurfaces.empty())
+			   {
+				   auto& q = i->levelSurfaces[0];
+				   if (TryPlaceItemOnQuad(q, i->id, id))
+				   {
+					   return true;
+				   }
+			   }
+		   }
+
+		   return false;
 	   }
 
 	   void SyncEnvironmentMapToSector() override
@@ -2456,14 +2650,6 @@ namespace ANON
 	  {
 		  return this;
 	  }
-
-	  struct SceneryBind
-	  {
-		  ID_ENTITY id;
-		  AABB worldBounds;
-	  };
-
-	  std::vector<SceneryBind> scenery;
 
 	  ID_ENTITY AddItemToLargestSquare(const fstring& meshName, int addItemFlags, const HV::ObjectCreationSpec& obs) override
 	  {

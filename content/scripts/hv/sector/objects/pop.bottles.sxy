@@ -75,16 +75,35 @@
 		
 	(IStringBuilder sb (StringBuilder 256))
 	
+	(#for (Int32 j = 0)(j < 5)(#inc j)
+		(sb.Clear)
+		(#build sb "object.bottle." j)
+		(MakeBottle sb)
+	)
+	
+	(IInstances instances (Instances))
+	
 	(#for (Int32 i = 0)(i < nSectors)(#inc i)
 		(ISectorLayout sector = (sectors.GetSector i))
+		(sector.DeleteItemsWithMesh "object.bottle.")
 			
 		(#for (Int32 j = 1)(j < 50)(#inc j)
 			(ObjectCreationSpec ocs)
 			(sb.Clear)
-			(sb.AppendIString "object.bottle.")
-			(sb.AppendInt32 j)
-			(MakeBottle sb)
-			(sector.AddItemToLargestSquare sb addItemFlags ocs)
+			(#build sb "object.bottle." (AnyInt 0 4))
+			
+			(Matrix4x4 model = 
+				(1 0 0 0)
+				(0 1 0 0)
+				(0 0 1 0)
+				(0 0 0 1)
+			)
+			
+			(Vec3 scale = 1 1 1)
+			(Int64 bottleId = (instances.AddBody sb model scale 0))
+			(if (not (sector.PlaceItemOnUpFacingQuad bottleId))
+				(instances.Delete bottleId)
+			)
 		)
 	)
 )

@@ -76,7 +76,7 @@
 	)
 	
 	(qst.PushQuad scaffold woodFrame)
-	(qst.AddRod 0 1 0 1 height uvScale woodFrame)
+	(qst.AddCuboid 0 1 0 1 height uvScale woodFrame)
 	(qst.ClearInput)
 	
 	(Vec3 front = 1 0 0)
@@ -95,7 +95,7 @@
 	
 	(Float32 shelfHeight = (AnyFloat 0.2 0.5))
 	
-	(Float32 nShelves = (Floor (height / shelfHeight) ))
+	(Float32 nShelves =  0) //(Floor (height / shelfHeight) ))
 	
 	(if (nShelves > 0)	
 		(shelfHeight = (1 / nShelves))
@@ -110,7 +110,7 @@
 		(AnyColour 80 100 80 100 0 20 80 128 -> shelfMat.colour)
 		
 		(#for (Float32 i = 0)(i < nShelves)(i = (i + 1))
-			(qst.AddRod yShelf (yShelf + 0.025) 0 1 (width - 0.05) uvScale shelfMat)
+			(qst.AddCuboid yShelf (yShelf + 0.025) 0 1 (width - 0.05) uvScale shelfMat)
 			(yShelf = (yShelf + shelfHeight))
 		)
 	)
@@ -121,7 +121,7 @@
 	
 	(Flush qst mb)
 		
-	(mb.End false false)
+	(mb.End true false)
 	
 	(mb.Clear)
 	
@@ -142,7 +142,7 @@
 		(AnyFloat 0.01 0.1 -> doorMat.gloss)
 		(AnyColour 0 255 0 255 0 255 128 255 -> doorMat.colour)
 			
-		(qst.AddRod 0.01 0.4975 1 (1 + doorDelta) (height - 0.02) uvScale doorMat)
+		(qst.AddCuboid 0.01 0.4975 1 (1 + doorDelta) (height - 0.02) uvScale doorMat)
 		(Flush qst mb)
 	(mb.End false false)
 	
@@ -150,7 +150,7 @@
 	(sb.AppendIString name)
 	(sb.AppendIString ".door.right")
 	(mb.Begin sb)
-		(qst.AddRod 0.5025 0.99 1 (1 + doorDelta) (height - 0.02) uvScale doorMat)
+		(qst.AddCuboid 0.5025 0.99 1 (1 + doorDelta) (height - 0.02) uvScale doorMat)
 	(Flush qst mb)
 	
 	(mb.End false false)
@@ -169,6 +169,7 @@
 		(ISectorLayout sector = (sectors.GetSector i))
 			
 		(ObjectCreationSpec ocs)
-		(sector.AddItemToLargestSquare "object.cupboard.1" addItemFlags ocs)
+		(Int64 id = (sector.AddItemToLargestSquare "object.cupboard.1" addItemFlags ocs))
+		(sector.UseUpFacingQuads id)
 	)
 )

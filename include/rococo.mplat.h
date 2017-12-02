@@ -167,6 +167,9 @@ namespace Rococo
 		  virtual void SaveCSV(cstr name, IExpandingBuffer& buffer) = 0;
 		  virtual bool TryGetByName(cstr name, ID_SYS_MESH& id, AABB& bounds) = 0;
 		  virtual IMathsVenue* Venue() = 0;
+		  virtual const fstring GetName(ID_SYS_MESH id) const = 0;
+		  virtual const VertexTriangle* GetTriangles(ID_SYS_MESH id, size_t& nTriangles) const = 0;
+		  virtual AABB Bounds(ID_SYS_MESH id) const = 0;
 	   };
 
 	   ROCOCOAPI ICameraSupervisor : public ICamera

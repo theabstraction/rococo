@@ -156,7 +156,7 @@
 	(table.SetUVScale 0.25)
 	(table.AddBox 0.05 nw ne se sw)
 	
-	(table.CopyToMeshBuilder meshName false false true)
+	(table.CopyToMeshBuilder meshName true false true)
 )
 
 (function MakeChair (IString meshName) -> :
@@ -337,6 +337,7 @@
 			
 		(ObjectCreationSpec ocs)
 		(Int64 tableId = (sector.AddItemToLargestSquare "object.table.1" addItemFlags ocs))
+		(sector.UseUpFacingQuads tableId)
 		(if (tableId > 0)
 			(#for (Int32 k = 0)(k < 10)(#inc k)	
 				(HV.InsertItemSpec iis)

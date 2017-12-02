@@ -70,7 +70,7 @@
 	
 	(Vec3 up = 0 0 1)
 	(qst.MoveOutputToInputWithNormalDotRange up 0.99 1.0)
-	(qst.AddRod -0.1 1.0 0 1 0.05 0.25 shelf)
+	(qst.AddCuboid -0.1 1.0 0 1 0.05 0.25 shelf)
 	(qst.MoveInputToOutput)
 	
 	(ITriangleList tris = sector.WallTriangles)

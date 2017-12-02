@@ -68,10 +68,14 @@
 		
 		(AddSceneryAroundObject (IString mesh)(IdEntity centrePieceId)(const InsertItemSpec iis)(const ObjectCreationSpec ocs)-> (IdEntity id))
 		(AddItemToLargestSquare(IString mesh)(Int32 addItemFlags)(const ObjectCreationSpec ocs)-> (IdEntity id))
+		(PlaceItemOnUpFacingQuad (IdEntity id)->(Bool wasMoved))
+		
 		(DeleteScenery)
+		(DeleteItemsWithMesh (IString prefix))
 		
 		(ClearManagedEntities)
 		(ManageEntity (IdEntity id))
+		(UseUpFacingQuads (IdEntity id))
 	)
 )
 

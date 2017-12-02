@@ -87,7 +87,7 @@
 	(qst.Intrude basinRect 0.1 uvScale brickSides water)
 	
 	(qst.MoveOutputToInputWithMat brickBack)
-	(qst.AddRodAbs -0.75 0.75 0.75 -0.75 0.2 0.25 pictureFrame)
+	(qst.AddCuboidAbs -0.75 0.75 0.75 -0.75 0.2 0.25 pictureFrame)
 	(qst.MoveInputToOutput)
 	
 	(qst.MoveOutputToInputWithMat pictureFrame)

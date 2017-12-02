@@ -155,7 +155,7 @@
 	(Rectf rect = 0.001 1 0.999 0)
 	(qst.Shrink rect)
 	
-	(qst.AddRod 0 1 0 1 0.5 0.5 mullions)
+	(qst.AddCuboid 0 1 0 1 0.5 0.5 mullions)
 	
 	(qst.ClearInput)
 	

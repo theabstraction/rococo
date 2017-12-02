@@ -84,7 +84,7 @@
 	(ISectorComponents components (SectorComponents))
 	(components.BuildComponent "wall.button")
 	
-	(qst.AddRod 0.0 1 0 1 0.12 0.5 rod)
+	(qst.AddCuboid 0.0 1 0 1 0.12 0.5 rod)
 	
 	(while (qst.PopOutputAsTriangles topLeft bottomRight)
 		(components.AddTriangle topLeft)

@@ -89,7 +89,7 @@
 	
 	(qst.PushQuad floorQuad floor)
 	(qst.Shrink hole)
-	(qst.AddRod -0.001 1.001 -0.001 1.001 0.097 0.25 floor)
+	(qst.AddCuboid -0.001 1.001 -0.001 1.001 0.097 0.25 floor)
 	(qst.ClearInput)
 	(while (qst.PopOutputAsTriangles topLeft bottomRight)
 		(components.AddTriangle topLeft)

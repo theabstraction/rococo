@@ -87,7 +87,7 @@
 	
 	(Float32 y = 0.05)
 	(#for (Int32 j = 0)(j < 10)(#inc j)
-		(qst.AddRod 0 1 y (y + 0.05) 0.10 0.5 panels)
+		(qst.AddCuboid 0 1 y (y + 0.05) 0.10 0.5 panels)
 		(y = (y + 0.1))
 	)
 	
@@ -101,7 +101,7 @@
 	(qst.PushQuad floorQuad floor)
 	(qst.Shrink hole)
 	
-	(qst.AddRod 0.475 0.525 0.0125 1 0.05 0.5 rod)
+	(qst.AddCuboid 0.475 0.525 0.0125 1 0.05 0.5 rod)
 	
 	(qst.ClearInput)
 	
@@ -113,7 +113,7 @@
 	(qst.PushQuad floorQuad floor)
 	(qst.Shrink hole)
 	
-	(qst.AddRod 0.465 0.535 0 0.025 0.05 0.5 brace)
+	(qst.AddCuboid 0.465 0.535 0 0.025 0.05 0.5 brace)
 		
 	(while (qst.PopOutputAsTriangles topLeft bottomRight)
 		(sector.AddFloorTriangle topLeft)

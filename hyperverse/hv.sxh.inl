@@ -50,6 +50,22 @@ namespace HV {
 
 		return true;
 	}
+	fstring ToShortString(AddItemFlags value)
+	{
+		switch(value)
+		{
+			case AddItemFlags_None:
+				return "None"_fstring;
+			case AddItemFlags_AlignEdge:
+				return "AlignEdge"_fstring;
+			case AddItemFlags_RandomHeading:
+				return "RandomHeading"_fstring;
+			case AddItemFlags_RandomPosition:
+				return "RandomPosition"_fstring;
+			default:
+				return {"",0};
+		}
+	}
 }// HV.AddItemFlags
 
 // BennyHill generated Sexy native functions for HV::IPlayer 
@@ -652,6 +668,22 @@ namespace
 		_offset += sizeof(id);
 		WriteOutput(id, _sf, -_offset);
 	}
+	void NativeHVISectorLayoutPlaceItemOnUpFacingQuad(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		HV::ISectorLayout* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 wasMoved = _pObject->PlaceItemOnUpFacingQuad(id);
+		_offset += sizeof(wasMoved);
+		WriteOutput(wasMoved, _sf, -_offset);
+	}
 	void NativeHVISectorLayoutDeleteScenery(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -661,6 +693,22 @@ namespace
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->DeleteScenery();
+	}
+	void NativeHVISectorLayoutDeleteItemsWithMesh(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _prefix;
+		ReadInput(_prefix, _sf, -_offset);
+		fstring prefix { _prefix->buffer, _prefix->length };
+
+
+		HV::ISectorLayout* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->DeleteItemsWithMesh(prefix);
 	}
 	void NativeHVISectorLayoutClearManagedEntities(NativeCallEnvironment& _nce)
 	{
@@ -686,6 +734,20 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->ManageEntity(id);
 	}
+	void NativeHVISectorLayoutUseUpFacingQuads(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		HV::ISectorLayout* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->UseUpFacingQuads(id);
+	}
 
 }
 
@@ -704,9 +766,12 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVISectorLayoutGetGap, nullptr, SEXTEXT("ISectorLayoutGetGap (Pointer hObject)(Int32 gapIndex)(HV.GapSegment segment) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutAddSceneryAroundObject, nullptr, SEXTEXT("ISectorLayoutAddSceneryAroundObject (Pointer hObject)(Sys.Type.IString mesh)(Int64 centrePieceId)(HV.InsertItemSpec iis)(HV.ObjectCreationSpec ocs) -> (Int64 id)"));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutAddItemToLargestSquare, nullptr, SEXTEXT("ISectorLayoutAddItemToLargestSquare (Pointer hObject)(Sys.Type.IString mesh)(Int32 addItemFlags)(HV.ObjectCreationSpec ocs) -> (Int64 id)"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutPlaceItemOnUpFacingQuad, nullptr, SEXTEXT("ISectorLayoutPlaceItemOnUpFacingQuad (Pointer hObject)(Int64 id) -> (Bool wasMoved)"));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutDeleteScenery, nullptr, SEXTEXT("ISectorLayoutDeleteScenery (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutDeleteItemsWithMesh, nullptr, SEXTEXT("ISectorLayoutDeleteItemsWithMesh (Pointer hObject)(Sys.Type.IString prefix) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutClearManagedEntities, nullptr, SEXTEXT("ISectorLayoutClearManagedEntities (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutManageEntity, nullptr, SEXTEXT("ISectorLayoutManageEntity (Pointer hObject)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutUseUpFacingQuads, nullptr, SEXTEXT("ISectorLayoutUseUpFacingQuads (Pointer hObject)(Int64 id) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ITriangleList 
