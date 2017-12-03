@@ -1,0 +1,103 @@
+(' #file.type rococo.hv)
+
+(' #include 
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv.sxh.sxy"
+	"!scripts/hv/hv.types.sxy"
+	"!scripts/types.sxy"
+	"!scripts/types.mplat.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+
+(using HV)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Entities)
+(using Sys.Type)
+(using Sys.Maths)
+(using Sys.Geometry.F32)
+(using Sys.Random)
+
+(function MakePortal -> :
+	(IRodTesselator portal(RodTesselator))
+	(IInstances instances (Instances))
+	
+	(MaterialVertexData ring)
+	(instances.GetRandomMaterialId (#MaterialCategoryMarble) -> ring.id)
+	(ring.gloss = 0.2)
+	(ring.colour = 0x4FFFFFFF)
+	
+	(MaterialVertexData sphere)
+	(instances.GetRandomMaterialId (#MaterialCategoryMetal) -> sphere.id)
+	(sphere.gloss = 0.2)
+	(sphere.colour = 0xFFFFFFFF)
+	
+	(portal.SetMaterialTop sphere)	
+	(portal.SetMaterialMiddle sphere)	
+	(portal.SetMaterialBottom sphere)	
+	
+	(portal.SetUVScale 0.1)
+	(portal.AddBowl 5 4.5 14 0 13 14)
+	
+	(portal.SetMaterialTop ring)	
+	(portal.SetMaterialMiddle ring)	
+	(portal.SetMaterialBottom ring)	
+	
+	(portal.AddTorus 3 5 10 10)
+	
+	(portal.SetMaterialTop sphere)	
+	(portal.SetMaterialMiddle sphere)	
+	(portal.SetMaterialBottom sphere)	
+	
+	(portal.Advance -4)
+	(portal.AddBowl 5 4.5 14 1 14 14)
+	
+	(Matrix4x4 ry90 = 
+		(0  0 -1  0)
+		(0  1  0  0)
+		(1  0  0  0)
+		(0  0  0  1)
+	)
+	
+	(portal.TransformVertices ry90)
+	
+	(portal.CopyToMeshBuilder "machine.portal.1" false false true)
+)
+
+(function Main (Int32 id)->(Int32 exitCode):	
+	(Int32 addItemFlags = 0)
+	
+	(MakePortal)
+	
+	(IInstances instances (Instances))
+	
+	(ISectorEnumerator sectors (SectorEnumerator))
+	(ISectorLayout sector = (sectors.GetSelectedSector))
+
+	(if (not sector.Exists)
+		(IMessaging messaging (Messaging))
+		(messaging.Log "The script requires a sector to be selected in the editor")
+	else
+		(sector.DeleteItemsWithMesh  "machine.portal.1")
+		
+		(Matrix4x4 model = 
+			(1  0  0  0)
+			(0  1  0  0)
+			(0  0  1  0)
+			(0  0  0  1)
+		)
+			
+		(Vec3 scale = 1 1 1)
+		(Int64 portalId = (instances.AddBody "machine.portal.1" model scale 0))
+			
+		(ObjectCreationSpec ocs)
+		(sector.AddItemToLargestSquare "machine.portal.1" addItemFlags ocs)
+	)
+	
+
+					
+
+)

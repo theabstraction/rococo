@@ -105,6 +105,7 @@
     <ClCompile Include="mplat.entities.instances.cpp" />
     <ClCompile Include="mplat.graphics.fieldtesselator.cpp" />
     <ClCompile Include="mplat.graphics.meshes.cpp" />
+    <ClCompile Include="mplat.graphics.messaging.cpp" />
     <ClCompile Include="mplat.graphics.rod.tesselator.cpp" />
     <ClCompile Include="mplat.graphics.qs.tesselator.cpp" />
     <ClCompile Include="mplat.graphics.sprites.cpp" />

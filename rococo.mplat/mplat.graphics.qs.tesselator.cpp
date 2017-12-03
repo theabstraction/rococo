@@ -800,7 +800,6 @@ namespace ANON
 			bottomLeft.b.uv = { item.q.uv.left, item.q.uv.bottom };
 			bottomLeft.b.material = item.mat;
 			bottomLeft.b.material.colour = item.q.colours.d;
-
 			bottomLeft.c = topRight.a;
 
 			output.pop_back();

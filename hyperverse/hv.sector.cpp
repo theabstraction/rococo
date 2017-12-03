@@ -359,6 +359,11 @@ namespace ANON
 		   scenery.erase(j, scenery.end());
 	   }
 
+	   boolean32 Exists() override
+	   {
+		   return true;
+	   }
+
 	   void ManageEntity(ID_ENTITY id)  override
 	   {
 		   managedEntities.push_back(id);
@@ -480,7 +485,7 @@ namespace ANON
 		   {
 			   if (!i->levelSurfaces.empty())
 			   {
-				   auto& q = i->levelSurfaces[0];
+				   auto& q = i->levelSurfaces[Roll::x((uint32)i->levelSurfaces.size())];
 				   if (TryPlaceItemOnQuad(q, i->id, id))
 				   {
 					   return true;
@@ -991,6 +996,7 @@ namespace ANON
 				  This->platform.meshes.End(preserveMesh, false);
 				  This->AddComponent(Matrix4x4::Identity(), localName.c_str(), meshName.c_str());
 			  }
+
 		  } scriptCallback(this);  
 
 		  try

@@ -16,6 +16,11 @@ Rococo::Graphics::IRendererConfig* FactoryConstructRococoGraphicsRendererConfig(
 	return &platform->rendererConfig;
 }
 
+Rococo::Graphics::IMessaging* FactoryConstructRococoGraphicsMessaging(Rococo::Platform* platform)
+{
+	return &platform->messaging;
+}
+
 Rococo::Graphics::ITextTesselator* FactoryConstructRococoGraphicsTextTesselator(Rococo::Platform* platform)
 {
 	return &platform->utilities.GetTextTesselator();
@@ -159,6 +164,7 @@ namespace Rococo
 				  Graphics::AddNativeCalls_RococoGraphicsIRodTesselator(args.ss, &platform);
 				  Graphics::AddNativeCalls_RococoGraphicsITextTesselator(args.ss, &platform);
 				  Graphics::AddNativeCalls_RococoGraphicsIRendererConfig(args.ss, &platform);
+				  Graphics::AddNativeCalls_RococoGraphicsIMessaging(args.ss, &platform);
                   AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
 				  Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
 

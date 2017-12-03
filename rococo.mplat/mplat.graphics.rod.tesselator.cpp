@@ -1,5 +1,6 @@
 #include <rococo.mplat.h>
 #include <vector>
+#include <rococo.rings.inl>
 
 using namespace Rococo;
 using namespace Rococo::Graphics;
@@ -24,6 +25,9 @@ namespace ANON
 		Platform& platform;
 
 		std::vector<Vec2> vertices;
+		std::vector<ObjectVertex> tempBuffer0;
+		std::vector<ObjectVertex> tempBuffer1;
+		std::vector<ObjectVertex> tempBuffer2;
 
 		bool smoothNormals = true;
 		MaterialVertexData top { RGBAb(255, 255, 255), 0, 0 };
@@ -591,6 +595,150 @@ namespace ANON
 			return DV;
 		}
 
+		void JoinAndTesselate(const ObjectVertex* srcRing, const ObjectVertex* dstRing, size_t nRings, float u0, float u1, float tubeRadius)
+		{
+			Ring<ObjectVertex> src(srcRing, nRings);
+			Ring<ObjectVertex> dst(dstRing, nRings);
+
+			float v0 = 0;
+			float dv = uvScale * 2.8f * PI() * tubeRadius / nRings;
+
+			for (size_t i = 0; i < nRings; ++i)
+			{
+				float v1 = v0 + dv;
+
+				ObjectQuad oq;
+				oq.a = src[i + 1];
+				oq.b = dst[i + 1];
+				oq.c = dst[i];
+				oq.d = src[i];
+
+				oq.a.uv.x = oq.d.uv.x = u0;
+				oq.b.uv.x = oq.c.uv.x = u1;
+
+				oq.d.uv.y = oq.c.uv.y = v0;
+				oq.a.uv.y = oq.b.uv.y = v1;
+
+				oq.a.position += origin;
+				oq.b.position += origin;
+				oq.c.position += origin;
+				oq.d.position += origin;
+
+				triangles.push_back({ oq.a, oq.b, oq.c });
+				triangles.push_back({ oq.c, oq.d, oq.a });
+
+				v0 = v1;
+			}
+		}
+
+		void AddTorus(Metres innerRadius, Metres outerRadius, int32 nRings, int32 nDivs) override
+		{
+			if (nDivs < 3 || nDivs > 100)
+			{
+				Throw(0, "RodTesselator::AddTorus(...): nDvis must be >= 3 and <= 100");
+			}
+
+			if (nRings < 3 || nRings > 100)
+			{
+				Throw(0, "RodTesselator::AddTorus(...): nRings must be >= 3 and <= 100");
+			}
+
+			float radius = 0.5f * (innerRadius + outerRadius);
+
+			auto dTheta = Degrees{ 360.0f / nDivs };
+
+			auto dPhi = Degrees{ 360.0f / nRings };
+
+			float cTheta0 = 1;
+			float sTheta0 = 0;
+
+			Degrees theta = { 0 };
+
+			Metres tubeRadius { outerRadius - innerRadius };
+
+			Degrees phi = { 0 };
+
+			float cPhi0 = 1;
+			float sPhi0 = 0;
+
+			tempBuffer0.clear();
+			tempBuffer1.clear();
+			tempBuffer0.reserve(nRings);
+			tempBuffer1.resize(nRings);
+			tempBuffer2.resize(nRings);
+
+			for (int j = 0; j < nRings; ++j)
+			{
+				phi.degrees += dPhi;
+
+				float cPhi1 = Cos(phi);
+				float sPhi1 = Sin(phi);
+
+				ObjectVertex v;
+				v.position =
+				{
+					tubeRadius * cPhi0,
+					0,
+					tubeRadius * sPhi0,
+				};
+
+				v.material = middle;
+				v.normal = { cPhi0, 0, sPhi0 };
+
+				tempBuffer0.push_back(v);
+
+				cPhi0 = cPhi1;
+				sPhi0 = sPhi1;
+			}
+
+			const ObjectVertex* ring = tempBuffer0.data();
+			ObjectVertex* srcRing = tempBuffer1.data();
+			ObjectVertex* dstRing = tempBuffer2.data();
+
+			auto T0 = Matrix4x4::Translate(Vec3{ radius,0,0 });
+			for (size_t i = 0; i < nRings; ++i)
+			{
+				TransformPosition(T0, ring[i].position, srcRing[i].position);
+				TransformDirection(T0, ring[i].normal, srcRing[i].normal);
+				srcRing[i].material = dstRing[i].material = middle;
+			}
+
+			float u0 = 0;
+			float du = uvScale * radius * 2 * Rococo::PI() / nDivs;
+
+			for (int32 i = 0; i < nDivs; ++i)
+			{
+				theta.degrees += dTheta;
+				Matrix4x4 Rz = Matrix4x4::RotateRHAnticlockwiseZ(theta);
+
+				Vec3 DR
+				{
+					radius * Cos(theta),
+					radius * Sin(theta),
+					0
+				};
+
+				Matrix4x4 T = Matrix4x4::Translate(DR);
+				Matrix4x4 RT = T * Rz;
+
+				for (size_t i = 0; i < nRings; ++i)
+				{
+					TransformPosition(RT, ring[i].position, dstRing[i].position);
+					TransformDirection(RT, ring[i].normal, dstRing[i].normal);
+				}
+
+				float u = u0 + du;
+
+				JoinAndTesselate(srcRing, dstRing, nRings, u0, u, tubeRadius);
+
+				u0 = u;
+
+				std::swap(srcRing, dstRing);
+			}
+
+			origin += direction * 2 * tubeRadius;
+		}
+
 		void AddHollowDisc(float yOuter, float yInner, float outerRadius, float interRadius, int32 nDivs, float V, float DV)
 		{
 			auto dTheta = Degrees{ 360.0f / nDivs };
@@ -1102,6 +1250,33 @@ namespace ANON
 		void SetUVScale(float uvScale) override
 		{
 			this->uvScale = uvScale;
+		}
+
+		void TransformVertices(const Matrix4x4& m) override
+		{
+			for (auto& t : triangles)
+			{
+				Vec3 newPosition;
+				Vec3 newNormal;
+
+				TransformPosition(m, t.a.position, newPosition);
+				TransformDirection(m, t.a.normal, newNormal);
+
+				t.a.position = newPosition;
+				t.a.normal = newNormal;
+
+				TransformPosition(m, t.b.position, newPosition);
+				TransformDirection(m, t.b.normal, newNormal);
+
+				t.b.position = newPosition;
+				t.b.normal = newNormal;
+
+				TransformPosition(m, t.c.position, newPosition);
+				TransformDirection(m, t.c.normal, newNormal);
+
+				t.c.position = newPosition;
+				t.c.normal = newNormal;
+			}
 		}
 	};
 }

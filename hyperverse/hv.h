@@ -247,6 +247,9 @@ namespace HV
 
 	  virtual void BindProperties(IBloodyPropertySetEditor& editor) = 0;
 	  virtual void NotifyChanged() = 0;
+
+	  virtual size_t GetSelectedSectorId() const = 0;
+	  virtual void SelectSector(size_t id) = 0;
    };
 
    ISectors* CreateSectors(Platform& platform);

@@ -233,6 +233,15 @@
 	(factory Rococo.Graphics.SceneBuilder)
 )
 
+(interface (as.sxy Rococo.Graphics.IMessaging "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.IMessaging "mplat")
+	(context factory Rococo.Platform)
+	(methods
+		(Log  (IString message))
+	)
+	(factory Rococo.Graphics.Messaging)
+)
+
 (enum Int32
 	(as.sxy Rococo.Graphics.MaterialCategory "../content/scripts/mplat")
 	(as.cpp Rococo.Graphics.MaterialCategory "mplat")
@@ -375,6 +384,7 @@
 		(AddPyramid (Metres length)(const Vec2 a)(const Vec2 b)(const Vec2 c)(const Vec2 d))
 		(AddPrism (Metres length)(const Vec2 a)(const Vec2 b)(const Vec2 c))
 		(AddSphere (Metres radius)(Int32 nRings)(Int32 nDivs))
+		(AddTorus (Metres innerRadius)(Metres outerRadius)(Int32 nRings)(Int32 nDivs))
 		(AddBowl (Metres radius1)(Metres radius2)(Int32 nRings)(Int32 startRing)(Int32 endRing)(Int32 nDivs))
 		(AddTube (Metres length)(Metres bottomRadius)(Metres topRadius)(Int32 nDivs))
 		(AddVertex (const Vec2 v))
@@ -394,6 +404,7 @@
 		(SetMaterialTop (MaterialVertexData top))
 		(SetOrigin (const Vec3 origin))
 		(SetUVScale (Float32 sUV))
+		(TransformVertices (const Matrix4x4 m))
 		(UseFaceNormals)
 		(UseSmoothNormals)
 	)

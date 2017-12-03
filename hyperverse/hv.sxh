@@ -54,6 +54,7 @@
 	(as.cpp HV.ISectorLayout "hv" )
 	(context factory HV.ISectorLayout)
 	(methods
+		(Exists -> (Bool exists))
 		(CountSquares -> (Int32 sqCount))
 		(GetSquare (Int32 sqIndex)(AABB2d sq))
 		(CeilingQuad (Int32 sqIndex)(QuadVertices q))
@@ -86,6 +87,7 @@
 	(methods
 		(Count -> (Int32 nCount))
 		(GetSector (Int32 index) -> (HV.ISectorLayout layout))
+		(GetSelectedSector -> (HV.ISectorLayout layout))
 	)
 	(factory HV.SectorEnumerator)
 )

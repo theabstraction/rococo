@@ -259,7 +259,6 @@ namespace
 		Platform& platform;
 		IEditorState* editor;
 		Windows::IWindow& parent;
-		size_t litIndex = -1;
 
 		void Render(IGuiRenderContext& grc, const GuiRect& rect) override
 		{
@@ -277,11 +276,13 @@ namespace
 				{
 					auto& s = map.Sectors();
 
+					size_t litIndex = map.Sectors().GetSelectedSectorId();
+						
 					size_t nSectors = s.end() - s.begin();
 					if (litIndex < nSectors)
 					{
 						s.Delete(s.begin()[litIndex]);
-						litIndex = -1;
+						map.Sectors().SelectSector(-1);
 					}
 				}
 				return true;
@@ -335,15 +336,15 @@ namespace
 						{
 							if (secs.begin()[i] == s)
 							{
-								litIndex = i;
-								editor->SetPropertyTarget(secs.begin()[litIndex]);
+								map.Sectors().SelectSector(i);
+								editor->SetPropertyTarget(secs.begin()[i]);
 								return;
 							}
 						}
 					}
 				}
 
-				litIndex = -1;
+				map.Sectors().SelectSector(-1);
 				editor->SetPropertyTarget(nullptr);
 			}
 		}
@@ -359,11 +360,12 @@ namespace
 		{
 			auto& secs = map.Sectors();
 			size_t nSectors = secs.end() - secs.begin();
+			size_t litIndex = map.Sectors().GetSelectedSectorId();
 			return (litIndex < nSectors) ? secs.begin()[litIndex] : nullptr;
 		}
 
 		void SetEditor(IEditorState* editor) { this->editor = editor; }
-		void CancelHilight() { litIndex = -1; }
+		void CancelHilight() { map.Sectors().SelectSector(-1); }
 	};
 
 	class EditMode_SectorBuilder : private IEditMode

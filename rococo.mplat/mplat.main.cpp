@@ -3272,10 +3272,13 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 
 	GuiStack gui(*publisher, *sourceCache, mainWindow->Renderer(), utils);
 
+	AutoFree<Graphics::IMessagingSupervisor> messaging = Graphics::CreateMessaging();
+
 	Tesselators tesselators{ *rimTesselator };
-	Platform platform{ *os, *installation, mainWindow->Renderer(), *rendererConfig, *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor, title };
+	Platform platform{ *os, *installation, mainWindow->Renderer(), *rendererConfig, *messaging, *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor, title };
 	gui.platform = &platform;
 	utils.SetPlatform(platform);
+	messaging->PostCreate(platform);
 
 	AutoFree<IApp> app(appFactory.CreateApp(platform));
 

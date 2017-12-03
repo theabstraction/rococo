@@ -2725,6 +2725,51 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetLight, nullptr, SEXTEXT("ISceneBuilderSetLight (Pointer hObject)(Rococo.LightSpec light)(Int32 index) -> "));
 	}
 }}
+// BennyHill generated Sexy native functions for Rococo::Graphics::IMessaging 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoGraphicsIMessagingLog(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _message;
+		ReadInput(_message, _sf, -_offset);
+		fstring message { _message->buffer, _message->length };
+
+
+		Rococo::Graphics::IMessaging* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Log(message);
+	}
+
+	void NativeGetHandleForRococoGraphicsMessaging(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Platform* nceContext = reinterpret_cast<Rococo::Platform*>(_nce.context);
+		// Uses: Rococo::Graphics::IMessaging* FactoryConstructRococoGraphicsMessaging(Rococo::Platform* _context);
+		Rococo::Graphics::IMessaging* pObject = FactoryConstructRococoGraphicsMessaging(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { namespace Graphics { 
+	void AddNativeCalls_RococoGraphicsIMessaging(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Graphics.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsMessaging, _nceContext, SEXTEXT("GetHandleForIMessaging0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMessagingLog, nullptr, SEXTEXT("IMessagingLog (Pointer hObject)(Sys.Type.IString message) -> "));
+	}
+}}
 // BennyHill generated Sexy native functions for Rococo::Entities::IInstances 
 namespace
 {
@@ -4018,6 +4063,32 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddSphere(radius, nRings, nDivs);
 	}
+	void NativeRococoGraphicsIRodTesselatorAddTorus(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 nDivs;
+		_offset += sizeof(nDivs);
+		ReadInput(nDivs, _sf, -_offset);
+
+		int32 nRings;
+		_offset += sizeof(nRings);
+		ReadInput(nRings, _sf, -_offset);
+
+		Metres outerRadius;
+		_offset += sizeof(outerRadius);
+		ReadInput(outerRadius, _sf, -_offset);
+
+		Metres innerRadius;
+		_offset += sizeof(innerRadius);
+		ReadInput(innerRadius, _sf, -_offset);
+
+		Rococo::Graphics::IRodTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddTorus(innerRadius, outerRadius, nRings, nDivs);
+	}
 	void NativeRococoGraphicsIRodTesselatorAddBowl(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -4324,6 +4395,20 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetUVScale(sUV);
 	}
+	void NativeRococoGraphicsIRodTesselatorTransformVertices(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Matrix4x4* m;
+		_offset += sizeof(m);
+		ReadInput(m, _sf, -_offset);
+
+		Rococo::Graphics::IRodTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->TransformVertices(*m);
+	}
 	void NativeRococoGraphicsIRodTesselatorUseFaceNormals(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -4366,6 +4451,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddPyramid, nullptr, SEXTEXT("IRodTesselatorAddPyramid (Pointer hObject)(Sys.SI.Metres length)(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 c)(Sys.Maths.Vec2 d) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddPrism, nullptr, SEXTEXT("IRodTesselatorAddPrism (Pointer hObject)(Sys.SI.Metres length)(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 c) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddSphere, nullptr, SEXTEXT("IRodTesselatorAddSphere (Pointer hObject)(Sys.SI.Metres radius)(Int32 nRings)(Int32 nDivs) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddTorus, nullptr, SEXTEXT("IRodTesselatorAddTorus (Pointer hObject)(Sys.SI.Metres innerRadius)(Sys.SI.Metres outerRadius)(Int32 nRings)(Int32 nDivs) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddBowl, nullptr, SEXTEXT("IRodTesselatorAddBowl (Pointer hObject)(Sys.SI.Metres radius1)(Sys.SI.Metres radius2)(Int32 nRings)(Int32 startRing)(Int32 endRing)(Int32 nDivs) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddTube, nullptr, SEXTEXT("IRodTesselatorAddTube (Pointer hObject)(Sys.SI.Metres length)(Sys.SI.Metres bottomRadius)(Sys.SI.Metres topRadius)(Int32 nDivs) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddVertex, nullptr, SEXTEXT("IRodTesselatorAddVertex (Pointer hObject)(Sys.Maths.Vec2 v) -> "));
@@ -4385,6 +4471,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetMaterialTop, nullptr, SEXTEXT("IRodTesselatorSetMaterialTop (Pointer hObject)(Rococo.MaterialVertexData top) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetOrigin, nullptr, SEXTEXT("IRodTesselatorSetOrigin (Pointer hObject)(Sys.Maths.Vec3 origin) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetUVScale, nullptr, SEXTEXT("IRodTesselatorSetUVScale (Pointer hObject)(Float32 sUV) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorTransformVertices, nullptr, SEXTEXT("IRodTesselatorTransformVertices (Pointer hObject)(Sys.Maths.Matrix4x4 m) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorUseFaceNormals, nullptr, SEXTEXT("IRodTesselatorUseFaceNormals (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorUseSmoothNormals, nullptr, SEXTEXT("IRodTesselatorUseSmoothNormals (Pointer hObject) -> "));
 	}

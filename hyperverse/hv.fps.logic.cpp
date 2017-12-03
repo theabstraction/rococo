@@ -657,9 +657,16 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 			if (e.sectors.begin() != e.sectors.end())
 			{
 				ISector* firstSector = *e.sectors.begin();
-				Vec3 p = GetRandomPointInSector(*firstSector);
-				CollisionParameters cp2 = { p, p, cp.playerId, cp.dt, cp.jumpSpeed };
-				return ComputeFloorCollisionInSector(cp2, *firstSector, jumpSpeed);
+				if (firstSector->FloorVertices().VertexCount)
+				{
+					Vec3 p = GetRandomPointInSector(*firstSector);
+					CollisionParameters cp2 = { p, p, cp.playerId, cp.dt, cp.jumpSpeed };
+					return ComputeFloorCollisionInSector(cp2, *firstSector, jumpSpeed);
+				}
+				else
+				{
+					return cp.start;
+				}
 			}
 			else
 			{

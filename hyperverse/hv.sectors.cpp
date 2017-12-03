@@ -117,6 +117,28 @@ namespace ANON
 
    EventId onPopulateSectors = "onPopulateSectors"_event;
 
+   struct NullSectorLayout : public ISectorLayout
+   {
+	   int32 CountSquares() override {  return 0; }
+	   boolean32 Exists() override { return false; }
+	   void GetSquare(int32 sqIndex, AABB2d& sq) override {}
+	   void CeilingQuad(int32 sqIndex, QuadVertices& q) override {}
+	   void FloorQuad(int32 sqIndex, QuadVertices& q) override {}
+	   void Altitude(Vec2& altitudes) override {}
+	   int32 NumberOfSegments()  override { return 0; }
+	   int32 NumberOfGaps() override { return 0; }
+	   void GetSegment(int32 segIndex, HV::WallSegment& segment) override {}
+	   void GetGap(int32 gapIndex, HV::GapSegment& segment) override {}
+	   ID_ENTITY AddSceneryAroundObject(const fstring& mesh, ID_ENTITY centrePieceId, const HV::InsertItemSpec& iis, const HV::ObjectCreationSpec& ocs) override { return ID_ENTITY(); }
+	   ID_ENTITY AddItemToLargestSquare(const fstring& mesh, int32 addItemFlags, const HV::ObjectCreationSpec& ocs) override { return ID_ENTITY(); }
+	   boolean32 PlaceItemOnUpFacingQuad(ID_ENTITY id) override { return false; }
+	   void DeleteScenery()  override {}
+	   void DeleteItemsWithMesh(const fstring& prefix) override {}
+	   void ClearManagedEntities()  override {}
+	   void ManageEntity(ID_ENTITY id) override {}
+	   void UseUpFacingQuads(ID_ENTITY id)  override {}
+   } nullSectorLayout;
+
    class Sectors : public ISectors, public ISectorBuilder, public Rococo::Events::IObserver
    {
 	   const Metres defaultFloorLevel{ 0.0f };
@@ -576,6 +598,18 @@ namespace ANON
 		   }
 	   }
 
+	   size_t selectedIndex = -1;
+
+	   virtual size_t GetSelectedSectorId() const
+	   {
+		   return selectedIndex;
+	   }
+
+	   virtual void SelectSector(size_t index)
+	   {
+		   selectedIndex = index;
+	   }
+
 	   void Populate()
 	   {
 		   struct : IEventCallback<ScriptCompileArgs>, public ISectorEnumerator
@@ -595,6 +629,16 @@ namespace ANON
 			   HV::ISectorLayout* GetSector(int32 index)  override
 			   {
 				   return This->sectors[index]->Layout();
+			   }
+
+			   HV::ISectorLayout* GetSelectedSector() override
+			   {
+				   if (This->selectedIndex >= This->sectors.size())
+				   {
+					   return &ANON::nullSectorLayout;
+				   }
+
+				   return This->sectors[This->selectedIndex]->Layout();
 			   }
 		   } p;
 

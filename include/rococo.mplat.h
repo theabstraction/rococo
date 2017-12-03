@@ -473,6 +473,14 @@ namespace Rococo
 	  };
 
 	  IRimTesselatorSupervisor* CreateRimTesselator();
+
+	  ROCOCOAPI IMessagingSupervisor: public IMessaging
+	  {
+		  virtual void PostCreate(Platform& platform) = 0;
+		  virtual void Free() = 0;
+	  };
+
+	  IMessagingSupervisor* CreateMessaging();
    }
 
    struct Tesselators
@@ -491,7 +499,11 @@ namespace Rococo
       // Renderer
       IRenderer& renderer;
 
+	  // Render config used to set up sampler states et al
 	  Graphics::IRendererConfig& rendererConfig;
+
+	  // Messaging used to communicate to the player in text
+	  Graphics::IMessaging& messaging;
 
       // Script source cache
       ISourceCache& sourceCache;

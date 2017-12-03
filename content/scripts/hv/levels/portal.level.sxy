@@ -1,0 +1,47 @@
+(' #file.type hv.level)
+
+(' #include
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv.sxh.sxy"
+	"!scripts/types.sxy"
+	"!scripts/hv/hv.types.sxy")
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(function Main(Int32 id)->(Int32 exitCode) :
+	(AddSectorsToLevel)
+)
+
+(using HV)
+(using Rococo.Graphics)
+
+(function AddSectorsToLevel -> :
+	(ISectors sectors (SectorBuilder))
+
+	(sectors.Clear)
+
+	(AddSector0 sectors) // entrance
+)
+
+(function AddSector0 (ISectors sectors) -> :
+	(sectors.AddVertex -20.000000 20.000000)
+	(sectors.AddVertex 20.000000 20.000000)
+	(sectors.AddVertex 20.000000 -20.000000)
+	(sectors.AddVertex -20.000000 -20.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"  (#MaterialCategoryStone) 0xceaddc49 "random")
+	(sectors.SetTemplateMaterial "floor"      (#MaterialCategoryRock) 0xf1b730c4 "random")
+	(sectors.SetTemplateMaterial "cement"     (#MaterialCategoryRock) 0xe54044f2 "random")
+	(sectors.SetTemplateMaterial "mullions"   (#MaterialCategoryWood) 0xefda1f8b "random")
+	(sectors.SetTemplateMaterial "ceiling"    (#MaterialCategoryMarble) 0xd022f622 "random")
+	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryMetal) 0xdc72b902 "random")
+	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryWood) 0xc8eab280 "random")
+	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xd8c57e80 "random")
+
+	(sectors.SetTemplateDoorScript false "")
+	(sectors.SetTemplateWallScript false "#walls/mosaic.sxy")
+
+	(sectors.CreateFromTemplate 0 4000)
+)
+

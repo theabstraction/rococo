@@ -7,7 +7,7 @@ namespace Rococo
       const T* ring;
       size_t nElements;
    public:
-      Ring(const Vec2* _ring, size_t _nElements) : ring(_ring), nElements(_nElements) {}
+      Ring(const T* _ring, size_t _nElements) : ring(_ring), nElements(_nElements) {}
       size_t ElementCount() const
       {
          return nElements;

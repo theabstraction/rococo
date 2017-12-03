@@ -472,6 +472,18 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
+	void NativeHVISectorLayoutExists(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorLayout* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 exists = _pObject->Exists();
+		_offset += sizeof(exists);
+		WriteOutput(exists, _sf, -_offset);
+	}
 	void NativeHVISectorLayoutCountSquares(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -755,6 +767,7 @@ namespace HV {
 	void AddNativeCalls_HVISectorLayout(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorLayout* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutExists, nullptr, SEXTEXT("ISectorLayoutExists (Pointer hObject) -> (Bool exists)"));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutCountSquares, nullptr, SEXTEXT("ISectorLayoutCountSquares (Pointer hObject) -> (Int32 sqCount)"));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutGetSquare, nullptr, SEXTEXT("ISectorLayoutGetSquare (Pointer hObject)(Int32 sqIndex)(Rococo.AAB2d sq) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutCeilingQuad, nullptr, SEXTEXT("ISectorLayoutCeilingQuad (Pointer hObject)(Int32 sqIndex)(Rococo.QuadVertices q) -> "));
@@ -1097,6 +1110,20 @@ namespace
 		CReflectedClass* _sxylayout = _nce.ss.Represent(_layoutStruct, layout);
 		WriteOutput(&_sxylayout->header._vTables[0], _sf, -_offset);
 	}
+	void NativeHVISectorEnumeratorGetSelectedSector(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorEnumerator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		HV::ISectorLayout* layout = _pObject->GetSelectedSector();
+		_offset += sizeof(CReflectedClass*);
+		auto& _layoutStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("HV"),SEXTEXT("ISectorLayout"), SEXTEXT("ProxyISectorLayout"), _nce.ss);
+		CReflectedClass* _sxylayout = _nce.ss.Represent(_layoutStruct, layout);
+		WriteOutput(&_sxylayout->header._vTables[0], _sf, -_offset);
+	}
 
 	void NativeGetHandleForHVSectorEnumerator(NativeCallEnvironment& _nce)
 	{
@@ -1117,6 +1144,7 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeGetHandleForHVSectorEnumerator, _nceContext, SEXTEXT("GetHandleForISectorEnumerator0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeHVISectorEnumeratorCount, nullptr, SEXTEXT("ISectorEnumeratorCount (Pointer hObject) -> (Int32 nCount)"));
 		ss.AddNativeCall(ns, NativeHVISectorEnumeratorGetSector, nullptr, SEXTEXT("ISectorEnumeratorGetSector (Pointer hObject)(Int32 index) -> (HV.ISectorLayout layout)"));
+		ss.AddNativeCall(ns, NativeHVISectorEnumeratorGetSelectedSector, nullptr, SEXTEXT("ISectorEnumeratorGetSelectedSector (Pointer hObject) -> (HV.ISectorLayout layout)"));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ISectorComponents 
