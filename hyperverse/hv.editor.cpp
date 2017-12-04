@@ -338,6 +338,7 @@ namespace
 							{
 								map.Sectors().SelectSector(i);
 								editor->SetPropertyTarget(secs.begin()[i]);
+								editor->BindSectorPropertiesToPropertyEditor(secs.begin()[i]);
 								return;
 							}
 						}
@@ -941,8 +942,10 @@ namespace
 		GuiMetrics metrics;
 		AutoFree<IStatusBar> statusbar;
 		Platform& platform;
+		IFPSGameMode& fpsGameMode;
 		IPlayerSupervisor& players;
 		TextureList textureList;
+		bool initialized = false;
 
 		ToggleEventHandler editModeHandler;
 		ToggleEventHandler textureTargetHandler;
@@ -955,6 +958,8 @@ namespace
 		AutoFree<IBloodyPropertySetEditorSupervisor> ceilingEditor;
 		AutoFree<IBloodyPropertySetEditorSupervisor> corridorEditor;
 		AutoFree<IBloodyPropertySetEditorSupervisor> lightEditor;
+
+		AutoFree<IBloodyPropertySetEditorSupervisor> ambienceEditor;
 
 		char levelpath[IO::MAX_PATHLEN] = { 0 };
 
@@ -1025,17 +1030,38 @@ namespace
 			this->target = nullptr;
 		}
 
-		virtual void SetPropertyTarget(IPropertyTarget* target)
+		void SetPropertyTarget(IPropertyTarget* target) override
 		{
+			if (this->target != nullptr)
+			{
+				this->target->Assign(nullptr);
+			}
+
 			wallEditor->Clear();
 			floorEditor->Clear();
 			ceilingEditor->Clear();
 			corridorEditor->Clear();
 			lightEditor->Clear();
+			ambienceEditor->Clear();
 
-			if (this->target != nullptr)
+			if (target == nullptr)
 			{
-				this->target->Assign(nullptr);
+				target = fpsGameMode.GetPropertyTarget();
+
+				PopulateTabsEvent tbe("tabs.populate"_event);
+				tbe.populatorName = "editor.tabs";
+
+				PopulateTabsEvent::TabRef globalTabs[] =
+				{
+					{ "Ambience",   "editor.tab.ambience", 80 }
+				};
+
+				tbe.numberOfTabs = 1;
+				tbe.tabArray = globalTabs;
+
+				platform.publisher.Publish(tbe);
+
+				target->GetProperties("Ambient", *ambienceEditor);
 			}
 			
 			this->target = target;
@@ -1043,16 +1069,44 @@ namespace
 			if (target)
 			{		
 				target->Assign(this);
-				target->GetProperties("walls", *wallEditor);
-				target->GetProperties("floor", *floorEditor);
-				target->GetProperties("ceiling", *ceilingEditor);
-				target->GetProperties("corridor", *corridorEditor);
-				target->GetProperties("lights", *lightEditor);
 			}
+		}
+
+		void BindSectorPropertiesToPropertyEditor(IPropertyTarget* target) override
+		{
+			PopulateTabsEvent tbe("tabs.populate"_event);
+			tbe.populatorName = "editor.tabs";
+
+			PopulateTabsEvent::TabRef sectorTabs[] =
+			{
+				{ "Objects",	"editor.tab.objects", 65 },
+				{ "Walls",		"editor.tab.walls",   50 },
+				{ "Floor",		"editor.tab.floor",   50 },
+				{ "Ceiling",	"editor.tab.ceiling", 60 },
+				{ "Corridor",   "editor.tab.corridor",75 },
+				{ "Lights",		"editor.tab.lights",  55 }
+			};
+
+			tbe.numberOfTabs = 6;
+			tbe.tabArray = sectorTabs;
+
+			platform.publisher.Publish(tbe);
+
+			target->GetProperties("walls", *wallEditor);
+			target->GetProperties("floor", *floorEditor);
+			target->GetProperties("ceiling", *ceilingEditor);
+			target->GetProperties("corridor", *corridorEditor);
+			target->GetProperties("lights", *lightEditor);
 		}
 
 		void Render(IGuiRenderContext& grc, const GuiRect& absRect) override
 		{
+			if (!initialized)
+			{
+				SetPropertyTarget(nullptr);
+				initialized = true;
+			}
+
 			grc.Renderer().GetGuiMetrics(metrics);
 			map.Render(grc, EditMode().GetHilight(), transparency.State() == 1);
 
@@ -1174,8 +1228,9 @@ namespace
 		}
 
 	public:
-		Editor(Platform& _platform, IPlayerSupervisor& _players, ISectors& sectors) :
+		Editor(Platform& _platform, IPlayerSupervisor& _players, ISectors& sectors, IFPSGameMode& _fpsGameMode) :
 			platform(_platform),
+			fpsGameMode(_fpsGameMode),
 			players(_players),
 			map(_platform, sectors),
 			textureList(_platform),
@@ -1197,6 +1252,7 @@ namespace
 			ceilingEditor = platform.utilities.CreateBloodyPropertySetEditor(*this);
 			corridorEditor = platform.utilities.CreateBloodyPropertySetEditor(*this);
 			lightEditor = platform.utilities.CreateBloodyPropertySetEditor( *this);
+			ambienceEditor = platform.utilities.CreateBloodyPropertySetEditor(*this);
 
 			platform.publisher.Attach(this, HV::Events::changeDefaultTextureId);
 
@@ -1217,6 +1273,7 @@ namespace
 			platform.gui.RegisterPopulator("editor.tab.ceiling", &(*ceilingEditor));
 			platform.gui.RegisterPopulator("editor.tab.corridor", &(*corridorEditor));
 			platform.gui.RegisterPopulator("editor.tab.lights", &(*lightEditor));
+			platform.gui.RegisterPopulator("editor.tab.ambience", &(*ambienceEditor));
 
 			sectors.BindProperties(*objectLayoutEditor);
 		}
@@ -1229,6 +1286,7 @@ namespace
 			platform.gui.UnregisterPopulator(&(*ceilingEditor));
 			platform.gui.UnregisterPopulator(&(*corridorEditor));
 			platform.gui.UnregisterPopulator(&(*lightEditor));
+			platform.gui.UnregisterPopulator(&(*ambienceEditor));
 			platform.gui.UnregisterPopulator(this);
 			platform.publisher.Detach(this);
 
@@ -1245,9 +1303,9 @@ namespace
 
 namespace HV
 {
-	IEditor* CreateEditor(Platform& platform, IPlayerSupervisor& players, ISectors& sectors)
+	IEditor* CreateEditor(Platform& platform, IPlayerSupervisor& players, ISectors& sectors, IFPSGameMode& fpsGameMode)
 	{
-		return new Editor(platform, players, sectors);
+		return new Editor(platform, players, sectors, fpsGameMode);
 	}
 
 	namespace Events

@@ -77,6 +77,8 @@ namespace HV
   
    bool QueryYesNo(Windows::IWindow& ownerWindow, cstr message);
 
+   struct IPropertyTarget;
+
    ROCOCOAPI IEditor
    {
       virtual bool IsScrollLocked() const = 0;
@@ -86,7 +88,24 @@ namespace HV
    struct ISectors;
    struct ISector;
 
-   IEditor* CreateEditor(Platform& platform, IPlayerSupervisor& players, ISectors& sectors);
+   ROCOCOAPI IGameMode
+   {
+		virtual void Activate() = 0;
+		virtual void Deactivate() = 0;
+		virtual void UpdateAI(const IUltraClock& clock) = 0;
+   };
+
+   ROCOCOAPI IFPSGameMode : public IGameMode
+   {
+	   virtual IPropertyTarget* GetPropertyTarget() = 0;
+   };
+
+   ROCOCOAPI IFPSGameModeSupervisor : public IFPSGameMode
+   {
+	   virtual void Free() = 0;
+   };
+
+   IEditor* CreateEditor(Platform& platform, IPlayerSupervisor& players, ISectors& sectors, IFPSGameMode& fpsGameMode);
 
    struct ObjectVertexBuffer
    {
@@ -134,7 +153,7 @@ namespace HV
 
    ROCOCOAPI IEditorState: public IPropertyHost
    {
-
+	  virtual void BindSectorPropertiesToPropertyEditor(IPropertyTarget* target) = 0;
       virtual cstr TextureName(int index) const = 0;
    };
 
@@ -254,27 +273,16 @@ namespace HV
 
    ISectors* CreateSectors(Platform& platform);
 
-   ROCOCOAPI IGameMode
-   {    
-      virtual void Activate() = 0;
-      virtual void Deactivate() = 0;
-      virtual void UpdateAI(const IUltraClock& clock) = 0;
-   };
-
-   ROCOCOAPI IGameModeSupervisor: public IGameMode
-   {
-      virtual void Free() = 0;
-   };
-
    struct Cosmos
    {
       Platform& platform;
       IPlayerSupervisor& players;
       IEditor& editor;
       ISectors& sectors;
+	  IFPSGameModeSupervisor& fpsMode;
    };
 
-   IGameModeSupervisor* CreateFPSGameLogic(Cosmos& e);
+   IFPSGameModeSupervisor* CreateFPSGameLogic(Platform& platform, IPlayerSupervisor& players, ISectors& sectors);
 
    IApp* CreateHVApp(Cosmos& e);
    void RunEnvironmentScript(Cosmos& e, cstr name, bool releaseSource = false);

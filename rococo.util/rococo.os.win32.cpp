@@ -77,6 +77,7 @@ namespace Rococo
 }
 
 #include <rococo.window.h>
+#include <Commdlg.h>
 
 namespace Rococo
 {
@@ -195,6 +196,28 @@ namespace Rococo
 			{
 				__debugbreak();
 			}
+		}
+
+		bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window)
+		{
+			static COLORREF colours[16] = { 0 };
+
+			CHOOSECOLORA c = { 0 };
+			c.hwndOwner = window;
+			c.lStructSize = sizeof(c);
+			c.rgbResult = RGB(colour.red, colour.green, colour.blue);
+			c.lpCustColors = colours;
+			c.Flags = CC_RGBINIT | CC_ANYCOLOR | CC_FULLOPEN;
+
+			if (ChooseColorA(&c))
+			{
+				colour.red = GetRValue(c.rgbResult);
+				colour.green = GetGValue(c.rgbResult);
+				colour.blue = GetBValue(c.rgbResult);
+				return true;
+			}
+
+			return false;
 		}
 
 		bool IsDebugging()

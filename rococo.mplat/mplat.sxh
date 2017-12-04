@@ -51,6 +51,7 @@
 	(context factory Rococo.ITabContainer)
 	(methods
 		(AddTab (Int32 tabWidth)(IString caption)(IString panelText))
+		(SetTabPopulator (IString populatorName))
 		(Base -> (Rococo.IPane base))
 	)
 )

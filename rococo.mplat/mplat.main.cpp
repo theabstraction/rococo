@@ -1537,7 +1537,9 @@ struct Tab
 	GuiRect lastRect{ 0,0,0,0 };
 };
 
-class TabContainer : public BasePanel, public ITabContainer
+auto populateTabs = "tabs.populate"_event;
+
+class TabContainer : public BasePanel, public ITabContainer, public IObserver
 {
 	int32 fontIndex;
 	int32 tabHeight;
@@ -1545,10 +1547,77 @@ class TabContainer : public BasePanel, public ITabContainer
 	IKeyboardSupervisor& keyboard;
 	std::vector<Tab> tabs;
 	size_t tabSelect = 0;
+	std::string populatorName;
+
+	void OnEvent(Event& ev)
+	{
+		bool replaceTabs = false;
+
+		if (ev.id == populateTabs)
+		{
+			auto& p = As<PopulateTabsEvent>(ev);
+
+			if (populatorName.empty() || p.populatorName == nullptr || !Eq(p.populatorName, populatorName.c_str()))
+			{
+				return;
+			}
+
+			if (tabs.size() == p.numberOfTabs)
+			{
+				for (size_t i = 0; i < p.numberOfTabs; ++i)
+				{
+					auto &t = p.tabArray[i];
+					if (!Eq(t.name, tabs[i].caption.c_str()))
+					{
+						replaceTabs = true;
+						break;
+					}
+
+					if (!Eq(t.populator, tabs[i].panelText.c_str()))
+					{
+						replaceTabs = true;
+						break;
+					}
+
+					if (t.width != tabs[i].width)
+					{
+						replaceTabs = true;
+						break;
+					}
+				}
+			}
+			else
+			{
+				replaceTabs = true;
+			}
+
+			if (replaceTabs)
+			{
+				tabs.clear();
+				for (size_t i = 0; i < p.numberOfTabs; ++i)
+				{
+					auto &t = p.tabArray[i];
+
+					Tab tab;
+					tab.caption = t.name;
+					tab.panelText = t.populator;
+					tab.width = t.width;
+					tab.lastRect = { 0,0,0,0 };
+
+					tabs.push_back(tab);
+				}
+			}
+		}
+	}
 public:
 	TabContainer(IPublisher& _publisher, IKeyboardSupervisor& _keyboard, int _tabHeight, int _fontIndex) :
 		publisher(_publisher), keyboard(_keyboard), tabHeight(_tabHeight), fontIndex(_fontIndex)
 	{
+	}
+
+	~TabContainer()
+	{
+		publisher.Detach(this);
 	}
 
 	void Free() override
@@ -1931,6 +2000,17 @@ public:
 		}
 
 		RenderTabContent(grc, GuiRect{ nw.x+1, nw.y+1, se.x, se.y }, tab.panelText.c_str());
+	}
+
+	void SetTabPopulator(const fstring& populatorName) override
+	{
+		if (!this->populatorName.empty())
+		{
+			Throw(0, "A tabbed panel can only have its populator set once");
+		}
+
+		this->populatorName = populatorName;
+		publisher.Attach(this, populateTabs);
 	}
 };
 

@@ -517,6 +517,7 @@ namespace Rococo
 	  void ToSysPath(char* path);
 	  void ToUnixPath(char* path);
 	  void SaveClipBoardText(cstr text, Windows::IWindow& window);
+	  bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window);
    }
 
 #if !defined(_W64)

@@ -1045,6 +1045,22 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddTab(tabWidth, caption, panelText);
 	}
+	void NativeRococoITabContainerSetTabPopulator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _populatorName;
+		ReadInput(_populatorName, _sf, -_offset);
+		fstring populatorName { _populatorName->buffer, _populatorName->length };
+
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetTabPopulator(populatorName);
+	}
 	void NativeRococoITabContainerBase(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -1067,6 +1083,7 @@ namespace Rococo {
 	{
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Rococo.Native"));
 		ss.AddNativeCall(ns, NativeRococoITabContainerAddTab, nullptr, SEXTEXT("ITabContainerAddTab (Pointer hObject)(Int32 tabWidth)(Sys.Type.IString caption)(Sys.Type.IString panelText) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetTabPopulator, nullptr, SEXTEXT("ITabContainerSetTabPopulator (Pointer hObject)(Sys.Type.IString populatorName) -> "));
 		ss.AddNativeCall(ns, NativeRococoITabContainerBase, nullptr, SEXTEXT("ITabContainerBase (Pointer hObject) -> (Rococo.IPane base)"));
 	}
 }

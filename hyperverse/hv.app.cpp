@@ -22,7 +22,8 @@ namespace HV
 		bool overlayActive{ false };
 
 		AutoFree<ISectors> sectors;
-		AutoFree<IPlayerSupervisor> players;
+		AutoFree<IPlayerSupervisor> players;	
+		AutoFree<IFPSGameModeSupervisor> fpsLogic;
 		AutoFree<IEditor> editor;
 		AutoFree<IPaneBuilderSupervisor> editorPanel;
 		AutoFree<IPaneBuilderSupervisor> fpsPanel;
@@ -32,7 +33,7 @@ namespace HV
 		Cosmos e; // Put this as the last member, since other members need to be constructed first
 
 		IGameMode* mode;
-		AutoFree<IGameModeSupervisor> fpsLogic;
+
 
 		std::string nextLevelName;
 
@@ -113,9 +114,9 @@ namespace HV
 			platform(_platform),
 			sectors(CreateSectors(_platform)),
 			players(CreatePlayerSupervisor(platform)),
-			editor(CreateEditor(platform, *players, *sectors)),
-			e{ _platform, *players, *editor, *sectors },
-			fpsLogic(CreateFPSGameLogic(e))
+			fpsLogic(CreateFPSGameLogic(platform, *players, *sectors)),
+			editor(CreateEditor(platform, *players, *sectors, *fpsLogic)),
+			e{ _platform, *players, *editor, *sectors, *fpsLogic }
 		{
 			mode = fpsLogic;
 

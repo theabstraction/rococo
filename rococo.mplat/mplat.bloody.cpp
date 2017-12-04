@@ -903,6 +903,11 @@ namespace ANON
 			abox(_platform, *this, dirtNotifier, abuffer, 4, false, piv),
 			value(_colour)
 		{
+			CopyValueToBuffers();
+		}
+
+		void CopyValueToBuffers()
+		{
 			SafeFormat(rbuffer, 4, "%u", value->red);
 			SafeFormat(gbuffer, 4, "%u", value->green);
 			SafeFormat(bbuffer, 4, "%u", value->blue);
@@ -966,6 +971,8 @@ namespace ANON
 			value->alpha = (uint8)alpha;
 		}
 
+		GuiRect buttonRect = { 0,0,0,0 };
+
 		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
 		{
 			ParseValue();
@@ -977,7 +984,7 @@ namespace ANON
 
 			int span = Height(rect);
 
-			GuiRect buttonRect{ rect.left + 2, rect.top + 2, rect.left + span - 2, rect.bottom - 2 };
+			buttonRect = { rect.left + 2, rect.top + 2, rect.left + span - 2, rect.bottom - 2 };
 
 			RGBAb fullColour{ value->red, value->green, value->blue, 255 };
 			Rococo::Graphics::DrawRectangle(rc, buttonRect, fullColour, *value);
@@ -1021,7 +1028,19 @@ namespace ANON
 				if (IsPointInRect(pos, tebRect[i]))
 				{
 					teb[i]->Click(clickedDown);
-					break;
+					return;
+				}
+			}
+
+			if (IsPointInRect(pos, buttonRect))
+			{
+				RGBAb colour(value->red, value->green, value->blue, 255);
+				if (OS::TryGetColourFromDialog(colour, platform.renderer.Window()))
+				{
+					value->red = colour.red;
+					value->green = colour.green;
+					value->blue = colour.blue;
+					CopyValueToBuffers();
 				}
 			}
 		}

@@ -362,6 +362,25 @@ namespace Rococo
       virtual IPanelSupervisor* Supervisor() = 0;
    };
 
+   struct PopulateTabsEvent : Events::Event
+   {
+	   struct TabRef
+	   {
+		   cstr name;
+		   cstr populator;
+		   int32 width;
+	   };
+
+	   TabRef* tabArray;
+	   size_t numberOfTabs;
+	   cstr populatorName;
+
+	   PopulateTabsEvent(Events::EventId id) : Events::Event(id)
+	   {
+
+	   }
+   };
+
    struct ICommandHandler
    {
 

@@ -2,6 +2,7 @@
 #include "hv.events.h"
 #include <unordered_map>
 #include <rococo.maths.h>
+#include <rococo.strings.h>
 
 #include <algorithm>
 
@@ -141,38 +142,64 @@ std::unordered_map<std::string, FPSControl::ACTION_FUNCTION> FPSControl::nameToA
    { "move.fps.autorun",         &FPSControl::OnAutoRun }
 };
 
-struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public IScenePopulator
+struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public IScenePopulator, public IPropertyTarget
 {
-	Cosmos& e;
-
+	Platform& platform;
+	IPlayerSupervisor& players;
+	ISectors& sectors;
 	FPSControl fpsControl;
-
 	bool isCursorActive = true;
+	RGBAb ambientLight = RGBAb(10,10,10,255);
+	IPropertyHost* host = nullptr;
 
-	FPSGameLogic(Cosmos& _e) : e(_e)
+	void Assign(IPropertyHost* host) override
+	{
+		this->host = host;
+	}
+
+	void GetProperties(cstr category, IBloodyPropertySetEditor& editor)  override
+	{
+		if (Eq(category, "Ambient"))
+		{
+			editor.AddColour("Ambient light", &ambientLight);
+		}
+	}
+
+	void NotifyChanged()  override
+	{
+
+	}
+
+	IPropertyTarget* GetPropertyTarget()
+	{
+		return this;
+	}
+
+	FPSGameLogic(Platform& _platform, IPlayerSupervisor& _players, ISectors& _sectors) : 
+		platform(_platform), players(_players), sectors(_sectors)
 	{
 		fpsControl.speeds = Vec3{ 10.0f, 5.0f, 5.0f };
 
-		e.platform.scene.SetPopulator(this);
+		platform.scene.SetPopulator(this);
 	}
 
 	~FPSGameLogic()
 	{
-		e.platform.gui.UnregisterPopulator(this);
-		e.platform.scene.SetPopulator(nullptr);
+		platform.gui.UnregisterPopulator(this);
+		platform.scene.SetPopulator(nullptr);
 	}
 
 	void Activate()
 	{
 		isCursorActive = false;
-		e.platform.renderer.SetCursorVisibility(false);
+		platform.renderer.SetCursorVisibility(false);
 		fpsControl.Clear();
 	}
 
 	void Deactivate()
 	{
 		isCursorActive = true;
-		e.platform.renderer.SetCursorVisibility(true);
+		platform.renderer.SetCursorVisibility(true);
 		fpsControl.Clear();
 	}
 
@@ -216,7 +243,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		sb.Clear();
 		shadowCasterSectors.clear();
 		SectorToScene addToScene(sb, shadowCasterSectors);
-		auto nSectors = e.sectors.ForEverySectorVisibleBy(drd.worldToScreen, drd.eye, drd.direction, addToScene);
+		auto nSectors = sectors.ForEverySectorVisibleBy(drd.worldToScreen, drd.eye, drd.direction, addToScene);
 		if (nSectors == 0)
 		{
 			// Nothing rendered
@@ -230,13 +257,13 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		visibleSectorsThisTimestep.clear();
 
 		Vec3 eye;
-		e.platform.camera.GetPosition(eye);
+		platform.camera.GetPosition(eye);
 
 		Matrix4x4 world;
-		e.platform.camera.GetWorld(world);
+		platform.camera.GetWorld(world);
 
 		Matrix4x4 camera;
-		e.platform.camera.GetWorldAndProj(camera);
+		platform.camera.GetWorldAndProj(camera);
 
 		Vec3 dir{ -world.row2.x, -world.row2.y, -world.row2.z };
 
@@ -254,7 +281,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 
 		builder.visibleSectorsThisTimestep = &visibleSectorsThisTimestep;
 
-		auto nSectors = e.sectors.ForEverySectorVisibleBy(camera, eye, dir, builder);
+		auto nSectors = sectors.ForEverySectorVisibleBy(camera, eye, dir, builder);
 		if (nSectors == 0)
 		{
 			// Nothing rendered
@@ -279,8 +306,8 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 			addToScene.OnEvent(VisibleSector{ *s.first });
 		}
 
-		e.platform.renderer.ClearPlasma();
-		e.platform.renderer.ClearFog();
+		platform.renderer.ClearPlasma();
+		platform.renderer.ClearFog();
 
 		struct :IEventCallback<const ID_ENTITY>
 		{
@@ -292,7 +319,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 			}
 		} addParticles;
 
-		addParticles.platform = &e.platform;
+		addParticles.platform = &platform;
 
 		if (!visibleSectors.empty())
 		{
@@ -648,15 +675,15 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 	{
 		jumpSpeed = cp.jumpSpeed;
 
-		auto* fromSector = e.sectors.GetFirstSectorContainingPoint({ cp.start.x, cp.start.y });
+		auto* fromSector = sectors.GetFirstSectorContainingPoint({ cp.start.x, cp.start.y });
 		if (!fromSector)
 		{
 			// Generally it is a bad thing for the start point to be outside all sectors
 			// We must have made a mistake setting up that position
 			// First sector is usually the entrance, so port to there
-			if (e.sectors.begin() != e.sectors.end())
+			if (sectors.begin() != sectors.end())
 			{
-				ISector* firstSector = *e.sectors.begin();
+				ISector* firstSector = *sectors.begin();
 				if (firstSector->FloorVertices().VertexCount)
 				{
 					Vec3 p = GetRandomPointInSector(*firstSector);
@@ -674,7 +701,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 			}
 		}
 
-		auto* toSector = e.sectors.GetFirstSectorContainingPoint({ cp.end.x, cp.end.y });
+		auto* toSector = sectors.GetFirstSectorContainingPoint({ cp.end.x, cp.end.y });
 		if (!toSector)
 		{
 			// Totally disallow any movement that would take us out of the sector cosmology
@@ -752,7 +779,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 
 		Matrix4x4 worldToScreen = cameraToScreen * worldToCamera;
 
-		e.sectors.ForEverySectorVisibleBy(worldToScreen, light.position, normDirection, build);
+		sectors.ForEverySectorVisibleBy(worldToScreen, light.position, normDirection, build);
 
 		bool foundOne = false;
 
@@ -769,7 +796,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 
 	void UpdatePlayer(float dt)
 	{
-		auto* player = e.players.GetPlayer(0);
+		auto* player = players.GetPlayer(0);
 		auto id = player->GetPlayerEntity();
 
 		Degrees viewElevationDelta;
@@ -780,11 +807,11 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		mm.fowardDelta *= Sq(player->DuckFactor());
 		mm.straffeDelta *= Sq(player->DuckFactor());
 
-		auto pe = e.platform.instances.GetEntity(id);
+		auto pe = platform.instances.GetEntity(id);
 
 		Vec3 before = pe->Position();
 
-		e.platform.mobiles.TryMoveMobile(mm);
+		platform.mobiles.TryMoveMobile(mm);
 
 		Vec3 after = pe->Position();
 
@@ -828,21 +855,26 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		Vec3 playerPosToLight= Vec3{ 0.2f, 0, player->Height() * player->DuckFactor() - 0.75f };
 
 		FPSAngles angles;
-		e.platform.mobiles.GetAngles(id, angles);
+		platform.mobiles.GetAngles(id, angles);
 
 		auto Rz = Matrix4x4::RotateRHAnticlockwiseZ(angles.heading);
 
 		Vec3 playerPosToLightWorld;
 		TransformPositions(&playerPosToLight, 1, Rz, &playerPosToLightWorld);
 
-		e.platform.camera.ElevateView(id, viewElevationDelta, playerPosToCamera);
+		platform.camera.ElevateView(id, viewElevationDelta, playerPosToCamera);
 
 		Matrix4x4 m;
-		e.platform.camera.GetWorld(m);
+		platform.camera.GetWorld(m);
 		Vec3 dir{ -m.row2.x, -m.row2.y, -m.row2.z };
 
 		LightSpec light;
-		light.ambience = RGBA(0.0625f, 0.0625f, 0.0625f, 1.0f);
+
+		float red = ambientLight.red / 255.0f;
+		float green = ambientLight.green / 255.0f;
+		float blue = ambientLight.blue / 255.0f;
+
+		light.ambience = RGBA(red, green, blue, 1.0f);
 		light.diffuse = RGBA(4.0f, 4.0f, 4.0f, 1.0f);
 		light.direction = dir;
 		light.position = final + playerPosToLightWorld;
@@ -857,13 +889,13 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		lightBuilder.push_back(light);
 
 		Vec3 eye;
-		e.platform.camera.GetPosition(eye);
+		platform.camera.GetPosition(eye);
 
 		Matrix4x4 world;
-		e.platform.camera.GetWorld(world);
+		platform.camera.GetWorld(world);
 
 		Matrix4x4 camera;
-		e.platform.camera.GetWorldAndProj(camera);
+		platform.camera.GetWorldAndProj(camera);
 
 		struct : IEventCallback<VisibleSector>
 		{
@@ -882,7 +914,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 
 		addLightsFromeSector.This = this;
 
-		auto nSectors = e.sectors.ForEverySectorVisibleBy(camera, eye, dir, addLightsFromeSector);
+		auto nSectors = sectors.ForEverySectorVisibleBy(camera, eye, dir, addLightsFromeSector);
 		if (nSectors == 0)
 		{
 			// Nothing rendered
@@ -900,7 +932,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 
 		std::sort(lightBuilder.begin(), lightBuilder.end(), byDistanceFromPlayer);
 
-		e.platform.scene.Builder().ClearLights();
+		platform.scene.Builder().ClearLights();
 
 		int32 targetIndex = 0;
 
@@ -908,7 +940,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		{
 			if (IsLightVisible(lightBuilder[i]))
 			{
-				e.platform.scene.Builder().SetLight(lightBuilder[i], targetIndex++);
+				platform.scene.Builder().SetLight(lightBuilder[i], targetIndex++);
 			}
 		}
 
@@ -921,15 +953,15 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 
 	void UpdateAI(const IUltraClock& clock) override
 	{
-		e.platform.gui.RegisterPopulator("fps", this);
+		platform.gui.RegisterPopulator("fps", this);
 		UpdatePlayer(clock.DT());
 		ComputeVisibleSectorsThisTimestep();
 	}
 
 	bool OnKeyboardEvent(const KeyboardEvent& k)
 	{
-		Key key = e.platform.keyboard.GetKeyFromEvent(k);
-		auto* action = e.platform.keyboard.GetAction(key.KeyName);
+		Key key = platform.keyboard.GetKeyFromEvent(k);
+		auto* action = platform.keyboard.GetAction(key.KeyName);
 		if (action)
 		{
 			HV::Events::Player::OnPlayerActionEvent pae;
@@ -948,17 +980,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 
 	void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
 	{
-		auto* player = e.players.GetPlayer(0);
-
-		if (dWheel != 0)
-		{
-			if (e.editor.IsScrollLocked())
-			{
-				auto id = player->GetPlayerEntity();
-				auto pos = e.platform.instances.GetEntity(id)->Position();
-			}
-		}
-
+		auto* player = players.GetPlayer(0);
 		if (!isCursorActive) fpsControl.OnMouseMove(cursorPos, delta, dWheel);
 	}
 
@@ -972,8 +994,7 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 		if (!clickedDown)
 		{
 			isCursorActive = !isCursorActive;
-
-			e.platform.renderer.SetCursorVisibility(isCursorActive);
+			platform.renderer.SetCursorVisibility(isCursorActive);
 		}
 	}
 
@@ -985,8 +1006,8 @@ struct FPSGameLogic : public IGameModeSupervisor, public IUIElement, public ISce
 
 namespace HV
 {
-	IGameModeSupervisor* CreateFPSGameLogic(Cosmos& e)
+	IFPSGameModeSupervisor* CreateFPSGameLogic(Platform& platform, IPlayerSupervisor& players, ISectors& sectors)
 	{
-		return new FPSGameLogic(e);
+		return new FPSGameLogic(platform, players, sectors);
 	}
 }
