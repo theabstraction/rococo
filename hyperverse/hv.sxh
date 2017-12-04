@@ -12,6 +12,16 @@
 )
 
 (interface
+	(as.sxy HV.IScriptConfig "../content/scripts/hv")
+	(as.cpp HV.IScriptConfig "hv" )
+	(context factory HV.IScriptConfig)
+	(methods
+		(GetFloat (IString variableName)(Float32 default)(Float32 minValue)(Float32 maxValue) -> (Float32 value))
+	)
+	(factory HV.ScriptConfig)
+)
+
+(interface
 	(as.sxy HV.ICorridor "../content/scripts/hv")
 	(as.cpp HV.ICorridor "hv")
 	(context factory HV.ICorridor)

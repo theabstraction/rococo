@@ -275,6 +275,8 @@ namespace ANON
 	   std::vector<VertexTriangle> floorTriangles;
 	   std::vector<VertexTriangle> ceilingTriangles;
 
+	   AutoFree<IScriptConfigSet> scriptConfig;
+
 	   IUtilitiies& utilities;
 
 	   float uvScale{ 0.2f };
@@ -916,7 +918,8 @@ namespace ANON
 			  IEventCallback<ScriptCompileArgs>,
 			  public ISectorWallTesselator,
 			  public ISectorComponents,
-			  public TriangleListBinding
+			  public TriangleListBinding,
+			  public IScriptConfig
 		  {
 			  Sector* This;
 
@@ -955,6 +958,7 @@ namespace ANON
 				  AddNativeCalls_HVISectorWallTesselator(args.ss, this);
 				  AddNativeCalls_HVISectorComponents(args.ss, this);
 				  AddNativeCalls_HVITriangleList(args.ss, this);
+				  AddNativeCalls_HVIScriptConfig(args.ss, this);
 			  }
 
 			  void GetMaterial(MaterialVertexData& mat, const fstring& componentClass) override
@@ -997,11 +1001,16 @@ namespace ANON
 				  This->AddComponent(Matrix4x4::Identity(), localName.c_str(), meshName.c_str());
 			  }
 
+			  float GetFloat(const fstring& variableName, float default, float minValue, float maxValue) override
+			  {
+				  return This->scriptConfig->Current().GetFloat(variableName, default, minValue, maxValue);
+			  }
 		  } scriptCallback(this);  
 
 		  try
 		  {
 			  cstr theWallScript = *wallScript ? wallScript : "#walls/stretch.bricks.sxy";
+			  scriptConfig->SetCurrentScript(theWallScript);
 			  platform.utilities.RunEnvironmentScript(scriptCallback, theWallScript, true, false);
 			  return true;
 		  }
@@ -1259,7 +1268,8 @@ namespace ANON
          utilities(_platform.utilities),
          id(nextSectorId++),
          platform(_platform),
-         co_sectors(_co_sectors)
+         co_sectors(_co_sectors),
+		 scriptConfig(CreateScriptConfigSet())
       {
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Brickwork, "random", Graphics::MaterialCategory_Stone);
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Cement,    "random", Graphics::MaterialCategory_Rock);
@@ -2580,6 +2590,11 @@ namespace ANON
 			  editor.AddSpacer();
 			  editor.AddBool("script walls", &scriptWalls);
 			  editor.AddMessage("Default: #walls/stretch.bricks.sxy");
+
+			  cstr theWallScript = *wallScript ? wallScript : "#walls/stretch.bricks.sxy";
+
+			  scriptConfig->SetCurrentScript(theWallScript);
+			  scriptConfig->Current().BindProperties(editor);
 
 			  try
 			  {

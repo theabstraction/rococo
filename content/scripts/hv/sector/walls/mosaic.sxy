@@ -22,7 +22,11 @@
 (using Sys.Random)
 
 (function TesselateWallAndShelf (WallSegment segment)(ISectorWallTesselator sector)(IQuadStackTesselator qst)(Float32 uStart)->(Float32 uEnd) :
-	(Float32 uvScale = 0.0325)
+	(IScriptConfig config (ScriptConfig))
+	(Float32 uvScale = (config.GetFloat "UV scale" 0.0325 -100 100))
+	(Float32 tileSize = (config.GetFloat "Tile size" 0.5 0.1 10))
+	(Float32 relFreizeDrop = (config.GetFloat "Frieze drop" 0.9 0.6 0.999))
+	(Float32 relSkirtHeight = (config.GetFloat "Skirt height" 0.1 0.001 0.3))
 	
 	(Float32 u0 = uStart)
 	(Float32 u1 = (u0 + (segment.span.x * uvScale)))
@@ -56,13 +60,13 @@
 	(qv.uv.bottom = (segment.quad.d.z * uvScale))
 	
 	(qst.PushQuad qv black)
-	(qst.SplitAcrossTangent 0.9 0x00000000 black.colour black.colour skirt black)
+	(qst.SplitAcrossTangent relFreizeDrop 0x00000000 black.colour black.colour skirt black)
 	(qst.MoveOutputToInputWithMat black)
-	(qst.SplitAcrossTangent 0.1 black.colour black.colour 0x00000000 black skirt)
+	(qst.SplitAcrossTangent relSkirtHeight black.colour black.colour 0x00000000 black skirt)
 	(qst.MoveOutputToInputWithMat black)
 	
 	(Rectf uv = 0 0 1 1)
-	(qst.TileMosaic black white uv 0.5)
+	(qst.TileMosaic black white uv tileSize)
 	
 	(ITriangleList tris = sector.WallTriangles)
 	

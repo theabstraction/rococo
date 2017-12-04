@@ -11,7 +11,7 @@ namespace HV
    struct IPlayerSupervisor;
    struct ISectors;
 
-   struct IPlayerBase
+   ROCOCOAPI IPlayerBase
    {
       virtual float& JumpSpeed() = 0;
       virtual float& DuckFactor() = 0;
@@ -66,6 +66,22 @@ namespace HV
          struct OnPlayerViewChangeEvent;
       }
    }
+
+   ROCOCOAPI IScriptConfigSupervisor : public IScriptConfig
+   {
+	   virtual void BindProperties(IBloodyPropertySetEditor& editor) = 0;
+	   virtual void Free() = 0;
+   };
+
+   ROCOCOAPI IScriptConfigSet
+   {
+	   virtual void Free() = 0;
+	   virtual void SetCurrentScript(cstr scriptName) = 0;
+	   virtual IScriptConfigSupervisor& Current() = 0;
+   };
+
+   IScriptConfigSet* CreateScriptConfigSet();
+   IScriptConfigSupervisor* CreateScriptConfig();
 
    ROCOCOAPI IPlayerSupervisor
    {

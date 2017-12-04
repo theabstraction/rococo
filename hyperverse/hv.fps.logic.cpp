@@ -150,6 +150,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 	FPSControl fpsControl;
 	bool isCursorActive = true;
 	RGBAb ambientLight = RGBAb(10,10,10,255);
+	float fogConstant = -0.1f;
 	IPropertyHost* host = nullptr;
 
 	void Assign(IPropertyHost* host) override
@@ -162,6 +163,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		if (Eq(category, "Ambient"))
 		{
 			editor.AddColour("Ambient light", &ambientLight);
+			editor.AddFloat("Fog constant", &fogConstant, -0.2f, -0.01f);
 		}
 	}
 
@@ -884,7 +886,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		light.attenuation = -0.35f;
 		light.nearPlane = 0.02_metres;
 		light.farPlane = 50_metres;
-		light.fogConstant = -0.1f;
+		light.fogConstant = fogConstant;
 
 		lightBuilder.push_back(light);
 

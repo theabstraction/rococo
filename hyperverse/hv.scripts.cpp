@@ -16,6 +16,11 @@ namespace // Script factories
 		return players->GetPlayer(index);
 	}
 
+	HV::IScriptConfig* FactoryConstructHVScriptConfig(HV::IScriptConfig* context)
+	{
+		return context;
+	}
+
 	HV::ISectorBuilder* FactoryConstructHVSectorBuilder(HV::ISectors* _context)
 	{
 		return _context->Builder();

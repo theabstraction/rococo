@@ -124,6 +124,7 @@
     <ClCompile Include="hv.fps.logic.cpp" />
     <ClCompile Include="hv.main.mplat.cpp" />
     <ClCompile Include="hv.player.cpp" />
+    <ClCompile Include="hv.script.config.cpp" />
     <ClCompile Include="hv.scripts.cpp" />
     <ClCompile Include="hv.sector.cpp" />
     <ClCompile Include="hv.sectors.cpp" />
