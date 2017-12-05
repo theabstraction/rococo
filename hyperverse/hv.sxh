@@ -17,6 +17,7 @@
 	(context factory HV.IScriptConfig)
 	(methods
 		(GetFloat (IString variableName)(Float32 default)(Float32 minValue)(Float32 maxValue) -> (Float32 value))
+		(GetFloatRange (IString variableName)(Vec2 values)(Float32 defaultLeft)(Float32 defaultRight)(Float32 minValue)(Float32 maxValue))
 	)
 	(factory HV.ScriptConfig)
 )

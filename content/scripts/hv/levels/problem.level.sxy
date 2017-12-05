@@ -31,7 +31,7 @@
 	(sectors.AddVertex -6.000000 -8.000000)
 	(sectors.AddVertex -6.000000 6.000000)
 
-	(sectors.SetTemplateMaterial "brickwork"  (#MaterialCategoryStone) 0x37000000 "#m/rock/granite1.jpg")
+	(sectors.SetTemplateMaterial "brickwork"  (#MaterialCategoryStone) 0x9b00ff80 "#m/rock/granite1.jpg")
 	(sectors.SetTemplateMaterial "floor"      (#MaterialCategoryRock) 0xeae9bbf1 "#m/rock/granite1.jpg")
 	(sectors.SetTemplateMaterial "cement"     (#MaterialCategoryStone) 0x37e0e0e0 "random")
 	(sectors.SetTemplateMaterial "mullions"   (#MaterialCategoryMetal) 0xdb0d5e24 "random")
@@ -41,7 +41,7 @@
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xe58bbb43 "random")
 
 	(sectors.SetTemplateDoorScript false "")
-	(sectors.SetTemplateWallScript true "#walls/mosaic.sxy")
+	(sectors.SetTemplateWallScript true "#walls/fountain.sxy")
 
 	(sectors.CreateFromTemplate 0 400)
 )
@@ -56,12 +56,12 @@
 	(sectors.AddVertex -6.000000 6.000000)
 	(sectors.AddVertex -6.000000 16.000000)
 
-	(sectors.SetTemplateMaterial "brickwork"  (#MaterialCategoryStone) 0xe4e29f71 "random")
-	(sectors.SetTemplateMaterial "floor"      (#MaterialCategoryMarble) 0xe889462a "random")
-	(sectors.SetTemplateMaterial "cement"     (#MaterialCategoryRock) 0xc6b49b0c "random")
-	(sectors.SetTemplateMaterial "mullions"   (#MaterialCategoryWood) 0xe8dadf26 "random")
-	(sectors.SetTemplateMaterial "ceiling"    (#MaterialCategoryRock) 0xc178767a "random")
-	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryWood) 0xd196e062 "random")
+	(sectors.SetTemplateMaterial "brickwork"  (#MaterialCategoryStone) 0x1c3d1f0c "#m/metal/white.metal.1.jpg")
+	(sectors.SetTemplateMaterial "floor"      (#MaterialCategoryMarble) 0xe889462a "#m/mosaics/m1.jpg")
+	(sectors.SetTemplateMaterial "cement"     (#MaterialCategoryStone) 0xc6fdf8db "#m/metal/white.metal.1.jpg")
+	(sectors.SetTemplateMaterial "mullions"   (#MaterialCategoryStone) 0xe8dadf26 "#m/mosaics/m1.jpg")
+	(sectors.SetTemplateMaterial "ceiling"    (#MaterialCategoryRock) 0xc178767a "#m/mosaics/m1.jpg")
+	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryWood) 0xd196e062 "#m/metal/white.metal.1.jpg")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryMetal) 0xebe30e6d "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xc83fa639 "random")
 	(sectors.SetTemplateWallScript true "#walls/mosaic.sxy")

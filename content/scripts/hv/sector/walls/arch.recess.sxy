@@ -21,7 +21,7 @@
 (using Sys.Geometry.F32)
 (using Sys.Random)
 
-(function AddQuad (ITriangleList tris) (Quadf quad)(Float32 vStart)(Float32 uStart)->(Float32 uEnd)(Float32 vEnd)(MaterialVertexData mat) :
+(function AddQuad (ITriangleList tris) (Quadf quad)(Float32 vStart)(Float32 uStart)->(Float32 uEnd)(Float32 vEnd)(MaterialVertexData mat)(Float32 uvScale) :
 	(Triangle t = quad.a quad.b quad.c)
 	(Vec3 n)
 	(GetNormal t n)
@@ -29,8 +29,8 @@
 	(Vec3 top = quad.b - quad.a)
 	(Vec3 left = quad.a - quad.d)
 	
-	(Float32 uLen = (0.25 * (Length top)))
-	(Float32 vLen = (0.25 * (Length left)))
+	(Float32 uLen = (uvScale * (Length top)))
+	(Float32 vLen = (uvScale * (Length left)))
 	
 	(vEnd = (vStart + vLen))
 	(uEnd = (uStart + uLen))
@@ -43,7 +43,7 @@
 	(tris.AddQuad a b c d)
 )
 
-(function AddReverseQuad (ITriangleList tris) (Quadf quad)(Float32 vStart)(Float32 uStart)(MaterialVertexData mat)->(Float32 uEnd)(Float32 vEnd) :
+(function AddReverseQuad (ITriangleList tris) (Quadf quad)(Float32 vStart)(Float32 uStart)(MaterialVertexData mat)(Float32 uvScale)->(Float32 uEnd)(Float32 vEnd) :
 	(Triangle t = quad.b quad.a quad.c)
 	(Vec3 n)
 	(GetNormal t n)
@@ -51,8 +51,8 @@
 	(Vec3 top = quad.b - quad.a)
 	(Vec3 left = quad.a - quad.d)
 	
-	(Float32 uLen = (0.25 * (Length top)))
-	(Float32 vLen = (0.25 * (Length left)))
+	(Float32 uLen = (uvScale * (Length top)))
+	(Float32 vLen = (uvScale * (Length left)))
 	
 	(vEnd = (vStart + vLen))
 	(uEnd = (uStart + uLen))
@@ -88,7 +88,7 @@
 	(tris.AddTriangleByVertices b a c)
 )
 
-(function AddRecessToWall  (WallSegment segment)(ITriangleList tris)(IRimTesselator rim)(MaterialVertexData mat)-> :
+(function AddRecessToWall  (WallSegment segment)(ITriangleList tris)(IRimTesselator rim)(MaterialVertexData mat)(Float32 intrusion)(Float32 uvScale)-> :
 	(rim.ClearFaces)
 		
 	(Matrix4x4 rotate =
@@ -127,15 +127,15 @@
 	
 	(Int32 count = rim.PerimeterVertices)
 	
-	(Float32 z0 = -0.1)
-	(Float32 z1 = -0.0)
+	(Float32 z0 = (0 - intrusion))
+	(Float32 z1 = 0.0)
 	
 	(Float32 u = 0)
 	(Float32 v = segment.quad.c.z)
 	(#for (Int32 i = 0)(i < count)(#inc i)
 		(Quadf q)
 		(rim.GetRimQuad z0 z1 i q)		
-		(AddReverseQuad tris q 0 v mat -> u v)			
+		(AddReverseQuad tris q 0 v mat uvScale -> u v)			
 	)
 	
 	(Int32 triangles = rim.TesselateUniform)
@@ -214,7 +214,9 @@
 )
 
 (function TesselateArch (WallSegment segment)(ISectorWallTesselator sector)(Float32 uStart)->(Float32 uEnd) :
-	(Float32 uvScale = 0.5)
+	(IScriptConfig config (ScriptConfig))
+	(Float32 uvScale = (config.GetFloat "UV Scale" 0.5 0.01 10))
+	(Float32 intrusion = (config.GetFloat "Intrusion" 0.1 0.001 1))
 	
 	(Float32 u0 = uStart)
 	(Float32 u1 = (u0 + (segment.span.x * uvScale)))
@@ -229,7 +231,7 @@
 	(rim.Clear)
 	(BuildArchVertices rim)	
 	(rim.CloseLoop)	
-	(AddRecessToWall segment sector.WallTriangles rim brick) 
+	(AddRecessToWall segment sector.WallTriangles rim brick intrusion uvScale) 
 	
 	(rim.Clear)
 	(BuildArchVertices rim)

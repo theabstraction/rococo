@@ -22,8 +22,17 @@
 (using Sys.Random)
 
 (function TesselateWallAndShelf (WallSegment segment)(ISectorWallTesselator sector)(IQuadStackTesselator qst)(Float32 uStart)->(Float32 uEnd) :
-	(Float32 uvScale = 0.0325)
-	
+	(IScriptConfig config (ScriptConfig))
+	(Float32 uvScale = (config.GetFloat "UV Scale" 0.0325 0.01 10))
+	(Float32 fBottomR = (config.GetFloat "Bottom min"   0.001 0.0001 0.4))
+	(Float32 fBottomS = (config.GetFloat "Bottom range" 0.001 0.0001 0.4))
+	(Float32 relFreizeDrop = (config.GetFloat "Frieze drop" 0.9 0.6 0.999))
+	(Float32 relSkirtHeight = (config.GetFloat "Skirt height" 0.1 0.001 0.3))
+	(Float32 fTopR = (config.GetFloat "Top min"   0.6 0.5 0.95))
+	(Float32 fTopS = (config.GetFloat "Top range" 0.3 0.0  0.4))
+	(Float32 basinL = (config.GetFloat "Basin left"   0.1 0.001 0.45))
+	(Float32 basinR = (config.GetFloat "Basin right"  0.9 0.550 0.99))
+
 	(Float32 u0 = uStart)
 	(Float32 u1 = (u0 + (segment.span.x * uvScale)))
 	(uEnd = u1)
@@ -46,8 +55,8 @@
 	(MaterialId matPortraitId = (instances.GetMaterialDirect "!textures/hv/materials/hi-rez/portraits/various_x4.jpg"))
 	(MaterialVertexData portrait = 0xFF000000 matPortraitId 0.85)
 	
-	(Float32 y0 = (AnyFloat 0.6 0.9))
-	(Float32 y1 = (AnyFloat 0.05 0.1))
+	(Float32 y0 = (AnyFloat fTopR (fTopR + fTopS)))
+	(Float32 y1 = (AnyFloat fBottomR (fBottomR + fBottomS)))
 	
 	(Float32 x0 = (AnyFloat 0.1 0.3))
 	(Float32 x1 = (1.0 - x0))
@@ -74,16 +83,16 @@
 	
 	(qst.PushQuad qv brick)
 	
-	(qst.SplitAcrossTangent 0.1 brick.colour brick.colour  0x1F000000 brick brick)
+	(qst.SplitAcrossTangent relSkirtHeight brick.colour brick.colour  0x1F000000 brick brick)
 	(qst.MoveOutputToInputWithMat brick)
-	(qst.SplitAcrossTangent 0.9 0x1F000000 brick.colour brick.colour  brick brick)
+	(qst.SplitAcrossTangent relFreizeDrop 0x1F000000 brick.colour brick.colour  brick brick)
 	(qst.MoveOutputToInputWithMat brick)
 	(qst.Intrude hole depth uvScale brickSides brickBack)
 	
 	(Vec3 up = 0 0 1)
 	(qst.MoveOutputToInputWithNormalDotRange up 0.99 1.0)
 	
-	(Rectf basinRect = 0.1 0.9 0.9 0.1)
+	(Rectf basinRect = basinL 0.9 basinR 0.1)
 	(qst.Intrude basinRect 0.1 uvScale brickSides water)
 	
 	(qst.MoveOutputToInputWithMat brickBack)

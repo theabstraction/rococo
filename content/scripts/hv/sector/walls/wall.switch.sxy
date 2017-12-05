@@ -38,7 +38,7 @@
 	)
 )
 
-(function TesselateWallWithButton (QuadVertices q)(ISectorWallTesselator sector)(IQuadStackTesselator qst)-> :
+(function TesselateWallWithButton (QuadVertices q)(ISectorWallTesselator sector)(IQuadStackTesselator qst)(IScriptConfig config)-> :
 	(MaterialVertexData wall)
 	(sector.GetMaterial wall "brickwork")
 	
@@ -48,16 +48,22 @@
 	(MaterialVertexData rod)
 	(sector.GetMaterial rod "rails")
 	
+	
 	(ITriangleList tris = sector.WallTriangles)
 	
 	(Vec2 span)
 	(GetTriSpan q.positions.d q.positions.a q.positions.b span)
 	
-	(Vec2 deltaMetres = 0.1 -0.2)
+	(Float32 buttonWidth = (config.GetFloat "button width"   0.2 0.01 1))
+	(Float32 buttonHeight = (config.GetFloat "button height" 1.5 0.01 2))
+	(Float32 buttonLength = (config.GetFloat "button length" 0.1 0.01 1))
+	(Float32 buttonDepth = (config.GetFloat "button depth"   0.1 0.01 0.3))
+	(Float32 buttonUVscale = (config.GetFloat "button uvScale" 0.5 0.01 10))
+	(Float32 buttonThickness = (config.GetFloat "button thickness" 0.025 0.01 0.2))
 	
-	(Float32 relWidth = (0.20 / span.y))
-	(Float32 relHeight = (1.5 / span.y))
-	(Float32 relLength = (0.10 / span.x))
+	(Float32 relWidth = (buttonWidth / span.y))
+	(Float32 relHeight = (buttonHeight / span.y))
+	(Float32 relLength = (buttonLength / span.x))
 	
 	(Vec2 centre = 0.5 0.5)
 	
@@ -70,7 +76,7 @@
 	(Rectf hole = x0 y1 x1 y0)
 	
 	(qst.PushQuad q wall)
-	(qst.Intrude hole 0.10 0.5 wall cement)
+	(qst.Intrude hole buttonDepth buttonUVscale wall cement)
 	
 	(qst.MoveOutputToInputWithMat cement)
 	
@@ -84,7 +90,7 @@
 	(ISectorComponents components (SectorComponents))
 	(components.BuildComponent "wall.button")
 	
-	(qst.AddCuboid 0.0 1 0 1 0.12 0.5 rod)
+	(qst.AddCuboid 0.0 1 0 1 buttonThickness buttonUVscale rod)
 	
 	(while (qst.PopOutputAsTriangles topLeft bottomRight)
 		(components.AddTriangle topLeft)
@@ -100,12 +106,13 @@
 	(Float32 u = 0)
 	
 	(IQuadStackTesselator qst (QuadStackTesselator))
+	
+	(IScriptConfig config (ScriptConfig))
+	(Float32 uvScale = (config.GetFloat "UV scale" 0.5 -100 100))
 		
 	(#for (Int32 i = 0)(i < nSegments)(#inc i)
 		(WallSegment seg)
 		(sector.GetSegment i seg)
-		
-		(Float32 uvScale = 0.0325)
 	
 		(Float32 u0 = u)
 		(Float32 u1 = (u0 + (seg.span.x * uvScale)))
@@ -127,7 +134,7 @@
 		(qst.Clear)
 	
 		(if (i == 0)
-			(TesselateWallWithButton qv sector qst)
+			(TesselateWallWithButton qv sector qst config)
 		else
 			(TesselateBlankWall qv sector qst)
 		)

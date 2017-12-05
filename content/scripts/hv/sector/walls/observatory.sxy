@@ -22,7 +22,26 @@
 (using Sys.Random)
 
 (function TesselateWallAndShelf (WallSegment segment)(ISectorWallTesselator sector)(IQuadStackTesselator qst)(Float32 uStart)->(Float32 uEnd) :
-	(Float32 uvScale = 0.5)
+	(IScriptConfig config (ScriptConfig))
+	(Float32 uvScale = (config.GetFloat "UV scale" 0.5 -100 100))
+	
+	(Vec2 y0Range)
+	(config.GetFloatRange "y0 range" y0Range 0.6 0.9 0.51 0.999)
+	
+	(Vec2 y1Range)
+	(config.GetFloatRange "y1 range" y1Range 0.1 0.4 0.001 0.49)
+	
+	(Vec2 x1Range)
+	(config.GetFloatRange "x1 range" x1Range 0.6 0.9 0.51 0.999)
+	
+	(Vec2 x0Range)
+	(config.GetFloatRange "x0 range" x0Range 0.1 0.4 0.001 0.49)
+	
+	(Vec2 depthRange)
+	(config.GetFloatRange "Depth range" depthRange 0.25 0.75 0.1 1)
+	
+	(Float32 relFreizeDrop = (config.GetFloat "Frieze drop" 0.9 0.6 0.999))
+	(Float32 relSkirtHeight = (config.GetFloat "Skirt height" 0.1 0.001 0.3))
 	
 	(Float32 u0 = uStart)
 	(Float32 u1 = (u0 + (segment.span.x * uvScale)))
@@ -37,16 +56,16 @@
 	(MaterialVertexData metal = 0x8F000000 metId 0.1)
 	(MaterialVertexData glass = 0x10000000 metId 0.9)
 	
-	(MaterialId frameId = (instances.GetRandomMaterialId (#MaterialCategoryMarble)))
-	(MaterialVertexData frame = 0x8F000000 frameId 0.0)
+	(MaterialVertexData frame)
+	(sector.GetMaterial frame "rails")
 	
-	(Float32 y0 = (AnyFloat 0.6 0.9))
-	(Float32 y1 = (AnyFloat 0.1 0.4))
+	(Float32 y0 = (AnyFloat y0Range.x y0Range.y))
+	(Float32 y1 = (AnyFloat y1Range.x y1Range.y))
 	
-	(Float32 x0 = (AnyFloat 0.1 0.4))
-	(Float32 x1 = (AnyFloat 0.6 0.9))
+	(Float32 x0 = (AnyFloat x0Range.x x0Range.y))
+	(Float32 x1 = (AnyFloat x1Range.x x1Range.y))
 	
-	(Float32 depth = (AnyFloat 0.25 0.75))
+	(Float32 depth = (AnyFloat depthRange.x depthRange.y))
 	
 	(Rectf hole = x0 y0 x1 y1)
 	
@@ -69,9 +88,9 @@
 	(qv.colours.d = brick.colour)
 	
 	(qst.PushQuad qv brick)
-	(qst.SplitAcrossTangent 0.1 brick.colour brick.colour 0x1F000000 brick brick)
+	(qst.SplitAcrossTangent relSkirtHeight brick.colour brick.colour 0x1F000000 brick brick)
 	(qst.MoveOutputToInputWithMat brick)
-	(qst.SplitAcrossTangent 0.9 0x1F000000 brick.colour brick.colour brick brick)
+	(qst.SplitAcrossTangent relFreizeDrop 0x1F000000 brick.colour brick.colour brick brick)
 	(qst.MoveOutputToInputWithMat brick)
 	
 	(qst.Intrude hole depth uvScale metal glass)

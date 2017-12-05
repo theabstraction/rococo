@@ -309,6 +309,7 @@ namespace Rococo
 	   virtual void AddBool(cstr name, bool* value) = 0;
 	   virtual void AddSpacer() = 0;
 	   virtual void AddFloat(cstr name, float* value, float minValue, float maxValue) = 0;
+	   virtual void AddFloatRange(cstr name, float* leftValue, float* rightValue, float minValue, float maxValue) = 0;
 	   virtual void AddInt(cstr name, bool addHexView, int* value) = 0;
 	   virtual void AddMaterialCategory(cstr name, Graphics::MaterialCategory *cat) = 0;
 	   virtual void AddMessage(cstr message) = 0;

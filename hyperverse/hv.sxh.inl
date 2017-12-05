@@ -106,6 +106,42 @@ namespace
 		_offset += sizeof(value);
 		WriteOutput(value, _sf, -_offset);
 	}
+	void NativeHVIScriptConfigGetFloatRange(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float maxValue;
+		_offset += sizeof(maxValue);
+		ReadInput(maxValue, _sf, -_offset);
+
+		float minValue;
+		_offset += sizeof(minValue);
+		ReadInput(minValue, _sf, -_offset);
+
+		float defaultRight;
+		_offset += sizeof(defaultRight);
+		ReadInput(defaultRight, _sf, -_offset);
+
+		float defaultLeft;
+		_offset += sizeof(defaultLeft);
+		ReadInput(defaultLeft, _sf, -_offset);
+
+		Vec2* values;
+		_offset += sizeof(values);
+		ReadInput(values, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _variableName;
+		ReadInput(_variableName, _sf, -_offset);
+		fstring variableName { _variableName->buffer, _variableName->length };
+
+
+		HV::IScriptConfig* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetFloatRange(variableName, *values, defaultLeft, defaultRight, minValue, maxValue);
+	}
 
 	void NativeGetHandleForHVScriptConfig(NativeCallEnvironment& _nce)
 	{
@@ -125,6 +161,7 @@ namespace HV {
 		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForHVScriptConfig, _nceContext, SEXTEXT("GetHandleForIScriptConfig0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeHVIScriptConfigGetFloat, nullptr, SEXTEXT("IScriptConfigGetFloat (Pointer hObject)(Sys.Type.IString variableName)(Float32 default)(Float32 minValue)(Float32 maxValue) -> (Float32 value)"));
+		ss.AddNativeCall(ns, NativeHVIScriptConfigGetFloatRange, nullptr, SEXTEXT("IScriptConfigGetFloatRange (Pointer hObject)(Sys.Type.IString variableName)(Sys.Maths.Vec2 values)(Float32 defaultLeft)(Float32 defaultRight)(Float32 minValue)(Float32 maxValue) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for HV::IPlayer 

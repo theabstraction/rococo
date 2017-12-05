@@ -352,6 +352,160 @@ namespace ANON
 		}
 	};
 
+	class BloodyRangeBinding : public IBloodyPropertyType 
+	{
+		TextEditorBox tebLeft;
+		TextEditorBox tebRight;
+		Platform& platform;
+
+		struct BloodyRangeLeft: public IValidator
+		{
+			char buffer[12];
+			float* value;
+			float minValue;
+			float maxValue;
+
+			bool IsLegal(char c, int charPos) const
+			{
+				if (c >= '0' && c <= '9')
+				{
+					return true;
+				}
+
+				if (charPos == 0)
+				{
+					if (c == '+' || c == '-')
+					{
+						return true;
+					}
+				}
+
+				if (c == '.')
+				{
+					if (strstr(buffer, ".") == nullptr)
+					{
+						return true;
+					}
+				}
+
+				return false;
+			}
+
+			void OnDetached(char* buffer) override
+			{
+				if (1 == sscanf_s(buffer, "%f", value))
+				{
+					if (*value < minValue) *value = minValue;
+					if (*value > maxValue) *value = maxValue;
+					SafeFormat(buffer, 12, "%f", *value);
+				}
+			}
+		} bloodyRangeLeft;
+
+		struct BloodyRangeRight : public IValidator
+		{
+			float minValue;
+			float maxValue;
+			char buffer[12];
+			float* value;
+
+			bool IsLegal(char c, int charPos) const
+			{
+				if (c >= '0' && c <= '9')
+				{
+					return true;
+				}
+
+				if (charPos == 0)
+				{
+					if (c == '+' || c == '-')
+					{
+						return true;
+					}
+				}
+
+				if (c == '.')
+				{
+					if (strstr(buffer, ".") == nullptr)
+					{
+						return true;
+					}
+				}
+
+				return false;
+			}
+
+			void OnDetached(char* buffer) override
+			{
+				if (1 == sscanf_s(buffer, "%f", value))
+				{
+					if (*value < minValue) *value = minValue;
+					if (*value > maxValue) *value = maxValue;
+					SafeFormat(buffer, 12, "%f", *value);
+				}
+			}
+		} bloodyRangeRight;
+	public:
+		BloodyRangeBinding(Platform& _platform, IEventCallback<IBloodyPropertyType>& onNotify, float* _leftValue, float* _rightValue, float _minValue, float _maxValue) :
+			platform(_platform),
+			tebLeft(_platform, *this, onNotify, bloodyRangeLeft.buffer, 12, false, bloodyRangeLeft),
+			tebRight(_platform, *this, onNotify, bloodyRangeRight.buffer, 12, false, bloodyRangeRight)
+		{
+			bloodyRangeLeft.maxValue = bloodyRangeRight.maxValue = _maxValue;
+			bloodyRangeLeft.minValue = bloodyRangeRight.minValue = _minValue;
+			bloodyRangeLeft.value = _leftValue;
+			bloodyRangeRight.value = _rightValue;
+
+			if (_leftValue == nullptr || _rightValue == nullptr)
+			{
+				Throw(0, "BloodyRangeBinding: null value");
+			}
+
+			SafeFormat(bloodyRangeLeft.buffer, 12, "%f", *_leftValue);
+			SafeFormat(bloodyRangeRight.buffer, 12, "%f", *_rightValue);
+		}
+
+		virtual void Free()
+		{
+			delete this;
+		}
+
+		virtual cstr Name() const
+		{
+			return "Float32";
+		}
+
+		GuiRect tebRectLeft;
+		GuiRect tebRectRight;
+
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		{
+			tebRectLeft = tebRectRight = rect;
+			int dx = Width(rect) >> 1;
+			tebRectLeft.right = tebRectLeft.left + dx - 2;
+			tebRectRight.left = tebRectRight.right - dx + 2;
+			tebLeft.Render(rc, tebRectLeft, colour);
+			tebRight.Render(rc, tebRectRight, colour);
+		}
+
+		RGBAb NameColour() const override
+		{
+			return RGBAb(64, 0, 0, 128);
+		}
+
+		void Click(bool clickedDown, Vec2i pos) override
+		{
+			if (IsPointInRect(pos, tebRectLeft))
+			{
+				tebLeft.Click(clickedDown);
+			}
+			else if (IsPointInRect(pos, tebRectRight))
+			{
+				tebRight.Click(clickedDown);
+			}
+		}
+	};
+
 	class BloodyBoolBinding : public IBloodyPropertyType, public IKeyboardSink
 	{
 		bool* value;
@@ -1612,6 +1766,11 @@ namespace ANON
 		void AddFloat(cstr name, float* value, float minValue, float maxValue) override
 		{
 			Add(new BloodyProperty(new BloodyFloatBinding(platform, *this, value, minValue, maxValue), name));
+		}
+
+		virtual void AddFloatRange(cstr name, float* leftValue, float* rightValue, float minValue, float maxValue) override
+		{
+			Add(new BloodyProperty(new BloodyRangeBinding(platform, *this, leftValue, rightValue, minValue, maxValue), name));
 		}
 
 		void AddInt(cstr name, bool addHexView, int* value) override

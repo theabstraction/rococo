@@ -689,13 +689,15 @@ namespace
 			{
 				if (i->Action == FILE_ACTION_MODIFIED)
 				{
-					if (info.FileNameLength < _MAX_PATH)
+					size_t nChars = info.FileNameLength >> 1;
+					if (nChars < _MAX_PATH - 1)
 					{
 						rchar nullTerminatedFilename[_MAX_PATH] = { 0 };
-						for (DWORD i = 0; i < info.FileNameLength; ++i)
+						for (DWORD i = 0; i < nChars; ++i)
 						{
 							nullTerminatedFilename[i] = (char) info.FileName[i];
 						}
+						nullTerminatedFilename[nChars] = 0;
 						OnModified(nullTerminatedFilename);
 					}
 				}

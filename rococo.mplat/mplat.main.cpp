@@ -1593,6 +1593,7 @@ class TabContainer : public BasePanel, public ITabContainer, public IObserver
 
 			if (replaceTabs)
 			{
+				tabSelect = 0;
 				tabs.clear();
 				for (size_t i = 0; i < p.numberOfTabs; ++i)
 				{

@@ -48,7 +48,7 @@
 	(tris.AddQuad a b c d)
 )
 
-(function TesselateBrickwork (IFieldTesselator ft)(WallSegment segment)(ISectorWallTesselator sector)-> :
+(function TesselateBrickwork (IFieldTesselator ft)(WallSegment segment)(ISectorWallTesselator sector) (Float32 extrusion)(Float32 cementWidth)-> :
 	(Int32 nColumns = ft.NumberOfColumns)
 	(Int32 nRows = ft.NumberOfRows)
 	
@@ -56,9 +56,6 @@
 	
 	(MaterialVertexData brick)
 	(sector.GetMaterial brick "brickwork")
-		
-	(Float32 cementWidth = 0.05)	
-	(Float32 extrusion = 0.15)
 	
 	(ITriangleList tris = sector.WallTriangles)
 		
@@ -124,17 +121,24 @@
 	(Float32 u = 0)
 	
 	(IFieldTesselator ft (FieldTesselator))
+	
+	(IScriptConfig config (ScriptConfig))
+	(Float32 dX = (config.GetFloat "Cell DX" 2.0 0.3 10))
+	(Float32 dY = (config.GetFloat "Cell DY" 1.0 0.3 10))
+	(Float32 uvScale = (config.GetFloat "UV Scale" 0.25 0.01 10))
+	(Float32 extrusion = (config.GetFloat "Extrusion" 0.15 0.001 0.2))
+	(Float32 cementWidth = (config.GetFloat "Cement thickness (m)" 0.005 0.001 1))
 			
 	(#for (Int32 i = 0)(i < nSegments)(#inc i)
 		(WallSegment seg)
 		(sector.GetSegment i seg)
 		
-		(ft.InitByFixedCellWidth seg.quad 2.0 1.0)
+		(ft.InitByFixedCellWidth seg.quad dX dY)
 		
-		(Float32 u1 = (u + (0.25 * seg.span.x)))
+		(Float32 u1 = (u + (uvScale * seg.span.x)))
 		
-		(Float32 v0 = (0.25 * seg.quad.a.z))
-		(Float32 v1 = (0.25 * seg.quad.c.z))
+		(Float32 v0 = (uvScale * seg.quad.a.z))
+		(Float32 v1 = (uvScale * seg.quad.c.z))
 		(Vec2 uvA = u  v0)
 		(Vec2 uvC = u1 v1)
 		
@@ -144,11 +148,11 @@
 		(Int32 nRows = ft.NumberOfRows)
 		(#for (Int32 x = 0)(x < nColumns)(#inc x)
 			(#for (Int32 y = 0)(y < nRows)(#inc y)
-				(ft.RandomizeField x y 0 1.0)
+				(ft.RandomizeField x y 0 1)
 			)
 		)
 		
-		(TesselateBrickwork ft seg sector)
+		(TesselateBrickwork ft seg sector extrusion cementWidth)
 		(u = u1)
 	)
 )

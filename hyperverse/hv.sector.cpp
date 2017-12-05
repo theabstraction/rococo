@@ -1005,6 +1005,11 @@ namespace ANON
 			  {
 				  return This->scriptConfig->Current().GetFloat(variableName, default, minValue, maxValue);
 			  }
+
+			  virtual void GetFloatRange(const fstring& variableName, Vec2& values, float defaultLeft, float defaultRight, float minValue, float maxValue) override
+			  {
+				  return This->scriptConfig->Current().GetFloatRange(variableName, values, defaultLeft, defaultRight, minValue, maxValue);
+			  }
 		  } scriptCallback(this);  
 
 		  try
