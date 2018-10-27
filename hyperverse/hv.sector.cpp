@@ -918,8 +918,7 @@ namespace ANON
 			  IEventCallback<ScriptCompileArgs>,
 			  public ISectorWallTesselator,
 			  public ISectorComponents,
-			  public TriangleListBinding,
-			  public IScriptConfig
+			  public TriangleListBinding
 		  {
 			  Sector* This;
 
@@ -958,7 +957,7 @@ namespace ANON
 				  AddNativeCalls_HVISectorWallTesselator(args.ss, this);
 				  AddNativeCalls_HVISectorComponents(args.ss, this);
 				  AddNativeCalls_HVITriangleList(args.ss, this);
-				  AddNativeCalls_HVIScriptConfig(args.ss, this);
+				  AddNativeCalls_HVIScriptConfig(args.ss, &This->scriptConfig->Current());
 			  }
 
 			  void GetMaterial(MaterialVertexData& mat, const fstring& componentClass) override
@@ -999,16 +998,6 @@ namespace ANON
 			  {
 				  This->platform.meshes.End(preserveMesh, false);
 				  This->AddComponent(Matrix4x4::Identity(), localName.c_str(), meshName.c_str());
-			  }
-
-			  float GetFloat(const fstring& variableName, float default, float minValue, float maxValue) override
-			  {
-				  return This->scriptConfig->Current().GetFloat(variableName, default, minValue, maxValue);
-			  }
-
-			  virtual void GetFloatRange(const fstring& variableName, Vec2& values, float defaultLeft, float defaultRight, float minValue, float maxValue) override
-			  {
-				  return This->scriptConfig->Current().GetFloatRange(variableName, values, defaultLeft, defaultRight, minValue, maxValue);
 			  }
 		  } scriptCallback(this);  
 
@@ -1098,6 +1087,7 @@ namespace ANON
 
 				  AddNativeCalls_HVISectorFloorTesselator(args.ss, this);
 				  AddNativeCalls_HVISectorComponents(args.ss, this);
+				  AddNativeCalls_HVIScriptConfig(args.ss, &This->scriptConfig->Current());
 			  }
 
 			  void GetMaterial(MaterialVertexData& mat, const fstring& componentClass) override
@@ -1148,6 +1138,7 @@ namespace ANON
 		  try
 		  {
 			  cstr theFloorScript = *floorScript ? floorScript : "#floors/square.mosaics.sxy";
+			  scriptConfig->SetCurrentScript(theFloorScript);
 			  platform.utilities.RunEnvironmentScript(scriptCallback, theFloorScript, true, false);
 			  return true;
 		  }
@@ -2633,6 +2624,10 @@ namespace ANON
 			  editor.AddSpacer();
 			  editor.AddInt("altitude (cm)", false, &altitudeInCm);
 			  editor.AddSpacer();
+
+			  cstr theFloorScript = *floorScript ? floorScript : "#floors/square.mosaics.sxy";
+			  scriptConfig->SetCurrentScript(theFloorScript);
+			  scriptConfig->Current().BindProperties(editor);
 
 			  if (!completeSquares.empty())
 			  {

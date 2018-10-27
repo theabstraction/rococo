@@ -35,12 +35,13 @@
 *.jbf
 *.aps
 *.metagen
+*.asm
 temp/
 sexy/bin/
 sexy/sexydotnet/obj/
 sexy/intermediate/
-GisephoneFonts/FontGenerator/obj/
-GisephoneFonts/FontGenerator/obj/x64/Debug/
-GisephoneFonts/FontGenerator/obj/x64/Release/
+GisephoneFonts/FontGenerator/obj/**
+#GisephoneFonts/FontGenerator/obj/x64/Debug/
+#GisephoneFonts/FontGenerator/obj/x64/Release/
 
 

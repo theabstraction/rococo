@@ -83,6 +83,35 @@ namespace Rococo
 {
 	namespace OS
 	{
+		bool IsFileExistant(const char* filename)
+		{
+			DWORD flags = GetFileAttributesA(filename);
+			return flags != INVALID_FILE_ATTRIBUTES;
+		}
+
+		bool StripLastSubpath(char* fullpath)
+		{
+			int32 len = (int32) strlen (fullpath);
+			for (int i = len - 2; i > 0; --i)
+			{
+				if (fullpath[i] == '\\')
+				{
+					fullpath[i + 1] = 0;
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		void SanitizePath(char* path)
+		{
+			for (char* s = path; *s != 0; ++s)
+			{
+				if (*s == '/') *s = '\\';
+			}
+		}
+
 		void SaveClipBoardText(cstr text, Windows::IWindow& window)
 		{
 			size_t len = strlen(text) + 1;
@@ -305,10 +334,10 @@ namespace
 
 	struct FilePath
 	{
-      enum { CAPACITY = 260 };
+		enum { CAPACITY = 260 };
 		rchar data[CAPACITY];
 		operator rchar*() { return data; }
-      operator cstr() const { return data; }
+		operator cstr() const { return data; }
 	};
 
 	void GetContentDirectory(cstr contentIndicatorName, FilePath& path, IOS& os)
@@ -316,20 +345,20 @@ namespace
 		FilePath binDirectory;
 		os.GetBinDirectoryAbsolute(binDirectory, os.MaxPath());
 
-      StackStringBuilder sb(path.data, _MAX_PATH);
-      sb << binDirectory.data;
+		StackStringBuilder sb(path.data, _MAX_PATH);
+		sb << binDirectory.data;
 
-      if (strstr(contentIndicatorName, "\\") != nullptr)
-      {
-         // The indicator is part of a path
-         if (os.IsFileExistant(contentIndicatorName))
-         { 
-            sb.Clear();
-            sb << contentIndicatorName;
-            MakeContainerDirectory(path);
-            return;
-         }
-      }
+		if (strstr(contentIndicatorName, "\\") != nullptr)
+		{
+			// The indicator is part of a path
+			if (os.IsFileExistant(contentIndicatorName))
+			{
+				sb.Clear();
+				sb << contentIndicatorName;
+				MakeContainerDirectory(path);
+				return;
+			}
+		}
 
 		size_t len = rlen(path);
 
@@ -339,7 +368,7 @@ namespace
 			SecureFormat(indicator.data, FilePath::CAPACITY, "%s%s", path.data, contentIndicatorName);
 			if (os.IsFileExistant(indicator))
 			{
-            StackStringBuilder sb(path.data, _MAX_PATH, StringBuilder::BUILD_EXISTING);
+				StackStringBuilder sb(path.data, _MAX_PATH, StringBuilder::BUILD_EXISTING);
 				sb << "content\\";
 				return;
 			}
@@ -354,14 +383,14 @@ namespace
 		Throw(0, "Could not find %s below the executable folder '%s'", contentIndicatorName, binDirectory);
 	}
 
-	class Installation: public IInstallationSupervisor
+	class Installation : public IInstallationSupervisor
 	{
 		IOS& os;
 		FilePath contentDirectory;
 		int32 len;
 		std::unordered_map<std::string, std::string> macroToSubdir;
 	public:
-		Installation(cstr contentIndicatorName, IOS& _os): os(_os)
+		Installation(cstr contentIndicatorName, IOS& _os) : os(_os)
 		{
 			GetContentDirectory(contentIndicatorName, contentDirectory, os);
 			len = (int32)strlen(contentDirectory);
@@ -459,7 +488,7 @@ namespace
 				Throw(0, "Installation::ConvertPingPathToSysPath(...) Illegal sequence in ping path: '..'");
 			}
 
-			int fulllen = SecureFormat(sysPath, sysPathCapacity, "%s%s%s", contentDirectory.data, macroDir+1, subdir);
+			int fulllen = SecureFormat(sysPath, sysPathCapacity, "%s%s%s", contentDirectory.data, macroDir + 1, subdir);
 			OS::ToSysPath(sysPath);
 		}
 
@@ -496,7 +525,7 @@ namespace
 				Throw(0, "ConvertSysPathToPingPath: path did not begin with the content folder %s", contentDirectory.data);
 			}
 
-			if (netLength >= (int32) pingPathCapacity)
+			if (netLength >= (int32)pingPathCapacity)
 			{
 				Throw(0, "ConvertSysPathToPingPath: Insufficient space in ping path buffer");
 			}
@@ -558,7 +587,7 @@ namespace
 		}
 	};
 
-	class CriticalSection: public ILock
+	class CriticalSection : public ILock
 	{
 		CRITICAL_SECTION sysCS;
 
@@ -597,13 +626,13 @@ namespace
 
 		IEventCallback<SysUnstableArgs>* onUnstable;
 	public:
-		Win32OS():
-			hMonitorDirectory(INVALID_HANDLE_VALUE), 
+		Win32OS() :
+			hMonitorDirectory(INVALID_HANDLE_VALUE),
 			hThread(0),
 			isRunning(false),
 			onUnstable(nullptr)
 		{
-         auto hAppInstance = GetModuleHandle(nullptr);
+			auto hAppInstance = GetModuleHandle(nullptr);
 			GetModuleFileNameA(hAppInstance, binDirectory, _MAX_PATH);
 			MakeContainerDirectory(binDirectory);
 		}
@@ -613,7 +642,7 @@ namespace
 			if (isRunning)
 			{
 				isRunning = false;
-				struct wake { static VOID CALLBACK me(ULONG_PTR param) {}};
+				struct wake { static VOID CALLBACK me(ULONG_PTR param) {} };
 				QueueUserAPC(wake::me, HANDLE(hThread), 0);
 				WaitForSingleObject(HANDLE(hThread), 5000);
 				CloseHandle(HANDLE(hThread));
@@ -629,7 +658,7 @@ namespace
 
 		virtual void UTF8ToUnicode(const char* s, wchar_t* unicode, size_t cbUtf8count, size_t unicodeCapacity)
 		{
-			if (0 == MultiByteToWideChar(CP_UTF8, 0, s, (int) cbUtf8count, unicode, (int)unicodeCapacity))
+			if (0 == MultiByteToWideChar(CP_UTF8, 0, s, (int)cbUtf8count, unicode, (int)unicodeCapacity))
 			{
 				Throw(GetLastError(), "Could not convert UTF8 to rchar: %S", s);
 			}
@@ -661,6 +690,7 @@ namespace
 
 		void OnModified(cstr filename)
 		{
+			Sleep(500);
 			Sync sync(threadLock);
 
 			enum { MAX_MODIFIED_QUEUE_LENGTH = 20 };
@@ -683,9 +713,10 @@ namespace
 
 		void OnScan(const FILE_NOTIFY_INFORMATION& info)
 		{
+			// Give the system 500 milliseconds to finalize file modifications before we notify that it has been changed
 			const FILE_NOTIFY_INFORMATION* i = &info;
 
-			while(true)
+			while (true)
 			{
 				if (i->Action == FILE_ACTION_MODIFIED)
 				{
@@ -695,7 +726,7 @@ namespace
 						rchar nullTerminatedFilename[_MAX_PATH] = { 0 };
 						for (DWORD i = 0; i < nChars; ++i)
 						{
-							nullTerminatedFilename[i] = (char) info.FileName[i];
+							nullTerminatedFilename[i] = (char)info.FileName[i];
 						}
 						nullTerminatedFilename[nChars] = 0;
 						OnModified(nullTerminatedFilename);
@@ -704,7 +735,7 @@ namespace
 
 				if (!i->NextEntryOffset) break;
 
-				i = (const FILE_NOTIFY_INFORMATION*) (((char*) i) +  i->NextEntryOffset);
+				i = (const FILE_NOTIFY_INFORMATION*)(((char*)i) + i->NextEntryOffset);
 			}
 		}
 
@@ -712,7 +743,7 @@ namespace
 		{
 			struct Context
 			{
-				char raw[32768];			
+				char raw[32768];
 				OVERLAPPED ovl;
 				Win32OS* os;
 				DWORD bytesReturned;
@@ -721,7 +752,7 @@ namespace
 
 				void OnScan()
 				{
-					auto& info = *(FILE_NOTIFY_INFORMATION*) raw;
+					auto& info = *(FILE_NOTIFY_INFORMATION*)raw;
 					os->OnScan(info);
 					exitCode = QueueScan();
 				}
@@ -729,7 +760,7 @@ namespace
 				static void WINAPI OnScan(DWORD dwErrorCode, DWORD dwNumberOfBytesTransfered, LPOVERLAPPED lpOverlapped)
 				{
 					Context* This = (Context*)lpOverlapped->hEvent;
-					This->OnScan();	
+					This->OnScan();
 				}
 
 				int QueueScan()

@@ -51,18 +51,40 @@
 	(water.colour = 0x3FFF8080)
 	(water.gloss = 0.2)
 		
+	(IScriptConfig config (ScriptConfig))
+	(Float32 uvScale = (config.GetFloat "UV size" 0.5 0.01 10))	
+	(Float32 depth = (config.GetFloat "Depth" 0.2 0.01 0.35))	
+	(Float32 height = (config.GetFloat "Height" 0.25 0.01 0.35))	
+	
+	(Vec2 poolSpanX)
+	(config.GetFloatRange "Outer x-span" poolSpanX 0.333 0.666 0 1)
+	
+	(Vec2 poolSpanY)
+	(config.GetFloatRange "Outer y-span" poolSpanY 0.333 0.666 0 1)
+	
+	(Vec2 innerSpanX)
+	(config.GetFloatRange "Inner x-span" innerSpanX 0.1 0.9 0 1)
+	
+	(Vec2 innerSpanY)
+	(config.GetFloatRange "Inner y-span" innerSpanY 0.1 0.9 0 1)
+	
 	(qst.PushQuad floorQuad floor)
 	
-	(Rectf uv = 0 0 1 1)
+	(Rectf uv = 0 0 uvScale uvScale)
 	(qst.SetTextureRect uv)
 	
-	(qst.SplitThreeRows floor cfloor floor 0.3333 0.666)
+	(qst.SplitThreeRows floor cfloor floor poolSpanX.x poolSpanX.y)
 	
 	(qst.MoveOutputToInputWithMat cfloor)
-	(qst.SplitThreeColumns floor cfloor floor 0.3333 0.666)
+	(qst.SplitThreeColumns floor cfloor floor poolSpanY.x poolSpanY.y)
+	
+	(if (sector.FoundationsExist)
+		(qst.MoveOutputToInputWithMat floor)
+		(qst.ClearInput)
+	)
 	
 	(qst.MoveOutputToInputWithMat cfloor)
-	(qst.AddCuboid 0 1 0 1 0.25 0.5 panels)
+	(qst.AddCuboid 0 1 0 1 0.25 uvScale panels)
 	(qst.ClearInput)
 	
 	(qst.MoveOutputToInputWithMat panels)
@@ -78,8 +100,8 @@
 	(qst.MoveInputToOutput)
 	(qst.MoveOutputToInputWithNormalDotRange up 0.99 1.0)
 	
-	(Rectf hole = 0.1 0.9 0.9 0.1)
-	(qst.Intrude hole 0.2 0.5 panels water)
+	(Rectf hole = innerSpanX.x innerSpanY.y innerSpanX.y innerSpanY.x)
+	(qst.Intrude hole depth uvScale panels water)
 	
 	(qst.ClearInput)
 		
@@ -138,17 +160,18 @@
 			(GenerateCeilingMesh ceiling sector qst)
 		)
 	)
-	
+		
 	(qst.Clear)
 	
 	(QuadVertices floor)
 	(sector.FloorQuad 0 floor)	// The first and largest square used for the floor feature
 	(GenerateSpecialFloorMesh floor sector qst)
 	
-	(qst.Clear)
-	(#for(Int32 i = 1)(i < nSquares)(#inc i)
-		(sector.FloorQuad i floor)	
-		(GenerateFloorMesh floor sector qst)
+	(if (sector.FoundationsExist == false)
+		(qst.Clear)
+		(#for(Int32 i = 1)(i < nSquares)(#inc i)
+			(sector.FloorQuad i floor)	
+			(GenerateFloorMesh floor sector qst)
+		)
 	)
-	
 )

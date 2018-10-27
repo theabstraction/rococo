@@ -14,7 +14,7 @@
     <ProjectGuid>{997A007C-24B0-44FE-A27E-0EE006D74128}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>blokewindows</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

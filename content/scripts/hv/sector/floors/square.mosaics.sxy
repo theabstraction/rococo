@@ -23,13 +23,15 @@
 
 (function GenerateGraphicsMesh (QuadVertices floorQuad)(QuadVertices ceilingQuad)(ISectorFloorTesselator sector)(IQuadStackTesselator qst) -> :
 	(MaterialVertexData white)
-	(sector.GetMaterial white "floor")
+	(sector.GetMaterial white "panels")
 	
 	(MaterialVertexData black)
 	(sector.GetMaterial black "floor")
 	
-	(AnyColour 0 30 0 30 0 30 80 129 -> black.colour)
-	(AnyColour 224 255 224 255 224 255 80 129 -> white.colour)
+	(IScriptConfig config (ScriptConfig))
+	(Float32 uvScale = (config.GetFloat "UV size" 0.5 0.01 10))
+	(Float32 floorTileSize = (config.GetFloat "Floor tile(m)" 0.5 0.1 10))
+	(Float32 ceilingTileSize = (config.GetFloat "Ceiing tile(m)" 0.5 0.1 100))
 	
 	(qst.PushQuad floorQuad white)
 	
@@ -41,8 +43,8 @@
 		(qst.MoveOutputToInputWithNormalDotRange up 0.99 1.0)
 	)
 	
-	(Rectf uv = 0 0 1 1)
-	(qst.TileMosaic black white uv 0.5)
+	(Rectf uv = 0 0 uvScale uvScale)
+	(qst.TileMosaic black white uv floorTileSize)
 		
 	(VertexTriangle topLeft)
 	(VertexTriangle bottomRight)
@@ -51,12 +53,19 @@
 		(sector.AddFloorTriangle bottomRight)
 	)
 	
-	(if (sector.FoundationsExist == false)
+	(if (not sector.FoundationsExist)
 		(MaterialVertexData ceiling)
 		(sector.GetMaterial ceiling "ceiling")
 
 		(qst.PushQuad ceilingQuad ceiling)
-		(qst.TileMosaic black white uv 0.5)
+		
+		(if (ceilingTileSize > 10)
+			(qst.MoveInputToOutput)
+		else
+			(MaterialVertexData mullions)
+			(sector.GetMaterial mullions "mullions")
+			(qst.TileMosaic ceiling mullions uv ceilingTileSize)
+		)
 
 		(VertexTriangle roofTL)
 		(VertexTriangle roofBR)

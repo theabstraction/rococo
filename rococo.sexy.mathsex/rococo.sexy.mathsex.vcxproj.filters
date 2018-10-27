@@ -25,6 +25,7 @@
     <CustomBuild Include="mathsex.vectors.sxh">
       <Filter>SXH</Filter>
     </CustomBuild>
+    <CustomBuild Include="mathsex.base.sxh" />
   </ItemGroup>
   <ItemGroup>
     <None Include="config.xc">
@@ -38,9 +39,6 @@
     </None>
     <None Include="mathsex.time.inl">
       <Filter>Generated Files</Filter>
-    </None>
-    <None Include="mathsex.base.sxh">
-      <Filter>SXH</Filter>
     </None>
     <None Include="mathsex.base.inl">
       <Filter>Generated Files</Filter>

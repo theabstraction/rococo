@@ -56,19 +56,27 @@
 	(sector.GetMaterial water "brickwork")
 	(water.colour = 0x3F8080A0)
 	(water.gloss = 0.2)
-		
+	
+	(IScriptConfig config (ScriptConfig))
+	(Float32 uvScale = (config.GetFloat "UV size" 0.5 0.01 10))
+	
+	(Vec2 holeRangeX)
+	(Vec2 holeRangeY)
+	(config.GetFloatRange "Hole range X" holeRangeX 0.1 0.9 0 1)
+	(config.GetFloatRange "Hole range Y" holeRangeY 0.1 0.9 0 1)
+	
 	(qst.PushQuad floorQuad floor)
 	
-	(Rectf uv = 0 0 1 1)
+	(Rectf uv = 0 0 uvScale uvScale)
 	(qst.SetTextureRect uv)
 	
-	(Rectf hole = 0.1 0.9 0.9 0.1)
-	(qst.Intrude hole 15 0.5 floor water)
+	(Rectf hole = holeRangeX.x holeRangeY.y holeRangeX.y holeRangeY.x)
+	(qst.Intrude hole 15 uvScale floor water)
 	
 	(Vec3 right = 1 0 0)
 	(qst.MoveOutputToInputWithNormalDotRange right 0.99 1)
 	(Rectf flowpipe = 0.5 0.4 0.9 0.2)
-	(qst.Intrude flowpipe 5 0.5 water water)
+	(qst.Intrude flowpipe 5 uvScale water water)
 	
 	(VertexTriangle topLeft)
 	(VertexTriangle bottomRight)
@@ -169,18 +177,20 @@
 			(sector.CeilingQuad i ceiling)	
 			(GenerateCeilingMesh ceiling sector qst)
 		)
+	
+		(qst.Clear)
+		
+		(QuadVertices floor)
+		(sector.FloorQuad 0 floor)	// The first and largest square used for the floor feature
+		(GenerateSpecialFloorMesh floor sector qst)
+		
+		(qst.Clear)
+		(#for(Int32 i = 1)(i < nSquares)(#inc i)
+			(sector.FloorQuad i floor)	
+			(GenerateFloorMesh floor sector qst)
+		)
+	else
+		(IMessaging messaging (Messaging))
+		(messaging.Log "The script requires a sector to be a square")
 	)
-	
-	(qst.Clear)
-	
-	(QuadVertices floor)
-	(sector.FloorQuad 0 floor)	// The first and largest square used for the floor feature
-	(GenerateSpecialFloorMesh floor sector qst)
-	
-	(qst.Clear)
-	(#for(Int32 i = 1)(i < nSquares)(#inc i)
-		(sector.FloorQuad i floor)	
-		(GenerateFloorMesh floor sector qst)
-	)
-	
 )

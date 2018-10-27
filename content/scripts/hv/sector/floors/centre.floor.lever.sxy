@@ -169,7 +169,7 @@
 	
 	(Int32 nSquares = sector.NumberOfSquares)
 	
-	(if (sector.FoundationsExist == false)
+	(if (not sector.FoundationsExist)
 		// First generate the physics mesh
 		(#for(Int32 i = 0)(i < nSquares)(#inc i)
 			(QuadVertices q)
@@ -194,18 +194,20 @@
 			(sector.CeilingQuad i ceiling)	
 			(GenerateCeilingMesh ceiling sector qst)
 		)
+	
+		(qst.Clear)
+		
+		(QuadVertices floor)
+		(sector.FloorQuad 0 floor)	// The first and largest square used for the floor feature
+		(GenerateSpecialFloorMesh floor sector qst)
+	
+		(qst.Clear)
+		(#for(Int32 i = 1)(i < nSquares)(#inc i)
+			(sector.FloorQuad i floor)	
+			(GenerateFloorMesh floor sector qst)
+		)
+	else
+		(IMessaging messaging (Messaging))
+		(messaging.Log "The script requires a sector to be a square")
 	)
-	
-	(qst.Clear)
-	
-	(QuadVertices floor)
-	(sector.FloorQuad 0 floor)	// The first and largest square used for the floor feature
-	(GenerateSpecialFloorMesh floor sector qst)
-	
-	(qst.Clear)
-	(#for(Int32 i = 1)(i < nSquares)(#inc i)
-		(sector.FloorQuad i floor)	
-		(GenerateFloorMesh floor sector qst)
-	)
-	
 )

@@ -71,26 +71,6 @@ namespace
 namespace Rococo {
 	namespace OS
 	{
-		bool IsFileExistant(const SEXCHAR* filename)
-		{
-			return INVALID_FILE_ATTRIBUTES != GetFileAttributes(filename);
-		}
-
-		bool StripLastSubpath(SEXCHAR* fullpath)
-		{
-			int32 len = StringLength(fullpath);
-			for (int i = len - 2; i > 0; --i)
-			{
-				if (fullpath[i] == (SEXCHAR) '\\')
-				{
-					fullpath[i + 1] = 0;
-					return true;
-				}
-			}
-
-			return false;
-		}
-
 		void GetDefaultNativeSrcDir(SEXCHAR* data, size_t capacity)
 		{
 #ifdef SCRIPT_IS_LIBRARY
