@@ -90,7 +90,7 @@ namespace HV
 				auto& nl = As<HV::Events::SetNextLevelEvent>(ev);
 				nextLevelName = nl.name;
 			}
-			else if (ev.id == Rococo::Events::BuysEventId)
+			else if (ev.id == Rococo::Events::BusyEventId)
 			{
 				auto& be = As <Rococo::Events::BusyEvent>(ev);
 				if (be.isNowBusy)
@@ -139,7 +139,7 @@ namespace HV
 			editorActive = false;
 
 			e.platform.publisher.Attach(this, HV::Events::setNextLevelEventId);
-			e.platform.publisher.Attach(this, Rococo::Events::BuysEventId);
+			e.platform.publisher.Attach(this, Rococo::Events::BusyEventId);
 		}
 
 		~App()

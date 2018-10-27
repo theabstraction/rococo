@@ -2,6 +2,7 @@
 
 #include <rococo.os.win32.h>
 #include <rococo.mplat.h>
+#include <mplat.to.app.events.inl>
 
 #ifdef _DEBUG
 # pragma comment(lib, "rococo.util.debug.lib")
@@ -47,19 +48,6 @@ namespace Rococo
 		FreeLibrary(module);
 
 		return retValue;
-	}
-
-	using namespace Rococo::Events;
-
-	Events::EventId UIInvoke::EvId()
-	{
-		static EventId invokeEvent = "ui.invoke"_event;
-		return invokeEvent;
-	}
-
-	namespace Events
-	{
-		EventId BuysEventId = "mplat.busy"_event;
 	}
 }
 

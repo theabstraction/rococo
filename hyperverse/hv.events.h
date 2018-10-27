@@ -64,5 +64,5 @@ namespace HV
             float delta;
          };
       } // Player
-   } // 
+   } // Events
 } // HV

@@ -18,7 +18,7 @@
     <ClCompile Include="mplat.test.main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\include\mplat.test.app.cpp">
+    <ClCompile Include="mplat.test.app.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

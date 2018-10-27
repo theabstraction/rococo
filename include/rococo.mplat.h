@@ -443,11 +443,11 @@ namespace Rococo
    {
 	   struct ScrollEvent;
 
-	   extern EventId BuysEventId;
+	   extern EventId BusyEventId;
 
 	   struct BusyEvent : public Events::Event
 	   {
-			BusyEvent(): Events::Event(BuysEventId) {}
+			BusyEvent();
 			boolean32 isNowBusy;
 			cstr message;
 			cstr resourceName;

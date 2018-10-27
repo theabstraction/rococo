@@ -23,6 +23,8 @@
 #include <Processthreadsapi.h>
 #include <psapi.h>
 
+#include <mplat.to.app.events.inl>
+
 using namespace Rococo;
 using namespace Rococo::Events;
 using namespace Rococo::Windows;
@@ -77,7 +79,7 @@ namespace Rococo
 
 	namespace Events
 	{
-		EventId BuysEventId = "mplat.busy"_event;
+		BusyEvent::BusyEvent() : Events::Event(BusyEventId) {}
 	}
 }
 
@@ -3371,12 +3373,6 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 
 namespace Rococo
 {
-	Events::EventId UIInvoke::EvId()
-	{
-		static EventId invokeEvent = "ui.invoke"_event;
-		return invokeEvent;
-	}
-
 	UIInvoke::UIInvoke() : Event(EvId())
 	{
 

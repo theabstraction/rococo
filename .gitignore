@@ -40,6 +40,7 @@ temp/
 sexy/bin/
 sexy/sexydotnet/obj/
 sexy/intermediate/
+GisephoneFonts/FontGenerator/bin/
 GisephoneFonts/FontGenerator/obj/**
 #GisephoneFonts/FontGenerator/obj/x64/Debug/
 #GisephoneFonts/FontGenerator/obj/x64/Release/
