@@ -1,0 +1,30 @@
+(struct BackgroundImageSpec
+	(Float32 hilightAlpha)
+	(Float32 normalAlpha)
+	(Bool tileTangent)
+	(Bool tileNormal)
+)
+(alias BackgroundImageSpec Mad.BackgroundImageSpec)
+
+(struct NumericEditingSpec
+	(Float32 minValue)
+	(Float32 maxValue)
+	(Int32 unitDigits)
+	(Int32 subunitDigits)
+	(Int32 border)
+	(Bool alignLeft)
+)
+(alias NumericEditingSpec Mad.NumericEditingSpec)
+
+(struct ToolTipSpec
+	(Float32 width)
+	(Float32 height)
+	(Int32 bkColour)
+	(Int32 edgeColour)
+	(Int32 fontColour)
+	(Int32 fontIndex)
+	(Float32 fadeTime)
+	(Int32 precision)
+)
+(alias ToolTipSpec Mad.ToolTipSpec)
+

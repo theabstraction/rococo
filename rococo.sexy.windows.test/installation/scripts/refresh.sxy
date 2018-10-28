@@ -1,0 +1,435 @@
+(' #file.type mad.gui)
+(' #include 
+    "!scripts/mad.types.sxy"
+	"!scripts/gui_builder.sxh.sxy" 
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Mad)
+(using Sys.Maths)
+(using Sys.Type)
+
+(function AddVec2fVec2f (Vec2 a)(Vec2 b)(Vec2 sum)-> :
+	(sum.x = (a.x + b.x))
+	(sum.y = (a.y + b.y))
+)
+
+(function SubtractVec2fVec2f (Vec2 a)(Vec2 b)(Vec2 dif)-> :
+	(dif.x = (a.x - b.x))
+	(dif.y = (a.y - b.y))
+)
+
+(function MultiplyVec2fFloat32(Vec2 a)(Float32 b)(Vec2 scale)-> :
+	(scale.x = (a.x * b))
+	(scale.y = (a.y * b))
+)
+
+(function AddLogoAndTabBar (IGuiBuilder gui)(Vec2 screenSpan) -> :
+	(IStretchBarWidget topStretcher = (gui.AddStretchBar "topStretcher" "page"))
+	(topStretcher.LayoutChildrenHorizontally)
+	
+	(BackgroundImageSpec bkSpec = 1.0 1.0 false false)
+	(topStretcher.SetBackgroundImage "StatusBar.tiff" bkSpec)
+	
+//	(topStretcher.SetEdgeColour 0xFF0000FF)
+	
+	(gui.SetSpan "topStretcher" screenSpan.x 48)
+	
+	(IBitmapWidget gap1 = (gui.AddBitmap "tabGap1" "topStretcher"))
+	(gap1.SetImage "TopGap.tiff")
+	(gap1.ShrinkToFit)
+	
+	(IBitmapWidget logoBitmap = (gui.AddBitmap "logoBitmap" "topStretcher"))
+	(logoBitmap.SetImage "Logos.tiff")
+	(logoBitmap.ShrinkToFit)
+		
+	(IBitmapWidget gap2 = (gui.AddBitmap "tabGap2" "topStretcher"))
+	(gap2.SetImage "TopGap.tiff")
+	(gap2.ShrinkToFit)
+	/*
+	(IBitmapWidget tabs = (gui.AddBitmap "tabs" "topStretcher"))
+	(tabs.SetImage "TabBarUpdates.tiff")
+	(tabs.ShrinkToFit)
+	*/
+	(IBitmapWidget gap3 = (gui.AddBitmap "tabGap3" "topStretcher"))
+	(gap3.SetImage "TopGap.tiff")
+	(gap3.ShrinkToFit)
+	
+	(topStretcher.MarkStretchPoint "tabGap1" 0.1)
+	(topStretcher.MarkStretchPoint "tabGap2" 1.0)
+	(topStretcher.MarkStretchPoint "tabGap3" 0.1)
+	
+	(gui.LayoutChildren "topStretcher")
+)
+
+(function AddPluginRow
+	(IGuiBuilder gui)
+	(IString rowName)
+	(Vec2 parentSpan)
+	(IString imageFileName)
+	(IString imageLink)
+	(IString zipName)
+	(IString internalName)
+	(IString title)
+	(IString linkText)
+	-> :
+	(Vec2 screenSpan)
+	(gui.GetSpan "$root" screenSpan)
+		
+	(IStretchBarWidget row = (gui.AddStretchBar rowName "pluginList"))
+	
+	(IStringBuilder flagName (Sys.Type.StringBuilder 256))
+	(flagName.AppendIString internalName)
+	(flagName.AppendIString "_installed")
+	
+	(Int32 installState = (Mad.Module.GetInt32 flagName))
+	
+	/*
+		enum
+		{
+			DOWNLOAD_INSTALLED = 0,
+			DOWNLOAD_COMMENCED = 1,
+			DOWNLOAD_AVAILABLE = 2
+		};
+	*/
+	
+	(BackgroundImageSpec bkSpec)
+	(bkSpec.tileTangent = false)
+	(bkSpec.tileNormal = false)
+	
+	(row.LayoutChildrenHorizontally)
+	
+	(gui.SetSpan rowName parentSpan.x 90)
+	
+	(IStringBuilder gapName (Sys.Type.StringBuilder 256))
+	(gapName.AppendIString imageLink)
+	(gapName.AppendIString "_gap")
+	
+	(IStretchBarWidget spacer = (gui.AddStretchBar gapName rowName))
+	(gui.SetSpan gapName 32 16)
+		/*
+	(IStringBuilder installedLabel(Sys.Type.StringBuilder 256))
+	(installedLabel.AppendIString imageLink)
+	(installedLabel.AppendIString "_installed")
+
+	(IBitmapWidget installedIcon = (gui.AddBitmap installedLabel rowName))
+	*/
+	
+	(if (installState == 1)
+	//	(installedIcon.SetImage "Alpha.tiff")
+	)
+	
+	(if (installState == 2)
+	//	(installedIcon.SetImage "TickboxSelected.tiff")
+		(row.OnClick "install" internalName)
+	)
+	/*
+	(installedIcon.ShrinkToFit)	
+	
+	(installedIcon.SetEdgeColour 0x00000000 0xFF0000FF)
+	*/
+	
+	(IStringBuilder infoGap0 (Sys.Type.StringBuilder 256))
+	(infoGap0.AppendIString imageLink)
+	(infoGap0.AppendIString "_infoGap0")
+	
+	(IStretchBarWidget infoBarGap0 = (gui.AddStretchBar infoGap0 rowName))
+	(gui.SetSpan infoGap0 32 90)
+	
+	(IBitmapWidget pluginImage = (gui.AddBitmap imageLink rowName))
+	(pluginImage.SetImage imageFileName)
+	(pluginImage.ShrinkToFit)
+	
+	(IStringBuilder infoName (Sys.Type.StringBuilder 256))
+	(infoName.AppendIString imageLink)
+	(infoName.AppendIString "_info")
+	
+	(IStringBuilder infoGap1 (Sys.Type.StringBuilder 256))
+	(infoGap1.AppendIString imageLink)
+	(infoGap1.AppendIString "_infoGap1")
+	
+	(IStretchBarWidget infoBarGap1 = (gui.AddStretchBar infoGap1 rowName))
+	(gui.SetSpan infoGap1 32 90)
+	
+	(IStretchBarWidget infoBar = (gui.AddStretchBar infoName rowName))
+	(gui.SetSpan infoName 280 90)
+//	(infoBar.SetEdgeColour 0xFF000000 0xFF000000)
+	
+	(IStringBuilder infoTitle (Sys.Type.StringBuilder 256))
+	(infoTitle.AppendIString imageLink)
+	(infoTitle.AppendIString "_infoTitle")
+	
+	(infoBar.LayoutChildrenVertically)
+	
+	(IStretchBarWidget infoBarTitle = (gui.AddStretchBar infoTitle infoName))
+	(gui.SetSpan infoTitle 280 45)
+	
+	(IStringBuilder linkTextName (Sys.Type.StringBuilder 256))
+	(linkTextName.AppendIString imageLink)
+	(linkTextName.AppendIString "_infoText")
+	
+	(IStretchBarWidget infoBarLinkText = (gui.AddStretchBar linkTextName infoName))
+	(gui.SetSpan linkTextName 280 45)
+	
+	(Int32 alignment = (#AlignmentLeft))
+	(infoBarTitle.SetBackgroundText title alignment)
+	(infoBarLinkText.SetBackgroundText linkText(#Mad.AlignmentLeft))
+	
+	(gui.LayoutChildren infoName)
+			
+	(if (installState == 1) // Installation state 1 means downloading commenced
+		(IStringBuilder progressGapLabel (Sys.Type.StringBuilder 256))
+		(progressGapLabel.AppendIString zipName)
+		(progressGapLabel.AppendIString "_progressGap")
+		
+		(IBitmapWidget progressGap = (gui.AddBitmap progressGapLabel rowName))
+		(progressGap.SetImage "Alpha.tiff")	
+		
+		(row.MarkStretchPoint progressGapLabel 1)
+			
+		(IStringBuilder progressLabel (Sys.Type.StringBuilder 256))
+		(progressLabel.AppendIString internalName)
+		(progressLabel.AppendIString "_progress")
+		
+		(IProgressWidget bar = (gui.AddProgressBar progressLabel rowName))
+		(bar.Monitor progressLabel)
+		(bar.SetRange 0 100)
+		(bar.SetColours 0xFFC0C0C0 0xFF808080 0xFFFFA0A0 0xFF000000)
+		(gui.SetSpan progressLabel 240 28)
+		
+		(IStringBuilder progressGapLabel2 (Sys.Type.StringBuilder 256))
+		(progressGapLabel2.AppendIString zipName)
+		(progressGapLabel2.AppendIString "_progressGap2")
+		
+		(IBitmapWidget progressGap2 = (gui.AddBitmap progressGapLabel2 rowName))
+		(progressGap2.SetImage "Alpha.tiff")
+
+		(gui.SetSpan progressGapLabel2 64 20)
+	)
+	
+	(if (installState != 1)
+		(IStringBuilder infoLabel (Sys.Type.StringBuilder 256))
+		(infoLabel.AppendIString internalName)
+		(infoLabel.AppendIString ".info")
+		(IStretchBarWidget infoDisplay = (gui.AddStretchBar infoLabel rowName))
+		(infoDisplay.MonitorProgress infoLabel 0 8 0)
+		(infoDisplay.OnClick "click.info" internalName)
+		(gui.SetSpan infoLabel 200 28)
+	
+		(ToolTipSpec tts = 200 100 0xFF00FFFF 0xFFFFFFFF 0xFF000000 11 5.0 5)
+		(gui.AddTooltip infoLabel 0.1 infoLabel tts)
+	)
+	
+	(if (installState == 0)
+		(IStringBuilder buttonGapLabel (Sys.Type.StringBuilder 256))
+		(buttonGapLabel.AppendIString internalName)
+		(buttonGapLabel.AppendIString "_buttonGap")
+		
+		(IBitmapWidget buttonGap = (gui.AddBitmap buttonGapLabel rowName))
+		(buttonGap.SetImage "Alpha.tiff")
+		(buttonGap.ShrinkToFit)
+
+		(row.MarkStretchPoint buttonGapLabel 1.0)
+		
+		(IStringBuilder buttonPanelName(Sys.Type.StringBuilder 256)) 
+		(buttonPanelName.AppendIString internalName)
+		(buttonPanelName.AppendIString "_buttons")
+		(IStretchBarWidget buttonPanel = (gui.AddStretchBar buttonPanelName rowName))
+		(buttonPanel.LayoutChildrenVertically)
+		(gui.SetSpan buttonPanelName 120 60)
+		
+		
+	//	(installedIcon.SetImage "Alpha.tiff")
+		(IStringBuilder updateName (Sys.Type.StringBuilder 256))
+		(updateName.AppendIString internalName)
+		(updateName.AppendIString "_updateButton")
+		(IStretchBarWidget updateButton = (gui.AddStretchBar updateName buttonPanelName))
+		(updateButton.SetBackgroundText "~F09 UPDATE" 1)
+		(updateButton.OnClick "update" internalName)
+		(updateButton.SetEdgeColour 0xFF808080 0xFFFFFFFF)
+		(updateButton.SetTextColour 0xFFE0E0E0 0xFFFFFFFF)
+		(updateButton.SetBackgroundColour 0xFF808080 0xFF808080)
+		(gui.SetSpan updateName 120 25)
+		
+		(IStringBuilder vGapLabel (Sys.Type.StringBuilder 256))
+		(vGapLabel.AppendIString internalName)
+		(vGapLabel.AppendIString "_vGap")
+		(IStretchBarWidget vGap = (gui.AddStretchBar vGapLabel buttonPanelName))
+		(gui.SetSpan vGapLabel 16 16)
+		
+		(IStringBuilder uninstallName (Sys.Type.StringBuilder 256))
+		(uninstallName.AppendIString internalName)
+		(uninstallName.AppendIString "_uninstallButton")
+		(IStretchBarWidget uninstallButton = (gui.AddStretchBar uninstallName buttonPanelName))
+		(uninstallButton.SetBackgroundText "~F09 UNINSTALL" 1)
+		(uninstallButton.OnClick "uninstall" internalName)
+		(uninstallButton.SetEdgeColour 0xFF808080 0xFFFFFFFF)
+		(uninstallButton.SetTextColour 0xFFE0E0E0 0xFFFFFFFF)
+		(uninstallButton.SetBackgroundColour 0xFF808080 0xFF808080)
+		(gui.SetSpan uninstallName 120 25)
+		
+		(buttonPanel.MarkStretchPoint vGapLabel 1.0)
+		
+		(gui.LayoutChildren buttonPanelName)
+		
+		(gui.SetSpan gapName 32 16)
+		
+		(IStringBuilder buttonGapLabel2 (Sys.Type.StringBuilder 256))
+		(buttonGapLabel2.AppendIString internalName)
+		(buttonGapLabel2.AppendIString "_buttonGap2")
+		
+		(IBitmapWidget buttonGap2 = (gui.AddBitmap buttonGapLabel2 rowName))
+		(buttonGap2.SetImage "Alpha.tiff")
+		(gui.SetSpan buttonGapLabel2 32 16)
+	)
+	
+	(gui.LayoutChildren rowName)
+	
+	(IStringBuilder sepName (Sys.Type.StringBuilder 256))
+	(sepName.AppendIString imageLink)
+	(sepName.AppendIString "_sep")
+	
+	(IBitmapWidget separator = (gui.AddBitmap sepName "pluginList"))
+	(separator.SetImage "SeparatorLine.tiff")
+	(gui.SetSpan sepName screenSpan.x 4)
+)
+
+(function AddPluginP4 (IGuiBuilder gui)(Vec2 screenSpan) -> :
+	(IString title = "~F04ADRENALATOR") 
+	(IString linkText = "~F06...love and chips")
+	(AddPluginRow gui "rowWitness" screenSpan "ProductWitness.tiff" "witnessImage" "adrenalator" "P1" title linkText)
+	(gui.LayoutChildren "rowWitness")
+)
+
+(function AddPlugins(IGuiBuilder gui)(Vec2 screenSpan) -> :
+	(IStretchBarWidget pluginList = (gui.AddStretchBar "pluginList" "page"))
+	
+	(BackgroundImageSpec bkSpec = 1.0 1.0 false false)
+	(pluginList.SetBackgroundImage "MainBackground.tiff" bkSpec)
+	
+	(gui.SetSpan "pluginList" screenSpan.x (screenSpan.y - 150))
+	(pluginList.LayoutChildrenVertically)
+	
+	(AddPluginP4 gui screenSpan)
+	(gui.LayoutChildren "pluginList")
+)
+
+(function AddSortBar (IGuiBuilder gui)(Vec2 screenSpan) -> :
+	(IStretchBarWidget sortLayers = (gui.AddStretchBar "sortLayers" "page"))
+	(gui.SetSpan "sortLayers" screenSpan.x 32)
+	
+	(Mad.BackgroundImageSpec bkImageSpec = 1.0 1.0 false false)
+	
+	(IStretchBarWidget sortBk = (gui.AddStretchBar "sortBk" "sortLayers"))
+	(gui.SetSpan "sortBk" screenSpan.x 32)
+	(sortBk.SetBackgroundImage "White.tiff" bkImageSpec)
+	
+	(IStretchBarWidget sortFg = (gui.AddStretchBar "sortFg" "sortLayers"))
+	(gui.SetSpan "sortFg" screenSpan.x 32)
+	
+	(sortFg.LayoutChildrenHorizontally)
+	
+	(IStretchBarWidget gap1 = (gui.AddStretchBar "sortGap1" "sortFg"))
+	(gui.SetSpan "sortGap1" 32 20)
+	
+	(IStretchBarWidget productLabel = (gui.AddStretchBar "productLabel" "sortFg"))
+	(productLabel.SetBackgroundText "~F08Products" 0)
+	
+	(gui.SetSpan "productLabel" 120 20)
+	
+	/*
+	(IStretchBarWidget sizeLabel = (gui.AddStretchBar "sizeLabel" "sortFg"))
+	(sizeLabel.SetBackgroundText "~F04Size" 0)
+	
+	(gui.SetSpan "sizeLabel" 120 20)
+	*/
+	
+	(gui.LayoutChildren "sortFg")
+	
+	(BackgroundImageSpec bkSpec = 1.0 1.0 false false)
+	(IStretchBarWidget shadowFg = (gui.AddStretchBar "shadowFg" "page"))
+	(shadowFg.SetBackgroundImage "SeparatorLine.tiff" bkSpec)
+	(gui.SetSpan "shadowFg" screenSpan.x 2)
+)
+
+(function AddControlBar (IGuiBuilder gui)(Vec2 screenSpan) -> :
+	(IStretchBarWidget controlStretcher = (gui.AddStretchBar "controlStretcher" "page"))
+	(controlStretcher.LayoutChildrenHorizontally)
+	
+	(gui.SetSpan "controlStretcher" screenSpan.x 32)
+	
+	(IBitmapWidget gap1 = (gui.AddBitmap "ctrlGap1" "controlStretcher"))
+	(gap1.SetImage "TopGap.tiff")
+	(gap1.ShrinkToFit)
+	
+	(IBitmapWidget buttonInstall = (gui.AddBitmap "buttonInstall" "controlStretcher"))
+	(buttonInstall.SetImage "ButtonInstall.tiff")
+	(buttonInstall.SetTextOverlay "Install")
+	(buttonInstall.ShrinkToFit)
+		
+	(IBitmapWidget gap2 = (gui.AddBitmap "ctrlGap2" "controlStretcher"))
+	(gap2.SetImage "TopGap.tiff")
+	(gap2.ShrinkToFit)
+	
+	(IBitmapWidget buttonUpdate = (gui.AddBitmap "buttonUpdate" "controlStretcher"))
+	(buttonUpdate.SetImage "ButtonInstall.tiff")
+	(buttonUpdate.SetTextOverlay "Update")
+	(buttonUpdate.ShrinkToFit)
+	
+	(IBitmapWidget gap3 = (gui.AddBitmap "ctrlGap3" "controlStretcher"))
+	(gap3.SetImage "TopGap.tiff")
+	(gap3.ShrinkToFit)
+	
+	(controlStretcher.MarkStretchPoint "ctrlGap1" 0.1)
+	(controlStretcher.MarkStretchPoint "ctrlGap2" 1.0)
+	(controlStretcher.MarkStretchPoint "ctrlGap3" 0.1)
+	
+	(gui.LayoutChildren "controlStretcher")
+)
+
+(function Main (Int32 id) -> (Int32 exitCode):  
+	(IGuiBuilder gui (GetGuiBuilder))
+	
+	(Vec2 screenSpan)
+	(gui.GetSpan "$root" screenSpan)
+/*
+	(IBitmapWidget bkdrop = (gui.AddBitmap "bkdrop" "$root"))
+	(bkdrop.SetImage "Backdrop.jpg")
+*/
+	(IStretchBarWidget page = (gui.AddStretchBar "page" "$root"))
+	(page.LockToParent (#SideBottom) 0)
+	(page.LockToParent (#SideLeft) 0)
+	(page.LockToParent (#SideRight) 0)
+	(page.LockToParent (#SideTop) 0)	
+	(page.LayoutChildrenVertically)
+	
+	(AddLogoAndTabBar gui screenSpan)	
+	
+	(IStretchBarWidget blankTop = (gui.AddStretchBar "blankTop" "page"))
+	(gui.SetSpan "blankTop" screenSpan.x 16)
+	
+	(AddSortBar gui screenSpan)
+	
+	(AddPlugins gui screenSpan)
+
+//	(AddControlBar gui screenSpan)
+	
+	(gui.LayoutChildren "page")
+	
+	(IStretchBarWidget statusBar = (gui.AddStretchBar "status" "page"))
+	(statusBar.MonitorProgress "installation" (#AlignmentLeft) 8 20)
+	
+	(BackgroundImageSpec bkSpec = 1.0 1.0 false false)
+	(statusBar.SetBackgroundImage "StatusBar.tiff" bkSpec)
+	
+	(gui.SetSpan "status" screenSpan.x 36)
+	(gui.SetPos "status" 0 (screenSpan.y - 36))
+	
+	(IStretchBarWidget statusBarHat = (gui.AddStretchBar "statusHat" "page"))
+	(statusBarHat.SetBackgroundImage "StatusBar.tiff" bkSpec)
+	
+	(gui.SetSpan "statusHat" screenSpan.x 16)
+	(gui.SetPos "statusHat" 0 (screenSpan.y - 52))
+)

@@ -65,10 +65,10 @@ namespace Rococo
 	namespace Sex
 	{
 		class ParseException;
-      void Throw(ParseException& ex);
+		void Throw(ParseException& ex);
 	}
 
-	enum {ROOT_TEMPDEPTH = 3};
+	enum { ROOT_TEMPDEPTH = 3 };
 
 	typedef unsigned long refcount_t;
 
@@ -94,9 +94,9 @@ namespace Rococo
 #endif
 
 #ifdef _WIN32
-   const SEXCHAR OS_DIRECTORY_SLASH = (SEXCHAR) '\\';
+	const SEXCHAR OS_DIRECTORY_SLASH = (SEXCHAR) '\\';
 #else
-   const SEXCHAR OS_DIRECTORY_SLASH = (SEXCHAR) '/';
+	const SEXCHAR OS_DIRECTORY_SLASH = (SEXCHAR) '/';
 #endif
 
 	typedef const SEXCHAR* csexstr;
@@ -106,14 +106,14 @@ namespace Rococo
 		int64 Length;
 		csexstr Text;
 
-		sexstring_key(csexstr text, int64 length): Length(length), Text(text) 	{}
+		sexstring_key(csexstr text, int64 length) : Length(length), Text(text) {}
 	};
 
 	struct TokenBuffer
 	{
 		enum { MAX_TOKEN_CHARS = 256 };
 		SEXCHAR Text[MAX_TOKEN_CHARS];
-		operator const SEXCHAR* ()	{ return Text; }
+		operator const SEXCHAR* () { return Text; }
 	};
 
 #pragma pack(push,1)
@@ -131,7 +131,7 @@ namespace Rococo
 	struct IString
 	{
 		Compiler::VirtualTable* vTable;
-		int32 length; 
+		int32 length;
 		csexstr buffer;
 	};
 
@@ -147,16 +147,16 @@ namespace Rococo
 
 	void GetRefName(OUT TokenBuffer& token, csexstr name);
 
-   int CALLTYPE_C WriteToStandardOutput(const char* text, ...);
+	int CALLTYPE_C WriteToStandardOutput(const char* text, ...);
 	int CALLTYPE_C WriteToStandardOutput(cstr text, ...);
 
-   int CALLTYPE_C StringPrint(TokenBuffer& token, const char* format, ...);
+	int CALLTYPE_C StringPrint(TokenBuffer& token, const char* format, ...);
 
 	int32 CALLTYPE_C StringLength(const char* s);
 	int32 CALLTYPE_C StringLength(cstr s);
 	void CALLTYPE_C CopyChars(SEXCHAR* dest, const sexstring source);
 	void CALLTYPE_C CopyString(char* dest, size_t capacity, const char* source);
-	
+
 	void CALLTYPE_C StringCat(rchar* buf, cstr source, int maxChars);
 
 	bool TryParseSexHex(SEXCHAR& finalChar, csexstr s);
@@ -170,7 +170,7 @@ namespace Rococo
 	sexstring CreateSexString(csexstr src, int32 length = -1);
 	void FreeSexString(sexstring s);
 
-   ROCOCOAPI ILog
+	ROCOCOAPI ILog
 	{
 		virtual void Write(csexstr text) = 0;
 		virtual void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) = 0; // thrown by uncaught sexy exceptions
@@ -237,12 +237,12 @@ namespace Rococo
 		BITCOUNT_ID_API = 8 * sizeof(ID_API_CALLBACK),
 
 #ifdef _WIN64
-      BITCOUNT_POINTER = 64
+		BITCOUNT_POINTER = 64
 #else
 # ifdef _WIN32
 # error "32-bit Windows is no longer supported"
 # else
-      BITCOUNT_POINTER = 64
+		BITCOUNT_POINTER = 64
 # endif
 #endif
 	};
@@ -257,7 +257,7 @@ namespace Rococo
 		CONDITION_IF_LESS_OR_EQUAL
 	};
 
-	enum EXECUTERESULT: int32
+	enum EXECUTERESULT : int32
 	{
 		EXECUTERESULT_RUNNING = 0,  // The bytecode is running or about to be run
 		EXECUTERESULT_TERMINATED, // The bytecode exited and returned an exit code
@@ -273,18 +273,18 @@ namespace Rococo
 
 	namespace OS
 	{
-      enum BreakFlag: int32
-      {
-         BreakFlag_None = 0,
-         BreakFlag_STC = 1,
-         BreakFlag_VM = 2,
-         BreakFlag_SS= 4,
-         BreakFlag_All = 0x7FFFFFFF
-      };
-      void SetBreakPoints(int32 flags);
+		enum BreakFlag : int32
+		{
+			BreakFlag_None = 0,
+			BreakFlag_STC = 1,
+			BreakFlag_VM = 2,
+			BreakFlag_SS = 4,
+			BreakFlag_All = 0x7FFFFFFF
+		};
+		void SetBreakPoints(int32 flags);
 		void LoadAsciiTextFile(SEXCHAR* data, size_t capacity, const SEXCHAR* filename);
 		void GetEnvVariable(SEXCHAR* data, size_t capacity, const SEXCHAR* envVariable);
-      void Throw(int erroCode, csexstr format, ...);
+		void Throw(int erroCode, csexstr format, ...);
 	}
 
 	template<class T> bool IsFlagged(T flags, T flag) { return (flags & flag) != 0; }
@@ -314,12 +314,12 @@ namespace Rococo
 			EXPRESSION_TYPE_NULL,
 			EXPRESSION_TYPE_STRING_LITERAL,
 			EXPRESSION_TYPE_ATOMIC,
-			EXPRESSION_TYPE_COMPOUND,		
+			EXPRESSION_TYPE_COMPOUND,
 		};
 
 		struct ISExpressionBuilder;
 
-      ROCOCOAPI ISExpression
+		ROCOCOAPI ISExpression
 		{
 			virtual const Vec2i& Start() const = 0; // (X.Y) of start relative to tree origin in source file
 			virtual const Vec2i& End() const = 0;// (X.Y) of end relative to tree origin in source file
@@ -374,7 +374,7 @@ namespace Rococo
 			virtual ISourceCode* ProxySourceBuffer(csexstr bufferRef, int segmentLength, const Vec2i& origin, csexstr nameRef) = 0; // Duplicates the pointers defining the source code and its name and exposes as an instance
 			virtual ISourceCode* LoadSource(csexstr filename, const Vec2i& origin) = 0; // Loads source code, converts it to SEXCHARs and returns a reference to it
 			virtual ISourceCode* LoadSource(csexstr moduleName, const Vec2i& origin, const char* buffer, long len) = 0;
-		};	
+		};
 
 		ROCOCOAPI ISourceCode : public IRefCounted
 		{
@@ -430,22 +430,22 @@ namespace Rococo
 		PARSERESULT TryParse(OUT VariantValue& value, VARTYPE type, IN csexstr valueLiteral);
 		PARSERESULT TryParseExponentForm(OUT double& y, csexstr s);
 		PARSERESULT TryParseExponentForm(OUT float& y, csexstr s);
-		PARSERESULT TryParse(VariantValue& value, VARTYPE type, csexstr valueLiteral);		
+		PARSERESULT TryParse(VariantValue& value, VARTYPE type, csexstr valueLiteral);
 		bool ContainsPoint(csexstr s);
 	}
 
-   void Throw(int errorCode, csexstr format, ...);
+	void Throw(int errorCode, csexstr format, ...);
 
-   namespace Sex
-   {
-      void AssertCompound(cr_sex e);
-      void AssertAtomic(cr_sex e);
-      void AssertStringLiteral(cr_sex e);
-      void AssertNotTooManyElements(cr_sex e, int32 maxElements);
-      void AssertNotTooFewElements(cr_sex e, int32 minElements);
-      cr_sex GetAtomicArg(cr_sex e, int argIndex);
-      void Throw(cr_sex e, csexstr message, ...);
-   }
-} // Sexy
+	namespace Sex
+	{
+		void AssertCompound(cr_sex e);
+		void AssertAtomic(cr_sex e);
+		void AssertStringLiteral(cr_sex e);
+		void AssertNotTooManyElements(cr_sex e, int32 maxElements);
+		void AssertNotTooFewElements(cr_sex e, int32 minElements);
+		cr_sex GetAtomicArg(cr_sex e, int argIndex);
+		void Throw(cr_sex e, csexstr message, ...);
+	}
+}// Sexy
 
 #endif
