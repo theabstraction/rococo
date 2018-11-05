@@ -95,7 +95,6 @@
     <ClCompile Include="rococo.rolling.logger.cpp" />
     <ClCompile Include="sexy.windows.main.cpp" />
     <ClCompile Include="show_error_dialog.cpp" />
-    <ClCompile Include="show_exception_dialog.cpp" />
     <ClCompile Include="show_scripted_dialog.cpp" />
   </ItemGroup>
   <ItemGroup>

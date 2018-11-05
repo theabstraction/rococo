@@ -97,6 +97,7 @@ namespace Rococo { namespace Sex
 		int ErrorCode() const { return -1; }
 		const ISExpression* Source() const { return source; }
 		csexstr Specimen() const { return specimenText; }
+		Debugging::IStackFrameEnumerator* StackFrames() { return nullptr; }
 	};
 
 	template<class T> class Auto

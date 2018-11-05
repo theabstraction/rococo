@@ -752,8 +752,9 @@ namespace Rococo
 		{
 			rchar msg[256];
 
-			virtual cstr Message() const { return msg; }
-			virtual int32 ErrorCode() const { return 0; }
+			cstr Message() const override { return msg; }
+			int32 ErrorCode() const override { return 0; }
+			Debugging::IStackFrameEnumerator* StackFrames() override { return nullptr;  }
 		} ex;
 
 		SafeFormat(ex.msg, sizeof(ex.msg), "%s", format);

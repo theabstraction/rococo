@@ -55,6 +55,7 @@ namespace Rococo
       {
          D3D11_DEPTH_STENCIL_DESC desc;
          ZeroMemory(&desc, sizeof(desc));
+		 desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
          ID3D11DepthStencilState* dss = nullptr;
          VALIDATEDX11(device.CreateDepthStencilState(&desc, &dss));
          return dss;

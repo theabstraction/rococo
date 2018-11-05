@@ -15,7 +15,17 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="sexy.windows.test.main.cpp">
+    <ResourceCompile Include="..\win32.resources\rococo.dialogs.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\rococo.win32.resources.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="sexy.windows.test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -5,12 +5,14 @@
 
 namespace Rococo
 {
+	struct IException;
+
 	namespace SexyWindows
 	{
 		void AppendText_ToEditor(HWND hEditor, const char* text, COLORREF back, COLORREF fore);
 		DialogResult ShowErrorDialog(const ErrorDialogSpec& e, HINSTANCE dllInstance);
 		DialogResult ShowScriptedDialog(const ScriptedDialogSpec& info, HINSTANCE hDllInstance);
-		void ShowExceptionDialog(HINSTANCE hInstance, HWND parent);
+		void ShowExceptionDialog(HINSTANCE hInstance, HWND parent, IException& ex);
 
 		struct Message
 		{

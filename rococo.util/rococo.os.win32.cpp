@@ -22,10 +22,17 @@
 #include <Shlwapi.h>
 
 #include <rococo.strings.h>
+#include <rococo.debugging.h>
 
 #pragma comment(lib, "Shlwapi.lib")
 
 #include <stdlib.h>
+
+#include <rococo.debugging.h>
+
+#include <dbghelp.h>
+
+#pragma comment(lib, "DbgHelp.lib")
 
 namespace Rococo
 {
@@ -914,383 +921,646 @@ namespace Rococo
 		return new Installation(contentIndicatorName, os);
 	}
 
-   ThreadLock::ThreadLock()
-   {
-      static_assert(sizeof(CRITICAL_SECTION) <= sizeof(implementation), "ThreadLock too small. Increase opaque data");
-      InitializeCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
-   }
-   
-   ThreadLock::~ThreadLock()
-   {
-      DeleteCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
-   }
+	ThreadLock::ThreadLock()
+	{
+		static_assert(sizeof(CRITICAL_SECTION) <= sizeof(implementation), "ThreadLock too small. Increase opaque data");
+		InitializeCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
+	}
 
-   void ThreadLock::Lock()
-   {
-      EnterCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
-   }
+	ThreadLock::~ThreadLock()
+	{
+		DeleteCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
+	}
 
-   void ThreadLock::Unlock()
-   {
-      LeaveCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
-   }
+	void ThreadLock::Lock()
+	{
+		EnterCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
+	}
 
-   namespace OS
-   {
-	   bool isRunning = true;
+	void ThreadLock::Unlock()
+	{
+		LeaveCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
+	}
 
-	   bool IsRunning()
-	   {
-		   return isRunning;
-	   }
+	namespace OS
+	{
+		bool isRunning = true;
 
-	   void BeepWarning()
-	   {
-		   MessageBeep(MB_ICONWARNING);
-	   }
+		bool IsRunning()
+		{
+			return isRunning;
+		}
 
-	   void ShutdownApp()
-	   {
-		   isRunning = false;
-		   PostQuitMessage(0);
-	   }
+		void BeepWarning()
+		{
+			MessageBeep(MB_ICONWARNING);
+		}
 
-	   void PrintDebug(const char* format, ...)
-	   {
+		void ShutdownApp()
+		{
+			isRunning = false;
+			PostQuitMessage(0);
+		}
+
+		void PrintDebug(const char* format, ...)
+		{
 #if _DEBUG
-		   va_list arglist;
-		   va_start(arglist, format);
-		   char line[4096];
-		   SafeVFormat(line, sizeof(line), format, arglist);
-		   OutputDebugStringA(line);
+			va_list arglist;
+			va_start(arglist, format);
+			char line[4096];
+			SafeVFormat(line, sizeof(line), format, arglist);
+			OutputDebugStringA(line);
 #endif
-	   }
-   }
+		}
 
-   namespace IO
-   {
-      void GetUserPath(rchar* fullpath, size_t capacity, cstr shortname)
-      {
-         wchar_t* path;
-         SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
-         SafeFormat(fullpath, capacity, "%S\\%s", path, shortname);
-      }
+		void CopyStringToClipboard(cstr text)
+		{
+			size_t len = strlen(text);
 
-      void DeleteUserFile(cstr filename)
-      {
-         wchar_t* path;
-         SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
+			HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len + 1);
+			memcpy(GlobalLock(hMem), text, len + 1);
+			GlobalUnlock(hMem);
+			OpenClipboard(0);
+			EmptyClipboard();
+			SetClipboardData(CF_TEXT, hMem);
+			CloseClipboard();
+		}
 
-         rchar fullpath[_MAX_PATH];
-         SafeFormat(fullpath, sizeof(fullpath), "%S\\%s", path, filename);
+		void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack)
+		{
+			StackStringBuilder sb(buffer, capacity);
 
-         DeleteFileA(fullpath);
-      }
+			if (ex.ErrorCode() != 0)
+			{
+				char sysMessage[256];
+				cstr sep;
+				DWORD code = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, ex.ErrorCode(), 0, sysMessage, 256, nullptr);
+				if (code == 0)
+				{
+					sep = "";
+					sysMessage[0] = 0;
+				}
+				else
+				{
+					sep = " - ";
+				}
 
-      void SaveUserFile(cstr filename, cstr s)
-      {
-         wchar_t* path;
-         SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
+				sb.AppendFormat(" %s%sError code: %d (0x%8.8X)\n", sysMessage, sep, ex.ErrorCode(), ex.ErrorCode());
+			}
 
-         rchar fullpath[_MAX_PATH];
-         SafeFormat(fullpath, sizeof(fullpath), "%S\\%s", path, filename);
+			sb << ex.Message() << "\n";
 
-         HANDLE hFile = CreateFileA(fullpath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-         if (hFile != INVALID_HANDLE_VALUE)
-         {
-            DWORD writeLength;
-            WriteFile(hFile, s, (DWORD) (sizeof(rchar) * rlen(s)), &writeLength, nullptr);
-            CloseHandle(hFile);
-         }
-      }
+			auto stackFrames = ex.StackFrames();
+			if (appendStack && stackFrames)
+			{
+				sb << "Stack Frames\n";
+				struct ANON : Debugging::IStackFrameFormatter
+				{
+					StringBuilder* sb;
 
-      rchar GetFileSeparator()
-      {
-         return L'\\';
-      }
+					void Format(const Debugging::StackFrame& sf) override
+					{
+						auto& s = *sb;
+						s.AppendFormat("#%-2u %-32.32s ", sf.depth, sf.functionName);
+						if (*sf.sourceFile)
+						{
+							s.AppendFormat("Line #%4u of %-64.64s ", sf.lineNumber, sf.sourceFile);
+						}
+						else
+						{
+							s.AppendFormat("%-79.79s", "");
+						}
+						s.AppendFormat("%-64.64s ", sf.moduleName);
+						s.AppendFormat("%4.4u:%016.16llX",sf.address.segment, sf.address.offset);
+						s << "\n";
+					}
+				} formatter;
+				formatter.sb = &sb;
 
-      template<class T> struct ComObject
-      {
-         T* instance;
+				stackFrames->FormatEachStackFrame(formatter);
+			}
+		}
 
-         ComObject() : instance(nullptr) {}
-         ComObject(T* _instance) : instance(_instance) {}
-         ~ComObject() { if (instance) instance->Release(); }
 
-         T* operator -> () { return instance;  }
-         T** operator& () { return &instance; }
+		void CopyExceptionToClipboard(IException& ex)
+		{
+			std::vector<char> buffer;
+			buffer.resize(128_kilobytes);
+			BuildExceptionString(buffer.data(), buffer.size(), ex, true);
+			CopyStringToClipboard(buffer.data());
+		}
+	}
 
-         operator T* () { return instance; }
-      };
+	namespace IO
+	{
+		void GetUserPath(rchar* fullpath, size_t capacity, cstr shortname)
+		{
+			wchar_t* path;
+			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
+			SafeFormat(fullpath, capacity, "%S\\%s", path, shortname);
+		}
 
-      bool ChooseDirectory(rchar* name, size_t capacity)
-      {
-         class DialogEventHandler : public IFileDialogEvents,  public IFileDialogControlEvents
-         {
-         public:
-            // IUnknown methods
-            IFACEMETHODIMP QueryInterface(REFIID riid, void** ppv)
-            {
+		void DeleteUserFile(cstr filename)
+		{
+			wchar_t* path;
+			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
+
+			rchar fullpath[_MAX_PATH];
+			SafeFormat(fullpath, sizeof(fullpath), "%S\\%s", path, filename);
+
+			DeleteFileA(fullpath);
+		}
+
+		void SaveUserFile(cstr filename, cstr s)
+		{
+			wchar_t* path;
+			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
+
+			rchar fullpath[_MAX_PATH];
+			SafeFormat(fullpath, sizeof(fullpath), "%S\\%s", path, filename);
+
+			HANDLE hFile = CreateFileA(fullpath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+			if (hFile != INVALID_HANDLE_VALUE)
+			{
+				DWORD writeLength;
+				WriteFile(hFile, s, (DWORD)(sizeof(rchar) * rlen(s)), &writeLength, nullptr);
+				CloseHandle(hFile);
+			}
+		}
+
+		rchar GetFileSeparator()
+		{
+			return L'\\';
+		}
+
+		template<class T> struct ComObject
+		{
+			T* instance;
+
+			ComObject() : instance(nullptr) {}
+			ComObject(T* _instance) : instance(_instance) {}
+			~ComObject() { if (instance) instance->Release(); }
+
+			T* operator -> () { return instance; }
+			T** operator& () { return &instance; }
+
+			operator T* () { return instance; }
+		};
+
+		bool ChooseDirectory(rchar* name, size_t capacity)
+		{
+			class DialogEventHandler : public IFileDialogEvents, public IFileDialogControlEvents
+			{
+			public:
+				// IUnknown methods
+				IFACEMETHODIMP QueryInterface(REFIID riid, void** ppv)
+				{
 #pragma warning( push )
 #pragma warning( disable : 4838)
-               static const QITAB qit[] = 
-               {
-                  QITABENT(DialogEventHandler, IFileDialogEvents),
-                  QITABENT(DialogEventHandler, IFileDialogControlEvents),
-                  { nullptr, 0 }
-               };
-               return QISearch(this, qit, riid, ppv);
-#pragma warning( pop )
-            }
-
-            IFACEMETHODIMP_(ULONG) AddRef()
-            {
-               return InterlockedIncrement(&_cRef);
-            }
-
-            IFACEMETHODIMP_(ULONG) Release()
-            {
-               long cRef = InterlockedDecrement(&_cRef);
-               if (!cRef)
-                  delete this;
-               return cRef;
-            }
-
-            // IFileDialogEvents methods
-            IFACEMETHODIMP OnFileOk(IFileDialog *) { return S_OK; };
-            IFACEMETHODIMP OnFolderChange(IFileDialog *) { return S_OK; };
-            IFACEMETHODIMP OnFolderChanging(IFileDialog *, IShellItem *) { return S_OK; };
-            IFACEMETHODIMP OnHelp(IFileDialog *) { return S_OK; };
-            IFACEMETHODIMP OnSelectionChange(IFileDialog *) { return S_OK; };
-            IFACEMETHODIMP OnShareViolation(IFileDialog *, IShellItem *, FDE_SHAREVIOLATION_RESPONSE *) { return S_OK; };
-            IFACEMETHODIMP OnTypeChange(IFileDialog *pfd) { return S_OK; };
-            IFACEMETHODIMP OnOverwrite(IFileDialog *, IShellItem *, FDE_OVERWRITE_RESPONSE *) { return S_OK; };
-
-            // IFileDialogControlEvents methods
-            IFACEMETHODIMP OnItemSelected(IFileDialogCustomize *pfdc, DWORD dwIDCtl, DWORD dwIDItem) { return S_OK; };
-            IFACEMETHODIMP OnButtonClicked(IFileDialogCustomize *, DWORD) { return S_OK; };
-            IFACEMETHODIMP OnCheckButtonToggled(IFileDialogCustomize *, DWORD, BOOL) { return S_OK; };
-            IFACEMETHODIMP OnControlActivating(IFileDialogCustomize *, DWORD) { return S_OK; };
-
-            static HRESULT CreateInstance(REFIID riid, void **ppv)
-            {
-               *ppv = NULL;
-               DialogEventHandler *pDialogEventHandler = new (std::nothrow) DialogEventHandler();
-               HRESULT hr = pDialogEventHandler ? S_OK : E_OUTOFMEMORY;
-               if (SUCCEEDED(hr))
-               {
-                  hr = pDialogEventHandler->QueryInterface(riid, ppv);
-                  pDialogEventHandler->Release();
-               }
-               return hr;
-            }
-
-            DialogEventHandler() : _cRef(1) { };
-         private:
-            ~DialogEventHandler() { };
-            long _cRef;
-         };
-
-         CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-
-         ComObject<IFileDialog> pfd;
-         HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
-         if (FAILED(hr))
-         {
-            Throw(hr, "CoCreateInstance(CLSID_FileOpenDialog failed");
-         }
-
-         ComObject<IFileDialogEvents> pfde;
-         hr = DialogEventHandler::CreateInstance(IID_PPV_ARGS(&pfde));
-         if (FAILED(hr))
-         {
-            Throw(hr, "CDialogEventHandler_CreateInstance failed");
-         }
-
-         DWORD dwCookie;
-         hr = pfd->Advise(pfde, &dwCookie);
-         if (FAILED(hr))
-         {
-            Throw(hr, "pfd->Advise failed");
-         }
-
-         // Set the options on the dialog.
-         DWORD dwFlags;
-
-         // Before setting, always get the options first in order 
-         // not to override existing options.
-         hr = pfd->GetOptions(&dwFlags);
-         if (FAILED(hr))
-         {
-            Throw(hr, "pfd->GetOptions failed");
-         }
-
-         // In this case, get shell items only for file system items.
-         hr = pfd->SetOptions(dwFlags | FOS_FORCEFILESYSTEM | FOS_PICKFOLDERS);
-         if (FAILED(hr))
-         {
-            Throw(hr, "pfd->SetOptions failed");
-         }
-
-         // Set the file types to display only. 
-         // Notice that this is a 1-based array.
-         /*
-         hr = pfd->SetFileTypes(ARRAYSIZE(c_rgSaveTypes), c_rgSaveTypes);
-         if (FAILED(hr))
-         {
-            Throw(hr, "pfd->SetFileTypes failed");
-         }
-         */
-
-         /*
-         // Set the selected file type index to Word Docs for this example.
-         hr = pfd->SetFileTypeIndex(INDEX_WORDDOC);
-         if (FAILED(hr))
-         {
-            Throw(hr, "pfd->SetFileTypeIndex failed");
-         }
-         */
-
-         /*
-         // Set the default extension to be ".doc" file.
-         hr = pfd->SetDefaultExtension("doc;docx");
-         if (FAILED(hr))
-         {
-            Throw(hr, "pfd->SetDefaultExtension failed");
-         }
-         */
-
-         // Show the dialog
-         hr = pfd->Show(NULL);
-         if (FAILED(hr))
-         {
-            if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED))
-            {
-               return false;
-            }
-            Throw(hr, "pfd->Show failed");
-         }
-
-         // Obtain the result once the user clicks 
-         // the 'Open' button.
-         // The result is an IShellItem object.
-         ComObject<IShellItem> psiResult;
-         hr = pfd->GetResult(&psiResult);
-         if (FAILED(hr))
-         {
-            Throw(hr, "pfd->GetResult");
-         }
-
-         wchar_t* _name = nullptr;
-         hr = psiResult->GetDisplayName(SIGDN_FILESYSPATH, &_name);
-         if (FAILED(hr))
-         {
-            Throw(hr, "pfd->GetResult");
-         }
-         
-         SafeFormat(name, capacity, "%S", _name);
-
-         CoTaskMemFree(_name);
-
-         // Unhook the event handler.
-         pfd->Unadvise(dwCookie);
-
-         return true;
-      }
-
-      void EndDirectoryWithSlash(rchar* pathname, size_t capacity)
-      {
-         cstr finalChar = GetFinalNull(pathname);
-
-         if (pathname == nullptr || pathname == finalChar)
-         {
-            Throw(0, "Invalid pathname in call to EndDirectoryWithSlash");
-         }
-
-         bool isSlashed = finalChar[-1] == L'\\' || finalChar[-1] == L'/';
-         if (!isSlashed)
-         {
-            if (finalChar >= (pathname + capacity - 1))
-            {
-               Throw(0, "Insufficient room in directory buffer to trail with slash");
-            }
-
-            rchar* mutablePath = const_cast<rchar*>(finalChar);
-            mutablePath[0] = L'/';
-            mutablePath[1] = 0;
-         }
-      }
-
-      void ForEachFileInDirectory(cstr directory, IEventCallback<cstr>& onFile)
-      { 
-         struct Anon
-         {
-            HANDLE hSearch;
-
-            ~Anon()
-            {
-               if (hSearch != INVALID_HANDLE_VALUE)
-               {
-                  FindClose(hSearch);
-               }
-            }
-
-            operator HANDLE () {
-               return hSearch;
-            }
-         };
-
-         Anon hSearch;
-
-         rchar fullpath[MAX_PATH];
-         bool isSlashed = GetFinalNull(directory)[-1] == L'\\' || GetFinalNull(directory)[-1] == L'/';
-         SafeFormat(fullpath, sizeof(fullpath), "%s%s*.*", directory, isSlashed ? "" : "\\");
-
-         WIN32_FIND_DATAA findData;
-         hSearch.hSearch = FindFirstFileA(fullpath, &findData);
- 
-         if (hSearch.hSearch == INVALID_HANDLE_VALUE)
-         {
-            if (GetLastError() != ERROR_FILE_NOT_FOUND)
-            {
-               Throw(GetLastError(), "Could not browse directory: %s", fullpath);
-            }
-            return;
-         }
-
-         do
-         {
-            if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
-            {
-               onFile.OnEvent(findData.cFileName);
-            }
-			else
-			{
-				if (*findData.cFileName != '.')
-				{
-					struct : IEventCallback<cstr>
+					static const QITAB qit[] =
 					{
-						char stem[IO::MAX_PATHLEN];
-
-						IEventCallback<cstr>* caller;
-						virtual void OnEvent(cstr name)
-						{
-							char subsubpath[IO::MAX_PATHLEN];
-							SecureFormat(subsubpath, IO::MAX_PATHLEN, "%s%s", stem, name);
-							caller->OnEvent(subsubpath);
-						}
-					} subpathResult; 
-
-					char subpath[IO::MAX_PATHLEN];
-					SecureFormat(subpath, IO::MAX_PATHLEN, "%s%s%s\\", directory, isSlashed ? "" : "\\" , findData.cFileName);
-					subpathResult.caller = &onFile;
-
-					SecureFormat(subpathResult.stem, IO::MAX_PATHLEN, "%s\\", findData.cFileName);
-
-					ForEachFileInDirectory(subpath, subpathResult);
+					   QITABENT(DialogEventHandler, IFileDialogEvents),
+					   QITABENT(DialogEventHandler, IFileDialogControlEvents),
+					   { nullptr, 0 }
+					};
+					return QISearch(this, qit, riid, ppv);
+#pragma warning( pop )
 				}
+
+				IFACEMETHODIMP_(ULONG) AddRef()
+				{
+					return InterlockedIncrement(&_cRef);
+				}
+
+				IFACEMETHODIMP_(ULONG) Release()
+				{
+					long cRef = InterlockedDecrement(&_cRef);
+					if (!cRef)
+						delete this;
+					return cRef;
+				}
+
+				// IFileDialogEvents methods
+				IFACEMETHODIMP OnFileOk(IFileDialog *) { return S_OK; };
+				IFACEMETHODIMP OnFolderChange(IFileDialog *) { return S_OK; };
+				IFACEMETHODIMP OnFolderChanging(IFileDialog *, IShellItem *) { return S_OK; };
+				IFACEMETHODIMP OnHelp(IFileDialog *) { return S_OK; };
+				IFACEMETHODIMP OnSelectionChange(IFileDialog *) { return S_OK; };
+				IFACEMETHODIMP OnShareViolation(IFileDialog *, IShellItem *, FDE_SHAREVIOLATION_RESPONSE *) { return S_OK; };
+				IFACEMETHODIMP OnTypeChange(IFileDialog *pfd) { return S_OK; };
+				IFACEMETHODIMP OnOverwrite(IFileDialog *, IShellItem *, FDE_OVERWRITE_RESPONSE *) { return S_OK; };
+
+				// IFileDialogControlEvents methods
+				IFACEMETHODIMP OnItemSelected(IFileDialogCustomize *pfdc, DWORD dwIDCtl, DWORD dwIDItem) { return S_OK; };
+				IFACEMETHODIMP OnButtonClicked(IFileDialogCustomize *, DWORD) { return S_OK; };
+				IFACEMETHODIMP OnCheckButtonToggled(IFileDialogCustomize *, DWORD, BOOL) { return S_OK; };
+				IFACEMETHODIMP OnControlActivating(IFileDialogCustomize *, DWORD) { return S_OK; };
+
+				static HRESULT CreateInstance(REFIID riid, void **ppv)
+				{
+					*ppv = NULL;
+					DialogEventHandler *pDialogEventHandler = new (std::nothrow) DialogEventHandler();
+					HRESULT hr = pDialogEventHandler ? S_OK : E_OUTOFMEMORY;
+					if (SUCCEEDED(hr))
+					{
+						hr = pDialogEventHandler->QueryInterface(riid, ppv);
+						pDialogEventHandler->Release();
+					}
+					return hr;
+				}
+
+				DialogEventHandler() : _cRef(1) { };
+			private:
+				~DialogEventHandler() { };
+				long _cRef;
+			};
+
+			CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
+			ComObject<IFileDialog> pfd;
+			HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
+			if (FAILED(hr))
+			{
+				Throw(hr, "CoCreateInstance(CLSID_FileOpenDialog failed");
 			}
-		 } while (FindNextFileA(hSearch, &findData));
-      }
-   } // IO
+
+			ComObject<IFileDialogEvents> pfde;
+			hr = DialogEventHandler::CreateInstance(IID_PPV_ARGS(&pfde));
+			if (FAILED(hr))
+			{
+				Throw(hr, "CDialogEventHandler_CreateInstance failed");
+			}
+
+			DWORD dwCookie;
+			hr = pfd->Advise(pfde, &dwCookie);
+			if (FAILED(hr))
+			{
+				Throw(hr, "pfd->Advise failed");
+			}
+
+			// Set the options on the dialog.
+			DWORD dwFlags;
+
+			// Before setting, always get the options first in order 
+			// not to override existing options.
+			hr = pfd->GetOptions(&dwFlags);
+			if (FAILED(hr))
+			{
+				Throw(hr, "pfd->GetOptions failed");
+			}
+
+			// In this case, get shell items only for file system items.
+			hr = pfd->SetOptions(dwFlags | FOS_FORCEFILESYSTEM | FOS_PICKFOLDERS);
+			if (FAILED(hr))
+			{
+				Throw(hr, "pfd->SetOptions failed");
+			}
+
+			// Set the file types to display only. 
+			// Notice that this is a 1-based array.
+			/*
+			hr = pfd->SetFileTypes(ARRAYSIZE(c_rgSaveTypes), c_rgSaveTypes);
+			if (FAILED(hr))
+			{
+			   Throw(hr, "pfd->SetFileTypes failed");
+			}
+			*/
+
+			/*
+			// Set the selected file type index to Word Docs for this example.
+			hr = pfd->SetFileTypeIndex(INDEX_WORDDOC);
+			if (FAILED(hr))
+			{
+			   Throw(hr, "pfd->SetFileTypeIndex failed");
+			}
+			*/
+
+			/*
+			// Set the default extension to be ".doc" file.
+			hr = pfd->SetDefaultExtension("doc;docx");
+			if (FAILED(hr))
+			{
+			   Throw(hr, "pfd->SetDefaultExtension failed");
+			}
+			*/
+
+			// Show the dialog
+			hr = pfd->Show(NULL);
+			if (FAILED(hr))
+			{
+				if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED))
+				{
+					return false;
+				}
+				Throw(hr, "pfd->Show failed");
+			}
+
+			// Obtain the result once the user clicks 
+			// the 'Open' button.
+			// The result is an IShellItem object.
+			ComObject<IShellItem> psiResult;
+			hr = pfd->GetResult(&psiResult);
+			if (FAILED(hr))
+			{
+				Throw(hr, "pfd->GetResult");
+			}
+
+			wchar_t* _name = nullptr;
+			hr = psiResult->GetDisplayName(SIGDN_FILESYSPATH, &_name);
+			if (FAILED(hr))
+			{
+				Throw(hr, "pfd->GetResult");
+			}
+
+			SafeFormat(name, capacity, "%S", _name);
+
+			CoTaskMemFree(_name);
+
+			// Unhook the event handler.
+			pfd->Unadvise(dwCookie);
+
+			return true;
+		}
+
+		void EndDirectoryWithSlash(rchar* pathname, size_t capacity)
+		{
+			cstr finalChar = GetFinalNull(pathname);
+
+			if (pathname == nullptr || pathname == finalChar)
+			{
+				Throw(0, "Invalid pathname in call to EndDirectoryWithSlash");
+			}
+
+			bool isSlashed = finalChar[-1] == L'\\' || finalChar[-1] == L'/';
+			if (!isSlashed)
+			{
+				if (finalChar >= (pathname + capacity - 1))
+				{
+					Throw(0, "Insufficient room in directory buffer to trail with slash");
+				}
+
+				rchar* mutablePath = const_cast<rchar*>(finalChar);
+				mutablePath[0] = L'/';
+				mutablePath[1] = 0;
+			}
+		}
+
+		void ForEachFileInDirectory(cstr directory, IEventCallback<cstr>& onFile)
+		{
+			struct Anon
+			{
+				HANDLE hSearch;
+
+				~Anon()
+				{
+					if (hSearch != INVALID_HANDLE_VALUE)
+					{
+						FindClose(hSearch);
+					}
+				}
+
+				operator HANDLE () {
+					return hSearch;
+				}
+			};
+
+			Anon hSearch;
+
+			rchar fullpath[MAX_PATH];
+			bool isSlashed = GetFinalNull(directory)[-1] == L'\\' || GetFinalNull(directory)[-1] == L'/';
+			SafeFormat(fullpath, sizeof(fullpath), "%s%s*.*", directory, isSlashed ? "" : "\\");
+
+			WIN32_FIND_DATAA findData;
+			hSearch.hSearch = FindFirstFileA(fullpath, &findData);
+
+			if (hSearch.hSearch == INVALID_HANDLE_VALUE)
+			{
+				if (GetLastError() != ERROR_FILE_NOT_FOUND)
+				{
+					Throw(GetLastError(), "Could not browse directory: %s", fullpath);
+				}
+				return;
+			}
+
+			do
+			{
+				if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+				{
+					onFile.OnEvent(findData.cFileName);
+				}
+				else
+				{
+					if (*findData.cFileName != '.')
+					{
+						struct : IEventCallback<cstr>
+						{
+							char stem[IO::MAX_PATHLEN];
+
+							IEventCallback<cstr>* caller;
+							virtual void OnEvent(cstr name)
+							{
+								char subsubpath[IO::MAX_PATHLEN];
+								SecureFormat(subsubpath, IO::MAX_PATHLEN, "%s%s", stem, name);
+								caller->OnEvent(subsubpath);
+							}
+						} subpathResult;
+
+						char subpath[IO::MAX_PATHLEN];
+						SecureFormat(subpath, IO::MAX_PATHLEN, "%s%s%s\\", directory, isSlashed ? "" : "\\", findData.cFileName);
+						subpathResult.caller = &onFile;
+
+						SecureFormat(subpathResult.stem, IO::MAX_PATHLEN, "%s\\", findData.cFileName);
+
+						ForEachFileInDirectory(subpath, subpathResult);
+					}
+				}
+			} while (FindNextFileA(hSearch, &findData));
+		}
+	} // IO
+
+	namespace Windows
+	{
+		void AddColumns(int col, int width, const char* text, HWND hReportView)
+		{
+			LV_COLUMNA c = { 0 };
+			c.cx = width;
+			c.mask = LVCF_WIDTH | LVCF_TEXT | LVCF_MINWIDTH;
+			c.cxMin = width / 2;
+
+			char buf[16];
+			_snprintf_s(buf, _TRUNCATE, "%s", text);
+
+			c.pszText = buf;
+
+			SendMessage(hReportView, LVM_INSERTCOLUMNA, col, (LPARAM)&c);
+		}
+
+		void SetStackViewColumns(HWND hStackView, const int columnWidths[5])
+		{
+			AddColumns(0, columnWidths[0], "#", hStackView);
+			AddColumns(1, columnWidths[1], "Function", hStackView);
+			AddColumns(2, columnWidths[2], "Source", hStackView);
+			AddColumns(3, columnWidths[3], "Module", hStackView);
+			AddColumns(4, columnWidths[4], "Address", hStackView);
+		}
+
+		void PopulateStackView(HWND hStackView, Rococo::IException& ex)
+		{
+			HANDLE hProcess = GetCurrentProcess();
+
+			struct StackFormatter : public Rococo::Debugging::IStackFrameFormatter
+			{
+				HWND hStackView;
+
+				void Format(const Rococo::Debugging::StackFrame& sf) override
+				{
+					LVITEMA item = { 0 };
+					item.mask = LVIF_TEXT;
+					char text[16];
+					_snprintf_s(text, _TRUNCATE, "%d", sf.depth);
+					item.pszText = text;
+					item.iItem = sf.depth;
+					int index = (int) SendMessage(hStackView, LVM_INSERTITEMA, 0, (LPARAM)&item);
+
+					LVITEMA address = { 0 };
+					address.iItem = index;
+					address.iSubItem = 4;
+					address.mask = LVIF_TEXT;
+					char addresstext[24];
+					_snprintf_s(addresstext, _TRUNCATE, "%04.4X:%016.16llX", sf.address.segment, sf.address.offset);
+					address.pszText = addresstext;
+					SendMessage(hStackView, LVM_SETITEMA, 0, (LPARAM)&address);
+
+					LVITEMA mname = { 0 };
+					mname.iItem = index;
+					mname.iSubItem = 3;
+					mname.mask = LVIF_TEXT;
+					mname.pszText = (char*)sf.moduleName;
+
+					const char* module = sf.moduleName;
+					for (const char* p = module + strlen(module); p > sf.moduleName; --p)
+					{
+						if (*p == '\\')
+						{
+							mname.pszText = (char*)p + 1;
+							break;
+						}
+					}
+
+					SendMessage(hStackView, LVM_SETITEMA, 0, (LPARAM)&mname);
+
+					LVITEMA fname = { 0 };
+					fname.iItem = index;
+					fname.iSubItem = 1;
+					fname.mask = LVIF_TEXT;
+					fname.pszText = (char*)sf.functionName;
+					SendMessage(hStackView, LVM_SETITEMA, 0, (LPARAM)&fname);
+
+					LVITEMA lineCol = { 0 };
+					lineCol.iItem = index;
+					lineCol.iSubItem = 2;
+					lineCol.mask = LVIF_TEXT;
+
+					if (*sf.sourceFile)
+					{
+						char src[256];
+						_snprintf_s(src, _TRUNCATE, "%s #%d", sf.sourceFile, sf.lineNumber);
+						lineCol.pszText = src;
+						SendMessage(hStackView, LVM_SETITEMA, 0, (LPARAM)&lineCol);
+					}
+				}
+			} f;
+			f.hStackView = hStackView;
+
+			auto* enumerator = ex.StackFrames();
+			if (enumerator)
+			{
+				enumerator->FormatEachStackFrame(f);
+			}
+		}
+	}
+
+	namespace Debugging
+	{
+		void FormatStackFrames(IStackFrameFormatter& formatter)
+		{
+			CONTEXT context;
+			context.ContextFlags = CONTEXT_FULL;
+			RtlCaptureContext(&context);
+
+			HANDLE hProcess = GetCurrentProcess();
+
+			SymInitialize(hProcess, NULL, TRUE);
+			SymSetOptions(SYMOPT_LOAD_LINES);
+
+			STACKFRAME64 frame = { 0 };
+			frame.AddrPC.Offset = context.Rip;
+			frame.AddrPC.Mode = AddrModeFlat;
+			frame.AddrFrame.Offset = context.Rbp;
+			frame.AddrFrame.Mode = AddrModeFlat;
+			frame.AddrStack.Offset = context.Rsp;
+			frame.AddrStack.Mode = AddrModeFlat;
+
+			int index = 0;
+
+			int depth = 0;
+
+			while (StackWalk(
+				IMAGE_FILE_MACHINE_AMD64,
+				hProcess,
+				GetCurrentThread(),
+				&frame,
+				&context,
+				nullptr,
+				SymFunctionTableAccess64,
+				SymGetModuleBase,
+				nullptr
+			))
+			{
+				if (index++ < 1)
+				{
+					continue; // Ignore first two stack frames -> they are our stack analysis functions!
+				}
+				
+				Rococo::Debugging::StackFrame sf;
+				sf.depth = depth++;
+				sf.address.segment = frame.AddrPC.Segment;
+				sf.address.offset = frame.AddrPC.Offset;
+
+				char symbolBuffer[sizeof(IMAGEHLP_SYMBOL) + 255];
+				PIMAGEHLP_SYMBOL symbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
+				symbol->SizeOfStruct = (sizeof IMAGEHLP_SYMBOL) + 255;
+				symbol->MaxNameLength = 254;
+
+				sf.moduleName[0] = 0;
+				sf.functionName[0] = 0;
+				sf.sourceFile[0] = 0;
+				sf.lineNumber = 0;
+
+				DWORD64 moduleBase = SymGetModuleBase64(hProcess, frame.AddrPC.Offset);
+
+				if (moduleBase)
+				{
+					GetModuleFileNameA((HINSTANCE)moduleBase, sf.moduleName, sizeof(sf.moduleName));
+				}
+
+				if (SymGetSymFromAddr(hProcess, frame.AddrPC.Offset, NULL, symbol))
+				{
+					strncpy_s(sf.functionName, symbol->Name, _TRUNCATE);
+				}
+
+				DWORD  offset = 0;
+				IMAGEHLP_LINE line;
+				line.SizeOfStruct = sizeof(IMAGEHLP_LINE);
+
+				if (SymGetLineFromAddr(hProcess, frame.AddrPC.Offset, &offset, &line))
+				{
+					strncpy_s(sf.sourceFile, line.FileName, _TRUNCATE);
+					sf.lineNumber = line.LineNumber;
+				}
+
+				formatter.Format(sf);
+			}
+		}
+	}
 }

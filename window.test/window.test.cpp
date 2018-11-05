@@ -1,6 +1,8 @@
 #include "windows.test.h"
 #include "resource.h"
 
+#include <rococo.types.h>
+
 #ifdef _DEBUG
 #pragma comment(lib, "rococo.windows.debug.lib")
 #pragma comment(lib, "rococo.util.debug.lib")
@@ -27,23 +29,9 @@ namespace
 		{
 			return errorCode;
 		}
+
+		Debugging::IStackFrameEnumerator* StackFrames() override { return nullptr; }
 	};
-}
-
-namespace Rococo
-{
-	void Throw(int32 errorCode, cstr format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-
-		TestException ex;
-		Rococo::SafeVFormat(ex.msg, sizeof(ex.msg), format, args);
-
-		ex.errorCode = errorCode;
-
-		throw ex;
-	}
 }
 
 namespace

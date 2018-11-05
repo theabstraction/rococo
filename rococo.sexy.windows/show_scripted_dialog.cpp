@@ -130,9 +130,9 @@ namespace ANON
 
 		}
 
-		void OnEvent(ScriptCompileArgs& args) override
+		void OnEvent(ScriptCompileArgs& onCompile) override
 		{
-
+			auto& ss = onCompile.ss;
 		}
 	};
 

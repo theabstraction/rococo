@@ -20,9 +20,30 @@
 #include <new>
 #include <rococo.api.h>
 
+#include <unordered_map>
+#include <string>
+
 namespace
 {
    int breakFlags = 0;
+}
+
+int _stricmp(const char* a, const char* b)
+{
+	const char* p = a;
+	const char* q = b;
+
+	for (; *p != 0 && *p != 0; p++, q++)
+	{
+		int P = (unsigned char) *p;
+		int Q = (unsigned char) *q;
+		int diff = P - Q;
+		if (diff) return diff;
+	}
+
+	int P = (unsigned char)*p;
+	int Q = (unsigned char)*q;
+	return P - Q;
 }
 
 namespace Rococo
@@ -231,6 +252,22 @@ namespace Rococo
          // __builtin_trap();;
       }
 
+	  void ToSysPath(char* path)
+	  {
+		  for (char* s = path; *s != 0; ++s)
+		  {
+			  if (*s == '\\') *s = '/';
+		  }
+	  }
+
+	  void ToUnixPath(char* path)
+	  {
+		  for (char* s = path; *s != 0; ++s)
+		  {
+			  if (*s == '\\') *s = '/';
+		  }
+	  }
+
       bool IsFileExistant(cstr filename)
       {
          int res = access(filename, R_OK);
@@ -401,30 +438,34 @@ namespace
       IOS& os;
       FilePath contentDirectory;
 	  int32 len;
-
+	  std::unordered_map<std::string, std::string> macroToSubdir;
    public:
       Installation(cstr contentIndicatorName, IOS& _os) : os(_os)
       {
          GetContentDirectory(contentIndicatorName, contentDirectory, os);
 		 len = strlen(contentDirectory.data);
       }
+	  
+	  virtual ~Installation()
+	  {
+	  }
 
-      virtual void Free()
+      void Free() override
       {
          delete this;
       }
 
-      virtual IOS& OS()
+      IOS& OS() override
       {
          return os;
       }
 
-      virtual const fstring Content() const
+      const fstring Content() const override
       {
 		  return fstring{ contentDirectory.data, len };
       }
 
-      virtual void LoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength)
+      void LoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) override
       {
          if (resourcePath == nullptr || rlen(resourcePath) < 2) Throw(0, "Win32OS::LoadResource failed: <resourcePath> was blank");
          if (resourcePath[0] != '!') Throw(0, "Win32OS::LoadResource failed: <%s> did not begin with ping '!' character", resourcePath);
@@ -447,6 +488,165 @@ namespace
 
          os.LoadAbsolute(absPath, buffer, maxFileLength);
       }
+
+	  bool DoPingsMatch(cstr a, cstr b) const override
+	  {
+		  try
+		  {
+			  char sysPathA[IO::MAX_PATHLEN];
+			  ConvertPingPathToSysPath(a, sysPathA, IO::MAX_PATHLEN);
+
+			  char sysPathB[IO::MAX_PATHLEN];
+			  ConvertPingPathToSysPath(b, sysPathB, IO::MAX_PATHLEN);
+
+			  return Eq(sysPathA, sysPathB);
+		  }
+		  catch (IException&)
+		  {
+			  return false;
+		  }
+	  }
+
+	  cstr GetFirstSlash(cstr path) const
+	  {
+		  for (cstr p = path + 1; *p != 0; p++)
+		  {
+			  if (*p == '/')
+			  {
+				  return p;
+			  }
+		  }
+
+		  return nullptr;
+	  }
+
+	  void ConvertPingPathToSysPath(cstr pingPath, char* sysPath, size_t sysPathCapacity) const override
+	  {
+		  if (pingPath == nullptr || *pingPath == 0)
+		  {
+			  Throw(0, "Installation::ConvertPingPathToSysPath(...) Ping path was blank");
+		  }
+
+		  auto macroDir = "";
+		  const char* subdir = nullptr;
+
+		  if (*pingPath == '!')
+		  {
+			  subdir = pingPath + 1;
+		  }
+		  else if (*pingPath == '#')
+		  {
+			  auto slash = GetFirstSlash(pingPath + 1);
+			  if (slash == nullptr)
+			  {
+				  Throw(0, "Installation::ConvertPingPathToSysPath(\"%s\"): expecting forward slash character in pingPath", pingPath);
+			  }
+
+			  subdir = slash + 1;
+
+			  char macro[IO::MAX_PATHLEN];
+			  memcpy_s(macro, sizeof(macro), pingPath, slash - pingPath);
+			  macro[slash - pingPath] = 0;
+
+			  auto i = macroToSubdir.find(macro);
+			  if (i == macroToSubdir.end())
+			  {
+				  Throw(0, "Installation::ConvertPingPathToSysPath(\"%s\"): unknown macro: %s", macro, pingPath);
+			  }
+
+			  macroDir = i->second.c_str();
+		  }
+		  else
+		  {
+			  Throw(0, "Installation::ConvertPingPathToSysPath(\"%s\"): unknown prefix. Expecting ! or #", pingPath);
+		  }
+
+		  if (strstr(pingPath, "..") != nullptr)
+		  {
+			  Throw(0, "Installation::ConvertPingPathToSysPath(...) Illegal sequence in ping path: '..'");
+		  }
+
+		  int fulllen = SecureFormat(sysPath, sysPathCapacity, "%s%s%s", contentDirectory.data, macroDir + 1, subdir);
+		  OS::ToSysPath(sysPath);
+	  }
+
+	  void ConvertSysPathToMacroPath(cstr sysPath, char* pingPath, size_t pingPathCapacity, cstr macro) const override
+	  {
+		  char fullPingPath[IO::MAX_PATHLEN];
+		  ConvertSysPathToPingPath(sysPath, fullPingPath, IO::MAX_PATHLEN);
+
+		  auto i = macroToSubdir.find(macro);
+		  if (i == macroToSubdir.end())
+		  {
+			  Throw(0, "Installation::ConvertSysPathToMacroPath(...) No macro defined: %s", macro);
+		  }
+
+		  cstr expansion = i->second.c_str();
+		  if (strstr(fullPingPath, expansion) == nullptr)
+		  {
+			  Throw(0, "Installation::ConvertSysPathToMacroPath(...\"%s\", \"%s\") Path not prefixed by macro: %s", sysPath, macro, expansion);
+		  }
+
+		  SecureFormat(pingPath, pingPathCapacity, "%s/%s", macro, fullPingPath + i->second.size());
+	  }
+
+	  void ConvertSysPathToPingPath(cstr sysPath, char* pingPath, size_t pingPathCapacity) const override
+	  {
+		  if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
+
+		  const fstring s = to_fstring(sysPath);
+		  auto p = strstr(sysPath, contentDirectory.data);
+
+		  int32 netLength = s.length - len;
+		  if (netLength < 0 || p != sysPath)
+		  {
+			  Throw(0, "ConvertSysPathToPingPath: path did not begin with the content folder %s", contentDirectory.data);
+		  }
+
+		  if (netLength >= (int32)pingPathCapacity)
+		  {
+			  Throw(0, "ConvertSysPathToPingPath: Insufficient space in ping path buffer");
+		  }
+
+		  if (strstr(sysPath, "..") != nullptr)
+		  {
+			  Throw(0, "ConvertSysPathToPingPath: Illegal sequence in ping path: '..'");
+		  }
+
+		  SecureFormat(pingPath, pingPathCapacity, "!%s", sysPath + len);
+
+		  OS::ToUnixPath(pingPath);
+	  }
+
+
+	  void Macro(cstr name, cstr pingFolder) override
+	  {
+		  if (name == nullptr || *name != '#')
+		  {
+			  Throw(0, "Installation::Macro(name, ...): [name] did not begin with a hash '#' character");
+		  }
+
+		  if (pingFolder == nullptr || *pingFolder != '!')
+		  {
+			  Throw(0, "Installation::Macro(..., pingFolder): [pingFolder] did not begin with a ping '!' character");
+		  }
+
+		  char pingRoot[IO::MAX_PATHLEN - 1];
+		  int len = SecureFormat(pingRoot, sizeof(pingRoot), "%s", pingFolder);
+		  OS::ToUnixPath(pingRoot);
+		  if (pingRoot[len - 1] != '/')
+		  {
+			  Throw(0, "Installation::Macro(..., pingFolder): %s did not end with slash '/' character");
+		  }
+
+		  auto i = macroToSubdir.find(name);
+		  if (i != macroToSubdir.end())
+		  {
+			  Throw(0, "Installation::Macro(\"%s\", ...) - macro already defined", name);
+		  }
+
+		  macroToSubdir[name] = pingFolder;
+	  }
    };
 
    class OSX : public IOSSupervisor
@@ -470,17 +670,17 @@ namespace
       {
       }
 
-      virtual void Free()
+      void Free() override
       {
          delete this;
       }
 
-      virtual void Monitor(cstr absPath)
+      void Monitor(cstr absPath) override
       {
 
       }
 
-      virtual void UTF8ToUnicode(const char* s, wchar_t* unicode, size_t cbUtf8count, size_t unicodeCapacity)
+      void UTF8ToUnicode(const char* s, wchar_t* unicode, size_t cbUtf8count, size_t unicodeCapacity) override
       {
          // OSX doesn't support wchar_t too well, so just do a bodge job
          size_t i = 0;
@@ -508,32 +708,32 @@ namespace
          }
       }
 
-      virtual void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs> &cb)
+      void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs> &cb) override
       {
       }
 
-      virtual void FireUnstable()
+      void FireUnstable() override
       {
          SysUnstableArgs unused;
          if (onUnstable) onUnstable->OnEvent(unused);
       }
 
-      virtual void SetUnstableHandler(IEventCallback<SysUnstableArgs>* cb)
+      void SetUnstableHandler(IEventCallback<SysUnstableArgs>* cb) override
       {
          onUnstable = cb;
       }
 
-      virtual bool IsFileExistant(cstr absPath) const
+      bool IsFileExistant(cstr absPath) const override
       {
          return OS::IsFileExistant(absPath);
       }
 
-      virtual void ConvertUnixPathToSysPath(cstr unixPath, rchar* sysPath, size_t bufferCapacity) const
+      void ConvertUnixPathToSysPath(cstr unixPath, rchar* sysPath, size_t bufferCapacity) const override
       {
          strcpy_s(sysPath, bufferCapacity, unixPath);
       }
 
-      virtual void LoadAbsolute(cstr absPath, IExpandingBuffer& buffer, int64 maxFileLength) const
+      void LoadAbsolute(cstr absPath, IExpandingBuffer& buffer, int64 maxFileLength) const override
       {
          FileHandle hFile = fopen(absPath, "r");
          if (!hFile.IsValid()) Throw(errno, "OSX::LoadResource failed: Error opening file %s", absPath);
@@ -570,12 +770,12 @@ namespace
          }
       }
 
-      virtual void GetBinDirectoryAbsolute(rchar* directory, size_t capacityChars) const
+      void GetBinDirectoryAbsolute(rchar* directory, size_t capacityChars) const override
       {
          SecureFormat(directory, capacityChars, "%s", binDirectory.data);
       }
 
-      virtual size_t MaxPath() const
+      size_t MaxPath() const override
       {
          return _MAX_PATH;
       }

@@ -114,6 +114,7 @@ namespace Rococo
 			{
 				if (contigBuffer) Delete(contigBuffer);
 				jpeg_destroy_decompress(&cinfo);
+				loadEvents.OnError("JPEG was bad or unrecognized format");
 				return false;
 			}
 

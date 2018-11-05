@@ -42,9 +42,6 @@
     <ClCompile Include="sexy.variants.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sexy.strings.builder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sexy.compiler.util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

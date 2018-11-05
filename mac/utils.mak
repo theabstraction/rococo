@@ -1,6 +1,6 @@
 # Make file for Utilities module in the Rococo library
 
-UNIT_OBJS = rococo.base.obj rococo.allocators.obj rococo.flow.obj rococo.observer.obj rococo.os.mac.obj rococo.postbox.obj rococo.s-parser.helpers.obj rococo.sprites.obj rococo.strings.obj rococo.texture.builder.obj ui.widgets.obj rococo.ide.stdout.obj
+UNIT_OBJS = rococo.base.obj rococo.allocators.obj rococo.flow.obj rococo.observer.obj rococo.os.mac.obj rococo.postbox.obj rococo.s-parser.helpers.obj rococo.sprites.obj rococo.strings.obj rococo.texture.builder.obj rococo.ide.stdout.obj
 
 UNIT_SRCS = $(UNIT_OBJS,.obj=.cpp) 
 

@@ -79,7 +79,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="sexy.windows.test.main.cpp" />
+    <ClCompile Include="sexy.windows.test.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\win32.resources\rococo.dialogs.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\rococo.win32.resources.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

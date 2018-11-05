@@ -15,13 +15,22 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Content", "Content", "{BF61
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{89538331-3716-4F62-8CAA-CF6A73F08E23}"
+	ProjectSection(SolutionItems) = preProject
+		rococo.windows\rococo.windows.vcxproj = rococo.windows\rococo.windows.vcxproj
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.sexy.windows", "rococo.sexy.windows\rococo.sexy.windows.vcxproj", "{B8C06E28-7FCD-426E-BD53-EC9C72D45E90}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.sexy.windows.test", "rococo.sexy.windows.test\rococo.sexy.windows.test.vcxproj", "{F8424602-5915-46FD-A1C4-40829FE3212F}"
 	ProjectSection(ProjectDependencies) = postProject
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
 		{B8C06E28-7FCD-426E-BD53-EC9C72D45E90} = {B8C06E28-7FCD-426E-BD53-EC9C72D45E90}
+		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.util", "rococo.util\rococo.util.vcxproj", "{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.windows", "rococo.windows\rococo.windows.vcxproj", "{997A007C-24B0-44FE-A27E-0EE006D74128}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,6 +46,14 @@ Global
 		{F8424602-5915-46FD-A1C4-40829FE3212F}.Debug|x64.Build.0 = Debug|x64
 		{F8424602-5915-46FD-A1C4-40829FE3212F}.Release|x64.ActiveCfg = Release|x64
 		{F8424602-5915-46FD-A1C4-40829FE3212F}.Release|x64.Build.0 = Release|x64
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Debug|x64.ActiveCfg = Debug|x64
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Debug|x64.Build.0 = Debug|x64
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Release|x64.ActiveCfg = Release|x64
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Release|x64.Build.0 = Release|x64
+		{997A007C-24B0-44FE-A27E-0EE006D74128}.Debug|x64.ActiveCfg = Debug|x64
+		{997A007C-24B0-44FE-A27E-0EE006D74128}.Debug|x64.Build.0 = Debug|x64
+		{997A007C-24B0-44FE-A27E-0EE006D74128}.Release|x64.ActiveCfg = Release|x64
+		{997A007C-24B0-44FE-A27E-0EE006D74128}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

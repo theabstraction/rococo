@@ -1,10 +1,7 @@
 #ifndef Rococo_WINDOW_EX_H
 #define Rococo_WINDOW_EX_H
 
-#ifndef Rococo_TYPES_H
-#error "#include <rococo.types.h> before including this file"
-#endif
-
+#include <rococo.api.h>
 #include <rococo.visitors.h>
 #include <Rococo.ui.h>
 
@@ -12,14 +9,29 @@ namespace Rococo
 {
 	namespace Windows
 	{
-      ROCOCOAPI IWindow
-      {
-         virtual operator HWND () const = 0;
-      };
+		ROCOCOAPI IWindow
+		{
+		   virtual operator HWND () const = 0;
+		};
+
+		void PopulateStackView(HWND hStackView, Rococo::IException& ex);
+		void SetStackViewColumns(HWND hStackView, const int columnWidths[5]);
+
+		struct ExceptionDialogSpec
+		{
+			HINSTANCE dllInstance; // dll where the dialog template is defined
+			int widths[5]; // column widths for the stackview
+			cstr dialogTemplate; // Typically (int) IDD_EXCEPTION_DIALOG from <rococo.win32.resources.h>
+			uint16 stackViewId; // Typically (int) IDC_STACKVIEW from <rococo.win32.resources.h>
+			uint16 logViewId; // Typically (int) IDC_LOGVIEW from <rococo.win32.resources.h>
+			cstr title; // Dialog title
+		};
+
+		void ShowExceptionDialog(const ExceptionDialogSpec& spec, HWND parent, IException& ex);
 
 		void SetControlFont(HWND hControlWindow); // Sets the font of the window to the default control font specified in InitRococoWindows
 		void SetTitleFont(HWND hTitleBar);  // Sets the font of the window to the default title font specified in InitRococoWindows
-		
+
 		ROCOCOAPI IWin32Menu
 		{
 			virtual operator HMENU () = 0;
@@ -30,7 +42,7 @@ namespace Rococo
 
 		IWin32Menu* CreateMenu(bool contextMenu);
 
-      IWindow& NullParent();
+		IWindow& NullParent();
 
 		ROCOCOAPI ICommandTarget
 		{
@@ -124,7 +136,7 @@ namespace Rococo
 
 		ROCOCOAPI IWindowHandler
 		{
-         virtual void OnPretranslateMessage(MSG& msg) = 0;
+		 virtual void OnPretranslateMessage(MSG& msg) = 0;
 			virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
 		};
 
@@ -135,12 +147,12 @@ namespace Rococo
 
 		public:
 			StandardWindowHandler();
-			
+
 			virtual void SetBackgroundColour(COLORREF bkColour);
 		protected:
 			virtual void OnDestroy(HWND hWnd);
 			virtual LRESULT OnInput(HWND hWnd, WPARAM wParam, LPARAM lParam);
-         virtual LRESULT OnKeydown(HWND hWnd, WPARAM wParam, LPARAM lParam);
+			virtual LRESULT OnKeydown(HWND hWnd, WPARAM wParam, LPARAM lParam);
 			virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 			virtual LRESULT OnTimer(HWND hWnd, WPARAM wParam, LPARAM lParam);
 			virtual void OnClose(HWND hWnd);
@@ -153,8 +165,8 @@ namespace Rococo
 			virtual void OnMenuCommand(HWND hWnd, DWORD id);
 			virtual void OnAcceleratorCommand(HWND hWnd, DWORD id);
 			virtual COLORREF GetBackgroundColour();
-         virtual LRESULT OnSetCursor(HWND hWnd, WPARAM wParam, LPARAM lParam);
-         virtual void OnPretranslateMessage(MSG& msg);
+			virtual LRESULT OnSetCursor(HWND hWnd, WPARAM wParam, LPARAM lParam);
+			virtual void OnPretranslateMessage(MSG& msg);
 		};
 
 		typedef void(*FN_OnControlCommand)(void* context, HWND hWnd, DWORD notificationCode, ControlId id, HWND hControlCode);
@@ -163,7 +175,7 @@ namespace Rococo
 		typedef void(*FN_OnClose)(void* context, HWND hWnd);
 		typedef void(*FN_OnSize)(void* context, HWND hWnd, const Vec2i& span, RESIZE_TYPE type);
 		typedef DWORD(*FN_OnIdle)(void* context);
-      typedef void(*FN_OnPreTranslate)(void* context, MSG& msg);
+		typedef void(*FN_OnPreTranslate)(void* context, MSG& msg);
 
 		ROCOCOAPI IWiredWindowHandler : public IWindowHandler
 		{
@@ -175,7 +187,7 @@ namespace Rococo
 			virtual void RouteMenuCommand(void* context, FN_OnMenuCommand f) = 0;
 			virtual void RouteAcceleratorCommand(void* context, FN_OnAcceleratorCommand f) = 0;
 			virtual void RouteSize(void* context, FN_OnSize fn) = 0;
-         virtual void RoutePreTranslate(void* context, FN_OnPreTranslate fn) = 0;
+		 virtual void RoutePreTranslate(void* context, FN_OnPreTranslate fn) = 0;
 		};
 
 		IWiredWindowHandler* CreateWiredHandler();
@@ -233,7 +245,7 @@ namespace Rococo
 		ROCOCOAPI IWindowSupervisor : public IWindow
 		{
 			virtual void Free() = 0;
-			virtual IWindowHandler& Handler() = 0;	
+			virtual IWindowHandler& Handler() = 0;
 		};
 
 		ROCOCOAPI IButton : public IWindowSupervisor
@@ -257,17 +269,17 @@ namespace Rococo
 
 		ROCOCOAPI IRichEditor : public IWindowSupervisor
 		{
-			virtual void AppendText(COLORREF foreground, COLORREF background, cstr text, size_t nChars = (size_t) -1) = 0;
+			virtual void AppendText(COLORREF foreground, COLORREF background, cstr text, size_t nChars = (size_t)-1) = 0;
 			virtual HWND EditorHandle() const = 0;
-         virtual void Hilight(const Vec2i& start, const Vec2i& end, RGBAb background, RGBAb foreground) = 0;
+		 virtual void Hilight(const Vec2i& start, const Vec2i& end, RGBAb background, RGBAb foreground) = 0;
 			virtual int32 LineCount() const = 0;
-			virtual void ResetContent() = 0;	
-         virtual int32 GetFirstVisibleLine() const = 0;
+			virtual void ResetContent() = 0;
+		 virtual int32 GetFirstVisibleLine() const = 0;
 			virtual void ScrollTo(int32 lineNumber) = 0;
-         virtual void SetTooltip(cstr name, cstr text) = 0;
+		 virtual void SetTooltip(cstr name, cstr text) = 0;
 		};
 
-      bool OpenChooseFontBox(HWND hParent, LOGFONTA& output);
+		bool OpenChooseFontBox(HWND hParent, LOGFONTA& output);
 		void SetDlgCtrlID(HWND hWnd, DWORD id);
 		void SetText(HWND hWnd, size_t capacity, cstr format, ...);
 
@@ -282,14 +294,14 @@ namespace Rococo
 			virtual DWORD BlockModal(IModalControl& control, HWND ownerWindow, IWindowHandler* subHandler) = 0;
 		};
 
-      struct ITreeControlSupervisor;
+		struct ITreeControlSupervisor;
 
 		ROCOCOAPI ITreeControlHandler
 		{
-         virtual void OnItemSelected(int64 id, ITreeControlSupervisor& origin) = 0;
+		 virtual void OnItemSelected(int64 id, ITreeControlSupervisor& origin) = 0;
 		};
 
-		ROCOCOAPI IListViewEvents: public IItemRenderer
+		ROCOCOAPI IListViewEvents : public IItemRenderer
 		{
 		};
 
@@ -297,7 +309,7 @@ namespace Rococo
 		{
 			virtual Visitors::IUITree& Tree() = 0;
 			virtual Visitors::CheckState GetCheckState(Visitors::TREE_NODE_ID id) const = 0;
-         virtual HWND TreeHandle() const = 0;
+		 virtual HWND TreeHandle() const = 0;
 		};
 
 		ROCOCOAPI IListWindowSupervisor : public IWindowSupervisor
@@ -343,7 +355,7 @@ namespace Rococo
 		ROCOCOAPI ITabControlEvents
 		{
 			virtual void OnSelectionChanged(int index) = 0;
-         virtual void OnTabRightClicked(int index, const POINT& screenCursorPos) = 0;
+		 virtual void OnTabRightClicked(int index, const POINT& screenCursorPos) = 0;
 		};
 
 		ROCOCOAPI ITabControl : public IWindowSupervisor
@@ -358,55 +370,55 @@ namespace Rococo
 			virtual int TabCount() const = 0;
 		};
 
-      ROCOCO_ID(IDEPANE_ID, int32, -1);
+		ROCOCO_ID(IDEPANE_ID, int32, -1);
 
-      namespace IDE
-      {
-         ROCOCOAPI IIDENode : public IWindow
-         {
-            virtual void Free() = 0;
-            virtual void SetFont(HFONT hFont) = 0;
-         };
+		namespace IDE
+		{
+			ROCOCOAPI IIDENode : public IWindow
+			{
+			   virtual void Free() = 0;
+			   virtual void SetFont(HFONT hFont) = 0;
+			};
 
-         ROCOCOAPI ISpatialManager : public IWindow
-         {
-            virtual IIDENode* FindPane(IDEPANE_ID id) = 0;
-            virtual void Free() = 0;
-            virtual void NotifyMigration(IDEPANE_ID migratingId) = 0;
-            virtual void SetFontRecursive(HFONT hFont) = 0;
-            virtual void Save(const LOGFONTA& logFont, int32 version) = 0;
-         };
+			ROCOCOAPI ISpatialManager : public IWindow
+			{
+			   virtual IIDENode* FindPane(IDEPANE_ID id) = 0;
+			   virtual void Free() = 0;
+			   virtual void NotifyMigration(IDEPANE_ID migratingId) = 0;
+			   virtual void SetFontRecursive(HFONT hFont) = 0;
+			   virtual void Save(const LOGFONTA& logFont, int32 version) = 0;
+			};
 
-         ROCOCOAPI IPaneDatabase
-         {
-            virtual IDEPANE_ID GetMigratingId() = 0;
-            virtual void SetMigratingId(IDEPANE_ID) = 0;
-            virtual void NotifyMigration() = 0;
-            virtual void GetName(rchar name[256], IDEPANE_ID id) = 0;
-            virtual IIDENode* ConstructPane(IDEPANE_ID id, IParentWindowSupervisor& parent) = 0;
-         };
+			ROCOCOAPI IPaneDatabase
+			{
+			   virtual IDEPANE_ID GetMigratingId() = 0;
+			   virtual void SetMigratingId(IDEPANE_ID) = 0;
+			   virtual void NotifyMigration() = 0;
+			   virtual void GetName(rchar name[256], IDEPANE_ID id) = 0;
+			   virtual IIDENode* ConstructPane(IDEPANE_ID id, IParentWindowSupervisor& parent) = 0;
+			};
 
-         ROCOCOAPI IIDETextWindow : public IIDENode
-         {
-            virtual void AddSegment(RGBAb colour, cstr segment, size_t length, RGBAb bkColor) = 0;
-            virtual IRichEditor& Editor() = 0;
-         };
+			ROCOCOAPI IIDETextWindow : public IIDENode
+			{
+			   virtual void AddSegment(RGBAb colour, cstr segment, size_t length, RGBAb bkColor) = 0;
+			   virtual IRichEditor& Editor() = 0;
+			};
 
-         ROCOCOAPI IIDETreeWindow : public IIDENode
-         {
-            virtual ITreeControlSupervisor& GetTreeSupervisor() = 0;
-         };
+			ROCOCOAPI IIDETreeWindow : public IIDENode
+			{
+			   virtual ITreeControlSupervisor& GetTreeSupervisor() = 0;
+			};
 
-         ROCOCOAPI IIDEReportWindow : public IIDENode
-         {
-            virtual IListViewSupervisor& GetListViewSupervisor() = 0;
-         };
+			ROCOCOAPI IIDEReportWindow : public IIDENode
+			{
+			   virtual IListViewSupervisor& GetListViewSupervisor() = 0;
+			};
 
-         IIDETextWindow* CreateTextWindow(IWindow& parent);
-         IIDETreeWindow* CreateTreeView(IWindow& parent, ITreeControlHandler* handler);
-         IIDEReportWindow* CreateReportView(IWindow& parent);
-         ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTA& logFont, cstr appName);
-      }
+			IIDETextWindow* CreateTextWindow(IWindow& parent);
+			IIDETreeWindow* CreateTreeView(IWindow& parent, ITreeControlHandler* handler);
+			IIDEReportWindow* CreateReportView(IWindow& parent);
+			ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTA& logFont, cstr appName);
+		}
 
 		IButton* AddPushButton(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
 		ICheckbox* AddCheckBox(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);

@@ -47,8 +47,9 @@ namespace Rococo
 			CopyString(msg, 1024, _msg);
 		}
 
-		virtual int ErrorCode() const { return -1; }
-		virtual cstr Message() const { return msg; }
+		int ErrorCode() const override { return 0; }
+		cstr Message() const override  { return msg; }
+		Debugging::IStackFrameEnumerator* StackFrames() override { return nullptr; }
 	};
 
 	NamespaceSplitter::NamespaceSplitter(csexstr _src): src(_src)

@@ -58,7 +58,6 @@ namespace Rococo
 		struct ISexyWindows
 		{
 			virtual DialogResult ShowErrorDialog(const ErrorDialogSpec& info) = 0;
-			virtual void ShowExceptionDialog(SysWindowHandle parent) = 0;
 			virtual DialogResult ShowScriptedDialog(const ScriptedDialogSpec& info) = 0;
 			virtual void Free() = 0;
 		};

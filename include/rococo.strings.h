@@ -8,6 +8,10 @@
 # include <stdarg.h>
 #endif
 
+#ifndef _WIN32
+int _stricmp(const char* a, const char* b);
+#endif
+
 namespace Rococo
 {
    int SecureFormat(char* buffer, size_t capacity, const char* format, ...);

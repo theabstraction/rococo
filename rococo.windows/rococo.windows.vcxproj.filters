@@ -30,6 +30,9 @@
     <ClCompile Include="rococo.tabbed.ide.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rococo.debuggers.win32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="listbox.inl">

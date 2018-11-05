@@ -478,25 +478,27 @@ namespace Rococo { namespace Compiler
 			CopyString(source, MAX_MSG_LEN, _source);
 		}
 
-		virtual csexstr Source() const
+		csexstr Source() const
 		{
 			return source;
 		}
 	
-		virtual csexstr Message() const
+		csexstr Message() const override
 		{
 			return message;
 		}
 
-		virtual int ErrorCode() const
+		int ErrorCode() const override
 		{
-			return -1;
+			return 0;
 		}
 
-		virtual ERRORCODE Code() const
+		ERRORCODE Code() const
 		{
 			return code;
 		}
+
+		Debugging::IStackFrameEnumerator* StackFrames() override { return nullptr; }
 	};
 
 	struct CodeSection

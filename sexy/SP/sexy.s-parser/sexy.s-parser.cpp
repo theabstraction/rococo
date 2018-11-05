@@ -892,6 +892,8 @@ namespace ANON
 			{
 				return errorCode;
 			}
+
+			Debugging::IStackFrameEnumerator* StackFrames() override { return nullptr; }
 		} ex;
 
 		va_list args;

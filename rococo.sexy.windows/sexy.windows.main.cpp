@@ -2,8 +2,12 @@
 
 #ifdef _DEBUG
 #pragma comment(lib, "sexy.script.Debug.lib")
+#pragma comment(lib, "rococo.sexy.ide.debug.lib")
+#pragma comment(lib, "rococo.windows.debug.lib")
 #else
 #pragma comment(lib, "sexy.script.Release.lib")
+#pragma comment(lib, "rococo.sexy.ide.lib")
+#pragma comment(lib, "rococo.windows.lib")
 #endif
 
 namespace ANON
@@ -35,11 +39,6 @@ namespace ANON
 		DialogResult ShowScriptedDialog(const ScriptedDialogSpec& spec) override
 		{
 			return Rococo::SexyWindows::ShowScriptedDialog(spec, g_DLLInstance);
-		}
-
-		void ShowExceptionDialog(SysWindowHandle parent) override
-		{
-			return Rococo::SexyWindows::ShowExceptionDialog(g_DLLInstance, parent);
 		}
 
 		void Free() override

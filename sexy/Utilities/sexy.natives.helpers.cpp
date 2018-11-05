@@ -37,18 +37,18 @@ namespace Rococo
       {
          auto* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(fqNS);
          if (ns == nullptr)
-            Rococo::OS::Throw(0, SEXTEXT("GetDefaultProxy: Cannot find subspace %s"), fqNS);
+            Rococo::Throw(0, "GetDefaultProxy: Cannot find subspace %s", fqNS);
 
          auto* pInt = ns->FindInterface(interfaceName);
          if (pInt == nullptr)
-            Rococo::OS::Throw(0, SEXTEXT("GetDefaultProxy: Cannot find interface %s in subspace"), interfaceName);
+            Rococo::Throw(0, "GetDefaultProxy: Cannot find interface %s in subspace", interfaceName);
 
          const Rococo::Compiler::IStructure& nullType = pInt->NullObjectType();
          auto& mod = nullType.Module();
 
          const IStructure* s = mod.FindStructure(proxyName);
          if (s == nullptr)
-            Rococo::OS::Throw(0, SEXTEXT("GetDefaultProxy: Cannot find proxy %s in %s"), proxyName, mod.Name());
+            Rococo::Throw(0, "GetDefaultProxy: Cannot find proxy %s in %s", proxyName, mod.Name());
 
          return *s;
       }

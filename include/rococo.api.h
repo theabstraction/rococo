@@ -189,6 +189,8 @@ namespace Rococo
 		bool IsRunning();
 		void ShutdownApp();
 		void BeepWarning();
+		void FormatExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack);
+		void CopyExceptionToClipboard(IException& ex);
 	}
 
 	struct IDebuggerWindow;
@@ -334,6 +336,7 @@ namespace Rococo
 		public:
 			EventId(const char* const _name, EventHash _hash) : name(_name), hash(_hash) { }
 			EventId(const EventId& src) : name(src.name), hash(src.hash), id(src.id) {}
+			EventId() : name(""), hash(0), id(0) {}
 			EventId operator = (const EventId& src) = delete;
 
 			cstr Name() const { return name; }
@@ -351,6 +354,7 @@ namespace Rococo
 			operator EventId() const { return id; }
 
 			Event(EventId _id) : id(_id), sizeInBytes(0) {}
+			Event() : id(""_event), sizeInBytes(0) {}
 		};
 
 		// Used by GUI panels to request an upate to a label or field just before rendering.

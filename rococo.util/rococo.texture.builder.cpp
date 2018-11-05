@@ -253,7 +253,7 @@ namespace
 
             virtual void OnError(const char* message)
             {
-               Throw(0, "Could not load image %s:\n%S", name, message);
+               Throw(0, "Could not load image %s:\n%s", name, message);
             }
 
             virtual void OnRGBAImage(const Vec2i& span, const RGBAb* data)
@@ -281,6 +281,11 @@ namespace
             onLoad.span = { 0,0 };
             onLoad.name = i->first.c_str();
             loader.Load(i->first.c_str(), onLoad);
+
+			if (onLoad.span.x > textureArray.MaxWidth() || onLoad.span.y > textureArray.MaxWidth())
+			{
+				Throw(0, "The span of %s was greater than the largest texture supported (%u x %u)", onLoad.name, textureArray.MaxWidth(),  textureArray.MaxWidth());
+			}
 
             if (onLoad.span.x == 0)
             {

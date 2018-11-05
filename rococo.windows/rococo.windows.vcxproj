@@ -84,6 +84,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="rococo.debuggers.win32.cpp" />
     <ClCompile Include="rococo.message.box.cpp" />
     <ClCompile Include="rococo.tabbed.ide.cpp" />
     <ClCompile Include="rococo.window.cpp" />

@@ -39,9 +39,6 @@
     <ClCompile Include="rococo.os.mac.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="rococo.flow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="rococo.base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -63,6 +60,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\rococo.textures.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rococo.debugging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rococo.types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rococo.api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rococo.allocators.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rococo.io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rococo.window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

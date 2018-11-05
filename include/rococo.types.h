@@ -31,172 +31,178 @@ namespace Rococo
 	typedef unsigned __int8 uint8;
 	typedef unsigned __int16 uint16;
 	typedef unsigned __int32 uint32;
-   typedef unsigned __int64 uint64;
+	typedef unsigned __int64 uint64;
 
-   typedef size_t ID_BYTECODE;
+	typedef size_t ID_BYTECODE;
 
 #define ROCOCO_CONSTEXPR constexpr
 
 #else
-   typedef signed char int8;
-   typedef signed short int int16;
-   typedef signed int int32;
-   typedef signed long long int int64;
+	typedef signed char int8;
+	typedef signed short int int16;
+	typedef signed int int32;
+	typedef signed long long int int64;
 
-   typedef unsigned char uint8;
-   typedef unsigned short int uint16;
-   typedef unsigned int uint32;
-   typedef unsigned long long int uint64;
+	typedef unsigned char uint8;
+	typedef unsigned short int uint16;
+	typedef unsigned int uint32;
+	typedef unsigned long long int uint64;
 
 #define ROCOCO_CONSTEXPR
 
 #endif
 
-   typedef char rchar; // the Rococo character type
-   typedef const rchar* cstr;
+	typedef char rchar; // the Rococo character type
+	typedef const rchar* cstr;
 
 	typedef float float32;
 	typedef double float64;
 	typedef void* pointer;
 	typedef int32 boolean32; // 32-bit boolean
 
-   size_t rlen(cstr s);
-   int StrCmpN(cstr a, cstr b, size_t len);
+	size_t rlen(cstr s);
+	int StrCmpN(cstr a, cstr b, size_t len);
 
-   struct Vec2;
-   struct Vec3;
-   struct Vec4;
-   struct Matrix4x4;
-   struct Radians;
-   struct Degrees;
-   struct Quat;
-   struct Sphere;
-   struct Gravity;
-   struct Metres;
-   
-   typedef const Vec2& cr_vec2;
-   typedef const Vec3& cr_vec3;
-   typedef const Vec4& cr_vec4;
-   typedef const Matrix4x4& cr_m4x4;
+	struct Vec2;
+	struct Vec3;
+	struct Vec4;
+	struct Matrix4x4;
+	struct Radians;
+	struct Degrees;
+	struct Quat;
+	struct Sphere;
+	struct Gravity;
+	struct Metres;
 
-   typedef size_t ID_BYTECODE;
+	typedef const Vec2& cr_vec2;
+	typedef const Vec3& cr_vec3;
+	typedef const Vec4& cr_vec4;
+	typedef const Matrix4x4& cr_m4x4;
 
-   struct fstring
-   {
-      cstr buffer;
-      int32 length;
+	typedef size_t ID_BYTECODE;
 
-      operator cstr() const { return buffer; }
-   };
+	struct fstring
+	{
+		cstr buffer;
+		int32 length;
 
-   ROCOCOAPI IStringPopulator
-   {
-      virtual void Populate(cstr text) = 0;
-   };
+		operator cstr() const { return buffer; }
+	};
 
-   inline ROCOCO_CONSTEXPR fstring operator"" _fstring(cstr msg, size_t length)
-   {
-      return fstring{ msg, (int32)length };
-   }
+	ROCOCOAPI IStringPopulator
+	{
+	   virtual void Populate(cstr text) = 0;
+	};
 
-   struct StringBuilder
-   {
-      virtual StringBuilder& AppendFormat(const char* format, ...) = 0;
-      virtual StringBuilder& operator << (cstr text) = 0;
-      virtual StringBuilder& operator << (int32 value) = 0;
-      virtual StringBuilder& operator << (uint32 value) = 0;
-      virtual StringBuilder& operator << (int64 value) = 0;
-      virtual StringBuilder& operator << (uint64 value) = 0;
-      virtual StringBuilder& operator << (float value) = 0;
-      virtual StringBuilder& operator << (double value) = 0;
-      virtual fstring operator * () const = 0;
-      virtual void Clear() = 0;
-      virtual int32 Length() const = 0;
+	inline ROCOCO_CONSTEXPR fstring operator"" _fstring(cstr msg, size_t length)
+	{
+		return fstring{ msg, (int32)length };
+	}
 
-      enum eOpenType { BUILD_EXISTING = 0 };
-   };
+	struct StringBuilder
+	{
+		virtual StringBuilder& AppendFormat(const char* format, ...) = 0;
+		virtual StringBuilder& operator << (cstr text) = 0;
+		virtual StringBuilder& operator << (int32 value) = 0;
+		virtual StringBuilder& operator << (uint32 value) = 0;
+		virtual StringBuilder& operator << (int64 value) = 0;
+		virtual StringBuilder& operator << (uint64 value) = 0;
+		virtual StringBuilder& operator << (float value) = 0;
+		virtual StringBuilder& operator << (double value) = 0;
+		virtual fstring operator * () const = 0;
+		virtual void Clear() = 0;
+		virtual int32 Length() const = 0;
 
-   bool IsPointerValid(const void* ptr);
+		enum eOpenType { BUILD_EXISTING = 0 };
+	};
 
-   class StackStringBuilder : public StringBuilder
-   {
-   private:
-      char* buffer;
-      size_t capacity;
-      int32 length;
-   public:
-      StackStringBuilder(char* _buffer, size_t _capacity);
-      StackStringBuilder(char* _buffer, size_t _capacity, eOpenType type);
-      fstring operator * () const override { return fstring{ buffer, length }; }
-      StringBuilder& AppendFormat(const char* format, ...) override;
-      StringBuilder& operator << (cstr text) override;
-      StringBuilder& operator << (int32 value)  override;
-      StringBuilder& operator << (uint32 value) override;
-      StringBuilder& operator << (int64 value)  override;
-      StringBuilder& operator << (uint64 value) override;
-      StringBuilder& operator << (float value) override;
-      StringBuilder& operator << (double value) override;
-      void Clear() override;
-      int32 Length() const override;
-   };
+	bool IsPointerValid(const void* ptr);
 
-   struct ILock
-   {
-      virtual void Lock() = 0;
-      virtual void Unlock() = 0;
-   };
+	class StackStringBuilder : public StringBuilder
+	{
+	private:
+		char* buffer;
+		size_t capacity;
+		int32 length;
+	public:
+		StackStringBuilder(char* _buffer, size_t _capacity);
+		StackStringBuilder(char* _buffer, size_t _capacity, eOpenType type);
+		fstring operator * () const override { return fstring{ buffer, length }; }
+		StringBuilder& AppendFormat(const char* format, ...) override;
+		StringBuilder& operator << (cstr text) override;
+		StringBuilder& operator << (int32 value)  override;
+		StringBuilder& operator << (uint32 value) override;
+		StringBuilder& operator << (int64 value)  override;
+		StringBuilder& operator << (uint64 value) override;
+		StringBuilder& operator << (float value) override;
+		StringBuilder& operator << (double value) override;
+		void Clear() override;
+		int32 Length() const override;
+	};
 
-   namespace Windows
-   {
-      struct IWindow;
-   }
+	struct ILock
+	{
+		virtual void Lock() = 0;
+		virtual void Unlock() = 0;
+	};
 
-   class Sync
-   {
-      ILock& lock;
-   public:
-      Sync(ILock& _lock) : lock(_lock)
-      {
-         lock.Lock();
-      }
+	namespace Windows
+	{
+		struct IWindow;
+	}
 
-      ~Sync()
-      {
-         lock.Unlock();
-      }
-   };
+	class Sync
+	{
+		ILock& lock;
+	public:
+		Sync(ILock& _lock) : lock(_lock)
+		{
+			lock.Lock();
+		}
 
-   class ThreadLock : public ILock
-   {
-      int64 implementation[8];
-   public:
-      ThreadLock();
-      ~ThreadLock();
+		~Sync()
+		{
+			lock.Unlock();
+		}
+	};
 
-      void Lock();
-      void Unlock();
-   };
+	class ThreadLock : public ILock
+	{
+		int64 implementation[8];
+	public:
+		ThreadLock();
+		~ThreadLock();
 
-   struct Vec2i
-   {
-      int32 x;
-      int32 y;
-   };
+		void Lock();
+		void Unlock();
+	};
+
+	struct Vec2i
+	{
+		int32 x;
+		int32 y;
+	};
+
+	namespace Debugging
+	{
+		struct IStackFrameEnumerator;
+	}
 
 	ROCOCOAPI IException
 	{
 		virtual cstr Message() const = 0;
 		virtual int32 ErrorCode() const = 0;
+		virtual Debugging::IStackFrameEnumerator* StackFrames() = 0;
 	};
 
-   class RecursionGuard
-   {
-   private:
-      int32& counter;
-   public:
-      RecursionGuard(int32& _counter): counter(_counter) { counter++; }
-      ~RecursionGuard() { counter--; }
-   };
+	class RecursionGuard
+	{
+	private:
+		int32& counter;
+	public:
+		RecursionGuard(int32& _counter) : counter(_counter) { counter++; }
+		~RecursionGuard() { counter--; }
+	};
 
 	void Throw(int32 errorCode, cstr format, ...);
 
@@ -272,254 +278,267 @@ namespace Rococo
 		virtual void operator()(T& t) = 0;
 	};
 
-   struct RGBAb
-   {
-      uint8 red;
-      uint8 green;
-      uint8 blue;
-      uint8 alpha;
+	struct RGBAb
+	{
+		uint8 red;
+		uint8 green;
+		uint8 blue;
+		uint8 alpha;
 
-      RGBAb() {}
-      RGBAb(uint32 x) { RGBAb* pCol = (RGBAb*)&x; *this = *pCol; }
-      RGBAb(uint8 _red, uint8 _green, uint8 _blue, uint8 _alpha = 255) : red(_red), green(_green), blue(_blue), alpha(_alpha) {}
-   };
+		RGBAb() {}
+		RGBAb(uint32 x) { RGBAb* pCol = (RGBAb*)&x; *this = *pCol; }
+		RGBAb(uint8 _red, uint8 _green, uint8 _blue, uint8 _alpha = 255) : red(_red), green(_green), blue(_blue), alpha(_alpha) {}
+	};
 
-   struct RGBA
-   {
-      float red;
-      float green;
-      float blue;
-      float alpha;
+	struct RGBA
+	{
+		float red;
+		float green;
+		float blue;
+		float alpha;
 
-      RGBA(float _r = 1.0f, float _g = 0.0f, float _b = 0.0f, float _a = 1.0f) : red(_r), green(_g), blue(_b), alpha(_a) {}
-   };
+		RGBA(float _r = 1.0f, float _g = 0.0f, float _b = 0.0f, float _a = 1.0f) : red(_r), green(_g), blue(_b), alpha(_a) {}
+	};
 
-   template<class T> ROCOCOAPI IVectorEnumerator
-   {
-      virtual T* begin() = 0;
-      virtual T* end() = 0;
-      virtual const T* begin() const = 0;
-      virtual const T* end() const = 0;
-      virtual size_t size() const = 0;
-   };
+	template<class T> ROCOCOAPI IVectorEnumerator
+	{
+	   virtual T* begin() = 0;
+	   virtual T* end() = 0;
+	   virtual const T* begin() const = 0;
+	   virtual const T* end() const = 0;
+	   virtual size_t size() const = 0;
+	};
 
-   // Represent a gui rectangle in floating point co-ordinates. top < bottom for most uses.
-   struct GuiRectf
-   {
-      float left;
-      float top;
-      float right;
-      float bottom;
+	// Represent a gui rectangle in floating point co-ordinates. top < bottom for most uses.
+	struct GuiRectf
+	{
+		float left;
+		float top;
+		float right;
+		float bottom;
 
-      GuiRectf() {}
-      GuiRectf(float _left, float _top, float _right, float _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
-   };
+		GuiRectf() {}
+		GuiRectf(float _left, float _top, float _right, float _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
+	};
 
-   struct AABB2d
-   {
-	   float left;
-	   float bottom;
-	   float right;
-	   float top;
-	   
-	   AABB2d();
-	   void Empty();
-	   bool HoldsPoint(cr_vec2 p) const;
-	   Vec2 Span() const;
-	   Vec2 Centre() const;
+	struct AABB2d
+	{
+		float left;
+		float bottom;
+		float right;
+		float top;
 
-	   AABB2d& operator << (cr_vec2 p);
-   };
+		AABB2d();
+		void Empty();
+		bool HoldsPoint(cr_vec2 p) const;
+		Vec2 Span() const;
+		Vec2 Centre() const;
 
-   template<class T> inline T max(T a, T b)
-   {
-      return a > b ? a : b;
-   }
+		AABB2d& operator << (cr_vec2 p);
+	};
 
-   template<class T> inline T min(T a, T b)
-   {
-      return a < b ? a : b;
-   }
+	template<class T> inline T max(T a, T b)
+	{
+		return a > b ? a : b;
+	}
 
-   template<class T> inline T Sq(T a)
-   {
-      return a * a;
-   }
+	template<class T> inline T min(T a, T b)
+	{
+		return a < b ? a : b;
+	}
 
-   struct Kilograms
-   {
-      float value;
-      operator float() const { return value; }
-   };
+	inline float clamp(float a, float lowestBound, float highestBound)
+	{
+		return min(highestBound, max(lowestBound, a));
+	}
 
-   inline Kilograms operator "" _kg(long double value)
-   {
-      return Kilograms{ (float)value };
-   }
+	template<class T> inline T Sq(T a)
+	{
+		return a * a;
+	}
 
-   struct Metres
-   {
-      float value;
-      operator float() const { return value; }
-   };
+	struct Kilograms
+	{
+		float value;
+		operator float() const { return value; }
+	};
 
-   inline Metres operator "" _metres(long double value)
-   {
-      return Metres{ (float)value };
-   }
+	inline Kilograms operator "" _kg(long double value)
+	{
+		return Kilograms{ (float)value };
+	}
+
+	struct Metres
+	{
+		float value;
+		operator float() const { return value; }
+	};
+
+	inline Metres operator "" _metres(long double value)
+	{
+		return Metres{ (float)value };
+	}
 
 
-   inline Metres operator "" _metres(unsigned long long value)
-   {
-      return Metres{ (float)value };
-   }
+	inline Metres operator "" _metres(unsigned long long value)
+	{
+		return Metres{ (float)value };
+	}
 
-   struct Seconds
-   {
-      float value;
-      operator float() const { return value; }
-   };
+	struct Seconds
+	{
+		float value;
+		operator float() const { return value; }
+	};
 
-   inline Seconds operator "" _seconds(long double value)
-   {
-      return Seconds{ (float)value };
-   }
+	inline Seconds operator "" _seconds(long double value)
+	{
+		return Seconds{ (float)value };
+	}
 
-   struct MetresPerSecond
-   {
-      float value;
-      operator float() const { return value; }
-   };
+	struct MetresPerSecond
+	{
+		float value;
+		operator float() const { return value; }
+	};
 
-   inline MetresPerSecond operator "" _mps(long double value)
-   {
-      return MetresPerSecond{ (float)value };
-   }
+	inline MetresPerSecond operator "" _mps(long double value)
+	{
+		return MetresPerSecond{ (float)value };
+	}
 
-   struct GuiRect
-   {
-      int32 left;
-      int32 top;
-      int32 right;
-      int32 bottom;
+	struct GuiRect
+	{
+		int32 left;
+		int32 top;
+		int32 right;
+		int32 bottom;
 
-      GuiRect() {}
-      GuiRect(int32 _left, int32 _top, int32 _right, int32 _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
-   };
+		GuiRect() {}
+		GuiRect(int32 _left, int32 _top, int32 _right, int32 _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
+	};
 
-   void ExpandZoneToContain(GuiRect& rect, const Vec2i& p);
-   void ExpandZoneToContain(GuiRectf& rect, const Vec2& p);
+	void ExpandZoneToContain(GuiRect& rect, const Vec2i& p);
+	void ExpandZoneToContain(GuiRectf& rect, const Vec2& p);
 
-   struct Vec2
-   {
-      float x;
-      float y;
-   };
+	struct Vec2
+	{
+		float x;
+		float y;
+	};
 
-   struct Vec3
-   {
-      float x;
-      float y;
-      float z;
+	struct Vec3
+	{
+		float x;
+		float y;
+		float z;
 
-      static Vec3 FromVec2(const Vec2& pos, float z)
-      {
-         return Vec3{ pos.x, pos.y, z };
-      }
-   };
+		static Vec3 FromVec2(const Vec2& pos, float z)
+		{
+			return Vec3{ pos.x, pos.y, z };
+		}
+	};
 
-   struct BoundingBox
-   {
-	   struct Layer
-	   {
-		   Vec3 nw;
-		   Vec3 ne;
-		   Vec3 se;
-		   Vec3 sw;
-	   };
+	struct BoundingBox
+	{
+		struct Layer
+		{
+			Vec3 nw;
+			Vec3 ne;
+			Vec3 se;
+			Vec3 sw;
+		};
 
-	   Layer bottom;
-	   Layer top;
+		Layer bottom;
+		Layer top;
 
-	   const Vec3* First() const { return &bottom.nw; }
-   }; 
+		const Vec3* First() const { return &bottom.nw; }
+	};
 
-   /* Axis-Aligned Bounding Box */
-   struct AABB
-   {
-	   Vec3 minXYZ;
-	   Vec3 maxXYZ;
+	/* Axis-Aligned Bounding Box */
+	struct AABB
+	{
+		Vec3 minXYZ;
+		Vec3 maxXYZ;
 
-	   AABB();
-	   void Empty();
+		AABB();
+		void Empty();
 
-	   AABB& operator << (cr_vec3 p);
-	   bool HoldsPoint(cr_vec3 p) const;
-	   bool Intersects(const AABB& other) const;
+		AABB& operator << (cr_vec3 p);
+		bool HoldsPoint(cr_vec3 p) const;
+		bool Intersects(const AABB& other) const;
 
-	   Vec3 Centre() const;
-	   void GetBox(BoundingBox& box) const;
-	   Vec3 Span() const;
+		Vec3 Centre() const;
+		void GetBox(BoundingBox& box) const;
+		Vec3 Span() const;
 
-	   AABB RotateBounds(const Matrix4x4& Rz) const;
-   };
+		AABB RotateBounds(const Matrix4x4& Rz) const;
+	};
 
-   inline const Vec2& Flatten(const Vec3& a)
-   {
-      return *reinterpret_cast<const Vec2*>(&a);
-   }
+	inline const Vec2& Flatten(const Vec3& a)
+	{
+		return *reinterpret_cast<const Vec2*>(&a);
+	}
 
-   ROCOCOAPI IAllocator
-   {
-      virtual void* Allocate(size_t capacity) = 0;
-      virtual void FreeData(void* data) = 0;
-      virtual void* Reallocate(void* ptr, size_t capacity) = 0;
-   };
+	ROCOCOAPI IAllocator
+	{
+	   virtual void* Allocate(size_t capacity) = 0;
+	   virtual void FreeData(void* data) = 0;
+	   virtual void* Reallocate(void* ptr, size_t capacity) = 0;
+	};
 
-   ROCOCOAPI IAllocatorSupervisor: public IAllocator
-   {
-		virtual void Free() = 0;
-   };
+	ROCOCOAPI IAllocatorSupervisor : public IAllocator
+	{
+		 virtual void Free() = 0;
+	};
 
-   ROCOCOAPI IHeapObject
-   {
-      virtual void Free() = 0;
-   };
+	ROCOCOAPI IHeapObject
+	{
+	   virtual void Free() = 0;
+	};
 
-   namespace Memory
-   {
-      IAllocator& CheckedAllocator();
-      IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes);
-   }
+	namespace Memory
+	{
+		IAllocator& CheckedAllocator();
+		IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes);
+	}
 
-   void LoadAsciiTextFile(char* data, size_t capacity, const char* filename);
+	void LoadAsciiTextFile(char* data, size_t capacity, const char* filename);
 
-   namespace OS
-   {
-      enum BreakFlag : int32;
+	namespace OS
+	{
+		enum BreakFlag : int32
+		{
+			BreakFlag_None = 0,
+			BreakFlag_STC = 1,
+			BreakFlag_VM = 2,
+			BreakFlag_SS = 4,
+			BreakFlag_All = 0x7FFFFFFF
+		};
 
-      typedef int64 ticks;
-      void PrintDebug(const char* format, ...);
-      void TripDebugger();
-      void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr caption);
-      bool IsDebugging();
-      void BreakOnThrow(BreakFlag flag);
-      ticks CpuTicks();
-      ticks CpuHz();
-	  ticks UTCTime();
-	  void FormatTime(ticks utcTime, char* buffer, size_t nBytes);
-      bool StripLastSubpath(rchar* fullpath);
-      bool IsFileExistant(cstr path);
-      void Format_C_Error(int errorCode, rchar* buffer, size_t capacity);
-      int OpenForAppend(void** fp, cstr name);
-      int OpenForRead(void** fp, cstr name);
-      void UILoop(uint32 milliseconds);
-	  void ToSysPath(char* path);
-	  void ToUnixPath(char* path);
-	  void SanitizePath(char* path);
-	  void SaveClipBoardText(cstr text, Windows::IWindow& window);
-	  bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window);
-   }
+		typedef int64 ticks;
+		void PrintDebug(const char* format, ...);
+		void TripDebugger();
+		void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr caption);
+		bool IsDebugging();
+		void BreakOnThrow(BreakFlag flag);
+		void SetBreakPoints(int flags);
+		ticks CpuTicks();
+		ticks CpuHz();
+		ticks UTCTime();
+		void FormatTime(ticks utcTime, char* buffer, size_t nBytes);
+		bool StripLastSubpath(rchar* fullpath);
+		bool IsFileExistant(cstr path);
+		void Format_C_Error(int errorCode, rchar* buffer, size_t capacity);
+		int OpenForAppend(void** fp, cstr name);
+		int OpenForRead(void** fp, cstr name);
+		void UILoop(uint32 milliseconds);
+		void ToSysPath(char* path);
+		void ToUnixPath(char* path);
+		void SanitizePath(char* path);
+		void SaveClipBoardText(cstr text, Windows::IWindow& window);
+		bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window);
+	}
 
 #if !defined(_W64)
 # if !defined(__midl) && (defined(_X86_) || defined(_M_IX86))
@@ -542,10 +561,10 @@ namespace Rococo
 #define POINTERS_ARE_64_BIT
 
 #ifndef _WIN32
-   typedef int32 errno_t;
-   void memcpy_s(void *dest, size_t destSize, const void *src, size_t count);
-   
-   enum { _MAX_PATH = 260 };
+	typedef int32 errno_t;
+	void memcpy_s(void *dest, size_t destSize, const void *src, size_t count);
+
+	enum { _MAX_PATH = 260 };
 #endif
 
 }

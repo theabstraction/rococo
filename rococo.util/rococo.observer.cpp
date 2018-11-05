@@ -1,6 +1,7 @@
 #include <rococo.api.h>
 #include <rococo.strings.h>
 
+#include <vector>
 #include <unordered_map>
 #include <algorithm>
 

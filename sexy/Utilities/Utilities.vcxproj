@@ -97,7 +97,6 @@
     <ClCompile Include="sexy.parsering.cpp" />
     <ClCompile Include="sexy.s-parser.util.cpp" />
     <ClCompile Include="sexy.strings.2.cpp" />
-    <ClCompile Include="sexy.strings.builder.cpp" />
     <ClCompile Include="sexy.strings.cpp" />
     <ClCompile Include="sexy.util.cpp" />
     <ClCompile Include="sexy.variants.cpp" />

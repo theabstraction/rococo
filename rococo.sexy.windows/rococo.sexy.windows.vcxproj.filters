@@ -35,9 +35,6 @@
     <ClCompile Include="show_error_dialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="show_exception_dialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="show_scripted_dialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
