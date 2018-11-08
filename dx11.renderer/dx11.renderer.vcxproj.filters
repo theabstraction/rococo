@@ -90,6 +90,9 @@
     <ClCompile Include="dx11.particles.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="dx11.factory.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rococo.dx11.api.h">
@@ -102,6 +105,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="dx11.imports.inl">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dx11.factory.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

@@ -19,9 +19,12 @@
 #include <os/lock.h>
 #include <new>
 #include <rococo.api.h>
+#include <rococo.debugging.h>
 
 #include <unordered_map>
 #include <string>
+
+#include <time.h>
 
 namespace
 {
@@ -79,6 +82,14 @@ namespace Rococo
       {
          setbuf(stdout, nullptr);
       }
+   }
+
+   namespace Debugging
+   {
+	   void FormatStackFrames(IStackFrameFormatter& formatter)
+	   {
+		   // Not implemented on the MAC
+	   }
    }
 
    void memcpy_s(void *dest, size_t destSize, const void *src, size_t count)
@@ -164,182 +175,203 @@ namespace Rococo
 
 namespace Rococo
 {
-   namespace OS
-   {
-      void SanitizePath(char* path)
-      {
-         for (char* s = path; *s != 0; ++s)
-         {
-            if (*s == '\\') *s = '/';
-         }
-      }
+	namespace OS
+	{
+		bool isRunning = true;
 
-      void UILoop(uint32 milliseconds)
-      {
-         usleep(milliseconds * 1000);
-      }
+		bool IsRunning()
+		{
+			return isRunning;
+		}
+		void SanitizePath(char* path)
+		{
+			for (char* s = path; *s != 0; ++s)
+			{
+				if (*s == '\\') *s = '/';
+			}
+		}
 
-      void PrintDebug(const char* format, ...)
-      {
+		void UILoop(uint32 milliseconds)
+		{
+			usleep(milliseconds * 1000);
+		}
+
+		void PrintDebug(const char* format, ...)
+		{
 #if _DEBUG
-         va_list arglist;
-         va_start(arglist, format);
-         char line[4096];
-         SafeVFormat(line, sizeof(line), format, arglist);
-         printf("DBG: %s\n", line);
+			va_list arglist;
+			va_start(arglist, format);
+			char line[4096];
+			SafeVFormat(line, sizeof(line), format, arglist);
+			printf("DBG: %s\n", line);
 #endif
-      }
-      void Format_C_Error(int errorCode, rchar* buffer, size_t capacity)
-      {
-         strerror_r(errorCode, buffer, capacity);
-      }
+		}
+		void Format_C_Error(int errorCode, rchar* buffer, size_t capacity)
+		{
+			strerror_r(errorCode, buffer, capacity);
+		}
 
-      int OpenForAppend(void** _fp, cstr name)
-      {
-         FILE** fp = (FILE**)_fp;
-         *fp = fopen(name, "ab");
-         return (*fp == nullptr) ? errno : 0;
-      }
+		int OpenForAppend(void** _fp, cstr name)
+		{
+			FILE** fp = (FILE**)_fp;
+			*fp = fopen(name, "ab");
+			return (*fp == nullptr) ? errno : 0;
+		}
 
-      int OpenForRead(void** _fp, cstr name)
-      {
-         FILE** fp = (FILE**)_fp;
-         *fp = fopen(name, "rb");
-         return (*fp == nullptr) ? errno : 0;
-      }
+		int OpenForRead(void** _fp, cstr name)
+		{
+			FILE** fp = (FILE**)_fp;
+			*fp = fopen(name, "rb");
+			return (*fp == nullptr) ? errno : 0;
+		}
 
-      void ValidateBuild()
-      {
-         static_assert(sizeof(int64) == 8, "Bad int64");
-         static_assert(sizeof(int32) == 4, "Bad int32");
-         static_assert(sizeof(int16) == 2, "Bad int16");
-         static_assert(sizeof(int8) == 1, "Bad int8");
-      }
+		void ValidateBuild()
+		{
+			static_assert(sizeof(int64) == 8, "Bad int64");
+			static_assert(sizeof(int32) == 4, "Bad int32");
+			static_assert(sizeof(int16) == 2, "Bad int16");
+			static_assert(sizeof(int8) == 1, "Bad int8");
+		}
 
-      bool IsDebugging()
-      {
-         int                 junk;
-         int                 mib[4];
-         struct kinfo_proc   info;
-         size_t              size;
+		bool IsDebugging()
+		{
+			int                 junk;
+			int                 mib[4];
+			struct kinfo_proc   info;
+			size_t              size;
 
-         // Initialize the flags so that, if sysctl fails for some bizarre 
-         // reason, we get a predictable result.
+			// Initialize the flags so that, if sysctl fails for some bizarre 
+			// reason, we get a predictable result.
 
-         info.kp_proc.p_flag = 0;
+			info.kp_proc.p_flag = 0;
 
-         // Initialize mib, which tells sysctl the info we want, in this case
-         // we're looking for information about a specific process ID.
+			// Initialize mib, which tells sysctl the info we want, in this case
+			// we're looking for information about a specific process ID.
 
-         mib[0] = CTL_KERN;
-         mib[1] = KERN_PROC;
-         mib[2] = KERN_PROC_PID;
-         mib[3] = getpid();
+			mib[0] = CTL_KERN;
+			mib[1] = KERN_PROC;
+			mib[2] = KERN_PROC_PID;
+			mib[3] = getpid();
 
-         // Call sysctl.
+			// Call sysctl.
 
-         size = sizeof(info);
-         junk = sysctl(mib, sizeof(mib) / sizeof(*mib), &info, &size, NULL, 0);
+			size = sizeof(info);
+			junk = sysctl(mib, sizeof(mib) / sizeof(*mib), &info, &size, NULL, 0);
 
-         // We're being debugged if the P_TRACED flag is set.
+			// We're being debugged if the P_TRACED flag is set.
 
-         return ((info.kp_proc.p_flag & P_TRACED) != 0);
-      }
+			return ((info.kp_proc.p_flag & P_TRACED) != 0);
+		}
 
-      void TripDebugger()
-      {
-         __asm__ volatile("int $0x03");
-         // __builtin_trap();;
-      }
+		void TripDebugger()
+		{
+			__asm__ volatile("int $0x03");
+			// __builtin_trap();;
+		}
 
-	  void ToSysPath(char* path)
-	  {
-		  for (char* s = path; *s != 0; ++s)
-		  {
-			  if (*s == '\\') *s = '/';
-		  }
-	  }
+		void ToSysPath(char* path)
+		{
+			for (char* s = path; *s != 0; ++s)
+			{
+				if (*s == '\\') *s = '/';
+			}
+		}
 
-	  void ToUnixPath(char* path)
-	  {
-		  for (char* s = path; *s != 0; ++s)
-		  {
-			  if (*s == '\\') *s = '/';
-		  }
-	  }
+		void ToUnixPath(char* path)
+		{
+			for (char* s = path; *s != 0; ++s)
+			{
+				if (*s == '\\') *s = '/';
+			}
+		}
 
-      bool IsFileExistant(cstr filename)
-      {
-         int res = access(filename, R_OK);
-         if (res < 0 && errno == ENOENT)
-         {
-            return false;
-         }
-         else
-         {
-            return true;
-         }
-      }
+		bool IsFileExistant(cstr filename)
+		{
+			int res = access(filename, R_OK);
+			if (res < 0 && errno == ENOENT)
+			{
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
 
-      bool StripLastSubpath(rchar* fullpath)
-      {
-         int32 len = StringLength(fullpath);
-         for (int i = len - 2; i > 0; --i)
-         {
-            if (fullpath[i] == (rchar) '/')
-            {
-               fullpath[i + 1] = 0;
-               return true;
-            }
-         }
+		bool StripLastSubpath(rchar* fullpath)
+		{
+			int32 len = StringLength(fullpath);
+			for (int i = len - 2; i > 0; --i)
+			{
+				if (fullpath[i] == (rchar) '/')
+				{
+					fullpath[i + 1] = 0;
+					return true;
+				}
+			}
 
-         return false;
-      }
+			return false;
+		}
 
-      ticks CpuTicks()
-      {
-         return mach_absolute_time();
-      }
+		ticks CpuTicks()
+		{
+			return mach_absolute_time();
+		}
 
-      ticks CpuHz()
-      {
-         mach_timebase_info_data_t theTimeBaseInfo;
-         mach_timebase_info(&theTimeBaseInfo);
+		ticks CpuHz()
+		{
+			mach_timebase_info_data_t theTimeBaseInfo;
+			mach_timebase_info(&theTimeBaseInfo);
 
-         return (ticks) (1.0e9 * ((double) theTimeBaseInfo.denom / (double) theTimeBaseInfo.numer));
-      }
+			return (ticks)(1.0e9 * ((double)theTimeBaseInfo.denom / (double)theTimeBaseInfo.numer));
+		}
 
-      MemoryUsage ProcessMemory()
-      {
-         return{ 0,0 };
-      }
+		ticks UTCTime()
+		{
+			static_assert(sizeof(time_t) == sizeof(ticks), "Need to fix UTCTime for OSX");
+			time_t t = time(nullptr);
+			return *(ticks*)&t;
+		}
 
-      bool DoesModifiedFilenameMatchResourceName(cstr modifiedFilename, cstr resourceName)
-      {
-         cstr p = modifiedFilename;
-         cstr q = resourceName + 1;
+		void FormatTime(ticks utcTime, char* buffer, size_t nBytes)
+		{
+			char buf[32];
+			ctime_r((time_t*)&utcTime, buf);
 
-         while (*p != 0)
-         {
-            if (*p != *q)
-            {
-               if (*q == '/')
-               {
-                  // ok
-               }
-               else
-               {
-                  return false;
-               }
-            }
+			SafeFormat(buffer, min(sizeof(buf), nBytes), "%s", buf);
+		}
 
-            p++;
-            q++;
-         }
+		MemoryUsage ProcessMemory()
+		{
+			return{ 0,0 };
+		}
 
-         return *q == 0;
-      }
-   } // OS
+		bool DoesModifiedFilenameMatchResourceName(cstr modifiedFilename, cstr resourceName)
+		{
+			cstr p = modifiedFilename;
+			cstr q = resourceName + 1;
+
+			while (*p != 0)
+			{
+				if (*p != *q)
+				{
+					if (*q == '/')
+					{
+						// ok
+					}
+					else
+					{
+						return false;
+					}
+				}
+
+				p++;
+				q++;
+			}
+
+			return *q == 0;
+		}
+	} // OS
 } // Rococo
 
 namespace

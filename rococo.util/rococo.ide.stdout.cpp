@@ -177,11 +177,14 @@ namespace
 
 namespace Rococo
 {
-   namespace IDE
-   {
-      IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent)
-      {
-         return new StdoutDebugger();
-      }
-   }
+	namespace Windows
+	{
+		namespace IDE
+		{
+			IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent)
+			{
+				return new StdoutDebugger();
+			}
+		}
+	}
 }

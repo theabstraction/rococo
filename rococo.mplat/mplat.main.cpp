@@ -3329,7 +3329,9 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 
 	OS::PrintDebug("Starting mainWindow!\n");
 
-	AutoFree<IDX11Window> mainWindow(CreateDX11Window(*installation));
+	AutoFree<IDX11Logger> logger = CreateStandardOutputLogger();
+	AutoFree<IDX11Factory> factory = CreateDX11Factory(*installation, *logger);
+	AutoFree<IDX11Window> mainWindow = factory->CreateDX11Window();
 
 	SetWindowTextA(mainWindow->Window(), title);
 

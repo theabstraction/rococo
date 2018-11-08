@@ -652,15 +652,47 @@ namespace Rococo
 		return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 	}
 
+#ifndef _WIN32
 
-#ifdef _WIN32
+	struct M4x4_Cell
+	{
+		float m[4][4];
+	};
+
+	float DotRowByColumn(int rowIndex, int columnIndex, cr_m4x4 a, cr_m4x4 b)
+	{
+		auto& A = (const M4x4_Cell&)a;
+		auto& B = (const M4x4_Cell&)b;
+
+		float sum = 0;
+		for (int i = 0; i < 4; i++)
+		{
+			sum += A.m[rowIndex][i] * B.m[i][columnIndex];
+		}
+
+		return sum;
+	}
+
+	void Multiply(Matrix4x4& result, cr_m4x4 a, cr_m4x4 b)
+	{
+		auto& R = (M4x4_Cell&)result;
+
+		for (int y = 0; y < 4; y++)
+		{
+			for (int x = 0; x < 4; x++)
+			{
+				R.m[y][x] = DotRowByColumn(y, x, a, b);
+			}
+		}
+	}
+#endif
+
 	Matrix4x4 operator * (const Matrix4x4& a, const Matrix4x4& b)
 	{
 		Matrix4x4 result;
 		Multiply(result, a, b);
 		return result;
 	}
-#endif
 
 	Vec4 operator * (const Matrix4x4& R, const Vec4& v)
 	{

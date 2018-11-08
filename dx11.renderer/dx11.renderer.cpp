@@ -27,6 +27,8 @@
 #include <Dxgi1_3.h>
 #include <comdef.h>
 
+#include "dx11.factory.h"
+
 namespace ANON
 {
 	using namespace Rococo;
@@ -83,6 +85,7 @@ namespace ANON
 		virtual void OnKeyboardEvent(const RAWKEYBOARD& k) = 0;
 		virtual void OnMouseEvent(const RAWMOUSE& m) = 0;
 		virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type) = 0;
+		virtual LRESULT OnOtherMessage(bool& isComplete, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
 	};
 
 	class SpanEvaluator : public Fonts::IGlyphRenderer
@@ -451,14 +454,14 @@ namespace ANON
 	   Windows::IWindow* window;
 	   bool isBuildingAlphaBlendedSprites{ false };
 
-	   DX11AppRenderer(ID3D11Device& _device, ID3D11DeviceContext& _dc, IDXGIFactory& _factory, IInstallation& _installation) :
-		   device(_device), dc(_dc), factory(_factory), hRenderWindow(0),
-		   window(nullptr), cursor{ BitmapLocation { {0,0,0,0}, -1 }, { 0,0 } }, installation(_installation),
-		   spriteArray(_device, _dc),
-		   materialArray(_device, dc),
+	   DX11AppRenderer(DX11::Factory& _factory) :
+		   device(_factory.device), dc(_factory.dc), factory(_factory.factory), hRenderWindow(0),
+		   window(nullptr), cursor{ BitmapLocation { {0,0,0,0}, -1 }, { 0,0 } }, installation(_factory.installation),
+		   spriteArray(_factory.device, dc),
+		   materialArray(_factory.device, dc),
 		   spriteArrayBuilder(CreateTextureArrayBuilder(*this, spriteArray)),
 		   scratchBuffer(CreateExpandingBuffer(16_kilobytes)),
-		   textureLoader(_installation, _device, _dc, *scratchBuffer)
+		   textureLoader(_factory.installation, _factory.device, _factory.dc, *scratchBuffer)
 	   {
 		   static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
 		   guiBuffer = DX11::CreateDynamicVertexBuffer<GuiVertex>(device, GUI_BUFFER_VERTEX_CAPACITY);
@@ -2476,266 +2479,175 @@ namespace ANON
 	   }
    };
 
-   struct DX11Host
+   class MainWindowHandler : public StandardWindowHandler
    {
-	   DX11Host()
+   private:
+	   AutoFree<IDialogSupervisor> window;
+	   AutoFree<IExpandingBuffer> eventBuffer;
+
+	   IAppEventHandler& eventHandler;
+	   bool hasFocus;
+
+	   MainWindowHandler(IAppEventHandler& _eventHandler) :
+		   eventHandler(_eventHandler),
+		   hasFocus(false),
+		   eventBuffer(CreateExpandingBuffer(128))
 	   {
 
 	   }
 
-	   ~DX11Host()
+	   ~MainWindowHandler()
 	   {
-		   device = nullptr;
-		   dc = nullptr;
-		   adapter = nullptr;
-		   factory = nullptr;
-		   if (debug)
+	   }
+
+	   void OnGetMinMaxInfo(HWND hWnd, MINMAXINFO& info)
+	   {
+		   enum { DEFAULT_MIN_WIDTH = 1024, DEFAULT_MIN_HEIGHT = 640 };
+
+		   info.ptMinTrackSize.x = DEFAULT_MIN_WIDTH;
+		   info.ptMinTrackSize.y = DEFAULT_MIN_HEIGHT;
+	   }
+
+	   void PostConstruct()
+	   {
+		   WindowConfig config;
+		   SetOverlappedWindowConfig(config, Vec2i{ 1024, 640 }, SW_SHOWMAXIMIZED, nullptr, "DX11 64-bit Rococo API Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0);
+		   window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
+		   eventHandler.BindMainWindow(*window);
+
+		   RegisterRawInput();
+		   hasFocus = true;
+	   }
+
+	   void RegisterRawInput()
+	   {
+		   RAWINPUTDEVICE mouseDesc;
+		   mouseDesc.hwndTarget = *window;
+		   mouseDesc.dwFlags = 0;
+		   mouseDesc.usUsage = 0x02;
+		   mouseDesc.usUsagePage = 0x01;
+		   if (!RegisterRawInputDevices(&mouseDesc, 1, sizeof(mouseDesc)))
 		   {
-			   debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-			   debug = nullptr;
+			   Throw(GetLastError(), "RegisterRawInputDevices(&mouseDesc, 1, sizeof(mouseDesc) failed");
+		   }
+
+		   RAWINPUTDEVICE keyboardDesc;
+		   keyboardDesc.hwndTarget = *window;
+		   keyboardDesc.dwFlags = 0;
+		   keyboardDesc.usUsage = 0x06;
+		   keyboardDesc.usUsagePage = 0x01;
+		   if (!RegisterRawInputDevices(&keyboardDesc, 1, sizeof(keyboardDesc)))
+		   {
+			   Throw(GetLastError(), "RegisterRawInputDevices(&keyboardDesc, 1, sizeof(keyboardDesc)) failed");
 		   }
 	   }
-	   AutoRelease<IDXGIAdapter> adapter;
-	   AutoRelease<ID3D11DeviceContext> dc;
-	   AutoRelease<ID3D11Device> device;
-	   AutoRelease<IDXGIFactory> factory;
-	   AutoRelease<ID3D11Debug> debug;
+   public:
+	   // This is our post construct pattern. Allow the constructor to return to initialize the v-tables, then call PostConstruct to create the window 
+	   static MainWindowHandler* Create(IAppEventHandler& _eventHandler)
+	   {
+		   auto m = new MainWindowHandler(_eventHandler);
+		   m->PostConstruct();
+		   return m;
+	   }
+
+	   void Free()
+	   {
+		   delete this;
+	   }
+
+	   virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	   {
+		   switch (uMsg)
+		   {
+		   case WM_SETFOCUS:
+			   hasFocus = true;
+			   RegisterRawInput();
+			   break;
+		   case WM_KILLFOCUS:
+			   hasFocus = false;
+			   break;
+		   default:
+			   break;
+			}
+
+			bool isHandled = false;
+			LRESULT value = eventHandler.OnOtherMessage(isHandled, hWnd, uMsg, wParam, lParam);
+			if (isHandled) return value;
+			else return StandardWindowHandler::OnMessage(hWnd, uMsg, wParam, lParam);
+	   }
+
+	   virtual void OnMenuCommand(HWND hWnd, DWORD id)
+	   {
+
+	   }
+
+	   LRESULT OnInput(HWND hWnd, WPARAM wParam, LPARAM lParam)
+	   {
+		   UINT sizeofBuffer;
+		   if (NO_ERROR != GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &sizeofBuffer, sizeof(RAWINPUTHEADER)))
+		   {
+			   return DefWindowProc(hWnd, WM_INPUT, wParam, lParam);
+		   }
+
+
+		   eventBuffer->Resize(sizeofBuffer);
+
+		   char* buffer = (char*)eventBuffer->GetData();
+
+		   if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, buffer, &sizeofBuffer, sizeof(RAWINPUTHEADER)) == (UINT)-1)
+		   {
+			   return DefWindowProc(hWnd, WM_INPUT, wParam, lParam);
+		   }
+
+		   RAWINPUT& raw = *((RAWINPUT*)buffer);
+		   RAWINPUT* pRaw = &raw;
+
+		   if (hasFocus)
+		   {
+			   if (raw.header.dwType == RIM_TYPEMOUSE)
+			   {
+				   eventHandler.OnMouseEvent(raw.data.mouse);
+			   }
+			   else if (raw.header.dwType == RIM_TYPEKEYBOARD)
+			   {
+				   eventHandler.OnKeyboardEvent(raw.data.keyboard);
+			   }
+
+			   return 0;
+		   }
+		   else
+		   {
+			   return DefRawInputProc(&pRaw, 1, sizeof(RAWINPUTHEADER));
+		   }
+	   }
+
+	   virtual void OnClose(HWND hWnd)
+	   {
+		   rchar text[256];
+		   GetWindowTextA(hWnd, text, 255);
+		   text[255] = 0;
+		   if (eventHandler.OnClose())
+		   {
+			   AutoFree<DX11::ICountdownConfirmationDialog> confirmDialog(DX11::CreateCountdownConfirmationDialog());
+			   if (IDOK == confirmDialog->DoModal(hWnd, text, "Quitting application", 8))
+			   {
+				   PostQuitMessage(0);
+			   }
+		   }
+	   }
+
+	   virtual IDialogSupervisor& Window()
+	   {
+		   return *window;
+	   }
+
+	   virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
+	   {
+		   eventHandler.OnSize(hWnd, span, type);
+	   }
    };
 
-	class MainWindowHandler : public StandardWindowHandler
-	{
-	private:
-		AutoFree<IDialogSupervisor> window;
-      AutoFree<IExpandingBuffer> eventBuffer;
-
-		IAppEventHandler& eventHandler;
-		bool hasFocus;
-
-		MainWindowHandler(IAppEventHandler& _eventHandler) :
-         eventHandler(_eventHandler), 
-         hasFocus(false),
-         eventBuffer(CreateExpandingBuffer(128))
-		{
-
-		}
-
-		~MainWindowHandler()
-		{
-		}
-
-		void OnGetMinMaxInfo(HWND hWnd, MINMAXINFO& info)
-		{
-			enum { DEFAULT_MIN_WIDTH = 1024, DEFAULT_MIN_HEIGHT = 640 };
-
-			info.ptMinTrackSize.x = DEFAULT_MIN_WIDTH;
-			info.ptMinTrackSize.y = DEFAULT_MIN_HEIGHT;
-		}
-
-		void PostConstruct()
-		{
-			WindowConfig config;
-			SetOverlappedWindowConfig(config, Vec2i{ 1024, 640 }, SW_SHOWMAXIMIZED, nullptr, "DX11 64-bit Rococo API Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0);
-			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
-			eventHandler.BindMainWindow(*window);
-
-			RegisterRawInput();
-			hasFocus = true;
-		}
-
-		void RegisterRawInput()
-		{
-			RAWINPUTDEVICE mouseDesc;
-			mouseDesc.hwndTarget = *window;
-			mouseDesc.dwFlags = 0;
-			mouseDesc.usUsage = 0x02;
-			mouseDesc.usUsagePage = 0x01;
-			if (!RegisterRawInputDevices(&mouseDesc, 1, sizeof(mouseDesc)))
-			{
-				Throw(GetLastError(), "RegisterRawInputDevices(&mouseDesc, 1, sizeof(mouseDesc) failed");
-			}
-
-			RAWINPUTDEVICE keyboardDesc;
-			keyboardDesc.hwndTarget = *window;
-			keyboardDesc.dwFlags = 0;
-			keyboardDesc.usUsage = 0x06;
-			keyboardDesc.usUsagePage = 0x01;
-			if (!RegisterRawInputDevices(&keyboardDesc, 1, sizeof(keyboardDesc)))
-			{
-				Throw(GetLastError(), "RegisterRawInputDevices(&keyboardDesc, 1, sizeof(keyboardDesc)) failed");
-			}
-		}
-	public:
-		// This is our post construct pattern. Allow the constructor to return to initialize the v-tables, then call PostConstruct to create the window 
-		static MainWindowHandler* Create(IAppEventHandler& _eventHandler)
-		{
-			auto m = new MainWindowHandler(_eventHandler);
-			m->PostConstruct();
-			return m;
-		}
-
-		void Free()
-		{
-			delete this;
-		}
-
-		virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-		{
-			switch (uMsg)
-			{
-			case WM_SETFOCUS:
-				hasFocus = true;
-				RegisterRawInput();
-				break;
-			case WM_KILLFOCUS:
-				hasFocus = false;
-				break;
-			}
-
-			return StandardWindowHandler::OnMessage(hWnd, uMsg, wParam, lParam);
-		}
-
-		virtual void OnMenuCommand(HWND hWnd, DWORD id)
-		{
-
-		}
-
-		LRESULT OnInput(HWND hWnd, WPARAM wParam, LPARAM lParam)
-		{
-			UINT sizeofBuffer;
-			if (NO_ERROR != GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &sizeofBuffer, sizeof(RAWINPUTHEADER)))
-			{
-				return DefWindowProc(hWnd, WM_INPUT, wParam, lParam);
-			}
-
-
-			eventBuffer->Resize(sizeofBuffer);
-
-			char* buffer = (char*)eventBuffer->GetData();
-
-			if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, buffer, &sizeofBuffer, sizeof(RAWINPUTHEADER)) == (UINT)-1)
-			{
-				return DefWindowProc(hWnd, WM_INPUT, wParam, lParam);
-			}
-
-			RAWINPUT& raw = *((RAWINPUT*)buffer);
-			RAWINPUT* pRaw = &raw;
-
-			if (hasFocus)
-			{
-				if (raw.header.dwType == RIM_TYPEMOUSE)
-				{
-					eventHandler.OnMouseEvent(raw.data.mouse);
-				}
-				else if (raw.header.dwType == RIM_TYPEKEYBOARD)
-				{
-					eventHandler.OnKeyboardEvent(raw.data.keyboard);
-				}
-
-				return 0;
-			}
-			else
-			{
-				return DefRawInputProc(&pRaw, 1, sizeof(RAWINPUTHEADER));
-			}
-		}
-
-		virtual void OnClose(HWND hWnd)
-		{
-			rchar text[256];
-			GetWindowTextA(hWnd, text, 255);
-			text[255] = 0;
-			if (eventHandler.OnClose())
-			{
-				AutoFree<DX11::ICountdownConfirmationDialog> confirmDialog(DX11::CreateCountdownConfirmationDialog());
-				if (IDOK == confirmDialog->DoModal(hWnd, text, "Quitting application", 8))
-				{
-					PostQuitMessage(0);
-				}
-			}
-		}
-
-		virtual IDialogSupervisor& Window()
-		{
-			return *window;
-		}
-
-		virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
-		{
-			eventHandler.OnSize(hWnd, span, type);
-		}
-	};
-
 	enum { IDSHOWMODAL = 1001 };
-
-	void Create_DX11_0_Host(UINT adapterIndex, DX11Host& host)
-	{
-		cstr cmd = GetCommandLineA();
-
-		VALIDATEDX11(CreateDXGIFactory(IID_IDXGIFactory, (void**)&host.factory));
-		VALIDATEDX11(host.factory->EnumAdapters(adapterIndex, &host.adapter));
-
-		if (strstr(cmd, "-adapter.list"))
-		{
-			OS::PrintDebug("Adapter List:\n");
-			for (UINT i = 0; i < 100; ++i)
-			{
-				AutoRelease<IDXGIAdapter> testAdapters;
-				if (host.factory->EnumAdapters(i, &testAdapters) == DXGI_ERROR_NOT_FOUND)
-				{
-					break;
-				}
-
-				DXGI_ADAPTER_DESC desc;
-				testAdapters->GetDesc(&desc);
-
-				OS::PrintDebug("Adapter #%u: %S rev %u %s\n", i, desc.Description, desc.Revision, (i == adapterIndex) ? "- selected." : "");
-				OS::PrintDebug(" Sys Mem: %lluMB\n", desc.DedicatedSystemMemory / 1_megabytes);
-				OS::PrintDebug(" Vid Mem: %lluMB\n", desc.DedicatedVideoMemory / 1_megabytes);
-				OS::PrintDebug(" Shared Mem: %lluMB\n", desc.SharedSystemMemory / 1_megabytes);
-			}
-		}
-		else
-		{
-			DXGI_ADAPTER_DESC desc;
-			host.adapter->GetDesc(&desc);
-
-			OS::PrintDebug("Adapter #%u: %S rev %u - selected.\n", adapterIndex, desc.Description, desc.Revision);
-			OS::PrintDebug(" Sys Mem: %lluMB\n", desc.DedicatedSystemMemory / 1_megabytes);
-			OS::PrintDebug(" Vid Mem: %lluMB\n", desc.DedicatedVideoMemory / 1_megabytes);
-			OS::PrintDebug(" Shared Mem: %lluMB\n", desc.SharedSystemMemory / 1_megabytes);
-			OS::PrintDebug(" --> add -adapter.list on command line to see all adapters\n");
-		}
-
-		DXGI_ADAPTER_DESC desc;
-		host.adapter->GetDesc(&desc);
-
-		D3D_FEATURE_LEVEL featureLevelNeeded[] = { D3D_FEATURE_LEVEL_11_1 };
-		D3D_FEATURE_LEVEL featureLevelFound;
-
-		UINT flags;
-
-#ifdef _DEBUG
-		flags = D3D11_CREATE_DEVICE_DEBUG;
-#else
-		flags = 0;
-#endif
-		flags |= D3D11_CREATE_DEVICE_SINGLETHREADED;
-
-		HRESULT hr = D3D11CreateDevice(host.adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, flags,
-			featureLevelNeeded, 1, D3D11_SDK_VERSION, &host.device, &featureLevelFound, &host.dc);
-
-		if FAILED(hr)
-		{
-			Throw(hr, "D3D11CreateDevice failed");
-		}
-
-		if (featureLevelFound != D3D_FEATURE_LEVEL_11_1)
-		{
-			Throw(0, "DX 11.1 is required for this application");
-		}
-
-		host.device->QueryInterface(IID_PPV_ARGS(&host.debug));
-	}
 
    struct UltraClock : public IUltraClock
    {
@@ -2841,34 +2753,33 @@ namespace ANON
 {
 	class DX11Window : public IDX11Window, public IAppEventHandler, public IEventCallback<SysUnstableArgs>
 	{
-		IInstallation& installation;
-		DX11Host host;
+		DX11::Factory factory;
 		IApp* app{ nullptr };
 		DX11AppRenderer* renderer{ nullptr };
 		AutoFree<MainWindowHandler> mainWindowHandler;
 
-		IWindow& Window()
+		IWindow& Window() override
 		{
 			return mainWindowHandler->Window();
 		}
 
-		virtual void BindMainWindow(HWND hWnd)
+		void BindMainWindow(HWND hWnd) override
 		{
 			renderer->BindMainWindow(hWnd);
 		}
 
-		virtual bool OnClose()
+		bool OnClose() override
 		{
 			renderer->SwitchToWindowMode();
 			return true;
 		}
 
-		virtual void OnKeyboardEvent(const RAWKEYBOARD& k)
+		void OnKeyboardEvent(const RAWKEYBOARD& k) override
 		{
 			if (app) app->OnKeyboardEvent((const KeyboardEvent&)k);
 		}
 
-		virtual void OnMouseEvent(const RAWMOUSE& m)
+		void OnMouseEvent(const RAWMOUSE& m) override
 		{
 			renderer->OnMouseEvent(m);
 
@@ -2885,45 +2796,52 @@ namespace ANON
 			if (app) app->OnMouseEvent(me);
 		}
 
-		virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
+		void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type) override
 		{
 			renderer->OnSize(hWnd, span, type);
 		}
 
-		virtual void OnEvent(SysUnstableArgs& arg)
+		void OnEvent(SysUnstableArgs& arg) override
 		{
 			renderer->SwitchToWindowMode();
 		}
 
-		virtual IRenderer& Renderer()
+		IRenderer& Renderer() override
 		{
 			return *renderer;
 		}
-	public:
-		DX11Window(IInstallation& _installation) : installation(_installation)
+
+		LRESULT OnOtherMessage(bool& isComplete, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
 		{
-			cstr cmd = GetCommandLineA();
-
-			auto adapterPrefix = "-adapter.index:"_fstring;
-			cstr indexPtr = strstr(cmd, adapterPrefix);
-
-			UINT index = 0;
-			if (indexPtr != nullptr)
+			if (uMsg == WM_ACTIVATE)
 			{
-				index = atoi(indexPtr + adapterPrefix.length);
+				auto state = 0xFFFF & wParam;
+				if (state != 0)
+				{
+					factory.resources.ManageWindow(mainWindowHandler->Window());
+				}
+				else
+				{
+					factory.resources.ManageWindow(nullptr);
+				}
 			}
 
-			Create_DX11_0_Host(index, host);
-			renderer = new  DX11AppRenderer(*host.device, *host.dc, *host.factory, installation);
+			isComplete = false;
+			return 0;
+		}
+	public:
+		DX11Window(DX11::Factory& _factory) :factory(_factory)
+		{
+			renderer = new  DX11AppRenderer(factory);
 			mainWindowHandler = MainWindowHandler::Create(*this);
-			VALIDATEDX11(host.factory->MakeWindowAssociation(mainWindowHandler->Window(), 0));
+			factory.resources.ManageWindow(mainWindowHandler->Window());
 			renderer->window = &mainWindowHandler->Window();
-			installation.OS().SetUnstableHandler(this);
+			factory.installation.OS().SetUnstableHandler(this);
 		}
 
 		virtual void Free()
 		{
-			installation.OS().SetUnstableHandler(nullptr);
+			factory.installation.OS().SetUnstableHandler(nullptr);
 			renderer->Free();
 			delete this;
 		}
@@ -2938,13 +2856,17 @@ namespace ANON
 }
 
 namespace Rococo
-{ 
-	IDX11Window* CreateDX11Window(IInstallation& installation)
+{
+	namespace DX11
 	{
 		static_assert(sizeof(DepthRenderData) % 16 == 0, "DX11 requires size of DepthRenderData to be multipe of 16 bytes");
 		static_assert(sizeof(GlobalState) % 16 == 0, "DX11 requires size of GlobalState to be multipe of 16 bytes");
 		static_assert(sizeof(Light) % 16 == 0, "DX11 requires size of Light to be multipe of 16 bytes");
-		return new ANON::DX11Window(installation);
+
+		Rococo::IDX11Window* CreateDX11Window(Factory& factory)
+		{
+			return new ANON::DX11Window(factory);
+		}
 	}
 }
 

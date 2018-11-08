@@ -1,0 +1,105 @@
+(' #type "#snj-source")
+
+// This is a comment
+/* This is
+   another comment */
+
+// Define an immutable pointer to a string constant
+(# title = "Hello World\nHow are you doing today?")
+
+// Define a function main in namespace EntryPoint that takes no arguments and returns no results
+(function EntryPoint.Main :
+	(Sys.OS.RunModalMessageBox title "Test App" "How are you doing today?")
+)
+
+// Primitive Types
+
+// Signed integers
+(Int8  i1)
+(Int16 i2)
+(Int32 i3)
+(Int64 i4)
+(Intx i5) // integer with same bit length as an any pointer
+
+// String constant
+(## text = "Geoff") // create a string constant "Geoff" and assign immutable variable 'text' to it.
+
+// Unsigned integers
+(Uint8 u1)
+(Uint16 u2)
+(Uint32 u3)
+(Uint64 u4)
+(Uintx) // unsigned integer with same bit length as any pointer
+
+// Stardard aliases
+
+(resolve Sys.Type.Char as Sys.Type.UInt8)
+(resolve Sys.Type.Bool as Sys.Type.UInt32)
+
+// untyped pointer
+(Any p1)
+
+// Composite types
+
+(struct typename
+	(<type> <name1> <name2...>)
+	...
+)
+
+(struct Sys.Type.ImmutableStringSlice
+	(const Int64 length) // in bytes
+	(immutable const Char * text)
+)
+
+(function Init_Sys_Type_ImmutableStringSlice (Int64 length)(const Char* text) -> (Sys.Type.ImmutableStringSlice slice):
+	(slice.Construct length text)
+)
+
+(define "#" as Sys.Type.ImmutableStringSlice)
+(define "##" as const Sys.Type.ImmutableStringSlice)
+
+// Strings
+(# s)
+
+// Interfaces
+
+(interface Sys.Type.IException 
+	(const Message -> (string msg))
+	(const ErrorCode -> (int64 errorCode))
+	(const GetStackFrame (int32 frameIndex)(ref StackFrame sf)->(Bool wasPopulated))
+	(const Inner -> (const Sys.Type.IException * innerException))
+)
+
+// Classes
+
+(class Exception (implements Sys.Type.IException)
+	(String message)
+	(Int64 errorCode)
+	(StackFrames frames)
+	(Sys.Type.IException * inner)
+
+	(const Message -> (# msg):
+		(msg = message)
+	)
+
+	(const ErrorCode -> (int64 errorCode):
+		(this.errorCode -> errorCode)
+	)
+
+	(const GetStackFrame (int32 frameIndex)(ref StackFrame sf)->(Bool wasPopulated):
+		(frames.TryGetByIndex frameIndex sf -> wasPopulated)
+	)
+
+	(const Inner -> (const Sys.Type.IException * innerException):
+		(inner -> innerException)
+	)
+)
+
+(function Sys.Throw (Int64 errorCode)(# msg):
+	(Exception ex)
+	(ex.message = msg)
+	(ex.errorCode = errorCode)
+	(ex.frames.Capture -1)
+	(ex.inner = null)
+	(throw ex)
+)

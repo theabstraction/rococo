@@ -883,12 +883,12 @@ namespace ANON
 			rchar msg[256];
 			int32 errorCode;
 
-			virtual cstr Message() const
+			virtual cstr Message() const override
 			{
 				return msg;
 			}
 
-			virtual int32 ErrorCode() const
+			virtual int32 ErrorCode() const override
 			{
 				return errorCode;
 			}
