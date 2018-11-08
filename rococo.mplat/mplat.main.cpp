@@ -3316,7 +3316,11 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 
 };
 
-void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
+HINSTANCE g_Instance = nullptr;
+cstr g_largeIcon = nullptr;
+cstr g_smallIcon = nullptr;
+
+void Main(HINSTANCE hInstance, HANDLE hInstanceLock, IAppFactory& appFactory, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
 	AutoFree<IAllocatorSupervisor> imageAllocator = Memory::CreateBlockAllocator(0, 0);
 	Imaging::SetJpegAllocator(imageAllocator);
@@ -3330,8 +3334,26 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 	OS::PrintDebug("Starting mainWindow!\n");
 
 	AutoFree<IDX11Logger> logger = CreateStandardOutputLogger();
-	AutoFree<IDX11Factory> factory = CreateDX11Factory(*installation, *logger);
-	AutoFree<IDX11Window> mainWindow = factory->CreateDX11Window();
+
+	FactorySpec factorySpec;
+	factorySpec.hResourceInstance = hInstance;
+	factorySpec.largeIcon = hLargeIcon;
+	factorySpec.smallIcon = hSmallIcon;
+	AutoFree<IDX11Factory> factory = CreateDX11Factory(*installation, *logger, factorySpec);
+
+	WindowSpec ws;
+	ws.exStyle = 0;
+	ws.style = WS_OVERLAPPEDWINDOW;
+	ws.hInstance = hInstance;
+	ws.hParentWnd = nullptr;
+	ws.messageSink = nullptr;
+	ws.minSpan = { 1024, 640 };
+	ws.X = CW_USEDEFAULT;
+	ws.Y = CW_USEDEFAULT;
+	ws.Width = 1152;
+	ws.Height = 700;
+	
+	AutoFree<IDX11GraphicsWindow> mainWindow = factory->CreateDX11Window(ws);
 
 	SetWindowTextA(mainWindow->Window(), title);
 
@@ -3370,7 +3392,9 @@ void Main(HANDLE hInstanceLock, IAppFactory& appFactory, cstr title)
 	PlatformTabs tabs(platform);
 
 	app->OnCreate();
-	mainWindow->Run(hInstanceLock, *app);
+
+	AutoFree<IAppManager> appManager = CreateAppManager(*mainWindow, *app);
+	appManager->Run(hInstanceLock, *app);
 }
 
 namespace Rococo
@@ -3420,7 +3444,7 @@ namespace Rococo
 		try
 		{
 			InitRococoWindows(hInstance, hLarge, hSmall, nullptr, nullptr);
-			Main(hInstanceLock, factory, title);
+			Main(hInstance, hInstanceLock, factory, title, hLarge, hSmall);
 		}
 		catch (IException& ex)
 		{

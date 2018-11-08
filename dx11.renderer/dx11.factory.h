@@ -23,8 +23,10 @@ namespace Rococo
 
 			IFactoryResources& resources;
 			IInstallation& installation;
+			IDX11Logger& logger;
 		};
 
-		IDX11Window* CreateDX11Window(Factory& factory);
+		IDX11GraphicsWindow* CreateDX11GraphicsWindow(Factory& factory, ATOM windowClass, const WindowSpec& spec);
+		Rococo::IRenderer* CreateDX11Renderer(Factory& factory, Windows::IWindow& window);
 	}
 }

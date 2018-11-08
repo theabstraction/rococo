@@ -78,16 +78,6 @@ namespace ANON
 		float alphaActive;
 	};
 
-	struct IAppEventHandler
-	{
-		virtual void BindMainWindow(HWND hWnd) = 0;
-		virtual bool OnClose() = 0;
-		virtual void OnKeyboardEvent(const RAWKEYBOARD& k) = 0;
-		virtual void OnMouseEvent(const RAWMOUSE& m) = 0;
-		virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type) = 0;
-		virtual LRESULT OnOtherMessage(bool& isComplete, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
-	};
-
 	class SpanEvaluator : public Fonts::IGlyphRenderer
 	{
 	public:
@@ -389,8 +379,6 @@ namespace ANON
 	   RAWMOUSE lastMouseEvent;
 	   Vec2i screenSpan;
 
-	   HWND hRenderWindow;
-
 	   ID_VERTEX_SHADER idGuiVS;
 	   ID_PIXEL_SHADER idGuiPS;
 
@@ -451,17 +439,18 @@ namespace ANON
 
 	   ID3D11SamplerState* samplers[16] = { 0 };
    public:
-	   Windows::IWindow* window;
+	   Windows::IWindow& window;
 	   bool isBuildingAlphaBlendedSprites{ false };
 
-	   DX11AppRenderer(DX11::Factory& _factory) :
-		   device(_factory.device), dc(_factory.dc), factory(_factory.factory), hRenderWindow(0),
-		   window(nullptr), cursor{ BitmapLocation { {0,0,0,0}, -1 }, { 0,0 } }, installation(_factory.installation),
+	   DX11AppRenderer(DX11::Factory& _factory, Windows::IWindow& _window) :
+		   device(_factory.device), dc(_factory.dc), factory(_factory.factory),
+		   cursor{ BitmapLocation { {0,0,0,0}, -1 }, { 0,0 } }, installation(_factory.installation),
 		   spriteArray(_factory.device, dc),
 		   materialArray(_factory.device, dc),
 		   spriteArrayBuilder(CreateTextureArrayBuilder(*this, spriteArray)),
 		   scratchBuffer(CreateExpandingBuffer(16_kilobytes)),
-		   textureLoader(_factory.installation, _factory.device, _factory.dc, *scratchBuffer)
+		   textureLoader(_factory.installation, _factory.device, _factory.dc, *scratchBuffer),
+		   window(_window)
 	   {
 		   static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
 		   guiBuffer = DX11::CreateDynamicVertexBuffer<GuiVertex>(device, GUI_BUFFER_VERTEX_CAPACITY);
@@ -965,7 +954,7 @@ namespace ANON
 	   void ShowWindowVenue(IMathsVisitor& visitor)
 	   {
 		   visitor.ShowString("IsFullScreen", isFullScreen ? "TRUE" : "FALSE");
-		   ANON::ShowWindowVenue(hRenderWindow, visitor);
+		   ANON::ShowWindowVenue(window, visitor);
 	   }
 
 	   void UpdatePixelShader(cstr pingPath) override
@@ -1284,11 +1273,9 @@ namespace ANON
 		   screenSpan.y = (int32)viewport.Height;
 	   }
 
-	   void BindMainWindow(HWND hRenderWindow)
+	   void BindMainWindow()
 	   {
-		   this->hRenderWindow = hRenderWindow;
-
-		   DXGI_SWAP_CHAIN_DESC swapChainDesc = DX11::GetSwapChainDescription(hRenderWindow);
+		   DXGI_SWAP_CHAIN_DESC swapChainDesc = DX11::GetSwapChainDescription(window);
 		   VALIDATEDX11(factory.CreateSwapChain((ID3D11Device*)&device, &swapChainDesc, &mainSwapChain));
 
 		   AutoRelease<ID3D11Texture2D> backBuffer;
@@ -1297,7 +1284,7 @@ namespace ANON
 		   VALIDATEDX11(device.CreateRenderTargetView(backBuffer, nullptr, &mainBackBufferView));
 
 		   RECT rect;
-		   GetClientRect(hRenderWindow, &rect);
+		   GetClientRect(window, &rect);
 		   mainDepthBufferId = CreateDepthTarget(rect.right - rect.left, rect.bottom - rect.top);
 		   shadowBufferId = CreateDepthTarget(1024, 1024);
 
@@ -1689,7 +1676,7 @@ namespace ANON
 	   {
 		   POINT p;
 		   GetCursorPos(&p);
-		   ScreenToClient(hRenderWindow, &p);
+		   ScreenToClient(window, &p);
 
 		   metrics.cursorPosition = Vec2i{ p.x, p.y };
 		   metrics.screenSpan = screenSpan;
@@ -1848,7 +1835,7 @@ namespace ANON
 
 	   virtual Windows::IWindow& Window()
 	   {
-		   return *window;
+		   return window;
 	   }
 
 	   void DrawCursor()
@@ -2405,7 +2392,7 @@ namespace ANON
 		   VALIDATEDX11(device.CreateRenderTargetView(backBuffer, nullptr, &mainBackBufferView));
 
 		   RECT rect;
-		   GetClientRect(hRenderWindow, &rect);
+		   GetClientRect(window, &rect);
 
 		   ID_TEXTURE newDepthBufferId = CreateDepthTarget(rect.right - rect.left, rect.bottom - rect.top);
 		   auto& theOld = GetTexture(mainDepthBufferId);
@@ -2419,7 +2406,7 @@ namespace ANON
 
 	   BOOL isFullScreen = FALSE;
 
-	   virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
+	   void OnSize(Vec2i span) override
 	   {
 		   if (span.x > 0 && span.y > 0)
 		   {
@@ -2469,390 +2456,15 @@ namespace ANON
 				   if (index < 0)
 				   {
 					   RECT rect;
-					   GetClientRect(hRenderWindow, &rect);
+					   GetClientRect(window, &rect);
 					   ClipCursor(&rect);
-					   SetCapture(hRenderWindow);
+					   SetCapture(window);
 					   return;
 				   }
 			   }
 		   }
 	   }
    };
-
-   class MainWindowHandler : public StandardWindowHandler
-   {
-   private:
-	   AutoFree<IDialogSupervisor> window;
-	   AutoFree<IExpandingBuffer> eventBuffer;
-
-	   IAppEventHandler& eventHandler;
-	   bool hasFocus;
-
-	   MainWindowHandler(IAppEventHandler& _eventHandler) :
-		   eventHandler(_eventHandler),
-		   hasFocus(false),
-		   eventBuffer(CreateExpandingBuffer(128))
-	   {
-
-	   }
-
-	   ~MainWindowHandler()
-	   {
-	   }
-
-	   void OnGetMinMaxInfo(HWND hWnd, MINMAXINFO& info)
-	   {
-		   enum { DEFAULT_MIN_WIDTH = 1024, DEFAULT_MIN_HEIGHT = 640 };
-
-		   info.ptMinTrackSize.x = DEFAULT_MIN_WIDTH;
-		   info.ptMinTrackSize.y = DEFAULT_MIN_HEIGHT;
-	   }
-
-	   void PostConstruct()
-	   {
-		   WindowConfig config;
-		   SetOverlappedWindowConfig(config, Vec2i{ 1024, 640 }, SW_SHOWMAXIMIZED, nullptr, "DX11 64-bit Rococo API Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0);
-		   window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
-		   eventHandler.BindMainWindow(*window);
-
-		   RegisterRawInput();
-		   hasFocus = true;
-	   }
-
-	   void RegisterRawInput()
-	   {
-		   RAWINPUTDEVICE mouseDesc;
-		   mouseDesc.hwndTarget = *window;
-		   mouseDesc.dwFlags = 0;
-		   mouseDesc.usUsage = 0x02;
-		   mouseDesc.usUsagePage = 0x01;
-		   if (!RegisterRawInputDevices(&mouseDesc, 1, sizeof(mouseDesc)))
-		   {
-			   Throw(GetLastError(), "RegisterRawInputDevices(&mouseDesc, 1, sizeof(mouseDesc) failed");
-		   }
-
-		   RAWINPUTDEVICE keyboardDesc;
-		   keyboardDesc.hwndTarget = *window;
-		   keyboardDesc.dwFlags = 0;
-		   keyboardDesc.usUsage = 0x06;
-		   keyboardDesc.usUsagePage = 0x01;
-		   if (!RegisterRawInputDevices(&keyboardDesc, 1, sizeof(keyboardDesc)))
-		   {
-			   Throw(GetLastError(), "RegisterRawInputDevices(&keyboardDesc, 1, sizeof(keyboardDesc)) failed");
-		   }
-	   }
-   public:
-	   // This is our post construct pattern. Allow the constructor to return to initialize the v-tables, then call PostConstruct to create the window 
-	   static MainWindowHandler* Create(IAppEventHandler& _eventHandler)
-	   {
-		   auto m = new MainWindowHandler(_eventHandler);
-		   m->PostConstruct();
-		   return m;
-	   }
-
-	   void Free()
-	   {
-		   delete this;
-	   }
-
-	   virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-	   {
-		   switch (uMsg)
-		   {
-		   case WM_SETFOCUS:
-			   hasFocus = true;
-			   RegisterRawInput();
-			   break;
-		   case WM_KILLFOCUS:
-			   hasFocus = false;
-			   break;
-		   default:
-			   break;
-			}
-
-			bool isHandled = false;
-			LRESULT value = eventHandler.OnOtherMessage(isHandled, hWnd, uMsg, wParam, lParam);
-			if (isHandled) return value;
-			else return StandardWindowHandler::OnMessage(hWnd, uMsg, wParam, lParam);
-	   }
-
-	   virtual void OnMenuCommand(HWND hWnd, DWORD id)
-	   {
-
-	   }
-
-	   LRESULT OnInput(HWND hWnd, WPARAM wParam, LPARAM lParam)
-	   {
-		   UINT sizeofBuffer;
-		   if (NO_ERROR != GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &sizeofBuffer, sizeof(RAWINPUTHEADER)))
-		   {
-			   return DefWindowProc(hWnd, WM_INPUT, wParam, lParam);
-		   }
-
-
-		   eventBuffer->Resize(sizeofBuffer);
-
-		   char* buffer = (char*)eventBuffer->GetData();
-
-		   if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, buffer, &sizeofBuffer, sizeof(RAWINPUTHEADER)) == (UINT)-1)
-		   {
-			   return DefWindowProc(hWnd, WM_INPUT, wParam, lParam);
-		   }
-
-		   RAWINPUT& raw = *((RAWINPUT*)buffer);
-		   RAWINPUT* pRaw = &raw;
-
-		   if (hasFocus)
-		   {
-			   if (raw.header.dwType == RIM_TYPEMOUSE)
-			   {
-				   eventHandler.OnMouseEvent(raw.data.mouse);
-			   }
-			   else if (raw.header.dwType == RIM_TYPEKEYBOARD)
-			   {
-				   eventHandler.OnKeyboardEvent(raw.data.keyboard);
-			   }
-
-			   return 0;
-		   }
-		   else
-		   {
-			   return DefRawInputProc(&pRaw, 1, sizeof(RAWINPUTHEADER));
-		   }
-	   }
-
-	   virtual void OnClose(HWND hWnd)
-	   {
-		   rchar text[256];
-		   GetWindowTextA(hWnd, text, 255);
-		   text[255] = 0;
-		   if (eventHandler.OnClose())
-		   {
-			   AutoFree<DX11::ICountdownConfirmationDialog> confirmDialog(DX11::CreateCountdownConfirmationDialog());
-			   if (IDOK == confirmDialog->DoModal(hWnd, text, "Quitting application", 8))
-			   {
-				   PostQuitMessage(0);
-			   }
-		   }
-	   }
-
-	   virtual IDialogSupervisor& Window()
-	   {
-		   return *window;
-	   }
-
-	   virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
-	   {
-		   eventHandler.OnSize(hWnd, span, type);
-	   }
-   };
-
-	enum { IDSHOWMODAL = 1001 };
-
-   struct UltraClock : public IUltraClock
-   {
-      OS::ticks start;
-      OS::ticks frameStart;
-      OS::ticks frameDelta;
-      Seconds dt;
-
-      virtual OS::ticks FrameStart() const
-      {
-         return frameStart;
-      }
-      
-      virtual OS::ticks Start() const
-      {
-         return start;
-      }
-
-      virtual OS::ticks FrameDelta() const
-      {
-         return frameDelta;
-      }
-
-      virtual Seconds DT() const
-      {
-         return dt;
-      }
-   };
-
-   void MainLoop(MainWindowHandler& mainWindow, HANDLE hInstanceLock, IApp& app)
-   {
-	   UltraClock uc;
-	   OS::ticks lastTick = uc.start;
-	   OS::ticks frameCost = 0;
-
-	   float hz = (float)OS::CpuHz();
-
-	   uint32 sleepMS = 5;
-	   MSG msg = { 0 };
-	   while (msg.message != WM_QUIT && OS::IsRunning())
-	   {
-		   int64 msCost = frameCost / (OS::CpuHz() / 1000);
-
-		   int64 iSleepMS = sleepMS - msCost;
-
-		   if (iSleepMS < 0)
-		   {
-			   sleepMS = 0;
-		   }
-		   else if (sleepMS > (uint32) iSleepMS)
-		   {
-			   sleepMS = (uint32) iSleepMS;
-		   }
-		   DWORD status = MsgWaitForMultipleObjectsEx(1, &hInstanceLock, sleepMS, QS_ALLEVENTS, MWMO_ALERTABLE);
-
-		   OS::ticks now = OS::CpuTicks();
-
-		   if (status == WAIT_OBJECT_0)
-		   {
-			   ResetEvent(hInstanceLock);
-			   SetForegroundWindow(mainWindow.Window());
-		   }
-
-		   while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-		   {
-			   TranslateMessage(&msg);
-			   DispatchMessage(&msg);
-
-			   if (msg.message == WM_QUIT)
-			   {
-				   return;
-			   }
-		   }
-
-		   RECT rect;
-		   GetClientRect(mainWindow.Window(), &rect);
-
-		   if ((rect.right - rect.left) == 0)
-		   {
-			   sleepMS = 1000;
-			   continue;
-		   }
-
-		   uc.frameStart = OS::CpuTicks();
-
-		   uc.frameDelta = uc.frameStart - lastTick;
-
-		   float dt0 = uc.frameDelta / (float)hz;
-		   dt0 = max(0.0f, dt0);
-		   dt0 = min(dt0, 0.05f);
-		   uc.dt = Seconds{ dt0 };
-
-		   sleepMS = app.OnFrameUpdated(uc);
-
-		   frameCost = OS::CpuTicks() - now;
-
-		   lastTick = uc.frameStart;
-	   }
-   }
-}
-
-namespace ANON
-{
-	class DX11Window : public IDX11Window, public IAppEventHandler, public IEventCallback<SysUnstableArgs>
-	{
-		DX11::Factory factory;
-		IApp* app{ nullptr };
-		DX11AppRenderer* renderer{ nullptr };
-		AutoFree<MainWindowHandler> mainWindowHandler;
-
-		IWindow& Window() override
-		{
-			return mainWindowHandler->Window();
-		}
-
-		void BindMainWindow(HWND hWnd) override
-		{
-			renderer->BindMainWindow(hWnd);
-		}
-
-		bool OnClose() override
-		{
-			renderer->SwitchToWindowMode();
-			return true;
-		}
-
-		void OnKeyboardEvent(const RAWKEYBOARD& k) override
-		{
-			if (app) app->OnKeyboardEvent((const KeyboardEvent&)k);
-		}
-
-		void OnMouseEvent(const RAWMOUSE& m) override
-		{
-			renderer->OnMouseEvent(m);
-
-			MouseEvent me;
-			memcpy(&me, &m, sizeof(m));
-
-			POINT p;
-			GetCursorPos(&p);
-			ScreenToClient(renderer->Window(), &p);
-
-			me.cursorPos.x = p.x;
-			me.cursorPos.y = p.y;
-
-			if (app) app->OnMouseEvent(me);
-		}
-
-		void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type) override
-		{
-			renderer->OnSize(hWnd, span, type);
-		}
-
-		void OnEvent(SysUnstableArgs& arg) override
-		{
-			renderer->SwitchToWindowMode();
-		}
-
-		IRenderer& Renderer() override
-		{
-			return *renderer;
-		}
-
-		LRESULT OnOtherMessage(bool& isComplete, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
-		{
-			if (uMsg == WM_ACTIVATE)
-			{
-				auto state = 0xFFFF & wParam;
-				if (state != 0)
-				{
-					factory.resources.ManageWindow(mainWindowHandler->Window());
-				}
-				else
-				{
-					factory.resources.ManageWindow(nullptr);
-				}
-			}
-
-			isComplete = false;
-			return 0;
-		}
-	public:
-		DX11Window(DX11::Factory& _factory) :factory(_factory)
-		{
-			renderer = new  DX11AppRenderer(factory);
-			mainWindowHandler = MainWindowHandler::Create(*this);
-			factory.resources.ManageWindow(mainWindowHandler->Window());
-			renderer->window = &mainWindowHandler->Window();
-			factory.installation.OS().SetUnstableHandler(this);
-		}
-
-		virtual void Free()
-		{
-			factory.installation.OS().SetUnstableHandler(nullptr);
-			renderer->Free();
-			delete this;
-		}
-
-		void Run(HANDLE hInstanceLock, IApp& app)
-		{
-			this->app = &app;
-			MainLoop(*mainWindowHandler, hInstanceLock, app);
-			this->app = nullptr;
-		}
-	};
 }
 
 namespace Rococo
@@ -2863,9 +2475,21 @@ namespace Rococo
 		static_assert(sizeof(GlobalState) % 16 == 0, "DX11 requires size of GlobalState to be multipe of 16 bytes");
 		static_assert(sizeof(Light) % 16 == 0, "DX11 requires size of Light to be multipe of 16 bytes");
 
-		Rococo::IDX11Window* CreateDX11Window(Factory& factory)
+		Rococo::IRenderer* CreateDX11Renderer(Factory& factory, Windows::IWindow& window)
 		{
-			return new ANON::DX11Window(factory);
+			auto* renderer = new ANON::DX11AppRenderer(factory, window);
+			
+			try
+			{
+				renderer->BindMainWindow();
+			}
+			catch (IException&)
+			{
+				renderer->Free();
+				throw;
+			}
+
+			return renderer;
 		}
 	}
 }

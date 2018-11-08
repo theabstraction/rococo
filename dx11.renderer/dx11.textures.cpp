@@ -22,7 +22,7 @@ namespace
 
       virtual void OnError(const char* message)
       {
-         Throw(0, "Could not load %s\n%S", name.c_str(), message);
+         Throw(0, "Could not load %s\n%s", name.c_str(), message);
       }
 
       virtual void OnRGBAImage(const Vec2i& span, const RGBAb* data)

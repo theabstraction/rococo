@@ -302,6 +302,7 @@ namespace Rococo
 	  virtual cstr GetMaterialTextureName(MaterialId id) const = 0;
 	  virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, cstr uniqueName) = 0;
 	  virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
+	  virtual void OnSize(Vec2i span) = 0;
 	  virtual void Render(Graphics::RenderPhaseConfig& config, IScene& scene) = 0;
 	  virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
 	  virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
@@ -318,6 +319,7 @@ namespace Rococo
 	  virtual void UpdateVertexShader(cstr pingPath) = 0;
 	  virtual Windows::IWindow& Window() = 0;
 	  virtual IMathsVenue* Venue() = 0;
+	  virtual void Free() = 0;
 	};
 
 	namespace Graphics

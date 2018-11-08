@@ -189,7 +189,7 @@ namespace Rococo
 		bool IsRunning();
 		void ShutdownApp();
 		void BeepWarning();
-		void FormatExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack);
+		void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack);
 		void CopyExceptionToClipboard(IException& ex);
 	}
 

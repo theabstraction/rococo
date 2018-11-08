@@ -18,6 +18,7 @@ namespace ANON
 
 	class DX11Factory : public IDX11Factory, public DX11::IFactoryResources
 	{
+		FactorySpec spec;
 		IInstallation& installation;
 		IDX11Logger& logger;
 
@@ -38,12 +39,16 @@ namespace ANON
 				debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 				debug = nullptr;
 			}
+
+			if (atom) UnregisterClassA((cstr)atom, spec.hResourceInstance);
 		}
 
+		ATOM atom;
 	public:
-		DX11Factory(IInstallation& _installation, IDX11Logger& _logger) :
+		DX11Factory(IInstallation& _installation, IDX11Logger& _logger, const FactorySpec& _spec) :
 			installation(_installation),
-			logger(_logger)
+			logger(_logger),
+			spec(_spec)
 		{
 			cstr cmd = GetCommandLineA();
 
@@ -120,12 +125,35 @@ namespace ANON
 			}
 
 			device->QueryInterface(IID_PPV_ARGS(&debug));
+
+			WNDCLASSEXA classDef = { 0 };
+			classDef.cbSize = sizeof(classDef);
+			classDef.style = 0;
+			classDef.cbWndExtra = 0;
+			classDef.hbrBackground = (HBRUSH)COLOR_WINDOW;
+			classDef.hCursor = LoadCursor(nullptr, IDC_ARROW);
+			classDef.hIcon = spec.largeIcon;
+			classDef.hIconSm = spec.smallIcon;
+			classDef.hInstance = spec.hResourceInstance;
+
+			char atomName[128];
+			SafeFormat(atomName, sizeof(atomName), "DX11FactoryWindow_%llu", this);
+			classDef.lpszClassName = atomName;
+			classDef.lpszMenuName = NULL;
+			classDef.lpfnWndProc = DefWindowProcA;
+
+			atom = RegisterClassExA(&classDef);
+
+			if (atom == 0)
+			{
+				Throw(GetLastError(), "Error creating DX11Factory atom. Bad hIcon/hInstance maybe?");
+			}
 		}
 
-		IDX11Window* CreateDX11Window()
+		IDX11GraphicsWindow* CreateDX11Window(const WindowSpec& spec) override
 		{
-			DX11::Factory Ourfactory{ *device, *dc, *factory, *this, installation };
-			return DX11::CreateDX11Window(Ourfactory);
+			DX11::Factory ourfactory{ *device, *dc, *factory, *this, installation, logger };
+			return DX11::CreateDX11GraphicsWindow(ourfactory, atom, spec);
 		}
 
 		void Free() override
@@ -144,9 +172,9 @@ namespace Rococo
 {
 	using namespace Rococo::DX11;
 
-	IDX11Factory* CreateDX11Factory(IInstallation& installation, IDX11Logger& logger)
+	IDX11Factory* CreateDX11Factory(IInstallation& installation, IDX11Logger& logger, const FactorySpec& spec)
 	{
-		return new ANON::DX11Factory(installation, logger);
+		return new ANON::DX11Factory(installation, logger, spec);
 	}
 
 	IDX11Logger* CreateStandardOutputLogger()
@@ -166,6 +194,18 @@ namespace Rococo
 			void Free() override
 			{
 				delete this;
+			}
+
+			void OnMessageException(IException& ex, uint32 uMsg)
+			{
+				OS::PrintDebug("Exception was thrown in message handler for message %u", uMsg);
+				char errBuffer[4096];
+				OS::BuildExceptionString(errBuffer, sizeof(errBuffer), ex, true);
+				OS::PrintDebug("%s", errBuffer);
+
+				OS::ShowErrorBox(Windows::NoParent(), ex, "DX11 Message Exception");
+
+				PostQuitMessage(ex.ErrorCode());
 			}
 		};
 		return new Logger;
