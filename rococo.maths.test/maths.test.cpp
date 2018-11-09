@@ -3,6 +3,9 @@
 #include <rococo.strings.h>
 #include <DirectXMath.h>
 
+#include <rococo.strings.h>
+#include <rococo.map.h>
+
 #ifdef _DEBUG
 # pragma comment(lib, "rococo.maths.debug.lib")
 # pragma comment(lib, "rococo.util.debug.lib")
@@ -569,6 +572,64 @@ void validateAABB()
 
 void test()
 {
+	printf("rococo.strings running...\n");
+
+	HString a = "Geoff";
+	printf("%s\n", a.c_str());
+
+	VALIDATE(a.length() == 5);
+
+	a = "Mike";
+	printf("%s\n", a.c_str());
+
+	VALIDATE(a.length() == 4);
+
+	HString b(a);
+
+	printf("%s\n", b.c_str());
+
+	VALIDATE(b.length() == 4);
+
+	Dictionary d;
+	AddUnique(d, "Geoff", &d);
+	AddUnique(d, "Mike", nullptr);
+	AddUnique(d, "Barbara", nullptr);
+
+	void* ptr = &ptr;
+	VALIDATE(d.TryFind("Geoff", ptr));
+	VALIDATE(ptr == &d);
+
+	struct : IDictionaryEnumerator
+	{
+		EnumControl OnIteration(cstr key, size_t keyLength, void* buffer) override
+		{
+			printf("%s: %llu chars. 0x%llX value\n", key, keyLength, (size_t) buffer);
+			return ENUM_CONTINUE;
+		}
+	} e;
+	d.Enumerate(e);
+
+	struct : IDictionaryEnumerator
+	{
+		EnumControl OnIteration(cstr key, size_t keyLength, void* buffer) override
+		{
+			if (key[0] == 'G' || key[0] == 'M')
+			{
+				return ENUM_ERASE_AND_CONTINUE;
+			}
+			else
+			{
+				return ENUM_CONTINUE;
+			}
+		}
+	} f;
+	d.Enumerate(f);
+
+	printf("Deleted Geoff and Mike\n");
+	d.Enumerate(e);
+
+	return;
+
 	printf("rococo.maths.test running...\n");
 
 	validateAABB();

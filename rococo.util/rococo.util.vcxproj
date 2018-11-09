@@ -101,6 +101,7 @@
     <ClCompile Include="renderer.utils.cpp" />
     <ClCompile Include="rococo.allocators.cpp" />
     <ClCompile Include="rococo.base.cpp" />
+    <ClCompile Include="rococo.heap.string.cpp" />
     <ClCompile Include="rococo.ide.stdout.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -123,6 +124,7 @@
     <ClInclude Include="..\include\rococo.debugging.h" />
     <ClInclude Include="..\include\rococo.io.h" />
     <ClInclude Include="..\include\rococo.ringbuffer.h" />
+    <ClInclude Include="..\include\rococo.strings.h" />
     <ClInclude Include="..\include\rococo.textures.h" />
     <ClInclude Include="..\include\rococo.types.h" />
     <ClInclude Include="..\include\rococo.window.h" />

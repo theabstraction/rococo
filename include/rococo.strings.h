@@ -38,4 +38,83 @@ namespace Rococo
    bool Eq(cstr a, cstr b);
    bool EqI(cstr a, cstr b);
    bool StartsWith(cstr bigString, cstr prefix);
+
+   void SetStringAllocator(IAllocator* a);
+
+   struct HStringData
+   {
+	   char* currentBuffer;
+	   size_t length;
+	   size_t refCount;
+   };
+
+   class HString
+   {
+   private:
+	   HStringData* data;
+   public:
+	   HString();
+	   HString(const HString& s);
+	   HString(cstr s);
+	   HString& operator = (const HString& s);
+	   ~HString();
+
+	   cstr c_str() const
+	   {
+		   return data->currentBuffer;
+	   }
+
+	   operator cstr() const
+	   {
+		   return data->currentBuffer;
+	   }
+
+	   size_t length() const
+	   {
+		   return data->length;
+	   }
+
+	   size_t ComputeHash() const;
+   };
+
+   struct StringBuilder
+   {
+	   virtual StringBuilder& AppendFormat(const char* format, ...) = 0;
+	   virtual StringBuilder& operator << (cstr text) = 0;
+	   virtual StringBuilder& operator << (int32 value) = 0;
+	   virtual StringBuilder& operator << (uint32 value) = 0;
+	   virtual StringBuilder& operator << (int64 value) = 0;
+	   virtual StringBuilder& operator << (uint64 value) = 0;
+	   virtual StringBuilder& operator << (float value) = 0;
+	   virtual StringBuilder& operator << (double value) = 0;
+	   virtual fstring operator * () const = 0;
+	   virtual void Clear() = 0;
+	   virtual int32 Length() const = 0;
+
+	   enum eOpenType { BUILD_EXISTING = 0 };
+   };
+
+   bool IsPointerValid(const void* ptr);
+
+   class StackStringBuilder : public StringBuilder
+   {
+   private:
+	   char* buffer;
+	   size_t capacity;
+	   int32 length;
+   public:
+	   StackStringBuilder(char* _buffer, size_t _capacity);
+	   StackStringBuilder(char* _buffer, size_t _capacity, eOpenType type);
+	   fstring operator * () const override { return fstring{ buffer, length }; }
+	   StringBuilder& AppendFormat(const char* format, ...) override;
+	   StringBuilder& operator << (cstr text) override;
+	   StringBuilder& operator << (int32 value)  override;
+	   StringBuilder& operator << (uint32 value) override;
+	   StringBuilder& operator << (int64 value)  override;
+	   StringBuilder& operator << (uint64 value) override;
+	   StringBuilder& operator << (float value) override;
+	   StringBuilder& operator << (double value) override;
+	   void Clear() override;
+	   int32 Length() const override;
+   };
 }

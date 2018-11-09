@@ -99,46 +99,8 @@ namespace Rococo
 		return fstring{ msg, (int32)length };
 	}
 
-	struct StringBuilder
-	{
-		virtual StringBuilder& AppendFormat(const char* format, ...) = 0;
-		virtual StringBuilder& operator << (cstr text) = 0;
-		virtual StringBuilder& operator << (int32 value) = 0;
-		virtual StringBuilder& operator << (uint32 value) = 0;
-		virtual StringBuilder& operator << (int64 value) = 0;
-		virtual StringBuilder& operator << (uint64 value) = 0;
-		virtual StringBuilder& operator << (float value) = 0;
-		virtual StringBuilder& operator << (double value) = 0;
-		virtual fstring operator * () const = 0;
-		virtual void Clear() = 0;
-		virtual int32 Length() const = 0;
-
-		enum eOpenType { BUILD_EXISTING = 0 };
-	};
-
-	bool IsPointerValid(const void* ptr);
-
-	class StackStringBuilder : public StringBuilder
-	{
-	private:
-		char* buffer;
-		size_t capacity;
-		int32 length;
-	public:
-		StackStringBuilder(char* _buffer, size_t _capacity);
-		StackStringBuilder(char* _buffer, size_t _capacity, eOpenType type);
-		fstring operator * () const override { return fstring{ buffer, length }; }
-		StringBuilder& AppendFormat(const char* format, ...) override;
-		StringBuilder& operator << (cstr text) override;
-		StringBuilder& operator << (int32 value)  override;
-		StringBuilder& operator << (uint32 value) override;
-		StringBuilder& operator << (int64 value)  override;
-		StringBuilder& operator << (uint64 value) override;
-		StringBuilder& operator << (float value) override;
-		StringBuilder& operator << (double value) override;
-		void Clear() override;
-		int32 Length() const override;
-	};
+	struct IDictionary;
+	struct StringBuilder;
 
 	struct ILock
 	{
