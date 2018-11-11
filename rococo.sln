@@ -20,7 +20,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.maths", "rococo.math
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.maths.test", "rococo.maths.test\rococo.maths.test.vcxproj", "{9A70BF9A-D77A-4934-86AE-A429A25CB2C2}"
 	ProjectSection(ProjectDependencies) = postProject
-		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
 		{426AEC64-C529-4ADF-9A49-B4E7A3D6C710} = {426AEC64-C529-4ADF-9A49-B4E7A3D6C710}
 	EndProjectSection
 EndProject
@@ -87,8 +86,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.mplat.dynamic", "roc
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "s-ninja", "s-ninja\s-ninja.vcxproj", "{21575F14-6272-4CFB-B69D-879507A476D4}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.util", "..\madscience\projects\3rd_party_sdks\rococo\rococo.util\rococo.util.vcxproj", "{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -216,14 +213,6 @@ Global
 		{21575F14-6272-4CFB-B69D-879507A476D4}.Release|x64.Build.0 = Release|x64
 		{21575F14-6272-4CFB-B69D-879507A476D4}.Release|x86.ActiveCfg = Release|Win32
 		{21575F14-6272-4CFB-B69D-879507A476D4}.Release|x86.Build.0 = Release|Win32
-		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Debug|x64.ActiveCfg = Debug|x64
-		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Debug|x64.Build.0 = Debug|x64
-		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Debug|x86.ActiveCfg = Debug|x64
-		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Release|Any CPU.ActiveCfg = Release|x64
-		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Release|x64.ActiveCfg = Release|x64
-		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Release|x64.Build.0 = Release|x64
-		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,5 +1,4 @@
 #include <rococo.mplat.h>
-#include <unordered_map>
 
 using namespace Rococo;
 using namespace Rococo::Graphics;

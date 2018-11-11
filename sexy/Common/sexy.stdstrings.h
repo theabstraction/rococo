@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include <rococo.strings.h>
+
 namespace Rococo
 {
 #ifdef SEXCHAR_IS_WIDE

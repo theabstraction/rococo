@@ -18,8 +18,9 @@ namespace Rococo
 	ROCOCOAPI IDictionary
 	{
 		 virtual bool TryAddUnique(cstr key, void* data) = 0;
-		 virtual bool TryDetach(cstr key, void* data) = 0;
+		 virtual bool TryDetach(cstr key, void*& data) = 0;
 		 virtual bool TryFind(cstr key, void*& data) = 0;
+		 virtual bool TryFind(cstr key, const void*& data) const = 0;
 		 virtual void Enumerate(IDictionaryEnumerator& enumerator) = 0;
 	};
 
@@ -46,12 +47,17 @@ namespace Rococo
 			imp->Enumerate(enumerator);
 		}
 
-		bool TryDetach(cstr key, void* data) override
+		bool TryDetach(cstr key, void*& data) override
 		{
 			return imp->TryDetach(key, data);
 		}
 
 		bool TryFind(cstr key, void*& data) override
+		{
+			return imp->TryFind(key, data);
+		}
+
+		bool TryFind(cstr key, const void*& data) const override
 		{
 			return imp->TryFind(key, data);
 		}

@@ -302,7 +302,7 @@ namespace ANON
 			}
 		}
 
-		bool TryDetach(cstr key, void* data)
+		bool TryDetach(cstr key, void*& data)
 		{
 			auto i = map.find(StringKey::AsStackPointer(key));
 			if (i != map.end())
@@ -319,6 +319,21 @@ namespace ANON
 		}
 
 		bool TryFind(cstr key, void*& data)
+		{
+			auto i = map.find(StringKey::AsStackPointer(key));
+			if (i != map.end())
+			{
+				data = i->second.data;
+				return true;
+			}
+			else
+			{
+				data = nullptr;
+				return false;
+			}
+		}
+
+		bool TryFind(cstr key, const void*& data) const
 		{
 			auto i = map.find(StringKey::AsStackPointer(key));
 			if (i != map.end())
