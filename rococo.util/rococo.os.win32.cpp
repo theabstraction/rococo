@@ -462,6 +462,8 @@ namespace
 			if (*pingPath == '!')
 			{
 				subdir = pingPath + 1;
+
+				SecureFormat(sysPath, sysPathCapacity, "%s%s", contentDirectory.data, subdir);
 			}
 			else if (*pingPath == '#')
 			{
@@ -484,6 +486,8 @@ namespace
 				}
 
 				macroDir = i->second.c_str();
+
+				SecureFormat(sysPath, sysPathCapacity, "%s%s%s", contentDirectory.data, macroDir + 1, subdir);
 			}
 			else
 			{

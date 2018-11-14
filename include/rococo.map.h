@@ -34,15 +34,19 @@ namespace Rococo
 	class Dictionary : public IDictionary
 	{
 	private:
-		AutoFree<IDictionarySupervisor> imp = CreateDictionaryImplementation();
+		AutoFree<IDictionarySupervisor> imp;
 
 	public:
+		Dictionary(): imp ( CreateDictionaryImplementation() )
+		{
+		}
+
 		bool TryAddUnique(cstr key, void* data) override
 		{
 			return imp->TryAddUnique(key, data);
 		}
 
-		void Enumerate(IDictionaryEnumerator& enumerator)
+		void Enumerate(IDictionaryEnumerator& enumerator) override
 		{
 			imp->Enumerate(enumerator);
 		}

@@ -26,6 +26,9 @@
 
 #include <time.h>
 
+#include <execinfo.h>
+#include <cxxabi.h>
+
 namespace
 {
    int breakFlags = 0;
@@ -88,7 +91,79 @@ namespace Rococo
    {
 	   void FormatStackFrames(IStackFrameFormatter& formatter)
 	   {
-		   // Not implemented on the MAC
+		   //  record stack trace upto 128 frames
+		   int callstack[128] = {};
+
+		   // collect stack frames
+		   int  frames = backtrace((void**)callstack, 128);
+
+		   // get the human-readable symbols (mangled)
+		   char** strs = backtrace_symbols((void**)callstack, frames);
+
+		   for (int i = 0; i < frames; ++i)
+		   {
+			   /*
+
+				Typically this is how the backtrace looks like:
+
+				0   <app/lib-name>     0x0000000100000e98 _Z5tracev + 72
+				1   <app/lib-name>     0x00000001000015c1 _ZNK7functorclEv + 17
+				2   <app/lib-name>     0x0000000100000f71 _Z3fn0v + 17
+				3   <app/lib-name>     0x0000000100000f89 _Z3fn1v + 9
+				4   <app/lib-name>     0x0000000100000f99 _Z3fn2v + 9
+				5   <app/lib-name>     0x0000000100000fa9 _Z3fn3v + 9
+				6   <app/lib-name>     0x0000000100000fb9 _Z3fn4v + 9
+				7   <app/lib-name>     0x0000000100000fc9 _Z3fn5v + 9
+				8   <app/lib-name>     0x0000000100000fd9 _Z3fn6v + 9
+				9   <app/lib-name>     0x0000000100001018 main + 56
+				10  libdyld.dylib      0x00007fff91b647e1 start + 0
+
+				*/
+
+				// split the string, take out chunks out of stack trace
+				// we are primarily interested in module, function and address
+
+			   char functionSymbol[1024] = {};
+			   char moduleName[1024] = {};
+			   int  offset = 0;
+			   char addr[48] = {};
+
+			   sscanf(strs[i], "%*s %1023s %47s %1023s %*s %d", moduleName, addr, functionSymbol, &offset);
+
+			   StackFrame sf;
+			   SafeFormat(sf.moduleName, sizeof(sf.moduleName), "%s", moduleName);
+			   SafeFormat(sf.sourceFile, sizeof(sf.sourceFile), "");
+			   sf.depth = i;
+			   sf.lineNumber = offset;
+			   sf.address.segment = 0;
+			   sf.address.offset = atoll(addr);
+
+			   int   validCppName = 0;
+			   //  if this is a C++ library, symbol will be demangled
+			   //  on success function returns 0
+			   //
+			   char* functionName = abi::__cxa_demangle(functionSymbol, NULL, 0, &validCppName);
+
+			   if (validCppName == 0) // success
+			   {
+				   SafeFormat(sf.functionName, sizeof(sf.functionName), "%s", functionName);
+			   }
+			   else
+			   {
+				   //  in the above traceback (in comments) last entry is not
+				   //  from C++ binary, last frame, libdyld.dylib, is printed
+				   //  from here
+				   SafeFormat(sf.functionName, sizeof(sf.functionName), "%s", functionSymbol);
+			   }
+
+			   formatter.Format(sf);
+
+			   if (functionName)
+			   {
+				   free(functionName);
+			   }
+		   }
+		   free(strs);
 	   }
    }
 
@@ -499,8 +574,8 @@ namespace
 
       void LoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) override
       {
-         if (resourcePath == nullptr || rlen(resourcePath) < 2) Throw(0, "Win32OS::LoadResource failed: <resourcePath> was blank");
-         if (resourcePath[0] != '!') Throw(0, "Win32OS::LoadResource failed: <%s> did not begin with ping '!' character", resourcePath);
+         if (resourcePath == nullptr || rlen(resourcePath) < 2) Throw(0, "OSX::LoadResource failed: <resourcePath> was blank");
+         if (resourcePath[0] != '!') Throw(0, "OSX::LoadResource failed:\n%s\ndid not begin with ping '!' character", resourcePath);
 
          if (rlen(resourcePath) + rlen(contentDirectory) >= _MAX_PATH)
          {
@@ -565,6 +640,8 @@ namespace
 		  if (*pingPath == '!')
 		  {
 			  subdir = pingPath + 1;
+
+			  int fulllen = SecureFormat(sysPath, sysPathCapacity, "%s%s", contentDirectory.data, subdir);
 		  }
 		  else if (*pingPath == '#')
 		  {
@@ -587,6 +664,8 @@ namespace
 			  }
 
 			  macroDir = i->second.c_str();
+
+			  SecureFormat(sysPath, sysPathCapacity, "%s%%ss", contentDirectory.data, macroDir + 1, subdir);
 		  }
 		  else
 		  {
@@ -598,7 +677,6 @@ namespace
 			  Throw(0, "Installation::ConvertPingPathToSysPath(...) Illegal sequence in ping path: '..'");
 		  }
 
-		  int fulllen = SecureFormat(sysPath, sysPathCapacity, "%s%s%s", contentDirectory.data, macroDir + 1, subdir);
 		  OS::ToSysPath(sysPath);
 	  }
 
@@ -794,7 +872,7 @@ namespace
 
             if (nBytesRead != chunk)
             {
-               Throw(0, "Win32OS::LoadResource: Error reading file <%s>. Failed to read chunk", absPath);
+               Throw(0, "OSX::LoadResource: Error reading file <%s>. Failed to read chunk", absPath);
             }
 
             offset += (ptrdiff_t)chunk;

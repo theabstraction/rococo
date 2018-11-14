@@ -43,7 +43,7 @@ namespace Rococo
 
    struct HStringData
    {
-	   char* currentBuffer;
+	   cstr currentBuffer;
 	   size_t length;
 	   size_t refCount;
    };
@@ -57,6 +57,7 @@ namespace Rococo
 	   HString(const HString& s);
 	   HString(cstr s);
 	   HString& operator = (const HString& s);
+	   HString& operator = (cstr s);
 	   ~HString();
 
 	   cstr c_str() const

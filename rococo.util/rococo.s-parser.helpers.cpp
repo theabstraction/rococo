@@ -739,10 +739,7 @@ namespace Rococo
 
 		virtual ISParserTree* GetSource(cstr resourceName)
 		{
-			char sysPath[IO::MAX_PATHLEN];
-			installation.ConvertPingPathToSysPath(resourceName, sysPath, IO::MAX_PATHLEN);
-
-			auto i = sources.find(sysPath);
+			auto i = sources.find(resourceName);
 			if (i != sources.end())
 			{
 				if (i->second.tree == nullptr)
@@ -757,15 +754,15 @@ namespace Rococo
 				}
 			}
 
-			installation.LoadResource(sysPath, *fileBuffer, 64_megabytes);
+			installation.LoadResource(resourceName, *fileBuffer, 64_megabytes);
 
-			ISourceCode* src = DuplicateSourceCode(installation.OS(), *unicodeBuffer, spp(), *fileBuffer, sysPath);
-			sources[sysPath] = Binding{ nullptr, src, 0 };
+			ISourceCode* src = DuplicateSourceCode(installation.OS(), *unicodeBuffer, spp(), *fileBuffer, resourceName);
+			sources[resourceName] = Binding{ nullptr, src, 0 };
 
 			// We have cached the source, so that if tree generation creates an exception, the source codes is still existant
 
 			ISParserTree* tree = spp().CreateTree(*src);
-			sources[sysPath] = Binding{ tree, src, OS::UTCTime() };
+			sources[resourceName] = Binding{ tree, src, OS::UTCTime() };
 
 			return tree;
 		}

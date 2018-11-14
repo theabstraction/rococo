@@ -4,11 +4,12 @@
 #include <rococo.strings.h>
 #include <rococo.map.h>
 
+#include <new>
 #include <string.h>
-#include <malloc.h>
-
 #include <unordered_map>
 #include <vector>
+
+#include <stdlib.h>
 
 namespace Rococo
 {
@@ -23,12 +24,12 @@ namespace Rococo
 			return malloc(capacity);
 		}
 
-		void FreeData(void* data)
+		void FreeData(void* data) override
 		{
 			free(data);
 		}
 
-		void* Reallocate(void* ptr, size_t capacity)
+		void* Reallocate(void* ptr, size_t capacity) override
 		{
 			return realloc(ptr, capacity);
 		}
@@ -84,7 +85,7 @@ namespace Rococo
 
 	HString& HString::operator = (const HString& s)
 	{
-		// Edge case 1 - source may currently match the target
+		// Edge case - source may currently match the target
 		if (s.data != data)
 		{
 			// Assiging a thing to itself does nothing
@@ -92,6 +93,30 @@ namespace Rococo
 
 			data = s.data;
 			if (data != &nullData) data->refCount++;
+		}
+
+		return *this;
+	}
+
+	HString& HString::operator = (cstr s)
+	{
+		// Edge case - source may currently match the target
+		if (s != data->currentBuffer)
+		{
+			FreeHeapStringData(data);
+			data = &nullData;
+
+			if (s != nullptr && *s != 0)
+			{
+				size_t length = strlen(s);
+				char* a = (char*)stringAllocator->Allocate(sizeof(HStringData) + length + 1);
+				char* insertPos = a + sizeof(HStringData);
+				memcpy(insertPos, s, length + 1);
+				data = (HStringData*)a;
+				data->currentBuffer = insertPos;
+				data->length = length;
+				data->refCount = 1;
+			}
 		}
 
 		return *this;
@@ -161,6 +186,10 @@ namespace ANON
 		Value data;
 	};
 
+	// StringKey is intended for use as a hash table key type
+	// It supports both stack strings and heap strings
+	// As a proxy for a stack string it can be used to match a string without using heap resources.
+	// As a proxy for heap strings it can be used to persist a key-value pair in the hash table.
 	struct StringKey
 	{
 		HString stringKey;
@@ -185,6 +214,7 @@ namespace ANON
 			stringKey = src.stringKey;
 			invariantString = src.invariantString;
 			hashCode = src.hashCode;
+			return *this;
 		}
 
 		StringKey(cstr key) : stringKey(key)
@@ -251,9 +281,9 @@ namespace ANON
 		}
 	};
 
-	class DictionaryImplementation : public IDictionarySupervisor
+	class DictionaryImplementation : public Rococo::IDictionarySupervisor
 	{
-		std::unordered_map<StringKey, Value, StringKeyHash, StringKeyEq, AllocatorWithInterface<KeyValuePair>> map;
+		std::unordered_map<StringKey, Value, StringKeyHash, StringKeyEq, AllocatorWithInterface<std::pair<const StringKey, Value>>> map;
 	public:
 		virtual ~DictionaryImplementation()
 		{
@@ -262,7 +292,7 @@ namespace ANON
 
 		bool TryAddUnique(cstr key, void* data) override
 		{
-			auto& s = StringKey::AsStackPointer(key);
+			const auto& s = StringKey::AsStackPointer(key);
 			auto i = map.find(s);
 			if (i == map.end())
 			{
@@ -275,7 +305,7 @@ namespace ANON
 			}
 		}
 
-		void Enumerate(IDictionaryEnumerator& enumerator)
+		void Enumerate(IDictionaryEnumerator& enumerator) override
 		{
 			auto i = map.begin();
 			while (i != map.end())
@@ -302,7 +332,7 @@ namespace ANON
 			}
 		}
 
-		bool TryDetach(cstr key, void*& data)
+		bool TryDetach(cstr key, void*& data) override
 		{
 			auto i = map.find(StringKey::AsStackPointer(key));
 			if (i != map.end())
@@ -318,7 +348,7 @@ namespace ANON
 			}
 		}
 
-		bool TryFind(cstr key, void*& data)
+		bool TryFind(cstr key, void*& data) override
 		{
 			auto i = map.find(StringKey::AsStackPointer(key));
 			if (i != map.end())
@@ -333,7 +363,7 @@ namespace ANON
 			}
 		}
 
-		bool TryFind(cstr key, const void*& data) const
+		bool TryFind(cstr key, const void*& data) const override
 		{
 			auto i = map.find(StringKey::AsStackPointer(key));
 			if (i != map.end())
@@ -361,7 +391,9 @@ namespace Rococo
 	IDictionarySupervisor* CreateDictionaryImplementation()
 	{
 		void* buffer = ANON::moduleAllocator->Allocate(sizeof(ANON::DictionaryImplementation));
-		return new (buffer) ANON::DictionaryImplementation();
+		ANON::DictionaryImplementation* x = new (buffer) ANON::DictionaryImplementation();
+		Rococo::IDictionarySupervisor * retValue = static_cast<Rococo::IDictionarySupervisor * >(x);
+		return retValue;
 	}
 
 	void AddUnique(IDictionary& d, cstr key, void* data)
