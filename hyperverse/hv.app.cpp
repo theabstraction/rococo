@@ -6,7 +6,7 @@
 #include "hv.events.h"
 #include "hv.defaults.h"
 
-#include <string>
+#include <vector>
 
 namespace HV
 {
@@ -15,7 +15,72 @@ namespace HV
 	auto populateBusyCategoryId = "busy.category"_event;
 	auto populateBusyResourceId = "busy.resource"_event;
 
-	class App : public IApp, public IEventCallback<FileModifiedArgs>, public IScene, public IObserver
+	// Route scene methods to the platform.scene object
+	// We intercept the gui events to resize application panels
+	class AppScene: private IScene
+	{
+		Cosmos e;
+		std::vector<IPaneBuilderSupervisor*> managedPanels;
+
+		RGBA GetClearColour() const override
+		{
+			if (e.sectors.begin() == e.sectors.end())
+			{
+				return RGBA(0, 0.25f, 0);
+			}
+			else
+			{
+				return e.platform.scene.GetClearColour();
+			}
+		}
+
+		const Light* GetLights(size_t& nLights) const override
+		{
+			return e.platform.scene.GetLights(nLights);
+		}
+
+		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc) override
+		{
+			return e.platform.scene.RenderShadowPass(drd, rc);
+		}
+
+		void RenderGui(IGuiRenderContext& grc) override
+		{
+			GuiMetrics metrics;
+			grc.Renderer().GetGuiMetrics(metrics);
+			if (metrics.screenSpan.x < 257) return;
+
+			GuiRect fullScreen = { 0, 0, metrics.screenSpan.x, metrics.screenSpan.y };
+
+			for (auto i : managedPanels)
+			{
+				i->Supervisor()->SetRect(fullScreen);
+			}
+
+			e.platform.gui.Render(grc);
+		}
+
+		void GetCamera(Matrix4x4& proj, Matrix4x4& world, Vec4& eye, Vec4& viewDir) override
+		{
+			e.platform.scene.GetCamera(proj, world, eye, viewDir);
+		}
+
+		void RenderObjects(IRenderContext& rc)  override
+		{
+			e.platform.scene.RenderObjects(rc);
+		}
+	public:
+		AppScene(Cosmos& _e) : e(_e) {}
+
+		void ManagePanel(IPaneBuilderSupervisor* panel)
+		{
+			managedPanels.push_back(panel);
+		}
+
+		operator IScene& () { return *this;  }
+	};
+
+	class App : public IApp, public IEventCallback<FileModifiedArgs>,  public IObserver
 	{
 		Platform& platform;
 		bool editorActive{ false };
@@ -33,10 +98,11 @@ namespace HV
 		Cosmos e; // Put this as the last member, since other members need to be constructed first
 
 		IGameMode* mode;
+		HString nextLevelName;
 
+		AppScene scene;
 
-		std::string nextLevelName;
-
+		// Busy event handler responds to resource loading and renders progress panel
 		void OnBusy(const Rococo::Events::BusyEvent& be)
 		{
 			struct BusyEventCapture : public IObserver
@@ -79,7 +145,7 @@ namespace HV
 
 			Graphics::RenderPhaseConfig config;
 			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
-			platform.renderer.Render(config, *this);
+			platform.renderer.Render(config, (IScene&) scene);
 			e.platform.gui.Pop();
 		}
 
@@ -116,7 +182,8 @@ namespace HV
 			players(CreatePlayerSupervisor(platform)),
 			fpsLogic(CreateFPSGameLogic(platform, *players, *sectors)),
 			editor(CreateEditor(platform, *players, *sectors, *fpsLogic)),
-			e{ _platform, *players, *editor, *sectors, *fpsLogic }
+			e{ _platform, *players, *editor, *sectors, *fpsLogic },
+			scene(e)
 		{
 			mode = fpsLogic;
 
@@ -134,6 +201,9 @@ namespace HV
 
 			overlayPanel = e.platform.gui.CreateOverlay();
 
+			scene.ManagePanel(fpsPanel);
+			scene.ManagePanel(openingPanel);
+
 			e.platform.gui.PushTop(fpsPanel->Supervisor(), true);
 
 			editorActive = false;
@@ -145,51 +215,6 @@ namespace HV
 		~App()
 		{
 			e.platform.publisher.Detach(this);
-		}
-
-		RGBA GetClearColour() const override
-		{
-			if (e.sectors.begin() == e.sectors.end())
-			{
-				return RGBA(0, 0.25f, 0);
-			}
-			else
-			{
-				return e.platform.scene.GetClearColour();
-			}
-		}
-
-		const Light* GetLights(size_t& nLights) const
-		{
-			return e.platform.scene.GetLights(nLights);
-		}
-
-		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc)
-		{
-			return e.platform.scene.RenderShadowPass(drd, rc);
-		}
-
-		void RenderGui(IGuiRenderContext& grc) override
-		{
-			GuiMetrics metrics;
-			grc.Renderer().GetGuiMetrics(metrics);
-			if (metrics.screenSpan.x < 257) return;
-
-			GuiRect fullScreen = { 0, 0, metrics.screenSpan.x, metrics.screenSpan.y };
-			fpsPanel->Supervisor()->SetRect(fullScreen);
-			openingPanel->Supervisor()->SetRect(fullScreen);
-
-			platform.gui.Render(grc);
-		}
-
-		void GetCamera(Matrix4x4& proj, Matrix4x4& world, Vec4& eye, Vec4& viewDir) override
-		{
-			e.platform.scene.GetCamera(proj, world, eye, viewDir);
-		}
-
-		void RenderObjects(IRenderContext& rc)  override
-		{
-			e.platform.scene.RenderObjects(rc);
 		}
 
 		void Free() override
@@ -249,11 +274,11 @@ namespace HV
 			e.platform.installation.OS().EnumerateModifiedFiles(*this);
 			e.platform.publisher.Deliver();
 
-			if (!nextLevelName.empty())
+			if (nextLevelName.length() > 0)
 			{
 				RunEnvironmentScript(e, nextLevelName.c_str());
 				e.platform.sourceCache.Release(nextLevelName.c_str());
-				nextLevelName.clear();
+				nextLevelName = "";
 			}
 
 			mode->UpdateAI(clock);
@@ -265,7 +290,7 @@ namespace HV
 
 			Graphics::RenderPhaseConfig config;
 			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
-			e.platform.renderer.Render(config, *this);
+			e.platform.renderer.Render(config, (IScene&) scene);
 
 			if (editorActive)
 			{

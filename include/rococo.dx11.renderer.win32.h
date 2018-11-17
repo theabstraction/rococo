@@ -69,8 +69,9 @@ namespace Rococo
 	{
 		virtual IDX11GraphicsWindow* CreateDX11Window(const WindowSpec& ws) = 0;
 		virtual void Free() = 0;
-		virtual bool TryGetAdapterInfo(int index, AdapterDesc& desc) = 0;
 	};
+
+	bool DX11_TryGetAdapterInfo(int index, AdapterDesc& d);
 
 	ROCOCOAPI IDX11Logger
 	{

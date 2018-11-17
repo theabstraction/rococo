@@ -114,25 +114,6 @@ namespace ANON
 			}
 		}
 
-		bool TryGetAdapterInfo(int index, AdapterDesc& d) override
-		{
-			AutoRelease<IDXGIAdapter> testAdapter;
-			if (factory->EnumAdapters(index, &testAdapter) == DXGI_ERROR_NOT_FOUND)
-			{
-				return false;
-			}
-
-			DXGI_ADAPTER_DESC desc;
-			testAdapter->GetDesc(&desc);
-
-			SafeFormat(d.description, sizeof(d.description), "%S rev %u", desc.Description, desc.Revision);
-			d.sysMemoryMB = desc.DedicatedSystemMemory / 1_megabytes;
-			d.videoMemoryMB = desc.DedicatedVideoMemory / 1_megabytes;
-			d.sharedMemoryMB = desc.SharedSystemMemory / 1_megabytes;
-
-			return true;
-		}
-
 		IDX11GraphicsWindow* CreateDX11Window(const WindowSpec& spec) override
 		{
 			DX11::Factory ourfactory{ *device, *dc, *factory, *this, installation, logger };
@@ -153,6 +134,28 @@ namespace Rococo
 	IDX11Factory* CreateDX11Factory(IInstallation& installation, IDX11Logger& logger, const FactorySpec& spec)
 	{
 		return new ANON::DX11Factory(installation, logger, spec);
+	}
+
+	bool DX11_TryGetAdapterInfo(int index, AdapterDesc& d)
+	{
+		AutoRelease<IDXGIFactory> factory;
+		VALIDATEDX11(CreateDXGIFactory(IID_IDXGIFactory, (void**)&factory));
+
+		AutoRelease<IDXGIAdapter> testAdapter;
+		if (factory->EnumAdapters(index, &testAdapter) == DXGI_ERROR_NOT_FOUND)
+		{
+			return false;
+		}
+
+		DXGI_ADAPTER_DESC desc;
+		testAdapter->GetDesc(&desc);
+
+		SafeFormat(d.description, sizeof(d.description), "%S rev %u", desc.Description, desc.Revision);
+		d.sysMemoryMB = desc.DedicatedSystemMemory / 1_megabytes;
+		d.videoMemoryMB = desc.DedicatedVideoMemory / 1_megabytes;
+		d.sharedMemoryMB = desc.SharedSystemMemory / 1_megabytes;
+
+		return true;
 	}
 
 	IDX11Logger* CreateStandardOutputLogger()
