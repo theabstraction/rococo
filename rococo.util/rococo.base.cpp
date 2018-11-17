@@ -57,7 +57,7 @@ namespace Rococo
 
 		struct RococoException : public IException, public IStackFrameEnumerator
 		{
-			rchar msg[2048];
+			char msg[2048];
 			int32 errorCode;
 
 			std::list<StackFrame> stackFrames;

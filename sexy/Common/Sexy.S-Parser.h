@@ -83,7 +83,7 @@ namespace Rococo { namespace Sex
 		
 		enum {MAX_ERRMSG_LEN = 512};
 		SEXCHAR srcName[MAX_ERRMSG_LEN];
-		rchar errText[MAX_ERRMSG_LEN];
+		char errText[MAX_ERRMSG_LEN];
 		SEXCHAR specimenText[MAX_ERRMSG_LEN];
 		const ISExpression* source;
 

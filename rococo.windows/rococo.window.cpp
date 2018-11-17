@@ -529,7 +529,7 @@ namespace Rococo
 			va_list args;
 			va_start(args, format);
 
-			rchar* text = (rchar*)_malloca(capacity * sizeof(rchar));
+			char* text = (char*)_malloca(capacity * sizeof(char));
 			Rococo::SafeVFormat(text, capacity, format, args);
 
 			SetWindowTextA(hWnd, text);

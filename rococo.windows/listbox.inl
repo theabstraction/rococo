@@ -95,11 +95,11 @@ namespace
 			return SendMessage(hWndListBox, LB_GETITEMDATA, index, 0);
 		}
 
-		bool GetString(int index, rchar* data, size_t capacity)
+		bool GetString(int index, char* data, size_t capacity)
 		{
 			LRESULT length = SendMessage(hWndListBox, LB_GETTEXTLEN, index, 0);
 			if (length == LB_ERR) return false;
-			rchar* buffer = (rchar*) _malloca(sizeof(rchar)* (length + 1));
+			char* buffer = (char*) _malloca(sizeof(char)* (length + 1));
 			if (LB_ERR == SendMessage(hWndListBox, LB_GETTEXT, index, (LPARAM)buffer))
 			{
 				return false;

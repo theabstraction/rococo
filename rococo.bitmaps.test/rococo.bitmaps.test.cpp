@@ -89,7 +89,7 @@ public:
 
       int nImages = ImageList_GetImageCount(hImages);
 
-      rchar text[128];
+      char text[128];
 
       for (int i = 0; i < nImages; ++i)
       {
@@ -280,7 +280,7 @@ void Main()
    Imaging::SetTiffAllocator(imageAllocator);
    Imaging::SetJpegAllocator(imageAllocator);
 
-   rchar directory[MAX_PATH];
+   char directory[MAX_PATH];
    if (!IO::ChooseDirectory(directory, MAX_PATH))
    {
       return;
@@ -301,7 +301,7 @@ void Main()
          auto* ext = GetFileExtension(pathname);
          if (Eq(ext, ".tiff") || Eq(ext, ".tif") || Eq(ext, ".jpg") || Eq(ext, ".jpeg"))
          {
-            rchar filename[MAX_PATH];
+            char filename[MAX_PATH];
             SafeFormat(filename, sizeof(filename), "%s\\%s", root, pathname);
             builder->AddBitmap(filename);
          }      

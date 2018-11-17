@@ -35,7 +35,7 @@ namespace
 	struct VariantTextBuffer
 	{
 		DWORD capacity;
-		rchar* text;
+		char* text;
 	};
 
 	union UVariant
@@ -64,7 +64,7 @@ namespace
 		EVariantType type;
 	};
 
-	void FormatWithVariant(rchar* desc, size_t capacity, const Variant& var)
+	void FormatWithVariant(char* desc, size_t capacity, const Variant& var)
 	{
 		StackStringBuilder sb(desc, capacity);
 
@@ -108,8 +108,8 @@ namespace
 		cstr filter;
 		IStringValidator* validator;
 		ISelection* selection;
-		rchar name[NAME_CAPACITY];
-		rchar tabName[TAB_NAME_CAPACITY];
+		char name[NAME_CAPACITY];
+		char tabName[TAB_NAME_CAPACITY];
 	};
 
 	void ParseInt32(VariableDesc& v, cstr s)
@@ -190,7 +190,7 @@ namespace
 
 		virtual void OnSelectionChanged(int index)
 		{
-			rchar tabName[VariableDesc::TAB_NAME_CAPACITY];
+			char tabName[VariableDesc::TAB_NAME_CAPACITY];
 			if (tabControl->GetTabName(index, tabName, VariableDesc::TAB_NAME_CAPACITY))
 			{
 				for (VariableDesc& v : variables)
@@ -226,13 +226,13 @@ namespace
 			spec.lpstrFile = v.var.value.textValue.text;
 			spec.nMaxFile = v.var.value.textValue.capacity;
 
-			rchar title[256];
+			char title[256];
 			SecureFormat(title, sizeof(title), "%s: Select file name", v.name);
 			spec.lpstrTitle = title;
 
 			spec.Flags = 0;
 
-			rchar currentDirectory[_MAX_PATH];
+			char currentDirectory[_MAX_PATH];
 			GetCurrentDirectoryA(_MAX_PATH, currentDirectory);
 
 			if (GetOpenFileNameA(&spec))
@@ -292,7 +292,7 @@ namespace
 					{
 						if (v.validator)
 						{
-							rchar* text = (rchar*)_malloca(sizeof(rchar)* v.var.value.textValue.capacity);
+							char* text = (char*)_malloca(sizeof(char)* v.var.value.textValue.capacity);
 							GetWindowTextA(*v.EditControl, text, v.var.value.textValue.capacity);
 							if (!v.validator->ValidateAndReportErrors(text))
 							{
@@ -452,7 +452,7 @@ namespace
 						Throw(0, "Validated control missing an edit box");
 					}
 
-					rchar* liveBuffer = (rchar*)alloca(sizeof(rchar)* v.var.value.textValue.capacity + 2);
+					char* liveBuffer = (char*)alloca(sizeof(char)* v.var.value.textValue.capacity + 2);
 					GetWindowTextA(*v.EditControl, liveBuffer, v.var.value.textValue.capacity);
 					if (!v.validator->ValidateAndReportErrors(liveBuffer))
 					{
@@ -483,7 +483,7 @@ namespace
 			toolInfo.hwnd = *supervisor;
 			toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
 			toolInfo.uId = (UINT_PTR)hwndTool;
-			toolInfo.lpszText = (rchar*)pszText;
+			toolInfo.lpszText = (char*)pszText;
 			GetClientRect(hwndTool, &toolInfo.rect);
 			SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
 
@@ -524,7 +524,7 @@ namespace
 			VariableDesc v = { 0 };
 			tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
 
-			rchar editor[256];
+			char editor[256];
 			SecureFormat(editor, sizeof(editor), "Edit_%s", variableName);
 
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
@@ -581,7 +581,7 @@ namespace
 			nextY = buttonRect.bottom + 2;
 		}
 
-		virtual void AddSelection(cstr variableName, cstr variableDesc, rchar* buffer, uint32 capacityIncludingNullCharacter, ISelection& selection, IStringValidator* validator)
+		virtual void AddSelection(cstr variableName, cstr variableDesc, char* buffer, uint32 capacityIncludingNullCharacter, ISelection& selection, IStringValidator* validator)
 		{
 			if (nextY > windowSpan.y - 30)
 			{
@@ -591,7 +591,7 @@ namespace
 			VariableDesc v = { 0 };
 			tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
 
-			rchar editor[256];
+			char editor[256];
 			SecureFormat(editor, sizeof(editor), "Edit_%s", variableName);
 
 			GuiRect labelRect = GetDefaultLabelRect();
@@ -622,7 +622,7 @@ namespace
 			nextY = 28;
 		}
 
-		virtual void AddStringEditor(cstr variableName, cstr variableDesc, rchar* buffer, uint32 capacity, IStringValidator* validator)
+		virtual void AddStringEditor(cstr variableName, cstr variableDesc, char* buffer, uint32 capacity, IStringValidator* validator)
 		{
 			if (nextY > windowSpan.y - 30)
 			{
@@ -639,7 +639,7 @@ namespace
 				v.tabName[0] = 0;
 			}
 
-			rchar editor[256];
+			char editor[256];
 			SecureFormat(editor, sizeof(editor), "Edit_%s", variableName);
 
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
@@ -659,7 +659,7 @@ namespace
 			nextY += 22;
 		}
 
-		virtual void AddFilenameEditor(cstr variableName, cstr variableDesc, rchar* buffer, uint32 capacity, cstr filter, IStringValidator* validator = nullptr)
+		virtual void AddFilenameEditor(cstr variableName, cstr variableDesc, char* buffer, uint32 capacity, cstr filter, IStringValidator* validator = nullptr)
 		{
 			if (nextY > windowSpan.y - 30)
 			{
@@ -669,7 +669,7 @@ namespace
 			VariableDesc v = { 0 };
 			tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
 
-			rchar editor[256];
+			char editor[256];
 			SecureFormat(editor, sizeof(editor), "Edit_%s", variableName);
 
 			GuiRect editRect = GetDefaultEditRect();
@@ -711,7 +711,7 @@ namespace
 					OnSelectionChanged(currentTabIndex);
 				}
 
-				rchar desc[256];
+				char desc[256];
 				FormatWithVariant(desc, 256, v.var);
 
 				if (v.var.type == EVariantType_Int32)
@@ -768,9 +768,9 @@ namespace
 			{
 				if (v.EditControl != nullptr)
 				{
-					int len = GetWindowTextLength(*v.EditControl);
+					int len = GetWindowTextLengthA(*v.EditControl);
 					{
-						rchar *value = (rchar*)alloca(2 * len + 2);
+						char *value = (char*)alloca(len + 2);
 						GetWindowTextA(*v.EditControl, value, len + 1);
 						ParseVariable(v, value);
 					}
@@ -800,10 +800,10 @@ namespace
 
 		void OnChangeInt32Variable(VariableDesc& v)
 		{
-			rchar buffer[16];
+			char buffer[16];
 			GetWindowTextA(*v.EditControl, buffer, 16);
 
-			rchar* s = buffer;
+			char* s = buffer;
 
 			if (s[0] == '+' || s[0] == '-') s++;
 			else if (s[0] == 0) return;

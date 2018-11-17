@@ -763,7 +763,7 @@ namespace ANON
 					SEXCHAR* sexBuffer = (SEXCHAR*)alloca(len << 1);
 					for (int i = 0; i < (len << 1); ++i)
 					{
-						rchar c = buffer[i];
+						char c = buffer[i];
 						sexBuffer[i] = c > 127 ? '?' : c;
 					}
 					sexBuffer[len] = 0;
@@ -880,7 +880,7 @@ namespace ANON
 	{
 		struct : public IException
 		{
-			rchar msg[256];
+			char msg[256];
 			int32 errorCode;
 
 			virtual cstr Message() const override
@@ -961,9 +961,9 @@ namespace Rococo
 				segmentLength += ANON::maprcharToSequence[(size_t)*s].len;
 			}
 
-			rchar* segment = (rchar*)alloca(sizeof(rchar) * segmentLength);
+			char* segment = (char*)alloca(sizeof(char) * segmentLength);
 
-			rchar* writePos = segment;
+			char* writePos = segment;
 			for (cstr s = text; *s != 0; s++)
 			{
 				SecureFormat(writePos, segment + segmentLength - writePos, SEXTEXT("%s"), ANON::maprcharToSequence[(size_t)*s].text);

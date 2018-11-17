@@ -57,10 +57,19 @@ namespace Rococo
 		Vec2i minSpan;
 	};
 
+	struct AdapterDesc
+	{
+		char description[256];
+		size_t sysMemoryMB;
+		size_t videoMemoryMB;
+		size_t sharedMemoryMB;
+	};
+
 	ROCOCOAPI IDX11Factory
 	{
 		virtual IDX11GraphicsWindow* CreateDX11Window(const WindowSpec& ws) = 0;
 		virtual void Free() = 0;
+		virtual bool TryGetAdapterInfo(int index, AdapterDesc& desc) = 0;
 	};
 
 	ROCOCOAPI IDX11Logger
@@ -75,6 +84,7 @@ namespace Rococo
 		HINSTANCE hResourceInstance;
 		HICON largeIcon;
 		HICON smallIcon;
+		int adapterIndex = 0;
 	};
 
 	IDX11Factory* CreateDX11Factory(IInstallation& installation, IDX11Logger& logger, const FactorySpec& spec);

@@ -157,7 +157,7 @@ namespace Rococo
 	void CALLTYPE_C CopyChars(SEXCHAR* dest, const sexstring source);
 	void CALLTYPE_C CopyString(char* dest, size_t capacity, const char* source);
 
-	void CALLTYPE_C StringCat(rchar* buf, cstr source, int maxChars);
+	void CALLTYPE_C StringCat(char* buf, cstr source, int maxChars);
 
 	bool TryParseSexHex(SEXCHAR& finalChar, csexstr s);
 	bool ParseEscapeCharacter(SEXCHAR& finalChar, SEXCHAR c);
@@ -218,7 +218,7 @@ namespace Rococo
 
 		size_t* size_tPtrValue;
 		char* charPtrValue;
-		rchar* rcharPtrValue;
+		char* rcharPtrValue;
 		void* vPtrValue;
 		float floatValue;
 		double doubleValue;

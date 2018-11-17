@@ -606,7 +606,7 @@ namespace ANON
 
 	  void UpdatedWallGraphicMesh()
 	  {
-		  rchar name[32];
+		  char name[32];
 		  SafeFormat(name, sizeof(name), "sector.%u.walls", id);
 
 		  auto& mb = instances.MeshBuilder();
@@ -1307,7 +1307,7 @@ namespace ANON
             instances.Delete(floorId);
             floorId = ID_ENTITY::Invalid();
 
-            rchar name[32];
+            char name[32];
             SafeFormat(name, sizeof(name), "sector.%u.floor", id);
             instances.MeshBuilder().Delete(to_fstring(name));
          }
@@ -1330,7 +1330,7 @@ namespace ANON
             instances.Delete(ceilingId);
             ceilingId = ID_ENTITY::Invalid();
 
-            rchar name[32];
+            char name[32];
             SafeFormat(name, sizeof(name), "sector.%u.ceiling", id);
             instances.MeshBuilder().Delete(to_fstring(name));
          }
@@ -1340,7 +1340,7 @@ namespace ANON
       {
 		  if (wallId)
 		  {
-			  rchar name[32];
+			  char name[32];
 			  SafeFormat(name, sizeof(name), "sector.%u.walls", id);
 			  instances.Delete(wallId);
 			  instances.MeshBuilder().Delete(to_fstring(name)); 
@@ -1466,7 +1466,7 @@ namespace ANON
 
 	  void UpdateFloorGraphicMesh()
 	  {
-		  rchar name[32];
+		  char name[32];
 		  SafeFormat(name, sizeof(name), "sector.%u.floor", id);
 
 		  auto& mb = instances.MeshBuilder();
@@ -1509,7 +1509,7 @@ namespace ANON
 
       void UpdateCeilingGraphicMesh()
       {
-         rchar name[32];
+         char name[32];
          SafeFormat(name, sizeof(name), "sector.%u.ceiling", id);
 
          auto& mb = instances.MeshBuilder();

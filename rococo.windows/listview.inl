@@ -144,7 +144,7 @@ namespace
 
 			LV_ITEMA item = { 0 };
 			item.mask = LVIF_TEXT;
-			item.pszText = (rchar*)values[0];
+			item.pszText = (char*)values[0];
 			item.iItem = 0x7FFFFFFF;
 			item.cchTextMax = 256;
 			int index = ListView_InsertItem(hWndListView, &item);
@@ -158,7 +158,7 @@ namespace
 			{
 				LVITEMA item = { 0 };
 				item.iSubItem = k;
-				item.pszText = (rchar*) *value;
+				item.pszText = (char*) *value;
 				SendMessage(hWndListView, LVM_SETITEMTEXT, index, (LPARAM)&item);
 			}
 		}
@@ -188,7 +188,7 @@ namespace
 				LV_COLUMNA item;
 				item = { 0 };
 				item.mask = LVCF_TEXT | LVCF_WIDTH;
-				item.pszText = (rchar*) *col;
+				item.pszText = (char*) *col;
 				item.cx = widths[index];
 				if (-1 == ListView_InsertColumn(hWndListView, 10000, &item))
 				{

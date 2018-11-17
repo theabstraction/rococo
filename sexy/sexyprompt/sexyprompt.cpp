@@ -122,7 +122,7 @@ void UnicodeToSEXCHAR(SEXCHAR* dest, size_t maxLen, cstr source)
 
 	for(size_t i = 0; i < maxLen-1; ++i)
 	{
-		rchar c = *s++;
+		char c = *s++;
 		if (c > 127) c = '?';
 		*d++ = (SEXCHAR) c;
 

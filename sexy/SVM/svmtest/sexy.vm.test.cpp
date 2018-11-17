@@ -1171,7 +1171,7 @@ int main(int argc, char* argv[])
    WriteToStandardOutput("VM.TEST initialization....");
 
 	AutoFree<ICore> core ( CreateSVMCore(&spec) );
-	if (core == NULL)
+	if (!core)
 	{
 		LogError(0, "Error creating SVM core object");
 		return 0;

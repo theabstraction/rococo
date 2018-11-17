@@ -115,13 +115,13 @@ namespace Rococo
 	void SplitString(const char* text, size_t length, cstr seperators, IEventCallback<cstr>& onSubString)
 	{
 		if (length == 0) length = rlen(text);
-		size_t bytecount = sizeof(rchar) * (length + 1);
-		rchar* buf = (rchar*)alloca(bytecount);
+		size_t bytecount = sizeof(char) * (length + 1);
+		char* buf = (char*)alloca(bytecount);
 		memcpy_s(buf, bytecount, text, bytecount);
 		buf[length] = 0;
 
-		rchar* next_token = nullptr;
-		rchar* token = strtok_s(buf, "|", &next_token);
+		char* next_token = nullptr;
+		char* token = strtok_s(buf, "|", &next_token);
 		while (token != nullptr)
 		{
 			onSubString.OnEvent(token);
@@ -174,7 +174,7 @@ namespace Rococo
       return p - 1;
    }
 
-   cstr GetRightSubstringAfter(cstr s, rchar c)
+   cstr GetRightSubstringAfter(cstr s, char c)
    {
       cstr p = GetFinalNull(s);
       for (cstr q = p; q >= s; --q)

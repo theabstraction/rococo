@@ -42,7 +42,7 @@ namespace Rococo
 	{
 		bool QueryYesNo(IWindow& ownerWindow, cstr message)
 		{
-			rchar title[256];
+			char title[256];
 			GetWindowTextA(ownerWindow, title, 256);
 			return ShowMessageBox(Windows::NullParent(), message, title, MB_ICONQUESTION | MB_YESNO) == IDYES;
 		}
@@ -230,8 +230,8 @@ public:
 			Throw(0, "Directories must be inside the content directory. Use the '!<directory>' notation");
 		}
 
-		rchar shortdir[IO::MAX_PATHLEN];
-		rchar directory[IO::MAX_PATHLEN];
+		char shortdir[IO::MAX_PATHLEN];
+		char directory[IO::MAX_PATHLEN];
 
 		StackStringBuilder sb(shortdir, _MAX_PATH);
 		sb << pingPathDirectory;
@@ -245,7 +245,7 @@ public:
 
 		for (auto& s : onFileFound.allResults)
 		{
-			rchar contentRelativePath[IO::MAX_PATHLEN];
+			char contentRelativePath[IO::MAX_PATHLEN];
 			SafeFormat(contentRelativePath, IO::MAX_PATHLEN, "%s%s", shortdir, s.c_str());
 			cb.OnEvent(contentRelativePath);
 		}
@@ -1285,9 +1285,9 @@ void RenderLabel(IGuiRenderContext& grc, cstr text, const GuiRect& absRect, int 
 class PanelRadioButton : public BasePanel, public IRadioButton, public IObserver
 {
 	int32 fontIndex = 1;
-	rchar text[128];
+	char text[128];
 	EventId id;
-	rchar value[128];
+	char value[128];
 	int32 horzAlign = 0;
 	int32 vertAlign = 0;
 	Vec2i padding{ 0,0 };
@@ -1391,7 +1391,7 @@ public:
 class PanelLabel : public BasePanel, public ILabelPane
 {
 	int32 fontIndex = 1;
-	rchar text[128];
+	char text[128];
 	int32 horzAlign = 0;
 	int32 vertAlign = 0;
 	Vec2i padding{ 0,0 };
@@ -1450,7 +1450,7 @@ public:
 class PanelSlider : public BasePanel, public ISlider
 {
 	int32 fontIndex = 1;
-	rchar text[128];
+	char text[128];
 	IPublisher& publisher;
 	IRenderer& renderer;
 	float minValue;
@@ -3417,7 +3417,7 @@ namespace Rococo
 
 	int M_Platorm_Win64_Main(HINSTANCE hInstance, IAppFactory& factory, cstr title, HICON hLarge, HICON hSmall)
 	{
-		rchar filename[1024];
+		char filename[1024];
 		GetModuleFileNameA(nullptr, filename, 1024);
 		for (char* p = filename; *p != 0; p++)
 		{
@@ -3448,7 +3448,7 @@ namespace Rococo
 		}
 		catch (IException& ex)
 		{
-			rchar text[256];
+			char text[256];
 			SafeFormat(text, 256, "%s crashed", title);
 			OS::ShowErrorBox(NoParent(), ex, text);
 			errCode = ex.ErrorCode();

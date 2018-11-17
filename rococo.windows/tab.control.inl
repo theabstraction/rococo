@@ -69,7 +69,7 @@ namespace
 					item.dwState = TCIF_PARAM;
 					TabCtrl_GetItem(hWndTabControl, info->hdr.idFrom, &item);
 
-					rchar text[80];
+					char text[80];
 					info->lpszText = text;
 
 					auto i = tooltips.find((size_t)item.lParam);
@@ -124,7 +124,7 @@ namespace
 			TCITEMA tie = { 0 };
 			tie.mask = TCIF_TEXT | TCIF_IMAGE | TCIF_PARAM;
 			tie.iImage = -1;
-			tie.pszText = (rchar*)data;
+			tie.pszText = (char*)data;
 			tie.lParam = tooltip ? nextIndex : -1;
 
 			if (tooltip) tooltips[nextIndex++] = std::string(tooltip);
@@ -158,7 +158,7 @@ namespace
 			return TabCtrl_GetItemCount(hWndTabControl);
 		}
 
-		bool GetTabName(int index, rchar* buffer, DWORD capacity) const
+		bool GetTabName(int index, char* buffer, DWORD capacity) const
 		{
 			TC_ITEMA item = { 0 };
 			item.mask = TCIF_TEXT;

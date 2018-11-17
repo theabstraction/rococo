@@ -39,7 +39,7 @@ namespace Rococo
 	class NamespaceException: public IException
 	{
 	private:
-		rchar msg[1024];
+		char msg[1024];
 
 	public:
 		NamespaceException(csexstr _msg)

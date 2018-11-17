@@ -77,7 +77,7 @@ namespace Rococo
 		va_list args;
 		va_start(args, format);
 
-		rchar buf[256];
+		char buf[256];
 		int nChars = SafeVFormat(buf, sizeof(buf), format, args);
 
 		char abuf[256];

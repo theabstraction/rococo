@@ -133,12 +133,12 @@ namespace
 			ComboBox_SetCurSel(hWndComboBox, index);
 		}
 
-		virtual bool GetString(int index, rchar* buffer, size_t capacity)
+		virtual bool GetString(int index, char* buffer, size_t capacity)
 		{
 			int length = ComboBox_GetLBTextLen(hWndComboBox, index);
 			if (length == CB_ERR) return false;
 
-			rchar* stackbuffer = (rchar*)alloca(2 * max(capacity, (size_t)length + 1));
+			char* stackbuffer = (char*)alloca(2 * max(capacity, (size_t)length + 1));
 			if (!ComboBox_GetLBText(hWndComboBox, index, stackbuffer))
 			{
 				return false;

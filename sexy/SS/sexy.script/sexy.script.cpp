@@ -460,7 +460,7 @@ namespace Rococo
 			}
 			catch (IException& innerEx)
 			{
-				rchar message[1024];
+				char message[1024];
 				SafeFormat(message, sizeof(message), SEXTEXT("%s:\nFailed to get sexy environment.\nUse Rococo::Script::SetDefaultNativeSourcePath(...) or ProgramInitParameters or environment variable SEXY_NATIVE_SRC_DIR"), innerEx.Message());
 				_logger.Write(message);
 				Rococo::Throw(innerEx.ErrorCode(), SEXTEXT("%s"), message);

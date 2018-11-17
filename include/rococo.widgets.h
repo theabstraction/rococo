@@ -33,7 +33,7 @@ namespace Rococo
       struct LabelSet
       {
          Label labels[2]; // normal, lit
-         rchar text[256];
+         char text[256];
       };
 
       void Draw3DFrame(IGuiRenderContext& rc, const GuiRect& rect, struct WidgetFrameSet& frameSet, bool isLit);

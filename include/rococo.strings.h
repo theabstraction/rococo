@@ -27,12 +27,12 @@ namespace Rococo
 
 	struct IStringBuffer
 	{
-		virtual rchar* GetBufferStart() = 0;
+		virtual char* GetBufferStart() = 0;
 		virtual size_t Capacity() const = 0;
 	};
 
    cstr GetFinalNull(cstr s);
-   cstr GetRightSubstringAfter(cstr s, rchar c);
+   cstr GetRightSubstringAfter(cstr s, char c);
    cstr GetFileExtension(cstr s);
 
    bool Eq(cstr a, cstr b);

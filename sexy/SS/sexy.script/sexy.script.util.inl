@@ -122,7 +122,7 @@ namespace Rococo
          va_list args;
          va_start(args, format);
 
-         rchar msg[128];
+         char msg[128];
          SafeVFormat(msg, sizeof(msg), format, args);
          builder.AddSymbol(msg);
       }

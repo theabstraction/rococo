@@ -121,7 +121,7 @@ namespace
 		return true;
 	}
 
-	int CopySexCharToUnicode(rchar* output, size_t bufferCapacity, csexstr input)
+	int CopySexCharToUnicode(char* output, size_t bufferCapacity, csexstr input)
 	{
 		size_t len = StringLength(input);
 		if (len >= bufferCapacity)
@@ -143,7 +143,7 @@ namespace
       strncpy_s(output, bufferCapacity, input, _TRUNCATE);
    }
 
-	void ProtectedFormatValue(IScriptSystem& ss, rchar* rvalue, size_t bufferLen, VARTYPE type, const void* pVariableData)
+	void ProtectedFormatValue(IScriptSystem& ss, char* rvalue, size_t bufferLen, VARTYPE type, const void* pVariableData)
 	{
 		switch(type)
 		{
@@ -195,7 +195,7 @@ namespace
 				}
 				else
 				{
-					memcpy_s(rvalue, sizeof(rchar) * bufferLen, symbol, sizeof(rchar) * bufferLen);
+					memcpy_s(rvalue, sizeof(char) * bufferLen, symbol, sizeof(char) * bufferLen);
 				}
 			}
 			break;

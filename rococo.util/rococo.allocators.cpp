@@ -62,7 +62,7 @@ namespace
    public:
       ~CheckedAllocator()
       {
-         rchar text[1024];
+         char text[1024];
          SafeFormat(text, sizeof(text), "\nCheckedAllocator: Allocs: %u, Frees: %u, Reallocs: %u\n\n", allocCount, freeCount, reallocCount);
          OutputDebugStringA(text);
       }
@@ -105,7 +105,7 @@ namespace
 
       ~BlockAllocator()
       {
-         rchar text[1024];
+         char text[1024];
          SafeFormat(text, sizeof(text), "\nBlockAllocator(%p) Allocs: %u, Frees: %u, Reallocs: %u\n\n", hHeap, allocCount, freeCount, reallocCount);
          OutputDebugStringA(text);
 

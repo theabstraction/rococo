@@ -81,7 +81,7 @@ namespace Rococo
          va_list args;
          va_start(args, format);
 
-         rchar message[4096];
+         char message[4096];
          SafeVFormat(message, sizeof(message), format, args);
 
          SEXCHAR specimen[64];

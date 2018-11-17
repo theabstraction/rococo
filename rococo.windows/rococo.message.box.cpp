@@ -50,8 +50,8 @@ namespace Rococo
          }
          else
          {
-            rchar codeMsg[512];
-            rchar bigMsg[512];
+            char codeMsg[512];
+            char bigMsg[512];
             if (FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, ex.ErrorCode(), 0, codeMsg, 512, nullptr) <= 0)
             {
                SafeFormat(bigMsg, sizeof(bigMsg), "%s. Code 0x%x", ex.Message(), ex.ErrorCode());

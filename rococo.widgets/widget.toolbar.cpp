@@ -14,8 +14,8 @@ namespace
    struct Button
    {
       EventId id;
-      rchar name[32];
-      rchar resource[128];
+      char name[32];
+      char resource[128];
       Textures::BitmapLocation bitmap;
       GuiRect renderLocation;
       bool isOn{ false };

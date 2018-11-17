@@ -12,7 +12,6 @@ namespace Rococo
 	{
 		struct IFactoryResources
 		{
-			virtual void ManageWindow(HWND hWnd) = 0;
 		};
 
 		struct Factory

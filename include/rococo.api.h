@@ -180,7 +180,7 @@ namespace Rococo
 	namespace IO
 	{
 		struct IUnicode16Writer;
-		bool ChooseDirectory(rchar* name, size_t capacity);
+		bool ChooseDirectory(char* name, size_t capacity);
 		void ForEachFileInDirectory(cstr directory, IEventCallback<cstr>& onFile);
 	}
 

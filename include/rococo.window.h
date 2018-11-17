@@ -317,7 +317,7 @@ namespace Rococo
 			virtual int AddString(cstr data) = 0;
 			virtual int GetCurrentSelection() = 0;
 			virtual LRESULT GetItemData(int index) = 0;
-			virtual bool GetString(int index, rchar* data, size_t capacity) = 0;
+			virtual bool GetString(int index, char* data, size_t capacity) = 0;
 			virtual void ResetContent() = 0;
 			virtual void SetCurrentSelection(int index) = 0;
 			virtual HWND ListBoxHandle() const = 0;
@@ -334,7 +334,7 @@ namespace Rococo
 		{
 			virtual int AddString(cstr text) = 0;
 			virtual int FindString(cstr text) = 0;
-			virtual bool GetString(int index, rchar* buffer, size_t capacity) = 0;
+			virtual bool GetString(int index, char* buffer, size_t capacity) = 0;
 			virtual int GetCurrentSelection() = 0;
 			virtual void SetCurrentSelection(int index) = 0;
 		};
@@ -366,7 +366,7 @@ namespace Rococo
 			virtual int GetCurrentSelection() = 0;
 			virtual void ResetContent() = 0;
 			virtual void SetCurrentSelection(int index) = 0;
-			virtual bool GetTabName(int index, rchar* buffer, DWORD capacity) const = 0;
+			virtual bool GetTabName(int index, char* buffer, DWORD capacity) const = 0;
 			virtual int TabCount() const = 0;
 		};
 
@@ -394,7 +394,7 @@ namespace Rococo
 			   virtual IDEPANE_ID GetMigratingId() = 0;
 			   virtual void SetMigratingId(IDEPANE_ID) = 0;
 			   virtual void NotifyMigration() = 0;
-			   virtual void GetName(rchar name[256], IDEPANE_ID id) = 0;
+			   virtual void GetName(char name[256], IDEPANE_ID id) = 0;
 			   virtual IIDENode* ConstructPane(IDEPANE_ID id, IParentWindowSupervisor& parent) = 0;
 			};
 

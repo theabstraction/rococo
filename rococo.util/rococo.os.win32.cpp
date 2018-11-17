@@ -72,11 +72,11 @@ namespace Rococo
       return *b == 0;
    }
 
-   void FileModifiedArgs::GetPingPath(rchar* path, size_t capacity) const
+   void FileModifiedArgs::GetPingPath(char* path, size_t capacity) const
    {
       SafeFormat(path, capacity, "!%s", resourceName);
 
-      for (rchar* p = path; *p != 0; p++)
+      for (char* p = path; *p != 0; p++)
       {
          if (*p == '\\') *p = '/';
       }
@@ -90,6 +90,12 @@ namespace Rococo
 {
 	namespace OS
 	{
+		cstr GetAsciiCommandLine()
+		{
+			auto line =  GetCommandLineA();
+			return line;
+		}
+
 		bool IsFileExistant(const char* filename)
 		{
 			DWORD flags = GetFileAttributesA(filename);
@@ -174,7 +180,7 @@ namespace Rococo
 			}
 		}
 
-		void Format_C_Error(int errorCode, rchar* buffer, size_t capacity)
+		void Format_C_Error(int errorCode, char* buffer, size_t capacity)
 		{
 			if (0 == FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, buffer, (DWORD)capacity, NULL))
 			{
@@ -325,7 +331,7 @@ namespace
 		}
 	};
 
-	void MakeContainerDirectory(rchar* filename)
+	void MakeContainerDirectory(char* filename)
 	{
 		int len = (int)rlen(filename);
 
@@ -342,8 +348,8 @@ namespace
 	struct FilePath
 	{
 		enum { CAPACITY = 260 };
-		rchar data[CAPACITY];
-		operator rchar*() { return data; }
+		char data[CAPACITY];
+		operator char*() { return data; }
 		operator cstr() const { return data; }
 	};
 
@@ -734,7 +740,7 @@ namespace
 					size_t nChars = info.FileNameLength >> 1;
 					if (nChars < _MAX_PATH - 1)
 					{
-						rchar nullTerminatedFilename[_MAX_PATH] = { 0 };
+						char nullTerminatedFilename[_MAX_PATH] = { 0 };
 						for (DWORD i = 0; i < nChars; ++i)
 						{
 							nullTerminatedFilename[i] = (char)info.FileName[i];
@@ -832,7 +838,7 @@ namespace
 			return INVALID_FILE_ATTRIBUTES != GetFileAttributesA(absPath);
 		}
 
-		virtual void ConvertUnixPathToSysPath(cstr unixPath, rchar* sysPath, size_t bufferCapacity) const
+		virtual void ConvertUnixPathToSysPath(cstr unixPath, char* sysPath, size_t bufferCapacity) const
 		{
 			if (unixPath == nullptr) Throw(E_INVALIDARG, "Blank path in call to os.ConvertUnixPathToSysPath");
 			if (rlen(unixPath) >= bufferCapacity)
@@ -845,7 +851,7 @@ namespace
 			size_t i = 0;
 			for (; i < len; ++i)
 			{
-				rchar c = unixPath[i];
+				char c = unixPath[i];
 
 				if (c == '\\') Throw(E_INVALIDARG, "Illegal backslash '\\' in unixPath in call to os.ConvertUnixPathToSysPath");
 
@@ -901,7 +907,7 @@ namespace
 			}
 		}
 
-		virtual void GetBinDirectoryAbsolute(rchar* directory, size_t capacityChars) const
+		virtual void GetBinDirectoryAbsolute(char* directory, size_t capacityChars) const
 		{
 			SecureFormat(directory, capacityChars, "%s", binDirectory.data);
 		}
@@ -1057,7 +1063,7 @@ namespace Rococo
 
 	namespace IO
 	{
-		void GetUserPath(rchar* fullpath, size_t capacity, cstr shortname)
+		void GetUserPath(char* fullpath, size_t capacity, cstr shortname)
 		{
 			wchar_t* path;
 			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
@@ -1069,7 +1075,7 @@ namespace Rococo
 			wchar_t* path;
 			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
 
-			rchar fullpath[_MAX_PATH];
+			char fullpath[_MAX_PATH];
 			SafeFormat(fullpath, sizeof(fullpath), "%S\\%s", path, filename);
 
 			DeleteFileA(fullpath);
@@ -1080,19 +1086,19 @@ namespace Rococo
 			wchar_t* path;
 			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
 
-			rchar fullpath[_MAX_PATH];
+			char fullpath[_MAX_PATH];
 			SafeFormat(fullpath, sizeof(fullpath), "%S\\%s", path, filename);
 
 			HANDLE hFile = CreateFileA(fullpath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 			if (hFile != INVALID_HANDLE_VALUE)
 			{
 				DWORD writeLength;
-				WriteFile(hFile, s, (DWORD)(sizeof(rchar) * rlen(s)), &writeLength, nullptr);
+				WriteFile(hFile, s, (DWORD)(sizeof(char) * rlen(s)), &writeLength, nullptr);
 				CloseHandle(hFile);
 			}
 		}
 
-		rchar GetFileSeparator()
+		char GetFileSeparator()
 		{
 			return L'\\';
 		}
@@ -1111,7 +1117,7 @@ namespace Rococo
 			operator T* () { return instance; }
 		};
 
-		bool ChooseDirectory(rchar* name, size_t capacity)
+		bool ChooseDirectory(char* name, size_t capacity)
 		{
 			class DialogEventHandler : public IFileDialogEvents, public IFileDialogControlEvents
 			{
@@ -1286,7 +1292,7 @@ namespace Rococo
 			return true;
 		}
 
-		void EndDirectoryWithSlash(rchar* pathname, size_t capacity)
+		void EndDirectoryWithSlash(char* pathname, size_t capacity)
 		{
 			cstr finalChar = GetFinalNull(pathname);
 
@@ -1303,7 +1309,7 @@ namespace Rococo
 					Throw(0, "Insufficient room in directory buffer to trail with slash");
 				}
 
-				rchar* mutablePath = const_cast<rchar*>(finalChar);
+				char* mutablePath = const_cast<char*>(finalChar);
 				mutablePath[0] = L'/';
 				mutablePath[1] = 0;
 			}
@@ -1330,7 +1336,7 @@ namespace Rococo
 
 			Anon hSearch;
 
-			rchar fullpath[MAX_PATH];
+			char fullpath[MAX_PATH];
 			bool isSlashed = GetFinalNull(directory)[-1] == L'\\' || GetFinalNull(directory)[-1] == L'/';
 			SafeFormat(fullpath, sizeof(fullpath), "%s%s*.*", directory, isSlashed ? "" : "\\");
 

@@ -17,7 +17,7 @@ namespace
 
 	struct TestException : public IException
 	{
-		rchar msg[256];
+		char msg[256];
 		int32 errorCode;
 
 		virtual cstr Message() const

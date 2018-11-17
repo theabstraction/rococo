@@ -782,7 +782,7 @@ namespace Rococo
 	{
 		struct : IException
 		{
-			rchar msg[256];
+			char msg[256];
 
 			cstr Message() const override { return msg; }
 			int32 ErrorCode() const override { return 0; }

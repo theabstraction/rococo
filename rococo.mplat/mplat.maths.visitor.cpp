@@ -16,8 +16,8 @@ namespace
    {
       enum size_t { KEY_LEN = 64, VALUE_LEN = 128 };
 	  EventId selectEvent = nullEvent;
-      rchar key[KEY_LEN];
-      rchar value[VALUE_LEN];
+      char key[KEY_LEN];
+      char value[VALUE_LEN];
 	  bool isSelectable = false;
    };
 

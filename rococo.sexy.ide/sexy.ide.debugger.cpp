@@ -285,7 +285,7 @@ namespace
          MoveWindow(*spatialManager, 0, 0, rect.right, rect.bottom, TRUE);
       }
 
-      virtual void GetName(rchar name[256], IDEPANE_ID id)
+      virtual void GetName(char name[256], IDEPANE_ID id)
       {
          static std::unordered_map<IDEPANE_ID, cstr, IDEPANE_ID> idToName (
          {
@@ -421,7 +421,7 @@ namespace
 
       virtual int Log(cstr format, ...)
       {
-         rchar text[4096];
+         char text[4096];
          va_list args;
          va_start(args, format);
          int len = SafeVFormat(text, 4094, format, args);
@@ -449,7 +449,7 @@ namespace
 
       virtual void AddLogSection(RGBAb colour, cstr format, ...)
       {
-         rchar text[4096];
+         char text[4096];
          va_list args;
          va_start(args, format);
          int len = SafeVFormat(text, 4094, format, args);

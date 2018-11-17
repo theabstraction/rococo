@@ -43,7 +43,7 @@ namespace
 			mi.fMask = MIIM_STRING | MIIM_SUBMENU;
 			mi.cch = 256;
 
-			rchar text[256];
+			char text[256];
 			*(int*)text = 0;
 			mi.dwTypeData = text;
 
@@ -64,7 +64,7 @@ namespace
 
 	void Menu::AddString(cstr name, UINT_PTR id, cstr keyCommand)
 	{
-		rchar text[64];
+		char text[64];
 
 		if (keyCommand)
 		{

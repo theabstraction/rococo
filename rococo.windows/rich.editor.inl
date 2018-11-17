@@ -78,7 +78,7 @@ namespace
 			cr.cpMax = -1;
 
 			size_t len = min(rlen(text), nChars);
-			rchar* segmentBuffer = (rchar*)_alloca(sizeof(rchar)* len + 2);
+			char* segmentBuffer = (char*)_alloca(sizeof(char)* len + 2);
 
          StackStringBuilder sb(segmentBuffer, len + 1);
 			sb << text;

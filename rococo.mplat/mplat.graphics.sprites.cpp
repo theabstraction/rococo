@@ -46,12 +46,12 @@ namespace
          struct : IEventCallback<cstr>
          {
             Sprites* sprites;
-            rchar shortdir[IO::MAX_PATHLEN];
-            rchar directory[IO::MAX_PATHLEN];
+            char shortdir[IO::MAX_PATHLEN];
+            char directory[IO::MAX_PATHLEN];
 
             virtual void OnEvent(cstr filename)
             {
-               rchar contentRelativePath[IO::MAX_PATHLEN];
+               char contentRelativePath[IO::MAX_PATHLEN];
                SafeFormat(contentRelativePath, IO::MAX_PATHLEN, "%s%s", shortdir, filename);
                sprites->AddSprite(to_fstring(contentRelativePath));
             }

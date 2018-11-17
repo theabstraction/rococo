@@ -29,7 +29,7 @@ namespace
    {
       std::unordered_map<std::string, MeshBinding*> meshes;
 	  std::unordered_map<ID_SYS_MESH, MeshBindingEx, ID_SYS_MESH> idToName;
-	  rchar name[MAX_FQ_NAME_LEN + 1] = { 0 };
+	  char name[MAX_FQ_NAME_LEN + 1] = { 0 };
       std::vector<ObjectVertex> vertices;
       IRenderer& renderer;
 

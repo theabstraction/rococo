@@ -111,7 +111,7 @@ namespace Rococo
 
       void InitScriptSystem(IInstallation& installation)
       {
-         rchar srcpath[Rococo::IO::MAX_PATHLEN];
+         char srcpath[Rococo::IO::MAX_PATHLEN];
          SecureFormat(srcpath, sizeof(srcpath), "%sscripts\\native\\", (cstr) installation.Content());
 
          Rococo::Script::SetDefaultNativeSourcePath(srcpath);
@@ -135,7 +135,7 @@ namespace Rococo
             {
                platform.installation.OS().FireUnstable();
 
-               rchar msg[1024];
+               char msg[1024];
                SafeFormat(msg, sizeof(msg), "Error: Do you wish to debug?\n\t%s\n\t%s", source, message);
                if (QueryYesNo(platform.renderer.Window(), msg))
                {

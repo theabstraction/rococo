@@ -52,8 +52,7 @@ namespace Rococo
 
 #endif
 
-	typedef char rchar; // the Rococo character type
-	typedef const rchar* cstr;
+	typedef const char* cstr;
 
 	typedef float float32;
 	typedef double float64;
@@ -493,9 +492,9 @@ namespace Rococo
 		ticks CpuHz();
 		ticks UTCTime();
 		void FormatTime(ticks utcTime, char* buffer, size_t nBytes);
-		bool StripLastSubpath(rchar* fullpath);
+		bool StripLastSubpath(char* fullpath);
 		bool IsFileExistant(cstr path);
-		void Format_C_Error(int errorCode, rchar* buffer, size_t capacity);
+		void Format_C_Error(int errorCode, char* buffer, size_t capacity);
 		int OpenForAppend(void** fp, cstr name);
 		int OpenForRead(void** fp, cstr name);
 		void UILoop(uint32 milliseconds);
@@ -504,6 +503,7 @@ namespace Rococo
 		void SanitizePath(char* path);
 		void SaveClipBoardText(cstr text, Windows::IWindow& window);
 		bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window);
+		cstr GetAsciiCommandLine();
 	}
 
 #if !defined(_W64)

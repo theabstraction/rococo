@@ -53,7 +53,7 @@ namespace ANON
 
 	class DX11GraphicsWindow : public IDX11GraphicsWindow, public Windows::IWindow
 	{
-		DX11::Factory factory;
+		DX11::Factory factory; // Yes, a value type, not a reference
 		HWND hWnd;
 		WindowSpec ws;
 		IAppEventHandler* handler = nullptr;
@@ -124,11 +124,11 @@ namespace ANON
 					auto state = 0xFFFF & wParam;
 					if (state != 0)
 					{
-						factory.resources.ManageWindow(hWnd);
+						VALIDATEDX11(factory.factory.MakeWindowAssociation(hWnd, 0));
 					}
 					else
 					{
-						factory.resources.ManageWindow(nullptr);
+						VALIDATEDX11(factory.factory.MakeWindowAssociation(nullptr, 0));
 					}
 					return 0;
 				}
@@ -227,8 +227,8 @@ namespace ANON
 
 			SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR) OnMessage);
 
-			factory.resources.ManageWindow(hWnd);
-
+			factory.factory.MakeWindowAssociation(hWnd, 0);
+			
 			RegisterRawInput(hWnd);
 		}
 

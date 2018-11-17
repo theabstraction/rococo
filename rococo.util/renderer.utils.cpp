@@ -92,7 +92,7 @@ namespace
 
 			for (cstr p = text; *p != 0; p++)
 			{
-				rchar c = *p;
+				char c = *p;
 
 				if (c >= 255) c = '?';
 
@@ -159,7 +159,7 @@ namespace
 
 			for (cstr p = text; *p != 0; p++)
 			{
-				rchar c = *p;
+				char c = *p;
 
 				Vec2 nextGlyphPos = builder.GetCursor();
 

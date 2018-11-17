@@ -53,7 +53,7 @@ namespace Rococo
 	int32 Compare(cstr a, cstr b, int64 count);
 	int32 Compare(sexstring a, const SEXCHAR* b);
 	const char* GetSubString(const char* s, const char *subString);
-	cstr GetSubString(cstr s, const rchar *subString);
+	cstr GetSubString(cstr s, const char *subString);
 	
 	template<typename CHARTYPE> inline bool AreEqual(const CHARTYPE* a, const CHARTYPE* b)
 	{

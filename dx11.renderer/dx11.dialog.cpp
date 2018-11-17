@@ -66,7 +66,7 @@ namespace
          else
          {
             int secsLeft = (int)((float)delta.QuadPart / (float)hz.QuadPart);
-            rchar txt[64];
+            char txt[64];
             SafeFormat(txt, sizeof(txt), "Confirming in %d seconds", secsLeft);
             SetWindowTextA(*countdownTimerLabel, txt);
          }
@@ -164,13 +164,13 @@ namespace Rococo
          }
       }
 
-      void FormatModeString(const DXGI_MODE_DESC& mode, rchar modeDesc[64])
+      void FormatModeString(const DXGI_MODE_DESC& mode, char modeDesc[64])
       {
          UINT hz = (UINT)(mode.RefreshRate.Numerator / (float)mode.RefreshRate.Denominator);
          SafeFormat(modeDesc, 64, "%d x %d - %d Hz", mode.Width, mode.Height, hz);
       }
 
-      bool FormatOutputString(IDXGIOutput& output, rchar outputString[64], UINT index)
+      bool FormatOutputString(IDXGIOutput& output, char outputString[64], UINT index)
       {
          DXGI_OUTPUT_DESC odesc;
          if (S_OK != output.GetDesc(&odesc))
@@ -278,7 +278,7 @@ namespace Rococo
                adapter->GetDesc(&desc);
                adapter->Release();
 
-               rchar buf[256];
+               char buf[256];
                SafeFormat(buf, 256, "%S", desc.Description);
                adapterList->AddString(buf);
             }
@@ -306,7 +306,7 @@ namespace Rococo
                   DXGI_OUTPUT_DESC odesc;
                   output->GetDesc(&odesc);
 
-                  rchar outputString[64];
+                  char outputString[64];
                   if (FormatOutputString(*output, outputString, i + 1))
                   {
                      outputList->AddString(outputString);
@@ -341,7 +341,7 @@ namespace Rococo
 
                      for (auto& i : modeCache)
                      {
-                        rchar modeString[64];
+                        char modeString[64];
                         FormatModeString(i, modeString);
                         modeList->AddString(modeString);
                      }

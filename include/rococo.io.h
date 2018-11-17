@@ -86,7 +86,7 @@ namespace Rococo
    {
       cstr resourceName;
       bool Matches(cstr resource) const;
-      void GetPingPath(rchar* path, size_t capacity) const;
+      void GetPingPath(char* path, size_t capacity) const;
    };
 
    struct MemoryUsage
@@ -99,13 +99,13 @@ namespace Rococo
 
 	ROCOCOAPI IOS
 	{
-		virtual void ConvertUnixPathToSysPath(cstr unixPath, rchar* sysPath, size_t bufferCapacity) const = 0;
+		virtual void ConvertUnixPathToSysPath(cstr unixPath, char* sysPath, size_t bufferCapacity) const = 0;
 		virtual void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs>& cb) = 0;
 
 		// Call if the system has become unstable due to bad assets et al
 		virtual void FireUnstable() = 0;
 		virtual void SetUnstableHandler(IEventCallback<SysUnstableArgs>* cb) = 0;
-		virtual void GetBinDirectoryAbsolute(rchar* binDirectory, size_t capacityChars) const = 0;
+		virtual void GetBinDirectoryAbsolute(char* binDirectory, size_t capacityChars) const = 0;
 		virtual bool IsFileExistant(cstr absPath) const = 0;
 		virtual void LoadAbsolute(cstr absPath, IExpandingBuffer& buffer, int64 maxFileLength) const = 0;
 		virtual size_t MaxPath() const = 0;
@@ -144,9 +144,9 @@ namespace Rococo
    namespace IO
    {
       enum { MAX_PATHLEN = 260 };
-      rchar GetFileSeparator();
-      void EndDirectoryWithSlash(rchar* pathname, size_t capacity);
-      void GetUserPath(rchar* fullpath, size_t capacity, cstr shortname);
+      char GetFileSeparator();
+      void EndDirectoryWithSlash(char* pathname, size_t capacity);
+      void GetUserPath(char* fullpath, size_t capacity, cstr shortname);
       void DeleteUserFile(cstr filename);
    }
 }

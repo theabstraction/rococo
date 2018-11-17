@@ -186,7 +186,7 @@ namespace
 			z.hParent = ToHTree(parentId);
 			z.hInsertAfter = TVI_LAST;
 			z.itemex.mask = TVIF_TEXT;
-			z.itemex.pszText = (rchar*)text;
+			z.itemex.pszText = (char*)text;
 
 			size_t len = rlen(text);
 
@@ -227,7 +227,7 @@ namespace
 			z.hInsertAfter = TVI_LAST;
 			z.itemex.mask = TVIF_STATE | TVIF_TEXT | TVIF_PARAM;
 			z.itemex.stateMask = TVIS_STATEIMAGEMASK;
-			z.itemex.pszText = (rchar*) text;
+			z.itemex.pszText = (char*) text;
 
 			size_t len = rlen(text);
 

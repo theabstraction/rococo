@@ -95,7 +95,7 @@ namespace
    {
       int depth;
 
-      rchar writeBuffer[32768];
+      char writeBuffer[32768];
       StackStringBuilder sb;
    public:
       IDEWriterViaSexy() :
@@ -457,7 +457,7 @@ namespace
 
          for (auto id : paneIds)
          {
-            rchar name[256];
+            char name[256];
             database.GetName(name, id);
             tabView->AddTab(name, "");
          }
@@ -692,7 +692,7 @@ namespace
                   DeleteMenu(hMenu, 0, MF_BYPOSITION);
                }
 
-               rchar name[40];
+               char name[40];
                MENUITEMINFOA item = { 0 };
                item.cbSize = sizeof(item);
                item.fMask = MIIM_STRING | MIIM_ID | MIIM_STATE;
@@ -912,14 +912,14 @@ namespace
       {
          if (index < 0 || index >= s.NumberOfElements())
          {
-            rchar msg[1024];
+            char msg[1024];
             SafeFormat(msg, sizeof(msg), "Expression too short. Expected an int32 in position %d: %s", index, helper);
             ThrowSex(s, msg);
          }
 
          if (!IsAtomic(s[index]))
          {
-            rchar msg[1024];
+            char msg[1024];
             SafeFormat(msg, sizeof(msg), "Expecting atomic argument in position %d: %s", index, helper);
             ThrowSex(s[index], msg);
          }
@@ -927,7 +927,7 @@ namespace
          VariantValue value;
          if (Rococo::Parse::PARSERESULT_GOOD != Rococo::Parse::TryParse(value, VARTYPE_Int32, s[index].String()->Buffer))
          {
-            rchar msg[1024];
+            char msg[1024];
             SafeFormat(msg, sizeof(msg), "Expecting int32 argument in position %d: %s", index, helper);
             ThrowSex(s[index], msg);
          }
@@ -1472,9 +1472,9 @@ namespace
    {
       CSParserProxy parser;
 
-      rchar savename[_MAX_PATH];
+      char savename[_MAX_PATH];
       SafeFormat(savename, sizeof(savename), "%s.ide.sxy", appName);
-      rchar fullpath[_MAX_PATH];
+      char fullpath[_MAX_PATH];
       IO::GetUserPath(fullpath, _MAX_PATH, savename);
 
       Auto<Rococo::Sex::ISourceCode> src;

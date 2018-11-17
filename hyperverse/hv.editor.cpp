@@ -92,7 +92,7 @@ namespace
 		{
 			Vec2 worldCursor = GetWorldPosition(metrics.cursorPosition);
 
-			rchar originText[24];
+			char originText[24];
 			SafeFormat(originText, sizeof(originText), "(%4.1f,%4.1f)", worldCursor.x, worldCursor.y);
 
 			Vec2i centre{ metrics.screenSpan.x >> 1, metrics.screenSpan.y >> 1 };

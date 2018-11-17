@@ -203,7 +203,7 @@ namespace HV
 			ev.args = &args;
 			e.platform.publisher.Publish(ev);
 
-			rchar pingname[1024];
+			char pingname[1024];
 			args.GetPingPath(pingname, 1024);
 
 			platform.gui.LogMessage("File modified: %s", pingname);

@@ -20,7 +20,7 @@ namespace
    class StatusBar : public IStatusBar, public IObserver
    {
       IPublisher& publisher;
-      rchar text[256];
+      char text[256];
 
       int32 updateHighlight;
    public:

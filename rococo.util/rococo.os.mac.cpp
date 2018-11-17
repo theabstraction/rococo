@@ -242,7 +242,7 @@ namespace Rococo
       return *b == 0;
    }
 
-   void FileModifiedArgs::GetPingPath(rchar* path, size_t capacity) const
+   void FileModifiedArgs::GetPingPath(char* path, size_t capacity) const
    {
       SafeFormat(path, capacity, "!%s", resourceName);
    }
@@ -281,7 +281,7 @@ namespace Rococo
 			printf("DBG: %s\n", line);
 #endif
 		}
-		void Format_C_Error(int errorCode, rchar* buffer, size_t capacity)
+		void Format_C_Error(int errorCode, char* buffer, size_t capacity)
 		{
 			strerror_r(errorCode, buffer, capacity);
 		}
@@ -373,12 +373,12 @@ namespace Rococo
 			}
 		}
 
-		bool StripLastSubpath(rchar* fullpath)
+		bool StripLastSubpath(char* fullpath)
 		{
 			int32 len = StringLength(fullpath);
 			for (int i = len - 2; i > 0; --i)
 			{
-				if (fullpath[i] == (rchar) '/')
+				if (fullpath[i] == (char) '/')
 				{
 					fullpath[i + 1] = 0;
 					return true;
@@ -479,7 +479,7 @@ namespace
       }
    };
 
-   void MakeContainerDirectory(rchar* filename)
+   void MakeContainerDirectory(char* filename)
    {
       int len = (int)rlen(filename);
 
@@ -496,7 +496,7 @@ namespace
    struct FilePath
    {
       rchar data[_MAX_PATH];
-      operator rchar*() { return data; }
+      operator char*() { return data; }
    };
 
    void GetContentDirectory(cstr contentIndicatorName, FilePath& path, IOS& os)
@@ -838,7 +838,7 @@ namespace
          return OS::IsFileExistant(absPath);
       }
 
-      void ConvertUnixPathToSysPath(cstr unixPath, rchar* sysPath, size_t bufferCapacity) const override
+      void ConvertUnixPathToSysPath(cstr unixPath, char* sysPath, size_t bufferCapacity) const override
       {
          strcpy_s(sysPath, bufferCapacity, unixPath);
       }
@@ -880,7 +880,7 @@ namespace
          }
       }
 
-      void GetBinDirectoryAbsolute(rchar* directory, size_t capacityChars) const override
+      void GetBinDirectoryAbsolute(char* directory, size_t capacityChars) const override
       {
          SecureFormat(directory, capacityChars, "%s", binDirectory.data);
       }

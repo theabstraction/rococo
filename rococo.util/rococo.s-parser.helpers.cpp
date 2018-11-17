@@ -98,7 +98,7 @@ namespace
 
    void AddArguments(const IArchetype& f, Visitors::IUITree& tree, Visitors::TREE_NODE_ID typeId)
    {
-      rchar desc[256];
+      char desc[256];
 
       if (f.NumberOfInputs() > (f.IsVirtualMethod() ? 1 : 0))
       {
@@ -181,7 +181,7 @@ namespace
             {
                if (childStructuresId.value == 0) childStructuresId = tree->AddChild(rootId, "[Structures]", CheckState_Clear);
 
-               rchar desc[256];
+               char desc[256];
                SafeFormat(desc, sizeof(desc), "%s.%s", ns->FullName()->Buffer, alias);
                auto typeId = tree->AddChild(childStructuresId, desc, CheckState_Clear);
 
@@ -219,7 +219,7 @@ namespace
                if (childFunctionsId.value == 0) childFunctionsId = tree->AddChild(rootId, "[Functions]", CheckState_Clear);
 
                TREE_NODE_ID typeId;
-               rchar desc[256];
+               char desc[256];
 
                SafeFormat(desc, sizeof(desc), "%s.%s", ns->FullName()->Buffer, alias);
                typeId = tree->AddChild(childFunctionsId, desc, CheckState_Clear);
@@ -242,7 +242,7 @@ namespace
 
          if (ns.InterfaceCount() > 0)
          {
-            rchar desc[256];
+            char desc[256];
 
             auto interfaceId = tree.AddChild(rootId, "[Interfaces]", CheckState_Clear);
 
@@ -286,7 +286,7 @@ namespace
                if (childFactoryId.value == 0) childFactoryId = tree->AddChild(rootId, "[Factories]", CheckState_Clear);
 
                TREE_NODE_ID typeId;
-               rchar desc[256];
+               char desc[256];
 
                SafeFormat(desc, sizeof(desc), "%s.%s - creates objects of type %s", ns->FullName()->Buffer, alias, f.InterfaceType()->Buffer);
                typeId = tree->AddChild(childFactoryId, desc, CheckState_Clear);
@@ -363,7 +363,7 @@ namespace Rococo
 		va_list args;
 		va_start(args, format);
 
-		rchar msg[512];
+		char msg[512];
 		SafeVFormat(msg, sizeof(msg), format, args);
 
 		auto start = s.Start();
@@ -811,7 +811,7 @@ namespace Rococo
 					return;
 				}
 
-				rchar desc[256];
+				char desc[256];
 				SafeFormat(desc, sizeof(desc), "%p %s - %s", sf, f->Module().Name(), f->Name());
 
 				auto sfNode = tree.AddRootItem(desc, CheckState_Clear);
@@ -823,7 +823,7 @@ namespace Rococo
 				{
 					virtual void OnVariable(size_t index, const VariableDesc& v)
 					{
-						rchar desc[256];
+						char desc[256];
 						if (v.Value[0] != 0)
 						{
 							SafeFormat(desc, sizeof(desc), "[%d] %p %s: %s %s = %s", v.Address, v.Address + SF, v.Location, v.Type, v.Name, v.Value);
@@ -938,7 +938,7 @@ namespace Rococo
 			{
 				if (count < maxCount)
 				{
-					rchar wname[128], wvalue[128];
+					char wname[128], wvalue[128];
 					SafeFormat(wname, 128, "%s", name);
 					SafeFormat(wvalue, 128, "%s", value);
 
@@ -992,7 +992,7 @@ namespace Rococo
 
 		debugger.InitDisassembly(section.Id);
 
-		rchar metaData[256];
+		char metaData[256];
 		SafeFormat(metaData, sizeof(metaData), "%s %s (Id #%d) - %d bytes\n\n", f->Name(), f->Module().Name(), (int32)section.Id, (int32)functionLength);
 		debugger.AddDisassembly(RGBAb(128, 128, 0), metaData);
 
@@ -1014,7 +1014,7 @@ namespace Rococo
 				*ppExpr = (const ISExpression*)symbol.SourceExpression;
 			}
 
-			rchar assemblyLine[256];
+			char assemblyLine[256];
 
 			if (isHighlight)
 			{
