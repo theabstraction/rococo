@@ -193,8 +193,11 @@ namespace Rococo
 
 		AutoFree& operator = (T* src)
 		{
-			Rococo::Free(t);
-			t = src;
+			if (src != t)
+			{
+				Rococo::Free(t);
+				t = src;
+			}
 			return *this;
 		}
 
@@ -209,6 +212,7 @@ namespace Rococo
 		operator const T* () const { return t; }
 		const T* operator -> () const { return t; }
 		const T& operator * () const { return *t; }
+		operator bool () const { return t != nullptr; }
 	};
 
 	template<class T> ROCOCOAPI IEnumerator

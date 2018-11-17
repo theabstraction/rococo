@@ -769,10 +769,7 @@ namespace Rococo
 
 		virtual void Release(cstr resourceName)
 		{
-			char sysPath[IO::MAX_PATHLEN];
-			installation.ConvertPingPathToSysPath(resourceName, sysPath, IO::MAX_PATHLEN);
-
-			auto i = sources.find(sysPath);
+			auto i = sources.find(resourceName);
 			if (i != sources.end())
 			{
 				i->second.code->Release();
