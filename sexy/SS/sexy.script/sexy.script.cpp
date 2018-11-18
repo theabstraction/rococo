@@ -42,6 +42,8 @@
 #include <list>
 #include <sexy.stdstrings.h>
 
+#include <rococo.api.h>
+
 using namespace Rococo;
 using namespace Rococo::Script;
 using namespace Rococo::Compiler;
@@ -1177,7 +1179,7 @@ namespace Rococo
 
 				try
 				{
-					LoadAsciiTextFile(srcCode, MAX_NATIVE_SRC_LEN, fullPath);
+					OS::LoadAsciiTextFile(srcCode, MAX_NATIVE_SRC_LEN, fullPath);
 				}
 				catch (Rococo::IException&)
 				{

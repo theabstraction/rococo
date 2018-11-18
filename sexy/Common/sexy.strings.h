@@ -39,6 +39,8 @@
 #endif
 
 #include <rococo.strings.h>
+#include <sexy.types.h>
+#include <rococo.parse.h>
 
 namespace Rococo
 {
@@ -99,6 +101,13 @@ namespace Rococo
 
    bool operator == (const CStringKey& a, const CStringKey& b);
    bool operator < (const CStringKey& a, const CStringKey& b);
+
+   namespace Parse
+   {
+	   VARTYPE GetLiteralType(cstr candidate);
+	   cstr VarTypeName(VARTYPE type);
+	   PARSERESULT TryParse(VariantValue& value, VARTYPE type, cstr valueLiteral);
+   }
 }
 
 #endif

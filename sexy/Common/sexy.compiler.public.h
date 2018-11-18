@@ -472,11 +472,7 @@ namespace Rococo { namespace Compiler
 		char source[MAX_MSG_LEN];
 
 	public:
-		STCException(ERRORCODE _code, cstr _source, cstr _msg): code(_code)
-		{
-			CopyString(message, MAX_MSG_LEN, _msg);
-			CopyString(source, MAX_MSG_LEN, _source);
-		}
+		STCException(ERRORCODE _code, cstr _source, cstr _msg);
 
 		cstr Source() const
 		{

@@ -62,7 +62,7 @@ namespace Rococo
 		void ThrowBadNativeArg(int index, cstr source, cstr message)
 		{
 			WriteToStandardOutput(("Error %d in %s: %s\r\n"), index, source, message);
-         Throw(0, "Bad native argument: %s - %s", source, message);
+			Throw(0, "Bad native argument: %s - %s", source, message);
 		}
 	}
 }

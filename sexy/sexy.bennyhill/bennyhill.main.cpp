@@ -41,6 +41,8 @@
 #include "sexy.lib.s-parser.h"
 #include "sexy.lib.util.h"
 
+#include <rococo.api.h>
+
 namespace Rococo
 {
    void ConvertAndAppendCppType(FileAppender& appender, cstr cppType)

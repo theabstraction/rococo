@@ -9,6 +9,9 @@
 #include <rococo.api.h>
 #include <rococo.io.h>
 #include <rococo.visitors.h>
+#define ROCOCO_USE_SAFE_V_FORMAT
+#include <rococo.strings.h>
+#include <sexy.strings.h>
 
 #include <stdarg.h>
 
@@ -171,13 +174,13 @@ namespace
             }
          }
 
-         struct : public ICallback<const Rococo::Compiler::IStructure, csexstr>
+         struct : public ICallback<const Rococo::Compiler::IStructure, cstr>
          {
             TREE_NODE_ID childStructuresId;
             TREE_NODE_ID rootId;
             IUITree* tree;
             const Rococo::Compiler::INamespace* ns;
-            virtual CALLBACK_CONTROL operator()(const Rococo::Compiler::IStructure& s, csexstr alias)
+            virtual CALLBACK_CONTROL operator()(const Rococo::Compiler::IStructure& s, cstr alias)
             {
                if (childStructuresId.value == 0) childStructuresId = tree->AddChild(rootId, "[Structures]", CheckState_Clear);
 
@@ -208,13 +211,13 @@ namespace
 
          ns.EnumerateStrutures(enumStructures);
 
-         struct : public ICallback<const Rococo::Compiler::IFunction, csexstr>
+         struct : public ICallback<const Rococo::Compiler::IFunction, cstr>
          {
             TREE_NODE_ID childFunctionsId;
             TREE_NODE_ID rootId;
             IUITree* tree;
             const Rococo::Compiler::INamespace* ns;
-            virtual CALLBACK_CONTROL operator()(const Rococo::Compiler::IFunction& f, csexstr alias)
+            virtual CALLBACK_CONTROL operator()(const Rococo::Compiler::IFunction& f, cstr alias)
             {
                if (childFunctionsId.value == 0) childFunctionsId = tree->AddChild(rootId, "[Functions]", CheckState_Clear);
 
@@ -275,13 +278,13 @@ namespace
             }
          }
 
-         struct : public ICallback<const Rococo::Compiler::IFactory, csexstr>
+         struct : public ICallback<const Rococo::Compiler::IFactory, cstr>
          {
             TREE_NODE_ID childFactoryId;
             TREE_NODE_ID rootId;
             IUITree* tree;
             const Rococo::Compiler::INamespace* ns;
-            virtual CALLBACK_CONTROL operator()(const Rococo::Compiler::IFactory& f, csexstr alias)
+            virtual CALLBACK_CONTROL operator()(const Rococo::Compiler::IFactory& f, cstr alias)
             {
                if (childFactoryId.value == 0) childFactoryId = tree->AddChild(rootId, "[Factories]", CheckState_Clear);
 
@@ -369,7 +372,7 @@ namespace Rococo
 		auto start = s.Start();
 		auto end = s.End();
 
-		SEXCHAR specimen[64];
+		char specimen[64];
 		Rococo::Sex::GetSpecimen(specimen, s);
 
 		ParseException ex(start, end, "ParseException", msg, specimen, &s);
@@ -396,7 +399,7 @@ namespace Rococo
 		}
 	}
 
-	float GetValue(cr_sex s, float minValue, float maxValue, csexstr hint)
+	float GetValue(cr_sex s, float minValue, float maxValue, cstr hint)
 	{
 		sexstring txt = s.String();
 
@@ -453,7 +456,7 @@ namespace Rococo
 		return Vec3{ x, y, z };
 	}
 
-	int32 GetValue(cr_sex s, int32 minValue, int32 maxValue, csexstr hint)
+	int32 GetValue(cr_sex s, int32 minValue, int32 maxValue, cstr hint)
 	{
 		sexstring txt = s.String();
 
@@ -471,7 +474,7 @@ namespace Rococo
 		return value;
 	}
 
-	void ScanExpression(cr_sex s, cstr hint, const char* format, ...)
+	void ScanExpression(cr_sex s, cstr hint, cstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -547,7 +550,7 @@ namespace Rococo
 			}
 		}
 
-		return parser.DuplicateSourceBuffer((csexstr)rawData.GetData(), (int)rawData.Length(), Vec2i{ 1,1 }, resourcePath);
+		return parser.DuplicateSourceBuffer((cstr)rawData.GetData(), (int)rawData.Length(), Vec2i{ 1,1 }, resourcePath);
 	}
 
 	fstring GetAtomicArg(cr_sex s)
@@ -562,14 +565,14 @@ namespace Rococo
 		switch (s.Type())
 		{
 		case EXPRESSION_TYPE_ATOMIC:
-			totalOutput += logger.Log(SEXTEXT(" %s"), (csexstr)s.String()->Buffer);
+			totalOutput += logger.Log(" %s", (cstr)s.String()->Buffer);
 			break;
 		case EXPRESSION_TYPE_STRING_LITERAL:
-			totalOutput += logger.Log(SEXTEXT(" \"%s\""), (csexstr)s.String()->Buffer);
+			totalOutput += logger.Log(" \"%s\"", (cstr)s.String()->Buffer);
 			break;
 		case EXPRESSION_TYPE_COMPOUND:
 
-			totalOutput += logger.Log(SEXTEXT(" ("));
+			totalOutput += logger.Log(" (");
 
 			for (int i = 0; i < s.NumberOfElements(); ++i)
 			{
@@ -582,10 +585,10 @@ namespace Rococo
 				PrintExpression(child, totalOutput, maxOutput, logger);
 			}
 
-			totalOutput += logger.Log(SEXTEXT(" )"));
+			totalOutput += logger.Log(" )");
 			break;
 		case EXPRESSION_TYPE_NULL:
-			totalOutput += logger.Log(SEXTEXT(" ()"));
+			totalOutput += logger.Log(" ()");
 			break;
 		}
 	}
@@ -663,7 +666,7 @@ namespace Rococo
 
 		for (const ISExpression* s = ex.Source(); s != NULL; s = s->GetTransform())
 		{
-			if (s->TransformDepth() > 0)  debugger.Log(SEXTEXT("Macro expansion %d:\n"), s->TransformDepth());
+			if (s->TransformDepth() > 0)  debugger.Log("Macro expansion %d:\n", s->TransformDepth());
 
 			int totalOutput = 0;
 			PrintExpression(*s, totalOutput, 1024, subLogger);
@@ -672,7 +675,7 @@ namespace Rococo
 
 			subLogger.ClearLog();
 
-			debugger.Log(SEXTEXT("\n"));
+			debugger.Log("\n");
 		}
 	}
 
@@ -842,13 +845,13 @@ namespace Rococo
 							int depth;
 							const uint8* instance;
 
-							void OnMember(IPublicScriptSystem& ss, csexstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem) override
+							void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem) override
 							{
 								char prefix[256] = { 0 };
 
 								if (member.IsPseudoVariable())
 								{
-									SafeFormat(prefix, sizeof(prefix), SEXTEXT("(pseudo) "));
+									SafeFormat(prefix, sizeof(prefix), "(pseudo) ");
 								}
 
 								char value[256];
@@ -1375,7 +1378,7 @@ namespace Rococo
 		OS::ticks start = OS::CpuTicks();
 		InitSexyScript(mainModule, debugger, ss, sources, onCompile);
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
 		if (ns == nullptr)
 		{
 			Throw(0, "Cannot find (namespace EntryPoint) in %s", mainModule.Source().Name());

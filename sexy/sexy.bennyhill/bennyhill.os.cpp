@@ -49,6 +49,8 @@
 
 #include "bennyhill.h"
 
+#include <rococo.api.h>
+
 namespace Rococo
 {
 	FileAppender::FileAppender(cstr _filename) : filename(_filename)

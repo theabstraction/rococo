@@ -118,4 +118,27 @@ namespace Rococo
 	   void Clear() override;
 	   int32 Length() const override;
    };
+
+   bool IsCapital(char c);
+   bool IsLowerCase(char c);
+   bool IsAlphabetical(char c);
+   bool IsNumeric(char c);
+   bool IsAlphaNumeric(char c);
+
+   size_t Hash(cstr text);
+   int32 Hash(cstr s, int64 length);
+   int32 Hash(int32 x);
+   int32 Hash(int64 x);
+
+   int WriteToStandardOutput(const char* text, ...);
+   int WriteToStandardOutput(cstr text, ...);
+
+   int32 StringLength(const char* s);
+   int32 StringLength(cstr s);
+   void CopyString(char* dest, size_t capacity, const char* source);
+
+   void StringCat(char* buf, cstr source, int maxChars);
+
+   size_t rlen(cstr s);
+   int StrCmpN(cstr a, cstr b, size_t len);
 }

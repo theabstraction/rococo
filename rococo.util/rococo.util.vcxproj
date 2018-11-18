@@ -98,6 +98,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\include\rococo.parsering.cpp" />
     <ClCompile Include="renderer.utils.cpp" />
     <ClCompile Include="rococo.allocators.cpp" />
     <ClCompile Include="rococo.base.cpp" />
@@ -123,6 +124,7 @@
     <ClInclude Include="..\include\rococo.api.h" />
     <ClInclude Include="..\include\rococo.debugging.h" />
     <ClInclude Include="..\include\rococo.io.h" />
+    <ClInclude Include="..\include\rococo.parse.h" />
     <ClInclude Include="..\include\rococo.ringbuffer.h" />
     <ClInclude Include="..\include\rococo.strings.h" />
     <ClInclude Include="..\include\rococo.textures.h" />

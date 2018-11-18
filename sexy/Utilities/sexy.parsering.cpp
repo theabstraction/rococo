@@ -13,6 +13,8 @@
 # include <cmath>
 #endif
 
+#include <rococo.parse.h>
+
 namespace
 {
 	using namespace Rococo;
@@ -438,75 +440,17 @@ namespace Rococo { namespace Parse
 
 	cstr VarTypeName(VARTYPE type)
 	{
-		switch(type)
+		switch (type)
 		{
 		case VARTYPE_Int32:	return ("Int32");
 		case VARTYPE_Int64: return ("Int64");
 		case VARTYPE_Float32: return ("Float32");
 		case VARTYPE_Float64: return ("Float64");
-      case VARTYPE_Bool: return ("Boolean32");
-      case VARTYPE_Derivative: return ("Derivative");
-      case VARTYPE_Pointer: return ("Pointer");
+		case VARTYPE_Bool: return ("Boolean32");
+		case VARTYPE_Derivative: return ("Derivative");
+		case VARTYPE_Pointer: return ("Pointer");
 		default: return ("Unknown variable type");
 		}
-	}
-
-	PARSERESULT TryParseHex(OUT int32& value, IN cstr hexDigits)
-	{
-		int len = StringLength(hexDigits);
-		if (len == 0 || len > 8)
-		{
-			return PARSERESULT_HEXADECIMAL_INCORRECT_NUMBER_OF_DIGITS;
-		}
-
-		int32 x = 0;
-		int32 shift = 0;
-		for(int i = len-1; i >= 0; --i)
-		{
-			int32 g;
-			if (TryGetHex(OUT g, hexDigits[i]))
-			{
-				x |= (((int64)g) << shift); 
-			}
-			else
-			{
-				return PARSERESULT_HEXADECIMAL_BAD_CHARACTER;
-			}
-
-			shift += 4;
-		}
-
-		value = x;
-		return PARSERESULT_GOOD;
-	}
-
-	PARSERESULT TryParseHex(OUT int64& value, IN cstr hexDigits)
-	{
-		int len = (int) StringLength(hexDigits);
-		if (len == 0 || len > 16)
-		{
-			return PARSERESULT_HEXADECIMAL_INCORRECT_NUMBER_OF_DIGITS;
-		}
-
-		int64 x = 0;
-		int32 shift = 0;
-		for(int i = len-1; i >= 0; --i)
-		{
-			int32 g;
-			if (TryGetHex(OUT g, hexDigits[i]))
-			{
-				x |= (((int64)g) << shift); 
-			}
-			else
-			{
-				return PARSERESULT_HEXADECIMAL_BAD_CHARACTER;
-			}
-
-			shift += 4;
-		}
-
-		value = x;
-		return PARSERESULT_GOOD;
 	}
 
 	bool IsNAN(float x)

@@ -18,6 +18,8 @@
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 
+#include <rococo.api.h>
+
 using namespace Rococo;
 using namespace Rococo::Compiler;
 using namespace Rococo::VM;

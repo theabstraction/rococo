@@ -14,6 +14,8 @@
 
 #include "sexy.s-parser.h"
 
+#include <rococo.api.h>
+
 #define VALIDATE(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Stop(); }
 #define VALIDATE_EQUAL(_Expression1, _Expression2) if ((_Expression1) != (_Expression2)) { ShowFailureEq(_Expression1, _Expression2, __FILE__, __LINE__); Stop(); }
 

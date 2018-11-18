@@ -57,6 +57,166 @@ namespace
 
 namespace Rococo
 {
+	bool IsCapital(char c)
+	{
+		return c >= 'A' && c <= 'Z';
+	}
+
+	bool IsLowerCase(char c)
+	{
+		return c >= 'a' && c <= 'z';
+	}
+
+	bool IsAlphabetical(char c)
+	{
+		return IsCapital(c) || IsLowerCase(c);
+	}
+
+	bool IsNumeric(char c)
+	{
+		return c >= '0' && c <= '9';
+	}
+
+	bool IsAlphaNumeric(char c)
+	{
+		return IsAlphabetical(c) || IsNumeric(c);
+	}
+
+	int32 Hash(int32 x)
+	{
+		struct ANON
+		{
+			static int robert_jenkins_32bit_hash(int32 key)
+			{
+				key = ~key + (key << 15); // key = (key << 15) - key - 1;
+				key = key ^ (key >> 12);
+				key = key + (key << 2);
+				key = key ^ (key >> 4);
+				key = key * 2057; // key = (key + (key << 3)) + (key << 11);
+				key = key ^ (key >> 16);
+				return key;
+			}
+		};
+
+		return ANON::robert_jenkins_32bit_hash(x);
+	}
+
+	int32 Hash(int64 x)
+	{
+		struct ANON
+		{
+			static int robert_jenkins_64bit_hash(int64 key)
+			{
+				key = (~key) + (key << 18); // key = (key << 18) - key - 1;
+				key = key ^ (key >> 31);
+				key = key * 21; // key = (key + (key << 2)) + (key << 4);
+				key = key ^ (key >> 11);
+				key = key + (key << 6);
+				key = key ^ (key >> 22);
+				return (int)key;
+			}
+		};
+
+		return ANON::robert_jenkins_64bit_hash(x);
+	}
+
+	size_t Hash(cstr s)
+	{
+		struct ANON
+		{
+			static size_t jenkins_one_at_a_time_hash(cstr s, size_t len)
+			{
+				size_t hash, i;
+				for (hash = i = 0; i < len; ++i)
+				{
+					hash += s[i];
+					hash += (hash << 10);
+					hash ^= (hash >> 6);
+				}
+				hash += (hash << 3);
+				hash ^= (hash >> 11);
+				hash += (hash << 15);
+				return hash;
+			}
+		};
+
+		if (s == nullptr) return -1;
+		return ANON::jenkins_one_at_a_time_hash(s, StringLength(s));
+	}
+
+	int32 Hash(cstr s, int64 length)
+	{
+		struct ANON
+		{
+			static int jenkins_one_at_a_time_hash(cstr s, int64 len)
+			{
+				int32 hash = 0;
+				for (int64 i = 0; i < len; ++i)
+				{
+					hash += s[i];
+					hash += (hash << 10);
+					hash ^= (hash >> 6);
+				}
+				hash += (hash << 3);
+				hash ^= (hash >> 11);
+				hash += (hash << 15);
+				return hash;
+			}
+		};
+
+		if (s == nullptr) return -1LL;
+		return ANON::jenkins_one_at_a_time_hash(s, length);
+	}
+
+	// N.B sexy script language string length is int32 with max 2^31-1 chars
+	int32 StringLength(const char* s)
+	{
+		enum { MAX_INT32 = 0x7FFFFFFF };
+		size_t l = strlen(s);
+		if (l > MAX_INT32)
+		{
+			throw std::invalid_argument("The string length exceeded INT_MAX characters");
+		}
+
+		return (int32)l;
+	}
+
+	int WriteToStandardOutput(const char* format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+
+#ifdef _WIN32
+		return vprintf_s(format, args);
+#else
+		return vprintf(format, args);
+#endif
+	}
+
+#ifdef _WIN32
+	void CopyString(char* dest, size_t capacity, const char* source)
+	{
+		strcpy_s(dest, capacity, source);
+	}
+#else
+	void CopyString(char* dest, size_t capacity, const char* source)
+	{
+		strncpy(dest, source, capacity);
+	}
+#endif
+
+#ifdef _WIN32
+	void StringCat(char* buf, const char* source, int maxChars)
+	{
+		strcat_s(buf, maxChars, source);
+	}
+#else
+	void StringCat(char* buf, const char* source, int maxChars)
+	{
+		strncat(buf, source, maxChars);
+	}
+#endif
+
    size_t rlen(cstr s)
    {
       return strlen(s);

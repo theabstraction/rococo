@@ -494,4 +494,44 @@ namespace Rococo
 	}
 }
 
+namespace Rococo
+{
+	void ExpandZoneToContain(GuiRect& rect, const Vec2i& p);
+	void ExpandZoneToContain(GuiRectf& rect, const Vec2& p);
+
+	namespace OS
+	{
+		void PrintDebug(const char* format, ...);
+		void TripDebugger();
+		void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr caption);
+		bool IsDebugging();
+		void BreakOnThrow(BreakFlag flag);
+		void SetBreakPoints(int flags);
+		ticks CpuTicks();
+		ticks CpuHz();
+		ticks UTCTime();
+		void FormatTime(ticks utcTime, char* buffer, size_t nBytes);
+		bool StripLastSubpath(char* fullpath);
+		bool IsFileExistant(cstr path);
+		void Format_C_Error(int errorCode, char* buffer, size_t capacity);
+		int OpenForAppend(void** fp, cstr name);
+		int OpenForRead(void** fp, cstr name);
+		void UILoop(uint32 milliseconds);
+		void ToSysPath(char* path);
+		void ToUnixPath(char* path);
+		void SanitizePath(char* path);
+		void SaveClipBoardText(cstr text, Windows::IWindow& window);
+		bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window);
+		cstr GetAsciiCommandLine();
+		void LoadAsciiTextFile(char* data, size_t capacity, const char* filename);
+		void GetEnvVariable(char* data, size_t capacity, const char* envVariable);
+	}
+
+	namespace Memory
+	{
+		IAllocator& CheckedAllocator();
+		IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes);
+	}
+}
+
 #endif

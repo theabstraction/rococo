@@ -47,9 +47,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\STC\stccore\Sexy.Compiler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\Common\sexy.types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -57,6 +54,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\sexy.stdstrings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\STC\stccore\sexy.compiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

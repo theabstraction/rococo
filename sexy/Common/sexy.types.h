@@ -128,33 +128,10 @@ namespace Rococo
 
 	typedef sexstring_header* sexstring;
 
-	bool CALLTYPE_C IsCapital(char c);
-	bool CALLTYPE_C IsLowerCase(char c);
-	bool CALLTYPE_C IsAlphabetical(char c);
-	bool CALLTYPE_C IsNumeric(char c);
-	bool CALLTYPE_C IsAlphaNumeric(char c);
-
 	void GetRefName(OUT TokenBuffer& token, cstr name);
-
-	int CALLTYPE_C WriteToStandardOutput(const char* text, ...);
-	int CALLTYPE_C WriteToStandardOutput(cstr text, ...);
-
-	int CALLTYPE_C StringPrint(TokenBuffer& token, const char* format, ...);
-
-	int32 CALLTYPE_C StringLength(const char* s);
-	int32 CALLTYPE_C StringLength(cstr s);
-	void CALLTYPE_C CopyChars(char* dest, const sexstring source);
-	void CALLTYPE_C CopyString(char* dest, size_t capacity, const char* source);
-
-	void CALLTYPE_C StringCat(char* buf, cstr source, int maxChars);
 
 	bool TryParseSexHex(char& finalChar, cstr s);
 	bool ParseEscapeCharacter(char& finalChar, char c);
-
-	size_t Hash(cstr text);
-	int32 Hash(cstr s, int64 length);
-	int32 Hash(int32 x);
-	int32 Hash(int64 x);
 
 	sexstring CreateSexString(cstr src, int32 length = -1);
 	void FreeSexString(sexstring s);
@@ -167,14 +144,6 @@ namespace Rococo
 	};
 
 	void LogError(ILog& log, cstr format, ...);
-
-	struct Vector4
-	{
-		float X;
-		float Y;
-		float Z;
-		float W;
-	};
 
 	union VariantValue
 	{
@@ -211,11 +180,15 @@ namespace Rococo
 		void* vPtrValue;
 		float floatValue;
 		double doubleValue;
-		Vector4* vec4PtrValue;
+		Vec4* vec4PtrValue;
 		ID_API_CALLBACK apiValue;
 		ID_BYTECODE byteCodeIdValue;
 		const ID_BYTECODE* vTable;
 	};
+
+	int StringPrint(TokenBuffer& token, const char* format, ...);
+	void CopyChars(char* dest, const sexstring source);
+
 
 	enum BITCOUNT
 	{
@@ -259,14 +232,6 @@ namespace Rococo
 		EXECUTERESULT_ILLEGAL, // An illegal instruction was executed, happens when a compiler/gremlins creates duff bytecode
 		EXECUTERESULT_SEH // An SEH exception was caught and terminated execution of the VM
 	};
-
-	namespace OS
-	{
-		void LoadAsciiTextFile(char* data, size_t capacity, const char* filename);
-		void GetEnvVariable(char* data, size_t capacity, const char* envVariable);
-	}
-
-	template<class T> bool IsFlagged(T flags, T flag) { return (flags & flag) != 0; }
 
 	class NamespaceSplitter
 	{
@@ -380,38 +345,6 @@ namespace Rococo
 		VARTYPE_Closure,
 		VARTYPE_AnyNumeric // Not really a type, passed to a function to indicate any numeric type is valid
 	};
-
-	namespace Parse
-	{
-		enum PARSERESULT
-		{
-			PARSERESULT_GOOD,
-			PARSERESULT_HEXADECIMAL_INCORRECT_NUMBER_OF_DIGITS,
-			PARSERESULT_HEXADECIMAL_BAD_CHARACTER,
-			PARSERESULT_OVERFLOW,
-			PARSERESULT_UNDERFLOW,
-			PARSERESULT_BAD_DECIMAL_DIGIT,
-			PARSERESULT_HEX_FOR_FLOAT,
-			PARSERESULT_UNHANDLED_TYPE
-		};
-
-		VARTYPE GetLiteralType(cstr candidate);
-		bool TryGetDigit(OUT int32& value, char c);
-		bool TryGetHex(OUT int32& value, char c);
-		cstr VarTypeName(VARTYPE type);
-		PARSERESULT TryParseFloat(OUT float32& value, IN cstr decimalDigits);
-		PARSERESULT TryParseFloat(OUT float64& value, IN cstr decimalDigits);
-		PARSERESULT TryParseHex(OUT int32& value, IN cstr hexDigits);
-		PARSERESULT TryParseHex(OUT int64& value, IN cstr hexDigits);
-		PARSERESULT TryParseBoolean(OUT int32& value, IN cstr valueLiteral);
-		PARSERESULT TryParseDecimal(OUT int32& value, IN cstr valueLiteral);
-		PARSERESULT TryParseDecimal(OUT int64& value, IN cstr valueLiteral);
-		PARSERESULT TryParse(OUT VariantValue& value, VARTYPE type, IN cstr valueLiteral);
-		PARSERESULT TryParseExponentForm(OUT double& y, cstr s);
-		PARSERESULT TryParseExponentForm(OUT float& y, cstr s);
-		PARSERESULT TryParse(VariantValue& value, VARTYPE type, cstr valueLiteral);
-		bool ContainsPoint(cstr s);
-	}
 
 	namespace Sex
 	{

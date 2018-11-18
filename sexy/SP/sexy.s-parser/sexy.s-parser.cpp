@@ -45,6 +45,8 @@
 #include <sstream>
 #include <string>
 
+#include <rococo.api.h>
+
 #include "sexy.s-parser.source.inl"
 #include "sexy.s-parser.symbols.inl"
 

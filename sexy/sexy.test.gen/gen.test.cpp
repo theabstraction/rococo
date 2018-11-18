@@ -32,6 +32,7 @@
 #include "sexy.compiler.h"
 
 #include <sexy.lib.script.h>
+#include <rococo.api.h>
 
 
 using namespace Rococo;
@@ -237,16 +238,16 @@ int main(int argc, char* argv[])
       headerTree = ss.SParser().CreateTree(headerCode());
 
       cstr srcCode =
-         ("(namespace EntryPoint)")
-         ("(using Sys.Animals)")
-         ("(using Sys.Type)")
-         ("(function Main (Int32 id) -> (Int32 exitCode):")
-         ("   (ITiger boss (GetTigerByName \"Aslan\"))")
-         ("   (ITigerPup pup = boss.MakeBabies)")
-         ("   (IStringBuilder sb (StringBuilder 256))")
-         ("   (pup.AppendName sb)")
-         (" )")
-         ("(alias Main EntryPoint.Main)");
+         "(namespace EntryPoint)"
+         "(using Sys.Animals)"
+         "(using Sys.Type)"
+         "(function Main (Int32 id) -> (Int32 exitCode):"
+         "   (ITiger boss (GetTigerByName \"Aslan\"))"
+         "   (ITigerPup pup = boss.MakeBabies)"
+         "   (IStringBuilder sb (StringBuilder 256))"
+         "   (pup.AppendName sb)"
+         " )"
+         "(alias Main EntryPoint.Main)";
 
       mainCode = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("main"));
       mainTree = ss.SParser().CreateTree(mainCode());

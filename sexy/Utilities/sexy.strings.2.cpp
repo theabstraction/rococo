@@ -82,92 +82,6 @@
 
 namespace Rococo
 {
-	size_t Hash(cstr s)
-	{
-		struct ANON
-		{
-			static size_t jenkins_one_at_a_time_hash(cstr s, size_t len)
-			{
-				size_t hash, i;
-				for(hash = i = 0; i < len; ++i)
-				{
-					hash += s[i];
-					hash += (hash << 10);
-					hash ^= (hash >> 6);
-				}
-				hash += (hash << 3);
-				hash ^= (hash >> 11);
-				hash += (hash << 15);
-				return hash;
-			}
-		};
-
-		if (s == nullptr) return -1;
-		return ANON::jenkins_one_at_a_time_hash(s, StringLength(s));
-	}
-
-	int32 Hash(cstr s, int64 length)
-	{
-		struct ANON
-		{
-			static int jenkins_one_at_a_time_hash(cstr s, int64 len)
-			{
-				int32 hash = 0;
-				for(int64 i = 0; i < len; ++i)
-				{
-					hash += s[i];
-					hash += (hash << 10);
-					hash ^= (hash >> 6);
-				}
-				hash += (hash << 3);
-				hash ^= (hash >> 11);
-				hash += (hash << 15);
-				return hash;
-			}
-		};
-
-		if (s == nullptr) return -1LL;
-		return ANON::jenkins_one_at_a_time_hash(s, length);
-	}
-
-	int32 Hash(int32 x)
-	{
-		struct ANON
-		{
-			static int robert_jenkins_32bit_hash(int32 key)
-			{
-				key = ~key + (key << 15); // key = (key << 15) - key - 1;
-				key = key ^ (key >> 12);
-				key = key + (key << 2);
-				key = key ^ (key >> 4);
-				key = key * 2057; // key = (key + (key << 3)) + (key << 11);
-				key = key ^ (key >> 16);
-				return key;
-			}
-		};
-
-		return ANON::robert_jenkins_32bit_hash(x);
-	}
-
-	int32 Hash(int64 x)
-	{
-		struct ANON
-		{
-			static int robert_jenkins_64bit_hash(int64 key)
-			{
-				key = (~key) + (key << 18); // key = (key << 18) - key - 1;
-				key = key ^ (key >> 31);
-				key = key * 21; // key = (key + (key << 2)) + (key << 4);
-				key = key ^ (key >> 11);
-				key = key + (key << 6);
-				key = key ^ (key >> 22);
-				return (int) key;
-			}
-		};
-
-		return ANON::robert_jenkins_64bit_hash(x);
-	}
-
 	sexstring CreateSexString(cstr src, int32 length)
 	{
 		if (length < 0) length = StringLength(src);
@@ -302,18 +216,6 @@ namespace Rococo
 		}
 	}
 
-	int32 CALLTYPE_C StringLength(const char* s)
-	{
-      enum { MAX_INT32 = 0x7FFFFFFF };
-		size_t l = strlen(s);
-		if (l > MAX_INT32)
-		{
-			throw std::invalid_argument("The string length exceeded INT_MAX characters");
-		}
-
-		return (int32) l;
-	}
-
    int CALLTYPE_C StringPrint(TokenBuffer& token, const char* format, ...)
    {
       va_list args;
@@ -342,88 +244,6 @@ namespace Rococo
 		}
 
 		dest[source->Length] = 0;
-	}
-
-   int CALLTYPE_C WriteToStandardOutput(const char* format, ...)
-	{	
-		va_list args;
-		va_start(args, format);
-
-#ifdef _WIN32
-		return vprintf_s(format, args);
-#else
-      return vprintf(format, args);
-#endif
-	}
-
-#ifdef char_IS_WIDE
-   int CALLTYPE_C WriteToStandardOutput(cstr format, ...)
-   {
-      va_list args;
-      va_start(args, format);
-      return vwprintf_s(format, args);
-   }
-#endif
-
-#ifdef _WIN32
-	void CALLTYPE_C CopyString(char* dest, size_t capacity, const char* source)
-	{
-		strcpy_s(dest, capacity, source);
-	}
-#else
-   void CALLTYPE_C CopyString(char* dest, size_t capacity, const char* source)
-   {
-      strncpy(dest, source, capacity);
-   }
-#endif
-
-#ifdef char_IS_WIDE
-	void CALLTYPE_C CopyString(rchar* dest, const char* source, int maxChars)
-	{
-		_snwprintf_s(dest, maxChars, maxChars, L"%S", source);
-	}
-
-	void CALLTYPE_C StringCat(rchar* buf, cstr source, int maxChars)
-	{
-		wcscat_s(buf, maxChars, source);
-	}
-#endif
-
-#ifdef _WIN32
-	void CALLTYPE_C StringCat(char* buf, const char* source, int maxChars)
-	{
-		strcat_s(buf, maxChars, source);
-	}
-#else
-   void CALLTYPE_C StringCat(char* buf, const char* source, int maxChars)
-   {
-      strncat(buf, source, maxChars);
-   }
-#endif
-
-	bool CALLTYPE_C IsCapital(char c)
-	{
-		return c >= 'A' && c <= 'Z';
-	}
-
-	bool CALLTYPE_C IsLowerCase(char c)
-	{
-		return c >= 'a' && c <= 'z';
-	}
-
-	bool CALLTYPE_C IsAlphabetical(char c)
-	{
-		return IsCapital(c) || IsLowerCase(c);
-	}
-
-	bool CALLTYPE_C IsNumeric(char c)
-	{
-		return c >= '0' && c <= '9';
-	}
-
-	bool CALLTYPE_C IsAlphaNumeric(char c)
-	{
-		return IsAlphabetical(c) || IsNumeric(c);
 	}
 
 	namespace Sex

@@ -35,6 +35,7 @@
 #include "sexy.vm.cpu.h"
 #include <math.h>
 #include "sexy.vm.os.h"
+#include <rococo.api.h>
 
 #ifdef _WIN32
 # include <excpt.h>

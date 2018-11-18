@@ -7,6 +7,8 @@
 
 #include <list>
 
+#include <rococo.api.h>
+
 #define BREAK_ON_THROW 1
 
 namespace
@@ -107,43 +109,46 @@ namespace Rococo
 		throw ex;
 	}
 
-	void LoadAsciiTextFile(char* data, size_t capacity, const char* filename)
+	namespace OS
 	{
+		void LoadAsciiTextFile(char* data, size_t capacity, const char* filename)
+		{
 #ifdef _WIN32
 # pragma warning(disable: 4996)
 #endif
 
-		FILE* f = fopen(filename, "rb");
+			FILE* f = fopen(filename, "rb");
 
 #ifdef _WIN32
 # pragma warning(default: 4996)
 #endif
-		if (f == nullptr)
-		{
-			Throw(0, "Cannot open file %s", filename);
-		}
-
-		size_t startIndex = 0;
-		while (startIndex < capacity)
-		{
-			size_t bytesRead = fread(data + startIndex, 1, capacity - startIndex, f);
-
-			if (bytesRead == 0)
+			if (f == nullptr)
 			{
-				// graceful completion
-				break;
+				Throw(0, "Cannot open file %s", filename);
 			}
-			startIndex += bytesRead;
-		}
 
-		if (startIndex >= capacity)
-		{
+			size_t startIndex = 0;
+			while (startIndex < capacity)
+			{
+				size_t bytesRead = fread(data + startIndex, 1, capacity - startIndex, f);
+
+				if (bytesRead == 0)
+				{
+					// graceful completion
+					break;
+				}
+				startIndex += bytesRead;
+			}
+
+			if (startIndex >= capacity)
+			{
+				fclose(f);
+				Throw(0, "File too large: ", filename);
+			}
+
 			fclose(f);
-			Throw(0, "File too large: ", filename);
+
+			data[startIndex] = 0;
 		}
-
-		fclose(f);
-
-		data[startIndex] = 0;
 	}
 }

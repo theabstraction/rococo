@@ -59,9 +59,6 @@ namespace Rococo
 	typedef void* pointer;
 	typedef int32 boolean32; // 32-bit boolean
 
-	size_t rlen(cstr s);
-	int StrCmpN(cstr a, cstr b, size_t len);
-
 	struct Vec2;
 	struct Vec3;
 	struct Vec4;
@@ -383,9 +380,6 @@ namespace Rococo
 		GuiRect(int32 _left, int32 _top, int32 _right, int32 _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
 	};
 
-	void ExpandZoneToContain(GuiRect& rect, const Vec2i& p);
-	void ExpandZoneToContain(GuiRectf& rect, const Vec2& p);
-
 	struct Vec2
 	{
 		float x;
@@ -462,14 +456,6 @@ namespace Rococo
 	   virtual void Free() = 0;
 	};
 
-	namespace Memory
-	{
-		IAllocator& CheckedAllocator();
-		IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes);
-	}
-
-	void LoadAsciiTextFile(char* data, size_t capacity, const char* filename);
-
 	namespace OS
 	{
 		enum BreakFlag : int32
@@ -482,29 +468,9 @@ namespace Rococo
 		};
 
 		typedef int64 ticks;
-		void PrintDebug(const char* format, ...);
-		void TripDebugger();
-		void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr caption);
-		bool IsDebugging();
-		void BreakOnThrow(BreakFlag flag);
-		void SetBreakPoints(int flags);
-		ticks CpuTicks();
-		ticks CpuHz();
-		ticks UTCTime();
-		void FormatTime(ticks utcTime, char* buffer, size_t nBytes);
-		bool StripLastSubpath(char* fullpath);
-		bool IsFileExistant(cstr path);
-		void Format_C_Error(int errorCode, char* buffer, size_t capacity);
-		int OpenForAppend(void** fp, cstr name);
-		int OpenForRead(void** fp, cstr name);
-		void UILoop(uint32 milliseconds);
-		void ToSysPath(char* path);
-		void ToUnixPath(char* path);
-		void SanitizePath(char* path);
-		void SaveClipBoardText(cstr text, Windows::IWindow& window);
-		bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window);
-		cstr GetAsciiCommandLine();
 	}
+
+	template<class T> bool IsFlagged(T flags, T flag) { return (flags & flag) != 0; }
 
 #if !defined(_W64)
 # if !defined(__midl) && (defined(_X86_) || defined(_M_IX86))

@@ -44,6 +44,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#include <rococo.api.h>
+
 using namespace Rococo;
 using namespace Rococo::Sex;
 using namespace Rococo::Compiler;

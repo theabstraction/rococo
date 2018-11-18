@@ -5,6 +5,7 @@
 #include "sexy.vm.cpu.h"
 #include <rococo.io.h>
 #include <vector>
+#include <rococo.api.h>
 
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 

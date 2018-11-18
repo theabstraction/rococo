@@ -32,6 +32,7 @@
 */
 
 #include "sexy.compiler.stdafx.h"
+#include <rococo.api.h>
 
 //#define BREAK_ON_THROW
 
