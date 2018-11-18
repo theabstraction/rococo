@@ -23,8 +23,8 @@ namespace
 namespace Sys { namespace Time { 
 	void AddNativeCalls_SysTime(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Sys.Time"));
-		ss.AddNativeCall(ns, NativeSysTimeCpuHz, nullptr, SEXTEXT("CpuHz -> (Int64 hz)"));
-		ss.AddNativeCall(ns, NativeSysTimeCpuTicks, nullptr, SEXTEXT("CpuTicks -> (Int64 ticks)"));
+		const INamespace& ns = ss.AddNativeNamespace(("Sys.Time"));
+		ss.AddNativeCall(ns, NativeSysTimeCpuHz, nullptr, ("CpuHz -> (Int64 hz)"));
+		ss.AddNativeCall(ns, NativeSysTimeCpuTicks, nullptr, ("CpuTicks -> (Int64 ticks)"));
 	}
 }}

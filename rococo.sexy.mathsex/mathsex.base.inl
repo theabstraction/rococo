@@ -30,7 +30,7 @@ namespace
 namespace Sys { namespace Type { 
 	void AddNativeCalls_SysType(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Sys.Type"));
-		ss.AddNativeCall(ns, NativeSysTypeMakeColour, nullptr, SEXTEXT("MakeColour(Int32 r)(Int32 g)(Int32 b)(Int32 a) -> (Int32 colour)"));
+		const INamespace& ns = ss.AddNativeNamespace(("Sys.Type"));
+		ss.AddNativeCall(ns, NativeSysTypeMakeColour, nullptr, ("MakeColour(Int32 r)(Int32 g)(Int32 b)(Int32 a) -> (Int32 colour)"));
 	}
 }}

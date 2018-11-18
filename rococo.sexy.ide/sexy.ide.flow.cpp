@@ -25,13 +25,13 @@ namespace
 		IDebuggerWindow& debugger;
 		ScriptLogger(IDebuggerWindow& _debugger) : debugger(_debugger) {}
 		char lastError[1024] = { 0 };
-		virtual void Write(csexstr text)
+		virtual void Write(cstr text)
 		{
 			SafeFormat(lastError, sizeof(lastError), "%s", text);
 			debugger.Log("%s", text);
 		}
 
-		virtual void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance)
+		virtual void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance)
 		{
 			debugger.Log("Unhandled: %s\n%s", exceptionType, message);
 		}

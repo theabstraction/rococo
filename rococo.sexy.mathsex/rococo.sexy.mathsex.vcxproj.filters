@@ -25,7 +25,9 @@
     <CustomBuild Include="mathsex.vectors.sxh">
       <Filter>SXH</Filter>
     </CustomBuild>
-    <CustomBuild Include="mathsex.base.sxh" />
+    <CustomBuild Include="mathsex.base.sxh">
+      <Filter>SXH</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <None Include="config.xc">

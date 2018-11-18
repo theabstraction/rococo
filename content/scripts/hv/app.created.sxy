@@ -13,7 +13,6 @@
 (using Rococo.Entities)
 
 (function Main (Int32 id)->(Int32 exitCode):
-	(trip)
 	(IInstances instances (Instances))
 	(instances.SetMaterialMacro "!textures/hv/materials/hi-rez/" )
 	(instances.LoadMaterialArray "#m/" 1024)

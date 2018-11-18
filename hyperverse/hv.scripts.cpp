@@ -67,9 +67,9 @@ namespace HV
          virtual void OnEvent(ScriptCompileArgs& args)
          { 
 #ifdef _DEBUG
-            args.ss.AddNativeLibrary(SEXTEXT("rococo.sexy.mathsex.debug"));
+            args.ss.AddNativeLibrary("rococo.sexy.mathsex.debug");
 #else
-            args.ss.AddNativeLibrary(SEXTEXT("rococo.sexy.mathsex"));
+            args.ss.AddNativeLibrary("rococo.sexy.mathsex");
 #endif
             AddNativeCalls_HVIPlayer(args.ss, &e.players);
 			AddNativeCalls_HVISectorBuilder(args.ss, &e.sectors);

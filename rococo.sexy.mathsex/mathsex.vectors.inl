@@ -297,22 +297,22 @@ namespace
 namespace Sys { namespace Geometry { namespace F32 { 
 	void AddNativeCalls_SysGeometryF32(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Sys.Geometry.F32"));
-		ss.AddNativeCall(ns, NativeSysGeometryF32AddVec3fVec3f, nullptr, SEXTEXT("AddVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 sum) -> "));
-		ss.AddNativeCall(ns, NativeSysGeometryF32AddVec2fVec2f, nullptr, SEXTEXT("AddVec2fVec2f(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 output) -> "));
-		ss.AddNativeCall(ns, NativeSysGeometryF32SubtractVec3fVec3f, nullptr, SEXTEXT("SubtractVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 difference) -> "));
-		ss.AddNativeCall(ns, NativeSysGeometryF32SubtractVec2fVec2f, nullptr, SEXTEXT("SubtractVec2fVec2f(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 difference) -> "));
-		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyFloat32Vec2f, nullptr, SEXTEXT("MultiplyFloat32Vec2f(Float32 f)(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 scaledVector) -> "));
-		ss.AddNativeCall(ns, NativeSysGeometryF32Dot, nullptr, SEXTEXT("Dot(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b) -> (Float32 dotProduct)"));
-		ss.AddNativeCall(ns, NativeSysGeometryF32GetTriSpan, nullptr, SEXTEXT("GetTriSpan(Sys.Maths.Vec3 d)(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec2 span) -> "));
-		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyVec3fVec3f, nullptr, SEXTEXT("MultiplyVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 crossProduct) -> "));
-		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyFloat32Vec3f, nullptr, SEXTEXT("MultiplyFloat32Vec3f(Float32 f)(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 scaledVector) -> "));
-		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyVec3fFloat32, nullptr, SEXTEXT("MultiplyVec3fFloat32(Sys.Maths.Vec3 a)(Float32 f)(Sys.Maths.Vec3 scaledVector) -> "));
-		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyMatrix4x4fMatrix4x4f, nullptr, SEXTEXT("MultiplyMatrix4x4fMatrix4x4f(Sys.Maths.Matrix4x4 a)(Sys.Maths.Matrix4x4 b)(Sys.Maths.Matrix4x4 product) -> "));
-		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyMatrix4x4fVec4f, nullptr, SEXTEXT("MultiplyMatrix4x4fVec4f(Sys.Maths.Matrix4x4 m)(Sys.Maths.Vec4 v)(Sys.Maths.Vec4 mv) -> "));
-		ss.AddNativeCall(ns, NativeSysGeometryF32Length, nullptr, SEXTEXT("Length(Sys.Maths.Vec3 a) -> (Float32 len)"));
-		ss.AddNativeCall(ns, NativeSysGeometryF32Normalize, nullptr, SEXTEXT("Normalize(Sys.Maths.Vec3 n) -> "));
-		ss.AddNativeCall(ns, NativeSysGeometryF32GetNormal, nullptr, SEXTEXT("GetNormal(Sys.Maths.Triangle t)(Sys.Maths.Vec3 normal) -> "));
-		ss.AddNativeCall(ns, NativeSysGeometryF32LerpVec3, nullptr, SEXTEXT("LerpVec3(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Float32 t)(Sys.Maths.Vec3 mixed) -> "));
+		const INamespace& ns = ss.AddNativeNamespace(("Sys.Geometry.F32"));
+		ss.AddNativeCall(ns, NativeSysGeometryF32AddVec3fVec3f, nullptr, ("AddVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 sum) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32AddVec2fVec2f, nullptr, ("AddVec2fVec2f(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 output) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32SubtractVec3fVec3f, nullptr, ("SubtractVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 difference) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32SubtractVec2fVec2f, nullptr, ("SubtractVec2fVec2f(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 difference) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyFloat32Vec2f, nullptr, ("MultiplyFloat32Vec2f(Float32 f)(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 scaledVector) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32Dot, nullptr, ("Dot(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b) -> (Float32 dotProduct)"));
+		ss.AddNativeCall(ns, NativeSysGeometryF32GetTriSpan, nullptr, ("GetTriSpan(Sys.Maths.Vec3 d)(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec2 span) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyVec3fVec3f, nullptr, ("MultiplyVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 crossProduct) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyFloat32Vec3f, nullptr, ("MultiplyFloat32Vec3f(Float32 f)(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 scaledVector) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyVec3fFloat32, nullptr, ("MultiplyVec3fFloat32(Sys.Maths.Vec3 a)(Float32 f)(Sys.Maths.Vec3 scaledVector) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyMatrix4x4fMatrix4x4f, nullptr, ("MultiplyMatrix4x4fMatrix4x4f(Sys.Maths.Matrix4x4 a)(Sys.Maths.Matrix4x4 b)(Sys.Maths.Matrix4x4 product) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyMatrix4x4fVec4f, nullptr, ("MultiplyMatrix4x4fVec4f(Sys.Maths.Matrix4x4 m)(Sys.Maths.Vec4 v)(Sys.Maths.Vec4 mv) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32Length, nullptr, ("Length(Sys.Maths.Vec3 a) -> (Float32 len)"));
+		ss.AddNativeCall(ns, NativeSysGeometryF32Normalize, nullptr, ("Normalize(Sys.Maths.Vec3 n) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32GetNormal, nullptr, ("GetNormal(Sys.Maths.Triangle t)(Sys.Maths.Vec3 normal) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32LerpVec3, nullptr, ("LerpVec3(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Float32 t)(Sys.Maths.Vec3 mixed) -> "));
 	}
 }}}

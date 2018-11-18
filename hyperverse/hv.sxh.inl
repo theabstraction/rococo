@@ -158,10 +158,10 @@ namespace
 namespace HV { 
 	void AddNativeCalls_HVIScriptConfig(Rococo::Script::IPublicScriptSystem& ss, HV::IScriptConfig* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVScriptConfig, _nceContext, SEXTEXT("GetHandleForIScriptConfig0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVIScriptConfigGetFloat, nullptr, SEXTEXT("IScriptConfigGetFloat (Pointer hObject)(Sys.Type.IString variableName)(Float32 default)(Float32 minValue)(Float32 maxValue) -> (Float32 value)"));
-		ss.AddNativeCall(ns, NativeHVIScriptConfigGetFloatRange, nullptr, SEXTEXT("IScriptConfigGetFloatRange (Pointer hObject)(Sys.Type.IString variableName)(Sys.Maths.Vec2 values)(Float32 defaultLeft)(Float32 defaultRight)(Float32 minValue)(Float32 maxValue) -> "));
+		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVScriptConfig, _nceContext, ("GetHandleForIScriptConfig0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVIScriptConfigGetFloat, nullptr, ("IScriptConfigGetFloat (Pointer hObject)(Sys.Type.IString variableName)(Float32 default)(Float32 minValue)(Float32 maxValue) -> (Float32 value)"));
+		ss.AddNativeCall(ns, NativeHVIScriptConfigGetFloatRange, nullptr, ("IScriptConfigGetFloatRange (Pointer hObject)(Sys.Type.IString variableName)(Sys.Maths.Vec2 values)(Float32 defaultLeft)(Float32 defaultRight)(Float32 minValue)(Float32 maxValue) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for HV::IPlayer 
@@ -218,10 +218,10 @@ namespace
 namespace HV { 
 	void AddNativeCalls_HVIPlayer(Rococo::Script::IPublicScriptSystem& ss, HV::IPlayerSupervisor* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVPlayer, _nceContext, SEXTEXT("GetHandleForIPlayer0 (Int32 index) -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVIPlayerSetPlayerEntity, nullptr, SEXTEXT("IPlayerSetPlayerEntity (Pointer hObject)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeHVIPlayerGetPlayerEntity, nullptr, SEXTEXT("IPlayerGetPlayerEntity (Pointer hObject) -> (Int64 id)"));
+		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVPlayer, _nceContext, ("GetHandleForIPlayer0 (Int32 index) -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVIPlayerSetPlayerEntity, nullptr, ("IPlayerSetPlayerEntity (Pointer hObject)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeHVIPlayerGetPlayerEntity, nullptr, ("IPlayerGetPlayerEntity (Pointer hObject) -> (Int64 id)"));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ISectorWallTesselator 
@@ -302,7 +302,7 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		HV::ITriangleList* triangles = _pObject->WallTriangles();
 		_offset += sizeof(CReflectedClass*);
-		auto& _trianglesStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("HV"),SEXTEXT("ITriangleList"), SEXTEXT("ProxyITriangleList"), _nce.ss);
+		auto& _trianglesStruct = Rococo::Helpers::GetDefaultProxy(("HV"),("ITriangleList"), ("ProxyITriangleList"), _nce.ss);
 		CReflectedClass* _sxytriangles = _nce.ss.Represent(_trianglesStruct, triangles);
 		WriteOutput(&_sxytriangles->header._vTables[0], _sf, -_offset);
 	}
@@ -342,14 +342,14 @@ namespace
 namespace HV { 
 	void AddNativeCalls_HVISectorWallTesselator(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorWallTesselator* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVSectorWallTesselator, _nceContext, SEXTEXT("GetHandleForISectorWallTesselator0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorNumberOfSegments, nullptr, SEXTEXT("ISectorWallTesselatorNumberOfSegments (Pointer hObject) -> (Int32 count)"));
-		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorNumberOfGaps, nullptr, SEXTEXT("ISectorWallTesselatorNumberOfGaps (Pointer hObject) -> (Int32 count)"));
-		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetSegment, nullptr, SEXTEXT("ISectorWallTesselatorGetSegment (Pointer hObject)(Int32 ringIndex)(HV.WallSegment segment) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetGap, nullptr, SEXTEXT("ISectorWallTesselatorGetGap (Pointer hObject)(Int32 ringIndex)(HV.GapSegment segment) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorWallTriangles, nullptr, SEXTEXT("ISectorWallTesselatorWallTriangles (Pointer hObject) -> (HV.ITriangleList triangles)"));
-		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetMaterial, nullptr, SEXTEXT("ISectorWallTesselatorGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
+		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVSectorWallTesselator, _nceContext, ("GetHandleForISectorWallTesselator0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorNumberOfSegments, nullptr, ("ISectorWallTesselatorNumberOfSegments (Pointer hObject) -> (Int32 count)"));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorNumberOfGaps, nullptr, ("ISectorWallTesselatorNumberOfGaps (Pointer hObject) -> (Int32 count)"));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetSegment, nullptr, ("ISectorWallTesselatorGetSegment (Pointer hObject)(Int32 ringIndex)(HV.WallSegment segment) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetGap, nullptr, ("ISectorWallTesselatorGetGap (Pointer hObject)(Int32 ringIndex)(HV.GapSegment segment) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorWallTriangles, nullptr, ("ISectorWallTesselatorWallTriangles (Pointer hObject) -> (HV.ITriangleList triangles)"));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetMaterial, nullptr, ("ISectorWallTesselatorGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ICorridor 
@@ -402,10 +402,10 @@ namespace
 namespace HV { 
 	void AddNativeCalls_HVICorridor(Rococo::Script::IPublicScriptSystem& ss, HV::ICorridor* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVCorridor, _nceContext, SEXTEXT("GetHandleForICorridor0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVICorridorGetSpan, nullptr, SEXTEXT("ICorridorGetSpan (Pointer hObject)(Sys.Maths.Vec3 span) -> "));
-		ss.AddNativeCall(ns, NativeHVICorridorIsSloped, nullptr, SEXTEXT("ICorridorIsSloped (Pointer hObject) -> (Bool isSloped)"));
+		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVCorridor, _nceContext, ("GetHandleForICorridor0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVICorridorGetSpan, nullptr, ("ICorridorGetSpan (Pointer hObject)(Sys.Maths.Vec3 span) -> "));
+		ss.AddNativeCall(ns, NativeHVICorridorIsSloped, nullptr, ("ICorridorIsSloped (Pointer hObject) -> (Bool isSloped)"));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ISectorBuilder 
@@ -550,14 +550,14 @@ namespace
 namespace HV { 
 	void AddNativeCalls_HVISectorBuilder(Rococo::Script::IPublicScriptSystem& ss, HV::ISectors* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVSectorBuilder, _nceContext, SEXTEXT("GetHandleForISectors0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVISectorBuilderAddVertex, nullptr, SEXTEXT("ISectorsAddVertex (Pointer hObject)(Float32 x)(Float32 y) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorBuilderClear, nullptr, SEXTEXT("ISectorsClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorBuilderCreateFromTemplate, nullptr, SEXTEXT("ISectorsCreateFromTemplate (Pointer hObject)(Int32 altitude)(Int32 height) -> (Int32 id)"));
-		ss.AddNativeCall(ns, NativeHVISectorBuilderSetTemplateWallScript, nullptr, SEXTEXT("ISectorsSetTemplateWallScript (Pointer hObject)(Bool useScript)(Sys.Type.IString scriptName) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorBuilderSetTemplateDoorScript, nullptr, SEXTEXT("ISectorsSetTemplateDoorScript (Pointer hObject)(Bool hasDoor)(Sys.Type.IString scriptName) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorBuilderSetTemplateMaterial, nullptr, SEXTEXT("ISectorsSetTemplateMaterial (Pointer hObject)(Sys.Type.IString bodyClass)(Int32 cat)(Int32 colour)(Sys.Type.IString persistentId) -> "));
+		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVSectorBuilder, _nceContext, ("GetHandleForISectors0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderAddVertex, nullptr, ("ISectorsAddVertex (Pointer hObject)(Float32 x)(Float32 y) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderClear, nullptr, ("ISectorsClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderCreateFromTemplate, nullptr, ("ISectorsCreateFromTemplate (Pointer hObject)(Int32 altitude)(Int32 height) -> (Int32 id)"));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderSetTemplateWallScript, nullptr, ("ISectorsSetTemplateWallScript (Pointer hObject)(Bool useScript)(Sys.Type.IString scriptName) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderSetTemplateDoorScript, nullptr, ("ISectorsSetTemplateDoorScript (Pointer hObject)(Bool hasDoor)(Sys.Type.IString scriptName) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderSetTemplateMaterial, nullptr, ("ISectorsSetTemplateMaterial (Pointer hObject)(Sys.Type.IString bodyClass)(Int32 cat)(Int32 colour)(Sys.Type.IString persistentId) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ISectorLayout 
@@ -862,25 +862,25 @@ namespace
 namespace HV { 
 	void AddNativeCalls_HVISectorLayout(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorLayout* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutExists, nullptr, SEXTEXT("ISectorLayoutExists (Pointer hObject) -> (Bool exists)"));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutCountSquares, nullptr, SEXTEXT("ISectorLayoutCountSquares (Pointer hObject) -> (Int32 sqCount)"));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutGetSquare, nullptr, SEXTEXT("ISectorLayoutGetSquare (Pointer hObject)(Int32 sqIndex)(Rococo.AAB2d sq) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutCeilingQuad, nullptr, SEXTEXT("ISectorLayoutCeilingQuad (Pointer hObject)(Int32 sqIndex)(Rococo.QuadVertices q) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutFloorQuad, nullptr, SEXTEXT("ISectorLayoutFloorQuad (Pointer hObject)(Int32 sqIndex)(Rococo.QuadVertices q) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutAltitude, nullptr, SEXTEXT("ISectorLayoutAltitude (Pointer hObject)(Sys.Maths.Vec2 altitudes) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutNumberOfSegments, nullptr, SEXTEXT("ISectorLayoutNumberOfSegments (Pointer hObject) -> (Int32 segCount)"));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutNumberOfGaps, nullptr, SEXTEXT("ISectorLayoutNumberOfGaps (Pointer hObject) -> (Int32 gapCount)"));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutGetSegment, nullptr, SEXTEXT("ISectorLayoutGetSegment (Pointer hObject)(Int32 segIndex)(HV.WallSegment segment) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutGetGap, nullptr, SEXTEXT("ISectorLayoutGetGap (Pointer hObject)(Int32 gapIndex)(HV.GapSegment segment) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutAddSceneryAroundObject, nullptr, SEXTEXT("ISectorLayoutAddSceneryAroundObject (Pointer hObject)(Sys.Type.IString mesh)(Int64 centrePieceId)(HV.InsertItemSpec iis)(HV.ObjectCreationSpec ocs) -> (Int64 id)"));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutAddItemToLargestSquare, nullptr, SEXTEXT("ISectorLayoutAddItemToLargestSquare (Pointer hObject)(Sys.Type.IString mesh)(Int32 addItemFlags)(HV.ObjectCreationSpec ocs) -> (Int64 id)"));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutPlaceItemOnUpFacingQuad, nullptr, SEXTEXT("ISectorLayoutPlaceItemOnUpFacingQuad (Pointer hObject)(Int64 id) -> (Bool wasMoved)"));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutDeleteScenery, nullptr, SEXTEXT("ISectorLayoutDeleteScenery (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutDeleteItemsWithMesh, nullptr, SEXTEXT("ISectorLayoutDeleteItemsWithMesh (Pointer hObject)(Sys.Type.IString prefix) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutClearManagedEntities, nullptr, SEXTEXT("ISectorLayoutClearManagedEntities (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutManageEntity, nullptr, SEXTEXT("ISectorLayoutManageEntity (Pointer hObject)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorLayoutUseUpFacingQuads, nullptr, SEXTEXT("ISectorLayoutUseUpFacingQuads (Pointer hObject)(Int64 id) -> "));
+		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutExists, nullptr, ("ISectorLayoutExists (Pointer hObject) -> (Bool exists)"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutCountSquares, nullptr, ("ISectorLayoutCountSquares (Pointer hObject) -> (Int32 sqCount)"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutGetSquare, nullptr, ("ISectorLayoutGetSquare (Pointer hObject)(Int32 sqIndex)(Rococo.AAB2d sq) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutCeilingQuad, nullptr, ("ISectorLayoutCeilingQuad (Pointer hObject)(Int32 sqIndex)(Rococo.QuadVertices q) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutFloorQuad, nullptr, ("ISectorLayoutFloorQuad (Pointer hObject)(Int32 sqIndex)(Rococo.QuadVertices q) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutAltitude, nullptr, ("ISectorLayoutAltitude (Pointer hObject)(Sys.Maths.Vec2 altitudes) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutNumberOfSegments, nullptr, ("ISectorLayoutNumberOfSegments (Pointer hObject) -> (Int32 segCount)"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutNumberOfGaps, nullptr, ("ISectorLayoutNumberOfGaps (Pointer hObject) -> (Int32 gapCount)"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutGetSegment, nullptr, ("ISectorLayoutGetSegment (Pointer hObject)(Int32 segIndex)(HV.WallSegment segment) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutGetGap, nullptr, ("ISectorLayoutGetGap (Pointer hObject)(Int32 gapIndex)(HV.GapSegment segment) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutAddSceneryAroundObject, nullptr, ("ISectorLayoutAddSceneryAroundObject (Pointer hObject)(Sys.Type.IString mesh)(Int64 centrePieceId)(HV.InsertItemSpec iis)(HV.ObjectCreationSpec ocs) -> (Int64 id)"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutAddItemToLargestSquare, nullptr, ("ISectorLayoutAddItemToLargestSquare (Pointer hObject)(Sys.Type.IString mesh)(Int32 addItemFlags)(HV.ObjectCreationSpec ocs) -> (Int64 id)"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutPlaceItemOnUpFacingQuad, nullptr, ("ISectorLayoutPlaceItemOnUpFacingQuad (Pointer hObject)(Int64 id) -> (Bool wasMoved)"));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutDeleteScenery, nullptr, ("ISectorLayoutDeleteScenery (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutDeleteItemsWithMesh, nullptr, ("ISectorLayoutDeleteItemsWithMesh (Pointer hObject)(Sys.Type.IString prefix) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutClearManagedEntities, nullptr, ("ISectorLayoutClearManagedEntities (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutManageEntity, nullptr, ("ISectorLayoutManageEntity (Pointer hObject)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutUseUpFacingQuads, nullptr, ("ISectorLayoutUseUpFacingQuads (Pointer hObject)(Int64 id) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ISectorFloorTesselator 
@@ -1047,17 +1047,17 @@ namespace
 namespace HV { 
 	void AddNativeCalls_HVISectorFloorTesselator(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorFloorTesselator* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVSectorFloorTesselator, _nceContext, SEXTEXT("GetHandleForISectorFloorTesselator0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorNumberOfSquares, nullptr, SEXTEXT("ISectorFloorTesselatorNumberOfSquares (Pointer hObject) -> (Int32 count)"));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorFoundationsExist, nullptr, SEXTEXT("ISectorFloorTesselatorFoundationsExist (Pointer hObject) -> (Bool exists)"));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorGetSquare, nullptr, SEXTEXT("ISectorFloorTesselatorGetSquare (Pointer hObject)(Int32 index)(Rococo.AAB2d sq) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorCeilingQuad, nullptr, SEXTEXT("ISectorFloorTesselatorCeilingQuad (Pointer hObject)(Int32 index)(Rococo.QuadVertices q) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorFloorQuad, nullptr, SEXTEXT("ISectorFloorTesselatorFloorQuad (Pointer hObject)(Int32 index)(Rococo.QuadVertices q) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorAddCeilingTriangle, nullptr, SEXTEXT("ISectorFloorTesselatorAddCeilingTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorAddFloorTriangle, nullptr, SEXTEXT("ISectorFloorTesselatorAddFloorTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorGetMaterial, nullptr, SEXTEXT("ISectorFloorTesselatorGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorSetUVScale, nullptr, SEXTEXT("ISectorFloorTesselatorSetUVScale (Pointer hObject)(Float32 scale) -> "));
+		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVSectorFloorTesselator, _nceContext, ("GetHandleForISectorFloorTesselator0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorNumberOfSquares, nullptr, ("ISectorFloorTesselatorNumberOfSquares (Pointer hObject) -> (Int32 count)"));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorFoundationsExist, nullptr, ("ISectorFloorTesselatorFoundationsExist (Pointer hObject) -> (Bool exists)"));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorGetSquare, nullptr, ("ISectorFloorTesselatorGetSquare (Pointer hObject)(Int32 index)(Rococo.AAB2d sq) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorCeilingQuad, nullptr, ("ISectorFloorTesselatorCeilingQuad (Pointer hObject)(Int32 index)(Rococo.QuadVertices q) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorFloorQuad, nullptr, ("ISectorFloorTesselatorFloorQuad (Pointer hObject)(Int32 index)(Rococo.QuadVertices q) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorAddCeilingTriangle, nullptr, ("ISectorFloorTesselatorAddCeilingTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorAddFloorTriangle, nullptr, ("ISectorFloorTesselatorAddFloorTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorGetMaterial, nullptr, ("ISectorFloorTesselatorGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorSetUVScale, nullptr, ("ISectorFloorTesselatorSetUVScale (Pointer hObject)(Float32 scale) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ITriangleList 
@@ -1160,12 +1160,12 @@ namespace
 namespace HV { 
 	void AddNativeCalls_HVITriangleList(Rococo::Script::IPublicScriptSystem& ss, HV::ITriangleList* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
-		ss.AddNativeCall(ns, NativeHVITriangleListAddTriangleByVertices, nullptr, SEXTEXT("ITriangleListAddTriangleByVertices (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c) -> "));
-		ss.AddNativeCall(ns, NativeHVITriangleListAddTriangle, nullptr, SEXTEXT("ITriangleListAddTriangle (Pointer hObject)(Rococo.VertexTriangle abc) -> "));
-		ss.AddNativeCall(ns, NativeHVITriangleListAddQuad, nullptr, SEXTEXT("ITriangleListAddQuad (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c)(Rococo.ObjectVertex d) -> "));
-		ss.AddNativeCall(ns, NativeHVITriangleListCountVertices, nullptr, SEXTEXT("ITriangleListCountVertices (Pointer hObject) -> (Int32 vertices)"));
-		ss.AddNativeCall(ns, NativeHVITriangleListCountTriangles, nullptr, SEXTEXT("ITriangleListCountTriangles (Pointer hObject) -> (Int32 triangles)"));
+		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		ss.AddNativeCall(ns, NativeHVITriangleListAddTriangleByVertices, nullptr, ("ITriangleListAddTriangleByVertices (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c) -> "));
+		ss.AddNativeCall(ns, NativeHVITriangleListAddTriangle, nullptr, ("ITriangleListAddTriangle (Pointer hObject)(Rococo.VertexTriangle abc) -> "));
+		ss.AddNativeCall(ns, NativeHVITriangleListAddQuad, nullptr, ("ITriangleListAddQuad (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c)(Rococo.ObjectVertex d) -> "));
+		ss.AddNativeCall(ns, NativeHVITriangleListCountVertices, nullptr, ("ITriangleListCountVertices (Pointer hObject) -> (Int32 vertices)"));
+		ss.AddNativeCall(ns, NativeHVITriangleListCountTriangles, nullptr, ("ITriangleListCountTriangles (Pointer hObject) -> (Int32 triangles)"));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ISectorEnumerator 
@@ -1202,7 +1202,7 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		HV::ISectorLayout* layout = _pObject->GetSector(index);
 		_offset += sizeof(CReflectedClass*);
-		auto& _layoutStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("HV"),SEXTEXT("ISectorLayout"), SEXTEXT("ProxyISectorLayout"), _nce.ss);
+		auto& _layoutStruct = Rococo::Helpers::GetDefaultProxy(("HV"),("ISectorLayout"), ("ProxyISectorLayout"), _nce.ss);
 		CReflectedClass* _sxylayout = _nce.ss.Represent(_layoutStruct, layout);
 		WriteOutput(&_sxylayout->header._vTables[0], _sf, -_offset);
 	}
@@ -1216,7 +1216,7 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		HV::ISectorLayout* layout = _pObject->GetSelectedSector();
 		_offset += sizeof(CReflectedClass*);
-		auto& _layoutStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("HV"),SEXTEXT("ISectorLayout"), SEXTEXT("ProxyISectorLayout"), _nce.ss);
+		auto& _layoutStruct = Rococo::Helpers::GetDefaultProxy(("HV"),("ISectorLayout"), ("ProxyISectorLayout"), _nce.ss);
 		CReflectedClass* _sxylayout = _nce.ss.Represent(_layoutStruct, layout);
 		WriteOutput(&_sxylayout->header._vTables[0], _sf, -_offset);
 	}
@@ -1236,11 +1236,11 @@ namespace
 namespace HV { 
 	void AddNativeCalls_HVISectorEnumerator(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorEnumerator* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVSectorEnumerator, _nceContext, SEXTEXT("GetHandleForISectorEnumerator0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVISectorEnumeratorCount, nullptr, SEXTEXT("ISectorEnumeratorCount (Pointer hObject) -> (Int32 nCount)"));
-		ss.AddNativeCall(ns, NativeHVISectorEnumeratorGetSector, nullptr, SEXTEXT("ISectorEnumeratorGetSector (Pointer hObject)(Int32 index) -> (HV.ISectorLayout layout)"));
-		ss.AddNativeCall(ns, NativeHVISectorEnumeratorGetSelectedSector, nullptr, SEXTEXT("ISectorEnumeratorGetSelectedSector (Pointer hObject) -> (HV.ISectorLayout layout)"));
+		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVSectorEnumerator, _nceContext, ("GetHandleForISectorEnumerator0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVISectorEnumeratorCount, nullptr, ("ISectorEnumeratorCount (Pointer hObject) -> (Int32 nCount)"));
+		ss.AddNativeCall(ns, NativeHVISectorEnumeratorGetSector, nullptr, ("ISectorEnumeratorGetSector (Pointer hObject)(Int32 index) -> (HV.ISectorLayout layout)"));
+		ss.AddNativeCall(ns, NativeHVISectorEnumeratorGetSelectedSector, nullptr, ("ISectorEnumeratorGetSelectedSector (Pointer hObject) -> (HV.ISectorLayout layout)"));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ISectorComponents 
@@ -1347,12 +1347,12 @@ namespace
 namespace HV { 
 	void AddNativeCalls_HVISectorComponents(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorComponents* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVSectorComponents, _nceContext, SEXTEXT("GetHandleForISectorComponents0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVISectorComponentsAddTriangle, nullptr, SEXTEXT("ISectorComponentsAddTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorComponentsBuildComponent, nullptr, SEXTEXT("ISectorComponentsBuildComponent (Pointer hObject)(Sys.Type.IString componentName) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorComponentsClearComponents, nullptr, SEXTEXT("ISectorComponentsClearComponents (Pointer hObject)(Sys.Type.IString componentName) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorComponentsCompleteComponent, nullptr, SEXTEXT("ISectorComponentsCompleteComponent (Pointer hObject)(Bool preserveMesh) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorComponentsGetMaterial, nullptr, SEXTEXT("ISectorComponentsGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
+		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVSectorComponents, _nceContext, ("GetHandleForISectorComponents0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVISectorComponentsAddTriangle, nullptr, ("ISectorComponentsAddTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorComponentsBuildComponent, nullptr, ("ISectorComponentsBuildComponent (Pointer hObject)(Sys.Type.IString componentName) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorComponentsClearComponents, nullptr, ("ISectorComponentsClearComponents (Pointer hObject)(Sys.Type.IString componentName) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorComponentsCompleteComponent, nullptr, ("ISectorComponentsCompleteComponent (Pointer hObject)(Bool preserveMesh) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorComponentsGetMaterial, nullptr, ("ISectorComponentsGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
 	}
 }
