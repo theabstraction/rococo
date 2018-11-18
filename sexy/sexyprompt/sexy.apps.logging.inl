@@ -32,7 +32,7 @@
 */
 
 	
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 # define SexyCreateFile CreateFileW
 # define SexyFormatMessage FormatMessageW
 #else
@@ -47,11 +47,11 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void FormatSysMessage(SEXCHAR* text, size_t capacity, int msgNumber)
+	void FormatSysMessage(char* text, size_t capacity, int msgNumber)
 	{
 		if (!SexyFormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, msgNumber, 0, text, (DWORD) capacity, NULL))
 		{
-         SafeFormat(text, capacity, SEXTEXT("Code %d ( 0x%x )"), msgNumber, msgNumber);
+         SafeFormat(text, capacity, ("Code %d ( 0x%x )"), msgNumber, msgNumber);
 		}
 	}
 
@@ -60,14 +60,14 @@ namespace
 		switch (s.Type())
 		{
 		case EXPRESSION_TYPE_ATOMIC:
-			totalOutput += WriteToStandardOutput(SEXTEXT(" %s"), (csexstr) s.String()->Buffer);
+			totalOutput += WriteToStandardOutput((" %s"), (cstr) s.String()->Buffer);
 			break;
 		case EXPRESSION_TYPE_STRING_LITERAL:
-			totalOutput += WriteToStandardOutput(SEXTEXT(" \"%s\""), (csexstr) s.String()->Buffer);
+			totalOutput += WriteToStandardOutput((" \"%s\""), (cstr) s.String()->Buffer);
 			break;
 		case EXPRESSION_TYPE_COMPOUND:
 			
-			totalOutput += WriteToStandardOutput(SEXTEXT(" ("));
+			totalOutput += WriteToStandardOutput((" ("));
 
 			for(int i = 0; i < s.NumberOfElements(); ++i)
 			{
@@ -80,24 +80,24 @@ namespace
 				PrintExpression(child, totalOutput, maxOutput);								
 			}
 			
-			totalOutput += WriteToStandardOutput(SEXTEXT(" )"));
+			totalOutput += WriteToStandardOutput((" )"));
 		}
 	}
 
 	void PrintParseException(const ParseException& e)
 	{
-		WriteToStandardOutput(SEXTEXT("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\nSpecimen: %s\r\n"), e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message(), e.Specimen());
+		WriteToStandardOutput(("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\nSpecimen: %s\r\n"), e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message(), e.Specimen());
 
 		for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
 		{
-			if (s->TransformDepth() > 0)  WriteToStandardOutput(SEXTEXT("Macro expansion %d:\r\n"), s->TransformDepth());
+			if (s->TransformDepth() > 0)  WriteToStandardOutput(("Macro expansion %d:\r\n"), s->TransformDepth());
 
 			int totalOutput = 0;
 			PrintExpression(*s, totalOutput, 1024);
 
-			if (totalOutput > 1024) WriteToStandardOutput(SEXTEXT("..."));
+			if (totalOutput > 1024) WriteToStandardOutput(("..."));
 
-			WriteToStandardOutput(SEXTEXT("\r\n"));
+			WriteToStandardOutput(("\r\n"));
 		}
 	}
 
@@ -126,14 +126,14 @@ namespace
 			return (int32) exceptions.size();
 		}
 
-		void Write(csexstr text)
+		void Write(cstr text)
 		{
 			WriteToStandardOutput(text);
 		}
 
-		void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) 
+		void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance) 
 		{
-			WriteToStandardOutput(SEXTEXT("%s: code (0x%x) %d\nMessage: %s\n"), exceptionType, errorCode, errorCode, message);
+			WriteToStandardOutput(("%s: code (0x%x) %d\nMessage: %s\n"), exceptionType, errorCode, errorCode, message);
 		}
 
 		void OnJITCompileException(Sex::ParseException& ex)
@@ -161,21 +161,21 @@ namespace
 		{
 			const IModule& m = obj.GetModule(i);
 
-			SEXCHAR msg[256];
-         SafeFormat(msg, 256, SEXTEXT("\r\nModule %s"), m.Name());
+			char msg[256];
+         SafeFormat(msg, 256, ("\r\nModule %s"), m.Name());
 			log.Write(msg);
 
 			for(int j = 0; j < m.StructCount(); ++j)
 			{
 				const IStructure& s = m.GetStructure(j);
 
-            SafeFormat(msg, 256, SEXTEXT("\r\nstruct %s - %d bytes"), s.Name(), s.SizeOfStruct());
+            SafeFormat(msg, 256, ("\r\nstruct %s - %d bytes"), s.Name(), s.SizeOfStruct());
 				log.Write(msg);
 
 				for(int k = 0; k < s.MemberCount(); ++k)
 				{
 					const IMember& member = s.GetMember(k);
-               SafeFormat(msg, 256, SEXTEXT("  %s %s"), member.UnderlyingType()->Name(), member.Name());
+               SafeFormat(msg, 256, ("  %s %s"), member.UnderlyingType()->Name(), member.Name());
 					log.Write(msg);
 				}
 			}

@@ -36,7 +36,7 @@ namespace Rococo
    namespace Script
    {
       ID_API_CALLBACK JITCallbackId(IScriptSystem& ss);
-      const SEXCHAR* const SKIPSTRING = SEXTEXT("#!skip");
+      const char* const SKIPSTRING = ("#!skip");
 
       void SetPCToFunctionStart(IScriptSystem& ss, const IFunction& f)
       {
@@ -58,7 +58,7 @@ namespace Rococo
 
       void CompileFunction(IFunctionBuilder& f, CScript& script, cr_sex s, IScriptSystem& ss)
       {
-         csexstr name = f.Name();
+         cstr name = f.Name();
          f.Builder().DeleteSymbols();
          CompileFunctionFromExpression(f, IN s, script);
          SetPCToFunctionStart(ss, f);
@@ -66,11 +66,11 @@ namespace Rococo
 
       void CompileFactory(IFactoryBuilder& factory, CScript& script, cr_sex s, IScriptSystem& ss)
       {
-         csexstr name = factory.Name();
+         cstr name = factory.Name();
 
-         int bodyIndex = GetIndexOf(1, s, SEXTEXT(":"));
-         if (bodyIndex < 0) Throw(s, SEXTEXT("Could not find body indicator ':' in factory definition"));
-         if (bodyIndex >= s.NumberOfElements()) Throw(s, SEXTEXT("Body indicator ':' was at the end of the expression. Expecting body to follow it"));
+         int bodyIndex = GetIndexOf(1, s, (":"));
+         if (bodyIndex < 0) Throw(s, ("Could not find body indicator ':' in factory definition"));
+         if (bodyIndex >= s.NumberOfElements()) Throw(s, ("Body indicator ':' was at the end of the expression. Expecting body to follow it"));
 
          factory.Constructor().Builder().DeleteSymbols();
          CompileFactoryBody(factory, s, bodyIndex + 1, script);
@@ -101,7 +101,7 @@ namespace Rococo
          }
          break;
          default:
-            ss.ProgramObject().Log().Write(SEXTEXT("OnJITRoutineNeedsCompiling called with bad type"));
+            ss.ProgramObject().Log().Write(("OnJITRoutineNeedsCompiling called with bad type"));
             ss.ProgramObject().VirtualMachine().Throw();
             return;
          }
@@ -123,7 +123,7 @@ namespace Rococo
          }
          catch (Rococo::IException& iex)
          {
-            ParseException pex(Vec2i{ 0,0 }, Vec2i{ 0,0 }, s->Tree().Source().Name(), iex.Message(), SEXTEXT(""), s);
+            ParseException pex(Vec2i{ 0,0 }, Vec2i{ 0,0 }, s->Tree().Source().Name(), iex.Message(), (""), s);
             ss.ProgramObject().Log().OnJITCompileException(pex);
             ss.ProgramObject().VirtualMachine().Throw();
          }
@@ -165,7 +165,7 @@ namespace Rococo
 
       void CompileJITStub(IFunctionBuilder& f, cr_sex fdef, CScript& script, IScriptSystem& ss)
       {
-         csexstr name = f.Name();
+         cstr name = f.Name();
          ICodeBuilder& builder = f.Builder();
 
          CompileJITStubBytecode(builder, &f, fdef, script, JIT_TYPE_FUNCTION, ss);
@@ -173,7 +173,7 @@ namespace Rococo
 
       void CompileJITStub(IFactoryBuilder* f, cr_sex fdef, CScript& script, IScriptSystem& ss)
       {
-         csexstr name = f->Name();
+         cstr name = f->Name();
          ICodeBuilder& builder = f->Constructor().Builder();
 
          CompileJITStubBytecode(builder, (void*)f, fdef, script, JIT_TYPE_FACTORY, ss);
@@ -181,7 +181,7 @@ namespace Rococo
 
       void CompileJITStub(IMacroBuilder* m, CScript& script, IScriptSystem& ss)
       {
-         csexstr name = m->Name();
+         cstr name = m->Name();
 
          ICodeBuilder& builder = m->Implementation().Builder();
 

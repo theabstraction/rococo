@@ -43,11 +43,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 	public:
 		FunctionAlias(): fn(NULL) {}
-		FunctionAlias(csexstr _publicName, IFunctionBuilder& f): publicName(_publicName), fn(&f) {}
+		FunctionAlias(cstr _publicName, IFunctionBuilder& f): publicName(_publicName), fn(&f) {}
 
 		virtual IFunctionBuilder& GetFunction() { return *fn; }
 		virtual const IFunction& GetFunction() const { return *fn; }
-		virtual csexstr GetPublicName() const { return publicName.c_str(); }
+		virtual cstr GetPublicName() const { return publicName.c_str(); }
 	};
 
 	class FunctionRegistry: public IFunctionEnumeratorBuilder
@@ -86,7 +86,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return (int) functions.size();
 		}
 
-		virtual void Register(csexstr publicName, IFunctionBuilder& f)
+		virtual void Register(cstr publicName, IFunctionBuilder& f)
 		{
 			functions.push_back(FunctionAlias(publicName, f));
 			functionsByName.insert(std::make_pair(CStringKey(f.Name()), &f));
@@ -107,13 +107,13 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return functions[index];
 		}
 
-		virtual IFunctionBuilder* Get(csexstr name)
+		virtual IFunctionBuilder* Get(cstr name)
 		{
 			auto i = functionsByName.find(CStringKey(name));
 			return i != functionsByName.end() ? i->second : NULL;
 		}
 
-		virtual const IFunction* Get(csexstr name) const
+		virtual const IFunction* Get(cstr name) const
 		{
 			auto i = functionsByName.find(CStringKey(name));
 			return i != functionsByName.end() ? i->second : NULL;
@@ -127,14 +127,14 @@ namespace Rococo { namespace Compiler { namespace Impl
 		const IStructure** structureArray;
 		const IArchetype** archetypeArray;
 		const IStructure** genericArg1Array;
-		csexstr* argNameArray;
+		cstr* argNameArray;
 		int32 numberOfOutputs;
 		int32 numberOfInputs;
 		const bool isVirtualMethod;
 		const void* definition;
 
 	public:
-		Archetype(csexstr name, csexstr* argNameArray, const IStructure** stArray, const IArchetype** archArray, const IStructure** _genericArg1Array, int32 numberOfOutputs, int32 numberOfInputs, bool isVirtual, const void* _def):
+		Archetype(cstr name, cstr* argNameArray, const IStructure** stArray, const IArchetype** archArray, const IStructure** _genericArg1Array, int32 numberOfOutputs, int32 numberOfInputs, bool isVirtual, const void* _def):
 				publicName(name), structureArray(NULL), archetypeArray(NULL), argNameArray(NULL), isVirtualMethod(isVirtual), genericArg1Array(NULL), definition(_def)
 		{
 			SetStructs(argNameArray, stArray, archArray, _genericArg1Array, numberOfOutputs, numberOfInputs);
@@ -147,7 +147,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return isVirtualMethod;
 		}
 
-		void SetStructs(const csexstr* _argNameArray, const IStructure** stArray, const IArchetype** archArray, const IStructure** _genericArg1Array, int32 numberOfOutputs, int32 numberOfInputs)
+		void SetStructs(const cstr* _argNameArray, const IStructure** stArray, const IArchetype** archArray, const IStructure** _genericArg1Array, int32 numberOfOutputs, int32 numberOfInputs)
 		{
 			delete[] structureArray;
 			delete[] archetypeArray;
@@ -168,7 +168,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			{
 				structureArray = new const IStructure*[numberOfOutputs+numberOfInputs];
 				archetypeArray = new const IArchetype*[numberOfOutputs+numberOfInputs];
-				argNameArray = new csexstr[numberOfOutputs+numberOfInputs];
+				argNameArray = new cstr[numberOfOutputs+numberOfInputs];
 				genericArg1Array = new const IStructure*[numberOfOutputs+numberOfInputs];
 				for(int32 i = 0; i < numberOfOutputs + numberOfInputs; ++i)
 				{
@@ -188,11 +188,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 			delete[] genericArg1Array;
 		}
 
-		virtual csexstr Name() const								{ return publicName.c_str(); }
+		virtual cstr Name() const								{ return publicName.c_str(); }
 		virtual const int32 NumberOfOutputs() const					{ return numberOfOutputs; }
 		virtual const int32 NumberOfInputs() const					{ return numberOfInputs; }
 		virtual const IStructure& GetArgument(int32 index) const	{ return *structureArray[index]; }
-		virtual csexstr GetArgName(int index) const					{ return argNameArray[index]; }
+		virtual cstr GetArgName(int index) const					{ return argNameArray[index]; }
 		virtual const IStructure* GetGenericArg1(int32 index) const { return genericArg1Array[index]; }
 	};
 
@@ -204,7 +204,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 	public:
 		// This rubbish needs thinking about
-		const IArchetype& Register(csexstr name, csexstr* argNameArray, const IStructure** stArray, const IArchetype** archArray, const IStructure** genericArg1Array, uint32 numberOfOutputs, uint32 numberOfInputs, const void* definition)
+		const IArchetype& Register(cstr name, cstr* argNameArray, const IStructure** stArray, const IArchetype** archArray, const IStructure** genericArg1Array, uint32 numberOfOutputs, uint32 numberOfInputs, const void* definition)
 		{
 			Archetype* a = Find(name);
 			if (a != NULL)
@@ -220,7 +220,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return *a;
 		}
 
-		Archetype* Find(csexstr name)
+		Archetype* Find(cstr name)
 		{
 			for(auto i = declarations.begin(); i != declarations.end(); ++i)
 			{
@@ -234,7 +234,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return NULL;
 		}
 
-		const Archetype* Find(csexstr name) const
+		const Archetype* Find(cstr name) const
 		{
 			for(auto i = declarations.begin(); i != declarations.end(); ++i)
 			{
@@ -273,11 +273,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 	public:
 		StructAlias(): s(NULL) {}
-		StructAlias(csexstr _publicName, IStructureBuilder& _s): publicName(_publicName), s(&_s) {}
+		StructAlias(cstr _publicName, IStructureBuilder& _s): publicName(_publicName), s(&_s) {}
 
 		virtual IStructureBuilder& GetStructure(){ return *s; }
 		virtual const IStructure& GetStructure() const{ return *s; }
-		virtual csexstr GetPublicName() const { return publicName.c_str(); }
+		virtual cstr GetPublicName() const { return publicName.c_str(); }
 	};
 
 	class StructRegistry
@@ -313,12 +313,12 @@ namespace Rococo { namespace Compiler { namespace Impl
 			structures.clear();
 		}
 
-		virtual void Register(csexstr publicName, IStructureBuilder& s)
+		virtual void Register(cstr publicName, IStructureBuilder& s)
 		{
 			TMapNameToIndex::const_iterator i = structureMap.find(publicName);
 			if (i != structureMap.end())
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Duplicate structure definition for %s"), publicName);
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Duplicate structure definition for %s"), publicName);
 			}
 
 			structureMap.insert(std::make_pair(publicName, structures.size()));
@@ -328,9 +328,9 @@ namespace Rococo { namespace Compiler { namespace Impl
 		virtual int StructCount() const {  return (int32)structures.size(); }		
 		virtual IStructAliasBuilder& GetStruct(int index) { return structures[index]; }
 		virtual const IStructAlias& GetStruct(int index) const { return structures[index]; }
-		virtual IStructureBuilder* TryGet(csexstr name)
+		virtual IStructureBuilder* TryGet(cstr name)
 		{
-			REQUIRE_NOT_BLANK(name);
+			if (name == nullptr || *name == 0) Rococo::Throw(0, __FUNCTION__": name was blank");
 			for(auto i = structures.begin(); i != structures.end(); ++i)
 			{
 				IStructAliasBuilder& alias = *i;
@@ -343,9 +343,9 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return NULL;
 		}
 
-		virtual const IStructure* TryGet(csexstr name) const
+		virtual const IStructure* TryGet(cstr name) const
 		{
-			REQUIRE_NOT_BLANK(name);
+			if (name == nullptr || *name == 0) Rococo::Throw(0, __FUNCTION__": name was blank");
 			for(auto i = structures.begin(); i != structures.end(); ++i)
 			{
 				const IStructAlias& alias = *i;
@@ -380,16 +380,16 @@ namespace Rococo { namespace Compiler { namespace Impl
 			sizeOfMember = (underlyingType == NULL) ? 0 : (isPseudoVariable ? 0 : underlyingType->SizeOfStruct());		
 		}
 
-		StructureMember(csexstr _name, csexstr _type, csexstr _genericArg1Type, csexstr _genericArg2Type, bool _isPseudoVariable = false):
+		StructureMember(cstr _name, cstr _type, cstr _genericArg1Type, cstr _genericArg2Type, bool _isPseudoVariable = false):
 			name(_name), typeDesc(_type), underlyingType(NULL), genericArg1Type(_genericArg1Type),  genericArg2Type(_genericArg2Type), sizeOfMember(0),
 			underlyingGenericArg1Type(NULL), underlyingGenericArg2Type(NULL), isPseudoVariable(_isPseudoVariable) {}
 
 		StructureMember(): underlyingType(NULL), sizeOfMember(0), underlyingGenericArg1Type(NULL), underlyingGenericArg2Type(NULL), isPseudoVariable(false)  {}
 
-		StructureMember(csexstr _name, IStructureBuilder& type, IStructureBuilder* _genericArg1Type, IStructureBuilder* _genericArg2Type):
+		StructureMember(cstr _name, IStructureBuilder& type, IStructureBuilder* _genericArg1Type, IStructureBuilder* _genericArg2Type):
 			name(_name), typeDesc(type.Name()), sizeOfMember(type.SizeOfStruct()), isPseudoVariable(false),
-				genericArg1Type(_genericArg1Type == NULL ? SEXTEXT("") : _genericArg1Type->Name()),
-				genericArg2Type(_genericArg2Type == NULL ? SEXTEXT("") : _genericArg2Type->Name())
+				genericArg1Type(_genericArg1Type == NULL ? ("") : _genericArg1Type->Name()),
+				genericArg2Type(_genericArg2Type == NULL ? ("") : _genericArg2Type->Name())
 		{
 			underlyingType = &type;
 			underlyingGenericArg1Type = _genericArg1Type;
@@ -397,7 +397,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		}
 
 		virtual const bool IsResolved() const { return sizeOfMember != 0; }
-		virtual csexstr Name() const		{ return name.c_str(); }
+		virtual cstr Name() const		{ return name.c_str(); }
 		virtual const int SizeOfMember() const	{	return sizeOfMember; }
 		virtual const IStructure* UnderlyingType() const { return underlyingType; }
 		virtual IStructureBuilder* UnderlyingType() { return underlyingType; }
@@ -407,9 +407,9 @@ namespace Rococo { namespace Compiler { namespace Impl
 		virtual IStructureBuilder* UnderlyingGenericArg2Type() { return underlyingGenericArg2Type; }
 		virtual bool IsPseudoVariable() const { return isPseudoVariable; }
 
-		csexstr Type() const { return typeDesc.c_str(); }
-		csexstr GenericArg1Type() const { return genericArg1Type.c_str(); }
-		csexstr GenericArg2Type() const { return genericArg2Type.c_str(); }
+		cstr Type() const { return typeDesc.c_str(); }
+		cstr GenericArg1Type() const { return genericArg1Type.c_str(); }
+		cstr GenericArg2Type() const { return genericArg2Type.c_str(); }
 		void SetSize(size_t size) { sizeOfMember = (int32) size; }
 	};
 
@@ -435,23 +435,23 @@ namespace Rococo { namespace Compiler { namespace Impl
 		const IFunction* constructor;
 		
 	public:
-		Structure(csexstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, VARTYPE type, const void* _definition);
+		Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, VARTYPE type, const void* _definition);
 		~Structure();
 
       virtual void Free() { delete this; }
 
-		virtual void AddInterface(csexstr interfaceFullName);
+		virtual void AddInterface(cstr interfaceFullName);
 		virtual int InterfaceCount() const;
 		virtual const IInterface& GetInterface(int index) const;
 		virtual IInterfaceBuilder& GetInterface(int index);
 
-		virtual void AddMember(const NameString& _name, const TypeString& _type, csexstr _genericArgType1 = NULL, csexstr _genericArgType2 = NULL);
+		virtual void AddMember(const NameString& _name, const TypeString& _type, cstr _genericArgType1 = NULL, cstr _genericArgType2 = NULL);
 		virtual void AddPseudoMember(const NameString& _name, const TypeString& _type);
 		virtual void Seal();
 		virtual int MemberCount() const;
 		virtual IProgramObject& Object();
 		virtual IPublicProgramObject& Object() const;
-		virtual csexstr Name() const;
+		virtual cstr Name() const;
 		virtual const VARTYPE VarType() const;
 		virtual const StructurePrototype& Prototype() const;
 		virtual IModuleBuilder& Module() { return module; }
@@ -486,7 +486,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	public:
 		CStructIdentityAlias(Structure* _s): s(_s) {}
 
-		virtual csexstr GetPublicName() const	{	return s->Name();	}
+		virtual cstr GetPublicName() const	{	return s->Name();	}
 		virtual IStructureBuilder& GetStructure() { return *s; }
 		virtual const IStructure& GetStructure() const	{	return *s;	}
 	};
@@ -497,13 +497,13 @@ namespace Rococo { namespace Compiler { namespace Impl
 		typedef std::unordered_map<CStringKey, const void*, hashCStringKey> TMapKeyToAttr;
 		TMapKeyToAttr attributeMap;
 
-		typedef std::vector<std::pair<csexstr,const void*>> TAttrVector;
+		typedef std::vector<std::pair<cstr,const void*>> TAttrVector;
 		TAttrVector attributes;
 	public:
-		virtual bool AddAttribute(csexstr name, const void* value);
+		virtual bool AddAttribute(cstr name, const void* value);
 		virtual const int AttributeCount() const;		
-		virtual const bool FindAttribute(csexstr name, OUT const void*& value) const;
-		virtual csexstr GetAttribute(int index, OUT const void*& value) const;
+		virtual const bool FindAttribute(cstr name, OUT const void*& value) const;
+		virtual cstr GetAttribute(int index, OUT const void*& value) const;
 
 		void Clear() { attributes.clear(); attributeMap.clear(); }
 	};
@@ -520,7 +520,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		Interface* base;
 
 	public:
-		Interface(csexstr _name, const int _methodCount, IStructureBuilder& _nullObjectType, Interface* _base);
+		Interface(cstr _name, const int _methodCount, IStructureBuilder& _nullObjectType, Interface* _base);
 		~Interface();
 		
       virtual void Free()
@@ -532,7 +532,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		virtual const IAttributes& Attributes() const { return attributes; }
 		virtual const IArchetype& GetMethod(int index) const {	return *archetypes[index];	}
 		virtual const int MethodCount() const 	{ return methodCount;	}
-		virtual csexstr Name() const { return name.c_str(); }		
+		virtual cstr Name() const { return name.c_str(); }		
 		virtual const IStructure& NullObjectType() const { return nullObjectType; }
 		virtual ObjectStub* UniversalNullInstance() const 
 		{
@@ -548,7 +548,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		// IInterfaceBuilder
 		virtual IAttributes& Attributes() { return attributes; }
 		virtual void ExpandNullObjectAllocSize(int minimumByteCount) { nullObjectType.ExpandAllocSize(minimumByteCount); }
-		virtual void SetMethod(size_t index, csexstr name, size_t argCount, csexstr argNames[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArg1s[], const bool isOut[], const void* definition);
+		virtual void SetMethod(size_t index, cstr name, size_t argCount, cstr argNames[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArg1s[], const bool isOut[], const void* definition);
 		virtual void PostCompile();
 		virtual IStructureBuilder& NullObjectType() { return nullObjectType; }
 	};
@@ -564,12 +564,12 @@ namespace Rococo { namespace Compiler { namespace Impl
 		IStructureBuilder* inlineClass;
 
 	public:
-		Factory(csexstr _name, IFunctionBuilder& _constructor, IInterfaceBuilder& _interf, sexstring _intType):
+		Factory(cstr _name, IFunctionBuilder& _constructor, IInterfaceBuilder& _interf, sexstring _intType):
 				name(_name), constructor(_constructor), interf(_interf), interfType(_intType), 
 				inlineConstructor(NULL), inlineClass(NULL)
 		{}
 
-		virtual csexstr Name() const {	return name.c_str();	}
+		virtual cstr Name() const {	return name.c_str();	}
 		virtual const IFunction& Constructor() const	{	return constructor;	}
 		virtual IFunctionBuilder& Constructor()			{	return constructor;	}
 		virtual const IInterface& ThisInterface() const { return interf; }
@@ -589,15 +589,15 @@ namespace Rococo { namespace Compiler { namespace Impl
 	class Macro: public IMacroBuilder
 	{
 	public:
-		Macro(csexstr _name, void* _expression, INamespace& _ns, IFunctionBuilder& _f): name(_name), expression(_expression), ns(_ns), f(_f) {}
+		Macro(cstr _name, void* _expression, INamespace& _ns, IFunctionBuilder& _f): name(_name), expression(_expression), ns(_ns), f(_f) {}
 
-		virtual csexstr Name() const { return name; }
+		virtual cstr Name() const { return name; }
 		virtual const void* Expression() const { return expression; }
 		virtual const INamespace& NS() const { return ns; }
 		virtual const IFunction& Implementation() const { return f; }
 		virtual IFunctionBuilder& Implementation() { return f; }
 	private:
-		csexstr name;
+		cstr name;
 		void* expression;
 		INamespace& ns;
 		IFunctionBuilder& f;
@@ -627,10 +627,10 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		TMapNameToMacro macros;
 
-		INamespaceBuilder* GetSubspaceCore(csexstr childName);
+		INamespaceBuilder* GetSubspaceCore(cstr childName);
 	public:
 		Namespace(IProgramObject& _object);
-		Namespace(IProgramObject& _object, csexstr _name, Namespace* _parent);
+		Namespace(IProgramObject& _object, cstr _name, Namespace* _parent);
 		~Namespace();
 
 		FunctionRegistry& Functions();
@@ -644,49 +644,49 @@ namespace Rococo { namespace Compiler { namespace Impl
 		virtual void Clear();
 
 		virtual void Alias(IFunctionBuilder& f);
-		virtual void Alias(csexstr name, IFunctionBuilder& f);
-		virtual void Alias(csexstr publicName, IStructureBuilder& s);
+		virtual void Alias(cstr name, IFunctionBuilder& f);
+		virtual void Alias(cstr publicName, IStructureBuilder& s);
 
-		virtual IFunctionBuilder* FindFunction(csexstr name);
-		virtual IStructureBuilder* FindStructure(csexstr name);
-		virtual const IFunction* FindFunction(csexstr name) const;
-		virtual const IStructure* FindStructure(csexstr name) const;
+		virtual IFunctionBuilder* FindFunction(cstr name);
+		virtual IStructureBuilder* FindStructure(cstr name);
+		virtual const IFunction* FindFunction(cstr name) const;
+		virtual const IStructure* FindStructure(cstr name) const;
 
-		virtual INamespaceBuilder& AddNamespace(csexstr childName, ADDNAMESPACEFLAGS flags);
+		virtual INamespaceBuilder& AddNamespace(cstr childName, ADDNAMESPACEFLAGS flags);
 		virtual size_t ChildCount() const;
 		virtual const INamespace& GetChild(size_t index) const;
 		virtual INamespaceBuilder& GetChild(size_t index);
-		virtual const INamespace* FindSubspace(csexstr childName) const;
-		virtual INamespaceBuilder* FindSubspace(csexstr childName);
+		virtual const INamespace* FindSubspace(cstr childName) const;
+		virtual INamespaceBuilder* FindSubspace(cstr childName);
 		virtual const sexstring FullName() const;
 		virtual const sexstring Name() const;
 		virtual const INamespace* Parent() const;
 		virtual INamespaceBuilder* Parent();
 
-		virtual const IArchetype& AddArchetype(csexstr name, csexstr argNames[], const IStructure* stArray[], const IArchetype* archArray[], const IStructure* genericArg1s[], int numberOfOutputs, int numberOfInputs, const void* definition);
-		virtual const IArchetype* FindArchetype(csexstr name) const;
-		virtual IArchetype* FindArchetype(csexstr name);
+		virtual const IArchetype& AddArchetype(cstr name, cstr argNames[], const IStructure* stArray[], const IArchetype* archArray[], const IStructure* genericArg1s[], int numberOfOutputs, int numberOfInputs, const void* definition);
+		virtual const IArchetype* FindArchetype(cstr name) const;
+		virtual IArchetype* FindArchetype(cstr name);
 
-		virtual IInterfaceBuilder* DeclareInterface(csexstr name, int methodCount, IStructureBuilder& nullObject, IInterfaceBuilder* base);
-		virtual IInterfaceBuilder* FindInterface(csexstr name);
-		virtual const IInterface* FindInterface(csexstr name) const;
+		virtual IInterfaceBuilder* DeclareInterface(cstr name, int methodCount, IStructureBuilder& nullObject, IInterfaceBuilder* base);
+		virtual IInterfaceBuilder* FindInterface(cstr name);
+		virtual const IInterface* FindInterface(cstr name) const;
 
 		virtual int InterfaceCount() const { return (int32) interfaceEnum.size(); }
 		virtual IInterfaceBuilder& GetInterface(int index) { return *interfaceEnum[index]; }
 		virtual const IInterface& GetInterface(int index) const { return *interfaceEnum[index]; }
 
-		virtual IMacroBuilder* FindMacro(csexstr name);
-		virtual const IFactory* FindFactory(csexstr name) const;
-		virtual IFactory& RegisterFactory(csexstr name, IFunctionBuilder& constructor, IInterfaceBuilder& interf, sexstring interfType);
+		virtual IMacroBuilder* FindMacro(cstr name);
+		virtual const IFactory* FindFactory(cstr name) const;
+		virtual IFactory& RegisterFactory(cstr name, IFunctionBuilder& constructor, IInterfaceBuilder& interf, sexstring interfType);
 
-		virtual IMacroBuilder* AddMacro(csexstr name, void* expression, IFunctionBuilder& f);
+		virtual IMacroBuilder* AddMacro(cstr name, void* expression, IFunctionBuilder& f);
 
-		virtual IFactoryBuilder* FindFactory(csexstr name);
-		virtual const IMacro* FindMacro(csexstr name) const;
+		virtual IFactoryBuilder* FindFactory(cstr name);
+		virtual const IMacro* FindMacro(cstr name) const;
 
-		virtual void EnumerateFactories(ICallback<const IFactory, csexstr>& onFactory) const;
-		virtual void EnumerateStrutures(ICallback<const IStructure, csexstr>& onStructure) const;
-		virtual void EnumerateFunctions(ICallback<const IFunction, csexstr>& onFunction) const;
+		virtual void EnumerateFactories(ICallback<const IFactory, cstr>& onFactory) const;
+		virtual void EnumerateStrutures(ICallback<const IStructure, cstr>& onStructure) const;
+		virtual void EnumerateFunctions(ICallback<const IFunction, cstr>& onFunction) const;
 		virtual void EnumerateArchetypes(ICallback<const IArchetype>& onArchetype) const;
 	};	
 }}} // Rococo::Compiler::Impl

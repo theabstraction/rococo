@@ -37,9 +37,9 @@ namespace Rococo
    {
       void AddCatchHandler(CScript& script, ID_BYTECODE id, size_t startOfBody, size_t gotoCleanupPos, size_t handlerPos);
 
-      void CompileTryCatchFinally(CCompileEnvironment& ce, csexstr exName, cr_sex body, cr_sex handler, const ISExpression* cleanup)
+      void CompileTryCatchFinally(CCompileEnvironment& ce, cstr exName, cr_sex body, cr_sex handler, const ISExpression* cleanup)
       {
-         ce.Builder.AddSymbol(SEXTEXT("try"));
+         ce.Builder.AddSymbol(("try"));
          ce.Builder.Assembler().Append_NoOperation();
 
          size_t startOfBody = ce.Builder.Assembler().WritePosition();
@@ -55,7 +55,7 @@ namespace Rococo
 
          ce.Builder.Assembler().Append_Branch(0);
 
-         ce.Builder.AddSymbol(SEXTEXT("catch"));
+         ce.Builder.AddSymbol(("catch"));
          ce.Builder.Assembler().Append_NoOperation();
 
          size_t handlerPos = ce.Builder.Assembler().WritePosition();
@@ -70,12 +70,12 @@ namespace Rococo
          AddVariable(ce, NameString::From(exRefName), ce.Object.Common().TypePointer());
 
          ce.Builder.AssignVariableRefToTemp(exName, 0, Compiler::GetInstanceToInterfaceOffset(0));
-         ce.Builder.AddSymbol(SEXTEXT("Set exception ref to exception interface"));
+         ce.Builder.AddSymbol(("Set exception ref to exception interface"));
          ce.Builder.AssignTempToVariable(0, exRefName);
 
          CompileExpressionSequence(ce, 0, handler.NumberOfElements() - 1, handler);
 
-         ce.Builder.AddSymbol(SEXTEXT("end-catch"));
+         ce.Builder.AddSymbol(("end-catch"));
 
          ce.Builder.PopLastVariables(2); // That pops the reference to the exception and the exception itself
 
@@ -83,7 +83,7 @@ namespace Rococo
          size_t buildToCleanupDelta = cleanupPos - gotoCleanupPos;
          if (cleanup != NULL)
          {
-            ce.Builder.AddSymbol(SEXTEXT("finally"));
+            ce.Builder.AddSymbol(("finally"));
             CompileExpressionSequence(ce, 0, cleanup->NumberOfElements() - 1, *cleanup);
          }
 
@@ -98,13 +98,13 @@ namespace Rococo
          if (s.NumberOfElements() != 5 && s.NumberOfElements() != 7)
          {
             sexstringstream<1024> streamer;
-            streamer.sb << SEXTEXT("Expecting 5 or 7 elements in a (try (...) catch e (...) finally (...)) block. Found ") << s.NumberOfElements() << SEXTEXT(" elements");
+            streamer.sb << ("Expecting 5 or 7 elements in a (try (...) catch e (...) finally (...)) block. Found ") << s.NumberOfElements() << (" elements");
             Throw(s, *streamer.sb);
          }
 
          GetAtomicArg(s, 0);
-         AssertKeyword(s, 0, SEXTEXT("try"));
-         AssertKeyword(s, 2, SEXTEXT("catch"));
+         AssertKeyword(s, 0, ("try"));
+         AssertKeyword(s, 2, ("catch"));
 
          cr_sex body = s.GetElement(1);
          AssertCompoundOrNull(body);
@@ -115,7 +115,7 @@ namespace Rococo
          cr_sex handler = s.GetElement(4);
          AssertCompoundOrNull(handler);
 
-         if (s.NumberOfElements() == 7) AssertKeyword(s, 5, SEXTEXT("finally"));
+         if (s.NumberOfElements() == 7) AssertKeyword(s, 5, ("finally"));
 
          const ISExpression* cleanup = NULL;
 
@@ -146,32 +146,32 @@ namespace Rococo
          MemberDef def;
          if (!ce.Builder.TryGetVariableByName(OUT def, ex.String()->Buffer))
          {
-            Throw(ex, SEXTEXT("Expecting local exception identifier"));
+            Throw(ex, ("Expecting local exception identifier"));
          }
 
          const IInterface& interfExc = ce.Object.Common().SysTypeIException();
          if (!HasInterface(interfExc, *def.ResolvedType))
          {
-            Throw(ex, SEXTEXT("The variable does not implement the Sys.Type.IException interface"));
+            Throw(ex, ("The variable does not implement the Sys.Type.IException interface"));
          }
 
          int sizeofException = def.AllocSize;
 
-         IFunction* fnThrow = ce.Object.Common().SysType().FindFunction(SEXTEXT("_throw"));
+         IFunction* fnThrow = ce.Object.Common().SysType().FindFunction(("_throw"));
          if (fnThrow == NULL)
          {
-            Throw(s, SEXTEXT("Cannot find intrinsic function Sys.Type.Exception._throw(Sys.Type.IException ex)"));
+            Throw(s, ("Cannot find intrinsic function Sys.Type.Exception._throw(Sys.Type.IException ex)"));
          }
 
-         SEXCHAR symbol[256];
-         SafeFormat(symbol, 256, SEXTEXT("&%s"), (csexstr)ex.String()->Buffer);
+         char symbol[256];
+         SafeFormat(symbol, 256, ("&%s"), (cstr)ex.String()->Buffer);
          ce.Builder.AddSymbol(symbol);
          ce.Builder.AssignVariableRefToTemp(ex.String()->Buffer, 0 /* D4 */); // Push a ref to the exception on the stack
 
-         AddArgVariable(SEXTEXT("exception"), ce, ce.Object.Common().TypePointer());
+         AddArgVariable(("exception"), ce, ce.Object.Common().TypePointer());
          ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);
 
-         ce.Builder.AddSymbol(SEXTEXT("throw"));
+         ce.Builder.AddSymbol(("throw"));
          AppendFunctionCallAssembly(ce, *fnThrow);
 
          MarkStackRollback(ce, s);

@@ -64,7 +64,7 @@ namespace Rococo
       struct INamespaceBuilder;
       struct IProgramObject;
 
-      csexstr GetTypeName(const IStructure& s);
+      cstr GetTypeName(const IStructure& s);
    }
 
    namespace Sex
@@ -73,16 +73,16 @@ namespace Rococo
 
       void AssertQualifiedIdentifier(cr_sex e);
       void AssertTypeIdentifier(cr_sex e);
-      void AssertTypeIdentifier(cr_sex src, csexstr name);
+      void AssertTypeIdentifier(cr_sex src, cstr name);
       void AssertLocalIdentifier(cr_sex e);
 
       void Throw(cr_sex e, const fstring& f);
-      void ThrowTypeMismatch(cr_sex s, const IStructure& a, const IStructure& b, csexstr extra);
+      void ThrowTypeMismatch(cr_sex s, const IStructure& a, const IStructure& b, cstr extra);
 
-      void AssertAtomicMatch(cr_sex s, csexstr value);
-      void ThrowNamespaceConflict(cr_sex s, const INamespace& n1, const INamespace& n2, csexstr type, csexstr token);
-      void ThrowTokenNotFound(cr_sex s, csexstr item, csexstr repository, csexstr type);
-      INamespace& AssertGetNamespace(IProgramObject& object, cr_sex s, csexstr fullName);
+      void AssertAtomicMatch(cr_sex s, cstr value);
+      void ThrowNamespaceConflict(cr_sex s, const INamespace& n1, const INamespace& n2, cstr type, cstr token);
+      void ThrowTokenNotFound(cr_sex s, cstr item, cstr repository, cstr type);
+      INamespace& AssertGetNamespace(IProgramObject& object, cr_sex s, cstr fullName);
    }
 
    namespace Script
@@ -90,11 +90,11 @@ namespace Rococo
       using namespace Rococo::Compiler;
       using namespace Rococo::Sex;
 
-      extern const SEXCHAR* const THIS_POINTER_TOKEN;
+      extern const char* const THIS_POINTER_TOKEN;
 
       struct IScriptSystem;
 
-      typedef std::unordered_map<CStringKey, csexstr, hashCStringKey> TMapMethodToMember;
+      typedef std::unordered_map<CStringKey, cstr, hashCStringKey> TMapMethodToMember;
 
       class CScript;
 
@@ -122,14 +122,14 @@ namespace Rococo
          const IStructure& StructList();
          const IStructure& StructMap();
 
-         csexstr MapMethodToMember(csexstr method)
+         cstr MapMethodToMember(cstr method)
          {
             auto i = methodMap.find(CStringKey(method));
             return i == methodMap.end() ? NULL : i->second;
          }
       };
 
-      void InitClassMembers(CCompileEnvironment& ce, csexstr id);
+      void InitClassMembers(CCompileEnvironment& ce, cstr id);
       void StreamSTCEX(StringBuilder& sb, const Compiler::STCException& ex);
       bool TryCompileFunctionCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, VARTYPE type, const IStructure* derivedType, const IArchetype* returnArchetype);
 
@@ -228,7 +228,7 @@ namespace Rococo
          cr_sex SexDef;
          MapDef mapdef;
          stdstring mapName;
-         MapNodeDef(cr_sex _sexDef, const MapDef& _mapdef, csexstr _mapName) : SexDef(_sexDef), mapdef(_mapdef), mapName(_mapName) {}
+         MapNodeDef(cr_sex _sexDef, const MapDef& _mapdef, cstr _mapName) : SexDef(_sexDef), mapdef(_mapdef), mapName(_mapName) {}
       };
 
 
@@ -271,7 +271,7 @@ namespace Rococo
 
          TGlobalVariables globalVariables;
          TExceptionBlocks exceptionBlocks;
-         csexstr contextName;
+         cstr contextName;
 
          TMapNameToArrayDef mapNameToArrayDef;
          TMapNameToListDef mapNameToListDef;
@@ -280,28 +280,28 @@ namespace Rococo
          TMapNameToMapNodeDef mapNameToMapNodeDef;
       public:
          CScript(ISParserTree& _tree, IProgramObject& _programObject, CScripts& _scripts);
-         GlobalValue* GetGlobalValue(csexstr name);
+         GlobalValue* GetGlobalValue(cstr name);
          void EnumerateGlobals(IGlobalEnumerator& cb);
-         const ArrayDef* GetArrayDef(ICodeBuilder& builder, csexstr arrayName);
-         const ListDef* GetListDef(ICodeBuilder& builder, csexstr listName);
-         const NodeDef* GetNodeDef(ICodeBuilder& builder, csexstr listName);
-         const MapDef* GetMapDef(ICodeBuilder& builder, csexstr listName);
-         const MapNodeDef* GetMapNodeDef(ICodeBuilder& builder, csexstr name);
-         void AddArrayDef(ICodeBuilder& builder, csexstr arrayName, const IStructure& elementType, cr_sex s);
-         void AddListDef(ICodeBuilder& builder, csexstr name, const IStructure& elementType, cr_sex s);
-         void AddMapDef(ICodeBuilder& builder, csexstr name, const IStructure& keyType, const IStructure& valueType, cr_sex s);
-         void AddMapNodeDef(ICodeBuilder& builder, const MapDef& mapDef, csexstr mapName, csexstr nodeName, cr_sex s);
-         void AddNodeDef(ICodeBuilder& builder, csexstr nodeName, const IStructure& elementType, cr_sex s);
+         const ArrayDef* GetArrayDef(ICodeBuilder& builder, cstr arrayName);
+         const ListDef* GetListDef(ICodeBuilder& builder, cstr listName);
+         const NodeDef* GetNodeDef(ICodeBuilder& builder, cstr listName);
+         const MapDef* GetMapDef(ICodeBuilder& builder, cstr listName);
+         const MapNodeDef* GetMapNodeDef(ICodeBuilder& builder, cstr name);
+         void AddArrayDef(ICodeBuilder& builder, cstr arrayName, const IStructure& elementType, cr_sex s);
+         void AddListDef(ICodeBuilder& builder, cstr name, const IStructure& elementType, cr_sex s);
+         void AddMapDef(ICodeBuilder& builder, cstr name, const IStructure& keyType, const IStructure& valueType, cr_sex s);
+         void AddMapNodeDef(ICodeBuilder& builder, const MapDef& mapDef, cstr mapName, cstr nodeName, cr_sex s);
+         void AddNodeDef(ICodeBuilder& builder, cstr nodeName, const IStructure& elementType, cr_sex s);
 
          const bool IsIStringInlined() const;
 
          IProgramObject& Object() { return programObject; }
          IScriptSystem& System();
 
-         CStringConstant* CreateStringConstant(int length, csexstr pointer, const ISExpression* srcExpression);
+         CStringConstant* CreateStringConstant(int length, cstr pointer, const ISExpression* srcExpression);
 
-         void RegisterContext(csexstr _name) { contextName = _name; }
-         csexstr GetContext() const { return contextName; }
+         void RegisterContext(cstr _name) { contextName = _name; }
+         cstr GetContext() const { return contextName; }
 
          const ISExpression* GetTryCatchExpression() const
          {
@@ -334,7 +334,7 @@ namespace Rococo
          void CompileLocalFunctions();
          void CompileJITStubs();
          void AppendCompiledNamespaces(TNamespaceDefinitions& nsDefs);
-         void AddEnumeratedVirtualMethod(IN cr_sex virtualMethodExpr, IN csexstr methodName, REF IInterfaceBuilder& inter, IN size_t vmIndex);
+         void AddEnumeratedVirtualMethod(IN cr_sex virtualMethodExpr, IN cstr methodName, REF IInterfaceBuilder& inter, IN size_t vmIndex);
          void AddVirtualMethod(IN cr_sex virtualMethodExpr, REF IInterfaceBuilder& inter, IN size_t vmIndex);
          void AddVirtualMethod(IN const IArchetype& archetype, REF IInterfaceBuilder& inter, IN size_t vmIndex, cr_sex def);
          void ComputeGlobal(cr_sex globalDef, int& globalBaseIndex);
@@ -364,56 +364,56 @@ namespace Rococo
 
       typedef std::unordered_map<void*, void*> TAllocationMap;
 
-      void GetAtomicValue(CCompileEnvironment& ce, cr_sex parent, csexstr id, VARTYPE type);
+      void GetAtomicValue(CCompileEnvironment& ce, cr_sex parent, cstr id, VARTYPE type);
       void AppendDeconstruct(CCompileEnvironment& ce, cr_sex sequence);
       void AddPseudoVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& ts);
-      void AddVariableAndSymbol(CCompileEnvironment& ce, csexstr type, csexstr name);
+      void AddVariableAndSymbol(CCompileEnvironment& ce, cstr type, cstr name);
       void ValidateUnusedVariable(cr_sex identifierExpr, ICodeBuilder& builder);
-      void AssertGetVariable(OUT MemberDef& def, csexstr name, CCompileEnvironment& ce, cr_sex exceptionSource);
-      void CompileAsPopOutFromArray(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, VARTYPE requiredType);
+      void AssertGetVariable(OUT MemberDef& def, cstr name, CCompileEnvironment& ce, cr_sex exceptionSource);
+      void CompileAsPopOutFromArray(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE requiredType);
       void CompileArraySet(CCompileEnvironment& ce, cr_sex s);
-      void CompileGetArrayElement(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, VARTYPE varType, const IStructure* structType);
-      void CompileGetArraySubelement(CCompileEnvironment& ce, cr_sex indexExpr, cr_sex subItemName, csexstr instanceName, VARTYPE type, const IStructure* structType);
+      void CompileGetArrayElement(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE varType, const IStructure* structType);
+      void CompileGetArraySubelement(CCompileEnvironment& ce, cr_sex indexExpr, cr_sex subItemName, cstr instanceName, VARTYPE type, const IStructure* structType);
 
-      bool TryCompileAsArrayCall(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, csexstr methodName);
-      bool TryCompileAsListCall(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, csexstr methodName);
-      bool TryCompileAsNodeCall(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, csexstr methodName);
-      bool TryCompileAsMapCall(CCompileEnvironment& ce, cr_sex s, csexstr mapName, csexstr methodName);
-      bool TryCompileAsMapNodeCall(CCompileEnvironment& ce, cr_sex s, csexstr name, csexstr methodName);
-      bool TryCompileAsInlineMapAndReturnValue(CCompileEnvironment& ce, cr_sex s, csexstr instance, csexstr methodName, VARTYPE returnType, const IStructure& instanceStruct, OUT VARTYPE& outputType);
+      bool TryCompileAsArrayCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName);
+      bool TryCompileAsListCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName);
+      bool TryCompileAsNodeCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName);
+      bool TryCompileAsMapCall(CCompileEnvironment& ce, cr_sex s, cstr mapName, cstr methodName);
+      bool TryCompileAsMapNodeCall(CCompileEnvironment& ce, cr_sex s, cstr name, cstr methodName);
+      bool TryCompileAsInlineMapAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const IStructure& instanceStruct, OUT VARTYPE& outputType);
 
       void ConstructMemberByRef(CCompileEnvironment& ce, cr_sex args, int tempDepth, const IStructure& type, int offset);
-      csexstr GetTypeName(VARTYPE type);
+      cstr GetTypeName(VARTYPE type);
 
-      VARTYPE GetAtomicValueAnyNumeric(CCompileEnvironment& ce, cr_sex parent, csexstr id, int tempdepth);
-      void AssignVariableToVariable(CCompileEnvironment& ce, cr_sex exceptionSource, csexstr lhs, csexstr rhs);
-      CStringConstant* CreateStringConstant(CScript& script, int length, csexstr s, const ISExpression* srcExpression);
+      VARTYPE GetAtomicValueAnyNumeric(CCompileEnvironment& ce, cr_sex parent, cstr id, int tempdepth);
+      void AssignVariableToVariable(CCompileEnvironment& ce, cr_sex exceptionSource, cstr lhs, cstr rhs);
+      CStringConstant* CreateStringConstant(CScript& script, int length, cstr s, const ISExpression* srcExpression);
       IFunctionBuilder& DeclareFunction(IModuleBuilder& module, cr_sex source, FunctionPrototype& prototype);
-      csexstr GetContext(const CScript& script);
+      cstr GetContext(const CScript& script);
       const ISExpression* GetTryCatchExpression(CScript& script);
       bool TryCompileBooleanExpression(CCompileEnvironment& ce, cr_sex s, bool isExpected, bool& negate);
       void CompileExpressionSequence(CCompileEnvironment& ce, int start, int end, cr_sex sequence);
       void CompileExpression(CCompileEnvironment& ce, cr_sex s);
-      void ValidateArchetypeMatchesArchetype(cr_sex s, const IArchetype& f, const IArchetype& archetype, csexstr source);
-      int GetIndexOf(int start, cr_sex s, csexstr text);
+      void ValidateArchetypeMatchesArchetype(cr_sex s, const IArchetype& f, const IArchetype& archetype, cstr source);
+      int GetIndexOf(int start, cr_sex s, cstr text);
       void CompileExceptionBlock(CCompileEnvironment& ce, cr_sex s);
       void CompileThrow(CCompileEnvironment& ce, cr_sex s);
       void CompileNextClosures(CScript& script);
-      void GetVariableByName(ICodeBuilder& builder, OUT MemberDef& def, csexstr name, cr_sex src);
+      void GetVariableByName(ICodeBuilder& builder, OUT MemberDef& def, cstr name, cr_sex src);
       void AddCatchHandler(CScript& script, ID_BYTECODE id, size_t start, size_t end);
       IModuleBuilder& GetModule(CScript& script);
-      void AppendVirtualCallAssembly(csexstr instanceName, int interfaceIndex, int methodIndex, ICodeBuilder& builder, const IInterface& interf, cr_sex s);
+      void AppendVirtualCallAssembly(cstr instanceName, int interfaceIndex, int methodIndex, ICodeBuilder& builder, const IInterface& interf, cr_sex s);
       int GetFirstOutputOffset(ICodeBuilder& builder);
       IModule& GetSysTypeMemoModule(CScript& script);
-      INamespaceBuilder& GetNamespaceByFQN(CCompileEnvironment& ce, csexstr ns, cr_sex s);
+      INamespaceBuilder& GetNamespaceByFQN(CCompileEnvironment& ce, cstr ns, cr_sex s);
       void MarkStackRollback(CCompileEnvironment& ce, cr_sex invokeExpression);
-      int PushInput(CCompileEnvironment& ce, cr_sex s, int index, const IStructure& inputStruct, const IArchetype* archetype, csexstr inputName, const IStructure* genericArg1);
+      int PushInput(CCompileEnvironment& ce, cr_sex s, int index, const IStructure& inputStruct, const IArchetype* archetype, cstr inputName, const IStructure* genericArg1);
       const IArgument& GetInput(cr_sex s, IFunction& f, int index);
       const IArchetype* GetArchetype(cr_sex s, IFunction& f, int index);
-      void PushVariableRef(cr_sex s, ICodeBuilder& builder, const MemberDef& def, csexstr name, int interfaceIndex);
+      void PushVariableRef(cr_sex s, ICodeBuilder& builder, const MemberDef& def, cstr name, int interfaceIndex);
       int GetCommonInterfaceIndex(const IStructure& object, const IStructure& argType);
 
-      IFunctionBuilder& MustMatchFunction(IModuleBuilder& module, cr_sex s, csexstr name);
+      IFunctionBuilder& MustMatchFunction(IModuleBuilder& module, cr_sex s, cstr name);
       IInterfaceBuilder* MatchInterface(cr_sex typeExpr, IModuleBuilder& module);
       IStructureBuilder* MatchStructure(cr_sex typeExpr, IModuleBuilder& module);
       IFunctionBuilder* MatchFunction(cr_sex nameExpr, IModuleBuilder& module);
@@ -433,7 +433,7 @@ namespace Rococo
 
       IFunctionBuilder& GetNullFunction(CScript& script, const IArchetype& archetype);
 
-      GlobalValue* GetGlobalValue(CScript& script, csexstr buffer);
+      GlobalValue* GetGlobalValue(CScript& script, cstr buffer);
 
       struct ArrayCallbacks
       {
@@ -514,39 +514,39 @@ namespace Rococo
       const ListCallbacks& GetListCallbacks(CCompileEnvironment& ce);
       const MapCallbacks& GetMapCallbacks(CCompileEnvironment& ce);
 
-      const IStructure& GetArrayDef(CCompileEnvironment& ce, cr_sex src, csexstr arrayName);
-      const IStructure& GetListDef(CCompileEnvironment& ce, cr_sex src, csexstr name);
-      const MapDef GetMapDef(CCompileEnvironment& ce, cr_sex src, csexstr name);
-      const IStructure& GetNodeDef(CCompileEnvironment& ce, cr_sex src, csexstr name);
-      const MapNodeDef& GetMapNodeDef(CCompileEnvironment& ce, cr_sex src, csexstr name);
+      const IStructure& GetArrayDef(CCompileEnvironment& ce, cr_sex src, cstr arrayName);
+      const IStructure& GetListDef(CCompileEnvironment& ce, cr_sex src, cstr name);
+      const MapDef GetMapDef(CCompileEnvironment& ce, cr_sex src, cstr name);
+      const IStructure& GetNodeDef(CCompileEnvironment& ce, cr_sex src, cstr name);
+      const MapNodeDef& GetMapNodeDef(CCompileEnvironment& ce, cr_sex src, cstr name);
 
-      void AddArrayDef(CScript& script, ICodeBuilder& builder, csexstr arrayName, const IStructure& elementType, cr_sex def);
-      void AddListDef(CScript& script, ICodeBuilder& builder, csexstr listName, const IStructure& elementType, cr_sex def);
-      void AddMapDef(CScript& script, ICodeBuilder& builder, csexstr name, const IStructure& keyType, const IStructure& valueType, cr_sex def);
-      void AddNodeDef(CScript& script, ICodeBuilder& builder, csexstr name, const IStructure& elementType, cr_sex s);
-      void AddMapNodeDef(CScript& script, ICodeBuilder& builder, const MapDef& def, csexstr nodeName, csexstr mapName, cr_sex s);
+      void AddArrayDef(CScript& script, ICodeBuilder& builder, cstr arrayName, const IStructure& elementType, cr_sex def);
+      void AddListDef(CScript& script, ICodeBuilder& builder, cstr listName, const IStructure& elementType, cr_sex def);
+      void AddMapDef(CScript& script, ICodeBuilder& builder, cstr name, const IStructure& keyType, const IStructure& valueType, cr_sex def);
+      void AddNodeDef(CScript& script, ICodeBuilder& builder, cstr name, const IStructure& elementType, cr_sex s);
+      void AddMapNodeDef(CScript& script, ICodeBuilder& builder, const MapDef& def, cstr nodeName, cstr mapName, cr_sex s);
       bool TryCompileClosureDef(CCompileEnvironment& ce, cr_sex s, const IArchetype& closureArchetype, bool mayUseParentSF);
 
       bool IsIStringInlined(CScript& script);
       bool IsIStringInlined(CScripts& scripts);
-      void AddSymbol(ICodeBuilder& builder, csexstr format, ...);
+      void AddSymbol(ICodeBuilder& builder, cstr format, ...);
 
       void AddPseudoVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& ts);
       void AddVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& typeStruct);
-      void AddArgVariable(csexstr desc, CCompileEnvironment& ce, const TypeString& type);
-      void AddArgVariable(csexstr desc, CCompileEnvironment& ce, const IStructure& type);
+      void AddArgVariable(cstr desc, CCompileEnvironment& ce, const TypeString& type);
+      void AddArgVariable(cstr desc, CCompileEnvironment& ce, const IStructure& type);
       void AddVariable(CCompileEnvironment& ce, const NameString& ns, const TypeString& ts);
       bool IsPseudoVariable(const MemberDef& def);
       int PushInputs(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, bool isImplicitInput, int firstArgIndex);
-      int CompileInstancePointerArg(CCompileEnvironment& ce, csexstr classInstance);
+      int CompileInstancePointerArg(CCompileEnvironment& ce, cstr classInstance);
       void AppendFunctionCallAssembly(CCompileEnvironment& ce, const IFunction& callee);
       void RepairStack(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, int extraArgs = 0);
-      void CompileConstructFromFactory(CCompileEnvironment& ce, const IStructure& nullType, csexstr id, cr_sex args);
+      void CompileConstructFromFactory(CCompileEnvironment& ce, const IStructure& nullType, cstr id, cr_sex args);
       void AppendInvoke(CCompileEnvironment& ce, ID_API_CALLBACK callback, cr_sex s);
       void AddVariableRef(CCompileEnvironment& ce, const NameString& ns, const IStructure& typeStruct);
-      void AssignTempToVariableRef(CCompileEnvironment& ce, int tempDepth, csexstr name);
+      void AssignTempToVariableRef(CCompileEnvironment& ce, int tempDepth, cstr name);
       IArchetype* MatchArchetype(cr_sex typeExpr, IModuleBuilder& module);
-      bool IsAtomicMatch(cr_sex s, csexstr value);
+      bool IsAtomicMatch(cr_sex s, cstr value);
       bool TryCompileAsLateFactoryCall(CCompileEnvironment& ce, const MemberDef& targetDef, cr_sex directive);
       bool RequiresDestruction(const IStructure& s);
       int GetInterfaceIndex(const IInterface& interf, const IStructure& classType);
@@ -555,9 +555,9 @@ namespace Rococo
       const IStructure& GetThisInterfaceRefDef(OUT MemberDef& def, ICodeBuilder& builder, cr_sex s);
       IFunction& GetConstructor(IModuleBuilder& module, cr_sex typeExpr);
       const IFunction& GetConstructor(const IStructure& st, cr_sex s);
-      IFunction& GetFunctionByFQN(CCompileEnvironment& ce, cr_sex s, csexstr name);
-      void CompileAsListNodeDeclaration(CCompileEnvironment& ce, csexstr nodeName, cr_sex source);
-      void CompileAsMapNodeDeclaration(CCompileEnvironment& ce, csexstr nodeName, cr_sex source);
+      IFunction& GetFunctionByFQN(CCompileEnvironment& ce, cr_sex s, cstr name);
+      void CompileAsListNodeDeclaration(CCompileEnvironment& ce, cstr nodeName, cr_sex source);
+      void CompileAsMapNodeDeclaration(CCompileEnvironment& ce, cstr nodeName, cr_sex source);
       void CompileIfThenElse(CCompileEnvironment& ce, cr_sex s);
       void CompileWhileLoop(CCompileEnvironment& ce, cr_sex s);
       void CompileBreak(CCompileEnvironment& ce, cr_sex s);

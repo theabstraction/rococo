@@ -48,7 +48,7 @@
 #include "sexy.debug.types.h"
 #include "sexy.compiler.public.h"
 
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 # define _UNICODE
 # define UNICODE
 #endif
@@ -76,7 +76,7 @@ using namespace Rococo::Compiler;
 
 namespace
 {
-   void FormatSysMessage(SEXCHAR* text, size_t capacity, int msgNumber)
+   void FormatSysMessage(char* text, size_t capacity, int msgNumber)
    {
       OS::Format_C_Error(msgNumber, text, capacity);
    }
@@ -119,14 +119,14 @@ namespace
 			return (int32) exceptions.size();
 		}
 
-		void Write(csexstr text)
+		void Write(cstr text)
 		{
-			WriteToStandardOutput(SEXTEXT("%s"), text);
+			WriteToStandardOutput(("%s"), text);
 		}
 
-		void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) 
+		void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance) 
 		{
-			ParseException ex(Vec2i{ 0,0 },Vec2i{ 0,0 }, exceptionType, message, SEXTEXT(""), NULL);
+			ParseException ex(Vec2i{ 0,0 },Vec2i{ 0,0 }, exceptionType, message, (""), NULL);
 			exceptions.push_back(ex);
 		}
 
@@ -159,21 +159,21 @@ namespace
 		{
 			const IModule& m = obj.GetModule(i);
 
-			SEXCHAR msg[256];
-			SafeFormat(msg, 256, SEXTEXT("\r\nModule %s"), m.Name()); 
+			char msg[256];
+			SafeFormat(msg, 256, ("\r\nModule %s"), m.Name()); 
 			log.Write(msg);
 
 			for(int j = 0; j < m.StructCount(); ++j)
 			{
 				const IStructure& s = m.GetStructure(j);
 
-            SafeFormat(msg, 256, SEXTEXT("\r\nstruct %s - %d bytes"), s.Name(), s.SizeOfStruct());
+            SafeFormat(msg, 256, ("\r\nstruct %s - %d bytes"), s.Name(), s.SizeOfStruct());
 				log.Write(msg);
 
 				for(int k = 0; k < s.MemberCount(); ++k)
 				{
 					const IMember& member = s.GetMember(k);
-               SafeFormat(msg, 256, SEXTEXT("  %s %s"), member.UnderlyingType()->Name(), member.Name());
+               SafeFormat(msg, 256, ("  %s %s"), member.UnderlyingType()->Name(), member.Name());
 					log.Write(msg);
 				}
 			}
@@ -190,17 +190,17 @@ namespace
 		switch (s.Type())
 		{
 		case EXPRESSION_TYPE_ATOMIC:
-			totalOutput += WriteToStandardOutput(SEXTEXT(" %s"), (csexstr) s.String()->Buffer);
+			totalOutput += WriteToStandardOutput((" %s"), (cstr) s.String()->Buffer);
 			break;
       case EXPRESSION_TYPE_NULL:
-         totalOutput += WriteToStandardOutput(SEXTEXT("()"));
+         totalOutput += WriteToStandardOutput(("()"));
          break;
 		case EXPRESSION_TYPE_STRING_LITERAL:
-			totalOutput += WriteToStandardOutput(SEXTEXT(" \"%s\""), (csexstr) s.String()->Buffer);
+			totalOutput += WriteToStandardOutput((" \"%s\""), (cstr) s.String()->Buffer);
 			break;
 		case EXPRESSION_TYPE_COMPOUND:
 			
-			totalOutput += WriteToStandardOutput(SEXTEXT(" ("));
+			totalOutput += WriteToStandardOutput((" ("));
 
 			for(int i = 0; i < s.NumberOfElements(); ++i)
 			{
@@ -213,24 +213,24 @@ namespace
 				PrintExpression(child, totalOutput, maxOutput);								
 			}
 			
-			totalOutput += WriteToStandardOutput(SEXTEXT(" )"));
+			totalOutput += WriteToStandardOutput((" )"));
 		}				
 	}
 
 	void PrintParseException(const ParseException& e)
 	{
-		WriteToStandardOutput(SEXTEXT("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n"), e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message());
+		WriteToStandardOutput(("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n"), e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message());
 
 		for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
 		{
-			if (s->TransformDepth() > 0)  WriteToStandardOutput(SEXTEXT("Macro expansion %d:\r\n"), s->TransformDepth());
+			if (s->TransformDepth() > 0)  WriteToStandardOutput(("Macro expansion %d:\r\n"), s->TransformDepth());
 
 			int totalOutput = 0;
 			PrintExpression(*s, totalOutput, 1024);
 
-			if (totalOutput > 1024) WriteToStandardOutput(SEXTEXT("..."));
+			if (totalOutput > 1024) WriteToStandardOutput(("..."));
 
-			WriteToStandardOutput(SEXTEXT("\r\n"));
+			WriteToStandardOutput(("\r\n"));
 		}
 	}
 
@@ -258,7 +258,7 @@ namespace
 		CodeSection section;
 		f.Code().GetCodeSection(OUT section);
 
-		WriteToStandardOutput(SEXTEXT("\n------------%s #%lld ---------------\n"), f.Name(), section.Id);
+		WriteToStandardOutput(("\n------------%s #%lld ---------------\n"), f.Name(), section.Id);
 
 		size_t start = ss.PublicProgramObject().ProgramMemory().GetFunctionAddress(section.Id);
 		size_t programLength = ss.PublicProgramObject().ProgramMemory().GetFunctionLength(section.Id);
@@ -269,16 +269,16 @@ namespace
 			VM::IDisassembler::Rep rep;
 			disassembler.Disassemble(code + i, OUT rep);
 
-			WriteToStandardOutput(SEXTEXT("%8llu %s %s\n"), i, rep.OpcodeText, rep.ArgText);
+			WriteToStandardOutput(("%8llu %s %s\n"), i, rep.OpcodeText, rep.ArgText);
 
 			validate (rep.ByteCount != 0);
 			i += rep.ByteCount;
 		}
 
-		WriteToStandardOutput(SEXTEXT("\n\n"));
+		WriteToStandardOutput(("\n\n"));
 	}
 
-	void Disassemble(csexstr fname, const IModule& module, IPublicScriptSystem& ss)
+	void Disassemble(cstr fname, const IModule& module, IPublicScriptSystem& ss)
 	{
 		const IFunction* f = module.FindFunction(fname);
 		validate(f != NULL);
@@ -306,7 +306,7 @@ namespace
 		}
 		catch (STCException& e)
 		{
-			WriteToStandardOutput(SEXTEXT("Error: %s\r\nSource: %s\r\n.Code %d"), e.Message(), e.Source(), e.Code());
+			WriteToStandardOutput(("Error: %s\r\nSource: %s\r\n.Code %d"), e.Message(), e.Source(), e.Code());
 			exit(e.Code());
 		}
 		catch (ParseException& e)
@@ -318,13 +318,13 @@ namespace
 		{
          if (ose.ErrorCode() != 0)
          {
-            SEXCHAR osMessage[256];
+            char osMessage[256];
             FormatSysMessage(osMessage, 256, ose.ErrorCode());
-            WriteToStandardOutput(SEXTEXT("Error code%d~%x,%s\r\n%s\r\n"), ose.ErrorCode(), ose.ErrorCode(), ose.Message(), osMessage);
+            WriteToStandardOutput(("Error code%d~%x,%s\r\n%s\r\n"), ose.ErrorCode(), ose.ErrorCode(), ose.Message(), osMessage);
          }
          else
          {
-            WriteToStandardOutput(SEXTEXT("%s"), ose.Message());
+            WriteToStandardOutput(("%s"), ose.Message());
          }
 			exit(-1);
 		}
@@ -354,23 +354,23 @@ namespace
 		}
 		catch(IException& ose)
 		{
-			SEXCHAR osMessage[256];
+			char osMessage[256];
 			FormatSysMessage(osMessage, 256, ose.ErrorCode());
-			WriteToStandardOutput(SEXTEXT("OS Error. %s\r\n%s\r\n"), ose.Message(), osMessage);
+			WriteToStandardOutput(("OS Error. %s\r\n%s\r\n"), ose.Message(), osMessage);
 			exit(-1);
 		}
 	}
 
 	void TestCreateNamespace(IPublicScriptSystem& ss)
 	{
-		Auto<ISourceCode> sc(ss.SParser().ProxySourceBuffer(SEXTEXT("(namespace Sys.Data)"), -1, Vec2i{ 0,0 }, SEXTEXT("test2")));
+		Auto<ISourceCode> sc(ss.SParser().ProxySourceBuffer(("(namespace Sys.Data)"), -1, Vec2i{ 0,0 }, ("test2")));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
 		ss.Compile();
 	}
 
-	bool SetProgramAndEntryPoint(IPublicProgramObject& object, const INamespace& ns, csexstr fname)
+	bool SetProgramAndEntryPoint(IPublicProgramObject& object, const INamespace& ns, cstr fname)
 	{
 		const IFunction* f = ns.FindFunction(fname);
 		if (f == NULL)
@@ -390,20 +390,20 @@ namespace
 		if (pModule != NULL) *pModule = srcModule;
 		ss.Compile();
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
 		validate(ns != NULL);
-		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, SEXTEXT("Main")));
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, ("Main")));
 
 		return ss.PublicProgramObject().VirtualMachine();
 	}
 
 	void TestAssignInt32Literal(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 exitCode)(Int32 result): (exitCode = 1)(result = 0xABCDEF01))")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignInt32Literal"));
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(function Main -> (Int32 exitCode)(Int32 result): (exitCode = 1)(result = 0xABCDEF01))"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestAssignInt32Literal"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -419,19 +419,19 @@ namespace
 
 	void TestAssignDerivativeFromRef(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(using Sys.Maths)")
-			SEXTEXT("(function F (Vec3i w) -> (Int32 sum): ")
-			SEXTEXT("	(Vec3i v = w)")
-			SEXTEXT("	(sum = (v.x / v.y))")
-			SEXTEXT(")")
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("	(Vec3i v = 12 4 7)")
-			SEXTEXT("	(F v -> result)")
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignDerivativeFromRef"));
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(using Sys.Maths)"
+			"(function F (Vec3i w) -> (Int32 sum): "
+			"	(Vec3i v = w)"
+			"	(sum = (v.x / v.y))"
+			")"
+			"(function Main -> (Int32 result):"
+			"	(Vec3i v = 12 4 7)"
+			"	(F v -> result)"
+			")"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestAssignDerivativeFromRef"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -444,11 +444,11 @@ namespace
 
 	void TestAssignFloat32Literal(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 exitCode)(Float32 result)(Float32 result2): (exitCode = -125)(result = 1.7)(result2 = 1.0e15))")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignFloat32Literal"));
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			"(function Main -> (Int32 exitCode)(Float32 result)(Float32 result2): (exitCode = -125)(result = 1.7)(result2 = 1.0e15))"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestAssignFloat32Literal"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 
@@ -467,11 +467,11 @@ namespace
 
 	void TestAssignFloat64Literal(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 exitCode)(Float64 result)(Float64 result2):(exitCode = 0xAB)\n(result = 1.73)(result2 = -1.0e-15))")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignFloat64Literal"));
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			"(function Main -> (Int32 exitCode)(Float64 result)(Float64 result2):(exitCode = 0xAB)\n(result = 1.73)(result2 = -1.0e-15))"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestAssignFloat64Literal"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 
@@ -490,16 +490,16 @@ namespace
 
    void TestAssignMatrixVariable(IPublicScriptSystem& ss)
    {
-      csexstr srcCode =
-         SEXTEXT("(namespace EntryPoint)")
-         SEXTEXT("(using Sys.Maths)")
-         SEXTEXT("(function Main (Int32 id) -> (Int32 exitCode): ")
-         SEXTEXT("  (Matrix4x4 m)")
-         SEXTEXT("  (Matrix4x4 n)")
-         SEXTEXT("  (m = n)")
-         SEXTEXT(")")
-         SEXTEXT("(alias Main EntryPoint.Main)");
-      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignMatrixVariable"));
+      cstr srcCode =
+        "(namespace EntryPoint)"
+        "(using Sys.Maths)"
+        "(function Main (Int32 id) -> (Int32 exitCode): "
+        "  (Matrix4x4 m)"
+        "  (Matrix4x4 n)"
+        "  (m = n)"
+        ")"
+        "(alias Main EntryPoint.Main)";
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestAssignMatrixVariable"));
       Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
       VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -512,22 +512,22 @@ namespace
 
    void TestAssignVectorVariableByRef(IPublicScriptSystem& ss)
    {
-      csexstr srcCode =
-         SEXTEXT("(namespace EntryPoint)")
-         SEXTEXT("(using Sys.Maths)")
-         SEXTEXT("(function InitVec (Vec3 v) -> :  ")
-         SEXTEXT("  (Vec3 n = 1 2 3)") 
-         SEXTEXT("  (v = n)")
-         SEXTEXT(")")
-         SEXTEXT("(function Main (Int32 id) -> (Float32 a)(Float32 b)(Float32 c): ")
-         SEXTEXT("  (Vec3 v)")
-         SEXTEXT("  (InitVec v)")
-         SEXTEXT("  (a = v.x)")
-         SEXTEXT("  (b = v.y)")
-         SEXTEXT("  (c = v.z)")
-         SEXTEXT(")")
-         SEXTEXT("(alias Main EntryPoint.Main)");
-      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignVectorVariableByRef"));
+      cstr srcCode =
+         "(namespace EntryPoint)"
+         "(using Sys.Maths)"
+         "(function InitVec (Vec3 v) -> :  "
+         "  (Vec3 n = 1 2 3)"
+         "  (v = n)"
+         ")"
+         "(function Main (Int32 id) -> (Float32 a)(Float32 b)(Float32 c): "
+         "  (Vec3 v)"
+         "  (InitVec v)"
+         "  (a = v.x)"
+         "  (b = v.y)"
+         "  (c = v.z)"
+         ")"
+         "(alias Main EntryPoint.Main)";
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestAssignVectorVariableByRef"));
       Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
       VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -553,12 +553,12 @@ namespace
 
 	void TestAssignInt64Literal(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 exitCode)(Int64 result):")
-			SEXTEXT("   (exitCode = -75)(result = 0x800FCDCDEFEFABCD)   )\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignInt64Literal"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 exitCode)(Int64 result):")
+			("   (exitCode = -75)(result = 0x800FCDCDEFEFABCD)   )\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestAssignInt64Literal"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 
@@ -574,11 +574,11 @@ namespace
 
 	void TestAssignInt64Variable(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int64 exitCode)(Int64 result): (result = 0xABCDEF01CDEF0123)(exitCode = result))")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignInt64Variable"));
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int64 exitCode)(Int64 result): (result = 0xABCDEF01CDEF0123)(exitCode = result))")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestAssignInt64Variable"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -595,11 +595,11 @@ namespace
 
 	void TestAssignInt32Variable(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 exitCode)(Int32 result): (result = 0xABCDEF01)(exitCode = result))")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignInt32Variable"));
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 exitCode)(Int32 result): (result = 0xABCDEF01)(exitCode = result))")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestAssignInt32Variable"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -614,11 +614,11 @@ namespace
 
 	void TestAssignFloat32Variable(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Float32 exitCode)(Float32 result): (result = 0.62)(exitCode = result))")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignFloat32Variable"));
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Float32 exitCode)(Float32 result): (result = 0.62)(exitCode = result))")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestAssignFloat32Variable"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -633,11 +633,11 @@ namespace
 
 	void TestAssignFloat64Variable(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Float64 exitCode)(Float64 result): (result = 0.62)(exitCode = result))")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignFloat64Variable"));
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Float64 exitCode)(Float64 result): (result = 0.62)(exitCode = result))")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestAssignFloat64Variable"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -652,12 +652,12 @@ namespace
 
 	void TestLocalVariable(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 exitCode):\n")
-			SEXTEXT("     (Int32 result) (result = 0xABCDEF01) (exitCode = result)   )\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLocalVariable"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 exitCode):\n")
+			("     (Int32 result) (result = 0xABCDEF01) (exitCode = result)   )\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLocalVariable"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -669,19 +669,19 @@ namespace
 
 	void TestBooleanLiteralVsLiteralMatches(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =			
-			SEXTEXT("(function Main -> (Bool x)(Bool y)(Bool z)(Bool a)(Bool b)(Bool c)(Bool d)(Bool e):\n")
-			SEXTEXT("     (x = (0 > 72))\n")
-			SEXTEXT("     (y = (16 > 0))\n")
-			SEXTEXT("     (z = (10 < 12))\n")
-			SEXTEXT("     (a = (5 < 4))\n")
-			SEXTEXT("     (b = (0xABCD <= 0xABCC))\n")
-			SEXTEXT("     (c = (0xABCD <= 0xABCD))\n")
-			SEXTEXT("     (d = (0x000000000000ABCD >= 0x000000000000ABCE))\n")
-			SEXTEXT("     (e = (1.0e100 != 1.0e-100))   )\n")
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanLiteralVsLiteralMatches"));
+		cstr srcCode =			
+			("(function Main -> (Bool x)(Bool y)(Bool z)(Bool a)(Bool b)(Bool c)(Bool d)(Bool e):\n")
+			("     (x = (0 > 72))\n")
+			("     (y = (16 > 0))\n")
+			("     (z = (10 < 12))\n")
+			("     (a = (5 < 4))\n")
+			("     (b = (0xABCD <= 0xABCC))\n")
+			("     (c = (0xABCD <= 0xABCD))\n")
+			("     (d = (0x000000000000ABCD >= 0x000000000000ABCE))\n")
+			("     (e = (1.0e100 != 1.0e-100))   )\n")
+			("(namespace EntryPoint)\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanLiteralVsLiteralMatches"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -714,12 +714,12 @@ namespace
 
 	void TestBooleanMismatch(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x):\n")
-			SEXTEXT("     (x = (72 > 72.1))   )\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanMismatch"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x):\n")
+			("     (x = (72 > 72.1))   )\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanMismatch"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -732,19 +732,19 @@ namespace
 
 	void TestBooleanVariableVsLiteralMatches(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x)(Bool y)(Bool z):\n")
-			SEXTEXT("     (Int32 temp)\n")
-			SEXTEXT("     (temp = 25)\n")
-			SEXTEXT("     (x = (temp > 25))\n")
-			SEXTEXT("     (y = (24 != temp))\n")
-			SEXTEXT("     (Float32 temp2)\n")
-			SEXTEXT("     (temp2 = 24.1)\n")
-			SEXTEXT("     (z = (24.2 >= temp2))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanVariableVsLiteralMatches"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x)(Bool y)(Bool z):\n")
+			("     (Int32 temp)\n")
+			("     (temp = 25)\n")
+			("     (x = (temp > 25))\n")
+			("     (y = (24 != temp))\n")
+			("     (Float32 temp2)\n")
+			("     (temp2 = 24.1)\n")
+			("     (z = (24.2 >= temp2))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanVariableVsLiteralMatches"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -763,17 +763,17 @@ namespace
 
 	void TestBooleanVariableVsVariable(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x)(Bool y)(Bool z):")
-			SEXTEXT("     (Int32 temp1 = 25)\n")
-			SEXTEXT("     (Int32 temp2 = 24)\n")
-			SEXTEXT("     (x = (temp1 >= temp2))\n")
-			SEXTEXT("     (y = (temp1 == temp2))\n")
-			SEXTEXT("     (z = (temp1 < temp2))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanVariableVsVariable"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x)(Bool y)(Bool z):")
+			("     (Int32 temp1 = 25)\n")
+			("     (Int32 temp2 = 24)\n")
+			("     (x = (temp1 >= temp2))\n")
+			("     (y = (temp1 == temp2))\n")
+			("     (z = (temp1 < temp2))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanVariableVsVariable"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -792,21 +792,21 @@ namespace
 
 	void TestBooleanExpressions(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x)(Bool y)(Bool z)(Bool a)(Bool b)(Bool c):")
-			SEXTEXT("     (Bool temp1 = 0)\n")
-			SEXTEXT("     (Bool temp2 = 1)\n")
-			SEXTEXT("     (Bool temp3 = 1)\n")
-			SEXTEXT("     (a = (temp3 and 1))\n")
-			SEXTEXT("     (b = (temp3 or  temp2))\n")
-			SEXTEXT("     (c = (temp3 xor temp2))\n")
-			SEXTEXT("     (x = (temp1 and temp2))\n")
-			SEXTEXT("     (y = (temp1 or  temp2))\n")
-			SEXTEXT("     (z = (temp1 xor temp2))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanExpressions"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x)(Bool y)(Bool z)(Bool a)(Bool b)(Bool c):")
+			("     (Bool temp1 = 0)\n")
+			("     (Bool temp2 = 1)\n")
+			("     (Bool temp3 = 1)\n")
+			("     (a = (temp3 and 1))\n")
+			("     (b = (temp3 or  temp2))\n")
+			("     (c = (temp3 xor temp2))\n")
+			("     (x = (temp1 and temp2))\n")
+			("     (y = (temp1 or  temp2))\n")
+			("     (z = (temp1 xor temp2))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanExpressions"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -834,15 +834,15 @@ namespace
 
 	void TestBooleanCompareVarToCompound(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x):\n")
-			SEXTEXT("     (Int32 a = 1)\n")
-			SEXTEXT("     (Int32 b = 3)\n")
-			SEXTEXT("     (x = (a < (b - 1)))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompareVarToCompound"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x):\n")
+			("     (Int32 a = 1)\n")
+			("     (Int32 b = 3)\n")
+			("     (x = (a < (b - 1)))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanCompareVarToCompound"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -855,15 +855,15 @@ namespace
 
 	void TestBooleanCompoundExpressions1(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x):\n")
-			SEXTEXT("     (Bool temp1 = 0)\n")
-			SEXTEXT("     (Bool temp2 = 1)\n")
-			SEXTEXT("     (x = ((temp2 and temp1) xor temp2))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions1"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x):\n")
+			("     (Bool temp1 = 0)\n")
+			("     (Bool temp2 = 1)\n")
+			("     (x = ((temp2 and temp1) xor temp2))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanCompoundExpressions1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -876,15 +876,15 @@ namespace
 
 	void TestBooleanCompoundExpressions2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x):\n")
-			SEXTEXT("     (Bool temp1 = 0)\n")
-			SEXTEXT("     (Bool temp2 = 1)\n")
-			SEXTEXT("     (x = ((temp2 xor temp1) xor temp2))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions2"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x):\n")
+			("     (Bool temp1 = 0)\n")
+			("     (Bool temp2 = 1)\n")
+			("     (x = ((temp2 xor temp1) xor temp2))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanCompoundExpressions2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -897,15 +897,15 @@ namespace
 
 	void TestBooleanCompoundExpressions3(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x):\n")
-			SEXTEXT("     (Bool temp1 = 0)\n")
-			SEXTEXT("     (Bool temp2 = 1)\n")
-			SEXTEXT("     (x = ((temp2 and temp1) or temp2))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions3"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x):\n")
+			("     (Bool temp1 = 0)\n")
+			("     (Bool temp2 = 1)\n")
+			("     (x = ((temp2 and temp1) or temp2))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanCompoundExpressions3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -918,15 +918,15 @@ namespace
 
 	void TestBooleanCompoundExpressions4(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x):\n")
-			SEXTEXT("     (Bool temp1 = 0)\n")
-			SEXTEXT("     (Bool temp2 = 1)\n")
-			SEXTEXT("     (x = ((temp2 or temp1) and temp2))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions4"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x):\n")
+			("     (Bool temp1 = 0)\n")
+			("     (Bool temp2 = 1)\n")
+			("     (x = ((temp2 or temp1) and temp2))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanCompoundExpressions4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -939,15 +939,15 @@ namespace
 
 	void TestBooleanCompoundExpressions5(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x):\n")
-			SEXTEXT("     (Bool temp1 = 0)\n")
-			SEXTEXT("     (Bool temp2 = 1)\n")
-			SEXTEXT("     (x = ((temp2 and temp1) and temp2))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions5"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x):\n")
+			("     (Bool temp1 = 0)\n")
+			("     (Bool temp2 = 1)\n")
+			("     (x = ((temp2 and temp1) and temp2))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanCompoundExpressions5"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -960,15 +960,15 @@ namespace
 
 	void TestBooleanCompoundExpressions6(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x):\n")
-			SEXTEXT("     (Bool temp1 = 0)\n")
-			SEXTEXT("     (Bool temp2 = 1)\n")
-			SEXTEXT("     (x = (temp2 and (temp2 and temp1)))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions6"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x):\n")
+			("     (Bool temp1 = 0)\n")
+			("     (Bool temp2 = 1)\n")
+			("     (x = (temp2 and (temp2 and temp1)))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanCompoundExpressions6"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -981,15 +981,15 @@ namespace
 
 	void TestBooleanCompoundExpressions7(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x):\n")
-			SEXTEXT("     (Bool temp1 = 0)\n")
-			SEXTEXT("     (Bool temp2 = 1)\n")
-			SEXTEXT("     (x = (temp2 or (temp2 and temp1)))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions7"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x):\n")
+			("     (Bool temp1 = 0)\n")
+			("     (Bool temp2 = 1)\n")
+			("     (x = (temp2 or (temp2 and temp1)))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanCompoundExpressions7"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1002,15 +1002,15 @@ namespace
 
 	void TestBooleanCompoundExpressions8(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x):\n")
-			SEXTEXT("     (Bool temp1 = 0)\n")
-			SEXTEXT("     (Bool temp2 = 1)\n")
-			SEXTEXT("     (x = (true and (true and temp1)))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions8"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x):\n")
+			("     (Bool temp1 = 0)\n")
+			("     (Bool temp2 = 1)\n")
+			("     (x = (true and (true and temp1)))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanCompoundExpressions8"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1023,15 +1023,15 @@ namespace
 
 	void TestBooleanCompoundExpressions9(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x):\n")
-			SEXTEXT("     (Bool temp1 = 0)\n")
-			SEXTEXT("     (Bool temp2 = 1)\n")
-			SEXTEXT("     (x = ((true or false) and (true and temp1)))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions9"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x):\n")
+			("     (Bool temp1 = 0)\n")
+			("     (Bool temp2 = 1)\n")
+			("     (x = ((true or false) and (true and temp1)))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanCompoundExpressions9"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1044,15 +1044,15 @@ namespace
 
 	void TestBooleanCompoundExpressions10(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x):\n")
-			SEXTEXT("     (Bool temp1 = 0)\n")
-			SEXTEXT("     (Bool temp2 = 1)\n")
-			SEXTEXT("     (x = ((((temp2 and (temp2 or (temp1))) and (true and (temp1 or temp2))))))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions10"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x):\n")
+			("     (Bool temp1 = 0)\n")
+			("     (Bool temp2 = 1)\n")
+			("     (x = ((((temp2 and (temp2 or (temp1))) and (true and (temp1 or temp2))))))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanCompoundExpressions10"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1065,13 +1065,13 @@ namespace
 
 	void TestBooleanCompoundExpressions11(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x):\n")
-			SEXTEXT("     (x = ((((true and (7 >= 6)) xor (true and (4.2 < 3.3))))))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions11"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x):\n")
+			("     (x = ((((true and (7 >= 6)) xor (true and (4.2 < 3.3))))))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanCompoundExpressions11"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1084,15 +1084,15 @@ namespace
 
 	void TestBooleanCompoundExpressions12(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Bool x):\n")
-			SEXTEXT("     (Float32 temp1 = 0.5)\n")
-			SEXTEXT("     (Float32 temp2 = 0.25)\n")
-			SEXTEXT("     (x = (((true and (temp1 >= temp2)) xor (true and (temp2 != temp1)))))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBooleanCompoundExpressions12"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Bool x):\n")
+			("     (Float32 temp1 = 0.5)\n")
+			("     (Float32 temp2 = 0.25)\n")
+			("     (x = (((true and (temp1 >= temp2)) xor (true and (temp2 != temp1)))))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBooleanCompoundExpressions12"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1105,19 +1105,19 @@ namespace
 
 	void TestIfThen1(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 x):\n")
-			SEXTEXT("     (Float32 temp1 = 0.5)\n")
-			SEXTEXT("     (Float32 temp2 = 0.25)\n")
-			SEXTEXT("     (if (temp2 < temp1)\n")
-			SEXTEXT("				(x = 74)\n")
-			SEXTEXT("			 else\n")
-			SEXTEXT("				(x = 77)")
-			SEXTEXT("     )\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestIfThen1"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 x):\n")
+			("     (Float32 temp1 = 0.5)\n")
+			("     (Float32 temp2 = 0.25)\n")
+			("     (if (temp2 < temp1)\n")
+			("				(x = 74)\n")
+			("			 else\n")
+			("				(x = 77)")
+			("     )\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestIfThen1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1130,19 +1130,19 @@ namespace
 
 	void TestIfThen2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 x):\n")
-			SEXTEXT("     (Float32 temp1 = 0.5)\n")
-			SEXTEXT("     (Float32 temp2 = 0.25)\n")
-			SEXTEXT("     (if ((temp1 > 0.3) and (temp2 < temp1))\n")
-			SEXTEXT("				(if (temp2 > 0) (x = 74) else (x = 73))\n")
-			SEXTEXT("			 else\n")
-			SEXTEXT("				(x = 77)")
-			SEXTEXT("     )\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestIfThen2"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 x):\n")
+			("     (Float32 temp1 = 0.5)\n")
+			("     (Float32 temp2 = 0.25)\n")
+			("     (if ((temp1 > 0.3) and (temp2 < temp1))\n")
+			("				(if (temp2 > 0) (x = 74) else (x = 73))\n")
+			("			 else\n")
+			("				(x = 77)")
+			("     )\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestIfThen2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1155,25 +1155,25 @@ namespace
 
    void TestFloatArithmeticByMember(IPublicScriptSystem& ss)
    {
-      csexstr srcCode =
-         SEXTEXT("(namespace EntryPoint)\n")
-         SEXTEXT("(function Main -> (Float32 x)(Float32 y)(Float32 z)(Float32 w):\n")
-         SEXTEXT("     (Sys.Maths.Vec2 screenSpan = 10 20)\n")
+      cstr srcCode =
+         ("(namespace EntryPoint)\n")
+         ("(function Main -> (Float32 x)(Float32 y)(Float32 z)(Float32 w):\n")
+         ("     (Sys.Maths.Vec2 screenSpan = 10 20)\n")
 
-         SEXTEXT("     (Float32 halfX = (0.5 * screenSpan.x))\n")
-         SEXTEXT("     (Float32 halfY = (0.5 * screenSpan.y))\n")
-         SEXTEXT("     (Float32 x0)\n")
-         SEXTEXT("     (Float32 x1)\n")
-         SEXTEXT("     (x0 = (halfX - 20))\n")
-         SEXTEXT("     (x1 = (halfY + 20))\n")
+         ("     (Float32 halfX = (0.5 * screenSpan.x))\n")
+         ("     (Float32 halfY = (0.5 * screenSpan.y))\n")
+         ("     (Float32 x0)\n")
+         ("     (Float32 x1)\n")
+         ("     (x0 = (halfX - 20))\n")
+         ("     (x1 = (halfY + 20))\n")
 
-         SEXTEXT("     (x = x0)\n")
-         SEXTEXT("     (y = x1)\n")
-         SEXTEXT("	  (z = (x0 + x1))\n")
-         SEXTEXT("     (w = 0)\n")
-         SEXTEXT(")\n")
-         SEXTEXT("(alias Main EntryPoint.Main)");
-      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFloatArithmeticByMember"));
+         ("     (x = x0)\n")
+         ("     (y = x1)\n")
+         ("	  (z = (x0 + x1))\n")
+         ("     (w = 0)\n")
+         (")\n")
+         ("(alias Main EntryPoint.Main)");
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestFloatArithmeticByMember"));
       Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
       VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1195,18 +1195,18 @@ namespace
 
 	void TestFloatArithmetic(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Float32 x)(Float32 y)(Float32 z)(Float32 w):\n")
-			SEXTEXT("     (Float32 temp1 = 0.5)\n")
-			SEXTEXT("     (Float32 temp2 = 0.25)\n")
-			SEXTEXT("     (x = (temp1 - temp2))\n")
-			SEXTEXT("			(y = (temp1 + temp2))\n")
-			SEXTEXT("     (z = (temp1 * temp2))\n")
-			SEXTEXT("			(w = (temp1 / temp2))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFloatArithmetic1"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Float32 x)(Float32 y)(Float32 z)(Float32 w):\n")
+			("     (Float32 temp1 = 0.5)\n")
+			("     (Float32 temp2 = 0.25)\n")
+			("     (x = (temp1 - temp2))\n")
+			("			(y = (temp1 + temp2))\n")
+			("     (z = (temp1 * temp2))\n")
+			("			(w = (temp1 / temp2))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestFloatArithmetic1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1228,14 +1228,14 @@ namespace
 
 	void TestDoubleArithmetic0(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Float64 x):\n")
-			SEXTEXT("     (Float64 temp1 = 0.5)\n")
-			SEXTEXT("     (x = (temp1 - 0.1))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoubleArithmetic0"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Float64 x):\n")
+			("     (Float64 temp1 = 0.5)\n")
+			("     (x = (temp1 - 0.1))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDoubleArithmetic0"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		IModule* srcModule = NULL;
@@ -1249,15 +1249,15 @@ namespace
 
 	void TestDoubleArithmetic1(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Float64 x):\n")
-			SEXTEXT("     (Float64 temp1 = 0.5)\n")
-			SEXTEXT("     (Float64 temp2 = 0.25)\n")
-			SEXTEXT("     (x = (temp1 - temp2))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoubleArithmetic1"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Float64 x):\n")
+			("     (Float64 temp1 = 0.5)\n")
+			("     (Float64 temp2 = 0.25)\n")
+			("     (x = (temp1 - temp2))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDoubleArithmetic1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		IModule* srcModule = NULL;
@@ -1271,15 +1271,15 @@ namespace
 
 	void TestDoubleArithmetic2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Float64 x):\n")
-			SEXTEXT("     (Float64 temp1 = 0.5)\n")
-			SEXTEXT("     (Float64 temp2 = 0.25)\n")
-			SEXTEXT("     (x = (temp1 + temp2))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoubleArithmetic2"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Float64 x):\n")
+			("     (Float64 temp1 = 0.5)\n")
+			("     (Float64 temp2 = 0.25)\n")
+			("     (x = (temp1 + temp2))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDoubleArithmetic2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1292,15 +1292,15 @@ namespace
 
 	void TestDoubleArithmetic3(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Float64 x):\n")
-			SEXTEXT("     (Float64 temp1 = 0.5)\n")
-			SEXTEXT("     (Float64 temp2 = 0.25)\n")
-			SEXTEXT("     (x = (temp1 * temp2))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoubleArithmetic3"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Float64 x):\n")
+			("     (Float64 temp1 = 0.5)\n")
+			("     (Float64 temp2 = 0.25)\n")
+			("     (x = (temp1 * temp2))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDoubleArithmetic3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1313,15 +1313,15 @@ namespace
 
 	void TestDoubleArithmetic4(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Float64 x):\n")
-			SEXTEXT("     (Float64 temp1 = 0.5)\n")
-			SEXTEXT("     (Float64 temp2 = 0.25)\n")
-			SEXTEXT("	  (x = (temp1 / temp2))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoubleArithmetic4"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Float64 x):\n")
+			("     (Float64 temp1 = 0.5)\n")
+			("     (Float64 temp2 = 0.25)\n")
+			("	  (x = (temp1 / temp2))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDoubleArithmetic4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1334,18 +1334,18 @@ namespace
 
 	void TestInt32Arithmetic(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 x)(Int32 y)(Int32 z)(Int32 w):\n")
-			SEXTEXT("     (Int32 temp1 = 8)\n")
-			SEXTEXT("     (Int32 temp2 = 4)\n")
-			SEXTEXT("     (x = (temp1 - temp2))\n")
-			SEXTEXT("			(y = (temp1 + temp2))\n")
-			SEXTEXT("     (z = (temp1 * temp2))\n")
-			SEXTEXT("			(w = (temp1 / temp2))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInt32Arithmetic"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 x)(Int32 y)(Int32 z)(Int32 w):\n")
+			("     (Int32 temp1 = 8)\n")
+			("     (Int32 temp2 = 4)\n")
+			("     (x = (temp1 - temp2))\n")
+			("			(y = (temp1 + temp2))\n")
+			("     (z = (temp1 * temp2))\n")
+			("			(w = (temp1 / temp2))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestInt32Arithmetic"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1367,18 +1367,18 @@ namespace
 
 	void TestInt64Arithmetic(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int64 x)(Int64 y)(Int64 z)(Int64 w):\n")
-			SEXTEXT("     (Int64 temp1 = 8)\n")
-			SEXTEXT("     (Int64 temp2 = 4)\n")
-			SEXTEXT("     (x = (temp1 - temp2))\n")
-			SEXTEXT("			(y = (temp1 + temp2))\n")
-			SEXTEXT("     (z = (temp1 * temp2))\n")
-			SEXTEXT("			(w = (temp1 / temp2))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInt64Arithmetic"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int64 x)(Int64 y)(Int64 z)(Int64 w):\n")
+			("     (Int64 temp1 = 8)\n")
+			("     (Int64 temp2 = 4)\n")
+			("     (x = (temp1 - temp2))\n")
+			("			(y = (temp1 + temp2))\n")
+			("     (z = (temp1 * temp2))\n")
+			("			(w = (temp1 / temp2))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestInt64Arithmetic"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1401,15 +1401,15 @@ namespace
 
 	void TestInt32CompoundArithmetic(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("     (Int32 temp1 = 8)")
-			SEXTEXT("     (Int32 temp2 = 4)")
-			SEXTEXT("			(result = ((temp1 / temp2) + (temp1 * temp2)))")
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInt32CompoundArithmetic"));
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")
+			("     (Int32 temp1 = 8)")
+			("     (Int32 temp2 = 4)")
+			("			(result = ((temp1 / temp2) + (temp1 * temp2)))")
+			(")")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestInt32CompoundArithmetic"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1422,18 +1422,18 @@ namespace
 
 	void TestFloatCompoundArithmetic(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Float32 x)(Float32 y)(Float32 z)(Float32 w):\n")
-			SEXTEXT("     (Float32 temp1 = 0.5)\n")
-			SEXTEXT("     (Float32 temp2 = 0.25)\n")
-			SEXTEXT("     (x = ((temp1)))\n")
-			SEXTEXT("			(y = (temp1 - (temp1 + temp2)))\n")
-			SEXTEXT("     (z = ((temp1 * temp2) + temp2))\n")
-			SEXTEXT("			(w = ((temp1 / temp2) + (temp1 * temp2)))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFloatCompoundArithmetic"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Float32 x)(Float32 y)(Float32 z)(Float32 w):\n")
+			("     (Float32 temp1 = 0.5)\n")
+			("     (Float32 temp2 = 0.25)\n")
+			("     (x = ((temp1)))\n")
+			("			(y = (temp1 - (temp1 + temp2)))\n")
+			("     (z = ((temp1 * temp2) + temp2))\n")
+			("			(w = ((temp1 / temp2) + (temp1 * temp2)))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestFloatCompoundArithmetic"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1455,18 +1455,18 @@ namespace
 
 	void TestFloatLiteralArithmetic(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Float32 x)(Float32 y)(Float32 z)(Float32 w):\n")
-			SEXTEXT("     (Float32 temp1 = 0.5)\n")
-			SEXTEXT("     (Float32 temp2 = 0.25)\n")
-			SEXTEXT("     (x = (((7))))\n")
-			SEXTEXT("			(y = (x - (2 + 3)))\n")
-			SEXTEXT("     (z = ((4 * 8) + 4))\n")
-			SEXTEXT("			(w = ((9 / 3) + (2 * 7)))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFloatCompoundArithmetic"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Float32 x)(Float32 y)(Float32 z)(Float32 w):\n")
+			("     (Float32 temp1 = 0.5)\n")
+			("     (Float32 temp2 = 0.25)\n")
+			("     (x = (((7))))\n")
+			("			(y = (x - (2 + 3)))\n")
+			("     (z = ((4 * 8) + 4))\n")
+			("			(w = ((9 / 3) + (2 * 7)))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestFloatCompoundArithmetic"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1488,15 +1488,15 @@ namespace
 
 	void TestIfThen3(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 x):\n")
-			SEXTEXT("     (Float32 temp1 = 1)\n")
-			SEXTEXT("     (Float32 temp2 = 2)\n")
-			SEXTEXT("     (if ((temp1 - temp2) >= 0.25) (x = 5) else (x = 7)) \n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestIfThen3"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 x):\n")
+			("     (Float32 temp1 = 1)\n")
+			("     (Float32 temp2 = 2)\n")
+			("     (if ((temp1 - temp2) >= 0.25) (x = 5) else (x = 7)) \n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestIfThen3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1509,16 +1509,16 @@ namespace
 
 	void TestFunctionCall1(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Float32 exitValue1):\n")
-			SEXTEXT("    (exitValue1 = (GenerateResult))")
-			SEXTEXT(")\n")
-			SEXTEXT("(function GenerateResult -> (Float32 x):\n")
-			SEXTEXT("     (x = 5)\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFunctionCall1"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Float32 exitValue1):\n")
+			("    (exitValue1 = (GenerateResult))")
+			(")\n")
+			("(function GenerateResult -> (Float32 x):\n")
+			("     (x = 5)\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestFunctionCall1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1531,18 +1531,18 @@ namespace
 
 	void TestFunctionCall2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 exitValue):\n")
-			SEXTEXT("    (exitValue = (1 + (GenerateResult)))")
-			SEXTEXT("    (exitValue = (3 + (GenerateResult)))")
-			SEXTEXT("    (exitValue = (5 + (GenerateResult)))")
-			SEXTEXT(")\n")
-			SEXTEXT("(function GenerateResult -> (Int32 x):\n")
-			SEXTEXT("     (x = 5)\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFunctionCall2"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 exitValue):\n")
+			("    (exitValue = (1 + (GenerateResult)))")
+			("    (exitValue = (3 + (GenerateResult)))")
+			("    (exitValue = (5 + (GenerateResult)))")
+			(")\n")
+			("(function GenerateResult -> (Int32 x):\n")
+			("     (x = 5)\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestFunctionCall2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1555,18 +1555,18 @@ namespace
 
 	void TestFunctionCall2_(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Float32 exitValue1)(Float32 exitValue2)(Float32 exitValue3):\n")
-			SEXTEXT("    (exitValue1 = (1 + (GenerateResult)))")
-			SEXTEXT("    (exitValue2 = (3 + (GenerateResult)))")
-			SEXTEXT("    (exitValue3 = (5 + (GenerateResult)))")
-			SEXTEXT(")\n")
-			SEXTEXT("(function GenerateResult -> (Float32 x):\n")
-			SEXTEXT("     (x = 5)\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFunctionCall2_"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Float32 exitValue1)(Float32 exitValue2)(Float32 exitValue3):\n")
+			("    (exitValue1 = (1 + (GenerateResult)))")
+			("    (exitValue2 = (3 + (GenerateResult)))")
+			("    (exitValue3 = (5 + (GenerateResult)))")
+			(")\n")
+			("(function GenerateResult -> (Float32 x):\n")
+			("     (x = 5)\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestFunctionCall2_"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1585,16 +1585,16 @@ namespace
 
 	void TestFunctionCall3(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 exitValue1):\n")
-			SEXTEXT("    (exitValue1 = (Square 7))")
-			SEXTEXT(")\n")
-			SEXTEXT("(function Square (Int32 x) -> (Int32 y):\n")
-			SEXTEXT("     (y = (x * x))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFunctionCall3"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 exitValue1):\n")
+			("    (exitValue1 = (Square 7))")
+			(")\n")
+			("(function Square (Int32 x) -> (Int32 y):\n")
+			("     (y = (x * x))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestFunctionCall3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1607,25 +1607,25 @@ namespace
 
 	void TestFunctionCall4(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Float32 x) (Int32 y) (Float64 z) (Int64 w) (Bool isOK):\n")
-			SEXTEXT("    (Float32 a = 5)")
-			SEXTEXT("    (Float64 b = 6)")
-			SEXTEXT("    (Int32 c = 7)")
-			SEXTEXT("    (Int64 d = 8)")
-			SEXTEXT("    (Bool e = true)")
-			SEXTEXT("    (F a b c d e -> x y z w isOK)")
-			SEXTEXT(")\n")
-			SEXTEXT("(function F (Float32 a) (Float64 b) (Int32 c) (Int64 d) (Bool e) -> (Float32 x) (Int32 y) (Float64 z) (Int64 w) (Bool isOK):\n")
-			SEXTEXT("     (x = (a * a))")
-			SEXTEXT("     (y = (c * c))")
-			SEXTEXT("     (z = (b * b))")
-			SEXTEXT("     (w = (d * d))")
-			SEXTEXT("     (isOK = (false xor e))")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFunctionCall4"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Float32 x) (Int32 y) (Float64 z) (Int64 w) (Bool isOK):\n")
+			("    (Float32 a = 5)")
+			("    (Float64 b = 6)")
+			("    (Int32 c = 7)")
+			("    (Int64 d = 8)")
+			("    (Bool e = true)")
+			("    (F a b c d e -> x y z w isOK)")
+			(")\n")
+			("(function F (Float32 a) (Float64 b) (Int32 c) (Int64 d) (Bool e) -> (Float32 x) (Int32 y) (Float64 z) (Int64 w) (Bool isOK):\n")
+			("     (x = (a * a))")
+			("     (y = (c * c))")
+			("     (z = (b * b))")
+			("     (w = (d * d))")
+			("     (isOK = (false xor e))")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestFunctionCall4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1651,16 +1651,16 @@ namespace
 
 	void TestFunctionCallRecursion1(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 exitValue1):\n")
-			SEXTEXT("    (exitValue1 = (Factorial 5))")
-			SEXTEXT(")\n")
-			SEXTEXT("(function Factorial (Int32 x) -> (Int32 result):\n")
-			SEXTEXT("     (if (x <= 1) (result = 1) else (result = (x * (Factorial(x - 1)))))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFunctionCallRecursion1"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 exitValue1):\n")
+			("    (exitValue1 = (Factorial 5))")
+			(")\n")
+			("(function Factorial (Int32 x) -> (Int32 result):\n")
+			("     (if (x <= 1) (result = 1) else (result = (x * (Factorial(x - 1)))))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestFunctionCallRecursion1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1674,19 +1674,19 @@ namespace
 
 	void TestFunctionCallRecursion2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 exitValue1):\n")
-			SEXTEXT("    (exitValue1 = (MyFunction1 5000))")
-			SEXTEXT(")\n")
-			SEXTEXT("(function MyFunction1 (Int32 x) -> (Int32 result):\n")
-			SEXTEXT("     (if (x > 100) (result = (MyFunction2 x)) else (result = x))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(function MyFunction2 (Int32 x) -> (Int32 result):\n")
-			SEXTEXT("     (if (x > 100) (result = (MyFunction1 (x / 2))) else (result = x))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFunctionCallRecursion2"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 exitValue1):\n")
+			("    (exitValue1 = (MyFunction1 5000))")
+			(")\n")
+			("(function MyFunction1 (Int32 x) -> (Int32 result):\n")
+			("     (if (x > 100) (result = (MyFunction2 x)) else (result = x))\n")
+			(")\n")
+			("(function MyFunction2 (Int32 x) -> (Int32 result):\n")
+			("     (if (x > 100) (result = (MyFunction1 (x / 2))) else (result = x))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestFunctionCallRecursion2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1700,17 +1700,17 @@ namespace
 
 	void TestFunctionCallMultiOutput1(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 x)(Float64 y):\n")
-			SEXTEXT("    (MyFunction 5000 -> x y)")
-			SEXTEXT(")\n")
-			SEXTEXT("(function MyFunction (Int32 x) -> (Int32 result1)(Float64 result2):\n")
-			SEXTEXT("     (result1 = (x * 2))\n")
-			SEXTEXT("     (result2 = 25)\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestFunctionCallMultiOutput1"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 x)(Float64 y):\n")
+			("    (MyFunction 5000 -> x y)")
+			(")\n")
+			("(function MyFunction (Int32 x) -> (Int32 result1)(Float64 result2):\n")
+			("     (result1 = (x * 2))\n")
+			("     (result2 = 25)\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestFunctionCallMultiOutput1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1727,18 +1727,18 @@ namespace
 
 	void TestStructWithVec4f(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(struct Def\n")
-			SEXTEXT("	(Sys.Maths.Vec4 v)\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(function Main -> (Float32 result):\n")
-			SEXTEXT("	 (Def d)")
-			SEXTEXT("    (d.v = 1 2 3 4)")
-			SEXTEXT("    (result = (d.v.x + d.v.w))")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStructWithVec4f"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(struct Def\n")
+			("	(Sys.Maths.Vec4 v)\n")
+			(")\n")
+			("(function Main -> (Float32 result):\n")
+			("	 (Def d)")
+			("    (d.v = 1 2 3 4)")
+			("    (result = (d.v.x + d.v.w))")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestStructWithVec4f"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1752,21 +1752,21 @@ namespace
 
 	void TestStructure(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Float32 result):\n")
-			SEXTEXT("	 (Vector4 v)")
-			SEXTEXT("    (v.x = 12)")
-			SEXTEXT("    (v.y = 10)")
-			SEXTEXT("    (v.z = 2)")
-			SEXTEXT("    (if (v.z == 2) (result = (v.x * v.y)))")
-			SEXTEXT(")\n")
-			SEXTEXT("(struct Vector4\n")
-			SEXTEXT("	(Float32 x y z)\n")
-			SEXTEXT("	(Float32 w)\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStructure"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Float32 result):\n")
+			("	 (Vector4 v)")
+			("    (v.x = 12)")
+			("    (v.y = 10)")
+			("    (v.z = 2)")
+			("    (if (v.z == 2) (result = (v.x * v.y)))")
+			(")\n")
+			("(struct Vector4\n")
+			("	(Float32 x y z)\n")
+			("	(Float32 w)\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestStructure"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1780,23 +1780,23 @@ namespace
 
 	void TestStructure2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 result):\n")
-			SEXTEXT("		 (Vector3i v)\n")
-			SEXTEXT("    (v.x = 3)\n")
-			SEXTEXT("    (v.y = 5)\n")
-			SEXTEXT("    (v.z = 7)\n")
-			SEXTEXT("    (result = (SumAndProduct3i v))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(function SumAndProduct3i (Vector3i a) -> (Int32 sum):\n")
-			SEXTEXT("		 (sum = ((a.x + a.y) * a.z))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(struct Vector3i\n")
-			SEXTEXT("     (Int32 x y z)\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStructure2"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 result):\n")
+			("		 (Vector3i v)\n")
+			("    (v.x = 3)\n")
+			("    (v.y = 5)\n")
+			("    (v.z = 7)\n")
+			("    (result = (SumAndProduct3i v))\n")
+			(")\n")
+			("(function SumAndProduct3i (Vector3i a) -> (Int32 sum):\n")
+			("		 (sum = ((a.x + a.y) * a.z))\n")
+			(")\n")
+			("(struct Vector3i\n")
+			("     (Int32 x y z)\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestStructure2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1812,27 +1812,27 @@ namespace
 
 	void TestStructure3(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 result):\n")
-			SEXTEXT("		 (Vector3i v)\n")
-			SEXTEXT("		 (Vector3i w)\n")
-			SEXTEXT("    (v.x = 2)\n")
-			SEXTEXT("    (v.y = 3)\n")
-			SEXTEXT("    (v.z = 4)\n")
-			SEXTEXT("    (w.x = 5)\n")
-			SEXTEXT("    (w.y = 7)\n")
-			SEXTEXT("    (w.z = 9)\n")
-			SEXTEXT("    (result = (Dot3i v w))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(function Dot3i (Vector3i a)(Vector3i b) -> (Int32 product):\n")
-			SEXTEXT("		 (product = ((a.z * b.z) + ((a.x * b.x) + (a.y * b.y))))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(struct Vector3i\n")
-			SEXTEXT("     (Int32 x y z)\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStructure3"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 result):\n")
+			("		 (Vector3i v)\n")
+			("		 (Vector3i w)\n")
+			("    (v.x = 2)\n")
+			("    (v.y = 3)\n")
+			("    (v.z = 4)\n")
+			("    (w.x = 5)\n")
+			("    (w.y = 7)\n")
+			("    (w.z = 9)\n")
+			("    (result = (Dot3i v w))\n")
+			(")\n")
+			("(function Dot3i (Vector3i a)(Vector3i b) -> (Int32 product):\n")
+			("		 (product = ((a.z * b.z) + ((a.x * b.x) + (a.y * b.y))))\n")
+			(")\n")
+			("(struct Vector3i\n")
+			("     (Int32 x y z)\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestStructure3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1849,49 +1849,49 @@ namespace
 
 	void TestStructure4(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("    (alias Main EntryPoint.Main)")
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("	 (Quat4i a)")
-			SEXTEXT("	 (Quat4i b)")
-			SEXTEXT("    (a.v.x = 2)")
-			SEXTEXT("    (a.v.y = 3)")
-			SEXTEXT("    (a.v.z = 4)")
-			SEXTEXT("    (a.s = 5)")
-			SEXTEXT("    (b.v.x = 5)")
-			SEXTEXT("    (b.v.y = 7)")
-			SEXTEXT("    (b.v.z = 9)")
-			SEXTEXT("    (b.s   = 11)")
-			SEXTEXT("    (Quat4i sum)")
-			SEXTEXT("    (AddQuat4i a b sum)")
-			SEXTEXT("    (result = 1)")
-			SEXTEXT(")")
-			SEXTEXT("(function AddQuat4i (Quat4i a)(Quat4i b)(Quat4i sum) -> :")
-			SEXTEXT("	 (sum.v.x = (a.v.x + b.v.x))")
-			SEXTEXT("	 (sum.v.y = (a.v.y + b.v.y))")
-			SEXTEXT("	 (sum.v.z = (a.v.z + b.v.z))")
-			SEXTEXT("	 (sum.s   = (a.s   + b.s))")
-			SEXTEXT(")")
-			SEXTEXT("(struct Vector3i")
-			SEXTEXT("     (Int32 x y z)")
-			SEXTEXT(")")
-			SEXTEXT("(struct Quat4i")
-			SEXTEXT("     (Vector3i v)(Int32 s)")
-			SEXTEXT(")")
-			SEXTEXT("(struct Quat4ia")
-			SEXTEXT("     (Vec3i v)(Int32 s)")
-			SEXTEXT(")")
-			SEXTEXT("(struct Quat4ib")
-			SEXTEXT("     (Test.Maths.Vec3i v)(Int32 s)")
-			SEXTEXT(")")
-			SEXTEXT("(using Test.Maths)")
-			SEXTEXT("(namespace Test)")
-			SEXTEXT("(namespace Test.Maths)")
-			SEXTEXT("    (alias Vector3i Test.Maths.Vec3i)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("    (alias Main EntryPoint.Main)")
+			("(function Main -> (Int32 result):")
+			("	 (Quat4i a)")
+			("	 (Quat4i b)")
+			("    (a.v.x = 2)")
+			("    (a.v.y = 3)")
+			("    (a.v.z = 4)")
+			("    (a.s = 5)")
+			("    (b.v.x = 5)")
+			("    (b.v.y = 7)")
+			("    (b.v.z = 9)")
+			("    (b.s   = 11)")
+			("    (Quat4i sum)")
+			("    (AddQuat4i a b sum)")
+			("    (result = 1)")
+			(")")
+			("(function AddQuat4i (Quat4i a)(Quat4i b)(Quat4i sum) -> :")
+			("	 (sum.v.x = (a.v.x + b.v.x))")
+			("	 (sum.v.y = (a.v.y + b.v.y))")
+			("	 (sum.v.z = (a.v.z + b.v.z))")
+			("	 (sum.s   = (a.s   + b.s))")
+			(")")
+			("(struct Vector3i")
+			("     (Int32 x y z)")
+			(")")
+			("(struct Quat4i")
+			("     (Vector3i v)(Int32 s)")
+			(")")
+			("(struct Quat4ia")
+			("     (Vec3i v)(Int32 s)")
+			(")")
+			("(struct Quat4ib")
+			("     (Test.Maths.Vec3i v)(Int32 s)")
+			(")")
+			("(using Test.Maths)")
+			("(namespace Test)")
+			("(namespace Test.Maths)")
+			("    (alias Vector3i Test.Maths.Vec3i)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStructure4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestStructure4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1905,17 +1905,17 @@ namespace
 
 	void TestWhileLoop1(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 result):\n")
-			SEXTEXT("		 (Int32 count = 0)\n")
-			SEXTEXT("		 (result = 10)\n")
-			SEXTEXT("		 (while (count < 2)\n")
-			SEXTEXT("       (count = (count + 1)) (result = (result + 1)) \n")
-			SEXTEXT("    ) \n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestWhileLoop1"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 result):\n")
+			("		 (Int32 count = 0)\n")
+			("		 (result = 10)\n")
+			("		 (while (count < 2)\n")
+			("       (count = (count + 1)) (result = (result + 1)) \n")
+			("    ) \n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestWhileLoop1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1929,19 +1929,19 @@ namespace
 
 	void TestWhileLoopBreak(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 result):\n")
-			SEXTEXT("		 (Int32 count = 0)\n")
-			SEXTEXT("		 (result = 10)\n")
-			SEXTEXT("		 (while (count < 6)\n")
-			SEXTEXT("       (count = (count + 1)) \n")
-			SEXTEXT("       (if (count == 4) (break)) \n")
-			SEXTEXT("       (result = (result + 1)) \n")
-			SEXTEXT("    ) \n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestWhileLoopBreak"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 result):\n")
+			("		 (Int32 count = 0)\n")
+			("		 (result = 10)\n")
+			("		 (while (count < 6)\n")
+			("       (count = (count + 1)) \n")
+			("       (if (count == 4) (break)) \n")
+			("       (result = (result + 1)) \n")
+			("    ) \n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestWhileLoopBreak"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1955,19 +1955,19 @@ namespace
 
 	void TestWhileLoopContinue(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 result):\n")
-			SEXTEXT("		 (Int32 count = 0)\n")
-			SEXTEXT("		 (result = 10)\n")
-			SEXTEXT("		 (while (count < 6)\n")
-			SEXTEXT("       (count = (count + 1)) \n")
-			SEXTEXT("       (if (count == 4) (continue)) \n")
-			SEXTEXT("       (result = (result + 1)) \n")
-			SEXTEXT("    ) \n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestWhileLoopContinue"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 result):\n")
+			("		 (Int32 count = 0)\n")
+			("		 (result = 10)\n")
+			("		 (while (count < 6)\n")
+			("       (count = (count + 1)) \n")
+			("       (if (count == 4) (continue)) \n")
+			("       (result = (result + 1)) \n")
+			("    ) \n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestWhileLoopContinue"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1981,18 +1981,18 @@ namespace
 
 	void TestDoWhile(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 result):\n")
-			SEXTEXT("		 (Int32 count = 15)\n")
-			SEXTEXT("		 (result = 10)\n")
-			SEXTEXT("		 (do (result = (result + 1))\n")
-			SEXTEXT("      (count = (count - 1))")
-			SEXTEXT("       while (count > 0) \n")
-			SEXTEXT("    ) \n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoWhile"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 result):\n")
+			("		 (Int32 count = 15)\n")
+			("		 (result = 10)\n")
+			("		 (do (result = (result + 1))\n")
+			("      (count = (count - 1))")
+			("       while (count > 0) \n")
+			("    ) \n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDoWhile"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2006,19 +2006,19 @@ namespace
 
 	void TestDoWhileBreak(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 result):\n")
-			SEXTEXT("		 (Int32 count = 15)\n")
-			SEXTEXT("		 (result = 10)\n")
-			SEXTEXT("		 (do (result = (result + 1))\n")
-			SEXTEXT("      (count = (count - 1))")
-			SEXTEXT("      (if (count == 2) (break))")
-			SEXTEXT("       while (count > 0) \n")
-			SEXTEXT("    ) \n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoWhileBreak"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 result):\n")
+			("		 (Int32 count = 15)\n")
+			("		 (result = 10)\n")
+			("		 (do (result = (result + 1))\n")
+			("      (count = (count - 1))")
+			("      (if (count == 2) (break))")
+			("       while (count > 0) \n")
+			("    ) \n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDoWhileBreak"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2032,19 +2032,19 @@ namespace
 
 	void TestDoWhileContinue(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 result):\n")
-			SEXTEXT("		 (Int32 count = 15)\n")
-			SEXTEXT("		 (result = 10)\n")
-			SEXTEXT("		 (do (count = (count - 1))\n")
-			SEXTEXT("        (if (count == 2) (continue))")
-			SEXTEXT("        (result = (result + 1))\n")			
-			SEXTEXT("       while (count > 0) \n")
-			SEXTEXT("    ) \n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoWhileContinue"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 result):\n")
+			("		 (Int32 count = 15)\n")
+			("		 (result = 10)\n")
+			("		 (do (count = (count - 1))\n")
+			("        (if (count == 2) (continue))")
+			("        (result = (result + 1))\n")			
+			("       while (count > 0) \n")
+			("    ) \n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDoWhileContinue"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2058,20 +2058,20 @@ namespace
 
 	void TestNestedWhileLoops(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> (Int32 result):\n")
-			SEXTEXT("		 (Int32 count = 0)\n")
-			SEXTEXT("		 (Int32 i = 0)\n")
-			SEXTEXT("		 (result = 10)\n")
-			SEXTEXT("		 (while (count < 2)\n")
-			SEXTEXT("       (count = (count + 1)) \n")
-			SEXTEXT("       (i = 0) \n")
-			SEXTEXT("       (while (i < 2) (i = (i + 1)) (result = (result + 1)) ) \n")
-			SEXTEXT("    ) \n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNestedWhileLoops"));
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(function Main -> (Int32 result):\n")
+			("		 (Int32 count = 0)\n")
+			("		 (Int32 i = 0)\n")
+			("		 (result = 10)\n")
+			("		 (while (count < 2)\n")
+			("       (count = (count + 1)) \n")
+			("       (i = 0) \n")
+			("       (while (i < 2) (i = (i + 1)) (result = (result + 1)) ) \n")
+			("    ) \n")
+			(")\n")
+			("(alias Main EntryPoint.Main)");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestNestedWhileLoops"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2085,14 +2085,14 @@ namespace
 
 	void TestArchetypeDeclaration(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint) \n")
-			SEXTEXT("(function Main -> (Int32 result): \n")
-			SEXTEXT("		 (result = 1) \n")
-			SEXTEXT(") \n")
-			SEXTEXT("(archetype EntryPoint.FloatToFloat (Float32 x) -> (Float32 y)) \n")
-			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArchetypeDeclaration"));
+		cstr srcCode =
+			("(namespace EntryPoint) \n")
+			("(function Main -> (Int32 result): \n")
+			("		 (result = 1) \n")
+			(") \n")
+			("(archetype EntryPoint.FloatToFloat (Float32 x) -> (Float32 y)) \n")
+			("(alias Main EntryPoint.Main) \n");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArchetypeDeclaration"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2103,10 +2103,10 @@ namespace
 		int32 x = vm.PopInt32();
 		validate(x == 1);
 
-		const INamespace* testSpace = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		const INamespace* testSpace = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
 		validate(testSpace != NULL);
 
-		const IArchetype* decl = testSpace->FindArchetype(SEXTEXT("FloatToFloat"));
+		const IArchetype* decl = testSpace->FindArchetype(("FloatToFloat"));
 		validate(decl != NULL);
 		validate(decl->NumberOfInputs() == 1);
 		validate(decl->NumberOfOutputs() == 1);
@@ -2115,15 +2115,15 @@ namespace
 
 	void TestNullArchetype(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint) \n")
-			SEXTEXT("(function Main -> (Int32 result): \n")
-			SEXTEXT("		(EntryPoint.FloatToInt f)\n")
-			SEXTEXT("		(f 1 ->	result) \n")
-			SEXTEXT(") \n")
-			SEXTEXT("(archetype EntryPoint.FloatToInt (Float32 x) -> (Int32 y)) \n")
-			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestNullArchetype"));
+		cstr srcCode =
+			("(namespace EntryPoint) \n")
+			("(function Main -> (Int32 result): \n")
+			("		(EntryPoint.FloatToInt f)\n")
+			("		(f 1 ->	result) \n")
+			(") \n")
+			("(archetype EntryPoint.FloatToInt (Float32 x) -> (Int32 y)) \n")
+			("(alias Main EntryPoint.Main) \n");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestNullArchetype"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2137,19 +2137,19 @@ namespace
 
 	void TestDefaultNullMethod(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint) \n")
-			SEXTEXT("(function Main -> (Int32 result): \n")
-			SEXTEXT("		(EntryPoint.INode node)\n")
-			SEXTEXT("		(EntryPoint.INode next = node.Next) \n")
-			SEXTEXT("       (result = next.Value) \n")
-			SEXTEXT(") \n")
-			SEXTEXT("(interface EntryPoint.INode \n")
-		    SEXTEXT("   (Next -> (EntryPoint.INode next)) \n")
-			SEXTEXT("   (Value -> (Int32 id)) \n")
-		    SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestDefaultNullMethod"));
+		cstr srcCode =
+			("(namespace EntryPoint) \n")
+			("(function Main -> (Int32 result): \n")
+			("		(EntryPoint.INode node)\n")
+			("		(EntryPoint.INode next = node.Next) \n")
+			("       (result = next.Value) \n")
+			(") \n")
+			("(interface EntryPoint.INode \n")
+		    ("   (Next -> (EntryPoint.INode next)) \n")
+			("   (Value -> (Int32 id)) \n")
+		    (")\n")
+			("(alias Main EntryPoint.Main) \n");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestDefaultNullMethod"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2163,25 +2163,25 @@ namespace
 
 	void TestArchetypeCall(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint) \n")
-			SEXTEXT("(using EntryPoint) \n")
-			SEXTEXT("(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y) ) \n")
-			SEXTEXT("(function Main -> (Int32 result): \n")
-			SEXTEXT("		 (IntToInt f = Square) \n")
-			SEXTEXT("    (result = (f 5)) \n")
-			SEXTEXT(") \n")
-			SEXTEXT("(function Square (Int32 x) -> (Int32 result): \n")
-			SEXTEXT("		 (result = (x * x)) \n")
-			SEXTEXT(") \n")			
-			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArchetypeCall"));
+		cstr srcCode =
+			("(namespace EntryPoint) \n")
+			("(using EntryPoint) \n")
+			("(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y) ) \n")
+			("(function Main -> (Int32 result): \n")
+			("		 (IntToInt f = Square) \n")
+			("    (result = (f 5)) \n")
+			(") \n")
+			("(function Square (Int32 x) -> (Int32 result): \n")
+			("		 (result = (x * x)) \n")
+			(") \n")			
+			("(alias Main EntryPoint.Main) \n");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArchetypeCall"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 
 // 		IModule& m = ss.PublicProgramObject().GetModule(0);
-// 		Disassemble(SEXTEXT("Main"), m, ss);
+// 		Disassemble(("Main"), m, ss);
 
 		vm.Push(1); // Allocate stack space for the int32 x
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
@@ -2192,21 +2192,21 @@ namespace
 
 	void TestArchetypePropagation(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint) \n")
-			SEXTEXT("(using EntryPoint) \n")
-			SEXTEXT("(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y)) \n")
-			SEXTEXT("(function Main -> (Int32 result): \n")
-			SEXTEXT("    (result = (Call Square 6)) \n")
-			SEXTEXT(") \n")
-			SEXTEXT("(function Square (Int32 x) -> (Int32 result): \n")
-			SEXTEXT("		 (result = (x * x)) \n")
-			SEXTEXT(") \n")			
-			SEXTEXT("(function Call (EntryPoint.IntToInt f)(Int32 x) -> (Int32 result): \n")
-			SEXTEXT("		 (result = (f x)) \n")
-			SEXTEXT(") \n")			
-			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArchetypePropagation"));
+		cstr srcCode =
+			("(namespace EntryPoint) \n")
+			("(using EntryPoint) \n")
+			("(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y)) \n")
+			("(function Main -> (Int32 result): \n")
+			("    (result = (Call Square 6)) \n")
+			(") \n")
+			("(function Square (Int32 x) -> (Int32 result): \n")
+			("		 (result = (x * x)) \n")
+			(") \n")			
+			("(function Call (EntryPoint.IntToInt f)(Int32 x) -> (Int32 result): \n")
+			("		 (result = (f x)) \n")
+			(") \n")			
+			("(alias Main EntryPoint.Main) \n");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArchetypePropagation"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2220,22 +2220,22 @@ namespace
 
 	void TestArchetypeReturn(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint) \n")
-			SEXTEXT("(using EntryPoint) \n")
-			SEXTEXT("(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y)) \n")
-			SEXTEXT("(function Main -> (Int32 result): \n")
-			SEXTEXT("		 (IntToInt f = (GetMathsFunction)) \n")
-			SEXTEXT("    (result = (f 7)) \n")
-			SEXTEXT(") \n")
-			SEXTEXT("(function Square (Int32 x) -> (Int32 result): \n")
-			SEXTEXT("		 (result = (x * x)) \n")
-			SEXTEXT(") \n")			
-			SEXTEXT("(function GetMathsFunction -> (EntryPoint.IntToInt f): \n")
-			SEXTEXT("		 (f = Square) \n")
-			SEXTEXT(") \n")			
-			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArchetypeReturn"));
+		cstr srcCode =
+			("(namespace EntryPoint) \n")
+			("(using EntryPoint) \n")
+			("(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y)) \n")
+			("(function Main -> (Int32 result): \n")
+			("		 (IntToInt f = (GetMathsFunction)) \n")
+			("    (result = (f 7)) \n")
+			(") \n")
+			("(function Square (Int32 x) -> (Int32 result): \n")
+			("		 (result = (x * x)) \n")
+			(") \n")			
+			("(function GetMathsFunction -> (EntryPoint.IntToInt f): \n")
+			("		 (f = Square) \n")
+			(") \n")			
+			("(alias Main EntryPoint.Main) \n");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArchetypeReturn"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2249,23 +2249,23 @@ namespace
 
 	void TestArchetypeReturnFromMultipleOutput(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint) \n")
-			SEXTEXT("(using EntryPoint) \n")
-			SEXTEXT("(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y)) \n")
-			SEXTEXT("(function Main -> (Int32 result): \n")
-			SEXTEXT("		 (IntToInt f) \n")
-			SEXTEXT("    (GetMathsFunction -> f)")
-			SEXTEXT("    (result = (f 7)) \n")
-			SEXTEXT(") \n")
-			SEXTEXT("(function Square (Int32 x) -> (Int32 result): \n")
-			SEXTEXT("		 (result = (x * x)) \n")
-			SEXTEXT(") \n")			
-			SEXTEXT("(function GetMathsFunction -> (EntryPoint.IntToInt f): \n")
-			SEXTEXT("		 (f = Square) \n")
-			SEXTEXT(") \n")			
-			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArchetypeReturnFromMultipleOutput"));
+		cstr srcCode =
+			("(namespace EntryPoint) \n")
+			("(using EntryPoint) \n")
+			("(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y)) \n")
+			("(function Main -> (Int32 result): \n")
+			("		 (IntToInt f) \n")
+			("    (GetMathsFunction -> f)")
+			("    (result = (f 7)) \n")
+			(") \n")
+			("(function Square (Int32 x) -> (Int32 result): \n")
+			("		 (result = (x * x)) \n")
+			(") \n")			
+			("(function GetMathsFunction -> (EntryPoint.IntToInt f): \n")
+			("		 (f = Square) \n")
+			(") \n")			
+			("(alias Main EntryPoint.Main) \n");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArchetypeReturnFromMultipleOutput"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2279,28 +2279,28 @@ namespace
 
 	void TestEmbeddedArchetype(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(using EntryPoint)")
-			SEXTEXT("(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y) )")
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("		 (Job job)")
-			SEXTEXT("    (job.f = Square)")
-			SEXTEXT("    (job.arg = 9)")
-			SEXTEXT("    (result = (Call job))")
-			SEXTEXT(")")
-			SEXTEXT("(function Square (Int32 x) -> (Int32 result):")
-			SEXTEXT("		 (result = (x * x))")
-			SEXTEXT(")")			
-			SEXTEXT("(function Call (Job job) -> (Int32 result):")
-			SEXTEXT("		 (result = (job.f job.arg))")
-			SEXTEXT(")")		
-			SEXTEXT("(struct Job")
-			SEXTEXT("		 (IntToInt f)")
-			SEXTEXT("		 (Int32 arg)")
-			SEXTEXT(")")			
-			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestEmbeddedArchetype"));
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(using EntryPoint)")
+			("(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y) )")
+			("(function Main -> (Int32 result):")
+			("		 (Job job)")
+			("    (job.f = Square)")
+			("    (job.arg = 9)")
+			("    (result = (Call job))")
+			(")")
+			("(function Square (Int32 x) -> (Int32 result):")
+			("		 (result = (x * x))")
+			(")")			
+			("(function Call (Job job) -> (Int32 result):")
+			("		 (result = (job.f job.arg))")
+			(")")		
+			("(struct Job")
+			("		 (IntToInt f)")
+			("		 (Int32 arg)")
+			(")")			
+			("(alias Main EntryPoint.Main) \n");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestEmbeddedArchetype"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2314,21 +2314,21 @@ namespace
 
 	void TestClosure(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(using EntryPoint)")
-			SEXTEXT("(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y))")
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("		(IntToInt f = ")
-			SEXTEXT("			(closure (Int32 x) -> (Int32 y):")
-			SEXTEXT("				(y = (x * x))")
-			SEXTEXT("			)")
-			SEXTEXT("		)")
-			SEXTEXT("   (result = (f 7))")
-			SEXTEXT(")")	
-			SEXTEXT("(alias Main EntryPoint.Main)");
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(using EntryPoint)")
+			("(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y))")
+			("(function Main -> (Int32 result):")
+			("		(IntToInt f = ")
+			("			(closure (Int32 x) -> (Int32 y):")
+			("				(y = (x * x))")
+			("			)")
+			("		)")
+			("   (result = (f 7))")
+			(")")	
+			("(alias Main EntryPoint.Main)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestClosure"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestClosure"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2342,22 +2342,22 @@ namespace
 
 	void TestClosureWithVariable(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(using EntryPoint)")
-			SEXTEXT("(archetype EntryPoint.VoidToInt -> (Int32 y))")
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("		(Int32 a = 2)")
-			SEXTEXT("		(VoidToInt f = ")
-			SEXTEXT("			(closure -> (Int32 y):")
-			SEXTEXT("				(y = (a * 7))")
-			SEXTEXT("			)")
-			SEXTEXT("		)")
-			SEXTEXT("   (result = (f))")
-			SEXTEXT(")")	
-			SEXTEXT("(alias Main EntryPoint.Main)");
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(using EntryPoint)")
+			("(archetype EntryPoint.VoidToInt -> (Int32 y))")
+			("(function Main -> (Int32 result):")
+			("		(Int32 a = 2)")
+			("		(VoidToInt f = ")
+			("			(closure -> (Int32 y):")
+			("				(y = (a * 7))")
+			("			)")
+			("		)")
+			("   (result = (f))")
+			(")")	
+			("(alias Main EntryPoint.Main)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestClosureWithVariable"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestClosureWithVariable"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2371,20 +2371,20 @@ namespace
 
 	void TestReturnClosureWithVariableSucceed(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(using EntryPoint)")
-			SEXTEXT("(archetype EntryPoint.VoidToInt -> (Int32 y))")
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("		(VoidToInt f = (CallInternalClosure))")
-			SEXTEXT("   (result = (f))")
-			SEXTEXT(")")	
-			SEXTEXT("(function CallInternalClosure -> (VoidToInt result):")
-			SEXTEXT("    (result = (closure -> (Int32 y): (y = (3 * 7))))")
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)");
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(using EntryPoint)")
+			("(archetype EntryPoint.VoidToInt -> (Int32 y))")
+			("(function Main -> (Int32 result):")
+			("		(VoidToInt f = (CallInternalClosure))")
+			("   (result = (f))")
+			(")")	
+			("(function CallInternalClosure -> (VoidToInt result):")
+			("    (result = (closure -> (Int32 y): (y = (3 * 7))))")
+			(")")
+			("(alias Main EntryPoint.Main)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestReturnClosureWithVariableSucceed"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestReturnClosureWithVariableSucceed"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2400,21 +2400,21 @@ namespace
 	{
 		// Demonstrate that a returned archetype cannot access the parent variables.
 
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(using EntryPoint)")
-			SEXTEXT("(archetype EntryPoint.VoidToInt -> (Int32 y))")
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("		(VoidToInt f = (CallInternalClosure))")
-			SEXTEXT("   (result = (f))")
-			SEXTEXT(")")	
-			SEXTEXT("(function CallInternalClosure -> (VoidToInt result):")
-			SEXTEXT("    (Int32 a = 4)")
-			SEXTEXT("    (result = (closure -> (Int32 y): (y = (a * 7))))")
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)");
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(using EntryPoint)")
+			("(archetype EntryPoint.VoidToInt -> (Int32 y))")
+			("(function Main -> (Int32 result):")
+			("		(VoidToInt f = (CallInternalClosure))")
+			("   (result = (f))")
+			(")")	
+			("(function CallInternalClosure -> (VoidToInt result):")
+			("    (Int32 a = 4)")
+			("    (result = (closure -> (Int32 y): (y = (a * 7))))")
+			(")")
+			("(alias Main EntryPoint.Main)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestReturnClosureWithVariableFails"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestReturnClosureWithVariableFails"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2444,12 +2444,12 @@ namespace
 			}
 		};
 
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Sys.Time"));
+		const INamespace& ns = ss.AddNativeNamespace(("Sys.Time"));
 
 		try
 		{
-			ss.AddNativeCall(ns, ANON::CpuHz, NULL, SEXTEXT("CpuHz -> (Int64 hz)"));
-			ss.AddNativeCall(ns, ANON::CpuTime, NULL, SEXTEXT("CpuTime -> (Int64 count)"));
+			ss.AddNativeCall(ns, ANON::CpuHz, NULL, ("CpuHz -> (Int64 hz)"));
+			ss.AddNativeCall(ns, ANON::CpuTime, NULL, ("CpuTime -> (Int64 count)"));
 		}
 		catch (IException& ex)
 		{
@@ -2457,13 +2457,13 @@ namespace
 			validate(false);
 		}	
 
-		csexstr srcCode =
-			SEXTEXT("(function Main -> (Int64 result):")
-			SEXTEXT("		(result = (Sys.Time.CpuHz))")
-			SEXTEXT(")")				
-			SEXTEXT("(namespace EntryPoint)(alias Main EntryPoint.Main)");
+		cstr srcCode =
+			("(function Main -> (Int64 result):")
+			("		(result = (Sys.Time.CpuHz))")
+			(")")				
+			("(namespace EntryPoint)(alias Main EntryPoint.Main)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNativeCall"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestNativeCall"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2488,11 +2488,11 @@ namespace
 			}
 		};
 
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Sys.Maths"));
+		const INamespace& ns = ss.AddNativeNamespace(("Sys.Maths"));
 
 		try
 		{
-			ss.AddNativeCall(ns, ANON::Square, NULL, SEXTEXT("Square (Int32 x)-> (Int32 y)"));
+			ss.AddNativeCall(ns, ANON::Square, NULL, ("Square (Int32 x)-> (Int32 y)"));
 		}
 		catch (IException& ex)
 		{
@@ -2500,13 +2500,13 @@ namespace
 			validate(false);
 		}	
 
-		csexstr srcCode =
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("		(result = (Sys.Maths.Square 11))")
-			SEXTEXT(")")				
-			SEXTEXT("(namespace EntryPoint)(alias Main EntryPoint.Main)");
+		cstr srcCode =
+			("(function Main -> (Int32 result):")
+			("		(result = (Sys.Maths.Square 11))")
+			(")")				
+			("(namespace EntryPoint)(alias Main EntryPoint.Main)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNativeCall2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestNativeCall2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2536,11 +2536,11 @@ namespace
 			}
 		};
 
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Sys.Maths"));
+		const INamespace& ns = ss.AddNativeNamespace(("Sys.Maths"));
 
 		try
 		{
-			ss.AddNativeCall(ns, ANON::George, NULL, SEXTEXT("George (Int32 x)(Int32 y)-> (Int32 pxy)(Int32 dxy)"));
+			ss.AddNativeCall(ns, ANON::George, NULL, ("George (Int32 x)(Int32 y)-> (Int32 pxy)(Int32 dxy)"));
 		}
 		catch (IException& ex)
 		{
@@ -2548,13 +2548,13 @@ namespace
 			validate(false);
 		}	
 
-		csexstr srcCode =
-			SEXTEXT("(function Main -> (Int32 result1)(Int32 result2):")
-			SEXTEXT("		(Sys.Maths.George 11 9 -> result1 result2 )")
-			SEXTEXT(")")				
-			SEXTEXT("(namespace EntryPoint)(alias Main EntryPoint.Main)");
+		cstr srcCode =
+			("(function Main -> (Int32 result1)(Int32 result2):")
+			("		(Sys.Maths.George 11 9 -> result1 result2 )")
+			(")")				
+			("(namespace EntryPoint)(alias Main EntryPoint.Main)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNativeCall3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestNativeCall3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2571,80 +2571,80 @@ namespace
 
 	void TestInterfaceDefinition(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result1):")
-			SEXTEXT(")")				
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result1):")
+			(")")				
+			("(alias Main EntryPoint.Main)")
 
-			SEXTEXT("(interface EntryPoint.IPlayer")				
-			SEXTEXT("    (GetId -> (Int32 value))")
-			SEXTEXT("    (SetId (Int32 value) ->)")
-			SEXTEXT(")");
+			("(interface EntryPoint.IPlayer")				
+			("    (GetId -> (Int32 value))")
+			("    (SetId (Int32 value) ->)")
+			(")");
 			
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInterfaceDefinition"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestInterfaceDefinition"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
-		const IInterface* i = ns->FindInterface(SEXTEXT("IPlayer"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
+		const IInterface* i = ns->FindInterface(("IPlayer"));
 		validate(i != NULL);		
 		validate(i->MethodCount() == 2);
 		const IArchetype& a1 = i->GetMethod(0);
 		const IArchetype& a2 = i->GetMethod(1);
-		validate(AreEqual(a1.Name(), SEXTEXT("GetId")));
-		validate(AreEqual(a2.Name(), SEXTEXT("SetId")));
+		validate(AreEqual(a1.Name(), ("GetId")));
+		validate(AreEqual(a2.Name(), ("SetId")));
 		validate(a1.NumberOfInputs() == 1);
 		validate(a1.NumberOfOutputs() == 1);
 		validate(a2.NumberOfInputs() == 2);
 		validate(a2.NumberOfOutputs() == 0);
-		validate(AreEqual(a1.GetArgName(0), SEXTEXT("value")));
-		validate(AreEqual(a2.GetArgName(0), SEXTEXT("value")));
+		validate(AreEqual(a1.GetArgName(0), ("value")));
+		validate(AreEqual(a2.GetArgName(0), ("value")));
 		validate(a1.GetArgument(0).VarType() == VARTYPE_Int32);
 		validate(a2.GetArgument(0).VarType() == VARTYPE_Int32);
 	} 
 
 	void TestClassDefinition(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result1):")
-			SEXTEXT(")")				
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result1):")
+			(")")				
+			("(alias Main EntryPoint.Main)")
 
-			SEXTEXT("(interface EntryPoint.IPlayer")				
-			SEXTEXT("    (GetId -> (Int32 value))")
-			SEXTEXT("    (SetId (Int32 value) ->)")
-			SEXTEXT(")")
+			("(interface EntryPoint.IPlayer")				
+			("    (GetId -> (Int32 value))")
+			("    (SetId (Int32 value) ->)")
+			(")")
 
-			SEXTEXT("(class Player (implements EntryPoint.IPlayer)")				
-			SEXTEXT("    (Int32 id)")
-			SEXTEXT(")")
+			("(class Player (implements EntryPoint.IPlayer)")				
+			("    (Int32 id)")
+			(")")
 			
-			SEXTEXT("(method Player.GetId -> (Int32 value):")				
-			SEXTEXT("    (value = this.id)")
-			SEXTEXT(")")
+			("(method Player.GetId -> (Int32 value):")				
+			("    (value = this.id)")
+			(")")
 			
-			SEXTEXT("(method Player.SetId (Int32 value) -> :")				
-			SEXTEXT("    (this.id = value)")
-			SEXTEXT(")");
+			("(method Player.SetId (Int32 value) -> :")				
+			("    (this.id = value)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestClassDefinition"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestClassDefinition"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
 
 		const IModule& m = ss.PublicProgramObject().GetModule(ss.GetIntrinsicModuleCount());
-		const IStructure* s = m.FindStructure(SEXTEXT("Player"));
+		const IStructure* s = m.FindStructure(("Player"));
 
 		validate(s != NULL);
 		validate(s->InterfaceCount() == 1);
 		const IInterface& i1 = s->GetInterface(0);
 		validate(&i1 != NULL);
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
-		const IInterface* i2 = ns->FindInterface(SEXTEXT("IPlayer"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
+		const IInterface* i2 = ns->FindInterface(("IPlayer"));
 
 		validate(i2 != NULL);
 		validate(&i1 == i2);
@@ -2652,26 +2652,26 @@ namespace
 
 	void TestMissingMethod(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result1):")
-			SEXTEXT(")")				
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result1):")
+			(")")				
+			("(alias Main EntryPoint.Main)")
 
-			SEXTEXT("(interface EntryPoint.IPlayer")				
-			SEXTEXT("    (GetId -> (Int32 value))")
-			SEXTEXT("    (SetId (Int32 value) ->)")
-			SEXTEXT(")")
+			("(interface EntryPoint.IPlayer")				
+			("    (GetId -> (Int32 value))")
+			("    (SetId (Int32 value) ->)")
+			(")")
 
-			SEXTEXT("(class Player (implements EntryPoint.IPlayer)")				
-			SEXTEXT("    (Int32 id)")
-			SEXTEXT(")")
+			("(class Player (implements EntryPoint.IPlayer)")				
+			("    (Int32 id)")
+			(")")
 
-			SEXTEXT("(method Player.GetId -> (Int32 value):")				
-			SEXTEXT("    (value = this.id)")
-			SEXTEXT(")");
+			("(method Player.GetId -> (Int32 value):")				
+			("    (value = this.id)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMissingMethod"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMissingMethod"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2681,23 +2681,23 @@ namespace
 		}
 		catch (ParseException& e)
 		{
-			csexstr msg = e.Message();
-			validate(GetSubString(msg, SEXTEXT("Expecting method")) != NULL);
-			validate(GetSubString(msg, SEXTEXT("Player.SetId")) != NULL);
+			cstr msg = e.Message();
+			validate(GetSubString(msg, ("Expecting method")) != NULL);
+			validate(GetSubString(msg, ("Player.SetId")) != NULL);
 		}
 	} 
 
    void TestDuplicateVariable(IPublicScriptSystem& ss)
    {
-      csexstr srcCode =
-         SEXTEXT("(namespace EntryPoint)\n")
-         SEXTEXT("(function Main -> (Int32 exitCode):\n")
-         SEXTEXT("  (Int32 a = 1)")
-         SEXTEXT("  (Int32 a = 1)")
-         SEXTEXT(")\n")
-         SEXTEXT("(alias Main EntryPoint.Main)\n");
+      cstr srcCode =
+         ("(namespace EntryPoint)\n")
+         ("(function Main -> (Int32 exitCode):\n")
+         ("  (Int32 a = 1)")
+         ("  (Int32 a = 1)")
+         (")\n")
+         ("(alias Main EntryPoint.Main)\n");
 
-      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDuplicateVariable"));
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDuplicateVariable"));
       Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
       try
@@ -2717,33 +2717,33 @@ namespace
 
 	void TestClassInstance(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("    (Player player)")
-			SEXTEXT("    (player.SetId 1812)")
-			SEXTEXT("    (player.GetId -> result)")
-			SEXTEXT(")")				
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")
+			("    (Player player)")
+			("    (player.SetId 1812)")
+			("    (player.GetId -> result)")
+			(")")				
+			("(alias Main EntryPoint.Main)")
 
-			SEXTEXT("(interface EntryPoint.IPlayer")				
-			SEXTEXT("    (GetId -> (Int32 value))")
-			SEXTEXT("    (SetId (Int32 value) ->)")
-			SEXTEXT(")")
+			("(interface EntryPoint.IPlayer")				
+			("    (GetId -> (Int32 value))")
+			("    (SetId (Int32 value) ->)")
+			(")")
 
-			SEXTEXT("(class Player (implements EntryPoint.IPlayer)")				
-			SEXTEXT("    (Int32 id)")
-			SEXTEXT(")")
+			("(class Player (implements EntryPoint.IPlayer)")				
+			("    (Int32 id)")
+			(")")
 
-			SEXTEXT("(method Player.GetId -> (Int32 value):")				
-			SEXTEXT("    (value = this.id)")
-			SEXTEXT(")")
+			("(method Player.GetId -> (Int32 value):")				
+			("    (value = this.id)")
+			(")")
 
-			SEXTEXT("(method Player.SetId (Int32 value) -> :")				
-			SEXTEXT("    (this.id = value)")
-			SEXTEXT(")");
+			("(method Player.SetId (Int32 value) -> :")				
+			("    (this.id = value)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestClassInstance"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestClassInstance"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -2757,37 +2757,37 @@ namespace
 
 	void TestConstructor(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("    (Player player (1812))")
-			SEXTEXT("    (player.GetId -> result)")
-			SEXTEXT(")")				
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")
+			("    (Player player (1812))")
+			("    (player.GetId -> result)")
+			(")")				
+			("(alias Main EntryPoint.Main)")
 
-			SEXTEXT("(interface EntryPoint.IPlayer")				
-			SEXTEXT("    (GetId -> (Int32 value))")
-			SEXTEXT("    (SetId (Int32 value) ->)")
-			SEXTEXT(")")
+			("(interface EntryPoint.IPlayer")				
+			("    (GetId -> (Int32 value))")
+			("    (SetId (Int32 value) ->)")
+			(")")
 
-			SEXTEXT("(class Player (implements EntryPoint.IPlayer)")				
-			SEXTEXT("    (Int32 id)")
-			SEXTEXT(")")
+			("(class Player (implements EntryPoint.IPlayer)")				
+			("    (Int32 id)")
+			(")")
 
-			SEXTEXT("(method Player.GetId -> (Int32 value):")				
-			SEXTEXT("    (value = this.id)")
-			SEXTEXT(")")
+			("(method Player.GetId -> (Int32 value):")				
+			("    (value = this.id)")
+			(")")
 
-			SEXTEXT("(method Player.SetId (Int32 value) -> :")				
-			SEXTEXT("    (this.id = value)")
-			SEXTEXT(")")
+			("(method Player.SetId (Int32 value) -> :")				
+			("    (this.id = value)")
+			(")")
 
-			SEXTEXT("(method Player.Construct (Int32 value): ")				
-			SEXTEXT("    (this.id = value)")
-			SEXTEXT(")")
+			("(method Player.Construct (Int32 value): ")				
+			("    (this.id = value)")
+			(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestConstructor"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestConstructor"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -2801,20 +2801,20 @@ namespace
 
 	void TestNullObject(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("")			
-			SEXTEXT("    (EntryPoint.IPlayer player)")
-			SEXTEXT("    (player.GetId -> result)")
-			SEXTEXT(")")				
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")
+			("")			
+			("    (EntryPoint.IPlayer player)")
+			("    (player.GetId -> result)")
+			(")")				
+			("(alias Main EntryPoint.Main)")
 
-			SEXTEXT("(interface EntryPoint.IPlayer")				
-			SEXTEXT("    (GetId -> (Int32 value))")
-			SEXTEXT(")");
+			("(interface EntryPoint.IPlayer")				
+			("    (GetId -> (Int32 value))")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNullObject"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestNullObject"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());	
@@ -2859,13 +2859,13 @@ namespace
 
 	void TestDuplicateFunctionError(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):)")	
-			SEXTEXT("(function Main -> (Int32 result):)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):)")	
+			("(function Main -> (Int32 result):)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDuplicateFunctionError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDuplicateFunctionError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2875,20 +2875,20 @@ namespace
 		}
 		catch (ParseException& e)
 		{
-			validate(AreEqual(e.Message(), SEXTEXT("Function Main already defined in TestDuplicateFunctionError")));
+			validate(AreEqual(e.Message(), ("Function Main already defined in TestDuplicateFunctionError")));
 		}
 	}
 
 	void TestDuplicateStructureError(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):)")	
-			SEXTEXT("(struct Vector3 (Float32 x y z))")	
-			SEXTEXT("(struct Vector3 (Float32 x y z))")		
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):)")	
+			("(struct Vector3 (Float32 x y z))")	
+			("(struct Vector3 (Float32 x y z))")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDuplicateStructureError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDuplicateStructureError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2898,19 +2898,19 @@ namespace
 		}
 		catch (ParseException& e)
 		{
-			validate(AreEqual(e.Message(), SEXTEXT("Duplicate structure definition for Vector3")));
+			validate(AreEqual(e.Message(), ("Duplicate structure definition for Vector3")));
 		}
 	}
 
 	void TestBigNamespaceError(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(namespace T134567890123456789012345678901234567890123456789012345678901234TX3456789012345678901234567890123456789012345678901234567890123)") // 127 chars is ok
-			SEXTEXT("(namespace T234567890123456789012345678901234567890123456789012345678901234T234567890123456789012345678901234567890123456789012345678901234)") // 128 chars is not
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(namespace T134567890123456789012345678901234567890123456789012345678901234TX3456789012345678901234567890123456789012345678901234567890123)") // 127 chars is ok
+			("(namespace T234567890123456789012345678901234567890123456789012345678901234T234567890123456789012345678901234567890123456789012345678901234)") // 128 chars is not
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBigNamespaceError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBigNamespaceError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2920,19 +2920,19 @@ namespace
 		}
 		catch (ParseException& e)
 		{			
-			validate(AreEqual(e.Specimen(), SEXTEXT("T234"), 4));
+			validate(AreEqual(e.Specimen(), ("T234"), 4));
 		}
 	}
 
 	void TestBigFunctionError(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function E2345678901234567890123456789012TX34567890123456789012345678901 -> (Int32 x):)") // 63 chars is ok
-			SEXTEXT("(function T2345678901234567890123456789012T2345678901234567890123456789012 -> (Int32 x):)") // 64 chars is not
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function E2345678901234567890123456789012TX34567890123456789012345678901 -> (Int32 x):)") // 63 chars is ok
+			("(function T2345678901234567890123456789012T2345678901234567890123456789012 -> (Int32 x):)") // 64 chars is not
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBigFunctionError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBigFunctionError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2942,19 +2942,19 @@ namespace
 		}
 		catch (ParseException& e)
 		{			
-			validate(AreEqual(e.Specimen(), SEXTEXT("T234"), 4));
+			validate(AreEqual(e.Specimen(), ("T234"), 4));
 		}
 	}
 
 	void TestBigStructureError(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(struct TX34567890123456789012345678901 (Int32 x))") // 31 chars is ok
-			SEXTEXT("(struct T2345678901234567890123456789012 (Int32 x))") // 32 chars is not
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(struct TX34567890123456789012345678901 (Int32 x))") // 31 chars is ok
+			("(struct T2345678901234567890123456789012 (Int32 x))") // 32 chars is not
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBigStructureError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBigStructureError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2964,19 +2964,19 @@ namespace
 		}
 		catch (ParseException& e)
 		{			
-			validate(AreEqual(e.Specimen(), SEXTEXT("T234"), 4));
+			validate(AreEqual(e.Specimen(), ("T234"), 4));
 		}
 	}
 
 	void TestBigInterfaceError(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(interface EntryPoint.TX34567890123456789012345678901 (GetId -> (Int32 id)))") // 31 chars is ok
-			SEXTEXT("(interface EntryPoint.T2345678901234567890123456789012 (GetId -> (Int32 id)))") // 32 chars is not
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(interface EntryPoint.TX34567890123456789012345678901 (GetId -> (Int32 id)))") // 31 chars is ok
+			("(interface EntryPoint.T2345678901234567890123456789012 (GetId -> (Int32 id)))") // 32 chars is not
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBigInterfaceError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBigInterfaceError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -2986,19 +2986,19 @@ namespace
 		}
 		catch (ParseException& e)
 		{			
-			validate(AreEqual(e.Specimen(), SEXTEXT("EntryPoint.T234"), 9));
+			validate(AreEqual(e.Specimen(), ("EntryPoint.T234"), 9));
 		}
 	}
 
 	void TestBigArchetypeError(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(archetype EntryPoint.TX34567890123456789012345678901 (Int32 x) -> (Int32 y))") // 31 chars is ok
-			SEXTEXT("(archetype EntryPoint.T2345678901234567890123456789012 (Int32 x) -> (Int32 y))") // 32 chars is not
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(archetype EntryPoint.TX34567890123456789012345678901 (Int32 x) -> (Int32 y))") // 31 chars is ok
+			("(archetype EntryPoint.T2345678901234567890123456789012 (Int32 x) -> (Int32 y))") // 32 chars is not
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestBigArchetypeError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestBigArchetypeError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -3008,19 +3008,19 @@ namespace
 		}
 		catch (ParseException& e)
 		{			
-			validate(AreEqual(e.Specimen(), SEXTEXT("EntryPoint.T234"), 9));
+			validate(AreEqual(e.Specimen(), ("EntryPoint.T234"), 9));
 		}
 	}
 
 	void TestDuplicateInterfaceError(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(interface EntryPoint.A (GetId -> (Int32 id)))") 
-			SEXTEXT("(interface EntryPoint.A (GetId -> (Int32 id)))")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(interface EntryPoint.A (GetId -> (Int32 id)))") 
+			("(interface EntryPoint.A (GetId -> (Int32 id)))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDuplicateInterfaceError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDuplicateInterfaceError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -3030,19 +3030,19 @@ namespace
 		}
 		catch (ParseException& e)
 		{			
-			validate(AreEqual(e.Specimen(), SEXTEXT("EntryPoint.A")));
+			validate(AreEqual(e.Specimen(), ("EntryPoint.A")));
 		}
 	}
 
 	void TestDuplicateArchetypeError(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(archetype EntryPoint.A -> (Int32 id))") 
-			SEXTEXT("(archetype EntryPoint.A -> (Int32 id))")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(archetype EntryPoint.A -> (Int32 id))") 
+			("(archetype EntryPoint.A -> (Int32 id))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDuplicateArchetypeError"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDuplicateArchetypeError"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -3052,27 +3052,27 @@ namespace
 		}
 		catch (ParseException& e)
 		{			
-			validate(AreEqual(e.Specimen(), SEXTEXT("EntryPoint.A")));
+			validate(AreEqual(e.Specimen(), ("EntryPoint.A")));
 		}
 	}
 
 	void TestTryWithoutThrow(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")		
-			SEXTEXT("		(")
-			SEXTEXT("			try ( result = 15)")   
-			SEXTEXT("     catch e ( result = (result + 7) )")
-			SEXTEXT("   )")
-			SEXTEXT(")")			
-			SEXTEXT("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))")
-			SEXTEXT("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
-			SEXTEXT("(class TestException (implements Sys.Type.IException))")
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")		
+			("		(")
+			("			try ( result = 15)")   
+			("     catch e ( result = (result + 7) )")
+			("   )")
+			(")")			
+			("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))")
+			("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
+			("(class TestException (implements Sys.Type.IException))")
+			("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestTryWithoutThrow"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestTryWithoutThrow"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3086,22 +3086,22 @@ namespace
 
 	void TestTryFinallyWithoutThrow(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")		
-			SEXTEXT("		(")
-			SEXTEXT("			try ( result = 15)")   
-			SEXTEXT("     catch e ( result = (result + 7) )")
-			SEXTEXT("     finally ( result = (result - 5) )")
-			SEXTEXT("   )")
-			SEXTEXT(")")			
-			SEXTEXT("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))")
-			SEXTEXT("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
-			SEXTEXT("(class TestException (implements Sys.Type.IException))")
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")		
+			("		(")
+			("			try ( result = 15)")   
+			("     catch e ( result = (result + 7) )")
+			("     finally ( result = (result - 5) )")
+			("   )")
+			(")")			
+			("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))")
+			("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
+			("(class TestException (implements Sys.Type.IException))")
+			("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestTryFinallyWithoutThrow"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestTryFinallyWithoutThrow"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3115,27 +3115,27 @@ namespace
 
 	void TestCatch(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")		
-			SEXTEXT("   (result = 12)")
-			SEXTEXT("		(try")
-			SEXTEXT("			(")
-			SEXTEXT("				(TestException ex)(throw ex) (result = 11)")
-			SEXTEXT("			)")   
-			SEXTEXT("		catch e")
-			SEXTEXT("			(")
-			SEXTEXT("				(result = (result + 15))")
-			SEXTEXT("			)")
-			SEXTEXT("		)")
-			SEXTEXT(")")			
-			SEXTEXT("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))")
-			SEXTEXT("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
-			SEXTEXT("(class TestException (implements Sys.Type.IException))")
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")		
+			("   (result = 12)")
+			("		(try")
+			("			(")
+			("				(TestException ex)(throw ex) (result = 11)")
+			("			)")   
+			("		catch e")
+			("			(")
+			("				(result = (result + 15))")
+			("			)")
+			("		)")
+			(")")			
+			("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))")
+			("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
+			("(class TestException (implements Sys.Type.IException))")
+			("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestCatch"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestCatch"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3149,27 +3149,27 @@ namespace
 
 	void TestDeepCatch(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")		
-			SEXTEXT("   (result = 12)")
-			SEXTEXT("		(")			
-			SEXTEXT("			try ( (Double 11 -> result) )")   
-			SEXTEXT("     catch e ( result = (result + 15) )")
-			SEXTEXT("   )")
-			SEXTEXT(")")			
-			SEXTEXT("(function Double (Int32 x) -> (Int32 y):")		
-			SEXTEXT("   (Int32 z)")
-			SEXTEXT("   (TestException ex)(throw ex)")			
-			SEXTEXT("   (y = (x * x))")
-			SEXTEXT(")")			
-			SEXTEXT("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))")
-			SEXTEXT("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
-			SEXTEXT("(class TestException (implements Sys.Type.IException))")
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")		
+			("   (result = 12)")
+			("		(")			
+			("			try ( (Double 11 -> result) )")   
+			("     catch e ( result = (result + 15) )")
+			("   )")
+			(")")			
+			("(function Double (Int32 x) -> (Int32 y):")		
+			("   (Int32 z)")
+			("   (TestException ex)(throw ex)")			
+			("   (y = (x * x))")
+			(")")			
+			("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))")
+			("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
+			("(class TestException (implements Sys.Type.IException))")
+			("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDeepCatch"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDeepCatch"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3185,19 +3185,19 @@ namespace
 
 	void TestDestructor(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")		
-			SEXTEXT("   (Robot robby)")
-			SEXTEXT("   (result = 7)")
-			SEXTEXT(")")			
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")		
+			("   (Robot robby)")
+			("   (result = 7)")
+			(")")			
+			("(alias Main EntryPoint.Main)")
 
-			SEXTEXT("(class Robot)")
-			SEXTEXT("(method Robot.Destruct -> : (Sys.InvokeTest))")
+			("(class Robot)")
+			("(method Robot.Destruct -> : (Sys.InvokeTest))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDestructor"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDestructor"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		g_destructorTestInt = 0;
@@ -3207,11 +3207,11 @@ namespace
 				g_destructorTestInt = 1;
 		}};
 
-		const INamespace& nsSys = ss.AddNativeNamespace(SEXTEXT("Sys"));
+		const INamespace& nsSys = ss.AddNativeNamespace(("Sys"));
 
 		try
 		{
-			ss.AddNativeCall(nsSys, ANON::InvokeTest, NULL, SEXTEXT("InvokeTest ->"));
+			ss.AddNativeCall(nsSys, ANON::InvokeTest, NULL, ("InvokeTest ->"));
 		}
 		catch (IException& ex)
 		{
@@ -3231,24 +3231,24 @@ namespace
 
 	void TestExceptionDestruct(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")	
-			SEXTEXT("(TestException ex)")
-			SEXTEXT("(try")
-			SEXTEXT("   ((Robot robby)(throw ex))")
-			SEXTEXT("catch e ((result = 7)))")
-			SEXTEXT(")")			
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")	
+			("(TestException ex)")
+			("(try")
+			("   ((Robot robby)(throw ex))")
+			("catch e ((result = 7)))")
+			(")")			
+			("(alias Main EntryPoint.Main)")
 
-			SEXTEXT("(class Robot)")
-			SEXTEXT("(method Robot.Destruct -> : (Sys.InvokeTest))")
-			SEXTEXT("(class TestException (implements Sys.Type.IException))")
-			SEXTEXT("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))")			
-			SEXTEXT("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
+			("(class Robot)")
+			("(method Robot.Destruct -> : (Sys.InvokeTest))")
+			("(class TestException (implements Sys.Type.IException))")
+			("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))")			
+			("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestExceptionDestruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestExceptionDestruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		g_destructorTestInt = 0;
@@ -3258,11 +3258,11 @@ namespace
 			g_destructorTestInt = 1;
 		}};
 
-		const INamespace& nsSys = ss.AddNativeNamespace(SEXTEXT("Sys"));
+		const INamespace& nsSys = ss.AddNativeNamespace(("Sys"));
 
 		try
 		{
-			ss.AddNativeCall(nsSys, ANON::InvokeTest, NULL, SEXTEXT("InvokeTest ->"));
+			ss.AddNativeCall(nsSys, ANON::InvokeTest, NULL, ("InvokeTest ->"));
 		}
 		catch (IException& ex)
 		{
@@ -3282,61 +3282,61 @@ namespace
 
 	void TestDestructorThrows(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")	
-			SEXTEXT("(TestException ex)")
-			SEXTEXT("(try")
-			SEXTEXT("   ((Robot robby)(throw ex))")
-			SEXTEXT("catch e ((result = 7)))")
-			SEXTEXT(")")			
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")	
+			("(TestException ex)")
+			("(try")
+			("   ((Robot robby)(throw ex))")
+			("catch e ((result = 7)))")
+			(")")			
+			("(alias Main EntryPoint.Main)")
 
-			SEXTEXT("(class Robot)")
-			SEXTEXT("(method Robot.Destruct -> : (TestException ex)(throw ex))")
-			SEXTEXT("(class TestException (implements Sys.Type.IException))")
-			SEXTEXT("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))")			
-			SEXTEXT("(method TestException.Message -> (Sys.Type.IString s): (s = \"To be expected\"))")			
+			("(class Robot)")
+			("(method Robot.Destruct -> : (TestException ex)(throw ex))")
+			("(class TestException (implements Sys.Type.IException))")
+			("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))")			
+			("(method TestException.Message -> (Sys.Type.IString s): (s = \"To be expected\"))")			
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDestructorThrows"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDestructorThrows"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
 
 		vm.Push(0); // Allocate stack space for the int32 result
 
-		s_logger.Write(SEXTEXT("Expecting a complaint about an exception thrown by a destructor:"));
+		s_logger.Write(("Expecting a complaint about an exception thrown by a destructor:"));
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		validate(EXECUTERESULT_THROWN == result);
 	}
 
 	void TestThrowFromCatch(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")	
-			SEXTEXT("(TestException ex)")
-			SEXTEXT("(try")
-			SEXTEXT("		(try")
-			SEXTEXT("			((result = 1)(Robot robby)(throw ex))")
-			SEXTEXT("		 catch e1")
-			SEXTEXT("			((result = (result + 3))(TestException ex1)(throw ex1))")
-			SEXTEXT("		)")		
-			SEXTEXT(" catch e2")		
-			SEXTEXT("			((result = (result + 7)))")
-			SEXTEXT("		)")
-			SEXTEXT(")")			
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")	
+			("(TestException ex)")
+			("(try")
+			("		(try")
+			("			((result = 1)(Robot robby)(throw ex))")
+			("		 catch e1")
+			("			((result = (result + 3))(TestException ex1)(throw ex1))")
+			("		)")		
+			(" catch e2")		
+			("			((result = (result + 7)))")
+			("		)")
+			(")")			
+			("(alias Main EntryPoint.Main)")
 
-			SEXTEXT("(class Robot)")
-			SEXTEXT("(method Robot.Destruct -> : )")
-			SEXTEXT("(class TestException (implements Sys.Type.IException))")
-			SEXTEXT("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))")			
-			SEXTEXT("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
+			("(class Robot)")
+			("(method Robot.Destruct -> : )")
+			("(class TestException (implements Sys.Type.IException))")
+			("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))")			
+			("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestThrowFromCatch"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestThrowFromCatch"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3352,23 +3352,23 @@ namespace
 
    void TestCompareGetAccessorWithOne(IPublicScriptSystem& ss)
    {
-      csexstr srcCode =
-         SEXTEXT("(namespace EntryPoint)")
-         SEXTEXT("(class Job (defines Sys.IJob))")
-         SEXTEXT("(method Job.Type -> (Int32 value): (value = 117))")
-         SEXTEXT("(function Main -> (Int32 result):")
-         SEXTEXT("(Int32 vst2 = 117)")
-         SEXTEXT("     (Job job)")
-         SEXTEXT("	  (if (job.Type == vst2)")
-         SEXTEXT("	      (result = 55)")
-         SEXTEXT("	   else")
-         SEXTEXT("	      (result = 89)")
-         SEXTEXT("	   )")
-         SEXTEXT(")")
-         SEXTEXT("(alias Main EntryPoint.Main)")
+      cstr srcCode =
+         ("(namespace EntryPoint)")
+         ("(class Job (defines Sys.IJob))")
+         ("(method Job.Type -> (Int32 value): (value = 117))")
+         ("(function Main -> (Int32 result):")
+         ("(Int32 vst2 = 117)")
+         ("     (Job job)")
+         ("	  (if (job.Type == vst2)")
+         ("	      (result = 55)")
+         ("	   else")
+         ("	      (result = 89)")
+         ("	   )")
+         (")")
+         ("(alias Main EntryPoint.Main)")
          ;
 
-      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestCompareGetAccessorWithOne"));
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestCompareGetAccessorWithOne"));
       Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
       VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -3384,23 +3384,23 @@ namespace
 
    void TestCompareGetAccessorWithOne2(IPublicScriptSystem& ss)
    {
-      csexstr srcCode =
-         SEXTEXT("(namespace EntryPoint)")
-         SEXTEXT("(class Job (defines Sys.IJob))")
-         SEXTEXT("(method Job.Type -> (Int32 value): (value = 117))")
-         SEXTEXT("(function Main -> (Int32 result):")
-         SEXTEXT("(Int32 vst2 = 118)")
-         SEXTEXT("     (Job job)")
-         SEXTEXT("	  (if (job.Type < vst2)")
-         SEXTEXT("	      (result = 55)")
-         SEXTEXT("	   else")
-         SEXTEXT("	      (result = 89)")
-         SEXTEXT("	   )")
-         SEXTEXT(")")
-         SEXTEXT("(alias Main EntryPoint.Main)")
+      cstr srcCode =
+         ("(namespace EntryPoint)")
+         ("(class Job (defines Sys.IJob))")
+         ("(method Job.Type -> (Int32 value): (value = 117))")
+         ("(function Main -> (Int32 result):")
+         ("(Int32 vst2 = 118)")
+         ("     (Job job)")
+         ("	  (if (job.Type < vst2)")
+         ("	      (result = 55)")
+         ("	   else")
+         ("	      (result = 89)")
+         ("	   )")
+         (")")
+         ("(alias Main EntryPoint.Main)")
          ;
 
-      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestCompareGetAccessorWithOne2"));
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestCompareGetAccessorWithOne2"));
       Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
       VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -3416,17 +3416,17 @@ namespace
 
 	void TestSizeOf(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")	
-			SEXTEXT("	  (Robot robby)")
-			SEXTEXT("	  (result = (sizeof robby))")
-			SEXTEXT(")")			
-			SEXTEXT("(alias Main EntryPoint.Main)")
-			SEXTEXT("(class Robot (Int32 electroBrainNumber))")	
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")	
+			("	  (Robot robby)")
+			("	  (result = (sizeof robby))")
+			(")")			
+			("(alias Main EntryPoint.Main)")
+			("(class Robot (Int32 electroBrainNumber))")	
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestSizeOf"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestSizeOf"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3444,23 +3444,23 @@ namespace
 
 	void TestCatchArg(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")		
-			SEXTEXT("   (result = 12)")
-			SEXTEXT("		(")			
-			SEXTEXT("			try ( (TestException ex)(SetErrorCode ex 1943)(throw ex) (result = 11) )")   
-			SEXTEXT("     catch e ( (e.ErrorCode -> result) )")
-			SEXTEXT("   )")
-			SEXTEXT(")")			
-			SEXTEXT("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = this.errorCode))")
-			SEXTEXT("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
-			SEXTEXT("(function SetErrorCode (TestException ex) (Int32 errorCode) -> : (ex.errorCode = errorCode))")
-			SEXTEXT("(class TestException (implements Sys.Type.IException) (Int32 errorCode))")
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")		
+			("   (result = 12)")
+			("		(")			
+			("			try ( (TestException ex)(SetErrorCode ex 1943)(throw ex) (result = 11) )")   
+			("     catch e ( (e.ErrorCode -> result) )")
+			("   )")
+			(")")			
+			("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = this.errorCode))")
+			("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
+			("(function SetErrorCode (TestException ex) (Int32 errorCode) -> : (ex.errorCode = errorCode))")
+			("(class TestException (implements Sys.Type.IException) (Int32 errorCode))")
+			("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestCatchArg"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestCatchArg"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3474,21 +3474,21 @@ namespace
 
 	void TestCatchInstanceArg(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")		
-			SEXTEXT("	(TestException ex)")
-			SEXTEXT(" (SetErrorCode ex 1943)")   
-			SEXTEXT(" (result = (ex.ErrorCode))")
-			SEXTEXT(")")			
-			SEXTEXT("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = this.errorCode))")
-			SEXTEXT("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
-			SEXTEXT("(function SetErrorCode (TestException ex) (Int32 errorCode) -> : (ex.errorCode = errorCode))")
-			SEXTEXT("(class TestException (implements Sys.Type.IException) (Int32 errorCode))")
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")		
+			("	(TestException ex)")
+			(" (SetErrorCode ex 1943)")   
+			(" (result = (ex.ErrorCode))")
+			(")")			
+			("(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = this.errorCode))")
+			("(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))")
+			("(function SetErrorCode (TestException ex) (Int32 errorCode) -> : (ex.errorCode = errorCode))")
+			("(class TestException (implements Sys.Type.IException) (Int32 errorCode))")
+			("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestCatchInstanceArg"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestCatchInstanceArg"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3502,25 +3502,25 @@ namespace
 
 	void TestInstancePropagation(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")		
-			SEXTEXT("	(Robot robby)")
-			SEXTEXT(" (robby.brainState = 7)")   
-			SEXTEXT(" (RobotThink robby)")
-			SEXTEXT(" (result = robby.brainState)")
-			SEXTEXT(")")
-			SEXTEXT("(function RobotThink (Robot x) -> :")		
-			SEXTEXT(" (IncBrainState x)")   
-			SEXTEXT(")")
-			SEXTEXT("(function IncBrainState (Robot x) -> :")		
-			SEXTEXT(" (x.brainState = (x.brainState + 1))")   
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)")
-			SEXTEXT("(class Robot (Int32 brainState))")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")		
+			("	(Robot robby)")
+			(" (robby.brainState = 7)")   
+			(" (RobotThink robby)")
+			(" (result = robby.brainState)")
+			(")")
+			("(function RobotThink (Robot x) -> :")		
+			(" (IncBrainState x)")   
+			(")")
+			("(function IncBrainState (Robot x) -> :")		
+			(" (x.brainState = (x.brainState + 1))")   
+			(")")
+			("(alias Main EntryPoint.Main)")
+			("(class Robot (Int32 brainState))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInstancePropagation"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestInstancePropagation"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3534,29 +3534,29 @@ namespace
 
 	void TestInstanceMemberPropagation(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")		
-			SEXTEXT("	(Robot robby)")
-			SEXTEXT(" (robby.brainState = 7)")   
-			SEXTEXT(" (RobotThink robby)")
-			SEXTEXT(" (result = robby.brainState)")
-			SEXTEXT(")")
-			SEXTEXT("(function RobotThink (Robot x) -> :")		
-			SEXTEXT(" (IncBrainState x)")   
-			SEXTEXT(")")
-			SEXTEXT("(function IncBrainState (Robot x) -> :")		
-			SEXTEXT(" (x.brainState = (Inc x.brainState))")   
-			SEXTEXT(" (Inc x.brainState -> x.brainState)")   
-			SEXTEXT(")")
-			SEXTEXT("(function Inc (Int32 x) -> (Int32 y):")		
-			SEXTEXT(" (y = (x + 1))")   
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)")
-			SEXTEXT("(class Robot (Int32 brainState))")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")		
+			("	(Robot robby)")
+			(" (robby.brainState = 7)")   
+			(" (RobotThink robby)")
+			(" (result = robby.brainState)")
+			(")")
+			("(function RobotThink (Robot x) -> :")		
+			(" (IncBrainState x)")   
+			(")")
+			("(function IncBrainState (Robot x) -> :")		
+			(" (x.brainState = (Inc x.brainState))")   
+			(" (Inc x.brainState -> x.brainState)")   
+			(")")
+			("(function Inc (Int32 x) -> (Int32 y):")		
+			(" (y = (x + 1))")   
+			(")")
+			("(alias Main EntryPoint.Main)")
+			("(class Robot (Int32 brainState))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInstanceMemberPropagation"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestInstanceMemberPropagation"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3570,38 +3570,38 @@ namespace
 
 	void TestInterfacePropagation(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")		
-			SEXTEXT("	(EntryPoint.IRobot robby(EntryPoint.MakeRobot 7))")
-			SEXTEXT(" (RobotThink robby)")
-			SEXTEXT(" (robby.GetBrainState -> result)")
-			SEXTEXT(")")
-			SEXTEXT("(function RobotThink (EntryPoint.IRobot x) -> :")		
-			SEXTEXT(" (IncRobotBrainState x)")   
-			SEXTEXT(")")
-			SEXTEXT("(function IncRobotBrainState (EntryPoint.IRobot x) -> :")		
-			SEXTEXT(" (x.SetBrainState ((x.GetBrainState) + 1))")   
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)")
-			SEXTEXT("(interface EntryPoint.IRobot")
-			SEXTEXT("  (GetBrainState -> (Int32 value))")
-			SEXTEXT("  (SetBrainState (Int32 value) ->)")
-			SEXTEXT(")")
-			SEXTEXT("(class Robot (implements EntryPoint.IRobot) (Int32 brainState))")
-			SEXTEXT("(method Robot.GetBrainState -> (Int32 value):")				
-			SEXTEXT("    (value = this.brainState)")
-			SEXTEXT(")")
-			SEXTEXT("(method Robot.SetBrainState (Int32 value)-> :")				
-			SEXTEXT("    (this.brainState = value)")
-			SEXTEXT(")")
-			SEXTEXT("(method Robot.Construct (Int32 value): ")				
-			SEXTEXT("    (this.brainState = value)")
-			SEXTEXT(")")
-			SEXTEXT("(factory EntryPoint.MakeRobot EntryPoint.IRobot (Int32 brainState): (construct Robot brainState))")	
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")		
+			("	(EntryPoint.IRobot robby(EntryPoint.MakeRobot 7))")
+			(" (RobotThink robby)")
+			(" (robby.GetBrainState -> result)")
+			(")")
+			("(function RobotThink (EntryPoint.IRobot x) -> :")		
+			(" (IncRobotBrainState x)")   
+			(")")
+			("(function IncRobotBrainState (EntryPoint.IRobot x) -> :")		
+			(" (x.SetBrainState ((x.GetBrainState) + 1))")   
+			(")")
+			("(alias Main EntryPoint.Main)")
+			("(interface EntryPoint.IRobot")
+			("  (GetBrainState -> (Int32 value))")
+			("  (SetBrainState (Int32 value) ->)")
+			(")")
+			("(class Robot (implements EntryPoint.IRobot) (Int32 brainState))")
+			("(method Robot.GetBrainState -> (Int32 value):")				
+			("    (value = this.brainState)")
+			(")")
+			("(method Robot.SetBrainState (Int32 value)-> :")				
+			("    (this.brainState = value)")
+			(")")
+			("(method Robot.Construct (Int32 value): ")				
+			("    (this.brainState = value)")
+			(")")
+			("(factory EntryPoint.MakeRobot EntryPoint.IRobot (Int32 brainState): (construct Robot brainState))")	
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInterfacePropagation"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestInterfacePropagation"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3615,35 +3615,35 @@ namespace
 
 	void TestMultipleInterfaces(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)(namespace Test)")
-			SEXTEXT("")
-			SEXTEXT("(function Main -> (Int32 result):")		
-			SEXTEXT(" (Test.IRobot robby(Test.MakeRobot 7))")	
-			SEXTEXT(" (robby.GetBrainState -> result)")
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)")
-			SEXTEXT("")
-			SEXTEXT("(interface Test.IRobot")
-			SEXTEXT("  (GetBrainState -> (Int32 value))")
-			SEXTEXT(")")
-			SEXTEXT("(interface Test.IExistence")
-			SEXTEXT("  (Exists -> (Bool value))")
-			SEXTEXT(")")
-			SEXTEXT("(class Robot (implements Test.IExistence) (implements Test.IRobot) (Int32 brainState))")
-			SEXTEXT("(method Robot.GetBrainState -> (Int32 value):")				
-			SEXTEXT("    (value = this.brainState)")
-			SEXTEXT(")")
-			SEXTEXT("(method Robot.Exists -> (Bool value):")				
-			SEXTEXT("    (value = true)")
-			SEXTEXT(")")
-			SEXTEXT("(method Robot.Construct (Int32 value): ")				
-			SEXTEXT("    (this.brainState = value)")
-			SEXTEXT(")")
-			SEXTEXT("(factory Test.MakeRobot Test.IRobot (Int32 brainState) : (construct Robot brainState))")	
+		cstr srcCode =
+			("(namespace EntryPoint)(namespace Test)")
+			("")
+			("(function Main -> (Int32 result):")		
+			(" (Test.IRobot robby(Test.MakeRobot 7))")	
+			(" (robby.GetBrainState -> result)")
+			(")")
+			("(alias Main EntryPoint.Main)")
+			("")
+			("(interface Test.IRobot")
+			("  (GetBrainState -> (Int32 value))")
+			(")")
+			("(interface Test.IExistence")
+			("  (Exists -> (Bool value))")
+			(")")
+			("(class Robot (implements Test.IExistence) (implements Test.IRobot) (Int32 brainState))")
+			("(method Robot.GetBrainState -> (Int32 value):")				
+			("    (value = this.brainState)")
+			(")")
+			("(method Robot.Exists -> (Bool value):")				
+			("    (value = true)")
+			(")")
+			("(method Robot.Construct (Int32 value): ")				
+			("    (this.brainState = value)")
+			(")")
+			("(factory Test.MakeRobot Test.IRobot (Int32 brainState) : (construct Robot brainState))")	
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMultipleInterfaces"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMultipleInterfaces"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3657,19 +3657,19 @@ namespace
 
 	void TestNullString(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
-			SEXTEXT("")
-			SEXTEXT("(using Sys.Type)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
+			("")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT(" (IString s)")	
-			SEXTEXT(" (s.Length -> result)")
-			SEXTEXT(")")
+			("(function Main -> (Int32 result):")			
+			(" (IString s)")	
+			(" (s.Length -> result)")
+			(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMultipleInterfaces"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMultipleInterfaces"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3683,18 +3683,18 @@ namespace
 
 	void TestStringConstant(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
-			SEXTEXT("")
-			SEXTEXT("(using Sys.Type)")
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT(" (IString s = \"hello world\")")	
-			SEXTEXT(" (s.Length -> result)")
-			SEXTEXT(")")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
+			("")
+			("(using Sys.Type)")
+			("(function Main -> (Int32 result):")			
+			(" (IString s = \"hello world\")")	
+			(" (s.Length -> result)")
+			(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStringConstant"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestStringConstant"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3708,16 +3708,16 @@ namespace
 
 	void TestPrint(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
-			SEXTEXT("")
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT(" (Sys.Print \"Hello World\" -> result)")
-			SEXTEXT(")")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
+			("")
+			("(function Main -> (Int32 result):")			
+			(" (Sys.Print \"Hello World\" -> result)")
+			(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestPrint"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestPrint"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3731,18 +3731,18 @@ namespace
 
 	void TestPrintViaInstance(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("  (alias Main EntryPoint.Main)")
-			SEXTEXT("(using Sys.Type)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("  (alias Main EntryPoint.Main)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("  (IString message = \"Bilbo Baggins\")")
-			SEXTEXT("  (Sys.Print message -> result)")
-			SEXTEXT(")")		
+			("(function Main -> (Int32 result):")
+			("  (IString message = \"Bilbo Baggins\")")
+			("  (Sys.Print message -> result)")
+			(")")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestPrintViaInstance"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestPrintViaInstance"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3758,25 +3758,25 @@ namespace
 
 	void TestMemoString(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
-			SEXTEXT("")
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT(" (Sys.Type.IString s(Sys.Type.Memo \"Hello World - !\"))")
-			SEXTEXT(" (Sys.Print s -> result)")
-			SEXTEXT(")")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
+			("")
+			("(function Main -> (Int32 result):")			
+			(" (Sys.Type.IString s(Sys.Type.Memo \"Hello World - !\"))")
+			(" (Sys.Print s -> result)")
+			(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMemoString"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMemoString"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
 		ss.Compile();
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
 		validate(ns != NULL);
-		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, SEXTEXT("Main")));
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, ("Main")));
 		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 
 		vm.Push(0); // Allocate stack space for the int32 result
@@ -3789,19 +3789,19 @@ namespace
 	void TestMemoString2(IPublicScriptSystem& ss)
 	{
 		// Just like TestMemoString, but with a (using ...) directive
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
-			SEXTEXT("")
-			SEXTEXT("(using Sys.Type)")
-			SEXTEXT("")
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT(" (IString s(Memo \"Hello World -- ? \"))")
-			SEXTEXT(" (Sys.Print s -> result)")
-			SEXTEXT(")")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
+			("")
+			("(using Sys.Type)")
+			("")
+			("(function Main -> (Int32 result):")			
+			(" (IString s(Memo \"Hello World -- ? \"))")
+			(" (Sys.Print s -> result)")
+			(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMemoString2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMemoString2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3815,37 +3815,37 @@ namespace
 
 	void TestDynamicCast(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
-			SEXTEXT("")
-			SEXTEXT("(namespace Stuff) (using Stuff)")
-			SEXTEXT("")
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (Robot robby (9000))")
-			SEXTEXT("  (Foobar robby -> result)")
-			SEXTEXT(")")
-			SEXTEXT("(interface Stuff.IRobot")
-			SEXTEXT("  (Id -> (Int32 id))")
-			SEXTEXT(")")
-			SEXTEXT("(interface Stuff.IExistence")
-			SEXTEXT("  (ExistenceNumber -> (Int32 value))")
-			SEXTEXT(")")
-			SEXTEXT("(class Robot")
-			SEXTEXT("  (implements Stuff.IExistence)")
-			SEXTEXT("  (implements Stuff.IRobot)")
-			SEXTEXT("  (Int32 id)")
-			SEXTEXT(")")
-			SEXTEXT("(function Foobar (Stuff.IExistence entity) -> (Int32 result):")
-			SEXTEXT("	 (cast entity -> IRobot robot)")
-			SEXTEXT("  (result = ((robot.Id) + (entity.ExistenceNumber)))")
-			SEXTEXT(")")
-			SEXTEXT("(method Robot.Construct (Int32 id): (this.id = id))")
-			SEXTEXT("(method Robot.Id -> (Int32 id): (id = this.id))")
-			SEXTEXT("(method Robot.ExistenceNumber -> (Int32 value): (value = 1234))")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
+			("")
+			("(namespace Stuff) (using Stuff)")
+			("")
+			("(function Main -> (Int32 result):")			
+			("  (Robot robby (9000))")
+			("  (Foobar robby -> result)")
+			(")")
+			("(interface Stuff.IRobot")
+			("  (Id -> (Int32 id))")
+			(")")
+			("(interface Stuff.IExistence")
+			("  (ExistenceNumber -> (Int32 value))")
+			(")")
+			("(class Robot")
+			("  (implements Stuff.IExistence)")
+			("  (implements Stuff.IRobot)")
+			("  (Int32 id)")
+			(")")
+			("(function Foobar (Stuff.IExistence entity) -> (Int32 result):")
+			("	 (cast entity -> IRobot robot)")
+			("  (result = ((robot.Id) + (entity.ExistenceNumber)))")
+			(")")
+			("(method Robot.Construct (Int32 id): (this.id = id))")
+			("(method Robot.Id -> (Int32 id): (id = this.id))")
+			("(method Robot.ExistenceNumber -> (Int32 value): (value = 1234))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDynamicCast"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDynamicCast"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3859,29 +3859,29 @@ namespace
 
 	void TestInlinedFactory(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
-			SEXTEXT("")
-			SEXTEXT("(namespace Stuff) (using Stuff)")
-			SEXTEXT("")
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (IRobot robby (Dreambot 9000))")
-			SEXTEXT("  (robby.Id -> result)")
-			SEXTEXT(")")
-			SEXTEXT("(interface Stuff.IRobot")
-			SEXTEXT("  (Id -> (Int32 id))")
-			SEXTEXT(")")
-			SEXTEXT("(class Robot")
-			SEXTEXT("  (implements Stuff.IRobot)")
-			SEXTEXT("  (Int32 id)")
-			SEXTEXT(")")
-			SEXTEXT("(method Robot.Construct (Int32 id): (this.id = id))")
-			SEXTEXT("(method Robot.Id -> (Int32 id): (id = this.id))")
-			SEXTEXT("(factory Stuff.Dreambot Stuff.IRobot (Int32 id): (construct Robot id))")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
+			("")
+			("(namespace Stuff) (using Stuff)")
+			("")
+			("(function Main -> (Int32 result):")			
+			("  (IRobot robby (Dreambot 9000))")
+			("  (robby.Id -> result)")
+			(")")
+			("(interface Stuff.IRobot")
+			("  (Id -> (Int32 id))")
+			(")")
+			("(class Robot")
+			("  (implements Stuff.IRobot)")
+			("  (Int32 id)")
+			(")")
+			("(method Robot.Construct (Int32 id): (this.id = id))")
+			("(method Robot.Id -> (Int32 id): (id = this.id))")
+			("(factory Stuff.Dreambot Stuff.IRobot (Int32 id): (construct Robot id))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInlinedFactory"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestInlinedFactory"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -3895,27 +3895,27 @@ namespace
 
 	void TestRecti1(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(using Sys.Type)")
-			SEXTEXT("(using Sys.Maths)")
+		cstr srcCode =
+			("(using Sys.Type)")
+			("(using Sys.Maths)")
 
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (Recti rect = 1 2 3 4)")
-			SEXTEXT("  (result = rect.left)")
-			SEXTEXT(")");
+			("(function Main -> (Int32 result):")			
+			("  (Recti rect = 1 2 3 4)")
+			("  (result = rect.left)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestRecti1"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestRecti1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
 		ss.Compile();
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
 		validate(ns != NULL);
-		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, SEXTEXT("Main")));
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, ("Main")));
 
 		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 
@@ -3928,27 +3928,27 @@ namespace
 
 	void TestRecti2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(using Sys.Type)")
-			SEXTEXT("(using Sys.Maths)")
+		cstr srcCode =
+			("(using Sys.Type)")
+			("(using Sys.Maths)")
 
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (Recti rect = 1 2 3 4)")
-			SEXTEXT("  (result = rect.top)")
-			SEXTEXT(")");
+			("(function Main -> (Int32 result):")			
+			("  (Recti rect = 1 2 3 4)")
+			("  (result = rect.top)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestRecti2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestRecti2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
 		ss.Compile();
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
 		validate(ns != NULL);
-		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, SEXTEXT("Main")));
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, ("Main")));
 
 		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 
@@ -3961,27 +3961,27 @@ namespace
 
 	void TestRecti3(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(using Sys.Type)")
-			SEXTEXT("(using Sys.Maths)")
+		cstr srcCode =
+			("(using Sys.Type)")
+			("(using Sys.Maths)")
 
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (Recti rect = 1 2 3 4)")
-			SEXTEXT("  (result = rect.right)")
-			SEXTEXT(")");
+			("(function Main -> (Int32 result):")			
+			("  (Recti rect = 1 2 3 4)")
+			("  (result = rect.right)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestRecti3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestRecti3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
 		ss.Compile();
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
 		validate(ns != NULL);
-		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, SEXTEXT("Main")));
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, ("Main")));
 
 		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 
@@ -3994,27 +3994,27 @@ namespace
 
 	void TestRecti4(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(using Sys.Type)")
-			SEXTEXT("(using Sys.Maths)")
+		cstr srcCode =
+			("(using Sys.Type)")
+			("(using Sys.Maths)")
 
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (Recti rect = 1 2 3 4)")
-			SEXTEXT("  (result = rect.bottom)")
-			SEXTEXT(")");
+			("(function Main -> (Int32 result):")			
+			("  (Recti rect = 1 2 3 4)")
+			("  (result = rect.bottom)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestRecti4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestRecti4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
 		ss.Compile();
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
 		validate(ns != NULL);
-		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, SEXTEXT("Main")));
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, ("Main")));
 
 		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 
@@ -4027,40 +4027,40 @@ namespace
 
 	void TestWindow(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(using Sys.OS.Win32)")
-			SEXTEXT("(using Sys.OS.Win32.Windows)")
-			SEXTEXT("(using Sys.OS.Thread)")
-			SEXTEXT("(using Sys.Type)")
-			SEXTEXT("(using Sys.Maths)")
+		cstr srcCode =
+			("(using Sys.OS.Win32)")
+			("(using Sys.OS.Win32.Windows)")
+			("(using Sys.OS.Thread)")
+			("(using Sys.Type)")
+			("(using Sys.Maths)")
 
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (Recti rect = 40 520 680 40))")
-			SEXTEXT("  (IWin32Window window (CreateWindow \"Sexy Test Window\" rect))")
-			SEXTEXT("  (window.Show)")
+			("(function Main -> (Int32 result):")			
+			("  (Recti rect = 40 520 680 40))")
+			("  (IWin32Window window (CreateWindow \"Sexy Test Window\" rect))")
+			("  (window.Show)")
 
-			SEXTEXT("  (IThread mainThread (GetCurrentThread))")
-			SEXTEXT("  (Int32 limit = 1)")
-			SEXTEXT("  (while ((not mainThread.IsQuitting) and (limit > 0))")
-			SEXTEXT("    (mainThread.Wait 1000)")
-			SEXTEXT("    (limit = (limit - 1))")
-			SEXTEXT("  )")
+			("  (IThread mainThread (GetCurrentThread))")
+			("  (Int32 limit = 1)")
+			("  (while ((not mainThread.IsQuitting) and (limit > 0))")
+			("    (mainThread.Wait 1000)")
+			("    (limit = (limit - 1))")
+			("  )")
 
-			SEXTEXT("  (result = 320)")
-			SEXTEXT(")");
+			("  (result = 320)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestWindow"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestWindow"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
 		ss.Compile();
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
 		validate(ns != NULL);
-		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, SEXTEXT("Main")));
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, ("Main")));
 
 		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 
@@ -4073,27 +4073,27 @@ namespace
 
 	void TestReflectionGetCurrentExpression(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(using Sys.Type)")
-			SEXTEXT("(using Sys.Reflection)")
+		cstr srcCode =
+			("(using Sys.Type)")
+			("(using Sys.Reflection)")
 
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (IExpression s = GetCurrentExpression)")
-			SEXTEXT("  (s.ChildCount -> result)")
-			SEXTEXT(")");
+			("(function Main -> (Int32 result):")			
+			("  (IExpression s = GetCurrentExpression)")
+			("  (s.ChildCount -> result)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestReflectionGetCurrentExpression"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestReflectionGetCurrentExpression"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
 		ss.Compile();
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
 		validate(ns != NULL);
-		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, SEXTEXT("Main")));
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, ("Main")));
 
 		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 
@@ -4106,28 +4106,28 @@ namespace
 
 	void TestReflectionGetParent(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(using Sys.Type)")
-			SEXTEXT("(using Sys.Reflection)")
+		cstr srcCode =
+			("(using Sys.Type)")
+			("(using Sys.Reflection)")
 
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (IExpression s = GetCurrentExpression)")
-			SEXTEXT("  (IExpression parent = s.Parent)")
-			SEXTEXT("  (parent.ChildCount -> result)")
-			SEXTEXT(")");
+			("(function Main -> (Int32 result):")			
+			("  (IExpression s = GetCurrentExpression)")
+			("  (IExpression parent = s.Parent)")
+			("  (parent.ChildCount -> result)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestReflectionGetParent"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestReflectionGetParent"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
 		ss.Compile();
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
 		validate(ns != NULL);
-		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, SEXTEXT("Main")));
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, ("Main")));
 
 		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 
@@ -4140,40 +4140,40 @@ namespace
 
 	void TestReflectionGetChild_BadIndex(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(using Sys.Type)")
-			SEXTEXT("(using Sys.Reflection)")
+		cstr srcCode =
+			("(using Sys.Type)")
+			("(using Sys.Reflection)")
 
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias ProtectedMain EntryPoint.Main)")
+			("(namespace EntryPoint)")
+			(" (alias ProtectedMain EntryPoint.Main)")
 
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (IExpression s = GetCurrentExpression)")
-			SEXTEXT("  (IExpression child = (s.Child -1))")
-			SEXTEXT("  (child.ChildCount -> result)")
-			SEXTEXT(")")
+			("(function Main -> (Int32 result):")			
+			("  (IExpression s = GetCurrentExpression)")
+			("  (IExpression child = (s.Child -1))")
+			("  (child.ChildCount -> result)")
+			(")")
 
-			SEXTEXT("(function ProtectedMain -> (Int32 result):")
-			SEXTEXT("	(try")
-			SEXTEXT("		(Main -> result)")
-			SEXTEXT("	catch ex")
-			SEXTEXT("		(")
-			SEXTEXT("			(Int32 len)")
-			SEXTEXT("			(Sys.Print ex.Message -> len)")
-			SEXTEXT("			(result = 1001)")
-			SEXTEXT("		)")
-			SEXTEXT("	)")
-			SEXTEXT(")");
+			("(function ProtectedMain -> (Int32 result):")
+			("	(try")
+			("		(Main -> result)")
+			("	catch ex")
+			("		(")
+			("			(Int32 len)")
+			("			(Sys.Print ex.Message -> len)")
+			("			(result = 1001)")
+			("		)")
+			("	)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestReflectionGetChild_BadIndex"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestReflectionGetChild_BadIndex"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
 		ss.Compile();
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
 		validate(ns != NULL);
-		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, SEXTEXT("Main")));
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, ("Main")));
 
 		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 
@@ -4186,28 +4186,28 @@ namespace
 
 	void TestReflectionGetChild(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(using Sys.Type)")
-			SEXTEXT("(using Sys.Reflection)")
+		cstr srcCode =
+			("(using Sys.Type)")
+			("(using Sys.Reflection)")
 
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (IExpression s = GetCurrentExpression)") // s = (IExpression s = GetCurrentExpression)
-			SEXTEXT("  (IExpression child = (s.Child 0))")  // child 0 is 'IExpression' which is atomic and therefore has no children
-			SEXTEXT("  (child.ChildCount -> result)")
-			SEXTEXT(")");
+			("(function Main -> (Int32 result):")			
+			("  (IExpression s = GetCurrentExpression)") // s = (IExpression s = GetCurrentExpression)
+			("  (IExpression child = (s.Child 0))")  // child 0 is 'IExpression' which is atomic and therefore has no children
+			("  (child.ChildCount -> result)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestReflectionGetChild"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestReflectionGetChild"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
 		ss.Compile();
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
 		validate(ns != NULL);
-		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, SEXTEXT("Main")));
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, ("Main")));
 
 		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 
@@ -4220,29 +4220,29 @@ namespace
 
 	void TestReflectionGetAtomic(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(using Sys.Type)")
-			SEXTEXT("(using Sys.Reflection)")
+		cstr srcCode =
+			("(using Sys.Type)")
+			("(using Sys.Reflection)")
 
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (IExpression s = GetCurrentExpression)") // s = (IExpression s = GetCurrentExpression)
-			SEXTEXT("  (IExpression child = (s.Child 0))")  // child 0 is 'IExpression' which is atomic and therefore has no children
-			SEXTEXT("  (IString name = child.Text)")
-			SEXTEXT("  (Sys.Print name -> result)") // returns the strlen of 'IExpression'
-			SEXTEXT(")");
+			("(function Main -> (Int32 result):")			
+			("  (IExpression s = GetCurrentExpression)") // s = (IExpression s = GetCurrentExpression)
+			("  (IExpression child = (s.Child 0))")  // child 0 is 'IExpression' which is atomic and therefore has no children
+			("  (IString name = child.Text)")
+			("  (Sys.Print name -> result)") // returns the strlen of 'IExpression'
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestReflectionGetAtomic"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestReflectionGetAtomic"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
 		ss.Compile();
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
 		validate(ns != NULL);
-		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, SEXTEXT("Main")));
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, ("Main")));
 
 		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 
@@ -4255,40 +4255,40 @@ namespace
 
 	void TestNullMember(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(using Sys.Type)")
+		cstr srcCode =
+			("(using Sys.Type)")
 
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (result = (sizeof Lapdancer))")
-			SEXTEXT(")")
+			("(function Main -> (Int32 result):")			
+			("  (result = (sizeof Lapdancer))")
+			(")")
 
-			SEXTEXT("(interface EntryPoint.IPole")
-			SEXTEXT("  (Index -> (Int32 value))")
-			SEXTEXT(")")
+			("(interface EntryPoint.IPole")
+			("  (Index -> (Int32 value))")
+			(")")
 
-			SEXTEXT("(class Pole")
-			SEXTEXT("  (implements EntryPoint.IPole)")
-			SEXTEXT("  (Int32 index)")
-			SEXTEXT(")")
+			("(class Pole")
+			("  (implements EntryPoint.IPole)")
+			("  (Int32 index)")
+			(")")
 
-			SEXTEXT("(method Pole.Index -> (Int32 index): (index = this.index))")
+			("(method Pole.Index -> (Int32 index): (index = this.index))")
 
-			SEXTEXT("(struct Lapdancer")
-			SEXTEXT("  (EntryPoint.IPole pole)") // This creates two members, the concrete IPole, initially a null-object and a reference to the interface
-			SEXTEXT(")");
+			("(struct Lapdancer")
+			("  (EntryPoint.IPole pole)") // This creates two members, the concrete IPole, initially a null-object and a reference to the interface
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNullMember"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestNullMember"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
 		ss.Compile();
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
 		validate(ns != NULL);
-		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, SEXTEXT("Main")));
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, ("Main")));
 
 		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 
@@ -4301,41 +4301,41 @@ namespace
 
 	void TestNullMemberInit(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(using Sys.Type)")
+		cstr srcCode =
+			("(using Sys.Type)")
 
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("  (Lapdancer lapdancer)")
-			SEXTEXT("  (lapdancer.pole.Index -> result)")
-			SEXTEXT(")")
+			("(function Main -> (Int32 result):")			
+			("  (Lapdancer lapdancer)")
+			("  (lapdancer.pole.Index -> result)")
+			(")")
 
-			SEXTEXT("(interface EntryPoint.IPole")
-			SEXTEXT("  (Index -> (Int32 value))")
-			SEXTEXT(")")
+			("(interface EntryPoint.IPole")
+			("  (Index -> (Int32 value))")
+			(")")
 
-			SEXTEXT("(class Pole")
-			SEXTEXT("  (implements EntryPoint.IPole)")
-			SEXTEXT("  (Int32 index)")
-			SEXTEXT(")")
+			("(class Pole")
+			("  (implements EntryPoint.IPole)")
+			("  (Int32 index)")
+			(")")
 
-			SEXTEXT("(method Pole.Index -> (Int32 index): (index = this.index))")
+			("(method Pole.Index -> (Int32 index): (index = this.index))")
 
-			SEXTEXT("(struct Lapdancer")
-			SEXTEXT("  (EntryPoint.IPole pole)")
-			SEXTEXT(")");
+			("(struct Lapdancer")
+			("  (EntryPoint.IPole pole)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNullMemberInit"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestNullMemberInit"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
 		ss.Compile();
 
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
 		validate(ns != NULL);
-		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, SEXTEXT("Main")));
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, ("Main")));
 
 		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 
@@ -4348,25 +4348,25 @@ namespace
 
 	void TestSysThrow(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("  (alias Main EntryPoint.Main)")
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("(try")
-			SEXTEXT("		(")
-			SEXTEXT("			(Sys.Throw -1 \"Wobbly\")")
-			SEXTEXT("		)")		
-			SEXTEXT(" catch e")		
-			SEXTEXT("		(")
-			SEXTEXT("			(e.ErrorCode -> result)")
-			SEXTEXT("           (Int32 nChars)")
-			SEXTEXT("			(Sys.Print e.Message -> nChars)")
-			SEXTEXT("		)")		
-			SEXTEXT("  )")
-			SEXTEXT(")")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("  (alias Main EntryPoint.Main)")
+			("(function Main -> (Int32 result):")
+			("(try")
+			("		(")
+			("			(Sys.Throw -1 \"Wobbly\")")
+			("		)")		
+			(" catch e")		
+			("		(")
+			("			(e.ErrorCode -> result)")
+			("           (Int32 nChars)")
+			("			(Sys.Print e.Message -> nChars)")
+			("		)")		
+			("  )")
+			(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestSysThrow"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestSysThrow"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4382,26 +4382,26 @@ namespace
 
 	void TestSysThrow2(IPublicScriptSystem& ss) // like sys.throw, but adds a stack spanner in the works
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("  (alias Main EntryPoint.Main)")
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("(try")
-			SEXTEXT("		(")
-			SEXTEXT("			(Int32 stackSpanner)")
-			SEXTEXT("			(Sys.Throw -1 \"Wobbly\")")
-			SEXTEXT("		)")		
-			SEXTEXT(" catch e")		
-			SEXTEXT("		(")
-			SEXTEXT("			(e.ErrorCode -> result)")
-			SEXTEXT("           (Int32 nChars)")
-			SEXTEXT("			(Sys.Print e.Message -> nChars)")
-			SEXTEXT("		)")		
-			SEXTEXT("  )")
-			SEXTEXT(")")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("  (alias Main EntryPoint.Main)")
+			("(function Main -> (Int32 result):")
+			("(try")
+			("		(")
+			("			(Int32 stackSpanner)")
+			("			(Sys.Throw -1 \"Wobbly\")")
+			("		)")		
+			(" catch e")		
+			("		(")
+			("			(e.ErrorCode -> result)")
+			("           (Int32 nChars)")
+			("			(Sys.Print e.Message -> nChars)")
+			("		)")		
+			("  )")
+			(")")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestSysThrow"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestSysThrow"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4417,30 +4417,30 @@ namespace
 
 	void TestVirtualFromVirtual(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("  (alias Main EntryPoint.Main)")
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("(Tester tester ())")
-			SEXTEXT("     (tester.Think)")
-			SEXTEXT("     (tester.Id -> result)")
-			SEXTEXT(")")
-			SEXTEXT("(interface EntryPoint.ITest")
-			SEXTEXT("       (Id -> (Int32 id))")
-			SEXTEXT("       (Think ->)")
-			SEXTEXT("       (IncId ->)")
-			SEXTEXT(")")
-			SEXTEXT("(class Tester")
-			SEXTEXT("       (implements EntryPoint.ITest)")
-			SEXTEXT("       (Int32 id)")
-			SEXTEXT(")")
-			SEXTEXT("(method Tester.Id -> (Int32 id): (id = this.id))")
-			SEXTEXT("(method Tester.IncId -> : (this.id = (this.id + 1)))")
-			SEXTEXT("(method Tester.Think -> : (this.IncId))")
-			SEXTEXT("(method Tester.Construct : (this.id = 6))")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("  (alias Main EntryPoint.Main)")
+			("(function Main -> (Int32 result):")
+			("(Tester tester ())")
+			("     (tester.Think)")
+			("     (tester.Id -> result)")
+			(")")
+			("(interface EntryPoint.ITest")
+			("       (Id -> (Int32 id))")
+			("       (Think ->)")
+			("       (IncId ->)")
+			(")")
+			("(class Tester")
+			("       (implements EntryPoint.ITest)")
+			("       (Int32 id)")
+			(")")
+			("(method Tester.Id -> (Int32 id): (id = this.id))")
+			("(method Tester.IncId -> : (this.id = (this.id + 1)))")
+			("(method Tester.Think -> : (this.IncId))")
+			("(method Tester.Construct : (this.id = 6))")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestVirtualFromVirtual"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestVirtualFromVirtual"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4456,26 +4456,26 @@ namespace
 
 	void TestNullRefInit(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("  (alias Main EntryPoint.Main)")
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("	(EntryPoint.ITest tester = GetNullRef)")
-			SEXTEXT("   (tester.Id -> result)")
-			SEXTEXT(")")
-			SEXTEXT("(interface EntryPoint.ITest")
-			SEXTEXT("       (Id -> (Int32 id))")
-			SEXTEXT(")")
-			SEXTEXT("(class Tester")
-			SEXTEXT("       (implements EntryPoint.ITest)")
-			SEXTEXT("       (Int32 id)")
-			SEXTEXT(")")
-			SEXTEXT("(method Tester.Id -> (Int32 id): (id = this.id))")
-			SEXTEXT("(method Tester.Construct : (this.id = 6))")
-			SEXTEXT("(function GetNullRef -> (EntryPoint.ITest testRef): )")			
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("  (alias Main EntryPoint.Main)")
+			("(function Main -> (Int32 result):")
+			("	(EntryPoint.ITest tester = GetNullRef)")
+			("   (tester.Id -> result)")
+			(")")
+			("(interface EntryPoint.ITest")
+			("       (Id -> (Int32 id))")
+			(")")
+			("(class Tester")
+			("       (implements EntryPoint.ITest)")
+			("       (Int32 id)")
+			(")")
+			("(method Tester.Id -> (Int32 id): (id = this.id))")
+			("(method Tester.Construct : (this.id = 6))")
+			("(function GetNullRef -> (EntryPoint.ITest testRef): )")			
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestNullRefInit"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestNullRefInit"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4491,18 +4491,18 @@ namespace
 
 	void TestModuleCount(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("  (alias Main EntryPoint.Main)")
-			SEXTEXT("(using Sys.Reflection)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("  (alias Main EntryPoint.Main)")
+			("(using Sys.Reflection)")
 
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("	(IScriptSystem ss = Sys.Reflection.GetScriptSystem)")
-			SEXTEXT("   (ss.ModuleCount -> result)")
-			SEXTEXT(")")			
+			("(function Main -> (Int32 result):")
+			("	(IScriptSystem ss = Sys.Reflection.GetScriptSystem)")
+			("   (ss.ModuleCount -> result)")
+			(")")			
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestModuleCount"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestModuleCount"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4518,25 +4518,25 @@ namespace
 
 	void TestPrintModules(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("  (alias Main EntryPoint.Main)")
-			SEXTEXT("(using Sys.Reflection)")
-			SEXTEXT("(using Sys.Type)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("  (alias Main EntryPoint.Main)")
+			("(using Sys.Reflection)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("	(IScriptSystem ss = Sys.Reflection.GetScriptSystem)")
-			SEXTEXT("	(Int32 moduleCount)")
-			SEXTEXT("   (ss.ModuleCount -> moduleCount)")
-			SEXTEXT("   (#for (Int32 i = 0) (i < moduleCount) (i = (i + 1))")
-			SEXTEXT("		(IModule module = (ss.Module i))")
-			SEXTEXT("		(Int32 len)")
-			SEXTEXT("		(Sys.Print module.Name -> len)")
-			SEXTEXT("	)")
-			SEXTEXT(")")			
+			("(function Main -> (Int32 result):")
+			("	(IScriptSystem ss = Sys.Reflection.GetScriptSystem)")
+			("	(Int32 moduleCount)")
+			("   (ss.ModuleCount -> moduleCount)")
+			("   (#for (Int32 i = 0) (i < moduleCount) (i = (i + 1))")
+			("		(IModule module = (ss.Module i))")
+			("		(Int32 len)")
+			("		(Sys.Print module.Name -> len)")
+			("	)")
+			(")")			
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestPrintModules"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestPrintModules"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4549,29 +4549,29 @@ namespace
 
 	void TestPrintStructs(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("  (alias Main EntryPoint.Main)")
-			SEXTEXT("(using Sys.Reflection)")
-			SEXTEXT("(using Sys.Type)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("  (alias Main EntryPoint.Main)")
+			("(using Sys.Reflection)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("	(IScriptSystem ss = Sys.Reflection.GetScriptSystem)")
-			SEXTEXT("	(Int32 moduleCount = ss.ModuleCount)")
+			("(function Main -> (Int32 result):")
+			("	(IScriptSystem ss = Sys.Reflection.GetScriptSystem)")
+			("	(Int32 moduleCount = ss.ModuleCount)")
 
-			SEXTEXT("   (#for (Int32 i = 0)  (i < moduleCount)  (#inc i)")
-			SEXTEXT("			(IModule module = (ss.Module i))")
+			("   (#for (Int32 i = 0)  (i < moduleCount)  (#inc i)")
+			("			(IModule module = (ss.Module i))")
 
-			SEXTEXT("			(#for (Int32 j = 0) (j < module.StructCount) (#inc j)")
-			SEXTEXT("				(IStructure s = (module.Structure j))")
-			SEXTEXT("				(Int32 len)")
-			SEXTEXT("				(Sys.Print s.Name -> len)")
-			SEXTEXT("			)")
-			SEXTEXT("	)")
-			SEXTEXT(")")			
+			("			(#for (Int32 j = 0) (j < module.StructCount) (#inc j)")
+			("				(IStructure s = (module.Structure j))")
+			("				(Int32 len)")
+			("				(Sys.Print s.Name -> len)")
+			("			)")
+			("	)")
+			(")")			
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestPrintStructs"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestPrintStructs"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4584,32 +4584,32 @@ namespace
 
 	void TestMacro(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Maths)")
-		SEXTEXT("(using Sys.Reflection)")
+		("(using Sys.Maths)")
+		("(using Sys.Reflection)")
   
 		// Define a macro called 'square' instanced as #square that takes an input IExpression of 'in' and builds an expression 'out', which substitutes for the instance #square
 
 		// square usage: (#square f) evaluates to ((f) * (f))
-		SEXTEXT("(macro Sys.Maths.square in out")
-		SEXTEXT("	(Sys.ValidateSubscriptRange in.ChildCount 2 3 \"macro square supports one argument only\")")
-		SEXTEXT("	(IExpressionBuilder lhs = out.AddCompound)")
-		SEXTEXT("	(lhs.Copy (in.Child 1))")
-		SEXTEXT("	(out.AddAtomic \"*\")")
-		SEXTEXT("	(IExpressionBuilder rhs = out.AddCompound)")
-		SEXTEXT("	(rhs.Copy (in.Child 1))")
-		SEXTEXT(")")
+		("(macro Sys.Maths.square in out")
+		("	(Sys.ValidateSubscriptRange in.ChildCount 2 3 \"macro square supports one argument only\")")
+		("	(IExpressionBuilder lhs = out.AddCompound)")
+		("	(lhs.Copy (in.Child 1))")
+		("	(out.AddAtomic \"*\")")
+		("	(IExpressionBuilder rhs = out.AddCompound)")
+		("	(rhs.Copy (in.Child 1))")
+		(")")
 
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Int32 i = 7)")
-		SEXTEXT("	(result = (#square i))")
-		SEXTEXT(")")		
+		("(function Main -> (Int32 result):")
+		("	(Int32 i = 7)")
+		("	(result = (#square i))")
+		(")")		
 					;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMacro"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMacro"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4625,19 +4625,19 @@ namespace
 
 	void TestExpressionArg(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Maths)")
-		SEXTEXT("(using Sys.Reflection)")
+		("(using Sys.Maths)")
+		("(using Sys.Reflection)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(IExpression s = '($1 = ($1 * 2)) )")
-		SEXTEXT("	(s.ChildCount -> result)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(IExpression s = '($1 = ($1 * 2)) )")
+		("	(s.ChildCount -> result)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestExpressionArg"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestExpressionArg"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4653,24 +4653,24 @@ namespace
 
 	void TestSubstitution(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Maths)")
-		SEXTEXT("(using Sys.Reflection)")
+		("(using Sys.Maths)")
+		("(using Sys.Reflection)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(result = 7)")
-		SEXTEXT("	(#EntryPoint.double result)")
-		SEXTEXT(")")
+		("(function Main -> (Int32 result):")
+		("	(result = 7)")
+		("	(#EntryPoint.double result)")
+		(")")
 
-		SEXTEXT("(macro EntryPoint.double in out")
-		SEXTEXT("	(IExpression s = '($1 = ($1 * 2)) )")
-		SEXTEXT("	(out.Substitute in s)")
-		SEXTEXT(")");
+		("(macro EntryPoint.double in out")
+		("	(IExpression s = '($1 = ($1 * 2)) )")
+		("	(out.Substitute in s)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestSubstitution"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestSubstitution"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4686,22 +4686,22 @@ namespace
 
 	void TestStringBuilder(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
-		SEXTEXT("(using Sys.Maths)")
-		SEXTEXT("(using Sys.Reflection)")
-		SEXTEXT("(using Sys.Type.Formatters)")
+		("(using Sys.Type)")
+		("(using Sys.Maths)")
+		("(using Sys.Reflection)")
+		("(using Sys.Type.Formatters)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
-		SEXTEXT("	(s.AppendIString \"Hello World!*\")")
-		SEXTEXT("	(Sys.Print s -> result)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
+		("	(s.AppendIString \"Hello World!*\")")
+		("	(Sys.Print s -> result)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStringBuilder"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestStringBuilder"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4717,31 +4717,31 @@ namespace
 
 	void TestStringBuilderBig(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
-		SEXTEXT("(using Sys.Maths)")
-		SEXTEXT("(using Sys.Reflection)")
-		SEXTEXT("(using Sys.Type.Formatters)")
+		("(using Sys.Type)")
+		("(using Sys.Maths)")
+		("(using Sys.Reflection)")
+		("(using Sys.Type.Formatters)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
-		SEXTEXT("	(#Sys.Type.build  s \"Hello World![] \" NewLine)")
-//		SEXTEXT("	(#Sys.Type.build  s \"Decimal: \" Decimal 1234 \". Hex: 0x\" Hex 1234 NewLine)")
-//		SEXTEXT("	(#Sys.Type.build  s \"E form: \" SpecE 3.e-2 \". F form: \" SpecF 3.e-2 \". G form: \" SpecG 3.e-2 NewLine)")
-//		SEXTEXT("	(cast s -> IString str)")
-//		SEXTEXT("	(Sys.Print str -> result)")
-//		SEXTEXT("	(s.Clear) (s.SetFormat 4 4 false false)")
-//		SEXTEXT("	(#Sys.Type.build  s \"Hello World! \" NewLine)")
-//		SEXTEXT("	(#Sys.Type.build  s \"Decimal: \" Decimal 1234 \". Hex: 0x\" Hex 1234 NewLine)")
-//		SEXTEXT("	(#Sys.Type.build  s \"E form: \" SpecE 3.e-2 \". F form: \" SpecF 3.e-2 \". G form: \" SpecG 3.e-2 NewLine)")
+		("(function Main -> (Int32 result):")
+		("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
+		("	(#Sys.Type.build  s \"Hello World![] \" NewLine)")
+//		("	(#Sys.Type.build  s \"Decimal: \" Decimal 1234 \". Hex: 0x\" Hex 1234 NewLine)")
+//		("	(#Sys.Type.build  s \"E form: \" SpecE 3.e-2 \". F form: \" SpecF 3.e-2 \". G form: \" SpecG 3.e-2 NewLine)")
+//		("	(cast s -> IString str)")
+//		("	(Sys.Print str -> result)")
+//		("	(s.Clear) (s.SetFormat 4 4 false false)")
+//		("	(#Sys.Type.build  s \"Hello World! \" NewLine)")
+//		("	(#Sys.Type.build  s \"Decimal: \" Decimal 1234 \". Hex: 0x\" Hex 1234 NewLine)")
+//		("	(#Sys.Type.build  s \"E form: \" SpecE 3.e-2 \". F form: \" SpecF 3.e-2 \". G form: \" SpecG 3.e-2 NewLine)")
 
-		SEXTEXT("	(Sys.Print s -> result)")
-		SEXTEXT(")");
+		("	(Sys.Print s -> result)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStringBuilderBig"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestStringBuilderBig"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4757,32 +4757,32 @@ namespace
 
 	void TestRefTypesInsideClosure(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Maths)")
-		SEXTEXT("(using Sys.Reflection)")
-		SEXTEXT("(using Sys.Type.Formatters)")
+		("(using Sys.Maths)")
+		("(using Sys.Reflection)")
+		("(using Sys.Type.Formatters)")
 
-		SEXTEXT("(archetype EntryPoint.VoidToVoid ->)")
+		("(archetype EntryPoint.VoidToVoid ->)")
 
-		SEXTEXT("(function GoPrint (Sys.Type.IStringBuilder s) -> :")
-		SEXTEXT("	(VoidToVoid g = ")
-		SEXTEXT("			(closure -> :")
-		SEXTEXT("				(Sys.Print s)") // tests that the compiler passes an upvalue reference correctly
-		SEXTEXT("			)")
-		SEXTEXT("	)")
-		SEXTEXT("(g)")
-		SEXTEXT(")")
+		("(function GoPrint (Sys.Type.IStringBuilder s) -> :")
+		("	(VoidToVoid g = ")
+		("			(closure -> :")
+		("				(Sys.Print s)") // tests that the compiler passes an upvalue reference correctly
+		("			)")
+		("	)")
+		("(g)")
+		(")")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
-		SEXTEXT("	(#Sys.Type.build  s \"Hello World!(@) \" NewLine)")
-		SEXTEXT("	(GoPrint s)(result = 12)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
+		("	(#Sys.Type.build  s \"Hello World!(@) \" NewLine)")
+		("	(GoPrint s)(result = 12)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStringBuilderInsideClosure"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestStringBuilderInsideClosure"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4798,33 +4798,33 @@ namespace
 
 	void TestCaptureInFunctionAllInClosure(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Maths)")
-			SEXTEXT("(using Sys.Reflection)")
-			SEXTEXT("(using Sys.Type.Formatters)")
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Maths)")
+			("(using Sys.Reflection)")
+			("(using Sys.Type.Formatters)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(archetype EntryPoint.VoidToVoid ->)")
+			("(archetype EntryPoint.VoidToVoid ->)")
 
-			SEXTEXT("(function Double(Int32 x)->(Int32 y) :")
-			SEXTEXT("	(y = (2 * x))")
-			SEXTEXT(")")
+			("(function Double(Int32 x)->(Int32 y) :")
+			("	(y = (2 * x))")
+			(")")
 
-			SEXTEXT("(function Main -> (Int32 result): ")
-			SEXTEXT("	(Int32 x = 17)")
-			SEXTEXT("	(VoidToVoid g =")
-			SEXTEXT("		(closure -> :")
-			SEXTEXT("			(Int32 z = (Double x))")
-			SEXTEXT("			(result = z)")
-			SEXTEXT("		)")
-			SEXTEXT("	)")
-			SEXTEXT("	(g)")
-			SEXTEXT(")");
+			("(function Main -> (Int32 result): ")
+			("	(Int32 x = 17)")
+			("	(VoidToVoid g =")
+			("		(closure -> :")
+			("			(Int32 z = (Double x))")
+			("			(result = z)")
+			("		)")
+			("	)")
+			("	(g)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestCaptureInFunctionAllInClosure"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestCaptureInFunctionAllInClosure"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -4840,32 +4840,32 @@ namespace
 
 	void TestDerivedInterfaces(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT("	(alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		("	(alias Main EntryPoint.Main)")
 
-		SEXTEXT("(using EntryPoint)")
+		("(using EntryPoint)")
 
-		SEXTEXT("(interface EntryPoint.IDog")
-		SEXTEXT("	(Bark -> (Int32 value))")
-		SEXTEXT(")")
+		("(interface EntryPoint.IDog")
+		("	(Bark -> (Int32 value))")
+		(")")
 
-		SEXTEXT("(interface EntryPoint.IRobotDog")
-		SEXTEXT("	(extends EntryPoint.IDog)")
-		SEXTEXT("	(Powerup -> (Int32 value))")
-		SEXTEXT(")")
-		SEXTEXT("")
-		SEXTEXT("(class Doggy (implements IRobotDog))")
+		("(interface EntryPoint.IRobotDog")
+		("	(extends EntryPoint.IDog)")
+		("	(Powerup -> (Int32 value))")
+		(")")
+		("")
+		("(class Doggy (implements IRobotDog))")
 
-		SEXTEXT("(method Doggy.Powerup -> (Int32 value): (value = 5))")
-		SEXTEXT("(method Doggy.Bark -> (Int32 value): (value = 12))")
+		("(method Doggy.Powerup -> (Int32 value): (value = 5))")
+		("(method Doggy.Bark -> (Int32 value): (value = 12))")
    
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Doggy dog)")
-		SEXTEXT("	(result = ((dog.Bark) + (dog.Powerup)))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Doggy dog)")
+		("	(result = ((dog.Bark) + (dog.Powerup)))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDerivedInterfaces"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDerivedInterfaces"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4881,33 +4881,33 @@ namespace
 
 	void TestDerivedInterfaces2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT("	(alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		("	(alias Main EntryPoint.Main)")
 
-		SEXTEXT("(using EntryPoint)")
+		("(using EntryPoint)")
 
-		SEXTEXT("(interface EntryPoint.IDog")
-		SEXTEXT("	(Bark -> (Int32 value))")
-		SEXTEXT(")")
+		("(interface EntryPoint.IDog")
+		("	(Bark -> (Int32 value))")
+		(")")
 
-		SEXTEXT("(interface EntryPoint.IRobotDog")
-		SEXTEXT("	(extends EntryPoint.IDog)")
-		SEXTEXT("	(Powerup -> (Int32 value))")
-		SEXTEXT(")")
-		SEXTEXT("")
-		SEXTEXT("(class Doggy (implements IRobotDog))")
+		("(interface EntryPoint.IRobotDog")
+		("	(extends EntryPoint.IDog)")
+		("	(Powerup -> (Int32 value))")
+		(")")
+		("")
+		("(class Doggy (implements IRobotDog))")
 
-		SEXTEXT("(method Doggy.Powerup -> (Int32 value): (value = 5))")
-		SEXTEXT("(method Doggy.Bark -> (Int32 value): (value = 12))")
+		("(method Doggy.Powerup -> (Int32 value): (value = 5))")
+		("(method Doggy.Bark -> (Int32 value): (value = 12))")
    
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Doggy dog)")
-		SEXTEXT("	(cast dog -> EntryPoint.IDog k9)")
-		SEXTEXT("	(result = ((k9.Bark) + (dog.Powerup)))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Doggy dog)")
+		("	(cast dog -> EntryPoint.IDog k9)")
+		("	(result = ((k9.Bark) + (dog.Powerup)))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDerivedInterfaces2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDerivedInterfaces2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4923,22 +4923,22 @@ namespace
 
 	void TestSearchSubstring(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Maths)")
-		SEXTEXT("(using Sys.Reflection)")
-		SEXTEXT("(using Sys.Type.Formatters)")
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Maths)")
+		("(using Sys.Reflection)")
+		("(using Sys.Type.Formatters)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(IString opera = \"The Magic Flute\")")
-		SEXTEXT("	(IString instrument = \"Flute\")")
-		SEXTEXT("	(result = (Strings.FindLeftNoCase opera 4 instrument))") // the substring occurs at position 10 in the containing string
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(IString opera = \"The Magic Flute\")")
+		("	(IString instrument = \"Flute\")")
+		("	(result = (Strings.FindLeftNoCase opera 4 instrument))") // the substring occurs at position 10 in the containing string
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestSearchSubstring"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestSearchSubstring"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4954,22 +4954,22 @@ namespace
 
 	void TestRightSearchSubstring(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Maths)")
-		SEXTEXT("(using Sys.Reflection)")
-		SEXTEXT("(using Sys.Type.Formatters)")
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Maths)")
+		("(using Sys.Reflection)")
+		("(using Sys.Type.Formatters)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(IString musical = \"The tapdancing tapper\")")
-		SEXTEXT("	(IString instrument = \"tap\")")
-		SEXTEXT("	(result = (Strings.FindRightWithCase musical ((musical.Length) - 1) instrument))") // the substring occurs at position 10 in the containing string
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(IString musical = \"The tapdancing tapper\")")
+		("	(IString instrument = \"tap\")")
+		("	(result = (Strings.FindRightWithCase musical ((musical.Length) - 1) instrument))") // the substring occurs at position 10 in the containing string
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestSearchSubstring"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestSearchSubstring"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -4985,24 +4985,24 @@ namespace
 
 	void TestAppendSubstring(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Maths)")
-		SEXTEXT("(using Sys.Reflection)")
-		SEXTEXT("(using Sys.Type.Formatters)")
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Maths)")
+		("(using Sys.Reflection)")
+		("(using Sys.Type.Formatters)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
-		SEXTEXT("	(s.AppendSubstring \"The Magic Flute\" 4 5)")
-		SEXTEXT("	(s.AppendSubstring \"The Magic Flute\" 3 -1)")
-		SEXTEXT("	(s.AppendSubstring \"The Magic Flute\" 11 10)")
-		SEXTEXT("	(Sys.Print s -> result)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
+		("	(s.AppendSubstring \"The Magic Flute\" 4 5)")
+		("	(s.AppendSubstring \"The Magic Flute\" 3 -1)")
+		("	(s.AppendSubstring \"The Magic Flute\" 11 10)")
+		("	(Sys.Print s -> result)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAppendSubstring"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestAppendSubstring"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5018,23 +5018,23 @@ namespace
 
 	void TestStringbuilderTruncate(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Maths)")
-		SEXTEXT("(using Sys.Reflection)")
-		SEXTEXT("(using Sys.Type.Formatters)")
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Maths)")
+		("(using Sys.Reflection)")
+		("(using Sys.Type.Formatters)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
-		SEXTEXT("	(s \"The Magic Flute\")")
-		SEXTEXT("	(s.SetLength 8)")
-		SEXTEXT("	(Sys.Print s -> result)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
+		("	(s \"The Magic Flute\")")
+		("	(s.SetLength 8)")
+		("	(Sys.Print s -> result)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStringbuilderTruncate"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestStringbuilderTruncate"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5050,24 +5050,24 @@ namespace
 
 	void TestSetCase(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Maths)")
-		SEXTEXT("(using Sys.Reflection)")
-		SEXTEXT("(using Sys.Type.Formatters)")
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Maths)")
+		("(using Sys.Reflection)")
+		("(using Sys.Type.Formatters)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
-		SEXTEXT("	(s \"The Magic Flute\")")
-		SEXTEXT("	(s.ToUpper 0 9)")
-		SEXTEXT("	(s.ToLower 10 15)")
-		SEXTEXT("	(Sys.Print s -> result)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
+		("	(s \"The Magic Flute\")")
+		("	(s.ToUpper 0 9)")
+		("	(s.ToLower 10 15)")
+		("	(Sys.Print s -> result)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestSetCase"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestSetCase"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5083,29 +5083,29 @@ namespace
 
 	void TestStringSplit(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Maths)")
-		SEXTEXT("(using Sys.Reflection)")
-		SEXTEXT("(using Sys.Type.Formatters)")
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Maths)")
+		("(using Sys.Reflection)")
+		("(using Sys.Type.Formatters)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Int32 len = 0)")
-		SEXTEXT("	(IStringBuilder sb (StringBuilder 256))")
-		SEXTEXT("	(Strings.ForEachSubstring f = ")
-		SEXTEXT("		(closure (IStringBuilder sb)(Int32 index) -> :")
-		SEXTEXT("			(len = (len + (Sys.Print sb)))")
-		SEXTEXT("			(sb.SetLength 0)")
-		SEXTEXT("		)")
-		SEXTEXT("	)")
-		SEXTEXT("	(Strings.Split sb \"192.168.1.2\" \".\" f)")
-		SEXTEXT("	(result = len)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Int32 len = 0)")
+		("	(IStringBuilder sb (StringBuilder 256))")
+		("	(Strings.ForEachSubstring f = ")
+		("		(closure (IStringBuilder sb)(Int32 index) -> :")
+		("			(len = (len + (Sys.Print sb)))")
+		("			(sb.SetLength 0)")
+		("		)")
+		("	)")
+		("	(Strings.Split sb \"192.168.1.2\" \".\" f)")
+		("	(result = len)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStringSplit"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestStringSplit"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5121,18 +5121,18 @@ namespace
 
 	void TestMallocAligned(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(IBuffer b(AllocAligned 256 1))")
-		SEXTEXT("	(b.Capacity -> result)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(IBuffer b(AllocAligned 256 1))")
+		("	(b.Capacity -> result)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMallocAligned"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMallocAligned"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5148,18 +5148,18 @@ namespace
 
 	void TestArrayInt32(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Int32 a 4)")
-		SEXTEXT("	(result = a.Capacity)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Int32 a 4)")
+		("	(result = a.Capacity)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayInt32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5175,24 +5175,24 @@ namespace
 
 	void TestArrayOfArchetypes(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(archetype Sys.OneToOne (Int32 x) -> (Int32 y))")
+			("(archetype Sys.OneToOne (Int32 x) -> (Int32 y))")
 
-			SEXTEXT("(function DoubleInt (Int32 x) -> (Int32 y): (y = (2 * x)))")
+			("(function DoubleInt (Int32 x) -> (Int32 y): (y = (2 * x)))")
 
-			SEXTEXT("(function Main -> (Int32 result):")			
-			SEXTEXT("	(array Sys.OneToOne a 4)")
-			SEXTEXT("   (a.Push DoubleInt)")
-			SEXTEXT("   (Sys.OneToOne f = (a 0))")
-			SEXTEXT("	(result = (f 17))")
-			SEXTEXT(")");
+			("(function Main -> (Int32 result):")			
+			("	(array Sys.OneToOne a 4)")
+			("   (a.Push DoubleInt)")
+			("   (Sys.OneToOne f = (a 0))")
+			("	(result = (f 17))")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestArrayArchetype"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestArrayArchetype"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -5208,18 +5208,18 @@ namespace
 
 	void TestArrayInt32_2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Int32 a 4)")
-		SEXTEXT("	(result = a.Length)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Int32 a 4)")
+		("	(result = a.Length)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32_2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayInt32_2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5235,19 +5235,19 @@ namespace
 
 	void TestArrayInt32_3(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Int32 a 4)")
-		SEXTEXT("	(a.Push 1812)")
-		SEXTEXT("	(result = (a 0))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Int32 a 4)")
+		("	(a.Push 1812)")
+		("	(result = (a 0))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32_3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayInt32_3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5263,31 +5263,31 @@ namespace
 
 	void TestArrayInt32_4(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Int32 a 4)")
-		SEXTEXT("	(a.Push 1)")
-		SEXTEXT("	(a.Push 2)")
-		SEXTEXT("	(a.Push 3)")
-		SEXTEXT("	(a.Push 4)")
-		SEXTEXT("	(try")
-		SEXTEXT("		(")
-		SEXTEXT("			(a.Push 5)")
-		SEXTEXT("		)")
-		SEXTEXT("	catch ex")
-		SEXTEXT("		(")
-		SEXTEXT("			(Sys.Print ex.Message)")
-		SEXTEXT("		)")
-		SEXTEXT("	)")
-		SEXTEXT("	(result = (a 3))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Int32 a 4)")
+		("	(a.Push 1)")
+		("	(a.Push 2)")
+		("	(a.Push 3)")
+		("	(a.Push 4)")
+		("	(try")
+		("		(")
+		("			(a.Push 5)")
+		("		)")
+		("	catch ex")
+		("		(")
+		("			(Sys.Print ex.Message)")
+		("		)")
+		("	)")
+		("	(result = (a 3))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32_4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayInt32_4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5303,22 +5303,22 @@ namespace
 
 	void TestArrayInt32_5(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Int32 a 4)")
-		SEXTEXT("	(a.Push 2492)")
-		SEXTEXT("	(a.Push 1232)")
-		SEXTEXT("	(a 1 1470)")
-		SEXTEXT("	(a.Push 1132)")
-		SEXTEXT("	(result = (a 1))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Int32 a 4)")
+		("	(a.Push 2492)")
+		("	(a.Push 1232)")
+		("	(a 1 1470)")
+		("	(a.Push 1132)")
+		("	(result = (a 1))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32_5"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayInt32_5"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5334,21 +5334,21 @@ namespace
 
 	void TestArrayInt32_6(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Int32 a 4)")
-		SEXTEXT("	(a.Push 2492)")
-		SEXTEXT("	(Int32 x = a.Length)")
-		SEXTEXT("	(a.Pop)")
-		SEXTEXT("	(result = (x + a.Length))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Int32 a 4)")
+		("	(a.Push 2492)")
+		("	(Int32 x = a.Length)")
+		("	(a.Pop)")
+		("	(result = (x + a.Length))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32_6"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayInt32_6"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5364,19 +5364,19 @@ namespace
 
 	void TestArrayInt32_7(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Int32 a 4)")
-		SEXTEXT("	(a.Push 2492)")
-		SEXTEXT("	(result = a.PopOut)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Int32 a 4)")
+		("	(a.Push 2492)")
+		("	(result = a.PopOut)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32_7"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayInt32_7"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5392,23 +5392,23 @@ namespace
 
 	void TestArrayInt32_8(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(function PassThrough (Int32 x) -> (Int32 y):")
-		SEXTEXT("	(y = x)")
-		SEXTEXT(")")
+		("(function PassThrough (Int32 x) -> (Int32 y):")
+		("	(y = x)")
+		(")")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Int32 a 4)")
-		SEXTEXT("	(a.Push 2492)")
-		SEXTEXT("	(result = (PassThrough (a 0)))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Int32 a 4)")
+		("	(a.Push 2492)")
+		("	(result = (PassThrough (a 0)))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32_8"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayInt32_8"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5424,27 +5424,27 @@ namespace
 
 	void TestArrayFloat64(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(function PassThrough (Float64 x) -> (Float64 y):")
-		SEXTEXT("	(y = x)")
-		SEXTEXT(")")
+		("(function PassThrough (Float64 x) -> (Float64 y):")
+		("	(y = x)")
+		(")")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Float64 a 4)")
-		SEXTEXT("	(a.Push 2492.7)")
-		SEXTEXT("	(Sys.Type.IStringBuilder sb(StringBuilder 32))")
-		SEXTEXT("	(sb Formatters.SpecG)")
-		SEXTEXT("	(sb (a 0))")
-		SEXTEXT("	(Sys.Print sb)")
-		SEXTEXT("	(result = sb.Length)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Float64 a 4)")
+		("	(a.Push 2492.7)")
+		("	(Sys.Type.IStringBuilder sb(StringBuilder 32))")
+		("	(sb Formatters.SpecG)")
+		("	(sb (a 0))")
+		("	(Sys.Print sb)")
+		("	(result = sb.Length)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayFloat64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayFloat64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5461,19 +5461,19 @@ namespace
 	
 	void TestArrayInt32_9(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
  
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Int32 a 4)")
-		SEXTEXT("	(a 3 2492)")
-		SEXTEXT("	(result = a.Length)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Int32 a 4)")
+		("	(a 3 2492)")
+		("	(result = a.Length)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInt32_9"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayInt32_9"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5489,22 +5489,22 @@ namespace
 
 	void TestArrayStruct(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct Vec3 (Float32 x y z))")
+		("(struct Vec3 (Float32 x y z))")
  
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Vec3 a 4)")
-		SEXTEXT("	(Vec3 v = 1 2 3)")
-		SEXTEXT("	(a.Push v)")
-		SEXTEXT("	(result = a.Length)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Vec3 a 4)")
+		("	(Vec3 v = 1 2 3)")
+		("	(a.Push v)")
+		("	(result = a.Length)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayStruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayStruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5520,24 +5520,24 @@ namespace
 
 	void TestArrayStruct_2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct Vec3i (Int32 x y z))")
+		("(struct Vec3i (Int32 x y z))")
  
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Vec3i a 4)")
-		SEXTEXT("	(Vec3i v = 1 2 3)")
-		SEXTEXT("	(a.Push v)")
-		SEXTEXT("	(Vec3i w)")
-		SEXTEXT("	(w = (a 0))")
-		SEXTEXT("	(result = w.z)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Vec3i a 4)")
+		("	(Vec3i v = 1 2 3)")
+		("	(a.Push v)")
+		("	(Vec3i w)")
+		("	(w = (a 0))")
+		("	(result = w.z)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayStruct_2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayStruct_2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5553,24 +5553,24 @@ namespace
 
 	void TestArrayStruct_3(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct Vec3i (Int32 x y z))")
+		("(struct Vec3i (Int32 x y z))")
  
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Vec3i a 4)")
-		SEXTEXT("	(Vec3i v = 1 2 3)")
-		SEXTEXT("	(a 3 v)")
-		SEXTEXT("	(Vec3i w)")
-		SEXTEXT("	(w = (a 3))")
-		SEXTEXT("	(result = w.y)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Vec3i a 4)")
+		("	(Vec3i v = 1 2 3)")
+		("	(a 3 v)")
+		("	(Vec3i w)")
+		("	(w = (a 3))")
+		("	(result = w.y)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayStruct_2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayStruct_2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5586,19 +5586,19 @@ namespace
 
 	void TestGetSysMessage(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(IString boo = \"boo boo\")")
-		SEXTEXT("	(IString message = (Sys.Type.GetSysMessage(boo.Buffer)))")
-		SEXTEXT("	(result = (message.Length))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(IString boo = \"boo boo\")")
+		("	(IString message = (Sys.Type.GetSysMessage(boo.Buffer)))")
+		("	(result = (message.Length))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestGetSysMessage"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestGetSysMessage"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5614,28 +5614,28 @@ namespace
 
 	void TestInternalDestructorsCalled(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(interface Sys.Type.IDog (Bark -> ))")
-		SEXTEXT("(class Dog (implements Sys.Type.IDog))")
-		SEXTEXT("(method Dog.Bark -> : )")
-		SEXTEXT("(factory Sys.Type.BitchSpawn Sys.Type.IDog : (construct Dog))")
+		("(interface Sys.Type.IDog (Bark -> ))")
+		("(class Dog (implements Sys.Type.IDog))")
+		("(method Dog.Bark -> : )")
+		("(factory Sys.Type.BitchSpawn Sys.Type.IDog : (construct Dog))")
 
-		SEXTEXT("(method Dog.Construct -> : (Sys.Print \"Dog created\"))")
-		SEXTEXT("(method Dog.Destruct -> : (Sys.Print \"Dog destroyed\"))")
+		("(method Dog.Construct -> : (Sys.Print \"Dog created\"))")
+		("(method Dog.Destruct -> : (Sys.Print \"Dog destroyed\"))")
 
-		SEXTEXT("(struct Zoo (Int32 zookeeperId) (IDog dog))")
+		("(struct Zoo (Int32 zookeeperId) (IDog dog))")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Zoo zoo)")
-		SEXTEXT("	(zoo.dog = (Sys.Type.BitchSpawn))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Zoo zoo)")
+		("	(zoo.dog = (Sys.Type.BitchSpawn))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInternalDestructorsCalled"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestInternalDestructorsCalled"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5648,36 +5648,36 @@ namespace
 
 	void TestInternalDestructorsCalled2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(interface Sys.Type.IDog (Bark -> ))")
-		SEXTEXT("(class Dog (implements Sys.Type.IDog))")
-		SEXTEXT("(method Dog.Bark -> : )")
-		SEXTEXT("(factory Sys.Type.BitchSpawn Sys.Type.IDog : (construct Dog))")
+		("(interface Sys.Type.IDog (Bark -> ))")
+		("(class Dog (implements Sys.Type.IDog))")
+		("(method Dog.Bark -> : )")
+		("(factory Sys.Type.BitchSpawn Sys.Type.IDog : (construct Dog))")
 
-		SEXTEXT("(method Dog.Construct -> : (Sys.Print \"Dog created\"))")
-		SEXTEXT("(method Dog.Destruct -> : (Sys.Print \"Dog destroyed\"))")
+		("(method Dog.Construct -> : (Sys.Print \"Dog created\"))")
+		("(method Dog.Destruct -> : (Sys.Print \"Dog destroyed\"))")
 
-		SEXTEXT("(struct Zoo (Int32 zookeeperId) (IDog dog))")
+		("(struct Zoo (Int32 zookeeperId) (IDog dog))")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(try")
-		SEXTEXT("		(")
-		SEXTEXT("			(Zoo zoo)")
-		SEXTEXT("			(zoo.dog = (Sys.Type.BitchSpawn))")
-		SEXTEXT("			(Sys.Throw -1 \"Test\")")
-		SEXTEXT("		)")
-		SEXTEXT("	catch ex")
-		SEXTEXT("		(")
-		SEXTEXT("		)")
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(try")
+		("		(")
+		("			(Zoo zoo)")
+		("			(zoo.dog = (Sys.Type.BitchSpawn))")
+		("			(Sys.Throw -1 \"Test\")")
+		("		)")
+		("	catch ex")
+		("		(")
+		("		)")
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestInternalDestructorsCalled2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestInternalDestructorsCalled2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5690,23 +5690,23 @@ namespace
 
 	void TestArrayRef(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(function FillArray (array Int32 a) -> : ")
-		SEXTEXT("	(a 3 7)")
-		SEXTEXT(")")
+		("(function FillArray (array Int32 a) -> : ")
+		("	(a 3 7)")
+		(")")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Int32 a 4)")
-		SEXTEXT("	(FillArray a)")
-		SEXTEXT("	(result = (a 3))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Int32 a 4)")
+		("	(FillArray a)")
+		("	(result = (a 3))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayRef"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayRef"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5722,22 +5722,22 @@ namespace
 
 	void TestArrayStrongTyping(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(function FillArray (array Int32 a) -> : ")
-		SEXTEXT("	(a 3 7)")
-		SEXTEXT(")")
+		("(function FillArray (array Int32 a) -> : ")
+		("	(a 3 7)")
+		(")")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Float32 a 4)")
-		SEXTEXT("	(FillArray a)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Float32 a 4)")
+		("	(FillArray a)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayStrongTyping"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayStrongTyping"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5753,21 +5753,21 @@ namespace
 
 	void TestArrayStrongTyping2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(interface Sys.Type.IDog (Bark (array Int32 barkAngles) ->))")
-		SEXTEXT("(class Rover (implements Sys.Type.IDog))")
-		SEXTEXT("(method Rover.Bark (array Float32 barkAngles) -> :)")
+		("(interface Sys.Type.IDog (Bark (array Int32 barkAngles) ->))")
+		("(class Rover (implements Sys.Type.IDog))")
+		("(method Rover.Bark (array Float32 barkAngles) -> :)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Rover rover)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Rover rover)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayStrongTyping2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayStrongTyping2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -5782,23 +5782,23 @@ namespace
 
 	void TestArrayStrongTyping3(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(interface Sys.Type.IDog (Bark (array Int32 barkAngles) ->))")
-		SEXTEXT("(class Rover (implements Sys.Type.IDog))")
-		SEXTEXT("(method Rover.Bark (array Int32 barkAngles) -> :)")
+		("(interface Sys.Type.IDog (Bark (array Int32 barkAngles) ->))")
+		("(class Rover (implements Sys.Type.IDog))")
+		("(method Rover.Bark (array Int32 barkAngles) -> :)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Rover rover)")
-		SEXTEXT("	(array Float32 a 4)")
-		SEXTEXT("	(rover.Bark a)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Rover rover)")
+		("	(array Float32 a 4)")
+		("	(rover.Bark a)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayStrongTyping3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayStrongTyping3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5814,25 +5814,25 @@ namespace
 
 	void TestArrayInStruct(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct DogKennel (array Int32 dogIds))")
+		("(struct DogKennel (array Int32 dogIds))")
 
-		SEXTEXT("(method DogKennel.Construct (Int32 capacity) ->")
-		SEXTEXT("	(construct dogIds capacity): ")				
-		SEXTEXT(")")
+		("(method DogKennel.Construct (Int32 capacity) ->")
+		("	(construct dogIds capacity): ")				
+		(")")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(DogKennel kennel (4))")
-		SEXTEXT("	(kennel.dogIds.Push 1812)")
-		SEXTEXT("	(result = (kennel.dogIds 0))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(DogKennel kennel (4))")
+		("	(kennel.dogIds.Push 1812)")
+		("	(result = (kennel.dogIds 0))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInStruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayInStruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5848,32 +5848,32 @@ namespace
 
 	void TestArrayInStruct2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct DogKennel (array Int32 dogIds))")
-		SEXTEXT("(struct Sanctuary (DogKennel kennel))")
+		("(struct DogKennel (array Int32 dogIds))")
+		("(struct Sanctuary (DogKennel kennel))")
 
-		SEXTEXT("(method DogKennel.Construct (Int32 capacity)")
-		SEXTEXT("	-> (construct dogIds capacity) ")		
-		SEXTEXT("	:")
-		SEXTEXT(")")
+		("(method DogKennel.Construct (Int32 capacity)")
+		("	-> (construct dogIds capacity) ")		
+		("	:")
+		(")")
 
-		SEXTEXT("(method Sanctuary.Construct (Int32 kennelCapacity)")
-		SEXTEXT("	-> (construct kennel kennelCapacity)")		
-		SEXTEXT("	:")
-		SEXTEXT(")")
+		("(method Sanctuary.Construct (Int32 kennelCapacity)")
+		("	-> (construct kennel kennelCapacity)")		
+		("	:")
+		(")")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Sanctuary sanctuary (4) )")
-		SEXTEXT("	(sanctuary.kennel.dogIds.Push 1812)")
-		SEXTEXT("	(result = (sanctuary.kennel.dogIds 0))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Sanctuary sanctuary (4) )")
+		("	(sanctuary.kennel.dogIds.Push 1812)")
+		("	(result = (sanctuary.kennel.dogIds 0))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInStruct2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayInStruct2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5889,29 +5889,29 @@ namespace
 
 	void TestConstructInArray(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct DogKennel (Int32 dogId))")
-		SEXTEXT("(struct Sanctuary (array DogKennel kennels))")
+		("(struct DogKennel (Int32 dogId))")
+		("(struct Sanctuary (array DogKennel kennels))")
 
-		SEXTEXT("(method DogKennel.Construct (Int32 id): ")
-		SEXTEXT("	(this.dogId = id)")
-		SEXTEXT(")")
+		("(method DogKennel.Construct (Int32 id): ")
+		("	(this.dogId = id)")
+		(")")
 
-		SEXTEXT("(method Sanctuary.Construct (Int32 maxKennels)")
-		SEXTEXT("	-> (construct kennels maxKennels): )")		
+		("(method Sanctuary.Construct (Int32 maxKennels)")
+		("	-> (construct kennels maxKennels): )")		
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Sanctuary sanctuary (4) )")
-		SEXTEXT("	(sanctuary.kennels.Push 1812)") // This should invoke the DogKennel constructor into the memory slot of the first array element
-		SEXTEXT("	(result = (sanctuary.kennels 0 dogId))") // Grab dogId from sanctuary.kennels(0)
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Sanctuary sanctuary (4) )")
+		("	(sanctuary.kennels.Push 1812)") // This should invoke the DogKennel constructor into the memory slot of the first array element
+		("	(result = (sanctuary.kennels 0 dogId))") // Grab dogId from sanctuary.kennels(0)
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestConstructInArray"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestConstructInArray"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5927,35 +5927,35 @@ namespace
 
 	void TestArrayForeachOnce(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct DogKennel (array Int32 dogIds))")
-		SEXTEXT("(struct Sanctuary (array DogKennel kennels))")
+		("(struct DogKennel (array Int32 dogIds))")
+		("(struct Sanctuary (array DogKennel kennels))")
 
-		SEXTEXT("(method DogKennel.Construct (Int32 capacity)")
-		SEXTEXT("	-> (construct dogIds capacity) ")		
-		SEXTEXT("	:")
-		SEXTEXT(")")
+		("(method DogKennel.Construct (Int32 capacity)")
+		("	-> (construct dogIds capacity) ")		
+		("	:")
+		(")")
 
-		SEXTEXT("(method Sanctuary.Construct (Int32 kennelCapacity)")
-		SEXTEXT("	-> (construct kennels kennelCapacity)")		
-		SEXTEXT("	:")
-		SEXTEXT(")")
+		("(method Sanctuary.Construct (Int32 kennelCapacity)")
+		("	-> (construct kennels kennelCapacity)")		
+		("	:")
+		(")")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Sanctuary sanctuary (4) )") // Create a sanctuary with a capacity of 4 kennels
-		SEXTEXT("	(sanctuary.kennels.Push 4)") // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
-		SEXTEXT("	(foreach i k # (sanctuary.kennels 0 0)") // Get a ref to the first kennel
-		SEXTEXT("		(k.dogIds.Push 1812)") // Put a new dog id in the first kennel
-		SEXTEXT("		(result = (k.dogIds 0))") // Return the first dog id
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Sanctuary sanctuary (4) )") // Create a sanctuary with a capacity of 4 kennels
+		("	(sanctuary.kennels.Push 4)") // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
+		("	(foreach i k # (sanctuary.kennels 0 0)") // Get a ref to the first kennel
+		("		(k.dogIds.Push 1812)") // Put a new dog id in the first kennel
+		("		(result = (k.dogIds 0))") // Return the first dog id
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayInStruct4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayInStruct4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -5971,43 +5971,43 @@ namespace
 
 	void TestArrayForeachWithinForEach(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct DogKennel (array Int32 dogIds))")
-		SEXTEXT("(struct Sanctuary (array DogKennel kennels))")
+		("(struct DogKennel (array Int32 dogIds))")
+		("(struct Sanctuary (array DogKennel kennels))")
 
-		SEXTEXT("(method DogKennel.Construct (Int32 capacity)")
-		SEXTEXT("	-> (construct dogIds capacity) ")		
-		SEXTEXT("	:")
-		SEXTEXT(")")
+		("(method DogKennel.Construct (Int32 capacity)")
+		("	-> (construct dogIds capacity) ")		
+		("	:")
+		(")")
 
-		SEXTEXT("(method Sanctuary.Construct (Int32 kennelCapacity)")
-		SEXTEXT("	-> (construct kennels kennelCapacity)")		
-		SEXTEXT("	:")
-		SEXTEXT(")")
+		("(method Sanctuary.Construct (Int32 kennelCapacity)")
+		("	-> (construct kennels kennelCapacity)")		
+		("	:")
+		(")")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Sanctuary sanctuary (4) )") // Create a sanctuary with a capacity of 4 kennels
-		SEXTEXT("	(sanctuary.kennels.Push 4)") // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
-		SEXTEXT("	(sanctuary.kennels.Push 4)") // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
-		SEXTEXT("	(sanctuary.kennels.Push 4)") // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
-		SEXTEXT("	(sanctuary.kennels.Push 4)") // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
-		SEXTEXT("	(foreach i k # (sanctuary.kennels 0 3)") // Enumerate over all 4 kennesl
-		SEXTEXT("		(k.dogIds.Push i)") // Put a new dog id in the kennel
-		SEXTEXT("		(k.dogIds.Push i)") // Put a new dog id in the kennel
-		SEXTEXT("		(k.dogIds.Push i)") // Put a new dog id in the kennel
-		SEXTEXT("		(k.dogIds.Push i)") // Put a new dog id in the kennel
-		SEXTEXT("		(foreach j d # (k.dogIds 0 3)") // Enumerate through kennel
-		SEXTEXT("			(result = (result + d))") // Sum the dogid to result
-		SEXTEXT("		)") // Sum the dogid to result
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Sanctuary sanctuary (4) )") // Create a sanctuary with a capacity of 4 kennels
+		("	(sanctuary.kennels.Push 4)") // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
+		("	(sanctuary.kennels.Push 4)") // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
+		("	(sanctuary.kennels.Push 4)") // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
+		("	(sanctuary.kennels.Push 4)") // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
+		("	(foreach i k # (sanctuary.kennels 0 3)") // Enumerate over all 4 kennesl
+		("		(k.dogIds.Push i)") // Put a new dog id in the kennel
+		("		(k.dogIds.Push i)") // Put a new dog id in the kennel
+		("		(k.dogIds.Push i)") // Put a new dog id in the kennel
+		("		(k.dogIds.Push i)") // Put a new dog id in the kennel
+		("		(foreach j d # (k.dogIds 0 3)") // Enumerate through kennel
+		("			(result = (result + d))") // Sum the dogid to result
+		("		)") // Sum the dogid to result
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayForeachWithinForEach"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayForeachWithinForEach"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6023,40 +6023,40 @@ namespace
 
 	void TestArrayForeachAndThrow(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct Sanctuary (array Int32 kennelIds))")
+		("(struct Sanctuary (array Int32 kennelIds))")
 
-		SEXTEXT("(method Sanctuary.Construct (Int32 capacity)")
-		SEXTEXT("	-> (construct kennelIds capacity)")		
-		SEXTEXT("	:")
-		SEXTEXT(")")
+		("(method Sanctuary.Construct (Int32 capacity)")
+		("	-> (construct kennelIds capacity)")		
+		("	:")
+		(")")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Sanctuary sanctuary (10) )") // Create a sanctuary with a capacity of 10 kennels
-		SEXTEXT("	(sanctuary.kennelIds 9 0)") // Define and null the ten entries by setting entry 9 to 0
+		("(function Main -> (Int32 result):")
+		("	(Sanctuary sanctuary (10) )") // Create a sanctuary with a capacity of 10 kennels
+		("	(sanctuary.kennelIds 9 0)") // Define and null the ten entries by setting entry 9 to 0
 
-		SEXTEXT("	(try")
-		SEXTEXT("		(")
-		SEXTEXT("			(foreach i k # (sanctuary.kennelIds 0 9)") // Enumerate over all 10 kennels
-		SEXTEXT("				(Sys.Throw -1 \"Test: foreach throw\")")
-		SEXTEXT("				(result = (result + i))") // Sum the index to result
-		SEXTEXT("			)")
-		SEXTEXT("		)")
-		SEXTEXT("	catch ex")
-		SEXTEXT("		(")
-		SEXTEXT("			(Sys.Print ex.Message)")
-		SEXTEXT("			(result = 1999)")
-		SEXTEXT("		)")
-		SEXTEXT("	)")
-		SEXTEXT("	(sanctuary.kennelIds.Pop)")
-		SEXTEXT(")");
+		("	(try")
+		("		(")
+		("			(foreach i k # (sanctuary.kennelIds 0 9)") // Enumerate over all 10 kennels
+		("				(Sys.Throw -1 \"Test: foreach throw\")")
+		("				(result = (result + i))") // Sum the index to result
+		("			)")
+		("		)")
+		("	catch ex")
+		("		(")
+		("			(Sys.Print ex.Message)")
+		("			(result = 1999)")
+		("		)")
+		("	)")
+		("	(sanctuary.kennelIds.Pop)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayForeachAndThrow"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayForeachAndThrow"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6072,38 +6072,38 @@ namespace
 
 	void TestArrayForeachAndThrow2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct Sanctuary (array Int32 kennelIds))")
+		("(struct Sanctuary (array Int32 kennelIds))")
 
-		SEXTEXT("(method Sanctuary.Construct (Int32 capacity)")
-		SEXTEXT("	-> (construct kennelIds capacity)")		
-		SEXTEXT("	:")
-		SEXTEXT(")")
+		("(method Sanctuary.Construct (Int32 capacity)")
+		("	-> (construct kennelIds capacity)")		
+		("	:")
+		(")")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Sanctuary sanctuary (10) )") // Create a sanctuary with a capacity of 10 kennels
-		SEXTEXT("	(sanctuary.kennelIds 9 0)") // Define and null the ten entries by setting entry 9 to 0
+		("(function Main -> (Int32 result):")
+		("	(Sanctuary sanctuary (10) )") // Create a sanctuary with a capacity of 10 kennels
+		("	(sanctuary.kennelIds 9 0)") // Define and null the ten entries by setting entry 9 to 0
 
-		SEXTEXT("	(foreach i k # (sanctuary.kennelIds 0 9)") // Enumerate over all 10 kennels
-		SEXTEXT("		(try")
-		SEXTEXT("			(")
-		SEXTEXT("				(Sys.Throw -1 \"Test: foreach2 throw\")")
-		SEXTEXT("			)")
-		SEXTEXT("		catch ex")
-		SEXTEXT("			(")
-		SEXTEXT("				(result = (result + i))") // Sum the index to result")
-		SEXTEXT("			)")
-		SEXTEXT("		)")		
-		SEXTEXT("	)")		
-		SEXTEXT("	(sanctuary.kennelIds.Pop)")
-		SEXTEXT(")");
+		("	(foreach i k # (sanctuary.kennelIds 0 9)") // Enumerate over all 10 kennels
+		("		(try")
+		("			(")
+		("				(Sys.Throw -1 \"Test: foreach2 throw\")")
+		("			)")
+		("		catch ex")
+		("			(")
+		("				(result = (result + i))") // Sum the index to result")
+		("			)")
+		("		)")		
+		("	)")		
+		("	(sanctuary.kennelIds.Pop)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayForeachAndThrow2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayForeachAndThrow2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6119,24 +6119,24 @@ namespace
 
 	void TestArrayForeachEachElementInArray(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
  
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Int32 a (10) )")
-		SEXTEXT("	(#for (Int32 i = 0) (i < 10) (#inc i)")
-		SEXTEXT("		(a.Push (i + 10))")
-		SEXTEXT("	)")
+		("(function Main -> (Int32 result):")
+		("	(array Int32 a (10) )")
+		("	(#for (Int32 i = 0) (i < 10) (#inc i)")
+		("		(a.Push (i + 10))")
+		("	)")
 
-		SEXTEXT("	(foreach i k # a") 
-		SEXTEXT("		(result = (result + k))")
-		SEXTEXT("	)")		
-		SEXTEXT(")");
+		("	(foreach i k # a") 
+		("		(result = (result + k))")
+		("	)")		
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayForeachEachElementInArray"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayForeachEachElementInArray"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6152,24 +6152,24 @@ namespace
 
 	void TestArrayForeachEachElementInArrayWithoutIndex(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
  
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Int32 a (10) )")
-		SEXTEXT("	(#for (Int32 i = 0) (i < 10) (#inc i)")
-		SEXTEXT("		(a.Push (i + 10))")
-		SEXTEXT("	)")
+		("(function Main -> (Int32 result):")
+		("	(array Int32 a (10) )")
+		("	(#for (Int32 i = 0) (i < 10) (#inc i)")
+		("		(a.Push (i + 10))")
+		("	)")
 
-		SEXTEXT("	(foreach k # a") 
-		SEXTEXT("		(result = (result + k))")
-		SEXTEXT("	)")		
-		SEXTEXT(")");
+		("	(foreach k # a") 
+		("		(result = (result + k))")
+		("	)")		
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayForeachEachElementInArrayWithoutIndex"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayForeachEachElementInArrayWithoutIndex"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6185,25 +6185,25 @@ namespace
 
 	void TestArrayElementDeconstruct(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(interface EntryPoint.ITest (Id -> (Int32 id)))")
-		SEXTEXT("(class Test (implements EntryPoint.ITest) (Int32 id))")
-		SEXTEXT("(method Test.Construct (Int32 id): (this.id = id))")
-		SEXTEXT("(method Test.Id -> (Int32 id): (id = this.id))")
-		SEXTEXT("(method Test.Destruct -> : (Sys.Print \"Test finished\"))")
+		("(interface EntryPoint.ITest (Id -> (Int32 id)))")
+		("(class Test (implements EntryPoint.ITest) (Int32 id))")
+		("(method Test.Construct (Int32 id): (this.id = id))")
+		("(method Test.Id -> (Int32 id): (id = this.id))")
+		("(method Test.Destruct -> : (Sys.Print \"Test finished\"))")
  
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Test a (2) )")
-		SEXTEXT("	(a.Push 12)")
-		SEXTEXT("	(a.Push 14)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Test a (2) )")
+		("	(a.Push 12)")
+		("	(a.Push 14)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayElementDeconstruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayElementDeconstruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6216,34 +6216,34 @@ namespace
 
 	void TestArrayWithinArrayDeconstruct(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(interface EntryPoint.ITest (Id -> (Int32 id)))")
-		SEXTEXT("(class Test (implements EntryPoint.ITest) (Int32 id))")
-		SEXTEXT("(method Test.Construct (Int32 id): (this.id = id))")
-		SEXTEXT("(method Test.Id -> (Int32 id): (id = this.id))")
-		SEXTEXT("(method Test.Destruct -> : (Sys.Print \"Test destructed\"))")
+		("(interface EntryPoint.ITest (Id -> (Int32 id)))")
+		("(class Test (implements EntryPoint.ITest) (Int32 id))")
+		("(method Test.Construct (Int32 id): (this.id = id))")
+		("(method Test.Id -> (Int32 id): (id = this.id))")
+		("(method Test.Destruct -> : (Sys.Print \"Test destructed\"))")
 
-		SEXTEXT("(struct Axis (array Test tests))")
-		SEXTEXT("(method Axis.Construct (Int32 testsPerAxis) -> (construct tests testsPerAxis): )")
+		("(struct Axis (array Test tests))")
+		("(method Axis.Construct (Int32 testsPerAxis) -> (construct tests testsPerAxis): )")
  
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Axis axes (3) )")
-		SEXTEXT("	(axes.Push 3)")
-		SEXTEXT("	(axes.Push 3)")
-		SEXTEXT("	(axes.Push 3)")
-		SEXTEXT("	(foreach axis # axes ")
-		SEXTEXT("		(axis.tests.Push 1)")
-		SEXTEXT("		(axis.tests.Push 2)")
-		SEXTEXT("		(axis.tests.Push 3)")
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Axis axes (3) )")
+		("	(axes.Push 3)")
+		("	(axes.Push 3)")
+		("	(axes.Push 3)")
+		("	(foreach axis # axes ")
+		("		(axis.tests.Push 1)")
+		("		(axis.tests.Push 2)")
+		("		(axis.tests.Push 3)")
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayWithinArrayDeconstruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayWithinArrayDeconstruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6256,38 +6256,38 @@ namespace
 
 	void TestArrayElementDeconstructWhenThrown(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(interface EntryPoint.ITest (Id -> (Int32 id)))")
-		SEXTEXT("(class Test (implements EntryPoint.ITest) (Int32 id))")
-		SEXTEXT("(method Test.Construct (Int32 id): (this.id = id))")
-		SEXTEXT("(method Test.Id -> (Int32 id): (id = this.id))")
-		SEXTEXT("(method Test.Destruct -> : (Sys.Print \"Test finished\"))")
+		("(interface EntryPoint.ITest (Id -> (Int32 id)))")
+		("(class Test (implements EntryPoint.ITest) (Int32 id))")
+		("(method Test.Construct (Int32 id): (this.id = id))")
+		("(method Test.Id -> (Int32 id): (id = this.id))")
+		("(method Test.Destruct -> : (Sys.Print \"Test finished\"))")
 
-		SEXTEXT("(function Main2 -> (Int32 result):")
-		SEXTEXT("	(array Test a (2) )")
-		SEXTEXT("	(a.Push 12)")
-		SEXTEXT("	(a.Push 14)")
-		SEXTEXT("	(Sys.Throw 747 \"This should trigger the autodestruct sequence\")")
-		SEXTEXT(")")
+		("(function Main2 -> (Int32 result):")
+		("	(array Test a (2) )")
+		("	(a.Push 12)")
+		("	(a.Push 14)")
+		("	(Sys.Throw 747 \"This should trigger the autodestruct sequence\")")
+		(")")
  
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(try")
-		SEXTEXT("		(")
-		SEXTEXT("			(Main2 -> result)")
-		SEXTEXT("		)")
-		SEXTEXT("	catch ex")
-		SEXTEXT("		(")
-		SEXTEXT("			(result = ex.ErrorCode)")
-		SEXTEXT("		)")
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(try")
+		("		(")
+		("			(Main2 -> result)")
+		("		)")
+		("	catch ex")
+		("		(")
+		("			(result = ex.ErrorCode)")
+		("		)")
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayElementDeconstructWhenThrown"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayElementDeconstructWhenThrown"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6303,23 +6303,23 @@ namespace
 
 	void TestArrayElementLockRef(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct Vec4 (Int32 x y z w))")
+		("(struct Vec4 (Int32 x y z w))")
  
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(array Vec4 vectors 5)")
-		SEXTEXT("	(vectors.Push Vec4 (1 2 3 0))")
-		SEXTEXT("	(foreach v # (vectors 0)")
-		SEXTEXT("		(result = v.z)")
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(array Vec4 vectors 5)")
+		("	(vectors.Push Vec4 (1 2 3 0))")
+		("	(foreach v # (vectors 0)")
+		("		(result = v.z)")
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestArrayElementLockRef"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestArrayElementLockRef"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6335,18 +6335,18 @@ namespace
 
 	void TestLinkedList(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(list Int32 a)")
-		SEXTEXT("	(result = a.Length)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(list Int32 a)")
+		("	(result = a.Length)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedList"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6363,19 +6363,19 @@ namespace
 
 	void TestLinkedList2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(list Int32 a)")
-		SEXTEXT("	(a.Append 25)")
-		SEXTEXT("	(result = a.Length)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(list Int32 a)")
+		("	(a.Append 25)")
+		("	(result = a.Length)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedList2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6392,20 +6392,20 @@ namespace
 
 	void TestLinkedList3(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(list Int32 a)")
-		SEXTEXT("	(a.Append 25)")
-		SEXTEXT("	(node n = a.Tail)")
-		SEXTEXT("	(result = (n.Value + a.Length))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(list Int32 a)")
+		("	(a.Append 25)")
+		("	(node n = a.Tail)")
+		("	(result = (n.Value + a.Length))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedList3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6422,20 +6422,20 @@ namespace
 
 	void TestLinkedList4(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(list Int32 a)")
-		SEXTEXT("	(a.Prepend 25)")
-		SEXTEXT("	(node n = a.Head)")
-		SEXTEXT("	(result = ((3 + n.Value) + (a.Length + 2)))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(list Int32 a)")
+		("	(a.Prepend 25)")
+		("	(node n = a.Head)")
+		("	(result = ((3 + n.Value) + (a.Length + 2)))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedList4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6452,28 +6452,28 @@ namespace
 
 	void TestLinkedList6(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(list Int32 a)")
-		SEXTEXT("	(try")
-		SEXTEXT("		(")
-		SEXTEXT("			(node n = a.Head)")
-		SEXTEXT("			(result = n.Value)")
-		SEXTEXT("		)")
-		SEXTEXT("	catch ex")
-		SEXTEXT("		(")
-		SEXTEXT("			(result = 39)")
-		SEXTEXT("			(Sys.Print ex.Message)")
-		SEXTEXT("		)")
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(list Int32 a)")
+		("	(try")
+		("		(")
+		("			(node n = a.Head)")
+		("			(result = n.Value)")
+		("		)")
+		("	catch ex")
+		("		(")
+		("			(result = 39)")
+		("			(Sys.Print ex.Message)")
+		("		)")
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList6"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedList6"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6490,22 +6490,22 @@ namespace
 
 	void TestLinkedList7(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(list Int32 a)")
-		SEXTEXT("	(a.Prepend 17)")
-		SEXTEXT("	(a.Prepend 34)")
-		SEXTEXT("	(node head = a.Head)")
-		SEXTEXT("	(node tail = head.Next)")
-		SEXTEXT("	(result = tail.Value)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(list Int32 a)")
+		("	(a.Prepend 17)")
+		("	(a.Prepend 34)")
+		("	(node head = a.Head)")
+		("	(node tail = head.Next)")
+		("	(result = tail.Value)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList7"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedList7"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6522,22 +6522,22 @@ namespace
 
 	void TestLinkedList8(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(list Int32 a)")
-		SEXTEXT("	(a.Append 17)")
-		SEXTEXT("	(a.Append 34)")
-		SEXTEXT("	(node tail = a.Tail)")
-		SEXTEXT("	(node head = tail.Previous)")
-		SEXTEXT("	(result = head.Value)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(list Int32 a)")
+		("	(a.Append 17)")
+		("	(a.Append 34)")
+		("	(node tail = a.Tail)")
+		("	(node head = tail.Previous)")
+		("	(result = head.Value)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList8"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedList8"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6554,24 +6554,24 @@ namespace
 
 	void TestLinkedList9(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(list Int32 a)")
-		SEXTEXT("	(a.Append 17)")
-		SEXTEXT("	(a.Append 34)")
-		SEXTEXT("	(node head = a.Head)")
-		SEXTEXT("	(head.Append 32)") // This inserts an element 32 between 17 and 34
-		SEXTEXT("	(node tail = a.Tail)")
-		SEXTEXT("	(node newNode = tail.Previous)")
-		SEXTEXT("	(result = newNode.Value)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(list Int32 a)")
+		("	(a.Append 17)")
+		("	(a.Append 34)")
+		("	(node head = a.Head)")
+		("	(head.Append 32)") // This inserts an element 32 between 17 and 34
+		("	(node tail = a.Tail)")
+		("	(node newNode = tail.Previous)")
+		("	(result = newNode.Value)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList9"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedList9"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6588,23 +6588,23 @@ namespace
 
 	void TestLinkedList10(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(list Int32 a)")
-		SEXTEXT("	(a.Append 17)")
-		SEXTEXT("	(a.Append 34)")
-		SEXTEXT("	(node n = a.Tail)")
-		SEXTEXT("	(n.Pop)")
-		SEXTEXT("	(node tail = a.Tail)")
-		SEXTEXT("	(result = tail.Value)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(list Int32 a)")
+		("	(a.Append 17)")
+		("	(a.Append 34)")
+		("	(node n = a.Tail)")
+		("	(n.Pop)")
+		("	(node tail = a.Tail)")
+		("	(result = tail.Value)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList10"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedList10"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6621,27 +6621,27 @@ namespace
 
 	void TestLinkedList11(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct Stuff (list Int32 a))")
+		("(struct Stuff (list Int32 a))")
 
-		SEXTEXT("(method Stuff.Construct -> (construct a()) : )")
+		("(method Stuff.Construct -> (construct a()) : )")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Stuff stuff())")
-		SEXTEXT("	(stuff.a.Append 17)")
-		SEXTEXT("	(stuff.a.Prepend 34)")
-		SEXTEXT("	(node tail = stuff.a.Tail)")
-		SEXTEXT("	(result = (result + tail.Value))")
-		SEXTEXT("	(foreach n # stuff.a (result = (result + n.Value)))")
-		SEXTEXT("	(result = (result + stuff.a.Length))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Stuff stuff())")
+		("	(stuff.a.Append 17)")
+		("	(stuff.a.Prepend 34)")
+		("	(node tail = stuff.a.Tail)")
+		("	(result = (result + tail.Value))")
+		("	(foreach n # stuff.a (result = (result + n.Value)))")
+		("	(result = (result + stuff.a.Length))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList11"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedList11"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6658,25 +6658,25 @@ namespace
 
 	void TestLinkedListOfArchetypes(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(archetype Sys.OneToOne (Int32 x) -> (Int32 y))")
+			("(archetype Sys.OneToOne (Int32 x) -> (Int32 y))")
 
-			SEXTEXT("(function DoubleInt (Int32 x) -> (Int32 y): (y = (2 * x)))")
+			("(function DoubleInt (Int32 x) -> (Int32 y): (y = (2 * x)))")
 
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("	(list Sys.OneToOne a)")
-			SEXTEXT("	(a.Append DoubleInt)")
-			SEXTEXT("	(node head = a.Head)")
-			SEXTEXT("	(Sys.OneToOne f = head.Value)")
-			SEXTEXT("   (result = (f 17))")
-			SEXTEXT(")");
+			("(function Main -> (Int32 result):")
+			("	(list Sys.OneToOne a)")
+			("	(a.Append DoubleInt)")
+			("	(node head = a.Head)")
+			("	(Sys.OneToOne f = head.Value)")
+			("   (result = (f 17))")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestLinkedListOfArchetypes"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestLinkedListOfArchetypes"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -6693,26 +6693,26 @@ namespace
 
 	void TestLinkedList12(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(function AppendThree (list Int32 a) -> : ")
-		SEXTEXT("	(a.Prepend 17)")
-		SEXTEXT("	(a.Prepend 34)")
-		SEXTEXT("	(a.Prepend 9)")
-		SEXTEXT(")")
+		("(function AppendThree (list Int32 a) -> : ")
+		("	(a.Prepend 17)")
+		("	(a.Prepend 34)")
+		("	(a.Prepend 9)")
+		(")")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(list Int32 a)")
-		SEXTEXT("	(AppendThree a)")
-		SEXTEXT("	(node head = a.Head)")
-		SEXTEXT("	(result = head.Value)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(list Int32 a)")
+		("	(AppendThree a)")
+		("	(node head = a.Head)")
+		("	(result = head.Value)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedList12"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedList12"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6729,27 +6729,27 @@ namespace
 
 	void TestLinkedListOfLists(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct Dog (list Int32 boneIds))")
+		("(struct Dog (list Int32 boneIds))")
 
-		SEXTEXT("(method Dog.Construct -> (construct boneIds ()) : )")
+		("(method Dog.Construct -> (construct boneIds ()) : )")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(list Dog dogs)")
-		SEXTEXT("	(dogs.Append ())")
-		SEXTEXT("	(node head = dogs.Head)")
-		SEXTEXT("	(Dog firstDog = & head)")
-		SEXTEXT("	(firstDog.boneIds.Append 27)")
-		SEXTEXT("	(node bone = firstDog.boneIds.Head)")
-		SEXTEXT("	(result = bone.Value)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(list Dog dogs)")
+		("	(dogs.Append ())")
+		("	(node head = dogs.Head)")
+		("	(Dog firstDog = & head)")
+		("	(firstDog.boneIds.Append 27)")
+		("	(node bone = firstDog.boneIds.Head)")
+		("	(result = bone.Value)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedListOfLists"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedListOfLists"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6766,26 +6766,26 @@ namespace
 
 	void TestLinkedListForeach1(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
+		("(function Main -> (Int32 result):")
 
-		SEXTEXT("	(list Int32 a)")
+		("	(list Int32 a)")
 
-		SEXTEXT("	(a.Append 17)")
-		SEXTEXT("	(a.Append 34)")
-		SEXTEXT("	(a.Append 333)")
+		("	(a.Append 17)")
+		("	(a.Append 34)")
+		("	(a.Append 333)")
 
-		SEXTEXT("	(foreach i n # a ")
-		SEXTEXT("		(result = (i + (result + n.Value)))")
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("	(foreach i n # a ")
+		("		(result = (i + (result + n.Value)))")
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedListForeach1"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedListForeach1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6802,26 +6802,26 @@ namespace
 
 	void TestLinkedListForeach2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
+		("(function Main -> (Int32 result):")
 
-		SEXTEXT("	(list Int32 a)")
+		("	(list Int32 a)")
 
-		SEXTEXT("	(a.Append 17)")
-		SEXTEXT("	(a.Append 34)")
-		SEXTEXT("	(a.Append 333)")
+		("	(a.Append 17)")
+		("	(a.Append 34)")
+		("	(a.Append 333)")
 
-		SEXTEXT("	(foreach n # a ")
-		SEXTEXT("		(result = (result + n.Value))")
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("	(foreach n # a ")
+		("		(result = (result + n.Value))")
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedListForeach2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedListForeach2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6838,28 +6838,28 @@ namespace
 
 	void TestLinkedListForeach3(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
+		("(function Main -> (Int32 result):")
 
-		SEXTEXT("	(list Int32 a)")
+		("	(list Int32 a)")
 
-		SEXTEXT("	(a.Append 17)")
-		SEXTEXT("	(a.Append 34)")
-		SEXTEXT("	(a.Append 333)")
+		("	(a.Append 17)")
+		("	(a.Append 34)")
+		("	(a.Append 333)")
 
-		SEXTEXT("	(a.Clear)")
+		("	(a.Clear)")
 
-		SEXTEXT("	(foreach n # a ")
-		SEXTEXT("	)")
-		SEXTEXT("	(result = a.Length)")
-		SEXTEXT(")");
+		("	(foreach n # a ")
+		("	)")
+		("	(result = a.Length)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedListForeach3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedListForeach3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6876,27 +6876,27 @@ namespace
 
 	void TestLinkedListForeach4(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
+		("(function Main -> (Int32 result):")
 
-		SEXTEXT("	(list Int32 a)")
+		("	(list Int32 a)")
 
-		SEXTEXT("	(a.Append 17)")
-		SEXTEXT("	(a.Append 34)")
-		SEXTEXT("	(a.Append 333)")
+		("	(a.Append 17)")
+		("	(a.Append 34)")
+		("	(a.Append 333)")
 
-		SEXTEXT("	(foreach n # a ")
-		SEXTEXT("		(n.Pop)")
-		SEXTEXT("	)")
-		SEXTEXT("	(result = a.Length)")
-		SEXTEXT(")");
+		("	(foreach n # a ")
+		("		(n.Pop)")
+		("	)")
+		("	(result = a.Length)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedListForeach4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedListForeach4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6913,27 +6913,27 @@ namespace
 
 	void TestLinkedListForeach5(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
+		("(function Main -> (Int32 result):")
 
-		SEXTEXT("	(list Int32 a)")
+		("	(list Int32 a)")
 
-		SEXTEXT("	(a.Append 17)")
-		SEXTEXT("	(a.Append 34)")
-		SEXTEXT("	(a.Append 333)")
+		("	(a.Append 17)")
+		("	(a.Append 34)")
+		("	(a.Append 333)")
 
-		SEXTEXT("	(foreach n # a ")
-		SEXTEXT("		(result = (result + 1))")
-		SEXTEXT("		(a.Clear)")
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("	(foreach n # a ")
+		("		(result = (result + 1))")
+		("		(a.Clear)")
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedListForeach5"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedListForeach5"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6950,36 +6950,36 @@ namespace
 
 	void TestLinkedListForeach6(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
+		("(function Main -> (Int32 result):")
 
-		SEXTEXT("	(list Int32 a)")
+		("	(list Int32 a)")
 
-		SEXTEXT("	(a.Append 17)")
-		SEXTEXT("	(a.Append 34)")
-		SEXTEXT("	(a.Append 333)")
+		("	(a.Append 17)")
+		("	(a.Append 34)")
+		("	(a.Append 333)")
 
-		SEXTEXT("	(foreach n # a ")
-		SEXTEXT("		(try")
-		SEXTEXT("			(")
-		SEXTEXT("				(Sys.Throw n.Value \"thrown in foreach \")")
-		SEXTEXT("			)")
-		SEXTEXT("		catch ex")
-		SEXTEXT("			(")
-		SEXTEXT("				(result = (result + 1))")
-		SEXTEXT("				(Sys.Print ex.Message)")
-		SEXTEXT("			)")
-		SEXTEXT("		)")
-		SEXTEXT("		(result = (result + 10))")
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("	(foreach n # a ")
+		("		(try")
+		("			(")
+		("				(Sys.Throw n.Value \"thrown in foreach \")")
+		("			)")
+		("		catch ex")
+		("			(")
+		("				(result = (result + 1))")
+		("				(Sys.Print ex.Message)")
+		("			)")
+		("		)")
+		("		(result = (result + 10))")
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedListForeach6"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedListForeach6"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -6996,35 +6996,35 @@ namespace
 
 	void TestLinkedListForeach7(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
+		("(function Main -> (Int32 result):")
 
-		SEXTEXT("	(list Int32 a)")
+		("	(list Int32 a)")
 
-		SEXTEXT("	(a.Append 17)")
-		SEXTEXT("	(a.Append 34)")
-		SEXTEXT("	(a.Append 333)")
+		("	(a.Append 17)")
+		("	(a.Append 34)")
+		("	(a.Append 333)")
 
-		SEXTEXT("	(try")
-		SEXTEXT("		(")
-		SEXTEXT("			(foreach n # a (Sys.Throw n.Value \"thrown in foreach\"))")
-		SEXTEXT("		)")
-		SEXTEXT("	catch ex")
-		SEXTEXT("		(")
-		SEXTEXT("			(result = (result + 1))")
-		SEXTEXT("			(Sys.Print ex.Message)")
-		SEXTEXT("		)")
-		SEXTEXT("	)")
-		SEXTEXT("	(result = (result + 10))")
+		("	(try")
+		("		(")
+		("			(foreach n # a (Sys.Throw n.Value \"thrown in foreach\"))")
+		("		)")
+		("	catch ex")
+		("		(")
+		("			(result = (result + 1))")
+		("			(Sys.Print ex.Message)")
+		("		)")
+		("	)")
+		("	(result = (result + 10))")
 
-		SEXTEXT(")");
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestLinkedListForeach7"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestLinkedListForeach7"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7041,22 +7041,22 @@ namespace
 
 	void TestListStruct(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct Vec3 (Float32 x y z))")
+		("(struct Vec3 (Float32 x y z))")
  
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(list Vec3 a)")
-		SEXTEXT("	(Vec3 v = 1 2 3)")
-		SEXTEXT("	(a.Append v)")
-		SEXTEXT("	(result = a.Length)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(list Vec3 a)")
+		("	(Vec3 v = 1 2 3)")
+		("	(a.Append v)")
+		("	(result = a.Length)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestListStruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestListStruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7072,24 +7072,24 @@ namespace
 
 	void TestListStruct2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct Vec3 (Int32 x y z))")
+		("(struct Vec3 (Int32 x y z))")
  
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(list Vec3 a)")
-		SEXTEXT("	(Vec3 v = 1 2 3)")
-		SEXTEXT("	(a.Append v)")
-		SEXTEXT("	(node n = a.Head)")
-		SEXTEXT("	(Vec3 val = & n)")
-		SEXTEXT("	(result = val.z)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(list Vec3 a)")
+		("	(Vec3 v = 1 2 3)")
+		("	(a.Append v)")
+		("	(node n = a.Head)")
+		("	(Vec3 val = & n)")
+		("	(result = val.z)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestListStruct2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestListStruct2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7105,24 +7105,24 @@ namespace
 
 	void TestListStrongTyping(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(function FillArray (list Int32 a) -> : ")
-		SEXTEXT("	(a.Append 37)")
-		SEXTEXT(")")
+		("(function FillArray (list Int32 a) -> : ")
+		("	(a.Append 37)")
+		(")")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(list Float32 a)")
-		SEXTEXT("	(FillArray a)")
-		SEXTEXT("	(node n = a.Head)")
-		SEXTEXT("	(result = n.Value)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(list Float32 a)")
+		("	(FillArray a)")
+		("	(node n = a.Head)")
+		("	(result = n.Value)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestListStrongTyping"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestListStrongTyping"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7138,18 +7138,18 @@ namespace
 
 	void TestMap(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map IString Int32 a)")
-		SEXTEXT("	(result = a.Length)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map IString Int32 a)")
+		("	(result = a.Length)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMap"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMap"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7166,25 +7166,25 @@ namespace
 
 	void TestMapOfArchetypes(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(archetype Sys.OneToOne (Int32 x) -> (Int32 y))")
+			("(archetype Sys.OneToOne (Int32 x) -> (Int32 y))")
 
-			SEXTEXT("(function DoubleInt (Int32 x) -> (Int32 y): (y = (2 * x)))")
+			("(function DoubleInt (Int32 x) -> (Int32 y): (y = (2 * x)))")
 
-			SEXTEXT("(function Main -> (Int32 result):")
-			SEXTEXT("	(map IString Sys.OneToOne a)")
-			SEXTEXT("	(a.Insert \"Joe\" DoubleInt)")
-			SEXTEXT("	(node n = (a \"Joe\"))")
-			SEXTEXT("   (Sys.OneToOne f = n.Value)")
-			SEXTEXT("	(result = (f 17))")
-			SEXTEXT(")");
+			("(function Main -> (Int32 result):")
+			("	(map IString Sys.OneToOne a)")
+			("	(a.Insert \"Joe\" DoubleInt)")
+			("	(node n = (a \"Joe\"))")
+			("   (Sys.OneToOne f = n.Value)")
+			("	(result = (f 17))")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMapOfArchetypes"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestMapOfArchetypes"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -7201,19 +7201,19 @@ namespace
 
 	void TestMap2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map IString Int32 a)")
-		SEXTEXT("	(a.Insert \"Joe\" 90 )")
-		SEXTEXT("	(result = a.Length)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map IString Int32 a)")
+		("	(a.Insert \"Joe\" 90 )")
+		("	(result = a.Length)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMap2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMap2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7230,23 +7230,23 @@ namespace
 
 	void TestMap3(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map IString Int32 a)")
-		SEXTEXT("	(node n = (a \"Joe\"))")
-		SEXTEXT("	(if (n.Exists)")
-		SEXTEXT("		(result = 1)")
-		SEXTEXT("	else")
-		SEXTEXT("		(result = 2)")
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map IString Int32 a)")
+		("	(node n = (a \"Joe\"))")
+		("	(if (n.Exists)")
+		("		(result = 1)")
+		("	else")
+		("		(result = 2)")
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMap3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMap3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7263,24 +7263,24 @@ namespace
 
 	void TestMap4(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map IString Int32 a)")
-		SEXTEXT("	(a.Insert \"Joe\" 90 )")
-		SEXTEXT("	(node n = (a \"Joe\"))")
-		SEXTEXT("	(if (n.Exists)")
-		SEXTEXT("		(result = 3)")
-		SEXTEXT("	else")
-		SEXTEXT("		(result = 4)")
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map IString Int32 a)")
+		("	(a.Insert \"Joe\" 90 )")
+		("	(node n = (a \"Joe\"))")
+		("	(if (n.Exists)")
+		("		(result = 3)")
+		("	else")
+		("		(result = 4)")
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMap4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMap4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7297,19 +7297,19 @@ namespace
 
 	void TestMap5(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map IString Int32 a)")
-		SEXTEXT("	(node n = (a \"Joe\"))")
-		SEXTEXT("	(result = n.Value)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map IString Int32 a)")
+		("	(node n = (a \"Joe\"))")
+		("	(result = n.Value)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMap5"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMap5"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7325,20 +7325,20 @@ namespace
 
 	void TestMap6(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map IString Int32 a)")
-		SEXTEXT("	(a.Insert \"Joe\" 90)")
-		SEXTEXT("	(node n = (a \"Joe\"))")
-		SEXTEXT("	(result = n.Value)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map IString Int32 a)")
+		("	(a.Insert \"Joe\" 90)")
+		("	(node n = (a \"Joe\"))")
+		("	(result = n.Value)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMap6"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMap6"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7355,24 +7355,24 @@ namespace
 
 	void TestMap7(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map IString Int32 a)")
-		SEXTEXT("	(a.Insert \"Joe\" 90)")
-		SEXTEXT("	(a.Insert \"Alice\" 37)")
-		SEXTEXT("	(a.Insert \"Fred\" 65)")
-		SEXTEXT("	(node n = (a \"Joe\"))")
-		SEXTEXT("	(result = n.Value)")
-		SEXTEXT("	(node m = (a \"Fred\"))")
-		SEXTEXT("	(result = (result + m.Value))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map IString Int32 a)")
+		("	(a.Insert \"Joe\" 90)")
+		("	(a.Insert \"Alice\" 37)")
+		("	(a.Insert \"Fred\" 65)")
+		("	(node n = (a \"Joe\"))")
+		("	(result = n.Value)")
+		("	(node m = (a \"Fred\"))")
+		("	(result = (result + m.Value))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMap7"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMap7"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7389,21 +7389,21 @@ namespace
 
 	void TestMapOverwriteValue(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map IString Int32 a)")
-		SEXTEXT("	(a.Insert \"Joe\" 90)")
-		SEXTEXT("	(a.Insert \"Joe\" 239)")
-		SEXTEXT("	(node m = (a \"Joe\"))")
-		SEXTEXT("	(result = m.Value)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map IString Int32 a)")
+		("	(a.Insert \"Joe\" 90)")
+		("	(a.Insert \"Joe\" 239)")
+		("	(node m = (a \"Joe\"))")
+		("	(result = m.Value)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapOverwriteValue"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMapOverwriteValue"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7420,21 +7420,21 @@ namespace
 
 	void TestMapOverwriteValue64(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map IString Float64 a)")
-		SEXTEXT("	(a.Insert \"Joe\" 90)")
-		SEXTEXT("	(a.Insert \"Joe\" 239)")
-		SEXTEXT("	(node m = (a \"Joe\"))")
-		SEXTEXT("	(if (m.Value == 239) (result = 1) else (result = 0))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map IString Float64 a)")
+		("	(a.Insert \"Joe\" 90)")
+		("	(a.Insert \"Joe\" 239)")
+		("	(node m = (a \"Joe\"))")
+		("	(if (m.Value == 239) (result = 1) else (result = 0))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapOverwriteValue64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMapOverwriteValue64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7451,20 +7451,20 @@ namespace
 
 	void TestMapIndexedByInt32(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map Int32 Int32 a)")
-		SEXTEXT("	(a.Insert 45 48)")
-		SEXTEXT("	(node n = (a 45))")
-		SEXTEXT("	(result = n.Value)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map Int32 Int32 a)")
+		("	(a.Insert 45 48)")
+		("	(node n = (a 45))")
+		("	(result = n.Value)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapIndexedByInt32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMapIndexedByInt32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7481,20 +7481,20 @@ namespace
 
 	void TestMapIndexedByFloat64(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map Float64 Int32 a)")
-		SEXTEXT("	(a.Insert 45 48)")
-		SEXTEXT("	(node n = (a 45))")
-		SEXTEXT("	(result = n.Value)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map Float64 Int32 a)")
+		("	(a.Insert 45 48)")
+		("	(node n = (a 45))")
+		("	(result = n.Value)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapIndexedByFloat64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMapIndexedByFloat64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7511,23 +7511,23 @@ namespace
 
 	void TestDeleteKey(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map Float32 Int32 a)")
-		SEXTEXT("	(a.Insert 45 48)")
-		SEXTEXT("	(a.Insert 37 -248)")
-		SEXTEXT("	(node n = (a 37))")
-		SEXTEXT("	(n.Pop)")
-		SEXTEXT("	(node m = (a 45))")
-		SEXTEXT("	(result = (m.Value + a.Length))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map Float32 Int32 a)")
+		("	(a.Insert 45 48)")
+		("	(a.Insert 37 -248)")
+		("	(node n = (a 37))")
+		("	(n.Pop)")
+		("	(node m = (a 45))")
+		("	(result = (m.Value + a.Length))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDeleteKey"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDeleteKey"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7544,23 +7544,23 @@ namespace
 
 	void TestMapValueStruct(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct Vec4 (Int32 x y z w))")
+		("(struct Vec4 (Int32 x y z w))")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map Int32 Vec4 a)")
-		SEXTEXT("	(a.Insert 45 Vec4 (1 2 3 4))")
-		SEXTEXT("	(node n = (a 45))")
-		SEXTEXT("	(Vec4 v = & n)")
-		SEXTEXT("	(result = v.y)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map Int32 Vec4 a)")
+		("	(a.Insert 45 Vec4 (1 2 3 4))")
+		("	(node n = (a 45))")
+		("	(Vec4 v = & n)")
+		("	(result = v.y)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapValueStruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMapValueStruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7577,24 +7577,24 @@ namespace
 
 	void TestMapValueConstruct(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct Vec4 (Int32 x y z w))")
-		SEXTEXT("(method Vec4.Construct (Int32 x) (Int32 y) (Int32 z) -> : (this.x = x) (this.y = y) (this.z = z) (this.w = 1))") 
+		("(struct Vec4 (Int32 x y z w))")
+		("(method Vec4.Construct (Int32 x) (Int32 y) (Int32 z) -> : (this.x = x) (this.y = y) (this.z = z) (this.w = 1))") 
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map Int32 Vec4 a)")
-		SEXTEXT("	(a.Insert 45 Vec4 (1 2 3 4))")
-		SEXTEXT("	(node n = (a 45))")
-		SEXTEXT("	(Vec4 v = & n)")
-		SEXTEXT("	(result = v.z)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map Int32 Vec4 a)")
+		("	(a.Insert 45 Vec4 (1 2 3 4))")
+		("	(node n = (a 45))")
+		("	(Vec4 v = & n)")
+		("	(result = v.z)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapValueConstruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMapValueConstruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7611,27 +7611,27 @@ namespace
 
 	void TestMapForeach1(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct Vec4 (Int32 x y z w))")
-		SEXTEXT("(method Vec4.Construct (Int32 x) (Int32 y) (Int32 z) -> : (this.x = x) (this.y = y) (this.z = z) (this.w = 1))") 
+		("(struct Vec4 (Int32 x y z w))")
+		("(method Vec4.Construct (Int32 x) (Int32 y) (Int32 z) -> : (this.x = x) (this.y = y) (this.z = z) (this.w = 1))") 
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map Int32 Vec4 a)")
-		SEXTEXT("	(a.Insert 45 Vec4 (1 2 3))")
-		SEXTEXT("	(a.Insert 23 Vec4 (5 6 7))")
-		SEXTEXT("	(a.Insert -6 Vec4 (8 9 10))")
-		SEXTEXT("	(foreach n # a ")
-		SEXTEXT("		(Vec4 v = & n)")
-		SEXTEXT("		(result = (result + v.x))")
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map Int32 Vec4 a)")
+		("	(a.Insert 45 Vec4 (1 2 3))")
+		("	(a.Insert 23 Vec4 (5 6 7))")
+		("	(a.Insert -6 Vec4 (8 9 10))")
+		("	(foreach n # a ")
+		("		(Vec4 v = & n)")
+		("		(result = (result + v.x))")
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapForeach1"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMapForeach1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7648,30 +7648,30 @@ namespace
 
 	void TestMapInStruct(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct Vec4Map (map Int32 Vec4 a))")
-		SEXTEXT("(method Vec4Map.Construct -> (construct a () ) : )")
+		("(struct Vec4Map (map Int32 Vec4 a))")
+		("(method Vec4Map.Construct -> (construct a () ) : )")
 
-		SEXTEXT("(struct Vec4 (Int32 x y z w))")
-		SEXTEXT("(method Vec4.Construct (Int32 x) (Int32 y) (Int32 z) -> : (this.x = x) (this.y = y) (this.z = z) (this.w = 1))") 
+		("(struct Vec4 (Int32 x y z w))")
+		("(method Vec4.Construct (Int32 x) (Int32 y) (Int32 z) -> : (this.x = x) (this.y = y) (this.z = z) (this.w = 1))") 
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(Vec4Map m () )")
-		SEXTEXT("	(m.a.Insert 45 Vec4 (1 2 3))")
-		SEXTEXT("	(m.a.Insert 23 Vec4 (5 6 7))")
-		SEXTEXT("	(m.a.Insert -6 Vec4 (8 9 10))")
-		SEXTEXT("	(foreach n # m.a ")
-		SEXTEXT("		(Vec4 v = & n)")
-		SEXTEXT("		(result = (result + v.x))")
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(Vec4Map m () )")
+		("	(m.a.Insert 45 Vec4 (1 2 3))")
+		("	(m.a.Insert 23 Vec4 (5 6 7))")
+		("	(m.a.Insert -6 Vec4 (8 9 10))")
+		("	(foreach n # m.a ")
+		("		(Vec4 v = & n)")
+		("		(result = (result + v.x))")
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapInStruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMapInStruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7688,27 +7688,27 @@ namespace
 
 	void TestMapInMap(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 		
-		SEXTEXT("(struct Vec4 (Int32 x y z w))")
-		SEXTEXT("(method Vec4.Construct (Int32 x) (Int32 y) (Int32 z) -> : (this.x = x) (this.y = y) (this.z = z) (this.w = 1))") 
+		("(struct Vec4 (Int32 x y z w))")
+		("(method Vec4.Construct (Int32 x) (Int32 y) (Int32 z) -> : (this.x = x) (this.y = y) (this.z = z) (this.w = 1))") 
 
-		SEXTEXT("(struct Vec4Map (map Int32 Vec4 a))")
-		SEXTEXT("(method Vec4Map.Construct -> (construct a () ) : )")
+		("(struct Vec4Map (map Int32 Vec4 a))")
+		("(method Vec4Map.Construct -> (construct a () ) : )")
 
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map Int32 Vec4Map m)")
-		SEXTEXT("	(m.Insert 45 Vec4Map ())")
-		SEXTEXT("	(node n = (m 45))")
-		SEXTEXT("	(Vec4Map subMap = & n)")
-		SEXTEXT("	(subMap.a.Insert 22 Vec4 (199 233 455))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map Int32 Vec4Map m)")
+		("	(m.Insert 45 Vec4Map ())")
+		("	(node n = (m 45))")
+		("	(Vec4Map subMap = & n)")
+		("	(subMap.a.Insert 22 Vec4 (199 233 455))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapInMap"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMapInMap"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7722,22 +7722,22 @@ namespace
 
 	void TestMapCall(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(function Insert55v52 (map Int32 Int32 x) -> : (x.Insert 55 52))")
+		("(function Insert55v52 (map Int32 Int32 x) -> : (x.Insert 55 52))")
 		
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map Int32 Int32 m)")
-		SEXTEXT("	(Insert55v52 m)")
-		SEXTEXT("	(node n = (m 55))")
-		SEXTEXT("	(result = n.Value)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map Int32 Int32 m)")
+		("	(Insert55v52 m)")
+		("	(node n = (m 55))")
+		("	(result = n.Value)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapCall"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMapCall"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7754,24 +7754,24 @@ namespace
 
 	void TestMapStrongTyping(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(function Insert55v52 (map Int64 Int64 a) -> : ")
-		SEXTEXT("	(a.Insert 55 52)")
-		SEXTEXT(")")
+		("(function Insert55v52 (map Int64 Int64 a) -> : ")
+		("	(a.Insert 55 52)")
+		(")")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map Int32 Float32 a)")
-		SEXTEXT("	(Insert55v52 a)")
-		SEXTEXT("	(node n = (a 55))")
-		SEXTEXT("	(result = n.Value)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map Int32 Float32 a)")
+		("	(Insert55v52 a)")
+		("	(node n = (a 55))")
+		("	(result = n.Value)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapStrongTyping"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMapStrongTyping"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7787,28 +7787,28 @@ namespace
 
 	void TestMapThrowAndCleanup(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(try")
-		SEXTEXT("		(")
-		SEXTEXT("			(map IString Int32 a)")
-		SEXTEXT("			(a.Insert \"Joe\" 90 )")
-		SEXTEXT("			(Sys.Throw 7001 \"Ayup\")")
-		SEXTEXT("			(result = a.Length)")
-		SEXTEXT("		)")
-		SEXTEXT("	catch ex")
-		SEXTEXT("		(")
-		SEXTEXT("			(result = ex.ErrorCode)")
-		SEXTEXT("		)")
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(try")
+		("		(")
+		("			(map IString Int32 a)")
+		("			(a.Insert \"Joe\" 90 )")
+		("			(Sys.Throw 7001 \"Ayup\")")
+		("			(result = a.Length)")
+		("		)")
+		("	catch ex")
+		("		(")
+		("			(result = ex.ErrorCode)")
+		("		)")
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapThrowAndCleanup"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMapThrowAndCleanup"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7825,27 +7825,27 @@ namespace
 
 	void TestMapThrowAndCleanup2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map IString Int32 a)")
-		SEXTEXT("	(a.Insert \"Joe\" 90 )")
-		SEXTEXT("	(try")
-		SEXTEXT("		(")	
-		SEXTEXT("			(foreach v # a (Sys.Throw 7051 \"Ayup\"))")	
-		SEXTEXT("		)")
-		SEXTEXT("	catch ex")
-		SEXTEXT("		(")
-		SEXTEXT("			(result = ex.ErrorCode)")
-		SEXTEXT("		)")
-		SEXTEXT("	)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map IString Int32 a)")
+		("	(a.Insert \"Joe\" 90 )")
+		("	(try")
+		("		(")	
+		("			(foreach v # a (Sys.Throw 7051 \"Ayup\"))")	
+		("		)")
+		("	catch ex")
+		("		(")
+		("			(result = ex.ErrorCode)")
+		("		)")
+		("	)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapThrowAndCleanup2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMapThrowAndCleanup2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7862,27 +7862,27 @@ namespace
 
 	void TestMapForeach2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(struct Vec4 (Int32 x y z w))")
-		SEXTEXT("(method Vec4.Construct (Int32 x) (Int32 y) (Int32 z) -> : (this.x = x) (this.y = y) (this.z = z) (this.w = 1))") 
+		("(struct Vec4 (Int32 x y z w))")
+		("(method Vec4.Construct (Int32 x) (Int32 y) (Int32 z) -> : (this.x = x) (this.y = y) (this.z = z) (this.w = 1))") 
   
-		SEXTEXT("(function Main -> (Int32 result):")
-		SEXTEXT("	(map Int32 Vec4 a)")
-		SEXTEXT("	(a.Insert 45 Vec4 (1 2 3))")
-		SEXTEXT("	(a.Insert 23 Vec4 (5 6 7))")
-		SEXTEXT("	(a.Insert -6 Vec4 (8 9 10))")
-		SEXTEXT("	(foreach n # a ")
-		SEXTEXT("		(n.Pop)")
-		SEXTEXT("	)")
-		SEXTEXT("	(result = a.Length)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 result):")
+		("	(map Int32 Vec4 a)")
+		("	(a.Insert 45 Vec4 (1 2 3))")
+		("	(a.Insert 23 Vec4 (5 6 7))")
+		("	(a.Insert -6 Vec4 (8 9 10))")
+		("	(foreach n # a ")
+		("		(n.Pop)")
+		("	)")
+		("	(result = a.Length)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMapForeach2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMapForeach2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7899,19 +7899,19 @@ namespace
 
 	void TestTypedef(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(alias Sys.Type.Int32 Sys.Type.Degrees)")
+		("(alias Sys.Type.Int32 Sys.Type.Degrees)")
   
-		SEXTEXT("(function Main -> (Degrees result):")
-		SEXTEXT("	(result = 360)")
-		SEXTEXT(")");
+		("(function Main -> (Degrees result):")
+		("	(result = 360)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestTypedef"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestTypedef"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7943,18 +7943,18 @@ namespace
 
 	void TestMathSinCosF(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float32 x) (Float32 y):")
-		SEXTEXT("	(Sys.Maths.F32.Sin 0.5 -> x)")
-		SEXTEXT("	(Sys.Maths.F32.Cos 0.5 -> y)")
-		SEXTEXT(")");
+		("(function Main -> (Float32 x) (Float32 y):")
+		("	(Sys.Maths.F32.Sin 0.5 -> x)")
+		("	(Sys.Maths.F32.Cos 0.5 -> y)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathSinCosF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathSinCosF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7974,18 +7974,18 @@ namespace
 
 	void TestMathSinCos(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float64 x) (Float64 y):")
-		SEXTEXT("	(Sys.Maths.F64.Sin 0.5 -> x)")
-		SEXTEXT("	(Sys.Maths.F64.Cos 0.5 -> y)")
-		SEXTEXT(")");
+		("(function Main -> (Float64 x) (Float64 y):")
+		("	(Sys.Maths.F64.Sin 0.5 -> x)")
+		("	(Sys.Maths.F64.Cos 0.5 -> y)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathSinCos"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathSinCos"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8005,17 +8005,17 @@ namespace
 
 	void TestMathTan(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float64 x):")
-		SEXTEXT("	(Sys.Maths.F64.Tan 0.5 -> x)")
-		SEXTEXT(")");
+		("(function Main -> (Float64 x):")
+		("	(Sys.Maths.F64.Tan 0.5 -> x)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathTan"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathTan"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8032,17 +8032,17 @@ namespace
 
 	void TestMathTanF(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float32 x):")
-		SEXTEXT("	(Sys.Maths.F32.Tan 0.5 -> x)")
-		SEXTEXT(")");
+		("(function Main -> (Float32 x):")
+		("	(Sys.Maths.F32.Tan 0.5 -> x)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathTanF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathTanF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8059,17 +8059,17 @@ namespace
 
 	void TestMathArcTanF(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float32 x):")
-		SEXTEXT("	(Sys.Maths.F32.ArcTan 0.5 -> x)")
-		SEXTEXT(")");
+		("(function Main -> (Float32 x):")
+		("	(Sys.Maths.F32.ArcTan 0.5 -> x)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathArcTanF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathArcTanF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8086,17 +8086,17 @@ namespace
 
 	void TestMathArcTan(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float64 x):")
-		SEXTEXT("	(Sys.Maths.F64.ArcTan 0.5 -> x)")
-		SEXTEXT(")");
+		("(function Main -> (Float64 x):")
+		("	(Sys.Maths.F64.ArcTan 0.5 -> x)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathArcTan"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathArcTan"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8113,17 +8113,17 @@ namespace
 
 	void TestMathArcTanGradF(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float32 x):")
-		SEXTEXT("	(Sys.Maths.F32.ArcTanYX 1 2 -> x)")
-		SEXTEXT(")");
+		("(function Main -> (Float32 x):")
+		("	(Sys.Maths.F32.ArcTanYX 1 2 -> x)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathArcTanGradF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathArcTanGradF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8140,17 +8140,17 @@ namespace
 
 	void TestMathArcTanGrad(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float64 x):")
-		SEXTEXT("	(Sys.Maths.F64.ArcTanYX 1 2 -> x)")
-		SEXTEXT(")");
+		("(function Main -> (Float64 x):")
+		("	(Sys.Maths.F64.ArcTanYX 1 2 -> x)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathArcTanGrad"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathArcTanGrad"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8167,17 +8167,17 @@ namespace
 
 	void TestMathArcSin(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float64 x):")
-		SEXTEXT("	(Sys.Maths.F64.ArcSin 0.5 -> x)")
-		SEXTEXT(")");
+		("(function Main -> (Float64 x):")
+		("	(Sys.Maths.F64.ArcSin 0.5 -> x)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathArcSin"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathArcSin"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8194,17 +8194,17 @@ namespace
 
 	void TestMathArcSinF(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float32 x):")
-		SEXTEXT("	(Sys.Maths.F32.ArcSin 0.5 -> x)")
-		SEXTEXT(")");
+		("(function Main -> (Float32 x):")
+		("	(Sys.Maths.F32.ArcSin 0.5 -> x)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathArcSinF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathArcSinF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8221,17 +8221,17 @@ namespace
 
 	void TestMathArcCos(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float64 x):")
-		SEXTEXT("	(Sys.Maths.F64.ArcCos 0.5 -> x)")
-		SEXTEXT(")");
+		("(function Main -> (Float64 x):")
+		("	(Sys.Maths.F64.ArcCos 0.5 -> x)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathArcCos"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathArcCos"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8248,17 +8248,17 @@ namespace
 
 	void TestMathArcCosF(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float32 x):")
-		SEXTEXT("	(Sys.Maths.F32.ArcCos 0.5 -> x)")
-		SEXTEXT(")");
+		("(function Main -> (Float32 x):")
+		("	(Sys.Maths.F32.ArcCos 0.5 -> x)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathArcCosF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathArcCosF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8275,18 +8275,18 @@ namespace
 
 	void TestMathSinhCoshF(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float32 x) (Float32 y):")
-		SEXTEXT("	(Sys.Maths.F32.Sinh 0.5 -> x)")
-		SEXTEXT("	(Sys.Maths.F32.Cosh 0.5 -> y)")
-		SEXTEXT(")");
+		("(function Main -> (Float32 x) (Float32 y):")
+		("	(Sys.Maths.F32.Sinh 0.5 -> x)")
+		("	(Sys.Maths.F32.Cosh 0.5 -> y)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathSinhCoshF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathSinhCoshF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8306,18 +8306,18 @@ namespace
 
 	void TestMathSinhCosh(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float64 x) (Float64 y):")
-		SEXTEXT("	(Sys.Maths.F64.Sinh 0.5 -> x)")
-		SEXTEXT("	(Sys.Maths.F64.Cosh 0.5 -> y)")
-		SEXTEXT(")");
+		("(function Main -> (Float64 x) (Float64 y):")
+		("	(Sys.Maths.F64.Sinh 0.5 -> x)")
+		("	(Sys.Maths.F64.Cosh 0.5 -> y)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathSinhCosh"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathSinhCosh"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8338,17 +8338,17 @@ namespace
 
 	void TestMathTanh(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float64 x):")
-		SEXTEXT("	(Sys.Maths.F64.Tanh 0.5 -> x)")
-		SEXTEXT(")");
+		("(function Main -> (Float64 x):")
+		("	(Sys.Maths.F64.Tanh 0.5 -> x)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathTanh"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathTanh"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8365,17 +8365,17 @@ namespace
 
 	void TestMathTanhF(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float32 x):")
-		SEXTEXT("	(Sys.Maths.F32.Tanh 0.5 -> x)")
-		SEXTEXT(")");
+		("(function Main -> (Float32 x):")
+		("	(Sys.Maths.F32.Tanh 0.5 -> x)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathTanhF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathTanhF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8392,18 +8392,18 @@ namespace
 
 	void TestMathExp(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float64 x):")
-		SEXTEXT("	(Sys.Maths.F64.Exp 1.0 -> x)")
-		SEXTEXT("	(x = (x - 2.7182818284590452353602874713527) )")
-		SEXTEXT(")");
+		("(function Main -> (Float64 x):")
+		("	(Sys.Maths.F64.Exp 1.0 -> x)")
+		("	(x = (x - 2.7182818284590452353602874713527) )")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathExp"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathExp"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8420,18 +8420,18 @@ namespace
 
 	void TestMathExpF(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float32 x):")
-		SEXTEXT("	(Sys.Maths.F32.Exp 1.0 -> x)")
-		SEXTEXT("	(x = (x - 2.7182818284590452353602874713527) )")
-		SEXTEXT(")");
+		("(function Main -> (Float32 x):")
+		("	(Sys.Maths.F32.Exp 1.0 -> x)")
+		("	(x = (x - 2.7182818284590452353602874713527) )")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathExpF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathExpF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8448,18 +8448,18 @@ namespace
 
 	void TestMathLogN(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float64 x):")
-		SEXTEXT("	(Sys.Maths.F64.LogN 2.0 -> x)")
-		SEXTEXT("	(x = (x - 0.69314718055994530941723212145818) )")
-		SEXTEXT(")");
+		("(function Main -> (Float64 x):")
+		("	(Sys.Maths.F64.LogN 2.0 -> x)")
+		("	(x = (x - 0.69314718055994530941723212145818) )")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathLogN"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathLogN"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8476,18 +8476,18 @@ namespace
 
 	void TestMathLogNF(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float32 x):")
-		SEXTEXT("	(Sys.Maths.F32.LogN 2 -> x)")
-		SEXTEXT("	(x = (x - 0.69314718055994530941723212145818) )")
-		SEXTEXT(")");
+		("(function Main -> (Float32 x):")
+		("	(Sys.Maths.F32.LogN 2 -> x)")
+		("	(x = (x - 0.69314718055994530941723212145818) )")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathLogNF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathLogNF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8504,18 +8504,18 @@ namespace
 
 	void TestMathLog10(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float64 x):")
-		SEXTEXT("	(Sys.Maths.F64.Log10 1000.0 -> x)")
-		SEXTEXT("	(x = (x - 3) )")
-		SEXTEXT(")");
+		("(function Main -> (Float64 x):")
+		("	(Sys.Maths.F64.Log10 1000.0 -> x)")
+		("	(x = (x - 3) )")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathLog10"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathLog10"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8532,18 +8532,18 @@ namespace
 
 	void TestMathLog10F(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float32 x):")
-		SEXTEXT("	(Sys.Maths.F32.Log10 100000 -> x)")
-		SEXTEXT("	(x = (x - 5) )")
-		SEXTEXT(")");
+		("(function Main -> (Float32 x):")
+		("	(Sys.Maths.F32.Log10 100000 -> x)")
+		("	(x = (x - 5) )")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathLog10F"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathLog10F"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8560,18 +8560,18 @@ namespace
 
 	void TestMathPow(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float64 x):")
-		SEXTEXT("	(Sys.Maths.F64.Power 3.0 4.0 -> x)")
-		SEXTEXT("	(x = (x - 81) )")
-		SEXTEXT(")");
+		("(function Main -> (Float64 x):")
+		("	(Sys.Maths.F64.Power 3.0 4.0 -> x)")
+		("	(x = (x - 81) )")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathPow"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathPow"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8588,18 +8588,18 @@ namespace
 
 	void TestMathPowF(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float32 x):")
-		SEXTEXT("	(Sys.Maths.F32.Power 7.0 2.0 -> x)")
-		SEXTEXT("	(x = (x - 49.0) )")
-		SEXTEXT(")");
+		("(function Main -> (Float32 x):")
+		("	(Sys.Maths.F32.Power 7.0 2.0 -> x)")
+		("	(x = (x - 49.0) )")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathPowF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathPowF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8616,18 +8616,18 @@ namespace
 
 	void TestMathAbsF(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float32 x):")
-		SEXTEXT("	(Sys.Maths.F32.Abs -5 -> x)")
-		SEXTEXT("	(x = (x - 5) )")
-		SEXTEXT(")");
+		("(function Main -> (Float32 x):")
+		("	(Sys.Maths.F32.Abs -5 -> x)")
+		("	(x = (x - 5) )")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathAbsF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathAbsF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8644,18 +8644,18 @@ namespace
 
 	void TestMathAbs(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float64 x):")
-		SEXTEXT("	(Sys.Maths.F64.Abs 12 -> x)")
-		SEXTEXT("	(x = (x - (Sys.Maths.F64.Abs -12) ))")
-		SEXTEXT(")");
+		("(function Main -> (Float64 x):")
+		("	(Sys.Maths.F64.Abs 12 -> x)")
+		("	(x = (x - (Sys.Maths.F64.Abs -12) ))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathAbs"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathAbs"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8672,18 +8672,18 @@ namespace
 
 	void TestMathSqrtF(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float32 x):")
-		SEXTEXT("	(Sys.Maths.F32.SquareRoot 25 -> x)")
-		SEXTEXT("	(x = (x - 5) )")
-		SEXTEXT(")");
+		("(function Main -> (Float32 x):")
+		("	(Sys.Maths.F32.SquareRoot 25 -> x)")
+		("	(x = (x - 5) )")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathSqrtF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathSqrtF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8700,18 +8700,18 @@ namespace
 
 	void TestMathSqrt(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float64 x):")
-		SEXTEXT("	(Sys.Maths.F64.SquareRoot 144 -> x)")
-		SEXTEXT("	(x = (x - 12))")
-		SEXTEXT(")");
+		("(function Main -> (Float64 x):")
+		("	(Sys.Maths.F64.SquareRoot 144 -> x)")
+		("	(x = (x - 12))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathSqrt"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathSqrt"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8728,18 +8728,18 @@ namespace
 
 	void TestMathAbsInt32(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 x):")
-		SEXTEXT("	(Sys.Maths.I32.Abs 12 -> x)")
-		SEXTEXT("	(x = (x - (Sys.Maths.I32.Abs -12) ))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 x):")
+		("	(Sys.Maths.I32.Abs 12 -> x)")
+		("	(x = (x - (Sys.Maths.I32.Abs -12) ))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathAbsInt32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathAbsInt32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8756,18 +8756,18 @@ namespace
 
 	void TestMathAbsInt64(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int64 x):")
-		SEXTEXT("	(Sys.Maths.I64.Abs 12 -> x)")
-		SEXTEXT("	(x = (x - (Sys.Maths.I64.Abs -12) ))")
-		SEXTEXT(")");
+		("(function Main -> (Int64 x):")
+		("	(Sys.Maths.I64.Abs 12 -> x)")
+		("	(x = (x - (Sys.Maths.I64.Abs -12) ))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathAbsInt64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathAbsInt64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8784,18 +8784,18 @@ namespace
 
 	void TestMathCeilF(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float32 x):")
-		SEXTEXT("	(Sys.Maths.F32.Ceiling 25.00123 -> x)")
-		SEXTEXT("	(x = (x - 26) )")
-		SEXTEXT(")");
+		("(function Main -> (Float32 x):")
+		("	(Sys.Maths.F32.Ceiling 25.00123 -> x)")
+		("	(x = (x - 26) )")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathCeilF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathCeilF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8812,18 +8812,18 @@ namespace
 
 	void TestMathCeil(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float64 x):")
-		SEXTEXT("	(Sys.Maths.F64.Ceiling 17.98 -> x)")
-		SEXTEXT("	(x = (x - 18))")
-		SEXTEXT(")");
+		("(function Main -> (Float64 x):")
+		("	(Sys.Maths.F64.Ceiling 17.98 -> x)")
+		("	(x = (x - 18))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathCeil"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathCeil"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8840,18 +8840,18 @@ namespace
 
 	void TestMathFloorF(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float32 x):")
-		SEXTEXT("	(Sys.Maths.F32.Floor 25.00123 -> x)")
-		SEXTEXT("	(x = (x - 25) )")
-		SEXTEXT(")");
+		("(function Main -> (Float32 x):")
+		("	(Sys.Maths.F32.Floor 25.00123 -> x)")
+		("	(x = (x - 25) )")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathFloorF"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathFloorF"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8868,18 +8868,18 @@ namespace
 
 	void TestMathFloor(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Float64 x):")
-		SEXTEXT("	(Sys.Maths.F64.Floor 17.98 -> x)")
-		SEXTEXT("	(x = (x - 17))")
-		SEXTEXT(")");
+		("(function Main -> (Float64 x):")
+		("	(Sys.Maths.F64.Floor 17.98 -> x)")
+		("	(x = (x - 17))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathFloor"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathFloor"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8896,17 +8896,17 @@ namespace
 
 	void TestMathModInt32(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 rem):")
-			SEXTEXT("	(Sys.Maths.I32.Mod 16 9 -> rem)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 rem):")
+			("	(Sys.Maths.I32.Mod 16 9 -> rem)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathModInt32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathModInt32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8923,17 +8923,17 @@ namespace
 
 	void TestMathModInt64(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int64 rem):")
-			SEXTEXT("	(Sys.Maths.I64.Mod 12 5 -> rem)")
-		SEXTEXT(")");
+		("(function Main -> (Int64 rem):")
+			("	(Sys.Maths.I64.Mod 12 5 -> rem)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathModInt64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathModInt64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8951,19 +8951,19 @@ namespace
 
 	void TestMathShiftInt64(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int64 x):")
-		SEXTEXT("	(x = 0)")
-		SEXTEXT("	(x = (x + (Sys.Maths.I64.LeftShift 3 2)))")
-		SEXTEXT("	(x = (x + (Sys.Maths.I64.RightShift 32 5)))")
-		SEXTEXT(")");
+		("(function Main -> (Int64 x):")
+		("	(x = 0)")
+		("	(x = (x + (Sys.Maths.I64.LeftShift 3 2)))")
+		("	(x = (x + (Sys.Maths.I64.RightShift 32 5)))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathShiftInt64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathShiftInt64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -8980,19 +8980,19 @@ namespace
 
 	void TestMathShiftInt32(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
   
-		SEXTEXT("(function Main -> (Int32 x):")
-		SEXTEXT("	(x = 0)")
-		SEXTEXT("	(x = (x + (Sys.Maths.I32.LeftShift 3 2)))")
-		SEXTEXT("	(x = (x + (Sys.Maths.I32.RightShift 32 5)))")
-		SEXTEXT(")");
+		("(function Main -> (Int32 x):")
+		("	(x = 0)")
+		("	(x = (x + (Sys.Maths.I32.LeftShift 3 2)))")
+		("	(x = (x + (Sys.Maths.I32.RightShift 32 5)))")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMathShiftInt32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMathShiftInt32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9009,19 +9009,19 @@ namespace
 
 	void TestMinMaxInt32(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Int32 x):")
-			SEXTEXT("	(Int32 y = (Sys.Maths.I32.MinOf 5 7))")
-			SEXTEXT("	(Int32 z = (Sys.Maths.I32.MinOf -1 14))")
-			SEXTEXT("	(Sys.Maths.I32.MaxOf y z -> x)")
-			SEXTEXT(")");
+			("(function Main -> (Int32 x):")
+			("	(Int32 y = (Sys.Maths.I32.MinOf 5 7))")
+			("	(Int32 z = (Sys.Maths.I32.MinOf -1 14))")
+			("	(Sys.Maths.I32.MaxOf y z -> x)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMinMaxInt32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestMinMaxInt32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9038,19 +9038,19 @@ namespace
 
 	void TestMinMaxFloat32(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Float32 x):")
-			SEXTEXT("	(Float32 y = (Sys.Maths.F32.MinOf 5 7))")
-			SEXTEXT("	(Float32 z = (Sys.Maths.F32.MinOf -1 14))")
-			SEXTEXT("	(Sys.Maths.F32.MaxOf y z -> x)")
-			SEXTEXT(")");
+			("(function Main -> (Float32 x):")
+			("	(Float32 y = (Sys.Maths.F32.MinOf 5 7))")
+			("	(Float32 z = (Sys.Maths.F32.MinOf -1 14))")
+			("	(Sys.Maths.F32.MaxOf y z -> x)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMinMaxFloat32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestMinMaxFloat32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9067,19 +9067,19 @@ namespace
 
 	void TestMinMaxInt64(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Int64 x):")
-			SEXTEXT("	(Int64 y = (Sys.Maths.I64.MinOf 5 7))")
-			SEXTEXT("	(Int64 z = (Sys.Maths.I64.MinOf -1 14))")
-			SEXTEXT("	(Sys.Maths.I64.MaxOf y z -> x)")
-			SEXTEXT(")");
+			("(function Main -> (Int64 x):")
+			("	(Int64 y = (Sys.Maths.I64.MinOf 5 7))")
+			("	(Int64 z = (Sys.Maths.I64.MinOf -1 14))")
+			("	(Sys.Maths.I64.MaxOf y z -> x)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMinMaxInt64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestMinMaxInt64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9096,19 +9096,19 @@ namespace
 
 	void TestMinMaxFloat64(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Float64 x):")
-			SEXTEXT("	(Float64 y = (Sys.Maths.F64.MinOf 5 7))")
-			SEXTEXT("	(Float64 z = (Sys.Maths.F64.MinOf -1 14))")
-			SEXTEXT("	(Sys.Maths.F64.MaxOf y z -> x)")
-			SEXTEXT(")");
+			("(function Main -> (Float64 x):")
+			("	(Float64 y = (Sys.Maths.F64.MinOf 5 7))")
+			("	(Float64 z = (Sys.Maths.F64.MinOf -1 14))")
+			("	(Sys.Maths.F64.MaxOf y z -> x)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMinMaxFloat64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestMinMaxFloat64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9125,18 +9125,18 @@ namespace
 
 	void TestLimitsInt32(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Int32 x)(Int32 y):")
-			SEXTEXT("	(x = Sys.Maths.I32.MinValue)")
-			SEXTEXT("	(y = Sys.Maths.I32.MaxValue)")
-			SEXTEXT(")");
+			("(function Main -> (Int32 x)(Int32 y):")
+			("	(x = Sys.Maths.I32.MinValue)")
+			("	(y = Sys.Maths.I32.MaxValue)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestLimitsInt32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestLimitsInt32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9156,20 +9156,20 @@ namespace
 
 	void TestIsInfinity(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Bool x)(Bool y)(Bool z)(Bool w):")
-			SEXTEXT("	(Sys.Maths.F32.IsInfinity (1 / 0) -> x)")
-			SEXTEXT("	(Sys.Maths.F32.IsInfinity (-1 / 0) -> y)")
-			SEXTEXT("	(Sys.Maths.F32.IsInfinity (0 / 0) -> z)")
-			SEXTEXT("	(Sys.Maths.F32.IsInfinity 3 -> w)")
-			SEXTEXT(")");
+			("(function Main -> (Bool x)(Bool y)(Bool z)(Bool w):")
+			("	(Sys.Maths.F32.IsInfinity (1 / 0) -> x)")
+			("	(Sys.Maths.F32.IsInfinity (-1 / 0) -> y)")
+			("	(Sys.Maths.F32.IsInfinity (0 / 0) -> z)")
+			("	(Sys.Maths.F32.IsInfinity 3 -> w)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsInfinity"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestIsInfinity"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9195,19 +9195,19 @@ namespace
 
 	void TestIsQuietNan(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Bool x)(Bool y)(Bool z):")
-			SEXTEXT("	(Sys.Maths.F32.IsQuietNan (0 / 0) -> x)")
-			SEXTEXT("	(Sys.Maths.F32.IsQuietNan (1 / 0) -> y)")
-			SEXTEXT("	(Sys.Maths.F32.IsQuietNan 2 -> z)")
-			SEXTEXT(")");
+			("(function Main -> (Bool x)(Bool y)(Bool z):")
+			("	(Sys.Maths.F32.IsQuietNan (0 / 0) -> x)")
+			("	(Sys.Maths.F32.IsQuietNan (1 / 0) -> y)")
+			("	(Sys.Maths.F32.IsQuietNan 2 -> z)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsQuietNan"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestIsQuietNan"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9230,20 +9230,20 @@ namespace
 
 	void TestIsFinite(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Bool x)(Bool y)(Bool z)(Bool w):")
-			SEXTEXT("	(Sys.Maths.F32.IsFinite (0 / 0) -> x)")
-			SEXTEXT("	(Sys.Maths.F32.IsFinite (1 / 0) -> y)")
-			SEXTEXT("	(Sys.Maths.F32.IsFinite 0 -> z)")
-			SEXTEXT("	(Sys.Maths.F32.IsFinite 1 -> w)")
-			SEXTEXT(")");
+			("(function Main -> (Bool x)(Bool y)(Bool z)(Bool w):")
+			("	(Sys.Maths.F32.IsFinite (0 / 0) -> x)")
+			("	(Sys.Maths.F32.IsFinite (1 / 0) -> y)")
+			("	(Sys.Maths.F32.IsFinite 0 -> z)")
+			("	(Sys.Maths.F32.IsFinite 1 -> w)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsFinite"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestIsFinite"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9269,20 +9269,20 @@ namespace
 
 	void TestIsNormal(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Bool x)(Bool y)(Bool z)(Bool w):")
-			SEXTEXT("	(Sys.Maths.F32.IsNormal (0 / 0) -> x)")
-			SEXTEXT("	(Sys.Maths.F32.IsNormal (1 / 0) -> y)")
-			SEXTEXT("	(Sys.Maths.F32.IsNormal 0 -> z)")
-			SEXTEXT("	(Sys.Maths.F32.IsNormal 1 -> w)")
-			SEXTEXT(")");
+			("(function Main -> (Bool x)(Bool y)(Bool z)(Bool w):")
+			("	(Sys.Maths.F32.IsNormal (0 / 0) -> x)")
+			("	(Sys.Maths.F32.IsNormal (1 / 0) -> y)")
+			("	(Sys.Maths.F32.IsNormal 0 -> z)")
+			("	(Sys.Maths.F32.IsNormal 1 -> w)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsNormal"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestIsNormal"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9308,20 +9308,20 @@ namespace
 
 	void TestIsInfinity64(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Bool x)(Bool y)(Bool z)(Bool w):")
-			SEXTEXT("	(Sys.Maths.F64.IsInfinity (1 / 0) -> x)")
-			SEXTEXT("	(Sys.Maths.F64.IsInfinity (-1 / 0) -> y)")
-			SEXTEXT("	(Sys.Maths.F64.IsInfinity (0 / 0) -> z)")
-			SEXTEXT("	(Sys.Maths.F64.IsInfinity 3 -> w)")
-			SEXTEXT(")");
+			("(function Main -> (Bool x)(Bool y)(Bool z)(Bool w):")
+			("	(Sys.Maths.F64.IsInfinity (1 / 0) -> x)")
+			("	(Sys.Maths.F64.IsInfinity (-1 / 0) -> y)")
+			("	(Sys.Maths.F64.IsInfinity (0 / 0) -> z)")
+			("	(Sys.Maths.F64.IsInfinity 3 -> w)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsInfinity64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestIsInfinity64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9347,19 +9347,19 @@ namespace
 
 	void TestIsQuietNan64(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Bool x)(Bool y)(Bool z):")
-			SEXTEXT("	(Sys.Maths.F64.IsQuietNan (0 / 0) -> x)")
-			SEXTEXT("	(Sys.Maths.F64.IsQuietNan (1 / 0) -> y)")
-			SEXTEXT("	(Sys.Maths.F64.IsQuietNan 2 -> z)")
-			SEXTEXT(")");
+			("(function Main -> (Bool x)(Bool y)(Bool z):")
+			("	(Sys.Maths.F64.IsQuietNan (0 / 0) -> x)")
+			("	(Sys.Maths.F64.IsQuietNan (1 / 0) -> y)")
+			("	(Sys.Maths.F64.IsQuietNan 2 -> z)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsQuietNan64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestIsQuietNan64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9382,20 +9382,20 @@ namespace
 
 	void TestIsFinite64(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Bool x)(Bool y)(Bool z)(Bool w):")
-			SEXTEXT("	(Sys.Maths.F64.IsFinite (0 / 0) -> x)")
-			SEXTEXT("	(Sys.Maths.F64.IsFinite (1 / 0) -> y)")
-			SEXTEXT("	(Sys.Maths.F64.IsFinite 0 -> z)")
-			SEXTEXT("	(Sys.Maths.F64.IsFinite 1 -> w)")
-			SEXTEXT(")");
+			("(function Main -> (Bool x)(Bool y)(Bool z)(Bool w):")
+			("	(Sys.Maths.F64.IsFinite (0 / 0) -> x)")
+			("	(Sys.Maths.F64.IsFinite (1 / 0) -> y)")
+			("	(Sys.Maths.F64.IsFinite 0 -> z)")
+			("	(Sys.Maths.F64.IsFinite 1 -> w)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsFinite64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestIsFinite64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9421,20 +9421,20 @@ namespace
 
 	void TestIsNormal64(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Bool x)(Bool y)(Bool z)(Bool w):")
-			SEXTEXT("	(Sys.Maths.F64.IsNormal (0 / 0) -> x)")
-			SEXTEXT("	(Sys.Maths.F64.IsNormal (1 / 0) -> y)")
-			SEXTEXT("	(Sys.Maths.F64.IsNormal 0 -> z)")
-			SEXTEXT("	(Sys.Maths.F64.IsNormal 1 -> w)")
-			SEXTEXT(")");
+			("(function Main -> (Bool x)(Bool y)(Bool z)(Bool w):")
+			("	(Sys.Maths.F64.IsNormal (0 / 0) -> x)")
+			("	(Sys.Maths.F64.IsNormal (1 / 0) -> y)")
+			("	(Sys.Maths.F64.IsNormal 0 -> z)")
+			("	(Sys.Maths.F64.IsNormal 1 -> w)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestIsNormal64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestIsNormal64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9460,18 +9460,18 @@ namespace
 
 	void TestLimitsFloat32(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Float32 x)(Float32 y):")
-			SEXTEXT("	(x = Sys.Maths.F32.MinValue)")
-			SEXTEXT("	(y = Sys.Maths.F32.MaxValue)")
-			SEXTEXT(")");
+			("(function Main -> (Float32 x)(Float32 y):")
+			("	(x = Sys.Maths.F32.MinValue)")
+			("	(y = Sys.Maths.F32.MaxValue)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestLimitsFloat32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestLimitsFloat32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9491,18 +9491,18 @@ namespace
 
 	void TestLimitsFloat64(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Float64 x)(Float64 y):")
-			SEXTEXT("	(x = Sys.Maths.F64.MinValue)")
-			SEXTEXT("	(y = Sys.Maths.F64.MaxValue)")
-			SEXTEXT(")");
+			("(function Main -> (Float64 x)(Float64 y):")
+			("	(x = Sys.Maths.F64.MinValue)")
+			("	(y = Sys.Maths.F64.MaxValue)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestLimitsFloat64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestLimitsFloat64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9522,18 +9522,18 @@ namespace
 
 	void TestLimitsInt64(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			(" (alias Main EntryPoint.Main)")
 
-			SEXTEXT("(using Sys.Type)")
+			("(using Sys.Type)")
 
-			SEXTEXT("(function Main -> (Int64 x)(Int64 y):")
-			SEXTEXT("	(x = Sys.Maths.I64.MinValue)")
-			SEXTEXT("	(y = Sys.Maths.I64.MaxValue)")
-			SEXTEXT(")");
+			("(function Main -> (Int64 x)(Int64 y):")
+			("	(x = Sys.Maths.I64.MinValue)")
+			("	(y = Sys.Maths.I64.MaxValue)")
+			(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestLimitsInt64"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestLimitsInt64"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9553,30 +9553,30 @@ namespace
 
 	void TestReturnInterface(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode = 
-		SEXTEXT("(namespace EntryPoint)")
-		SEXTEXT(" (alias Main EntryPoint.Main)")
+		cstr srcCode = 
+		("(namespace EntryPoint)")
+		(" (alias Main EntryPoint.Main)")
   
-		SEXTEXT("(using Sys.Type)")
+		("(using Sys.Type)")
 
-		SEXTEXT("(namespace Bot)")
+		("(namespace Bot)")
 
-		SEXTEXT("(interface Bot.IRobotBrain (Id -> (Int32 id)))")
-		SEXTEXT("(interface Bot.IRobot (Brain -> (Bot.IRobotBrain brain)))")
+		("(interface Bot.IRobotBrain (Id -> (Int32 id)))")
+		("(interface Bot.IRobot (Brain -> (Bot.IRobotBrain brain)))")
 
-		SEXTEXT("(class Robby (implements Bot.IRobot) (RobotBrain brain))")
-		SEXTEXT("(class RobotBrain (implements Bot.IRobotBrain))")
+		("(class Robby (implements Bot.IRobot) (RobotBrain brain))")
+		("(class RobotBrain (implements Bot.IRobotBrain))")
 
-		SEXTEXT("(method RobotBrain.Id -> (Int32 id): (id = 9000))")
-		SEXTEXT("(method Robby.Brain -> (Bot.IRobotBrain brain): (brain = this.brain))")
+		("(method RobotBrain.Id -> (Int32 id): (id = 9000))")
+		("(method Robby.Brain -> (Bot.IRobotBrain brain): (brain = this.brain))")
   
-		SEXTEXT("(function Main -> (Int32 exitCode):")
-		SEXTEXT("	(Robby robot)")
-		SEXTEXT("	(Bot.IRobotBrain brain = robot.Brain)")
-		SEXTEXT("	(brain.Id -> exitCode)")
-		SEXTEXT(")");
+		("(function Main -> (Int32 exitCode):")
+		("	(Robby robot)")
+		("	(Bot.IRobotBrain brain = robot.Brain)")
+		("	(brain.Id -> exitCode)")
+		(")");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestReturnInterface"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestReturnInterface"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9593,17 +9593,17 @@ namespace
 
 	void TestDoubleArrowsInFunction(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 result):")	
-			SEXTEXT("	(result = 7)")
-			SEXTEXT(")")			
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 result):")	
+			("	(result = 7)")
+			(")")			
+			("(alias Main EntryPoint.Main)")
 
-			SEXTEXT("(function F (Int32 x) -> (Int32 y) -> : (y = x))")			
+			("(function F (Int32 x) -> (Int32 y) -> : (y = x))")			
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestDoubleArrowsInFunction"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestDoubleArrowsInFunction"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -9621,18 +9621,18 @@ namespace
 
 	void TestMemberwiseInit(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(struct GameObject (Int32 value) (IString name) (Int32 id))")	
-			SEXTEXT("(function Main -> (Int32 result):")	
-			SEXTEXT("	(GameObject obj = 7 \"dog\" 12)")
-			SEXTEXT("	(Sys.Print obj.name)")
-			SEXTEXT("	(result = obj.name.Length)")
-			SEXTEXT(")")			
-			SEXTEXT("(alias Main EntryPoint.Main)")		
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(struct GameObject (Int32 value) (IString name) (Int32 id))")	
+			("(function Main -> (Int32 result):")	
+			("	(GameObject obj = 7 \"dog\" 12)")
+			("	(Sys.Print obj.name)")
+			("	(result = obj.name.Length)")
+			(")")			
+			("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMemberwiseInit"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMemberwiseInit"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9647,20 +9647,20 @@ namespace
 
 	void TestMemberwise2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(using Sys.Maths)\n")
-			SEXTEXT("(struct MatObject (Vec3i a b))\n")
-			SEXTEXT("(function Main -> (Int32 result):\n")
-			SEXTEXT("	(Vec3i i = 12 0 0)\n")
-			SEXTEXT("	(Vec3i j = 0  3 0)\n")
-			SEXTEXT("	(MatObject mo = i j)\n")
-			SEXTEXT("   (result = (mo.a.x / mo.b.y))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)\n")
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("(using Sys.Maths)\n")
+			("(struct MatObject (Vec3i a b))\n")
+			("(function Main -> (Int32 result):\n")
+			("	(Vec3i i = 12 0 0)\n")
+			("	(Vec3i j = 0  3 0)\n")
+			("	(MatObject mo = i j)\n")
+			("   (result = (mo.a.x / mo.b.y))\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)\n")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMemberwise2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMemberwise2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -9675,20 +9675,20 @@ namespace
 
 	void TestStructStringPassByRef(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(struct GameObject (Int32 value) (IString name) (Int32 id))")	
-			SEXTEXT("(function PrintGameObject (GameObject obj)-> (Int32 length) : ")	
-			SEXTEXT("	(Sys.Print obj.name -> length)")	
-			SEXTEXT(")")	
-			SEXTEXT("(function Main -> (Int32 result):")	
-			SEXTEXT("	(GameObject obj = 7 \"dog\" 12)")
-			SEXTEXT("	(PrintGameObject obj -> result)")
-			SEXTEXT(")")			
-			SEXTEXT("(alias Main EntryPoint.Main)")		
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(struct GameObject (Int32 value) (IString name) (Int32 id))")	
+			("(function PrintGameObject (GameObject obj)-> (Int32 length) : ")	
+			("	(Sys.Print obj.name -> length)")	
+			(")")	
+			("(function Main -> (Int32 result):")	
+			("	(GameObject obj = 7 \"dog\" 12)")
+			("	(PrintGameObject obj -> result)")
+			(")")			
+			("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStructStringPassByRef"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestStructStringPassByRef"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9703,17 +9703,17 @@ namespace
 
 	void TestEmptyString(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
 	
-			SEXTEXT("(function Main -> (Int32 result):")	
-			SEXTEXT("	(IString s = \"\")")
-			SEXTEXT("	(Sys.Print s -> result)")
-			SEXTEXT(")")			
-			SEXTEXT("(alias Main EntryPoint.Main)")		
+			("(function Main -> (Int32 result):")	
+			("	(IString s = \"\")")
+			("	(Sys.Print s -> result)")
+			(")")			
+			("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestEmptyString"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestEmptyString"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9728,32 +9728,32 @@ namespace
 
 	void TestMeshStruct(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
 
-			SEXTEXT("(struct MeshInstance")
-			SEXTEXT("	(IString name)")
-			SEXTEXT("	(IString modelName)")
-			SEXTEXT("	(Sys.Maths.Matrix4x4 worldMatrix)")
-			SEXTEXT(")")
+			("(struct MeshInstance")
+			("	(IString name)")
+			("	(IString modelName)")
+			("	(Sys.Maths.Matrix4x4 worldMatrix)")
+			(")")
 
-			SEXTEXT("(function Main -> (Int32 result):")	
-			SEXTEXT("	(MeshInstance instance = ")
-			SEXTEXT("		\"geoff\" \"steve\"") 
-			SEXTEXT("		(")
-			SEXTEXT("			(-1.000000 0.000000 -0.000000 -1.239238)")
-			SEXTEXT("			(-0.000000 -1.000000 0.000796 3.846236)")
-			SEXTEXT("			(0.000000 0.000796 1.000000 0.506750)")
-			SEXTEXT("			(0.000000 0.000000 0.000000 1.000000)")
-			SEXTEXT("		)")
-			SEXTEXT("	)")
-			SEXTEXT("	(Sys.Print instance.name)")
-			SEXTEXT("	(Sys.Print instance.modelName)")
-			SEXTEXT(")")			
-			SEXTEXT("(alias Main EntryPoint.Main)")		
+			("(function Main -> (Int32 result):")	
+			("	(MeshInstance instance = ")
+			("		\"geoff\" \"steve\"") 
+			("		(")
+			("			(-1.000000 0.000000 -0.000000 -1.239238)")
+			("			(-0.000000 -1.000000 0.000796 3.846236)")
+			("			(0.000000 0.000796 1.000000 0.506750)")
+			("			(0.000000 0.000000 0.000000 1.000000)")
+			("		)")
+			("	)")
+			("	(Sys.Print instance.name)")
+			("	(Sys.Print instance.modelName)")
+			(")")			
+			("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMeshStruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMeshStruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9768,37 +9768,37 @@ namespace
 
 	void TestMeshStruct2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
 
-			SEXTEXT("(struct MeshInstance")
-			SEXTEXT("	(IString name)")
-			SEXTEXT("	(IString modelName)")
-			SEXTEXT("	(Sys.Maths.Matrix4x4 worldMatrix)")
-			SEXTEXT(")")
+			("(struct MeshInstance")
+			("	(IString name)")
+			("	(IString modelName)")
+			("	(Sys.Maths.Matrix4x4 worldMatrix)")
+			(")")
 
-			SEXTEXT("(function Main -> (Int32 result):")	
-			SEXTEXT("	(MeshInstance instance = ")
-			SEXTEXT("		\"geoff\" \"steve\"") 
-			SEXTEXT("		(")
-			SEXTEXT("			(-1.000000 0.000000 -0.000000 -1.239238)")
-			SEXTEXT("			(-0.000000 -1.000000 0.000796 3.846236)")
-			SEXTEXT("			(0.000000 0.000796 1.000000 0.506750)")
-			SEXTEXT("			(0.000000 0.000000 0.000000 1.000000)")
-			SEXTEXT("		)")
-			SEXTEXT("	)")
-			SEXTEXT("	(Cat instance -> result)")
-			SEXTEXT(")")	
-			SEXTEXT("(function Cat(MeshInstance instance) -> (Int32 result):")	
-			SEXTEXT("	(Dog instance.worldMatrix -> result)")
-			SEXTEXT(")")	
-			SEXTEXT("(function Dog(Sys.Maths.Matrix4x4 m) -> (Int32 result):")	
-			SEXTEXT("	(if (m.r2.y == 0.000796) (result = 7) else (result = 9))")
-			SEXTEXT(")")	
-			SEXTEXT("(alias Main EntryPoint.Main)")		
+			("(function Main -> (Int32 result):")	
+			("	(MeshInstance instance = ")
+			("		\"geoff\" \"steve\"") 
+			("		(")
+			("			(-1.000000 0.000000 -0.000000 -1.239238)")
+			("			(-0.000000 -1.000000 0.000796 3.846236)")
+			("			(0.000000 0.000796 1.000000 0.506750)")
+			("			(0.000000 0.000000 0.000000 1.000000)")
+			("		)")
+			("	)")
+			("	(Cat instance -> result)")
+			(")")	
+			("(function Cat(MeshInstance instance) -> (Int32 result):")	
+			("	(Dog instance.worldMatrix -> result)")
+			(")")	
+			("(function Dog(Sys.Maths.Matrix4x4 m) -> (Int32 result):")	
+			("	(if (m.r2.y == 0.000796) (result = 7) else (result = 9))")
+			(")")	
+			("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMeshStruct2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMeshStruct2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9813,37 +9813,37 @@ namespace
 
 	void TestMeshStruct3(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
 
-			SEXTEXT("(struct MeshInstance")
-			SEXTEXT("	(IString name)")
-			SEXTEXT("	(IString modelName)")
-			SEXTEXT("	(Sys.Maths.Matrix4x4 worldMatrix)")
-			SEXTEXT(")")
+			("(struct MeshInstance")
+			("	(IString name)")
+			("	(IString modelName)")
+			("	(Sys.Maths.Matrix4x4 worldMatrix)")
+			(")")
 
-			SEXTEXT("(function Main -> (Int32 result):")	
-			SEXTEXT("	(MeshInstance instance = ")
-			SEXTEXT("		\"geoff\" \"steve\"") 
-			SEXTEXT("		(")
-			SEXTEXT("			(-1.000000 0.000000 -0.000000 -1.239238)")
-			SEXTEXT("			(-0.000000 -1.000000 0.000796 3.846236)")
-			SEXTEXT("			(0.000000 0.000796 1.000000 0.506750)")
-			SEXTEXT("			(0.000000 0.000000 0.000000 1.000000)")
-			SEXTEXT("		)")
-			SEXTEXT("	)")
-			SEXTEXT("	(PrintModelName instance -> result)")
-			SEXTEXT(")")	
-			SEXTEXT("(function PrintModelName(MeshInstance instance) -> (Int32 result):")	
-			SEXTEXT("	(PrintString instance.modelName -> result)")
-			SEXTEXT(")")	
-			SEXTEXT("(function PrintString(IString s) -> (Int32 result):")	
-			SEXTEXT("	(Sys.Print s -> result)")
-			SEXTEXT(")")	
-			SEXTEXT("(alias Main EntryPoint.Main)")		
+			("(function Main -> (Int32 result):")	
+			("	(MeshInstance instance = ")
+			("		\"geoff\" \"steve\"") 
+			("		(")
+			("			(-1.000000 0.000000 -0.000000 -1.239238)")
+			("			(-0.000000 -1.000000 0.000796 3.846236)")
+			("			(0.000000 0.000796 1.000000 0.506750)")
+			("			(0.000000 0.000000 0.000000 1.000000)")
+			("		)")
+			("	)")
+			("	(PrintModelName instance -> result)")
+			(")")	
+			("(function PrintModelName(MeshInstance instance) -> (Int32 result):")	
+			("	(PrintString instance.modelName -> result)")
+			(")")	
+			("(function PrintString(IString s) -> (Int32 result):")	
+			("	(Sys.Print s -> result)")
+			(")")	
+			("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMeshStruct3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMeshStruct3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9858,46 +9858,46 @@ namespace
 
 	void TestMeshStruct4(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(using Sys.Type.Formatters)")
-			SEXTEXT("(namespace EntryPoint)")
+		cstr srcCode =
+			("(using Sys.Type.Formatters)")
+			("(namespace EntryPoint)")
 
-			SEXTEXT("(struct MeshInstance")
-			SEXTEXT("	(IString name)")
-			SEXTEXT("	(IString modelName)")
-			SEXTEXT("	(Sys.Maths.Matrix4x4 worldMatrix)")
-			SEXTEXT(")")
+			("(struct MeshInstance")
+			("	(IString name)")
+			("	(IString modelName)")
+			("	(Sys.Maths.Matrix4x4 worldMatrix)")
+			(")")
 
-			SEXTEXT("(function Main -> (Int32 result):")	
-			SEXTEXT("	(MeshInstance instance = ")
-			SEXTEXT("		\"geoff\" \"steve\"") 
-			SEXTEXT("		(")
-			SEXTEXT("			(-1.000000 0.000000 -0.000000 -1.239238)")
-			SEXTEXT("			(-0.000000 -1.000000 0.000796 3.846236)")
-			SEXTEXT("			(0.000000 0.000796 1.000000 0.506750)")
-			SEXTEXT("			(0.000000 0.000000 0.000000 1.000000)")
-			SEXTEXT("		)")
-			SEXTEXT("	)")
-			SEXTEXT("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
-			SEXTEXT("	(Pointer pName = instance.name.Buffer)")
-			SEXTEXT("	(#Sys.Type.build s \"Hello World!\" pName NewLine)")
-			SEXTEXT("	(Sys.Print s)")
-			SEXTEXT("	(PrintModelName instance)")
-			SEXTEXT("	(result = 7)")
-			SEXTEXT(")")	
-			SEXTEXT("(function PrintModelName(MeshInstance instance) -> (Int32 result):")	
-			SEXTEXT("	(PrintString instance -> result)")
-			SEXTEXT(")")	
-			SEXTEXT("(function PrintString (MeshInstance instance) -> (Int32 result):")	
-			SEXTEXT("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
-			SEXTEXT("	(Pointer pName = instance.name.Buffer)")
-			SEXTEXT("	(#Sys.Type.build s \"Hello World!\" pName NewLine)")
-			SEXTEXT("	(Sys.Print s)")
-			SEXTEXT(")")	
-			SEXTEXT("(alias Main EntryPoint.Main)")		
+			("(function Main -> (Int32 result):")	
+			("	(MeshInstance instance = ")
+			("		\"geoff\" \"steve\"") 
+			("		(")
+			("			(-1.000000 0.000000 -0.000000 -1.239238)")
+			("			(-0.000000 -1.000000 0.000796 3.846236)")
+			("			(0.000000 0.000796 1.000000 0.506750)")
+			("			(0.000000 0.000000 0.000000 1.000000)")
+			("		)")
+			("	)")
+			("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
+			("	(Pointer pName = instance.name.Buffer)")
+			("	(#Sys.Type.build s \"Hello World!\" pName NewLine)")
+			("	(Sys.Print s)")
+			("	(PrintModelName instance)")
+			("	(result = 7)")
+			(")")	
+			("(function PrintModelName(MeshInstance instance) -> (Int32 result):")	
+			("	(PrintString instance -> result)")
+			(")")	
+			("(function PrintString (MeshInstance instance) -> (Int32 result):")	
+			("	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))")
+			("	(Pointer pName = instance.name.Buffer)")
+			("	(#Sys.Type.build s \"Hello World!\" pName NewLine)")
+			("	(Sys.Print s)")
+			(")")	
+			("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestMeshStruct4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestMeshStruct4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9912,17 +9912,17 @@ namespace
 
 	void TestYield(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
 
-			SEXTEXT("(function Main -> (Int32 result):")	
-			SEXTEXT("	(yield)")	
-			SEXTEXT("	(result = 7)")
-			SEXTEXT(")")	
-			SEXTEXT("(alias Main EntryPoint.Main)")		
+			("(function Main -> (Int32 result):")	
+			("	(yield)")	
+			("	(result = 7)")
+			(")")	
+			("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestYield"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestYield"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9938,24 +9938,24 @@ namespace
 
 	void TestStructByRefAssign(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(struct Cube (Int32 x y z))")
-			SEXTEXT("(function Main -> (Int32 result):")	
-			SEXTEXT("	(Cube a = 7 12 23)")	
-			SEXTEXT("	(Cube b = 13 15 17)")	
-			SEXTEXT("	(AssignCubeBtoA a b)")	
-			SEXTEXT("	(result = a.x)")
-			SEXTEXT(")")	
-			SEXTEXT("(function AssignCubeBtoA (Cube a)(Cube b)-> :")
-			SEXTEXT("	(a.x = b.x)")
-			SEXTEXT("	(a.y = b.y)")
-			SEXTEXT("	(a.z = b.z)")
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)")		
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(struct Cube (Int32 x y z))")
+			("(function Main -> (Int32 result):")	
+			("	(Cube a = 7 12 23)")	
+			("	(Cube b = 13 15 17)")	
+			("	(AssignCubeBtoA a b)")	
+			("	(result = a.x)")
+			(")")	
+			("(function AssignCubeBtoA (Cube a)(Cube b)-> :")
+			("	(a.x = b.x)")
+			("	(a.y = b.y)")
+			("	(a.z = b.z)")
+			(")")
+			("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestStructByRefAssign"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestStructByRefAssign"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9970,20 +9970,20 @@ namespace
 
 	void TestAssignVectorComponentsFromParameters(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(using Sys.Maths)")
-			SEXTEXT("(function Main -> (Float32 result):")	
-			SEXTEXT("	(SetVec 7.0 12.5 23.5 -> result)")	
-			SEXTEXT(")")	
-			SEXTEXT("(function SetVec (Float32 x)(Float32 y)(Float32 z)->(Float32 sum) :")
-			SEXTEXT("	(Vec3 pos = x y z)")
-			SEXTEXT("	(sum = (pos.y + pos.z))")
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)")		
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(using Sys.Maths)")
+			("(function Main -> (Float32 result):")	
+			("	(SetVec 7.0 12.5 23.5 -> result)")	
+			(")")	
+			("(function SetVec (Float32 x)(Float32 y)(Float32 z)->(Float32 sum) :")
+			("	(Vec3 pos = x y z)")
+			("	(sum = (pos.y + pos.z))")
+			(")")
+			("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignVectorComponentsFromParameters"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestAssignVectorComponentsFromParameters"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9998,26 +9998,26 @@ namespace
 
 	void TestConstructFromInterface(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(using Sys.Maths)")
-			SEXTEXT("(using EntryPoint)")
-			SEXTEXT("(interface EntryPoint.IFidelio")
-			SEXTEXT("	(Id -> (Int32 id))")
-			SEXTEXT(")")
-			SEXTEXT("(class Fidelio (implements IFidelio))")
-			SEXTEXT("(method Fidelio.Id -> (Int32 id): (id = 12))")
-			SEXTEXT("(class Operas (ref IFidelio f))")
-			SEXTEXT("(method Operas.Construct (IFidelio f)-> : (this.f = f))")
-			SEXTEXT("(function Main -> (Int32 result):")	
-			SEXTEXT("	(Fidelio f)")	
-			SEXTEXT("	(Operas operas (f))")	
-			SEXTEXT("	(operas.f.Id -> result)")
-			SEXTEXT(")")	
-			SEXTEXT("(alias Main EntryPoint.Main)")		
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(using Sys.Maths)")
+			("(using EntryPoint)")
+			("(interface EntryPoint.IFidelio")
+			("	(Id -> (Int32 id))")
+			(")")
+			("(class Fidelio (implements IFidelio))")
+			("(method Fidelio.Id -> (Int32 id): (id = 12))")
+			("(class Operas (ref IFidelio f))")
+			("(method Operas.Construct (IFidelio f)-> : (this.f = f))")
+			("(function Main -> (Int32 result):")	
+			("	(Fidelio f)")	
+			("	(Operas operas (f))")	
+			("	(operas.f.Id -> result)")
+			(")")	
+			("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestConstructFromInterface"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestConstructFromInterface"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -10034,17 +10034,17 @@ namespace
 
 	void TestAssignPointerFromFunction(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
 
-			SEXTEXT("(function Main -> (Pointer result):")	
-			SEXTEXT("	(Pointer p = (Test.GetPointer 9))")	
-			SEXTEXT("	(result = p)")	
-			SEXTEXT(")")	
-			SEXTEXT("(alias Main EntryPoint.Main)")		
+			("(function Main -> (Pointer result):")	
+			("	(Pointer p = (Test.GetPointer 9))")	
+			("	(result = p)")	
+			(")")	
+			("(alias Main EntryPoint.Main)")		
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestAssignPointerFromFunction"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestAssignPointerFromFunction"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		struct ANON
@@ -10056,8 +10056,8 @@ namespace
 			}
 		};
 
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Test"));
-		ss.AddNativeCall(ns, ANON::GetPointer, NULL, SEXTEXT("GetPointer (Int32 id) -> (Pointer pointer)"), false);
+		const INamespace& ns = ss.AddNativeNamespace(("Test"));
+		ss.AddNativeCall(ns, ANON::GetPointer, NULL, ("GetPointer (Int32 id) -> (Pointer pointer)"), false);
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
 
 		vm.Push((void*) 0); // Allocate stack space for the int32 result
@@ -10072,16 +10072,16 @@ namespace
 
 	void TestMinimumConstruct(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(class Eros)")
-			SEXTEXT(" (method Eros.Construct : )")
-			SEXTEXT("(function Main -> :")
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("(class Eros)")
+			(" (method Eros.Construct : )")
+			("(function Main -> :")
+			(")")
+			("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMinimumConstruct"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestMinimumConstruct"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10093,15 +10093,15 @@ namespace
 
 	void TestRaw(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(' man of bronze \"talos\")")
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> :")
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(' man of bronze \"talos\")")
+			("(namespace EntryPoint)")
+			("(function Main -> :")
+			(")")
+			("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestRaw"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestRaw"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10113,16 +10113,16 @@ namespace
 
 	void TestGlobalInt32(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(global Int32 i = 6)")
-			SEXTEXT("(namespace EntryPoint)")	
-			SEXTEXT("(function Main -> (Int32 x):")
-			SEXTEXT("	(global i -> x)")
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(global Int32 i = 6)")
+			("(namespace EntryPoint)")	
+			("(function Main -> (Int32 x):")
+			("	(global i -> x)")
+			(")")
+			("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestGlobalInt32"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestGlobalInt32"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10141,18 +10141,18 @@ namespace
 
 	void TestGlobalInt32_2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(global Int32 i = 6)")
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 x):")
-			SEXTEXT("	(Int32 value = 4)")
-			SEXTEXT("	(global i <- value)")
-			SEXTEXT("	(global i -> x)")
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(global Int32 i = 6)")
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 x):")
+			("	(Int32 value = 4)")
+			("	(global i <- value)")
+			("	(global i -> x)")
+			(")")
+			("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestGlobalInt32_2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestGlobalInt32_2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10171,17 +10171,17 @@ namespace
 
 	void TestGlobalInt32_3(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(global Int64 i = 6)")
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int64 x):")
-			SEXTEXT("	(global i <- 4)")
-			SEXTEXT("	(global i -> x)")
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(global Int64 i = 6)")
+			("(namespace EntryPoint)")
+			("(function Main -> (Int64 x):")
+			("	(global i <- 4)")
+			("	(global i -> x)")
+			(")")
+			("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestGlobalInt32_3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestGlobalInt32_3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10200,18 +10200,18 @@ namespace
 
 	void TestMacroAsArgument1(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(macro Sys.Seventeen in out (out.AddAtomic \"0x11\"))")
+		cstr srcCode =
+			("(macro Sys.Seventeen in out (out.AddAtomic \"0x11\"))")
 
-			SEXTEXT("(function PassThrough (Int32 x)->(Int32 y) : (y = x))")
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> (Int32 exitCode):")
-			SEXTEXT("	(exitCode = (PassThrough (#Sys.Seventeen)))")
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)")
+			("(function PassThrough (Int32 x)->(Int32 y) : (y = x))")
+			("(namespace EntryPoint)")
+			("(function Main -> (Int32 exitCode):")
+			("	(exitCode = (PassThrough (#Sys.Seventeen)))")
+			(")")
+			("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMacroAsArgument1"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestMacroAsArgument1"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10228,28 +10228,28 @@ namespace
 
 	void TestMultipleDerivation(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(interface Sys.IBase")
-			SEXTEXT("	(A(Int64 i) -> )")
-			SEXTEXT(")")
+		cstr srcCode =
+			("(interface Sys.IBase")
+			("	(A(Int64 i) -> )")
+			(")")
 
-			SEXTEXT("(interface Sys.IDerived")
-			SEXTEXT("	(extends Sys.IBase)")
-			SEXTEXT(")")
+			("(interface Sys.IDerived")
+			("	(extends Sys.IBase)")
+			(")")
 
-			SEXTEXT("(class Impl")
-			SEXTEXT("	(implements Sys.IDerived)")
-			SEXTEXT(")")
+			("(class Impl")
+			("	(implements Sys.IDerived)")
+			(")")
 
-			SEXTEXT("(method Impl.A(Int64 i) -> : )")
+			("(method Impl.A(Int64 i) -> : )")
 
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> :")
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)")
+			("(namespace EntryPoint)")
+			("(function Main -> :")
+			(")")
+			("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMultipleDerivation"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestMultipleDerivation"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10261,28 +10261,28 @@ namespace
 
 	void TestMultipleDerivation2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(interface Sys.IBase")
-			SEXTEXT("	(A(Int64 i) -> (Bool result))")
-			SEXTEXT(")")
+		cstr srcCode =
+			("(interface Sys.IBase")
+			("	(A(Int64 i) -> (Bool result))")
+			(")")
 
-			SEXTEXT("(interface Sys.IDerived")
-			SEXTEXT("	(extends Sys.IBase)")
-			SEXTEXT(")")
+			("(interface Sys.IDerived")
+			("	(extends Sys.IBase)")
+			(")")
 
-			SEXTEXT("(class Impl")
-			SEXTEXT("	(implements Sys.IDerived)")
-			SEXTEXT(")")
+			("(class Impl")
+			("	(implements Sys.IDerived)")
+			(")")
 
-			SEXTEXT("(method Impl.A(Int64 i) -> (Bool result): (result = 0))")
+			("(method Impl.A(Int64 i) -> (Bool result): (result = 0))")
 
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("(function Main -> :")
-			SEXTEXT(")")
-			SEXTEXT("(alias Main EntryPoint.Main)")
+			("(namespace EntryPoint)")
+			("(function Main -> :")
+			(")")
+			("(alias Main EntryPoint.Main)")
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestMultipleDerivation2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestMultipleDerivation2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10294,42 +10294,42 @@ namespace
 
 	void TestClassDefinesInterface(IPublicScriptSystem& ss)
 	{
-		/*csexstr srcCode = This is the equivalent code we want to achieve
-			SEXTEXT("(using Sys.Type)\n")
-			SEXTEXT("(interface Sys.IDog\n")
-			SEXTEXT("	(Woof -> (IString bark))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(class Dog (implements Sys.IDog)\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(method Dog.Woof -> (IString bark): \n")
-			SEXTEXT("	(bark = \"&nWoof&n&n\")\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(method Dog.Construct : )\n")
-			SEXTEXT("(factory Sys.Dog Sys.IDog  : (construct Dog))\n")
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> :\n")
-			SEXTEXT("	(Sys.IDog dog(Sys.Dog))\n")
-			SEXTEXT("	(Sys.Print dog.Woof)\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)\n");*/
+		/*cstr srcCode = This is the equivalent code we want to achieve
+			("(using Sys.Type)\n")
+			("(interface Sys.IDog\n")
+			("	(Woof -> (IString bark))\n")
+			(")\n")
+			("(class Dog (implements Sys.IDog)\n")
+			(")\n")
+			("(method Dog.Woof -> (IString bark): \n")
+			("	(bark = \"&nWoof&n&n\")\n")
+			(")\n")
+			("(method Dog.Construct : )\n")
+			("(factory Sys.Dog Sys.IDog  : (construct Dog))\n")
+			("(namespace EntryPoint)\n")
+			("(function Main -> :\n")
+			("	(Sys.IDog dog(Sys.Dog))\n")
+			("	(Sys.Print dog.Woof)\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)\n");*/
 
-		csexstr srcCode =
-			SEXTEXT("(using Sys.Type)\n")
-			SEXTEXT("(class Dog (defines Sys.IDog)\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(method Dog.Woof -> (IString bark): \n")
-			SEXTEXT("	(bark = \"&nWoof&n&n\")\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(method Dog.Construct : )\n")
-			SEXTEXT("(factory Sys.Dog Sys.IDog  : (construct Dog))\n")
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> :\n")
-			SEXTEXT("	(Sys.IDog dog(Sys.Dog))\n")
-			SEXTEXT("	(Sys.Print dog.Woof)\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)\n");
+		cstr srcCode =
+			("(using Sys.Type)\n")
+			("(class Dog (defines Sys.IDog)\n")
+			(")\n")
+			("(method Dog.Woof -> (IString bark): \n")
+			("	(bark = \"&nWoof&n&n\")\n")
+			(")\n")
+			("(method Dog.Construct : )\n")
+			("(factory Sys.Dog Sys.IDog  : (construct Dog))\n")
+			("(namespace EntryPoint)\n")
+			("(function Main -> :\n")
+			("	(Sys.IDog dog(Sys.Dog))\n")
+			("	(Sys.Print dog.Woof)\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestClassDefinesInterface"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, ("TestClassDefinesInterface"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10341,37 +10341,37 @@ namespace
 
 	void TestClassExtendsInterface(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(using Sys.Type)\n")
-			SEXTEXT("(interface Sys.IAnimal\n")
-			SEXTEXT("	(Name -> (IString name))\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(class Dog (defines Sys.IDog extends Sys.IAnimal)\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(method Dog.Woof -> (IString bark): \n")
-			SEXTEXT("	(bark = \"&nWoof&n&n\")\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(method Dog.Name -> (IString name): \n")
-			SEXTEXT("	(name = \"&nDigby&n&n\")\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(method Dog.Construct : )\n")
-			SEXTEXT("(factory Sys.Dog Sys.IDog  : (construct Dog))\n")
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("(function Main -> :\n")
-			SEXTEXT("	(Sys.IDog dog(Sys.Dog))\n")
-			SEXTEXT("	(Sys.Print dog.Woof)\n")
-			SEXTEXT("	(Sys.Print dog.Name)\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(alias Main EntryPoint.Main)\n");
+		cstr srcCode =
+			("(using Sys.Type)\n")
+			("(interface Sys.IAnimal\n")
+			("	(Name -> (IString name))\n")
+			(")\n")
+			("(class Dog (defines Sys.IDog extends Sys.IAnimal)\n")
+			(")\n")
+			("(method Dog.Woof -> (IString bark): \n")
+			("	(bark = \"&nWoof&n&n\")\n")
+			(")\n")
+			("(method Dog.Name -> (IString name): \n")
+			("	(name = \"&nDigby&n&n\")\n")
+			(")\n")
+			("(method Dog.Construct : )\n")
+			("(factory Sys.Dog Sys.IDog  : (construct Dog))\n")
+			("(namespace EntryPoint)\n")
+			("(function Main -> :\n")
+			("	(Sys.IDog dog(Sys.Dog))\n")
+			("	(Sys.Print dog.Woof)\n")
+			("	(Sys.Print dog.Name)\n")
+			(")\n")
+			("(alias Main EntryPoint.Main)\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestClassExtendsInterface"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, ("TestClassExtendsInterface"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 
-		auto& sys = *ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("Sys"));
-		auto idog = sys.FindInterface(SEXTEXT("IDog"));
-		auto ianimal = sys.FindInterface(SEXTEXT("IAnimal"));
+		auto& sys = *ss.PublicProgramObject().GetRootNamespace().FindSubspace(("Sys"));
+		auto idog = sys.FindInterface(("IDog"));
+		auto ianimal = sys.FindInterface(("IAnimal"));
 
 		validate(idog->Base() == ianimal);
 
@@ -10382,14 +10382,14 @@ namespace
 
 	void TestInstancing(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("	(alias Main EntryPoint.Main)")
-			SEXTEXT("	(function Main (Int32 x) -> (Int32 y):\n")
-			SEXTEXT("		(y = (x + 1))")
-			SEXTEXT("	)");
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("	(alias Main EntryPoint.Main)")
+			("	(function Main (Int32 x) -> (Int32 y):\n")
+			("		(y = (x + 1))")
+			("	)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestInstancing"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, ("TestInstancing"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10409,26 +10409,26 @@ namespace
 
 	void TestClosureArg(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)")
-			SEXTEXT("	(alias Main EntryPoint.Main)")
+		cstr srcCode =
+			("(namespace EntryPoint)")
+			("	(alias Main EntryPoint.Main)")
 
-			SEXTEXT("   (archetype Sys.GetInt32 -> (Int32 value))")
+			("   (archetype Sys.GetInt32 -> (Int32 value))")
 
-			SEXTEXT("	(function Eval (closure Sys.GetInt32 f) -> (Int32 value):")
-			SEXTEXT("		(f -> value)")
-			SEXTEXT("	)")
+			("	(function Eval (closure Sys.GetInt32 f) -> (Int32 value):")
+			("		(f -> value)")
+			("	)")
 
-			SEXTEXT("	(function Main -> (Int32 y):\n")
-			SEXTEXT("		(Sys.GetInt32 f = ")
-			SEXTEXT("			(closure -> (Int32 y):")
-			SEXTEXT("				(y = 77)")
-			SEXTEXT("			)")
-			SEXTEXT("		)")
-			SEXTEXT("		(y = (Eval f))")
-			SEXTEXT("	)");
+			("	(function Main -> (Int32 y):\n")
+			("		(Sys.GetInt32 f = ")
+			("			(closure -> (Int32 y):")
+			("				(y = 77)")
+			("			)")
+			("		)")
+			("		(y = (Eval f))")
+			("	)");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestInstancing"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, ("TestInstancing"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10444,27 +10444,27 @@ namespace
 
 	void TestBadClosureArg(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("	(alias Main EntryPoint.Main)\n")
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("	(alias Main EntryPoint.Main)\n")
 
-			SEXTEXT("   (archetype Sys.GetInt32 -> (Int32 value))\n")
+			("   (archetype Sys.GetInt32 -> (Int32 value))\n")
 
-			SEXTEXT("	(function Eval (closure Sys.GetInt32 f) -> (Int32 value):\n")
-			SEXTEXT("		(Sys.GetInt32 g = f)\n")	
-			SEXTEXT("		(g -> value)\n")
-			SEXTEXT("	)\n")
+			("	(function Eval (closure Sys.GetInt32 f) -> (Int32 value):\n")
+			("		(Sys.GetInt32 g = f)\n")	
+			("		(g -> value)\n")
+			("	)\n")
 
-			SEXTEXT("	(function Main -> (Int32 y):\n")
-			SEXTEXT("		(Sys.GetInt32 f = \n")
-			SEXTEXT("			(closure -> (Int32 y):\n")
-			SEXTEXT("				(y = 77)\n")
-			SEXTEXT("			)\n")
-			SEXTEXT("		)\n")
-			SEXTEXT("		(y = (Eval f))\n")
-			SEXTEXT("	)\n");
+			("	(function Main -> (Int32 y):\n")
+			("		(Sys.GetInt32 f = \n")
+			("			(closure -> (Int32 y):\n")
+			("				(y = 77)\n")
+			("			)\n")
+			("		)\n")
+			("		(y = (Eval f))\n")
+			("	)\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestBadClosureArg"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, ("TestBadClosureArg"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10482,27 +10482,27 @@ namespace
 
 	void TestBadClosureArg2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("	(alias Main EntryPoint.Main)\n")
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("	(alias Main EntryPoint.Main)\n")
 
-			SEXTEXT("   (archetype Sys.GetInt32 -> (Int32 value))\n")
+			("   (archetype Sys.GetInt32 -> (Int32 value))\n")
 
-			SEXTEXT("	(function Eval (closure Sys.GetInt32 f) -> (Int32 value):\n")
-			SEXTEXT("		(f -> value)\n")
-			SEXTEXT("	)\n")
+			("	(function Eval (closure Sys.GetInt32 f) -> (Int32 value):\n")
+			("		(f -> value)\n")
+			("	)\n")
 
-			SEXTEXT("	(function Main -> (Int32 y):\n")
-			SEXTEXT("		(Sys.GetInt32 f = \n")
-			SEXTEXT("			(closure -> (Int32 y):\n")
-			SEXTEXT("				(y = 77)\n")
-			SEXTEXT("			)\n")
-			SEXTEXT("		)\n")
-			SEXTEXT("		(Sys.GetInt32 e = f)\n")
-			SEXTEXT("		(y = (Eval e))\n")
-			SEXTEXT("	)\n");
+			("	(function Main -> (Int32 y):\n")
+			("		(Sys.GetInt32 f = \n")
+			("			(closure -> (Int32 y):\n")
+			("				(y = 77)\n")
+			("			)\n")
+			("		)\n")
+			("		(Sys.GetInt32 e = f)\n")
+			("		(y = (Eval e))\n")
+			("	)\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestBadClosureArg2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, ("TestBadClosureArg2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10520,23 +10520,23 @@ namespace
 
 	void TestBadClosureArg3(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("	(alias Main EntryPoint.Main)\n")
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("	(alias Main EntryPoint.Main)\n")
 
-			SEXTEXT("   (archetype Sys.GetInt32 -> (Int32 value))\n")
+			("   (archetype Sys.GetInt32 -> (Int32 value))\n")
 
-			SEXTEXT("	(function Main -> (Int32 y):\n")
-			SEXTEXT("		(Sys.GetInt32 f = \n")
-			SEXTEXT("			(closure -> (Int32 y):\n")
-			SEXTEXT("				(y = 77)\n")
-			SEXTEXT("			)\n")
-			SEXTEXT("		)\n")
-			SEXTEXT("		(array Sys.GetInt32 q 2)\n")
-			SEXTEXT("		(q.Push f)\n")
-			SEXTEXT("	)\n");
+			("	(function Main -> (Int32 y):\n")
+			("		(Sys.GetInt32 f = \n")
+			("			(closure -> (Int32 y):\n")
+			("				(y = 77)\n")
+			("			)\n")
+			("		)\n")
+			("		(array Sys.GetInt32 q 2)\n")
+			("		(q.Push f)\n")
+			("	)\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestBadClosureArg3"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, ("TestBadClosureArg3"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10554,25 +10554,25 @@ namespace
 
 	void TestClosureCapture(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("	(alias Main EntryPoint.Main)\n")
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("	(alias Main EntryPoint.Main)\n")
 
-			SEXTEXT("(archetype Sys.GetInt32 -> (Int32 value))\n")
+			("(archetype Sys.GetInt32 -> (Int32 value))\n")
 
-			SEXTEXT("(function Main -> (Int32 value):\n")
-			SEXTEXT("	(Int32 i = 417)")
-			SEXTEXT("	(Sys.GetInt32 f = \n")
-			SEXTEXT("		(closure -> (Int32 y):\n")
-			SEXTEXT("			(y = i)\n")
-			SEXTEXT("		)\n")
-			SEXTEXT("	)\n")
-			SEXTEXT("	(value = (f))")
-			SEXTEXT("")
+			("(function Main -> (Int32 value):\n")
+			("	(Int32 i = 417)")
+			("	(Sys.GetInt32 f = \n")
+			("		(closure -> (Int32 y):\n")
+			("			(y = i)\n")
+			("		)\n")
+			("	)\n")
+			("	(value = (f))")
+			("")
 
-			SEXTEXT(")\n");
+			(")\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestClosureCapture"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, ("TestClosureCapture"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10588,27 +10588,27 @@ namespace
 
 	void TestClosureCapture2(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("	(alias Main EntryPoint.Main)\n")
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("	(alias Main EntryPoint.Main)\n")
 
-			SEXTEXT("(archetype Sys.GetInt32 -> (Int32 value))\n")
+			("(archetype Sys.GetInt32 -> (Int32 value))\n")
 
-			SEXTEXT("(function Call (closure Sys.GetInt32 f) -> (Int32 result): (result = (f)) )")
+			("(function Call (closure Sys.GetInt32 f) -> (Int32 result): (result = (f)) )")
 
-			SEXTEXT("(function Main -> (Int32 value):\n")
-			SEXTEXT("	(Int32 i = 2417)")
-			SEXTEXT("	(Sys.GetInt32 f = \n")
-			SEXTEXT("		(closure -> (Int32 y):\n")
-			SEXTEXT("			(y = i)\n")
-			SEXTEXT("		)\n")
-			SEXTEXT("	)\n")
-			SEXTEXT("	(Call f -> value)")
-			SEXTEXT("")
+			("(function Main -> (Int32 value):\n")
+			("	(Int32 i = 2417)")
+			("	(Sys.GetInt32 f = \n")
+			("		(closure -> (Int32 y):\n")
+			("			(y = i)\n")
+			("		)\n")
+			("	)\n")
+			("	(Call f -> value)")
+			("")
 
-			SEXTEXT(")\n");
+			(")\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestClosureCapture2"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, ("TestClosureCapture2"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10624,29 +10624,29 @@ namespace
 
 	void TestBadClosureArg7(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("	(alias Main EntryPoint.Main)\n")
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("	(alias Main EntryPoint.Main)\n")
 
-			SEXTEXT("(archetype Sys.GetInt32 -> (Int32 value))\n")
+			("(archetype Sys.GetInt32 -> (Int32 value))\n")
 
-			SEXTEXT("(function Main -> (Int32 y):\n")
-			SEXTEXT("	(Sys.GetInt32 f = \n")
-			SEXTEXT("		(closure -> (Int32 y):\n")
-			SEXTEXT("			(y = 77)\n")
-			SEXTEXT("		)\n")
-			SEXTEXT("	)\n")
-			SEXTEXT("	(Sys.GetInt32 g = \n")
-			SEXTEXT("		(closure -> (Int32 y):\n")
-			SEXTEXT("			(y = 77)\n")
-			SEXTEXT("		)\n")
-			SEXTEXT("	)\n")
-			SEXTEXT("	(f = g)\n")
-			SEXTEXT("")
+			("(function Main -> (Int32 y):\n")
+			("	(Sys.GetInt32 f = \n")
+			("		(closure -> (Int32 y):\n")
+			("			(y = 77)\n")
+			("		)\n")
+			("	)\n")
+			("	(Sys.GetInt32 g = \n")
+			("		(closure -> (Int32 y):\n")
+			("			(y = 77)\n")
+			("		)\n")
+			("	)\n")
+			("	(f = g)\n")
+			("")
 
-			SEXTEXT(")\n");
+			(")\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestBadClosureArg7"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, ("TestBadClosureArg7"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10664,29 +10664,29 @@ namespace
 
 	void TestBadClosureArg6(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("	(alias Main EntryPoint.Main)\n")
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("	(alias Main EntryPoint.Main)\n")
 
-			SEXTEXT("(archetype Sys.GetInt32 -> (Int32 value))\n")
+			("(archetype Sys.GetInt32 -> (Int32 value))\n")
 
-			SEXTEXT("(function GetSix -> (Int32 value):\n")
-			SEXTEXT("	(value = 6)\n")
-			SEXTEXT(")\n")
+			("(function GetSix -> (Int32 value):\n")
+			("	(value = 6)\n")
+			(")\n")
 
-			SEXTEXT("(function Main -> (Int32 y):\n")
-			SEXTEXT("	(Sys.GetInt32 f = \n")
-			SEXTEXT("		(closure -> (Int32 y):\n")
-			SEXTEXT("			(y = 77)\n")
-			SEXTEXT("		)\n")
-			SEXTEXT("	)\n")
-			SEXTEXT("	(map Int32 Sys.GetInt32 q)\n")
-			SEXTEXT("	(q.Insert 777 f)\n")
-			SEXTEXT("")
+			("(function Main -> (Int32 y):\n")
+			("	(Sys.GetInt32 f = \n")
+			("		(closure -> (Int32 y):\n")
+			("			(y = 77)\n")
+			("		)\n")
+			("	)\n")
+			("	(map Int32 Sys.GetInt32 q)\n")
+			("	(q.Insert 777 f)\n")
+			("")
 
-			SEXTEXT(")\n");
+			(")\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestBadClosureArg6"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, ("TestBadClosureArg6"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10704,31 +10704,31 @@ namespace
 
 	void TestBadClosureArg5(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("	(alias Main EntryPoint.Main)\n")
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("	(alias Main EntryPoint.Main)\n")
 
-			SEXTEXT("(archetype Sys.GetInt32 -> (Int32 value))\n")
+			("(archetype Sys.GetInt32 -> (Int32 value))\n")
 
-			SEXTEXT("(function GetSix -> (Int32 value):\n")
-			SEXTEXT("	(value = 6)\n")
-			SEXTEXT(")\n")
+			("(function GetSix -> (Int32 value):\n")
+			("	(value = 6)\n")
+			(")\n")
 
-			SEXTEXT("(function Main -> (Int32 y):\n")
-			SEXTEXT("	(Sys.GetInt32 f = \n")
-			SEXTEXT("		(closure -> (Int32 y):\n")
-			SEXTEXT("			(y = 77)\n")
-			SEXTEXT("		)\n")
-			SEXTEXT("	)\n")
-			SEXTEXT("	(list Sys.GetInt32 q)\n")
-			SEXTEXT("	(q.Append GetSix)\n")
-			SEXTEXT("	(node head = q.Tail)\n")
-			SEXTEXT("	(head.Prepend f)\n")
-			SEXTEXT("")
+			("(function Main -> (Int32 y):\n")
+			("	(Sys.GetInt32 f = \n")
+			("		(closure -> (Int32 y):\n")
+			("			(y = 77)\n")
+			("		)\n")
+			("	)\n")
+			("	(list Sys.GetInt32 q)\n")
+			("	(q.Append GetSix)\n")
+			("	(node head = q.Tail)\n")
+			("	(head.Prepend f)\n")
+			("")
 			
-			SEXTEXT(")\n");
+			(")\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestBadClosureArg5"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, ("TestBadClosureArg5"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10746,23 +10746,23 @@ namespace
 
 	void TestBadClosureArg4(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint)\n")
-			SEXTEXT("	(alias Main EntryPoint.Main)\n")
+		cstr srcCode =
+			("(namespace EntryPoint)\n")
+			("	(alias Main EntryPoint.Main)\n")
 
-			SEXTEXT("   (archetype Sys.GetInt32 -> (Int32 value))\n")
+			("   (archetype Sys.GetInt32 -> (Int32 value))\n")
 
-			SEXTEXT("	(function Main -> (Int32 y):\n")
-			SEXTEXT("		(Sys.GetInt32 f = \n")
-			SEXTEXT("			(closure -> (Int32 y):\n")
-			SEXTEXT("				(y = 77)\n")
-			SEXTEXT("			)\n")
-			SEXTEXT("		)\n")
-			SEXTEXT("		(list Sys.GetInt32 q)\n")
-			SEXTEXT("		(q.Prepend f)\n")
-			SEXTEXT("	)\n");
+			("	(function Main -> (Int32 y):\n")
+			("		(Sys.GetInt32 f = \n")
+			("			(closure -> (Int32 y):\n")
+			("				(y = 77)\n")
+			("			)\n")
+			("		)\n")
+			("		(list Sys.GetInt32 q)\n")
+			("		(q.Prepend f)\n")
+			("	)\n");
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, SEXTEXT("TestBadClosureArg4"));
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {1,1}, ("TestBadClosureArg4"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10780,15 +10780,15 @@ namespace
 
 	void TestNullArchetypeArg(IPublicScriptSystem& ss)
 	{
-		csexstr srcCode =
-			SEXTEXT("(namespace EntryPoint) \n")
-			SEXTEXT("(function Main -> (Int32 result): \n")
-			SEXTEXT("		(Call 0 -> result)\n")
-			SEXTEXT(")\n")
-			SEXTEXT("(function Call (EntryPoint.ToInt fn) -> (Int32 result):  (fn -> result))\n")
-			SEXTEXT("(archetype EntryPoint.ToInt -> (Int32 y)) \n")
-			SEXTEXT("(alias Main EntryPoint.Main) \n");
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, SEXTEXT("TestNullArchetype"));
+		cstr srcCode =
+			("(namespace EntryPoint) \n")
+			("(function Main -> (Int32 result): \n")
+			("		(Call 0 -> result)\n")
+			(")\n")
+			("(function Call (EntryPoint.ToInt fn) -> (Int32 result):  (fn -> result))\n")
+			("(archetype EntryPoint.ToInt -> (Int32 y)) \n")
+			("(alias Main EntryPoint.Main) \n");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, ("TestNullArchetype"));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10802,24 +10802,24 @@ namespace
 
    void TestOperatorOverload(IPublicScriptSystem& ss)
    {
-      csexstr srcCode =
-         SEXTEXT("(using Sys.Maths) \n")
-         SEXTEXT("(function AddVec3fVec3f (Vec3 a)(Vec3 b)(Vec3 c)-> : \n")
-         SEXTEXT("   (c.x = (a.x + b.x))")
-         SEXTEXT("   (c.y = (a.y + b.y))")
-         SEXTEXT("   (c.z = (a.z + b.z))")
-         SEXTEXT(")\n")
-         SEXTEXT("(namespace EntryPoint) \n")
-         SEXTEXT("(function Main -> (Float32 cx)(Float32 cy)(Float32 cz): \n")
-         SEXTEXT("		(Vec3 a = 2 4 6)\n")
-         SEXTEXT("		(Vec3 b = 5 7 9)\n")
-         SEXTEXT("		(Vec3 c = a + b)\n")
-         SEXTEXT("      (cx = c.x)\n")
-         SEXTEXT("      (cy = c.y)\n")
-         SEXTEXT("      (cz = c.z)\n")
-         SEXTEXT(")\n")
-         SEXTEXT("(alias Main EntryPoint.Main) \n");
-      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestOperatorOverload"));
+      cstr srcCode =
+         ("(using Sys.Maths) \n")
+         ("(function AddVec3fVec3f (Vec3 a)(Vec3 b)(Vec3 c)-> : \n")
+         ("   (c.x = (a.x + b.x))")
+         ("   (c.y = (a.y + b.y))")
+         ("   (c.z = (a.z + b.z))")
+         (")\n")
+         ("(namespace EntryPoint) \n")
+         ("(function Main -> (Float32 cx)(Float32 cy)(Float32 cz): \n")
+         ("		(Vec3 a = 2 4 6)\n")
+         ("		(Vec3 b = 5 7 9)\n")
+         ("		(Vec3 c = a + b)\n")
+         ("      (cx = c.x)\n")
+         ("      (cy = c.y)\n")
+         ("      (cz = c.z)\n")
+         (")\n")
+         ("(alias Main EntryPoint.Main) \n");
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestOperatorOverload"));
       Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
       VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10839,23 +10839,23 @@ namespace
 
    void TestOperatorOverload3(IPublicScriptSystem& ss)
    {
-      csexstr srcCode =
-         SEXTEXT("(using Sys.Maths) \n")
-         SEXTEXT("(function MultiplyVec3fFloat32 (Vec3 a)(Float32 b)(Vec3 c) -> : \n")
-         SEXTEXT("   (c.x = (a.x * b))")
-         SEXTEXT("   (c.y = (a.y * b))")
-         SEXTEXT("   (c.z = (a.z * b))")
-         SEXTEXT(")\n")
-         SEXTEXT("(namespace EntryPoint) \n")
-         SEXTEXT("(function Main -> (Float32 cx)(Float32 cy)(Float32 cz): \n")
-         SEXTEXT("		(Vec3 a = 2 4 6)\n")
-         SEXTEXT("		(Vec3 c = a * 3)\n")
-         SEXTEXT("      (cx = c.x)\n")
-         SEXTEXT("      (cy = c.y)\n")
-         SEXTEXT("      (cz = c.z)\n")
-         SEXTEXT(")\n")
-         SEXTEXT("(alias Main EntryPoint.Main) \n");
-      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestOperatorOverload3"));
+      cstr srcCode =
+         ("(using Sys.Maths) \n")
+         ("(function MultiplyVec3fFloat32 (Vec3 a)(Float32 b)(Vec3 c) -> : \n")
+         ("   (c.x = (a.x * b))")
+         ("   (c.y = (a.y * b))")
+         ("   (c.z = (a.z * b))")
+         (")\n")
+         ("(namespace EntryPoint) \n")
+         ("(function Main -> (Float32 cx)(Float32 cy)(Float32 cz): \n")
+         ("		(Vec3 a = 2 4 6)\n")
+         ("		(Vec3 c = a * 3)\n")
+         ("      (cx = c.x)\n")
+         ("      (cy = c.y)\n")
+         ("      (cz = c.z)\n")
+         (")\n")
+         ("(alias Main EntryPoint.Main) \n");
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestOperatorOverload3"));
       Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
       VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10875,25 +10875,25 @@ namespace
 
    void TestOperatorOverload2(IPublicScriptSystem& ss)
    {
-      csexstr srcCode =
-         SEXTEXT("(using Sys.Maths) \n")
-         SEXTEXT("(function SubtractVec3fVec3f (Vec3 a)(Vec3 b)(Vec3 c)-> : \n")
-         SEXTEXT("   (c.x = (a.x - b.x))")
-         SEXTEXT("   (c.y = (a.y - b.y))")
-         SEXTEXT("   (c.z = (a.z - b.z))")
-         SEXTEXT(")\n")
-         SEXTEXT("(namespace EntryPoint) \n")
-         SEXTEXT("(function Main -> (Float32 cx)(Float32 cy)(Float32 cz): \n")
-         SEXTEXT("		(Vec3 a = 2 4 6)\n")
-         SEXTEXT("		(Vec3 b = 5 7 9)\n")
-         SEXTEXT("		(Vec3 c)\n")
-         SEXTEXT("      (c = a - b)\n")
-         SEXTEXT("      (cx = c.x)\n")
-         SEXTEXT("      (cy = c.y)\n")
-         SEXTEXT("      (cz = c.z)\n")
-         SEXTEXT(")\n")
-         SEXTEXT("(alias Main EntryPoint.Main) \n");
-      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("TestOperatorOverload2"));
+      cstr srcCode =
+         ("(using Sys.Maths) \n")
+         ("(function SubtractVec3fVec3f (Vec3 a)(Vec3 b)(Vec3 c)-> : \n")
+         ("   (c.x = (a.x - b.x))")
+         ("   (c.y = (a.y - b.y))")
+         ("   (c.z = (a.z - b.z))")
+         (")\n")
+         ("(namespace EntryPoint) \n")
+         ("(function Main -> (Float32 cx)(Float32 cy)(Float32 cz): \n")
+         ("		(Vec3 a = 2 4 6)\n")
+         ("		(Vec3 b = 5 7 9)\n")
+         ("		(Vec3 c)\n")
+         ("      (c = a - b)\n")
+         ("      (cx = c.x)\n")
+         ("      (cy = c.y)\n")
+         ("      (cz = c.z)\n")
+         (")\n")
+         ("(alias Main EntryPoint.Main) \n");
+      Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("TestOperatorOverload2"));
       Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
       VM::IVirtualMachine& vm = StandardTestInit(ss, tree());

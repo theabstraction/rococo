@@ -68,7 +68,7 @@ namespace Rococo
 
 			ptrdiff_t Address;
          const Compiler::IStructure* s;
-         csexstr parentName;
+         cstr parentName;
          const uint8* instance;
 		};
 

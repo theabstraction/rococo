@@ -2,7 +2,7 @@
 
 #include <rococo.win32.target.win7.h>
 
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 # define _UNICODE
 # define UNICODE
 #endif
@@ -30,14 +30,14 @@ void PrintExpression(cr_sex s, int &totalOutput, int maxOutput)
 	switch (s.Type())
 	{
 	case EXPRESSION_TYPE_ATOMIC:
-		totalOutput += WriteToStandardOutput(SEXTEXT(" %s"), (csexstr) s.String()->Buffer);
+		totalOutput += WriteToStandardOutput((" %s"), (cstr) s.String()->Buffer);
 		break;
 	case EXPRESSION_TYPE_STRING_LITERAL:
-		totalOutput += WriteToStandardOutput(SEXTEXT(" \"%s\""), (csexstr) s.String()->Buffer);
+		totalOutput += WriteToStandardOutput((" \"%s\""), (cstr) s.String()->Buffer);
 		break;
 	case EXPRESSION_TYPE_COMPOUND:
 			
-		totalOutput += WriteToStandardOutput(SEXTEXT(" ("));
+		totalOutput += WriteToStandardOutput((" ("));
 
 		for(int i = 0; i < s.NumberOfElements(); ++i)
 		{
@@ -50,38 +50,38 @@ void PrintExpression(cr_sex s, int &totalOutput, int maxOutput)
 			PrintExpression(child, totalOutput, maxOutput);								
 		}
 			
-		totalOutput += WriteToStandardOutput(SEXTEXT(" )"));
+		totalOutput += WriteToStandardOutput((" )"));
 	}				
 }
 
 void PrintParseException(const ParseException& e)
 {
-	WriteToStandardOutput(SEXTEXT("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n"), e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message());
+	WriteToStandardOutput(("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n"), e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message());
 
 	for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
 	{
-		if (s->TransformDepth() > 0)  WriteToStandardOutput(SEXTEXT("Macro expansion %d:\r\n"), s->TransformDepth());
+		if (s->TransformDepth() > 0)  WriteToStandardOutput(("Macro expansion %d:\r\n"), s->TransformDepth());
 
 		int totalOutput = 0;
 		PrintExpression(*s, totalOutput, 1024);
 
-		if (totalOutput > 1024) WriteToStandardOutput(SEXTEXT("..."));
+		if (totalOutput > 1024) WriteToStandardOutput(("..."));
 
-		WriteToStandardOutput(SEXTEXT("\r\n"));
+		WriteToStandardOutput(("\r\n"));
 	}
 }
 
-void FormatSysMessage(SEXCHAR* text, size_t capacity, int msgNumber)
+void FormatSysMessage(char* text, size_t capacity, int msgNumber)
 {
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 	if (!FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, msgNumber, 0, text, (DWORD) capacity, NULL))
 	{
-		StringPrint(text, capacity, SEXTEXT("Code %d ( 0x%x )"), msgNumber, msgNumber);
+		StringPrint(text, capacity, ("Code %d ( 0x%x )"), msgNumber, msgNumber);
 	}
 #else
    if (!FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, msgNumber, 0, text, (DWORD)capacity, NULL))
    {
-      Rococo::SafeFormat(text, capacity, SEXTEXT("Code %d ( 0x%x )"), msgNumber, msgNumber);
+      Rococo::SafeFormat(text, capacity, ("Code %d ( 0x%x )"), msgNumber, msgNumber);
    }
 #endif
 }
@@ -104,9 +104,9 @@ void RunTests()
 	}
 	catch (IException& ose)
 	{
-		SEXCHAR osMessage[256];
+		char osMessage[256];
 		FormatSysMessage(osMessage, 256, ose.ErrorCode());
-		WriteToStandardOutput(SEXTEXT("OS Error. %s\r\n%s\r\n"), ose.Message(), osMessage);
+		WriteToStandardOutput(("OS Error. %s\r\n%s\r\n"), ose.Message(), osMessage);
 		exit(-1);
 	}
 	catch(std::exception& stdex)
@@ -146,7 +146,7 @@ void PrintDuration(const char* section, int64 deltaTicks)
 void RunTest(ISParser& ss)
 {
 	int64 now = GetTicks();
-	csexstr filepath = SEXTEXT("\\Dev\\sexiest\\content\\models\\level 2\\architect354.model.sx");
+	cstr filepath = ("\\Dev\\sexiest\\content\\models\\level 2\\architect354.model.sx");
 	
 	Auto<ISourceCode> source = ss.LoadSource(filepath, Vec2i{ 0,0 });
 

@@ -53,7 +53,7 @@ namespace
 
 		const sexstring s = pExpression->String();
 
-		CStringConstant* sc =  ((IScriptSystem&) e.ss).GetStringReflection(s == NULL ? SEXTEXT("") : s->Buffer);
+		CStringConstant* sc =  ((IScriptSystem&) e.ss).GetStringReflection(s == NULL ? ("") : s->Buffer);
 		WriteString(sc, 0, e);
 	}
 
@@ -80,7 +80,7 @@ namespace
 		CReflectedClass* pModule = SS.GetReflectedClass((void*) &module);
 		if (pModule == NULL)
 		{
-			pModule = SS.CreateReflectionClass(SEXTEXT("Module"),(void*)  &module);
+			pModule = SS.CreateReflectionClass(("Module"),(void*)  &module);
 		}
 
 		WriteClass(&pModule->header, 0, e);
@@ -93,7 +93,7 @@ namespace
 		IModule* pModule;
 		ReadInput(0, (void*&) pModule, e);
 
-		csexstr name = pModule->Name();
+		cstr name = pModule->Name();
 
 		CStringConstant* sc = SS.GetStringReflection(name);
 		WriteString(sc, 0, e);
@@ -120,7 +120,7 @@ namespace
 		CReflectedClass* pStruct = ((IScriptSystem&) e.ss).GetReflectedClass((void*) &s);
 		if (pStruct == NULL)
 		{
-			pStruct = ((IScriptSystem&) e.ss).CreateReflectionClass(SEXTEXT("Structure"), (void*) &s);
+			pStruct = ((IScriptSystem&) e.ss).CreateReflectionClass(("Structure"), (void*) &s);
 		}
 
 		WriteClass(&pStruct->header, 0, e);
@@ -133,7 +133,7 @@ namespace
 		IStructure* pStruct;
 		ReadInput(0, (void*&) pStruct, e);
 		
-		csexstr name = pStruct->Name();
+		cstr name = pStruct->Name();
 
 		CStringConstant* sc = ((IScriptSystem&)e.ss).GetStringReflection(name);
 		WriteString(sc, 0, e);
@@ -148,7 +148,7 @@ namespace
 			return;
 		case EXPRESSION_TYPE_ATOMIC:
 			{
-				csexstr token = s.String()->Buffer;
+				cstr token = s.String()->Buffer;
 				b.AddAtomic(token);
 			}
 			return;
@@ -176,22 +176,22 @@ namespace
          return;
       case EXPRESSION_TYPE_ATOMIC:
       {
-         csexstr token = s.String()->Buffer;
+         cstr token = s.String()->Buffer;
          b.AddStringLiteral(token);
       }
       return;
       case EXPRESSION_TYPE_COMPOUND:
       {
-         Rococo::Sex::Throw(*b.Parent(), SEXTEXT("Could not duplicate as string. Element is compound"));
+         Rococo::Sex::Throw(*b.Parent(), ("Could not duplicate as string. Element is compound"));
       }
       return;
       default:
-         Rococo::Sex::Throw(*b.Parent(), SEXTEXT("Could not duplicate. Element type not applicable"));
+         Rococo::Sex::Throw(*b.Parent(), ("Could not duplicate. Element type not applicable"));
          break;
       }
    }
 
-	int SubstituteAtomic(cr_sex input, csexstr token, ISExpressionBuilder& b)
+	int SubstituteAtomic(cr_sex input, cstr token, ISExpressionBuilder& b)
 	{
 		using namespace Rococo::Parse;
 
@@ -204,19 +204,19 @@ namespace
 		int32 value;
 		if (PARSERESULT_GOOD != TryParseDecimal(OUT value, IN token+1))
 		{
-			b.AddAtomic(SEXTEXT("!Expecting-argindex-after-$sign"));
+			b.AddAtomic(("!Expecting-argindex-after-$sign"));
 			return 1;
 		}
 		else
 		{
 			if (value < 0)
 			{
-				b.AddAtomic(SEXTEXT("!Expecting-positive-argindex-after-$sign"));
+				b.AddAtomic(("!Expecting-positive-argindex-after-$sign"));
 				return 1;
 			}
 			else if (value >= input.NumberOfElements())
 			{
-				b.AddAtomic(SEXTEXT("!Expecting-positive-integer-argument-to-$sign"));
+				b.AddAtomic(("!Expecting-positive-integer-argument-to-$sign"));
 				return 1;
 			}
 			else
@@ -237,7 +237,7 @@ namespace
 			return;
 		case EXPRESSION_TYPE_ATOMIC:
 			{
-				csexstr token = format.String()->Buffer;
+				cstr token = format.String()->Buffer;
 				errorCount += SubstituteAtomic(input, token, b);
 			}
 			return;
@@ -263,7 +263,7 @@ namespace
 		ISExpressionBuilder* pBuilder;
 		ReadInput(0, (void*&) pBuilder, e);
 
-		const SEXCHAR* pBuffer;
+		const char* pBuffer;
 		ReadInput(1, (void*&) pBuffer, e);
 
 		pBuilder->AddAtomic(pBuffer);
@@ -278,7 +278,7 @@ namespace
 
 		ISExpressionBuilder* pChild = pBuilder->AddChild();
 
-		CReflectedClass* childRep = SS.CreateReflectionClass(SEXTEXT("ExpressionBuilder"), pChild);
+		CReflectedClass* childRep = SS.CreateReflectionClass(("ExpressionBuilder"), pChild);
 		WriteClass(&childRep->header, 0, e);
 	}
 
@@ -329,22 +329,22 @@ namespace
 
 	void AddReflectionCalls(IScriptSystem& ss)
 	{
-		const INamespace& sysReflectionNative = ss.AddNativeNamespace(SEXTEXT("Sys.Reflection.Native"));
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetChild, &ss, SEXTEXT("ExpressionGetChild (Pointer sPtr) (Int32 index) ->  (Sys.Reflection.IExpression child)"), true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetParent, &ss, SEXTEXT("ExpressionGetParent (Pointer sPtr) -> (Sys.Reflection.IExpression parent)"), true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionChildCount, &ss, SEXTEXT("ExpressionChildCount (Pointer sPtr) -> (Int32 count)"), true);
-		ss.AddNativeCall(sysReflectionNative, NativeGetExpressionText, &ss, SEXTEXT("GetExpressionText  (Pointer sPtr) -> (Sys.Type.IString name)"), true);
-		ss.AddNativeCall(sysReflectionNative, NativeGetScriptSystem, &ss, SEXTEXT("GetScriptSystem -> (Sys.Reflection.IScriptSystem ss)"), true);
-		ss.AddNativeCall(sysReflectionNative, NativeModuleCount, &ss, SEXTEXT("ModuleCount -> (Int32 count)"), true);
-		ss.AddNativeCall(sysReflectionNative, NativeGetModule, &ss, SEXTEXT("GetModule (Int32 index) -> (Sys.Reflection.IModule module)"), true);
-		ss.AddNativeCall(sysReflectionNative, NativeGetModuleName, &ss, SEXTEXT("GetModuleName (Pointer modulePtr) -> (Sys.Type.IString name)"), true);
-		ss.AddNativeCall(sysReflectionNative, NativeGetStructCount, &ss, SEXTEXT("GetStructCount (Pointer modulePtr) -> (Int32 structCount)"), true);
-		ss.AddNativeCall(sysReflectionNative, NativeGetStruct, &ss, SEXTEXT("GetStruct (Pointer modulePtr) (Int32 index) -> (Sys.Reflection.IStructure structure)"), true);
-		ss.AddNativeCall(sysReflectionNative, NativeGetStructName, &ss, SEXTEXT("GetStructName (Pointer structPtr) -> (Sys.Type.IString name)"), true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddAtomic, &ss, SEXTEXT("ExpressionBuilderAddAtomic (Pointer builderPtr) (Pointer strBuffer) ->"), true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCompound, &ss, SEXTEXT("ExpressionBuilderAddCompound (Pointer builderPtr) -> (Sys.Reflection.IExpressionBuilder child)"), true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCopy, &ss, SEXTEXT("ExpressionBuilderAddCopy (Pointer builderPtr) (Pointer xpressPtr) ->"), true);
-      ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCopyToString, &ss, SEXTEXT("ExpressionBuilderAddCopyToString (Pointer builderPtr) (Pointer xpressPtr) ->"), true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderSubstitute, &ss, SEXTEXT("ExpressionBuilderSubstitute (Pointer builderPtr) (Pointer inputPtr) (Pointer formatPtr) -> (Int32 errorCount)"), true);
+		const INamespace& sysReflectionNative = ss.AddNativeNamespace(("Sys.Reflection.Native"));
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetChild, &ss, ("ExpressionGetChild (Pointer sPtr) (Int32 index) ->  (Sys.Reflection.IExpression child)"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetParent, &ss, ("ExpressionGetParent (Pointer sPtr) -> (Sys.Reflection.IExpression parent)"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionChildCount, &ss, ("ExpressionChildCount (Pointer sPtr) -> (Int32 count)"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetExpressionText, &ss, ("GetExpressionText  (Pointer sPtr) -> (Sys.Type.IString name)"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetScriptSystem, &ss, ("GetScriptSystem -> (Sys.Reflection.IScriptSystem ss)"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeModuleCount, &ss, ("ModuleCount -> (Int32 count)"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetModule, &ss, ("GetModule (Int32 index) -> (Sys.Reflection.IModule module)"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetModuleName, &ss, ("GetModuleName (Pointer modulePtr) -> (Sys.Type.IString name)"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetStructCount, &ss, ("GetStructCount (Pointer modulePtr) -> (Int32 structCount)"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetStruct, &ss, ("GetStruct (Pointer modulePtr) (Int32 index) -> (Sys.Reflection.IStructure structure)"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetStructName, &ss, ("GetStructName (Pointer structPtr) -> (Sys.Type.IString name)"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddAtomic, &ss, ("ExpressionBuilderAddAtomic (Pointer builderPtr) (Pointer strBuffer) ->"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCompound, &ss, ("ExpressionBuilderAddCompound (Pointer builderPtr) -> (Sys.Reflection.IExpressionBuilder child)"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCopy, &ss, ("ExpressionBuilderAddCopy (Pointer builderPtr) (Pointer xpressPtr) ->"), true);
+      ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCopyToString, &ss, ("ExpressionBuilderAddCopyToString (Pointer builderPtr) (Pointer xpressPtr) ->"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderSubstitute, &ss, ("ExpressionBuilderSubstitute (Pointer builderPtr) (Pointer inputPtr) (Pointer formatPtr) -> (Int32 errorCount)"), true);
 	}
 }

@@ -773,7 +773,7 @@ namespace
 			{
 				VM::OS::FreeAlignedMemory(stack, stackSize);
             stack = NULL;
-				Rococo::Throw(0, SEXTEXT("The SexyVM stack end %p exceeded the maximum pointer value of %p"), stack, maxPtr);
+				Rococo::Throw(0, ("The SexyVM stack end %p exceeded the maximum pointer value of %p"), stack, maxPtr);
 			}
 		}
 

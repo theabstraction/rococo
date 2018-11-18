@@ -102,6 +102,9 @@
     <ClCompile Include="sexy.variants.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Common\sexy.stdstrings.h" />
+    <ClInclude Include="..\Common\sexy.strings.h" />
+    <ClInclude Include="..\Common\sexy.types.h" />
     <ClInclude Include="..\STC\stccore\Sexy.Compiler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

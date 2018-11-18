@@ -26,8 +26,8 @@ namespace
 namespace Sys { namespace Animals { 
 	void AddNativeCalls_SysAnimalsITigerPup(Rococo::Script::IPublicScriptSystem& ss, Sys::Animals::ITigerPup* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Sys.Animals.Native"));
-		ss.AddNativeCall(ns, NativeSysAnimalsITigerPupAppendName, nullptr, SEXTEXT("ITigerPupAppendName (Pointer hObject)(Sys.Type.IStringBuilder builder) -> "));
+		const INamespace& ns = ss.AddNativeNamespace(("Sys.Animals.Native"));
+		ss.AddNativeCall(ns, NativeSysAnimalsITigerPupAppendName, nullptr, ("ITigerPupAppendName (Pointer hObject)(Sys.Type.IStringBuilder builder) -> "));
 	}
 }}
 // BennyHill generated Sexy native functions for Sys::Animals::ITiger 
@@ -48,7 +48,7 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		Sys::Animals::ITigerPup* pup = _pObject->MakeBabies();
 		_offset += sizeof(CReflectedClass*);
-		auto& _pupStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT("Sys.Animals"),SEXTEXT("ITigerPup"), SEXTEXT("ProxyITigerPup"), _nce.ss);
+		auto& _pupStruct = Rococo::Helpers::GetDefaultProxy(("Sys.Animals"),("ITigerPup"), ("ProxyITigerPup"), _nce.ss);
 		CReflectedClass* _sxypup = _nce.ss.Represent(_pupStruct, pup);
 		WriteOutput(&_sxypup->header._vTables[0], _sf, -_offset);
 	}
@@ -74,8 +74,8 @@ namespace
 namespace Sys { namespace Animals { 
 	void AddNativeCalls_SysAnimalsITiger(Rococo::Script::IPublicScriptSystem& ss, Sys::Animals::ITiger* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Sys.Animals.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForSysAnimalsGetTigerByName, _nceContext, SEXTEXT("GetHandleForITiger0 (Sys.Type.IString tigerName) -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeSysAnimalsITigerMakeBabies, nullptr, SEXTEXT("ITigerMakeBabies (Pointer hObject) -> (Sys.Animals.ITigerPup pup)"));
+		const INamespace& ns = ss.AddNativeNamespace(("Sys.Animals.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForSysAnimalsGetTigerByName, _nceContext, ("GetHandleForITiger0 (Sys.Type.IString tigerName) -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeSysAnimalsITigerMakeBabies, nullptr, ("ITigerMakeBabies (Pointer hObject) -> (Sys.Animals.ITigerPup pup)"));
 	}
 }}

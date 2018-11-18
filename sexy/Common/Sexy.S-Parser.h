@@ -82,21 +82,21 @@ namespace Rococo { namespace Sex
 		Vec2i endPos;
 		
 		enum {MAX_ERRMSG_LEN = 512};
-		SEXCHAR srcName[MAX_ERRMSG_LEN];
+		char srcName[MAX_ERRMSG_LEN];
 		char errText[MAX_ERRMSG_LEN];
-		SEXCHAR specimenText[MAX_ERRMSG_LEN];
+		char specimenText[MAX_ERRMSG_LEN];
 		const ISExpression* source;
 
 	public:
       ParseException();
-      ParseException(const Vec2i& start, const Vec2i& end, csexstr name, csexstr err, csexstr specimen, const ISExpression* _source);
+      ParseException(const Vec2i& start, const Vec2i& end, cstr name, cstr err, cstr specimen, const ISExpression* _source);
 		const Vec2i& Start() const { return startPos; }
 		const Vec2i& End() const { return endPos; }
-		csexstr Name() const { return srcName; }
+		cstr Name() const { return srcName; }
 		cstr Message() const { return errText; }
 		int ErrorCode() const { return -1; }
 		const ISExpression* Source() const { return source; }
-		csexstr Specimen() const { return specimenText; }
+		cstr Specimen() const { return specimenText; }
 		Debugging::IStackFrameEnumerator* StackFrames() { return nullptr; }
 	};
 

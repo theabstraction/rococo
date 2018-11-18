@@ -55,34 +55,34 @@ namespace Rococo
 
          NamespaceSplitter splitter(macroNameExpr.String()->Buffer);
 
-         csexstr nsRoot, shortName;
+         cstr nsRoot, shortName;
          AssertSplitTail(splitter, macroNameExpr, OUT nsRoot, OUT shortName);
          AssertMacroShortName(macroNameExpr, shortName);
 
-         csexstr staticShortName = macroNameExpr.String()->Buffer + StringLength(nsRoot) + 1;
+         cstr staticShortName = macroNameExpr.String()->Buffer + StringLength(nsRoot) + 1;
 
          INamespaceBuilder& ns = AssertGetSubspace(module.Object(), macroNameExpr, nsRoot);
 
          TokenBuffer fname;
-         StringPrint(fname, SEXTEXT("#%s"), shortName);
+         StringPrint(fname, ("#%s"), shortName);
          if (module.FindFunction(fname) != NULL)
          {
-            ThrowTokenAlreadyDefined(macroNameExpr, shortName, module.Name(), SEXTEXT("macro"));
+            ThrowTokenAlreadyDefined(macroNameExpr, shortName, module.Name(), ("macro"));
          }
 
          IFunctionBuilder &f = module.DeclareFunction(FunctionPrototype(fname, false), &macroDef);
-         f.AddInput(NameString::From(inNameExpr.String()), TypeString::From(SEXTEXT("Sys.Reflection.IExpression")), (void*)&inNameExpr);
-         f.AddInput(NameString::From(outNameExpr.String()), TypeString::From(SEXTEXT("Sys.Reflection.IExpressionBuilder")), (void*)&outNameExpr);
+         f.AddInput(NameString::From(inNameExpr.String()), TypeString::From(("Sys.Reflection.IExpression")), (void*)&inNameExpr);
+         f.AddInput(NameString::From(outNameExpr.String()), TypeString::From(("Sys.Reflection.IExpressionBuilder")), (void*)&outNameExpr);
 
          if (!f.TryResolveArguments())
          {
             sexstringstream<1024> streamer;
-            streamer.sb << SEXTEXT("Error resolving arguments in macro: ") << fname;
+            streamer.sb << ("Error resolving arguments in macro: ") << fname;
             Throw(macroDef, streamer);
          }
 
          IMacroBuilder* macro = ns.AddMacro(staticShortName, (void*)&macroDef, f);
-         if (macro == NULL) ThrowTokenAlreadyDefined(macroNameExpr, shortName, ns.FullName()->Buffer, SEXTEXT("macro"));
+         if (macro == NULL) ThrowTokenAlreadyDefined(macroNameExpr, shortName, ns.FullName()->Buffer, ("macro"));
 
          return macro;
       }
@@ -94,7 +94,7 @@ namespace Rococo
          // (macro <macro-name> <in-name> <out-name> (xpr1) .... (xprN))
          IFunction& f = ce.Builder.Owner();
 
-         csexstr macroName = f.Name();
+         cstr macroName = f.Name();
 
          ce.Builder.Begin();
 
@@ -108,7 +108,7 @@ namespace Rococo
       {
          if (s.TransformDepth() >= MAX_TRANSFORM_DEPTH)
          {
-            Throw(s, SEXTEXT("Exceeded maximum macro evaluation depth"));
+            Throw(s, ("Exceeded maximum macro evaluation depth"));
          }
 
          VM::IVirtualMachine& vm = ce.SS.ProgramObject().VirtualMachine();
@@ -119,7 +119,7 @@ namespace Rococo
          CClassExpressionBuilder output;
          if (!ce.SS.ConstructExpressionBuilder(output, outputRoot))
          {
-            Throw(s, SEXTEXT("Internal compiler error"));
+            Throw(s, ("Internal compiler error"));
          }
 
          VM::CPU& cpu = vm.Cpu();
@@ -133,7 +133,7 @@ namespace Rococo
          EXECUTERESULT result = vm.ExecuteFunctionProtected(macroSection.Id);
          if (result != EXECUTERESULT_RETURNED)
          {
-            Throw(s, SEXTEXT("Error executing macro expansion"));
+            Throw(s, ("Error executing macro expansion"));
          }
 
          vm.SetStatus(EXECUTERESULT_RUNNING);

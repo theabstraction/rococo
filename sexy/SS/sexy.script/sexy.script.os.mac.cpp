@@ -49,58 +49,58 @@
 
 namespace Rococo { namespace OS 
 {
-   void GetDefaultNativeSrcDir(SEXCHAR* data, size_t capacity)
+   void GetDefaultNativeSrcDir(char* data, size_t capacity)
    {
       uint32 lcapacity = (uint32) capacity;
       if (_NSGetExecutablePath(data, &lcapacity) != 0)
       {
-         Throw(0, SEXTEXT("_NSGetExecutablePath failed"));
+         Throw(0, ("_NSGetExecutablePath failed"));
       }
 
       while (StripLastSubpath(data))
       {
-         SEXCHAR fullpath[_MAX_PATH];
-         SafeFormat(fullpath, _MAX_PATH, SEXTEXT("%s%s"), data, SEXTEXT("src_indicator.txt"));
+         char fullpath[_MAX_PATH];
+         SafeFormat(fullpath, _MAX_PATH, ("%s%s"), data, ("src_indicator.txt"));
          if (OS::IsFileExistant(fullpath))
          {
-            StringCat(data, SEXTEXT("NativeSource/"), (int32)capacity);
+            StringCat(data, ("NativeSource/"), (int32)capacity);
             return;
          }
       }
 
-      Rococo::Throw(0, SEXTEXT("SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot find src_indicator.txt descending from sexy.script.dll"));
+      Rococo::Throw(0, ("SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot find src_indicator.txt descending from sexy.script.dll"));
    }
 
 #include <sys/stat.h>
 
-   void GetEnvVariable(SEXCHAR* data, size_t capacity, const SEXCHAR* envVariable)
+   void GetEnvVariable(char* data, size_t capacity, const char* envVariable)
    {
-      if (AreEqual(envVariable, SEXTEXT("SEXY_NATIVE_SRC_DIR")))
+      if (AreEqual(envVariable, ("SEXY_NATIVE_SRC_DIR")))
       {
          GetDefaultNativeSrcDir(data, capacity);
 
          struct stat sb;
          if (stat(data, &sb) != 0 || !S_ISDIR(sb.st_mode))
          {
-            Rococo::Throw(0, SEXTEXT("Error associating environment variable %s to the sexy native source directory"), envVariable);
+            Rococo::Throw(0, ("Error associating environment variable %s to the sexy native source directory"), envVariable);
          }
 
          return;
       }
 
-      Throw(0, SEXTEXT("Environment variable %s not found"), envVariable);
+      Throw(0, ("Environment variable %s not found"), envVariable);
    }
 
 	typedef void (*FN_AddNativeSexyCalls)(Rococo::Script::IScriptSystem& ss);
 
-   Rococo::Script::FN_CreateLib GetLibCreateFunction(const SEXCHAR* dynamicLinkLibOfNativeCalls, bool throwOnError)
+   Rococo::Script::FN_CreateLib GetLibCreateFunction(const char* dynamicLinkLibOfNativeCalls, bool throwOnError)
 	{
-	   SEXCHAR linkLib[_MAX_PATH];
-      SafeFormat(linkLib, _MAX_PATH, SEXTEXT("%s.mac.dylib"), dynamicLinkLibOfNativeCalls);
+	   char linkLib[_MAX_PATH];
+      SafeFormat(linkLib, _MAX_PATH, ("%s.mac.dylib"), dynamicLinkLibOfNativeCalls);
       void* lib = dlopen(linkLib, RTLD_NOW | RTLD_GLOBAL);
       if (lib == nullptr)
 		{
-         if (throwOnError) Rococo::Throw(errno, SEXTEXT("Could not load %s"), (const SEXCHAR*) linkLib);
+         if (throwOnError) Rococo::Throw(errno, ("Could not load %s"), (const char*) linkLib);
          return nullptr;
 		}
 
@@ -108,7 +108,7 @@ namespace Rococo { namespace OS
       *(void **)(&fp) = dlsym(lib, "CreateLib");
 		if (fp == nullptr)
 		{
-         if (throwOnError) Rococo::Throw(errno, SEXTEXT("Could not find INativeLib* CreateLib(...) in %s"), linkLib);
+         if (throwOnError) Rococo::Throw(errno, ("Could not find INativeLib* CreateLib(...) in %s"), linkLib);
          return nullptr;
 		}
 

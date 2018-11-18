@@ -51,7 +51,7 @@ namespace
 	{
 		ObjectStub Header;
 		int32 errorCode;
-		csexstr messageHandle;
+		cstr messageHandle;
 	};
 
 	typedef std::vector<ExceptionHandler> TExceptionHandlers;
@@ -118,7 +118,7 @@ namespace
 		for(int i = 0; i < ArgCount(f); ++i)
 		{
 			const IArgument& arg = f.Arg(i);
-			csexstr name = arg.Name();
+			cstr name = arg.Name();
 
 			const IStructure& s = *arg.ResolvedType();
 			int sizeOfArg = (s.VarType() == VARTYPE_Derivative) ? sizeof(size_t) : s.SizeOfStruct();
@@ -132,8 +132,8 @@ namespace
 
 		/* Uncomment to debug local deconstruction
 		sexstringstream stream;
-		stream << SEXTEXT("DeconstructLocalObjects(ss,") << functionOffset << ", " << sf << ", " << f.Name()  << ", " << totalStackCorrection << ")" << std::endl;
-		stream << SEXTEXT("src: start ") << src.InstancePosStart << ", count " << src.InstancePosCount << ", disp " << src.TotalDisplacement << std::endl;
+		stream << ("DeconstructLocalObjects(ss,") << functionOffset << ", " << sf << ", " << f.Name()  << ", " << totalStackCorrection << ")" << std::endl;
+		stream << ("src: start ") << src.InstancePosStart << ", count " << src.InstancePosCount << ", disp " << src.TotalDisplacement << std::endl;
 		stream;
 		ss.ProgramObject().Log().Write(stream.str().c_str());
 		*/
@@ -161,13 +161,13 @@ namespace
 
 				if (status == EXECUTERESULT_RETURNED) vm.SetStatus(EXECUTERESULT_RUNNING);
 			}
-			else if (AreEqual(type.Name(), SEXTEXT("_Lock")))
+			else if (AreEqual(type.Name(), ("_Lock")))
 			{
 				ContainerLock* locker = (ContainerLock*) instance;
 				int32* pLock = (int32*) (locker->ContainerPtr + locker->locMemberOffset);
 				*pLock = 0;
 			}
-			else if (AreEqual(type.Name(), SEXTEXT("_Array")))
+			else if (AreEqual(type.Name(), ("_Array")))
 			{
 				ArrayImage* a = (ArrayImage*) instance;
 				if (RequiresDestruction(*a->ElementType))
@@ -176,22 +176,22 @@ namespace
 				}
 				ArrayDelete(a, ss);
 			}
-			else if (AreEqual(type.Name(), SEXTEXT("_Node")))
+			else if (AreEqual(type.Name(), ("_Node")))
 			{
 				NodeRef* nr = (NodeRef*) instance;
 				if (nr->NodePtr != NULL) ReleaseNode(nr->NodePtr, ss);
 			}
-			else if (AreEqual(type.Name(), SEXTEXT("_List")))
+			else if (AreEqual(type.Name(), ("_List")))
 			{
 				ListImage* l = (ListImage*) instance;
 				ListClear(*l, ss);
 			}
-			else if (AreEqual(type.Name(), SEXTEXT("_Map")))
+			else if (AreEqual(type.Name(), ("_Map")))
 			{
 				MapImage* m = (MapImage*) instance;
 				MapClear(m, ss);
 			}
-			else if (AreEqual(type.Name(), SEXTEXT("_MapNode")))
+			else if (AreEqual(type.Name(), ("_MapNode")))
 			{
 				MapNodeRef* nr = (MapNodeRef*) instance;
 				ReleaseNode(nr->NodePtr, ss);
@@ -247,16 +247,16 @@ namespace
 
 	void WriteUnhandledException(IScriptSystem& ss, CClassHeader* ex)
 	{
-		ss.ProgramObject().Log().Write(SEXTEXT("Unhandled exception. Could not find try-catch block."));
+		ss.ProgramObject().Log().Write(("Unhandled exception. Could not find try-catch block."));
 
 		IStructure* exType = ex->_typeInfo->structDef;
 
 		int errorCode = -1;
-		csexstr exceptionType = exType->Name();
-		csexstr exceptionMessage = SEXTEXT("Unspecified error");
+		cstr exceptionType = exType->Name();
+		cstr exceptionMessage = ("Unspecified error");
 
 		const IModule& module = ss.ProgramObject().GetModule(0);
-		const IStructure& nativeExType = *module.FindStructure(SEXTEXT("NativeException"));
+		const IStructure& nativeExType = *module.FindStructure(("NativeException"));
 
 		if (exType == &nativeExType)
 		{
@@ -266,7 +266,7 @@ namespace
 		}
 
 		int offset;
-		const IMember* member = FindMember(*exType, SEXTEXT("message"), OUT offset);
+		const IMember* member = FindMember(*exType, ("message"), OUT offset);
 		if (member != NULL)
 		{
 			const IStructure& memberType = *member->UnderlyingType();
@@ -277,11 +277,11 @@ namespace
 					CClassHeader* msgInstance = (CClassHeader*) (((uint8*) ex) + offset);
 					const IStructure& concreteType = *msgInstance->_typeInfo->structDef;
 					int msgOffset ;
-					const IMember* msgMember = FindMember(concreteType, SEXTEXT("buffer"), OUT msgOffset);
+					const IMember* msgMember = FindMember(concreteType, ("buffer"), OUT msgOffset);
 					if (msgMember != NULL && msgMember->UnderlyingType()->VarType() == VARTYPE_Pointer)
 					{
 						uint8* pItem = ((uint8*) ex) + offset + msgOffset;
-						SEXCHAR** pBuffer = (SEXCHAR**) pItem;
+						char** pBuffer = (char**) pItem;
 						if (*pBuffer != NULL)
 						{
 							exceptionMessage = *pBuffer;
@@ -291,7 +291,7 @@ namespace
 			}			
 		}
 
-		member = FindMember(*exType, SEXTEXT("errorCode"), OUT offset);
+		member = FindMember(*exType, ("errorCode"), OUT offset);
 		if (member != NULL && member->UnderlyingType()->VarType() == VARTYPE_Int32)
 		{
 			uint8* pItem = ((uint8*) ex) + offset;
@@ -332,7 +332,7 @@ namespace
 				return false;
 			}
 
-			csexstr fname = f->Name();
+			cstr fname = f->Name();
 
 			DeconstructLocalObjects(*f, pc, sf, ss, REF totalStackCorrection);
 
@@ -386,7 +386,7 @@ namespace
 		*ptrValue = newInstance + internalOffset;
 	}
 
-	void UpdateInternalExceptionPointers(Compiler::IProgramObject& po, uint8* newInstance, const CClassHeader* oldInstance, const IStructure& memberType, csexstr name, ptrdiff_t offset)
+	void UpdateInternalExceptionPointers(Compiler::IProgramObject& po, uint8* newInstance, const CClassHeader* oldInstance, const IStructure& memberType, cstr name, ptrdiff_t offset)
 	{
 		VARTYPE type = memberType.VarType();
 		if (type == VARTYPE_Derivative)
@@ -412,7 +412,7 @@ namespace
 			if (IsPtrInsideStack(ptr, po))
 			{				
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("A pointer inside an exception object '") << GetType(oldInstance).Name() << SEXTEXT(".") << name << SEXTEXT("' referred to another object on the stack");
+				streamer.sb << ("A pointer inside an exception object '") << GetType(oldInstance).Name() << (".") << name << ("' referred to another object on the stack");
 				po.Log().Write(*streamer.sb);
 				po.VirtualMachine().Throw();
 				return;
@@ -425,7 +425,7 @@ namespace
 		AlignedMemcpy(newInstance, oldInstance, oldInstance->_allocSize);
 
 		const IStructure& s = GetType(oldInstance);
-		UpdateInternalExceptionPointers(po, (uint8*) newInstance, oldInstance, s, SEXTEXT("ex"), 0);
+		UpdateInternalExceptionPointers(po, (uint8*) newInstance, oldInstance, s, ("ex"), 0);
 	}
 
 	CClassHeader* ReadExceptionFromInput(int inputNumber, IPublicProgramObject& po, const IFunction& f)
@@ -454,7 +454,7 @@ namespace
 
 			if (isWithinException)
 			{
-				po.Log().Write(SEXTEXT("An exception was thrown inside the processing of a throw. The most likely cause is that a destructor threw an exception."));
+				po.Log().Write(("An exception was thrown inside the processing of a throw. The most likely cause is that a destructor threw an exception."));
 				po.VirtualMachine().Throw();
 				return;
 			}
@@ -468,7 +468,7 @@ namespace
 			int nullSizeInBytes = iexc.NullObjectType().SizeOfStruct();
 			if (header->_allocSize > nullSizeInBytes)
 			{
-				po.Log().Write(SEXTEXT("An exception was thrown and the null object for Sys.Type.IException was too small to hold the exception reference"));
+				po.Log().Write(("An exception was thrown and the null object for Sys.Type.IException was too small to hold the exception reference"));
 				po.VirtualMachine().Throw();
 				return;
 			}
@@ -516,7 +516,7 @@ namespace
 
 		void InstallThrowHandler()
 		{
-			INamespaceBuilder& ns = ss.ProgramObject().GetRootNamespace().AddNamespace(SEXTEXT("Sys.Type"), ADDNAMESPACEFLAGS_NORMAL);
+			INamespaceBuilder& ns = ss.ProgramObject().GetRootNamespace().AddNamespace(("Sys.Type"), ADDNAMESPACEFLAGS_NORMAL);
 
 			struct ANON
 			{
@@ -530,21 +530,21 @@ namespace
 				{
 					IScriptSystem& ss = (IScriptSystem&) e.ss;
 
-					csexstr msgHandle;
+					cstr msgHandle;
 					ReadInput(0, (void*&) msgHandle, e);
 					CStringConstant* sc = ss.GetStringReflection(msgHandle);
 					WriteOutput(0, &sc->header._vTables[0], e);
 				}
 			};
 
-			ss.AddNativeCall(ns, ANON::Throw, this, SEXTEXT("_throw (Sys.Type.Pointer ex)->"), false);		
-			ss.AddNativeCall(ns, ANON::GetSysMessage, &ss, SEXTEXT("GetSysMessage (Sys.Type.Pointer msgHandle) -> (Sys.Type.IString message)"));
+			ss.AddNativeCall(ns, ANON::Throw, this, ("_throw (Sys.Type.Pointer ex)->"), false);		
+			ss.AddNativeCall(ns, ANON::GetSysMessage, &ss, ("GetSysMessage (Sys.Type.Pointer msgHandle) -> (Sys.Type.IString message)"));
 		}
 
-		void ThrowFromNativeCode(int32 errorCode, csexstr staticRefMessage)
+		void ThrowFromNativeCode(int32 errorCode, cstr staticRefMessage)
 		{
 			const IModule& module = ss.ProgramObject().GetModule(0);
-			const IStructure& nativeExType = *module.FindStructure(SEXTEXT("NativeException"));
+			const IStructure& nativeExType = *module.FindStructure(("NativeException"));
 			
 			int size = GetNullSize(nativeExType);
 			NativeException* ex = (NativeException*) alloca(size);

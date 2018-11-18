@@ -41,7 +41,7 @@ namespace Rococo
          ce.Builder.AddVariableRef(ns, typeStruct, hint);
       }
 
-      void AssignTempToVariableRef(CCompileEnvironment& ce, int tempDepth, csexstr name)
+      void AssignTempToVariableRef(CCompileEnvironment& ce, int tempDepth, cstr name)
       {
          MemberDef def;
          ce.Builder.TryGetVariableByName(def, name);
@@ -68,17 +68,17 @@ namespace Rococo
          ce.Builder.AddVariable(ns, typeStruct, (void*)GetTryCatchExpression(ce.Script));
       }
 
-      void AddArgVariable(csexstr desc, CCompileEnvironment& ce, const TypeString& type)
+      void AddArgVariable(cstr desc, CCompileEnvironment& ce, const TypeString& type)
       {
          ce.Builder.AddArgVariable(desc, type, (void*)GetTryCatchExpression(ce.Script));
       }
 
-      void AddArgVariable(csexstr desc, CCompileEnvironment& ce, const IStructure& type)
+      void AddArgVariable(cstr desc, CCompileEnvironment& ce, const IStructure& type)
       {
          ce.Builder.AddArgVariable(desc, type, (void*)GetTryCatchExpression(ce.Script));
       }
 
-      bool IsAtomicMatch(cr_sex s, csexstr value)
+      bool IsAtomicMatch(cr_sex s, cstr value)
       {
          return IsAtomic(s) && AreEqual(s.String(), value);
       }
@@ -89,14 +89,14 @@ namespace Rococo
          if (IsNullType(s)) return true;
 
          TokenBuffer destrName;
-         SafeFormat(destrName.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s.Destruct"), s.Name());
+         SafeFormat(destrName.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.Destruct"), s.Name());
          if (s.Module().FindFunction(destrName) != NULL) return true;
-         if (AreEqual(s.Name(), SEXTEXT("_Array"))) return true;
-         if (AreEqual(s.Name(), SEXTEXT("_Lock"))) return true;
-         if (AreEqual(s.Name(), SEXTEXT("_Node"))) return true;
-         if (AreEqual(s.Name(), SEXTEXT("_List"))) return true;
-         if (AreEqual(s.Name(), SEXTEXT("_Map"))) return true;
-         if (AreEqual(s.Name(), SEXTEXT("_MapNode"))) return true;
+         if (AreEqual(s.Name(), ("_Array"))) return true;
+         if (AreEqual(s.Name(), ("_Lock"))) return true;
+         if (AreEqual(s.Name(), ("_Node"))) return true;
+         if (AreEqual(s.Name(), ("_List"))) return true;
+         if (AreEqual(s.Name(), ("_Map"))) return true;
+         if (AreEqual(s.Name(), ("_MapNode"))) return true;
 
          for (int i = 0; i < s.MemberCount(); ++i)
          {
@@ -117,7 +117,7 @@ namespace Rococo
          MarkStackRollback(ce, s);
       }
 
-      void AddSymbol(ICodeBuilder& builder, csexstr format, ...)
+      void AddSymbol(ICodeBuilder& builder, cstr format, ...)
       {
          va_list args;
          va_start(args, format);
@@ -140,20 +140,20 @@ namespace Rococo
       {
          if (IsPrimitiveType(type.VarType())) return;
 
-         if (AreEqual(type.Name(), SEXTEXT("_Array")))
+         if (AreEqual(type.Name(), ("_Array")))
          {
             ArrayImage* a = (ArrayImage*)item;
             DestroyElements(*a, ss);
             ArrayDelete(a, ss);
             return;
          }
-         else if (AreEqual(type.Name(), SEXTEXT("_List")))
+         else if (AreEqual(type.Name(), ("_List")))
          {
             ListImage* l = (ListImage*)item;
             ListClear(*l, ss);
             return;
          }
-         else if (AreEqual(type.Name(), SEXTEXT("_Map")))
+         else if (AreEqual(type.Name(), ("_Map")))
          {
             MapImage* m = (MapImage*)item;
             MapClear(m, ss);

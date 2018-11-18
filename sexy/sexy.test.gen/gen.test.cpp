@@ -15,7 +15,7 @@
 #include "sexy.debug.types.h"
 #include "sexy.compiler.public.h"
 
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 # define _UNICODE
 # define UNICODE
 #endif
@@ -90,14 +90,14 @@ struct CLogger : public ILog
       return (int32)exceptions.size();
    }
 
-   void Write(csexstr text)
+   void Write(cstr text)
    {
-      WriteToStandardOutput(SEXTEXT("%s"), text);
+      WriteToStandardOutput(("%s"), text);
    }
 
-   void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance)
+   void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance)
    {
-      ParseException ex(Vec2i{ 0,0 }, Vec2i{ 0,0 }, exceptionType, message, SEXTEXT(""), NULL);
+      ParseException ex(Vec2i{ 0,0 }, Vec2i{ 0,0 }, exceptionType, message, (""), NULL);
       exceptions.push_back(ex);
    }
 
@@ -120,17 +120,17 @@ void PrintExpression(cr_sex s, int &totalOutput, int maxOutput)
    switch (s.Type())
    {
    case EXPRESSION_TYPE_ATOMIC:
-      totalOutput += WriteToStandardOutput(SEXTEXT(" %s"), (csexstr)s.String()->Buffer);
+      totalOutput += WriteToStandardOutput((" %s"), (cstr)s.String()->Buffer);
       break;
    case EXPRESSION_TYPE_NULL:
-      totalOutput += WriteToStandardOutput(SEXTEXT("()"));
+      totalOutput += WriteToStandardOutput(("()"));
       break;
    case EXPRESSION_TYPE_STRING_LITERAL:
-      totalOutput += WriteToStandardOutput(SEXTEXT(" \"%s\""), (csexstr)s.String()->Buffer);
+      totalOutput += WriteToStandardOutput((" \"%s\""), (cstr)s.String()->Buffer);
       break;
    case EXPRESSION_TYPE_COMPOUND:
 
-      totalOutput += WriteToStandardOutput(SEXTEXT(" ("));
+      totalOutput += WriteToStandardOutput((" ("));
 
       for (int i = 0; i < s.NumberOfElements(); ++i)
       {
@@ -143,29 +143,29 @@ void PrintExpression(cr_sex s, int &totalOutput, int maxOutput)
          PrintExpression(child, totalOutput, maxOutput);
       }
 
-      totalOutput += WriteToStandardOutput(SEXTEXT(" )"));
+      totalOutput += WriteToStandardOutput((" )"));
    }
 }
 
 
 void PrintParseException(const ParseException& e)
 {
-   WriteToStandardOutput(SEXTEXT("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n"), e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message());
+   WriteToStandardOutput(("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n"), e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message());
 
    for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
    {
-      if (s->TransformDepth() > 0)  WriteToStandardOutput(SEXTEXT("Macro expansion %d:\r\n"), s->TransformDepth());
+      if (s->TransformDepth() > 0)  WriteToStandardOutput(("Macro expansion %d:\r\n"), s->TransformDepth());
 
       int totalOutput = 0;
       PrintExpression(*s, totalOutput, 1024);
 
-      if (totalOutput > 1024) WriteToStandardOutput(SEXTEXT("..."));
+      if (totalOutput > 1024) WriteToStandardOutput(("..."));
 
-      WriteToStandardOutput(SEXTEXT("\r\n"));
+      WriteToStandardOutput(("\r\n"));
    }
 }
 
-bool SetProgramAndEntryPoint(IPublicProgramObject& object, const INamespace& ns, csexstr fname)
+bool SetProgramAndEntryPoint(IPublicProgramObject& object, const INamespace& ns, cstr fname)
 {
    const IFunction* f = ns.FindFunction(fname);
    if (f == NULL)
@@ -236,19 +236,19 @@ int main(int argc, char* argv[])
       headerCode = ss.SParser().LoadSource("..\\sexy.bennyhill.test\\tests\\generated\\sb.test.sxh.sxy", Vec2i{ 0,0 });
       headerTree = ss.SParser().CreateTree(headerCode());
 
-      csexstr srcCode =
-         SEXTEXT("(namespace EntryPoint)")
-         SEXTEXT("(using Sys.Animals)")
-         SEXTEXT("(using Sys.Type)")
-         SEXTEXT("(function Main (Int32 id) -> (Int32 exitCode):")
-         SEXTEXT("   (ITiger boss (GetTigerByName \"Aslan\"))")
-         SEXTEXT("   (ITigerPup pup = boss.MakeBabies)")
-         SEXTEXT("   (IStringBuilder sb (StringBuilder 256))")
-         SEXTEXT("   (pup.AppendName sb)")
-         SEXTEXT(" )")
-         SEXTEXT("(alias Main EntryPoint.Main)");
+      cstr srcCode =
+         ("(namespace EntryPoint)")
+         ("(using Sys.Animals)")
+         ("(using Sys.Type)")
+         ("(function Main (Int32 id) -> (Int32 exitCode):")
+         ("   (ITiger boss (GetTigerByName \"Aslan\"))")
+         ("   (ITigerPup pup = boss.MakeBabies)")
+         ("   (IStringBuilder sb (StringBuilder 256))")
+         ("   (pup.AppendName sb)")
+         (" )")
+         ("(alias Main EntryPoint.Main)");
 
-      mainCode = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, SEXTEXT("main"));
+      mainCode = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, ("main"));
       mainTree = ss.SParser().CreateTree(mainCode());
 
       ss.AddTree(headerTree());
@@ -259,9 +259,9 @@ int main(int argc, char* argv[])
 
       ss.Compile();
 
-      const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+      const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
       validate(ns != NULL);
-      validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, SEXTEXT("Main")));
+      validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, ("Main")));
 
       auto& vm = ss.PublicProgramObject().VirtualMachine();
 

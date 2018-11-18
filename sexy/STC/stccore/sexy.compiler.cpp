@@ -116,7 +116,7 @@ namespace
 			program = svmCore->CreateProgramMemory(pip.MaxProgramBytes);
 			virtualMachine = svmCore->CreateVirtualMachine();			
 			rootNS = new Namespace(*this);
-			intrinsics = Module::CreateIntrinsics(*this, SEXTEXT("!Intrinsics!"));
+			intrinsics = Module::CreateIntrinsics(*this, ("!Intrinsics!"));
 
 			IAssembler* assembler = svmCore->CreateAssembler();
 			BuildStub(*assembler, *program);
@@ -151,17 +151,17 @@ namespace
 			common = new CommonStructures(*this);
 		}
 
-		csexstr RegisterSymbol(csexstr text)
+		cstr RegisterSymbol(cstr text)
 		{
 			return AddSymbol(symbols, text);
 		}
 
-		IStructureBuilder& AddIntrinsicStruct(csexstr name, size_t sizeOfType, VARTYPE underlyingType, const IArchetype* archetype)
+		IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, VARTYPE underlyingType, const IArchetype* archetype)
 		{
 			StructurePrototype prototype(MEMBERALIGN_1, INSTANCEALIGN_1, true, archetype, false);
 
 			Structure* s = new Structure(name, prototype, *intrinsics, underlyingType, NULL);
-			s->AddMember(NameString::From(SEXTEXT("Value")), TypeString::From(name));
+			s->AddMember(NameString::From(("Value")), TypeString::From(name));
 			StructureMember& m = s->GetMemberRef(0);
 			if (!m.IsPseudoVariable()) m.SetSize(sizeOfType);
 			s->Seal();
@@ -169,7 +169,7 @@ namespace
 			return *s;
 		}
 
-		virtual IModuleBuilder& AddModule(csexstr name)
+		virtual IModuleBuilder& AddModule(cstr name)
 		{
 			Module* m = new Module(*this, name);
 			modules.push_back(m);
@@ -196,7 +196,7 @@ namespace
          {
             if (!modules.empty())
             {
-               auto* s = modules[0]->FindStructure(SEXTEXT("StringBuilder"));
+               auto* s = modules[0]->FindStructure(("StringBuilder"));
                if (s)
                {
                   systemStructures.push_back(s);
@@ -221,7 +221,7 @@ namespace
 
 			if (!ExpandMembersAndValidate(*this))
 			{
-				Log().Write(SEXTEXT("Failed to compute sizes for all structures. Reduce null objects member dependencies inside structure definitions"));
+				Log().Write(("Failed to compute sizes for all structures. Reduce null objects member dependencies inside structure definitions"));
 				return false;
 			}
 
@@ -253,115 +253,115 @@ namespace Rococo
 	   void ValidateNotNull(void* p)
 	   {
 		   if (p == NULL)
-			   Throw(Rococo::Compiler::ERRORCODE_NULL_POINTER, SEXTEXT("Null ptr"), SEXTEXT("item"));
+			   Throw(Rococo::Compiler::ERRORCODE_NULL_POINTER, ("Null ptr"), ("item"));
 	   }
 
 	   CommonStructures::CommonStructures(IProgramObject& obj)
 	   {
 		   ValidateNotNull(this->root = &obj.GetRootNamespace());
-		   ValidateNotNull(this->sys = root->FindSubspace(SEXTEXT("Sys")));
-		   ValidateNotNull(this->sysType = sys->FindSubspace(SEXTEXT("Type")));
-		   ValidateNotNull(this->sysNative = sys->FindSubspace(SEXTEXT("Native")));
-		   ValidateNotNull(this->sysReflection = sys->FindSubspace(SEXTEXT("Reflection")));
+		   ValidateNotNull(this->sys = root->FindSubspace(("Sys")));
+		   ValidateNotNull(this->sysType = sys->FindSubspace(("Type")));
+		   ValidateNotNull(this->sysNative = sys->FindSubspace(("Native")));
+		   ValidateNotNull(this->sysReflection = sys->FindSubspace(("Reflection")));
 
-		   ValidateNotNull(this->typeInt32 = obj.IntrinsicModule().FindStructure(SEXTEXT("Int32")));
-		   ValidateNotNull(this->typeInt64 = obj.IntrinsicModule().FindStructure(SEXTEXT("Int64")));
-		   ValidateNotNull(this->typeBool = obj.IntrinsicModule().FindStructure(SEXTEXT("Bool")));
-		   ValidateNotNull(this->typeFloat32 = obj.IntrinsicModule().FindStructure(SEXTEXT("Float32")));
-		   ValidateNotNull(this->typeFloat64 = obj.IntrinsicModule().FindStructure(SEXTEXT("Float64")));
-		   ValidateNotNull(this->typePointer = obj.IntrinsicModule().FindStructure(SEXTEXT("Pointer")));
-		   ValidateNotNull(this->typeNode = obj.GetModule(0).FindStructure(SEXTEXT("_Node")));
-		   ValidateNotNull(this->typeArray = obj.GetModule(0).FindStructure(SEXTEXT("_Array")));
-		   ValidateNotNull(this->typeMapNode = obj.GetModule(0).FindStructure(SEXTEXT("_MapNode")));
+		   ValidateNotNull(this->typeInt32 = obj.IntrinsicModule().FindStructure(("Int32")));
+		   ValidateNotNull(this->typeInt64 = obj.IntrinsicModule().FindStructure(("Int64")));
+		   ValidateNotNull(this->typeBool = obj.IntrinsicModule().FindStructure(("Bool")));
+		   ValidateNotNull(this->typeFloat32 = obj.IntrinsicModule().FindStructure(("Float32")));
+		   ValidateNotNull(this->typeFloat64 = obj.IntrinsicModule().FindStructure(("Float64")));
+		   ValidateNotNull(this->typePointer = obj.IntrinsicModule().FindStructure(("Pointer")));
+		   ValidateNotNull(this->typeNode = obj.GetModule(0).FindStructure(("_Node")));
+		   ValidateNotNull(this->typeArray = obj.GetModule(0).FindStructure(("_Array")));
+		   ValidateNotNull(this->typeMapNode = obj.GetModule(0).FindStructure(("_MapNode")));
 
-		   ValidateNotNull(this->sysTypeIString = sysType->FindInterface(SEXTEXT("IString")));
-		   ValidateNotNull(this->sysTypeIException = sysType->FindInterface(SEXTEXT("IException")));
-		   ValidateNotNull(this->sysTypeIExpression = sysReflection->FindInterface(SEXTEXT("IExpression")));
+		   ValidateNotNull(this->sysTypeIString = sysType->FindInterface(("IString")));
+		   ValidateNotNull(this->sysTypeIException = sysType->FindInterface(("IException")));
+		   ValidateNotNull(this->sysTypeIExpression = sysReflection->FindInterface(("IExpression")));
 
-		   ValidateNotNull(this->typeStringLiteral = obj.GetModule(0).FindStructure(SEXTEXT("StringConstant")));
+		   ValidateNotNull(this->typeStringLiteral = obj.GetModule(0).FindStructure(("StringConstant")));
 	   }
 
-	   void Throw(ERRORCODE code, csexstr source, csexstr format, ...)
+	   void Throw(ERRORCODE code, cstr source, cstr format, ...)
 	   {
 		   va_list args;
 		   va_start(args, format);
 
-		   SEXCHAR message[256];
+		   char message[256];
 		   SafeVFormat(message, 256, format, args);
 		   STCException e(code, source, message);	
 		   Throw(e);
 	   }
 
-	   void HighLightText(SEXCHAR* outputBuffer, size_t nBytesOutput, csexstr highlightPos, csexstr wholeString)
+	   void HighLightText(char* outputBuffer, size_t nBytesOutput, cstr highlightPos, cstr wholeString)
 	   {
-		   SEXCHAR charbuf[4];
-         SafeFormat(charbuf, 4, SEXTEXT("[%c]"), *highlightPos);
+		   char charbuf[4];
+         SafeFormat(charbuf, 4, ("[%c]"), *highlightPos);
 		   int startChars = (int32)(highlightPos - wholeString);
 		   CopyString(outputBuffer, std::min<int32>((int32)nBytesOutput, startChars), wholeString);
 		   StringCat(outputBuffer, charbuf, (int32) nBytesOutput);
 		   StringCat(outputBuffer, highlightPos+1, (int32) nBytesOutput);
 	   }
 	
-	   bool IsCapital(SEXCHAR c) { return (c >= 'A' && c <= 'Z'); }
-	   bool IsLowerCase(SEXCHAR c) { return (c >= 'a' && c <= 'z'); }
-	   bool IsNumeral(SEXCHAR c) { return c >= '0' && c < '9'; }
-	   bool IsAlpha(SEXCHAR c) { return IsCapital(c) || IsLowerCase(c); }
-	   bool IsAlphaNumeral(SEXCHAR c) { return IsAlpha(c) || IsNumeral(c); }
+	   bool IsCapital(char c) { return (c >= 'A' && c <= 'Z'); }
+	   bool IsLowerCase(char c) { return (c >= 'a' && c <= 'z'); }
+	   bool IsNumeral(char c) { return c >= '0' && c < '9'; }
+	   bool IsAlpha(char c) { return IsCapital(c) || IsLowerCase(c); }
+	   bool IsAlphaNumeral(char c) { return IsAlpha(c) || IsNumeral(c); }
 	
-	   void ValidateCapitalLetter(csexstr s, csexstr stringStart, csexstr name, csexstr functionSymbol)
+	   void ValidateCapitalLetter(cstr s, cstr stringStart, cstr name, cstr functionSymbol)
 	   {
 		   if (!IsCapital(*s))
 		   {
-			   SEXCHAR text[256];
+			   char text[256];
 			   HighLightText(text, 256, s, stringStart);
-			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, SEXTEXT("%s, Expecting capital letter A-Z: %s"), name, text);
+			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, ("%s, Expecting capital letter A-Z: %s"), name, text);
 		   }
 	   }
 
-	   void ValidateLowerCaseLetter(csexstr s, csexstr stringStart, csexstr name, csexstr functionSymbol)
+	   void ValidateLowerCaseLetter(cstr s, cstr stringStart, cstr name, cstr functionSymbol)
 	   {
 		   if (!IsLowerCase(*s))
 		   {
-			   SEXCHAR text[256];
+			   char text[256];
 			   HighLightText(text, 256, s, stringStart);
-			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, SEXTEXT("%s, Expecting lower case a-z: %s"), name, text);
+			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, ("%s, Expecting lower case a-z: %s"), name, text);
 		   }
 	   }
 
-	   void ValidateNumeral(csexstr s, csexstr stringStart, csexstr name, csexstr functionSymbol)
+	   void ValidateNumeral(cstr s, cstr stringStart, cstr name, cstr functionSymbol)
 	   {
 		   if (!IsNumeral(*s))
 		   {
-			   SEXCHAR text[256];
+			   char text[256];
 			   HighLightText(text, 256, s, stringStart);
-			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, SEXTEXT("%s, Expecting numeral 0-9: %s"), name, text);
+			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, ("%s, Expecting numeral 0-9: %s"), name, text);
 		   }
 	   }
 
-	   void ValidateAlpha(csexstr s, csexstr stringStart, csexstr name, csexstr functionSymbol)
+	   void ValidateAlpha(cstr s, cstr stringStart, cstr name, cstr functionSymbol)
 	   {		
 		   if (!IsAlpha(*s)) 
 		   {
-			   SEXCHAR text[256];
+			   char text[256];
 			   HighLightText(text, 256, s, stringStart);
-			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, SEXTEXT("%s, Expecting letter A-Z or a-z: %s"), name, text);
+			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, ("%s, Expecting letter A-Z or a-z: %s"), name, text);
 		   }
 	   }
 
-	   void ValidateAlphaNumeral(csexstr s, csexstr stringStart, csexstr name, csexstr functionSymbol)
+	   void ValidateAlphaNumeral(cstr s, cstr stringStart, cstr name, cstr functionSymbol)
 	   {		
 		   if (!IsAlphaNumeral(*s)) 
 		   {
-			   SEXCHAR text[256];
+			   char text[256];
 			   HighLightText(text, 256, s, stringStart);
-			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, SEXTEXT("%s, Expecting alphanumeric A-Z or a-z or 0-9: %s"), name, text);
+			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, ("%s, Expecting alphanumeric A-Z or a-z or 0-9: %s"), name, text);
 		   }
 	   }
 
-	   void ValidateNamespaceString(csexstr s, csexstr name, csexstr functionSymbol)
+	   void ValidateNamespaceString(cstr s, cstr name, cstr functionSymbol)
 	   {
-		   if (s == NULL) Throw(ERRORCODE_NULL_POINTER, functionSymbol, SEXTEXT("[%s] was NULL"), name);
-		   if (s[0] == 0) Throw(ERRORCODE_EMPTY_STRING, functionSymbol, SEXTEXT("[%s] was empty string"), name);
+		   if (s == NULL) Throw(ERRORCODE_NULL_POINTER, functionSymbol, ("[%s] was NULL"), name);
+		   if (s[0] == 0) Throw(ERRORCODE_EMPTY_STRING, functionSymbol, ("[%s] was empty string"), name);
 
 		   enum STATE
 		   {
@@ -369,7 +369,7 @@ namespace Rococo
 			   STATE_MID_BRANCH,
 		   } state = STATE_START_BRANCH;
 
-		   for(csexstr p = s; *p != 0; p++)
+		   for(cstr p = s; *p != 0; p++)
 		   {
 			   if (state == STATE_START_BRANCH)
 			   {
@@ -391,7 +391,7 @@ namespace Rococo
 
 		   if (state == STATE_START_BRANCH)
 		   {
-			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, SEXTEXT("[%s] terminated in a dot: %s"), name, s);
+			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, ("[%s] terminated in a dot: %s"), name, s);
 		   }
 	   }
    }

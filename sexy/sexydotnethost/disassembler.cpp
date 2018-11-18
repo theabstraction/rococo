@@ -16,20 +16,20 @@
 
 namespace
 {
-	int GetAssemblyUnicodeAndUpdatePCOffset(const uint8* code, size_t& pcOffset, IDisassembler& disassembler, csexstr symbol, Char* tempUnicodeBuffer256)
+	int GetAssemblyUnicodeAndUpdatePCOffset(const uint8* code, size_t& pcOffset, IDisassembler& disassembler, cstr symbol, Char* tempUnicodeBuffer256)
 	{
 		VM::IDisassembler::Rep rep;
 		disassembler.Disassemble(code + pcOffset, OUT rep);
 
-		SEXCHAR assemblyLine[256];
+		char assemblyLine[256];
 
 		if (symbol[0] == 0)
 		{
-			Rococo::SafeFormat(assemblyLine, 256, SEXTEXT("%p %s %s"), code + pcOffset, rep.OpcodeText, rep.ArgText);
+			Rococo::SafeFormat(assemblyLine, 256, ("%p %s %s"), code + pcOffset, rep.OpcodeText, rep.ArgText);
 		}
 		else
 		{
-			Rococo::SafeFormat(assemblyLine, 256, SEXTEXT("%p %s %s // %s"), code + pcOffset, rep.OpcodeText, rep.ArgText, symbol);
+			Rococo::SafeFormat(assemblyLine, 256, ("%p %s %s // %s"), code + pcOffset, rep.OpcodeText, rep.ArgText, symbol);
 		}
 
 		if (rep.ByteCount == 0)
@@ -38,7 +38,7 @@ namespace
 			// throw gcnew Exception("Error disassembling instruction");
 		}
 
-		int assemblyLength = CopySexCharToUnicode(tempUnicodeBuffer256, 256, assemblyLine);
+		int assemblyLength = CopycharToUnicode(tempUnicodeBuffer256, 256, assemblyLine);
 		if (assemblyLength <= 0)
 		{
 			throw gcnew Exception("Error converting assembly to unicode");
@@ -55,7 +55,7 @@ namespace
 		f.Code().GetCodeSection(OUT section);
 
 		wchar_t unicodeName[256];
-		int functionNameLength = CopySexCharToUnicode(unicodeName, 256, f.Name());
+		int functionNameLength = CopycharToUnicode(unicodeName, 256, f.Name());
 		if (functionNameLength <= 0)
 		{
 			throw gcnew Exception("Error converting function name to unicode");
@@ -68,7 +68,7 @@ namespace
 	int GetModuleHeader(const IModule& module, Char* pCharLine)
 	{
       wchar_t unicodeModuleName[256];
-		int nameLength = CopySexCharToUnicode(unicodeModuleName, 256, module.Name());
+		int nameLength = CopycharToUnicode(unicodeModuleName, 256, module.Name());
 		if (nameLength <= 0)
 		{
 			throw gcnew Exception("Error converting module name to unicode");
@@ -98,7 +98,7 @@ namespace SexyDotNet { namespace Host
 			IntPtr functionHandle((Void*) &f);
 
 			Char temp[256];
-			CopySexCharToUnicode(temp, 256, f.Name());
+			CopycharToUnicode(temp, 256, f.Name());
 			String^ functionName = gcnew String(temp);
 			List<String^>^ assemblySegments = gcnew List<String^>();
 
@@ -178,7 +178,7 @@ namespace SexyDotNet { namespace Host
 				Rococo::Sex::ISParserTree* tree = ss.GetSourceCode(currentModule);
 				if (tree != NULL)
 				{
-					csexstr src = tree->Source().SourceStart();
+					cstr src = tree->Source().SourceStart();
 					currentViewedSourceCode = gcnew String(src);
 					currentViewedFilename = gcnew String(tree->Source().Name());
 					changed = true;

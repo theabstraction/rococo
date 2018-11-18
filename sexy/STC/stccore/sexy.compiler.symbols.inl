@@ -33,10 +33,10 @@
 
 namespace
 {
-	int HashString(csexstr s)
+	int HashString(cstr s)
 	{
 		int h = 0;
-		for (csexstr p = s; *p != 0; p++)
+		for (cstr p = s; *p != 0; p++)
 		{
 			h = 31*h + (int) *p;
 		}
@@ -49,17 +49,17 @@ namespace
 	class CSymbol
 	{
 	private:
-		csexstr staticRefSymbol;
+		cstr staticRefSymbol;
 		int hashCode;
 		sexstring symbol;
 
 	public:
-		CSymbol(csexstr _symbol): staticRefSymbol(_symbol), symbol(NULL)
+		CSymbol(cstr _symbol): staticRefSymbol(_symbol), symbol(NULL)
 		{
 			hashCode = HashString(_symbol);
 		}
 
-		CSymbol(csexstr _symbol, int _hashCode, ESymbol perm)
+		CSymbol(cstr _symbol, int _hashCode, ESymbol perm)
 		{
 			hashCode = _hashCode;			
 			symbol = CreateSexString(_symbol);
@@ -77,7 +77,7 @@ namespace
 			FreeSexString(symbol);
 		}
 
-		csexstr c_str() const { return staticRefSymbol; }
+		cstr c_str() const { return staticRefSymbol; }
 		int HashCode() const { return hashCode; }		
 	};
 
@@ -96,7 +96,7 @@ namespace
 
 	typedef std::unordered_set<CSymbol,hashSymbol> TSymbols;
 
-	csexstr AddSymbol(TSymbols& symbols, csexstr symbol)
+	cstr AddSymbol(TSymbols& symbols, cstr symbol)
 	{
 		CSymbol temp(symbol);
 		auto i = symbols.find(temp);

@@ -39,7 +39,7 @@
 
 namespace Rococo { namespace Compiler
 {
-	IStructureBuilder* FindMember(IStructureBuilder& s, csexstr name)
+	IStructureBuilder* FindMember(IStructureBuilder& s, cstr name)
 	{
 		for(int i = 0; i < s.MemberCount(); i++)
 		{
@@ -52,7 +52,7 @@ namespace Rococo { namespace Compiler
 		return NULL;
 	}
 
-	const IStructure* FindMember(const IStructure& s, csexstr name)
+	const IStructure* FindMember(const IStructure& s, cstr name)
 	{
 		for(int i = 0; i < s.MemberCount(); i++)
 		{
@@ -65,13 +65,13 @@ namespace Rococo { namespace Compiler
 		return NULL;
 	}
 
-	const IMember* FindMember(const IStructure& s, csexstr name, OUT int& offset)
+	const IMember* FindMember(const IStructure& s, cstr name, OUT int& offset)
 	{
 		offset = 0;
 
 		for(int i = 0; i < s.MemberCount(); i++)
 		{
-			csexstr memberName = s.GetMember(i).Name();
+			cstr memberName = s.GetMember(i).Name();
 			if (AreEqual(memberName, name))
 			{
 				return &s.GetMember(i);
@@ -85,10 +85,10 @@ namespace Rococo { namespace Compiler
 
 	bool IsNullType(const IStructure& s)
 	{
-		return s.InterfaceCount() != 0 && (AreEqual(s.Name(), SEXTEXT("_Null"), 5));
+		return s.InterfaceCount() != 0 && (AreEqual(s.Name(), ("_Null"), 5));
 	}
 
-	bool GetMethodIndices(OUT int& interfaceIndex, OUT int& methodIndex, const IStructure& s, csexstr interfaceName, csexstr methodName)
+	bool GetMethodIndices(OUT int& interfaceIndex, OUT int& methodIndex, const IStructure& s, cstr interfaceName, cstr methodName)
 	{
 		interfaceIndex = -1;
 		methodIndex = -1;
@@ -113,7 +113,7 @@ namespace Rococo { namespace Compiler
 		return false;
 	}
 
-	bool GetMethodIndices(OUT int& interfaceIndex, OUT int& methodIndex, const IStructure& s, csexstr methodName)
+	bool GetMethodIndices(OUT int& interfaceIndex, OUT int& methodIndex, const IStructure& s, cstr methodName)
 	{
 		interfaceIndex = -1;
 		methodIndex = -1;
@@ -136,16 +136,16 @@ namespace Rococo { namespace Compiler
 		return false;
 	}
 
-	csexstr GetFriendlyName(const IStructure& s)
+	cstr GetFriendlyName(const IStructure& s)
 	{
 		return IsNullType(s) ? s.GetInterface(0).Name() : s.Name();
 	}
 
-	IInterfaceBuilder* GetInterface(IProgramObject& object, csexstr fullyQualifiedName)
+	IInterfaceBuilder* GetInterface(IProgramObject& object, cstr fullyQualifiedName)
 	{
 		NamespaceSplitter splitter(fullyQualifiedName);
 
-		csexstr body, name;
+		cstr body, name;
 		if (splitter.SplitTail(OUT body, OUT name))
 		{
 			INamespaceBuilder* origin = object.GetRootNamespace().FindSubspace(body);
@@ -158,7 +158,7 @@ namespace Rococo { namespace Compiler
 		return NULL;
 	}
 
-	IFunctionBuilder* FindByName(IFunctionEnumeratorBuilder& e, csexstr publicName) 
+	IFunctionBuilder* FindByName(IFunctionEnumeratorBuilder& e, cstr publicName) 
 	{
 		for(int i = 0; i < e.FunctionCount(); ++i)
 		{
@@ -173,7 +173,7 @@ namespace Rococo { namespace Compiler
 	}
 
 
-	const IFunction* FindByName(const IFunctionEnumerator& e, csexstr publicName) 
+	const IFunction* FindByName(const IFunctionEnumerator& e, cstr publicName) 
 	{
 		for(int i = 0; i < e.FunctionCount(); ++i)
 		{
@@ -225,7 +225,7 @@ namespace Rococo { namespace Compiler
 		return false;
 	}
 
-	INamespaceBuilder* MatchNamespace(IModuleBuilder& module, csexstr name)
+	INamespaceBuilder* MatchNamespace(IModuleBuilder& module, cstr name)
 	{
 		INamespaceBuilder& root = module.Object().GetRootNamespace();
 
@@ -242,7 +242,7 @@ namespace Rococo { namespace Compiler
 		return NULL;
 	}
 
-	IStructureBuilder* MatchStructure(ILog& logger, csexstr type, IModuleBuilder& module)
+	IStructureBuilder* MatchStructure(ILog& logger, cstr type, IModuleBuilder& module)
 	{
 		if (type[0] == '_')
 		{
@@ -256,27 +256,27 @@ namespace Rococo { namespace Compiler
 
 		if (!IsCapital(type[0]))
 		{
-			logger.Write(SEXTEXT("Expecting type name to begin with capital letter"));
+			logger.Write(("Expecting type name to begin with capital letter"));
 			return NULL;
 		}
 
 		NamespaceSplitter splitter(type);
 
-		csexstr body, tail;
+		cstr body, tail;
 		if (splitter.SplitTail(OUT body, OUT tail))
 		{
 			INamespaceBuilder* ns =  Compiler::MatchNamespace(module, body);
 			if (ns == NULL) 
 			{
 				sexstringstream<256> streamer;
-				streamer.sb << SEXTEXT("Could not identify namespace ") << body;
+				streamer.sb << ("Could not identify namespace ") << body;
 				logger.Write(streamer);
 				return NULL;
 			}
 
 			if (!IsCapital(tail[0]) && tail[0] != '_')
 			{
-				logger.Write(SEXTEXT("Expecting type name to begin with capital letter"));
+				logger.Write(("Expecting type name to begin with capital letter"));
 				return NULL;
 			}
 
@@ -288,7 +288,7 @@ namespace Rococo { namespace Compiler
 			else
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("Cannot find structure ") << tail << SEXTEXT(" in namespace ") << body;
+				streamer.sb << ("Cannot find structure ") << tail << (" in namespace ") << body;
 				logger.Write(streamer);
 			}
 
@@ -308,7 +308,7 @@ namespace Rococo { namespace Compiler
 				return s;
 			}
 			
-			INamespaceBuilder* sysTypes = module.Object().GetRootNamespace().FindSubspace(SEXTEXT("Sys.Type"));
+			INamespaceBuilder* sysTypes = module.Object().GetRootNamespace().FindSubspace(("Sys.Type"));
 			s = sysTypes->FindStructure(type);
 			if (s != NULL)
 			{

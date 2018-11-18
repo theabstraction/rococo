@@ -15,14 +15,14 @@ using namespace Rococo::Sex;
 using namespace Rococo::VM;
 using namespace Rococo::Compiler;
 
-#include "sexchar.to.unicode.conversions.h"
+#include "char.to.unicode.conversions.h"
 #include <malloc.h>
 
 namespace
 {  
 	inline void WriteLineToStandardOutput(const char* text) { puts(text); }
 
-#ifdef SEXCHAR_IS_TEXT
+#ifdef char_IS_TEXT
    inline void WriteLineToStandardOutput(cstr text) { _putws(text); }
 #endif
 
@@ -49,18 +49,18 @@ namespace
 			lastException = ParseException();
 		}
 
-		virtual void Write(csexstr message)
+		virtual void Write(cstr message)
 		{
 			m_log(message);
 		}
 
-		void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) 
+		void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance) 
 		{
 			Write(exceptionType);
-			Write(SEXTEXT(": code "));
+			Write((": code "));
 
 			TokenBuffer txt;
-			StringPrint(txt, SEXTEXT("%s: code %d\n"), exceptionType, errorCode);
+			StringPrint(txt, ("%s: code %d\n"), exceptionType, errorCode);
 			Write(message);
 		}
 

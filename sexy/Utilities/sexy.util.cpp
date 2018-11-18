@@ -44,12 +44,12 @@
 
 namespace Rococo
 {
-	void LogError(ILog& log, csexstr format, ...)
+	void LogError(ILog& log, cstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 
-		SEXCHAR msg[1024];
+		char msg[1024];
 		SafeVFormat(msg, sizeof(msg), format, args);
 		log.Write(msg);
 	}
@@ -59,9 +59,9 @@ namespace Rococo
 {
 	namespace Script
 	{
-		void ThrowBadNativeArg(int index, csexstr source, csexstr message)
+		void ThrowBadNativeArg(int index, cstr source, cstr message)
 		{
-			WriteToStandardOutput(SEXTEXT("Error %d in %s: %s\r\n"), index, source, message);
+			WriteToStandardOutput(("Error %d in %s: %s\r\n"), index, source, message);
          Throw(0, "Bad native argument: %s - %s", source, message);
 		}
 	}

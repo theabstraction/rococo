@@ -33,7 +33,7 @@
 
 namespace Rococo { namespace Compiler { namespace Impl
 {	
-	bool AttributeContainer::AddAttribute(csexstr name, const void* value)
+	bool AttributeContainer::AddAttribute(cstr name, const void* value)
 	{
 		auto i = attributeMap.find(CStringKey(name));
 		if (i == attributeMap.end())
@@ -53,7 +53,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return (int32) attributes.size();
 	}
 
-	const bool AttributeContainer::FindAttribute(csexstr name, OUT const void*& value) const
+	const bool AttributeContainer::FindAttribute(cstr name, OUT const void*& value) const
 	{
 		auto i = attributeMap.find(CStringKey(name));
 		if (i == attributeMap.end())
@@ -68,7 +68,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		}
 	}
 
-	csexstr AttributeContainer::GetAttribute(int index, OUT const void*& value) const
+	cstr AttributeContainer::GetAttribute(int index, OUT const void*& value) const
 	{
 		auto i = attributes[index];
 		value = i.second;

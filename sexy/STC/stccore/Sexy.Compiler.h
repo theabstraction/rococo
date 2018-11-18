@@ -111,7 +111,7 @@ namespace Rococo { namespace Compiler
 		virtual IFunctionAliasBuilder& operator[](int index) = 0;
 	};
 
-	IFunctionBuilder* FindByName(IFunctionEnumeratorBuilder& e, csexstr publicName);
+	IFunctionBuilder* FindByName(IFunctionEnumeratorBuilder& e, cstr publicName);
 	
 	ROCOCOAPI IMemberBuilder : public IMember
 	{
@@ -124,8 +124,8 @@ namespace Rococo { namespace Compiler
 	{
       virtual void Free() = 0;
 		virtual IModuleBuilder& Module() = 0;
-		virtual void AddInterface(csexstr interfaceFullName) = 0;		
-		virtual void AddMember(const NameString& name, const TypeString& type, csexstr genericArg1 = nullptr, csexstr genericArg2 = nullptr) = 0;
+		virtual void AddInterface(cstr interfaceFullName) = 0;		
+		virtual void AddMember(const NameString& name, const TypeString& type, cstr genericArg1 = nullptr, cstr genericArg2 = nullptr) = 0;
 		virtual void AddPseudoMember(const NameString& name, const TypeString& type) = 0;
 		virtual void Seal() = 0;
 		virtual IMemberBuilder& GetMember(int index) = 0;
@@ -141,15 +141,15 @@ namespace Rococo { namespace Compiler
 	{
 		virtual void ClearPrefixes() = 0;		
 		virtual void Clear() = 0;
-		virtual IStructure& DeclareClass(csexstr name, const StructurePrototype& prototype, const void* definition) = 0;
+		virtual IStructure& DeclareClass(cstr name, const StructurePrototype& prototype, const void* definition) = 0;
 		virtual IFunctionBuilder& DeclareClosure(IFunctionBuilder& parent, bool mayUseParentSF, const void* definition) = 0;
 		virtual IFunctionBuilder& DeclareFunction(const FunctionPrototype& prototype, const void* definition) = 0;	
-		virtual IStructureBuilder& DeclareStructure(csexstr name, const StructurePrototype& prototype, const void* definition) = 0;
-		virtual IFunctionBuilder* FindFunction(csexstr name) = 0;
-		virtual IStructureBuilder* FindStructure(csexstr name) = 0;
+		virtual IStructureBuilder& DeclareStructure(cstr name, const StructurePrototype& prototype, const void* definition) = 0;
+		virtual IFunctionBuilder* FindFunction(cstr name) = 0;
+		virtual IStructureBuilder* FindStructure(cstr name) = 0;
 		virtual IFunctionBuilder& GetFunction(int index) = 0;
 		virtual IStructureBuilder& GetStructure(int index) = 0;
-		virtual void UsePrefix(csexstr name) = 0;
+		virtual void UsePrefix(cstr name) = 0;
 		virtual INamespaceBuilder& GetPrefix(int index) = 0;
 		virtual void IncVersion() = 0;
 
@@ -160,7 +160,7 @@ namespace Rococo { namespace Compiler
 	{
 		virtual IAttributes& Attributes() = 0;
 		virtual IStructureBuilder& NullObjectType() = 0;
-		virtual void SetMethod(size_t index, csexstr name, size_t argCount, csexstr argNames[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArg1s[], const bool isOut[], const void* definition) = 0;
+		virtual void SetMethod(size_t index, cstr name, size_t argCount, cstr argNames[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArg1s[], const bool isOut[], const void* definition) = 0;
 		virtual void PostCompile() = 0;	
 		virtual void ExpandNullObjectAllocSize(int minimumByteCount) = 0;
 	};
@@ -181,26 +181,26 @@ namespace Rococo { namespace Compiler
 	{
 		virtual INamespaceBuilder* Parent() = 0;
 		virtual INamespaceBuilder& GetChild(size_t index) = 0;
-		virtual INamespaceBuilder* FindSubspace(csexstr childName) = 0;
-		virtual INamespaceBuilder& AddNamespace(csexstr childName, ADDNAMESPACEFLAGS flags) = 0;
-		virtual IMacroBuilder* AddMacro(csexstr name, void* expression, IFunctionBuilder& f) = 0;
-		virtual const IArchetype& AddArchetype(csexstr name, csexstr argNames[], const IStructure* stArray[], const IArchetype* archArray[], const IStructure* genericArg1s[], int numberOfOutputs, int numberOfInputs, const void* definition) = 0;
+		virtual INamespaceBuilder* FindSubspace(cstr childName) = 0;
+		virtual INamespaceBuilder& AddNamespace(cstr childName, ADDNAMESPACEFLAGS flags) = 0;
+		virtual IMacroBuilder* AddMacro(cstr name, void* expression, IFunctionBuilder& f) = 0;
+		virtual const IArchetype& AddArchetype(cstr name, cstr argNames[], const IStructure* stArray[], const IArchetype* archArray[], const IStructure* genericArg1s[], int numberOfOutputs, int numberOfInputs, const void* definition) = 0;
 		virtual void Alias(IFunctionBuilder& f) = 0;
-		virtual void Alias(csexstr publicName, IStructureBuilder& s) = 0;
-		virtual void Alias(csexstr publicName, IFunctionBuilder& f) = 0;
+		virtual void Alias(cstr publicName, IStructureBuilder& s) = 0;
+		virtual void Alias(cstr publicName, IFunctionBuilder& f) = 0;
 		virtual void Clear() = 0;
-		virtual IInterfaceBuilder* DeclareInterface(csexstr name, int methodCount, IStructureBuilder& nullObject, IInterfaceBuilder* base) = 0;
+		virtual IInterfaceBuilder* DeclareInterface(cstr name, int methodCount, IStructureBuilder& nullObject, IInterfaceBuilder* base) = 0;
 		
 		virtual IInterfaceBuilder& GetInterface(int index) = 0;
 
-		virtual IArchetype* FindArchetype(csexstr name) = 0;
-		virtual IMacroBuilder* FindMacro(csexstr name) = 0;
-		virtual IFactoryBuilder* FindFactory(csexstr name) = 0;
-		virtual IInterfaceBuilder* FindInterface(csexstr name) = 0;
-		virtual IFunctionBuilder* FindFunction(csexstr name) = 0;
-		virtual IStructureBuilder* FindStructure(csexstr name) = 0;
+		virtual IArchetype* FindArchetype(cstr name) = 0;
+		virtual IMacroBuilder* FindMacro(cstr name) = 0;
+		virtual IFactoryBuilder* FindFactory(cstr name) = 0;
+		virtual IInterfaceBuilder* FindInterface(cstr name) = 0;
+		virtual IFunctionBuilder* FindFunction(cstr name) = 0;
+		virtual IStructureBuilder* FindStructure(cstr name) = 0;
 
-		virtual IFactory& RegisterFactory(csexstr name, IFunctionBuilder& constructor, IInterfaceBuilder& interf, sexstring interfType) = 0;
+		virtual IFactory& RegisterFactory(cstr name, IFunctionBuilder& constructor, IInterfaceBuilder& interf, sexstring interfType) = 0;
 
 		virtual IProgramObject& Object() = 0;
 	};
@@ -209,14 +209,14 @@ namespace Rococo { namespace Compiler
 
 	ROCOCOAPI IProgramObject : public IPublicProgramObject
 	{
-		virtual IModuleBuilder& AddModule(csexstr name) = 0;		
+		virtual IModuleBuilder& AddModule(cstr name) = 0;		
 		virtual IModuleBuilder& GetModule(int index) = 0;
 		virtual INamespaceBuilder& GetRootNamespace() = 0;
 		virtual IModuleBuilder& IntrinsicModule() = 0;
-		virtual IStructureBuilder& AddIntrinsicStruct(csexstr name, size_t sizeOfType, VARTYPE underlyingType, const IArchetype* archetype) = 0;
+		virtual IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, VARTYPE underlyingType, const IArchetype* archetype) = 0;
 		virtual void ResolveNativeTypes() = 0;		
 		virtual bool ResolveDefinitions() = 0;				
-		virtual csexstr RegisterSymbol(csexstr text) = 0;		
+		virtual cstr RegisterSymbol(cstr text) = 0;		
 		virtual CommonStructures& Common() = 0;
 		virtual void InitCommon() = 0;
 	};
@@ -242,7 +242,7 @@ namespace Rococo { namespace Compiler
 		IProgramObject& operator()() { return *instance; }
 	};
 
-	void ValidateNamespaceString(csexstr s, csexstr name, csexstr functionSymbol);
+	void ValidateNamespaceString(cstr s, cstr name, cstr functionSymbol);
 
 	// Recursive structure. Given a branch, its children are visited first and then it is evaluated
 	ROCOCOAPI IBinaryExpression
@@ -273,7 +273,7 @@ namespace Rococo { namespace Compiler
 
 	struct IGlobalEnumerator
 	{
-		virtual void operator()(csexstr name, const GlobalValue& defaultValue) = 0;
+		virtual void operator()(cstr name, const GlobalValue& defaultValue) = 0;
 	};
 
 	ROCOCOAPI ICodeBuilder : public IFunctionCode
@@ -287,13 +287,13 @@ namespace Rococo { namespace Compiler
 		virtual void AddVariable(const NameString& name, const TypeString& type, void* userData) = 0;
 		virtual void AddVariableRef(const NameString& name, const IStructure& type, void* userData) = 0;
 		virtual void AddVariable(const NameString& name, const IStructure& type, void* userData) = 0;
-		virtual void AddCatchVariable(csexstr name, void* userData) = 0;
-		virtual void AssignLiteral(const NameString& name, csexstr literalValue) = 0;
+		virtual void AddCatchVariable(cstr name, void* userData) = 0;
+		virtual void AssignLiteral(const NameString& name, cstr literalValue) = 0;
 		virtual void AssignPointer(const NameString& name, const void* ptr) = 0;
-		virtual void AssignVariableToVariable(csexstr source, csexstr target) = 0;
-		virtual void AssignVariableToTemp(csexstr source, int tempIndex, int memberOffsetCorrection = 0) = 0;
-		virtual void AssignVariableRefToTemp(csexstr source, int tempDepth, int offset = 0) = 0;	
-		virtual void AssignTempToVariable(int srcIndex, csexstr target) = 0;
+		virtual void AssignVariableToVariable(cstr source, cstr target) = 0;
+		virtual void AssignVariableToTemp(cstr source, int tempIndex, int memberOffsetCorrection = 0) = 0;
+		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset = 0) = 0;	
+		virtual void AssignTempToVariable(int srcIndex, cstr target) = 0;
 		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def) = 0;
 		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def) = 0;
 		virtual void AssignLiteralToGlobal(const GlobalValue& g, const VariantValue& value) = 0;
@@ -306,12 +306,12 @@ namespace Rococo { namespace Compiler
 		virtual void AppendWhileDo(ICompileSection& loopCriterion, CONDITION condition, ICompileSection& loopBody) = 0;
 		virtual void AppendDoWhile(ICompileSection& loopBody, ICompileSection& loopCriterion, CONDITION condition) = 0;
 
-		virtual void Append_InitializeVirtualTable(csexstr className) = 0;
-		virtual void Append_InitializeVirtualTable(csexstr instanceName, const IStructure& classType) = 0;
+		virtual void Append_InitializeVirtualTable(cstr className) = 0;
+		virtual void Append_InitializeVirtualTable(cstr instanceName, const IStructure& classType) = 0;
 
 		virtual void ArchiveRegister(int saveTempDepth, int restoreTempDepth, BITCOUNT bits, void* userData) = 0;
-		virtual void AddArgVariable(csexstr desc, const TypeString& type, void* userData) = 0;
-		virtual void AddArgVariable(csexstr desc, const IStructure& type, void* userData) = 0;
+		virtual void AddArgVariable(cstr desc, const TypeString& type, void* userData) = 0;
+		virtual void AddArgVariable(cstr desc, const IStructure& type, void* userData) = 0;
 
 		virtual int SectionArgCount() const = 0;
 		virtual void EnterSection() = 0;
@@ -321,13 +321,13 @@ namespace Rococo { namespace Compiler
 		virtual VM::IAssembler& Assembler() = 0;
 		virtual IModuleBuilder& Module() = 0;
 
-		virtual void EnableClosures(csexstr targetVariable) = 0;
+		virtual void EnableClosures(cstr targetVariable) = 0;
 
-		virtual VARTYPE GetVarType(csexstr name) const = 0;
-		virtual bool TryGetVariableByName(OUT MemberDef& def, csexstr name) const = 0;
-		virtual const IStructure* GetVarStructure(csexstr varName) const = 0;
+		virtual VARTYPE GetVarType(cstr name) const = 0;
+		virtual bool TryGetVariableByName(OUT MemberDef& def, cstr name) const = 0;
+		virtual const IStructure* GetVarStructure(cstr varName) const = 0;
 		virtual int GetVariableCount() const = 0;
-		virtual void GetVariableByIndex(OUT MemberDef& def, csexstr& name, int index) const = 0;
+		virtual void GetVariableByIndex(OUT MemberDef& def, cstr& name, int index) const = 0;
 		virtual int GetOffset(size_t variableIndex) const = 0;
 		virtual void AssignClosureParentSF() = 0;
 
@@ -343,12 +343,12 @@ namespace Rococo { namespace Compiler
 		virtual void NoteStackCorrection(int stackCorrection) = 0;
 		virtual void NoteDestructorPosition(int instancePosition, const IStructure& type) = 0;	
 
-		virtual void AddSymbol(csexstr text) = 0;
+		virtual void AddSymbol(cstr text) = 0;
 		virtual void MarkExpression(const void* sourceExpression) = 0;
 		virtual void DeleteSymbols() = 0;
 
 		virtual void PushVariable(const MemberDef& def) = 0;
-		virtual void PushVariableRef(csexstr source, int interfaceIndex) = 0;
+		virtual void PushVariableRef(cstr source, int interfaceIndex) = 0;
 
 		virtual int GetThisOffset() const = 0;
 		virtual void SetThisOffset(int offset) = 0;
@@ -360,10 +360,10 @@ namespace Rococo { namespace Compiler
 
 	enum { MAX_NAMESPACE_LEN = 256 };
 
-	IStructureBuilder* FindMember(IStructureBuilder& s, csexstr name);
-	IInterfaceBuilder* GetInterface(IProgramObject& object, csexstr fullyQualifiedName);
-	IStructureBuilder* MatchStructure(ILog& logger, csexstr type, IModuleBuilder& module);
-	INamespaceBuilder* MatchNamespace(IModuleBuilder& module, csexstr name);
+	IStructureBuilder* FindMember(IStructureBuilder& s, cstr name);
+	IInterfaceBuilder* GetInterface(IProgramObject& object, cstr fullyQualifiedName);
+	IStructureBuilder* MatchStructure(ILog& logger, cstr type, IModuleBuilder& module);
+	INamespaceBuilder* MatchNamespace(IModuleBuilder& module, cstr name);
 }} // Rococo::Compiler
 
 # ifdef WIN32

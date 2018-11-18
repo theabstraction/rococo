@@ -108,7 +108,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.Push failed: the array was full"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.Push failed: the array was full"));
 		   }
 	   }
 
@@ -125,7 +125,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.Push failed: the array was full"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.Push failed: the array was full"));
 		   }
 	   }
 
@@ -142,7 +142,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.Push failed: the array was full"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.Push failed: the array was full"));
 		   }
 	   }
 
@@ -175,7 +175,7 @@ namespace Rococo
 			   }
 
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.Set failed: the index was out of range"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.Set failed: the index was out of range"));
 		   }
 	   }
 
@@ -207,7 +207,7 @@ namespace Rococo
 			   }
 
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.Set failed: the index was out of range"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.Set failed: the index was out of range"));
 		   }
 	   }
 
@@ -236,7 +236,7 @@ namespace Rococo
 			   }
 
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.Set failed: the index was out of range"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.Set failed: the index was out of range"));
 		   }
 	   }
 
@@ -249,7 +249,7 @@ namespace Rococo
 		   if (IsLocked(*a))
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.PopOut failed: the array was locked for enumeration"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.PopOut failed: the array was locked for enumeration"));
 			   return;
 		   }
 		
@@ -260,7 +260,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.Pop failed: the array was empty"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.Pop failed: the array was empty"));
 			   return;
 		   }
 	   }
@@ -272,7 +272,7 @@ namespace Rococo
 		   if (IsLocked(*a))
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.PopOut failed: the array was locked for enumeration"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.PopOut failed: the array was locked for enumeration"));
 		   }
 		
 		   if (a->NumberOfElements > 0)
@@ -283,7 +283,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.PopOut failed: the array was empty"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.PopOut failed: the array was empty"));
 		   }
 	   }
 
@@ -294,7 +294,7 @@ namespace Rococo
 		   if (IsLocked(*a))
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.PopOut failed: the array was locked for enumeration"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.PopOut failed: the array was locked for enumeration"));
 		   }
 		
 		   if (a->NumberOfElements > 0)
@@ -305,7 +305,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.PopOut failed: the array was empty"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.PopOut failed: the array was empty"));
 		   }
 	   }
 
@@ -323,7 +323,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.Push failed: the array was full"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.Push failed: the array was full"));
 		   }
 	   }
 
@@ -340,7 +340,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.Get failed: the index was out of range"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.Get failed: the index was out of range"));
 		   }
 	   }
 
@@ -357,7 +357,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.Get failed: the index was out of range"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.Get failed: the index was out of range"));
 		   }
 	   }
 
@@ -376,7 +376,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.Get failed: the index was out of range"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.Get failed: the index was out of range"));
 		   }
 	   }
 
@@ -395,7 +395,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.Get failed: the index was out of range"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.Get failed: the index was out of range"));
 		   }
 	   }
 
@@ -413,7 +413,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.Get failed: the index was out of range"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.Get failed: the index was out of range"));
 		   }
 	   }
 
@@ -428,13 +428,13 @@ namespace Rococo
 		   if (!IsLocked(*a))
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.ArrayGetRefUnchecked failed: array was unlocked, internal compiler error"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.ArrayGetRefUnchecked failed: array was unlocked, internal compiler error"));
 		   }
 
 		   if (index < 0 || index >= a->NumberOfElements)
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.ArrayGetRefUnchecked failed: index out of range, internal compiler error"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.ArrayGetRefUnchecked failed: index out of range, internal compiler error"));
 		   }
    #endif
 
@@ -451,7 +451,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.Lock failed: the array was already locked for enumeration"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.Lock failed: the array was already locked for enumeration"));
 		   }
 	   }
 
@@ -466,11 +466,11 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, SEXTEXT("Array.Unlock: the array was not locked"));
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.Unlock: the array was not locked"));
 		   }
 	   }
 
-	   void CompileConstructArrayElementFromRef(CCompileEnvironment& ce, cr_sex s, const IStructure& elementType, csexstr arrayInstance)
+	   void CompileConstructArrayElementFromRef(CCompileEnvironment& ce, cr_sex s, const IStructure& elementType, cstr arrayInstance)
 	   {
 		   const IFunction* constructor = elementType.Constructor();
 
@@ -478,11 +478,11 @@ namespace Rococo
 		   int inputCount = s.NumberOfElements() - 1;
 		   if (inputCount < constructor->NumberOfInputs() - 1)
 		   {
-			   Throw(s, SEXTEXT("Too few arguments in push constructor call"));
+			   Throw(s, ("Too few arguments in push constructor call"));
 		   }
 		   else if (inputCount >  constructor->NumberOfInputs() - 1)
 		   {
-			   Throw(s, SEXTEXT("Too many arguments in push constructor call"));
+			   Throw(s, ("Too many arguments in push constructor call"));
 		   }
 
 		 
@@ -502,7 +502,7 @@ namespace Rococo
 		   ce.Builder.AssignClosureParentSF();
 	   }
 
-	   void CompileAsPushToArrayByRef(CCompileEnvironment& ce, cr_sex s, csexstr instanceName)
+	   void CompileAsPushToArrayByRef(CCompileEnvironment& ce, cr_sex s, cstr instanceName)
 	   {
 		   const IStructure& elementType = GetArrayDef(ce, s, instanceName);
 
@@ -511,7 +511,7 @@ namespace Rococo
 			   cr_sex memberwiseIndicator = GetAtomicArg(s, 1);
 			   if (!AreEqual(memberwiseIndicator.String(), GetFriendlyName(elementType)))
 			   {
-				   Throw(s, SEXTEXT("Expecting either (array.Push <arg>), (array.Push ( element-constructor-args...)) or (array.Push <element-type-name> (memberwise-constructor-args...)"));
+				   Throw(s, ("Expecting either (array.Push <arg>), (array.Push ( element-constructor-args...)) or (array.Push <element-type-name> (memberwise-constructor-args...)"));
 			   }
 
 			   ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
@@ -520,7 +520,7 @@ namespace Rococo
 			   cr_sex memberwiseArgs = s.GetElement(2);
 			   if (!IsNull(memberwiseArgs) && !IsCompound(memberwiseArgs))
 			   {
-				   Throw(memberwiseArgs, SEXTEXT("Expecting either a null or compound expression"));
+				   Throw(memberwiseArgs, ("Expecting either a null or compound expression"));
 			   }
 
 			   ConstructMemberByRef(ce, memberwiseArgs, Rococo::ROOT_TEMPDEPTH+1, elementType, 0);
@@ -536,14 +536,14 @@ namespace Rococo
 			   {
 				   // No constructor, so need to copy element
 				   cr_sex value = s.GetElement(1);
-				   CompileGetStructRef(ce, value, elementType, SEXTEXT("newArrayElement")); // The address of the value is in D7
+				   CompileGetStructRef(ce, value, elementType, ("newArrayElement")); // The address of the value is in D7
 				   ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // array goes to D4
 				   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPushByRef);
 			   }
 		   }	
 	   }
 
-	   void CompileAsPushToArray(CCompileEnvironment& ce, cr_sex s, csexstr instanceName)
+	   void CompileAsPushToArray(CCompileEnvironment& ce, cr_sex s, cstr instanceName)
 	   {
 		   const IStructure& elementType = GetArrayDef(ce, s, instanceName);
 
@@ -563,7 +563,7 @@ namespace Rococo
 			   if (!TryCompileAssignArchetype(ce, value, elementType, false))
 			   {
 				   sexstringstream<1024> streamer;
-				   streamer.sb << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
+				   streamer.sb << ("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
 				   Throw(value, streamer);
 			   } // The value is in D7
 
@@ -580,7 +580,7 @@ namespace Rococo
 			   if (!TryCompileArithmeticExpression(ce, value, true, elementType.VarType()))
 			   {
 				   sexstringstream<1024> streamer;
-				   streamer.sb << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
+				   streamer.sb << ("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
 				   Throw(value, streamer);
 			   } // The value is in D7
 		
@@ -595,13 +595,13 @@ namespace Rococo
 				   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPush64);
 				   break;
 			   default:
-				   Throw(s, SEXTEXT("Internal compiler error compiling Array.Push. Unhandled element size"));
+				   Throw(s, ("Internal compiler error compiling Array.Push. Unhandled element size"));
 				   break;
 			   }
 		   }
 	   }
 
-	   void CompileAsPopFromArray(CCompileEnvironment& ce, cr_sex s, csexstr instanceName)
+	   void CompileAsPopFromArray(CCompileEnvironment& ce, cr_sex s, cstr instanceName)
 	   {
 		   AssertNotTooFewElements(s, 1);
 		   AssertNotTooManyElements(s, 1);
@@ -612,13 +612,13 @@ namespace Rococo
 		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayPop);
 	   }
 
-	   void CompileAsPopOutFromArray(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, VARTYPE requiredType)
+	   void CompileAsPopOutFromArray(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE requiredType)
 	   {
 		   const IStructure& elementType = GetArrayDef(ce, s, instanceName);
 		   if (elementType.VarType() != requiredType)
 		   {
 			   sexstringstream<1024> streamer;
-			   streamer.sb << SEXTEXT("The array pops out type ") << GetTypeName(elementType.VarType()) << SEXTEXT(", but the expression required type ") << requiredType;
+			   streamer.sb << ("The array pops out type ") << GetTypeName(elementType.VarType()) << (", but the expression required type ") << requiredType;
 			   Throw(s, streamer);
 		   }
 
@@ -633,13 +633,13 @@ namespace Rococo
 			   ce.Builder.Assembler().Append_Invoke( GetArrayCallbacks(ce).ArrayPopOut64);
 			   break;
 		   default:
-			   Throw(s, SEXTEXT("Derived Array.PopOut are not implemented"));
+			   Throw(s, ("Derived Array.PopOut are not implemented"));
 		   }
 
 		   // The front of the queue was popped into D7
 	   }
 
-	   void CompileAsPopOutFromArrayToVariable(CCompileEnvironment& ce, cr_sex s, csexstr instanceName)
+	   void CompileAsPopOutFromArrayToVariable(CCompileEnvironment& ce, cr_sex s, cstr instanceName)
 	   {
 		   AssertNotTooFewElements(s, 3);
 		   AssertNotTooManyElements(s, 3);
@@ -647,17 +647,17 @@ namespace Rococo
 		   cr_sex mapsTo = GetAtomicArg(s,1);
 		   cr_sex target = GetAtomicArg(s,2);
 
-		   csexstr targetToken = target.String()->Buffer;
+		   cstr targetToken = target.String()->Buffer;
 
-		   if (!AreEqual(mapsTo.String(), SEXTEXT("->")))
+		   if (!AreEqual(mapsTo.String(), ("->")))
 		   {
-			   Throw(mapsTo, SEXTEXT("Expecting mapping token '->'"));
+			   Throw(mapsTo, ("Expecting mapping token '->'"));
 		   }
 
 		   VARTYPE requiredType = ce.Builder.GetVarType(targetToken);
 		   if (requiredType == VARTYPE_Bad)
 		   {
-			   ThrowTokenNotFound(s, target.String()->Buffer, ce.Builder.Owner().Name(), SEXTEXT("variable"));
+			   ThrowTokenNotFound(s, target.String()->Buffer, ce.Builder.Owner().Name(), ("variable"));
 		   }
 
 		   CompileAsPopOutFromArray(ce, s, instanceName, requiredType);
@@ -671,11 +671,11 @@ namespace Rococo
 		   AssertNotTooFewElements(s, 3);
 		   AssertNotTooFewElements(s, 3);
 
-		   csexstr instance = s.GetElement(0).String()->Buffer;
+		   cstr instance = s.GetElement(0).String()->Buffer;
 		   cr_sex index = s.GetElement(1);
 		   if (!TryCompileArithmeticExpression(ce, index, true, VARTYPE_Int32))
 		   {
-			   Throw(index, SEXTEXT("Could not evaluate the expression as index type Int32"));
+			   Throw(index, ("Could not evaluate the expression as index type Int32"));
 		   }
 
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH, 0, BITCOUNT_32); // save the value to D7 for popping to D4
@@ -691,7 +691,7 @@ namespace Rococo
 			   if (!TryCompileArithmeticExpression(ce, value, true, elementVarType))
 			   {
 				   sexstringstream<1024> streamer;
-				   streamer.sb << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementVarType);
+				   streamer.sb << ("Could not evaluate the expression as type ") << GetTypeName(elementVarType);
 				   Throw(value, streamer);
 			   } // The value is in D7
 		   }
@@ -699,7 +699,7 @@ namespace Rococo
 		   {
 			   if (!IsAtomic(value))
 			   {
-				   Throw(value, SEXTEXT("Expecting variable reference"));
+				   Throw(value, ("Expecting variable reference"));
 			   }
 
 			   MemberDef def;
@@ -726,23 +726,23 @@ namespace Rococo
 			   ce.Builder.Assembler().Append_Invoke(callbacks.ArraySetByRef);
 			   break;
 		   default:
-			   Throw(value, SEXTEXT("Bad type"));
+			   Throw(value, ("Bad type"));
 		   }
 	   }
 
-	   bool TryCompileAsArrayCall(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, csexstr methodName)
+	   bool TryCompileAsArrayCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName)
 	   {
-		   if (AreEqual(methodName, SEXTEXT("Push")))
+		   if (AreEqual(methodName, ("Push")))
 		   {
 			   CompileAsPushToArray(ce, s, instanceName);
 			   return true;
 		   }
-		   else if (AreEqual(methodName, SEXTEXT("Pop")))
+		   else if (AreEqual(methodName, ("Pop")))
 		   {
 			   CompileAsPopFromArray(ce, s, instanceName);
 			   return true;
 		   }
-		   else if (AreEqual(methodName, SEXTEXT("PopOut")))
+		   else if (AreEqual(methodName, ("PopOut")))
 		   {
 			   CompileAsPopOutFromArrayToVariable(ce, s, instanceName);
 			   return true;
@@ -751,28 +751,28 @@ namespace Rococo
 		   return false;
 	   }
 
-	   void ValidateElementType(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, VARTYPE type, const IStructure* structType)
+	   void ValidateElementType(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE type, const IStructure* structType)
 	   {
 		   const IStructure& elementType = GetArrayDef(ce, s, instanceName);
 
 		   if (elementType.VarType() != type)
 		   {
-			   Throw(s, SEXTEXT("The array element type does not match the type of the variable in the assignment"));
+			   Throw(s, ("The array element type does not match the type of the variable in the assignment"));
 		   }
 
 		   if (type == VARTYPE_Derivative && *structType != elementType)
 		   {
-			   Throw(s, SEXTEXT("The array element type does not match the type of the variable in the assignment"));
+			   Throw(s, ("The array element type does not match the type of the variable in the assignment"));
 		   }
 	   }
 
-	   void CompileGetArrayElement(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, VARTYPE varType, const IStructure* structType)
+	   void CompileGetArrayElement(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE varType, const IStructure* structType)
 	   {
 		   ValidateElementType(ce, s, instanceName, varType, structType);
 
 		   if (!TryCompileArithmeticExpression(ce, s, true, VARTYPE_Int32))
 		   {
-			   Throw(s, SEXTEXT("Expected expression to evaluate to type Int32 to serve as index to array"));
+			   Throw(s, ("Expected expression to evaluate to type Int32 to serve as index to array"));
 		   } // D7 now contains the array index
 
 		
@@ -790,12 +790,12 @@ namespace Rococo
 			   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayGet64);
 			   break;
 		   default:
-			   Throw(s, SEXTEXT("Array.Get only support 32-bit and 64-bit types"));
+			   Throw(s, ("Array.Get only support 32-bit and 64-bit types"));
 			   break;
 		   }
 	   }
 
-	   void CompileGetArraySubelement(CCompileEnvironment& ce, cr_sex indexExpr, cr_sex subItemName, csexstr instanceName, VARTYPE type, const IStructure* structType)
+	   void CompileGetArraySubelement(CCompileEnvironment& ce, cr_sex indexExpr, cr_sex subItemName, cstr instanceName, VARTYPE type, const IStructure* structType)
 	   {
 		   const IStructure& elementType = GetArrayDef(ce, indexExpr, instanceName);
 
@@ -803,7 +803,7 @@ namespace Rococo
 		   const IMember* member = FindMember(elementType, subItemName.String()->Buffer, OUT offset);
 		   if (member == NULL)
 		   {
-			   ThrowTokenNotFound(subItemName, subItemName.String()->Buffer, elementType.Name(), SEXTEXT("member"));
+			   ThrowTokenNotFound(subItemName, subItemName.String()->Buffer, elementType.Name(), ("member"));
 		   }
 
 		   const IStructure& memberType = *member->UnderlyingType();
@@ -811,7 +811,7 @@ namespace Rococo
 		   if (memberType.VarType() != type || (type == VARTYPE_Derivative && memberType != *structType))
 		   {
 			   sexstringstream<1024> streamer;
-			   streamer.sb << SEXTEXT("The array element type ") << elementType.Name() << SEXTEXT(" does not match the type required: ");
+			   streamer.sb << ("The array element type ") << elementType.Name() << (" does not match the type required: ");
 			   if (structType == NULL) streamer.sb << GetTypeName(type);
 			   else streamer.sb << structType->Name();
 			   Throw(subItemName, streamer);
@@ -819,7 +819,7 @@ namespace Rococo
 
 		   if (!TryCompileArithmeticExpression(ce, indexExpr, true, VARTYPE_Int32)) 
 		   {
-			   Throw(indexExpr, SEXTEXT("Expected expression to evaluate to type Int32 to serve as index to array"));
+			   Throw(indexExpr, ("Expected expression to evaluate to type Int32 to serve as index to array"));
 		   } // D7 now contains the array index
 
 		   ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // array goes to D4
@@ -839,26 +839,26 @@ namespace Rococo
 			   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayGetMember64);
 			   break;
 		   default:
-			   Throw(indexExpr, SEXTEXT("Array.GetSubElement only support 32-bit and 64-bit types"));
+			   Throw(indexExpr, ("Array.GetSubElement only support 32-bit and 64-bit types"));
 			   break;
 		   }
 	   }
 
 	   void CompileValidateIndexPositive(CCompileEnvironment& ce, cr_sex s, int tempDepth)
 	   {
-		   ce.Builder.AddSymbol(SEXTEXT("ValidateIndexPositive..."));
+		   ce.Builder.AddSymbol(("ValidateIndexPositive..."));
 		   ce.Builder.Assembler().Append_MoveRegister(tempDepth + VM::REGISTER_D4, VM::REGISTER_D4, BITCOUNT_32); 
 		   ce.Builder.Assembler().Append_Test(VM::REGISTER_D4, BITCOUNT_32);
 
 		   size_t branchPos = ce.Builder.Assembler().WritePosition();
 		   ce.Builder.Assembler().Append_BranchIf(CONDITION_IF_GREATER_OR_EQUAL, 6);
 
-		   const IFunction& fnThrow = GetFunctionByFQN(ce, s, SEXTEXT("Sys.ThrowIndexNegative"));
+		   const IFunction& fnThrow = GetFunctionByFQN(ce, s, ("Sys.ThrowIndexNegative"));
 		   CodeSection section;
 		   fnThrow.Code().GetCodeSection(section);
 		
 		   ce.Builder.Assembler().Append_CallById(section.Id);
-		   ce.Builder.AddSymbol(SEXTEXT("...ValidateIndexPositive"));
+		   ce.Builder.AddSymbol(("...ValidateIndexPositive"));
 		   ce.Builder.Assembler().Append_NoOperation();
 
 		   size_t skipDelta = ce.Builder.Assembler().WritePosition() - branchPos;
@@ -867,26 +867,26 @@ namespace Rococo
 		   ce.Builder.Assembler().SetWriteModeToAppend();
 	   }
 
-	   void CompileValidateIndexLowerThanArrayElementCount(CCompileEnvironment& ce, cr_sex s, int indexTempDepth, csexstr arrayName)
+	   void CompileValidateIndexLowerThanArrayElementCount(CCompileEnvironment& ce, cr_sex s, int indexTempDepth, cstr arrayName)
 	   {
 		   TokenBuffer arrayLenName;
-		   StringPrint(arrayLenName, SEXTEXT("%s._length"), arrayName);
+		   StringPrint(arrayLenName, ("%s._length"), arrayName);
 
 		   ce.Builder.AssignVariableToTemp(arrayLenName, 2, 0);
 
-		   ce.Builder.AddSymbol(SEXTEXT("ValidateIndexLowerThanArrayElementCount..."));
+		   ce.Builder.AddSymbol(("ValidateIndexLowerThanArrayElementCount..."));
 		   ce.Builder.Assembler().Append_IntSubtract(VM::REGISTER_D6, BITCOUNT_32, VM::REGISTER_D4 + indexTempDepth);
 		   ce.Builder.Assembler().Append_Test(VM::REGISTER_D5, BITCOUNT_32);
 
 		   size_t branchPos = ce.Builder.Assembler().WritePosition();
 		   ce.Builder.Assembler().Append_BranchIf(CONDITION_IF_GREATER_THAN, 6);
 
-		   const IFunction& fnThrow = GetFunctionByFQN(ce, s, SEXTEXT("Sys.ThrowIndexExceededBounds"));
+		   const IFunction& fnThrow = GetFunctionByFQN(ce, s, ("Sys.ThrowIndexExceededBounds"));
 		   CodeSection section;
 		   fnThrow.Code().GetCodeSection(section);
 		
 		   ce.Builder.Assembler().Append_CallById(section.Id);
-		   ce.Builder.AddSymbol(SEXTEXT("ValidateIndexLowerThanArrayElementCount..."));
+		   ce.Builder.AddSymbol(("ValidateIndexLowerThanArrayElementCount..."));
 		   ce.Builder.Assembler().Append_NoOperation();
 
 		   size_t skipDelta = ce.Builder.Assembler().WritePosition() - branchPos;		
@@ -902,7 +902,7 @@ namespace Rococo
 		   {
 			   if (Parse::PARSERESULT_GOOD == Parse::TryParseDecimal(OUT value, s.String()->Buffer))
 			   {
-				   if (value < 0) Throw(s, SEXTEXT("Index must not be negative"));
+				   if (value < 0) Throw(s, ("Index must not be negative"));
 				   return true;
 			   }
 		   }
@@ -913,25 +913,25 @@ namespace Rococo
 	   int AddVariableArrayLock(CCompileEnvironment& ce, int arrayTempDepth)
 	   {
 		   TokenBuffer lockName;
-		   StringPrint(lockName, SEXTEXT("_arrayLock_%d"), ce.SS.NextID());
+		   StringPrint(lockName, ("_arrayLock_%d"), ce.SS.NextID());
 
-		   const IStructure& lockStruct = *ce.Object.Common().SysNative().FindStructure(SEXTEXT("_Lock"));
+		   const IStructure& lockStruct = *ce.Object.Common().SysNative().FindStructure(("_Lock"));
 		
 		   ce.Builder.AddSymbol(lockName);
 		   AddVariable(ce, NameString::From(lockName), lockStruct);
 
 		   TokenBuffer lockSource;
-		   StringPrint(lockSource, SEXTEXT("%s._lockSource"), (csexstr) lockName);
+		   StringPrint(lockSource, ("%s._lockSource"), (cstr) lockName);
 		   ce.Builder.AssignTempToVariable(arrayTempDepth, lockSource);
 
 		   TokenBuffer lockMemberOffset;
-		   StringPrint(lockMemberOffset, SEXTEXT("%s._lockMemberOffset"), (csexstr) lockName);
+		   StringPrint(lockMemberOffset, ("%s._lockMemberOffset"), (cstr) lockName);
 
 		   MemberDef def;
 		   ce.Builder.TryGetVariableByName(def, lockMemberOffset);
 
 		   int offset;
-		   const IMember* member = FindMember(ce.StructArray(), SEXTEXT("_lock"), OUT offset);
+		   const IMember* member = FindMember(ce.StructArray(), ("_lock"), OUT offset);
 
 		   VariantValue lockMemberOffsetValue;
 		   lockMemberOffsetValue.int32Value = offset;
@@ -946,7 +946,7 @@ namespace Rococo
 
 		   if (hashIndex != 2)
 		   {
-			   Throw(s.GetElement(2), SEXTEXT("Expecting #"));
+			   Throw(s.GetElement(2), ("Expecting #"));
 		   }
 
 		   cr_sex elementSpecifier = s.GetElement(hashIndex + 1);
@@ -955,12 +955,12 @@ namespace Rococo
 		   AssertNotTooManyElements(elementSpecifier, 2);
 
 		   cr_sex collection = GetAtomicArg(elementSpecifier, 0);
-		   csexstr collectionName = collection.String()->Buffer;
+		   cstr collectionName = collection.String()->Buffer;
 		   AssertLocalVariableOrMember(collection);			
 
 		   cr_sex refExpr =  GetAtomicArg(s, 1);
 		   AssertLocalIdentifier(refExpr);
-		   csexstr refName = refExpr.String()->Buffer;
+		   cstr refName = refExpr.String()->Buffer;
 		
 		   const IStructure& elementType = GetArrayDef(ce, s, collectionName);
 
@@ -971,7 +971,7 @@ namespace Rococo
 		   ce.Builder.AddSymbol(collectionName);
 		   ce.Builder.AssignVariableRefToTemp(collectionName, 9, 0); // Array ref is now in D13
 				
-		   ce.Builder.AddSymbol(SEXTEXT("(foreach...")); 
+		   ce.Builder.AddSymbol(("(foreach...")); 
 
 		   cr_sex indexExpr = elementSpecifier.GetElement(1);
 		
@@ -984,7 +984,7 @@ namespace Rococo
 		   }
 		   else
 		   {
-			   if (!TryCompileArithmeticExpression(ce, indexExpr, true, VARTYPE_Int32)) Throw(indexExpr, SEXTEXT("Failed to parse expression as (Int32 startIndex)"));
+			   if (!TryCompileArithmeticExpression(ce, indexExpr, true, VARTYPE_Int32)) Throw(indexExpr, ("Failed to parse expression as (Int32 startIndex)"));
 			   CompileValidateIndexPositive(ce, collection, Rococo::ROOT_TEMPDEPTH); // index now validated to be positive
 			   ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D12, BITCOUNT_32); // D12 contains the working index throughout the entire iteration
 		   }
@@ -1001,7 +1001,7 @@ namespace Rococo
 
 		   CompileExpressionSequence(ce, 4, s.NumberOfElements()-1, s);				
 	
-		   ce.Builder.AddSymbol(SEXTEXT("...foreach)"));
+		   ce.Builder.AddSymbol(("...foreach)"));
 		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUnlock); // Enable popping of the array after enumeration has finished
 	   }
 
@@ -1014,7 +1014,7 @@ namespace Rococo
 
 		   cr_sex collection = s.GetElement(hashIndex + 1);
 
-		   csexstr collectionName;
+		   cstr collectionName;
 
 		   if (IsCompound(collection))
 		   {
@@ -1031,8 +1031,8 @@ namespace Rococo
 			   AssertLocalVariableOrMember(collection);			
 		   }
 
-		   csexstr indexName;
-		   csexstr refName;
+		   cstr indexName;
+		   cstr refName;
 
 		   if (hashIndex == 2)
 		   {
@@ -1062,10 +1062,10 @@ namespace Rococo
 		   ce.Builder.AddSymbol(collectionName);
 		   ce.Builder.AssignVariableRefToTemp(collectionName, 9, 0); // Array ref is now in D13
 				
-		   ce.Builder.AddSymbol(SEXTEXT("D12 - working index"));
+		   ce.Builder.AddSymbol(("D12 - working index"));
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 5, Rococo::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER);
 
-		   ce.Builder.AddSymbol(SEXTEXT("(foreach...")); 
+		   ce.Builder.AddSymbol(("(foreach...")); 
 
 		   if (IsCompound(collection))
 		   {
@@ -1080,7 +1080,7 @@ namespace Rococo
 			   }
 			   else
 			   {
-				   if (!TryCompileArithmeticExpression(ce, startIndexExpr, true, VARTYPE_Int32)) Throw(startIndexExpr, SEXTEXT("Failed to parse expression as (Int32 startIndex)"));
+				   if (!TryCompileArithmeticExpression(ce, startIndexExpr, true, VARTYPE_Int32)) Throw(startIndexExpr, ("Failed to parse expression as (Int32 startIndex)"));
 				   CompileValidateIndexPositive(ce, collection, Rococo::ROOT_TEMPDEPTH); // index now validated to be positive
 				   ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D12, BITCOUNT_32); // D12 contains the working index throughout the entire iteration
 			   }
@@ -1093,7 +1093,7 @@ namespace Rococo
 		   }
 		
 		   // We may be nested in a function that overwrites D11, so save it
-		   ce.Builder.AddSymbol(SEXTEXT("D11 - final index"));
+		   ce.Builder.AddSymbol(("D11 - final index"));
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 4, Rococo::ROOT_TEMPDEPTH + 4, BITCOUNT_POINTER);
 
 		   if (IsCompound(collection))
@@ -1109,7 +1109,7 @@ namespace Rococo
 			   }
 			   else
 			   {
-				   if (!TryCompileArithmeticExpression(ce, endIndexExpr, true, VARTYPE_Int32)) Throw(endIndexExpr, SEXTEXT("Failed to parse expression as (Int32 endIndex)"));
+				   if (!TryCompileArithmeticExpression(ce, endIndexExpr, true, VARTYPE_Int32)) Throw(endIndexExpr, ("Failed to parse expression as (Int32 endIndex)"));
 				   ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D11, BITCOUNT_32); // D11 contains the final index throughout the entire iteration
 			   }		
 
@@ -1118,7 +1118,7 @@ namespace Rococo
 		   else
 		   {
 			   TokenBuffer arrayLengthName;
-			   StringPrint(arrayLengthName, SEXTEXT("%s._length"), collectionName);
+			   StringPrint(arrayLengthName, ("%s._length"), collectionName);
 			   ce.Builder.AssignVariableToTemp(arrayLengthName, 7, 0);
 
 			   VariantValue minusOne;
@@ -1141,7 +1141,7 @@ namespace Rococo
 
 			   virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData)
 			   {
-				   ce.Builder.AddSymbol(SEXTEXT("while (endIndex > currentIndex)"));
+				   ce.Builder.AddSymbol(("while (endIndex > currentIndex)"));
 				   ce.Builder.Assembler().Append_IntSubtract(VM::REGISTER_D11, BITCOUNT_32, VM::REGISTER_D12);
 				   builder.Assembler().Append_Test(VM::REGISTER_D10, BITCOUNT_32);				
 			   }
@@ -1149,19 +1149,19 @@ namespace Rococo
 
 		   struct BodySection: public ICompileSection
 		   {			
-			   BodySection(cr_sex _s, CCompileEnvironment& _ce, csexstr _indexName, csexstr _refName, int _firstBodyIndex, int _lastBodyIndex):
+			   BodySection(cr_sex _s, CCompileEnvironment& _ce, cstr _indexName, cstr _refName, int _firstBodyIndex, int _lastBodyIndex):
 				   s(_s), ce(_ce), indexName(_indexName), refName(_refName), firstBodyIndex(_firstBodyIndex), lastBodyIndex(_lastBodyIndex) {}
 
 			   cr_sex s;
 			   CCompileEnvironment& ce;
-			   csexstr indexName;
-			   csexstr refName;
+			   cstr indexName;
+			   cstr refName;
 			   int firstBodyIndex;
 			   int lastBodyIndex;
 
 			   virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData)
 			   {
-				   ce.Builder.AddSymbol(SEXTEXT("while..{ "));
+				   ce.Builder.AddSymbol(("while..{ "));
 				   builder.PushControlFlowPoint(*controlFlowData);
 				   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayGetRefUnchecked); // returns pointer to element in D7, D12 is element index and D11 is array ref
 				
@@ -1177,18 +1177,18 @@ namespace Rococo
 				   CompileExpressionSequence(ce, firstBodyIndex, lastBodyIndex, s);				
 
 				   builder.PopControlFlowPoint();
-				   ce.Builder.AddSymbol(SEXTEXT("...while }"));
+				   ce.Builder.AddSymbol(("...while }"));
 			   }
 		   } bodySection(s, ce, indexName, refName, hashIndex + 2, s.NumberOfElements()-1);
 
 		   ce.Builder.AppendWhileDo(loopCriterion, CONDITION_IF_GREATER_OR_EQUAL, bodySection);
 		
 		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUnlock); // Enable popping of the array after enumeration has finished
-		   ce.Builder.AddSymbol(SEXTEXT("...foreach)"));
+		   ce.Builder.AddSymbol(("...foreach)"));
 		   ce.Builder.Assembler().Append_NoOperation();
 	   }
 
-	   void CompileArrayDestruct(CCompileEnvironment& ce, const IStructure& s, csexstr instanceName)
+	   void CompileArrayDestruct(CCompileEnvironment& ce, const IStructure& s, cstr instanceName)
 	   {
 		   const IStructure& elementType = GetArrayDef(ce, *(const ISExpression*) s.Definition(), instanceName);
 		   if (RequiresDestruction(elementType))
@@ -1219,7 +1219,7 @@ namespace Rococo
 		   }
 		   else if (IsAtomic(valueExpr))
 		   {
-			   csexstr svalue = valueExpr.String()->Buffer;
+			   cstr svalue = valueExpr.String()->Buffer;
 			   if (svalue[0] == '-' ||  isdigit(svalue[0]))
 			   {
 				   VariantValue value;
@@ -1237,7 +1237,7 @@ namespace Rococo
 		   }
 
 		   sexstringstream<1024> streamer;
-		   streamer.sb <<  SEXTEXT("Expecting an expression that evaluates to ") << GetTypeName(type);
+		   streamer.sb <<  ("Expecting an expression that evaluates to ") << GetTypeName(type);
 		   Throw(valueExpr, streamer);						
 	   }
 
@@ -1250,7 +1250,7 @@ namespace Rococo
 		   cr_sex typeName = GetAtomicArg(s, 1);
 		   cr_sex arrayName = GetAtomicArg(s, 2);
 
-		   csexstr arrayNameTxt = arrayName.String()->Buffer;
+		   cstr arrayNameTxt = arrayName.String()->Buffer;
 
 		   AssertLocalIdentifier(arrayName);
 
@@ -1260,7 +1260,7 @@ namespace Rococo
 		   const IStructure& arrayStruct = ce.StructArray();
 
 		   const IStructure* elementStruct = MatchStructure(typeName, ce.Builder.Module());
-		   if (elementStruct == NULL) ThrowTokenNotFound(s, typeName.String()->Buffer, ce.Builder.Module().Name(), SEXTEXT("type"));
+		   if (elementStruct == NULL) ThrowTokenNotFound(s, typeName.String()->Buffer, ce.Builder.Module().Name(), ("type"));
 
 		   AddVariable(ce, NameString::From(arrayNameTxt), ce.StructArray());
 

@@ -52,14 +52,14 @@ namespace
 
 	struct Logger: public ILog
 	{
-		virtual void Write(csexstr text) 
+		virtual void Write(cstr text) 
 		{			
 			WriteToStandardOutput(text);
 		}
 
-		void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) 
+		void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance) 
 		{
-			WriteToStandardOutput(SEXTEXT("%s: code %d\nMessage: %s\n"), exceptionType, errorCode, message);
+			WriteToStandardOutput(("%s: code %d\nMessage: %s\n"), exceptionType, errorCode, message);
 		}
 
 		void OnJITCompileException(Sex::ParseException& ex)
@@ -102,16 +102,16 @@ namespace
 		}
 		catch (STCException& e)
 		{
-			WriteToStandardOutput(SEXTEXT("Error %d: %s\r\n"), e.Code(), e.Message());
+			WriteToStandardOutput(("Error %d: %s\r\n"), e.Code(), e.Message());
 			po->Free();
 			exit(-1);
 		}
 		catch(std::exception& stdex)
 		{
-#ifdef SEXCHAR_IS_WIDE
-			WriteToStandardOutput(SEXTEXT("Error: %S\r\n"), stdex.what());
+#ifdef char_IS_WIDE
+			WriteToStandardOutput(("Error: %S\r\n"), stdex.what());
 #else
-			WriteToStandardOutput(SEXTEXT("Error: %s\r\n"), stdex.what());
+			WriteToStandardOutput(("Error: %s\r\n"), stdex.what());
 #endif
 			po->Free();
 			exit(-1);
@@ -123,28 +123,28 @@ namespace
 
 	IFunctionBuilder& AddStandardTestStuff(IProgramObject& object)
 	{
-		INamespaceBuilder& sa = object.GetRootNamespace().AddNamespace(SEXTEXT("Sys.Testing"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
-		INamespaceBuilder& nsSysType = object.GetRootNamespace().AddNamespace(SEXTEXT("Sys.Type"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
-		IModuleBuilder& module = object.AddModule(SEXTEXT("test"));
-		nsSysType.Alias(SEXTEXT("Float32"),object.AddIntrinsicStruct(SEXTEXT("Float32"), sizeof(float),  VARTYPE_Float32, NULL));
-		nsSysType.Alias(SEXTEXT("Float64"),object.AddIntrinsicStruct(SEXTEXT("Float64"), sizeof(double), VARTYPE_Float64, NULL));
-		nsSysType.Alias(SEXTEXT("Int32"),  object.AddIntrinsicStruct(SEXTEXT("Int32"), sizeof(int32),  VARTYPE_Int32, NULL));
-		nsSysType.Alias(SEXTEXT("Int64"),  object.AddIntrinsicStruct(SEXTEXT("Int64"), sizeof(int64),  VARTYPE_Int64, NULL));
+		INamespaceBuilder& sa = object.GetRootNamespace().AddNamespace(("Sys.Testing"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
+		INamespaceBuilder& nsSysType = object.GetRootNamespace().AddNamespace(("Sys.Type"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
+		IModuleBuilder& module = object.AddModule(("test"));
+		nsSysType.Alias(("Float32"),object.AddIntrinsicStruct(("Float32"), sizeof(float),  VARTYPE_Float32, NULL));
+		nsSysType.Alias(("Float64"),object.AddIntrinsicStruct(("Float64"), sizeof(double), VARTYPE_Float64, NULL));
+		nsSysType.Alias(("Int32"),  object.AddIntrinsicStruct(("Int32"), sizeof(int32),  VARTYPE_Int32, NULL));
+		nsSysType.Alias(("Int64"),  object.AddIntrinsicStruct(("Int64"), sizeof(int64),  VARTYPE_Int64, NULL));
 
 		VALIDATE(object.ResolveDefinitions());
 
-		object.IntrinsicModule().UsePrefix(SEXTEXT("Sys.Type"));
+		object.IntrinsicModule().UsePrefix(("Sys.Type"));
 
-		IFunctionBuilder& f = module.DeclareFunction(FunctionPrototype(SEXTEXT("Test"), false), NULL);
+		IFunctionBuilder& f = module.DeclareFunction(FunctionPrototype(("Test"), false), NULL);
 		sa.Alias(f);
 		return f;
 	}
 
 	void TestModules(IProgramObject& obj)
 	{
-		IModule& module = obj.AddModule(SEXTEXT("life.sex"));
+		IModule& module = obj.AddModule(("life.sex"));
 		VALIDATE(&module != NULL);
-		VALIDATE(AreEqual(module.Name(), SEXTEXT("life.sex")));
+		VALIDATE(AreEqual(module.Name(), ("life.sex")));
 		VALIDATE(obj.ModuleCount() == 1);
 		VALIDATE(&obj.GetModule(0) == &module);
 	}
@@ -156,45 +156,45 @@ namespace
 		VALIDATE(root.Name()->Length == 0);
 		VALIDATE(root.ChildCount() == 0);
 
-		INamespaceBuilder& child = root.AddNamespace(SEXTEXT("Fish"), ADDNAMESPACEFLAGS_NORMAL);
+		INamespaceBuilder& child = root.AddNamespace(("Fish"), ADDNAMESPACEFLAGS_NORMAL);
 		VALIDATE(&child != NULL);
-		VALIDATE(AreEqual(child.Name(), SEXTEXT("Fish")));
+		VALIDATE(AreEqual(child.Name(), ("Fish")));
 		VALIDATE(root.ChildCount() == 1);
 		VALIDATE(&root.GetChild(0) == &child);
 
-		INamespaceBuilder& child3 = root.AddNamespace(SEXTEXT("Fish"), ADDNAMESPACEFLAGS_NORMAL);
+		INamespaceBuilder& child3 = root.AddNamespace(("Fish"), ADDNAMESPACEFLAGS_NORMAL);
 		VALIDATE(&child3 == &child);
 
-		INamespaceBuilder& child2 = root.AddNamespace(SEXTEXT("Eggs"), ADDNAMESPACEFLAGS_NORMAL);
+		INamespaceBuilder& child2 = root.AddNamespace(("Eggs"), ADDNAMESPACEFLAGS_NORMAL);
 		VALIDATE(&child2 != NULL);
-		VALIDATE(AreEqual(child2.Name(), SEXTEXT("Eggs")));
+		VALIDATE(AreEqual(child2.Name(), ("Eggs")));
 		VALIDATE(root.ChildCount() == 2);
 		VALIDATE(&root.GetChild(1) == &child2);
 
-		VALIDATE(&child2 == root.FindSubspace(SEXTEXT("Eggs")));
+		VALIDATE(&child2 == root.FindSubspace(("Eggs")));
 
-		INamespace& fnc = child.AddNamespace(SEXTEXT("Chips"), ADDNAMESPACEFLAGS_NORMAL);
+		INamespace& fnc = child.AddNamespace(("Chips"), ADDNAMESPACEFLAGS_NORMAL);
 		VALIDATE(child.Parent() == &root);
 		VALIDATE(root.Parent() == NULL);
-		VALIDATE(AreEqual(fnc.FullName(), SEXTEXT("Fish.Chips")));
+		VALIDATE(AreEqual(fnc.FullName(), ("Fish.Chips")));
 
-		VALIDATE(&fnc == root.FindSubspace(SEXTEXT("Fish.Chips")));
+		VALIDATE(&fnc == root.FindSubspace(("Fish.Chips")));
 
-		INamespaceBuilder& doctorWho = root.AddNamespace(SEXTEXT("Doctor.Who"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
+		INamespaceBuilder& doctorWho = root.AddNamespace(("Doctor.Who"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
 		VALIDATE(&doctorWho != NULL);
-		VALIDATE(AreEqual(doctorWho.Name(), SEXTEXT("Who")));
-		VALIDATE(AreEqual(doctorWho.Parent()->Name(), SEXTEXT("Doctor")));
-		VALIDATE(AreEqual(doctorWho.Parent()->Parent()->Name(), SEXTEXT("")));
+		VALIDATE(AreEqual(doctorWho.Name(), ("Who")));
+		VALIDATE(AreEqual(doctorWho.Parent()->Name(), ("Doctor")));
+		VALIDATE(AreEqual(doctorWho.Parent()->Parent()->Name(), ("")));
 		VALIDATE(doctorWho.Parent()->Parent()->Parent() == NULL);
 
 		try
 		{
-			root.AddNamespace(SEXTEXT(""), ADDNAMESPACEFLAGS_CREATE_ROOTS);
+			root.AddNamespace((""), ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			VALIDATE(false);
 		}
 		catch (STCException& e)
 		{
-			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_EMPTY_STRING);
 			// The test should throw
 		}
@@ -206,129 +206,129 @@ namespace
 		}
 		catch (STCException& e)
 		{
-			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_NULL_POINTER);
 			// The test should throw
 		}
 
 		try
 		{
-			csexstr testString = SEXTEXT("2China.Apples.Yip");
-			ValidateNamespaceString(testString, SEXTEXT("ValidateNamespaceString"), __SEXFUNCTION__);
+			cstr testString = ("2China.Apples.Yip");
+			ValidateNamespaceString(testString, ("ValidateNamespaceString"), __SEXFUNCTION__);
 			VALIDATE(false);
 		}
 		catch (STCException& e)
 		{
-			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_BAD_ARGUMENT);
 		}
 
 		try
 		{
-			csexstr testString = SEXTEXT("china.Apples.Yip");
-			ValidateNamespaceString(testString, SEXTEXT("ValidateNamespaceString"), __SEXFUNCTION__);
+			cstr testString = ("china.Apples.Yip");
+			ValidateNamespaceString(testString, ("ValidateNamespaceString"), __SEXFUNCTION__);
 			VALIDATE(false);
 		}
 		catch (STCException& e)
 		{
-			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_BAD_ARGUMENT);
 		}
 
 		try
 		{
-			csexstr testString = SEXTEXT("China.Apples.Yip.");
-			ValidateNamespaceString(testString, SEXTEXT("ValidateNamespaceString"), __SEXFUNCTION__);
+			cstr testString = ("China.Apples.Yip.");
+			ValidateNamespaceString(testString, ("ValidateNamespaceString"), __SEXFUNCTION__);
 			VALIDATE(false);
 		}
 		catch (STCException& e)
 		{
-			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_BAD_ARGUMENT);
 		}
 
 		try
 		{
-			csexstr testString = SEXTEXT("China.Apples.Yip");
-			ValidateNamespaceString(testString, SEXTEXT("ValidateNamespaceString"), __SEXFUNCTION__);
+			cstr testString = ("China.Apples.Yip");
+			ValidateNamespaceString(testString, ("ValidateNamespaceString"), __SEXFUNCTION__);
 		}
 		catch (IException& e)
 		{
-			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(false);
 		}
 
 		try
 		{
-			root.AddNamespace(SEXTEXT("!fire fox"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
+			root.AddNamespace(("!fire fox"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
 		}
 		catch (STCException& e)
 		{
-			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_BAD_ARGUMENT);
 		}
 
 		try
 		{
-			root.FindSubspace(SEXTEXT("!fire fox"));
+			root.FindSubspace(("!fire fox"));
 		}
 		catch (STCException& e)
 		{
-			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_BAD_ARGUMENT);
 		}
 	}
 
 	void TestFunctions(IProgramObject& obj)
 	{
-		IModuleBuilder& module = obj.AddModule(SEXTEXT("test"));
-		INamespaceBuilder& ns = obj.GetRootNamespace().AddNamespace(SEXTEXT("System.Console"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
+		IModuleBuilder& module = obj.AddModule(("test"));
+		INamespaceBuilder& ns = obj.GetRootNamespace().AddNamespace(("System.Console"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
 
-		FunctionPrototype prototype(SEXTEXT("Print"), false);
+		FunctionPrototype prototype(("Print"), false);
 
 		IFunctionBuilder& fn = module.DeclareFunction(prototype, NULL);	
 
 		ns.Alias(fn);
-		VALIDATE(ns.FindFunction(SEXTEXT("Print")) == &fn);
+		VALIDATE(ns.FindFunction(("Print")) == &fn);
 
-		fn.AddInput(NameString::From(SEXTEXT("format")), TypeString::From(SEXTEXT("Sys.Type.String")), NULL);
+		fn.AddInput(NameString::From(("format")), TypeString::From(("Sys.Type.String")), NULL);
 
 		VALIDATE(!obj.ResolveDefinitions());
 	}
 
 	void TestStructures(IProgramObject& object)
 	{
-		IModuleBuilder& module = object.AddModule(SEXTEXT("test"));
+		IModuleBuilder& module = object.AddModule(("test"));
 		try
 		{
-			module.UsePrefix(SEXTEXT("Sys.Type.Complex"));
+			module.UsePrefix(("Sys.Type.Complex"));
 		}
 		catch (IException& e)
 		{
-			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(("Expected exception: %s\r\n"), e.Message());
 		}
 		
-		INamespaceBuilder& nsSysType = object.GetRootNamespace().AddNamespace(SEXTEXT("Sys.Type"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
+		INamespaceBuilder& nsSysType = object.GetRootNamespace().AddNamespace(("Sys.Type"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
 
 		StructurePrototype pt(MEMBERALIGN_4, INSTANCEALIGN_SSE, true, NULL, false);
-		IStructureBuilder& s = module.DeclareStructure(SEXTEXT("Vector3"), pt, NULL);
-		VALIDATE(AreEqual(s.Name(),SEXTEXT("Vector3")));
+		IStructureBuilder& s = module.DeclareStructure(("Vector3"), pt, NULL);
+		VALIDATE(AreEqual(s.Name(),("Vector3")));
 		VALIDATE(&s.Module() == &module);
 		VALIDATE(&s.Object() == &object);
 
 		VALIDATE(s.MemberCount() == 0);
-		s.AddMember(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Float32")));
-		s.AddMember(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Float32")));
-		s.AddMember(NameString::From(SEXTEXT("z")), TypeString::From(SEXTEXT("Float32")));
+		s.AddMember(NameString::From(("x")), TypeString::From(("Float32")));
+		s.AddMember(NameString::From(("y")), TypeString::From(("Float32")));
+		s.AddMember(NameString::From(("z")), TypeString::From(("Float32")));
 
 		try
 		{
-			s.AddMember(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Float32")));
+			s.AddMember(NameString::From(("x")), TypeString::From(("Float32")));
 			VALIDATE(false);
 		}
 		catch (STCException&e)
 		{
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 			printf("Expected exception: %S\r\n", e.Message());
 #else
 			printf("Expected exception: %s\r\n", e.Message());
@@ -341,21 +341,21 @@ namespace
 
 		try
 		{
-			s.AddMember(NameString::From(SEXTEXT("W")), TypeString::From(SEXTEXT("Float32")));
+			s.AddMember(NameString::From(("W")), TypeString::From(("Float32")));
 			VALIDATE(false);
 		}
 		catch (STCException&e)
 		{
-			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_SEALED);
 		}
 
 		VALIDATE(!object.ResolveDefinitions());
-		nsSysType.Alias(SEXTEXT("Float32"), object.AddIntrinsicStruct(SEXTEXT("Float32"), 4, VARTYPE_Float32, NULL));
+		nsSysType.Alias(("Float32"), object.AddIntrinsicStruct(("Float32"), 4, VARTYPE_Float32, NULL));
 		VALIDATE(object.ResolveDefinitions());
 
 		IMember& mx = s.GetMember(0);
-		VALIDATE(AreEqual(mx.Name(), SEXTEXT("x")));
+		VALIDATE(AreEqual(mx.Name(), ("x")));
 		VALIDATE(mx.IsResolved());
 		
 		const IStructure* mxtype = mx.UnderlyingType();
@@ -367,29 +367,29 @@ namespace
 		VALIDATE(s.SizeOfStruct() == 12);
 
 		StructurePrototype ptm(MEMBERALIGN_4, INSTANCEALIGN_SSE, true, NULL, false);
-		IStructureBuilder& sm = module.DeclareStructure(SEXTEXT("Matrix3x3"), ptm, NULL);
-		sm.AddMember(NameString::From(SEXTEXT("Row0")), TypeString::From(SEXTEXT("Vector3")));
-		sm.AddMember(NameString::From(SEXTEXT("Row1")), TypeString::From(SEXTEXT("Vector3")));
-		sm.AddMember(NameString::From(SEXTEXT("Row2")), TypeString::From(SEXTEXT("Vector3")));
+		IStructureBuilder& sm = module.DeclareStructure(("Matrix3x3"), ptm, NULL);
+		sm.AddMember(NameString::From(("Row0")), TypeString::From(("Vector3")));
+		sm.AddMember(NameString::From(("Row1")), TypeString::From(("Vector3")));
+		sm.AddMember(NameString::From(("Row2")), TypeString::From(("Vector3")));
 		sm.Seal();
 
 		StructurePrototype ptms(MEMBERALIGN_4, INSTANCEALIGN_SSE, true, NULL, false);
-		IStructureBuilder& sms = module.DeclareStructure(SEXTEXT("Matrix3x3Stack"), ptms, NULL);
-		sms.AddMember(NameString::From(SEXTEXT("Item0")), TypeString::From(SEXTEXT("Matrix3x3")));
-		sms.AddMember(NameString::From(SEXTEXT("Item1")), TypeString::From(SEXTEXT("Matrix3x3")));
+		IStructureBuilder& sms = module.DeclareStructure(("Matrix3x3Stack"), ptms, NULL);
+		sms.AddMember(NameString::From(("Item0")), TypeString::From(("Matrix3x3")));
+		sms.AddMember(NameString::From(("Item1")), TypeString::From(("Matrix3x3")));
 
 		try
 		{
-			sms.AddMember(NameString::From(SEXTEXT("Item1")), TypeString::From(SEXTEXT("Matrix3x3")));
+			sms.AddMember(NameString::From(("Item1")), TypeString::From(("Matrix3x3")));
 			VALIDATE(false);
 		}
 		catch (STCException& e)
 		{
-			WriteToStandardOutput(SEXTEXT("Expected exception: %s\r\n"), e.Message());
+			WriteToStandardOutput(("Expected exception: %s\r\n"), e.Message());
 			VALIDATE(e.Code() == ERRORCODE_BAD_ARGUMENT);
 		}
 
-		sms.AddMember(NameString::From(SEXTEXT("Item2")), TypeString::From(SEXTEXT("Matrix3x3")));
+		sms.AddMember(NameString::From(("Item2")), TypeString::From(("Matrix3x3")));
 		
 		sms.Seal();
 
@@ -400,174 +400,174 @@ namespace
 
 	void TestResolvedStructureAndFunction(IProgramObject& object)
 	{
-		IModuleBuilder& module = object.AddModule(SEXTEXT("test"));
-		INamespaceBuilder& nsSysType = object.GetRootNamespace().AddNamespace(SEXTEXT("Sys.Type"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
-		IFunctionBuilder& f = module.DeclareFunction(FunctionPrototype(SEXTEXT("increment"), false), NULL);
-		nsSysType.Alias(SEXTEXT("Int32"), object.AddIntrinsicStruct(SEXTEXT("Int32"), 4, VARTYPE_Int32, NULL));
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
-		object.IntrinsicModule().UsePrefix(SEXTEXT("Sys.Type"));
+		IModuleBuilder& module = object.AddModule(("test"));
+		INamespaceBuilder& nsSysType = object.GetRootNamespace().AddNamespace(("Sys.Type"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
+		IFunctionBuilder& f = module.DeclareFunction(FunctionPrototype(("increment"), false), NULL);
+		nsSysType.Alias(("Int32"), object.AddIntrinsicStruct(("Int32"), 4, VARTYPE_Int32, NULL));
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int32")), NULL);
+		object.IntrinsicModule().UsePrefix(("Sys.Type"));
 		VALIDATE(object.ResolveDefinitions() == true);
 	}
 
 	void TestParseringDecimal32(IProgramObject& object)
 	{
 		int32 value;
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("42")) == PARSERESULT_GOOD);
+		VALIDATE(TryParseDecimal(OUT value, ("42")) == PARSERESULT_GOOD);
 		VALIDATE(value == 42);
 
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("300000000000")) == PARSERESULT_OVERFLOW);
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("-300000000000")) == PARSERESULT_OVERFLOW);
+		VALIDATE(TryParseDecimal(OUT value, ("300000000000")) == PARSERESULT_OVERFLOW);
+		VALIDATE(TryParseDecimal(OUT value, ("-300000000000")) == PARSERESULT_OVERFLOW);
 
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("+42")) == PARSERESULT_GOOD);
+		VALIDATE(TryParseDecimal(OUT value, ("+42")) == PARSERESULT_GOOD);
 		VALIDATE(value == 42);
 
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("-42")) == PARSERESULT_GOOD);
+		VALIDATE(TryParseDecimal(OUT value, ("-42")) == PARSERESULT_GOOD);
 		VALIDATE(value == -42);
 
 		#pragma warning(disable: 4146) // Bad compiler warning in VS2010 for valid numeric input
-			VALIDATE(TryParseDecimal(OUT value, SEXTEXT("-2147483648")) == PARSERESULT_GOOD);
+			VALIDATE(TryParseDecimal(OUT value, ("-2147483648")) == PARSERESULT_GOOD);
 			VALIDATE(value == -2147483648); // N.B picked up by some compilers (such as MS-VC) as an error, but it is -2^31, which translates to the -2147483648 decimal string for a signed 32-bit number
 
-			VALIDATE(TryParseDecimal(OUT value, SEXTEXT("2147483648")) == PARSERESULT_OVERFLOW);
+			VALIDATE(TryParseDecimal(OUT value, ("2147483648")) == PARSERESULT_OVERFLOW);
 
-			VALIDATE(TryParseDecimal(OUT value, SEXTEXT("-2147483647")) == PARSERESULT_GOOD);
+			VALIDATE(TryParseDecimal(OUT value, ("-2147483647")) == PARSERESULT_GOOD);
 			VALIDATE(value == -2147483647);
 
-			VALIDATE(TryParseDecimal(OUT value, SEXTEXT("2147483647")) == PARSERESULT_GOOD);
+			VALIDATE(TryParseDecimal(OUT value, ("2147483647")) == PARSERESULT_GOOD);
 			VALIDATE(value == 2147483647);
 		#pragma warning(default: 4146)
 
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("-2147483649")) == PARSERESULT_OVERFLOW);
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("2147483649")) == PARSERESULT_OVERFLOW);
+		VALIDATE(TryParseDecimal(OUT value, ("-2147483649")) == PARSERESULT_OVERFLOW);
+		VALIDATE(TryParseDecimal(OUT value, ("2147483649")) == PARSERESULT_OVERFLOW);
 	}
 
 	void TestParseringDecimal64(IProgramObject& object)
 	{
 		int64 value;
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("42")) == PARSERESULT_GOOD);
+		VALIDATE(TryParseDecimal(OUT value, ("42")) == PARSERESULT_GOOD);
 		VALIDATE(value == 42);
 
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("cheese")) == PARSERESULT_BAD_DECIMAL_DIGIT);
+		VALIDATE(TryParseDecimal(OUT value, ("cheese")) == PARSERESULT_BAD_DECIMAL_DIGIT);
 
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("9223372036854775812")) == PARSERESULT_OVERFLOW);
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("-9223372036854775812")) == PARSERESULT_OVERFLOW);
+		VALIDATE(TryParseDecimal(OUT value, ("9223372036854775812")) == PARSERESULT_OVERFLOW);
+		VALIDATE(TryParseDecimal(OUT value, ("-9223372036854775812")) == PARSERESULT_OVERFLOW);
 
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("+42")) == PARSERESULT_GOOD);
+		VALIDATE(TryParseDecimal(OUT value, ("+42")) == PARSERESULT_GOOD);
 		VALIDATE(value == 42);
 
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("-42")) == PARSERESULT_GOOD);
+		VALIDATE(TryParseDecimal(OUT value, ("-42")) == PARSERESULT_GOOD);
 		VALIDATE(value == -42);
 
-	   VALIDATE(TryParseDecimal(OUT value, SEXTEXT("-9223372036854775808")) == PARSERESULT_GOOD);
+	   VALIDATE(TryParseDecimal(OUT value, ("-9223372036854775808")) == PARSERESULT_GOOD);
 
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("9223372036854775808")) == PARSERESULT_OVERFLOW);
+		VALIDATE(TryParseDecimal(OUT value, ("9223372036854775808")) == PARSERESULT_OVERFLOW);
 
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("-9223372036854775807")) == PARSERESULT_GOOD);
+		VALIDATE(TryParseDecimal(OUT value, ("-9223372036854775807")) == PARSERESULT_GOOD);
 		VALIDATE(value == -9223372036854775807LL);
 
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("9223372036854775807")) == PARSERESULT_GOOD);
+		VALIDATE(TryParseDecimal(OUT value, ("9223372036854775807")) == PARSERESULT_GOOD);
 		VALIDATE(value == 9223372036854775807LL);
 
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("-9223372036854775809")) == PARSERESULT_OVERFLOW);
-		VALIDATE(TryParseDecimal(OUT value, SEXTEXT("9223372036854775809")) == PARSERESULT_OVERFLOW);
+		VALIDATE(TryParseDecimal(OUT value, ("-9223372036854775809")) == PARSERESULT_OVERFLOW);
+		VALIDATE(TryParseDecimal(OUT value, ("9223372036854775809")) == PARSERESULT_OVERFLOW);
 	}
 
 	void TestParseringHex32(IProgramObject& object)
 	{
 		int32 value;
-		VALIDATE(TryParseHex(value, SEXTEXT("ABCDEF10")) == PARSERESULT_GOOD);
+		VALIDATE(TryParseHex(value, ("ABCDEF10")) == PARSERESULT_GOOD);
 		VALIDATE(value == 0xABCDEF10);
-		VALIDATE(TryParseHex(value, SEXTEXT("chav")) == PARSERESULT_HEXADECIMAL_BAD_CHARACTER);
-		VALIDATE(TryParseHex(value, SEXTEXT("")) == PARSERESULT_HEXADECIMAL_INCORRECT_NUMBER_OF_DIGITS);
-		VALIDATE(TryParseHex(value, SEXTEXT("ABCDEF10C")) == PARSERESULT_HEXADECIMAL_INCORRECT_NUMBER_OF_DIGITS);
-		VALIDATE(TryParseHex(value, SEXTEXT("ABCD")) == PARSERESULT_GOOD);
+		VALIDATE(TryParseHex(value, ("chav")) == PARSERESULT_HEXADECIMAL_BAD_CHARACTER);
+		VALIDATE(TryParseHex(value, ("")) == PARSERESULT_HEXADECIMAL_INCORRECT_NUMBER_OF_DIGITS);
+		VALIDATE(TryParseHex(value, ("ABCDEF10C")) == PARSERESULT_HEXADECIMAL_INCORRECT_NUMBER_OF_DIGITS);
+		VALIDATE(TryParseHex(value, ("ABCD")) == PARSERESULT_GOOD);
 		VALIDATE(value == 0xABCD);
 	}
 
 	void TestParseringHex64(IProgramObject& object)
 	{
 		int64 value;
-		VALIDATE(TryParseHex(value, SEXTEXT("ABCDEF10")) == PARSERESULT_GOOD);
+		VALIDATE(TryParseHex(value, ("ABCDEF10")) == PARSERESULT_GOOD);
 		VALIDATE(value == 0xABCDEF10);
-		VALIDATE(TryParseHex(value, SEXTEXT("chav")) == PARSERESULT_HEXADECIMAL_BAD_CHARACTER);
-		VALIDATE(TryParseHex(value, SEXTEXT("")) == PARSERESULT_HEXADECIMAL_INCORRECT_NUMBER_OF_DIGITS);
-		VALIDATE(TryParseHex(value, SEXTEXT("ABCDEF10123456789")) == PARSERESULT_HEXADECIMAL_INCORRECT_NUMBER_OF_DIGITS);
-		VALIDATE(TryParseHex(value, SEXTEXT("ABCD")) == PARSERESULT_GOOD);
+		VALIDATE(TryParseHex(value, ("chav")) == PARSERESULT_HEXADECIMAL_BAD_CHARACTER);
+		VALIDATE(TryParseHex(value, ("")) == PARSERESULT_HEXADECIMAL_INCORRECT_NUMBER_OF_DIGITS);
+		VALIDATE(TryParseHex(value, ("ABCDEF10123456789")) == PARSERESULT_HEXADECIMAL_INCORRECT_NUMBER_OF_DIGITS);
+		VALIDATE(TryParseHex(value, ("ABCD")) == PARSERESULT_GOOD);
 		VALIDATE(value == 0xABCD);
 	}
 
 	void TestParseVariant(IProgramObject& object)
 	{
 		VariantValue value;
-		VALIDATE(PARSERESULT_GOOD == TryParse(OUT value, VARTYPE_Int32, SEXTEXT("0xFABC")));
+		VALIDATE(PARSERESULT_GOOD == TryParse(OUT value, VARTYPE_Int32, ("0xFABC")));
 		VALIDATE(value.int32Value == 0xFABC);
 
-		VALIDATE(PARSERESULT_GOOD == TryParse(OUT value, VARTYPE_Int64, SEXTEXT("0xFABCDE")));
+		VALIDATE(PARSERESULT_GOOD == TryParse(OUT value, VARTYPE_Int64, ("0xFABCDE")));
 		VALIDATE(value.int64Value == 0xFABCDE);
 
-		VALIDATE(PARSERESULT_GOOD == TryParse(OUT value, VARTYPE_Int32, SEXTEXT("1756")));
+		VALIDATE(PARSERESULT_GOOD == TryParse(OUT value, VARTYPE_Int32, ("1756")));
 		VALIDATE(value.int32Value == 1756);
 
-		VALIDATE(PARSERESULT_GOOD == TryParse(OUT value, VARTYPE_Int64, SEXTEXT("-768")));
+		VALIDATE(PARSERESULT_GOOD == TryParse(OUT value, VARTYPE_Int64, ("-768")));
 		VALIDATE(value.int64Value == -768);
 
-		VALIDATE(PARSERESULT_HEX_FOR_FLOAT == TryParse(OUT value, VARTYPE_Float32, SEXTEXT("0xAABB")));
-		VALIDATE(PARSERESULT_HEX_FOR_FLOAT == TryParse(OUT value, VARTYPE_Float64, SEXTEXT("0xAABB")));
+		VALIDATE(PARSERESULT_HEX_FOR_FLOAT == TryParse(OUT value, VARTYPE_Float32, ("0xAABB")));
+		VALIDATE(PARSERESULT_HEX_FOR_FLOAT == TryParse(OUT value, VARTYPE_Float64, ("0xAABB")));
 
-		VALIDATE(TryParse(OUT value, VARTYPE_Float32, SEXTEXT("1.65")) == PARSERESULT_GOOD);
+		VALIDATE(TryParse(OUT value, VARTYPE_Float32, ("1.65")) == PARSERESULT_GOOD);
 
 		VALIDATE(value.floatValue == 1.65f);
 
-		VALIDATE(TryParse(OUT value, VARTYPE_Float64, SEXTEXT("1.6532")) == PARSERESULT_GOOD);
+		VALIDATE(TryParse(OUT value, VARTYPE_Float64, ("1.6532")) == PARSERESULT_GOOD);
 		VALIDATE(value.doubleValue == 1.6532);
 
-		VALIDATE(GetLiteralType(SEXTEXT("0xFFEE")) == VARTYPE_Int32);
-		VALIDATE(GetLiteralType(SEXTEXT("0xFFEX")) == VARTYPE_Bad);
-		VALIDATE(GetLiteralType(SEXTEXT("0.055")) == VARTYPE_Float32);
-		VALIDATE(GetLiteralType(SEXTEXT("-0-26")) == VARTYPE_Bad);
-		VALIDATE(GetLiteralType(SEXTEXT("apple")) == VARTYPE_Bad);
-		VALIDATE(GetLiteralType(SEXTEXT("-1E-2"))== VARTYPE_Float32);
+		VALIDATE(GetLiteralType(("0xFFEE")) == VARTYPE_Int32);
+		VALIDATE(GetLiteralType(("0xFFEX")) == VARTYPE_Bad);
+		VALIDATE(GetLiteralType(("0.055")) == VARTYPE_Float32);
+		VALIDATE(GetLiteralType(("-0-26")) == VARTYPE_Bad);
+		VALIDATE(GetLiteralType(("apple")) == VARTYPE_Bad);
+		VALIDATE(GetLiteralType(("-1E-2"))== VARTYPE_Float32);
 	}
 
 	void TestParseFloat32(IProgramObject& object)
 	{
 		float32 value;
-		VALIDATE(PARSERESULT_GOOD == TryParseFloat(OUT value, SEXTEXT("0.0")));
+		VALIDATE(PARSERESULT_GOOD == TryParseFloat(OUT value, ("0.0")));
 		VALIDATE(value == 0);
 
-		VALIDATE(PARSERESULT_GOOD == TryParseFloat(OUT value, SEXTEXT("-0.5")));
+		VALIDATE(PARSERESULT_GOOD == TryParseFloat(OUT value, ("-0.5")));
 		VALIDATE(value == -0.5f);
 
-		VALIDATE(PARSERESULT_GOOD == TryParseFloat(OUT value, SEXTEXT("1.5e-14")));
+		VALIDATE(PARSERESULT_GOOD == TryParseFloat(OUT value, ("1.5e-14")));
 		VALIDATE(AreApproxEqual(value, 1.5e-14f));
 
-		VALIDATE(PARSERESULT_GOOD == TryParseFloat(OUT value, SEXTEXT("-1.5e14")));
+		VALIDATE(PARSERESULT_GOOD == TryParseFloat(OUT value, ("-1.5e14")));
 		VALIDATE(AreApproxEqual(value, -1.5e14f));
 
-		VALIDATE(TryParseFloat(OUT value, SEXTEXT("-1.5e40")) == PARSERESULT_OVERFLOW);
+		VALIDATE(TryParseFloat(OUT value, ("-1.5e40")) == PARSERESULT_OVERFLOW);
 	}
 
 	void TestParseFloat64(IProgramObject& object)
 	{
 		float64 value;
-		VALIDATE(PARSERESULT_GOOD == TryParseFloat(OUT value, SEXTEXT("0.0")));
+		VALIDATE(PARSERESULT_GOOD == TryParseFloat(OUT value, ("0.0")));
 		VALIDATE(value == 0);
 
-		VALIDATE(PARSERESULT_GOOD == TryParseFloat(OUT value, SEXTEXT("-0.5")));
+		VALIDATE(PARSERESULT_GOOD == TryParseFloat(OUT value, ("-0.5")));
 		VALIDATE(value == -0.5);
 
-		VALIDATE(PARSERESULT_GOOD == TryParseFloat(OUT value, SEXTEXT("1.5e-14")));
+		VALIDATE(PARSERESULT_GOOD == TryParseFloat(OUT value, ("1.5e-14")));
 		VALIDATE(AreApproxEqual(value, 1.5e-14));
 
-		VALIDATE(PARSERESULT_GOOD == TryParseFloat(OUT value, SEXTEXT("-1.5e14")));
+		VALIDATE(PARSERESULT_GOOD == TryParseFloat(OUT value, ("-1.5e14")));
 		VALIDATE(AreApproxEqual(value, -1.5e14));
 
-		VALIDATE(TryParseFloat(OUT value, SEXTEXT("-1.5e40")) == PARSERESULT_GOOD);
+		VALIDATE(TryParseFloat(OUT value, ("-1.5e40")) == PARSERESULT_GOOD);
 
-		VALIDATE(TryParseFloat(OUT value, SEXTEXT("-1.5e340")) == PARSERESULT_OVERFLOW);
+		VALIDATE(TryParseFloat(OUT value, ("-1.5e340")) == PARSERESULT_OVERFLOW);
 	}
 
-	bool SetProgramAndEntryPoint(IProgramObject& object, INamespace& ns, csexstr fname)
+	bool SetProgramAndEntryPoint(IProgramObject& object, INamespace& ns, cstr fname)
 	{
 		const IFunction* f = ns.FindFunction(fname);
 		if (f == NULL)
@@ -585,18 +585,18 @@ namespace
 	void TestCompileAssignLiteral(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignLiteral(NameString::From(SEXTEXT("result")), SEXTEXT("13.5"));
+		builder.AssignLiteral(NameString::From(("result")), ("13.5"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		float inputValueX = 1.0f;
 		object.VirtualMachine().Push(inputValueX); // push our inputs on the stack in order of their definition
@@ -609,19 +609,19 @@ namespace
 	void TestCompileAssignVariableToVariable(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignLiteral(NameString::From(SEXTEXT("x")), SEXTEXT("13.45"));
-		builder.AssignVariableToVariable(SEXTEXT("x"), SEXTEXT("result"));
+		builder.AssignLiteral(NameString::From(("x")), ("13.45"));
+		builder.AssignVariableToVariable(("x"), ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		float inputValueX = 1.0f;
 		object.VirtualMachine().Push(inputValueX); // push our inputs on the stack in order of their definition
@@ -634,20 +634,20 @@ namespace
 	void TestCompileNegateInt32(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From( SEXTEXT("x") ), TypeString::From( SEXTEXT("Sys.Type.Int32") ), NULL);
-		f.AddOutput(NameString::From( SEXTEXT("result") ), TypeString::From( SEXTEXT("Sys.Type.Int32") ), NULL);
+		f.AddInput(NameString::From( ("x") ), TypeString::From( ("Sys.Type.Int32") ), NULL);
+		f.AddOutput(NameString::From( ("result") ), TypeString::From( ("Sys.Type.Int32") ), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 0);
+		builder.AssignVariableToTemp(("x"), 0);
 		builder.Negate(0, VARTYPE_Int32);
-		builder.AssignTempToVariable(1, SEXTEXT("result"));
+		builder.AssignTempToVariable(1, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		int32 inputValueX = 132;
 		object.VirtualMachine().Push(inputValueX); // push our inputs on the stack in order of their definition
@@ -660,20 +660,20 @@ namespace
 	void TestCompileNegateFloat32(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 0);
+		builder.AssignVariableToTemp(("x"), 0);
 		builder.Negate(0, VARTYPE_Float32);
-		builder.AssignTempToVariable(1, SEXTEXT("result"));
+		builder.AssignTempToVariable(1, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		float inputValueX = 132.7f;
 		object.VirtualMachine().Push(inputValueX); // push our inputs on the stack in order of their definition
@@ -686,20 +686,20 @@ namespace
 	void TestCompileNegateFloat64(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float64")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float64")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float64")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float64")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 0);
+		builder.AssignVariableToTemp(("x"), 0);
 		builder.Negate(0, VARTYPE_Float64);
-		builder.AssignTempToVariable(1, SEXTEXT("result"));
+		builder.AssignTempToVariable(1, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		float64 inputValueX = 132.5;
 		object.VirtualMachine().Push(inputValueX); // push our inputs on the stack in order of their definition
@@ -712,20 +712,20 @@ namespace
 	void TestCompileNegateInt64(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Int64")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Int64")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int64")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int64")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 0);
+		builder.AssignVariableToTemp(("x"), 0);
 		builder.Negate(0, VARTYPE_Int64);
-		builder.AssignTempToVariable(1, SEXTEXT("result"));
+		builder.AssignTempToVariable(1, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		int64 inputValueX = -1320;
 		object.VirtualMachine().Push(inputValueX); // push our inputs on the stack in order of their definition
@@ -739,19 +739,19 @@ namespace
 	void TestCompileAssignVariableToVariable64(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float64")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float64")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float64")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float64")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignLiteral(NameString::From(SEXTEXT("x")), SEXTEXT("11.43"));
-		builder.AssignVariableToVariable(SEXTEXT("x"), SEXTEXT("result"));
+		builder.AssignLiteral(NameString::From(("x")), ("11.43"));
+		builder.AssignVariableToVariable(("x"), ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		double inputValueX = 1.0;
 		object.VirtualMachine().Push(inputValueX); // push our inputs on the stack in order of their definition
@@ -764,22 +764,22 @@ namespace
 	void TestCompileAddFloats(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("y"), 2);
+		builder.AssignVariableToTemp(("x"), 1);
+		builder.AssignVariableToTemp(("y"), 2);
 		builder.BinaryOperatorAdd(1,2,VARTYPE_Float32);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		float inputValueX = 12.0f;
 		float inputValueY = 13.0f;
@@ -794,22 +794,22 @@ namespace
 	void TestCompileAddDoubles(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float64")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Sys.Type.Float64")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float64")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float64")), NULL);
+		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Float64")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float64")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("y"), 2);
+		builder.AssignVariableToTemp(("x"), 1);
+		builder.AssignVariableToTemp(("y"), 2);
 		builder.BinaryOperatorAdd(1,2,VARTYPE_Float64);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		double inputValueX = 13.0;
 		double inputValueY = 13.0;
@@ -824,22 +824,22 @@ namespace
 	void TestCompileAddInt32s(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int32")), NULL);
+		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Int32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("y"), 2);
+		builder.AssignVariableToTemp(("x"), 1);
+		builder.AssignVariableToTemp(("y"), 2);
 		builder.BinaryOperatorAdd(1,2,VARTYPE_Int32);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		int32 inputValueX = 13;
 		int32 inputValueY = 14;
@@ -855,22 +855,22 @@ namespace
 	void TestCompileAddInt64s(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Int64")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Sys.Type.Int64")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Int64")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int64")), NULL);
+		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Int64")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int64")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("y"), 2);
+		builder.AssignVariableToTemp(("x"), 1);
+		builder.AssignVariableToTemp(("y"), 2);
 		builder.BinaryOperatorAdd(1,2,VARTYPE_Int64);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		int64 inputValueX = 12;
 		int64 inputValueY = 16;
@@ -885,22 +885,22 @@ namespace
 	void TestCompileSubtractFloats(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("y"), 2);
+		builder.AssignVariableToTemp(("x"), 1);
+		builder.AssignVariableToTemp(("y"), 2);
 		builder.BinaryOperatorSubtract(1,2,VARTYPE_Float32);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		float inputValueX = 12.0f;
 		float inputValueY = 13.0f;
@@ -915,22 +915,22 @@ namespace
 	void TestCompileSubtractDoubles(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float64")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Sys.Type.Float64")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float64")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float64")), NULL);
+		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Float64")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float64")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("y"), 2);
+		builder.AssignVariableToTemp(("x"), 1);
+		builder.AssignVariableToTemp(("y"), 2);
 		builder.BinaryOperatorSubtract(1,2,VARTYPE_Float64);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		double inputValueX = 13.0;
 		double inputValueY = 19.0;
@@ -945,22 +945,22 @@ namespace
 	void TestCompileSubtractInt32s(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int32")), NULL);
+		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Int32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("y"), 2);
+		builder.AssignVariableToTemp(("x"), 1);
+		builder.AssignVariableToTemp(("y"), 2);
 		builder.BinaryOperatorSubtract(1,2,VARTYPE_Int32);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		int32 inputValueX = 15;
 		int32 inputValueY = 8;
@@ -976,22 +976,22 @@ namespace
 	void TestCompileSubtractInt64s(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Int64")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Sys.Type.Int64")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Int64")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int64")), NULL);
+		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Int64")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int64")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("y"), 2);
+		builder.AssignVariableToTemp(("x"), 1);
+		builder.AssignVariableToTemp(("y"), 2);
 		builder.BinaryOperatorSubtract(1,2,VARTYPE_Int64);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		int64 inputValueX = 12;
 		int64 inputValueY = 16;
@@ -1006,22 +1006,22 @@ namespace
 	void TestCompileMultiplyFloats(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("y"), 2);
+		builder.AssignVariableToTemp(("x"), 1);
+		builder.AssignVariableToTemp(("y"), 2);
 		builder.BinaryOperatorMultiply(1,2,VARTYPE_Float32);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		float inputValueX = 12.0f;
 		float inputValueY = 13.0f;
@@ -1036,22 +1036,22 @@ namespace
 	void TestCompileMultiplyDoubles(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float64")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Sys.Type.Float64")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float64")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float64")), NULL);
+		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Float64")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float64")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("y"), 2);
+		builder.AssignVariableToTemp(("x"), 1);
+		builder.AssignVariableToTemp(("y"), 2);
 		builder.BinaryOperatorMultiply(1,2,VARTYPE_Float64);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		double inputValueX =  -3.0;
 		double inputValueY = -17.0;
@@ -1066,22 +1066,22 @@ namespace
 	void TestCompileMultiplyInt32s(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int32")), NULL);
+		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Int32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("y"), 2);
+		builder.AssignVariableToTemp(("x"), 1);
+		builder.AssignVariableToTemp(("y"), 2);
 		builder.BinaryOperatorMultiply(1,2,VARTYPE_Int32);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		int32 inputValueX = 7;
 		int32 inputValueY = 8;
@@ -1097,22 +1097,22 @@ namespace
 	void TestCompileMultiplyInt64s(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Int64")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Sys.Type.Int64")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Int64")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int64")), NULL);
+		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Int64")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int64")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("y"), 2);
+		builder.AssignVariableToTemp(("x"), 1);
+		builder.AssignVariableToTemp(("y"), 2);
 		builder.BinaryOperatorMultiply(1,2,VARTYPE_Int64);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		int64 inputValueX = -4;
 		int64 inputValueY = 16;
@@ -1127,22 +1127,22 @@ namespace
 	void TestCompileDivideFloats(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("y"), 2);
+		builder.AssignVariableToTemp(("x"), 1);
+		builder.AssignVariableToTemp(("y"), 2);
 		builder.BinaryOperatorDivide(1,2,VARTYPE_Float32);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		float inputValueX = 16.0f;
 		float inputValueY = -4.0f;
@@ -1157,22 +1157,22 @@ namespace
 	void TestCompileDivideDoubles(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float64")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Sys.Type.Float64")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float64")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float64")), NULL);
+		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Float64")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float64")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("y"), 2);
+		builder.AssignVariableToTemp(("x"), 1);
+		builder.AssignVariableToTemp(("y"), 2);
 		builder.BinaryOperatorDivide(1,2,VARTYPE_Float64);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		double inputValueX =  -8.0;
 		double inputValueY = -4.0;
@@ -1187,22 +1187,22 @@ namespace
 	void TestCompileDivideInt32s(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int32")), NULL);
+		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Int32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("y"), 2);
+		builder.AssignVariableToTemp(("x"), 1);
+		builder.AssignVariableToTemp(("y"), 2);
 		builder.BinaryOperatorDivide(1,2,VARTYPE_Int32);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		int32 inputValueX = 15;
 		int32 inputValueY = 4;
@@ -1218,22 +1218,22 @@ namespace
 	void TestCompileDivideInt64s(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Int64")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("y")), TypeString::From(SEXTEXT("Sys.Type.Int64")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Int64")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int64")), NULL);
+		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Int64")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int64")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("y"), 2);
+		builder.AssignVariableToTemp(("x"), 1);
+		builder.AssignVariableToTemp(("y"), 2);
 		builder.BinaryOperatorDivide(1,2,VARTYPE_Int64);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		int64 inputValueX = 80;
 		int64 inputValueY = 7;
@@ -1249,13 +1249,13 @@ namespace
 	void TestCompileTestAndBranch1(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
+		builder.AssignVariableToTemp(("x"), 1);
 
 		struct ANON1: public ICompileSection
 		{
@@ -1277,12 +1277,12 @@ namespace
 
 		builder.Assembler().Append_Test(REGISTER_D5, BITCOUNT_32);
 		builder.AppendConditional(CONDITION_IF_GREATER_THAN, sectionIfTrue, sectionElseFalse);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		float inputValueX = 132.7f;
 		object.VirtualMachine().Push(inputValueX); // push our inputs on the stack in order of their definition
@@ -1304,7 +1304,7 @@ namespace
 			IDisassembler::Rep rep;
 			dis->Disassemble(code + i, OUT rep);
 
-			WriteToStandardOutput(SEXTEXT("%s %s\r\n"), rep.OpcodeText, rep.ArgText);
+			WriteToStandardOutput(("%s %s\r\n"), rep.OpcodeText, rep.ArgText);
 
 			i += rep.ByteCount;
 		}
@@ -1315,13 +1315,13 @@ namespace
 	void TestCompileTestAndBranch2(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);
+		builder.AssignVariableToTemp(("x"), 1);
 
 		struct ANON1: public ICompileSection
 		{
@@ -1347,12 +1347,12 @@ namespace
 
 		builder.Assembler().Append_Test(REGISTER_D5, BITCOUNT_32);
 		builder.AppendConditional(CONDITION_IF_LESS_OR_EQUAL, sectionIfTrue, sectionElseFalse);
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		float inputValueX = 132.7f;
 		object.VirtualMachine().Push(inputValueX); // push our inputs on the stack in order of their definition
@@ -1365,17 +1365,17 @@ namespace
 	void TestCompileWhileDo(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("count")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("count")), TypeString::From(("Sys.Type.Int32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("count"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("x"), 3);
-		builder.AddVariable(NameString::From(SEXTEXT("sum")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		builder.AssignVariableToTemp(SEXTEXT("sum"), 4);
+		builder.AssignVariableToTemp(("count"), 1);
+		builder.AssignVariableToTemp(("x"), 3);
+		builder.AddVariable(NameString::From(("sum")), TypeString::From(("Sys.Type.Float32")), NULL);
+		builder.AssignVariableToTemp(("sum"), 4);
 
 		VariantValue zero;
 		zero.floatValue = 0;
@@ -1401,12 +1401,12 @@ namespace
 			}
 		} loopBody;
 		builder.AppendWhileDo(loopCriterion, CONDITION_IF_GREATER_THAN, loopBody);
-		builder.AssignTempToVariable(4, SEXTEXT("result"));
+		builder.AssignTempToVariable(4, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		object.VirtualMachine().Push(0.25f); 
 		object.VirtualMachine().Push((int32) 2);
@@ -1422,17 +1422,17 @@ namespace
 	void TestCompileWhileDo_Break(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("count")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("count")), TypeString::From(("Sys.Type.Int32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("count"), 1);
-		builder.AssignVariableToTemp(SEXTEXT("x"), 3);
-		builder.AddVariable(NameString::From(SEXTEXT("sum")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		builder.AssignVariableToTemp(SEXTEXT("sum"), 4);
+		builder.AssignVariableToTemp(("count"), 1);
+		builder.AssignVariableToTemp(("x"), 3);
+		builder.AddVariable(NameString::From(("sum")), TypeString::From(("Sys.Type.Float32")), NULL);
+		builder.AssignVariableToTemp(("sum"), 4);
 
 		VariantValue zero;
 		zero.floatValue = 0;
@@ -1466,12 +1466,12 @@ namespace
 			}
 		} loopBody;
 		builder.AppendWhileDo(loopCriterion, CONDITION_IF_GREATER_THAN, loopBody);
-		builder.AssignTempToVariable(4, SEXTEXT("result"));
+		builder.AssignTempToVariable(4, ("result"));
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		object.VirtualMachine().Push(0.25f); 
 		object.VirtualMachine().Push((int32) 12);
@@ -1485,15 +1485,15 @@ namespace
 	void TestCompileWhileDo_Continue(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("count")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("count")), TypeString::From(("Sys.Type.Int32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("count"), 1); // D5 loaded with count
-		builder.AssignVariableToTemp(SEXTEXT("x"), 2); // D6 loaded with x
+		builder.AssignVariableToTemp(("count"), 1); // D5 loaded with count
+		builder.AssignVariableToTemp(("x"), 2); // D6 loaded with x
 
 		VariantValue zero;
 		zero.floatValue = 0;
@@ -1527,12 +1527,12 @@ namespace
 			}
 		} loopBody;
 		builder.AppendWhileDo(loopCriterion, CONDITION_IF_GREATER_THAN, loopBody);
-		builder.AssignTempToVariable(6, SEXTEXT("result")); // save result in call stack
+		builder.AssignTempToVariable(6, ("result")); // save result in call stack
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		object.VirtualMachine().Push(0.25f); 
 		object.VirtualMachine().Push((int32) 4);
@@ -1546,15 +1546,15 @@ namespace
 	void TestCompileDoWhile(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("count")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("count")), TypeString::From(("Sys.Type.Int32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("count"), 0); // D4
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1);	    // D5
+		builder.AssignVariableToTemp(("count"), 0); // D4
+		builder.AssignVariableToTemp(("x"), 1);	    // D5
 
 		VariantValue zero;
 		zero.floatValue = 0;
@@ -1581,12 +1581,12 @@ namespace
 		} loopCriterion;
 
 		builder.AppendDoWhile(loopBody, loopCriterion, CONDITION_IF_GREATER_THAN);
-		builder.AssignTempToVariable(6, SEXTEXT("result")); // result = sum
+		builder.AssignTempToVariable(6, ("result")); // result = sum
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		object.VirtualMachine().Push(0.25f); 
 		object.VirtualMachine().Push((int32) 12);
@@ -1600,15 +1600,15 @@ namespace
 	void TestCompileDoWhile_Break(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("count")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("count")), TypeString::From(("Sys.Type.Int32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("count"), 0); // D4 = count
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1); // D5 = x
+		builder.AssignVariableToTemp(("count"), 0); // D4 = count
+		builder.AssignVariableToTemp(("x"), 1); // D5 = x
 
 		VariantValue zero;
 		zero.floatValue = 0;
@@ -1642,12 +1642,12 @@ namespace
 		} loopCriterion;
 
 		builder.AppendDoWhile(loopBody, loopCriterion, CONDITION_IF_GREATER_THAN);
-		builder.AssignTempToVariable(6, SEXTEXT("result")); // Copy D10 to result
+		builder.AssignTempToVariable(6, ("result")); // Copy D10 to result
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		object.VirtualMachine().Push(0.25f); 
 		object.VirtualMachine().Push((int32) 12);
@@ -1661,15 +1661,15 @@ namespace
 	void TestCompileDoWhile_Continue(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddInput(NameString::From(SEXTEXT("x")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
-		f.AddInput(NameString::From(SEXTEXT("count")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
+		f.AddInput(NameString::From(("count")), TypeString::From(("Sys.Type.Int32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
-		builder.AssignVariableToTemp(SEXTEXT("count"), 0); // D4 = count
-		builder.AssignVariableToTemp(SEXTEXT("x"), 1); // D5 = x
+		builder.AssignVariableToTemp(("count"), 0); // D4 = count
+		builder.AssignVariableToTemp(("x"), 1); // D5 = x
 
 		VariantValue zero;
 		zero.floatValue = 0;
@@ -1704,12 +1704,12 @@ namespace
 		} loopCriterion;
 
 		builder.AppendDoWhile(loopBody, loopCriterion, CONDITION_IF_GREATER_THAN);
-		builder.AssignTempToVariable(6, SEXTEXT("result")); // D10 = sum -> result
+		builder.AssignTempToVariable(6, ("result")); // D10 = sum -> result
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		object.VirtualMachine().Push(0.25f); 
 		object.VirtualMachine().Push((int32) 12);
@@ -1723,7 +1723,7 @@ namespace
 	void TestCompile_ExpressionTree(IProgramObject& object)
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
-		f.AddOutput(NameString::From(SEXTEXT("result")), TypeString::From(SEXTEXT("Sys.Type.Int32")), NULL);
+		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int32")), NULL);
 		VALIDATE(object.ResolveDefinitions());
 
 		ICodeBuilder& builder = f.Builder();
@@ -1789,13 +1789,13 @@ namespace
 
 		builder.AddExpression(tree);
 
-		builder.AssignTempToVariable(0, SEXTEXT("result"));
+		builder.AssignTempToVariable(0, ("result"));
 
 		builder.End();
 
-		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(SEXTEXT("Sys.Testing"));
+		INamespace* nsSysTesting = object.GetRootNamespace().FindSubspace(("Sys.Testing"));
 		VALIDATE(nsSysTesting != NULL);
-		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, SEXTEXT("Test")));
+		VALIDATE(SetProgramAndEntryPoint(object, *nsSysTesting, ("Test")));
 
 		object.VirtualMachine().Push(0);
 

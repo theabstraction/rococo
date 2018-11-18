@@ -7,7 +7,7 @@
 
 namespace Rococo
 {
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 	typedef std::wstring stdstring;
 #else
 	typedef std::string stdstring;

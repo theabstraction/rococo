@@ -51,10 +51,10 @@ namespace Rococo
 {
    namespace Compiler
    {
-      csexstr GetTypeName(const IStructure& s)
+      cstr GetTypeName(const IStructure& s)
       {
-         csexstr name = s.Name();
-         if (AreEqual(name, SEXTEXT("_Null_"), 6))
+         cstr name = s.Name();
+         if (AreEqual(name, ("_Null_"), 6))
          {
             return s.GetInterface(0).Name();
          }
@@ -133,7 +133,7 @@ namespace Rococo
       {
          char data[64];
 
-         AsciiName(csexstr name)
+         AsciiName(cstr name)
          {
             SafeFormat(data, 64, "%s", name);
          }
@@ -184,14 +184,14 @@ namespace Rococo
          {
             void **ppData = (void**)pVariableData;
             const void* ptr = *ppData;
-            Rococo::csexstr symbol = ss.GetSymbol(ptr);
+            Rococo::cstr symbol = ss.GetSymbol(ptr);
             if (symbol == NULL)
             {
                SafeFormat(buffer, bufferCapacity, "0x%p", ptr);
             }
             else
             {
-               SafeFormat(buffer, bufferCapacity, sizeof(SEXCHAR) == 1 ? "%s" : "%S", symbol);
+               SafeFormat(buffer, bufferCapacity, sizeof(char) == 1 ? "%s" : "%S", symbol);
             }
          }
          break;
@@ -461,7 +461,7 @@ namespace Rococo
 		   return pc;
 	   }
 
-	   SCRIPTEXPORT_API bool GetVariableByIndex(csexstr& name, MemberDef& def, const IStructure*& pseudoType, const Rococo::uint8*& SF, IPublicScriptSystem& ss, size_t index, size_t callDepth)
+	   SCRIPTEXPORT_API bool GetVariableByIndex(cstr& name, MemberDef& def, const IStructure*& pseudoType, const Rococo::uint8*& SF, IPublicScriptSystem& ss, size_t index, size_t callDepth)
 	   {
 		   const uint8* pc;
 		   const IFunction* f;
@@ -474,7 +474,7 @@ namespace Rococo
 		   size_t count = 3;
 	
 		   const IStructure* lastPseudo = NULL;
-		   csexstr lastPseudoName;
+		   cstr lastPseudoName;
 
 		   for(int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
 		   {
@@ -485,7 +485,7 @@ namespace Rococo
 				   continue;
 			   }
 
-			   if (AreEqual(name, SEXTEXT("_arg"), 4)) continue;
+			   if (AreEqual(name, ("_arg"), 4)) continue;
 
 			   if (def.location == Rococo::Compiler::VARLOCATION_NONE)
 			   {
@@ -504,7 +504,7 @@ namespace Rococo
 					   if (lastPseudo != NULL && lastPseudoName != NULL)
 					   {
 						   TokenBuffer expectedToken;
-						   StringPrint(expectedToken, SEXTEXT("_ref_%s"), lastPseudoName);
+						   StringPrint(expectedToken, ("_ref_%s"), lastPseudoName);
 						   if (AreEqual(expectedToken.Text, name))
 						   {
 							   pseudoType =  lastPseudo;
@@ -521,12 +521,12 @@ namespace Rococo
 		   return false;
 	   }
 
-	   SCRIPTEXPORT_API bool FindVariableByName(MemberDef& def, const IStructure*& pseudoType, const Rococo::uint8*& SF, IPublicScriptSystem& ss, csexstr searchName, size_t callDepth)
+	   SCRIPTEXPORT_API bool FindVariableByName(MemberDef& def, const IStructure*& pseudoType, const Rococo::uint8*& SF, IPublicScriptSystem& ss, cstr searchName, size_t callDepth)
 	   {
 		   size_t nVariables = GetCurrentVariableCount(ss, callDepth);
 		   for(size_t i = 0; i < nVariables; ++i)
 		   {
-			   csexstr name;
+			   cstr name;
 			   if (!GetVariableByIndex(name, def, pseudoType, SF, ss, i, callDepth)) continue;
 
 			   if (AreEqual(name, searchName))
@@ -551,7 +551,7 @@ namespace Rococo
 		   for(int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
 		   {
 			   Rococo::Compiler::MemberDef def;
-			   Rococo::csexstr name;
+			   Rococo::cstr name;
 			   f->Code().GetLocalVariableSymbolByIndex(OUT def, OUT name, i);
 
 			   if (fnOffset < def.pcStart || fnOffset > def.pcEnd)
@@ -559,7 +559,7 @@ namespace Rococo
 				   continue;
 			   }
 
-			   if (AreEqual(name, SEXTEXT("_arg"), 4)) continue;
+			   if (AreEqual(name, ("_arg"), 4)) continue;
 
 			   count++;
 		   }
@@ -584,8 +584,8 @@ namespace Rococo
 
 				   size_t fnOffset = pcOffset - mem.GetFunctionAddress(section.Id);
 				
-				   csexstr symbol = f->Code().GetSymbol(fnOffset).Text;
-				   if (symbol != NULL && AreEqual(symbol, SEXTEXT("#!skip")))
+				   cstr symbol = f->Code().GetSymbol(fnOffset).Text;
+				   if (symbol != NULL && AreEqual(symbol, ("#!skip")))
 				   {
 					   vm.StepInto(true);
 					   continue;
@@ -630,7 +630,7 @@ namespace Rococo
 		   if (!GetCallDescription(sf, pc, f, fnOffset, ss, callDepth)) return;
 
 		   const Rococo::Compiler::IStructure* lastPseudo = NULL;
-		   csexstr lastPseudoName;
+		   cstr lastPseudoName;
 
          VariableDesc variable = { 0 };
 		
@@ -648,7 +648,7 @@ namespace Rococo
             VariableDesc variable = { 0 };
 
 			   MemberDef def;
-			   csexstr name;
+			   cstr name;
 			   f->Code().GetLocalVariableSymbolByIndex(OUT def, OUT name, i);
 
 			   if (fnOffset < def.pcStart || fnOffset > def.pcEnd)
@@ -656,7 +656,7 @@ namespace Rococo
 				   continue;
 			   }
 
-			   if (AreEqual(name, SEXTEXT("_arg"), 4)) continue;
+			   if (AreEqual(name, ("_arg"), 4)) continue;
 
 			   if (def.location == Rococo::Compiler::VARLOCATION_NONE)
 			   {
@@ -677,7 +677,7 @@ namespace Rococo
 				   if (lastPseudo != NULL && lastPseudoName != NULL)
 				   {
 					   TokenBuffer expectedToken;
-					   StringPrint(expectedToken, SEXTEXT("_ref_%s"), lastPseudoName);
+					   StringPrint(expectedToken, ("_ref_%s"), lastPseudoName);
 
 					   if (AreEqual(expectedToken.Text, name))
 					   {
@@ -746,7 +746,7 @@ namespace Rococo
 		   }
 	   }
 
-	   SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const IStructure& s, csexstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback)
+	   SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const IStructure& s, cstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback)
 	   {
 		   if (s.VarType() != VARTYPE_Derivative) return true;
 
@@ -774,7 +774,7 @@ namespace Rococo
 				   const Rococo::Compiler::IMember& member = specimen->GetMember(i);
 
 				   TokenBuffer childName;
-				   StringPrint(childName, SEXTEXT("%s.%s"), parentName, member.Name());
+				   StringPrint(childName, ("%s.%s"), parentName, member.Name());
 
 				   enumCallback.OnMember(ss, childName, member, instance + suboffset);
 
@@ -811,29 +811,29 @@ namespace Rococo
 		   }
 	   }
 
-	   SCRIPTEXPORT_API csexstr GetShortName(const Rococo::Compiler::IStructure& s)
+	   SCRIPTEXPORT_API cstr GetShortName(const Rococo::Compiler::IStructure& s)
 	   {
 		   return IsNullType(s) ? s.GetInterface(0).Name() : s.Name();
 	   }
 
-	   SCRIPTEXPORT_API csexstr GetInstanceTypeName(const MemberDef& def, const IStructure* pseudoType)
+	   SCRIPTEXPORT_API cstr GetInstanceTypeName(const MemberDef& def, const IStructure* pseudoType)
 	   {
 		   return GetShortName(pseudoType != NULL ? *pseudoType : *def.ResolvedType);
 	   }
 
-	   SCRIPTEXPORT_API csexstr GetInstanceVarName(csexstr name, const IStructure* pseudoType)
+	   SCRIPTEXPORT_API cstr GetInstanceVarName(cstr name, const IStructure* pseudoType)
 	   {
-		   return pseudoType != NULL ? (name + StringLength(SEXTEXT("_ref_"))) : name;
+		   return pseudoType != NULL ? (name + StringLength(("_ref_"))) : name;
 	   }
 
-	   SCRIPTEXPORT_API const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, csexstr fullyQualifiedName)
+	   SCRIPTEXPORT_API const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, cstr fullyQualifiedName)
 	   {
 		   NamespaceSplitter splitter(fullyQualifiedName);
 
-		   csexstr nsBody, stTail;
+		   cstr nsBody, stTail;
 		   if (!splitter.SplitTail(nsBody, stTail))
 		   {
-			   LogError(ss.PublicProgramObject().Log(), SEXTEXT("Expecting fully qualified structure name, but was supplied '%s'"), fullyQualifiedName);
+			   LogError(ss.PublicProgramObject().Log(), ("Expecting fully qualified structure name, but was supplied '%s'"), fullyQualifiedName);
 			   return NULL;
 		   }
 

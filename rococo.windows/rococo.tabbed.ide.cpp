@@ -179,14 +179,43 @@ namespace
          GuiRect tabRect = { 0,0, 200, 20 };
 
          Windows::WindowConfig config;
-         SetChildWindowConfig(config, GuiRect{ 0, 0, 8, 8 }, *parent, "Blank", WS_VISIBLE | WS_CHILD, 0);
+		 DWORD style = WS_VISIBLE | WS_CHILD;
+         SetChildWindowConfig(config, GuiRect{ 0, 0, 8, 8 }, *parent, "Blank", style, 0);
          window = Windows::CreateChildWindow(config, this);
       }
+
+	  void OnPaint()
+	  {
+		  PAINTSTRUCT ps;
+		  BeginPaint(*window, &ps);
+
+		  HPEN hPenOld;
+
+		  HPEN hLinePen;
+		  COLORREF qLineColor = RGB(128, 128, 128);
+		  hLinePen = CreatePen(PS_SOLID, 1, qLineColor);
+		  hPenOld = (HPEN)SelectObject(ps.hdc, hLinePen);
+
+		  RECT rect;
+		  GetClientRect(*window, &rect);
+
+		  MoveToEx(ps.hdc, rect.left, rect.top, NULL);
+		  LineTo(ps.hdc, rect.left, rect.bottom-1);
+		  LineTo(ps.hdc, rect.right-1, rect.bottom-1);
+
+		  SelectObject(ps.hdc, hPenOld);
+		  DeleteObject(hLinePen);
+
+		  EndPaint(*window, &ps);
+	  }
 
       LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
       {
          switch (msg)
          {
+		 case WM_PAINT:
+			 OnPaint();
+			 return 0L;
          case WM_ACTIVATE:
             if (LOWORD(wParam) == WA_INACTIVE)
             {
@@ -207,6 +236,21 @@ namespace
                RECT rect;
                GetClientRect(GetParent(hWnd), &rect);
 
+			   RECT splitterRect;
+			   GetClientRect(hWnd, &splitterRect);
+			   HCURSOR hCursor;
+			   if (splitterRect.bottom > splitterRect.right)
+			   {
+				   // Vertical
+				   hCursor = LoadCursorA(nullptr, IDC_SIZEWE);
+			   }
+			   else
+			   {
+				   hCursor = LoadCursorA(nullptr, IDC_SIZENS);
+			   }
+			   
+			   SetCursor(hCursor);
+
                POINT origin{ 0,0 };
                ClientToScreen(GetParent(hWnd), &origin);
 
@@ -216,6 +260,8 @@ namespace
                rect.bottom += origin.y;
 
                ClipCursor(&rect);
+
+			  
 
                SetCapture(hWnd);
             }
@@ -251,29 +297,14 @@ namespace
 
       LRESULT OnSetCursor(HWND hWnd, WPARAM wParam, LPARAM lParam)
       {
-         RECT rect;
-         GetClientRect(*window, &rect);
-
-         HCURSOR hCursor;
-         if (rect.bottom > rect.right)
-         {
-            // Vertical
-            hCursor = LoadCursor(nullptr, IDC_SIZEWE);
-         }
-         else
-         {
-            hCursor = LoadCursor(nullptr, IDC_SIZENS);
-         }
-
-         SetCursor(hCursor);
-
+         SetCursor(LoadCursor(nullptr, IDC_HAND));
          return TRUE;
       }
    public:
       static IDESplitterWindow* Create(IWindow* parent)
       {
          auto node = new IDESplitterWindow();
-         node->SetBackgroundColour(RGB(255, 0, 0));
+         node->SetBackgroundColour(RGB(192, 192, 192));
          node->PostConstruct(parent);
          return node;
       }
@@ -446,7 +477,8 @@ namespace
          if (tabView == nullptr)
          {
             GuiRect rect{ wrect.left, wrect.top, wrect.right, wrect.bottom };
-            tabView = Windows::AddTabs(*window, rect, "Tabbed Contro", 0x41000000, *this, TCS_BUTTONS, 0);
+			DWORD style = TCS_BUTTONS;
+            tabView = Windows::AddTabs(*window, rect, "Tabbed Contro", 0x41000000, *this, style, 0);
          }
          else
          {
@@ -769,7 +801,7 @@ namespace
       {
          auto node = new IDESpatialManager(database);
          node->PostConstruct(parent);
-         node->SetBackgroundColour(RGB(255, 0, 0));
+         node->SetBackgroundColour(RGB(192, 192, 192));
          node->isRoot = isRoot;
 
          if (savename) { node->savename = savename; }

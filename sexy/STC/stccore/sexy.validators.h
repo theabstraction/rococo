@@ -40,22 +40,16 @@
 
 namespace Rococo { namespace Compiler
 {
-	void Throw(ERRORCODE code, csexstr source, csexstr format, ...);	
+	void Throw(ERRORCODE code, cstr source, cstr format, ...);	
 }} // Rococo::Compiler
 
 #define WIDEN2(x) L ## x
 #define WIDEN(x) WIDEN2(x)
 #define WFUNCTION_NAME WIDEN(__SEXFUNCTION__)
 
-#define REQUIRE_NOT_NULL(x) \
-	if (x == NULL) Throw(ERRORCODE_NULL_POINTER, __SEXFUNCTION__, SEXTEXT(": [") SEXTEXT(#x) SEXTEXT("] was NULL")); \
-
-#define REQUIRE_NOT_BLANK(x) \
-	if (x == NULL) Throw(ERRORCODE_NULL_POINTER, __SEXFUNCTION__, SEXTEXT(": [") SEXTEXT(#x) SEXTEXT("] was NULL")); \
-	if (x[0] == 0) Throw(ERRORCODE_EMPTY_STRING, __SEXFUNCTION__, SEXTEXT(": [") SEXTEXT(#x) SEXTEXT("] was the empty string"));
 #define REQUIRE_NAMESPACE_STRING(x,why) ValidateNamespaceString(x, why, __SEXFUNCTION__);
 
 #define REQUIRE_OBJECTS_MATCH(x) \
-	if (&x.Object() != &object) Throw(ERRORCODE_BAD_ARGUMENT, __SEXFUNCTION__, SEXTEXT(": [") SEXTEXT(#x) SEXTEXT("] does not originate from the same IProgramObject"));
+	if (&x.Object() != &object) Throw(ERRORCODE_BAD_ARGUMENT, __SEXFUNCTION__, (": [") (#x) ("] does not originate from the same IProgramObject"));
 
 #endif

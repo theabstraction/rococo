@@ -33,7 +33,7 @@
 
 #include "sexy.script.stdafx.h"
 
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 # define _UNICODE
 # define UNICODE
 #endif
@@ -61,27 +61,27 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 
 namespace
 {
-	void CloseAndThrowOS(HANDLE toClose, const Rococo::SEXCHAR* message, const Rococo::SEXCHAR* filename)
+	void CloseAndThrowOS(HANDLE toClose, const char* message, const char* filename)
 	{
       CloseHandle(toClose);
-		Rococo::Throw(GetLastError(), SEXTEXT("%s: %s"), message, filename);
+		Rococo::Throw(GetLastError(), ("%s: %s"), message, filename);
 	}
 }
 
 namespace Rococo {
 	namespace OS
 	{
-		void GetDefaultNativeSrcDir(SEXCHAR* data, size_t capacity)
+		void GetDefaultNativeSrcDir(char* data, size_t capacity)
 		{
 #ifdef SCRIPT_IS_LIBRARY
 			GetCurrentDirectory((DWORD)capacity, data);
 #else
-			HMODULE hModule = GetModuleHandle(SEXTEXT("sexy.script.dll"));
+			HMODULE hModule = GetModuleHandle(("sexy.script.dll"));
 			if (hModule == NULL)
 			{
 				Rococo::OS::OSException ose;
 				ose.exceptionNumber = GetLastError();
-				Rococo::StringPrint(ose.message, 256, SEXTEXT("SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot get module handle for sexy.script.dll"));
+				Rococo::StringPrint(ose.message, 256, ("SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot get module handle for sexy.script.dll"));
 				throw ose;
 			}
 
@@ -90,56 +90,56 @@ namespace Rococo {
 
 			while (StripLastSubpath(data))
 			{
-				SEXCHAR fullpath[_MAX_PATH];
-				SafeFormat(fullpath, _MAX_PATH, SEXTEXT("%s%s"), data, SEXTEXT("src_indicator.txt"));
+				char fullpath[_MAX_PATH];
+				SafeFormat(fullpath, _MAX_PATH, ("%s%s"), data, ("src_indicator.txt"));
 				if (IsFileExistant(fullpath))
 				{
-					StringCat(data, SEXTEXT("NativeSource\\"), (int32)capacity);
+					StringCat(data, ("NativeSource\\"), (int32)capacity);
 					return;
 				}
 			}
 
-			Rococo::Throw(GetLastError(), SEXTEXT("SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot find src_indicator.txt descending from sexy.script.dll"));
+			Rococo::Throw(GetLastError(), ("SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot find src_indicator.txt descending from sexy.script.dll"));
 		}
 
-		void GetEnvVariable(SEXCHAR* data, size_t capacity, const SEXCHAR* envVariable)
+		void GetEnvVariable(char* data, size_t capacity, const char* envVariable)
 		{
 			if (0 == GetEnvironmentVariable(envVariable, data, (DWORD)capacity))
 			{
-				if (AreEqual(envVariable, SEXTEXT("SEXY_NATIVE_SRC_DIR")))
+				if (AreEqual(envVariable, ("SEXY_NATIVE_SRC_DIR")))
 				{
 					GetDefaultNativeSrcDir(data, capacity);
 
 					if (INVALID_FILE_ATTRIBUTES == GetFileAttributes(data))
 					{
-						Rococo::Throw(GetLastError(), SEXTEXT("Error associating environment variable %s to the sexy native source directory"), envVariable);
+						Rococo::Throw(GetLastError(), ("Error associating environment variable %s to the sexy native source directory"), envVariable);
 					}
 
 					SetEnvironmentVariable(envVariable, data);
 					return;
 				}
 
-				Throw(GetLastError(), SEXTEXT("Environment variable %s not found"), envVariable);
+				Throw(GetLastError(), ("Environment variable %s not found"), envVariable);
 			}
 		}
 
 		typedef void(*FN_AddNativeSexyCalls)(Rococo::Script::IScriptSystem& ss);
 
-		Rococo::Script::FN_CreateLib GetLibCreateFunction(const SEXCHAR* dynamicLinkLibOfNativeCalls, bool throwOnError)
+		Rococo::Script::FN_CreateLib GetLibCreateFunction(const char* dynamicLinkLibOfNativeCalls, bool throwOnError)
 		{
-			SEXCHAR linkLib[_MAX_PATH];
-			SafeFormat(linkLib, _MAX_PATH, SEXTEXT("%s.dll"), dynamicLinkLibOfNativeCalls);
+			char linkLib[_MAX_PATH];
+			SafeFormat(linkLib, _MAX_PATH, ("%s.dll"), dynamicLinkLibOfNativeCalls);
 			HMODULE lib = LoadLibrary(linkLib);
 			if (lib == nullptr)
 			{
-				if (throwOnError) Rococo::Throw(GetLastError(), SEXTEXT("Could not load %s"), (const SEXCHAR*)linkLib);
+				if (throwOnError) Rococo::Throw(GetLastError(), ("Could not load %s"), (const char*)linkLib);
 				return nullptr;
 			}
 
 			FARPROC fp = GetProcAddress(lib, "CreateLib");
 			if (fp == nullptr)
 			{
-				if (throwOnError) Rococo::Throw(GetLastError(), SEXTEXT("Could not find  INativeLib* CreateLib(...) in %s"), linkLib);
+				if (throwOnError) Rococo::Throw(GetLastError(), ("Could not find  INativeLib* CreateLib(...) in %s"), linkLib);
 				return nullptr;
 			}
 

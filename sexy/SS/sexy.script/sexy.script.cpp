@@ -50,14 +50,14 @@ using namespace Rococo::VM;
 
 namespace
 {
-	SEXCHAR defaultNativeSourcePath[256] = { 0 };
+	char defaultNativeSourcePath[256] = { 0 };
 
 	// Careful that we had enough buffer space
-	void AddSlashToDirectory(SEXCHAR* buffer)
+	void AddSlashToDirectory(char* buffer)
 	{
 		// Terminate with slash
 
-		SEXCHAR* s = buffer;
+		char* s = buffer;
 		for (; *s != 0; s++)
 		{
 
@@ -75,7 +75,7 @@ namespace Rococo
 {
 	namespace Script
 	{
-		void SetDefaultNativeSourcePath(csexstr pathname)
+		void SetDefaultNativeSourcePath(cstr pathname)
 		{
 			if (pathname == nullptr)
 			{
@@ -96,18 +96,18 @@ namespace Rococo
 {
 	namespace OS
 	{
-		FN_CreateLib GetLibCreateFunction(const SEXCHAR* dynamicLinkLibOfNativeCalls, bool throwOnError);
+		FN_CreateLib GetLibCreateFunction(const char* dynamicLinkLibOfNativeCalls, bool throwOnError);
 	}
 
 	namespace Script
 	{
-		typedef std::unordered_map<CStringKey, csexstr, ::hashCStringKey> TMapMethodToMember;
+		typedef std::unordered_map<CStringKey, cstr, ::hashCStringKey> TMapMethodToMember;
 	}
 
 	namespace Compiler
 	{
-		INamespaceBuilder* MatchNamespace(IModuleBuilder& module, csexstr name);
-		IStructureBuilder* MatchStructure(ILog& logger, csexstr type, IModuleBuilder& module);
+		INamespaceBuilder* MatchNamespace(IModuleBuilder& module, cstr name);
+		IStructureBuilder* MatchStructure(ILog& logger, cstr type, IModuleBuilder& module);
 	}
 }
 
@@ -121,7 +121,7 @@ namespace Rococo
 namespace Rococo {
 	namespace Script
 	{
-		const SEXCHAR* const THIS_POINTER_TOKEN = SEXTEXT("this");
+		const char* const THIS_POINTER_TOKEN = ("this");
 
 	} // Script
 } // Rococo
@@ -150,19 +150,19 @@ namespace Rococo
 {
    namespace Script
    {
-	void CopyStringToSexChar(SEXCHAR* output, size_t bufferCapacity, const char* input, size_t inputLength)
+	void CopyStringTochar(char* output, size_t bufferCapacity, const char* input, size_t inputLength)
 	{
 		for(size_t i = 0; i < inputLength; ++i)
 		{
 			output[i] = input[i];
 		}
 	}
-#ifdef SEXCHAR_IS_WIDE
-	void CopyStringToSexChar(SEXCHAR* output, size_t bufferCapacity, cstr input, size_t inputLength)
+#ifdef char_IS_WIDE
+	void CopyStringTochar(char* output, size_t bufferCapacity, cstr input, size_t inputLength)
 	{
 		for(size_t i = 0; i < inputLength; ++i)
 		{
-			output[i] = (SEXCHAR) input[i];
+			output[i] = (char) input[i];
 		}
 	}
 #endif
@@ -185,10 +185,10 @@ namespace Rococo
 
 	void Print(NativeCallEnvironment& e)
 	{
-		const SEXCHAR* pData;
+		const char* pData;
 		ReadInput(0, (void*&) pData, e);
 
-		if (pData == NULL) pData = SEXTEXT("<null>");
+		if (pData == NULL) pData = ("<null>");
 		int nullLen = StringLength(pData);
 		e.ss.PublicProgramObject().Log().Write(pData);
 		WriteOutput(0, nullLen, e);
@@ -203,7 +203,7 @@ namespace Rococo
 		nf->NativeCallback(nf->e);
 	}
 
-	static const SEXCHAR* NativeModuleSrc = SEXTEXT("_NativeModule_");
+	static const char* NativeModuleSrc = ("_NativeModule_");
 
 	void InstallNativeCallNamespaces(IN const TMapFQNToNativeCall& nativeCalls, REF INamespaceBuilder& rootNS)
 	{
@@ -212,12 +212,12 @@ namespace Rococo
 			NativeFunction& nf = *i->second;
 			NamespaceSplitter splitter(i->first.c_str());
 
-			csexstr body, publicName;
+			cstr body, publicName;
 			if (!splitter.SplitTail(OUT body, OUT publicName))
 			{
-				SEXCHAR fullError[2048];
-            SafeFormat(fullError, 2048, SEXTEXT("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
-				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, SEXTEXT(""), NULL);
+				char fullError[2048];
+            SafeFormat(fullError, 2048, ("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
+				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
 				Throw(nativeError);
 			}
 
@@ -236,12 +236,12 @@ namespace Rococo
 			NativeFunction& nf = *i->second;
 			NamespaceSplitter splitter(i->first.c_str());
 
-			csexstr body, publicName;
+			cstr body, publicName;
 			if (!splitter.SplitTail(OUT body, OUT publicName))
 			{
-				SEXCHAR fullError[2048];
-            SafeFormat(fullError, 2048, SEXTEXT("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
-				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, SEXTEXT(""), NULL);
+				char fullError[2048];
+            SafeFormat(fullError, 2048, ("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
+				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
 				Throw(nativeError);
 			}
 
@@ -252,9 +252,9 @@ namespace Rococo
 
 			if (!f->TryResolveArguments())
 			{
-				SEXCHAR fullError[2048];
-            SafeFormat(fullError, 2048, SEXTEXT("%s: Could not resolve all arguments. Check the log."), nf.Archetype.c_str());
-				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, SEXTEXT(""), NULL);
+				char fullError[2048];
+            SafeFormat(fullError, 2048, ("%s: Could not resolve all arguments. Check the log."), nf.Archetype.c_str());
+				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
 				Throw(nativeError);
 			}
 
@@ -270,15 +270,15 @@ namespace Rococo
 			}
 			catch (IException& e)
 			{
-				SEXCHAR fullError[2048];
-            SafeFormat(fullError, 2048, SEXTEXT("%s: %s"), nf.Archetype.c_str(), e.Message());
-				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, SEXTEXT(""), NULL);
+				char fullError[2048];
+            SafeFormat(fullError, 2048, ("%s: %s"), nf.Archetype.c_str(), e.Message());
+				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
 				Throw(nativeError);
 			}							
 		}
 	}
 
-	csexstr GetArgTypeFromExpression(cr_sex s)
+	cstr GetArgTypeFromExpression(cr_sex s)
 	{
 		AssertCompound(s);
 		AssertNotTooFewElements(s, 2);
@@ -287,7 +287,7 @@ namespace Rococo
 		return GetAtomicArg(s, 0).String()->Buffer;
 	}
 
-	csexstr GetArgNameFromExpression(cr_sex s)
+	cstr GetArgNameFromExpression(cr_sex s)
 	{
 		AssertCompound(s);
 		AssertNotTooFewElements(s, 2);
@@ -308,8 +308,8 @@ namespace Rococo
 		AssertCompound(archetype);
 		if (archetype.NumberOfElements() == 1)
 		{
-			SEXCHAR fullError[512];
-         SafeFormat(fullError, 512, SEXTEXT("Element defined in %s had one element. Ensure that the native call spec is not encapsulated in parenthesis"), ns.FullName()->Buffer);
+			char fullError[512];
+         SafeFormat(fullError, 512, ("Element defined in %s had one element. Ensure that the native call spec is not encapsulated in parenthesis"), ns.FullName()->Buffer);
 			Throw(archetype, fullError);
 		}
 
@@ -319,16 +319,16 @@ namespace Rococo
 		AssertNotTooManyElements(archetype, MAX_ARGS_PER_NATIVE_CALL);
 		
 		cr_sex fnameArg = GetAtomicArg(archetype, 0);
-		csexstr publicName = fnameArg.String()->Buffer;
+		cstr publicName = fnameArg.String()->Buffer;
 
 		TokenBuffer nativeName;
-		StringPrint(nativeName, SEXTEXT("_%d_%s"), nativeCallIndex, publicName);
+		StringPrint(nativeName, ("_%d_%s"), nativeCallIndex, publicName);
 
-		int mapIndex = GetIndexOf(1, archetype, SEXTEXT("->"));
+		int mapIndex = GetIndexOf(1, archetype, ("->"));
 		if (mapIndex < 0)
 		{
-			SEXCHAR fullError[512];
-         SafeFormat(fullError, 512, SEXTEXT("Cannot find the mapping token -> in the archetype: %s.%s"), ns.FullName()->Buffer, publicName);
+			char fullError[512];
+         SafeFormat(fullError, 512, ("Cannot find the mapping token -> in the archetype: %s.%s"), ns.FullName()->Buffer, publicName);
 			Throw(archetype, fullError);
 		}
 
@@ -339,21 +339,21 @@ namespace Rococo
 		for(int i = mapIndex+1; i < archetype.NumberOfElements(); ++i)
 		{
 			cr_sex outputDef = archetype.GetElement(i);
-			csexstr type = GetArgTypeFromExpression(outputDef);
-			csexstr name = GetArgNameFromExpression(outputDef);
+			cstr type = GetArgTypeFromExpression(outputDef);
+			cstr name = GetArgNameFromExpression(outputDef);
 			f.AddOutput(NameString::From(name), TypeString::From(type), (void*)&outputDef);
 		}
 
 		for(int i = 1; i < mapIndex; ++i)
 		{
 			cr_sex inputDef = archetype.GetElement(i);
-			csexstr type = GetArgTypeFromExpression(inputDef);
-			csexstr name = GetArgNameFromExpression(inputDef);
+			cstr type = GetArgTypeFromExpression(inputDef);
+			cstr name = GetArgNameFromExpression(inputDef);
 			f.AddInput(NameString::From(name), TypeString::From(type), (void*)&inputDef);
 		}
 
 		TokenBuffer fullyQualifiedName;
-		StringPrint(fullyQualifiedName, SEXTEXT("%s.%s"), ns.FullName()->Buffer, publicName);
+		StringPrint(fullyQualifiedName, ("%s.%s"), ns.FullName()->Buffer, publicName);
 
 		NativeFunction* nf = new NativeFunction(ss, f, ss.ProgramObject().VirtualMachine().Cpu(), context);
 		nf->NativeCallback = callback;
@@ -363,9 +363,9 @@ namespace Rococo
 
 	void AddNullFields(IStructureBuilder* s)
 	{
-		s->AddMember(NameString::From(SEXTEXT("_typeInfo")), TypeString::From(SEXTEXT("Pointer")));
-		s->AddMember(NameString::From(SEXTEXT("_allocSize")), TypeString::From(SEXTEXT("Int32")));
-		s->AddMember(NameString::From(SEXTEXT("_vTable1")), TypeString::From(SEXTEXT("Pointer")));
+		s->AddMember(NameString::From(("_typeInfo")), TypeString::From(("Pointer")));
+		s->AddMember(NameString::From(("_allocSize")), TypeString::From(("Int32")));
+		s->AddMember(NameString::From(("_vTable1")), TypeString::From(("Pointer")));
 	}
 
 	class CScriptSystem : public IScriptSystem
@@ -393,7 +393,7 @@ namespace Rococo
 		ID_API_CALLBACK jitId;
 		ID_API_CALLBACK arrayPushId;
 
-		SEXCHAR srcEnvironment[_MAX_PATH];
+		char srcEnvironment[_MAX_PATH];
 
 		TMapMethodToMember methodMap;
 
@@ -402,7 +402,7 @@ namespace Rococo
 
 		void InstallNullFunction()
 		{
-			IFunctionBuilder& nullFunction = progObjProxy().IntrinsicModule().DeclareFunction(FunctionPrototype(SEXTEXT("_nothing"), false), NULL);
+			IFunctionBuilder& nullFunction = progObjProxy().IntrinsicModule().DeclareFunction(FunctionPrototype(("_nothing"), false), NULL);
 			nullFunction.Builder().Begin();
 			nullFunction.Builder().End();
 			nullFunction.Builder().Assembler().Clear();
@@ -420,7 +420,7 @@ namespace Rococo
 			return this->progObjProxy().GetModule(0);
 		}
 
-		typedef std::unordered_map<csexstr, CStringConstant*> TReflectedStrings;
+		typedef std::unordered_map<cstr, CStringConstant*> TReflectedStrings;
 		TReflectedStrings reflectedStrings;
 
 		typedef std::unordered_map<const void*, stdstring> TSymbols;
@@ -454,36 +454,36 @@ namespace Rococo
 				}
 				else
 				{
-					OS::GetEnvVariable(srcEnvironment, _MAX_PATH, SEXTEXT("SEXY_NATIVE_SRC_DIR"));
+					OS::GetEnvVariable(srcEnvironment, _MAX_PATH, ("SEXY_NATIVE_SRC_DIR"));
 				}
 				AddSlashToDirectory(srcEnvironment);
 			}
 			catch (IException& innerEx)
 			{
 				char message[1024];
-				SafeFormat(message, sizeof(message), SEXTEXT("%s:\nFailed to get sexy environment.\nUse Rococo::Script::SetDefaultNativeSourcePath(...) or ProgramInitParameters or environment variable SEXY_NATIVE_SRC_DIR"), innerEx.Message());
+				SafeFormat(message, sizeof(message), ("%s:\nFailed to get sexy environment.\nUse Rococo::Script::SetDefaultNativeSourcePath(...) or ProgramInitParameters or environment variable SEXY_NATIVE_SRC_DIR"), innerEx.Message());
 				_logger.Write(message);
-				Rococo::Throw(innerEx.ErrorCode(), SEXTEXT("%s"), message);
+				Rococo::Throw(innerEx.ErrorCode(), ("%s"), message);
 			}
 
 			scripts = new CScripts(progObjProxy(), *this);
 
-			nativeInt32 = &progObjProxy().AddIntrinsicStruct(SEXTEXT("Int32"), sizeof(int32), VARTYPE_Int32, NULL);
-			nativeInt64 = &progObjProxy().AddIntrinsicStruct(SEXTEXT("Int64"), sizeof(int64), VARTYPE_Int64, NULL);
-			nativeFloat32 = &progObjProxy().AddIntrinsicStruct(SEXTEXT("Float32"), sizeof(float32), VARTYPE_Float32, NULL);
-			nativeFloat64 = &progObjProxy().AddIntrinsicStruct(SEXTEXT("Float64"), sizeof(float64), VARTYPE_Float64, NULL);
-			nativeBool = &progObjProxy().AddIntrinsicStruct(SEXTEXT("Bool"), sizeof(int32), VARTYPE_Bool, NULL);
-			nativePtr = &progObjProxy().AddIntrinsicStruct(SEXTEXT("Pointer"), sizeof(size_t), VARTYPE_Pointer, NULL);
+			nativeInt32 = &progObjProxy().AddIntrinsicStruct(("Int32"), sizeof(int32), VARTYPE_Int32, NULL);
+			nativeInt64 = &progObjProxy().AddIntrinsicStruct(("Int64"), sizeof(int64), VARTYPE_Int64, NULL);
+			nativeFloat32 = &progObjProxy().AddIntrinsicStruct(("Float32"), sizeof(float32), VARTYPE_Float32, NULL);
+			nativeFloat64 = &progObjProxy().AddIntrinsicStruct(("Float64"), sizeof(float64), VARTYPE_Float64, NULL);
+			nativeBool = &progObjProxy().AddIntrinsicStruct(("Bool"), sizeof(int32), VARTYPE_Bool, NULL);
+			nativePtr = &progObjProxy().AddIntrinsicStruct(("Pointer"), sizeof(size_t), VARTYPE_Pointer, NULL);
 
 			try
 			{
-				AddCommonSource(SEXTEXT("Sys.Type.Strings.sxy")); // Module 0 -> This comes first, as module 0 is directly used to get a concrete class for string literals
-				AddCommonSource(SEXTEXT("Sys.Type.sxy")); // Module 1
-				AddCommonSource(SEXTEXT("Sys.Maths.sxy")); // Module 2			
-				AddCommonSource(SEXTEXT("Sys.Reflection.sxy")); // Module 3
+				AddCommonSource(("Sys.Type.Strings.sxy")); // Module 0 -> This comes first, as module 0 is directly used to get a concrete class for string literals
+				AddCommonSource(("Sys.Type.sxy")); // Module 1
+				AddCommonSource(("Sys.Maths.sxy")); // Module 2			
+				AddCommonSource(("Sys.Reflection.sxy")); // Module 3
 
-				AddNativeLibrary(SEXTEXT("Sexy.NativeLib.Reflection"));
-				AddNativeLibrary(SEXTEXT("Sexy.NativeLib.Maths"));
+				AddNativeLibrary(("Sexy.NativeLib.Reflection"));
+				AddNativeLibrary(("Sexy.NativeLib.Maths"));
 			}
 			catch (IException& ex)
 			{
@@ -494,76 +494,76 @@ namespace Rococo
 				throw;
 			}
 
-			jitId = progObjProxy().VirtualMachine().Core().RegisterCallback(OnJITRoutineNeedsCompiling, this, SEXTEXT("OnJITRoutineNeedsCompiling"));
+			jitId = progObjProxy().VirtualMachine().Core().RegisterCallback(OnJITRoutineNeedsCompiling, this, ("OnJITRoutineNeedsCompiling"));
 
-			arrayCallbacks.ArrayGetRefUnchecked = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayGetRefUnchecked, this, SEXTEXT("ArrayGetRefUnchecked"));
-			arrayCallbacks.ArrayLock = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayLock, this, SEXTEXT("ArrayLock"));
-			arrayCallbacks.ArrayUnlock = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayUnlock, this, SEXTEXT("ArrayUnlock"));
-			arrayCallbacks.ArrayPushAndGetRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPushAndGetRef, this, SEXTEXT("ArrayPushAndGetRef"));
-			arrayCallbacks.ArrayPushByRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPushByRef, this, SEXTEXT("ArrayPushByRef"));
-			arrayCallbacks.ArrayPush32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPush32, this, SEXTEXT("ArrayPush32"));
-			arrayCallbacks.ArrayPush64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPush64, this, SEXTEXT("ArrayPush64"));
-			arrayCallbacks.ArrayGet32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayGet32, this, SEXTEXT("ArrayGet32"));
-			arrayCallbacks.ArrayGet64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayGet64, this, SEXTEXT("ArrayGet64"));
-			arrayCallbacks.ArrayGetMember32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayGetMember32, this, SEXTEXT("ArrayGetMember32"));
-			arrayCallbacks.ArrayGetMember64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayGetMember64, this, SEXTEXT("ArrayGetMember64"));
-			arrayCallbacks.ArrayGetByRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayGetByRef, this, SEXTEXT("ArrayGetByRef"));
-			arrayCallbacks.ArrayInit = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayInit, this, SEXTEXT("ArrayInit"));
-			arrayCallbacks.ArrayDelete = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayDelete, this, SEXTEXT("ArrayDelete"));
-			arrayCallbacks.ArraySet32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArraySet32, this, SEXTEXT("ArraySet32"));
-			arrayCallbacks.ArraySet64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArraySet64, this, SEXTEXT("ArraySet64"));
-			arrayCallbacks.ArraySetByRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArraySetByRef, this, SEXTEXT("ArraySetByRef"));
-			arrayCallbacks.ArrayPop = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPop, this, SEXTEXT("ArrayPop"));
-			arrayCallbacks.ArrayPopOut32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPopOut32, this, SEXTEXT("ArrayPopOut32"));
-			arrayCallbacks.ArrayPopOut64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPopOut64, this, SEXTEXT("ArrayPopOut64"));
-			arrayCallbacks.ArrayDestructElements = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayDestructElements, this, SEXTEXT("ArrayDestructElements"));
+			arrayCallbacks.ArrayGetRefUnchecked = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayGetRefUnchecked, this, ("ArrayGetRefUnchecked"));
+			arrayCallbacks.ArrayLock = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayLock, this, ("ArrayLock"));
+			arrayCallbacks.ArrayUnlock = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayUnlock, this, ("ArrayUnlock"));
+			arrayCallbacks.ArrayPushAndGetRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPushAndGetRef, this, ("ArrayPushAndGetRef"));
+			arrayCallbacks.ArrayPushByRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPushByRef, this, ("ArrayPushByRef"));
+			arrayCallbacks.ArrayPush32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPush32, this, ("ArrayPush32"));
+			arrayCallbacks.ArrayPush64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPush64, this, ("ArrayPush64"));
+			arrayCallbacks.ArrayGet32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayGet32, this, ("ArrayGet32"));
+			arrayCallbacks.ArrayGet64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayGet64, this, ("ArrayGet64"));
+			arrayCallbacks.ArrayGetMember32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayGetMember32, this, ("ArrayGetMember32"));
+			arrayCallbacks.ArrayGetMember64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayGetMember64, this, ("ArrayGetMember64"));
+			arrayCallbacks.ArrayGetByRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayGetByRef, this, ("ArrayGetByRef"));
+			arrayCallbacks.ArrayInit = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayInit, this, ("ArrayInit"));
+			arrayCallbacks.ArrayDelete = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayDelete, this, ("ArrayDelete"));
+			arrayCallbacks.ArraySet32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArraySet32, this, ("ArraySet32"));
+			arrayCallbacks.ArraySet64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArraySet64, this, ("ArraySet64"));
+			arrayCallbacks.ArraySetByRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArraySetByRef, this, ("ArraySetByRef"));
+			arrayCallbacks.ArrayPop = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPop, this, ("ArrayPop"));
+			arrayCallbacks.ArrayPopOut32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPopOut32, this, ("ArrayPopOut32"));
+			arrayCallbacks.ArrayPopOut64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPopOut64, this, ("ArrayPopOut64"));
+			arrayCallbacks.ArrayDestructElements = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayDestructElements, this, ("ArrayDestructElements"));
 
-			listCallbacks.ListInit = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListInit, this, SEXTEXT("ListInit"));
-			listCallbacks.ListAppend = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListAppend, this, SEXTEXT("ListAppend"));
-			listCallbacks.ListAppendAndGetRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListAppendAndGetRef, this, SEXTEXT("ListAppendAndGetRef"));
-			listCallbacks.ListAppend32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListAppend32, this, SEXTEXT("ListAppend32"));
-			listCallbacks.ListAppend64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListAppend64, this, SEXTEXT("ListAppend64"));
-			listCallbacks.ListPrepend = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListPrepend, this, SEXTEXT("ListPrepend"));
-			listCallbacks.ListPrependAndGetRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListPrependAndGetRef, this, SEXTEXT("ListPrependAndGetRef"));
-			listCallbacks.ListPrepend32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListPrepend32, this, SEXTEXT("ListPrepend32"));
-			listCallbacks.ListPrepend64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListPrepend64, this, SEXTEXT("ListPrepend64"));
-			listCallbacks.ListGetHead = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListGetHead, this, SEXTEXT("ListGetHead"));
-			listCallbacks.ListGetTail = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListGetTail, this, SEXTEXT("ListGetTail"));
-			listCallbacks.NodeGet32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeGet32, this, SEXTEXT("NodeGet32"));
-			listCallbacks.NodeGet64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeGet64, this, SEXTEXT("NodeGet64"));
-			listCallbacks.NodeGetElementRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeGetElementRef, this, SEXTEXT("NodeGetElementRef"));
-			listCallbacks.NodeNext = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeNext, this, SEXTEXT("NodeNext"));
-			listCallbacks.NodePrevious = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodePrevious, this, SEXTEXT("NodePrevious"));
-			listCallbacks.NodeAppend = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeAppend, this, SEXTEXT("NodeAppend"));
-			listCallbacks.NodeAppend32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeAppend32, this, SEXTEXT("NodeAppend32"));
-			listCallbacks.NodeAppend64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeAppend64, this, SEXTEXT("NodeAppend64"));
-			listCallbacks.NodePrepend = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodePrepend, this, SEXTEXT("NodePrepend"));
-			listCallbacks.NodePrepend32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodePrepend32, this, SEXTEXT("NodePrepend32"));
-			listCallbacks.NodePrepend64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodePrepend64, this, SEXTEXT("NodePrepend64"));
-			listCallbacks.NodePop = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodePop, this, SEXTEXT("NodePop"));
-			listCallbacks.NodeEnumNext = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeEnumNext, this, SEXTEXT("NodeEnumNext"));
-			listCallbacks.NodeHasNext = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeHasNext, this, SEXTEXT("NodeHasNext"));
-			listCallbacks.NodeHasPrevious = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeHasPrevious, this, SEXTEXT("NodeHasPrevious"));
-			listCallbacks.NodeReleaseRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeReleaseRef, this, SEXTEXT("NodeReleaseRef"));
-			listCallbacks.ListClear = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListClear, this, SEXTEXT("ListClear"));
+			listCallbacks.ListInit = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListInit, this, ("ListInit"));
+			listCallbacks.ListAppend = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListAppend, this, ("ListAppend"));
+			listCallbacks.ListAppendAndGetRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListAppendAndGetRef, this, ("ListAppendAndGetRef"));
+			listCallbacks.ListAppend32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListAppend32, this, ("ListAppend32"));
+			listCallbacks.ListAppend64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListAppend64, this, ("ListAppend64"));
+			listCallbacks.ListPrepend = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListPrepend, this, ("ListPrepend"));
+			listCallbacks.ListPrependAndGetRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListPrependAndGetRef, this, ("ListPrependAndGetRef"));
+			listCallbacks.ListPrepend32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListPrepend32, this, ("ListPrepend32"));
+			listCallbacks.ListPrepend64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListPrepend64, this, ("ListPrepend64"));
+			listCallbacks.ListGetHead = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListGetHead, this, ("ListGetHead"));
+			listCallbacks.ListGetTail = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListGetTail, this, ("ListGetTail"));
+			listCallbacks.NodeGet32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeGet32, this, ("NodeGet32"));
+			listCallbacks.NodeGet64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeGet64, this, ("NodeGet64"));
+			listCallbacks.NodeGetElementRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeGetElementRef, this, ("NodeGetElementRef"));
+			listCallbacks.NodeNext = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeNext, this, ("NodeNext"));
+			listCallbacks.NodePrevious = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodePrevious, this, ("NodePrevious"));
+			listCallbacks.NodeAppend = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeAppend, this, ("NodeAppend"));
+			listCallbacks.NodeAppend32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeAppend32, this, ("NodeAppend32"));
+			listCallbacks.NodeAppend64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeAppend64, this, ("NodeAppend64"));
+			listCallbacks.NodePrepend = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodePrepend, this, ("NodePrepend"));
+			listCallbacks.NodePrepend32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodePrepend32, this, ("NodePrepend32"));
+			listCallbacks.NodePrepend64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodePrepend64, this, ("NodePrepend64"));
+			listCallbacks.NodePop = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodePop, this, ("NodePop"));
+			listCallbacks.NodeEnumNext = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeEnumNext, this, ("NodeEnumNext"));
+			listCallbacks.NodeHasNext = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeHasNext, this, ("NodeHasNext"));
+			listCallbacks.NodeHasPrevious = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeHasPrevious, this, ("NodeHasPrevious"));
+			listCallbacks.NodeReleaseRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeNodeReleaseRef, this, ("NodeReleaseRef"));
+			listCallbacks.ListClear = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeListClear, this, ("ListClear"));
 
-			mapCallbacks.MapClear = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapClear, this, SEXTEXT("MapClear"));
-			mapCallbacks.NodeEnumNext = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodeEnumNext, this, SEXTEXT("MapNodeEnumNext"));
-			mapCallbacks.MapGetHead = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapGetHead, this, SEXTEXT("MapGetHead"));
-			mapCallbacks.MapInit = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapInit, this, SEXTEXT("MapInit"));
-			mapCallbacks.MapInsert32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapInsert32, this, SEXTEXT("MapInsert32"));
-			mapCallbacks.MapInsert64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapInsert64, this, SEXTEXT("MapInsert64"));
-			mapCallbacks.MapInsertValueByRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapInsertValueByRef, this, SEXTEXT("MapInsertValueByRef"));
-			mapCallbacks.MapInsertAndGetRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapInsertAndGetRef, this, SEXTEXT("MapInsertAndGetRef"));
-			mapCallbacks.MapTryGet = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapTryGet, this, SEXTEXT("MapTryGet"));
-			mapCallbacks.MapNodeGet32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodeGet32, this, SEXTEXT("MapNodeGet32"));
-			mapCallbacks.MapNodeGet64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodeGet64, this, SEXTEXT("MapNodeGet64"));
-			mapCallbacks.MapNodeGetRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodeGetRef, this, SEXTEXT("MapNodeGetRef"));
-			mapCallbacks.MapNodePop = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodePop, this, SEXTEXT("MapNodePop"));
-			mapCallbacks.MapNodeReleaseRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodeReleaseRef, this, SEXTEXT("MapNodeReleaseRef"));
+			mapCallbacks.MapClear = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapClear, this, ("MapClear"));
+			mapCallbacks.NodeEnumNext = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodeEnumNext, this, ("MapNodeEnumNext"));
+			mapCallbacks.MapGetHead = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapGetHead, this, ("MapGetHead"));
+			mapCallbacks.MapInit = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapInit, this, ("MapInit"));
+			mapCallbacks.MapInsert32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapInsert32, this, ("MapInsert32"));
+			mapCallbacks.MapInsert64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapInsert64, this, ("MapInsert64"));
+			mapCallbacks.MapInsertValueByRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapInsertValueByRef, this, ("MapInsertValueByRef"));
+			mapCallbacks.MapInsertAndGetRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapInsertAndGetRef, this, ("MapInsertAndGetRef"));
+			mapCallbacks.MapTryGet = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapTryGet, this, ("MapTryGet"));
+			mapCallbacks.MapNodeGet32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodeGet32, this, ("MapNodeGet32"));
+			mapCallbacks.MapNodeGet64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodeGet64, this, ("MapNodeGet64"));
+			mapCallbacks.MapNodeGetRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodeGetRef, this, ("MapNodeGetRef"));
+			mapCallbacks.MapNodePop = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodePop, this, ("MapNodePop"));
+			mapCallbacks.MapNodeReleaseRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodeReleaseRef, this, ("MapNodeReleaseRef"));
 
-			methodMap[SEXTEXT("Capacity")] = SEXTEXT("_elementCapacity");
-			methodMap[SEXTEXT("Length")] = SEXTEXT("_length");
+			methodMap[("Capacity")] = ("_elementCapacity");
+			methodMap[("Length")] = ("_length");
 		}
 
 		~CScriptSystem()
@@ -596,13 +596,13 @@ namespace Rococo
 			{
 				if (st.InterfaceCount() != 1)
 				{
-					LogError(progObjProxy().Log(), SEXTEXT("The structure '%s' must implement one and only one interface to reflect a native object"), st.Name());
+					LogError(progObjProxy().Log(), ("The structure '%s' must implement one and only one interface to reflect a native object"), st.Name());
 					return NULL;
 				}
 
 				if (IsNullType(st))
 				{
-					LogError(progObjProxy().Log(), SEXTEXT("Null structures, including '%s', cannot be used to reflect a native object"), st.Name());
+					LogError(progObjProxy().Log(), ("Null structures, including '%s', cannot be used to reflect a native object"), st.Name());
 					return NULL;
 				}
 
@@ -654,7 +654,7 @@ namespace Rococo
 		{
 			if (!alignedAllocationMap.empty())
 			{
-				Rococo::LogError(ProgramObject().Log(), SEXTEXT("Memory leak! %u elements found in the aligned allocation map"), alignedAllocationMap.size());
+				Rococo::LogError(ProgramObject().Log(), ("Memory leak! %u elements found in the aligned allocation map"), alignedAllocationMap.size());
 				return false;
 			}
 
@@ -672,7 +672,7 @@ namespace Rococo
 			return nextId++;
 		}
 
-		void ThrowFromNativeCode(int32 errorCode, csexstr staticRefMessage)
+		void ThrowFromNativeCode(int32 errorCode, cstr staticRefMessage)
 		{
 			scripts->ExceptionLogic().ThrowFromNativeCode(errorCode, staticRefMessage);
 		}
@@ -728,7 +728,7 @@ namespace Rococo
 			}
 			else
 			{
-				progObjProxy().Log().Write(SEXTEXT("Sys.Native.FreeAligned(...) was passed a pointer that is not currently defined in the aligned heap"));
+				progObjProxy().Log().Write(("Sys.Native.FreeAligned(...) was passed a pointer that is not currently defined in the aligned heap"));
 				progObjProxy().VirtualMachine().Throw();
 			}
 		}
@@ -764,27 +764,27 @@ namespace Rococo
 			return i != reflectedPointers.end() ? i->second : NULL;
 		}
 
-		IStructure* GetClassFromModuleElseLog(IModuleBuilder& module, csexstr className)
+		IStructure* GetClassFromModuleElseLog(IModuleBuilder& module, cstr className)
 		{
 			IStructure *s = module.FindStructure(className);
 			if (s == NULL)
 			{
 				TokenBuffer token;
-				StringPrint(token, SEXTEXT("Cannot find %s in module %s"), className, module.Name());
+				StringPrint(token, ("Cannot find %s in module %s"), className, module.Name());
 				progObjProxy().Log().Write(token);
 				return NULL;
 			}
 			return s;
 		}
 
-		virtual CReflectedClass* CreateReflectionClass(csexstr className, void* context)
+		virtual CReflectedClass* CreateReflectionClass(cstr className, void* context)
 		{
 			IStructure* s = GetClassFromModuleElseLog(ReflectionModule(), className);
 
 			if (s->SizeOfStruct() != sizeof(CReflectedClass))
 			{
 				TokenBuffer token;
-				StringPrint(token, SEXTEXT("%s in reflection module is not equivalent to CReflectedClass"), className);
+				StringPrint(token, ("%s in reflection module is not equivalent to CReflectedClass"), className);
 				progObjProxy().Log().Write(token);
 				return NULL;
 			}
@@ -797,7 +797,7 @@ namespace Rococo
 
 		virtual bool ConstructExpressionBuilder(CClassExpressionBuilder& builderContainer, Rococo::Sex::ISExpressionBuilder* builder)
 		{
-			IStructure* s = GetClassFromModuleElseLog(ReflectionModule(), SEXTEXT("ExpressionBuilder"));
+			IStructure* s = GetClassFromModuleElseLog(ReflectionModule(), ("ExpressionBuilder"));
 			if (s == NULL)
 			{
 				return false;
@@ -817,7 +817,7 @@ namespace Rococo
 			int nBytes = s.SizeOfStruct();
 			if (nBytes <= 0)
 			{
-				Rococo::Throw(0, SEXTEXT("The structure size was not postive"));
+				Rococo::Throw(0, ("The structure size was not postive"));
 			}
 
 			CClassHeader* instance = (CClassHeader*) new char[nBytes];
@@ -844,10 +844,10 @@ namespace Rococo
 		CClassExpression* CreateReflection(cr_sex s)
 		{
 			IModuleBuilder& reflectionModule = ReflectionModule();
-			IStructure* expressStruct = reflectionModule.FindStructure(SEXTEXT("Expression"));
+			IStructure* expressStruct = reflectionModule.FindStructure(("Expression"));
 			if (expressStruct == NULL)
 			{
-				Rococo::Throw(0, SEXTEXT("Cannot find 'Expression' in the reflection module"));
+				Rococo::Throw(0, ("Cannot find 'Expression' in the reflection module"));
 			}
 
 			CClassExpression* express = (CClassExpression*)DynamicCreateClass(*expressStruct, 0);
@@ -870,12 +870,12 @@ namespace Rococo
 			}
 		}
 
-		virtual CStringConstant* GetStringReflection(csexstr s)
+		virtual CStringConstant* GetStringReflection(cstr s)
 		{
 			auto i = reflectedStrings.find(s);
 			if (i == reflectedStrings.end())
 			{
-				const IStructure& stringConstantStruct = *SysTypeMemoModule().FindStructure(SEXTEXT("StringConstant"));
+				const IStructure& stringConstantStruct = *SysTypeMemoModule().FindStructure(("StringConstant"));
 				CStringConstant* pSC = (CStringConstant*)DynamicCreateClass(stringConstantStruct, 0);
 				pSC->pointer = s;
 				pSC->length = StringLength(s);
@@ -893,7 +893,7 @@ namespace Rococo
 		{
 			if (reflectionRoot == NULL)
 			{
-				const IStructure& classStruct = *ReflectionModule().FindStructure(SEXTEXT("ScriptSystem"));
+				const IStructure& classStruct = *ReflectionModule().FindStructure(("ScriptSystem"));
 				reflectionRoot = (CScriptSystemClass*)DynamicCreateClass(classStruct, 0);
 			}
 
@@ -928,57 +928,57 @@ namespace Rococo
 
 		void DefinePrimitives(INamespaceBuilder& sysTypes)
 		{
-			sysTypes.Alias(SEXTEXT("Int32"), *nativeInt32);
-			sysTypes.Alias(SEXTEXT("Int64"), *nativeInt64);
-			sysTypes.Alias(SEXTEXT("Float32"), *nativeFloat32);
-			sysTypes.Alias(SEXTEXT("Float64"), *nativeFloat64);
-			sysTypes.Alias(SEXTEXT("Bool"), *nativeBool);
-			sysTypes.Alias(SEXTEXT("Pointer"), *nativePtr);
+			sysTypes.Alias(("Int32"), *nativeInt32);
+			sysTypes.Alias(("Int64"), *nativeInt64);
+			sysTypes.Alias(("Float32"), *nativeFloat32);
+			sysTypes.Alias(("Float64"), *nativeFloat64);
+			sysTypes.Alias(("Bool"), *nativeBool);
+			sysTypes.Alias(("Pointer"), *nativePtr);
 
-			AddNativeCall(sysTypes, Print, NULL, SEXTEXT("NativePrint (Sys.Type.Pointer s) -> (Int32 charCount)"), false);
+			AddNativeCall(sysTypes, Print, NULL, ("NativePrint (Sys.Type.Pointer s) -> (Int32 charCount)"), false);
 		}
 
-		const INamespace& AddNativeNamespace(csexstr name)
+		const INamespace& AddNativeNamespace(cstr name)
 		{
 			return progObjProxy().GetRootNamespace().AddNamespace(name, Compiler::ADDNAMESPACEFLAGS_CREATE_ROOTS);
 		}
 
 		void DefineSysNative(const INamespace& sysNative)
 		{
-			AddNativeCall(sysNative, CreateMemoString, &memoAllocator, SEXTEXT("CreateMemoString (Pointer src) (Int32 srcLen) -> (Pointer dest) (Int32 destLength)"), false);
-			AddNativeCall(sysNative, FreeMemoString, &memoAllocator, SEXTEXT("FreeMemoString (Pointer src) ->"), false);
-			AddNativeCall(sysNative, DynamicCast, &stringBuilders, SEXTEXT("_DynamicCast (Pointer interface) (Pointer instanceRef) ->"), false);
-			AddNativeCall(sysNative, CreateStringBuilder, &stringBuilders, SEXTEXT("CreateStringBuilder (Int32 capacity) -> (Pointer sbHandle)"), false);
-			AddNativeCall(sysNative, FreeStringBuilder, &stringBuilders, SEXTEXT("FreeStringBuilder (Pointer sbHandle) ->"), false);
-			AddNativeCall(sysNative, StringBuilderAppendIString, &stringBuilders, SEXTEXT("StringBuilderAppendIString (Pointer buffer) (Pointer src) (Int32 srclength) -> (Int32 newLength)"), false);
-			AddNativeCall(sysNative, StringBuilderAppendInt32, &stringBuilders, SEXTEXT("StringBuilderAppendInt32 (Pointer buffer) (Int32 x) -> (Int32 newLength)"), false);
-			AddNativeCall(sysNative, StringBuilderAppendInt64, &stringBuilders, SEXTEXT("StringBuilderAppendInt64 (Pointer buffer) (Int64 x) -> (Int32 newLength)"), false);
-			AddNativeCall(sysNative, StringBuilderAppendFloat32, &stringBuilders, SEXTEXT("StringBuilderAppendFloat32 (Pointer buffer) (Float32 x) -> (Int32 newLength)"), false);
-			AddNativeCall(sysNative, StringBuilderAppendFloat64, &stringBuilders, SEXTEXT("StringBuilderAppendFloat64 (Pointer buffer) (Float64 x) -> (Int32 newLength)"), false);
-			AddNativeCall(sysNative, StringBuilderAppendBool, &stringBuilders, SEXTEXT("StringBuilderAppendBool (Pointer buffer) (Bool x) -> (Int32 newLength)"), false);
-			AddNativeCall(sysNative, StringBuilderAppendPointer, &stringBuilders, SEXTEXT("StringBuilderAppendPointer (Pointer buffer) (Pointer x) -> (Int32 newLength)"), false);
-			AddNativeCall(sysNative, StringBuilderClear, &stringBuilders, SEXTEXT("StringBuilderClear (Pointer buffer) ->"), false);
-			AddNativeCall(sysNative, StringBuilderAppendAsDecimal, &stringBuilders, SEXTEXT("StringBuilderAppendAsDecimal (Pointer buffer) ->"), false);
-			AddNativeCall(sysNative, StringBuilderAppendAsHex, &stringBuilders, SEXTEXT("StringBuilderAppendAsHex (Pointer buffer) -> "), false);
-			AddNativeCall(sysNative, StringBuilderAppendAsSpec, &stringBuilders, SEXTEXT("StringBuilderAppendAsSpec (Pointer buffer) (Int32 type) -> "), false);
-			AddNativeCall(sysNative, StringBuilderSetFormat, &stringBuilders, SEXTEXT("StringBuilderSetFormat  (Pointer buffer) (Int32 precision) (Int32 width) (Bool isZeroPrefixed) (Bool isRightAligned)->"), false);
-			AddNativeCall(sysNative, StringCompare, NULL, SEXTEXT("StringCompare  (Pointer s) (Pointer t) -> (Int32 diff)"), false);
-			AddNativeCall(sysNative, StringCompareI, NULL, SEXTEXT("StringCompareI  (Pointer s) (Pointer t) -> (Int32 diff)"), false);
-			AddNativeCall(sysNative, StringFindLeft, NULL, SEXTEXT("StringFindLeft (Pointer containerBuffer) (Int32 containerLength) (Int32 startPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)"), false);
-			AddNativeCall(sysNative, StringFindRight, NULL, SEXTEXT("StringFindRight (Pointer containerBuffer) (Int32 containerLength) (Int32 rightPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)"), false);
-			AddNativeCall(sysNative, StringBuilderAppendSubstring, NULL, SEXTEXT("StringBuilderAppendSubstring (Pointer builder) (Pointer s) (Int32 sLen) (Int32 startPos) (Int32 charsToAppend) -> (Int32 length)"), false);
-			AddNativeCall(sysNative, StringBuilderSetLength, NULL, SEXTEXT("StringBuilderSetLength (Pointer builder) (Int32 length) -> (Int32 newlength)"), false);
-			AddNativeCall(sysNative, StringBuilderSetCase, NULL, SEXTEXT("StringBuilderSetCase (Pointer builder) (Int32 start) (Int32 end) (Bool toUpper)->"), false);
-			AddNativeCall(sysNative, ::AlignedMalloc, this, SEXTEXT("AlignedMalloc (Int32 capacity) (Int32 alignment)-> (Pointer data)"), false);
-			AddNativeCall(sysNative, ::AlignedFree, this, SEXTEXT("AlignedFree (Pointer data)->"), false);
+			AddNativeCall(sysNative, CreateMemoString, &memoAllocator, ("CreateMemoString (Pointer src) (Int32 srcLen) -> (Pointer dest) (Int32 destLength)"), false);
+			AddNativeCall(sysNative, FreeMemoString, &memoAllocator, ("FreeMemoString (Pointer src) ->"), false);
+			AddNativeCall(sysNative, DynamicCast, &stringBuilders, ("_DynamicCast (Pointer interface) (Pointer instanceRef) ->"), false);
+			AddNativeCall(sysNative, CreateStringBuilder, &stringBuilders, ("CreateStringBuilder (Int32 capacity) -> (Pointer sbHandle)"), false);
+			AddNativeCall(sysNative, FreeStringBuilder, &stringBuilders, ("FreeStringBuilder (Pointer sbHandle) ->"), false);
+			AddNativeCall(sysNative, StringBuilderAppendIString, &stringBuilders, ("StringBuilderAppendIString (Pointer buffer) (Pointer src) (Int32 srclength) -> (Int32 newLength)"), false);
+			AddNativeCall(sysNative, StringBuilderAppendInt32, &stringBuilders, ("StringBuilderAppendInt32 (Pointer buffer) (Int32 x) -> (Int32 newLength)"), false);
+			AddNativeCall(sysNative, StringBuilderAppendInt64, &stringBuilders, ("StringBuilderAppendInt64 (Pointer buffer) (Int64 x) -> (Int32 newLength)"), false);
+			AddNativeCall(sysNative, StringBuilderAppendFloat32, &stringBuilders, ("StringBuilderAppendFloat32 (Pointer buffer) (Float32 x) -> (Int32 newLength)"), false);
+			AddNativeCall(sysNative, StringBuilderAppendFloat64, &stringBuilders, ("StringBuilderAppendFloat64 (Pointer buffer) (Float64 x) -> (Int32 newLength)"), false);
+			AddNativeCall(sysNative, StringBuilderAppendBool, &stringBuilders, ("StringBuilderAppendBool (Pointer buffer) (Bool x) -> (Int32 newLength)"), false);
+			AddNativeCall(sysNative, StringBuilderAppendPointer, &stringBuilders, ("StringBuilderAppendPointer (Pointer buffer) (Pointer x) -> (Int32 newLength)"), false);
+			AddNativeCall(sysNative, StringBuilderClear, &stringBuilders, ("StringBuilderClear (Pointer buffer) ->"), false);
+			AddNativeCall(sysNative, StringBuilderAppendAsDecimal, &stringBuilders, ("StringBuilderAppendAsDecimal (Pointer buffer) ->"), false);
+			AddNativeCall(sysNative, StringBuilderAppendAsHex, &stringBuilders, ("StringBuilderAppendAsHex (Pointer buffer) -> "), false);
+			AddNativeCall(sysNative, StringBuilderAppendAsSpec, &stringBuilders, ("StringBuilderAppendAsSpec (Pointer buffer) (Int32 type) -> "), false);
+			AddNativeCall(sysNative, StringBuilderSetFormat, &stringBuilders, ("StringBuilderSetFormat  (Pointer buffer) (Int32 precision) (Int32 width) (Bool isZeroPrefixed) (Bool isRightAligned)->"), false);
+			AddNativeCall(sysNative, StringCompare, NULL, ("StringCompare  (Pointer s) (Pointer t) -> (Int32 diff)"), false);
+			AddNativeCall(sysNative, StringCompareI, NULL, ("StringCompareI  (Pointer s) (Pointer t) -> (Int32 diff)"), false);
+			AddNativeCall(sysNative, StringFindLeft, NULL, ("StringFindLeft (Pointer containerBuffer) (Int32 containerLength) (Int32 startPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)"), false);
+			AddNativeCall(sysNative, StringFindRight, NULL, ("StringFindRight (Pointer containerBuffer) (Int32 containerLength) (Int32 rightPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)"), false);
+			AddNativeCall(sysNative, StringBuilderAppendSubstring, NULL, ("StringBuilderAppendSubstring (Pointer builder) (Pointer s) (Int32 sLen) (Int32 startPos) (Int32 charsToAppend) -> (Int32 length)"), false);
+			AddNativeCall(sysNative, StringBuilderSetLength, NULL, ("StringBuilderSetLength (Pointer builder) (Int32 length) -> (Int32 newlength)"), false);
+			AddNativeCall(sysNative, StringBuilderSetCase, NULL, ("StringBuilderSetCase (Pointer builder) (Int32 start) (Int32 end) (Bool toUpper)->"), false);
+			AddNativeCall(sysNative, ::AlignedMalloc, this, ("AlignedMalloc (Int32 capacity) (Int32 alignment)-> (Pointer data)"), false);
+			AddNativeCall(sysNative, ::AlignedFree, this, ("AlignedFree (Pointer data)->"), false);
 		}
 
-		void AddSymbol(csexstr symbol, const void* ptr)
+		void AddSymbol(cstr symbol, const void* ptr)
 		{
 			symbols.insert(std::make_pair(ptr, symbol));
 		}
 
-		virtual csexstr GetSymbol(const void* ptr) const
+		virtual cstr GetSymbol(const void* ptr) const
 		{
 			auto i = symbols.find(ptr);
 			return i == symbols.end() ? NULL : i->second.c_str();
@@ -991,21 +991,21 @@ namespace Rococo
 				IModuleBuilder& module = progObjProxy().GetModule(j);
 				for (int i = 0; i < module.StructCount(); ++i)
 				{
-					SEXCHAR symbol[256];
+					char symbol[256];
 					IStructure& s = module.GetStructure(i);
 					if (s.Prototype().IsClass)
 					{
-						SafeFormat(symbol, 256, SEXTEXT("%s-typeInfo"), s.Name());
+						SafeFormat(symbol, 256, ("%s-typeInfo"), s.Name());
 						AddSymbol(symbol, s.GetVirtualTable(0));
 
 						for (int k = 1; k <= s.InterfaceCount(); ++k)
 						{
-							SafeFormat(symbol, 256, SEXTEXT("%s-vTable%d"), s.Name(), k);
+							SafeFormat(symbol, 256, ("%s-vTable%d"), s.Name(), k);
 							AddSymbol(symbol, s.GetVirtualTable(k));
 						}
 					}
 
-					SafeFormat(symbol, 256, SEXTEXT("typeof(%s)"), s.Name());
+					SafeFormat(symbol, 256, ("typeof(%s)"), s.Name());
 					AddSymbol(symbol, &s);
 				}
 			}
@@ -1057,10 +1057,10 @@ namespace Rococo
 		{
 			Clear();
 
-			INamespaceBuilder& sysTypes = progObjProxy().GetRootNamespace().AddNamespace(SEXTEXT("Sys.Type"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
+			INamespaceBuilder& sysTypes = progObjProxy().GetRootNamespace().AddNamespace(("Sys.Type"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			DefinePrimitives(sysTypes);
 
-			INamespaceBuilder& sysNative = progObjProxy().GetRootNamespace().AddNamespace(SEXTEXT("Sys.Native"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
+			INamespaceBuilder& sysNative = progObjProxy().GetRootNamespace().AddNamespace(("Sys.Native"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			DefineSysNative(sysNative);
 
 			progObjProxy().ResolveNativeTypes();
@@ -1097,31 +1097,31 @@ namespace Rococo
 			return scripts->GetSourceCode(module);
 		}
 
-		virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, csexstr archetype, bool checkName)
+		virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, bool checkName)
 		{
 			enum { MAX_ARCHETYPE_LEN = 1024 };
 
 			if (callback == NULL)
 			{
-				Rococo::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...callback...): The [callback] pointer was NULL"));
+				Rococo::Throw(0, ("ScriptSystem::AddNativeCall(...callback...): The [callback] pointer was NULL"));
 			}
 
 			if (archetype == NULL)
 			{
-				Rococo::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...archetype...): The [archetype] pointer was NULL"));
+				Rococo::Throw(0, ("ScriptSystem::AddNativeCall(...archetype...): The [archetype] pointer was NULL"));
 			}
 
 			size_t len = StringLength(archetype);
 			if (len > (MAX_ARCHETYPE_LEN - 1))
 			{
-				Rococo::Throw(0, SEXTEXT("ScriptSystem::AddNativeCall(...archetype...): The [archetype] string length exceed the maximum"));
+				Rococo::Throw(0, ("ScriptSystem::AddNativeCall(...archetype...): The [archetype] string length exceed the maximum"));
 			}
 
-			SEXCHAR sxArchetype[MAX_ARCHETYPE_LEN];
-			CopyStringToSexChar(sxArchetype, MAX_ARCHETYPE_LEN, archetype, len + 1);
+			char sxArchetype[MAX_ARCHETYPE_LEN];
+			CopyStringTochar(sxArchetype, MAX_ARCHETYPE_LEN, archetype, len + 1);
 
-			SEXCHAR srcName[MAX_ARCHETYPE_LEN + 64];
-			SafeFormat(srcName, MAX_ARCHETYPE_LEN + 64, SEXTEXT("Source: '%s'"), sxArchetype);
+			char srcName[MAX_ARCHETYPE_LEN + 64];
+			SafeFormat(srcName, MAX_ARCHETYPE_LEN + 64, ("Source: '%s'"), sxArchetype);
 			Auto<ISourceCode> src = SParser().ProxySourceBuffer(sxArchetype, (int)len, Vec2i{ 0,0 }, srcName);
 
 			try
@@ -1140,7 +1140,7 @@ namespace Rococo
 
 		static std::unordered_map<stdstring, ISParserTree*> commonGlobalSources;
 
-		virtual void AddCommonSource(const Rococo::SEXCHAR *sexySourceFile)
+		virtual void AddCommonSource(const char *sexySourceFile)
 		{
 			struct Anon
 			{
@@ -1170,10 +1170,10 @@ namespace Rococo
 			{
 				enum { MAX_NATIVE_SRC_LEN = 32768 };
 
-				SEXCHAR srcCode[MAX_NATIVE_SRC_LEN];
+				char srcCode[MAX_NATIVE_SRC_LEN];
 
-				SEXCHAR fullPath[_MAX_PATH];
-				SafeFormat(fullPath, _MAX_PATH, SEXTEXT("%s%s"), srcEnvironment, sexySourceFile);
+				char fullPath[_MAX_PATH];
+				SafeFormat(fullPath, _MAX_PATH, ("%s%s"), srcEnvironment, sexySourceFile);
 
 				try
 				{
@@ -1200,10 +1200,10 @@ namespace Rococo
 			// commonSources.push_back(src);
 		}
 
-		virtual void AddNativeLibrary(const Rococo::SEXCHAR* dynamicLinkLibOfNativeCalls)
+		virtual void AddNativeLibrary(const char* dynamicLinkLibOfNativeCalls)
 		{
-			SEXCHAR srcEnvironmentDll[_MAX_PATH];
-			SafeFormat(srcEnvironmentDll, sizeof(srcEnvironmentDll), SEXTEXT("%s%s"), srcEnvironment, dynamicLinkLibOfNativeCalls);
+			char srcEnvironmentDll[_MAX_PATH];
+			SafeFormat(srcEnvironmentDll, sizeof(srcEnvironmentDll), ("%s%s"), srcEnvironment, dynamicLinkLibOfNativeCalls);
 
 			FN_CreateLib create;
 
@@ -1220,10 +1220,10 @@ namespace Rococo
 			return 4;
 		}
 
-		virtual void ThrowNative(int errorNumber, csexstr source, csexstr message)
+		virtual void ThrowNative(int errorNumber, cstr source, cstr message)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Native Error (") << source << SEXTEXT("): ") << message;
+			streamer.sb << ("Native Error (") << source << ("): ") << message;
 			progObjProxy().Log().Write(*streamer.sb);
 			progObjProxy().VirtualMachine().Throw();
 		}
@@ -1262,7 +1262,7 @@ namespace Rococo
 	{
 		if (arrayStruct == NULL)
 		{
-			arrayStruct = Object.Common().SysNative().FindStructure(SEXTEXT("_Array"));
+			arrayStruct = Object.Common().SysNative().FindStructure(("_Array"));
 		}
 
 		return *arrayStruct;
@@ -1272,7 +1272,7 @@ namespace Rococo
 	{
 		if (listStruct == NULL)
 		{
-			listStruct = Object.Common().SysNative().FindStructure(SEXTEXT("_List"));
+			listStruct = Object.Common().SysNative().FindStructure(("_List"));
 		}
 
 		return *listStruct;
@@ -1282,7 +1282,7 @@ namespace Rococo
 	{
 		if (mapStruct == NULL)
 		{
-			mapStruct = Object.Common().SysNative().FindStructure(SEXTEXT("_Map"));
+			mapStruct = Object.Common().SysNative().FindStructure(("_Map"));
 		}
 
 		return *mapStruct;
@@ -1298,7 +1298,7 @@ namespace Rococo
 
 	}
 
-	GlobalValue* GetGlobalValue(CScript& script, csexstr buffer)
+	GlobalValue* GetGlobalValue(CScript& script, cstr buffer)
 	{
 		return script.GetGlobalValue(buffer);
 	}
@@ -1316,8 +1316,8 @@ extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystem* CreateScriptV_1_2_0_0
 	}
 	catch(Rococo::IException& ex)
 	{
-		SEXCHAR errLog[256];
-      SafeFormat(errLog, 256, SEXTEXT("Sexy CreateScriptV_1_1_0_0(...) returning NULL. Error: %d, %s."), ex.ErrorCode(), ex.Message());
+		char errLog[256];
+      SafeFormat(errLog, 256, ("Sexy CreateScriptV_1_1_0_0(...) returning NULL. Error: %d, %s."), ex.ErrorCode(), ex.Message());
 		logger.Write(errLog);
 		return NULL;
 	}

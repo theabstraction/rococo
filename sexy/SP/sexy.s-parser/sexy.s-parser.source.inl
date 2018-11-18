@@ -40,20 +40,20 @@ namespace
 	{
 	private:
 		refcount_t refcount;
-		SEXCHAR* buffer;
+		char* buffer;
 		int segmentLength;
 		Vec2i origin;
 		stdstring name;
 
 	public:
-		CSourceCodeCopy(csexstr _buffer, int _segmentLength, const Vec2i& _origin, csexstr _name):
+		CSourceCodeCopy(cstr _buffer, int _segmentLength, const Vec2i& _origin, cstr _name):
 			refcount(1),
          segmentLength(_segmentLength),
          origin(_origin),
 			name(_name)
 		{
-			buffer = new SEXCHAR[_segmentLength + 1];
-			memcpy(buffer, _buffer, segmentLength * sizeof(SEXCHAR));
+			buffer = new char[_segmentLength + 1];
+			memcpy(buffer, _buffer, segmentLength * sizeof(char));
 			buffer[_segmentLength] = 0;
 		}
 
@@ -63,9 +63,9 @@ namespace
 		}
 
 		virtual const Vec2i& Origin() const		{	return origin; }
-		virtual csexstr SourceStart() const				{	return buffer; }
+		virtual cstr SourceStart() const				{	return buffer; }
 		virtual const int SourceLength() const		{	return segmentLength;	}
-		virtual csexstr Name() const							{	return name.c_str();	}
+		virtual cstr Name() const							{	return name.c_str();	}
 		virtual refcount_t AddRef()							
       {
          return ++refcount;	
@@ -88,13 +88,13 @@ namespace
 	{
 	private:
 		refcount_t refcount;
-		csexstr buffer;
+		cstr buffer;
 		int segmentLength;
 		Vec2i origin;
-		csexstr name;
+		cstr name;
 
 	public:
-		CSourceCodeProxy(csexstr _buffer, int _segmentLength, const Vec2i& _origin, csexstr _name):
+		CSourceCodeProxy(cstr _buffer, int _segmentLength, const Vec2i& _origin, cstr _name):
 			refcount(1),
          buffer(_buffer),
          segmentLength(_segmentLength),
@@ -104,9 +104,9 @@ namespace
 		}
 
 		virtual const Vec2i& Origin() const		{	return origin;	}
-		virtual csexstr SourceStart() const	{	return buffer;	}
+		virtual cstr SourceStart() const	{	return buffer;	}
 		virtual const int SourceLength() const			{	return segmentLength;	}
-		virtual csexstr Name() const					{	return name; }
+		virtual cstr Name() const					{	return name; }
 		virtual refcount_t AddRef()									{	return ++refcount; }
 
 		virtual refcount_t Release()

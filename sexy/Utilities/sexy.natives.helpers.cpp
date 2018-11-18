@@ -21,19 +21,19 @@ namespace Rococo
          auto* sb = reinterpret_cast<CClassSysTypeStringBuilder*>(_instance);
          if (sb->header._typeInfo->structDef != _nce.ss.PublicProgramObject().GetSysType(SEXY_CLASS_ID_STRINGBUILDER))
          {
-            _nce.ss.ThrowFromNativeCode(0, SEXTEXT("Builder was not a Sys.Type.StringBuilder"));
+            _nce.ss.ThrowFromNativeCode(0, ("Builder was not a Sys.Type.StringBuilder"));
          }
          builder = sb;
       }
    
-      void StringPopulator::Populate(csexstr text)
+      void StringPopulator::Populate(cstr text)
       {
          StackStringBuilder sb(builder->buffer, builder->capacity, StringBuilder::BUILD_EXISTING);
          sb << text;
          builder->length = sb.Length();
       }
 
-      const IStructure& GetDefaultProxy(csexstr fqNS, csexstr interfaceName, csexstr proxyName, IPublicScriptSystem& ss)
+      const IStructure& GetDefaultProxy(cstr fqNS, cstr interfaceName, cstr proxyName, IPublicScriptSystem& ss)
       {
          auto* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(fqNS);
          if (ns == nullptr)

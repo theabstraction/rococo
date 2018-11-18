@@ -97,14 +97,14 @@ namespace Rococo { namespace Script
 
 	typedef void (CALLTYPE_C *FN_NATIVE_CALL)(NativeCallEnvironment& e);
 
-	void ThrowBadNativeArg(int index, csexstr source, csexstr message);	
+	void ThrowBadNativeArg(int index, cstr source, cstr message);	
 
 #ifdef _DEBUG
 	inline void ValidateOutputIndex(int index, const Compiler::IFunctionCode& code)
 	{
 		if (index < 0 || index >= code.Owner().NumberOfOutputs())
 		{
-			ThrowBadNativeArg(index, code.Owner().Name(), SEXTEXT("Bad output argument"));
+			ThrowBadNativeArg(index, code.Owner().Name(), ("Bad output argument"));
 		}
 	}
 
@@ -112,7 +112,7 @@ namespace Rococo { namespace Script
 	{
 		if (index < 0 || index >= code.Owner().NumberOfInputs())
 		{
-			ThrowBadNativeArg(index, code.Owner().Name(), SEXTEXT("Bad input argument"));
+			ThrowBadNativeArg(index, code.Owner().Name(), ("Bad input argument"));
 		}
 	}
 #else
@@ -194,7 +194,7 @@ namespace Rococo { namespace Script
    {
       CClassHeader header;
       int32 length;
-      SEXCHAR* buffer;
+      char* buffer;
       int32 capacity;
    };
 
@@ -224,19 +224,19 @@ namespace Rococo { namespace Script
 
 	ROCOCOAPI IPublicScriptSystem : public IFreeable
 	{
-		virtual void AddCommonSource(const Rococo::SEXCHAR* dynamicLinkLibOfNativeCalls) = 0;
-		virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, csexstr archetype, bool checkName = true) = 0; // Example: AddNativeCall(ns, ANON::CpuHz, NULL, "CpuHz -> (Int64 hz)");
-		virtual const Compiler::INamespace& AddNativeNamespace(csexstr name) = 0;
-		virtual void AddNativeLibrary(const Rococo::SEXCHAR *sexyLibraryFile) = 0;
+		virtual void AddCommonSource(const char* dynamicLinkLibOfNativeCalls) = 0;
+		virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, bool checkName = true) = 0; // Example: AddNativeCall(ns, ANON::CpuHz, NULL, "CpuHz -> (Int64 hz)");
+		virtual const Compiler::INamespace& AddNativeNamespace(cstr name) = 0;
+		virtual void AddNativeLibrary(const char *sexyLibraryFile) = 0;
 		virtual Compiler::IModule* AddTree(Sex::ISParserTree& tree) = 0;
 		virtual void Compile() = 0;
-		virtual csexstr GetSymbol(const void* ptr) const = 0;
+		virtual cstr GetSymbol(const void* ptr) const = 0;
 		virtual Compiler::IPublicProgramObject& PublicProgramObject() = 0;
 		virtual Sex::ISParser& SParser() = 0;
 		virtual void ReleaseTree(Sex::ISParserTree* tree) = 0;
-		virtual void ThrowNative(int errorNumber, csexstr source, csexstr message) = 0;
+		virtual void ThrowNative(int errorNumber, cstr source, cstr message) = 0;
 		virtual Sex::ISParserTree* GetSourceCode(const Compiler::IModule& module) const = 0;
-		virtual void ThrowFromNativeCode(int32 errorCode, csexstr staticRefMessage) = 0;
+		virtual void ThrowFromNativeCode(int32 errorCode, cstr staticRefMessage) = 0;
 		virtual int32 GetIntrinsicModuleCount() const = 0;
 		virtual bool ValidateMemory() = 0;
 		virtual void SetGlobalVariablesToDefaults() = 0;
@@ -251,7 +251,7 @@ namespace Rococo { namespace Script
    {
       CClassHeader header;
       int32 length;
-      csexstr pointer;
+      cstr pointer;
       void* srcExpression;
    };
 		
@@ -260,10 +260,10 @@ namespace Rococo { namespace Script
 		virtual Compiler::IProgramObject& ProgramObject() = 0;
 		
 		virtual const CClassExpression* GetExpressionReflection(const Sex::ISExpression& s) = 0;
-		virtual CStringConstant* GetStringReflection(csexstr s) = 0;
+		virtual CStringConstant* GetStringReflection(cstr s) = 0;
 		virtual CScriptSystemClass* GetScriptSystemClass() = 0;
 		virtual CReflectedClass* GetReflectedClass(void* ptr) = 0;
-		virtual CReflectedClass* CreateReflectionClass(csexstr className, void* context) = 0;
+		virtual CReflectedClass* CreateReflectionClass(cstr className, void* context) = 0;
 		virtual bool ConstructExpressionBuilder(CClassExpressionBuilder& builderContainer, Rococo::Sex::ISExpressionBuilder* builder) = 0;
 		virtual const void* GetMethodMap() = 0;
 		virtual void* AlignedMalloc(int32 alignment, int32 capacity) = 0;
@@ -271,7 +271,7 @@ namespace Rococo { namespace Script
 		virtual int NextID() = 0;
 	};	
 
-   void SetDefaultNativeSourcePath(csexstr pathname);
+   void SetDefaultNativeSourcePath(cstr pathname);
 
 	ROCOCOAPI INativeLib
 	{
@@ -284,7 +284,7 @@ namespace Rococo { namespace Script
 
 	ROCOCOAPI MemberEnumeratorCallback
 	{
-		virtual void OnMember(IPublicScriptSystem& ss, csexstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem) = 0;
+		virtual void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem) = 0;
 	};
 
 	// Debugging Helpers API
@@ -297,20 +297,20 @@ namespace Rococo { namespace Script
 	SCRIPTEXPORT_API const uint8* GetReturnAddress(Rococo::VM::CPU& cpu, const uint8* sf);
 	SCRIPTEXPORT_API const uint8* GetPCAddress(Rococo::VM::CPU& cpu, int32 callDepth);
 	SCRIPTEXPORT_API const uint8* GetStackFrame(Rococo::VM::CPU& cpu, int32 callDepth);
-	SCRIPTEXPORT_API bool GetVariableByIndex(csexstr& name, Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure*& pseudoType, const uint8*& SF, IPublicScriptSystem& ss, size_t index, size_t callOffset);
+	SCRIPTEXPORT_API bool GetVariableByIndex(cstr& name, Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure*& pseudoType, const uint8*& SF, IPublicScriptSystem& ss, size_t index, size_t callOffset);
 	SCRIPTEXPORT_API bool GetCallDescription(const uint8*& sf, const uint8*& pc, const Rococo::Compiler::IFunction*& f, size_t& fnOffset, IPublicScriptSystem& ss, size_t callDepth);
 	SCRIPTEXPORT_API size_t GetCurrentVariableCount(IPublicScriptSystem& ss, size_t callDepth);
 	SCRIPTEXPORT_API void ForeachStackLevel(Rococo::Compiler::IPublicProgramObject& obj, Rococo::Debugger::ICallStackEnumerationCallback& cb);
 	SCRIPTEXPORT_API void ForeachVariable(Rococo::Script::IPublicScriptSystem& ss, Rococo::Debugger::IVariableEnumeratorCallback& variableEnum, size_t callOffset);
 	SCRIPTEXPORT_API void FormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, VARTYPE type, const void* pVariableData);
 	SCRIPTEXPORT_API void SkipJIT(Rococo::Compiler::IPublicProgramObject& po);
-	SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const Rococo::Compiler::IStructure& s, csexstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback);
+	SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const Rococo::Compiler::IStructure& s, cstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback);
 	SCRIPTEXPORT_API const Rococo::uint8* GetInstance(const Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure* pseudoType, const uint8* SF);
-	SCRIPTEXPORT_API csexstr GetShortName(const Rococo::Compiler::IStructure& s);
-	SCRIPTEXPORT_API csexstr GetInstanceTypeName(const Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure* pseudoType);
-	SCRIPTEXPORT_API csexstr GetInstanceVarName(csexstr name, const Rococo::Compiler::IStructure* pseudoType);
-	SCRIPTEXPORT_API bool FindVariableByName(Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure*& pseudoType, const Rococo::uint8*& SF, IPublicScriptSystem& ss, csexstr searchName, size_t callOffset);
-	SCRIPTEXPORT_API const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, csexstr fullyQualifiedName);
+	SCRIPTEXPORT_API cstr GetShortName(const Rococo::Compiler::IStructure& s);
+	SCRIPTEXPORT_API cstr GetInstanceTypeName(const Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure* pseudoType);
+	SCRIPTEXPORT_API cstr GetInstanceVarName(cstr name, const Rococo::Compiler::IStructure* pseudoType);
+	SCRIPTEXPORT_API bool FindVariableByName(Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure*& pseudoType, const Rococo::uint8*& SF, IPublicScriptSystem& ss, cstr searchName, size_t callOffset);
+	SCRIPTEXPORT_API const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, cstr fullyQualifiedName);
 }}
 
 namespace Rococo {
@@ -321,9 +321,9 @@ namespace Rococo {
          Script::CClassSysTypeStringBuilder* builder;
       public:
          StringPopulator(Script::NativeCallEnvironment& _nce, Compiler::VirtualTable** vTableBuilder);
-         void Populate(csexstr text) override;
+         void Populate(cstr text) override;
       };
-      const Compiler::IStructure& GetDefaultProxy(csexstr fqNS, csexstr interfaceName, csexstr proxyName, Script::IPublicScriptSystem& ss);
+      const Compiler::IStructure& GetDefaultProxy(cstr fqNS, cstr interfaceName, cstr proxyName, Script::IPublicScriptSystem& ss);
    }
 }
 

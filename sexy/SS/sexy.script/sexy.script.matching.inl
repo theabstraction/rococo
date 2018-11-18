@@ -39,16 +39,16 @@ namespace Rococo
       {
          if (!IsAtomic(typeExpr))
             return NULL;
-         csexstr type = typeExpr.String()->Buffer;
+         cstr type = typeExpr.String()->Buffer;
 
          return module.FindStructure(type);
       }
 
-      IStructure* MatchMemberViaStructure(cr_sex originExpression, csexstr root, IStructureBuilder& rootStructure)
+      IStructure* MatchMemberViaStructure(cr_sex originExpression, cstr root, IStructureBuilder& rootStructure)
       {
          NamespaceSplitter splitter(root);
 
-         csexstr head, body;
+         cstr head, body;
          if (!splitter.SplitHead(OUT head, OUT body))
          {
             return FindMember(rootStructure, root);
@@ -60,11 +60,11 @@ namespace Rococo
          return MatchMemberViaStructure(originExpression, body, *s);
       }
 
-      IStructure* MatchMemberViaStructure(cr_sex originExpression, csexstr root, INamespaceBuilder& ns)
+      IStructure* MatchMemberViaStructure(cr_sex originExpression, cstr root, INamespaceBuilder& ns)
       {
          NamespaceSplitter splitter(root);
 
-         csexstr head, body;
+         cstr head, body;
          if (!splitter.SplitHead(OUT head, OUT body))
          {
             return ns.FindStructure(root);
@@ -76,11 +76,11 @@ namespace Rococo
          return MatchMemberViaStructure(originExpression, root, *s);
       }
 
-      IStructure* MatchStructureViaAlias(cr_sex originExpression, csexstr root, INamespaceBuilder& ns)
+      IStructure* MatchStructureViaAlias(cr_sex originExpression, cstr root, INamespaceBuilder& ns)
       {
          NamespaceSplitter splitter(root);
 
-         csexstr head, body;
+         cstr head, body;
          if (!splitter.SplitHead(OUT head, OUT body))
          {
             return ns.FindStructure(root);
@@ -106,28 +106,28 @@ namespace Rococo
          }
       }
 
-      IFunctionBuilder& MustMatchFunction(IModuleBuilder& module, cr_sex s, csexstr name)
+      IFunctionBuilder& MustMatchFunction(IModuleBuilder& module, cr_sex s, cstr name)
       {
          if (!IsCapital(name[0]))
          {
-            Throw(s, SEXTEXT("Functions begin with a capital letter"));
+            Throw(s, ("Functions begin with a capital letter"));
          }
 
          NamespaceSplitter splitter(name);
 
-         csexstr body, tail;
+         cstr body, tail;
          if (splitter.SplitTail(OUT body, OUT tail))
          {
             INamespaceBuilder* ns = Compiler::MatchNamespace(module, body);
             if (ns == NULL)
             {
-               Throw(s, SEXTEXT("Could not find namespace prefixing function"));
+               Throw(s, ("Could not find namespace prefixing function"));
             }
 
             IFunctionBuilder* f = ns->FindFunction(tail);
             if (f == NULL)
             {
-               ThrowTokenNotFound(s, name, ns->FullName()->Buffer, SEXTEXT("namespace"));
+               ThrowTokenNotFound(s, name, ns->FullName()->Buffer, ("namespace"));
             }
 
             return *f;
@@ -147,7 +147,7 @@ namespace Rococo
                if (f != NULL)
                {
                   if (finalFunction != NULL)
-                     ThrowNamespaceConflict(s, prefix, *finalNS, SEXTEXT("function"), name);
+                     ThrowNamespaceConflict(s, prefix, *finalNS, ("function"), name);
                   else
                   {
                      finalFunction = f;
@@ -158,7 +158,7 @@ namespace Rococo
 
             if (f == NULL)
             {
-               ThrowTokenNotFound(s, name, module.Name(), SEXTEXT("function"));
+               ThrowTokenNotFound(s, name, module.Name(), ("function"));
             }
 
             return *finalFunction;
@@ -170,25 +170,25 @@ namespace Rococo
          if (!IsAtomic(typeExpr))
             return NULL;
 
-         csexstr type = typeExpr.String()->Buffer;
+         cstr type = typeExpr.String()->Buffer;
 
          if (!IsCapital(type[0]))
          {
-            if (AreEqual(type, SEXTEXT("array")))
+            if (AreEqual(type, ("array")))
             {
                // Special intrinsic
-               return module.Object().GetModule(0).FindStructure(SEXTEXT("_Array"));
+               return module.Object().GetModule(0).FindStructure(("_Array"));
             }
             return NULL;
          }
 
          NamespaceSplitter splitter(type);
 
-         csexstr body, tail;
+         cstr body, tail;
          if (splitter.SplitTail(OUT body, OUT tail))
          {
             INamespaceBuilder* ns = Compiler::MatchNamespace(module, body);
-            if (ns == NULL) ThrowTokenNotFound(typeExpr, body, SEXTEXT("program"), SEXTEXT("namespace"));
+            if (ns == NULL) ThrowTokenNotFound(typeExpr, body, ("program"), ("namespace"));
 
             IStructureBuilder* s = ns->FindStructure(tail);
             if (s != NULL)
@@ -234,7 +234,7 @@ namespace Rococo
          if (!IsAtomic(nameExpr))
             return NULL;
 
-         csexstr name = nameExpr.String()->Buffer;
+         cstr name = nameExpr.String()->Buffer;
 
          if (!IsCapital(name[0]))
          {
@@ -243,13 +243,13 @@ namespace Rococo
 
          NamespaceSplitter splitter(name);
 
-         csexstr body, tail;
+         cstr body, tail;
          if (splitter.SplitTail(OUT body, OUT tail))
          {
             INamespaceBuilder* ns = Compiler::MatchNamespace(module, body);
             if (ns == NULL)
             {
-               Throw(nameExpr, SEXTEXT("Could not find namespace prefixing function"));
+               Throw(nameExpr, ("Could not find namespace prefixing function"));
             }
 
             return ns->FindFunction(tail);
@@ -269,7 +269,7 @@ namespace Rococo
                if (f != NULL)
                {
                   if (finalFunction != NULL)
-                     ThrowNamespaceConflict(nameExpr, prefix, *finalNS, SEXTEXT("function"), name);
+                     ThrowNamespaceConflict(nameExpr, prefix, *finalNS, ("function"), name);
                   else
                   {
                      finalFunction = f;
@@ -288,18 +288,18 @@ namespace Rococo
       {
          AssertAtomic(baseExpr);
 
-         csexstr fqn = baseExpr.String()->Buffer;
+         cstr fqn = baseExpr.String()->Buffer;
 
          NamespaceSplitter splitter(fqn);
 
-         csexstr nsName, shortName;
+         cstr nsName, shortName;
          if (!splitter.SplitTail(OUT nsName, OUT shortName))
          {
-            Throw(baseExpr, SEXTEXT("Expecting fully qualified namespace name"));
+            Throw(baseExpr, ("Expecting fully qualified namespace name"));
          }
 
          INamespaceBuilder* ns = GetProgramObject(script).GetRootNamespace().FindSubspace(nsName);
-         if (ns == NULL) ThrowTokenNotFound(baseExpr, nsName, SEXTEXT("program"), SEXTEXT("namespace"));
+         if (ns == NULL) ThrowTokenNotFound(baseExpr, nsName, ("program"), ("namespace"));
 
          return ns->FindInterface(shortName);
       }
@@ -310,14 +310,14 @@ namespace Rococo
 
          INamespaceBuilder* NS = NULL;
 
-         csexstr ns, shortName;
+         cstr ns, shortName;
          if (splitter.SplitTail(OUT ns, OUT shortName))
          {
             NS = module.Object().GetRootNamespace().FindSubspace(ns);
-            if (NS == NULL) ThrowTokenNotFound(interfExpr, ns, SEXTEXT("program"), SEXTEXT("namespace"));
+            if (NS == NULL) ThrowTokenNotFound(interfExpr, ns, ("program"), ("namespace"));
 
             IInterfaceBuilder* interf = NS->FindInterface(shortName);
-            if (interf == NULL)  ThrowTokenNotFound(interfExpr, shortName, ns, SEXTEXT("interface"));
+            if (interf == NULL)  ThrowTokenNotFound(interfExpr, shortName, ns, ("interface"));
 
             return *interf;
          }
@@ -331,12 +331,12 @@ namespace Rococo
                interf = prefix.FindInterface(shortName);
                if (interf != NULL)
                {
-                  if (NS != NULL) ThrowNamespaceConflict(interfExpr, *NS, prefix, SEXTEXT("interface"), shortName);
+                  if (NS != NULL) ThrowNamespaceConflict(interfExpr, *NS, prefix, ("interface"), shortName);
                   NS = &prefix;
                }
             }
 
-            if (NS == NULL) ThrowTokenNotFound(interfExpr, shortName, module.Name(), SEXTEXT("interface"));
+            if (NS == NULL) ThrowTokenNotFound(interfExpr, shortName, module.Name(), ("interface"));
             return *interf;
          }
       }
@@ -360,7 +360,7 @@ namespace Rococo
          if (!IsAtomic(typeExpr))
             return NULL;
 
-         csexstr type = typeExpr.String()->Buffer;
+         cstr type = typeExpr.String()->Buffer;
 
          if (!IsCapital(type[0]))
          {
@@ -369,11 +369,11 @@ namespace Rococo
 
          NamespaceSplitter splitter(type);
 
-         csexstr body, tail;
+         cstr body, tail;
          if (splitter.SplitTail(OUT body, OUT tail))
          {
             INamespaceBuilder* ns = Compiler::MatchNamespace(module, body);
-            if (ns == NULL) ThrowTokenNotFound(typeExpr, body, SEXTEXT("program"), SEXTEXT("namespace"));
+            if (ns == NULL) ThrowTokenNotFound(typeExpr, body, ("program"), ("namespace"));
 
             IInterfaceBuilder* interf = ns->FindInterface(tail);
             if (interf != NULL)
@@ -385,7 +385,7 @@ namespace Rococo
          }
          else
          {
-            INamespaceBuilder* sysType = module.Object().GetRootNamespace().FindSubspace(SEXTEXT("Sys.Type"));
+            INamespaceBuilder* sysType = module.Object().GetRootNamespace().FindSubspace(("Sys.Type"));
             IInterfaceBuilder* interf = sysType->FindInterface(type);
             INamespaceBuilder* iterfNS = sysType;
 
@@ -397,7 +397,7 @@ namespace Rococo
                {
                   if (interf != NULL && interf != ithInterf)
                   {
-                     Rococo::Sex::ThrowNamespaceConflict(typeExpr, *iterfNS, prefix, SEXTEXT("interface"), type);
+                     Rococo::Sex::ThrowNamespaceConflict(typeExpr, *iterfNS, prefix, ("interface"), type);
                   }
 
                   interf = ithInterf;
@@ -414,7 +414,7 @@ namespace Rococo
          if (!IsAtomic(typeExpr))
             return NULL;
 
-         csexstr type = typeExpr.String()->Buffer;
+         cstr type = typeExpr.String()->Buffer;
 
          if (!IsCapital(type[0]))
          {
@@ -423,13 +423,13 @@ namespace Rococo
 
          NamespaceSplitter splitter(type);
 
-         csexstr body, tail;
+         cstr body, tail;
          if (splitter.SplitTail(OUT body, OUT tail))
          {
             INamespaceBuilder* ns = Compiler::MatchNamespace(module, body);
             if (ns == NULL)
             {
-               ThrowTokenNotFound(typeExpr, body, SEXTEXT("program"), SEXTEXT("namespace"));
+               ThrowTokenNotFound(typeExpr, body, ("program"), ("namespace"));
             }
 
             IArchetype* a = ns->FindArchetype(tail);
@@ -454,10 +454,10 @@ namespace Rococo
          return NULL;
       }
 
-      IStructure* GetStructByQualifiedPath(ICodeBuilder& builder, csexstr structName)
+      IStructure* GetStructByQualifiedPath(ICodeBuilder& builder, cstr structName)
       {
          NamespaceSplitter splitter(structName);
-         csexstr nspath, publicName;
+         cstr nspath, publicName;
 
          if (splitter.SplitTail(OUT nspath, OUT publicName))
          {
@@ -472,13 +472,13 @@ namespace Rococo
          return NULL;
       }
 
-      IInterface& GetRequiredInterface(cr_sex s, ICodeBuilder& builder, csexstr fullyQualifiedName)
+      IInterface& GetRequiredInterface(cr_sex s, ICodeBuilder& builder, cstr fullyQualifiedName)
       {
          IInterfaceBuilder* i = GetInterface(builder.Module().Object(), fullyQualifiedName);
          if (i == NULL)
          {
             sexstringstream<1024> streamer;
-            streamer.sb << SEXTEXT("Cannot find ") << fullyQualifiedName;
+            streamer.sb << ("Cannot find ") << fullyQualifiedName;
             Throw(s, streamer);
          }
 
@@ -487,22 +487,22 @@ namespace Rococo
 
       void GetThisRefDef(OUT MemberDef& def, ICodeBuilder& builder, cr_sex s)
       {
-         if (!builder.TryGetVariableByName(OUT def, SEXTEXT("this")))
+         if (!builder.TryGetVariableByName(OUT def, ("this")))
          {
-            Throw(s, SEXTEXT("Expecting 'this' to be defined in the context"));
+            Throw(s, ("Expecting 'this' to be defined in the context"));
          }
 
          if (def.Usage == ARGUMENTUSAGE_BYVALUE)
          {
-            Throw(s, SEXTEXT("Expecting 'this' to be by reference"));
+            Throw(s, ("Expecting 'this' to be by reference"));
          }
       }
 
       const IStructure& GetClass(cr_sex classExpr, CScript& script)
       {
          const IStructure* classType = MatchStructure(classExpr, GetModule(script));
-         if (classType == NULL)	Throw(classExpr, SEXTEXT("Expecting a type"));
-         if (!classType->Prototype().IsClass)	Throw(classExpr, SEXTEXT("Expecting a class"));
+         if (classType == NULL)	Throw(classExpr, ("Expecting a type"));
+         if (!classType->Prototype().IsClass)	Throw(classExpr, ("Expecting a class"));
          return *classType;
       }
 
@@ -510,9 +510,9 @@ namespace Rococo
       {
          GetThisRefDef(OUT def, builder, s);
          const IStructure& interfaceType = *def.ResolvedType;
-         if (!interfaceType.Prototype().IsClass)	Throw(s, SEXTEXT("The variable is not of interface type"));
-         if (!AreEqual(interfaceType.Name(), SEXTEXT("_Null"), 4)) Throw(s, SEXTEXT("The variable is not of interface type"));
-         if (interfaceType.InterfaceCount() != 1) Throw(s, SEXTEXT("Internal algorithmic error.Expecting  one and only one interface with the null class"));
+         if (!interfaceType.Prototype().IsClass)	Throw(s, ("The variable is not of interface type"));
+         if (!AreEqual(interfaceType.Name(), ("_Null"), 4)) Throw(s, ("The variable is not of interface type"));
+         if (interfaceType.InterfaceCount() != 1) Throw(s, ("Internal algorithmic error.Expecting  one and only one interface with the null class"));
          return interfaceType;
       }
 
@@ -534,12 +534,12 @@ namespace Rococo
          return sizeof(size_t) * (index + 1) + sizeof(int32);
       }
 
-      void GetVariableByName(ICodeBuilder& builder, OUT MemberDef& def, csexstr name, cr_sex s)
+      void GetVariableByName(ICodeBuilder& builder, OUT MemberDef& def, cstr name, cr_sex s)
       {
          if (!builder.TryGetVariableByName(def, name))
          {
             sexstringstream<1024> streamer;
-            streamer.sb << SEXTEXT("Error, cannot find entry ") << name;
+            streamer.sb << ("Error, cannot find entry ") << name;
             Throw(s, streamer);
          }
       }

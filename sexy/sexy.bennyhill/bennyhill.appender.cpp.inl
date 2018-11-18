@@ -37,13 +37,13 @@ namespace Rococo
 
 	void DeclareCppEnum(FileAppender& appender, const EnumContext& ec, cr_sex senumDef, const ParseContext& pc);
 
-	int AppendNamespace(FileAppender& appender, csexstr fqStructName)
+	int AppendNamespace(FileAppender& appender, cstr fqStructName)
 	{
 		NamespaceSplitter splitter(fqStructName);
-		csexstr nsRoot, nsSubspace;
+		cstr nsRoot, nsSubspace;
 		if (splitter.SplitHead(nsRoot, nsSubspace))
 		{
-			appender.Append(SEXTEXT("namespace %s { "), nsRoot);
+			appender.Append(("namespace %s { "), nsRoot);
 			return 1 + AppendNamespace(appender, nsSubspace);
 		}
 
@@ -59,22 +59,22 @@ namespace Rococo
 		}
 	}
 
-	void AppendStructShortName(FileAppender& appender, csexstr fqStructName)
+	void AppendStructShortName(FileAppender& appender, cstr fqStructName)
 	{
 		NamespaceSplitter splitter(fqStructName);
-		csexstr ns, shortName;
-		appender.Append(SEXTEXT("%s"), splitter.SplitTail(ns, shortName) ? shortName : fqStructName);
+		cstr ns, shortName;
+		appender.Append(("%s"), splitter.SplitTail(ns, shortName) ? shortName : fqStructName);
 	}
 
-	void AppendMethodDeclaration(FileAppender& appender, cr_sex method, csexstr root, const ParseContext& pc)
+	void AppendMethodDeclaration(FileAppender& appender, cr_sex method, cstr root, const ParseContext& pc)
 	{
 		cr_sex smethodName = method.GetElement(0);
-		csexstr methodName = smethodName.String()->Buffer;
+		cstr methodName = smethodName.String()->Buffer;
 
 		int outputIndex = GetOutputPosition(method);
 		if (outputIndex >= method.NumberOfElements())
 		{
-			appender.Append(SEXTEXT("\tvirtual void %s("), methodName);
+			appender.Append(("\tvirtual void %s("), methodName);
 		}
 		else
 		{
@@ -86,27 +86,27 @@ namespace Rococo
 			cr_sex stype = s.GetElement(typeIndex);
 			cr_sex sname = s.GetElement(valueIndex);
 
-			csexstr outputType = StringFrom(stype);
-			csexstr outputName = StringFrom(sname);
+			cstr outputType = StringFrom(stype);
+			cstr outputName = StringFrom(sname);
 
-			appender.Append(SEXTEXT("\tvirtual "));
+			appender.Append(("\tvirtual "));
 
 			auto i = pc.primitives.find(outputType);
 			if (i != pc.primitives.end())
 			{
 				AppendCppType(appender, s, outputType, pc);
-				appender.Append(SEXTEXT("/* %s */ %s("), outputName, methodName);
+				appender.Append(("/* %s */ %s("), outputName, methodName);
 			}
 			else
 			{
 				auto j = pc.interfaces.find(outputType);
 				if (j == pc.interfaces.end())
 				{
-					Throw(stype, SEXTEXT("Expecting primitive return type or interface"));
+					Throw(stype, ("Expecting primitive return type or interface"));
 				}
 
 				AppendCppType(appender, s, outputType, pc);
-				appender.Append(SEXTEXT("* /* %s */ %s("), outputName, methodName);
+				appender.Append(("* /* %s */ %s("), outputName, methodName);
 			}
 		}
 
@@ -120,8 +120,8 @@ namespace Rococo
 			cr_sex s = method.GetElement(i);
 			if (IsAtomic(s))
 			{
-				csexstr arg = s.String()->Buffer;
-				if (AreEqual(arg, SEXTEXT("->")))
+				cstr arg = s.String()->Buffer;
+				if (AreEqual(arg, ("->")))
 				{
 					i++;
 					break;
@@ -136,30 +136,30 @@ namespace Rococo
 				typeIndex++;
 				valueIndex++;
 
-				if (!IsAtomic(s[0]) || !AreEqual(s[0].String(), SEXTEXT("const")))
+				if (!IsAtomic(s[0]) || !AreEqual(s[0].String(), ("const")))
 				{
-					Throw(s[0], SEXTEXT("Expecting 'const' as first argument in 3 element input expression"));
+					Throw(s[0], ("Expecting 'const' as first argument in 3 element input expression"));
 				}
 			}
 
 			cr_sex stype = s.GetElement(typeIndex);
-			csexstr type = StringFrom(s, typeIndex);
-			if (!AreEqual(type, SEXTEXT("#")))
+			cstr type = StringFrom(s, typeIndex);
+			if (!AreEqual(type, ("#")))
 			{
 				cr_sex sname = s.GetElement(valueIndex);
 
 				ValidateSexyType(stype);
 				ValidateSexyVariable(sname);
 
-				csexstr inputtype = stype.String()->Buffer;
-				csexstr name = sname.String()->Buffer;
+				cstr inputtype = stype.String()->Buffer;
+				cstr name = sname.String()->Buffer;
 
-				if (inputCount > 1) appender.Append(SEXTEXT(", "));
+				if (inputCount > 1) appender.Append((", "));
 				inputCount++;
 
-				if (s.NumberOfElements() == 3 || AreEqual(inputtype, SEXTEXT("IString")))
+				if (s.NumberOfElements() == 3 || AreEqual(inputtype, ("IString")))
 				{
-					appender.Append(SEXTEXT("const "));
+					appender.Append(("const "));
 				}
 
 				AppendCppType(appender, s, inputtype, pc);
@@ -169,7 +169,7 @@ namespace Rococo
 					appender.Append('&');
 				}
 
-				appender.Append(SEXTEXT(" %s"), name);
+				appender.Append((" %s"), name);
 			}
 		}
 
@@ -180,36 +180,36 @@ namespace Rococo
 		for (; i < method.NumberOfElements(); ++i)
 		{
 			cr_sex s = method.GetElement(i);
-			csexstr outputType = StringFrom(s, 0);
-			csexstr name = StringFrom(s, 1);
+			cstr outputType = StringFrom(s, 0);
+			cstr name = StringFrom(s, 1);
 
 			if (i > firstOutput)
 			{
-				if (i > 1) appender.Append(SEXTEXT(", "));
+				if (i > 1) appender.Append((", "));
 			}
-			else appender.Append(SEXTEXT(", /* -> */ "));
+			else appender.Append((", /* -> */ "));
 
 			AppendCppType(appender, s, outputType, pc);
 
-			appender.Append(SEXTEXT("& %s"), name);
+			appender.Append(("& %s"), name);
 		}
 
-		appender.Append(SEXTEXT(") = 0;"));
+		appender.Append((") = 0;"));
 	}
 
-	void WriteInterfaceDeclaration(FileAppender& writer, csexstr qualifiedName, int depth)
+	void WriteInterfaceDeclaration(FileAppender& writer, cstr qualifiedName, int depth)
 	{
 		NamespaceSplitter splitter(qualifiedName);
-		csexstr head, body;
+		cstr head, body;
 		if (splitter.SplitHead(head, body))
 		{
-			writer.Append(SEXTEXT("namespace %s { "), head);
+			writer.Append(("namespace %s { "), head);
 			WriteInterfaceDeclaration(writer, body, depth + 1);
-			writer.Append(SEXTEXT("}"));
+			writer.Append(("}"));
 		}
 		else
 		{
-			writer.Append(SEXTEXT("\n\tstruct %s;\n"), qualifiedName);
+			writer.Append(("\n\tstruct %s;\n"), qualifiedName);
 		}
 	}
 
@@ -258,7 +258,7 @@ namespace Rococo
 			for (auto& i : pc.interfaces)
 			{
 				WriteInterfaceDeclaration(cppFileAppender, i.second->ic.asCppInterface.SexyName(), 0);
-				cppFileAppender.Append(SEXTEXT("\n\n"));
+				cppFileAppender.Append(("\n\n"));
 			}
 		}
 	}
@@ -268,38 +268,38 @@ namespace Rococo
 		int nsDepth = AppendNamespace(appender, ec.asCppEnum.SexyName());
 		if (nsDepth > 0)
 		{
-			appender.Append(SEXTEXT("\t"));
+			appender.Append(("\t"));
 		}
 
-		appender.Append(SEXTEXT("enum "));
+		appender.Append(("enum "));
 		AppendStructShortName(appender, ec.asCppEnum.SexyName());
-		appender.Append(SEXTEXT(": "));
+		appender.Append((": "));
 		AppendStructShortName(appender, ec.underlyingType.SexyName());
-		appender.Append(nsDepth > 0 ? SEXTEXT("\n\t{\n") : SEXTEXT("\n{\n"));
+		appender.Append(nsDepth > 0 ? ("\n\t{\n") : ("\n{\n"));
 
 		for (auto& i : ec.values)
 		{
 			auto& name = i.first;
-			appender.Append(nsDepth > 0 ? SEXTEXT("\t\t") : SEXTEXT("\t"));
+			appender.Append(nsDepth > 0 ? ("\t\t") : ("\t"));
 			AppendStructShortName(appender, ec.asCppEnum.SexyName());
-			appender.Append(SEXTEXT("_%s = %I64d, \t// 0x%I64x\n"), name.c_str(), i.second, i.second);
+			appender.Append(("_%s = %I64d, \t// 0x%I64x\n"), name.c_str(), i.second, i.second);
 		}
 
-		appender.Append(nsDepth > 0 ? SEXTEXT("\t};") : SEXTEXT("};"));
+		appender.Append(nsDepth > 0 ? ("\t};") : ("};"));
 
 		appender.Append('\n');
 
-		appender.Append(SEXTEXT("\tbool TryParse(const Rococo::fstring& s, "));
+		appender.Append(("\tbool TryParse(const Rococo::fstring& s, "));
 		AppendStructShortName(appender, ec.asCppEnum.SexyName());
-		appender.Append(SEXTEXT("& value);\n"));
+		appender.Append(("& value);\n"));
 
-		appender.Append(SEXTEXT("\tbool TryShortParse(const Rococo::fstring& s, "));
+		appender.Append(("\tbool TryShortParse(const Rococo::fstring& s, "));
 		AppendStructShortName(appender, ec.asCppEnum.SexyName());
-		appender.Append(SEXTEXT("& value);\n"));
+		appender.Append(("& value);\n"));
 
-		appender.Append(SEXTEXT("\tfstring ToShortString("));
+		appender.Append(("\tfstring ToShortString("));
 		AppendStructShortName(appender, ec.asCppEnum.SexyName());
-		appender.Append(SEXTEXT(" value); "));
+		appender.Append((" value); "));
 
 		if (nsDepth > 0)
 		{
@@ -307,7 +307,7 @@ namespace Rococo
 			CloseNamespace(appender, nsDepth);
 		}
 
-		appender.Append(SEXTEXT("\n\n"));
+		appender.Append(("\n\n"));
 	}
 
 	void DeclareCppInterface(FileAppender& appender, const InterfaceContext& ic, cr_sex interfaceDef, const ISExpression* methods, const ParseContext& pc)
@@ -315,17 +315,17 @@ namespace Rococo
 		int nsDepth = AppendNamespace(appender, ic.asCppInterface.SexyName());
 		if (nsDepth > 0)
 		{
-			appender.Append(SEXTEXT("\t"));
+			appender.Append(("\t"));
 		}
 
-		appender.Append(SEXTEXT("ROCOCOAPI "));
+		appender.Append(("ROCOCOAPI "));
 		AppendStructShortName(appender, ic.asCppInterface.SexyName());
 		appender.Append(ic.inheritanceString);
-		appender.Append(nsDepth > 0 ? SEXTEXT("\n\t{\n") : SEXTEXT("\n{\n"));
+		appender.Append(nsDepth > 0 ? ("\n\t{\n") : ("\n{\n"));
 
 		NamespaceSplitter splitter(ic.asCppInterface.SexyName());
-		csexstr root, subspace;
-		if (!splitter.SplitHead(root, subspace)) root = SEXTEXT("");
+		cstr root, subspace;
+		if (!splitter.SplitHead(root, subspace)) root = ("");
 
 		if (methods != NULL)
 		{
@@ -338,7 +338,7 @@ namespace Rococo
 			}
 		}
 
-		appender.Append(nsDepth > 0 ? SEXTEXT("\t};") : SEXTEXT("};"));
+		appender.Append(nsDepth > 0 ? ("\t};") : ("};"));
 
 		if (nsDepth > 0)
 		{
@@ -347,34 +347,34 @@ namespace Rococo
 		}
 
 		NamespaceSplitter nsSplitter(ic.asCppInterface.SexyName());
-		csexstr ns, shortName;
+		cstr ns, shortName;
 		if (!splitter.SplitTail(ns, shortName))
 		{
 			sexstringstream<256> s;
-			s.sb << SEXTEXT("Cpp interface ") << ic.asCppInterface.SexyName() << SEXTEXT("needs a namespace prefix.");
+			s.sb << ("Cpp interface ") << ic.asCppInterface.SexyName() << ("needs a namespace prefix.");
 			Throw(interfaceDef, "%s", (cstr)s);
 		}
 
-		SEXCHAR cppCompressedNSName[256];
-		SEXCHAR cppNSName[256];
+		char cppCompressedNSName[256];
+		char cppNSName[256];
 		GetFQCppStructName(cppCompressedNSName, cppNSName, 256, ns);
 
-		appender.Append(SEXTEXT("\n\n"));
+		appender.Append(("\n\n"));
 		int depth = AppendNamespace(appender, ic.asCppInterface.SexyName());
-		appender.Append(SEXTEXT("\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, %s* nceContext);\n"), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
+		appender.Append(("\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, %s* nceContext);\n"), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
 		while (depth > 0)
 		{
 			depth--;
-			appender.Append(SEXTEXT("}"));
+			appender.Append(("}"));
 		}
 
-		appender.Append(SEXTEXT("\n\n"));
+		appender.Append(("\n\n"));
 	}
 
 	typedef std::unordered_map<stdstring, int> TAttributeMap;
 	bool HasAttributeThrows(const TAttributeMap& map)
 	{
-		return map.find(SEXTEXT("throws")) != map.end();
+		return map.find(("throws")) != map.end();
 	}
 
 	void AddNativeInputs(TAttributeMap& attributes, FileAppender& appender, cr_sex methodArgs, int inputStart, int inputEnd, const ParseContext& pc)
@@ -385,7 +385,7 @@ namespace Rococo
 
 			if (s.NumberOfElements() != 2 && s.NumberOfElements() != 3)
 			{
-				Throw(s, SEXTEXT("Expected input argument pair (<type> <value>) or (const <type> value)"));
+				Throw(s, ("Expected input argument pair (<type> <value>) or (const <type> value)"));
 			}
 
 			int typeIndex = 0;
@@ -396,39 +396,39 @@ namespace Rococo
 				typeIndex++;
 				valueIndex++;
 
-				if (!IsAtomic(s[0]) || !AreEqual(s[0].String(), SEXTEXT("const")))
+				if (!IsAtomic(s[0]) || !AreEqual(s[0].String(), ("const")))
 				{
-					Throw(s[0], SEXTEXT("Expecting 'const' as first argument in 3 element input expression"));
+					Throw(s[0], ("Expecting 'const' as first argument in 3 element input expression"));
 				}
 			}
 
 			cr_sex stype = s.GetElement(typeIndex);
 			cr_sex svalue = s.GetElement(valueIndex);
 
-			csexstr sxhtype = StringFrom(stype);
-			csexstr fieldName = StringFrom(svalue);
+			cstr sxhtype = StringFrom(stype);
+			cstr fieldName = StringFrom(svalue);
 
-			if (AreEqual(sxhtype, SEXTEXT("#")))
+			if (AreEqual(sxhtype, ("#")))
 			{
 				attributes.insert(std::make_pair(fieldName, 1));
 			}
 			else
 			{
 				bool isString = false;
-				if (AreEqual(sxhtype, SEXTEXT("IString")) || AreEqual(sxhtype, SEXTEXT("Sys.Text.IString")))
+				if (AreEqual(sxhtype, ("IString")) || AreEqual(sxhtype, ("Sys.Text.IString")))
 				{
 					isString = true;
 				}
 
 				bool isStringBuilder = false;
-				if (AreEqual(sxhtype, SEXTEXT("IStringBuilder")) || AreEqual(sxhtype, SEXTEXT("Sys.Text.IStringBuilder")))
+				if (AreEqual(sxhtype, ("IStringBuilder")) || AreEqual(sxhtype, ("Sys.Text.IStringBuilder")))
 				{
 					isStringBuilder = true;
 				}
 
 				if (!isString && !isStringBuilder)
 				{
-					appender.Append(SEXTEXT("\t\t"));
+					appender.Append(("\t\t"));
 					AppendCppType(appender, stype, sxhtype, pc);
 				}
 
@@ -437,54 +437,54 @@ namespace Rococo
 					appender.Append('*');
 				}
 
-				if (!isString && !isStringBuilder) appender.Append(SEXTEXT(" %s;\n"), fieldName);
+				if (!isString && !isStringBuilder) appender.Append((" %s;\n"), fieldName);
 
 				if (isString)
 				{
-					appender.Append(SEXTEXT("\t\t_offset += sizeof(IString*);\n"));
+					appender.Append(("\t\t_offset += sizeof(IString*);\n"));
 				}
 				else if (isStringBuilder)
 				{
-					appender.Append(SEXTEXT("\t\t_offset += sizeof(VirtualTable**);\n"));
+					appender.Append(("\t\t_offset += sizeof(VirtualTable**);\n"));
 				}
 				else
 				{
-					appender.Append(SEXTEXT("\t\t_offset += sizeof(%s);\n"), fieldName);
+					appender.Append(("\t\t_offset += sizeof(%s);\n"), fieldName);
 				}
 
-				if (isString) appender.Append(SEXTEXT("\t\tIString* _%s;\n"), fieldName);
-				if (isStringBuilder) appender.Append(SEXTEXT("\t\tVirtualTable** %s;\n"), fieldName);
+				if (isString) appender.Append(("\t\tIString* _%s;\n"), fieldName);
+				if (isStringBuilder) appender.Append(("\t\tVirtualTable** %s;\n"), fieldName);
 
-				appender.Append(isString ? SEXTEXT("\t\tReadInput(_%s, _sf, -_offset);\n") : SEXTEXT("\t\tReadInput(%s, _sf, -_offset);\n"), fieldName);
+				appender.Append(isString ? ("\t\tReadInput(_%s, _sf, -_offset);\n") : ("\t\tReadInput(%s, _sf, -_offset);\n"), fieldName);
 
 				if (isString)
 				{
-					appender.Append(SEXTEXT("\t\t"));
+					appender.Append(("\t\t"));
 					AppendCppType(appender, stype, sxhtype, pc);
-					appender.Append(SEXTEXT(" %s {"), fieldName);
-					appender.Append(SEXTEXT(" _%s->buffer, _%s->length };\n\n"), fieldName, fieldName);
+					appender.Append((" %s {"), fieldName);
+					appender.Append((" _%s->buffer, _%s->length };\n\n"), fieldName, fieldName);
 				}
 				else if (isStringBuilder)
 				{
-					appender.Append(SEXTEXT("\t\tRococo::Helpers::StringPopulator _%sPopulator(_nce, %s);"), fieldName, fieldName);
+					appender.Append(("\t\tRococo::Helpers::StringPopulator _%sPopulator(_nce, %s);"), fieldName, fieldName);
 				}
 
-				appender.Append(SEXTEXT("\n"));
+				appender.Append(("\n"));
 			}
 		}
 	}
 
 	void AddNativeImplementation(FileAppender& appender, const InterfaceContext& ic, cr_sex method, const ParseContext& pc)
 	{
-		csexstr methodName = StringFrom(method.GetElement(0));
+		cstr methodName = StringFrom(method.GetElement(0));
 
-		appender.Append(SEXTEXT("\tvoid Native%s%s"), ic.asCppInterface.CompressedName(), methodName);
+		appender.Append(("\tvoid Native%s%s"), ic.asCppInterface.CompressedName(), methodName);
 
-		appender.Append(SEXTEXT("(NativeCallEnvironment& _nce)\n"));
-		appender.Append(SEXTEXT("\t{\n"));
+		appender.Append(("(NativeCallEnvironment& _nce)\n"));
+		appender.Append(("\t{\n"));
 
-		appender.Append(SEXTEXT("\t\tRococo::uint8* _sf = _nce.cpu.SF();\n"));
-		appender.Append(SEXTEXT("\t\tptrdiff_t _offset = 2 * sizeof(size_t);\n"));
+		appender.Append(("\t\tRococo::uint8* _sf = _nce.cpu.SF();\n"));
+		appender.Append(("\t\tptrdiff_t _offset = 2 * sizeof(size_t);\n"));
 
 		bool hasInitializedStringStruct = false;
 
@@ -496,14 +496,14 @@ namespace Rococo
 
 		if (ic.isSingleton)
 		{
-			appender.Append(SEXTEXT("\t\t%s* _pObject = reinterpret_cast<%s*>(_nce.context);\n"), ic.asCppInterface.FQName(), ic.asCppInterface.FQName());
+			appender.Append(("\t\t%s* _pObject = reinterpret_cast<%s*>(_nce.context);\n"), ic.asCppInterface.FQName(), ic.asCppInterface.FQName());
 		}
 		else
 		{
 			// No NCE singleton context, so take the instance value that was initialized in the constructor 	
-			appender.Append(SEXTEXT("\t\t%s* _pObject;\n"), ic.asCppInterface.FQName());
-			appender.Append(SEXTEXT("\t\t_offset += sizeof(_pObject);\n\n"));
-			appender.Append(SEXTEXT("\t\tReadInput(_pObject, _sf, -_offset);\n"));
+			appender.Append(("\t\t%s* _pObject;\n"), ic.asCppInterface.FQName());
+			appender.Append(("\t\t_offset += sizeof(_pObject);\n\n"));
+			appender.Append(("\t\tReadInput(_pObject, _sf, -_offset);\n"));
 		}
 
 		bool outputIsInterface = false;
@@ -515,10 +515,10 @@ namespace Rococo
 			cr_sex stype = s.GetElement(0);
 			cr_sex svalue = s.GetElement(1);
 
-			csexstr type = StringFrom(stype);
+			cstr type = StringFrom(stype);
 
-			SEXCHAR cppName[256];
-			SEXCHAR compressedName[256];
+			char cppName[256];
+			char compressedName[256];
 
 			TTypeMap::const_iterator k = pc.primitives.find(type);
 			if (k == pc.primitives.end())
@@ -526,11 +526,11 @@ namespace Rococo
 				auto z = pc.interfaces.find(type);
 				if (z == pc.interfaces.end())
 				{
-					Throw(stype, SEXTEXT("Could not find type amongst the primitives or interfaces"));
+					Throw(stype, ("Could not find type amongst the primitives or interfaces"));
 				}
 				else
 				{
-					SafeFormat(cppName, sizeof(cppName), SEXTEXT("%s* %s = "), z->second->ic.asCppInterface.FQName(), StringFrom(svalue));
+					SafeFormat(cppName, sizeof(cppName), ("%s* %s = "), z->second->ic.asCppInterface.FQName(), StringFrom(svalue));
 					outputPrefix.push_back(cppName);
 					outputIsInterface = true;
 				}
@@ -539,15 +539,15 @@ namespace Rococo
 			{
 				GetFQCppStructName(compressedName, cppName, 256, k->second.cppType.c_str());
 
-				SEXCHAR moreHacks[256];
-				SafeFormat(moreHacks, sizeof(moreHacks), SEXTEXT("%s %s = "), cppName, StringFrom(svalue));
+				char moreHacks[256];
+				SafeFormat(moreHacks, sizeof(moreHacks), ("%s %s = "), cppName, StringFrom(svalue));
 				outputPrefix.push_back(moreHacks);
 			}
 		}
 
 		if (HasAttributeThrows(attributes))
 		{
-			appender.Append(SEXTEXT("try\n\t\t{\n\t\t\t"));
+			appender.Append(("try\n\t\t{\n\t\t\t"));
 		}
 
 		int index = 0;
@@ -565,14 +565,14 @@ namespace Rococo
 			cr_sex stype = s.GetElement(typeIndex);
 			cr_sex svalue = s.GetElement(typeIndex + 1);
 
-			appender.Append(SEXTEXT("\t\t%s"), outputPrefix[0].c_str());
+			appender.Append(("\t\t%s"), outputPrefix[0].c_str());
 		}
 		else
 		{
-			appender.Append(SEXTEXT("\t\t"));
+			appender.Append(("\t\t"));
 		}
 
-		appender.Append(SEXTEXT("_pObject->%s("), methodName);
+		appender.Append(("_pObject->%s("), methodName);
 
 		int inputCount = 1;
 
@@ -590,25 +590,25 @@ namespace Rococo
 
 			cr_sex stype = s.GetElement(typeIndex);
 			cr_sex svalue = s.GetElement(typeIndex + 1);
-			csexstr type = StringFrom(stype);
+			cstr type = StringFrom(stype);
 
-			if (!AreEqual(type, SEXTEXT("#")))
+			if (!AreEqual(type, ("#")))
 			{
-				if (inputCount > 1) appender.Append(SEXTEXT(", "));
+				if (inputCount > 1) appender.Append((", "));
 				inputCount++;
 
-				if (AreEqual(type, SEXTEXT("IStringBuilder")) || AreEqual(type, SEXTEXT("Sys.Type.IStringBuilder")))
+				if (AreEqual(type, ("IStringBuilder")) || AreEqual(type, ("Sys.Type.IStringBuilder")))
 				{
-					appender.Append(SEXTEXT("_%sPopulator"), StringFrom(svalue));
+					appender.Append(("_%sPopulator"), StringFrom(svalue));
 				}
 				else
 				{
-					if (!AreEqual(type, SEXTEXT("IString")) && !AreEqual(type, SEXTEXT("Sys.Type.IString")) && pc.structs.find(type) != pc.structs.end())
+					if (!AreEqual(type, ("IString")) && !AreEqual(type, ("Sys.Type.IString")) && pc.structs.find(type) != pc.structs.end())
 					{
 						appender.Append('*');
 					}
 
-					appender.Append(SEXTEXT("%s"), StringFrom(svalue));
+					appender.Append(("%s"), StringFrom(svalue));
 				}
 			}
 			else
@@ -625,15 +625,15 @@ namespace Rococo
 			cr_sex stype = s.GetElement(0);
 			cr_sex svalue = s.GetElement(1);
 
-			if (i > 1) appender.Append(SEXTEXT(", "));
-			appender.Append(SEXTEXT("/* out */ %s"), StringFrom(svalue));
+			if (i > 1) appender.Append((", "));
+			appender.Append(("/* out */ %s"), StringFrom(svalue));
 		}
 
-		appender.Append(SEXTEXT(");\n"));
+		appender.Append((");\n"));
 
 		if (HasAttributeThrows(attributes))
 		{
-			appender.Append(SEXTEXT("\t\t}\n\t\tcatch(%s& _ex) { _HandleScriptException(_nce, _ex); }\n"), pc.cppException);
+			appender.Append(("\t\t}\n\t\tcatch(%s& _ex) { _HandleScriptException(_nce, _ex); }\n"), pc.cppException);
 		}
 
 		for (int i = outputStart; i < method.NumberOfElements(); ++i)
@@ -643,7 +643,7 @@ namespace Rococo
 			cr_sex stype = s.GetElement(0);
 			cr_sex svalue = s.GetElement(1);
 
-			appender.Append(SEXTEXT("\t\t_offset += sizeof(%s);\n"), outputIsInterface ? SEXTEXT("CReflectedClass*") : StringFrom(svalue));
+			appender.Append(("\t\t_offset += sizeof(%s);\n"), outputIsInterface ? ("CReflectedClass*") : StringFrom(svalue));
 
 			if (outputIsInterface)
 			{
@@ -651,25 +651,25 @@ namespace Rococo
 
 				NamespaceSplitter splitter(z->second->ic.asSexyInterface);
 
-				csexstr body, tail;
+				cstr body, tail;
 				splitter.SplitTail(body, tail);
 
-				appender.Append(SEXTEXT("\t\tauto& _%sStruct = Rococo::Helpers::GetDefaultProxy(SEXTEXT(\"%s\"),SEXTEXT(\"%s\"), SEXTEXT(\"Proxy%s\"), _nce.ss);\n"), StringFrom(svalue), body, tail, tail);
-				appender.Append(SEXTEXT("\t\tCReflectedClass* _sxy%s = _nce.ss.Represent(_%sStruct, %s);\n"), StringFrom(svalue), StringFrom(svalue), StringFrom(svalue));
-				appender.Append(SEXTEXT("\t\tWriteOutput(&_sxy%s->header._vTables[0], _sf, -_offset);\n"), StringFrom(svalue));
+				appender.Append(("\t\tauto& _%sStruct = Rococo::Helpers::GetDefaultProxy((\"%s\"),(\"%s\"), (\"Proxy%s\"), _nce.ss);\n"), StringFrom(svalue), body, tail, tail);
+				appender.Append(("\t\tCReflectedClass* _sxy%s = _nce.ss.Represent(_%sStruct, %s);\n"), StringFrom(svalue), StringFrom(svalue), StringFrom(svalue));
+				appender.Append(("\t\tWriteOutput(&_sxy%s->header._vTables[0], _sf, -_offset);\n"), StringFrom(svalue));
 			}
 			else
 			{
-				appender.Append(SEXTEXT("\t\tWriteOutput(%s, _sf, -_offset);\n"), StringFrom(svalue));
+				appender.Append(("\t\tWriteOutput(%s, _sf, -_offset);\n"), StringFrom(svalue));
 			}
 		}
 
-		appender.Append(SEXTEXT("\t}\n"));
+		appender.Append(("\t}\n"));
 	}
 
 	void AppendFactoryArguments(FileAppender& appender, cr_sex method, int inputStart, int inputEnd, const ParseContext& pc, bool includeTypes)
 	{
-		csexstr argPrefix = SEXTEXT("_");
+		cstr argPrefix = ("_");
 
 		// Append the input arguments to the method invocation
 		for (int i = inputEnd; i >= inputStart; --i)
@@ -678,31 +678,31 @@ namespace Rococo
 
 			cr_sex stype = arg.GetElement(0);
 			cr_sex svalue = arg.GetElement(1);
-			csexstr type = StringFrom(stype);
+			cstr type = StringFrom(stype);
 
-			if (!AreEqual(type, SEXTEXT("#")))
+			if (!AreEqual(type, ("#")))
 			{
-				appender.Append(SEXTEXT(", "));
+				appender.Append((", "));
 
-				if (AreEqual(type, SEXTEXT("IString")) || AreEqual(type, SEXTEXT("Sys.Type.IString")))
+				if (AreEqual(type, ("IString")) || AreEqual(type, ("Sys.Type.IString")))
 				{
 					if (includeTypes)
 					{
-						TTypeMap::const_iterator j = pc.structs.find(SEXTEXT("IString"));
+						TTypeMap::const_iterator j = pc.structs.find(("IString"));
 						if (j == pc.primitives.end())
 						{
-							Throw(stype, SEXTEXT("Missing IString definition in the config. Suggest adding an entry of the form: (struct IString Sys.Type.IString fstring)"));
+							Throw(stype, ("Missing IString definition in the config. Suggest adding an entry of the form: (struct IString Sys.Type.IString fstring)"));
 						}
 
-						SEXCHAR compressedStructName[256];
-						SEXCHAR cppStructName[256];
+						char compressedStructName[256];
+						char cppStructName[256];
 						GetFQCppStructName(compressedStructName, cppStructName, 256, j->second.cppType.c_str());
 
-						appender.Append(SEXTEXT("const %s& %s%s"), cppStructName, argPrefix, StringFrom(svalue));
+						appender.Append(("const %s& %s%s"), cppStructName, argPrefix, StringFrom(svalue));
 					}
 					else
 					{
-						appender.Append(SEXTEXT("%s"), StringFrom(svalue));
+						appender.Append(("%s"), StringFrom(svalue));
 					}
 				}
 				else
@@ -712,12 +712,12 @@ namespace Rococo
 					{
 						if (includeTypes)
 						{
-							csexstr cppType = j->second.cppType.c_str();
-							appender.Append(SEXTEXT("const %s& %s%s"), cppType, argPrefix, StringFrom(svalue));
+							cstr cppType = j->second.cppType.c_str();
+							appender.Append(("const %s& %s%s"), cppType, argPrefix, StringFrom(svalue));
 						}
 						else
 						{
-							appender.Append(SEXTEXT("*%s"), StringFrom(svalue));
+							appender.Append(("*%s"), StringFrom(svalue));
 						}
 					}
 					else
@@ -725,15 +725,15 @@ namespace Rococo
 						if (includeTypes)
 						{
 							j = pc.primitives.find(type);
-							if (j == pc.primitives.end()) Throw(stype, SEXTEXT("Error evaluating type-name to a primitive or a derivative type"));
+							if (j == pc.primitives.end()) Throw(stype, ("Error evaluating type-name to a primitive or a derivative type"));
 
-							SEXCHAR compressedStructName[256];
-							SEXCHAR cppStructName[256];
+							char compressedStructName[256];
+							char cppStructName[256];
 							GetFQCppStructName(compressedStructName, cppStructName, 256, j->second.cppType.c_str());
-							appender.Append(SEXTEXT("%s %s"), cppStructName, argPrefix);
+							appender.Append(("%s %s"), cppStructName, argPrefix);
 						}
 
-						appender.Append(SEXTEXT("%s"), StringFrom(svalue));
+						appender.Append(("%s"), StringFrom(svalue));
 					}
 				}
 			}
@@ -749,94 +749,94 @@ namespace Rococo
 		int nsDepth = AppendNamespace(appender, ec.asCppEnum.SexyName());
 		if (nsDepth > 0)
 		{
-			appender.Append(SEXTEXT("\t"));
+			appender.Append(("\t"));
 		}
 
 		NamespaceSplitter splitter(ec.asCppEnum.SexyName());
-		csexstr ns, tail;
+		cstr ns, tail;
 		splitter.SplitTail(ns, tail);
 
-#ifdef SEXCHAR_IS_WIDE
-		SEXCHAR stringIndicator = L'L';
+#ifdef char_IS_WIDE
+		char stringIndicator = L'L';
 #else
-		SEXCHAR stringIndicator = ' ';
+		char stringIndicator = ' ';
 #endif
 
-		appender.Append(SEXTEXT("bool TryParse(const Rococo::fstring& s, %s& value)\n"), tail);
-		appender.Append(SEXTEXT("\t{\n"));
+		appender.Append(("bool TryParse(const Rococo::fstring& s, %s& value)\n"), tail);
+		appender.Append(("\t{\n"));
 
 		bool first = true;
 		for (auto& i : ec.values)
 		{
-			appender.Append(SEXTEXT("\t\t%s (s == %c\"%s_%s\"_fstring)\n"), first ? SEXTEXT("if") : SEXTEXT("else if"), stringIndicator, tail, i.first.c_str());
-			appender.Append(SEXTEXT("\t\t{\n"));
-			appender.Append(SEXTEXT("\t\t\tvalue = %s_%s;\n"), tail, i.first.c_str());
-			appender.Append(SEXTEXT("\t\t}\n"));
+			appender.Append(("\t\t%s (s == %c\"%s_%s\"_fstring)\n"), first ? ("if") : ("else if"), stringIndicator, tail, i.first.c_str());
+			appender.Append(("\t\t{\n"));
+			appender.Append(("\t\t\tvalue = %s_%s;\n"), tail, i.first.c_str());
+			appender.Append(("\t\t}\n"));
 
 			first = false;
 		}
 
-		appender.Append(SEXTEXT("\t\telse\n"));
-		appender.Append(SEXTEXT("\t\t{\n"));
-		appender.Append(SEXTEXT("\t\t\treturn false;\n"));
-		appender.Append(SEXTEXT("\t\t}\n\n"));
+		appender.Append(("\t\telse\n"));
+		appender.Append(("\t\t{\n"));
+		appender.Append(("\t\t\treturn false;\n"));
+		appender.Append(("\t\t}\n\n"));
 
-		appender.Append(SEXTEXT("\t\treturn true;\n"));
-		appender.Append(SEXTEXT("\t}\n\n"));
+		appender.Append(("\t\treturn true;\n"));
+		appender.Append(("\t}\n\n"));
 
-		appender.Append(SEXTEXT("\tbool TryShortParse(const Rococo::fstring& s, %s& value)\n"), tail);
-		appender.Append(SEXTEXT("\t{\n"));
+		appender.Append(("\tbool TryShortParse(const Rococo::fstring& s, %s& value)\n"), tail);
+		appender.Append(("\t{\n"));
 
 		first = true;
 		for (auto& i : ec.values)
 		{
-			appender.Append(SEXTEXT("\t\t%s (s == %c\"%s\"_fstring)\n"), first ? SEXTEXT("if") : SEXTEXT("else if"), stringIndicator, i.first.c_str());
-			appender.Append(SEXTEXT("\t\t{\n"));
-			appender.Append(SEXTEXT("\t\t\tvalue = %s_%s;\n"), tail, i.first.c_str());
-			appender.Append(SEXTEXT("\t\t}\n"));
+			appender.Append(("\t\t%s (s == %c\"%s\"_fstring)\n"), first ? ("if") : ("else if"), stringIndicator, i.first.c_str());
+			appender.Append(("\t\t{\n"));
+			appender.Append(("\t\t\tvalue = %s_%s;\n"), tail, i.first.c_str());
+			appender.Append(("\t\t}\n"));
 
 			first = false;
 		}
 
-		appender.Append(SEXTEXT("\t\telse\n"));
-		appender.Append(SEXTEXT("\t\t{\n"));
-		appender.Append(SEXTEXT("\t\t\treturn false;\n"));
-		appender.Append(SEXTEXT("\t\t}\n\n"));
+		appender.Append(("\t\telse\n"));
+		appender.Append(("\t\t{\n"));
+		appender.Append(("\t\t\treturn false;\n"));
+		appender.Append(("\t\t}\n\n"));
 
-		appender.Append(SEXTEXT("\t\treturn true;\n"));
-		appender.Append(SEXTEXT("\t}\n"));
+		appender.Append(("\t\treturn true;\n"));
+		appender.Append(("\t}\n"));
 
-		appender.Append(SEXTEXT("\tfstring ToShortString(%s value)\n"), tail);
-		appender.Append(SEXTEXT("\t{\n"));
+		appender.Append(("\tfstring ToShortString(%s value)\n"), tail);
+		appender.Append(("\t{\n"));
 
-		appender.Append(SEXTEXT("\t\tswitch(value)\n"));
-		appender.Append(SEXTEXT("\t\t{\n"));
+		appender.Append(("\t\tswitch(value)\n"));
+		appender.Append(("\t\t{\n"));
 
 		for (auto& i : ec.values)
 		{
-			appender.Append(SEXTEXT("\t\t\tcase %s_%s:\n"), tail, i.first.c_str());
-			appender.Append(SEXTEXT("\t\t\t\treturn \"%s\"_fstring;\n"), i.first.c_str());
+			appender.Append(("\t\t\tcase %s_%s:\n"), tail, i.first.c_str());
+			appender.Append(("\t\t\t\treturn \"%s\"_fstring;\n"), i.first.c_str());
 		}
 
-		appender.Append(SEXTEXT("\t\t\tdefault:\n"));
-		appender.Append(SEXTEXT("\t\t\t\treturn {\"\",0};\n"));
+		appender.Append(("\t\t\tdefault:\n"));
+		appender.Append(("\t\t\t\treturn {\"\",0};\n"));
 
-		appender.Append(SEXTEXT("\t\t}\n"));
-		appender.Append(SEXTEXT("\t}\n"));
+		appender.Append(("\t\t}\n"));
+		appender.Append(("\t}\n"));
 
 		while (nsDepth > 0)
 		{
 			nsDepth--;
-			appender.Append(SEXTEXT("}"));
+			appender.Append(("}"));
 		}
 
-		appender.Append(SEXTEXT("// %s\n\n"), ec.asCppEnum.SexyName());
+		appender.Append(("// %s\n\n"), ec.asCppEnum.SexyName());
 	}
 
 	void ImplementNativeFunctions(FileAppender& appender, const InterfaceContext& ic, const ISExpression* methods, const ParseContext& pc)
 	{
-		appender.Append(SEXTEXT("// BennyHill generated Sexy native functions for %s \n"), ic.asCppInterface.FQName());
-		appender.Append(SEXTEXT("namespace\n{\n\tusing namespace Rococo;\n\tusing namespace Rococo::Sex;\n\tusing namespace Rococo::Script;\n\tusing namespace Rococo::Compiler;\n\n"));
+		appender.Append(("// BennyHill generated Sexy native functions for %s \n"), ic.asCppInterface.FQName());
+		appender.Append(("namespace\n{\n\tusing namespace Rococo;\n\tusing namespace Rococo::Sex;\n\tusing namespace Rococo::Script;\n\tusing namespace Rococo::Compiler;\n\n"));
 
 		if (methods != NULL)
 		{
@@ -856,41 +856,41 @@ namespace Rococo
 				cr_sex sfactoryDef = **i;
 				if (sfactoryDef.NumberOfElements() < 2)
 				{
-					Throw(sfactoryDef, SEXTEXT("expecting (factory <fully-qualified-sexy-function-name> <(arg-pair1)...(arg-pairN)>)"));
+					Throw(sfactoryDef, ("expecting (factory <fully-qualified-sexy-function-name> <(arg-pair1)...(arg-pairN)>)"));
 				}
 
-				csexstr factoryName = StringFrom(sfactoryDef, 1);
+				cstr factoryName = StringFrom(sfactoryDef, 1);
 				ValidateFQSexyFunction(sfactoryDef, factoryName);
 
 				CppType factoryType;
 				factoryType.Set(factoryName);
 
-				appender.Append(SEXTEXT("\tvoid NativeGetHandleFor%s(NativeCallEnvironment& _nce)\n"), factoryType.CompressedName());
-				appender.Append(SEXTEXT("\t{\n"));
-				appender.Append(SEXTEXT("\t\tRococo::uint8* _sf = _nce.cpu.SF();\n"));
-				appender.Append(SEXTEXT("\t\tptrdiff_t _offset = 2 * sizeof(size_t);\n"));
+				appender.Append(("\tvoid NativeGetHandleFor%s(NativeCallEnvironment& _nce)\n"), factoryType.CompressedName());
+				appender.Append(("\t{\n"));
+				appender.Append(("\t\tRococo::uint8* _sf = _nce.cpu.SF();\n"));
+				appender.Append(("\t\tptrdiff_t _offset = 2 * sizeof(size_t);\n"));
 
 				TAttributeMap attributes;
 				AddNativeInputs(attributes, appender, sfactoryDef, 2, sfactoryDef.NumberOfElements() - 1, pc);
-				appender.Append(SEXTEXT("\t\t%s* nceContext = reinterpret_cast<%s*>(_nce.context);\n"), ic.nceContext.FQName(), ic.nceContext.FQName());
-				appender.Append(SEXTEXT("\t\t// Uses: %s* FactoryConstruct%s(%s* _context"), ic.asCppInterface.FQName(), factoryType.CompressedName(), ic.nceContext.FQName());
+				appender.Append(("\t\t%s* nceContext = reinterpret_cast<%s*>(_nce.context);\n"), ic.nceContext.FQName(), ic.nceContext.FQName());
+				appender.Append(("\t\t// Uses: %s* FactoryConstruct%s(%s* _context"), ic.asCppInterface.FQName(), factoryType.CompressedName(), ic.nceContext.FQName());
 				AppendFactoryArguments(appender, sfactoryDef, 2, sfactoryDef.NumberOfElements() - 1, pc, true);
-				appender.Append(SEXTEXT(");\n"));
+				appender.Append((");\n"));
 
-				appender.Append(SEXTEXT("\t\t%s* pObject = FactoryConstruct%s(nceContext"), ic.asCppInterface.FQName(), factoryType.CompressedName());
+				appender.Append(("\t\t%s* pObject = FactoryConstruct%s(nceContext"), ic.asCppInterface.FQName(), factoryType.CompressedName());
 				AppendFactoryArguments(appender, sfactoryDef, 2, sfactoryDef.NumberOfElements() - 1, pc, false);
-				appender.Append(SEXTEXT(");\n"));
+				appender.Append((");\n"));
 
-				appender.Append(SEXTEXT("\t\t_offset += sizeof(IString*);\n"));
-				appender.Append(SEXTEXT("\t\tWriteOutput(pObject, _sf, -_offset);\n"));
-				appender.Append(SEXTEXT("\t}\n"));
+				appender.Append(("\t\t_offset += sizeof(IString*);\n"));
+				appender.Append(("\t\tWriteOutput(pObject, _sf, -_offset);\n"));
+				appender.Append(("\t}\n"));
 			}
 		}
 
-		appender.Append(SEXTEXT("}\n\n"));
+		appender.Append(("}\n\n"));
 
 		NamespaceSplitter nsSplitter(ic.asCppInterface.SexyName());
-		csexstr ns, shortName;
+		cstr ns, shortName;
 		nsSplitter.SplitTail(ns, shortName);
 
 		CppType nsType;
@@ -898,19 +898,19 @@ namespace Rococo
 
 		int depth = AppendNamespace(appender, ic.asCppInterface.SexyName());
 
-		appender.Append(SEXTEXT("\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, %s* _nceContext)\n"), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
-		appender.Append(SEXTEXT("\t{\n"));
+		appender.Append(("\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, %s* _nceContext)\n"), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
+		appender.Append(("\t{\n"));
 
 		if (methods != NULL)
 		{
-			appender.Append(SEXTEXT("\t\tconst INamespace& ns = ss.AddNativeNamespace(SEXTEXT(\""));
+			appender.Append(("\t\tconst INamespace& ns = ss.AddNativeNamespace((\""));
 
 			NamespaceSplitter splitter(ic.asSexyInterface);
 
-			csexstr ns, shortName;
+			cstr ns, shortName;
 			splitter.SplitTail(ns, shortName);
 
-			appender.Append(SEXTEXT("%s.Native\"));\n"), ns);
+			appender.Append(("%s.Native\"));\n"), ns);
 
 			int factoryIndex = 0;
 
@@ -919,13 +919,13 @@ namespace Rococo
 				for (TExpressions::const_iterator i = ic.factories.begin(); i != ic.factories.end(); ++i, ++factoryIndex)
 				{
 					cr_sex sfactoryDef = **i;
-					csexstr factoryName = StringFrom(sfactoryDef, 1);
+					cstr factoryName = StringFrom(sfactoryDef, 1);
 					ValidateFQSexyFunction(sfactoryDef, factoryName);
 
 					CppType factoryType;
 					factoryType.Set(factoryName);
 
-					appender.Append(SEXTEXT("\t\tss.AddNativeCall(ns, NativeGetHandleFor%s, _nceContext, SEXTEXT(\"GetHandleFor%s%d "), factoryType.CompressedName(), shortName, factoryIndex);
+					appender.Append(("\t\tss.AddNativeCall(ns, NativeGetHandleFor%s, _nceContext, (\"GetHandleFor%s%d "), factoryType.CompressedName(), shortName, factoryIndex);
 
 					for (int i = 2; i < sfactoryDef.NumberOfElements(); i++)
 					{
@@ -933,19 +933,19 @@ namespace Rococo
 						AppendInputPair(appender, arg, pc);
 					}
 
-					appender.Append(SEXTEXT(" -> (Pointer hObject)\"));\n"));
+					appender.Append((" -> (Pointer hObject)\"));\n"));
 				}
 			}
 
 			for (int i = 1; i < methods->NumberOfElements(); ++i)
 			{
 				cr_sex method = methods->GetElement(i);
-				csexstr methodName = StringFrom(method.GetElement(0));
-				appender.Append(SEXTEXT("\t\tss.AddNativeCall(ns, Native%s%s, %s, SEXTEXT(\""), ic.asCppInterface.CompressedName(), methodName, ic.isSingleton ? SEXTEXT("_nceContext") : SEXTEXT("nullptr"));
-				appender.Append(SEXTEXT("%s%s "), shortName, methodName);
+				cstr methodName = StringFrom(method.GetElement(0));
+				appender.Append(("\t\tss.AddNativeCall(ns, Native%s%s, %s, (\""), ic.asCppInterface.CompressedName(), methodName, ic.isSingleton ? ("_nceContext") : ("nullptr"));
+				appender.Append(("%s%s "), shortName, methodName);
 				if (!ic.isSingleton)
 				{
-					appender.Append(SEXTEXT("(Pointer hObject)"));
+					appender.Append(("(Pointer hObject)"));
 				}
 
 				int outputPos = GetOutputPosition(method);
@@ -955,24 +955,24 @@ namespace Rococo
 					AppendInputPair(appender, arg, pc);
 				}
 
-				appender.Append(SEXTEXT(" -> "));
+				appender.Append((" -> "));
 				for (int i = outputPos; i < method.NumberOfElements(); i++)
 				{
 					cr_sex arg = method.GetElement(i);
 					AppendOutputPair(appender, arg, pc);
 				}
 
-				appender.Append(SEXTEXT("\"));\n"));
+				appender.Append(("\"));\n"));
 			}
 		}
-		appender.Append(SEXTEXT("\t}\n"));
+		appender.Append(("\t}\n"));
 
 		while (depth > 0)
 		{
 			depth--;
-			appender.Append(SEXTEXT("}"));
+			appender.Append(("}"));
 		}
 
-		appender.Append(SEXTEXT("\n"));
+		appender.Append(("\n"));
 	}
 }

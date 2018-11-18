@@ -24,14 +24,14 @@ namespace
 {
 	struct Logger: public Rococo::ILog
 	{
-		virtual void Write(csexstr text) 
+		virtual void Write(cstr text) 
 		{
 			WriteToStandardOutput(text);
 		}
 
-		void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) 
+		void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance) 
 		{
-			WriteToStandardOutput(SEXTEXT("%s: code %d\nMessage: %s\n"), exceptionType, errorCode, message);
+			WriteToStandardOutput(("%s: code %d\nMessage: %s\n"), exceptionType, errorCode, message);
 		}
 
 		void OnJITCompileException(Sex::ParseException& ex)
@@ -123,7 +123,7 @@ namespace
 
 	void TestCreateNullTreeWithSource(ISParser& parser)
 	{
-      ISourceCode* nullSrc = parser.DuplicateSourceBuffer(SEXTEXT("dogs"), 5, Vec2i{ 3,4 }, SEXTEXT("null"));
+      ISourceCode* nullSrc = parser.DuplicateSourceBuffer(("dogs"), 5, Vec2i{ 3,4 }, ("null"));
 		VALIDATE(nullSrc->AddRef() == 2);
 		VALIDATE(nullSrc->Release() == 1);
 
@@ -131,11 +131,11 @@ namespace
 		VALIDATE(nullSrc->Release() == 1);
 		VALIDATE(nullSrc->AddRef() == 2);
 
-		VALIDATE(AreEqual(tree->Source().Name(), SEXTEXT("null")));
+		VALIDATE(AreEqual(tree->Source().Name(), ("null")));
 		VALIDATE(tree->Source().Origin().x == 3);
 		VALIDATE(tree->Source().Origin().y == 4);
 		VALIDATE(tree->Source().SourceLength() == 5);
-		VALIDATE(Compare(tree->Source().SourceStart(), SEXTEXT("dogs"))  == 0);
+		VALIDATE(Compare(tree->Source().SourceStart(), ("dogs"))  == 0);
 
 		VALIDATE(tree->AddRef() == 2);
 		VALIDATE(tree->Release() == 1);
@@ -145,7 +145,7 @@ namespace
 		VALIDATE(tree->Release() == 0);
 		VALIDATE(nullSrc->Release() == 0);
 
-      ISourceCode* nullSrc2 = parser.ProxySourceBuffer(SEXTEXT("kid"), 4, Vec2i{ 7,9 }, SEXTEXT("spanner"));
+      ISourceCode* nullSrc2 = parser.ProxySourceBuffer(("kid"), 4, Vec2i{ 7,9 }, ("spanner"));
 		VALIDATE(nullSrc2->AddRef() == 2);
 		VALIDATE(nullSrc2->Release() == 1);
 
@@ -153,11 +153,11 @@ namespace
 		VALIDATE(nullSrc2->Release() == 1);
 		VALIDATE(nullSrc2->AddRef() == 2);
 
-		VALIDATE(AreEqual(tree2->Source().Name(), SEXTEXT("spanner")));
+		VALIDATE(AreEqual(tree2->Source().Name(), ("spanner")));
 		VALIDATE(tree2->Source().Origin().x == 7);
 		VALIDATE(tree2->Source().Origin().y == 9);
 		VALIDATE(tree2->Source().SourceLength() == 4);
-		VALIDATE(Compare(tree2->Source().SourceStart(),SEXTEXT("kid")) == 0);
+		VALIDATE(Compare(tree2->Source().SourceStart(),("kid")) == 0);
 
 		VALIDATE(tree2->AddRef() == 2);
 		VALIDATE(tree2->Release() == 1);
@@ -170,7 +170,7 @@ namespace
 
 	void TestCreateTreeWithRootNode(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("()"),2,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("()"),2,Vec2i{ 0,0 }, ("nil"));
 		ISParserTree* tree = parser.CreateTree(*src);
 		VALIDATE(tree->Root().Type() == EXPRESSION_TYPE_COMPOUND);
 		VALIDATE(tree->Root().NumberOfElements() == 1);
@@ -184,7 +184,7 @@ namespace
 
 	void TestCreateTreeWithNodeAndDatum(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("(tuppence)"),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("(tuppence)"),-1,Vec2i{ 0,0 }, ("nil"));
 		ISParserTree* tree = parser.CreateTree(*src);
 		VALIDATE(tree->Root().Type() == EXPRESSION_TYPE_COMPOUND);
 		VALIDATE(tree->Root().NumberOfElements() == 1);
@@ -196,7 +196,7 @@ namespace
 		const ISExpression& leaf = child.GetElement(0);
 		VALIDATE(leaf.Type() == EXPRESSION_TYPE_ATOMIC);
 		VALIDATE(leaf.String()->Length == 8);
-		VALIDATE(Compare(leaf.String(), SEXTEXT("tuppence")) == 0);
+		VALIDATE(Compare(leaf.String(), ("tuppence")) == 0);
 		VALIDATE(leaf.NumberOfElements() == 0);
 		VALIDATE(tree->Release() == 0);
 		VALIDATE(src->Release() == 0);
@@ -204,7 +204,7 @@ namespace
 
 	void TestCreateTreeWithNodeAndData(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("(tuppence pooh)"),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("(tuppence pooh)"),-1,Vec2i{ 0,0 }, ("nil"));
 		ISParserTree* tree = parser.CreateTree(*src);
 		VALIDATE(tree->Root().Type() == EXPRESSION_TYPE_COMPOUND);
 		VALIDATE(tree->Root().NumberOfElements() == 1);
@@ -220,14 +220,14 @@ namespace
 		VALIDATE(&leaf1 != NULL);
 		VALIDATE(leaf1.Type() == EXPRESSION_TYPE_ATOMIC);
 		VALIDATE(leaf1.String()->Length == 8);
-		VALIDATE(Compare(leaf1.String(), SEXTEXT("tuppence")) == 0);
+		VALIDATE(Compare(leaf1.String(), ("tuppence")) == 0);
 		VALIDATE(leaf1.NumberOfElements() == 0);
 
 		const ISExpression& leaf2 = child.GetElement(1);
 		VALIDATE(&leaf2 != NULL);
 		VALIDATE(leaf2.Type() == EXPRESSION_TYPE_ATOMIC);
 		VALIDATE(leaf2.String()->Length == 4);
-		VALIDATE(Compare(leaf2.String(), SEXTEXT("pooh")) == 0);
+		VALIDATE(Compare(leaf2.String(), ("pooh")) == 0);
 		VALIDATE(leaf2.NumberOfElements() == 0);
 
 		VALIDATE(tree->Release() == 0);
@@ -236,7 +236,7 @@ namespace
 
 	void TestCreateTreeWithNodesAndData(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("(tuppence (pooh poor))"),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("(tuppence (pooh poor))"),-1,Vec2i{ 0,0 }, ("nil"));
 		ISParserTree* tree = parser.CreateTree(*src);
 		VALIDATE(tree->Root().Type() == EXPRESSION_TYPE_COMPOUND);
 		VALIDATE(tree->Root().NumberOfElements() == 1);
@@ -251,7 +251,7 @@ namespace
 		VALIDATE(&leaf1 != NULL);
 		VALIDATE(leaf1.Type() == EXPRESSION_TYPE_ATOMIC);
 		VALIDATE(leaf1.String()->Length == 8);
-		VALIDATE(Compare(leaf1.String(), SEXTEXT("tuppence")) == 0);
+		VALIDATE(Compare(leaf1.String(), ("tuppence")) == 0);
 		VALIDATE(leaf1.NumberOfElements() == 0);
 
 		const ISExpression& leaf2 = child.GetElement(1);
@@ -264,14 +264,14 @@ namespace
 		VALIDATE(&leaf3 != NULL);
 		VALIDATE(leaf3.Type() == EXPRESSION_TYPE_ATOMIC);
 		VALIDATE(leaf3.String()->Length == 4);
-		VALIDATE(Compare(leaf3.String(), SEXTEXT("pooh")) == 0);
+		VALIDATE(Compare(leaf3.String(), ("pooh")) == 0);
 		VALIDATE(leaf3.NumberOfElements() == 0);
 
 		const ISExpression& leaf4 = leaf2.GetElement(1);
 		VALIDATE(&leaf4 != NULL);
 		VALIDATE(leaf4.Type() == EXPRESSION_TYPE_ATOMIC);
 		VALIDATE(leaf4.String()->Length == 4);
-		VALIDATE(Compare(leaf4.String(), SEXTEXT("poor")) == 0);
+		VALIDATE(Compare(leaf4.String(), ("poor")) == 0);
 		VALIDATE(leaf4.NumberOfElements() == 0);
 
 		VALIDATE(tree->Release() == 0);
@@ -280,7 +280,7 @@ namespace
 
 	void TestCreateTreeWithComments(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("/* haha */ (tuppence /* hehe */ (pooh /*aye lad*/ poor)) // So bone it hurts"),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("/* haha */ (tuppence /* hehe */ (pooh /*aye lad*/ poor)) // So bone it hurts"),-1,Vec2i{ 0,0 }, ("nil"));
 		ISParserTree* tree = parser.CreateTree(*src);
 		VALIDATE(tree->Root().Type() == EXPRESSION_TYPE_COMPOUND);
 		VALIDATE(tree->Root().NumberOfElements() == 1);
@@ -295,7 +295,7 @@ namespace
 		VALIDATE(&leaf1 != NULL);
 		VALIDATE(leaf1.Type() == EXPRESSION_TYPE_ATOMIC);
 		VALIDATE(leaf1.String()->Length == 8);
-		VALIDATE(Compare(leaf1.String(), SEXTEXT("tuppence")) == 0);
+		VALIDATE(Compare(leaf1.String(), ("tuppence")) == 0);
 		VALIDATE(leaf1.NumberOfElements() == 0);
 
 		const ISExpression& leaf2 = child.GetElement(1);
@@ -308,14 +308,14 @@ namespace
 		VALIDATE(&leaf3 != NULL);
 		VALIDATE(leaf3.Type() == EXPRESSION_TYPE_ATOMIC);
 		VALIDATE(leaf3.String()->Length == 4);
-		VALIDATE(Compare(leaf3.String(), SEXTEXT("pooh")) == 0);
+		VALIDATE(Compare(leaf3.String(), ("pooh")) == 0);
 		VALIDATE(leaf3.NumberOfElements() == 0);
 
 		const ISExpression& leaf4 = leaf2.GetElement(1);
 		VALIDATE(&leaf4 != NULL);
 		VALIDATE(leaf4.Type() == EXPRESSION_TYPE_ATOMIC);
 		VALIDATE(leaf4.String()->Length == 4);
-		VALIDATE(Compare(leaf4.String(), SEXTEXT("poor")) == 0);
+		VALIDATE(Compare(leaf4.String(), ("poor")) == 0);
 		VALIDATE(leaf4.NumberOfElements() == 0);
 
 		VALIDATE(tree->Release() == 0);
@@ -324,7 +324,7 @@ namespace
 
 	void TestCreateTreeWithCommentsAndString(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("/* haha */ (tuppence /* hehe */ (pooh /*aye lad*/ poor) \"chavs\") // So bone it hurts"),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("/* haha */ (tuppence /* hehe */ (pooh /*aye lad*/ poor) \"chavs\") // So bone it hurts"),-1,Vec2i{ 0,0 }, ("nil"));
 		ISParserTree* tree = parser.CreateTree(*src);
 		VALIDATE(tree->Root().Type() == EXPRESSION_TYPE_COMPOUND);
 		VALIDATE(tree->Root().NumberOfElements() == 1);
@@ -339,7 +339,7 @@ namespace
 		VALIDATE(&leaf1 != NULL);
 		VALIDATE(leaf1.Type() == EXPRESSION_TYPE_ATOMIC);
 		VALIDATE(leaf1.String()->Length == 8);
-		VALIDATE(Compare(leaf1.String(), SEXTEXT("tuppence")) == 0);
+		VALIDATE(Compare(leaf1.String(), ("tuppence")) == 0);
 		VALIDATE(leaf1.NumberOfElements() == 0);
 
 		const ISExpression& leaf2 = child.GetElement(1);
@@ -352,20 +352,20 @@ namespace
 		VALIDATE(&leaf3 != NULL);
 		VALIDATE(leaf3.Type() == EXPRESSION_TYPE_ATOMIC);
 		VALIDATE(leaf3.String()->Length == 4);
-		VALIDATE(Compare(leaf3.String(), SEXTEXT("pooh")) == 0);
+		VALIDATE(Compare(leaf3.String(), ("pooh")) == 0);
 		VALIDATE(leaf3.NumberOfElements() == 0);
 
 		const ISExpression& leaf4 = leaf2.GetElement(1);
 		VALIDATE(&leaf4 != NULL);
 		VALIDATE(leaf4.Type() == EXPRESSION_TYPE_ATOMIC);
 		VALIDATE(leaf4.String()->Length == 4);
-		VALIDATE(Compare(leaf4.String(), SEXTEXT("poor")) == 0);
+		VALIDATE(Compare(leaf4.String(), ("poor")) == 0);
 		VALIDATE(leaf4.NumberOfElements() == 0);
 
 		const ISExpression& leaf5 = child.GetElement(2);
 		VALIDATE(&leaf5 != NULL);
 		VALIDATE(leaf5.Type() == EXPRESSION_TYPE_STRING_LITERAL);
-		VALIDATE(Compare(leaf5.String(), SEXTEXT("chavs")) == 0);
+		VALIDATE(Compare(leaf5.String(), ("chavs")) == 0);
 		VALIDATE(leaf5.NumberOfElements() == 0);
 
 		VALIDATE(tree->Release() == 0);
@@ -374,7 +374,7 @@ namespace
 
 	void TestTreeWithErrorHandling1(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("(tuppence"),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("(tuppence"),-1,Vec2i{ 0,0 }, ("nil"));
 
 		try
 		{
@@ -385,7 +385,7 @@ namespace
 		{
 			VALIDATE(e.Start().x == 0);
 			VALIDATE(e.End().x == 8);
-			VALIDATE(GetSubString(e.Message(), SEXTEXT("missing")) != NULL);	
+			VALIDATE(GetSubString(e.Message(), ("missing")) != NULL);	
 		}
 
 		VALIDATE(src->Release() == 0);
@@ -393,7 +393,7 @@ namespace
 
 	void TestTreeWithErrorHandling2(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("(tuppence))"),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("(tuppence))"),-1,Vec2i{ 0,0 }, ("nil"));
 
 		try
 		{
@@ -404,7 +404,7 @@ namespace
 		{
 			VALIDATE(e.Start().x == 0);
 			VALIDATE(e.End().x == 10);
-			VALIDATE(GetSubString(e.Message(), SEXTEXT("Too many")) != NULL);
+			VALIDATE(GetSubString(e.Message(), ("Too many")) != NULL);
 		}
 
 		VALIDATE(src->Release() == 0);
@@ -412,7 +412,7 @@ namespace
 
 	void TestTreeWithErrorHandling3(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("\"shadow"),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("\"shadow"),-1,Vec2i{ 0,0 }, ("nil"));
 
 		try
 		{
@@ -423,7 +423,7 @@ namespace
 		{
 			VALIDATE(e.Start().x == 0);
 			VALIDATE(e.End().x == 6);
-			VALIDATE(GetSubString(e.Message(), SEXTEXT("Literal string")) != NULL);		
+			VALIDATE(GetSubString(e.Message(), ("Literal string")) != NULL);		
 		}
 
 		VALIDATE(src->Release() == 0);
@@ -431,7 +431,7 @@ namespace
 
 	void TestTreeWithErrorHandling4(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("/*shadow"),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("/*shadow"),-1,Vec2i{ 0,0 }, ("nil"));
 
 		try
 		{
@@ -442,7 +442,7 @@ namespace
 		{
 			VALIDATE(e.Start().x == 0);
 			VALIDATE(e.End().x == 7);
-			VALIDATE(GetSubString(e.Message(), SEXTEXT("Paragraph")) != NULL);	
+			VALIDATE(GetSubString(e.Message(), ("Paragraph")) != NULL);	
 		}
 
 		VALIDATE(src->Release() == 0);
@@ -450,7 +450,7 @@ namespace
 
 	void TestTreeWithErrorHandling5(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("(/"),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("(/"),-1,Vec2i{ 0,0 }, ("nil"));
 
 		try
 		{
@@ -461,7 +461,7 @@ namespace
 		{
 			VALIDATE(e.Start().x == 0);
 			VALIDATE(e.End().x == 1);
-			VALIDATE(GetSubString(e.Message(), SEXTEXT("missing")) != NULL);		
+			VALIDATE(GetSubString(e.Message(), ("missing")) != NULL);		
 		}
 
 		VALIDATE(src->Release() == 0);
@@ -469,7 +469,7 @@ namespace
 
 	void TestTreeAtomicAB(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("AB"),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("AB"),-1,Vec2i{ 0,0 }, ("nil"));
 
 		ISParserTree* tree = parser.CreateTree(*src);
 
@@ -477,7 +477,7 @@ namespace
 		const ISExpression& child = tree->Root().GetElement(0);
 		VALIDATE(child.Type() == EXPRESSION_TYPE_ATOMIC);
 		VALIDATE(child.String()->Length == 2);
-		VALIDATE(Compare(child.String(), SEXTEXT("AB")) == 0);
+		VALIDATE(Compare(child.String(), ("AB")) == 0);
 		VALIDATE(child.Start().x == 0);
 		VALIDATE(child.End().x == 1);
 
@@ -488,14 +488,14 @@ namespace
 
 	void TestTreeAtomicA(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("A"),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("A"),-1,Vec2i{ 0,0 }, ("nil"));
 		ISParserTree* tree = parser.CreateTree(*src);
 
 		VALIDATE(tree->Root().NumberOfElements() == 1);
 		const ISExpression& child = tree->Root().GetElement(0);
 		VALIDATE(child.Type() == EXPRESSION_TYPE_ATOMIC);
 		VALIDATE(child.String()->Length == 1);
-		VALIDATE(Compare(child.String(), SEXTEXT("A")) == 0);
+		VALIDATE(Compare(child.String(), ("A")) == 0);
 
 		tree->Release();
 
@@ -504,13 +504,13 @@ namespace
 
 	void TestTreeAtomicSlash(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("/"),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("/"),-1,Vec2i{ 0,0 }, ("nil"));
 		ISParserTree* tree = parser.CreateTree(*src);
 
 		VALIDATE(tree->Root().NumberOfElements() == 1);
 		const ISExpression& child = tree->Root().GetElement(0);
 		VALIDATE(child.Type() == EXPRESSION_TYPE_ATOMIC);
-		VALIDATE(Compare(child.String(), SEXTEXT("/")) == 0);
+		VALIDATE(Compare(child.String(), ("/")) == 0);
 
 		tree->Release();
 
@@ -519,14 +519,14 @@ namespace
 
 	void TestString1(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("\"boo&r&n&t&q&&&0&a&b&f&v?\""),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("\"boo&r&n&t&q&&&0&a&b&f&v?\""),-1,Vec2i{ 0,0 }, ("nil"));
 		ISParserTree* tree = parser.CreateTree(*src);
 
 		VALIDATE(tree->Root().NumberOfElements() == 1);
 		const ISExpression& child = tree->Root().GetElement(0);
 		VALIDATE(child.Type() == EXPRESSION_TYPE_STRING_LITERAL);
-		csexstr result = child.String()->Buffer;
-		VALIDATE(Compare(result, SEXTEXT("boo"), 3) == 0);
+		cstr result = child.String()->Buffer;
+		VALIDATE(Compare(result, ("boo"), 3) == 0);
 		VALIDATE(result[3] == '\r');
 		VALIDATE(result[4] == '\n');
 		VALIDATE(result[5] == '\t');
@@ -546,7 +546,7 @@ namespace
 
 	void TestBadString1(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("\"boo&r&K\""),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("\"boo&r&K\""),-1,Vec2i{ 0,0 }, ("nil"));
 
 		try
 		{
@@ -555,7 +555,7 @@ namespace
 		catch (ParseException& e)
 		{
 			VALIDATE(e.End().x == 7);
-			VALIDATE(GetSubString(e.Message(), SEXTEXT("Unrecognized")) != NULL);
+			VALIDATE(GetSubString(e.Message(), ("Unrecognized")) != NULL);
 		}
 		
 		VALIDATE(src->Release() == 0);
@@ -563,7 +563,7 @@ namespace
 
 	void TestBadString2(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("\"boo&r&x\""),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("\"boo&r&x\""),-1,Vec2i{ 0,0 }, ("nil"));
 
 		try
 		{
@@ -572,7 +572,7 @@ namespace
 		catch (ParseException& e)
 		{
 			VALIDATE(e.End().x == 7);
-			VALIDATE(GetSubString(e.Message(), SEXTEXT("trailing hexes")) != NULL);
+			VALIDATE(GetSubString(e.Message(), ("trailing hexes")) != NULL);
 		}
 
 		VALIDATE(src->Release() == 0);
@@ -580,7 +580,7 @@ namespace
 
 	void TestBadString3(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("\"&xAB"),-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("\"&xAB"),-1,Vec2i{ 0,0 }, ("nil"));
 
 		try
 		{
@@ -588,12 +588,12 @@ namespace
 		}
 		catch (ParseException& e)
 		{
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 			VALIDATE(e.End().x == 2);
-			VALIDATE(GetSubString(e.Message(), SEXTEXT("trailing hexes")) != NULL);
+			VALIDATE(GetSubString(e.Message(), ("trailing hexes")) != NULL);
 #else
 			VALIDATE(e.End().x == 2);
-			VALIDATE(GetSubString(e.Message(), SEXTEXT("double quote")) != NULL);
+			VALIDATE(GetSubString(e.Message(), ("double quote")) != NULL);
 #endif
 			
 		}
@@ -603,25 +603,25 @@ namespace
 
 	void TestString2(ISParser& parser)
 	{
-#ifdef SEXCHAR_IS_WIDE
-		csexstr srcString = SEXTEXT("\"&x0041\"");
+#ifdef char_IS_WIDE
+		cstr srcString = ("\"&x0041\"");
 #else
-		csexstr srcString = SEXTEXT("\"&x41\"");
+		cstr srcString = ("\"&x41\"");
 #endif
-		ISourceCode* src = parser.ProxySourceBuffer(srcString,-1,Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(srcString,-1,Vec2i{ 0,0 }, ("nil"));
 
 		ISParserTree* tree = parser.CreateTree(*src);
 		cr_sex element = tree->Root().GetElement(0);
 		VALIDATE(element.Type() == EXPRESSION_TYPE_STRING_LITERAL);
 		VALIDATE(element.String()->Length == 1);		
-		VALIDATE(element.String()->Buffer[0] == (SEXCHAR) 'A');
+		VALIDATE(element.String()->Buffer[0] == (char) 'A');
 		VALIDATE(tree->Release() == 0);
 		VALIDATE(src->Release() == 0);
 	}
 
 	void TestStringOffsets1(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("a"), -1, Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("a"), -1, Vec2i{ 0,0 }, ("nil"));
 		ISParserTree* tree = parser.CreateTree(*src);
 
 		VALIDATE_EQUAL(tree->Root().NumberOfElements(), 1);
@@ -636,7 +636,7 @@ namespace
 
 	void TestStringOffsets4(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("\t\n a \r\n"), -1, Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("\t\n a \r\n"), -1, Vec2i{ 0,0 }, ("nil"));
 		ISParserTree* tree = parser.CreateTree(*src);
 
 		VALIDATE_EQUAL(tree->Root().NumberOfElements(), 1);
@@ -651,7 +651,7 @@ namespace
 
 	void TestStringOffsets2(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("()"), -1, Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("()"), -1, Vec2i{ 0,0 }, ("nil"));
 		ISParserTree* tree = parser.CreateTree(*src);
 
 		VALIDATE_EQUAL(tree->Root().NumberOfElements(), 1);
@@ -666,7 +666,7 @@ namespace
 
 	void TestStringOffsets5(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT(" ( ) "), -1, Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer((" ( ) "), -1, Vec2i{ 0,0 }, ("nil"));
 		ISParserTree* tree = parser.CreateTree(*src);
 
 		VALIDATE_EQUAL(tree->Root().NumberOfElements(), 1);
@@ -681,7 +681,7 @@ namespace
 
 	void TestStringOffsets3(ISParser& parser)
 	{
-		ISourceCode* src = parser.ProxySourceBuffer(SEXTEXT("(a) ((bc de) )"), -1, Vec2i{ 0,0 }, SEXTEXT("nil"));
+		ISourceCode* src = parser.ProxySourceBuffer(("(a) ((bc de) )"), -1, Vec2i{ 0,0 }, ("nil"));
 		ISParserTree* tree = parser.CreateTree(*src);
 
 		VALIDATE_EQUAL(tree->Root().NumberOfElements(), 2);

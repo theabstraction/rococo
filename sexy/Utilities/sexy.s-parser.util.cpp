@@ -60,7 +60,7 @@ namespace Rococo
          source = nullptr;
       }
 
-      ParseException::ParseException(const Vec2i& start, const Vec2i& end, csexstr name, csexstr err, csexstr specimen, const ISExpression* _source) :
+      ParseException::ParseException(const Vec2i& start, const Vec2i& end, cstr name, cstr err, cstr specimen, const ISExpression* _source) :
          startPos(start),
          endPos(end),
          source(_source)
@@ -76,7 +76,7 @@ namespace Rococo
          throw ex;
       }
 
-      void Throw(cr_sex e, csexstr format, ...)
+      void Throw(cr_sex e, cstr format, ...)
       {
          va_list args;
          va_start(args, format);
@@ -84,7 +84,7 @@ namespace Rococo
          char message[4096];
          SafeVFormat(message, sizeof(message), format, args);
 
-         SEXCHAR specimen[64];
+         char specimen[64];
          GetSpecimen(specimen, e);
          ParseException ex(e.Start(), e.End(), e.Tree().Source().Name(), message, specimen, &e);
          Throw(ex);

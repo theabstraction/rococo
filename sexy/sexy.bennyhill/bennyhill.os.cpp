@@ -51,7 +51,7 @@
 
 namespace Rococo
 {
-	FileAppender::FileAppender(csexstr _filename) : filename(_filename)
+	FileAppender::FileAppender(cstr _filename) : filename(_filename)
 	{
       static std::unordered_set<stdstring> deletedFiles;
       if (deletedFiles.find(_filename) == deletedFiles.end())
@@ -63,7 +63,7 @@ namespace Rococo
 		int errcode = OS::OpenForAppend((void**)&hFile, _filename);
 		if (hFile == nullptr)
 		{
-			Throw(errcode, SEXTEXT("Error opening/creating %s for appending"), _filename);	
+			Throw(errcode, ("Error opening/creating %s for appending"), _filename);	
 		}
 	}
 
@@ -72,7 +72,7 @@ namespace Rococo
 		fclose(hFile);
 	}
 
-	void FileAppender::Append(csexstr format, ...)
+	void FileAppender::Append(cstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);

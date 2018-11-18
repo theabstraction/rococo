@@ -33,7 +33,7 @@
 
 namespace Rococo { namespace Compiler { namespace Impl
 {
-	Structure::Structure(csexstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, VARTYPE _type, const void* _definition):
+	Structure::Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, VARTYPE _type, const void* _definition):
 		name(_name),
 		prototype(_prototype),
 		module(_module),
@@ -60,7 +60,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		}
 	}
 
-	void Structure::AddInterface(csexstr interfaceFullName)
+	void Structure::AddInterface(cstr interfaceFullName)
 	{
 		interfaceNames.push_back(interfaceFullName);
 		interfaces.push_back(NULL);
@@ -83,26 +83,26 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 	void Structure::AddMemberRaw(const NameString& _memberName, const TypeString& _type)
 	{
-		StructureMember m(_memberName.c_str(), _type.c_str(), SEXTEXT(""), SEXTEXT(""));
+		StructureMember m(_memberName.c_str(), _type.c_str(), (""), (""));
 		members.push_back(m);
 	}
 
-	void Structure::AddMember(const NameString& _memberName, const TypeString& _type, csexstr _genericArgType1, csexstr _genericArgType2)
+	void Structure::AddMember(const NameString& _memberName, const TypeString& _type, cstr _genericArgType1, cstr _genericArgType2)
 	{
 		if (isSealed)
 		{
-			Throw(ERRORCODE_SEALED, SEXTEXT("Structure %s is sealed"), name.c_str());
+			Throw(ERRORCODE_SEALED, ("Structure %s is sealed"), name.c_str());
 		}
 
 		for(uint32 i = 0; i < members.size(); ++i)
 		{
 			if (AreEqual(members[i].Name(), _memberName.c_str()))
 			{
-				Throw(ERRORCODE_BAD_ARGUMENT, __SEXFUNCTION__, SEXTEXT("Member %s of %s is duplicated"), _memberName.c_str(), name.c_str());
+				Throw(ERRORCODE_BAD_ARGUMENT, __SEXFUNCTION__, ("Member %s of %s is duplicated"), _memberName.c_str(), name.c_str());
 			}
 		}
 
-		StructureMember m(_memberName.c_str(), _type.c_str(), _genericArgType1 == NULL ? SEXTEXT("") : _genericArgType1, _genericArgType2 == NULL ? SEXTEXT("") : _genericArgType2);
+		StructureMember m(_memberName.c_str(), _type.c_str(), _genericArgType1 == NULL ? ("") : _genericArgType1, _genericArgType2 == NULL ? ("") : _genericArgType2);
 		members.push_back(m);
 	}
 
@@ -110,18 +110,18 @@ namespace Rococo { namespace Compiler { namespace Impl
 	{
 		if (isSealed)
 		{
-			Throw(ERRORCODE_SEALED, SEXTEXT("Structure %s is sealed"), name.c_str());
+			Throw(ERRORCODE_SEALED, ("Structure %s is sealed"), name.c_str());
 		}
 
 		for(uint32 i = 0; i < members.size(); ++i)
 		{
 			if (AreEqual(members[i].Name(), _name.c_str()))
 			{
-				Throw(ERRORCODE_BAD_ARGUMENT, __SEXFUNCTION__, SEXTEXT("Member %s of %s is duplicated"), _name.c_str(), name.c_str());
+				Throw(ERRORCODE_BAD_ARGUMENT, __SEXFUNCTION__, ("Member %s of %s is duplicated"), _name.c_str(), name.c_str());
 			}
 		}
 
-		StructureMember m(_name.c_str(), _type.c_str(), SEXTEXT(""), SEXTEXT(""), true);
+		StructureMember m(_name.c_str(), _type.c_str(), (""), (""), true);
 		members.push_back(m);
 	}
 
@@ -138,7 +138,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return module.Object();
 	}
 
-	csexstr Structure::Name() const
+	cstr Structure::Name() const
 	{
 		return name.c_str();
 	}
@@ -204,7 +204,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		sizeOfStruct = 0;
 	}
 
-	IInterfaceBuilder* TryResolveInterfaceUsingPrefix(ILog& log, Structure& s, csexstr name, bool reportErrors)
+	IInterfaceBuilder* TryResolveInterfaceUsingPrefix(ILog& log, Structure& s, cstr name, bool reportErrors)
 	{
 		IInterfaceBuilder* finalInterface = NULL;
 		INamespaceBuilder* finalNS = NULL;
@@ -217,7 +217,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			{
 				if (finalInterface != NULL)
 				{
-					if (reportErrors) LogError(log, SEXTEXT("Cannot resolve interface %s of %s from %s. Could be from %s or %s"), name, s.Name(), s.Module().Name(), prefix.FullName(), finalNS->FullName());
+					if (reportErrors) LogError(log, ("Cannot resolve interface %s of %s from %s. Could be from %s or %s"), name, s.Name(), s.Module().Name(), prefix.FullName(), finalNS->FullName());
 					return NULL;
 				}
 
@@ -241,17 +241,17 @@ namespace Rococo { namespace Compiler { namespace Impl
 	{
 		for(size_t i = 0; i < interfaceNames.size(); ++i)
 		{
-			csexstr name = interfaceNames[i].c_str();
+			cstr name = interfaceNames[i].c_str();
 
 			NamespaceSplitter splitter(name);
 
-			csexstr body, publicName;
+			cstr body, publicName;
 			if (!splitter.SplitTail(OUT body, OUT publicName))
 			{
 				IInterface* interf = TryResolveInterfaceUsingPrefix(log, *this, name, reportErrors);
 				if (interf == NULL)
 				{
-					if (reportErrors) LogError(log, SEXTEXT("Cannot resolve interface %s of %s from %s. It is not fully qualified A.B.C.D, nor found in any namespace known to the module in which it is defined"), name, this->name.c_str(), this->module.Name());
+					if (reportErrors) LogError(log, ("Cannot resolve interface %s of %s from %s. It is not fully qualified A.B.C.D, nor found in any namespace known to the module in which it is defined"), name, this->name.c_str(), this->module.Name());
 					return false;
 				}
 
@@ -262,14 +262,14 @@ namespace Rococo { namespace Compiler { namespace Impl
 				INamespace* ns = module.Object().GetRootNamespace().FindSubspace(body);
 				if (ns == NULL)
 				{
-					if (reportErrors) LogError(log, SEXTEXT("Cannot resolve interface %s of %s from %s. The namespace %s was not found"), name, this->name.c_str(), body, body);
+					if (reportErrors) LogError(log, ("Cannot resolve interface %s of %s from %s. The namespace %s was not found"), name, this->name.c_str(), body, body);
 					return false;
 				}
 
 				interfaces[i] =  (IInterfaceBuilder*) ns->FindInterface(publicName);
 				if (interfaces[i] == NULL)
 				{
-					if (reportErrors) LogError(log, SEXTEXT("Cannot resolve interface %s of %s from %s. The interface name %s was not found in the namespace"), name, this->name.c_str(), (csexstr) ns->FullName()->Buffer, publicName);
+					if (reportErrors) LogError(log, ("Cannot resolve interface %s of %s from %s. The interface name %s was not found in the namespace"), name, this->name.c_str(), (cstr) ns->FullName()->Buffer, publicName);
 					return false;
 				}
 			}
@@ -287,7 +287,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		{
 			if (reportErrors)			
 			{
-				LogError(log, SEXTEXT("Could not resolve type from %s %s of %s from %s"), member.Type(), member.Name(), s.Name(), s.Module().Name());
+				LogError(log, ("Could not resolve type from %s %s of %s from %s"), member.Type(), member.Name(), s.Name(), s.Module().Name());
 			}
 			return false;
 		}
@@ -303,7 +303,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			{
 				if (reportErrors)			
 				{
-					LogError(log, SEXTEXT("Could not resolving generic type (%s) from %s of %s from %s"), member.GenericArg1Type(), member.Name(), s.Name(), s.Module().Name());
+					LogError(log, ("Could not resolving generic type (%s) from %s of %s from %s"), member.GenericArg1Type(), member.Name(), s.Name(), s.Module().Name());
 				}
 				return false;
 			}
@@ -319,7 +319,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 				{
 					if (reportErrors)			
 					{
-						LogError(log, SEXTEXT("Could not resolving generic type (%s) from %s of %s from %s"), member.GenericArg2Type(), member.Name(), s.Name(), s.Module().Name());
+						LogError(log, ("Could not resolving generic type (%s) from %s of %s from %s"), member.GenericArg2Type(), member.Name(), s.Name(), s.Module().Name());
 					}
 					return false;
 				}
@@ -516,7 +516,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 					IMemberBuilder& member = s.GetMember(k);
 					IStructureBuilder& type = *member.UnderlyingType();
 
-					csexstr name = member.Name();					
+					cstr name = member.Name();					
 
 					if (IsTypeInExpandList(type, expandedStructures))
 					{
@@ -606,17 +606,17 @@ namespace Rococo { namespace Compiler { namespace Impl
 	{
 		if (destructorId == 0)
 		{
-			csexstr className = name.c_str();
+			cstr className = name.c_str();
 
 			TokenBuffer destrName;
-         SafeFormat(destrName.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s.Destruct"), className);
+         SafeFormat(destrName.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.Destruct"), className);
 			const IFunction* destructor = module.FindFunction(destrName);
 
 			IProgramObject& object = (IProgramObject&) module.Object();
 
 			if (destructor == NULL)
 			{
-				destructor = object.IntrinsicModule().FindFunction(SEXTEXT("_nothing"));
+				destructor = object.IntrinsicModule().FindFunction(("_nothing"));
 			}
 
 			CodeSection destSection;
@@ -670,11 +670,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 					const IArchetype& method = interf.GetMethod(k);
 
 					TokenBuffer qualifiedMethodName;
-               SafeFormat(qualifiedMethodName.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s.%s"), name.c_str(), method.Name());
+               SafeFormat(qualifiedMethodName.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.%s"), name.c_str(), method.Name());
 					IFunction* implementation = module.FindFunction(qualifiedMethodName);
 					if (implementation == NULL)
 					{
-						Throw(ERRORCODE_COMPILE_ERRORS, qualifiedMethodName, SEXTEXT("Compiler error getting implementation for interface method"));
+						Throw(ERRORCODE_COMPILE_ERRORS, qualifiedMethodName, ("Compiler error getting implementation for interface method"));
 					}
 
 					virtualTables[interfaceIndex][k+1] = GetByteCodeId(*implementation);

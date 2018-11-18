@@ -107,7 +107,7 @@ namespace Rococo { namespace VM
 	ROCOCOAPI ICore
 	{
 		virtual void Free() = 0;
-		virtual void Log(csexstr text) = 0;
+		virtual void Log(cstr text) = 0;
 		virtual void SetLogger(ILog* logger) = 0;
 		virtual IVirtualMachine* CreateVirtualMachine() = 0;
 		virtual IProgramMemory* CreateProgramMemory(size_t capacity) = 0;
@@ -115,9 +115,9 @@ namespace Rococo { namespace VM
 		virtual IDisassembler* CreateDisassembler() = 0;
 		virtual ISymbols* CreateSymbolTable() = 0;
 
-		virtual csexstr GetCallbackSymbolName(ID_API_CALLBACK id) = 0;
+		virtual cstr GetCallbackSymbolName(ID_API_CALLBACK id) = 0;
 		virtual bool TryInvoke(ID_API_CALLBACK id, VariantValue* registers) = 0;
-		virtual ID_API_CALLBACK RegisterCallback(FN_API_CALLBACK callback, void* context, csexstr symbol) = 0;
+		virtual ID_API_CALLBACK RegisterCallback(FN_API_CALLBACK callback, void* context, cstr symbol) = 0;
 		virtual void UnregisterCallback(ID_API_CALLBACK id) = 0;
 	};
 
@@ -382,10 +382,10 @@ namespace Rococo { namespace VM
 		struct Rep
 		{
 			uint32 ByteCount;
-			SEXCHAR OpcodeText[MAX_ARG_LEN];			
+			char OpcodeText[MAX_ARG_LEN];			
 			uint32 NumberOfArgs;
 			Arg Args[6];			
-			SEXCHAR ArgText[MAX_FULL_TEXT_LEN];
+			char ArgText[MAX_FULL_TEXT_LEN];
 		};
 
 		virtual void Disassemble(const unsigned char* PC, OUT Rep& rep) = 0;

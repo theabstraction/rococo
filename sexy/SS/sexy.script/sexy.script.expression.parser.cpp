@@ -51,13 +51,13 @@ namespace Rococo
 { 
 	namespace Script
 	{
-		size_t GetOffsetTo(csexstr memberName, const IStructure& s)
+		size_t GetOffsetTo(cstr memberName, const IStructure& s)
 		{
 			size_t offset = 0;
 			for(int i = 0; i < s.MemberCount(); i++)
 			{
 				const IMember& member = s.GetMember(i);
-				if (Rococo::AreEqual(member.Name(), SEXTEXT("_allocSize")))
+				if (Rococo::AreEqual(member.Name(), ("_allocSize")))
 				{
 					break;							
 				}
@@ -81,12 +81,12 @@ namespace Rococo
 				return 8;
 				break;
 			default:
-				Throw(s, SEXTEXT("Algorithmic error: unhandled bitcount in argument to function"));
+				Throw(s, ("Algorithmic error: unhandled bitcount in argument to function"));
 				return 0;
 			}
 		}
 
-		void PushVariableRef(cr_sex s, ICodeBuilder& builder, const MemberDef& def, csexstr name, int interfaceIndex)
+		void PushVariableRef(cr_sex s, ICodeBuilder& builder, const MemberDef& def, cstr name, int interfaceIndex)
 		{
 			if (def.AllocSize == 0 || (IsNullType(*def.ResolvedType) && def.IsContained))
 			{
@@ -103,7 +103,7 @@ namespace Rococo
 				}
 				else
 				{
-					Throw(s, SEXTEXT("Unexpected interface specified in PushVariableRef(...)"));
+					Throw(s, ("Unexpected interface specified in PushVariableRef(...)"));
 				}
 			}
 			else
@@ -143,7 +143,7 @@ namespace Rococo
 
 			if (s.Prototype().IsClass)
 			{
-				if (AreEqual(type, SEXTEXT("implements")))
+				if (AreEqual(type, ("implements")))
 				{
 					for (int i = 1; i < field.NumberOfElements(); ++i)
 					{
@@ -154,25 +154,25 @@ namespace Rococo
 
 					return;
 				}
-				else if (AreEqual(type, SEXTEXT("defines")))
+				else if (AreEqual(type, ("defines")))
 				{
 					if (field.NumberOfElements() == 2 && IsAtomic(field[1]))
 					{
 						s.AddInterface(field[1].String()->Buffer);
 					} 
-					else if (field.NumberOfElements() == 4 && IsAtomic(field[1]) && IsAtomic(field[2]) && IsAtomic(field[3]) && AreEqual(field[2].String(), SEXTEXT("extends")))
+					else if (field.NumberOfElements() == 4 && IsAtomic(field[1]) && IsAtomic(field[2]) && IsAtomic(field[3]) && AreEqual(field[2].String(), ("extends")))
 					{
 						s.AddInterface(field[1].String()->Buffer);
 					}
 					else
 					{
-						Throw(field, SEXTEXT("Expecting (defines <fully-qualified-interface-name>) or (defines <fully-qualified-interface-name> extends <fully-qualified-interface-name>)"));
+						Throw(field, ("Expecting (defines <fully-qualified-interface-name>) or (defines <fully-qualified-interface-name> extends <fully-qualified-interface-name>)"));
 					}
 					return;
 				}
 			}
 
-			if (AreEqual(type, SEXTEXT("array")))
+			if (AreEqual(type, ("array")))
 			{
 				cr_sex elementTypeExpr = GetAtomicArg(field, 1);
 				sexstring elementType = elementTypeExpr.String();
@@ -184,10 +184,10 @@ namespace Rococo
 					cr_sex nameExpr = field.GetElement(i);
 					AssertLocalIdentifier(nameExpr);			
 
-					s.AddMember(NameString::From(nameExpr.String()), TypeString::From(SEXTEXT("_Array")), elementType->Buffer);
+					s.AddMember(NameString::From(nameExpr.String()), TypeString::From(("_Array")), elementType->Buffer);
 				}	
 			}
-			else if (AreEqual(type, SEXTEXT("list")))
+			else if (AreEqual(type, ("list")))
 			{
 				cr_sex elementTypeExpr = GetAtomicArg(field, 1);
 				sexstring elementType = elementTypeExpr.String();
@@ -199,10 +199,10 @@ namespace Rococo
 					cr_sex nameExpr = field.GetElement(i);
 					AssertLocalIdentifier(nameExpr);			
 
-					s.AddMember(NameString::From(nameExpr.String()), TypeString::From(SEXTEXT("_List")), elementType->Buffer);
+					s.AddMember(NameString::From(nameExpr.String()), TypeString::From(("_List")), elementType->Buffer);
 				}	
 			}
-			else if (AreEqual(type, SEXTEXT("map")))
+			else if (AreEqual(type, ("map")))
 			{
 				cr_sex keyTypeExpr = GetAtomicArg(field, 1);
 				cr_sex valueTypeExpr = GetAtomicArg(field, 2);
@@ -217,12 +217,12 @@ namespace Rococo
 					cr_sex nameExpr = field.GetElement(i);
 					AssertLocalIdentifier(nameExpr);			
 
-					s.AddMember(NameString::From(nameExpr.String()), TypeString::From(SEXTEXT("_Map")), keyType->Buffer, valueType->Buffer);
+					s.AddMember(NameString::From(nameExpr.String()), TypeString::From(("_Map")), keyType->Buffer, valueType->Buffer);
 				}	
 			}
-			else if (AreEqual(type, SEXTEXT("ref")))
+			else if (AreEqual(type, ("ref")))
 			{
-				if (field.NumberOfElements() != 3) Throw(field, SEXTEXT("Expecting (ref <type> <name>)"));
+				if (field.NumberOfElements() != 3) Throw(field, ("Expecting (ref <type> <name>)"));
 
 				cr_sex srefType = field.GetElement(1);
 				cr_sex sname = field.GetElement(2);
@@ -237,11 +237,11 @@ namespace Rococo
 				{
 					TokenBuffer memberRefName;
 					GetRefName(memberRefName, sname.String()->Buffer);
-					s.AddMember(NameString::From(memberRefName), TypeString::From(SEXTEXT("Sys.Type.Pointer")));
+					s.AddMember(NameString::From(memberRefName), TypeString::From(("Sys.Type.Pointer")));
 				}
 				else
 				{
-					Throw(srefType, SEXTEXT("Only interface types can be referenced by a member"));
+					Throw(srefType, ("Only interface types can be referenced by a member"));
 				}
 			}
 			else
@@ -260,21 +260,21 @@ namespace Rococo
 					{
 						TokenBuffer memberRefName;
 						GetRefName(memberRefName, nameExpr.String()->Buffer);
-						s.AddMember(NameString::From(memberRefName), TypeString::From(SEXTEXT("Sys.Type.Pointer")));
+						s.AddMember(NameString::From(memberRefName), TypeString::From(("Sys.Type.Pointer")));
 					}
 				}	
 			}
 		}
 
-		csexstr Comparative(int delta) { return delta > 0 ? SEXTEXT("more") : SEXTEXT("fewer"); } 
+		cstr Comparative(int delta) { return delta > 0 ? ("more") : ("fewer"); } 
 
-		void ValidateArchetypeMatchesArchetype(cr_sex s, const IArchetype& f, const IArchetype& archetype, csexstr source)
+		void ValidateArchetypeMatchesArchetype(cr_sex s, const IArchetype& f, const IArchetype& archetype, cstr source)
 		{
 			int delta = archetype.NumberOfInputs() - f.NumberOfInputs();
 			if (delta != 0)
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("There are ") << Comparative(delta) << SEXTEXT(" inputs in ") << source << archetype.Name() << SEXTEXT(" than in that of ") << f.Name();
+				streamer.sb << ("There are ") << Comparative(delta) << (" inputs in ") << source << archetype.Name() << (" than in that of ") << f.Name();
 				Throw(s, streamer);
 			}
 
@@ -282,7 +282,7 @@ namespace Rococo
 			if (delta != 0)
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("There are ") << Comparative(delta) << SEXTEXT(" outputs in ") << source << archetype.Name() << SEXTEXT(" than that of ") << f.Name();
+				streamer.sb << ("There are ") << Comparative(delta) << (" outputs in ") << source << archetype.Name() << (" than that of ") << f.Name();
 				Throw(s, streamer);
 			}
 
@@ -292,18 +292,18 @@ namespace Rococo
 			{
 				const IStructure& st = archetype.GetArgument(i);
 				const IStructure& stf = f.GetArgument(i);
-				csexstr argname = f.GetArgName(i);
+				cstr argname = f.GetArgName(i);
 
 				if (archetype.IsVirtualMethod())
 				{
-					if (i == 0 && st.VarType() == VARTYPE_Pointer && AreEqual(archetype.GetArgName(0), SEXTEXT("_typeInfo")))
+					if (i == 0 && st.VarType() == VARTYPE_Pointer && AreEqual(archetype.GetArgName(0), ("_typeInfo")))
 					{
 						if (stf.Prototype().IsClass && AreEqual(THIS_POINTER_TOKEN,argname))
 						{
 							continue;
 						}
 					}
-					else if (st.VarType() == VARTYPE_Pointer && AreEqual(archetype.GetArgName(i), SEXTEXT("_vTable"), 7))
+					else if (st.VarType() == VARTYPE_Pointer && AreEqual(archetype.GetArgName(i), ("_vTable"), 7))
 					{
 						if (stf.Prototype().IsClass && AreEqual(THIS_POINTER_TOKEN,argname))
 						{
@@ -315,7 +315,7 @@ namespace Rococo
 				if (&stf != &st)
 				{
 					sexstringstream<1024> streamer;
-					streamer.sb << source << archetype.Name() << SEXTEXT(": Argument [") << i << "] (" << GetFriendlyName(st) << " " << argname << SEXTEXT("). Type did not match that of the implementation. Expected '") << GetFriendlyName(stf) << SEXTEXT("'");
+					streamer.sb << source << archetype.Name() << (": Argument [") << i << "] (" << GetFriendlyName(st) << " " << argname << ("). Type did not match that of the implementation. Expected '") << GetFriendlyName(stf) << ("'");
 					Throw(s, streamer);
 				}
 
@@ -328,23 +328,23 @@ namespace Rococo
 
 					// Not really expecting the generic args to be NULL, as we should already have bailed out above, but handle the case
 
-					streamer.sb << SEXTEXT("Error validating concrete method against the interface's specification for (") << f.Name() << SEXTEXT("...). \n");
+					streamer.sb << ("Error validating concrete method against the interface's specification for (") << f.Name() << ("...). \n");
 					if (archetype.GetGenericArg1(i) != NULL)
 					{
-						streamer.sb << SEXTEXT("Interface's method with generic argument type '") << GetFriendlyName(*interfGenericArg1) << SEXTEXT("' does not match ");
+						streamer.sb << ("Interface's method with generic argument type '") << GetFriendlyName(*interfGenericArg1) << ("' does not match ");
 					}
 					else
 					{
-						streamer.sb << SEXTEXT("Interface's method has no generic argument type and so does not match ");
+						streamer.sb << ("Interface's method has no generic argument type and so does not match ");
 					}
 				
 					if (f.GetGenericArg1(i) != NULL)
 					{
-						streamer.sb << SEXTEXT("concrete generic argument type '") << GetFriendlyName(*concreteGenericArg1) << SEXTEXT("'");
+						streamer.sb << ("concrete generic argument type '") << GetFriendlyName(*concreteGenericArg1) << ("'");
 					}
 					else
 					{
-						streamer.sb << SEXTEXT("concrete method with no generic argument type ");
+						streamer.sb << ("concrete method with no generic argument type ");
 					}
 
 				
@@ -357,26 +357,26 @@ namespace Rococo
 		{
 			int offset = explicitKeyword ? 0 : -1; // explicit means the directive begins with the assignment keyword, else it begins with the target variable
 			cr_sex targetExpr = GetAtomicArg(directive, 1 + offset);
-			csexstr targetVariable = targetExpr.String()->Buffer;
+			cstr targetVariable = targetExpr.String()->Buffer;
 			cr_sex assignmentChar = GetAtomicArg(directive, 2 + offset);
 			cr_sex sourceValue = directive.GetElement(3 + offset);
 			VARTYPE targetType = varStruct.VarType();
 
-			csexstr sourceText = sourceValue.String()->Buffer;
+			cstr sourceText = sourceValue.String()->Buffer;
 
 			TokenBuffer symbol;
-			StringPrint(symbol, SEXTEXT("%s=%s"), targetVariable, (csexstr) sourceValue.String()->Buffer);
+			StringPrint(symbol, ("%s=%s"), targetVariable, (cstr) sourceValue.String()->Buffer);
 		
 			if (targetType == VARTYPE_Closure)
 			{
 				IFunctionBuilder* f = ce.Builder.Module().FindFunction(sourceText);
 				if (f != NULL)
 				{
-					ValidateArchetypeMatchesArchetype(directive, *f, *varStruct.Archetype(), SEXTEXT("archetype "));
+					ValidateArchetypeMatchesArchetype(directive, *f, *varStruct.Archetype(), ("archetype "));
 
 					if (f->Builder().NeedsParentsSF() && ce.Builder.Owner().GetArgumentByName(targetVariable) != NULL)
 					{
-						Throw(sourceValue, SEXTEXT("Cannot return the closure from the function, as it accesses its parent's stack variables"));
+						Throw(sourceValue, ("Cannot return the closure from the function, as it accesses its parent's stack variables"));
 					}
 
 					CodeSection section;
@@ -389,7 +389,7 @@ namespace Rococo
 					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_64);
 
 					TokenBuffer targetBytecodeId;
-					StringPrint(targetBytecodeId, SEXTEXT("%s.bytecodeId"), targetVariable);
+					StringPrint(targetBytecodeId, ("%s.bytecodeId"), targetVariable);
 					ce.Builder.AddSymbol(targetBytecodeId);
 					ce.Builder.AssignTempToVariable(0, targetBytecodeId);
 
@@ -398,7 +398,7 @@ namespace Rococo
 					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, parentSF, BITCOUNT_POINTER);
 
 					TokenBuffer targetParentSF;
-					StringPrint(targetParentSF, SEXTEXT("%s.parentSF"), targetVariable);
+					StringPrint(targetParentSF, ("%s.parentSF"), targetVariable);
 					ce.Builder.AddSymbol(targetParentSF);
 					ce.Builder.AssignTempToVariable(0, targetParentSF);
 					return;
@@ -435,7 +435,7 @@ namespace Rococo
 					else
 					{
 						sexstringstream<1024> streamer;
-						streamer.sb << SEXTEXT("The type of ") << targetVariable << SEXTEXT(" does not match the type of ") << sourceText;
+						streamer.sb << ("The type of ") << targetVariable << (" does not match the type of ") << sourceText;
 						Throw(directive, streamer);
 					}
 				}
@@ -450,7 +450,7 @@ namespace Rococo
 						if (sourceDef.CapturesLocalVariables && !targetDef.CapturesLocalVariables)
 						{
 							sexstringstream<1024> streamer;
-							streamer.sb << SEXTEXT("Could not copy ") << sourceText << SEXTEXT(" to ") << targetVariable << SEXTEXT(". The target variable accepts regular function references, but not closures.");
+							streamer.sb << ("Could not copy ") << sourceText << (" to ") << targetVariable << (". The target variable accepts regular function references, but not closures.");
 							Throw(directive, streamer);
 						}
 
@@ -461,22 +461,22 @@ namespace Rococo
 					else
 					{
 						sexstringstream<1024> streamer;
-						streamer.sb << SEXTEXT("The type of ") << targetVariable << SEXTEXT(" does not match the type of ") << sourceText;
+						streamer.sb << ("The type of ") << targetVariable << (" does not match the type of ") << sourceText;
 						Throw(directive, streamer);
 					}
 				}
 				else if (sourceType == VARTYPE_Derivative)
 				{
-					Throw(directive, SEXTEXT("not implemented"));
+					Throw(directive, ("not implemented"));
 				}
 				else
 				{
 					if (varStruct.VarType() == VARTYPE_Derivative && !IsNullType(varStruct))
 					{
-						Throw(directive, SEXTEXT("Only interface references and primitive types can be initialized in an assignment"));
+						Throw(directive, ("Only interface references and primitive types can be initialized in an assignment"));
 					}				
 
-					if (AreEqual(sourceText, SEXTEXT("GetCurrentExpression")))
+					if (AreEqual(sourceText, ("GetCurrentExpression")))
 					{
 						const CClassExpression* express =  ce.SS.GetExpressionReflection(directive);
 						VariantValue sexPtr;
@@ -484,7 +484,7 @@ namespace Rococo
 
 						TokenBuffer token;
 						GetRefName(token, targetVariable);
-						ce.Builder.AddSymbol(SEXTEXT("Current Expression"));
+						ce.Builder.AddSymbol(("Current Expression"));
 
 						MemberDef def;
 						ce.Builder.TryGetVariableByName(OUT def, token);
@@ -502,33 +502,33 @@ namespace Rococo
 							TokenBuffer refTarget;
 							GetRefName(refTarget, targetVariable);
 
-							StringPrint(symbol, SEXTEXT("-> %s"), (csexstr) refTarget);
+							StringPrint(symbol, ("-> %s"), (cstr) refTarget);
 							ce.Builder.AddSymbol(symbol);
 							ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, refTarget);
 						}
 						else if (targetType == VARTYPE_Closure)
 						{	
-							StringPrint(symbol, SEXTEXT("-> %s"), (csexstr)targetVariable);
+							StringPrint(symbol, ("-> %s"), (cstr)targetVariable);
 							ce.Builder.AddSymbol(symbol);
 
 							TokenBuffer bytecodeId;
-							StringPrint(bytecodeId, SEXTEXT("%s.bytecodeId"), targetVariable);
+							StringPrint(bytecodeId, ("%s.bytecodeId"), targetVariable);
 							ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, bytecodeId);
 
 							TokenBuffer parentSF;
-							StringPrint(parentSF, SEXTEXT("%s.parentSF"), targetVariable);
+							StringPrint(parentSF, ("%s.parentSF"), targetVariable);
 							ce.Builder.AssignTempToVariable(10, parentSF);
 						}
 						else
 						{						
-							StringPrint(symbol, SEXTEXT("-> %s"), (csexstr) targetVariable);
+							StringPrint(symbol, ("-> %s"), (cstr) targetVariable);
 							ce.Builder.AddSymbol(symbol);
 							ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
 						}
 					}
 					else
 					{
-						Throw(sourceValue, SEXTEXT("The RHS of the assignment was unrecognized"));
+						Throw(sourceValue, ("The RHS of the assignment was unrecognized"));
 					}
 				}
 			}
@@ -537,13 +537,13 @@ namespace Rococo
 		void CompileAssignmentDirectiveFromCompound(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, bool explicitKeyword)
 		{
 			int offset = explicitKeyword ? 0 : -1; // explicit means the directive begins with the assignment keyword, else it begins with the target variable
-			csexstr targetVariable = GetAtomicArg(directive, 1 + offset).String()->Buffer;
+			cstr targetVariable = GetAtomicArg(directive, 1 + offset).String()->Buffer;
 			cr_sex sourceValue = directive.GetElement(3 + offset);
 		
 			VARTYPE targetType = varStruct.VarType();
 
 			TokenBuffer symbol;
-			StringPrint(symbol, SEXTEXT("%s=(...)"), targetVariable);
+			StringPrint(symbol, ("%s=(...)"), targetVariable);
 
 			bool negate = false;
 
@@ -573,13 +573,13 @@ namespace Rococo
 				if (TryCompileFunctionCallAndReturnValue(ce, sourceValue, targetType, NULL, varStruct.Archetype()))
 				{
 					TokenBuffer targetId;
-					StringPrint(targetId, SEXTEXT("%s.bytecodeId"), targetVariable);
+					StringPrint(targetId, ("%s.bytecodeId"), targetVariable);
 
 					ce.Builder.AddSymbol(symbol);
 					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetId); 
 
 					TokenBuffer targetSF;
-					StringPrint(targetSF, SEXTEXT("%s.parentSF"), targetVariable);
+					StringPrint(targetSF, ("%s.parentSF"), targetVariable);
 
 					ce.Builder.AddSymbol(symbol);
 				
@@ -591,17 +591,17 @@ namespace Rococo
 				{
 					ce.Builder.EnableClosures(targetVariable);
 					TokenBuffer symbol;
-					StringPrint(symbol, SEXTEXT("%s.bytecodeId = (closure ...)"), targetVariable);
+					StringPrint(symbol, ("%s.bytecodeId = (closure ...)"), targetVariable);
 					ce.Builder.AddSymbol(symbol);
 
 					TokenBuffer targetVariableByteCodeId;
-					StringPrint(targetVariableByteCodeId, SEXTEXT("%s.bytecodeId"), targetVariable);
+					StringPrint(targetVariableByteCodeId, ("%s.bytecodeId"), targetVariable);
 					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariableByteCodeId);
 
 					TokenBuffer targetVariableParentSF;
-					StringPrint(symbol, SEXTEXT("%s.parentSF = SF"), targetVariable);
+					StringPrint(symbol, ("%s.parentSF = SF"), targetVariable);
 					ce.Builder.AddSymbol(symbol);
-					StringPrint(targetVariableParentSF, SEXTEXT("%s.parentSF"), targetVariable);
+					StringPrint(targetVariableParentSF, ("%s.parentSF"), targetVariable);
 					ce.Builder.AssignTempToVariable(-2, targetVariableParentSF);
 					return;
 				}
@@ -628,16 +628,16 @@ namespace Rococo
 				break;
 			}
 
-			Throw(directive, SEXTEXT("Cannot determine RHS of assignment"));
+			Throw(directive, ("Cannot determine RHS of assignment"));
 		}
 
-		void CompileAssignAtomicValueToMember(CCompileEnvironment& ce, const IMember& member, cr_sex src, csexstr targetVariable)
+		void CompileAssignAtomicValueToMember(CCompileEnvironment& ce, const IMember& member, cr_sex src, cstr targetVariable)
 		{
 			// Either a literal or an identifier
-			csexstr sourceText = src.String()->Buffer;
+			cstr sourceText = src.String()->Buffer;
 
 			TokenBuffer symbol;
-			StringPrint(symbol, SEXTEXT("%s=%s"), targetVariable, sourceText);
+			StringPrint(symbol, ("%s=%s"), targetVariable, sourceText);
 
 			VARTYPE varType = Parse::GetLiteralType(sourceText);
 			if (IsPrimitiveType(varType))
@@ -666,47 +666,47 @@ namespace Rococo
 					else
 					{
 						sexstringstream<1024> streamer;
-						streamer.sb << SEXTEXT("The type of ") << targetVariable << SEXTEXT(" does not match the type of ") << sourceText;
+						streamer.sb << ("The type of ") << targetVariable << (" does not match the type of ") << sourceText;
 						Throw(src, streamer);
 					}
 				}
 				else
 				{
 					sexstringstream<1024> streamer;
-					streamer.sb << SEXTEXT("Cannot assign to type of ") << targetVariable << SEXTEXT(". The source is not a primitive type");
+					streamer.sb << ("Cannot assign to type of ") << targetVariable << (". The source is not a primitive type");
 					Throw(src, streamer);
 				}
 			}
 		}
 
-		void CompileAssignToStringMember(CCompileEnvironment& ce, csexstr variableName, const IStructure& st, const IMember& member, cr_sex src)
+		void CompileAssignToStringMember(CCompileEnvironment& ce, cstr variableName, const IStructure& st, const IMember& member, cr_sex src)
 		{
 			// Assume member underlying type is null-string
 			if (IsStringLiteral(src))
 			{
 				if (!IsIStringInlined(ce.Script))
 				{
-					Throw(src, SEXTEXT("Memberwise initialization of an IString member is not allowed unless all IString implementations support string inlining"));
+					Throw(src, ("Memberwise initialization of an IString member is not allowed unless all IString implementations support string inlining"));
 				}
 
 				sexstring valueStr = src.String();
 				CStringConstant* sc = CreateStringConstant(ce.Script, valueStr->Length, valueStr->Buffer, &src);
 
 				ce.Builder.Append_InitializeVirtualTable(variableName, ce.Object.Common().TypeStringLiteral());
-				AddSymbol(ce.Builder, SEXTEXT("StringConstant %s"), (csexstr)valueStr->Buffer);
+				AddSymbol(ce.Builder, ("StringConstant %s"), (cstr)valueStr->Buffer);
 
 				TokenBuffer token;
-				StringPrint(token, SEXTEXT("%s.length"), variableName);
+				StringPrint(token, ("%s.length"), variableName);
 
-				SEXCHAR value[32];
-				SafeFormat(value, 32, SEXTEXT("%d"), sc->length);
+				char value[32];
+				SafeFormat(value, 32, ("%d"), sc->length);
 				ce.Builder.AssignLiteral(NameString::From(token), value);
 
-				StringPrint(token, SEXTEXT("%s.buffer"), variableName);
+				StringPrint(token, ("%s.buffer"), variableName);
 				ce.Builder.AssignPointer(NameString::From(token), sc->pointer);
 
 				TokenBuffer vTableBuffer;
-				StringPrint(vTableBuffer, SEXTEXT("%s._vTable1"), variableName);
+				StringPrint(vTableBuffer, ("%s._vTable1"), variableName);
 				ce.Builder.AssignVariableRefToTemp(vTableBuffer, Rococo::ROOT_TEMPDEPTH);
 
 				TokenBuffer refName;
@@ -715,11 +715,11 @@ namespace Rococo
 			}
 			else
 			{
-				Throw(src, SEXTEXT("Memberwise initialization of a string member requires the argument be an atomic string literal"));
+				Throw(src, ("Memberwise initialization of a string member requires the argument be an atomic string literal"));
 			}
 		}
 
-		void CompileAssignMember(CCompileEnvironment& ce, csexstr variableName, const IStructure& st, const IMember& member, cr_sex src)
+		void CompileAssignMember(CCompileEnvironment& ce, cstr variableName, const IStructure& st, const IMember& member, cr_sex src)
 		{
 			const IStructure& memberType = *member.UnderlyingType();
 
@@ -732,7 +732,7 @@ namespace Rococo
 				}
 				else
 				{
-					Throw(src, SEXTEXT("Do not know how to assign the value of the compound expression to the member variable"));
+					Throw(src, ("Do not know how to assign the value of the compound expression to the member variable"));
 				}
 				return;
 			case VARTYPE_Derivative:
@@ -751,7 +751,7 @@ namespace Rococo
 					else if (!IsCompound(src))
 					{
 						sexstringstream<1024> streamer;
-						streamer.sb << memberType.Name() << SEXTEXT(" is a derived type, and requires a compound initializer");
+						streamer.sb << memberType.Name() << (" is a derived type, and requires a compound initializer");
 						Throw(src, streamer);
 						return;
 					}
@@ -759,7 +759,7 @@ namespace Rococo
 					if (src.NumberOfElements() != memberType.MemberCount())
 					{
 						sexstringstream<1024> streamer;
-						streamer.sb << member.Name() << SEXTEXT(" has ") << memberType.MemberCount() << SEXTEXT(" elements. But ") << src.NumberOfElements() << SEXTEXT(" were supplied ");
+						streamer.sb << member.Name() << (" has ") << memberType.MemberCount() << (" elements. But ") << src.NumberOfElements() << (" were supplied ");
 						Throw(src, streamer);
 						return;
 					}
@@ -769,7 +769,7 @@ namespace Rococo
 						const IMember& subMember = memberType.GetMember(i);
 
 						TokenBuffer memberName;
-						StringPrint(memberName, SEXTEXT("%s.%s"), variableName, subMember.Name());
+						StringPrint(memberName, ("%s.%s"), variableName, subMember.Name());
 
 						CompileAssignMember(ce, memberName, memberType, subMember, src.GetElement(i));
 					}
@@ -778,14 +778,14 @@ namespace Rococo
 			case VARTYPE_Bad:
 				{
 					sexstringstream<1024> streamer;
-					streamer.sb << memberType.Name() << SEXTEXT(" is a bad type, and cannot be initialized");
+					streamer.sb << memberType.Name() << (" is a bad type, and cannot be initialized");
 					Throw(src, streamer);
 					return;
 				}
 			}
 		}
 
-		void CompileAssignExpressionDirective(CCompileEnvironment& ce, cr_sex expression, csexstr refName)
+		void CompileAssignExpressionDirective(CCompileEnvironment& ce, cr_sex expression, cstr refName)
 		{
 			MemberDef def;
 			ce.Builder.TryGetVariableByName(OUT def, refName);
@@ -794,7 +794,7 @@ namespace Rococo
 			v.vPtrValue = (void*) &GetSystem(ce.Script).GetExpressionReflection(expression)->Header._vTables[0];
 
 			TokenBuffer symbol;
-			StringPrint(symbol, SEXTEXT("%s = '..."), refName);
+			StringPrint(symbol, ("%s = '..."), refName);
 
 			ce.Builder.AddSymbol(symbol);
 
@@ -831,11 +831,11 @@ namespace Rococo
 	
 		void CompileMemberwiseAssignment(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, int offset)
 		{
-			csexstr targetVariable = GetAtomicArg(directive, 1 + offset).String()->Buffer;
+			cstr targetVariable = GetAtomicArg(directive, 1 + offset).String()->Buffer;
 			
 			if (PublicMemberCount(varStruct) + 3 + offset != directive.NumberOfElements())
 			{
-				Throw(directive, SEXTEXT("Expecting one element in the constructor for every member of the structure"));
+				Throw(directive, ("Expecting one element in the constructor for every member of the structure"));
 			}
 
 			int publicCount = 0;
@@ -844,7 +844,7 @@ namespace Rococo
 			{
 				const IMember& member = varStruct.GetMember(i);
 				TokenBuffer memberName;
-				StringPrint(memberName, SEXTEXT("%s.%s"), targetVariable, member.Name());
+				StringPrint(memberName, ("%s.%s"), targetVariable, member.Name());
 
 				if (IsPublic(member))
 				{				
@@ -856,10 +856,10 @@ namespace Rococo
 
 	   void CompileUnaryOperatorOverload(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, int offset)
 	   {
-		  Throw(directive, SEXTEXT("Unary operator not implemented"));
+		  Throw(directive, ("Unary operator not implemented"));
 	   }
 
-	   const IFunction* FindFunction(cr_sex origin, csexstr shortName, const IModule& module)
+	   const IFunction* FindFunction(cr_sex origin, cstr shortName, const IModule& module)
 	   {
 		  const IFunction* f = module.FindFunction(shortName);
 		  if (f != nullptr) return f;
@@ -874,7 +874,7 @@ namespace Rococo
 			 if (f != nullptr)
 			 {
 				if (finalFunction != nullptr)
-				   ThrowNamespaceConflict(origin, prefix, *finalNS, SEXTEXT("function"), shortName);
+				   ThrowNamespaceConflict(origin, prefix, *finalNS, ("function"), shortName);
 				else
 				{
 				   finalFunction = f;
@@ -886,14 +886,14 @@ namespace Rococo
 		  return finalFunction;
 	   }
 
-	   csexstr GetOperationPrefix(csexstr op)
+	   cstr GetOperationPrefix(cstr op)
 	   {
-		  static std::unordered_map<stdstring, csexstr> mapOperatorToFunctionPrex =
+		  static std::unordered_map<stdstring, cstr> mapOperatorToFunctionPrex =
 		  {
-			 { SEXTEXT("+"), SEXTEXT("Add") },
-			 { SEXTEXT("-"), SEXTEXT("Subtract") },
-			 { SEXTEXT("*"), SEXTEXT("Multiply") },
-			 { SEXTEXT("/"), SEXTEXT("Divide") }
+			 { ("+"), ("Add") },
+			 { ("-"), ("Subtract") },
+			 { ("*"), ("Multiply") },
+			 { ("/"), ("Divide") }
 		  };
 
 		  auto i = mapOperatorToFunctionPrex.find(op);
@@ -908,29 +908,29 @@ namespace Rococo
 
 		  if (callee.NumberOfInputs() != 3)
 		  {
-			 Throw(s, SEXTEXT("Binary operator %s must have three arguments"), callee.Name());
+			 Throw(s, ("Binary operator %s must have three arguments"), callee.Name());
 		  }
 
 		  if (callee.NumberOfOutputs() != 0)
 		  {
-			 Throw(s, SEXTEXT("Binary operator %s must not return output"), callee.Name());
+			 Throw(s, ("Binary operator %s must not return output"), callee.Name());
 		  }
 
 		  if (&callee.GetArgument(0) != &atype)
 		  {
-			 Throw(s, SEXTEXT("First input argument was not of type %s. It was of type %s"), atype.Name(), callee.GetArgument(0).Name());
+			 Throw(s, ("First input argument was not of type %s. It was of type %s"), atype.Name(), callee.GetArgument(0).Name());
 		  }
 
 		  if (&callee.GetArgument(1) != &btype)
 		  {
-			 Throw(s, SEXTEXT("Second input argument was not of type %s. It was of type %s"), atype.Name(), callee.GetArgument(1).Name());
+			 Throw(s, ("Second input argument was not of type %s. It was of type %s"), atype.Name(), callee.GetArgument(1).Name());
 		  }
      
 		  int indices[] { 2 + firstArgIndex, 4 + firstArgIndex, 0 + firstArgIndex };
 
 		  for(int i = 0; i < 3; i++)
 		  {
-			 csexstr inputName = callee.GetArgName(i);
+			 cstr inputName = callee.GetArgName(i);
 			 const IStructure& argType = callee.GetArgument(i);
          
 			 int inputStackCost = PushInput(ce, s, indices[i], argType, nullptr, inputName, callee.GetGenericArg1(i));
@@ -956,7 +956,7 @@ namespace Rococo
 		  for (int32 i = 0; i < s.MemberCount(); ++i)
 		  {
 			 auto* memberType = s.GetMember(i).UnderlyingType();
-			 if (memberType && memberType->Name()[0] != SEXCHAR('_'))
+			 if (memberType && memberType->Name()[0] != char('_'))
 			 {
 				auto* m = GetFirstMemberWithLiteralType(*memberType);
 				if (m) return m;
@@ -971,19 +971,19 @@ namespace Rococo
 		  for (int i = 0; i < ce.Builder.Module().PrefixCount(); i++)
 		  {
 			 auto& prefix = ce.Builder.Module().GetPrefix(i);
-			 if (AreEqual(prefix.Name(), SEXTEXT("F32")))
+			 if (AreEqual(prefix.Name(), ("F32")))
 			 {
 				return ce.Object.Common().TypeFloat32();
 			 }
-			 else if (AreEqual(prefix.Name(), SEXTEXT("F64")))
+			 else if (AreEqual(prefix.Name(), ("F64")))
 			 {
 				return ce.Object.Common().TypeFloat64();
 			 }
-			 else if (AreEqual(prefix.Name(), SEXTEXT("I32")))
+			 else if (AreEqual(prefix.Name(), ("I32")))
 			 {
 				return ce.Object.Common().TypeInt32();
 			 }
-			 else if (AreEqual(prefix.Name(), SEXTEXT("I64")))
+			 else if (AreEqual(prefix.Name(), ("I64")))
 			 {
 				return ce.Object.Common().TypeInt64();
 			 }
@@ -1009,7 +1009,7 @@ namespace Rococo
 		  return GetFunctionDisposition(ce);
 	   }
 
-	   const IStructure& GetBestType(CCompileEnvironment& ce, cr_sex svalue, csexstr value, const IStructure* hintStruct)
+	   const IStructure& GetBestType(CCompileEnvironment& ce, cr_sex svalue, cstr value, const IStructure* hintStruct)
 	   {
 		  MemberDef def;
 		  if (ce.Builder.TryGetVariableByName(def, value))
@@ -1031,7 +1031,7 @@ namespace Rococo
 				return ce.Object.Common().TypeFloat32();
 			 }
 		  }
-		  Throw(svalue, SEXTEXT("Cannot infer best variable type for atomic expression"));
+		  Throw(svalue, ("Cannot infer best variable type for atomic expression"));
 		  return *hintStruct;
 	   }
 
@@ -1043,16 +1043,16 @@ namespace Rococo
 		  case EXPRESSION_TYPE_ATOMIC:
 			 return GetBestType(ce, s, s.String()->Buffer, hintStruct);
 		  case EXPRESSION_TYPE_COMPOUND:
-			 Throw(s, SEXTEXT("Cannot infer variable type from compound expression"));
+			 Throw(s, ("Cannot infer variable type from compound expression"));
 		  case EXPRESSION_TYPE_STRING_LITERAL:
 			 return ce.Object.Common().SysTypeIString().NullObjectType();
 		  default:
-			 Throw(s, SEXTEXT("Cannot infer variable type from expression"));
+			 Throw(s, ("Cannot infer variable type from expression"));
 			 return *hintStruct;
 		  }
 	   }
 
-	   void CompileBinaryOperatorOverload(csexstr operation, CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, int offset)
+	   void CompileBinaryOperatorOverload(cstr operation, CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, int offset)
 	   {
 		  // Assume varStruct is struct
 		  // Convert (Vec3 c = a + b) into (Vec3 c)(AddVec3toVec3 a b c)
@@ -1063,14 +1063,14 @@ namespace Rococo
 		  const IStructure& atype = GetBestType(ce, sa, &varStruct);
 		  const IStructure& btype = GetBestType(ce, sb, &varStruct);
 
-		  csexstr instrumentName = varStruct.Name();
-		  SEXCHAR functionName[Rococo::NAMESPACE_MAX_LENGTH];
-		  SafeFormat(functionName, sizeof(functionName), SEXTEXT("%s%s%s"), operation, atype.Name(), btype.Name());
+		  cstr instrumentName = varStruct.Name();
+		  char functionName[Rococo::NAMESPACE_MAX_LENGTH];
+		  SafeFormat(functionName, sizeof(functionName), ("%s%s%s"), operation, atype.Name(), btype.Name());
 
 		  auto* overloadFn = FindFunction(directive, functionName, ce.Script.ProgramModule());
 		  if (!overloadFn)
 		  {
-			 Throw(directive, SEXTEXT("Could not find binary operator function (%s (%s a)(%s b)(%s output) -> ).\nBe sure to use the correct (using ...) directive and include any necessary modules in your script."), functionName, instrumentName, instrumentName, instrumentName);
+			 Throw(directive, ("Could not find binary operator function (%s (%s a)(%s b)(%s output) -> ).\nBe sure to use the correct (using ...) directive and include any necessary modules in your script."), functionName, instrumentName, instrumentName, instrumentName);
 		  }
 
 		  int inputStackAllocCount = PushBinaryOperatorInputs(ce, directive, varStruct, *overloadFn, offset, atype, btype);
@@ -1091,24 +1091,24 @@ namespace Rococo
 		  else if (directive.NumberOfElements() - offset == 5)
 		  {
 			 cr_sex sop = directive[3 + offset];
-			 csexstr op = sop.String()->Buffer;
+			 cstr op = sop.String()->Buffer;
 			 if (IsAtomic(sop))
 			 {
-				csexstr prefix = GetOperationPrefix(op);
+				cstr prefix = GetOperationPrefix(op);
 				if (prefix == nullptr)
 				{
-				   Throw(0, SEXTEXT("Unknown operator. Expecting one of [+-*/] "));
+				   Throw(0, ("Unknown operator. Expecting one of [+-*/] "));
 				}
 				CompileBinaryOperatorOverload(prefix, ce, directive, varStruct, offset);
 			 }
 			 else
 			 {
-				Throw(directive, SEXTEXT("Expecting binary operator, but did not find an atomic expression"));
+				Throw(directive, ("Expecting binary operator, but did not find an atomic expression"));
 			 }
 		  }
 		  else
 		  {
-			 Throw(directive, SEXTEXT("Expecting binary or unary operator, but there were too many arguments"));
+			 Throw(directive, ("Expecting binary or unary operator, but there were too many arguments"));
 		  }
 	   }
 
@@ -1138,9 +1138,9 @@ namespace Rococo
 			   {
 				   cr_sex secondarg = directive[4 + offset];
 				   if (IsAtomic(secondarg) &&
-					   (AreEqual(secondarg.String(), SEXTEXT("+")) ||
-						   AreEqual(secondarg.String(), SEXTEXT("-")) ||
-						   AreEqual(secondarg.String(), SEXTEXT("*"))))
+					   (AreEqual(secondarg.String(), ("+")) ||
+						   AreEqual(secondarg.String(), ("-")) ||
+						   AreEqual(secondarg.String(), ("*"))))
 				   {
 					   CompileOperatorOverload(ce, directive, varStruct, offset + 1);
 				   }
@@ -1170,29 +1170,29 @@ namespace Rococo
 		   else
 		   {
 			   sexstringstream<1024> streamer;
-			   csexstr targetVariable = GetAtomicArg(directive, 1 + offset).String()->Buffer;
-			   streamer.sb << SEXTEXT("Bad expression on RHS of assignment: ") << targetVariable;
+			   cstr targetVariable = GetAtomicArg(directive, 1 + offset).String()->Buffer;
+			   streamer.sb << ("Bad expression on RHS of assignment: ") << targetVariable;
 			   Throw(directive, streamer);
 		   }
 	   }
 
 		void ValidateUnusedVariable(cr_sex identifierExpr, ICodeBuilder& builder)
 		{
-			csexstr id = identifierExpr.String()->Buffer;
+			cstr id = identifierExpr.String()->Buffer;
 			if (builder.GetVarType(id) != VARTYPE_Bad)
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("Variable name ") << id << SEXTEXT(" is already defined in the context");
+				streamer.sb << ("Variable name ") << id << (" is already defined in the context");
 				Throw(identifierExpr, streamer);
 			}
 		}	
 
-		int CompileThisToInstancePointerArg(CCompileEnvironment& ce, cr_sex s, csexstr classInstance, const IInterface& interfaceRef)
+		int CompileThisToInstancePointerArg(CCompileEnvironment& ce, cr_sex s, cstr classInstance, const IInterface& interfaceRef)
 		{
 			MemberDef refDef;
 			ce.Builder.TryGetVariableByName(OUT refDef, classInstance);
 
-			AddArgVariable(SEXTEXT("instance"), ce, ce.Object.Common().TypePointer());
+			AddArgVariable(("instance"), ce, ce.Object.Common().TypePointer());
 
 			if (refDef.Usage == ARGUMENTUSAGE_BYVALUE)
 			{
@@ -1221,21 +1221,21 @@ namespace Rococo
 			sexstring type = typeExpr.String();
 
 			TokenBuffer qualifiedConstructorName;
-			StringPrint(qualifiedConstructorName, SEXTEXT("%s.%s"), type->Buffer, SEXTEXT("Construct"));
+			StringPrint(qualifiedConstructorName, ("%s.%s"), type->Buffer, ("Construct"));
 			IFunction* constructor = module.FindFunction(qualifiedConstructorName);
 			if (constructor == NULL)
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("Cannot find constructor in source module: ") << qualifiedConstructorName;
+				streamer.sb << ("Cannot find constructor in source module: ") << qualifiedConstructorName;
 				Throw(typeExpr, streamer);
 			}
 			return *constructor;
 		}
 
-		void AddVariableAndSymbol(CCompileEnvironment& ce, csexstr type, csexstr name)
+		void AddVariableAndSymbol(CCompileEnvironment& ce, cstr type, cstr name)
 		{
-			SEXCHAR declText[256];
-		  SafeFormat(declText, 256, SEXTEXT("%s %s"), type, name);
+			char declText[256];
+		  SafeFormat(declText, 256, ("%s %s"), type, name);
 			ce.Builder.AddSymbol(declText);
 
 			AddVariable(ce, NameString::From(name), TypeString::From(type));
@@ -1331,14 +1331,14 @@ namespace Rococo
 			return false;
 		}
 
-		void InitDefaultReferences(cr_sex s, CCompileEnvironment& ce, csexstr id, const IStructure& st)
+		void InitDefaultReferences(cr_sex s, CCompileEnvironment& ce, cstr id, const IStructure& st)
 		{
 			if (st.VarType() == VARTYPE_Closure)
 			{
 				MemberDef def;
 				if (!ce.Builder.TryGetVariableByName(OUT def, id) || def.Usage != ARGUMENTUSAGE_BYVALUE)
 				{
-					Throw(s, SEXTEXT("Cannot compile closure. Unhandled syntax"));
+					Throw(s, ("Cannot compile closure. Unhandled syntax"));
 				}
 
 				IFunctionBuilder& nullFunction = GetNullFunction(ce.Script, *st.Archetype());
@@ -1347,8 +1347,8 @@ namespace Rococo
 				nullFunction.Builder().GetCodeSection(section);
 
 				TokenBuffer idcode, idoffset;
-				StringPrint(idcode, SEXTEXT("%s.bytecodeId"), id);
-				StringPrint(idoffset, SEXTEXT("%s.parentSF"), id);
+				StringPrint(idcode, ("%s.bytecodeId"), id);
+				StringPrint(idoffset, ("%s.parentSF"), id);
 
 				VariantValue codeRef;
 				codeRef.byteCodeIdValue = section.Id;
@@ -1360,11 +1360,11 @@ namespace Rococo
 				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, zeroRef, BITCOUNT_64);
 				ce.Builder.AssignTempToVariable(0, idoffset);
 
-				AddSymbol(ce.Builder, SEXTEXT("%s -> (Null-Function Null-SF)"), id);
+				AddSymbol(ce.Builder, ("%s -> (Null-Function Null-SF)"), id);
 			}
 		}
 
-		void InitClassMembers(CCompileEnvironment& ce, csexstr id)
+		void InitClassMembers(CCompileEnvironment& ce, cstr id)
 		{
 			MemberDef def;
 			ce.Builder.TryGetVariableByName(OUT def, id);
@@ -1384,26 +1384,26 @@ namespace Rococo
 			}
 		}
 
-		void CompileConstructFromConcreteConstructor(CCompileEnvironment& ce, const IStructure& type, csexstr id, cr_sex args)
+		void CompileConstructFromConcreteConstructor(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex args)
 		{
 			// (Class instance1 (<arg1>...<argN>)))
 			const IFunction* constructor = type.Constructor();
 			if (constructor == NULL)
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("Needs a constructor function ") << type.Name() << SEXTEXT(".Construct inside ") << type.Module().Name(); 
+				streamer.sb << ("Needs a constructor function ") << type.Name() << (".Construct inside ") << type.Module().Name(); 
 				Throw(*args.Parent(), streamer);
 			}
 
-			AddSymbol(ce.Builder, SEXTEXT("%s %s (...)"), type.Name(), id); 
+			AddSymbol(ce.Builder, ("%s %s (...)"), type.Name(), id); 
 			AddVariable(ce, NameString::From(id), type);
 	
 			int inputCount = constructor->NumberOfInputs();
 
-			int mapIndex = GetIndexOf(1, args, SEXTEXT("->"));
-			if (mapIndex > 0) Throw(args, SEXTEXT("Mapping token are not allowed in constructor calls, which have no output"));
-			if (args.NumberOfElements() < inputCount - 1) Throw(args, SEXTEXT("Too few arguments to constructor call"));
-			if (args.NumberOfElements() > inputCount - 1) Throw(args, SEXTEXT("Too many arguments to constructor call"));
+			int mapIndex = GetIndexOf(1, args, ("->"));
+			if (mapIndex > 0) Throw(args, ("Mapping token are not allowed in constructor calls, which have no output"));
+			if (args.NumberOfElements() < inputCount - 1) Throw(args, ("Too few arguments to constructor call"));
+			if (args.NumberOfElements() > inputCount - 1) Throw(args, ("Too many arguments to constructor call"));
 
 			int inputStackAllocCount = PushInputs(ce, args, *constructor, true, 0);		
 			inputStackAllocCount += CompileInstancePointerArg(ce, id);
@@ -1416,16 +1416,16 @@ namespace Rococo
 			ce.Builder.AssignClosureParentSF();
 		}
 
-		void CompileContructorCall(CCompileEnvironment& ce, const IStructure& type, csexstr id, cr_sex constructorArgs)
+		void CompileContructorCall(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex constructorArgs)
 		{
 			if (IsAtomic(constructorArgs) || IsStringLiteral(constructorArgs))
 			{
-				Throw(*constructorArgs.Parent(), SEXTEXT("Unrecognized variable initialization syntax. Expecting null or compound constructor args"));
+				Throw(*constructorArgs.Parent(), ("Unrecognized variable initialization syntax. Expecting null or compound constructor args"));
 			}
 
 			if (type.VarType() != VARTYPE_Derivative)
 			{
-				Throw(*constructorArgs.Parent(), SEXTEXT("Constructor declarations are only available for derivative types"));
+				Throw(*constructorArgs.Parent(), ("Constructor declarations are only available for derivative types"));
 			}
 
 			if (IsNullType(type))
@@ -1444,13 +1444,13 @@ namespace Rococo
 			return GetModule(script).Object().GetModule(0);
 		}
 
-		void CompileCreateStringConstant(CCompileEnvironment& ce, csexstr id, cr_sex decl, cr_sex value)
+		void CompileCreateStringConstant(CCompileEnvironment& ce, cstr id, cr_sex decl, cr_sex value)
 		{
 			sexstring valueStr = value.String();
 
 			CStringConstant* sc = CreateStringConstant(ce.Script, valueStr->Length, valueStr->Buffer, &value);
 
-			AddSymbol(ce.Builder, SEXTEXT("StringConstant %s"), id);
+			AddSymbol(ce.Builder, ("StringConstant %s"), id);
 
 			TokenBuffer stringRef;
 			GetRefName(stringRef, id);
@@ -1462,15 +1462,15 @@ namespace Rococo
 			MemberDef ptrDef;
 			ce.Builder.TryGetVariableByName(OUT ptrDef, stringRef);
 				
-			csexstr format = (value.String()->Length > 24) ? SEXTEXT(" = '%.24s...'") : SEXTEXT(" = '%s'");
-			AddSymbol(ce.Builder, format, (csexstr) value.String()->Buffer);
+			cstr format = (value.String()->Length > 24) ? (" = '%.24s...'") : (" = '%s'");
+			AddSymbol(ce.Builder, format, (cstr) value.String()->Buffer);
 		
 			VariantValue ptr;
 			ptr.vPtrValue = (void*) &sc->header._vTables[0];
 			ce.Builder.Assembler().Append_SetStackFrameImmediate(ptrDef.SFOffset, ptr, BITCOUNT_POINTER);		
 		}
 
-		bool TryCompileAsStringConstantAssignment(CCompileEnvironment& ce, const IStructure& type, csexstr id, cr_sex decl)
+		bool TryCompileAsStringConstantAssignment(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex decl)
 		{
 			if (ce.Object.Common().SysTypeIString().NullObjectType() != type)  return false;
 			if (decl.NumberOfElements() != 4) return false;	
@@ -1488,7 +1488,7 @@ namespace Rococo
 			if (s.NumberOfElements() == 4)
 			{
 				cr_sex assignCharExpr = s.GetElement(2);
-				if (AreEqual(assignCharExpr.String(), SEXTEXT("=")))
+				if (AreEqual(assignCharExpr.String(), ("=")))
 				{
 					return true;
 				}
@@ -1497,10 +1497,10 @@ namespace Rococo
 			return false;
 		}
 
-		void AddPointerToInterface(CCompileEnvironment& ce, csexstr id, const IStructure& nullType)
+		void AddPointerToInterface(CCompileEnvironment& ce, cstr id, const IStructure& nullType)
 		{
 			TokenBuffer declText;
-			StringPrint(declText, SEXTEXT("%s* %s"), GetFriendlyName(nullType), id);
+			StringPrint(declText, ("%s* %s"), GetFriendlyName(nullType), id);
 
 			TokenBuffer refName;
 			GetRefName(refName, id);
@@ -1510,12 +1510,12 @@ namespace Rococo
 			ce.Builder.AddPseudoVariable(NameString::From(id), nullType);	
 		}
 
-		void CompileAsExpressionArg(CCompileEnvironment& ce, const IStructure& type, csexstr id, cr_sex decl)
+		void CompileAsExpressionArg(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex decl)
 		{
 			if (type.InterfaceCount() == 0 || &type.GetInterface(0) != &ce.Object.Common().SysTypeIExpression())
 			{
-				Throw(decl, SEXTEXT("Expecting tyoe Sys.Reflection.IExpression, the only known variable declarations with\r\n")
-							SEXTEXT("5 elements are expressions defintions of the format (Sys.Type.IExpression s = ' (<s_def>))")); 
+				Throw(decl, "Expecting tyoe Sys.Reflection.IExpression, the only known variable declarations with\r\n"
+							"5 elements are expressions defintions of the format (Sys.Type.IExpression s = ' (<s_def>))"); 
 			}
 
 			cr_sex expression = decl.GetElement(4);
@@ -1527,13 +1527,13 @@ namespace Rococo
 			CompileAssignExpressionDirective(ce, expression, refName);
 		}
 
-		void CompileAsNodeValueAssign(CCompileEnvironment& ce, const IStructure& type, csexstr id, cr_sex decl)
+		void CompileAsNodeValueAssign(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex decl)
 		{
 			// (type id = & <node-name>)
 			cr_sex nodeNameExpr = decl.GetElement(4);
-			if (!IsAtomic(nodeNameExpr)) Throw(nodeNameExpr, SEXTEXT("Expecting (type id = & <node-name>). The <node-name> element needs to be atomic"));
+			if (!IsAtomic(nodeNameExpr)) Throw(nodeNameExpr, ("Expecting (type id = & <node-name>). The <node-name> element needs to be atomic"));
 
-			csexstr nodeName = nodeNameExpr.String()->Buffer;
+			cstr nodeName = nodeNameExpr.String()->Buffer;
 			ce.Builder.AssignVariableRefToTemp(nodeName, Rococo::ROOT_TEMPDEPTH); // The node pointer is now in D7
 
 			const IStructure* nodeType = ce.Builder.GetVarStructure(nodeName);
@@ -1542,7 +1542,7 @@ namespace Rococo
 				const IStructure& elementType = GetNodeDef(ce, decl, nodeName);
 				if (elementType != type)
 				{
-					ThrowTypeMismatch(decl, elementType, type, SEXTEXT("The node element type did not match the declaration type"));
+					ThrowTypeMismatch(decl, elementType, type, ("The node element type did not match the declaration type"));
 				}
 			
 				AppendInvoke(ce, GetListCallbacks(ce).NodeGetElementRef, decl); // The element ref is now in D7
@@ -1552,14 +1552,14 @@ namespace Rococo
 				const MapNodeDef& def = GetMapNodeDef(ce, decl, nodeName);
 				if (def.mapdef.ValueType != type)
 				{
-					ThrowTypeMismatch(decl, def.mapdef.ValueType, type, SEXTEXT("The node element type did not match the declaration type"));
+					ThrowTypeMismatch(decl, def.mapdef.ValueType, type, ("The node element type did not match the declaration type"));
 				}
 
 				AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGetRef, decl); // The element ref is now in D7
 			}
 			else
 			{
-				Throw(decl, SEXTEXT("The name did not match a known node type"));
+				Throw(decl, ("The name did not match a known node type"));
 			}
 		
 			AddVariableRef(ce, NameString::From(id), type);
@@ -1572,15 +1572,15 @@ namespace Rococo
 
 			if (s == ce.StructArray())
 			{
-				Throw(decl, SEXTEXT("Objects of the given type cannot be default constructed as one of the members is an array.\r\nProvide an explicit constructor and declare instances using the syntax: ( <type> <name> ( <arg1>...<argN> ) )"));
+				Throw(decl, ("Objects of the given type cannot be default constructed as one of the members is an array.\r\nProvide an explicit constructor and declare instances using the syntax: ( <type> <name> ( <arg1>...<argN> ) )"));
 			}
 			else if (s == ce.StructList())
 			{
-				Throw(decl, SEXTEXT("Objects of the given type cannot be default constructed as one of the members is a linked list.\r\nProvide an explicit constructor and declare instances using the syntax: ( <type> <name> ( <arg1>...<argN> ) )"));
+				Throw(decl, ("Objects of the given type cannot be default constructed as one of the members is a linked list.\r\nProvide an explicit constructor and declare instances using the syntax: ( <type> <name> ( <arg1>...<argN> ) )"));
 			}
 			else if (s == ce.StructMap())
 			{
-				Throw(decl, SEXTEXT("Objects of the given type cannot be default constructed as one of the members is a map.\r\nProvide an explicit constructor and declare instances using the syntax: ( <type> <name> ( <arg1>...<argN> ) )"));
+				Throw(decl, ("Objects of the given type cannot be default constructed as one of the members is a map.\r\nProvide an explicit constructor and declare instances using the syntax: ( <type> <name> ( <arg1>...<argN> ) )"));
 			}
 
 			for(int i = 0; i < s.MemberCount(); ++i)
@@ -1590,7 +1590,7 @@ namespace Rococo
 			}
 		}
 
-		void CompileClassAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& st, csexstr id, cr_sex decl)
+		void CompileClassAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& st, cstr id, cr_sex decl)
 		{	
 			TokenBuffer refName;
 			GetRefName(refName, id);
@@ -1598,7 +1598,7 @@ namespace Rococo
 			ce.Builder.AddSymbol(refName);
 			AddVariable(ce, NameString::From(refName), ce.Object.Common().TypePointer());
 
-			AddSymbol(ce.Builder, SEXTEXT("%s %s"), GetFriendlyName(st), id);
+			AddSymbol(ce.Builder, ("%s %s"), GetFriendlyName(st), id);
 			AssertDefaultConstruction(ce, decl, st);
 			AddVariable(ce, NameString::From(id), st);
 
@@ -1612,7 +1612,7 @@ namespace Rococo
 		  else
 		  {
 			 TokenBuffer vTableRef;
-			 StringPrint(vTableRef, SEXTEXT("%s._vTable1"), id);
+			 StringPrint(vTableRef, ("%s._vTable1"), id);
 			 ce.Builder.AssignVariableRefToTemp(vTableRef, 0); 
 		  } 
       
@@ -1621,7 +1621,7 @@ namespace Rococo
 			InitClassMembers(ce, id);
 		}
 
-		void CompileAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& st, csexstr id, cr_sex decl)
+		void CompileAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& st, cstr id, cr_sex decl)
 		{	
 			if (st.Prototype().IsClass)
 			{
@@ -1629,7 +1629,7 @@ namespace Rococo
 			}
 			else
 			{
-				AddSymbol(ce.Builder, SEXTEXT("%s %s"), GetFriendlyName(st), id);
+				AddSymbol(ce.Builder, ("%s %s"), GetFriendlyName(st), id);
 				AssertDefaultConstruction(ce, decl, st);
 				AddVariable(ce, NameString::From(id), st);
 				InitClassMembers(ce, id);
@@ -1637,7 +1637,7 @@ namespace Rococo
 			}
 		}
 
-		void CompileAsVariableDeclarationWithAssignment(CCompileEnvironment& ce, const IStructure& type, csexstr id, cr_sex decl)
+		void CompileAsVariableDeclarationWithAssignment(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex decl)
 		{
 			// (<type> <id> = <...>)
 
@@ -1674,10 +1674,10 @@ namespace Rococo
 				}
 				else
 				{
-					s = module.Object().IntrinsicModule().FindStructure(SEXTEXT("__Closure"));
+					s = module.Object().IntrinsicModule().FindStructure(("__Closure"));
 					if (s == NULL)
 					{
-						Throw(typeExpr, SEXTEXT("Error could not find __Closure intrinsic"));
+						Throw(typeExpr, ("Error could not find __Closure intrinsic"));
 					}
 				}
 			}
@@ -1685,7 +1685,7 @@ namespace Rococo
 			return true;
 		}
 
-		void CompileAsVariableDeclarationAndInit(CCompileEnvironment& ce, const IStructure& type, csexstr id, cr_sex decl)
+		void CompileAsVariableDeclarationAndInit(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex decl)
 		{		
 			if (decl.NumberOfElements() == 3)
 			{
@@ -1695,16 +1695,16 @@ namespace Rococo
 			else
 			{
 				// (type id = (constructor_args)) used in member by member construction
-				AssertAtomicMatch(decl.GetElement(2), SEXTEXT("="));
+				AssertAtomicMatch(decl.GetElement(2), ("="));
 							
 				if (decl.NumberOfElements() == 5)
 				{			
-					if (IsAtomicMatch(decl.GetElement(3), SEXTEXT("'")))
+					if (IsAtomicMatch(decl.GetElement(3), ("'")))
 					{
 						CompileAsExpressionArg(ce, type, id, decl);
 						return;
 					}
-					else if (IsAtomicMatch(decl.GetElement(3), SEXTEXT("&")))
+					else if (IsAtomicMatch(decl.GetElement(3), ("&")))
 					{
 						CompileAsNodeValueAssign(ce, type, id, decl);
 						return;
@@ -1720,7 +1720,7 @@ namespace Rococo
 		{
 			if (!IsAtomic(idExpr))
 			{
-				Throw(idExpr, SEXTEXT("Expecting a local identifier variable name in this position"));
+				Throw(idExpr, ("Expecting a local identifier variable name in this position"));
 			}
 
 			AssertLocalIdentifier(idExpr);
@@ -1748,11 +1748,11 @@ namespace Rococo
 
 			if (st == NULL)
 			{
-				ThrowTokenNotFound(decl, typeExpr.String()->Buffer, source.Name(), SEXTEXT("type"));
+				ThrowTokenNotFound(decl, typeExpr.String()->Buffer, source.Name(), ("type"));
 			}
 
 			ValidateLocalDeclarationVariable(*st, idExpr);
-			csexstr id = idExpr.String()->Buffer;
+			cstr id = idExpr.String()->Buffer;
 			if (nElements == 2)
 			{
 				CompileAsDefaultVariableDeclaration(ce, *st, id, decl);
@@ -1781,8 +1781,8 @@ namespace Rococo
 				return false;
 			}
 
-			csexstr op = operatorExpr.String()->Buffer;
-			if (!AreEqual(op, SEXTEXT("=")))
+			cstr op = operatorExpr.String()->Buffer;
+			if (!AreEqual(op, ("=")))
 			{
 				return false;
 			}
@@ -1790,7 +1790,7 @@ namespace Rococo
 			return true;
 		}
 
-		void AssertGetVariable(OUT MemberDef& def, csexstr name, CCompileEnvironment& ce, cr_sex exceptionSource)
+		void AssertGetVariable(OUT MemberDef& def, cstr name, CCompileEnvironment& ce, cr_sex exceptionSource)
 		{
 			AssertLocalIdentifier(exceptionSource);
 
@@ -1798,16 +1798,16 @@ namespace Rococo
 			{
 				NamespaceSplitter splitter(name);
 
-				csexstr instance, member;
+				cstr instance, member;
 				if (splitter.SplitTail(instance, member))
 				{
 					if (ce.Builder.TryGetVariableByName(def, instance))
 					{
-						ThrowTokenNotFound(exceptionSource, member, instance, SEXTEXT("member"));
+						ThrowTokenNotFound(exceptionSource, member, instance, ("member"));
 					}
 				}
 			
-				ThrowTokenNotFound(exceptionSource, name, ce.Builder.Owner().Name(), SEXTEXT("variable"));
+				ThrowTokenNotFound(exceptionSource, name, ce.Builder.Owner().Name(), ("variable"));
 			}
 		}
 
@@ -1831,7 +1831,7 @@ namespace Rococo
 			}
 
 			TokenBuffer destructorName;
-			StringPrint(destructorName, SEXTEXT("%s.Destruct"), type.Name());
+			StringPrint(destructorName, ("%s.Destruct"), type.Name());
 		
 			if (type.Module().FindFunction(destructorName) != NULL)
 			{
@@ -1851,7 +1851,7 @@ namespace Rococo
 			return true;
 		}
 
-		bool CompileAsStructureAssignmentFromCompound(CCompileEnvironment& ce, const IStructure& varStruct, csexstr varName, cr_sex value)
+		bool CompileAsStructureAssignmentFromCompound(CCompileEnvironment& ce, const IStructure& varStruct, cstr varName, cr_sex value)
 		{
 			if (value.NumberOfElements() == 1)
 			{
@@ -1861,7 +1861,7 @@ namespace Rococo
 			if (value.NumberOfElements() == 2)
 			{
 				cr_sex command = GetAtomicArg(value, 0);
-				csexstr commandText = command.String()->Buffer;
+				cstr commandText = command.String()->Buffer;
 
 				cr_sex arg = value.GetElement(1);
 
@@ -1877,22 +1877,22 @@ namespace Rococo
 
 						if (varType == NULL)
 						{
-							Throw(*value.Parent(), SEXTEXT("Cannot determine structure type on LHS of assignment"));
+							Throw(*value.Parent(), ("Cannot determine structure type on LHS of assignment"));
 						}
 
 						if (*varType != elementType)
 						{
-							ThrowTypeMismatch(*value.Parent(), *varType, elementType, SEXTEXT("Array type does not match assignment target type"));
+							ThrowTypeMismatch(*value.Parent(), *varType, elementType, ("Array type does not match assignment target type"));
 						}
 
 						if (!IsPLOD(elementType))
 						{
-							Throw(value, SEXTEXT("The array element type is not plain data"));
+							Throw(value, ("The array element type is not plain data"));
 						}
 
 						if (!TryCompileArithmeticExpression(ce, arg, true, VARTYPE_Int32))
 						{
-							Throw(command, SEXTEXT("Expecting Int32 valued expression for array index"));
+							Throw(command, ("Expecting Int32 valued expression for array index"));
 						} // D7 now contains the array index
 
 						ce.Builder.AssignVariableRefToTemp(commandText, 0); // D4 contains the array ptr
@@ -1903,12 +1903,12 @@ namespace Rococo
 					}
 					else
 					{
-						Throw(command, SEXTEXT("Expecting array name"));
+						Throw(command, ("Expecting array name"));
 					}
 				}
 				else
 				{
-					Throw(command, SEXTEXT("Expecting variable name"));
+					Throw(command, ("Expecting variable name"));
 				}
 			}
 
@@ -1919,7 +1919,7 @@ namespace Rococo
 		{
 		  if (directive.NumberOfElements() == 3)
 		  {
-			 csexstr varName = directive.GetElement(0).String()->Buffer;
+			 cstr varName = directive.GetElement(0).String()->Buffer;
 			 cr_sex rhs = directive.GetElement(2);
 
 			 switch (rhs.Type())
@@ -1927,7 +1927,7 @@ namespace Rococo
 			 case EXPRESSION_TYPE_COMPOUND:
 				return CompileAsStructureAssignmentFromCompound(ce, varStruct, varName, rhs);
 			 default:
-				Throw(directive, SEXTEXT("Non-compound structure assignment is not yet implemented"));
+				Throw(directive, ("Non-compound structure assignment is not yet implemented"));
 				return false;
 			 }
 		  }
@@ -1937,11 +1937,11 @@ namespace Rococo
 
 			 if (IsAtomic(sop))
 			 {
-				csexstr prefix = nullptr;
+				cstr prefix = nullptr;
 				auto s = sop.String();
-				if (AreEqual(s, SEXTEXT("+"))) prefix = SEXTEXT("Add");
-				else  if (AreEqual(s, SEXTEXT("-"))) prefix = SEXTEXT("Subtract");
-				else  if (AreEqual(s, SEXTEXT("*"))) prefix = SEXTEXT("Multiply");
+				if (AreEqual(s, ("+"))) prefix = ("Add");
+				else  if (AreEqual(s, ("-"))) prefix = ("Subtract");
+				else  if (AreEqual(s, ("*"))) prefix = ("Multiply");
 				else return false;
 				CompileBinaryOperatorOverload(prefix, ce, directive, varStruct, 0);
 				return true;
@@ -1965,7 +1965,7 @@ namespace Rococo
 			}
 
 			cr_sex keywordExpr = GetAtomicArg(directive, 0);
-			csexstr token = keywordExpr.String()->Buffer;
+			cstr token = keywordExpr.String()->Buffer;
 
 			MemberDef def;
 			if (ce.Builder.TryGetVariableByName(OUT def, token))
@@ -1984,7 +1984,7 @@ namespace Rococo
 					{
 						if (!TryCompileAsLateFactoryCall(ce, def, directive))
 						{
-							Throw(directive, SEXTEXT("Cannot interpret RHS as late factory call"));
+							Throw(directive, ("Cannot interpret RHS as late factory call"));
 						}
 
 						return true;
@@ -2029,7 +2029,7 @@ namespace Rococo
 			{
 				size_t lastIndex = ce.Builder.GetVariableCount() - i - 1;
 				MemberDef def;
-				csexstr name;
+				cstr name;
 				ce.Builder.GetVariableByIndex(OUT def, OUT name, (int32) lastIndex);
 
 				if (def.AllocSize != 0 && tryCatchBlock != NULL && def.Userdata != tryCatchBlock)
@@ -2047,7 +2047,7 @@ namespace Rococo
 			{
 				size_t lastIndex = ce.Builder.GetVariableCount() - i - 1;
 				MemberDef def;
-				csexstr name;
+				cstr name;
 				ce.Builder.GetVariableByIndex(OUT def, OUT name, (int32) lastIndex);
 
 				if (def.AllocSize != 0 && tryCatchBlock != NULL && def.Userdata != tryCatchBlock)
@@ -2066,7 +2066,7 @@ namespace Rococo
 			}
 		}
 
-		void CompileConstructInterfaceCall(CCompileEnvironment& ce, const IFunction& constructor, const MemberDef& refDef, csexstr instanceName, const IInterface& refCast, const IStructure& classType, cr_sex s)
+		void CompileConstructInterfaceCall(CCompileEnvironment& ce, const IFunction& constructor, const MemberDef& refDef, cstr instanceName, const IInterface& refCast, const IStructure& classType, cr_sex s)
 		{
 			// (construct class-name arg1 arg2 ... argN)
 			ce.Builder.Append_InitializeVirtualTable(instanceName, classType);
@@ -2074,10 +2074,10 @@ namespace Rococo
 			int inputCount = constructor.NumberOfInputs() - 1;
 			int nRequiredElements = 2 + inputCount;
 
-			int mapIndex = GetIndexOf(1, s, SEXTEXT("->"));
-			if (mapIndex > 0) Throw(s, SEXTEXT("Mapping token are not allowed in constructor calls, which have no output"));
-			if (s.NumberOfElements() < nRequiredElements) Throw(s, SEXTEXT("Too few arguments to constructor call"));
-			if (s.NumberOfElements() > nRequiredElements) Throw(s, SEXTEXT("Too many arguments to constructor call"));
+			int mapIndex = GetIndexOf(1, s, ("->"));
+			if (mapIndex > 0) Throw(s, ("Mapping token are not allowed in constructor calls, which have no output"));
+			if (s.NumberOfElements() < nRequiredElements) Throw(s, ("Too few arguments to constructor call"));
+			if (s.NumberOfElements() > nRequiredElements) Throw(s, ("Too many arguments to constructor call"));
 				
 			int inputStackAllocCount = PushInputs(ce, s, constructor, true, 2);	
 		
@@ -2087,7 +2087,7 @@ namespace Rococo
 			AppendFunctionCallAssembly(ce, constructor);
 			RepairStack(ce, s, constructor);
 	
-			if (AreEqual(SEXTEXT("factory"), GetContext(ce.Script)))
+			if (AreEqual(("factory"), GetContext(ce.Script)))
 			{
 				// 'construct' terminates a factory call and puts the interface pointer into D4
 				int interfaceIndex = GetInterfaceIndex(refCast, classType);
@@ -2119,12 +2119,12 @@ namespace Rococo
 				const IInterface& targetInterf = thisType.GetInterface(j);
 				if (&thisInterf == &targetInterf)
 				{				
-					CompileConstructInterfaceCall(REF ce, IN constructor, IN thisDef, SEXTEXT("this"), IN thisInterf, IN classType, IN s);
+					CompileConstructInterfaceCall(REF ce, IN constructor, IN thisDef, ("this"), IN thisInterf, IN classType, IN s);
 					return;
 				}
 			}
 
-			Throw(s, SEXTEXT("The class does not implement the interface associated with the local variable"));
+			Throw(s, ("The class does not implement the interface associated with the local variable"));
 		}
 
 		void CompileInterfaceCast(CCompileEnvironment& ce, IStructure& toType, cr_sex toNameExpr, cr_sex fromNameExpr)
@@ -2133,20 +2133,20 @@ namespace Rococo
 			sexstring fromName = fromNameExpr.String();
 			AddVariableRef(ce, NameString::From(toName->Buffer), toType);
 
-			IFunction& fnDynCast = GetFunctionByFQN(ce, *toNameExpr.Parent(), SEXTEXT("Sys.Native._DynamicCast"));
+			IFunction& fnDynCast = GetFunctionByFQN(ce, *toNameExpr.Parent(), ("Sys.Native._DynamicCast"));
 
 			const IInterface& castToInterf = toType.GetInterface(0);
-			csexstr castToInterfName = castToInterf.Name();
+			cstr castToInterfName = castToInterf.Name();
 
 			VariantValue v;
 			v.vPtrValue = (void*) &castToInterf;
 			ce.Builder.AddSymbol(castToInterfName);
 			ce.Builder.Assembler().Append_PushLiteral(BITCOUNT_POINTER, v);
 			ce.Builder.PushVariableRef(fromName->Buffer, 0);
-			ce.Builder.AddSymbol(SEXTEXT("_DynamicCast to D4"));
+			ce.Builder.AddSymbol(("_DynamicCast to D4"));
 
-			AddArgVariable(SEXTEXT("cast_to_interface"), ce, ce.Object.Common().TypePointer());
-			AddArgVariable(SEXTEXT("cast_from_ref"), ce, ce.Object.Common().TypePointer());
+			AddArgVariable(("cast_to_interface"), ce, ce.Object.Common().TypePointer());
+			AddArgVariable(("cast_from_ref"), ce, ce.Object.Common().TypePointer());
 
 			AppendFunctionCallAssembly(ce, fnDynCast);
 			MarkStackRollback(ce, *toNameExpr.Parent());
@@ -2170,9 +2170,9 @@ namespace Rococo
 			cr_sex fromName = GetAtomicArg(s, 1);
 			cr_sex mapToken = GetAtomicArg(s, 2);
 
-			if (!AreEqual(mapToken.String(), SEXTEXT("->")))
+			if (!AreEqual(mapToken.String(), ("->")))
 			{
-				Throw(s, SEXTEXT("Expecting syntax: (cast <from_variable> -> <to_type> <to_variable> )"));
+				Throw(s, ("Expecting syntax: (cast <from_variable> -> <to_type> <to_variable> )"));
 			}
 
 			AssertQualifiedIdentifier(toTypeExpr);
@@ -2182,7 +2182,7 @@ namespace Rococo
 			IStructure* toType = MatchStructure(toTypeExpr, ce.Builder.Module());
 			if (toType == NULL)
 			{
-				Throw(toTypeExpr, SEXTEXT("Unknown target type for cast"));
+				Throw(toTypeExpr, ("Unknown target type for cast"));
 			}
 
 			if (IsNullType(*toType))
@@ -2191,7 +2191,7 @@ namespace Rococo
 			}
 			else
 			{
-				Throw(toTypeExpr, SEXTEXT("Only interfaces can be the target type of a cast"));
+				Throw(toTypeExpr, ("Only interfaces can be the target type of a cast"));
 			}
 		}
 
@@ -2214,10 +2214,10 @@ namespace Rococo
 			AssertNotTooFewElements(s, 4);
 			AssertNotTooManyElements(s, 4);
 
-			AssertAtomicMatch(s.GetElement(2), SEXTEXT("="));
+			AssertAtomicMatch(s.GetElement(2), ("="));
 
 			cr_sex nodeNameExpr = GetAtomicArg(s, 1);
-			csexstr nodeName = nodeNameExpr.String()->Buffer;
+			cstr nodeName = nodeNameExpr.String()->Buffer;
 			AssertLocalIdentifier(nodeNameExpr);
 
 			cr_sex source = s.GetElement(3);
@@ -2231,7 +2231,7 @@ namespace Rococo
 			}
 			else
 			{
-				Throw(s, SEXTEXT("Expecting atomic or compound expression as the final item in the node definition"));
+				Throw(s, ("Expecting atomic or compound expression as the final item in the node definition"));
 			}
 		}
 
@@ -2250,22 +2250,22 @@ namespace Rococo
 
 		  if (s.NumberOfElements() != 4)
 		  {
-			 Throw(s, SEXTEXT("Expecting (global <varname> -> <target_variable>) or (global <varname> <- <source_variable>). Either way, global expression have 4 elements."));
+			 Throw(s, ("Expecting (global <varname> -> <target_variable>) or (global <varname> <- <source_variable>). Either way, global expression have 4 elements."));
 		  }
 
 		  if (!IsAtomic(s[1]))
 		  {
-			 Throw(s[1], SEXTEXT("Expecting atomc value for <varname> in (global <varname> ..."));
+			 Throw(s[1], ("Expecting atomc value for <varname> in (global <varname> ..."));
 		  }
 
 			if (!IsAtomic(s[2]))
 			{
-				Throw(s[2], SEXTEXT("Expecting -> or <- in (global <varname> -> ..."));
+				Throw(s[2], ("Expecting -> or <- in (global <varname> -> ..."));
 			}
 
 		  if (!IsAtomic(s[3]))
 		  {
-			 Throw(s[3], SEXTEXT("Expecting source or target variable name in (global <varname> <-/-> <source/target>)"));
+			 Throw(s[3], ("Expecting source or target variable name in (global <varname> <-/-> <source/target>)"));
 		  }
 
 			sexstring globalName = s[1].String();
@@ -2275,15 +2275,15 @@ namespace Rococo
 			GlobalValue* g = GetGlobalValue(ce.Script, globalName->Buffer);
 			if (g == nullptr)
 			{
-				Throw(s[1], SEXTEXT("Unrecognized global variable name"));
+				Throw(s[1], ("Unrecognized global variable name"));
 			}
 
 			VariantValue literalValue;
 			if (Parse::PARSERESULT_GOOD == Parse::TryParse(literalValue, g->type, localVarName->Buffer))
 			{
-				if (!AreEqual(operation, SEXTEXT("<-")))
+				if (!AreEqual(operation, ("<-")))
 				{
-					Throw(s[3], SEXTEXT("Expecting <- when assigning a literal expression to a global variable"));
+					Throw(s[3], ("Expecting <- when assigning a literal expression to a global variable"));
 				}
 
 				ce.Builder.AssignLiteralToGlobal(*g, literalValue);
@@ -2293,120 +2293,120 @@ namespace Rococo
 			MemberDef def;
 			if (!ce.Builder.TryGetVariableByName(def, localVarName->Buffer))
 			{
-				Throw(s[3], SEXTEXT("Expecting local variable name"));
+				Throw(s[3], ("Expecting local variable name"));
 			}
 
 			if (def.ResolvedType->VarType() != g->type)
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("The global variable type ") << GetTypeName(g->type) << SEXTEXT(" does not match the local variable type ") << def.ResolvedType->Name();
+				streamer.sb << ("The global variable type ") << GetTypeName(g->type) << (" does not match the local variable type ") << def.ResolvedType->Name();
 				Throw(s, streamer);
 			}
 
-			if (AreEqual(operation, SEXTEXT("->")))
+			if (AreEqual(operation, ("->")))
 			{
 				// assign local value
 				ce.Builder.AssignVariableFromGlobal(*g, def);
 			}
-			else if (AreEqual(operation, SEXTEXT("<-")))
+			else if (AreEqual(operation, ("<-")))
 			{
 				// assign global value
 				ce.Builder.AssignVariableToGlobal(*g, def);
 			}
 			else
 			{
-				Throw(s[2], SEXTEXT("Expecting <- or ->"));
+				Throw(s[2], ("Expecting <- or ->"));
 			}
 		}
 
 		bool TryCompileAsKeyword(CCompileEnvironment& ce, sexstring token, cr_sex s)
 		{
-			if (AreEqual(token, SEXTEXT("if")))
+			if (AreEqual(token, ("if")))
 			{
 				CompileIfThenElse(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("cast")))
+			else if (AreEqual(token, ("cast")))
 			{
 				CompileCast(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("while")))
+			else if (AreEqual(token, ("while")))
 			{
 				CompileWhileLoop(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("break")))
+			else if (AreEqual(token, ("break")))
 			{
 				CompileBreak(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("continue")))
+			else if (AreEqual(token, ("continue")))
 			{
 				CompileContinue(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("do")))
+			else if (AreEqual(token, ("do")))
 			{
 				CompileDoWhile(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("foreach")))
+			else if (AreEqual(token, ("foreach")))
 			{
 				CompileForEach(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("throw")))
+			else if (AreEqual(token, ("throw")))
 			{
 				CompileThrow(ce, s);			
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("construct")))
+			else if (AreEqual(token, ("construct")))
 			{
 				CompileConstructInterfaceCall(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("trip")))
+			else if (AreEqual(token, ("trip")))
 			{
 				CompileTrip(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("try")))
+			else if (AreEqual(token, ("try")))
 			{
 				CompileExceptionBlock(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("return")))
+			else if (AreEqual(token, ("return")))
 			{
 				CompileReturnFromFunction(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("array")))
+			else if (AreEqual(token, ("array")))
 			{
 				CompileArrayDeclaration(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("list")))
+			else if (AreEqual(token, ("list")))
 			{
 				CompileListDeclaration(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("map")))
+			else if (AreEqual(token, ("map")))
 			{
 				CompileMapDeclaration(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("node")))
+			else if (AreEqual(token, ("node")))
 			{
 				CompleAsNodeDeclaration(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("yield")))
+			else if (AreEqual(token, ("yield")))
 			{
 				CompileAsYield(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, SEXTEXT("global")))
+			else if (AreEqual(token, ("global")))
 			{
 				CompileAsGlobalAccess(ce, s);
 				return true;
@@ -2417,12 +2417,12 @@ namespace Rococo
 			}
 		}
 
-		void ReturnVariableInterface(CCompileEnvironment& ce, cr_sex exceptionSource, csexstr sourceName, csexstr outputName, const MemberDef& output)
+		void ReturnVariableInterface(CCompileEnvironment& ce, cr_sex exceptionSource, cstr sourceName, cstr outputName, const MemberDef& output)
 		{
 			MemberDef def;
 			if (!ce.Builder.TryGetVariableByName(OUT def, sourceName))
 			{
-				ThrowTokenNotFound(exceptionSource, sourceName, ce.Builder.Owner().Name(), SEXTEXT("structure")); 
+				ThrowTokenNotFound(exceptionSource, sourceName, ce.Builder.Owner().Name(), ("structure")); 
 			}
 
 			const IInterface& outputInterface = output.ResolvedType->GetInterface(0);
@@ -2431,14 +2431,14 @@ namespace Rococo
 			if (src.InterfaceCount() == 0)
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb <<  SEXTEXT("The source type '") << GetFriendlyName(src) << SEXTEXT("' implements no interfaces");
+				streamer.sb <<  ("The source type '") << GetFriendlyName(src) << ("' implements no interfaces");
 				Throw(exceptionSource, streamer);
 			}
 
 			if (def.location != Compiler::VARLOCATION_INPUT)
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb <<  SEXTEXT("Only inputs can be used as the source for an interface to an output");
+				streamer.sb <<  ("Only inputs can be used as the source for an interface to an output");
 				Throw(exceptionSource, streamer);
 			}
 
@@ -2456,7 +2456,7 @@ namespace Rococo
 				}
 
 				sexstringstream<1024> streamer;
-				streamer.sb <<  SEXTEXT("The RHS type '") << GetFriendlyName(src) << SEXTEXT("' does not implement interface ") << outputInterface.Name();
+				streamer.sb <<  ("The RHS type '") << GetFriendlyName(src) << ("' does not implement interface ") << outputInterface.Name();
 				Throw(exceptionSource, streamer);
 			}
 			else
@@ -2465,7 +2465,7 @@ namespace Rococo
 			}
 		}
 
-		void AssignVariableToVariable(CCompileEnvironment& ce, cr_sex exceptionSource, csexstr lhs, csexstr rhs)
+		void AssignVariableToVariable(CCompileEnvironment& ce, cr_sex exceptionSource, cstr lhs, cstr rhs)
 		{
 			try
 			{
@@ -2485,22 +2485,22 @@ namespace Rococo
 					}
 				}
 
-				SEXCHAR symbol[256];
-			 SafeFormat(symbol, 256, SEXTEXT("%s = %s"), lhs, rhs);
+				char symbol[256];
+			 SafeFormat(symbol, 256, ("%s = %s"), lhs, rhs);
 
 				NamespaceSplitter splitter(rhs);
 
-				csexstr member = rhs;
+				cstr member = rhs;
 
-				csexstr body, tail;
+				cstr body, tail;
 				if (splitter.SplitHead(body, tail))
 				{
-					csexstr mappedToken = ce.MapMethodToMember(tail);
+					cstr mappedToken = ce.MapMethodToMember(tail);
 					if (mappedToken != NULL)
 					{
 						NamespaceSplitter subSplitter(body);
 
-						csexstr instance, subInstance;
+						cstr instance, subInstance;
 						if (!subSplitter.SplitTail(instance, subInstance))
 						{
 							subInstance = body;
@@ -2509,24 +2509,24 @@ namespace Rococo
 						const IStructure* st = ce.Builder.GetVarStructure(subInstance);
 						if (st == NULL)
 						{
-							ThrowTokenNotFound(exceptionSource, subInstance, ce.Builder.Owner().Name(), SEXTEXT("structure")); 
+							ThrowTokenNotFound(exceptionSource, subInstance, ce.Builder.Owner().Name(), ("structure")); 
 						}
 
 						if (st == &ce.StructArray())
 						{
 							TokenBuffer mappedSymbol;
-							StringPrint(mappedSymbol, SEXTEXT("%s.%s"), body, mappedToken);
+							StringPrint(mappedSymbol, ("%s.%s"), body, mappedToken);
 							ce.Builder.AddSymbol(symbol);
 							ce.Builder.AssignVariableToVariable(mappedSymbol, lhs);
 							return;
 						}
 					}
-					else if (AreEqual(tail, SEXTEXT("PopOut")))
+					else if (AreEqual(tail, ("PopOut")))
 					{
 						VARTYPE type = ce.Builder.GetVarType(lhs);
 						if (!IsPrimitiveType(type))
 						{
-							Throw(exceptionSource, SEXTEXT("Only primitive types can be popped out from an array"));
+							Throw(exceptionSource, ("Only primitive types can be popped out from an array"));
 						}
 						CompileAsPopOutFromArray(ce, exceptionSource, body, ce.Builder.GetVarType(lhs));
 						ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, lhs);
@@ -2554,21 +2554,21 @@ namespace Rococo
 			if (!ce.Builder.TryGetVariableByName(OUT def, lhs->Buffer))
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("Cannot find ") << (csexstr) lhs->Buffer << SEXTEXT(" in this context");
+				streamer.sb << ("Cannot find ") << (cstr) lhs->Buffer << (" in this context");
 				Throw(s, *streamer.sb);
 			}
 
 			if (def.Usage != ARGUMENTUSAGE_BYREFERENCE)
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("Cannot assign a string to ") << (csexstr) lhs->Buffer << SEXTEXT(": the variable was a value type");
+				streamer.sb << ("Cannot assign a string to ") << (cstr) lhs->Buffer << (": the variable was a value type");
 				Throw(s, streamer);
 			}
 
 			if (def.SFOffset >= 0)
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("Cannot assign a string to the temporary variable ") << (csexstr) lhs->Buffer;
+				streamer.sb << ("Cannot assign a string to the temporary variable ") << (cstr) lhs->Buffer;
 				Throw(s, streamer);
 			}
 
@@ -2576,22 +2576,22 @@ namespace Rococo
 			if (def.ResolvedType != &istring.NullObjectType())
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("Cannot assign a string to anything other than a Sys.Type.IString reference") << (csexstr) lhs->Buffer;
+				streamer.sb << ("Cannot assign a string to anything other than a Sys.Type.IString reference") << (cstr) lhs->Buffer;
 				Throw(s, streamer);
 			}
 
 			if (ce.Builder.Owner().GetArgumentByName(lhs->Buffer)->Direction() != ARGDIRECTION_OUTPUT)
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("The Sys.Type.IString was not an output reference: ") << (csexstr) lhs->Buffer;
+				streamer.sb << ("The Sys.Type.IString was not an output reference: ") << (cstr) lhs->Buffer;
 				Throw(s, streamer);
 			}
 
 			CStringConstant* sc = CreateStringConstant(ce.Script, rhs->Length, rhs->Buffer, &s);
 
-			SEXCHAR debugInfo[256];
-			csexstr format = (rhs->Length > 24) ? SEXTEXT(" = '%.24s...'") : SEXTEXT(" = '%s'");
-		  SafeFormat(debugInfo, 256, format, (csexstr) rhs->Buffer);
+			char debugInfo[256];
+			cstr format = (rhs->Length > 24) ? (" = '%.24s...'") : (" = '%s'");
+		  SafeFormat(debugInfo, 256, format, (cstr) rhs->Buffer);
 			ce.Builder.AddSymbol(debugInfo);
 
 			VariantValue ptr;
@@ -2600,11 +2600,11 @@ namespace Rococo
 			ce.Builder.Assembler().Append_SetStackFrameImmediate(def.SFOffset, ptr, BITCOUNT_POINTER);
 		}
 
-		bool IsValidVariableName(csexstr token)
+		bool IsValidVariableName(cstr token)
 		{
 			NamespaceSplitter splitter(token);
 
-			csexstr instance, member;
+			cstr instance, member;
 			if (splitter.SplitTail(instance, member))
 			{
 				return IsLowerCase(member[0]);
@@ -2630,7 +2630,7 @@ namespace Rococo
 					sexstring rhsToken = rhs.String();
 					sexstring middleToken = middle.String();
 
-					if (AreEqual(middleToken, SEXTEXT("=")))
+					if (AreEqual(middleToken, ("=")))
 					{
 						if (IsStringLiteral(rhs))
 						{
@@ -2640,7 +2640,7 @@ namespace Rococo
 
 						if (IsValidVariableName(lhsToken->Buffer) && IsValidVariableName(rhsToken->Buffer))
 						{
-							if (AreEqual(rhsToken, SEXTEXT("true")) || AreEqual(rhsToken, SEXTEXT("false")))
+							if (AreEqual(rhsToken, ("true")) || AreEqual(rhsToken, ("false")))
 							{
 								return false;
 							}
@@ -2648,12 +2648,12 @@ namespace Rococo
 							MemberDef targetDef;
 							if (!ce.Builder.TryGetVariableByName(targetDef, lhsToken->Buffer))
 							{
-								Throw(lhs, SEXTEXT("Unrecognized variable name"));
+								Throw(lhs, ("Unrecognized variable name"));
 							}
 
 							if (targetDef.CapturesLocalVariables)
 							{
-								Throw(lhs, SEXTEXT("The target variable refers to a closure. It is immutable."));
+								Throw(lhs, ("The target variable refers to a closure. It is immutable."));
 							}
 
 							CompileTrivialAssignment(ce, s, lhsToken, rhsToken);
@@ -2673,19 +2673,19 @@ namespace Rococo
 				return false;
 			}
 
-			csexstr macroName = token->Buffer+1;
+			cstr macroName = token->Buffer+1;
 
 			NamespaceSplitter splitter(macroName);	
 
 			const IFunction *f;
 
-			csexstr nsBody, fname;
+			cstr nsBody, fname;
 			if (splitter.SplitTail(OUT nsBody, OUT fname))
 			{
 				INamespace& ns = AssertGetNamespace(ce.Builder.Module().Object(), s, nsBody);
 
 				const IMacro* macro = ns.FindMacro(fname);
-				if (macro == NULL) ThrowTokenNotFound(s, fname, ns.FullName()->Buffer, SEXTEXT("macro"));		
+				if (macro == NULL) ThrowTokenNotFound(s, fname, ns.FullName()->Buffer, ("macro"));		
 				f = &macro->Implementation();
 			}
 			else
@@ -2708,7 +2708,7 @@ namespace Rococo
 							}
 							else
 							{
-								ThrowNamespaceConflict(s, *firstPrefix, prefix, SEXTEXT("macro"), macroName);
+								ThrowNamespaceConflict(s, *firstPrefix, prefix, ("macro"), macroName);
 							}
 						}
 					}
@@ -2716,7 +2716,7 @@ namespace Rococo
 
 				if (f == NULL)
 				{
-					ThrowTokenNotFound(s, macroName, ce.Builder.Module().Name(), SEXTEXT("macro"));
+					ThrowTokenNotFound(s, macroName, ce.Builder.Module().Name(), ("macro"));
 				}
 			}
 
@@ -2738,7 +2738,7 @@ namespace Rococo
 				return;
 			}
 
-			if (token->Buffer[0] == SEXTEXT('\''))
+			if (token->Buffer[0] == ('\''))
 			{
 				// Data expression, skip
 				return;
@@ -2757,7 +2757,7 @@ namespace Rococo
 				}
 				else
 				{
-					Throw(s, SEXTEXT("Expression was not recognized as a valid function call, and has too few elements to be a variable declaration"));
+					Throw(s, ("Expression was not recognized as a valid function call, and has too few elements to be a variable declaration"));
 				}
 			}
 			else
@@ -2780,11 +2780,11 @@ namespace Rococo
 			const IStructure* varStruct = ce.Builder.GetVarStructure(token->Buffer);
 			if (NULL == varStruct)
 			{
-				streamer.sb << SEXTEXT("Unrecognized keyword/variable/function/namespace/syntax in expression: ") << token->Buffer;
+				streamer.sb << ("Unrecognized keyword/variable/function/namespace/syntax in expression: ") << token->Buffer;
 			}
 			else
 			{
-				streamer.sb << SEXTEXT("Variable recognized, but the syntax in which it is used was not: ") << GetFriendlyName(*varStruct) << SEXTEXT(" ") << token->Buffer;
+				streamer.sb << ("Variable recognized, but the syntax in which it is used was not: ") << GetFriendlyName(*varStruct) << (" ") << token->Buffer;
 			}
 		
 			Throw(s, streamer);
@@ -2792,7 +2792,7 @@ namespace Rococo
 
 		void StreamSTCEX(StringBuilder& streamer, const STCException& ex)
 		{
-			streamer << SEXTEXT("Compiler exception code: ") << ex.Code() << SEXTEXT(".\n") << SEXTEXT("Source: ") << ex.Source() << SEXTEXT("\n. Message: ") << ex.Message();
+			streamer << ("Compiler exception code: ") << ex.Code() << (".\n") << ("Source: ") << ex.Source() << ("\n. Message: ") << ex.Message();
 		}
 
 		void CompileExpression(CCompileEnvironment& ce, cr_sex s)

@@ -39,22 +39,22 @@ namespace Rococo { namespace Sex
 		Throw(e, "%s", f.buffer);
 	}
 
-	void ThrowTypeMismatch(cr_sex s, const IStructure& a, const IStructure& b, csexstr extra)
+	void ThrowTypeMismatch(cr_sex s, const IStructure& a, const IStructure& b, cstr extra)
 	{
 		sexstringstream<1024> streamer;
-		streamer.sb << SEXTEXT("Type mismatch: ") << GetFriendlyName(a) << SEXTEXT(" != ") << GetFriendlyName(b) << SEXTEXT(". ") << extra;
+		streamer.sb << ("Type mismatch: ") << GetFriendlyName(a) << (" != ") << GetFriendlyName(b) << (". ") << extra;
 		Throw(s, *streamer.sb);
 	}
 
-	csexstr ToString(EXPRESSION_TYPE type)
+	cstr ToString(EXPRESSION_TYPE type)
 	{
 		switch(type)
 		{
-		case EXPRESSION_TYPE_ATOMIC: return SEXTEXT("atomic");
-		case EXPRESSION_TYPE_STRING_LITERAL: return SEXTEXT("string-literal");
-		case EXPRESSION_TYPE_COMPOUND: return SEXTEXT("compound");
-		case EXPRESSION_TYPE_NULL: return SEXTEXT("null");
-		default: return SEXTEXT("unknown");
+		case EXPRESSION_TYPE_ATOMIC: return ("atomic");
+		case EXPRESSION_TYPE_STRING_LITERAL: return ("string-literal");
+		case EXPRESSION_TYPE_COMPOUND: return ("compound");
+		case EXPRESSION_TYPE_NULL: return ("null");
+		default: return ("unknown");
 		}
 	}
 
@@ -63,17 +63,17 @@ namespace Rococo { namespace Sex
 		if (e.Type() != type)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Expecting ") << ToString(type) << " expression, but found " << ToString(e.Type()) << " expression";
+			streamer.sb << ("Expecting ") << ToString(type) << " expression, but found " << ToString(e.Type()) << " expression";
 			Throw(e, *streamer.sb);
 		}
 	}
 
-	void AssertAtomicMatch(cr_sex s, csexstr value)
+	void AssertAtomicMatch(cr_sex s, cstr value)
 	{
-		if (!IsAtomic(s) || !AreEqual(s.String(), SEXTEXT("=")))
+		if (!IsAtomic(s) || !AreEqual(s.String(), ("=")))
 		{
          sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Expecting '") << value << SEXTEXT("' at this position");
+			streamer.sb << ("Expecting '") << value << ("' at this position");
 			Throw(s, *streamer.sb);
 		}
 	}
@@ -83,42 +83,42 @@ namespace Rococo { namespace Sex
 		if (e.Type() != EXPRESSION_TYPE_COMPOUND && e.Type() != EXPRESSION_TYPE_NULL)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Expecting compound or null expression, but found a ") << ToString(e.Type()) << " expression";
+			streamer.sb << ("Expecting compound or null expression, but found a ") << ToString(e.Type()) << " expression";
          Throw(e, *streamer.sb);
 		}
 	}
 
-	void ThrowTokenAlreadyDefined(cr_sex s, csexstr name, csexstr repository, csexstr type)
+	void ThrowTokenAlreadyDefined(cr_sex s, cstr name, cstr repository, cstr type)
 	{
       sexstringstream<1024> streamer;
-		streamer.sb << type << SEXTEXT(" '") << name << SEXTEXT("' is already defined in ") << repository;
+		streamer.sb << type << (" '") << name << ("' is already defined in ") << repository;
       Throw(s, *streamer.sb);
 	}
 
-	INamespaceBuilder& AssertGetSubspace(IProgramObject& object, cr_sex s, csexstr name)
+	INamespaceBuilder& AssertGetSubspace(IProgramObject& object, cr_sex s, cstr name)
 	{
 		INamespaceBuilder* ns = object.GetRootNamespace().FindSubspace(name);
 		if (ns == NULL)
 		{
-			Throw(s, SEXTEXT("Unrecognized namespace"));
+			Throw(s, ("Unrecognized namespace"));
 		}
 		return *ns;
 	}
 
-	void AssertSplitTail(NamespaceSplitter& splitter, cr_sex s, OUT csexstr& body, OUT csexstr& tail)
+	void AssertSplitTail(NamespaceSplitter& splitter, cr_sex s, OUT cstr& body, OUT cstr& tail)
 	{
 		if (!splitter.SplitTail(OUT body, OUT tail))
 		{
-			Throw(s, SEXTEXT("Expecting fully qualified namespace name"));
+			Throw(s, ("Expecting fully qualified namespace name"));
 		}
 	}
 
-	void AssertMacroShortName(cr_sex s, csexstr shortName)
+	void AssertMacroShortName(cr_sex s, cstr shortName)
 	{
 		if (!IsAlphabetical(shortName[0]))
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Expecting macro name to begin with a letter {a-z} or {A-Z} at position[0]");
+			streamer.sb << ("Expecting macro name to begin with a letter {a-z} or {A-Z} at position[0]");
          Throw(s, *streamer.sb);
 		}
 
@@ -126,11 +126,11 @@ namespace Rococo { namespace Sex
 
 		for(int i = 1; i < len; ++i)
 		{
-			SEXCHAR c = shortName[i];
+			char c = shortName[i];
 			if (!IsAlphaNumeric(c))
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("Expecting identifier character to be an alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
+				streamer.sb << ("Expecting identifier character to be an alphanumeric {A-Z or a-z or 0-9} at position[") << i << ("]");
             Throw(s, *streamer.sb);
 			}
 		}
@@ -148,13 +148,13 @@ namespace Rococo { namespace Sex
 
 		if (text->Length == 0)
 		{
-			Throw(e, SEXTEXT("Expecting non-blank string identifier"));
+			Throw(e, ("Expecting non-blank string identifier"));
 		}
 
 		if (text->Length >= NAMESPACE_MAX_LENGTH)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Expecting typename, but the string was too long. Exceeded ") << NAMESPACE_MAX_LENGTH << SEXTEXT(" characters");
+			streamer.sb << ("Expecting typename, but the string was too long. Exceeded ") << NAMESPACE_MAX_LENGTH << (" characters");
          Throw(e, *streamer.sb);
 		}
 
@@ -166,7 +166,7 @@ namespace Rococo { namespace Sex
 
 		for(int i = 0; i < text->Length; i++)
 		{
-			SEXCHAR c = text->Buffer[i];
+			char c = text->Buffer[i];
 
 			switch(state)
 			{
@@ -174,7 +174,7 @@ namespace Rococo { namespace Sex
 				if (!IsCapital(c))
 				{
 					sexstringstream<1024> streamer;
-					streamer.sb << SEXTEXT("Expecting typename '") << text->Buffer << SEXTEXT("' to begin with capital letter {A-Z} at position[") << i << SEXTEXT("]");
+					streamer.sb << ("Expecting typename '") << text->Buffer << ("' to begin with capital letter {A-Z} at position[") << i << ("]");
                Throw(e, *streamer.sb);
 				}
 				state = STATE_WITHIN_ITEM;
@@ -187,7 +187,7 @@ namespace Rococo { namespace Sex
 				else if (!IsAlphaNumeric(c))
 				{
 					sexstringstream<1024> streamer;
-					streamer.sb << SEXTEXT("Expecting alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
+					streamer.sb << ("Expecting alphanumeric {A-Z or a-z or 0-9} at position[") << i << ("]");
                Throw(e, *streamer.sb);
 				}
 				break;
@@ -197,7 +197,7 @@ namespace Rococo { namespace Sex
 		if (STATE_EXPECTING_NEW_ITEM)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Expecting typename to terminate on an alphanumeric {A-Z or a-z or 0-9} at position[") << text->Length << SEXTEXT("]");
+			streamer.sb << ("Expecting typename to terminate on an alphanumeric {A-Z or a-z or 0-9} at position[") << text->Length << ("]");
          Throw(e, *streamer.sb);
 		}
 	}
@@ -209,13 +209,13 @@ namespace Rococo { namespace Sex
 
 		if (text->Length == 0)
 		{
-			Throw(e, SEXTEXT("Expecting non-blank string identifier"));
+			Throw(e, ("Expecting non-blank string identifier"));
 		}
 
 		if (text->Length >= NAMESPACE_MAX_LENGTH)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Identifier was too long. Exceeded ") << NAMESPACE_MAX_LENGTH << SEXTEXT(" characters");
+			streamer.sb << ("Identifier was too long. Exceeded ") << NAMESPACE_MAX_LENGTH << (" characters");
          Throw(e, *streamer.sb);
 		}
 
@@ -227,7 +227,7 @@ namespace Rococo { namespace Sex
 
 		for(int i = 0; i < text->Length; i++)
 		{
-			SEXCHAR c = text->Buffer[i];
+			char c = text->Buffer[i];
 
 			switch(state)
 			{
@@ -235,7 +235,7 @@ namespace Rococo { namespace Sex
 				if (!IsLowerCase(c))
 				{
 					sexstringstream<1024> streamer;
-					streamer.sb << SEXTEXT("Expecting local variable or member nane '") << text->Buffer << SEXTEXT("' to begin with lower case letter {A-Z} at position[") << i << SEXTEXT("]");
+					streamer.sb << ("Expecting local variable or member nane '") << text->Buffer << ("' to begin with lower case letter {A-Z} at position[") << i << ("]");
 					Throw(e, streamer);
 				}
 				state = STATE_WITHIN_ITEM;
@@ -248,7 +248,7 @@ namespace Rococo { namespace Sex
 				else if (!IsAlphaNumeric(c))
 				{
 					sexstringstream<1024> streamer;
-					streamer.sb << SEXTEXT("Expecting alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
+					streamer.sb << ("Expecting alphanumeric {A-Z or a-z or 0-9} at position[") << i << ("]");
 					Throw(e, *streamer.sb);
 				}
 				break;
@@ -258,7 +258,7 @@ namespace Rococo { namespace Sex
 		if (STATE_EXPECTING_NEW_ITEM)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Expecting identifier to terminate on an alphanumeric {A-Z or a-z or 0-9} at position[") << text->Length << SEXTEXT("]");
+			streamer.sb << ("Expecting identifier to terminate on an alphanumeric {A-Z or a-z or 0-9} at position[") << text->Length << ("]");
          Throw(e, *streamer.sb);
 		}
 	}
@@ -274,32 +274,32 @@ namespace Rococo { namespace Sex
 		if (text->Length > NAMESPACE_MAX_TOTAL_LENGTH)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Namespace name was greater than the maximum length of ") << NAMESPACE_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
+			streamer.sb << ("Namespace name was greater than the maximum length of ") << NAMESPACE_MAX_TOTAL_LENGTH << (" characters");
          Throw(e, *streamer.sb);
 		}
 	}
 
-	void ThrowNamespaceConflict(cr_sex s, const INamespace& n1, const INamespace& n2, csexstr type, csexstr token)
+	void ThrowNamespaceConflict(cr_sex s, const INamespace& n1, const INamespace& n2, cstr type, cstr token)
 	{
 		sexstringstream<1024> streamer;
-		streamer.sb << type << SEXTEXT(" ") << token << SEXTEXT(" could belong to either ") << n1.FullName()->Buffer << (" or ") << n2.FullName()->Buffer;
+		streamer.sb << type << (" ") << token << (" could belong to either ") << n1.FullName()->Buffer << (" or ") << n2.FullName()->Buffer;
 		Throw(s, streamer);
 	}
 
-	void ThrowTokenNotFound(cr_sex s, csexstr item, csexstr repository, csexstr type)
+	void ThrowTokenNotFound(cr_sex s, cstr item, cstr repository, cstr type)
 	{
 		sexstringstream<1024> streamer;
-		streamer.sb << type << SEXTEXT(" '") << item << SEXTEXT("' not found in ") << repository;
+		streamer.sb << type << (" '") << item << ("' not found in ") << repository;
 		Throw(s, streamer);
 	}
 
-	INamespace& AssertGetNamespace(IProgramObject& object, cr_sex s, csexstr fullName)
+	INamespace& AssertGetNamespace(IProgramObject& object, cr_sex s, cstr fullName)
 	{
 		INamespace* ns = object.GetRootNamespace().FindSubspace(fullName);
 		if (ns == NULL)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("The namespace ") << fullName << (" was unrecognized.");
+			streamer.sb << ("The namespace ") << fullName << (" was unrecognized.");
 			Throw(s, streamer);
 		}
 		return *ns;
@@ -313,7 +313,7 @@ namespace Rococo { namespace Sex
 
 		enum {FUNCTION_NAME_MAX_TOTAL_LENGTH = 63 };
 
-		for(const SEXCHAR* c = text->Buffer; *c != 0; ++c)
+		for(const char* c = text->Buffer; *c != 0; ++c)
 		{
 			if (*c == '.')
 			{
@@ -321,7 +321,7 @@ namespace Rococo { namespace Sex
 				if (finalLen > FUNCTION_NAME_MAX_TOTAL_LENGTH)
 				{
 					sexstringstream<1024> streamer;
-					streamer.sb << SEXTEXT("Method name was greater than the maximum length of ") << FUNCTION_NAME_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
+					streamer.sb << ("Method name was greater than the maximum length of ") << FUNCTION_NAME_MAX_TOTAL_LENGTH << (" characters");
 					Throw(e, streamer);
 				}
 
@@ -332,7 +332,7 @@ namespace Rococo { namespace Sex
 		if (text->Length > FUNCTION_NAME_MAX_TOTAL_LENGTH)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Function name was greater than the maximum length of ") << FUNCTION_NAME_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
+			streamer.sb << ("Function name was greater than the maximum length of ") << FUNCTION_NAME_MAX_TOTAL_LENGTH << (" characters");
 			Throw(e, streamer);
 		}
 	}
@@ -345,40 +345,40 @@ namespace Rococo { namespace Sex
 		if (!IsLowerCase(s->Buffer[0]))
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Expecting identifier to begin with a lower case letter {a-z} at position[0]");
+			streamer.sb << ("Expecting identifier to begin with a lower case letter {a-z} at position[0]");
 			Throw(e, streamer);
 		}
 
 		for(int i = 1; i < s->Length; ++i)
 		{
-			SEXCHAR c = s->Buffer[i];
+			char c = s->Buffer[i];
 
 			if (!IsAlphaNumeric(c))
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("Expecting identifier character to be an alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
+				streamer.sb << ("Expecting identifier character to be an alphanumeric {A-Z or a-z or 0-9} at position[") << i << ("]");
 				Throw(e, streamer);
 			}
 		}
 	}
 
-	void AssertTypeIdentifier(cr_sex src, csexstr name)
+	void AssertTypeIdentifier(cr_sex src, cstr name)
 	{
 		if (!IsCapital(name[0]))
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Expecting typename to begin with an upper case letter {A-Z} at position[0]");
+			streamer.sb << ("Expecting typename to begin with an upper case letter {A-Z} at position[0]");
 			Throw(src, streamer);
 		}
 
 		int len = StringLength(name);
 		for(int i = 1; i < len; ++i)
 		{
-			SEXCHAR c = name[i];
+			char c = name[i];
 			if (!IsAlphaNumeric(c))
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("Expecting typename character to be an alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
+				streamer.sb << ("Expecting typename character to be an alphanumeric {A-Z or a-z or 0-9} at position[") << i << ("]");
 				Throw(src, streamer);
 			}
 		}
@@ -393,17 +393,17 @@ namespace Rococo { namespace Sex
 		if (!IsCapital(s->Buffer[0]))
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Expecting typename to begin with an upper case letter {A-Z} at position[0]");
+			streamer.sb << ("Expecting typename to begin with an upper case letter {A-Z} at position[0]");
 			Throw(e, streamer);
 		}
 
 		for(int i = 1; i < s->Length; ++i)
 		{
-			SEXCHAR c = s->Buffer[i];
+			char c = s->Buffer[i];
 			if (!IsAlphaNumeric(c))
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("Expecting typename character to be an alphanumeric {A-Z or a-z or 0-9} at position[") << i << SEXTEXT("]");
+				streamer.sb << ("Expecting typename character to be an alphanumeric {A-Z or a-z or 0-9} at position[") << i << ("]");
 				Throw(e, streamer);
 			}
 		}
@@ -419,12 +419,12 @@ namespace Rococo { namespace Sex
 		if (text->Length > STRUCT_NAME_MAX_TOTAL_LENGTH)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Structure name was greater than the maximum length of ") << STRUCT_NAME_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
+			streamer.sb << ("Structure name was greater than the maximum length of ") << STRUCT_NAME_MAX_TOTAL_LENGTH << (" characters");
 			Throw(e, streamer);
 		}
 	}
 
-	void AssertValidInterfaceName(cr_sex src, csexstr name)
+	void AssertValidInterfaceName(cr_sex src, cstr name)
 	{
 		AssertTypeIdentifier(src, name);
 
@@ -433,12 +433,12 @@ namespace Rococo { namespace Sex
 		if (StringLength(name) > INTERFACE_NAME_MAX_TOTAL_LENGTH)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Interface name was greater than the maximum length of ") << INTERFACE_NAME_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
+			streamer.sb << ("Interface name was greater than the maximum length of ") << INTERFACE_NAME_MAX_TOTAL_LENGTH << (" characters");
 			Throw(src, streamer);
 		}
 	}
 
-	void AssertValidArchetypeName(cr_sex src, csexstr name)
+	void AssertValidArchetypeName(cr_sex src, cstr name)
 	{
 		AssertTypeIdentifier(src, name);
 
@@ -447,7 +447,7 @@ namespace Rococo { namespace Sex
 		if (StringLength(name) > ARCHETYPE_NAME_MAX_TOTAL_LENGTH)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Archetype name was greater than the maximum length of ") << ARCHETYPE_NAME_MAX_TOTAL_LENGTH << SEXTEXT(" characters");
+			streamer.sb << ("Archetype name was greater than the maximum length of ") << ARCHETYPE_NAME_MAX_TOTAL_LENGTH << (" characters");
 			Throw(src, streamer);
 		}
 	}
@@ -458,7 +458,7 @@ namespace Rococo { namespace Sex
 		if (maxElements > 0 && elementCount > maxElements)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Expression had more than the maximum of ") << maxElements << " element" << (maxElements > 1 ? SEXTEXT("s") : SEXTEXT(""));
+			streamer.sb << ("Expression had more than the maximum of ") << maxElements << " element" << (maxElements > 1 ? ("s") : (""));
 			Throw(e, streamer);
 		}
 	}
@@ -469,7 +469,7 @@ namespace Rococo { namespace Sex
 		if (minElements > 0 && elementCount < minElements)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Expression had fewer than the minimum of ") << minElements << SEXTEXT(" element") << (minElements > 1 ? SEXTEXT("s") : SEXTEXT(""));
+			streamer.sb << ("Expression had fewer than the minimum of ") << minElements << (" element") << (minElements > 1 ? ("s") : (""));
 			Throw(e, streamer);
 		}
 	}
@@ -483,19 +483,19 @@ namespace Rococo { namespace Sex
 		return arg;
 	}
 
-	void AssertKeyword(cr_sex e, int arg, csexstr name)
+	void AssertKeyword(cr_sex e, int arg, cstr name)
 	{
 		cr_sex item = GetAtomicArg(e, arg);
 		if (!AreEqual(item.String(), name))
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Expecting ") << name << SEXTEXT(" at position ") << arg;
+			streamer.sb << ("Expecting ") << name << (" at position ") << arg;
 			Throw(e, streamer);
 		}
 	}
 
 	enum { ARGCOUNT_UNSPECIFIED = -1};
-	void AssertCompound(cr_sex e, csexstr headName, int32 minElements, int32 maxElements)
+	void AssertCompound(cr_sex e, cstr headName, int32 minElements, int32 maxElements)
 	{
 		AssertCompound(e);
 		AssertNotTooFewElements(e, minElements);
@@ -509,13 +509,13 @@ namespace Rococo { namespace Sex
 			if (!AreEqual(firstElement.String(), headName))
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("Expecting expression (") << headName << SEXTEXT(" ...), but found a (") << firstElement.String()->Buffer << SEXTEXT(" ...)");
+				streamer.sb << ("Expecting expression (") << headName << (" ...), but found a (") << firstElement.String()->Buffer << (" ...)");
 				Throw(e, streamer);
 			}
 		}
 	}
 
-	sexstring GetDefiniteAtomicArg(cr_sex s, csexstr headName, int argNumber)
+	sexstring GetDefiniteAtomicArg(cr_sex s, cstr headName, int argNumber)
 	{
 		AssertCompound(s, headName, argNumber+1, ARGCOUNT_UNSPECIFIED);
 		const ISExpression& child = s.GetElement(argNumber);
@@ -523,30 +523,30 @@ namespace Rococo { namespace Sex
 		return child.String();
 	}
 
-	void StreamArg(StringBuilder& streamer, csexstr name, const IStructure& type)
+	void StreamArg(StringBuilder& streamer, cstr name, const IStructure& type)
 	{
-		streamer << SEXTEXT(" (") << GetFriendlyName(type) << SEXTEXT(" ") << name << SEXTEXT(")");
+		streamer << (" (") << GetFriendlyName(type) << (" ") << name << (")");
 	}
 
 	void StreamFullMethod(StringBuilder& streamer, const IArchetype& callee)
 	{
-		streamer << callee.Name() << SEXTEXT(" ");
+		streamer << callee.Name() << (" ");
 
 		int nInputs = callee.NumberOfInputs();
 		if (callee.IsVirtualMethod()) nInputs--;
 
 		for(int i = 0; i < nInputs; i++)
 		{
-			csexstr name = callee.GetArgName(i+callee.NumberOfOutputs());
+			cstr name = callee.GetArgName(i+callee.NumberOfOutputs());
 			const IStructure& st = callee.GetArgument(i+callee.NumberOfOutputs());
 			StreamArg(streamer, name, st);
 		}
 
-		streamer << SEXTEXT("->");
+		streamer << ("->");
 
 		for(int i = 0; i < callee.NumberOfOutputs(); i++)
 		{
-			csexstr name = callee.GetArgName(i);
+			cstr name = callee.GetArgName(i);
 			const IStructure& st = callee.GetArgument(i);
 			StreamArg(streamer, name, st);
 		}
@@ -572,19 +572,19 @@ namespace Rococo { namespace Sex
 		if (IsGetAccessor(callee) && numberOfSuppliedInputArgs == 0) return;
 
 		sexstringstream<1024> streamer;
-		streamer.sb << SEXTEXT("Function call '");
+		streamer.sb << ("Function call '");
 
 		StreamFullMethod(streamer.sb, callee);
 			
-		streamer.sb << SEXTEXT("' was supplied with ");
+		streamer.sb << ("' was supplied with ");
 
 		if (callee.NumberOfInputs() < numberOfSuppliedInputArgs) 
 		{
-			streamer.sb << SEXTEXT("too many inputs");
+			streamer.sb << ("too many inputs");
 		}
 		else
 		{
-			streamer.sb << SEXTEXT("too few inputs");
+			streamer.sb << ("too few inputs");
 		}
 		
 		Throw(s, *streamer.sb);

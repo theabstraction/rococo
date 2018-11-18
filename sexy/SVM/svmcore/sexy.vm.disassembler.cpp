@@ -49,10 +49,10 @@ namespace
 	struct FormatBinding
 	{
 		FN_FormatInstruction Formatter;
-		csexstr OpcodeText;
+		cstr OpcodeText;
 	};
 
-	FormatBinding CreateBinding(FN_FormatInstruction f, csexstr text)
+	FormatBinding CreateBinding(FN_FormatInstruction f, cstr text)
 	{
 		FormatBinding fb;
 		fb.Formatter = f;
@@ -60,7 +60,7 @@ namespace
 		return fb;
 	}
 
-	void format(IDisassembler::Rep& rep, csexstr fmt, ...)
+	void format(IDisassembler::Rep& rep, cstr fmt, ...)
 	{
 		va_list args;
 		va_start(args, fmt);
@@ -70,31 +70,31 @@ namespace
 
    FormatBinding s_formatters[Opcodes::MAX_OPCODES] = { {0} };
 
-#define EnableFormatter(x) s_formatters[Opcodes::x] = CreateBinding(Format##x, SEXTEXT(#x));
+#define EnableFormatter(x) s_formatters[Opcodes::x] = CreateBinding(Format##x, (#x));
 
 	struct REGNAME
 	{
-		SEXCHAR buf[8];
+		char buf[8];
 	};
 
    REGNAME names[256] = { { {0} } };
 
-	csexstr RegisterName(DINDEX index)
+	cstr RegisterName(DINDEX index)
 	{
 		if (names[0].buf[0] == 0)
 		{
 			for(int i = 0; i < 256; ++i)
 			{
-				SafeFormat(names[i].buf, 6, SEXTEXT("D%d"), i);
+				SafeFormat(names[i].buf, 6, ("D%d"), i);
 			}
 		}
 
 		switch(index)
 		{
-		case 0: return SEXTEXT("PC");
-		case 1: return SEXTEXT("SP");
-		case 2: return SEXTEXT("SF");
-		case 3: return SEXTEXT("SR");
+		case 0: return ("PC");
+		case 1: return ("SP");
+		case 2: return ("SF");
+		case 3: return ("SR");
 		default: return names[index].buf;
 		}
 	}
@@ -102,64 +102,64 @@ namespace
 	void FormatSetRegisterImmediate64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{		
 		uint64* value = (uint64*)(I.ToPC() + 2);
-		format(rep, SEXTEXT("%s = #%I64x"), RegisterName(I.Opmod1), *value);
+		format(rep, ("%s = #%I64x"), RegisterName(I.Opmod1), *value);
 		rep.ByteCount = 10;
 	}
 
 	void FormatSetRegisterImmediate32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{		
 		uint32* value = (uint32*)(I.ToPC() + 2);
-		format(rep, SEXTEXT("%s = #%x"), RegisterName(I.Opmod1), *value);
+		format(rep, ("%s = #%x"), RegisterName(I.Opmod1), *value);
 		rep.ByteCount = 6;
 	}
 
 	void FormatExit(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s"), RegisterName(I.Opmod1));
+		format(rep, ("%s"), RegisterName(I.Opmod1));
 		rep.ByteCount = 2;
 	}
 
 	void FormatYield(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT(""));
+		format(rep, (""));
 		rep.ByteCount = 1;
 	}
 
 	void FormatNoOperation(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT(""));
+		format(rep, (""));
 		rep.ByteCount = 1;
 	}
 
 	void FormatTest64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s"), RegisterName(I.Opmod1));
+		format(rep, ("%s"), RegisterName(I.Opmod1));
 		rep.ByteCount = 2;
 	}
 
 	void FormatMove32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 3;
 	}
 
 	void FormatMove64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 3;
 	}
 
 	void FormatPoke64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		int offset = *((int32*) (I.ToPC() + 3));
-		format(rep, SEXTEXT("(@%s+%d) = %s"), RegisterName(I.Opmod2), offset, RegisterName(I.Opmod1));
+		format(rep, ("(@%s+%d) = %s"), RegisterName(I.Opmod2), offset, RegisterName(I.Opmod1));
 		rep.ByteCount = 7;
 	}
 
 	void FormatPoke32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		int offset = *((int32*) (I.ToPC() + 3));
-		format(rep, SEXTEXT("(@%s+%d) = %s"), RegisterName(I.Opmod2), offset, RegisterName(I.Opmod1));
+		format(rep, ("(@%s+%d) = %s"), RegisterName(I.Opmod2), offset, RegisterName(I.Opmod1));
 		rep.ByteCount = 7;
 	}
 
@@ -167,7 +167,7 @@ namespace
 	{
 		size_t nBytes = *((size_t*) (I.ToPC() + 3));
 
-		format(rep, SEXTEXT("*%s=*%s %Iu"), RegisterName(I.Opmod2), RegisterName(I.Opmod1), nBytes);
+		format(rep, ("*%s=*%s %Iu"), RegisterName(I.Opmod2), RegisterName(I.Opmod1), nBytes);
 
 		rep.ByteCount = 3 + sizeof(size_t);
 	}
@@ -177,7 +177,7 @@ namespace
 		const uint8* pc = (const uint8*) &I;
 		const int32* pArg = (const int32*) (pc+1);
 
-		format(rep, SEXTEXT("*SP=%x"), *pArg);
+		format(rep, ("*SP=%x"), *pArg);
 
 		rep.ByteCount = 5;
 	}
@@ -185,32 +185,32 @@ namespace
 	void FormatPushStackVariable32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		int32 offset = (int32)(int8) I.Opmod1;
-		format(rep, SEXTEXT("SF(%d)"), offset);
+		format(rep, ("SF(%d)"), offset);
 		rep.ByteCount = 2;
 	}
 
 	void FormatPushStackAddress(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		int32 offset = (int32)(int8) I.Opmod1;
-		format(rep, SEXTEXT("*SP=SF+%d"), offset);
+		format(rep, ("*SP=SF+%d"), offset);
 		rep.ByteCount = 2;
 	}
 
 	void FormatPushRegister64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s"), RegisterName(I.Opmod1));
+		format(rep, ("%s"), RegisterName(I.Opmod1));
 		rep.ByteCount = 2;
 	}
 
 	void FormatPushRegister32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s"), RegisterName(I.Opmod1));
+		format(rep, ("%s"), RegisterName(I.Opmod1));
 		rep.ByteCount = 2;
 	}
 
 	void FormatPushAddress(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s+%s"), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
+		format(rep, ("%s+%s"), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
 		rep.ByteCount = 3;
 	}
 
@@ -223,14 +223,14 @@ namespace
 		case BITCOUNT_32:
 			{
 				int32 value = *((int32*) arg);
-				format(rep, SEXTEXT("%s.%d=%s+%d"), RegisterName(I.Opmod3), I.Opmod2, RegisterName(I.Opmod1), value);
+				format(rep, ("%s.%d=%s+%d"), RegisterName(I.Opmod3), I.Opmod2, RegisterName(I.Opmod1), value);
 				rep.ByteCount = 8;
 			}
 			break;
 		case BITCOUNT_64:
 			{
 				int64 value = *((int64*) arg);
-				format(rep, SEXTEXT("%s.%d=%s+%I64d"), RegisterName(I.Opmod3), I.Opmod2, RegisterName(I.Opmod1),value);
+				format(rep, ("%s.%d=%s+%I64d"), RegisterName(I.Opmod3), I.Opmod2, RegisterName(I.Opmod1),value);
 				rep.ByteCount = 12;
 			}
 		default:
@@ -240,220 +240,220 @@ namespace
 
 	void FormatLogicalAND32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %s"), RegisterName(I.Opmod2-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s %s"), RegisterName(I.Opmod2-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 3;
 	}
 
 	void FormatLogicalOR32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %s"), RegisterName(I.Opmod2-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s %s"), RegisterName(I.Opmod2-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 3;
 	}
 
 	void FormatLogicalXOR32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %s"), RegisterName(I.Opmod2-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s %s"), RegisterName(I.Opmod2-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 3;
 	}
 
 	void FormatLogicalNOT32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 3;
 	}
 
 	void FormatLogicalAND64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %s"), RegisterName(I.Opmod2-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s %s"), RegisterName(I.Opmod2-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 3;
 	}
 
 	void FormatLogicalOR64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %s"), RegisterName(I.Opmod2-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s %s"), RegisterName(I.Opmod2-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 3;
 	}
 
 	void FormatLogicalXOR64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %s"), RegisterName(I.Opmod2-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s %s"), RegisterName(I.Opmod2-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 3;
 	}
 
 	void FormatLogicalNOT64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 3;
 	}
 
 	void FormatShiftLeft32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %u"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), (uint32) I.Opmod2);
+		format(rep, ("%s=%s %u"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), (uint32) I.Opmod2);
 		rep.ByteCount = 3;
 	}
 
 	void FormatShiftLeft64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %u"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), (uint32) I.Opmod2);
+		format(rep, ("%s=%s %u"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), (uint32) I.Opmod2);
 		rep.ByteCount = 3;
 	}
 
 	void FormatShiftRight32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %u"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), (uint32) I.Opmod2);
+		format(rep, ("%s=%s %u"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), (uint32) I.Opmod2);
 		rep.ByteCount = 3;
 	}
 
 	void FormatShiftRight64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %u"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), (uint32) I.Opmod2);
+		format(rep, ("%s=%s %u"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), (uint32) I.Opmod2);
 		rep.ByteCount = 3;
 	}
 
 	void FormatPop(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%u"), (size_t) I.Opmod1);
+		format(rep, ("%u"), (size_t) I.Opmod1);
 		rep.ByteCount = 2;
 	}
 
 	void FormatStackAllocBig(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		int32 nBytes = *(int32*) (I.ToPC()+1);
-		format(rep, SEXTEXT("%Id"), (ptrdiff_t) nBytes);
+		format(rep, ("%Id"), (ptrdiff_t) nBytes);
 		rep.ByteCount = 5;
 	}
 
 	void FormatStackAlloc(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%Iu"), (size_t) I.Opmod1);
+		format(rep, ("%Iu"), (size_t) I.Opmod1);
 		rep.ByteCount = 2;
 	}
 
 	void FormatIntAdd64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s %s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 4;
 	}
 
 	void FormatIntAdd32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s %s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 3;
 	}
 
 	void FormatIntSubtract64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s-%s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
+		format(rep, ("%s=%s-%s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
 		rep.ByteCount = 4;
 	}
 
 	void FormatIntSubtract32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s-%s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
+		format(rep, ("%s=%s-%s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
 		rep.ByteCount = 3;
 	}
 
 	void FormatIntMultiply32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s %s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 3;
 	}
 
 	void FormatIntMultiply64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%=%s %s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%=%s %s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 4;
 	}
 
 	void FormatIntDivide64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s %s=%s/%s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1+2), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
+		format(rep, ("%s %s=%s/%s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1+2), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
 		rep.ByteCount = 4;
 	}
 
 	void FormatIntDivide32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s %% %s=%s/%s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1+2), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
+		format(rep, ("%s %% %s=%s/%s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1+2), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
 		rep.ByteCount = 3;
 	}
 
 	void FormatIntNegate64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=-%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=-%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 4;
 	}
 
 	void FormatIntNegate32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=-%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=-%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 4;
 	}
 
 	void FormatFloatAdd(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %s "), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s %s "), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 4;
 	}
 
 	void FormatFloatSubtract(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s-%s "), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
+		format(rep, ("%s=%s-%s "), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
 		rep.ByteCount = 4;
 	}
 
 	void FormatFloatMultiply(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %s "), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s %s "), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 4;
 	}
 
 	void FormatFloatDivide(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s/%s "), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
+		format(rep, ("%s=%s/%s "), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
 		rep.ByteCount = 4;
 	}
 
 	void FormatDoubleAdd(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %s "), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s %s "), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 4;
 	}
 
 	void FormatDoubleSubtract(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %s "), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s %s "), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 4;
 	}
 
 	void FormatDoubleMultiply(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %s "), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s %s "), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 4;
 	}
 
 	void FormatDoubleDivide(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s=%s %s "), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("%s=%s %s "), RegisterName(I.Opmod1-1), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 4;
 	}
 
 	void FormatCallBy(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		rep.ByteCount = 2;
-		format(rep, SEXTEXT(" %s"), RegisterName(I.Opmod1));
+		format(rep, (" %s"), RegisterName(I.Opmod1));
 	}
 
 	void FormatCallById(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		rep.ByteCount = 1 + sizeof(ID_BYTECODE);
 		ID_BYTECODE* pID = (ID_BYTECODE*) (I.ToPC() + 1);
-		format(rep, SEXTEXT(" %u"), *pID);
+		format(rep, (" %u"), *pID);
 	}
 
 	void FormatCallByIdIndirect(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		rep.ByteCount = 2;
-		format(rep, SEXTEXT(" %s"), RegisterName(I.Opmod1));
+		format(rep, (" %s"), RegisterName(I.Opmod1));
 	}
 
 	void FormatCallVirtualFunctionByValue(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -461,7 +461,7 @@ namespace
 		int32 sfOffset = *((int32*) (I.ToPC() + 1));
 		int32 methodIndex = *((int32*) (I.ToPC() + 5));
 		int32 memberOffset = *((int32*) (I.ToPC() + 9));
-		format(rep, SEXTEXT(" SF(%d.%d) #%d"), sfOffset, memberOffset, methodIndex);
+		format(rep, (" SF(%d.%d) #%d"), sfOffset, memberOffset, methodIndex);
 		
 		rep.ByteCount = 13;
 	}
@@ -471,94 +471,94 @@ namespace
 		rep.ByteCount = 9;
 		int32 sfOffset = *((int32*) (I.ToPC() + 1));
 		int32 methodIndex = *((int32*) (I.ToPC() + 5));
-		format(rep, SEXTEXT(" SF+%d #%d"), sfOffset, methodIndex);
+		format(rep, (" SF+%d #%d"), sfOffset, methodIndex);
 	}
 
 	void FormatInvokeBy(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		rep.ByteCount = 2;
-		format(rep, SEXTEXT(" %s"), RegisterName(I.Opmod1));
+		format(rep, (" %s"), RegisterName(I.Opmod1));
 	}
 
 	void FormatCall(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		rep.ByteCount = 5;
 		int32* offsetPtr = (int32*)(I.ToPC() + 1);
-		format(rep, SEXTEXT("%d"), *offsetPtr);
+		format(rep, ("%d"), *offsetPtr);
 	}
 
 	void FormatReturn(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		rep.ByteCount = 1;
-		format(rep, SEXTEXT(""));
+		format(rep, (""));
 	}
 
 	void FormatSetIf32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		rep.ByteCount = 3;
 
-		csexstr thecase;
+		cstr thecase;
 
 		switch((CONDITION) I.Opmod1)
 		{
 		case CONDITION_IF_EQUAL:
-			thecase = SEXTEXT("=");
+			thecase = ("=");
 			break;
 		case CONDITION_IF_GREATER_OR_EQUAL:
-			thecase=SEXTEXT(">=");
+			thecase=(">=");
 			break;
 		case CONDITION_IF_GREATER_THAN:
-			thecase=SEXTEXT(">");
+			thecase=(">");
 			break;
 		case CONDITION_IF_LESS_OR_EQUAL:
-			thecase=SEXTEXT(">=");
+			thecase=(">=");
 			break;
 		case CONDITION_IF_LESS_THAN:
-			thecase=SEXTEXT("<");
+			thecase=("<");
 			break;
 		case CONDITION_IF_NOT_EQUAL:
-			thecase=SEXTEXT("!=");
+			thecase=("!=");
 			break;
 		default:
 			rep.ByteCount = 0;
 			return;
 		}
 
-		format(rep, SEXTEXT("%s %s"), thecase, RegisterName(I.Opmod2));
+		format(rep, ("%s %s"), thecase, RegisterName(I.Opmod2));
 	}
 
 	void FormatSetIf64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		rep.ByteCount = 3;
 
-		csexstr thecase;
+		cstr thecase;
 
 		switch((CONDITION) I.Opmod1)
 		{
 		case CONDITION_IF_EQUAL:
-			thecase = SEXTEXT("=");
+			thecase = ("=");
 			break;
 		case CONDITION_IF_GREATER_OR_EQUAL:
-			thecase=SEXTEXT(">=");
+			thecase=(">=");
 			break;
 		case CONDITION_IF_GREATER_THAN:
-			thecase=SEXTEXT(">");
+			thecase=(">");
 			break;
 		case CONDITION_IF_LESS_OR_EQUAL:
-			thecase=SEXTEXT(">=");
+			thecase=(">=");
 			break;
 		case CONDITION_IF_LESS_THAN:
-			thecase=SEXTEXT("<");
+			thecase=("<");
 			break;
 		case CONDITION_IF_NOT_EQUAL:
-			thecase=SEXTEXT("!=");
+			thecase=("!=");
 			break;
 		default:
 			rep.ByteCount = 0;
 			return;
 		}
 
-		format(rep, SEXTEXT("%s %s"), thecase, RegisterName(I.Opmod2));
+		format(rep, ("%s %s"), thecase, RegisterName(I.Opmod2));
 	}
 
 	void FormatBranch(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -567,7 +567,7 @@ namespace
 		const int32* pIntArg = (const int32*)(I.ToPC() + 1); // Look beyond the 2nd byte of the test instruction for the offset value
 		int32 offset = *pIntArg;
 
-		format(rep, SEXTEXT("%Id"), (ptrdiff_t) offset);
+		format(rep, ("%Id"), (ptrdiff_t) offset);
 	}
 
 	void FormatBranchIf(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -576,34 +576,34 @@ namespace
 		const int32* pIntArg = (const int32*)(I.ToPC() + 2); // Look beyond the 2nd byte of the test instruction for the offset value
 		int32 offset = *pIntArg;
 
-		csexstr thecase;
+		cstr thecase;
 
 		switch((CONDITION) I.Opmod1)
 		{
 		case CONDITION_IF_EQUAL:
-			thecase = SEXTEXT("=");
+			thecase = ("=");
 			break;
 		case CONDITION_IF_GREATER_OR_EQUAL:
-			thecase=SEXTEXT(">=");
+			thecase=(">=");
 			break;
 		case CONDITION_IF_GREATER_THAN:
-			thecase=SEXTEXT(">");
+			thecase=(">");
 			break;
 		case CONDITION_IF_LESS_OR_EQUAL:
-			thecase=SEXTEXT(">=");
+			thecase=(">=");
 			break;
 		case CONDITION_IF_LESS_THAN:
-			thecase=SEXTEXT("<");
+			thecase=("<");
 			break;
 		case CONDITION_IF_NOT_EQUAL:
-			thecase=SEXTEXT("!=");
+			thecase=("!=");
 			break;
 		default:
 			rep.ByteCount = 0;
 			return;
 		}
 
-		format(rep, SEXTEXT("%s %Id"), thecase, (ptrdiff_t) offset);
+		format(rep, ("%s %Id"), thecase, (ptrdiff_t) offset);
 	}
 
 	void FormatBranchIfGTE(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -611,7 +611,7 @@ namespace
 		rep.ByteCount = 5;
 		int32 offset = *(int32*) (I.ToPC() + 1);
 
-		format(rep, SEXTEXT("%d"), offset);
+		format(rep, ("%d"), offset);
 	}
 
 	void FormatBranchIfGT(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -619,7 +619,7 @@ namespace
 		rep.ByteCount = 5;
 		int32 offset = *(int32*) (I.ToPC() + 1);
 
-		format(rep, SEXTEXT("%d"), offset);
+		format(rep, ("%d"), offset);
 	}
 
 	void FormatBranchIfLT(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -627,7 +627,7 @@ namespace
 		rep.ByteCount = 5;
 		int32 offset = (int32)(int8)(I.Opmod1);
 
-		format(rep, SEXTEXT("%d"), offset);
+		format(rep, ("%d"), offset);
 	}
 
 	void FormatBranchIfNE(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -635,24 +635,24 @@ namespace
 		rep.ByteCount = 5;
 		int32 offset = (int32)(int8)(I.Opmod1);
 
-		format(rep, SEXTEXT("%d"), offset);
+		format(rep, ("%d"), offset);
 	}
 
 	void FormatAddQuick32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s %d"), RegisterName(I.Opmod1), (int32)(int8)(I.Opmod2));
+		format(rep, ("%s %d"), RegisterName(I.Opmod1), (int32)(int8)(I.Opmod2));
 		rep.ByteCount = 3;
 	}
 
 	void FormatIncrement32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s"), RegisterName(I.Opmod1));
+		format(rep, ("%s"), RegisterName(I.Opmod1));
 		rep.ByteCount = 2;
 	}
 
 	void FormatDecrement32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s"), RegisterName(I.Opmod1));
+		format(rep, ("%s"), RegisterName(I.Opmod1));
 		rep.ByteCount = 2;
 	}
 
@@ -660,7 +660,7 @@ namespace
 	{
 		int32 offset = (int32) (int8) I.Opmod1;
 		uint32 value = *(uint32*) (I.ToPC()+2);
-		format(rep, SEXTEXT("%d=#%X"), offset, value);
+		format(rep, ("%d=#%X"), offset, value);
 		rep.ByteCount = 6;
 	}
 
@@ -669,7 +669,7 @@ namespace
 		int32 trgOffset = (int32) (int8) I.Opmod1;
 		int32 srcOffset = (int32) (int8) I.Opmod2;
 
-		format(rep, SEXTEXT("*[SF%+d]=*[SF%+d]"), trgOffset, srcOffset);
+		format(rep, ("*[SF%+d]=*[SF%+d]"), trgOffset, srcOffset);
 		rep.ByteCount = 3;
 	}
 
@@ -677,7 +677,7 @@ namespace
 	{
 		int32 offset = (int32) (int8) I.Opmod1;
 		uint64 value = *(uint64*) (I.ToPC()+2);
-		format(rep, SEXTEXT("%d=#%I64x"), offset, value);
+		format(rep, ("%d=#%I64x"), offset, value);
 		rep.ByteCount = 10;
 	}
 
@@ -694,18 +694,18 @@ namespace
 			{
 				rep.ByteCount = 10;
 				uint32 value = *(uint32*)arg;
-				format(rep, SEXTEXT("%d=#%x"), offset, value);
+				format(rep, ("%d=#%x"), offset, value);
 				break;
 			}
 		case BITCOUNT_64:
 			{
 				rep.ByteCount = 14;
 				uint64 value = *(uint64*)arg;
-				format(rep, SEXTEXT("%d=#%I64x"), offset, value);
+				format(rep, ("%d=#%I64x"), offset, value);
 				break;
 			}
       default:
-         format(rep, SEXTEXT("Bad bitcount"));
+         format(rep, ("Bad bitcount"));
          break;
 		}
 	}
@@ -713,45 +713,45 @@ namespace
 	void FormatGetStackFrameValue32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		int32 offset = (int32) (int8) I.Opmod1;
-		format(rep, SEXTEXT("%s=@%d"), RegisterName(I.Opmod2), offset);
+		format(rep, ("%s=@%d"), RegisterName(I.Opmod2), offset);
 		rep.ByteCount = 3;
 	}
 
 	void FormatGetStackFrameValueAndExtendToPointer(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		const int32* pOffset = (const int32*) (I.ToPC() + 2);
-		format(rep, SEXTEXT("%s=@%d"), RegisterName(I.Opmod1), *pOffset);
+		format(rep, ("%s=@%d"), RegisterName(I.Opmod1), *pOffset);
 		rep.ByteCount = 6;
 	}
 
 	void FormatGetStackFrameValue64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		int32 offset = (int32) (int8) I.Opmod1;
-		format(rep, SEXTEXT("%s=@%d"), RegisterName(I.Opmod2), offset);
+		format(rep, ("%s=@%d"), RegisterName(I.Opmod2), offset);
 		rep.ByteCount = 3;
 	}
 
 	void FormatGetStackFrameValueFar(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		BITCOUNT bits = (BITCOUNT) I.Opmod1;
-		csexstr regname =  RegisterName(I.Opmod2);
+		cstr regname =  RegisterName(I.Opmod2);
 		int32 offset = *(int32*) (I.ToPC() + 3);
 		rep.ByteCount = 7;
 
-		format(rep, SEXTEXT("%s.%d=@%d"), regname, bits, offset);
+		format(rep, ("%s.%d=@%d"), regname, bits, offset);
 	}
 
 	void FormatSetStackFrameValue32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		int32 offset = (int32) (int8) I.Opmod1;
-		format(rep, SEXTEXT("@%d=%s"), offset, RegisterName(I.Opmod2));
+		format(rep, ("@%d=%s"), offset, RegisterName(I.Opmod2));
 		rep.ByteCount = 3;
 	}
 
 	void FormatSetStackFrameValue64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		int32 offset = (int32) (int8) I.Opmod1;
-		format(rep, SEXTEXT("@%d=%s"), offset, RegisterName(I.Opmod2));
+		format(rep, ("@%d=%s"), offset, RegisterName(I.Opmod2));
 		rep.ByteCount = 3;
 	}
 
@@ -761,7 +761,7 @@ namespace
 		int32 targetMemberSF =(int8) I.Opmod2;
 		int32 sourceSF = (int8) I.Opmod3;
 
-		format(rep, SEXTEXT("SF(%d.%d)=SF(%d)"), targetSF, targetMemberSF, sourceSF);
+		format(rep, ("SF(%d.%d)=SF(%d)"), targetSF, targetMemberSF, sourceSF);
 
 		rep.ByteCount += 4;
 	}
@@ -772,7 +772,7 @@ namespace
 		int32 sourceMemberSF = (int8) I.Opmod2;
 		int32 targetSF = (int8) I.Opmod3;
 
-		format(rep, SEXTEXT("SF(%d)=SF(%d.%d)"), targetSF, sourceSF, sourceMemberSF);
+		format(rep, ("SF(%d)=SF(%d.%d)"), targetSF, sourceSF, sourceMemberSF);
 
 		rep.ByteCount += 4;
 	}
@@ -782,7 +782,7 @@ namespace
 		int32 SFoffset = (int8) I.Opmod2;		
 		int32 memberOffset = (int8) I.Opmod3;
 
-		format(rep, SEXTEXT("SF(%d.%d)=%s"), SFoffset, memberOffset, RegisterName(I.Opmod1));
+		format(rep, ("SF(%d.%d)=%s"), SFoffset, memberOffset, RegisterName(I.Opmod1));
 
 		rep.ByteCount += 4;
 	}
@@ -790,46 +790,46 @@ namespace
 	void FormatSetStackFrameValueFar(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		BITCOUNT bits = (BITCOUNT) I.Opmod1;
-		csexstr regname =  RegisterName(I.Opmod2);
+		cstr regname =  RegisterName(I.Opmod2);
 		int32 offset = *(int32*) (I.ToPC() + 3);
 		rep.ByteCount = 7;
 
-		format(rep, SEXTEXT("%u.%d=%s"), offset, bits, regname);
+		format(rep, ("%u.%d=%s"), offset, bits, regname);
 	}
 
 	void FormatSwap(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s %s"), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
+		format(rep, ("%s %s"), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
 		rep.ByteCount = 3;
 	}
 
 	void FormatTest32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s"), RegisterName(I.Opmod1));
+		format(rep, ("%s"), RegisterName(I.Opmod1));
 		rep.ByteCount = 2;
 	}
 
 	void FormatSaveRegister32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s"), RegisterName(I.Opmod1));
+		format(rep, ("%s"), RegisterName(I.Opmod1));
 		rep.ByteCount = 2;
 	}
 
 	void FormatRestoreRegister32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s"), RegisterName(I.Opmod1));
+		format(rep, ("%s"), RegisterName(I.Opmod1));
 		rep.ByteCount = 2;
 	}
 
 	void FormatSaveRegister64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s"), RegisterName(I.Opmod1));
+		format(rep, ("%s"), RegisterName(I.Opmod1));
 		rep.ByteCount = 2;
 	}
 
 	void FormatRestoreRegister64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s"), RegisterName(I.Opmod1));
+		format(rep, ("%s"), RegisterName(I.Opmod1));
 		rep.ByteCount = 2;
 	}
 
@@ -874,57 +874,57 @@ namespace
 	{
 		MemCopyInfo mci;
 		GetMemCopyInfo(I, OUT mci, OUT rep);
-		format(rep, SEXTEXT("SF+%d to SF+%d %Id bytes"), mci.SourceOffset, mci.TargetOffset, mci.ByteCount);
+		format(rep, ("SF+%d to SF+%d %Id bytes"), mci.SourceOffset, mci.TargetOffset, mci.ByteCount);
 	}
 
 	void FormatCopySFMemoryNear(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		MemCopyInfo mci;
 		GetMemCopyNearInfo(I, OUT mci, OUT rep);
-		format(rep, SEXTEXT("SF+%d to SF+%d %Id bytes"), mci.SourceOffset, mci.TargetOffset, mci.ByteCount);
+		format(rep, ("SF+%d to SF+%d %Id bytes"), mci.SourceOffset, mci.TargetOffset, mci.ByteCount);
 	}
 
 	void FormatCopyMemory(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("*%s to *%s, %Id bytes"), RegisterName(I.Opmod2), RegisterName(I.Opmod1), (size_t) I.Opmod3);
+		format(rep, ("*%s to *%s, %Id bytes"), RegisterName(I.Opmod2), RegisterName(I.Opmod1), (size_t) I.Opmod3);
 		rep.ByteCount = 4;
 	}
 
 	void FormatCopy32Bits(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("*%s to *%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("*%s to *%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 3;
 	}
 
 	void FormatCopy64Bits(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("*%s to *%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
+		format(rep, ("*%s to *%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
 		rep.ByteCount = 3;
 	}
 
 	void FormatCopyMemoryBig(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		const size_t* pByteCount = (const size_t*) (((const uint8*) &I)+3);
-		format(rep, SEXTEXT("*%s to *%s, %Id bytes"), RegisterName(I.Opmod2), RegisterName(I.Opmod1), *pByteCount);
+		format(rep, ("*%s to *%s, %Id bytes"), RegisterName(I.Opmod2), RegisterName(I.Opmod1), *pByteCount);
 		rep.ByteCount = 3 + sizeof(size_t);
 	}
 
 	void FormatIncrementPtrBig(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		const int32* pDelta = (const int32*)((const uint8*) &I)+3;
-		format(rep, SEXTEXT("%s by %d"), RegisterName(I.Opmod1), *pDelta);
+		format(rep, ("%s by %d"), RegisterName(I.Opmod1), *pDelta);
 		rep.ByteCount = 3;
 	}
 
 	void FormatBooleanNot(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("BooleanNot %s"), RegisterName(I.Opmod1));
+		format(rep, ("BooleanNot %s"), RegisterName(I.Opmod1));
 		rep.ByteCount = 2;
 	}
 
 	void FormatIncrementPtr(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT("%s by %d"), RegisterName(I.Opmod1), (int32)(int8) I.Opmod2);
+		format(rep, ("%s by %d"), RegisterName(I.Opmod1), (int32)(int8) I.Opmod2);
 		rep.ByteCount = 3;
 	}
 
@@ -934,7 +934,7 @@ namespace
 		int memberOffset = (int32)(int8) I.Opmod3;
 	//	char sign = SFoffset >= 0 ? '+' : '-';
 
-		format(rep, SEXTEXT("%s=SF(%d->%d)"), RegisterName(I.Opmod1), SFoffset, memberOffset);
+		format(rep, ("%s=SF(%d->%d)"), RegisterName(I.Opmod1), SFoffset, memberOffset);
 		rep.ByteCount = 4;
 	}
 
@@ -942,7 +942,7 @@ namespace
 	{
 		int SFoffset =  *(const int32*)(((const uint8*) &I)+2);
 		int memberOffset = *(const int32*)(((const uint8*) &I)+6);
-		format(rep, SEXTEXT("%s=*SF(%d->%d)"), RegisterName(I.Opmod1), SFoffset, memberOffset);
+		format(rep, ("%s=*SF(%d->%d)"), RegisterName(I.Opmod1), SFoffset, memberOffset);
 		rep.ByteCount = 10;
 	}
 
@@ -951,7 +951,7 @@ namespace
 		int SFoffset =  *(const int32*)(((const uint8*) &I)+2);
 		int memberOffset = *(const int32*)(((const uint8*) &I)+6);
 
-		format(rep, SEXTEXT("%s=*SF(%d->%d)"), RegisterName(I.Opmod1), SFoffset, memberOffset);
+		format(rep, ("%s=*SF(%d->%d)"), RegisterName(I.Opmod1), SFoffset, memberOffset);
 		rep.ByteCount = 10;
 	}
 
@@ -959,34 +959,34 @@ namespace
 	{
 		int SFoffset =  *(const int32*)(((const uint8*) &I)+2);
 		int memberOffset = *(const int32*)(((const uint8*) &I)+6);
-		format(rep, SEXTEXT("%s=SF(%d->%d)"), RegisterName(I.Opmod1), SFoffset, memberOffset);
+		format(rep, ("%s=SF(%d->%d)"), RegisterName(I.Opmod1), SFoffset, memberOffset);
 		rep.ByteCount = 10;	
 	}
 
 	void FormatGetStackFrameAddress(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		int offset =  *(const int32*)(((const uint8*) &I)+2);
-		format(rep, SEXTEXT("%s=SF(%d)"), RegisterName(I.Opmod1), offset);
+		format(rep, ("%s=SF(%d)"), RegisterName(I.Opmod1), offset);
 		rep.ByteCount = 6;	
 	}
 
 	void FormatTripDebugger(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, SEXTEXT(""));
+		format(rep, (""));
 		rep.ByteCount = 1;	
 	}
 
 	void FormatGetGlobal(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		int offset = *(const int32*)(((const uint8*)&I) + 2);
-		format(rep, SEXTEXT("D4.%d=global+%d"), I.Opmod1, offset);
+		format(rep, ("D4.%d=global+%d"), I.Opmod1, offset);
 		rep.ByteCount = 6;
 	}
 
 	void FormatSetGlobal(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		int offset = *(const int32*)(((const uint8*)&I) + 2);
-		format(rep, SEXTEXT("D4.%d=global+%d"), I.Opmod1, offset);
+		format(rep, ("D4.%d=global+%d"), I.Opmod1, offset);
 		rep.ByteCount = 6;
 	}
 
@@ -1003,7 +1003,7 @@ namespace
 		};
 #pragma pack(pop)
 		const Args& args = (const Args&) I;
-		format(rep, SEXTEXT("SF(%d)=(*SF(%d).%d). %lu bytes"), args.targetSFOffset, args.sourcePtrSFOffset, args.sourceMemberOffset, args.nBytesSource);
+		format(rep, ("SF(%d)=(*SF(%d).%d). %lu bytes"), args.targetSFOffset, args.sourcePtrSFOffset, args.sourceMemberOffset, args.nBytesSource);
 		rep.ByteCount = sizeof(Args);
 	}
 
@@ -1147,9 +1147,9 @@ namespace
 			{
 				rep.ByteCount = 1 + sizeof(ID_API_CALLBACK);
 				ID_API_CALLBACK *pID = (ID_API_CALLBACK *) (ins->ToPC() + 1);
-				csexstr symbol = core.GetCallbackSymbolName(*pID);
-				CopyString(rep.OpcodeText, MAX_ARG_LEN, SEXTEXT("Invoke"));
-				format(rep, SEXTEXT("%s"), symbol != NULL ? symbol : SEXTEXT("<Unknown id>"));
+				cstr symbol = core.GetCallbackSymbolName(*pID);
+				CopyString(rep.OpcodeText, MAX_ARG_LEN, ("Invoke"));
+				format(rep, ("%s"), symbol != NULL ? symbol : ("<Unknown id>"));
 			}
 			else
 			{
@@ -1161,7 +1161,7 @@ namespace
 				}
 				else
 				{
-					CopyString(rep.OpcodeText, MAX_ARG_LEN, SEXTEXT("UnknownOpcode"));
+					CopyString(rep.OpcodeText, MAX_ARG_LEN, ("UnknownOpcode"));
 				}
 			}
 		}

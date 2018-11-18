@@ -490,7 +490,7 @@ namespace Rococo
             }
             else
             {
-               ss.ThrowFromNativeCode(-1, SEXTEXT("Derivative key type not implemented"));
+               ss.ThrowFromNativeCode(-1, ("Derivative key type not implemented"));
                return;
             }
          }
@@ -559,7 +559,7 @@ namespace Rococo
          IScriptSystem& ss = *(IScriptSystem*)context;
          MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
          registers[VM::REGISTER_D7].int32Value = *(int32*)GetValuePointer(m);
-         if (!m->IsExistant) ss.ThrowFromNativeCode(-1, SEXTEXT("MapNodeGet32 failed. The node did not represent an entry in the map"));
+         if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGet32 failed. The node did not represent an entry in the map"));
       }
 
       VM_CALLBACK(MapNodeGet64)
@@ -567,7 +567,7 @@ namespace Rococo
          IScriptSystem& ss = *(IScriptSystem*)context;
          MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
          registers[VM::REGISTER_D7].int64Value = *(int64*)GetValuePointer(m);
-         if (!m->IsExistant) ss.ThrowFromNativeCode(-1, SEXTEXT("MapNodeGet64 failed. The node did not represent an entry in the map"));
+         if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGet64 failed. The node did not represent an entry in the map"));
       }
 
       VM_CALLBACK(MapNodeGetRef)
@@ -575,14 +575,14 @@ namespace Rococo
          IScriptSystem& ss = *(IScriptSystem*)context;
          MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
          registers[VM::REGISTER_D7].vPtrValue = GetValuePointer(m);
-         if (!m->IsExistant) ss.ThrowFromNativeCode(-1, SEXTEXT("MapNodeGetRef failed. The node did not represent an entry in the map"));
+         if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGetRef failed. The node did not represent an entry in the map"));
       }
 
       VM_CALLBACK(MapNodePop)
       {
          IScriptSystem& ss = *(IScriptSystem*)context;
          MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
-         if (!m->IsExistant) ss.ThrowFromNativeCode(-1, SEXTEXT("MapNodePop failed. The node did not represent an entry in the map"));
+         if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodePop failed. The node did not represent an entry in the map"));
          else static_cast<IKeyResolver&>(m->Container->KeyResolver).Delete(m, ss);
       }
 
@@ -593,7 +593,7 @@ namespace Rococo
          ReleaseNode(node, ss);
       }
 
-      void CompileAsMapNodePop(CCompileEnvironment& ce, cr_sex s, csexstr name)
+      void CompileAsMapNodePop(CCompileEnvironment& ce, cr_sex s, cstr name)
       {
          ce.Builder.AssignVariableRefToTemp(name, Rococo::ROOT_TEMPDEPTH);
          AppendInvoke(ce, GetMapCallbacks(ce).MapNodePop, s);
@@ -605,7 +605,7 @@ namespace Rococo
          {
             if (!TryCompileStringLiteralInputToTemp(ce, keyExpr, Rococo::ROOT_TEMPDEPTH + 1, ce.Object.Common().SysTypeIString().NullObjectType())) // key ptr goes to D8
             {
-               Throw(keyExpr, SEXTEXT("Expecting string literal as key"));
+               Throw(keyExpr, ("Expecting string literal as key"));
             }
          }
          else
@@ -618,7 +618,7 @@ namespace Rococo
             }
             else
             {
-               Throw(keyExpr, SEXTEXT("Expecting IString or numeric as key"));
+               Throw(keyExpr, ("Expecting IString or numeric as key"));
             }
          }
       }
@@ -644,8 +644,8 @@ namespace Rococo
          if (args.NumberOfElements() != type.MemberCount())
          {
             sexstringstream<1024> streamer;
-            streamer.sb << SEXTEXT("The number of arguments supplied in the memberwise constructor is ") << args.NumberOfElements()
-               << SEXTEXT(", while the number of members in ") << GetFriendlyName(type) << SEXTEXT(" is ") << type.MemberCount();
+            streamer.sb << ("The number of arguments supplied in the memberwise constructor is ") << args.NumberOfElements()
+               << (", while the number of members in ") << GetFriendlyName(type) << (" is ") << type.MemberCount();
             Throw(args, streamer);
          }
 
@@ -670,7 +670,7 @@ namespace Rococo
          }
       }
 
-      void CompileAsMapInsert(CCompileEnvironment& ce, cr_sex s, csexstr mapName)
+      void CompileAsMapInsert(CCompileEnvironment& ce, cr_sex s, cstr mapName)
       {
          // (a.Insert <struct-ref> <value/valueref> )
 
@@ -679,12 +679,12 @@ namespace Rococo
          {
             if (s.NumberOfElements() != 3 && s.NumberOfElements() != 4)
                Throw(s,
-                  SEXTEXT("Expecting three or four elements:\r\n (<map-name>.Insert <key> <valueref>)\r\n  OR ")
-                  SEXTEXT("\r\n (<map-name>.Insert <key> <map-value-type> (<constructor-args>))"));
+                  "Expecting three or four elements:\r\n (<map-name>.Insert <key> <valueref>)\r\n  OR "
+                  "\r\n (<map-name>.Insert <key> <map-value-type> (<constructor-args>))");
          }
          else
          {
-            if (s.NumberOfElements() != 3) Throw(s, SEXTEXT("Expecting three elements: (<map-name>.Insert <key> <value>)"));
+            if (s.NumberOfElements() != 3) Throw(s, ("Expecting three elements: (<map-name>.Insert <key> <value>)"));
          }
 
          cr_sex keyExpr = s.GetElement(1);
@@ -694,7 +694,7 @@ namespace Rococo
          if (IsPrimitiveType(def.ValueType.VarType()))
          {
             cr_sex valueExpr = s.GetElement(2);
-            csexstr value = valueExpr.String()->Buffer;
+            cstr value = valueExpr.String()->Buffer;
             CompileNumericExpression(ce, valueExpr, def.ValueType.VarType()); // value goes to D7
             ce.Builder.AssignVariableRefToTemp(mapName, 0); // map ref goes to D4
             AppendInvoke(ce, def.ValueType.SizeOfStruct() == 4 ? GetMapCallbacks(ce).MapInsert32 : GetMapCallbacks(ce).MapInsert64, s);
@@ -704,7 +704,7 @@ namespace Rococo
             if (!TryCompileAssignArchetype(ce, s[2], def.ValueType, false))
             {
                sexstringstream<1024> streamer;
-               streamer.sb << SEXTEXT("Expecting archetype ") << GetFriendlyName(def.ValueType);
+               streamer.sb << ("Expecting archetype ") << GetFriendlyName(def.ValueType);
                Throw(s[2], streamer);
             }
             ce.Builder.AssignVariableRefToTemp(mapName, 0); // map ref goes to D4
@@ -715,7 +715,7 @@ namespace Rococo
             if (s.NumberOfElements() == 3)
             {
                cr_sex valueExpr = s.GetElement(2);
-               CompileGetStructRef(ce, valueExpr, def.ValueType, SEXTEXT("insert-ref")); // structure ref goes to D7
+               CompileGetStructRef(ce, valueExpr, def.ValueType, ("insert-ref")); // structure ref goes to D7
                ce.Builder.AssignVariableRefToTemp(mapName, 0); // map ref goes to D4
 
                AppendInvoke(ce, GetMapCallbacks(ce).MapInsertValueByRef, s);
@@ -726,7 +726,7 @@ namespace Rococo
                if (!IsAtomic(typeExpr) || !AreEqual(typeExpr.String(), GetFriendlyName(def.ValueType)))
                {
                   sexstringstream<1024> streamer;
-                  streamer.sb << SEXTEXT("Bad value type, syntax is: (<map-name>.Insert <key> ") << GetFriendlyName(def.ValueType) << SEXTEXT(" (<constructor-args>))");
+                  streamer.sb << ("Bad value type, syntax is: (<map-name>.Insert <key> ") << GetFriendlyName(def.ValueType) << (" (<constructor-args>))");
                   Throw(s, streamer);
                }
 
@@ -734,7 +734,7 @@ namespace Rococo
                if (!IsCompound(argsExpr) && !IsNull(argsExpr))
                {
                   sexstringstream<1024> streamer;
-                  streamer.sb << SEXTEXT("Value should be a compound expression, syntax is: (<map-name>.Insert <key> ") << GetFriendlyName(def.ValueType) << SEXTEXT(" (<constructor-args>))");
+                  streamer.sb << ("Value should be a compound expression, syntax is: (<map-name>.Insert <key> ") << GetFriendlyName(def.ValueType) << (" (<constructor-args>))");
                   Throw(s, streamer);
                }
 
@@ -746,53 +746,53 @@ namespace Rococo
          }
          else
          {
-            Throw(keyExpr, SEXTEXT("Non primitive value types are not supported"));
+            Throw(keyExpr, ("Non primitive value types are not supported"));
          }
       }
 
-      bool TryCompileAsMapCall(CCompileEnvironment& ce, cr_sex s, csexstr mapName, csexstr methodName)
+      bool TryCompileAsMapCall(CCompileEnvironment& ce, cr_sex s, cstr mapName, cstr methodName)
       {
-         if (AreEqual(methodName, SEXTEXT("Insert")))
+         if (AreEqual(methodName, ("Insert")))
          {
             CompileAsMapInsert(ce, s, mapName);
             return true;
          }
          else
          {
-            Throw(s, SEXTEXT("Unknown list method. Known methods: Append, Prepend."));
+            Throw(s, ("Unknown list method. Known methods: Append, Prepend."));
          }
 
          return false;
       }
 
-      bool TryCompileAsMapNodeCall(CCompileEnvironment& ce, cr_sex s, csexstr name, csexstr methodName)
+      bool TryCompileAsMapNodeCall(CCompileEnvironment& ce, cr_sex s, cstr name, cstr methodName)
       {
-         if (AreEqual(methodName, SEXTEXT("Pop")))
+         if (AreEqual(methodName, ("Pop")))
          {
             CompileAsMapNodePop(ce, s, name);
             return true;
          }
          else
          {
-            Throw(s, SEXTEXT("Unknown node method. Known methods: Exists, Value, Pop"));
+            Throw(s, ("Unknown node method. Known methods: Exists, Value, Pop"));
          }
 
          return false;
       }
 
-      void CompileGetMapElement(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, VARTYPE varType, const IStructure* structType)
+      void CompileGetMapElement(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE varType, const IStructure* structType)
       {
 
       }
 
-      void CompileAsMapNodeDeclaration(CCompileEnvironment& ce, csexstr nodeName, cr_sex source)
+      void CompileAsMapNodeDeclaration(CCompileEnvironment& ce, cstr nodeName, cr_sex source)
       {
          // (node n = (<map-name> <key>))
-         if (source.NumberOfElements() != 2) Throw(source, SEXTEXT("Expecting map lookup expression, in the form (node n = (<map-name> <key>))"));
+         if (source.NumberOfElements() != 2) Throw(source, ("Expecting map lookup expression, in the form (node n = (<map-name> <key>))"));
 
          cr_sex mapExpr = GetAtomicArg(source, 0);
          cr_sex keyExpr = source.GetElement(1);
-         csexstr mapName = mapExpr.String()->Buffer;
+         cstr mapName = mapExpr.String()->Buffer;
 
          const MapDef def = GetMapDef(ce, source, mapName);
 
@@ -820,17 +820,17 @@ namespace Rococo
          cr_sex valuetypeExpr = GetAtomicArg(s, 2);
          cr_sex nameExpr = GetAtomicArg(s, 3);
 
-         csexstr name = nameExpr.String()->Buffer;
-         csexstr keyType = keytypeExpr.String()->Buffer;
-         csexstr valueType = valuetypeExpr.String()->Buffer;
+         cstr name = nameExpr.String()->Buffer;
+         cstr keyType = keytypeExpr.String()->Buffer;
+         cstr valueType = valuetypeExpr.String()->Buffer;
 
          AssertLocalIdentifier(nameExpr);
 
          const IStructure* keyStruct = MatchStructure(keytypeExpr, ce.Builder.Module());
-         if (keyStruct == NULL) ThrowTokenNotFound(s, keyType, ce.Builder.Module().Name(), SEXTEXT("type"));
+         if (keyStruct == NULL) ThrowTokenNotFound(s, keyType, ce.Builder.Module().Name(), ("type"));
 
          const IStructure* valueStruct = MatchStructure(valuetypeExpr, ce.Builder.Module());
-         if (valueStruct == NULL) ThrowTokenNotFound(s, valueType, ce.Builder.Module().Name(), SEXTEXT("type"));
+         if (valueStruct == NULL) ThrowTokenNotFound(s, valueType, ce.Builder.Module().Name(), ("type"));
 
          ce.Builder.AddSymbol(name);
          AddVariable(ce, NameString::From(name), ce.StructMap());
@@ -840,12 +840,12 @@ namespace Rococo
          VariantValue k;
          k.vPtrValue = (void*)keyStruct;
 
-         AddSymbol(ce.Builder, SEXTEXT("keytype: %s"), GetFriendlyName(*keyStruct));
+         AddSymbol(ce.Builder, ("keytype: %s"), GetFriendlyName(*keyStruct));
          ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, k, BITCOUNT_POINTER); // Key type to D5
 
          VariantValue v;
          v.vPtrValue = (void*)valueStruct;
-         AddSymbol(ce.Builder, SEXTEXT("valuetype: %s"), GetFriendlyName(*valueStruct));
+         AddSymbol(ce.Builder, ("valuetype: %s"), GetFriendlyName(*valueStruct));
          ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_POINTER); // Value type to D4
 
          AddMapDef(ce.Script, ce.Builder, name, *keyStruct, *valueStruct, s);
@@ -853,22 +853,22 @@ namespace Rococo
          ce.Builder.Assembler().Append_Invoke(GetMapCallbacks(ce).MapInit);
       }
 
-      bool TryCompileAsInlineMapAndReturnValue(CCompileEnvironment& ce, cr_sex s, csexstr instance, csexstr methodName, VARTYPE returnType, const IStructure& instanceStruct, VARTYPE& outputType)
+      bool TryCompileAsInlineMapAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const IStructure& instanceStruct, VARTYPE& outputType)
       {
          if (instanceStruct == ce.StructMap())
          {
             if (!IsAtomic(s) && s.NumberOfElements() != 1) return false;
 
             TokenBuffer field;
-            if (AreEqual(SEXTEXT("Length"), methodName))
+            if (AreEqual(("Length"), methodName))
             {
-               StringPrint(field, SEXTEXT("%s._length"), instance);
+               StringPrint(field, ("%s._length"), instance);
                ValidateReturnType(s, returnType, VARTYPE_Int32);
                outputType = VARTYPE_Int32;
             }
             else
             {
-               Throw(s, SEXTEXT("The property is not recognized for map types. Known properties for maps: Length"));
+               Throw(s, ("The property is not recognized for map types. Known properties for maps: Length"));
             }
 
             ce.Builder.AddSymbol(field);
@@ -882,15 +882,15 @@ namespace Rococo
             if (!IsAtomic(s) && s.NumberOfElements() != 1) return false;
 
             TokenBuffer field;
-            if (AreEqual(SEXTEXT("Exists"), methodName))
+            if (AreEqual(("Exists"), methodName))
             {
-               StringPrint(field, SEXTEXT("%s._exists"), instance);
+               StringPrint(field, ("%s._exists"), instance);
                ValidateReturnType(s, returnType, VARTYPE_Bool);
                ce.Builder.AddSymbol(field);
                ce.Builder.AssignVariableToTemp(field, Rococo::ROOT_TEMPDEPTH, 0);
                outputType = VARTYPE_Bool;
             }
-            else if (AreEqual(SEXTEXT("Value"), methodName))
+            else if (AreEqual(("Value"), methodName))
             {
                ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH, 0); // node goes to D7
 
@@ -899,14 +899,14 @@ namespace Rococo
                if (valType == VARTYPE_Derivative)
                {
                   sexstringstream<1024> streamer;
-                  streamer.sb << SEXTEXT("The node is for a map with a derivative value type ") << GetFriendlyName(mnd.mapdef.ValueType) << SEXTEXT(", and does not support the Value property") << GetTypeName(returnType);
+                  streamer.sb << ("The node is for a map with a derivative value type ") << GetFriendlyName(mnd.mapdef.ValueType) << (", and does not support the Value property") << GetTypeName(returnType);
                   Throw(s, streamer);
                }
 
                if (returnType != VARTYPE_AnyNumeric && valType != returnType)
                {
                   sexstringstream<1024> streamer;
-                  streamer.sb << SEXTEXT("The node is for a map with value type ") << GetFriendlyName(mnd.mapdef.ValueType) << SEXTEXT(" but the context requires a type ") << GetTypeName(returnType);
+                  streamer.sb << ("The node is for a map with value type ") << GetFriendlyName(mnd.mapdef.ValueType) << (" but the context requires a type ") << GetTypeName(returnType);
                   Throw(s, streamer);
                }
 
@@ -933,13 +933,13 @@ namespace Rococo
                   AppendInvoke(ce, ((int)BITCOUNT_POINTER == 32) ? GetMapCallbacks(ce).MapNodeGet32 : GetMapCallbacks(ce).MapNodeGet64, s);
                   break;
                default:
-                  Throw(s, SEXTEXT("Unexpected type in map invoke"));
+                  Throw(s, ("Unexpected type in map invoke"));
                   break;
                }
             }
             else
             {
-               Throw(s, SEXTEXT("The property is not recognized for map node types. Known properties for maps: Exists, Value"));
+               Throw(s, ("The property is not recognized for map node types. Known properties for maps: Exists, Value"));
             }
 
             return true;
@@ -954,10 +954,10 @@ namespace Rococo
          // (foreach n # a (...) (...) )
 
          cr_sex collection = s.GetElement(hashIndex + 1);
-         csexstr collectionName = collection.String()->Buffer;
+         cstr collectionName = collection.String()->Buffer;
 
-         csexstr indexName;
-         csexstr refName;
+         cstr indexName;
+         cstr refName;
 
          if (hashIndex == 2)
          {
@@ -980,7 +980,7 @@ namespace Rococo
 
          const MapDef& mapdef = GetMapDef(ce, s, collectionName);
 
-         ce.Builder.AddSymbol(SEXTEXT("(foreach..."));
+         ce.Builder.AddSymbol(("(foreach..."));
 
          ce.Builder.AddSymbol(collectionName);
          AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
@@ -988,7 +988,7 @@ namespace Rococo
 
          //////////////////////////////////////////////////////// Test map to see if it is empty //////////////////////////////////////////////////////
          TokenBuffer collectionLength;
-         StringPrint(collectionLength, SEXTEXT("%s._length"), collectionName);
+         StringPrint(collectionLength, ("%s._length"), collectionName);
          ce.Builder.AssignVariableToTemp(collectionLength, Rococo::ROOT_TEMPDEPTH);
          ce.Builder.Assembler().Append_Test(VM::REGISTER_D7, BITCOUNT_32);
          size_t bailoutPos = ce.Builder.Assembler().WritePosition();
@@ -1003,7 +1003,7 @@ namespace Rococo
 
          if (indexName != NULL)
          {
-            ce.Builder.AddSymbol(SEXTEXT("D11 - working index"));
+            ce.Builder.AddSymbol(("D11 - working index"));
             AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 4, Rococo::ROOT_TEMPDEPTH + 4, BITCOUNT_32); // Index is D11
             VariantValue zero;
             zero.int32Value = 0;

@@ -101,7 +101,7 @@ namespace
 			canCaptureClosureData = true;
 		}
 
-		csexstr Name() const { return name.c_str(); }
+		cstr Name() const { return name.c_str(); }
 		ARGUMENTUSAGE Usage() const { return usage; }
 		const int32 SectionIndex() const { return sectionIndex; }		
 		const IStructure& ResolvedType() const { return resolvedType; }		
@@ -158,16 +158,16 @@ namespace
 		TVariables expiredVariables;
 		TControlStack controlStack;
 		
-		Variable* TryGetVariableByName(csexstr name, OUT int32& offsetCorrect);		
-		const Variable* TryGetVariableByName(csexstr name, OUT int32& offsetCorrect) const;
+		Variable* TryGetVariableByName(cstr name, OUT int32& offsetCorrect);		
+		const Variable* TryGetVariableByName(cstr name, OUT int32& offsetCorrect) const;
 
-		bool IsVariableDefinedAtLevel(int32 sectionIndex, csexstr name);
+		bool IsVariableDefinedAtLevel(int32 sectionIndex, cstr name);
 		
 		void AllocateLocalVariable(Variable& v, REF size_t& stackExpansion);
 		void GetCodeSection(OUT CodeSection& section) const { section.Start = functionStartPosition; section.End = functionEndPosition; section.Id = byteCodeId; }
 		void BuildInputAndOutputOffsets();
 
-		Variable& DemandVariableByName(csexstr name, csexstr clue, OUT int32& offsetCorrect);		
+		Variable& DemandVariableByName(cstr name, cstr clue, OUT int32& offsetCorrect);		
 		int AddVariableToVariables(Variable* v);
 
 		int nextId;
@@ -187,22 +187,22 @@ namespace
 		virtual void AddExpression(IBinaryExpression& tree);
 		virtual void Begin();
 		virtual void EnterSection();
-		virtual void Append_InitializeVirtualTable(csexstr className);
-		virtual void Append_InitializeVirtualTable(csexstr instanceName, const IStructure& classType);
+		virtual void Append_InitializeVirtualTable(cstr className);
+		virtual void Append_InitializeVirtualTable(cstr instanceName, const IStructure& classType);
 		virtual void AddVariable(const NameString& name, const TypeString& type, void* userData);
 		virtual void AddVariable(const NameString& name, const IStructure& type, void* userData);
 		virtual void AddVariableRef(const NameString& name, const IStructure& type, void* userData);
 		virtual void AddPseudoVariable(const NameString& ns, const IStructure& st);
-		virtual void AddCatchVariable(csexstr name, void* userData);
-		virtual void AssignLiteral(const NameString& name, csexstr valueLiteral);
+		virtual void AddCatchVariable(cstr name, void* userData);
+		virtual void AssignLiteral(const NameString& name, cstr valueLiteral);
 		virtual void AssignPointer(const NameString& name, const void* ptr);
-		virtual void AssignVariableToVariable(csexstr source, csexstr value);
-		virtual void AssignVariableToTemp(csexstr source, int tempIndex, int offsetCorrection);
-		virtual void AssignVariableRefToTemp(csexstr source, int tempDepth, int offset);
+		virtual void AssignVariableToVariable(cstr source, cstr value);
+		virtual void AssignVariableToTemp(cstr source, int tempIndex, int offsetCorrection);
+		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset);
 		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def);
 		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def);
 		virtual void AssignLiteralToGlobal(const GlobalValue& g, const VariantValue& value);
-		virtual void AssignTempToVariable(int srcIndex, csexstr target);
+		virtual void AssignTempToVariable(int srcIndex, cstr target);
 		virtual void BinaryOperatorAdd(int srcInvariantIndex, int trgMutatingIndex, VARTYPE type);
 		virtual void BinaryOperatorSubtract(int srcInvariantIndex, int trgMutatingIndex, VARTYPE type);
 		virtual void BinaryOperatorMultiply(int srcInvariantIndex, int trgInvariantIndex, VARTYPE type);
@@ -213,14 +213,14 @@ namespace
 		virtual void Negate(int srcInvariantIndex, VARTYPE varType);
 		virtual void LeaveSection();
 		virtual void End();
-		virtual VARTYPE GetVarType(csexstr name) const;
-		virtual const IStructure* GetVarStructure(csexstr name) const;
+		virtual VARTYPE GetVarType(cstr name) const;
+		virtual const IStructure* GetVarStructure(cstr name) const;
 		virtual void AssignClosureParentSF();
-		virtual void EnableClosures(csexstr targetVariable);
+		virtual void EnableClosures(cstr targetVariable);
 		virtual void Free() { delete this; }
-		virtual bool TryGetVariableByName(OUT MemberDef& def, csexstr name) const;
+		virtual bool TryGetVariableByName(OUT MemberDef& def, cstr name) const;
 		virtual int GetVariableCount() const;
-		virtual void GetVariableByIndex(OUT MemberDef& def, csexstr& name, int index) const;
+		virtual void GetVariableByIndex(OUT MemberDef& def, cstr& name, int index) const;
 		virtual void PopControlFlowPoint();
 		virtual void PushControlFlowPoint(const ControlFlowData& controlFlowData);
 		virtual bool TryGetControlFlowPoint(OUT ControlFlowData& data);
@@ -234,23 +234,23 @@ namespace
 		{
 			if (instancePosition < 0 || instancePosition >= (int) destructorPositions.size())
 			{
-				Throw(ERRORCODE_BAD_ARGUMENT, SEXTEXT("GetDestructorFromInstancePos"), SEXTEXT("Bad instancePosition: %d"), instancePosition);
+				Throw(ERRORCODE_BAD_ARGUMENT, ("GetDestructorFromInstancePos"), ("Bad instancePosition: %d"), instancePosition);
 			}
 			return destructorPositions[instancePosition]; 
 		}
 		virtual const IStructure& GetTypeFromInstancePos(int instancePosition) const { return *posToType[instancePosition]; }
 
-		virtual void AddSymbol(csexstr text);
+		virtual void AddSymbol(cstr text);
 		virtual void MarkExpression(const void* sourceExpression);
 		virtual void DeleteSymbols();
 		virtual SymbolValue GetSymbol(size_t pcAddressOffset) const;
 
 		virtual int GetLocalVariableSymbolCount() const;
-		virtual void GetLocalVariableSymbolByIndex(OUT MemberDef& def, OUT csexstr& name, IN int index) const;
-		virtual bool GetLocalVariableSymbolByName(OUT MemberDef& def, OUT csexstr name, IN size_t pcAddress) const;
+		virtual void GetLocalVariableSymbolByIndex(OUT MemberDef& def, OUT cstr& name, IN int index) const;
+		virtual bool GetLocalVariableSymbolByName(OUT MemberDef& def, OUT cstr name, IN size_t pcAddress) const;
 
 		virtual void PushVariable(const MemberDef& def);
-		virtual void PushVariableRef(csexstr source, int interfaceIndex);
+		virtual void PushVariableRef(cstr source, int interfaceIndex);
 
 		virtual int GetOffset(size_t argIndex) const;
 
@@ -258,8 +258,8 @@ namespace
 		virtual void SetThisOffset(int offset);
 
 		virtual void ArchiveRegister(int saveTempDepth, int restoreTempDepth, BITCOUNT bits, void* userData);
-		virtual void AddArgVariable(csexstr desc, const TypeString& typeName, void* userData);
-		virtual void AddArgVariable(csexstr desc, const IStructure& type, void* userData);
+		virtual void AddArgVariable(cstr desc, const TypeString& typeName, void* userData);
+		virtual void AddArgVariable(cstr desc, const IStructure& type, void* userData);
 	};
 
 	CodeBuilder::CodeBuilder(IFunctionBuilder& _f, bool _mayUseParentsSF):
@@ -310,7 +310,7 @@ namespace
 	void CodeBuilder::ArchiveRegister(int saveTempDepth, int restoreTempDepth, BITCOUNT bits, void* userData)
 	{
 		TokenBuffer name;
-      SafeFormat(name.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("_archive_D%d_%d"), saveTempDepth + 4, nextId++);
+      SafeFormat(name.Text, TokenBuffer::MAX_TOKEN_CHARS, ("_archive_D%d_%d"), saveTempDepth + 4, nextId++);
 
 		const IStructure& type =  (bits == BITCOUNT_32) ? Module().Object().Common().TypeInt32() :  Module().Object().Common().TypeInt64();
 
@@ -319,10 +319,10 @@ namespace
 		if (dx >= 0) Assembler().Append_PushRegister(saveTempDepth + 4, bits);
 	}
 
-	void CodeBuilder::AddArgVariable(csexstr desc, const IStructure& type, void* userData)
+	void CodeBuilder::AddArgVariable(cstr desc, const IStructure& type, void* userData)
 	{
 		TokenBuffer name;
-      SafeFormat(name.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("_arg_%s_%d"), desc, nextId++);
+      SafeFormat(name.Text, TokenBuffer::MAX_TOKEN_CHARS, ("_arg_%s_%d"), desc, nextId++);
 
 		const IStructure* argType = NULL;
 
@@ -340,7 +340,7 @@ namespace
 		int dx = AddVariableToVariables(v);			
 	}
 
-	void CodeBuilder::AddArgVariable(csexstr desc, const TypeString& typeName, void* userData)
+	void CodeBuilder::AddArgVariable(cstr desc, const TypeString& typeName, void* userData)
 	{
 		const IStructure* type = MatchStructure(Module().Object().Log(), typeName.c_str(), Module());
 
@@ -350,7 +350,7 @@ namespace
 		}
 		else
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Unknown type [%s]"), typeName);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unknown type [%s]"), typeName);
 		}
 	}
 
@@ -423,11 +423,11 @@ namespace
 
 	}
 
-	void CodeBuilder::AddSymbol(csexstr text)
+	void CodeBuilder::AddSymbol(cstr text)
 	{
 		size_t address = assembler->WritePosition();
 
-		csexstr symbolText = Module().Object().RegisterSymbol(text);
+		cstr symbolText = Module().Object().RegisterSymbol(text);
 
 		auto i = pcSymbols.find(address);
 		if (i != pcSymbols.end())
@@ -455,7 +455,7 @@ namespace
 		{
 			SymbolValue symbol;
 			symbol.SourceExpression = sourceExpression;
-			symbol.Text = SEXTEXT("");
+			symbol.Text = ("");
 
 			pcSymbols.insert(std::make_pair(address,symbol));
 		}
@@ -478,7 +478,7 @@ namespace
 		{
 			SymbolValue nullSym;
 			nullSym.SourceExpression = NULL;
-			nullSym.Text = SEXTEXT("");
+			nullSym.Text = ("");
 			return nullSym;
 		}
 	}
@@ -488,7 +488,7 @@ namespace
 		return (int) (variables.size() + expiredVariables.size());
 	}
 
-	void CodeBuilder::GetLocalVariableSymbolByIndex(OUT MemberDef& def, OUT csexstr& name, IN int index) const
+	void CodeBuilder::GetLocalVariableSymbolByIndex(OUT MemberDef& def, OUT cstr& name, IN int index) const
 	{
 		if (index < (int) variables.size())
 		{
@@ -514,12 +514,12 @@ namespace
 		}
 	}
 
-	bool CodeBuilder::GetLocalVariableSymbolByName(OUT MemberDef& def, csexstr _name, size_t pcAddress) const
+	bool CodeBuilder::GetLocalVariableSymbolByName(OUT MemberDef& def, cstr _name, size_t pcAddress) const
 	{
 		int totalVarCount = GetLocalVariableSymbolCount();
 		for(int i = 0; i < totalVarCount; ++i)
 		{
-			csexstr name;
+			cstr name;
 			GetLocalVariableSymbolByIndex(OUT def, name, i);
 			if (AreEqual(name, _name))
 			{
@@ -539,10 +539,10 @@ namespace
 
 		for (int i = count; i > 0; i--)
 		{
-			if (variables.empty()) Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Serious algorithmic error in compile. An attempt was made to deconstruct a temp variable that does not exist"));
+			if (variables.empty()) Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Serious algorithmic error in compile. An attempt was made to deconstruct a temp variable that does not exist"));
 			
 			Variable* v = variables.back();
-			if (v->Offset() < 0)	Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Serious algorithmic error in compile. An attempt was made to deconstruct an argument to a function inside the function"));
+			if (v->Offset() < 0)	Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Serious algorithmic error in compile. An attempt was made to deconstruct an argument to a function inside the function"));
 
 			int vOffset = v->Offset();
 			
@@ -642,10 +642,10 @@ namespace
 		return true;
 	}
 
-	VARTYPE GetMemberType(const IStructure& s, csexstr name)
+	VARTYPE GetMemberType(const IStructure& s, cstr name)
 	{
 		NamespaceSplitter splitter(name);
-		csexstr head, body;
+		cstr head, body;
 		if (!splitter.SplitHead(OUT head, OUT body))
 		{
 			int offset;
@@ -678,14 +678,14 @@ namespace
 	{
 		if (argIndex >= variables.size())
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("The variable index was out of range."));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("The variable index was out of range."));
 		}
 
 		const Variable* v = variables[variables.size() - argIndex - 1];
 		return v->Offset();
 	}
 
-	const IStructure* CodeBuilder::GetVarStructure(csexstr varName) const
+	const IStructure* CodeBuilder::GetVarStructure(cstr varName) const
 	{
 		MemberDef def;
 		if (TryGetVariableByName(OUT def, varName))
@@ -698,7 +698,7 @@ namespace
 		}
 	}
 
-	VARTYPE CodeBuilder::GetVarType(csexstr name) const
+	VARTYPE CodeBuilder::GetVarType(cstr name) const
 	{
 		MemberDef def;
 		if (TryGetVariableByName(OUT def, name))
@@ -709,7 +709,7 @@ namespace
 		return VARTYPE_Bad;
 
 // 		NamespaceSplitter splitter(name);
-// 		csexstr head, body;
+// 		cstr head, body;
 // 		if (!splitter.SplitHead(OUT head, OUT body))
 // 		{
 // 			const Variable* v = GetVariableByName(name);
@@ -759,7 +759,7 @@ namespace
 		ANON::AddExpressionRecursive(*this, f.Object(), tree, startIndex);
 	}
 	
-	Variable* CodeBuilder::TryGetVariableByName(csexstr name, OUT int32& offsetCorrect)
+	Variable* CodeBuilder::TryGetVariableByName(cstr name, OUT int32& offsetCorrect)
 	{
 		Variable* vThis = Owner().IsVirtualMethod() ? variables[0] : NULL;
 
@@ -783,10 +783,10 @@ namespace
 		return NULL;
 	}
 
-	bool GetMemberVariable(OUT MemberDef& def, const Variable& v, const IStructure& struc, csexstr memberName)
+	bool GetMemberVariable(OUT MemberDef& def, const Variable& v, const IStructure& struc, cstr memberName)
 	{
 		NamespaceSplitter splitter(memberName);
-		csexstr head, body;
+		cstr head, body;
 
 		def.Userdata = NULL;
 		def.location = v.Location();
@@ -829,27 +829,27 @@ namespace
 		}
 	}
 
-	void CodeBuilder::EnableClosures(csexstr targetVariable)
+	void CodeBuilder::EnableClosures(cstr targetVariable)
 	{
 		int offsetCorrection;
 		Variable * v = TryGetVariableByName(targetVariable, OUT offsetCorrection);
 		if (v == nullptr)
 		{
-			Throw(ERRORCODE_BAD_ARGUMENT, __SEXFUNCTION__, SEXTEXT("Cannot find variable %s"), targetVariable);
+			Throw(ERRORCODE_BAD_ARGUMENT, __SEXFUNCTION__, ("Cannot find variable %s"), targetVariable);
 		}
 
 		if (v->ResolvedType().VarType() != VARTYPE_Closure)
 		{
-			Throw(ERRORCODE_BAD_ARGUMENT, __SEXFUNCTION__, SEXTEXT("Variable %s is not a closure"), targetVariable);
+			Throw(ERRORCODE_BAD_ARGUMENT, __SEXFUNCTION__, ("Variable %s is not a closure"), targetVariable);
 		}
 
 		v->AllowCaptureClosure();
 	}
 
-	bool CodeBuilder::TryGetVariableByName(OUT MemberDef& def, csexstr name) const
+	bool CodeBuilder::TryGetVariableByName(OUT MemberDef& def, cstr name) const
 	{
 		NamespaceSplitter splitter(name);
-		csexstr head, body;
+		cstr head, body;
 
 		def.CapturesLocalVariables = false;
 		def.IsParentValue = false;
@@ -963,7 +963,7 @@ namespace
 		return (int) variables.size();
 	}
 
-	void CodeBuilder::GetVariableByIndex(OUT MemberDef& def, csexstr& name, int index) const
+	void CodeBuilder::GetVariableByIndex(OUT MemberDef& def, cstr& name, int index) const
 	{
 		const Variable* v = variables[index];
 		def.Usage = v->Usage();
@@ -977,11 +977,11 @@ namespace
 		name = v->Name();
 	}
 
-	const Variable* CodeBuilder::TryGetVariableByName(csexstr name, OUT int32& offsetCorrect) const
+	const Variable* CodeBuilder::TryGetVariableByName(cstr name, OUT int32& offsetCorrect) const
 	{		
 		if (variables.empty()) return NULL;
 
-		if (AreEqual(name, SEXTEXT("this")))
+		if (AreEqual(name, ("this")))
 		{
 			Variable* vThis = variables[0];
 
@@ -1010,10 +1010,10 @@ namespace
 		return NULL;
 	}
 
-	Variable& CodeBuilder::DemandVariableByName(csexstr name, csexstr clue, OUT int32& offsetCorrect)
+	Variable& CodeBuilder::DemandVariableByName(cstr name, cstr clue, OUT int32& offsetCorrect)
 	{
 		Variable* v = CodeBuilder::TryGetVariableByName(name, OUT offsetCorrect);
-		if (v == NULL) Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not find %s variable [%s]"), clue, name);
+		if (v == NULL) Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not find %s variable [%s]"), clue, name);
 		return *v;
 	}
 
@@ -1047,7 +1047,7 @@ namespace
 		return offset;
 	}
 
-	bool CodeBuilder::IsVariableDefinedAtLevel(int32 sectionIndex, csexstr name)
+	bool CodeBuilder::IsVariableDefinedAtLevel(int32 sectionIndex, cstr name)
 	{
 		for(TVariables::const_reverse_iterator i = variables.rbegin(); i != variables.rend(); ++i)
 		{
@@ -1090,7 +1090,7 @@ namespace
 			if (arg.ResolvedType() == NULL)
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("Could not resolve type (Arg #") << i << SEXTEXT(") ") << arg.TypeString() << SEXTEXT(" ") << arg.Name(); 
+				streamer.sb << ("Could not resolve type (Arg #") << i << (") ") << arg.TypeString() << (" ") << arg.Name(); 
 				Throw(ERRORCODE_NULL_POINTER, __SEXFUNCTION__, "%s", (cstr) streamer);
 			}
 
@@ -1160,7 +1160,7 @@ namespace
 		sectionIndex--;
 		if (sectionIndex > 0)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Section not closed"));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Section not closed"));
 		}
 
 		int endOfTemps = 0;
@@ -1182,18 +1182,18 @@ namespace
 		functionEndPosition = Assembler().WritePosition();
 
 		TokenBuffer symbol;
-      SafeFormat(symbol.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%d bytes"), functionEndPosition);
+      SafeFormat(symbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%d bytes"), functionEndPosition);
 		AddSymbol(symbol);
 		Assembler().Append_Return();		
 
 		if (codeReferencesParentsSF && !mayUseParentsSF)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("The closure body required access to the parent's stackframe, which is prohibited in its context"));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("The closure body required access to the parent's stackframe, which is prohibited in its context"));
 		}
 
 		if (!f.Object().ProgramMemory().UpdateBytecode(byteCodeId, Assembler()))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Insufficient program memory. Either reduce program size or increase MaxProgramBytes in ProgramInitParameters"));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Insufficient program memory. Either reduce program size or increase MaxProgramBytes in ProgramInitParameters"));
 		}
 
 		Module().IncVersion();
@@ -1209,7 +1209,7 @@ namespace
 	{
 		if (IsVariableDefinedAtLevel(sectionIndex, name.c_str()))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Variable [%s] already defined in this scope"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Variable [%s] already defined in this scope"), name.c_str());
 		}
 
 		if (IsPointerValid(&type))
@@ -1228,7 +1228,7 @@ namespace
 		}
 		else
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not add variable [%s]. Type null"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not add variable [%s]. Type null"), name.c_str());
 		}
 	}
 
@@ -1236,7 +1236,7 @@ namespace
 	{
 		if (IsVariableDefinedAtLevel(sectionIndex, name.c_str()))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Variable [%s] already defined in this scope"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Variable [%s] already defined in this scope"), name.c_str());
 		}
 
 		const IStructure* s = Compiler::MatchStructure(Module().Object().Log(), type.c_str(), f.Module());
@@ -1256,7 +1256,7 @@ namespace
 		}
 		else
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not add variable [%s]"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not add variable [%s]"), name.c_str());
 		}
 	}
 
@@ -1264,7 +1264,7 @@ namespace
 	{
 		if (IsVariableDefinedAtLevel(sectionIndex, name.c_str()))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Variable [%s] already defined in this scope"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Variable [%s] already defined in this scope"), name.c_str());
 		}
 
 		if (IsPointerValid(&type))
@@ -1275,7 +1275,7 @@ namespace
 		}
 		else
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not add variable [%s]. Type null"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not add variable [%s]. Type null"), name.c_str());
 		}
 	}
 
@@ -1283,7 +1283,7 @@ namespace
 	{
 		if (IsVariableDefinedAtLevel(sectionIndex, name.c_str()))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Variable [%s] already defined in this scope"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Variable [%s] already defined in this scope"), name.c_str());
 		}
 
 		if (IsPointerValid(&type))
@@ -1302,21 +1302,21 @@ namespace
 		}
 		else
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not add variable [%s]. Type null"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not add variable [%s]. Type null"), name.c_str());
 		}
 	}
 
-	void CodeBuilder::AddCatchVariable(csexstr name, void* userData)
+	void CodeBuilder::AddCatchVariable(cstr name, void* userData)
 	{
 		if (IsVariableDefinedAtLevel(sectionIndex, name))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Variable [%s] already defined in this scope"), name);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Variable [%s] already defined in this scope"), name);
 		}
 
 		const IInterface& interf = Module().Object().Common().SysTypeIException();
 		if (!IsPointerValid(&interf))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot find Sys.Type.IException in intrinsics module"), name);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot find Sys.Type.IException in intrinsics module"), name);
 		}
 
 		const IStructure& nullObjectType = interf.NullObjectType();
@@ -1332,14 +1332,14 @@ namespace
 		v->SetStackPosition(offset);		
 	}
 
-	void CodeBuilder::AssignLiteral(const Rococo::Compiler::NameString& name, csexstr literalValue)
+	void CodeBuilder::AssignLiteral(const Rococo::Compiler::NameString& name, cstr literalValue)
 	{
-		REQUIRE_NOT_NULL(literalValue);
+		if (literalValue == NULL) Throw(0, __SEXFUNCTION__": literalValue was null"); 
 
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, name.c_str()))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not assign '%s' to [%s]. Could not find the variable."), literalValue, name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not assign '%s' to [%s]. Could not find the variable."), literalValue, name.c_str());
 		}
 		
 		VariantValue value;
@@ -1349,23 +1349,23 @@ namespace
 		{
 			if (def.ResolvedType->InterfaceCount() == 0)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not assign '%s' to [%s]. The variable is not of atomic type and has no interface."), literalValue, name.c_str());
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not assign '%s' to [%s]. The variable is not of atomic type and has no interface."), literalValue, name.c_str());
 			}
 
 			const IInterface& interf = def.ResolvedType->GetInterface(0);
 
-			if (!AreEqual(SEXTEXT("0"), literalValue))
+			if (!AreEqual(("0"), literalValue))
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not assign a non zero literal to interface [%s]"), name.c_str());
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not assign a non zero literal to interface [%s]"), name.c_str());
 			}
 
 			value.vPtrValue =  interf.UniversalNullInstance();
 		}
 		else if (vType == VARTYPE_Pointer)
 		{
-			if (!AreEqual(SEXTEXT("0"), literalValue))
+			if (!AreEqual(("0"), literalValue))
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not assign a non zero literal to pointer [%s]"), name.c_str());
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not assign a non zero literal to pointer [%s]"), name.c_str());
 			}
 
 			value.vPtrValue = NULL;
@@ -1375,7 +1375,7 @@ namespace
 			PARSERESULT result = TryParse(OUT value, vType, literalValue);
 			if (result != PARSERESULT_GOOD)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot parse literal value '%s' to [%s]"), literalValue, name.c_str());
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot parse literal value '%s' to [%s]"), literalValue, name.c_str());
 			}
 		}
 
@@ -1397,7 +1397,7 @@ namespace
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, name.c_str()))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not assign '%p' to [%s]. Could not find the variable."), ptr, name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not assign '%p' to [%s]. Could not find the variable."), ptr, name.c_str());
 		}
 		
 		VariantValue value;
@@ -1405,7 +1405,7 @@ namespace
 		VARTYPE vType = def.ResolvedType->VarType();
 		if (vType != VARTYPE_Pointer)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not assign '%p' to [%s]. Variable must of type Pointer."), ptr, name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not assign '%p' to [%s]. Variable must of type Pointer."), ptr, name.c_str());
 		}
 
 		value.vPtrValue = (void*) ptr;
@@ -1423,7 +1423,7 @@ namespace
 		}
 	}
 
-	void AssignVariableToVariable_ByRef(ICodeBuilder& builder, const MemberDef& sourceDef, const MemberDef& targetDef, csexstr source, csexstr target)
+	void AssignVariableToVariable_ByRef(ICodeBuilder& builder, const MemberDef& sourceDef, const MemberDef& targetDef, cstr source, cstr target)
 	{
 		const IStructure& s = *sourceDef.ResolvedType;
 		const IStructure& t = *targetDef.ResolvedType;
@@ -1433,13 +1433,13 @@ namespace
 		{
 			if (&s != &t)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot copy %s %s to %s %s. They must be the same type"), GetFriendlyName(s), source, GetFriendlyName(t), target);
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot copy %s %s to %s %s. They must be the same type"), GetFriendlyName(s), source, GetFriendlyName(t), target);
 			}
 			if (s.Prototype().IsClass)
 			{
 				if (targetDef.AllocSize != 0)
 				{
-					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot copy %s %s. A class type can only be copied to a reference to class type"), GetFriendlyName(s), source);
+					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot copy %s %s. A class type can only be copied to a reference to class type"), GetFriendlyName(s), source);
 				}
 
 				TokenBuffer refName;
@@ -1448,7 +1448,7 @@ namespace
 				MemberDef refDef;
 				if (!builder.TryGetVariableByName(refDef, refName))
 				{
-					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot copy %s %s. No associated reference to %s."), GetFriendlyName(s), source, target);
+					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot copy %s %s. No associated reference to %s."), GetFriendlyName(s), source, target);
 				}
 
 				assembler.Append_GetStackFrameValue(sourceDef.SFOffset + sourceDef.MemberOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
@@ -1464,17 +1464,17 @@ namespace
 		}
 		else if (sourceDef.location == VARLOCATION_TEMP && targetDef.location == VARLOCATION_OUTPUT)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot return a reference of %s to %s. The source would be freed before the function returns"), source, target);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot return a reference of %s to %s. The source would be freed before the function returns"), source, target);
 		}	
 		else if (sourceDef.location == VARLOCATION_OUTPUT)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot copy a value from %s. It is an output value"), target);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot copy a value from %s. It is an output value"), target);
 		}	
 		else // Copy a reference of the input to the output
 		{
 			if (targetDef.MemberOffset != 0)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Did not expect a member offset in the output %s"), target);
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Did not expect a member offset in the output %s"), target);
 			}
 
 			TokenBuffer sourceRef;
@@ -1483,7 +1483,7 @@ namespace
 			MemberDef refDef;
 			if (!builder.TryGetVariableByName(OUT refDef, sourceRef))
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not find the reference for %s for variable. %s"), (csexstr) sourceRef, (csexstr) source);
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not find the reference for %s for variable. %s"), (cstr) sourceRef, (cstr) source);
 			}
 
 			assembler.Append_SetSFValueFromSFMemberRef(refDef.SFOffset, refDef.MemberOffset, targetDef.SFOffset, sizeof(size_t));
@@ -1525,21 +1525,21 @@ namespace
 		}
 	}
 
-	void CodeBuilder::AssignVariableToVariable(csexstr source, csexstr target)
+	void CodeBuilder::AssignVariableToVariable(cstr source, cstr target)
 	{
-		REQUIRE_NOT_BLANK(source);
-		REQUIRE_NOT_BLANK(target);
+		if (source == nullptr || *source == 0) Rococo::Throw(0, __FUNCTION__": source was blank");
+		if (target == nullptr || *target == 0) Rococo::Throw(0, __FUNCTION__": target was blank");
 	
 		MemberDef sourceDef;
 		if (!TryGetVariableByName(OUT sourceDef, source))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not resolve %s"), source);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not resolve %s"), source);
 		}
 
 		MemberDef targetDef;
 		if (!TryGetVariableByName(OUT targetDef, target))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not resolve %s"), target);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not resolve %s"), target);
 		}
 
 		const IStructure* srcType = sourceDef.ResolvedType;
@@ -1547,12 +1547,12 @@ namespace
 
 		if (srcType != trgType)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Type mismatch trying to assign [%s %s] to [%s %s]"), GetFriendlyName(*sourceDef.ResolvedType), source, GetFriendlyName(*targetDef.ResolvedType), target);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Type mismatch trying to assign [%s %s] to [%s %s]"), GetFriendlyName(*sourceDef.ResolvedType), source, GetFriendlyName(*targetDef.ResolvedType), target);
 		}
 
 		if (sourceDef.CapturesLocalVariables && !targetDef.CapturesLocalVariables)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Could not copy %s to %s. The target variable accepts regular function references, but not closures."), source, target);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not copy %s to %s. The target variable accepts regular function references, but not closures."), source, target);
 		}
 
 		if (targetDef.location == VARLOCATION_OUTPUT)
@@ -1562,7 +1562,7 @@ namespace
 			}
 			else if (trgType->VarType() == VARTYPE_Derivative)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Do not know how to handle a concrete type as output. %s %s"), trgType->Name(), (csexstr) target);
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Do not know how to handle a concrete type as output. %s %s"), trgType->Name(), (cstr) target);
 			}
 		}
 
@@ -1581,12 +1581,12 @@ namespace
 			{
 				if (sourceDef.ResolvedType->VarType() != VARTYPE_Derivative)
 				{
-					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Type mismatch trying to assign %s to %s. Unusual size of primitive arguments"), source, target);
+					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Type mismatch trying to assign %s to %s. Unusual size of primitive arguments"), source, target);
 				}
 
 				if (targetDef.IsParentValue || sourceDef.IsParentValue)
 				{
-					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot handle this case for a closure upvalue"));
+					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot handle this case for a closure upvalue"));
 				}
 				Assembler().Append_CopySFVariable(targetDef.SFOffset + targetDef.MemberOffset, sourceDef.SFOffset + sourceDef.MemberOffset, nBytesSource);
 			}
@@ -1597,7 +1597,7 @@ namespace
 
 			if (targetDef.IsParentValue || sourceDef.IsParentValue)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot handle this case for a closure upvalue"));
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot handle this case for a closure upvalue"));
 			}
 
 			AssignVariableToVariable_ByRef(*this, sourceDef, targetDef, source, target);
@@ -1608,12 +1608,12 @@ namespace
 
 			if (targetDef.IsParentValue || sourceDef.IsParentValue)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot handle this case for a closure upvalue"));
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot handle this case for a closure upvalue"));
 			}
 
 			if (sourceDef.ResolvedType->VarType() != targetDef.ResolvedType->VarType())
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Type mismatch %s to %s (%s vs %s)"), source, target, sourceDef.ResolvedType->Name(), targetDef.ResolvedType->Name());
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Type mismatch %s to %s (%s vs %s)"), source, target, sourceDef.ResolvedType->Name(), targetDef.ResolvedType->Name());
 			}
 
 			if (sourceDef.ResolvedType->VarType() == VARTYPE_Derivative && (nBytesSource != 8 && nBytesSource != 4))
@@ -1631,20 +1631,20 @@ namespace
 
 			if (targetDef.IsParentValue || sourceDef.IsParentValue)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot handle this case for a closure upvalue"));
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot handle this case for a closure upvalue"));
 			}
 
 			Assembler().Append_SetSFMemberRefFromSFValue(targetDef.SFOffset, targetDef.MemberOffset, sourceDef.MemberOffset + sourceDef.SFOffset, nBytesSource);			
 		}
 	}
 
-	void CodeBuilder::AssignTempToVariable(int srcIndex, csexstr target)
+	void CodeBuilder::AssignTempToVariable(int srcIndex, cstr target)
 	{
-		REQUIRE_NOT_BLANK(target);
+		if (target == nullptr || *target == 0) Rococo::Throw(0, __FUNCTION__": target was blank");
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, target))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot find variable %s"), target);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot find variable %s"), target);
 		}
 		
 		BITCOUNT bitCount;
@@ -1658,7 +1658,7 @@ namespace
 			switch(def.AllocSize)
 			{
 			default:			
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot assign from datatype. Unhandled size!"));
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot assign from datatype. Unhandled size!"));
 			case 4:
 				bitCount = BITCOUNT_32;
 				break;
@@ -1673,7 +1673,7 @@ namespace
 		{
 			if (def.IsParentValue) Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
 
-			if (srcIndex < 1) Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot assign from datatype. Bad src index."));
+			if (srcIndex < 1) Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot assign from datatype. Bad src index."));
 			Assembler().Append_SetSFMemberByRefFromRegister(srcIndex + VM::REGISTER_D4, def.SFOffset, def.MemberOffset, bitCount);			
 			if (def.IsParentValue) Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
 		}
@@ -1691,7 +1691,7 @@ namespace
 		switch (def.AllocSize)
 		{
 		default:
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot assign from datatype. Unhandled size!"));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot assign from datatype. Unhandled size!"));
 		case 4:
 			bitCount = BITCOUNT_32;
 			break;
@@ -1723,7 +1723,7 @@ namespace
 		switch (def.AllocSize)
 		{
 		default:
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot assign from datatype. Unhandled size!"));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot assign from datatype. Unhandled size!"));
 		case 4:
 			bitCount = BITCOUNT_32;
 			break;
@@ -1783,7 +1783,7 @@ namespace
 			Assembler().Append_IntNegate(VM::REGISTER_D4+a, BITCOUNT_64, VM::REGISTER_D4+a+1);
 			break;
 		default:
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Unhandled type for Negate"));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled type for Negate"));
 		}
 	}
 
@@ -1804,7 +1804,7 @@ namespace
 			Assembler().Append_IntAdd(VM::REGISTER_D4+a, BITCOUNT_64, VM::REGISTER_D4+b);
 			break;
 		default:
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Unhandled type for BinaryOperatorAdd"));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled type for BinaryOperatorAdd"));
 		}
 	}
 
@@ -1825,7 +1825,7 @@ namespace
 			Assembler().Append_IntSubtract(VM::REGISTER_D4+a, BITCOUNT_64, VM::REGISTER_D4+b);
 			break;
 		default:
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Unhandled type for BinaryOperatorSubtract"));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled type for BinaryOperatorSubtract"));
 		}
 	}
 
@@ -1846,7 +1846,7 @@ namespace
 			Assembler().Append_IntMultiply(VM::REGISTER_D4+a, BITCOUNT_64, VM::REGISTER_D4+b);
 			break;
 		default:
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Unhandled type for BinaryOperatorMultiply"));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled type for BinaryOperatorMultiply"));
 		}
 	}
 
@@ -1867,7 +1867,7 @@ namespace
 			Assembler().Append_IntDivide(VM::REGISTER_D4+a, BITCOUNT_64, VM::REGISTER_D4+b);
 			break;
 		default:
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Unhandled type for BinaryOperatorMultiply"));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled type for BinaryOperatorMultiply"));
 		}
 	}
 
@@ -1876,7 +1876,7 @@ namespace
 		switch(sizeOfStruct)
 		{
 		default:
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot Get bitcount for struct. Unhandled size!"));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot Get bitcount for struct. Unhandled size!"));
 		case 4:
 			return BITCOUNT_32;
 		case 8:
@@ -1884,13 +1884,13 @@ namespace
 		}		
 	}
 
-	void CodeBuilder::AssignVariableToTemp(csexstr source, int tempIndex, int memberOffsetCorrection)
+	void CodeBuilder::AssignVariableToTemp(cstr source, int tempIndex, int memberOffsetCorrection)
 	{
-		REQUIRE_NOT_BLANK(source);
+		if (source == nullptr || *source == 0) Rococo::Throw(0, __FUNCTION__": source was blank");
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, source))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Unknown source variable: %s"), source);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unknown source variable: %s"), source);
 		}
 
 		def.MemberOffset += memberOffsetCorrection;
@@ -1911,17 +1911,17 @@ namespace
 		if (def.IsParentValue)	{	Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
 	}
 
-	void CodeBuilder::AssignVariableRefToTemp(csexstr source, int tempDepth, int offset)
+	void CodeBuilder::AssignVariableRefToTemp(cstr source, int tempDepth, int offset)
 	{
-		REQUIRE_NOT_BLANK(source);
+		if (source == nullptr || *source == 0) Rococo::Throw(0, __FUNCTION__": source was blank");
 
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, source))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Unknown source variable: %s"), source);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unknown source variable: %s"), source);
 		}
 
-		if (def.IsParentValue) Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Cannot handle upvalue refs"));
+		if (def.IsParentValue) Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot handle upvalue refs"));
 		
 		if (def.Usage == ARGUMENTUSAGE_BYVALUE)
 		{
@@ -1934,14 +1934,14 @@ namespace
 		}
 	}
 
-	void CodeBuilder::PushVariableRef(csexstr source, int interfaceIndex)
+	void CodeBuilder::PushVariableRef(cstr source, int interfaceIndex)
 	{
-		REQUIRE_NOT_BLANK(source);
+		if (source == nullptr || *source == 0) Rococo::Throw(0, __FUNCTION__": source was blank");
 
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, source))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Unknown source variable: %s"), source);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unknown source variable: %s"), source);
 		}
 
 		if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);	}
@@ -1997,9 +1997,9 @@ namespace
 		if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);	}
 	}
 
-	int32 SizeTToInt(size_t x, csexstr source, int lineNumber)
+	int32 SizeTToInt(size_t x, cstr source, int lineNumber)
 	{
-		if (x > 0x7FFFFFFF) Throw(ERRORCODE_COMPILE_ERRORS, SEXTEXT("Error converting size_t to positive int32 at %s(%d)"), source, lineNumber);
+		if (x > 0x7FFFFFFF) Throw(ERRORCODE_COMPILE_ERRORS, ("Error converting size_t to positive int32 at %s(%d)"), source, lineNumber);
 		return (int32) x;
 	}
 
@@ -2016,7 +2016,7 @@ namespace
 		case CONDITION_IF_LESS_THAN: return CONDITION_IF_GREATER_OR_EQUAL;
 		case CONDITION_IF_LESS_OR_EQUAL: return CONDITION_IF_GREATER_THAN;
 		default:
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Unhandled case type 0x%x"), x);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled case type 0x%x"), x);
 			return CONDITION_IF_EQUAL;
 		}
 	}
@@ -2075,7 +2075,7 @@ namespace
 
 		if (attempts == 0)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Failed to evaluate conditional statement."));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Failed to evaluate conditional statement."));
 		}
 	}
 
@@ -2149,31 +2149,31 @@ namespace
 
 		if (attempts == 0)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Failed to evaluate while...do statement."));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Failed to evaluate while...do statement."));
 		}
 	}
 
-	void GetVariableByName(ICodeBuilder& builder, OUT MemberDef& def, csexstr name)
+	void GetVariableByName(ICodeBuilder& builder, OUT MemberDef& def, cstr name)
 	{
 		if (!builder.TryGetVariableByName(def, name))
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Error, cannot find entry ") << name;
+			streamer.sb << ("Error, cannot find entry ") << name;
 			Throw(ERRORCODE_COMPILE_ERRORS, builder.Module().Name(), "%s", (cstr) streamer);
 		}
 	}
 
-	void ValidateVariable(const Variable* instance, csexstr instanceName, IModule& module)
+	void ValidateVariable(const Variable* instance, cstr instanceName, IModule& module)
 	{
 		if (instance == NULL)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Error, cannot find instance ") << instanceName;
+			streamer.sb << ("Error, cannot find instance ") << instanceName;
 			Throw(ERRORCODE_COMPILE_ERRORS, module.Name(), "%s", (cstr) streamer);
 		}
 	}
 
-	void InitVirtualTable(CodeBuilder& builder, const MemberDef& def, csexstr instanceName, const IStructure& classType)
+	void InitVirtualTable(CodeBuilder& builder, const MemberDef& def, cstr instanceName, const IStructure& classType)
 	{
 		int sfOffset = 0;
 
@@ -2190,14 +2190,14 @@ namespace
 		}
 
 		TokenBuffer vTableSymbol;
-      SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s._typeInfo"), classType.Name());
+      SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s._typeInfo"), classType.Name());
 		builder.AddSymbol(vTableSymbol);
 
 		VariantValue v;
 		v.uint8PtrValue = (uint8*) classType.GetVirtualTable(0);
 		builder.Assembler().Append_SetStackFrameImmediate(sfOffset, v, BITCOUNT_POINTER);
 		
-      SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s._allocSize"), classType.Name());
+      SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s._allocSize"), classType.Name());
 		builder.AddSymbol(vTableSymbol);
 
 		v.int32Value = classType.SizeOfStruct();
@@ -2206,7 +2206,7 @@ namespace
 		for(int i = 0; i < classType.InterfaceCount(); i++)
 		{
 			const IInterface& interf = classType.GetInterface(i);
-         SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s.%s._vTable"), classType.Name(), interf.Name());
+         SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.%s._vTable"), classType.Name(), interf.Name());
 			builder.AddSymbol(vTableSymbol);
 
 			v.uint8PtrValue = (uint8*) classType.GetVirtualTable(i+1);
@@ -2220,13 +2220,13 @@ namespace
 		}		
 	}
 
-	void CodeBuilder::Append_InitializeVirtualTable(csexstr instanceName)
+	void CodeBuilder::Append_InitializeVirtualTable(cstr instanceName)
 	{
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, instanceName))
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Error, cannot find instance ") << instanceName;
+			streamer.sb << ("Error, cannot find instance ") << instanceName;
 			Throw(ERRORCODE_COMPILE_ERRORS, Module().Name(), "%s", (cstr) streamer);
 		}
 
@@ -2236,13 +2236,13 @@ namespace
 		}
 	}
 
-	void CodeBuilder::Append_InitializeVirtualTable(csexstr instanceName, const IStructure& classType)
+	void CodeBuilder::Append_InitializeVirtualTable(cstr instanceName, const IStructure& classType)
 	{
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, instanceName))
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Error, cannot find instance ") << instanceName;
+			streamer.sb << ("Error, cannot find instance ") << instanceName;
 			Throw(ERRORCODE_COMPILE_ERRORS, classType.Module().Name(), "%s", (cstr) streamer);
 		}
 
@@ -2334,7 +2334,7 @@ namespace
 
 		if (attempts == 0)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Failed to evaluate do...while statement."));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Failed to evaluate do...while statement."));
 		}
 	}
 
@@ -2343,7 +2343,7 @@ namespace
 		sectionIndex--;
 		if (sectionIndex < 0)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Section closed without a corresponding open"));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Section closed without a corresponding open"));
 		}
 
 		sections.pop_back();

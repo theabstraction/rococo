@@ -51,7 +51,7 @@ namespace Rococo
 	int32 CompareI(cstr a, cstr b, int64 count);
 	int32 Compare(const char* a, const char* b, int64 count);
 	int32 Compare(cstr a, cstr b, int64 count);
-	int32 Compare(sexstring a, const SEXCHAR* b);
+	int32 Compare(sexstring a, const char* b);
 	const char* GetSubString(const char* s, const char *subString);
 	cstr GetSubString(cstr s, const char *subString);
 	
@@ -80,14 +80,14 @@ namespace Rococo
       friend bool operator == (const CStringKey& a, const CStringKey& b);
       friend bool operator < (const CStringKey& a, const CStringKey& b);
    private:
-      csexstr text;
+      cstr text;
       size_t hashValue;
 
    public:
-      CStringKey(csexstr _text) : text(_text) { hashValue = Rococo::Hash(_text); }
+      CStringKey(cstr _text) : text(_text) { hashValue = Rococo::Hash(_text); }
       CStringKey() : text(nullptr), hashValue(0) {}
 
-      csexstr c_str() const { return text; }
+      cstr c_str() const { return text; }
 
       size_t Hash() const { return hashValue; }
    };

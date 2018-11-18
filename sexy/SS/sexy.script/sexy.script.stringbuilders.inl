@@ -37,7 +37,7 @@ namespace
 	struct Memo
 	{
 		enum { CAPACITY = capacity };
-		SEXCHAR Data[CAPACITY];
+		char Data[CAPACITY];
 	};
 
 	template<class T>
@@ -100,14 +100,14 @@ namespace
 		void* vSrc;
 		ReadInput(0, vSrc, e);
 
-		const SEXCHAR* src = (const SEXCHAR*) vSrc;
+		const char* src = (const char*) vSrc;
 
 		int32 srcLen;
 		ReadInput(1, srcLen, e);
 
 		if (src == NULL)
 		{
-			src = SEXTEXT("");
+			src = ("");
 			srcLen = 0;
 		}
 
@@ -127,8 +127,8 @@ namespace
 		}
 		
 		TMemo* memo = allocator.alloc();
-		memcpy(memo->Data, src, sizeof(SEXCHAR) * truncLen);
-		memo->Data[sizeof(SEXCHAR) * truncLen] = 0;
+		memcpy(memo->Data, src, sizeof(char) * truncLen);
+		memo->Data[sizeof(char) * truncLen] = 0;
 
 		WriteOutput(0, (void*) memo, e);
 		WriteOutput(1, truncLen, e);
@@ -158,7 +158,7 @@ namespace
 		int length;
 		int formatBase;
 		SPEC spec;
-		SEXCHAR prefix[16];
+		char prefix[16];
 
 		CStringBuilderHeader(int _capacity): capacity(_capacity), length(0), formatBase(10), spec(SPEC_F)
 		{
@@ -175,10 +175,10 @@ namespace
 			buffer[0] = 0;
 		}
 
-		SEXCHAR buffer[4];
+		char buffer[4];
 	};
 #pragma pack(pop)
-	void MergeFormats(SEXCHAR* format, const CStringBuilder& sb, csexstr suffix)
+	void MergeFormats(char* format, const CStringBuilder& sb, cstr suffix)
 	{
 		CopyString(format, 16, sb.Header.prefix);
 		StringCat(format, suffix, 16);
@@ -204,7 +204,7 @@ namespace
 		int32 capacity;
 		ReadInput(0, capacity, e);
 
-		SEXCHAR* pData = new SEXCHAR[capacity + sizeof(CStringBuilderHeader)];
+		char* pData = new char[capacity + sizeof(CStringBuilderHeader)];
 		CStringBuilder* sb = new (pData) CStringBuilder(std::max(capacity, 4));
 		sbStore.insert(std::make_pair(sb, 0));
 
@@ -225,12 +225,12 @@ namespace
 		TStringBuilders& sbStore = *(TStringBuilders*) e.context;
 
 		CStringBuilder* sb = ReadStringBuilder(e, 0);
-		delete (SEXCHAR*) sb;
+		delete (char*) sb;
 
 		sbStore.erase(sb);
 	}
 
-	void AppendString(CStringBuilder& sb, csexstr src, int length)
+	void AppendString(CStringBuilder& sb, cstr src, int length)
 	{
 		int maxLength = sb.Header.capacity-1;
 
@@ -243,7 +243,7 @@ namespace
 
 		if (length > 0)
 		{
-			SEXCHAR* target = sb.buffer + sb.Header.length;
+			char* target = sb.buffer + sb.Header.length;
 
 			int i;
 			for(i = 0; i < length; ++i)
@@ -261,13 +261,13 @@ namespace
 	{
 		CStringBuilder* sb = ReadStringBuilder(e, 0);
 
-		csexstr src;
+		cstr src;
 		ReadInput(1, (void*&) src, e);
 
 		int32 srcLength;
 		ReadInput(2, srcLength, e);
 
-		if (src == NULL) { src = SEXTEXT("<null>"); srcLength = 6; }
+		if (src == NULL) { src = ("<null>"); srcLength = 6; }
 
 		if (srcLength > 0) AppendString(*sb, src, srcLength);
 
@@ -391,7 +391,7 @@ namespace
 		
 		CStringBuilder* sb = ReadStringBuilder(e, 0);
 
-		csexstr s;
+		cstr s;
 		ReadInput(1, (void*&) s, e);
 
 		int32 sLen;
@@ -412,7 +412,7 @@ namespace
 			if (charsToAppend < 0) charsToAppend = 0;
 		}
 
-		if (s == NULL && charsToAppend > 0) AppendString(*sb, SEXTEXT("<null>"), 6);
+		if (s == NULL && charsToAppend > 0) AppendString(*sb, ("<null>"), 6);
 		else if (charsToAppend > 0)
 		{
 			AppendString(*sb, s + startPos, charsToAppend);
@@ -440,12 +440,12 @@ namespace
 		int32 value;
 		ReadInput(1, value, e);
 
-		csexstr suffix = sb->Header.formatBase == 10 ? SEXTEXT("d") : SEXTEXT("X");
+		cstr suffix = sb->Header.formatBase == 10 ? ("d") : ("X");
 
-		SEXCHAR format[16];
+		char format[16];
 		MergeFormats(format, *sb, suffix);
 
-		SEXCHAR rep[32];
+		char rep[32];
 		int nChars = SafeFormat(rep, 32, format, value);
 		AppendString(*sb, rep, nChars);
 		WriteOutput(0, sb->Header.length, e);
@@ -459,12 +459,12 @@ namespace
 		int64 value;
 		ReadInput(1, value, e);
 
-		csexstr suffix = sb->Header.formatBase == 10 ? SEXTEXT("I64d") : SEXTEXT("I64X");
+		cstr suffix = sb->Header.formatBase == 10 ? ("I64d") : ("I64X");
 
-		SEXCHAR format[16];
+		char format[16];
 		MergeFormats(format, *sb, suffix);
 
-		SEXCHAR rep[64];
+		char rep[64];
 		int nChars = SafeFormat(rep, 64, format, value);
 		AppendString(*sb, rep, nChars);
 		WriteOutput(0, sb->Header.length, e);
@@ -478,24 +478,24 @@ namespace
 		float32 value;
 		ReadInput(1, value, e);
 
-		csexstr suffix;
+		cstr suffix;
 		switch(sb->Header.spec)
 		{
 		case SPEC_E:
-			suffix = SEXTEXT("e");
+			suffix = ("e");
 			break;
 		case SPEC_G:
-			suffix = SEXTEXT("g");
+			suffix = ("g");
 			break;
 		default: // F
-			suffix = SEXTEXT("f");
+			suffix = ("f");
 			break;
 		}
 
-		SEXCHAR format[16];
+		char format[16];
 		MergeFormats(format, *sb, suffix);
 
-		SEXCHAR rep[32];
+		char rep[32];
 		int nChars = SafeFormat(rep, 32, format, value);
 		AppendString(*sb, rep, nChars);
 		WriteOutput(0, sb->Header.length, e);
@@ -509,24 +509,24 @@ namespace
 		float64 value;
 		ReadInput(1, value, e);
 
-		csexstr suffix;
+		cstr suffix;
 		switch(sb->Header.spec)
 		{
 		case SPEC_E:
-			suffix = SEXTEXT("le");
+			suffix = ("le");
 			break;
 		case SPEC_G:
-			suffix = SEXTEXT("lg");
+			suffix = ("lg");
 			break;
 		default: // F
-			suffix = SEXTEXT("lf");
+			suffix = ("lf");
 			break;
 		}
 
-		SEXCHAR format[16];
+		char format[16];
 		MergeFormats(format, *sb, suffix);
 
-		SEXCHAR rep[64];
+		char rep[64];
 		int nChars = SafeFormat(rep, 64, format, value);
 		AppendString(*sb, rep, nChars);
 		WriteOutput(0, sb->Header.length, e);
@@ -540,8 +540,8 @@ namespace
 		int32 value;
 		ReadInput(1, value, e);
 
-		if (value != 0) AppendString(*sb, SEXTEXT("true"), 4);
-		else			AppendString(*sb, SEXTEXT("false"), 5);
+		if (value != 0) AppendString(*sb, ("true"), 4);
+		else			AppendString(*sb, ("false"), 5);
 
 		WriteOutput(0, sb->Header.length, e);
 	}
@@ -554,8 +554,8 @@ namespace
 		void* value;
 		ReadInput(1, value, e);
 
-		SEXCHAR rep[64];
-		int nChars = SafeFormat(rep, 64, SEXTEXT("0x%X"), value);
+		char rep[64];
+		int nChars = SafeFormat(rep, 64, ("0x%X"), value);
 		AppendString(*sb, rep, nChars);
 		
 		WriteOutput(0, sb->Header.length, e);
@@ -582,7 +582,7 @@ namespace
 		int isRightAligned;
 		ReadInput(4, isRightAligned, e);
 
-		SEXCHAR *t = sb->Header.prefix;
+		char *t = sb->Header.prefix;
 
 		*t++ = '%';
 
@@ -601,7 +601,7 @@ namespace
 
 	void StringCompare(NativeCallEnvironment& e)
 	{
-		csexstr s, t;
+		cstr s, t;
 
 		int diff;
 
@@ -626,7 +626,7 @@ namespace
 
 	void StringCompareI(NativeCallEnvironment& e)
 	{
-		csexstr s, t;
+		cstr s, t;
 
 		int diff;
 
@@ -651,7 +651,7 @@ namespace
 
 	void StringFindLeft(NativeCallEnvironment& e)
 	{
-		csexstr containerBuffer;
+		cstr containerBuffer;
 		ReadInput(0, (void*&) containerBuffer, e);
 
 		int32 containerLength;
@@ -660,7 +660,7 @@ namespace
 		int32 startPos;
 		ReadInput(2, startPos, e);
 
-		csexstr subStringBuffer;
+		cstr subStringBuffer;
 		ReadInput(3, (void*&) subStringBuffer, e);
 
 		int32 subStringLength;
@@ -675,12 +675,12 @@ namespace
 
 		if (startPos < containerLength && containerLength > 0 && subStringLength > 0 && containerBuffer != NULL && subStringBuffer != NULL)
 		{
-			csexstr searchStart = containerBuffer + startPos;
-			csexstr searchEnd = containerBuffer + containerLength;
+			cstr searchStart = containerBuffer + startPos;
+			cstr searchEnd = containerBuffer + containerLength;
 			
 			if (caseIndependent != 0)
 			{
-				for(csexstr s = searchStart; s < searchEnd; ++s)
+				for(cstr s = searchStart; s < searchEnd; ++s)
 				{
 					if (CompareI(s, subStringBuffer, subStringLength) == 0)
 					{
@@ -691,7 +691,7 @@ namespace
 			}
 			else
 			{
-				for(csexstr s = searchStart; s < searchEnd; ++s)
+				for(cstr s = searchStart; s < searchEnd; ++s)
 				{
 					if (AreEqual(s, subStringBuffer, subStringLength))
 					{
@@ -707,7 +707,7 @@ namespace
 
 	void StringFindRight(NativeCallEnvironment& e)
 	{
-		csexstr containerBuffer;
+		cstr containerBuffer;
 		ReadInput(0, (void*&) containerBuffer, e);
 
 		int32 containerLength;
@@ -716,7 +716,7 @@ namespace
 		int32 rightPos;
 		ReadInput(2, rightPos, e);
 
-		csexstr subStringBuffer;
+		cstr subStringBuffer;
 		ReadInput(3, (void*&) subStringBuffer, e);
 
 		int32 subStringLength;
@@ -732,12 +732,12 @@ namespace
 
 		if (containerLength > 0 && subStringLength > 0 && containerBuffer != NULL && subStringBuffer != NULL)
 		{
-			csexstr searchStart = containerBuffer + rightPos;
-			csexstr searchEnd = containerBuffer;
+			cstr searchStart = containerBuffer + rightPos;
+			cstr searchEnd = containerBuffer;
 			
 			if (caseIndependent != 0)
 			{
-				for(csexstr s = searchStart; s >= searchEnd; --s)
+				for(cstr s = searchStart; s >= searchEnd; --s)
 				{
 					if (CompareI(s, subStringBuffer, subStringLength))
 					{
@@ -748,7 +748,7 @@ namespace
 			}
 			else
 			{
-				for(csexstr s = searchStart; s >= searchEnd; --s)
+				for(cstr s = searchStart; s >= searchEnd; --s)
 				{
 					if (AreEqual(s, subStringBuffer, subStringLength))
 					{

@@ -40,12 +40,12 @@ namespace Rococo
          if (s.Type() == EXPRESSION_TYPE_ATOMIC)
          {
             sexstring op = s.String();
-            if (AreEqual(op, SEXTEXT(">"))) return true;
-            if (AreEqual(op, SEXTEXT("<")))	return true;
-            if (AreEqual(op, SEXTEXT(">="))) return true;
-            if (AreEqual(op, SEXTEXT("<="))) return true;
-            if (AreEqual(op, SEXTEXT("!="))) return true;
-            if (AreEqual(op, SEXTEXT("=="))) return true;
+            if (AreEqual(op, (">"))) return true;
+            if (AreEqual(op, ("<")))	return true;
+            if (AreEqual(op, (">="))) return true;
+            if (AreEqual(op, ("<="))) return true;
+            if (AreEqual(op, ("!="))) return true;
+            if (AreEqual(op, ("=="))) return true;
          }
 
          return false;
@@ -56,9 +56,9 @@ namespace Rococo
          if (s.Type() == EXPRESSION_TYPE_ATOMIC)
          {
             sexstring op = s.String();
-            if (AreEqual(op, SEXTEXT("and"))) return true;
-            if (AreEqual(op, SEXTEXT("or")))	return true;
-            if (AreEqual(op, SEXTEXT("xor"))) return true;
+            if (AreEqual(op, ("and"))) return true;
+            if (AreEqual(op, ("or")))	return true;
+            if (AreEqual(op, ("xor"))) return true;
          }
 
          return false;
@@ -73,10 +73,10 @@ namespace Rococo
 
          sexstring opStr = s.String();
 
-         if (AreEqual(opStr, SEXTEXT("+"))) return true;
-         if (AreEqual(opStr, SEXTEXT("-"))) return true;
-         if (AreEqual(opStr, SEXTEXT("*"))) return true;
-         if (AreEqual(opStr, SEXTEXT("/"))) return true;
+         if (AreEqual(opStr, ("+"))) return true;
+         if (AreEqual(opStr, ("-"))) return true;
+         if (AreEqual(opStr, ("*"))) return true;
+         if (AreEqual(opStr, ("/"))) return true;
 
          return false;
       }
@@ -109,7 +109,7 @@ namespace Rococo
       {
          if (IsAtomic(s))
          {
-            csexstr token = s.String()->Buffer;
+            cstr token = s.String()->Buffer;
             VARTYPE type = builder.GetVarType(token);
             if (type != VARTYPE_Bad) return type;
             return Parse::GetLiteralType(token);
@@ -153,17 +153,17 @@ namespace Rococo
       {
          if (!IsAtomic(s))
          {
-            Throw(s, SEXTEXT("Expecting arithmetic operator, but found a compound expression"));
+            Throw(s, ("Expecting arithmetic operator, but found a compound expression"));
          }
 
          sexstring opStr = s.String();
 
-         if (AreEqual(opStr, SEXTEXT("+"))) return ARITHMETIC_OP_ADD;
-         if (AreEqual(opStr, SEXTEXT("-"))) return ARITHMETIC_OP_SUBTRACT;
-         if (AreEqual(opStr, SEXTEXT("*"))) return ARITHMETIC_OP_MULTIPLY;
-         if (AreEqual(opStr, SEXTEXT("/"))) return ARITHMETIC_OP_DIVIDE;
+         if (AreEqual(opStr, ("+"))) return ARITHMETIC_OP_ADD;
+         if (AreEqual(opStr, ("-"))) return ARITHMETIC_OP_SUBTRACT;
+         if (AreEqual(opStr, ("*"))) return ARITHMETIC_OP_MULTIPLY;
+         if (AreEqual(opStr, ("/"))) return ARITHMETIC_OP_DIVIDE;
 
-         Throw(s, SEXTEXT("Expecting arithmetic operator"));
+         Throw(s, ("Expecting arithmetic operator"));
          return ARITHMETIC_OP_ADD;
       }
 
@@ -244,31 +244,31 @@ namespace Rococo
                goto Error;
             }
          default:
-            Throw(parent, SEXTEXT("Unsupported type in literal arithmetic"));
+            Throw(parent, ("Unsupported type in literal arithmetic"));
          }
 
       Error:
-         Throw(parent, SEXTEXT("Unsupported operator in literal arithmetic"));
+         Throw(parent, ("Unsupported operator in literal arithmetic"));
       }
 
-      csexstr GetTypeName(VARTYPE type)
+      cstr GetTypeName(VARTYPE type)
       {
          switch (type)
          {
-         case VARTYPE_Bad: return SEXTEXT("bad");
-         case VARTYPE_Derivative: return SEXTEXT("derived");
-         case VARTYPE_Int32: return SEXTEXT("Int32");
-         case VARTYPE_Int64: return SEXTEXT("Int64");
-         case VARTYPE_Float32: return SEXTEXT("Float32");
-         case VARTYPE_Float64: return SEXTEXT("Float64");
-         case VARTYPE_Bool: return SEXTEXT("Bool");
-         case VARTYPE_Pointer: return SEXTEXT("Pointer");
-         case VARTYPE_Closure: return SEXTEXT("Archetype");
-         default: return SEXTEXT("unknown-type");
+         case VARTYPE_Bad: return ("bad");
+         case VARTYPE_Derivative: return ("derived");
+         case VARTYPE_Int32: return ("Int32");
+         case VARTYPE_Int64: return ("Int64");
+         case VARTYPE_Float32: return ("Float32");
+         case VARTYPE_Float64: return ("Float64");
+         case VARTYPE_Bool: return ("Bool");
+         case VARTYPE_Pointer: return ("Pointer");
+         case VARTYPE_Closure: return ("Archetype");
+         default: return ("unknown-type");
          }
       }
 
-      void ValidateArithmeticVariable(cr_sex parent, csexstr token, ICodeBuilder& builder, VARTYPE type, csexstr helper)
+      void ValidateArithmeticVariable(cr_sex parent, cstr token, ICodeBuilder& builder, VARTYPE type, cstr helper)
       {
          VARTYPE rType = builder.GetVarType(token);
          if (rType == VARTYPE_Bad)
@@ -278,25 +278,25 @@ namespace Rococo
             VARTYPE literalType = Parse::GetLiteralType(token);
             if (IsPrimitiveType(literalType))
             {
-               streamer.sb << token << SEXTEXT(" was ") << GetTypeName(literalType) << SEXTEXT(" Expecting ") << GetTypeName(type);
+               streamer.sb << token << (" was ") << GetTypeName(literalType) << (" Expecting ") << GetTypeName(type);
             }
             else
             {
-               streamer.sb << token << SEXTEXT(" was not a literal type or a known identifier");
+               streamer.sb << token << (" was not a literal type or a known identifier");
             }
             Throw(parent, streamer);
          }
          else if (rType == VARTYPE_Derivative)
          {
             sexstringstream<1024> streamer;
-            streamer.sb << token << SEXTEXT(" was a derived type, it cannot be used directly in arithmetic expressions");
+            streamer.sb << token << (" was a derived type, it cannot be used directly in arithmetic expressions");
             Throw(parent, streamer);
          }
 
          if (rType != type)
          {
             sexstringstream<1024> streamer;
-            streamer.sb << token << SEXTEXT(" was not the same type as that of the arithmetic expression in which it was referenced");
+            streamer.sb << token << (" was not the same type as that of the arithmetic expression in which it was referenced");
             Throw(parent, streamer);
          }
       }
@@ -348,14 +348,14 @@ namespace Rococo
                goto Error;
             }
          default:
-            Throw(src, SEXTEXT("Unhandled type in arithmetic expression"));
+            Throw(src, ("Unhandled type in arithmetic expression"));
          }
 
       Error:
-         Throw(src, SEXTEXT("Unhandled operator in arithmetic expression"));
+         Throw(src, ("Unhandled operator in arithmetic expression"));
       }
 
-      void GetAtomicValue(CCompileEnvironment& ce, cr_sex parent, csexstr id, VARTYPE type)
+      void GetAtomicValue(CCompileEnvironment& ce, cr_sex parent, cstr id, VARTYPE type)
       {
          if (IsCapital(id[0]))
          {
@@ -363,7 +363,7 @@ namespace Rococo
             if (!IsGetAccessor(f) && f.GetArgument(0).VarType() != type)
             {
                sexstringstream<1024> streamer;
-               streamer.sb << SEXTEXT("Expecting variable or single valued function with no inputs of return type ") << Parse::VarTypeName(type);
+               streamer.sb << ("Expecting variable or single valued function with no inputs of return type ") << Parse::VarTypeName(type);
                Throw(parent, streamer);
             }
 
@@ -372,7 +372,7 @@ namespace Rococo
          else
          {
             NamespaceSplitter splitter(id);
-            csexstr instance, item;
+            cstr instance, item;
             if (splitter.SplitTail(instance, item))
             {
                if (IsCapital(item[0]))
@@ -380,7 +380,7 @@ namespace Rococo
                   if (!TryCompileMethodCallWithoutInputAndReturnValue(ce, parent, instance, item, type, NULL, NULL))
                   {
                      sexstringstream<1024> streamer;
-                     streamer.sb << SEXTEXT("Expecting method call ") << Parse::VarTypeName(type);
+                     streamer.sb << ("Expecting method call ") << Parse::VarTypeName(type);
                      Throw(parent, streamer);
                   }
                }
@@ -393,7 +393,7 @@ namespace Rococo
                   }
                   else
                   {
-                     ThrowTokenNotFound(parent, instance, ce.Builder.Owner().Name(), SEXTEXT("variable"));
+                     ThrowTokenNotFound(parent, instance, ce.Builder.Owner().Name(), ("variable"));
                   }
                }
             }
@@ -405,15 +405,15 @@ namespace Rococo
                }
                else
                {
-                  ThrowTokenNotFound(parent, id, ce.Builder.Owner().Name(), SEXTEXT("variable"));
+                  ThrowTokenNotFound(parent, id, ce.Builder.Owner().Name(), ("variable"));
                }
             }
          }
       }
 
-      void CompileArithmeticLiteralVsVariable(CCompileEnvironment& ce, cr_sex parent, const VariantValue& value, ARITHMETIC_OP op, csexstr varname, VARTYPE type, ARITHMETIC_ORDER order, cr_sex atomicExpr)
+      void CompileArithmeticLiteralVsVariable(CCompileEnvironment& ce, cr_sex parent, const VariantValue& value, ARITHMETIC_OP op, cstr varname, VARTYPE type, ARITHMETIC_ORDER order, cr_sex atomicExpr)
       {
-         // ValidateArithmeticVariable(parent, varname, ce.Builder, type, order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? SEXTEXT("RHS") : SEXTEXT("LHS"));
+         // ValidateArithmeticVariable(parent, varname, ce.Builder, type, order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? ("RHS") : ("LHS"));
 
          int A = order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? 1 : 2;
          int B = order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? 2 : 1;
@@ -425,7 +425,7 @@ namespace Rococo
          AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, Rococo::ROOT_TEMPDEPTH);
       }
 
-      void CompileArithmeticAtomicVsAtomic(CCompileEnvironment& ce, cr_sex parent, csexstr left, ARITHMETIC_OP op, csexstr right, VARTYPE type, cr_sex leftExpr, cr_sex rightExpr)
+      void CompileArithmeticAtomicVsAtomic(CCompileEnvironment& ce, cr_sex parent, cstr left, ARITHMETIC_OP op, cstr right, VARTYPE type, cr_sex leftExpr, cr_sex rightExpr)
       {
          VariantValue A;
          if (Parse::TryParse(OUT A, IN type, IN left) == Parse::PARSERESULT_GOOD)
@@ -443,7 +443,7 @@ namespace Rococo
             return;
          }
 
-         // ValidateArithmeticVariable(parent, left, ce.Builder, type, SEXTEXT("LHS"));
+         // ValidateArithmeticVariable(parent, left, ce.Builder, type, ("LHS"));
 
          VariantValue B;
          if (Parse::TryParse(OUT B, IN type, IN right) == Parse::PARSERESULT_GOOD)
@@ -464,10 +464,10 @@ namespace Rococo
          }
       }
 
-      void CompileAtomicSide(CCompileEnvironment& ce, cr_sex parent, csexstr token, int tempDepth, ARITHMETIC_ORDER order, VARTYPE type)
+      void CompileAtomicSide(CCompileEnvironment& ce, cr_sex parent, cstr token, int tempDepth, ARITHMETIC_ORDER order, VARTYPE type)
       {
          TokenBuffer symbol;
-         StringPrint(symbol, SEXTEXT(" = %s"), token);
+         StringPrint(symbol, (" = %s"), token);
 
          VariantValue value;
          if (Parse::TryParse(OUT value, type, token) == Parse::PARSERESULT_GOOD)
@@ -476,12 +476,12 @@ namespace Rococo
          }
          else
          {
-            ValidateArithmeticVariable(parent, token, ce.Builder, type, order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? SEXTEXT("LHS") : SEXTEXT("RHS"));
+            ValidateArithmeticVariable(parent, token, ce.Builder, type, order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? ("LHS") : ("RHS"));
             ce.Builder.AssignVariableToTemp(token, tempDepth);
          }
       }
 
-      void CompileArithmeticAtomicVsCompound(CCompileEnvironment& ce, cr_sex parent, csexstr token, ARITHMETIC_OP op, cr_sex s, ARITHMETIC_ORDER order, VARTYPE type)
+      void CompileArithmeticAtomicVsCompound(CCompileEnvironment& ce, cr_sex parent, cstr token, ARITHMETIC_OP op, cr_sex s, ARITHMETIC_ORDER order, VARTYPE type)
       {
          int A = order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? 1 : 2;
          int B = order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? 2 : 1;
@@ -524,17 +524,17 @@ namespace Rococo
       {
          if (IsAtomic(left))
          {
-            csexstr lToken = left.String()->Buffer;
+            cstr lToken = left.String()->Buffer;
 
             if (IsAtomic(right))
             {
-               csexstr rToken = right.String()->Buffer;
+               cstr rToken = right.String()->Buffer;
                CompileArithmeticAtomicVsAtomic(ce, parent, lToken, op, rToken, type, left, right);
                return;
             }
             else if (!IsCompound(right))
             {
-               Throw(parent, SEXTEXT("The RHS was neither an atomic or a compound expression"));
+               Throw(parent, ("The RHS was neither an atomic or a compound expression"));
             }
 
             CompileArithmeticAtomicVsCompound(ce, parent, lToken, op, right, ARITHMETIC_ORDER_LEFT_TO_RIGHT, type);
@@ -542,18 +542,18 @@ namespace Rococo
          }
          else if (!IsCompound(left))
          {
-            Throw(parent, SEXTEXT("The LHS was neither an atomic or a compound expression"));
+            Throw(parent, ("The LHS was neither an atomic or a compound expression"));
          }
 
          if (IsAtomic(right))
          {
-            csexstr rToken = right.String()->Buffer;
+            cstr rToken = right.String()->Buffer;
             CompileArithmeticAtomicVsCompound(ce, parent, rToken, op, left, ARITHMETIC_ORDER_RIGHT_TO_LEFT, type);
             return;
          }
          else if (!IsCompound(right))
          {
-            Throw(parent, SEXTEXT("The RHS was neither an atomic or a compound expression"));
+            Throw(parent, ("The RHS was neither an atomic or a compound expression"));
          }
 
          CompileArithmeticCompoundVsCompound(ce, parent, left, op, right, type);
@@ -564,7 +564,7 @@ namespace Rococo
          int argIndex = index;
          if (argIndex > f.NumberOfOutputs())
          {
-            Throw(s, SEXTEXT("Bad argument. Algorithmic error"));
+            Throw(s, ("Bad argument. Algorithmic error"));
          }
 
          return f.Arg(argIndex);
@@ -575,7 +575,7 @@ namespace Rococo
          int argIndex = index + f.NumberOfOutputs();
          if (argIndex > ArgCount(f))
          {
-            Throw(s, SEXTEXT("Bad argument. Algorithmic error"));
+            Throw(s, ("Bad argument. Algorithmic error"));
          }
 
          return f.Arg(argIndex);
@@ -590,12 +590,12 @@ namespace Rococo
             return NULL;
          }
 
-         csexstr name = input.Name();
+         cstr name = input.Name();
          const IArchetype* a = input.ResolvedType()->Archetype();
          if (a == NULL)
          {
             sexstringstream<1024> streamer;
-            streamer.sb << SEXTEXT("Error, expecting archetype for variable ") << name << SEXTEXT(" in ") << f.Name();
+            streamer.sb << ("Error, expecting archetype for variable ") << name << (" in ") << f.Name();
             Throw(s, streamer);
          }
 
@@ -610,7 +610,7 @@ namespace Rococo
          if (nTempVariables > 0)
          {
             MemberDef lastDef;
-            csexstr lastName;
+            cstr lastName;
             builder.GetVariableByIndex(OUT lastDef, lastName, builder.GetVariableCount() - 1);
 
             outputOffset = lastDef.SFOffset + lastDef.AllocSize;
@@ -623,12 +623,12 @@ namespace Rococo
       {
          AssertLocalIdentifier(valueExpr);
 
-         csexstr value = valueExpr.String()->Buffer;
+         cstr value = valueExpr.String()->Buffer;
 
          MemberDef def;
          if (!ce.Builder.TryGetVariableByName(OUT def, value))
          {
-            Throw(valueExpr, SEXTEXT("Unknown variable"));
+            Throw(valueExpr, ("Unknown variable"));
          }
 
          if (!def.ResolvedType->Prototype().IsClass)
@@ -640,20 +640,20 @@ namespace Rococo
          else
          {
             TokenBuffer allocSizeName;
-            StringPrint(allocSizeName, SEXTEXT("%s._allocSize"), value);
+            StringPrint(allocSizeName, ("%s._allocSize"), value);
             ce.Builder.AssignVariableToTemp(allocSizeName, Rococo::ROOT_TEMPDEPTH);
          }
       }
 
       void CompileSizeOfType(CCompileEnvironment& ce, cr_sex valueExpr)
       {
-         csexstr value = valueExpr.String()->Buffer;
+         cstr value = valueExpr.String()->Buffer;
 
          IStructure* s = MatchStructure(valueExpr, ce.Builder.Module());
 
          if (s == NULL)
          {
-            Throw(valueExpr, SEXTEXT("Token began with a capital letter. Expected type name."));
+            Throw(valueExpr, ("Token began with a capital letter. Expected type name."));
          }
 
          VariantValue sizeOfType;
@@ -665,7 +665,7 @@ namespace Rococo
       {
          AssertAtomic(valueExpr);
 
-         csexstr value = valueExpr.String()->Buffer;
+         cstr value = valueExpr.String()->Buffer;
 
          if (IsLowerCase(value[0]))
          {
@@ -700,7 +700,7 @@ namespace Rococo
                      }
                      else
                      {
-                        Throw(s, SEXTEXT("Macro expansion did not yield an arithmetic expression"));
+                        Throw(s, ("Macro expansion did not yield an arithmetic expression"));
                      }
                   }
                }
@@ -716,7 +716,7 @@ namespace Rococo
          }
          else if (IsAtomic(s))
          {
-            csexstr token = s.String()->Buffer;
+            cstr token = s.String()->Buffer;
 
             MemberDef def;
             if (ce.Builder.TryGetVariableByName(def, token))
@@ -724,16 +724,16 @@ namespace Rococo
                if (def.ResolvedType != &type)
                {
                   sexstringstream<1024> streamer;
-                  streamer.sb << SEXTEXT("Cannot assign from (") << GetFriendlyName(*def.ResolvedType) << SEXTEXT(" ") << token << SEXTEXT(")");
-                  streamer.sb << SEXTEXT(". Exepcted type: ") << GetFriendlyName(type);
+                  streamer.sb << ("Cannot assign from (") << GetFriendlyName(*def.ResolvedType) << (" ") << token << (")");
+                  streamer.sb << (". Exepcted type: ") << GetFriendlyName(type);
                   Throw(s, streamer);
                }
 
                if (!allowClosures && def.CapturesLocalVariables)
                {
                   sexstringstream<1024> streamer;
-                  streamer.sb << SEXTEXT("Cannot assign from (") << GetFriendlyName(*def.ResolvedType) << SEXTEXT(" ") << token << SEXTEXT(")");
-                  streamer.sb << SEXTEXT(". Closures cannot be persisted.");
+                  streamer.sb << ("Cannot assign from (") << GetFriendlyName(*def.ResolvedType) << (" ") << token << (")");
+                  streamer.sb << (". Closures cannot be persisted.");
                   Throw(s, streamer);
                }
 
@@ -766,7 +766,7 @@ namespace Rococo
       {
          if (type == VARTYPE_Closure)
          {
-            Throw(s, SEXTEXT("Internal compiler error. TryAssignToArchetype was the correct call."));
+            Throw(s, ("Internal compiler error. TryAssignToArchetype was the correct call."));
          }
 
          if (IsCompound(s))
@@ -790,7 +790,7 @@ namespace Rococo
                      }
                      else
                      {
-                        Throw(s, SEXTEXT("Macro expansion did not yield an arithmetic expression"));
+                        Throw(s, ("Macro expansion did not yield an arithmetic expression"));
                      }
                   }
                }
@@ -819,7 +819,7 @@ namespace Rococo
                {
                   if (expected)
                   {
-                     Throw(s, SEXTEXT("Cannot parse as a numeric valued expression"));
+                     Throw(s, ("Cannot parse as a numeric valued expression"));
                   }
                   // No arithmetic operator
                   return false;
@@ -830,12 +830,12 @@ namespace Rococo
                cr_sex commandExpr = GetAtomicArg(s, 0);
                sexstring command = commandExpr.String();
 
-               if (AreEqual(command, SEXTEXT("sizeof")))
+               if (AreEqual(command, ("sizeof")))
                {
                   if (type != VARTYPE_Int32)
                   {
                      sexstringstream<1024> streamer;
-                     streamer.sb << SEXTEXT("Type mismatch. The 'sizeof' operator evaluates to an Int32");
+                     streamer.sb << ("Type mismatch. The 'sizeof' operator evaluates to an Int32");
                      Throw(s, *streamer.sb);
                   }
 
@@ -862,7 +862,7 @@ namespace Rococo
                   if (expected)
                   {
                      sexstringstream<1024> streamer;
-                     streamer.sb << SEXTEXT("'") << command->Buffer << SEXTEXT("' recognized as ") << GetFriendlyName(*def.ResolvedType) << SEXTEXT(" which does not yield an arithmetical value in this context");
+                     streamer.sb << ("'") << command->Buffer << ("' recognized as ") << GetFriendlyName(*def.ResolvedType) << (" which does not yield an arithmetical value in this context");
                      Throw(s, streamer);
                   }
                }
@@ -870,7 +870,7 @@ namespace Rococo
                if (expected)
                {
                   sexstringstream<1024> streamer;
-                  streamer.sb << SEXTEXT("Cannot interpet token as arithmetic valued expression");
+                  streamer.sb << ("Cannot interpet token as arithmetic valued expression");
                   Throw(commandExpr, streamer);
                }
 
@@ -881,7 +881,7 @@ namespace Rococo
                if (expected)
                {
                   sexstringstream<1024> streamer;
-                  streamer.sb << SEXTEXT("Could not determine meaning of expression. Check identifiers and syntax are valid");
+                  streamer.sb << ("Could not determine meaning of expression. Check identifiers and syntax are valid");
                   Throw(s, streamer);
                }
                // All arithmetic expressions have 3 elements
@@ -890,7 +890,7 @@ namespace Rococo
          }
          else if (IsAtomic(s))
          {
-            csexstr token = s.String()->Buffer;
+            cstr token = s.String()->Buffer;
 
             VariantValue value;
             if (Parse::TryParse(OUT value, IN type, IN token) == Parse::PARSERESULT_GOOD)
@@ -921,15 +921,15 @@ namespace Rococo
                      sexstringstream<1024> streamer;
                      if (type == VARTYPE_Derivative)
                      {
-                        streamer.sb << SEXTEXT("Expected arithmetic expression, but found a derived type not of the same type as the assignment");
+                        streamer.sb << ("Expected arithmetic expression, but found a derived type not of the same type as the assignment");
                      }
                      else if (tokenType != VARTYPE_Bad)
                      {
-                        streamer.sb << SEXTEXT("'") << token << SEXTEXT("' was a ") << GetTypeName(tokenType) << SEXTEXT(" but expression requires ") << GetTypeName(type);
+                        streamer.sb << ("'") << token << ("' was a ") << GetTypeName(tokenType) << (" but expression requires ") << GetTypeName(type);
                      }
                      else
                      {
-                        streamer.sb << SEXTEXT("Expected arithmetic expression, but found an unknown identifier");
+                        streamer.sb << ("Expected arithmetic expression, but found an unknown identifier");
                      }
                      Throw(s, streamer);
                   }
@@ -943,7 +943,7 @@ namespace Rococo
             if (expected)
             {
                sexstringstream<1024> streamer;
-               streamer.sb << SEXTEXT("Expected numeric expression, of type ") << GetTypeName(type) << SEXTEXT(" but saw a null expression");
+               streamer.sb << ("Expected numeric expression, of type ") << GetTypeName(type) << (" but saw a null expression");
                Throw(s, streamer);
             }
             // not an atomic or a compound
@@ -954,7 +954,7 @@ namespace Rococo
             if (expected)
             {
                sexstringstream<1024> streamer;
-               streamer.sb << SEXTEXT("Expected numeric expression, of type ") << GetTypeName(type);
+               streamer.sb << ("Expected numeric expression, of type ") << GetTypeName(type);
                Throw(s, streamer);
             }
             // not an atomic or a compound

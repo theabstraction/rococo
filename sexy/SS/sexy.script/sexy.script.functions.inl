@@ -52,7 +52,7 @@ namespace Rococo
 	      {
 		      if (inputCount + firstArgIndex - 1 >= s.NumberOfElements())
 		      {
-			      Throw(s, SEXTEXT("Insufficient inputs"));
+			      Throw(s, ("Insufficient inputs"));
 		      }
 	      }
 
@@ -62,7 +62,7 @@ namespace Rococo
 
 		      int argIndex = i + callee.NumberOfOutputs();
 
-		      csexstr inputName = callee.GetArgName(argIndex);
+		      cstr inputName = callee.GetArgName(argIndex);
 		      const IStructure& argType = callee.GetArgument(argIndex); 
 		      const IArchetype* archetype;
 
@@ -84,17 +84,17 @@ namespace Rococo
 	
       int GetMapIndex(cr_sex s, int firstIndex, int outputCount, int inputExpressionCount)
       {
-	      int mapIndex = GetIndexOf(firstIndex, s, SEXTEXT("->"));
+	      int mapIndex = GetIndexOf(firstIndex, s, ("->"));
 	      if (mapIndex < 0)
 	      {
 		      // We have a function call with no outputs, so the number of args must match the number of inputs
-		      if (s.NumberOfElements() - firstIndex < inputExpressionCount) Throw(s, SEXTEXT("Too few inputs to function call"));
+		      if (s.NumberOfElements() - firstIndex < inputExpressionCount) Throw(s, ("Too few inputs to function call"));
 		      mapIndex = s.NumberOfElements();
 	      }
 	      else
 	      {
-		      if (mapIndex < inputExpressionCount + 1) Throw(s, SEXTEXT("Too few inputs in function call"));
-		      else if (mapIndex > inputExpressionCount + 1) Throw(s, SEXTEXT("Too many inputs in function call"));
+		      if (mapIndex < inputExpressionCount + 1) Throw(s, ("Too few inputs in function call"));
+		      else if (mapIndex > inputExpressionCount + 1) Throw(s, ("Too many inputs in function call"));
 	      }
 
 	      return mapIndex;
@@ -107,7 +107,7 @@ namespace Rococo
 	      if (nTempVariables > 0)
 	      {
 		      MemberDef lastDef;		
-		      csexstr lastName;
+		      cstr lastName;
 		      ce.Builder.GetVariableByIndex(OUT lastDef, lastName, ce.Builder.GetVariableCount()-1);
 
 		      outputOffset = lastDef.SFOffset + lastDef.AllocSize;
@@ -123,27 +123,27 @@ namespace Rococo
 
 	      if (inputCount < nExtraElements)
 	      {
-		      Throw(s, SEXTEXT("Too many input arguments supplied to the function"));
+		      Throw(s, ("Too many input arguments supplied to the function"));
 	      }
 	      else if (inputCount >nExtraElements)
 	      {
-		      Throw(s, SEXTEXT("Too few input arguments supplied to the function"));
+		      Throw(s, ("Too few input arguments supplied to the function"));
 	      }
       }
 
-      bool TryCompilePushClosure(CCompileEnvironment& ce, cr_sex s, bool expecting, const IStructure& inputType, const IArchetype& archetype, csexstr argName)
+      bool TryCompilePushClosure(CCompileEnvironment& ce, cr_sex s, bool expecting, const IStructure& inputType, const IArchetype& archetype, cstr argName)
       {
 	      AssertAtomic(s);
 
-	      csexstr fname = s.String()->Buffer;
+	      cstr fname = s.String()->Buffer;
 
-	      AddArgVariable(SEXTEXT("input_other"), ce, inputType);
+	      AddArgVariable(("input_other"), ce, inputType);
 	      ce.Builder.AddSymbol(argName); 
 
 	      IFunction* f = ce.Builder.Module().FindFunction(fname);
 	      if (f != NULL)
 	      {
-		      ValidateArchetypeMatchesArchetype(s, *f, archetype, SEXTEXT("archetype "));
+		      ValidateArchetypeMatchesArchetype(s, *f, archetype, ("archetype "));
 
 		      CodeSection section;
 		      f->Code().GetCodeSection(OUT section);
@@ -156,7 +156,7 @@ namespace Rococo
 		      zeroRef.charPtrValue = nullptr;
 		      ce.Builder.Assembler().Append_PushLiteral(BITCOUNT_64, zeroRef);
 	      }
-	      else if (AreEqual(SEXTEXT("0"), fname))
+	      else if (AreEqual(("0"), fname))
 	      {
 		      auto& f = GetNullFunction(ce.Script, archetype);
 
@@ -177,7 +177,7 @@ namespace Rococo
 		      if (!ce.Builder.TryGetVariableByName(OUT def, fname) || def.ResolvedType->Archetype() != &archetype)
 		      {
 			      sexstringstream<1024> streamer;
-			      streamer.sb << SEXTEXT("Failed to interpret expression as a closure argument: ") << inputType.Name() << SEXTEXT(" ") << argName;
+			      streamer.sb << ("Failed to interpret expression as a closure argument: ") << inputType.Name() << (" ") << argName;
 			      Throw(s, streamer);
 		      }
 		
@@ -194,14 +194,14 @@ namespace Rococo
 
 	      if (f == NULL)
 	      {
-		      csexstr name = inputExpression.String()->Buffer;
+		      cstr name = inputExpression.String()->Buffer;
 
 		      sexstringstream<1024> streamer;
-		      streamer.sb << SEXTEXT("The input '") << name << SEXTEXT("' was not recognized ");
+		      streamer.sb << ("The input '") << name << ("' was not recognized ");
 		      Throw(inputExpression, streamer);
 	      }
 
-	      AddArgVariable(SEXTEXT("input_function_ref"), ce, argStruct);
+	      AddArgVariable(("input_function_ref"), ce, argStruct);
 
 	      CodeSection cs;
 	      f->Code().GetCodeSection(cs);
@@ -220,21 +220,21 @@ namespace Rococo
       {
 	      if (!TryCompileFunctionCallAndReturnValue(ce, inputExpression, VARTYPE_Derivative, &argStruct, NULL))
 	      {
-		      csexstr name = inputExpression.String()->Buffer;
+		      cstr name = inputExpression.String()->Buffer;
 
 		      sexstringstream<1024> streamer;
-		      streamer.sb << SEXTEXT("The input '") << name << SEXTEXT("' was not recognized ");
+		      streamer.sb << ("The input '") << name << ("' was not recognized ");
 		      Throw(inputExpression, streamer);
 	      }
 
-	      AddArgVariable(SEXTEXT("input_getaccessor_return_ref"), ce, argStruct);
+	      AddArgVariable(("input_getaccessor_return_ref"), ce, argStruct);
 	      ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4 + ROOT_TEMPDEPTH, BITCOUNT_POINTER);
       }
 
       bool TryCompileStringLiteralInput(CCompileEnvironment& ce, cr_sex s, bool expectingStructRef, const IStructure& inputType)
       {
-	      csexstr inputTypeName = inputType.Name();
-	      if (!IsStringLiteral(s) || !AreEqual(inputTypeName, SEXTEXT("_Null_Sys_Type_IString")))
+	      cstr inputTypeName = inputType.Name();
+	      if (!IsStringLiteral(s) || !AreEqual(inputTypeName, ("_Null_Sys_Type_IString")))
 	      {
 		      return false;
 	      }
@@ -243,15 +243,15 @@ namespace Rococo
 
 	      CStringConstant* sc = CreateStringConstant(ce.Script, value->Length, value->Buffer, &s);
 
-	      SEXCHAR debugInfo[256];
-	      csexstr format = (value->Length > 24) ? SEXTEXT(" = '%.24s...'") : SEXTEXT(" = '%s'");
-	      SafeFormat(debugInfo, 256, format, (csexstr) value->Buffer);
+	      char debugInfo[256];
+	      cstr format = (value->Length > 24) ? (" = '%.24s...'") : (" = '%s'");
+	      SafeFormat(debugInfo, 256, format, (cstr) value->Buffer);
 	      ce.Builder.AddSymbol(debugInfo);
 
 	      VariantValue ptr;
 	      ptr.vPtrValue = (void*) &sc->header._vTables[0];
 
-	      AddArgVariable(SEXTEXT("input_string_literal"), ce, inputType);
+	      AddArgVariable(("input_string_literal"), ce, inputType);
 	      ce.Builder.Assembler().Append_PushLiteral(BITCOUNT_POINTER, ptr);	
 
 	      return true;
@@ -268,8 +268,8 @@ namespace Rococo
 
 	      CStringConstant* sc = CreateStringConstant(ce.Script, value->Length, value->Buffer, &s);
 
-	      csexstr format = (value->Length > 24) ? SEXTEXT(" = '%.24s...'") : SEXTEXT(" = '%s'");
-	      AddSymbol(ce.Builder, format, (csexstr) value->Buffer);
+	      cstr format = (value->Length > 24) ? (" = '%.24s...'") : (" = '%s'");
+	      AddSymbol(ce.Builder, format, (cstr) value->Buffer);
 
 	      VariantValue ptr;
 	      ptr.vPtrValue = (void*) &sc->header._vTables[0];
@@ -280,16 +280,16 @@ namespace Rococo
       }
 
 
-      void CompileGetStructRefFromVariable(CCompileEnvironment& ce, cr_sex s, const IStructure& inputType, csexstr name, const MemberDef& def)
+      void CompileGetStructRefFromVariable(CCompileEnvironment& ce, cr_sex s, const IStructure& inputType, cstr name, const MemberDef& def)
       {
-	      csexstr varName = s.String()->Buffer;
+	      cstr varName = s.String()->Buffer;
 	      const IStructure& varStruct = *def.ResolvedType;
 
 	      VARTYPE vType = varStruct.VarType();
 	      if (vType != VARTYPE_Derivative)
 	      {
 		      sexstringstream<1024> streamer;
-		      streamer.sb << SEXTEXT("The variable is not a derived type. Expected: ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
+		      streamer.sb << ("The variable is not a derived type. Expected: ") << GetFriendlyName(inputType) << (" ") << name;
 		      Throw(s, streamer);
 	      }
 
@@ -300,7 +300,7 @@ namespace Rococo
 		      if (cii < 0)
 		      {
 			      sexstringstream<1024> streamer;
-			      streamer.sb << SEXTEXT("The input type '") << varStruct.Name() << SEXTEXT("' did not match the argument type '") << GetFriendlyName(inputType) << SEXTEXT(" ") << name << SEXTEXT("'");
+			      streamer.sb << ("The input type '") << varStruct.Name() << ("' did not match the argument type '") << GetFriendlyName(inputType) << (" ") << name << ("'");
 			      Throw(s, streamer);
 		      }
 
@@ -314,9 +314,9 @@ namespace Rococo
 	      }							
       }
 
-      void CompileGetStructRefFromAtomic(CCompileEnvironment& ce, cr_sex s, const IStructure& inputType, csexstr name)
+      void CompileGetStructRefFromAtomic(CCompileEnvironment& ce, cr_sex s, const IStructure& inputType, cstr name)
       {
-	      csexstr token = s.String()->Buffer;
+	      cstr token = s.String()->Buffer;
 
 	      if (islower(token[0]))
 	      {
@@ -326,7 +326,7 @@ namespace Rococo
 			      if (*def.ResolvedType != inputType)
 			      {
 				      sexstringstream<1024> streamer;
-				      streamer.sb << SEXTEXT("The input ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name << SEXTEXT(" did not match the input variable ") << GetFriendlyName(*def.ResolvedType) << SEXTEXT(" ") << token;
+				      streamer.sb << ("The input ") << GetFriendlyName(inputType) << (" ") << name << (" did not match the input variable ") << GetFriendlyName(*def.ResolvedType) << (" ") << token;
 				      Throw(s, streamer);
 			      }
 			      else
@@ -338,7 +338,7 @@ namespace Rococo
 		      {
 			      NamespaceSplitter splitter(token);
 
-			      csexstr instance, method;
+			      cstr instance, method;
 			      if (splitter.SplitTail(instance, method))
 			      {
 				      if (isupper(method[0]))
@@ -349,17 +349,17 @@ namespace Rococo
 				      {
 					      if (ce.Builder.TryGetVariableByName(def, instance))
 					      {
-						      ThrowTokenNotFound(s, instance, ce.Builder.Owner().Name(), SEXTEXT("variable"));
+						      ThrowTokenNotFound(s, instance, ce.Builder.Owner().Name(), ("variable"));
 					      }
 					      else
 					      {
-						      ThrowTokenNotFound(s, instance, instance, SEXTEXT("member"));
+						      ThrowTokenNotFound(s, instance, instance, ("member"));
 					      }
 				      }
 			      }
 			      else
 			      {
-				      ThrowTokenNotFound(s, token, ce.Builder.Owner().Name(), SEXTEXT("variable"));
+				      ThrowTokenNotFound(s, token, ce.Builder.Owner().Name(), ("variable"));
 			      }
 		      }
 	      }
@@ -377,19 +377,19 @@ namespace Rococo
 	      else
 	      {
 		      sexstringstream<1024> streamer;
-		      streamer.sb << SEXTEXT("Expecting an expression that returns a reference to ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
+		      streamer.sb << ("Expecting an expression that returns a reference to ") << GetFriendlyName(inputType) << (" ") << name;
 		      Throw(s, streamer);
 	      }
       }
 
-      void CompileGetStructRef(CCompileEnvironment& ce, cr_sex s, const IStructure& inputType, csexstr name)
+      void CompileGetStructRef(CCompileEnvironment& ce, cr_sex s, const IStructure& inputType, cstr name)
       {
 	      switch(s.Type())
 	      {
 	      case EXPRESSION_TYPE_STRING_LITERAL:
 		      {
 			      sexstringstream<1024> streamer;
-			      streamer.sb << SEXTEXT("Cannot yet handle string literal expression for ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
+			      streamer.sb << ("Cannot yet handle string literal expression for ") << GetFriendlyName(inputType) << (" ") << name;
 			      Throw(s, streamer);
 		      }
 		      break;
@@ -400,20 +400,20 @@ namespace Rococo
 		      if (!TryCompileFunctionCallAndReturnValue(ce, s, VARTYPE_Derivative, &inputType, NULL))
 		      {
 			      sexstringstream<1024> streamer;
-			      streamer.sb << SEXTEXT("Expecting compound expression to return input for ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
+			      streamer.sb << ("Expecting compound expression to return input for ") << GetFriendlyName(inputType) << (" ") << name;
 			      Throw(s, streamer);
 		      }			
 		      break;
 	      default:
 		      {
 			      sexstringstream<1024> streamer;
-			      streamer.sb << SEXTEXT("Expecting atomic, compound or string literal expression for ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
+			      streamer.sb << ("Expecting atomic, compound or string literal expression for ") << GetFriendlyName(inputType) << (" ") << name;
 			      Throw(s, streamer);
 		      }
 	      }
       }
 
-      bool TryCompilePushStructRef(CCompileEnvironment& ce, cr_sex s, bool expectingStructRef, const IStructure& inputType, csexstr name, const IStructure* genericArg1)
+      bool TryCompilePushStructRef(CCompileEnvironment& ce, cr_sex s, bool expectingStructRef, const IStructure& inputType, cstr name, const IStructure* genericArg1)
       {
 	      switch(s.Type())
 	      {
@@ -427,25 +427,25 @@ namespace Rococo
 			      return false;
 		      }			
 
-		      AddArgVariable(SEXTEXT("input_return_as_input_ref"), ce, inputType);
+		      AddArgVariable(("input_return_as_input_ref"), ce, inputType);
 		      ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4 + ROOT_TEMPDEPTH, BITCOUNT_POINTER);
 		      return true;
 	      default:
 		      if (expectingStructRef)
 		      {
 			      sexstringstream<1024> streamer;
-			      streamer.sb << SEXTEXT("Expecting atomic, compound or string literal expression for ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
+			      streamer.sb << ("Expecting atomic, compound or string literal expression for ") << GetFriendlyName(inputType) << (" ") << name;
 			      Throw(s, streamer);
 		      }
 		      return false;
 	      }
 
-	      csexstr vname = s.String()->Buffer;
+	      cstr vname = s.String()->Buffer;
 
 	      if (!Rococo::IsAlphabetical(vname[0]))
 	      {
 		      sexstringstream<1024> streamer;
-		      streamer.sb << SEXTEXT("Could not interpret token as function or variable. Expected: ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
+		      streamer.sb << ("Could not interpret token as function or variable. Expected: ") << GetFriendlyName(inputType) << (" ") << name;
 		      Throw(s, streamer);
 	      }
 
@@ -462,7 +462,7 @@ namespace Rococo
 		      if (expectingStructRef)
 		      {
 			      sexstringstream<1024> streamer;
-			      streamer.sb << SEXTEXT("The variable is not a derived type. Expected: ") << GetFriendlyName(inputType) << SEXTEXT(" ") << name;
+			      streamer.sb << ("The variable is not a derived type. Expected: ") << GetFriendlyName(inputType) << (" ") << name;
 			      Throw(s, streamer);
 		      }
 	      }
@@ -475,7 +475,7 @@ namespace Rococo
 		      if (expectingStructRef)
 		      {
 			      sexstringstream<1024> streamer;
-			      streamer.sb << SEXTEXT("The input type '") << varStruct->Name() << SEXTEXT("' did not match the argument type '") << GetFriendlyName(inputType) << SEXTEXT(" ") << name << SEXTEXT("'");
+			      streamer.sb << ("The input type '") << varStruct->Name() << ("' did not match the argument type '") << GetFriendlyName(inputType) << (" ") << name << ("'");
 			      Throw(s, streamer);
 		      }
 
@@ -491,33 +491,33 @@ namespace Rococo
 		      if (&elementType != genericArg1)
 		      {				
 			      sexstringstream<1024> streamer;
-			      streamer.sb << SEXTEXT("The input supplied was (array ") << GetFriendlyName(elementType) << SEXTEXT(" ") << vname << SEXTEXT(") ");
+			      streamer.sb << ("The input supplied was (array ") << GetFriendlyName(elementType) << (" ") << vname << (") ");
 
 			      if (genericArg1 != NULL)
 			      {
-				      streamer.sb << SEXTEXT("but input required was (array ") << GetFriendlyName(*genericArg1) << SEXTEXT(" ") << name << SEXTEXT(") ");
+				      streamer.sb << ("but input required was (array ") << GetFriendlyName(*genericArg1) << (" ") << name << (") ");
 			      }
 			      else
 			      {
-				      streamer.sb << SEXTEXT("but input required was (") << GetFriendlyName(inputType) << SEXTEXT(" ") << name << SEXTEXT(") ");
+				      streamer.sb << ("but input required was (") << GetFriendlyName(inputType) << (" ") << name << (") ");
 			      }
 			      Throw(s, streamer);
 		      }
 	      }
 
-	      AddArgVariable(SEXTEXT("input_variable_ref"), ce, inputType);
+	      AddArgVariable(("input_variable_ref"), ce, inputType);
 	      PushVariableRef(s, ce.Builder, def, vname, cii);
 					
 	      return true;
       }
 
-      int PushInput(CCompileEnvironment& ce, cr_sex s, int index, const IStructure& inputStruct, const IArchetype* archetype, csexstr inputName, const IStructure* genericArg1)
+      int PushInput(CCompileEnvironment& ce, cr_sex s, int index, const IStructure& inputStruct, const IArchetype* archetype, cstr inputName, const IStructure* genericArg1)
       {
 	      cr_sex inputExpression = s.GetElement(index);
 
 	      if (!IsPointerValid(&inputStruct))
 	      {
-		      Throw(inputExpression, SEXTEXT("Function input type has not been resolved"));
+		      Throw(inputExpression, ("Function input type has not been resolved"));
 	      }
 
 	      VARTYPE inputType = inputStruct.VarType();
@@ -537,19 +537,19 @@ namespace Rococo
 		      stackAllocByteCount += 16;
 		      break;
 	      default:
-		      Throw(s, SEXTEXT("Algorithmic error: unhandled bitcount in argument to function"));
+		      Throw(s, ("Algorithmic error: unhandled bitcount in argument to function"));
 	      }
 
 	      if (IsAtomic(inputExpression))
 	      {
 		      // Try pushing direct, more efficient than evaluating to a temp variable then pushing the variable
-		      csexstr inputToken = inputExpression.String()->Buffer;
+		      cstr inputToken = inputExpression.String()->Buffer;
 		      if (IsNumericTypeOrBoolean(inputType))
 		      {
 			      VariantValue immediateValue;
 			      if (Parse::TryParse(OUT immediateValue, inputType, inputToken) == Parse::PARSERESULT_GOOD)
 			      {
-				      AddArgVariable(SEXTEXT("input_literal"), ce, inputStruct);
+				      AddArgVariable(("input_literal"), ce, inputStruct);
 				      ce.Builder.AddSymbol(inputName); 
 				      ce.Builder.Assembler().Append_PushLiteral(bits, immediateValue);
 				      return stackAllocByteCount;
@@ -559,7 +559,7 @@ namespace Rococo
 				      MemberDef def;
 				      if (ce.Builder.TryGetVariableByName(OUT def, inputToken) && def.ResolvedType->VarType() == inputType)
 				      {	
-					      AddArgVariable(SEXTEXT("input_variable"), ce, inputStruct);
+					      AddArgVariable(("input_variable"), ce, inputStruct);
 					      ce.Builder.AddSymbol(inputName); 
 					      ce.Builder.PushVariable(def);
 					      return stackAllocByteCount;
@@ -574,7 +574,7 @@ namespace Rococo
 		      bool negate = false;
 		      if (!TryCompileBooleanExpression(ce, inputExpression, true, negate))
 		      {
-			      Throw(inputExpression, SEXTEXT("Expected boolean input"));
+			      Throw(inputExpression, ("Expected boolean input"));
 		      }
 		      if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D4 + ROOT_TEMPDEPTH);
 	      }
@@ -583,7 +583,7 @@ namespace Rococo
 		      if (!TryCompileArithmeticExpression(ce, inputExpression, true, inputType))
 		      {
 			      sexstringstream<1024> streamer;
-			      streamer.sb << SEXTEXT("Expected ") << GetTypeName(inputType) << SEXTEXT(" valued expression");
+			      streamer.sb << ("Expected ") << GetTypeName(inputType) << (" valued expression");
 			      Throw(inputExpression, streamer);
 		      }
 	      }
@@ -593,7 +593,7 @@ namespace Rococo
 		      if (!TryCompilePushStructRef(ce, inputExpression, true, inputStruct, inputName, genericArg1))
 		      {
 			      sexstringstream<1024> streamer;
-			      streamer.sb << SEXTEXT("Expected a reference to a ") << GetFriendlyName(inputStruct);
+			      streamer.sb << ("Expected a reference to a ") << GetFriendlyName(inputStruct);
 			      Throw(inputExpression, streamer);
 		      }
 		      return sizeof(size_t);
@@ -603,14 +603,14 @@ namespace Rococo
 		      if (!TryCompilePushClosure(ce, inputExpression, true, inputStruct, *archetype, inputName))
 		      {
 			      sexstringstream<1024> streamer;
-			      streamer.sb << SEXTEXT("Expected an archetype ") << archetype->Name();
+			      streamer.sb << ("Expected an archetype ") << archetype->Name();
 			      Throw(inputExpression, streamer);
 		      }
 
 		      return inputStruct.SizeOfStruct();
 	      }
 
-	      AddArgVariable(SEXTEXT("input_other"), ce, inputStruct);
+	      AddArgVariable(("input_other"), ce, inputStruct);
 	      ce.Builder.AddSymbol(inputName); 
 	      ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D7, bits);			
 
@@ -632,16 +632,16 @@ namespace Rococo
 
 	      cr_sex outputExpr = s.GetElement(outputPos + outputIndex);
 	      AssertAtomic(outputExpr);
-	      csexstr outputVar = outputExpr.String()->Buffer;
+	      cstr outputVar = outputExpr.String()->Buffer;
 
 	      MemberDef outputDef;
 	      if (!builder.TryGetVariableByName(OUT outputDef, outputVar))
 	      {
-		      Throw(outputExpr, SEXTEXT("The output token was not a recognized variable"));
+		      Throw(outputExpr, ("The output token was not a recognized variable"));
 	      }
 
 	      TokenBuffer symbol;
-         SafeFormat(symbol.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT(" -> %s"), outputVar);
+         SafeFormat(symbol.Text, TokenBuffer::MAX_TOKEN_CHARS, (" -> %s"), outputVar);
 	      builder.AddSymbol(symbol);
 
 	      const IStructure* exprOutputStruct = outputDef.ResolvedType;
@@ -649,7 +649,7 @@ namespace Rococo
 	      if (&requiredOutputStruct != exprOutputStruct)
 	      {
 		      sexstringstream<1024> streamer;
-		      streamer.sb << SEXTEXT("Function expects type ") << GetFriendlyName(requiredOutputStruct) << SEXTEXT(" but identifier was of type ") << GetFriendlyName(*exprOutputStruct);
+		      streamer.sb << ("Function expects type ") << GetFriendlyName(requiredOutputStruct) << (" but identifier was of type ") << GetFriendlyName(*exprOutputStruct);
 		      Throw(outputExpr, streamer);
 	      }
 
@@ -657,14 +657,14 @@ namespace Rococo
 		
 	      if (requiredOutputStruct.Archetype() != targetArchetype)
 	      {
-		      Throw(outputExpr, SEXTEXT("The archetype of the output variable did not match that supplied to the function call"));
+		      Throw(outputExpr, ("The archetype of the output variable did not match that supplied to the function call"));
 	      }
 
 	      if (requiredOutputStruct.VarType() == VARTYPE_Derivative)
 	      {
 		      if (outputDef.MemberOffset != 0)
 		      {
-			      Throw(outputExpr, SEXTEXT("The output variable was a reference to a derivative type, but not the first or only member"));
+			      Throw(outputExpr, ("The output variable was a reference to a derivative type, but not the first or only member"));
 		      }
 
 		      AppendCopyPointer(builder, sfOffset, outputDef);
@@ -736,13 +736,13 @@ namespace Rococo
       {
 	      if (!IsPointerValid(&outputStruct))
 	      {
-		      Throw(s, SEXTEXT("Output structure was NULL. Internal algorithmic error."));
+		      Throw(s, ("Output structure was NULL. Internal algorithmic error."));
 	      }
 
 	      if (outputStruct.VarType() != returnType)
 	      {
 		      sexstringstream<1024> streamer;
-		      streamer.sb << SEXTEXT("Function returns ") << GetTypeName(outputStruct.VarType()) << SEXTEXT(" but expression expects ") << GetTypeName(returnType);
+		      streamer.sb << ("Function returns ") << GetTypeName(outputStruct.VarType()) << (" but expression expects ") << GetTypeName(returnType);
 		      Throw(s, streamer);
 	      }
       }
@@ -750,10 +750,10 @@ namespace Rococo
       void ValidateSingleOutput(cr_sex s, int outputCount)
       {
 	      if (outputCount == 0)
-		      Throw(s, SEXTEXT("Function has no output, hence no hence no return value"));
+		      Throw(s, ("Function has no output, hence no hence no return value"));
 
 	      if (outputCount != 1)
-		      Throw(s, SEXTEXT("Function has multiple outputs, and no specific return value"));
+		      Throw(s, ("Function has multiple outputs, and no specific return value"));
       }
 
       void ValidateSingleOutputAndType(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, VARTYPE returnType, const IArchetype* returnArchetype, const IStructure* returnTypeStruct)
@@ -762,13 +762,13 @@ namespace Rococo
 	      const IStructure& argStruct = callee.GetArgument(0);
 	      if (argStruct.Archetype() != returnArchetype)
 	      {
-		      Throw(s, SEXTEXT("The function does not return the correct archetype required by the function call"));
+		      Throw(s, ("The function does not return the correct archetype required by the function call"));
 	      }
 
 	      if (returnTypeStruct != NULL && returnTypeStruct != &argStruct)
 	      {
 		      sexstringstream<1024> streamer;
-		      streamer.sb << SEXTEXT("Function returns ") <<  GetFriendlyName(argStruct) << SEXTEXT(" but expression expects ") << GetFriendlyName(*returnTypeStruct);
+		      streamer.sb << ("Function returns ") <<  GetFriendlyName(argStruct) << (" but expression expects ") << GetFriendlyName(*returnTypeStruct);
 		      Throw(s, streamer);
 	      }
 
@@ -802,11 +802,11 @@ namespace Rococo
 		      for(int i = 0; i < callee.NumberOfOutputs(); i++)
 		      {
 			      const IStructure& s = callee.GetArgument(i);			
-			      AddArgVariable(SEXTEXT("output"), ce, s);
+			      AddArgVariable(("output"), ce, s);
 		      }
 
-		      SEXCHAR stackAllocHint[256];
-            SafeFormat(stackAllocHint, 256, SEXTEXT("Output for %s"), callee.Name());
+		      char stackAllocHint[256];
+            SafeFormat(stackAllocHint, 256, ("Output for %s"), callee.Name());
 		      ce.Builder.AddSymbol(stackAllocHint);
 
 		      ce.Builder.Assembler().Append_StackAlloc(outputStackAllocByteCount);
@@ -821,14 +821,14 @@ namespace Rococo
 	      ce.Builder.PopLastVariables(callee.NumberOfInputs() + callee.NumberOfOutputs() + extraArgs);
       }
 
-      int CompileVirtualCallKernel(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, csexstr instanceName, const IInterface& interfaceRef)
+      int CompileVirtualCallKernel(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, const IInterface& interfaceRef)
       {
 	      int outputStackAllocByteCount = AllocFunctionOutput(ce, callee, s);
 
 	      int inputStackAllocCount = callAtomic ? 0 : PushInputs(ce, s, callee, true, 1);
 	      inputStackAllocCount += sizeof(size_t); // Allow a few bytes for the instance pointer
 
-	      AddArgVariable(SEXTEXT("input_interface"), ce, ce.Object.Common().TypePointer());
+	      AddArgVariable(("input_interface"), ce, ce.Object.Common().TypePointer());
 	      AppendVirtualCallAssembly(instanceName, interfaceIndex, methodIndex, ce.Builder, interfaceRef, s);
 	      ce.Builder.MarkExpression(&s);
 
@@ -862,8 +862,8 @@ namespace Rococo
 
       void CompileFunctionCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, IFunction& callee, VARTYPE returnType, const IArchetype* returnArchetype, const IStructure* returnTypeStruct)
       {
-	      csexstr calleeName = callee.Name();
-	      csexstr callerName = ce.Builder.Owner().Name();
+	      cstr calleeName = callee.Name();
+	      cstr callerName = ce.Builder.Owner().Name();
 
 	      ValidateSingleOutputAndType(ce, s, callee, returnType, returnArchetype, returnTypeStruct);
 	      ValidateInputCount(s, ArgCount(callee) - 1);
@@ -873,10 +873,10 @@ namespace Rococo
 	      ce.Builder.AssignClosureParentSF();
       }
 
-      void CompileVirtualCallAndReturnValue(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, csexstr instanceName, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype, const IInterface& interfaceRef)
+      void CompileVirtualCallAndReturnValue(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype, const IInterface& interfaceRef)
       {
-	      csexstr calleeName = callee.Name();
-	      csexstr callerName = ce.Builder.Owner().Name();
+	      cstr calleeName = callee.Name();
+	      cstr callerName = ce.Builder.Owner().Name();
 
 	      // (<instance.method-name> input1 input2 input3.... inputN -> output1...output2...outputN)
 	      ValidateSingleOutputAndType(ce, s, callee, returnType, returnArchetype, returnTypeStruct);
@@ -887,16 +887,16 @@ namespace Rococo
 	      ce.Builder.AssignClosureParentSF();
       }
 
-      int CompileCloseCallHeader(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, csexstr closureVariable)
+      int CompileCloseCallHeader(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, cstr closureVariable)
       {
 	      TokenBuffer parentSF;
-         SafeFormat(parentSF.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s.parentSF"), closureVariable);
+         SafeFormat(parentSF.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.parentSF"), closureVariable);
 
 	      MemberDef def;
 	      ce.Builder.TryGetVariableByName(OUT def, parentSF);
 	      ce.Builder.AddSymbol(parentSF);
 
-	      AddArgVariable(SEXTEXT("closure_parentSF"), ce, *def.ResolvedType);
+	      AddArgVariable(("closure_parentSF"), ce, *def.ResolvedType);
 	      ce.Builder.PushVariable(def);
 
 	      int sfSize = sizeof(size_t);
@@ -905,16 +905,16 @@ namespace Rococo
 	      return outputAndSFstackAllocByteCount;
       }
 
-      int CompileClosureCallKernel(CCompileEnvironment& ce, cr_sex s, const IArchetype& archetype, csexstr closureVariable)
+      int CompileClosureCallKernel(CCompileEnvironment& ce, cr_sex s, const IArchetype& archetype, cstr closureVariable)
       {
 	      int inputStackAllocByteCount = PushInputs(ce, s, archetype, false, 1);
 
 	      TokenBuffer pathToId;
-         SafeFormat(pathToId.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s.bytecodeId"), closureVariable);
+         SafeFormat(pathToId.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.bytecodeId"), closureVariable);
 	      ce.Builder.AssignVariableToTemp(pathToId, 0); // Copy the closure bytecode id to D4
 
 	      TokenBuffer callSymbol;
-         SafeFormat(callSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("call %s %s"), archetype.Name(), closureVariable);
+         SafeFormat(callSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("call %s %s"), archetype.Name(), closureVariable);
 	      ce.Builder.AddSymbol(callSymbol);
 	      ce.Builder.Assembler().Append_CallByIdIndirect(VM::REGISTER_D4);
 
@@ -923,7 +923,7 @@ namespace Rococo
 	      return inputStackAllocByteCount;
       }
 
-      void CompileClosureCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, csexstr name, VARTYPE returnType, const IArchetype* returnArchetype)
+      void CompileClosureCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr name, VARTYPE returnType, const IArchetype* returnArchetype)
       {
 	      const IStructure* varStruct = ce.Builder.GetVarStructure(name);
 	      const IArchetype& archetype = *varStruct->Archetype();
@@ -936,7 +936,7 @@ namespace Rococo
 	      const IArchetype* argArchetype = outputStruct.Archetype();
 	      if (returnArchetype != argArchetype)
 	      {
-		      Throw(s, SEXTEXT("The archetype of the output does not match that required by the invocation"));
+		      Throw(s, ("The archetype of the output does not match that required by the invocation"));
 	      }
 		
 	      ValidateInputCount(s, archetype.NumberOfInputs());
@@ -952,7 +952,7 @@ namespace Rococo
 	      ce.Builder.AssignClosureParentSF();
       }
 
-      csexstr GetIndexedMethod(CCompileEnvironment& ce, cr_sex invocation, const IStructure* s)
+      cstr GetIndexedMethod(CCompileEnvironment& ce, cr_sex invocation, const IStructure* s)
       {
 	      if (s == NULL) return NULL;
 	      if (!s->Prototype().IsClass) return NULL;
@@ -963,7 +963,7 @@ namespace Rococo
 		      const IInterface& interf = s->GetInterface(i);
 
 		      const ISExpression* src;
-		      if (interf.Attributes().FindAttribute(SEXTEXT("indexed"), (const void*&) src))
+		      if (interf.Attributes().FindAttribute(("indexed"), (const void*&) src))
 		      {
 			      cr_sex methodNameExpr = GetAtomicArg(*src, 3);
 			      for(int j = 0; j < interf.MethodCount(); ++j)
@@ -978,7 +978,7 @@ namespace Rococo
 					      else
 					      {
 						      sexstringstream<1024> streamer;
-						      streamer.sb << interf.Name() << SEXTEXT(" attribute 'indexed' found, but the index function must take only one input");
+						      streamer.sb << interf.Name() << (" attribute 'indexed' found, but the index function must take only one input");
 						      Throw(methodNameExpr, streamer);
 					      }
 					      return NULL;
@@ -986,7 +986,7 @@ namespace Rococo
 			      }
 
 			      sexstringstream<1024> streamer;
-			      streamer.sb << interf.Name() << SEXTEXT(" attribute 'indexed' found, but the name was not found in the list of methods for the interfafce");
+			      streamer.sb << interf.Name() << (" attribute 'indexed' found, but the name was not found in the list of methods for the interfafce");
 			      Throw(methodNameExpr, streamer);
 		      }
 	      }
@@ -996,7 +996,7 @@ namespace Rococo
 
       bool IsIStringInlined(CScript& script);
 
-      void CompileAsInlinedItemDirectAndReturnValue(CCompileEnvironment& ce, csexstr instance, csexstr item, VARTYPE returnType, int interfaceToInstanceOffsetByRef)
+      void CompileAsInlinedItemDirectAndReturnValue(CCompileEnvironment& ce, cstr instance, cstr item, VARTYPE returnType, int interfaceToInstanceOffsetByRef)
       {
 	      MemberDef def;
 	      ce.Builder.TryGetVariableByName(OUT def, instance);
@@ -1008,11 +1008,11 @@ namespace Rococo
 		      MemberDef refDef;
 
 		      TokenBuffer refName;
-		      StringPrint(refName, SEXTEXT("_ref_%s"), instance);
+		      StringPrint(refName, ("_ref_%s"), instance);
 		      ce.Builder.TryGetVariableByName(OUT refDef, refName);
 
 		      TokenBuffer fqn;
-		      StringPrint(fqn, SEXTEXT("%s.%s"), instance, item);
+		      StringPrint(fqn, ("%s.%s"), instance, item);
 
 		      MemberDef def;
 		      ce.Builder.TryGetVariableByName(OUT def, fqn);
@@ -1030,7 +1030,7 @@ namespace Rococo
 	      else
 	      {
 		      TokenBuffer fqn;
-		      StringPrint(fqn, SEXTEXT("%s.%s"), instance, item);
+		      StringPrint(fqn, ("%s.%s"), instance, item);
 
 		      ce.Builder.TryGetVariableByName(OUT def, fqn);
 
@@ -1045,27 +1045,27 @@ namespace Rococo
 	      if (returnType != type)
 	      {
 		      sexstringstream<1024> streamer;
-		      streamer.sb << SEXTEXT("The property returns type ") << GetTypeName(returnType) << SEXTEXT(" only");
+		      streamer.sb << ("The property returns type ") << GetTypeName(returnType) << (" only");
 		      Throw(s, streamer);
 	      }
       }
 
-      bool TryCompileAsInlineArrayAndReturnValue(CCompileEnvironment& ce, cr_sex s, csexstr instance, csexstr methodName, VARTYPE returnType, const IStructure& instanceStruct)
+      bool TryCompileAsInlineArrayAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const IStructure& instanceStruct)
       {
 	      if (instanceStruct == ce.StructArray())
 	      {
 		      TokenBuffer field;
-		      if (AreEqual(SEXTEXT("Length"), methodName))
+		      if (AreEqual(("Length"), methodName))
 		      {
-			      StringPrint(field, SEXTEXT("%s._length"), instance);
+			      StringPrint(field, ("%s._length"), instance);
 			      ValidateReturnType(s, returnType, VARTYPE_Int32);
 		      }
-		      else if (AreEqual(SEXTEXT("Capacity"), methodName))
+		      else if (AreEqual(("Capacity"), methodName))
 		      {
-			      StringPrint(field, SEXTEXT("%s._elementCapacity"), instance);
+			      StringPrint(field, ("%s._elementCapacity"), instance);
 			      ValidateReturnType(s, returnType, VARTYPE_Int32);
 		      }
-		      else if (AreEqual(SEXTEXT("PopOut"), methodName))
+		      else if (AreEqual(("PopOut"), methodName))
 		      {
 			      CompileAsPopOutFromArray(ce, s, instance, returnType);
 			      ValidateReturnType(s, returnType, VARTYPE_Int32);
@@ -1073,7 +1073,7 @@ namespace Rococo
 		      }
 		      else
 		      {
-			      Throw(s, SEXTEXT("The property is not recognized for array types. Known properties for arrays: Length, Capacity & PopOut"));
+			      Throw(s, ("The property is not recognized for array types. Known properties for arrays: Length, Capacity & PopOut"));
 		      }
 
 		      ce.Builder.AddSymbol(field);
@@ -1084,21 +1084,21 @@ namespace Rococo
 	      return false;
       }
 
-      bool TryCompileAsInlineListAndReturnValue(CCompileEnvironment& ce, cr_sex s, csexstr instance, csexstr methodName, VARTYPE returnType, const IStructure& instanceStruct)
+      bool TryCompileAsInlineListAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const IStructure& instanceStruct)
       {
 	      if (instanceStruct == ce.StructList())
 	      {
 		      if (!IsAtomic(s) && s.NumberOfElements() != 1) return false;
 
 		      TokenBuffer field;
-		      if (AreEqual(SEXTEXT("Length"), methodName))
+		      if (AreEqual(("Length"), methodName))
 		      {
-			      StringPrint(field, SEXTEXT("%s._length"), instance);
+			      StringPrint(field, ("%s._length"), instance);
 			      ValidateReturnType(s, returnType, VARTYPE_Int32);
 		      }
 		      else
 		      {
-			      Throw(s, SEXTEXT("The property is not recognized for list types. Known properties for lists: Length"));
+			      Throw(s, ("The property is not recognized for list types. Known properties for lists: Length"));
 		      }
 
 		      ce.Builder.AddSymbol(field);
@@ -1109,7 +1109,7 @@ namespace Rococo
 	      {
 		      if (!IsAtomic(s) && s.NumberOfElements() != 1) return false;
 
-		      if (AreEqual(SEXTEXT("Value"), methodName))
+		      if (AreEqual(("Value"), methodName))
 		      {
 			      const IStructure& st = GetNodeDef(ce, s, instance);
 			      ValidateReturnType(s, returnType, st.VarType());
@@ -1128,12 +1128,12 @@ namespace Rococo
 				      ce.Builder.Assembler().Append_Invoke(st.SizeOfStruct() == 4 ? GetListCallbacks(ce).NodeGet32 : GetListCallbacks(ce).NodeGet64); // value goes to D7
 				      break;
 			      default:
-				      Throw(s, SEXTEXT("Node.Value only supports primitive types"));
+				      Throw(s, ("Node.Value only supports primitive types"));
 			      }
 
 			      return true;
 		      }
-		      else if (AreEqual(SEXTEXT("HasNext"), methodName))
+		      else if (AreEqual(("HasNext"), methodName))
 		      {
 			      ValidateReturnType(s, returnType, VARTYPE_Bool);
 
@@ -1142,7 +1142,7 @@ namespace Rococo
 
 			      return true;
 		      }
-		      else if (AreEqual(SEXTEXT("HasPrevious"), methodName))
+		      else if (AreEqual(("HasPrevious"), methodName))
 		      {
 			      ValidateReturnType(s, returnType, VARTYPE_Bool);
 
@@ -1153,14 +1153,14 @@ namespace Rococo
 		      }
 		      else
 		      {
-			      Throw(s, SEXTEXT("The property is not recognized for node types. Known properties for nodes: Value, Previous, Next, Exists"));
+			      Throw(s, ("The property is not recognized for node types. Known properties for nodes: Value, Previous, Next, Exists"));
 		      }
 	      }
 
 	      return false;
       }
 
-      bool TryCompileAsInlineIStringAndReturnValue(CCompileEnvironment& ce, csexstr instance, csexstr methodName, VARTYPE returnType, const IStructure& instanceStruct)
+      bool TryCompileAsInlineIStringAndReturnValue(CCompileEnvironment& ce, cstr instance, cstr methodName, VARTYPE returnType, const IStructure& instanceStruct)
       {
 	      if (IsIStringInlined(ce.Script))
 	      {
@@ -1169,7 +1169,7 @@ namespace Rococo
 
 		      int interfaceToInstanceOffsetByRef;
 
-		      if (Rococo::GetSubString(instance, SEXTEXT(".")) != NULL)
+		      if (Rococo::GetSubString(instance, (".")) != NULL)
 		      {
 			      // the string is an element of a larger structure, which means buffer and length will offset from the start of the instance, rather than an interface pointer
 			      interfaceToInstanceOffsetByRef = 0;
@@ -1179,19 +1179,19 @@ namespace Rococo
 			      interfaceToInstanceOffsetByRef = sizeof(size_t) + sizeof(int32);
 		      }
 
-		      if (returnType == VARTYPE_Int32 && AreEqual(SEXTEXT("Length"), methodName))
+		      if (returnType == VARTYPE_Int32 && AreEqual(("Length"), methodName))
 		      {
 			      if (Compiler::DoesClassImplementInterface(instanceStruct, ce.Object.Common().SysTypeIString()))
 			      {
-				      CompileAsInlinedItemDirectAndReturnValue(ce, instance, SEXTEXT("length"), VARTYPE_Int32, interfaceToInstanceOffsetByRef);
+				      CompileAsInlinedItemDirectAndReturnValue(ce, instance, ("length"), VARTYPE_Int32, interfaceToInstanceOffsetByRef);
 				      return true;
 			      }
 		      }
-		      else if (returnType == VARTYPE_Pointer && AreEqual(SEXTEXT("Buffer"), methodName))
+		      else if (returnType == VARTYPE_Pointer && AreEqual(("Buffer"), methodName))
 		      {
 			      if (Compiler::DoesClassImplementInterface(instanceStruct, ce.Object.Common().SysTypeIString()))
 			      {
-				      CompileAsInlinedItemDirectAndReturnValue(ce, instance, SEXTEXT("buffer"), VARTYPE_Pointer, interfaceToInstanceOffsetByRef);
+				      CompileAsInlinedItemDirectAndReturnValue(ce, instance, ("buffer"), VARTYPE_Pointer, interfaceToInstanceOffsetByRef);
 				      return true;
 			      }
 		      }
@@ -1203,13 +1203,13 @@ namespace Rococo
       bool TryCompileMethodCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)
       {
 	      cr_sex firstArg = IsCompound(s) ? s.GetElement(0) : s;
-	      csexstr fname = firstArg.String()->Buffer;
+	      cstr fname = firstArg.String()->Buffer;
 
 	      NamespaceSplitter splitter(fname);
 
 	      const IStructure* instanceStruct = NULL;
 
-	      csexstr instance, methodName;
+	      cstr instance, methodName;
 	      if (!splitter.SplitTail(OUT instance, OUT methodName))
 	      {
 		      // Could be index method
@@ -1274,7 +1274,7 @@ namespace Rococo
 	      return false;
       }
 
-      bool TryCompileMethodCallWithoutInputAndReturnValue(CCompileEnvironment& ce, cr_sex s, csexstr instance, csexstr methodName, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)
+      bool TryCompileMethodCallWithoutInputAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)
       {
 	      const IStructure* instanceStruct = ce.Builder.GetVarStructure(instance);
 
@@ -1306,7 +1306,7 @@ namespace Rococo
 
 	      if (!instanceStruct->Prototype().IsClass)
 	      {
-		      Throw(s, SEXTEXT("Only classes support methods."));
+		      Throw(s, ("Only classes support methods."));
 	      }
 
 	      if (TryCompileAsInlineIStringAndReturnValue(ce, instance, methodName, returnType, *instanceStruct))
@@ -1332,7 +1332,7 @@ namespace Rococo
 	      return false;
       }
 
-      VARTYPE CompileMethodCallWithoutInputAndReturnNumericValue(CCompileEnvironment& ce, cr_sex s, csexstr instance, csexstr methodName)
+      VARTYPE CompileMethodCallWithoutInputAndReturnNumericValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName)
       {
 	      const IStructure* instanceStruct = ce.Builder.GetVarStructure(instance);
 
@@ -1359,7 +1359,7 @@ namespace Rococo
 
 	      if (!instanceStruct->Prototype().IsClass)
 	      {
-		      Throw(s, SEXTEXT("Only classes support methods."));
+		      Throw(s, ("Only classes support methods."));
 	      }
 
 	      OUT int interfaceIndex, OUT methodIndex;
@@ -1411,7 +1411,7 @@ namespace Rococo
 	      }
       }
 
-      void AppendVirtualCallAssembly(csexstr instanceName, int interfaceIndex, int methodIndex, ICodeBuilder& builder, const IInterface& interf, cr_sex s)
+      void AppendVirtualCallAssembly(cstr instanceName, int interfaceIndex, int methodIndex, ICodeBuilder& builder, const IInterface& interf, cr_sex s)
       {	
 	      MemberDef refDef;
 	      builder.TryGetVariableByName(OUT refDef, instanceName);
@@ -1422,14 +1422,14 @@ namespace Rococo
 		      GetRefName(refInstance, instanceName);
 		      if (!builder.TryGetVariableByName(OUT refDef, refInstance))
 		      {
-			      Throw(s, SEXTEXT("Internal Compiler Error: Expecting reference to an instance alongside the pseudovariable for the instance"));
+			      Throw(s, ("Internal Compiler Error: Expecting reference to an instance alongside the pseudovariable for the instance"));
 		      }
 	      }
 		
 	      const IArchetype& arch = interf.GetMethod(methodIndex);
 		
 	      TokenBuffer fullName;
-	      StringPrint(fullName, SEXTEXT("%s.%s"), instanceName, arch.Name());
+	      StringPrint(fullName, ("%s.%s"), instanceName, arch.Name());
 	      builder.AddSymbol(fullName);
 
 	      int vTableByteOffset = (methodIndex+1) * sizeof(ID_BYTECODE);
@@ -1455,13 +1455,13 @@ namespace Rococo
 			      }
 
 			      sexstringstream<1024> streamer;
-			      streamer.sb << SEXTEXT("No interface ") << interf.Name() << SEXTEXT(" supported by ") << refDef.ResolvedType->Name();
+			      streamer.sb << ("No interface ") << interf.Name() << (" supported by ") << refDef.ResolvedType->Name();
 			      Throw(s, streamer);
 		      }		
 	      }
 	      else
 	      {
-		      if (AreEqual(refDef.ResolvedType->Name(), SEXTEXT("_Null"), 5))
+		      if (AreEqual(refDef.ResolvedType->Name(), ("_Null"), 5))
 		      {
 			      // We are actually dealing with an interface pointer
 			      builder.Assembler().Append_CallVirtualFunctionByValue(refDef.SFOffset, vTableByteOffset);
@@ -1484,10 +1484,10 @@ namespace Rococo
 	      }					
       }
 
-      void CompileClosureCall(CCompileEnvironment& ce, cr_sex s, csexstr aVarName, const IStructure& type)
+      void CompileClosureCall(CCompileEnvironment& ce, cr_sex s, cstr aVarName, const IStructure& type)
       {
 	      const IArchetype& callee = *type.Archetype();
-	      csexstr callerName = ce.Builder.Owner().Name();
+	      cstr callerName = ce.Builder.Owner().Name();
 
 	      int mapIndex = GetMapIndex(s, 1, callee.NumberOfOutputs(), callee.NumberOfInputs());
 		
@@ -1502,18 +1502,18 @@ namespace Rococo
 	      ce.Builder.AssignClosureParentSF();
       }
 
-      void CompileVirtualCall(CCompileEnvironment& ce, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, csexstr instanceName, const IInterface& interfaceRef)
+      void CompileVirtualCall(CCompileEnvironment& ce, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, const IInterface& interfaceRef)
       {
 	      // (<instance.method-name> input1 input2 input3.... inputN -> output1...output2...outputN)
-	      csexstr calleeName = callee.Name();
-	      csexstr callerName = ce.Builder.Owner().Name();
+	      cstr calleeName = callee.Name();
+	      cstr callerName = ce.Builder.Owner().Name();
 
 	      int mapIndex = GetMapIndex(s, 1, callee.NumberOfOutputs(), callee.NumberOfInputs()-1);
 
 	      int nSuppliedInputs = mapIndex - 1;
 	      if (nSuppliedInputs > callee.NumberOfInputs() - 1)
 	      {
-		      Throw(s, SEXTEXT("More inputs were supplied than are needed by the function call"));
+		      Throw(s, ("More inputs were supplied than are needed by the function call"));
 	      }
 
 	      int outputOffset = CompileVirtualCallKernel(ce, false, callee, s, interfaceIndex, methodIndex, instanceName, interfaceRef);
@@ -1521,14 +1521,14 @@ namespace Rococo
 	      ce.Builder.AssignClosureParentSF();
       }
 
-      int CompileInstancePointerArg(CCompileEnvironment& ce, csexstr classInstance)
+      int CompileInstancePointerArg(CCompileEnvironment& ce, cstr classInstance)
       {
 	      MemberDef def;
 	      ce.Builder.TryGetVariableByName(OUT def, classInstance);
 
 	      ce.Builder.AddSymbol(classInstance);
 
-	      AddArgVariable(SEXTEXT("instance"), ce, ce.Object.Common().TypePointer());
+	      AddArgVariable(("instance"), ce, ce.Object.Common().TypePointer());
 
 	      if (def.Usage == ARGUMENTUSAGE_BYVALUE)
 	      {
@@ -1545,16 +1545,16 @@ namespace Rococo
 
       int CompileInstancePointerArgFromTemp(CCompileEnvironment& ce, int tempDepth)
       {
-	      ce.Builder.AddSymbol(SEXTEXT("// reference to instance"));
-	      AddArgVariable(SEXTEXT("instance"), ce, ce.Object.Common().TypePointer());
+	      ce.Builder.AddSymbol(("// reference to instance"));
+	      AddArgVariable(("instance"), ce, ce.Object.Common().TypePointer());
 	      ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4 + tempDepth, BITCOUNT_POINTER);			
 	      return (int) sizeof(void*);		
       }
 
       void CompileFunctionCall(CCompileEnvironment& ce, IFunction& callee, cr_sex s)
       {
-	      csexstr calleeName = callee.Name();
-	      csexstr callerName = ce.Builder.Owner().Name();
+	      cstr calleeName = callee.Name();
+	      cstr callerName = ce.Builder.Owner().Name();
 
 	      int mapIndex = GetMapIndex(s, 1, callee.NumberOfOutputs(), callee.NumberOfInputs());
 		
@@ -1562,7 +1562,7 @@ namespace Rococo
 	      {
 		      if (s.NumberOfElements() - 1 > callee.NumberOfInputs())
 		      {
-			      Throw(s, SEXTEXT("Too many inputs"));
+			      Throw(s, ("Too many inputs"));
 		      }
 	      }
 
@@ -1583,7 +1583,7 @@ namespace Rococo
 
 	      if (IsAtomic(firstArg)) 
 	      {			
-		      csexstr fname = firstArg.String()->Buffer;
+		      cstr fname = firstArg.String()->Buffer;
 
 		      if (IsCapital(fname[0]))
 		      {
@@ -1639,7 +1639,7 @@ namespace Rococo
       {
 	      using namespace Rococo::Parse;
 
-	      csexstr value = arg.String()->Buffer;
+	      cstr value = arg.String()->Buffer;
 
 	      if (ContainsPoint(value))
 	      {
@@ -1657,7 +1657,7 @@ namespace Rococo
 	      }
 	      else
 	      {
-		      if (AreEqual(value, SEXTEXT("0x"), 2))
+		      if (AreEqual(value, ("0x"), 2))
 		      {
 			      int32 value32;
 			      if (TryParseHex(OUT value32, value + 2) == PARSERESULT_GOOD)
@@ -1694,9 +1694,9 @@ namespace Rococo
       {
 	      using namespace Rococo::Parse;
 
-	      csexstr value = arg.String()->Buffer;
+	      cstr value = arg.String()->Buffer;
 
-	      SEXCHAR c = value[0];
+	      char c = value[0];
 	      int firstDigit;
 	      if (TryGetDigit(firstDigit, c) || c == '.' || c == '+' || c == '-')
 	      {
@@ -1709,9 +1709,9 @@ namespace Rococo
 						
 		      if (f == NULL) return NULL;			
 				
-		      if (f->NumberOfOutputs() == 0) Throw(arg, SEXTEXT("The function has no output"));
-		      if (f->NumberOfOutputs() > 1) Throw(arg, SEXTEXT("The function has more than one output"));
-		      if (f->NumberOfInputs() > 0) Throw(arg, SEXTEXT("The function requires an input"));
+		      if (f->NumberOfOutputs() == 0) Throw(arg, ("The function has no output"));
+		      if (f->NumberOfOutputs() > 1) Throw(arg, ("The function has more than one output"));
+		      if (f->NumberOfInputs() > 0) Throw(arg, ("The function requires an input"));
 
 		      return &f->GetArgument(0);
 	      }
@@ -1721,7 +1721,7 @@ namespace Rococo
 		      if (s != NULL) return s;
 
 		      NamespaceSplitter splitter(value);
-		      csexstr instance, method;
+		      cstr instance, method;
 		      if (!splitter.SplitTail(OUT instance, OUT method))
 		      {
 			      return NULL;
@@ -1739,9 +1739,9 @@ namespace Rococo
 		      const IInterface& interf = s->GetInterface(interfaceIndex);
 		      const IArchetype& methodArch = interf.GetMethod(methodIndex);
 
-		      if (methodArch.NumberOfOutputs() == 0) Throw(arg, SEXTEXT("The method has no output"));
-		      if (methodArch.NumberOfOutputs() > 1) Throw(arg, SEXTEXT("The method has more than one output"));
-		      if (methodArch.NumberOfInputs() > 2) Throw(arg, SEXTEXT("The method requires an explicit input"));
+		      if (methodArch.NumberOfOutputs() == 0) Throw(arg, ("The method has no output"));
+		      if (methodArch.NumberOfOutputs() > 1) Throw(arg, ("The method has more than one output"));
+		      if (methodArch.NumberOfInputs() > 2) Throw(arg, ("The method requires an explicit input"));
 
 		      return &methodArch.GetArgument(0);
 	      }
@@ -1762,8 +1762,8 @@ namespace Rococo
 		      }
 		      else if (IsAtomic(tokenExpr))
 		      {
-			      csexstr value = tokenExpr.String()->Buffer;
-			      SEXCHAR c = value[0];
+			      cstr value = tokenExpr.String()->Buffer;
+			      char c = value[0];
 			      int firstDigit;
 			      if (TryGetDigit(firstDigit, c) || c == '.' || c == '+' || c == '-')
 			      {
@@ -1782,7 +1782,7 @@ namespace Rococo
 		      return NULL;
 	      }
 
-	      csexstr token = tokenExpr.String()->Buffer;
+	      cstr token = tokenExpr.String()->Buffer;
 
 	      if (IsCapital(token[0]))
 	      {
@@ -1790,8 +1790,8 @@ namespace Rococo
 						
 		      if (f == NULL) return NULL;			
 				
-		      if (f->NumberOfOutputs() == 0) Throw(tokenExpr, SEXTEXT("The function has no output"));
-		      if (f->NumberOfOutputs() > 1) Throw(tokenExpr, SEXTEXT("The function has more than one output"));
+		      if (f->NumberOfOutputs() == 0) Throw(tokenExpr, ("The function has no output"));
+		      if (f->NumberOfOutputs() > 1) Throw(tokenExpr, ("The function has more than one output"));
 
 		      return &f->GetArgument(0);
 	      }
@@ -1811,7 +1811,7 @@ namespace Rococo
 		      }
 
 		      NamespaceSplitter splitter(token);
-		      csexstr instance, method;
+		      cstr instance, method;
 		      if (!splitter.SplitTail(OUT instance, OUT method))
 		      {
 			      return NULL;
@@ -1829,8 +1829,8 @@ namespace Rococo
 		      const IInterface& interf = st->GetInterface(interfaceIndex);
 		      const IArchetype& methodArch = interf.GetMethod(methodIndex);
 
-		      if (methodArch.NumberOfOutputs() == 0) Throw(tokenExpr, SEXTEXT("The method has no output"));
-		      if (methodArch.NumberOfOutputs() > 1) Throw(tokenExpr, SEXTEXT("The method has more than one output"));
+		      if (methodArch.NumberOfOutputs() == 0) Throw(tokenExpr, ("The method has no output"));
+		      if (methodArch.NumberOfOutputs() > 1) Throw(tokenExpr, ("The method has more than one output"));
 
 		      return &methodArch.GetArgument(0);
 	      }
@@ -1854,7 +1854,7 @@ namespace Rococo
       }
 
       // Only safe to call from TryCompileAsFunctionCall(...)
-      bool TryCompileAsMethodCall(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, csexstr methodName)
+      bool TryCompileAsMethodCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName)
       {
 	      MemberDef def;
 	      if (!ce.Builder.TryGetVariableByName(OUT def, IN instanceName))
@@ -1896,22 +1896,22 @@ namespace Rococo
 
 	      if (!c.Prototype().IsClass)
 	      {
-		      Throw(s, SEXTEXT("Only classes, containers and nodes support methods."));
+		      Throw(s, ("Only classes, containers and nodes support methods."));
 	      }
 
-	      csexstr srcVariable;
+	      cstr srcVariable;
 
 	      TokenBuffer instanceRef;
 
 	      // def.AllocSize = 0 => pseudo variable, backed by _ref_XXX. _ suggest prefix of a null instance, which can be overwritten with a derived class, so use the ref
-	      if ((def.AllocSize == 0 || c.Name()[0] == SEXCHAR('_')) && def.Usage == ARGUMENTUSAGE_BYVALUE)
+	      if ((def.AllocSize == 0 || c.Name()[0] == char('_')) && def.Usage == ARGUMENTUSAGE_BYVALUE)
 	      {			
 		      GetRefName(instanceRef, instanceName);
 			
 		      MemberDef refDef;
 		      if (!ce.Builder.TryGetVariableByName(OUT refDef, IN instanceRef))
 		      {
-			      Throw(s, SEXTEXT("Expecting an instance reference associated with the instance."));
+			      Throw(s, ("Expecting an instance reference associated with the instance."));
 		      }
 
 		      srcVariable = instanceRef;
@@ -1930,35 +1930,35 @@ namespace Rococo
 		      return true;
 	      }
 
-	      ThrowTokenNotFound(s, methodName, GetFriendlyName(*def.ResolvedType), SEXTEXT("method"));
+	      ThrowTokenNotFound(s, methodName, GetFriendlyName(*def.ResolvedType), ("method"));
 
 	      return false; // No matching method in all the interfaces
       }
 
-      bool TryCompileAsBuilderCall(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, csexstr methodName)
+      bool TryCompileAsBuilderCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName)
       {
 	      cr_sex arg = s.GetElement(1);
 	      const IStructure* argType = GuessType(ce, arg);
 	      if (argType == NULL)
 	      {
-		      Throw(arg, SEXTEXT("Cannot guess type of argument. Try assigning value to a variable and use the variable as the argument."));
+		      Throw(arg, ("Cannot guess type of argument. Try assigning value to a variable and use the variable as the argument."));
 	      }
 
-	      csexstr typeName = GetFriendlyName(*argType);
+	      cstr typeName = GetFriendlyName(*argType);
 
 	      TokenBuffer fullMethodName;
-	      StringPrint(fullMethodName, SEXTEXT("%s%s"), methodName, typeName);
+	      StringPrint(fullMethodName, ("%s%s"), methodName, typeName);
 
 	      return TryCompileAsMethodCall(ce, s, instanceName, fullMethodName);
       }
 
-      bool TryCompileAsPlainFunctionCallWithFQN(CCompileEnvironment& ce, csexstr body, csexstr tail, cr_sex s)
+      bool TryCompileAsPlainFunctionCallWithFQN(CCompileEnvironment& ce, cstr body, cstr tail, cr_sex s)
       {
 	      INamespaceBuilder* ns = Compiler::MatchNamespace(GetModule(ce.Script), body);
 	      if (ns == NULL)
 	      {
 		      sexstringstream<1024> streamer;
-		      streamer.sb << SEXTEXT("Could not find namespace: ") << body;
+		      streamer.sb << ("Could not find namespace: ") << body;
 		      Throw(s, streamer);
 		      return false;
 	      }
@@ -1975,7 +1975,7 @@ namespace Rococo
 	      }
       }
 
-      bool TryCompileAsPlainFunctionCallWithPrefix(CCompileEnvironment& ce, csexstr fname, cr_sex s)
+      bool TryCompileAsPlainFunctionCallWithPrefix(CCompileEnvironment& ce, cstr fname, cr_sex s)
       {
 	      IModuleBuilder& module = GetModule(ce.Script);
 
@@ -1994,7 +1994,7 @@ namespace Rococo
 		      else if (g != NULL)
 		      {
 			      sexstringstream<1024> streamer;
-			      streamer.sb << SEXTEXT("Ambiguity: '") << fname << "' could belong to " << prefix.FullName()->Buffer << " or " << NS->FullName()->Buffer;
+			      streamer.sb << ("Ambiguity: '") << fname << "' could belong to " << prefix.FullName()->Buffer << " or " << NS->FullName()->Buffer;
 			      Throw(s, streamer);
 			      return false;
 		      }
@@ -2016,11 +2016,11 @@ namespace Rococo
 	      if (!IsCompound(s) || s.NumberOfElements() == 0) return false;
 
 	      cr_sex nameExpr = GetAtomicArg(s, 0);
-	      csexstr fname = nameExpr.String()->Buffer;
+	      cstr fname = nameExpr.String()->Buffer;
 
 	      NamespaceSplitter splitter(fname);
 
-	      csexstr body, tail;
+	      cstr body, tail;
 	      if (splitter.SplitTail(OUT body, OUT tail))
 	      {
 		      return TryCompileAsPlainFunctionCallWithFQN(ce, body, tail, s);
@@ -2047,11 +2047,11 @@ namespace Rococo
 	      if (!IsCompound(s) || s.NumberOfElements() == 0) return false;
 
 	      cr_sex nameExpr = GetAtomicArg(s, 0);
-	      csexstr fname = nameExpr.String()->Buffer;
+	      cstr fname = nameExpr.String()->Buffer;
 
 	      NamespaceSplitter splitter(fname);
 
-	      csexstr instance, fnName;
+	      cstr instance, fnName;
 	      if (splitter.SplitTail(OUT instance, OUT fnName))
 	      {
 		      if (IsCapital(fnName[0]))
@@ -2070,16 +2070,16 @@ namespace Rococo
 			      if (s.NumberOfElements() == 2)
 			      {
 				      const ISExpression* attr;
-				      if (interf.Attributes().FindAttribute(SEXTEXT("indexed"), (const void*&) attr))
+				      if (interf.Attributes().FindAttribute(("indexed"), (const void*&) attr))
 				      {
 					      cr_sex indexMethodExpr = GetAtomicArg(*attr, 3);
-					      csexstr indexMethodName = indexMethodExpr.String()->Buffer;
+					      cstr indexMethodName = indexMethodExpr.String()->Buffer;
 					      return TryCompileAsMethodCall(ce, s, fname, indexMethodName);
 				      }	
-				      else if (interf.Attributes().FindAttribute(SEXTEXT("builder"), (const void*&) attr))
+				      else if (interf.Attributes().FindAttribute(("builder"), (const void*&) attr))
 				      {
 					      cr_sex appendPrefixExpr = GetAtomicArg(*attr, 2);
-					      csexstr appendPrefix = appendPrefixExpr.String()->Buffer;
+					      cstr appendPrefix = appendPrefixExpr.String()->Buffer;
 					      return TryCompileAsBuilderCall(ce, s, fname, appendPrefix);
 				      }
 			      }
@@ -2104,8 +2104,8 @@ namespace Rococo
 
       void AddArchiveRegister(CCompileEnvironment& ce, int saveTempDepth, int restoreTempDepth, BITCOUNT bits)
       {
-	      SEXCHAR declText[256];
-         SafeFormat(declText, 256, SEXTEXT("save D%d. restore to D%d"), saveTempDepth + 4, restoreTempDepth + 4);
+	      char declText[256];
+         SafeFormat(declText, 256, ("save D%d. restore to D%d"), saveTempDepth + 4, restoreTempDepth + 4);
 	      ce.Builder.AddSymbol(declText);
 	      ce.Builder.ArchiveRegister(saveTempDepth, restoreTempDepth, bits, (void*)GetTryCatchExpression(ce.Script));
       }
@@ -2115,13 +2115,13 @@ namespace Rococo
 	      ce.Builder.AddVariable(ns, ts, (void*)GetTryCatchExpression(ce.Script));
       }
 
-      INamespaceBuilder& GetNamespaceByFQN(CCompileEnvironment& ce, csexstr ns, cr_sex s)
+      INamespaceBuilder& GetNamespaceByFQN(CCompileEnvironment& ce, cstr ns, cr_sex s)
       {
 	      INamespaceBuilder* NS = ce.RootNS.FindSubspace(ns);
 	      if (NS == NULL)
 	      {
 		      sexstringstream<1024> streamer;
-		      streamer.sb << SEXTEXT("Could not find the namespace ") << ns;
+		      streamer.sb << ("Could not find the namespace ") << ns;
 		      Throw(s, streamer);
 	      }
 	      return *NS;
@@ -2133,7 +2133,7 @@ namespace Rococo
 	      if (constructor == NULL)
 	      {
 		      sexstringstream<1024> streamer;
-		      streamer.sb << SEXTEXT("Cannot find ") << st.Name() << SEXTEXT(".Construct in ") << st.Module().Name();
+		      streamer.sb << ("Cannot find ") << st.Name() << (".Construct in ") << st.Module().Name();
 		      Throw(s, streamer);
 	      }
 
@@ -2141,13 +2141,13 @@ namespace Rococo
       }
 
 
-      IFunction& GetFunctionByFQN(CCompileEnvironment& ce, cr_sex s, csexstr name)
+      IFunction& GetFunctionByFQN(CCompileEnvironment& ce, cr_sex s, cstr name)
       {
-	      csexstr ns, shortName;
+	      cstr ns, shortName;
 	      NamespaceSplitter splitter(name);
 	      if (!splitter.SplitTail(ns, shortName))
 	      {
-		      Throw(s, SEXTEXT("Expecting fully qualified name"));
+		      Throw(s, ("Expecting fully qualified name"));
 	      }
 
 	      INamespaceBuilder& NS = GetNamespaceByFQN(ce, ns, s);
@@ -2156,7 +2156,7 @@ namespace Rococo
 	      if (f == NULL)
 	      {
 		      sexstringstream<1024> streamer;
-		      streamer.sb << SEXTEXT("Could not find ") << shortName << SEXTEXT(" in ") << ns;
+		      streamer.sb << ("Could not find ") << shortName << (" in ") << ns;
 		      Throw(s, streamer);
 	      }
 

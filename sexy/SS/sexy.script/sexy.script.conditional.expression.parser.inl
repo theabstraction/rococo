@@ -45,9 +45,9 @@ namespace Rococo
          cr_sex whileExpr = s.GetElement(s.NumberOfElements() - 2);
          AssertAtomic(whileExpr);
 
-         if (!AreEqual(whileExpr.String(), SEXTEXT("while")))
+         if (!AreEqual(whileExpr.String(), ("while")))
          {
-            Throw(whileExpr, SEXTEXT("Expecting 'while' in penultimate position of the do...while expression"));
+            Throw(whileExpr, ("Expecting 'while' in penultimate position of the do...while expression"));
          }
 
          struct ConditionSection : public ICompileSection
@@ -65,7 +65,7 @@ namespace Rococo
                if (!TryCompileBooleanExpression(ce, condition, true, negate))
                {
                   sexstringstream<1024> streamer;
-                  streamer.sb << SEXTEXT("Expecting boolean valued expression in the last position in the do...while statement");
+                  streamer.sb << ("Expecting boolean valued expression in the last position in the do...while statement");
                   Throw(condition, streamer);
                }
 
@@ -114,7 +114,7 @@ namespace Rococo
                if (!TryCompileBooleanExpression(ce, condition, true, negate))
                {
                   sexstringstream<1024> streamer;
-                  streamer.sb << SEXTEXT("Expecting boolean valued expression as the condition in the (while ...) statement");
+                  streamer.sb << ("Expecting boolean valued expression as the condition in the (while ...) statement");
                   Throw(condition, streamer);
                }
 
@@ -148,7 +148,7 @@ namespace Rococo
          ControlFlowData cfd;
          if (!ce.Builder.TryGetControlFlowPoint(OUT cfd))
          {
-            Throw(s, SEXTEXT("'break' is only valid inside a loop construct"));
+            Throw(s, ("'break' is only valid inside a loop construct"));
          }
 
          int32 toBreak = ((int32)cfd.BreakPosition) - ((int32)ce.Builder.Assembler().WritePosition());
@@ -162,7 +162,7 @@ namespace Rococo
          ControlFlowData cfd;
          if (!ce.Builder.TryGetControlFlowPoint(OUT cfd))
          {
-            Throw(s, SEXTEXT("'continue' is only valid inside a loop construct"));
+            Throw(s, ("'continue' is only valid inside a loop construct"));
          }
 
          int32 toContinue = ((int32)cfd.ContinuePosition) - ((int32)ce.Builder.Assembler().WritePosition());
@@ -181,7 +181,7 @@ namespace Rococo
          bool negate = false;
          if (!TryCompileBooleanExpression(ce, condition, true, negate))
          {
-            Throw(s, SEXTEXT("Expecting boolean expression"));
+            Throw(s, ("Expecting boolean expression"));
          }
 
          if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
@@ -189,9 +189,9 @@ namespace Rococo
          ce.Builder.Assembler().Append_Test(VM::REGISTER_D7, BITCOUNT_32);
 
          cr_sex keywordExpr = GetAtomicArg(s, 0);
-         if (!AreEqual(keywordExpr.String(), SEXTEXT("if")))
+         if (!AreEqual(keywordExpr.String(), ("if")))
          {
-            Throw(s, SEXTEXT("Expecting If as first element in expression"));
+            Throw(s, ("Expecting If as first element in expression"));
          }
 
          int elsePos = -1;
@@ -202,7 +202,7 @@ namespace Rococo
             if (IsAtomic(arg))
             {
                sexstring token = arg.String();
-               if (AreEqual(token, SEXTEXT("else")))
+               if (AreEqual(token, ("else")))
                {
                   if (elsePos == -1)
                   {
@@ -210,17 +210,17 @@ namespace Rococo
                   }
                   else
                   {
-                     Throw(s, SEXTEXT("Duplicate 'else' keyword found in if...else expression"));
+                     Throw(s, ("Duplicate 'else' keyword found in if...else expression"));
                   }
                }
                else
                {
-                  Throw(arg, SEXTEXT("Only 'else' is a legal atomic keyword in an (if ...) expression"));
+                  Throw(arg, ("Only 'else' is a legal atomic keyword in an (if ...) expression"));
                }
             }
             else if (!IsCompound(arg))
             {
-               Throw(arg, SEXTEXT("Expecting atomic or compound expression in if...else expression"));
+               Throw(arg, ("Expecting atomic or compound expression in if...else expression"));
             }
          }
 
@@ -267,7 +267,7 @@ namespace Rococo
          for (int i = 1; i < s.NumberOfElements(); ++i)
          {
             cr_sex arg = GetAtomicArg(s, i);
-            if (AreEqual(arg.String(), SEXTEXT("#")))
+            if (AreEqual(arg.String(), ("#")))
             {
                hashIndex = i;
                break;
@@ -276,7 +276,7 @@ namespace Rococo
 
          if (hashIndex < 2)
          {
-            Throw(s, SEXTEXT("(foreach <enumvar1> ... <enumvarN> # <collection> (action1) ....(actionN) )"));
+            Throw(s, ("(foreach <enumvar1> ... <enumvarN> # <collection> (action1) ....(actionN) )"));
          }
 
          cr_sex collection = s.GetElement(hashIndex + 1);
@@ -293,12 +293,12 @@ namespace Rococo
                CompileEnumerateArray(ce, s, hashIndex);
                return;
             default:
-               Throw(collection, SEXTEXT("Expecting (<array-name> <lower-index> <upper-index>"));
+               Throw(collection, ("Expecting (<array-name> <lower-index> <upper-index>"));
             }
          }
          else if (IsAtomic(collection))
          {
-            csexstr srcName = collection.String()->Buffer;
+            cstr srcName = collection.String()->Buffer;
 
             MemberDef def;
             if (ce.Builder.TryGetVariableByName(OUT def, srcName))
@@ -318,21 +318,21 @@ namespace Rococo
                else
                {
                   sexstringstream<1024> streamer;
-                  streamer.sb << SEXTEXT("Do not know how to enumerate type ") << GetFriendlyName(*def.ResolvedType);
+                  streamer.sb << ("Do not know how to enumerate type ") << GetFriendlyName(*def.ResolvedType);
                   Throw(collection, streamer);
                }
             }
             else
             {
                sexstringstream<1024> streamer;
-               streamer.sb << SEXTEXT("Expecting collection variable name");
+               streamer.sb << ("Expecting collection variable name");
                Throw(collection, streamer);
             }
          }
          else
          {
             sexstringstream<1024> streamer;
-            streamer.sb << SEXTEXT("Expecting compound or atomic collection expression");
+            streamer.sb << ("Expecting compound or atomic collection expression");
             Throw(collection, streamer);
          }
       }

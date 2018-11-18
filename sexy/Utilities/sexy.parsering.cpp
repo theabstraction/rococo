@@ -104,7 +104,7 @@ namespace
 		return X.HexValue == Y.HexValue;
 	}
 
-	bool TrySplitByChar(IN SEXCHAR splitChar1, IN SEXCHAR splitChar2, IN csexstr s, OUT csexstr& start, OUT csexstr& end, REF SEXCHAR* tempBuffer, IN size_t charsInBuffer)
+	bool TrySplitByChar(IN char splitChar1, IN char splitChar2, IN cstr s, OUT cstr& start, OUT cstr& end, REF char* tempBuffer, IN size_t charsInBuffer)
 	{
 		int len = StringLength(s);
 		if (len >= (int) charsInBuffer)
@@ -112,7 +112,7 @@ namespace
 			return false;
 		}
 
-		memcpy_s(tempBuffer, sizeof(SEXCHAR) * charsInBuffer, s, sizeof(SEXCHAR) * len);
+		memcpy_s(tempBuffer, sizeof(char) * charsInBuffer, s, sizeof(char) * len);
 		tempBuffer[len] = 0;
 
 		for(int i = 0; i < len; ++i)
@@ -130,7 +130,7 @@ namespace
 	}
 
 	// Attempt to parse a number in the format [+-]*(0-9).*(0.9)
-	template<typename T> PARSERESULT _TryParseDecimalSequence(OUT T& y, IN csexstr s)
+	template<typename T> PARSERESULT _TryParseDecimalSequence(OUT T& y, IN cstr s)
 	{
 		T sign;
 		int startPos;
@@ -173,7 +173,7 @@ namespace
 
 		for(int j = dotPos-1; j >= startPos; j--)
 		{
-			SEXCHAR c = s[j];
+			char c = s[j];
 			if (c < '0' || c > '9')
 			{
 				return PARSERESULT_BAD_DECIMAL_DIGIT;
@@ -184,7 +184,7 @@ namespace
 		{
 			for(int j = dotPos+1; s[j] != 0; j++)
 			{
-				SEXCHAR c = s[j];
+				char c = s[j];
 				if (c < '0' || c > '9')
 				{
 					return PARSERESULT_BAD_DECIMAL_DIGIT;
@@ -196,7 +196,7 @@ namespace
 
 		for(int j = dotPos-1; j >= startPos; j--)
 		{
-			SEXCHAR c = s[j];
+			char c = s[j];
 			T unit = (T) (c - '0');
 			T value = unit * base;
 			base *= 10.0;
@@ -220,7 +220,7 @@ namespace
 			{
 				base *= (T) 0.1;
 
-				SEXCHAR c = s[j];
+				char c = s[j];
 
 				T unit = (T) (c - '0');
 				T value = unit * base;
@@ -246,11 +246,11 @@ namespace
 		return PARSERESULT_GOOD;
 	}
 
-	template<typename T> PARSERESULT _TryParseExponentForm(OUT T& y, csexstr s)
+	template<typename T> PARSERESULT _TryParseExponentForm(OUT T& y, cstr s)
 	{
 		enum {MAX_CHARS = 64};
-		SEXCHAR temp[MAX_CHARS];
-		csexstr mantissa, exponent;
+		char temp[MAX_CHARS];
+		cstr mantissa, exponent;
 		if (!TrySplitByChar('e', 'E', s, mantissa, exponent, temp, MAX_CHARS))
 		{
 			return PARSERESULT_UNHANDLED_TYPE;
@@ -342,7 +342,7 @@ namespace Rococo { namespace Compiler
 
 namespace Rococo { namespace Parse
 {
-	VARTYPE GetLiteralType(csexstr candidate)
+	VARTYPE GetLiteralType(cstr candidate)
 	{
 		int32 iValue;
 		if (TryParseDecimal(iValue, candidate) == PARSERESULT_GOOD)
@@ -350,12 +350,12 @@ namespace Rococo { namespace Parse
 			return VARTYPE_Int32;
 		}
 
-		if (AreEqual(candidate, SEXTEXT("true")))
+		if (AreEqual(candidate, ("true")))
 		{
 			return VARTYPE_Bool;
 		}
 
-		if (AreEqual(candidate, SEXTEXT("false")))
+		if (AreEqual(candidate, ("false")))
 		{
 			return VARTYPE_Bool;
 		}
@@ -379,7 +379,7 @@ namespace Rococo { namespace Parse
 			return VARTYPE_Float64;
 		}
 		
-		if (Compare(candidate, SEXTEXT("0x"), 2) == 0)
+		if (Compare(candidate, ("0x"), 2) == 0)
 		{
 			if (TryParseHex(iValue, candidate + 2) == PARSERESULT_GOOD)
 			{
@@ -395,7 +395,7 @@ namespace Rococo { namespace Parse
 		return VARTYPE_Bad;
 	}
 
-	bool TryGetDigit(OUT int32& value, SEXCHAR c)
+	bool TryGetDigit(OUT int32& value, char c)
 	{
 		if (c >= '0' && c <= '9')
 		{
@@ -408,13 +408,13 @@ namespace Rococo { namespace Parse
 		}
 	}
 
-	bool IsDigit(SEXCHAR c)
+	bool IsDigit(char c)
 	{
 		int value;
 		return TryGetDigit(OUT value, c);
 	}
 
-	bool TryGetHex(OUT int32& value, SEXCHAR c)
+	bool TryGetHex(OUT int32& value, char c)
 	{
 		if (c >= '0' && c <= '9')
 		{
@@ -436,22 +436,22 @@ namespace Rococo { namespace Parse
 		return true;
 	}
 
-	csexstr VarTypeName(VARTYPE type)
+	cstr VarTypeName(VARTYPE type)
 	{
 		switch(type)
 		{
-		case VARTYPE_Int32:	return SEXTEXT("Int32");
-		case VARTYPE_Int64: return SEXTEXT("Int64");
-		case VARTYPE_Float32: return SEXTEXT("Float32");
-		case VARTYPE_Float64: return SEXTEXT("Float64");
-      case VARTYPE_Bool: return SEXTEXT("Boolean32");
-      case VARTYPE_Derivative: return SEXTEXT("Derivative");
-      case VARTYPE_Pointer: return SEXTEXT("Pointer");
-		default: return SEXTEXT("Unknown variable type");
+		case VARTYPE_Int32:	return ("Int32");
+		case VARTYPE_Int64: return ("Int64");
+		case VARTYPE_Float32: return ("Float32");
+		case VARTYPE_Float64: return ("Float64");
+      case VARTYPE_Bool: return ("Boolean32");
+      case VARTYPE_Derivative: return ("Derivative");
+      case VARTYPE_Pointer: return ("Pointer");
+		default: return ("Unknown variable type");
 		}
 	}
 
-	PARSERESULT TryParseHex(OUT int32& value, IN csexstr hexDigits)
+	PARSERESULT TryParseHex(OUT int32& value, IN cstr hexDigits)
 	{
 		int len = StringLength(hexDigits);
 		if (len == 0 || len > 8)
@@ -480,7 +480,7 @@ namespace Rococo { namespace Parse
 		return PARSERESULT_GOOD;
 	}
 
-	PARSERESULT TryParseHex(OUT int64& value, IN csexstr hexDigits)
+	PARSERESULT TryParseHex(OUT int64& value, IN cstr hexDigits)
 	{
 		int len = (int) StringLength(hexDigits);
 		if (len == 0 || len > 16)
@@ -535,16 +535,16 @@ namespace Rococo { namespace Parse
       return ((unsigned)(ieee754.u >> 32) & 0x7fffffff) == 0x7ff00000 && ((unsigned)ieee754.u == 0);
 	}
 
-	bool IsDecimal(csexstr x)
+	bool IsDecimal(cstr x)
 	{
 		if (x == NULL || x[0] == 0) return false;
 
 		enum STATE {STATE_START, STATE_MANTISSA_BEFORE_POINT, STATE_MANTISSA_AFTER_POINT, STATE_EXPONENT_START, STATE_EXPONENT_BEFORE_POINT, STATE_EXPONENT_AFTER_POINT} state;
 		state = STATE_START;
 
-		for(csexstr p = x; *p != 0; p++)
+		for(cstr p = x; *p != 0; p++)
 		{
-			SEXCHAR c = *p;
+			char c = *p;
 			switch(state)
 			{
 			case STATE_START:
@@ -647,7 +647,7 @@ namespace Rococo { namespace Parse
 		return sscanf_s(decimalDigits, "%f", &value);
 	}
 
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 	inline int ScanString(cstr decimalDigits, float32& value)
 	{
 		return swscanf_s(decimalDigits, L"%f", &value);
@@ -659,14 +659,14 @@ namespace Rococo { namespace Parse
 		return sscanf_s(decimalDigits, "%lf", &value);
 	}
 
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 	inline int ScanString(cstr decimalDigits, float64& value)
 	{
 		return swscanf_s(decimalDigits, L"%lf", &value);
 	}
 #endif
 
-	PARSERESULT TryParseFloat(OUT float32& value, IN csexstr s)
+	PARSERESULT TryParseFloat(OUT float32& value, IN cstr s)
 	{
 		PARSERESULT a1 =_TryParseDecimalSequence<float32>(OUT value, s);
 		if (a1 == PARSERESULT_BAD_DECIMAL_DIGIT)
@@ -677,7 +677,7 @@ namespace Rococo { namespace Parse
 		return a1;
 	}
 
-	PARSERESULT TryParseFloat(OUT float64& value, IN csexstr s)
+	PARSERESULT TryParseFloat(OUT float64& value, IN cstr s)
 	{
 		PARSERESULT a1 =_TryParseDecimalSequence<float64>(OUT value, s);
 		if (a1 == PARSERESULT_BAD_DECIMAL_DIGIT)
@@ -688,15 +688,15 @@ namespace Rococo { namespace Parse
 		return a1;
 	}
 
-	PARSERESULT TryParseBoolean(OUT int32& value, IN csexstr valueLiteral)
+	PARSERESULT TryParseBoolean(OUT int32& value, IN cstr valueLiteral)
 	{
-		if (AreEqual(valueLiteral, SEXTEXT("true")) || AreEqual(valueLiteral, SEXTEXT("1")))
+		if (AreEqual(valueLiteral, ("true")) || AreEqual(valueLiteral, ("1")))
 		{
 			value = 1;
 			return PARSERESULT_GOOD;
 		}
 
-		if (AreEqual(valueLiteral, SEXTEXT("false")) || AreEqual(valueLiteral, SEXTEXT("0")))
+		if (AreEqual(valueLiteral, ("false")) || AreEqual(valueLiteral, ("0")))
 		{
 			value = 0;
 			return PARSERESULT_GOOD;
@@ -705,10 +705,10 @@ namespace Rococo { namespace Parse
 		return PARSERESULT_UNHANDLED_TYPE;
 	}
 
-	PARSERESULT TryParseDecimal(OUT int32& value, IN csexstr valueLiteral)
+	PARSERESULT TryParseDecimal(OUT int32& value, IN cstr valueLiteral)
 	{
 		bool isPositive = true;
-		csexstr valueDigits = valueLiteral;
+		cstr valueDigits = valueLiteral;
 
 		if (valueLiteral[0] == '-')
 		{
@@ -765,10 +765,10 @@ namespace Rococo { namespace Parse
 		return PARSERESULT_GOOD;
 	}
 
-	PARSERESULT TryParseDecimal(OUT int64& value, IN csexstr valueLiteral)
+	PARSERESULT TryParseDecimal(OUT int64& value, IN cstr valueLiteral)
 	{
 		bool isPositive = true;
-		csexstr valueDigits = valueLiteral;
+		cstr valueDigits = valueLiteral;
 
 		if (valueLiteral[0] == '-')
 		{
@@ -825,9 +825,9 @@ namespace Rococo { namespace Parse
 		return PARSERESULT_GOOD;
 	}
 
-	PARSERESULT TryParse(OUT VariantValue& value, VARTYPE type, IN csexstr valueLiteral)
+	PARSERESULT TryParse(OUT VariantValue& value, VARTYPE type, IN cstr valueLiteral)
 	{
-		if (Compare(valueLiteral, SEXTEXT("0x"), 2) == 0)
+		if (Compare(valueLiteral, ("0x"), 2) == 0)
 		{
 			switch (type)
 			{
@@ -861,9 +861,9 @@ namespace Rococo { namespace Parse
 		}
 	}
 
-	bool ContainsPoint(csexstr s)
+	bool ContainsPoint(cstr s)
 	{
-		for(csexstr p = s; *p != 0; p++)
+		for(cstr p = s; *p != 0; p++)
 		{
 			if (*p == '.')
 			{
@@ -875,13 +875,13 @@ namespace Rococo { namespace Parse
 	}
 
 	// Attempt to parse a number in the format {mantissa}E{exponent}
-	PARSERESULT TryParseExponentForm(OUT double& y, csexstr s)
+	PARSERESULT TryParseExponentForm(OUT double& y, cstr s)
 	{
 		return _TryParseExponentForm(OUT y, IN s);
 	}
 
 	// Attempt to parse a number in the format {mantissa}E{exponent}
-	PARSERESULT TryParseExponentForm(OUT float& y, csexstr s)
+	PARSERESULT TryParseExponentForm(OUT float& y, cstr s)
 	{
 		return _TryParseExponentForm(OUT y, IN s);
 	}

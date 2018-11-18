@@ -79,7 +79,7 @@ namespace
 							}
 							else
 							{
-								LogError(log, SEXTEXT("Error resolving '%s' of '%s' in '%s'"), genericArg2Type.c_str(), parentFunction.Name(), localMod.Name());
+								LogError(log, ("Error resolving '%s' of '%s' in '%s'"), genericArg2Type.c_str(), parentFunction.Name(), localMod.Name());
 								return false;
 							}
 						}
@@ -88,7 +88,7 @@ namespace
 					}
 					else
 					{
-						LogError(log, SEXTEXT("Error resolving '%s' of '%s' in '%s'"), genericArg1Type.c_str(), parentFunction.Name(), localMod.Name());
+						LogError(log, ("Error resolving '%s' of '%s' in '%s'"), genericArg1Type.c_str(), parentFunction.Name(), localMod.Name());
 						return false;
 					}
 				}
@@ -99,7 +99,7 @@ namespace
 			}
 			else
 			{
-				LogError(log, SEXTEXT("Error resolving '%s' of '%s' in '%s'"), type.c_str(), parentFunction.Name(), localMod.Name());
+				LogError(log, ("Error resolving '%s' of '%s' in '%s'"), type.c_str(), parentFunction.Name(), localMod.Name());
 				return false;
 			}
 		}
@@ -137,8 +137,8 @@ namespace
 			isClosureInput = true;
 		}
 
-		virtual csexstr Name() const	{	return name.c_str();	}
-		virtual csexstr TypeString() const {	return type.c_str();	}
+		virtual cstr Name() const	{	return name.c_str();	}
+		virtual cstr TypeString() const {	return type.c_str();	}
 		virtual const IStructure* GenericTypeArg1() const { return resolvedGenericArg1Type; }
 		virtual const IStructure* GenericTypeArg2() const { return resolvedGenericArg2Type; }
 		virtual const ARGUMENTUSAGE Usage() const { return usage; }
@@ -201,10 +201,10 @@ namespace
          delete this;
       }
 
-		virtual csexstr Name() const								{ return name.c_str(); }
+		virtual cstr Name() const								{ return name.c_str(); }
 		const IStructure& GetArgument(int index) const				{ return *args[index]->ResolvedType(); }
 		virtual const IStructure* GetGenericArg1(int index) const	{ return args[index]->GenericTypeArg1(); }
-		csexstr GetArgName(int index)	const						{ return args[index]->Name(); }
+		cstr GetArgName(int index)	const						{ return args[index]->Name(); }
 		virtual const int NumberOfInputs() const					{ return inputCount; }
 		virtual const int NumberOfOutputs() const					{ return outputCount; }
 		virtual const bool IsVirtualMethod() const					{ return isMethod; }
@@ -280,7 +280,7 @@ namespace
 			return *a;
 		}
 
-		virtual const IArgument* GetArgumentByName(csexstr name) const
+		virtual const IArgument* GetArgumentByName(cstr name) const
 		{
 			for(auto i = args.begin(); i != args.end(); ++i)
 			{

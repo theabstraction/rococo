@@ -57,7 +57,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			closures.clear();
 		}
 
-		Module(IProgramObject& _object, csexstr _name, void* hack):
+		Module(IProgramObject& _object, cstr _name, void* hack):
 			object(_object),
 			name(_name),
 			functions(true),
@@ -65,7 +65,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		{
 		}
 	public:
-		Module(IProgramObject& _object, csexstr _name):
+		Module(IProgramObject& _object, cstr _name):
 			object(_object),
 			name(_name),
 			functions(true),
@@ -101,8 +101,8 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		virtual IFunctionBuilder& DeclareClosure(IFunctionBuilder& parent, bool mayUseParentSF, const void* definition)
 		{
-			SEXCHAR name[32];
-			SafeFormat(name, 32, SEXTEXT("_Closure%s%u"), parent.Name(), closures.size());
+			char name[32];
+			SafeFormat(name, 32, ("_Closure%s%u"), parent.Name(), closures.size());
 			Function* f = new Function(FunctionPrototype(name, false), *this, &parent, mayUseParentSF, definition);
 			closures.push_back(f);
 			return *f;
@@ -113,7 +113,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			Function* f = (Function*) functions.Get(prototype.Name);
 			if (f != NULL)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, SEXTEXT("Function %s already defined in %s"), prototype.Name, name.c_str());
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Function %s already defined in %s"), prototype.Name, name.c_str());
 			}
 
 			f = new Function(prototype, *this, NULL, false, definition);
@@ -167,38 +167,38 @@ namespace Rococo { namespace Compiler { namespace Impl
 			byteCodeVersion++;
 		}
 
-		virtual IStructure& DeclareClass(csexstr name, const StructurePrototype& prototype, const void* definition)
+		virtual IStructure& DeclareClass(cstr name, const StructurePrototype& prototype, const void* definition)
 		{
 			Structure* s = new Structure(name, prototype, *this, prototype.archetype != NULL ? VARTYPE_Closure : VARTYPE_Derivative, definition);
 			structures.Register(s->Name(), *s);
 			return *s;
 		}
 
-		virtual IStructureBuilder& DeclareStructure(csexstr name, const StructurePrototype& prototype, const void* definition)
+		virtual IStructureBuilder& DeclareStructure(cstr name, const StructurePrototype& prototype, const void* definition)
 		{
 			Structure* s = new Structure(name, prototype, *this, prototype.archetype != NULL ? VARTYPE_Closure : VARTYPE_Derivative, definition);
 			structures.Register(s->Name(), *s);
 			return *s;
 		}
 
-		virtual IStructureBuilder* FindStructure(csexstr name)
+		virtual IStructureBuilder* FindStructure(cstr name)
 		{
 			return structures.TryGet(name);
 		}
 
-		virtual const IStructure* FindStructure(csexstr name) const
+		virtual const IStructure* FindStructure(cstr name) const
 		{
 			const IStructure* s = ((Module *)this)->structures.TryGet(name);
 			return s;
 		}
 
-		virtual const IFunction* FindFunction(csexstr name) const
+		virtual const IFunction* FindFunction(cstr name) const
 		{
 			const IFunction* f = ((Module *)this)->GetFunctionCore(name);
 			return f;
 		}
 
-		IFunctionBuilder* GetFunctionCore(csexstr name)
+		IFunctionBuilder* GetFunctionCore(cstr name)
 		{
 			IFunctionBuilder *f = functions.Get(name);
 			if (f != NULL)
@@ -221,7 +221,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return NULL;
 		}
 
-		virtual IFunctionBuilder* FindFunction(csexstr name)
+		virtual IFunctionBuilder* FindFunction(cstr name)
 		{
 			return GetFunctionCore(name);
 		}
@@ -251,7 +251,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return success;
 		}
 			
-		virtual csexstr Name() const	{	return name.c_str(); }
+		virtual cstr Name() const	{	return name.c_str(); }
 		virtual IProgramObject& Object() { return object; }
 		virtual IPublicProgramObject& Object() const { return object; }
 
@@ -260,14 +260,14 @@ namespace Rococo { namespace Compiler { namespace Impl
 		const FunctionRegistry& Functions() const { return functions; }
 		const StructRegistry& Structures() const { return structures; }
 
-		virtual void UsePrefix(csexstr name)
+		virtual void UsePrefix(cstr name)
 		{
 			for(auto i = prefixes.begin(); i != prefixes.end(); ++i)
 			{
 				INamespace* ns = *i;
 				if (AreEqual(ns->FullName(), name))
 				{
-					Throw(ERRORCODE_BAD_ARGUMENT, name, SEXTEXT("Duplicate prefix directive"));
+					Throw(ERRORCODE_BAD_ARGUMENT, name, ("Duplicate prefix directive"));
 				}
 			}
 				
@@ -275,7 +275,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			if (ns == NULL)
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << SEXTEXT("Could not resolve prefix directive's namespace: '") << name << SEXTEXT("' in '") << Name() << SEXTEXT("'");
+				streamer.sb << ("Could not resolve prefix directive's namespace: '") << name << ("' in '") << Name() << ("'");
 				Throw(ERRORCODE_BAD_ARGUMENT, Name(), "%s", (cstr) streamer);
 			}
 			prefixes.push_back(ns);
@@ -286,7 +286,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		virtual const INamespace& GetPrefix(int index) const { return *prefixes[index]; }
 		virtual void ClearPrefixes() { prefixes.clear(); }
 
-		static Module* CreateIntrinsics(IProgramObject& object, csexstr name)
+		static Module* CreateIntrinsics(IProgramObject& object, cstr name)
 		{
 			return new Module(object, name, NULL);
 		}

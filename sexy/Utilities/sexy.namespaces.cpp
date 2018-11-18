@@ -42,7 +42,7 @@ namespace Rococo
 		char msg[1024];
 
 	public:
-		NamespaceException(csexstr _msg)
+		NamespaceException(cstr _msg)
 		{
 			CopyString(msg, 1024, _msg);
 		}
@@ -52,20 +52,20 @@ namespace Rococo
 		Debugging::IStackFrameEnumerator* StackFrames() override { return nullptr; }
 	};
 
-	NamespaceSplitter::NamespaceSplitter(csexstr _src): src(_src)
+	NamespaceSplitter::NamespaceSplitter(cstr _src): src(_src)
 	{
 		length = StringLength(_src);		
 		if (length >= NAMESPACE_MAX_LENGTH)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << SEXTEXT("Error splitting namespace '") << _src << SEXTEXT("' namespace exceeded maximum length of ") << NAMESPACE_MAX_LENGTH << SEXTEXT(" characters");
+			streamer.sb << ("Error splitting namespace '") << _src << ("' namespace exceeded maximum length of ") << NAMESPACE_MAX_LENGTH << (" characters");
 			throw NamespaceException(streamer);
 		}
 	}
 
-	bool NamespaceSplitter::SplitHead(OUT csexstr& _head, OUT csexstr& _body)
+	bool NamespaceSplitter::SplitHead(OUT cstr& _head, OUT cstr& _body)
 	{
-		memcpy_s(dottedName, NAMESPACE_MAX_LENGTH, src, sizeof(SEXCHAR) * (length+1));
+		memcpy_s(dottedName, NAMESPACE_MAX_LENGTH, src, sizeof(char) * (length+1));
 
 		for(int i = 0; i < length; i++)
 		{
@@ -81,9 +81,9 @@ namespace Rococo
 		return false;
 	}
 
-	bool NamespaceSplitter::SplitTail(OUT csexstr& _body, OUT csexstr& _tail)
+	bool NamespaceSplitter::SplitTail(OUT cstr& _body, OUT cstr& _tail)
 	{
-		memcpy_s(dottedName, NAMESPACE_MAX_LENGTH, src, sizeof(SEXCHAR) * (length+1));
+		memcpy_s(dottedName, NAMESPACE_MAX_LENGTH, src, sizeof(char) * (length+1));
 
 		for(int i = length-1; i >= 0; i--)
 		{

@@ -2,20 +2,20 @@
 
 namespace
 {
-	bool CopyUnicodeToSexChar(SEXCHAR* output, size_t bufferCapacity, const Char* input);
+	bool CopyUnicodeTochar(char* output, size_t bufferCapacity, const Char* input);
 
-#ifdef SEXCHAR_IS_WIDE
-# define SEXCHARENCODING "UNICODE"
+#ifdef char_IS_WIDE
+# define charENCODING "UNICODE"
 	bool IsSexUnicode = true;
-	ISourceCode* AddUnicodeModule(const Byte* input, IScriptSystem& ss, int moduleLength, csexstr name)
+	ISourceCode* AddUnicodeModule(const Byte* input, IScriptSystem& ss, int moduleLength, cstr name)
 	{
-		csexstr wideInput = (csexstr) input;
+		cstr wideInput = (cstr) input;
       return ss.SParser().DuplicateSourceBuffer(wideInput, moduleLength, Vec2i{ 0,0 }, name);
 	}
 
-	ISourceCode* AddAsciiModule(const Byte* input, IScriptSystem& ss, int moduleLength, csexstr name)
+	ISourceCode* AddAsciiModule(const Byte* input, IScriptSystem& ss, int moduleLength, cstr name)
 	{
-		SEXCHAR* tempBuffer = new SEXCHAR[moduleLength];
+		char* tempBuffer = new char[moduleLength];
 		for(int i = 0; i < moduleLength; ++i)
 		{
 			tempBuffer[i] = input[i];
@@ -26,7 +26,7 @@ namespace
 		return sc;
 	}
 
-	bool CopyUnicodeToSexChar(SEXCHAR* output, size_t bufferCapacity, const Char* input)
+	bool CopyUnicodeTochar(char* output, size_t bufferCapacity, const Char* input)
 	{
 		size_t neededLen = rlen(input)+1;
 		if (neededLen > bufferCapacity)
@@ -39,7 +39,7 @@ namespace
 		return true;
 	}
 
-	int CopySexCharToUnicode(rchar* output, size_t bufferCapacity, csexstr input)
+	int CopycharToUnicode(rchar* output, size_t bufferCapacity, cstr input)
 	{
 		size_t len = StringLength(input);
 		if (len >= bufferCapacity)
@@ -52,7 +52,7 @@ namespace
 		return (int) len;
 	}
 
-	int CopyAsciiToToSEXCHAR(SEXCHAR* output, size_t bufferCapacity, const char* input)
+	int CopyAsciiToTochar(char* output, size_t bufferCapacity, const char* input)
 	{
 		size_t len = StringLength(input);
 		if (len >= bufferCapacity)
@@ -70,12 +70,12 @@ namespace
 		return (int) len;
 	}
 #else
-# define SEXCHARENCODING "ASCII"
+# define charENCODING "ASCII"
 	bool IsSexUnicode = false;
-	ISourceCode* AddUnicodeModule(const Byte* input, IScriptSystem& ss, int moduleLength, csexstr name)
+	ISourceCode* AddUnicodeModule(const Byte* input, IScriptSystem& ss, int moduleLength, cstr name)
 	{
-		SEXCHAR* tempBuffer = new SEXCHAR[moduleLength];
-		if (!CopyUnicodeToSexChar(tempBuffer, moduleLength, (const Char*) input))
+		char* tempBuffer = new char[moduleLength];
+		if (!CopyUnicodeTochar(tempBuffer, moduleLength, (const Char*) input))
 		{
 			delete tempBuffer;
 			return NULL;
@@ -88,17 +88,17 @@ namespace
 		}		
 	}
 
-	ISourceCode* AddAsciiModule(const Byte* input, IScriptSystem& ss, int moduleLength, csexstr name)
+	ISourceCode* AddAsciiModule(const Byte* input, IScriptSystem& ss, int moduleLength, cstr name)
 	{
-		return ss.SParser().DuplicateSourceBuffer((csexstr) input, moduleLength, Vec2i{ 0,0 }, name);
+		return ss.SParser().DuplicateSourceBuffer((cstr) input, moduleLength, Vec2i{ 0,0 }, name);
 	}
 
-   int CopySexCharToUnicode(wchar_t* output, size_t bufferCapacity, csexstr input)
+   int CopycharToUnicode(wchar_t* output, size_t bufferCapacity, cstr input)
    {
       return _snwprintf_s(output, bufferCapacity, _TRUNCATE, L"%S", input);
    }
 
-	bool CopyUnicodeToSexChar(SEXCHAR* output, size_t bufferCapacity, const Char* input)
+	bool CopyUnicodeTochar(char* output, size_t bufferCapacity, const Char* input)
 	{
 		size_t neededLen = wcslen(input)+1;
 		if (neededLen > bufferCapacity)
@@ -114,14 +114,14 @@ namespace
 				return false; // Requires unicode build of the Sexy library, or filename to be alphanumeric
 			}
 
-			output[i] = (SEXCHAR) input[i];
+			output[i] = (char) input[i];
 		}
 
 		output[neededLen] = 0;
 		return true;
 	}
 
-	int CopySexCharToUnicode(char* output, size_t bufferCapacity, csexstr input)
+	int CopycharToUnicode(char* output, size_t bufferCapacity, cstr input)
 	{
 		size_t len = StringLength(input);
 		if (len >= bufferCapacity)
@@ -138,7 +138,7 @@ namespace
 	}
 #endif
 
-   void CopyAsciiToToSEXCHAR(SEXCHAR* output, size_t bufferCapacity, const char* input)
+   void CopyAsciiToTochar(char* output, size_t bufferCapacity, const char* input)
    {
       strncpy_s(output, bufferCapacity, input, _TRUNCATE);
    }
@@ -148,50 +148,50 @@ namespace
 		switch(type)
 		{
 		case VARTYPE_Bad:
-         SafeFormat(rvalue, bufferLen, SEXTEXT("Bad type"));
+         SafeFormat(rvalue, bufferLen, ("Bad type"));
 			break;
 		case VARTYPE_Bool:
 			{
 				const int32 value = *(const int32*) pVariableData;
-				if (value == 0 || value == 1) SafeFormat(rvalue, bufferLen, value == 1 ? SEXTEXT("true") : SEXTEXT("false"));
-				else  SafeFormat(rvalue, bufferLen, SEXTEXT("%d (%8.8x)"), value, value);
+				if (value == 0 || value == 1) SafeFormat(rvalue, bufferLen, value == 1 ? ("true") : ("false"));
+				else  SafeFormat(rvalue, bufferLen, ("%d (%8.8x)"), value, value);
 			}
 			break;
 		case VARTYPE_Derivative:
-         SafeFormat(rvalue, bufferLen, SEXTEXT(""));
+         SafeFormat(rvalue, bufferLen, (""));
 			break;
 		case VARTYPE_Int32:
 			{
 				const int32* pValue = (const int32*) pVariableData;
-            SafeFormat(rvalue, bufferLen, SEXTEXT("%d (%8.8x)"), *pValue, *pValue);
+            SafeFormat(rvalue, bufferLen, ("%d (%8.8x)"), *pValue, *pValue);
 			}
 			break;
 		case VARTYPE_Int64:
 			{
 				const int64* pValue = (const int64*) pVariableData;
-            SafeFormat(rvalue, bufferLen, SEXTEXT("%lld (%8llx)"), *pValue, *pValue);
+            SafeFormat(rvalue, bufferLen, ("%lld (%8llx)"), *pValue, *pValue);
 			}
 			break;
 		case VARTYPE_Float32:
 			{
 				const float32* pValue = (const float32*) pVariableData;
-            SafeFormat(rvalue, bufferLen, SEXTEXT("%g"), *pValue);
+            SafeFormat(rvalue, bufferLen, ("%g"), *pValue);
 			}
 			break;
 		case VARTYPE_Float64:
 			{
 				const float64* pValue = (const float64*) pVariableData;
-            SafeFormat(rvalue, bufferLen, SEXTEXT("%lg"), *pValue);
+            SafeFormat(rvalue, bufferLen, ("%lg"), *pValue);
 			}
 			break;
 		case VARTYPE_Pointer:
 			{
 				void **ppData = (void**) pVariableData;
 				const void* ptr = *ppData;
-				csexstr symbol = ss.GetSymbol(ptr);
+				cstr symbol = ss.GetSymbol(ptr);
 				if (symbol == NULL)
 				{
-               SafeFormat(rvalue, bufferLen, SEXTEXT("%p"), ptr);
+               SafeFormat(rvalue, bufferLen, ("%p"), ptr);
 				}
 				else
 				{
@@ -208,11 +208,11 @@ namespace
 				};
 
 				const Closure* pValue = (const Closure*)pVariableData;
-            SafeFormat(rvalue, bufferLen, SEXTEXT("Id: %llu. SF: 0x%llX"), pValue->id, (size_t) pValue->parentSF);
+            SafeFormat(rvalue, bufferLen, ("Id: %llu. SF: 0x%llX"), pValue->id, (size_t) pValue->parentSF);
 			}
 			break;
 		default:
-         SafeFormat(rvalue, bufferLen, SEXTEXT("Unknown type"));
+         SafeFormat(rvalue, bufferLen, ("Unknown type"));
 		}
 	}
 

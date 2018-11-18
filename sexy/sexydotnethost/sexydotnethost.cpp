@@ -21,7 +21,7 @@ namespace Rococo
 {
    namespace Compiler
    {
-      csexstr GetTypeName(const IStructure& s);
+      cstr GetTypeName(const IStructure& s);
    }
 }
 
@@ -69,9 +69,9 @@ namespace SexyDotNet { namespace Host
 		}
 		catch (ParseException& e)
 		{
-			csexstr s = e.Message();
-			csexstr n = e.Name();
-#ifdef SEXCHAR_IS_WIDE
+			cstr s = e.Message();
+			cstr n = e.Name();
+#ifdef char_IS_WIDE
 			String^ msg = gcnew String(s);				
 			String^ name = gcnew String(n);
 #else
@@ -109,13 +109,13 @@ namespace SexyDotNet { namespace Host
 			IScriptSystem& ss = *ToSS(nativeHandle);
 			IPublicProgramObject& po = ss.PublicProgramObject();
 
-			const INamespace* ns = po.GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+			const INamespace* ns = po.GetRootNamespace().FindSubspace(("EntryPoint"));
 			if(ns == NULL)
 			{
 				throw gcnew CompileError("<All source modules>", "Could not find the EntryPoint namespace in the source modules. Execution aborted", SourceLocation(0,0), SourceLocation(0,0));
 			}
 
-			const IFunction* f = ns->FindFunction(SEXTEXT("Main"));
+			const IFunction* f = ns->FindFunction(("Main"));
 			if (f == NULL)
 			{
 				throw gcnew CompileError("<All source modules>", "Could not find the EntryPoint.Main function in the source modules. Execution aborted", SourceLocation(0,0), SourceLocation(0,0));
@@ -156,16 +156,16 @@ namespace SexyDotNet { namespace Host
 
 		if (IsException(ex))
 		{
-			csexstr s = ex.Message();
+			cstr s = ex.Message();
 
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 			String^ msg = gcnew String(s);
 #else
 			String^ msg = gcnew String(s, 0, StringLength(s), IsSexUnicode ? Encoding::Unicode : Encoding::ASCII);
 #endif
 				
-			csexstr t = ex.Name();
-#ifdef SEXCHAR_IS_WIDE
+			cstr t = ex.Name();
+#ifdef char_IS_WIDE
 			String^ src = gcnew String(t);
 #else
 			String^ src = gcnew String(t, 0, StringLength(t), IsSexUnicode ? Encoding::Unicode : Encoding::ASCII);
@@ -287,8 +287,8 @@ namespace SexyDotNet { namespace Host
 		pin_ptr<Char> namePin = &nameArray[0];
 		const Char* namePtr = namePin;
 
-		SEXCHAR sexName[256];
-		if (!CopyUnicodeToSexChar(sexName, 256, namePtr))
+		char sexName[256];
+		if (!CopyUnicodeTochar(sexName, 256, namePtr))
 		{
 			throw gcnew CompileError(moduleFullPath, "Cannot convert the unicode name to sex characters", SourceLocation(0,0), SourceLocation(0,0));
 		}
@@ -301,7 +301,7 @@ namespace SexyDotNet { namespace Host
 			sc = AddUnicodeModule(inputPtr, ss, fileLength / 2, sexName);
 			if (sc == NULL)
 			{
-				throw gcnew Exception("Error adding the UNICODE source code as " + SEXCHARENCODING + "module");
+				throw gcnew Exception("Error adding the UNICODE source code as " + charENCODING + "module");
 			}
 		}
 		else
@@ -309,7 +309,7 @@ namespace SexyDotNet { namespace Host
 			sc = AddAsciiModule(inputPtr, ss, fileLength, sexName);
 			if (sc == NULL)
 			{
-				throw gcnew Exception("Error adding the ASCII source code as " + SEXCHARENCODING + "module");
+				throw gcnew Exception("Error adding the ASCII source code as " + charENCODING + "module");
 			}
 		}		
 
@@ -323,9 +323,9 @@ namespace SexyDotNet { namespace Host
 		}
 		catch (ParseException& e)
 		{
-			csexstr s = e.Message();
+			cstr s = e.Message();
 
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 			String^ msg = gcnew String(s);
 #else
 			String^ msg = gcnew String(s, 0, StringLength(s), IsSexUnicode ? Encoding::Unicode : Encoding::ASCII);
@@ -367,14 +367,14 @@ namespace SexyDotNet { namespace Host
 
 		for(size_t i = 0; i < nVariables; ++i)
 		{
-			csexstr name;
+			cstr name;
 			MemberDef def;
 			const IStructure* pseudoType;
 			const uint8* SF;
 			if (!GetVariableByIndex(REF name, REF def, REF pseudoType, SF, ss, i, callDepth)) continue;
 
 			Char unicodeName[256];
-			CopySexCharToUnicode(unicodeName, 256, name);
+			CopycharToUnicode(unicodeName, 256, name);
 
 			Char unicodeValue[256];
 			Char unicodeType[256];
@@ -382,13 +382,13 @@ namespace SexyDotNet { namespace Host
 			const void* pVariableData = SF + def.SFOffset;
 			if (def.Usage == ARGUMENTUSAGE_BYVALUE)
 			{
-				CopySexCharToUnicode(unicodeType, 256, Compiler::GetTypeName(*def.ResolvedType));				
+				CopycharToUnicode(unicodeType, 256, Compiler::GetTypeName(*def.ResolvedType));				
 				FormatValue(ss, unicodeValue, 256, def.ResolvedType->VarType(), pVariableData);
 			}
 			else
 			{
 				unicodeType[0] = L'*';
-				CopySexCharToUnicode(unicodeType+1, 255, Compiler::GetTypeName(*def.ResolvedType));
+				CopycharToUnicode(unicodeType+1, 255, Compiler::GetTypeName(*def.ResolvedType));
 
 				const void** ppData = (const void**) pVariableData;
 
@@ -439,9 +439,9 @@ namespace SexyDotNet { namespace Host
 	{
 		enum { VALUE_CAPACITY = 128, TYPE_CAPACITY = 128, NAME_CAPACITY = 128 };
 
-		SEXCHAR Name[NAME_CAPACITY];		
-		SEXCHAR Type[TYPE_CAPACITY];
-		SEXCHAR Value[VALUE_CAPACITY];
+		char Name[NAME_CAPACITY];		
+		char Type[TYPE_CAPACITY];
+		char Value[VALUE_CAPACITY];
 		VariableKind Location;
 
 		const uint8* Address;
@@ -456,17 +456,17 @@ namespace SexyDotNet { namespace Host
 
 		ListVariableDescBuilder(TVariableList& _listVars, VariableKind _vk): listVars(_listVars), parentKind(_vk) {}
 
-		virtual void OnMember(IPublicScriptSystem& ss, csexstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem)
+		virtual void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem)
 		{
 			NativeVariableDesc desc;
 			CopyString(desc.Name, NativeVariableDesc::NAME_CAPACITY, childName);
 			CopyString(desc.Type, NativeVariableDesc::TYPE_CAPACITY, Compiler::GetTypeName(*member.UnderlyingType()));
-			if (member.IsPseudoVariable()) StringCat(desc.Type, SEXTEXT("(pseudo)"), NativeVariableDesc::TYPE_CAPACITY);
+			if (member.IsPseudoVariable()) StringCat(desc.Type, ("(pseudo)"), NativeVariableDesc::TYPE_CAPACITY);
 
 			char value[NativeVariableDesc::VALUE_CAPACITY];
 			FormatValue(ss, value, NativeVariableDesc::VALUE_CAPACITY, member.UnderlyingType()->VarType(), sfItem);
 
-			CopyAsciiToToSEXCHAR(desc.Value, NativeVariableDesc::VALUE_CAPACITY, value);
+			CopyAsciiToTochar(desc.Value, NativeVariableDesc::VALUE_CAPACITY, value);
 			desc.Address = sfItem;
 
 			desc.Location = parentKind;
@@ -491,8 +491,8 @@ namespace SexyDotNet { namespace Host
 		pin_ptr<Char> namePin = &nameArray[0];
 		const Char* namePtr = namePin;
 
-		SEXCHAR sxchVariableName[256];
-		if (!CopyUnicodeToSexChar(sxchVariableName, 256, namePtr))
+		char sxchVariableName[256];
+		if (!CopyUnicodeTochar(sxchVariableName, 256, namePtr))
 		{
 			return vars;
 		}

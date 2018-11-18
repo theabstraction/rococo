@@ -160,17 +160,17 @@ namespace
 namespace Sys { namespace Maths { namespace I32 { 
 	void AddNativeCalls_SysMathsI32(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(SEXTEXT("Sys.Maths.I32"));
-		ss.AddNativeCall(ns, NativeSysMathsI32Abs, nullptr, SEXTEXT("Abs(Int32 x) -> (Int32 value)"));
-		ss.AddNativeCall(ns, NativeSysMathsI32LeftShift, nullptr, SEXTEXT("LeftShift(Int32 x)(Int32 bitCount) -> (Int32 value)"));
-		ss.AddNativeCall(ns, NativeSysMathsI32RightShift, nullptr, SEXTEXT("RightShift(Int32 x)(Int32 bitCount) -> (Int32 value)"));
-		ss.AddNativeCall(ns, NativeSysMathsI32MaxOf, nullptr, SEXTEXT("MaxOf(Int32 x)(Int32 y) -> (Int32 maxValue)"));
-		ss.AddNativeCall(ns, NativeSysMathsI32MinOf, nullptr, SEXTEXT("MinOf(Int32 x)(Int32 y) -> (Int32 minValue)"));
-		ss.AddNativeCall(ns, NativeSysMathsI32MinValue, nullptr, SEXTEXT("MinValue -> (Int32 value)"));
-		ss.AddNativeCall(ns, NativeSysMathsI32MaxValue, nullptr, SEXTEXT("MaxValue -> (Int32 value)"));
-		ss.AddNativeCall(ns, NativeSysMathsI32Mod, nullptr, SEXTEXT("Mod(Int32 numerator)(Int32 denominator) -> (Int32 remainder)"));
-		ss.AddNativeCall(ns, NativeSysMathsI32ToInt64, nullptr, SEXTEXT("ToInt64(Int32 x) -> (Int64 value)"));
-		ss.AddNativeCall(ns, NativeSysMathsI32ToFloat32, nullptr, SEXTEXT("ToFloat32(Int32 x) -> (Float32 value)"));
-		ss.AddNativeCall(ns, NativeSysMathsI32ToFloat64, nullptr, SEXTEXT("ToFloat64(Int32 x) -> (Float64 value)"));
+		const INamespace& ns = ss.AddNativeNamespace(("Sys.Maths.I32"));
+		ss.AddNativeCall(ns, NativeSysMathsI32Abs, nullptr, ("Abs(Int32 x) -> (Int32 value)"));
+		ss.AddNativeCall(ns, NativeSysMathsI32LeftShift, nullptr, ("LeftShift(Int32 x)(Int32 bitCount) -> (Int32 value)"));
+		ss.AddNativeCall(ns, NativeSysMathsI32RightShift, nullptr, ("RightShift(Int32 x)(Int32 bitCount) -> (Int32 value)"));
+		ss.AddNativeCall(ns, NativeSysMathsI32MaxOf, nullptr, ("MaxOf(Int32 x)(Int32 y) -> (Int32 maxValue)"));
+		ss.AddNativeCall(ns, NativeSysMathsI32MinOf, nullptr, ("MinOf(Int32 x)(Int32 y) -> (Int32 minValue)"));
+		ss.AddNativeCall(ns, NativeSysMathsI32MinValue, nullptr, ("MinValue -> (Int32 value)"));
+		ss.AddNativeCall(ns, NativeSysMathsI32MaxValue, nullptr, ("MaxValue -> (Int32 value)"));
+		ss.AddNativeCall(ns, NativeSysMathsI32Mod, nullptr, ("Mod(Int32 numerator)(Int32 denominator) -> (Int32 remainder)"));
+		ss.AddNativeCall(ns, NativeSysMathsI32ToInt64, nullptr, ("ToInt64(Int32 x) -> (Int64 value)"));
+		ss.AddNativeCall(ns, NativeSysMathsI32ToFloat32, nullptr, ("ToFloat32(Int32 x) -> (Float32 value)"));
+		ss.AddNativeCall(ns, NativeSysMathsI32ToFloat64, nullptr, ("ToFloat64(Int32 x) -> (Float64 value)"));
 	}
 }}}

@@ -41,16 +41,16 @@ namespace Rococo
       {
          // (closure ...input... -> ...output... : body)
 
-         int mapIndex = GetIndexOf(1, closureDef, SEXTEXT("->"));
+         int mapIndex = GetIndexOf(1, closureDef, ("->"));
          if (mapIndex < 0)
          {
-            Throw(closureDef, SEXTEXT("Expecting mapping token '->' in the closure definition. Ensure adequate whitespace between tokens."));
+            Throw(closureDef, ("Expecting mapping token '->' in the closure definition. Ensure adequate whitespace between tokens."));
          }
 
-         int bodyIndex = GetIndexOf(mapIndex + 1, closureDef, SEXTEXT(":"));
+         int bodyIndex = GetIndexOf(mapIndex + 1, closureDef, (":"));
          if (bodyIndex < 0)
          {
-            Throw(closureDef, SEXTEXT("Expecting body indicator token ':' after the mapping token in the closure definition"));
+            Throw(closureDef, ("Expecting body indicator token ':' after the mapping token in the closure definition"));
          }
 
          int nOutputs = bodyIndex - (mapIndex + 1);
@@ -58,20 +58,20 @@ namespace Rococo
 
          if (nInputs < closureArchetype.NumberOfInputs())
          {
-            Throw(closureDef, SEXTEXT("Too few input arguments"));
+            Throw(closureDef, ("Too few input arguments"));
          }
          else if (nInputs > closureArchetype.NumberOfInputs())
          {
-            Throw(closureDef, SEXTEXT("Too many input arguments"));
+            Throw(closureDef, ("Too many input arguments"));
          }
 
          if (nOutputs < closureArchetype.NumberOfOutputs())
          {
-            Throw(closureDef, SEXTEXT("Too few output arguments"));
+            Throw(closureDef, ("Too few output arguments"));
          }
          else if (nOutputs > closureArchetype.NumberOfOutputs())
          {
-            Throw(closureDef, SEXTEXT("Too many output arguments"));
+            Throw(closureDef, ("Too many output arguments"));
          }
 
          IFunctionBuilder& closure = ce.Builder.Module().DeclareClosure(ce.Builder.Owner(), mayUseParentSF, &closureDef);
@@ -87,14 +87,14 @@ namespace Rococo
             cr_sex outputName = GetAtomicArg(outputExpr, 1);
 
             int outputIndex = i - mapIndex - 1;
-            csexstr name = outputName.String()->Buffer;
-            csexstr type = outputType.String()->Buffer;
+            cstr name = outputName.String()->Buffer;
+            cstr type = outputType.String()->Buffer;
 
             const IStructure& neededType = closureArchetype.GetArgument(outputIndex);
             if (!AreEqual(neededType.Name(), type))
             {
                sexstringstream<1024> streamer;
-               streamer.sb << SEXTEXT("The output type did not match that of the archetype: ") << neededType.Name();
+               streamer.sb << ("The output type did not match that of the archetype: ") << neededType.Name();
                Throw(outputType, *streamer.sb);
             }
 
@@ -112,14 +112,14 @@ namespace Rococo
             cr_sex imputName = GetAtomicArg(inputExpr, 1);
 
             int inputIndex = i - 1 + nOutputs;
-            csexstr name = imputName.String()->Buffer;
-            csexstr type = inputType.String()->Buffer;
+            cstr name = imputName.String()->Buffer;
+            cstr type = inputType.String()->Buffer;
 
             const IStructure& neededType = closureArchetype.GetArgument(inputIndex);
             if (!AreEqual(type, GetFriendlyName(neededType)))
             {
                sexstringstream<1024> streamer;
-               streamer.sb << SEXTEXT("The input type did not match that of the archetype: ") << GetFriendlyName(neededType);
+               streamer.sb << ("The input type did not match that of the archetype: ") << GetFriendlyName(neededType);
                Throw(inputType, *streamer.sb);
             }
 
@@ -128,7 +128,7 @@ namespace Rococo
 
          if (!closure.TryResolveArguments())
          {
-            Throw(closureDef, SEXTEXT("Could not resolve all of the function arguments"));
+            Throw(closureDef, ("Could not resolve all of the function arguments"));
          }
 
          CodeSection section;
@@ -143,7 +143,7 @@ namespace Rococo
 
       void CompileClosureBody(cr_sex closureDef, IFunctionBuilder& closure, CScript& script)
       {
-         int bodyIndex = GetIndexOf(2, closureDef, SEXTEXT(":"));
+         int bodyIndex = GetIndexOf(2, closureDef, (":"));
 
          ICodeBuilder& builder = closure.Builder();
          builder.Begin();
@@ -172,7 +172,7 @@ namespace Rococo
             cr_sex head = s.GetElement(0);
             if (head.Type() == EXPRESSION_TYPE_ATOMIC)
             {
-               if (AreEqual(head.String(), SEXTEXT("closure")))
+               if (AreEqual(head.String(), ("closure")))
                {
                   CompileClosureDef(ce, s, closureArchetype, mayUseParentSF);
                   return true;

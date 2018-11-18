@@ -211,7 +211,7 @@ namespace
 	{
 		if (target.Type() != source.Type())
 		{
-			Throw(target, SEXTEXT("Mismatch between source and target expression type"));
+			Throw(target, ("Mismatch between source and target expression type"));
 		}
 
 		switch(target.Type())
@@ -219,7 +219,7 @@ namespace
 		case Sex::EXPRESSION_TYPE_COMPOUND:
 			if (target.NumberOfElements() != source.NumberOfElements())
 			{
-				Throw(target, SEXTEXT("Mismatch between source and target element count"));
+				Throw(target, ("Mismatch between source and target element count"));
 			}
 
 			for(int i = 0; i < target.NumberOfElements(); ++i)
@@ -234,7 +234,7 @@ namespace
 		case Sex::EXPRESSION_TYPE_STRING_LITERAL:
 			if (!AreEqual(target.String()->Buffer, source.String()->Buffer))
 			{
-				Throw(target, SEXTEXT("Mismatch between source and target atomic token"));
+				Throw(target, ("Mismatch between source and target atomic token"));
 			}
 			break;
 		default: // Null expression
@@ -242,25 +242,25 @@ namespace
 		}
 	}
 
-	void ValidateEquivalentSExpression(csexstr target, cr_sex s)
+	void ValidateEquivalentSExpression(cstr target, cr_sex s)
 	{
 		CSParserProxy spp;
 
 		try
 		{
-         Auto<ISourceCode> src = spp().ProxySourceBuffer(target, -1, Vec2i{ 0,0 }, SEXTEXT("target"));
+         Auto<ISourceCode> src = spp().ProxySourceBuffer(target, -1, Vec2i{ 0,0 }, ("target"));
 			Auto<ISParserTree> tree = spp().CreateTree(src());
 
 			ValidateEquivalentSExpression(tree().Root(), s);
 		}
 		catch(ParseException& ex)
 		{
-			WriteToStandardOutput(SEXTEXT("Error matching s-expression to target: %s, %s"), ex.Message(), ex.Specimen());
+			WriteToStandardOutput(("Error matching s-expression to target: %s, %s"), ex.Message(), ex.Specimen());
 			validate(false);
 		}
 		catch(IException& iex)
 		{
-			WriteToStandardOutput(SEXTEXT("Error: %s"), iex.Message());
+			WriteToStandardOutput(("Error: %s"), iex.Message());
 			validate(false);
 		}
 	}
@@ -274,7 +274,7 @@ namespace
 		{
 			virtual void OnSex(cr_sex s)
 			{
-				csexstr expected = SEXTEXT("(interface Sys.Animals.ITiger)(class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject))");
+				cstr expected = ("(interface Sys.Animals.ITiger)(class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject))");
 				ValidateEquivalentSExpression(expected, s);
 			}
 		} anon;
@@ -287,7 +287,7 @@ namespace
 		{
 			virtual void OnSex(cr_sex s)
 			{
-				csexstr expected = SEXTEXT("(interface Sys.Animals.ITiger(Awaken -> )) (class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject)) (method ProxyITiger.Awaken -> : (Sys.Animals.Native.ITigerAwaken this.hObject))");
+				cstr expected = ("(interface Sys.Animals.ITiger(Awaken -> )) (class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject)) (method ProxyITiger.Awaken -> : (Sys.Animals.Native.ITigerAwaken this.hObject))");
 				ValidateEquivalentSExpression(expected, s);
 			}
 		} anon;
@@ -300,7 +300,7 @@ namespace
 		{
 			virtual void OnSex(cr_sex s)
 			{
-				csexstr expected = SEXTEXT("(interface Sys.Animals.ITiger (Eat (Int32 beefKilos) -> )) (class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject)) (method ProxyITiger.Eat (Int32 beefKilos) -> : (Sys.Animals.Native.ITigerEat this.hObject beefKilos ))");
+				cstr expected = ("(interface Sys.Animals.ITiger (Eat (Int32 beefKilos) -> )) (class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject)) (method ProxyITiger.Eat (Int32 beefKilos) -> : (Sys.Animals.Native.ITigerEat this.hObject beefKilos ))");
 				ValidateEquivalentSExpression(expected, s);
 			}
 		} anon;
@@ -313,7 +313,7 @@ namespace
 		{
 			virtual void OnSex(cr_sex s)
 			{
-				csexstr expected = SEXTEXT("(interface Sys.Animals.ITiger (GetId  -> (Int32 id))) (class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject))	(method ProxyITiger.GetId -> (Int32 id) : (Sys.Animals.Native.ITigerGetId this.hObject -> id ))");
+				cstr expected = ("(interface Sys.Animals.ITiger (GetId  -> (Int32 id))) (class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject))	(method ProxyITiger.GetId -> (Int32 id) : (Sys.Animals.Native.ITigerGetId this.hObject -> id ))");
 				ValidateEquivalentSExpression(expected, s);
 			}
 		} anon;
@@ -326,7 +326,7 @@ namespace
 		{
 			virtual void OnSex(cr_sex s)
 			{
-				csexstr expected = SEXTEXT("(interface Sys.Animals.ITiger (Advance (Float32 dt) -> (Int32 id))) (class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject)) (method ProxyITiger.Advance (Float32 dt)-> (Int32 id) : (Sys.Animals.Native.ITigerAdvance this.hObject dt -> id ))");
+				cstr expected = ("(interface Sys.Animals.ITiger (Advance (Float32 dt) -> (Int32 id))) (class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject)) (method ProxyITiger.Advance (Float32 dt)-> (Int32 id) : (Sys.Animals.Native.ITigerAdvance this.hObject dt -> id ))");
 				ValidateEquivalentSExpression(expected, s);
 			}
 		} anon;
@@ -339,7 +339,7 @@ namespace
 		{
 			virtual void OnSex(cr_sex s)
 			{
-				csexstr expected = SEXTEXT("(interface Sys.Animals.ITiger(Grab (Bool x)(Int32 y)(Int64 z) -> (Float32 u)(Float64 v)(Vec3 s)))(class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject))(method ProxyITiger.Grab (Bool x)(Int32 y)(Int64 z)-> (Float32 u)(Float64 v)(Vec3 s) : (Sys.Animals.Native.ITigerGrab this.hObject x y z -> u v s ))");
+				cstr expected = ("(interface Sys.Animals.ITiger(Grab (Bool x)(Int32 y)(Int64 z) -> (Float32 u)(Float64 v)(Vec3 s)))(class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject))(method ProxyITiger.Grab (Bool x)(Int32 y)(Int64 z)-> (Float32 u)(Float64 v)(Vec3 s) : (Sys.Animals.Native.ITigerGrab this.hObject x y z -> u v s ))");
 				ValidateEquivalentSExpression(expected, s);
 			}
 		} anon;
@@ -352,7 +352,7 @@ namespace
 		{
 			virtual void OnSex(cr_sex s)
 			{
-				csexstr expected = SEXTEXT("(interface Sys.Animals.ITiger(Write (IString text) -> ) )(class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject))(method ProxyITiger.Write (IString text)->  : (Sys.Animals.Native.ITigerWrite this.hObject text))");
+				cstr expected = ("(interface Sys.Animals.ITiger(Write (IString text) -> ) )(class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject))(method ProxyITiger.Write (IString text)->  : (Sys.Animals.Native.ITigerWrite this.hObject text))");
 				ValidateEquivalentSExpression(expected, s);
 			}
 		} anon;
@@ -365,7 +365,7 @@ namespace
 		{
 			virtual void OnSex(cr_sex s)
 			{
-				csexstr expected = SEXTEXT("(interface Sys.Animals.ITiger(Write (IString text) -> ) )(class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject))(method ProxyITiger.Write (IString text)->  : (Sys.Animals.Native.ITigerWrite this.hObject text))");
+				cstr expected = ("(interface Sys.Animals.ITiger(Write (IString text) -> ) )(class ProxyITiger (implements Sys.Animals.ITiger) (Pointer hObject))(method ProxyITiger.Write (IString text)->  : (Sys.Animals.Native.ITigerWrite this.hObject text))");
 				ValidateEquivalentSExpression(expected, s);
 			}
 		} anon;

@@ -368,7 +368,7 @@ namespace Rococo
 
          if (l == NULL)
          {
-            ss.ThrowFromNativeCode(-1, SEXTEXT("Node.Pop failed, as the node was not in a list"));
+            ss.ThrowFromNativeCode(-1, ("Node.Pop failed, as the node was not in a list"));
             return;
          }
 
@@ -429,7 +429,7 @@ namespace Rococo
 
          if (l->Head == NULL)
          {
-            ss.ThrowFromNativeCode(-1, SEXTEXT("The list was empty"));
+            ss.ThrowFromNativeCode(-1, ("The list was empty"));
             return;
          }
 
@@ -446,7 +446,7 @@ namespace Rococo
 
          if (l->Tail == NULL)
          {
-            ss.ThrowFromNativeCode(-1, SEXTEXT("The list was empty"));
+            ss.ThrowFromNativeCode(-1, ("The list was empty"));
             return;
          }
 
@@ -489,7 +489,7 @@ namespace Rococo
          ListNode* n = (ListNode*)registers[VM::REGISTER_D7].vPtrValue;
          if (n->Next == NULL)
          {
-            ss.ThrowFromNativeCode(-1, SEXTEXT("The node had no successor"));
+            ss.ThrowFromNativeCode(-1, ("The node had no successor"));
             return;
          }
 
@@ -504,7 +504,7 @@ namespace Rococo
          ListNode* n = (ListNode*)registers[VM::REGISTER_D7].vPtrValue;
          if (n->Previous == nullptr)
          {
-            ss.ThrowFromNativeCode(-1, SEXTEXT("The node had no predecessor"));
+            ss.ThrowFromNativeCode(-1, ("The node had no predecessor"));
             return;
          }
 
@@ -531,13 +531,13 @@ namespace Rococo
          registers[VM::REGISTER_D7].vPtrValue = newNode->Element;
       }
 
-      void CompileAsClearList(CCompileEnvironment& ce, cr_sex s, csexstr instanceName)
+      void CompileAsClearList(CCompileEnvironment& ce, cr_sex s, cstr instanceName)
       {
          ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
          AppendInvoke(ce, GetListCallbacks(ce).ListClear, s);
       }
 
-      void CompileConstructListElementFromRef(CCompileEnvironment& ce, cr_sex s, const IStructure& elementType, csexstr instance)
+      void CompileConstructListElementFromRef(CCompileEnvironment& ce, cr_sex s, const IStructure& elementType, cstr instance)
       {
          const IFunction* constructor = elementType.Constructor();
 
@@ -548,11 +548,11 @@ namespace Rococo
 
          if (inputCount < constructor->NumberOfInputs() - 1)
          {
-            Throw(s, SEXTEXT("Too few arguments in push constructor call"));
+            Throw(s, ("Too few arguments in push constructor call"));
          }
          else if (inputCount > constructor->NumberOfInputs() - 1)
          {
-            Throw(s, SEXTEXT("Too many arguments in push constructor call"));
+            Throw(s, ("Too many arguments in push constructor call"));
          }
 
          int inputStackAllocCount = PushInputs(ce, s, *constructor, true, 1);
@@ -570,7 +570,7 @@ namespace Rococo
          ce.Builder.AssignClosureParentSF();
       }
 
-      void CompileAsAppendToList(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, bool toHead)
+      void CompileAsAppendToList(CCompileEnvironment& ce, cr_sex s, cstr instanceName, bool toHead)
       {
          const IStructure& elementType = GetListDef(ce, s, instanceName);
 
@@ -591,7 +591,7 @@ namespace Rococo
             else
             {
                // No constructor, so need to copy element	
-               CompileGetStructRef(ce, value, elementType, SEXTEXT("newArrayElement")); // The address of the value is in D7
+               CompileGetStructRef(ce, value, elementType, ("newArrayElement")); // The address of the value is in D7
                ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // list goes to 4
                ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrepend : callbacks.ListAppend);
             }
@@ -603,14 +603,14 @@ namespace Rococo
                if (!TryCompileAssignArchetype(ce, value, elementType, false))
                {
                   sexstringstream<1024> streamer;
-                  streamer.sb << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
+                  streamer.sb << ("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
                   Throw(value, streamer);
                }
             }
             else if (!TryCompileArithmeticExpression(ce, value, true, elementType.VarType()))
             {
                sexstringstream<1024> streamer;
-               streamer.sb << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
+               streamer.sb << ("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
                Throw(value, streamer);
             } // The value is in D7
 
@@ -634,12 +634,12 @@ namespace Rococo
                ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrepend64 : callbacks.ListAppend64);
                break;
             default:
-               Throw(value, SEXTEXT("Unhandled value element type"));
+               Throw(value, ("Unhandled value element type"));
             }
          }
       }
 
-      void CompileAsAppendToNode(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, bool toHead)
+      void CompileAsAppendToNode(CCompileEnvironment& ce, cr_sex s, cstr instanceName, bool toHead)
       {
          const IStructure& elementType = GetNodeDef(ce, s, instanceName);
 
@@ -655,15 +655,15 @@ namespace Rococo
             const IFunction* constructor = elementType.Constructor();
             if (constructor != NULL)
             {
-               Throw(s, SEXTEXT("Construction not supported"));
+               Throw(s, ("Construction not supported"));
             }
             else
             {
                // No constructor, so need to copy element
 
-               Throw(s, SEXTEXT("Construction not supported"));
+               Throw(s, ("Construction not supported"));
 
-               CompileGetStructRef(ce, value, elementType, SEXTEXT("newArrayElement")); // The address of the value is in D7
+               CompileGetStructRef(ce, value, elementType, ("newArrayElement")); // The address of the value is in D7
 
                ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // node goes to D4
             }
@@ -675,14 +675,14 @@ namespace Rococo
                if (!TryCompileAssignArchetype(ce, value, elementType, false))
                {
                   sexstringstream<1024> streamer;
-                  streamer.sb << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
+                  streamer.sb << ("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
                   Throw(value, streamer);
                }
             }
             else if (!TryCompileArithmeticExpression(ce, value, true, elementType.VarType()))
             {
                sexstringstream<1024> streamer;
-               streamer.sb << SEXTEXT("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
+               streamer.sb << ("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
                Throw(value, streamer);
             } // The value is in D7
 
@@ -703,12 +703,12 @@ namespace Rococo
                ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.NodePrepend : callbacks.NodeAppend);
                break;
             default:
-               Throw(value, SEXTEXT("Unhandled value element type"));
+               Throw(value, ("Unhandled value element type"));
             }
          }
       }
 
-      void CompileAsPopNode(CCompileEnvironment& ce, cr_sex s, csexstr instanceName)
+      void CompileAsPopNode(CCompileEnvironment& ce, cr_sex s, cstr instanceName)
       {
          AssertNotTooFewElements(s, 1);
          AssertNotTooManyElements(s, 1);
@@ -718,70 +718,70 @@ namespace Rococo
          AppendInvoke(ce, GetListCallbacks(ce).NodePop, s);
       }
 
-      bool TryCompileAsListCall(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, csexstr methodName)
+      bool TryCompileAsListCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName)
       {
-         if (AreEqual(methodName, SEXTEXT("Append")))
+         if (AreEqual(methodName, ("Append")))
          {
             CompileAsAppendToList(ce, s, instanceName, false);
             return true;
          }
-         if (AreEqual(methodName, SEXTEXT("Clear")))
+         if (AreEqual(methodName, ("Clear")))
          {
             CompileAsClearList(ce, s, instanceName);
             return true;
          }
-         else if (AreEqual(methodName, SEXTEXT("Prepend")))
+         else if (AreEqual(methodName, ("Prepend")))
          {
             CompileAsAppendToList(ce, s, instanceName, true);
             return true;
          }
          else
          {
-            Throw(s, SEXTEXT("Unknown list method. Known methods: Append, Prepend."));
+            Throw(s, ("Unknown list method. Known methods: Append, Prepend."));
          }
 
          return false;
       }
 
-      bool TryCompileAsNodeCall(CCompileEnvironment& ce, cr_sex s, csexstr instanceName, csexstr methodName)
+      bool TryCompileAsNodeCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName)
       {
-         if (AreEqual(methodName, SEXTEXT("Append")))
+         if (AreEqual(methodName, ("Append")))
          {
             CompileAsAppendToNode(ce, s, instanceName, false);
             return true;
          }
-         else if (AreEqual(methodName, SEXTEXT("Prepend")))
+         else if (AreEqual(methodName, ("Prepend")))
          {
             CompileAsAppendToNode(ce, s, instanceName, true);
             return true;
          }
-         else if (AreEqual(methodName, SEXTEXT("Pop")))
+         else if (AreEqual(methodName, ("Pop")))
          {
             CompileAsPopNode(ce, s, instanceName);
             return true;
          }
          else
          {
-            Throw(s, SEXTEXT("Unknown node method. Known methods: Append, Prepend."));
+            Throw(s, ("Unknown node method. Known methods: Append, Prepend."));
          }
 
          return false;
       }
 
-      void CompileAsListNodeDeclaration(CCompileEnvironment& ce, csexstr nodeName, cr_sex source)
+      void CompileAsListNodeDeclaration(CCompileEnvironment& ce, cstr nodeName, cr_sex source)
       {
          // Assumes s has 4 elements and third is '=' and source is atomic
          // (Node <name> = <listName>.<listDirective>)
          AddVariableRef(ce, NameString::From(nodeName), ce.Object.Common().TypeNode());
 
-         csexstr sourceCommand = source.String()->Buffer;
+         cstr sourceCommand = source.String()->Buffer;
 
          NamespaceSplitter splitter(sourceCommand);
 
-         csexstr srcName, listDirective;
+         cstr srcName, listDirective;
          if (!splitter.SplitTail(srcName, listDirective))
          {
-            Throw(source, SEXTEXT("Expecting <source-name>.<property> There was no dot operator '.' in the atomic expression"));
+            Throw(source, ("Expecting <source-name>.<property> There was no dot operator '.' in the atomic expression"));
          }
 
          VariantValue v;
@@ -796,21 +796,21 @@ namespace Rococo
             ce.Builder.AddSymbol(srcName);
             ce.Builder.AssignVariableRefToTemp(srcName, Rococo::ROOT_TEMPDEPTH); // A pointer to the list is now in D7
 
-            if (AreEqual(listDirective, SEXTEXT("Tail")))
+            if (AreEqual(listDirective, ("Tail")))
             {
-               ce.Builder.AddSymbol(SEXTEXT("tail now in D7"));
+               ce.Builder.AddSymbol(("tail now in D7"));
                AppendInvoke(ce, GetListCallbacks(ce).ListGetTail, source); // tail is now in D7
                AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
             }
-            else if (AreEqual(listDirective, SEXTEXT("Head")))
+            else if (AreEqual(listDirective, ("Head")))
             {
-               ce.Builder.AddSymbol(SEXTEXT("head now in D7"));
+               ce.Builder.AddSymbol(("head now in D7"));
                AppendInvoke(ce, GetListCallbacks(ce).ListGetHead, source); // tail is now in D7
                AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
             }
             else
             {
-               Throw(source, SEXTEXT("Unrecognized node accessor. Recognized accessors: Head, Tail"));
+               Throw(source, ("Unrecognized node accessor. Recognized accessors: Head, Tail"));
             }
          }
          else if (*ce.Builder.GetVarStructure(srcName) == ce.Object.Common().TypeNode())
@@ -820,26 +820,26 @@ namespace Rococo
             ce.Builder.AddSymbol(srcName);
             ce.Builder.AssignVariableRefToTemp(srcName, Rococo::ROOT_TEMPDEPTH); // A pointer to the node is now in D7
 
-            if (AreEqual(listDirective, SEXTEXT("Next")))
+            if (AreEqual(listDirective, ("Next")))
             {
-               ce.Builder.AddSymbol(SEXTEXT("tail now in D7"));
+               ce.Builder.AddSymbol(("tail now in D7"));
                AppendInvoke(ce, GetListCallbacks(ce).NodeNext, source); // tail is now in D7
                AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
             }
-            else if (AreEqual(listDirective, SEXTEXT("Previous")))
+            else if (AreEqual(listDirective, ("Previous")))
             {
-               ce.Builder.AddSymbol(SEXTEXT("head now in D7"));
+               ce.Builder.AddSymbol(("head now in D7"));
                AppendInvoke(ce, GetListCallbacks(ce).NodePrevious, source); // tail is now in D7
                AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
             }
             else
             {
-               Throw(source, SEXTEXT("Unrecognized node accessor. Recognized accessors: Next, Previous"));
+               Throw(source, ("Unrecognized node accessor. Recognized accessors: Next, Previous"));
             }
          }
          else
          {
-            Throw(source, SEXTEXT("Expecting <source-name>.<property>, where <source-name> is a list or node variable."));
+            Throw(source, ("Expecting <source-name>.<property>, where <source-name> is a list or node variable."));
          }
       }
 
@@ -853,14 +853,14 @@ namespace Rococo
          cr_sex typeName = GetAtomicArg(s, 1);
          cr_sex listNameExpr = GetAtomicArg(s, 2);
 
-         csexstr listName = listNameExpr.String()->Buffer;
+         cstr listName = listNameExpr.String()->Buffer;
 
          AssertLocalIdentifier(listNameExpr);
 
          const IStructure& listStruct = ce.StructList();
 
          const IStructure* elementStruct = MatchStructure(typeName, ce.Builder.Module());
-         if (elementStruct == NULL) ThrowTokenNotFound(s, typeName.String()->Buffer, ce.Builder.Module().Name(), SEXTEXT("type"));
+         if (elementStruct == NULL) ThrowTokenNotFound(s, typeName.String()->Buffer, ce.Builder.Module().Name(), ("type"));
 
          ce.Builder.AddSymbol(listName);
          AddVariable(ce, NameString::From(listName), ce.StructList());
@@ -871,7 +871,7 @@ namespace Rococo
          v.vPtrValue = (void*)elementStruct;
 
          TokenBuffer symbol;
-         StringPrint(symbol, SEXTEXT("typeof(%s)"), GetFriendlyName(*elementStruct));
+         StringPrint(symbol, ("typeof(%s)"), GetFriendlyName(*elementStruct));
          ce.Builder.AddSymbol(symbol);
          ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, v, BITCOUNT_POINTER); // Element type to D5
 
@@ -886,11 +886,11 @@ namespace Rococo
          // (foreach v # l (...) (...) )
 
          cr_sex collection = s.GetElement(hashIndex + 1);
-         csexstr collectionName = collection.String()->Buffer;
+         cstr collectionName = collection.String()->Buffer;
          AssertLocalVariableOrMember(collection);
 
-         csexstr indexName;
-         csexstr refName;
+         cstr indexName;
+         cstr refName;
 
          if (hashIndex == 2)
          {
@@ -911,7 +911,7 @@ namespace Rococo
             AddVariable(ce, NameString::From(indexName), ce.Object.Common().TypeInt32());
          }
 
-         ce.Builder.AddSymbol(SEXTEXT("(foreach..."));
+         ce.Builder.AddSymbol(("(foreach..."));
 
          ce.Builder.AddSymbol(collectionName);
          AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
@@ -919,7 +919,7 @@ namespace Rococo
 
          //////////////////////////////////////////////////////// Test list to see if it is empty //////////////////////////////////////////////////////
          TokenBuffer collectionLength;
-         StringPrint(collectionLength, SEXTEXT("%s._length"), collectionName);
+         StringPrint(collectionLength, ("%s._length"), collectionName);
          ce.Builder.AssignVariableToTemp(collectionLength, Rococo::ROOT_TEMPDEPTH);
          ce.Builder.Assembler().Append_Test(VM::REGISTER_D7, BITCOUNT_32);
          size_t bailoutPos = ce.Builder.Assembler().WritePosition();
@@ -934,7 +934,7 @@ namespace Rococo
 
          if (indexName != NULL)
          {
-            ce.Builder.AddSymbol(SEXTEXT("D11 - working index"));
+            ce.Builder.AddSymbol(("D11 - working index"));
             AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 4, Rococo::ROOT_TEMPDEPTH + 4, BITCOUNT_32); // Index is D11
             VariantValue zero;
             zero.int32Value = 0;

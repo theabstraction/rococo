@@ -826,7 +826,7 @@ namespace
 			IDisassembler::Rep rep;
 			dis->Disassemble(code + i, OUT rep);
 
-			WriteToStandardOutput(SEXTEXT("%s %s\r\n"), rep.OpcodeText, rep.ArgText);
+			WriteToStandardOutput(("%s %s\r\n"), rep.OpcodeText, rep.ArgText);
 
 			validate (rep.ByteCount != 0);
 			i += rep.ByteCount;
@@ -974,7 +974,7 @@ namespace
 			registers[REGISTER_D4].int32Value = 40;
 		}};
 
-		ID_API_CALLBACK ID_SETD4To40 = vm.Core().RegisterCallback(ANON::SetD4To40, NULL, SEXTEXT("SetD4To40"));
+		ID_API_CALLBACK ID_SETD4To40 = vm.Core().RegisterCallback(ANON::SetD4To40, NULL, ("SetD4To40"));
 
 		a.Append_Invoke(ID_SETD4To40);
 		a.Append_Exit(REGISTER_D4);
@@ -1012,7 +1012,7 @@ namespace
 			registers[REGISTER_D5].int32Value = 720;
 		}};
 
-		ID_API_CALLBACK ID_SETD5To720 = vm.Core().RegisterCallback(ANON::SetD5To720, NULL, SEXTEXT("ID_SETD5To720"));
+		ID_API_CALLBACK ID_SETD5To720 = vm.Core().RegisterCallback(ANON::SetD5To720, NULL, ("ID_SETD5To720"));
 
 		VariantValue v;
 		v.apiValue = ID_SETD5To720;
@@ -1182,14 +1182,14 @@ int main(int argc, char* argv[])
 	
 	struct CLogger: public ILog
 	{
-		void Write(csexstr text)
+		void Write(cstr text)
 		{
-			WriteToStandardOutput(SEXTEXT("%s\n"), text);
+			WriteToStandardOutput(("%s\n"), text);
 		}
 
-		void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) 
+		void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance) 
 		{
-			WriteToStandardOutput(SEXTEXT("%s: code %d\nMessage: %s\n"), exceptionType, errorCode, message);
+			WriteToStandardOutput(("%s: code %d\nMessage: %s\n"), exceptionType, errorCode, message);
 		}
 
 		void OnJITCompileException(Sex::ParseException& ex)
@@ -1215,7 +1215,7 @@ int main(int argc, char* argv[])
 	}
 	catch (IException& ex)
 	{
-		WriteToStandardOutput(SEXTEXT("%s: code %d\n"), ex.Message(), ex.ErrorCode());
+		WriteToStandardOutput(("%s: code %d\n"), ex.Message(), ex.ErrorCode());
       return ex.ErrorCode();
 	}
 }

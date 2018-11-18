@@ -18,24 +18,24 @@ namespace Rococo
 	}
 
 	int32 Compare(const char* a, const char* b) { return strcmp(a, b); }
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 	int32 Compare(cstr a, cstr b) { return wcscmp(a, b); }
 #endif
 	int32 CompareI(const char* a, const char* b) { return _stricmp(a, b); }
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 	int32 CompareI(cstr a, cstr b) { return _wcsicmp(a, b); }
 #endif
 	int32 CompareI(const char* a, const char* b, int64 count) { return _strnicmp(a, b, count); }
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 	int32 CompareI(cstr a, cstr b, int64 count) { return _wcsnicmp(a, b, count); }
 #endif
 	int32 Compare(const char* a, const char* b, int64 count) { return strncmp(a, b, count); }
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 	int32 Compare(cstr a, cstr b, int64 count) { return wcsncmp(a, b, count); }
 #endif
-	int32 Compare(sexstring a, const SEXCHAR* b) { return Compare(a->Buffer, b); }
+	int32 Compare(sexstring a, const char* b) { return Compare(a->Buffer, b); }
 	const char* GetSubString(const char* s, const char *subString) { return strstr(s, subString); }
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 	cstr GetSubString(cstr s, const rchar *subString) { return wcsstr(s, subString); }
 #endif
 

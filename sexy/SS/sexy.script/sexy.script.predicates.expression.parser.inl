@@ -42,7 +42,7 @@ namespace Rococo
          switch (type)
          {
          case VARTYPE_Derivative:
-            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'greater than' operator defined"));
+            Throw(src, ("Cannot compare two derivative types, No 'greater than' operator defined"));
          case VARTYPE_Int32:
             return a.int32Value > b.int32Value;
          case VARTYPE_Int64:
@@ -52,7 +52,7 @@ namespace Rococo
          case VARTYPE_Float64:
             return a.doubleValue > b.doubleValue;
          default:
-            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
+            Throw(src, ("Cannot compare two values, they are of unknown type"));
             return false;
          }
       }
@@ -62,7 +62,7 @@ namespace Rococo
          switch (type)
          {
          case VARTYPE_Derivative:
-            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'less than' operator defined"));
+            Throw(src, ("Cannot compare two derivative types, No 'less than' operator defined"));
          case VARTYPE_Int32:
             return a.int32Value < b.int32Value;
          case VARTYPE_Int64:
@@ -72,7 +72,7 @@ namespace Rococo
          case VARTYPE_Float64:
             return a.doubleValue < b.doubleValue;
          default:
-            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
+            Throw(src, ("Cannot compare two values, they are of unknown type"));
             return false;
          }
       }
@@ -82,7 +82,7 @@ namespace Rococo
          switch (type)
          {
          case VARTYPE_Derivative:
-            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'greater than or equal to' operator defined"));
+            Throw(src, ("Cannot compare two derivative types, No 'greater than or equal to' operator defined"));
          case VARTYPE_Int32:
             return a.int32Value >= b.int32Value;
          case VARTYPE_Int64:
@@ -92,7 +92,7 @@ namespace Rococo
          case VARTYPE_Float64:
             return a.doubleValue >= b.doubleValue;
          default:
-            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
+            Throw(src, ("Cannot compare two values, they are of unknown type"));
             return false;
          }
       }
@@ -102,7 +102,7 @@ namespace Rococo
          switch (type)
          {
          case VARTYPE_Derivative:
-            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'less than or equal to' operator defined"));
+            Throw(src, ("Cannot compare two derivative types, No 'less than or equal to' operator defined"));
          case VARTYPE_Int32:
             return a.int32Value <= b.int32Value;
          case VARTYPE_Int64:
@@ -112,7 +112,7 @@ namespace Rococo
          case VARTYPE_Float64:
             return a.doubleValue <= b.doubleValue;
          default:
-            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
+            Throw(src, ("Cannot compare two values, they are of unknown type"));
             return false;
          }
       }
@@ -122,7 +122,7 @@ namespace Rococo
          switch (type)
          {
          case VARTYPE_Derivative:
-            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'not equal to' operator defined"));
+            Throw(src, ("Cannot compare two derivative types, No 'not equal to' operator defined"));
          case VARTYPE_Int32:
             return a.int32Value != b.int32Value;
          case VARTYPE_Int64:
@@ -132,7 +132,7 @@ namespace Rococo
          case VARTYPE_Float64:
             return a.doubleValue != b.doubleValue;
          default:
-            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
+            Throw(src, ("Cannot compare two values, they are of unknown type"));
             return false;
          }
       }
@@ -142,7 +142,7 @@ namespace Rococo
          switch (type)
          {
          case VARTYPE_Derivative:
-            Throw(src, SEXTEXT("Cannot compare two derivative types, No 'not equal to' operator defined"));
+            Throw(src, ("Cannot compare two derivative types, No 'not equal to' operator defined"));
          case VARTYPE_Int32:
             return a.int32Value == b.int32Value;
          case VARTYPE_Int64:
@@ -152,7 +152,7 @@ namespace Rococo
          case VARTYPE_Float64:
             return a.doubleValue == b.doubleValue;
          default:
-            Throw(src, SEXTEXT("Cannot compare two values, they are of unknown type"));
+            Throw(src, ("Cannot compare two values, they are of unknown type"));
             return false;
          }
       }
@@ -176,18 +176,18 @@ namespace Rococo
          case CONDITION_IF_NOT_EQUAL:			   return IsANotEqualToB(a, b, type, src);
          case CONDITION_IF_EQUAL:				   return IsAEqualToB(a, b, type, src);
          default:
-            Throw(src, SEXTEXT("Expecting binary boolean operator"));
+            Throw(src, ("Expecting binary boolean operator"));
             return false;
          }
       }
 
-      void CompileBinaryCompareLiteralVsLiteral(CCompileEnvironment& ce, cr_sex parent, csexstr leftString, VARTYPE lType, CONDITION op, csexstr rightString, VARTYPE rType)
+      void CompileBinaryCompareLiteralVsLiteral(CCompileEnvironment& ce, cr_sex parent, cstr leftString, VARTYPE lType, CONDITION op, cstr rightString, VARTYPE rType)
       {
          VariantValue lValue;
          if (Parse::PARSERESULT_GOOD != Parse::TryParse(OUT lValue, lType, leftString))
          {
             sexstringstream<1024> streamer;
-            streamer.sb << SEXTEXT("Cannot parse the left part of the expression: ") << leftString;
+            streamer.sb << ("Cannot parse the left part of the expression: ") << leftString;
             Throw(parent, streamer);
          }
 
@@ -195,7 +195,7 @@ namespace Rococo
          if (Parse::PARSERESULT_GOOD != Parse::TryParse(OUT rValue, rType, rightString))
          {
             sexstringstream<1024> streamer;
-            streamer.sb << SEXTEXT("Cannot parse the right part of the expression: ") << rightString;
+            streamer.sb << ("Cannot parse the right part of the expression: ") << rightString;
             Throw(parent, streamer);
          }
 
@@ -213,7 +213,7 @@ namespace Rococo
             }
          }
 
-         Throw(parent, SEXTEXT("Not implemented"));
+         Throw(parent, ("Not implemented"));
       }
 
       enum LOGICAL_OP
@@ -232,7 +232,7 @@ namespace Rococo
          case LOGICAL_OP_XOR:		return (a != 0 && b == 0) || (a == 0 && b != 0);
 
          default:
-            Throw(src, SEXTEXT("Expecting binary boolean operator"));
+            Throw(src, ("Expecting binary boolean operator"));
             return false;
          }
       }
@@ -245,7 +245,7 @@ namespace Rococo
          ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, val, BITCOUNT_32);
       }
 
-      VARTYPE GetAtomicValueAnyNumeric(CCompileEnvironment& ce, cr_sex s, csexstr id, int tempdepth)
+      VARTYPE GetAtomicValueAnyNumeric(CCompileEnvironment& ce, cr_sex s, cstr id, int tempdepth)
       {
          VARTYPE type = VARTYPE_Bad;
 
@@ -255,7 +255,7 @@ namespace Rococo
             if (!IsGetAccessor(f) || !IsNumericTypeOrBoolean(f.GetArgument(0).VarType()))
             {
                sexstringstream<1024> streamer;
-               streamer.sb << SEXTEXT("Expecting variable or single valued function with no inputs, and return type ") << Parse::VarTypeName(type);
+               streamer.sb << ("Expecting variable or single valued function with no inputs, and return type ") << Parse::VarTypeName(type);
                Throw(s, streamer);
             }
 
@@ -281,7 +281,7 @@ namespace Rococo
          else
          {
             NamespaceSplitter splitter(id);
-            csexstr instance, item;
+            cstr instance, item;
             if (splitter.SplitTail(instance, item))
             {
                if (IsCapital(item[0]))
@@ -290,7 +290,7 @@ namespace Rococo
                   if (!IsNumericTypeOrBoolean(type))
                   {
                      sexstringstream<1024> streamer;
-                     streamer.sb << SEXTEXT("Expecting method returning ") << Parse::VarTypeName(type);
+                     streamer.sb << ("Expecting method returning ") << Parse::VarTypeName(type);
                      Throw(s, streamer);
                   }
 
@@ -309,7 +309,7 @@ namespace Rococo
                   }
                   else
                   {
-                     ThrowTokenNotFound(s, instance, ce.Builder.Owner().Name(), SEXTEXT("variable"));
+                     ThrowTokenNotFound(s, instance, ce.Builder.Owner().Name(), ("variable"));
                   }
                }
             }
@@ -323,7 +323,7 @@ namespace Rococo
                }
                else
                {
-                  ThrowTokenNotFound(s, id, ce.Builder.Owner().Name(), SEXTEXT("variable"));
+                  ThrowTokenNotFound(s, id, ce.Builder.Owner().Name(), ("variable"));
                }
             }
          }
@@ -363,20 +363,20 @@ namespace Rococo
             assembler.Append_IntSubtract(VM::REGISTER_D4 + sourceA, BITCOUNT_64, VM::REGISTER_D4 + sourceB);
             break;
          default:
-            Throw(src, SEXTEXT("Cannot find subtraction rule for the given type"));
+            Throw(src, ("Cannot find subtraction rule for the given type"));
          }
 
          assembler.Append_SetIf(op, VM::REGISTER_D4 + booleanTargetId, GetBitCount(type));
       }
 
 
-      void CompileBinaryCompareVariableVsLiteral(CCompileEnvironment& ce, cr_sex parent, csexstr leftVarName, CONDITION op, csexstr rightString, VARTYPE rType, cr_sex leftVarExpr)
+      void CompileBinaryCompareVariableVsLiteral(CCompileEnvironment& ce, cr_sex parent, cstr leftVarName, CONDITION op, cstr rightString, VARTYPE rType, cr_sex leftVarExpr)
       {
          VariantValue rValue;
          if (Parse::PARSERESULT_GOOD != Parse::TryParse(OUT rValue, rType, rightString))
          {
             sexstringstream<1024> streamer;
-            streamer.sb << SEXTEXT("Cannot parse the right part of the expression: ") << rightString;
+            streamer.sb << ("Cannot parse the right part of the expression: ") << rightString;
             Throw(parent, streamer);
          }
 
@@ -389,7 +389,7 @@ namespace Rococo
             VariantValue newRValue;
             if (varLType != VARTYPE_Pointer && !Variants::TryRecast(OUT newRValue, IN rValue, rType, varLType))
             {
-               Throw(parent, SEXTEXT("Cannot cast RHS to the type of the LHS"));
+               Throw(parent, ("Cannot cast RHS to the type of the LHS"));
             }
 
             builder.Assembler().Append_SetIf(op, VM::REGISTER_D7, GetBitCount(rType));
@@ -401,7 +401,7 @@ namespace Rococo
             VariantValue newRValue;
             if (!Variants::TryRecast(OUT newRValue, IN rValue, rType, varLType))
             {
-               Throw(parent, SEXTEXT("Cannot cast RHS to the type of the LHS"));
+               Throw(parent, ("Cannot cast RHS to the type of the LHS"));
             }
 
             builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + 2, newRValue, GetBitCount(varLType));
@@ -413,7 +413,7 @@ namespace Rococo
       {
          if (booleanTargetId != sourceA - 1)
          {
-            Throw(src, SEXTEXT("Algorthimic error: Expecting [booleanTargetId] to be [sourceA-1]"));
+            Throw(src, ("Algorthimic error: Expecting [booleanTargetId] to be [sourceA-1]"));
          }
 
          switch (op)
@@ -430,20 +430,20 @@ namespace Rococo
          }
       }
 
-      void CompileBinaryBooleanLiteralVsVariable(CCompileEnvironment& ce, cr_sex parent, int literalValue, LOGICAL_OP op, csexstr variableName)
+      void CompileBinaryBooleanLiteralVsVariable(CCompileEnvironment& ce, cr_sex parent, int literalValue, LOGICAL_OP op, cstr variableName)
       {
          VARTYPE varType = ce.Builder.GetVarType(variableName);
          if (varType == VARTYPE_Bad)
          {
-            Throw(parent, SEXTEXT("Cannot resolve variable as a literal or identifier"));
+            Throw(parent, ("Cannot resolve variable as a literal or identifier"));
          }
          else if (varType == VARTYPE_Derivative)
          {
-            Throw(parent, SEXTEXT("Cannot compare derived types"));
+            Throw(parent, ("Cannot compare derived types"));
          }
          else if (varType != VARTYPE_Bool)
          {
-            Throw(parent, SEXTEXT("Cannot logically implicitly cast variable to a boolean"));
+            Throw(parent, ("Cannot logically implicitly cast variable to a boolean"));
          }
 
          VariantValue lValue;
@@ -455,30 +455,30 @@ namespace Rococo
 
       }
 
-      void CompileBinaryCompareLiteralVsVariable(CCompileEnvironment& ce, cr_sex parent, csexstr leftString, VARTYPE lType, CONDITION op, csexstr rightVarName)
+      void CompileBinaryCompareLiteralVsVariable(CCompileEnvironment& ce, cr_sex parent, cstr leftString, VARTYPE lType, CONDITION op, cstr rightVarName)
       {
          VariantValue lValue;
          if (Parse::PARSERESULT_GOOD != Parse::TryParse(OUT lValue, lType, leftString))
          {
             sexstringstream<1024> streamer;
-            streamer.sb << SEXTEXT("Cannot parse the left part of the expression: ") << leftString;
+            streamer.sb << ("Cannot parse the left part of the expression: ") << leftString;
             Throw(parent, streamer);
          }
 
          VARTYPE varRType = ce.Builder.GetVarType(rightVarName);
          if (varRType == VARTYPE_Bad)
          {
-            Throw(parent, SEXTEXT("Cannot resolve right hand side as a literal or identifier"));
+            Throw(parent, ("Cannot resolve right hand side as a literal or identifier"));
          }
          else if (varRType == VARTYPE_Derivative)
          {
-            Throw(parent, SEXTEXT("Cannot compare derived types"));
+            Throw(parent, ("Cannot compare derived types"));
          }
 
          VariantValue newLValue;
          if (!Variants::TryRecast(OUT newLValue, IN lValue, lType, varRType))
          {
-            Throw(parent, SEXTEXT("Cannot cast LHS to the type of the RHS"));
+            Throw(parent, ("Cannot cast LHS to the type of the RHS"));
          }
 
          ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + 1, newLValue, GetBitCount(varRType));
@@ -486,9 +486,9 @@ namespace Rococo
          AddBinaryComparison(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, varRType);
       }
 
-      void CompileBinaryCompareAtomicVsCompound(CCompileEnvironment& ce, cr_sex parent, csexstr varName, CONDITION op, cr_sex s, bool leftToRight);
+      void CompileBinaryCompareAtomicVsCompound(CCompileEnvironment& ce, cr_sex parent, cstr varName, CONDITION op, cr_sex s, bool leftToRight);
 
-      void CompileBinaryCompareVariableVsVariable(CCompileEnvironment& ce, cr_sex parent, cr_sex leftExpr, csexstr leftVarName, CONDITION op, cr_sex rightExpr)
+      void CompileBinaryCompareVariableVsVariable(CCompileEnvironment& ce, cr_sex parent, cr_sex leftExpr, cstr leftVarName, CONDITION op, cr_sex rightExpr)
       {
          ICodeBuilder& builder = ce.Builder;
 
@@ -497,41 +497,41 @@ namespace Rococo
 
          if (varLType != varRType)
          {
-            Throw(parent, SEXTEXT("Cannot compare left with right, they are of different types"));
+            Throw(parent, ("Cannot compare left with right, they are of different types"));
          }
 
          AddBinaryComparison(parent, builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, varLType);
       }
 
-      void CompileBinaryBooleanVariableVsVariable(CCompileEnvironment& ce, cr_sex parent, csexstr leftVarName, LOGICAL_OP op, csexstr rightVarName)
+      void CompileBinaryBooleanVariableVsVariable(CCompileEnvironment& ce, cr_sex parent, cstr leftVarName, LOGICAL_OP op, cstr rightVarName)
       {
          VARTYPE varLType = ce.Builder.GetVarType(leftVarName);
          VARTYPE varRType = ce.Builder.GetVarType(rightVarName);
 
          if (varLType == VARTYPE_Bad)
          {
-            Throw(parent, SEXTEXT("The LHS is neither a literal, nor an identifier"));
+            Throw(parent, ("The LHS is neither a literal, nor an identifier"));
          }
          else if (varLType == VARTYPE_Derivative)
          {
-            Throw(parent, SEXTEXT("The LHS is a derived type, and cannot be used in boolean comparisons"));
+            Throw(parent, ("The LHS is a derived type, and cannot be used in boolean comparisons"));
          }
          else if (varLType != VARTYPE_Bool)
          {
-            Throw(parent, SEXTEXT("The LHS is not a boolean type"));
+            Throw(parent, ("The LHS is not a boolean type"));
          }
 
          if (varRType == VARTYPE_Bad)
          {
-            Throw(parent, SEXTEXT("The RHS is neither a literal, nor an identifier"));
+            Throw(parent, ("The RHS is neither a literal, nor an identifier"));
          }
          else if (varRType == VARTYPE_Derivative)
          {
-            Throw(parent, SEXTEXT("The RHS is a derived type, and cannot be used in boolean comparisons"));
+            Throw(parent, ("The RHS is a derived type, and cannot be used in boolean comparisons"));
          }
          else if (varRType != VARTYPE_Bool)
          {
-            Throw(parent, SEXTEXT("The RHS is not a boolean type"));
+            Throw(parent, ("The RHS is not a boolean type"));
          }
 
          ce.Builder.AssignVariableToTemp(leftVarName, Rococo::ROOT_TEMPDEPTH + 1);
@@ -539,17 +539,17 @@ namespace Rococo
          AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op);
       }
 
-      void CompileBinaryCompareAtomicVsCompound(CCompileEnvironment& ce, cr_sex parent, csexstr varName, CONDITION op, cr_sex s, bool leftToRight)
+      void CompileBinaryCompareAtomicVsCompound(CCompileEnvironment& ce, cr_sex parent, cstr varName, CONDITION op, cr_sex s, bool leftToRight)
       {
          int A = leftToRight ? 1 : 2;
          int B = leftToRight ? 2 : 1;
-         csexstr helper = leftToRight ? SEXTEXT("LHS") : SEXTEXT("RHS");
+         cstr helper = leftToRight ? ("LHS") : ("RHS");
 
          VARTYPE type = ce.Builder.GetVarType(varName);
          if (type == VARTYPE_Derivative)
          {
             sexstringstream<1024> streamer;
-            streamer.sb << helper << SEXTEXT(" was of derived type and cannot be directly used in a comparison expression");
+            streamer.sb << helper << (" was of derived type and cannot be directly used in a comparison expression");
             Throw(parent, streamer);
          }
          else if (type == VARTYPE_Bad)
@@ -558,7 +558,7 @@ namespace Rococo
             if (!IsPrimitiveType(type))
             {
                sexstringstream<1024> streamer;
-               streamer.sb << helper << SEXTEXT(" was not recognized either as a literal, or as an identifier");
+               streamer.sb << helper << (" was not recognized either as a literal, or as an identifier");
                Throw(parent, streamer);
             }
 
@@ -566,7 +566,7 @@ namespace Rococo
             if (Parse::TryParse(OUT value, type, varName) != Parse::PARSERESULT_GOOD)
             {
                sexstringstream<1024> streamer;
-               streamer.sb << helper << SEXTEXT(" was not parsed either as a literal, or as an identifier");
+               streamer.sb << helper << (" was not parsed either as a literal, or as an identifier");
                Throw(parent, streamer);
             }
 
@@ -592,13 +592,13 @@ namespace Rococo
          // Types: literal, variable, compound expression
          if (IsAtomic(left))
          {
-            csexstr leftString = left.String()->Buffer;
+            cstr leftString = left.String()->Buffer;
             VARTYPE lType = Parse::GetLiteralType(leftString);
             if (IsPrimitiveType(lType))
             {
                if (IsAtomic(right))
                {
-                  csexstr rightString = right.String()->Buffer;
+                  cstr rightString = right.String()->Buffer;
                   VARTYPE rType = Parse::GetLiteralType(rightString);
 
                   if (IsPrimitiveType(rType))
@@ -619,7 +619,7 @@ namespace Rococo
             {
                if (IsAtomic(right))
                {
-                  csexstr rightString = right.String()->Buffer;
+                  cstr rightString = right.String()->Buffer;
                   VARTYPE rType = Parse::GetLiteralType(rightString);
 
                   if (IsPrimitiveType(rType))
@@ -633,7 +633,7 @@ namespace Rococo
                }
                else if (!IsCompound(right))
                {
-                  Throw(parent, SEXTEXT("RHS neither atomic nor compound"));
+                  Throw(parent, ("RHS neither atomic nor compound"));
                }
                else
                {
@@ -649,7 +649,7 @@ namespace Rococo
             }
             else if (!IsCompound(right))
             {
-               Throw(parent, SEXTEXT("RHS is neither atomic nor compound"));
+               Throw(parent, ("RHS is neither atomic nor compound"));
             }
             else
             {
@@ -669,7 +669,7 @@ namespace Rococo
                }
                else
                {
-                  Throw(parent, SEXTEXT("Cannot infer types in the comparison"));
+                  Throw(parent, ("Cannot infer types in the comparison"));
                }
             }
          }
@@ -719,7 +719,7 @@ namespace Rococo
             bool negate = false;
             if (!TryCompileBooleanExpression(ce, right, true, negate))
             {
-               Throw(parent, SEXTEXT("Expecting a boolean valued expression on the RHS"));
+               Throw(parent, ("Expecting a boolean valued expression on the RHS"));
             }
 
             if (invert)
@@ -738,7 +738,7 @@ namespace Rococo
          }
          else
          {
-            Throw(parent, SEXTEXT("Expecting a boolean valued expression on the RHS"));
+            Throw(parent, ("Expecting a boolean valued expression on the RHS"));
          }
       }
 
@@ -756,16 +756,16 @@ namespace Rococo
             assember.Append_LogicalXOR(VM::REGISTER_D4 + tempDepthA, BITCOUNT_32, VM::REGISTER_D4 + tempDepthB);
             break;
          default:
-            Throw(src, SEXTEXT("Unhandled logical op type"));
+            Throw(src, ("Unhandled logical op type"));
          }
       }
 
-      void CompileBinaryBooleanVariableVsCompoundExpression(CCompileEnvironment& ce, cr_sex parent, csexstr leftString, LOGICAL_OP op, cr_sex right)
+      void CompileBinaryBooleanVariableVsCompoundExpression(CCompileEnvironment& ce, cr_sex parent, cstr leftString, LOGICAL_OP op, cr_sex right)
       {
          VARTYPE type = ce.Builder.GetVarType(leftString);
          if (type != VARTYPE_Bool)
          {
-            Throw(parent, SEXTEXT("Expecting boolean variable on LHS"));
+            Throw(parent, ("Expecting boolean variable on LHS"));
          }
 
          bool negate = false;
@@ -779,7 +779,7 @@ namespace Rococo
          }
          else
          {
-            Throw(parent, SEXTEXT("Cannot interpret RHS as a binary predicate expression"));
+            Throw(parent, ("Cannot interpret RHS as a binary predicate expression"));
          }
       }
 
@@ -788,7 +788,7 @@ namespace Rococo
          bool negate = false;
          if (!TryCompileBooleanExpression(ce, left, true, negate))
          {
-            Throw(left, SEXTEXT("Cannot compile LHS as boolean binary predicate"));
+            Throw(left, ("Cannot compile LHS as boolean binary predicate"));
          }
 
          if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
@@ -797,7 +797,7 @@ namespace Rococo
          negate = false;
          if (!TryCompileBooleanExpression(ce, right, true, negate))
          {
-            Throw(left, SEXTEXT("Cannot compile RHS as boolean binary predicate"));
+            Throw(left, ("Cannot compile RHS as boolean binary predicate"));
          }
 
          if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
@@ -808,19 +808,19 @@ namespace Rococo
          AppendBooleanLogicalOp(parent, op, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2);
       }
 
-      void CompileBinaryBooleanAtomicVsCompoundExpression(CCompileEnvironment& ce, cr_sex parent, csexstr leftString, LOGICAL_OP op, cr_sex right)
+      void CompileBinaryBooleanAtomicVsCompoundExpression(CCompileEnvironment& ce, cr_sex parent, cstr leftString, LOGICAL_OP op, cr_sex right)
       {
          VARTYPE lType = ce.Builder.GetVarType(leftString);
          if (lType == VARTYPE_Derivative)
          {
-            Throw(parent, SEXTEXT("LHS was of a derived type, and cannot be directly used in boolean expressions"));
+            Throw(parent, ("LHS was of a derived type, and cannot be directly used in boolean expressions"));
          }
          else if (lType == VARTYPE_Bad)
          {
             int32 value;
             if (Parse::TryParseBoolean(OUT value, leftString) != Parse::PARSERESULT_GOOD)
             {
-               Throw(parent, SEXTEXT("In the boolean expression the LHS was neither an identifier nor a known boolean value"));
+               Throw(parent, ("In the boolean expression the LHS was neither an identifier nor a known boolean value"));
             }
 
             CompileBinaryBooleanLiteralVsCompoundExpression(ce, parent, value, op, right);
@@ -828,7 +828,7 @@ namespace Rococo
          }
          else if (lType != VARTYPE_Bool)
          {
-            Throw(parent, SEXTEXT("Identifier in the LHS of the boolean expression was not of underlying type Int32"));
+            Throw(parent, ("Identifier in the LHS of the boolean expression was not of underlying type Int32"));
          }
 
          CompileBinaryBooleanVariableVsCompoundExpression(ce, parent, leftString, op, right);
@@ -840,7 +840,7 @@ namespace Rococo
          // Types: literal, variable, compound expression
          if (IsAtomic(left))
          {
-            csexstr leftString = left.String()->Buffer;
+            cstr leftString = left.String()->Buffer;
 
             if (IsCompound(right))
             {
@@ -849,10 +849,10 @@ namespace Rococo
             }
             if (!IsAtomic(right))
             {
-               Throw(parent, SEXTEXT("The RHS in the boolean expression is neither an atomic nor compound expression"));
+               Throw(parent, ("The RHS in the boolean expression is neither an atomic nor compound expression"));
             }
 
-            csexstr rightString = right.String()->Buffer;
+            cstr rightString = right.String()->Buffer;
 
             int32 lValue;
             if (Parse::TryParseBoolean(OUT lValue, leftString) == Parse::PARSERESULT_GOOD)
@@ -884,7 +884,7 @@ namespace Rococo
          }
          else if (!IsCompound(left))
          {
-            Throw(parent, SEXTEXT("LHS neither atomic nor compound type"));
+            Throw(parent, ("LHS neither atomic nor compound type"));
          }
 
          if (IsAtomic(right))
@@ -897,12 +897,12 @@ namespace Rococo
          }
       }
 
-      const IFunction* TryGetMethod(const MemberDef& def, csexstr methodName)
+      const IFunction* TryGetMethod(const MemberDef& def, cstr methodName)
       {
          if (Rococo::IsCapital(methodName[0]))
          {
             TokenBuffer localMethodName;
-            StringPrint(localMethodName, SEXTEXT("%s.%s"), def.ResolvedType->Name(), methodName);
+            StringPrint(localMethodName, ("%s.%s"), def.ResolvedType->Name(), methodName);
             return def.ResolvedType->Module().FindFunction(localMethodName);
          }
          else
@@ -919,25 +919,25 @@ namespace Rococo
       CONDITION GetBinaryComparisonOp(cr_sex opExpr, bool negate)
       {
          sexstring op = opExpr.String();
-         if (AreEqual(op, SEXTEXT(">"))) return negate ? CONDITION_IF_LESS_OR_EQUAL : CONDITION_IF_GREATER_THAN;
-         if (AreEqual(op, SEXTEXT("<")))	return negate ? CONDITION_IF_GREATER_OR_EQUAL : CONDITION_IF_LESS_THAN;
-         if (AreEqual(op, SEXTEXT(">="))) return negate ? CONDITION_IF_LESS_THAN : CONDITION_IF_GREATER_OR_EQUAL;
-         if (AreEqual(op, SEXTEXT("<="))) return negate ? CONDITION_IF_GREATER_THAN : CONDITION_IF_LESS_OR_EQUAL;
-         if (AreEqual(op, SEXTEXT("!="))) return negate ? CONDITION_IF_EQUAL : CONDITION_IF_NOT_EQUAL;
-         if (AreEqual(op, SEXTEXT("=="))) return negate ? CONDITION_IF_NOT_EQUAL : CONDITION_IF_EQUAL;
+         if (AreEqual(op, (">"))) return negate ? CONDITION_IF_LESS_OR_EQUAL : CONDITION_IF_GREATER_THAN;
+         if (AreEqual(op, ("<")))	return negate ? CONDITION_IF_GREATER_OR_EQUAL : CONDITION_IF_LESS_THAN;
+         if (AreEqual(op, (">="))) return negate ? CONDITION_IF_LESS_THAN : CONDITION_IF_GREATER_OR_EQUAL;
+         if (AreEqual(op, ("<="))) return negate ? CONDITION_IF_GREATER_THAN : CONDITION_IF_LESS_OR_EQUAL;
+         if (AreEqual(op, ("!="))) return negate ? CONDITION_IF_EQUAL : CONDITION_IF_NOT_EQUAL;
+         if (AreEqual(op, ("=="))) return negate ? CONDITION_IF_NOT_EQUAL : CONDITION_IF_EQUAL;
 
-         Throw(opExpr, SEXTEXT("Cannot interpret as a comparison operator"));
+         Throw(opExpr, ("Cannot interpret as a comparison operator"));
          return CONDITION_IF_EQUAL;
       }
 
       LOGICAL_OP GetBinaryLogicalOp(cr_sex opExpr)
       {
          sexstring op = opExpr.String();
-         if (AreEqual(op, SEXTEXT("and"))) return LOGICAL_OP_AND;
-         if (AreEqual(op, SEXTEXT("or")))	return LOGICAL_OP_OR;
-         if (AreEqual(op, SEXTEXT("xor"))) return LOGICAL_OP_XOR;
+         if (AreEqual(op, ("and"))) return LOGICAL_OP_AND;
+         if (AreEqual(op, ("or")))	return LOGICAL_OP_OR;
+         if (AreEqual(op, ("xor"))) return LOGICAL_OP_XOR;
 
-         Throw(opExpr, SEXTEXT("Cannot interpret as a binary logical operation"));
+         Throw(opExpr, ("Cannot interpret as a binary logical operation"));
          return LOGICAL_OP_AND;
       }
 
@@ -959,7 +959,7 @@ namespace Rococo
 
                cr_sex notIndicator = s.GetElement(0);
                AssertAtomic(notIndicator);
-               if (AreEqual(notIndicator.String(), SEXTEXT("not")))
+               if (AreEqual(notIndicator.String(), ("not")))
                {
                   cr_sex onlyChild = s.GetElement(1);
                   negate = !negate;
@@ -969,7 +969,7 @@ namespace Rococo
                {
                   if (expected)
                   {
-                     Throw(s, SEXTEXT("Expected 'not' symbol in first argument of a two element binary expression"));
+                     Throw(s, ("Expected 'not' symbol in first argument of a two element binary expression"));
                   }
                   return false;
                }
@@ -1004,7 +1004,7 @@ namespace Rococo
 
                   if (expected)
                   {
-                     Throw(s, SEXTEXT("Expected boolean expression, but could not see a binary predicate operator"));
+                     Throw(s, ("Expected boolean expression, but could not see a binary predicate operator"));
                   }
                   // No binary predicate operator
                   return false;
@@ -1015,7 +1015,7 @@ namespace Rococo
                if (expected)
                {
                   sexstringstream<1024> streamer;
-                  streamer.sb << SEXTEXT("Expected expression with 3 elements. This expression had ") << s.NumberOfElements() << SEXTEXT(" elements.");
+                  streamer.sb << ("Expected expression with 3 elements. This expression had ") << s.NumberOfElements() << (" elements.");
                   Throw(s, streamer);
                }
                // All binary predicate expressions have 3 elements
@@ -1024,7 +1024,7 @@ namespace Rococo
          }
          else if (IsAtomic(s))
          {
-            csexstr token = s.String()->Buffer;
+            cstr token = s.String()->Buffer;
 
             VariantValue value;
             if (Parse::TryParseBoolean(OUT value.int32Value, IN token) == Parse::PARSERESULT_GOOD)
@@ -1049,7 +1049,7 @@ namespace Rococo
 
                   if (expected)
                   {
-                     Throw(s, SEXTEXT("Expected binary expression, but found an identifier/literal not of the boolean type"));
+                     Throw(s, ("Expected binary expression, but found an identifier/literal not of the boolean type"));
                   }
                   // not a boolean
                   return false;
@@ -1060,7 +1060,7 @@ namespace Rococo
          {
             if (expected)
             {
-               Throw(s, SEXTEXT("Expected binary expression, but expression was neither atomic nor compound"));
+               Throw(s, ("Expected binary expression, but expression was neither atomic nor compound"));
             }
             // not an atomic or a compound
             return false;

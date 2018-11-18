@@ -191,7 +191,7 @@ public:
    struct ImageTexture
    {
       HBITMAP hBitmap;
-	  RGBAb* pixels;
+	  RGBQUAD* pixels;
    };
 
    int32 width{ 0 };
@@ -220,25 +220,36 @@ public:
          Throw(GetLastError(), "Could not create DIB section");
       }
 
-      imageTextures.push_back({ hBitmap, (RGBAb*) pBits });
+      imageTextures.push_back({ hBitmap, (RGBQUAD*) pBits });
    }
 
    virtual void WriteSubImage(size_t index, const RGBAb* subImagePixels, const GuiRect& targetLocation)
    {
       int nRows = targetLocation.bottom - targetLocation.top;
 
-      RGBAb* targetline = imageTextures[index].pixels + width * targetLocation.top;
+	  RGBQUAD* targetline = imageTextures[index].pixels + width * targetLocation.top;
       const RGBAb* sourceline = subImagePixels;
 
       size_t xOffset = targetLocation.left;
-      size_t lineSize = sizeof(RGBAb) * (targetLocation.right - targetLocation.left);
 
-      for (int j = 0; j < nRows; ++j)
-      {
-         memcpy_s(targetline + xOffset, lineSize, sourceline, lineSize);
-         targetline += width;
-         sourceline += (targetLocation.right - targetLocation.left);
-      }
+	  size_t nCols = targetLocation.right - targetLocation.left;
+      size_t lineSize = sizeof(RGBAb) * nCols;
+
+	  for (int j = 0; j < nRows; ++j)
+	  {
+		  for (int i = 0; i < nCols; ++i)
+		  {
+			  auto col = sourceline[i];
+			  RGBQUAD& q = targetline[xOffset + i];
+			  q.rgbBlue = col.blue;
+			  q.rgbGreen = col.green;
+			  q.rgbRed = col.red;
+			  q.rgbReserved = 0;
+		  }
+
+		  targetline += width;
+		  sourceline += (targetLocation.right - targetLocation.left);
+	  }
    }
 
    ~TextureArray_ImageList()

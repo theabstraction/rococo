@@ -10,7 +10,7 @@
 #include "sexy.script.h"
 #include "sexy.native.sys.type.h"
 
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 # ifndef UNICODE
 #  define UNICODE
 # endif

@@ -112,13 +112,13 @@ namespace
 			}
 		}
 
-		csexstr GetCallbackSymbolName(ID_API_CALLBACK id)
+		cstr GetCallbackSymbolName(ID_API_CALLBACK id)
 		{
 			TMapIdToCallback::const_iterator i = callbacks.find(id);
 			return (i != callbacks.end()) ? i->second.Symbol.c_str() : NULL;
 		}
 
-		ID_API_CALLBACK RegisterCallback(FN_API_CALLBACK callback, void* context, csexstr symbol)
+		ID_API_CALLBACK RegisterCallback(FN_API_CALLBACK callback, void* context, cstr symbol)
 		{
 			ID_API_CALLBACK id = nextId++;
 			ApiCallbackBinding binding;
@@ -134,7 +134,7 @@ namespace
 			callbacks.erase(id);
 		}
 
-		virtual void Log(csexstr text)
+		virtual void Log(cstr text)
 		{
 			if (logger != NULL) logger->Write(text);
 		}

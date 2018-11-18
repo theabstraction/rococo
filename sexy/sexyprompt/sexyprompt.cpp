@@ -37,7 +37,7 @@
 #include "sexy.types.h"
 #include "sexy.strings.h"
 
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 # define _UNICODE
 # define UNICODE
 #endif
@@ -73,40 +73,40 @@ using namespace Rococo::Compiler;
 
 void PrintHelp()
 {
-	WriteToStandardOutput(SEXTEXT("Usage: SEXYPROMPT [options] [files]:\r\n\r\n"));
-	WriteToStandardOutput(SEXTEXT("\tOptions::\r\n\r\n"));
-	WriteToStandardOutput(SEXTEXT("\t\t-?                 show help\r\n"));
-	WriteToStandardOutput(SEXTEXT("\t\t-version           show version\r\n"));
-	WriteToStandardOutput(SEXTEXT("\t\t-banner            show banner\r\n"));
-	WriteToStandardOutput(SEXTEXT("\t\t-lib:[libfilename] open s-expression of files \r\n"));
-	WriteToStandardOutput(SEXTEXT("\t\t-verbose           toggle verbosity\r\n"));
-	WriteToStandardOutput(SEXTEXT("\r\n"));
+	WriteToStandardOutput(("Usage: SEXYPROMPT [options] [files]:\r\n\r\n"));
+	WriteToStandardOutput(("\tOptions::\r\n\r\n"));
+	WriteToStandardOutput(("\t\t-?                 show help\r\n"));
+	WriteToStandardOutput(("\t\t-version           show version\r\n"));
+	WriteToStandardOutput(("\t\t-banner            show banner\r\n"));
+	WriteToStandardOutput(("\t\t-lib:[libfilename] open s-expression of files \r\n"));
+	WriteToStandardOutput(("\t\t-verbose           toggle verbosity\r\n"));
+	WriteToStandardOutput(("\r\n"));
 }
 
 void PrintVersion()
 {
 	int versionMajor = 1;
 	int versionMinor = 0;
-	WriteToStandardOutput(SEXTEXT("Version: 1.2.0.0\r\n"));
+	WriteToStandardOutput(("Version: 1.2.0.0\r\n"));
 }
 
 void PrintBanner()
 {
-	WriteToStandardOutput(SEXTEXT("SexyPrompt by 19th Century Software. Copyright(c)2012. All rights reserved.\r\n"));
-	WriteToStandardOutput(SEXTEXT("Masterminded and programmed by Mark Anthony Taylor.\r\n"));
-	WriteToStandardOutput(SEXTEXT("This software is NOT free!\r\n"));
-	WriteToStandardOutput(SEXTEXT("If by a pigeon's coo thou art subdued I'll sing thee lullabies.\r\n"));
-	WriteToStandardOutput(SEXTEXT("Compiled %hs %hs\r\n"), __DATE__, __TIME__);
+	WriteToStandardOutput(("SexyPrompt by 19th Century Software. Copyright(c)2012. All rights reserved.\r\n"));
+	WriteToStandardOutput(("Masterminded and programmed by Mark Anthony Taylor.\r\n"));
+	WriteToStandardOutput(("This software is NOT free!\r\n"));
+	WriteToStandardOutput(("If by a pigeon's coo thou art subdued I'll sing thee lullabies.\r\n"));
+	WriteToStandardOutput(("Compiled %hs %hs\r\n"), __DATE__, __TIME__);
 }
 
-void SexcharToAscii(char* dest, size_t maxLen, csexstr source)
+void charToAscii(char* dest, size_t maxLen, cstr source)
 {
 	char* d = dest;
-	csexstr s = source;
+	cstr s = source;
 
 	for(size_t i = 0; i < maxLen-1; ++i)
 	{
-		SEXCHAR c = *s++;
+		char c = *s++;
 		*d++ =	c < 256 ? (c & 0xFF): '?';
 
 		if (c == 0) return;
@@ -115,16 +115,16 @@ void SexcharToAscii(char* dest, size_t maxLen, csexstr source)
 	dest[maxLen-1] = 0;
 }
 
-void UnicodeToSEXCHAR(SEXCHAR* dest, size_t maxLen, cstr source)
+void UnicodeTochar(char* dest, size_t maxLen, cstr source)
 {
-	SEXCHAR* d = dest;
+	char* d = dest;
 	cstr s = source;
 
 	for(size_t i = 0; i < maxLen-1; ++i)
 	{
 		char c = *s++;
 		if (c > 127) c = '?';
-		*d++ = (SEXCHAR) c;
+		*d++ = (char) c;
 
 		if (c == 0) return;
 	}
@@ -132,9 +132,9 @@ void UnicodeToSEXCHAR(SEXCHAR* dest, size_t maxLen, cstr source)
 	dest[maxLen-1] = 0;
 }
 
-void AsciiToSEXCHAR(SEXCHAR* dest, size_t maxLen, const char* source)
+void AsciiTochar(char* dest, size_t maxLen, const char* source)
 {
-	SEXCHAR* d = dest;
+	char* d = dest;
 	const char* s = source;
 
 	for(size_t i = 0; i < maxLen-1; ++i)
@@ -164,9 +164,9 @@ private:
 	char asciiPath[_MAX_PATH];
 
 public:
-	CStandardFile(csexstr filename, const char* mode): fp(NULL)
+	CStandardFile(cstr filename, const char* mode): fp(NULL)
 	{
-		SexcharToAscii(asciiPath, _MAX_PATH, filename);
+		charToAscii(asciiPath, _MAX_PATH, filename);
 		
 		int err = fopen_s(&fp, asciiPath, mode);
 		if (err != 0) Throw(err, "Cannot open file");
@@ -250,13 +250,13 @@ struct CBuffer
 
 struct CSexBuffer
 {
-	SEXCHAR* data;
+	char* data;
 	size_t capacity;
 	long length;
 
 	CSexBuffer(size_t len): capacity(len)
 	{
-		data = new SEXCHAR[len];
+		data = new char[len];
 	}
 
 	~CSexBuffer()
@@ -265,7 +265,7 @@ struct CSexBuffer
 	}
 };
 
-void LoadLibFile(TFiles& files, csexstr libFile, IPublicScriptSystem& ss, bool isVerbose)
+void LoadLibFile(TFiles& files, cstr libFile, IPublicScriptSystem& ss, bool isVerbose)
 {
 	CStandardFile stdLibFile(libFile, "r");
 
@@ -279,16 +279,16 @@ void LoadLibFile(TFiles& files, csexstr libFile, IPublicScriptSystem& ss, bool i
 	rawLibCode.data[rawLibCode.length+1] = 0;
 
 	ISourceCode* sc;
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 	if (rawLibCode.IsUnicode())
 	{
-		sc = ss.SParser().ProxySourceBuffer((csexstr)rawLibCode.data, len / 2, Vec2i{ 0,0 }, libFile);
+		sc = ss.SParser().ProxySourceBuffer((cstr)rawLibCode.data, len / 2, Vec2i{ 0,0 }, libFile);
 	}
 	else
 	{
 		CSexBuffer sexLibData(len+2);
 		
-		AsciiToSEXCHAR(sexLibData.data, len+1, rawLibCode.data);
+		AsciiTochar(sexLibData.data, len+1, rawLibCode.data);
 		sexLibData.length = len;
 
 		sc = ss.SParser().ProxySourceBuffer(sexLibData.data, sexLibData.length, Vec2i{ 0,0 }, libFile);
@@ -297,7 +297,7 @@ void LoadLibFile(TFiles& files, csexstr libFile, IPublicScriptSystem& ss, bool i
 	if (rawLibCode.IsUnicode())
 	{
 		CSexBuffer sexLibData(len+2);
-		UnicodeToSEXCHAR(sexLibData.data, rawLibCode.length, (cstr) rawLibCode.data);
+		UnicodeTochar(sexLibData.data, rawLibCode.length, (cstr) rawLibCode.data);
 		sc = ss.SParser().ProxySourceBuffer(sexLibData.data, sexLibData.length, Vec2i{ 0,0 }, libFile);
 	}
 	else
@@ -316,7 +316,7 @@ void LoadLibFile(TFiles& files, csexstr libFile, IPublicScriptSystem& ss, bool i
 			cr_sex s = tree().Root().GetElement(i);
 			if (IsStringLiteral(s) || IsAtomic(s))
 			{
-				csexstr filename = s.String()->Buffer;
+				cstr filename = s.String()->Buffer;
 
 				FileData data;
 				data.Filename = filename;
@@ -338,7 +338,7 @@ void LoadLibFile(TFiles& files, csexstr libFile, IPublicScriptSystem& ss, bool i
 
 static bool isVerbose = false;
 
-void PreProcessArgs(TFiles& files, int argc, SEXCHAR* argv[], IPublicScriptSystem& ss)
+void PreProcessArgs(TFiles& files, int argc, char* argv[], IPublicScriptSystem& ss)
 {
 	if (argc == 1)
 	{
@@ -350,36 +350,36 @@ void PreProcessArgs(TFiles& files, int argc, SEXCHAR* argv[], IPublicScriptSyste
 
 	for(int i = 1; i < argc; i++)
 	{
-		csexstr value = argv[i];
-		if (AreEqual(value, SEXTEXT("-?"))) 
+		cstr value = argv[i];
+		if (AreEqual(value, ("-?"))) 
 		{
 			PrintHelp();
 			continue;
 		}
 
-		if (AreEqual(value, SEXTEXT("-version")))
+		if (AreEqual(value, ("-version")))
 		{
 			PrintVersion();
 			continue;
 		}
 
-		if (AreEqual(value, SEXTEXT("-banner")))
+		if (AreEqual(value, ("-banner")))
 		{
 			PrintBanner();
 			continue;
 		}
 
-		if (AreEqual(value, SEXTEXT("-verbose")))
+		if (AreEqual(value, ("-verbose")))
 		{
 			isVerbose = !isVerbose;
 			continue;
 		}
 
-		if (AreEqual(value, SEXTEXT("-lib:"), 5))
+		if (AreEqual(value, ("-lib:"), 5))
 		{
-			csexstr libFile = value + 5;
+			cstr libFile = value + 5;
 
-			if (isVerbose) WriteToStandardOutput(SEXTEXT("Loading entries from library file: %s\r\n"), libFile);
+			if (isVerbose) WriteToStandardOutput(("Loading entries from library file: %s\r\n"), libFile);
 			LoadLibFile(files, libFile, ss, isVerbose);
 
 			continue;
@@ -394,7 +394,7 @@ void PreProcessArgs(TFiles& files, int argc, SEXCHAR* argv[], IPublicScriptSyste
 	}
 }
 
-ISourceCode* AddSourcecodeModule(csexstr fileName, IPublicScriptSystem& ss)
+ISourceCode* AddSourcecodeModule(cstr fileName, IPublicScriptSystem& ss)
 {
 	CStandardFile srcModuleFile(fileName, "rb");
 
@@ -408,16 +408,16 @@ ISourceCode* AddSourcecodeModule(csexstr fileName, IPublicScriptSystem& ss)
 	rawLibCode.data[rawLibCode.length+1] = 0;
 
 	ISourceCode* sc;
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 	if (rawLibCode.IsUnicode())
 	{
-		sc = ss.SParser().ProxySourceBuffer((csexstr)rawLibCode.data, len / 2, Vec2i{ 0,0 }, fileName);
+		sc = ss.SParser().ProxySourceBuffer((cstr)rawLibCode.data, len / 2, Vec2i{ 0,0 }, fileName);
 	}
 	else
 	{
 		CSexBuffer sexLibData(len+2);
 		
-		AsciiToSEXCHAR(sexLibData.data, len+1, rawLibCode.data);
+		AsciiTochar(sexLibData.data, len+1, rawLibCode.data);
 		sexLibData.length = len;
 
 		sc = ss.SParser().ProxySourceBuffer(sexLibData.data, sexLibData.length, Vec2i{ 0,0 }, fileName);
@@ -426,7 +426,7 @@ ISourceCode* AddSourcecodeModule(csexstr fileName, IPublicScriptSystem& ss)
 	if (rawLibCode.IsUnicode())
 	{
 		CSexBuffer sexLibData(len+2);
-		UnicodeToSEXCHAR(sexLibData.data, rawLibCode.length, (cstr) rawLibCode.data);
+		UnicodeTochar(sexLibData.data, rawLibCode.length, (cstr) rawLibCode.data);
 		sc = ss.SParser().DuplicateSourceBuffer(sexLibData.data, sexLibData.length, Vec2i{ 0,0 }, fileName);
 	}
 	else
@@ -438,55 +438,55 @@ ISourceCode* AddSourcecodeModule(csexstr fileName, IPublicScriptSystem& ss)
 	return sc;
 }
 
-int ProtectedMain(int argc, SEXCHAR* argv[], TFiles& files, IPublicScriptSystem& ss)
+int ProtectedMain(int argc, char* argv[], TFiles& files, IPublicScriptSystem& ss)
 {
 	PreProcessArgs(OUT files, argc, argv, ss);
 
-	if (isVerbose) WriteToStandardOutput(SEXTEXT("Adding source code modules\r\n"));
+	if (isVerbose) WriteToStandardOutput(("Adding source code modules\r\n"));
 	for(TFiles::iterator i = files.begin(); i != files.end(); ++i)
 	{		
-		csexstr fileName = i->Filename.c_str();
+		cstr fileName = i->Filename.c_str();
 
-		if (isVerbose) WriteToStandardOutput(SEXTEXT("%s\r\n"), fileName);
+		if (isVerbose) WriteToStandardOutput(("%s\r\n"), fileName);
 		i->SC = AddSourcecodeModule(fileName, ss);
 		i->Tree = ss.SParser().CreateTree(*i->SC);
 
 		ss.AddTree(*i->Tree);
 	}
 
-	if (isVerbose) WriteToStandardOutput(SEXTEXT("Compiling\r\n"));
+	if (isVerbose) WriteToStandardOutput(("Compiling\r\n"));
 	ss.Compile();
-	if (isVerbose) WriteToStandardOutput(SEXTEXT("Compiled\r\n"));
+	if (isVerbose) WriteToStandardOutput(("Compiled\r\n"));
 
-	const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(SEXTEXT("EntryPoint"));
+	const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace(("EntryPoint"));
 	if (ns == NULL)
 	{
-		WriteToStandardOutput(SEXTEXT("Cannot find namespace 'EntryPoint' in the source code\r\n"));
+		WriteToStandardOutput(("Cannot find namespace 'EntryPoint' in the source code\r\n"));
 		return -1;
 	}
 
-	const IFunction* f = ns->FindFunction(SEXTEXT("Main"));
+	const IFunction* f = ns->FindFunction(("Main"));
 	if (f == NULL)
 	{
-		WriteToStandardOutput(SEXTEXT("Cannot find function 'Main' aliased in the namespace 'EntryPoint'\r\n"));
+		WriteToStandardOutput(("Cannot find function 'Main' aliased in the namespace 'EntryPoint'\r\n"));
 		return -1;
 	}
 
 	if (f->NumberOfInputs() != 0)
 	{
-		WriteToStandardOutput(SEXTEXT("EntryPoint.Main had inputs. This program cannot be run from sexyprompt\r\n"));
+		WriteToStandardOutput(("EntryPoint.Main had inputs. This program cannot be run from sexyprompt\r\n"));
 		return -1;
 	}
 
 	if (f->NumberOfOutputs() != 1)
 	{
-		WriteToStandardOutput(SEXTEXT("EntryPoint.Main had other than a single output. This program cannot be run from sexyprompt\r\n"));
+		WriteToStandardOutput(("EntryPoint.Main had other than a single output. This program cannot be run from sexyprompt\r\n"));
 		return -1;
 	}
 
 	if (f->GetArgument(0).VarType() != VARTYPE_Int32)
 	{
-		WriteToStandardOutput(SEXTEXT("EntryPoint.Main had other than a single output of Int32. This program cannot be run from sexyprompt\r\n"));
+		WriteToStandardOutput(("EntryPoint.Main had other than a single output of Int32. This program cannot be run from sexyprompt\r\n"));
 		return -1;
 	}
 	
@@ -494,24 +494,24 @@ int ProtectedMain(int argc, SEXCHAR* argv[], TFiles& files, IPublicScriptSystem&
 
 	ss.PublicProgramObject().VirtualMachine().Push(0); // allow space for int32 return value
 
-	if (isVerbose) WriteToStandardOutput(SEXTEXT("Executing\r\n"));
+	if (isVerbose) WriteToStandardOutput(("Executing\r\n"));
 	EXECUTERESULT result = ss.PublicProgramObject().VirtualMachine().Execute(VM::ExecutionFlags(true, true));
 	if (result == EXECUTERESULT_TERMINATED)
 	{
 		int retCode = ss.PublicProgramObject().VirtualMachine().PopInt32();
 
-		if (isVerbose) WriteToStandardOutput(SEXTEXT("Sexy program terminated with exit code %d\r\n"), retCode);
+		if (isVerbose) WriteToStandardOutput(("Sexy program terminated with exit code %d\r\n"), retCode);
 
 		return retCode;
 	}
 	else
 	{
-		WriteToStandardOutput(SEXTEXT("Virtual machine prematurely terminated\r\n"));
+		WriteToStandardOutput(("Virtual machine prematurely terminated\r\n"));
 		return -1;
 	}
 }
 
-int _tmain(int argc, SEXCHAR* argv[])
+int _tmain(int argc, char* argv[])
 {
 	CLogger logger;
 	ProgramInitParameters pip;

@@ -62,7 +62,7 @@ namespace ANON
 			}
 		}
 
-		const sexstring AddSymbol(csexstr start, int32 length)
+		const sexstring AddSymbol(cstr start, int32 length)
 		{
 			sexstring_key key(start, length);
 			auto i = symbols.find(key);
@@ -101,7 +101,7 @@ namespace ANON
 			}
 		}
 
-		const sexstring AddSymbol(csexstr start, int32 length)
+		const sexstring AddSymbol(cstr start, int32 length)
 		{
 			sexstring s = CreateSexString(start, length);
 			symbols.push_back(s);
@@ -113,15 +113,15 @@ namespace ANON
 	{
 	private:
 		size_t maxAlloc;
-		SEXCHAR* heap;
-		SEXCHAR* heapEnd;
-		SEXCHAR* writePos;
+		char* heap;
+		char* heapEnd;
+		char* writePos;
 	public:
 		CPrivateHeapSymbols(size_t _sourceLength)
 		{
 			maxAlloc = 4 * _sourceLength + 16;
 			 // figure worst case is single character atomics, each seperated by a space, giving filelength/2 atomic symbols. each takes 8 bytes of aligned data to store. Add 16 for good measure
-			heap = new SEXCHAR[maxAlloc];
+			heap = new char[maxAlloc];
 			heapEnd = heap + maxAlloc - 8; // leave a safe zone
 			writePos = heap;
 		}
@@ -131,17 +131,17 @@ namespace ANON
 			delete[] heap;
 		}
 
-		const sexstring AddSymbol(csexstr start, int32 length)
+		const sexstring AddSymbol(cstr start, int32 length)
 		{
 			if (length + writePos + sizeof(int32) >= heapEnd)
 			{
-            Rococo::Throw(0, SEXTEXT("sexy.s-parser.symbols.inl: private heap symbols exhausted. Increase CPrivateHeapSymbols::_maxAllocHint"));
+            Rococo::Throw(0, ("sexy.s-parser.symbols.inl: private heap symbols exhausted. Increase CPrivateHeapSymbols::_maxAllocHint"));
 				return NULL;
 			}
 
 			sexstring_header& header = *(sexstring_header*) writePos;
 			header.Length = length;
-			memcpy(header.Buffer, start, sizeof(SEXCHAR) * length);
+			memcpy(header.Buffer, start, sizeof(char) * length);
 			header.Buffer[length] = 0;
 			writePos += sizeof(int32);
 			writePos += length + 1;
@@ -150,15 +150,15 @@ namespace ANON
 			size_t mask = (size_t) -3;
 			size_t writePosSize = (size_t) writePos;
 			size_t alignedWritePos = (writePosSize & mask) + 4;
-			writePos = (SEXCHAR*) alignedWritePos;
+			writePos = (char*) alignedWritePos;
 			return &header;
 		}
 	};
 
 	//typedef CHashedSymbols CSymbols; // Least memory, as two tokens with matching data consume the same memory units, but slowest
 	//typedef CSequentialSymbols CSymbols; // Less memory consumption than fastest, on average, but not much faster than hashed
-	typedef CPrivateHeapSymbols CSymbols; // Fastest, but takes 4 sexchars per source sexchar
+	typedef CPrivateHeapSymbols CSymbols; // Fastest, but takes 4 chars per source char
 
 	class CSParserTree;
-	sexstring AddSymbol(CSParserTree& tree, csexstr data, int dataLen);
+	sexstring AddSymbol(CSParserTree& tree, cstr data, int dataLen);
 }

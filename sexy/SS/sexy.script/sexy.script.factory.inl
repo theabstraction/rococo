@@ -35,13 +35,13 @@ namespace Rococo
 {
    namespace Script
    {
-      const IFactory& GetFactoryInModuleByFQN(cr_sex factoryExpr, csexstr ns, csexstr shortName, IModule& module)
+      const IFactory& GetFactoryInModuleByFQN(cr_sex factoryExpr, cstr ns, cstr shortName, IModule& module)
       {
          const INamespace* NS = module.Object().GetRootNamespace().FindSubspace(ns);
          if (NS == NULL)
          {
             sexstringstream<1024> streamer;
-            streamer.sb << SEXTEXT("Cannot find the namespace: ") << ns;
+            streamer.sb << ("Cannot find the namespace: ") << ns;
             Throw(factoryExpr, *streamer.sb);
          }
 
@@ -49,7 +49,7 @@ namespace Rococo
          if (factory == NULL)
          {
             sexstringstream<1024> streamer;
-            streamer.sb << SEXTEXT("Cannot find the factory in the namespace: ") << shortName;
+            streamer.sb << ("Cannot find the factory in the namespace: ") << shortName;
             Throw(factoryExpr, streamer);
          }
 
@@ -70,7 +70,7 @@ namespace Rococo
                if (NS != NULL)
                {
                   sexstringstream<1024> streamer;
-                  streamer.sb << SEXTEXT("Module uses more than one namespace that has a factory of the given name: ") << NS->FullName()->Buffer << SEXTEXT(" and ") << prefix.FullName()->Buffer;
+                  streamer.sb << ("Module uses more than one namespace that has a factory of the given name: ") << NS->FullName()->Buffer << (" and ") << prefix.FullName()->Buffer;
                   Throw(factoryExpr, *streamer.sb);
                }
 
@@ -82,7 +82,7 @@ namespace Rococo
          if (uniqueFactory == NULL)
          {
             sexstringstream<1024> streamer;
-            streamer.sb << SEXTEXT("Cannot find the factory in any namespace used by the module");
+            streamer.sb << ("Cannot find the factory in any namespace used by the module");
             Throw(factoryExpr, *streamer.sb);
          }
 
@@ -94,7 +94,7 @@ namespace Rococo
          sexstring factoryName = factoryExpr.String();
          NamespaceSplitter splitter(factoryName->Buffer);
 
-         csexstr ns, shortName;
+         cstr ns, shortName;
          if (splitter.SplitTail(OUT ns, OUT shortName))
          {
             return GetFactoryInModuleByFQN(factoryExpr, ns, shortName, module);
@@ -105,7 +105,7 @@ namespace Rococo
          }
       }
 
-      void CompileFactoryCall(CCompileEnvironment& ce, const IFactory& factory, csexstr id, csexstr refId, cr_sex args, const IInterface& interf)
+      void CompileFactoryCall(CCompileEnvironment& ce, const IFactory& factory, cstr id, cstr refId, cr_sex args, const IInterface& interf)
       {
          const IFunction& factoryFunction = factory.Constructor();
          const IFunction* inlineConstructor = factory.InlineConstructor();
@@ -124,10 +124,10 @@ namespace Rococo
          }
 
          int explicitInputCount = ArgCount(factoryFunction) - 1;
-         int mapIndex = GetIndexOf(1, args, SEXTEXT("->"));
-         if (mapIndex > 0) Throw(args, SEXTEXT("Mapping token are not allowed in constructor calls, which have no output"));
-         if (args.NumberOfElements() - 1 < explicitInputCount) Throw(args, SEXTEXT("Too few arguments to factory call"));
-         if (args.NumberOfElements() - 1 > explicitInputCount) Throw(args, SEXTEXT("Too many arguments to factory call"));
+         int mapIndex = GetIndexOf(1, args, ("->"));
+         if (mapIndex > 0) Throw(args, ("Mapping token are not allowed in constructor calls, which have no output"));
+         if (args.NumberOfElements() - 1 < explicitInputCount) Throw(args, ("Too few arguments to factory call"));
+         if (args.NumberOfElements() - 1 > explicitInputCount) Throw(args, ("Too many arguments to factory call"));
 
          int inputStackAllocCount = PushInputs(ce, args, factoryFunction, true, 1);
          inputStackAllocCount += CompileInstancePointerArg(ce, id);
@@ -149,7 +149,7 @@ namespace Rococo
             if (interfaceIndex < 0)
             {
                sexstringstream<1024> streamer;
-               streamer.sb << inlineConstructor->Name() << SEXTEXT(" does not support the interface ") << interf.Name();
+               streamer.sb << inlineConstructor->Name() << (" does not support the interface ") << interf.Name();
                Throw(args, streamer);
             }
 
@@ -187,7 +187,7 @@ namespace Rococo
             return false;
          }
 
-         csexstr targetName = directive.GetElement(0).String()->Buffer;
+         cstr targetName = directive.GetElement(0).String()->Buffer;
 
          TokenBuffer targetRefName;
          GetRefName(targetRefName, targetName);
@@ -205,7 +205,7 @@ namespace Rococo
          return true;
       }
 
-      void CompileConstructFromFactory(CCompileEnvironment& ce, const IStructure& nullType, csexstr id, cr_sex args)
+      void CompileConstructFromFactory(CCompileEnvironment& ce, const IStructure& nullType, cstr id, cr_sex args)
       {
          // This function turns (<IInterface> id (<Factory> <arg1>...<argN>)) into assembly
 
@@ -215,7 +215,7 @@ namespace Rococo
          ce.Builder.AddSymbol(refName);
          AddVariable(ce, NameString::From(refName), ce.Object.Common().TypePointer());
 
-         AddSymbol(ce.Builder, SEXTEXT("%s %s"), GetFriendlyName(nullType), id);
+         AddSymbol(ce.Builder, ("%s %s"), GetFriendlyName(nullType), id);
 
          AddVariable(ce, NameString::From(id), nullType);
 

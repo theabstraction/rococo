@@ -33,26 +33,26 @@
 
 namespace
 {
-	void AppendProxyName(FileAppender& appender, csexstr fqInterfaceName, cr_sex s)
+	void AppendProxyName(FileAppender& appender, cstr fqInterfaceName, cr_sex s)
 	{
 		NamespaceSplitter splitter(fqInterfaceName);
 
-		csexstr ns, shortname;
+		cstr ns, shortname;
 		if(!splitter.SplitTail(ns, shortname))
 		{
 			sexstringstream<1024> err;
-			err.sb << SEXTEXT("Could not split interface name: ") << fqInterfaceName;
+			err.sb << ("Could not split interface name: ") << fqInterfaceName;
 			Throw(s, *err.sb);
 		}
 
-		appender.Append(SEXTEXT("Proxy%s"), shortname);
+		appender.Append(("Proxy%s"), shortname);
 	}
 
 	void AppendInputPair(FileAppender& appender, cr_sex s, const ParseContext& pc)
 	{
 		if (s.NumberOfElements() != 2 && s.NumberOfElements() != 3)
 		{
-			Throw(s, SEXTEXT("Expected input argument pair (<type> <value>) or (const <type> value)"));
+			Throw(s, ("Expected input argument pair (<type> <value>) or (const <type> value)"));
 		}
 
 		int typeIndex = 0;
@@ -63,16 +63,16 @@ namespace
 			typeIndex++;
 			valueIndex++;
 
-			if (!IsAtomic(s[0]) || !AreEqual(s[0].String(), SEXTEXT("const")))
+			if (!IsAtomic(s[0]) || !AreEqual(s[0].String(), ("const")))
 			{
-				Throw(s[0], SEXTEXT("Expecting 'const' as first argument in 3 element input expression"));
+				Throw(s[0], ("Expecting 'const' as first argument in 3 element input expression"));
 			}
 		}
 
 		cr_sex stype = s.GetElement(typeIndex);
 		cr_sex svalue = s.GetElement(valueIndex);
 
-		csexstr type = StringFrom(s, typeIndex);
+		cstr type = StringFrom(s, typeIndex);
 		if (type[0] == '#' && type[1] == 0)
 		{
 		}
@@ -81,18 +81,18 @@ namespace
 			ValidateSexyType(stype);
 			ValidateSexyVariable(svalue);
 
-			csexstr sxhtype = stype.String()->Buffer;
+			cstr sxhtype = stype.String()->Buffer;
 			auto i = pc.primitives.find(sxhtype);
 			if (i == pc.primitives.end())
 			{
 				i = pc.structs.find(sxhtype);
 				if (i == pc.structs.end())
 				{
-					Throw(stype, SEXTEXT("Could not resolve sexy type"));
+					Throw(stype, ("Could not resolve sexy type"));
 				}
 			}
 
-			appender.Append(SEXTEXT("(%s %s)"), i->second.sexyType.c_str(), svalue.String()->Buffer);
+			appender.Append(("(%s %s)"), i->second.sexyType.c_str(), svalue.String()->Buffer);
 		}
 	}
 
@@ -100,13 +100,13 @@ namespace
 	{
 		if (s.NumberOfElements() != 2)
 		{
-			Throw(s, SEXTEXT("Expected input argument pair (<type> <value>)"));
+			Throw(s, ("Expected input argument pair (<type> <value>)"));
 		}
 
 		cr_sex stype = s.GetElement(0);
 		cr_sex svalue = s.GetElement(1);
 
-		csexstr type = StringFrom(s, 0);
+		cstr type = StringFrom(s, 0);
 		if (type[0] == '#' && type[1] == 0)
 		{
 			// attribute arguments are not appended
@@ -114,7 +114,7 @@ namespace
 		else
 		{
 			ValidateSexyVariable(svalue);
-			appender.Append(SEXTEXT("%s"), svalue.String()->Buffer);
+			appender.Append(("%s"), svalue.String()->Buffer);
 		}
 	}
 
@@ -122,7 +122,7 @@ namespace
 	{
 		if (s.NumberOfElements() != 2)
 		{
-			Throw(s, SEXTEXT("Expected output argument pair (<type> <value>)"));
+			Throw(s, ("Expected output argument pair (<type> <value>)"));
 		}
 
 		cr_sex stype = s.GetElement(0);
@@ -131,29 +131,29 @@ namespace
 		ValidateSexyType(stype);
 		ValidateSexyVariable(svalue);
 
-		csexstr sxhtype = stype.String()->Buffer;
+		cstr sxhtype = stype.String()->Buffer;
 		auto i = pc.primitives.find(sxhtype);
 		if (i == pc.primitives.end())
 		{
          i = pc.structs.find(sxhtype);
          if (i != pc.structs.end())
          {
-            Throw(stype, SEXTEXT("The output type is a struct. Only primitives and generated interfaces are legal output for sexy functions."));
+            Throw(stype, ("The output type is a struct. Only primitives and generated interfaces are legal output for sexy functions."));
          }
 
          auto j = pc.interfaces.find(sxhtype);
          if (j == pc.interfaces.end())
          {
-            Throw(stype, SEXTEXT("Could not resolve sexy type. Double-check the namespaces and the type name"));
+            Throw(stype, ("Could not resolve sexy type. Double-check the namespaces and the type name"));
          }			
          else
          {
-            appender.Append(SEXTEXT("(%s %s)"), j->second->ic.asSexyInterface, svalue.String()->Buffer);
+            appender.Append(("(%s %s)"), j->second->ic.asSexyInterface, svalue.String()->Buffer);
          }
 		}
       else
       {
-         appender.Append(SEXTEXT("(%s %s)"), i->second.sexyType.c_str(), svalue.String()->Buffer);
+         appender.Append(("(%s %s)"), i->second.sexyType.c_str(), svalue.String()->Buffer);
       }
 	}
 
@@ -164,8 +164,8 @@ namespace
 			cr_sex s = method.GetElement(i);
 			if (IsAtomic(s))
 			{
-				csexstr arg = s.String()->Buffer;
-				if (AreEqual(arg, SEXTEXT("->")))
+				cstr arg = s.String()->Buffer;
+				if (AreEqual(arg, ("->")))
 				{
 					return i + 1;
 				}
@@ -184,7 +184,7 @@ namespace
 			AppendInputPair(appender, method.GetElement(i), pc);
 		}
 
-		appender.Append(SEXTEXT(" -> "));
+		appender.Append((" -> "));
 
 		for (int i = outputPos; i < method.NumberOfElements(); ++i)
 		{
@@ -194,26 +194,26 @@ namespace
 
 	void AppendSexyMethod(FileAppender& appender, cr_sex method, const ParseContext& pc)
 	{
-		appender.Append(SEXTEXT("\t("));
+		appender.Append(("\t("));
 
 		cr_sex smethodName = method.GetElement(0);
-		csexstr methodName = smethodName.String()->Buffer;
-		appender.Append(SEXTEXT("%s "), methodName);
+		cstr methodName = smethodName.String()->Buffer;
+		appender.Append(("%s "), methodName);
 	
 		AppendInputsAndOutputs(appender, method, pc);
 
-		appender.Append(SEXTEXT(")\n"));
+		appender.Append((")\n"));
 	}
 
-	void AppendFQNativeName(FileAppender& appender, cr_sex method, csexstr interfaceName)
+	void AppendFQNativeName(FileAppender& appender, cr_sex method, cstr interfaceName)
 	{
 		NamespaceSplitter splitter(interfaceName);
 
-		csexstr ns, shortName;
+		cstr ns, shortName;
 		splitter.SplitTail(ns, shortName);
 
-		csexstr methodName = method.GetElement(0).String()->Buffer;
-		appender.Append(SEXTEXT("%s.Native.%s%s"), ns, shortName, methodName);
+		cstr methodName = method.GetElement(0).String()->Buffer;
+		appender.Append(("%s.Native.%s%s"), ns, shortName, methodName);
 	}
 
 	void AppendVarNameFromPair(FileAppender& appender, cr_sex arg)
@@ -225,8 +225,8 @@ namespace
 			nameIndex++;
 		}
 
-		csexstr argName = StringFrom(arg, nameIndex);
-		appender.Append(SEXTEXT("%s"), argName);
+		cstr argName = StringFrom(arg, nameIndex);
+		appender.Append(("%s"), argName);
 	}
 
 	void AppendNativeInvoke(FileAppender& appender, const InterfaceContext& ic, cr_sex method, const ParseContext& pc)
@@ -234,8 +234,8 @@ namespace
 		appender.Append('(');
 		AppendFQNativeName(appender, method, ic.asSexyInterface);
 
-		if (!ic.isSingleton) appender.Append(SEXTEXT(" this.hObject "));
-		else  appender.Append(SEXTEXT(" "));
+		if (!ic.isSingleton) appender.Append((" this.hObject "));
+		else  appender.Append((" "));
 
 		int outputPos = GetOutputPosition(method);
 
@@ -244,7 +244,7 @@ namespace
 		for(int i = 1; i < outputPos - 1; ++i)
 		{
 			cr_sex arg = method.GetElement(i);
-			if (AreEqual(StringFrom(arg,0), SEXTEXT("#")))
+			if (AreEqual(StringFrom(arg,0), ("#")))
 			{
 			}
 			else
@@ -257,7 +257,7 @@ namespace
 
 		if (outputPos < method.NumberOfElements())
 		{
-			appender.Append(SEXTEXT(" -> "));
+			appender.Append((" -> "));
 
 			for (int i = outputPos; i < method.NumberOfElements(); ++i)
 			{
@@ -272,41 +272,41 @@ namespace
 	void AppendSexyMethodProxy(FileAppender& appender, const InterfaceContext& ic, cr_sex method, const ParseContext& pc)
 	{
 		cr_sex smethodName = method.GetElement(0);
-		csexstr methodName = smethodName.String()->Buffer;
+		cstr methodName = smethodName.String()->Buffer;
 
-		appender.Append(SEXTEXT("\t(method "));
+		appender.Append(("\t(method "));
 		AppendProxyName(appender, ic.asSexyInterface, method);
-		appender.Append(SEXTEXT(".%s "), methodName);
+		appender.Append((".%s "), methodName);
 	
 		AppendInputsAndOutputs(appender, method, pc);
 
-		appender.Append(SEXTEXT(" : "));
+		appender.Append((" : "));
 		AppendNativeInvoke(appender, ic, method, pc);
-		appender.Append(SEXTEXT(")\n"));
+		appender.Append((")\n"));
 	}
 
 	void DeclareSexyEnum(FileAppender& appender, const EnumContext& ec, cr_sex senumDef, const ParseContext& pc)
 	{
 		NamespaceSplitter splitter(ec.asSexyEnum);
 
-		csexstr body, tail;
+		cstr body, tail;
 		if (!splitter.SplitTail(body, tail))
 		{
-			Throw(senumDef, SEXTEXT("Could not split namespace of enum definition"));
+			Throw(senumDef, ("Could not split namespace of enum definition"));
 		}
 
 		for (auto &i : ec.values)
 		{
-			appender.Append(SEXTEXT("(macro %s.%s%s in out (out.AddAtomic \"0x%I64X\"))\n"), body, tail, i.first.c_str(), i.second);
+			appender.Append(("(macro %s.%s%s in out (out.AddAtomic \"0x%I64X\"))\n"), body, tail, i.first.c_str(), i.second);
 		}
 
-		appender.Append(SEXTEXT("\n"));
+		appender.Append(("\n"));
 	}
 
 
 	void DeclareSexyInterface(FileAppender& appender, const InterfaceContext& ic, const ISExpression* methods, const ParseContext& pc)
 	{
-		appender.Append(SEXTEXT("(interface %s"), ic.asSexyInterface);
+		appender.Append(("(interface %s"), ic.asSexyInterface);
 
 		if (methods != NULL)
 		{
@@ -315,18 +315,18 @@ namespace
 			for(int i = 1; i < methods->NumberOfElements(); ++i)
 			{
 				cr_sex method = methods->GetElement(i);
-				if (!IsCompound(method)) Throw(method, SEXTEXT("Expecting compound expression for the method"));
+				if (!IsCompound(method)) Throw(method, ("Expecting compound expression for the method"));
 
 				cr_sex smethodName = method.GetElement(0);
-				if (!IsAtomic(smethodName)) Throw(smethodName, SEXTEXT("Expecting method name"));
-				csexstr methodName = smethodName.String()->Buffer;
+				if (!IsAtomic(smethodName)) Throw(smethodName, ("Expecting method name"));
+				cstr methodName = smethodName.String()->Buffer;
 				ValidateSexyType(smethodName, methodName);
 
 				AppendSexyMethod(appender, method, pc);
 			}
 		}
 
-		appender.Append(SEXTEXT(")\n\n"));
+		appender.Append((")\n\n"));
 	}
 
 	void AppendFactoryInputs(FileAppender& appender, cr_sex sfactoryDef, int inputStart, int inputEnd, const ParseContext& pc)
@@ -349,35 +349,35 @@ namespace
 
 	void ImplementSexyInterface(FileAppender& appender, const InterfaceContext& ic, const ISExpression* methods, cr_sex interfaceDef, const ParseContext& pc)
 	{
-		appender.Append(SEXTEXT("(class "));
+		appender.Append(("(class "));
 		AppendProxyName(appender, ic.asSexyInterface, interfaceDef);
 
 		if (ic.isSingleton)
 		{
-			appender.Append(SEXTEXT(" (implements %s))\n"), ic.asSexyInterface);
+			appender.Append((" (implements %s))\n"), ic.asSexyInterface);
 		}
 		else
 		{
-			appender.Append(SEXTEXT(" (implements %s) (Pointer hObject))\n"), ic.asSexyInterface);
+			appender.Append((" (implements %s) (Pointer hObject))\n"), ic.asSexyInterface);
 		}
 		
 		NamespaceSplitter splitter(ic.asSexyInterface);
 
-		csexstr ns, shortName;
+		cstr ns, shortName;
 		splitter.SplitTail(ns, shortName);
 
 		if (!ic.factories.empty())
 		{
-			appender.Append(SEXTEXT("\t(method "));
+			appender.Append(("\t(method "));
 			AppendProxyName(appender, ic.asSexyInterface, interfaceDef);
 
 			if (ic.isSingleton)
 			{
-				appender.Append(SEXTEXT(".Construct : )\n"));
+				appender.Append((".Construct : )\n"));
 			}
 			else
 			{
-				appender.Append(SEXTEXT(".Construct (Pointer hObject): (this.hObject = hObject))\n"), ns, shortName);
+				appender.Append((".Construct (Pointer hObject): (this.hObject = hObject))\n"), ns, shortName);
 			}
 		}
 
@@ -385,18 +385,18 @@ namespace
 		{
 			if (ic.isSingleton)
 			{
-				Throw(interfaceDef, SEXTEXT("Singletons must not define a destructor"));
+				Throw(interfaceDef, ("Singletons must not define a destructor"));
 			}
 
-			appender.Append(SEXTEXT("\t(method "));
+			appender.Append(("\t(method "));
 			AppendProxyName(appender, ic.asSexyInterface, interfaceDef);
-			appender.Append(SEXTEXT(".Destruct -> : "));
+			appender.Append((".Destruct -> : "));
 			
 			appender.Append('(');
 			
-			appender.Append(SEXTEXT("%s.Native.%sDestruct"), ns, shortName);
+			appender.Append(("%s.Native.%sDestruct"), ns, shortName);
 
-			appender.Append(SEXTEXT(" this.hObject))\n"));
+			appender.Append((" this.hObject))\n"));
 		}
 
 		if (methods != NULL)
@@ -405,11 +405,11 @@ namespace
 			for(int i = 1; i < methods->NumberOfElements(); ++i)
 			{
 				cr_sex method = methods->GetElement(i);
-				if (!IsCompound(method)) Throw(method, SEXTEXT("Expecting compound expression for the method"));
+				if (!IsCompound(method)) Throw(method, ("Expecting compound expression for the method"));
 
 				cr_sex smethodName = method.GetElement(0);
-				if (!IsAtomic(smethodName)) Throw(smethodName, SEXTEXT("Expecting method name"));
-				csexstr methodName = smethodName.String()->Buffer;
+				if (!IsAtomic(smethodName)) Throw(smethodName, ("Expecting method name"));
+				cstr methodName = smethodName.String()->Buffer;
 				ValidateSexyType(smethodName, methodName);
 
 				AppendSexyMethodProxy(appender, ic, method, pc);
@@ -420,7 +420,7 @@ namespace
 
 		if (ic.factories.size() != 1 && ic.isSingleton)
 		{
-			Throw(interfaceDef , SEXTEXT("Singleton objects should only require one factory to be defined."));
+			Throw(interfaceDef , ("Singleton objects should only require one factory to be defined."));
 		}
 
 		int factoryIndex = 0;
@@ -428,41 +428,41 @@ namespace
 		{
 			cr_sex sfactoryDef = **i;
 			
-			csexstr factoryName = StringFrom(sfactoryDef, 1);
+			cstr factoryName = StringFrom(sfactoryDef, 1);
 			ValidateFQSexyFunction(sfactoryDef, factoryName);
 
 			NamespaceSplitter splitter(factoryName);
-			csexstr head, tail;
+			cstr head, tail;
 			if (!splitter.SplitHead(head, tail))
 			{
-				Throw(sfactoryDef, SEXTEXT("The factory must be fully qualified. i.e Sys.Animals.GetTiger and not GetTiger"));
+				Throw(sfactoryDef, ("The factory must be fully qualified. i.e Sys.Animals.GetTiger and not GetTiger"));
 			}
 
-			appender.Append(SEXTEXT("(factory %s %s "), factoryName, ic.asSexyInterface);
+			appender.Append(("(factory %s %s "), factoryName, ic.asSexyInterface);
 
 			if (ic.isSingleton && sfactoryDef.NumberOfElements() != 2)
 			{
-				Throw(sfactoryDef, SEXTEXT("The factories of singleton objects take no arguments"));
+				Throw(sfactoryDef, ("The factories of singleton objects take no arguments"));
 			}
 
 			AppendFactoryInputs(appender, sfactoryDef, 2, sfactoryDef.NumberOfElements()-1, pc);
 
-			appender.Append(SEXTEXT(" :\n"));
+			appender.Append((" :\n"));
 
 			if (!ic.isSingleton)
 			{
-				appender.Append(SEXTEXT("\t(Pointer pObject = (%s.Native.GetHandleFor%s%d "), ns, shortName, factoryIndex);
+				appender.Append(("\t(Pointer pObject = (%s.Native.GetHandleFor%s%d "), ns, shortName, factoryIndex);
 				AppendFactoryInputValues(appender, sfactoryDef, 2, sfactoryDef.NumberOfElements() - 1, pc);
-				appender.Append(SEXTEXT("))\n"));
-				appender.Append(SEXTEXT("\t(construct "));
+				appender.Append(("))\n"));
+				appender.Append(("\t(construct "));
 				AppendProxyName(appender, ic.asSexyInterface, interfaceDef);
-				appender.Append(SEXTEXT(" pObject)\n)\n\n"));
+				appender.Append((" pObject)\n)\n\n"));
 			}
 			else
 			{
-				appender.Append(SEXTEXT("\t(construct "));
+				appender.Append(("\t(construct "));
 				AppendProxyName(appender, ic.asSexyInterface, interfaceDef);
-				appender.Append(SEXTEXT(")\n)\n\n"));
+				appender.Append((")\n)\n\n"));
 			}
 		}
 	}

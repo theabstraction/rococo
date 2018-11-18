@@ -82,11 +82,11 @@
 
 namespace Rococo
 {
-	size_t Hash(csexstr s)
+	size_t Hash(cstr s)
 	{
 		struct ANON
 		{
-			static size_t jenkins_one_at_a_time_hash(csexstr s, size_t len)
+			static size_t jenkins_one_at_a_time_hash(cstr s, size_t len)
 			{
 				size_t hash, i;
 				for(hash = i = 0; i < len; ++i)
@@ -106,11 +106,11 @@ namespace Rococo
 		return ANON::jenkins_one_at_a_time_hash(s, StringLength(s));
 	}
 
-	int32 Hash(csexstr s, int64 length)
+	int32 Hash(cstr s, int64 length)
 	{
 		struct ANON
 		{
-			static int jenkins_one_at_a_time_hash(csexstr s, int64 len)
+			static int jenkins_one_at_a_time_hash(cstr s, int64 len)
 			{
 				int32 hash = 0;
 				for(int64 i = 0; i < len; ++i)
@@ -168,14 +168,14 @@ namespace Rococo
 		return ANON::robert_jenkins_64bit_hash(x);
 	}
 
-	sexstring CreateSexString(csexstr src, int32 length)
+	sexstring CreateSexString(cstr src, int32 length)
 	{
 		if (length < 0) length = StringLength(src);
-		int32 nBytes = sizeof(int32) + sizeof(SEXCHAR) * (length+1);
+		int32 nBytes = sizeof(int32) + sizeof(char) * (length+1);
 		sexstring s = (sexstring) new char[nBytes];
 		s->Length = length;
 
-		memcpy_s(s->Buffer, sizeof(SEXCHAR) * (length+1), src, sizeof(SEXCHAR) * length);
+		memcpy_s(s->Buffer, sizeof(char) * (length+1), src, sizeof(char) * length);
 
 		s->Buffer[length] = 0;
 		return s;
@@ -187,23 +187,23 @@ namespace Rococo
 		delete[] buf;
 	}
 
-	bool TryGetSexCharFromHex(SEXCHAR& value, SEXCHAR hex)
+	bool TryGetcharFromHex(char& value, char hex)
 	{
-		if (hex >= (SEXCHAR) '0' && hex <= (SEXCHAR) '9')
+		if (hex >= (char) '0' && hex <= (char) '9')
 		{
-			value = hex -(SEXCHAR) '0';
+			value = hex -(char) '0';
 			return true;
 		}
 
-		if (hex >= (SEXCHAR) 'A' && hex <= (SEXCHAR) 'F')
+		if (hex >= (char) 'A' && hex <= (char) 'F')
 		{
-			value = 10 + hex -(SEXCHAR) 'A';
+			value = 10 + hex -(char) 'A';
 			return true;
 		}
 
-		if (hex >= (SEXCHAR) 'a' && hex <= (SEXCHAR) 'f')
+		if (hex >= (char) 'a' && hex <= (char) 'f')
 		{
-			value = 10 + hex -(SEXCHAR) 'a';
+			value = 10 + hex -(char) 'a';
 			return true;
 		}
 
@@ -212,46 +212,46 @@ namespace Rococo
 
 	const char ESCAPECHAR = '&';
 
-	bool ParseEscapeCharacter(SEXCHAR& finalChar, SEXCHAR c)
+	bool ParseEscapeCharacter(char& finalChar, char c)
 	{
 		switch(c)
 		{
 		case ESCAPECHAR: // ESCAPECHAR maps to ESCAPECHAR
-			finalChar = (SEXCHAR) ESCAPECHAR;
+			finalChar = (char) ESCAPECHAR;
 			break;
 		case 'q': // \q maps to "
 		case '"': // \" maps to "
-			finalChar =  (SEXCHAR)'"';
+			finalChar =  (char)'"';
 			break;
 		case 't': // \t maps to horizontal tab
-			finalChar =  (SEXCHAR)'\t';
+			finalChar =  (char)'\t';
 			break;
 		case 'r': // \r maps to linefeed
-			finalChar =  (SEXCHAR)'\r';
+			finalChar =  (char)'\r';
 			break;
 		case 'n': // \n maps to newline
-			finalChar =  (SEXCHAR)'\n';
+			finalChar =  (char)'\n';
 			break;
 		case '0': // \0 maps to character null
-			finalChar =  (SEXCHAR)'\0';
+			finalChar =  (char)'\0';
 			break;
 		case 'a': // \a maps to bell (alert)
-			finalChar =  (SEXCHAR)'\a';
+			finalChar =  (char)'\a';
 			break;
 		case 'b': // \b maps to backspace
-			finalChar =  (SEXCHAR)'\b';
+			finalChar =  (char)'\b';
 			break;
 		case 'f': // \b maps to formfeed
-			finalChar =  (SEXCHAR)'\f';
+			finalChar =  (char)'\f';
 			break;
 		case 'v': // \b maps to vertical tab
-			finalChar =  (SEXCHAR)'\v';
+			finalChar =  (char)'\v';
 			break;
 		case '\'': // \' maps to '
-			finalChar =  (SEXCHAR)'\'';
+			finalChar =  (char)'\'';
 			break;
 		case '?': // \? maps to ?'
-			finalChar =  (SEXCHAR)'?';
+			finalChar =  (char)'?';
 			break;
 		default:
 			return false;
@@ -260,45 +260,45 @@ namespace Rococo
 		return true;
 	}
 
-	bool TryParseSexHex(SEXCHAR& finalChar, csexstr s)
+	bool TryParseSexHex(char& finalChar, cstr s)
 	{
-		if (sizeof(SEXCHAR) == 1)
+		if (sizeof(char) == 1)
 		{			
-			SEXCHAR c16;
-			SEXCHAR c1;
-			if (!TryGetSexCharFromHex(c16, s[0])) return false;
-			if (!TryGetSexCharFromHex(c1, s[1]))  return false;
+			char c16;
+			char c1;
+			if (!TryGetcharFromHex(c16, s[0])) return false;
+			if (!TryGetcharFromHex(c1, s[1]))  return false;
 			finalChar = c1 + (c16 << 4);
 		}
-		else if (sizeof(SEXCHAR) == 2)
+		else if (sizeof(char) == 2)
 		{
 			// \X means insert byte by four hex digits (16-bit UNICODE)
-			SEXCHAR c4096;
-			SEXCHAR c256;
-			SEXCHAR c16;
-			SEXCHAR c1;
+			char c4096;
+			char c256;
+			char c16;
+			char c1;
 
-			if (!TryGetSexCharFromHex(c4096, s[0])) return false;
-			if (!TryGetSexCharFromHex(c256,  s[1])) return false;
-			if (!TryGetSexCharFromHex(c16,   s[2])) return false;
-			if (!TryGetSexCharFromHex(c1,    s[3])) return false;
+			if (!TryGetcharFromHex(c4096, s[0])) return false;
+			if (!TryGetcharFromHex(c256,  s[1])) return false;
+			if (!TryGetcharFromHex(c16,   s[2])) return false;
+			if (!TryGetcharFromHex(c1,    s[3])) return false;
 			finalChar = c1 + (c16 << 4) + (c256 << 8) + (c4096 << 12);
 		}
 
 		return true;
 	}
 
-	void GetRefName(TokenBuffer& token, csexstr name)
+	void GetRefName(TokenBuffer& token, cstr name)
 	{
 		NamespaceSplitter splitter(name);
-		csexstr root, tail;
+		cstr root, tail;
 		if (splitter.SplitTail(root, tail))
 		{
-			SafeFormat(token.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("%s._ref_%s"), root, tail);
+			SafeFormat(token.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s._ref_%s"), root, tail);
 		}
 		else
 		{
-         SafeFormat(token.Text, TokenBuffer::MAX_TOKEN_CHARS, SEXTEXT("_ref_%s"), name);
+         SafeFormat(token.Text, TokenBuffer::MAX_TOKEN_CHARS, ("_ref_%s"), name);
 		}
 	}
 
@@ -321,7 +321,7 @@ namespace Rococo
       return SafeVFormat(token.Text, TokenBuffer::MAX_TOKEN_CHARS, format, args);
    }
 
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 	int32 CALLTYPE_C StringLength(cstr s)
 	{
 		size_t l = rlen(s);
@@ -334,7 +334,7 @@ namespace Rococo
 	}
 #endif
 
-	void CALLTYPE_C CopyChars(SEXCHAR* dest, const sexstring source)
+	void CALLTYPE_C CopyChars(char* dest, const sexstring source)
 	{
 		for(int i = 0; i < source->Length; ++i)
 		{
@@ -356,7 +356,7 @@ namespace Rococo
 #endif
 	}
 
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
    int CALLTYPE_C WriteToStandardOutput(cstr format, ...)
    {
       va_list args;
@@ -377,7 +377,7 @@ namespace Rococo
    }
 #endif
 
-#ifdef SEXCHAR_IS_WIDE
+#ifdef char_IS_WIDE
 	void CALLTYPE_C CopyString(rchar* dest, const char* source, int maxChars)
 	{
 		_snwprintf_s(dest, maxChars, maxChars, L"%S", source);
@@ -401,34 +401,34 @@ namespace Rococo
    }
 #endif
 
-	bool CALLTYPE_C IsCapital(SEXCHAR c)
+	bool CALLTYPE_C IsCapital(char c)
 	{
 		return c >= 'A' && c <= 'Z';
 	}
 
-	bool CALLTYPE_C IsLowerCase(SEXCHAR c)
+	bool CALLTYPE_C IsLowerCase(char c)
 	{
 		return c >= 'a' && c <= 'z';
 	}
 
-	bool CALLTYPE_C IsAlphabetical(SEXCHAR c)
+	bool CALLTYPE_C IsAlphabetical(char c)
 	{
 		return IsCapital(c) || IsLowerCase(c);
 	}
 
-	bool CALLTYPE_C IsNumeric(SEXCHAR c)
+	bool CALLTYPE_C IsNumeric(char c)
 	{
 		return c >= '0' && c <= '9';
 	}
 
-	bool CALLTYPE_C IsAlphaNumeric(SEXCHAR c)
+	bool CALLTYPE_C IsAlphaNumeric(char c)
 	{
 		return IsAlphabetical(c) || IsNumeric(c);
 	}
 
 	namespace Sex
 	{
-		csexstr ReadUntil(const Vec2i& pos, const ISourceCode& src)
+		cstr ReadUntil(const Vec2i& pos, const ISourceCode& src)
 		{
 			Vec2i origin = src.Origin();
 
@@ -442,7 +442,7 @@ namespace Rococo
 				{
 					break;
 				}
-				SEXCHAR c = src.SourceStart()[i];
+				char c = src.SourceStart()[i];
 				switch(c)
 				{
 				case '\r':
@@ -459,21 +459,21 @@ namespace Rococo
 			return src.SourceStart() + i;
 		}
 
-		void GetSpecimen(SEXCHAR specimen[64], const ISExpression& e)
+		void GetSpecimen(char specimen[64], const ISExpression& e)
 		{
 			auto& tree = e.Tree();
-			csexstr startPos = ReadUntil(e.Start(), tree.Source());
-			csexstr endPos = ReadUntil(e.End(), tree.Source());
+			cstr startPos = ReadUntil(e.Start(), tree.Source());
+			cstr endPos = ReadUntil(e.End(), tree.Source());
 
 			if (endPos - startPos >= 64)
 			{
-				Rococo::SafeFormat(specimen, 64, SEXTEXT("%.28s... ...%.28s"), startPos, endPos-28);
+				Rococo::SafeFormat(specimen, 64, ("%.28s... ...%.28s"), startPos, endPos-28);
 			}
 			else
 			{
 				if (endPos > startPos)
 				{
-					memcpy_s(specimen, 63 * sizeof(SEXCHAR), startPos, (endPos-startPos) * sizeof(SEXCHAR));
+					memcpy_s(specimen, 63 * sizeof(char), startPos, (endPos-startPos) * sizeof(char));
 				}
 				specimen[endPos-startPos] = 0;
 			}

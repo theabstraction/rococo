@@ -62,41 +62,41 @@ namespace Rococo { namespace Compiler
 
 	struct FunctionPrototype
 	{
-		csexstr Name;
+		cstr Name;
 		bool IsMethod;
-		FunctionPrototype(csexstr _name, bool _isMethod): Name(_name), IsMethod(_isMethod) {}
+		FunctionPrototype(cstr _name, bool _isMethod): Name(_name), IsMethod(_isMethod) {}
 	};
 
    struct ProgramInitParameters
    {
       size_t MaxProgramBytes;
-      csexstr NativeSourcePath;
+      cstr NativeSourcePath;
 
       enum { ONE_KILOBYTE = 1024 };
       ProgramInitParameters() : MaxProgramBytes(1024 * ONE_KILOBYTE), NativeSourcePath(nullptr) {}
-      ProgramInitParameters(size_t _maxProgBytes, csexstr _nativeSourcePath = nullptr) : MaxProgramBytes(_maxProgBytes), NativeSourcePath(_nativeSourcePath) {}
+      ProgramInitParameters(size_t _maxProgBytes, cstr _nativeSourcePath = nullptr) : MaxProgramBytes(_maxProgBytes), NativeSourcePath(_nativeSourcePath) {}
    };
 
 	class NameString
 	{
 	private:
-		csexstr s;
-		NameString(csexstr _s): s(_s) {}
+		cstr s;
+		NameString(cstr _s): s(_s) {}
 	public:
-		static NameString From(csexstr s) {	return NameString(s);	}
+		static NameString From(cstr s) {	return NameString(s);	}
 		static NameString From(sexstring s) {	return NameString(s->Buffer);	}
-		csexstr c_str() const { return s; }
+		cstr c_str() const { return s; }
 	};
 
 	class TypeString
 	{
 	private:
-		csexstr s;
-		TypeString(csexstr _s): s(_s) {}
+		cstr s;
+		TypeString(cstr _s): s(_s) {}
 	public:
-		static TypeString From(csexstr s) {	return TypeString(s);	}
+		static TypeString From(cstr s) {	return TypeString(s);	}
 		static TypeString From(sexstring s) {	return TypeString(s->Buffer);	}
-		csexstr c_str() const { return s; }
+		cstr c_str() const { return s; }
 	};
 
 	inline bool IsPrimitiveType(VARTYPE v)
@@ -201,7 +201,7 @@ namespace Rococo { namespace Compiler
 	{
 		ObjectStub stub;
 		int32 length;
-		csexstr buffer;
+		cstr buffer;
 	};
 
 	inline uint8* GetInterfacePtr(const ObjectStub& stub)
@@ -211,11 +211,11 @@ namespace Rococo { namespace Compiler
 
 	ROCOCOAPI IArchetype
 	{
-		virtual csexstr Name() const = 0;
+		virtual cstr Name() const = 0;
 		virtual const int NumberOfOutputs() const = 0;
 		virtual const int NumberOfInputs() const = 0;
 		virtual const IStructure& GetArgument(int index) const = 0;
-		virtual csexstr GetArgName(int index) const = 0;
+		virtual cstr GetArgName(int index) const = 0;
 		virtual const bool IsVirtualMethod() const = 0;
 		virtual const IStructure* GetGenericArg1(int index) const = 0;
 		virtual const void* Definition() const = 0;
@@ -223,8 +223,8 @@ namespace Rococo { namespace Compiler
 
 	ROCOCOAPI IArgument
 	{
-		virtual csexstr Name() const = 0;
-		virtual csexstr TypeString() const = 0;
+		virtual cstr Name() const = 0;
+		virtual cstr TypeString() const = 0;
 		virtual const ARGUMENTUSAGE Usage() const = 0;
 		virtual const ARGDIRECTION Direction() const = 0;
 		virtual const IStructure* ResolvedType() const = 0;
@@ -242,7 +242,7 @@ namespace Rococo { namespace Compiler
 		virtual const IFunctionCode& Code() const = 0;
 		virtual const IFunction* Parent() const = 0;
 		virtual const IArgument& Arg(int index) const = 0;	
-		virtual const IArgument* GetArgumentByName(csexstr name) const = 0;	
+		virtual const IArgument* GetArgumentByName(cstr name) const = 0;	
 		virtual const IStructure* GetType() const = 0;
 	};
 
@@ -251,13 +251,13 @@ namespace Rococo { namespace Compiler
 	ROCOCOAPI IFunctionAlias
 	{
 		virtual const IFunction& GetFunction() const = 0;
-		virtual csexstr GetPublicName() const = 0;
+		virtual cstr GetPublicName() const = 0;
 	};
 
 	ROCOCOAPI IStructAlias
 	{
 		virtual const IStructure& GetStructure() const = 0;
-		virtual csexstr GetPublicName() const = 0;
+		virtual cstr GetPublicName() const = 0;
 	};
 
 	ROCOCOAPI IFunctionEnumerator
@@ -267,11 +267,11 @@ namespace Rococo { namespace Compiler
 		virtual const IFunctionAlias& operator[](int index) const = 0;
 	};
 
-	const IFunction* FindByName(const IFunctionEnumerator& e, csexstr publicName);
+	const IFunction* FindByName(const IFunctionEnumerator& e, cstr publicName);
 
 	ROCOCOAPI IMember
 	{
-		virtual csexstr Name() const = 0;
+		virtual cstr Name() const = 0;
 		virtual const int SizeOfMember() const = 0;
 		virtual const bool IsResolved() const = 0;		
 		virtual const IStructure* UnderlyingType() const = 0;
@@ -283,7 +283,7 @@ namespace Rococo { namespace Compiler
 	ROCOCOAPI IStructure
 	{
 		virtual IPublicProgramObject& Object() const = 0;
-		virtual csexstr Name() const = 0;
+		virtual cstr Name() const = 0;
 		virtual const StructurePrototype& Prototype() const = 0;
 		virtual const IModule& Module() const = 0;
 		
@@ -309,10 +309,10 @@ namespace Rococo { namespace Compiler
 	{
 		virtual int GetVersion() const = 0;
 		
-		virtual const IFunction* FindFunction(csexstr name) const = 0;
-		virtual const IStructure* FindStructure(csexstr name) const = 0;
+		virtual const IFunction* FindFunction(cstr name) const = 0;
+		virtual const IStructure* FindStructure(cstr name) const = 0;
 
-		virtual csexstr Name() const = 0;
+		virtual cstr Name() const = 0;
 		virtual IPublicProgramObject& Object() const = 0;
 		
 		virtual const IFunction& GetFunction(int index) const = 0;
@@ -358,10 +358,10 @@ namespace Rococo { namespace Compiler
 
 	ROCOCOAPI  IAttributes
 	{
-		virtual bool AddAttribute(csexstr name, const void* value) = 0;
+		virtual bool AddAttribute(cstr name, const void* value) = 0;
 		virtual const int AttributeCount() const = 0;
-		virtual const bool FindAttribute(csexstr name, OUT const void*& value) const = 0;		
-		virtual csexstr GetAttribute(int index, OUT const void*& value) const = 0;	
+		virtual const bool FindAttribute(cstr name, OUT const void*& value) const = 0;		
+		virtual cstr GetAttribute(int index, OUT const void*& value) const = 0;	
 	};
 
 	ROCOCOAPI IInterface
@@ -370,7 +370,7 @@ namespace Rococo { namespace Compiler
 		virtual const IInterface* Base() const = 0;
 		virtual const IArchetype& GetMethod(int index) const = 0;
 		virtual const int MethodCount() const = 0;
-		virtual csexstr Name() const = 0;
+		virtual cstr Name() const = 0;
 		virtual const IStructure& NullObjectType() const = 0;
 		virtual ObjectStub* UniversalNullInstance() const = 0;
 	};
@@ -382,7 +382,7 @@ namespace Rococo { namespace Compiler
 
 	ROCOCOAPI IFactory
 	{
-		virtual csexstr Name() const = 0;
+		virtual cstr Name() const = 0;
 		virtual const IFunction& Constructor() const = 0;		
 		virtual const IInterface& ThisInterface() const = 0;
 		virtual sexstring InterfaceType() const = 0;
@@ -393,7 +393,7 @@ namespace Rococo { namespace Compiler
 
 	ROCOCOAPI IMacro
 	{
-		virtual csexstr Name() const = 0;
+		virtual cstr Name() const = 0;
 		virtual const void* Expression() const = 0;
 		virtual const INamespace& NS() const = 0;
 		virtual const IFunction& Implementation() const = 0;
@@ -401,15 +401,15 @@ namespace Rococo { namespace Compiler
 
 	ROCOCOAPI INamespace
 	{	
-		virtual const INamespace* FindSubspace(csexstr subpath) const = 0;
-		virtual const IStructure* FindStructure(csexstr name) const = 0;
-		virtual const IFunction* FindFunction(csexstr name) const = 0;
-		virtual const IArchetype* FindArchetype(csexstr name) const = 0;
+		virtual const INamespace* FindSubspace(cstr subpath) const = 0;
+		virtual const IStructure* FindStructure(cstr name) const = 0;
+		virtual const IFunction* FindFunction(cstr name) const = 0;
+		virtual const IArchetype* FindArchetype(cstr name) const = 0;
 		
-		virtual const IFactory* FindFactory(csexstr name) const = 0;
+		virtual const IFactory* FindFactory(cstr name) const = 0;
 		
-		virtual const IInterface* FindInterface(csexstr name) const = 0;
-		virtual const IMacro* FindMacro(csexstr name) const = 0;
+		virtual const IInterface* FindInterface(cstr name) const = 0;
+		virtual const IMacro* FindMacro(cstr name) const = 0;
 				
       virtual const INamespace& GetChild(size_t index) const = 0;
 		virtual size_t ChildCount() const = 0;
@@ -421,9 +421,9 @@ namespace Rococo { namespace Compiler
 		virtual int InterfaceCount() const = 0;		
 		virtual const IInterface& GetInterface(int index) const = 0;
 
-		virtual void EnumerateFactories(ICallback<const IFactory, csexstr>& onFactory) const = 0;
-		virtual void EnumerateStrutures(ICallback<const IStructure, csexstr>& onStructure) const = 0;
-		virtual void EnumerateFunctions(ICallback<const IFunction, csexstr>& onFunction) const = 0;
+		virtual void EnumerateFactories(ICallback<const IFactory, cstr>& onFactory) const = 0;
+		virtual void EnumerateStrutures(ICallback<const IStructure, cstr>& onStructure) const = 0;
+		virtual void EnumerateFunctions(ICallback<const IFunction, cstr>& onFunction) const = 0;
 		virtual void EnumerateArchetypes(ICallback<const IArchetype>& onArchetype) const = 0;
 	};
 
@@ -468,22 +468,22 @@ namespace Rococo { namespace Compiler
 	private:
 		enum {MAX_MSG_LEN = 256};
 		ERRORCODE code;
-      SEXCHAR message[MAX_MSG_LEN];
-		SEXCHAR source[MAX_MSG_LEN];
+      char message[MAX_MSG_LEN];
+		char source[MAX_MSG_LEN];
 
 	public:
-		STCException(ERRORCODE _code, csexstr _source, csexstr _msg): code(_code)
+		STCException(ERRORCODE _code, cstr _source, cstr _msg): code(_code)
 		{
 			CopyString(message, MAX_MSG_LEN, _msg);
 			CopyString(source, MAX_MSG_LEN, _source);
 		}
 
-		csexstr Source() const
+		cstr Source() const
 		{
 			return source;
 		}
 	
-		csexstr Message() const override
+		cstr Message() const override
 		{
 			return message;
 		}
@@ -510,7 +510,7 @@ namespace Rococo { namespace Compiler
 
 	struct SymbolValue
 	{
-		csexstr Text;
+		cstr Text;
 		const void* SourceExpression;
 	};
 
@@ -521,16 +521,16 @@ namespace Rococo { namespace Compiler
 		virtual SymbolValue GetSymbol(size_t pcAddressOffset) const = 0;
 		virtual const IModule& Module() const = 0;
 		virtual int GetLocalVariableSymbolCount() const = 0;
-		virtual void GetLocalVariableSymbolByIndex(OUT MemberDef& def, OUT csexstr& name, IN int index) const = 0;
-		virtual bool GetLocalVariableSymbolByName(OUT MemberDef& def, IN csexstr name, IN size_t pcAddress) const = 0;		
+		virtual void GetLocalVariableSymbolByIndex(OUT MemberDef& def, OUT cstr& name, IN int index) const = 0;
+		virtual bool GetLocalVariableSymbolByName(OUT MemberDef& def, IN cstr name, IN size_t pcAddress) const = 0;		
 		virtual int GetOffset(size_t variableIndex) const = 0;
 	};
 
-	const IMember* FindMember(const IStructure& s, csexstr name, OUT int& offset);
-	const IStructure* FindMember(const IStructure& s, csexstr name);
-	bool GetMethodIndices(OUT int& interfaceIndex, OUT int& methodIndex, const IStructure& s, csexstr interfaceName, csexstr methodName);
-	bool GetMethodIndices(OUT int& interfaceIndex, OUT int& methodIndex, const IStructure& s, csexstr methodName);
-	csexstr GetFriendlyName(const IStructure& s);
+	const IMember* FindMember(const IStructure& s, cstr name, OUT int& offset);
+	const IStructure* FindMember(const IStructure& s, cstr name);
+	bool GetMethodIndices(OUT int& interfaceIndex, OUT int& methodIndex, const IStructure& s, cstr interfaceName, cstr methodName);
+	bool GetMethodIndices(OUT int& interfaceIndex, OUT int& methodIndex, const IStructure& s, cstr methodName);
+	cstr GetFriendlyName(const IStructure& s);
 
 	BITCOUNT GetBitCount(VARTYPE type);
 }}

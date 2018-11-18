@@ -116,7 +116,7 @@ namespace
          sysDebug.AddString("Step Next", MENU_EXECUTE_NEXT, "F10");
          sysDebug.AddString("Step Over", MENU_EXECUTE_OVER, "F11");
          sysDebug.AddString("Step Out", MENU_EXECUTE_OUT, "Shift + F11");
-         sysDebug.AddString("Step Symbo", MENU_EXECUTE_NEXT_SYMBOL, "Shift + F10");
+         sysDebug.AddString("Step Symbol", MENU_EXECUTE_NEXT_SYMBOL, "Shift + F10");
          sysDebug.AddString("Continue", MENU_EXECUTE_CONTINUE, "F5");
 
          logFont = LOGFONTA{ 0 };

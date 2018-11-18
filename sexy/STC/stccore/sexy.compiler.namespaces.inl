@@ -40,7 +40,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		obj->pVTable1 = (VirtualTable*) nullStruct.GetVirtualTable(1);
 	}
 
-	Interface::Interface(csexstr _name, const int _methodCount, IStructureBuilder& _nullObjectType, Interface* _base):
+	Interface::Interface(cstr _name, const int _methodCount, IStructureBuilder& _nullObjectType, Interface* _base):
 		name(_name), methodCount(_methodCount), nullObjectType(_nullObjectType), universalNullInstance(NULL), base(_base)
 	{
 		archetypes = new Archetype*[methodCount];
@@ -61,7 +61,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		delete universalNullInstance;
 	}
 
-	void Interface::SetMethod(size_t index, csexstr name, size_t argCount, csexstr _argNames[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArgs1[], const bool isOut[], const void* definition)
+	void Interface::SetMethod(size_t index, cstr name, size_t argCount, cstr _argNames[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArgs1[], const bool isOut[], const void* definition)
 	{
 		int nOutputs = 0;
 
@@ -81,21 +81,21 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 	Namespace::Namespace(IProgramObject& _object): object(_object), parent(NULL), functions(false),	structures(false)
 	{
-		name = CreateSexString(SEXTEXT(""));
-		fullname = CreateSexString(SEXTEXT(""));
+		name = CreateSexString((""));
+		fullname = CreateSexString((""));
 	}
 
-	Namespace::Namespace(IProgramObject& _object, csexstr _name, Namespace* _parent):	object(_object),	parent(_parent), functions(false),	structures(false)
+	Namespace::Namespace(IProgramObject& _object, cstr _name, Namespace* _parent):	object(_object),	parent(_parent), functions(false),	structures(false)
 	{
 		int32 capacity = _parent->FullName()->Length + 2 + StringLength(_name); 
-		SEXCHAR* fullNamebuffer = (SEXCHAR*) alloca(capacity * sizeof(SEXCHAR));
+		char* fullNamebuffer = (char*) alloca(capacity * sizeof(char));
 		if (_parent->FullName()->Length > 0)
 		{
-			SafeFormat(fullNamebuffer, capacity, SEXTEXT("%s.%s"), _parent->FullName()->Buffer, _name);
+			SafeFormat(fullNamebuffer, capacity, ("%s.%s"), _parent->FullName()->Buffer, _name);
 		}
 		else
 		{
-         SafeFormat(fullNamebuffer, capacity, SEXTEXT("%s"), _name);
+         SafeFormat(fullNamebuffer, capacity, ("%s"), _name);
 		}
 
 		fullname = CreateSexString(fullNamebuffer);
@@ -109,7 +109,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		Clear();
 	}
 
-	void Namespace::EnumerateFactories(ICallback<const IFactory, csexstr>& onFactory) const
+	void Namespace::EnumerateFactories(ICallback<const IFactory, cstr>& onFactory) const
 	{
 		for (auto& i : factories)
 		{
@@ -117,7 +117,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		}
 	}
 
-	void Namespace::EnumerateStrutures(ICallback<const IStructure, csexstr>& onStructure) const
+	void Namespace::EnumerateStrutures(ICallback<const IStructure, cstr>& onStructure) const
 	{
 		for(int i = 0; i < structures.StructCount(); ++i)
 		{
@@ -126,7 +126,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		}
 	}
 
-	void Namespace::EnumerateFunctions(ICallback<const IFunction, csexstr>& onFunction) const
+	void Namespace::EnumerateFunctions(ICallback<const IFunction, cstr>& onFunction) const
 	{
 		for (int i = 0; i < functions.FunctionCount(); ++i)
 		{
@@ -140,19 +140,19 @@ namespace Rococo { namespace Compiler { namespace Impl
 		archetypes.EnumerateAll(onArchetype);
 	}
 
-	const IMacro* Namespace::FindMacro(csexstr name) const
+	const IMacro* Namespace::FindMacro(cstr name) const
 	{
 		auto i = macros.find(CStringKey(name));
 		return i == macros.end() ? NULL : i->second;
 	}
 
-	IMacroBuilder* Namespace::FindMacro(csexstr name)
+	IMacroBuilder* Namespace::FindMacro(cstr name)
 	{
 		auto i = macros.find(CStringKey(name));
 		return i == macros.end() ? NULL : i->second;
 	}
 
-	IMacroBuilder* Namespace::AddMacro(csexstr name, void* expression, IFunctionBuilder& f)
+	IMacroBuilder* Namespace::AddMacro(cstr name, void* expression, IFunctionBuilder& f)
 	{
 		auto i = macros.find(CStringKey(name));
 		if (i != macros.end()) return NULL;
@@ -210,22 +210,22 @@ namespace Rococo { namespace Compiler { namespace Impl
 		functions.Register(f.Name(), f);
 	}
 
-	void Namespace::Alias(csexstr name, IFunctionBuilder& f)
+	void Namespace::Alias(cstr name, IFunctionBuilder& f)
 	{
 		functions.Register(name, f);
 	}
 
-	void Namespace::Alias(csexstr publicName, IStructureBuilder& s)
+	void Namespace::Alias(cstr publicName, IStructureBuilder& s)
 	{
 		structures.Register(publicName, s);
 	}
 
-	const IArchetype& Namespace::AddArchetype(csexstr name, csexstr argNames[], const IStructure* stArray[], const IArchetype* archArray[], const IStructure* genericArg1s[], int numberOfOutputs, int numberOfInputs, const void* definition)
+	const IArchetype& Namespace::AddArchetype(cstr name, cstr argNames[], const IStructure* stArray[], const IArchetype* archArray[], const IStructure* genericArg1s[], int numberOfOutputs, int numberOfInputs, const void* definition)
 	{
 		return archetypes.Register(name, argNames, stArray, archArray, genericArg1s, numberOfOutputs, numberOfInputs, definition);
 	}
 
-	IInterfaceBuilder* Namespace::DeclareInterface(csexstr name, int methodCount, IStructureBuilder& nullObject, IInterfaceBuilder* base)
+	IInterfaceBuilder* Namespace::DeclareInterface(cstr name, int methodCount, IStructureBuilder& nullObject, IInterfaceBuilder* base)
 	{
 		Interface* inter = new Interface(name, methodCount, nullObject, base == NULL ? NULL : (Interface*) base);
 		interfaces.insert(std::make_pair(inter->Name(), inter));
@@ -233,7 +233,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return inter;
 	}
 
-	IInterfaceBuilder* Namespace::FindInterface(csexstr publicName)
+	IInterfaceBuilder* Namespace::FindInterface(cstr publicName)
 	{
 		auto i = interfaces.find(publicName);
 		if (i != interfaces.end())
@@ -244,7 +244,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return NULL;
 	}
 
-	const IInterface* Namespace::FindInterface(csexstr publicName) const
+	const IInterface* Namespace::FindInterface(cstr publicName) const
 	{
 		auto i = interfaces.find(publicName);
 		if (i != interfaces.end())
@@ -255,50 +255,50 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return NULL;
 	}
 
-	IFunctionBuilder* Namespace::FindFunction(csexstr name)
+	IFunctionBuilder* Namespace::FindFunction(cstr name)
 	{
 		return FindByName(functions, name);
 	}
 
-	const IFunction* Namespace::FindFunction(csexstr name) const
+	const IFunction* Namespace::FindFunction(cstr name) const
 	{
 		return FindByName(functions, name);
 	}
 
-	IStructureBuilder* Namespace::FindStructure(csexstr name)
+	IStructureBuilder* Namespace::FindStructure(cstr name)
 	{
 		return structures.TryGet(name);
 	}
 
-	const IStructure* Namespace::FindStructure(csexstr name) const
+	const IStructure* Namespace::FindStructure(cstr name) const
 	{
 		return structures.TryGet(name);
 	}
 
-	const IFactory* Namespace::FindFactory(csexstr name) const
+	const IFactory* Namespace::FindFactory(cstr name) const
 	{
 		auto i = factories.find(name);
 		return i == factories.end() ? NULL : i->second;
 	}
 
-	IFactoryBuilder* Namespace::FindFactory(csexstr name)
+	IFactoryBuilder* Namespace::FindFactory(cstr name)
 	{
 		auto i = factories.find(name);
 		return i == factories.end() ? NULL : i->second;
 	}
 
-	IFactory& Namespace::RegisterFactory(csexstr name, IFunctionBuilder& constructor, IInterfaceBuilder& interf, sexstring interfType)
+	IFactory& Namespace::RegisterFactory(cstr name, IFunctionBuilder& constructor, IInterfaceBuilder& interf, sexstring interfType)
 	{
 		Factory* f = new Factory(name, constructor, interf, interfType);
 		factories.insert(std::make_pair(f->Name(), f));
 		return *f;
 	}
 
-	INamespaceBuilder& Namespace::AddNamespace(csexstr childName, ADDNAMESPACEFLAGS flags)
+	INamespaceBuilder& Namespace::AddNamespace(cstr childName, ADDNAMESPACEFLAGS flags)
 	{
-		REQUIRE_NAMESPACE_STRING(childName, SEXTEXT("Namespace::AddNamespace"));
+		REQUIRE_NAMESPACE_STRING(childName, ("Namespace::AddNamespace"));
 
-		csexstr dotPos = GetSubString(childName, SEXTEXT("."));
+		cstr dotPos = GetSubString(childName, ("."));
 		if (dotPos == NULL)
 		{
 			CStringKey key(childName);
@@ -319,8 +319,8 @@ namespace Rococo { namespace Compiler { namespace Impl
 		else
 		{
 			int32 len = (int32)(dotPos - childName) + 1;
-			SEXCHAR* branchName = (SEXCHAR*) alloca(sizeof(SEXCHAR) * len);
-			memcpy_s(branchName, sizeof(SEXCHAR) * len, childName, sizeof(SEXCHAR) * (len-1));
+			char* branchName = (char*) alloca(sizeof(char) * len);
+			memcpy_s(branchName, sizeof(char) * len, childName, sizeof(char) * (len-1));
 			branchName[len-1] = 0;
 
 			if (IsFlagged(flags, ADDNAMESPACEFLAGS_CREATE_ROOTS))
@@ -338,9 +338,9 @@ namespace Rococo { namespace Compiler { namespace Impl
 				else
 				{
 					sexstringstream<1024> streamer;
-					csexstr sep = fullname->Length == 0 ? SEXTEXT("") : SEXTEXT(".");
-					streamer.sb << SEXTEXT("Cannot create namespace '") << fullname->Buffer << sep << childName << SEXTEXT("' as one of its roots '") << fullname->Buffer << sep << branchName << SEXTEXT("' was undefined");
-					throw STCException(ERRORCODE_BAD_ARGUMENT, SEXTEXT("Namespace"), streamer);
+					cstr sep = fullname->Length == 0 ? ("") : (".");
+					streamer.sb << ("Cannot create namespace '") << fullname->Buffer << sep << childName << ("' as one of its roots '") << fullname->Buffer << sep << branchName << ("' was undefined");
+					throw STCException(ERRORCODE_BAD_ARGUMENT, ("Namespace"), streamer);
 				}
 			}
 		}
@@ -349,14 +349,14 @@ namespace Rococo { namespace Compiler { namespace Impl
 	size_t Namespace::ChildCount() const { return children.size(); }
 	INamespaceBuilder& Namespace::GetChild(size_t index) { return *children[index]; }
 	const INamespace& Namespace::GetChild(size_t index) const { return *children[index]; }
-	const INamespace* Namespace::FindSubspace(csexstr childName) const
+	const INamespace* Namespace::FindSubspace(cstr childName) const
 	{
 		return (const_cast<Namespace*>(this)->GetSubspaceCore(childName));
 	}
 
-	INamespaceBuilder* Namespace::GetSubspaceCore(csexstr childName) 
+	INamespaceBuilder* Namespace::GetSubspaceCore(cstr childName) 
 	{
-		csexstr dotPos = GetSubString(childName, SEXTEXT("."));
+		cstr dotPos = GetSubString(childName, ("."));
 			
 		if (dotPos == NULL)
 		{
@@ -368,9 +368,9 @@ namespace Rococo { namespace Compiler { namespace Impl
 		else
 		{
 			int length = (int32)(dotPos - childName);
-			int capacity = sizeof(SEXCHAR) * (length + 1);
-			SEXCHAR* branch = (SEXCHAR*) alloca(capacity);
-			memcpy_s(branch, capacity, childName, sizeof(SEXCHAR) * length);
+			int capacity = sizeof(char) * (length + 1);
+			char* branch = (char*) alloca(capacity);
+			memcpy_s(branch, capacity, childName, sizeof(char) * length);
 			branch[length] = 0;
 
 			auto i = nameToChildren.find(branch);
@@ -386,7 +386,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		}
 	}
 
-	INamespaceBuilder* Namespace::FindSubspace(csexstr childName) 
+	INamespaceBuilder* Namespace::FindSubspace(cstr childName) 
 	{
 		return GetSubspaceCore(childName);
 	}
@@ -396,12 +396,12 @@ namespace Rococo { namespace Compiler { namespace Impl
 	INamespaceBuilder* Namespace::Parent() { return parent; }
 	const INamespace* Namespace::Parent() const { return parent; }
 
-	const IArchetype* Namespace::FindArchetype(csexstr name) const
+	const IArchetype* Namespace::FindArchetype(cstr name) const
 	{
 		return archetypes.Find(name);
 	}
 
-	IArchetype* Namespace::FindArchetype(csexstr name)
+	IArchetype* Namespace::FindArchetype(cstr name)
 	{
 		return archetypes.Find(name);
 	}
