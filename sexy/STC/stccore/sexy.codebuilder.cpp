@@ -1334,7 +1334,7 @@ namespace
 
 	void CodeBuilder::AssignLiteral(const Rococo::Compiler::NameString& name, cstr literalValue)
 	{
-		if (literalValue == NULL) Throw(0, __SEXFUNCTION__": literalValue was null"); 
+		if (literalValue == NULL) Throw(0, "CodeBuilder::AssignLiteral: literalValue was null"); 
 
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, name.c_str()))
@@ -1527,8 +1527,8 @@ namespace
 
 	void CodeBuilder::AssignVariableToVariable(cstr source, cstr target)
 	{
-		if (source == nullptr || *source == 0) Rococo::Throw(0, __FUNCTION__": source was blank");
-		if (target == nullptr || *target == 0) Rococo::Throw(0, __FUNCTION__": target was blank");
+		if (source == nullptr || *source == 0) Rococo::Throw(0, "CodeBuilder::AssignVariableToVariable: source was blank");
+		if (target == nullptr || *target == 0) Rococo::Throw(0, "CodeBuilder::AssignVariableToVariable: target was blank");
 	
 		MemberDef sourceDef;
 		if (!TryGetVariableByName(OUT sourceDef, source))
@@ -1640,7 +1640,7 @@ namespace
 
 	void CodeBuilder::AssignTempToVariable(int srcIndex, cstr target)
 	{
-		if (target == nullptr || *target == 0) Rococo::Throw(0, __FUNCTION__": target was blank");
+		if (target == nullptr || *target == 0) Rococo::Throw(0, "CodeBuilder::AssignTempToVariable: target was blank");
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, target))
 		{
@@ -1886,7 +1886,7 @@ namespace
 
 	void CodeBuilder::AssignVariableToTemp(cstr source, int tempIndex, int memberOffsetCorrection)
 	{
-		if (source == nullptr || *source == 0) Rococo::Throw(0, __FUNCTION__": source was blank");
+		if (source == nullptr || *source == 0) Rococo::Throw(0, "CodeBuilder::AssignVariableToTemp: source was blank");
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, source))
 		{
@@ -1913,7 +1913,7 @@ namespace
 
 	void CodeBuilder::AssignVariableRefToTemp(cstr source, int tempDepth, int offset)
 	{
-		if (source == nullptr || *source == 0) Rococo::Throw(0, __FUNCTION__": source was blank");
+		if (source == nullptr || *source == 0) Rococo::Throw(0, "CodeBuilder::AssignVariableRefToTemp: source was blank");
 
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, source))
@@ -1936,7 +1936,7 @@ namespace
 
 	void CodeBuilder::PushVariableRef(cstr source, int interfaceIndex)
 	{
-		if (source == nullptr || *source == 0) Rococo::Throw(0, __FUNCTION__": source was blank");
+		if (source == nullptr || *source == 0) Rococo::Throw(0, "CodeBuilder::PushVariableRef: source was blank");
 
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, source))

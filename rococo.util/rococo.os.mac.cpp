@@ -495,7 +495,7 @@ namespace
 
    struct FilePath
    {
-      rchar data[_MAX_PATH];
+      char data[_MAX_PATH];
       operator char*() { return data; }
    };
 
@@ -770,7 +770,7 @@ namespace
          uint32 lcapacity = _MAX_PATH;
          if (_NSGetExecutablePath(binDirectory, &lcapacity) != 0)
          {
-            Throw(0, SEXTEXT("_NSGetExecutablePath failed"));
+            Throw(0, "_NSGetExecutablePath failed");
          }
 
          MakeContainerDirectory(binDirectory);

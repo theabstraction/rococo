@@ -330,7 +330,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		virtual const IStructAlias& GetStruct(int index) const { return structures[index]; }
 		virtual IStructureBuilder* TryGet(cstr name)
 		{
-			if (name == nullptr || *name == 0) Rococo::Throw(0, __FUNCTION__": name was blank");
+			if (name == nullptr || *name == 0) Rococo::Throw(0, "%s: name was blank", __func__);
 			for(auto i = structures.begin(); i != structures.end(); ++i)
 			{
 				IStructAliasBuilder& alias = *i;
@@ -345,7 +345,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		virtual const IStructure* TryGet(cstr name) const
 		{
-			if (name == nullptr || *name == 0) Rococo::Throw(0, __FUNCTION__": name was blank");
+			if (name == nullptr || *name == 0) Rococo::Throw(0, "%s: name was blank", __func__);
 			for(auto i = structures.begin(); i != structures.end(); ++i)
 			{
 				const IStructAlias& alias = *i;

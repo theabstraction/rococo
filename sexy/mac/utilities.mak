@@ -1,7 +1,7 @@
 # Make file for Utilities module in the Rococo.Sexy library
 
 UTILS_OBJS = sexy.compiler.util.obj sexy.namespaces.obj sexy.natives.helpers.obj sexy.parsering.obj sexy.s-parser.util.obj sexy.strings.2.obj\
-        sexy.strings.obj sexy.util.obj sexy.variants.obj sexy.strings.builder.obj
+        sexy.strings.obj sexy.util.obj sexy.variants.obj
 UTILS_SRCS = $(UTILS_OBJS,.obj=.cpp) 
 
 OBJ_DIR = ../../intermediate.mac/

@@ -45,6 +45,8 @@
 #include <unistd.h>
 #include <mach-o/dyld.h>
 
+#include <rococo.api.h>
+
 #define BREAK_ON_THROW
 
 namespace Rococo { namespace OS 
@@ -57,7 +59,7 @@ namespace Rococo { namespace OS
          Throw(0, ("_NSGetExecutablePath failed"));
       }
 
-      while (StripLastSubpath(data))
+      while (OS::StripLastSubpath(data))
       {
          char fullpath[_MAX_PATH];
          SafeFormat(fullpath, _MAX_PATH, ("%s%s"), data, ("src_indicator.txt"));
