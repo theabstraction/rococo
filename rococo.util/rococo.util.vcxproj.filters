@@ -57,7 +57,7 @@
     <ClCompile Include="rococo.heap.string.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\include\rococo.parsering.cpp">
+    <ClCompile Include="rococo.parsering.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

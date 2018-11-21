@@ -141,4 +141,9 @@ namespace Rococo
 
    size_t rlen(cstr s);
    int StrCmpN(cstr a, cstr b, size_t len);
+
+   int32 Compare(cstr a, cstr b);
+   int32 CompareI(cstr a, cstr b);
+   int32 CompareI(cstr a, cstr b, int64 count);
+   int32 Compare(cstr a, cstr b, int64 count);
 }

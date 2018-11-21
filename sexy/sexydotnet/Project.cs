@@ -134,18 +134,29 @@ namespace SexyDotNet
 
         unsafe public void Compile()
         {
-            scriptLanguage = new SexyScriptLanguage(Logger.Log, RouteSysMessages);
-            scriptLanguage.EvTerminated += OnScriptLanguageTerminated;
-
-            foreach (string key in Files.Keys)
+            try
             {
-                Files[key].Module = scriptLanguage.AddModule(key);
-            }
+                scriptLanguage = new SexyScriptLanguage(Logger.Log, RouteSysMessages);
+                scriptLanguage.EvTerminated += OnScriptLanguageTerminated;
 
-            if (EvCompiling != null) EvCompiling();
-            scriptLanguage.Compile();
-            isCompiled = true;
-            if (EvCompiled != null) EvCompiled();
+                foreach (string key in Files.Keys)
+                {
+                    Files[key].Module = scriptLanguage.AddModule(key);
+                }
+
+                if (EvCompiling != null) EvCompiling();
+                scriptLanguage.Compile();
+                isCompiled = true;
+                if (EvCompiled != null) EvCompiled();
+            }
+            catch (Exception ex)
+            {
+                var errBox = new ExceptionWindow();
+                errBox.SetException(ex);
+                errBox.ShowDialog();
+
+                scriptLanguage = null;
+            }
         }
 
         public void RefreshDisassembler()

@@ -525,4 +525,16 @@ namespace Rococo
          Throw(0, "Error validating fully qualified name - name must not terminate on a period '.'");
       }
    }
-}
+
+#ifndef _WIN32
+# define _stricmp strcasecmp
+# define _strnicmp strncasecmp
+#endif
+
+   int32 Compare(cstr a, cstr b) { return strcmp(a, b); }
+   int32 CompareI(cstr a, cstr b) { return _stricmp(a, b); }
+   int32 CompareI(cstr a, cstr b, int64 count) { return _strnicmp(a, b, count); }
+   int32 Compare(cstr a, cstr b, int64 count) { return strncmp(a, b, count); }
+
+   const char* GetSubString(const char* s, const char *subString) { return strstr(s, subString); }
+} // Rococo

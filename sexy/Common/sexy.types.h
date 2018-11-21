@@ -187,8 +187,6 @@ namespace Rococo
 	};
 
 	int StringPrint(TokenBuffer& token, const char* format, ...);
-	void CopyChars(char* dest, const sexstring source);
-
 
 	enum BITCOUNT
 	{

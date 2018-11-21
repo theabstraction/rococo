@@ -490,7 +490,7 @@ namespace Rococo
 			catch (IException& ex)
 			{
 				char msg[2048];
-				SafeFormat(msg, sizeof(msg), "Sexy: Error reading native files: %s", ex.Message());
+				SafeFormat(msg, sizeof(msg), "Sexy: Error reading native files: %s\nExpecting them in %s\n", ex.Message(), srcEnvironment);
 				_logger.Write(msg);
 				delete scripts;
 				throw;

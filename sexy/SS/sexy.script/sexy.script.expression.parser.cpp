@@ -1261,7 +1261,9 @@ namespace Rococo
 			}
 		}
 
-		void InitSubmembers(CCompileEnvironment& ce, const IStructure& s, int sfMemberOffset)
+		void InitSubmembers(CCompileEnvironment& ce, const IStructure& s, int sfMemberOffset);
+
+		void ProtectedInitSubmembers(CCompileEnvironment& ce, const IStructure& s, int sfMemberOffset)
 		{
 			for(int i = 0; i < s.MemberCount(); ++i)
 			{
@@ -1303,8 +1305,23 @@ namespace Rococo
 						InitSubmembers(ce, *memberType, sfMemberOffset);
 					}
 				}
+				else // Primitve type
+				{
+				}
 
 				sfMemberOffset += member.SizeOfMember();
+			}
+		}
+
+		void InitSubmembers(CCompileEnvironment& ce, const IStructure& s, int sfMemberOffset)
+		{
+			try
+			{
+				ProtectedInitSubmembers(ce, s, sfMemberOffset);
+			}
+			catch (IException& ex)
+			{
+				Throw(ex.ErrorCode(), "%s\nException compiling init submembers of %s", ex.Message(), s.Name());
 			}
 		}
 
@@ -1591,7 +1608,7 @@ namespace Rococo
 		}
 
 		void CompileClassAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& st, cstr id, cr_sex decl)
-		{	
+		{
 			TokenBuffer refName;
 			GetRefName(refName, id);
 
@@ -1604,19 +1621,35 @@ namespace Rococo
 
 			ce.Builder.Append_InitializeVirtualTable(id);
 
-		  // Temp fix, needs generalizing 
-		  if (st.InterfaceCount() == 0)
-		  {
-			 ce.Builder.AssignVariableRefToTemp(id, 0);
-		  }
-		  else
-		  {
-			 TokenBuffer vTableRef;
-			 StringPrint(vTableRef, ("%s._vTable1"), id);
-			 ce.Builder.AssignVariableRefToTemp(vTableRef, 0); 
-		  } 
-      
-		  ce.Builder.AssignTempToVariable(0, refName);
+			// Temp fix, needs generalizing 
+			if (st.InterfaceCount() == 0)
+			{
+				ce.Builder.AssignVariableRefToTemp(id, 0);
+			}
+			else
+			{
+				TokenBuffer vTableRef;
+				StringPrint(vTableRef, ("%s._vTable1"), id);
+				ce.Builder.AssignVariableRefToTemp(vTableRef, 0);
+
+				if (IsIStringInlined(ce.Script))
+				{
+					auto& i0 = st.GetInterface(0);
+					if (&i0 == &ce.Object.Common().SysTypeIString() || i0.Base() == &ce.Object.Common().SysTypeIString())
+					{
+						// We have pointer and length member to initialize to null values
+
+						char name[256];
+						SafeFormat(name, sizeof(name), "%s.buffer", id);
+						ce.Builder.AssignLiteral(NameString::From(name), "0");
+
+						SafeFormat(name, sizeof(name), "%s.length", id);
+						ce.Builder.AssignLiteral(NameString::From(name), "0");
+					}
+				}
+			}
+
+			ce.Builder.AssignTempToVariable(0, refName);
 
 			InitClassMembers(ce, id);
 		}

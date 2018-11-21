@@ -98,7 +98,6 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\include\rococo.parsering.cpp" />
     <ClCompile Include="renderer.utils.cpp" />
     <ClCompile Include="rococo.allocators.cpp" />
     <ClCompile Include="rococo.base.cpp" />
@@ -113,6 +112,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="rococo.os.win32.cpp" />
+    <ClCompile Include="rococo.parsering.cpp" />
     <ClCompile Include="rococo.postbox.cpp" />
     <ClCompile Include="rococo.s-parser.helpers.cpp" />
     <ClCompile Include="rococo.sprites.cpp" />

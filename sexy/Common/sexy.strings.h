@@ -45,14 +45,6 @@
 namespace Rococo
 {
 	bool operator == (const sexstring_key& a, const sexstring_key& b);
-	int32 Compare(const char* a, const char* b);
-	int32 Compare(cstr a, cstr b);
-	int32 CompareI(const char* a, const char* b);
-	int32 CompareI(cstr a, cstr b);
-	int32 CompareI(const char* a, const char* b, int64 count);
-	int32 CompareI(cstr a, cstr b, int64 count);
-	int32 Compare(const char* a, const char* b, int64 count);
-	int32 Compare(cstr a, cstr b, int64 count);
 	int32 Compare(sexstring a, const char* b);
 	const char* GetSubString(const char* s, const char *subString);
 	cstr GetSubString(cstr s, const char *subString);

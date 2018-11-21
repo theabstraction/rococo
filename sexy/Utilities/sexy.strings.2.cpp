@@ -223,29 +223,6 @@ namespace Rococo
       return SafeVFormat(token.Text, TokenBuffer::MAX_TOKEN_CHARS, format, args);
    }
 
-#ifdef char_IS_WIDE
-	int32 CALLTYPE_C StringLength(cstr s)
-	{
-		size_t l = rlen(s);
-		if (l > INT_MAX)
-		{
-			throw std::invalid_argument("The string length exceeded INT_MAX characters");
-		}
-
-		return (int32) l;
-	}
-#endif
-
-	void CALLTYPE_C CopyChars(char* dest, const sexstring source)
-	{
-		for(int i = 0; i < source->Length; ++i)
-		{
-			dest[i] = source->Buffer[i];
-		}
-
-		dest[source->Length] = 0;
-	}
-
 	namespace Sex
 	{
 		cstr ReadUntil(const Vec2i& pos, const ISourceCode& src)

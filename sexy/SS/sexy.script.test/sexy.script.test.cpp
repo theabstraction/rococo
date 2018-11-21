@@ -10873,6 +10873,58 @@ namespace
       validate(z == 18.0f);
    }
 
+   void TestNullStringBuilder(IPublicScriptSystem& ss)
+   {
+	   static char testBuffer[256];
+
+	   struct ANON
+	   {
+		   static void AppendStringToHost(NativeCallEnvironment& e)
+		   {
+			   int32 length;
+			   ReadInput(1, length, e);
+
+			   char* buffer;
+			   ReadInput(0, buffer, e);
+
+			   if (buffer != nullptr)
+			   {
+				   SafeFormat(testBuffer, sizeof(testBuffer), "%s", buffer);
+			   }
+			   else
+			   {
+				   testBuffer[0] = 0;
+			   }
+		   }
+	   };
+
+	   const INamespace& ns = ss.AddNativeNamespace("Sys.Test");
+	   ss.AddNativeCall(ns, ANON::AppendStringToHost, NULL, "AppendStringToHost (Pointer s)(Int32 length) ->");
+
+	   cstr srcCode =
+		   "(function AppendStringToHost (IString s)-> :\n"
+		   "	(Sys.Test.AppendStringToHost s.Buffer s.Length)\n"
+		   ")"
+		   "(using Sys.Type) \n"
+		   "(namespace EntryPoint) \n"
+		   "(function Main -> : \n"
+		   "	(IStringBuilder sb)\n"
+		   "	(sb.AppendIString \"fantastic\")\n"
+		   "    (AppendStringToHost sb)\n"
+		   ")\n"
+		   "(alias Main EntryPoint.Main) \n";
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestNullStringBuilder");
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   SafeFormat(testBuffer, sizeof(testBuffer), "Hi Ho");
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+
+	   validate(Eq(testBuffer, ""));
+   }
+
    void TestOperatorOverload2(IPublicScriptSystem& ss)
    {
       cstr srcCode =
@@ -11060,6 +11112,7 @@ namespace
 
 	void RunPositiveSuccesses()
 	{
+		TEST(TestNullStringBuilder);
 		TEST(TestOperatorOverload2);
 		TEST(TestStructWithVec4f);
 		TEST(TestBooleanCompareVarToCompound);

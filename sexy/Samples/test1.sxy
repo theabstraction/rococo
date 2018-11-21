@@ -1,7 +1,12 @@
-(namespace EntryPoint)
-(function Main -> (Bool x):
-	(Int32 a = 1)
-	(Int32 b = 3)
-	(x = (a < (b - 1)))
+(function AppendStringToHost (IString s)-> :
+	(Sys.Print s)
 )
+
+(using Sys.Type)
+(namespace EntryPoint)
+(function Main -> (Int32 exitCode) :
+	(IStringBuilder sb)
+    (AppendStringToHost sb)
+)
+
 (alias Main EntryPoint.Main)
