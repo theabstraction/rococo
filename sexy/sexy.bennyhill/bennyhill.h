@@ -90,8 +90,8 @@ namespace Rococo
       char appendSexyFile[_MAX_PATH];
       char appendCppHeaderFile[_MAX_PATH];
       char appendCppImplFile[_MAX_PATH];
-
-      char inheritanceString[128];
+	  cstr sexyBase = nullptr;
+	  cstr cppBase = nullptr;
 
       bool isSingleton; // If true then the context comes from the native registration method, else it comes from the factory.
       CppType nceContext;

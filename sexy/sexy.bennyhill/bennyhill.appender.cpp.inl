@@ -320,7 +320,14 @@ namespace Rococo
 
 		appender.Append(("ROCOCOAPI "));
 		AppendStructShortName(appender, ic.asCppInterface.SexyName());
-		appender.Append(ic.inheritanceString);
+		if (ic.cppBase)
+		{
+			char cppCompressedNSName[256];
+			char cppNSName[256];
+			GetFQCppStructName(cppCompressedNSName, cppNSName, 256, ic.cppBase);
+
+			appender.Append(": public %s", cppNSName);
+		}
 		appender.Append(nsDepth > 0 ? ("\n\t{\n") : ("\n{\n"));
 
 		NamespaceSplitter splitter(ic.asCppInterface.SexyName());
@@ -672,7 +679,7 @@ namespace Rococo
 		cstr argPrefix = ("_");
 
 		// Append the input arguments to the method invocation
-		for (int i = inputEnd; i >= inputStart; --i)
+		for (int i = inputStart; i <= inputEnd; ++i)
 		{
 			cr_sex arg = method.GetElement(i);
 

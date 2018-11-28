@@ -1,0 +1,94 @@
+(using Sys.Type)
+(using Sys.Reflection)
+
+(interface Sys.Type.IException
+	(ErrorCode -> (Int32 errorCode))
+	(Message -> (IString message))
+)
+
+(function Throw (Int32 errorCode) (IString message) -> :
+	(RuntimeException ex)
+	(ex.errorCode = errorCode)
+	(ex.message = (Memo message))
+	(throw ex)
+)
+
+(function ThrowIndexNegative -> :
+	(Throw -1 "Argument index was negative")
+)
+
+(function ThrowIndexExceededBounds -> :
+	(Throw -1 "Argument index was higher than the collection upper bound.")
+)
+
+(function ValidateSubscriptRange (Int32 i) (Int32 min) (Int32 max) (IString message) -> :
+	(if ((i < min) or (i > max)) (Sys.Throw -1 message))
+)
+
+(alias ValidateSubscriptRange Sys.ValidateSubscriptRange)
+
+(class RuntimeException
+	(implements IException)
+	(Int32 errorCode)
+	(IString message)
+)
+
+(method RuntimeException.ErrorCode -> (Int32 errorCode):
+	(errorCode = this.errorCode)
+)
+
+(method RuntimeException.Message -> (IString message):
+	(message = this.message)
+)
+
+(alias Throw Sys.Throw)
+(alias ThrowIndexNegative Sys.ThrowIndexNegative)
+(alias ThrowIndexExceededBounds Sys.ThrowIndexExceededBounds)
+
+(function Print (IString s) -> (Int32 charCount):
+	(Sys.Type.NativePrint s.Buffer -> charCount)
+)
+
+(alias Print Sys.Print)
+
+// Example: (#for (Int32 i = 0) (i < 10)  (i = (i + 1)) (CallFunction i) )
+(macro Sys.Type.for in out
+	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (#for (init-condition)   (while-test-boolean-valued-expression)   (loop-increment)   (body1)...(bodyN)  )")
+	(out.Copy (in 1))
+	(IExpressionBuilder whileLoop = out.AddCompound)
+	(whileLoop.AddAtomic "while")
+	(whileLoop.Copy (in 2))
+
+	(Int32 i = 4)
+	(while (i < in.ChildCount) 
+		(whileLoop.Copy (in i))
+		(i = (i + 1))
+	)
+
+	(whileLoop.Copy (in 3))
+) 
+
+// Example: (#inc i) maps to (i = (i+1) )
+(macro Sys.Type.inc in out
+	(ValidateSubscriptRange in.ChildCount 2 2 "Usage: (#inc <variable-name>)")
+	(IExpression format = ' ($1 = ($1 + 1)))
+	(out.Substitute in format)
+)
+
+// Example: (#dec i) maps to (i = (i-1) )
+(macro Sys.Type.dec in out
+	(ValidateSubscriptRange in.ChildCount 2 2 "Usage: (#dec <variable-name>)")
+	(IExpression format = ' ($1 = ($1 - 1)))
+	(out.Substitute in format)
+)
+
+// Example (#build s 1 2 3 4) maps to (s 1)(s 2)(s 3)(s 4), used with such as stringbuilders and serializers
+(macro Sys.Type.build in out
+	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (##build <variable-name> <arg1> ... <argN>)")
+	(#for (Int32 i = 2) (i < in.ChildCount) (#inc i)
+		(IExpressionBuilder child = out.AddCompound)
+		(child.Copy (in 1))
+		(child.Copy (in i))
+	)
+)
+

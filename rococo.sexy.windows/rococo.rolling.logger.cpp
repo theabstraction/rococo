@@ -94,7 +94,7 @@ namespace ANON
 			}
 		}
 
-		void Write(csexstr text) override
+		void Write(cstr text) override
 		{
 			WriteRaw(text);
 			MoveToNextRow();
@@ -108,7 +108,7 @@ namespace ANON
 			}
 		}
 
-		void OnUnhandledException(int errorCode, csexstr exceptionType, csexstr message, void* exceptionInstance) override
+		void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance) override
 		{
 			WriteRaw("\n        Unhandled Exception Begin     ");
 			WriteRaw("\n---------------------------------------");

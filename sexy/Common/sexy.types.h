@@ -39,6 +39,8 @@
 
 namespace Rococo
 {
+	typedef void* OS_HWND;
+
 	enum CALLBACK_CONTROL
 	{
 		CALLBACK_CONTROL_CONTINUE,

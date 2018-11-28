@@ -1,0 +1,11 @@
+(' #include "!scripts/cute.sxh.sxy")
+
+(namespace EntryPoint)
+(alias Main EntryPoint.Main)
+
+(using Rococo.Cute)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(IMasterWindow master (MasterWindow "Scripted Test App" -1 -1 800 600))
+	(master.Show)
+)

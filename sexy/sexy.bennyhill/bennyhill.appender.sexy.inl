@@ -306,7 +306,12 @@ namespace
 
 	void DeclareSexyInterface(FileAppender& appender, const InterfaceContext& ic, const ISExpression* methods, const ParseContext& pc)
 	{
-		appender.Append(("(interface %s"), ic.asSexyInterface);
+		appender.Append("(interface %s", ic.asSexyInterface);
+
+		if (ic.sexyBase)
+		{
+			appender.Append(" (extends %s)", ic.sexyBase);
+		}
 
 		if (methods != NULL)
 		{
@@ -344,6 +349,10 @@ namespace
 		{
 			cr_sex input = sfactoryDef.GetElement(i);
 			AppendInputValue(appender, input, pc);
+			if (i != inputEnd)
+			{
+				appender.Append(' ');
+			}
 		}
 	}
 

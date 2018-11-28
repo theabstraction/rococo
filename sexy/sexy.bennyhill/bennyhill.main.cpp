@@ -601,12 +601,12 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
 
 			cstr sexyFilename = ssexyFilename.String()->Buffer;
 
-         SafeFormat(ic.appendCppHeaderFile, _MAX_PATH, ("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
-         SafeFormat(ic.appendCppImplFile, _MAX_PATH, ("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
+			SafeFormat(ic.appendCppHeaderFile, _MAX_PATH, ("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
+			SafeFormat(ic.appendCppImplFile, _MAX_PATH, ("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
 
 			ic.asCppInterface.Set(sinterfaceName.String()->Buffer);
 			CopyString(ic.asSexyInterface, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
-         SafeFormat(ic.appendSexyFile, _MAX_PATH, ("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
+			SafeFormat(ic.appendSexyFile, _MAX_PATH, ("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 		}
 		else if (AreEqual(ssname, ("as.sxy")))
 		{
@@ -616,35 +616,39 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
 
 			if (ic.asSexyInterface[0] != 0) Throw(directive, ("as.sxy is already defined for this interface"));
 
-         if (directive.NumberOfElements() == 4)
-         {
-            SafeFormat(ic.inheritanceString, 128, ("%s"), directive[3].String()->Buffer);
-         }
-         else
-         {
-            *ic.inheritanceString = 0;
-         }
+			if (directive.NumberOfElements() == 4)
+			{
+				if (!IsStringLiteral(directive[3]) && !IsAtomic(directive[3])) Throw(directive[3], ("Expecting string literal base class"));
+				ic.sexyBase = directive[3].String()->Buffer;
+			}
 
 			cr_sex ssexyFilename = directive.GetElement(2);
-			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename,  ("Expecting string literal"));
+			if (!IsStringLiteral(ssexyFilename) && !IsAtomic(ssexyFilename)) Throw(ssexyFilename, ("Expecting string literal"));
 			CopyString(ic.asSexyInterface, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
-         SafeFormat(ic.appendSexyFile, _MAX_PATH, ("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
+			SafeFormat(ic.appendSexyFile, _MAX_PATH, ("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 		}
 		else if (AreEqual(ssname, ("as.cpp")))
 		{
-			if (directive.NumberOfElements() != 3) Throw(directive, ("Expecting (as.cpp <fully qualified interface name> \"<target-filename-sans-extension>\")"));
-			cr_sex sstructName = directive.GetElement(1);
+			if (directive.NumberOfElements() != 3 && directive.NumberOfElements() != 4) Throw(directive, ("Expecting (as.cpp <fully qualified interface name> \"<target-filename-sans-extension>\" <optional-base-class>)"));
+			cr_sex sstructName = directive[1];
 			ValidateFQCppStruct(sstructName);
 
 			if (ic.asCppInterface.SexyName()[0] != 0) Throw(directive, ("as.cpp is already defined for this interface"));
 
-			cr_sex ssexyFilename = directive.GetElement(2);
-			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename,  ("Expecting string literal"));
+			cr_sex ssexyFilename = directive[2];
+			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, ("Expecting string literal"));
 
 			cstr sexyFilename = ssexyFilename.String()->Buffer;
 
-         SafeFormat(ic.appendCppHeaderFile, _MAX_PATH, ("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
-         SafeFormat(ic.appendCppImplFile, _MAX_PATH, ("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
+			SafeFormat(ic.appendCppHeaderFile, _MAX_PATH, ("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
+			SafeFormat(ic.appendCppImplFile, _MAX_PATH, ("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
+
+			if (directive.NumberOfElements() == 4)
+			{
+				cr_sex sbaseClass = directive[3];
+				if (!IsStringLiteral(sbaseClass) && !IsAtomic(sbaseClass)) Throw(sbaseClass, ("Expecting string literal base class"));
+				ic.cppBase = sbaseClass.String()->Buffer;
+			}
 
 			ic.asCppInterface.Set(sstructName.String()->Buffer);
 		}
