@@ -104,6 +104,7 @@
   <ItemGroup>
     <ClCompile Include="rococo.cute.main.cpp" />
     <ClCompile Include="rococo.cute.master.cpp" />
+    <ClCompile Include="rococo.cute.menu.cpp" />
     <ClCompile Include="rococo.cute.script.cpp" />
     <ClCompile Include="rococo.cute.win32.cpp" />
   </ItemGroup>

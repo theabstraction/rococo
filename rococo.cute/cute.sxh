@@ -3,12 +3,18 @@
 (interface 
 	(as.sxy Rococo.Cute.IWindowBase "../bin/cute.test/content/scripts/cute")
 	(as.cpp Rococo.Cute.IWindowBase "cute")
-	(context factory Rococo.Cute.IWindowBase)
 	(methods
-		(GetWindowRect (Vec2i pos)(Vec2i span) -> )
-		(GetSpan (Vec2i span) -> )
-		(SetText (IString text) -> )
-		(GetText (IStringBuilder sb) -> (Int32 stringLength))
+		(GetWindowHandle -> (Pointer hWnd))
+	)
+)
+
+(interface 
+	(as.sxy Rococo.Cute.IMenu "../bin/cute.test/content/scripts/cute")
+	(as.cpp Rococo.Cute.IMenu "cute")
+	(context factory Rococo.Cute.IMenu)
+	(methods
+		(AddItem (IString text)(IString key))
+		(SubMenu (IString name)->(Rococo.Cute.IMenu subMenu))
 	)
 )
 
@@ -17,8 +23,16 @@
 	(as.cpp Rococo.Cute.IMasterWindow "cute" Rococo.Cute.IWindowBase)
 	(context factory Rococo.Cute.IMasterWindowFactory)
 	(methods
+		(Menu -> (Rococo.Cute.IMenu menu))
 	)
 
 	(factory Rococo.Cute.MasterWindow (IString title) (Int32 x)(Int32 y)(Int32 dx)(Int32 dy))
+)
+
+(functions Rococo.Cute.Native "cute.functions"
+	(GetWindowRect (Pointer hWnd)(Vec2i pos)(Vec2i span) -> : Rococo::Cute::Native::GetWindowRect)
+	(GetSpan (Pointer hWnd)(Vec2i span) -> : Rococo::Cute::Native::GetSpan)
+	(SetText (Pointer hWnd)(IString text) -> : Rococo::Cute::Native::SetText)
+	(GetText (Pointer hWnd)(IStringBuilder sb) -> (Int32 stringLength): Rococo::Cute::Native::GetText)
 )
 

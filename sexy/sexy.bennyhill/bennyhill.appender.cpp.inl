@@ -367,12 +367,16 @@ namespace Rococo
 		GetFQCppStructName(cppCompressedNSName, cppNSName, 256, ns);
 
 		appender.Append(("\n\n"));
-		int depth = AppendNamespace(appender, ic.asCppInterface.SexyName());
-		appender.Append(("\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, %s* nceContext);\n"), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
-		while (depth > 0)
+
+		if (ic.nceContext.SexyName()[0] != 0)
 		{
-			depth--;
-			appender.Append(("}"));
+			int depth = AppendNamespace(appender, ic.asCppInterface.SexyName());
+			appender.Append(("\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, %s* nceContext);\n"), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
+			while (depth > 0)
+			{
+				depth--;
+				appender.Append(("}"));
+			}
 		}
 
 		appender.Append(("\n\n"));
@@ -840,16 +844,16 @@ namespace Rococo
 		appender.Append(("// %s\n\n"), ec.asCppEnum.SexyName());
 	}
 
-	void ImplementNativeFunctions(FileAppender& appender, const InterfaceContext& ic, const ISExpression* methods, const ParseContext& pc)
+	void ImplementNativeFunctions(FileAppender& appender, const InterfaceContext& ic, const ISExpression* methods[], const ParseContext& pc)
 	{
 		appender.Append(("// BennyHill generated Sexy native functions for %s \n"), ic.asCppInterface.FQName());
 		appender.Append(("namespace\n{\n\tusing namespace Rococo;\n\tusing namespace Rococo::Sex;\n\tusing namespace Rococo::Script;\n\tusing namespace Rococo::Compiler;\n\n"));
 
-		if (methods != NULL)
+		for(size_t t = 0; methods[t] != nullptr; ++t)
 		{
-			for (int i = 1; i < methods->NumberOfElements(); ++i)
+			for (int i = 1; i < methods[t]->NumberOfElements(); ++i)
 			{
-				cr_sex method = methods->GetElement(i);
+				cr_sex method = methods[t]->GetElement(i);
 				AddNativeImplementation(appender, ic, method, pc);
 			}
 		}
@@ -944,32 +948,35 @@ namespace Rococo
 				}
 			}
 
-			for (int i = 1; i < methods->NumberOfElements(); ++i)
+			for (size_t k = 0; methods[k] != nullptr; ++k)
 			{
-				cr_sex method = methods->GetElement(i);
-				cstr methodName = StringFrom(method.GetElement(0));
-				appender.Append(("\t\tss.AddNativeCall(ns, Native%s%s, %s, (\""), ic.asCppInterface.CompressedName(), methodName, ic.isSingleton ? ("_nceContext") : ("nullptr"));
-				appender.Append(("%s%s "), shortName, methodName);
-				if (!ic.isSingleton)
+				for (int t = 1; t < methods[k]->NumberOfElements(); ++t)
 				{
-					appender.Append(("(Pointer hObject)"));
-				}
+					cr_sex method = methods[k]->GetElement(t);
+					cstr methodName = StringFrom(method.GetElement(0));
+					appender.Append(("\t\tss.AddNativeCall(ns, Native%s%s, %s, (\""), ic.asCppInterface.CompressedName(), methodName, ic.isSingleton ? ("_nceContext") : ("nullptr"));
+					appender.Append(("%s%s "), shortName, methodName);
+					if (!ic.isSingleton)
+					{
+						appender.Append(("(Pointer hObject)"));
+					}
 
-				int outputPos = GetOutputPosition(method);
-				for (int i = 1; i < outputPos - 1; i++)
-				{
-					cr_sex arg = method.GetElement(i);
-					AppendInputPair(appender, arg, pc);
-				}
+					int outputPos = GetOutputPosition(method);
+					for (int i = 1; i < outputPos - 1; i++)
+					{
+						cr_sex arg = method.GetElement(i);
+						AppendInputPair(appender, arg, pc);
+					}
 
-				appender.Append((" -> "));
-				for (int i = outputPos; i < method.NumberOfElements(); i++)
-				{
-					cr_sex arg = method.GetElement(i);
-					AppendOutputPair(appender, arg, pc);
-				}
+					appender.Append((" -> "));
+					for (int i = outputPos; i < method.NumberOfElements(); i++)
+					{
+						cr_sex arg = method.GetElement(i);
+						AppendOutputPair(appender, arg, pc);
+					}
 
-				appender.Append(("\"));\n"));
+					appender.Append(("\"));\n"));
+				}
 			}
 		}
 		appender.Append(("\t}\n"));

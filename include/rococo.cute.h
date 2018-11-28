@@ -35,9 +35,18 @@ namespace Rococo
 		void ExecuteScript(cstr scriptFile, IInstallation& installation, ExecuteScriptSpec& spec, IEventCallback<ScriptCompileArgs>& onCompile, Rococo::Windows::IDE::IScriptExceptionHandler& exHandler);
 		void ExecuteWindowScript(cstr scriptFile, IInstallation& installation, ExecuteScriptSpec& spec, IMasterWindowFactory& factory);
 
+		struct IMenu;
+
+		ROCOCOAPI IMenuSupervisor
+		{
+			virtual IMenu& Menu() = 0;
+			virtual void Free() = 0;
+		};
+
 #ifdef _WIN32
 # ifdef WINAPI
 		IMasterWindowFactory* CreateMasterWindowFactory(HINSTANCE hInstance, HWND hParent);
+		IMenuSupervisor* CreateCuteMenu(HWND hWndOwner);
 # endif
 #endif
 	}

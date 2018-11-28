@@ -160,17 +160,24 @@ namespace Rococo
 using namespace Rococo;
 using namespace Rococo::Sex;
 
-void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods, cr_sex interfaceDef)
+void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods[], cr_sex interfaceDef)
 {
 	FileAppender sexyFileAppender(ic.appendSexyFile);	
-	DeclareSexyInterface(sexyFileAppender, ic, methods, pc);
-	ImplementSexyInterface(sexyFileAppender, ic, methods, s, pc);
+	DeclareSexyInterface(sexyFileAppender, ic, methods[0], pc);
+
+	if (ic.nceContext.SexyName()[0] != 0)
+	{
+		ImplementSexyInterface(sexyFileAppender, ic, methods, s, pc);
+	}
 
 	FileAppender cppFileAppender(ic.appendCppHeaderFile);
-	DeclareCppInterface(cppFileAppender, ic, interfaceDef, methods, pc);
+	DeclareCppInterface(cppFileAppender, ic, interfaceDef, methods[0], pc);
 
-	FileAppender cppFileImplAppender(ic.appendCppImplFile); 
-	ImplementNativeFunctions(cppFileImplAppender, ic, methods, pc);
+	if (ic.nceContext.SexyName()[0] != 0)
+	{
+		FileAppender cppFileImplAppender(ic.appendCppImplFile);
+		ImplementNativeFunctions(cppFileImplAppender, ic, methods, pc);
+	}
 }
 
 void GenerateFiles(const ParseContext& pc, const EnumContext& ec, cr_sex senumDef)
@@ -276,13 +283,20 @@ void AppendNativeFunction(cr_sex functionDef, sexstring ns, const ParseContext& 
 		{
 			if (inputCount > 1) outputFile.Append((", "));
 			inputCount++;
-
-			if (!AreEqual(type, ("IString")) && !AreEqual(type, ("Sys.Type.IString")) && pc.structs.find(type) != pc.structs.end())
+		
+			if (AreEqual(type, ("IStringBuilder")) || AreEqual(type, ("Sys.Text.IStringBuilder")))
 			{
-				outputFile.Append('*');
+				outputFile.Append("_%sPopulator", StringFrom(svalue));
 			}
+			else
+			{
+				if (!AreEqual(type, ("IString")) && !AreEqual(type, ("Sys.Type.IString")) && pc.structs.find(type) != pc.structs.end())
+				{
+					outputFile.Append('*');
+				}
 
-			outputFile.Append(("%s"), StringFrom(svalue));
+				outputFile.Append("%s", StringFrom(svalue));
+			}
 		}
 		else
 		{
@@ -574,6 +588,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
 {
 	InterfaceContext ic;
 	const ISExpression* methods = NULL;
+	const ISExpression* baseMethods = NULL;
 
 	bool hasDestructor = false;
 
@@ -620,6 +635,15 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
 			{
 				if (!IsStringLiteral(directive[3]) && !IsAtomic(directive[3])) Throw(directive[3], ("Expecting string literal base class"));
 				ic.sexyBase = directive[3].String()->Buffer;
+				ValidateFQSexyInterface(directive[3]);
+
+				auto i = pc.interfaces.find(ic.sexyBase);
+				if (i == pc.interfaces.end())
+				{
+					Throw(directive[3], "Base interface [%s] not found prior to the definition of the derived interface [%s]", ic.sexyBase, sinterfaceName.String()->Buffer);
+				}
+
+				baseMethods = i->second->methods;
 			}
 
 			cr_sex ssexyFilename = directive.GetElement(2);
@@ -730,7 +754,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
       // Throw(interfaceDef, ("Interface needs to specify at least one factory"));
 	}
 
-	if (!ic.nceContext.SexyName()[0])
+	if (!ic.nceContext.SexyName()[0] && !ic.factories.empty())
 	{
 		Throw(interfaceDef, ("Missing (context <'factory'|'api'> <context-type>)"));
 	}
@@ -738,6 +762,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
    InterfaceDef* def = new InterfaceDef;
    def->methods = methods;
    def->sdef = &interfaceDef;
+   def->baseMethods = baseMethods;
    def->ic = ic;
 
    pc.interfaces.insert(std::make_pair(stdstring(ic.asSexyInterface), def));
@@ -808,7 +833,8 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 	for (auto& i : pc.interfaces)
 	{
 		auto& def = *i.second;
-		GenerateFiles(pc, def.ic, *def.sdef, def.methods, *def.sdef);
+		const ISExpression* methods[3] = { def.methods, def.baseMethods, nullptr };
+		GenerateFiles(pc, def.ic, *def.sdef, methods, *def.sdef);
 	}
 
 	for (auto& i : pc.interfaces)

@@ -114,6 +114,7 @@ namespace Rococo
       InterfaceContext ic;
       const Rococo::Sex::ISExpression* sdef;
       const Rococo::Sex::ISExpression* methods;
+	  const Rococo::Sex::ISExpression* baseMethods;
    };
 
    struct EnumContext

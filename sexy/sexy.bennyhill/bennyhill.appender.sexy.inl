@@ -356,7 +356,7 @@ namespace
 		}
 	}
 
-	void ImplementSexyInterface(FileAppender& appender, const InterfaceContext& ic, const ISExpression* methods, cr_sex interfaceDef, const ParseContext& pc)
+	void ImplementSexyInterface(FileAppender& appender, const InterfaceContext& ic, const ISExpression* methods[], cr_sex interfaceDef, const ParseContext& pc)
 	{
 		appender.Append(("(class "));
 		AppendProxyName(appender, ic.asSexyInterface, interfaceDef);
@@ -408,12 +408,12 @@ namespace
 			appender.Append((" this.hObject))\n"));
 		}
 
-		if (methods != NULL)
+		for (size_t t = 0; methods[t] != NULL; ++t)
 		{
 			// The first element in the expression is the 'method' keyword, which we have validated elsewhere
-			for(int i = 1; i < methods->NumberOfElements(); ++i)
+			for(int i = 1; i < methods[t]->NumberOfElements(); ++i)
 			{
-				cr_sex method = methods->GetElement(i);
+				cr_sex method = methods[t]->GetElement(i);
 				if (!IsCompound(method)) Throw(method, ("Expecting compound expression for the method"));
 
 				cr_sex smethodName = method.GetElement(0);

@@ -1,8 +1,8 @@
-#include "rococo.cute.h"
-#include "cute.sxh.h"
-
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
+
+#include "rococo.cute.h"
+#include "cute.sxh.h"
 
 #include <vector>
 
@@ -11,76 +11,71 @@
 using namespace Rococo;
 using namespace Rococo::Cute;
 
-struct BaseWindow : public IWindowBase
+namespace Rococo
 {
-	HWND hWnd;
-
-	void GetWindowRect(Vec2i& pos, Vec2i& span) override
+	namespace Cute 
 	{
-		RECT rect;
-		::GetWindowRect(hWnd, &rect);
-		pos = { rect.left, rect.top };
-		span = { rect.right - rect.left, rect.bottom - rect.top };
-	}
+		namespace Native
+		{
+			void GetWindowRect(size_t ptrWindow, Vec2i& pos, Vec2i& span)
+			{
+				HWND hWnd = (HWND)ptrWindow;
+				RECT rect;
+				::GetWindowRect(hWnd, &rect);
+				pos = { rect.left, rect.top };
+				span = { rect.right - rect.left, rect.bottom - rect.top };
+			}
 
-	void GetSpan(Vec2i& span) override
-	{
-		RECT rect;
-		::GetClientRect(hWnd, &rect);
-		span = { rect.right - rect.left, rect.bottom - rect.top };
-	}
+			void GetSpan(size_t ptrWindow, Vec2i& span)
+			{
+				HWND hWnd = (HWND)ptrWindow;
+				RECT rect;
+				::GetClientRect(hWnd, &rect);
+				span = { rect.right - rect.left, rect.bottom - rect.top };
+			}
 
-	void SetText(const fstring& text) override
-	{
-		::SetWindowTextA(hWnd, text);
-	}
+			void SetText(size_t ptrWindow, const fstring& text)
+			{
+				HWND hWnd = (HWND)ptrWindow;
+				::SetWindowTextA(hWnd, text);
+			}
 
-	int32 /* stringLength */ GetText(IStringPopulator& sb)override
-	{
-		int32 len = GetWindowTextLengthA(hWnd);
+			int32 /* stringLength */ GetText(size_t ptrWindow, IStringPopulator& sb)
+			{
+				HWND hWnd = (HWND)ptrWindow;
+				int32 len = GetWindowTextLengthA(hWnd);
 
-		char* text = (char*)alloca(len + 1);
-		GetWindowTextA(hWnd, text, len);
-		sb.Populate(text);
-		return len;
-	}
-};
+				char* text = (char*)alloca(len + 1);
+				GetWindowTextA(hWnd, text, len);
+				sb.Populate(text);
+				return len;
+			}
+		} // Native
+	} // Cute
+} // Rococo
 
 struct MasterWindow : public IMasterWindow
 {
-	BaseWindow baseWindow;
+	AutoFree<IMenuSupervisor> menuManager;
 
+	HWND hWindow;
 	MasterWindow(ATOM atom, HINSTANCE hInstance, HWND hParent, Vec2i pos, Vec2i span, cstr title)
 	{
 		DWORD exStyle = 0;
 		DWORD style = WS_OVERLAPPEDWINDOW;
 		int x = pos.x == -1 ? CW_USEDEFAULT : pos.x;
 		int y = pos.y == -1 ? CW_USEDEFAULT : pos.y;
-		int width = 640;
-		int height = 480;
-		baseWindow.hWnd = CreateWindowExA(exStyle, (cstr)atom, title, style, x, y, width, height,
+		int width = span.x;
+		int height = span.y;
+		hWindow = CreateWindowExA(exStyle, (cstr)atom, title, style, x, y, width, height,
 			hParent, nullptr, hInstance, nullptr);
+
+		menuManager = Rococo::Cute::CreateCuteMenu(hWindow);
 	}
 
 	virtual ~MasterWindow()
 	{
-		DestroyWindow(baseWindow.hWnd);
-		baseWindow.hWnd = nullptr;
-	}
-
-	void GetWindowRect(Vec2i& pos, Vec2i& span) override
-	{
-		baseWindow.GetWindowRect(pos, span);
-	}
-
-	void GetSpan(Vec2i& span) override
-	{
-		baseWindow.GetSpan(span);
-	}
-
-	void SetText(const fstring& text) override
-	{
-		baseWindow.SetText(text);
+		DestroyWindow(hWindow);
 	}
 
 	LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -104,14 +99,19 @@ struct MasterWindow : public IMasterWindow
 
 	void Show()
 	{
-		SetWindowLongPtrA(baseWindow.hWnd, GWLP_USERDATA, (LONG_PTR) this);
-		SetWindowLongPtrA(baseWindow.hWnd, GWLP_WNDPROC, (LONG_PTR) MasterWindowProc);
-		ShowWindow(baseWindow.hWnd, SW_SHOW);
+		SetWindowLongPtrA(hWindow, GWLP_USERDATA, (LONG_PTR) this);
+		SetWindowLongPtrA(hWindow, GWLP_WNDPROC, (LONG_PTR) MasterWindowProc);
+		ShowWindow(hWindow, SW_SHOW);
 	}
 
-	int32 /* stringLength */ GetText(IStringPopulator& sb)override
+	size_t GetWindowHandle() override
 	{
-		return baseWindow.GetText(sb);
+		return (size_t) hWindow;
+	}
+
+	IMenu* Menu() override
+	{
+		return &menuManager->Menu();
 	}
 };
 
@@ -133,6 +133,7 @@ struct MasterWindowFactory : public IMasterWindowFactory
 		wc.hInstance = hInstance;
 		wc.lpfnWndProc = DefWindowProcA;
 		wc.lpszClassName = classname;
+		wc.hCursor = LoadCursorA(nullptr, (cstr) IDC_ARROW);
 		atom = RegisterClassExA(&wc);
 		if (atom == 0)
 		{

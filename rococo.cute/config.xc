@@ -25,7 +25,7 @@
 (primitive Kilograms Sys.SI.Kilograms Kilograms)
 (primitive RGBAb Int32 RGBAb)
 
-(primitive Pointer Pointer uintptr_t)
+(primitive Pointer Pointer size_t)
 (primitive IdMesh Int32 ID_MESH)
 (primitive IdEntity Int64 ID_ENTITY)
 

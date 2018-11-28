@@ -5,7 +5,24 @@
 
 (using Rococo.Cute)
 
+(function SetText (IWindowBase window) (IString text)-> :
+	(Rococo.Cute.Native.SetText window.GetWindowHandle text)
+)
+
+(function AddMainMenu (IMasterWindow master)-> :
+	(IMenu menu = master.Menu)
+		(IMenu fileMenu = (menu.SubMenu "File"))
+			(fileMenu.AddItem "&&Open" "File_Open")
+			(fileMenu.AddItem "&&Save" "File_Save")
+		(IMenu editMenu = (menu.SubMenu "Edit"))
+			(editMenu.AddItem "&&Copy" "Edit_Copy")
+			(editMenu.AddItem "&&Paste" "Edit_Paste")
+)
+
 (function Main (Int32 id)->(Int32 exitCode):
-	(IMasterWindow master (MasterWindow "Scripted Test App" -1 -1 800 600))
-	(master.Show)
+	// Create a  master window. The window and its children will persist after the script completes
+	// If the script crashes the window will be destroyed and deleted
+	(IMasterWindow master (MasterWindow "Scripted Test App" -1 -1 1280 700))
+		(SetText master "This is so cool")
+		(AddMainMenu master)
 )
