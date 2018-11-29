@@ -19,11 +19,23 @@
 )
 
 (interface 
+	(as.sxy Rococo.Cute.ISplit "../bin/cute.test/content/scripts/cute" Rococo.Cute.IWindowBase)
+	(as.cpp Rococo.Cute.ISplit "cute" Rococo.Cute.IWindowBase)
+	(context factory Rococo.Cute.ISplit)
+	(methods
+		(Lo -> (Rococo.Cute.IWindowBase low))
+		(Hi -> (Rococo.Cute.IWindowBase high))
+	)
+)
+
+(interface 
 	(as.sxy Rococo.Cute.IMasterWindow "../bin/cute.test/content/scripts/cute" Rococo.Cute.IWindowBase)
 	(as.cpp Rococo.Cute.IMasterWindow "cute" Rococo.Cute.IWindowBase)
 	(context factory Rococo.Cute.IMasterWindowFactory)
 	(methods
 		(Menu -> (Rococo.Cute.IMenu menu))
+		(SplitIntoLeftAndRight (Int32 pixelSplit)(Int32 splitterWidth)(Bool draggable)->(Rococo.Cute.ISplit split))
+		(SplitIntoTopAndBottom (Int32 pixelSplit)(Int32 splitterHeight)(Bool draggable)->(Rococo.Cute.ISplit split))
 	)
 
 	(factory Rococo.Cute.MasterWindow (IString title) (Int32 x)(Int32 y)(Int32 dx)(Int32 dy))

@@ -57,9 +57,11 @@ namespace Rococo
 struct MasterWindow : public IMasterWindow
 {
 	AutoFree<IMenuSupervisor> menuManager;
+	std::vector<IWindowContainer*> children;
 
 	HWND hWindow;
-	MasterWindow(ATOM atom, HINSTANCE hInstance, HWND hParent, Vec2i pos, Vec2i span, cstr title)
+	ATOM atom;
+	MasterWindow(ATOM _atom, HINSTANCE hInstance, HWND hParent, Vec2i pos, Vec2i span, cstr title): atom(_atom)
 	{
 		DWORD exStyle = 0;
 		DWORD style = WS_OVERLAPPEDWINDOW;
@@ -76,6 +78,20 @@ struct MasterWindow : public IMasterWindow
 	virtual ~MasterWindow()
 	{
 		DestroyWindow(hWindow);
+	}
+
+	ISplit* SplitIntoLeftAndRight(int32 pixelSplit, int32 splitterWidth, boolean32 draggable) override
+	{
+		auto* s = CreateSplit(atom, hWindow, pixelSplit, splitterWidth, draggable, true);
+		children.push_back(s);
+		return &s->Split();
+	}
+
+	ISplit*  SplitIntoTopAndBottom(int32 pixelSplit, int32 splitterHeight, boolean32 draggable) override
+	{
+		auto* s = CreateSplit(atom, hWindow, pixelSplit, splitterHeight, draggable, false);
+		children.push_back(s);
+		return &s->Split();
 	}
 
 	LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

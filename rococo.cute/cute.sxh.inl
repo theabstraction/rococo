@@ -59,6 +59,66 @@ namespace Rococo { namespace Cute {
 		ss.AddNativeCall(ns, NativeRococoCuteIMenuSubMenu, nullptr, ("IMenuSubMenu (Pointer hObject)(Sys.Type.IString name) -> (Rococo.Cute.IMenu subMenu)"));
 	}
 }}
+// BennyHill generated Sexy native functions for Rococo::Cute::ISplit 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoCuteISplitLo(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Cute::ISplit* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::Cute::IWindowBase* low = _pObject->Lo();
+		_offset += sizeof(CReflectedClass*);
+		auto& _lowStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("IWindowBase"), ("ProxyIWindowBase"), _nce.ss);
+		CReflectedClass* _sxylow = _nce.ss.Represent(_lowStruct, low);
+		WriteOutput(&_sxylow->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoCuteISplitHi(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Cute::ISplit* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::Cute::IWindowBase* high = _pObject->Hi();
+		_offset += sizeof(CReflectedClass*);
+		auto& _highStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("IWindowBase"), ("ProxyIWindowBase"), _nce.ss);
+		CReflectedClass* _sxyhigh = _nce.ss.Represent(_highStruct, high);
+		WriteOutput(&_sxyhigh->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoCuteISplitGetWindowHandle(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Cute::ISplit* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		size_t hWnd = _pObject->GetWindowHandle();
+		_offset += sizeof(hWnd);
+		WriteOutput(hWnd, _sf, -_offset);
+	}
+
+}
+
+namespace Rococo { namespace Cute { 
+	void AddNativeCalls_RococoCuteISplit(Rococo::Script::IPublicScriptSystem& ss, Rococo::Cute::ISplit* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Cute.Native"));
+		ss.AddNativeCall(ns, NativeRococoCuteISplitLo, nullptr, ("ISplitLo (Pointer hObject) -> (Rococo.Cute.IWindowBase low)"));
+		ss.AddNativeCall(ns, NativeRococoCuteISplitHi, nullptr, ("ISplitHi (Pointer hObject) -> (Rococo.Cute.IWindowBase high)"));
+		ss.AddNativeCall(ns, NativeRococoCuteISplitGetWindowHandle, nullptr, ("ISplitGetWindowHandle (Pointer hObject) -> (Pointer hWnd)"));
+	}
+}}
 // BennyHill generated Sexy native functions for Rococo::Cute::IMasterWindow 
 namespace
 {
@@ -80,6 +140,58 @@ namespace
 		auto& _menuStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("IMenu"), ("ProxyIMenu"), _nce.ss);
 		CReflectedClass* _sxymenu = _nce.ss.Represent(_menuStruct, menu);
 		WriteOutput(&_sxymenu->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoCuteIMasterWindowSplitIntoLeftAndRight(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 draggable;
+		_offset += sizeof(draggable);
+		ReadInput(draggable, _sf, -_offset);
+
+		int32 splitterWidth;
+		_offset += sizeof(splitterWidth);
+		ReadInput(splitterWidth, _sf, -_offset);
+
+		int32 pixelSplit;
+		_offset += sizeof(pixelSplit);
+		ReadInput(pixelSplit, _sf, -_offset);
+
+		Rococo::Cute::IMasterWindow* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::Cute::ISplit* split = _pObject->SplitIntoLeftAndRight(pixelSplit, splitterWidth, draggable);
+		_offset += sizeof(CReflectedClass*);
+		auto& _splitStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("ISplit"), ("ProxyISplit"), _nce.ss);
+		CReflectedClass* _sxysplit = _nce.ss.Represent(_splitStruct, split);
+		WriteOutput(&_sxysplit->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoCuteIMasterWindowSplitIntoTopAndBottom(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 draggable;
+		_offset += sizeof(draggable);
+		ReadInput(draggable, _sf, -_offset);
+
+		int32 splitterHeight;
+		_offset += sizeof(splitterHeight);
+		ReadInput(splitterHeight, _sf, -_offset);
+
+		int32 pixelSplit;
+		_offset += sizeof(pixelSplit);
+		ReadInput(pixelSplit, _sf, -_offset);
+
+		Rococo::Cute::IMasterWindow* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::Cute::ISplit* split = _pObject->SplitIntoTopAndBottom(pixelSplit, splitterHeight, draggable);
+		_offset += sizeof(CReflectedClass*);
+		auto& _splitStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("ISplit"), ("ProxyISplit"), _nce.ss);
+		CReflectedClass* _sxysplit = _nce.ss.Represent(_splitStruct, split);
+		WriteOutput(&_sxysplit->header._vTables[0], _sf, -_offset);
 	}
 	void NativeRococoCuteIMasterWindowGetWindowHandle(NativeCallEnvironment& _nce)
 	{
@@ -134,6 +246,8 @@ namespace Rococo { namespace Cute {
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Cute.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoCuteMasterWindow, _nceContext, ("GetHandleForIMasterWindow0 (Sys.Type.IString title)(Int32 x)(Int32 y)(Int32 dx)(Int32 dy) -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowMenu, nullptr, ("IMasterWindowMenu (Pointer hObject) -> (Rococo.Cute.IMenu menu)"));
+		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowSplitIntoLeftAndRight, nullptr, ("IMasterWindowSplitIntoLeftAndRight (Pointer hObject)(Int32 pixelSplit)(Int32 splitterWidth)(Bool draggable) -> (Rococo.Cute.ISplit split)"));
+		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowSplitIntoTopAndBottom, nullptr, ("IMasterWindowSplitIntoTopAndBottom (Pointer hObject)(Int32 pixelSplit)(Int32 splitterHeight)(Bool draggable) -> (Rococo.Cute.ISplit split)"));
 		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowGetWindowHandle, nullptr, ("IMasterWindowGetWindowHandle (Pointer hObject) -> (Pointer hWnd)"));
 	}
 }}

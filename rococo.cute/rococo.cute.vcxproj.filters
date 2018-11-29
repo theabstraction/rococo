@@ -30,6 +30,12 @@
     <ClCompile Include="rococo.cute.menu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rococo.cute.split.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rococo.cute.child.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.cute.h">
@@ -44,6 +50,9 @@
   <ItemGroup>
     <None Include="config.xc">
       <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\bin\cute.test\content\scripts\create.main.window.sxy">
+      <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

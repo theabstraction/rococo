@@ -36,6 +36,8 @@ namespace Rococo
 		void ExecuteWindowScript(cstr scriptFile, IInstallation& installation, ExecuteScriptSpec& spec, IMasterWindowFactory& factory);
 
 		struct IMenu;
+		struct ISplit;
+		struct IWindowBase;
 
 		ROCOCOAPI IMenuSupervisor
 		{
@@ -43,10 +45,29 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
+		ROCOCOAPI IWindowContainer
+		{
+			virtual void Free() = 0;
+		};
+
+		ROCOCOAPI ISplitSupervisor: IWindowContainer
+		{
+			virtual ISplit& Split() = 0;
+		};
+
+		ROCOCOAPI IChildSupervisor: IWindowContainer
+		{
+			virtual IWindowBase* Window() = 0;
+		};
+
 #ifdef _WIN32
 # ifdef WINAPI
 		IMasterWindowFactory* CreateMasterWindowFactory(HINSTANCE hInstance, HWND hParent);
 		IMenuSupervisor* CreateCuteMenu(HWND hWndOwner);
+		ISplitSupervisor* CreateSplit(ATOM atom, HWND hParentWnd, int32 pixelSplit, int32 splitterWidth, boolean32 draggable, bool isLeftAndRight);
+		IChildSupervisor* CreateChildProxy(HWND hWnd);
+		IChildSupervisor* CreateChild(HWND hParentWnd, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy);
+		IChildSupervisor* CreateChild(IWindowBase& window, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy);
 # endif
 #endif
 	}

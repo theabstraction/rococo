@@ -102,10 +102,12 @@
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="rococo.cute.child.cpp" />
     <ClCompile Include="rococo.cute.main.cpp" />
     <ClCompile Include="rococo.cute.master.cpp" />
     <ClCompile Include="rococo.cute.menu.cpp" />
     <ClCompile Include="rococo.cute.script.cpp" />
+    <ClCompile Include="rococo.cute.split.cpp" />
     <ClCompile Include="rococo.cute.win32.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -118,6 +120,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\bin\cute.test\content\scripts\create.main.window.sxy" />
     <None Include="config.xc" />
     <CustomBuild Include="cute.sxh">
       <FileType>Document</FileType>

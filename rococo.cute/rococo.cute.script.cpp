@@ -73,6 +73,7 @@ namespace Rococo { namespace Cute
 				AddNativeCalls_RococoCuteIMasterWindow(args.ss, factory);
 				Rococo::Cute::Native::AddNativeCalls_RococoCuteNative(args.ss, nullptr);
 				AddNativeCalls_RococoCuteIMenu(args.ss, nullptr);
+				AddNativeCalls_RococoCuteISplit(args.ss, nullptr);
 			}
 		} onCompile;
 		onCompile.factory = &factory;
