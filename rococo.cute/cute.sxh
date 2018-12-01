@@ -4,7 +4,7 @@
 	(as.sxy Rococo.Cute.IWindowBase "../bin/cute.test/content/scripts/cute")
 	(as.cpp Rococo.Cute.IWindowBase "cute")
 	(methods
-		(GetWindowHandle -> (Pointer hWnd))
+		(Handle -> (WindowRef hWnd))
 	)
 )
 
@@ -14,6 +14,7 @@
 	(context factory Rococo.Cute.IMenu)
 	(methods
 		(AddItem (IString text)(IString key))
+		(SetBackgroundColour (RGBAb colour))
 		(SubMenu (IString name)->(Rococo.Cute.IMenu subMenu))
 	)
 )
@@ -36,15 +37,26 @@
 		(Menu -> (Rococo.Cute.IMenu menu))
 		(SplitIntoLeftAndRight (Int32 pixelSplit)(Int32 splitterWidth)(Bool draggable)->(Rococo.Cute.ISplit split))
 		(SplitIntoTopAndBottom (Int32 pixelSplit)(Int32 splitterHeight)(Bool draggable)->(Rococo.Cute.ISplit split))
+		(SetMinimumSize (Int32 dx)(Int32 dy))
+		(SetMaximumSize (Int32 dx)(Int32 dy))
 	)
-
 	(factory Rococo.Cute.MasterWindow (IString title) (Int32 x)(Int32 y)(Int32 dx)(Int32 dy))
 )
 
+(enum Int32
+	(as.sxy Rococo.Cute.ColourTarget "../bin/cute.test/content/scripts/cute")
+	(as.cpp Rococo.Cute.ColourTarget "cute")
+	(
+		(NormalBackground 0)
+		(HilightBackground 1)
+	)
+)
+
 (functions Rococo.Cute.Native "cute.functions"
-	(GetWindowRect (Pointer hWnd)(Vec2i pos)(Vec2i span) -> : Rococo::Cute::Native::GetWindowRect)
-	(GetSpan (Pointer hWnd)(Vec2i span) -> : Rococo::Cute::Native::GetSpan)
-	(SetText (Pointer hWnd)(IString text) -> : Rococo::Cute::Native::SetText)
-	(GetText (Pointer hWnd)(IStringBuilder sb) -> (Int32 stringLength): Rococo::Cute::Native::GetText)
+	(GetWindowRect (WindowRef hWnd)(Vec2i pos)(Vec2i span) -> : Rococo::Cute::Native::GetWindowRect)
+	(GetSpan (WindowRef hWnd)(Vec2i span) -> : Rococo::Cute::Native::GetSpan)
+	(SetText (WindowRef hWnd)(IString text) -> : Rococo::Cute::Native::SetText)
+	(GetText (WindowRef hWnd)(IStringBuilder sb) -> (Int32 stringLength): Rococo::Cute::Native::GetText)
+	(SetColourTarget (WindowRef hWnd) (ColourTarget target) (RGBAb colour) -> : Rococo::Cute::Native::SetColourTarget)
 )
 

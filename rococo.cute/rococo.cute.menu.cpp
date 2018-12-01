@@ -1,9 +1,6 @@
-#include <rococo.types.h>
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
-#include "rococo.cute.h"
-
-#include "cute.sxh.h"
+#include <rococo.cute.h>
 
 #include <unordered_map>
 #include <vector>
@@ -15,6 +12,7 @@ namespace
 {
 	struct CuteMenu;
 	void Update(CuteMenu* menu);
+	void SetColour(CuteMenu* menu, RGBAb colour);
 
 	uint32 nextId = 1000;
 	std::unordered_map<std::string, uint32> keyToId;
@@ -57,6 +55,11 @@ namespace
 			Update(base);
 		}
 
+		void SetBackgroundColour(RGBAb colour) override
+		{
+			SetColour(base, colour);
+		}
+
 		IMenu* SubMenu(const fstring& name) override
 		{
 			auto* child = new MenuNode(CreatePopupMenu());
@@ -72,6 +75,7 @@ namespace
 	{
 		HWND hWnd;
 		MenuNode* root;
+		HBRUSH hBrush = nullptr;
 
 		void LazyInit()
 		{
@@ -90,6 +94,12 @@ namespace
 		~CuteMenu()
 		{
 			delete root;
+
+			if (hBrush)
+			{
+				DeleteObject(hBrush);
+				hBrush = nullptr;
+			}
 		}
 
 		void Free() override
@@ -107,6 +117,22 @@ namespace
 		{
 			return root->AddItem(text, key);
 		}
+
+		void SetColour(RGBAb colour)
+		{
+			if (hBrush)
+			{
+				DeleteObject(hBrush);
+				hBrush = nullptr;
+			}
+
+			MENUINFO mnuInfo = { 0 };
+			mnuInfo.cbSize = sizeof(mnuInfo);
+			mnuInfo.fMask = MIM_BACKGROUND;
+			mnuInfo.hbrBack = hBrush = CreateSolidBrush(RGB(colour.red, colour.green, colour.blue));
+			CreateSolidBrush(RGB(0, 0, 0));
+			SetMenuInfo(root->hMenu, &mnuInfo);
+		}
 	};
 
 	void Update(CuteMenu* menu)
@@ -116,6 +142,10 @@ namespace
 			HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
 			Throw(hr, "CuteMenu::SetMenu failed");
 		}
+	}
+	void SetColour(CuteMenu* menu, RGBAb colour)
+	{
+		menu->SetColour(colour);
 	}
 }
 

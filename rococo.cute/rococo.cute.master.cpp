@@ -1,15 +1,14 @@
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
-
-#include "rococo.cute.h"
-#include "cute.sxh.h"
+#include <rococo.cute.h>
+#include <rococo.strings.h>
 
 #include <vector>
 
-#include <rococo.strings.h>
-
 using namespace Rococo;
 using namespace Rococo::Cute;
+
+static auto factoryPrefix = "Rococo::Cute::IMasterWindowFactory"_fstring;
 
 namespace Rococo
 {
@@ -17,32 +16,32 @@ namespace Rococo
 	{
 		namespace Native
 		{
-			void GetWindowRect(size_t ptrWindow, Vec2i& pos, Vec2i& span)
+			void GetWindowRect(WindowRef ref, Vec2i& pos, Vec2i& span)
 			{
-				HWND hWnd = (HWND)ptrWindow;
+				HWND hWnd = ToHWND(ref);
 				RECT rect;
 				::GetWindowRect(hWnd, &rect);
 				pos = { rect.left, rect.top };
 				span = { rect.right - rect.left, rect.bottom - rect.top };
 			}
 
-			void GetSpan(size_t ptrWindow, Vec2i& span)
+			void GetSpan(WindowRef ref, Vec2i& span)
 			{
-				HWND hWnd = (HWND)ptrWindow;
+				HWND hWnd = ToHWND(ref);
 				RECT rect;
 				::GetClientRect(hWnd, &rect);
 				span = { rect.right - rect.left, rect.bottom - rect.top };
 			}
 
-			void SetText(size_t ptrWindow, const fstring& text)
+			void SetText(WindowRef ref, const fstring& text)
 			{
-				HWND hWnd = (HWND)ptrWindow;
+				HWND hWnd = ToHWND(ref);
 				::SetWindowTextA(hWnd, text);
 			}
 
-			int32 /* stringLength */ GetText(size_t ptrWindow, IStringPopulator& sb)
+			int32 /* stringLength */ GetText(WindowRef ref, IStringPopulator& sb)
 			{
-				HWND hWnd = (HWND)ptrWindow;
+				HWND hWnd = ToHWND(ref);
 				int32 len = GetWindowTextLengthA(hWnd);
 
 				char* text = (char*)alloca(len + 1);
@@ -50,18 +49,157 @@ namespace Rococo
 				sb.Populate(text);
 				return len;
 			}
+
+			void SetColourTarget(WindowRef ref, ColourTarget target, RGBAb colour)
+			{
+				auto hWnd = ToHWND(ref);
+				if (IsWindow(hWnd))
+				{
+					HINSTANCE hInstance = (HINSTANCE)GetWindowLongPtrA(hWnd, GWLP_HINSTANCE);
+					WINDOWINFO info = { 0 };
+					info.cbSize = sizeof(info);
+					GetWindowInfo(hWnd, &info);
+
+					char className[256];
+
+					int result = GetClassNameA(hWnd, className, sizeof(className));
+					if (result && Compare(className, factoryPrefix, factoryPrefix.length) == 0)
+					{
+						LONG_PTR val = GetWindowLongPtrA(hWnd, DWLP_USER);
+						auto& data = *(CuteWindowExData*)(&val);
+
+						switch (target)
+						{
+						case ColourTarget_NormalBackground:
+							data.normalBackgroundColour = colour;
+							break;
+						case ColourTarget_HilightBackground:
+							data.hilighBackgroundColour = colour;
+							break;
+						}
+
+						SetWindowLongPtrA(hWnd, DWLP_USER, val);
+					}
+				}
+			}
 		} // Native
 	} // Cute
 } // Rococo
 
-struct MasterWindow : public IMasterWindow
+static void EraseBackground(HWND hWnd)
+{
+	LONG_PTR ldata = GetWindowLongPtrA(hWnd, DWLP_USER);
+	auto& data = *(CuteWindowExData*)&ldata;
+
+	if (data.normalBackgroundColour.alpha == 0) return;
+
+	HDC dc = GetDC(hWnd);
+	RECT rect;
+	GetClientRect(hWnd, &rect);
+
+	POINT pt;
+	GetCursorPos(&pt);
+
+	ScreenToClient(hWnd, &pt);
+
+	auto& c = data.normalBackgroundColour;
+	HBRUSH hBrush = CreateSolidBrush(RGB(c.red, c.green, c.blue));
+	HGDIOBJ old = SelectObject(dc, hBrush);
+	FillRect(GetDC(hWnd), &rect, hBrush);
+	SelectObject(dc, old);
+	DeleteObject(hBrush);
+	ReleaseDC(hWnd, dc);
+}
+
+static void OnSize(HWND hWnd, WPARAM wParam, LPARAM lParam, IWindowSupervisor& window)
+{
+	ResizeType type;
+
+	switch (wParam)
+	{
+	case SIZE_MAXIMIZED:
+		type = ResizeTo_Full;
+		break;
+	case SIZE_MINIMIZED:
+		type = ResizeTo_Minimize;
+		break;
+	case SIZE_RESTORED:
+		type = ResizeTo_Normal;
+		break;
+	default:
+		return;
+	}
+
+	WORD width = LOWORD(lParam);
+	WORD height = HIWORD(lParam);
+
+	window.OnResize({ width,height }, type);
+}
+
+static LRESULT MasterWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	auto* WS = (IWindowSupervisor*)GetWindowLongPtrA(hWnd, GWLP_USERDATA);
+	if (WS)
+	{
+		switch (uMsg)
+		{
+		case WM_SIZE:
+			OnSize(hWnd, wParam, lParam, *WS);
+			return 0L;
+		case WM_CLOSE:
+			WS->Close();
+			return 0L;
+		}
+	}
+
+	switch (uMsg)
+	{
+	case WM_CLOSE:
+		PostQuitMessage(0);
+		break;
+	case WM_ERASEBKGND:
+		EraseBackground(hWnd);
+		return 0L;
+	}
+
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}
+
+namespace Rococo
+{
+	namespace Cute
+	{
+		void SetMasterProc(WindowRef ref, IWindowSupervisor* window)
+		{
+			auto hWnd = ToHWND(ref);
+			if (IsWindow(hWnd))
+			{
+				char className[256];
+				int result = GetClassNameA(hWnd, className, sizeof(className));
+				if (result && Compare(className, factoryPrefix, factoryPrefix.length) == 0)
+				{
+					CuteWindowExData data;
+					data.normalBackgroundColour = RGBAb(224, 224, 224);
+					data.hilighBackgroundColour = RGBAb(224, 224, 224);
+					SetWindowLongPtrA(hWnd, DWLP_USER, *(LONG_PTR*)&data);
+					SetWindowLongPtrA(hWnd, GWLP_USERDATA, (LONG_PTR)window);
+					SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR) MasterWindowProc);
+				}
+			}
+		}
+	}
+}
+
+struct MasterWindow : IMasterWindow, virtual IWindowSupervisor
 {
 	AutoFree<IMenuSupervisor> menuManager;
-	std::vector<IWindowContainer*> children;
-
+	std::vector<IWindowSupervisor*> children;
 	HWND hWindow;
 	ATOM atom;
-	MasterWindow(ATOM _atom, HINSTANCE hInstance, HWND hParent, Vec2i pos, Vec2i span, cstr title): atom(_atom)
+	Vec2i minSize = { -1,-1 };
+	Vec2i maxSize = { -1,-1 };
+
+	MasterWindow(ATOM _atom, HINSTANCE hInstance, HWND hParent, Vec2i pos, Vec2i span, cstr title) : atom(_atom)
 	{
 		DWORD exStyle = 0;
 		DWORD style = WS_OVERLAPPEDWINDOW;
@@ -80,6 +218,60 @@ struct MasterWindow : public IMasterWindow
 		DestroyWindow(hWindow);
 	}
 
+	void OnMinMax(WPARAM wParam, LPARAM lParam)
+	{
+		auto* s = (MINMAXINFO*)(lParam);
+		if (maxSize.x > 0) s->ptMaxTrackSize.x = maxSize.x;
+		if (maxSize.y > 0) s->ptMaxTrackSize.y = maxSize.y;
+		if (minSize.x > 0) s->ptMinTrackSize.x = minSize.x;
+		if (minSize.y > 0) s->ptMinTrackSize.y = minSize.y;
+	}
+
+	static LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		auto* This = (MasterWindow*)GetWindowLongPtrA(hWnd, GWLP_USERDATA);
+		if (This)
+		{
+			switch (uMsg)
+			{
+			case WM_SIZE:
+				::OnSize(hWnd, wParam, lParam, *static_cast<IWindowSupervisor*>(This));
+				return 0L;
+			case WM_CLOSE:
+				This->Close();
+				return 0L;
+			case WM_ERASEBKGND:
+				EraseBackground(hWnd);
+				return 0L;
+			case WM_GETMINMAXINFO:
+				This->OnMinMax(wParam, lParam);
+				return 0L;
+			}
+		}
+
+		return DefWindowProc(hWnd, uMsg, wParam, lParam);
+	}
+
+	void SetMasterProxyProc(WindowRef ref)
+	{
+		CuteWindowExData data;
+		data.normalBackgroundColour = RGBAb(224, 224, 224);
+		data.hilighBackgroundColour = RGBAb(224, 224, 224);
+		SetWindowLongPtrA(hWindow, DWLP_USER, *(LONG_PTR*)&data);
+		SetWindowLongPtrA(hWindow, GWLP_USERDATA, (LONG_PTR) this);
+		SetWindowLongPtrA(hWindow, GWLP_WNDPROC, (LONG_PTR)OnMessage);
+	}
+
+	void Close() override
+	{
+		PostQuitMessage(0);
+	}
+
+	virtual void Free()
+	{
+		delete this;
+	}
+
 	ISplit* SplitIntoLeftAndRight(int32 pixelSplit, int32 splitterWidth, boolean32 draggable) override
 	{
 		auto* s = CreateSplit(atom, hWindow, pixelSplit, splitterWidth, draggable, true);
@@ -94,40 +286,41 @@ struct MasterWindow : public IMasterWindow
 		return &s->Split();
 	}
 
-	LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-	{
-		switch (uMsg)
-		{
-		case WM_CLOSE:
-			PostQuitMessage(-1);
-			return 0;
-		default:
-			break;
-		}
-		return DefWindowProcA(hWnd, uMsg, wParam, lParam);
-	}
-
-	static LRESULT MasterWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-	{
-		auto* This = (MasterWindow*)GetWindowLongPtrA(hWnd, GWLP_USERDATA);
-		return This->OnMessage(hWnd, uMsg, wParam, lParam);
-	}
-
 	void Show()
 	{
-		SetWindowLongPtrA(hWindow, GWLP_USERDATA, (LONG_PTR) this);
-		SetWindowLongPtrA(hWindow, GWLP_WNDPROC, (LONG_PTR) MasterWindowProc);
+		SetMasterProxyProc(ToRef(hWindow));
 		ShowWindow(hWindow, SW_SHOW);
 	}
 
-	size_t GetWindowHandle() override
+	WindowRef Handle() override
 	{
-		return (size_t) hWindow;
+		return ToRef(hWindow);
 	}
 
 	IMenu* Menu() override
 	{
 		return &menuManager->Menu();
+	}
+
+	void OnResize(Vec2i span, ResizeType type) override
+	{
+		for (auto i : children)
+		{
+			auto hWnd = ToHWND(i->Handle());
+			RECT r;
+			GetClientRect(hWindow, &r);
+			MoveWindow(hWnd, 0, 0, r.right, r.bottom, TRUE);
+		}
+	}
+
+	void SetMinimumSize(int32 dx, int32 dy) override
+	{
+		minSize = { dx, dy };
+	}
+
+	void SetMaximumSize(int32 dx, int32 dy) override
+	{
+		maxSize = { dx, dy };
 	}
 };
 
@@ -143,13 +336,14 @@ struct MasterWindowFactory : public IMasterWindowFactory
 	{
 		char classname[48];
 		static int index = 1;
-		SafeFormat(classname, sizeof(classname), "Rococo::Cute::IMasterWindowFactory_%d", index++);
+		SafeFormat(classname, sizeof(classname), "%s_%d", (cstr) factoryPrefix, index++);
 		WNDCLASSEXA wc = { 0 };
 		wc.cbSize = sizeof(wc);
 		wc.hInstance = hInstance;
 		wc.lpfnWndProc = DefWindowProcA;
 		wc.lpszClassName = classname;
 		wc.hCursor = LoadCursorA(nullptr, (cstr) IDC_ARROW);
+		wc.cbWndExtra = DLGWINDOWEXTRA + sizeof(CuteWindowExData);
 		atom = RegisterClassExA(&wc);
 		if (atom == 0)
 		{
@@ -161,7 +355,7 @@ struct MasterWindowFactory : public IMasterWindowFactory
 	{
 		for (auto i : masters)
 		{
-			delete i;
+			i->Free();
 		}
 
 		UnregisterClassA((LPCSTR)atom, hInstance);

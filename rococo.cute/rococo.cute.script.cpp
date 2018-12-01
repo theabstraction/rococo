@@ -4,29 +4,14 @@
 #include <sexy.script.h>
 
 #include <rococo.sexy.ide.h>
-
 #include <rococo.cute.h>
 
-#include "cute.sxh.h"
-
 using namespace Rococo;
-Rococo::Cute::IMasterWindow* FactoryConstructRococoCuteMasterWindow(Rococo::Cute::IMasterWindowFactory* factory, const fstring& title, int32 x, int32 y, int32 dx, int32 dy)
+using namespace Cute;
+
+Rococo::Cute::IMasterWindow* FactoryConstructRococoCuteMasterWindow(IMasterWindowFactory* factory, const fstring& title, int32 x, int32 y, int32 dx, int32 dy)
 {
 	return factory->CreateMaster(title, Vec2i{ x,y }, Vec2i{ dx, dy });
-}
-
-namespace Rococo
-{
-	namespace Cute
-	{
-		namespace Native
-		{
-			void GetWindowRect(size_t hWnd, Vec2i& pos, Vec2i& span);
-			void GetSpan(size_t hWnd, Vec2i& span);
-			void SetText(size_t hWnd, const fstring& text);
-			int32 GetText(size_t hWnd, IStringPopulator& sb);
-		}
-	}
 }
 
 #include "cute.sxh.inl"

@@ -16,11 +16,6 @@ namespace Rococo
 namespace Rococo
 {
 	// Generic OS independent window handle. For operating systems without windows, should normally be null
-	struct WindowHandle
-	{
-		WindowHandle() : ptr(nullptr) {}
-		void* ptr;
-	};
 
 	struct KeyboardEvent
 	{

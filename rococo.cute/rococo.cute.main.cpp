@@ -1,6 +1,6 @@
 #include <rococo.cute.h>
 #include <rococo.io.h>
-#include "rococo.cute.h"
+#include <rococo.cute.h>
 
 using namespace Rococo;
 using namespace Rococo::Cute;

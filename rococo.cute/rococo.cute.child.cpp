@@ -1,18 +1,21 @@
 #include <rococo.types.h>
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
-#include "rococo.cute.h"
-
-#include "cute.sxh.h"
+#include <rococo.cute.h>
 
 using namespace Rococo;
 using namespace Rococo::Cute;
 
-struct CuteChildProxy : IChildSupervisor, IWindowBase
+struct CuteChildProxy : IChildSupervisor
 {
 	HWND hChildWnd;
 
 	CuteChildProxy(HWND _hChildWnd) : hChildWnd(_hChildWnd)
+	{
+		SetMasterProc(ToRef(hChildWnd), this);
+	}
+
+	void Close() override
 	{
 
 	}
@@ -22,19 +25,19 @@ struct CuteChildProxy : IChildSupervisor, IWindowBase
 		delete this;
 	}
 
-	size_t GetWindowHandle() override
+	void OnResize(Vec2i span, ResizeType type) override
 	{
-		return (size_t)hChildWnd;
+
 	}
 
-	IWindowBase* Window() override
+	WindowRef Handle() override
 	{
-		return this;
+		return ToRef(hChildWnd);
 	}
 };
 
 
-struct CuteChild : IChildSupervisor, IWindowBase
+struct CuteChild : IChildSupervisor
 {
 	HWND hParentWnd;
 	HWND hChildWnd;
@@ -43,19 +46,24 @@ struct CuteChild : IChildSupervisor, IWindowBase
 	{
 		auto hInstance = (HINSTANCE)GetWindowLongPtrA(hParentWnd, GWLP_HINSTANCE);
 
-		WINDOWINFO info;
-		info.cbSize = sizeof(info);
-		if (!GetWindowInfo(hParentWnd, &info))
+		char name[256];
+		if (0 >= GetClassNameA(_hParentWnd, name, sizeof(name)))
 		{
-			Throw(GetLastError(), "CuteChild::GetWindowInfo(...) failed");
+			Throw(GetLastError(), "CuteChild::GetClassNameA(_hParentWnd) failed");
 		}
 
-		cstr wc = (cstr) info.atomWindowType;
-		hChildWnd = CreateWindowExA(exStyle, wc, "", style, x, y, dx, dy, hParentWnd, NULL, hInstance, NULL);
+		hChildWnd = CreateWindowExA(exStyle, name, "", style, x, y, dx, dy, hParentWnd, NULL, hInstance, NULL);
 		if (hChildWnd == NULL)
 		{
 			Throw(GetLastError(), "CuteChild::CreateWindowExA(...) failed");
 		}
+
+		SetMasterProc(ToRef(hChildWnd), this);
+	}
+
+	void Close() override
+	{
+
 	}
 
 	void Free() override
@@ -63,14 +71,14 @@ struct CuteChild : IChildSupervisor, IWindowBase
 		delete this;
 	}
 
-	size_t GetWindowHandle() override
+	WindowRef Handle() override
 	{
-		return (size_t)hChildWnd;
+		return ToRef(hChildWnd);
 	}
 
-	IWindowBase* Window() override
+	void OnResize(Vec2i span, ResizeType type) override
 	{
-		return this;
+
 	}
 };
 
@@ -90,7 +98,7 @@ namespace Rococo
 
 		IChildSupervisor* CreateChild(IWindowBase& window, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy)
 		{
-			auto hParentWnd = (HWND)window.GetWindowHandle();
+			auto hParentWnd = ToHWND(window.Handle());
 			return new CuteChild(hParentWnd, style, exStyle, x, y, dx, dy);
 		}
 	}

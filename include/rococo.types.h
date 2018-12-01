@@ -85,6 +85,14 @@ namespace Rococo
 		operator cstr() const { return buffer; }
 	};
 
+	union WindowHandle
+	{
+		size_t sValue;
+		void* pValue;
+	};
+
+	typedef WindowHandle WindowRef;
+
 	ROCOCOAPI IStringPopulator
 	{
 	   virtual void Populate(cstr text) = 0;

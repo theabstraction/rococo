@@ -2,6 +2,11 @@
 
 #include <rococo.api.h>
 
+#ifndef ROCOCO_CUTE_SXH_H
+# define ROCOCO_CUTE_SXH_H
+# include <../rococo.cute/cute.sxh.h>
+#endif
+
 namespace Rococo
 {
 	namespace Windows
@@ -23,6 +28,35 @@ namespace Rococo
 			Rococo::Windows::IWindow* parent = nullptr;
 		};
 
+		enum ResizeType
+		{
+			ResizeTo_Normal,
+			ResizeTo_Full,
+			ResizeTo_Minimize
+		};
+
+		ROCOCOAPI IWindowSupervisor : IWindowBase
+		{
+			virtual void Close() = 0;
+			virtual void Free() = 0;
+			virtual void OnResize(Vec2i span, ResizeType to) = 0;
+		};
+
+		ROCOCOAPI ISplitSupervisor : IWindowSupervisor
+		{
+			virtual ISplit& Split() = 0;
+		};
+
+		ROCOCOAPI IChildSupervisor : IWindowSupervisor
+		{
+		};
+
+		struct CuteWindowExData
+		{
+			RGBAb normalBackgroundColour;
+			RGBAb hilighBackgroundColour;
+		};
+
 		ROCOCOAPI IMasterWindowFactory
 		{
 			virtual void Free() = 0;
@@ -37,7 +71,6 @@ namespace Rococo
 
 		struct IMenu;
 		struct ISplit;
-		struct IWindowBase;
 
 		ROCOCOAPI IMenuSupervisor
 		{
@@ -45,20 +78,10 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
-		ROCOCOAPI IWindowContainer
-		{
-			virtual void Free() = 0;
-		};
+		void SetColourBackground(RGBAb colour, WindowRef ref);
 
-		ROCOCOAPI ISplitSupervisor: IWindowContainer
-		{
-			virtual ISplit& Split() = 0;
-		};
-
-		ROCOCOAPI IChildSupervisor: IWindowContainer
-		{
-			virtual IWindowBase* Window() = 0;
-		};
+		/// N.B for multiply derived classes, ensure constructor has finished before passing a reference here
+		void SetMasterProc(WindowRef ref, IWindowSupervisor* window);
 
 #ifdef _WIN32
 # ifdef WINAPI
@@ -70,5 +93,14 @@ namespace Rococo
 		IChildSupervisor* CreateChild(IWindowBase& window, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy);
 # endif
 #endif
+
+		namespace Native
+		{
+			void GetWindowRect(WindowRef hWnd, Vec2i& pos, Vec2i& span);
+			void GetSpan(WindowRef hWnd, Vec2i& span);
+			void SetText(WindowRef hWnd, const fstring& text);
+			int32 GetText(WindowRef hWnd, IStringPopulator& sb);
+			void SetColourTarget(WindowRef hWnd, ColourTarget target, RGBAb colour);
+		}
 	}
 }

@@ -117,8 +117,13 @@ namespace
                auto& arg = f.GetArgument(i + f.NumberOfOutputs());
                auto argName = f.GetArgName(i + f.NumberOfOutputs());
 
-               SafeFormat(desc, sizeof(desc), "%s %s", Sanitize(arg.Name()), argName);
-               tree.AddChild(inputId, desc, Visitors::CheckState_Clear);
+			   if (&arg != nullptr)
+			   {
+				   // Hack, some build error created a partially initialized structure.
+				   // => We skip it.
+				   SafeFormat(desc, sizeof(desc), "%s %s", Sanitize(arg.Name()), argName);
+				   tree.AddChild(inputId, desc, Visitors::CheckState_Clear);
+			   }
             }
          }
       }

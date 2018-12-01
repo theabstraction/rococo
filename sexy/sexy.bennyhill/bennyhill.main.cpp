@@ -37,6 +37,7 @@
 #include <stdarg.h>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include "sexy.lib.s-parser.h"
 #include "sexy.lib.util.h"
@@ -584,7 +585,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
    pc.enums.push_back(def);
 }
 
-void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
+void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<std::string>& defOrder)
 {
 	InterfaceContext ic;
 	const ISExpression* methods = NULL;
@@ -765,6 +766,8 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc)
    def->baseMethods = baseMethods;
    def->ic = ic;
 
+   defOrder.push_back(ic.asSexyInterface);
+
    pc.interfaces.insert(std::make_pair(stdstring(ic.asSexyInterface), def));
 	/*
 	try
@@ -783,6 +786,8 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 {
 	bool hasConfig = false;
 	bool hasFunctions = false;
+
+	std::vector<std::string> interfaceDefOrder;
 
 	for (int i = 0; i < root.NumberOfElements(); ++i)
 	{
@@ -810,7 +815,7 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 		else if (AreEqual(("interface"), cmd))
 		{
 			if (!hasConfig) Throw(command, ("Must define a (config <config-path>) entry before all interfaces"));
-			ParseInterface(topLevelItem, pc);
+			ParseInterface(topLevelItem, pc, interfaceDefOrder);
 		}
 		else if (AreEqual(("enum"), cmd))
 		{
@@ -830,9 +835,10 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 		GenerateFiles(pc, i.ec, *i.sdef);
 	}
 
-	for (auto& i : pc.interfaces)
+	for (auto& I : interfaceDefOrder)
 	{
-		auto& def = *i.second;
+		auto i = pc.interfaces.find(I);
+		auto& def = *i->second;
 		const ISExpression* methods[3] = { def.methods, def.baseMethods, nullptr };
 		GenerateFiles(pc, def.ic, *def.sdef, methods, *def.sdef);
 	}

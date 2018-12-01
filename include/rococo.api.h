@@ -238,6 +238,12 @@ namespace Rococo
 		struct IVirtualMachine;
 	}
 
+	namespace Cute
+	{
+		struct IMasterWindowFactory;
+		struct IWindowSupervisor;
+	}
+
 	enum EXECUTERESULT : int32;
 }
 

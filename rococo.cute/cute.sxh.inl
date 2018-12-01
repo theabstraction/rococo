@@ -1,3 +1,53 @@
+namespace Rococo { namespace Cute { 
+	bool TryParse(const Rococo::fstring& s, ColourTarget& value)
+	{
+		if (s ==  "ColourTarget_NormalBackground"_fstring)
+		{
+			value = ColourTarget_NormalBackground;
+		}
+		else if (s ==  "ColourTarget_HilightBackground"_fstring)
+		{
+			value = ColourTarget_HilightBackground;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool TryShortParse(const Rococo::fstring& s, ColourTarget& value)
+	{
+		if (s ==  "NormalBackground"_fstring)
+		{
+			value = ColourTarget_NormalBackground;
+		}
+		else if (s ==  "HilightBackground"_fstring)
+		{
+			value = ColourTarget_HilightBackground;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+	fstring ToShortString(ColourTarget value)
+	{
+		switch(value)
+		{
+			case ColourTarget_NormalBackground:
+				return "NormalBackground"_fstring;
+			case ColourTarget_HilightBackground:
+				return "HilightBackground"_fstring;
+			default:
+				return {"",0};
+		}
+	}
+}}// Rococo.Cute.ColourTarget
+
 // BennyHill generated Sexy native functions for Rococo::Cute::IMenu 
 namespace
 {
@@ -28,6 +78,20 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddItem(text, key);
 	}
+	void NativeRococoCuteIMenuSetBackgroundColour(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb colour;
+		_offset += sizeof(colour);
+		ReadInput(colour, _sf, -_offset);
+
+		Rococo::Cute::IMenu* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetBackgroundColour(colour);
+	}
 	void NativeRococoCuteIMenuSubMenu(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -56,6 +120,7 @@ namespace Rococo { namespace Cute {
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Cute.Native"));
 		ss.AddNativeCall(ns, NativeRococoCuteIMenuAddItem, nullptr, ("IMenuAddItem (Pointer hObject)(Sys.Type.IString text)(Sys.Type.IString key) -> "));
+		ss.AddNativeCall(ns, NativeRococoCuteIMenuSetBackgroundColour, nullptr, ("IMenuSetBackgroundColour (Pointer hObject)(Int32 colour) -> "));
 		ss.AddNativeCall(ns, NativeRococoCuteIMenuSubMenu, nullptr, ("IMenuSubMenu (Pointer hObject)(Sys.Type.IString name) -> (Rococo.Cute.IMenu subMenu)"));
 	}
 }}
@@ -95,7 +160,7 @@ namespace
 		CReflectedClass* _sxyhigh = _nce.ss.Represent(_highStruct, high);
 		WriteOutput(&_sxyhigh->header._vTables[0], _sf, -_offset);
 	}
-	void NativeRococoCuteISplitGetWindowHandle(NativeCallEnvironment& _nce)
+	void NativeRococoCuteISplitHandle(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -103,7 +168,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		size_t hWnd = _pObject->GetWindowHandle();
+		WindowRef hWnd = _pObject->Handle();
 		_offset += sizeof(hWnd);
 		WriteOutput(hWnd, _sf, -_offset);
 	}
@@ -116,7 +181,7 @@ namespace Rococo { namespace Cute {
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Cute.Native"));
 		ss.AddNativeCall(ns, NativeRococoCuteISplitLo, nullptr, ("ISplitLo (Pointer hObject) -> (Rococo.Cute.IWindowBase low)"));
 		ss.AddNativeCall(ns, NativeRococoCuteISplitHi, nullptr, ("ISplitHi (Pointer hObject) -> (Rococo.Cute.IWindowBase high)"));
-		ss.AddNativeCall(ns, NativeRococoCuteISplitGetWindowHandle, nullptr, ("ISplitGetWindowHandle (Pointer hObject) -> (Pointer hWnd)"));
+		ss.AddNativeCall(ns, NativeRococoCuteISplitHandle, nullptr, ("ISplitHandle (Pointer hObject) -> (Pointer hWnd)"));
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Cute::IMasterWindow 
@@ -193,7 +258,43 @@ namespace
 		CReflectedClass* _sxysplit = _nce.ss.Represent(_splitStruct, split);
 		WriteOutput(&_sxysplit->header._vTables[0], _sf, -_offset);
 	}
-	void NativeRococoCuteIMasterWindowGetWindowHandle(NativeCallEnvironment& _nce)
+	void NativeRococoCuteIMasterWindowSetMinimumSize(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 dy;
+		_offset += sizeof(dy);
+		ReadInput(dy, _sf, -_offset);
+
+		int32 dx;
+		_offset += sizeof(dx);
+		ReadInput(dx, _sf, -_offset);
+
+		Rococo::Cute::IMasterWindow* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetMinimumSize(dx, dy);
+	}
+	void NativeRococoCuteIMasterWindowSetMaximumSize(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 dy;
+		_offset += sizeof(dy);
+		ReadInput(dy, _sf, -_offset);
+
+		int32 dx;
+		_offset += sizeof(dx);
+		ReadInput(dx, _sf, -_offset);
+
+		Rococo::Cute::IMasterWindow* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetMaximumSize(dx, dy);
+	}
+	void NativeRococoCuteIMasterWindowHandle(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -201,7 +302,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		size_t hWnd = _pObject->GetWindowHandle();
+		WindowRef hWnd = _pObject->Handle();
 		_offset += sizeof(hWnd);
 		WriteOutput(hWnd, _sf, -_offset);
 	}
@@ -248,6 +349,8 @@ namespace Rococo { namespace Cute {
 		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowMenu, nullptr, ("IMasterWindowMenu (Pointer hObject) -> (Rococo.Cute.IMenu menu)"));
 		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowSplitIntoLeftAndRight, nullptr, ("IMasterWindowSplitIntoLeftAndRight (Pointer hObject)(Int32 pixelSplit)(Int32 splitterWidth)(Bool draggable) -> (Rococo.Cute.ISplit split)"));
 		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowSplitIntoTopAndBottom, nullptr, ("IMasterWindowSplitIntoTopAndBottom (Pointer hObject)(Int32 pixelSplit)(Int32 splitterHeight)(Bool draggable) -> (Rococo.Cute.ISplit split)"));
-		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowGetWindowHandle, nullptr, ("IMasterWindowGetWindowHandle (Pointer hObject) -> (Pointer hWnd)"));
+		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowSetMinimumSize, nullptr, ("IMasterWindowSetMinimumSize (Pointer hObject)(Int32 dx)(Int32 dy) -> "));
+		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowSetMaximumSize, nullptr, ("IMasterWindowSetMaximumSize (Pointer hObject)(Int32 dx)(Int32 dy) -> "));
+		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowHandle, nullptr, ("IMasterWindowHandle (Pointer hObject) -> (Pointer hWnd)"));
 	}
 }}

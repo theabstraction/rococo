@@ -6,10 +6,11 @@
 (using Rococo.Cute)
 
 (function SetText (IWindowBase window) (IString text)-> :
-	(Rococo.Cute.Native.SetText window.GetWindowHandle text)
+	(Rococo.Cute.Native.SetText window.Handle text)
 )
 
 (function AddMainMenu (IMasterWindow master)-> :
+// N.B the escape character in Sexy is ampersand &, so use double && to mark a menu shortcut
 	(IMenu menu = master.Menu)
 		(IMenu fileMenu = (menu.SubMenu "File"))
 			(fileMenu.AddItem "&&Open" "File_Open")
@@ -17,12 +18,15 @@
 		(IMenu editMenu = (menu.SubMenu "Edit"))
 			(editMenu.AddItem "&&Copy" "Edit_Copy")
 			(editMenu.AddItem "&&Paste" "Edit_Paste")
+			
+	(menu.SetBackgroundColour 0xA0A0A000)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):
 	// Create a  master window. The window and its children will persist after the script completes
 	// If the script crashes the window will be destroyed and deleted
-	(IMasterWindow master (MasterWindow "Scripted Test App" -1 -1 1280 700))
+	(IMasterWindow master (MasterWindow "Scripted Test App" -1 -1 1024 640))
+		(master.SetMinimumSize 256 160)
 		(SetText master "This is so cool")
 		(AddMainMenu master)
 		(ISplit mainSplit = (master.SplitIntoLeftAndRight 280 8 true))

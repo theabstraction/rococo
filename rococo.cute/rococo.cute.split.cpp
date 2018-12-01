@@ -1,17 +1,20 @@
 #include <rococo.types.h>
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
-#include "rococo.cute.h"
-
-#include "cute.sxh.h"
+#include <rococo.cute.h>
 
 using namespace Rococo;
 using namespace Rococo::Cute;
 
-struct SplitterRibbon : IChildSupervisor, IWindowBase
+struct SplitterRibbon : IChildSupervisor
 {
 	HWND hParentWnd;
 	HWND hChildWnd;
+
+	void Close() override
+	{
+
+	}
 
 	void OnPaint()
 	{
@@ -74,26 +77,26 @@ struct SplitterRibbon : IChildSupervisor, IWindowBase
 		delete this;
 	}
 
-	size_t GetWindowHandle() override
+	WindowRef Handle() override
 	{
-		return (size_t)hChildWnd;
+		return ToRef(hChildWnd);
 	}
 
-	IWindowBase* Window() override
+	void OnResize(Vec2i span, ResizeType type)
 	{
-		return this;
+
 	}
 };
 
-struct Splitter : public ISplitSupervisor, public ISplit
+struct Splitter : public ISplitSupervisor, virtual ISplit, virtual IWindowSupervisor
 {
 	HWND hParentWnd;
+	HWND hContainerWnd;
 	int32 pixelSplit;
 	int32 splitterWidth;
 	boolean32 draggable;
 	bool isLeftAndRight;
 
-	AutoFree<IChildSupervisor> containerWnd;
 	AutoFree<IChildSupervisor> splitterWnd;
 	AutoFree<IChildSupervisor> hi; 
 	AutoFree<IChildSupervisor> lo; 
@@ -112,7 +115,23 @@ struct Splitter : public ISplitSupervisor, public ISplit
 
 		DWORD exStyle = 0;
 		DWORD style = WS_CHILD | WS_VISIBLE;
-		containerWnd = CreateChild(hParentWnd, style, exStyle, 0, 0, dx, dy);
+
+		auto hInstance = (HINSTANCE)GetWindowLongPtrA(hParentWnd, GWLP_HINSTANCE);
+
+		char name[256];
+		if (0 >= GetClassNameA(hParentWnd, name, sizeof(name)))
+		{
+			Throw(GetLastError(), "CuteChild::GetClassNameA(_hParentWnd) failed");
+		}
+
+		hContainerWnd = CreateWindowExA(exStyle, name, "", style, 0, 0, dx, dy, hParentWnd, NULL, hInstance, NULL);
+		if (hContainerWnd == NULL)
+		{
+			Throw(GetLastError(), "hContainerWnd = CreateWindowExA(...) failed");
+		}
+
+		Native::SetColourTarget(ToRef(hParentWnd), ColourTarget_NormalBackground, RGBAb(0, 0, 0, 0));
+		Native::SetColourTarget(ToRef(hContainerWnd), ColourTarget_NormalBackground, RGBAb(0, 0, 0, 0));
 		
 		int32 hiX, hiY, loX, loY;
 		int32 hiDX, hiDY, loDX, loDY;
@@ -153,9 +172,14 @@ struct Splitter : public ISplitSupervisor, public ISplit
 			loDY = dy - hiDY - splitterWidth;
 		}
 
-		hi = CreateChild(*containerWnd->Window(), style, exStyle, hiX, hiY, hiDX, hiDY);
-		lo = CreateChild(*containerWnd->Window(), style, exStyle, loX, loY, loDX, loDY);
-		splitterWnd = new SplitterRibbon((HWND)containerWnd->Window()->GetWindowHandle(), style, exStyle, spX, spY, spDX, spDY);
+		hi = CreateChild(hContainerWnd, style, exStyle, hiX, hiY, hiDX, hiDY);
+		lo = CreateChild(hContainerWnd, style, exStyle, loX, loY, loDX, loDY);
+		splitterWnd = new SplitterRibbon(hContainerWnd, style, exStyle, spX, spY, spDX, spDY);
+	}
+
+	void Close() override
+	{
+
 	}
 
 	void Free() override
@@ -170,17 +194,68 @@ struct Splitter : public ISplitSupervisor, public ISplit
 
 	IWindowBase* Lo() override
 	{
-		return hi->Window();
+		return lo;
 	}
 
 	IWindowBase* Hi() override
 	{
-		return lo->Window();
+		return hi;
 	}
 
-	size_t GetWindowHandle() override
+	WindowRef Handle() override
 	{
-		return (size_t)containerWnd->Window()->GetWindowHandle();
+		return ToRef(hContainerWnd);
+	}
+
+	void OnResize(Vec2i span, ResizeType type)
+	{
+		int32 hiX, hiY, loX, loY;
+		int32 hiDX, hiDY, loDX, loDY;
+		int32 spX, spY, spDX, spDY;
+
+		if (isLeftAndRight)
+		{
+			loX = 0;
+			loY = 0;
+			loDX = pixelSplit;
+			loDY = span.y;
+
+			spX = loDX;
+			spY = 0;
+			spDX = splitterWidth;
+			spDY = span.y;
+
+			hiX = loDX + splitterWidth;
+			hiY = 0;
+			hiDX = span.x - hiX;
+			hiDY = span.y;
+		}
+		else
+		{
+			hiX = 0;
+			hiY = 0;
+			hiDX = span.x;
+			hiDY = pixelSplit;
+
+			spX = 0;
+			spY = hiDY;
+			spDX = span.x;
+			spDY = splitterWidth;
+
+			loX = 0;
+			loY = 0;
+			loDX = span.x;
+			loDY = span.y - hiDY - splitterWidth;
+		}
+
+		MoveWindow(hContainerWnd, 0, 0, span.x, span.y, FALSE);
+		MoveWindow(ToHWND(hi->Handle()), hiX, hiY, hiDX, hiDY, FALSE);
+		MoveWindow(ToHWND(lo->Handle()), loX, loY, loDX, loDY, FALSE);
+		MoveWindow(ToHWND(splitterWnd->Handle()), spX, spY, spDX, spDY, FALSE);
+
+		InvalidateRect(ToHWND(hi->Handle()), nullptr, TRUE);
+		InvalidateRect(ToHWND(lo->Handle()), nullptr, TRUE);
+		InvalidateRect(ToHWND(splitterWnd->Handle()), nullptr, TRUE);
 	}
 };
 
@@ -191,6 +266,7 @@ namespace Rococo
 		ISplitSupervisor* CreateSplit(ATOM atom, HWND hParentWnd, int32 pixelSplit, int32 splitterWidth, boolean32 draggable, bool isLeftAndRight)
 		{
 			auto* s = new Splitter(atom, hParentWnd, pixelSplit, splitterWidth, draggable, isLeftAndRight);
+			SetMasterProc(s->Handle(), s);
 			return s;
 		}
 	}
