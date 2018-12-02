@@ -190,7 +190,7 @@ namespace Rococo
 	}
 }
 
-struct MasterWindow : IMasterWindow, virtual IWindowSupervisor
+struct MasterWindow : IMasterWindow
 {
 	AutoFree<IMenuSupervisor> menuManager;
 	std::vector<IWindowSupervisor*> children;
@@ -268,22 +268,27 @@ struct MasterWindow : IMasterWindow, virtual IWindowSupervisor
 		PostQuitMessage(0);
 	}
 
-	virtual void Free()
+	void Free() override
 	{
 		delete this;
 	}
 
+	void AddChild(IWindowSupervisor* child)
+	{
+		children.push_back(child);
+	}
+
 	ISplit* SplitIntoLeftAndRight(int32 pixelSplit, int32 splitterWidth, int32 minLeftSplit, int32 maxRightSplit, boolean32 draggable) override
 	{
-		auto* s = CreateSplit(atom, hWindow, pixelSplit, minLeftSplit, maxRightSplit,splitterWidth, draggable, true);
-		children.push_back(s);
+		auto* s = CreateSplit(atom, *this, pixelSplit, minLeftSplit, maxRightSplit,splitterWidth, draggable, true);
+		AddChild(s);
 		return &s->Split();
 	}
 
 	ISplit*  SplitIntoTopAndBottom(int32 pixelSplit, int32 splitterHeight, int32 minTopSplit, int32 maxBottomSplit, boolean32 draggable) override
 	{
-		auto* s = CreateSplit(atom, hWindow, pixelSplit, minTopSplit, maxBottomSplit, splitterHeight, draggable, false);
-		children.push_back(s);
+		auto* s = CreateSplit(atom, *this, pixelSplit, minTopSplit, maxBottomSplit, splitterHeight, draggable, false);
+		AddChild(s);
 		return &s->Split();
 	}
 
@@ -322,6 +327,13 @@ struct MasterWindow : IMasterWindow, virtual IWindowSupervisor
 	void SetMaximumSize(int32 dx, int32 dy) override
 	{
 		maxSize = { dx, dy };
+	}
+
+	ITree* AddTree()
+	{
+		auto* tree = CreateTree(*this);
+		AddChild(tree);
+		return tree;
 	}
 };
 
@@ -400,6 +412,11 @@ struct MasterWindowFactory : public IMasterWindowFactory
 	}
 };
 
+struct ParentWindow: IParentWindow
+{
+
+};
+
 namespace Rococo
 {
 	namespace Cute
@@ -407,6 +424,28 @@ namespace Rococo
 		IMasterWindowFactory* CreateMasterWindowFactory(HINSTANCE hInstance, HWND hParent)
 		{
 			return new MasterWindowFactory(hInstance, hParent);
+		}
+
+		IParentWindow* CreateParent(IWindowSupervisor& parent, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy)
+		{
+			char className[256];
+			int result = GetClassNameA(ToHWND(parent.Handle()), className, sizeof(className));
+			if (result && Compare(className, factoryPrefix, factoryPrefix.length) == 0)
+			{
+				auto hInstance = (HINSTANCE) GetWindowLongPtrA(ToHWND(parent.Handle()), GWLP_HINSTANCE);
+				WINDOWINFO info = { 0 };
+				info.cbSize = sizeof(info);
+				GetWindowInfo(ToHWND(parent.Handle()), &info);
+
+				auto* m = new MasterWindow(info.atomWindowType, hInstance, ToHWND(parent.Handle()), { x,y }, { dx,dy }, "");
+				parent.AddChild(m);
+				return m;
+			}
+			else
+			{
+				Throw(0, "CreateMaster -> owner must be of class %s", (cstr)factoryPrefix);
+				return nullptr;
+			}
 		}
 	}
 }

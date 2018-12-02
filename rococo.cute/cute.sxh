@@ -21,25 +21,45 @@
 )
 
 (interface 
-	(as.sxy Rococo.Cute.ISplit "../bin/cute.test/content/scripts/cute" Rococo.Cute.IWindowBase)
-	(as.cpp Rococo.Cute.ISplit "cute" Rococo.Cute.IWindowBase)
-	(context factory Rococo.Cute.ISplit)
+	(as.sxy Rococo.Cute.ITree "../bin/cute.test/content/scripts/cute" Rococo.Cute.IWindowBase)
+	(as.cpp Rococo.Cute.ITree "cute" IWindowSupervisor)
+	(context factory Rococo.Cute.ITree)
 	(methods
-		(Lo -> (Rococo.Cute.IWindowBase low))
-		(Hi -> (Rococo.Cute.IWindowBase high))
+		(SetPopulator (IString populatorId))
 	)
 )
 
 (interface 
-	(as.sxy Rococo.Cute.IMasterWindow "../bin/cute.test/content/scripts/cute" Rococo.Cute.IWindowBase)
-	(as.cpp Rococo.Cute.IMasterWindow "cute" Rococo.Cute.IWindowBase)
-	(context factory Rococo.Cute.IMasterWindowFactory)
+	(as.sxy Rococo.Cute.IParentWindow "../bin/cute.test/content/scripts/cute")
+	(as.cpp Rococo.Cute.IParentWindow "cute" Rococo.Cute.IWindowSupervisor)
+	(context factory Rococo.Cute.IParentWindow)
 	(methods
+		(Handle -> (WindowRef ref))
 		(Menu -> (Rococo.Cute.IMenu menu))
 		(SplitIntoLeftAndRight (Int32 pixelSplit)(Int32 minLeft)(Int32 maxRight)(Int32 splitterWidth)(Bool draggable)->(Rococo.Cute.ISplit split))
 		(SplitIntoTopAndBottom (Int32 pixelSplit)(Int32 minTop)(Int32 maxBottom)(Int32 splitterHeight)(Bool draggable)->(Rococo.Cute.ISplit split))
 		(SetMinimumSize (Int32 dx)(Int32 dy))
 		(SetMaximumSize (Int32 dx)(Int32 dy))
+		(AddTree -> (Rococo.Cute.ITree tree))
+	)
+)
+
+
+(interface 
+	(as.sxy Rococo.Cute.ISplit "../bin/cute.test/content/scripts/cute" Rococo.Cute.IWindowBase)
+	(as.cpp Rococo.Cute.ISplit "cute" Rococo.Cute.IWindowBase)
+	(context factory Rococo.Cute.ISplit)
+	(methods
+		(Lo -> (Rococo.Cute.IParentWindow low))
+		(Hi -> (Rococo.Cute.IParentWindow high))
+	)
+)
+
+(interface 
+	(as.sxy Rococo.Cute.IMasterWindow "../bin/cute.test/content/scripts/cute" Rococo.Cute.IParentWindow)
+	(as.cpp Rococo.Cute.IMasterWindow "cute" Rococo.Cute.IParentWindow)
+	(context factory Rococo.Cute.IMasterWindowFactory)
+	(methods
 	)
 	(factory Rococo.Cute.MasterWindow (IString title) (Int32 x)(Int32 y)(Int32 dx)(Int32 dy))
 )

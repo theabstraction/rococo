@@ -2,6 +2,23 @@
 
 #include <rococo.api.h>
 
+namespace Rococo
+{
+	namespace Cute
+	{
+		enum ResizeType;
+
+		ROCOCOAPI IWindowSupervisor
+		{
+			virtual void AddChild(IWindowSupervisor* child) = 0;
+			virtual void Close() = 0;
+			virtual void Free() = 0;
+			virtual void OnResize(Vec2i span, ResizeType to) = 0;
+			virtual WindowRef Handle() = 0;
+		};
+	}
+}
+
 #ifndef ROCOCO_CUTE_SXH_H
 # define ROCOCO_CUTE_SXH_H
 # include <../rococo.cute/cute.sxh.h>
@@ -33,13 +50,6 @@ namespace Rococo
 			ResizeTo_Normal,
 			ResizeTo_Full,
 			ResizeTo_Minimize
-		};
-
-		ROCOCOAPI IWindowSupervisor : IWindowBase
-		{
-			virtual void Close() = 0;
-			virtual void Free() = 0;
-			virtual void OnResize(Vec2i span, ResizeType to) = 0;
 		};
 
 		ROCOCOAPI ISplitSupervisor : IWindowSupervisor
@@ -87,7 +97,9 @@ namespace Rococo
 # ifdef WINAPI
 		IMasterWindowFactory* CreateMasterWindowFactory(HINSTANCE hInstance, HWND hParent);
 		IMenuSupervisor* CreateCuteMenu(HWND hWndOwner);
-		ISplitSupervisor* CreateSplit(ATOM atom, HWND hParentWnd, int32 pixelSplit, int32 minLo, int32 maxHi, int32 splitterWidth, boolean32 draggable, bool isLeftAndRight);
+		ITree* CreateTree(IParentWindow& parent);
+		IParentWindow* CreateParent(IWindowSupervisor& parent, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy);
+		ISplitSupervisor* CreateSplit(ATOM atom, IParentWindow& parent, int32 pixelSplit, int32 minLo, int32 maxHi, int32 splitterWidth, boolean32 draggable, bool isLeftAndRight);
 		IChildSupervisor* CreateChildProxy(HWND hWnd);
 		IChildSupervisor* CreateChild(HWND hParentWnd, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy);
 		IChildSupervisor* CreateChild(IWindowBase& window, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy);

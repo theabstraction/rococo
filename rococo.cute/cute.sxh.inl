@@ -154,6 +154,221 @@ namespace Rococo { namespace Cute {
 		ss.AddNativeCall(ns, NativeRococoCuteIMenuSubMenu, nullptr, ("IMenuSubMenu (Pointer hObject)(Sys.Type.IString name) -> (Rococo.Cute.IMenu subMenu)"));
 	}
 }}
+// BennyHill generated Sexy native functions for Rococo::Cute::ITree 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoCuteITreeSetPopulator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _populatorId;
+		ReadInput(_populatorId, _sf, -_offset);
+		fstring populatorId { _populatorId->buffer, _populatorId->length };
+
+
+		Rococo::Cute::ITree* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetPopulator(populatorId);
+	}
+	void NativeRococoCuteITreeHandle(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Cute::ITree* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		WindowRef hWnd = _pObject->Handle();
+		_offset += sizeof(hWnd);
+		WriteOutput(hWnd, _sf, -_offset);
+	}
+
+}
+
+namespace Rococo { namespace Cute { 
+	void AddNativeCalls_RococoCuteITree(Rococo::Script::IPublicScriptSystem& ss, Rococo::Cute::ITree* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Cute.Native"));
+		ss.AddNativeCall(ns, NativeRococoCuteITreeSetPopulator, nullptr, ("ITreeSetPopulator (Pointer hObject)(Sys.Type.IString populatorId) -> "));
+		ss.AddNativeCall(ns, NativeRococoCuteITreeHandle, nullptr, ("ITreeHandle (Pointer hObject) -> (Pointer hWnd)"));
+	}
+}}
+// BennyHill generated Sexy native functions for Rococo::Cute::IParentWindow 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoCuteIParentWindowHandle(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Cute::IParentWindow* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		WindowRef ref = _pObject->Handle();
+		_offset += sizeof(ref);
+		WriteOutput(ref, _sf, -_offset);
+	}
+	void NativeRococoCuteIParentWindowMenu(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Cute::IParentWindow* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::Cute::IMenu* menu = _pObject->Menu();
+		_offset += sizeof(CReflectedClass*);
+		auto& _menuStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("IMenu"), ("ProxyIMenu"), _nce.ss);
+		CReflectedClass* _sxymenu = _nce.ss.Represent(_menuStruct, menu);
+		WriteOutput(&_sxymenu->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoCuteIParentWindowSplitIntoLeftAndRight(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 draggable;
+		_offset += sizeof(draggable);
+		ReadInput(draggable, _sf, -_offset);
+
+		int32 splitterWidth;
+		_offset += sizeof(splitterWidth);
+		ReadInput(splitterWidth, _sf, -_offset);
+
+		int32 maxRight;
+		_offset += sizeof(maxRight);
+		ReadInput(maxRight, _sf, -_offset);
+
+		int32 minLeft;
+		_offset += sizeof(minLeft);
+		ReadInput(minLeft, _sf, -_offset);
+
+		int32 pixelSplit;
+		_offset += sizeof(pixelSplit);
+		ReadInput(pixelSplit, _sf, -_offset);
+
+		Rococo::Cute::IParentWindow* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::Cute::ISplit* split = _pObject->SplitIntoLeftAndRight(pixelSplit, minLeft, maxRight, splitterWidth, draggable);
+		_offset += sizeof(CReflectedClass*);
+		auto& _splitStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("ISplit"), ("ProxyISplit"), _nce.ss);
+		CReflectedClass* _sxysplit = _nce.ss.Represent(_splitStruct, split);
+		WriteOutput(&_sxysplit->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoCuteIParentWindowSplitIntoTopAndBottom(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 draggable;
+		_offset += sizeof(draggable);
+		ReadInput(draggable, _sf, -_offset);
+
+		int32 splitterHeight;
+		_offset += sizeof(splitterHeight);
+		ReadInput(splitterHeight, _sf, -_offset);
+
+		int32 maxBottom;
+		_offset += sizeof(maxBottom);
+		ReadInput(maxBottom, _sf, -_offset);
+
+		int32 minTop;
+		_offset += sizeof(minTop);
+		ReadInput(minTop, _sf, -_offset);
+
+		int32 pixelSplit;
+		_offset += sizeof(pixelSplit);
+		ReadInput(pixelSplit, _sf, -_offset);
+
+		Rococo::Cute::IParentWindow* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::Cute::ISplit* split = _pObject->SplitIntoTopAndBottom(pixelSplit, minTop, maxBottom, splitterHeight, draggable);
+		_offset += sizeof(CReflectedClass*);
+		auto& _splitStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("ISplit"), ("ProxyISplit"), _nce.ss);
+		CReflectedClass* _sxysplit = _nce.ss.Represent(_splitStruct, split);
+		WriteOutput(&_sxysplit->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoCuteIParentWindowSetMinimumSize(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 dy;
+		_offset += sizeof(dy);
+		ReadInput(dy, _sf, -_offset);
+
+		int32 dx;
+		_offset += sizeof(dx);
+		ReadInput(dx, _sf, -_offset);
+
+		Rococo::Cute::IParentWindow* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetMinimumSize(dx, dy);
+	}
+	void NativeRococoCuteIParentWindowSetMaximumSize(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 dy;
+		_offset += sizeof(dy);
+		ReadInput(dy, _sf, -_offset);
+
+		int32 dx;
+		_offset += sizeof(dx);
+		ReadInput(dx, _sf, -_offset);
+
+		Rococo::Cute::IParentWindow* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetMaximumSize(dx, dy);
+	}
+	void NativeRococoCuteIParentWindowAddTree(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Cute::IParentWindow* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::Cute::ITree* tree = _pObject->AddTree();
+		_offset += sizeof(CReflectedClass*);
+		auto& _treeStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("ITree"), ("ProxyITree"), _nce.ss);
+		CReflectedClass* _sxytree = _nce.ss.Represent(_treeStruct, tree);
+		WriteOutput(&_sxytree->header._vTables[0], _sf, -_offset);
+	}
+
+}
+
+namespace Rococo { namespace Cute { 
+	void AddNativeCalls_RococoCuteIParentWindow(Rococo::Script::IPublicScriptSystem& ss, Rococo::Cute::IParentWindow* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Cute.Native"));
+		ss.AddNativeCall(ns, NativeRococoCuteIParentWindowHandle, nullptr, ("IParentWindowHandle (Pointer hObject) -> (Pointer ref)"));
+		ss.AddNativeCall(ns, NativeRococoCuteIParentWindowMenu, nullptr, ("IParentWindowMenu (Pointer hObject) -> (Rococo.Cute.IMenu menu)"));
+		ss.AddNativeCall(ns, NativeRococoCuteIParentWindowSplitIntoLeftAndRight, nullptr, ("IParentWindowSplitIntoLeftAndRight (Pointer hObject)(Int32 pixelSplit)(Int32 minLeft)(Int32 maxRight)(Int32 splitterWidth)(Bool draggable) -> (Rococo.Cute.ISplit split)"));
+		ss.AddNativeCall(ns, NativeRococoCuteIParentWindowSplitIntoTopAndBottom, nullptr, ("IParentWindowSplitIntoTopAndBottom (Pointer hObject)(Int32 pixelSplit)(Int32 minTop)(Int32 maxBottom)(Int32 splitterHeight)(Bool draggable) -> (Rococo.Cute.ISplit split)"));
+		ss.AddNativeCall(ns, NativeRococoCuteIParentWindowSetMinimumSize, nullptr, ("IParentWindowSetMinimumSize (Pointer hObject)(Int32 dx)(Int32 dy) -> "));
+		ss.AddNativeCall(ns, NativeRococoCuteIParentWindowSetMaximumSize, nullptr, ("IParentWindowSetMaximumSize (Pointer hObject)(Int32 dx)(Int32 dy) -> "));
+		ss.AddNativeCall(ns, NativeRococoCuteIParentWindowAddTree, nullptr, ("IParentWindowAddTree (Pointer hObject) -> (Rococo.Cute.ITree tree)"));
+	}
+}}
 // BennyHill generated Sexy native functions for Rococo::Cute::ISplit 
 namespace
 {
@@ -170,9 +385,9 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		Rococo::Cute::IWindowBase* low = _pObject->Lo();
+		Rococo::Cute::IParentWindow* low = _pObject->Lo();
 		_offset += sizeof(CReflectedClass*);
-		auto& _lowStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("IWindowBase"), ("ProxyIWindowBase"), _nce.ss);
+		auto& _lowStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("IParentWindow"), ("ProxyIParentWindow"), _nce.ss);
 		CReflectedClass* _sxylow = _nce.ss.Represent(_lowStruct, low);
 		WriteOutput(&_sxylow->header._vTables[0], _sf, -_offset);
 	}
@@ -184,9 +399,9 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		Rococo::Cute::IWindowBase* high = _pObject->Hi();
+		Rococo::Cute::IParentWindow* high = _pObject->Hi();
 		_offset += sizeof(CReflectedClass*);
-		auto& _highStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("IWindowBase"), ("ProxyIWindowBase"), _nce.ss);
+		auto& _highStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("IParentWindow"), ("ProxyIParentWindow"), _nce.ss);
 		CReflectedClass* _sxyhigh = _nce.ss.Represent(_highStruct, high);
 		WriteOutput(&_sxyhigh->header._vTables[0], _sf, -_offset);
 	}
@@ -209,8 +424,8 @@ namespace Rococo { namespace Cute {
 	void AddNativeCalls_RococoCuteISplit(Rococo::Script::IPublicScriptSystem& ss, Rococo::Cute::ISplit* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Cute.Native"));
-		ss.AddNativeCall(ns, NativeRococoCuteISplitLo, nullptr, ("ISplitLo (Pointer hObject) -> (Rococo.Cute.IWindowBase low)"));
-		ss.AddNativeCall(ns, NativeRococoCuteISplitHi, nullptr, ("ISplitHi (Pointer hObject) -> (Rococo.Cute.IWindowBase high)"));
+		ss.AddNativeCall(ns, NativeRococoCuteISplitLo, nullptr, ("ISplitLo (Pointer hObject) -> (Rococo.Cute.IParentWindow low)"));
+		ss.AddNativeCall(ns, NativeRococoCuteISplitHi, nullptr, ("ISplitHi (Pointer hObject) -> (Rococo.Cute.IParentWindow high)"));
 		ss.AddNativeCall(ns, NativeRococoCuteISplitHandle, nullptr, ("ISplitHandle (Pointer hObject) -> (Pointer hWnd)"));
 	}
 }}
@@ -222,6 +437,18 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
+	void NativeRococoCuteIMasterWindowHandle(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Cute::IMasterWindow* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		WindowRef ref = _pObject->Handle();
+		_offset += sizeof(ref);
+		WriteOutput(ref, _sf, -_offset);
+	}
 	void NativeRococoCuteIMasterWindowMenu(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -340,7 +567,7 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetMaximumSize(dx, dy);
 	}
-	void NativeRococoCuteIMasterWindowHandle(NativeCallEnvironment& _nce)
+	void NativeRococoCuteIMasterWindowAddTree(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -348,9 +575,11 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		WindowRef hWnd = _pObject->Handle();
-		_offset += sizeof(hWnd);
-		WriteOutput(hWnd, _sf, -_offset);
+		Rococo::Cute::ITree* tree = _pObject->AddTree();
+		_offset += sizeof(CReflectedClass*);
+		auto& _treeStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("ITree"), ("ProxyITree"), _nce.ss);
+		CReflectedClass* _sxytree = _nce.ss.Represent(_treeStruct, tree);
+		WriteOutput(&_sxytree->header._vTables[0], _sf, -_offset);
 	}
 
 	void NativeGetHandleForRococoCuteMasterWindow(NativeCallEnvironment& _nce)
@@ -392,11 +621,12 @@ namespace Rococo { namespace Cute {
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Cute.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoCuteMasterWindow, _nceContext, ("GetHandleForIMasterWindow0 (Sys.Type.IString title)(Int32 x)(Int32 y)(Int32 dx)(Int32 dy) -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowHandle, nullptr, ("IMasterWindowHandle (Pointer hObject) -> (Pointer ref)"));
 		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowMenu, nullptr, ("IMasterWindowMenu (Pointer hObject) -> (Rococo.Cute.IMenu menu)"));
 		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowSplitIntoLeftAndRight, nullptr, ("IMasterWindowSplitIntoLeftAndRight (Pointer hObject)(Int32 pixelSplit)(Int32 minLeft)(Int32 maxRight)(Int32 splitterWidth)(Bool draggable) -> (Rococo.Cute.ISplit split)"));
 		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowSplitIntoTopAndBottom, nullptr, ("IMasterWindowSplitIntoTopAndBottom (Pointer hObject)(Int32 pixelSplit)(Int32 minTop)(Int32 maxBottom)(Int32 splitterHeight)(Bool draggable) -> (Rococo.Cute.ISplit split)"));
 		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowSetMinimumSize, nullptr, ("IMasterWindowSetMinimumSize (Pointer hObject)(Int32 dx)(Int32 dy) -> "));
 		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowSetMaximumSize, nullptr, ("IMasterWindowSetMaximumSize (Pointer hObject)(Int32 dx)(Int32 dy) -> "));
-		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowHandle, nullptr, ("IMasterWindowHandle (Pointer hObject) -> (Pointer hWnd)"));
+		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowAddTree, nullptr, ("IMasterWindowAddTree (Pointer hObject) -> (Rococo.Cute.ITree tree)"));
 	}
 }}

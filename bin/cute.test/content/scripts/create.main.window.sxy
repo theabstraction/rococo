@@ -5,7 +5,7 @@
 
 (using Rococo.Cute)
 
-(function SetText (IWindowBase window) (IString text)-> :
+(function SetText (IParentWindow window) (IString text)-> :
 	(Rococo.Cute.Native.SetText window.Handle text)
 )
 
@@ -22,6 +22,10 @@
 	(menu.SetBackgroundColour 0xA0A0A000)
 )
 
+(function SetColourTarget (IParentWindow window)(Int32 target)(Int32 abgr)-> :
+	(Native.SetColourTarget window.Handle target abgr) 
+)
+
 (function Main (Int32 id)->(Int32 exitCode):
 	// Create a  master window. The window and its children will persist after the script completes
 	// If the script crashes the window will be destroyed and deleted
@@ -30,8 +34,10 @@
 		(SetText master "This is so cool")
 		(AddMainMenu master)
 		(ISplit mainSplit = (master.SplitIntoLeftAndRight 280 16 16 8 true))
-		(IWindowBase left = mainSplit.Lo)
-		(IWindowBase right = mainSplit.Hi)
-		(Native.SetColourTarget left.Handle  0 0xFFC0C0C0) 
-		(Native.SetColourTarget right.Handle 0 0xFFC0C0C0) 
+		(IParentWindow left = mainSplit.Lo)
+			(SetColourTarget left  0 0xFFC0C0C0) 
+			(ITree tree = left.AddTree)
+				(tree.SetPopulator "populator.tree.solution")
+		(IParentWindow right = mainSplit.Hi)
+			(SetColourTarget right 0 0xFFC0C0C0) 
 )

@@ -108,6 +108,7 @@
     <ClCompile Include="rococo.cute.menu.cpp" />
     <ClCompile Include="rococo.cute.script.cpp" />
     <ClCompile Include="rococo.cute.split.cpp" />
+    <ClCompile Include="rococo.cute.tree.cpp" />
     <ClCompile Include="rococo.cute.win32.cpp" />
   </ItemGroup>
   <ItemGroup>
