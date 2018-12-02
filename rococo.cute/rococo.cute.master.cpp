@@ -56,12 +56,8 @@ namespace Rococo
 				if (IsWindow(hWnd))
 				{
 					HINSTANCE hInstance = (HINSTANCE)GetWindowLongPtrA(hWnd, GWLP_HINSTANCE);
-					WINDOWINFO info = { 0 };
-					info.cbSize = sizeof(info);
-					GetWindowInfo(hWnd, &info);
 
 					char className[256];
-
 					int result = GetClassNameA(hWnd, className, sizeof(className));
 					if (result && Compare(className, factoryPrefix, factoryPrefix.length) == 0)
 					{
@@ -80,6 +76,14 @@ namespace Rococo
 
 						SetWindowLongPtrA(hWnd, DWLP_USER, val);
 					}
+					else if (IsDebuggerPresent())
+					{
+						Rococo::OS::TripDebugger();
+					}
+				}
+				else if (IsDebuggerPresent())
+				{
+					Rococo::OS::TripDebugger();
 				}
 			}
 		} // Native
@@ -178,10 +182,6 @@ namespace Rococo
 				int result = GetClassNameA(hWnd, className, sizeof(className));
 				if (result && Compare(className, factoryPrefix, factoryPrefix.length) == 0)
 				{
-					CuteWindowExData data;
-					data.normalBackgroundColour = RGBAb(224, 224, 224);
-					data.hilighBackgroundColour = RGBAb(224, 224, 224);
-					SetWindowLongPtrA(hWnd, DWLP_USER, *(LONG_PTR*)&data);
 					SetWindowLongPtrA(hWnd, GWLP_USERDATA, (LONG_PTR)window);
 					SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR) MasterWindowProc);
 				}
@@ -211,6 +211,11 @@ struct MasterWindow : IMasterWindow, virtual IWindowSupervisor
 			hParent, nullptr, hInstance, nullptr);
 
 		menuManager = Rococo::Cute::CreateCuteMenu(hWindow);
+
+		CuteWindowExData data;
+		data.normalBackgroundColour = RGBAb(224, 224, 224);
+		data.hilighBackgroundColour = RGBAb(224, 224, 224);
+		SetWindowLongPtrA(hWindow, DWLP_USER, *(LONG_PTR*)&data);
 	}
 
 	virtual ~MasterWindow()
@@ -254,10 +259,6 @@ struct MasterWindow : IMasterWindow, virtual IWindowSupervisor
 
 	void SetMasterProxyProc(WindowRef ref)
 	{
-		CuteWindowExData data;
-		data.normalBackgroundColour = RGBAb(224, 224, 224);
-		data.hilighBackgroundColour = RGBAb(224, 224, 224);
-		SetWindowLongPtrA(hWindow, DWLP_USER, *(LONG_PTR*)&data);
 		SetWindowLongPtrA(hWindow, GWLP_USERDATA, (LONG_PTR) this);
 		SetWindowLongPtrA(hWindow, GWLP_WNDPROC, (LONG_PTR)OnMessage);
 	}
@@ -272,16 +273,16 @@ struct MasterWindow : IMasterWindow, virtual IWindowSupervisor
 		delete this;
 	}
 
-	ISplit* SplitIntoLeftAndRight(int32 pixelSplit, int32 splitterWidth, boolean32 draggable) override
+	ISplit* SplitIntoLeftAndRight(int32 pixelSplit, int32 splitterWidth, int32 minLeftSplit, int32 maxRightSplit, boolean32 draggable) override
 	{
-		auto* s = CreateSplit(atom, hWindow, pixelSplit, splitterWidth, draggable, true);
+		auto* s = CreateSplit(atom, hWindow, pixelSplit, minLeftSplit, maxRightSplit,splitterWidth, draggable, true);
 		children.push_back(s);
 		return &s->Split();
 	}
 
-	ISplit*  SplitIntoTopAndBottom(int32 pixelSplit, int32 splitterHeight, boolean32 draggable) override
+	ISplit*  SplitIntoTopAndBottom(int32 pixelSplit, int32 splitterHeight, int32 minTopSplit, int32 maxBottomSplit, boolean32 draggable) override
 	{
-		auto* s = CreateSplit(atom, hWindow, pixelSplit, splitterHeight, draggable, false);
+		auto* s = CreateSplit(atom, hWindow, pixelSplit, minTopSplit, maxBottomSplit, splitterHeight, draggable, false);
 		children.push_back(s);
 		return &s->Split();
 	}

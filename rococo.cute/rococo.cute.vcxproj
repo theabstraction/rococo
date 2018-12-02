@@ -125,6 +125,7 @@
     <CustomBuild Include="cute.sxh">
       <FileType>Document</FileType>
     </CustomBuild>
+    <None Include="cute.sxh.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

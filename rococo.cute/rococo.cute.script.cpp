@@ -31,8 +31,8 @@ namespace Rococo { namespace Cute
 			Throw(0, "Rococo::Cute::ExecuteScript - Failed to execute %s: absolute max script size is 128 megabytes", scriptFile);
 		}
 
-		if (spec.parent == nullptr) spec.parent = &(Windows::NoParent());
-		AutoFree<IDebuggerWindow> debugger(Rococo::Windows::IDE::CreateDebuggerWindow(*spec.parent));
+		if (spec.debuggerParentWnd == nullptr) spec.debuggerParentWnd = &(Windows::NoParent());
+		AutoFree<IDebuggerWindow> debugger(Rococo::Windows::IDE::CreateDebuggerWindow(*spec.debuggerParentWnd));
 		AutoFree<ISourceCache> sourceCache(CreateSourceCache(installation));
 		Rococo::Windows::IDE::ExecuteSexyScriptLoop(
 			spec.stats,
@@ -59,6 +59,7 @@ namespace Rococo { namespace Cute
 				Rococo::Cute::Native::AddNativeCalls_RococoCuteNative(args.ss, nullptr);
 				AddNativeCalls_RococoCuteIMenu(args.ss, nullptr);
 				AddNativeCalls_RococoCuteISplit(args.ss, nullptr);
+				AddNativeCalls_RococoCuteIWindowBase(args.ss, nullptr);
 			}
 		} onCompile;
 		onCompile.factory = &factory;

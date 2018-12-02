@@ -25,7 +25,7 @@ namespace Rococo
 			ScriptPerformanceStats stats = { 0 };
 			size_t maxSize = 128_kilobytes;
 			size_t maxScriptSize = 128_kilobytes;
-			Rococo::Windows::IWindow* parent = nullptr;
+			Rococo::Windows::IWindow* debuggerParentWnd = nullptr;
 		};
 
 		enum ResizeType
@@ -87,7 +87,7 @@ namespace Rococo
 # ifdef WINAPI
 		IMasterWindowFactory* CreateMasterWindowFactory(HINSTANCE hInstance, HWND hParent);
 		IMenuSupervisor* CreateCuteMenu(HWND hWndOwner);
-		ISplitSupervisor* CreateSplit(ATOM atom, HWND hParentWnd, int32 pixelSplit, int32 splitterWidth, boolean32 draggable, bool isLeftAndRight);
+		ISplitSupervisor* CreateSplit(ATOM atom, HWND hParentWnd, int32 pixelSplit, int32 minLo, int32 maxHi, int32 splitterWidth, boolean32 draggable, bool isLeftAndRight);
 		IChildSupervisor* CreateChildProxy(HWND hWnd);
 		IChildSupervisor* CreateChild(HWND hParentWnd, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy);
 		IChildSupervisor* CreateChild(IWindowBase& window, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy);

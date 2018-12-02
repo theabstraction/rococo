@@ -54,6 +54,9 @@
     <None Include="..\bin\cute.test\content\scripts\create.main.window.sxy">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="cute.sxh.inl">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="cute.sxh">

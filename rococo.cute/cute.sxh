@@ -3,6 +3,7 @@
 (interface 
 	(as.sxy Rococo.Cute.IWindowBase "../bin/cute.test/content/scripts/cute")
 	(as.cpp Rococo.Cute.IWindowBase "cute")
+	(context factory Rococo.Cute.IWindowBase)
 	(methods
 		(Handle -> (WindowRef hWnd))
 	)
@@ -35,8 +36,8 @@
 	(context factory Rococo.Cute.IMasterWindowFactory)
 	(methods
 		(Menu -> (Rococo.Cute.IMenu menu))
-		(SplitIntoLeftAndRight (Int32 pixelSplit)(Int32 splitterWidth)(Bool draggable)->(Rococo.Cute.ISplit split))
-		(SplitIntoTopAndBottom (Int32 pixelSplit)(Int32 splitterHeight)(Bool draggable)->(Rococo.Cute.ISplit split))
+		(SplitIntoLeftAndRight (Int32 pixelSplit)(Int32 minLeft)(Int32 maxRight)(Int32 splitterWidth)(Bool draggable)->(Rococo.Cute.ISplit split))
+		(SplitIntoTopAndBottom (Int32 pixelSplit)(Int32 minTop)(Int32 maxBottom)(Int32 splitterHeight)(Bool draggable)->(Rococo.Cute.ISplit split))
 		(SetMinimumSize (Int32 dx)(Int32 dy))
 		(SetMaximumSize (Int32 dx)(Int32 dy))
 	)
