@@ -7,7 +7,7 @@ using namespace Rococo;
 using namespace Rococo::Cute;
 
 struct Splitter;
-IChildSupervisor* CreateSplitterWindow(Splitter& splitter, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy);
+IChildSupervisor* CreateSplitterRibbon(Splitter& splitter, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy);
 
 struct Splitter : public ISplitSupervisor, virtual ISplit
 {
@@ -58,9 +58,9 @@ struct Splitter : public ISplitSupervisor, virtual ISplit
 		Native::SetColourTarget(parent.Handle(), ColourTarget_NormalBackground, RGBAb(0, 0, 0, 0));
 		Native::SetColourTarget(ToRef(hContainerWnd), ColourTarget_NormalBackground, RGBAb(0, 0, 0, 0));
 
-		hi = CreateParent(*this, style, exStyle, 0, 0, 1, 1);
-		lo = CreateParent(*this, style, exStyle, 0, 0, 1, 1);
-		splitterWnd = CreateSplitterWindow(*this, style, exStyle, 0, 0, 1, 1);
+		hi = CreateParent(*this, style, exStyle, 0, 0, 3, 4);
+		lo = CreateParent(*this, style, exStyle, 3, 0, 3, 4);
+		splitterWnd = CreateSplitterRibbon(*this, style, exStyle, 4, 0, 2, 4);
 		
 		Layout();
 	}
@@ -148,7 +148,6 @@ struct Splitter : public ISplitSupervisor, virtual ISplit
 			loDY = span.y - hiDY - splitterWidth;
 		}
 
-		MoveWindow(hContainerWnd, 0, 0, span.x, span.y, FALSE);
 		MoveWindow(ToHWND(hi->Handle()), hiX, hiY, hiDX, hiDY, FALSE);
 		MoveWindow(ToHWND(lo->Handle()), loX, loY, loDX, loDY, FALSE);
 		MoveWindow(ToHWND(splitterWnd->Handle()), spX, spY, spDX, spDY, FALSE);
@@ -161,6 +160,18 @@ struct Splitter : public ISplitSupervisor, virtual ISplit
 	void OnResize(Vec2i span, ResizeType type)
 	{
 		Layout();
+	}
+
+
+	void RepaintSides()
+	{
+		auto hHi = ToHWND(hi->Handle());
+		InvalidateRect(hHi, nullptr, TRUE);
+		UpdateWindow(hHi);
+
+		auto hLo = ToHWND(lo->Handle());
+		InvalidateRect(hLo, nullptr, TRUE);
+		UpdateWindow(hLo);
 	}
 };
 
@@ -190,9 +201,6 @@ struct SplitterRibbon : IChildSupervisor
 
 		HDC dc = GetDC(splitter.hContainerWnd);
 
-		RECT r;
-		GetClientRect(splitter.hContainerWnd, &r);
-
 		POINT delta = { p.x - dragFrom.x, p.y - dragFrom.y };
 
 		if (splitter.isLeftAndRight)
@@ -207,11 +215,9 @@ struct SplitterRibbon : IChildSupervisor
 			ScreenToClient(splitter.hContainerWnd, &topLeft);
 			ScreenToClient(splitter.hContainerWnd, &bottomRight);
 
+			splitter.RepaintSides();
+
 			RECT renderRect = { topLeft.x, topLeft.y, bottomRight.x, bottomRight.y };
-
-			InvalidateRect(splitter.hContainerWnd, nullptr, TRUE);
-			UpdateWindow(splitter.hContainerWnd);
-
 			DrawEdge(dc, &renderRect, EDGE_ETCHED, BF_LEFT | BF_RIGHT);
 		}
 
@@ -249,9 +255,6 @@ struct SplitterRibbon : IChildSupervisor
 		isDragging = false;
 		SetCapture(nullptr);
 
-		InvalidateRect(splitter.hContainerWnd, nullptr, TRUE);
-		UpdateWindow(splitter.hContainerWnd);
-
 		POINT p;
 		GetCursorPos(&p);
 		ScreenToClient(splitter.hContainerWnd, &p);
@@ -264,6 +267,7 @@ struct SplitterRibbon : IChildSupervisor
 		}
 
 		splitter.Layout();
+		splitter.RepaintSides();
 	}
 
 	static LRESULT OnSplitterRibbonMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -333,7 +337,7 @@ struct SplitterRibbon : IChildSupervisor
 	}
 };
 
-IChildSupervisor* CreateSplitterWindow(Splitter& splitter, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy)
+IChildSupervisor* CreateSplitterRibbon(Splitter& splitter, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy)
 {
 	return new SplitterRibbon(splitter, style, exStyle, x, y, dx, dy);
 }

@@ -5,7 +5,7 @@
    another comment */
 
 // Define an immutable pointer to a string constant
-(# title = "Hello World\nHow are you doing today?")
+(# title = "Hello World\nHow are you doing today?") -> strings consistent with C/C++
 
 // Define a function main in namespace EntryPoint that takes no arguments and returns no results
 (function EntryPoint.Main :
@@ -15,39 +15,39 @@
 // Primitive Types
 
 // Signed integers
-(Int8  i1)
-(Int16 i2)
-(Int32 i3)
-(Int64 i4)
-(Intx i5) // integer with same bit length as an any pointer
+(int8  i1)
+(int16 i2)
+(int32 i3)
+(int64 i4)
+(intx i5) // integer with same bit length as an any pointer
 
 // String constant
 (## text = "Geoff") // create a string constant "Geoff" and assign immutable variable 'text' to it.
 
 // Unsigned integers
-(Uint8 u1)
-(Uint16 u2)
-(Uint32 u3)
-(Uint64 u4)
-(Uintx) // unsigned integer with same bit length as any pointer
+(uint8 u1)
+(uint16 u2)
+(uint32 u3)
+(uint64 u4)
+(uintx) // unsigned integer with same bit length as any pointer
 
 // Stardard aliases
 
-(resolve Sys.Type.Char as Sys.Type.UInt8)
-(resolve Sys.Type.Bool as Sys.Type.UInt32)
+(resolve Sys.Type.char as Sys.Type.uint8)
+(resolve Sys.Type.bool as Sys.Type.uint32)
 
 // untyped pointer
-(Any p1)
+(pointer p1)
 
 // Composite types
 
-(struct typename
+(struct Typename // composites have capital letter as first character
 	(<type> <name1> <name2...>)
 	...
 )
 
 (struct Sys.Type.ImmutableStringSlice
-	(const Int64 length) // in bytes
+	(const int64 length) // in bytes
 	(immutable const Char * text)
 )
 
@@ -67,16 +67,16 @@
 	(const Message -> (string msg))
 	(const ErrorCode -> (int64 errorCode))
 	(const GetStackFrame (int32 frameIndex)(ref StackFrame sf)->(Bool wasPopulated))
-	(const Inner -> (const Sys.Type.IException * innerException))
+	(const Inner -> (const Sys.Type.IException innerException))
 )
 
 // Classes
 
 (class Exception (implements Sys.Type.IException)
 	(String message)
-	(Int64 errorCode)
+	(int64 errorCode)
 	(StackFrames frames)
-	(Sys.Type.IException * inner)
+	(Sys.Type.IException inner)
 
 	(const Message -> (# msg):
 		(msg = message)
@@ -86,20 +86,122 @@
 		(this.errorCode -> errorCode)
 	)
 
-	(const GetStackFrame (int32 frameIndex)(ref StackFrame sf)->(Bool wasPopulated):
+	(const GetStackFrame (int32 frameIndex)(ref StackFrame sf)->(bool wasPopulated):
 		(frames.TryGetByIndex frameIndex sf -> wasPopulated)
 	)
 
-	(const Inner -> (const Sys.Type.IException * innerException):
+	(const Inner -> (const Sys.Type.IException innerException):
 		(inner -> innerException)
 	)
 )
 
-(function Sys.Throw (Int64 errorCode)(# msg):
+(function Sys.Throw (int64 errorCode)(# msg):
 	(Exception ex)
 	(ex.message = msg)
 	(ex.errorCode = errorCode)
 	(ex.frames.Capture -1)
 	(ex.inner = null)
 	(throw ex)
+)
+
+// Class that defines its own interface
+
+(class FileSource
+	(defines Sys.IO.IFileSource
+		(Read (char* buffer)(uintx capacity)->(uintx length))
+		(Length -> (uintx length))
+		(LastModifiedDate -> (DateTime timestamp))
+		(CreationDate ?) // defer argument definition until method implementation
+)
+
+(method FileSource Read ? : // function arguments taken from the class definition above
+	
+)
+
+(method CreationDate -> (DateTime timestamp):
+)
+
+(factory Sys.IO.FileSource (String filename):
+	(construct FileSource fs)
+	(fs.filename = filename)
+)
+
+// Creating an instance on the stack
+(alloc stack Sys.IO.IFileSource source (Sys.IO.FileSource "iceberg.jpg"))
+
+// Create a user controller instance on the heap
+(alloc Sys.Memory.Heap.StandardHeap Sys.IO.IFileSource source (Sys.IO.FileSource "iceberg.jpg"))
+(source.Free) // since heap management is required, the compiler attaches method Free to Sys.IO.IFileSource
+
+// Create a garbage collected instance on the heap
+(Sys.Memory.GC.StandardGC Sys.IO.IFileSource source (Sys.IO.FileSource "iceberg.jpg"))
+// source will be auto freed when source goes out of scope of the last reference
+
+(Pointer p = (AllocBytes 256))
+(alloc p 256  Sys.IO.IFileSource source (Sys.IO.FileSource "iceberg.jpg"))
+// construct in place at p. User required to manage deconstruction
+
+// Interface callbacks
+
+(interface IDogCallback
+	(OnDog -> (IDog dog))
+)
+
+(interface IDogs
+	(Enumerate (IDogCallback))
+)
+
+(function EnumerateDogs (IDogs dogs)->(int32 result):
+	(int32 count = 0)
+	(dogs.Enumerate 
+		IDogCallback
+		(
+			(OnDog (IDog dog) ->:
+				(count ++) // local variable reference 'count'
+			)
+		)
+	)
+
+	(result = count)
+)
+
+// Since IDogs has only one method this can be rewritten as:
+
+(function EnumerateDogs2 (IDogs dogs)->(int32 result):
+	(int32 count = 0)
+	(dogs.Enumerate 
+		((IDog dog):
+			(count ++) // local variable reference 'count'
+		)
+	)
+
+	(result = count)
+)
+
+// Reflection
+(Sys.Types.IType type (GetType Sys.Type.IException))
+(int32 fields = type.FieldCount)
+(int32 len = (type.FieldLen 0))
+(Sys.Types.IType subtype = (type.FieldType 0))
+
+// Enumeration types
+(enum IDog vector) // provide vector enumeration for type IDog
+(enum ICat list // provide double linked list enumreation for ICat)
+(enun IOwl map) // provide key-value pair and enumeration for IMap
+
+// using enumeration types:
+
+(foreach x i in dogs :
+	
+)
+
+(Train (dogs i))
+
+(foreach n i in cats :
+	(n.erase)
+)
+
+(foreach o i in owls :
+	(ref String s = o.Key)
+	(ref Owl owl = o.Value))
 )

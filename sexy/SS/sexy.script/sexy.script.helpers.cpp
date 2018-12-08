@@ -248,8 +248,43 @@ namespace Rococo
       int dummy;
    };
 }
-# define PROTECT try
+
+# define COMBINE1(X,Y) X##Y  // helper macro
+# define COMBINE(X,Y) COMBINE1(X,Y)
+# define PROTECT ThrowOnSignal COMBINE(ev_segv_,__LINE__)(SIGSEGV);ThrowOnSignal COMBINE(ev_bus_,__LINE__)(SIGBUS); try
 # define CATCH  catch(SignalException& ex)
+
+namespace
+{
+	typedef void(*FN_SignalHandler)(int);
+
+	struct SignalException
+	{
+		int signalCode;
+	};
+
+	struct ThrowOnSignal
+	{
+		FN_SignalHandler previousHandler;
+		int code;
+
+		static void OnSignal(int code)
+		{
+			throw SignalException{ code };
+		}
+
+		ThrowOnSignal(int code)
+		{
+			this->previousHandler = signal(code, ThrowOnSignal::OnSignal);
+			this->code = code;
+		}
+
+		~ThrowOnSignal()
+		{
+			signal(code, previousHandler);
+		}
+	};
+}
 #endif
 
 namespace Rococo
@@ -742,7 +777,15 @@ namespace Rococo
 				   break;
 			   }
 
-			   variableEnum.OnVariable(count++, variable);
+			   PROTECT
+			   {
+			        variableEnum.OnVariable(count++, variable);
+			   }
+			   CATCH
+			   {
+					FormatVariableDescLocation(variable, "Bad");
+					variable.Address = 0xBADBADBADBADBAD0;
+			   }
 		   }
 	   }
 

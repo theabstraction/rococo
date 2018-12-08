@@ -95,6 +95,15 @@ static void EraseBackground(HWND hWnd)
 	LONG_PTR ldata = GetWindowLongPtrA(hWnd, DWLP_USER);
 	auto& data = *(CuteWindowExData*)&ldata;
 
+	RECT wrect;
+	GetWindowRect(hWnd, &wrect);
+
+	char title[256];
+	GetWindowTextA(hWnd, title, 256);
+	char msg[256];
+	SafeFormat(msg, 256, "%s: erase {%d,%d} to {%d,%d}\n", title, wrect.left, wrect.top, wrect.right, wrect.bottom);
+	OutputDebugStringA(msg);
+
 	if (data.normalBackgroundColour.alpha == 0) return;
 
 	HDC dc = GetDC(hWnd);
@@ -203,6 +212,23 @@ struct MasterWindow : IMasterWindow
 	{
 		DWORD exStyle = 0;
 		DWORD style = WS_OVERLAPPEDWINDOW;
+		int x = pos.x == -1 ? CW_USEDEFAULT : pos.x;
+		int y = pos.y == -1 ? CW_USEDEFAULT : pos.y;
+		int width = span.x;
+		int height = span.y;
+		hWindow = CreateWindowExA(exStyle, (cstr)atom, title, style, x, y, width, height,
+			hParent, nullptr, hInstance, nullptr);
+
+		menuManager = Rococo::Cute::CreateCuteMenu(hWindow);
+
+		CuteWindowExData data;
+		data.normalBackgroundColour = RGBAb(224, 224, 224);
+		data.hilighBackgroundColour = RGBAb(224, 224, 224);
+		SetWindowLongPtrA(hWindow, DWLP_USER, *(LONG_PTR*)&data);
+	}
+
+	MasterWindow(ATOM _atom, HINSTANCE hInstance, HWND hParent, Vec2i pos, Vec2i span, cstr title, DWORD style, DWORD exStyle) : atom(_atom)
+	{
 		int x = pos.x == -1 ? CW_USEDEFAULT : pos.x;
 		int y = pos.y == -1 ? CW_USEDEFAULT : pos.y;
 		int width = span.x;
@@ -412,11 +438,6 @@ struct MasterWindowFactory : public IMasterWindowFactory
 	}
 };
 
-struct ParentWindow: IParentWindow
-{
-
-};
-
 namespace Rococo
 {
 	namespace Cute
@@ -437,7 +458,16 @@ namespace Rococo
 				info.cbSize = sizeof(info);
 				GetWindowInfo(ToHWND(parent.Handle()), &info);
 
-				auto* m = new MasterWindow(info.atomWindowType, hInstance, ToHWND(parent.Handle()), { x,y }, { dx,dy }, "");
+				auto* m = new MasterWindow(info.atomWindowType,
+											hInstance, 
+											ToHWND(parent.Handle()), 
+											{ x,y },
+											{ dx,dy },
+											"",
+											style,
+											exStyle);
+
+				SetWindowLongPtrA(m->hWindow, GWLP_WNDPROC, (LONG_PTR)MasterWindowProc);
 				parent.AddChild(m);
 				return m;
 			}
