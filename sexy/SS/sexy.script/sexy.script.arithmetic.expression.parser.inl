@@ -77,6 +77,7 @@ namespace Rococo
          if (AreEqual(opStr, ("-"))) return true;
          if (AreEqual(opStr, ("*"))) return true;
          if (AreEqual(opStr, ("/"))) return true;
+		 if (AreEqual(opStr, ("|"))) return true;
 
          return false;
       }
@@ -86,7 +87,8 @@ namespace Rococo
          ARITHMETIC_OP_ADD,
          ARITHMETIC_OP_SUBTRACT,
          ARITHMETIC_OP_MULTIPLY,
-         ARITHMETIC_OP_DIVIDE
+         ARITHMETIC_OP_DIVIDE,
+		 ARITHMETIC_OP_BITWISE_OR
       };
 
       enum ARITHMETIC_ORDER
@@ -162,6 +164,7 @@ namespace Rococo
          if (AreEqual(opStr, ("-"))) return ARITHMETIC_OP_SUBTRACT;
          if (AreEqual(opStr, ("*"))) return ARITHMETIC_OP_MULTIPLY;
          if (AreEqual(opStr, ("/"))) return ARITHMETIC_OP_DIVIDE;
+		 if (AreEqual(opStr, ("|"))) return ARITHMETIC_OP_BITWISE_OR;
 
          Throw(s, ("Expecting arithmetic operator"));
          return ARITHMETIC_OP_ADD;
@@ -186,6 +189,9 @@ namespace Rococo
             case ARITHMETIC_OP_SUBTRACT:
                result.int32Value = a.int32Value - b.int32Value;
                return;
+			case ARITHMETIC_OP_BITWISE_OR:
+				result.int32Value = a.int32Value | b.int32Value;
+				return;
             default:
                goto Error;
             }
@@ -204,6 +210,9 @@ namespace Rococo
             case ARITHMETIC_OP_SUBTRACT:
                result.int64Value = a.int64Value - b.int64Value;
                return;
+			case ARITHMETIC_OP_BITWISE_OR:
+				result.int64Value = a.int64Value | b.int64Value;
+				return;
             default:
                goto Error;
             }
@@ -324,6 +333,9 @@ namespace Rococo
             case ARITHMETIC_OP_DIVIDE:
                assembler.Append_IntDivide(reg + 1, GetBitCount(type), reg + 2); // N.B saves result in quotient in reg, but also remainder in reg+3
                return;
+			case ARITHMETIC_OP_BITWISE_OR:
+				assembler.Append_LogicalOR(reg + 1, GetBitCount(type), reg + 2); 
+				return;
             default:
                goto Error;
             }

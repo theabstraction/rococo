@@ -10,6 +10,11 @@ struct CuteChildProxy : IChildSupervisor
 {
 	HWND hChildWnd;
 
+	void AddChild(IWindowSupervisor* child) override
+	{
+		Throw(0, "Proxy does not support AddChild(...)");
+	}
+
 	CuteChildProxy(HWND _hChildWnd) : hChildWnd(_hChildWnd)
 	{
 		SetMasterProc(ToRef(hChildWnd), this);
@@ -41,6 +46,11 @@ struct CuteChild : IChildSupervisor
 {
 	HWND hParentWnd;
 	HWND hChildWnd;
+
+	void AddChild(IWindowSupervisor* child) override
+	{
+		Throw(0, "Child does not support AddChild(...)");
+	}
 
 	CuteChild(HWND _hParentWnd, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy) : hParentWnd(_hParentWnd)
 	{
@@ -93,13 +103,17 @@ namespace Rococo
 
 		IChildSupervisor* CreateChild(HWND hParentWnd, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy)
 		{
-			return new CuteChild(hParentWnd, style, exStyle, x, y, dx, dy);
+			auto* c = new CuteChild(hParentWnd, style, exStyle, x, y, dx, dy);
+			SetMasterProc(ToRef(c->hChildWnd), c);
+			return c;
 		}
 
 		IChildSupervisor* CreateChild(IWindowBase& window, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy)
 		{
 			auto hParentWnd = ToHWND(window.Handle());
-			return new CuteChild(hParentWnd, style, exStyle, x, y, dx, dy);
+			auto* c = new CuteChild(hParentWnd, style, exStyle, x, y, dx, dy);
+			SetMasterProc(ToRef(c->hChildWnd), c);
+			return c;
 		}
 	}
 }

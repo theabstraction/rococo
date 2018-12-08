@@ -10198,6 +10198,36 @@ namespace
 		validate(x == 4);
 	}
 
+	void TestBitwiseOr(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(macro Sys.Seventeen in out (out.AddAtomic \"0x11\"))"
+
+			"(function PassThrough (Int32 x)->(Int32 y) : (y = x))"
+			"(namespace EntryPoint)"
+			"(function Main -> (Int32 exitCode):"
+			"	(Int32 i = 6)"
+			"	(Int32 j = (i | 3))"	
+			"   (exitCode = j)"
+			")"
+			"(alias Main EntryPoint.Main)"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestMacroAssignBinary");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0x00000001);
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateLogs();
+
+		int32 exitCode = vm.PopInt32();
+		validate(exitCode == 7);
+
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+	}
+
 	void TestMacroAsArgument1(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -11112,6 +11142,7 @@ namespace
 
 	void RunPositiveSuccesses()
 	{
+		TEST(TestBitwiseOr);
 		TEST(TestNullStringBuilder);
 		TEST(TestOperatorOverload2);
 		TEST(TestStructWithVec4f);

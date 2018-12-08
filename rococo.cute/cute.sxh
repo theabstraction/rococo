@@ -40,10 +40,9 @@
 		(SplitIntoTopAndBottom (Int32 pixelSplit)(Int32 minTop)(Int32 maxBottom)(Int32 splitterHeight)(Bool draggable)->(Rococo.Cute.ISplit split))
 		(SetMinimumSize (Int32 dx)(Int32 dy))
 		(SetMaximumSize (Int32 dx)(Int32 dy))
-		(AddTree -> (Rococo.Cute.ITree tree))
+		(AddTree (Int32 createStyleFlags)-> (Rococo.Cute.ITree tree))
 	)
 )
-
 
 (interface 
 	(as.sxy Rococo.Cute.ISplit "../bin/cute.test/content/scripts/cute" Rococo.Cute.IWindowBase)
@@ -70,6 +69,18 @@
 	(
 		(NormalBackground 0)
 		(HilightBackground 1)
+	)
+)
+
+(enum Int32
+	(as.sxy Rococo.Cute.TreeFlags "../bin/cute.test/content/scripts/cute")
+	(as.cpp Rococo.Graphics.OrientationFlags "cute")
+	(
+		(None				0)
+		(HasButtons    0x0001)
+		(HasLines      0x0002)
+		(LinesAtRoot   0x0004)
+		(EditLabels    0x0008)
 	)
 )
 

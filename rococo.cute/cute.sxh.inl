@@ -48,6 +48,86 @@ namespace Rococo { namespace Cute {
 	}
 }}// Rococo.Cute.ColourTarget
 
+namespace Rococo { namespace Graphics { 
+	bool TryParse(const Rococo::fstring& s, OrientationFlags& value)
+	{
+		if (s ==  "OrientationFlags_None"_fstring)
+		{
+			value = OrientationFlags_None;
+		}
+		else if (s ==  "OrientationFlags_HasButtons"_fstring)
+		{
+			value = OrientationFlags_HasButtons;
+		}
+		else if (s ==  "OrientationFlags_HasLines"_fstring)
+		{
+			value = OrientationFlags_HasLines;
+		}
+		else if (s ==  "OrientationFlags_LinesAtRoot"_fstring)
+		{
+			value = OrientationFlags_LinesAtRoot;
+		}
+		else if (s ==  "OrientationFlags_EditLabels"_fstring)
+		{
+			value = OrientationFlags_EditLabels;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool TryShortParse(const Rococo::fstring& s, OrientationFlags& value)
+	{
+		if (s ==  "None"_fstring)
+		{
+			value = OrientationFlags_None;
+		}
+		else if (s ==  "HasButtons"_fstring)
+		{
+			value = OrientationFlags_HasButtons;
+		}
+		else if (s ==  "HasLines"_fstring)
+		{
+			value = OrientationFlags_HasLines;
+		}
+		else if (s ==  "LinesAtRoot"_fstring)
+		{
+			value = OrientationFlags_LinesAtRoot;
+		}
+		else if (s ==  "EditLabels"_fstring)
+		{
+			value = OrientationFlags_EditLabels;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+	fstring ToShortString(OrientationFlags value)
+	{
+		switch(value)
+		{
+			case OrientationFlags_None:
+				return "None"_fstring;
+			case OrientationFlags_HasButtons:
+				return "HasButtons"_fstring;
+			case OrientationFlags_HasLines:
+				return "HasLines"_fstring;
+			case OrientationFlags_LinesAtRoot:
+				return "LinesAtRoot"_fstring;
+			case OrientationFlags_EditLabels:
+				return "EditLabels"_fstring;
+			default:
+				return {"",0};
+		}
+	}
+}}// Rococo.Graphics.OrientationFlags
+
 // BennyHill generated Sexy native functions for Rococo::Cute::IWindowBase 
 namespace
 {
@@ -343,11 +423,15 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 createStyleFlags;
+		_offset += sizeof(createStyleFlags);
+		ReadInput(createStyleFlags, _sf, -_offset);
+
 		Rococo::Cute::IParentWindow* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		Rococo::Cute::ITree* tree = _pObject->AddTree();
+		Rococo::Cute::ITree* tree = _pObject->AddTree(createStyleFlags);
 		_offset += sizeof(CReflectedClass*);
 		auto& _treeStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("ITree"), ("ProxyITree"), _nce.ss);
 		CReflectedClass* _sxytree = _nce.ss.Represent(_treeStruct, tree);
@@ -366,7 +450,7 @@ namespace Rococo { namespace Cute {
 		ss.AddNativeCall(ns, NativeRococoCuteIParentWindowSplitIntoTopAndBottom, nullptr, ("IParentWindowSplitIntoTopAndBottom (Pointer hObject)(Int32 pixelSplit)(Int32 minTop)(Int32 maxBottom)(Int32 splitterHeight)(Bool draggable) -> (Rococo.Cute.ISplit split)"));
 		ss.AddNativeCall(ns, NativeRococoCuteIParentWindowSetMinimumSize, nullptr, ("IParentWindowSetMinimumSize (Pointer hObject)(Int32 dx)(Int32 dy) -> "));
 		ss.AddNativeCall(ns, NativeRococoCuteIParentWindowSetMaximumSize, nullptr, ("IParentWindowSetMaximumSize (Pointer hObject)(Int32 dx)(Int32 dy) -> "));
-		ss.AddNativeCall(ns, NativeRococoCuteIParentWindowAddTree, nullptr, ("IParentWindowAddTree (Pointer hObject) -> (Rococo.Cute.ITree tree)"));
+		ss.AddNativeCall(ns, NativeRococoCuteIParentWindowAddTree, nullptr, ("IParentWindowAddTree (Pointer hObject)(Int32 createStyleFlags) -> (Rococo.Cute.ITree tree)"));
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Cute::ISplit 
@@ -571,11 +655,15 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 createStyleFlags;
+		_offset += sizeof(createStyleFlags);
+		ReadInput(createStyleFlags, _sf, -_offset);
+
 		Rococo::Cute::IMasterWindow* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		Rococo::Cute::ITree* tree = _pObject->AddTree();
+		Rococo::Cute::ITree* tree = _pObject->AddTree(createStyleFlags);
 		_offset += sizeof(CReflectedClass*);
 		auto& _treeStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("ITree"), ("ProxyITree"), _nce.ss);
 		CReflectedClass* _sxytree = _nce.ss.Represent(_treeStruct, tree);
@@ -627,6 +715,6 @@ namespace Rococo { namespace Cute {
 		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowSplitIntoTopAndBottom, nullptr, ("IMasterWindowSplitIntoTopAndBottom (Pointer hObject)(Int32 pixelSplit)(Int32 minTop)(Int32 maxBottom)(Int32 splitterHeight)(Bool draggable) -> (Rococo.Cute.ISplit split)"));
 		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowSetMinimumSize, nullptr, ("IMasterWindowSetMinimumSize (Pointer hObject)(Int32 dx)(Int32 dy) -> "));
 		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowSetMaximumSize, nullptr, ("IMasterWindowSetMaximumSize (Pointer hObject)(Int32 dx)(Int32 dy) -> "));
-		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowAddTree, nullptr, ("IMasterWindowAddTree (Pointer hObject) -> (Rococo.Cute.ITree tree)"));
+		ss.AddNativeCall(ns, NativeRococoCuteIMasterWindowAddTree, nullptr, ("IMasterWindowAddTree (Pointer hObject)(Int32 createStyleFlags) -> (Rococo.Cute.ITree tree)"));
 	}
 }}

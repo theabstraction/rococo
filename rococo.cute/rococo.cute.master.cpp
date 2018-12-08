@@ -2,7 +2,7 @@
 #include <rococo.window.h>
 #include <rococo.cute.h>
 #include <rococo.strings.h>
-
+#include <rococo.post.h>
 #include <vector>
 
 using namespace Rococo;
@@ -207,8 +207,10 @@ struct MasterWindow : IMasterWindow
 	ATOM atom;
 	Vec2i minSize = { -1,-1 };
 	Vec2i maxSize = { -1,-1 };
+	Post::IPostbox& postbox;
 
-	MasterWindow(ATOM _atom, HINSTANCE hInstance, HWND hParent, Vec2i pos, Vec2i span, cstr title) : atom(_atom)
+	MasterWindow(ATOM _atom, HINSTANCE hInstance, HWND hParent, Vec2i pos, Vec2i span, cstr title, Post::IPostbox& post) : 
+		atom(_atom), postbox(post)
 	{
 		DWORD exStyle = 0;
 		DWORD style = WS_OVERLAPPEDWINDOW;
@@ -227,7 +229,8 @@ struct MasterWindow : IMasterWindow
 		SetWindowLongPtrA(hWindow, DWLP_USER, *(LONG_PTR*)&data);
 	}
 
-	MasterWindow(ATOM _atom, HINSTANCE hInstance, HWND hParent, Vec2i pos, Vec2i span, cstr title, DWORD style, DWORD exStyle) : atom(_atom)
+	MasterWindow(ATOM _atom, HINSTANCE hInstance, HWND hParent, Vec2i pos, Vec2i span, cstr title,
+		DWORD style, DWORD exStyle, Post::IPostbox& post) : atom(_atom), postbox(post)
 	{
 		int x = pos.x == -1 ? CW_USEDEFAULT : pos.x;
 		int y = pos.y == -1 ? CW_USEDEFAULT : pos.y;
@@ -304,16 +307,18 @@ struct MasterWindow : IMasterWindow
 		children.push_back(child);
 	}
 
-	ISplit* SplitIntoLeftAndRight(int32 pixelSplit, int32 splitterWidth, int32 minLeftSplit, int32 maxRightSplit, boolean32 draggable) override
+	ISplit* SplitIntoLeftAndRight(int32 pixelSplit, int32 splitterWidth,
+		int32 minLeftSplit, int32 maxRightSplit, boolean32 draggable) override
 	{
-		auto* s = CreateSplit(atom, *this, pixelSplit, minLeftSplit, maxRightSplit,splitterWidth, draggable, true);
+		auto* s = CreateSplit(atom, *this, pixelSplit, minLeftSplit, maxRightSplit,splitterWidth, draggable, true, postbox);
 		AddChild(s);
 		return &s->Split();
 	}
 
-	ISplit*  SplitIntoTopAndBottom(int32 pixelSplit, int32 splitterHeight, int32 minTopSplit, int32 maxBottomSplit, boolean32 draggable) override
+	ISplit*  SplitIntoTopAndBottom(int32 pixelSplit, int32 splitterHeight, 
+		int32 minTopSplit, int32 maxBottomSplit, boolean32 draggable) override
 	{
-		auto* s = CreateSplit(atom, *this, pixelSplit, minTopSplit, maxBottomSplit, splitterHeight, draggable, false);
+		auto* s = CreateSplit(atom, *this, pixelSplit, minTopSplit, maxBottomSplit, splitterHeight, draggable, false, postbox);
 		AddChild(s);
 		return &s->Split();
 	}
@@ -355,9 +360,9 @@ struct MasterWindow : IMasterWindow
 		maxSize = { dx, dy };
 	}
 
-	ITree* AddTree()
+	ITree* AddTree(int32 createStyleFlags)
 	{
-		auto* tree = CreateTree(*this);
+		auto* tree = CreateTree(*this, postbox, createStyleFlags);
 		AddChild(tree);
 		return tree;
 	}
@@ -370,8 +375,10 @@ struct MasterWindowFactory : public IMasterWindowFactory
 	size_t validWindows = 0;
 	HINSTANCE hInstance;
 	HWND hParent;
+	Post::IPostbox& postbox;
 
-	MasterWindowFactory(HINSTANCE _hInstance, HWND _hParent): hInstance(_hInstance), hParent(_hParent)
+	MasterWindowFactory(HINSTANCE _hInstance, HWND _hParent, Post::IPostbox& _postbox):
+		hInstance(_hInstance), hParent(_hParent), postbox(_postbox)
 	{
 		char classname[48];
 		static int index = 1;
@@ -407,9 +414,14 @@ struct MasterWindowFactory : public IMasterWindowFactory
 
 	IMasterWindow* CreateMaster(cstr title, const Vec2i& pos, const Vec2i& span) override
 	{
-		auto* master = new MasterWindow(atom, hInstance, hParent, pos, span, title);
+		auto* master = new MasterWindow(atom, hInstance, hParent, pos, span, title, postbox);
 		masters.push_back(master);
 		return master;
+	}
+
+	Post::IPostbox& Postbox()
+	{
+		return postbox;
 	}
 
 	void Commit() override
@@ -442,12 +454,12 @@ namespace Rococo
 {
 	namespace Cute
 	{
-		IMasterWindowFactory* CreateMasterWindowFactory(HINSTANCE hInstance, HWND hParent)
+		IMasterWindowFactory* CreateMasterWindowFactory(HINSTANCE hInstance, HWND hParent, Post::IPostbox& postbox)
 		{
-			return new MasterWindowFactory(hInstance, hParent);
+			return new MasterWindowFactory(hInstance, hParent, postbox);
 		}
 
-		IParentWindow* CreateParent(IWindowSupervisor& parent, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy)
+		IParentWindow* CreateParent(IWindowSupervisor& parent, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy, Post::IPostbox& post)
 		{
 			char className[256];
 			int result = GetClassNameA(ToHWND(parent.Handle()), className, sizeof(className));
@@ -465,7 +477,8 @@ namespace Rococo
 											{ dx,dy },
 											"",
 											style,
-											exStyle);
+											exStyle,
+											post);
 
 				SetWindowLongPtrA(m->hWindow, GWLP_WNDPROC, (LONG_PTR)MasterWindowProc);
 				parent.AddChild(m);

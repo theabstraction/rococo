@@ -17,6 +17,11 @@ namespace Rococo
 			virtual WindowRef Handle() = 0;
 		};
 	}
+
+	namespace Post
+	{
+		struct IPostbox;
+	}
 }
 
 #ifndef ROCOCO_CUTE_SXH_H
@@ -74,6 +79,7 @@ namespace Rococo
 			virtual bool HasInstances() const = 0;
 			virtual void Revert() = 0;
 			virtual IMasterWindow* CreateMaster(cstr title, const Vec2i& pos, const Vec2i& span) = 0;
+			virtual Post::IPostbox& Postbox() = 0;
 		};
 
 		void ExecuteScript(cstr scriptFile, IInstallation& installation, ExecuteScriptSpec& spec, IEventCallback<ScriptCompileArgs>& onCompile, Rococo::Windows::IDE::IScriptExceptionHandler& exHandler);
@@ -95,11 +101,11 @@ namespace Rococo
 
 #ifdef _WIN32
 # ifdef WINAPI
-		IMasterWindowFactory* CreateMasterWindowFactory(HINSTANCE hInstance, HWND hParent);
+		IMasterWindowFactory* CreateMasterWindowFactory(HINSTANCE hInstance, HWND hParent, Post::IPostbox& postbox);
 		IMenuSupervisor* CreateCuteMenu(HWND hWndOwner);
-		ITree* CreateTree(IParentWindow& parent);
-		IParentWindow* CreateParent(IWindowSupervisor& parent, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy);
-		ISplitSupervisor* CreateSplit(ATOM atom, IParentWindow& parent, int32 pixelSplit, int32 minLo, int32 maxHi, int32 splitterWidth, boolean32 draggable, bool isLeftAndRight);
+		ITree* CreateTree(IParentWindow& parent, Post::IPostbox& post, int32 createStyleFlags);
+		IParentWindow* CreateParent(IWindowSupervisor& parent, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy, Post::IPostbox& post);
+		ISplitSupervisor* CreateSplit(ATOM atom, IParentWindow& parent, int32 pixelSplit, int32 minLo, int32 maxHi, int32 splitterWidth, boolean32 draggable, bool isLeftAndRight, Post::IPostbox& post);
 		IChildSupervisor* CreateChildProxy(HWND hWnd);
 		IChildSupervisor* CreateChild(HWND hParentWnd, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy);
 		IChildSupervisor* CreateChild(IWindowBase& window, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy);
@@ -114,5 +120,10 @@ namespace Rococo
 			int32 GetText(WindowRef hWnd, IStringPopulator& sb);
 			void SetColourTarget(WindowRef hWnd, ColourTarget target, RGBAb colour);
 		}
+
+		ROCOCOAPI ITreeNode
+		{
+			virtual ITreeNode* AddItem(cstr item) = 0;
+		};
 	}
 }

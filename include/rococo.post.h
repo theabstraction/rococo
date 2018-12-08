@@ -1,9 +1,7 @@
 #ifndef ROCOCO_POST_H
 #define ROCOCO_POST_H
 
-#ifndef Rococo_TYPES_H
-#error "include <rococo.types.h> before including this file"
-#endif
+#include <rococo.types.h>
 
 namespace Rococo
 {

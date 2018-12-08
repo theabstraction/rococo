@@ -19,13 +19,16 @@ struct Splitter : public ISplitSupervisor, virtual ISplit
 	bool isLeftAndRight;
 	int32 minLo;
 	int32 maxHi;
+	Post::IPostbox& postbox;
 
 	AutoFree<IChildSupervisor> splitterWnd;
 	AutoFree<IParentWindow> hi;
 	AutoFree<IParentWindow> lo;
 
-	Splitter(ATOM atom, IParentWindow& _parent, int32 pixelSplit, int32 minLo, int32 maxHi, int32 splitterWidth, boolean32 draggable, bool isLeftAndRight):
-		parent(_parent)
+	Splitter(ATOM atom, IParentWindow& _parent, int32 pixelSplit, int32 minLo, int32 maxHi, 
+		int32 splitterWidth, boolean32 draggable, bool isLeftAndRight, Post::IPostbox& post):
+		parent(_parent),
+		postbox(post)
 	{
 		this->pixelSplit = pixelSplit;
 		this->splitterWidth = splitterWidth;
@@ -58,8 +61,8 @@ struct Splitter : public ISplitSupervisor, virtual ISplit
 		Native::SetColourTarget(parent.Handle(), ColourTarget_NormalBackground, RGBAb(0, 0, 0, 0));
 		Native::SetColourTarget(ToRef(hContainerWnd), ColourTarget_NormalBackground, RGBAb(0, 0, 0, 0));
 
-		hi = CreateParent(*this, style, exStyle, 0, 0, 3, 4);
-		lo = CreateParent(*this, style, exStyle, 3, 0, 3, 4);
+		hi = CreateParent(*this, style, exStyle, 0, 0, 3, 4, postbox);
+		lo = CreateParent(*this, style, exStyle, 3, 0, 3, 4, postbox);
 		splitterWnd = CreateSplitterRibbon(*this, style, exStyle, 4, 0, 2, 4);
 		
 		Layout();
@@ -299,7 +302,8 @@ struct SplitterRibbon : IChildSupervisor
 		return DefWindowProcA(hWnd, uMsg, wParam, lParam);
 	}
 
-	SplitterRibbon(Splitter& _splitter, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy) : splitter(_splitter)
+	SplitterRibbon(Splitter& _splitter, DWORD style, DWORD exStyle, int32 x, int32 y, int32 dx, int32 dy) : 
+		splitter(_splitter)
 	{
 		auto hInstance = (HINSTANCE)GetWindowLongPtrA(_splitter.hContainerWnd, GWLP_HINSTANCE);
 
@@ -346,9 +350,9 @@ namespace Rococo
 {
 	namespace Cute
 	{
-		ISplitSupervisor* CreateSplit(ATOM atom, IParentWindow& parent, int32 pixelSplit, int32 minLo, int32 maxHi, int32 splitterWidth, boolean32 draggable, bool isLeftAndRight)
+		ISplitSupervisor* CreateSplit(ATOM atom, IParentWindow& parent, int32 pixelSplit, int32 minLo, int32 maxHi, int32 splitterWidth, boolean32 draggable, bool isLeftAndRight, Post::IPostbox& post)
 		{
-			auto* s = new Splitter(atom, parent, pixelSplit, splitterWidth, minLo, maxHi, draggable, isLeftAndRight);
+			auto* s = new Splitter(atom, parent, pixelSplit, splitterWidth, minLo, maxHi, draggable, isLeftAndRight, post);
 			SetMasterProc(s->Handle(), s);
 			return s;
 		}

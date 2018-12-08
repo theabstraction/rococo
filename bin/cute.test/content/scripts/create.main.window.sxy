@@ -3,6 +3,7 @@
 (namespace EntryPoint)
 (alias Main EntryPoint.Main)
 
+(using Sys.Type)
 (using Rococo.Cute)
 
 (function SetText (IParentWindow window) (IString text)-> :
@@ -36,7 +37,9 @@
 		(IParentWindow left = mainSplit.Lo)
 			(SetColourTarget left  0 0xFFC0C0C0) 
 			(SetText left "left")
-			(ITree tree = left.AddTree)
+			(Int32 createStyleFlags)
+			(#sum | createStyleFlags (#TreeFlagsHasButtons) (#TreeFlagsHasLines))
+			(ITree tree = (left.AddTree createStyleFlags))
 				(tree.SetPopulator "populator.tree.solution")
 		(IParentWindow right = mainSplit.Hi)
 			(SetColourTarget right 0 0xFFC0C0C0) 
