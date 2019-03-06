@@ -94,8 +94,6 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
-		void SetColourBackground(RGBAb colour, WindowRef ref);
-
 		/// N.B for multiply derived classes, ensure constructor has finished before passing a reference here
 		void SetMasterProc(WindowRef ref, IWindowSupervisor* window);
 

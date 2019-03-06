@@ -2454,9 +2454,12 @@ namespace ANON
 			   {
 				   int index = ShowCursor(FALSE);
 				   if (index < 0)
-				   {
-					   RECT rect;
-					   GetClientRect(window, &rect);
+				   {  
+					   POINT pos;
+					   GetCursorPos(&pos);
+
+					   RECT rect{ pos.x - 1, pos.y - 1, pos.x + 1, pos.y + 1 };
+
 					   ClipCursor(&rect);
 					   SetCapture(window);
 					   return;

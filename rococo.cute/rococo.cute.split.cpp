@@ -166,15 +166,21 @@ struct Splitter : public ISplitSupervisor, virtual ISplit
 	}
 
 
-	void RepaintSides()
+	void RepaintSides(bool repaintLo, bool repaintHi)
 	{
-		auto hHi = ToHWND(hi->Handle());
-		InvalidateRect(hHi, nullptr, TRUE);
-		UpdateWindow(hHi);
+		if (repaintLo)
+		{
+			auto hLo = ToHWND(lo->Handle());
+			InvalidateRect(hLo, nullptr, TRUE);
+			UpdateWindow(hLo);
+		}
 
-		auto hLo = ToHWND(lo->Handle());
-		InvalidateRect(hLo, nullptr, TRUE);
-		UpdateWindow(hLo);
+		if (repaintHi)
+		{
+			auto hHi = ToHWND(hi->Handle());
+			InvalidateRect(hHi, nullptr, TRUE);
+			UpdateWindow(hHi);
+		}
 	}
 };
 
@@ -218,7 +224,7 @@ struct SplitterRibbon : IChildSupervisor
 			ScreenToClient(splitter.hContainerWnd, &topLeft);
 			ScreenToClient(splitter.hContainerWnd, &bottomRight);
 
-			splitter.RepaintSides();
+			splitter.RepaintSides(delta.x < 0, delta.x > 0);
 
 			RECT renderRect = { topLeft.x, topLeft.y, bottomRight.x, bottomRight.y };
 			DrawEdge(dc, &renderRect, EDGE_ETCHED, BF_LEFT | BF_RIGHT);
@@ -270,7 +276,7 @@ struct SplitterRibbon : IChildSupervisor
 		}
 
 		splitter.Layout();
-		splitter.RepaintSides();
+		splitter.RepaintSides(true, true);
 	}
 
 	static LRESULT OnSplitterRibbonMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

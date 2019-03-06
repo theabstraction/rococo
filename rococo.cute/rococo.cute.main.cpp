@@ -2,6 +2,7 @@
 #include <rococo.io.h>
 #include <rococo.cute.h>
 #include "rococo.cute.post.h"
+#include <rococo.strings.h>
 
 using namespace Rococo;
 using namespace Rococo::Cute;
@@ -18,14 +19,28 @@ int Main(IInstallation& installation, IMasterWindowFactory& factory)
 		void OnPost(const Mail& mail) override
 		{
 			auto* p = InterpretAs<PopulateTree>(mail);
-			if (p != nullptr)
+			if (p != nullptr && Eq(p->id, "populator.tree.solution"))
 			{
-				auto* r1 = p->Root->AddItem("R1");
-				auto a = r1->AddItem("A");
-				r1->AddItem("B");
-				r1->AddItem("C");
+				auto* r1 = p->Root->AddItem("Solution");
+				auto a = r1->AddItem("Amadeus");
+				auto b = r1->AddItem("Beethoven");
+				auto c = r1->AddItem("Chopin");
 
-				a->AddItem("Camoflage");
+				auto bs = b->AddItem("Symphonies");
+				bs->AddItem("Symphony 1-3");
+				bs->AddItem("Symphony 4-6");
+				bs->AddItem("Symphony 7-9");
+
+				auto bc = b->AddItem("Piano Concertos");
+				bc->AddItem("Piano Concerto No 1-2");
+				bc->AddItem("Piano Concerto No 3-5");
+
+				auto ao = a->AddItem("Operas");
+				ao->AddItem("The Marriage of Figaro");
+				ao->AddItem("The Magic Flute");
+
+				auto ce = c->AddItem("Etudes");
+				ce->AddItem("No 9");
 			}
 		}
 	} q;

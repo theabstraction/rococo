@@ -93,7 +93,7 @@ namespace HV
 		AutoFree<IPaneBuilderSupervisor> editorPanel;
 		AutoFree<IPaneBuilderSupervisor> fpsPanel;
 		AutoFree<IPaneBuilderSupervisor> overlayPanel;
-		AutoFree<IPaneBuilderSupervisor> openingPanel;
+		AutoFree<IPaneBuilderSupervisor> busyPanel;
 
 		Cosmos e; // Put this as the last member, since other members need to be constructed first
 
@@ -141,7 +141,7 @@ namespace HV
 				}
 			} ec(e.platform.publisher, be);
 
-			e.platform.gui.PushTop(openingPanel->Supervisor(), true);
+			e.platform.gui.PushTop(busyPanel->Supervisor(), true);
 
 			Graphics::RenderPhaseConfig config;
 			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
@@ -161,7 +161,7 @@ namespace HV
 				auto& be = As <Rococo::Events::BusyEvent>(ev);
 				if (be.isNowBusy)
 				{
-					if (e.platform.gui.Top() != openingPanel->Supervisor())
+					if (e.platform.gui.Top() != busyPanel->Supervisor())
 					{
 						OnBusy(be);
 					}
@@ -197,12 +197,12 @@ namespace HV
 
 			editorPanel = e.platform.gui.BindPanelToScript("!scripts/panel.editor.sxy");
 			fpsPanel = e.platform.gui.BindPanelToScript("!scripts/panel.fps.sxy");
-			openingPanel = e.platform.gui.BindPanelToScript("!scripts/panel.opening.sxy");
+			busyPanel = e.platform.gui.BindPanelToScript("!scripts/panel.opening.sxy");
 
 			overlayPanel = e.platform.gui.CreateOverlay();
 
 			scene.ManagePanel(fpsPanel);
-			scene.ManagePanel(openingPanel);
+			scene.ManagePanel(busyPanel);
 
 			e.platform.gui.PushTop(fpsPanel->Supervisor(), true);
 

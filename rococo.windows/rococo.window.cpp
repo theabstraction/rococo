@@ -286,14 +286,17 @@ namespace
 		classDef.hInstance = hThisInstance;
 		classDef.lpszClassName = customClassName;
 		classDef.lpszMenuName = NULL;
-		classDef.lpfnWndProc = DefWindowProcA; // DefCustomWindowProc;
+		classDef.lpfnWndProc = DefWindowProcA;
 
 		auto atom = RegisterClassExA(&classDef);
 
       if (atom == 0)
       {
          int err = GetLastError();
-         Throw(err, "Error creating custom atom. Bad hIcon/hInstance maybe?");
+		 if (err != ERROR_CLASS_ALREADY_EXISTS)
+		 {
+			 Throw(err, "Error creating custom atom. Bad hIcon/hInstance maybe?");
+		 }
       }
 
       return atom;

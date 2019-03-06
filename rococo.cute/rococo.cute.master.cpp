@@ -480,7 +480,7 @@ namespace Rococo
 											exStyle,
 											post);
 
-				SetWindowLongPtrA(m->hWindow, GWLP_WNDPROC, (LONG_PTR)MasterWindowProc);
+				SetMasterProc(ToRef(m->hWindow), m);
 				parent.AddChild(m);
 				return m;
 			}

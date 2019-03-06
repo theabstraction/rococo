@@ -141,6 +141,7 @@ namespace
 			delete intrinsics;
 
 			virtualMachine->Free();
+			program->Release();
 			svmCore->Free();
 
 			delete common;

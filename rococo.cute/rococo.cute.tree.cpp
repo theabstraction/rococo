@@ -66,7 +66,6 @@ struct Tree : public ITree
 	Post::IPostbox& postbox;
 
 	HString populatorId;
-	HWND hTreeContainerWnd;
 	HWND hTreeWnd;
 
 	AutoFree<IChildSupervisor> treeContainer;
@@ -91,6 +90,11 @@ struct Tree : public ITree
 			0, 0, r.right, r.bottom, hContainer, NULL, hInstance, NULL);
 
 		root = new TreeNode(hTreeWnd);
+
+		SetMasterProc(treeContainer->Handle(), this);
+
+		Native::SetColourTarget(treeContainer->Handle(), ColourTarget_NormalBackground, RGBAb(0, 0, 0, 0));
+		Native::SetColourTarget(_parent.Handle(), ColourTarget_NormalBackground, RGBAb(0, 0, 0, 0));
 	}
 
 	void AddChild(IWindowSupervisor* child) override
@@ -110,12 +114,17 @@ struct Tree : public ITree
 
 	void OnResize(Vec2i span, ResizeType to) override
 	{
+		auto hParent = ToHWND(parent.Handle());
 
+		RECT rect;
+		GetClientRect(hParent, &rect);
+
+		MoveWindow(hTreeWnd, 0, 0, rect.right, rect.bottom, TRUE);
 	}
 
 	WindowRef Handle()
 	{
-		return WindowRef{ 0 };
+		return treeContainer->Handle();
 	}
 
 	void SetPopulator(const fstring& _populatorId) override
@@ -128,6 +137,7 @@ struct Tree : public ITree
 	{
 		PopulateTree p;
 		p.Root = root;
+		p.id = populatorId.c_str();
 		postbox.SendDirect(p);
 	}
 };

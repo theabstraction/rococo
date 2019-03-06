@@ -11142,6 +11142,10 @@ namespace
 
 	void RunPositiveSuccesses()
 	{
+		validate(true);
+
+		TestConstruction();
+
 		TEST(TestBitwiseOr);
 		TEST(TestNullStringBuilder);
 		TEST(TestOperatorOverload2);
@@ -11150,7 +11154,6 @@ namespace
 		TEST(TestAssignDerivativeFromRef);
 		TEST(TestLinkedList6);
 		TEST(TestMemberwise2);
-		validate(true);
 		TEST(TestDestructor);
 		TEST(TestNullObject);
 		TEST(TestNullArchetype);
@@ -11198,7 +11201,6 @@ namespace
 		TestMaths();
 
 		TEST(TestRaw);
-		TestConstruction();
 		TEST(TestMinimumConstruct);
 		TEST(TestCreateNamespace);
 		TEST(TestAssignInt32Literal);
