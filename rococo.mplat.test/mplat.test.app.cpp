@@ -16,7 +16,7 @@ struct TestAttributes: IObserver
 {
    struct Attribute
    {
-      EventId id;
+      EventIdRef id;
       int value;
    };
 
@@ -45,7 +45,7 @@ struct TestAttributes: IObserver
    {
       for (auto& i : textOutEvents)
       {
-         if (ev.id == i.id)
+         if (ev == i.id)
          {
             auto& toe = As<TextOutputEvent>(ev);
             if (toe.isGetting)

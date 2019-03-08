@@ -438,8 +438,8 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 
 void ParseEnum(cr_sex senumDef, ParseContext& pc)
 {
-   EnumDef def;
-   def.sdef = &senumDef;
+	EnumDef def;
+	def.sdef = &senumDef;
 	EnumContext& ec = def.ec;
 
 	if (senumDef.NumberOfElements() < 4)
@@ -467,7 +467,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 		if (!IsCompound(sdirective)) Throw(sdirective, ("Expecting compound expression in the enum definition"));
 
 		cr_sex scmd = sdirective[0];
-		
+
 		if (IsCompound(scmd))
 		{
 			for (int j = 0; j < sdirective.NumberOfElements(); j++)
@@ -520,12 +520,12 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 
 			cstr sexyFilename = ssexyFilename.String()->Buffer;
 
-         SafeFormat(ec.appendCppHeaderFile, _MAX_PATH, ("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
-         SafeFormat(ec.appendCppImplFile, _MAX_PATH, ("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
+			SafeFormat(ec.appendCppHeaderFile, _MAX_PATH, ("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
+			SafeFormat(ec.appendCppImplFile, _MAX_PATH, ("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
 
 			ec.asCppEnum.Set(sinterfaceName.String()->Buffer);
 			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
-         SafeFormat(ec.appendSexyFile, _MAX_PATH, ("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
+			SafeFormat(ec.appendSexyFile, _MAX_PATH, ("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 		}
 		else if (scmd == ("as.sxy"))
 		{
@@ -538,7 +538,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 			cr_sex ssexyFilename = sdirective.GetElement(2);
 			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, ("Expecting string literal"));
 			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
-         SafeFormat(ec.appendSexyFile, _MAX_PATH, ("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
+			SafeFormat(ec.appendSexyFile, _MAX_PATH, ("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 		}
 		else if (scmd == ("as.cpp"))
 		{
@@ -553,8 +553,8 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 
 			cstr sexyFilename = ssexyFilename.String()->Buffer;
 
-         SafeFormat(ec.appendCppHeaderFile, _MAX_PATH, ("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
-         SafeFormat(ec.appendCppImplFile, _MAX_PATH, ("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
+			SafeFormat(ec.appendCppHeaderFile, _MAX_PATH, ("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
+			SafeFormat(ec.appendCppImplFile, _MAX_PATH, ("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
 
 			ec.asCppEnum.Set(sstructName.String()->Buffer);
 		}
@@ -578,11 +578,11 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 
 	if (ec.appendCppHeaderFile[0] == 0)
 	{
-      SafeFormat(ec.appendCppHeaderFile, _MAX_PATH, ("%s%s.sxh.h"), pc.cppRootDirectory, pc.scriptName);
-      SafeFormat(ec.appendCppImplFile, _MAX_PATH, ("%s%s.sxh.cpp"), pc.cppRootDirectory, pc.scriptName);
+		SafeFormat(ec.appendCppHeaderFile, _MAX_PATH, ("%s%s.sxh.h"), pc.cppRootDirectory, pc.scriptName);
+		SafeFormat(ec.appendCppImplFile, _MAX_PATH, ("%s%s.sxh.cpp"), pc.cppRootDirectory, pc.scriptName);
 	}
 
-   pc.enums.push_back(def);
+	pc.enums.push_back(def);
 }
 
 void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<std::string>& defOrder)

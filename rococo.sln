@@ -88,6 +88,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.util", "rococo.util\rococo.util.vcxproj", "{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.cute", "rococo.cute\rococo.cute.vcxproj", "{8D046FB5-DA7D-4C07-A143-20FE5355B9FF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

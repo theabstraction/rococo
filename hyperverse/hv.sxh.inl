@@ -68,6 +68,66 @@ namespace HV {
 	}
 }// HV.AddItemFlags
 
+// BennyHill generated Sexy native functions for HV::IPlayer 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeHVIPlayerSetPlayerEntity(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		HV::IPlayer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetPlayerEntity(id);
+	}
+	void NativeHVIPlayerGetPlayerEntity(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::IPlayer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		ID_ENTITY id = _pObject->GetPlayerEntity();
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
+	}
+
+	void NativeGetHandleForHVPlayer(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		HV::IPlayerSupervisor* nceContext = reinterpret_cast<HV::IPlayerSupervisor*>(_nce.context);
+		// Uses: HV::IPlayer* FactoryConstructHVPlayer(HV::IPlayerSupervisor* _context, int32 _index);
+		HV::IPlayer* pObject = FactoryConstructHVPlayer(nceContext, index);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace HV { 
+	void AddNativeCalls_HVIPlayer(Rococo::Script::IPublicScriptSystem& ss, HV::IPlayerSupervisor* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVPlayer, _nceContext, ("GetHandleForIPlayer0 (Int32 index) -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVIPlayerSetPlayerEntity, nullptr, ("IPlayerSetPlayerEntity (Pointer hObject)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeHVIPlayerGetPlayerEntity, nullptr, ("IPlayerGetPlayerEntity (Pointer hObject) -> (Int64 id)"));
+	}
+}
 // BennyHill generated Sexy native functions for HV::IScriptConfig 
 namespace
 {
@@ -162,194 +222,6 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeGetHandleForHVScriptConfig, _nceContext, ("GetHandleForIScriptConfig0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeHVIScriptConfigGetFloat, nullptr, ("IScriptConfigGetFloat (Pointer hObject)(Sys.Type.IString variableName)(Float32 default)(Float32 minValue)(Float32 maxValue) -> (Float32 value)"));
 		ss.AddNativeCall(ns, NativeHVIScriptConfigGetFloatRange, nullptr, ("IScriptConfigGetFloatRange (Pointer hObject)(Sys.Type.IString variableName)(Sys.Maths.Vec2 values)(Float32 defaultLeft)(Float32 defaultRight)(Float32 minValue)(Float32 maxValue) -> "));
-	}
-}
-// BennyHill generated Sexy native functions for HV::IPlayer 
-namespace
-{
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-	using namespace Rococo::Script;
-	using namespace Rococo::Compiler;
-
-	void NativeHVIPlayerSetPlayerEntity(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		ID_ENTITY id;
-		_offset += sizeof(id);
-		ReadInput(id, _sf, -_offset);
-
-		HV::IPlayer* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetPlayerEntity(id);
-	}
-	void NativeHVIPlayerGetPlayerEntity(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::IPlayer* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		ID_ENTITY id = _pObject->GetPlayerEntity();
-		_offset += sizeof(id);
-		WriteOutput(id, _sf, -_offset);
-	}
-
-	void NativeGetHandleForHVPlayer(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		int32 index;
-		_offset += sizeof(index);
-		ReadInput(index, _sf, -_offset);
-
-		HV::IPlayerSupervisor* nceContext = reinterpret_cast<HV::IPlayerSupervisor*>(_nce.context);
-		// Uses: HV::IPlayer* FactoryConstructHVPlayer(HV::IPlayerSupervisor* _context, int32 _index);
-		HV::IPlayer* pObject = FactoryConstructHVPlayer(nceContext, index);
-		_offset += sizeof(IString*);
-		WriteOutput(pObject, _sf, -_offset);
-	}
-}
-
-namespace HV { 
-	void AddNativeCalls_HVIPlayer(Rococo::Script::IPublicScriptSystem& ss, HV::IPlayerSupervisor* _nceContext)
-	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVPlayer, _nceContext, ("GetHandleForIPlayer0 (Int32 index) -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVIPlayerSetPlayerEntity, nullptr, ("IPlayerSetPlayerEntity (Pointer hObject)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeHVIPlayerGetPlayerEntity, nullptr, ("IPlayerGetPlayerEntity (Pointer hObject) -> (Int64 id)"));
-	}
-}
-// BennyHill generated Sexy native functions for HV::ISectorWallTesselator 
-namespace
-{
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-	using namespace Rococo::Script;
-	using namespace Rococo::Compiler;
-
-	void NativeHVISectorWallTesselatorNumberOfSegments(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::ISectorWallTesselator* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		int32 count = _pObject->NumberOfSegments();
-		_offset += sizeof(count);
-		WriteOutput(count, _sf, -_offset);
-	}
-	void NativeHVISectorWallTesselatorNumberOfGaps(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::ISectorWallTesselator* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		int32 count = _pObject->NumberOfGaps();
-		_offset += sizeof(count);
-		WriteOutput(count, _sf, -_offset);
-	}
-	void NativeHVISectorWallTesselatorGetSegment(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::WallSegment* segment;
-		_offset += sizeof(segment);
-		ReadInput(segment, _sf, -_offset);
-
-		int32 ringIndex;
-		_offset += sizeof(ringIndex);
-		ReadInput(ringIndex, _sf, -_offset);
-
-		HV::ISectorWallTesselator* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetSegment(ringIndex, *segment);
-	}
-	void NativeHVISectorWallTesselatorGetGap(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::GapSegment* segment;
-		_offset += sizeof(segment);
-		ReadInput(segment, _sf, -_offset);
-
-		int32 ringIndex;
-		_offset += sizeof(ringIndex);
-		ReadInput(ringIndex, _sf, -_offset);
-
-		HV::ISectorWallTesselator* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetGap(ringIndex, *segment);
-	}
-	void NativeHVISectorWallTesselatorWallTriangles(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::ISectorWallTesselator* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		HV::ITriangleList* triangles = _pObject->WallTriangles();
-		_offset += sizeof(CReflectedClass*);
-		auto& _trianglesStruct = Rococo::Helpers::GetDefaultProxy(("HV"),("ITriangleList"), ("ProxyITriangleList"), _nce.ss);
-		CReflectedClass* _sxytriangles = _nce.ss.Represent(_trianglesStruct, triangles);
-		WriteOutput(&_sxytriangles->header._vTables[0], _sf, -_offset);
-	}
-	void NativeHVISectorWallTesselatorGetMaterial(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(IString*);
-		IString* _componentClass;
-		ReadInput(_componentClass, _sf, -_offset);
-		fstring componentClass { _componentClass->buffer, _componentClass->length };
-
-
-		MaterialVertexData* mat;
-		_offset += sizeof(mat);
-		ReadInput(mat, _sf, -_offset);
-
-		HV::ISectorWallTesselator* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetMaterial(*mat, componentClass);
-	}
-
-	void NativeGetHandleForHVSectorWallTesselator(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::ISectorWallTesselator* nceContext = reinterpret_cast<HV::ISectorWallTesselator*>(_nce.context);
-		// Uses: HV::ISectorWallTesselator* FactoryConstructHVSectorWallTesselator(HV::ISectorWallTesselator* _context);
-		HV::ISectorWallTesselator* pObject = FactoryConstructHVSectorWallTesselator(nceContext);
-		_offset += sizeof(IString*);
-		WriteOutput(pObject, _sf, -_offset);
-	}
-}
-
-namespace HV { 
-	void AddNativeCalls_HVISectorWallTesselator(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorWallTesselator* _nceContext)
-	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVSectorWallTesselator, _nceContext, ("GetHandleForISectorWallTesselator0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorNumberOfSegments, nullptr, ("ISectorWallTesselatorNumberOfSegments (Pointer hObject) -> (Int32 count)"));
-		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorNumberOfGaps, nullptr, ("ISectorWallTesselatorNumberOfGaps (Pointer hObject) -> (Int32 count)"));
-		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetSegment, nullptr, ("ISectorWallTesselatorGetSegment (Pointer hObject)(Int32 ringIndex)(HV.WallSegment segment) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetGap, nullptr, ("ISectorWallTesselatorGetGap (Pointer hObject)(Int32 ringIndex)(HV.GapSegment segment) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorWallTriangles, nullptr, ("ISectorWallTesselatorWallTriangles (Pointer hObject) -> (HV.ITriangleList triangles)"));
-		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetMaterial, nullptr, ("ISectorWallTesselatorGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ICorridor 
@@ -883,291 +755,6 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVISectorLayoutUseUpFacingQuads, nullptr, ("ISectorLayoutUseUpFacingQuads (Pointer hObject)(Int64 id) -> "));
 	}
 }
-// BennyHill generated Sexy native functions for HV::ISectorFloorTesselator 
-namespace
-{
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-	using namespace Rococo::Script;
-	using namespace Rococo::Compiler;
-
-	void NativeHVISectorFloorTesselatorNumberOfSquares(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::ISectorFloorTesselator* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		int32 count = _pObject->NumberOfSquares();
-		_offset += sizeof(count);
-		WriteOutput(count, _sf, -_offset);
-	}
-	void NativeHVISectorFloorTesselatorFoundationsExist(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::ISectorFloorTesselator* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		boolean32 exists = _pObject->FoundationsExist();
-		_offset += sizeof(exists);
-		WriteOutput(exists, _sf, -_offset);
-	}
-	void NativeHVISectorFloorTesselatorGetSquare(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		AABB2d* sq;
-		_offset += sizeof(sq);
-		ReadInput(sq, _sf, -_offset);
-
-		int32 index;
-		_offset += sizeof(index);
-		ReadInput(index, _sf, -_offset);
-
-		HV::ISectorFloorTesselator* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetSquare(index, *sq);
-	}
-	void NativeHVISectorFloorTesselatorCeilingQuad(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		QuadVertices* q;
-		_offset += sizeof(q);
-		ReadInput(q, _sf, -_offset);
-
-		int32 index;
-		_offset += sizeof(index);
-		ReadInput(index, _sf, -_offset);
-
-		HV::ISectorFloorTesselator* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->CeilingQuad(index, *q);
-	}
-	void NativeHVISectorFloorTesselatorFloorQuad(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		QuadVertices* q;
-		_offset += sizeof(q);
-		ReadInput(q, _sf, -_offset);
-
-		int32 index;
-		_offset += sizeof(index);
-		ReadInput(index, _sf, -_offset);
-
-		HV::ISectorFloorTesselator* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->FloorQuad(index, *q);
-	}
-	void NativeHVISectorFloorTesselatorAddCeilingTriangle(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		VertexTriangle* t;
-		_offset += sizeof(t);
-		ReadInput(t, _sf, -_offset);
-
-		HV::ISectorFloorTesselator* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AddCeilingTriangle(*t);
-	}
-	void NativeHVISectorFloorTesselatorAddFloorTriangle(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		VertexTriangle* t;
-		_offset += sizeof(t);
-		ReadInput(t, _sf, -_offset);
-
-		HV::ISectorFloorTesselator* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AddFloorTriangle(*t);
-	}
-	void NativeHVISectorFloorTesselatorGetMaterial(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(IString*);
-		IString* _componentClass;
-		ReadInput(_componentClass, _sf, -_offset);
-		fstring componentClass { _componentClass->buffer, _componentClass->length };
-
-
-		MaterialVertexData* mat;
-		_offset += sizeof(mat);
-		ReadInput(mat, _sf, -_offset);
-
-		HV::ISectorFloorTesselator* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetMaterial(*mat, componentClass);
-	}
-	void NativeHVISectorFloorTesselatorSetUVScale(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		float scale;
-		_offset += sizeof(scale);
-		ReadInput(scale, _sf, -_offset);
-
-		HV::ISectorFloorTesselator* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetUVScale(scale);
-	}
-
-	void NativeGetHandleForHVSectorFloorTesselator(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::ISectorFloorTesselator* nceContext = reinterpret_cast<HV::ISectorFloorTesselator*>(_nce.context);
-		// Uses: HV::ISectorFloorTesselator* FactoryConstructHVSectorFloorTesselator(HV::ISectorFloorTesselator* _context);
-		HV::ISectorFloorTesselator* pObject = FactoryConstructHVSectorFloorTesselator(nceContext);
-		_offset += sizeof(IString*);
-		WriteOutput(pObject, _sf, -_offset);
-	}
-}
-
-namespace HV { 
-	void AddNativeCalls_HVISectorFloorTesselator(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorFloorTesselator* _nceContext)
-	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForHVSectorFloorTesselator, _nceContext, ("GetHandleForISectorFloorTesselator0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorNumberOfSquares, nullptr, ("ISectorFloorTesselatorNumberOfSquares (Pointer hObject) -> (Int32 count)"));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorFoundationsExist, nullptr, ("ISectorFloorTesselatorFoundationsExist (Pointer hObject) -> (Bool exists)"));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorGetSquare, nullptr, ("ISectorFloorTesselatorGetSquare (Pointer hObject)(Int32 index)(Rococo.AAB2d sq) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorCeilingQuad, nullptr, ("ISectorFloorTesselatorCeilingQuad (Pointer hObject)(Int32 index)(Rococo.QuadVertices q) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorFloorQuad, nullptr, ("ISectorFloorTesselatorFloorQuad (Pointer hObject)(Int32 index)(Rococo.QuadVertices q) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorAddCeilingTriangle, nullptr, ("ISectorFloorTesselatorAddCeilingTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorAddFloorTriangle, nullptr, ("ISectorFloorTesselatorAddFloorTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorGetMaterial, nullptr, ("ISectorFloorTesselatorGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
-		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorSetUVScale, nullptr, ("ISectorFloorTesselatorSetUVScale (Pointer hObject)(Float32 scale) -> "));
-	}
-}
-// BennyHill generated Sexy native functions for HV::ITriangleList 
-namespace
-{
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-	using namespace Rococo::Script;
-	using namespace Rococo::Compiler;
-
-	void NativeHVITriangleListAddTriangleByVertices(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		ObjectVertex* c;
-		_offset += sizeof(c);
-		ReadInput(c, _sf, -_offset);
-
-		ObjectVertex* b;
-		_offset += sizeof(b);
-		ReadInput(b, _sf, -_offset);
-
-		ObjectVertex* a;
-		_offset += sizeof(a);
-		ReadInput(a, _sf, -_offset);
-
-		HV::ITriangleList* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AddTriangleByVertices(*a, *b, *c);
-	}
-	void NativeHVITriangleListAddTriangle(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		VertexTriangle* abc;
-		_offset += sizeof(abc);
-		ReadInput(abc, _sf, -_offset);
-
-		HV::ITriangleList* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AddTriangle(*abc);
-	}
-	void NativeHVITriangleListAddQuad(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		ObjectVertex* d;
-		_offset += sizeof(d);
-		ReadInput(d, _sf, -_offset);
-
-		ObjectVertex* c;
-		_offset += sizeof(c);
-		ReadInput(c, _sf, -_offset);
-
-		ObjectVertex* b;
-		_offset += sizeof(b);
-		ReadInput(b, _sf, -_offset);
-
-		ObjectVertex* a;
-		_offset += sizeof(a);
-		ReadInput(a, _sf, -_offset);
-
-		HV::ITriangleList* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AddQuad(*a, *b, *c, *d);
-	}
-	void NativeHVITriangleListCountVertices(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::ITriangleList* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		int32 vertices = _pObject->CountVertices();
-		_offset += sizeof(vertices);
-		WriteOutput(vertices, _sf, -_offset);
-	}
-	void NativeHVITriangleListCountTriangles(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		HV::ITriangleList* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		int32 triangles = _pObject->CountTriangles();
-		_offset += sizeof(triangles);
-		WriteOutput(triangles, _sf, -_offset);
-	}
-
-}
-
-namespace HV { 
-	void AddNativeCalls_HVITriangleList(Rococo::Script::IPublicScriptSystem& ss, HV::ITriangleList* _nceContext)
-	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
-		ss.AddNativeCall(ns, NativeHVITriangleListAddTriangleByVertices, nullptr, ("ITriangleListAddTriangleByVertices (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c) -> "));
-		ss.AddNativeCall(ns, NativeHVITriangleListAddTriangle, nullptr, ("ITriangleListAddTriangle (Pointer hObject)(Rococo.VertexTriangle abc) -> "));
-		ss.AddNativeCall(ns, NativeHVITriangleListAddQuad, nullptr, ("ITriangleListAddQuad (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c)(Rococo.ObjectVertex d) -> "));
-		ss.AddNativeCall(ns, NativeHVITriangleListCountVertices, nullptr, ("ITriangleListCountVertices (Pointer hObject) -> (Int32 vertices)"));
-		ss.AddNativeCall(ns, NativeHVITriangleListCountTriangles, nullptr, ("ITriangleListCountTriangles (Pointer hObject) -> (Int32 triangles)"));
-	}
-}
 // BennyHill generated Sexy native functions for HV::ISectorEnumerator 
 namespace
 {
@@ -1354,5 +941,418 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVISectorComponentsClearComponents, nullptr, ("ISectorComponentsClearComponents (Pointer hObject)(Sys.Type.IString componentName) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorComponentsCompleteComponent, nullptr, ("ISectorComponentsCompleteComponent (Pointer hObject)(Bool preserveMesh) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorComponentsGetMaterial, nullptr, ("ISectorComponentsGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
+	}
+}
+// BennyHill generated Sexy native functions for HV::ITriangleList 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeHVITriangleListAddTriangleByVertices(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ObjectVertex* c;
+		_offset += sizeof(c);
+		ReadInput(c, _sf, -_offset);
+
+		ObjectVertex* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		ObjectVertex* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		HV::ITriangleList* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddTriangleByVertices(*a, *b, *c);
+	}
+	void NativeHVITriangleListAddTriangle(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		VertexTriangle* abc;
+		_offset += sizeof(abc);
+		ReadInput(abc, _sf, -_offset);
+
+		HV::ITriangleList* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddTriangle(*abc);
+	}
+	void NativeHVITriangleListAddQuad(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ObjectVertex* d;
+		_offset += sizeof(d);
+		ReadInput(d, _sf, -_offset);
+
+		ObjectVertex* c;
+		_offset += sizeof(c);
+		ReadInput(c, _sf, -_offset);
+
+		ObjectVertex* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		ObjectVertex* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		HV::ITriangleList* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddQuad(*a, *b, *c, *d);
+	}
+	void NativeHVITriangleListCountVertices(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ITriangleList* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 vertices = _pObject->CountVertices();
+		_offset += sizeof(vertices);
+		WriteOutput(vertices, _sf, -_offset);
+	}
+	void NativeHVITriangleListCountTriangles(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ITriangleList* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 triangles = _pObject->CountTriangles();
+		_offset += sizeof(triangles);
+		WriteOutput(triangles, _sf, -_offset);
+	}
+
+}
+
+namespace HV { 
+	void AddNativeCalls_HVITriangleList(Rococo::Script::IPublicScriptSystem& ss, HV::ITriangleList* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		ss.AddNativeCall(ns, NativeHVITriangleListAddTriangleByVertices, nullptr, ("ITriangleListAddTriangleByVertices (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c) -> "));
+		ss.AddNativeCall(ns, NativeHVITriangleListAddTriangle, nullptr, ("ITriangleListAddTriangle (Pointer hObject)(Rococo.VertexTriangle abc) -> "));
+		ss.AddNativeCall(ns, NativeHVITriangleListAddQuad, nullptr, ("ITriangleListAddQuad (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c)(Rococo.ObjectVertex d) -> "));
+		ss.AddNativeCall(ns, NativeHVITriangleListCountVertices, nullptr, ("ITriangleListCountVertices (Pointer hObject) -> (Int32 vertices)"));
+		ss.AddNativeCall(ns, NativeHVITriangleListCountTriangles, nullptr, ("ITriangleListCountTriangles (Pointer hObject) -> (Int32 triangles)"));
+	}
+}
+// BennyHill generated Sexy native functions for HV::ISectorWallTesselator 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeHVISectorWallTesselatorNumberOfSegments(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorWallTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 count = _pObject->NumberOfSegments();
+		_offset += sizeof(count);
+		WriteOutput(count, _sf, -_offset);
+	}
+	void NativeHVISectorWallTesselatorNumberOfGaps(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorWallTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 count = _pObject->NumberOfGaps();
+		_offset += sizeof(count);
+		WriteOutput(count, _sf, -_offset);
+	}
+	void NativeHVISectorWallTesselatorGetSegment(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::WallSegment* segment;
+		_offset += sizeof(segment);
+		ReadInput(segment, _sf, -_offset);
+
+		int32 ringIndex;
+		_offset += sizeof(ringIndex);
+		ReadInput(ringIndex, _sf, -_offset);
+
+		HV::ISectorWallTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetSegment(ringIndex, *segment);
+	}
+	void NativeHVISectorWallTesselatorGetGap(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::GapSegment* segment;
+		_offset += sizeof(segment);
+		ReadInput(segment, _sf, -_offset);
+
+		int32 ringIndex;
+		_offset += sizeof(ringIndex);
+		ReadInput(ringIndex, _sf, -_offset);
+
+		HV::ISectorWallTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetGap(ringIndex, *segment);
+	}
+	void NativeHVISectorWallTesselatorWallTriangles(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorWallTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		HV::ITriangleList* triangles = _pObject->WallTriangles();
+		_offset += sizeof(CReflectedClass*);
+		auto& _trianglesStruct = Rococo::Helpers::GetDefaultProxy(("HV"),("ITriangleList"), ("ProxyITriangleList"), _nce.ss);
+		CReflectedClass* _sxytriangles = _nce.ss.Represent(_trianglesStruct, triangles);
+		WriteOutput(&_sxytriangles->header._vTables[0], _sf, -_offset);
+	}
+	void NativeHVISectorWallTesselatorGetMaterial(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _componentClass;
+		ReadInput(_componentClass, _sf, -_offset);
+		fstring componentClass { _componentClass->buffer, _componentClass->length };
+
+
+		MaterialVertexData* mat;
+		_offset += sizeof(mat);
+		ReadInput(mat, _sf, -_offset);
+
+		HV::ISectorWallTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetMaterial(*mat, componentClass);
+	}
+
+	void NativeGetHandleForHVSectorWallTesselator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorWallTesselator* nceContext = reinterpret_cast<HV::ISectorWallTesselator*>(_nce.context);
+		// Uses: HV::ISectorWallTesselator* FactoryConstructHVSectorWallTesselator(HV::ISectorWallTesselator* _context);
+		HV::ISectorWallTesselator* pObject = FactoryConstructHVSectorWallTesselator(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace HV { 
+	void AddNativeCalls_HVISectorWallTesselator(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorWallTesselator* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVSectorWallTesselator, _nceContext, ("GetHandleForISectorWallTesselator0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorNumberOfSegments, nullptr, ("ISectorWallTesselatorNumberOfSegments (Pointer hObject) -> (Int32 count)"));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorNumberOfGaps, nullptr, ("ISectorWallTesselatorNumberOfGaps (Pointer hObject) -> (Int32 count)"));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetSegment, nullptr, ("ISectorWallTesselatorGetSegment (Pointer hObject)(Int32 ringIndex)(HV.WallSegment segment) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetGap, nullptr, ("ISectorWallTesselatorGetGap (Pointer hObject)(Int32 ringIndex)(HV.GapSegment segment) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorWallTriangles, nullptr, ("ISectorWallTesselatorWallTriangles (Pointer hObject) -> (HV.ITriangleList triangles)"));
+		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorGetMaterial, nullptr, ("ISectorWallTesselatorGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
+	}
+}
+// BennyHill generated Sexy native functions for HV::ISectorFloorTesselator 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeHVISectorFloorTesselatorNumberOfSquares(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorFloorTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 count = _pObject->NumberOfSquares();
+		_offset += sizeof(count);
+		WriteOutput(count, _sf, -_offset);
+	}
+	void NativeHVISectorFloorTesselatorFoundationsExist(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorFloorTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 exists = _pObject->FoundationsExist();
+		_offset += sizeof(exists);
+		WriteOutput(exists, _sf, -_offset);
+	}
+	void NativeHVISectorFloorTesselatorGetSquare(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		AABB2d* sq;
+		_offset += sizeof(sq);
+		ReadInput(sq, _sf, -_offset);
+
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		HV::ISectorFloorTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetSquare(index, *sq);
+	}
+	void NativeHVISectorFloorTesselatorCeilingQuad(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		QuadVertices* q;
+		_offset += sizeof(q);
+		ReadInput(q, _sf, -_offset);
+
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		HV::ISectorFloorTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->CeilingQuad(index, *q);
+	}
+	void NativeHVISectorFloorTesselatorFloorQuad(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		QuadVertices* q;
+		_offset += sizeof(q);
+		ReadInput(q, _sf, -_offset);
+
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		HV::ISectorFloorTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->FloorQuad(index, *q);
+	}
+	void NativeHVISectorFloorTesselatorAddCeilingTriangle(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		VertexTriangle* t;
+		_offset += sizeof(t);
+		ReadInput(t, _sf, -_offset);
+
+		HV::ISectorFloorTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddCeilingTriangle(*t);
+	}
+	void NativeHVISectorFloorTesselatorAddFloorTriangle(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		VertexTriangle* t;
+		_offset += sizeof(t);
+		ReadInput(t, _sf, -_offset);
+
+		HV::ISectorFloorTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddFloorTriangle(*t);
+	}
+	void NativeHVISectorFloorTesselatorGetMaterial(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _componentClass;
+		ReadInput(_componentClass, _sf, -_offset);
+		fstring componentClass { _componentClass->buffer, _componentClass->length };
+
+
+		MaterialVertexData* mat;
+		_offset += sizeof(mat);
+		ReadInput(mat, _sf, -_offset);
+
+		HV::ISectorFloorTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetMaterial(*mat, componentClass);
+	}
+	void NativeHVISectorFloorTesselatorSetUVScale(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float scale;
+		_offset += sizeof(scale);
+		ReadInput(scale, _sf, -_offset);
+
+		HV::ISectorFloorTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetUVScale(scale);
+	}
+
+	void NativeGetHandleForHVSectorFloorTesselator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorFloorTesselator* nceContext = reinterpret_cast<HV::ISectorFloorTesselator*>(_nce.context);
+		// Uses: HV::ISectorFloorTesselator* FactoryConstructHVSectorFloorTesselator(HV::ISectorFloorTesselator* _context);
+		HV::ISectorFloorTesselator* pObject = FactoryConstructHVSectorFloorTesselator(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace HV { 
+	void AddNativeCalls_HVISectorFloorTesselator(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorFloorTesselator* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForHVSectorFloorTesselator, _nceContext, ("GetHandleForISectorFloorTesselator0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorNumberOfSquares, nullptr, ("ISectorFloorTesselatorNumberOfSquares (Pointer hObject) -> (Int32 count)"));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorFoundationsExist, nullptr, ("ISectorFloorTesselatorFoundationsExist (Pointer hObject) -> (Bool exists)"));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorGetSquare, nullptr, ("ISectorFloorTesselatorGetSquare (Pointer hObject)(Int32 index)(Rococo.AAB2d sq) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorCeilingQuad, nullptr, ("ISectorFloorTesselatorCeilingQuad (Pointer hObject)(Int32 index)(Rococo.QuadVertices q) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorFloorQuad, nullptr, ("ISectorFloorTesselatorFloorQuad (Pointer hObject)(Int32 index)(Rococo.QuadVertices q) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorAddCeilingTriangle, nullptr, ("ISectorFloorTesselatorAddCeilingTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorAddFloorTriangle, nullptr, ("ISectorFloorTesselatorAddFloorTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorGetMaterial, nullptr, ("ISectorFloorTesselatorGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorSetUVScale, nullptr, ("ISectorFloorTesselatorSetUVScale (Pointer hObject)(Float32 scale) -> "));
 	}
 }

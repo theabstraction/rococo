@@ -1,8 +1,8 @@
 (config $config.xc) 
 
 (interface
-	(as.sxy HV.IPlayer "../content/scripts/hv" ": public IPlayerBase")
-	(as.cpp HV.IPlayer "hv" )
+	(as.sxy HV.IPlayer "../content/scripts/hv")
+	(as.cpp HV.IPlayer "hv" "IPlayerBase")
 	(context factory HV.IPlayerSupervisor)
 	(methods
 		(SetPlayerEntity (IdEntity id))

@@ -1272,7 +1272,7 @@ class PanelRadioButton : public BasePanel, public IRadioButton, public IObserver
 	int32 stateIndex = -1; // indeterminate
 public:
 	PanelRadioButton(IPublisher& _publisher, int _fontIndex, cstr _text, cstr _key, cstr _value) :
-		id(publisher.CreateEventIdFromVolatileString(_key)),
+		id(_publisher.CreateEventIdFromVolatileString(_key)),
 		fontIndex(_fontIndex), publisher(_publisher)
 	{
 		SafeFormat(text, sizeof(text), "%s", _text);
