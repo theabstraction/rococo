@@ -5,6 +5,8 @@
 #include <vector>
 #include <algorithm>
 
+#include <mplat.to.app.events.inl>
+
 using namespace Rococo;
 using namespace Rococo::Widgets;
 using namespace Rococo::Events;
@@ -101,23 +103,23 @@ namespace Rococo
 
       void RouteEventToUI(Event& ev, Vec2i cursorPos, Widgets::IUITarget& ui)
       {
-         if (ev == Input::OnMouseMoveRelative)
+         if (ev == Input::evMouseMoveRelative)
          {
-            auto& mc = As<Input::OnMouseMoveRelativeEvent>(ev);
+            auto& mc = As<Events::Input::OnMouseMoveRelativeEvent>(ev);
             ui.OnMouseMove(cursorPos, { mc.dx, mc.dy }, mc.dz);
          }
-         else if (ev == Input::OnMouseChanged)
+         else if (ev == Input::evMouseChanged)
          {
-            auto& mc = As <Input::OnMouseChangedEvent>(ev);
-            if ((mc.flags & Input::MouseFlags_LDown))
+            auto& mc = As <Events::Input::OnMouseChangedEvent>(ev);
+            if ((mc.flags & Events::Input::MouseFlags_LDown))
             {
                ui.OnMouseLClick(cursorPos, true);
             }
-            else if ((mc.flags & Input::MouseFlags_LUp))
+            else if ((mc.flags & Events::Input::MouseFlags_LUp))
             {
                ui.OnMouseLClick(cursorPos, false);
             }
-            else if ((mc.flags & Input::MouseFlags_RDown))
+            else if ((mc.flags & Events::Input::MouseFlags_RDown))
             {
                ui.OnMouseRClick(cursorPos, true);
             }

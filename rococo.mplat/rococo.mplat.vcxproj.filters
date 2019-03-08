@@ -92,13 +92,13 @@
     <ClInclude Include="rococo.script.types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mplat.events.inl\mplat.to.app.events.inl">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="config.xc">
       <Filter>Script Files</Filter>
+    </None>
+    <None Include="..\include\mplat.to.app.events.inl">
+      <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

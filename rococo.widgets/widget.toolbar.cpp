@@ -13,14 +13,14 @@ namespace
 {
    struct Button
    {
-      EventId id;
+      EventIdRef id;
       char name[32];
       char resource[128];
       Textures::BitmapLocation bitmap;
       GuiRect renderLocation;
       bool isOn{ false };
 
-      Button(EventId _id, cstr _name, cstr _resource) : id(_id)
+      Button(EventIdRef _id, cstr _name, cstr _resource) : id (_id)
       {
          StackStringBuilder sb_name(name, sizeof(name));
          sb_name << _name;
@@ -82,7 +82,7 @@ namespace
          {
             if (IsPointInRect(cursorPos, b->renderLocation))
             {      
-               publisher.Publish(Event(b->id));
+               publisher.Publish(EventArgs(), b->id);
                return;
             }
          }
@@ -99,9 +99,9 @@ namespace
       }
 
 
-      void AddButton(cstr name, EventId id, cstr buttonTextureResource) override
+      void AddButton(cstr name, cstr id, cstr buttonTextureResource) override
       {
-         auto* b = new Button(id, name, buttonTextureResource);
+         auto* b = new Button(publisher.CreateEventIdFromVolatileString(id), name, buttonTextureResource);
          buttons.push_back(b);
       }
 

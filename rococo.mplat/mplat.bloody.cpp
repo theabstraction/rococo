@@ -1408,12 +1408,14 @@ namespace ANON
 	class BloodyEventButton : public IBloodyPropertyType
 	{
 		IPublisher& publisher;
-		EventId id;
 		std::string name;
+		std::string eventName;
+		EventIdRef id;
 	public:
-		BloodyEventButton(IPublisher& _publisher, cstr _name, EventId _id): 
-			publisher(_publisher), id(_id), name(_name)
+		BloodyEventButton(IPublisher& _publisher, cstr _name, cstr _eventName):
+			publisher(_publisher), name(_name), eventName(_eventName)
 		{
+			id = { eventName.c_str(), 0 };
 		}
 
 		virtual void Free()
@@ -1454,7 +1456,11 @@ namespace ANON
 		{
 			if (!clickedDown)
 			{
-				publisher.Publish(Event(id));
+				struct ANONEvent : EventArgs
+				{
+
+				} ev;
+				publisher.Publish(ev, id);
 			}
 		}
 	};
@@ -1753,9 +1759,9 @@ namespace ANON
 			Add(new BloodyProperty(new BloodyBoolBinding(platform, *this, value), name));
 		}
 
-		void AddButton(cstr name, EventId id) override
+		void AddButton(cstr name, cstr eventName) override
 		{
-			properties.push_back(new BloodyProperty(new BloodyEventButton(platform.publisher, name, id), ""));
+			properties.push_back(new BloodyProperty(new BloodyEventButton(platform.publisher, name, eventName), ""));
 		}
 
 		void AddSpacer() override

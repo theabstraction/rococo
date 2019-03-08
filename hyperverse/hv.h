@@ -62,8 +62,8 @@ namespace HV
    {
       namespace Player
       {
-         struct OnPlayerActionEvent;
-         struct OnPlayerViewChangeEvent;
+         struct PlayerActionEvent;
+         struct PlayerViewChangeEvent;
       }
    }
 

@@ -115,7 +115,7 @@ namespace ANON
 	   return true;
    }
 
-   EventId onPopulateSectors = "onPopulateSectors"_event;
+   EventIdRef evPopulateSectors = "sectors.populate"_event;
 
    struct NullSectorLayout : public ISectorLayout
    {
@@ -149,12 +149,12 @@ namespace ANON
 	   Sectors(Platform& _platform) :
 		   platform(_platform)
 	   {
-		   platform.publisher.Attach(this, onPopulateSectors);
+		   platform.publisher.Subscribe(this, evPopulateSectors);
 	   }
 
 	   ~Sectors()
 	   {
-		   platform.publisher.Detach(this);
+		   platform.publisher.Unsubscribe(this);
 
 		   Clear();
 
@@ -570,7 +570,7 @@ namespace ANON
 	   void BindProperties(IBloodyPropertySetEditor& editor) override
 	   {
 		   editor.AddPingPath("Populate Script", populateScript, IO::MAX_PATHLEN, "#objects/pop.default.sxy");
-		   editor.AddButton("Populate", onPopulateSectors);
+		   editor.AddButton("Populate", evPopulateSectors.name);
 	   }
 
 	   void NotifyChanged() override
@@ -592,7 +592,7 @@ namespace ANON
 
 	   virtual void OnEvent(Event& ev)
 	   {
-		   if (ev.id == onPopulateSectors)
+		   if (ev == evPopulateSectors)
 		   {
 			   Populate();
 		   }

@@ -5,7 +5,7 @@ namespace Rococo
    namespace Events
    {
       struct Event;
-      struct IPublisher;
+      class IPublisher;
    }
 
    namespace Widgets
@@ -62,7 +62,7 @@ namespace Rococo
 
       ROCOCOAPI IToolbar: public IUITarget
       {
-         virtual void AddButton(cstr name, Rococo::Events::EventId id, cstr buttonTextureResource) = 0;
+         virtual void AddButton(cstr name, cstr eventName, cstr buttonTextureResource) = 0;
          virtual GuiRect Render(IGuiRenderContext& rc, bool horizontal, int buttonBorder, RGBAb backColour, RGBAb highlightBorder) = 0;
          virtual void SetPosition(Vec2i pos) = 0;
          virtual void SetToggleOn(cstr name) = 0;

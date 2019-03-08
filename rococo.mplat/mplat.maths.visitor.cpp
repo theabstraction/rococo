@@ -15,7 +15,7 @@ namespace
    struct DebugLine
    {
       enum size_t { KEY_LEN = 64, VALUE_LEN = 128 };
-	  EventId selectEvent = nullEvent;
+	  EventIdRef selectEvent = nullEvent;
       char key[KEY_LEN];
       char value[VALUE_LEN];
 	  bool isSelectable = false;
@@ -205,7 +205,7 @@ namespace
 
 	   virtual void ShowSelectableString(cstr eventName, VisitorName name, cstr format, ...)
 	   {
-		   DebugLine line{ EventId(eventName, (EventHash)FastHash(eventName)) };
+		   DebugLine line{ EventIdRef { eventName, 0} };
 		   Name(line, name);
 
 		   va_list args;
@@ -238,7 +238,7 @@ namespace
 
 	   bool AppendKeyboardEvent(const KeyboardEvent& key) override
 	   {
-		   ScrollEvent se(""_event);
+		   ScrollEvent se;
 		   if (scrollbar->AppendEvent(key, se))
 		   {
 			   pos = se.logicalValue;
@@ -255,7 +255,7 @@ namespace
 
 	   void AppendMouseEvent(const MouseEvent& ev) override
 	   {
-		   ScrollEvent se(""_event);
+		   ScrollEvent se;
 		   if (scrollbar->AppendEvent(ev, TopLeft(scrollRect), se))
 		   {
 			   pos = se.logicalValue;
@@ -325,7 +325,7 @@ namespace
 			   knownHeight = totalHeight;
 			   pos = 0;
 
-			   ScrollEvent se(""_event);
+			   ScrollEvent se;
 			   se.logicalMaxValue = totalHeight;
 			   se.logicalMinValue = 0;
 			   se.logicalPageSize = Height(absRect);
@@ -338,7 +338,7 @@ namespace
 				   se.logicalPageSize = totalHeight;
 			   }
 
-			   scrollbar->SetScroller(se);
+			   scrollbar->SetScrollState(se);
 		   }
 
 		   keyMaxWidth += padding;
@@ -408,11 +408,11 @@ namespace
 						   if (line.isSelectable)
 						   {
 							   selectedLine = lineIndex;
-							   if (*line.selectEvent.Name() != 0)
+							   if (*line.selectEvent.name != 0)
 							   {
-								   VisitorItemClicked clicked(line.selectEvent);
+								   VisitorItemClickedEvent clicked;
 								   clicked.key = line.key;					   
-								   publisher.Publish(clicked);
+								   publisher.Publish(clicked, line.selectEvent);
 							   }
 						   }
 						   else
@@ -449,7 +449,7 @@ namespace
 		   scrollRect = GuiRect{ absRect.right - 24, absRect.top, absRect.right, absRect.bottom };
 		   RenderScrollbar(gc, scrollRect);
 
-		   GuiRect strListRect{ absRect.left, absRect.top, scrollRect.left, absRect.bottom };
+		   GuiRect strListRect{ absRect.left + 4, absRect.top, scrollRect.left - 8, absRect.bottom };
 		   RenderStringList(gc, strListRect, padding);
 	   }
    };

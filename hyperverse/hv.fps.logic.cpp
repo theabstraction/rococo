@@ -88,7 +88,7 @@ public:
       headingDelta = elevationDelta = 0;
    }
 
-   bool Append(OnPlayerActionEvent& ev)
+   bool Append(PlayerActionEvent& ev)
    {
       auto i = nameToAction.find(ev.Name);
       if (i != nameToAction.end())
@@ -205,7 +205,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		fpsControl.Clear();
 	}
 
-	bool Append(OnPlayerActionEvent& ev)
+	bool Append(PlayerActionEvent& ev)
 	{
 		return fpsControl.Append(ev);
 	}
@@ -966,7 +966,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		auto* action = platform.keyboard.GetAction(key.KeyName);
 		if (action)
 		{
-			HV::Events::Player::OnPlayerActionEvent pae;
+			HV::Events::Player::PlayerActionEvent pae;
 			pae.Name = action;
 			pae.start = key.isPressed;
 			return Append(pae);

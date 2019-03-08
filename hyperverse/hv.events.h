@@ -2,67 +2,59 @@
 
 namespace HV
 {
-   namespace Events
-   {
-      extern EventId changeDefaultTextureId;
+	using namespace Rococo::Events;
 
-      struct ChangeDefaultTextureEvent : public Event
-      {
-         ChangeDefaultTextureEvent() : Event(changeDefaultTextureId)
-         {
+	namespace Events
+	{
+		extern EventIdRef evChangeDefaultTextureId;
 
-         }
+		struct ChangeDefaultTextureEvent : public EventArgs
+		{
+			cstr wallName;
+		};
 
-         cstr wallName;
-      };
+		extern EventIdRef evSetNextLevel;
 
-	  extern EventId setNextLevelEventId;
+		struct SetNextLevelEvent : public EventArgs
+		{
+			cstr name;
+		};
 
-	  struct SetNextLevelEvent : public Event
-	  {
-		  SetNextLevelEvent() : Event(setNextLevelEventId) {}
-		  cstr name;
-	  };
+		namespace OS
+		{
+			extern EventIdRef evTick;
 
-      namespace OS
-      {
-         extern EventId OnTick;
+			struct TickEvent : public EventArgs
+			{
+				IUltraClock* clock;
+				uint32 frameSleep{ 5 };
+			};
 
-         struct OnTickEvent : public Event
-         {
-            OnTickEvent() : Event(OnTick) {}
-            IUltraClock* clock;
-            uint32 frameSleep{ 5 };
-         };
+			extern EventIdRef evFileChanged;
 
-         extern EventId OnFileChanged;
+			struct FileChangedEvent : public EventArgs
+			{
+				FileModifiedArgs* args;
+			};
+		}
 
-         struct OnFileChangedEvent : public Event
-         {
-            OnFileChangedEvent() : Event(OnFileChanged) {}
-            FileModifiedArgs* args;
-         };
-      }
+		namespace Player
+		{
+			extern EventIdRef evPlayerAction;
 
-      namespace Player
-      {
-         extern EventId OnPlayerAction;
+			struct PlayerActionEvent : public EventArgs
+			{
+				cstr Name;
+				bool start;
+			};
 
-         struct OnPlayerActionEvent : public Event
-         {
-            OnPlayerActionEvent() : Event(OnPlayerAction) {}
-            cstr Name;
-            bool start;
-         };
+			extern EventIdRef evPlayerDelta;
 
-         extern EventId OnPlayerDelta;
-
-         struct OnPlayerDeltaEvent : public Event
-         {
-            OnPlayerDeltaEvent() : Event(OnPlayerDelta) {}
-            cstr Name;
-            float delta;
-         };
-      } // Player
-   } // Events
+			struct PlayerDeltaEvent : public EventArgs
+			{
+				cstr Name;
+				float delta;
+			};
+		} // Player
+	} // Events
 } // HV

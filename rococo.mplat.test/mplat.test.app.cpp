@@ -37,7 +37,7 @@ struct TestAttributes: IObserver
    {
       for (auto& i : textOutEvents)
       {
-         publisher.Attach(this, i.id);
+         publisher.Subscribe(this, i.id);
       }
    }
 
@@ -58,7 +58,7 @@ struct TestAttributes: IObserver
 
    ~TestAttributes()
    {
-      publisher.Detach(this);
+      publisher.Unsubscribe(this);
    }
 };
 

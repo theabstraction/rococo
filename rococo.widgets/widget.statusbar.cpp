@@ -9,11 +9,10 @@ using namespace Rococo::Widgets;
 
 namespace
 {
-   EventId evStatusUpate = "ui.status.upate"_event;
+   EventIdRef evStatusUpate = "ui.status.upate"_event;
 
-   struct StatusEvent : public Event
+   struct StatusEvent : public EventArgs
    {
-      StatusEvent() : Event(evStatusUpate) {}
       cstr status;
    };
 
@@ -26,24 +25,24 @@ namespace
    public:
       StatusBar(IPublisher& _publisher) : publisher(_publisher), text{0}
       {
-         publisher.Attach(this, evStatusUpate);
+         publisher.Subscribe(this, evStatusUpate);
       }
 
       ~StatusBar()
       {
-         publisher.Detach(this);
+         publisher.Unsubscribe(this);
       }
 
-      void OnEvent(Event& ev) override
-      {
-         if (ev == evStatusUpate)
-         {
-            auto& evs = As<StatusEvent>(ev);
-            StackStringBuilder sb(text, sizeof(text));
-            sb << evs.status;
-            updateHighlight = 255;
-         }
-      }
+	  void OnEvent(Event& ev) override
+	  {
+		  if (evStatusUpate == ev)
+		  {
+				auto& evs = As<StatusEvent>(ev);
+				StackStringBuilder sb(text, sizeof(text));
+				sb << evs.status;
+				updateHighlight = 255;
+		  }
+	  }
 
       void Render(IGuiRenderContext& gc, const GuiRect& rect) override
       {
@@ -64,8 +63,6 @@ namespace Rococo
 {
    namespace Widgets
    {   
-      EventId evStatusUpate = "ui.status.upate"_event;
-
       IStatusBar* CreateStatusBar(IPublisher& publisher)
       {
          return new StatusBar(publisher);
@@ -75,7 +72,7 @@ namespace Rococo
       {
          StatusEvent ev;
          ev.status = statustext;
-         publisher.Publish(ev);
+         publisher.Publish(ev, evStatusUpate);
       }
    }
 }

@@ -13,12 +13,23 @@
 
 #include <rococo.rings.inl>
 
+namespace HV
+{
+	namespace Events
+	{
+		EventIdRef evChangeDefaultTextureId = "editor.textureId.change"_event;
+		EventIdRef evPopulateTabs = "tabs.populate"_event;
+	}
+}
+
 namespace
 {
 	using namespace HV;
 	using namespace Rococo;
 	using namespace Rococo::Widgets;
 	using namespace Rococo::Entities;
+
+	auto evEditorToolsVScrollSet = "editor.tools.vscroll_set"_event;
 
 	class WorldMap
 	{
@@ -554,11 +565,11 @@ namespace
 		const ISector* GetHilight() const override { return nullptr; }
 	};
 
-	EventId vScrollChanged = "editor.tools.vscroll_ui"_event;
-	EventId vScrollSet = "editor.tools.vscroll_set"_event;
-	EventId vScrollGet = "editor.tools.vscroll_get"_event;
-	EventId vScrollSendKey = "editor.tools.vscroll_sendkey"_event;
-	EventId vScrollSendMouse = "editor.tools.vscroll_sendmouse"_event;
+	EventIdRef evScrollChanged = "editor.tools.vscroll_ui"_event;
+	EventIdRef evScrollSet = "editor.tools.vscroll_set"_event;
+	EventIdRef evScrollGet = "editor.tools.vscroll_get"_event;
+	EventIdRef evScrollSendKey = "editor.tools.vscroll_sendkey"_event;
+	EventIdRef evScrollSendMouse = "editor.tools.vscroll_sendmouse"_event;
 
 	class TextureList : public IUIElement, public IObserver
 	{
@@ -570,13 +581,13 @@ namespace
 		TextureList(Platform& _platform) : platform(_platform)
 		{
 			platform.gui.RegisterPopulator("editor.tools.imagelist", this);
-			platform.publisher.Attach(this, vScrollChanged);
-			platform.publisher.Attach(this, vScrollGet);
+			platform.publisher.Subscribe(this, evScrollChanged);
+			platform.publisher.Subscribe(this, evScrollGet);
 		}
 
 		~TextureList()
 		{
-			platform.publisher.Detach(this);
+			platform.publisher.Unsubscribe(this);
 			platform.gui.UnregisterPopulator(this);
 		}
 
@@ -609,7 +620,7 @@ namespace
 
 			scrollPosition = index * lastDy;
 
-			ScrollEvent se(vScrollSet);
+			ScrollEvent se;
 			se.fromScrollbar = false;
 			se.logicalMaxValue = 0 * lastDy;
 
@@ -620,7 +631,7 @@ namespace
 			se.rowSize = lastDy / 4;
 			se.logicalValue = scrollPosition;
 
-			platform.publisher.Publish(se);
+			platform.publisher.Publish(se, evScrollSet);
 		}
 
 		cstr GetSelectedTexture() const
@@ -630,9 +641,10 @@ namespace
 
 		bool OnKeyboardEvent(const KeyboardEvent& key) override
 		{
-			RouteKeyboard rk(vScrollSendKey, key);
+			RouteKeyboardEvent rk;
+			rk.ke = &key;
 			rk.consume = false;
-			platform.publisher.Publish(rk);
+			platform.publisher.Publish(rk, evScrollSendKey);
 			return rk.consume;
 		}
 
@@ -643,9 +655,10 @@ namespace
 				// We handle Lbutton ourselves as 'left-click to select'
 				return;
 			}
-			RouteMouse rm(vScrollSendMouse, me);
+			RouteMouseEvent rm;
+			rm.me = &me;
 			rm.absTopleft = absTopLeft;
-			platform.publisher.Publish(rm);
+			platform.publisher.Publish(rm, evScrollSendMouse);
 		}
 
 		void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override
@@ -679,7 +692,7 @@ namespace
 
 				HV::Events::ChangeDefaultTextureEvent ev;
 				ev.wallName = selectItem.target.c_str();
-				platform.publisher.Publish(ev);
+				platform.publisher.Publish(ev, HV::Events::evChangeDefaultTextureId);
 			}
 		}
 
@@ -693,7 +706,7 @@ namespace
 
 		void OnEvent(Event& ev) override
 		{
-			if (ev.id == vScrollChanged)
+			if (ev == evScrollChanged)
 			{
 				auto& se = As<ScrollEvent>(ev);
 				if (!se.fromScrollbar)
@@ -796,14 +809,14 @@ namespace
 				int maxValue = mam.NumberOfElements * lastDy;
 				lastPageSize = min(Height(absRect), maxValue);
 
-				ScrollEvent se("editor.tools.vscroll_set"_event);
+				ScrollEvent se;
 				se.fromScrollbar = false;
 				se.logicalMaxValue = maxValue;
 				se.logicalMinValue = 0;
 				se.logicalPageSize = lastPageSize;
 				se.rowSize = lastDy / 4;
 				se.logicalValue = scrollPosition;
-				platform.publisher.Publish(se);
+				platform.publisher.Publish(se, evEditorToolsVScrollSet);
 			}
 
 			lastRect = absRect;
@@ -863,20 +876,20 @@ namespace
 	{
 		std::vector<cstr> names;
 		IPublisher& publisher;
-		EventId id;
+		EventIdRef id;
 		int state = 0;
 		IEventCallback<ToggleStateChanged>* eventHandler;
 
 	public:
 		ToggleEventHandler(cstr handlerName, IPublisher& _publisher, std::vector<cstr> _names) :
-			id(handlerName, FastHash(handlerName)), publisher(_publisher), names(_names)
+			id(_publisher.CreateEventIdFromVolatileString(handlerName)), publisher(_publisher), names(_names)
 		{
-			publisher.Attach(this, id);
+			publisher.Subscribe(this, id);
 		}
 
 		~ToggleEventHandler()
 		{
-			publisher.Detach(this);
+			publisher.Unsubscribe(this);
 		}
 
 		void AddHandler(IEventCallback<ToggleStateChanged>* _eventHandler)
@@ -901,7 +914,7 @@ namespace
 
 		void OnEvent(Event& ev) override
 		{
-			if (ev.id == id)
+			if (ev == id)
 			{
 				auto& toe = As<TextOutputEvent>(ev);
 				if (toe.isGetting)
@@ -1009,7 +1022,7 @@ namespace
 
 		void OnEvent(Event& ev) override
 		{
-			if (ev.id == HV::Events::changeDefaultTextureId)
+			if (ev == HV::Events::evChangeDefaultTextureId)
 			{
 				auto& cdt = As<HV::Events::ChangeDefaultTextureEvent>(ev);
 
@@ -1048,7 +1061,7 @@ namespace
 			{
 				target = fpsGameMode.GetPropertyTarget();
 
-				PopulateTabsEvent tbe("tabs.populate"_event);
+				PopulateTabsEvent tbe;
 				tbe.populatorName = "editor.tabs";
 
 				PopulateTabsEvent::TabRef globalTabs[] =
@@ -1059,7 +1072,7 @@ namespace
 				tbe.numberOfTabs = 1;
 				tbe.tabArray = globalTabs;
 
-				platform.publisher.Publish(tbe);
+				platform.publisher.Publish(tbe, HV::Events::evPopulateTabs);
 
 				target->GetProperties("Ambient", *ambienceEditor);
 			}
@@ -1074,7 +1087,7 @@ namespace
 
 		void BindSectorPropertiesToPropertyEditor(IPropertyTarget* target) override
 		{
-			PopulateTabsEvent tbe("tabs.populate"_event);
+			PopulateTabsEvent tbe;
 			tbe.populatorName = "editor.tabs";
 
 			PopulateTabsEvent::TabRef sectorTabs[] =
@@ -1090,7 +1103,7 @@ namespace
 			tbe.numberOfTabs = 6;
 			tbe.tabArray = sectorTabs;
 
-			platform.publisher.Publish(tbe);
+			platform.publisher.Publish(tbe, HV::Events::evPopulateTabs);
 
 			target->GetProperties("walls", *wallEditor);
 			target->GetProperties("floor", *floorEditor);
@@ -1179,7 +1192,7 @@ namespace
 			HV::Events::SetNextLevelEvent setNextLevelEvent;
 			setNextLevelEvent.name = pingName;
 
-			platform.publisher.Publish(setNextLevelEvent);
+			platform.publisher.Publish(setNextLevelEvent, HV::Events::evSetNextLevel);
 		}
 
 		void Save(cstr filename)
@@ -1254,7 +1267,7 @@ namespace
 			lightEditor = platform.utilities.CreateBloodyPropertySetEditor( *this);
 			ambienceEditor = platform.utilities.CreateBloodyPropertySetEditor(*this);
 
-			platform.publisher.Attach(this, HV::Events::changeDefaultTextureId);
+			platform.publisher.Subscribe(this, HV::Events::evChangeDefaultTextureId);
 
 			transparency.SetState(0);
 			editModeHandler.SetState(0);
@@ -1288,7 +1301,7 @@ namespace
 			platform.gui.UnregisterPopulator(&(*lightEditor));
 			platform.gui.UnregisterPopulator(&(*ambienceEditor));
 			platform.gui.UnregisterPopulator(this);
-			platform.publisher.Detach(this);
+			platform.publisher.Unsubscribe(this);
 
 			if (target) target->Assign(nullptr);
 			target = nullptr;
@@ -1306,10 +1319,5 @@ namespace HV
 	IEditor* CreateEditor(Platform& platform, IPlayerSupervisor& players, ISectors& sectors, IFPSGameMode& fpsGameMode)
 	{
 		return new Editor(platform, players, sectors, fpsGameMode);
-	}
-
-	namespace Events
-	{
-		EventId changeDefaultTextureId = "editor.set.default.texture"_event;
 	}
 }

@@ -286,10 +286,15 @@ namespace Rococo
       bool isUnderModal;
    };
 
-   struct UIInvoke : public Events::Event
+   namespace Events
    {
-      UIInvoke();
-      static Events::EventId EvId();
+	   extern EventIdRef evUIInvoke;
+	   extern EventIdRef evUIPopulate;
+	   extern EventIdRef evBusy;
+   }
+
+   struct UIInvoke : public Events::EventArgs
+   {
       char command[232];
    };
 
@@ -316,7 +321,7 @@ namespace Rococo
 	   virtual void AddColour(cstr name, RGBAb* colour) = 0;
 	   virtual void AddMaterialString(cstr name, char* value, size_t valueLen) = 0;
 	   virtual void AddPingPath(cstr name, char* value, size_t valueLen, cstr defaultSubDir) = 0;
-	   virtual void AddButton(cstr name, Events::EventId id) = 0;
+	   virtual void AddButton(cstr name, cstr eventName) = 0;
 	   virtual void Clear();
    };
 
@@ -328,10 +333,8 @@ namespace Rococo
    IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty);
 
 
-   struct UIPopulate : public Events::Event
+   struct UIPopulate : public Events::EventArgs
    {
-      UIPopulate();
-      static Events::EventId EvId();
       IUIElement* renderElement;
       cstr name;
    };
@@ -363,7 +366,7 @@ namespace Rococo
       virtual IPanelSupervisor* Supervisor() = 0;
    };
 
-   struct PopulateTabsEvent : Events::Event
+   struct PopulateTabsEvent : Events::EventArgs
    {
 	   struct TabRef
 	   {
@@ -375,11 +378,6 @@ namespace Rococo
 	   TabRef* tabArray;
 	   size_t numberOfTabs;
 	   cstr populatorName;
-
-	   PopulateTabsEvent(Events::EventId id) : Events::Event(id)
-	   {
-
-	   }
    };
 
    struct ICommandHandler
@@ -443,11 +441,8 @@ namespace Rococo
    {
 	   struct ScrollEvent;
 
-	   extern EventId BusyEventId;
-
-	   struct BusyEvent : public Events::Event
+	   struct BusyEvent : public EventArgs
 	   {
-			BusyEvent();
 			boolean32 isNowBusy;
 			cstr message;
 			cstr resourceName;
@@ -456,13 +451,13 @@ namespace Rococo
 
    struct IScrollbar
    {
-	   virtual void GetScroller(Events::ScrollEvent& s) = 0;
-	   virtual void SetScroller(const Events::ScrollEvent& s) = 0;
+	   virtual void GetScrollState(Events::ScrollEvent& s) = 0;
+	   virtual void SetScrollState(const Events::ScrollEvent& s) = 0;
 
 	   virtual bool AppendEvent(const KeyboardEvent& k, Events::ScrollEvent& updateStatus) = 0;
 	   virtual bool AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft, Events::ScrollEvent& updateStatus) = 0;
 	   virtual void Free() = 0;
-	   virtual void Render(IGuiRenderContext& grc, const GuiRect& absRect, const Modality& modality, RGBAb hilightColour, RGBAb baseColour, RGBAb hilightEdge, RGBAb baseEdge, IEventCallback<Events::ScrollEvent>& populator, Events::EventId populationEventId) = 0;
+	   virtual void Render(IGuiRenderContext& grc, const GuiRect& absRect, const Modality& modality, RGBAb hilightColour, RGBAb baseColour, RGBAb hilightEdge, RGBAb baseEdge, IEventCallback<Events::ScrollEvent>& populator, const Events::EventIdRef& populationEventId) = 0;
    };
 
    struct IUtilitiies
@@ -577,9 +572,8 @@ namespace Rococo
 
    namespace Events
    {
-      struct ScrollEvent : public Events::Event
+      struct ScrollEvent : public Events::EventArgs
       {
-         ScrollEvent(EventId id) : Event(id) {}
          int32 logicalMinValue;
          int32 logicalMaxValue;
          int32 logicalValue;

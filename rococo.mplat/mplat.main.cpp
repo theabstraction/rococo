@@ -29,10 +29,10 @@ using namespace Rococo;
 using namespace Rococo::Events;
 using namespace Rococo::Windows;
 
-EventId evFileUpdated = "OnFileUpdated"_event;
-struct FileUpdatedEvent : public Event
+static auto evFileUpdated = "OnFileUpdated"_event;
+
+struct FileUpdatedEvent : public EventArgs
 {
-   FileUpdatedEvent() : Event(evFileUpdated) {}
    cstr pingPath;
 };
 
@@ -51,35 +51,11 @@ namespace Rococo
 	}
 }
 
-
-const char* CreatePersistentString(const char* volatileString)
-{
-   static std::unordered_set<std::string> persistentStrings;
-   auto i = persistentStrings.find(volatileString);
-   if (i == persistentStrings.end())
-   {
-      i = persistentStrings.insert(std::string(volatileString)).first;
-   }
-
-   return i->c_str();
-}
-
-EventId CreateEventIdFromVolatileString(const char* volatileString)
-{
-   auto* s = CreatePersistentString(volatileString);
-   return EventId(s, (EventHash)FastHash(s));
-}
-
 namespace Rococo
 {
 	namespace M
 	{
 		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail);
-	}
-
-	namespace Events
-	{
-		BusyEvent::BusyEvent() : Events::Event(BusyEventId) {}
 	}
 }
 
@@ -312,7 +288,7 @@ public:
 
 		platform->sourceCache.Release(pingPath);
 
-		platform->publisher.Publish(fileUpdated);
+		platform->publisher.Publish(fileUpdated, evFileUpdated);
 	}
 
 	IVariableEditor* CreateVariableEditor(Windows::IWindow& window, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const Vec2i* topLeft) override
@@ -385,13 +361,13 @@ public:
 		utilities(_utilities),
 		messageLog(3)
 	{
-		publisher.Attach(this, UIInvoke::EvId());
-		publisher.Attach(this, UIPopulate::EvId());
+		publisher.Subscribe(this, evUIInvoke);
+		publisher.Subscribe(this, evUIPopulate);
 	}
 
 	~GuiStack()
 	{
-		publisher.Detach(this);
+		publisher.Unsubscribe(this);
 	}
 
 	void AttachKeyboardSink(IKeyboardSink* ks) override
@@ -491,7 +467,7 @@ public:
 
 	void OnEvent(Event& ev) override
 	{
-		if (ev.id == UIInvoke::EvId())
+		if (ev == evUIInvoke)
 		{
 			auto& ui = As<UIInvoke>(ev);
 
@@ -520,7 +496,7 @@ public:
 				method(obj, ui.command);
 			}
 		}
-		else if (ev.id == UIPopulate::EvId())
+		else if (ev == evUIPopulate)
 		{
 			auto& pop = As<UIPopulate>(ev);
 
@@ -792,11 +768,11 @@ public:
 
 				if (c.defer)
 				{
-					publisher.Post(invoke, true);
+					publisher.Post(invoke, evUIInvoke, true);
 				}
 				else
 				{
-					publisher.Publish(invoke);
+					publisher.Publish(invoke, evUIInvoke);
 				}
 			}
 		}
@@ -846,7 +822,7 @@ public:
 				UIPopulate populate;
 				populate.renderElement = nullptr;
 				populate.name = populators[stateIndex].name.c_str();
-				publisher.Publish(populate);
+				publisher.Publish(populate, evUIPopulate);
 
 				if (populate.renderElement)
 				{
@@ -894,7 +870,7 @@ public:
 				UIPopulate populate;
 				populate.renderElement = nullptr;
 				populate.name = populators[stateIndex].name.c_str();
-				publisher.Publish(populate);
+				publisher.Publish(populate, evUIPopulate);
 
 				if (populate.renderElement)
 				{
@@ -1109,7 +1085,7 @@ public:
 			UIPopulate populate;
 			populate.renderElement = nullptr;
 			populate.name = populators[stateIndex].name.c_str();
-			publisher.Publish(populate);
+			publisher.Publish(populate, evUIPopulate);
 
 			if (populate.renderElement)
 			{
@@ -1286,7 +1262,7 @@ class PanelRadioButton : public BasePanel, public IRadioButton, public IObserver
 {
 	int32 fontIndex = 1;
 	char text[128];
-	EventId id;
+	EventIdRef id;
 	char value[128];
 	int32 horzAlign = 0;
 	int32 vertAlign = 0;
@@ -1296,23 +1272,23 @@ class PanelRadioButton : public BasePanel, public IRadioButton, public IObserver
 	int32 stateIndex = -1; // indeterminate
 public:
 	PanelRadioButton(IPublisher& _publisher, int _fontIndex, cstr _text, cstr _key, cstr _value) :
-		id(CreateEventIdFromVolatileString(_key)),
+		id(publisher.CreateEventIdFromVolatileString(_key)),
 		fontIndex(_fontIndex), publisher(_publisher)
 	{
 		SafeFormat(text, sizeof(text), "%s", _text);
 		SafeFormat(value, sizeof(value), "%s", _value);
 
-		publisher.Attach(this, id);
+		publisher.Subscribe(this, id);
 	}
 
 	~PanelRadioButton()
 	{
-		publisher.Detach(this);
+		publisher.Unsubscribe(this);
 	}
 
 	void OnEvent(Event& ev) override
 	{
-		if (ev.id == id)
+		if (id == ev)
 		{
 			auto& toe = As<TextOutputEvent>(ev);
 			if (!toe.isGetting)
@@ -1348,10 +1324,10 @@ public:
 	{
 		if (stateIndex == 0 && me.HasFlag(me.LUp) || me.HasFlag(me.RUp))
 		{
-			TextOutputEvent toe(id);
+			TextOutputEvent toe;
 			toe.isGetting = false;
 			SecureFormat(toe.text, sizeof(toe.text), value);
-			publisher.Publish(toe);
+			publisher.Publish(toe, id);
 		}
 	}
 
@@ -1362,9 +1338,9 @@ public:
 
 		if (stateIndex == -1)
 		{
-			TextOutputEvent toe(id);
+			TextOutputEvent toe;
 			toe.isGetting = true;
-			publisher.Publish(toe);
+			publisher.Publish(toe, id);
 			stateIndex = (toe.text && Eq(toe.text, value)) ? 1 : 0;
 		}
 
@@ -1539,7 +1515,7 @@ struct Tab
 	GuiRect lastRect{ 0,0,0,0 };
 };
 
-auto populateTabs = "tabs.populate"_event;
+auto evPopulateTabs = "tabs.populate"_event;
 
 class TabContainer : public BasePanel, public ITabContainer, public IObserver
 {
@@ -1551,11 +1527,11 @@ class TabContainer : public BasePanel, public ITabContainer, public IObserver
 	size_t tabSelect = 0;
 	std::string populatorName;
 
-	void OnEvent(Event& ev)
+	void OnEvent(Event& ev) override
 	{
 		bool replaceTabs = false;
 
-		if (ev.id == populateTabs)
+		if (evPopulateTabs == ev)
 		{
 			auto& p = As<PopulateTabsEvent>(ev);
 
@@ -1620,7 +1596,7 @@ public:
 
 	~TabContainer()
 	{
-		publisher.Detach(this);
+		publisher.Unsubscribe(this);
 	}
 
 	void Free() override
@@ -1682,7 +1658,7 @@ public:
 			UIPopulate populate;
 			populate.renderElement = nullptr;
 			populate.name = tabs[tabSelect].panelText.c_str();
-			publisher.Publish(populate);
+			publisher.Publish(populate, evUIPopulate);
 
 			if (populate.renderElement)
 			{
@@ -1743,7 +1719,7 @@ public:
 			UIPopulate populate;
 			populate.renderElement = nullptr;
 			populate.name = tabs[tabSelect].panelText.c_str();
-			publisher.Publish(populate);
+			publisher.Publish(populate, evUIPopulate);
 
 			if (populate.renderElement)
 			{
@@ -1756,7 +1732,7 @@ public:
 			UIPopulate populate;
 			populate.renderElement = nullptr;
 			populate.name = tabs[tabSelect].panelText.c_str();
-			publisher.Publish(populate);
+			publisher.Publish(populate, evUIPopulate);
 
 			if (populate.renderElement)
 			{
@@ -1769,7 +1745,7 @@ public:
 			UIPopulate populate;
 			populate.renderElement = nullptr;
 			populate.name = tabs[tabSelect].panelText.c_str();
-			publisher.Publish(populate);
+			publisher.Publish(populate, evUIPopulate);
 
 			if (populate.renderElement)
 			{
@@ -1950,7 +1926,7 @@ public:
 		UIPopulate populate;
 		populate.renderElement = nullptr;
 		populate.name = panelKey;
-		publisher.Publish(populate);
+		publisher.Publish(populate, evUIPopulate);
 
 		if (populate.renderElement)
 		{
@@ -2013,7 +1989,7 @@ public:
 		}
 
 		this->populatorName = populatorName;
-		publisher.Attach(this, populateTabs);
+		publisher.Subscribe(this, evPopulateTabs);
 	}
 };
 
@@ -2088,7 +2064,7 @@ public:
 		delete this;
 	}
 
-	void GetScroller(ScrollEvent& s)
+	void GetScrollState(ScrollEvent& s)
 	{
 		s.logicalMinValue = minValue;
 		s.logicalMaxValue = maxValue;
@@ -2097,7 +2073,7 @@ public:
 		s.rowSize = rowSize;
 	}
 
-	void SetScroller(const ScrollEvent& s)
+	void SetScrollState(const ScrollEvent& s)
 	{
 		minValue = s.logicalMinValue;
 		maxValue = s.logicalMaxValue;
@@ -2224,7 +2200,7 @@ public:
 	}
 
 
-	void Render(IGuiRenderContext& grc, const GuiRect& absRect, const Modality& modality, RGBAb hilightColour, RGBAb baseColour, RGBAb hilightEdge, RGBAb baseEdge, IEventCallback<ScrollEvent>& populator, EventId populationEventId)
+	void Render(IGuiRenderContext& grc, const GuiRect& absRect, const Modality& modality, RGBAb hilightColour, RGBAb baseColour, RGBAb hilightEdge, RGBAb baseEdge, IEventCallback<ScrollEvent>& populator, const EventIdRef& populationEventId)
 	{
 		GuiMetrics metrics;
 		grc.Renderer().GetGuiMetrics(metrics);
@@ -2233,9 +2209,8 @@ public:
 
 		if (LogicalRange() == 0)
 		{
-			ScrollEvent ev(populationEventId);
+			ScrollEvent ev;
 			ev.fromScrollbar = false;
-
 			populator.OnEvent(ev);
 
 			maxValue = ev.logicalMaxValue;
@@ -2277,7 +2252,7 @@ public:
 						value = newValue;
 					}
 
-					ScrollEvent s(populationEventId);
+					ScrollEvent s;
 					s.logicalMinValue = minValue;
 					s.logicalMaxValue = maxValue;
 					s.logicalValue = value;
@@ -2322,50 +2297,50 @@ class PanelScrollbar : public BasePanel, public IScroller, IObserver, IEventCall
 {
 	Scrollbar scrollbar;
 	IPublisher& publisher;
-	EventId setScrollId;
-	EventId getScrollId;
-	EventId uiScrollId;
-	EventId routeKeyId;
-	EventId routeMouseId;
+	EventIdRef setScrollId;
+	EventIdRef getScrollId;
+	EventIdRef uiScrollId;
+	EventIdRef routeKeyId;
+	EventIdRef routeMouseId;
 
 	void OnEvent(Event& ev) override
 	{
-		if (ev.id == setScrollId)
+		if (ev == setScrollId)
 		{
 			auto& s = As<ScrollEvent>(ev);
-			scrollbar.SetScroller(s);
+			scrollbar.SetScrollState(s);
 		}
-		else if (ev.id == getScrollId)
+		else if (ev == getScrollId)
 		{
 			auto& s = As<ScrollEvent>(ev);
-			scrollbar.GetScroller(s);
+			scrollbar.GetScrollState(s);
 		}
-		else if (ev.id == routeKeyId)
+		else if (ev == routeKeyId)
 		{
-			auto& r = As<RouteKeyboard>(ev);
+			auto& r = As<RouteKeyboardEvent>(ev);
 
-			Events::ScrollEvent se(uiScrollId);
+			Events::ScrollEvent se;
 			if (scrollbar.AppendEvent(*r.ke, se))
 			{
 				r.consume = true;
-				publisher.Publish(se);
+				publisher.Publish(se, uiScrollId);
 			}
 		}
-		else if (ev.id == routeMouseId)
+		else if (ev == routeMouseId)
 		{
-			auto& r = As<RouteMouse>(ev);
+			auto& r = As<RouteMouseEvent>(ev);
 
-			Events::ScrollEvent se(uiScrollId);
+			Events::ScrollEvent se;
 			if (scrollbar.AppendEvent(*r.me, r.absTopleft, se))
 			{
-				publisher.Publish(se);
+				publisher.Publish(se, uiScrollId);
 			}
 		}
 	}
 
-	void OnEvent(ScrollEvent& uiUpdate)
+	void OnEvent(ScrollEvent& se)
 	{
-		publisher.Publish(uiUpdate);
+		publisher.Publish(se, uiScrollId);
 	}
 public:
 	PanelScrollbar(IPublisher& _publisher, cstr _key, boolean32 isVertical) :
@@ -2376,43 +2351,43 @@ public:
 
 		{
 			SecureFormat(eventText, sizeof(eventText), "%s_set", _key);
-			EventId id = CreateEventIdFromVolatileString(eventText);
+			EventIdRef id = publisher.CreateEventIdFromVolatileString(eventText);
 			memcpy(&setScrollId, &id, sizeof(id));
 		}
 
 		{
 			SecureFormat(eventText, sizeof(eventText), "%s_get", _key);
-			EventId id = CreateEventIdFromVolatileString(eventText);
+			EventIdRef id = publisher.CreateEventIdFromVolatileString(eventText);
 			memcpy(&getScrollId, &id, sizeof(id));
 		}
 
 		{
 			SecureFormat(eventText, sizeof(eventText), "%s_ui", _key);
-			EventId id = CreateEventIdFromVolatileString(eventText);
+			EventIdRef id = publisher.CreateEventIdFromVolatileString(eventText);
 			memcpy(&uiScrollId, &id, sizeof(id));
 		}
 
 		{
 			SecureFormat(eventText, sizeof(eventText), "%s_sendkey", _key);
-			EventId id = CreateEventIdFromVolatileString(eventText);
+			EventIdRef id = publisher.CreateEventIdFromVolatileString(eventText);
 			memcpy(&routeKeyId, &id, sizeof(id));
 		}
 
 		{
 			SecureFormat(eventText, sizeof(eventText), "%s_sendmouse", _key);
-			EventId id = CreateEventIdFromVolatileString(eventText);
+			EventIdRef id = publisher.CreateEventIdFromVolatileString(eventText);
 			memcpy(&routeMouseId, &id, sizeof(id));
 		}
 
-		publisher.Attach(this, getScrollId);
-		publisher.Attach(this, setScrollId);
-		publisher.Attach(this, routeKeyId);
-		publisher.Attach(this, routeMouseId);
+		publisher.Subscribe(this, getScrollId);
+		publisher.Subscribe(this, setScrollId);
+		publisher.Subscribe(this, routeKeyId);
+		publisher.Subscribe(this, routeMouseId);
 	}
 
 	~PanelScrollbar()
 	{
-		publisher.Detach(this);
+		publisher.Unsubscribe(this);
 	}
 
 	void Free() override
@@ -2427,11 +2402,11 @@ public:
 
 	bool AppendEvent(const KeyboardEvent& k, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
 	{
-		ScrollEvent updateStatus(uiScrollId);
+		ScrollEvent updateStatus;
 		updateStatus.fromScrollbar = true;
 		if (scrollbar.AppendEvent(k, updateStatus))
 		{
-			publisher.Publish(updateStatus);
+			publisher.Publish(updateStatus, uiScrollId);
 			return true;
 		}
 
@@ -2440,11 +2415,11 @@ public:
 
 	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
 	{
-		ScrollEvent updateStatus(uiScrollId);
+		ScrollEvent updateStatus;
 		updateStatus.fromScrollbar = true;
 		if (scrollbar.AppendEvent(me, absTopLeft, updateStatus))
 		{
-			publisher.Publish(updateStatus);
+			publisher.Publish(updateStatus, uiScrollId);
 		}
 	}
 
@@ -2463,10 +2438,10 @@ class PanelTextOutput : public BasePanel, public ITextOutputPane
 	int32 vertAlign = 0;
 	Vec2i padding{ 0,0 };
 	IPublisher& publisher;
-	EventId id;
+	EventIdRef id;
 public:
 	PanelTextOutput(IPublisher& _publisher, int _fontIndex, cstr _key) :
-		id(CreateEventIdFromVolatileString(_key)),
+		id(publisher.CreateEventIdFromVolatileString(_key)),
 		publisher(_publisher), fontIndex(_fontIndex)
 	{
 	}
@@ -2509,10 +2484,10 @@ public:
 		auto span = Span(ClientRect());
 		GuiRect absRect{ topLeft.x, topLeft.y, topLeft.x + span.x, topLeft.y + span.y };
 
-		TextOutputEvent event(id);
+		TextOutputEvent event;
 		event.isGetting = true;
 		*event.text = 0;
-		publisher.Publish(event);
+		publisher.Publish(event, id);
 
 		RenderLabel(grc, event.text, absRect, horzAlign, vertAlign, padding, fontIndex, Scheme(), !modality.isUnderModal);
 	}
@@ -2582,17 +2557,17 @@ public:
 		platform(_platform),
 		scriptFilename(_scriptFilename)
 	{
-		platform.publisher.Attach(this, evFileUpdated);
+		platform.publisher.Subscribe(this, evFileUpdated);
 	}
 
 	~ScriptedPanel()
 	{
-		platform.publisher.Detach(this);
+		platform.publisher.Unsubscribe(this);
 	}
 
 	void OnEvent(Event& ev) override
 	{
-		if (ev.id == evFileUpdated)
+		if (evFileUpdated == ev)
 		{
 			auto& fue = As<FileUpdatedEvent>(ev);
 			if (Rococo::Eq(fue.pingPath, scriptFilename.c_str()))
@@ -2857,10 +2832,10 @@ IPaneBuilderSupervisor* GuiStack::CreateOverlay()
 		AutoFree<IPaneBuilderSupervisor> tabbedPanel;
 		AutoFree<IPaneBuilderSupervisor> txFocusPanel;
 		Platform& platform;
-		EventId stnId = "selected.texture.name"_event;
-		EventId matClickedId = "overlay.select.material"_event;
-		EventId texClickedId = "overlay.select.texture"_event;
-		EventId meshClickedId = "overlay.select.mesh"_event;
+		EventIdRef stnId = "selected.texture.name"_event;
+		EventIdRef matClickedId = "overlay.select.material"_event;
+		EventIdRef texClickedId = "overlay.select.texture"_event;
+		EventIdRef meshClickedId = "overlay.select.mesh"_event;
 
 		enum Type
 		{
@@ -2880,22 +2855,22 @@ IPaneBuilderSupervisor* GuiStack::CreateOverlay()
 			current = tabbedPanel;
 			platform.gui.RegisterPopulator("texture_view", this);
 			platform.gui.RegisterPopulator("texture_cancel", &textureCancel);
-			platform.publisher.Attach(this, stnId);
-			platform.publisher.Attach(this, matClickedId);
-			platform.publisher.Attach(this, texClickedId);
-			platform.publisher.Attach(this, meshClickedId);
+			platform.publisher.Subscribe(this, stnId);
+			platform.publisher.Subscribe(this, matClickedId);
+			platform.publisher.Subscribe(this, texClickedId);
+			platform.publisher.Subscribe(this, meshClickedId);
 		}
 
 		~OverlayPanel()
 		{
 			platform.gui.UnregisterPopulator(&textureCancel);
 			platform.gui.UnregisterPopulator(this);
-			platform.publisher.Detach(this);
+			platform.publisher.Unsubscribe(this);
 		}
 
 		void OnEvent(Event& ev) override
 		{
-			if (ev.id == stnId)
+			if (stnId == ev)
 			{
 				auto& toe = As<TextOutputEvent>(ev);
 				if (toe.isGetting)
@@ -2910,21 +2885,21 @@ IPaneBuilderSupervisor* GuiStack::CreateOverlay()
 					}
 				}
 			}
-			else if (ev.id == matClickedId)
+			else if (matClickedId == ev)
 			{
-				auto& mc = As<VisitorItemClicked>(ev);
+				auto& mc = As<VisitorItemClickedEvent>(ev);
 				description = mc.key;
 				type = Type_Material;
 			}
-			else if (ev.id == texClickedId)
+			else if (texClickedId == ev)
 			{
-				auto& mc = As<VisitorItemClicked>(ev);
+				auto& mc = As<VisitorItemClickedEvent>(ev);
 				description = mc.key;
 				type = Type_Texture;
 			}
-			else if (ev.id == meshClickedId)
+			else if (meshClickedId == ev)
 			{
-				auto& mc = As<VisitorItemClicked>(ev);
+				auto& mc = As<VisitorItemClickedEvent>(ev);
 
 				AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(64_kilobytes);
 				platform.meshes.SaveCSV(mc.key, *buffer);
@@ -3217,12 +3192,12 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 	PlatformTabs(Platform& _platform):
 		platform(_platform)
 	{
-		platform.publisher.Attach(this, UIPopulate::EvId());
+		platform.publisher.Subscribe(this, evUIPopulate);
 	}
 
 	~PlatformTabs()
 	{
-		platform.publisher.Detach(this);
+		platform.publisher.Unsubscribe(this);
 	}
 
 
@@ -3399,22 +3374,6 @@ void Main(HINSTANCE hInstance, HANDLE hInstanceLock, IAppFactory& appFactory, cs
 
 namespace Rococo
 {
-	UIInvoke::UIInvoke() : Event(EvId())
-	{
-
-	}
-
-	UIPopulate::UIPopulate() : Event(EvId())
-	{
-
-	}
-
-	Events::EventId UIPopulate::EvId()
-	{
-		static EventId invokeEvent = "ui.populate"_event;
-		return invokeEvent;
-	}
-
 	int M_Platorm_Win64_Main(HINSTANCE hInstance, IAppFactory& factory, cstr title, HICON hLarge, HICON hSmall)
 	{
 		char filename[1024];

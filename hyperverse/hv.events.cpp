@@ -4,18 +4,18 @@ namespace HV
 {
 	namespace Events
 	{
-		EventId setNextLevelEventId = "hv.set.next.level"_event;
+		EventIdRef evSetNextLevel = "hv.set.next.level"_event;
 
 		namespace OS
 		{
-			EventId OnTick = "os.tick"_event;
-			EventId OnFileChanged = "os.file.changed"_event;
+			EventIdRef evTick = "os.tick"_event;
+			EventIdRef evFileChanged = "os.file.changed"_event;
 		}
 
 		namespace Player
 		{
-			EventId OnPlayerAction = "player.action"_event;
-			EventId OnPlayerDelta = "player.delta"_event;
+			EventIdRef evPlayerAction = "player.action"_event;
+			EventIdRef evPlayerDelta = "player.delta"_event;
 		}
 	}
 }

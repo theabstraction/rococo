@@ -123,11 +123,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.mplat.h" />
-    <ClInclude Include="mplat.events.inl\mplat.to.app.events.inl" />
     <ClInclude Include="mplat.sxh.h" />
     <ClInclude Include="rococo.script.types.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\include\mplat.to.app.events.inl" />
     <None Include="config.xc" />
     <CustomBuild Include="mplat.sxh">
       <FileType>Document</FileType>

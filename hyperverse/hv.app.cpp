@@ -12,8 +12,8 @@ namespace HV
 {
 	using namespace Rococo::Entities;
 
-	auto populateBusyCategoryId = "busy.category"_event;
-	auto populateBusyResourceId = "busy.resource"_event;
+	auto evPopulateBusyCategoryId = "busy.category"_event;
+	auto evPopulateBusyResourceId = "busy.resource"_event;
 
 	// Route scene methods to the platform.scene object
 	// We intercept the gui events to resize application panels
@@ -21,6 +21,7 @@ namespace HV
 	{
 		Cosmos e;
 		std::vector<IPaneBuilderSupervisor*> managedPanels;
+		Vec2i lastSpan { 0,0 };
 
 		RGBA GetClearColour() const override
 		{
@@ -48,16 +49,21 @@ namespace HV
 		{
 			GuiMetrics metrics;
 			grc.Renderer().GetGuiMetrics(metrics);
-			if (metrics.screenSpan.x < 257) return;
 
-			GuiRect fullScreen = { 0, 0, metrics.screenSpan.x, metrics.screenSpan.y };
 
-			for (auto i : managedPanels)
+			if (lastSpan != metrics.screenSpan)
 			{
-				i->Supervisor()->SetRect(fullScreen);
+				lastSpan = metrics.screenSpan;
+
+				GuiRect fullScreen = { 0, 0, lastSpan.x, lastSpan.y };
+
+				for (auto i : managedPanels)
+				{
+					i->Supervisor()->SetRect(fullScreen);
+				}
 			}
 
-			e.platform.gui.Render(grc);
+			if (metrics.screenSpan.x > 257) e.platform.gui.Render(grc);
 		}
 
 		void GetCamera(Matrix4x4& proj, Matrix4x4& world, Vec4& eye, Vec4& viewDir) override
@@ -111,18 +117,18 @@ namespace HV
 				const Rococo::Events::BusyEvent& be;
 				BusyEventCapture(IPublisher& _publisher, const Rococo::Events::BusyEvent& _be) : publisher(_publisher), be(_be)
 				{
-					publisher.Attach(this, populateBusyCategoryId);
-					publisher.Attach(this, populateBusyResourceId);
+					publisher.Subscribe(this, evPopulateBusyCategoryId);
+					publisher.Subscribe(this, evPopulateBusyResourceId);
 				}
 
 				~BusyEventCapture()
 				{
-					publisher.Detach(this);
+					publisher.Unsubscribe(this);
 				}
 
 				virtual void OnEvent(Event& ev)
 				{
-					if (ev.id == populateBusyCategoryId)
+					if (ev == evPopulateBusyCategoryId)
 					{
 						auto& te = As<TextOutputEvent>(ev);
 						if (te.isGetting)
@@ -130,7 +136,7 @@ namespace HV
 							SafeFormat(te.text, sizeof(te.text), "%s", be.message);
 						}
 					}
-					else if (ev.id == populateBusyResourceId)
+					else if (ev == evPopulateBusyResourceId)
 					{
 						auto& te = As<TextOutputEvent>(ev);
 						if (te.isGetting)
@@ -151,12 +157,12 @@ namespace HV
 
 		virtual void OnEvent(Event& ev)
 		{
-			if (ev.id == HV::Events::setNextLevelEventId)
+			if (ev == HV::Events::evSetNextLevel)
 			{
 				auto& nl = As<HV::Events::SetNextLevelEvent>(ev);
 				nextLevelName = nl.name;
 			}
-			else if (ev.id == Rococo::Events::BusyEventId)
+			else if (ev == Rococo::Events::evBusy)
 			{
 				auto& be = As <Rococo::Events::BusyEvent>(ev);
 				if (be.isNowBusy)
@@ -167,11 +173,11 @@ namespace HV
 					}
 				}
 			}
-			else if (ev.id == populateBusyCategoryId)
+			else if (ev == evPopulateBusyCategoryId)
 			{
 			}
 
-			else if (ev.id == populateBusyResourceId)
+			else if (ev == evPopulateBusyResourceId)
 			{
 			}
 		}
@@ -208,13 +214,13 @@ namespace HV
 
 			editorActive = false;
 
-			e.platform.publisher.Attach(this, HV::Events::setNextLevelEventId);
-			e.platform.publisher.Attach(this, Rococo::Events::BusyEventId);
+			e.platform.publisher.Subscribe(this, HV::Events::evSetNextLevel);
+			e.platform.publisher.Subscribe(this, Rococo::Events::evBusy);
 		}
 
 		~App()
 		{
-			e.platform.publisher.Detach(this);
+			e.platform.publisher.Unsubscribe(this);
 		}
 
 		void Free() override
@@ -224,9 +230,9 @@ namespace HV
 
 		void OnEvent(FileModifiedArgs& args) override
 		{
-			HV::Events::OS::OnFileChangedEvent ev;
+			HV::Events::OS::FileChangedEvent ev;
 			ev.args = &args;
-			e.platform.publisher.Publish(ev);
+			e.platform.publisher.Publish(ev, HV::Events::OS::evFileChanged);
 
 			char pingname[1024];
 			args.GetPingPath(pingname, 1024);

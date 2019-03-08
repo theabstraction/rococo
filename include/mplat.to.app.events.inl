@@ -1,17 +1,19 @@
 #pragma once
 
+using namespace Rococo::Events;
+
 namespace Rococo
 {
-	using namespace Rococo::Events;
-
-	Events::EventId UIInvoke::EvId()
+	namespace Input
 	{
-		static EventId invokeEvent = "ui.invoke"_event;
-		return invokeEvent;
+		EventIdRef evMouseMoveRelative = "input.mouse.delta"_event;
+		EventIdRef evMouseChanged = "input.mouse.buttons"_event;
 	}
 
 	namespace Events
 	{
-		EventId BusyEventId = "mplat.busy"_event;
+		EventIdRef evBusy = "system.status.busy"_event;
+		EventIdRef evUIInvoke = "ui.invoke"_event;
+		EventIdRef evUIPopulate = "ui.populate"_event;
 	}
 }
