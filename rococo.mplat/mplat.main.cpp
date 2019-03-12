@@ -25,6 +25,8 @@
 
 #include <mplat.to.app.events.inl>
 
+#pragma warning (disable : 4250)
+
 using namespace Rococo;
 using namespace Rococo::Events;
 using namespace Rococo::Windows;
@@ -422,6 +424,13 @@ public:
 
 	void AppendEvent(const MouseEvent& me) override
 	{
+		platform->renderer.SetSysCursor(EWindowCursor_Default);
+
+		DirectMouseEvent dme(me);
+		publisher.Publish(dme, evUIMouseEvent);
+
+		if (dme.consumed) return;
+
 		for (auto i = panels.rbegin(); i != panels.rend(); ++i)
 		{
 			if (IsPointInRect(me.cursorPos, i->panel->ClientRect()))
@@ -708,6 +717,7 @@ class BasePanel : public IPanelSupervisor
 	GuiRect rect{ 0, 0, 0, 0 };
 	bool isVisible{ true };
 
+	IPanelSupervisor* parent = nullptr;
 	std::vector<IPanelSupervisor*> children;
 
 	struct UICommand
@@ -740,6 +750,16 @@ class BasePanel : public IPanelSupervisor
 	};
 
 public:
+	void SetParent(IPanelSupervisor* panel)
+	{
+		parent = panel;
+	}
+
+	IPanelSupervisor* Parent()
+	{
+		return parent;
+	}
+
 	void SetCommand(int32 stateIndex, boolean32 deferAction, const fstring& text) override
 	{
 		if (stateIndex < 0 || stateIndex > 4)
@@ -885,36 +905,76 @@ public:
 		return false;
 	}
 
-	void AlignLeftEdges(int32 x, boolean32 preserveSpan) override
+	void AlignLeftEdges(int32 borderPixels, boolean32 preserveSpan) override
 	{
 		for (auto i : children)
 		{
-			GuiRect rect = i->ClientRect();
+			GuiRect childRect = i->ClientRect();
 			if (preserveSpan)
 			{
-				Vec2i span = Span(rect);
-				rect.right = x + span.x;
+				Vec2i span = Span(childRect);
+				childRect.right = borderPixels + span.x;
 			}
 
-			rect.left = x;
-			i->SetRect(rect);
+			childRect.left = borderPixels;
+			i->SetRect(childRect);
 		}
 	}
 
-	void AlignRightEdges(int32 x, boolean32 preserveSpan) override
+	void AlignRightEdges(int32 borderPixels, boolean32 preserveSpan) override
 	{
-		int x0 = (rect.right - rect.left) - x;
+		int x0 = (rect.right - rect.left) - borderPixels;
 		for (auto i : children)
 		{
-			GuiRect rect = i->ClientRect();
+			GuiRect childRect = i->ClientRect();
 			if (preserveSpan)
 			{
-				Vec2i span = Span(rect);
-				rect.left = x - span.x;
+				Vec2i span = Span(childRect);
+				childRect.left = borderPixels - span.x;
 			}
 
-			rect.right = x0;
-			i->SetRect(rect);
+			childRect.right = x0;
+			i->SetRect(childRect);
+		}
+	}
+
+	void AlignTopEdges(int32 borderPixels, boolean32 preserveSpan) override
+	{
+		int y0 = borderPixels;
+
+		for (auto i : children)
+		{
+			GuiRect childRect = i->ClientRect();
+
+			if (preserveSpan)
+			{
+				Vec2i span = Span(childRect);
+				childRect.bottom = y0 + span.y;
+			}
+
+			childRect.top = y0;
+
+			i->SetRect(childRect);
+		}
+	}
+
+	void AlignBottomEdges(int32 borderPixels, boolean32 preserveSpan) override
+	{
+		int y0 = rect.bottom - borderPixels;
+
+		for (auto i : children)
+		{
+			GuiRect childRect = i->ClientRect();
+
+			if (preserveSpan)
+			{
+				Vec2i span = Span(childRect);
+				childRect.top = max(rect.top, y0 - span.y);
+			}
+
+			childRect.bottom = y0;
+
+			i->SetRect(childRect);
 		}
 	}
 
@@ -1020,6 +1080,7 @@ public:
 	void AddChild(IPanelSupervisor* child) override
 	{
 		children.push_back(child);
+		child->SetParent(this);
 	}
 
 	void RemoveChild(IPanelSupervisor* child) override
@@ -1137,10 +1198,11 @@ bool operator != (const GuiRect& a, const GuiRect& b)
    return a.left != b.left || a.right != b.right || a.bottom != b.bottom || a.top != b.top;
 }
 
-class PanelContainer : public BasePanel, public IPaneContainer
+class PanelContainer : public BasePanel, virtual public IPaneContainer
 {
-	Platform& platform;
 public:
+	Platform& platform;
+
 	PanelContainer(Platform& _platform) : platform(_platform)
 	{
 
@@ -1154,17 +1216,13 @@ public:
 		return container;
 	}
 
+	Rococo::IFramePane* AddFrame(const GuiRect& rect) override;
 	Rococo::ITabContainer* AddTabContainer(int32 tabHeight, int32 fontIndex, const GuiRect& rect) override;
 	Rococo::ITextOutputPane* AddTextOutput(int32 fontIndex, const fstring& eventKey, const GuiRect& rect) override;
 	Rococo::ILabelPane* AddLabel(int32 fontIndex, const fstring& text, const GuiRect& rect) override;
 	Rococo::ISlider* AddSlider(int32 fontIndex, const fstring& text, const GuiRect& rect, float minValue, float maxValue) override;
 	Rococo::IRadioButton* AddRadioButton(int32 fontIndex, const fstring& text, const fstring& key, const fstring& value, const GuiRect& rect) override;
 	Rococo::IScroller* AddScroller(const fstring& key, const GuiRect& rect, boolean32 isVertical) override;
-
-	IPane* Base() override
-	{
-		return this;
-	}
 
 	void Free() override
 	{
@@ -1303,11 +1361,6 @@ public:
 		delete this;
 	}
 
-	IPane* Base() override
-	{
-		return this;
-	}
-
 	void SetAlignment(int32 horz, int32 vert, int32 paddingX, int paddingY)
 	{
 		horzAlign = horz;
@@ -1383,11 +1436,6 @@ public:
 		delete this;
 	}
 
-	IPane* Base() override
-	{
-		return this;
-	}
-
 	void SetAlignment(int32 horz, int32 vert, int32 paddingX, int paddingY)
 	{
 		horzAlign = horz;
@@ -1445,11 +1493,6 @@ public:
 		delete this;
 	}
 
-	IPane* Base() override
-	{
-		return this;
-	}
-
 	bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
 	{
 		return false;
@@ -1504,6 +1547,305 @@ public:
 		RenderLabel(grc, fullText, absRect, 0, 0, { 0,0 }, fontIndex, BasePanel::Scheme(), !modality.isUnderModal);
 
 		Graphics::DrawBorderAround(grc, absRect, { 1,1 }, lit ? Scheme().hi_topLeftEdge : Scheme().topLeftEdge, lit ? Scheme().hi_bottomRightEdge : Scheme().bottomRightEdge);
+	}
+};
+
+class PanelFrame : public PanelContainer, public IFramePane, public IObserver
+{
+	IPublisher& publisher;
+	IRenderer& renderer;
+	int32 fontIndex = 1;
+	char title[128] = { 0 };
+	const int border = 1;
+	const int captionHeight = 20;
+	ELayoutAlgorithm layoutAlgorithm = ELayoutAlgorithm_MaximizeOnlyChild;
+
+	int32 dragRightPos = -1;
+	int32 dragBottomPos = -1;
+	Vec2i preDragSpan = { 0,0 };
+	EWindowCursor cursor;
+	Vec2i captionDragPoint{ -1,-1 };
+	Vec2i topLeftAtDrag{ -1, -1 };
+
+	HString caption;
+public:
+	PanelFrame(Platform& platform) :
+		PanelContainer(platform),
+		publisher(platform.publisher), renderer(platform.renderer)
+	{
+		
+	}
+
+	~PanelFrame()
+	{
+		platform.publisher.Unsubscribe(this);
+	}
+
+	void Free() override
+	{
+		delete this;
+	}
+
+	void OnEvent(Event& ev)
+	{
+		if (ev == evUIMouseEvent)
+		{
+			auto& dme = As<DirectMouseEvent>(ev);
+			OnDirectMouseEvent(dme.me);
+			dme.consumed = true;
+		}
+	}
+
+	void OnDirectMouseEvent(const MouseEvent& me)
+	{
+		// N.B this callback assumed to be called in response to a drag event
+		// Once the drag is over, the subscription to the event is revoked.
+		// Since the event is consumed, it is not passed on to the UI system after this function call
+
+		platform.renderer.SetSysCursor(cursor);
+
+		if (dragRightPos > 0)
+		{
+			GuiRect rect = ClientRect();
+
+			int32 delta = me.cursorPos.x - dragRightPos;
+			rect.right = rect.left + preDragSpan.x + delta;
+
+			ClipRect(rect);
+			SetRect(rect);
+		}
+
+		if (dragBottomPos > 0)
+		{
+			GuiRect rect = ClientRect();
+			int32 delta = me.cursorPos.y - dragBottomPos;
+			rect.bottom = rect.top + preDragSpan.y + delta;
+
+			ClipRect(rect);
+			SetRect(rect);
+		}
+
+		if (captionDragPoint.x > 0)
+		{
+			GuiRect rect = ClientRect();
+			Vec2i delta = me.cursorPos - captionDragPoint;
+			rect.left = max(0, topLeftAtDrag.x + delta.x);
+			rect.top = max(0, topLeftAtDrag.y + delta.y);
+
+			auto* parent = Parent();
+
+			GuiRect parentRect = parent->ClientRect();
+
+			rect.right = rect.left + preDragSpan.x;
+			rect.bottom = rect.top + preDragSpan.y;
+
+			if (rect.right > parentRect.right)
+			{
+				int32 delta = rect.right - parentRect.right;
+				rect.left -= delta;
+				rect.right -= delta;
+			}
+
+			if (rect.bottom > parentRect.bottom)
+			{
+				int32 delta = rect.bottom - parentRect.bottom;
+				rect.top -= delta;
+				rect.bottom -= delta;
+			}
+
+			ClipRect(rect);
+			SetRect(rect);
+		}
+
+		if (me.HasFlag(MouseEvent::LUp))
+		{
+			dragRightPos = -1;
+			dragBottomPos = -1;
+			captionDragPoint = { -1,-1 };
+			platform.publisher.Unsubscribe(this);
+			platform.renderer.CaptureMouse(false);
+		}
+	}
+
+	bool AppendEvent(const KeyboardEvent& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+	{
+		return PanelContainer::AppendEvent(ke, focusPoint, absTopLeft);
+	}
+
+	void StartDrag()
+	{
+		preDragSpan = Span(ClientRect());
+		platform.publisher.Subscribe(this, Rococo::Events::evUIMouseEvent);
+		platform.renderer.CaptureMouse(true);
+	}
+
+	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
+	{
+		int32 farRight = ClientRect().right;
+		int32 farBottom = ClientRect().bottom;
+
+		if (me.cursorPos.x <= farRight && me.cursorPos.x > farRight - 4)
+		{
+			if (me.cursorPos.y <= farBottom && me.cursorPos.y > farBottom - 4)
+			{
+				cursor = EWindowCursor_BottomRightDrag;
+				platform.renderer.SetSysCursor(EWindowCursor_BottomRightDrag);
+			}
+			else
+			{
+				cursor = EWindowCursor_HDrag;
+				platform.renderer.SetSysCursor(EWindowCursor_HDrag);
+			}
+
+			if (me.HasFlag(MouseEvent::LDown))
+			{
+				dragRightPos = me.cursorPos.x;
+
+				if (me.cursorPos.y <= farBottom && me.cursorPos.y > farBottom - 4)
+				{
+					dragBottomPos = me.cursorPos.y;
+				}
+
+				StartDrag();
+				return;
+			}
+		}
+		else if (me.cursorPos.y <= farBottom && me.cursorPos.y > farBottom - 4)
+		{
+			cursor = EWindowCursor_VDrag;
+			platform.renderer.SetSysCursor(EWindowCursor_VDrag);
+
+			if (me.HasFlag(MouseEvent::LDown))
+			{
+				dragBottomPos = me.cursorPos.y;
+				StartDrag();
+				return;
+			}
+		}
+
+		GuiRect captionRect;
+		GetCaptionRect(captionRect);
+
+		if (IsPointInRect(me.cursorPos, captionRect))
+		{
+			if (me.HasFlag(MouseEvent::LDown))
+			{
+				StartDrag();
+				preDragSpan = Span(ClientRect());
+				captionDragPoint = me.cursorPos;
+				topLeftAtDrag = TopLeft(ClientRect());
+				cursor = EWindowCursor_HandDrag;
+				return;
+			}
+		}
+
+		PanelContainer::AppendEvent(me, absTopLeft);
+	}
+
+	void GetChildRect(GuiRect& child)
+	{
+		auto& controlRect = ClientRect();
+		child.left = border;
+		child.right = Width(controlRect) - 2 * border;
+		child.top = captionHeight + border;
+		child.bottom = Height(controlRect) - 2 * border;
+	}
+
+	void GetCaptionRect(GuiRect& caption)
+	{
+		auto& controlRect = ClientRect();
+		caption.left = controlRect.left + border;
+		caption.right = controlRect.right - border;
+		caption.top = controlRect.top + border;
+		caption.bottom = controlRect.top + captionHeight + 1;
+	}
+
+	void SetCaption(const fstring& caption) override
+	{
+		this->caption = caption;
+	}
+
+	void SetLayoutAlgorithm(ELayoutAlgorithm layout)
+	{
+		switch (layoutAlgorithm)
+		{
+		case ELayoutAlgorithm_MaximizeOnlyChild:
+		case ELayoutAlgorithm_None:
+			break;
+		default:
+			Throw(0, "FramePanel.SetLayoutAlgorithm(%d). Algorithm not implemented", layout);
+		}
+
+		this->layoutAlgorithm = layout;
+	}
+
+	Vec2i minSpan{ 32, 32 };
+	Vec2i maxSpan{ 640, 480 };
+
+	void SetMinMaxSpan(int32 minDX, int32 minDY, int32 maxDX, int32 maxDY) override
+	{
+		if (minDX < 0 || minDY < 0 || maxDX < 0 || maxDY < 0)
+		{
+			Throw(0, "FramePanel.SetMinMaxSpan supplied with negative arguments");
+		}
+
+		if (minDX > maxDX || minDY > maxDY)
+		{
+			Throw(0, "FramePanel.SetMinMaxSpan: arguments ordered incorrectly.");
+		}
+
+		minSpan = { minDX, minDY };
+		maxSpan = { maxDX, maxDY };
+	}
+
+	void ClipRect(GuiRect& rect)
+	{
+		if (rect.right - rect.left < minSpan.x) 
+			rect.right = rect.left + minSpan.x;
+		else if (rect.right - rect.left > maxSpan.x) 
+			rect.right = rect.left + maxSpan.x;
+
+		if (rect.bottom - rect.top < minSpan.y) 
+			rect.bottom = rect.top + minSpan.y;
+		else if (rect.bottom - rect.top > maxSpan.y) 
+			rect.bottom = rect.top + maxSpan.y;
+	}
+
+	void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
+	{
+		auto& controlRect = ClientRect();
+
+		GuiRect captionRect;
+		GetCaptionRect(captionRect);
+
+		GuiRect child;
+		GetChildRect(child);
+
+		switch (layoutAlgorithm)
+		{
+			case ELayoutAlgorithm_None:
+				break;
+			case ELayoutAlgorithm_MaximizeOnlyChild:
+				if (Children() == 1)
+				{
+					GetChild(0)->SetRect(child);
+				}
+				break;
+			default:
+				break;
+		}
+	
+		RenderChildren(grc, topLeft, modality);
+
+		Graphics::DrawRectangle(grc, captionRect, RGBAb(0, 0, 192, 255), RGBAb(0, 0, 192, 255));
+
+		Vec2i pos = TopLeft(captionRect) + Vec2i{ 4, 0 };
+		Graphics::RenderTopLeftAlignedText(grc, caption.c_str(), RGBAb(255, 255, 255, 255), 6, pos);
+	}
+
+	Rococo::IPaneContainer* Container()
+	{
+		return this;
 	}
 };
 
@@ -1602,11 +1944,6 @@ public:
 	void Free() override
 	{
 		delete this;
-	}
-
-	IPane* Base() override
-	{
-		return this;
 	}
 
 	void AddTab(int32 width, const fstring& caption, const fstring& panelText) override
@@ -1867,6 +2204,8 @@ public:
 		}
 
 		endIndex = DetermineFinalTabIndex(startIndex, x, absRect.right, tabButtonWidth);
+
+		if (endIndex < 0) return;
 
 		if (tabSelect != -1 && tabSelect >= endIndex)
 		{
@@ -2395,11 +2734,6 @@ public:
 		delete this;
 	}
 
-	IPane* Base() override
-	{
-		return this;
-	}
-
 	bool AppendEvent(const KeyboardEvent& k, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
 	{
 		ScrollEvent updateStatus;
@@ -2453,11 +2787,6 @@ public:
 	void Free() override
 	{
 		delete this;
-	}
-
-	IPane* Base() override
-	{
-		return this;
 	}
 
 	void SetAlignment(int32 horz, int32 vert, int32 paddingX, int paddingY)
@@ -2516,6 +2845,14 @@ Rococo::ITabContainer* PanelContainer::AddTabContainer(int32 tabHeight, int32 fo
 	AddChild(tabs);
 	tabs->SetRect(rect);
 	return tabs;
+}
+
+Rococo::IFramePane* PanelContainer::AddFrame(const GuiRect& rect)
+{
+	auto* f = new PanelFrame(platform);
+	AddChild(f);
+	f->SetRect(rect);
+	return f;
 }
 
 Rococo::ITextOutputPane* PanelContainer::AddTextOutput(int32 fontIndex, const fstring& eventKey, const GuiRect& rect)
@@ -2590,6 +2927,7 @@ public:
 	virtual void OnEvent(ScriptCompileArgs& args)
 	{
 		AddNativeCalls_RococoITabContainer(args.ss, nullptr);
+		AddNativeCalls_RococoIFramePane(args.ss, nullptr);
 		AddNativeCalls_RococoIPaneContainer(args.ss, nullptr);
 		AddNativeCalls_RococoILabelPane(args.ss, nullptr);
 		AddNativeCalls_RococoIPaneBuilder(args.ss, this);
@@ -2653,6 +2991,11 @@ struct PanelDelegate: public IPanelSupervisor
 	const GuiRect& ClientRect() const override
 	{
 		return current->Supervisor()->ClientRect();
+	}
+
+	void SetParent(IPanelSupervisor* parent) override
+	{
+		return current->Supervisor()->SetParent(parent);
 	}
 
 	void SetScheme(const ColourScheme& scheme) override
@@ -2740,14 +3083,24 @@ struct PanelDelegate: public IPanelSupervisor
 		return  current->Supervisor()->SetRect(rect);
 	}
 
-	void AlignLeftEdges(int32 x, boolean32 preserveSpan) override
+	void AlignLeftEdges(int32 border, boolean32 preserveSpan) override
 	{
-		return  current->Supervisor()->AlignLeftEdges(x, preserveSpan);
+		return  current->Supervisor()->AlignLeftEdges(border, preserveSpan);
 	}
 
 	void AlignRightEdges(int32 x, boolean32 preserveSpan) override
 	{
 		return  current->Supervisor()->AlignRightEdges(x, preserveSpan);
+	}
+
+	void AlignTopEdges(int32 border, boolean32 preserveSpan) override
+	{
+		return  current->Supervisor()->AlignLeftEdges(border, preserveSpan);
+	}
+
+	void AlignBottomEdges(int32 border, boolean32 preserveSpan) override
+	{
+		return  current->Supervisor()->AlignRightEdges(border, preserveSpan);
 	}
 
 	void LayoutVertically(int32 vertBorder, int32 vertSpacing) override
@@ -2955,7 +3308,7 @@ IPaneBuilderSupervisor* GuiStack::CreateOverlay()
 					Graphics::RenderBitmap_ShrinkAndPreserveAspectRatio(rc, id, absRect);
 				}
 			}
-			if (type == Type_Texture && !description.empty())
+			if (type == Type_Texture && description.size() > 4)
 			{
 				cstr key = description.c_str();
 				int index = atoi(key + 5);

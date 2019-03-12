@@ -61,8 +61,6 @@ namespace
 
    typedef std::unordered_map<ID_ENTITY, EntityImpl*, ID_ENTITY> MapIdToEntity;
 
-   static auto evStatusBusy = "sys.status.busy"_event;
-
    struct Instances : public IInstancesSupervisor
    {      
       MapIdToEntity idToEntity;
@@ -291,7 +289,7 @@ namespace
 				  be.isNowBusy = true;
 				  be.message = "Loading textures";
 				  be.resourceName = path;
-				  publisher->Publish(be, evStatusBusy);
+				  publisher->Publish(be, Rococo::Events::evBusy);
 
 				  installation->LoadResource(path, *buffer, 64_megabytes);
 				  MaterialTextureArrayBuilderArgs args{ *buffer, path };
@@ -314,14 +312,14 @@ namespace
 		  be.isNowBusy = true;
 		  be.message = "Loading textures";
 		  be.resourceName = "";
-		  publisher.Publish(be, evStatusBusy);
+		  publisher.Publish(be, Rococo::Events::evBusy);
 
 		  renderer.LoadMaterialTextureArray(z);
 
 		  be.isNowBusy = false;
 		  be.message = "";
 		  be.resourceName = "";
-		  publisher.Publish(be, evStatusBusy);
+		  publisher.Publish(be, Rococo::Events::evBusy);
 
 		  RefreshCategories();
 	  }

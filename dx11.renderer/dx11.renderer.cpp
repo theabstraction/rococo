@@ -586,6 +586,12 @@ namespace ANON
 		   plasma.push_back(p);
 	   }
 
+	   void CaptureMouse(bool enable) override
+	   {
+		   if (enable) SetCapture(this->window);
+		   else ReleaseCapture();
+	   }
+
 	   void ClearPlasma() override
 	   {
 		   plasma.clear();
@@ -614,6 +620,13 @@ namespace ANON
 		   default:
 			   return D3D11_TEXTURE_ADDRESS_CLAMP;
 		   }
+	   }
+
+	   EWindowCursor cursorId = EWindowCursor_Default;
+
+	   virtual void SetSysCursor(EWindowCursor id)
+	   {
+		   cursorId = id;
 	   }
 
 	   void SetSampler(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour)
@@ -1881,7 +1894,29 @@ namespace ANON
 		   }
 		   else
 		   {
-			   SetCursor(LoadCursor(nullptr, IDC_ARROW));
+			   const wchar_t* sysId;
+
+			   switch (cursorId)
+			   {
+			   case EWindowCursor_HDrag:
+				   sysId = IDC_SIZEWE;
+				   break;
+			   case EWindowCursor_VDrag:
+				   sysId = IDC_SIZENS;
+				   break;
+			   case EWindowCursor_BottomRightDrag:
+				   sysId = IDC_SIZENWSE;
+				   break;
+			   case EWindowCursor_HandDrag:
+				   sysId = IDC_HAND;
+				   break;
+			   case EWindowCursor_Default:
+			   default:
+				   sysId = IDC_ARROW;
+			   }
+
+			   HCURSOR hCursor = LoadCursorW(nullptr, sysId);
+			   SetCursor(hCursor);
 		   }
 	   }
 
@@ -2093,6 +2128,8 @@ namespace ANON
 		   }
 	   }
 
+	   Vec2i lastSpan{ -1,-1 };
+
 	   void RenderGui(IScene& scene)
 	   {
 		   OS::ticks now = OS::CpuTicks();
@@ -2107,6 +2144,12 @@ namespace ANON
 		   if (!UseShaders(idGuiVS, idGuiPS))
 		   {
 			   Throw(0, "Error setting Gui shaders");
+		   }
+
+		   if (lastSpan != screenSpan)
+		   {
+			   lastSpan = screenSpan;
+			   scene.OnGuiResize(lastSpan);
 		   }
 
 		   scene.RenderGui(*this);

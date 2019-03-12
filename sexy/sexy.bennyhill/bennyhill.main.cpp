@@ -164,7 +164,13 @@ using namespace Rococo::Sex;
 void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods[], cr_sex interfaceDef)
 {
 	FileAppender sexyFileAppender(ic.appendSexyFile);	
-	DeclareSexyInterface(sexyFileAppender, ic, methods[0], pc);
+
+	auto* mostDerivedMethods = methods; 
+	while (*mostDerivedMethods != nullptr)
+	{
+		mostDerivedMethods++;
+	}
+	DeclareSexyInterface(sexyFileAppender, ic, mostDerivedMethods[-1], pc);
 
 	if (ic.nceContext.SexyName()[0] != 0)
 	{
@@ -172,7 +178,7 @@ void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s,
 	}
 
 	FileAppender cppFileAppender(ic.appendCppHeaderFile);
-	DeclareCppInterface(cppFileAppender, ic, interfaceDef, methods[0], pc);
+	DeclareCppInterface(cppFileAppender, ic, interfaceDef, mostDerivedMethods[-1], pc);
 
 	if (ic.nceContext.SexyName()[0] != 0)
 	{
@@ -588,10 +594,10 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<std::string>& defOrder)
 {
 	InterfaceContext ic;
-	const ISExpression* methods = NULL;
-	const ISExpression* baseMethods = NULL;
 
 	bool hasDestructor = false;
+
+	std::vector<const ISExpression*> methods;
 
 	for(int i = 1; i < interfaceDef.NumberOfElements(); ++i)
 	{
@@ -644,7 +650,10 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<std::stri
 					Throw(directive[3], "Base interface [%s] not found prior to the definition of the derived interface [%s]", ic.sexyBase, sinterfaceName.String()->Buffer);
 				}
 
-				baseMethods = i->second->methods;
+				for (auto* m : i->second->methodArray)
+				{
+					if (m != nullptr) methods.push_back(m);
+				}
 			}
 
 			cr_sex ssexyFilename = directive.GetElement(2);
@@ -679,8 +688,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<std::stri
 		}
 		else if (AreEqual(ssname, ("methods")))
 		{
-			if (methods != NULL) Throw(directive, ("Duplicate methods directive"));
-			methods = &directive;
+			methods.push_back(&directive);
 		}
 		else if (AreEqual(ssname, ("~")))
 		{
@@ -761,9 +769,14 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<std::stri
 	}
 
    InterfaceDef* def = new InterfaceDef;
-   def->methods = methods;
+
+   for (auto* m : methods)
+   {
+	   def->methodArray.push_back(m);
+   }
+
    def->sdef = &interfaceDef;
-   def->baseMethods = baseMethods;
+   def->methodArray.push_back(nullptr);
    def->ic = ic;
 
    defOrder.push_back(ic.asSexyInterface);
@@ -839,8 +852,9 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 	{
 		auto i = pc.interfaces.find(I);
 		auto& def = *i->second;
-		const ISExpression* methods[3] = { def.methods, def.baseMethods, nullptr };
-		GenerateFiles(pc, def.ic, *def.sdef, methods, *def.sdef);
+
+		if (def.methodArray.size() < 2) Throw(0, "No methods found for %s", i->first.c_str());
+		GenerateFiles(pc, def.ic, *def.sdef, def.methodArray.data(), *def.sdef);
 	}
 
 	for (auto& i : pc.interfaces)

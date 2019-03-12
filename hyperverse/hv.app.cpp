@@ -15,13 +15,16 @@ namespace HV
 	auto evPopulateBusyCategoryId = "busy.category"_event;
 	auto evPopulateBusyResourceId = "busy.resource"_event;
 
+	struct IGuiResizeEvent
+	{
+		virtual void OnGuiResize(Vec2i span) = 0;
+	};
+
 	// Route scene methods to the platform.scene object
 	// We intercept the gui events to resize application panels
-	class AppScene: private IScene
+	class AppScene: public IScene
 	{
 		Cosmos e;
-		std::vector<IPaneBuilderSupervisor*> managedPanels;
-		Vec2i lastSpan { 0,0 };
 
 		RGBA GetClearColour() const override
 		{
@@ -45,25 +48,19 @@ namespace HV
 			return e.platform.scene.RenderShadowPass(drd, rc);
 		}
 
+		void OnGuiResize(Vec2i screenSpan) override
+		{
+			resizeCallback->OnGuiResize(screenSpan);
+		}
+
 		void RenderGui(IGuiRenderContext& grc) override
 		{
 			GuiMetrics metrics;
 			grc.Renderer().GetGuiMetrics(metrics);
-
-
-			if (lastSpan != metrics.screenSpan)
+			if (metrics.screenSpan.y >= 256 && metrics.screenSpan.x >= 256)
 			{
-				lastSpan = metrics.screenSpan;
-
-				GuiRect fullScreen = { 0, 0, lastSpan.x, lastSpan.y };
-
-				for (auto i : managedPanels)
-				{
-					i->Supervisor()->SetRect(fullScreen);
-				}
+				e.platform.gui.Render(grc);
 			}
-
-			if (metrics.screenSpan.x > 257) e.platform.gui.Render(grc);
 		}
 
 		void GetCamera(Matrix4x4& proj, Matrix4x4& world, Vec4& eye, Vec4& viewDir) override
@@ -76,21 +73,16 @@ namespace HV
 			e.platform.scene.RenderObjects(rc);
 		}
 	public:
-		AppScene(Cosmos& _e) : e(_e) {}
+		IGuiResizeEvent* resizeCallback;
 
-		void ManagePanel(IPaneBuilderSupervisor* panel)
-		{
-			managedPanels.push_back(panel);
-		}
-
-		operator IScene& () { return *this;  }
+		AppScene(Cosmos& _e) :
+			e(_e)
+		{}
 	};
 
-	class App : public IApp, public IEventCallback<FileModifiedArgs>,  public IObserver
+	class App : public IApp, public IEventCallback<FileModifiedArgs>,  public IObserver, public IGuiResizeEvent
 	{
 		Platform& platform;
-		bool editorActive{ false };
-		bool overlayActive{ false };
 
 		AutoFree<ISectors> sectors;
 		AutoFree<IPlayerSupervisor> players;	
@@ -155,6 +147,14 @@ namespace HV
 			e.platform.gui.Pop();
 		}
 
+		virtual void OnGuiResize(Vec2i screenSpan) override
+		{
+			GuiRect fullScreen = { 0, 0, screenSpan.x, screenSpan.y };
+			fpsPanel->Supervisor()->SetRect(fullScreen);
+			busyPanel->Supervisor()->SetRect(fullScreen);
+			editorPanel->Root()->SetRect(fullScreen);
+		}
+
 		virtual void OnEvent(Event& ev)
 		{
 			if (ev == HV::Events::evSetNextLevel)
@@ -204,18 +204,14 @@ namespace HV
 			editorPanel = e.platform.gui.BindPanelToScript("!scripts/panel.editor.sxy");
 			fpsPanel = e.platform.gui.BindPanelToScript("!scripts/panel.fps.sxy");
 			busyPanel = e.platform.gui.BindPanelToScript("!scripts/panel.opening.sxy");
-
 			overlayPanel = e.platform.gui.CreateOverlay();
-
-			scene.ManagePanel(fpsPanel);
-			scene.ManagePanel(busyPanel);
 
 			e.platform.gui.PushTop(fpsPanel->Supervisor(), true);
 
-			editorActive = false;
-
 			e.platform.publisher.Subscribe(this, HV::Events::evSetNextLevel);
 			e.platform.publisher.Subscribe(this, Rococo::Events::evBusy);
+
+			scene.resizeCallback = this;
 		}
 
 		~App()
@@ -291,14 +287,11 @@ namespace HV
 
 			e.platform.camera.Update(clock);
 
-			GuiRect fullRect{ 0,0,metrics.screenSpan.x, metrics.screenSpan.y };
-			editorPanel->Root()->Base()->SetRect(fullRect);
-
 			Graphics::RenderPhaseConfig config;
 			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
 			e.platform.renderer.Render(config, (IScene&) scene);
 
-			if (editorActive)
+			if (IsEditorActive() || IsOverlayActive())
 			{
 				return 100;
 			}
@@ -312,57 +305,14 @@ namespace HV
 			}
 		}
 
-		void ActivateEditor()
+		bool IsOverlayActive()
 		{
-			if (!editorActive && !overlayActive)
-			{
-				if (e.platform.gui.Top() != editorPanel->Supervisor())
-				{
-					e.platform.gui.PushTop(editorPanel->Supervisor(), true);
-					mode->Deactivate();
-
-					editorActive = true;
-				}
-			}
+			return e.platform.gui.Top() == overlayPanel->Supervisor();
 		}
 
-		void DeactivateEditor()
+		bool IsEditorActive()
 		{
-			if (editorActive)
-			{
-				if (e.platform.gui.Top() == editorPanel->Supervisor())
-				{
-					e.platform.gui.Pop();
-					if (!overlayActive) mode->Activate();
-					editorActive = false;
-				}
-			}
-		}
-
-		void ActivateOverlay()
-		{
-			if (!overlayActive)
-			{
-				if (e.platform.gui.Top() != overlayPanel->Supervisor())
-				{
-					e.platform.gui.PushTop(overlayPanel->Supervisor(), true);
-					mode->Deactivate();
-					overlayActive = true;
-				}
-			}
-		}
-
-		void DeactivateOverlay()
-		{
-			if (overlayActive)
-			{
-				if (e.platform.gui.Top() == overlayPanel->Supervisor())
-				{
-					e.platform.gui.Pop();
-					if (!editorActive) mode->Activate();
-					overlayActive = false;
-				}
-			}
+			return e.platform.gui.Top() == editorPanel->Supervisor();
 		}
 
 		void OnKeyboardEvent(const KeyboardEvent& keyboardEvent) override
@@ -371,29 +321,34 @@ namespace HV
 			{
 				Key key = e.platform.keyboard.GetKeyFromEvent(keyboardEvent);
 				auto* action = e.platform.keyboard.GetAction(key.KeyName);
-				if (action)
+
+				if (IsOverlayActive())
+				{
+					if (Eq(action, "gui.overlay.toggle") && key.isPressed)
+					{
+						e.platform.gui.Pop();
+						if (!IsEditorActive())  mode->Activate();
+					}
+				}
+				else
 				{
 					if (Eq(action, "gui.editor.toggle") && key.isPressed)
 					{
-						if (!editorActive)
+						if (IsEditorActive())
 						{
-							ActivateEditor();
+							e.platform.gui.Pop();
+							mode->Activate();
 						}
 						else
 						{
-							DeactivateEditor();
+							e.platform.gui.PushTop(editorPanel->Supervisor(), true);
+							mode->Deactivate();
 						}
 					}
 					else if (Eq(action, "gui.overlay.toggle") && key.isPressed)
 					{
-						if (!overlayActive)
-						{
-							ActivateOverlay();
-						}
-						else
-						{
-							DeactivateOverlay();
-						}
+						e.platform.gui.PushTop(overlayPanel->Supervisor(), true);
+						mode->Deactivate();
 					}
 				}
 			}

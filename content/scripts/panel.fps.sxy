@@ -22,7 +22,6 @@
 (function Main (Int32 id)->(Int32 exitCode):
 	(IPaneBuilder builder (PaneBuilder))
 	(IPaneContainer root = builder.Root)
-	(IPane fullScreen = root.Base)
-	(SetTransparentBackground fullScreen)
-	(fullScreen.SetPopulator 0 "fps")
+	(SetTransparentBackground root)
+	(root.SetPopulator 0 "fps")
 )

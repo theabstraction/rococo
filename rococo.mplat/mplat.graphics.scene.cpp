@@ -143,6 +143,11 @@ namespace
          entities.push_back(id);
       }
 
+	  void OnGuiResize(Vec2i span) override
+	  {
+
+	  }
+
       virtual void RenderGui(IGuiRenderContext& grc)
       {
       }

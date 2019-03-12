@@ -113,8 +113,7 @@ namespace Rococo
    {
       InterfaceContext ic;
       const Rococo::Sex::ISExpression* sdef;
-      const Rococo::Sex::ISExpression* methods;
-	  const Rococo::Sex::ISExpression* baseMethods;
+	  std::vector<const ISExpression*> methodArray;
    };
 
    struct EnumContext
@@ -158,6 +157,7 @@ namespace Rococo
       TTypeMap structs;
       std::unordered_map<Rococo::stdstring, InterfaceDef*> interfaces;
       std::vector<EnumDef> enums;
+	  mutable std::unordered_map < Rococo::stdstring, uint32> namespaces;
    };
 
    Rococo::cstr StringFrom(Rococo::Sex::cr_sex s);

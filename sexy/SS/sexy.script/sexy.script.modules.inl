@@ -1374,7 +1374,7 @@ namespace Rococo { namespace Script
 		void ResolveNamespaces()
 		{
 			namespaceDefinitions.clear();
-			for(auto i = scripts.begin(); i != scripts.end(); ++i)
+			for (auto i = scripts.begin(); i != scripts.end(); ++i)
 			{
 				CScript* module = i->second;
 				module->AppendCompiledNamespaces(namespaceDefinitions);
@@ -1382,20 +1382,15 @@ namespace Rococo { namespace Script
 
 			// Sort the namespace defs by name length ascending. Note Length('A.B.C.D') > Length('A.B.C') > Length('A.B') > Length('A')
 			// Sorting gives 'A', 'A.B', 'A.B.C', 'A.B.C.D', which is the same order we need to construct 'A.B.C.D' from its ancestors
-			std::sort(namespaceDefinitions.begin(), namespaceDefinitions.end()); 
+			std::sort(namespaceDefinitions.begin(), namespaceDefinitions.end());
 
-			for(auto j = namespaceDefinitions.begin(); j != namespaceDefinitions.end(); ++j)
+			for (auto j = namespaceDefinitions.begin(); j != namespaceDefinitions.end(); ++j)
 			{
 				cstr nsSymbol = j->E->String()->Buffer;
 				INamespace* ns = programObject.GetRootNamespace().FindSubspace(nsSymbol);
 				if (ns != NULL)
 				{
-					CScript* origin = FindDefiningModule(ns);
-					cstr source = (origin == NULL) ? ("an intrinsic module") : origin->Tree().Source().Name();	
-
-					sexstringstream<1024> streamer;
-					streamer.sb << "The namespace " << nsSymbol << (" is defined in ") << source << (". Only one definition is permitted");				
-					Throw(*(j->E), streamer);
+					// Don't whinge. It is too annoying to stipulate namespaces must only be defined once
 				}
 				else
 				{
@@ -1409,8 +1404,8 @@ namespace Rococo { namespace Script
 					}
 					catch (std::exception& e)
 					{
-                  Rococo::Sex::Throw(*(j->E), ("std::exception thrown: %S"), e.what());
-					}				
+						Rococo::Sex::Throw(*(j->E), ("std::exception thrown: %S"), e.what());
+					}
 				}
 			}
 		}

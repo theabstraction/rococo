@@ -285,19 +285,30 @@ namespace
 		appender.Append((")\n"));
 	}
 
+	void DeclareNamespaces(FileAppender& appender, cstr ns, const ParseContext& pc)
+	{
+		if (pc.namespaces.find(ns) == pc.namespaces.end())
+		{
+			appender.Append("(namespace %s)\n", ns);
+			pc.namespaces[std::string(ns)] = 1;
+		}
+	}
+
 	void DeclareSexyEnum(FileAppender& appender, const EnumContext& ec, cr_sex senumDef, const ParseContext& pc)
 	{
 		NamespaceSplitter splitter(ec.asSexyEnum);
 
-		cstr body, tail;
-		if (!splitter.SplitTail(body, tail))
+		cstr ns, tail;
+		if (!splitter.SplitTail(ns, tail))
 		{
 			Throw(senumDef, ("Could not split namespace of enum definition"));
 		}
 
+		DeclareNamespaces(appender, ns, pc);
+
 		for (auto &i : ec.values)
 		{
-			appender.Append(("(macro %s.%s%s in out (out.AddAtomic \"0x%I64X\"))\n"), body, tail, i.first.c_str(), i.second);
+			appender.Append("(macro %s.%s%s in out (out.AddAtomic \"0x%I64X\"))\n", ns, tail, i.first.c_str(), i.second);
 		}
 
 		appender.Append(("\n"));

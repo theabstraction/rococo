@@ -228,6 +228,8 @@ namespace Rococo
 			{
 				DeclareSexyEnum(sexyFileAppender, i.ec, *i.sdef, pc);
 			}
+
+			pc.namespaces.clear();
 		}
 
 		enumFiles.clear();
@@ -326,7 +328,7 @@ namespace Rococo
 			char cppNSName[256];
 			GetFQCppStructName(cppCompressedNSName, cppNSName, 256, ic.cppBase);
 
-			appender.Append(": public %s", cppNSName);
+			appender.Append(": virtual public %s", cppNSName);
 		}
 		appender.Append(nsDepth > 0 ? ("\n\t{\n") : ("\n{\n"));
 

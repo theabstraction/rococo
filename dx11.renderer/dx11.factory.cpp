@@ -95,7 +95,7 @@ namespace ANON
 			classDef.style = 0;
 			classDef.cbWndExtra = 0;
 			classDef.hbrBackground = (HBRUSH)COLOR_WINDOW;
-			classDef.hCursor = LoadCursor(nullptr, IDC_ARROW);
+			classDef.hCursor = NULL; // LoadCursor(nullptr, IDC_ARROW);
 			classDef.hIcon = spec.largeIcon;
 			classDef.hIconSm = spec.smallIcon;
 			classDef.hInstance = spec.hResourceInstance;

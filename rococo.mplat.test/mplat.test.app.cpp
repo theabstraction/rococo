@@ -115,25 +115,21 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
 	   return nullptr;
    }
 
+   void OnGuiResize(Vec2i span) override
+   {
+	   GuiRect testRect{ span.x >> 1, 0, span.x, span.y };
+	   testPanel->Supervisor()->SetRect(testRect);
+
+	   GuiRect fullRect{ 0, 0, span.x, span.y };
+	   introPanel->Supervisor()->SetRect(fullRect);
+	   soundPanel->Supervisor()->SetRect(fullRect);
+	   creditsPanel->Supervisor()->SetRect(fullRect);
+	   graphicsPanel->Supervisor()->SetRect(fullRect);
+	   quitPanel->Supervisor()->SetRect(fullRect);
+   }
+
    void RenderGui(IGuiRenderContext& grc) override
    {
-      using namespace Graphics;
-
-      GuiMetrics metrics;
-      grc.Renderer().GetGuiMetrics(metrics);
-         
-      auto ss = metrics.screenSpan;
-
-      GuiRect testRect{ ss.x >> 1, 0, ss.x, ss.y };
-      testPanel->Supervisor()->SetRect(testRect);
-
-      GuiRect fullRect{ 0, 0, ss.x, ss.y };
-      introPanel->Supervisor()->SetRect(fullRect);
-      soundPanel->Supervisor()->SetRect(fullRect);
-      creditsPanel->Supervisor()->SetRect(fullRect);
-      graphicsPanel->Supervisor()->SetRect(fullRect);
-      quitPanel->Supervisor()->SetRect(fullRect);
-
       platform.gui.Render(grc);
    }
 

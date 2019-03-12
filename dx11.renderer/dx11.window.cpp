@@ -132,6 +132,8 @@ namespace ANON
 					}
 					return 0;
 				}
+			case WM_SETCURSOR:
+				return TRUE;
 			case WM_SETFOCUS:
 				hasFocus = true;
 				RegisterRawInput(hWnd);

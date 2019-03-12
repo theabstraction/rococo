@@ -339,7 +339,7 @@ namespace Rococo
       cstr name;
    };
 
-   struct IPanelSupervisor: IPane
+   struct IPanelSupervisor: virtual IPane
    {
       virtual bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) = 0;
       virtual void AppendEvent(const MouseEvent& me,  const Vec2i& absTopLeft) = 0;
@@ -357,6 +357,7 @@ namespace Rococo
 
       virtual void Free() = 0;
       virtual void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) = 0;
+	  virtual void SetParent(IPanelSupervisor* parent) = 0;
    };
 
    struct IPaneBuilderSupervisor : public IPaneBuilder
@@ -447,6 +448,15 @@ namespace Rococo
 			cstr message;
 			cstr resourceName;
 	   };
+
+	   struct DirectMouseEvent : public EventArgs
+	   {
+		   const MouseEvent& me;
+		   bool consumed = false;
+		   DirectMouseEvent(const MouseEvent& _me) : me(_me) {}
+	   };
+
+	   extern EventIdRef evUIMouseEvent;
    }
 
    struct IScrollbar

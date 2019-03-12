@@ -88,10 +88,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="widget.frame.cpp" />
     <ClCompile Include="widget.statusbar.cpp" />
-    <ClCompile Include="widget.toolbar.cpp" />
-    <ClCompile Include="widget.tree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.widgets.h" />

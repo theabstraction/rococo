@@ -172,6 +172,7 @@ namespace Rococo
 	{
 		virtual void GetCamera(Matrix4x4& camera, Matrix4x4& world, Vec4& eye, Vec4& viewDir) = 0;
 		virtual RGBA GetClearColour() const = 0;
+		virtual void OnGuiResize(Vec2i screenSpan) = 0;
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
 		virtual void RenderObjects(IRenderContext& rc) = 0; // Do not change lights from here
 		virtual const Light* GetLights(size_t& nCount) const = 0;	// Called prior to the shadow pass. 
@@ -278,6 +279,15 @@ namespace Rococo
 		TextureFormat format;
 	};
 
+	enum EWindowCursor
+	{
+		EWindowCursor_Default = 0,
+		EWindowCursor_HDrag,
+		EWindowCursor_VDrag,
+		EWindowCursor_HandDrag,
+		EWindowCursor_BottomRightDrag
+	};
+
 	ROCOCOAPI IRenderer
 	{
 	  virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
@@ -285,6 +295,7 @@ namespace Rococo
 	  virtual void AddPlasma(const ParticleVertex& p) = 0;
 	  virtual ID_TEXTURE CreateDepthTarget(int32 width, int32 height) = 0;
 	  virtual ID_TEXTURE CreateRenderTarget(int32 width, int32 height) = 0;
+	  virtual void CaptureMouse(bool enable) = 0;
 	  virtual void ClearMeshes() = 0;
 	  virtual void ClearFog() = 0;
 	  virtual void ClearPlasma() = 0;
@@ -292,6 +303,7 @@ namespace Rococo
 	  virtual void DeleteMesh(ID_SYS_MESH id) = 0;
 	  virtual ID_TEXTURE FindTexture(cstr name) const = 0;
 	  virtual Fonts::IFont& FontMetrics() = 0;
+	  virtual void SetSysCursor(EWindowCursor id) = 0;
 	  virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
 	  virtual void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const = 0;
 	  virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id) = 0;

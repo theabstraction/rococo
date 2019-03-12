@@ -1,3 +1,53 @@
+namespace Rococo { 
+	bool TryParse(const Rococo::fstring& s, ELayoutAlgorithm& value)
+	{
+		if (s ==  "ELayoutAlgorithm_None"_fstring)
+		{
+			value = ELayoutAlgorithm_None;
+		}
+		else if (s ==  "ELayoutAlgorithm_MaximizeOnlyChild"_fstring)
+		{
+			value = ELayoutAlgorithm_MaximizeOnlyChild;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool TryShortParse(const Rococo::fstring& s, ELayoutAlgorithm& value)
+	{
+		if (s ==  "None"_fstring)
+		{
+			value = ELayoutAlgorithm_None;
+		}
+		else if (s ==  "MaximizeOnlyChild"_fstring)
+		{
+			value = ELayoutAlgorithm_MaximizeOnlyChild;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+	fstring ToShortString(ELayoutAlgorithm value)
+	{
+		switch(value)
+		{
+			case ELayoutAlgorithm_None:
+				return "None"_fstring;
+			case ELayoutAlgorithm_MaximizeOnlyChild:
+				return "MaximizeOnlyChild"_fstring;
+			default:
+				return {"",0};
+		}
+	}
+}// Rococo.ELayoutAlgorithm
+
 namespace Rococo { namespace Graphics { 
 	bool TryParse(const Rococo::fstring& s, OrientationFlags& value)
 	{
@@ -520,15 +570,15 @@ namespace
 		_offset += sizeof(preserveSpan);
 		ReadInput(preserveSpan, _sf, -_offset);
 
-		int32 x;
-		_offset += sizeof(x);
-		ReadInput(x, _sf, -_offset);
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
 
 		Rococo::IPane* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AlignLeftEdges(x, preserveSpan);
+		_pObject->AlignLeftEdges(borderPixels, preserveSpan);
 	}
 	void NativeRococoIPaneAlignRightEdges(NativeCallEnvironment& _nce)
 	{
@@ -538,15 +588,51 @@ namespace
 		_offset += sizeof(preserveSpan);
 		ReadInput(preserveSpan, _sf, -_offset);
 
-		int32 x;
-		_offset += sizeof(x);
-		ReadInput(x, _sf, -_offset);
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
 
 		Rococo::IPane* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AlignRightEdges(x, preserveSpan);
+		_pObject->AlignRightEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIPaneAlignTopEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignTopEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIPaneAlignBottomEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignBottomEdges(borderPixels, preserveSpan);
 	}
 	void NativeRococoIPaneLayoutVertically(NativeCallEnvironment& _nce)
 	{
@@ -627,8 +713,10 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIPaneSetVisible, nullptr, ("IPaneSetVisible (Pointer hObject)(Bool isVisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoIPaneGetRect, nullptr, ("IPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoIPaneSetRect, nullptr, ("IPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneAlignLeftEdges, nullptr, ("IPaneAlignLeftEdges (Pointer hObject)(Int32 x)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneAlignRightEdges, nullptr, ("IPaneAlignRightEdges (Pointer hObject)(Int32 x)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneAlignLeftEdges, nullptr, ("IPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneAlignRightEdges, nullptr, ("IPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneAlignTopEdges, nullptr, ("IPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneAlignBottomEdges, nullptr, ("IPaneAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIPaneLayoutVertically, nullptr, ("IPaneLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
 		ss.AddNativeCall(ns, NativeRococoIPaneSetCommand, nullptr, ("IPaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
 		ss.AddNativeCall(ns, NativeRococoIPaneSetPopulator, nullptr, ("IPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
@@ -642,6 +730,296 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
+	void NativeRococoIPaneContainerSetColourBk1(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourBk1(normal, hilight);
+	}
+	void NativeRococoIPaneContainerSetColourBk2(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourBk2(normal, hilight);
+	}
+	void NativeRococoIPaneContainerSetColourEdge1(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourEdge1(normal, hilight);
+	}
+	void NativeRococoIPaneContainerSetColourEdge2(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourEdge2(normal, hilight);
+	}
+	void NativeRococoIPaneContainerSetColourFont(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourFont(normal, hilight);
+	}
+	void NativeRococoIPaneContainerIsVisible(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isVisible = _pObject->IsVisible();
+		_offset += sizeof(isVisible);
+		WriteOutput(isVisible, _sf, -_offset);
+	}
+	void NativeRococoIPaneContainerIsNormalized(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isNormalized = _pObject->IsNormalized();
+		_offset += sizeof(isNormalized);
+		WriteOutput(isNormalized, _sf, -_offset);
+	}
+	void NativeRococoIPaneContainerSetVisible(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 isVisible;
+		_offset += sizeof(isVisible);
+		ReadInput(isVisible, _sf, -_offset);
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetVisible(isVisible);
+	}
+	void NativeRococoIPaneContainerGetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetRect(*rect);
+	}
+	void NativeRococoIPaneContainerSetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetRect(*rect);
+	}
+	void NativeRococoIPaneContainerAlignLeftEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignLeftEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIPaneContainerAlignRightEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignRightEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIPaneContainerAlignTopEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignTopEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIPaneContainerAlignBottomEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignBottomEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIPaneContainerLayoutVertically(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 vertSpacing;
+		_offset += sizeof(vertSpacing);
+		ReadInput(vertSpacing, _sf, -_offset);
+
+		int32 vertBorder;
+		_offset += sizeof(vertBorder);
+		ReadInput(vertBorder, _sf, -_offset);
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->LayoutVertically(vertBorder, vertSpacing);
+	}
+	void NativeRococoIPaneContainerSetCommand(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		boolean32 deferAction;
+		_offset += sizeof(deferAction);
+		ReadInput(deferAction, _sf, -_offset);
+
+		int32 stateIndex;
+		_offset += sizeof(stateIndex);
+		ReadInput(stateIndex, _sf, -_offset);
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetCommand(stateIndex, deferAction, text);
+	}
+	void NativeRococoIPaneContainerSetPopulator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _populatorName;
+		ReadInput(_populatorName, _sf, -_offset);
+		fstring populatorName { _populatorName->buffer, _populatorName->length };
+
+
+		int32 stateIndex;
+		_offset += sizeof(stateIndex);
+		ReadInput(stateIndex, _sf, -_offset);
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetPopulator(stateIndex, populatorName);
+	}
 	void NativeRococoIPaneContainerAddContainer(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -659,6 +1037,24 @@ namespace
 		auto& _containerStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IPaneContainer"), ("ProxyIPaneContainer"), _nce.ss);
 		CReflectedClass* _sxycontainer = _nce.ss.Represent(_containerStruct, container);
 		WriteOutput(&_sxycontainer->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoIPaneContainerAddFrame(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::IFramePane* frame = _pObject->AddFrame(*rect);
+		_offset += sizeof(CReflectedClass*);
+		auto& _frameStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IFramePane"), ("ProxyIFramePane"), _nce.ss);
+		CReflectedClass* _sxyframe = _nce.ss.Represent(_frameStruct, frame);
+		WriteOutput(&_sxyframe->header._vTables[0], _sf, -_offset);
 	}
 	void NativeRococoIPaneContainerAddTabContainer(NativeCallEnvironment& _nce)
 	{
@@ -846,20 +1242,6 @@ namespace
 		CReflectedClass* _sxyradio = _nce.ss.Represent(_radioStruct, radio);
 		WriteOutput(&_sxyradio->header._vTables[0], _sf, -_offset);
 	}
-	void NativeRococoIPaneContainerBase(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::IPaneContainer* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		Rococo::IPane* base = _pObject->Base();
-		_offset += sizeof(CReflectedClass*);
-		auto& _baseStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IPane"), ("ProxyIPane"), _nce.ss);
-		CReflectedClass* _sxybase = _nce.ss.Represent(_baseStruct, base);
-		WriteOutput(&_sxybase->header._vTables[0], _sf, -_offset);
-	}
 
 }
 
@@ -867,14 +1249,31 @@ namespace Rococo {
 	void AddNativeCalls_RococoIPaneContainer(Rococo::Script::IPublicScriptSystem& ss, Rococo::IPaneContainer* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetColourBk1, nullptr, ("IPaneContainerSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetColourBk2, nullptr, ("IPaneContainerSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetColourEdge1, nullptr, ("IPaneContainerSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetColourEdge2, nullptr, ("IPaneContainerSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetColourFont, nullptr, ("IPaneContainerSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerIsVisible, nullptr, ("IPaneContainerIsVisible (Pointer hObject) -> (Bool isVisible)"));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerIsNormalized, nullptr, ("IPaneContainerIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetVisible, nullptr, ("IPaneContainerSetVisible (Pointer hObject)(Bool isVisible) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerGetRect, nullptr, ("IPaneContainerGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetRect, nullptr, ("IPaneContainerSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAlignLeftEdges, nullptr, ("IPaneContainerAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAlignRightEdges, nullptr, ("IPaneContainerAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAlignTopEdges, nullptr, ("IPaneContainerAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAlignBottomEdges, nullptr, ("IPaneContainerAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerLayoutVertically, nullptr, ("IPaneContainerLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetCommand, nullptr, ("IPaneContainerSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetPopulator, nullptr, ("IPaneContainerSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddContainer, nullptr, ("IPaneContainerAddContainer (Pointer hObject)(Sys.Maths.Recti rect) -> (Rococo.IPaneContainer container)"));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddFrame, nullptr, ("IPaneContainerAddFrame (Pointer hObject)(Sys.Maths.Recti rect) -> (Rococo.IFramePane frame)"));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddTabContainer, nullptr, ("IPaneContainerAddTabContainer (Pointer hObject)(Int32 tabHeight)(Int32 fontIndex)(Sys.Maths.Recti rect) -> (Rococo.ITabContainer container)"));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddLabel, nullptr, ("IPaneContainerAddLabel (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Maths.Recti rect) -> (Rococo.ILabelPane label)"));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddSlider, nullptr, ("IPaneContainerAddSlider (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Maths.Recti rect)(Float32 minValue)(Float32 maxValue) -> (Rococo.ISlider slider)"));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddScroller, nullptr, ("IPaneContainerAddScroller (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Recti rect)(Bool isVertical) -> (Rococo.IScroller scroller)"));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddTextOutput, nullptr, ("IPaneContainerAddTextOutput (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString key)(Sys.Maths.Recti rect) -> (Rococo.ITextOutputPane textBox)"));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddRadioButton, nullptr, ("IPaneContainerAddRadioButton (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Type.IString key)(Sys.Type.IString value)(Sys.Maths.Recti rect) -> (Rococo.IRadioButton radio)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerBase, nullptr, ("IPaneContainerBase (Pointer hObject) -> (Rococo.IPane base)"));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::ITabContainer 
@@ -885,6 +1284,296 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
+	void NativeRococoITabContainerSetColourBk1(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourBk1(normal, hilight);
+	}
+	void NativeRococoITabContainerSetColourBk2(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourBk2(normal, hilight);
+	}
+	void NativeRococoITabContainerSetColourEdge1(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourEdge1(normal, hilight);
+	}
+	void NativeRococoITabContainerSetColourEdge2(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourEdge2(normal, hilight);
+	}
+	void NativeRococoITabContainerSetColourFont(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourFont(normal, hilight);
+	}
+	void NativeRococoITabContainerIsVisible(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isVisible = _pObject->IsVisible();
+		_offset += sizeof(isVisible);
+		WriteOutput(isVisible, _sf, -_offset);
+	}
+	void NativeRococoITabContainerIsNormalized(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isNormalized = _pObject->IsNormalized();
+		_offset += sizeof(isNormalized);
+		WriteOutput(isNormalized, _sf, -_offset);
+	}
+	void NativeRococoITabContainerSetVisible(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 isVisible;
+		_offset += sizeof(isVisible);
+		ReadInput(isVisible, _sf, -_offset);
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetVisible(isVisible);
+	}
+	void NativeRococoITabContainerGetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetRect(*rect);
+	}
+	void NativeRococoITabContainerSetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetRect(*rect);
+	}
+	void NativeRococoITabContainerAlignLeftEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignLeftEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoITabContainerAlignRightEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignRightEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoITabContainerAlignTopEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignTopEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoITabContainerAlignBottomEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignBottomEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoITabContainerLayoutVertically(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 vertSpacing;
+		_offset += sizeof(vertSpacing);
+		ReadInput(vertSpacing, _sf, -_offset);
+
+		int32 vertBorder;
+		_offset += sizeof(vertBorder);
+		ReadInput(vertBorder, _sf, -_offset);
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->LayoutVertically(vertBorder, vertSpacing);
+	}
+	void NativeRococoITabContainerSetCommand(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		boolean32 deferAction;
+		_offset += sizeof(deferAction);
+		ReadInput(deferAction, _sf, -_offset);
+
+		int32 stateIndex;
+		_offset += sizeof(stateIndex);
+		ReadInput(stateIndex, _sf, -_offset);
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetCommand(stateIndex, deferAction, text);
+	}
+	void NativeRococoITabContainerSetPopulator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _populatorName;
+		ReadInput(_populatorName, _sf, -_offset);
+		fstring populatorName { _populatorName->buffer, _populatorName->length };
+
+
+		int32 stateIndex;
+		_offset += sizeof(stateIndex);
+		ReadInput(stateIndex, _sf, -_offset);
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetPopulator(stateIndex, populatorName);
+	}
 	void NativeRococoITabContainerAddTab(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -927,20 +1616,6 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetTabPopulator(populatorName);
 	}
-	void NativeRococoITabContainerBase(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::ITabContainer* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		Rococo::IPane* base = _pObject->Base();
-		_offset += sizeof(CReflectedClass*);
-		auto& _baseStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IPane"), ("ProxyIPane"), _nce.ss);
-		CReflectedClass* _sxybase = _nce.ss.Represent(_baseStruct, base);
-		WriteOutput(&_sxybase->header._vTables[0], _sf, -_offset);
-	}
 
 }
 
@@ -948,9 +1623,668 @@ namespace Rococo {
 	void AddNativeCalls_RococoITabContainer(Rococo::Script::IPublicScriptSystem& ss, Rococo::ITabContainer* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetColourBk1, nullptr, ("ITabContainerSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetColourBk2, nullptr, ("ITabContainerSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetColourEdge1, nullptr, ("ITabContainerSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetColourEdge2, nullptr, ("ITabContainerSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetColourFont, nullptr, ("ITabContainerSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerIsVisible, nullptr, ("ITabContainerIsVisible (Pointer hObject) -> (Bool isVisible)"));
+		ss.AddNativeCall(ns, NativeRococoITabContainerIsNormalized, nullptr, ("ITabContainerIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetVisible, nullptr, ("ITabContainerSetVisible (Pointer hObject)(Bool isVisible) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerGetRect, nullptr, ("ITabContainerGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetRect, nullptr, ("ITabContainerSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerAlignLeftEdges, nullptr, ("ITabContainerAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerAlignRightEdges, nullptr, ("ITabContainerAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerAlignTopEdges, nullptr, ("ITabContainerAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerAlignBottomEdges, nullptr, ("ITabContainerAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerLayoutVertically, nullptr, ("ITabContainerLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetCommand, nullptr, ("ITabContainerSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetPopulator, nullptr, ("ITabContainerSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
 		ss.AddNativeCall(ns, NativeRococoITabContainerAddTab, nullptr, ("ITabContainerAddTab (Pointer hObject)(Int32 tabWidth)(Sys.Type.IString caption)(Sys.Type.IString panelText) -> "));
 		ss.AddNativeCall(ns, NativeRococoITabContainerSetTabPopulator, nullptr, ("ITabContainerSetTabPopulator (Pointer hObject)(Sys.Type.IString populatorName) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerBase, nullptr, ("ITabContainerBase (Pointer hObject) -> (Rococo.IPane base)"));
+	}
+}
+// BennyHill generated Sexy native functions for Rococo::IFramePane 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoIFramePaneSetColourBk1(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourBk1(normal, hilight);
+	}
+	void NativeRococoIFramePaneSetColourBk2(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourBk2(normal, hilight);
+	}
+	void NativeRococoIFramePaneSetColourEdge1(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourEdge1(normal, hilight);
+	}
+	void NativeRococoIFramePaneSetColourEdge2(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourEdge2(normal, hilight);
+	}
+	void NativeRococoIFramePaneSetColourFont(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourFont(normal, hilight);
+	}
+	void NativeRococoIFramePaneIsVisible(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isVisible = _pObject->IsVisible();
+		_offset += sizeof(isVisible);
+		WriteOutput(isVisible, _sf, -_offset);
+	}
+	void NativeRococoIFramePaneIsNormalized(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isNormalized = _pObject->IsNormalized();
+		_offset += sizeof(isNormalized);
+		WriteOutput(isNormalized, _sf, -_offset);
+	}
+	void NativeRococoIFramePaneSetVisible(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 isVisible;
+		_offset += sizeof(isVisible);
+		ReadInput(isVisible, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetVisible(isVisible);
+	}
+	void NativeRococoIFramePaneGetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetRect(*rect);
+	}
+	void NativeRococoIFramePaneSetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetRect(*rect);
+	}
+	void NativeRococoIFramePaneAlignLeftEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignLeftEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIFramePaneAlignRightEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignRightEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIFramePaneAlignTopEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignTopEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIFramePaneAlignBottomEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignBottomEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIFramePaneLayoutVertically(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 vertSpacing;
+		_offset += sizeof(vertSpacing);
+		ReadInput(vertSpacing, _sf, -_offset);
+
+		int32 vertBorder;
+		_offset += sizeof(vertBorder);
+		ReadInput(vertBorder, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->LayoutVertically(vertBorder, vertSpacing);
+	}
+	void NativeRococoIFramePaneSetCommand(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		boolean32 deferAction;
+		_offset += sizeof(deferAction);
+		ReadInput(deferAction, _sf, -_offset);
+
+		int32 stateIndex;
+		_offset += sizeof(stateIndex);
+		ReadInput(stateIndex, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetCommand(stateIndex, deferAction, text);
+	}
+	void NativeRococoIFramePaneSetPopulator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _populatorName;
+		ReadInput(_populatorName, _sf, -_offset);
+		fstring populatorName { _populatorName->buffer, _populatorName->length };
+
+
+		int32 stateIndex;
+		_offset += sizeof(stateIndex);
+		ReadInput(stateIndex, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetPopulator(stateIndex, populatorName);
+	}
+	void NativeRococoIFramePaneAddContainer(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::IPaneContainer* container = _pObject->AddContainer(*rect);
+		_offset += sizeof(CReflectedClass*);
+		auto& _containerStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IPaneContainer"), ("ProxyIPaneContainer"), _nce.ss);
+		CReflectedClass* _sxycontainer = _nce.ss.Represent(_containerStruct, container);
+		WriteOutput(&_sxycontainer->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoIFramePaneAddFrame(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::IFramePane* frame = _pObject->AddFrame(*rect);
+		_offset += sizeof(CReflectedClass*);
+		auto& _frameStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IFramePane"), ("ProxyIFramePane"), _nce.ss);
+		CReflectedClass* _sxyframe = _nce.ss.Represent(_frameStruct, frame);
+		WriteOutput(&_sxyframe->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoIFramePaneAddTabContainer(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		int32 fontIndex;
+		_offset += sizeof(fontIndex);
+		ReadInput(fontIndex, _sf, -_offset);
+
+		int32 tabHeight;
+		_offset += sizeof(tabHeight);
+		ReadInput(tabHeight, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::ITabContainer* container = _pObject->AddTabContainer(tabHeight, fontIndex, *rect);
+		_offset += sizeof(CReflectedClass*);
+		auto& _containerStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("ITabContainer"), ("ProxyITabContainer"), _nce.ss);
+		CReflectedClass* _sxycontainer = _nce.ss.Represent(_containerStruct, container);
+		WriteOutput(&_sxycontainer->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoIFramePaneAddLabel(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		int32 fontIndex;
+		_offset += sizeof(fontIndex);
+		ReadInput(fontIndex, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::ILabelPane* label = _pObject->AddLabel(fontIndex, text, *rect);
+		_offset += sizeof(CReflectedClass*);
+		auto& _labelStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("ILabelPane"), ("ProxyILabelPane"), _nce.ss);
+		CReflectedClass* _sxylabel = _nce.ss.Represent(_labelStruct, label);
+		WriteOutput(&_sxylabel->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoIFramePaneAddSlider(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float maxValue;
+		_offset += sizeof(maxValue);
+		ReadInput(maxValue, _sf, -_offset);
+
+		float minValue;
+		_offset += sizeof(minValue);
+		ReadInput(minValue, _sf, -_offset);
+
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		int32 fontIndex;
+		_offset += sizeof(fontIndex);
+		ReadInput(fontIndex, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::ISlider* slider = _pObject->AddSlider(fontIndex, text, *rect, minValue, maxValue);
+		_offset += sizeof(CReflectedClass*);
+		auto& _sliderStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("ISlider"), ("ProxyISlider"), _nce.ss);
+		CReflectedClass* _sxyslider = _nce.ss.Represent(_sliderStruct, slider);
+		WriteOutput(&_sxyslider->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoIFramePaneAddScroller(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 isVertical;
+		_offset += sizeof(isVertical);
+		ReadInput(isVertical, _sf, -_offset);
+
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _key;
+		ReadInput(_key, _sf, -_offset);
+		fstring key { _key->buffer, _key->length };
+
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::IScroller* scroller = _pObject->AddScroller(key, *rect, isVertical);
+		_offset += sizeof(CReflectedClass*);
+		auto& _scrollerStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IScroller"), ("ProxyIScroller"), _nce.ss);
+		CReflectedClass* _sxyscroller = _nce.ss.Represent(_scrollerStruct, scroller);
+		WriteOutput(&_sxyscroller->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoIFramePaneAddTextOutput(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _key;
+		ReadInput(_key, _sf, -_offset);
+		fstring key { _key->buffer, _key->length };
+
+
+		int32 fontIndex;
+		_offset += sizeof(fontIndex);
+		ReadInput(fontIndex, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::ITextOutputPane* textBox = _pObject->AddTextOutput(fontIndex, key, *rect);
+		_offset += sizeof(CReflectedClass*);
+		auto& _textBoxStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("ITextOutputPane"), ("ProxyITextOutputPane"), _nce.ss);
+		CReflectedClass* _sxytextBox = _nce.ss.Represent(_textBoxStruct, textBox);
+		WriteOutput(&_sxytextBox->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoIFramePaneAddRadioButton(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _value;
+		ReadInput(_value, _sf, -_offset);
+		fstring value { _value->buffer, _value->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _key;
+		ReadInput(_key, _sf, -_offset);
+		fstring key { _key->buffer, _key->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		int32 fontIndex;
+		_offset += sizeof(fontIndex);
+		ReadInput(fontIndex, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::IRadioButton* radio = _pObject->AddRadioButton(fontIndex, text, key, value, *rect);
+		_offset += sizeof(CReflectedClass*);
+		auto& _radioStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IRadioButton"), ("ProxyIRadioButton"), _nce.ss);
+		CReflectedClass* _sxyradio = _nce.ss.Represent(_radioStruct, radio);
+		WriteOutput(&_sxyradio->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoIFramePaneGetChildRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetChildRect(*rect);
+	}
+	void NativeRococoIFramePaneContainer(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::IPaneContainer* container = _pObject->Container();
+		_offset += sizeof(CReflectedClass*);
+		auto& _containerStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IPaneContainer"), ("ProxyIPaneContainer"), _nce.ss);
+		CReflectedClass* _sxycontainer = _nce.ss.Represent(_containerStruct, container);
+		WriteOutput(&_sxycontainer->header._vTables[0], _sf, -_offset);
+	}
+	void NativeRococoIFramePaneSetLayoutAlgorithm(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ELayoutAlgorithm layout;
+		_offset += sizeof(layout);
+		ReadInput(layout, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetLayoutAlgorithm(layout);
+	}
+	void NativeRococoIFramePaneSetMinMaxSpan(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 maxDY;
+		_offset += sizeof(maxDY);
+		ReadInput(maxDY, _sf, -_offset);
+
+		int32 maxDX;
+		_offset += sizeof(maxDX);
+		ReadInput(maxDX, _sf, -_offset);
+
+		int32 minDY;
+		_offset += sizeof(minDY);
+		ReadInput(minDY, _sf, -_offset);
+
+		int32 minDX;
+		_offset += sizeof(minDX);
+		ReadInput(minDX, _sf, -_offset);
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetMinMaxSpan(minDX, minDY, maxDX, maxDY);
+	}
+	void NativeRococoIFramePaneSetCaption(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _caption;
+		ReadInput(_caption, _sf, -_offset);
+		fstring caption { _caption->buffer, _caption->length };
+
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetCaption(caption);
+	}
+
+}
+
+namespace Rococo { 
+	void AddNativeCalls_RococoIFramePane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IFramePane* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetColourBk1, nullptr, ("IFramePaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetColourBk2, nullptr, ("IFramePaneSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetColourEdge1, nullptr, ("IFramePaneSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetColourEdge2, nullptr, ("IFramePaneSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetColourFont, nullptr, ("IFramePaneSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneIsVisible, nullptr, ("IFramePaneIsVisible (Pointer hObject) -> (Bool isVisible)"));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneIsNormalized, nullptr, ("IFramePaneIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetVisible, nullptr, ("IFramePaneSetVisible (Pointer hObject)(Bool isVisible) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneGetRect, nullptr, ("IFramePaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetRect, nullptr, ("IFramePaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAlignLeftEdges, nullptr, ("IFramePaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAlignRightEdges, nullptr, ("IFramePaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAlignTopEdges, nullptr, ("IFramePaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAlignBottomEdges, nullptr, ("IFramePaneAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneLayoutVertically, nullptr, ("IFramePaneLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetCommand, nullptr, ("IFramePaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetPopulator, nullptr, ("IFramePaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddContainer, nullptr, ("IFramePaneAddContainer (Pointer hObject)(Sys.Maths.Recti rect) -> (Rococo.IPaneContainer container)"));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddFrame, nullptr, ("IFramePaneAddFrame (Pointer hObject)(Sys.Maths.Recti rect) -> (Rococo.IFramePane frame)"));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddTabContainer, nullptr, ("IFramePaneAddTabContainer (Pointer hObject)(Int32 tabHeight)(Int32 fontIndex)(Sys.Maths.Recti rect) -> (Rococo.ITabContainer container)"));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddLabel, nullptr, ("IFramePaneAddLabel (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Maths.Recti rect) -> (Rococo.ILabelPane label)"));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddSlider, nullptr, ("IFramePaneAddSlider (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Maths.Recti rect)(Float32 minValue)(Float32 maxValue) -> (Rococo.ISlider slider)"));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddScroller, nullptr, ("IFramePaneAddScroller (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Recti rect)(Bool isVertical) -> (Rococo.IScroller scroller)"));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddTextOutput, nullptr, ("IFramePaneAddTextOutput (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString key)(Sys.Maths.Recti rect) -> (Rococo.ITextOutputPane textBox)"));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddRadioButton, nullptr, ("IFramePaneAddRadioButton (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Type.IString key)(Sys.Type.IString value)(Sys.Maths.Recti rect) -> (Rococo.IRadioButton radio)"));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneGetChildRect, nullptr, ("IFramePaneGetChildRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneContainer, nullptr, ("IFramePaneContainer (Pointer hObject) -> (Rococo.IPaneContainer container)"));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetLayoutAlgorithm, nullptr, ("IFramePaneSetLayoutAlgorithm (Pointer hObject)(Int32 layout) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetMinMaxSpan, nullptr, ("IFramePaneSetMinMaxSpan (Pointer hObject)(Int32 minDX)(Int32 minDY)(Int32 maxDX)(Int32 maxDY) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetCaption, nullptr, ("IFramePaneSetCaption (Pointer hObject)(Sys.Type.IString caption) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IRadioButton 
@@ -961,6 +2295,296 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
+	void NativeRococoIRadioButtonSetColourBk1(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourBk1(normal, hilight);
+	}
+	void NativeRococoIRadioButtonSetColourBk2(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourBk2(normal, hilight);
+	}
+	void NativeRococoIRadioButtonSetColourEdge1(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourEdge1(normal, hilight);
+	}
+	void NativeRococoIRadioButtonSetColourEdge2(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourEdge2(normal, hilight);
+	}
+	void NativeRococoIRadioButtonSetColourFont(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourFont(normal, hilight);
+	}
+	void NativeRococoIRadioButtonIsVisible(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isVisible = _pObject->IsVisible();
+		_offset += sizeof(isVisible);
+		WriteOutput(isVisible, _sf, -_offset);
+	}
+	void NativeRococoIRadioButtonIsNormalized(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isNormalized = _pObject->IsNormalized();
+		_offset += sizeof(isNormalized);
+		WriteOutput(isNormalized, _sf, -_offset);
+	}
+	void NativeRococoIRadioButtonSetVisible(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 isVisible;
+		_offset += sizeof(isVisible);
+		ReadInput(isVisible, _sf, -_offset);
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetVisible(isVisible);
+	}
+	void NativeRococoIRadioButtonGetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetRect(*rect);
+	}
+	void NativeRococoIRadioButtonSetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetRect(*rect);
+	}
+	void NativeRococoIRadioButtonAlignLeftEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignLeftEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIRadioButtonAlignRightEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignRightEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIRadioButtonAlignTopEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignTopEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIRadioButtonAlignBottomEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignBottomEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIRadioButtonLayoutVertically(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 vertSpacing;
+		_offset += sizeof(vertSpacing);
+		ReadInput(vertSpacing, _sf, -_offset);
+
+		int32 vertBorder;
+		_offset += sizeof(vertBorder);
+		ReadInput(vertBorder, _sf, -_offset);
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->LayoutVertically(vertBorder, vertSpacing);
+	}
+	void NativeRococoIRadioButtonSetCommand(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		boolean32 deferAction;
+		_offset += sizeof(deferAction);
+		ReadInput(deferAction, _sf, -_offset);
+
+		int32 stateIndex;
+		_offset += sizeof(stateIndex);
+		ReadInput(stateIndex, _sf, -_offset);
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetCommand(stateIndex, deferAction, text);
+	}
+	void NativeRococoIRadioButtonSetPopulator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _populatorName;
+		ReadInput(_populatorName, _sf, -_offset);
+		fstring populatorName { _populatorName->buffer, _populatorName->length };
+
+
+		int32 stateIndex;
+		_offset += sizeof(stateIndex);
+		ReadInput(stateIndex, _sf, -_offset);
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetPopulator(stateIndex, populatorName);
+	}
 	void NativeRococoIRadioButtonSetAlignment(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -987,20 +2611,6 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetAlignment(horz, vert, paddingX, paddingY);
 	}
-	void NativeRococoIRadioButtonBase(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::IRadioButton* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		Rococo::IPane* base = _pObject->Base();
-		_offset += sizeof(CReflectedClass*);
-		auto& _baseStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IPane"), ("ProxyIPane"), _nce.ss);
-		CReflectedClass* _sxybase = _nce.ss.Represent(_baseStruct, base);
-		WriteOutput(&_sxybase->header._vTables[0], _sf, -_offset);
-	}
 
 }
 
@@ -1008,8 +2618,24 @@ namespace Rococo {
 	void AddNativeCalls_RococoIRadioButton(Rococo::Script::IPublicScriptSystem& ss, Rococo::IRadioButton* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetColourBk1, nullptr, ("IRadioButtonSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetColourBk2, nullptr, ("IRadioButtonSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetColourEdge1, nullptr, ("IRadioButtonSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetColourEdge2, nullptr, ("IRadioButtonSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetColourFont, nullptr, ("IRadioButtonSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonIsVisible, nullptr, ("IRadioButtonIsVisible (Pointer hObject) -> (Bool isVisible)"));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonIsNormalized, nullptr, ("IRadioButtonIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetVisible, nullptr, ("IRadioButtonSetVisible (Pointer hObject)(Bool isVisible) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonGetRect, nullptr, ("IRadioButtonGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetRect, nullptr, ("IRadioButtonSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonAlignLeftEdges, nullptr, ("IRadioButtonAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonAlignRightEdges, nullptr, ("IRadioButtonAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonAlignTopEdges, nullptr, ("IRadioButtonAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonAlignBottomEdges, nullptr, ("IRadioButtonAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonLayoutVertically, nullptr, ("IRadioButtonLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetCommand, nullptr, ("IRadioButtonSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetPopulator, nullptr, ("IRadioButtonSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
 		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetAlignment, nullptr, ("IRadioButtonSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonBase, nullptr, ("IRadioButtonBase (Pointer hObject) -> (Rococo.IPane base)"));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::ILabelPane 
@@ -1020,6 +2646,296 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
+	void NativeRococoILabelPaneSetColourBk1(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourBk1(normal, hilight);
+	}
+	void NativeRococoILabelPaneSetColourBk2(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourBk2(normal, hilight);
+	}
+	void NativeRococoILabelPaneSetColourEdge1(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourEdge1(normal, hilight);
+	}
+	void NativeRococoILabelPaneSetColourEdge2(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourEdge2(normal, hilight);
+	}
+	void NativeRococoILabelPaneSetColourFont(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourFont(normal, hilight);
+	}
+	void NativeRococoILabelPaneIsVisible(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isVisible = _pObject->IsVisible();
+		_offset += sizeof(isVisible);
+		WriteOutput(isVisible, _sf, -_offset);
+	}
+	void NativeRococoILabelPaneIsNormalized(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isNormalized = _pObject->IsNormalized();
+		_offset += sizeof(isNormalized);
+		WriteOutput(isNormalized, _sf, -_offset);
+	}
+	void NativeRococoILabelPaneSetVisible(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 isVisible;
+		_offset += sizeof(isVisible);
+		ReadInput(isVisible, _sf, -_offset);
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetVisible(isVisible);
+	}
+	void NativeRococoILabelPaneGetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetRect(*rect);
+	}
+	void NativeRococoILabelPaneSetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetRect(*rect);
+	}
+	void NativeRococoILabelPaneAlignLeftEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignLeftEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoILabelPaneAlignRightEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignRightEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoILabelPaneAlignTopEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignTopEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoILabelPaneAlignBottomEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignBottomEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoILabelPaneLayoutVertically(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 vertSpacing;
+		_offset += sizeof(vertSpacing);
+		ReadInput(vertSpacing, _sf, -_offset);
+
+		int32 vertBorder;
+		_offset += sizeof(vertBorder);
+		ReadInput(vertBorder, _sf, -_offset);
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->LayoutVertically(vertBorder, vertSpacing);
+	}
+	void NativeRococoILabelPaneSetCommand(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		boolean32 deferAction;
+		_offset += sizeof(deferAction);
+		ReadInput(deferAction, _sf, -_offset);
+
+		int32 stateIndex;
+		_offset += sizeof(stateIndex);
+		ReadInput(stateIndex, _sf, -_offset);
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetCommand(stateIndex, deferAction, text);
+	}
+	void NativeRococoILabelPaneSetPopulator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _populatorName;
+		ReadInput(_populatorName, _sf, -_offset);
+		fstring populatorName { _populatorName->buffer, _populatorName->length };
+
+
+		int32 stateIndex;
+		_offset += sizeof(stateIndex);
+		ReadInput(stateIndex, _sf, -_offset);
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetPopulator(stateIndex, populatorName);
+	}
 	void NativeRococoILabelPaneSetAlignment(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -1046,20 +2962,6 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetAlignment(horz, vert, paddingX, paddingY);
 	}
-	void NativeRococoILabelPaneBase(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::ILabelPane* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		Rococo::IPane* base = _pObject->Base();
-		_offset += sizeof(CReflectedClass*);
-		auto& _baseStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IPane"), ("ProxyIPane"), _nce.ss);
-		CReflectedClass* _sxybase = _nce.ss.Represent(_baseStruct, base);
-		WriteOutput(&_sxybase->header._vTables[0], _sf, -_offset);
-	}
 
 }
 
@@ -1067,8 +2969,24 @@ namespace Rococo {
 	void AddNativeCalls_RococoILabelPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::ILabelPane* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetColourBk1, nullptr, ("ILabelPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetColourBk2, nullptr, ("ILabelPaneSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetColourEdge1, nullptr, ("ILabelPaneSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetColourEdge2, nullptr, ("ILabelPaneSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetColourFont, nullptr, ("ILabelPaneSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneIsVisible, nullptr, ("ILabelPaneIsVisible (Pointer hObject) -> (Bool isVisible)"));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneIsNormalized, nullptr, ("ILabelPaneIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetVisible, nullptr, ("ILabelPaneSetVisible (Pointer hObject)(Bool isVisible) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneGetRect, nullptr, ("ILabelPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetRect, nullptr, ("ILabelPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneAlignLeftEdges, nullptr, ("ILabelPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneAlignRightEdges, nullptr, ("ILabelPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneAlignTopEdges, nullptr, ("ILabelPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneAlignBottomEdges, nullptr, ("ILabelPaneAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneLayoutVertically, nullptr, ("ILabelPaneLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetCommand, nullptr, ("ILabelPaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetPopulator, nullptr, ("ILabelPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
 		ss.AddNativeCall(ns, NativeRococoILabelPaneSetAlignment, nullptr, ("ILabelPaneSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneBase, nullptr, ("ILabelPaneBase (Pointer hObject) -> (Rococo.IPane base)"));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::ISlider 
@@ -1079,7 +2997,97 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeRococoISliderBase(NativeCallEnvironment& _nce)
+	void NativeRococoISliderSetColourBk1(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourBk1(normal, hilight);
+	}
+	void NativeRococoISliderSetColourBk2(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourBk2(normal, hilight);
+	}
+	void NativeRococoISliderSetColourEdge1(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourEdge1(normal, hilight);
+	}
+	void NativeRococoISliderSetColourEdge2(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourEdge2(normal, hilight);
+	}
+	void NativeRococoISliderSetColourFont(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourFont(normal, hilight);
+	}
+	void NativeRococoISliderIsVisible(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -1087,11 +3095,197 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		Rococo::IPane* base = _pObject->Base();
-		_offset += sizeof(CReflectedClass*);
-		auto& _baseStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IPane"), ("ProxyIPane"), _nce.ss);
-		CReflectedClass* _sxybase = _nce.ss.Represent(_baseStruct, base);
-		WriteOutput(&_sxybase->header._vTables[0], _sf, -_offset);
+		boolean32 isVisible = _pObject->IsVisible();
+		_offset += sizeof(isVisible);
+		WriteOutput(isVisible, _sf, -_offset);
+	}
+	void NativeRococoISliderIsNormalized(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isNormalized = _pObject->IsNormalized();
+		_offset += sizeof(isNormalized);
+		WriteOutput(isNormalized, _sf, -_offset);
+	}
+	void NativeRococoISliderSetVisible(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 isVisible;
+		_offset += sizeof(isVisible);
+		ReadInput(isVisible, _sf, -_offset);
+
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetVisible(isVisible);
+	}
+	void NativeRococoISliderGetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetRect(*rect);
+	}
+	void NativeRococoISliderSetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetRect(*rect);
+	}
+	void NativeRococoISliderAlignLeftEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignLeftEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoISliderAlignRightEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignRightEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoISliderAlignTopEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignTopEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoISliderAlignBottomEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignBottomEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoISliderLayoutVertically(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 vertSpacing;
+		_offset += sizeof(vertSpacing);
+		ReadInput(vertSpacing, _sf, -_offset);
+
+		int32 vertBorder;
+		_offset += sizeof(vertBorder);
+		ReadInput(vertBorder, _sf, -_offset);
+
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->LayoutVertically(vertBorder, vertSpacing);
+	}
+	void NativeRococoISliderSetCommand(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		boolean32 deferAction;
+		_offset += sizeof(deferAction);
+		ReadInput(deferAction, _sf, -_offset);
+
+		int32 stateIndex;
+		_offset += sizeof(stateIndex);
+		ReadInput(stateIndex, _sf, -_offset);
+
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetCommand(stateIndex, deferAction, text);
+	}
+	void NativeRococoISliderSetPopulator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _populatorName;
+		ReadInput(_populatorName, _sf, -_offset);
+		fstring populatorName { _populatorName->buffer, _populatorName->length };
+
+
+		int32 stateIndex;
+		_offset += sizeof(stateIndex);
+		ReadInput(stateIndex, _sf, -_offset);
+
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetPopulator(stateIndex, populatorName);
 	}
 
 }
@@ -1100,7 +3294,23 @@ namespace Rococo {
 	void AddNativeCalls_RococoISlider(Rococo::Script::IPublicScriptSystem& ss, Rococo::ISlider* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoISliderBase, nullptr, ("ISliderBase (Pointer hObject) -> (Rococo.IPane base)"));
+		ss.AddNativeCall(ns, NativeRococoISliderSetColourBk1, nullptr, ("ISliderSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoISliderSetColourBk2, nullptr, ("ISliderSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoISliderSetColourEdge1, nullptr, ("ISliderSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoISliderSetColourEdge2, nullptr, ("ISliderSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoISliderSetColourFont, nullptr, ("ISliderSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoISliderIsVisible, nullptr, ("ISliderIsVisible (Pointer hObject) -> (Bool isVisible)"));
+		ss.AddNativeCall(ns, NativeRococoISliderIsNormalized, nullptr, ("ISliderIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
+		ss.AddNativeCall(ns, NativeRococoISliderSetVisible, nullptr, ("ISliderSetVisible (Pointer hObject)(Bool isVisible) -> "));
+		ss.AddNativeCall(ns, NativeRococoISliderGetRect, nullptr, ("ISliderGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoISliderSetRect, nullptr, ("ISliderSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoISliderAlignLeftEdges, nullptr, ("ISliderAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoISliderAlignRightEdges, nullptr, ("ISliderAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoISliderAlignTopEdges, nullptr, ("ISliderAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoISliderAlignBottomEdges, nullptr, ("ISliderAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoISliderLayoutVertically, nullptr, ("ISliderLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
+		ss.AddNativeCall(ns, NativeRococoISliderSetCommand, nullptr, ("ISliderSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
+		ss.AddNativeCall(ns, NativeRococoISliderSetPopulator, nullptr, ("ISliderSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IScroller 
@@ -1111,7 +3321,97 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeRococoIScrollerBase(NativeCallEnvironment& _nce)
+	void NativeRococoIScrollerSetColourBk1(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourBk1(normal, hilight);
+	}
+	void NativeRococoIScrollerSetColourBk2(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourBk2(normal, hilight);
+	}
+	void NativeRococoIScrollerSetColourEdge1(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourEdge1(normal, hilight);
+	}
+	void NativeRococoIScrollerSetColourEdge2(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourEdge2(normal, hilight);
+	}
+	void NativeRococoIScrollerSetColourFont(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourFont(normal, hilight);
+	}
+	void NativeRococoIScrollerIsVisible(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -1119,11 +3419,197 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		Rococo::IPane* base = _pObject->Base();
-		_offset += sizeof(CReflectedClass*);
-		auto& _baseStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IPane"), ("ProxyIPane"), _nce.ss);
-		CReflectedClass* _sxybase = _nce.ss.Represent(_baseStruct, base);
-		WriteOutput(&_sxybase->header._vTables[0], _sf, -_offset);
+		boolean32 isVisible = _pObject->IsVisible();
+		_offset += sizeof(isVisible);
+		WriteOutput(isVisible, _sf, -_offset);
+	}
+	void NativeRococoIScrollerIsNormalized(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isNormalized = _pObject->IsNormalized();
+		_offset += sizeof(isNormalized);
+		WriteOutput(isNormalized, _sf, -_offset);
+	}
+	void NativeRococoIScrollerSetVisible(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 isVisible;
+		_offset += sizeof(isVisible);
+		ReadInput(isVisible, _sf, -_offset);
+
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetVisible(isVisible);
+	}
+	void NativeRococoIScrollerGetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetRect(*rect);
+	}
+	void NativeRococoIScrollerSetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetRect(*rect);
+	}
+	void NativeRococoIScrollerAlignLeftEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignLeftEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIScrollerAlignRightEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignRightEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIScrollerAlignTopEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignTopEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIScrollerAlignBottomEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignBottomEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoIScrollerLayoutVertically(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 vertSpacing;
+		_offset += sizeof(vertSpacing);
+		ReadInput(vertSpacing, _sf, -_offset);
+
+		int32 vertBorder;
+		_offset += sizeof(vertBorder);
+		ReadInput(vertBorder, _sf, -_offset);
+
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->LayoutVertically(vertBorder, vertSpacing);
+	}
+	void NativeRococoIScrollerSetCommand(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		boolean32 deferAction;
+		_offset += sizeof(deferAction);
+		ReadInput(deferAction, _sf, -_offset);
+
+		int32 stateIndex;
+		_offset += sizeof(stateIndex);
+		ReadInput(stateIndex, _sf, -_offset);
+
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetCommand(stateIndex, deferAction, text);
+	}
+	void NativeRococoIScrollerSetPopulator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _populatorName;
+		ReadInput(_populatorName, _sf, -_offset);
+		fstring populatorName { _populatorName->buffer, _populatorName->length };
+
+
+		int32 stateIndex;
+		_offset += sizeof(stateIndex);
+		ReadInput(stateIndex, _sf, -_offset);
+
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetPopulator(stateIndex, populatorName);
 	}
 
 }
@@ -1132,7 +3618,23 @@ namespace Rococo {
 	void AddNativeCalls_RococoIScroller(Rococo::Script::IPublicScriptSystem& ss, Rococo::IScroller* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoIScrollerBase, nullptr, ("IScrollerBase (Pointer hObject) -> (Rococo.IPane base)"));
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetColourBk1, nullptr, ("IScrollerSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetColourBk2, nullptr, ("IScrollerSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetColourEdge1, nullptr, ("IScrollerSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetColourEdge2, nullptr, ("IScrollerSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetColourFont, nullptr, ("IScrollerSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoIScrollerIsVisible, nullptr, ("IScrollerIsVisible (Pointer hObject) -> (Bool isVisible)"));
+		ss.AddNativeCall(ns, NativeRococoIScrollerIsNormalized, nullptr, ("IScrollerIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetVisible, nullptr, ("IScrollerSetVisible (Pointer hObject)(Bool isVisible) -> "));
+		ss.AddNativeCall(ns, NativeRococoIScrollerGetRect, nullptr, ("IScrollerGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetRect, nullptr, ("IScrollerSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIScrollerAlignLeftEdges, nullptr, ("IScrollerAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIScrollerAlignRightEdges, nullptr, ("IScrollerAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIScrollerAlignTopEdges, nullptr, ("IScrollerAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIScrollerAlignBottomEdges, nullptr, ("IScrollerAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoIScrollerLayoutVertically, nullptr, ("IScrollerLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetCommand, nullptr, ("IScrollerSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetPopulator, nullptr, ("IScrollerSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::ITextOutputPane 
@@ -1143,6 +3645,296 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
+	void NativeRococoITextOutputPaneSetColourBk1(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourBk1(normal, hilight);
+	}
+	void NativeRococoITextOutputPaneSetColourBk2(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourBk2(normal, hilight);
+	}
+	void NativeRococoITextOutputPaneSetColourEdge1(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourEdge1(normal, hilight);
+	}
+	void NativeRococoITextOutputPaneSetColourEdge2(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourEdge2(normal, hilight);
+	}
+	void NativeRococoITextOutputPaneSetColourFont(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb hilight;
+		_offset += sizeof(hilight);
+		ReadInput(hilight, _sf, -_offset);
+
+		RGBAb normal;
+		_offset += sizeof(normal);
+		ReadInput(normal, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetColourFont(normal, hilight);
+	}
+	void NativeRococoITextOutputPaneIsVisible(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isVisible = _pObject->IsVisible();
+		_offset += sizeof(isVisible);
+		WriteOutput(isVisible, _sf, -_offset);
+	}
+	void NativeRococoITextOutputPaneIsNormalized(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isNormalized = _pObject->IsNormalized();
+		_offset += sizeof(isNormalized);
+		WriteOutput(isNormalized, _sf, -_offset);
+	}
+	void NativeRococoITextOutputPaneSetVisible(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 isVisible;
+		_offset += sizeof(isVisible);
+		ReadInput(isVisible, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetVisible(isVisible);
+	}
+	void NativeRococoITextOutputPaneGetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetRect(*rect);
+	}
+	void NativeRococoITextOutputPaneSetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetRect(*rect);
+	}
+	void NativeRococoITextOutputPaneAlignLeftEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignLeftEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoITextOutputPaneAlignRightEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignRightEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoITextOutputPaneAlignTopEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignTopEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoITextOutputPaneAlignBottomEdges(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 preserveSpan;
+		_offset += sizeof(preserveSpan);
+		ReadInput(preserveSpan, _sf, -_offset);
+
+		int32 borderPixels;
+		_offset += sizeof(borderPixels);
+		ReadInput(borderPixels, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AlignBottomEdges(borderPixels, preserveSpan);
+	}
+	void NativeRococoITextOutputPaneLayoutVertically(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 vertSpacing;
+		_offset += sizeof(vertSpacing);
+		ReadInput(vertSpacing, _sf, -_offset);
+
+		int32 vertBorder;
+		_offset += sizeof(vertBorder);
+		ReadInput(vertBorder, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->LayoutVertically(vertBorder, vertSpacing);
+	}
+	void NativeRococoITextOutputPaneSetCommand(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		boolean32 deferAction;
+		_offset += sizeof(deferAction);
+		ReadInput(deferAction, _sf, -_offset);
+
+		int32 stateIndex;
+		_offset += sizeof(stateIndex);
+		ReadInput(stateIndex, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetCommand(stateIndex, deferAction, text);
+	}
+	void NativeRococoITextOutputPaneSetPopulator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _populatorName;
+		ReadInput(_populatorName, _sf, -_offset);
+		fstring populatorName { _populatorName->buffer, _populatorName->length };
+
+
+		int32 stateIndex;
+		_offset += sizeof(stateIndex);
+		ReadInput(stateIndex, _sf, -_offset);
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetPopulator(stateIndex, populatorName);
+	}
 	void NativeRococoITextOutputPaneSetAlignment(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -1169,20 +3961,6 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetAlignment(horz, vert, paddingX, paddingY);
 	}
-	void NativeRococoITextOutputPaneBase(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::ITextOutputPane* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		Rococo::IPane* base = _pObject->Base();
-		_offset += sizeof(CReflectedClass*);
-		auto& _baseStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IPane"), ("ProxyIPane"), _nce.ss);
-		CReflectedClass* _sxybase = _nce.ss.Represent(_baseStruct, base);
-		WriteOutput(&_sxybase->header._vTables[0], _sf, -_offset);
-	}
 
 }
 
@@ -1190,8 +3968,24 @@ namespace Rococo {
 	void AddNativeCalls_RococoITextOutputPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::ITextOutputPane* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetColourBk1, nullptr, ("ITextOutputPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetColourBk2, nullptr, ("ITextOutputPaneSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetColourEdge1, nullptr, ("ITextOutputPaneSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetColourEdge2, nullptr, ("ITextOutputPaneSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetColourFont, nullptr, ("ITextOutputPaneSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneIsVisible, nullptr, ("ITextOutputPaneIsVisible (Pointer hObject) -> (Bool isVisible)"));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneIsNormalized, nullptr, ("ITextOutputPaneIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetVisible, nullptr, ("ITextOutputPaneSetVisible (Pointer hObject)(Bool isVisible) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneGetRect, nullptr, ("ITextOutputPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetRect, nullptr, ("ITextOutputPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneAlignLeftEdges, nullptr, ("ITextOutputPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneAlignRightEdges, nullptr, ("ITextOutputPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneAlignTopEdges, nullptr, ("ITextOutputPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneAlignBottomEdges, nullptr, ("ITextOutputPaneAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneLayoutVertically, nullptr, ("ITextOutputPaneLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetCommand, nullptr, ("ITextOutputPaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetPopulator, nullptr, ("ITextOutputPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
 		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetAlignment, nullptr, ("ITextOutputPaneSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneBase, nullptr, ("ITextOutputPaneBase (Pointer hObject) -> (Rococo.IPane base)"));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IPaneBuilder 
