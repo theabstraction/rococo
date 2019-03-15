@@ -188,6 +188,19 @@ namespace Rococo
 		virtual void OnMouseEvent(const MouseEvent& me) = 0;
 	};
 
+	ROCOCOAPI IDirectAppControl
+	{
+		virtual bool TryGetNextKeyboardEvent(KeyboardEvent& k) = 0;
+		virtual bool TryGetNextMouseEvent(MouseEvent& m) = 0;
+		virtual bool TryRouteSysMessages(uint32 sleepMS) = 0;
+	};
+
+	ROCOCOAPI IDirectApp
+	{
+		virtual void Free() = 0;
+		virtual void Run() = 0;
+	};
+
 	struct GuiMetrics
 	{
 		Vec2i cursorPosition;

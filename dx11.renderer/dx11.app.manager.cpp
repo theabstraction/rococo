@@ -11,6 +11,8 @@
 
 #include "rococo.dx11.api.h"
 
+#include <rococo.ringbuffer.h>
+
 namespace ANON
 {
 	using namespace Rococo;
@@ -43,6 +45,31 @@ namespace ANON
 		}
 	};
 
+	bool RouteSysMessages(HWND hInstanceWnd, HANDLE hInstanceLock, DWORD sleepMS)
+	{
+		DWORD status = MsgWaitForMultipleObjectsEx(1, &hInstanceLock, sleepMS, QS_ALLEVENTS, MWMO_ALERTABLE);
+
+		if (status == WAIT_OBJECT_0)
+		{
+			ResetEvent(hInstanceLock);
+			SetForegroundWindow(hInstanceWnd);
+		}
+
+		MSG msg;
+		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessageA(&msg);
+
+			if (msg.message == WM_QUIT)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	void MainLoop(HWND hWnd, HANDLE hInstanceLock, IApp& app)
 	{
 		UltraClock uc;
@@ -67,26 +94,13 @@ namespace ANON
 			{
 				sleepMS = (uint32)iSleepMS;
 			}
-			DWORD status = MsgWaitForMultipleObjectsEx(1, &hInstanceLock, sleepMS, QS_ALLEVENTS, MWMO_ALERTABLE);
+
+			if (!RouteSysMessages(hWnd, hInstanceLock, sleepMS))
+			{
+				return;
+			}
 
 			OS::ticks now = OS::CpuTicks();
-
-			if (status == WAIT_OBJECT_0)
-			{
-				ResetEvent(hInstanceLock);
-				SetForegroundWindow(hWnd);
-			}
-
-			while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-			{
-				TranslateMessage(&msg);
-				DispatchMessageA(&msg);
-
-				if (msg.message == WM_QUIT)
-				{
-					return;
-				}
-			}
 
 			RECT rect;
 			GetClientRect(hWnd, &rect);
@@ -173,6 +187,100 @@ namespace ANON
 			}
 		}
 	};
+
+	struct DirectAppManager :
+		public IDirectAppManager,
+		public IEventCallback<SysUnstableArgs>,
+		public IAppEventHandler,
+		public IDirectAppControl
+	{
+		AutoFree<IDirectApp> app;
+		IDX11GraphicsWindow& window;
+		OneReaderOneWriterCircleBuffer<RAWKEYBOARD> keyBuffer;
+		OneReaderOneWriterCircleBuffer<MouseEvent> mouseBuffer;
+		HANDLE hInstanceLock;
+
+
+
+		DirectAppManager(Platform& platform, IDX11GraphicsWindow& _window, IDirectAppFactory& _factory) : 
+			window(_window),
+			keyBuffer(16),
+			mouseBuffer(16)
+		{
+			app = _factory.CreateApp(platform, *this);
+		}
+
+		void OnEvent(SysUnstableArgs& unstable) override
+		{
+			window.Renderer().SwitchToWindowMode();
+		}
+
+		void OnKeyboardEvent(const RAWKEYBOARD& k) override
+		{
+			auto* b = keyBuffer.GetBackSlot();
+			if (b) *b = k;
+			keyBuffer.WriteBack();
+		}
+
+		void OnMouseEvent(const RAWMOUSE& m)
+		{
+			MouseEvent me;
+			memcpy(&me, &m, sizeof(m));
+
+			POINT p;
+			GetCursorPos(&p);
+			ScreenToClient(window.Window(), &p);
+
+			me.cursorPos.x = p.x;
+			me.cursorPos.y = p.y;
+
+			auto* b = mouseBuffer.GetBackSlot();
+			if (b) *b = me;
+			mouseBuffer.WriteBack();
+		}
+
+		bool TryGetNextKeyboardEvent(KeyboardEvent& k) override
+		{
+			return keyBuffer.TryPopFront((RAWKEYBOARD&)k);
+		}
+
+		bool TryGetNextMouseEvent(MouseEvent& m) override
+		{
+			return mouseBuffer.TryPopFront(m);
+		}
+
+		bool TryRouteSysMessages(uint32 sleepMS) override
+		{
+			return RouteSysMessages(window.Window(), hInstanceLock, sleepMS);
+		}
+
+		void Run(HANDLE hInstanceLock) override
+		{
+			this->hInstanceLock = hInstanceLock;
+
+			window.CaptureEvents(this);
+			app->Run();
+			window.CaptureEvents(nullptr);
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		void OnWindowClose() override
+		{
+			char text[256];
+			GetWindowTextA(window.Window(), text, 255);
+			text[255] = 0;
+
+			AutoFree<DX11::ICountdownConfirmationDialog> confirmDialog(DX11::CreateCountdownConfirmationDialog());
+			if (IDOK == confirmDialog->DoModal(window.Window(), text, "Quitting application", 8))
+			{
+				PostQuitMessage(0);
+			}
+		}
+	};
 }
 
 namespace Rococo
@@ -180,5 +288,10 @@ namespace Rococo
 	IAppManager* CreateAppManager(IDX11GraphicsWindow& window, IApp& app)
 	{
 		return new ANON::AppManager(window, app);
+	}
+
+	IDirectAppManager* CreateAppManager(Platform& platform, IDX11GraphicsWindow& window, IDirectAppFactory& factory)
+	{
+		return new ANON::DirectAppManager(platform, window, factory);
 	}
 }

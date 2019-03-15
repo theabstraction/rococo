@@ -38,6 +38,15 @@ namespace Rococo
 
 	IAppManager* CreateAppManager(IDX11GraphicsWindow& window, IApp& app);
 
+	struct IDirectAppFactory;
+
+	ROCOCOAPI IDirectAppManager
+	{
+		virtual void Free() = 0;
+		virtual void Run(HANDLE hInstanceLock) = 0;
+	};
+	IDirectAppManager* CreateAppManager(Platform& platform, IDX11GraphicsWindow& window, IDirectAppFactory& factory);
+
 	struct IMessageSink
 	{
 		virtual bool InterceptMessage(LRESULT& result, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;

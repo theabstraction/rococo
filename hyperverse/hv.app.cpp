@@ -330,7 +330,7 @@ namespace HV
 						if (!IsEditorActive())  mode->Activate();
 					}
 				}
-				else
+				else if (action)
 				{
 					if (Eq(action, "gui.editor.toggle") && key.isPressed)
 					{
