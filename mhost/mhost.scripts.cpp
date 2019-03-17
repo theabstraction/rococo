@@ -22,7 +22,6 @@ namespace MHost
 	}
 }
 
-#include "mhost.script.types.h"
 #include "mhost.sxh.h"
 #include "mhost.sxh.inl"
 
@@ -44,7 +43,7 @@ namespace MHost
 #else
 				args.ss.AddNativeLibrary("rococo.sexy.mathsex");
 #endif
-				AddNativeCalls_MHostIScreenBuilder(args.ss, engine->GetScreenBuilder());
+				AddNativeCalls_MHostIScreenBuilder(args.ss, engine->ScreenBuilder());
 				AddNativeCalls_MHostIEngine(args.ss, engine);
 			}
 

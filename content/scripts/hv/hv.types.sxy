@@ -1,6 +1,35 @@
-(struct BitmapSpec
-	(Sys.Maths.Quadf uvSubrect)
-	(Float32 arrayIndex)
+(struct WallSegment
+	(Sys.Maths.Quadf quad)
+	(Sys.Maths.Vec3 tangent)
+	(Sys.Maths.Vec3 vertical)
+	(Sys.Maths.Vec3 normal)
+	(Sys.Maths.Vec2 span)
+	(Bool leftEdgeIsGap)
+	(Bool rightEdgeIsGap)
 )
-(alias BitmapSpec MHost.BitmapSpec)
+(alias WallSegment HV.WallSegment)
+
+(struct GapSegment
+	(Sys.Maths.Quadf quad)
+	(Sys.Maths.Vec3 tangent)
+	(Sys.Maths.Vec3 vertical)
+	(Sys.Maths.Vec3 normal)
+	(Bool leadsToCorridor)
+	(Float32 otherZ0)
+	(Float32 otherZ1)
+)
+(alias GapSegment HV.GapSegment)
+
+(struct InsertItemSpec
+	(Int32 insertFlags)
+	(Sys.SI.Metres minDistance)
+	(Sys.SI.Metres maxDistance)
+	(Bool pointTowardsCentrePiece)
+)
+(alias InsertItemSpec HV.InsertItemSpec)
+
+(struct ObjectCreationSpec
+	(Bool unused)
+)
+(alias ObjectCreationSpec HV.ObjectCreationSpec)
 

@@ -12,3 +12,9 @@ int M_Platorm_Dll_Win64_Main(HINSTANCE hInstance, IAppFactory& factory, cstr app
 {
    return M_Platorm_Win64_Main(hInstance, factory, appName, hLarge, hSmall);
 }
+
+extern "C" _declspec(dllexport)
+int M_Platorm_Dll_Win64_MainDirect(HINSTANCE hInstance, IDirectAppFactory& factory, cstr appName, HICON hLarge, HICON hSmall)
+{
+	return M_Platorm_Win64_MainDirect(hInstance, factory, appName, hLarge, hSmall);
+}

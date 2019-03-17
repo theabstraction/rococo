@@ -16,6 +16,9 @@
     <Filter Include="ScriptGen Files">
       <UniqueIdentifier>{54864139-c541-4097-ac82-429a692ffa3f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ScriptGen Files\SXY">
+      <UniqueIdentifier>{79101382-bda4-439e-a63f-27cac1b1df8b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -47,6 +50,18 @@
     </None>
     <None Include="mhost.xc">
       <Filter>ScriptGen Files</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\galaxians.sxy">
+      <Filter>ScriptGen Files\SXY</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\mhost.sxh.sxy">
+      <Filter>ScriptGen Files\SXY</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\mhost.types.sxy">
+      <Filter>ScriptGen Files\SXY</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\mplat.types.sxy">
+      <Filter>ScriptGen Files\SXY</Filter>
     </None>
   </ItemGroup>
 </Project>

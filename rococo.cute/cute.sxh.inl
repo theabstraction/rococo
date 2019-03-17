@@ -242,6 +242,18 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
+	void NativeRococoCuteITreeHandle(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Cute::ITree* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		WindowRef hWnd = _pObject->Handle();
+		_offset += sizeof(hWnd);
+		WriteOutput(hWnd, _sf, -_offset);
+	}
 	void NativeRococoCuteITreeSetPopulator(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -258,18 +270,6 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetPopulator(populatorId);
 	}
-	void NativeRococoCuteITreeHandle(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Cute::ITree* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		WindowRef hWnd = _pObject->Handle();
-		_offset += sizeof(hWnd);
-		WriteOutput(hWnd, _sf, -_offset);
-	}
 
 }
 
@@ -277,8 +277,8 @@ namespace Rococo { namespace Cute {
 	void AddNativeCalls_RococoCuteITree(Rococo::Script::IPublicScriptSystem& ss, Rococo::Cute::ITree* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Cute.Native"));
-		ss.AddNativeCall(ns, NativeRococoCuteITreeSetPopulator, nullptr, ("ITreeSetPopulator (Pointer hObject)(Sys.Type.IString populatorId) -> "));
 		ss.AddNativeCall(ns, NativeRococoCuteITreeHandle, nullptr, ("ITreeHandle (Pointer hObject) -> (Pointer hWnd)"));
+		ss.AddNativeCall(ns, NativeRococoCuteITreeSetPopulator, nullptr, ("ITreeSetPopulator (Pointer hObject)(Sys.Type.IString populatorId) -> "));
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Cute::IParentWindow 
@@ -461,6 +461,18 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
+	void NativeRococoCuteISplitHandle(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Cute::ISplit* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		WindowRef hWnd = _pObject->Handle();
+		_offset += sizeof(hWnd);
+		WriteOutput(hWnd, _sf, -_offset);
+	}
 	void NativeRococoCuteISplitLo(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -489,18 +501,6 @@ namespace
 		CReflectedClass* _sxyhigh = _nce.ss.Represent(_highStruct, high);
 		WriteOutput(&_sxyhigh->header._vTables[0], _sf, -_offset);
 	}
-	void NativeRococoCuteISplitHandle(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Cute::ISplit* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		WindowRef hWnd = _pObject->Handle();
-		_offset += sizeof(hWnd);
-		WriteOutput(hWnd, _sf, -_offset);
-	}
 
 }
 
@@ -508,9 +508,9 @@ namespace Rococo { namespace Cute {
 	void AddNativeCalls_RococoCuteISplit(Rococo::Script::IPublicScriptSystem& ss, Rococo::Cute::ISplit* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Cute.Native"));
+		ss.AddNativeCall(ns, NativeRococoCuteISplitHandle, nullptr, ("ISplitHandle (Pointer hObject) -> (Pointer hWnd)"));
 		ss.AddNativeCall(ns, NativeRococoCuteISplitLo, nullptr, ("ISplitLo (Pointer hObject) -> (Rococo.Cute.IParentWindow low)"));
 		ss.AddNativeCall(ns, NativeRococoCuteISplitHi, nullptr, ("ISplitHi (Pointer hObject) -> (Rococo.Cute.IParentWindow high)"));
-		ss.AddNativeCall(ns, NativeRococoCuteISplitHandle, nullptr, ("ISplitHandle (Pointer hObject) -> (Pointer hWnd)"));
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Cute::IMasterWindow 

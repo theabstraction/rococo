@@ -1,25 +1,25 @@
 (config mhost.xc) 
 
 (interface
-	(as.sxy MHost.IScreenBuilder "../content/scripts/mhost")
+	(as.sxy MHost.IScreenBuilder "../content/scripts/mhost/mhost")
 	(as.cpp MHost.IScreenBuilder "mhost")
 	(context factory MHost.IScreenBuilder)
 	(methods
-		(DrawBitmap (const BitmapSpec spec)(Vec2i topLeft))
-		(TryGetBitmapSpec (IString resourceName)(BitmapSpec spec) -> (Bool isSuccessful))
+		(PushTriangle (const GuiTriangle t))
+		(PushQuad (const GuiQuad q))
+		(TryGetBitmapSpec (IString resourceName)(BitmapLocation loc) -> (Bool isSuccessful))
+		(Render)
 	)
 )
 
 (interface
-	(as.sxy MHost.IEngine "../content/scripts/mhost")
+	(as.sxy MHost.IEngine "../content/scripts/mhost/mhost")
 	(as.cpp MHost.IEngine "mhost")
 	(context factory MHost.IEngine)
 	(methods
-		(DrawAll)
-		(GetScreenBuilder -> (MHost.IScreenBuilder s))
+		(ScreenBuilder -> (MHost.IScreenBuilder s))
 		(IsRunning -> (Bool isRunning))
 		(YieldForSystemMessages (Int32 sleepMS))
-		(SetPhase (Int32 phaseIndex))
 	)
 	(factory MHost.Engine)
 )

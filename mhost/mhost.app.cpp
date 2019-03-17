@@ -5,33 +5,117 @@
 
 #include <vector>
 
+#include <rococo.textures.h>
+
 using namespace Rococo;
 
-#include "mhost.script.types.h"
 #include "mhost.sxh.h"
 
 namespace MHost
 {
 	using namespace Rococo::Entities;
 	using namespace Rococo::Events;
+	using namespace Rococo::Textures;
 
 	auto evPopulateBusyCategoryId = "busy.category"_event;
 	auto evPopulateBusyResourceId = "busy.resource"_event;
 
 	void RunEnvironmentScript(Platform& platform, IEngine* engine, cstr name, bool releaseAfterUse);
 
+	struct AppSceneBuilder : public IScene, public IScreenBuilder
+	{
+		Platform& platform;
+
+		std::vector<GuiVertex> triangles;
+
+		AppSceneBuilder(Platform& _platform): platform(_platform)
+		{
+
+		}
+
+		void AppendTriangles(const GuiVertex* v, size_t nVertices)
+		{
+			enum { MAX_TRIANGLES = 1000000 };
+			if (triangles.size() > MAX_TRIANGLES)
+				Throw(0, "Maximum GUI triangles reached (%d)", MAX_TRIANGLES);
+
+			auto end = v + nVertices;
+			while (v < end)
+			{
+				triangles.push_back(*v++);
+			}
+		}
+
+		void GetCamera(Matrix4x4& camera, Matrix4x4& world, Vec4& eye, Vec4& viewDir) override
+		{
+			return platform.scene.GetCamera(camera, world, eye, viewDir);
+		}
+
+		RGBA GetClearColour() const override
+		{
+			return platform.scene.GetClearColour();
+		}
+
+		void OnGuiResize(Vec2i screenSpan) override
+		{
+			return platform.scene.OnGuiResize(screenSpan);
+		}
+
+		void RenderGui(IGuiRenderContext& grc)  override
+		{
+			return platform.scene.RenderGui(grc);
+		}
+
+		void RenderObjects(IRenderContext& rc)  override
+		{
+			return platform.scene.RenderObjects(rc);
+		}
+
+		const Light* GetLights(size_t& nCount) const override
+		{
+			return platform.scene.GetLights(nCount);
+		}
+
+		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc)  override
+		{
+			return platform.scene.RenderShadowPass(drd, rc);
+		}
+
+		boolean32 TryGetBitmapSpec(const fstring& resourceName, BitmapLocation& loc) override
+		{
+			return platform.renderer.SpriteBuilder().TryGetBitmapLocation(resourceName, loc);
+		}
+
+		void PushTriangle(const Rococo::GuiTriangle& t) override
+		{
+			AppendTriangles(&t.a, 3);
+		}
+
+		void PushQuad(const Rococo::GuiQuad& q) override
+		{
+			AppendTriangles(&q.a, 4);
+		}
+
+		void Render() override
+		{
+			Graphics::RenderPhaseConfig config;
+			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
+			platform.renderer.Render(config, *this);
+		}
+	};
+
 	class App : 
 		public IDirectApp, 
 		public IEventCallback<FileModifiedArgs>,
 		public IObserver, 
-		public IEngine,
-		public IScreenBuilder
+		public IEngine
 	{
 		Platform& platform;
 		IDirectAppControl& control;
 
 		AutoFree<IPaneBuilderSupervisor> overlayPanel;
 		AutoFree<IPaneBuilderSupervisor> busyPanel;
+		AppSceneBuilder sceneBuilder;
 
 		// Busy event handler responds to resource loading and renders progress panel
 		void OnBusy(const Rococo::Events::BusyEvent& be)
@@ -103,7 +187,7 @@ namespace MHost
 		}
 	public:
 		App(Platform& _platform, IDirectAppControl& _control) :
-			platform(_platform), control(_control)
+			platform(_platform), control(_control), sceneBuilder(_platform)
 		{
 			busyPanel = platform.gui.BindPanelToScript("!scripts/panel.opening.sxy");
 			overlayPanel = platform.gui.CreateOverlay();
@@ -157,9 +241,9 @@ namespace MHost
 
 		bool isRunning = true;
 
-		IScreenBuilder* GetScreenBuilder()
+		IScreenBuilder* ScreenBuilder()
 		{
-			return this;
+			return &sceneBuilder;
 		}
 
 		boolean32 IsRunning()
@@ -167,31 +251,9 @@ namespace MHost
 			return isRunning;
 		}
 
-		void DrawBitmap(const BitmapSpec& spec, Vec2i& topLeft)
-		{
-
-		}
-
-		boolean32 TryGetBitmapSpec(const fstring& resourceName, BitmapSpec& spec)
-		{
-			return false;
-		}
-
 		void Run() override
 		{
-			RunEnvironmentScript(platform, this, "mhost.main.sxy", true);
-		}
-
-		void SetPhase(int32 phaseIndex) override
-		{
-
-		}
-
-		void DrawAll() override
-		{
-			Graphics::RenderPhaseConfig config;
-			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
-			platform.renderer.Render(config, platform.scene);
+			RunEnvironmentScript(platform, this, "!scripts/mhost/galaxians.sxy", true);
 		}
 
 		void YieldForSystemMessages(int32 sleepMS) override

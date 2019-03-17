@@ -6,31 +6,41 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeMHostIScreenBuilderDrawBitmap(NativeCallEnvironment& _nce)
+	void NativeMHostIScreenBuilderPushTriangle(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Vec2i* topLeft;
-		_offset += sizeof(topLeft);
-		ReadInput(topLeft, _sf, -_offset);
-
-		MHost::BitmapSpec* spec;
-		_offset += sizeof(spec);
-		ReadInput(spec, _sf, -_offset);
+		Rococo::GuiTriangle* t;
+		_offset += sizeof(t);
+		ReadInput(t, _sf, -_offset);
 
 		MHost::IScreenBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->DrawBitmap(*spec, *topLeft);
+		_pObject->PushTriangle(*t);
+	}
+	void NativeMHostIScreenBuilderPushQuad(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::GuiQuad* q;
+		_offset += sizeof(q);
+		ReadInput(q, _sf, -_offset);
+
+		MHost::IScreenBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->PushQuad(*q);
 	}
 	void NativeMHostIScreenBuilderTryGetBitmapSpec(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		MHost::BitmapSpec* spec;
-		_offset += sizeof(spec);
-		ReadInput(spec, _sf, -_offset);
+		Rococo::Textures::BitmapLocation* loc;
+		_offset += sizeof(loc);
+		ReadInput(loc, _sf, -_offset);
 
 		_offset += sizeof(IString*);
 		IString* _resourceName;
@@ -42,9 +52,19 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		boolean32 isSuccessful = _pObject->TryGetBitmapSpec(resourceName, *spec);
+		boolean32 isSuccessful = _pObject->TryGetBitmapSpec(resourceName, *loc);
 		_offset += sizeof(isSuccessful);
 		WriteOutput(isSuccessful, _sf, -_offset);
+	}
+	void NativeMHostIScreenBuilderRender(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		MHost::IScreenBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Render();
 	}
 
 }
@@ -53,8 +73,10 @@ namespace MHost {
 	void AddNativeCalls_MHostIScreenBuilder(Rococo::Script::IPublicScriptSystem& ss, MHost::IScreenBuilder* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
-		ss.AddNativeCall(ns, NativeMHostIScreenBuilderDrawBitmap, nullptr, ("IScreenBuilderDrawBitmap (Pointer hObject)(MHost.BitmapSpec spec)(Sys.Maths.Vec2i topLeft) -> "));
-		ss.AddNativeCall(ns, NativeMHostIScreenBuilderTryGetBitmapSpec, nullptr, ("IScreenBuilderTryGetBitmapSpec (Pointer hObject)(Sys.Type.IString resourceName)(MHost.BitmapSpec spec) -> (Bool isSuccessful)"));
+		ss.AddNativeCall(ns, NativeMHostIScreenBuilderPushTriangle, nullptr, ("IScreenBuilderPushTriangle (Pointer hObject)(Sys.MPlat.GuiTriangle t) -> "));
+		ss.AddNativeCall(ns, NativeMHostIScreenBuilderPushQuad, nullptr, ("IScreenBuilderPushQuad (Pointer hObject)(Sys.MPlat.GuiQuad q) -> "));
+		ss.AddNativeCall(ns, NativeMHostIScreenBuilderTryGetBitmapSpec, nullptr, ("IScreenBuilderTryGetBitmapSpec (Pointer hObject)(Sys.Type.IString resourceName)(Sys.MPlat.BitmapLocation loc) -> (Bool isSuccessful)"));
+		ss.AddNativeCall(ns, NativeMHostIScreenBuilderRender, nullptr, ("IScreenBuilderRender (Pointer hObject) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for MHost::IEngine 
@@ -65,7 +87,7 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeMHostIEngineDrawAll(NativeCallEnvironment& _nce)
+	void NativeMHostIEngineScreenBuilder(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -73,17 +95,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->DrawAll();
-	}
-	void NativeMHostIEngineGetScreenBuilder(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		MHost::IEngine* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		MHost::IScreenBuilder* s = _pObject->GetScreenBuilder();
+		MHost::IScreenBuilder* s = _pObject->ScreenBuilder();
 		_offset += sizeof(CReflectedClass*);
 		auto& _sStruct = Rococo::Helpers::GetDefaultProxy(("MHost"),("IScreenBuilder"), ("ProxyIScreenBuilder"), _nce.ss);
 		CReflectedClass* _sxys = _nce.ss.Represent(_sStruct, s);
@@ -115,20 +127,6 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->YieldForSystemMessages(sleepMS);
 	}
-	void NativeMHostIEngineSetPhase(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		int32 phaseIndex;
-		_offset += sizeof(phaseIndex);
-		ReadInput(phaseIndex, _sf, -_offset);
-
-		MHost::IEngine* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetPhase(phaseIndex);
-	}
 
 	void NativeGetHandleForMHostEngine(NativeCallEnvironment& _nce)
 	{
@@ -147,10 +145,8 @@ namespace MHost {
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForMHostEngine, _nceContext, ("GetHandleForIEngine0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeMHostIEngineDrawAll, nullptr, ("IEngineDrawAll (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeMHostIEngineGetScreenBuilder, nullptr, ("IEngineGetScreenBuilder (Pointer hObject) -> (MHost.IScreenBuilder s)"));
+		ss.AddNativeCall(ns, NativeMHostIEngineScreenBuilder, nullptr, ("IEngineScreenBuilder (Pointer hObject) -> (MHost.IScreenBuilder s)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineIsRunning, nullptr, ("IEngineIsRunning (Pointer hObject) -> (Bool isRunning)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineYieldForSystemMessages, nullptr, ("IEngineYieldForSystemMessages (Pointer hObject)(Int32 sleepMS) -> "));
-		ss.AddNativeCall(ns, NativeMHostIEngineSetPhase, nullptr, ("IEngineSetPhase (Pointer hObject)(Int32 phaseIndex) -> "));
 	}
 }

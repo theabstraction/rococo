@@ -72,6 +72,20 @@ namespace Rococo
 		ObjectVertex c;
 	};
 
+	struct GuiTriangle
+	{
+		GuiVertex a;
+		GuiVertex b;
+		GuiVertex c;
+	};
+
+	struct GuiQuad
+	{
+		GuiVertex a;
+		GuiVertex b;
+		GuiVertex c;
+	};
+
 	struct IRenderer;
 
 	ROCOCO_ID(ID_VERTEX_SHADER, size_t, -1)

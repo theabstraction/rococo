@@ -179,6 +179,10 @@
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\content\scripts\mhost\galaxians.sxy" />
+    <None Include="..\content\scripts\mhost\mhost.sxh.sxy" />
+    <None Include="..\content\scripts\mhost\mhost.types.sxy" />
+    <None Include="..\content\scripts\mhost\mplat.types.sxy" />
     <None Include="mhost.sxh" />
     <None Include="mhost.xc" />
   </ItemGroup>
