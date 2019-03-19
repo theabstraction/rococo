@@ -1,6 +1,0 @@
-(struct BitmapSpec
-	(Sys.Maths.Quadf uvSubrect)
-	(Float32 arrayIndex)
-)
-(alias BitmapSpec MHost.BitmapSpec)
-

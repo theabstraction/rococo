@@ -3648,8 +3648,57 @@ HINSTANCE g_Instance = nullptr;
 cstr g_largeIcon = nullptr;
 cstr g_smallIcon = nullptr;
 
-void Main(HINSTANCE hInstance, HANDLE hInstanceLock, IAppFactory& appFactory, cstr title, HICON hLargeIcon, HICON hSmallIcon)
+ROCOCOAPI IMainloop
 {
+	virtual void Invoke(Platform& platform, IDX11GraphicsWindow& mainWindow) = 0;
+};
+
+struct HandleManager
+{
+	HANDLE& hEvent;
+
+	HandleManager(HANDLE& _hEvent): hEvent(_hEvent)
+	{
+
+	}
+
+	~HandleManager()
+	{
+		if (hEvent != INVALID_HANDLE_VALUE)
+		{
+			CloseHandle(hEvent);
+		}
+	}
+};
+
+int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
+{
+	char filename[1024];
+	GetModuleFileNameA(nullptr, filename, 1024);
+	for (char* p = filename; *p != 0; p++)
+	{
+		if (*p == '\\') *p = '#';
+	}
+
+	HANDLE hInstanceLock = CreateEventA(nullptr, TRUE, FALSE, filename);
+
+	HandleManager autoInstanceLock(hInstanceLock);
+
+	int err = GetLastError();
+	if (err == ERROR_ALREADY_EXISTS)
+	{
+		SetEvent(hInstanceLock);
+
+		if (IsDebuggerPresent())
+		{
+			ShowMessageBox(Windows::NoParent(), "Application is already running", filename, MB_ICONEXCLAMATION);
+		}
+
+		return err;
+	}
+
+	InitRococoWindows(hInstance, hLargeIcon, hSmallIcon, nullptr, nullptr);
+
 	AutoFree<IAllocatorSupervisor> imageAllocator = Memory::CreateBlockAllocator(0, 0);
 	Imaging::SetJpegAllocator(imageAllocator);
 	Imaging::SetTiffAllocator(imageAllocator);
@@ -3680,7 +3729,7 @@ void Main(HINSTANCE hInstance, HANDLE hInstanceLock, IAppFactory& appFactory, cs
 	ws.Y = CW_USEDEFAULT;
 	ws.Width = 1152;
 	ws.Height = 700;
-	
+
 	AutoFree<IDX11GraphicsWindow> mainWindow = factory->CreateDX11Window(ws);
 
 	SetWindowTextA(mainWindow->Window(), title);
@@ -3715,86 +3764,52 @@ void Main(HINSTANCE hInstance, HANDLE hInstanceLock, IAppFactory& appFactory, cs
 	utils.SetPlatform(platform);
 	messaging->PostCreate(platform);
 
-	AutoFree<IApp> app(appFactory.CreateApp(platform));
-
 	PlatformTabs tabs(platform);
+	mainloop.Invoke(platform, *mainWindow);
 
-	app->OnCreate();
-
-	AutoFree<IAppManager> appManager = CreateAppManager(*mainWindow, *app);
-	appManager->Run(hInstanceLock, *app);
+	return 0;
 }
 
-void MainDirect(HINSTANCE hInstance, HANDLE hInstanceLock, IDirectAppFactory& appFactory, cstr title, HICON hLargeIcon, HICON hSmallIcon)
+int Main(HINSTANCE hInstance, IAppFactory& appFactory, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
-	AutoFree<IAllocatorSupervisor> imageAllocator = Memory::CreateBlockAllocator(0, 0);
-	Imaging::SetJpegAllocator(imageAllocator);
-	Imaging::SetTiffAllocator(imageAllocator);
+	struct : public IMainloop
+	{
+		IAppFactory* appFactory;
+		HANDLE hInstanceLock;
 
-	AutoFree<IOSSupervisor> os = GetOS();
-	AutoFree<IInstallationSupervisor> installation = CreateInstallation("content.indicator.txt", *os);
-	AutoFree<Rococo::Events::IPublisherSupervisor> publisher(Events::CreatePublisher());
-	os->Monitor(installation->Content());
+		void Invoke(Platform& platform, IDX11GraphicsWindow& mainWindow) override
+		{
+			AutoFree<IApp> app(appFactory->CreateApp(platform));
 
-	OS::PrintDebug("Starting mainWindow!\n");
+			app->OnCreate();
 
-	AutoFree<IDX11Logger> logger = CreateStandardOutputLogger();
+			AutoFree<IAppManager> appManager = CreateAppManager(mainWindow, *app);
+			appManager->Run(hInstanceLock, *app);
+		}
+	} proxy;
 
-	FactorySpec factorySpec;
-	factorySpec.hResourceInstance = hInstance;
-	factorySpec.largeIcon = hLargeIcon;
-	factorySpec.smallIcon = hSmallIcon;
-	AutoFree<IDX11Factory> factory = CreateDX11Factory(*installation, *logger, factorySpec);
+	proxy.appFactory = &appFactory;
 
-	WindowSpec ws;
-	ws.exStyle = 0;
-	ws.style = WS_OVERLAPPEDWINDOW;
-	ws.hInstance = hInstance;
-	ws.hParentWnd = nullptr;
-	ws.messageSink = nullptr;
-	ws.minSpan = { 1024, 640 };
-	ws.X = CW_USEDEFAULT;
-	ws.Y = CW_USEDEFAULT;
-	ws.Width = 1152;
-	ws.Height = 700;
+	return Main(hInstance, proxy, title, hLargeIcon, hSmallIcon);
+}
 
-	AutoFree<IDX11GraphicsWindow> mainWindow = factory->CreateDX11Window(ws);
+int Main(HINSTANCE hInstance, IDirectAppFactory& appFactory, cstr title, HICON hLargeIcon, HICON hSmallIcon)
+{
+	struct : public IMainloop
+	{
+		IDirectAppFactory* appFactory;
+		HANDLE hInstanceLock;
 
-	SetWindowTextA(mainWindow->Window(), title);
+		void Invoke(Platform& platform, IDX11GraphicsWindow& mainWindow) override
+		{
+			AutoFree<IDirectAppManager> appManager = CreateAppManager(platform, mainWindow, *appFactory);
+			appManager->Run(hInstanceLock);
+		}
+	} proxy;
 
-	AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation));
-	AutoFree<IDebuggerWindow> debuggerWindow(Windows::IDE::CreateDebuggerWindow(mainWindow->Window()));
+	proxy.appFactory = &appFactory;
 
-	Rococo::M::InitScriptSystem(*installation);
-
-	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
-	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher);
-	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
-	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
-	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera);
-	AutoFree<IKeyboardSupervisor> keyboard = CreateKeyboardSupervisor();
-	AutoFree<Graphics::ISpriteSupervisor> sprites = Graphics::CreateSpriteSupervisor(mainWindow->Renderer());
-	AutoFree<IConfigSupervisor> config = CreateConfig();
-	AutoFree<Graphics::IRimTesselatorSupervisor> rimTesselator = Graphics::CreateRimTesselator();
-	AutoFree<Entities::IParticleSystemSupervisor> particles = Entities::CreateParticleSystem(mainWindow->Renderer(), *instances);
-	AutoFree<Graphics::IRendererConfigSupervisor> rendererConfig = Graphics::CreateRendererConfig(mainWindow->Renderer());
-	Utilities utils(*installation, mainWindow->Renderer());
-
-	AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor(utils, *publisher);
-
-	GuiStack gui(*publisher, *sourceCache, mainWindow->Renderer(), utils);
-
-	AutoFree<Graphics::IMessagingSupervisor> messaging = Graphics::CreateMessaging();
-
-	Tesselators tesselators{ *rimTesselator };
-	Platform platform{ *os, *installation, mainWindow->Renderer(), *rendererConfig, *messaging, *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor, title };
-	gui.platform = &platform;
-	utils.SetPlatform(platform);
-	messaging->PostCreate(platform);
-
-	PlatformTabs tabs(platform);
-	AutoFree<IDirectAppManager> appManager = CreateAppManager(platform, *mainWindow, appFactory);
-	appManager->Run(hInstanceLock);
+	return Main(hInstance, proxy, title, hLargeIcon, hSmallIcon);
 }
 
 
@@ -3802,34 +3817,11 @@ namespace Rococo
 {
 	int M_Platorm_Win64_Main(HINSTANCE hInstance, IAppFactory& factory, cstr title, HICON hLarge, HICON hSmall)
 	{
-		char filename[1024];
-		GetModuleFileNameA(nullptr, filename, 1024);
-		for (char* p = filename; *p != 0; p++)
-		{
-			if (*p == '\\') *p = '#';
-		}
-
-		HANDLE hInstanceLock = CreateEventA(nullptr, TRUE, FALSE, filename);
-
-		int err = GetLastError();
-		if (err == ERROR_ALREADY_EXISTS)
-		{
-			SetEvent(hInstanceLock);
-
-			if (IsDebuggerPresent())
-			{
-				ShowMessageBox(Windows::NoParent(), "Application is already running", filename, MB_ICONEXCLAMATION);
-			}
-
-			return err;
-		}
-
 		int errCode = 0;
 
 		try
 		{
-			InitRococoWindows(hInstance, hLarge, hSmall, nullptr, nullptr);
-			Main(hInstance, hInstanceLock, factory, title, hLarge, hSmall);
+			errCode = Main(hInstance, factory, title, hLarge, hSmall);
 		}
 		catch (IException& ex)
 		{
@@ -3838,42 +3830,17 @@ namespace Rococo
 			OS::ShowErrorBox(NoParent(), ex, text);
 			errCode = ex.ErrorCode();
 		}
-
-		CloseHandle(hInstanceLock);
 
 		return errCode;
 	}
 
 	int M_Platorm_Win64_MainDirect(HINSTANCE hInstance, IDirectAppFactory& factory, cstr title, HICON hLarge, HICON hSmall)
 	{
-		char filename[1024];
-		GetModuleFileNameA(nullptr, filename, 1024);
-		for (char* p = filename; *p != 0; p++)
-		{
-			if (*p == '\\') *p = '#';
-		}
-
-		HANDLE hInstanceLock = CreateEventA(nullptr, TRUE, FALSE, filename);
-
-		int err = GetLastError();
-		if (err == ERROR_ALREADY_EXISTS)
-		{
-			SetEvent(hInstanceLock);
-
-			if (IsDebuggerPresent())
-			{
-				ShowMessageBox(Windows::NoParent(), "Application is already running", filename, MB_ICONEXCLAMATION);
-			}
-
-			return err;
-		}
-
 		int errCode = 0;
 
 		try
 		{
-			InitRococoWindows(hInstance, hLarge, hSmall, nullptr, nullptr);
-			MainDirect(hInstance, hInstanceLock, factory, title, hLarge, hSmall);
+			errCode = Main(hInstance, factory, title, hLarge, hSmall);
 		}
 		catch (IException& ex)
 		{
@@ -3882,8 +3849,6 @@ namespace Rococo
 			OS::ShowErrorBox(NoParent(), ex, text);
 			errCode = ex.ErrorCode();
 		}
-
-		CloseHandle(hInstanceLock);
 
 		return errCode;
 	}

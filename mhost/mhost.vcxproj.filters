@@ -57,9 +57,6 @@
     <None Include="..\content\scripts\mhost\mhost.sxh.sxy">
       <Filter>ScriptGen Files\SXY</Filter>
     </None>
-    <None Include="..\content\scripts\mhost\mhost.types.sxy">
-      <Filter>ScriptGen Files\SXY</Filter>
-    </None>
     <None Include="..\content\scripts\mhost\mplat.types.sxy">
       <Filter>ScriptGen Files\SXY</Filter>
     </None>

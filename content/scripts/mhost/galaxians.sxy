@@ -1,20 +1,22 @@
 (' #include 
-	"!scripts/mhost/mhost.types.sxy"
 	"!scripts/mhost/mplat.types.sxy"
 	"!scripts/mhost/mhost.sxh.sxy"
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/types.sxy"
 )
 
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
 	
 (using Sys.Maths)
+(using Sys.MPlat)
 (using MHost)
 
 (namespace Galaxians)
 
 (struct Bitmap
 	(IString filename)
-	(BitmapSpec spec)
+	(BitmapLocation location)
 )
 	
 (struct Entity 
@@ -24,10 +26,13 @@
 )
 
 (struct World
-	(array aliens Entity 4)
-	(array missiles Entity 6)
+	(array Entity aliens)
+	(array Entity missiles)
 	(Entity player)
 	(Entity playerMissile)
+)
+
+(method World.Construct -> (construct aliens 4) (construct missiles 4) :
 )
 
 (function InitBitmap (IScreenBuilder s)(Bitmap bmp)-> :
@@ -41,7 +46,7 @@
 
 (archetype Galaxians.OnEntity (Entity e)->)
 
-(function EnumerateEntities (OnEntity onEntity)
+(function EnumerateEntities (OnEntity onEntity)-> :
 	(foreach alien in world.aliens :
 		(onEntity alien)
 	)
@@ -55,10 +60,18 @@
 )
 
 (function Init (World world)(IEngine engine)-> :
-	(world.aliens 0 (10  10 "pawn.1.tiff" "pawn.2.tiff"))
-	(world.aliens 1 (40  10 "pawn.1.tiff" "pawn.2.tiff"))
-	(world.aliens 2 (70  10 "pawn.1.tiff" "pawn.2.tiff"))
-	(world.aliens 3 (100 10 "pawn.1.tiff" "pawn.2.tiff"))
+	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1)
+	(Entity a0 = (10  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
+	(world.aliens.Push a0)
+	
+	(Entity a1 = (40  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
+	(world.aliens.Push a1)
+	
+	(Entity a2 = (70  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
+	(world.aliens.Push a2)
+	
+	(Entity a3 = (70  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
+	(world.aliens.Push a3)
 	
 	(IScreenBuilder s = (engine.ScreenBuilder))
 	
@@ -88,12 +101,10 @@
 	)
 )
 
-(using MHost)
-
 (function Main (Int32 id) -> (Int32 exitCode):
 	(IEngine engine (Engine))
 	
-	(World world)
+	(World world ())
 	(Init world engine)
 	
 	(while engine.IsRunning

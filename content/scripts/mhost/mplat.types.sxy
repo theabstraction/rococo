@@ -2,7 +2,7 @@
 (namespace Sys.MPlat)
 
 (struct BitmapLocation
-	(Rect rect)
+	(Recti rect)
 	(Int32 arrayIndex)
 )
 
