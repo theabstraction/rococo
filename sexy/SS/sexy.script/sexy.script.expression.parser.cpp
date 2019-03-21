@@ -1237,7 +1237,7 @@ namespace Rococo
 		void AddVariableAndSymbol(CCompileEnvironment& ce, cstr type, cstr name)
 		{
 			char declText[256];
-		  SafeFormat(declText, 256, ("%s %s"), type, name);
+			SafeFormat(declText, 256, ("%s %s"), type, name);
 			ce.Builder.AddSymbol(declText);
 
 			AddVariable(ce, NameString::From(name), TypeString::From(type));
@@ -1260,6 +1260,24 @@ namespace Rococo
 				interfVTable.vPtrValue = (void*) memberType.GetVirtualTable(1 + i);
 				ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset + interfaceOffset, interfVTable, BITCOUNT_POINTER);	
 				interfaceOffset += sizeof(void*);
+			}
+
+			// Null out IString's buffer and length members
+			auto* iString = &ce.Object.Common().SysTypeIString();
+			auto* iInterface0 = &memberType.GetInterface(0);
+			for (auto* i = iInterface0; i != nullptr; i = i->Base())
+			{
+				if (i == iString)
+				{
+					VariantValue nullPtr;
+					nullPtr.charPtrValue = "";
+					ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset + sizeof(size_t) + sizeof(int32) + sizeof(size_t) + sizeof(int32), nullPtr, BITCOUNT_POINTER);
+
+					VariantValue zeroInt32;
+					zeroInt32.int32Value = 0;
+					ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset + sizeof(size_t) + sizeof(int32) + sizeof(size_t), zeroInt32, BITCOUNT_32);
+					break;
+				}
 			}
 		}
 
@@ -2585,47 +2603,19 @@ namespace Rococo
 
 		void CompileTrivialStringAssign(CCompileEnvironment& ce, cr_sex s, sexstring lhs, sexstring rhs)
 		{
+			cstr variableName = lhs->Buffer;
+
 			MemberDef def;
-			if (!ce.Builder.TryGetVariableByName(OUT def, lhs->Buffer))
+			if (!ce.Builder.TryGetVariableByName(OUT def, variableName))
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Cannot find ") << (cstr)lhs->Buffer << (" in this context");
-				Throw(s, *streamer.sb);
+				Throw(s, "String assign failed: cannot find %s", variableName);
 			}
-
-			/* TODO - delete this comment
-			if (def.Usage != ARGUMENTUSAGE_BYREFERENCE)
-			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Cannot assign a string to ") << (cstr) lhs->Buffer << (": the variable was a value type");
-				Throw(s, streamer);
-			}
-
-			if (def.SFOffset >= 0)
-			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Cannot assign a string to the temporary variable ") << (cstr) lhs->Buffer;
-				Throw(s, streamer);
-			}
-
-			*/
 
 			const IInterface& istring = ce.Object.Common().SysTypeIString();
 			if (def.ResolvedType != &istring.NullObjectType())
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Cannot assign a string to anything other than a Sys.Type.IString") << (cstr)lhs->Buffer;
-				Throw(s, streamer);
+				Throw(s, "Cannot assign a string to %s - not a Sys.Type.IString", variableName);
 			}
-
-			/* TODO - delete this comment
-			if (ce.Builder.Owner().GetArgumentByName(lhs->Buffer)->Direction() != ARGDIRECTION_OUTPUT)
-			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("The Sys.Type.IString was not an output reference: ") << (cstr) lhs->Buffer;
-				Throw(s, streamer);
-			}
-			*/
 
 			CStringConstant* sc = CreateStringConstant(ce.Script, rhs->Length, rhs->Buffer, &s);
 
@@ -2639,35 +2629,51 @@ namespace Rococo
 
 			if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
 			{
-				ce.Builder.Assembler().Append_SetStackFrameImmediate(def.SFOffset, ptr, BITCOUNT_POINTER);
+				if (def.location == VARLOCATION_OUTPUT)
+				{
+					ce.Builder.Assembler().Append_SetStackFrameImmediate(def.SFOffset, ptr, BITCOUNT_POINTER);
+					return;
+				}
+				else
+				{
+					if (!def.IsContained)
+					{
+						Throw(s, "String assign failed: variable %s was not and output reference, nor a refernce to a member");
+					}
+
+					// def.SFOffset gives the SF offset to the reference
+					TokenBuffer destructorSymbol;
+					StringPrint(destructorSymbol, ("%s %s.Destruct"), GetFriendlyName(*def.ResolvedType), variableName);
+					ce.Builder.AddSymbol(destructorSymbol);
+					ce.Builder.Assembler().Append_CallVirtualFunctionByValue(def.SFOffset, sizeof(ID_BYTECODE), def.MemberOffset);
+					ce.Builder.Assembler().Append_Pop(sizeof(size_t));
+				}
 			}
 			else
 			{
-				cstr variableName = lhs->Buffer;
-
 				Rococo::Script::AppendInvokeCallDestructor(ce, *def.ResolvedType, variableName, def.SFOffset + def.MemberOffset);
-				
-				ce.Builder.Append_InitializeVirtualTable(variableName, ce.Object.Common().TypeStringLiteral());
-				AddSymbol(ce.Builder, ("StringConstant %s"), (cstr)rhs->Buffer);
-
-				TokenBuffer token;
-				StringPrint(token, ("%s.length"), variableName);
-
-				char value[32];
-				SafeFormat(value, 32, ("%d"), sc->length);
-				ce.Builder.AssignLiteral(NameString::From(token), value);
-
-				StringPrint(token, ("%s.buffer"), variableName);
-				ce.Builder.AssignPointer(NameString::From(token), sc->pointer);
-
-				TokenBuffer vTableBuffer;
-				StringPrint(vTableBuffer, ("%s._vTable1"), variableName);
-				ce.Builder.AssignVariableRefToTemp(vTableBuffer, Rococo::ROOT_TEMPDEPTH);
-
-				TokenBuffer refName;
-				GetRefName(refName, variableName);
-				ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, refName);
 			}
+				
+			ce.Builder.Append_InitializeVirtualTable(variableName, ce.Object.Common().TypeStringLiteral());
+			AddSymbol(ce.Builder, ("StringConstant %s"), (cstr)rhs->Buffer);
+
+			TokenBuffer token;
+			StringPrint(token, ("%s.length"), variableName);
+
+			char value[32];
+			SafeFormat(value, 32, ("%d"), sc->length);
+			ce.Builder.AssignLiteral(NameString::From(token), value);
+
+			StringPrint(token, ("%s.buffer"), variableName);
+			ce.Builder.AssignPointer(NameString::From(token), sc->pointer);
+
+			TokenBuffer vTableBuffer;
+			StringPrint(vTableBuffer, ("%s._vTable1"), variableName);
+			ce.Builder.AssignVariableRefToTemp(vTableBuffer, Rococo::ROOT_TEMPDEPTH);
+
+			TokenBuffer refName;
+			GetRefName(refName, variableName);
+			ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, refName);
 		}
 
 		bool IsValidVariableName(cstr token)

@@ -4718,6 +4718,44 @@ namespace
 		validate(x == 5);
 	}
 
+	void TestStringMember2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(struct Mouse"
+			"	(Int32 x)"
+			"	(Int32 y)"
+			"   (IString name)"
+			")"
+
+			"(function SetMouseName (Mouse m) -> :"
+			"	(m.name = \"Geoff\")"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"	(Mouse m)"
+			"	(SetMouseName m)" 
+			"	(Sys.Print m.name -> result)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestStringMember2");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 5);
+	}
+
 	void TestStringBuilder(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -11176,7 +11214,8 @@ namespace
 
 	void RunPositiveSuccesses()
 	{
-		TEST(TestStringMember);
+		TEST(TestClassDefinesInterface);
+
 		validate(true);
 
 		TestConstruction();
@@ -11406,7 +11445,6 @@ namespace
 
 		TEST(TestAssignPointerFromFunction);
 
-		TEST(TestClassDefinesInterface);
 		TEST(TestClassExtendsInterface);
 
 		TEST(TestMultipleDerivation2);
@@ -11416,6 +11454,9 @@ namespace
 		TEST(TestCompareGetAccessorWithOne2);
 
 		TEST(TestCaptureInFunctionAllInClosure);
+
+		TEST(TestStringMember);
+		TEST(TestStringMember2);
 
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 	}

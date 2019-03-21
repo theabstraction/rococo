@@ -1,12 +1,20 @@
-(function AppendStringToHost (IString s)-> :
-	(Sys.Print s)
-)
+(namespace EntryPoint)
+(alias Main EntryPoint.Main)
 
 (using Sys.Type)
-(namespace EntryPoint)
-(function Main -> (Int32 exitCode) :
-	(IStringBuilder sb)
-    (AppendStringToHost sb)
+
+(struct Mouse
+	(Int32 x)
+	(Int32 y)
+	(IString name)
 )
 
-(alias Main EntryPoint.Main)
+(function SetMouseName (Mouse m) -> :
+	(m.name = "Geoff")
+)
+
+(function Main -> (Int32 result):
+	(Mouse m)
+	(SetMouseName m)
+	(Sys.Print m.name -> result)
+)

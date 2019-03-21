@@ -2180,7 +2180,7 @@ namespace
 		if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
 		{
 			// Put the stack frame into D4 and make the address of the object the stack
-			sfOffset = 0;
+			sfOffset = def.MemberOffset;
 			builder.Assembler().Append_MoveRegister(VM::REGISTER_SF, VM::REGISTER_D4, BITCOUNT_POINTER);
 			builder.Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_SF, BITCOUNT_POINTER);
 		}
@@ -2190,34 +2190,34 @@ namespace
 		}
 
 		TokenBuffer vTableSymbol;
-      SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s._typeInfo"), classType.Name());
+		SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s._typeInfo"), classType.Name());
 		builder.AddSymbol(vTableSymbol);
 
 		VariantValue v;
-		v.uint8PtrValue = (uint8*) classType.GetVirtualTable(0);
+		v.uint8PtrValue = (uint8*)classType.GetVirtualTable(0);
 		builder.Assembler().Append_SetStackFrameImmediate(sfOffset, v, BITCOUNT_POINTER);
-		
-      SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s._allocSize"), classType.Name());
+
+		SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s._allocSize"), classType.Name());
 		builder.AddSymbol(vTableSymbol);
 
 		v.int32Value = classType.SizeOfStruct();
 		builder.Assembler().Append_SetStackFrameImmediate(sfOffset + sizeof(size_t), v, BITCOUNT_32);
 
-		for(int i = 0; i < classType.InterfaceCount(); i++)
+		for (int i = 0; i < classType.InterfaceCount(); i++)
 		{
 			const IInterface& interf = classType.GetInterface(i);
-         SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.%s._vTable"), classType.Name(), interf.Name());
+			SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.%s._vTable"), classType.Name(), interf.Name());
 			builder.AddSymbol(vTableSymbol);
 
-			v.uint8PtrValue = (uint8*) classType.GetVirtualTable(i+1);
-			builder.Assembler().Append_SetStackFrameImmediate(sfOffset + sizeof(int32) + sizeof(size_t) * (i+1), v, BITCOUNT_POINTER);
-		}		
-		
+			v.uint8PtrValue = (uint8*)classType.GetVirtualTable(i + 1);
+			builder.Assembler().Append_SetStackFrameImmediate(sfOffset + sizeof(int32) + sizeof(size_t) * (i + 1), v, BITCOUNT_POINTER);
+		}
+
 		if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
 		{
 			// Restore the stack frame
 			builder.Assembler().Append_MoveRegister(VM::REGISTER_D4, VM::REGISTER_SF, BITCOUNT_POINTER);
-		}		
+		}
 	}
 
 	void CodeBuilder::Append_InitializeVirtualTable(cstr instanceName)
@@ -2241,9 +2241,7 @@ namespace
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, instanceName))
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Error, cannot find instance ") << instanceName;
-			Throw(ERRORCODE_COMPILE_ERRORS, classType.Module().Name(), "%s", (cstr) streamer);
+			Throw(ERRORCODE_COMPILE_ERRORS, classType.Module().Name(), "Error, cannot find instance: %s", instanceName);
 		}
 
 		if (def.ResolvedType->Prototype().IsClass)
