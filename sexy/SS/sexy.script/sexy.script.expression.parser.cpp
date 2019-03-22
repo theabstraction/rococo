@@ -681,6 +681,26 @@ namespace Rococo
 			}
 		}
 
+		bool IsPublic(const IMember& member)
+		{
+			return member.Name()[0] != '_';
+		}
+
+		int PublicMemberCount(const IStructure& s)
+		{
+			int count = 0;
+			for (int i = 0; i < s.MemberCount(); ++i)
+			{
+				const IMember& member = s.GetMember(i);
+				if (IsPublic(member))
+				{
+					count++;
+				}
+			}
+
+			return count;
+		}
+
 		void CompileAssignToStringMember(CCompileEnvironment& ce, cstr variableName, const IStructure& st, const IMember& member, cr_sex src)
 		{
 			// Assume member underlying type is null-string
@@ -758,7 +778,7 @@ namespace Rococo
 						return;
 					}
 
-					if (src.NumberOfElements() != memberType.MemberCount())
+					if (src.NumberOfElements() != PublicMemberCount(memberType))
 					{
 						sexstringstream<1024> streamer;
 						streamer.sb << member.Name() << (" has ") << memberType.MemberCount() << (" elements. But ") << src.NumberOfElements() << (" were supplied ");
@@ -766,14 +786,17 @@ namespace Rococo
 						return;
 					}
 
+					int publicMemberIndex = 0;
+
 					for(int i = 0; i < memberType.MemberCount(); ++i)
 					{
 						const IMember& subMember = memberType.GetMember(i);
-
-						TokenBuffer memberName;
-						StringPrint(memberName, ("%s.%s"), variableName, subMember.Name());
-
-						CompileAssignMember(ce, memberName, memberType, subMember, src.GetElement(i));
+						if (IsPublic(subMember))
+						{
+							TokenBuffer memberName;
+							StringPrint(memberName, ("%s.%s"), variableName, subMember.Name());
+							CompileAssignMember(ce, memberName, memberType, subMember, src.GetElement(publicMemberIndex++));
+						}
 					}
 					return;
 				}
@@ -809,26 +832,6 @@ namespace Rococo
 			{
 				ce.Builder.Assembler().Append_SetStackFrameImmediate(def.SFOffset, v, BITCOUNT_POINTER);
 			}
-		}
-
-		bool IsPublic(const IMember& member)
-		{
-			return member.Name()[0] != '_';
-		}
-
-		int PublicMemberCount(const IStructure& s)
-		{
-			int count = 0;
-			for(int i = 0; i < s.MemberCount(); ++i)
-			{
-				const IMember& member = s.GetMember(i);
-				if (IsPublic(member))
-				{
-					count++;
-				}
-			}
-
-			return count;
 		}
 	
 		void CompileMemberwiseAssignment(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, int offset)

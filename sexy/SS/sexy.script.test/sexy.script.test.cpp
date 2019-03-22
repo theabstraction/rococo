@@ -4756,6 +4756,44 @@ namespace
 		validate(x == 5);
 	}
 
+	void TestStringMember3(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(struct Button"
+			"	(Int32 state)"
+			"   (IString name)"
+			")"
+
+			"(struct Mouse"
+			"	(Button b1)"
+			"	(Button b2)"
+			"   (IString name)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"	(Mouse m = (0 \"left\") (1 \"right\") \"Helen\")"
+			"	(Sys.Print m.name -> result)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestStringMember3");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 5);
+	}
+
 	void TestStringBuilder(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -11214,6 +11252,8 @@ namespace
 
 	void RunPositiveSuccesses()
 	{
+		TEST(TestStringMember3);
+
 		TEST(TestClassDefinesInterface);
 
 		validate(true);

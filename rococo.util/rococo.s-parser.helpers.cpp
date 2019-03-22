@@ -849,9 +849,58 @@ namespace Rococo
 							IUITree* tree;
 							int depth;
 							const uint8* instance;
+							const IStructure* parentStruct = nullptr;
+							const IStructure* concreteStruct = nullptr;
+							CClassHeader* parentHeader = nullptr;
+							int index = 0;
+							int firstUnkIndex = 1;
 
 							void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem) override
 							{
+								index++;
+
+								if (parentStruct)
+								{
+									if (index == 1)
+									{
+										auto* header = (CClassHeader*)sfItem;
+										auto* t = header->_typeInfo;
+
+										concreteStruct = t->structDef;
+										parentHeader = header;
+
+										char classDesc[256];
+										SafeFormat(classDesc, sizeof(classDesc), "[+%d] %s DestructorId: %lld. Alloc: %d bytes", (sfItem - instance), t->structDef->Name(), t->destructorId, header->_allocSize);
+										auto node = tree->AddChild(parentId, classDesc, CheckState_NoCheckBox);
+
+										firstUnkIndex = 3 + t->structDef->InterfaceCount();
+
+										for (int i = 0; i < t->structDef->InterfaceCount(); ++i)
+										{
+											auto& interface = parentStruct->GetInterface(i);
+											auto* vTable = t->structDef->GetVirtualTable(i+1);
+											char interfaceDesc[256];
+											SafeFormat(interfaceDesc, sizeof(interfaceDesc), "Implements %s. vTable %p", interface.Name(), vTable);
+
+											auto inode = tree->AddChild(node, interfaceDesc, CheckState_NoCheckBox);
+
+											auto* instanceVTable = header->_vTables[i].Root;
+											if (instanceVTable != vTable)
+											{
+												char vTableDesc[256];
+												SafeFormat(vTableDesc, sizeof(vTableDesc), "vTable mismatch. Expecting %p, but found %p", vTable, instanceVTable);
+												auto vnode = tree->AddChild(inode, vTableDesc, CheckState_NoCheckBox);
+											}
+
+										}
+										return;
+									}
+									else if (index < firstUnkIndex)
+									{
+										return;
+									}
+								}
+
 								char prefix[256] = { 0 };
 
 								if (member.IsPseudoVariable())
@@ -860,7 +909,24 @@ namespace Rococo
 								}
 
 								char value[256];
-								FormatValue(ss, value, sizeof(value), member.UnderlyingType()->VarType(), sfItem);
+
+								auto* name = member.UnderlyingType()->Name();
+								if (Eq(name, "_Null_Sys_Type_IString"))
+								{
+									__try
+									{
+										auto* s = (CClassSysTypeStringBuilder*)sfItem;
+										SafeFormat(value, sizeof(value), s->buffer);
+									}
+									__except (EXCEPTION_EXECUTE_HANDLER)
+									{
+										SafeFormat(value, sizeof(value), "IString: <Bad pointer>");
+									}
+								}
+								else
+								{
+									FormatValue(ss, value, sizeof(value), member.UnderlyingType()->VarType(), sfItem);
+								}
 
 								char memberDesc[256];
 								SafeFormat(memberDesc, sizeof(memberDesc), "[+%d] %s%p %s: %s", (sfItem - instance), prefix, sfItem, member.Name(), value);
@@ -870,15 +936,18 @@ namespace Rococo
 
 								if (member.UnderlyingType()->VarType() == VARTYPE_Derivative)
 								{
-									if (member.UnderlyingType()->InterfaceCount() == 0)
+									MyMemberEnumeratorCallback subMember;
+									subMember.instance = instance;
+									subMember.parentId = node;
+									subMember.tree = tree;
+									subMember.depth = depth;
+
+									if (member.UnderlyingType()->InterfaceCount() != 0)
 									{
-										MyMemberEnumeratorCallback subMember;
-										subMember.instance = instance;
-										subMember.parentId = node;
-										subMember.tree = tree;
-										subMember.depth = depth;
-										GetMembers(ss, *member.UnderlyingType(), member.Name(), sfItem, 0, subMember);
+										subMember.parentStruct = member.UnderlyingType();
 									}
+
+									GetMembers(ss, *member.UnderlyingType(), member.Name(), sfItem, 0, subMember);
 								}
 							}
 						} addMember;

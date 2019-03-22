@@ -3,18 +3,18 @@
 
 (using Sys.Type)
 
+(struct Button
+	(Int32 state)
+    (IString name)
+)
+
 (struct Mouse
-	(Int32 x)
-	(Int32 y)
-	(IString name)
+	(Button b1)
+	(Button b2)
+    (IString name)
 )
 
-(function SetMouseName (Mouse m) -> :
-	(m.name = "Geoff")
-)
-
-(function Main -> (Int32 result):
-	(Mouse m)
-	(SetMouseName m)
+(function Main (Int32 id) -> (Int32 result) :
+	(Mouse m = (0 "left") (1 "right") "Helen")
 	(Sys.Print m.name -> result)
 )

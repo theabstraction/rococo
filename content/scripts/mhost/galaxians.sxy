@@ -36,7 +36,7 @@
 )
 
 (function InitBitmap (IScreenBuilder s)(Bitmap bmp)-> :
-	(s.TryGetBitmap bmp.spec bmp.filename)
+	(s.TryGetBitmapSpec bmp.filename bmp.location)
 )
 
 (function InitEntityBitmaps (IScreenBuilder s)(Entity e)-> :
@@ -46,22 +46,17 @@
 
 (archetype Galaxians.OnEntity (Entity e)->)
 
-(function EnumerateEntities (OnEntity onEntity)-> :
-	(foreach alien in world.aliens :
-		(onEntity alien)
-	)
-	
-	(foreach missile in world.missiles :
-		(onEntity missile)
-	)
-	
-	(onEntity player)
-	(onEntity playerMissile)
+(function ForEachEntity (World world)(OnEntity onEntity)-> :
+	(foreach alien # world.aliens (onEntity alien))
+	(foreach missile # world.missiles (onEntity missile))
+	(onEntity world.player)
+	(onEntity world.playerMissile)
 )
 
 (function Init (World world)(IEngine engine)-> :
 	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1)
 	(Entity a0 = (10  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
+	(trip)
 	(world.aliens.Push a0)
 	
 	(Entity a1 = (40  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
@@ -73,21 +68,20 @@
 	(Entity a3 = (70  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
 	(world.aliens.Push a3)
 	
+	(world.player = (70  100) ("player.1.tiff" defaultBmpLoc) ("player.2.tiff" defaultBmpLoc))
+	(world.playerMissile = (70  100) ("missile.1.tiff" defaultBmpLoc) ("missile.2.tiff" defaultBmpLoc))
+	
 	(IScreenBuilder s = (engine.ScreenBuilder))
 	
-	(closure InitBitmaps (Entity e)-> :
-		(InitEntityBitmaps s e)
-	)
-	(EnumerateEntities InitBitmaps)
+	(OnEntity initBitmaps = (closure (Entity e)-> : (InitEntityBitmaps s e)))
+	(ForEachEntity world initBitmaps)
 )
 
 (function Render (World world)(IEngine engine)-> :
 	(IScreenBuilder s = (engine.ScreenBuilder))
 	
-	(closure InitBitmaps (Entity e)-> :
-		(DrawEntity e)
-	)
-	(EnumerateEntities InitBitmaps)
+	(OnEntity drawBitmaps = (closure (Entity e)-> : (DrawEntity e)))
+	(ForEachEntity world drawBitmaps)
 	
 	(s.Render)
 )

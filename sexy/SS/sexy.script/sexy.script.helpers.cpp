@@ -793,17 +793,17 @@ namespace Rococo
 	   {
 		   if (s.VarType() != VARTYPE_Derivative) return true;
 
-         PROTECT
+		   PROTECT
 		   {
-  
+
 			   CClassHeader* concreteInstancePtr = NULL;
 			   const IStructure* concreteType = GetConcreteType(s, instance, offset, concreteInstancePtr);
 			   const IStructure* specimen;
 
-			   if (concreteType != NULL) 
+			   if (concreteType != NULL)
 			   {
 				   specimen = concreteType;
-				   instance = (const uint8*) concreteInstancePtr;
+				   instance = (const uint8*)concreteInstancePtr;
 			   }
 			   else
 			   {
@@ -812,7 +812,7 @@ namespace Rococo
 			   }
 
 			   ptrdiff_t suboffset = 0;
-			   for(int i = 0; i < s.MemberCount(); ++i)
+			   for (int i = 0; i < s.MemberCount(); ++i)
 			   {
 				   const Rococo::Compiler::IMember& member = specimen->GetMember(i);
 
@@ -827,7 +827,7 @@ namespace Rococo
 
 			   return true;
 		   }
-         CATCH
+		   CATCH
 		   {
 			   return false;
 		   }
