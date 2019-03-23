@@ -10046,6 +10046,44 @@ namespace
 		validate(value == 7);		
 	}
 
+	void TestStructCopyRef(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"	(alias Main EntryPoint.Main)"
+			"(struct Planet"
+			"	(Int32 a b c d)"
+			")"
+			"(struct Cosmos"
+			"	(Planet earth)"
+			")"
+			"(function Init (Cosmos c)-> :"
+			"	(Planet e = 1 2 3 4)"
+			"	(c.earth = e)"
+			")"
+			"(function Main -> (Int32 result):"
+			"	(Cosmos c)"
+			"	(Init c)"
+			"	(result = c.earth.a)"
+			"	(result = (result + c.earth.b))"
+			"	(result = (result + c.earth.c))"
+			"	(result = (result + c.earth.d))"
+			")"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestStructCopyRef");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		validate(EXECUTERESULT_TERMINATED == vm.Execute(VM::ExecutionFlags(false, true)));
+
+		int32 value = vm.PopInt32();
+		validate(value == 10);
+	}
+
 	void TestStructByRefAssign(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -11252,10 +11290,6 @@ namespace
 
 	void RunPositiveSuccesses()
 	{
-		TEST(TestStringMember3);
-
-		TEST(TestClassDefinesInterface);
-
 		validate(true);
 
 		TestConstruction();
@@ -11274,6 +11308,9 @@ namespace
 		TEST(TestOperatorOverload3);
 		TEST(TestOperatorOverload);
 
+		TEST(TestStringMember3);
+		TEST(TestClassDefinesInterface);
+
 		TEST(TestNullArchetypeArg);
 		TEST(TestMacroAsArgument1);
 
@@ -11289,8 +11326,6 @@ namespace
 		TEST(TestReturnClosureWithVariableSucceed);
 		TEST(TestArchetypeCall);
 
-		TEST(TestRefTypesInsideClosure);
-
 		TEST(TestBadClosureArg7);
 		TEST(TestBadClosureArg6);
 		TEST(TestBadClosureArg5);
@@ -11302,11 +11337,6 @@ namespace
 		TEST(TestClosureArg);
 
 		TEST(TestDefaultNullMethod);
-
-		TEST(TestStringSplit);
-		TEST(TestSearchSubstring);
-		TEST(TestRightSearchSubstring);
-		TEST(TestSetCase);
 
 		TEST(TestGlobalInt32);
 		TEST(TestGlobalInt32_2);
@@ -11390,7 +11420,6 @@ namespace
 		TEST(TestConstructor);
 		TEST(TestClassDefinition);
 		TEST(TestClassInstance);
-		TEST(TestDynamicCast);
 		TEST(TestDerivedInterfaces);
 		TEST(TestDerivedInterfaces2);
 
@@ -11498,6 +11527,15 @@ namespace
 		TEST(TestStringMember);
 		TEST(TestStringMember2);
 
+		TEST(TestRefTypesInsideClosure);
+
+		TEST(TestStringSplit);
+		TEST(TestSearchSubstring);
+		TEST(TestRightSearchSubstring);
+		TEST(TestSetCase);
+
+		TEST(TestDynamicCast);
+
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 	}
 
@@ -11521,6 +11559,8 @@ namespace
 
 	void RunTests()
 	{
+		TEST(TestStructCopyRef);
+
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 

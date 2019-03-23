@@ -37,7 +37,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	{
 		obj->Desc = (ObjectDesc*) nullStruct.GetVirtualTable(0);
 		obj->AllocSize = nullStruct.SizeOfStruct();
-		obj->pVTable1 = (VirtualTable*) nullStruct.GetVirtualTable(1);
+		obj->pVTables[0] = (VirtualTable*) nullStruct.GetVirtualTable(1);
 	}
 
 	Interface::Interface(cstr _name, const int _methodCount, IStructureBuilder& _nullObjectType, Interface* _base):

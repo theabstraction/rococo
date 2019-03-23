@@ -186,7 +186,7 @@ namespace Rococo { namespace Compiler
 	{
 		ObjectDesc* Desc;
 		int32 AllocSize;
-		VirtualTable* pVTable1;
+		VirtualTable* pVTables[1];
 	};
 #pragma pack(pop)
 
@@ -206,7 +206,7 @@ namespace Rococo { namespace Compiler
 
 	inline uint8* GetInterfacePtr(const ObjectStub& stub)
 	{
-		return (uint8*) &stub.pVTable1;
+		return (uint8*) &stub.pVTables[0];
 	}
 
 	ROCOCOAPI IArchetype

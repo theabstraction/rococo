@@ -55,26 +55,33 @@
 
 (function Init (World world)(IEngine engine)-> :
 	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1)
+
 	(Entity a0 = (10  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
-	(trip)
-	(world.aliens.Push a0)
+	
+//	(world.aliens.Push a0)
 	
 	(Entity a1 = (40  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
-	(world.aliens.Push a1)
+//	(world.aliens.Push a1)
 	
-	(Entity a2 = (70  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
-	(world.aliens.Push a2)
+//	(Entity a2 = (70  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
+//	(world.aliens.Push a2)
 	
-	(Entity a3 = (70  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
-	(world.aliens.Push a3)
+//	(Entity a3 = (70  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
+//	(world.aliens.Push a3)
 	
-	(world.player = (70  100) ("player.1.tiff" defaultBmpLoc) ("player.2.tiff" defaultBmpLoc))
-	(world.playerMissile = (70  100) ("missile.1.tiff" defaultBmpLoc) ("missile.2.tiff" defaultBmpLoc))
 	
+//	(world.player = (70  100) ("player.1.tiff" defaultBmpLoc) ("player.2.tiff" defaultBmpLoc))
+	(trip)
+	
+	
+//	(world.playerMissile = (70  100) ("missile.1.tiff" defaultBmpLoc) ("missile.2.tiff" defaultBmpLoc))
+	
+	/*
 	(IScreenBuilder s = (engine.ScreenBuilder))
 	
 	(OnEntity initBitmaps = (closure (Entity e)-> : (InitEntityBitmaps s e)))
 	(ForEachEntity world initBitmaps)
+	*/
 )
 
 (function Render (World world)(IEngine engine)-> :

@@ -2173,6 +2173,33 @@ namespace
 		}
 	}
 
+	void IntantiateAtD4FromD5andD6(CodeBuilder& builder)
+	{
+		static ID_API_CALLBACK instantiateId = 0;
+		if (!instantiateId)
+		{
+			struct ANON
+			{
+				static void Intantiate(VariantValue* registers, void* context)
+				{
+					auto* instance = (ObjectStub*)registers[VM::REGISTER_D4].vPtrValue;
+					auto* type = (const IStructure*)registers[VM::REGISTER_D5].vPtrValue;
+					int32 allocSize = registers[VM::REGISTER_D6].int32Value;
+					instance->Desc = (ObjectDesc*)type->GetVirtualTable(0);
+					instance->AllocSize = allocSize;
+					int nInterfaces = type->InterfaceCount();
+					for (int i = 1; i < nInterfaces; ++i)
+					{
+						instance->pVTables[i - 1] = (VirtualTable*) type->GetVirtualTable(i);
+					}
+				};
+			};
+			instantiateId = builder.Assembler().Core().RegisterCallback(ANON::Intantiate, nullptr, "IntantiateAtD4FromD5andD6");
+		}
+
+		builder.Assembler().Append_Invoke(instantiateId);
+	}
+
 	void InitVirtualTable(CodeBuilder& builder, const MemberDef& def, cstr instanceName, const IStructure& classType)
 	{
 		int sfOffset = 0;

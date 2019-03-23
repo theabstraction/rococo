@@ -1,20 +1,24 @@
 (namespace EntryPoint)
-(alias Main EntryPoint.Main)
+	(alias Main EntryPoint.Main)
 
-(using Sys.Type)
+(using EntryPoint)
 
-(struct Button
-	(Int32 state)
-    (IString name)
+(interface EntryPoint.IDog
+	(Bark -> (Int32 value))
 )
 
-(struct Mouse
-	(Button b1)
-	(Button b2)
-    (IString name)
+(interface EntryPoint.IRobotDog
+	(extends EntryPoint.IDog)
+	(Powerup -> (Int32 value))
 )
 
-(function Main (Int32 id) -> (Int32 result) :
-	(Mouse m = (0 "left") (1 "right") "Helen")
-	(Sys.Print m.name -> result)
+(class Doggy (implements IRobotDog))
+
+(method Doggy.Powerup -> (Int32 value): (value = 5))
+(method Doggy.Bark -> (Int32 value): (value = 12))
+
+(function Main -> (Int32 result):
+	(Doggy dog)
+	(cast dog -> EntryPoint.IDog k9)
+	(result = ((k9.Bark) + (dog.Powerup)))
 )

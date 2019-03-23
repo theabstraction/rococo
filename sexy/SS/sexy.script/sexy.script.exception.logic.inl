@@ -71,7 +71,7 @@ namespace
 	{
 		stub.AllocSize = allocSize;
 		stub.Desc = (ObjectDesc*) type.GetVirtualTable(0);
-		stub.pVTable1 = (VirtualTable*) type.GetVirtualTable(1);
+		stub.pVTables[0] = (VirtualTable*) type.GetVirtualTable(1);
 	}
 
 	IFunctionBuilder* GetFunctionForAddressFromModule(const uint8* pc, IModuleBuilder& module, IProgramObject& programObject)
