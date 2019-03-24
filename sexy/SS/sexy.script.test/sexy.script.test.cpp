@@ -337,7 +337,7 @@ namespace
 		printf("%s >>>>>>\r\n\r\n", name);
 	}
 
-	void TestConstruction()
+	void TestConstruction(IPublicScriptSystem& ss)
 	{
 		try
 		{
@@ -508,6 +508,48 @@ namespace
 
       auto result = vm.Execute(VM::ExecutionFlags(false, true));
       ValidateExecution(result);
+   }
+
+
+   void TestAssignDerivatives(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   "  (struct BitmapLocation"
+		   "(Int32 left top right bottom index)"
+		   ")"
+
+		   "(struct Vec2i"
+		   "(Int32 x)(Int32 y)"
+		   "   )"
+
+		   "   (struct Bitmap"
+		   "   (IString filename)"
+		   "	   (BitmapLocation location)"
+		   "	   )"
+
+		   "	   (struct Entity"
+		   "	   (Vec2i screenPosition)"
+		   "		   (Bitmap image1)"
+		   "		   (Bitmap image2)"
+		   "		   )"
+
+		   "		   (function Main -> (Int32 result) :"
+		   "(BitmapLocation defaultBmpLoc = 0 0 0 0 -1)"
+
+		   "			   (Entity a0 = (10  10) (\"pawn.1.tiff\" defaultBmpLoc) (\"pawn.2.tiff\" defaultBmpLoc))"
+		   "			   (Entity a1 = (40  10) (\"pawn.1.tiff\" defaultBmpLoc) (\"pawn.2.tiff\" defaultBmpLoc))"
+		   "			   )"
+
+		   "			   (namespace EntryPoint)"
+		   " (alias Main EntryPoint.Main)";
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestAssignDerivatives");
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+	   vm.Push(0); // Allocate stack space for the int32 result
+
+	   auto result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
    }
 
    void TestAssignVectorVariableByRef(IPublicScriptSystem& ss)
@@ -11221,79 +11263,80 @@ namespace
 	   TEST(TestListStrongTyping);
    }
 
-	void TestMaths()
-	{
-		TEST(TestLimitsInt32);
-		TEST(TestLimitsInt64);
-		TEST(TestLimitsFloat32);
-		TEST(TestLimitsFloat64);
-		TEST(TestIsInfinity);
-		TEST(TestIsFinite);
-		TEST(TestIsNormal);
-		TEST(TestIsQuietNan);
-		TEST(TestIsInfinity64);
-		TEST(TestIsFinite64);
-		TEST(TestIsNormal64);
-		TEST(TestIsQuietNan64);
-		TEST(TestMathSinCos);
-		TEST(TestMathSinCosF);
-		TEST(TestMathTan);		
-		TEST(TestMathTanF);
-		TEST(TestMathArcTan);		
-		TEST(TestMathArcTanF);	
-		TEST(TestMathArcSin);		
-		TEST(TestMathArcSinF);	
-		TEST(TestMathArcCos);		
-		TEST(TestMathArcCosF);
-		TEST(TestMathArcTanGrad);		
-		TEST(TestMathArcTanGradF);	
+   void TestMaths()
+   {
+	   TEST(TestLimitsInt32);
+	   TEST(TestLimitsInt64);
+	   TEST(TestLimitsFloat32);
+	   TEST(TestLimitsFloat64);
+	   TEST(TestIsInfinity);
+	   TEST(TestIsFinite);
+	   TEST(TestIsNormal);
+	   TEST(TestIsQuietNan);
+	   TEST(TestIsInfinity64);
+	   TEST(TestIsFinite64);
+	   TEST(TestIsNormal64);
+	   TEST(TestIsQuietNan64);
+	   TEST(TestMathSinCos);
+	   TEST(TestMathSinCosF);
+	   TEST(TestMathTan);
+	   TEST(TestMathTanF);
+	   TEST(TestMathArcTan);
+	   TEST(TestMathArcTanF);
+	   TEST(TestMathArcSin);
+	   TEST(TestMathArcSinF);
+	   TEST(TestMathArcCos);
+	   TEST(TestMathArcCosF);
+	   TEST(TestMathArcTanGrad);
+	   TEST(TestMathArcTanGradF);
 
-		TEST(TestMathSinhCosh);
-		TEST(TestMathSinhCoshF);
-		TEST(TestMathTanh);		
-		TEST(TestMathTanhF);
+	   TEST(TestMathSinhCosh);
+	   TEST(TestMathSinhCoshF);
+	   TEST(TestMathTanh);
+	   TEST(TestMathTanhF);
 
-		TEST(TestMathExp);
-		TEST(TestMathExpF);
-		TEST(TestMathLogN);
-		TEST(TestMathLogNF);
-		
-		TEST(TestMathLog10);
-		TEST(TestMathLog10F);
+	   TEST(TestMathExp);
+	   TEST(TestMathExpF);
+	   TEST(TestMathLogN);
+	   TEST(TestMathLogNF);
 
-		TEST(TestMathPow);
-		TEST(TestMathPowF);
-		TEST(TestMathAbs);
-		TEST(TestMathAbsF);
-		TEST(TestMathAbsInt32);
-		TEST(TestMathAbsInt64);
+	   TEST(TestMathLog10);
+	   TEST(TestMathLog10F);
 
-		TEST(TestMathSqrt);
-		TEST(TestMathSqrtF);
+	   TEST(TestMathPow);
+	   TEST(TestMathPowF);
+	   TEST(TestMathAbs);
+	   TEST(TestMathAbsF);
+	   TEST(TestMathAbsInt32);
+	   TEST(TestMathAbsInt64);
 
-		TEST(TestMathCeil);
-		TEST(TestMathCeilF);
-		TEST(TestMathFloor);
-		TEST(TestMathFloorF);
+	   TEST(TestMathSqrt);
+	   TEST(TestMathSqrtF);
 
-		TEST(TestMathModInt32);
-		TEST(TestMathModInt64);
-			
-		TEST(TestMathShiftInt32);
-		TEST(TestMathShiftInt64);
+	   TEST(TestMathCeil);
+	   TEST(TestMathCeilF);
+	   TEST(TestMathFloor);
+	   TEST(TestMathFloorF);
 
-		TEST(TestMinMaxInt32);
-		TEST(TestMinMaxInt64);
-		TEST(TestMinMaxFloat32);
-		TEST(TestMinMaxFloat64);
-	}
+	   TEST(TestMathModInt32);
+	   TEST(TestMathModInt64);
+
+	   TEST(TestMathShiftInt32);
+	   TEST(TestMathShiftInt64);
+
+	   TEST(TestMinMaxInt32);
+	   TEST(TestMinMaxInt64);
+	   TEST(TestMinMaxFloat32);
+	   TEST(TestMinMaxFloat64);
+
+	   TEST(TestConstruction);
+   }
 
 	void RunPositiveSuccesses()
 	{
 		validate(true);
 
-		TestConstruction();
-
+		TEST(TestAssignDerivatives);
 		TEST(TestBitwiseOr);
 		TEST(TestNullStringBuilder);
 		TEST(TestOperatorOverload2);
@@ -11562,6 +11605,8 @@ namespace
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
+
+		TEST(TestAssignDerivatives);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

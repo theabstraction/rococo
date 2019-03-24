@@ -1630,7 +1630,7 @@ namespace Rococo
 			}
 		}
 
-		void CompileClassAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& st, cstr id, cr_sex decl)
+		void CompileClassAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& st, cstr id, cr_sex decl, bool initializeValues)
 		{
 			TokenBuffer refName;
 			GetRefName(refName, id);
@@ -1642,7 +1642,7 @@ namespace Rococo
 			AssertDefaultConstruction(ce, decl, st);
 			AddVariable(ce, NameString::From(id), st);
 
-			ce.Builder.Append_InitializeVirtualTable(id);
+			if (initializeValues) ce.Builder.Append_InitializeVirtualTable(id);
 
 			// Temp fix, needs generalizing 
 			if (st.InterfaceCount() == 0)
@@ -1655,7 +1655,7 @@ namespace Rococo
 				StringPrint(vTableRef, ("%s._vTable1"), id);
 				ce.Builder.AssignVariableRefToTemp(vTableRef, 0);
 
-				if (IsIStringInlined(ce.Script))
+				if (initializeValues && IsIStringInlined(ce.Script))
 				{
 					auto& i0 = st.GetInterface(0);
 					if (&i0 == &ce.Object.Common().SysTypeIString() || i0.Base() == &ce.Object.Common().SysTypeIString())
@@ -1672,24 +1672,30 @@ namespace Rococo
 				}
 			}
 
-			ce.Builder.AssignTempToVariable(0, refName);
-
-			InitClassMembers(ce, id);
+			if (initializeValues)
+			{
+				ce.Builder.AssignTempToVariable(0, refName);
+				InitClassMembers(ce, id);
+			}
 		}
 
-		void CompileAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& st, cstr id, cr_sex decl)
+		void CompileAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& st, cstr id, cr_sex decl, bool initializeValues)
 		{	
 			if (st.Prototype().IsClass)
 			{
-				 CompileClassAsDefaultVariableDeclaration(ce, st, id, decl);
+				 CompileClassAsDefaultVariableDeclaration(ce, st, id, decl, initializeValues);
 			}
 			else
 			{
 				AddSymbol(ce.Builder, ("%s %s"), GetFriendlyName(st), id);
 				AssertDefaultConstruction(ce, decl, st);
 				AddVariable(ce, NameString::From(id), st);
-				InitClassMembers(ce, id);
-				InitDefaultReferences(decl, ce, id, st);
+
+				if (initializeValues)
+				{
+					InitClassMembers(ce, id);
+					InitDefaultReferences(decl, ce, id, st);
+				}
 			}
 		}
 
@@ -1713,7 +1719,7 @@ namespace Rococo
 				}
 			}		
 		
-			CompileAsDefaultVariableDeclaration(ce, type, id, decl);
+			CompileAsDefaultVariableDeclaration(ce, type, id, decl, false);
 			CompileAssignmentDirective(ce, decl, type, true);
 		}
 
@@ -1811,7 +1817,7 @@ namespace Rococo
 			cstr id = idExpr.String()->Buffer;
 			if (nElements == 2)
 			{
-				CompileAsDefaultVariableDeclaration(ce, *st, id, decl);
+				CompileAsDefaultVariableDeclaration(ce, *st, id, decl, true);
 			}
 			else
 			{
