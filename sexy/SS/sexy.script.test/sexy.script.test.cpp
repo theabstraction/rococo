@@ -11535,6 +11535,7 @@ namespace
 		TEST(TestSetCase);
 
 		TEST(TestDynamicCast);
+		TEST(TestStructCopyRef);
 
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 	}
@@ -11559,8 +11560,6 @@ namespace
 
 	void RunTests()
 	{
-		TEST(TestStructCopyRef);
-
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 

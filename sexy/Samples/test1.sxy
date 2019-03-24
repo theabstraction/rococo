@@ -1,24 +1,27 @@
 (namespace EntryPoint)
-	(alias Main EntryPoint.Main)
-
-(using EntryPoint)
-
-(interface EntryPoint.IDog
-	(Bark -> (Int32 value))
-)
-
-(interface EntryPoint.IRobotDog
-	(extends EntryPoint.IDog)
-	(Powerup -> (Int32 value))
-)
-
-(class Doggy (implements IRobotDog))
-
-(method Doggy.Powerup -> (Int32 value): (value = 5))
-(method Doggy.Bark -> (Int32 value): (value = 12))
-
 (function Main -> (Int32 result):
-	(Doggy dog)
-	(cast dog -> EntryPoint.IDog k9)
-	(result = ((k9.Bark) + (dog.Powerup)))
+	(Player player (1812))
+	(player.GetId -> result)
+)				
+(alias Main EntryPoint.Main)
+
+(interface EntryPoint.IPlayer			
+	(GetId -> (Int32 value))
+	(SetId (Int32 value) ->)
+)
+
+(class Player (implements EntryPoint.IPlayer)				
+	(Int32 id)
+)
+
+(method Player.GetId -> (Int32 value):				
+	(value = this.id)
+)
+
+(method Player.SetId (Int32 value) -> :				
+	(this.id = value)
+)
+
+(method Player.Construct (Int32 value): 			
+	(this.id = value)
 )

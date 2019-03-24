@@ -142,6 +142,7 @@ namespace
 		TInstancePositions destructorPositions;
 		TSectionStack sections;
 		TPCSymbols pcSymbols;
+		ID_API_CALLBACK idInstantiate = 0;
 
 		int endOfArgs;
 		int32 sectionIndex;
@@ -181,6 +182,8 @@ namespace
 		const IModule& Module() const { return f.Module(); }
 
 		virtual int SectionArgCount() const { return sections.back(); }
+
+		void IntantiateAtD4FromD5();
 
 		virtual IFunctionBuilder& Owner() { return f; }
 		virtual const IFunction& Owner() const { return f; }
@@ -291,6 +294,29 @@ namespace
 			Variable* v = *i;
 			delete v;
 		}
+	}
+	
+	static void Intantiate_Class(VariantValue* registers, void* context)
+	{
+		auto* instance = (ObjectStub*)registers[VM::REGISTER_D4].vPtrValue;
+		auto* type = (const IStructure*)registers[VM::REGISTER_D5].vPtrValue;
+		instance->Desc = (ObjectDesc*)type->GetVirtualTable(0);
+		instance->AllocSize = type->SizeOfStruct();
+		int nInterfaces = type->InterfaceCount();
+		for (int i = 0; i < nInterfaces; ++i)
+		{
+			instance->pVTables[i] = (VirtualTable*)type->GetVirtualTable(i + 1);
+		}
+	};
+
+	void CodeBuilder::IntantiateAtD4FromD5()
+	{
+		if (!idInstantiate)
+		{
+			idInstantiate = Assembler().Core().RegisterCallback(Intantiate_Class, nullptr, "IntantiateAtD4FromD5");
+		}
+
+		Assembler().Append_Invoke(idInstantiate);
 	}
 
 	int CodeBuilder::AddVariableToVariables(Variable* v)
@@ -2173,33 +2199,6 @@ namespace
 		}
 	}
 
-	void IntantiateAtD4FromD5andD6(CodeBuilder& builder)
-	{
-		static ID_API_CALLBACK instantiateId = 0;
-		if (!instantiateId)
-		{
-			struct ANON
-			{
-				static void Intantiate(VariantValue* registers, void* context)
-				{
-					auto* instance = (ObjectStub*)registers[VM::REGISTER_D4].vPtrValue;
-					auto* type = (const IStructure*)registers[VM::REGISTER_D5].vPtrValue;
-					int32 allocSize = registers[VM::REGISTER_D6].int32Value;
-					instance->Desc = (ObjectDesc*)type->GetVirtualTable(0);
-					instance->AllocSize = allocSize;
-					int nInterfaces = type->InterfaceCount();
-					for (int i = 1; i < nInterfaces; ++i)
-					{
-						instance->pVTables[i - 1] = (VirtualTable*) type->GetVirtualTable(i);
-					}
-				};
-			};
-			instantiateId = builder.Assembler().Core().RegisterCallback(ANON::Intantiate, nullptr, "IntantiateAtD4FromD5andD6");
-		}
-
-		builder.Assembler().Append_Invoke(instantiateId);
-	}
-
 	void InitVirtualTable(CodeBuilder& builder, const MemberDef& def, cstr instanceName, const IStructure& classType)
 	{
 		int sfOffset = 0;
@@ -2207,14 +2206,30 @@ namespace
 		if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
 		{
 			// Put the stack frame into D4 and make the address of the object the stack
-			sfOffset = def.MemberOffset;
-			builder.Assembler().Append_MoveRegister(VM::REGISTER_SF, VM::REGISTER_D4, BITCOUNT_POINTER);
-			builder.Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_SF, BITCOUNT_POINTER);
+			VariantValue v;
+			v.vPtrValue = (void*) &classType;
+
+			char symbol[128];
+			SafeFormat(symbol, sizeof(symbol), "%s", instanceName);
+			builder.AddSymbol(symbol);
+			builder.Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4, BITCOUNT_POINTER);
+
+			VariantValue delta;
+			delta.sizetValue = def.MemberOffset;
+
+			if (delta.sizetValue != 0) builder.Assembler().Append_AddImmediate(VM::REGISTER_D4, BITCOUNT_POINTER, VM::REGISTER_D4, delta);
+
+			SafeFormat(symbol, sizeof(symbol), "typeof(%s)", classType.Name());
+			builder.AddSymbol(symbol);
+			builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, v, BITCOUNT_POINTER);
+
+			SafeFormat(symbol, sizeof(symbol), "()", classType.Name(), instanceName);
+			builder.AddSymbol(symbol);
+			builder.IntantiateAtD4FromD5();
+			return;
 		}
-		else
-		{
-			sfOffset = def.SFOffset + def.MemberOffset;
-		}
+		
+		sfOffset = def.SFOffset + def.MemberOffset;
 
 		TokenBuffer vTableSymbol;
 		SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s._typeInfo"), classType.Name());
@@ -2238,12 +2253,6 @@ namespace
 
 			v.uint8PtrValue = (uint8*)classType.GetVirtualTable(i + 1);
 			builder.Assembler().Append_SetStackFrameImmediate(sfOffset + sizeof(int32) + sizeof(size_t) * (i + 1), v, BITCOUNT_POINTER);
-		}
-
-		if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
-		{
-			// Restore the stack frame
-			builder.Assembler().Append_MoveRegister(VM::REGISTER_D4, VM::REGISTER_SF, BITCOUNT_POINTER);
 		}
 	}
 
