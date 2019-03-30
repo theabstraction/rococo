@@ -712,10 +712,12 @@ namespace
 
 		virtual void Append_CallVirtualFunctionByValue(int32 SFoffsetToInterfaceRef, int32 vTableOffset /* nBytes into vtable to find the method id */, int32 instanceToInterfaceOffset)
 		{
-			AddSingleByteInstruction(Opcodes::CallVirtualFunctionByValue);
-			AddArgument(SFoffsetToInterfaceRef);
-			AddArgument(vTableOffset);
-			AddArgument(instanceToInterfaceOffset);
+			ArgsCallVirtualFunctionByValue args;
+			args.opcode = Opcodes::CallVirtualFunctionByValue;
+			args.SFoffsetToInterfaceRef = SFoffsetToInterfaceRef;
+			args.vTableOffset = vTableOffset;
+			args.instanceToInterfaceOffset = instanceToInterfaceOffset;
+			AddArgument(args);
 		}
 
 		virtual void Append_CallVirtualFunctionByAddress(int32 SFoffsetToInterfaceValue, int32 vTableOffset)
@@ -777,8 +779,11 @@ namespace
 			}
 			else
 			{
-				Append_GetStackFrameValue(sfOffset, VM::REGISTER_D4, BITCOUNT_POINTER); // D4 points to the containing instance				
-				Append_Poke(Dsource, bitcount, VM::REGISTER_D4, memberOffset);
+				AddThreeByteInstruction(Opcodes::SetSFMemberByRefFromRegisterLong, Dsource, bitcount);
+				AddArgument(sfOffset);
+				AddArgument(memberOffset);
+			//	Append_GetStackFrameValue(sfOffset, VM::REGISTER_D4, BITCOUNT_POINTER); // D4 points to the containing instance				
+			//	Append_Poke(Dsource, bitcount, VM::REGISTER_D4, memberOffset);
 			}
 		}
 

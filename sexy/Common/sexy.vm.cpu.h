@@ -122,7 +122,7 @@ namespace Rococo { namespace VM
 
 	namespace Opcodes
 	{
-		enum OPCODE
+		enum OPCODE: uint8
 		{
 			// Order instructions by frequency
 			SetRegisterImmediate64,
@@ -140,6 +140,7 @@ namespace Rococo { namespace VM
 			SetSFMemberByRefFromSFByValue32,
 			SetSFValueFromSFMemberByRef32,
 			SetSFMemberByRefFromRegister32,
+			SetSFMemberByRefFromRegisterLong,
 			GetStackFrameMemberPtr,
 			GetStackFrameMemberPtrFar,
 			GetStackFrameMember32,
@@ -234,8 +235,10 @@ namespace Rococo { namespace VM
 			GetGlobal,
 			SetGlobal,
 			GetStackFrameValueAndExtendToPointer,
-			MAX_OPCODES = 256
+			IllegalOverflowOp
 		};
+
+		enum { MAX_OPCODES = 256 }  ;
 	}
 
 	struct Ins
@@ -246,7 +249,15 @@ namespace Rococo { namespace VM
 		uint8 Opmod3;
 
 		const uint8* ToPC() const { return (const uint8*) this; }
-	} TIGHTLY_PACKED;;
+	} TIGHTLY_PACKED;
+
+	struct ArgsCallVirtualFunctionByValue
+	{
+		Opcodes::OPCODE opcode;
+		int32 SFoffsetToInterfaceRef;
+		int32 vTableOffset;
+		int32 instanceToInterfaceOffset;
+	} TIGHTLY_PACKED;
 }}
 
 #pragma pack(pop)

@@ -105,21 +105,37 @@ namespace Rococo
          }
       }
 
-      void CompileFactoryCall(CCompileEnvironment& ce, const IFactory& factory, cstr id, cstr refId, cr_sex args, const IInterface& interf)
+      void CompileFactoryCall(CCompileEnvironment& ce, const IFactory& factory, cstr interfacePtrId, cr_sex args, const IInterface& interf)
       {
          const IFunction& factoryFunction = factory.Constructor();
          const IFunction* inlineConstructor = factory.InlineConstructor();
          const IStructure* inlineClass = factory.InlineClass();
 
+		 MemberDef def;
+		 if (!ce.Builder.TryGetVariableByName(OUT def, interfacePtrId))
+		 {
+			 Throw(0, "Error, cannot find variable %s ", interfacePtrId);
+		 }
+
+		 VariantValue sizeofClass;
+		 sizeofClass.int32Value = interf.NullObjectType().SizeOfStruct();
+		 ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, sizeofClass, BITCOUNT_32);
+		 ce.Builder.AddDynamicAllocateObject(*def.ResolvedType);
+
+		 char instanceId[256];
+		 SafeFormat(instanceId, 256, "_instance%s", interfacePtrId);
+		 ce.Builder.AddVariable(NameString::From(instanceId), ce.Object.Common().TypePointer(), nullptr);
+		 ce.Builder.AssignTempToVariable(0, instanceId);
+
          CodeSection section;
          if (inlineConstructor == NULL)
          {
-            ce.Builder.Append_InitializeVirtualTable(id);
-            factoryFunction.Code().GetCodeSection(OUT section);
+             ce.Builder.Append_InitializeVirtualTable(instanceId);
+             factoryFunction.Code().GetCodeSection(OUT section);
          }
          else
          {
-            ce.Builder.Append_InitializeVirtualTable(id, *inlineClass);
+            ce.Builder.Append_InitializeVirtualTable(instanceId, *inlineClass);
             inlineConstructor->Code().GetCodeSection(OUT section);
          }
 
@@ -130,7 +146,7 @@ namespace Rococo
          if (args.NumberOfElements() - 1 > explicitInputCount) Throw(args, ("Too many arguments to factory call"));
 
          int inputStackAllocCount = PushInputs(ce, args, factoryFunction, true, 1);
-         inputStackAllocCount += CompileInstancePointerArg(ce, id);
+         inputStackAllocCount += CompileInstancePointerArg(ce, instanceId);
 
          ce.Builder.AddSymbol(factoryFunction.Name());
          ce.Builder.Assembler().Append_CallById(section.Id);
@@ -141,7 +157,7 @@ namespace Rococo
 
          if (inlineConstructor == NULL)
          {
-            ce.Builder.AssignTempToVariable(0, refId); // Factory instanced constructor calls leave the address of the new interface into D4 which updates the reference.
+            ce.Builder.AssignTempToVariable(0, interfacePtrId); // Factory instanced constructor calls leave the address of the new interface into D4 which updates the reference.
          }
          else
          {
@@ -153,9 +169,11 @@ namespace Rococo
                Throw(args, streamer);
             }
 
-            ce.Builder.AssignVariableRefToTemp(id, 0, sizeof(size_t) * (interfaceIndex + 1) + sizeof(int32));
-            ce.Builder.AddSymbol(refId);
-            ce.Builder.AssignTempToVariable(0, refId);
+			AddSymbol(ce.Builder, "Copy %s interface %d to %s", instanceId, interfaceIndex, interfacePtrId);
+			ce.Builder.AssignVariableToTemp(instanceId, 0, 0);
+			size_t offset = sizeof(size_t) * (interfaceIndex + 1) + sizeof(int32);
+			ce.Builder.Assembler().Append_IncrementPtr(VM::REGISTER_D4, (int32) offset);
+            ce.Builder.AssignTempToVariable(0, interfacePtrId);
          }
 
          ce.Builder.AssignClosureParentSF();
@@ -189,18 +207,9 @@ namespace Rococo
 
          cstr targetName = directive.GetElement(0).String()->Buffer;
 
-         TokenBuffer targetRefName;
-         GetRefName(targetRefName, targetName);
-
-         MemberDef refDef;
-         if (!ce.Builder.TryGetVariableByName(OUT refDef, targetRefName))
-         {
-            return false;
-         }
-
          const IFactory& factory = GetFactoryInModule(factoryNameExpr, GetModule(ce.Script));
 
-         CompileFactoryCall(ce, factory, targetName, targetRefName, factoryCall, targetStruct.GetInterface(0));
+         CompileFactoryCall(ce, factory, targetName, factoryCall, targetStruct.GetInterface(0));
 
          return true;
       }
@@ -209,20 +218,18 @@ namespace Rococo
       {
          // This function turns (<IInterface> id (<Factory> <arg1>...<argN>)) into assembly
 
-         TokenBuffer refName;
-         GetRefName(refName, id);
-
-         ce.Builder.AddSymbol(refName);
-         AddVariable(ce, NameString::From(refName), ce.Object.Common().TypePointer());
-
          AddSymbol(ce.Builder, ("%s %s"), GetFriendlyName(nullType), id);
 
-         AddVariable(ce, NameString::From(id), nullType);
+		 ce.Builder.AddPseudoVariable(NameString::From(id), nullType);
+
+		 TokenBuffer refId;
+		 GetRefName(refId, id);
+		 ce.Builder.AddVariable(NameString::From(refId), ce.Object.Common().TypePointer(), nullptr);
 
          cr_sex factoryExpr = GetAtomicArg(args, 0);
          const IFactory& factory = GetFactoryInModule(factoryExpr, GetModule(ce.Script));
 
-         CompileFactoryCall(ce, factory, id, refName, args, nullType.GetInterface(0));
+         CompileFactoryCall(ce, factory, refId, args, nullType.GetInterface(0));
       }
    }//Script
 }//Sexy

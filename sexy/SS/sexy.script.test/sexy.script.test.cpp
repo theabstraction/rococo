@@ -11335,7 +11335,6 @@ namespace
 	void RunPositiveSuccesses()
 	{
 		validate(true);
-
 		TEST(TestAssignDerivatives);
 		TEST(TestBitwiseOr);
 		TEST(TestNullStringBuilder);
@@ -11352,7 +11351,6 @@ namespace
 		TEST(TestOperatorOverload);
 
 		TEST(TestStringMember3);
-		TEST(TestClassDefinesInterface);
 
 		TEST(TestNullArchetypeArg);
 		TEST(TestMacroAsArgument1);
@@ -11479,23 +11477,10 @@ namespace
 		TEST(TestSizeOf);
 		TEST(TestCatchInstanceArg);
 		TEST(TestTryWithoutThrow);
-		TEST(TestInterfacePropagation);
-		TEST(TestInstancePropagation);
-		TEST(TestInstanceMemberPropagation);
-		TEST(TestMultipleInterfaces);
 
 		TEST(TestNullMember);
 		TEST(TestNullMemberInit);
 		TEST(TestNullRefInit);
-
-		TEST(TestMemoString);
-		TEST(TestMemoString2);
-		TEST(TestStringConstant);
-		TEST(TestPrint);
-		TEST(TestPrintViaInstance);
-		TEST(TestNullString);
-
-		TEST(TestInlinedFactory);
 
 		TEST(TestRecti1);
 		TEST(TestRecti2);
@@ -11580,6 +11565,22 @@ namespace
 		TEST(TestDynamicCast);
 		TEST(TestStructCopyRef);
 
+		TEST(TestClassDefinesInterface);
+
+		TEST(TestInterfacePropagation);
+		TEST(TestInstancePropagation);
+		TEST(TestInstanceMemberPropagation);
+		TEST(TestMultipleInterfaces);
+
+		TEST(TestMemoString);
+		TEST(TestMemoString2);
+		TEST(TestStringConstant);
+		TEST(TestPrint);
+		TEST(TestPrintViaInstance);
+		TEST(TestNullString);
+
+		TEST(TestAssignDerivatives);
+
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 	}
 
@@ -11606,7 +11607,10 @@ namespace
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		TEST(TestAssignDerivatives);
+
+		TEST(TestInlinedFactory);
+
+		return;
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

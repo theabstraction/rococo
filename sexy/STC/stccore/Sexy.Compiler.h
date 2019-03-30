@@ -288,6 +288,11 @@ namespace Rococo { namespace Compiler
 		virtual void AddVariableRef(const NameString& name, const IStructure& type, void* userData) = 0;
 		virtual void AddVariable(const NameString& name, const IStructure& type, void* userData) = 0;
 		virtual void AddCatchVariable(cstr name, void* userData) = 0;
+
+		/* AddDynamicAllocateObject -> takes sizeof(obj) in D4 (int32), 
+		   returns pointer to object in D4 (vPtr)
+	    */
+		virtual void AddDynamicAllocateObject(const IStructure& structType) = 0;
 		virtual void AssignLiteral(const NameString& name, cstr literalValue) = 0;
 		virtual void AssignPointer(const NameString& name, const void* ptr) = 0;
 		virtual void AssignVariableToVariable(cstr source, cstr target) = 0;

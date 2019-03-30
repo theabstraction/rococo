@@ -102,14 +102,14 @@ namespace
 	void FormatSetRegisterImmediate64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{		
 		uint64* value = (uint64*)(I.ToPC() + 2);
-		format(rep, ("%s = #%I64x"), RegisterName(I.Opmod1), *value);
+		format(rep, ("%s = #0x%I64x (%I64d)"), RegisterName(I.Opmod1), *value, *value);
 		rep.ByteCount = 10;
 	}
 
 	void FormatSetRegisterImmediate32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{		
 		uint32* value = (uint32*)(I.ToPC() + 2);
-		format(rep, ("%s = #%x"), RegisterName(I.Opmod1), *value);
+		format(rep, ("%s = #0x%x (%d)"), RegisterName(I.Opmod1), *value, *value);
 		rep.ByteCount = 6;
 	}
 
@@ -787,6 +787,19 @@ namespace
 		rep.ByteCount += 4;
 	}
 
+	void FormatSetSFMemberByRefFromRegisterLong(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+		int8 srcRegister = (int8)I.Opmod1;
+		int32 bitcount = (int8)I.Opmod2;
+
+		int32 SFoffset = *(int32*)(I.ToPC() + 3);
+		int32 memberOffset = *(int32*)(I.ToPC() + 7);
+
+		format(rep, ("SF(%d.%d)=%s (%d bits"), SFoffset, memberOffset, RegisterName(srcRegister), bitcount);
+
+		rep.ByteCount += 11;
+	}
+
 	void FormatSetStackFrameValueFar(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		BITCOUNT bits = (BITCOUNT) I.Opmod1;
@@ -1108,6 +1121,7 @@ namespace
 		EnableFormatter(SetSFMemberByRefFromSFByValue32);
 		EnableFormatter(SetSFValueFromSFMemberByRef32);
 		EnableFormatter(SetSFMemberByRefFromRegister32);
+		EnableFormatter(SetSFMemberByRefFromRegisterLong);
 		EnableFormatter(SaveRegister32);
 		EnableFormatter(RestoreRegister32);
 		EnableFormatter(SaveRegister64);

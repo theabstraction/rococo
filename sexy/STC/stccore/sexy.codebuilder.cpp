@@ -128,6 +128,31 @@ namespace
 
 	typedef std::vector<const IStructure*> TTypeVector;
 
+	ROCOCOAPI IScriptObjectAllocator
+	{
+		virtual void* AllocateObject(size_t nBytes) = 0;
+		virtual void FreeObject(void* pMemory) = 0;
+		virtual void Free() = 0;
+	};
+
+	struct DefaultScriptObjectAllocator : IScriptObjectAllocator
+	{
+		void* AllocateObject(size_t nBytes) override
+		{
+			return _aligned_malloc(nBytes, 16);
+		}
+
+		void FreeObject(void* pMemory) override
+		{
+			_aligned_free(pMemory);
+		}
+
+		void Free() override
+		{
+
+		}
+	};
+
 	class CodeBuilder: public ICodeBuilder
 	{
 	private:
@@ -143,6 +168,8 @@ namespace
 		TSectionStack sections;
 		TPCSymbols pcSymbols;
 		ID_API_CALLBACK idInstantiate = 0;
+		ID_API_CALLBACK idAllocate = 0;
+		DefaultScriptObjectAllocator defaultAllocator;
 
 		int endOfArgs;
 		int32 sectionIndex;
@@ -263,6 +290,10 @@ namespace
 		virtual void ArchiveRegister(int saveTempDepth, int restoreTempDepth, BITCOUNT bits, void* userData);
 		virtual void AddArgVariable(cstr desc, const TypeString& typeName, void* userData);
 		virtual void AddArgVariable(cstr desc, const IStructure& type, void* userData);
+
+		std::unordered_map<const IStructure*, IScriptObjectAllocator*> allocators;
+
+		virtual void AddDynamicAllocateObject(const IStructure& structType);
 	};
 
 	CodeBuilder::CodeBuilder(IFunctionBuilder& _f, bool _mayUseParentsSF):
@@ -294,6 +325,43 @@ namespace
 			Variable* v = *i;
 			delete v;
 		}
+	}
+
+	static void AllocateMemory(VariantValue* registers, void* context)
+	{
+		int32 nBytes = registers[VM::REGISTER_D4].int32Value;
+		auto* allocator = (IScriptObjectAllocator*)registers[VM::REGISTER_D5].vPtrValue;
+		registers[VM::REGISTER_D4].vPtrValue = allocator->AllocateObject(nBytes);
+	};
+
+	void CodeBuilder::AddDynamicAllocateObject(const IStructure& structType)
+	{
+		if (!idAllocate)
+		{
+			idAllocate = Assembler().Core().RegisterCallback(AllocateMemory, nullptr, "new");
+		}
+
+		char sym[256];
+
+		auto i = allocators.find(&structType);
+		IScriptObjectAllocator* allocator;
+		
+		if (i != allocators.end())
+		{
+			allocator = i->second;
+			SafeFormat(sym, sizeof(sym), "Allocator for %s", structType.Name());
+		}
+		else
+		{
+			allocator = &defaultAllocator;
+			SafeFormat(sym, sizeof(sym), "Default allocator");
+		}
+
+		VariantValue v;
+		v.vPtrValue = allocator;
+		AddSymbol(sym);
+		Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, v, BITCOUNT_POINTER);
+		Assembler().Append_Invoke(idAllocate);
 	}
 	
 	static void Intantiate_Class(VariantValue* registers, void* context)
@@ -1675,7 +1743,7 @@ namespace
 		
 		BITCOUNT bitCount;
 
-		if (def.Usage == ARGUMENTUSAGE_BYREFERENCE && 1 == 0)
+		if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
 		{
 			bitCount = BITCOUNT_POINTER;
 		}
@@ -1698,8 +1766,6 @@ namespace
 		if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
 		{
 			if (def.IsParentValue) Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
-
-			if (srcIndex < 1) Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot assign from datatype. Bad src index."));
 			Assembler().Append_SetSFMemberByRefFromRegister(srcIndex + VM::REGISTER_D4, def.SFOffset, def.MemberOffset, bitCount);			
 			if (def.IsParentValue) Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
 		}

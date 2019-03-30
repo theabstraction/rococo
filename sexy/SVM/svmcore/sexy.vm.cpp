@@ -264,6 +264,7 @@ namespace
 			ActivateInstruction(SetSFMemberByRefFromSFByValue32);
 			ActivateInstruction(SetSFValueFromSFMemberByRef32);
 			ActivateInstruction(SetSFMemberByRefFromRegister32);
+			ActivateInstruction(SetSFMemberByRefFromRegisterLong);
 
 			ActivateInstruction(RestoreRegister32);
 			ActivateInstruction(SaveRegister32);			
@@ -994,6 +995,33 @@ namespace
 			cpu.AdvancePC(4);
 		}
 
+		OPCODE_CALLBACK(SetSFMemberByRefFromRegisterLong)
+		{
+			const Ins* I = NextInstruction();
+			const VariantValue& src = cpu.D[I->Opmod1];
+			int bitcount = (int8) I->Opmod2;
+			cpu.AdvancePC(3);
+
+			int32 SFOffset = *(int32*)cpu.PC();
+
+			cpu.AdvancePC(4);
+
+			int32 memberOffset = *(int32*)cpu.PC();
+			cpu.AdvancePC(4);
+
+			auto* dest = (uint8**) (cpu.SF() + SFOffset) ;
+			uint8* pMember = ((uint8*)*dest) + memberOffset;
+
+			if (bitcount == BITCOUNT_32)
+			{
+				*((int32*)pMember) = src.int32Value;
+			}
+			else
+			{
+				*((int64*)pMember) = src.int64Value;
+			}
+		}
+
 		OPCODE_CALLBACK(SetStackFrameValue32)
 		{
 			const Ins* I = NextInstruction();
@@ -1451,22 +1479,25 @@ namespace
 
 		OPCODE_CALLBACK(CallVirtualFunctionByValue)
 		{
-			const int32* offsetArray = (const int32*) (cpu.PC() + 1);
+			/* args:
+			Opcodes::OPCODE opcode;
+			int32 SFoffsetToInterfaceRef;
+			int32 vTableOffset;
+			int32 instanceToInterfaceOffset;
+			*/
 
-			int32 sfOffset = *offsetArray;
-			int32 methodIndex = offsetArray[1];
-			int32 memberOffset = offsetArray[2];
+			const auto* args = (ArgsCallVirtualFunctionByValue*) cpu.PC();
 
-			const uint8* sfItem = cpu.SF() + sfOffset;
+			const uint8* sfItem = cpu.SF() + args->SFoffsetToInterfaceRef;
 			const uint8** pInterface = (const uint8**) sfItem;
 
-			const void** pVTable = (const void**) (*pInterface + memberOffset);
+			const void** pVTable = (const void**) (*pInterface + args->instanceToInterfaceOffset);
 
 			cpu.Push(pVTable);
 
 			cpu.Push(cpu.D[REGISTER_SF].vPtrValue);
 
-			const uint8 *returnAddress = cpu.PC() + 13; 
+			const uint8 *returnAddress = cpu.PC() + sizeof(ArgsCallVirtualFunctionByValue);
 			cpu.Push(returnAddress);						
 
 			// Then make the new stack frame equal to the stack pointer
@@ -1474,7 +1505,7 @@ namespace
 								
 			const uint8* vTable = (const uint8*) *pVTable;
 
-			const ID_BYTECODE* pFunction = (const ID_BYTECODE*) (vTable + methodIndex);
+			const ID_BYTECODE* pFunction = (const ID_BYTECODE*) (vTable + args->vTableOffset);
 			ID_BYTECODE id = *pFunction;
 			size_t functionStart = program->GetFunctionAddress(id);
 			cpu.SetPC(cpu.ProgramStart + functionStart);

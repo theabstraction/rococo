@@ -1438,7 +1438,8 @@ namespace Rococo
 	      {
 		      if (refDef.ResolvedType->VarType() == VARTYPE_Pointer)
 		      {
-			      builder.Assembler().Append_CallVirtualFunctionByValue(refDef.SFOffset + refDef.MemberOffset, vTableByteOffset);	
+				  builder.Assembler().Append_CallVirtualFunctionByValue(refDef.SFOffset, vTableByteOffset);
+			//      builder.Assembler().Append_CallVirtualFunctionByAddress(refDef.SFOffset + refDef.MemberOffset, vTableByteOffset);
 		      }
 		      else
 		      {
@@ -1532,13 +1533,14 @@ namespace Rococo
 
 	      if (def.Usage == ARGUMENTUSAGE_BYVALUE)
 	      {
-		      ce.Builder.Assembler().Append_PushStackFrameAddress(def.SFOffset + def.MemberOffset);	
+			  ce.Builder.AssignVariableToTemp(classInstance, 0);
 	      }
 	      else
 	      {
-		      ce.Builder.AssignVariableRefToTemp(classInstance, 0);
-		      ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);		
+		      ce.Builder.AssignVariableRefToTemp(classInstance, 0);	
 	      }
+
+		  ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);
 			
 	      return (int) sizeof(void*);		
       }
