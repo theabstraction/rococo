@@ -715,7 +715,7 @@ namespace
 			ArgsCallVirtualFunctionByValue args;
 			args.opcode = Opcodes::CallVirtualFunctionByValue;
 			args.SFoffsetToInterfaceRef = SFoffsetToInterfaceRef;
-			args.vTableOffset = vTableOffset;
+			args.vTableOffset = vTableOffset >> 3;
 			args.instanceToInterfaceOffset = instanceToInterfaceOffset;
 			AddArgument(args);
 		}

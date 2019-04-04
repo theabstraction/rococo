@@ -11335,6 +11335,9 @@ namespace
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+		TEST(TestNullMemberInit);
+		TEST(TestConstructor);
+		TEST(TestInlinedFactory);
 		TEST(TestAssignDerivatives);
 		TEST(TestBitwiseOr);
 		TEST(TestNullStringBuilder);
@@ -11479,7 +11482,6 @@ namespace
 		TEST(TestTryWithoutThrow);
 
 		TEST(TestNullMember);
-		TEST(TestNullMemberInit);
 		TEST(TestNullRefInit);
 
 		TEST(TestRecti1);
@@ -11606,11 +11608,6 @@ namespace
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
-
-
-		TEST(TestInlinedFactory);
-
-		return;
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

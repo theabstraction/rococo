@@ -1486,12 +1486,18 @@ namespace
 			int32 instanceToInterfaceOffset;
 			*/
 
+			struct VirtualTable
+			{
+				ptrdiff_t OffsetToInstance;
+				ID_BYTECODE FirstMethodId;
+			};
+
 			const auto* args = (ArgsCallVirtualFunctionByValue*) cpu.PC();
 
 			const uint8* sfItem = cpu.SF() + args->SFoffsetToInterfaceRef;
-			const uint8** pInterface = (const uint8**) sfItem;
+			const uint8** pInstance = (const uint8**) sfItem;
 
-			const void** pVTable = (const void**) (*pInterface + args->instanceToInterfaceOffset);
+			const VirtualTable** pVTable = (const VirtualTable**) (*pInstance + args->instanceToInterfaceOffset);
 
 			cpu.Push(pVTable);
 
@@ -1503,10 +1509,9 @@ namespace
 			// Then make the new stack frame equal to the stack pointer
 			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
 								
-			const uint8* vTable = (const uint8*) *pVTable;
+			const ID_BYTECODE * vTable = (const ID_BYTECODE*) *pVTable;
 
-			const ID_BYTECODE* pFunction = (const ID_BYTECODE*) (vTable + args->vTableOffset);
-			ID_BYTECODE id = *pFunction;
+			const ID_BYTECODE id = vTable[args->vTableOffset];
 			size_t functionStart = program->GetFunctionAddress(id);
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 		}

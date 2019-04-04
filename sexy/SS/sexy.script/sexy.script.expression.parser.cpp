@@ -64,7 +64,7 @@ namespace Rococo
 					break;							
 				}
 
-				offset += member.SizeOfMember();	
+				offset += member.IsPseudoVariable() ? 0 : member.SizeOfMember();
 			}
 
 			return offset;
@@ -255,14 +255,17 @@ namespace Rococo
 					cr_sex nameExpr = field.GetElement(i);
 					AssertLocalIdentifier(nameExpr);			
 
-					s.AddMember(NameString::From(nameExpr.String()), TypeString::From(type));
-
 					IInterfaceBuilder* interf = MatchInterface(argTypeExpr, s.Module());
 					if (interf != NULL)
 					{
-						TokenBuffer memberRefName;
+						TokenBuffer memberRefName; 
 						GetRefName(memberRefName, nameExpr.String()->Buffer);
+						s.AddPseudoMember(NameString::From(nameExpr.String()), TypeString::From(type));
 						s.AddMember(NameString::From(memberRefName), TypeString::From(("Sys.Type.Pointer")));
+					}
+					else
+					{
+						s.AddMember(NameString::From(nameExpr.String()), TypeString::From(type));
 					}
 				}	
 			}
@@ -1314,7 +1317,8 @@ namespace Rococo
 							else
 							{
 								VariantValue v;
-								v.vPtrValue = memberType->GetInterface(0).UniversalNullInstance();
+								auto& instance = *memberType->GetInterface(0).UniversalNullInstance();
+								v.vPtrValue = &instance.pVTables;
 								ce.Builder.Assembler().Append_SetStackFrameImmediate(refOffset, v, BITCOUNT_POINTER);
 							}
 						}
@@ -1332,7 +1336,7 @@ namespace Rococo
 				{
 				}
 
-				sfMemberOffset += member.SizeOfMember();
+				sfMemberOffset += member.IsPseudoVariable() ? 0 : member.SizeOfMember(); 
 			}
 		}
 

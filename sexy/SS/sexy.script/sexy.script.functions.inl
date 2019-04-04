@@ -1531,7 +1531,7 @@ namespace Rococo
 
 	      AddArgVariable(("instance"), ce, ce.Object.Common().TypePointer());
 
-	      if (def.Usage == ARGUMENTUSAGE_BYVALUE)
+	      if (def.ResolvedType == &ce.Object.Common().TypePointer() || def.Usage == ARGUMENTUSAGE_BYREFERENCE)
 	      {
 			  ce.Builder.AssignVariableToTemp(classInstance, 0);
 	      }
@@ -1915,13 +1915,9 @@ namespace Rococo
 		      {
 			      Throw(s, ("Expecting an instance reference associated with the instance."));
 		      }
+	      }
 
-		      srcVariable = instanceRef;
-	      }
-	      else
-	      {
-		      srcVariable = instanceName;
-	      }
+		  srcVariable = instanceName;
 
 	      OUT int interfaceIndex, OUT methodIndex;
 	      if (GetMethodIndices(OUT interfaceIndex, OUT methodIndex, c, methodName))

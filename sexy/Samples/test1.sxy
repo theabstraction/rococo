@@ -1,24 +1,19 @@
-(namespace EntryPoint)
-	(alias Main EntryPoint.Main)
+(using Sys.Type)
 
-(namespace Stuff) (using Stuff)
+(namespace Toys)
+
+(interface Toys.IPole
+	(Index -> (Int32 value))
+)
+
+(struct Lapdancer
+	(Toys.IPole pole)
+)
 
 (function Main -> (Int32 result):			
-	(IRobot robby (Dreambot 9000))
-	(robby.Id -> result)
+	(Lapdancer lapdancer)
+	(lapdancer.pole.Index -> result)
 )
 
-(interface Stuff.IRobot
-	(Id -> (Int32 id))
-)
-
-(class Robot
-	(implements Stuff.IRobot)
-	(Int32 id)
-)
-
-(method Robot.Construct (Int32 id): (this.id = id))
-(method Robot.Id -> (Int32 id): (id = this.id))
-(factory Stuff.Dreambot Stuff.IRobot (Int32 id): (construct Robot id))
-
-
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)

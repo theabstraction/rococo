@@ -900,7 +900,7 @@ namespace
 			{
 				def.MemberOffset += offset;
 				def.ResolvedType = member->UnderlyingType();			
-				def.AllocSize = member->SizeOfMember();
+				def.AllocSize = member->IsPseudoVariable() ? 0 : member->SizeOfMember();
 				return true;
 			}
 		}

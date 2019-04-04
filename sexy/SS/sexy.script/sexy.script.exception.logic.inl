@@ -395,7 +395,7 @@ namespace
 			{
 				const IMember& m = memberType.GetMember(i);
 				UpdateInternalExceptionPointers(po, newInstance, oldInstance, *m.UnderlyingType(), m.Name(), offset);
-				offset += m.SizeOfMember();
+				offset += m.IsPseudoVariable() ? 0 : m.SizeOfMember();
 			}
 		}
 		else if (type == VARTYPE_Pointer)

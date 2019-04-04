@@ -71,13 +71,14 @@ namespace Rococo { namespace Compiler
 
 		for(int i = 0; i < s.MemberCount(); i++)
 		{
-			cstr memberName = s.GetMember(i).Name();
+			auto& m = s.GetMember(i);
+			cstr memberName = m.Name();
 			if (AreEqual(memberName, name))
 			{
-				return &s.GetMember(i);
+				return &m;
 			}
 
-			offset += s.GetMember(i).SizeOfMember();
+			offset += m.IsPseudoVariable() ? 0 : m.SizeOfMember();
 		}
 
 		return NULL;

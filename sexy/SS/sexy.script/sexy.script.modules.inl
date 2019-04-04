@@ -661,7 +661,7 @@ namespace Rococo { namespace Script
 				AppendInvokeCallDestructor(ce, memberType, m.Name(), SFoffset + subOffset);	
 			}
 
-			subOffset += m.SizeOfMember();
+			subOffset += m.IsPseudoVariable() ? 0 : m.SizeOfMember();
 		}
 	}
 
@@ -3452,12 +3452,12 @@ namespace Rococo { namespace Script
 						}
 					}
 
-					for(int i = 1; i < interfaceCount; i++)
+					for (int i = 1; i < interfaceCount; i++)
 					{
 						char vtableName[32];
-                  SafeFormat(vtableName, 32, ("_vTable%d"), i);
+						SafeFormat(vtableName, 32, ("_vTable%d"), i);
 						s.AddMember(NameString::From(vtableName), TypeString::From(("Pointer")));
-					}					
+					}
 				}
 
 				CBindStructDefToExpression structDef;

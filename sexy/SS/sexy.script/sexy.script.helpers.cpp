@@ -821,7 +821,7 @@ namespace Rococo
 
 				   enumCallback.OnMember(ss, childName, member, instance + suboffset);
 
-				   const int sizeofMember = member.SizeOfMember();
+				   const int sizeofMember = member.IsPseudoVariable() ? 0 : member.SizeOfMember();
 				   suboffset += sizeofMember;
 			   }
 

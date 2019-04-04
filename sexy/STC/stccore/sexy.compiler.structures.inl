@@ -161,7 +161,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			for(uint32 i = 0; i < members.size(); ++i)
 			{
 				size_t memberSize = members[i].SizeOfMember();
-				if (memberSize > 0)
+				if (!members[i].IsPseudoVariable() && memberSize > 0)
 				{
 					totalSize += (int32) memberSize;
 				}
@@ -303,7 +303,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			{
 				if (reportErrors)			
 				{
-					LogError(log, ("Could not resolving generic type (%s) from %s of %s from %s"), member.GenericArg1Type(), member.Name(), s.Name(), s.Module().Name());
+					LogError(log, ("Could not resolve generic type (%s) from %s of %s from %s"), member.GenericArg1Type(), member.Name(), s.Name(), s.Module().Name());
 				}
 				return false;
 			}
