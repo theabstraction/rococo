@@ -1,19 +1,14 @@
-(using Sys.Type)
-
-(namespace Toys)
-
-(interface Toys.IPole
-	(Index -> (Int32 value))
-)
-
-(struct Lapdancer
-	(Toys.IPole pole)
-)
-
-(function Main -> (Int32 result):			
-	(Lapdancer lapdancer)
-	(lapdancer.pole.Index -> result)
-)
-
 (namespace EntryPoint)
-	(alias Main EntryPoint.Main)
+
+
+(struct GameObject 
+	(IString name)
+ )	
+ 
+(function Main -> (Int32 result):	
+	(GameObject obj = "dog")
+	(Sys.Print obj.name)
+	(result = obj.name.Length)
+)	
+		
+(alias Main EntryPoint.Main)		

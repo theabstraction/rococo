@@ -4311,13 +4311,6 @@ namespace
 			"  (Index -> (Int32 value))"
 			")"
 
-			"(class Pole"
-			"  (implements EntryPoint.IPole)"
-			"  (Int32 index)"
-			")"
-
-			"(method Pole.Index -> (Int32 index): (index = this.index))"
-
 			"(struct Lapdancer"
 			"  (EntryPoint.IPole pole)" // This creates two members, the concrete IPole, initially a null-object and a reference to the interface
 			")";
@@ -4338,7 +4331,7 @@ namespace
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);
 		int32 x = vm.PopInt32();
-		validate(x == 3 * sizeof(size_t) + 2 * sizeof(int32)); // Lapdancer's pole is null object, ergo has capacity to be reallocated as a Pole, which has 4 fields, two pointers and two int32s. We also need a pointer to the correct interface alongside the member
+		validate(x == sizeof(size_t)); // lapdancer's only non-pseudo member is a pointer
 	}
 
 	void TestNullMemberInit(IPublicScriptSystem& ss)
@@ -9775,9 +9768,9 @@ namespace
 	{
 		cstr srcCode =
 			"(namespace EntryPoint)"
-			"(struct GameObject (Int32 value) (IString name) (Int32 id))"	
+			"(struct GameObject (IString name) )"	
 			"(function Main -> (Int32 result):"	
-			"	(GameObject obj = 7 \"dog\" 12)"
+			"	(GameObject obj = \"dog\")"
 			"	(Sys.Print obj.name)"
 			"	(result = obj.name.Length)"
 			")"			
@@ -11335,6 +11328,8 @@ namespace
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+
+		TEST(TestMemberwiseInit);
 		TEST(TestNullMemberInit);
 		TEST(TestConstructor);
 		TEST(TestInlinedFactory);
@@ -11352,8 +11347,6 @@ namespace
 		TEST(TestNullArchetype);
 		TEST(TestOperatorOverload3);
 		TEST(TestOperatorOverload);
-
-		TEST(TestStringMember3);
 
 		TEST(TestNullArchetypeArg);
 		TEST(TestMacroAsArgument1);
@@ -11496,38 +11489,18 @@ namespace
 
 		TEST(TestReflectionGetCurrentExpression);
 		TEST(TestReflectionGetParent);
-		TEST(TestReflectionGetChild_BadIndex);
-		TEST(TestReflectionGetChild);
-		TEST(TestReflectionGetAtomic);
 
 		TEST(TestModuleCount);
 		TEST(TestPrintModules);
 		TEST(TestPrintStructs);
 
-		TEST(TestSysThrow);
-		TEST(TestSysThrow2);
-
-		TEST(TestStringBuilder);
-		TEST(TestStringBuilderBig);
-
-		TEST(TestSearchSubstring);
-		TEST(TestRightSearchSubstring);
-		TEST(TestAppendSubstring);
-		TEST(TestStringbuilderTruncate);
-
 
 		TEST(TestMallocAligned);
 		TEST(TestGetSysMessage);
 
-
-		TEST(TestInternalDestructorsCalled);
-		TEST(TestInternalDestructorsCalled2);
-
 		TEST(TestTypedef);
 
 		TEST(TestReturnInterface);
-
-		TEST(TestMemberwiseInit);
 
 		TEST(TestStructStringPassByRef);
 
@@ -11582,6 +11555,28 @@ namespace
 		TEST(TestNullString);
 
 		TEST(TestAssignDerivatives);
+
+		TEST(TestReflectionGetChild_BadIndex);
+		TEST(TestReflectionGetChild);
+		TEST(TestReflectionGetAtomic);
+
+		TEST(TestSysThrow);
+
+		TEST(TestSysThrow2);
+
+		TEST(TestStringMember3);
+
+		TEST(TestStringBuilder);
+		TEST(TestStringBuilderBig);
+
+		TEST(TestSearchSubstring);
+		TEST(TestRightSearchSubstring);
+		TEST(TestAppendSubstring);
+		TEST(TestStringbuilderTruncate);
+
+		TEST(TestInternalDestructorsCalled);
+		TEST(TestInternalDestructorsCalled2);
+
 
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 	}

@@ -456,7 +456,7 @@ namespace
 		format(rep, (" %s"), RegisterName(I.Opmod1));
 	}
 
-	void FormatCallVirtualFunctionByValue(const Ins& I, OUT IDisassembler::Rep& rep)
+	void FormatCallVitualFunctionViaRefOnStack(const Ins& I, OUT IDisassembler::Rep& rep)
 	{		
 		int32 sfOffset = *((int32*) (I.ToPC() + 1));
 		int32 methodIndex = *((int32*) (I.ToPC() + 5));
@@ -1085,7 +1085,7 @@ namespace
 		EnableFormatter(DoubleDivide);
 		EnableFormatter(CallBy);
 		EnableFormatter(CallByIdIndirect);
-		EnableFormatter(CallVirtualFunctionByValue);
+		EnableFormatter(CallVitualFunctionViaRefOnStack);
 		EnableFormatter(CallVirtualFunctionByAddress);
 		EnableFormatter(CallById);
 		EnableFormatter(Call);

@@ -998,43 +998,41 @@ namespace Rococo
 
       void CompileAsInlinedItemDirectAndReturnValue(CCompileEnvironment& ce, cstr instance, cstr item, VARTYPE returnType, int interfaceToInstanceOffsetByRef)
       {
-	      MemberDef def;
-	      ce.Builder.TryGetVariableByName(OUT def, instance);
+	      MemberDef instanceDef;
+	      ce.Builder.TryGetVariableByName(OUT instanceDef, instance);
 
-	      if (def.AllocSize == 0)
+	      if (instanceDef.AllocSize == 0)
 	      {
 		      // <instance> is a pseudo variable, and _ref_<instance> is a pointer to the correct interface
 
-		      MemberDef refDef;
-
 		      TokenBuffer refName;
-		      StringPrint(refName, ("_ref_%s"), instance);
-		      ce.Builder.TryGetVariableByName(OUT refDef, refName);
+			  GetRefName(refName, instance);
 
-		      TokenBuffer fqn;
-		      StringPrint(fqn, ("%s.%s"), instance, item);
+			  MemberDef refDef;
+			  ce.Builder.TryGetVariableByName(OUT refDef, refName);
 
-		      MemberDef def;
-		      ce.Builder.TryGetVariableByName(OUT def, fqn);
+		      TokenBuffer fqItemName;
+		      StringPrint(fqItemName, ("%s.%s"), instance, item);
+
+		      MemberDef itemDef;
+		      ce.Builder.TryGetVariableByName(OUT itemDef, fqItemName);
 
 		      BITCOUNT bitCount = GetBitCount(returnType);
 
-		      if (def.IsParentValue)	{	ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+		      if (refDef.IsParentValue)	{	ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
 
-		      int interfaceToInstanceOffset = interfaceToInstanceOffsetByRef;
-
-		      ce.Builder.Assembler().Append_GetStackFrameMember(VM::REGISTER_D7, refDef.SFOffset, def.MemberOffset - interfaceToInstanceOffset, bitCount);
+			  ce.Builder.Assembler().Append_GetStackFrameMember(VM::REGISTER_D7, instanceDef.SFOffset, itemDef.MemberOffset - interfaceToInstanceOffsetByRef, BITCOUNT_32);
 			
-		      if (def.IsParentValue)	{	ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+		      if (refDef.IsParentValue)	{	ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
 	      }
 	      else
 	      {
 		      TokenBuffer fqn;
 		      StringPrint(fqn, ("%s.%s"), instance, item);
 
-		      ce.Builder.TryGetVariableByName(OUT def, fqn);
+		      ce.Builder.TryGetVariableByName(OUT instanceDef, fqn);
 
-		      int interfaceToInstanceOffset = def.Usage == ARGUMENTUSAGE_BYREFERENCE ? interfaceToInstanceOffsetByRef : 0;
+		      int interfaceToInstanceOffset = instanceDef.Usage == ARGUMENTUSAGE_BYREFERENCE ? interfaceToInstanceOffsetByRef : 0;
 		      ce.Builder.AssignVariableToTemp(fqn, Rococo::ROOT_TEMPDEPTH, -interfaceToInstanceOffset);
 	      }
       }
@@ -1167,17 +1165,8 @@ namespace Rococo
 		      // The fact that IStrings are inlined means there is only one interface supported by anything that implements IString, and that Length and Buffer inline
 		      // to length and buffer respectively. 
 
-		      int interfaceToInstanceOffsetByRef;
+		      int interfaceToInstanceOffsetByRef = sizeof(size_t) + sizeof(int32);
 
-		      if (Rococo::GetSubString(instance, (".")) != NULL)
-		      {
-			      // the string is an element of a larger structure, which means buffer and length will offset from the start of the instance, rather than an interface pointer
-			      interfaceToInstanceOffsetByRef = 0;
-		      }
-		      else
-		      {
-			      interfaceToInstanceOffsetByRef = sizeof(size_t) + sizeof(int32);
-		      }
 
 		      if (returnType == VARTYPE_Int32 && AreEqual(("Length"), methodName))
 		      {
@@ -1438,7 +1427,7 @@ namespace Rococo
 	      {
 		      if (refDef.ResolvedType->VarType() == VARTYPE_Pointer)
 		      {
-				  builder.Assembler().Append_CallVirtualFunctionByValue(refDef.SFOffset, vTableByteOffset);
+				  builder.Assembler().Append_CallVitualFunctionViaRefOnStack(refDef.SFOffset, vTableByteOffset);
 			//      builder.Assembler().Append_CallVirtualFunctionByAddress(refDef.SFOffset + refDef.MemberOffset, vTableByteOffset);
 		      }
 		      else
@@ -1465,7 +1454,7 @@ namespace Rococo
 		      if (AreEqual(refDef.ResolvedType->Name(), ("_Null"), 5))
 		      {
 			      // We are actually dealing with an interface pointer
-			      builder.Assembler().Append_CallVirtualFunctionByValue(refDef.SFOffset, vTableByteOffset);
+			      builder.Assembler().Append_CallVitualFunctionViaRefOnStack(refDef.SFOffset, vTableByteOffset);
 		      }
 		      else
 		      {
@@ -1477,7 +1466,7 @@ namespace Rococo
 				      {
 					      // Concrete class
 					      int instanceToInterfaceOffset = Compiler::GetInstanceToInterfaceOffset(i) + refDef.MemberOffset;
-					      builder.Assembler().Append_CallVirtualFunctionByValue(refDef.SFOffset, vTableByteOffset, instanceToInterfaceOffset);
+					      builder.Assembler().Append_CallVitualFunctionViaRefOnStack(refDef.SFOffset, vTableByteOffset, instanceToInterfaceOffset);
 					      return;
 				      }
 			      }

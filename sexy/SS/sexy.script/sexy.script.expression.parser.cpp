@@ -717,26 +717,15 @@ namespace Rococo
 				sexstring valueStr = src.String();
 				CStringConstant* sc = CreateStringConstant(ce.Script, valueStr->Length, valueStr->Buffer, &src);
 
-				ce.Builder.Append_InitializeVirtualTable(variableName, ce.Object.Common().TypeStringLiteral());
-				AddSymbol(ce.Builder, ("StringConstant %s"), (cstr)valueStr->Buffer);
-
-				TokenBuffer token;
-				StringPrint(token, ("%s.length"), variableName);
-
-				char value[32];
-				SafeFormat(value, 32, ("%d"), sc->length);
-				ce.Builder.AssignLiteral(NameString::From(token), value);
-
-				StringPrint(token, ("%s.buffer"), variableName);
-				ce.Builder.AssignPointer(NameString::From(token), sc->pointer);
-
-				TokenBuffer vTableBuffer;
-				StringPrint(vTableBuffer, ("%s._vTable1"), variableName);
-				ce.Builder.AssignVariableRefToTemp(vTableBuffer, Rococo::ROOT_TEMPDEPTH);
-
 				TokenBuffer refName;
 				GetRefName(refName, variableName);
-				ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, refName);
+
+				VariantValue ptrToConstant;
+				ptrToConstant.vPtrValue = sc->header._vTables;
+
+				AddSymbol(ce.Builder, "'%s'", valueStr->Buffer);
+				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, ptrToConstant, BITCOUNT_POINTER);
+				ce.Builder.AssignTempToVariable(0, refName);
 			}
 			else
 			{
@@ -2658,7 +2647,7 @@ namespace Rococo
 					TokenBuffer destructorSymbol;
 					StringPrint(destructorSymbol, ("%s %s.Destruct"), GetFriendlyName(*def.ResolvedType), variableName);
 					ce.Builder.AddSymbol(destructorSymbol);
-					ce.Builder.Assembler().Append_CallVirtualFunctionByValue(def.SFOffset, sizeof(ID_BYTECODE), def.MemberOffset);
+					ce.Builder.Assembler().Append_CallVitualFunctionViaRefOnStack(def.SFOffset, sizeof(ID_BYTECODE), def.MemberOffset);
 					ce.Builder.Assembler().Append_Pop(sizeof(size_t));
 				}
 			}

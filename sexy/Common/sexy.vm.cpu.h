@@ -172,7 +172,7 @@ namespace Rococo { namespace VM
 			CallBy,
 			CallById,
 			CallByIdIndirect,
-			CallVirtualFunctionByValue,
+			CallVitualFunctionViaRefOnStack,
 			CallVirtualFunctionByAddress,
 			CopySFMemory,
 			CopySFMemoryNear,
@@ -251,7 +251,7 @@ namespace Rococo { namespace VM
 		const uint8* ToPC() const { return (const uint8*) this; }
 	} TIGHTLY_PACKED;
 
-	struct ArgsCallVirtualFunctionByValue
+	struct ArgsCallVitualFunctionViaRefOnStack
 	{
 		Opcodes::OPCODE opcode;
 		int32 SFoffsetToInterfaceRef;

@@ -710,10 +710,10 @@ namespace
 			AddArgument(offsetFromPCstart);
 		}
 
-		virtual void Append_CallVirtualFunctionByValue(int32 SFoffsetToInterfaceRef, int32 vTableOffset /* nBytes into vtable to find the method id */, int32 instanceToInterfaceOffset)
+		virtual void Append_CallVitualFunctionViaRefOnStack(int32 SFoffsetToInterfaceRef, int32 vTableOffset /* nBytes into vtable to find the method id */, int32 instanceToInterfaceOffset)
 		{
-			ArgsCallVirtualFunctionByValue args;
-			args.opcode = Opcodes::CallVirtualFunctionByValue;
+			ArgsCallVitualFunctionViaRefOnStack args;
+			args.opcode = Opcodes::CallVitualFunctionViaRefOnStack;
 			args.SFoffsetToInterfaceRef = SFoffsetToInterfaceRef;
 			args.vTableOffset = vTableOffset >> 3;
 			args.instanceToInterfaceOffset = instanceToInterfaceOffset;

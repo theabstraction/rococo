@@ -100,7 +100,7 @@ namespace
 		case Opcodes::CallById:
 		case Opcodes::CallByIdIndirect:
 		case Opcodes::CallVirtualFunctionByAddress:
-		case Opcodes::CallVirtualFunctionByValue:
+		case Opcodes::CallVitualFunctionViaRefOnStack:
 			return true;
 		default:
 			return false;
@@ -181,7 +181,7 @@ namespace
 			ActivateInstruction(CallBy);
 			ActivateInstruction(CallById);
 			ActivateInstruction(CallByIdIndirect);
-			ActivateInstruction(CallVirtualFunctionByValue);
+			ActivateInstruction(CallVitualFunctionViaRefOnStack);
 			ActivateInstruction(CallVirtualFunctionByAddress);
 			ActivateInstruction(CopySFMemory);
 			ActivateInstruction(CopySFMemoryNear);
@@ -1477,7 +1477,7 @@ namespace
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 		}
 
-		OPCODE_CALLBACK(CallVirtualFunctionByValue)
+		OPCODE_CALLBACK(CallVitualFunctionViaRefOnStack)
 		{
 			/* args:
 			Opcodes::OPCODE opcode;
@@ -1492,7 +1492,7 @@ namespace
 				ID_BYTECODE FirstMethodId;
 			};
 
-			const auto* args = (ArgsCallVirtualFunctionByValue*) cpu.PC();
+			const auto* args = (ArgsCallVitualFunctionViaRefOnStack*) cpu.PC();
 
 			const uint8* sfItem = cpu.SF() + args->SFoffsetToInterfaceRef;
 			const uint8** pInstance = (const uint8**) sfItem;
@@ -1503,7 +1503,7 @@ namespace
 
 			cpu.Push(cpu.D[REGISTER_SF].vPtrValue);
 
-			const uint8 *returnAddress = cpu.PC() + sizeof(ArgsCallVirtualFunctionByValue);
+			const uint8 *returnAddress = cpu.PC() + sizeof(ArgsCallVitualFunctionViaRefOnStack);
 			cpu.Push(returnAddress);						
 
 			// Then make the new stack frame equal to the stack pointer
