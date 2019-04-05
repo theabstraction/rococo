@@ -2761,8 +2761,9 @@ namespace
 	{
 		cstr srcCode =
 			"(namespace EntryPoint)"
+			"(using EntryPoint)"
 			"(function Main -> (Int32 result):"
-			"    (Player player)"
+			"    (IPlayer player (NewPlayer))"
 			"    (player.SetId 1812)"
 			"    (player.GetId -> result)"
 			")"				
@@ -2773,7 +2774,7 @@ namespace
 			"    (SetId (Int32 value) ->)"
 			")"
 
-			"(class Player (implements EntryPoint.IPlayer)"				
+			"(class Player (implements IPlayer)"				
 			"    (Int32 id)"
 			")"
 
@@ -2783,6 +2784,14 @@ namespace
 
 			"(method Player.SetId (Int32 value) -> :"				
 			"    (this.id = value)"
+			")"
+
+			"(method Player.Construct -> :"
+			"	(this.id = 0)"
+			")"
+			
+			"(factory EntryPoint.NewPlayer IPlayer :"
+			"   (construct Player)"
 			")";
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestClassInstance");
@@ -3163,7 +3172,9 @@ namespace
 			"   (result = 12)"
 			"		(try"
 			"			("
-			"				(TestException ex)(throw ex) (result = 11)"
+			"				(Sys.Type.IException ex (EntryPoint.NewException))"
+			"				(throw ex) "
+			"				(result = 11)"
 			"			)"   
 			"		catch e"
 			"			("
@@ -3172,8 +3183,10 @@ namespace
 			"		)"
 			")"			
 			"(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))"
+			"(method TestException.Construct : )"
 			"(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))"
 			"(class TestException (implements Sys.Type.IException))"
+			"(factory EntryPoint.NewException Sys.Type.IException : (construct TestException))"
 			"(alias Main EntryPoint.Main)"
 			;
 
@@ -5004,9 +5017,12 @@ namespace
 
 		"(method Doggy.Powerup -> (Int32 value): (value = 5))"
 		"(method Doggy.Bark -> (Int32 value): (value = 12))"
+		"(method Doggy.Construct : )"
+
+		"(factory EntryPoint.NewDoggy IRobotDog : (construct Doggy))"
    
 		"(function Main -> (Int32 result):"
-		"	(Doggy dog)"
+		"	(IRobotDog dog (NewDoggy))"
 		"	(result = ((dog.Bark) + (dog.Powerup)))"
 		")";
 
@@ -5045,9 +5061,13 @@ namespace
 
 		"(method Doggy.Powerup -> (Int32 value): (value = 5))"
 		"(method Doggy.Bark -> (Int32 value): (value = 12))"
+
+		"(method Doggy.Construct : )"
+
+		"(factory EntryPoint.NewDoggy IRobotDog : (construct Doggy))"
    
 		"(function Main -> (Int32 result):"
-		"	(Doggy dog)"
+		"	(IRobotDog dog (NewDoggy))"
 		"	(cast dog -> EntryPoint.IDog k9)"
 		"	(result = ((k9.Bark) + (dog.Powerup)))"
 		")";
@@ -10208,11 +10228,7 @@ namespace
 		vm.Push(0); // Allocate stack space for the int32 result
 
 		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-		ValidateLogs();
-		validate(result == Rococo::EXECUTERESULT_TERMINATED);
-
-		int value = vm.PopInt32();
-		validate(value == 12);		
+		validate(result == Rococo::EXECUTERESULT_THROWN);	
 	}
 
 	void TestAssignPointerFromFunction(IPublicScriptSystem& ss)
@@ -11329,20 +11345,36 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestCatch);
+		TEST(TestCatchArg);
+
+		TEST(TestDerivedInterfaces);
+
+		TEST(TestVirtualFromVirtual);
+
+		TEST(TestClassInstance);
+
+		TEST(TestNullStringBuilder);
+		TEST(TestStringBuilder);
+		TEST(TestStringBuilderBig);
+
+		TEST(TestSearchSubstring);
+		TEST(TestRightSearchSubstring);
+		TEST(TestAppendSubstring);
+		TEST(TestStringbuilderTruncate);
+
 		TEST(TestMemberwiseInit);
 		TEST(TestNullMemberInit);
 		TEST(TestConstructor);
 		TEST(TestInlinedFactory);
 		TEST(TestAssignDerivatives);
 		TEST(TestBitwiseOr);
-		TEST(TestNullStringBuilder);
 		TEST(TestOperatorOverload2);
 		TEST(TestStructWithVec4f);
 		TEST(TestBooleanCompareVarToCompound);
 		TEST(TestAssignDerivativeFromRef);
 		TEST(TestLinkedList6);
 		TEST(TestMemberwise2);
-		TEST(TestDestructor);
 		TEST(TestNullObject);
 		TEST(TestNullArchetype);
 		TEST(TestOperatorOverload3);
@@ -11456,14 +11488,6 @@ namespace
 
 		TEST(TestConstructor);
 		TEST(TestClassDefinition);
-		TEST(TestClassInstance);
-		TEST(TestDerivedInterfaces);
-		TEST(TestDerivedInterfaces2);
-
-		TEST(TestVirtualFromVirtual);
-
-		TEST(TestCatch);
-		TEST(TestCatchArg);
 
 		TEST(TestTryFinallyWithoutThrow);
 		TEST(TestDeepCatch);
@@ -11504,16 +11528,11 @@ namespace
 
 		TEST(TestStructStringPassByRef);
 
-		TEST(TestMeshStruct4);
-		TEST(TestMeshStruct3);
-		TEST(TestMeshStruct2);
-		TEST(TestMeshStruct);
 		TEST(TestEmptyString);
 
 		TEST(TestYield);
 		TEST(TestStructByRefAssign);
 		TEST(TestAssignVectorComponentsFromParameters);
-		TEST(TestConstructFromInterface);
 
 		TEST(TestAssignPointerFromFunction);
 
@@ -11530,14 +11549,6 @@ namespace
 		TEST(TestStringMember);
 		TEST(TestStringMember2);
 
-		TEST(TestRefTypesInsideClosure);
-
-		TEST(TestStringSplit);
-		TEST(TestSearchSubstring);
-		TEST(TestRightSearchSubstring);
-		TEST(TestSetCase);
-
-		TEST(TestDynamicCast);
 		TEST(TestStructCopyRef);
 
 		TEST(TestClassDefinesInterface);
@@ -11556,33 +11567,41 @@ namespace
 
 		TEST(TestAssignDerivatives);
 
+		TEST(TestStringMember3);
+
+		TEST(TestMeshStruct4);
+		TEST(TestMeshStruct3);
+		TEST(TestMeshStruct2);
+		TEST(TestMeshStruct);
+
+		TEST(TestRefTypesInsideClosure);
+
+		TEST(TestStringSplit);
+		TEST(TestSearchSubstring);
+		TEST(TestRightSearchSubstring);
+		TEST(TestSetCase);
+
+		TEST(TestDynamicCast);
+
 		TEST(TestReflectionGetChild_BadIndex);
 		TEST(TestReflectionGetChild);
 		TEST(TestReflectionGetAtomic);
 
 		TEST(TestSysThrow);
-
 		TEST(TestSysThrow2);
-
-		TEST(TestStringMember3);
-
-		TEST(TestStringBuilder);
-		TEST(TestStringBuilderBig);
-
-		TEST(TestSearchSubstring);
-		TEST(TestRightSearchSubstring);
-		TEST(TestAppendSubstring);
-		TEST(TestStringbuilderTruncate);
 
 		TEST(TestInternalDestructorsCalled);
 		TEST(TestInternalDestructorsCalled2);
 
+		TEST(TestDestructor);
+		TEST(TestDerivedInterfaces2);
 
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 	}
 
 	void RunPositiveFailures()
 	{
+		TEST(TestConstructFromInterface);
 		TEST(TestMissingMethod);
 		TEST(TestDuplicateVariable);
 		TEST(TestDuplicateFunctionError);

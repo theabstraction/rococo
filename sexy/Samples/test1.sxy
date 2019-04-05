@@ -1,14 +1,13 @@
 (namespace EntryPoint)
+	 (alias Main EntryPoint.Main)
 
+(using Sys.Type)
+(using Sys.Maths)
+(using Sys.Reflection)
+(using Sys.Type.Formatters)
 
-(struct GameObject 
-	(IString name)
- )	
- 
-(function Main -> (Int32 result):	
-	(GameObject obj = "dog")
-	(Sys.Print obj.name)
-	(result = obj.name.Length)
-)	
-		
-(alias Main EntryPoint.Main)		
+(function Main -> (Int32 result):
+	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))
+	(s.AppendIString "Hello World!")
+	(Sys.Print s -> result)
+)

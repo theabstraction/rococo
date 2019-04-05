@@ -1021,7 +1021,7 @@ namespace Rococo
 
 		      if (refDef.IsParentValue)	{	ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
 
-			  ce.Builder.Assembler().Append_GetStackFrameMember(VM::REGISTER_D7, instanceDef.SFOffset, itemDef.MemberOffset - interfaceToInstanceOffsetByRef, BITCOUNT_32);
+			  ce.Builder.Assembler().Append_GetStackFrameMember(VM::REGISTER_D7, refDef.SFOffset, itemDef.MemberOffset - interfaceToInstanceOffsetByRef, (BITCOUNT) (8 * itemDef.ResolvedType->SizeOfStruct()));
 			
 		      if (refDef.IsParentValue)	{	ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
 	      }

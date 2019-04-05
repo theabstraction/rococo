@@ -1623,8 +1623,20 @@ namespace Rococo
 			}
 		}
 
+		void* GetInterfacePtrFromNullInstancePtr(void* instancePtr);
+
 		void CompileClassAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& st, cstr id, cr_sex decl, bool initializeValues)
 		{
+			if (st.Name()[0] != '_')
+			{
+				Throw(decl, "Concrete classes cannot be created on the stack. Use a factory");
+			}
+
+			if (st.InterfaceCount() == 0)
+			{
+				Throw(decl, "Expecting at least one interface for the class object");
+			}
+
 			TokenBuffer refName;
 			GetRefName(refName, id);
 
@@ -1633,43 +1645,13 @@ namespace Rococo
 
 			AddSymbol(ce.Builder, ("%s %s"), GetFriendlyName(st), id);
 			AssertDefaultConstruction(ce, decl, st);
-			AddVariable(ce, NameString::From(id), st);
+			AddPseudoVariable(ce, NameString::From(id), st);
 
-			if (initializeValues) ce.Builder.Append_InitializeVirtualTable(id);
+			VariantValue value;
+			value.vPtrValue = GetInterfacePtrFromNullInstancePtr(st.GetInterface(0).UniversalNullInstance());
 
-			// Temp fix, needs generalizing 
-			if (st.InterfaceCount() == 0)
-			{
-				ce.Builder.AssignVariableRefToTemp(id, 0);
-			}
-			else
-			{
-				TokenBuffer vTableRef;
-				StringPrint(vTableRef, ("%s._vTable1"), id);
-				ce.Builder.AssignVariableRefToTemp(vTableRef, 0);
-
-				if (initializeValues && IsIStringInlined(ce.Script))
-				{
-					auto& i0 = st.GetInterface(0);
-					if (&i0 == &ce.Object.Common().SysTypeIString() || i0.Base() == &ce.Object.Common().SysTypeIString())
-					{
-						// We have pointer and length member to initialize to null values
-
-						char name[256];
-						SafeFormat(name, sizeof(name), "%s.buffer", id);
-						ce.Builder.AssignLiteral(NameString::From(name), "0");
-
-						SafeFormat(name, sizeof(name), "%s.length", id);
-						ce.Builder.AssignLiteral(NameString::From(name), "0");
-					}
-				}
-			}
-
-			if (initializeValues)
-			{
-				ce.Builder.AssignTempToVariable(0, refName);
-				InitClassMembers(ce, id);
-			}
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, value, BITCOUNT_POINTER);
+			ce.Builder.AssignTempToVariable(0, refName);
 		}
 
 		void CompileAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& st, cstr id, cr_sex decl, bool initializeValues)
@@ -2541,7 +2523,7 @@ namespace Rococo
 				}
 
 				char symbol[256];
-			 SafeFormat(symbol, 256, ("%s = %s"), lhs, rhs);
+				SafeFormat(symbol, 256, ("%s = %s"), lhs, rhs);
 
 				NamespaceSplitter splitter(rhs);
 
@@ -2564,7 +2546,7 @@ namespace Rococo
 						const IStructure* st = ce.Builder.GetVarStructure(subInstance);
 						if (st == NULL)
 						{
-							ThrowTokenNotFound(exceptionSource, subInstance, ce.Builder.Owner().Name(), ("structure")); 
+							ThrowTokenNotFound(exceptionSource, subInstance, ce.Builder.Owner().Name(), ("structure"));
 						}
 
 						if (st == &ce.StructArray())
@@ -2595,7 +2577,7 @@ namespace Rococo
 			catch (IException& e)
 			{
 				Throw(exceptionSource, e.Message());
-			}		
+			}
 		}
 
 		void CompileTrivialAssignment(CCompileEnvironment& ce, cr_sex s, sexstring lhs, sexstring rhs)
@@ -2621,61 +2603,24 @@ namespace Rococo
 
 			CStringConstant* sc = CreateStringConstant(ce.Script, rhs->Length, rhs->Buffer, &s);
 
-			char debugInfo[256];
 			cstr format = (rhs->Length > 24) ? (" = '%.24s...'") : (" = '%s'");
-			SafeFormat(debugInfo, 256, format, (cstr)rhs->Buffer);
-			ce.Builder.AddSymbol(debugInfo);
+			AddSymbol(ce.Builder, format, (cstr)rhs->Buffer);
 
-			VariantValue ptr;
-			ptr.vPtrValue = (void*)&sc->header._vTables[0];
+			VariantValue ptrToStringConstant;
+			ptrToStringConstant.vPtrValue = sc->header._vTables;
 
-			if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
+			if (def.Usage == ARGUMENTUSAGE_BYREFERENCE && def.location == VARLOCATION_OUTPUT)
 			{
-				if (def.location == VARLOCATION_OUTPUT)
-				{
-					ce.Builder.Assembler().Append_SetStackFrameImmediate(def.SFOffset, ptr, BITCOUNT_POINTER);
-					return;
-				}
-				else
-				{
-					if (!def.IsContained)
-					{
-						Throw(s, "String assign failed: variable %s was not and output reference, nor a refernce to a member");
-					}
-
-					// def.SFOffset gives the SF offset to the reference
-					TokenBuffer destructorSymbol;
-					StringPrint(destructorSymbol, ("%s %s.Destruct"), GetFriendlyName(*def.ResolvedType), variableName);
-					ce.Builder.AddSymbol(destructorSymbol);
-					ce.Builder.Assembler().Append_CallVitualFunctionViaRefOnStack(def.SFOffset, sizeof(ID_BYTECODE), def.MemberOffset);
-					ce.Builder.Assembler().Append_Pop(sizeof(size_t));
-				}
+				ce.Builder.Assembler().Append_SetStackFrameImmediate(def.SFOffset, ptrToStringConstant, BITCOUNT_POINTER);
 			}
 			else
 			{
-				Rococo::Script::AppendInvokeCallDestructor(ce, *def.ResolvedType, variableName, def.SFOffset + def.MemberOffset);
+				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, ptrToStringConstant, BITCOUNT_POINTER);
+
+				TokenBuffer refName;
+				GetRefName(refName, variableName);
+				ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, refName);
 			}
-				
-			ce.Builder.Append_InitializeVirtualTable(variableName, ce.Object.Common().TypeStringLiteral());
-			AddSymbol(ce.Builder, ("StringConstant %s"), (cstr)rhs->Buffer);
-
-			TokenBuffer token;
-			StringPrint(token, ("%s.length"), variableName);
-
-			char value[32];
-			SafeFormat(value, 32, ("%d"), sc->length);
-			ce.Builder.AssignLiteral(NameString::From(token), value);
-
-			StringPrint(token, ("%s.buffer"), variableName);
-			ce.Builder.AssignPointer(NameString::From(token), sc->pointer);
-
-			TokenBuffer vTableBuffer;
-			StringPrint(vTableBuffer, ("%s._vTable1"), variableName);
-			ce.Builder.AssignVariableRefToTemp(vTableBuffer, Rococo::ROOT_TEMPDEPTH);
-
-			TokenBuffer refName;
-			GetRefName(refName, variableName);
-			ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, refName);
 		}
 
 		bool IsValidVariableName(cstr token)

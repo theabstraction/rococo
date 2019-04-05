@@ -1745,7 +1745,7 @@ namespace
 
 		if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
 		{
-			bitCount = BITCOUNT_POINTER;
+			bitCount = (BITCOUNT) (def.ResolvedType->SizeOfStruct() * 8);
 		}
 		else
 		{
