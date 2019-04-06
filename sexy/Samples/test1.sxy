@@ -1,13 +1,21 @@
 (namespace EntryPoint)
-	 (alias Main EntryPoint.Main)
-
-(using Sys.Type)
-(using Sys.Maths)
-(using Sys.Reflection)
-(using Sys.Type.Formatters)
-
-(function Main -> (Int32 result):
-	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))
-	(s.AppendIString "Hello World!")
-	(Sys.Print s -> result)
+(function Main -> (Int32 result):		
+	(try
+		(
+			(Sys.Type.IException ex (EntryPoint.NewException))
+			(throw ex) 
+		)   
+	catch e
+		(
+			(e.ErrorCode -> result)
+		)
+	)
+)			
+(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = this.errorCode))
+(method TestException.Construct : (this.errorCode = 4 ))
+(method TestException.Message -> (Sys.Type.IString s): (s = "This is to be expected"))
+(class TestException (implements Sys.Type.IException)
+	(Int32 errorCode)
 )
+(factory EntryPoint.NewException Sys.Type.IException : (construct TestException))
+(alias Main EntryPoint.Main)

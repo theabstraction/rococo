@@ -245,11 +245,11 @@ namespace
 		return *(const uint8**) pOldSF;
 	}
 
-	void WriteUnhandledException(IScriptSystem& ss, CClassHeader* ex)
+	void WriteUnhandledException(IScriptSystem& ss, ObjectStub* ex)
 	{
 		ss.ProgramObject().Log().Write(("Unhandled exception. Could not find try-catch block."));
 
-		IStructure* exType = ex->_typeInfo->structDef;
+		IStructure* exType = ex->Desc->TypeInfo;
 
 		int errorCode = -1;
 		cstr exceptionType = exType->Name();
@@ -428,17 +428,15 @@ namespace
 		UpdateInternalExceptionPointers(po, (uint8*) newInstance, oldInstance, s, ("ex"), 0);
 	}
 
-	CClassHeader* ReadExceptionFromInput(int inputNumber, IPublicProgramObject& po, const IFunction& f)
+	ObjectStub* ReadExceptionFromInput(int inputNumber, IPublicProgramObject& po, const IFunction& f)
 	{
 		void* ex;
 		ReadInput(0, ex, po, f);
 
-		const uint8* pExInstance = (const uint8*) ex;
-		const ID_BYTECODE** ppVTable = (const ID_BYTECODE**) ex;
-		const ID_BYTECODE* vTableInterface = *ppVTable;
-		ptrdiff_t offset = (ptrdiff_t) vTableInterface[0];
-		CClassHeader* header = (CClassHeader*)  pExInstance + offset;	
-		return header;
+		VirtualTable** pExInstance = (VirtualTable**) ex;
+		ptrdiff_t offset = (*pExInstance)->OffsetToInstance;
+		ObjectStub* object = (ObjectStub*) ( (uint8*)(pExInstance) + offset );
+		return object;
 	}
 
 	class CDefaultExceptionLogic
@@ -461,33 +459,21 @@ namespace
 
 			isWithinException = true;
 
-			CClassHeader* header = ReadExceptionFromInput(0, po, function);
-			const IStructure& underlyingType = GetType(header);
+			ObjectStub* object = ReadExceptionFromInput(0, po, function);
+			const IStructure& underlyingType = GetType(object);
 			const IInterface& iexc = po.Common().SysTypeIException();
 			
-			int nullSizeInBytes = iexc.NullObjectType().SizeOfStruct();
-			if (header->_allocSize > nullSizeInBytes)
-			{
-				po.Log().Write(("An exception was thrown and the null object for Sys.Type.IException was too small to hold the exception reference"));
-				po.VirtualMachine().Throw();
-				return;
-			}
-
-			uint8* newEx = (uint8*)alloca(nullSizeInBytes);
-			CopyException(po, newEx, header);
-
-			CClassHeader* tempEx = (CClassHeader*) newEx;
-
 			if (!CatchException(exceptionHandlers, ss))
 			{
-				WriteUnhandledException(ss, tempEx);
+				WriteUnhandledException(ss, object);
 				po.VirtualMachine().Throw();
 			}
 			else
-			{				
-				po.VirtualMachine().PushBlob(newEx, nullSizeInBytes);
-				// At this point the header block may have been overwritten, so use the temp version to correct the new exception on the stack
-				CopyException(po, (uint8*) po.VirtualMachine().Cpu().SP() - nullSizeInBytes, tempEx);
+			{			
+				uint8* sf = po.VirtualMachine().Cpu().SF();
+				auto pAddrSF = (VirtualTable***)sf;
+				*pAddrSF = &object->pVTables[0];
+			//	po.VirtualMachine().PushBlob(&object->pVTables, sizeof(size_t)); TODO delete
 			}
 
 			isWithinException = false;
@@ -556,7 +542,7 @@ namespace
 			isWithinException = true;
 			if (!CatchException(exceptionHandlers, ss))
 			{
-				WriteUnhandledException(ss, (CClassHeader*) ex);
+				WriteUnhandledException(ss, (ObjectStub*) ex);
 				ss.ProgramObject().VirtualMachine().Throw();
 			}
 			else

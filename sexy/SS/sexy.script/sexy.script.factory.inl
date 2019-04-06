@@ -124,7 +124,7 @@ namespace Rococo
 
 		 char instanceId[256];
 		 SafeFormat(instanceId, 256, "_instance%s", interfacePtrId);
-		 ce.Builder.AddVariable(NameString::From(instanceId), ce.Object.Common().TypePointer(), nullptr);
+		 ce.Builder.AddVariable(NameString::From(instanceId), ce.Object.Common().TypePointer(), (void*)GetTryCatchExpression(ce.Script));
 		 ce.Builder.AssignTempToVariable(0, instanceId);
 
          CodeSection section;
@@ -224,7 +224,7 @@ namespace Rococo
 
 		 TokenBuffer refId;
 		 GetRefName(refId, id);
-		 ce.Builder.AddVariable(NameString::From(refId), ce.Object.Common().TypePointer(), nullptr);
+		 ce.Builder.AddVariable(NameString::From(refId), ce.Object.Common().TypePointer(), (void*)GetTryCatchExpression(ce.Script));
 
          cr_sex factoryExpr = GetAtomicArg(args, 0);
          const IFactory& factory = GetFactoryInModule(factoryExpr, GetModule(ce.Script));

@@ -520,7 +520,7 @@ namespace Rococo
 				   continue;
 			   }
 
-			   if (AreEqual(name, ("_arg"), 4)) continue;
+			//   if (AreEqual(name, ("_arg"), 4)) continue;
 
 			   if (def.location == Rococo::Compiler::VARLOCATION_NONE)
 			   {
@@ -594,7 +594,7 @@ namespace Rococo
 				   continue;
 			   }
 
-			   if (AreEqual(name, ("_arg"), 4)) continue;
+			//   if (AreEqual(name, ("_arg"), 4)) continue;
 
 			   count++;
 		   }

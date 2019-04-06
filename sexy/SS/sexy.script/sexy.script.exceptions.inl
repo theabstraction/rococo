@@ -63,21 +63,19 @@ namespace Rococo
 
          ce.Builder.AddCatchVariable(exName, (void*)ce.Script.GetTryCatchExpression());
 
+		 ce.Builder.AddPseudoVariable(NameString::From(exName), ce.Object.Common().SysTypeIException().NullObjectType());
+
          TokenBuffer exRefName;
          GetRefName(exRefName, exName);
          ce.Builder.AddSymbol(exRefName);
 
          AddVariable(ce, NameString::From(exRefName), ce.Object.Common().TypePointer());
 
-         ce.Builder.AssignVariableRefToTemp(exName, 0, Compiler::GetInstanceToInterfaceOffset(0));
-         ce.Builder.AddSymbol(("Set exception ref to exception interface"));
-         ce.Builder.AssignTempToVariable(0, exRefName);
-
          CompileExpressionSequence(ce, 0, handler.NumberOfElements() - 1, handler);
 
          ce.Builder.AddSymbol(("end-catch"));
 
-         ce.Builder.PopLastVariables(2); // That pops the reference to the exception and the exception itself
+         ce.Builder.PopLastVariables(2); // That pops the reference to the exception and the pseudo variable
 
          size_t cleanupPos = ce.Builder.Assembler().WritePosition();
          size_t buildToCleanupDelta = cleanupPos - gotoCleanupPos;
@@ -143,8 +141,10 @@ namespace Rococo
          cr_sex ex = GetAtomicArg(s, 1);
          AssertLocalIdentifier(ex);
 
+		 cstr exName = ex.String()->Buffer;
+
          MemberDef def;
-         if (!ce.Builder.TryGetVariableByName(OUT def, ex.String()->Buffer))
+         if (!ce.Builder.TryGetVariableByName(OUT def, exName))
          {
             Throw(ex, ("Expecting local exception identifier"));
          }
@@ -155,18 +155,17 @@ namespace Rococo
             Throw(ex, ("The variable does not implement the Sys.Type.IException interface"));
          }
 
-         int sizeofException = def.AllocSize;
-
          IFunction* fnThrow = ce.Object.Common().SysType().FindFunction(("_throw"));
          if (fnThrow == NULL)
          {
             Throw(s, ("Cannot find intrinsic function Sys.Type.Exception._throw(Sys.Type.IException ex)"));
          }
 
-         char symbol[256];
-         SafeFormat(symbol, 256, ("&%s"), (cstr)ex.String()->Buffer);
-         ce.Builder.AddSymbol(symbol);
-         ce.Builder.AssignVariableRefToTemp(ex.String()->Buffer, 0 /* D4 */); // Push a ref to the exception on the stack
+         AddSymbol(ce.Builder, "%s", exName);
+
+		 TokenBuffer refEx;
+		 GetRefName(refEx, exName);
+         ce.Builder.AssignVariableToTemp(refEx, 0 /* D4 */); // Push a ref to the exception on the stack
 
          AddArgVariable(("exception"), ce, ce.Object.Common().TypePointer());
          ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);

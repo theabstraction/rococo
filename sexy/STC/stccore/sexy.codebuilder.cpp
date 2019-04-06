@@ -1402,6 +1402,7 @@ namespace
 
 	void CodeBuilder::AddCatchVariable(cstr name, void* userData)
 	{
+		/* TODO - delete section
 		if (IsVariableDefinedAtLevel(sectionIndex, name))
 		{
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Variable [%s] already defined in this scope"), name);
@@ -1424,6 +1425,7 @@ namespace
 		nextOffset += dx;
 
 		v->SetStackPosition(offset);		
+		*/
 	}
 
 	void CodeBuilder::AssignLiteral(const Rococo::Compiler::NameString& name, cstr literalValue)
