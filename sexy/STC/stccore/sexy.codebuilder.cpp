@@ -169,6 +169,7 @@ namespace
 		TPCSymbols pcSymbols;
 		ID_API_CALLBACK idInstantiate = 0;
 		ID_API_CALLBACK idAllocate = 0;
+		ID_API_CALLBACK idGetAllocSize = 0;
 		DefaultScriptObjectAllocator defaultAllocator;
 
 		int endOfArgs;
@@ -217,6 +218,7 @@ namespace
 		virtual void AddExpression(IBinaryExpression& tree);
 		virtual void Begin();
 		virtual void EnterSection();
+		virtual void Append_GetAllocSize();
 		virtual void Append_InitializeVirtualTable(cstr className);
 		virtual void Append_InitializeVirtualTable(cstr instanceName, const IStructure& classType);
 		virtual void AddVariable(const NameString& name, const TypeString& type, void* userData);
@@ -515,6 +517,25 @@ namespace
 
 		if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_D6, VM::REGISTER_SF); }
 
+	}
+
+	static void GetAllocSize(VariantValue* registers, void* context)
+	{
+		uint8* pInterface = (uint8*) registers[VM::REGISTER_D7].vPtrValue;
+		VirtualTable** pTables = (VirtualTable**) pInterface;
+		auto offset = (*pTables)->OffsetToInstance;
+		ObjectStub* object = (ObjectStub*)(pInterface + offset);
+		registers[VM::REGISTER_D7].int32Value = object->AllocSize;
+	};
+
+	void CodeBuilder::Append_GetAllocSize()
+	{
+		if (!idGetAllocSize)
+		{
+			idGetAllocSize = Assembler().Core().RegisterCallback(GetAllocSize, nullptr, "GetAllocSize");
+		}
+
+		Assembler().Append_Invoke(idGetAllocSize);
 	}
 
 	void CodeBuilder::AddSymbol(cstr text)

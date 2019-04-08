@@ -1,21 +1,25 @@
 (namespace EntryPoint)
-(function Main -> (Int32 result):		
-	(try
-		(
-			(Sys.Type.IException ex (EntryPoint.NewException))
-			(throw ex) 
-		)   
-	catch e
-		(
-			(e.ErrorCode -> result)
-		)
-	)
-)			
-(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = this.errorCode))
-(method TestException.Construct : (this.errorCode = 4 ))
-(method TestException.Message -> (Sys.Type.IString s): (s = "This is to be expected"))
-(class TestException (implements Sys.Type.IException)
-	(Int32 errorCode)
+ (alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(namespace Bot)
+
+(interface Bot.IRobotBrain (Id -> (Int32 id)))
+(interface Bot.IRobot (Brain -> (Bot.IRobotBrain brain)))
+
+(class Robot (implements Bot.IRobot) (Bot.IRobotBrain brain))
+(class RobotBrain (implements Bot.IRobotBrain))
+
+(method Robot.Construct : (this.brain = (Bot.NewBrain)))
+(method RobotBrain.Construct : )
+(method RobotBrain.Id -> (Int32 id): (id = 9000))
+(method Robot.Brain -> (Bot.IRobotBrain brain): (brain = this.brain))
+(factory Bot.NewRobot Bot.IRobot : (construct Robot))
+(factory Bot.NewBrain Bot.IRobotBrain : (construct RobotBrain))
+
+(function Main -> (Int32 exitCode):
+	(Bot.IRobot robby (Bot.NewRobot))
+	(Bot.IRobotBrain brain = robby.Brain)
+	(brain.Id -> exitCode)
 )
-(factory EntryPoint.NewException Sys.Type.IException : (construct TestException))
-(alias Main EntryPoint.Main)

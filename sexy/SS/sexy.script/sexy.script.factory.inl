@@ -122,8 +122,10 @@ namespace Rococo
 		 ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, sizeofClass, BITCOUNT_32);
 		 ce.Builder.AddDynamicAllocateObject(*def.ResolvedType);
 
+		 static int32 instanceCount = 0;
+
 		 char instanceId[256];
-		 SafeFormat(instanceId, 256, "_instance%s", interfacePtrId);
+		 SafeFormat(instanceId, 256, "_instance_%d", instanceCount++);
 		 ce.Builder.AddVariable(NameString::From(instanceId), ce.Object.Common().TypePointer(), (void*)GetTryCatchExpression(ce.Script));
 		 ce.Builder.AssignTempToVariable(0, instanceId);
 

@@ -3208,19 +3208,21 @@ namespace
 			"(namespace EntryPoint)"
 			"(function Main -> (Int32 result):"		
 			"   (result = 12)"
-			"		("		
+			"	("		
 			"			try ( (Double 11 -> result) )"   
-			"   catch e ( result = (result + 15) )"
+			"			catch e ( result = (result + 15) )"
 			"   )"
 			")"			
 			"(function Double (Int32 x) -> (Int32 y):"		
 			"   (Int32 z)"
-			"   (TestException ex)(throw ex)"			
-			"   (y = (x * x))"
+			"   (Sys.Type.IException ex (EntryPoint.NewException))(throw ex)"			
+			"   (y = (2 * x))"
 			")"			
 			"(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))"
 			"(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))"
+			"(method TestException.Construct : )"
 			"(class TestException (implements Sys.Type.IException))"
+			"(factory EntryPoint.NewException Sys.Type.IException : (construct TestException))"
 			"(alias Main EntryPoint.Main)"
 			;
 
@@ -3289,18 +3291,23 @@ namespace
 		cstr srcCode =
 			"(namespace EntryPoint)"
 			"(function Main -> (Int32 result):"	
-			"(TestException ex)"
+			"(Sys.Type.IException ex (EntryPoint.NewException))"
 			"(try"
-			"   ((Robot robby)(throw ex))"
+			"   ((EntryPoint.IRobot robby (EntryPoint.NewRobot))(throw ex))"
 			"catch e ((result = 7)))"
 			")"			
 			"(alias Main EntryPoint.Main)"
 
-			"(class Robot)"
+			"(class Robot (defines EntryPoint.IRobot))"
+			"(method Robot.Construct : )"
+			"(method Robot.Id -> (Int32 id) : (id = 1984))"
 			"(method Robot.Destruct -> : (Sys.InvokeTest))"
+			"(factory EntryPoint.NewRobot EntryPoint.IRobot : (construct Robot))"
 			"(class TestException (implements Sys.Type.IException))"
+			"(method TestException.Construct : )"
 			"(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))"			
 			"(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))"
+			"(factory EntryPoint.NewException Sys.Type.IException : (construct TestException))"
 			;
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestExceptionDestruct");
@@ -3340,9 +3347,12 @@ namespace
 		cstr srcCode =
 			"(namespace EntryPoint)"
 			"(function Main -> (Int32 result):"	
-			"(TestException ex)"
+			"(Sys.Type.IException ex (EntryPoint.NewException))"
 			"(try"
-			"   ((Robot robby)(throw ex))"
+			"   ("
+			"		(EntryPoint.IRobot robby (EntryPoint.NewRobot))"
+			"		(throw ex)"
+			"	)"
 			"catch e ((result = 7)))"
 			")"			
 			"(alias Main EntryPoint.Main)"
@@ -3371,24 +3381,37 @@ namespace
 		cstr srcCode =
 			"(namespace EntryPoint)"
 			"(function Main -> (Int32 result):"	
-			"(TestException ex)"
-			"(try"
+			"(Sys.Type.IException ex (EntryPoint.NewException))"
+			"	(try"
 			"		(try"
-			"			((result = 1)(Robot robby)(throw ex))"
+			"			("
+			"				(result = 1)"
+			"				(EntryPoint.IRobot robby (EntryPoint.NewRobot))"
+			"				(throw ex)"
+			"			)"
 			"		 catch e1"
-			"			((result = (result + 3))(TestException ex1)(throw ex1))"
+			"			("
+			"				(result = (result + 3))"
+			"				(Sys.Type.IException ex1 (EntryPoint.NewException))"
+			"				(throw ex1)"
+			"			)"			
 			"		)"		
-			"		catch e2"	
-			"			((result = (result + 7)))"
-			"		)"
+			"	catch e2"	
+			"		((result = (result + 7)))"
+			"	)"
 			")"			
 			"(alias Main EntryPoint.Main)"
 
-			"(class Robot)"
-			"(method Robot.Destruct -> : )"
+			"(class Robot (defines EntryPoint.IRobot))"
+			"(method Robot.Construct : )"
+			"(method Robot.Id -> (Int32 id) : (id = 1984))"
+			"(method Robot.Destruct -> : (Sys.InvokeTest))"
+			"(factory EntryPoint.NewRobot EntryPoint.IRobot : (construct Robot))"
 			"(class TestException (implements Sys.Type.IException))"
-			"(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))"			
+			"(method TestException.Construct : )"
+			"(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))"
 			"(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))"
+			"(factory EntryPoint.NewException Sys.Type.IException : (construct TestException))"
 			;
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestThrowFromCatch");
@@ -3410,10 +3433,12 @@ namespace
       cstr srcCode =
          "(namespace EntryPoint)"
          "(class Job (defines Sys.IJob))"
+		 "(method Job.Construct : )"
          "(method Job.Type -> (Int32 value): (value = 117))"
+		 "(factory EntryPoint.NewJob Sys.IJob : (construct Job))"
          "(function Main -> (Int32 result):"
          "(Int32 vst2 = 117)"
-        "     (Job job)"
+        "     (Sys.IJob job (EntryPoint.NewJob))"
         "	  (if (job.Type == vst2)"
         "	      (result = 55)"
         "	   else"
@@ -3440,12 +3465,14 @@ namespace
    void TestCompareGetAccessorWithOne2(IPublicScriptSystem& ss)
    {
       cstr srcCode =
-         "(namespace EntryPoint)"
-         "(class Job (defines Sys.IJob))"
-         "(method Job.Type -> (Int32 value): (value = 117))"
-         "(function Main -> (Int32 result):"
-         "(Int32 vst2 = 118)"
-        "     (Job job)"
+        "(namespace EntryPoint)"
+		"(class Job (defines Sys.IJob))"
+		"(method Job.Construct : )"
+		"(method Job.Type -> (Int32 value): (value = 117))"
+		"(factory EntryPoint.NewJob Sys.IJob : (construct Job))"
+        "(function Main -> (Int32 result):"
+			"(Int32 vst2 = 118)"
+        "     (Sys.IJob job (EntryPoint.NewJob))"
         "	  (if (job.Type < vst2)"
         "	      (result = 55)"
         "	   else"
@@ -3474,11 +3501,15 @@ namespace
 		cstr srcCode =
 			"(namespace EntryPoint)"
 			"(function Main -> (Int32 result):"	
-			"	  (Robot robby)"
+			"	  (EntryPoint.IRobot robby (EntryPoint.NewRobot))"
 			"	  (result = (sizeof robby))"
 			")"			
 			"(alias Main EntryPoint.Main)"
-			"(class Robot (Int32 electroBrainNumber))"	
+			"(class Robot (defines EntryPoint.IRobot))"
+			"(method Robot.Construct : )"
+			"(method Robot.Id -> (Int32 id) : (id = 1984))"
+			"(method Robot.Destruct -> : (Sys.InvokeTest))"
+			"(factory EntryPoint.NewRobot EntryPoint.IRobot : (construct Robot))"
 			;
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestSizeOf");
@@ -3493,7 +3524,7 @@ namespace
 
 		int x = vm.PopInt32();
 
-		int robbysize = sizeof(int32) + sizeof(size_t) + sizeof(int32); // The member electroBrainNumber + the vTable + the allocSize integer
+		int robbysize = sizeof(size_t) + sizeof(size_t) + sizeof(int32); // The typeinfo + the vTable + the allocSize integer
 		validate(x == robbysize); 
 	}
 
@@ -3504,14 +3535,20 @@ namespace
 			"(function Main -> (Int32 result):"		
 			"   (result = 12)"
 			"		("		
-			"			try ( (TestException ex)(SetErrorCode ex 1943)(throw ex) (result = 11) )"   
-			"   catch e ( (e.ErrorCode -> result) )"
+			"			try"
+			"			("
+			"				(Sys.Type.IException ex (EntryPoint.NewException 1943))"
+			"				(throw ex)"
+			"				(result = 11)"
+			"			)"   
+			"		    catch e ( (e.ErrorCode -> result) )"
 			"   )"
 			")"			
 			"(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = this.errorCode))"
+			"(method TestException.Construct (Int32 errorCode) : (this.errorCode = errorCode) )"
 			"(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))"
-			"(function SetErrorCode (TestException ex) (Int32 errorCode) -> : (ex.errorCode = errorCode))"
 			"(class TestException (implements Sys.Type.IException) (Int32 errorCode))"
+			"(factory EntryPoint.NewException Sys.Type.IException (Int32 errorCode) : (construct TestException errorCode))"
 			"(alias Main EntryPoint.Main)"
 			;
 
@@ -3532,14 +3569,14 @@ namespace
 		cstr srcCode =
 			"(namespace EntryPoint)"
 			"(function Main -> (Int32 result):"		
-			"	(TestException ex)"
-			" (SetErrorCode ex 1943)"   
-			" (result = (ex.ErrorCode))"
+			" (Sys.Type.IException ex (EntryPoint.NewException 1943))"  
+			" (ex.ErrorCode -> result)"
 			")"			
 			"(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = this.errorCode))"
+			"(method TestException.Construct (Int32 errorCode): (this.errorCode = errorCode) )"
 			"(method TestException.Message -> (Sys.Type.IString s): (s = \"This is to be expected\"))"
-			"(function SetErrorCode (TestException ex) (Int32 errorCode) -> : (ex.errorCode = errorCode))"
 			"(class TestException (implements Sys.Type.IException) (Int32 errorCode))"
+			"(factory EntryPoint.NewException Sys.Type.IException (Int32 errorCode) : (construct TestException errorCode))"
 			"(alias Main EntryPoint.Main)"
 			;
 
@@ -3560,19 +3597,22 @@ namespace
 		cstr srcCode =
 			"(namespace EntryPoint)"
 			"(function Main -> (Int32 result):"		
-			"	(Robot robby)"
-			" (robby.brainState = 7)"   
+			" (Sys.IRobot robby (Sys.NewRobot 7))" 
 			" (RobotThink robby)"
-			" (result = robby.brainState)"
+			" (result = robby.BrainState)"
 			")"
-			"(function RobotThink (Robot x) -> :"		
+			"(function RobotThink (Sys.IRobot x) -> :"		
 			" (IncBrainState x)"   
 			")"
-			"(function IncBrainState (Robot x) -> :"		
-			" (x.brainState = (x.brainState + 1))"   
+			"(function IncBrainState (Sys.IRobot x) -> :"		
+			" (x.SetBrainState ((x.BrainState) + 1))"   
 			")"
 			"(alias Main EntryPoint.Main)"
-			"(class Robot (Int32 brainState))"
+			"(class Robot (defines Sys.IRobot) (Int32 brainState))"
+			"(method Robot.Construct (Int32 brainState): (this.brainState = brainState))"
+			"(method Robot.SetBrainState (Int32 x) -> : (this.brainState = x))"
+			"(method Robot.BrainState -> (Int32 x) : (x = this.brainState))"
+			"(factory Sys.NewRobot Sys.IRobot (Int32 brainState): (construct Robot brainState))"
 			;
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestInstancePropagation");
@@ -3592,23 +3632,25 @@ namespace
 		cstr srcCode =
 			"(namespace EntryPoint)"
 			"(function Main -> (Int32 result):"		
-			"	(Robot robby)"
-			" (robby.brainState = 7)"   
+			" (Sys.IRobot robby (Sys.NewRobot 7))"
 			" (RobotThink robby)"
-			" (result = robby.brainState)"
+			" (result = robby.BrainState)"
 			")"
-			"(function RobotThink (Robot x) -> :"		
-			" (IncBrainState x)"   
+			"(function RobotThink (Sys.IRobot x) -> :"
+			" (IncBrainState x)"
 			")"
-			"(function IncBrainState (Robot x) -> :"		
-			" (x.brainState = (Inc x.brainState))"   
-			" (Inc x.brainState -> x.brainState)"   
+			"(function IncBrainState (Sys.IRobot x) -> :"		
+			" (x.SetBrainState (Inc x.BrainState))"    
 			")"
 			"(function Inc (Int32 x) -> (Int32 y):"		
 			" (y = (x + 1))"   
 			")"
 			"(alias Main EntryPoint.Main)"
-			"(class Robot (Int32 brainState))"
+			"(class Robot (defines Sys.IRobot) (Int32 brainState))"
+			"(method Robot.Construct (Int32 brainState): (this.brainState = brainState))"
+			"(method Robot.SetBrainState (Int32 x) -> : (this.brainState = x))"
+			"(method Robot.BrainState -> (Int32 x) : (x = this.brainState))"
+			"(factory Sys.NewRobot Sys.IRobot (Int32 brainState): (construct Robot brainState))"
 			;
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestInstanceMemberPropagation");
@@ -3620,7 +3662,7 @@ namespace
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);
 		int32 x = vm.PopInt32();
-		validate(x == 9);
+		validate(x == 8);
 	}
 
 	void TestInterfacePropagation(IPublicScriptSystem& ss)
@@ -9719,26 +9761,30 @@ namespace
 	void TestReturnInterface(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = 
-		"(namespace EntryPoint)"
-		" (alias Main EntryPoint.Main)"
+		"(namespace EntryPoint)\n"
+		" (alias Main EntryPoint.Main)\n"
   
-		"(using Sys.Type)"
+		"(using Sys.Type)\n"
 
-		"(namespace Bot)"
+		"(namespace Bot)\n"
 
-		"(interface Bot.IRobotBrain (Id -> (Int32 id)))"
-		"(interface Bot.IRobot (Brain -> (Bot.IRobotBrain brain)))"
+		"(interface Bot.IRobotBrain (Id -> (Int32 id)))\n"
+		"(interface Bot.IRobot (Brain -> (Bot.IRobotBrain brain)))\n"
 
-		"(class Robby (implements Bot.IRobot) (RobotBrain brain))"
-		"(class RobotBrain (implements Bot.IRobotBrain))"
+		"(class Robot (implements Bot.IRobot) (Bot.IRobotBrain brain))\n"
+		"(class RobotBrain (implements Bot.IRobotBrain))\n"
 
-		"(method RobotBrain.Id -> (Int32 id): (id = 9000))"
-		"(method Robby.Brain -> (Bot.IRobotBrain brain): (brain = this.brain))"
+		"(method Robot.Construct : (this.brain = (Bot.NewBrain)))\n"
+		"(method RobotBrain.Construct : )\n"
+		"(method RobotBrain.Id -> (Int32 id): (id = 9000))\n"
+		"(method Robot.Brain -> (Bot.IRobotBrain brain): (brain = this.brain))\n"
+		"(factory Bot.NewRobot Bot.IRobot : (construct Robot))\n"
+		"(factory Bot.NewBrain Bot.IRobotBrain : (construct RobotBrain))\n"
   
-		"(function Main -> (Int32 exitCode):"
-		"	(Robby robot)"
-		"	(Bot.IRobotBrain brain = robot.Brain)"
-		"	(brain.Id -> exitCode)"
+		"(function Main -> (Int32 exitCode):\n"
+		"	(Bot.IRobot robby (Bot.NewRobot))\n"
+		"	(Bot.IRobotBrain brain = robby.Brain)\n"
+		"	(brain.Id -> exitCode)\n"
 		")";
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestReturnInterface");
@@ -11345,6 +11391,29 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestReflectionGetChild_BadIndex);
+		TEST(TestReflectionGetChild);
+		TEST(TestReflectionGetAtomic);
+
+		TEST(TestSysThrow);
+		TEST(TestSysThrow2);
+
+		TEST(TestInternalDestructorsCalled);
+		TEST(TestInternalDestructorsCalled2);
+
+		TEST(TestDestructor);
+		TEST(TestDerivedInterfaces2);
+
+		TEST(TestBadClosureArg7);
+		TEST(TestBadClosureArg6);
+		TEST(TestBadClosureArg5);
+		TEST(TestBadClosureArg4);
+		TEST(TestBadClosureArg3);
+		TEST(TestBadClosureArg);
+		TEST(TestBadClosureArg2);
+
+		TEST(TestExceptionDestruct);
+
 		TEST(TestCatch);
 		TEST(TestCatchArg);
 
@@ -11373,7 +11442,6 @@ namespace
 		TEST(TestStructWithVec4f);
 		TEST(TestBooleanCompareVarToCompound);
 		TEST(TestAssignDerivativeFromRef);
-		TEST(TestLinkedList6);
 		TEST(TestMemberwise2);
 		TEST(TestNullObject);
 		TEST(TestNullArchetype);
@@ -11394,14 +11462,6 @@ namespace
 		TEST(TestClosureWithVariable);
 		TEST(TestReturnClosureWithVariableSucceed);
 		TEST(TestArchetypeCall);
-
-		TEST(TestBadClosureArg7);
-		TEST(TestBadClosureArg6);
-		TEST(TestBadClosureArg5);
-		TEST(TestBadClosureArg4);
-		TEST(TestBadClosureArg3);
-		TEST(TestBadClosureArg);
-		TEST(TestBadClosureArg2);
 
 		TEST(TestClosureArg);
 
@@ -11491,7 +11551,9 @@ namespace
 
 		TEST(TestTryFinallyWithoutThrow);
 		TEST(TestDeepCatch);
-		TEST(TestExceptionDestruct);
+
+		TEST(TestReturnInterface);
+
 		TEST(TestThrowFromCatch);
 
 		TEST(TestSizeOf);
@@ -11523,8 +11585,6 @@ namespace
 		TEST(TestGetSysMessage);
 
 		TEST(TestTypedef);
-
-		TEST(TestReturnInterface);
 
 		TEST(TestStructStringPassByRef);
 
@@ -11583,18 +11643,6 @@ namespace
 
 		TEST(TestDynamicCast);
 
-		TEST(TestReflectionGetChild_BadIndex);
-		TEST(TestReflectionGetChild);
-		TEST(TestReflectionGetAtomic);
-
-		TEST(TestSysThrow);
-		TEST(TestSysThrow2);
-
-		TEST(TestInternalDestructorsCalled);
-		TEST(TestInternalDestructorsCalled2);
-
-		TEST(TestDestructor);
-		TEST(TestDerivedInterfaces2);
 
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 	}
