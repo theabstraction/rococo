@@ -1,25 +1,28 @@
 (namespace EntryPoint)
  (alias Main EntryPoint.Main)
 
-(using Sys.Type)
+(namespace Stuff) (using Stuff)
 
-(namespace Bot)
-
-(interface Bot.IRobotBrain (Id -> (Int32 id)))
-(interface Bot.IRobot (Brain -> (Bot.IRobotBrain brain)))
-
-(class Robot (implements Bot.IRobot) (Bot.IRobotBrain brain))
-(class RobotBrain (implements Bot.IRobotBrain))
-
-(method Robot.Construct : (this.brain = (Bot.NewBrain)))
-(method RobotBrain.Construct : )
-(method RobotBrain.Id -> (Int32 id): (id = 9000))
-(method Robot.Brain -> (Bot.IRobotBrain brain): (brain = this.brain))
-(factory Bot.NewRobot Bot.IRobot : (construct Robot))
-(factory Bot.NewBrain Bot.IRobotBrain : (construct RobotBrain))
-
-(function Main -> (Int32 exitCode):
-	(Bot.IRobot robby (Bot.NewRobot))
-	(Bot.IRobotBrain brain = robby.Brain)
-	(brain.Id -> exitCode)
+(function Main -> (Int32 result):			
+  (IExistence robby (NewRobot 9000))
+  (Foobar robby -> result)
 )
+(interface Stuff.IRobot
+  (Id -> (Int32 id))
+)
+(interface Stuff.IExistence
+  (ExistenceNumber -> (Int32 value))
+)
+(class Robot
+  (implements Stuff.IExistence)
+  (implements Stuff.IRobot)
+  (Int32 id)
+)
+(function Foobar (Stuff.IExistence entity) -> (Int32 result):
+	 (cast entity -> IRobot robot)
+  (result = ((robot.Id) + (entity.ExistenceNumber)))
+)
+(method Robot.Construct (Int32 id): (this.id = id))
+(method Robot.Id -> (Int32 id): (id = this.id))
+(method Robot.ExistenceNumber -> (Int32 value): (value = 1234))
+(factory Stuff.NewRobot IExistence (Int32 id): (construct Robot id))

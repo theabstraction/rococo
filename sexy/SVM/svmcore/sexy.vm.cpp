@@ -592,7 +592,7 @@ namespace
 		void TerminateByIllegal(int exitCode)
 		{
 			Rococo::OS::BreakOnThrow(Rococo::OS::BreakFlag_VM);
-			this->status = EXECUTERESULT_TERMINATED;
+			if (this->status == EXECUTERESULT_RUNNING) this->status = EXECUTERESULT_TERMINATED;
 			this->exitCode = exitCode;
 			if (throwToQuit) throw IllegalException();
 		}

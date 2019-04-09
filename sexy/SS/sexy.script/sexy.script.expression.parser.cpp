@@ -2179,7 +2179,26 @@ namespace Rococo
 			v.vPtrValue = (void*) &castToInterf;
 			ce.Builder.AddSymbol(castToInterfName);
 			ce.Builder.Assembler().Append_PushLiteral(BITCOUNT_POINTER, v);
-			ce.Builder.PushVariableRef(fromName->Buffer, 0);
+
+			MemberDef refDef;
+			ce.Builder.TryGetVariableByName(refDef, fromName->Buffer);
+			if (refDef.Usage == ARGUMENTUSAGE_BYREFERENCE)
+			{
+				ce.Builder.PushVariableRef(fromName->Buffer, 0);
+			}
+			else
+			{
+				TokenBuffer fromRefName;
+				GetRefName(fromRefName, fromName->Buffer);
+
+				if (!ce.Builder.TryGetVariableByName(refDef, fromRefName))
+				{
+					Throw(fromNameExpr, "Could not resolve variable %s", fromRefName);
+				}
+
+				ce.Builder.PushVariable(refDef);
+			}
+
 			ce.Builder.AddSymbol(("_DynamicCast to D4"));
 
 			AddArgVariable(("cast_to_interface"), ce, ce.Object.Common().TypePointer());

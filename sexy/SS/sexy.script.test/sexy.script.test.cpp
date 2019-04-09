@@ -3244,14 +3244,17 @@ namespace
 	{
 		cstr srcCode =
 			"(namespace EntryPoint)"
-			"(function Main -> (Int32 result):"		
-			"   (Robot robby)"
+			"(function Main -> (Int32 result):"
+			"   (Sys.IRobot robby (Sys.NewRobot))"
 			"   (result = 7)"
-			")"			
+			")"
 			"(alias Main EntryPoint.Main)"
 
-			"(class Robot)"
+			"(class Robot (defines Sys.IRobot))"
 			"(method Robot.Destruct -> : (Sys.InvokeTest))"
+			"(method Robot.Null -> : )"
+			"(method Robot.Construct -> : )"
+			"(factory Sys.NewRobot Sys.IRobot : (construct Robot))"
 			;
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestDestructor");
@@ -3919,7 +3922,7 @@ namespace
 			"(namespace Stuff) (using Stuff)"
 			""
 			"(function Main -> (Int32 result):"			
-			"  (Robot robby (9000))"
+			"  (IExistence robby (NewRobot 9000))"
 			"  (Foobar robby -> result)"
 			")"
 			"(interface Stuff.IRobot"
@@ -3940,6 +3943,7 @@ namespace
 			"(method Robot.Construct (Int32 id): (this.id = id))"
 			"(method Robot.Id -> (Int32 id): (id = this.id))"
 			"(method Robot.ExistenceNumber -> (Int32 value): (value = 1234))"
+			"(factory Stuff.NewRobot IExistence (Int32 id): (construct Robot id))"
 			;
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestDynamicCast");
@@ -11391,17 +11395,11 @@ namespace
 	{
 		validate(true);
 
-		TEST(TestReflectionGetChild_BadIndex);
-		TEST(TestReflectionGetChild);
-		TEST(TestReflectionGetAtomic);
-
-		TEST(TestSysThrow);
-		TEST(TestSysThrow2);
-
-		TEST(TestInternalDestructorsCalled);
-		TEST(TestInternalDestructorsCalled2);
-
 		TEST(TestDestructor);
+		TEST(TestExceptionDestruct);
+
+		TEST(TestDynamicCast);
+
 		TEST(TestDerivedInterfaces2);
 
 		TEST(TestBadClosureArg7);
@@ -11411,8 +11409,6 @@ namespace
 		TEST(TestBadClosureArg3);
 		TEST(TestBadClosureArg);
 		TEST(TestBadClosureArg2);
-
-		TEST(TestExceptionDestruct);
 
 		TEST(TestCatch);
 		TEST(TestCatchArg);
@@ -11641,8 +11637,15 @@ namespace
 		TEST(TestRightSearchSubstring);
 		TEST(TestSetCase);
 
-		TEST(TestDynamicCast);
+		TEST(TestReflectionGetChild_BadIndex);
+		TEST(TestReflectionGetChild);
+		TEST(TestReflectionGetAtomic);
 
+		TEST(TestSysThrow);
+		TEST(TestSysThrow2);
+
+		TEST(TestInternalDestructorsCalled);
+		TEST(TestInternalDestructorsCalled2);
 
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 	}

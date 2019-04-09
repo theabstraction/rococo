@@ -211,7 +211,10 @@ namespace Rococo
 
          const IFactory& factory = GetFactoryInModule(factoryNameExpr, GetModule(ce.Script));
 
-         CompileFactoryCall(ce, factory, targetName, factoryCall, targetStruct.GetInterface(0));
+		 TokenBuffer refId;
+		 GetRefName(refId, targetName);
+		 
+         CompileFactoryCall(ce, factory, refId, factoryCall, targetStruct.GetInterface(0));
 
          return true;
       }
