@@ -50,7 +50,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _pupStruct = Rococo::Helpers::GetDefaultProxy(("Sys.Animals"),("ITigerPup"), ("ProxyITigerPup"), _nce.ss);
 		CReflectedClass* _sxypup = _nce.ss.Represent(_pupStruct, pup);
-		WriteOutput(&_sxypup->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxypup->header.pVTables[0], _sf, -_offset);
 	}
 
 	void NativeGetHandleForSysAnimalsGetTigerByName(NativeCallEnvironment& _nce)

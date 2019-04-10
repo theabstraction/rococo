@@ -82,6 +82,8 @@ namespace Rococo { namespace Script
 		virtual void Free() = 0;
 	};
 
+	using namespace Rococo::Compiler;
+
 	struct IPublicScriptSystem;
 
 	struct NativeCallEnvironment
@@ -158,6 +160,7 @@ namespace Rococo { namespace Script
 	}
 
 #pragma pack(push,1)
+	/* TODO - delete this block
 	struct CClassDesc
 	{
 		ptrdiff_t instanceOffset; // should be zero
@@ -165,13 +168,13 @@ namespace Rococo { namespace Script
 		Compiler::IStructure* structDef;
 	};
 
-
 	struct CClassHeader // TODO -> merge with ObjectStub
 	{
 		CClassDesc* _typeInfo;
 		int32 _allocSize;
 		VTABLEDEF _vTables[1];
 	};
+	*/
 
 #pragma pack(pop)
 
@@ -180,19 +183,19 @@ namespace Rococo { namespace Script
 #pragma pack(push,1)
 	struct CClassExpression
 	{
-		CClassHeader Header;
+		ObjectStub Header;
 		Sex::ISExpression* ExpressionPtr;
 	};
 
 	struct CClassExpressionBuilder
 	{
-		CClassHeader Header;
+		ObjectStub Header;
 		Sex::ISExpressionBuilder* BuilderPtr;
 	};
 
    struct CClassSysTypeStringBuilder
    {
-      CClassHeader header;
+	  ObjectStub header;
       int32 length;
       char* buffer;
       int32 capacity;
@@ -200,12 +203,12 @@ namespace Rococo { namespace Script
 
 	struct CScriptSystemClass
 	{
-		CClassHeader header;
+		ObjectStub header;
 	};
 
 	struct CReflectedClass
 	{
-		CClassHeader header;
+		ObjectStub header;
 		void* context;
 	};
 #pragma pack(pop)
@@ -249,7 +252,7 @@ namespace Rococo { namespace Script
 
    struct CStringConstant
    {
-      CClassHeader header;
+      ObjectStub header;
       int32 length;
       cstr pointer;
       void* srcExpression;

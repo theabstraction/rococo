@@ -76,11 +76,6 @@ namespace Rococo
 
 	typedef uint32 ID_API_CALLBACK;
 
-	struct VTABLEDEF
-	{
-		const ID_BYTECODE* Root;
-	};
-
 	enum { NAMESPACE_MAX_LENGTH = 256 };
 
 #define __SEXFUNCTION__ __FUNCTION__

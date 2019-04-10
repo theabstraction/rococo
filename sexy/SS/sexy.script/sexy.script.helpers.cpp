@@ -228,11 +228,11 @@ namespace Rococo
          return (instance + offset + instanceOffset);
       }
 
-      const Rococo::Compiler::IStructure* GetConcreteType(const IStructure& s, const Rococo::uint8* instance, ptrdiff_t offset, CClassHeader*& header)
+      const Rococo::Compiler::IStructure* GetConcreteType(const IStructure& s, const Rococo::uint8* instance, ptrdiff_t offset, ObjectStub*& header)
       {
          if (s.InterfaceCount() == 0) return NULL;
-         header = (CClassHeader*)GetMemberPtr(s, instance, offset);
-         return (header != NULL && header->_typeInfo != NULL) ? header->_typeInfo->structDef : NULL;
+         header = (ObjectStub*)GetMemberPtr(s, instance, offset);
+         return (header != NULL && header->Desc != NULL) ? header->Desc->TypeInfo : NULL;
       }
    }
 }
@@ -796,7 +796,7 @@ namespace Rococo
 		   PROTECT
 		   {
 
-			   CClassHeader* concreteInstancePtr = NULL;
+			   ObjectStub* concreteInstancePtr = NULL;
 			   const IStructure* concreteType = GetConcreteType(s, instance, offset, concreteInstancePtr);
 			   const IStructure* specimen;
 

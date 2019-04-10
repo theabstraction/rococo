@@ -37,9 +37,9 @@ namespace Rococo
    {
       enum { MAX_TRANSFORM_DEPTH = 16 };
 
-      void* GetInterface(const CClassHeader& header)
+      void* GetInterface(const ObjectStub& header)
       {
-         return (void*)&header._vTables[0];
+         return (void*)&header.pVTables[0];
       }
 
       IMacroBuilder* DeclareMacro(cr_sex macroDef, IModuleBuilder& module)

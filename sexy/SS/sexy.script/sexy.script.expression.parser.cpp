@@ -485,7 +485,7 @@ namespace Rococo
 					{
 						const CClassExpression* express =  ce.SS.GetExpressionReflection(directive);
 						VariantValue sexPtr;
-						sexPtr.vPtrValue = (void*) &express->Header._vTables[0]; // sexPtr is the interface ptr, not the instance ptr
+						sexPtr.vPtrValue = (void*) &express->Header.pVTables[0]; // sexPtr is the interface ptr, not the instance ptr
 
 						TokenBuffer token;
 						GetRefName(token, targetVariable);
@@ -721,7 +721,7 @@ namespace Rococo
 				GetRefName(refName, variableName);
 
 				VariantValue ptrToConstant;
-				ptrToConstant.vPtrValue = sc->header._vTables;
+				ptrToConstant.vPtrValue = sc->header.pVTables;
 
 				AddSymbol(ce.Builder, "'%s'", valueStr->Buffer);
 				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, ptrToConstant, BITCOUNT_POINTER);
@@ -808,7 +808,7 @@ namespace Rococo
 			ce.Builder.TryGetVariableByName(OUT def, refName);
 		
 			VariantValue v;
-			v.vPtrValue = (void*) &GetSystem(ce.Script).GetExpressionReflection(expression)->Header._vTables[0];
+			v.vPtrValue = (void*) &GetSystem(ce.Script).GetExpressionReflection(expression)->Header.pVTables[0];
 
 			TokenBuffer symbol;
 			StringPrint(symbol, ("%s = '..."), refName);
@@ -1499,7 +1499,7 @@ namespace Rococo
 			AddSymbol(ce.Builder, format, (cstr) value.String()->Buffer);
 		
 			VariantValue ptr;
-			ptr.vPtrValue = (void*) &sc->header._vTables[0];
+			ptr.vPtrValue = (void*) &sc->header.pVTables[0];
 			ce.Builder.Assembler().Append_SetStackFrameImmediate(ptrDef.SFOffset, ptr, BITCOUNT_POINTER);		
 		}
 
@@ -2644,7 +2644,7 @@ namespace Rococo
 			AddSymbol(ce.Builder, format, (cstr)rhs->Buffer);
 
 			VariantValue ptrToStringConstant;
-			ptrToStringConstant.vPtrValue = sc->header._vTables;
+			ptrToStringConstant.vPtrValue = sc->header.pVTables;
 
 			if (def.Usage == ARGUMENTUSAGE_BYREFERENCE && def.location == VARLOCATION_OUTPUT)
 			{

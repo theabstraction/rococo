@@ -610,9 +610,9 @@ namespace Rococo
 
 				CReflectedClass* rep = (CReflectedClass*)AlignedMalloc(sizeof(size_t), sizeof(CReflectedClass));
 				rep->context = pSourceInstance;
-				rep->header._typeInfo = (CClassDesc*)st.GetVirtualTable(0);
-				rep->header._allocSize = sizeof(CReflectedClass);
-				rep->header._vTables[0].Root = st.GetVirtualTable(1);
+				rep->header.Desc = (ObjectDesc*)st.GetVirtualTable(0);
+				rep->header.AllocSize = sizeof(CReflectedClass);
+				rep->header.pVTables[0] = (VirtualTable*) st.GetVirtualTable(1);
 
 				i = representations.insert(std::make_pair(pSourceInstance, rep)).first;
 			}
@@ -807,9 +807,9 @@ namespace Rococo
 			else
 			{
 				builderContainer.BuilderPtr = builder;
-				builderContainer.Header._allocSize = sizeof(builderContainer);
-				builderContainer.Header._typeInfo = (CClassDesc*)s->GetVirtualTable(0);
-				builderContainer.Header._vTables[0].Root = s->GetVirtualTable(1);
+				builderContainer.Header.AllocSize = sizeof(builderContainer);
+				builderContainer.Header.Desc = (ObjectDesc*)s->GetVirtualTable(0);
+				builderContainer.Header.pVTables[0] = (VirtualTable*) s->GetVirtualTable(1);
 				return true;
 			}
 		}
@@ -822,23 +822,23 @@ namespace Rococo
 				Rococo::Throw(0, ("The structure size was not postive"));
 			}
 
-			CClassHeader* instance = (CClassHeader*) new char[nBytes];
+			ObjectStub* instance = (ObjectStub*) new char[nBytes];
 
 			if (s.Prototype().IsClass)
 			{
-				instance->_typeInfo = (CClassDesc*)s.GetVirtualTable(0);
-				instance->_allocSize = nBytes;
+				instance->Desc = (ObjectDesc*)s.GetVirtualTable(0);
+				instance->AllocSize = nBytes;
 
 				for (int i = 0; i < s.InterfaceCount(); ++i)
 				{
-					instance->_vTables[i].Root = (ID_BYTECODE*)s.GetVirtualTable(i + 1);
+					instance->pVTables[i] = (VirtualTable*)s.GetVirtualTable(i + 1);
 				}
 			}
 
 			return instance;
 		}
 
-		void FreeDynamicClass(CClassHeader* header)
+		void FreeDynamicClass(ObjectStub* header)
 		{
 			delete[] header;
 		}

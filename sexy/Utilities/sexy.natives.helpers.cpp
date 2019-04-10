@@ -19,7 +19,7 @@ namespace Rococo
       {
          char* _instance = ((char*)vTableBuilder) + (*vTableBuilder)->OffsetToInstance;
          auto* sb = reinterpret_cast<CClassSysTypeStringBuilder*>(_instance);
-         if (sb->header._typeInfo->structDef != _nce.ss.PublicProgramObject().GetSysType(SEXY_CLASS_ID_STRINGBUILDER))
+         if (sb->header.Desc->TypeInfo != _nce.ss.PublicProgramObject().GetSysType(SEXY_CLASS_ID_STRINGBUILDER))
          {
             _nce.ss.ThrowFromNativeCode(0, ("Builder was not a Sys.Type.StringBuilder"));
          }

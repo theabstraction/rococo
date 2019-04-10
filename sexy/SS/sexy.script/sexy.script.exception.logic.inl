@@ -146,7 +146,7 @@ namespace
 
 			if (type.Prototype().IsClass)
 			{
-				CClassHeader* header = (CClassHeader*) instance;
+				auto* header = (ObjectStub*) instance;
 
 				const ID_BYTECODE** vTablePtr = (const ID_BYTECODE**) instance;
 				const ID_BYTECODE* intrinsicVTable = vTablePtr[0]; 
@@ -274,8 +274,8 @@ namespace
 			{
 				if (memberType.GetInterface(0) == ss.ProgramObject().Common().SysTypeIString())
 				{
-					CClassHeader* msgInstance = (CClassHeader*) (((uint8*) ex) + offset);
-					const IStructure& concreteType = *msgInstance->_typeInfo->structDef;
+					auto* msgInstance = (ObjectStub*) (((uint8*) ex) + offset);
+					const IStructure& concreteType = *msgInstance->Desc->TypeInfo;
 					int msgOffset ;
 					const IMember* msgMember = FindMember(concreteType, ("buffer"), OUT msgOffset);
 					if (msgMember != NULL && msgMember->UnderlyingType()->VarType() == VARTYPE_Pointer)
@@ -356,18 +356,18 @@ namespace
 
 	const IStructure& GetType(const void* instance)
 	{
-		const CClassHeader* header = (const CClassHeader*) instance;
-		return *header->_typeInfo->structDef;
+		auto* header = (const ObjectStub*) instance;
+		return *header->Desc->TypeInfo;
 	}
 
-	const uint8* GetPtr(const CClassHeader* header, ptrdiff_t offset) 
+	const uint8* GetPtr(const ObjectStub* header, ptrdiff_t offset) 
 	{
 		return ((const uint8*) header) + offset;
 	}
 
-	bool IsPtrInsideInstance(const uint8* ptr, const CClassHeader* instance)
+	bool IsPtrInsideInstance(const uint8* ptr, const ObjectStub* instance)
 	{
-		return ptr >= (const uint8*) instance && ptr < GetPtr(instance, + instance->_allocSize);
+		return ptr >= (const uint8*) instance && ptr < GetPtr(instance, + instance->AllocSize);
 	}
 
 	bool IsPtrInsideStack(const uint8* ptr, Compiler::IProgramObject& po)
@@ -376,7 +376,7 @@ namespace
 		return ptr >= cpu.StackStart && ptr < cpu.StackEnd;
 	}
 
-	void UpdateRelativePointer(uint8* newInstance, const CClassHeader* oldInstance, ptrdiff_t offset, const void* oldPtr)
+	void UpdateRelativePointer(uint8* newInstance, const ObjectStub* oldInstance, ptrdiff_t offset, const void* oldPtr)
 	{
 		uint8* newInstancePtr = newInstance + offset;
 		uint8** ptrValue = (uint8**) newInstancePtr;
@@ -386,7 +386,7 @@ namespace
 		*ptrValue = newInstance + internalOffset;
 	}
 
-	void UpdateInternalExceptionPointers(Compiler::IProgramObject& po, uint8* newInstance, const CClassHeader* oldInstance, const IStructure& memberType, cstr name, ptrdiff_t offset)
+	void UpdateInternalExceptionPointers(Compiler::IProgramObject& po, uint8* newInstance, const ObjectStub* oldInstance, const IStructure& memberType, cstr name, ptrdiff_t offset)
 	{
 		VARTYPE type = memberType.VarType();
 		if (type == VARTYPE_Derivative)
@@ -420,9 +420,9 @@ namespace
 		}					
 	}
 
-	void CopyException(Compiler::IProgramObject& po, void* newInstance, const CClassHeader* oldInstance)
+	void CopyException(Compiler::IProgramObject& po, void* newInstance, const ObjectStub* oldInstance)
 	{
-		AlignedMemcpy(newInstance, oldInstance, oldInstance->_allocSize);
+		AlignedMemcpy(newInstance, oldInstance, oldInstance->AllocSize);
 
 		const IStructure& s = GetType(oldInstance);
 		UpdateInternalExceptionPointers(po, (uint8*) newInstance, oldInstance, s, ("ex"), 0);
@@ -519,7 +519,7 @@ namespace
 					cstr msgHandle;
 					ReadInput(0, (void*&) msgHandle, e);
 					CStringConstant* sc = ss.GetStringReflection(msgHandle);
-					WriteOutput(0, &sc->header._vTables[0], e);
+					WriteOutput(0, &sc->header.pVTables[0], e);
 				}
 			};
 

@@ -873,8 +873,8 @@ namespace Rococo { namespace Script
 
 	void* GetInterfacePtrFromNullInstancePtr(void* instancePtr)
 	{
-		CClassHeader* header = (CClassHeader*) instancePtr;
-		return &header->_vTables[0];
+		auto* header = (ObjectStub*) instancePtr;
+		return &header->pVTables[0];
 	}
 
 	void CompileSetOutputRefToUniversalNullObjects(REF IFunctionBuilder& f)
@@ -2043,9 +2043,9 @@ namespace Rococo { namespace Script
       const IStructure& scStruct = Object().Common().TypeStringLiteral();
 
       CStringConstant* sc = new CStringConstant;
-      sc->header._allocSize = scStruct.SizeOfStruct();
-      sc->header._vTables[0].Root = scStruct.GetVirtualTable(1);
-      sc->header._typeInfo = (CClassDesc*)scStruct.GetVirtualTable(0);
+      sc->header.AllocSize = scStruct.SizeOfStruct();
+      sc->header.pVTables[0] = (VirtualTable*) scStruct.GetVirtualTable(1);
+      sc->header.Desc = (ObjectDesc*)scStruct.GetVirtualTable(0);
       sc->length = length;
       sc->pointer = pointer;
       sc->srcExpression = (void*)srcExpression;

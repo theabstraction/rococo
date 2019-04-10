@@ -249,7 +249,7 @@ namespace Rococo
 	      ce.Builder.AddSymbol(debugInfo);
 
 	      VariantValue ptr;
-	      ptr.vPtrValue = (void*) &sc->header._vTables[0];
+	      ptr.vPtrValue = (void*) &sc->header.pVTables[0];
 
 	      AddArgVariable(("input_string_literal"), ce, inputType);
 	      ce.Builder.Assembler().Append_PushLiteral(BITCOUNT_POINTER, ptr);	
@@ -272,7 +272,7 @@ namespace Rococo
 	      AddSymbol(ce.Builder, format, (cstr) value->Buffer);
 
 	      VariantValue ptr;
-	      ptr.vPtrValue = (void*) &sc->header._vTables[0];
+	      ptr.vPtrValue = (void*) &sc->header.pVTables[0];
 
 	      ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4 + tempDepth, ptr, BITCOUNT_POINTER);	
 
