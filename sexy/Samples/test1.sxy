@@ -1,21 +1,11 @@
-(namespace EntryPoint)
-	(alias Main EntryPoint.Main)
+(using Sys.Type)
+(using Sys.Reflection)
 
-(namespace Stuff) (using Stuff)
+(namespace EntryPoint)
+ (alias Main EntryPoint.Main)
 
 (function Main -> (Int32 result):			
-  (IRobot robby (Dreambot 9000))
-  (robby.Id -> result)
+  (IExpression s = GetCurrentExpression)
+  (IExpression parent = s.Parent)
+  (parent.ChildCount -> result)
 )
-
-(class Robot
-  (defines Stuff.IRobot)
-  (Int32 id)
-)
-
-(method Robot.Construct (Int32 id): (this.id = id))
-
-(method Robot.Id -> (Int32 id): (id = this.id))
-
-(factory Stuff.Dreambot Stuff.IRobot (Int32 id): (construct Robot id))
-			

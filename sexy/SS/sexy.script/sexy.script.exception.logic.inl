@@ -69,7 +69,7 @@ namespace
 
 	void InitObjectStubAsNullLength(ObjectStub& stub, const IStructure& type, int allocSize)
 	{
-		stub.AllocSize = allocSize;
+		stub.refCount = 2; // prevent ref count hitting zero.
 		stub.Desc = (ObjectDesc*) type.GetVirtualTable(0);
 		stub.pVTables[0] = (VirtualTable*) type.GetVirtualTable(1);
 	}
@@ -367,7 +367,7 @@ namespace
 
 	bool IsPtrInsideInstance(const uint8* ptr, const ObjectStub* instance)
 	{
-		return ptr >= (const uint8*) instance && ptr < GetPtr(instance, + instance->AllocSize);
+		return ptr >= (const uint8*) instance && ptr < GetPtr(instance, + instance->Desc->TypeInfo->SizeOfStruct());
 	}
 
 	bool IsPtrInsideStack(const uint8* ptr, Compiler::IProgramObject& po)
@@ -418,14 +418,6 @@ namespace
 				return;
 			}
 		}					
-	}
-
-	void CopyException(Compiler::IProgramObject& po, void* newInstance, const ObjectStub* oldInstance)
-	{
-		AlignedMemcpy(newInstance, oldInstance, oldInstance->AllocSize);
-
-		const IStructure& s = GetType(oldInstance);
-		UpdateInternalExceptionPointers(po, (uint8*) newInstance, oldInstance, s, ("ex"), 0);
 	}
 
 	ObjectStub* ReadExceptionFromInput(int inputNumber, IPublicProgramObject& po, const IFunction& f)

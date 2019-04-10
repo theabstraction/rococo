@@ -87,6 +87,8 @@ namespace Rococo
          return macro;
       }
 
+	  void Disassemble(VM::IDisassembler& disassembler, const IFunction& f, IPublicScriptSystem& ss);
+
       void CompileMacroFromExpression(IMacroBuilder& macro, CScript& script, cr_sex macroDef)
       {
          CCompileEnvironment ce(script, macro.Implementation().Builder());
@@ -102,6 +104,9 @@ namespace Rococo
 
          ce.Builder.End();
          ce.Builder.Assembler().Clear();
+
+		 AutoFree<VM::IDisassembler> disassembler = ce.Object.VirtualMachine().Core().CreateDisassembler();
+		 Disassemble(*disassembler, f, ce.SS);
       }
 
       void CallMacro(CCompileEnvironment& ce, const IFunction& f, cr_sex s)

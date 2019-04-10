@@ -159,25 +159,6 @@ namespace Rococo { namespace Script
 		ReadInput(value, e.cpu.SF(), offset);
 	}
 
-#pragma pack(push,1)
-	/* TODO - delete this block
-	struct CClassDesc
-	{
-		ptrdiff_t instanceOffset; // should be zero
-		ID_BYTECODE destructorId;
-		Compiler::IStructure* structDef;
-	};
-
-	struct CClassHeader // TODO -> merge with ObjectStub
-	{
-		CClassDesc* _typeInfo;
-		int32 _allocSize;
-		VTABLEDEF _vTables[1];
-	};
-	*/
-
-#pragma pack(pop)
-
 	struct IScriptSystem;
 
 #pragma pack(push,1)
@@ -250,6 +231,7 @@ namespace Rococo { namespace Script
 		virtual CReflectedClass* Represent(const Rococo::Compiler::IStructure& st, void* pSourceInstance) = 0;
 	};	
 
+#pragma pack(push,1)
    struct CStringConstant
    {
       ObjectStub header;
@@ -257,6 +239,7 @@ namespace Rococo { namespace Script
       cstr pointer;
       void* srcExpression;
    };
+#pragma pack(pop)
 		
 	ROCOCOAPI IScriptSystem : IPublicScriptSystem
 	{

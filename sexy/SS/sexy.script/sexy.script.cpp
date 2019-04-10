@@ -366,7 +366,7 @@ namespace Rococo
 	void AddNullFields(IStructureBuilder* s)
 	{
 		s->AddMember(NameString::From(("_typeInfo")), TypeString::From(("Pointer")));
-		s->AddMember(NameString::From(("_allocSize")), TypeString::From(("Int32")));
+		s->AddMember(NameString::From(("_refCount")), TypeString::From(("Int64")));
 		s->AddMember(NameString::From(("_vTable1")), TypeString::From(("Pointer")));
 	}
 
@@ -611,7 +611,7 @@ namespace Rococo
 				CReflectedClass* rep = (CReflectedClass*)AlignedMalloc(sizeof(size_t), sizeof(CReflectedClass));
 				rep->context = pSourceInstance;
 				rep->header.Desc = (ObjectDesc*)st.GetVirtualTable(0);
-				rep->header.AllocSize = sizeof(CReflectedClass);
+				rep->header.refCount = 1;
 				rep->header.pVTables[0] = (VirtualTable*) st.GetVirtualTable(1);
 
 				i = representations.insert(std::make_pair(pSourceInstance, rep)).first;
@@ -807,7 +807,7 @@ namespace Rococo
 			else
 			{
 				builderContainer.BuilderPtr = builder;
-				builderContainer.Header.AllocSize = sizeof(builderContainer);
+				builderContainer.Header.refCount = 1;
 				builderContainer.Header.Desc = (ObjectDesc*)s->GetVirtualTable(0);
 				builderContainer.Header.pVTables[0] = (VirtualTable*) s->GetVirtualTable(1);
 				return true;
@@ -827,7 +827,7 @@ namespace Rococo
 			if (s.Prototype().IsClass)
 			{
 				instance->Desc = (ObjectDesc*)s.GetVirtualTable(0);
-				instance->AllocSize = nBytes;
+				instance->refCount = 1;
 
 				for (int i = 0; i < s.InterfaceCount(); ++i)
 				{
@@ -840,7 +840,7 @@ namespace Rococo
 
 		void FreeDynamicClass(ObjectStub* header)
 		{
-			delete[] header;
+			delete[] (char*) header;
 		}
 
 		CClassExpression* CreateReflection(cr_sex s)

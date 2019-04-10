@@ -184,8 +184,9 @@ namespace Rococo { namespace Compiler
 #pragma pack(push, 1)
 	struct ObjectStub
 	{
+		static const int BYTECOUNT_INSTANCE_TO_INTERFACE0 = 16;
 		ObjectDesc* Desc;
-		int32 AllocSize;
+		int64 refCount;
 		VirtualTable* pVTables[1];
 	};
 #pragma pack(pop)

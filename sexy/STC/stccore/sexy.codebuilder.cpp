@@ -350,7 +350,7 @@ namespace
 		int allocSize = type->SizeOfStruct();
 		auto* object = (ObjectStub*)binding->memoryAllocator->AllocateObject(allocSize);
 		object->Desc = (ObjectDesc*)type->GetVirtualTable(0);
-		object->AllocSize = allocSize;
+		object->refCount = 1;
 		int nInterfaces = type->InterfaceCount();
 		for (int i = 0; i < nInterfaces; ++i)
 		{
@@ -527,7 +527,7 @@ namespace
 		VirtualTable** pTables = (VirtualTable**) pInterface;
 		auto offset = (*pTables)->OffsetToInstance;
 		ObjectStub* object = (ObjectStub*)(pInterface + offset);
-		registers[VM::REGISTER_D7].int32Value = object->AllocSize;
+		registers[VM::REGISTER_D7].int32Value = object->Desc->TypeInfo->SizeOfStruct();
 	};
 
 	void CodeBuilder::Append_GetAllocSize()
@@ -1295,13 +1295,13 @@ namespace
 		{
 			Assembler().Append_StackAlloc(-endOfTemps);
 		}
-		
+
 		functionEndPosition = Assembler().WritePosition();
 
 		TokenBuffer symbol;
-      SafeFormat(symbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%d bytes"), functionEndPosition);
+		SafeFormat(symbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%d bytes"), functionEndPosition);
 		AddSymbol(symbol);
-		Assembler().Append_Return();		
+		Assembler().Append_Return();
 
 		if (codeReferencesParentsSF && !mayUseParentsSF)
 		{

@@ -867,7 +867,7 @@ namespace Rococo { namespace Script
 		if (interfIndex < 0)
 			Throw(fdef, ("Expecting method to be found amongst the interfaces of the class for which it is defined"));
 
-		int correction =  sizeof(int32) + (interfIndex+1) * sizeof(void*); //TODO -> Use class structure to calculate offsets.
+		int correction =  ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + interfIndex * sizeof(VirtualTable*); 
 		return correction;
 	}
 
@@ -1116,6 +1116,44 @@ namespace Rococo { namespace Script
 		builder.Assembler().Clear();
 	}
 
+	void Disassemble(VM::IDisassembler& disassembler, const IFunction& f, IPublicScriptSystem& ss)
+	{
+		// Disassemble2(disassembler, f, ss);
+	}
+
+	void Disassemble2(VM::IDisassembler& disassembler, const IFunction& f, IPublicScriptSystem& ss)
+	{
+		CodeSection section;
+		f.Code().GetCodeSection(OUT section);
+
+		WriteToStandardOutput("\n------------%s #%lld ---------------\n", f.Name(), section.Id);
+
+		size_t start = ss.PublicProgramObject().ProgramMemory().GetFunctionAddress(section.Id);
+		size_t programLength = ss.PublicProgramObject().ProgramMemory().GetFunctionLength(section.Id);
+		const uint8* code = ss.PublicProgramObject().ProgramMemory().StartOfMemory() + start;
+		size_t i = 0;
+		while (i < programLength)
+		{
+			VM::IDisassembler::Rep rep;
+			disassembler.Disassemble(code + i, OUT rep);
+
+			cstr symbol = f.Code().GetSymbol(i).Text;
+			if (*symbol != 0)
+			{
+				WriteToStandardOutput("%8llu %s %s //%s\n", i, rep.OpcodeText, rep.ArgText, symbol);
+			}
+			else
+			{
+				WriteToStandardOutput("%8llu %s %s\n", i, rep.OpcodeText, rep.ArgText);
+			}
+
+			i += rep.ByteCount;
+		}
+
+		WriteToStandardOutput("\n\n");
+	}
+
+
 	void CompileFunctionFromExpression(REF IFunctionBuilder& f, IN cr_sex fdef, CScript& script)
 	{
 		// function <name> (inputType1 inputVar1) ... (inputTypeN inputVarN) -> (outputType1 outputVar1) ... (outputTypeN outputVarN): body )
@@ -1161,6 +1199,9 @@ namespace Rococo { namespace Script
 
 		builder.End();
 
+		AutoFree<VM::IDisassembler> disassembler = ce.Object.VirtualMachine().Core().CreateDisassembler();
+		Disassemble(*disassembler, f, ce.SS);
+
 		builder.Assembler().Clear();
 	}
 
@@ -1200,7 +1241,7 @@ namespace Rococo { namespace Script
 			Throw(source, streamer);
 		}
 
-      f.Builder().SetThisOffset(sizeof(int32) + sizeof(void*));
+      f.Builder().SetThisOffset(ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0);
 
 		f.Builder().Begin();
 
@@ -2043,7 +2084,7 @@ namespace Rococo { namespace Script
       const IStructure& scStruct = Object().Common().TypeStringLiteral();
 
       CStringConstant* sc = new CStringConstant;
-      sc->header.AllocSize = scStruct.SizeOfStruct();
+      sc->header.refCount = 1;
       sc->header.pVTables[0] = (VirtualTable*) scStruct.GetVirtualTable(1);
       sc->header.Desc = (ObjectDesc*)scStruct.GetVirtualTable(0);
       sc->length = length;
@@ -2459,7 +2500,7 @@ namespace Rococo { namespace Script
 
 		// We also need to declare a null object that implements the interface			
 		nullObject.AddMember(NameString::From(("_typeInfo")), TypeString::From(("Pointer")));
-		nullObject.AddMember(NameString::From(("_allocSize")), TypeString::From(("Int32")));
+		nullObject.AddMember(NameString::From(("_refCount")), TypeString::From(("Int64")));
 		nullObject.AddMember(NameString::From(("_vTable1")), TypeString::From(("Pointer")));
 
 		for (const IInterface* z = interf; z != NULL; z = z->Base())
@@ -3138,6 +3179,9 @@ namespace Rococo { namespace Script
 
 		builder.End();
 		builder.Assembler().Clear();
+
+		AutoFree<VM::IDisassembler> disassembler = ce.Object.VirtualMachine().Core().CreateDisassembler();
+		Disassemble(*disassembler, f, ce.SS);
 	}
 
 	IFunctionBuilder& GetConcreteMethod(cr_sex src, sexstring className, cstr methodName, IModuleBuilder& module)
@@ -3436,7 +3480,7 @@ namespace Rococo { namespace Script
 				if (isClass)
 				{
 					s.AddMember(NameString::From(("_typeInfo")), TypeString::From(("Pointer")));
-					s.AddMember(NameString::From(("_allocSize")), TypeString::From(("Int32")));
+					s.AddMember(NameString::From(("_refCount")), TypeString::From(("Int64")));
 
 					int interfaceCount = 1; // The vtable0 interface, giving the destructor Id
 					interfaceCount += CountClassElements(topLevelItem, ("implements"));

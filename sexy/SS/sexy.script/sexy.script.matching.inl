@@ -531,7 +531,7 @@ namespace Rococo
 
       int GetInterfaceOffset(int index)
       {
-         return sizeof(size_t) * (index + 1) + sizeof(int32);
+         return sizeof(size_t) * (index + 1) + sizeof(size_t);
       }
 
       void GetVariableByName(ICodeBuilder& builder, OUT MemberDef& def, cstr name, cr_sex s)

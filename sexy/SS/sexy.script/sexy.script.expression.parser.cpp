@@ -59,7 +59,7 @@ namespace Rococo
 			for(int i = 0; i < s.MemberCount(); i++)
 			{
 				const IMember& member = s.GetMember(i);
-				if (Rococo::AreEqual(member.Name(), ("_allocSize")))
+				if (Rococo::AreEqual(member.Name(), ("_refCount")))
 				{
 					break;							
 				}
@@ -1248,7 +1248,7 @@ namespace Rococo
 			allocSize.int32Value = memberType.SizeOfStruct();
 			ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset + sizeof(size_t), allocSize, BITCOUNT_32);
 
-			int interfaceOffset = sizeof(size_t) + sizeof(int32);
+			int interfaceOffset = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0;
 			for(int i = 0; i < memberType.InterfaceCount(); ++i)
 			{
 				VariantValue interfVTable;
@@ -1266,11 +1266,11 @@ namespace Rococo
 				{
 					VariantValue nullPtr;
 					nullPtr.charPtrValue = "";
-					ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset + sizeof(size_t) + sizeof(int32) + sizeof(size_t) + sizeof(int32), nullPtr, BITCOUNT_POINTER);
+					ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + sizeof(size_t) + sizeof(int32), nullPtr, BITCOUNT_POINTER);
 
 					VariantValue zeroInt32;
 					zeroInt32.int32Value = 0;
-					ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset + sizeof(size_t) + sizeof(int32) + sizeof(size_t), zeroInt32, BITCOUNT_32);
+					ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + sizeof(size_t), zeroInt32, BITCOUNT_32);
 					break;
 				}
 			}
@@ -1300,7 +1300,7 @@ namespace Rococo
 							const IMember* refMember = FindMember(s, reftoken, REF refOffset);
 							if (!member.IsPseudoVariable())
 							{
-								ce.Builder.Assembler().Append_GetStackFrameAddress(VM::REGISTER_D4, sfMemberOffset + sizeof(size_t) + sizeof(int32)); // &interface1
+								ce.Builder.Assembler().Append_GetStackFrameAddress(VM::REGISTER_D4, sfMemberOffset + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0); // &interface1
 								ce.Builder.Assembler().Append_SetStackFrameValue(refOffset, VM::REGISTER_D4, BITCOUNT_POINTER); // _ref_instance = &interface1
 							}
 							else
@@ -2145,9 +2145,6 @@ namespace Rococo
 			int interfaceOffset = GetInterfaceOffset(interfaceIndex);
 
 			ce.Builder.AssignVariableRefToTemp(instanceName, 0, interfaceOffset); // The instance ref is now in D4
-
-		//	size_t offset = sizeof(size_t) * (interfaceIndex + 1) + sizeof(int32);
-		//	ce.Builder.Assembler().Append_IncrementPtr(VM::REGISTER_D4, (int32)offset);
 		
 			ce.Builder.AssignClosureParentSF();
 		}

@@ -53,7 +53,7 @@ namespace
 		ReadInput(0, vCastToInterface, e);
 		const IInterface& castToInterf = *(const IInterface*) vCastToInterface;
 
-		void* vSrcInterface;
+		VirtualTable** vSrcInterface;
 		ReadInput(1, vSrcInterface, e);
 
 		ObjectStub* obj = InterfaceToInstance(vSrcInterface);							

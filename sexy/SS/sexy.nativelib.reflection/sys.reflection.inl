@@ -21,7 +21,7 @@ namespace
 
 		const ISExpression& child = pExpression->GetElement(index);	
 		const CClassExpression* childExpressObject = ((IScriptSystem&) e.ss).GetExpressionReflection(child);
-		const VirtualTable* pInterf = childExpressObject->Header.pVTables[0];
+		VirtualTable* const * pInterf = &childExpressObject->Header.pVTables[0];
 		WriteOutput(0, (void*) pInterf, e);
 	}
 
@@ -32,7 +32,7 @@ namespace
 
 		const ISExpression* parent = pExpression ? pExpression->Parent() : NULL;	
 		const CClassExpression* parentExpress = ((IScriptSystem&) e.ss).GetExpressionReflection(*parent);
-		const VirtualTable* pInterf = parentExpress->Header.pVTables[0];
+		VirtualTable* const * pInterf = &parentExpress->Header.pVTables[0];
 
 		WriteOutput(0, (void*) pInterf, e);
 	}
@@ -60,7 +60,7 @@ namespace
 	void NativeGetScriptSystem(NativeCallEnvironment& e)
 	{
 		CScriptSystemClass* instance = ((IScriptSystem&)e.ss).GetScriptSystemClass();
-		WriteOutput(0, instance->header.pVTables[0], e);
+		WriteOutput(0, &instance->header.pVTables[0], e);
 	}
 
 	void NativeModuleCount(NativeCallEnvironment& e)

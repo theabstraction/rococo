@@ -1165,7 +1165,7 @@ namespace Rococo
 		      // The fact that IStrings are inlined means there is only one interface supported by anything that implements IString, and that Length and Buffer inline
 		      // to length and buffer respectively. 
 
-		      int interfaceToInstanceOffsetByRef = sizeof(size_t) + sizeof(int32);
+			  int interfaceToInstanceOffsetByRef = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0;
 
 
 		      if (returnType == VARTYPE_Int32 && AreEqual(("Length"), methodName))
@@ -1438,7 +1438,7 @@ namespace Rococo
 				      if (&refDef.ResolvedType->GetInterface(i) == &interf)
 				      {
 					      // Concrete class
-					      int sfOffset = refDef.SFOffset + refDef.MemberOffset + (i + 1) * sizeof(size_t) + sizeof(int32);
+						  int sfOffset = refDef.SFOffset + refDef.MemberOffset + i * sizeof(size_t) + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0;
 					      builder.Assembler().Append_CallVirtualFunctionByAddress(sfOffset, vTableByteOffset);
 					      return;
 				      }

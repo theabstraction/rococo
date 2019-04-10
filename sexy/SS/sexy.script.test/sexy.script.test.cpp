@@ -3510,7 +3510,7 @@ namespace
 			"	  (result = (sizeof robby))"
 			")"			
 			"(alias Main EntryPoint.Main)"
-			"(class Robot (defines EntryPoint.IRobot))"
+			"(class Robot (defines EntryPoint.IRobot)(Int32 id))"
 			"(method Robot.Construct : )"
 			"(method Robot.Id -> (Int32 id) : (id = 1984))"
 			"(method Robot.Destruct -> : (Sys.InvokeTest))"
@@ -3529,7 +3529,7 @@ namespace
 
 		int x = vm.PopInt32();
 
-		int robbysize = sizeof(size_t) + sizeof(size_t) + sizeof(int32); // The typeinfo + the vTable + the allocSize integer
+		int robbysize = sizeof(ObjectStub) + sizeof(int32); // Object Stub + this.id
 		validate(x == robbysize); 
 	}
 
@@ -11395,10 +11395,11 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestPrintModules);
+
+		TEST(TestSizeOf);
 		TEST(TestInlinedFactory);
-
 		TEST(TestDynamicCast);
-
 		TEST(TestDerivedInterfaces2);
 
 		TEST(TestBadClosureArg7);
@@ -11417,15 +11418,6 @@ namespace
 		TEST(TestVirtualFromVirtual);
 
 		TEST(TestClassInstance);
-
-		TEST(TestNullStringBuilder);
-		TEST(TestStringBuilder);
-		TEST(TestStringBuilderBig);
-
-		TEST(TestSearchSubstring);
-		TEST(TestRightSearchSubstring);
-		TEST(TestAppendSubstring);
-		TEST(TestStringbuilderTruncate);
 
 		TEST(TestMemberwiseInit);
 		TEST(TestNullMemberInit);
@@ -11550,7 +11542,6 @@ namespace
 
 		TEST(TestThrowFromCatch);
 
-		TEST(TestSizeOf);
 		TEST(TestCatchInstanceArg);
 		TEST(TestTryWithoutThrow);
 
@@ -11565,13 +11556,10 @@ namespace
 		TEST(TestExpressionArg);
 		TEST(TestSubstitution);
 
-		TEST(TestMacro);
-
 		TEST(TestReflectionGetCurrentExpression);
 		TEST(TestReflectionGetParent);
 
 		TEST(TestModuleCount);
-		TEST(TestPrintModules);
 		TEST(TestPrintStructs);
 
 
@@ -11648,6 +11636,16 @@ namespace
 		TEST(TestDestructor);
 		TEST(TestExceptionDestruct);
 
+		TEST(TestNullStringBuilder);
+		TEST(TestStringBuilder);
+		TEST(TestStringBuilderBig);
+
+		TEST(TestSearchSubstring);
+		TEST(TestRightSearchSubstring);
+		TEST(TestAppendSubstring);
+		TEST(TestStringbuilderTruncate);
+
+		TEST(TestMacro);
 
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 	}
@@ -11675,8 +11673,6 @@ namespace
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
-
-		TEST(TestVirtualFromVirtual);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	
