@@ -2103,9 +2103,22 @@ namespace Rococo
 			}
 		}
 
-		void CompileConstructInterfaceCall(CCompileEnvironment& ce, const IFunction& constructor, const MemberDef& refDef, cstr instanceName, const IInterface& refCast, const IStructure& classType, cr_sex s)
+		void CompileConstructInterfaceCall(CCompileEnvironment& ce, const IFunction& constructor, const IInterface& targetInterface, const IStructure& classType, cr_sex s)
 		{
 			// (construct class-name arg1 arg2 ... argN)
+
+			cstr instanceName = "instance";
+			AddVariableRef(ce, NameString::From(instanceName), classType);
+
+			// First allocate space for the concrete class and copy address to the instance ref
+			VariantValue sizeofClass;
+			sizeofClass.int32Value = classType.SizeOfStruct();
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, sizeofClass, BITCOUNT_32);
+			ce.Builder.AddDynamicAllocateObject(classType); 
+
+			MemberDef def;
+			ce.Builder.TryGetVariableByName(def, instanceName);
+			ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset, VM::REGISTER_D4, BITCOUNT_POINTER);
 			ce.Builder.Append_InitializeVirtualTable(instanceName, classType);
 
 			int inputCount = constructor.NumberOfInputs() - 1;
@@ -2119,44 +2132,46 @@ namespace Rococo
 			int inputStackAllocCount = PushInputs(ce, s, constructor, true, 2);	
 		
 			ce.Builder.AddSymbol(instanceName);
-			inputStackAllocCount += CompileThisToInstancePointerArg(ce, s, instanceName, refCast);			
+			inputStackAllocCount += CompileThisToInstancePointerArg(ce, s, instanceName, targetInterface);
 
 			AppendFunctionCallAssembly(ce, constructor);
 			RepairStack(ce, s, constructor);
 	
-			if (AreEqual(("factory"), GetContext(ce.Script)))
-			{
-				// 'construct' terminates a factory call and puts the interface pointer into D4
-				int interfaceIndex = GetInterfaceIndex(refCast, classType);
-				int interfaceOffset = GetInterfaceOffset(interfaceIndex);
+			// 'construct' terminates a factory call and puts the interface pointer into D4
+			int interfaceIndex = GetInterfaceIndex(targetInterface, classType);
+			int interfaceOffset = GetInterfaceOffset(interfaceIndex);
 
-				ce.Builder.AssignVariableRefToTemp(instanceName, 0, interfaceOffset); // The instance ref is now in D4
-			}
+			ce.Builder.AssignVariableRefToTemp(instanceName, 0, interfaceOffset); // The instance ref is now in D4
+
+		//	size_t offset = sizeof(size_t) * (interfaceIndex + 1) + sizeof(int32);
+		//	ce.Builder.Assembler().Append_IncrementPtr(VM::REGISTER_D4, (int32)offset);
 		
 			ce.Builder.AssignClosureParentSF();
 		}
 
 		void CompileConstructInterfaceCall(CCompileEnvironment& ce, cr_sex s)
 		{
+			if (ce.factory == nullptr)
+			{
+				Throw(s, "Keyword 'construct' is only permitted inside a factory function");
+			}
+
 			// (construct class-name arg1 arg2 ... argN)
 			AssertNotTooFewElements(s, 2);
 
 			cr_sex classNameExpr = GetAtomicArg(s, 1);
 			sexstring className = classNameExpr.String();
 		
-			const IStructure& classType = GetClass(classNameExpr, ce.Script);
-		
-			MemberDef thisDef;
-			const IStructure& thisType = GetThisInterfaceRefDef(OUT thisDef,  ce.Builder, s);		
-			const IInterface& thisInterf = thisType.GetInterface(0);
+			const IStructure& classType = GetClass(classNameExpr, ce.Script);	
+			const IInterface& thisInterf = ce.factory->ThisInterface();
 			const IFunction& constructor = GetConstructor(classType, classNameExpr);
 
 			for(int j = 0; j < classType.InterfaceCount(); j++)
 			{
-				const IInterface& targetInterf = thisType.GetInterface(j);
-				if (&thisInterf == &targetInterf)
+				const IInterface& i = classType.GetInterface(j);
+				if (&i == &thisInterf)
 				{				
-					CompileConstructInterfaceCall(REF ce, IN constructor, IN thisDef, ("this"), IN thisInterf, IN classType, IN s);
+					CompileConstructInterfaceCall(REF ce, IN constructor, IN thisInterf, IN classType, IN s);
 					return;
 				}
 			}

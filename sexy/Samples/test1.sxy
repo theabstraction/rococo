@@ -1,28 +1,18 @@
 (namespace EntryPoint)
- (alias Main EntryPoint.Main)
+	(alias Main EntryPoint.Main)
 
 (namespace Stuff) (using Stuff)
 
 (function Main -> (Int32 result):			
-  (IExistence robby (NewRobot 9000))
-  (Foobar robby -> result)
+	(IRobot robby (Dreambot 9000))
+	(robby.Id -> result)
 )
-(interface Stuff.IRobot
-  (Id -> (Int32 id))
-)
-(interface Stuff.IExistence
-  (ExistenceNumber -> (Int32 value))
-)
+
 (class Robot
-  (implements Stuff.IExistence)
-  (implements Stuff.IRobot)
-  (Int32 id)
-)
-(function Foobar (Stuff.IExistence entity) -> (Int32 result):
-	 (cast entity -> IRobot robot)
-  (result = ((robot.Id) + (entity.ExistenceNumber)))
+	(defines Stuff.IRobot)
+	(Int32 id)
 )
 (method Robot.Construct (Int32 id): (this.id = id))
 (method Robot.Id -> (Int32 id): (id = this.id))
-(method Robot.ExistenceNumber -> (Int32 value): (value = 1234))
-(factory Stuff.NewRobot IExistence (Int32 id): (construct Robot id))
+(factory Stuff.Dreambot Stuff.IRobot (Int32 id): (construct Robot id))
+			

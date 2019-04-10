@@ -3133,7 +3133,7 @@ namespace Rococo { namespace Script
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
 
-		CCompileEnvironment ce(script, builder);
+		CCompileEnvironment ce(script, builder, &factory);
 
 		CompileExpressionSequence(ce, bodyStart, factoryDef.NumberOfElements()-1, factoryDef);
 
@@ -3391,7 +3391,7 @@ namespace Rococo { namespace Script
 			factoryFunction.AddInput(NameString::From(nameExpr.String()), TypeString::From(typeExpr.String()), NULL);
 		}
 
-		factoryFunction.AddInput(NameString::From(("this")), TypeString::From(factoryInterfaceExpr.String()), NULL);
+		// TODO - delete this comment, factoryFunction.AddInput(NameString::From(("this")), TypeString::From(factoryInterfaceExpr.String()), NULL);
 
 		factoryNS->RegisterFactory(shortName, factoryFunction, *interf, factoryInterfaceExpr.String());
 	}

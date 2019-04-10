@@ -111,72 +111,57 @@ namespace Rococo
          const IFunction* inlineConstructor = factory.InlineConstructor();
          const IStructure* inlineClass = factory.InlineClass();
 
+		 if (inlineConstructor != NULL)
+		 {
+			 int interfaceIndex = GetIndexOfInterface(*inlineClass, interf);
+			 if (interfaceIndex < 0)
+			 {
+				 sexstringstream<1024> streamer;
+				 streamer.sb << inlineConstructor->Name() << (" does not support the interface ") << interf.Name();
+				 Throw(args, streamer);
+			 }
+		 }
+
 		 MemberDef def;
 		 if (!ce.Builder.TryGetVariableByName(OUT def, interfacePtrId))
 		 {
 			 Throw(0, "Error, cannot find variable %s ", interfacePtrId);
 		 }
 
+		 /* TODO - delete this comment 
 		 VariantValue sizeofClass;
 		 sizeofClass.int32Value = interf.NullObjectType().SizeOfStruct();
 		 ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, sizeofClass, BITCOUNT_32);
 		 ce.Builder.AddDynamicAllocateObject(*def.ResolvedType);
+		 */
 
+		 /* TODO - delete this comment
 		 static int32 instanceCount = 0;
-
 		 char instanceId[256];
 		 SafeFormat(instanceId, 256, "_instance_%d", instanceCount++);
 		 ce.Builder.AddVariable(NameString::From(instanceId), ce.Object.Common().TypePointer(), (void*)GetTryCatchExpression(ce.Script));
 		 ce.Builder.AssignTempToVariable(0, instanceId);
+		  */
 
          CodeSection section;
-         if (inlineConstructor == NULL)
-         {
-             ce.Builder.Append_InitializeVirtualTable(instanceId);
-             factoryFunction.Code().GetCodeSection(OUT section);
-         }
-         else
-         {
-            ce.Builder.Append_InitializeVirtualTable(instanceId, *inlineClass);
-            inlineConstructor->Code().GetCodeSection(OUT section);
-         }
+         factoryFunction.Code().GetCodeSection(OUT section);
 
-         int explicitInputCount = ArgCount(factoryFunction) - 1;
+         int explicitInputCount = ArgCount(factoryFunction);
          int mapIndex = GetIndexOf(1, args, ("->"));
          if (mapIndex > 0) Throw(args, ("Mapping token are not allowed in constructor calls, which have no output"));
          if (args.NumberOfElements() - 1 < explicitInputCount) Throw(args, ("Too few arguments to factory call"));
          if (args.NumberOfElements() - 1 > explicitInputCount) Throw(args, ("Too many arguments to factory call"));
 
-         int inputStackAllocCount = PushInputs(ce, args, factoryFunction, true, 1);
-         inputStackAllocCount += CompileInstancePointerArg(ce, instanceId);
-
+         int inputStackAllocCount = PushInputs(ce, args, factoryFunction, false, 1);
+        
          ce.Builder.AddSymbol(factoryFunction.Name());
-         ce.Builder.Assembler().Append_CallById(section.Id);
+         ce.Builder.Assembler().Append_CallById(section.Id); // pointer to interface should now be in D4
 
          ce.Builder.MarkExpression(args.Parent());
 
          RepairStack(ce, *args.Parent(), factoryFunction);
 
-         if (inlineConstructor == NULL)
-         {
-            ce.Builder.AssignTempToVariable(0, interfacePtrId); // Factory instanced constructor calls leave the address of the new interface into D4 which updates the reference.
-         }
-         else
-         {
-            int interfaceIndex = GetIndexOfInterface(*inlineClass, interf);
-            if (interfaceIndex < 0)
-            {
-               sexstringstream<1024> streamer;
-               streamer.sb << inlineConstructor->Name() << (" does not support the interface ") << interf.Name();
-               Throw(args, streamer);
-            }
-
-			AddSymbol(ce.Builder, "Copy %s interface %d to %s", instanceId, interfaceIndex, interfacePtrId);
-			ce.Builder.AssignVariableToTemp(instanceId, 0, 0);
-			size_t offset = sizeof(size_t) * (interfaceIndex + 1) + sizeof(int32);
-			ce.Builder.Assembler().Append_IncrementPtr(VM::REGISTER_D4, (int32) offset);
-            ce.Builder.AssignTempToVariable(0, interfacePtrId);
-         }
+		 ce.Builder.AssignTempToVariable(0, interfacePtrId);
 
          ce.Builder.AssignClosureParentSF();
       }

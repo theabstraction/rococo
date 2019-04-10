@@ -1290,8 +1290,8 @@ namespace Rococo
 		return *mapStruct;
 	}
 	
-	CCompileEnvironment::CCompileEnvironment(CScript& script, ICodeBuilder& builder):
-		Builder(builder), Script(script), arrayStruct(NULL), listStruct(NULL), mapStruct(NULL),
+	CCompileEnvironment::CCompileEnvironment(CScript& script, ICodeBuilder& builder, const IFactory* _factory):
+		Builder(builder), Script(script), arrayStruct(NULL), listStruct(NULL), mapStruct(NULL), factory(_factory),
 		RootNS(script.Object().GetRootNamespace()),
 		methodMap(*(const TMapMethodToMember*) script.System().GetMethodMap()),
 		SS(script.System()),

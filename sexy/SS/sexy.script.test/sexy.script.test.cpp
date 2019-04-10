@@ -3970,11 +3970,8 @@ namespace
 			"  (IRobot robby (Dreambot 9000))"
 			"  (robby.Id -> result)"
 			")"
-			"(interface Stuff.IRobot"
-			"  (Id -> (Int32 id))"
-			")"
 			"(class Robot"
-			"  (implements Stuff.IRobot)"
+			"  (defines Stuff.IRobot)"
 			"  (Int32 id)"
 			")"
 			"(method Robot.Construct (Int32 id): (this.id = id))"
@@ -11395,8 +11392,7 @@ namespace
 	{
 		validate(true);
 
-		TEST(TestDestructor);
-		TEST(TestExceptionDestruct);
+		TEST(TestInlinedFactory);
 
 		TEST(TestDynamicCast);
 
@@ -11431,7 +11427,6 @@ namespace
 		TEST(TestMemberwiseInit);
 		TEST(TestNullMemberInit);
 		TEST(TestConstructor);
-		TEST(TestInlinedFactory);
 		TEST(TestAssignDerivatives);
 		TEST(TestBitwiseOr);
 		TEST(TestOperatorOverload2);
@@ -11647,6 +11642,10 @@ namespace
 		TEST(TestInternalDestructorsCalled);
 		TEST(TestInternalDestructorsCalled2);
 
+		TEST(TestDestructor);
+		TEST(TestExceptionDestruct);
+
+
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 	}
 
@@ -11673,6 +11672,8 @@ namespace
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
+
+		TEST(TestInlinedFactory);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

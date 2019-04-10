@@ -115,8 +115,9 @@ namespace Rococo
          INamespaceBuilder& RootNS;
          IScriptSystem& SS;
          IProgramObject& Object;
+		 const IFactory* factory;
 
-         CCompileEnvironment(CScript& script, ICodeBuilder& builder);
+         CCompileEnvironment(CScript& script, ICodeBuilder& builder, const IFactory* factory = nullptr);
 
          const IStructure& StructArray();
          const IStructure& StructList();
