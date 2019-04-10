@@ -1782,6 +1782,13 @@ namespace Rococo
 					st = &interf->NullObjectType();
 				}
 			}
+			else
+			{
+				if (st->InterfaceCount() > 0 && st->Name()[0] != '_')
+				{
+					Throw(typeExpr, "Cannot allocate classes on the stack. Use a factory instantiate a class");
+				}
+			}
 
 			if (st == NULL)
 			{
@@ -2111,15 +2118,11 @@ namespace Rococo
 			AddVariableRef(ce, NameString::From(instanceName), classType);
 
 			// First allocate space for the concrete class and copy address to the instance ref
-			VariantValue sizeofClass;
-			sizeofClass.int32Value = classType.SizeOfStruct();
-			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, sizeofClass, BITCOUNT_32);
 			ce.Builder.AddDynamicAllocateObject(classType); 
 
 			MemberDef def;
 			ce.Builder.TryGetVariableByName(def, instanceName);
 			ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset, VM::REGISTER_D4, BITCOUNT_POINTER);
-			ce.Builder.Append_InitializeVirtualTable(instanceName, classType);
 
 			int inputCount = constructor.NumberOfInputs() - 1;
 			int nRequiredElements = 2 + inputCount;

@@ -312,9 +312,6 @@ namespace Rococo { namespace Compiler
 		virtual void AppendWhileDo(ICompileSection& loopCriterion, CONDITION condition, ICompileSection& loopBody) = 0;
 		virtual void AppendDoWhile(ICompileSection& loopBody, ICompileSection& loopCriterion, CONDITION condition) = 0;
 
-		virtual void Append_InitializeVirtualTable(cstr className) = 0;
-		virtual void Append_InitializeVirtualTable(cstr instanceName, const IStructure& classType) = 0;
-
 		virtual void ArchiveRegister(int saveTempDepth, int restoreTempDepth, BITCOUNT bits, void* userData) = 0;
 		virtual void AddArgVariable(cstr desc, const TypeString& type, void* userData) = 0;
 		virtual void AddArgVariable(cstr desc, const IStructure& type, void* userData) = 0;

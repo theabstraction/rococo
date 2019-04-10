@@ -167,7 +167,6 @@ namespace
 		TInstancePositions destructorPositions;
 		TSectionStack sections;
 		TPCSymbols pcSymbols;
-		ID_API_CALLBACK idInstantiate = 0;
 		ID_API_CALLBACK idAllocate = 0;
 		ID_API_CALLBACK idGetAllocSize = 0;
 		DefaultScriptObjectAllocator defaultAllocator;
@@ -211,16 +210,12 @@ namespace
 
 		virtual int SectionArgCount() const { return sections.back(); }
 
-		void IntantiateAtD4FromD5();
-
 		virtual IFunctionBuilder& Owner() { return f; }
 		virtual const IFunction& Owner() const { return f; }
 		virtual void AddExpression(IBinaryExpression& tree);
 		virtual void Begin();
 		virtual void EnterSection();
 		virtual void Append_GetAllocSize();
-		virtual void Append_InitializeVirtualTable(cstr className);
-		virtual void Append_InitializeVirtualTable(cstr instanceName, const IStructure& classType);
 		virtual void AddVariable(const NameString& name, const TypeString& type, void* userData);
 		virtual void AddVariable(const NameString& name, const IStructure& type, void* userData);
 		virtual void AddVariableRef(const NameString& name, const IStructure& type, void* userData);
@@ -293,7 +288,13 @@ namespace
 		virtual void AddArgVariable(cstr desc, const TypeString& typeName, void* userData);
 		virtual void AddArgVariable(cstr desc, const IStructure& type, void* userData);
 
-		std::unordered_map<const IStructure*, IScriptObjectAllocator*> allocators;
+		struct AllocatorBinding
+		{
+			IScriptObjectAllocator* memoryAllocator;
+			const IStructure* associatedStructure;
+		};
+
+		std::unordered_map<const IStructure*, AllocatorBinding*> allocators;
 
 		virtual void AddDynamicAllocateObject(const IStructure& structType);
 	};
@@ -327,66 +328,67 @@ namespace
 			Variable* v = *i;
 			delete v;
 		}
+
+		for (auto i : allocators)
+		{
+			if (i.second->memoryAllocator != &defaultAllocator)
+			{
+				i.second->memoryAllocator->Free();
+				delete i.second->memoryAllocator;
+			}
+
+			delete i.second;
+		}
+
+		allocators.clear();
 	}
 
-	static void AllocateMemory(VariantValue* registers, void* context)
+	static void NewObject(VariantValue* registers, void* context)
 	{
-		int32 nBytes = registers[VM::REGISTER_D4].int32Value;
-		auto* allocator = (IScriptObjectAllocator*)registers[VM::REGISTER_D5].vPtrValue;
-		registers[VM::REGISTER_D4].vPtrValue = allocator->AllocateObject(nBytes);
+		auto* binding = (CodeBuilder::AllocatorBinding*) registers[VM::REGISTER_D5].vPtrValue;
+		auto* type = binding->associatedStructure;
+		int allocSize = type->SizeOfStruct();
+		auto* object = (ObjectStub*)binding->memoryAllocator->AllocateObject(allocSize);
+		object->Desc = (ObjectDesc*)type->GetVirtualTable(0);
+		object->AllocSize = allocSize;
+		int nInterfaces = type->InterfaceCount();
+		for (int i = 0; i < nInterfaces; ++i)
+		{
+			object->pVTables[i] = (VirtualTable*)type->GetVirtualTable(i + 1);
+		}
+
+		registers[VM::REGISTER_D4].vPtrValue = object;
 	};
 
 	void CodeBuilder::AddDynamicAllocateObject(const IStructure& structType)
 	{
 		if (!idAllocate)
 		{
-			idAllocate = Assembler().Core().RegisterCallback(AllocateMemory, nullptr, "new");
+			idAllocate = Assembler().Core().RegisterCallback(NewObject, nullptr, "new");
 		}
 
 		char sym[256];
 
 		auto i = allocators.find(&structType);
-		IScriptObjectAllocator* allocator;
+		AllocatorBinding* binding;
 		
 		if (i != allocators.end())
 		{
-			allocator = i->second;
-			SafeFormat(sym, sizeof(sym), "Allocator for %s", structType.Name());
+			binding = i->second;
 		}
 		else
 		{
-			allocator = &defaultAllocator;
-			SafeFormat(sym, sizeof(sym), "Default allocator");
+			binding = new AllocatorBinding { &defaultAllocator, &structType };
+			allocators[&structType] = binding;
 		}
 
+		SafeFormat(sym, sizeof(sym), "Allocator for %s", structType.Name());
+
 		VariantValue v;
-		v.vPtrValue = allocator;
+		v.vPtrValue = binding;
 		AddSymbol(sym);
 		Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, v, BITCOUNT_POINTER);
 		Assembler().Append_Invoke(idAllocate);
-	}
-	
-	static void Intantiate_Class(VariantValue* registers, void* context)
-	{
-		auto* instance = (ObjectStub*)registers[VM::REGISTER_D4].vPtrValue;
-		auto* type = (const IStructure*)registers[VM::REGISTER_D5].vPtrValue;
-		instance->Desc = (ObjectDesc*)type->GetVirtualTable(0);
-		instance->AllocSize = type->SizeOfStruct();
-		int nInterfaces = type->InterfaceCount();
-		for (int i = 0; i < nInterfaces; ++i)
-		{
-			instance->pVTables[i] = (VirtualTable*)type->GetVirtualTable(i + 1);
-		}
-	};
-
-	void CodeBuilder::IntantiateAtD4FromD5()
-	{
-		if (!idInstantiate)
-		{
-			idInstantiate = Assembler().Core().RegisterCallback(Intantiate_Class, nullptr, "IntantiateAtD4FromD5");
-		}
-
-		Assembler().Append_Invoke(idInstantiate);
 	}
 
 	int CodeBuilder::AddVariableToVariables(Variable* v)
@@ -2285,93 +2287,6 @@ namespace
 			sexstringstream<1024> streamer;
 			streamer.sb << ("Error, cannot find instance ") << instanceName;
 			Throw(ERRORCODE_COMPILE_ERRORS, module.Name(), "%s", (cstr) streamer);
-		}
-	}
-
-	void InitVirtualTable(CodeBuilder& builder, const MemberDef& def, cstr instanceName, const IStructure& classType)
-	{
-		int sfOffset = 0;
-
-		if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
-		{
-			// Put the stack frame into D4 and make the address of the object the stack
-			VariantValue v;
-			v.vPtrValue = (void*) &classType;
-
-			char symbol[128];
-			SafeFormat(symbol, sizeof(symbol), "%s", instanceName);
-			builder.AddSymbol(symbol);
-			builder.Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4, BITCOUNT_POINTER);
-
-			VariantValue delta;
-			delta.sizetValue = def.MemberOffset;
-
-			if (delta.sizetValue != 0) builder.Assembler().Append_AddImmediate(VM::REGISTER_D4, BITCOUNT_POINTER, VM::REGISTER_D4, delta);
-
-			SafeFormat(symbol, sizeof(symbol), "typeof(%s)", classType.Name());
-			builder.AddSymbol(symbol);
-			builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, v, BITCOUNT_POINTER);
-
-			SafeFormat(symbol, sizeof(symbol), "()", classType.Name(), instanceName);
-			builder.AddSymbol(symbol);
-			builder.IntantiateAtD4FromD5();
-			return;
-		}
-		
-		sfOffset = def.SFOffset + def.MemberOffset;
-
-		TokenBuffer vTableSymbol;
-		SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s._typeInfo"), classType.Name());
-		builder.AddSymbol(vTableSymbol);
-
-		VariantValue v;
-		v.uint8PtrValue = (uint8*)classType.GetVirtualTable(0);
-		builder.Assembler().Append_SetStackFrameImmediate(sfOffset, v, BITCOUNT_POINTER);
-
-		SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s._allocSize"), classType.Name());
-		builder.AddSymbol(vTableSymbol);
-
-		v.int32Value = classType.SizeOfStruct();
-		builder.Assembler().Append_SetStackFrameImmediate(sfOffset + sizeof(size_t), v, BITCOUNT_32);
-
-		for (int i = 0; i < classType.InterfaceCount(); i++)
-		{
-			const IInterface& interf = classType.GetInterface(i);
-			SafeFormat(vTableSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.%s._vTable"), classType.Name(), interf.Name());
-			builder.AddSymbol(vTableSymbol);
-
-			v.uint8PtrValue = (uint8*)classType.GetVirtualTable(i + 1);
-			builder.Assembler().Append_SetStackFrameImmediate(sfOffset + sizeof(int32) + sizeof(size_t) * (i + 1), v, BITCOUNT_POINTER);
-		}
-	}
-
-	void CodeBuilder::Append_InitializeVirtualTable(cstr instanceName)
-	{
-		MemberDef def;
-		if (!TryGetVariableByName(OUT def, instanceName))
-		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Error, cannot find instance ") << instanceName;
-			Throw(ERRORCODE_COMPILE_ERRORS, Module().Name(), "%s", (cstr) streamer);
-		}
-
-		if (def.ResolvedType->Prototype().IsClass)
-		{
-			InitVirtualTable(*this, def, instanceName, *def.ResolvedType);
-		}
-	}
-
-	void CodeBuilder::Append_InitializeVirtualTable(cstr instanceName, const IStructure& classType)
-	{
-		MemberDef def;
-		if (!TryGetVariableByName(OUT def, instanceName))
-		{
-			Throw(ERRORCODE_COMPILE_ERRORS, classType.Module().Name(), "Error, cannot find instance: %s", instanceName);
-		}
-
-		if (def.ResolvedType->Prototype().IsClass)
-		{
-			InitVirtualTable(*this, def, instanceName, classType);
 		}
 	}
 

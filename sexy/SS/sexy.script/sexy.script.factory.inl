@@ -128,21 +128,6 @@ namespace Rococo
 			 Throw(0, "Error, cannot find variable %s ", interfacePtrId);
 		 }
 
-		 /* TODO - delete this comment 
-		 VariantValue sizeofClass;
-		 sizeofClass.int32Value = interf.NullObjectType().SizeOfStruct();
-		 ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, sizeofClass, BITCOUNT_32);
-		 ce.Builder.AddDynamicAllocateObject(*def.ResolvedType);
-		 */
-
-		 /* TODO - delete this comment
-		 static int32 instanceCount = 0;
-		 char instanceId[256];
-		 SafeFormat(instanceId, 256, "_instance_%d", instanceCount++);
-		 ce.Builder.AddVariable(NameString::From(instanceId), ce.Object.Common().TypePointer(), (void*)GetTryCatchExpression(ce.Script));
-		 ce.Builder.AssignTempToVariable(0, instanceId);
-		  */
-
          CodeSection section;
          factoryFunction.Code().GetCodeSection(OUT section);
 

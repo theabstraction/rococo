@@ -1,18 +1,22 @@
 (namespace EntryPoint)
-	(alias Main EntryPoint.Main)
-
-(namespace Stuff) (using Stuff)
-
-(function Main -> (Int32 result):			
-	(IRobot robby (Dreambot 9000))
-	(robby.Id -> result)
+  (alias Main EntryPoint.Main)
+  
+(function Main -> (Int32 result):
+	(Tester tester ())
+	(tester.Think)
+	(tester.Id -> result)
 )
-
-(class Robot
-	(defines Stuff.IRobot)
-	(Int32 id)
+(interface EntryPoint.ITest
+	 (Id -> (Int32 id))
+	 (Think ->)
+	 (IncId ->)
 )
-(method Robot.Construct (Int32 id): (this.id = id))
-(method Robot.Id -> (Int32 id): (id = this.id))
-(factory Stuff.Dreambot Stuff.IRobot (Int32 id): (construct Robot id))
+(class Tester
+	 (implements EntryPoint.ITest)
+	 (Int32 id)
+)
+(method Tester.Id -> (Int32 id): (id = this.id))
+(method Tester.IncId -> : (this.id = (this.id + 1)))
+(method Tester.Think -> : (this.IncId))
+(method Tester.Construct : (this.id = 6))
 			

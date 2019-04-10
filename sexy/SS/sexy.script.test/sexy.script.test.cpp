@@ -2811,7 +2811,7 @@ namespace
 		cstr srcCode =
 			"(namespace EntryPoint)"
 			"(function Main -> (Int32 result):"
-			"    (Player player (1812))"
+			"    (EntryPoint.IPlayer player (EntryPoint.NewPlayer 1812))"
 			"    (player.GetId -> result)"
 			")"				
 			"(alias Main EntryPoint.Main)"
@@ -2836,6 +2836,8 @@ namespace
 			"(method Player.Construct (Int32 value): "			
 			"    (this.id = value)"
 			")"
+
+			"(factory EntryPoint.NewPlayer EntryPoint.IPlayer (Int32 id) : (construct Player id))"
 			;
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestConstructor");
@@ -4512,7 +4514,7 @@ namespace
 			"(namespace EntryPoint)"
 			"  (alias Main EntryPoint.Main)"
 			"(function Main -> (Int32 result):"
-			"(Tester tester ())"
+			"(EntryPoint.ITest tester (Sys.NewTest))"
 			"   (tester.Think)"
 			"   (tester.Id -> result)"
 			")"
@@ -4529,6 +4531,7 @@ namespace
 			"(method Tester.IncId -> : (this.id = (this.id + 1)))"
 			"(method Tester.Think -> : (this.IncId))"
 			"(method Tester.Construct : (this.id = 6))"
+			"(factory Sys.NewTest EntryPoint.ITest : (construct Tester))"
 			;
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestVirtualFromVirtual");
@@ -11673,7 +11676,7 @@ namespace
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		TEST(TestInlinedFactory);
+		TEST(TestVirtualFromVirtual);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

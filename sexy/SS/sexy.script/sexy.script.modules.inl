@@ -1106,7 +1106,6 @@ namespace Rococo { namespace Script
 
 			CCompileEnvironment ce(script, builder);
 
-			builder.Append_InitializeVirtualTable(("this"), *type);
 			InitClassMembers(ce, ("this"));
 
 			CompileConstructChildren(ce, mapIndex+1, bodyIndex-1, constructorDef, *type);
