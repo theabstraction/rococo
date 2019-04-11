@@ -76,7 +76,87 @@ namespace
 		return stubId;
 	}
 
-	class ProgramObject: public IProgramObject
+	struct DefaultScriptObjectAllocator : IScriptObjectAllocator
+	{
+		void* AllocateObject(size_t nBytes) override
+		{
+			return _aligned_malloc(nBytes, 8);
+		}
+
+		void FreeObject(void* pMemory) override
+		{
+			_aligned_free(pMemory);
+		}
+
+		refcount_t AddRef() override
+		{
+			return 1;
+		}
+
+		refcount_t ReleaseRef() override
+		{
+			return 1;
+		}
+	};
+
+	static void NewObject(VariantValue* registers, void* context)
+	{
+		auto* binding = (AllocatorBinding*)registers[VM::REGISTER_D5].vPtrValue;
+		auto* type = binding->associatedStructure;
+		int allocSize = type->SizeOfStruct();
+		auto* object = (ObjectStub*)binding->memoryAllocator->AllocateObject(allocSize);
+		object->Desc = (ObjectDesc*)type->GetVirtualTable(0);
+		object->refCount = 1;
+		int nInterfaces = type->InterfaceCount();
+		for (int i = 0; i < nInterfaces; ++i)
+		{
+			object->pVTables[i] = (VirtualTable*)type->GetVirtualTable(i + 1);
+		}
+
+		registers[VM::REGISTER_D4].vPtrValue = object;
+	};
+
+	static void IncrementRefCount(VariantValue* registers, void* context)
+	{
+		uint8* rawInterface = registers[VM::REGISTER_D4].uint8PtrValue;
+		auto pInterface = (InterfacePointer)rawInterface;
+		auto vTable = (VirtualTable*)pInterface;
+		auto* object = (ObjectStub*)(vTable->OffsetToInstance + rawInterface);
+		object->refCount++;
+	}
+
+	static void DecrementRefCount(VariantValue* registers, void* allocatorContext)
+	{
+		uint8* rawInterface = registers[VM::REGISTER_D4].uint8PtrValue;
+		auto pInterface = (InterfacePointer)rawInterface;
+		auto vTable = (VirtualTable*)pInterface;
+		auto* object = (ObjectStub*)(vTable->OffsetToInstance + rawInterface);
+
+		object->refCount--;
+
+		if (object->refCount <= 0)
+		{
+			object->refCount = 0;
+
+			if (object->Desc->TypeInfo->Name()[0] != '_')
+			{
+				auto* map = (IAllocatorMap*)allocatorContext;
+				auto* allocator = map->GetAllocator(*object->Desc->TypeInfo);
+				allocator->memoryAllocator->FreeObject(object);
+			}
+		}
+	}
+
+	static void GetAllocSize(VariantValue* registers, void* context)
+	{
+		uint8* pInterface = (uint8*)registers[VM::REGISTER_D7].vPtrValue;
+		VirtualTable** pTables = (VirtualTable**)pInterface;
+		auto offset = (*pTables)->OffsetToInstance;
+		ObjectStub* object = (ObjectStub*)(pInterface + offset);
+		registers[VM::REGISTER_D7].int32Value = object->Desc->TypeInfo->SizeOfStruct();
+	};
+
+	class ProgramObject : public IProgramObject, private IAllocatorMap
 	{
 	private:
 		typedef std::vector<Module*> TModules;
@@ -90,23 +170,28 @@ namespace
 		TSymbols symbols;
 		CommonStructures* common;
 
-      std::vector<IStructure*> systemStructures;
+		std::vector<IStructure*> systemStructures;
+
+		DefaultScriptObjectAllocator defaultAllocator;
+		std::unordered_map<const IStructure*, AllocatorBinding*> allocators;
+
+		CallbackIds callbackIds;
 	public:
-		virtual ILog& Log()	{	return log;	}
+		virtual ILog& Log() { return log; }
 		virtual void Free() { delete this; }
 		virtual IModuleBuilder& GetModule(int index) { return *modules[index]; }
 		virtual const IModule& GetModule(int index) const { return *modules[index]; }
-		virtual int ModuleCount() const { return (int32) modules.size();	}
-		virtual const INamespace& GetRootNamespace() const { return *rootNS;	}
-		virtual INamespaceBuilder& GetRootNamespace() { return *rootNS;	}
+		virtual int ModuleCount() const { return (int32)modules.size(); }
+		virtual const INamespace& GetRootNamespace() const { return *rootNS; }
+		virtual INamespaceBuilder& GetRootNamespace() { return *rootNS; }
 		virtual IVirtualMachine& VirtualMachine() { return *virtualMachine; }
 		virtual IProgramMemory& ProgramMemory() { return *program; }
 		virtual const IProgramMemory& ProgramMemory() const { return *program; }
-		virtual IModuleBuilder& IntrinsicModule() { return *intrinsics;	}
-		virtual const IModule& IntrinsicModule() const { return *intrinsics;	}
+		virtual IModuleBuilder& IntrinsicModule() { return *intrinsics; }
+		virtual const IModule& IntrinsicModule() const { return *intrinsics; }
 		virtual CommonStructures& Common() { return *common; }
 
-		ProgramObject(const ProgramInitParameters& pip, ILog& _log): log(_log)
+		ProgramObject(const ProgramInitParameters& pip, ILog& _log) : log(_log)
 		{
 			CoreSpec spec;
 			spec.Reserved = 0;
@@ -114,7 +199,7 @@ namespace
 			spec.Version = CORE_LIB_VERSION;
 			svmCore = CreateSVMCore(&spec);
 			program = svmCore->CreateProgramMemory(pip.MaxProgramBytes);
-			virtualMachine = svmCore->CreateVirtualMachine();			
+			virtualMachine = svmCore->CreateVirtualMachine();
 			rootNS = new Namespace(*this);
 			intrinsics = Module::CreateIntrinsics(*this, ("!Intrinsics!"));
 
@@ -123,20 +208,42 @@ namespace
 			assembler->Free();
 
 			common = NULL;
+
+			callbackIds.IdAllocate = svmCore->RegisterCallback(NewObject, nullptr, "new");
+			callbackIds.IdAddRef = svmCore->RegisterCallback(IncrementRefCount, nullptr, "++ref");
+			callbackIds.IdReleaseRef = svmCore->RegisterCallback(DecrementRefCount, (IAllocatorMap*) this, "--ref");
+			callbackIds.IdGetAllocSize = svmCore->RegisterCallback(GetAllocSize, nullptr, "sizeof");
+		}
+
+		const CallbackIds& GetCallbackIds() const
+		{
+			return callbackIds;
 		}
 
 		~ProgramObject()
 		{
+			for (auto i : allocators)
+			{
+				if (i.second->memoryAllocator != &defaultAllocator)
+				{
+					i.second->memoryAllocator->ReleaseRef();
+				}
+
+				delete i.second;
+			}
+
+			allocators.clear();
+
 			ClearSymbols(symbols);
 
-			for(auto i = modules.begin(); i != modules.end(); ++i)
+			for (auto i = modules.begin(); i != modules.end(); ++i)
 			{
 				Module* m = *i;
 				delete m;
 			}
 
 			modules.clear();
-						
+
 			delete rootNS;
 			delete intrinsics;
 
@@ -145,6 +252,26 @@ namespace
 			svmCore->Free();
 
 			delete common;
+		}
+
+		IAllocatorMap& AllocatorMap() override
+		{
+			return *this;
+		}
+
+		AllocatorBinding* GetAllocator(const IStructure& s) override
+		{
+			auto i = allocators.find(&s);
+			if (i != allocators.end())
+			{
+				return i->second;
+			}
+			else
+			{
+				auto* binding = new AllocatorBinding{ &defaultAllocator, &s };
+				allocators[&s] = binding;
+				return binding;
+			}
 		}
 
 		void InitCommon()
@@ -180,7 +307,7 @@ namespace
 		virtual void SetProgramAndEntryPoint(const IFunction& f)
 		{
 			CodeSection cs;
-			f.Code().GetCodeSection(cs);	
+			f.Code().GetCodeSection(cs);
 			SetProgramAndEntryPoint(cs.Id);
 		}
 
@@ -191,22 +318,22 @@ namespace
 			virtualMachine->Cpu().D[VM::REGISTER_D5].byteCodeIdValue = bytecodeId;
 		}
 
-      virtual const IStructure* GetSysType(SEXY_CLASS_ID id)
-      {
-         if (systemStructures.empty())
-         {
-            if (!modules.empty())
-            {
-               auto* s = modules[0]->FindStructure(("StringBuilder"));
-               if (s)
-               {
-                  systemStructures.push_back(s);
-               }
-            }
-         }
-        
-         return id >= systemStructures.size() ? nullptr : systemStructures[id];
-      }
+		virtual const IStructure* GetSysType(SEXY_CLASS_ID id)
+		{
+			if (systemStructures.empty())
+			{
+				if (!modules.empty())
+				{
+					auto* s = modules[0]->FindStructure(("StringBuilder"));
+					if (s)
+					{
+						systemStructures.push_back(s);
+					}
+				}
+			}
+
+			return id >= systemStructures.size() ? nullptr : systemStructures[id];
+		}
 
 		virtual void ResolveNativeTypes()
 		{
@@ -226,13 +353,13 @@ namespace
 				return false;
 			}
 
-			for(auto i = modules.begin(); i != modules.end(); ++i)
+			for (auto i = modules.begin(); i != modules.end(); ++i)
 			{
 				Module* module = *i;
 				if (!module->ResolveDefinitions())
 				{
 					return false;
-				}				
+				}
 			}
 
 			intrinsics->ResolveDefinitions();

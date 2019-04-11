@@ -663,7 +663,8 @@ namespace Rococo { namespace Compiler { namespace Impl
 				const IInterface& interf = GetInterface(interfaceIndex-1);
 				virtualTables[interfaceIndex] = new ID_BYTECODE[interf.MethodCount()+1];
 
-				virtualTables[interfaceIndex][0] = (ID_BYTECODE) - (ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + sizeof(VirtualTable*) * (interfaceIndex-1));
+				const int offset = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + sizeof(VirtualTable*) * (interfaceIndex - 1);
+				virtualTables[interfaceIndex][0] = (ptrdiff_t)-offset;
 
 				for(int k = 0; k < interf.MethodCount(); k++)
 				{

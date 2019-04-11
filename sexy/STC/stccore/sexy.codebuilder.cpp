@@ -128,31 +128,6 @@ namespace
 
 	typedef std::vector<const IStructure*> TTypeVector;
 
-	ROCOCOAPI IScriptObjectAllocator
-	{
-		virtual void* AllocateObject(size_t nBytes) = 0;
-		virtual void FreeObject(void* pMemory) = 0;
-		virtual void Free() = 0;
-	};
-
-	struct DefaultScriptObjectAllocator : IScriptObjectAllocator
-	{
-		void* AllocateObject(size_t nBytes) override
-		{
-			return _aligned_malloc(nBytes, 16);
-		}
-
-		void FreeObject(void* pMemory) override
-		{
-			_aligned_free(pMemory);
-		}
-
-		void Free() override
-		{
-
-		}
-	};
-
 	class CodeBuilder: public ICodeBuilder
 	{
 	private:
@@ -167,9 +142,6 @@ namespace
 		TInstancePositions destructorPositions;
 		TSectionStack sections;
 		TPCSymbols pcSymbols;
-		ID_API_CALLBACK idAllocate = 0;
-		ID_API_CALLBACK idGetAllocSize = 0;
-		DefaultScriptObjectAllocator defaultAllocator;
 
 		int endOfArgs;
 		int32 sectionIndex;
@@ -215,6 +187,8 @@ namespace
 		virtual void AddExpression(IBinaryExpression& tree);
 		virtual void Begin();
 		virtual void EnterSection();
+		virtual void Append_DecRef();
+		virtual void Append_IncRef();
 		virtual void Append_GetAllocSize();
 		virtual void AddVariable(const NameString& name, const TypeString& type, void* userData);
 		virtual void AddVariable(const NameString& name, const IStructure& type, void* userData);
@@ -288,14 +262,6 @@ namespace
 		virtual void AddArgVariable(cstr desc, const TypeString& typeName, void* userData);
 		virtual void AddArgVariable(cstr desc, const IStructure& type, void* userData);
 
-		struct AllocatorBinding
-		{
-			IScriptObjectAllocator* memoryAllocator;
-			const IStructure* associatedStructure;
-		};
-
-		std::unordered_map<const IStructure*, AllocatorBinding*> allocators;
-
 		virtual void AddDynamicAllocateObject(const IStructure& structType);
 	};
 
@@ -328,67 +294,20 @@ namespace
 			Variable* v = *i;
 			delete v;
 		}
-
-		for (auto i : allocators)
-		{
-			if (i.second->memoryAllocator != &defaultAllocator)
-			{
-				i.second->memoryAllocator->Free();
-				delete i.second->memoryAllocator;
-			}
-
-			delete i.second;
-		}
-
-		allocators.clear();
 	}
-
-	static void NewObject(VariantValue* registers, void* context)
-	{
-		auto* binding = (CodeBuilder::AllocatorBinding*) registers[VM::REGISTER_D5].vPtrValue;
-		auto* type = binding->associatedStructure;
-		int allocSize = type->SizeOfStruct();
-		auto* object = (ObjectStub*)binding->memoryAllocator->AllocateObject(allocSize);
-		object->Desc = (ObjectDesc*)type->GetVirtualTable(0);
-		object->refCount = 1;
-		int nInterfaces = type->InterfaceCount();
-		for (int i = 0; i < nInterfaces; ++i)
-		{
-			object->pVTables[i] = (VirtualTable*)type->GetVirtualTable(i + 1);
-		}
-
-		registers[VM::REGISTER_D4].vPtrValue = object;
-	};
 
 	void CodeBuilder::AddDynamicAllocateObject(const IStructure& structType)
 	{
-		if (!idAllocate)
-		{
-			idAllocate = Assembler().Core().RegisterCallback(NewObject, nullptr, "new");
-		}
-
 		char sym[256];
-
-		auto i = allocators.find(&structType);
-		AllocatorBinding* binding;
-		
-		if (i != allocators.end())
-		{
-			binding = i->second;
-		}
-		else
-		{
-			binding = new AllocatorBinding { &defaultAllocator, &structType };
-			allocators[&structType] = binding;
-		}
-
 		SafeFormat(sym, sizeof(sym), "Allocator for %s", structType.Name());
+		AddSymbol(sym);
+
+		auto* binding = f.Object().AllocatorMap().GetAllocator(structType);
 
 		VariantValue v;
 		v.vPtrValue = binding;
-		AddSymbol(sym);
 		Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, v, BITCOUNT_POINTER);
-		Assembler().Append_Invoke(idAllocate);
+		Assembler().Append_Invoke(f.Object().GetCallbackIds().IdAllocate);
 	}
 
 	int CodeBuilder::AddVariableToVariables(Variable* v)
@@ -521,23 +440,19 @@ namespace
 
 	}
 
-	static void GetAllocSize(VariantValue* registers, void* context)
-	{
-		uint8* pInterface = (uint8*) registers[VM::REGISTER_D7].vPtrValue;
-		VirtualTable** pTables = (VirtualTable**) pInterface;
-		auto offset = (*pTables)->OffsetToInstance;
-		ObjectStub* object = (ObjectStub*)(pInterface + offset);
-		registers[VM::REGISTER_D7].int32Value = object->Desc->TypeInfo->SizeOfStruct();
-	};
-
 	void CodeBuilder::Append_GetAllocSize()
 	{
-		if (!idGetAllocSize)
-		{
-			idGetAllocSize = Assembler().Core().RegisterCallback(GetAllocSize, nullptr, "GetAllocSize");
-		}
+		Assembler().Append_Invoke(f.Object().GetCallbackIds().IdGetAllocSize);
+	}
 
-		Assembler().Append_Invoke(idGetAllocSize);
+	void CodeBuilder::Append_DecRef()
+	{
+		Assembler().Append_Invoke(f.Object().GetCallbackIds().IdReleaseRef);
+	}
+
+	void CodeBuilder::Append_IncRef()
+	{
+		Assembler().Append_Invoke(f.Object().GetCallbackIds().IdAddRef);
 	}
 
 	void CodeBuilder::AddSymbol(cstr text)

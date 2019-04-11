@@ -207,6 +207,14 @@ namespace Rococo { namespace Compiler
 
 	class CommonStructures;
 
+	struct CallbackIds
+	{
+		ID_API_CALLBACK IdAllocate;
+		ID_API_CALLBACK IdGetAllocSize;
+		ID_API_CALLBACK IdAddRef;
+		ID_API_CALLBACK IdReleaseRef;
+	};
+
 	ROCOCOAPI IProgramObject : public IPublicProgramObject
 	{
 		virtual IModuleBuilder& AddModule(cstr name) = 0;		
@@ -219,6 +227,7 @@ namespace Rococo { namespace Compiler
 		virtual cstr RegisterSymbol(cstr text) = 0;		
 		virtual CommonStructures& Common() = 0;
 		virtual void InitCommon() = 0;
+		virtual const CallbackIds& GetCallbackIds() const = 0;
 	};
 
 	IProgramObject* CreateProgramObject_1_0_0_0(const ProgramInitParameters& pip, ILog& log);
@@ -289,6 +298,12 @@ namespace Rococo { namespace Compiler
 		virtual void AddVariable(const NameString& name, const IStructure& type, void* userData) = 0;
 		virtual void AddCatchVariable(cstr name, void* userData) = 0;
 		virtual void Append_GetAllocSize() = 0;
+
+		/* decrement reference count to an object with interface or instance pointed to by D4. If it hits zero non null-objects will be freed */
+		virtual void Append_DecRef() = 0;
+
+		/* increment reference count to an object with interface or instance pointed to by D4. */
+		virtual void Append_IncRef() = 0;
 
 		/* AddDynamicAllocateObject -> takes sizeof(obj) in D4 (int32), 
 		   returns pointer to object in D4 (vPtr)
