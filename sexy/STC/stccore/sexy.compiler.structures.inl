@@ -648,8 +648,8 @@ namespace Rococo { namespace Compiler { namespace Impl
 	{
 		if (virtualTables == NULL)
 		{
-			virtualTables = new ID_BYTECODE*[InterfaceCount()+1];
-			for(int i = 0; i <= InterfaceCount(); ++i) virtualTables[i] = NULL;
+			virtualTables = new ID_BYTECODE*[InterfaceCount() + 1];
+			for (int i = 0; i <= InterfaceCount(); ++i) virtualTables[i] = NULL;
 		}
 
 		if (virtualTables[interfaceIndex] == NULL)
@@ -660,29 +660,29 @@ namespace Rococo { namespace Compiler { namespace Impl
 			}
 			else
 			{
-				const IInterface& interf = GetInterface(interfaceIndex-1);
-				virtualTables[interfaceIndex] = new ID_BYTECODE[interf.MethodCount()+1];
+				const IInterface& interf = GetInterface(interfaceIndex - 1);
+				virtualTables[interfaceIndex] = new ID_BYTECODE[interf.MethodCount() + 1];
 
 				const int offset = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + sizeof(VirtualTable*) * (interfaceIndex - 1);
 				virtualTables[interfaceIndex][0] = (ptrdiff_t)-offset;
 
-				for(int k = 0; k < interf.MethodCount(); k++)
+				for (int k = 0; k < interf.MethodCount(); k++)
 				{
 					const IArchetype& method = interf.GetMethod(k);
 
 					TokenBuffer qualifiedMethodName;
-               SafeFormat(qualifiedMethodName.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.%s"), name.c_str(), method.Name());
+					SafeFormat(qualifiedMethodName.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.%s"), name.c_str(), method.Name());
 					IFunction* implementation = module.FindFunction(qualifiedMethodName);
 					if (implementation == NULL)
 					{
 						Throw(ERRORCODE_COMPILE_ERRORS, qualifiedMethodName, ("Compiler error getting implementation for interface method"));
 					}
 
-					virtualTables[interfaceIndex][k+1] = GetByteCodeId(*implementation);
+					virtualTables[interfaceIndex][k + 1] = GetByteCodeId(*implementation);
 				}
 			}
 		}
 
-		return (const ID_BYTECODE*) virtualTables[interfaceIndex];
+		return (const ID_BYTECODE*)virtualTables[interfaceIndex];
 	}
 }}} //Rococo::Compiler::Impl

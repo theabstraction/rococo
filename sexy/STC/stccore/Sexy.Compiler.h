@@ -228,6 +228,7 @@ namespace Rococo { namespace Compiler
 		virtual CommonStructures& Common() = 0;
 		virtual void InitCommon() = 0;
 		virtual const CallbackIds& GetCallbackIds() const = 0;
+		virtual void ClearCustomAllocators() = 0;
 	};
 
 	IProgramObject* CreateProgramObject_1_0_0_0(const ProgramInitParameters& pip, ILog& log);

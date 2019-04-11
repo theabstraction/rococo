@@ -56,6 +56,7 @@
 	(implements IString)
 	(Int32 length)
 	(Pointer buffer)
+	(Pointer sExpression)
 )
 
 (method StringConstant.Length -> (Int32 charCount):

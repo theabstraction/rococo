@@ -120,16 +120,34 @@ namespace
 	{
 		uint8* rawInterface = registers[VM::REGISTER_D4].uint8PtrValue;
 		auto pInterface = (InterfacePointer)rawInterface;
-		auto vTable = (VirtualTable*)pInterface;
+		auto vTable = *pInterface;
 		auto* object = (ObjectStub*)(vTable->OffsetToInstance + rawInterface);
 		object->refCount++;
+	}
+
+	static void Destruct(ObjectStub* object, VM::IVirtualMachine& vm)
+	{
+		auto destructorId = object->Desc->DestructorId;
+
+		vm.Push(object);
+		EXECUTERESULT status = vm.ExecuteFunction(destructorId);
+		vm.PopPointer();
+
+		if (status == EXECUTERESULT_RETURNED)
+		{
+			vm.SetStatus(EXECUTERESULT_RUNNING);
+		}
+		else
+		{
+			Throw(0, "Error destructing %s at %P", object->Desc->TypeInfo->Name(), object);
+		}
 	}
 
 	static void DecrementRefCount(VariantValue* registers, void* allocatorContext)
 	{
 		uint8* rawInterface = registers[VM::REGISTER_D4].uint8PtrValue;
 		auto pInterface = (InterfacePointer)rawInterface;
-		auto vTable = (VirtualTable*)pInterface;
+		auto vTable = static_cast<VirtualTable*>(*pInterface);
 		auto* object = (ObjectStub*)(vTable->OffsetToInstance + rawInterface);
 
 		object->refCount--;
@@ -142,6 +160,7 @@ namespace
 			{
 				auto* map = (IAllocatorMap*)allocatorContext;
 				auto* allocator = map->GetAllocator(*object->Desc->TypeInfo);
+				Destruct(object, allocator->associatedStructure->Object().VirtualMachine());
 				allocator->memoryAllocator->FreeObject(object);
 			}
 		}
@@ -220,7 +239,7 @@ namespace
 			return callbackIds;
 		}
 
-		~ProgramObject()
+		void ClearCustomAllocators()
 		{
 			for (auto i : allocators)
 			{
@@ -233,6 +252,11 @@ namespace
 			}
 
 			allocators.clear();
+		}
+
+		~ProgramObject()
+		{
+			ClearCustomAllocators();
 
 			ClearSymbols(symbols);
 

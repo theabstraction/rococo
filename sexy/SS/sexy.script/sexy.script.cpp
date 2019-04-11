@@ -611,7 +611,7 @@ namespace Rococo
 				CReflectedClass* rep = (CReflectedClass*)AlignedMalloc(sizeof(size_t), sizeof(CReflectedClass));
 				rep->context = pSourceInstance;
 				rep->header.Desc = (ObjectDesc*)st.GetVirtualTable(0);
-				rep->header.refCount = 1;
+				rep->header.refCount = 0x4000000000000001;
 				rep->header.pVTables[0] = (VirtualTable*) st.GetVirtualTable(1);
 
 				i = representations.insert(std::make_pair(pSourceInstance, rep)).first;
@@ -807,7 +807,7 @@ namespace Rococo
 			else
 			{
 				builderContainer.BuilderPtr = builder;
-				builderContainer.Header.refCount = 1;
+				builderContainer.Header.refCount = 0x4000000000000001;
 				builderContainer.Header.Desc = (ObjectDesc*)s->GetVirtualTable(0);
 				builderContainer.Header.pVTables[0] = (VirtualTable*) s->GetVirtualTable(1);
 				return true;
@@ -827,7 +827,7 @@ namespace Rococo
 			if (s.Prototype().IsClass)
 			{
 				instance->Desc = (ObjectDesc*)s.GetVirtualTable(0);
-				instance->refCount = 1;
+				instance->refCount = 0x4000000000000001;
 
 				for (int i = 0; i < s.InterfaceCount(); ++i)
 				{
@@ -878,6 +878,13 @@ namespace Rococo
 			if (i == reflectedStrings.end())
 			{
 				const IStructure& stringConstantStruct = *SysTypeMemoModule().FindStructure(("StringConstant"));
+
+#ifdef _DEBUG
+				if (sizeof(CStringConstant) != stringConstantStruct.SizeOfStruct())
+				{
+					Throw(0, "sizeof(CStringConstant) != stringConstantStruct.SizeOfStruct() -> internal compiler error");
+				}
+#endif
 				CStringConstant* pSC = (CStringConstant*)DynamicCreateClass(stringConstantStruct, 0);
 				pSC->pointer = s;
 				pSC->length = StringLength(s);
@@ -1020,6 +1027,7 @@ namespace Rococo
 
 			scripts->ExceptionLogic().Clear();
 			progObjProxy().GetRootNamespace().Clear();
+			progObjProxy().ClearCustomAllocators();
 
 			for (auto i = reflectedStrings.begin(); i != reflectedStrings.end(); ++i)
 			{

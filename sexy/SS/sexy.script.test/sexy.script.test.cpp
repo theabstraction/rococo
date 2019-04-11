@@ -3410,7 +3410,7 @@ namespace
 			"(class Robot (defines EntryPoint.IRobot))"
 			"(method Robot.Construct : )"
 			"(method Robot.Id -> (Int32 id) : (id = 1984))"
-			"(method Robot.Destruct -> : (Sys.InvokeTest))"
+			"(method Robot.Destruct -> : )"
 			"(factory EntryPoint.NewRobot EntryPoint.IRobot : (construct Robot))"
 			"(class TestException (implements Sys.Type.IException))"
 			"(method TestException.Construct : )"
@@ -3513,7 +3513,7 @@ namespace
 			"(class Robot (defines EntryPoint.IRobot)(Int32 id))"
 			"(method Robot.Construct : )"
 			"(method Robot.Id -> (Int32 id) : (id = 1984))"
-			"(method Robot.Destruct -> : (Sys.InvokeTest))"
+			"(method Robot.Destruct -> : )"
 			"(factory EntryPoint.NewRobot EntryPoint.IRobot : (construct Robot))"
 			;
 
@@ -10249,23 +10249,61 @@ namespace
 		validate(value == 36.0f);		
 	}
 
+	void TestAddRefWithLocalVariable(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(using Sys.Maths)"
+			"(using EntryPoint)"
+			"(interface Sys.IFidelio"
+			"	(Id -> (Int32 id))"
+			")"
+			"(class Fidelio (implements Sys.IFidelio))"
+			"(method Fidelio.Id -> (Int32 id): (id = 12))"
+			"(method Fidelio.Construct -> : )"
+			"(factory Sys.Fidelio Sys.IFidelio : (construct Fidelio))"
+			
+			"(function Main -> (Int32 result):"
+			"	(Sys.IFidelio f (Sys.Fidelio))"
+			"	(Sys.IFidelio g = f)"
+			"	(g.Id -> result)"
+			")"
+			"(alias Main EntryPoint.Main)"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestAddRefWithLocalVariable");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == Rococo::EXECUTERESULT_THROWN);
+	}
+
 	void TestConstructFromInterface(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
 			"(namespace EntryPoint)"
 			"(using Sys.Maths)"
 			"(using EntryPoint)"
-			"(interface EntryPoint.IFidelio"
+			"(interface Sys.IFidelio"
 			"	(Id -> (Int32 id))"
 			")"
-			"(class Fidelio (implements IFidelio))"
+			"(class Fidelio (implements Sys.IFidelio))"
 			"(method Fidelio.Id -> (Int32 id): (id = 12))"
-			"(class Operas (ref IFidelio f))"
-			"(method Operas.Construct (IFidelio f)-> : (this.f = f))"
+			"(method Fidelio.Construct -> : )"
+			"(factory Sys.Fidelio Sys.IFidelio : (construct Fidelio))"
+			"(class Operas (defines Sys.IOperas) (Sys.IFidelio f))"
+			"(method Operas.Construct (Sys.IFidelio f)-> : (this.f = f))"
+			"(method Operas.ByBeethoven -> (Sys.IFidelio f): (f = this.f))"
+			"(factory Sys.Operas Sys.IOperas (Sys.IFidelio f): (construct Operas f))"
 			"(function Main -> (Int32 result):"	
-			"	(Fidelio f)"	
-			"	(Operas operas (f))"	
-			"	(operas.f.Id -> result)"
+			"	(Sys.IFidelio f (Sys.Fidelio))"	
+			"	(Sys.IOperas operas (Sys.Operas f))"	
+			"	(Sys.IFidelio bf = operas.ByBeethoven)"
+			"	(bf.Id -> result)"
 			")"	
 			"(alias Main EntryPoint.Main)"		
 			;
@@ -11395,29 +11433,9 @@ namespace
 	{
 		validate(true);
 
-		TEST(TestPrintModules);
+		TEST(TestAddRefWithLocalVariable);
 
-		TEST(TestSizeOf);
-		TEST(TestInlinedFactory);
-		TEST(TestDynamicCast);
-		TEST(TestDerivedInterfaces2);
-
-		TEST(TestBadClosureArg7);
-		TEST(TestBadClosureArg6);
-		TEST(TestBadClosureArg5);
-		TEST(TestBadClosureArg4);
-		TEST(TestBadClosureArg3);
-		TEST(TestBadClosureArg);
-		TEST(TestBadClosureArg2);
-
-		TEST(TestCatch);
-		TEST(TestCatchArg);
-
-		TEST(TestDerivedInterfaces);
-
-		TEST(TestVirtualFromVirtual);
-
-		TEST(TestClassInstance);
+		TEST(TestGetSysMessage);
 
 		TEST(TestMemberwiseInit);
 		TEST(TestNullMemberInit);
@@ -11540,11 +11558,6 @@ namespace
 
 		TEST(TestReturnInterface);
 
-		TEST(TestThrowFromCatch);
-
-		TEST(TestCatchInstanceArg);
-		TEST(TestTryWithoutThrow);
-
 		TEST(TestNullMember);
 		TEST(TestNullRefInit);
 
@@ -11553,18 +11566,7 @@ namespace
 		TEST(TestRecti3);
 		TEST(TestRecti4);
 
-		TEST(TestExpressionArg);
-		TEST(TestSubstitution);
-
-		TEST(TestReflectionGetCurrentExpression);
-		TEST(TestReflectionGetParent);
-
-		TEST(TestModuleCount);
-		TEST(TestPrintStructs);
-
-
 		TEST(TestMallocAligned);
-		TEST(TestGetSysMessage);
 
 		TEST(TestTypedef);
 
@@ -11623,15 +11625,13 @@ namespace
 		TEST(TestRightSearchSubstring);
 		TEST(TestSetCase);
 
-		TEST(TestReflectionGetChild_BadIndex);
-		TEST(TestReflectionGetChild);
-		TEST(TestReflectionGetAtomic);
-
 		TEST(TestSysThrow);
 		TEST(TestSysThrow2);
 
 		TEST(TestInternalDestructorsCalled);
 		TEST(TestInternalDestructorsCalled2);
+
+		TEST(TestClassInstance);
 
 		TEST(TestDestructor);
 		TEST(TestExceptionDestruct);
@@ -11646,13 +11646,53 @@ namespace
 		TEST(TestStringbuilderTruncate);
 
 		TEST(TestMacro);
+		TEST(TestPrintModules);
+
+		TEST(TestExpressionArg);
+		TEST(TestSubstitution);
+
+		TEST(TestReflectionGetCurrentExpression);
+		TEST(TestReflectionGetParent);
+
+		TEST(TestModuleCount);
+		TEST(TestPrintStructs);
+
+		TEST(TestInlinedFactory);
+		TEST(TestDynamicCast);
+		TEST(TestDerivedInterfaces2);
+
+		TEST(TestBadClosureArg7);
+		TEST(TestBadClosureArg6);
+		TEST(TestBadClosureArg5);
+		TEST(TestBadClosureArg4);
+		TEST(TestBadClosureArg3);
+		TEST(TestBadClosureArg);
+		TEST(TestBadClosureArg2);
+
+		TEST(TestDerivedInterfaces);
+
+		TEST(TestVirtualFromVirtual);
+
+		TEST(TestCatch);
+		TEST(TestCatchArg);
+		TEST(TestSizeOf);
 
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
+
+		TEST(TestReflectionGetChild_BadIndex);
+		TEST(TestReflectionGetChild);
+		TEST(TestReflectionGetAtomic);
+
+		TEST(TestThrowFromCatch);
+
+		TEST(TestCatchInstanceArg);
+		TEST(TestTryWithoutThrow);
+
+		TEST(TestConstructFromInterface);
 	}
 
 	void RunPositiveFailures()
 	{
-		TEST(TestConstructFromInterface);
 		TEST(TestMissingMethod);
 		TEST(TestDuplicateVariable);
 		TEST(TestDuplicateFunctionError);
@@ -11689,6 +11729,9 @@ namespace
 int main(int argc, char* argv[])
 {
 	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+
+	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
+
 	RunTests();
 	return 0;
 }

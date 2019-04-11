@@ -195,11 +195,11 @@ namespace Rococo
 
          AddSymbol(ce.Builder, ("%s %s"), GetFriendlyName(nullType), id);
 
-		 ce.Builder.AddPseudoVariable(NameString::From(id), nullType);
-
 		 TokenBuffer refId;
 		 GetRefName(refId, id);
 		 ce.Builder.AddVariable(NameString::From(refId), ce.Object.Common().TypePointer(), (void*)GetTryCatchExpression(ce.Script));
+
+		 ce.Builder.AddPseudoVariable(NameString::From(id), nullType);
 
          cr_sex factoryExpr = GetAtomicArg(args, 0);
          const IFactory& factory = GetFactoryInModule(factoryExpr, GetModule(ce.Script));

@@ -222,30 +222,6 @@ namespace Rococo
 					s.AddMember(NameString::From(nameExpr.String()), TypeString::From(("_Map")), keyType->Buffer, valueType->Buffer);
 				}	
 			}
-			else if (AreEqual(type, ("ref")))
-			{
-				if (field.NumberOfElements() != 3) Throw(field, ("Expecting (ref <type> <name>)"));
-
-				cr_sex srefType = field.GetElement(1);
-				cr_sex sname = field.GetElement(2);
-
-				AssertQualifiedIdentifier(srefType);
-				AssertLocalIdentifier(sname);
-
-				s.AddPseudoMember(NameString::From(sname.String()), TypeString::From(srefType.String()));
-
-				IInterfaceBuilder* interf = MatchInterface(srefType, s.Module());
-				if (interf != NULL)
-				{
-					TokenBuffer memberRefName;
-					GetRefName(memberRefName, sname.String()->Buffer);
-					s.AddMember(NameString::From(memberRefName), TypeString::From(("Sys.Type.Pointer")));
-				}
-				else
-				{
-					Throw(srefType, ("Only interface types can be referenced by a member"));
-				}
-			}
 			else
 			{
 				AssertQualifiedIdentifier(argTypeExpr);
@@ -472,7 +448,38 @@ namespace Rococo
 				}
 				else if (sourceType == VARTYPE_Derivative)
 				{
-					Throw(directive, ("not implemented"));
+					MemberDef def;
+					if (!ce.Builder.TryGetVariableByName(def, sourceText))
+					{
+						Throw(directive, "Could not find variable %s", sourceText);
+					}
+
+					if (def.ResolvedType != &varStruct)
+					{
+						Throw(directive, "Could not assign %s %s to %s %s", def.ResolvedType->Name(), sourceText, varStruct.Name(), targetVariable);
+					}
+
+					if (Eq(sourceText, targetVariable))
+					{
+						Throw(directive, "Could assign variable to itself. Tautology is redundant");
+					}
+
+					TokenBuffer srcRef;
+					GetRefName(srcRef, sourceText);
+
+					TokenBuffer targetRef;
+					GetRefName(targetRef, targetVariable);
+
+					if (!explicitKeyword)
+					{
+						ce.Builder.AssignVariableToTemp(targetRef, 0);
+						// The target is already pointing to an object, so decrement its ref count
+						ce.Builder.Append_DecRef();
+					}
+
+					ce.Builder.AssignVariableToTemp(srcRef, 0);
+					ce.Builder.Append_IncRef();
+					ce.Builder.AssignTempToVariable(0, targetRef);
 				}
 				else
 				{

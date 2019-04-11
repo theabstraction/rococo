@@ -63,13 +63,14 @@ namespace Rococo
 
          ce.Builder.AddCatchVariable(exName, (void*)ce.Script.GetTryCatchExpression());
 
-		 ce.Builder.AddPseudoVariable(NameString::From(exName), ce.Object.Common().SysTypeIException().NullObjectType());
-
          TokenBuffer exRefName;
          GetRefName(exRefName, exName);
          ce.Builder.AddSymbol(exRefName);
 
          AddVariable(ce, NameString::From(exRefName), ce.Object.Common().TypePointer());
+
+		 ce.Builder.AddPseudoVariable(NameString::From(exName), ce.Object.Common().SysTypeIException().NullObjectType());
+
 
          CompileExpressionSequence(ce, 0, handler.NumberOfElements() - 1, handler);
 

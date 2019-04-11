@@ -1,11 +1,27 @@
-(using Sys.Type)
-(using Sys.Reflection)
-
 (namespace EntryPoint)
- (alias Main EntryPoint.Main)
+(using Sys.Maths)
+(using EntryPoint)
 
-(function Main -> (Int32 result):			
-  (IExpression s = GetCurrentExpression)
-  (IExpression parent = s.Parent)
-  (parent.ChildCount -> result)
+(interface Sys.IFidelio
+	(Id -> (Int32 id))
 )
+
+(class Fidelio (implements Sys.IFidelio))
+
+(method Fidelio.Id -> (Int32 id):
+ (id = 12)
+)
+ 
+(method Fidelio.Construct -> : )
+
+(factory Sys.Fidelio Sys.IFidelio : 
+	(construct Fidelio)
+)
+
+(function Main -> (Int32 result):	
+	(Sys.IFidelio f (Sys.Fidelio))	
+	(Sys.IFidelio g = f)	
+	(g.Id -> result)
+)	
+
+(alias Main EntryPoint.Main)		

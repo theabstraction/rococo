@@ -577,6 +577,21 @@ namespace
 			if (v->Offset() < 0)	Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Serious algorithmic error in compile. An attempt was made to deconstruct an argument to a function inside the function"));
 
 			int vOffset = v->Offset();
+
+			if (v->AllocSize() == 0)
+			{
+				TokenBuffer refName;
+				GetRefName(refName, v->Name());
+
+				MemberDef def;
+				if (!TryGetVariableByName(def, refName))
+				{
+					Throw(0, "Expecting %s", (cstr)refName);
+				}
+
+				AssignVariableToTemp(refName, 0, 0);
+				Append_DecRef();
+			}
 			
 			v->SetPCEnd(Assembler().WritePosition());
 			variables.pop_back();
