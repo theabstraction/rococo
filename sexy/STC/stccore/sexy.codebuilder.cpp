@@ -1604,6 +1604,21 @@ namespace
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not copy %s to %s. The target variable accepts regular function references, but not closures."), source, target);
 		}
 
+		if (sourceDef.AllocSize == 0 && targetDef.Usage == ARGUMENTUSAGE_BYREFERENCE)
+		{
+			TokenBuffer refname;
+			GetRefName(refname, source);
+
+			MemberDef refSourceDef;
+			if (!TryGetVariableByName(OUT refSourceDef, refname))
+			{
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not resolve %s"), target);
+			}
+
+			Assembler().Append_SetSFValueFromSFValue(targetDef.SFOffset, refSourceDef.SFOffset, BITCOUNT_POINTER);
+			return;
+		}
+
 		if (targetDef.location == VARLOCATION_OUTPUT)
 		{
 			if (IsNullType(*trgType))

@@ -2513,12 +2513,8 @@ namespace Rococo
 				Throw(exceptionSource, streamer);
 			}
 
-			if (def.location != Compiler::VARLOCATION_INPUT)
-			{
-				sexstringstream<1024> streamer;
-				streamer.sb <<  ("Only inputs can be used as the source for an interface to an output");
-				Throw(exceptionSource, streamer);
-			}
+			ce.Builder.AssignVariableRefToTemp(outputName, 0); // output goes to D4
+			ce.Builder.Append_DecRef();
 
 			if (!IsNullType(src))
 			{
@@ -2541,6 +2537,11 @@ namespace Rococo
 			{
 				ce.Builder.AssignVariableToVariable(sourceName, outputName);
 			}
+
+			TokenBuffer refSourceName;
+			GetRefName(refSourceName, sourceName);
+			ce.Builder.AssignVariableToTemp(refSourceName, 0); // source goes to D4
+			ce.Builder.Append_IncRef();
 		}
 
 		void AssignVariableToVariable(CCompileEnvironment& ce, cr_sex exceptionSource, cstr lhs, cstr rhs)

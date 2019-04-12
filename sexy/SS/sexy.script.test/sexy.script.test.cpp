@@ -10279,7 +10279,10 @@ namespace
 		vm.Push(0); // Allocate stack space for the int32 result
 
 		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-		validate(result == Rococo::EXECUTERESULT_THROWN);
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+
+		int32 id = vm.PopInt32();
+		validate(id == 12);
 	}
 
 	void TestConstructFromInterface(IPublicScriptSystem& ss)
@@ -11242,6 +11245,55 @@ namespace
 	   validate(Eq(testBuffer, ""));
    }
 
+   void TestReturnInterfaceEx(IPublicScriptSystem& ss)
+   {
+	   cstr code =
+		   "(namespace EntryPoint)"
+		   "   (using Sys.Maths)"
+		   "   (using Sys)"
+
+		   "(interface Sys.IFidelio"
+		   "   (Id -> (Int32 id))"
+		   ")"
+
+		   "(class Fidelio(implements IFidelio))"
+
+		   "(method Fidelio.Id -> (Int32 id) :"
+		   "  (id = 12)"
+		   " )"
+
+		   " (method Fidelio.Construct -> :)"
+
+		   " (factory Sys.Fidelio Sys.IFidelio :"
+		   " (construct Fidelio)"
+		   ")"
+
+		   "(function GetFidelio -> (IFidelio output) :"
+		   " (IFidelio g(Fidelio))"
+		   " (output = g)"
+		   ")"
+
+		   "(function Main -> (Int32 result) :"
+		   " (IFidelio f = (GetFidelio))"
+		   " (f.Id -> result)"
+		   ")"
+
+		   " (alias Main EntryPoint.Main)";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(code, -1, Vec2i{ 0,0 }, "TestReturnInterfaceEx");
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(0);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+
+	   int32 id = vm.PopInt32();
+
+	   validate(id == 12);
+   }
+
    void TestOperatorOverload2(IPublicScriptSystem& ss)
    {
       cstr srcCode =
@@ -11432,6 +11484,7 @@ namespace
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+		TEST(TestReturnInterfaceEx);
 
 		TEST(TestAddRefWithLocalVariable);
 
@@ -11555,8 +11608,6 @@ namespace
 
 		TEST(TestTryFinallyWithoutThrow);
 		TEST(TestDeepCatch);
-
-		TEST(TestReturnInterface);
 
 		TEST(TestNullMember);
 		TEST(TestNullRefInit);

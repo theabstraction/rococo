@@ -69,7 +69,7 @@ namespace
 
 	void InitObjectStubAsNullLength(ObjectStub& stub, const IStructure& type, int allocSize)
 	{
-		stub.refCount = 2; // prevent ref count hitting zero.
+		stub.refCount = 0x4000000000000001; // prevent ref count hitting zero.
 		stub.Desc = (ObjectDesc*) type.GetVirtualTable(0);
 		stub.pVTables[0] = (VirtualTable*) type.GetVirtualTable(1);
 	}

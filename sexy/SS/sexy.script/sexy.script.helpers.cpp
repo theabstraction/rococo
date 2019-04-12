@@ -165,7 +165,7 @@ namespace Rococo
          case VARTYPE_Int64:
          {
             const Rococo::int64* pValue = (const Rococo::int64*) pVariableData;
-            SafeFormat(buffer, bufferCapacity, "%ld (0x%lX)", *pValue, *pValue);
+            SafeFormat(buffer, bufferCapacity, "0x%llX", *pValue, *pValue);
          }
          break;
          case VARTYPE_Float32:
