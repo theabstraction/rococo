@@ -193,7 +193,7 @@ namespace
 		virtual void AddVariable(const NameString& name, const TypeString& type, void* userData);
 		virtual void AddVariable(const NameString& name, const IStructure& type, void* userData);
 		virtual void AddVariableRef(const NameString& name, const IStructure& type, void* userData);
-		virtual void AddPseudoVariable(const NameString& ns, const IStructure& st);
+		virtual void AddInterfaceVariable(const NameString& ns, const IStructure& st, void* userData);
 		virtual void AddCatchVariable(cstr name, void* userData);
 		virtual void AssignLiteral(const NameString& name, cstr valueLiteral);
 		virtual void AssignPointer(const NameString& name, const void* ptr);
@@ -1307,7 +1307,7 @@ namespace
 		}
 	}
 
-	void CodeBuilder::AddPseudoVariable(const NameString& name, const IStructure& type)
+	void CodeBuilder::AddInterfaceVariable(const NameString& name, const IStructure& type, void* userData)
 	{
 		if (IsVariableDefinedAtLevel(sectionIndex, name.c_str()))
 		{

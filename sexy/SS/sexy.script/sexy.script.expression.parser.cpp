@@ -1496,8 +1496,7 @@ namespace Rococo
 			GetRefName(stringRef, id);
 			AddVariable(ce, NameString::From(stringRef), ce.Object.Common().TypePointer());
 
-			const IInterface& interf = ce.Object.Common().SysTypeIString();
-			ce.Builder.AddPseudoVariable(NameString::From(id), interf.NullObjectType());
+			AddInterfaceVariable(ce, NameString::From(id), ce.Object.Common().SysTypeIString().NullObjectType());
 				
 			MemberDef ptrDef;
 			ce.Builder.TryGetVariableByName(OUT ptrDef, stringRef);
@@ -1547,7 +1546,7 @@ namespace Rococo
 			ce.Builder.AddSymbol(declText);
 
 			AddVariable(ce, NameString::From(refName), ce.Object.Common().TypePointer());
-			ce.Builder.AddPseudoVariable(NameString::From(id), nullType);	
+			AddInterfaceVariable(ce, NameString::From(id), nullType);
 		}
 
 		void CompileAsExpressionArg(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex decl)
@@ -1652,7 +1651,7 @@ namespace Rococo
 
 			AddSymbol(ce.Builder, ("%s %s"), GetFriendlyName(st), id);
 			AssertDefaultConstruction(ce, decl, st);
-			AddPseudoVariable(ce, NameString::From(id), st);
+			AddInterfaceVariable(ce, NameString::From(id), st);
 
 			VariantValue value;
 			value.vPtrValue = GetInterfacePtrFromNullInstancePtr(st.GetInterface(0).UniversalNullInstance());

@@ -197,9 +197,9 @@ namespace Rococo
 
 		 TokenBuffer refId;
 		 GetRefName(refId, id);
-		 ce.Builder.AddVariable(NameString::From(refId), ce.Object.Common().TypePointer(), (void*)GetTryCatchExpression(ce.Script));
+		 AddVariable(ce, NameString::From(refId), ce.Object.Common().TypePointer());
 
-		 ce.Builder.AddPseudoVariable(NameString::From(id), nullType);
+		 AddInterfaceVariable(ce, NameString::From(id), nullType);
 
          cr_sex factoryExpr = GetAtomicArg(args, 0);
          const IFactory& factory = GetFactoryInModule(factoryExpr, GetModule(ce.Script));

@@ -374,7 +374,7 @@ namespace Rococo { namespace Compiler
 
 		// Hack: allow variables to be defined with zero size. To be used in conjunction with references that refer to variables created at compile time
 		// rather than at run-time. When the system sees a class instance named XXX and zero allocsize, it looks for _ref_XXX. The pseudo variable provides typeinfo.
-		virtual void AddPseudoVariable(const NameString& ns, const IStructure& st) = 0;
+		virtual void AddInterfaceVariable(const NameString& ns, const IStructure& st, void* userData) = 0;
 	};
 
 	enum { MAX_NAMESPACE_LEN = 256 };

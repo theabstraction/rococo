@@ -58,9 +58,9 @@ namespace Rococo
          }
       }
 
-      void AddPseudoVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& ts)
+      void AddInterfaceVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& ts)
       {
-         ce.Builder.AddPseudoVariable(ns, ts);
+         ce.Builder.AddInterfaceVariable(ns, ts, (void*)GetTryCatchExpression(ce.Script));
       }
 
       void AddVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& typeStruct)

@@ -367,7 +367,7 @@ namespace Rococo
 
       void GetAtomicValue(CCompileEnvironment& ce, cr_sex parent, cstr id, VARTYPE type);
       void AppendDeconstruct(CCompileEnvironment& ce, cr_sex sequence);
-      void AddPseudoVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& ts);
+      void AddInterfaceVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& ts);
       void AddVariableAndSymbol(CCompileEnvironment& ce, cstr type, cstr name);
       void ValidateUnusedVariable(cr_sex identifierExpr, ICodeBuilder& builder);
       void AssertGetVariable(OUT MemberDef& def, cstr name, CCompileEnvironment& ce, cr_sex exceptionSource);
@@ -532,7 +532,7 @@ namespace Rococo
       bool IsIStringInlined(CScripts& scripts);
       void AddSymbol(ICodeBuilder& builder, cstr format, ...);
 
-      void AddPseudoVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& ts);
+      void AddInterfaceVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& ts);
       void AddVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& typeStruct);
       void AddArgVariable(cstr desc, CCompileEnvironment& ce, const TypeString& type);
       void AddArgVariable(cstr desc, CCompileEnvironment& ce, const IStructure& type);
