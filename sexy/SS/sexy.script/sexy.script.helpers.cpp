@@ -210,28 +210,32 @@ namespace Rococo
          const VirtualTable* VTableOrTypeDef;
       };
 
-      const Rococo::uint8* GetMemberPtr(const IStructure& s, const Rococo::uint8* instance, ptrdiff_t offset)
+      const Rococo::uint8* GetMemberPtr(const IStructure& s, const Rococo::uint8* sf, ptrdiff_t offset)
       {
-         ptrdiff_t instanceOffset = 0;
-         if (s.InterfaceCount() > 0)
-         {
-            const Instance* pInstance = (const Instance*)(instance + offset);
-            if (pInstance->VTableOrTypeDef != NULL)
-            {
-               instanceOffset = pInstance->VTableOrTypeDef->InterfaceToInstanceOffset;
-            }
-            else
-            {
-               return NULL;
-            }
-         }
-         return (instance + offset + instanceOffset);
+		 if (s.InterfaceCount() > 0)
+		 {
+			 ptrdiff_t instanceOffset = 0;
+
+			 const Instance** ppInstance = (const Instance**)(sf + offset);
+			 const Instance* pInstance = *ppInstance;
+			 if (pInstance->VTableOrTypeDef != NULL)
+			 {
+				 instanceOffset = pInstance->VTableOrTypeDef->InterfaceToInstanceOffset;
+				 return ((const uint8*)pInstance) + instanceOffset;
+			 }
+			 else
+			 {
+				 return NULL;
+			 }
+		 }
+
+		return sf + offset;
       }
 
       const Rococo::Compiler::IStructure* GetConcreteType(const IStructure& s, const Rococo::uint8* instance, ptrdiff_t offset, ObjectStub*& header)
       {
          if (s.InterfaceCount() == 0) return NULL;
-         header = (ObjectStub*)GetMemberPtr(s, instance, offset);
+		 header = (ObjectStub*) GetMemberPtr(s, instance, offset);
          return (header != NULL && header->Desc != NULL) ? header->Desc->TypeInfo : NULL;
       }
    }
@@ -812,7 +816,7 @@ namespace Rococo
 			   }
 
 			   ptrdiff_t suboffset = 0;
-			   for (int i = 0; i < s.MemberCount(); ++i)
+			   for (int i = 0; i < specimen->MemberCount(); ++i)
 			   {
 				   const Rococo::Compiler::IMember& member = specimen->GetMember(i);
 
@@ -821,7 +825,7 @@ namespace Rococo
 
 				   enumCallback.OnMember(ss, childName, member, instance + suboffset);
 
-				   const int sizeofMember = member.IsPseudoVariable() ? 0 : member.SizeOfMember();
+				   const int sizeofMember = member.SizeOfMember();
 				   suboffset += sizeofMember;
 			   }
 

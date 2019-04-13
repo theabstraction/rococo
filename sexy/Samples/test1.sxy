@@ -1,20 +1,19 @@
 (namespace EntryPoint)
-(using Sys.Maths)
+	(alias Main EntryPoint.Main)
 
-(interface Sys.IFidelio
-	(Id -> (Int32 id))
+(namespace Stuff) 
+(using Stuff)
+
+(function Main -> (Int32 result):			
+	(IRobot robby (Dreambot 9000))
+	(robby.Id -> result)
 )
 
-(class Fidelio (implements Sys.IFidelio))
-(method Fidelio.Id -> (Int32 id): (id = 12))
-(method Fidelio.Construct -> : )
-(factory Sys.Fidelio Sys.IFidelio : (construct Fidelio))
-
-(function Main -> (Int32 result):
-	(Sys.IFidelio f (Sys.Fidelio))
-	(Sys.IFidelio g = f)
-	(g.Id -> result)
+(class Robot
+	(defines Stuff.IRobot)
+	(Int32 id)
 )
 
-(alias Main EntryPoint.Main)
-
+(method Robot.Construct (Int32 id): (this.id = id))
+(method Robot.Id -> (Int32 id): (id = this.id))
+(factory Stuff.Dreambot Stuff.IRobot (Int32 id): (construct Robot id))

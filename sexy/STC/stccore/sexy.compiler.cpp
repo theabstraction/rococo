@@ -315,7 +315,7 @@ namespace
 			Structure* s = new Structure(name, prototype, *intrinsics, underlyingType, NULL);
 			s->AddMember(NameString::From(("Value")), TypeString::From(name));
 			StructureMember& m = s->GetMemberRef(0);
-			if (!m.IsPseudoVariable()) m.SetSize(sizeOfType);
+			m.SetSize(sizeOfType);
 			s->Seal();
 			intrinsics->Structures().Register(s->Name(), *s);
 			return *s;

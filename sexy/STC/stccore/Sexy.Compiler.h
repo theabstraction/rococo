@@ -126,7 +126,7 @@ namespace Rococo { namespace Compiler
 		virtual IModuleBuilder& Module() = 0;
 		virtual void AddInterface(cstr interfaceFullName) = 0;		
 		virtual void AddMember(const NameString& name, const TypeString& type, cstr genericArg1 = nullptr, cstr genericArg2 = nullptr) = 0;
-		virtual void AddPseudoMember(const NameString& name, const TypeString& type) = 0;
+		virtual void AddInterfaceMember(const NameString& name, const TypeString& type) = 0;
 		virtual void Seal() = 0;
 		virtual IMemberBuilder& GetMember(int index) = 0;
 		virtual IInterfaceBuilder& GetInterface(int index) = 0;

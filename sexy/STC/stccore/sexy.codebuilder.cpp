@@ -578,18 +578,9 @@ namespace
 
 			int vOffset = v->Offset();
 
-			if (v->AllocSize() == 0)
+			if (v->Location() == VARLOCATION_TEMP && v->ResolvedType().InterfaceCount() > 0 && v->ResolvedType().Name()[0] == '_')
 			{
-				TokenBuffer refName;
-				GetRefName(refName, v->Name());
-
-				MemberDef def;
-				if (!TryGetVariableByName(def, refName))
-				{
-					Throw(0, "Expecting %s", (cstr)refName);
-				}
-
-				AssignVariableToTemp(refName, 0, 0);
+				AssignVariableToTemp(v->Name(), 0, 0);
 				Append_DecRef();
 			}
 			
@@ -853,7 +844,7 @@ namespace
 			{
 				def.MemberOffset += offset;
 				def.ResolvedType = member->UnderlyingType();			
-				def.AllocSize = member->IsPseudoVariable() ? 0 : member->SizeOfMember();
+				def.AllocSize = member->SizeOfMember();
 				return true;
 			}
 		}
@@ -1316,12 +1307,11 @@ namespace
 
 		if (IsPointerValid(&type))
 		{
-			TokenBuffer refName;
-			GetRefName(refName, name.c_str());
-			AddVariable(NameString::From(refName), f.Object().Common().TypePointer(), userData);
-			Variable *v = new Variable(Assembler().WritePosition(), name, type, sectionIndex, NULL, 0, VARLOCATION_NONE);
+			Variable *v = new Variable(Assembler().WritePosition(), name, type, sectionIndex, NULL, sizeof(InterfacePointer), VARLOCATION_TEMP);
 			variables.push_back(v);
 			v->SetStackPosition(nextOffset);
+			nextOffset += sizeof(void*);
+			Assembler().Append_StackAlloc(sizeof(void*));
 		}
 		else
 		{
@@ -1489,16 +1479,8 @@ namespace
 			}
 			if (s.Prototype().IsClass)
 			{
-				if (targetDef.AllocSize != 0)
-				{
-					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot copy %s %s. A class type can only be copied to a reference to class type"), GetFriendlyName(s), source);
-				}
-
-				TokenBuffer refName;
-				GetRefName(refName, target);
-
 				MemberDef refDef;
-				if (!builder.TryGetVariableByName(refDef, refName))
+				if (!builder.TryGetVariableByName(refDef, target))
 				{
 					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot copy %s %s. No associated reference to %s."), GetFriendlyName(s), source, target);
 				}
@@ -1529,13 +1511,10 @@ namespace
 				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Did not expect a member offset in the output %s"), target);
 			}
 
-			TokenBuffer sourceRef;
-			GetRefName(sourceRef, source);
-
 			MemberDef refDef;
-			if (!builder.TryGetVariableByName(OUT refDef, sourceRef))
+			if (!builder.TryGetVariableByName(OUT refDef, source))
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not find the reference for %s for variable. %s"), (cstr) sourceRef, (cstr) source);
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not find the reference for %s for variable. %s"), (cstr)source, (cstr) source);
 			}
 
 			assembler.Append_SetSFValueFromSFMemberRef(refDef.SFOffset, refDef.MemberOffset, targetDef.SFOffset, sizeof(size_t));
@@ -1609,11 +1588,8 @@ namespace
 
 		if (sourceDef.AllocSize == 0 && targetDef.Usage == ARGUMENTUSAGE_BYREFERENCE)
 		{
-			TokenBuffer refname;
-			GetRefName(refname, source);
-
 			MemberDef refSourceDef;
-			if (!TryGetVariableByName(OUT refSourceDef, refname))
+			if (!TryGetVariableByName(OUT refSourceDef, source))
 			{
 				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not resolve %s"), target);
 			}

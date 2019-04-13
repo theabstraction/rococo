@@ -651,9 +651,9 @@ namespace Rococo { namespace Script
 			const IMember& m = s.GetMember(i);			
 			const IStructure& memberType = *m.UnderlyingType();
 
-			if (IsPrimitiveType(memberType.VarType()) || m.IsPseudoVariable())
+			if (IsPrimitiveType(memberType.VarType()) || m.IsInterfaceVariable())
 			{
-				// primitive types are skipped, as are pseudo variables, as the pointers point to something that are destructed elsewhere
+				// primitive types are skipped, as are interface variables, as the pointers point to something that are destructed elsewhere
 			}
 			else	
 			{
@@ -661,7 +661,7 @@ namespace Rococo { namespace Script
 				AppendInvokeCallDestructor(ce, memberType, m.Name(), SFoffset + subOffset);	
 			}
 
-			subOffset += m.IsPseudoVariable() ? 0 : m.SizeOfMember();
+			subOffset += m.SizeOfMember();
 		}
 	}
 
@@ -735,11 +735,6 @@ namespace Rococo { namespace Script
 			ce.Builder.GetVariableByIndex(OUT def, OUT instanceName, backRef);
 			
 			if (def.SFOffset < 0) Throw(sequence, ("Algorithmic error #2 in deconstruction logic"));
-
-			if (def.Usage == ARGUMENTUSAGE_BYVALUE && def.ResolvedType->VarType() == VARTYPE_Derivative)
-			{
-				AppendInvokeDestructor(ce, instanceName, sequence, def);
-			}
 				
 			if (*def.ResolvedType == ce.Object.Common().TypeNode())
 			{

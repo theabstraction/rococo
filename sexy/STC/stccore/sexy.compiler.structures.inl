@@ -106,7 +106,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		members.push_back(m);
 	}
 
-	void Structure::AddPseudoMember(const NameString& _name, const TypeString& _type)
+	void Structure::AddInterfaceMember(const NameString& _name, const TypeString& _type)
 	{
 		if (isSealed)
 		{
@@ -161,17 +161,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			for(uint32 i = 0; i < members.size(); ++i)
 			{
 				size_t memberSize = members[i].SizeOfMember();
-				if (!members[i].IsPseudoVariable() && memberSize > 0)
-				{
-					totalSize += (int32) memberSize;
-				}
-				else
-				{
-					if (!members[i].IsPseudoVariable())
-					{
-						return 0;
-					}
-				}
+				totalSize += (int32) memberSize;
 			}
 			sizeOfStruct = totalSize;
 		}
@@ -328,7 +318,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			}
 		}
 		
-		return member.SizeOfMember() != 0 || member.IsPseudoVariable();
+		return member.SizeOfMember();
 	}
 
 	bool TryResolve(ILog& log, Structure& s, bool reportErrors)
@@ -387,7 +377,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 					if (AreEqual(member.Type(),nativeType.Name()))
 					{
 						member.SetUnderlyingType(&nativeType, NULL, NULL);
-						if (!member.IsPseudoVariable()) member.SetSize(nativeType.SizeOfStruct());
+						member.SetSize(nativeType.SizeOfStruct());
 						break;
 					}
 				}				

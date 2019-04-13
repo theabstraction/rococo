@@ -78,7 +78,7 @@ namespace Rococo { namespace Compiler
 				return &m;
 			}
 
-			offset += m.IsPseudoVariable() ? 0 : m.SizeOfMember();
+			offset += m.SizeOfMember();
 		}
 
 		return NULL;

@@ -651,10 +651,7 @@ namespace Rococo
          }
          else
          {
-			 TokenBuffer ref;
-			 GetRefName(ref, value);
-
-			 ce.Builder.AssignVariableToTemp(ref, Rococo::ROOT_TEMPDEPTH);
+			 ce.Builder.AssignVariableToTemp(value, Rococo::ROOT_TEMPDEPTH);
 			 ce.Builder.Append_GetAllocSize();
          }
       }

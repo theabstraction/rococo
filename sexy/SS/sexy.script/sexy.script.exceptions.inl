@@ -157,9 +157,7 @@ namespace Rococo
 
          AddSymbol(ce.Builder, "%s", exName);
 
-		 TokenBuffer refEx;
-		 GetRefName(refEx, exName);
-         ce.Builder.AssignVariableToTemp(refEx, 0 /* D4 */); // Push a ref to the exception on the stack
+         ce.Builder.AssignVariableToTemp(exName, 0 /* D4 */); // Push a ref to the exception on the stack
 
          AddArgVariable(("exception"), ce, ce.Object.Common().TypePointer());
          ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);

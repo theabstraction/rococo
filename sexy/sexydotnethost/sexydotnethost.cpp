@@ -461,7 +461,7 @@ namespace SexyDotNet { namespace Host
 			NativeVariableDesc desc;
 			CopyString(desc.Name, NativeVariableDesc::NAME_CAPACITY, childName);
 			CopyString(desc.Type, NativeVariableDesc::TYPE_CAPACITY, Compiler::GetTypeName(*member.UnderlyingType()));
-			if (member.IsPseudoVariable()) StringCat(desc.Type, ("(pseudo)"), NativeVariableDesc::TYPE_CAPACITY);
+			if (member.IsInterfaceVariable()) StringCat(desc.Type, ("(interface)"), NativeVariableDesc::TYPE_CAPACITY);
 
 			char value[NativeVariableDesc::VALUE_CAPACITY];
 			FormatValue(ss, value, NativeVariableDesc::VALUE_CAPACITY, member.UnderlyingType()->VarType(), sfItem);
@@ -473,11 +473,8 @@ namespace SexyDotNet { namespace Host
 			
 			listVars.push_back(desc);
 
-			if (!member.IsPseudoVariable())
-			{
-				ListVariableDescBuilder builder(listVars, parentKind);
-				GetMembers(ss, *member.UnderlyingType(), childName, sfItem, 0, builder);
-			}
+			ListVariableDescBuilder builder(listVars, parentKind);
+			GetMembers(ss, *member.UnderlyingType(), childName, sfItem, 0, builder);
 		}
 	};
 

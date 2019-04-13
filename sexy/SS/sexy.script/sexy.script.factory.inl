@@ -105,7 +105,7 @@ namespace Rococo
          }
       }
 
-      void CompileFactoryCall(CCompileEnvironment& ce, const IFactory& factory, cstr interfacePtrId, cr_sex args, const IInterface& interf)
+      void CompileFactoryCall(CCompileEnvironment& ce, const IFactory& factory, cstr interfaceRefName, cr_sex args, const IInterface& interf)
       {
          const IFunction& factoryFunction = factory.Constructor();
          const IFunction* inlineConstructor = factory.InlineConstructor();
@@ -123,9 +123,9 @@ namespace Rococo
 		 }
 
 		 MemberDef def;
-		 if (!ce.Builder.TryGetVariableByName(OUT def, interfacePtrId))
+		 if (!ce.Builder.TryGetVariableByName(OUT def, interfaceRefName))
 		 {
-			 Throw(0, "Error, cannot find variable %s ", interfacePtrId);
+			 Throw(0, "Error, cannot find variable %s ", interfaceRefName);
 		 }
 
          CodeSection section;
@@ -146,7 +146,7 @@ namespace Rococo
 
          RepairStack(ce, *args.Parent(), factoryFunction);
 
-		 ce.Builder.AssignTempToVariable(0, interfacePtrId);
+		 ce.Builder.AssignTempToVariable(0, interfaceRefName);
 
          ce.Builder.AssignClosureParentSF();
       }
@@ -181,29 +181,28 @@ namespace Rococo
 
          const IFactory& factory = GetFactoryInModule(factoryNameExpr, GetModule(ce.Script));
 
-		 TokenBuffer refId;
-		 GetRefName(refId, targetName);
+		 static int refId = 0;
+
+		 char refName[256];
+		 SafeFormat(refName, sizeof(refName), "_interfaceRef_%d", refId++);
 		 
-         CompileFactoryCall(ce, factory, refId, factoryCall, targetStruct.GetInterface(0));
+         CompileFactoryCall(ce, factory, refName, factoryCall, targetStruct.GetInterface(0));
 
          return true;
       }
 
-      void CompileConstructFromFactory(CCompileEnvironment& ce, const IStructure& nullType, cstr id, cr_sex args)
+      void CompileConstructFromFactory(CCompileEnvironment& ce, const IStructure& nullType, cstr interfaceRefName, cr_sex args)
       {
          // This function turns (<IInterface> id (<Factory> <arg1>...<argN>)) into assembly
 
-         AddSymbol(ce.Builder, ("%s %s"), GetFriendlyName(nullType), id);
+         AddSymbol(ce.Builder, ("%s %s"), GetFriendlyName(nullType), interfaceRefName);
 
-		 TokenBuffer refId;
-		 GetRefName(refId, id);
-
-		 AddInterfaceVariable(ce, NameString::From(id), nullType);
+		 AddInterfaceVariable(ce, NameString::From(interfaceRefName), nullType);
 
          cr_sex factoryExpr = GetAtomicArg(args, 0);
          const IFactory& factory = GetFactoryInModule(factoryExpr, GetModule(ce.Script));
 
-         CompileFactoryCall(ce, factory, refId, args, nullType.GetInterface(0));
+         CompileFactoryCall(ce, factory, interfaceRefName, args, nullType.GetInterface(0));
       }
    }//Script
 }//Sexy

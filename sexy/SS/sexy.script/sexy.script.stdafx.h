@@ -537,7 +537,6 @@ namespace Rococo
       void AddArgVariable(cstr desc, CCompileEnvironment& ce, const TypeString& type);
       void AddArgVariable(cstr desc, CCompileEnvironment& ce, const IStructure& type);
       void AddVariable(CCompileEnvironment& ce, const NameString& ns, const TypeString& ts);
-      bool IsPseudoVariable(const MemberDef& def);
       int PushInputs(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, bool isImplicitInput, int firstArgIndex);
       int CompileInstancePointerArg(CCompileEnvironment& ce, cstr classInstance);
       void AppendFunctionCallAssembly(CCompileEnvironment& ce, const IFunction& callee);

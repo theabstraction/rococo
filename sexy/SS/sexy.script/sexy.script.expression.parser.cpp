@@ -64,7 +64,7 @@ namespace Rococo
 					break;							
 				}
 
-				offset += member.IsPseudoVariable() ? 0 : member.SizeOfMember();
+				offset += member.SizeOfMember();
 			}
 
 			return offset;
@@ -90,14 +90,10 @@ namespace Rococo
 
 		void PushVariableRef(cr_sex s, ICodeBuilder& builder, const MemberDef& def, cstr name, int interfaceIndex)
 		{
-			if (def.AllocSize == 0 || (IsNullType(*def.ResolvedType) && def.IsContained))
+			if (IsNullType(*def.ResolvedType))
 			{
-				// Pseudo variable
-				TokenBuffer refName;
-				GetRefName(refName, name);
-
 				MemberDef refDef;
-				builder.TryGetVariableByName(OUT refDef, refName);
+				builder.TryGetVariableByName(OUT refDef, name);
 
 				if (interfaceIndex == 0 || interfaceIndex == 1)
 				{
@@ -234,10 +230,7 @@ namespace Rococo
 					IInterfaceBuilder* interf = MatchInterface(argTypeExpr, s.Module());
 					if (interf != NULL)
 					{
-						TokenBuffer memberRefName; 
-						GetRefName(memberRefName, nameExpr.String()->Buffer);
-						s.AddPseudoMember(NameString::From(nameExpr.String()), TypeString::From(type));
-						s.AddMember(NameString::From(memberRefName), TypeString::From(("Sys.Type.Pointer")));
+						s.AddInterfaceMember(NameString::From(nameExpr.String()), TypeString::From(type));
 					}
 					else
 					{
@@ -464,22 +457,16 @@ namespace Rococo
 						Throw(directive, "Could assign variable to itself. Tautology is redundant");
 					}
 
-					TokenBuffer srcRef;
-					GetRefName(srcRef, sourceText);
-
-					TokenBuffer targetRef;
-					GetRefName(targetRef, targetVariable);
-
 					if (!explicitKeyword)
 					{
-						ce.Builder.AssignVariableToTemp(targetRef, 0);
+						ce.Builder.AssignVariableToTemp(targetVariable, 0);
 						// The target is already pointing to an object, so decrement its ref count
 						ce.Builder.Append_DecRef();
 					}
 
-					ce.Builder.AssignVariableToTemp(srcRef, 0);
+					ce.Builder.AssignVariableToTemp(sourceText, 0);
 					ce.Builder.Append_IncRef();
-					ce.Builder.AssignTempToVariable(0, targetRef);
+					ce.Builder.AssignTempToVariable(0, targetVariable);
 				}
 				else
 				{
@@ -494,12 +481,8 @@ namespace Rococo
 						VariantValue sexPtr;
 						sexPtr.vPtrValue = (void*) &express->Header.pVTables[0]; // sexPtr is the interface ptr, not the instance ptr
 
-						TokenBuffer token;
-						GetRefName(token, targetVariable);
-						ce.Builder.AddSymbol(("Current Expression"));
-
 						MemberDef def;
-						ce.Builder.TryGetVariableByName(OUT def, token);
+						ce.Builder.TryGetVariableByName(OUT def, targetVariable);
 
 						ce.Builder.Assembler().Append_SetStackFrameImmediate(def.SFOffset + def.MemberOffset, sexPtr, BITCOUNT_POINTER);
 						return;
@@ -511,12 +494,10 @@ namespace Rococo
 						if (targetType == VARTYPE_Derivative)
 						{
 							// If a function returns a derivative type then it returns a pointer to a derivative type
-							TokenBuffer refTarget;
-							GetRefName(refTarget, targetVariable);
 
-							StringPrint(symbol, ("-> %s"), (cstr) refTarget);
+							StringPrint(symbol, ("-> %s"), (cstr) targetVariable);
 							ce.Builder.AddSymbol(symbol);
-							ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, refTarget);
+							ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
 						}
 						else if (targetType == VARTYPE_Closure)
 						{	
@@ -626,13 +607,11 @@ namespace Rococo
 					return;
 				}			
 				break;
-			case VARTYPE_Derivative: // Function returns a pointer to a derivative type
+			case VARTYPE_Derivative: // Function returns a pointer to an interface
 				if (TryCompileFunctionCallAndReturnValue(ce, sourceValue, targetType, &varStruct, NULL))
 				{				
-					TokenBuffer refTarget;
-					GetRefName(refTarget, targetVariable);
 					ce.Builder.AddSymbol(symbol);
-					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, refTarget);
+					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
 					return;
 				}			
 				break;
@@ -724,15 +703,12 @@ namespace Rococo
 				sexstring valueStr = src.String();
 				CStringConstant* sc = CreateStringConstant(ce.Script, valueStr->Length, valueStr->Buffer, &src);
 
-				TokenBuffer refName;
-				GetRefName(refName, variableName);
-
 				VariantValue ptrToConstant;
 				ptrToConstant.vPtrValue = sc->header.pVTables;
 
 				AddSymbol(ce.Builder, "'%s'", valueStr->Buffer);
 				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, ptrToConstant, BITCOUNT_POINTER);
-				ce.Builder.AssignTempToVariable(0, refName);
+				ce.Builder.AssignTempToVariable(0, variableName);
 			}
 			else
 			{
@@ -1295,31 +1271,24 @@ namespace Rococo
 				{
 					if (memberType->Prototype().IsClass)
 					{
-						if (!member.IsPseudoVariable()) InitClassMember(ce, sfMemberOffset, *memberType);					
-						// Whenever we have a null member we have a null member ref prefixed with '_ref_'
-
 						if (IsNullType(*memberType))
 						{
-							TokenBuffer reftoken;
-							GetRefName(reftoken, member.Name());
-
-							int refOffset = 0;
-							const IMember* refMember = FindMember(s, reftoken, REF refOffset);
-							if (!member.IsPseudoVariable())
+							if (!member.IsInterfaceVariable())
 							{
 								ce.Builder.Assembler().Append_GetStackFrameAddress(VM::REGISTER_D4, sfMemberOffset + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0); // &interface1
-								ce.Builder.Assembler().Append_SetStackFrameValue(refOffset, VM::REGISTER_D4, BITCOUNT_POINTER); // _ref_instance = &interface1
+								ce.Builder.Assembler().Append_SetStackFrameValue(sfMemberOffset, VM::REGISTER_D4, BITCOUNT_POINTER); // _ref_instance = &interface1
 							}
 							else
 							{
 								VariantValue v;
 								auto& instance = *memberType->GetInterface(0).UniversalNullInstance();
 								v.vPtrValue = &instance.pVTables;
-								ce.Builder.Assembler().Append_SetStackFrameImmediate(refOffset, v, BITCOUNT_POINTER);
+								ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset, v, BITCOUNT_POINTER);
 							}
 						}
 						else
 						{
+							InitClassMember(ce, sfMemberOffset, *memberType);
 							InitSubmembers(ce, *memberType, sfMemberOffset);
 						}
 					}
@@ -1332,7 +1301,7 @@ namespace Rococo
 				{
 				}
 
-				sfMemberOffset += member.IsPseudoVariable() ? 0 : member.SizeOfMember(); 
+				sfMemberOffset += member.SizeOfMember();
 			}
 		}
 
@@ -1491,13 +1460,10 @@ namespace Rococo
 			CStringConstant* sc = CreateStringConstant(ce.Script, valueStr->Length, valueStr->Buffer, &value);
 
 			AddSymbol(ce.Builder, ("StringConstant %s"), id);
-
-			TokenBuffer stringRef;
-			GetRefName(stringRef, id);
 			AddInterfaceVariable(ce, NameString::From(id), ce.Object.Common().SysTypeIString().NullObjectType());
 				
 			MemberDef ptrDef;
-			ce.Builder.TryGetVariableByName(OUT ptrDef, stringRef);
+			ce.Builder.TryGetVariableByName(OUT ptrDef, id);
 				
 			cstr format = (value.String()->Length > 24) ? (" = '%.24s...'") : (" = '%s'");
 			AddSymbol(ce.Builder, format, (cstr) value.String()->Buffer);
@@ -1534,14 +1500,6 @@ namespace Rococo
 			return false;
 		}
 
-		void AddPointerToInterface(CCompileEnvironment& ce, cstr id, const IStructure& nullType)
-		{
-			TokenBuffer declText;
-			StringPrint(declText, ("%s* %s"), GetFriendlyName(nullType), id);
-
-			AddInterfaceVariable(ce, NameString::From(id), nullType);
-		}
-
 		void CompileAsExpressionArg(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex decl)
 		{
 			if (type.InterfaceCount() == 0 || &type.GetInterface(0) != &ce.Object.Common().SysTypeIExpression())
@@ -1552,11 +1510,8 @@ namespace Rococo
 
 			cr_sex expression = decl.GetElement(4);
 
-			AddPointerToInterface(ce, id, type);
-
-			TokenBuffer refName;
-			GetRefName(refName, id);
-			CompileAssignExpressionDirective(ce, expression, refName);
+			AddInterfaceVariable(ce, NameString::From(id), type);
+			CompileAssignExpressionDirective(ce, expression, id);
 		}
 
 		void CompileAsNodeValueAssign(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex decl)
@@ -1636,9 +1591,6 @@ namespace Rococo
 				Throw(decl, "Expecting at least one interface for the class object");
 			}
 
-			TokenBuffer refName;
-			GetRefName(refName, id);
-
 			AddSymbol(ce.Builder, ("%s %s"), GetFriendlyName(st), id);
 			AssertDefaultConstruction(ce, decl, st);
 			AddInterfaceVariable(ce, NameString::From(id), st);
@@ -1647,7 +1599,7 @@ namespace Rococo
 			value.vPtrValue = GetInterfacePtrFromNullInstancePtr(st.GetInterface(0).UniversalNullInstance());
 
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, value, BITCOUNT_POINTER);
-			ce.Builder.AssignTempToVariable(0, refName);
+			ce.Builder.AssignTempToVariable(0, id);
 		}
 
 		void CompileAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& st, cstr id, cr_sex decl, bool initializeValues)
@@ -1684,7 +1636,7 @@ namespace Rococo
 
 				if (IsDeclarationAssignment(decl))
 				{
-					AddPointerToInterface(ce, id, type);
+					AddInterfaceVariable(ce, NameString::From(id), type);
 					CompileAssignmentDirective(ce, decl, type, true);
 					return;
 				}
@@ -2199,12 +2151,9 @@ namespace Rococo
 			}
 			else
 			{
-				TokenBuffer fromRefName;
-				GetRefName(fromRefName, fromName->Buffer);
-
-				if (!ce.Builder.TryGetVariableByName(refDef, fromRefName))
+				if (!ce.Builder.TryGetVariableByName(refDef, fromName->Buffer))
 				{
-					Throw(fromNameExpr, "Could not resolve variable %s", fromRefName);
+					Throw(fromNameExpr, "Could not resolve variable %s", fromName->Buffer);
 				}
 
 				ce.Builder.PushVariable(refDef);
@@ -2527,9 +2476,7 @@ namespace Rococo
 				ce.Builder.AssignVariableToVariable(sourceName, outputName);
 			}
 
-			TokenBuffer refSourceName;
-			GetRefName(refSourceName, sourceName);
-			ce.Builder.AssignVariableToTemp(refSourceName, 0); // source goes to D4
+			ce.Builder.AssignVariableToTemp(sourceName, 0); // source goes to D4
 			ce.Builder.Append_IncRef();
 		}
 
@@ -2647,10 +2594,7 @@ namespace Rococo
 			else
 			{
 				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, ptrToStringConstant, BITCOUNT_POINTER);
-
-				TokenBuffer refName;
-				GetRefName(refName, variableName);
-				ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, refName);
+				ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, variableName);
 			}
 		}
 

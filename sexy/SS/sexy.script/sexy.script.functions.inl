@@ -35,11 +35,6 @@ namespace Rococo
 { 
    namespace Script
    {
-      bool IsPseudoVariable(const MemberDef& def)
-      {
-	      return def.AllocSize == 0;
-      }
-
       int PushInputs(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, bool isImplicitInput, int firstArgIndex)
       {
 	      int inputStackAllocCount = 0;
@@ -1001,16 +996,8 @@ namespace Rococo
 	      MemberDef instanceDef;
 	      ce.Builder.TryGetVariableByName(OUT instanceDef, instance);
 
-	      if (instanceDef.AllocSize == 0)
+	      if (instanceDef.location == VARLOCATION_TEMP && instanceDef.ResolvedType->Name()[0] == '_')
 	      {
-		      // <instance> is a pseudo variable, and _ref_<instance> is a pointer to the correct interface
-
-		      TokenBuffer refName;
-			  GetRefName(refName, instance);
-
-			  MemberDef refDef;
-			  ce.Builder.TryGetVariableByName(OUT refDef, refName);
-
 		      TokenBuffer fqItemName;
 		      StringPrint(fqItemName, ("%s.%s"), instance, item);
 
@@ -1019,11 +1006,11 @@ namespace Rococo
 
 		      BITCOUNT bitCount = GetBitCount(returnType);
 
-		      if (refDef.IsParentValue)	{	ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+		      if (itemDef.IsParentValue)	{	ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
 
-			  ce.Builder.Assembler().Append_GetStackFrameMember(VM::REGISTER_D7, refDef.SFOffset, itemDef.MemberOffset - interfaceToInstanceOffsetByRef, (BITCOUNT) (8 * itemDef.ResolvedType->SizeOfStruct()));
+			  ce.Builder.Assembler().Append_GetStackFrameMember(VM::REGISTER_D7, itemDef.SFOffset, itemDef.MemberOffset - interfaceToInstanceOffsetByRef, (BITCOUNT) (8 * itemDef.ResolvedType->SizeOfStruct()));
 			
-		      if (refDef.IsParentValue)	{	ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+		      if (itemDef.IsParentValue)	{	ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
 	      }
 	      else
 	      {
@@ -1404,16 +1391,6 @@ namespace Rococo
       {	
 	      MemberDef refDef;
 	      builder.TryGetVariableByName(OUT refDef, instanceName);
-
-	      if (IsPseudoVariable(refDef))
-	      {
-		      TokenBuffer refInstance;
-		      GetRefName(refInstance, instanceName);
-		      if (!builder.TryGetVariableByName(OUT refDef, refInstance))
-		      {
-			      Throw(s, ("Internal Compiler Error: Expecting reference to an instance alongside the pseudovariable for the instance"));
-		      }
-	      }
 		
 	      const IArchetype& arch = interf.GetMethod(methodIndex);
 		
@@ -1423,54 +1400,24 @@ namespace Rococo
 
 	      int vTableByteOffset = (methodIndex+1) * sizeof(ID_BYTECODE);
 
-	      if (refDef.Usage == ARGUMENTUSAGE_BYVALUE)
+	      if (IsNullType(*refDef.ResolvedType))
 	      {
-		      if (refDef.ResolvedType->VarType() == VARTYPE_Pointer)
-		      {
-				  builder.Assembler().Append_CallVitualFunctionViaRefOnStack(refDef.SFOffset, vTableByteOffset);
-			//      builder.Assembler().Append_CallVirtualFunctionByAddress(refDef.SFOffset + refDef.MemberOffset, vTableByteOffset);
-		      }
-		      else
-		      {
-			      // Assume refDef is a concrete class, on the stack by value
-			      for(int i = 0; i < refDef.ResolvedType->InterfaceCount(); ++i)
-			      {
-				      if (&refDef.ResolvedType->GetInterface(i) == &interf)
-				      {
-					      // Concrete class
-						  int sfOffset = refDef.SFOffset + refDef.MemberOffset + i * sizeof(size_t) + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0;
-					      builder.Assembler().Append_CallVirtualFunctionByAddress(sfOffset, vTableByteOffset);
-					      return;
-				      }
-			      }
-
-			      sexstringstream<1024> streamer;
-			      streamer.sb << ("No interface ") << interf.Name() << (" supported by ") << refDef.ResolvedType->Name();
-			      Throw(s, streamer);
-		      }		
+		      builder.Assembler().Append_CallVitualFunctionViaRefOnStack(refDef.SFOffset, vTableByteOffset);	
 	      }
-	      else
-	      {
-		      if (AreEqual(refDef.ResolvedType->Name(), ("_Null"), 5))
-		      {
-			      // We are actually dealing with an interface pointer
-			      builder.Assembler().Append_CallVitualFunctionViaRefOnStack(refDef.SFOffset, vTableByteOffset);
-		      }
-		      else
-		      {
-			      // We have a reference to a concrete object, an instance pointer
+		  else
+		  {
+				// We have a reference to a concrete object, an instance pointer
 
-			      for(int i = 0; i < refDef.ResolvedType->InterfaceCount(); ++i)
-			      {
-				      if (&refDef.ResolvedType->GetInterface(i) == &interf)
-				      {
-					      // Concrete class
-					      int instanceToInterfaceOffset = Compiler::GetInstanceToInterfaceOffset(i) + refDef.MemberOffset;
-					      builder.Assembler().Append_CallVitualFunctionViaRefOnStack(refDef.SFOffset, vTableByteOffset, instanceToInterfaceOffset);
-					      return;
-				      }
-			      }
-		      }
+				for(int i = 0; i < refDef.ResolvedType->InterfaceCount(); ++i)
+				{
+					if (&refDef.ResolvedType->GetInterface(i) == &interf)
+					{
+						// Concrete class
+						int instanceToInterfaceOffset = Compiler::GetInstanceToInterfaceOffset(i) + refDef.MemberOffset;
+						builder.Assembler().Append_CallVitualFunctionViaRefOnStack(refDef.SFOffset, vTableByteOffset, instanceToInterfaceOffset);
+						return;
+					}
+				}
 	      }					
       }
 
@@ -1890,30 +1837,12 @@ namespace Rococo
 		      Throw(s, ("Only classes, containers and nodes support methods."));
 	      }
 
-	      cstr srcVariable;
-
-	      TokenBuffer instanceRef;
-
-	      // def.AllocSize = 0 => pseudo variable, backed by _ref_XXX. _ suggest prefix of a null instance, which can be overwritten with a derived class, so use the ref
-	      if ((def.AllocSize == 0 || c.Name()[0] == char('_')) && def.Usage == ARGUMENTUSAGE_BYVALUE)
-	      {			
-		      GetRefName(instanceRef, instanceName);
-			
-		      MemberDef refDef;
-		      if (!ce.Builder.TryGetVariableByName(OUT refDef, IN instanceRef))
-		      {
-			      Throw(s, ("Expecting an instance reference associated with the instance."));
-		      }
-	      }
-
-		  srcVariable = instanceName;
-
 	      OUT int interfaceIndex, OUT methodIndex;
 	      if (GetMethodIndices(OUT interfaceIndex, OUT methodIndex, c, methodName))
 	      {
 		      const IInterface& interf = c.GetInterface(interfaceIndex);
 		      const IArchetype& method = interf.GetMethod(methodIndex);
-		      CompileVirtualCall(ce, method, s, interfaceIndex, methodIndex, srcVariable, interf);
+		      CompileVirtualCall(ce, method, s, interfaceIndex, methodIndex, instanceName, interf);
 		      return true;
 	      }
 

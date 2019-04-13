@@ -202,20 +202,6 @@ namespace Rococo
 		return true;
 	}
 
-	void GetRefName(TokenBuffer& token, cstr name)
-	{
-		NamespaceSplitter splitter(name);
-		cstr root, tail;
-		if (splitter.SplitTail(root, tail))
-		{
-			SafeFormat(token.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s._ref_%s"), root, tail);
-		}
-		else
-		{
-         SafeFormat(token.Text, TokenBuffer::MAX_TOKEN_CHARS, ("_ref_%s"), name);
-		}
-	}
-
    int CALLTYPE_C StringPrint(TokenBuffer& token, const char* format, ...)
    {
       va_list args;

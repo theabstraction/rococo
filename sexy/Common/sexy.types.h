@@ -125,8 +125,6 @@ namespace Rococo
 
 	typedef sexstring_header* sexstring;
 
-	void GetRefName(OUT TokenBuffer& token, cstr name);
-
 	bool TryParseSexHex(char& finalChar, cstr s);
 	bool ParseEscapeCharacter(char& finalChar, char c);
 

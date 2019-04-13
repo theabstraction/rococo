@@ -11484,12 +11484,9 @@ namespace
 	void RunPositiveSuccesses()
 	{
 		validate(true);
-		TEST(TestReturnInterfaceEx);
-
 		TEST(TestAddRefWithLocalVariable);
-
+		TEST(TestReturnInterfaceEx);
 		TEST(TestGetSysMessage);
-
 		TEST(TestMemberwiseInit);
 		TEST(TestNullMemberInit);
 		TEST(TestConstructor);

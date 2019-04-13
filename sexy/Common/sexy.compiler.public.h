@@ -281,7 +281,7 @@ namespace Rococo {
 			virtual const IStructure* UnderlyingType() const = 0;
 			virtual const IStructure* UnderlyingGenericArg1Type() const = 0;
 			virtual const IStructure* UnderlyingGenericArg2Type() const = 0;
-			virtual bool IsPseudoVariable() const = 0;
+			virtual bool IsInterfaceVariable() const = 0;
 		};
 
 		ROCOCOAPI IStructure

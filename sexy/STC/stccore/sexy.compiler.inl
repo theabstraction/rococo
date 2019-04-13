@@ -370,24 +370,24 @@ namespace Rococo { namespace Compiler { namespace Impl
 		IStructureBuilder* underlyingType;
 		IStructureBuilder* underlyingGenericArg1Type;
 		IStructureBuilder* underlyingGenericArg2Type;
-		bool isPseudoVariable;
+		bool isInterfaceRef;
 	public:
 		void SetUnderlyingType(IStructureBuilder* _underlyingType, IStructureBuilder* _genericArg1Type, IStructureBuilder* _genericArg2Type)
 		{
 			underlyingType = _underlyingType;
 			underlyingGenericArg1Type = _genericArg1Type;
 			underlyingGenericArg2Type = _genericArg2Type;
-			sizeOfMember = (underlyingType == NULL) ? 0 : (isPseudoVariable ? 0 : underlyingType->SizeOfStruct());		
+			sizeOfMember = (underlyingType == NULL) ? 0 : (isInterfaceRef ? sizeof(void*) : underlyingType->SizeOfStruct());
 		}
 
-		StructureMember(cstr _name, cstr _type, cstr _genericArg1Type, cstr _genericArg2Type, bool _isPseudoVariable = false):
+		StructureMember(cstr _name, cstr _type, cstr _genericArg1Type, cstr _genericArg2Type, bool _isInterfaceRef = false):
 			name(_name), typeDesc(_type), underlyingType(NULL), genericArg1Type(_genericArg1Type),  genericArg2Type(_genericArg2Type), sizeOfMember(0),
-			underlyingGenericArg1Type(NULL), underlyingGenericArg2Type(NULL), isPseudoVariable(_isPseudoVariable) {}
+			underlyingGenericArg1Type(NULL), underlyingGenericArg2Type(NULL), isInterfaceRef(_isInterfaceRef) {}
 
-		StructureMember(): underlyingType(NULL), sizeOfMember(0), underlyingGenericArg1Type(NULL), underlyingGenericArg2Type(NULL), isPseudoVariable(false)  {}
+		StructureMember(): underlyingType(NULL), sizeOfMember(0), underlyingGenericArg1Type(NULL), underlyingGenericArg2Type(NULL), isInterfaceRef(false)  {}
 
 		StructureMember(cstr _name, IStructureBuilder& type, IStructureBuilder* _genericArg1Type, IStructureBuilder* _genericArg2Type):
-			name(_name), typeDesc(type.Name()), sizeOfMember(type.SizeOfStruct()), isPseudoVariable(false),
+			name(_name), typeDesc(type.Name()), sizeOfMember(type.SizeOfStruct()), isInterfaceRef(false),
 				genericArg1Type(_genericArg1Type == NULL ? ("") : _genericArg1Type->Name()),
 				genericArg2Type(_genericArg2Type == NULL ? ("") : _genericArg2Type->Name())
 		{
@@ -396,16 +396,16 @@ namespace Rococo { namespace Compiler { namespace Impl
 			underlyingGenericArg2Type = _genericArg2Type;
 		}
 
-		virtual const bool IsResolved() const { return sizeOfMember != 0; }
-		virtual cstr Name() const		{ return name.c_str(); }
-		virtual const int SizeOfMember() const	{	return sizeOfMember; }
-		virtual const IStructure* UnderlyingType() const { return underlyingType; }
-		virtual IStructureBuilder* UnderlyingType() { return underlyingType; }
-		virtual const IStructure* UnderlyingGenericArg1Type() const { return underlyingGenericArg1Type; }
-		virtual IStructureBuilder* UnderlyingGenericArg1Type() { return underlyingGenericArg1Type; }
-		virtual const IStructure* UnderlyingGenericArg2Type() const { return underlyingGenericArg2Type; }
-		virtual IStructureBuilder* UnderlyingGenericArg2Type() { return underlyingGenericArg2Type; }
-		virtual bool IsPseudoVariable() const { return isPseudoVariable; }
+		const bool IsResolved() const override { return sizeOfMember != 0; }
+		cstr Name() const	override { return name.c_str(); }
+		const int SizeOfMember() const	override {	return sizeOfMember; }
+		const IStructure* UnderlyingType() const override { return underlyingType; }
+		IStructureBuilder* UnderlyingType() override { return underlyingType; }
+		const IStructure* UnderlyingGenericArg1Type() const override { return underlyingGenericArg1Type; }
+		IStructureBuilder* UnderlyingGenericArg1Type() override { return underlyingGenericArg1Type; }
+		const IStructure* UnderlyingGenericArg2Type() const override { return underlyingGenericArg2Type; }
+		IStructureBuilder* UnderlyingGenericArg2Type() override { return underlyingGenericArg2Type; }
+		bool IsInterfaceVariable() const override { return isInterfaceRef; }
 
 		cstr Type() const { return typeDesc.c_str(); }
 		cstr GenericArg1Type() const { return genericArg1Type.c_str(); }
@@ -446,7 +446,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		virtual IInterfaceBuilder& GetInterface(int index);
 
 		virtual void AddMember(const NameString& _name, const TypeString& _type, cstr _genericArgType1 = NULL, cstr _genericArgType2 = NULL);
-		virtual void AddPseudoMember(const NameString& _name, const TypeString& _type);
+		virtual void AddInterfaceMember(const NameString& _name, const TypeString& _type);
 		virtual void Seal();
 		virtual int MemberCount() const;
 		virtual IProgramObject& Object();
