@@ -746,7 +746,7 @@ namespace Rococo
 				   const void** ppData = (const void**) pVariableData;
                PROTECT
 				   {
-					   FormatVariableDesc(variable, "0x%p (-> 0x%p)", pVariableData, *ppData);
+					   FormatVariableDesc(variable, "%p -> %p", pVariableData, *ppData);
 				   }
                CATCH  
 				   {
@@ -839,23 +839,7 @@ namespace Rococo
 
 	   SCRIPTEXPORT_API const Rococo::uint8* GetInstance(const MemberDef& def, const IStructure* pseudoType, const Rococo::uint8* SF)
 	   {
-		   if (pseudoType != NULL)
-		   {
-			   const Rococo::uint8* instancePtr = *(const Rococo::uint8**) (SF + def.SFOffset);
-			   return instancePtr;
-		   }
-		   else
-		   {
-			   if (def.Usage == Rococo::Compiler::ARGUMENTUSAGE_BYREFERENCE)
-			   {
-				   const Rococo::uint8** ppInstance = (const Rococo::uint8**) (SF + def.SFOffset);
-				   return *ppInstance;
-			   }
-			   else
-			   {
-				   return SF + def.SFOffset;
-			   }
-		   }
+		   return SF + def.SFOffset;
 	   }
 
 	   SCRIPTEXPORT_API cstr GetShortName(const Rococo::Compiler::IStructure& s)

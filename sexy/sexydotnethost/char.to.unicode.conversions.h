@@ -158,7 +158,7 @@ namespace
 			}
 			break;
 		case VARTYPE_Derivative:
-         SafeFormat(rvalue, bufferLen, (""));
+         SafeFormat(rvalue, bufferLen, "%p -> %p", pVariableData, *(void**)pVariableData);
 			break;
 		case VARTYPE_Int32:
 			{

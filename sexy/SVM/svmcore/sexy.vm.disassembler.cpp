@@ -761,7 +761,18 @@ namespace
 		int32 targetMemberSF =(int8) I.Opmod2;
 		int32 sourceSF = (int8) I.Opmod3;
 
-		format(rep, ("SF(%d.%d)=SF(%d)"), targetSF, targetMemberSF, sourceSF);
+		format(rep, ("SF(%d.%d)=SF(%d) 32-bit"), targetSF, targetMemberSF, sourceSF);
+
+		rep.ByteCount += 4;
+	}
+
+	void FormatSetSFMemberByRefFromSFByValue64(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+		int32 targetSF = (int8)I.Opmod1;
+		int32 targetMemberSF = (int8)I.Opmod2;
+		int32 sourceSF = (int8)I.Opmod3;
+
+		format(rep, ("SF(%d.%d)=SF(%d) 64-bit"), targetSF, targetMemberSF, sourceSF);
 
 		rep.ByteCount += 4;
 	}
@@ -1131,6 +1142,7 @@ namespace
 		EnableFormatter(GetGlobal);
 		EnableFormatter(SetGlobal);
 		EnableFormatter(GetStackFrameValueAndExtendToPointer);
+		EnableFormatter(SetSFMemberByRefFromSFByValue64);
 	}
 
 	class Disassembler final: public IDisassembler

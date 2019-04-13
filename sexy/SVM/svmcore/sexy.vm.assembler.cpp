@@ -749,6 +749,10 @@ namespace
 			{
 				AddFourByteInstruction(Opcodes::SetSFMemberByRefFromSFByValue32, (int8)targetSFOffset, (int8) targetMemberOffset, (int8) SFSourceValueOffset);
 			}
+			else if (IsToInt8Lossless(targetSFOffset) && IsToInt8Lossless(targetMemberOffset) && IsToInt8Lossless(SFSourceValueOffset) && nBytesSource == 8)
+			{
+				AddFourByteInstruction(Opcodes::SetSFMemberByRefFromSFByValue64, (int8)targetSFOffset, (int8)targetMemberOffset, (int8)SFSourceValueOffset);
+			}
 			else
 			{
 				Append_GetStackFrameMemberPtr(VM::REGISTER_D5, targetSFOffset, targetMemberOffset);

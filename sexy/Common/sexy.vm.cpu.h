@@ -138,6 +138,7 @@ namespace Rococo { namespace VM
 			SetSFValueFromSFValue32,
 			SetStackFrameValueFar,
 			SetSFMemberByRefFromSFByValue32,
+			SetSFMemberByRefFromSFByValue64,
 			SetSFValueFromSFMemberByRef32,
 			SetSFMemberByRefFromRegister32,
 			SetSFMemberByRefFromRegisterLong,

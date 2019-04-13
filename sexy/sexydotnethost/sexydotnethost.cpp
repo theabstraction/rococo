@@ -395,7 +395,7 @@ namespace SexyDotNet { namespace Host
 				__try
 				{
 					const void* pData = *ppData;
-					_snwprintf_s(unicodeValue, _TRUNCATE, L"%p (-> %p)", pVariableData, pData);
+					_snwprintf_s(unicodeValue, _TRUNCATE, L"%p -> %p", pVariableData, pData);
 				}
 				__except(1)
 				{

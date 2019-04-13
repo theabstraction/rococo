@@ -1631,6 +1631,7 @@ namespace
 				{
 					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot handle this case for a closure upvalue"));
 				}
+
 				Assembler().Append_CopySFVariable(targetDef.SFOffset + targetDef.MemberOffset, sourceDef.SFOffset + sourceDef.MemberOffset, nBytesSource);
 			}
 		}
@@ -1671,6 +1672,17 @@ namespace
 		else // source is by value, target is by ref, oft used by set accessors
 		{
 			size_t nBytesSource = sourceDef.AllocSize;
+
+			if (IsNullType(*sourceDef.ResolvedType))
+			{
+				// Source is a pointer to an interface, Target is a reference
+
+				if (targetDef.location == VARLOCATION_OUTPUT)
+				{
+					Assembler().Append_SetSFValueFromSFValue(targetDef.SFOffset, sourceDef.SFOffset, BITCOUNT_POINTER);
+					return;
+				}
+			}
 
 			if (targetDef.IsParentValue || sourceDef.IsParentValue)
 			{

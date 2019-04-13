@@ -262,6 +262,7 @@ namespace
 			ActivateInstruction(SetStackFrameValue64);
 			ActivateInstruction(SetStackFrameValueFar);
 			ActivateInstruction(SetSFMemberByRefFromSFByValue32);
+			ActivateInstruction(SetSFMemberByRefFromSFByValue64);
 			ActivateInstruction(SetSFValueFromSFMemberByRef32);
 			ActivateInstruction(SetSFMemberByRefFromRegister32);
 			ActivateInstruction(SetSFMemberByRefFromRegisterLong);
@@ -946,6 +947,22 @@ namespace
 
 			const uint8* pValue = cpu.SF() + sourceSF;
 			*((int32*) pMember) = *((const int32*) pValue);
+
+			cpu.AdvancePC(4);
+		}
+
+		OPCODE_CALLBACK(SetSFMemberByRefFromSFByValue64)
+		{
+			const Ins* I = NextInstruction();
+			int32 targetSF = (int8)I->Opmod1;
+			int32 targetMemberSF = (int8)I->Opmod2;
+			int32 sourceSF = (int8)I->Opmod3;
+
+			void** ppTarget = (void**)(cpu.SF() + targetSF);
+			uint8* pMember = ((uint8*)*ppTarget) + targetMemberSF;
+
+			const uint8* pValue = cpu.SF() + sourceSF;
+			*((int64*)pMember) = *((const int64*)pValue);
 
 			cpu.AdvancePC(4);
 		}
