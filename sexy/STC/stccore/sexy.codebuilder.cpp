@@ -1316,6 +1316,9 @@ namespace
 
 		if (IsPointerValid(&type))
 		{
+			TokenBuffer refName;
+			GetRefName(refName, name.c_str());
+			AddVariable(NameString::From(refName), f.Object().Common().TypePointer(), userData);
 			Variable *v = new Variable(Assembler().WritePosition(), name, type, sectionIndex, NULL, 0, VARLOCATION_NONE);
 			variables.push_back(v);
 			v->SetStackPosition(nextOffset);

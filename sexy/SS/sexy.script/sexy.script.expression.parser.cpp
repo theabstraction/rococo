@@ -1494,8 +1494,6 @@ namespace Rococo
 
 			TokenBuffer stringRef;
 			GetRefName(stringRef, id);
-			AddVariable(ce, NameString::From(stringRef), ce.Object.Common().TypePointer());
-
 			AddInterfaceVariable(ce, NameString::From(id), ce.Object.Common().SysTypeIString().NullObjectType());
 				
 			MemberDef ptrDef;
@@ -1541,11 +1539,6 @@ namespace Rococo
 			TokenBuffer declText;
 			StringPrint(declText, ("%s* %s"), GetFriendlyName(nullType), id);
 
-			TokenBuffer refName;
-			GetRefName(refName, id);
-			ce.Builder.AddSymbol(declText);
-
-			AddVariable(ce, NameString::From(refName), ce.Object.Common().TypePointer());
 			AddInterfaceVariable(ce, NameString::From(id), nullType);
 		}
 
@@ -1645,9 +1638,6 @@ namespace Rococo
 
 			TokenBuffer refName;
 			GetRefName(refName, id);
-
-			ce.Builder.AddSymbol(refName);
-			AddVariable(ce, NameString::From(refName), ce.Object.Common().TypePointer());
 
 			AddSymbol(ce.Builder, ("%s %s"), GetFriendlyName(st), id);
 			AssertDefaultConstruction(ce, decl, st);

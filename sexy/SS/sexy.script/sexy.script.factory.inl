@@ -197,7 +197,6 @@ namespace Rococo
 
 		 TokenBuffer refId;
 		 GetRefName(refId, id);
-		 AddVariable(ce, NameString::From(refId), ce.Object.Common().TypePointer());
 
 		 AddInterfaceVariable(ce, NameString::From(id), nullType);
 
