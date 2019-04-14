@@ -11487,7 +11487,6 @@ namespace
 		TEST(TestAddRefWithLocalVariable);
 		TEST(TestReturnInterfaceEx);
 		TEST(TestGetSysMessage);
-		TEST(TestMemberwiseInit);
 		TEST(TestNullMemberInit);
 		TEST(TestConstructor);
 		TEST(TestAssignDerivatives);
@@ -11603,9 +11602,6 @@ namespace
 		TEST(TestConstructor);
 		TEST(TestClassDefinition);
 
-		TEST(TestTryFinallyWithoutThrow);
-		TEST(TestDeepCatch);
-
 		TEST(TestNullMember);
 		TEST(TestNullRefInit);
 
@@ -11673,16 +11669,9 @@ namespace
 		TEST(TestRightSearchSubstring);
 		TEST(TestSetCase);
 
-		TEST(TestSysThrow);
-		TEST(TestSysThrow2);
-
-		TEST(TestInternalDestructorsCalled);
-		TEST(TestInternalDestructorsCalled2);
-
 		TEST(TestClassInstance);
 
 		TEST(TestDestructor);
-		TEST(TestExceptionDestruct);
 
 		TEST(TestNullStringBuilder);
 		TEST(TestStringBuilder);
@@ -11706,8 +11695,6 @@ namespace
 		TEST(TestPrintStructs);
 
 		TEST(TestInlinedFactory);
-		TEST(TestDynamicCast);
-		TEST(TestDerivedInterfaces2);
 
 		TEST(TestBadClosureArg7);
 		TEST(TestBadClosureArg6);
@@ -11721,11 +11708,30 @@ namespace
 
 		TEST(TestVirtualFromVirtual);
 
-		TEST(TestCatch);
-		TEST(TestCatchArg);
 		TEST(TestSizeOf);
 
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
+
+		TEST(TestConstructFromInterface);
+
+		TEST(TestMemberwiseInit);
+
+		TEST(TestTryFinallyWithoutThrow);
+		TEST(TestDeepCatch);
+
+		TEST(TestSysThrow);
+		TEST(TestSysThrow2);
+
+		TEST(TestInternalDestructorsCalled);
+		TEST(TestInternalDestructorsCalled2);
+
+		TEST(TestExceptionDestruct);
+		TEST(TestDynamicCast);
+
+		TEST(TestDerivedInterfaces2);
+
+		TEST(TestCatch);
+		TEST(TestCatchArg);
 
 		TEST(TestReflectionGetChild_BadIndex);
 		TEST(TestReflectionGetChild);
@@ -11736,7 +11742,6 @@ namespace
 		TEST(TestCatchInstanceArg);
 		TEST(TestTryWithoutThrow);
 
-		TEST(TestConstructFromInterface);
 	}
 
 	void RunPositiveFailures()

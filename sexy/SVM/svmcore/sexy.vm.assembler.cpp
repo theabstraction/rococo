@@ -367,6 +367,11 @@ namespace
 			}
 		}
 
+		void Append_Dereference_D4()
+		{
+			AddSingleByteInstruction(Opcodes::DereferenceD4);
+		}
+
 		virtual void Append_PushIndirect(DINDEX Dsource, DINDEX Dtarget, size_t nBytes) 
 		{
 			AddThreeByteInstruction(Opcodes::PushIndirect, Dsource, Dtarget);
@@ -759,6 +764,23 @@ namespace
 				Append_GetStackFrameAddress(VM::REGISTER_D4, SFSourceValueOffset);
 				Append_CopyMemory(VM::REGISTER_D5, VM::REGISTER_D4, nBytesSource);
 			}
+		}
+
+		virtual void Append_SetSFMemberRefFromSFMemberByRef(int32 sourceSFOffset, int32 sourceMemberOffset, int32 targetSFOffset, int32 targetMemberOffset, size_t nBytesSource)
+		{
+			Args_SetMemberRefFromSFMemberByRef args;
+			args.opcode = Opcodes::SetSFMemberRefFromSFMemberByRef64;
+			args.sourceSFOffset = sourceSFOffset;
+			args.sourceMemberOffset = sourceMemberOffset;
+			args.targetSFOffset = targetSFOffset;
+			args.targetMemberOffset = targetMemberOffset;
+
+			if (nBytesSource != 8)
+			{
+				Throw(0, "Not implemented for anything other than 64-bit copying");
+			}
+
+			AddArgument(args);
 		}
 
 		virtual void Append_SetSFValueFromSFMemberRef(int32 sourceSFOffset, int32 sourceMemberOffset, int32 SFTargetValueOffset, size_t nBytesSource)

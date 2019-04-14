@@ -234,6 +234,8 @@ namespace
 			ActivateInstruction(FloatMultiply);
 			ActivateInstruction(FloatDivide);
 
+			ActivateInstruction(DereferenceD4);
+
 			ActivateInstruction(DoubleAdd);
 			ActivateInstruction(DoubleSubtract);
 			ActivateInstruction(DoubleMultiply);
@@ -1039,6 +1041,24 @@ namespace
 			}
 		}
 
+		OPCODE_CALLBACK(SetMemberRefFromSFMemberByRef64)
+		{
+			const Ins* I = NextInstruction();
+			auto& args = *(IAssemblerBuilder::Args_SetMemberRefFromSFMemberByRef*) I;
+
+			const uint8* pSourceObject = *(const uint8**)(cpu.SF() + args.sourceSFOffset);
+			const uint8* pSourceRef = pSourceObject + args.sourceMemberOffset;
+			const int64* pSource = (int64*)pSourceRef;
+
+			uint8* pTargetObject = *(uint8**)(cpu.SF() + args.targetSFOffset);
+			uint8* pTargerRef = pTargetObject + args.targetMemberOffset;
+			int64* pTarget = (int64*)pTargerRef;
+
+			*pTarget = *pSource;
+
+			cpu.AdvancePC(sizeof(IAssemblerBuilder::Args_SetMemberRefFromSFMemberByRef));
+		}
+
 		OPCODE_CALLBACK(SetStackFrameValue32)
 		{
 			const Ins* I = NextInstruction();
@@ -1096,7 +1116,8 @@ namespace
 
 			void** ppSource = (void**)(cpu.SF() + SFOffset);
 			uint8* pMember = ((uint8*) *ppSource) + memberOffset;
-			target.int64Value = *(int64*) pMember;
+			auto iValue = (int64*)pMember;
+			target.int64Value = *iValue;
 		}
 
 		OPCODE_CALLBACK(GetStackFrameAddress)
@@ -1294,6 +1315,13 @@ namespace
 			uint8 nBytes = I->Opmod1;
 			cpu.D[REGISTER_SP].charPtrValue -= (size_t) nBytes;
 			cpu.AdvancePC(2);
+		}
+
+		OPCODE_CALLBACK(DereferenceD4)
+		{
+			const Ins* I = NextInstruction();
+			cpu.D[REGISTER_D4].int64Value = *cpu.D[REGISTER_D4].int64PtrValue;
+			cpu.AdvancePC(1);	
 		}
 
 		OPCODE_CALLBACK(PushIndirect)

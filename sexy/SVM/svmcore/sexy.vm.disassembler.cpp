@@ -1014,6 +1014,13 @@ namespace
 		rep.ByteCount = 6;
 	}
 
+	void FormatSetSFMemberRefFromSFMemberByRef64(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+		auto& args = *(IAssemblerBuilder::Args_SetMemberRefFromSFMemberByRef*) (&I);
+		format(rep, ("SF %s.%s= SF %s.%s"), args.targetSFOffset, args.targetMemberOffset, args.sourceSFOffset, args.sourceMemberOffset);
+		rep.ByteCount = sizeof(args);
+	}
+
 	void FormatCopySFVariableFromRef(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 #pragma	pack(push, 1)
@@ -1029,6 +1036,12 @@ namespace
 		const Args& args = (const Args&) I;
 		format(rep, ("SF(%d)=(*SF(%d).%d). %lu bytes"), args.targetSFOffset, args.sourcePtrSFOffset, args.sourceMemberOffset, args.nBytesSource);
 		rep.ByteCount = sizeof(Args);
+	}
+
+	void FormatDereferenceD4(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+		format(rep, (""));
+		rep.ByteCount += 1;
 	}
 
 	void BuildFormatTable()
@@ -1143,6 +1156,8 @@ namespace
 		EnableFormatter(SetGlobal);
 		EnableFormatter(GetStackFrameValueAndExtendToPointer);
 		EnableFormatter(SetSFMemberByRefFromSFByValue64);
+		EnableFormatter(SetSFMemberRefFromSFMemberByRef64);
+		EnableFormatter(DereferenceD4);
 	}
 
 	class Disassembler final: public IDisassembler

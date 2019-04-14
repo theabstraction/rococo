@@ -1,31 +1,39 @@
 (namespace EntryPoint)
 (using Sys.Maths)
-(using Sys)
+(using EntryPoint)
 
 (interface Sys.IFidelio
 	(Id -> (Int32 id))
 )
 
-(class Fidelio(implements IFidelio))
+(class Fidelio (implements Sys.IFidelio))
 
-(method Fidelio.Id -> (Int32 id) :
+(method Fidelio.Id -> (Int32 id): 
 	(id = 12)
 )
 
-(method Fidelio.Construct -> :)
+(method Fidelio.Construct -> : )
 
 (factory Sys.Fidelio Sys.IFidelio :
 	(construct Fidelio)
 )
 
-(function GetFidelio -> (IFidelio output) :
-	(IFidelio g(Fidelio))
-	(output = g)
+(class Operas (defines Sys.IOperas) (Sys.IFidelio f))
+
+(method Operas.Construct (Sys.IFidelio f)-> : 
+	(this.f = f)
 )
 
-(function Main -> (Int32 result) :
-	(IFidelio f = (GetFidelio))
-	(f.Id -> result)
-)
+(method Operas.ByBeethoven -> (Sys.IFidelio f): (f = this.f))
 
-(alias Main EntryPoint.Main)
+(factory Sys.Operas Sys.IOperas (Sys.IFidelio f): 
+	(construct Operas f)
+)
+(function Main -> (Int32 result):	
+	(Sys.IFidelio f (Sys.Fidelio))	
+	(Sys.IOperas operas (Sys.Operas f))	
+	(Sys.IFidelio bf = operas.ByBeethoven)
+	(bf.Id -> result)
+)	
+
+(alias Main EntryPoint.Main)		

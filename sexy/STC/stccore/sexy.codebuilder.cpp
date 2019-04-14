@@ -383,12 +383,22 @@ namespace
 
 	void CodeBuilder::PushVariable(const MemberDef& def)
 	{
+		// Scenarios, def corresponds to...
+		//    1) an output variable -> disallowed
+		//    2) a structure or primitive on the stack ( ARGUMENTUSAGE_BYVALUE ). SF + memberoffset gives the variable
+		//    3) a structure passed as input (ARGUMENTUSAGE_BYREFERENCE). 
+		// E.g
+		// struct GameObject object SF[0] address sf0
+		// object.name SF[4]              address sf0 + 4, a pointer to an IString instance with address n0
+		// call G(object),  in the body of G, object address sf0 appears by de-referencing sf1
+		// object.name in the body of G corresponds to sf0 + 4. Deference that to get n0
+
 		const IStructure& s = *def.ResolvedType;
 
 		if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
 
 		BITCOUNT bc = GetBitCount(s.VarType());
-		if (s.VarType() != VARTYPE_Derivative)
+		if (!def.ResolvedType->Prototype().IsClass)
 		{
 			// Primitives are pushed directly
 
@@ -407,32 +417,25 @@ namespace
 				Assembler().Append_PushRegister(VM::REGISTER_D4, bc);
 			}			
 		}
-		else // structures get passed by reference
+		else
 		{
 			if (def.Usage == ARGUMENTUSAGE_BYVALUE)
 			{
-				int totalOffset = def.SFOffset;
-				if (def.ResolvedType->Prototype().IsClass)
-				{
-					if (IsNullType(*def.ResolvedType))
-					{
-						// Push the only interface of the null object
-						totalOffset += 2 * sizeof(size_t);
-					}
-				}
-				if (totalOffset != 0)
-				{
-					Assembler().Append_PushStackFrameAddress(totalOffset);
-				}
-				else
-				{
-					Assembler().Append_PushRegister(VM::REGISTER_SF, BITCOUNT_POINTER);
-				}
+				Assembler().Append_PushStackVariable(def.SFOffset + def.MemberOffset, BITCOUNT_POINTER);
 			}
 			else
 			{
-				Assembler().Append_GetStackFrameAddress(VM::REGISTER_D4, def.SFOffset);
-				Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);
+				if (def.AllocSize == 8)
+				{
+					// interface pointer on an object passed to the function. Needs a deref of the object and the interface pointer
+					Assembler().Append_GetStackFrameMemberPtr(VM::REGISTER_D4, def.SFOffset, def.MemberOffset);
+					Assembler().Append_Dereference_D4();
+					Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);
+				}
+				else
+				{
+					Assembler().Append_PushStackVariable(def.SFOffset, BITCOUNT_POINTER);
+				}
 			}		
 		}
 
@@ -1556,6 +1559,87 @@ namespace
 		}
 	}
 
+	bool IsDerivedFrom(const IInterface& sub, const IInterface& super)
+	{
+		for (const IInterface* i = &super; i != nullptr; i = i->Base())
+		{
+			if (i == &sub) return true;
+		}
+
+		return false;
+	}
+
+	void AssignInterfaceToInterface(ICodeBuilder& builder, const MemberDef& sourceDef, const MemberDef& targetDef, cstr source, cstr target)
+	{
+		// Assumes targetDef is an interface
+
+		// Scenarios -> 
+		//		1) target is an output interface, a pointer on the SF that should be assigned to a pointer to an instance's vtable
+		//      2) target is a temporary variable, a pointer on the SF that can be assigned to a pointer to an instance's vtable
+		//      3) target is a member of a structure on the stack that can be assigned to a pointer to an instance's vtable
+		//      4) target is an input variable and member of a structure referenced by a pointer on the stack
+
+		//      a) source is an input interface, a pointer on the SF
+		//      b) source is a temporary variable, a pointer on the SF
+		//      c) source is a member of a structure on the stack, a pointer on the SF
+		//      d) source is a member of a structure referenced by a pointer on the stack
+
+		//      a, b and c all copy the value on the SF, d must dereference the pointer on the SF and copy from it
+		//      1, 2 and 3 all assign to the value on the SF. 4, must dereference the pointer on the SF and assign to it
+
+		auto& iSource = sourceDef.ResolvedType->GetInterface(0);
+
+		if (sourceDef.ResolvedType->InterfaceCount() == 0)
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Target was not an interface pointer %s", source);
+		}
+
+		auto& iTarget = targetDef.ResolvedType->GetInterface(0);
+
+		// Target must be a base interface of source, or be the same interface as source
+
+		if (!IsDerivedFrom(iTarget, iSource))
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Cannot assign %s to %s. %s does not derive from %s", source, target, iSource.Name(), iTarget.Name());
+		}
+
+		char symbol[256];
+		SafeFormat(symbol, 256, "%s = %s", source, target);
+		builder.AddSymbol(symbol);
+
+		VM::IAssembler& assembler = builder.Assembler();
+
+		if (targetDef.location != VARLOCATION_INPUT || targetDef.Usage == ARGUMENTUSAGE_BYVALUE)
+		{
+			// Assign to a value
+			if (sourceDef.location != VARLOCATION_INPUT || targetDef.Usage == ARGUMENTUSAGE_BYVALUE)
+			{
+				// Assign from a value
+				assembler.Append_SetSFValueFromSFValue(targetDef.SFOffset + targetDef.MemberOffset, sourceDef.SFOffset + sourceDef.MemberOffset, BITCOUNT_POINTER);
+			}
+			else
+			{
+				// Assign from derefenced pointer
+				assembler.Append_SetSFValueFromSFMemberRef(sourceDef.SFOffset, sourceDef.MemberOffset, targetDef.SFOffset + targetDef.MemberOffset, sizeof(size_t));
+			}
+		}
+		else
+		{
+			// Assign to a deferenced pointer
+			if (sourceDef.location != VARLOCATION_INPUT || targetDef.Usage == ARGUMENTUSAGE_BYVALUE)
+			{
+				// Assign from a value
+
+				assembler.Append_SetSFMemberRefFromSFMemberByRef(targetDef.SFOffset, targetDef.MemberOffset, sourceDef.SFOffset, sourceDef.MemberOffset, BITCOUNT_POINTER);
+			}
+			else
+			{
+				// Assign from derefenced pointer to a deferenced pointer
+				assembler.Append_GetStackFrameMemberPtr(VM::REGISTER_D4, sourceDef.SFOffset, sourceDef.MemberOffset);
+			}
+		}
+	}
+
 	void CodeBuilder::AssignVariableToVariable(cstr source, cstr target)
 	{
 		if (source == nullptr || *source == 0) Rococo::Throw(0, "CodeBuilder::AssignVariableToVariable: source was blank");
@@ -1575,6 +1659,12 @@ namespace
 
 		const IStructure* srcType = sourceDef.ResolvedType;
 		const IStructure* trgType = targetDef.ResolvedType;
+
+		if (trgType->InterfaceCount() > 0 && trgType->Name()[0] == '_')
+		{
+			AssignInterfaceToInterface(*this, sourceDef, targetDef, source, target);
+			return;
+		}
 
 		if (srcType != trgType)
 		{
@@ -1708,6 +1798,10 @@ namespace
 		{
 			bitCount = (BITCOUNT) (def.ResolvedType->SizeOfStruct() * 8);
 		}
+		else if (def.ResolvedType->InterfaceCount() > 0)
+		{
+			bitCount = BITCOUNT_64;
+		}
 		else
 		{
 			switch(def.AllocSize)
@@ -1719,7 +1813,6 @@ namespace
 				break;
 			case 8:
 				bitCount = BITCOUNT_64;
-				break;
 				break;
 			}		
 		}
@@ -1937,6 +2030,39 @@ namespace
 		}		
 	}
 
+	void AssignInterfaceToTemp(CodeBuilder& builder, const MemberDef& sourceDef, cstr source, int tempIndex, int memberOffsetCorrection)
+	{
+		// Assumes sourceDef is an interface
+
+		// Scenarios -> 
+		
+		//      a) source is an input interface, a pointer on the SF
+		//      b) source is a temporary variable, a pointer on the SF
+		//      c) source is a member of a structure on the stack, a pointer on the SF
+		//      d) source is a member of a structure referenced by a pointer on the stack
+
+		//      a, b and c all copy the value on the SF, d must dereference the pointer on the SF and copy from it
+
+		auto& iSource = sourceDef.ResolvedType->GetInterface(0);
+
+		char symbol[256];
+		SafeFormat(symbol, 256, "D%d = %s", tempIndex + source);
+		builder.AddSymbol(symbol);
+
+		VM::IAssembler& assembler = builder.Assembler();
+
+		if (sourceDef.location != VARLOCATION_INPUT || sourceDef.Usage == ARGUMENTUSAGE_BYVALUE)
+		{
+			// Assign from a value
+			assembler.Append_GetStackFrameValue(tempIndex + VM::REGISTER_D4, sourceDef.SFOffset + sourceDef.MemberOffset, BITCOUNT_POINTER);
+		}
+		else
+		{
+			// Assign from derefenced pointer to a deferenced pointer
+			assembler.Append_GetStackFrameMemberPtr(VM::REGISTER_D4 + tempIndex, sourceDef.SFOffset, sourceDef.MemberOffset);
+		}
+	}
+
 	void CodeBuilder::AssignVariableToTemp(cstr source, int tempIndex, int memberOffsetCorrection)
 	{
 		if (source == nullptr || *source == 0) Rococo::Throw(0, "CodeBuilder::AssignVariableToTemp: source was blank");
@@ -1944,6 +2070,16 @@ namespace
 		if (!TryGetVariableByName(OUT def, source))
 		{
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unknown source variable: %s"), source);
+		}
+
+		const IStructure* srcType = def.ResolvedType;
+
+		if (srcType->InterfaceCount() > 0 && srcType->Name()[0] == '_')
+		{
+			if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+			AssignInterfaceToTemp(*this, def, source, tempIndex, memberOffsetCorrection);
+			if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+			return;
 		}
 
 		def.MemberOffset += memberOffsetCorrection;

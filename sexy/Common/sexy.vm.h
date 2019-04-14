@@ -326,9 +326,21 @@ namespace Rococo { namespace VM
 		virtual void Append_GetStackFrameAddress(DINDEX Dtarget, int offset) = 0;
 		virtual void Append_CallVitualFunctionViaRefOnStack(int32 SFoffsetToInterface, int32 vTableOffset, int32 instanceToInterfaceOffset = 0) = 0;
 		virtual void Append_CallVirtualFunctionByAddress(int32 SFoffsetToInterfaceValue, int32 vTableOffset) = 0;
+		virtual void Append_Dereference_D4() = 0;
 
 		virtual void Append_SetSFMemberRefFromSFValue(int32 targetSFOffset, int32 targetMemberOffset, int32 SFSourceValueOffset, size_t nBytesSource) = 0;
 		virtual void Append_SetSFValueFromSFMemberRef(int32 sourceSFOffset, int32 sourceMemberOffset, int32 SFTargetValueOffset, size_t nBytesSource) = 0;
+
+		struct Args_SetMemberRefFromSFMemberByRef
+		{
+			int8 opcode;
+			int32 sourceSFOffset;
+			int32 sourceMemberOffset;
+			int32 targetSFOffset;
+			int32 targetMemberOffset;
+		};
+
+		virtual void Append_SetSFMemberRefFromSFMemberByRef(int32 sourceSFOffset, int32 sourceMemberOffset, int32 targetSFOffset, int32 targetMemberOffset, size_t nBytesSource) = 0;
 		virtual void Append_CopySFVariableFromRef(int32 targetSFOffset, int32 sourceSFOffset, int32 sourceMemberOffset, size_t nBytesSource) = 0;
 		virtual void Append_SetSFMemberByRefFromRegister(DINDEX Dsource, int32 sfOffset, int32 memberOffset, BITCOUNT bitcount) = 0;
 		virtual void Append_TripDebugger() = 0;

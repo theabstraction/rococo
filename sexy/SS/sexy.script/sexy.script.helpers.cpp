@@ -839,7 +839,16 @@ namespace Rococo
 
 	   SCRIPTEXPORT_API const Rococo::uint8* GetInstance(const MemberDef& def, const IStructure* pseudoType, const Rococo::uint8* SF)
 	   {
-		   return SF + def.SFOffset;
+		   if (def.location == VARLOCATION_OUTPUT || def.Usage != ARGUMENTUSAGE_BYREFERENCE)
+		   {
+			   return SF + def.SFOffset;
+		   }
+		   else
+		   {
+			   // An output, so SF + offset must be deferenced
+			   const uint8** pItem = (const uint8**)(SF + def.SFOffset);
+			   return *pItem;
+		   }
 	   }
 
 	   SCRIPTEXPORT_API cstr GetShortName(const Rococo::Compiler::IStructure& s)
