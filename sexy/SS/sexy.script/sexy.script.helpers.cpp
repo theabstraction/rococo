@@ -165,7 +165,7 @@ namespace Rococo
          case VARTYPE_Int64:
          {
             const Rococo::int64* pValue = (const Rococo::int64*) pVariableData;
-            SafeFormat(buffer, bufferCapacity, "0x%llX", *pValue, *pValue);
+            SafeFormat(buffer, bufferCapacity, "0x%1llX", *pValue, *pValue);
          }
          break;
          case VARTYPE_Float32:
@@ -216,8 +216,7 @@ namespace Rococo
 		 {
 			 ptrdiff_t instanceOffset = 0;
 
-			 const Instance** ppInstance = (const Instance**)(sf + offset);
-			 const Instance* pInstance = *ppInstance;
+			 const Instance* pInstance = (const Instance*)(sf + offset);
 			 if (pInstance->VTableOrTypeDef != NULL)
 			 {
 				 instanceOffset = pInstance->VTableOrTypeDef->InterfaceToInstanceOffset;
@@ -369,7 +368,7 @@ namespace Rococo
 		   {
 			   char name[16];
             SafeFormat(name, 16, "D%u", i);
-            SafeFormat(value, 128, "%lld / 0x%llX", cpu.D[i].int64Value, cpu.D[i].int64Value);
+            SafeFormat(value, 128, "%lld / 0x%1llX", cpu.D[i].int64Value, cpu.D[i].int64Value);
 			   cb.OnRegister(name, value);
 		   }
 	   }
@@ -746,7 +745,7 @@ namespace Rococo
 				   const void** ppData = (const void**) pVariableData;
                PROTECT
 				   {
-					   FormatVariableDesc(variable, "%p -> %p", pVariableData, *ppData);
+					   FormatVariableDesc(variable, "%1llX -> %1llX", (int64) pVariableData, (int64) *ppData);
 				   }
                CATCH  
 				   {
@@ -823,7 +822,16 @@ namespace Rococo
 				   TokenBuffer childName;
 				   StringPrint(childName, ("%s.%s"), parentName, member.Name());
 
-				   enumCallback.OnMember(ss, childName, member, instance + suboffset);
+				   if (member.IsInterfaceVariable())
+				   {
+					   // Interfaces that are part of structures are always references
+					   const uint8** ppInstance = (const uint8**)(instance + suboffset);
+					   enumCallback.OnMember(ss, childName, member, *ppInstance);
+				   }
+				   else
+				   {
+					   enumCallback.OnMember(ss, childName, member, instance + suboffset);
+				   }
 
 				   const int sizeofMember = member.SizeOfMember();
 				   suboffset += sizeofMember;
@@ -839,7 +847,7 @@ namespace Rococo
 
 	   SCRIPTEXPORT_API const Rococo::uint8* GetInstance(const MemberDef& def, const IStructure* pseudoType, const Rococo::uint8* SF)
 	   {
-		   if (def.location == VARLOCATION_OUTPUT || def.Usage != ARGUMENTUSAGE_BYREFERENCE)
+		   if (def.ResolvedType->InterfaceCount() == 0)
 		   {
 			   return SF + def.SFOffset;
 		   }

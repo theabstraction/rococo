@@ -191,6 +191,7 @@ namespace Rococo {
 			ObjectDesc* Desc;
 			int64 refCount;
 			VirtualTable* pVTables[1];
+			enum : int64 { NO_REF_COUNT = 0x4000000000000000 };
 		};
 #pragma pack(pop)
 

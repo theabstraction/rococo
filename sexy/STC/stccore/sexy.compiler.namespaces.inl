@@ -36,7 +36,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	void CreateNullInstance(ObjectStub* obj, const IStructure& nullStruct)
 	{
 		obj->Desc = (ObjectDesc*) nullStruct.GetVirtualTable(0);
-		obj->refCount = 0x4000000000000001; // In theory since every decrement is matched by an increment, it should never hit zero
+		obj->refCount = ObjectStub::NO_REF_COUNT;
 		obj->pVTables[0] = (VirtualTable*) nullStruct.GetVirtualTable(1);
 	}
 

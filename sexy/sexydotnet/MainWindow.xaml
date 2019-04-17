@@ -67,7 +67,7 @@
                 
                 <StackPanel Grid.Column="0" Margin="0,4,0,0">
                     <Expander Header="Registers">
-                        <ListView Name="listViewRegisters" FontFamily="Courier New" FontSize="11" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="240" Background="Beige">
+                        <ListView Name="listViewRegisters" FontFamily="Courier New" FontSize="14" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="240" Background="Beige">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Width="34" Header="*" DisplayMemberBinding="{Binding Name}"></GridViewColumn>
@@ -77,20 +77,20 @@
                          </ListView>
                     </Expander>
                     <Expander Header="Stack Frame">
-                        <ListView Name="listViewStackFrame" FontFamily="Courier New" FontSize="11" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="240" Background="Beige">
+                        <ListView Name="listViewStackFrame" FontFamily="Courier New" FontSize="14" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="240" Background="Beige">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Width="40" Header="DSF" DisplayMemberBinding="{Binding SFOffset}"></GridViewColumn>
-                                    <GridViewColumn Width="75" Header="Location" DisplayMemberBinding="{Binding Kind}"></GridViewColumn>
+                                    <GridViewColumn Width="65" Header="Loc" DisplayMemberBinding="{Binding Kind}"></GridViewColumn>
                                     <GridViewColumn Width="120" Header="Type" DisplayMemberBinding="{Binding Type}"></GridViewColumn>   
                                     <GridViewColumn Width="120" Header="Name" DisplayMemberBinding="{Binding Name}"></GridViewColumn>                                                                                                         
-                                    <GridViewColumn Width="250" Header="Value" DisplayMemberBinding="{Binding Value}"></GridViewColumn>                                    
+                                    <GridViewColumn Width="350" Header="Value" DisplayMemberBinding="{Binding Value}"></GridViewColumn>                                    
                                 </GridView>
                             </ListView.View>
                         </ListView>
                     </Expander>
                     <Expander Header="Call Stack">
-                        <ListView Name="listViewCallStack" FontFamily="Courier New" FontSize="11" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="240" Background="Beige">
+                        <ListView Name="listViewCallStack" FontFamily="Courier New" FontSize="14" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="240" Background="Beige">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Width="250" Header="Module" DisplayMemberBinding="{Binding Module}"></GridViewColumn>
@@ -100,7 +100,7 @@
                         </ListView>
                     </Expander>
                 </StackPanel>
-                <TreeView Grid.Column="2"  Name="treeViewStackItem" FontFamily="Courier New" FontSize="11" HorizontalAlignment="Stretch" Margin="5,2,0,0" VerticalAlignment="Stretch" Background="Azure">
+                <TreeView Grid.Column="2"  Name="treeViewStackItem" FontFamily="Courier New" FontSize="14" HorizontalAlignment="Stretch" Margin="5,2,0,0" VerticalAlignment="Stretch" Background="Azure">
                 </TreeView>
                 <GridSplitter Name="gridSplitterStackVsWrap" VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="0,0,0,0" Grid.Column="1" Width="5"  ResizeDirection="Columns" Background="#E6C0C0C0" />
             </Grid>

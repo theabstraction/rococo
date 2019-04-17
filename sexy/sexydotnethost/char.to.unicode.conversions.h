@@ -158,18 +158,18 @@ namespace
 			}
 			break;
 		case VARTYPE_Derivative:
-         SafeFormat(rvalue, bufferLen, "%p -> %p", pVariableData, *(void**)pVariableData);
+			SafeFormat(rvalue, bufferLen, "%8llX -> %8llX", (int64) pVariableData, (int64) *(void**)pVariableData);
 			break;
 		case VARTYPE_Int32:
 			{
 				const int32* pValue = (const int32*) pVariableData;
-            SafeFormat(rvalue, bufferLen, ("%d (%8.8x)"), *pValue, *pValue);
+            SafeFormat(rvalue, bufferLen, ("%d (%8.8X)"), *pValue, *pValue);
 			}
 			break;
 		case VARTYPE_Int64:
 			{
 				const int64* pValue = (const int64*) pVariableData;
-            SafeFormat(rvalue, bufferLen, ("%lld (%8llx)"), *pValue, *pValue);
+            SafeFormat(rvalue, bufferLen, ("%lld (%8llX)"), *pValue, *pValue);
 			}
 			break;
 		case VARTYPE_Float32:
@@ -208,7 +208,7 @@ namespace
 				};
 
 				const Closure* pValue = (const Closure*)pVariableData;
-            SafeFormat(rvalue, bufferLen, ("Id: %llu. SF: 0x%llX"), pValue->id, (size_t) pValue->parentSF);
+            SafeFormat(rvalue, bufferLen, ("Id: %llu. SF: 0x%8llX"), pValue->id, (size_t) pValue->parentSF);
 			}
 			break;
 		default:

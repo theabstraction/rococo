@@ -611,7 +611,7 @@ namespace Rococo
 				CReflectedClass* rep = (CReflectedClass*)AlignedMalloc(sizeof(size_t), sizeof(CReflectedClass));
 				rep->context = pSourceInstance;
 				rep->header.Desc = (ObjectDesc*)st.GetVirtualTable(0);
-				rep->header.refCount = 0x4000000000000001;
+				rep->header.refCount = ObjectStub::NO_REF_COUNT;
 				rep->header.pVTables[0] = (VirtualTable*) st.GetVirtualTable(1);
 
 				i = representations.insert(std::make_pair(pSourceInstance, rep)).first;
@@ -807,7 +807,7 @@ namespace Rococo
 			else
 			{
 				builderContainer.BuilderPtr = builder;
-				builderContainer.Header.refCount = 0x4000000000000001;
+				builderContainer.Header.refCount = ObjectStub::NO_REF_COUNT;
 				builderContainer.Header.Desc = (ObjectDesc*)s->GetVirtualTable(0);
 				builderContainer.Header.pVTables[0] = (VirtualTable*) s->GetVirtualTable(1);
 				return true;
@@ -827,7 +827,7 @@ namespace Rococo
 			if (s.Prototype().IsClass)
 			{
 				instance->Desc = (ObjectDesc*)s.GetVirtualTable(0);
-				instance->refCount = 0x4000000000000001;
+				instance->refCount = ObjectStub::NO_REF_COUNT;
 
 				for (int i = 0; i < s.InterfaceCount(); ++i)
 				{

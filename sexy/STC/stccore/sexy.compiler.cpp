@@ -122,7 +122,8 @@ namespace
 		auto pInterface = (InterfacePointer)rawInterface;
 		auto vTable = *pInterface;
 		auto* object = (ObjectStub*)(vTable->OffsetToInstance + rawInterface);
-		object->refCount++;
+
+		object->refCount += (object->refCount & ObjectStub::NO_REF_COUNT) ? 0 : 1;
 	}
 
 	static void Destruct(ObjectStub* object, VM::IVirtualMachine& vm)
@@ -143,27 +144,69 @@ namespace
 		}
 	}
 
+	void DecObjRefCount(ObjectStub* object, IAllocatorMap& map);
+
+	void DecRefCountOnMembers(const IStructure& type, ObjectStub* object, size_t offset, IAllocatorMap& map)
+	{
+		auto nMembers = type.MemberCount();
+
+		for (int i = 0; i < nMembers; ++i) // Ignore the first three members, they are part of the stub
+		{
+			auto& m = type.GetMember(i);
+			const int dm = m.SizeOfMember();
+
+			if (m.IsInterfaceVariable())
+			{
+				const uint8* child = ((const uint8*)object) + offset;
+				InterfacePointer childObj = *(InterfacePointer*) child;
+				const uint8* objRaw = ((const uint8*)childObj) + (*childObj)->OffsetToInstance;
+				auto* childStub = (ObjectStub*) objRaw;
+				DecObjRefCount(childStub, map);
+			}
+			else
+			{
+				if (m.UnderlyingType())
+				{
+					DecRefCountOnMembers(*m.UnderlyingType(), object, offset, map);
+				}
+			}
+
+			offset += dm;
+		}
+	}
+
+	static void DecObjRefCount(ObjectStub* object, IAllocatorMap& map)
+	{
+		object->refCount -= (object->refCount & ObjectStub::NO_REF_COUNT) ? 0 : 1;
+
+		if (object->refCount <= 0)
+		{
+			object->refCount = 0;
+
+			auto& type = *object->Desc->TypeInfo;
+
+			if (type.MemberCount() > 3)
+			{
+				DecRefCountOnMembers(type, object, 0, map);
+			}
+
+			if (object->Desc->TypeInfo->Name()[0] != '_')
+			{
+				auto* allocator = map.GetAllocator(*object->Desc->TypeInfo);
+				Destruct(object, allocator->associatedStructure->Object().VirtualMachine());
+				allocator->memoryAllocator->FreeObject(object);
+			}
+		}
+	}
+
 	static void DecrementRefCount(VariantValue* registers, void* allocatorContext)
 	{
 		uint8* rawInterface = registers[VM::REGISTER_D4].uint8PtrValue;
 		auto pInterface = (InterfacePointer)rawInterface;
 		auto vTable = static_cast<VirtualTable*>(*pInterface);
 		auto* object = (ObjectStub*)(vTable->OffsetToInstance + rawInterface);
-
-		object->refCount--;
-
-		if (object->refCount <= 0)
-		{
-			object->refCount = 0;
-
-			if (object->Desc->TypeInfo->Name()[0] != '_')
-			{
-				auto* map = (IAllocatorMap*)allocatorContext;
-				auto* allocator = map->GetAllocator(*object->Desc->TypeInfo);
-				Destruct(object, allocator->associatedStructure->Object().VirtualMachine());
-				allocator->memoryAllocator->FreeObject(object);
-			}
-		}
+		auto& map = *(IAllocatorMap*)allocatorContext;
+		DecObjRefCount(object, map);
 	}
 
 	static void GetAllocSize(VariantValue* registers, void* context)

@@ -2079,7 +2079,7 @@ namespace Rococo { namespace Script
       const IStructure& scStruct = Object().Common().TypeStringLiteral();
 
       CStringConstant* sc = new CStringConstant;
-      sc->header.refCount = 0x4000000000000001; // make this so large it does not get freed by DecRef. We use stringConstants array to release these items
+      sc->header.refCount = ObjectStub::NO_REF_COUNT;
       sc->header.pVTables[0] = (VirtualTable*) scStruct.GetVirtualTable(1);
       sc->header.Desc = (ObjectDesc*)scStruct.GetVirtualTable(0);
       sc->length = length;

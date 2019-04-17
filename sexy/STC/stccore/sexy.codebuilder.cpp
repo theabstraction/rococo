@@ -581,10 +581,13 @@ namespace
 
 			int vOffset = v->Offset();
 
-			if (v->Location() == VARLOCATION_TEMP && v->ResolvedType().InterfaceCount() > 0 && v->ResolvedType().Name()[0] == '_')
+			if (v->Location() != VARLOCATION_OUTPUT && v->ResolvedType().InterfaceCount() > 0)
 			{
-				AssignVariableToTemp(v->Name(), 0, 0);
-				Append_DecRef();
+				if (v->ResolvedType().Name()[0] == '_')
+				{
+					AssignVariableToTemp(v->Name(), 0, 0);
+					Append_DecRef();
+				}
 			}
 			
 			v->SetPCEnd(Assembler().WritePosition());
@@ -1587,12 +1590,12 @@ namespace
 		//      a, b and c all copy the value on the SF, d must dereference the pointer on the SF and copy from it
 		//      1, 2 and 3 all assign to the value on the SF. 4, must dereference the pointer on the SF and assign to it
 
-		auto& iSource = sourceDef.ResolvedType->GetInterface(0);
-
 		if (sourceDef.ResolvedType->InterfaceCount() == 0)
 		{
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Target was not an interface pointer %s", source);
 		}
+
+		auto& iSource = sourceDef.ResolvedType->GetInterface(0);
 
 		auto& iTarget = targetDef.ResolvedType->GetInterface(0);
 
@@ -1603,14 +1606,14 @@ namespace
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Cannot assign %s to %s. %s does not derive from %s", source, target, iSource.Name(), iTarget.Name());
 		}
 
-		char symbol[256];
-		SafeFormat(symbol, 256, "%s = %s", source, target);
-		builder.AddSymbol(symbol);
-
 		VM::IAssembler& assembler = builder.Assembler();
 
 		if (targetDef.location != VARLOCATION_INPUT || targetDef.Usage == ARGUMENTUSAGE_BYVALUE)
 		{
+			char symbol[256];
+			SafeFormat(symbol, 256, "%s = %s", target, source);
+			builder.AddSymbol(symbol);
+
 			// Assign to a value
 			if (sourceDef.location != VARLOCATION_INPUT || targetDef.Usage == ARGUMENTUSAGE_BYVALUE)
 			{
@@ -1630,12 +1633,17 @@ namespace
 			{
 				// Assign from a value
 
+				char symbol[256];
+				SafeFormat(symbol, 256, "%s = %s", target, source);
+				builder.AddSymbol(symbol);
 				assembler.Append_SetSFMemberRefFromSFMemberByRef(targetDef.SFOffset, targetDef.MemberOffset, sourceDef.SFOffset, sourceDef.MemberOffset, BITCOUNT_POINTER);
 			}
 			else
 			{
 				// Assign from derefenced pointer to a deferenced pointer
-				assembler.Append_GetStackFrameMemberPtr(VM::REGISTER_D4, sourceDef.SFOffset, sourceDef.MemberOffset);
+			//	assembler.Append_GetStackFrameMemberPtr(VM::REGISTER_D4, sourceDef.SFOffset, sourceDef.MemberOffset);
+				builder.AssignVariableToTemp(source, 0);
+				builder.AssignTempToVariable(0, target);
 			}
 		}
 	}
@@ -2046,7 +2054,7 @@ namespace
 		auto& iSource = sourceDef.ResolvedType->GetInterface(0);
 
 		char symbol[256];
-		SafeFormat(symbol, 256, "D%d = %s", tempIndex + source);
+		SafeFormat(symbol, 256, "D%d = %s", tempIndex + VM::REGISTER_D4, source);
 		builder.AddSymbol(symbol);
 
 		VM::IAssembler& assembler = builder.Assembler();
@@ -2054,7 +2062,7 @@ namespace
 		if (sourceDef.location != VARLOCATION_INPUT || sourceDef.Usage == ARGUMENTUSAGE_BYVALUE)
 		{
 			// Assign from a value
-			assembler.Append_GetStackFrameValue(tempIndex + VM::REGISTER_D4, sourceDef.SFOffset + sourceDef.MemberOffset, BITCOUNT_POINTER);
+			assembler.Append_GetStackFrameValue(sourceDef.SFOffset + sourceDef.MemberOffset, tempIndex + VM::REGISTER_D4, BITCOUNT_POINTER);
 		}
 		else
 		{
@@ -2119,6 +2127,12 @@ namespace
 		else
 		{
 			Assembler().Append_GetStackFrameMemberPtr(VM::REGISTER_D4 + tempDepth, def.SFOffset,  def.MemberOffset);
+
+			if (def.IsContained && def.ResolvedType->InterfaceCount() > 0)
+			{
+				Assembler().Append_Dereference_D4();
+			}
+
 			Assembler().Append_IncrementPtr(VM::REGISTER_D4 + tempDepth , offset);
 		}
 	}

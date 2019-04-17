@@ -2433,23 +2433,10 @@ namespace Rococo
 			}
 		}
 
-		void ReturnVariableInterface(CCompileEnvironment& ce, cr_sex exceptionSource, cstr sourceName, cstr outputName, const MemberDef& output)
+		void ReturnVariableInterface(CCompileEnvironment& ce, const MemberDef& def, cr_sex exceptionSource, cstr sourceName, cstr outputName, const MemberDef& output)
 		{
-			MemberDef def;
-			if (!ce.Builder.TryGetVariableByName(OUT def, sourceName))
-			{
-				ThrowTokenNotFound(exceptionSource, sourceName, ce.Builder.Owner().Name(), ("structure")); 
-			}
-
-			const IInterface& outputInterface = output.ResolvedType->GetInterface(0);
-
 			const IStructure& src = *def.ResolvedType;
-			if (src.InterfaceCount() == 0)
-			{
-				sexstringstream<1024> streamer;
-				streamer.sb <<  ("The source type '") << GetFriendlyName(src) << ("' implements no interfaces");
-				Throw(exceptionSource, streamer);
-			}
+			const IInterface& outputInterface = src.GetInterface(0);
 
 			ce.Builder.AssignVariableRefToTemp(outputName, 0); // output goes to D4
 			ce.Builder.Append_DecRef();
@@ -2476,7 +2463,7 @@ namespace Rococo
 				ce.Builder.AssignVariableToVariable(sourceName, outputName);
 			}
 
-			ce.Builder.AssignVariableToTemp(sourceName, 0); // source goes to D4
+			ce.Builder.AssignVariableRefToTemp(sourceName, 0); // source goes to D4
 			ce.Builder.Append_IncRef();
 		}
 
@@ -2487,16 +2474,10 @@ namespace Rococo
 				MemberDef def;
 				if (ce.Builder.TryGetVariableByName(OUT def, lhs))
 				{
-					if (def.location == Compiler::VARLOCATION_OUTPUT)
+					if (def.ResolvedType->InterfaceCount() != 0)
 					{
-						if (def.Usage == Compiler::ARGUMENTUSAGE_BYREFERENCE)
-						{
-							if (IsNullType(*def.ResolvedType))
-							{
-								ReturnVariableInterface(ce, exceptionSource, rhs, lhs, def);
-								return;
-							}
-						}
+						ReturnVariableInterface(ce, def, exceptionSource, rhs, lhs, def);
+						return;
 					}
 				}
 
