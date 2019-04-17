@@ -144,22 +144,10 @@ namespace
 
 			const IStructure& type = f.Builder().GetTypeFromInstancePos(i + src.InstancePosStart);
 
-			if (type.Prototype().IsClass)
+			if (type.Prototype().IsClass && type.Name()[0] == '_')
 			{
-				auto* header = (ObjectStub*) instance;
-
-				const ID_BYTECODE** vTablePtr = (const ID_BYTECODE**) instance;
-				const ID_BYTECODE* intrinsicVTable = vTablePtr[0]; 
-
-				ICodeBuilder& builder = (ICodeBuilder&) f.Builder();
-
-				VM::IVirtualMachine& vm = builder.Module().Object().VirtualMachine();
-
-				vm.Push((void*)instance);
-				EXECUTERESULT status = vm.ExecuteFunction(intrinsicVTable[1]);
-				vm.PopPointer();
-
-				if (status == EXECUTERESULT_RETURNED) vm.SetStatus(EXECUTERESULT_RUNNING);
+				InterfacePointer pInterface = *(InterfacePointer*) instance;
+				ss.ProgramObject().DecrementRefCount(pInterface);
 			}
 			else if (AreEqual(type.Name(), ("_Lock")))
 			{
@@ -454,6 +442,8 @@ namespace
 			ObjectStub* object = ReadExceptionFromInput(0, po, function);
 			const IStructure& underlyingType = GetType(object);
 			const IInterface& iexc = po.Common().SysTypeIException();
+
+			po.IncrementRefCount((InterfacePointer)object);
 			
 			if (!CatchException(exceptionHandlers, ss))
 			{

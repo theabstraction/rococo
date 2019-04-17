@@ -2122,7 +2122,14 @@ namespace
 		
 		if (def.Usage == ARGUMENTUSAGE_BYVALUE)
 		{
-			Assembler().Append_GetStackFrameAddress(VM::REGISTER_D4 + tempDepth, def.SFOffset + def.MemberOffset + offset);
+			if (def.ResolvedType->InterfaceCount())
+			{
+				Assembler().Append_GetStackFrameValue(def.SFOffset + def.MemberOffset + offset, VM::REGISTER_D4 + tempDepth, BITCOUNT_POINTER);
+			}
+			else
+			{
+				Assembler().Append_GetStackFrameAddress(VM::REGISTER_D4 + tempDepth, def.SFOffset + def.MemberOffset + offset);
+			}
 		}
 		else
 		{

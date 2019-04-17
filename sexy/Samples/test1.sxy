@@ -1,39 +1,33 @@
 (namespace EntryPoint)
-(using Sys.Maths)
-(using EntryPoint)
 
-(interface Sys.IFidelio
-	(Id -> (Int32 id))
-)
-
-(class Fidelio (implements Sys.IFidelio))
-
-(method Fidelio.Id -> (Int32 id): 
-	(id = 12)
-)
-
-(method Fidelio.Construct -> : )
-
-(factory Sys.Fidelio Sys.IFidelio :
-	(construct Fidelio)
-)
-
-(class Operas (defines Sys.IOperas) (Sys.IFidelio f))
-
-(method Operas.Construct (Sys.IFidelio f)-> : 
-	(this.f = f)
-)
-
-(method Operas.ByBeethoven -> (Sys.IFidelio f): (f = this.f))
-
-(factory Sys.Operas Sys.IOperas (Sys.IFidelio f): 
-	(construct Operas f)
-)
-(function Main -> (Int32 result):	
-	(Sys.IFidelio f (Sys.Fidelio))	
-	(Sys.IOperas operas (Sys.Operas f))	
-	(Sys.IFidelio bf = operas.ByBeethoven)
-	(bf.Id -> result)
+(function Main -> (Int32 result):		
+   (result = 12)
+	(		
+			try ( (Double 11 -> result) )   
+			catch e ( result = (result + 15) )
+   )
 )	
+		
+(function Double (Int32 x) -> (Int32 y):		
+   (Int32 z)
+   (Sys.Type.IException ex (EntryPoint.NewException))(throw ex)			
+   (y = (2 * x))
+)
+			
+(method TestException.ErrorCode -> (Int32 errorCode): 
+	(errorCode = 0)
+)
 
-(alias Main EntryPoint.Main)		
+(method TestException.Message -> (Sys.Type.IString s):
+	(s = "This is to be expected")
+)
+ 
+(method TestException.Construct : )
+
+(class TestException (implements Sys.Type.IException))
+
+(factory EntryPoint.NewException Sys.Type.IException :
+	(construct TestException)
+)
+
+(alias Main EntryPoint.Main)

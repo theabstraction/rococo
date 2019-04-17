@@ -10319,7 +10319,7 @@ namespace
 		vm.Push(0); // Allocate stack space for the int32 result
 
 		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-		validate(result == Rococo::EXECUTERESULT_THROWN);	
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);	
 	}
 
 	void TestAssignPointerFromFunction(IPublicScriptSystem& ss)
@@ -11484,6 +11484,35 @@ namespace
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+
+		TEST(TestInternalDestructorsCalled);
+		TEST(TestInternalDestructorsCalled2);
+
+		TEST(TestTryFinallyWithoutThrow);
+		TEST(TestDeepCatch);
+
+		TEST(TestSysThrow);
+		TEST(TestSysThrow2);
+
+		TEST(TestExceptionDestruct);
+		TEST(TestDynamicCast);
+
+		TEST(TestDerivedInterfaces2);
+
+		TEST(TestCatch);
+		TEST(TestCatchArg);
+
+		TEST(TestReflectionGetChild_BadIndex);
+		TEST(TestReflectionGetChild);
+		TEST(TestReflectionGetAtomic);
+
+		TEST(TestThrowFromCatch);
+
+		TEST(TestCatchInstanceArg);
+		TEST(TestTryWithoutThrow);
+
+		TEST(TestConstructFromInterface);
+
 		TEST(TestAddRefWithLocalVariable);
 		TEST(TestReturnInterfaceEx);
 		TEST(TestGetSysMessage);
@@ -11712,36 +11741,7 @@ namespace
 
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 
-		TEST(TestConstructFromInterface);
-
 		TEST(TestMemberwiseInit);
-
-		TEST(TestTryFinallyWithoutThrow);
-		TEST(TestDeepCatch);
-
-		TEST(TestSysThrow);
-		TEST(TestSysThrow2);
-
-		TEST(TestInternalDestructorsCalled);
-		TEST(TestInternalDestructorsCalled2);
-
-		TEST(TestExceptionDestruct);
-		TEST(TestDynamicCast);
-
-		TEST(TestDerivedInterfaces2);
-
-		TEST(TestCatch);
-		TEST(TestCatchArg);
-
-		TEST(TestReflectionGetChild_BadIndex);
-		TEST(TestReflectionGetChild);
-		TEST(TestReflectionGetAtomic);
-
-		TEST(TestThrowFromCatch);
-
-		TEST(TestCatchInstanceArg);
-		TEST(TestTryWithoutThrow);
-
 	}
 
 	void RunPositiveFailures()

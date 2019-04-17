@@ -116,14 +116,18 @@ namespace
 		registers[VM::REGISTER_D4].vPtrValue = object;
 	};
 
+	static void IncRefCount(InterfacePointer pInterface)
+	{
+		auto* pRawObject = ((uint8*)pInterface) + (*pInterface)->OffsetToInstance;
+		auto* object = (ObjectStub*)pRawObject;
+		object->refCount += (object->refCount & ObjectStub::NO_REF_COUNT) ? 0 : 1;
+	}
+
 	static void IncrementRefCount(VariantValue* registers, void* context)
 	{
 		uint8* rawInterface = registers[VM::REGISTER_D4].uint8PtrValue;
 		auto pInterface = (InterfacePointer)rawInterface;
-		auto vTable = *pInterface;
-		auto* object = (ObjectStub*)(vTable->OffsetToInstance + rawInterface);
-
-		object->refCount += (object->refCount & ObjectStub::NO_REF_COUNT) ? 0 : 1;
+		IncRefCount(pInterface);
 	}
 
 	static void Destruct(ObjectStub* object, VM::IVirtualMachine& vm)
@@ -272,9 +276,21 @@ namespace
 			common = NULL;
 
 			callbackIds.IdAllocate = svmCore->RegisterCallback(NewObject, nullptr, "new");
-			callbackIds.IdAddRef = svmCore->RegisterCallback(IncrementRefCount, nullptr, "++ref");
-			callbackIds.IdReleaseRef = svmCore->RegisterCallback(DecrementRefCount, (IAllocatorMap*) this, "--ref");
+			callbackIds.IdAddRef = svmCore->RegisterCallback(::IncrementRefCount, nullptr, "++ref");
+			callbackIds.IdReleaseRef = svmCore->RegisterCallback(::DecrementRefCount, (IAllocatorMap*) this, "--ref");
 			callbackIds.IdGetAllocSize = svmCore->RegisterCallback(GetAllocSize, nullptr, "sizeof");
+		}
+
+		void DecrementRefCount(InterfacePointer pInterface) override
+		{
+			uint8* pData = ((uint8*)pInterface) + (*pInterface)->OffsetToInstance;
+			ObjectStub* object = (ObjectStub*)pData;
+			DecObjRefCount(object, *this);
+		}
+
+		void IncrementRefCount(InterfacePointer pInterface) override
+		{
+			IncRefCount(pInterface);
 		}
 
 		const CallbackIds& GetCallbackIds() const

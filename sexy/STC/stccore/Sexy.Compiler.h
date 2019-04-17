@@ -229,6 +229,8 @@ namespace Rococo { namespace Compiler
 		virtual void InitCommon() = 0;
 		virtual const CallbackIds& GetCallbackIds() const = 0;
 		virtual void ClearCustomAllocators() = 0;
+		virtual void DecrementRefCount(InterfacePointer pInterface) = 0;
+		virtual void IncrementRefCount(InterfacePointer pInterface) = 0;
 	};
 
 	IProgramObject* CreateProgramObject_1_0_0_0(const ProgramInitParameters& pip, ILog& log);

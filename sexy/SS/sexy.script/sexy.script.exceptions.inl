@@ -69,7 +69,7 @@ namespace Rococo
 
          ce.Builder.AddSymbol(("end-catch"));
 
-         ce.Builder.PopLastVariables(2); // That pops the reference to the exception and the pseudo variable
+         ce.Builder.PopLastVariables(1); // That pops the reference to the exception
 
          size_t cleanupPos = ce.Builder.Assembler().WritePosition();
          size_t buildToCleanupDelta = cleanupPos - gotoCleanupPos;
