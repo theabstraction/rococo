@@ -61,30 +61,58 @@ namespace
 
 namespace Rococo { namespace VM { namespace OS 
 {
-	EXECUTERESULT ExecuteProtected(FN_CODE fnCode, void* context, EXCEPTIONCODE& exceptionCode, bool arg)
+	EXECUTERESULT ExecuteProtectedLayer0(IVirtualMachine& vm, FN_CODE fnCode, void* context, EXCEPTIONCODE& exceptionCode, bool arg)
 	{
 		exceptionCode = EXCEPTIONCODE_NONE;
 
-		__try
+		try
 		{
 			return fnCode(context, arg);
 		}
-		__except(EXCEPTION_EXECUTE_HANDLER)
+		catch (IException& ex)
+		{
+			vm.Core().Log(ex.Message());
+			return EXECUTERESULT_THROWN;
+		}
+	}
+
+	EXECUTERESULT ExecuteProtected(IVirtualMachine& vm, FN_CODE fnCode, void* context, EXCEPTIONCODE& exceptionCode, bool arg)
+	{
+		__try
+		{
+			return ExecuteProtectedLayer0(vm, fnCode, context, exceptionCode, arg);
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER)
 		{
 			OUT exceptionCode = SysToSVM(GetExceptionCode());
 			return EXECUTERESULT_SEH;
 		}
 	}
 
-	EXECUTERESULT ExecuteProtected(FN_CODE1 fnCode, void* context, EXCEPTIONCODE& exceptionCode)
+	EXECUTERESULT ExecuteProtectedLayer0(IVirtualMachine& vm, FN_CODE1 fnCode, void* context, EXCEPTIONCODE& exceptionCode)
+	{
+		exceptionCode = EXCEPTIONCODE_NONE;
+
+		try
+		{
+			return fnCode(context);
+		}
+		catch (IException& ex)
+		{
+			vm.Core().Log(ex.Message());
+			return EXECUTERESULT_THROWN;
+		}
+	}
+
+	EXECUTERESULT ExecuteProtected(IVirtualMachine& vm, FN_CODE1 fnCode, void* context, EXCEPTIONCODE& exceptionCode)
 	{
 		exceptionCode = EXCEPTIONCODE_NONE;
 
 		__try
 		{
-			return fnCode(context);
+			return ExecuteProtectedLayer0(vm, fnCode, context, exceptionCode);
 		}
-		__except(EXCEPTION_EXECUTE_HANDLER)
+		__except (EXCEPTION_EXECUTE_HANDLER)
 		{
 			OUT exceptionCode = SysToSVM(GetExceptionCode());
 			return EXECUTERESULT_SEH;

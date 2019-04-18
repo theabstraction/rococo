@@ -1622,6 +1622,30 @@ namespace Rococo
 			}
 		}
 
+		void InitInterfaceToToNullObject(CCompileEnvironment& ce, const NameString& name, const IStructure& type)
+		{
+			ce.Builder.AssignPointer(name, type.GetInterface(0).UniversalNullInstance());
+		}
+		
+		bool CanThrow(CCompileEnvironment& ce, cr_sex s)
+		{
+			if (IsCompound(s))
+			{
+				return true;
+			}
+			else if (IsAtomic(s))
+			{
+				auto name = s.String();
+				MemberDef def;
+				if (!ce.Builder.TryGetVariableByName(def, name->Buffer))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		void CompileAsVariableDeclarationWithAssignment(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex decl)
 		{
 			// (<type> <id> = <...>)
@@ -1637,6 +1661,16 @@ namespace Rococo
 				if (IsDeclarationAssignment(decl))
 				{
 					AddInterfaceVariable(ce, NameString::From(id), type);
+
+					cr_sex rhs = decl[2];
+
+					if (CanThrow(ce, rhs))
+					{
+						// If the rhs can throw an exception then the lhs must be properly initialized before the rhs is called
+						// otherwise when the ref count is decremented we will get a memory exception error
+						InitInterfaceToToNullObject(ce, NameString::From(id), type);
+					}
+
 					CompileAssignmentDirective(ce, decl, type, true);
 					return;
 				}
@@ -2024,7 +2058,7 @@ namespace Rococo
 				cstr name;
 				ce.Builder.GetVariableByIndex(OUT def, OUT name, (int32) lastIndex);
 
-				if (def.AllocSize != 0 && tryCatchBlock != NULL && def.Userdata != tryCatchBlock)
+				if (tryCatchBlock != NULL && def.Userdata != tryCatchBlock)
 				{
 					// We mark the rollback position to the tryCatchBlock
 					break;
@@ -2042,7 +2076,7 @@ namespace Rococo
 				cstr name;
 				ce.Builder.GetVariableByIndex(OUT def, OUT name, (int32) lastIndex);
 
-				if (def.AllocSize != 0 && tryCatchBlock != NULL && def.Userdata != tryCatchBlock)
+				if (tryCatchBlock != NULL && def.Userdata != tryCatchBlock)
 				{
 					break;
 				}

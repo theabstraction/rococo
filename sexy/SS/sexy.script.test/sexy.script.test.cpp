@@ -3362,11 +3362,19 @@ namespace
 			")"			
 			"(alias Main EntryPoint.Main)"
 
-			"(class Robot)"
-			"(method Robot.Destruct -> : (TestException ex)(throw ex))"
+			"(class Robot (defines EntryPoint.IRobot))"
+			"(method Robot.Wait -> : )"
+			"(method Robot.Destruct -> :"
+			"  (Sys.Type.IException inner(EntryPoint.NewException))"
+			"  (throw inner)"
+			")"
+			"(method Robot.Construct -> : )"
 			"(class TestException (implements Sys.Type.IException))"
+			"(method TestException.Construct : )"
 			"(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))"			
-			"(method TestException.Message -> (Sys.Type.IString s): (s = \"To be expected\"))"			
+			"(method TestException.Message -> (Sys.Type.IString s): (s = \"To be expected\"))"		
+			"(factory EntryPoint.NewRobot EntryPoint.IRobot : (construct Robot))"
+			"(factory EntryPoint.NewException Sys.Type.IException : (construct TestException))"
 			;
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestDestructorThrows");
@@ -11485,24 +11493,8 @@ namespace
 	{
 		validate(true);
 
-		TEST(TestInternalDestructorsCalled);
-		TEST(TestInternalDestructorsCalled2);
-
-		TEST(TestTryFinallyWithoutThrow);
-		TEST(TestDeepCatch);
-
-		TEST(TestSysThrow);
-		TEST(TestSysThrow2);
-
-		TEST(TestExceptionDestruct);
-		TEST(TestDynamicCast);
-
-		TEST(TestDerivedInterfaces2);
-
-		TEST(TestCatch);
-		TEST(TestCatchArg);
-
 		TEST(TestReflectionGetChild_BadIndex);
+
 		TEST(TestReflectionGetChild);
 		TEST(TestReflectionGetAtomic);
 
@@ -11742,6 +11734,23 @@ namespace
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 
 		TEST(TestMemberwiseInit);
+
+		TEST(TestInternalDestructorsCalled);
+		TEST(TestInternalDestructorsCalled2);
+
+		TEST(TestTryFinallyWithoutThrow);
+		TEST(TestDeepCatch);
+
+		TEST(TestSysThrow);
+		TEST(TestSysThrow2);
+
+		TEST(TestDynamicCast);
+		TEST(TestExceptionDestruct);
+
+		TEST(TestDerivedInterfaces2);
+
+		TEST(TestCatch);
+		TEST(TestCatchArg);
 	}
 
 	void RunPositiveFailures()

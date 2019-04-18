@@ -185,6 +185,8 @@ namespace Rococo
 
 		 char refName[256];
 		 SafeFormat(refName, sizeof(refName), "_interfaceRef_%d", refId++);
+
+		 AddInterfaceVariable(ce, NameString::From(refName), targetStruct);
 		 
          CompileFactoryCall(ce, factory, refName, factoryCall, targetStruct.GetInterface(0));
 

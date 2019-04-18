@@ -299,7 +299,6 @@ namespace Rococo { namespace Compiler
 		virtual void AddVariable(const NameString& name, const TypeString& type, void* userData) = 0;
 		virtual void AddVariableRef(const NameString& name, const IStructure& type, void* userData) = 0;
 		virtual void AddVariable(const NameString& name, const IStructure& type, void* userData) = 0;
-		virtual void AddCatchVariable(cstr name, void* userData) = 0;
 		virtual void Append_GetAllocSize() = 0;
 
 		/* decrement reference count to an object with interface or instance pointed to by D4. If it hits zero non null-objects will be freed */

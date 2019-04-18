@@ -61,8 +61,6 @@ namespace Rococo
          size_t handlerPos = ce.Builder.Assembler().WritePosition();
          AddCatchHandler(ce.Script, section.Id, startOfBody, gotoCleanupPos, handlerPos);
 
-         ce.Builder.AddCatchVariable(exName, (void*)ce.Script.GetTryCatchExpression());
-
 		 AddInterfaceVariable(ce, NameString::From(exName), ce.Object.Common().SysTypeIException().NullObjectType());
 
          CompileExpressionSequence(ce, 0, handler.NumberOfElements() - 1, handler);

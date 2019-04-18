@@ -53,10 +53,10 @@ namespace
 		ReadInput(0, vCastToInterface, e);
 		const IInterface& castToInterf = *(const IInterface*) vCastToInterface;
 
-		VirtualTable** vSrcInterface;
-		ReadInput(1, vSrcInterface, e);
+		InterfacePointer pSrcInterface;
+		ReadInput(1, pSrcInterface, e);
 
-		ObjectStub* obj = InterfaceToInstance(vSrcInterface);							
+		ObjectStub* obj = InterfaceToInstance(pSrcInterface);
 
 		const IStructure& typeInfo = *obj->Desc->TypeInfo;
 
@@ -71,6 +71,7 @@ namespace
 			{
 				uint8* pCastedInterface =  (i * sizeof(void*) + GetInterfacePtr(*obj));
 				SetD4(e.cpu, pCastedInterface);
+				((IProgramObject&)typeInfo.Object()).IncrementRefCount(pSrcInterface);
 				return;
 			}
 		}

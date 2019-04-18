@@ -194,7 +194,6 @@ namespace
 		virtual void AddVariable(const NameString& name, const IStructure& type, void* userData);
 		virtual void AddVariableRef(const NameString& name, const IStructure& type, void* userData);
 		virtual void AddInterfaceVariable(const NameString& ns, const IStructure& st, void* userData);
-		virtual void AddCatchVariable(cstr name, void* userData);
 		virtual void AssignLiteral(const NameString& name, cstr valueLiteral);
 		virtual void AssignPointer(const NameString& name, const void* ptr);
 		virtual void AssignVariableToVariable(cstr source, cstr value);
@@ -1313,7 +1312,7 @@ namespace
 
 		if (IsPointerValid(&type))
 		{
-			Variable *v = new Variable(Assembler().WritePosition(), name, type, sectionIndex, NULL, sizeof(InterfacePointer), VARLOCATION_TEMP);
+			Variable *v = new Variable(Assembler().WritePosition(), name, type, sectionIndex, userData, sizeof(InterfacePointer), VARLOCATION_TEMP);
 			variables.push_back(v);
 			v->SetStackPosition(nextOffset);
 			nextOffset += sizeof(void*);
@@ -1350,34 +1349,6 @@ namespace
 		{
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not add variable [%s]. Type null"), name.c_str());
 		}
-	}
-
-	void CodeBuilder::AddCatchVariable(cstr name, void* userData)
-	{
-		/* TODO - delete section
-		if (IsVariableDefinedAtLevel(sectionIndex, name))
-		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Variable [%s] already defined in this scope"), name);
-		}
-
-		const IInterface& interf = Module().Object().Common().SysTypeIException();
-		if (!IsPointerValid(&interf))
-		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot find Sys.Type.IException in intrinsics module"), name);
-		}
-
-		const IStructure& nullObjectType = interf.NullObjectType();
-
-		Variable *v = new Variable(Assembler().WritePosition(), NameString::From(name), nullObjectType, sectionIndex, userData, -1, VARLOCATION_TEMP);
-		variables.push_back(v);
-
-		int32 dx = v->AllocSize();
-
-		int offset = nextOffset; // SF takes us just beyond the return address of the caller
-		nextOffset += dx;
-
-		v->SetStackPosition(offset);		
-		*/
 	}
 
 	void CodeBuilder::AssignLiteral(const Rococo::Compiler::NameString& name, cstr literalValue)
@@ -1451,7 +1422,8 @@ namespace
 		VariantValue value;
 
 		VARTYPE vType = def.ResolvedType->VarType();
-		if (vType != VARTYPE_Pointer)
+
+		if (!((vType == VARTYPE_Derivative && def.ResolvedType->InterfaceCount() > 0) || vType == VARTYPE_Pointer))
 		{
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not assign '%p' to [%s]. Variable must of type Pointer."), ptr, name.c_str());
 		}
@@ -1466,8 +1438,8 @@ namespace
 		}
 		else //ByRef
 		{
-			Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, value, GetBitCount(vType));
-			Assembler().Append_SetSFMemberByRefFromRegister(VM::REGISTER_D5, def.SFOffset, def.MemberOffset, GetBitCount(vType));
+			Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, value, GetBitCount(vType));
+			Assembler().Append_SetSFMemberByRefFromRegister(VM::REGISTER_D4, def.SFOffset, def.MemberOffset, GetBitCount(vType));
 		}
 	}
 

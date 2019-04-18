@@ -374,40 +374,6 @@ namespace
 		*ptrValue = newInstance + internalOffset;
 	}
 
-	void UpdateInternalExceptionPointers(Compiler::IProgramObject& po, uint8* newInstance, const ObjectStub* oldInstance, const IStructure& memberType, cstr name, ptrdiff_t offset)
-	{
-		VARTYPE type = memberType.VarType();
-		if (type == VARTYPE_Derivative)
-		{
-			for(int i = 0; i < memberType.MemberCount(); ++i)
-			{
-				const IMember& m = memberType.GetMember(i);
-				UpdateInternalExceptionPointers(po, newInstance, oldInstance, *m.UnderlyingType(), m.Name(), offset);
-				offset += m.SizeOfMember();
-			}
-		}
-		else if (type == VARTYPE_Pointer)
-		{
-			const uint8** pPointer = (const uint8**) GetPtr(oldInstance, offset);
-			const uint8* ptr = *pPointer;
-
-			if (IsPtrInsideInstance(ptr, oldInstance))
-			{
-				UpdateRelativePointer(newInstance, oldInstance, offset, ptr);
-				return;
-			}
-
-			if (IsPtrInsideStack(ptr, po))
-			{				
-				sexstringstream<1024> streamer;
-				streamer.sb << ("A pointer inside an exception object '") << GetType(oldInstance).Name() << (".") << name << ("' referred to another object on the stack");
-				po.Log().Write(*streamer.sb);
-				po.VirtualMachine().Throw();
-				return;
-			}
-		}					
-	}
-
 	ObjectStub* ReadExceptionFromInput(int inputNumber, IPublicProgramObject& po, const IFunction& f)
 	{
 		void* ex;
@@ -452,10 +418,9 @@ namespace
 			}
 			else
 			{			
-				uint8* sf = po.VirtualMachine().Cpu().SF();
-				auto pAddrSF = (VirtualTable***)sf;
-				*pAddrSF = &object->pVTables[0];
-			//	po.VirtualMachine().PushBlob(&object->pVTables, sizeof(size_t)); TODO delete
+				uint8* sp = (uint8*) po.VirtualMachine().Cpu().D[VM::REGISTER_SP].vPtrValue;
+				InterfacePointer* pInterface = (InterfacePointer*)sp;
+				*pInterface = &object->pVTables[0];	
 			}
 
 			isWithinException = false;

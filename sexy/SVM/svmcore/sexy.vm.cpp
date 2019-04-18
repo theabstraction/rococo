@@ -375,7 +375,7 @@ namespace
 			};
 
 			status = EXECUTERESULT_RUNNING;
-			return VM::OS::ExecuteProtected(ANON::ProtectedDebug, this, OUT cpu.ExceptionCode);
+			return VM::OS::ExecuteProtected(*this, ANON::ProtectedDebug, this, OUT cpu.ExceptionCode);
 		}
 
 		virtual void Throw()
@@ -471,7 +471,8 @@ namespace
 						return vm->ProtectedContinue(throwToQuit);
 					}
 				};
-				return VM::OS::ExecuteProtected(ANON::ProtectedContinue, this, OUT cpu.ExceptionCode, ef.ThrowToQuit);
+
+				return VM::OS::ExecuteProtected(*this, ANON::ProtectedContinue, this, OUT cpu.ExceptionCode, ef.ThrowToQuit);
 			}
 			else
 			{
@@ -643,7 +644,7 @@ namespace
 					}
 				}
 
-				status = VM::OS::ExecuteProtected(ANON::ProtectedAdvance, this, OUT cpu.ExceptionCode);
+				status = VM::OS::ExecuteProtected(*this, ANON::ProtectedAdvance, this, OUT cpu.ExceptionCode);
 			}
 		}
 
@@ -671,7 +672,7 @@ namespace
 			if (status == EXECUTERESULT_RUNNING)
 			{
 				isBeingStepped++;
-				status = VM::OS::ExecuteProtected(ANON::ProtectedAdvance, this, OUT cpu.ExceptionCode);
+				status = VM::OS::ExecuteProtected(*this, ANON::ProtectedAdvance, this, OUT cpu.ExceptionCode);
 				isBeingStepped--;
 			}
 		}
@@ -715,7 +716,7 @@ namespace
 
 			if (status == EXECUTERESULT_RUNNING)
 			{
-				status = VM::OS::ExecuteProtected(ANON::ProtectedRunUntilReturn, this, OUT cpu.ExceptionCode);
+				status = VM::OS::ExecuteProtected(*this, ANON::ProtectedRunUntilReturn, this, OUT cpu.ExceptionCode);
 			}
 		}
 
@@ -747,7 +748,7 @@ namespace
 
 			if (status == EXECUTERESULT_RUNNING)
 			{
-				status = VM::OS::ExecuteProtected(ANON::ProtectedStepOut, this, OUT cpu.ExceptionCode);
+				status = VM::OS::ExecuteProtected(*this, ANON::ProtectedStepOut, this, OUT cpu.ExceptionCode);
 			}
 		}
 

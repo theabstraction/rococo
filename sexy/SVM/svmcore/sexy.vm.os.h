@@ -40,8 +40,8 @@ namespace Rococo { namespace VM { namespace OS
 {
 	typedef EXECUTERESULT (*FN_CODE)(void* context, bool arg);
 	typedef EXECUTERESULT (*FN_CODE1)(void* context);
-	EXECUTERESULT ExecuteProtected(FN_CODE fnCode, void* context, EXCEPTIONCODE& exceptionCode, bool arg);
-	EXECUTERESULT ExecuteProtected(FN_CODE1 fnCode, void* context, EXCEPTIONCODE& exceptionCode);
+	EXECUTERESULT ExecuteProtected(IVirtualMachine& vm, FN_CODE fnCode, void* context, EXCEPTIONCODE& exceptionCode, bool arg);
+	EXECUTERESULT ExecuteProtected(IVirtualMachine& vm, FN_CODE1 fnCode, void* context, EXCEPTIONCODE& exceptionCode);
 
 	int64 TimerTicks();
 	int64 TimerHz();
