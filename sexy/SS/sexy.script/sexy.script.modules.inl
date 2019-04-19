@@ -667,8 +667,6 @@ namespace Rococo { namespace Script
 
 	void AppendInvokeDestructor(CCompileEnvironment& ce, cstr instanceName, cr_sex sequence, const MemberDef& instanceDef)
 	{
-		if (instanceDef.AllocSize == 0) return; // Pseudo values describe things that are destructed by the compile system, not at run-time.
-
 		const IStructure& s = *instanceDef.ResolvedType;
 
 		if (s == ce.StructArray())
@@ -709,7 +707,7 @@ namespace Rococo { namespace Script
 
 			if (def.SFOffset < 0) Throw(sequence, ("Algorithmic error #2 in deconstruction logic"));
 
-			if (def.Usage == ARGUMENTUSAGE_BYVALUE && def.ResolvedType->VarType() == VARTYPE_Derivative)
+			if (def.Usage == ARGUMENTUSAGE_BYVALUE && def.ResolvedType->VarType() == VARTYPE_Derivative && def.ResolvedType->InterfaceCount() != 0)
 			{
 				AppendInvokeDestructor(ce, instanceName, sequence, def);
 			}
@@ -789,7 +787,8 @@ namespace Rococo { namespace Script
 			CompileExpression(ce, s); 
 		}
 
-		AppendDeconstruct(ce, sequence);
+		//AppendDeconstruct(ce, sequence);
+		AppendDeconstructAll(ce, sequence);
 
 		ce.Builder.LeaveSection();
 	}

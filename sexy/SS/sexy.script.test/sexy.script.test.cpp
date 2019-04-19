@@ -11776,9 +11776,9 @@ namespace
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
+		RunCollectionTests();
 		RunPositiveSuccesses();
 		RunPositiveFailures();	
-		RunCollectionTests();
 
 		end = OS::CpuTicks();
 		hz = OS::CpuHz();
