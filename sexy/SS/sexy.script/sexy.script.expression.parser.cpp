@@ -1544,7 +1544,24 @@ namespace Rococo
 					ThrowTypeMismatch(decl, def.mapdef.ValueType, type, ("The node element type did not match the declaration type"));
 				}
 
-				AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGetRef, decl); // The element ref is now in D7
+				if (def.mapdef.ValueType.InterfaceCount() > 0)
+				{
+					if (sizeof(size_t) == 8)
+					{
+						AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGet64, decl); // The element is now in D7
+					}
+					else
+					{
+						AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGet32, decl); // The element is now in D7
+					}
+
+					ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4, BITCOUNT_POINTER);
+					ce.Builder.Append_IncRef();
+				}
+				else
+				{
+					AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGetRef, decl); // The element ref is now in D7
+				}
 			}
 			else
 			{

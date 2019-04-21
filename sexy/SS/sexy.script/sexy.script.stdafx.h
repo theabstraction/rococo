@@ -500,6 +500,7 @@ namespace Rococo
          ID_API_CALLBACK MapInsert32;
          ID_API_CALLBACK MapInsert64;
          ID_API_CALLBACK MapInsertValueByRef;
+		 ID_API_CALLBACK MapInsertInterface;
          ID_API_CALLBACK MapInsertAndGetRef;
          ID_API_CALLBACK MapClear;
          ID_API_CALLBACK MapTryGet;

@@ -133,19 +133,25 @@ namespace Rococo
          return ((uint8*)m) + sizeof(MapNode) + firstpadding;
       }
 
-      uint8* GetValuePointer(MapNode* m)
-      {
-         size_t firstpadding = GetAlignmentPadding(16, sizeof(MapNode));
-		 size_t secondpadding = GetAlignmentPadding(16, m->Container->KeyType->SizeOfStruct());
-		 size_t offset_to_value = sizeof(MapNode) + firstpadding + m->Container->KeyType->SizeOfStruct() + secondpadding;
-         return ((uint8*)m) + sizeof(MapNode) + firstpadding + m->Container->KeyType->SizeOfStruct() + secondpadding;
-      }
+	  size_t GetKeySize(MapImage* m)
+	  {
+		  return m->KeyType->SizeOfStruct();
+	  }
+
+	  uint8* GetValuePointer(MapNode* m)
+	  {
+		  size_t keySize = GetKeySize(m->Container);
+		  size_t firstpadding = GetAlignmentPadding(16, sizeof(MapNode));
+		  size_t secondpadding = GetAlignmentPadding(16, (int) keySize);
+		  size_t offset_to_value = sizeof(MapNode) + firstpadding + keySize + secondpadding;
+		  return ((uint8*)m) + sizeof(MapNode) + firstpadding + keySize + secondpadding;
+	  }
 
       void FreeNode(MapNode* n, IScriptSystem& ss)
       {
          if (n->IsExistant)
          {
-            DestroyObject(*n->Container->KeyType, (uint8*)GetKeyPointer(n), ss);
+         //   DestroyObject(*n->Container->KeyType, (uint8*)GetKeyPointer(n), ss);
             DestroyObject(*n->Container->ValueType, (uint8*)GetValuePointer(n), ss);
          }
          ss.AlignedFree(n);
@@ -159,18 +165,29 @@ namespace Rococo
          return refcount;
       }
 
-      MapNode* CreateMapNode(MapImage* m, IScriptSystem& ss)
-      {
-         size_t firstpadding = GetAlignmentPadding(16, sizeof(MapNode));
-		 size_t secondpadding = GetAlignmentPadding(16, m->KeyType->SizeOfStruct());
-		 size_t allocSize = sizeof(MapNode) + firstpadding + m->KeyType->SizeOfStruct() + secondpadding + m->ValueType->SizeOfStruct();
-         MapNode* n = (MapNode*)ss.AlignedMalloc(16, (int32) allocSize);
-         n->Container = m;
-         n->Previous = NULL;
-         n->Next = NULL;
-         n->RefCount = 1;
-         return n;
-      }
+	  size_t GetMemberSize(const IStructure& type)
+	  {
+		  return type.InterfaceCount() > 0 ? sizeof(size_t) : type.SizeOfStruct();
+	  }
+
+	  size_t GetValueSize(MapImage* m)
+	  {
+		  return GetMemberSize(*m->ValueType);
+	  }
+
+	  MapNode* CreateMapNode(MapImage* m, IScriptSystem& ss)
+	  {
+		  size_t keysize = GetKeySize(m);
+		  size_t firstpadding = GetAlignmentPadding(16, sizeof(MapNode));
+		  size_t secondpadding = GetAlignmentPadding(16, (int) keysize);
+		  size_t allocSize = sizeof(MapNode) + firstpadding + keysize + secondpadding + GetValueSize(m);
+		  MapNode* n = (MapNode*)ss.AlignedMalloc(16, (int32)allocSize);
+		  n->Container = m;
+		  n->Previous = NULL;
+		  n->Next = NULL;
+		  n->RefCount = 1;
+		  return n;
+	  }
 
       void MapClear(MapImage* m, IScriptSystem& ss)
       {
@@ -301,7 +318,7 @@ namespace Rococo
 
             row.push_back(newNode);
 
-            AlignedMemcpy(GetKeyPointer(newNode), strKey, strKey->stub.Desc->TypeInfo->SizeOfStruct());
+            AlignedMemcpy(GetKeyPointer(newNode), strKey,  strKey->stub.Desc->TypeInfo->SizeOfStruct());
 
             return newNode;
          }
@@ -503,7 +520,7 @@ namespace Rococo
 			  }
 			  else
 			  {
-				  memset(pValue, 0, type.SizeOfStruct());
+				  memset(pValue, 0, GetMemberSize(type));
 			  }
 		  }
 	  }
@@ -578,13 +595,23 @@ namespace Rococo
          *(int64*)GetValuePointer(n) = value;
       }
 
+	  VM_CALLBACK(MapInsertInterface)
+	  {
+		  IScriptSystem& ss = *(IScriptSystem*)context;
+		  MapImage* m = (MapImage*)registers[VM::REGISTER_D4].vPtrValue;
+		  MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
+		  InterfacePointer value = (InterfacePointer) registers[VM::REGISTER_D7].vPtrValue;
+		  *(InterfacePointer*)GetValuePointer(n) = value;
+		  ss.ProgramObject().IncrementRefCount(value);
+	  }
+
       VM_CALLBACK(MapInsertValueByRef)
       {
          IScriptSystem& ss = *(IScriptSystem*)context;
          MapImage* m = (MapImage*)registers[VM::REGISTER_D4].vPtrValue;
          MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
          const void* valueSrc = registers[VM::REGISTER_D7].vPtrValue;
-         AlignedMemcpy(GetValuePointer(n), valueSrc, m->ValueType->SizeOfStruct());
+         AlignedMemcpy(GetValuePointer(n), valueSrc, GetValueSize(m));
       }
 
       VM_CALLBACK(MapInsertAndGetRef)
@@ -746,7 +773,7 @@ namespace Rococo
             cstr value = valueExpr.String()->Buffer;
             CompileNumericExpression(ce, valueExpr, def.ValueType.VarType()); // value goes to D7
             ce.Builder.AssignVariableRefToTemp(mapName, 0); // map ref goes to D4
-            AppendInvoke(ce, def.ValueType.SizeOfStruct() == 4 ? GetMapCallbacks(ce).MapInsert32 : GetMapCallbacks(ce).MapInsert64, s);
+            AppendInvoke(ce, GetMemberSize(def.ValueType) == 4 ? GetMapCallbacks(ce).MapInsert32 : GetMapCallbacks(ce).MapInsert64, s);
          }
          else if (def.ValueType.VarType() == VARTYPE_Closure)
          {
@@ -767,7 +794,14 @@ namespace Rococo
                CompileGetStructRef(ce, valueExpr, def.ValueType, ("insert-ref")); // structure ref goes to D7
                ce.Builder.AssignVariableRefToTemp(mapName, 0); // map ref goes to D4
 
-               AppendInvoke(ce, GetMapCallbacks(ce).MapInsertValueByRef, s);
+			   if (def.ValueType.InterfaceCount() > 0)
+			   {
+				   AppendInvoke(ce, GetMapCallbacks(ce).MapInsertInterface, s);
+			   }
+			   else
+			   {
+				   AppendInvoke(ce, GetMapCallbacks(ce).MapInsertValueByRef, s);
+			   }
             }
             else // 4
             {

@@ -129,6 +129,7 @@
     <None Include="sexy.script.array.inl" />
     <None Include="sexy.script.casts.inl" />
     <None Include="sexy.script.closure.inl" />
+    <None Include="sexy.script.containers.inl" />
     <None Include="sexy.script.exception.logic.inl" />
     <None Include="sexy.script.arithmetic.expression.parser.inl" />
     <None Include="sexy.script.asserts.inl" />

@@ -1,28 +1,15 @@
 (namespace EntryPoint)
+ (alias Main EntryPoint.Main)
 
-(using Sys.Maths)
-(using Sys)
+(using Sys.Type)
 
-(class Fidelio(defines Sys.IFidelio))
-
-(method Fidelio.Id -> (Int32 id) :
-	(id = 12)
+(function Main -> (Int32 result):
+	(map IString Int32 a)
+	(a.Insert "Joe" 90 )
+	(node n = (a "Joe"))
+	(if (n.Exists)
+		(result = 3)
+	else
+		(result = 4)
+	)
 )
-
-(method Fidelio.Construct -> :)
-
-(factory Sys.Fidelio Sys.IFidelio :
-	(construct Fidelio)
-)
-
-(function GetFidelio -> (IFidelio output) :
-	(IFidelio g(Fidelio))
-	(output = g)
-)
-
-(function Main -> (Int32 result) :
-	(IFidelio f = (GetFidelio))
-	(f.Id -> result)
-)
-
-(alias Main EntryPoint.Main)

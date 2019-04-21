@@ -37,6 +37,8 @@ namespace Rococo
 {
    namespace Script
    {
+	   void DeleteMembers(IScriptSystem& ss, const IStructure& type, uint8* pInstance);
+
 	   struct ArrayImage
 	   {
 		   void* Start;
@@ -79,39 +81,9 @@ namespace Rococo
 		   ArrayDelete(a, ss);
 	   }
 
-	   void DestroyMember(IScriptSystem& ss, const IMember& member, size_t offset, uint8* sf)
-	   {
-		   auto& type = *member.UnderlyingType();
-		   if (type.InterfaceCount() > 0)
-		   {
-				uint8* item = sf + offset;
-				InterfacePointer pInterface = *(InterfacePointer*)item;
-				ss.ProgramObject().DecrementRefCount(pInterface);
-		   }
-		   else if (type.VarType() == VARTYPE_Derivative)
-		   {
-			   if (type == ss.ProgramObject().Common().TypeArray())
-			   {
-				   DestroyElements(*(ArrayImage*)(sf + offset), ss);
-				   ArrayDelete((ArrayImage*)(sf + offset), ss);
-			   }
-			   else
-			   {
-				   size_t subOffset = 0;
-				   for (int i = 0; i < member.UnderlyingType()->MemberCount(); ++i)
-				   {
-					   auto& m = member.UnderlyingType()->GetMember(i);
-
-					   DestroyMember(ss, m, subOffset, offset + sf);
-
-					   offset += m.SizeOfMember();
-				   }
-			   }
-		   }
-	   }
-
 	   void DestroyElements(ArrayImage& a, IScriptSystem& ss)
 	   {
+		   auto& obj = ss.ProgramObject();
 		   if (a.ElementType->InterfaceCount() > 0)
 		   {
 			   int offset = 0;
@@ -119,7 +91,7 @@ namespace Rococo
 			   {
 				   uint8* item = (uint8*)a.Start + offset;
 				   InterfacePointer pInterface = *(InterfacePointer*)item;
-				   ss.ProgramObject().DecrementRefCount(pInterface);
+				   obj.DecrementRefCount(pInterface);
 				   offset += sizeof(size_t);
 			   }
 		   }
@@ -128,15 +100,7 @@ namespace Rococo
 			   for (int i = 0; i < a.NumberOfElements; ++i)
 			   {
 				   uint8* item = (uint8*)a.Start + i * a.ElementLength;
-				   size_t offset = 0;
-				   for (int i = 0; i < a.ElementType->MemberCount(); ++i)
-				   {
-					   auto& m = a.ElementType->GetMember(i);
-
-					   DestroyMember(ss, m, offset, item);
-
-					   offset += m.SizeOfMember();
-				   }
+				   DeleteMembers(ss, *a.ElementType, item);
 			   }
 		   }
 

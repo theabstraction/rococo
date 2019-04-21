@@ -119,5 +119,8 @@
     <None Include="sexy.script.map.inl">
       <Filter>Implementation</Filter>
     </None>
+    <None Include="sexy.script.containers.inl">
+      <Filter>Implementation</Filter>
+    </None>
   </ItemGroup>
 </Project>

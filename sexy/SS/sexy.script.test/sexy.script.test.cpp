@@ -7802,6 +7802,43 @@ namespace
 		validate(x == 49);
 	}
 
+	void TestMapValueInterface(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(class Test (defines Sys.ITest))"
+			"(method Test.Construct : )"
+			"(method Test.Id -> (Int32 id) : (id = 6) )"
+			"(factory Sys.NewTest Sys.ITest : (construct Test))"
+
+			"(function Main -> (Int32 result):"
+			"	(map Int32 Sys.ITest a)"
+			"	(Sys.ITest t (Sys.NewTest))"
+			"	(a.Insert 45 t)"
+			"	(node n = (a 45))"
+			"	(Sys.ITest value = & n)"
+			"	(result = value.Id)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 6);
+	}
+
 	void TestMapValueStruct(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -11390,6 +11427,7 @@ namespace
 	   TEST(TestMap5);
 	   TEST(TestMap6);
 	   TEST(TestMap7);
+	   TEST(TestMapValueInterface);
 	   TEST(TestMapOfArchetypes);
 	   TEST(TestMapOverwriteValue);
 	   TEST(TestMapOverwriteValue64);
@@ -11819,7 +11857,7 @@ namespace
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		TEST(TestArrayWithinArrayDeconstruct);
+		TEST(TestMap4);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

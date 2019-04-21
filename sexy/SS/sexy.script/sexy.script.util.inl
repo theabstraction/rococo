@@ -136,51 +136,47 @@ namespace Rococo
       void MapClear(MapImage* m, IScriptSystem& ss);
       void ArrayDelete(ArrayImage* a, IScriptSystem& ss);
 
-      void DestroyObject(const IStructure& type, uint8* item, IScriptSystem& ss)
-      {
-         if (IsPrimitiveType(type.VarType())) return;
+	  void DestroyObject(const IStructure& type, uint8* item, IScriptSystem& ss)
+	  {
+		  if (IsPrimitiveType(type.VarType())) return;
 
-         if (AreEqual(type.Name(), ("_Array")))
-         {
-            ArrayImage* a = (ArrayImage*)item;
-            DestroyElements(*a, ss);
-            ArrayDelete(a, ss);
-            return;
-         }
-         else if (AreEqual(type.Name(), ("_List")))
-         {
-            ListImage* l = (ListImage*)item;
-            ListClear(*l, ss);
-            return;
-         }
-         else if (AreEqual(type.Name(), ("_Map")))
-         {
-            MapImage* m = (MapImage*)item;
-            MapClear(m, ss);
-            return;
-         }
+		  if (AreEqual(type.Name(), ("_Array")))
+		  {
+			  ArrayImage* a = (ArrayImage*)item;
+			  DestroyElements(*a, ss);
+			  ArrayDelete(a, ss);
+			  return;
+		  }
+		  else if (AreEqual(type.Name(), ("_List")))
+		  {
+			  ListImage* l = (ListImage*)item;
+			  ListClear(*l, ss);
+			  return;
+		  }
+		  else if (AreEqual(type.Name(), ("_Map")))
+		  {
+			  MapImage* m = (MapImage*)item;
+			  MapClear(m, ss);
+			  return;
+		  }
+		  else if (type.InterfaceCount() > 0)
+		  {
+			  InterfacePointer pInterface = *(InterfacePointer*)item;
+			  ss.ProgramObject().DecrementRefCount(pInterface);
+		  }
+		  else
+		  {
+			  int offset = 0;
+			  for (int i = 0; i < type.MemberCount(); ++i)
+			  {
+				  const IMember& m = type.GetMember(i);
+				  const IStructure& mType = *m.UnderlyingType();
+				  DestroyObject(mType, item + offset, ss);
+				  offset += mType.SizeOfStruct();
 
-         int offset = 0;
-         for (int i = 0; i < type.MemberCount(); ++i)
-         {
-            const IMember& m = type.GetMember(i);
-            const IStructure& mType = *m.UnderlyingType();
-            DestroyObject(mType, item + offset, ss);
-            offset += mType.SizeOfStruct();
-         }
-
-         if (type.Prototype().IsClass)
-         {
-            ObjectStub* stub = (ObjectStub*)item;
-
-            VM::IVirtualMachine& vm = type.Object().VirtualMachine();
-
-            vm.Push((void*)item);
-            vm.ExecuteFunction(stub->Desc->DestructorId);
-            vm.PopPointer();
-            vm.SetStatus(EXECUTERESULT_RUNNING);
-         }
-      }
+			  }
+		  }
+	  }
 
       // All our datatypes are multiples of 4-bytes and are allocated from aligned blocks, so this should generally be faster than memcpy which is bloated with alignment cases
       void AlignedMemcpy(void* __restrict dest, const void* __restrict source, size_t nBytes)

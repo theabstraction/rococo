@@ -125,6 +125,8 @@ namespace Rococo {
 	{
 		const char* const THIS_POINTER_TOKEN = ("this");
 
+		void DeleteMembers(IScriptSystem& ss, const IStructure& type, uint8* pInstance);
+
 	} // Script
 } // Rococo
 
@@ -138,6 +140,7 @@ namespace Rococo {
 #include "sexy.script.array.inl"
 #include "sexy.script.list.inl"
 #include "sexy.script.map.inl"
+#include "sexy.script.containers.inl"
 #include "sexy.script.arithmetic.expression.parser.inl"
 #include "sexy.script.predicates.expression.parser.inl"
 #include "sexy.script.conditional.expression.parser.inl"
@@ -558,6 +561,7 @@ namespace Rococo
 			mapCallbacks.MapInsert64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapInsert64, this, ("MapInsert64"));
 			mapCallbacks.MapInsertValueByRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapInsertValueByRef, this, ("MapInsertValueByRef"));
 			mapCallbacks.MapInsertAndGetRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapInsertAndGetRef, this, ("MapInsertAndGetRef"));
+			mapCallbacks.MapInsertInterface = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapInsertInterface, this, ("MapInsertInterface"));
 			mapCallbacks.MapTryGet = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapTryGet, this, ("MapTryGet"));
 			mapCallbacks.MapNodeGet32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodeGet32, this, ("MapNodeGet32"));
 			mapCallbacks.MapNodeGet64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeMapNodeGet64, this, ("MapNodeGet64"));
