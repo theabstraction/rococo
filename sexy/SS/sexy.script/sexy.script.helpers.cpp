@@ -854,6 +854,11 @@ namespace Rococo
 			   const uint8** pItem = (const uint8**)(SF + def.SFOffset);
 			   return *pItem;
 		   }
+		   else if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
+		   {
+			   const uint8** pItem = (const uint8**)(SF + def.SFOffset);
+			   return *pItem;
+		   }
 		   else
 		   {
 			   return SF + def.SFOffset;

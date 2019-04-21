@@ -1396,7 +1396,14 @@ namespace Rococo
 
 	      if (IsNullType(*refDef.ResolvedType))
 	      {
-		      builder.Assembler().Append_CallVitualFunctionViaRefOnStack(refDef.SFOffset, vTableByteOffset);	
+			  if (!refDef.IsContained || refDef.Usage == ARGUMENTUSAGE_BYVALUE)
+			  {
+				  builder.Assembler().Append_CallVitualFunctionViaRefOnStack(refDef.SFOffset + refDef.MemberOffset, vTableByteOffset);
+			  }
+			  else
+			  {
+				  builder.Assembler().Append_CallVitualFunctionViaMemberOffsetOnStack(refDef.SFOffset, refDef.MemberOffset, vTableByteOffset);
+			  }
 	      }
 		  else
 		  {

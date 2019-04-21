@@ -1021,6 +1021,13 @@ namespace
 		rep.ByteCount = sizeof(args);
 	}
 
+	void FormatCallVitualFunctionViaMemberOffsetOnStack(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+		auto& args = (ArgsCallVitualFunctionViaMemberOffsetOnStack&)I;
+		format(rep, ("(%d.%d) #%d"), args.SFoffsetToStruct, args.memberOffsetToInterfaceRef, args.vTableOffset);
+		rep.ByteCount = sizeof(args);
+	}
+
 	void FormatCopySFVariableFromRef(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 #pragma	pack(push, 1)
@@ -1158,6 +1165,7 @@ namespace
 		EnableFormatter(SetSFMemberByRefFromSFByValue64);
 		EnableFormatter(SetSFMemberRefFromSFMemberByRef64);
 		EnableFormatter(DereferenceD4);
+		EnableFormatter(CallVitualFunctionViaMemberOffsetOnStack);
 	}
 
 	class Disassembler final: public IDisassembler

@@ -1,15 +1,24 @@
+(using Sys.Type)
+
 (namespace EntryPoint)
  (alias Main EntryPoint.Main)
 
-(using Sys.Type)
+(function Main -> (Int32 result):			
+  (Lapdancer lapdancer)
+  (lapdancer.pole.Index -> result)
+)
 
-(function Main -> (Int32 result):
-	(map IString Int32 a)
-	(a.Insert "Joe" 90 )
-	(node n = (a "Joe"))
-	(if (n.Exists)
-		(result = 3)
-	else
-		(result = 4)
-	)
+(interface Sys.IPole
+  (Index -> (Int32 value))
+)
+
+(class Pole
+  (implements Sys.IPole)
+  (Int32 index)
+)
+
+(method Pole.Index -> (Int32 index): (index = this.index))
+
+(struct Lapdancer
+  (Sys.IPole pole)
 )

@@ -725,6 +725,16 @@ namespace
 			AddArgument(args);
 		}
 
+		virtual void Append_CallVitualFunctionViaMemberOffsetOnStack(int32 SFoffsetToStruct, int32 memberOffset, int32 vTableOffset)
+		{
+			ArgsCallVitualFunctionViaMemberOffsetOnStack args;
+			args.opcode = Opcodes::CallVitualFunctionViaMemberOffsetOnStack;
+			args.SFoffsetToStruct = SFoffsetToStruct;
+			args.memberOffsetToInterfaceRef = memberOffset;
+			args.vTableOffset = vTableOffset >> 3;
+			AddArgument(args);
+		}
+
 		virtual void Append_CallVirtualFunctionByAddress(int32 SFoffsetToInterfaceValue, int32 vTableOffset)
 		{
 			AddSingleByteInstruction(Opcodes::CallVirtualFunctionByAddress);

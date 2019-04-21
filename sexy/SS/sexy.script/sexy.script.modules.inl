@@ -923,28 +923,53 @@ namespace Rococo { namespace Script
 			const IStructure& mtype = *m.UnderlyingType();
 			if (IsPrimitiveType(mtype.VarType()))
 			{
+				if (IsAtomic(arg))
+				{
+					cstr svalue = arg.String()->Buffer;
+					if (svalue[0] == '-' || isdigit(svalue[0]))
+					{
+						VariantValue value;
+						if (Parse::TryParse(OUT value, mtype.VarType(), svalue) == Parse::PARSERESULT_GOOD)
+						{
+							ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, value, GetBitCount(mtype.VarType()));
+							ce.Builder.Assembler().Append_Poke(VM::REGISTER_D7, GetBitCount(mtype.VarType()), VM::REGISTER_D4 + tempDepth, offset); // write the argument to the member	
+							offset += m.SizeOfMember();
+							continue;
+						}
+					}
+				}
+
 				// ToDo -> remove archiving when the assembly does not overwrite any registers, save D7
-				AddArchiveRegister(ce, VM::REGISTER_D4 + tempDepth, VM::REGISTER_D4 + tempDepth, BITCOUNT_POINTER);
+				AddArchiveRegister(ce, tempDepth, tempDepth, BITCOUNT_POINTER);
 				CompileNumericExpression(ce, arg, mtype.VarType()); // Numeric value in D7
 				ce.Builder.PopLastVariables(1); // VM::REGISTER_D4 + tempDepth contains the value pointer
-				ce.Builder.Assembler().Append_Poke(VM::REGISTER_D7, GetBitCount(mtype.VarType()), VM::REGISTER_D4 + tempDepth, offset); // write the argument to the member
-				
+				ce.Builder.Assembler().Append_Poke(VM::REGISTER_D7, GetBitCount(mtype.VarType()), VM::REGISTER_D4 + tempDepth, offset); // write the argument to the member	
 			}
 			else if (mtype.VarType() == VARTYPE_Derivative)
 			{
-				if (mtype.Prototype().IsClass)
+				if (mtype.Prototype().IsClass && !IsNullType(mtype))
 				{
 					Throw(arg, ("Internal Compiler Error. The member type was a class, which cannot be memberwise constructed"));
 				}
 
-				ConstructMemberByRef(ce, arg, tempDepth, mtype, offset);
+				if (mtype.InterfaceCount() > 0)
+				{
+					ce.Builder.AssignVariableToTemp(GetAtomicArg(arg), 3); // Numeric value in D7
+					ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4, BITCOUNT_POINTER);
+					ce.Builder.Append_IncRef();
+					ce.Builder.Assembler().Append_Poke(VM::REGISTER_D7, BITCOUNT_POINTER, VM::REGISTER_D4 + tempDepth, offset); // write the argument to the member
+				}
+				else
+				{
+					ConstructMemberByRef(ce, arg, tempDepth, mtype, offset);
+				}
 			}
 			else
 			{
 				Throw(arg, ("Internal Compiler Error. ConstructMemberByRef found an unusual member type"));
 			}
 
-			offset += mtype.SizeOfStruct();
+			offset += m.SizeOfMember();
 		}
 	}
 

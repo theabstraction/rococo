@@ -182,6 +182,7 @@ namespace
 			ActivateInstruction(CallById);
 			ActivateInstruction(CallByIdIndirect);
 			ActivateInstruction(CallVitualFunctionViaRefOnStack);
+			ActivateInstruction(CallVitualFunctionViaMemberOffsetOnStack);
 			ActivateInstruction(CallVirtualFunctionByAddress);
 			ActivateInstruction(CopySFMemory);
 			ActivateInstruction(CopySFMemoryNear);
@@ -1556,6 +1557,41 @@ namespace
 			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
 								
 			const ID_BYTECODE * vTable = (const ID_BYTECODE*) *pVTable;
+
+			const ID_BYTECODE id = vTable[args->vTableOffset];
+			size_t functionStart = program->GetFunctionAddress(id);
+			cpu.SetPC(cpu.ProgramStart + functionStart);
+		}
+
+
+		OPCODE_CALLBACK(CallVitualFunctionViaMemberOffsetOnStack)
+		{
+			struct VirtualTable
+			{
+				ptrdiff_t OffsetToInstance;
+				ID_BYTECODE FirstMethodId;
+			};
+
+			const auto* args = (ArgsCallVitualFunctionViaMemberOffsetOnStack*)cpu.PC();
+
+			const uint8* sfItem = cpu.SF() + args->SFoffsetToStruct;
+			const uint8* pStructure = *(const uint8**)sfItem;
+
+			const uint8* pMember = pStructure + args->memberOffsetToInterfaceRef;
+
+			const VirtualTable** pVTable = *(const VirtualTable***)(pMember);
+
+			cpu.Push(pVTable);
+
+			cpu.Push(cpu.D[REGISTER_SF].vPtrValue);
+
+			const uint8 *returnAddress = cpu.PC() + sizeof(ArgsCallVitualFunctionViaMemberOffsetOnStack);
+			cpu.Push(returnAddress);
+
+			// Then make the new stack frame equal to the stack pointer
+			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
+
+			const ID_BYTECODE * vTable = (const ID_BYTECODE*)*pVTable;
 
 			const ID_BYTECODE id = vTable[args->vTableOffset];
 			size_t functionStart = program->GetFunctionAddress(id);

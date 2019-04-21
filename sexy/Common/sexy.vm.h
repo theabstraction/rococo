@@ -325,6 +325,7 @@ namespace Rococo { namespace VM
 		virtual void Append_GetStackFrameMember(DINDEX Dtarget, int SFoffset, int memberOffset, BITCOUNT bits) = 0;
 		virtual void Append_GetStackFrameAddress(DINDEX Dtarget, int offset) = 0;
 		virtual void Append_CallVitualFunctionViaRefOnStack(int32 SFoffsetToInterface, int32 vTableOffset, int32 instanceToInterfaceOffset = 0) = 0;
+		virtual void Append_CallVitualFunctionViaMemberOffsetOnStack(int32 SFoffsetToInterface, int32 memberOffset, int32 vTableOffset) = 0;
 		virtual void Append_CallVirtualFunctionByAddress(int32 SFoffsetToInterfaceValue, int32 vTableOffset) = 0;
 		virtual void Append_Dereference_D4() = 0;
 

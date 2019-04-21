@@ -490,7 +490,7 @@ namespace Rococo
 			  auto& mtype = *m.UnderlyingType();
 			  if (mtype.InterfaceCount() > 0)
 			  {
-				  pValue = type.GetInterface(0).UniversalNullInstance();
+				  pValue = mtype.GetInterface(0).UniversalNullInstance();
 				  offset += sizeof(size_t);
 			  }
 			  else if (mtype.VarType() == VARTYPE_Derivative)
@@ -689,6 +689,20 @@ namespace Rococo
             VARTYPE keyVarType = def.KeyType.VarType();
             if (IsPrimitiveType(keyVarType))
             {
+				if (IsAtomic(keyExpr))
+				{
+					cstr svalue = keyExpr.String()->Buffer;
+					if (svalue[0] == '-' || isdigit(svalue[0]))
+					{
+						VariantValue value;
+						if (Parse::TryParse(OUT value, keyVarType, svalue) == Parse::PARSERESULT_GOOD)
+						{
+							ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4 + tempIndex, value, GetBitCount(keyVarType));
+							return;
+						}
+					}
+				}
+
                CompileNumericExpression(ce, keyExpr, keyVarType); // D7 now contains the key
                ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4 + tempIndex, GetBitCount(keyVarType));
             }
@@ -748,7 +762,7 @@ namespace Rococo
 
       void CompileAsMapInsert(CCompileEnvironment& ce, cr_sex s, cstr mapName)
       {
-         // (a.Insert <struct-ref> <value/valueref> )
+         // (a.Insert <key> <value> )
 
          auto def = GetMapDef(ce, s, mapName);
          if (def.ValueType.VarType() == VARTYPE_Derivative)
