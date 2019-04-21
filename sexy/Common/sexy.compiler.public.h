@@ -193,7 +193,6 @@ namespace Rococo {
 			VirtualTable* pVTables[1];
 			enum : int64 { NO_REF_COUNT = 0x4000000000000000 };
 		};
-#pragma pack(pop)
 
 		inline int GetInstanceToInterfaceOffset(int interfaceIndex) // TODO -> make all vtable calculations use this function where appropriate
 		{
@@ -207,7 +206,8 @@ namespace Rococo {
 			ObjectStub stub;
 			int32 length;
 			cstr buffer;
-		};
+		} TIGHTLY_PACKED;
+#pragma pack(pop)
 
 		inline uint8* GetInterfacePtr(const ObjectStub& stub)
 		{

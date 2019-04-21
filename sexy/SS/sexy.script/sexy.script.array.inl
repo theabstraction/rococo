@@ -47,6 +47,11 @@ namespace Rococo
 		   int32 LockNumber;
 	   };
 
+	   size_t SizeOfElement(const IStructure& type)
+	   {
+		   return type.InterfaceCount() > 0 ? sizeof(size_t) : type.SizeOfStruct();
+	   }
+
 	   VM_CALLBACK(ArrayInit)
 	   {
 		   IScriptSystem& ss = *(IScriptSystem*) context;
@@ -55,7 +60,7 @@ namespace Rococo
 		   int32 capacity = registers[VM::REGISTER_D7].int32Value;
 		
 		   a->ElementCapacity = capacity;
-		   a->ElementLength = elementType->SizeOfStruct();
+		   a->ElementLength = (int32) SizeOfElement(*elementType);
 		   a->ElementType = elementType;
 		   a->NumberOfElements = 0;
 		   a->LockNumber = 0;
@@ -76,12 +81,16 @@ namespace Rococo
 
 	   void DestroyElements(ArrayImage& a, IScriptSystem& ss)
 	   {
-		   int offset = 0;
-		   for(int i = 0; i < a.NumberOfElements; ++i)
+		   if (a.ElementType->InterfaceCount() > 0)
 		   {
-			   uint8* item = (uint8*) a.Start + offset;
-			   DestroyObject(*a.ElementType, item, ss);
-			   offset += a.ElementLength;
+			   int offset = 0;
+			   for (int i = 0; i < a.NumberOfElements; ++i)
+			   {
+				   uint8* item = (uint8*)a.Start + offset;
+				   InterfacePointer pInterface = *(InterfacePointer*)item;
+				   ss.ProgramObject().DecrementRefCount(pInterface);
+				   offset += sizeof(size_t);
+			   }
 		   }
 
 		   a.NumberOfElements = 0;
@@ -125,6 +134,25 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.Push failed: the array was full"));
+		   }
+	   }
+
+	   VM_CALLBACK(ArrayPushInterface)
+	   {
+		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
+		   InterfacePointer pObject = (InterfacePointer) registers[VM::REGISTER_D7].vPtrValue;
+
+		   IScriptSystem& ss = *(IScriptSystem*)context;
+
+		   if (a->NumberOfElements < a->ElementCapacity)
+		   {
+			   InterfacePointer* intBuffer = (InterfacePointer*) a->Start;
+			   intBuffer[a->NumberOfElements++] = pObject;
+			   ss.ProgramObject().IncrementRefCount(pObject);
+		   }
+		   else
+		   {
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.Push failed: the array was full"));
 		   }
 	   }
@@ -514,8 +542,16 @@ namespace Rococo
 				   Throw(s, ("Expecting either (array.Push <arg>), (array.Push ( element-constructor-args...)) or (array.Push <element-type-name> (memberwise-constructor-args...)"));
 			   }
 
-			   ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
-			   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPushAndGetRef); // D8 now contains the ref to the newly created element
+			   if (IsNullType(elementType))
+			   {
+				   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
+				   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPushAndGetRef); // D8 now contains the ref to the newly created element
+			   }
+			   else
+			   {
+				   ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
+				   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPushAndGetRef); // D8 now contains the ref to the newly created element
+			   }
 
 			   cr_sex memberwiseArgs = s.GetElement(2);
 			   if (!IsNull(memberwiseArgs) && !IsCompound(memberwiseArgs))
@@ -536,9 +572,17 @@ namespace Rococo
 			   {
 				   // No constructor, so need to copy element
 				   cr_sex value = s.GetElement(1);
-				   CompileGetStructRef(ce, value, elementType, ("newArrayElement")); // The address of the value is in D7
+				   CompileGetStructRef(ce, value, elementType, "newArrayElement"); // The address of the value is in D7
 				   ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // array goes to D4
-				   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPushByRef);
+
+				   if (elementType.InterfaceCount() > 0)
+				   {
+					   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPushInterface);
+				   }
+				   else
+				   {
+					   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPushByRef);
+				   }
 			   }
 		   }	
 	   }
@@ -586,7 +630,7 @@ namespace Rococo
 		
 			   ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // array goes to D4
 
-			   switch(elementType.SizeOfStruct())
+			   switch(SizeOfElement(elementType))
 			   {
 			   case 4:
 				   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPush32);
@@ -723,7 +767,14 @@ namespace Rococo
 			   ce.Builder.Assembler().Append_Invoke(callbacks.ArraySet64);
 			   break;
 		   case VARTYPE_Derivative:
-			   ce.Builder.Assembler().Append_Invoke(callbacks.ArraySetByRef);
+			   if (elementType.InterfaceCount() > 0)
+			   {
+				   ce.Builder.Assembler().Append_Invoke(sizeof(size_t) == 8 ? callbacks.ArraySet64 : callbacks.ArraySet32);
+			   }
+			   else
+			   {
+				   ce.Builder.Assembler().Append_Invoke(callbacks.ArraySetByRef);
+			   }
 			   break;
 		   default:
 			   Throw(value, ("Bad type"));
@@ -781,7 +832,7 @@ namespace Rococo
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 
 		   const IStructure& elementType = GetArrayDef(ce, s, instanceName);
-		   switch(elementType.SizeOfStruct())
+		   switch(SizeOfElement(elementType))
 		   {
 		   case 4:
 			   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayGet32);
@@ -830,7 +881,7 @@ namespace Rococo
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 
-		   switch(memberType.SizeOfStruct())
+		   switch(SizeOfElement(memberType))
 		   {
 		   case 4:
 			   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayGetMember32);
@@ -1261,6 +1312,11 @@ namespace Rococo
 
 		   const IStructure* elementStruct = MatchStructure(typeName, ce.Builder.Module());
 		   if (elementStruct == NULL) ThrowTokenNotFound(s, typeName.String()->Buffer, ce.Builder.Module().Name(), ("type"));
+
+		   if (elementStruct->InterfaceCount() != 0 && !IsNullType(*elementStruct))
+		   {
+			   Throw(s[3], "Arrays cannot have class type elements. Use an interface to %s instead.", elementStruct->Name());
+		   }
 
 		   AddVariable(ce, NameString::From(arrayNameTxt), ce.StructArray());
 

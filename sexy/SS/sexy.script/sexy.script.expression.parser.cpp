@@ -94,15 +94,7 @@ namespace Rococo
 			{
 				MemberDef refDef;
 				builder.TryGetVariableByName(OUT refDef, name);
-
-				if (interfaceIndex == 0 || interfaceIndex == 1)
-				{
-					builder.PushVariable(IN refDef);
-				}
-				else
-				{
-					Throw(s, ("Unexpected interface specified in PushVariableRef(...)"));
-				}
+				builder.PushVariable(IN refDef);
 			}
 			else
 			{
@@ -175,7 +167,7 @@ namespace Rococo
 				cr_sex elementTypeExpr = GetAtomicArg(field, 1);
 				sexstring elementType = elementTypeExpr.String();
 
-				AssertTypeIdentifier(elementTypeExpr);
+				AssertQualifiedIdentifier(elementTypeExpr);
 
 				for(int i = 2; i < field.NumberOfElements(); ++i)
 				{
@@ -190,7 +182,7 @@ namespace Rococo
 				cr_sex elementTypeExpr = GetAtomicArg(field, 1);
 				sexstring elementType = elementTypeExpr.String();
 
-				AssertTypeIdentifier(elementTypeExpr);
+				AssertQualifiedIdentifier(elementTypeExpr);
 
 				for(int i = 2; i < field.NumberOfElements(); ++i)
 				{
@@ -207,8 +199,8 @@ namespace Rococo
 				sexstring keyType = keyTypeExpr.String();
 				sexstring valueType = valueTypeExpr.String();
 
-				AssertTypeIdentifier(keyTypeExpr);
-				AssertTypeIdentifier(valueTypeExpr);
+				AssertQualifiedIdentifier(keyTypeExpr);
+				AssertQualifiedIdentifier(valueTypeExpr);
 
 				for(int i = 3; i < field.NumberOfElements(); ++i)
 				{
@@ -611,7 +603,17 @@ namespace Rococo
 				if (TryCompileFunctionCallAndReturnValue(ce, sourceValue, targetType, &varStruct, NULL))
 				{				
 					ce.Builder.AddSymbol(symbol);
-					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
+					static int returnArgIndex = 0;
+					char argv[64];
+					SafeFormat(argv, 64, "_retArg%d", returnArgIndex++);
+					AddVariable(ce, NameString::From(argv), ce.Object.Common().TypePointer());
+					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, argv);
+
+					ce.Builder.AssignVariableToTemp(targetVariable, 0);
+					ce.Builder.Append_DecRef();
+					ce.Builder.AssignVariableToTemp(argv, 0);
+					ce.Builder.Append_IncRef();
+					ce.Builder.AssignTempToVariable(0, targetVariable);
 					return;
 				}			
 				break;

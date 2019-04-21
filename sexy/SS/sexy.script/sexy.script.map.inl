@@ -80,6 +80,7 @@ namespace Rococo
       struct MapImage
       {
          int32 NumberOfElements;
+		 int32 reserved;
          const IStructure* KeyType;
          const IStructure* ValueType;
          MapNode* NullNode;
@@ -120,22 +121,23 @@ namespace Rococo
          }
       }
 
-      int32 GetAlignmentPadding(int alignment, int objectSize)
+      size_t GetAlignmentPadding(int alignment, int objectSize)
       {
          int32 x = (alignment - objectSize % alignment) % alignment;
-         return x;
+         return (size_t) x;
       }
 
       uint8* GetKeyPointer(MapNode* m)
       {
-         int firstpadding = GetAlignmentPadding(16, sizeof(MapNode));
+         size_t firstpadding = GetAlignmentPadding(16, sizeof(MapNode));
          return ((uint8*)m) + sizeof(MapNode) + firstpadding;
       }
 
       uint8* GetValuePointer(MapNode* m)
       {
-         int firstpadding = GetAlignmentPadding(16, sizeof(MapNode));
-         int secondpadding = GetAlignmentPadding(16, m->Container->KeyType->SizeOfStruct());
+         size_t firstpadding = GetAlignmentPadding(16, sizeof(MapNode));
+		 size_t secondpadding = GetAlignmentPadding(16, m->Container->KeyType->SizeOfStruct());
+		 size_t offset_to_value = sizeof(MapNode) + firstpadding + m->Container->KeyType->SizeOfStruct() + secondpadding;
          return ((uint8*)m) + sizeof(MapNode) + firstpadding + m->Container->KeyType->SizeOfStruct() + secondpadding;
       }
 
@@ -159,9 +161,10 @@ namespace Rococo
 
       MapNode* CreateMapNode(MapImage* m, IScriptSystem& ss)
       {
-         int firstpadding = GetAlignmentPadding(16, sizeof(MapNode));
-         int secondpadding = GetAlignmentPadding(16, m->KeyType->SizeOfStruct());
-         MapNode* n = (MapNode*)ss.AlignedMalloc(16, sizeof(MapNode) + firstpadding + m->KeyType->SizeOfStruct() + secondpadding + m->ValueType->SizeOfStruct());
+         size_t firstpadding = GetAlignmentPadding(16, sizeof(MapNode));
+		 size_t secondpadding = GetAlignmentPadding(16, m->KeyType->SizeOfStruct());
+		 size_t allocSize = sizeof(MapNode) + firstpadding + m->KeyType->SizeOfStruct() + secondpadding + m->ValueType->SizeOfStruct();
+         MapNode* n = (MapNode*)ss.AlignedMalloc(16, (int32) allocSize);
          n->Container = m;
          n->Previous = NULL;
          n->Next = NULL;
@@ -462,6 +465,49 @@ namespace Rococo
          new (&m->KeyResolver) Bitcount64KeyResolver;
       }
 
+	  void InitializeMembersToNullObjectAtLocation(void* pValue, const IStructure& type, size_t offset)
+	  {
+		  for (auto i = 0; i < type.MemberCount(); ++i)
+		  {
+			  auto& m = type.GetMember(i);
+			  auto& mtype = *m.UnderlyingType();
+			  if (mtype.InterfaceCount() > 0)
+			  {
+				  pValue = type.GetInterface(0).UniversalNullInstance();
+				  offset += sizeof(size_t);
+			  }
+			  else if (mtype.VarType() == VARTYPE_Derivative)
+			  {
+				  InitializeMembersToNullObjectAtLocation(pValue, mtype, offset);
+				  offset += mtype.SizeOfStruct();
+			  }
+			  else
+			  {
+				  memset(((uint8*)pValue) + offset, 0, mtype.SizeOfStruct());
+				  offset += mtype.SizeOfStruct();
+			  }
+		  }
+	  }
+
+	  void InitializeNullObjectAtLocation(void* pValue, const IStructure& type)
+	  {
+		  if (type.InterfaceCount() > 0)
+		  {
+			  pValue = type.GetInterface(0).UniversalNullInstance();
+		  }
+		  else
+		  {
+			  if (type.VarType() == VARTYPE_Derivative)
+			  {
+				  InitializeMembersToNullObjectAtLocation(pValue, type, 0);
+			  }
+			  else
+			  {
+				  memset(pValue, 0, type.SizeOfStruct());
+			  }
+		  }
+	  }
+
       VM_CALLBACK(MapInit)
       {
          IScriptSystem& ss = *(IScriptSystem*)context;
@@ -495,12 +541,15 @@ namespace Rococo
             }
          }
 
+		 m->NumberOfElements = 0;
+		 m->reserved = 0;
          m->KeyType = keyType;
          m->ValueType = valueType;
-         m->NumberOfElements = 0;
          m->NullNode = CreateMapNode(m, ss);
          m->NullNode->IsExistant = 0;
          m->Head = m->Tail = NULL;
+
+		 InitializeNullObjectAtLocation(GetValuePointer(m->NullNode), *m->ValueType);
       }
 
       MapNode* InsertKey(MapImage& theMap, VariantValue source, IScriptSystem& ss)

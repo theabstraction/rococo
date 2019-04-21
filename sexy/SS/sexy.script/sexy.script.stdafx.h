@@ -441,6 +441,7 @@ namespace Rococo
          ID_API_CALLBACK ArrayPushAndGetRef;
          ID_API_CALLBACK ArrayPush32;
          ID_API_CALLBACK ArrayPush64;
+		 ID_API_CALLBACK ArrayPushInterface;
          ID_API_CALLBACK ArrayPushByRef;
          ID_API_CALLBACK ArrayGet32;
          ID_API_CALLBACK ArrayGet64;

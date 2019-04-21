@@ -288,25 +288,19 @@ namespace Rococo
 		      Throw(s, streamer);
 	      }
 
-	      if (varStruct.Prototype().IsClass)
-	      {
-
-		      int cii = GetCommonInterfaceIndex(varStruct, inputType);
-		      if (cii < 0)
-		      {
-			      sexstringstream<1024> streamer;
-			      streamer.sb << ("The input type '") << varStruct.Name() << ("' did not match the argument type '") << GetFriendlyName(inputType) << (" ") << name << ("'");
-			      Throw(s, streamer);
-		      }
-
-		      ce.Builder.AddSymbol(varName);
-
-	      //	PushVariableRef(s, ce.Builder, def, vname, cii);
-	      }
-	      else
-	      {
-		      ce.Builder.AssignVariableRefToTemp(varName, Rococo::ROOT_TEMPDEPTH, 0);
-	      }							
+		  if (varStruct.Prototype().IsClass)
+		  {
+			  int cii = GetCommonInterfaceIndex(varStruct, inputType);
+			  if (cii < 0)
+			  {
+				  sexstringstream<1024> streamer;
+				  streamer.sb << ("The input type '") << varStruct.Name() << ("' did not match the argument type '") << GetFriendlyName(inputType) << (" ") << name << ("'");
+				  Throw(s, streamer);
+			  }
+		  }
+	      
+		  ce.Builder.AddSymbol(varName);
+		  ce.Builder.AssignVariableRefToTemp(varName, Rococo::ROOT_TEMPDEPTH, 0);						
       }
 
       void CompileGetStructRefFromAtomic(CCompileEnvironment& ce, cr_sex s, const IStructure& inputType, cstr name)

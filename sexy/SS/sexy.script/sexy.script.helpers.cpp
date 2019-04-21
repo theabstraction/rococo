@@ -670,20 +670,20 @@ namespace Rococo
 		   const Rococo::Compiler::IStructure* lastPseudo = NULL;
 		   cstr lastPseudoName;
 
-         VariableDesc variable = { 0 };
-		
+		   VariableDesc variable = { 0 };
+
 		   AddSFToVarEnum(variable, sf);
 		   variableEnum.OnVariable(0, variable);
 		   AddReturnAddressToVarEnum(variable, sf);
 		   variableEnum.OnVariable(1, variable);
 		   AddOldSFToVarEnum(variable, sf);
 		   variableEnum.OnVariable(2, variable);
-				
+
 		   size_t count = 3;
 
-		   for(int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
+		   for (int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
 		   {
-            VariableDesc variable = { 0 };
+			   VariableDesc variable = { 0 };
 
 			   MemberDef def;
 			   cstr name;
@@ -701,16 +701,16 @@ namespace Rococo
 				   lastPseudo = def.ResolvedType;
 				   lastPseudoName = name;
 				   continue;
-			   }			
+			   }
 
 			   const void* pVariableData = sf + def.SFOffset;
 			   if (def.Usage == ARGUMENTUSAGE_BYVALUE)
 			   {
 				   FormatValue(ss, variable.Value, variable.VALUE_CAPACITY, def.ResolvedType->VarType(), pVariableData);
 
-               variable.s = def.ResolvedType;
-               variable.instance = (const uint8*)pVariableData;
-               variable.parentName = nullptr;
+				   variable.s = def.ResolvedType;
+				   variable.instance = (const uint8*)pVariableData;
+				   variable.parentName = nullptr;
 
 				   if (lastPseudo != NULL && lastPseudoName != NULL)
 				   {
@@ -742,16 +742,16 @@ namespace Rococo
 			   }
 			   else
 			   {
-				   const void** ppData = (const void**) pVariableData;
-               PROTECT
+				   const void** ppData = (const void**)pVariableData;
+				   PROTECT
 				   {
-					   FormatVariableDesc(variable, "%1llX -> %1llX", (int64) pVariableData, (int64) *ppData);
+					   FormatVariableDesc(variable, "%1llX -> %1llX", (int64)pVariableData, (int64)*ppData);
 				   }
-               CATCH  
+				   CATCH
 				   {
 					   FormatVariableDesc(variable, "Bad pointer");
 				   }
-				
+
 				   AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
 				   FormatVariableDescType(variable, "*%s", desc.data);
 
@@ -759,12 +759,12 @@ namespace Rococo
 				   FormatVariableDescName(variable, "%s", asciiName.data);
 			   }
 
-			   switch(def.location)
+			   switch (def.location)
 			   {
 			   case VARLOCATION_NONE:
 				   variable.Address = 0;
-               variable.instance = 0;
-				   FormatVariableDescLocation(variable, "Pseudo");				
+				   variable.instance = 0;
+				   FormatVariableDescLocation(variable, "Pseudo");
 				   break;
 			   case VARLOCATION_INPUT:
 				   variable.Address = def.SFOffset;
@@ -782,7 +782,7 @@ namespace Rococo
 
 			   PROTECT
 			   {
-			        variableEnum.OnVariable(count++, variable);
+					variableEnum.OnVariable(count++, variable);
 			   }
 			   CATCH
 			   {
@@ -847,15 +847,16 @@ namespace Rococo
 
 	   SCRIPTEXPORT_API const Rococo::uint8* GetInstance(const MemberDef& def, const IStructure* pseudoType, const Rococo::uint8* SF)
 	   {
-		   if (def.ResolvedType->InterfaceCount() == 0)
-		   {
-			   return SF + def.SFOffset;
-		   }
-		   else
+		   cstr structName = def.ResolvedType->Name();
+		   if (def.ResolvedType->InterfaceCount() != 0 || AreEqual(structName, "_MapNode") || AreEqual(structName, "_Node"))
 		   {
 			   // An output, so SF + offset must be deferenced
 			   const uint8** pItem = (const uint8**)(SF + def.SFOffset);
 			   return *pItem;
+		   }
+		   else
+		   {
+			   return SF + def.SFOffset;
 		   }
 	   }
 

@@ -47,12 +47,14 @@ namespace
 		size_t HandlerOffset;
 	};
 
+#pragma pack(push,1)
 	struct NativeException
 	{
 		ObjectStub Header;
 		int32 errorCode;
 		cstr messageHandle;
 	};
+#pragma pack(pop)
 
 	typedef std::vector<ExceptionHandler> TExceptionHandlers;
 
@@ -476,25 +478,33 @@ namespace
 
 		void ThrowFromNativeCode(int32 errorCode, cstr staticRefMessage)
 		{
-			const IModule& module = ss.ProgramObject().GetModule(0);
+			auto& po = ss.ProgramObject();
+			const IModule& module = po.GetModule(0);
 			const IStructure& nativeExType = *module.FindStructure(("NativeException"));
 			
 			int size = GetNullSize(nativeExType);
-			NativeException* ex = (NativeException*) alloca(size);
 
-			InitObjectStubAsNullLength(ex->Header, nativeExType, size);
-			ex->errorCode = errorCode;
-			ex->messageHandle = staticRefMessage;
+			auto& allocator = *po.AllocatorMap().GetAllocator(nativeExType)->memoryAllocator;
+			auto* nex = (NativeException*) allocator.AllocateObject(sizeof(NativeException));
+			nex->Header.Desc = (ObjectDesc*) nativeExType.GetVirtualTable(0);
+			nex->Header.refCount = 1;
+			nex->Header.pVTables[0] = (VirtualTable*) nativeExType.GetVirtualTable(1);
+			nex->errorCode = errorCode;
+			nex->messageHandle = staticRefMessage;
 
 			isWithinException = true;
 			if (!CatchException(exceptionHandlers, ss))
 			{
-				WriteUnhandledException(ss, (ObjectStub*) ex);
-				ss.ProgramObject().VirtualMachine().Throw();
+				WriteUnhandledException(ss, &nex->Header);
+				allocator.FreeObject(nex);
+				po.VirtualMachine().Throw();
 			}
 			else
 			{				
-				ss.ProgramObject().VirtualMachine().PushBlob(ex, size);
+				InterfacePointer pNexInterface = (InterfacePointer) (((uint8*) nex) + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0);
+				uint8* sp = (uint8*)po.VirtualMachine().Cpu().D[VM::REGISTER_SP].vPtrValue;
+				InterfacePointer* pInterface = (InterfacePointer*)sp;
+				*pInterface = pNexInterface;
 			}
 
 			isWithinException = false;

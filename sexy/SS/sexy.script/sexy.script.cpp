@@ -504,6 +504,7 @@ namespace Rococo
 			arrayCallbacks.ArrayPushAndGetRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPushAndGetRef, this, ("ArrayPushAndGetRef"));
 			arrayCallbacks.ArrayPushByRef = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPushByRef, this, ("ArrayPushByRef"));
 			arrayCallbacks.ArrayPush32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPush32, this, ("ArrayPush32"));
+			arrayCallbacks.ArrayPushInterface = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPushInterface, this, ("ArrayPushInterface"));
 			arrayCallbacks.ArrayPush64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayPush64, this, ("ArrayPush64"));
 			arrayCallbacks.ArrayGet32 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayGet32, this, ("ArrayGet32"));
 			arrayCallbacks.ArrayGet64 = progObjProxy().VirtualMachine().Core().RegisterCallback(OnInvokeArrayGet64, this, ("ArrayGet64"));
@@ -1014,7 +1015,7 @@ namespace Rococo
 						}
 					}
 
-					SafeFormat(symbol, 256, ("typeof(%s)"), s.Name());
+					SafeFormat(symbol, 256, "%s%s", AreEqual(s.Name(), "_Null_", 6) ? "null " : "", GetFriendlyName(s));
 					AddSymbol(symbol, &s);
 				}
 			}

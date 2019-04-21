@@ -733,6 +733,11 @@ namespace Rococo { namespace Script
 			ce.Builder.GetVariableByIndex(OUT def, OUT instanceName, backRef);
 			
 			if (def.SFOffset < 0) Throw(sequence, ("Algorithmic error #2 in deconstruction logic"));
+
+			if (def.Usage == ARGUMENTUSAGE_BYVALUE && def.ResolvedType->VarType() == VARTYPE_Derivative && def.ResolvedType->InterfaceCount() == 0)
+			{
+				AppendInvokeDestructor(ce, instanceName, sequence, def);
+			}
 				
 			if (*def.ResolvedType == ce.Object.Common().TypeNode())
 			{
@@ -787,8 +792,8 @@ namespace Rococo { namespace Script
 			CompileExpression(ce, s); 
 		}
 
-		//AppendDeconstruct(ce, sequence);
-		AppendDeconstructAll(ce, sequence);
+		AppendDeconstruct(ce, sequence);
+		//AppendDeconstructAll(ce, sequence);
 
 		ce.Builder.LeaveSection();
 	}
@@ -1556,6 +1561,7 @@ namespace Rococo { namespace Script
 				IStructureBuilder& s = module.DeclareStructure(mapName, prototype, NULL);
 
 				s.AddMember(NameString::From(("_length")), TypeString::From(("Int32")));
+				s.AddMember(NameString::From(("_reserved")), TypeString::From(("Int32")));
 				s.AddMember(NameString::From(("_keyType")), TypeString::From(("Pointer")));
 				s.AddMember(NameString::From(("_valueType")), TypeString::From(("Pointer")));				
 				s.AddMember(NameString::From(("_nullNode")), TypeString::From(("Pointer")));		

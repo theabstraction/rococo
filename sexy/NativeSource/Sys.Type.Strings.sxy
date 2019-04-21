@@ -89,12 +89,12 @@
 	(Sys.Native.CreateMemoString s.Buffer s.Length -> this.buffer this.length)	
 )
 
-(interface Sys.Type.Formatters.AsDecimal)
-(interface Sys.Type.Formatters.AsHex)
-(interface Sys.Type.Formatters.AsSpecE)
-(interface Sys.Type.Formatters.AsSpecF)
-(interface Sys.Type.Formatters.AsSpecG)
-(interface Sys.Type.Formatters.AsNewLine)
+(interface Sys.Type.Formatters.AsDecimal (Null -> ))
+(interface Sys.Type.Formatters.AsHex (Null -> ))
+(interface Sys.Type.Formatters.AsSpecE (Null -> ))
+(interface Sys.Type.Formatters.AsSpecF (Null -> ))
+(interface Sys.Type.Formatters.AsSpecG (Null -> ))
+(interface Sys.Type.Formatters.AsNewLine (Null -> ))
 
 (function FormatDecimal -> (Sys.Type.Formatters.AsDecimal nullType):)
 (function FormatHex -> (Sys.Type.Formatters.AsHex nullType):)

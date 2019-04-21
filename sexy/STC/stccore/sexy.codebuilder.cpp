@@ -2105,14 +2105,22 @@ namespace
 		}
 		else
 		{
-			Assembler().Append_GetStackFrameMemberPtr(VM::REGISTER_D4 + tempDepth, def.SFOffset,  def.MemberOffset);
-
-			if (def.IsContained && def.ResolvedType->InterfaceCount() > 0)
+			if (!def.IsContained)
 			{
-				Assembler().Append_Dereference_D4();
+				Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + tempDepth, BITCOUNT_POINTER);
+				Assembler().Append_IncrementPtr(VM::REGISTER_D4 + tempDepth, offset);
 			}
+			else
+			{
+				Assembler().Append_GetStackFrameMemberPtr(VM::REGISTER_D4 + tempDepth, def.SFOffset, def.MemberOffset);
 
-			Assembler().Append_IncrementPtr(VM::REGISTER_D4 + tempDepth , offset);
+				if (def.IsContained && def.ResolvedType->InterfaceCount() > 0)
+				{
+					Assembler().Append_Dereference_D4();
+				}
+
+				Assembler().Append_IncrementPtr(VM::REGISTER_D4 + tempDepth, offset);
+			}
 		}
 	}
 

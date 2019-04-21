@@ -336,6 +336,22 @@ namespace Rococo { namespace Compiler { namespace Impl
 			{
 				return false;
 			}
+
+			auto* a1 = member.UnderlyingGenericArg1Type();
+			if (a1 != nullptr && a1->InterfaceCount() > 0 && !IsNullType(*a1))
+			{
+				char src[128];
+				SafeFormat(src, sizeof(src), "struct %s.%s", s.Name(), member.Name());
+				Throw(ERRORCODE_BAD_ARGUMENT, src, "Arg types for container cannot be concrete classes. Use an interface type");
+			}
+
+			auto* a2 = member.UnderlyingGenericArg2Type();
+			if (a2 != nullptr && a2->InterfaceCount() > 0 && !IsNullType(*a2))
+			{
+				char src[128];
+				SafeFormat(src, sizeof(src), "%s of struct %s.%s", s.Name(), member.Name());
+				Throw(ERRORCODE_BAD_ARGUMENT, src, "Value types for container cannot be concrete classes. Use an interface type");
+			}
 		}
 
 		return s.ResolveInterfaces(log, reportErrors);

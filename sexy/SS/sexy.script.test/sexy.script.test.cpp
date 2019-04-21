@@ -6402,24 +6402,56 @@ namespace
 		validate(x == 145);
 	}
 
+	void TestArrayElementIsClass(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(class Test (defines Sys.ITest) (Int32 id))"
+			"(method Test.Construct (Int32 id): (this.id = id))"
+			"(method Test.Id -> (Int32 id): (id = this.id))"
+			"(method Test.Destruct -> : (Sys.Print \"Test finished\"))"
+			"(factory Sys.NewTest Sys.ITest (Int32 id) : (construct Test id))"
+
+			"(function Main -> (Int32 result):"
+			"	(array Test a (2) )"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_THROWN);
+		s_logger.Clear();
+	}
+
 	void TestArrayElementDeconstruct(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = 
 		"(namespace EntryPoint)"
 		" (alias Main EntryPoint.Main)"
-  
+
 		"(using Sys.Type)"
 
-		"(interface EntryPoint.ITest (Id -> (Int32 id)))"
-		"(class Test (implements EntryPoint.ITest) (Int32 id))"
+		"(class Test (defines Sys.ITest) (Int32 id))"
 		"(method Test.Construct (Int32 id): (this.id = id))"
 		"(method Test.Id -> (Int32 id): (id = this.id))"
 		"(method Test.Destruct -> : (Sys.Print \"Test finished\"))"
- 
+		"(factory Sys.NewTest Sys.ITest (Int32 id) : (construct Test id))"
+
 		"(function Main -> (Int32 result):"
-		"	(array Test a (2) )"
-		"	(a.Push 12)"
-		"	(a.Push 14)"
+		"	(array Sys.ITest a 2)"
+		"	(Sys.ITest e0 (Sys.NewTest 7))"
+		"	(Sys.ITest e1 (Sys.NewTest 12))"
+		"   (a.Push e0)"
+		"   (a.Push e1)"
 		")";
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestArrayElementDeconstruct");
@@ -6436,31 +6468,34 @@ namespace
 	void TestArrayWithinArrayDeconstruct(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = 
-		"(namespace EntryPoint)"
-		" (alias Main EntryPoint.Main)"
+		"(namespace EntryPoint)\n"
+		" (alias Main EntryPoint.Main)\n"
   
-		"(using Sys.Type)"
+		"(using Sys.Type)\n"
 
-		"(interface EntryPoint.ITest (Id -> (Int32 id)))"
-		"(class Test (implements EntryPoint.ITest) (Int32 id))"
-		"(method Test.Construct (Int32 id): (this.id = id))"
-		"(method Test.Id -> (Int32 id): (id = this.id))"
-		"(method Test.Destruct -> : (Sys.Print \"Test destructed\"))"
+		"(class Test (defines Sys.ITest) (Int32 id))\n"
+		"(method Test.Construct (Int32 id): (this.id = id))\n"
+		"(method Test.Id -> (Int32 id): (id = this.id))\n"
+		"(method Test.Destruct -> : (Sys.Print \"Test destructed\"))\n"
+		"(factory Sys.NewTest Sys.ITest (Int32 id) : (construct Test id))\n"
 
-		"(struct Axis (array Test tests))"
-		"(method Axis.Construct (Int32 testsPerAxis) -> (construct tests testsPerAxis): )"
+		"(struct Axis (array Sys.ITest tests))\n"
+		"(method Axis.Construct (Int32 testsPerAxis) -> (construct tests testsPerAxis):)\n"
  
-		"(function Main -> (Int32 result):"
-		"	(array Axis axes (3) )"
-		"	(axes.Push 3)"
-		"	(axes.Push 3)"
-		"	(axes.Push 3)"
-		"	(foreach axis # axes "
-		"		(axis.tests.Push 1)"
-		"		(axis.tests.Push 2)"
-		"		(axis.tests.Push 3)"
-		"	)"
-		")";
+		"(function Main -> (Int32 result):\n"
+		"	(array Axis axes 3 )\n"
+		"	(axes.Push 3)\n" // N.B 3 here is the argument passed to Axis.Construct, which sets the testPerAxis value to 3
+		"	(axes.Push 3)\n"
+		"	(axes.Push 3)\n"
+		"	(foreach axis # axes\n "
+		"		(Sys.ITest e0 (Sys.NewTest 1))\n"
+		"		(Sys.ITest e1 (Sys.NewTest 1))\n"
+		"		(Sys.ITest e2 (Sys.NewTest 1))\n"
+		"		(axis.tests.Push e0)\n"
+		"		(axis.tests.Push e1)\n"
+		"		(axis.tests.Push e2)\n"
+		"	)\n"
+		")\n";
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestArrayWithinArrayDeconstruct");
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
@@ -6481,16 +6516,16 @@ namespace
   
 		"(using Sys.Type)"
 
-		"(interface EntryPoint.ITest (Id -> (Int32 id)))"
-		"(class Test (implements EntryPoint.ITest) (Int32 id))"
+		"(class Test (defines Sys.ITest) (Int32 id))"
 		"(method Test.Construct (Int32 id): (this.id = id))"
 		"(method Test.Id -> (Int32 id): (id = this.id))"
-		"(method Test.Destruct -> : (Sys.Print \"Test finished\"))"
+		"(method Test.Destruct -> : (Sys.Print \"&nDestructor for class Test called&n\"))"
+		"(factory Sys.NewTest Sys.ITest (Int32 id) : (construct Test id))"
 
 		"(function Main2 -> (Int32 result):"
-		"	(array Test a (2) )"
-		"	(a.Push 12)"
-		"	(a.Push 14)"
+		"	(array Sys.ITest a 2 )"
+		"   (Sys.ITest e0 (Sys.NewTest 7))"
+		"   (a.Push e0)"
 		"	(Sys.Throw 747 \"This should trigger the autodestruct sequence\")"
 		")"
  
@@ -11365,6 +11400,8 @@ namespace
 	   TEST(TestMapStrongTyping);
 	   TEST(TestMapThrowAndCleanup);
 	   TEST(TestMapThrowAndCleanup2);
+
+	   TEST(TestArrayElementIsClass);
 	   TEST(TestArrayInt32);
 	   TEST(TestArrayInt32_2);
 	   TEST(TestArrayInt32_3);
@@ -11492,6 +11529,8 @@ namespace
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+
+		TEST(TestArrayWithinArrayDeconstruct);
 
 		TEST(TestReflectionGetChild_BadIndex);
 
@@ -11776,9 +11815,9 @@ namespace
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		RunCollectionTests();
 		RunPositiveSuccesses();
 		RunPositiveFailures();	
+		RunCollectionTests();
 
 		end = OS::CpuTicks();
 		hz = OS::CpuHz();

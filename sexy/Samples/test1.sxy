@@ -1,25 +1,28 @@
 (namespace EntryPoint)
-(function Main -> (Int32 result):	
-	(Sys.Type.IException ex (EntryPoint.NewException))
-(try
-   (
-		(EntryPoint.IRobot robby (EntryPoint.NewRobot))
-		(throw ex)
-	)
-catch e ((result = 7)))
-)			
-(alias Main EntryPoint.Main)
+ (alias Main EntryPoint.Main)
 
-(class Robot (defines EntryPoint.IRobot))
-(method Robot.Wait -> : )
-(method Robot.Destruct -> :
- (Sys.Type.IException inner (EntryPoint.NewException))
- (throw inner)
- )
-(method Robot.Construct -> : )
-(class TestException (implements Sys.Type.IException))
-(method TestException.Construct : )
-(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))			
-(method TestException.Message -> (Sys.Type.IString s): (s = "To be expected"))		
-(factory EntryPoint.NewRobot EntryPoint.IRobot : (construct Robot))
-(factory EntryPoint.NewException Sys.Type.IException : (construct TestException))
+(using Sys.Type)
+
+(class Test (defines Sys.ITest) (Int32 id))
+(method Test.Construct (Int32 id): (this.id = id))
+(method Test.Id -> (Int32 id): (id = this.id))
+(method Test.Destruct -> : (Sys.Print \Test destructed\))
+(factory Sys.NewTest Sys.ITest (Int32 id) : (construct Test id))
+
+(struct Axis (array Sys.ITest tests))
+(method Axis.Construct (Int32 testsPerAxis) -> (construct tests testsPerAxis):)
+
+(function Main -> (Int32 result):
+	(array Axis axes 3 )
+	(axes.Push 1)
+	(axes.Push 2)
+	(axes.Push 3)
+	(foreach axis # axes 
+		(Sys.ITest e0 (Sys.NewTest 1))
+		(Sys.ITest e1 (Sys.NewTest 1))
+		(Sys.ITest e2 (Sys.NewTest 1))
+		(axis.tests.Push e0)
+		(axis.tests.Push e1)
+		(axis.tests.Push e2)
+	)
+)
