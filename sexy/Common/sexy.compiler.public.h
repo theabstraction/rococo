@@ -437,6 +437,11 @@ namespace Rococo {
 			SEXY_CLASS_ID_STRINGBUILDER = 0
 		};
 
+		struct LeakArgs
+		{
+			const ObjectStub* object;
+		};
+
 		ROCOCOAPI IScriptObjectAllocator
 		{
 			virtual void* AllocateObject(size_t nBytes) = 0;
@@ -444,6 +449,7 @@ namespace Rococo {
 
 			virtual refcount_t AddRef() = 0;
 			virtual refcount_t ReleaseRef() = 0;
+			virtual size_t FreeAll(IEventCallback<LeakArgs>* leakCallback) = 0;
 		};
 
 		struct AllocatorBinding
@@ -473,6 +479,7 @@ namespace Rococo {
 			virtual void SetProgramAndEntryPoint(ID_BYTECODE byteCodeId) = 0;
 			virtual const IStructure* GetSysType(SEXY_CLASS_ID id) = 0;
 			virtual IAllocatorMap& AllocatorMap() = 0;
+			virtual size_t FreeLeakedObjects(IEventCallback<LeakArgs>* leakCallback = nullptr) = 0;
 		};
 
 		const IFunction* GetFunctionForBytecode(IPublicProgramObject& obj, ID_BYTECODE id);

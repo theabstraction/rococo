@@ -1,28 +1,28 @@
 (namespace EntryPoint)
- (alias Main EntryPoint.Main)
 
-(using Sys.Type)
+(using Sys.Maths)
+(using Sys)
 
-(class Test (defines Sys.ITest) (Int32 id))
-(method Test.Construct (Int32 id): (this.id = id))
-(method Test.Id -> (Int32 id): (id = this.id))
-(method Test.Destruct -> : (Sys.Print \Test destructed\))
-(factory Sys.NewTest Sys.ITest (Int32 id) : (construct Test id))
+(class Fidelio(defines Sys.IFidelio))
 
-(struct Axis (array Sys.ITest tests))
-(method Axis.Construct (Int32 testsPerAxis) -> (construct tests testsPerAxis):)
-
-(function Main -> (Int32 result):
-	(array Axis axes 3 )
-	(axes.Push 1)
-	(axes.Push 2)
-	(axes.Push 3)
-	(foreach axis # axes 
-		(Sys.ITest e0 (Sys.NewTest 1))
-		(Sys.ITest e1 (Sys.NewTest 1))
-		(Sys.ITest e2 (Sys.NewTest 1))
-		(axis.tests.Push e0)
-		(axis.tests.Push e1)
-		(axis.tests.Push e2)
-	)
+(method Fidelio.Id -> (Int32 id) :
+	(id = 12)
 )
+
+(method Fidelio.Construct -> :)
+
+(factory Sys.Fidelio Sys.IFidelio :
+	(construct Fidelio)
+)
+
+(function GetFidelio -> (IFidelio output) :
+	(IFidelio g(Fidelio))
+	(output = g)
+)
+
+(function Main -> (Int32 result) :
+	(IFidelio f = (GetFidelio))
+	(f.Id -> result)
+)
+
+(alias Main EntryPoint.Main)

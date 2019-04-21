@@ -42,6 +42,7 @@
 #include "sexy.stdstrings.h"
 
 #include <list>
+#include <unordered_set>
 
 using namespace Rococo;
 using namespace Rococo::Compiler;
@@ -78,14 +79,37 @@ namespace
 
 	struct DefaultScriptObjectAllocator : IScriptObjectAllocator
 	{
+		std::unordered_set<ObjectStub*> objects;
+
+		~DefaultScriptObjectAllocator()
+		{
+			FreeAll(nullptr);
+		}
+
+		size_t FreeAll(IEventCallback<LeakArgs>* leakCallback) override
+		{
+			for (ObjectStub* p : objects)
+			{
+				if (leakCallback) leakCallback->OnEvent(LeakArgs{ p });
+				_aligned_free(p);
+			}
+
+			size_t nFreed = objects.size();
+			objects.clear();
+			return nFreed;
+		}
+
 		void* AllocateObject(size_t nBytes) override
 		{
-			return _aligned_malloc(nBytes, 8);
+			auto* p = _aligned_malloc(nBytes, 8);
+			objects.insert((ObjectStub*)p);
+			return p;
 		}
 
 		void FreeObject(void* pMemory) override
 		{
 			_aligned_free(pMemory);
+			objects.erase((ObjectStub*)pMemory);
 		}
 
 		refcount_t AddRef() override
@@ -298,8 +322,12 @@ namespace
 			return callbackIds;
 		}
 
+		size_t lastLeakCount = 0;
+
 		void ClearCustomAllocators()
 		{
+			lastLeakCount = FreeLeakedObjects(nullptr);
+
 			for (auto i : allocators)
 			{
 				if (i.second->memoryAllocator != &defaultAllocator)
@@ -340,6 +368,16 @@ namespace
 		IAllocatorMap& AllocatorMap() override
 		{
 			return *this;
+		}
+
+		size_t FreeLeakedObjects(IEventCallback<LeakArgs>* leakCallback) override
+		{
+			size_t count = 0;
+			for (auto& a : allocators)
+			{
+				count += a.second->memoryAllocator->FreeAll(leakCallback);
+			}
+			return count;
 		}
 
 		AllocatorBinding* GetAllocator(const IStructure& s) override

@@ -303,6 +303,11 @@ namespace
 		{
 			fnTest(ss);
 			ValidateLogs();
+			size_t leakCount = ss.PublicProgramObject().FreeLeakedObjects();
+			if (leakCount > 0)
+			{
+				Throw(0, "Warning %llu leaked objects", leakCount);
+			}
 		}
 		catch (STCException& e)
 		{
@@ -3387,6 +3392,7 @@ namespace
 		s_logger.Write("Expecting a complaint about an exception thrown by a destructor:");
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		validate(EXECUTERESULT_THROWN == result);
+		ss.PublicProgramObject().FreeLeakedObjects(nullptr);
 	}
 
 	void TestThrowFromCatch(IPublicScriptSystem& ss)
@@ -11530,8 +11536,6 @@ namespace
 	{
 		validate(true);
 
-		TEST(TestArrayWithinArrayDeconstruct);
-
 		TEST(TestReflectionGetChild_BadIndex);
 
 		TEST(TestReflectionGetChild);
@@ -11814,6 +11818,8 @@ namespace
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
+
+		TEST(TestArrayWithinArrayDeconstruct);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

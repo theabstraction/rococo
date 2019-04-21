@@ -599,7 +599,7 @@ namespace Rococo
 					return;
 				}			
 				break;
-			case VARTYPE_Derivative: // Function returns a pointer to an interface
+			case VARTYPE_Derivative: // Function returns a pointer to an interface in D7, the ref count was incremented by the callee
 				if (TryCompileFunctionCallAndReturnValue(ce, sourceValue, targetType, &varStruct, NULL))
 				{				
 					ce.Builder.AddSymbol(symbol);
@@ -609,10 +609,10 @@ namespace Rococo
 					AddVariable(ce, NameString::From(argv), ce.Object.Common().TypePointer());
 					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, argv);
 
+					// Decrement the reference of the target variable, as we are assigning a new object to it
 					ce.Builder.AssignVariableToTemp(targetVariable, 0);
 					ce.Builder.Append_DecRef();
 					ce.Builder.AssignVariableToTemp(argv, 0);
-					ce.Builder.Append_IncRef();
 					ce.Builder.AssignTempToVariable(0, targetVariable);
 					return;
 				}			
