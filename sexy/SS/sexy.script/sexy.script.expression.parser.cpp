@@ -1533,6 +1533,11 @@ namespace Rococo
 				{
 					ThrowTypeMismatch(decl, elementType, type, ("The node element type did not match the declaration type"));
 				}
+
+				if (elementType.InterfaceCount() > 0)
+				{
+					Throw(decl, "Interface lists do not support the '&' directive. Use node.Value instead");
+				}
 			
 				AppendInvoke(ce, GetListCallbacks(ce).NodeGetElementRef, decl); // The element ref is now in D7
 			}

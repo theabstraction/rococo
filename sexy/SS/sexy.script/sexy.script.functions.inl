@@ -1095,6 +1095,12 @@ namespace Rococo
 
 			      ce.Builder.AssignVariableRefToTemp(instance, 0); // Node ptr goes to D4
 
+				  if (st.InterfaceCount() > 0)
+				  {
+					  ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeGetInterface); // value goes to D7
+					  return true;
+				  }
+
 			      switch(st.VarType())
 			      {
 			      case VARTYPE_Bool:
@@ -1107,7 +1113,7 @@ namespace Rococo
 				      ce.Builder.Assembler().Append_Invoke(st.SizeOfStruct() == 4 ? GetListCallbacks(ce).NodeGet32 : GetListCallbacks(ce).NodeGet64); // value goes to D7
 				      break;
 			      default:
-				      Throw(s, ("Node.Value only supports primitive types"));
+				      Throw(s, ("Node.Value only supports primitive types and interfaces"));
 			      }
 
 			      return true;

@@ -110,7 +110,7 @@ namespace Rococo
          const IStructure* elementType = (const IStructure*)registers[VM::REGISTER_D5].vPtrValue;
          ListImage* l = (ListImage*)registers[VM::REGISTER_D4].vPtrValue;
 
-         l->ElementSize = elementType->SizeOfStruct();
+         l->ElementSize = elementType->InterfaceCount() != 0 ? sizeof(size_t) : elementType->SizeOfStruct();
          l->ElementType = elementType;
          l->LockNumber = 0;
          l->NumberOfElements = 0;
@@ -290,6 +290,32 @@ namespace Rococo
          *((int64*)newNode->Element) = src;
       }
 
+	  VM_CALLBACK(ListAppendInterface)
+	  {
+		  auto src = (InterfacePointer) registers[VM::REGISTER_D7].vPtrValue;
+		  ListImage* l = (ListImage*)registers[VM::REGISTER_D4].vPtrValue;
+		  IScriptSystem& ss = *(IScriptSystem*)context;
+
+		  ListNode* newNode = AppendToList(l, ss);
+
+		  *(InterfacePointer*)newNode->Element = src;
+
+		  ss.ProgramObject().IncrementRefCount(src);
+	  }
+
+	  VM_CALLBACK(NodeAppendInterface)
+	  {
+		  auto src = (InterfacePointer)registers[VM::REGISTER_D7].vPtrValue;
+		  ListNode* n = (ListNode*)registers[VM::REGISTER_D4].vPtrValue;
+		  IScriptSystem& ss = *(IScriptSystem*)context;
+
+		  ListNode* newNode = AppendToNode(n, ss);
+
+		  *(InterfacePointer*)newNode->Element = src;
+
+		  ss.ProgramObject().IncrementRefCount(src);
+	  }
+
       VM_CALLBACK(NodeAppend64)
       {
          int64 src = registers[VM::REGISTER_D7].int64Value;
@@ -320,6 +346,19 @@ namespace Rococo
          AlignedMemcpy(newNode->Element, src, (n->Container->ElementSize));
       }
 
+	  VM_CALLBACK(NodePrependInterface)
+	  {
+		  auto src = (InterfacePointer)registers[VM::REGISTER_D7].vPtrValue;
+		  ListNode* n = (ListNode*)registers[VM::REGISTER_D4].vPtrValue;
+		  IScriptSystem& ss = *(IScriptSystem*)context;
+
+		  ListNode* newNode = PrependToNode(n, ss);
+
+		  *(InterfacePointer*)newNode->Element = src;
+
+		  ss.ProgramObject().IncrementRefCount(src);
+	  }
+
       VM_CALLBACK(ListPrepend32)
       {
          int32 src = registers[VM::REGISTER_D7].int32Value;
@@ -339,6 +378,19 @@ namespace Rococo
          ListNode* newNode = PrependToNode(n, ss);
          *((int32*)newNode->Element) = src;
       }
+
+	  VM_CALLBACK(ListPrependInterface)
+	  {
+		  auto src = (InterfacePointer)registers[VM::REGISTER_D7].vPtrValue;
+		  ListImage* l = (ListImage*)registers[VM::REGISTER_D4].vPtrValue;
+		  IScriptSystem& ss = *(IScriptSystem*)context;
+
+		  ListNode* newNode = PrependToList(l, ss);
+
+		  *(InterfacePointer*)newNode->Element = src;
+
+		  ss.ProgramObject().IncrementRefCount(src);
+	  }
 
       VM_CALLBACK(ListPrepend64)
       {
@@ -477,6 +529,16 @@ namespace Rococo
          registers[VM::REGISTER_D7].int64Value = *(int64*)n->Element;
       }
 
+	  VM_CALLBACK(NodeGetInterface)
+	  {
+		  IScriptSystem& ss = *(IScriptSystem*)context;
+		  ListNode* n = (ListNode*)registers[VM::REGISTER_D4].vPtrValue;
+		  auto pInterface = *(InterfacePointer*)n->Element;
+		  ss.ProgramObject().IncrementRefCount(pInterface);
+		  registers[VM::REGISTER_D7].vPtrValue = pInterface;
+
+	  }
+
       VM_CALLBACK(NodeGetElementRef)
       {
          ListNode* n = (ListNode*)registers[VM::REGISTER_D7].vPtrValue;
@@ -581,7 +643,15 @@ namespace Rococo
 
          const ListCallbacks& callbacks = GetListCallbacks(ce);
 
-         if (elementType.VarType() == VARTYPE_Derivative)
+		 if (elementType.InterfaceCount() > 0)
+		 {
+			 cr_sex arg = GetAtomicArg(s, 1);
+			 AssertLocalVariableOrMember(arg);
+			 ce.Builder.AssignVariableToTemp(arg.String()->Buffer, 3);
+			 ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // list goes to 4
+			 ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrependInterface : callbacks.ListAppendInterface);
+		 }
+         else if (elementType.VarType() == VARTYPE_Derivative)
          {
             const IFunction* constructor = elementType.Constructor();
             if (constructor != NULL)
@@ -591,7 +661,7 @@ namespace Rococo
             else
             {
                // No constructor, so need to copy element	
-               CompileGetStructRef(ce, value, elementType, ("newArrayElement")); // The address of the value is in D7
+               CompileGetStructRef(ce, value, elementType, "newListElement"); // The address of the value is in D7
                ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // list goes to 4
                ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrepend : callbacks.ListAppend);
             }
@@ -650,7 +720,14 @@ namespace Rococo
 
          const ListCallbacks& callbacks = GetListCallbacks(ce);
 
-         if (elementType.VarType() == VARTYPE_Derivative)
+		 if (elementType.InterfaceCount() > 0)
+		 {
+			 AssertLocalVariableOrMember(value);
+			 ce.Builder.AssignVariableToTemp(value.String()->Buffer, 3); // value to D7
+			 ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // node goes to D4
+			 ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.NodePrependInterface : callbacks.NodeAppendInterface);
+		 }
+         else if (elementType.VarType() == VARTYPE_Derivative)
          {
             const IFunction* constructor = elementType.Constructor();
             if (constructor != NULL)
@@ -784,9 +861,6 @@ namespace Rococo
             Throw(source, ("Expecting <source-name>.<property> There was no dot operator '.' in the atomic expression"));
          }
 
-         VariantValue v;
-         v.int64Value = 0;
-         ce.Builder.Assembler().Append_SetRegisterImmediate(Rococo::ROOT_TEMPDEPTH, v, BITCOUNT_POINTER);
          AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName);
 
          if (*ce.Builder.GetVarStructure(srcName) == ce.StructList())

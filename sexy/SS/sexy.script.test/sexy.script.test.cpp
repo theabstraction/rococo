@@ -6987,6 +6987,83 @@ namespace
 		validate(x == 9);
 	}
 
+	void TestLinkedListOfInterfaces(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(class Cat (defines Sys.ICat))"
+			"(method Cat.Construct : )"
+			"(method Cat.Id -> (Int32 id): (id = 5))"
+			"(factory Sys.NewCat Sys.ICat : (construct Cat))"
+
+			"(function Main -> (Int32 result):"
+			"	(Sys.ICat cat (Sys.NewCat))"
+			"	(list Sys.ICat cats)"
+			"	(cats.Append cat)"
+			"   (node tail = cats.Tail)"
+			"   (Sys.ICat tiddles = tail.Value)"
+			"   (tiddles.Id -> result)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 5);
+	}
+
+	void TestLinkedListOfInterfaces2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(class Cat (defines Sys.ICat) (Int32 id))"
+			"(method Cat.Construct (Int32 id): (this.id = id))"
+			"(method Cat.Id -> (Int32 id): (id = this.id))"
+			"(factory Sys.NewCat Sys.ICat (Int32 id) : (construct Cat id))"
+
+			"(function Main -> (Int32 result):"
+			"	(Sys.ICat albert (Sys.NewCat 8))"
+			"	(Sys.ICat bob (Sys.NewCat 12))"
+			"	(list Sys.ICat cats)"
+			"	(cats.Append albert)"
+			"   (node tail = cats.Tail)"
+			"   (tail.Append bob)"
+			"   (node newTail = cats.Tail)"
+			"   (Sys.ICat favouriteCat = newTail.Value)"
+			"   (favouriteCat.Id -> result)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 12);
+	}
+
 	void TestLinkedListOfLists(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -11525,6 +11602,8 @@ namespace
 	   TEST(TestLinkedList9);
 	   TEST(TestLinkedList10);
 	   TEST(TestLinkedList11);
+	   TEST(TestLinkedListOfInterfaces);
+	   TEST(TestLinkedListOfInterfaces2);
 	   TEST(TestLinkedListForeach1);
 	   TEST(TestLinkedListForeach2);
 	   TEST(TestLinkedListForeach3);
@@ -11896,8 +11975,6 @@ namespace
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
-
-		TEST(TestNullMemberInit);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	
