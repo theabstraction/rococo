@@ -7548,33 +7548,33 @@ namespace
 		validate(x == 5);
 	}
 
-	void TestStructWithInterface3(IPublicScriptSystem& ss)
+	void TestStructWithCircularReferences(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
 			"(namespace EntryPoint)"
-			" (alias Main EntryPoint.Main)"
+			"(alias Main EntryPoint.Main)"
 
 			"(using Sys.Type)"
 
-			"(class Dog (defines Sys.IDog) (Sys.ICat cat)"
-			"(method Dog.Construct : )"
-			"(method Dog.Id -> (Int32 id): (id = 5))"
-			"(method Dog.SetFriend (Sys.ICat cat) -> : (this.cat = cat))"
+			"(class Dog(defines Sys.IDog) (Sys.ICat cat))"
+			"(method Dog.Construct :)"
+			"(method Dog.Id -> (Int32 id) : (id = 5))"
+			"(method Dog.SetFriend(Sys.ICat cat) -> : (this.cat = cat))"
 			"(factory Sys.NewDog Sys.IDog : (construct Dog))"
 
-			"(class Cat (defines Sys.ICat) (Sys.IDog dog)"
-			"(method Cat.Construct : )"
-			"(method Cat.Id -> (Int32 id): (id = 5))"
-			"(method Cat.SetFriend (Sys.IDog dog) -> : (this.dog = dog))"
+			"(class Cat(defines Sys.ICat) (Sys.IDog dog))"
+			"(method Cat.Construct :)"
+			"(method Cat.Id -> (Int32 id) : (id = 5))"
+			"(method Cat.SetFriend(Sys.IDog dog) -> : (this.dog = dog))"
 			"(factory Sys.NewCat Sys.ICat : (construct Cat))"
 
-			"(function Main -> (Int32 result):"
-			"   (Sys.ICat teddy (Sys.NewCat))"
-			"	(Sys.IDog rover (Sys.NewDog))"
-			"   (teddy.SetFriend rover)"
-			"   (rover.SetFriend teddy)"
-			"   (teddy.Id -> result)"
-			")";
+			"(function Main -> (Int32 result) :"
+			"(Sys.ICat teddy(Sys.NewCat))"
+			"	(Sys.IDog rover(Sys.NewDog))"
+			"	(teddy.SetFriend rover)"
+			"	(rover.SetFriend teddy)"
+			"	(teddy.Id -> result)"
+			"	)";
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
@@ -10642,6 +10642,43 @@ namespace
 		validate(result == Rococo::EXECUTERESULT_TERMINATED);	
 	}
 
+	void TestIgnoreOutputInterface(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(using Sys.Maths)"
+			"(using EntryPoint)"
+			"(interface Sys.IFidelio"
+			"	(Id -> (Int32 id))"
+			")"
+			"(class Fidelio (implements Sys.IFidelio))"
+			"(method Fidelio.Id -> (Int32 id): (id = 12))"
+			"(method Fidelio.Construct -> : )"
+			"(factory Sys.Fidelio Sys.IFidelio : (construct Fidelio))"
+			"(class Operas (defines Sys.IOperas) (Sys.IFidelio f))"
+			"(method Operas.Construct (Sys.IFidelio f)-> : (this.f = f))"
+			"(method Operas.ByBeethoven -> (Sys.IFidelio f): (f = this.f))"
+			"(factory Sys.Operas Sys.IOperas (Sys.IFidelio f): (construct Operas f))"
+			"(function Main -> (Int32 result):"
+			"	(Sys.IFidelio f (Sys.Fidelio))"
+			"	(Sys.IOperas operas (Sys.Operas f))"
+			"	(operas.ByBeethoven)"
+			"	(f.Id -> result)"
+			")"
+			"(alias Main EntryPoint.Main)"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+	}
+
 	void TestAssignPointerFromFunction(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -12091,6 +12128,7 @@ namespace
 		TEST(TestReturnClosureWithVariableFail);
 		TEST(TestDestructorThrows);
 		TEST(TestDoubleArrowsInFunction);
+		TEST(TestIgnoreOutputInterface);
 	}
 
 	void RunTests()
@@ -12098,7 +12136,7 @@ namespace
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		TEST(TestStructWithInterface3);
+		//TEST(TestStructWithCircularReferences);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

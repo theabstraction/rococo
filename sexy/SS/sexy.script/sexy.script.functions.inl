@@ -615,6 +615,12 @@ namespace Rococo
       {
 	      if (outputPos + outputIndex >= s.NumberOfElements())
 	      {
+			  if (requiredOutputStruct.InterfaceCount() > 0)
+			  {
+				  // We skipped an output parameter, so we need to decrement the ref
+				  builder.Assembler().Append_GetStackFrameValue(sfOffset, VM::REGISTER_D4, BITCOUNT_POINTER);
+				  builder.Append_DecRef();
+			  }
 		      // Output parameters not specified are skipped
 		      return;
 	      }

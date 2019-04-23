@@ -81,6 +81,58 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return *interfaces[index];
 	}
 
+	int CountInterfaceMembers(const IMember& member)
+	{
+		auto* type = member.UnderlyingType();
+
+		int count = 0;
+
+		if (type)
+		{
+			if (member.IsInterfaceVariable())
+			{
+				count++;
+			}
+			else
+			{
+				for (int i = 0; i < type->MemberCount(); ++i)
+				{
+					auto& m = type->GetMember(i);
+					count += CountInterfaceMembers(m);
+				}
+			}
+		}
+
+		return count;
+	}
+
+	int CountInterfaceMembers(const IStructure& type)
+	{
+		int count = 0;
+		for (int i = 0; i < type.MemberCount(); ++i)
+		{
+			auto& m = type.GetMember(i);
+			count += CountInterfaceMembers(m);
+		}
+		return count;
+	}
+
+	bool Structure::HasInterfaceMembers() const
+	{
+		if (hasInterfaceMembers < 0)
+		{
+			if (CountInterfaceMembers(*this) > 0)
+			{
+				hasInterfaceMembers = 1;
+			}
+			else
+			{
+				hasInterfaceMembers = 0;
+			}
+		}
+		return hasInterfaceMembers == 1;
+	}
+
 	void Structure::AddMemberRaw(const NameString& _memberName, const TypeString& _type)
 	{
 		StructureMember m(_memberName.c_str(), _type.c_str(), (""), (""));

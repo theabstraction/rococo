@@ -433,7 +433,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		mutable ID_BYTECODE** virtualTables;
 		const void* definition;
 		const IFunction* constructor;
-		
+		mutable int hasInterfaceMembers; // -1, untested, 0 = no, 1 = yes
 	public:
 		Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, VARTYPE type, const void* _definition);
 		~Structure();
@@ -444,6 +444,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		virtual int InterfaceCount() const;
 		virtual const IInterface& GetInterface(int index) const;
 		virtual IInterfaceBuilder& GetInterface(int index);
+		virtual bool HasInterfaceMembers() const;
 
 		virtual void AddMember(const NameString& _name, const TypeString& _type, cstr _genericArgType1 = NULL, cstr _genericArgType2 = NULL);
 		virtual void AddInterfaceMember(const NameString& _name, const TypeString& _type);

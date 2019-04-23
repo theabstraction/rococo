@@ -203,9 +203,23 @@ namespace
 		}
 	}
 
+	static void DecRefCountOnCircularReferences(ObjectStub* object, IAllocatorMap& map)
+	{
+		if (object->Desc->TypeInfo->HasInterfaceMembers())
+		{
+
+		}
+	}
+
 	static void DecObjRefCount(ObjectStub* object, IAllocatorMap& map)
 	{
-		object->refCount -= (object->refCount & ObjectStub::NO_REF_COUNT) ? 0 : 1;
+		if (object->refCount & ObjectStub::NO_REF_COUNT) return;
+		object->refCount -= 1;
+
+		if (object->refCount > 0)
+		{
+			DecRefCountOnCircularReferences(object, map);
+		}
 
 		if (object->refCount <= 0)
 		{
@@ -213,7 +227,7 @@ namespace
 
 			auto& type = *object->Desc->TypeInfo;
 
-			if (type.MemberCount() > 3)
+			if (object->Desc->TypeInfo->HasInterfaceMembers())
 			{
 				DecRefCountOnMembers(type, object, 0, map);
 			}
