@@ -144,6 +144,7 @@ namespace Rococo { namespace VM
 			SetSFMemberByRefFromRegisterLong,
 			SetSFMemberRefFromSFMemberByRef64,
 			GetStackFrameMemberPtr,
+			GetStackFrameMemberPtrAndDeref,
 			GetStackFrameMemberPtrFar,
 			GetStackFrameMember32,
 			GetStackFrameMember64,
@@ -253,6 +254,14 @@ namespace Rococo { namespace VM
 		uint8 Opmod3;
 
 		const uint8* ToPC() const { return (const uint8*) this; }
+	} TIGHTLY_PACKED;
+
+	struct ArgsGetStackFrameMemberPtrAndDeref
+	{
+		int8 opcode;
+		int8 dtarget;
+		int32 sfToStructRef;
+		int32 structToMemberOffset;
 	} TIGHTLY_PACKED;
 
 	struct ArgsCallVitualFunctionViaRefOnStack

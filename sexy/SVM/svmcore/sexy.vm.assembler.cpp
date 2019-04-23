@@ -522,6 +522,17 @@ namespace
 			}
 		}
 
+		virtual void Append_GetStackFrameMemberPtrAndDeref(DINDEX Dtarget, int SFoffset, int memberOffset)
+		{
+			ArgsGetStackFrameMemberPtrAndDeref args;
+			args.opcode = Opcodes::GetStackFrameMemberPtrAndDeref;
+			args.dtarget = Dtarget;
+			args.sfToStructRef = SFoffset;
+			args.structToMemberOffset = memberOffset;
+
+			AddArgument(args);
+		}
+
 		virtual void Append_GetStackFrameMember(DINDEX Dtarget, int SFoffset, int memberOffset, BITCOUNT bits)
 		{
 			if (bits == BITCOUNT_32)

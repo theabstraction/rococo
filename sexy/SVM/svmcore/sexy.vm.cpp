@@ -135,16 +135,16 @@ namespace
 
 	public:
 		CVirtualMachine(ICore& _core, CPU& _cpu) :
-         core(_core), cpu(_cpu) 
+			core(_core), cpu(_cpu)
 		{
 			SetStackSize(64 * 1024);
 
 			stepCallback = this;
-			
+
 			if (s_instructionTable != NULL) return;
 
 			s_instructionTable = new FN_VM[Opcodes::MAX_OPCODES];
-			for(uint32 i = 0; i < Opcodes::MAX_OPCODES; ++i)
+			for (uint32 i = 0; i < Opcodes::MAX_OPCODES; ++i)
 			{
 				s_instructionTable[i] = &CVirtualMachine::OnOpcodeBadInstruction;
 			}
@@ -155,7 +155,7 @@ namespace
 
 			ActivateInstruction(SetRegisterImmediate64);
 			ActivateInstruction(SetRegisterImmediate32);
-			
+
 			ActivateInstruction(StackAllocBig);
 			ActivateInstruction(StackAlloc);
 
@@ -163,7 +163,7 @@ namespace
 
 			ActivateInstruction(BooleanNot);
 			ActivateInstruction(SetSFValueFromSFValue32);
-			ActivateInstruction(Test32);			
+			ActivateInstruction(Test32);
 			ActivateInstruction(BranchIfGTE);
 			ActivateInstruction(BranchIfGT);
 			ActivateInstruction(BranchIfLT);
@@ -204,7 +204,7 @@ namespace
 			ActivateInstruction(PushStackAddress);
 			ActivateInstruction(Pop);
 			ActivateInstruction(AddImmediate);
-			
+
 			ActivateInstruction(LogicalAND32);
 			ActivateInstruction(LogicalOR32);
 			ActivateInstruction(LogicalXOR32);
@@ -218,7 +218,7 @@ namespace
 			ActivateInstruction(ShiftLeft64);
 			ActivateInstruction(ShiftRight32);
 			ActivateInstruction(ShiftRight64);
-						
+
 			ActivateInstruction(IntAdd64);
 			ActivateInstruction(IntAdd32);
 			ActivateInstruction(IntSubtract64);
@@ -241,11 +241,11 @@ namespace
 			ActivateInstruction(DoubleSubtract);
 			ActivateInstruction(DoubleMultiply);
 			ActivateInstruction(DoubleDivide);
-			
+
 			ActivateInstruction(IncrementPtr);
 			ActivateInstruction(IncrementPtrBig);
 
-			ActivateInstruction(Exit);			
+			ActivateInstruction(Exit);
 			ActivateInstruction(NoOperation);
 
 			ActivateInstruction(SetStackFrameImmediate32);
@@ -271,18 +271,19 @@ namespace
 			ActivateInstruction(SetSFMemberByRefFromRegisterLong);
 
 			ActivateInstruction(RestoreRegister32);
-			ActivateInstruction(SaveRegister32);			
+			ActivateInstruction(SaveRegister32);
 			ActivateInstruction(RestoreRegister64);
-			ActivateInstruction(SaveRegister64);	
+			ActivateInstruction(SaveRegister64);
 			ActivateInstruction(TripDebugger);
 
 			ActivateInstruction(GetGlobal);
 			ActivateInstruction(SetGlobal);
 
 			ActivateInstruction(GetStackFrameValueAndExtendToPointer);
+			ActivateInstruction(GetStackFrameMemberPtrAndDeref);
 
-         static_assert(sizeof(VariantValue) == sizeof(size_t), "Bad packing size");
-         static_assert(BITCOUNT_POINTER == sizeof(size_t) * 8, "Bad BITCOUNT_POINTER");
+			static_assert(sizeof(VariantValue) == sizeof(size_t), "Bad packing size");
+			static_assert(BITCOUNT_POINTER == sizeof(size_t) * 8, "Bad BITCOUNT_POINTER");
 		}
 
 		IVirtualMachine* Clone(CPU& _cpu)
@@ -1083,6 +1084,21 @@ namespace
 			target.uint8PtrValue = pMember;
 
 			cpu.AdvancePC(4);
+		}
+
+		OPCODE_CALLBACK(GetStackFrameMemberPtrAndDeref)
+		{
+			const Ins* I = NextInstruction();
+
+			auto* args = (ArgsGetStackFrameMemberPtrAndDeref*)I;
+
+			VariantValue& target = cpu.D[args->dtarget];
+
+			void** ppSource = (void**)(cpu.SF() + args->sfToStructRef);
+			uint8* pMember = ((uint8*)*ppSource) + args->structToMemberOffset;
+			target.uint8PtrValue = *(uint8**) pMember;
+
+			cpu.AdvancePC(sizeof(ArgsGetStackFrameMemberPtrAndDeref));
 		}
 
 		OPCODE_CALLBACK(GetStackFrameMember32)

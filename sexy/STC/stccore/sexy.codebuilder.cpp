@@ -189,6 +189,7 @@ namespace
 		virtual void EnterSection();
 		virtual void Append_DecRef();
 		virtual void Append_IncRef();
+		virtual void Append_IncDerivativeRefs(cstr value);
 		virtual void Append_GetAllocSize();
 		virtual void AddVariable(const NameString& name, const TypeString& type, void* userData);
 		virtual void AddVariable(const NameString& name, const IStructure& type, void* userData);
@@ -196,7 +197,7 @@ namespace
 		virtual void AddInterfaceVariable(const NameString& ns, const IStructure& st, void* userData);
 		virtual void AssignLiteral(const NameString& name, cstr valueLiteral);
 		virtual void AssignPointer(const NameString& name, const void* ptr);
-		virtual void AssignVariableToVariable(cstr source, cstr value);
+		virtual void AssignVariableToVariable(cstr source, cstr value, bool isConstructingTarget);
 		virtual void AssignVariableToTemp(cstr source, int tempIndex, int offsetCorrection);
 		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset);
 		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def);
@@ -210,6 +211,7 @@ namespace
 		virtual void AppendConditional(CONDITION condition, ICompileSection& thenSection, ICompileSection& elseSection);
 		virtual void AppendDoWhile(ICompileSection& loopBody, ICompileSection& loopCriterion, CONDITION condition);
 		virtual void AppendWhileDo(ICompileSection& loopCriterion, CONDITION condition, ICompileSection& loopBody);
+		virtual void Append_UpdateRefsOnSourceAndTarget();
 		virtual void Negate(int srcInvariantIndex, VARTYPE varType);
 		virtual void LeaveSection();
 		virtual void End();
@@ -457,6 +459,43 @@ namespace
 		Assembler().Append_Invoke(f.Object().GetCallbackIds().IdAddRef);
 	}
 
+	void Append_IncMemberRefs(CodeBuilder& builder, const IStructure* type, cstr parentName)
+	{
+		if (type == nullptr) // primitive, nothing futher to recurse
+		{
+			return;
+		}
+
+		for (int i = 0; i < type->MemberCount(); i++)
+		{
+			auto& m = type->GetMember(i);
+
+			char fullname[256];
+			SafeFormat(fullname, sizeof(fullname), "%s.%s", parentName, m.Name());
+
+			if (m.IsInterfaceVariable())
+			{
+				builder.AssignVariableToTemp(fullname, 0, 0); // D4
+				builder.Append_IncRef();
+			}
+			else
+			{
+				Append_IncMemberRefs(builder, m.UnderlyingType(), fullname);
+			}
+		}
+	}
+
+	void CodeBuilder::Append_IncDerivativeRefs(cstr variableName)
+	{
+		MemberDef def;
+		if (!TryGetVariableByName(def, variableName))
+		{
+			Throw(0, "Cannot increment refs to %s. Variable name not recognized");
+		}
+
+		Append_IncMemberRefs(*this, def.ResolvedType, variableName);
+	}
+
 	void CodeBuilder::AddSymbol(cstr text)
 	{
 		size_t address = assembler->WritePosition();
@@ -567,6 +606,34 @@ namespace
 		return false;
 	}
 
+	void PopInterface(CodeBuilder& builder, cstr name)
+	{
+		builder.AssignVariableToTemp(name, 0, 0);
+		builder.Append_DecRef();
+	}
+
+	void PopMembers(CodeBuilder& builder, const IStructure* s, cstr name)
+	{
+		if (!s) return; // Primitive type
+
+		for (int i = 0; i < s->MemberCount(); ++i)
+		{
+			auto& m = s->GetMember(i);
+
+			char fullname[256];
+			SafeFormat(fullname, sizeof(fullname), "%s.%s", name, m.Name());
+
+			if (m.IsInterfaceVariable())
+			{
+				PopInterface(builder, fullname);
+			}
+			else
+			{
+				PopMembers(builder, m.UnderlyingType(), fullname);
+			}
+		}
+	}
+
 	void CodeBuilder::PopLastVariables(int count)
 	{
 		int bytesToFree = 0;
@@ -588,6 +655,10 @@ namespace
 					Append_DecRef();
 				}
 			}
+			else if (v->ResolvedType().VarType() == VARTYPE_Derivative && v->Usage() == ARGUMENTUSAGE_BYVALUE)
+			{
+				PopMembers(*this, &v->ResolvedType(), v->Name());
+			}
 			
 			v->SetPCEnd(Assembler().WritePosition());
 			variables.pop_back();
@@ -607,16 +678,7 @@ namespace
 			}
 			else
 			{
-				int allocSize = v->AllocSize();
-				
-				if (allocSize == 0)
-				{
-					// Pseudo variable
-				}
-				else
-				{
-					bytesToFree += allocSize;
-				}
+				bytesToFree += v->AllocSize();
 			}
 						
 			nextOffset = vOffset;			
@@ -1544,83 +1606,29 @@ namespace
 		return false;
 	}
 
-	void AssignInterfaceToInterface(ICodeBuilder& builder, const MemberDef& sourceDef, const MemberDef& targetDef, cstr source, cstr target)
+	void AssignInterfaceToInterface(ICodeBuilder& builder, const MemberDef& sourceDef, const MemberDef& targetDef, cstr source, cstr target, bool isConstructingTarget)
 	{
-		// Assumes targetDef is an interface
-
-		// Scenarios -> 
-		//		1) target is an output interface, a pointer on the SF that should be assigned to a pointer to an instance's vtable
-		//      2) target is a temporary variable, a pointer on the SF that can be assigned to a pointer to an instance's vtable
-		//      3) target is a member of a structure on the stack that can be assigned to a pointer to an instance's vtable
-		//      4) target is an input variable and member of a structure referenced by a pointer on the stack
-
-		//      a) source is an input interface, a pointer on the SF
-		//      b) source is a temporary variable, a pointer on the SF
-		//      c) source is a member of a structure on the stack, a pointer on the SF
-		//      d) source is a member of a structure referenced by a pointer on the stack
-
-		//      a, b and c all copy the value on the SF, d must dereference the pointer on the SF and copy from it
-		//      1, 2 and 3 all assign to the value on the SF. 4, must dereference the pointer on the SF and assign to it
-
-		if (sourceDef.ResolvedType->InterfaceCount() == 0)
+		if (isConstructingTarget)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Target was not an interface pointer %s", source);
-		}
-
-		auto& iSource = sourceDef.ResolvedType->GetInterface(0);
-
-		auto& iTarget = targetDef.ResolvedType->GetInterface(0);
-
-		// Target must be a base interface of source, or be the same interface as source
-
-		if (!IsDerivedFrom(iTarget, iSource))
-		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Cannot assign %s to %s. %s does not derive from %s", source, target, iSource.Name(), iTarget.Name());
-		}
-
-		VM::IAssembler& assembler = builder.Assembler();
-
-		if (targetDef.location != VARLOCATION_INPUT || targetDef.Usage == ARGUMENTUSAGE_BYVALUE)
-		{
-			char symbol[256];
-			SafeFormat(symbol, 256, "%s = %s", target, source);
-			builder.AddSymbol(symbol);
-
-			// Assign to a value
-			if (sourceDef.location != VARLOCATION_INPUT || targetDef.Usage == ARGUMENTUSAGE_BYVALUE)
-			{
-				// Assign from a value
-				assembler.Append_SetSFValueFromSFValue(targetDef.SFOffset + targetDef.MemberOffset, sourceDef.SFOffset + sourceDef.MemberOffset, BITCOUNT_POINTER);
-			}
-			else
-			{
-				// Assign from derefenced pointer
-				assembler.Append_SetSFValueFromSFMemberRef(sourceDef.SFOffset, sourceDef.MemberOffset, targetDef.SFOffset + targetDef.MemberOffset, sizeof(size_t));
-			}
+			builder.AssignVariableToTemp(source, 0); // D4
+			builder.AssignTempToVariable(0, target); 
+			builder.Append_IncRef();
 		}
 		else
 		{
-			// Assign to a deferenced pointer
-			if (sourceDef.location != VARLOCATION_INPUT || targetDef.Usage == ARGUMENTUSAGE_BYVALUE)
-			{
-				// Assign from a value
-
-				char symbol[256];
-				SafeFormat(symbol, 256, "%s = %s", target, source);
-				builder.AddSymbol(symbol);
-				assembler.Append_SetSFMemberRefFromSFMemberByRef(targetDef.SFOffset, targetDef.MemberOffset, sourceDef.SFOffset, sourceDef.MemberOffset, BITCOUNT_POINTER);
-			}
-			else
-			{
-				// Assign from derefenced pointer to a deferenced pointer
-			//	assembler.Append_GetStackFrameMemberPtr(VM::REGISTER_D4, sourceDef.SFOffset, sourceDef.MemberOffset);
-				builder.AssignVariableToTemp(source, 0);
-				builder.AssignTempToVariable(0, target);
-			}
+			builder.AssignVariableToTemp(source, 0); // D4
+			builder.AssignVariableToTemp(target, 1); // D5
+			builder.Append_UpdateRefsOnSourceAndTarget();
+			builder.AssignTempToVariable(0, target);
 		}
 	}
 
-	void CodeBuilder::AssignVariableToVariable(cstr source, cstr target)
+	void CodeBuilder::Append_UpdateRefsOnSourceAndTarget()
+	{
+		assembler->Append_Invoke(f.Object().GetCallbackIds().IdUpdateRefsOnSourceAndTarget);
+	}
+
+	void CodeBuilder::AssignVariableToVariable(cstr source, cstr target, bool isConstructingTarget)
 	{
 		if (source == nullptr || *source == 0) Rococo::Throw(0, "CodeBuilder::AssignVariableToVariable: source was blank");
 		if (target == nullptr || *target == 0) Rococo::Throw(0, "CodeBuilder::AssignVariableToVariable: target was blank");
@@ -1642,7 +1650,7 @@ namespace
 
 		if (trgType->InterfaceCount() > 0 && trgType->Name()[0] == '_')
 		{
-			AssignInterfaceToInterface(*this, sourceDef, targetDef, source, target);
+			AssignInterfaceToInterface(*this, sourceDef, targetDef, source, target, isConstructingTarget);
 			return;
 		}
 
@@ -1774,13 +1782,9 @@ namespace
 		
 		BITCOUNT bitCount;
 
-		if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
+		if (def.ResolvedType->InterfaceCount() > 0)
 		{
-			bitCount = (BITCOUNT) (def.ResolvedType->SizeOfStruct() * 8);
-		}
-		else if (def.ResolvedType->InterfaceCount() > 0)
-		{
-			bitCount = BITCOUNT_64;
+			bitCount = BITCOUNT_POINTER;
 		}
 		else
 		{
@@ -1796,19 +1800,21 @@ namespace
 				break;
 			}		
 		}
-		
-		if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
+
+		if (def.IsParentValue) Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
+		if (def.location == VARLOCATION_OUTPUT)
 		{
-			if (def.IsParentValue) Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
-			Assembler().Append_SetSFMemberByRefFromRegister(srcIndex + VM::REGISTER_D4, def.SFOffset, def.MemberOffset, bitCount);			
-			if (def.IsParentValue) Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
+			Assembler().Append_SetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D4 + srcIndex, bitCount);
+		}
+		else if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
+		{
+			Assembler().Append_SetSFMemberByRefFromRegister(srcIndex + VM::REGISTER_D4, def.SFOffset, def.MemberOffset, bitCount);
 		}
 		else
 		{
-			if (def.IsParentValue) Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
 			Assembler().Append_SetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D4 + srcIndex, bitCount);
-			if (def.IsParentValue) Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
 		}
+		if (def.IsParentValue) Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
 	}
 
 	void CodeBuilder::AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def)
@@ -2039,7 +2045,15 @@ namespace
 		else
 		{
 			// Assign from derefenced pointer to a deferenced pointer
-			assembler.Append_GetStackFrameMemberPtr(VM::REGISTER_D4 + tempIndex, sourceDef.SFOffset, sourceDef.MemberOffset);
+
+			if (!sourceDef.IsContained)
+			{
+				assembler.Append_GetStackFrameMemberPtr(VM::REGISTER_D4 + tempIndex, sourceDef.SFOffset, sourceDef.MemberOffset);
+			}
+			else
+			{
+				assembler.Append_GetStackFrameMemberPtrAndDeref(VM::REGISTER_D4 + tempIndex, sourceDef.SFOffset, sourceDef.MemberOffset);
+			}
 		}
 	}
 

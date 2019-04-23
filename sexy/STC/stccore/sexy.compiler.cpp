@@ -237,6 +237,23 @@ namespace
 		DecObjRefCount(object, map);
 	}
 
+	static void UpdateRefsOnSourceAndTarget(VariantValue* registers, void* allocatorContext)
+	{
+		auto* src = (InterfacePointer)registers[VM::REGISTER_D4].uint8PtrValue;
+		auto* target = (InterfacePointer)registers[VM::REGISTER_D5].uint8PtrValue;
+
+		if (src != target)
+		{
+			auto& map = *(IAllocatorMap*)allocatorContext;
+
+			auto vTableTrg = static_cast<VirtualTable*>(*target);
+			auto* objectTrg = (ObjectStub*)(vTableTrg->OffsetToInstance + (uint8*)target);
+
+			DecObjRefCount(objectTrg, map);
+			IncRefCount(src);
+		}
+	}
+
 	static void GetAllocSize(VariantValue* registers, void* context)
 	{
 		uint8* pInterface = (uint8*)registers[VM::REGISTER_D7].vPtrValue;
@@ -298,7 +315,8 @@ namespace
 			assembler->Free();
 
 			common = NULL;
-
+			
+			callbackIds.IdUpdateRefsOnSourceAndTarget = svmCore->RegisterCallback(UpdateRefsOnSourceAndTarget, nullptr, "-+ refs");
 			callbackIds.IdAllocate = svmCore->RegisterCallback(NewObject, nullptr, "new");
 			callbackIds.IdAddRef = svmCore->RegisterCallback(::IncrementRefCount, nullptr, "++ref");
 			callbackIds.IdReleaseRef = svmCore->RegisterCallback(::DecrementRefCount, (IAllocatorMap*) this, "--ref");

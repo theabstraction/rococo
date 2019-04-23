@@ -213,6 +213,7 @@ namespace Rococo { namespace Compiler
 		ID_API_CALLBACK IdGetAllocSize;
 		ID_API_CALLBACK IdAddRef;
 		ID_API_CALLBACK IdReleaseRef;
+		ID_API_CALLBACK IdUpdateRefsOnSourceAndTarget;
 	};
 
 	ROCOCOAPI IProgramObject : public IPublicProgramObject
@@ -307,13 +308,19 @@ namespace Rococo { namespace Compiler
 		/* increment reference count to an object with interface or instance pointed to by D4. */
 		virtual void Append_IncRef() = 0;
 
+		virtual void Append_IncDerivativeRefs(cstr value) = 0;
+
+		/* D4 = source, D5 = target
+		/* if source and target are different, decrement target refcount and increment source refcount */
+		virtual void Append_UpdateRefsOnSourceAndTarget() = 0;
+
 		/* AddDynamicAllocateObject -> takes sizeof(obj) in D4 (int32), 
 		   returns pointer to object in D4 (vPtr)
 	    */
 		virtual void AddDynamicAllocateObject(const IStructure& structType) = 0;
 		virtual void AssignLiteral(const NameString& name, cstr literalValue) = 0;
 		virtual void AssignPointer(const NameString& name, const void* ptr) = 0;
-		virtual void AssignVariableToVariable(cstr source, cstr target) = 0;
+		virtual void AssignVariableToVariable(cstr source, cstr target, bool isConstructingTarget = false) = 0;
 		virtual void AssignVariableToTemp(cstr source, int tempIndex, int memberOffsetCorrection = 0) = 0;
 		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset = 0) = 0;	
 		virtual void AssignTempToVariable(int srcIndex, cstr target) = 0;

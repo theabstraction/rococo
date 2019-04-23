@@ -7440,6 +7440,45 @@ namespace
 		validate(x == 3);
 	}
 
+	void TestListStruct3(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(class Cat (defines Sys.ICat))"
+			"(method Cat.Construct : )"
+			"(method Cat.Id -> (Int32 id): (id = 5))"
+			"(factory Sys.NewCat Sys.ICat : (construct Cat))"
+
+			"(struct CatAndPos (Int32 x y z) (Sys.ICat cat))"
+
+			"(function Main -> (Int32 result):"
+			"   (Sys.ICat teddy (Sys.NewCat))"
+			"	(list CatAndPos a)"
+			"	(CatAndPos v = 1 2 3 teddy)"
+			"	(a.Append v)"
+			"	(node n = a.Head)"
+			"	(CatAndPos val = & n)"
+			"	(result = val.cat.Id)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 5);
+	}
+
 	void TestListStrongTyping(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = 
@@ -7471,6 +7510,42 @@ namespace
 		ParseException ex;
 		if (!s_logger.TryGetNextException(ex))
 			validate(false);
+	}
+
+	void TestStructWithInterface(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(class Cat (defines Sys.ICat))"
+			"(method Cat.Construct : )"
+			"(method Cat.Id -> (Int32 id): (id = 5))"
+			"(factory Sys.NewCat Sys.ICat : (construct Cat))"
+
+			"(struct CatAndPos (Int32 x y z) (Sys.ICat cat))"
+
+			"(function Main -> (Int32 result):"
+			"   (Sys.ICat teddy (Sys.NewCat))"
+			"	(CatAndPos v = 1 2 3 teddy)"
+			"   (v.cat = teddy)"
+			"   (v.cat.Id -> result)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 5);
 	}
 
 	void TestMap(IPublicScriptSystem& ss)
@@ -11616,6 +11691,7 @@ namespace
 
 	   TEST(TestListStruct);
 	   TEST(TestListStruct2);
+	   TEST(TestListStruct3);
 
 	   TEST(TestListStrongTyping);
    }
@@ -11693,15 +11769,7 @@ namespace
 	{
 		validate(true);
 
-		TEST(TestReflectionGetChild_BadIndex);
-
-		TEST(TestReflectionGetChild);
-		TEST(TestReflectionGetAtomic);
-
-		TEST(TestThrowFromCatch);
-
-		TEST(TestCatchInstanceArg);
-		TEST(TestTryWithoutThrow);
+		TEST(TestStructWithInterface);
 
 		TEST(TestConstructFromInterface);
 
@@ -11951,6 +12019,18 @@ namespace
 
 		TEST(TestCatch);
 		TEST(TestCatchArg);
+
+		TEST(TestStructWithInterface);
+
+		TEST(TestReflectionGetChild);
+		TEST(TestReflectionGetAtomic);
+
+		TEST(TestThrowFromCatch);
+
+		TEST(TestCatchInstanceArg);
+		TEST(TestTryWithoutThrow);
+
+		TEST(TestReflectionGetChild_BadIndex);
 	}
 
 	void RunPositiveFailures()
@@ -11975,6 +12055,8 @@ namespace
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
+
+		TEST(TestListStruct3);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

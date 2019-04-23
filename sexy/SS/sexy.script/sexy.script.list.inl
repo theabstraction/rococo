@@ -662,7 +662,10 @@ namespace Rococo
             {
                // No constructor, so need to copy element	
                CompileGetStructRef(ce, value, elementType, "newListElement"); // The address of the value is in D7
-               ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // list goes to 4
+
+			   auto variable = GetAtomicArg(value);
+			   ce.Builder.Append_IncDerivativeRefs(variable.buffer);
+			   ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // list goes to 4
                ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrepend : callbacks.ListAppend);
             }
          }
@@ -696,9 +699,6 @@ namespace Rococo
             case VARTYPE_Int64:
             case VARTYPE_Float64:
                ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrepend64 : callbacks.ListAppend64);
-               break;
-            case VARTYPE_Derivative:
-               ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrepend : callbacks.ListAppend);
                break;
             case VARTYPE_Closure:
                ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrepend64 : callbacks.ListAppend64);

@@ -449,16 +449,7 @@ namespace Rococo
 						Throw(directive, "Could assign variable to itself. Tautology is redundant");
 					}
 
-					if (!explicitKeyword)
-					{
-						ce.Builder.AssignVariableToTemp(targetVariable, 0);
-						// The target is already pointing to an object, so decrement its ref count
-						ce.Builder.Append_DecRef();
-					}
-
-					ce.Builder.AssignVariableToTemp(sourceText, 0);
-					ce.Builder.Append_IncRef();
-					ce.Builder.AssignTempToVariable(0, targetVariable);
+					ce.Builder.AssignVariableToVariable(sourceText, targetVariable, explicitKeyword);
 				}
 				else
 				{
@@ -718,7 +709,7 @@ namespace Rococo
 			}
 		}
 
-		void CompileAssignMember(CCompileEnvironment& ce, cstr variableName, const IStructure& st, const IMember& member, cr_sex src)
+		void CompileAssignMember(CCompileEnvironment& ce, cstr variableName, const IStructure& st, const IMember& member, cr_sex src, bool isConstructing)
 		{
 			const IStructure& memberType = *member.UnderlyingType();
 
@@ -744,7 +735,7 @@ namespace Rococo
 
 					if (IsAtomic(src))
 					{
-						ce.Builder.AssignVariableToVariable(src.String()->Buffer, variableName);
+						ce.Builder.AssignVariableToVariable(src.String()->Buffer, variableName, isConstructing);
 						return;
 					}
 					else if (!IsCompound(src))
@@ -772,7 +763,7 @@ namespace Rococo
 						{
 							TokenBuffer memberName;
 							StringPrint(memberName, ("%s.%s"), variableName, subMember.Name());
-							CompileAssignMember(ce, memberName, memberType, subMember, src.GetElement(publicMemberIndex++));
+							CompileAssignMember(ce, memberName, memberType, subMember, src.GetElement(publicMemberIndex++), isConstructing);
 						}
 					}
 					return;
@@ -830,7 +821,7 @@ namespace Rococo
 
 				if (IsPublic(member))
 				{				
-					CompileAssignMember(ce, memberName, varStruct, member, directive.GetElement(3 + offset + publicCount));
+					CompileAssignMember(ce, memberName, varStruct, member, directive.GetElement(3 + offset + publicCount), offset == 0);
 					publicCount++;
 				}
 			}
@@ -2496,9 +2487,6 @@ namespace Rococo
 			const IStructure& src = *def.ResolvedType;
 			const IInterface& outputInterface = src.GetInterface(0);
 
-			ce.Builder.AssignVariableRefToTemp(outputName, 0); // output goes to D4
-			ce.Builder.Append_DecRef();
-
 			if (!IsNullType(src))
 			{
 				for(int i = 0; i < src.InterfaceCount(); ++i)
@@ -2520,9 +2508,6 @@ namespace Rococo
 			{
 				ce.Builder.AssignVariableToVariable(sourceName, outputName);
 			}
-
-			ce.Builder.AssignVariableRefToTemp(sourceName, 0); // source goes to D4
-			ce.Builder.Append_IncRef();
 		}
 
 		void AssignVariableToVariable(CCompileEnvironment& ce, cr_sex exceptionSource, cstr lhs, cstr rhs)

@@ -3,19 +3,19 @@
 
 (using Sys.Type)
 
-(class Cat (defines Sys.ICat) (Int32 id))
-(method Cat.Construct (Int32 id): (this.id = id))
-(method Cat.Id -> (Int32 id): (id = this.id))
-(factory Sys.NewCat Sys.ICat (Int32 id) : (construct Cat id))
+(class Cat (defines Sys.ICat))
+(method Cat.Construct : )
+(method Cat.Id -> (Int32 id): (id = 5))
+(factory Sys.NewCat Sys.ICat : (construct Cat))
+
+(struct CatAndPos (Int32 x y z) (Sys.ICat cat))
 
 (function Main -> (Int32 result):
-	(Sys.ICat albert (Sys.NewCat 8))
-	(Sys.ICat bob (Sys.NewCat 12))
-	(list Sys.ICat cats)
-	(cats.Append albert)
-	(node tail = cats.Tail)
-	(tail.Append bob)
-	(node newTail = cats.Tail)
-	(Sys.ICat favouriteCat = newTail.Value)
-	(favouriteCat.Id -> result)
+   (Sys.ICat teddy (Sys.NewCat))
+	(list CatAndPos a)
+	(CatAndPos v = 1 2 3 teddy)
+	(a.Append v)
+	(node n = a.Head)
+	(CatAndPos val = & n)
+	(result = val.cat.Id)
 )
