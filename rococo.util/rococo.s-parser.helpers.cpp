@@ -851,11 +851,11 @@ namespace Rococo
 							const uint8* instance;
 							const IStructure* parentStruct = nullptr;
 							const IStructure* concreteStruct = nullptr;
-							CClassHeader* parentHeader = nullptr;
+							ObjectStub* parentHeader = nullptr;
 							int index = 0;
 							int firstUnkIndex = 1;
 
-							void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem) override
+							void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int recurseDepth) override
 							{
 								index++;
 
@@ -863,29 +863,29 @@ namespace Rococo
 								{
 									if (index == 1)
 									{
-										auto* header = (CClassHeader*)sfItem;
-										auto* t = header->_typeInfo;
+										auto* header = (ObjectStub*)sfItem;
+										auto* t = header->Desc;
 
-										concreteStruct = t->structDef;
+										concreteStruct = t->TypeInfo;
 										parentHeader = header;
 
 										char classDesc[256];
-										SafeFormat(classDesc, sizeof(classDesc), "[+%d] %s DestructorId: %lld. Alloc: %d bytes", (sfItem - instance), t->structDef->Name(), t->destructorId, header->_allocSize);
+										SafeFormat(classDesc, sizeof(classDesc), "[+%d] %s DestructorId: %lld. Refcount: %d", (sfItem - instance), concreteStruct->Name(), header->Desc->DestructorId, header->refCount);
 										auto node = tree->AddChild(parentId, classDesc, CheckState_NoCheckBox);
 
-										firstUnkIndex = 3 + t->structDef->InterfaceCount();
+										firstUnkIndex = 3 + concreteStruct->InterfaceCount();
 
-										for (int i = 0; i < t->structDef->InterfaceCount(); ++i)
+										for (int i = 0; i < concreteStruct->InterfaceCount(); ++i)
 										{
 											auto& interface = parentStruct->GetInterface(i);
-											auto* vTable = t->structDef->GetVirtualTable(i+1);
+											auto* vTable = concreteStruct->GetVirtualTable(i+1);
 											char interfaceDesc[256];
 											SafeFormat(interfaceDesc, sizeof(interfaceDesc), "Implements %s. vTable %p", interface.Name(), vTable);
 
 											auto inode = tree->AddChild(node, interfaceDesc, CheckState_NoCheckBox);
 
-											auto* instanceVTable = header->_vTables[i].Root;
-											if (instanceVTable != vTable)
+											auto* instanceVTable = header->pVTables[i];
+											if (instanceVTable != (VirtualTable*) vTable)
 											{
 												char vTableDesc[256];
 												SafeFormat(vTableDesc, sizeof(vTableDesc), "vTable mismatch. Expecting %p, but found %p", vTable, instanceVTable);
@@ -902,11 +902,6 @@ namespace Rococo
 								}
 
 								char prefix[256] = { 0 };
-
-								if (member.IsPseudoVariable())
-								{
-									SafeFormat(prefix, sizeof(prefix), "(pseudo) ");
-								}
 
 								char value[256];
 
@@ -947,7 +942,7 @@ namespace Rococo
 										subMember.parentStruct = member.UnderlyingType();
 									}
 
-									GetMembers(ss, *member.UnderlyingType(), member.Name(), sfItem, 0, subMember);
+									GetMembers(ss, *member.UnderlyingType(), member.Name(), sfItem, 0, subMember, 1);
 								}
 							}
 						} addMember;
@@ -957,7 +952,7 @@ namespace Rococo
 						addMember.tree = tree;
 						addMember.depth = depth + 1;
 
-						if (v.s) GetMembers(*ss, *v.s, v.parentName, v.instance, 0, addMember);
+						if (v.s) GetMembers(*ss, *v.s, v.parentName, v.instance, 0, addMember, 1);
 					}
 
 					int32 depth;

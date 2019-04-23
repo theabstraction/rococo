@@ -456,8 +456,10 @@ namespace SexyDotNet { namespace Host
 
 		ListVariableDescBuilder(TVariableList& _listVars, VariableKind _vk): listVars(_listVars), parentKind(_vk) {}
 
-		virtual void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem)
+		virtual void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int depth)
 		{
+			if (depth > 5) return;
+
 			NativeVariableDesc desc;
 			CopyString(desc.Name, NativeVariableDesc::NAME_CAPACITY, childName);
 			CopyString(desc.Type, NativeVariableDesc::TYPE_CAPACITY, Compiler::GetTypeName(*member.UnderlyingType()));
@@ -474,7 +476,7 @@ namespace SexyDotNet { namespace Host
 			listVars.push_back(desc);
 
 			ListVariableDescBuilder builder(listVars, parentKind);
-			GetMembers(ss, *member.UnderlyingType(), childName, sfItem, 0, builder);
+			GetMembers(ss, *member.UnderlyingType(), childName, sfItem, 0, builder, depth);
 		}
 	};
 
@@ -528,7 +530,7 @@ namespace SexyDotNet { namespace Host
 						
 					TVariableList nativeVars;
 					ListVariableDescBuilder builder(nativeVars, vk);
-					GetMembers(ss, s, sxchVariableName, pInstance, 0, builder);
+					GetMembers(ss, s, sxchVariableName, pInstance, 0, builder, 0);
 
 					for(auto i = nativeVars.begin(); i != nativeVars.end(); ++i)
 					{

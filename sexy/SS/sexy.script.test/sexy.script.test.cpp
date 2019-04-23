@@ -7548,6 +7548,48 @@ namespace
 		validate(x == 5);
 	}
 
+	void TestStructWithInterface3(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(class Dog (defines Sys.IDog) (Sys.ICat cat)"
+			"(method Dog.Construct : )"
+			"(method Dog.Id -> (Int32 id): (id = 5))"
+			"(method Dog.SetFriend (Sys.ICat cat) -> : (this.cat = cat))"
+			"(factory Sys.NewDog Sys.IDog : (construct Dog))"
+
+			"(class Cat (defines Sys.ICat) (Sys.IDog dog)"
+			"(method Cat.Construct : )"
+			"(method Cat.Id -> (Int32 id): (id = 5))"
+			"(method Cat.SetFriend (Sys.IDog dog) -> : (this.dog = dog))"
+			"(factory Sys.NewCat Sys.ICat : (construct Cat))"
+
+			"(function Main -> (Int32 result):"
+			"   (Sys.ICat teddy (Sys.NewCat))"
+			"	(Sys.IDog rover (Sys.NewDog))"
+			"   (teddy.SetFriend rover)"
+			"   (rover.SetFriend teddy)"
+			"   (teddy.Id -> result)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 5);
+	}
+
 	void TestMap(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -12056,7 +12098,7 @@ namespace
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		TEST(TestListStruct3);
+		TEST(TestStructWithInterface3);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

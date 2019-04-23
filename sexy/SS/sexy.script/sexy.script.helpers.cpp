@@ -792,7 +792,7 @@ namespace Rococo
 		   }
 	   }
 
-	   SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const IStructure& s, cstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback)
+	   SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const IStructure& s, cstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback, int recurseDepth)
 	   {
 		   if (s.VarType() != VARTYPE_Derivative) return true;
 
@@ -826,11 +826,11 @@ namespace Rococo
 				   {
 					   // Interfaces that are part of structures are always references
 					   const uint8** ppInstance = (const uint8**)(instance + suboffset);
-					   enumCallback.OnMember(ss, childName, member, *ppInstance);
+					   enumCallback.OnMember(ss, childName, member, *ppInstance, recurseDepth + 1);
 				   }
 				   else
 				   {
-					   enumCallback.OnMember(ss, childName, member, instance + suboffset);
+					   enumCallback.OnMember(ss, childName, member, instance + suboffset, recurseDepth + 1);
 				   }
 
 				   const int sizeofMember = member.SizeOfMember();

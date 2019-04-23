@@ -3,19 +3,30 @@
 
 (using Sys.Type)
 
-(class Cat (defines Sys.ICat))
+(class Dog (defines Sys.IDog) (Sys.ICat cat))
+
+(method Dog.Construct : )
+
+(method Dog.Id -> (Int32 id): (id = 5))
+
+(method Dog.SetFriend (Sys.ICat cat) -> : (this.cat = cat))
+
+(factory Sys.NewDog Sys.IDog : (construct Dog))
+
+(class Cat (defines Sys.ICat) (Sys.IDog dog))
+
 (method Cat.Construct : )
+
 (method Cat.Id -> (Int32 id): (id = 5))
+
+(method Cat.SetFriend (Sys.IDog dog) -> : (this.dog = dog))
+
 (factory Sys.NewCat Sys.ICat : (construct Cat))
 
-(struct CatAndPos (Int32 x y z) (Sys.ICat cat))
-
 (function Main -> (Int32 result):
-   (Sys.ICat teddy (Sys.NewCat))
-	(list CatAndPos a)
-	(CatAndPos v = 1 2 3 teddy)
-	(a.Append v)
-	(node n = a.Head)
-	(CatAndPos val = & n)
-	(result = val.cat.Id)
+	(Sys.ICat teddy (Sys.NewCat))
+	(Sys.IDog rover (Sys.NewDog))
+	(teddy.SetFriend rover)
+	(rover.SetFriend teddy)
+	(teddy.Id -> result)
 )
