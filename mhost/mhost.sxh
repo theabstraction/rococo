@@ -1,26 +1,27 @@
+(config mhost.xc) 
 (namespace EntryPoint)
  (alias Main EntryPoint.Main)
-
-(using Sys.Type)
-
-(struct DogKennel (array Int32 dogIds))
-(struct Sanctuary (array DogKennel kennels))
-
-(method DogKennel.Construct (Int32 capacity)
-	-> (construct dogIds capacity) 	
-	:
-)
-
-(method Sanctuary.Construct (Int32 kennelCapacity)
-	-> (construct kennels kennelCapacity)		
-	:
-)
-
-(function Main -> (Int32 result):
-	(Sanctuary sanctuary (4) ) // Create a sanctuary with a capacity of 4 kennels
-	(sanctuary.kennels.Push 4) // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
-	(foreach i k # (sanctuary.kennels 0 0) // Get a ref to the first kennel
-		(k.dogIds.Push 1812) // Put a new dog id in the first kennel
-		(result = (k.dogIds 0)) // Return the first dog id
+ 
+(interface
+	(as.sxy MHost.IScreenBuilder "../content/scripts/mhost/mhost")
+	(as.cpp MHost.IScreenBuilder "mhost")
+	(context factory MHost.IScreenBuilder)
+	(methods
+		(PushTriangle (const GuiTriangle t))
+		(PushQuad (const GuiQuad q))
+		(TryGetBitmapSpec (IString resourceName)(BitmapLocation loc) -> (Bool isSuccessful))
+		(Render)
 	)
 )
+ 
+(interface
+	(as.sxy MHost.IEngine "../content/scripts/mhost/mhost")
+	(as.cpp MHost.IEngine "mhost")
+	(context factory MHost.IEngine)
+	(methods
+		(ScreenBuilder -> (MHost.IScreenBuilder s))
+		(IsRunning -> (Bool isRunning))
+		(YieldForSystemMessages (Int32 sleepMS))
+	)
+	(factory MHost.Engine)
+ )
