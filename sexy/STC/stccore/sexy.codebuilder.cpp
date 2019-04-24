@@ -1186,30 +1186,30 @@ namespace
 		// SF-2S-x is the xth byte offset into the argument list, in reverse order of the argument list.
 		// Suppose our first argument J is a float and sizeof(void*) = 8, then SF-20 is the address of the firsr argument &J. 
 		// StackFrame = [Output1]...[OutputN][Input1]...[InputN][OldSF.Ptr][ReturnAddress.Ptr]. REGISTER_SF points to the return address.
-		size_t x = 2*sizeof(void*);
+		size_t x = 2 * sizeof(void*);
 		int32 sfOffset = -(int32)x;
 
-      int32 argCount = ArgCount(f);
+		int32 argCount = ArgCount(f);
 
-		for(int32 i = argCount-1; i >= 0; --i)
+		for (int32 i = argCount - 1; i >= 0; --i)
 		{
 			const IArgument& arg = f.Arg(i);
 			if (arg.ResolvedType() == NULL)
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << ("Could not resolve type (Arg #") << i << (") ") << arg.TypeString() << (" ") << arg.Name(); 
-				Throw(ERRORCODE_NULL_POINTER, __SEXFUNCTION__, "%s", (cstr) streamer);
+				streamer.sb << ("Could not resolve type (Arg #") << i << (") ") << arg.TypeString() << (" ") << arg.Name();
+				Throw(ERRORCODE_NULL_POINTER, __SEXFUNCTION__, "%s", (cstr)streamer);
 			}
 
 			int varOffset = 0;
-			if (i == argCount-1)
+			if (i == argCount - 1)
 			{
 				varOffset = thisOffset;
 			}
 			Variable* v = new Variable(arg, /* section index */ 0, arg.Userdata(), varOffset);
 
 			// Derivative types are always passed by reference (a pointer)
-			int32 dx =  (v->ResolvedType().VarType() == VARTYPE_Derivative) ? (int32) sizeof(size_t) : (int32) v->AllocSize();			
+			int32 dx = (v->ResolvedType().VarType() == VARTYPE_Derivative) ? (int32) sizeof(size_t) : (int32)v->AllocSize();
 			sfOffset -= dx;
 			v->SetStackPosition(sfOffset);
 			variables.push_back(v);
@@ -1343,7 +1343,7 @@ namespace
 	{
 		if (IsVariableDefinedAtLevel(sectionIndex, name.c_str()))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Variable [%s] already defined in this scope"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Variable [%s] already defined in this scope", name.c_str());
 		}
 
 		const IStructure* s = Compiler::MatchStructure(Module().Object().Log(), type.c_str(), f.Module());
@@ -1363,7 +1363,7 @@ namespace
 		}
 		else
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not add variable [%s]"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Could not add variable [%s]", name.c_str());
 		}
 	}
 
@@ -1371,7 +1371,7 @@ namespace
 	{
 		if (IsVariableDefinedAtLevel(sectionIndex, name.c_str()))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Variable [%s] already defined in this scope"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Variable [%s] already defined in this scope", name.c_str());
 		}
 
 		if (IsPointerValid(&type))
@@ -1384,7 +1384,7 @@ namespace
 		}
 		else
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not add variable [%s]. Type null"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Could not add variable [%s]. Type null", name.c_str());
 		}
 	}
 
@@ -1580,7 +1580,6 @@ namespace
 				assembler.Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
 				assembler.Append_GetStackFrameValue(src.SFOffset + src.MemberOffset, VM::REGISTER_D4, bitcount);
 				assembler.Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
-
 				assembler.Append_SetStackFrameValue(dest.SFOffset + dest.MemberOffset, VM::REGISTER_D4, bitcount);
 			}
 		}
@@ -1698,6 +1697,7 @@ namespace
 
 				if (targetDef.IsParentValue ^ sourceDef.IsParentValue)
 				{
+					// N.B do not refactor into single VM instruction, as SF is not the same for source and target
 					AssignVariableRefToTemp(source, 0, 0);
 					AssignVariableRefToTemp(target, 1, 0);
 					Assembler().Append_CopyMemory(VM::REGISTER_D5, VM::REGISTER_D4, nBytesSource);
@@ -1715,7 +1715,7 @@ namespace
 
 			if (targetDef.IsParentValue || sourceDef.IsParentValue)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot handle this case for a closure upvalue"));
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Cannot handle ref by ref assignment for a closure upvalue. Use local variables to mediate assignment");
 			}
 
 			AssignVariableToVariable_ByRef(*this, sourceDef, targetDef, source, target);
@@ -1726,12 +1726,12 @@ namespace
 
 			if (targetDef.IsParentValue || sourceDef.IsParentValue)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot handle this case for a closure upvalue"));
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Cannot handle assignment for a closure upvalue. Use local variables to mediate assignment");
 			}
 
 			if (sourceDef.ResolvedType->VarType() != targetDef.ResolvedType->VarType())
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Type mismatch %s to %s (%s vs %s)"), source, target, sourceDef.ResolvedType->Name(), targetDef.ResolvedType->Name());
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Type mismatch %s to %s (%s vs %s)", source, target, sourceDef.ResolvedType->Name(), targetDef.ResolvedType->Name());
 			}
 
 			if (sourceDef.ResolvedType->VarType() == VARTYPE_Derivative && (nBytesSource != 8 && nBytesSource != 4))
@@ -1749,7 +1749,7 @@ namespace
 
 			if (targetDef.IsParentValue || sourceDef.IsParentValue)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot handle this case for a closure upvalue"));
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Cannot handle assignment for a closure upvalue. Use local variables to mediate assignment");
 			}
 
 			Assembler().Append_SetSFMemberRefFromSFValue(targetDef.SFOffset, targetDef.MemberOffset, sourceDef.MemberOffset + sourceDef.SFOffset, nBytesSource);			
@@ -1802,18 +1802,7 @@ namespace
 
 	void CodeBuilder::AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def)
 	{
-		BITCOUNT bitCount;
-		switch (def.AllocSize)
-		{
-		default:
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot assign from datatype. Unhandled size!"));
-		case 4:
-			bitCount = BITCOUNT_32;
-			break;
-		case 8:
-			bitCount = BITCOUNT_64;
-			break;
-		}
+		BITCOUNT bitCount = GetBitCountFromStruct(def);
 
 		UseStackFrameFor(*this, def);
 
@@ -1834,18 +1823,7 @@ namespace
 
 	void CodeBuilder::AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def)
 	{
-		BITCOUNT bitCount;
-		switch (def.AllocSize)
-		{
-		default:
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot assign from datatype. Unhandled size!"));
-		case 4:
-			bitCount = BITCOUNT_32;
-			break;
-		case 8:
-			bitCount = BITCOUNT_64;
-			break;
-		}
+		BITCOUNT bitCount = GetBitCountFromStruct(def);
 
 		UseStackFrameFor(*this, def);
 
@@ -2325,9 +2303,7 @@ namespace
 	{
 		if (!builder.TryGetVariableByName(def, name))
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Error, cannot find entry ") << name;
-			Throw(ERRORCODE_COMPILE_ERRORS, builder.Module().Name(), "%s", (cstr) streamer);
+			Throw(ERRORCODE_COMPILE_ERRORS, builder.Module().Name(), "Error, cannot find entry %s", name);
 		}
 	}
 
@@ -2335,9 +2311,7 @@ namespace
 	{
 		if (instance == NULL)
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Error, cannot find instance ") << instanceName;
-			Throw(ERRORCODE_COMPILE_ERRORS, module.Name(), "%s", (cstr) streamer);
+			Throw(ERRORCODE_COMPILE_ERRORS, module.Name(), "Error, cannot find instance %s", instanceName);
 		}
 	}
 
@@ -2423,7 +2397,7 @@ namespace
 
 		if (attempts == 0)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Failed to evaluate do...while statement."));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Failed to evaluate do...while statement.");
 		}
 	}
 
@@ -2432,7 +2406,7 @@ namespace
 		sectionIndex--;
 		if (sectionIndex < 0)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Section closed without a corresponding open"));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Section closed without a corresponding open");
 		}
 
 		sections.pop_back();
