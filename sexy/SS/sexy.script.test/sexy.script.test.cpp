@@ -5056,6 +5056,44 @@ namespace
 		validate(x == 34);
 	}
 
+	void TestCaptureStruct(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+			"(using Sys.Type.Formatters)"
+			"(using Sys.Type)"
+
+			"(archetype Sys.VoidToInt -> (Int32 result))"
+
+			"(function Main -> (Int32 result): "
+			"	(Vec3i p = 17 19 23)"
+			"	(VoidToInt g ="
+			"		(closure -> (Int32 result):"
+			"			(Vec3i q = p)"
+			"			(result = p.x)"
+			"		)"
+			"	)"
+			"	(g -> result)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 17);
+	}
+
 	void TestDerivedInterfaces(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -11848,10 +11886,10 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestCaptureStruct);
+		TEST(TestConstructFromInterface);
 		TEST(TestArrayForeachOnce);
-
 		TEST(TestAddRefWithLocalVariable);
-		TEST(TestReturnInterfaceEx);
 		TEST(TestGetSysMessage);
 		TEST(TestNullMemberInit);
 		TEST(TestConstructor);
@@ -11892,7 +11930,6 @@ namespace
 
 		TestMaths();
 
-		TEST(TestConstructFromInterface);
 		TEST(TestStructWithInterface);
 
 		TEST(TestRaw);
@@ -12089,9 +12126,6 @@ namespace
 		TEST(TestTryFinallyWithoutThrow);
 		TEST(TestDeepCatch);
 
-		TEST(TestSysThrow);
-		TEST(TestSysThrow2);
-
 		TEST(TestDynamicCast);
 		TEST(TestExceptionDestruct);
 
@@ -12109,6 +12143,11 @@ namespace
 
 		TEST(TestCatchInstanceArg);
 		TEST(TestTryWithoutThrow);
+
+		TEST(TestReturnInterfaceEx);
+
+		TEST(TestSysThrow);
+		TEST(TestSysThrow2);
 
 		TEST(TestReflectionGetChild_BadIndex);
 	}

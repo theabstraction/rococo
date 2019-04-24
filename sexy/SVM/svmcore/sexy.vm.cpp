@@ -202,6 +202,8 @@ namespace
 			ActivateInstruction(PushAddress);
 			ActivateInstruction(PushImmediate32);
 			ActivateInstruction(PushStackVariable32);
+			ActivateInstruction(PushStackVariable64);
+			ActivateInstruction(PushStackFrameMemberPtr);
 			ActivateInstruction(PushStackAddress);
 			ActivateInstruction(Pop);
 			ActivateInstruction(AddImmediate);
@@ -1387,11 +1389,32 @@ namespace
 		OPCODE_CALLBACK(PushStackVariable32)
 		{
 			const Ins* I = NextInstruction();
-			int32 offset = (int32) (int8) I->Opmod1;
-			const uint8* sfItem = cpu.SF() + offset;
+			auto* args = (ArgsPushStackVariable*) I;
+			const uint8* sfItem = cpu.SF() + args->sfOffset;
 			const int32* pArg = (const int32*) sfItem;
 			cpu.Push(*pArg);
-			cpu.AdvancePC(2);
+			cpu.AdvancePC(sizeof(ArgsPushStackVariable));
+		}
+
+		OPCODE_CALLBACK(PushStackVariable64)
+		{
+			const Ins* I = NextInstruction();
+			auto* args = (ArgsPushStackVariable*)I;
+			const uint8* sfItem = cpu.SF() + args->sfOffset;
+			const int64* pArg = (const int64*)sfItem;
+			cpu.Push(*pArg);
+			cpu.AdvancePC(sizeof(ArgsPushStackVariable));
+		}
+
+		OPCODE_CALLBACK(PushStackFrameMemberPtr)
+		{
+			const Ins* I = NextInstruction();
+			auto* args = (ArgsPushStackFrameMemberPtr*)I;
+			const uint8* sfItem = cpu.SF() + args->sfOffset;
+			const uint8* pItem = *(const uint8**)sfItem;
+			auto* pMember = pItem + args->memberOffset;
+			cpu.Push(pMember);
+			cpu.AdvancePC(sizeof(ArgsPushStackFrameMemberPtr));
 		}
 
 		OPCODE_CALLBACK(PushStackAddress)

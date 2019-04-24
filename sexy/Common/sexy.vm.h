@@ -300,6 +300,7 @@ namespace Rococo { namespace VM
 		virtual void Append_PushRegister(DINDEX source, BITCOUNT bits) = 0;
 		virtual void Append_PushLiteral(BITCOUNT bits, const VariantValue& value) = 0;
 		virtual void Append_PushStackVariable(int sfOffset, BITCOUNT bitcount) = 0;
+		virtual void Append_PushStackFrameMemberPtr(int sfOffsetToStruct, int memberOffset) = 0;
 		virtual void Append_PushStackFrameAddress(int offset) = 0;
 		virtual void Append_Return() = 0;
 		virtual void Append_RestoreRegister(DINDEX Di, BITCOUNT bits) = 0;

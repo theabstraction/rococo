@@ -185,9 +185,23 @@ namespace
 
 	void FormatPushStackVariable32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		int32 offset = (int32)(int8) I.Opmod1;
-		format(rep, ("SF(%d)"), offset);
-		rep.ByteCount = 2;
+		auto& args = (ArgsPushStackVariable&)I;
+		format(rep, ("SF(%d)"), args.sfOffset);
+		rep.ByteCount = sizeof(args);
+	}
+
+	void FormatPushStackVariable64(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+		auto& args = (ArgsPushStackVariable&)I;
+		format(rep, ("SF(%d)"), args.sfOffset);
+		rep.ByteCount = sizeof(args);
+	}
+
+	void FormatPushStackFrameMemberPtr(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+		auto& args = (ArgsPushStackFrameMemberPtr&)I;
+		format(rep, ("SF(%d.%d)"), args.sfOffset, args.memberOffset);
+		rep.ByteCount = sizeof(args);
 	}
 
 	void FormatPushStackAddress(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -1107,6 +1121,8 @@ namespace
 		EnableFormatter(ShiftRight64);
 		EnableFormatter(PushImmediate32);
 		EnableFormatter(PushStackVariable32);
+		EnableFormatter(PushStackVariable64);
+		EnableFormatter(PushStackFrameMemberPtr);
 		EnableFormatter(PushStackAddress);
 		EnableFormatter(Pop);
 		EnableFormatter(StackAllocBig);

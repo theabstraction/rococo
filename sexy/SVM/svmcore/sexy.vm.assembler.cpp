@@ -413,13 +413,27 @@ namespace
 		{
 			if (bitcount == BITCOUNT_32 && IsToInt8Lossless(sfOffset))
 			{
-				AddTwoByteInstruction(Opcodes::PushStackVariable32, (int8) sfOffset);
+				ArgsPushStackVariable args;
+				args.opcode = Opcodes::PushStackVariable32;
+				args.sfOffset = sfOffset;
+				AddArgument(args);
 			}
 			else
 			{
-				Append_GetStackFrameValue(sfOffset, VM::REGISTER_D4, bitcount);
-				Append_PushRegister(VM::REGISTER_D4, bitcount);
+				ArgsPushStackVariable args;
+				args.opcode = Opcodes::PushStackVariable64;
+				args.sfOffset = sfOffset;
+				AddArgument(args);
 			}
+		}
+
+		virtual void Append_PushStackFrameMemberPtr(int sfOffsetToStruct, int memberOffset)
+		{
+			ArgsPushStackFrameMemberPtr args;
+			args.opcode = Opcodes::PushStackFrameMemberPtr;
+			args.sfOffset = sfOffsetToStruct;
+			args.memberOffset = memberOffset;
+			AddArgument(args);
 		}
 
 		virtual void Append_PushStackFrameAddress(int offset)

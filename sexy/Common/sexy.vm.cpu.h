@@ -170,6 +170,8 @@ namespace Rococo { namespace VM
 			PushImmediate32,
 			PushAddress,
 			PushStackVariable32,
+			PushStackVariable64,
+			PushStackFrameMemberPtr,
 			PushStackAddress,
 			BooleanNot,
 			Call,
@@ -254,6 +256,19 @@ namespace Rococo { namespace VM
 		uint8 Opmod3;
 
 		const uint8* ToPC() const { return (const uint8*) this; }
+	} TIGHTLY_PACKED;
+
+	struct ArgsPushStackFrameMemberPtr
+	{
+		int8 opcode;
+		int32 sfOffset;
+		int32 memberOffset;
+	} TIGHTLY_PACKED;
+
+	struct ArgsPushStackVariable
+	{
+		int8 opcode;
+		int32 sfOffset;
 	} TIGHTLY_PACKED;
 
 	struct ArgsGetStackFrameMemberPtrAndDeref
