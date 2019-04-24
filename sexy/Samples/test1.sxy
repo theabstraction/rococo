@@ -1,26 +1,17 @@
 (namespace EntryPoint)
- (alias Main EntryPoint.Main)
-
-(using Sys.Type)
-
-(struct DogKennel (array Int32 dogIds))
-(struct Sanctuary (array DogKennel kennels))
-
-(method DogKennel.Construct (Int32 capacity)
-	-> (construct dogIds capacity) 	
-	:
+(using Sys.Maths)
+(using EntryPoint)
+(interface Sys.IFidelio
+	(Id -> (Int32 id))
 )
-
-(method Sanctuary.Construct (Int32 kennelCapacity)
-	-> (construct kennels kennelCapacity)		
-	:
-)
+(class Fidelio (implements Sys.IFidelio))
+(method Fidelio.Id -> (Int32 id): (id = 12))
+(method Fidelio.Construct -> : )
+(factory Sys.Fidelio Sys.IFidelio : (construct Fidelio))
 
 (function Main -> (Int32 result):
-	(Sanctuary sanctuary (4) ) // Create a sanctuary with a capacity of 4 kennels
-	(sanctuary.kennels.Push 4) // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
-	(foreach i k # (sanctuary.kennels 0 0) // Get a ref to the first kennel
-		(k.dogIds.Push 1812) // Put a new dog id in the first kennel
-		(result = (k.dogIds 0)) // Return the first dog id
-	)
-)	
+	(Sys.IFidelio f (Sys.Fidelio))
+	(Sys.IFidelio g = f)
+	(g.Id -> result)
+)
+(alias Main EntryPoint.Main)

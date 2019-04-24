@@ -168,6 +168,7 @@ namespace Rococo { namespace VM
 			PushRegister32,
 			PushRegister64,
 			PushImmediate32,
+			PushImmediate64,
 			PushAddress,
 			PushStackVariable32,
 			PushStackVariable64,
@@ -242,6 +243,7 @@ namespace Rococo { namespace VM
 			GetGlobal,
 			SetGlobal,
 			GetStackFrameValueAndExtendToPointer,
+			SetSFValueFromSFValueLong,
 			IllegalOverflowOp
 		};
 
@@ -319,6 +321,14 @@ namespace Rococo { namespace VM
 		int8 opcode;
 		uint8 reg;
 		int64 value;
+	} TIGHTLY_PACKED;
+
+	struct ArgsSetSFValueFromSFValue
+	{
+		int8 opcode;
+		int8 byteCount;
+		int32 sfTargetOffset;
+		int32 sfSourceOffset;
 	} TIGHTLY_PACKED;
 }}
 

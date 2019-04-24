@@ -438,15 +438,10 @@ namespace
 
 		virtual void Append_PushStackFrameAddress(int offset)
 		{
-			if (IsToInt8Lossless(offset))
-			{
-				AddTwoByteInstruction(Opcodes::PushStackAddress, (int8) offset);
-			}
-			else
-			{
-				Append_GetStackFrameAddress(VM::REGISTER_D4, offset);
-				Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);			
-			}
+			ArgsPushStackVariable args;
+			args.opcode = Opcodes::PushStackAddress;
+			args.sfOffset = offset;
+			AddArgument(args);
 		}
 
 		virtual void Append_PushLiteral(BITCOUNT bits, const VariantValue& value)
@@ -458,8 +453,8 @@ namespace
 			}
 			else
 			{
-				Append_SetRegisterImmediate(VM::REGISTER_D4, value, bits);
-				Append_PushRegister(VM::REGISTER_D4, bits);
+				AddSingleByteInstruction(Opcodes::PushImmediate64);
+				AddArgument(value.int64Value);
 			}
 		}
 
@@ -598,17 +593,15 @@ namespace
 			{
 				AddThreeByteInstruction(Opcodes::SetSFValueFromSFValue32, (int8) trgOffset, (int8) srcOffset);
 			}
-			else if (bitCount == BITCOUNT_32 || bitCount == BITCOUNT_64)
+			else
 			{
-				Append_GetStackFrameValue(srcOffset, VM::REGISTER_D4, bitCount);
-				Append_SetStackFrameValue(trgOffset, VM::REGISTER_D4, bitCount);
-			}
-			else if (bitCount == BITCOUNT_128)
-			{
-				Append_GetStackFrameValue(srcOffset, VM::REGISTER_D4, BITCOUNT_64);
-				Append_SetStackFrameValue(trgOffset, VM::REGISTER_D4, BITCOUNT_64);
-				Append_GetStackFrameValue(srcOffset+8, VM::REGISTER_D4, BITCOUNT_64);
-				Append_SetStackFrameValue(trgOffset+8, VM::REGISTER_D4, BITCOUNT_64);
+				ArgsSetSFValueFromSFValue args;
+				args.opcode = Opcodes::SetSFValueFromSFValueLong;
+				args.byteCount = bitCount / 8;
+				args.sfTargetOffset = trgOffset;
+				args.sfSourceOffset = srcOffset;
+
+				AddArgument(args);
 			}
 		}
 

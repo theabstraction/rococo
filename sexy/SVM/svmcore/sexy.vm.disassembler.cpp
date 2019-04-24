@@ -183,6 +183,16 @@ namespace
 		rep.ByteCount = 5;
 	}
 
+	void FormatPushImmediate64(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+		const uint8* pc = (const uint8*)&I;
+		const int64* pArg = (const int64*)(pc + 1);
+
+		format(rep, ("*SP=%llx"), *pArg);
+
+		rep.ByteCount = 9;
+	}
+
 	void FormatPushStackVariable32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		auto& args = (ArgsPushStackVariable&)I;
@@ -206,9 +216,9 @@ namespace
 
 	void FormatPushStackAddress(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		int32 offset = (int32)(int8) I.Opmod1;
-		format(rep, ("*SP=SF+%d"), offset);
-		rep.ByteCount = 2;
+		auto& args = (ArgsPushStackFrameMemberPtr&)I;
+		format(rep, ("SF(%d)"), args.sfOffset);
+		rep.ByteCount = sizeof(ArgsPushStackFrameMemberPtr);
 	}
 
 	void FormatPushRegister64(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -1080,6 +1090,14 @@ namespace
 		rep.ByteCount += 1;
 	}
 
+	void FormatSetSFValueFromSFValueLong(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+		auto& args = (ArgsSetSFValueFromSFValue&)I;
+		rep.ByteCount += sizeof(args);
+		format(rep, "SF(%d)=SF(%d) %d bytes", args.sfTargetOffset, args.sfSourceOffset, args.byteCount);
+		rep.ByteCount += sizeof(args);
+	}
+
 	void BuildFormatTable()
 	{
 		EnableFormatter(BooleanNot);
@@ -1120,6 +1138,7 @@ namespace
 		EnableFormatter(ShiftRight32);		
 		EnableFormatter(ShiftRight64);
 		EnableFormatter(PushImmediate32);
+		EnableFormatter(PushImmediate64);
 		EnableFormatter(PushStackVariable32);
 		EnableFormatter(PushStackVariable64);
 		EnableFormatter(PushStackFrameMemberPtr);
@@ -1198,6 +1217,7 @@ namespace
 		EnableFormatter(DereferenceD4);
 		EnableFormatter(CallVitualFunctionViaMemberOffsetOnStack);
 		EnableFormatter(GetStackFrameMemberPtrAndDeref);
+		EnableFormatter(SetSFValueFromSFValueLong);
 	}
 
 	class Disassembler final: public IDisassembler

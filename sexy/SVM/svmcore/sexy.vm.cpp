@@ -201,6 +201,7 @@ namespace
 			ActivateInstruction(PushRegister32);
 			ActivateInstruction(PushAddress);
 			ActivateInstruction(PushImmediate32);
+			ActivateInstruction(PushImmediate64);
 			ActivateInstruction(PushStackVariable32);
 			ActivateInstruction(PushStackVariable64);
 			ActivateInstruction(PushStackFrameMemberPtr);
@@ -284,6 +285,8 @@ namespace
 
 			ActivateInstruction(GetStackFrameValueAndExtendToPointer);
 			ActivateInstruction(GetStackFrameMemberPtrAndDeref);
+
+			ActivateInstruction(SetSFValueFromSFValueLong);
 
 			static_assert(sizeof(VariantValue) == sizeof(size_t), "Bad packing size");
 			static_assert(BITCOUNT_POINTER == sizeof(size_t) * 8, "Bad BITCOUNT_POINTER");
@@ -1386,6 +1389,14 @@ namespace
 			cpu.AdvancePC(4);
 		}
 
+		OPCODE_CALLBACK(PushImmediate64)
+		{
+			cpu.AdvancePC(1);
+			const int64* pArg = (const int64*)cpu.PC();
+			cpu.Push(*pArg);
+			cpu.AdvancePC(8);
+		}
+
 		OPCODE_CALLBACK(PushStackVariable32)
 		{
 			const Ins* I = NextInstruction();
@@ -1420,10 +1431,11 @@ namespace
 		OPCODE_CALLBACK(PushStackAddress)
 		{
 			const Ins* I = NextInstruction();
-			int32 offset = (int32) (int8) I->Opmod1;
-			const uint8* sfItem = cpu.SF() + offset;
+
+			auto* args = (ArgsPushStackVariable*)I;
+			const uint8* sfItem = cpu.SF() + args->sfOffset;
 			cpu.Push(sfItem);
-			cpu.AdvancePC(2);
+			cpu.AdvancePC(sizeof(ArgsPushStackVariable));
 		}
 
 		OPCODE_CALLBACK(SaveRegister32)
@@ -2278,6 +2290,17 @@ namespace
 			default:
 				throw IllegalException();
 			}
+		}
+
+		OPCODE_CALLBACK(SetSFValueFromSFValueLong)
+		{
+			auto* args = (ArgsSetSFValueFromSFValue*) NextInstruction();
+			const uint8* pSrc = cpu.SF() + args->sfSourceOffset;
+			uint8* pTarget = cpu.SF() + args->sfTargetOffset;
+
+			memcpy(pTarget, pSrc, args->byteCount);
+
+			cpu.AdvancePC(sizeof(ArgsSetSFValueFromSFValue));
 		}
 
 		OPCODE_CALLBACK(Copy64Bits)
