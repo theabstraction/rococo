@@ -140,6 +140,7 @@ namespace Rococo { namespace VM
 			SetSFMemberByRefFromSFByValue32,
 			SetSFMemberByRefFromSFByValue64,
 			SetSFValueFromSFMemberByRef32,
+			SetSFValueFromSFMemberByRef,
 			SetSFMemberByRefFromRegister32,
 			SetSFMemberByRefFromRegisterLong,
 			SetSFMemberRefFromSFMemberByRef64,
@@ -244,6 +245,7 @@ namespace Rococo { namespace VM
 			SetGlobal,
 			GetStackFrameValueAndExtendToPointer,
 			SetSFValueFromSFValueLong,
+			SetSFMemberRefFromSFValue,
 			IllegalOverflowOp
 		};
 
@@ -329,6 +331,24 @@ namespace Rococo { namespace VM
 		int8 byteCount;
 		int32 sfTargetOffset;
 		int32 sfSourceOffset;
+	} TIGHTLY_PACKED;
+
+	struct ArgsSetSFMemberRefFromSFValue
+	{
+		int8 opcode;
+		int32 targetSFOffset;
+		int32 targetMemberOffset;
+		int32 SFSourceValueOffset;
+		size_t nBytesSource;
+	} TIGHTLY_PACKED;
+
+	struct ArgsSetSFValueFromSFMemberRef
+	{
+		int8 opcode;
+		int32 srcSFOffset;
+		int32 srcMemberOffset;
+		int32 targetSFOffset;
+		size_t nBytesSource;
 	} TIGHTLY_PACKED;
 }}
 

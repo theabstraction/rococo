@@ -819,9 +819,13 @@ namespace
 			}
 			else
 			{
-				Append_GetStackFrameMemberPtr(VM::REGISTER_D5, targetSFOffset, targetMemberOffset);
-				Append_GetStackFrameAddress(VM::REGISTER_D4, SFSourceValueOffset);
-				Append_CopyMemory(VM::REGISTER_D5, VM::REGISTER_D4, nBytesSource);
+				ArgsSetSFMemberRefFromSFValue args;
+				args.opcode = Opcodes::SetSFMemberRefFromSFValue;
+				args.targetSFOffset = targetSFOffset;
+				args.targetMemberOffset = targetMemberOffset;
+				args.SFSourceValueOffset = SFSourceValueOffset;
+				args.nBytesSource = nBytesSource;
+				AddArgument(args);
 			}
 		}
 
@@ -850,9 +854,13 @@ namespace
 			}
 			else
 			{
-				Append_GetStackFrameMemberPtr(VM::REGISTER_D5, sourceSFOffset, sourceMemberOffset);
-				Append_GetStackFrameAddress(VM::REGISTER_D4, SFTargetValueOffset);
-				Append_CopyMemory(VM::REGISTER_D4, VM::REGISTER_D5, nBytesSource);
+				ArgsSetSFValueFromSFMemberRef args;
+				args.opcode = Opcodes::SetSFValueFromSFMemberByRef;
+				args.srcSFOffset = sourceSFOffset;
+				args.srcMemberOffset = sourceMemberOffset;
+				args.targetSFOffset = SFTargetValueOffset;
+				args.nBytesSource = nBytesSource;
+				AddArgument(args);
 			}
 		}
 
@@ -867,8 +875,6 @@ namespace
 				AddThreeByteInstruction(Opcodes::SetSFMemberByRefFromRegisterLong, Dsource, bitcount);
 				AddArgument(sfOffset);
 				AddArgument(memberOffset);
-			//	Append_GetStackFrameValue(sfOffset, VM::REGISTER_D4, BITCOUNT_POINTER); // D4 points to the containing instance				
-			//	Append_Poke(Dsource, bitcount, VM::REGISTER_D4, memberOffset);
 			}
 		}
 

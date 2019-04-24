@@ -12063,13 +12063,6 @@ namespace
 
 		TEST(TestStringMember3);
 
-		TEST(TestMeshStruct4);
-		TEST(TestMeshStruct3);
-		TEST(TestMeshStruct2);
-		TEST(TestMeshStruct);
-
-		TEST(TestRefTypesInsideClosure);
-
 		TEST(TestStringSplit);
 		TEST(TestSearchSubstring);
 		TEST(TestRightSearchSubstring);
@@ -12081,12 +12074,6 @@ namespace
 
 		TEST(TestNullStringBuilder);
 		TEST(TestStringBuilder);
-		TEST(TestStringBuilderBig);
-
-		TEST(TestSearchSubstring);
-		TEST(TestRightSearchSubstring);
-		TEST(TestAppendSubstring);
-		TEST(TestStringbuilderTruncate);
 
 		TEST(TestMacro);
 		TEST(TestPrintModules);
@@ -12148,6 +12135,20 @@ namespace
 
 		TEST(TestSysThrow);
 		TEST(TestSysThrow2);
+
+		TEST(TestMeshStruct4);
+		TEST(TestMeshStruct3);
+		TEST(TestMeshStruct2);
+		TEST(TestMeshStruct);
+
+		TEST(TestRefTypesInsideClosure);
+
+		TEST(TestStringBuilderBig);
+
+		TEST(TestSearchSubstring);
+		TEST(TestRightSearchSubstring);
+		TEST(TestAppendSubstring);
+		TEST(TestStringbuilderTruncate);
 
 		TEST(TestReflectionGetChild_BadIndex);
 	}

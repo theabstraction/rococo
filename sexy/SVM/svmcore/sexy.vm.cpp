@@ -287,6 +287,9 @@ namespace
 			ActivateInstruction(GetStackFrameMemberPtrAndDeref);
 
 			ActivateInstruction(SetSFValueFromSFValueLong);
+			ActivateInstruction(SetSFMemberRefFromSFValue);
+
+			ActivateInstruction(SetSFValueFromSFMemberByRef);
 
 			static_assert(sizeof(VariantValue) == sizeof(size_t), "Bad packing size");
 			static_assert(BITCOUNT_POINTER == sizeof(size_t) * 8, "Bad BITCOUNT_POINTER");
@@ -2301,6 +2304,35 @@ namespace
 			memcpy(pTarget, pSrc, args->byteCount);
 
 			cpu.AdvancePC(sizeof(ArgsSetSFValueFromSFValue));
+		}
+
+		OPCODE_CALLBACK(SetSFMemberRefFromSFValue)
+		{
+			auto* args = (ArgsSetSFMemberRefFromSFValue*) NextInstruction();
+			const uint8* src = cpu.SF() + args->SFSourceValueOffset;
+
+			uint8* ppTargetStruct = cpu.SF() + args->targetSFOffset;
+			uint8* pTargetStruct = *(uint8**)ppTargetStruct;
+
+			uint8* pTarget = pTargetStruct + args->targetMemberOffset;
+
+			memcpy(pTarget, src, args->nBytesSource);
+
+			cpu.AdvancePC(sizeof(ArgsSetSFMemberRefFromSFValue));
+		}
+
+		OPCODE_CALLBACK(SetSFValueFromSFMemberByRef)
+		{
+			auto* args = (ArgsSetSFValueFromSFMemberRef*) NextInstruction();
+			const uint8* ppStruct = cpu.SF() + args->srcSFOffset;
+			const uint8* pStruct = *(const uint8**)ppStruct;
+			const uint8* pMember = pStruct + args->srcMemberOffset;
+
+			uint8* pTarget = cpu.SF() + args->targetSFOffset;
+
+			memcpy(pTarget, pMember, args->nBytesSource);
+
+			cpu.AdvancePC(sizeof(ArgsSetSFValueFromSFMemberRef));
 		}
 
 		OPCODE_CALLBACK(Copy64Bits)

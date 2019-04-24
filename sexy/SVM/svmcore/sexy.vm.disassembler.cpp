@@ -1098,8 +1098,17 @@ namespace
 		rep.ByteCount += sizeof(args);
 	}
 
+	void FormatSetSFValueFromSFMemberByRef(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+		auto& args = (ArgsSetSFValueFromSFMemberRef&)I;
+		rep.ByteCount += sizeof(args);
+		format(rep, "SF(%d)=SF(%d.%d) %d bytes", args.targetSFOffset, args.srcSFOffset, args.srcMemberOffset, args.nBytesSource);
+		rep.ByteCount += sizeof(args);
+	}
+
 	void BuildFormatTable()
 	{
+		EnableFormatter(SetSFValueFromSFMemberByRef);
 		EnableFormatter(BooleanNot);
 		EnableFormatter(CopySFMemory);
 		EnableFormatter(CopySFMemoryNear);
