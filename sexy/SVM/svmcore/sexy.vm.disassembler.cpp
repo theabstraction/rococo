@@ -216,9 +216,9 @@ namespace
 
 	void FormatPushStackAddress(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		auto& args = (ArgsPushStackFrameMemberPtr&)I;
+		auto& args = (ArgsPushStackVariable&)I;
 		format(rep, ("SF(%d)"), args.sfOffset);
-		rep.ByteCount = sizeof(ArgsPushStackFrameMemberPtr);
+		rep.ByteCount = sizeof(ArgsPushStackVariable);
 	}
 
 	void FormatPushRegister64(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -1093,9 +1093,8 @@ namespace
 	void FormatSetSFValueFromSFValueLong(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		auto& args = (ArgsSetSFValueFromSFValue&)I;
-		rep.ByteCount += sizeof(args);
 		format(rep, "SF(%d)=SF(%d) %d bytes", args.sfTargetOffset, args.sfSourceOffset, args.byteCount);
-		rep.ByteCount += sizeof(args);
+		rep.ByteCount += sizeof(ArgsSetSFValueFromSFValue);
 	}
 
 	void FormatSetSFValueFromSFMemberByRef(const Ins& I, OUT IDisassembler::Rep& rep)

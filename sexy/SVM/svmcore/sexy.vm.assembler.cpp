@@ -411,20 +411,10 @@ namespace
 
 		virtual void Append_PushStackVariable(int sfOffset, BITCOUNT bitcount)
 		{
-			if (bitcount == BITCOUNT_32 && IsToInt8Lossless(sfOffset))
-			{
-				ArgsPushStackVariable args;
-				args.opcode = Opcodes::PushStackVariable32;
-				args.sfOffset = sfOffset;
-				AddArgument(args);
-			}
-			else
-			{
-				ArgsPushStackVariable args;
-				args.opcode = Opcodes::PushStackVariable64;
-				args.sfOffset = sfOffset;
-				AddArgument(args);
-			}
+			ArgsPushStackVariable args;
+			args.opcode = (bitcount == BITCOUNT_32) ? Opcodes::PushStackVariable32 : Opcodes::PushStackVariable64;
+			args.sfOffset = sfOffset;
+			AddArgument(args);
 		}
 
 		virtual void Append_PushStackFrameMemberPtr(int sfOffsetToStruct, int memberOffset)

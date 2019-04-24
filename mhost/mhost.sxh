@@ -1,6 +1,4 @@
 (config mhost.xc) 
-(namespace EntryPoint)
- (alias Main EntryPoint.Main)
  
 (interface
 	(as.sxy MHost.IScreenBuilder "../content/scripts/mhost/mhost")

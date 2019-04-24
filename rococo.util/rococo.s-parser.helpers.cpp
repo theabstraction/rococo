@@ -952,7 +952,15 @@ namespace Rococo
 						addMember.tree = tree;
 						addMember.depth = depth + 1;
 
-						if (v.s) GetMembers(*ss, *v.s, v.parentName, v.instance, 0, addMember, 1);
+						__try
+						{
+							auto* instance = v.instance && v.s ? ( IsNullType(*v.s) ? *(const uint8**)v.instance : v.instance ) : nullptr;
+							if (v.s) GetMembers(*ss, *v.s, v.parentName, instance, 0, addMember, 1);
+						}
+						__except (1)
+						{
+
+						}
 					}
 
 					int32 depth;
@@ -968,13 +976,19 @@ namespace Rococo
 				addToTree.depth = depth;
 				addToTree.ss = ss;
 
-				Script::ForeachVariable(*ss, addToTree, depth);
+				__try
+				{
+					Script::ForeachVariable(*ss, addToTree, depth);
+				}
+				__except(1)
+				{
+
+				}
 			}
 		} anon;
 
 		anon.ss = &ss;
 		anon.depth = depth;
-
 		debugger.PopulateStackView(anon);
 	}
 
@@ -1216,10 +1230,10 @@ namespace Rococo
 		}
 		catch (IException& ex)
 		{
-			ss.PublicProgramObject().Log().Write(ex.Message());
 			UpdateDebugger(ss, debugger, 0, true);
+			ss.PublicProgramObject().Log().Write(ex.Message());
 			Throw(ex.ErrorCode(), "%s", ex.Message());
-			return EXECUTERESULT_SEH;
+			return EXECUTERESULT_THROWN;
 		}
 	}
 
