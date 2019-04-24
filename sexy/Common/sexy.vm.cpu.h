@@ -279,6 +279,32 @@ namespace Rococo { namespace VM
 		int32 memberOffsetToInterfaceRef;
 		int32 vTableOffset;
 	} TIGHTLY_PACKED;
+
+	struct ArgsOperateOnRegister
+	{
+		int8 opcode;
+		uint8 reg;
+	} TIGHTLY_PACKED;
+
+	struct ArgsBranchIf
+	{
+		int8 opcode;
+		int32 PCoffset;
+	} TIGHTLY_PACKED;
+
+	struct ArgsSetRegister32
+	{
+		int8 opcode;
+		uint8 reg;
+		int32 value;
+	} TIGHTLY_PACKED;
+
+	struct ArgsSetRegister64
+	{
+		int8 opcode;
+		uint8 reg;
+		int64 value;
+	} TIGHTLY_PACKED;
 }}
 
 #pragma pack(pop)

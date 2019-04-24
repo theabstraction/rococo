@@ -791,7 +791,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _layoutStruct = Rococo::Helpers::GetDefaultProxy(("HV"),("ISectorLayout"), ("ProxyISectorLayout"), _nce.ss);
 		CReflectedClass* _sxylayout = _nce.ss.Represent(_layoutStruct, layout);
-		WriteOutput(&_sxylayout->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxylayout->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeHVISectorEnumeratorGetSelectedSector(NativeCallEnvironment& _nce)
 	{
@@ -805,7 +805,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _layoutStruct = Rococo::Helpers::GetDefaultProxy(("HV"),("ISectorLayout"), ("ProxyISectorLayout"), _nce.ss);
 		CReflectedClass* _sxylayout = _nce.ss.Represent(_layoutStruct, layout);
-		WriteOutput(&_sxylayout->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxylayout->header.pVTables[0], _sf, -_offset);
 	}
 
 	void NativeGetHandleForHVSectorEnumerator(NativeCallEnvironment& _nce)
@@ -1131,7 +1131,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _trianglesStruct = Rococo::Helpers::GetDefaultProxy(("HV"),("ITriangleList"), ("ProxyITriangleList"), _nce.ss);
 		CReflectedClass* _sxytriangles = _nce.ss.Represent(_trianglesStruct, triangles);
-		WriteOutput(&_sxytriangles->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxytriangles->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeHVISectorWallTesselatorGetMaterial(NativeCallEnvironment& _nce)
 	{

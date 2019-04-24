@@ -105,7 +105,6 @@ namespace
 
 		CPU cpu = vm.Cpu();
 
-		validate(cpu.PC() == cpu.ProgramStart + 8);
 		validate(!IsNegSet(cpu));
 		validate(!IsEquiSet(cpu));
 	}
@@ -122,7 +121,6 @@ namespace
 
 		CPU cpu = vm.Cpu();
 
-		validate(cpu.PC() == cpu.ProgramStart + 12);
 		validate(IsNegSet(cpu));
 		validate(!IsEquiSet(cpu));
 	}
@@ -133,7 +131,7 @@ namespace
 		v.int32Value = 0x5678ABCD;
 		a.Append_SetRegisterImmediate(REGISTER_D4, v, BITCOUNT_32);
 
-		a.Append_Branch(6+5);
+		a.Append_Branch(5 + sizeof(ArgsSetRegister32));
 
 		v.int32Value = 0xF0001234;
 		a.Append_SetRegisterImmediate(REGISTER_D4, v, BITCOUNT_32);
@@ -151,7 +149,7 @@ namespace
 		a.Append_SetRegisterImmediate(REGISTER_D4, v, BITCOUNT_32);
 
 		a.Append_Test(REGISTER_D4, BITCOUNT_32);
-		a.Append_BranchIf(CONDITION_IF_GREATER_OR_EQUAL, 6+5);
+		a.Append_BranchIf(CONDITION_IF_GREATER_OR_EQUAL, sizeof(ArgsBranchIf)+sizeof(ArgsSetRegister32));
 
 		v.int32Value = 0xF0001234;
 		a.Append_SetRegisterImmediate(REGISTER_D4, v, BITCOUNT_32);
@@ -169,7 +167,7 @@ namespace
 		a.Append_SetRegisterImmediate(REGISTER_D4, v, BITCOUNT_32);
 
 		a.Append_Test(REGISTER_D4, BITCOUNT_32);
-		a.Append_BranchIf(CONDITION_IF_GREATER_THAN, 6+5);
+		a.Append_BranchIf(CONDITION_IF_GREATER_THAN, sizeof(ArgsBranchIf) + sizeof(ArgsSetRegister32));
 
 		v.int32Value = 0xF0001234;
 		a.Append_SetRegisterImmediate(REGISTER_D4, v, BITCOUNT_32);
@@ -187,7 +185,7 @@ namespace
 		a.Append_SetRegisterImmediate(REGISTER_D4, v, BITCOUNT_32);
 
 		a.Append_Test(REGISTER_D4, BITCOUNT_32);
-		a.Append_BranchIf(CONDITION_IF_LESS_OR_EQUAL, 6);
+		a.Append_BranchIf(CONDITION_IF_LESS_OR_EQUAL, 5 + sizeof(ArgsSetRegister32));
 
 		v.int32Value = 0xF0001234;
 		a.Append_SetRegisterImmediate(REGISTER_D4, v, BITCOUNT_32);
@@ -223,7 +221,7 @@ namespace
 		a.Append_SetRegisterImmediate(REGISTER_D4, v, BITCOUNT_32);
 
 		a.Append_Test(REGISTER_D4, BITCOUNT_32);
-		a.Append_BranchIf(CONDITION_IF_NOT_EQUAL, 6+5);
+		a.Append_BranchIf(CONDITION_IF_NOT_EQUAL, sizeof(ArgsBranchIf)+sizeof(ArgsSetRegister32));
 
 		v.int32Value = 0xF0001234;
 		a.Append_SetRegisterImmediate(REGISTER_D4, v, BITCOUNT_32);
@@ -934,10 +932,11 @@ namespace
 #ifdef _DEBUG
          10;
 #else
-         30;
+         150;
 #endif
 		VariantValue v;
-		v.int32Value = factor * 1000 * 1000;
+		v.int32Value = factor * 1000 * 1000; 
+
 		a.Append_SetRegisterImmediate(REGISTER_D4, v, BITCOUNT_32);
 
 		int32 subtractPos = (int32) a.WritePosition();
@@ -964,8 +963,8 @@ namespace
 		double ips = factor * 3.0 * 1000 * 1000.0 / timespan;
 
 		printf("............................................Mips: %lg subtract-test-branch\r\n", ips / 1000000.0);
-
-		validate(vm.ExitCode() == 0);
+		int exitCode = vm.ExitCode();
+		validate(exitCode == 0);
 	}
 
 	void TestCallback(IAssembler& a, IVirtualMachine& vm, IProgramMemory& pm)
@@ -1089,9 +1088,11 @@ namespace
 
 	void PresentApp(IVirtualMachine& vm)
 	{
-      WriteToStandardOutput("Creating program memory...");
+		WriteToStandardOutput("Creating program memory...");
 		IProgramMemory* pm = vm.Core().CreateProgramMemory(32768);
-      WriteToStandardOutput("success\n");
+		WriteToStandardOutput("success\n");
+
+		WRAP(TestBranch5, vm, *pm);
 
 		WRAP(TestTerminate, vm, *pm);
 		WRAP(TestNoOp, vm, *pm);
@@ -1122,18 +1123,18 @@ namespace
 		WRAP(TestFloatSubtract, vm, *pm),
 		WRAP(TestFloatMultiply, vm, *pm),
 		WRAP(TestFloatDivide, vm, *pm),
-		
+
 		WRAP(TestCallAndReturn, vm, *pm);
 		WRAP(TestCallByIdIndirectAndReturn, vm, *pm);
 		WRAP(TestCallByIdAndReturn, vm, *pm);
-		
+
 		WRAP(TestOverwrite, vm, *pm);
 		TestBranch(vm, *pm);
 
 		TestSymbols(vm, *pm);
 		pm->Clear();
 		TestDebugger(vm, *pm);
-		pm->Clear();		
+		pm->Clear();
 		TestStackTrace(vm, *pm);
 
 		WRAP(TestCallback, vm, *pm);
@@ -1141,10 +1142,10 @@ namespace
 		WRAP(TestYieldResume, vm, *pm);
 
 		WRAP(TestStackFrameImmediate, vm, *pm);
-		
+
 		WRAP(TestPerformance, vm, *pm);
 
-      WrapWithoutvalidate(TestMemoryExceptions, vm, *pm);
+		WrapWithoutvalidate(TestMemoryExceptions, vm, *pm);
 	}
 
 	void LogError(int error, const char* format, ...)
@@ -1162,33 +1163,33 @@ namespace
 
 int main(int argc, char* argv[])
 {
-   Rococo::IO::UseBufferlessStdout();
+	Rococo::IO::UseBufferlessStdout();
 
 	CoreSpec spec;
 	spec.SizeOfStruct = sizeof(CoreSpec);
 	spec.Reserved = 0;
 	spec.Version = CORE_LIB_VERSION;
 
-   WriteToStandardOutput("VM.TEST initialization....");
+	WriteToStandardOutput("VM.TEST initialization....");
 
-	AutoFree<ICore> core ( CreateSVMCore(&spec) );
+	AutoFree<ICore> core(CreateSVMCore(&spec));
 	if (!core)
 	{
 		LogError(0, "Error creating SVM core object");
 		return 0;
 	}
 
-   WriteToStandardOutput("success\n");
-   WriteToStandardOutput("Setting logger....");
-	
-	struct CLogger: public ILog
+	WriteToStandardOutput("success\n");
+	WriteToStandardOutput("Setting logger....");
+
+	struct CLogger : public ILog
 	{
 		void Write(cstr text)
 		{
 			WriteToStandardOutput(("%s\n"), text);
 		}
 
-		void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance) 
+		void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance)
 		{
 			WriteToStandardOutput(("%s: code %d\nMessage: %s\n"), exceptionType, errorCode, message);
 		}
@@ -1200,24 +1201,24 @@ int main(int argc, char* argv[])
 
 	core->SetLogger(&logger);
 
-   WriteToStandardOutput("success\n");
+	WriteToStandardOutput("success\n");
 
-   WriteToStandardOutput("Creating virtual machine");
-   AutoFree<IVirtualMachine> vm;
+	WriteToStandardOutput("Creating virtual machine");
+	AutoFree<IVirtualMachine> vm;
 
-   WriteToStandardOutput("...");
-   vm = core->CreateVirtualMachine();
-   WriteToStandardOutput("success\n");
+	WriteToStandardOutput("...");
+	vm = core->CreateVirtualMachine();
+	WriteToStandardOutput("success\n");
 
 	try
 	{
 		PresentApp(*vm);
-      return 0;
+		return 0;
 	}
 	catch (IException& ex)
 	{
 		WriteToStandardOutput(("%s: code %d\n"), ex.Message(), ex.ErrorCode());
-      return ex.ErrorCode();
+		return ex.ErrorCode();
 	}
 }
 

@@ -7,9 +7,7 @@
 )
 
 (function Throw (Int32 errorCode) (IString message) -> :
-	(RuntimeException ex)
-	(ex.errorCode = errorCode)
-	(ex.message = (Memo message))
+	(IException ex (Sys.Type.NewException errorCode message))
 	(throw ex)
 )
 
@@ -27,18 +25,27 @@
 
 (alias ValidateSubscriptRange Sys.ValidateSubscriptRange)
 
-(class RuntimeException
+(class GenericException
 	(implements IException)
 	(Int32 errorCode)
 	(IString message)
 )
 
-(method RuntimeException.ErrorCode -> (Int32 errorCode):
+(method GenericException.ErrorCode -> (Int32 errorCode):
 	(errorCode = this.errorCode)
 )
 
-(method RuntimeException.Message -> (IString message):
+(method GenericException.Message -> (IString message):
 	(message = this.message)
+)
+
+(method GenericException.Construct (Int32 errorCode)(IString message): 
+	(this.errorCode = errorCode)
+	(this.message = message)
+)
+
+(factory Sys.Type.NewException Sys.Type.IException (Int32 errorCode)(IString message):
+	(construct GenericException errorCode message)
 )
 
 (alias Throw Sys.Throw)

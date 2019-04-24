@@ -220,7 +220,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _subMenuStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("IMenu"), ("ProxyIMenu"), _nce.ss);
 		CReflectedClass* _sxysubMenu = _nce.ss.Represent(_subMenuStruct, subMenu);
-		WriteOutput(&_sxysubMenu->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxysubMenu->header.pVTables[0], _sf, -_offset);
 	}
 
 }
@@ -313,7 +313,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _menuStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("IMenu"), ("ProxyIMenu"), _nce.ss);
 		CReflectedClass* _sxymenu = _nce.ss.Represent(_menuStruct, menu);
-		WriteOutput(&_sxymenu->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxymenu->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoCuteIParentWindowSplitIntoLeftAndRight(NativeCallEnvironment& _nce)
 	{
@@ -347,7 +347,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _splitStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("ISplit"), ("ProxyISplit"), _nce.ss);
 		CReflectedClass* _sxysplit = _nce.ss.Represent(_splitStruct, split);
-		WriteOutput(&_sxysplit->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxysplit->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoCuteIParentWindowSplitIntoTopAndBottom(NativeCallEnvironment& _nce)
 	{
@@ -381,7 +381,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _splitStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("ISplit"), ("ProxyISplit"), _nce.ss);
 		CReflectedClass* _sxysplit = _nce.ss.Represent(_splitStruct, split);
-		WriteOutput(&_sxysplit->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxysplit->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoCuteIParentWindowSetMinimumSize(NativeCallEnvironment& _nce)
 	{
@@ -435,7 +435,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _treeStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("ITree"), ("ProxyITree"), _nce.ss);
 		CReflectedClass* _sxytree = _nce.ss.Represent(_treeStruct, tree);
-		WriteOutput(&_sxytree->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxytree->header.pVTables[0], _sf, -_offset);
 	}
 
 }
@@ -485,7 +485,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _lowStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("IParentWindow"), ("ProxyIParentWindow"), _nce.ss);
 		CReflectedClass* _sxylow = _nce.ss.Represent(_lowStruct, low);
-		WriteOutput(&_sxylow->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxylow->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoCuteISplitHi(NativeCallEnvironment& _nce)
 	{
@@ -499,7 +499,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _highStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("IParentWindow"), ("ProxyIParentWindow"), _nce.ss);
 		CReflectedClass* _sxyhigh = _nce.ss.Represent(_highStruct, high);
-		WriteOutput(&_sxyhigh->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxyhigh->header.pVTables[0], _sf, -_offset);
 	}
 
 }
@@ -545,7 +545,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _menuStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("IMenu"), ("ProxyIMenu"), _nce.ss);
 		CReflectedClass* _sxymenu = _nce.ss.Represent(_menuStruct, menu);
-		WriteOutput(&_sxymenu->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxymenu->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoCuteIMasterWindowSplitIntoLeftAndRight(NativeCallEnvironment& _nce)
 	{
@@ -579,7 +579,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _splitStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("ISplit"), ("ProxyISplit"), _nce.ss);
 		CReflectedClass* _sxysplit = _nce.ss.Represent(_splitStruct, split);
-		WriteOutput(&_sxysplit->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxysplit->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoCuteIMasterWindowSplitIntoTopAndBottom(NativeCallEnvironment& _nce)
 	{
@@ -613,7 +613,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _splitStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("ISplit"), ("ProxyISplit"), _nce.ss);
 		CReflectedClass* _sxysplit = _nce.ss.Represent(_splitStruct, split);
-		WriteOutput(&_sxysplit->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxysplit->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoCuteIMasterWindowSetMinimumSize(NativeCallEnvironment& _nce)
 	{
@@ -667,7 +667,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _treeStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Cute"),("ITree"), ("ProxyITree"), _nce.ss);
 		CReflectedClass* _sxytree = _nce.ss.Represent(_treeStruct, tree);
-		WriteOutput(&_sxytree->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxytree->header.pVTables[0], _sf, -_offset);
 	}
 
 	void NativeGetHandleForRococoCuteMasterWindow(NativeCallEnvironment& _nce)

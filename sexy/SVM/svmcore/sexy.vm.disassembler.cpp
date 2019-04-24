@@ -101,16 +101,16 @@ namespace
 
 	void FormatSetRegisterImmediate64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{		
-		uint64* value = (uint64*)(I.ToPC() + 2);
-		format(rep, ("%s = #0x%I64x (%I64d)"), RegisterName(I.Opmod1), *value, *value);
-		rep.ByteCount = 10;
+		auto& args = (ArgsSetRegister64&) I;
+		format(rep, ("%s = #0x%I64x (%I64d)"), RegisterName(args.reg), args.value, args.value);
+		rep.ByteCount = sizeof(args);
 	}
 
 	void FormatSetRegisterImmediate32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{		
-		uint32* value = (uint32*)(I.ToPC() + 2);
-		format(rep, ("%s = #0x%x (%d)"), RegisterName(I.Opmod1), *value, *value);
-		rep.ByteCount = 6;
+		auto& args = (ArgsSetRegister32&)I;
+		format(rep, ("%s = #0x%x (%d)"), RegisterName(args.reg), args.value, args.value);
+		rep.ByteCount = sizeof(args);
 	}
 
 	void FormatExit(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -133,8 +133,9 @@ namespace
 
 	void FormatTest64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, ("%s"), RegisterName(I.Opmod1));
-		rep.ByteCount = 2;
+		auto& args = (ArgsOperateOnRegister&)I;
+		format(rep, ("%s"), RegisterName(args.reg));
+		rep.ByteCount = sizeof(args);
 	}
 
 	void FormatMove32(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -608,33 +609,37 @@ namespace
 
 	void FormatBranchIfGTE(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		rep.ByteCount = 5;
-		int32 offset = *(int32*) (I.ToPC() + 1);
+		auto& args = (ArgsBranchIf&) I;
+
+		rep.ByteCount = sizeof(ArgsBranchIf);
+		int32 offset = args.PCoffset;
 
 		format(rep, ("%d"), offset);
 	}
 
 	void FormatBranchIfGT(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		rep.ByteCount = 5;
-		int32 offset = *(int32*) (I.ToPC() + 1);
+		auto& args = (ArgsBranchIf&)I;
+		rep.ByteCount = sizeof(ArgsBranchIf);
+		int32 offset = args.PCoffset;
 
 		format(rep, ("%d"), offset);
 	}
 
 	void FormatBranchIfLT(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		rep.ByteCount = 5;
-		int32 offset = (int32)(int8)(I.Opmod1);
+		auto& args = (ArgsBranchIf&)I;
+		rep.ByteCount = sizeof(ArgsBranchIf);
+		int32 offset = args.PCoffset;
 
 		format(rep, ("%d"), offset);
 	}
 
 	void FormatBranchIfNE(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		rep.ByteCount = 5;
-		int32 offset = (int32)(int8)(I.Opmod1);
-
+		auto& args = (ArgsBranchIf&)I;
+		rep.ByteCount = sizeof(ArgsBranchIf);
+		int32 offset = args.PCoffset;
 		format(rep, ("%d"), offset);
 	}
 
@@ -646,14 +651,16 @@ namespace
 
 	void FormatIncrement32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, ("%s"), RegisterName(I.Opmod1));
-		rep.ByteCount = 2;
+		auto& args = (ArgsOperateOnRegister&)I;
+		format(rep, ("%s"), RegisterName(args.reg));
+		rep.ByteCount = sizeof(args);
 	}
 
 	void FormatDecrement32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, ("%s"), RegisterName(I.Opmod1));
-		rep.ByteCount = 2;
+		auto& args = (ArgsOperateOnRegister&)I;
+		format(rep, ("%s"), RegisterName(args.reg));
+		rep.ByteCount = sizeof(args);
 	}
 
 	void FormatSetStackFrameImmediate32(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -829,8 +836,9 @@ namespace
 
 	void FormatTest32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, ("%s"), RegisterName(I.Opmod1));
-		rep.ByteCount = 2;
+		auto& args = (ArgsOperateOnRegister&)I;
+		format(rep, ("%s"), RegisterName(args.reg));
+		rep.ByteCount = sizeof(args);
 	}
 
 	void FormatSaveRegister32(const Ins& I, OUT IDisassembler::Rep& rep)

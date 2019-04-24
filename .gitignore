@@ -36,6 +36,9 @@
 *.aps
 *.metagen
 *.asm
+*.codeanalysis
+*.codeanalysisast
+*.lastcodeanalysissucceeded
 temp/
 sexy/bin/
 sexy/sexydotnet/obj/

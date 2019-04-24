@@ -266,6 +266,20 @@ namespace
 		virtual void AddDynamicAllocateObject(const IStructure& structType);
 	};
 
+	void UseStackFrameFor(CodeBuilder& builder, const MemberDef& def)
+	{
+		// The current function, if a closure, will put the parent's stack frame in register D6
+		// If the variable specified by <def> is from the parent's stack, then swap in D6 to SF
+		if (def.IsParentValue) { builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+	}
+
+	void RestoreStackFrameFor(CodeBuilder& builder, const MemberDef& def)
+	{
+		// The current function, if a closure, will put the parent's stack frame in register D6
+		// If the variable specified by <def> is from the parent's stack, then swap back D6 from SF
+		if (def.IsParentValue) { builder.Assembler().Append_SwapRegister(VM::REGISTER_D6, VM::REGISTER_SF); }
+	}
+
 	CodeBuilder::CodeBuilder(IFunctionBuilder& _f, bool _mayUseParentsSF):
 		f(_f),
 		sectionIndex(0),
@@ -396,7 +410,7 @@ namespace
 
 		const IStructure& s = *def.ResolvedType;
 
-		if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+		UseStackFrameFor(*this, def);
 
 		BITCOUNT bc = GetBitCount(s.VarType());
 		if (!def.ResolvedType->Prototype().IsClass)
@@ -440,8 +454,7 @@ namespace
 			}		
 		}
 
-		if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_D6, VM::REGISTER_SF); }
-
+		RestoreStackFrameFor(*this, def);
 	}
 
 	void CodeBuilder::Append_GetAllocSize()
@@ -1460,17 +1473,17 @@ namespace
 			}
 		}
 
+		UseStackFrameFor(*this, def);
 		if (def.Usage == ARGUMENTUSAGE_BYVALUE)
 		{
-			if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);	}
 			Assembler().Append_SetStackFrameImmediate(def.SFOffset + def.MemberOffset, value, GetBitCount(vType));
-			if (def.IsParentValue) {	Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);	}
 		}
 		else //ByRef
 		{
 			Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, value, GetBitCount(vType));
 			Assembler().Append_SetSFMemberByRefFromRegister(VM::REGISTER_D5, def.SFOffset, def.MemberOffset, GetBitCount(vType));
 		}
+		RestoreStackFrameFor(*this, def);
 	}
 
 	void CodeBuilder::AssignPointer(const NameString& name, const void* ptr)
@@ -1491,18 +1504,20 @@ namespace
 		}
 
 		value.vPtrValue = (void*) ptr;
+
+		UseStackFrameFor(*this, def);
 		
 		if (def.Usage == ARGUMENTUSAGE_BYVALUE)
 		{
-			if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);	}
 			Assembler().Append_SetStackFrameImmediate(def.SFOffset + def.MemberOffset, value, GetBitCount(vType));
-			if (def.IsParentValue) {	Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);	}
 		}
 		else //ByRef
 		{
 			Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, value, GetBitCount(vType));
 			Assembler().Append_SetSFMemberByRefFromRegister(VM::REGISTER_D4, def.SFOffset, def.MemberOffset, GetBitCount(vType));
 		}
+
+		RestoreStackFrameFor(*this, def);
 	}
 
 	void AssignVariableToVariable_ByRef(ICodeBuilder& builder, const MemberDef& sourceDef, const MemberDef& targetDef, cstr source, cstr target)
@@ -1664,18 +1679,6 @@ namespace
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not copy %s to %s. The target variable accepts regular function references, but not closures."), source, target);
 		}
 
-		if (sourceDef.AllocSize == 0 && targetDef.Usage == ARGUMENTUSAGE_BYREFERENCE)
-		{
-			MemberDef refSourceDef;
-			if (!TryGetVariableByName(OUT refSourceDef, source))
-			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not resolve %s"), target);
-			}
-
-			Assembler().Append_SetSFValueFromSFValue(targetDef.SFOffset, refSourceDef.SFOffset, BITCOUNT_POINTER);
-			return;
-		}
-
 		if (targetDef.location == VARLOCATION_OUTPUT)
 		{
 			if (IsNullType(*trgType))
@@ -1751,17 +1754,6 @@ namespace
 		{
 			size_t nBytesSource = sourceDef.AllocSize;
 
-			if (IsNullType(*sourceDef.ResolvedType))
-			{
-				// Source is a pointer to an interface, Target is a reference
-
-				if (targetDef.location == VARLOCATION_OUTPUT)
-				{
-					Assembler().Append_SetSFValueFromSFValue(targetDef.SFOffset, sourceDef.SFOffset, BITCOUNT_POINTER);
-					return;
-				}
-			}
-
 			if (targetDef.IsParentValue || sourceDef.IsParentValue)
 			{
 				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot handle this case for a closure upvalue"));
@@ -1801,7 +1793,8 @@ namespace
 			}		
 		}
 
-		if (def.IsParentValue) Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
+		UseStackFrameFor(*this, def);
+
 		if (def.location == VARLOCATION_OUTPUT)
 		{
 			Assembler().Append_SetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D4 + srcIndex, bitCount);
@@ -1814,7 +1807,8 @@ namespace
 		{
 			Assembler().Append_SetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D4 + srcIndex, bitCount);
 		}
-		if (def.IsParentValue) Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
+
+		RestoreStackFrameFor(*this, def);
 	}
 
 	void CodeBuilder::AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def)
@@ -1832,7 +1826,7 @@ namespace
 			break;
 		}
 
-		if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+		UseStackFrameFor(*this, def);
 
 		if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
 		{
@@ -1846,7 +1840,7 @@ namespace
 		// D4 now contains the local variable value
 		Assembler().Append_SetGlobal(bitCount, (int32) g.offset);
 
-		if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+		RestoreStackFrameFor(*this, def);
 	}
 
 	void CodeBuilder::AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def)
@@ -1864,8 +1858,8 @@ namespace
 			break;
 		}
 
-		if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
-		
+		UseStackFrameFor(*this, def);
+
 		// D4 need to contain the global variable value
 		Assembler().Append_GetGlobal(bitCount, (int32) g.offset);
 
@@ -1878,7 +1872,7 @@ namespace
 			Assembler().Append_SetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D4, bitCount);
 		}
 
-		if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+		RestoreStackFrameFor(*this, def);
 	}
 
 	void CodeBuilder::AssignLiteralToGlobal(const GlobalValue& g, const VariantValue& value)
@@ -2037,6 +2031,8 @@ namespace
 
 		VM::IAssembler& assembler = builder.Assembler();
 
+		UseStackFrameFor(builder, sourceDef);
+
 		if (sourceDef.location != VARLOCATION_INPUT || sourceDef.Usage == ARGUMENTUSAGE_BYVALUE)
 		{
 			// Assign from a value
@@ -2048,31 +2044,35 @@ namespace
 
 			if (!sourceDef.IsContained)
 			{
-				assembler.Append_GetStackFrameMemberPtr(VM::REGISTER_D4 + tempIndex, sourceDef.SFOffset, sourceDef.MemberOffset);
+				// TODO - delete assembler.Append_GetStackFrameMemberPtr(VM::REGISTER_D4 + tempIndex, sourceDef.SFOffset, sourceDef.MemberOffset);
+				assembler.Append_GetStackFrameValue(sourceDef.SFOffset + sourceDef.MemberOffset, tempIndex + VM::REGISTER_D4, BITCOUNT_POINTER);
 			}
 			else
 			{
 				assembler.Append_GetStackFrameMemberPtrAndDeref(VM::REGISTER_D4 + tempIndex, sourceDef.SFOffset, sourceDef.MemberOffset);
 			}
 		}
+
+		RestoreStackFrameFor(builder, sourceDef);
 	}
 
 	void CodeBuilder::AssignVariableToTemp(cstr source, int tempIndex, int memberOffsetCorrection)
 	{
 		if (source == nullptr || *source == 0) Rococo::Throw(0, "CodeBuilder::AssignVariableToTemp: source was blank");
+
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, source))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unknown source variable: %s"), source);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Unknown source variable: %s", source);
 		}
 
 		const IStructure* srcType = def.ResolvedType;
 
 		if (srcType->InterfaceCount() > 0 && srcType->Name()[0] == '_')
 		{
-			if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+			UseStackFrameFor(*this, def);
 			AssignInterfaceToTemp(*this, def, source, tempIndex, memberOffsetCorrection);
-			if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+			RestoreStackFrameFor(*this, def);
 			return;
 		}
 
@@ -2080,7 +2080,7 @@ namespace
 
 		BITCOUNT bitCount = GetBitCountFromStruct(def.AllocSize);
 
-		if (def.IsParentValue)	{	Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+		UseStackFrameFor(*this, def);
 
 		if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
 		{
@@ -2091,7 +2091,7 @@ namespace
 			Assembler().Append_GetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D4 + tempIndex, bitCount);			
 		}
 
-		if (def.IsParentValue)	{	Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+		RestoreStackFrameFor(*this, def);
 	}
 
 	void CodeBuilder::AssignVariableRefToTemp(cstr source, int tempDepth, int offset)
@@ -2148,7 +2148,7 @@ namespace
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unknown source variable: %s"), source);
 		}
 
-		if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);	}
+		UseStackFrameFor(*this, def);
 
 		if (def.Usage == ARGUMENTUSAGE_BYVALUE)
 		{
@@ -2198,7 +2198,7 @@ namespace
 			}
 		}	
 
-		if (def.IsParentValue) { Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);	}
+		RestoreStackFrameFor(*this, def);
 	}
 
 	int32 SizeTToInt(size_t x, cstr source, int lineNumber)

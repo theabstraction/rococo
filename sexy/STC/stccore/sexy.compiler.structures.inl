@@ -43,7 +43,8 @@ namespace Rococo { namespace Compiler { namespace Impl
 		destructorId(0),
 		virtualTables(NULL),
 		definition(_definition),
-		constructor(NULL)
+		constructor(NULL),
+		hasInterfaceMembers(-1)
 	{
 	}
 

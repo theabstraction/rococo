@@ -11848,9 +11848,7 @@ namespace
 	{
 		validate(true);
 
-		TEST(TestStructWithInterface);
-
-		TEST(TestConstructFromInterface);
+		TEST(TestArrayForeachOnce);
 
 		TEST(TestAddRefWithLocalVariable);
 		TEST(TestReturnInterfaceEx);
@@ -11893,6 +11891,9 @@ namespace
 		TEST(TestGlobalInt32_3);
 
 		TestMaths();
+
+		TEST(TestConstructFromInterface);
+		TEST(TestStructWithInterface);
 
 		TEST(TestRaw);
 		TEST(TestMinimumConstruct);
@@ -12136,7 +12137,7 @@ namespace
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		//TEST(TestStructWithCircularReferences);
+		//TEST(TestStructWithCircularReferences); -> TODO: implement circular reference detection
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

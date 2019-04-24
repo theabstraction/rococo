@@ -107,31 +107,32 @@ namespace
 		}
 	}
 
-	class CVirtualMachine final: public IVirtualMachine, public IStepCallback
+	class CVirtualMachine final
+		: public IVirtualMachine, public IStepCallback
 	{
-	private:
-		volatile EXECUTERESULT status;		
+	private:	
+		CPU& cpu;
+		uint8* stack{ nullptr };
+		size_t stackSize{ 0 };
 
-      uint8* stack{ nullptr };
-      size_t stackSize{ 0 };
-		std::vector<uint8> globalData;
-
-		TMemory breakpoints;
-      int exitCode{ 0 };
-      bool throwToQuit{ true };
+		volatile EXECUTERESULT status;
+		int exitCode{ 0 };
+		bool throwToQuit{ true };
 		ICore& core;
 
-      IProgramMemory* program{ nullptr };
-		
-		CPU& cpu;
+		IProgramMemory* program{ nullptr };
 
 		typedef void (OPCODE_CALLBACK_CONVENTION CVirtualMachine::*FN_VM)();
 
 		static FN_VM* s_instructionTable; 
 
-      int isBeingStepped{ 0 };
+		int isBeingStepped{ 0 };
 
 		IStepCallback* stepCallback;
+
+		std::vector<uint8> globalData;
+
+		TMemory breakpoints;
 
 	public:
 		CVirtualMachine(ICore& _core, CPU& _cpu) :
@@ -1205,17 +1206,19 @@ namespace
 		OPCODE_CALLBACK(Increment32)
 		{
 			const Ins* I = NextInstruction();
-			VariantValue& target = cpu.D[I->Opmod1];
+			auto* args = (ArgsOperateOnRegister*)I;
+			VariantValue& target = cpu.D[args->reg];
 			target.int32Value++;
-			cpu.AdvancePC(2);
+			cpu.AdvancePC(sizeof(ArgsOperateOnRegister));
 		}
 
 		OPCODE_CALLBACK(Decrement32)
 		{
 			const Ins* I = NextInstruction();
-			VariantValue& target = cpu.D[I->Opmod1];
+			auto* args = (ArgsOperateOnRegister*)I;
+			VariantValue& target = cpu.D[args->reg];
 			target.int32Value--;
-			cpu.AdvancePC(2);
+			cpu.AdvancePC(sizeof(ArgsOperateOnRegister));
 		}
 
 		OPCODE_CALLBACK(IntAdd32)
@@ -1811,11 +1814,10 @@ namespace
 
 		OPCODE_CALLBACK(SetRegisterImmediate32)
 		{
-			const Ins* I = NextInstruction();			
-			DINDEX index = I->Opmod1;
-			uint32* value = (uint32*)(I->ToPC() + 2);
-			cpu.D[index].uint32Value = *value;
-			cpu.AdvancePC(6);
+			const Ins* I = NextInstruction();	
+			auto* args = (ArgsSetRegister32*) I;
+			cpu.D[args->reg].int32Value = args->value;
+			cpu.AdvancePC(sizeof(ArgsSetRegister32));
 		}
 
 		OPCODE_CALLBACK(ShiftLeft32)
@@ -1857,42 +1859,43 @@ namespace
 		OPCODE_CALLBACK(Test32)
 		{
 			const Ins* I = NextInstruction();
+			auto* args = (ArgsOperateOnRegister*)I;
 			cpu.D[REGISTER_SR].uint32Value = 0;
-			VariantValue& v = cpu.D[I->Opmod1];
+			VariantValue& v = cpu.D[args->reg];
 			cpu.SR() |= v.int32Value ? 0 : STATUSBIT_EQUIVALENCE;
 			cpu.SR() |= v.int32Value < 0 ? STATUSBIT_NEGATIVE : 0;
-			cpu.AdvancePC(2);
+			cpu.AdvancePC(sizeof(ArgsOperateOnRegister));
 		}
 
 		OPCODE_CALLBACK(BranchIfGTE)
 		{
 			const Ins* I = NextInstruction();	
-			int* pOffset = (int*) (((uint8*) I) + 1);
-			int32 offset = (IsEquiSet(cpu) || !IsNegSet(cpu)) ? *pOffset : 5;
+			auto* args = (ArgsBranchIf*)I;
+			int32 offset = (IsEquiSet(cpu) || !IsNegSet(cpu)) ? args->PCoffset : sizeof(ArgsBranchIf);
 			cpu.AdvancePC(offset);
 		}
 
 		OPCODE_CALLBACK(BranchIfGT)
 		{
 			const Ins* I = NextInstruction();	
-			int* pOffset = (int*) (((uint8*) I) + 1);
-			int32 offset = (!IsEquiSet(cpu) && !IsNegSet(cpu)) ? *pOffset : 5;
+			auto* args = (ArgsBranchIf*)I;
+			int32 offset = (!IsEquiSet(cpu) && !IsNegSet(cpu)) ? args->PCoffset : sizeof(ArgsBranchIf);
 			cpu.AdvancePC(offset);
 		}
 
 		OPCODE_CALLBACK(BranchIfLT)
 		{
 			const Ins* I = NextInstruction();	
-			int* pOffset = (int*) (((uint8*) I) + 1);
-			int32 offset = (!IsEquiSet(cpu) && IsNegSet(cpu)) ? *pOffset : 5;
+			auto* args = (ArgsBranchIf*)I;
+			int32 offset = (!IsEquiSet(cpu) && IsNegSet(cpu)) ? args->PCoffset : sizeof(ArgsBranchIf);
 			cpu.AdvancePC(offset);
 		}
 
 		OPCODE_CALLBACK(BranchIfNE)
 		{
 			const Ins* I = NextInstruction();		
-			int* pOffset = (int*) (((uint8*) I) + 1);
-			int32 offset = (!IsEquiSet(cpu)) ? *pOffset : 5;
+			auto* args = (ArgsBranchIf*)I;
+			int32 offset = (!IsEquiSet(cpu)) ? args->PCoffset : sizeof(ArgsBranchIf);
 			cpu.AdvancePC(offset);
 		}
 
@@ -2281,12 +2284,10 @@ namespace
 
 		OPCODE_CALLBACK(SetRegisterImmediate64)
 		{
-			const Ins* I = NextInstruction();			
-			DINDEX index = I->Opmod1;
-
-			uint64* value = (uint64*)(I->ToPC() + 2);
-			cpu.D[index].uint64Value = *value;
-			cpu.AdvancePC(10);
+			const Ins* I = NextInstruction();
+			auto* args = (ArgsSetRegister64*)I;
+			cpu.D[args->reg].int64Value = args->value;
+			cpu.AdvancePC(sizeof(ArgsSetRegister64));
 		}
 
 		OPCODE_CALLBACK(Peek64)
@@ -2302,11 +2303,12 @@ namespace
 		OPCODE_CALLBACK(Test64)
 		{
 			const Ins* I = NextInstruction();
+			auto* args = (ArgsOperateOnRegister*)I;
 			cpu.D[REGISTER_SR].uint32Value = 0;
-			VariantValue& v = cpu.D[I->Opmod1];
+			VariantValue& v = cpu.D[args->reg];
 			cpu.SR() |= v.int64Value ? 0 : STATUSBIT_EQUIVALENCE;
 			cpu.SR() |= v.int64Value >= 0 ? 0 : STATUSBIT_NEGATIVE;
-			cpu.AdvancePC(2);
+			cpu.AdvancePC(sizeof(ArgsOperateOnRegister));
 		}
 		
 		OPCODE_CALLBACK(DoubleAdd)

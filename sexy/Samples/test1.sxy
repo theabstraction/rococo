@@ -3,30 +3,24 @@
 
 (using Sys.Type)
 
-(class Dog (defines Sys.IDog) (Sys.ICat cat))
+(struct DogKennel (array Int32 dogIds))
+(struct Sanctuary (array DogKennel kennels))
 
-(method Dog.Construct : )
+(method DogKennel.Construct (Int32 capacity)
+	-> (construct dogIds capacity) 	
+	:
+)
 
-(method Dog.Id -> (Int32 id): (id = 5))
-
-(method Dog.SetFriend (Sys.ICat cat) -> : (this.cat = cat))
-
-(factory Sys.NewDog Sys.IDog : (construct Dog))
-
-(class Cat (defines Sys.ICat) (Sys.IDog dog))
-
-(method Cat.Construct : )
-
-(method Cat.Id -> (Int32 id): (id = 5))
-
-(method Cat.SetFriend (Sys.IDog dog) -> : (this.dog = dog))
-
-(factory Sys.NewCat Sys.ICat : (construct Cat))
+(method Sanctuary.Construct (Int32 kennelCapacity)
+	-> (construct kennels kennelCapacity)		
+	:
+)
 
 (function Main -> (Int32 result):
-	(Sys.ICat teddy (Sys.NewCat))
-	(Sys.IDog rover (Sys.NewDog))
-	(teddy.SetFriend rover)
-	(rover.SetFriend teddy)
-	(teddy.Id -> result)
-)
+	(Sanctuary sanctuary (4) ) // Create a sanctuary with a capacity of 4 kennels
+	(sanctuary.kennels.Push 4) // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
+	(foreach i k # (sanctuary.kennels 0 0) // Get a ref to the first kennel
+		(k.dogIds.Push 1812) // Put a new dog id in the first kennel
+		(result = (k.dogIds 0)) // Return the first dog id
+	)
+)	

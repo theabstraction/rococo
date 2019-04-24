@@ -99,7 +99,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _sStruct = Rococo::Helpers::GetDefaultProxy(("MHost"),("IScreenBuilder"), ("ProxyIScreenBuilder"), _nce.ss);
 		CReflectedClass* _sxys = _nce.ss.Represent(_sStruct, s);
-		WriteOutput(&_sxys->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxys->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeMHostIEngineIsRunning(NativeCallEnvironment& _nce)
 	{

@@ -669,7 +669,7 @@ namespace Rococo
 
 				appender.Append(("\t\tauto& _%sStruct = Rococo::Helpers::GetDefaultProxy((\"%s\"),(\"%s\"), (\"Proxy%s\"), _nce.ss);\n"), StringFrom(svalue), body, tail, tail);
 				appender.Append(("\t\tCReflectedClass* _sxy%s = _nce.ss.Represent(_%sStruct, %s);\n"), StringFrom(svalue), StringFrom(svalue), StringFrom(svalue));
-				appender.Append(("\t\tWriteOutput(&_sxy%s->header._vTables[0], _sf, -_offset);\n"), StringFrom(svalue));
+				appender.Append(("\t\tWriteOutput(&_sxy%s->header.pVTables[0], _sf, -_offset);\n"), StringFrom(svalue));
 			}
 			else
 			{

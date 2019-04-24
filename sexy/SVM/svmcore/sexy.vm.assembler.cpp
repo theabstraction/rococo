@@ -139,11 +139,19 @@ namespace
 
 				if (value == -1)
 				{
-					AddTwoByteInstruction(Opcodes::Decrement32, Dtarget);
+					ArgsOperateOnRegister args;
+					args.opcode = Opcodes::Decrement32;
+					args.reg = Dtarget;
+					AddArgument(args);
+					return;
 				}
 				else if (value == 1)
 				{
-					AddTwoByteInstruction(Opcodes::Increment32, Dtarget);
+					ArgsOperateOnRegister args;
+					args.opcode = Opcodes::Increment32;
+					args.reg = Dtarget;
+					AddArgument(args);
+					return;
 				}
 				else
 				{
@@ -274,11 +282,17 @@ namespace
 				int8 value = (int8) -v.int32Value;
 				if (value == -1)
 				{
-					AddTwoByteInstruction(Opcodes::Decrement32, Dtarget);
+					ArgsOperateOnRegister args;
+					args.opcode = Opcodes::Decrement32;
+					args.reg = Dtarget;
+					AddArgument(args);
 				}
 				else if (value == 1)
 				{
-					AddTwoByteInstruction(Opcodes::Increment32, Dtarget);
+					ArgsOperateOnRegister args;
+					args.opcode = Opcodes::Increment32;
+					args.reg = Dtarget;
+					AddArgument(args);
 				}
 				else
 				{
@@ -439,13 +453,23 @@ namespace
 		{
 			switch(bitCount)
 			{
-			case BITCOUNT_32:
-					AddTwoByteInstruction(Opcodes::SetRegisterImmediate32, Di);
-					AddArgument(v.uint32Value);
-					break;
-			case BITCOUNT_64:
-					AddTwoByteInstruction(Opcodes::SetRegisterImmediate64, Di);
-					AddArgument(v.uint64Value);
+				case BITCOUNT_32:
+				{
+					ArgsSetRegister32 args;
+					args.opcode = Opcodes::SetRegisterImmediate32;
+					args.reg = Di;
+					args.value = v.int32Value;
+					AddArgument(args);
+				}
+				break;
+				case BITCOUNT_64:
+				{
+					ArgsSetRegister64 args;
+					args.opcode = Opcodes::SetRegisterImmediate64;
+					args.reg = Di;
+					args.value = v.int64Value;
+					AddArgument(args);
+				}
 				break;
 			default:
 				throw InvalidInstructionException();
@@ -628,14 +652,20 @@ namespace
 
 		virtual void Append_Test(DINDEX Di, BITCOUNT bitcount)
 		{
+			ArgsOperateOnRegister args;
+
 			if (bitcount == BITCOUNT_32)
 			{
-				AddTwoByteInstruction(Opcodes::Test32, Di);
+				args.opcode = Opcodes::Test32;
 			}
 			else
 			{
-				AddTwoByteInstruction(Opcodes::Test64, Di);
+				args.opcode = Opcodes::Test64;
 			}
+
+			args.reg = Di;
+
+			AddArgument(args);
 		}
 
 		virtual void Append_Branch(int PCoffset)
@@ -645,33 +675,34 @@ namespace
 		}
 
 		virtual void Append_BranchIf(CONDITION cse, int PCoffset)
-		{			
+		{	
+			ArgsBranchIf args;
+			args.PCoffset = PCoffset;
+
 			if (cse == CONDITION_IF_GREATER_OR_EQUAL)
 			{
-				AddSingleByteInstruction(Opcodes::BranchIfGTE);
-				AddArgument(PCoffset);
+				args.opcode = Opcodes::BranchIfGTE;
 			}
 			else if (cse == CONDITION_IF_GREATER_THAN)
 			{
-				AddSingleByteInstruction(Opcodes::BranchIfGT);
-				AddArgument(PCoffset);
+				args.opcode = Opcodes::BranchIfGT;
 			}
 			else if (cse == CONDITION_IF_NOT_EQUAL)
 			{
-				AddSingleByteInstruction(Opcodes::BranchIfNE);
-				AddArgument(PCoffset);
+				args.opcode = Opcodes::BranchIfNE;
 			}
 			else if (cse == CONDITION_IF_LESS_THAN)
 			{
-				int8 smallOffset = (int8) PCoffset;
-				AddSingleByteInstruction(Opcodes::BranchIfLT);
-				AddArgument(PCoffset);
+				args.opcode = Opcodes::BranchIfLT;
 			}
 			else
 			{
 				AddTwoByteInstruction(Opcodes::BranchIf, cse);
 				AddArgument(PCoffset);
+				return;
 			}
+
+			AddArgument(args);
 		}
 
 		virtual void Append_SetIf(CONDITION cse, DINDEX Di, BITCOUNT bits)

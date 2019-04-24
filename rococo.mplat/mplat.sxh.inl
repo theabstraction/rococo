@@ -1036,7 +1036,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _containerStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IPaneContainer"), ("ProxyIPaneContainer"), _nce.ss);
 		CReflectedClass* _sxycontainer = _nce.ss.Represent(_containerStruct, container);
-		WriteOutput(&_sxycontainer->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxycontainer->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoIPaneContainerAddFrame(NativeCallEnvironment& _nce)
 	{
@@ -1054,7 +1054,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _frameStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IFramePane"), ("ProxyIFramePane"), _nce.ss);
 		CReflectedClass* _sxyframe = _nce.ss.Represent(_frameStruct, frame);
-		WriteOutput(&_sxyframe->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxyframe->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoIPaneContainerAddTabContainer(NativeCallEnvironment& _nce)
 	{
@@ -1080,7 +1080,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _containerStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("ITabContainer"), ("ProxyITabContainer"), _nce.ss);
 		CReflectedClass* _sxycontainer = _nce.ss.Represent(_containerStruct, container);
-		WriteOutput(&_sxycontainer->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxycontainer->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoIPaneContainerAddLabel(NativeCallEnvironment& _nce)
 	{
@@ -1108,7 +1108,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _labelStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("ILabelPane"), ("ProxyILabelPane"), _nce.ss);
 		CReflectedClass* _sxylabel = _nce.ss.Represent(_labelStruct, label);
-		WriteOutput(&_sxylabel->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxylabel->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoIPaneContainerAddSlider(NativeCallEnvironment& _nce)
 	{
@@ -1144,7 +1144,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _sliderStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("ISlider"), ("ProxyISlider"), _nce.ss);
 		CReflectedClass* _sxyslider = _nce.ss.Represent(_sliderStruct, slider);
-		WriteOutput(&_sxyslider->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxyslider->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoIPaneContainerAddScroller(NativeCallEnvironment& _nce)
 	{
@@ -1172,7 +1172,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _scrollerStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IScroller"), ("ProxyIScroller"), _nce.ss);
 		CReflectedClass* _sxyscroller = _nce.ss.Represent(_scrollerStruct, scroller);
-		WriteOutput(&_sxyscroller->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxyscroller->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoIPaneContainerAddTextOutput(NativeCallEnvironment& _nce)
 	{
@@ -1200,7 +1200,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _textBoxStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("ITextOutputPane"), ("ProxyITextOutputPane"), _nce.ss);
 		CReflectedClass* _sxytextBox = _nce.ss.Represent(_textBoxStruct, textBox);
-		WriteOutput(&_sxytextBox->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxytextBox->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoIPaneContainerAddRadioButton(NativeCallEnvironment& _nce)
 	{
@@ -1240,7 +1240,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _radioStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IRadioButton"), ("ProxyIRadioButton"), _nce.ss);
 		CReflectedClass* _sxyradio = _nce.ss.Represent(_radioStruct, radio);
-		WriteOutput(&_sxyradio->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxyradio->header.pVTables[0], _sf, -_offset);
 	}
 
 }
@@ -1958,7 +1958,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _containerStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IPaneContainer"), ("ProxyIPaneContainer"), _nce.ss);
 		CReflectedClass* _sxycontainer = _nce.ss.Represent(_containerStruct, container);
-		WriteOutput(&_sxycontainer->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxycontainer->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoIFramePaneAddFrame(NativeCallEnvironment& _nce)
 	{
@@ -1976,7 +1976,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _frameStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IFramePane"), ("ProxyIFramePane"), _nce.ss);
 		CReflectedClass* _sxyframe = _nce.ss.Represent(_frameStruct, frame);
-		WriteOutput(&_sxyframe->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxyframe->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoIFramePaneAddTabContainer(NativeCallEnvironment& _nce)
 	{
@@ -2002,7 +2002,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _containerStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("ITabContainer"), ("ProxyITabContainer"), _nce.ss);
 		CReflectedClass* _sxycontainer = _nce.ss.Represent(_containerStruct, container);
-		WriteOutput(&_sxycontainer->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxycontainer->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoIFramePaneAddLabel(NativeCallEnvironment& _nce)
 	{
@@ -2030,7 +2030,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _labelStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("ILabelPane"), ("ProxyILabelPane"), _nce.ss);
 		CReflectedClass* _sxylabel = _nce.ss.Represent(_labelStruct, label);
-		WriteOutput(&_sxylabel->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxylabel->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoIFramePaneAddSlider(NativeCallEnvironment& _nce)
 	{
@@ -2066,7 +2066,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _sliderStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("ISlider"), ("ProxyISlider"), _nce.ss);
 		CReflectedClass* _sxyslider = _nce.ss.Represent(_sliderStruct, slider);
-		WriteOutput(&_sxyslider->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxyslider->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoIFramePaneAddScroller(NativeCallEnvironment& _nce)
 	{
@@ -2094,7 +2094,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _scrollerStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IScroller"), ("ProxyIScroller"), _nce.ss);
 		CReflectedClass* _sxyscroller = _nce.ss.Represent(_scrollerStruct, scroller);
-		WriteOutput(&_sxyscroller->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxyscroller->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoIFramePaneAddTextOutput(NativeCallEnvironment& _nce)
 	{
@@ -2122,7 +2122,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _textBoxStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("ITextOutputPane"), ("ProxyITextOutputPane"), _nce.ss);
 		CReflectedClass* _sxytextBox = _nce.ss.Represent(_textBoxStruct, textBox);
-		WriteOutput(&_sxytextBox->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxytextBox->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoIFramePaneAddRadioButton(NativeCallEnvironment& _nce)
 	{
@@ -2162,7 +2162,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _radioStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IRadioButton"), ("ProxyIRadioButton"), _nce.ss);
 		CReflectedClass* _sxyradio = _nce.ss.Represent(_radioStruct, radio);
-		WriteOutput(&_sxyradio->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxyradio->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoIFramePaneGetChildRect(NativeCallEnvironment& _nce)
 	{
@@ -2190,7 +2190,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _containerStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IPaneContainer"), ("ProxyIPaneContainer"), _nce.ss);
 		CReflectedClass* _sxycontainer = _nce.ss.Represent(_containerStruct, container);
-		WriteOutput(&_sxycontainer->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxycontainer->header.pVTables[0], _sf, -_offset);
 	}
 	void NativeRococoIFramePaneSetLayoutAlgorithm(NativeCallEnvironment& _nce)
 	{
@@ -4008,7 +4008,7 @@ namespace
 		_offset += sizeof(CReflectedClass*);
 		auto& _containerStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IPaneContainer"), ("ProxyIPaneContainer"), _nce.ss);
 		CReflectedClass* _sxycontainer = _nce.ss.Represent(_containerStruct, container);
-		WriteOutput(&_sxycontainer->header._vTables[0], _sf, -_offset);
+		WriteOutput(&_sxycontainer->header.pVTables[0], _sf, -_offset);
 	}
 
 	void NativeGetHandleForRococoPaneBuilder(NativeCallEnvironment& _nce)
