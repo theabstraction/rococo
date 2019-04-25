@@ -60,7 +60,7 @@ namespace Rococo
       };
 
       typedef std::list<MapNode*> TMapNodes;
-      typedef std::vector<TMapNodes> TNodeRows; // TODO - investigate performance, usually better to have vector of ptrs.
+      typedef std::vector<TMapNodes> TNodeRows;
 
       struct IKeyResolver
       {

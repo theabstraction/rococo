@@ -326,11 +326,6 @@ namespace
 		{
 		}
 
-	/*	bool RouteSysMessages() -> TODO delete this section
-		{
-			return VM::OS::RouteSysMessages();
-		}*/
-
 		void SetStepCallback(IStepCallback* stepCallback)
 		{
 			this->stepCallback = stepCallback != NULL ? stepCallback : this;

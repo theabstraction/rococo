@@ -38,12 +38,8 @@
 #include "sexy.stdstrings.h"
 
 #include <rococo.io.h>
-#include <string>
 #include <unordered_map>
 #include <vector>
-#include <list>
-#include <sstream>
-#include <string>
 
 #include <rococo.api.h>
 
@@ -55,12 +51,12 @@ using namespace Rococo::Sex;
 
 namespace ANON
 {
-   class CSexParser;
-   class CSExpression;
+	class CSexParser;
+	class CSExpression;
 
-   void Release(CSParserTree* tree);
-   CSParserTree* ConstructTransform(CSParserTree& prototype, const Vec2i& start, const Vec2i& end, CSExpression* original);
-   const ISExpression* GetOriginal(CSParserTree& tree);
+	void Release(CSParserTree* tree);
+	CSParserTree* ConstructTransform(CSParserTree& prototype, const Vec2i& start, const Vec2i& end, CSExpression* original);
+	const ISExpression* GetOriginal(CSParserTree& tree);
 
 	struct FileReader
 	{
@@ -68,16 +64,16 @@ namespace ANON
 
 		FileReader(const cstr name, long& len)
 		{
-         errno_t errNo = OS::OpenForRead((void**) &fp, name);
+			errno_t errNo = OS::OpenForRead((void**)&fp, name);
 
 			if (errNo != 0)
 			{
 				char err[256];
-            OS::Format_C_Error(errNo, err, sizeof(err));
+				OS::Format_C_Error(errNo, err, sizeof(err));
 				sexstringstream<1024> streamer;
 				streamer.sb << ("Error ") << errNo << (" opening file: ") << err;
-				
-            throw ParseException(Vec2i{ 0,0 }, Vec2i{ 0,0 }, name, streamer, ("<none>"), NULL);
+
+				throw ParseException(Vec2i{ 0,0 }, Vec2i{ 0,0 }, name, streamer, ("<none>"), NULL);
 			}
 
 			long startLen = ftell(fp);
@@ -92,6 +88,35 @@ namespace ANON
 		}
 	};
 
+	template <class T> class allocator
+	{
+	public:
+		using value_type = T;
+
+		allocator() noexcept {}
+		template <class U> allocator(allocator<U> const&) noexcept {}
+
+		value_type* allocate(std::size_t n)
+		{
+			return static_cast<value_type*>(::operator new (n * sizeof(value_type)));
+		}
+
+		void deallocate(value_type* p, std::size_t) noexcept
+		{
+			::operator delete(p);
+		}
+	};
+
+	template <class T, class U> bool operator==(allocator<T> const&, allocator<U> const&) noexcept
+	{
+		return true;
+	}
+
+	template <class T, class U> bool operator!=(allocator<T> const& x, allocator<U> const& y) noexcept
+	{
+		return !(x == y);
+	}
+
 	class CSExpression final : public ISExpressionBuilder
 	{
 	private:
@@ -100,15 +125,14 @@ namespace ANON
 		Vec2i end;
 		size_t startOffset;
 		size_t endOffset;
-		EXPRESSION_TYPE type;	
-      CSParserTree* transform; // 'this->transform' is the macro transform of 'this'
+		EXPRESSION_TYPE type;
+		CSParserTree* transform; // 'this->transform' is the macro transform of 'this'
 		CSExpression* parent;
-      sexstring Symbol;
-		
-		typedef std::list<CSExpression*> TChildrenList;
+		sexstring Symbol;
+
 		typedef std::vector<CSExpression*> TChildrenVector;
 		TChildrenVector children;
-	
+
 		void AddChild(CSExpression* child)
 		{
 			children.push_back(child);
@@ -121,46 +145,46 @@ namespace ANON
 			type = EXPRESSION_TYPE_COMPOUND;
 		}
 	public:
-		CSExpression(CSParserTree& _tree, const Vec2i& _start, size_t _startOffset, CSExpression* _parent):
+		CSExpression(CSParserTree& _tree, const Vec2i& _start, size_t _startOffset, CSExpression* _parent) :
 			tree(_tree),
 			start(_start),
 			end(_start),
-         startOffset(_startOffset),
-         endOffset(0),
-         type(EXPRESSION_TYPE_NULL),
-         transform(NULL),
+			startOffset(_startOffset),
+			endOffset(0),
+			type(EXPRESSION_TYPE_NULL),
+			transform(NULL),
 			parent(_parent),
 			Symbol(NULL)
 		{
 			children.reserve(4);
 			if (_parent != NULL)
-			{				
+			{
 				_parent->AddChild(this);
 			}
 		}
 
 		CSExpression(CSParserTree& _tree, const Vec2i& _start, const Vec2i& _end, size_t _startOffset, size_t _endOffset, CSExpression* _parent, cstr data, int dataLen, bool isStringLiteral) :
-			tree(_tree),		
+			tree(_tree),
 			start(_start),
 			end(_end),
 			startOffset(_startOffset),
 			endOffset(_endOffset),
-         type(isStringLiteral ? EXPRESSION_TYPE_STRING_LITERAL : EXPRESSION_TYPE_ATOMIC),
-         transform(NULL),
-         parent(_parent),
-         Symbol(NULL)
+			type(isStringLiteral ? EXPRESSION_TYPE_STRING_LITERAL : EXPRESSION_TYPE_ATOMIC),
+			transform(NULL),
+			parent(_parent),
+			Symbol(NULL)
 		{
 			Symbol = AddSymbol(tree, data, dataLen);
 
 			if (_parent != NULL)
 			{
 				_parent->AddChild(this);
-			}			
+			}
 		}
 
 		~CSExpression()
 		{
-			for(auto i = children.begin(); i != children.end(); ++i)
+			for (auto i = children.begin(); i != children.end(); ++i)
 			{
 				CSExpression* child = *i;
 				delete child;
@@ -192,13 +216,13 @@ namespace ANON
 		}
 
 		virtual const Vec2i& Start() const { return start; }
-		virtual const Vec2i& End() const		{ return end;		}
+		virtual const Vec2i& End() const { return end; }
 		virtual size_t StartOffset() const { return startOffset; }
 		virtual size_t EndOffset() const { return endOffset; }
-		virtual EXPRESSION_TYPE Type() const		{ return type;	}
+		virtual EXPRESSION_TYPE Type() const { return type; }
 		virtual const sexstring String() const;
 		virtual const ISParserTree& Tree() const;
-		virtual int NumberOfElements() const { return (int32) children.size(); }
+		virtual int NumberOfElements() const { return (int32)children.size(); }
 		virtual const ISExpression& GetElement(int index) const { return *children[index]; }
 		virtual const ISExpression* Parent() const { return parent; }
 		virtual const int TransformDepth() const;
@@ -207,12 +231,12 @@ namespace ANON
 		virtual ISExpression* GetTransform() const;
 
 		CSExpression* ConcreteParent() { return parent; }
-		
+
 		void AddAtomic(cstr sourceSegmentOrigin, int32 sourceSegmentLength, const Vec2i& start, const Vec2i& end, size_t startOffset, size_t endOffset);
 		void AddEscapedString(cstr sourceSegmentOrigin, int32 sourceSegmentLength, const Vec2i& start, const Vec2i& end, size_t startOffset, size_t endOffset);
 
 		void SetEnd(const Vec2i& _end, size_t _endOffset)
-		{ 
+		{
 			end = _end;
 			endOffset = _endOffset;
 		}
@@ -230,7 +254,7 @@ namespace ANON
 # define STATE_CALL
 #endif
 
-	class CSParserTree final: public ISParserTree
+	class CSParserTree final : public ISParserTree
 	{
 	private:
 		int transformDepth;
@@ -249,7 +273,7 @@ namespace ANON
 		Vec2i generationCursorPos;
 		Vec2i generationPrevCursorPos;
 		CSExpression* generationNode;
-		cstr startOfToken; 
+		cstr startOfToken;
 		CSExpression* original;
 
 		typedef void (STATE_CALL CSParserTree::*FN_STATE)();
@@ -269,17 +293,17 @@ namespace ANON
 		void STATE_CALL ReadingWhitespace();
 
 	public:
-		CSParserTree(CSexParser& _parser, ISourceCode& _sourceCode, const Vec2i& start, const Vec2i& end, int _transformDepth, CSExpression* _original):
+		CSParserTree(CSexParser& _parser, ISourceCode& _sourceCode, const Vec2i& start, const Vec2i& end, int _transformDepth, CSExpression* _original) :
 			transformDepth(_transformDepth),
-         parser(_parser),
-         refcount(1),	
-         sourceCode(_sourceCode),	
-         symbols(_sourceCode.SourceLength()),
-			original(_original)			
+			parser(_parser),
+			refcount(1),
+			sourceCode(_sourceCode),
+			symbols(_sourceCode.SourceLength()),
+			original(_original)
 		{
 			sourceCode.AddRef();
 			root = new CSExpression(*this, start, 0, NULL);
-			root->SetEnd(end, _sourceCode.SourceLength()-1);
+			root->SetEnd(end, _sourceCode.SourceLength() - 1);
 		}
 
 		~CSParserTree()
@@ -291,13 +315,13 @@ namespace ANON
 		CSymbols& Symbols() { return symbols; }
 		void Generate();
 
-		virtual const int TransformDepth() const	 { return transformDepth; }
+		virtual const int TransformDepth() const { return transformDepth; }
 		virtual ISParser& Parser();
-		virtual ISExpression& Root()				{	return *root;		}
-		virtual const ISExpression& Root() const	{	return *root;		}
-		virtual ISExpressionBuilder* BuilderRoot()  {	return root;		}
-		virtual const ISourceCode& Source()	const	{	return sourceCode;	}		
-		virtual refcount_t AddRef()					{	return ++refcount;	}
+		virtual ISExpression& Root() { return *root; }
+		virtual const ISExpression& Root() const { return *root; }
+		virtual ISExpressionBuilder* BuilderRoot() { return root; }
+		virtual const ISourceCode& Source()	const { return sourceCode; }
+		virtual refcount_t AddRef() { return ++refcount; }
 		virtual const ISExpression* const GetOriginal() { return original; }
 
 		virtual refcount_t Release()
@@ -313,7 +337,7 @@ namespace ANON
 		}
 	};
 
-	ISExpressionBuilder* CSExpression::CreateTransform() 
+	ISExpressionBuilder* CSExpression::CreateTransform()
 	{
 		Release(transform);
 		transform = NULL;
@@ -360,7 +384,7 @@ namespace ANON
 	{
 		Vec2i theEnd = generationPrevCursorPos;
 		theEnd.x++;
-		generationNode->AddEscapedString(start, length, generationTokenStartPos, theEnd, start - sourceCode.SourceStart(), start - sourceCode.SourceStart() + (size_t) length);
+		generationNode->AddEscapedString(start, length, generationTokenStartPos, theEnd, start - sourceCode.SourceStart(), start - sourceCode.SourceStart() + (size_t)length);
 	}
 
 	void CSParserTree::Generate()
@@ -372,27 +396,27 @@ namespace ANON
 		generationState = &CSParserTree::ReadingWhitespace;
 		generationNode = root;
 
-		while(generationState != NULL)
+		while (generationState != NULL)
 		{
 			(this->*generationState)();
 		}
-		
-		root->SetEnd(generationCursorPos, generationLength-1);
+
+		root->SetEnd(generationCursorPos, generationLength - 1);
 
 		if (generationNode != root)
 		{
-			generationNode->SetEnd(generationCursorPos, generationLength-1);
+			generationNode->SetEnd(generationCursorPos, generationLength - 1);
 			char specimen[64];
 			GetSpecimen(specimen, *generationNode);
 			throw ParseException(sourceCode.Origin(), generationPrevCursorPos, sourceCode.Name(), ("Syntax error: missing close parenthesis character: ')'"), specimen, NULL);
-		}	
+		}
 	}
 
 	void CSParserTree::UpdateCursor(char c)
 	{
 		generationPrevCursorPos = generationCursorPos;
 
-		switch(c)
+		switch (c)
 		{
 		case '\r':
 			return;
@@ -412,57 +436,57 @@ namespace ANON
 	{
 		literalStringBuilder.clear();
 
-		while(generationCurrentPtr < generationEnd)
+		while (generationCurrentPtr < generationEnd)
 		{
 			char c = *generationCurrentPtr++;
 			UpdateCursor(c);
-			
-			if(c == ESCAPECHAR) 
+
+			if (c == ESCAPECHAR)
 			{
-					if (generationCurrentPtr == generationEnd)
+				if (generationCurrentPtr == generationEnd)
+				{
+					char specimen[64];
+					GetSpecimen(specimen, *generationNode);
+					throw ParseException(generationTokenStartPos, generationPrevCursorPos, sourceCode.Name(), ("Literal string escape character missing trailing string"), specimen, NULL);
+				}
+
+				char c = *generationCurrentPtr++;
+				UpdateCursor(c);
+
+				char finalChar;
+
+				// N.B from MAT: I decided not to code octal escape sequences, as base-8 is practically deprecated in every sphere
+
+				if (c == (char)'x')
+				{
+					if (generationCurrentPtr + sizeof(char) >= generationEnd)
 					{
 						char specimen[64];
 						GetSpecimen(specimen, *generationNode);
-						throw ParseException(generationTokenStartPos, generationPrevCursorPos, sourceCode.Name(), ("Literal string escape character missing trailing string"), specimen, NULL);
+						throw ParseException(generationTokenStartPos, generationPrevCursorPos, sourceCode.Name(), ("Literal string escape character missing trailing hexes"), specimen, NULL);
 					}
 
-					char c = *generationCurrentPtr++;
-					UpdateCursor(c);
-
-					char finalChar;
-
-					// N.B from MAT: I decided not to code octal escape sequences, as base-8 is practically deprecated in every sphere
-
-					if (c == (char)'x')
+					if (!TryParseSexHex(finalChar, generationCurrentPtr))
 					{
-						if (generationCurrentPtr + sizeof(char) >= generationEnd)
-						{
-							char specimen[64];
-							GetSpecimen(specimen, *generationNode);
-							throw ParseException(generationTokenStartPos, generationPrevCursorPos, sourceCode.Name(), ("Literal string escape character missing trailing hexes"), specimen, NULL);
-						}
-
-						if (!TryParseSexHex(finalChar, generationCurrentPtr))
-						{
-							char specimen[64];
-							GetSpecimen(specimen, *generationNode);
-							throw ParseException(generationTokenStartPos, generationPrevCursorPos, sourceCode.Name(), ("Literal string escape character. Unrecognized escape sequence"), specimen, NULL);
-						}
-
-						generationCursorPos.x += 2 * sizeof(char);
-						generationCurrentPtr += 2 * sizeof(char);
+						char specimen[64];
+						GetSpecimen(specimen, *generationNode);
+						throw ParseException(generationTokenStartPos, generationPrevCursorPos, sourceCode.Name(), ("Literal string escape character. Unrecognized escape sequence"), specimen, NULL);
 					}
-					else
+
+					generationCursorPos.x += 2 * sizeof(char);
+					generationCurrentPtr += 2 * sizeof(char);
+				}
+				else
+				{
+					if (!ParseEscapeCharacter(finalChar, c))
 					{
-						if (!ParseEscapeCharacter(finalChar, c))
-						{
-							char specimen[64];
-							GetSpecimen(specimen, *generationNode);
-							throw ParseException(generationTokenStartPos, generationPrevCursorPos, sourceCode.Name(), ("Unrecognized escape sequence in literal string."), specimen, NULL);
-						}
+						char specimen[64];
+						GetSpecimen(specimen, *generationNode);
+						throw ParseException(generationTokenStartPos, generationPrevCursorPos, sourceCode.Name(), ("Unrecognized escape sequence in literal string."), specimen, NULL);
 					}
-					
-					literalStringBuilder.push_back(finalChar);
+				}
+
+				literalStringBuilder.push_back(finalChar);
 			}
 			else if (c == '"')
 			{
@@ -473,7 +497,7 @@ namespace ANON
 					GetSpecimen(specimen, *generationNode);
 					throw ParseException(generationTokenStartPos, generationPrevCursorPos, sourceCode.Name(), ("Literal string was too long (> INT_MAX)"), specimen, NULL);
 				}
-				AddStringToken(len == 0 ? ("") : &literalStringBuilder[0], (int32) literalStringBuilder.size());
+				AddStringToken(len == 0 ? ("") : &literalStringBuilder[0], (int32)literalStringBuilder.size());
 				generationState = &CSParserTree::ReadingWhitespace;
 				return;
 			}
@@ -495,7 +519,7 @@ namespace ANON
 
 	void CSParserTree::CloseInnerExpression()
 	{
-		generationNode->SetEnd(generationCursorPos, generationCurrentPtr - sourceCode.SourceStart()-1);
+		generationNode->SetEnd(generationCursorPos, generationCurrentPtr - sourceCode.SourceStart() - 1);
 
 		CSExpression* parent = generationNode->ConcreteParent();
 		if (parent == NULL)
@@ -504,13 +528,13 @@ namespace ANON
 			GetSpecimen(specimen, *generationNode);
 			throw ParseException(sourceCode.Origin(), generationPrevCursorPos, sourceCode.Name(), ("Too many close parenthesis characters: ')'"), specimen, NULL);
 		}
-		
+
 		generationNode = parent;
 	}
 
 	void STATE_CALL CSParserTree::ReadingLineComment()
 	{
-		while(generationCurrentPtr < generationEnd)
+		while (generationCurrentPtr < generationEnd)
 		{
 			char c = *generationCurrentPtr++;
 			UpdateCursor(c);
@@ -527,7 +551,7 @@ namespace ANON
 
 	void STATE_CALL CSParserTree::ReadingParagraphComment()
 	{
-		while(generationCurrentPtr < generationEnd)
+		while (generationCurrentPtr < generationEnd)
 		{
 			char c = *generationCurrentPtr++;
 			UpdateCursor(c);
@@ -555,26 +579,26 @@ namespace ANON
 
 	void STATE_CALL CSParserTree::ReadingToken()
 	{
-		while(generationCurrentPtr < generationEnd)
+		while (generationCurrentPtr < generationEnd)
 		{
 			char c = *generationCurrentPtr++;
 			UpdateCursor(c);
-			switch(c)
+			switch (c)
 			{
 			case ' ':
 			case '\t':
 			case '\r':
 			case '\n':
-				AddToken(this->startOfToken, generationCurrentPtr-1);
+				AddToken(this->startOfToken, generationCurrentPtr - 1);
 				generationState = &CSParserTree::ReadingWhitespace;
 				return;
-			case '(':	
-				AddToken(this->startOfToken, generationCurrentPtr-1);
-				OpenInnerExpression();				
+			case '(':
+				AddToken(this->startOfToken, generationCurrentPtr - 1);
+				OpenInnerExpression();
 				generationState = &CSParserTree::ReadingWhitespace;
 				return;
 			case ')':
-				AddToken(this->startOfToken, generationCurrentPtr-1);
+				AddToken(this->startOfToken, generationCurrentPtr - 1);
 				CloseInnerExpression();
 				generationState = &CSParserTree::ReadingWhitespace;
 				return;
@@ -590,11 +614,11 @@ namespace ANON
 
 	void STATE_CALL CSParserTree::ReadingWhitespace()
 	{
-		while(generationCurrentPtr < generationEnd)
+		while (generationCurrentPtr < generationEnd)
 		{
 			char c = *generationCurrentPtr++;
 			UpdateCursor(c);
-			switch(c)
+			switch (c)
 			{
 			case ' ':
 			case '\t':
@@ -617,26 +641,26 @@ namespace ANON
 				{
 					generationTokenStartPos = generationPrevCursorPos;
 					generationCurrentPtr++;
-					UpdateCursor('/');					
+					UpdateCursor('/');
 					generationState = &CSParserTree::ReadingLineComment;
 				}
 				else if (*generationCurrentPtr == '*')
 				{
 					generationTokenStartPos = generationPrevCursorPos;
-					UpdateCursor('*');					
+					UpdateCursor('*');
 					generationCurrentPtr++;
 					generationState = &CSParserTree::ReadingParagraphComment;
 				}
 				else
 				{
 					generationTokenStartPos = generationPrevCursorPos;
-					startOfToken = generationCurrentPtr-1;
+					startOfToken = generationCurrentPtr - 1;
 					generationState = &CSParserTree::ReadingToken;
 				}
 				return;
-			default:				
+			default:
 				generationTokenStartPos = generationPrevCursorPos;
-				startOfToken = generationCurrentPtr-1;
+				startOfToken = generationCurrentPtr - 1;
 				generationState = &CSParserTree::ReadingToken;
 				return;
 
@@ -650,14 +674,14 @@ namespace ANON
 	{
 		return (len > 2 && buffer[0] == 0) || buffer[1] == 0;
 	}
-	
-	class CSexParser final: public ISParser
+
+	class CSexParser final : public ISParser
 	{
 	private:
 		refcount_t refcount;
-      std::vector<char> tempBuffer;
+		std::vector<char> tempBuffer;
 	public:
-		CSexParser(): refcount(1)
+		CSexParser() : refcount(1)
 		{
 
 		}
@@ -680,12 +704,12 @@ namespace ANON
 				delete tree;
 				throw;
 			}
-			catch(IException&)
+			catch (IException&)
 			{
 				delete tree;
 				throw;
 			}
-			
+
 			return tree;
 		}
 
@@ -711,15 +735,15 @@ namespace ANON
 			if (segmentLength < 0)
 			{
 				size_t computedSegmentLength = StringLength(buffer);
-				if (computedSegmentLength > INT_MAX-1)
+				if (computedSegmentLength > INT_MAX - 1)
 				{
 					cstr specimen = ("!!!Bad source buffer!!!");
-               throw ParseException(Vec2i{ 0,0 }, Vec2i{ 0,0 }, name, ("The string length of the input buffer was greater than INT_MAX"), specimen, NULL);
+					throw ParseException(Vec2i{ 0,0 }, Vec2i{ 0,0 }, name, ("The string length of the input buffer was greater than INT_MAX"), specimen, NULL);
 				}
-				segmentLength = (int32) computedSegmentLength;
+				segmentLength = (int32)computedSegmentLength;
 			}
 			return new CSourceCodeCopy(buffer, segmentLength, origin, name);
-		}		
+		}
 
 		virtual ISourceCode* ProxySourceBuffer(cstr bufferRef, int segmentLength, const Vec2i& origin, cstr nameRef)
 		{
@@ -729,9 +753,9 @@ namespace ANON
 				if (computedSegmentLength > INT_MAX)
 				{
 					cstr specimen = ("!!!Bad source buffer!!!");
-               throw ParseException(Vec2i{ 0,0 }, Vec2i{ 0,0 }, nameRef, ("The string length of the input buffer was greater than INT_MAX"), specimen, NULL);
+					throw ParseException(Vec2i{ 0,0 }, Vec2i{ 0,0 }, nameRef, ("The string length of the input buffer was greater than INT_MAX"), specimen, NULL);
 				}
-				segmentLength = (int32) computedSegmentLength;
+				segmentLength = (int32)computedSegmentLength;
 			}
 			return new CSourceCodeProxy(bufferRef, segmentLength, origin, nameRef);
 		}
@@ -741,11 +765,11 @@ namespace ANON
 			long len;
 			FileReader reader(filename, len);
 
-         tempBuffer.resize(len + 1);	
+			tempBuffer.resize(len + 1);
 			size_t nBytes = fread(&tempBuffer[0], 1, len, reader.fp);
-         tempBuffer[nBytes] = 0;
+			tempBuffer[nBytes] = 0;
 
-			ISourceCode* src = LoadSource(filename, origin, &tempBuffer[0], (long) nBytes);
+			ISourceCode* src = LoadSource(filename, origin, &tempBuffer[0], (long)nBytes);
 
 			return src;
 		}
@@ -813,7 +837,7 @@ namespace ANON
 
 	CSParserTree* ConstructTransform(CSParserTree& prototype, const Vec2i& start, const Vec2i& end, CSExpression* original)
 	{
-		CSParserTree* tree = new CSParserTree((CSexParser&) prototype.Parser(), (ISourceCode&) prototype.Source(), start, end, prototype.TransformDepth() + 1, original);
+		CSParserTree* tree = new CSParserTree((CSexParser&)prototype.Parser(), (ISourceCode&)prototype.Source(), start, end, prototype.TransformDepth() + 1, original);
 		return tree;
 	}
 
@@ -854,23 +878,23 @@ namespace ANON
 
 			for (uint32 i = 32; i <= 255; ++i)
 			{
-            SafeFormat(maprcharToSequence[i].text, 8, "%c", i);
+				SafeFormat(maprcharToSequence[i].text, 8, "%c", i);
 				maprcharToSequence[i].len = 1;
 			}
 
-         SafeFormat(maprcharToSequence[L'\r'].text, 8, "&r");
+			SafeFormat(maprcharToSequence[L'\r'].text, 8, "&r");
 			maprcharToSequence[L'\r'].len = 2;
 
-         SafeFormat(maprcharToSequence[L'\n'].text, 8, "&n");
+			SafeFormat(maprcharToSequence[L'\n'].text, 8, "&n");
 			maprcharToSequence[L'\n'].len = 2;
 
-         SafeFormat(maprcharToSequence[L'\t'].text, 8, "&t");
+			SafeFormat(maprcharToSequence[L'\t'].text, 8, "&t");
 			maprcharToSequence[L'\t'].len = 2;
 
-         SafeFormat(maprcharToSequence[L'\"'].text, 8, "&q");
+			SafeFormat(maprcharToSequence[L'\"'].text, 8, "&q");
 			maprcharToSequence[L'\"'].len = 2;
 
-         SafeFormat(maprcharToSequence[L'&'].text, 8, "&&");
+			SafeFormat(maprcharToSequence[L'&'].text, 8, "&&");
 			maprcharToSequence[L'&'].len = 2;
 		}
 	}
@@ -947,7 +971,7 @@ namespace Rococo
 				writePos += ANON::maprcharToSequence[(size_t)*s].len;
 			}
 
-			writer.Write(segment, (uint32) segmentLength);
+			writer.Write(segment, (uint32)segmentLength);
 		}
 
 		void EscapeScriptStringToUnicode(IUnicode16Writer& writer, cstr text)

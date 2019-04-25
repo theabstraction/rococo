@@ -582,7 +582,6 @@ namespace Rococo { namespace Compiler { namespace Impl
 						int diff = type.SizeOfStruct() - member.SizeOfMember();
 						if (diff != 0)
 						{
-						//	((StructureMember&)(member)).SetSize(type.SizeOfStruct()); TODO delete this comment, class members now are all references, thus no expansion
 							updateCount++;
 
 							s.Update();

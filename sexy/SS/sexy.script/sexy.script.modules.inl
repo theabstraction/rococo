@@ -332,13 +332,6 @@ namespace Rococo { namespace Script
 			Throw(nameExpr, streamer);
 		}
 
-		/*if (!s->Prototype().IsClass) //TODO -> delete
-		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("The object matching the name was a struct, not a class: ") << className;
-			Throw(nameExpr, streamer);
-		}*/
-
 		IArgumentBuilder& arg = method.AddInput(NameString::From(THIS_POINTER_TOKEN), TypeString::From(className), (void*) &nameExpr);			
 		Resolve(arg, className, THIS_POINTER_TOKEN, method.Name(), nameExpr);	
 	}

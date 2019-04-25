@@ -167,8 +167,6 @@ namespace Rococo {
 			ARGDIRECTION_OUTPUT
 		};
 
-		// TODO -> merge with CClassHeader
-
 		struct ObjectDesc
 		{
 			int32 Zero; // Should be zero, gives the number of bytes to the start of the object, which is this stub
@@ -194,7 +192,7 @@ namespace Rococo {
 			enum : int64 { NO_REF_COUNT = 0x4000000000000000 };
 		};
 
-		inline int GetInstanceToInterfaceOffset(int interfaceIndex) // TODO -> make all vtable calculations use this function where appropriate
+		inline int GetInstanceToInterfaceOffset(int interfaceIndex)
 		{
 			int stubsize = sizeof(ObjectStub);
 			int ptrsize = sizeof(VirtualTable*);
