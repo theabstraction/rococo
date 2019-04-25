@@ -59,14 +59,17 @@ namespace Rococo
 	namespace Compiler
 	{
 		struct IProgramObject;
-      struct VirtualTable;
-      struct IStructure;
+		struct VirtualTable;
+		struct IStructure;
+		struct IPublicProgramObject;
+		struct IFunction;
 	}
 
 	namespace Sex
 	{
 		struct ISParser;
 		struct ISParserTree;
+		struct ISExpression;
 	}
 
 	namespace VM
@@ -100,6 +103,8 @@ namespace Rococo { namespace Script
 	typedef void (CALLTYPE_C *FN_NATIVE_CALL)(NativeCallEnvironment& e);
 
 	void ThrowBadNativeArg(int index, cstr source, cstr message);	
+
+	const Rococo::Sex::ISExpression* GetSourceExpression(Rococo::Compiler::IPublicProgramObject& po, const Rococo::Compiler::IFunction& f, size_t pcOffset);
 
 #ifdef _DEBUG
 	inline void ValidateOutputIndex(int index, const Compiler::IFunctionCode& code)
@@ -284,7 +289,7 @@ namespace Rococo { namespace Script
 	SCRIPTEXPORT_API const uint8* GetPCAddress(Rococo::VM::CPU& cpu, int32 callDepth);
 	SCRIPTEXPORT_API const uint8* GetStackFrame(Rococo::VM::CPU& cpu, int32 callDepth);
 	SCRIPTEXPORT_API bool GetVariableByIndex(cstr& name, Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure*& pseudoType, const uint8*& SF, IPublicScriptSystem& ss, size_t index, size_t callOffset);
-	SCRIPTEXPORT_API bool GetCallDescription(const uint8*& sf, const uint8*& pc, const Rococo::Compiler::IFunction*& f, size_t& fnOffset, IPublicScriptSystem& ss, size_t callDepth);
+	SCRIPTEXPORT_API bool GetCallDescription(const uint8*& sf, const uint8*& pc, const Rococo::Compiler::IFunction*& f, size_t& fnOffset, IPublicScriptSystem& ss, size_t callDepth, size_t& pcOffset);
 	SCRIPTEXPORT_API size_t GetCurrentVariableCount(IPublicScriptSystem& ss, size_t callDepth);
 	SCRIPTEXPORT_API void ForeachStackLevel(Rococo::Compiler::IPublicProgramObject& obj, Rococo::Debugger::ICallStackEnumerationCallback& cb);
 	SCRIPTEXPORT_API void ForeachVariable(Rococo::Script::IPublicScriptSystem& ss, Rococo::Debugger::IVariableEnumeratorCallback& variableEnum, size_t callOffset);

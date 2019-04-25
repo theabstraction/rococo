@@ -675,6 +675,23 @@ namespace Rococo
 			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, ("[%s] terminated in a dot: %s"), name, s);
 		   }
 	   }
+
+	   const IFunction* GetCurrentFunction(IPublicProgramObject& po, size_t& programOffset, size_t& pcOffset)
+	   {
+		   IVirtualMachine& vm = po.VirtualMachine();
+		   IProgramMemory& mem = po.ProgramMemory();
+
+		   pcOffset = vm.Cpu().PC() - vm.Cpu().ProgramStart;
+		   ID_BYTECODE runningId = mem.GetFunctionContaingAddress(pcOffset);
+		   if (runningId != 0)
+		   {
+			   programOffset = mem.GetFunctionAddress(runningId);
+			   const IFunction* f = GetFunctionForBytecode(po, runningId);
+			   return f;
+		   }
+
+		   return NULL;
+	   }
    }
 } // Rococo::Compiler
 

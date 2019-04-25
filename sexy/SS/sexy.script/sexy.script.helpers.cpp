@@ -504,8 +504,8 @@ namespace Rococo
 		   const uint8* pc;
 		   const IFunction* f;
 		   size_t fnOffset;
-
-		   if (!GetCallDescription(SF, pc, f, fnOffset, ss, callDepth)) return false;
+		   size_t pcOffset;
+		   if (!GetCallDescription(SF, pc, f, fnOffset, ss, callDepth, pcOffset)) return false;
 
 		   if (index < 3) return false; // Not real variables
 					
@@ -582,8 +582,8 @@ namespace Rococo
 		   const uint8* pc;
 		   const IFunction* f;
 		   size_t fnOffset;
-
-		   if (!GetCallDescription(sf, pc, f, fnOffset, ss, callDepth)) return 0;
+		   size_t pcOffset;
+		   if (!GetCallDescription(sf, pc, f, fnOffset, ss, callDepth, pcOffset)) return 0;
 
 		   size_t count = 0;
 		   for(int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
@@ -634,7 +634,7 @@ namespace Rococo
 		   }
 	   }
 
-	   SCRIPTEXPORT_API bool GetCallDescription(const uint8*& sf, const uint8*& pc, const IFunction*& f, size_t& fnOffset, IPublicScriptSystem& ss, size_t callDepth)
+	   SCRIPTEXPORT_API bool GetCallDescription(const uint8*& sf, const uint8*& pc, const IFunction*& f, size_t& fnOffset, IPublicScriptSystem& ss, size_t callDepth, size_t& pcOffset)
 	   {
 		   IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 		   IPublicProgramObject& obj = ss.PublicProgramObject();
@@ -645,7 +645,9 @@ namespace Rococo
 
 		   if (pc == NULL) return false;
 
-		   f = GetFunctionAtAddress(obj, (size_t)(pc - cpu.ProgramStart));
+		   pcOffset = (size_t) (pc - cpu.ProgramStart);
+
+		   f = GetFunctionAtAddress(obj, pcOffset);
 		   if (f == NULL) return false;
 
 		   CodeSection cs;
@@ -664,8 +666,8 @@ namespace Rococo
 		   const uint8* pc;
 		   const IFunction* f;
 		   size_t fnOffset;
-
-		   if (!GetCallDescription(sf, pc, f, fnOffset, ss, callDepth)) return;
+		   size_t pcOffset;
+		   if (!GetCallDescription(sf, pc, f, fnOffset, ss, callDepth, pcOffset)) return;
 
 		   const Rococo::Compiler::IStructure* lastPseudo = NULL;
 		   cstr lastPseudoName;
@@ -898,5 +900,16 @@ namespace Rococo
 
 		   return ns->FindStructure(stTail);
 	   }
+
+	   const ISExpression* GetSourceExpression(IPublicProgramObject& po, const IFunction& f, size_t pcOffset)
+	   {
+		   CodeSection section;
+		   f.Code().GetCodeSection(section);
+
+		   size_t fnOffset = pcOffset - po.ProgramMemory().GetFunctionAddress(section.Id);
+
+		   const ISExpression* s = (const ISExpression*) f.Code().GetSymbol(fnOffset).SourceExpression;
+		   return s;
+	   }
    } // Script
-} // Sexy
+} // Rococo

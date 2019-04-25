@@ -814,7 +814,8 @@ namespace Rococo
 				const IFunction* f = nullptr;
 
 				size_t fnOffset;
-				if (!GetCallDescription(sf, pc, f, fnOffset, *ss, depth) || !f)
+				size_t pcOffset;
+				if (!GetCallDescription(sf, pc, f, fnOffset, *ss, depth, pcOffset) || !f)
 				{
 					return;
 				}
@@ -999,7 +1000,8 @@ namespace Rococo
 		const Rococo::Compiler::IFunction* f;
 
 		size_t fnOffset;
-		if (Rococo::Script::GetCallDescription(sf, pc, f, fnOffset, ss, stackDepth) && f)
+		size_t pcOffset;
+		if (Rococo::Script::GetCallDescription(sf, pc, f, fnOffset, ss, stackDepth, pcOffset) && f)
 		{
 			auto* tree = ss.GetSourceCode(f->Module());
 			if (tree)
@@ -1056,7 +1058,8 @@ namespace Rococo
 		*ppSF = nullptr;
 
 		size_t fnOffset;
-		if (!Rococo::Script::GetCallDescription(sf, pc, f, fnOffset, ss, callDepth) || !f)
+		size_t pcOffset;
+		if (!Rococo::Script::GetCallDescription(sf, pc, f, fnOffset, ss, callDepth, pcOffset) || !f)
 		{
 			return nullptr;
 		}

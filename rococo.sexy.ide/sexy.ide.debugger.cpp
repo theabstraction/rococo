@@ -572,23 +572,29 @@ namespace
          this->debugControl = debugControl;
       }
 
-      virtual void AddSourceCode(cstr name, cstr sourceCode)
-      {
-         IIDETextWindow* report = static_cast<IIDETextWindow*>(spatialManager->FindPane(IDEPANE_ID_SOURCE));
-         if (report)
-         {
-            report->Editor().ResetContent();
-            report->AddSegment(RGBAb(255, 255, 255), "Module: ", -1, RGBAb(0, 0, 255));
-            report->AddSegment(RGBAb(255, 255, 255), name, rlen(name) + 1, RGBAb(0, 0, 255));
-            report->AddSegment(RGBAb(0, 0, 64), "\n", 2, RGBAb(255, 255, 255));
-            report->AddSegment(RGBAb(0, 0, 0), sourceCode, rlen(sourceCode) + 1, RGBAb(255, 255, 255));
+	  virtual void AddSourceCode(cstr name, cstr sourceCode)
+	  {
+		  IIDETextWindow* report = static_cast<IIDETextWindow*>(spatialManager->FindPane(IDEPANE_ID_SOURCE));
+		  if (report)
+		  {
+			  HWND hEditor = report->Editor().EditorHandle();
+			  SendMessageA(hEditor, WM_SETREDRAW, FALSE, 0);
+			  report->Editor().ResetContent();
+			  report->AddSegment(RGBAb(0, 0, 0), "Module: ", -1, RGBAb(192, 192, 192));
+			  report->AddSegment(RGBAb(0, 0, 0), name, rlen(name) + 1, RGBAb(192, 192, 192));
+			  report->AddSegment(RGBAb(0, 0, 0), "\n", 2, RGBAb(192, 192, 192));
+			  report->AddSegment(RGBAb(0, 0, 0), sourceCode, rlen(sourceCode) + 1, RGBAb(255, 255, 255));
 
-            if (hilight.source == name)
-            {
-               report->Editor().Hilight(hilight.start, hilight.end, hilight.background, hilight.foreground);
-            }
-         }
-      }
+			  if (hilight.source == name)
+			  {
+				  report->Editor().Hilight(hilight.start, hilight.end, hilight.background, hilight.foreground);
+				  report->Editor().ScrollTo(hilight.start.y > 4 ? hilight.start.y - 4 : 0);
+			  }
+
+			  SendMessageA(hEditor, WM_SETREDRAW, TRUE, 0);
+			  InvalidateRect(hEditor, nullptr, TRUE);
+		  }
+	  }
 
       virtual void PopulateStackView(ITreePopulator& populator)
       {

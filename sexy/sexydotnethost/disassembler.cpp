@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include "sexy.debug.types.h"
 #include "sexy.compiler.public.h"
+#include "../STC/stccore/sexy.compiler.helpers.h"
 #include "sexy.script.h"
 #include "sexy.s-parser.h"
 
@@ -149,8 +150,6 @@ namespace SexyDotNet { namespace Host
 			return changed;
 		}
 	};
-
-	const IFunction* GetCurrentFunction(IPublicProgramObject& po, size_t& programOffset, size_t& pcOffset);
 
 	bool SexyScriptLanguage::UpdateDisassembly()
 	{

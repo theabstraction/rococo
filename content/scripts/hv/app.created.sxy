@@ -11,6 +11,7 @@
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Entities)
+(using Sys.Type)
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(IInstances instances (Instances))

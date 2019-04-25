@@ -93,6 +93,8 @@ namespace Rococo
 			const IInterface& SysTypeIException() const { return *sysTypeIException; }			
 			const IInterface& SysTypeIExpression() const { return *sysTypeIExpression; }	
 		};
+
+		const IFunction* GetCurrentFunction(IPublicProgramObject& po, size_t& programOffset, size_t& pcOffset);
 	}
 } // Sexy.Compiler
 
