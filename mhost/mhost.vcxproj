@@ -167,10 +167,12 @@
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="mhost.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mhost.app.cpp" />
+    <ClCompile Include="mhost.graphics.cpp" />
     <ClCompile Include="mhost.os.win32.cpp" />
     <ClCompile Include="mhost.scripts.cpp" />
   </ItemGroup>

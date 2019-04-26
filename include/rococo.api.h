@@ -529,6 +529,12 @@ namespace Rococo
 		IAllocator& CheckedAllocator();
 		IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes);
 	}
+
+	template<typename T, typename U> inline bool HasFlag(T flag, U flags)
+	{
+		return (flags & flag) != 0;
+	}
 }
+
 
 #endif

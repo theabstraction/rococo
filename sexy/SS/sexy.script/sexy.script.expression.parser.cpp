@@ -700,8 +700,20 @@ namespace Rococo
 				ptrToConstant.vPtrValue = sc->header.pVTables;
 
 				AddSymbol(ce.Builder, "'%s'", valueStr->Buffer);
-				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, ptrToConstant, BITCOUNT_POINTER);
-				ce.Builder.AssignTempToVariable(0, variableName);
+
+				MemberDef def;
+				ce.Builder.TryGetVariableByName(def, variableName);
+				if (def.Usage == ARGUMENTUSAGE_BYVALUE)
+				{
+					UseStackFrameFor(ce.Builder, def);
+					ce.Builder.Assembler().Append_SetStackFrameImmediate(def.SFOffset + def.MemberOffset, ptrToConstant, BITCOUNT_POINTER);
+					RestoreStackFrameFor(ce.Builder, def);
+				}
+				else
+				{
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, ptrToConstant, BITCOUNT_POINTER);
+					ce.Builder.AssignTempToVariable(0, variableName);
+				}
 			}
 			else
 			{
@@ -2611,9 +2623,11 @@ namespace Rococo
 			VariantValue ptrToStringConstant;
 			ptrToStringConstant.vPtrValue = sc->header.pVTables;
 
-			if (def.Usage == ARGUMENTUSAGE_BYREFERENCE && def.location == VARLOCATION_OUTPUT)
+			if (def.Usage == ARGUMENTUSAGE_BYVALUE || def.location == VARLOCATION_OUTPUT)
 			{
-				ce.Builder.Assembler().Append_SetStackFrameImmediate(def.SFOffset, ptrToStringConstant, BITCOUNT_POINTER);
+				UseStackFrameFor(ce.Builder, def);
+				ce.Builder.Assembler().Append_SetStackFrameImmediate(def.SFOffset + def.MemberOffset, ptrToStringConstant, BITCOUNT_POINTER);
+				RestoreStackFrameFor(ce.Builder, def);
 			}
 			else
 			{

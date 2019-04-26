@@ -264,13 +264,14 @@ namespace
 			{
 				if (memberType.GetInterface(0) == ss.ProgramObject().Common().SysTypeIString())
 				{
-					auto* msgInstance = (ObjectStub*) (((uint8*) ex) + offset);
+					auto* msgInterface = *(InterfacePointer*) (((uint8*) ex) + offset);
+					auto* msgInstance = (ObjectStub*)(((uint8*)msgInterface) + (*msgInterface)->OffsetToInstance);
 					const IStructure& concreteType = *msgInstance->Desc->TypeInfo;
 					int msgOffset ;
 					const IMember* msgMember = FindMember(concreteType, ("buffer"), OUT msgOffset);
 					if (msgMember != NULL && msgMember->UnderlyingType()->VarType() == VARTYPE_Pointer)
 					{
-						uint8* pItem = ((uint8*) ex) + offset + msgOffset;
+						uint8* pItem = ((uint8*)msgInstance) + msgOffset;
 						char** pBuffer = (char**) pItem;
 						if (*pBuffer != NULL)
 						{

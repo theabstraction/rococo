@@ -9,20 +9,23 @@
 	(alias Main EntryPoint.Main)
 	
 (using Sys.Maths)
+(using Sys.Type)
 (using Sys.MPlat)
 (using MHost)
+(using Rococo)
+(using Rococo.Graphics)
 
 (namespace Galaxians)
 
-(struct Bitmap
+(struct Sprite
 	(IString filename)
 	(BitmapLocation location)
 )
 	
 (struct Entity 
 	(Vec2i screenPosition)
-	(Bitmap image1)
-	(Bitmap image2)
+	(Sprite image1)
+	(Sprite image2)
 )
 
 (struct World
@@ -35,13 +38,13 @@
 (method World.Construct -> (construct aliens 4) (construct missiles 4) :
 )
 
-(function InitBitmap (IScreenBuilder s)(Bitmap bmp)-> :
-	(s.TryGetBitmapSpec bmp.filename bmp.location)
+(function InitSprite (IScreenBuilder s)(Sprite bmp)-> :
+	(s.GetSpriteSpec bmp.filename bmp.location)
 )
 
-(function InitEntityBitmaps (IScreenBuilder s)(Entity e)-> :
-	(InitBitmap s e.image1)
-	(InitBitmap s e.image2)
+(function InitEntitySprites (IScreenBuilder s)(Entity e)-> :
+	(InitSprite s e.image1)
+	(InitSprite s e.image2)
 )
 
 (archetype Galaxians.OnEntity (Entity e)->)
@@ -55,46 +58,44 @@
 
 (function Init (World world)(IEngine engine)-> :
 	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1)
+	
+	(IString pawn1 = "!textures/mhost/pawn.1.tiff")
+	(IString pawn2 = "!textures/mhost/pawn.1.tiff")
 
-	(Entity a0 = (10  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
+	(Entity a0 = (10  10) (pawn1 defaultBmpLoc) (pawn2 defaultBmpLoc))
 	
-//	(world.aliens.Push a0)
+	(world.aliens.Push a0)
 	
-	(Entity a1 = (40  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
-//	(world.aliens.Push a1)
+	(Entity a1 = (40  10) (pawn1 defaultBmpLoc) (pawn2 defaultBmpLoc))
+	(world.aliens.Push a1)
 	
-//	(Entity a2 = (70  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
-//	(world.aliens.Push a2)
+	(Entity a2 = (70  10) (pawn1 defaultBmpLoc) (pawn2 defaultBmpLoc))
+	(world.aliens.Push a2)
 	
-//	(Entity a3 = (70  10) ("pawn.1.tiff" defaultBmpLoc) ("pawn.2.tiff" defaultBmpLoc))
-//	(world.aliens.Push a3)
+	(Entity a3 = (70  10) (pawn1 defaultBmpLoc) (pawn2 defaultBmpLoc))
+	(world.aliens.Push a3)
 	
+	(world.player = (70  100) ("!textures/mhost/player.1.tiff" defaultBmpLoc) ("!textures/mhost/player.2.tiff" defaultBmpLoc))
+	(world.playerMissile = (70  100) ("!textures/mhost/missile.1.tiff" defaultBmpLoc) ("!textures/mhost/missile.2.tiff" defaultBmpLoc))
 	
-//	(world.player = (70  100) ("player.1.tiff" defaultBmpLoc) ("player.2.tiff" defaultBmpLoc))
-	(trip)
-	
-	
-//	(world.playerMissile = (70  100) ("missile.1.tiff" defaultBmpLoc) ("missile.2.tiff" defaultBmpLoc))
-	
-	/*
 	(IScreenBuilder s = (engine.ScreenBuilder))
-	
-	(OnEntity initBitmaps = (closure (Entity e)-> : (InitEntityBitmaps s e)))
-	(ForEachEntity world initBitmaps)
-	*/
+	(OnEntity initSprites = (closure (Entity e)-> : (InitEntitySprites s e)))
+	(ForEachEntity world initSprites)
 )
 
-(function Render (World world)(IEngine engine)-> :
-	(IScreenBuilder s = (engine.ScreenBuilder))
-	
-	(OnEntity drawBitmaps = (closure (Entity e)-> : (DrawEntity e)))
-	(ForEachEntity world drawBitmaps)
-	
+(function DrawEntity (Entity e)(IScreenBuilder sb) -> :
+	(Int32 alignmentFlags = ((#AlignmentFlagsLeft) + (#AlignmentFlagsTop)))
+	(sb.DrawSprite e.screenPosition alignmentFlags e.image1.location)
+)
+
+(function Render (World world)(IEngine engine)(IScreenBuilder s)-> :
+	(OnEntity drawSprites = (closure (Entity e)-> : (DrawEntity e sb)))
+	(ForEachEntity world drawSprites)
 	(s.Render)
 )
 
 (function Advance (World world)-> :
-	(foreach alien in world.aliens:
+	(foreach alien # world.aliens
 		(alien.screenPosition.x = (alien.screenPosition.x + 1))
 		(if (alien.screenPosition.x > 1000)
 			(alien.screenPosition.x = 0)
@@ -103,14 +104,19 @@
 )
 
 (function Main (Int32 id) -> (Int32 exitCode):
+	(ISprites sprites (Sprites))
+	(sprites.AddEachSpriteInDirectory "!textures/mhost")
+	(sprites.LoadAllSprites)
+	
 	(IEngine engine (Engine))
+	(IScreenBuilder sb = (engine.ScreenBuilder))
 	
 	(World world ())
 	(Init world engine)
 	
 	(while engine.IsRunning
 		(Advance world)
-		(Render world engine)
+		(Render world engine sb)
 		(engine.YieldForSystemMessages 5)
 	)
 )

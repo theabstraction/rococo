@@ -1,4 +1,4 @@
-#include <rococo.api.h>
+#include "mhost.h"
 #include <rococo.mplat.h>
 #include <rococo.renderer.h>
 #include <rococo.strings.h>
@@ -6,10 +6,6 @@
 #include <vector>
 
 #include <rococo.textures.h>
-
-using namespace Rococo;
-
-#include "mhost.sxh.h"
 
 namespace MHost
 {
@@ -30,7 +26,7 @@ namespace MHost
 
 		AppSceneBuilder(Platform& _platform): platform(_platform)
 		{
-
+			platform.camera.SetRHProjection(45_degrees, 0.1_metres, 1000_metres);
 		}
 
 		void AppendTriangles(const GuiVertex* v, size_t nVertices)
@@ -44,6 +40,83 @@ namespace MHost
 			{
 				triangles.push_back(*v++);
 			}
+		}
+
+		void SetGuiQuadForBitmap(GuiTriangle t[2], const GuiRectf& txUV, int textureIndex)
+		{
+			t[0].a.colour = RGBAb(0xFFFFFFFF);
+			t[0].a.sd.lerpBitmapToColour = 0;
+			t[0].a.sd.matIndex = 0;
+			t[0].a.sd.textureIndex = (float) textureIndex;
+			t[0].a.sd.lerpBitmapToColour = 0;
+			t[0].a.sd.textureToMatLerpFactor = 0;
+			t[0].a.vd.fontBlend = 0;
+
+			t[0].b = t[0].c = t[0].a;
+			t[1] = t[0];
+
+			t[0].a.vd.uv = { txUV.left, txUV.top };
+			t[0].b.vd.uv = { txUV.right, txUV.top };
+			t[0].c.vd.uv = { txUV.left, txUV.bottom };
+
+			t[1].a.vd.uv = { txUV.right, txUV.bottom };
+			t[1].b.vd.uv = t[0].c.vd.uv;
+			t[1].c.vd.uv = t[0].b.vd.uv;
+		}
+
+		void DrawSprite(const Vec2i& pixelPos, int32 alignmentFlags, const Rococo::Textures::BitmapLocation& loc) override
+		{
+			//   a --- b
+			//   |   /
+			//   |  /  = t0
+			//   | /
+			//   |/
+			//   c
+
+			//         c
+			//       / |
+			//      /  | = t1
+			//     /   |
+			//    /    |
+			//   b-----a
+
+			GuiRectf txUV = { (float) loc.txUV.left,  (float) loc.txUV.top, (float) loc.txUV.right,  (float) loc.txUV.bottom };
+
+			Vec2 span = Span(txUV);
+
+			Vec2 pxPos = { (float)pixelPos.x, (float)pixelPos.y };
+			Vec2 topLeftPos = GetTopLeftPos(pxPos, span, alignmentFlags);
+
+			GuiTriangle t[2];
+			SetGuiQuadForBitmap(t, txUV, loc.textureIndex);
+
+			t[0].a.pos = topLeftPos;
+			t[0].b.pos = { topLeftPos.x + span.x, topLeftPos.y };
+			t[0].c.pos = { topLeftPos.x, topLeftPos.y + span.y };
+
+			t[1].a.pos = topLeftPos + span;
+			t[1].b.pos = t[0].c.pos;
+			t[1].c.pos = t[0].b.pos;
+
+			AppendTriangles(&t->a, 6);
+		}
+
+		void StretchSprite(const GuiRect& quad, const Rococo::Textures::BitmapLocation& loc) override
+		{
+			GuiRectf txUV = { (float)loc.txUV.left,  (float)loc.txUV.top, (float)loc.txUV.right,  (float)loc.txUV.bottom };
+
+			GuiTriangle t[2];
+			SetGuiQuadForBitmap(t, txUV, loc.textureIndex);
+
+			t[0].a.pos = { (float) quad.left, (float) quad.top };
+			t[0].b.pos = { (float) quad.right, (float) quad.top };
+			t[0].c.pos = { (float) quad.left, (float) quad.bottom };
+
+			t[1].a.pos = { (float) quad.right, (float) quad.bottom };
+			t[1].b.pos = t[0].c.pos;
+			t[1].c.pos = t[0].b.pos;
+
+			AppendTriangles(&t->a, 6);
 		}
 
 		void GetCamera(Matrix4x4& camera, Matrix4x4& world, Vec4& eye, Vec4& viewDir) override
@@ -63,6 +136,11 @@ namespace MHost
 
 		void RenderGui(IGuiRenderContext& grc)  override
 		{
+			for (auto& t : triangles)
+			{
+				grc.AddTriangle(&t);
+			}
+			triangles.clear();
 			return platform.scene.RenderGui(grc);
 		}
 
@@ -81,19 +159,22 @@ namespace MHost
 			return platform.scene.RenderShadowPass(drd, rc);
 		}
 
-		boolean32 TryGetBitmapSpec(const fstring& resourceName, BitmapLocation& loc) override
+		boolean32 TryGetSpriteSpec(const fstring& resourceName, BitmapLocation& loc) override
 		{
 			return platform.renderer.SpriteBuilder().TryGetBitmapLocation(resourceName, loc);
+		}
+
+		void GetSpriteSpec(const fstring& resourceName, Rococo::Textures::BitmapLocation& loc) override
+		{
+			if (!TryGetSpriteSpec(resourceName, loc))
+			{
+				Throw(0, "Could not load bitmap: %s", (cstr)resourceName);
+			}
 		}
 
 		void PushTriangle(const Rococo::GuiTriangle& t) override
 		{
 			AppendTriangles(&t.a, 3);
-		}
-
-		void PushQuad(const Rococo::GuiQuad& q) override
-		{
-			AppendTriangles(&q.a, 4);
 		}
 
 		void Render() override

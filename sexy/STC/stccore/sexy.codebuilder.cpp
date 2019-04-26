@@ -44,6 +44,26 @@ using namespace Rococo;
 using namespace Rococo::Compiler;
 using namespace Rococo::Parse;
 
+namespace Rococo
+{
+	namespace Compiler
+	{
+		void UseStackFrameFor(ICodeBuilder& builder, const MemberDef& def)
+		{
+			// The current function, if a closure, will put the parent's stack frame in register D6
+			// If the variable specified by <def> is from the parent's stack, then swap in D6 to SF
+			if (def.IsParentValue) { builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+		}
+
+		void RestoreStackFrameFor(ICodeBuilder& builder, const MemberDef& def)
+		{
+			// The current function, if a closure, will put the parent's stack frame in register D6
+			// If the variable specified by <def> is from the parent's stack, then swap back D6 from SF
+			if (def.IsParentValue) { builder.Assembler().Append_SwapRegister(VM::REGISTER_D6, VM::REGISTER_SF); }
+		}
+	}
+}
+
 namespace
 {
 	class Variable
@@ -265,20 +285,6 @@ namespace
 
 		virtual void AddDynamicAllocateObject(const IStructure& structType);
 	};
-
-	void UseStackFrameFor(CodeBuilder& builder, const MemberDef& def)
-	{
-		// The current function, if a closure, will put the parent's stack frame in register D6
-		// If the variable specified by <def> is from the parent's stack, then swap in D6 to SF
-		if (def.IsParentValue) { builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
-	}
-
-	void RestoreStackFrameFor(CodeBuilder& builder, const MemberDef& def)
-	{
-		// The current function, if a closure, will put the parent's stack frame in register D6
-		// If the variable specified by <def> is from the parent's stack, then swap back D6 from SF
-		if (def.IsParentValue) { builder.Assembler().Append_SwapRegister(VM::REGISTER_D6, VM::REGISTER_SF); }
-	}
 
 	CodeBuilder::CodeBuilder(IFunctionBuilder& _f, bool _mayUseParentsSF):
 		f(_f),

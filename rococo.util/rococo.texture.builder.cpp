@@ -215,21 +215,26 @@ namespace
          }
       }
 
-      virtual bool TryGetBitmapLocation(cstr name, BitmapLocation& location)
-      {
-         auto i = mapNameToLoc.find(name);
-         if (i == mapNameToLoc.end())
-         {
-            location = BitmapLocation{ { 0,0,0,0 }, -1 };
-            return false;
-         }
-         else
-         {
-            location.textureIndex = i->second.index;
-            location.txUV = i->second.uv;
-            return true;
-         }
-      }
+	  virtual bool TryGetBitmapLocation(cstr name, BitmapLocation& location)
+	  {
+		  if (name == nullptr)
+		  {
+			  Throw(0, "TextureArrayBuilder::TryGetBitmapLocation(name, location): name was null");
+		  }
+
+		  auto i = mapNameToLoc.find(name);
+		  if (i == mapNameToLoc.end())
+		  {
+			  location = BitmapLocation{ { 0,0,0,0 }, -1 };
+			  return false;
+		  }
+		  else
+		  {
+			  location.textureIndex = i->second.index;
+			  location.txUV = i->second.uv;
+			  return true;
+		  }
+	  }
 
       int32 EvaluateRequiredTextureSpan(int32 minWidth)
       {

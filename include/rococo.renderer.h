@@ -81,9 +81,10 @@ namespace Rococo
 
 	struct GuiQuad
 	{
-		GuiVertex a;
-		GuiVertex b;
-		GuiVertex c;
+		GuiVertex topLeft;
+		GuiVertex topRight;
+		GuiVertex bottomLeft;
+		GuiVertex bottomRight;
 	};
 
 	struct IRenderer;

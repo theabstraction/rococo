@@ -95,6 +95,11 @@ namespace Rococo
 		};
 
 		const IFunction* GetCurrentFunction(IPublicProgramObject& po, size_t& programOffset, size_t& pcOffset);
+
+		struct ICodeBuilder;
+		struct MemberDef;
+		void UseStackFrameFor(ICodeBuilder& builder, const MemberDef& def);
+		void RestoreStackFrameFor(ICodeBuilder& builder, const MemberDef& def);
 	}
 } // Sexy.Compiler
 
