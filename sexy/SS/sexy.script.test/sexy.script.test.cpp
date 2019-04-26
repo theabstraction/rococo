@@ -11727,6 +11727,31 @@ namespace
       validate(z == -3.0f);
    }
 
+   void TestAssignStringToStruct(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   "(namespace EntryPoint) \n"
+		   "(using Sys) \n"
+		   "(using Sys.Type) \n"
+		   "(struct Bitmap (Int32 x)(IString name)) \n"
+		   "(function Main -> (Int32 result): \n"
+		   "		(IString name = \"Geoff\"\n)"
+		   "		(Bitmap bmp = 0 name)\n"
+		   "		(bmp.name.Length -> result)\n"
+		   ")\n"
+		   "(alias Main EntryPoint.Main) \n";
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(1); // Allocate stack space for the int32 x
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+	   int32 x = vm.PopInt32();
+	   validate(x == 5);
+   }
+
    void RunCollectionTests()
    {
 	   TEST(TestMap);
@@ -11886,6 +11911,7 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestAssignStringToStruct);
 		TEST(TestCaptureStruct);
 		TEST(TestConstructFromInterface);
 		TEST(TestArrayForeachOnce);

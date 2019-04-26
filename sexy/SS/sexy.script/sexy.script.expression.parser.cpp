@@ -715,9 +715,13 @@ namespace Rococo
 					ce.Builder.AssignTempToVariable(0, variableName);
 				}
 			}
+			else if (IsAtomic(src))
+			{
+				ce.Builder.AssignVariableToVariable(src.String()->Buffer, variableName, true);
+			}
 			else
 			{
-				Throw(src, ("Memberwise initialization of a string member requires the argument be an atomic string literal"));
+				Throw(src, ("Memberwise initialization of a string member requires the argument be an atomic string literal or variable"));
 			}
 		}
 
