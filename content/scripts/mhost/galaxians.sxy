@@ -140,7 +140,6 @@
 		(Vec2i delta = alien.screenPosition - tip)
 		(if ((delta.x > -16) and (delta.x < 16))
 			(if ((delta.y > 0) and (delta.y < 32))
-				(trip)
 				(alien.screenPosition.y = -100)
 				(world.playerMissile.screenPosition.y = -100)
 				(return)
