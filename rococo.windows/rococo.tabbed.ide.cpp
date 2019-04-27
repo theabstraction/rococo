@@ -1402,6 +1402,10 @@ namespace
    {
    private:
       AutoFree<IRichEditor> editor;
+	  std::unordered_map<std::string, std::vector<uint8>> mapMenuItemToCommand;
+
+	  IEventCallback<MenuCommand>* eventCallback = nullptr;
+	  enum { ID_USER_START = 10001 };
 
       IDETextWindow()
       {
@@ -1417,11 +1421,82 @@ namespace
          editor = Windows::AddRichEditor(parent, GuiRect{ 0,0,1,1 }, nullptr, 0x5300, *this, ES_READONLY | ES_MULTILINE | WS_HSCROLL | WS_VSCROLL, 0);
       }
 
-      virtual void OnRightButtonUp(const Vec2i& clientPosition)
-      {
+	  void SendCommandBody(cstr name, const uint8* data, size_t len)
+	  {
+		  if (eventCallback)
+		  {
+			  MenuCommand menuCommand{ name, data, len };
+			  eventCallback->OnEvent(menuCommand);
+		  }
+	  }
 
+	  void OnUserMenuClicked(UINT id)
+	  {
+		  UINT code = 0;
+		  for (auto i : mapMenuItemToCommand)
+		  {
+			  if (code == id)
+			  {
+				  SendCommandBody(i.first.c_str(), i.second.data(), i.second.size());
+			  }
+
+			  code++;
+		  }
+	  }
+
+	  LRESULT OnCommand(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
+	  {
+		  return OnCommand(hWnd, wParam, lParam);
+	  }
+
+	  LRESULT OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam) override
+	  {
+		  auto wNotifyCode = HIWORD(wParam); // notification code
+		  auto wID = LOWORD(wParam); // item, control, or accelerator identifier
+		  auto hwndCtl = (HWND)lParam;
+
+		  if (wNotifyCode == 0)
+		  {
+			  // A menu
+			  if (wID >= ID_USER_START && wID <= (ID_USER_START + mapMenuItemToCommand.size()))
+			  {
+				  OnUserMenuClicked(wID - ID_USER_START);
+				  return 0;
+			  }
+		  }
+
+		  return StandardWindowHandler::OnCommand(hWnd, wParam, lParam);
+	  }
+
+      void OnRightButtonUp(const Vec2i& pos) override
+      {
+		  if (mapMenuItemToCommand.empty()) return;
+
+		  HMENU hPopupMenu = CreatePopupMenu();
+
+		  UINT code = ID_USER_START;
+		  for (auto i : mapMenuItemToCommand)
+		  {
+			  InsertMenuA(hPopupMenu, 0, MF_BYPOSITION | MF_STRING, code++, i.first.c_str());
+		  }
+
+		  POINT p{ pos.x, pos.y };
+		  ClientToScreen(*this, &p);
+		  TrackPopupMenu(hPopupMenu, TPM_TOPALIGN | TPM_LEFTALIGN, p.x, p.y, 0, *this, NULL);
       }
 
+	  void AddContextMenuItem(cstr key, const uint8* command, size_t lenOfCommand) override
+	  {
+		  std::vector<uint8> hardCopy(lenOfCommand);
+		  hardCopy.resize(lenOfCommand);
+		  memcpy(hardCopy.data(), command, lenOfCommand);
+		  mapMenuItemToCommand[key] = hardCopy;
+	  }
+
+	  void SetEventCallback(IEventCallback<MenuCommand>* eventCallback) override
+	  {
+		  this->eventCallback = eventCallback;
+	  }
    public:
       static IIDETextWindow* Create(IWindow& parent)
       {

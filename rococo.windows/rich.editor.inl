@@ -18,10 +18,12 @@ namespace
 		{
 			switch (uMsg)
 			{
-         case WM_ERASEBKGND:
-            return TRUE;
+			case WM_ERASEBKGND:
+				return TRUE;
 			case WM_SIZE:
 				return OnSize(hWnd, wParam, lParam);
+			case WM_COMMAND:
+				return eventHandler.OnCommand(hWnd, uMsg, wParam, lParam);
 			case WM_NOTIFY:
 			{
 				// Disabled in READONLY mode
@@ -88,6 +90,26 @@ namespace
 			SendMessage(hWndEditor, EM_REPLACESEL, 0, (LPARAM)segmentBuffer);
 		}
 
+		static LRESULT Subclassproc(
+			HWND hWnd,
+			UINT uMsg,
+			WPARAM wParam,
+			LPARAM lParam,
+			UINT_PTR uIdSubclass,
+			DWORD_PTR dwRefData
+		)
+		{
+			if (uMsg == WM_RBUTTONUP)
+			{
+				auto xPos = GET_X_LPARAM(lParam);
+				auto yPos = GET_Y_LPARAM(lParam);
+				((RichEditor*)dwRefData)->eventHandler.OnRightButtonUp(Vec2i{ xPos, yPos });
+				return TRUE;
+			}
+
+			return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+		}
+
 		void Construct(const WindowConfig& editorConfig, IWindow& parent)
 		{
 			WindowConfig containerConfig = editorConfig;
@@ -107,6 +129,11 @@ namespace
 			SetDlgCtrlID(hWndEditor, 1001);
 
 			SetControlFont(hWndEditor);
+
+			if (!SetWindowSubclass(hWndEditor, Subclassproc, 1, (DWORD_PTR)this))
+			{
+				Throw(0, "Could not subclass richtext editor");
+			}
 		}
 
 		virtual int32 LineCount() const

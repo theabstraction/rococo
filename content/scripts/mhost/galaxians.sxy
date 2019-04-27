@@ -3,6 +3,7 @@
 	"!scripts/mhost/mhost.sxh.sxy"
 	"!scripts/mplat.sxh.sxy"
 	"!scripts/types.sxy"
+	"!scripts/mhost/mhost.include.sxy"
 )
 
 (namespace EntryPoint)
@@ -28,14 +29,24 @@
 	(Sprite image2)
 )
 
+(struct Controls
+	(Int32 leftKey)
+	(Int32 rightKey)
+	(Int32 fireKey)
+)
+
 (struct World
 	(array Entity aliens)
 	(array Entity missiles)
 	(Entity player)
 	(Entity playerMissile)
+	(Int32 direction)
+	(Vec2 playerPos)
+	(Controls controls)
 )
 
-(method World.Construct -> (construct aliens 4) (construct missiles 4) :
+(method World.Construct -> (construct aliens 40) (construct missiles 4) :
+	(this.direction = 1)
 )
 
 (function InitSprite (IScreenBuilder s)(Sprite bmp)-> :
@@ -51,9 +62,9 @@
 
 (function ForEachEntity (World world)(OnEntity onEntity)-> :
 	(foreach alien # world.aliens (onEntity alien))
-	(foreach missile # world.missiles (onEntity missile))
+//	(foreach missile # world.missiles (onEntity missile))
 	(onEntity world.player)
-	(onEntity world.playerMissile)
+//	(onEntity world.playerMissile)
 )
 
 (function Init (World world)(IEngine engine)-> :
@@ -61,26 +72,27 @@
 	
 	(IString pawn1 = "!textures/mhost/pawn.1.tiff")
 	(IString pawn2 = "!textures/mhost/pawn.1.tiff")
-
-	(Entity a0 = (10  10) (pawn1 defaultBmpLoc) (pawn2 defaultBmpLoc))
 	
-	(world.aliens.Push a0)
+	(#for (Int32 j = 0)(j < 4)(#inc j)
+		(Int32 y = (10 + (j * 40)))
+		(#for (Int32 i = 0)(i < 10)(#inc i)
+			(Int32 x = (10 + (i * 40)))
+			(Entity a0 = (x  y) (pawn1 defaultBmpLoc) (pawn2 defaultBmpLoc))
+			(world.aliens.Push a0)
+		)
+	)
 	
-	(Entity a1 = (40  10) (pawn1 defaultBmpLoc) (pawn2 defaultBmpLoc))
-	(world.aliens.Push a1)
-	
-	(Entity a2 = (70  10) (pawn1 defaultBmpLoc) (pawn2 defaultBmpLoc))
-	(world.aliens.Push a2)
-	
-	(Entity a3 = (70  10) (pawn1 defaultBmpLoc) (pawn2 defaultBmpLoc))
-	(world.aliens.Push a3)
-	
-	(world.player = (70  100) ("!textures/mhost/player.1.tiff" defaultBmpLoc) ("!textures/mhost/player.2.tiff" defaultBmpLoc))
-	(world.playerMissile = (70  100) ("!textures/mhost/missile.1.tiff" defaultBmpLoc) ("!textures/mhost/missile.2.tiff" defaultBmpLoc))
+	(world.player = (70  400) ("!textures/mhost/player.1.tiff" defaultBmpLoc) ("!textures/mhost/player.2.tiff" defaultBmpLoc))
+	(world.playerMissile = (70  300) ("!textures/mhost/missile.1.tiff" defaultBmpLoc) ("!textures/mhost/missile.2.tiff" defaultBmpLoc))
 	
 	(IScreenBuilder s = (engine.ScreenBuilder))
 	(OnEntity initSprites = (closure (Entity e)-> : (InitEntitySprites s e)))
 	(ForEachEntity world initSprites)
+	
+	(IKeyboard keyboard (Keyboard))
+	(world.controls.leftKey = (keyboard.GetVKey "A"))
+	(world.controls.rightKey = (keyboard.GetVKey "D"))
+	(world.controls.fireKey = (keyboard.GetVKey "SPACE"))
 )
 
 (function DrawEntity (Entity e)(IScreenBuilder sb) -> :
@@ -89,16 +101,35 @@
 )
 
 (function Render (World world)(IEngine engine)(IScreenBuilder s)-> :
-	(OnEntity drawSprites = (closure (Entity e)-> : (DrawEntity e sb)))
+	(OnEntity drawSprites = (closure (Entity e)-> : (DrawEntity e s)))
 	(ForEachEntity world drawSprites)
 	(s.Render)
 )
 
+(function UpdatePlayer (World world)(IEngine engine)-> :
+	(KeyState keys)
+	(engine.PollKeyState keys)
+	
+	(Int32 playerDirection = 0)
+	(if (IsKeySet keys world.controls.leftKey)
+		(#dec playerDirection)
+	)
+	(if (IsKeySet keys world.controls.rightKey)
+		(#inc playerDirection)
+	)
+	
+	(if (IsKeySet keys world.controls.fireKey)
+	)
+)
+
 (function Advance (World world)-> :
 	(foreach alien # world.aliens
-		(alien.screenPosition.x = (alien.screenPosition.x + 1))
+		(alien.screenPosition.x = (alien.screenPosition.x + world.direction))
 		(if (alien.screenPosition.x > 1000)
-			(alien.screenPosition.x = 0)
+			(world.direction = -1)
+		)
+		(if (alien.screenPosition.x < 10)
+			(world.direction = 1)
 		)
 	)
 )
@@ -115,6 +146,7 @@
 	(Init world engine)
 	
 	(while engine.IsRunning
+		(UpdatePlayer world engine)
 		(Advance world)
 		(Render world engine sb)
 		(engine.YieldForSystemMessages 5)

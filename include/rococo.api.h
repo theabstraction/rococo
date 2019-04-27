@@ -200,6 +200,13 @@ namespace Rococo
 	   virtual void Populate(IDebuggerWindow& debugger) = 0;
 	};
 
+	struct MenuCommand
+	{
+		cstr name;
+		const uint8* buffer;
+		size_t len;
+	};
+
 	ROCOCOAPI IDebuggerWindow : public ILogger
 	{
 		virtual void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor = RGBAb(255,255,255), bool bringToView = false) = 0;
@@ -522,6 +529,7 @@ namespace Rococo
 		cstr GetAsciiCommandLine();
 		void LoadAsciiTextFile(char* data, size_t capacity, const char* filename);
 		void GetEnvVariable(char* data, size_t capacity, const char* envVariable);
+		void PollKeys(uint8 scanArray[256]);
 	}
 
 	namespace Memory

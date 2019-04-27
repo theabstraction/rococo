@@ -5,6 +5,24 @@
 
 using namespace Rococo;
 
+namespace Rococo
+{
+	struct KeyState
+	{
+		uint8 keys[256];
+	};
+}
+
+namespace MHost
+{
+	struct IEngineBase
+	{
+		virtual void Free() = 0;
+	};
+
+	struct IEngine;
+}
+
 #include "mhost.sxh.h"
 
 namespace MHost

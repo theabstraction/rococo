@@ -19,6 +19,8 @@ Rococo::Cute::IMasterWindow* FactoryConstructRococoCuteMasterWindow(IMasterWindo
 
 namespace Rococo { namespace Cute
 {
+	using namespace Rococo::Windows::IDE;
+
 	void ExecuteScript(cstr scriptFile, IInstallation& installation, ExecuteScriptSpec& spec, IEventCallback<ScriptCompileArgs>& onCompile, Rococo::Windows::IDE::IScriptExceptionHandler& exHandler)
 	{
 		if (scriptFile == nullptr || *scriptFile == 0)
@@ -32,9 +34,10 @@ namespace Rococo { namespace Cute
 		}
 
 		if (spec.debuggerParentWnd == nullptr) spec.debuggerParentWnd = &(Windows::NoParent());
-		AutoFree<IDebuggerWindow> debugger(Rococo::Windows::IDE::CreateDebuggerWindow(*spec.debuggerParentWnd));
+		AutoFree<IDebuggerEventHandler> debuggerEventHandler(CreateDebuggerEventHandler(installation, *spec.debuggerParentWnd));
+		AutoFree<IDebuggerWindow> debugger(CreateDebuggerWindow(*spec.debuggerParentWnd, debuggerEventHandler->GetMenuCallback()));
 		AutoFree<ISourceCache> sourceCache(CreateSourceCache(installation));
-		Rococo::Windows::IDE::ExecuteSexyScriptLoop(
+		ExecuteSexyScriptLoop(
 			spec.stats,
 			spec.maxSize,
 			*sourceCache,
@@ -88,8 +91,8 @@ namespace Rococo { namespace Cute
 				catchCount++;
 
 				return catchCount > 1 ?
-					Rococo::Windows::IDE::EScriptExceptionFlow_Terminate : 
-					Rococo::Windows::IDE::EScriptExceptionFlow_Retry;
+					EScriptExceptionFlow_Terminate : 
+					EScriptExceptionFlow_Retry;
 			}
 		} onScriptException;
 		onScriptException.factory = &factory;

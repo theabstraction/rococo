@@ -22,23 +22,22 @@ namespace MHost
 	{
 		Platform& platform;
 
-		std::vector<GuiVertex> triangles;
+		std::vector<GuiTriangle> triangles;
 
 		AppSceneBuilder(Platform& _platform): platform(_platform)
 		{
 			platform.camera.SetRHProjection(45_degrees, 0.1_metres, 1000_metres);
 		}
 
-		void AppendTriangles(const GuiVertex* v, size_t nVertices)
+		void AppendTriangles(const GuiTriangle* t, size_t nTriangles)
 		{
 			enum { MAX_TRIANGLES = 1000000 };
-			if (triangles.size() > MAX_TRIANGLES)
-				Throw(0, "Maximum GUI triangles reached (%d)", MAX_TRIANGLES);
+			if (triangles.size() > MAX_TRIANGLES) Throw(0, "Maximum GUI triangles reached (%d)", MAX_TRIANGLES);
 
-			auto end = v + nVertices;
-			while (v < end)
+			auto end = t + nTriangles;
+			while (t < end)
 			{
-				triangles.push_back(*v++);
+				triangles.push_back(*t++);
 			}
 		}
 
@@ -98,7 +97,7 @@ namespace MHost
 			t[1].b.pos = t[0].c.pos;
 			t[1].c.pos = t[0].b.pos;
 
-			AppendTriangles(&t->a, 6);
+			AppendTriangles(t, 2);
 		}
 
 		void StretchSprite(const GuiRect& quad, const Rococo::Textures::BitmapLocation& loc) override
@@ -116,7 +115,7 @@ namespace MHost
 			t[1].b.pos = t[0].c.pos;
 			t[1].c.pos = t[0].b.pos;
 
-			AppendTriangles(&t->a, 6);
+			AppendTriangles(t, 2);
 		}
 
 		void GetCamera(Matrix4x4& camera, Matrix4x4& world, Vec4& eye, Vec4& viewDir) override
@@ -138,7 +137,7 @@ namespace MHost
 		{
 			for (auto& t : triangles)
 			{
-				grc.AddTriangle(&t);
+				grc.AddTriangle(&t.a);
 			}
 			triangles.clear();
 			return platform.scene.RenderGui(grc);
@@ -174,7 +173,7 @@ namespace MHost
 
 		void PushTriangle(const Rococo::GuiTriangle& t) override
 		{
-			AppendTriangles(&t.a, 3);
+			AppendTriangles(&t, 1);
 		}
 
 		void Render() override
@@ -334,6 +333,7 @@ namespace MHost
 
 		void Run() override
 		{
+			RunEnvironmentScript(platform, this, "!scripts/mhost/keys.sxy", true);
 			RunEnvironmentScript(platform, this, "!scripts/mhost/galaxians.sxy", true);
 		}
 
@@ -346,6 +346,11 @@ namespace MHost
 			{
 				isRunning = false;
 			}
+		}
+
+		void PollKeyState(KeyState& keyState) override
+		{
+			Rococo::OS::PollKeys(keyState.keys);
 		}
 	};
 }

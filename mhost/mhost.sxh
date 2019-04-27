@@ -33,6 +33,7 @@
 	(as.cpp MHost.IEngine "mhost")
 	(context factory MHost.IEngine)
 	(methods
+		(PollKeyState (KeyState keys))
 		(ScreenBuilder -> (MHost.IScreenBuilder s))
 		(IsRunning -> (Bool isRunning))
 		(YieldForSystemMessages (Int32 sleepMS))

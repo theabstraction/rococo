@@ -264,6 +264,7 @@ namespace Rococo
 
 		ROCOCOAPI IRichEditorEvents
 		{
+			virtual LRESULT OnCommand(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
 			virtual void OnRightButtonUp(const Vec2i& clientPosition) = 0;
 		};
 
@@ -402,6 +403,8 @@ namespace Rococo
 			{
 			   virtual void AddSegment(RGBAb colour, cstr segment, size_t length, RGBAb bkColor) = 0;
 			   virtual IRichEditor& Editor() = 0;
+			   virtual void AddContextMenuItem(cstr key, const uint8* command, size_t lenOfCommand) = 0;
+			   virtual void SetEventCallback(IEventCallback<MenuCommand>* eventCallback) = 0;
 			};
 
 			ROCOCOAPI IIDETreeWindow : public IIDENode

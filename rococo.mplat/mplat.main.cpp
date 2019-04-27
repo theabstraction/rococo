@@ -3671,6 +3671,8 @@ struct HandleManager
 	}
 };
 
+using namespace Rococo::Windows::IDE;
+
 int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
 	char filename[1024];
@@ -3735,7 +3737,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	SetWindowTextA(mainWindow->Window(), title);
 
 	AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation));
-	AutoFree<IDebuggerWindow> debuggerWindow(Windows::IDE::CreateDebuggerWindow(mainWindow->Window()));
+	AutoFree<IDebuggerEventHandler> debuggerEventHandler(CreateDebuggerEventHandler(*installation, mainWindow->Window()));
+	AutoFree<IDebuggerWindow> debuggerWindow(CreateDebuggerWindow(mainWindow->Window(), debuggerEventHandler->GetMenuCallback()));
 
 	Rococo::M::InitScriptSystem(*installation);
 

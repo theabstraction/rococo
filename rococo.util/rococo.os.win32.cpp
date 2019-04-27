@@ -36,51 +36,51 @@
 
 namespace Rococo
 {
-   namespace IO
-   {
-      void UseBufferlessStdout()
-      {
-         setvbuf(stdout, nullptr, _IONBF, 0);
-      }
-   }
+	namespace IO
+	{
+		void UseBufferlessStdout()
+		{
+			setvbuf(stdout, nullptr, _IONBF, 0);
+		}
+	}
 
-   bool FileModifiedArgs::Matches(cstr resource) const
-   {
-      cstr a = this->resourceName;
-      cstr b = resource;
-      if (*b == L'!') b++;
+	bool FileModifiedArgs::Matches(cstr resource) const
+	{
+		cstr a = this->resourceName;
+		cstr b = resource;
+		if (*b == L'!') b++;
 
-      while (*a != 0)
-      {
-         if (*a == L'\\')
-         {
-            if (*b == L'\\' || *b == L'/')
-            {
-               // dandy
-            }
-            else
-            {
-               return false;
-            }
-         }
-         else if (*a != *b) return false;
+		while (*a != 0)
+		{
+			if (*a == L'\\')
+			{
+				if (*b == L'\\' || *b == L'/')
+				{
+					// dandy
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else if (*a != *b) return false;
 
-         a++;
-         b++;
-      }
+			a++;
+			b++;
+		}
 
-      return *b == 0;
-   }
+		return *b == 0;
+	}
 
-   void FileModifiedArgs::GetPingPath(char* path, size_t capacity) const
-   {
-      SafeFormat(path, capacity, "!%s", resourceName);
+	void FileModifiedArgs::GetPingPath(char* path, size_t capacity) const
+	{
+		SafeFormat(path, capacity, "!%s", resourceName);
 
-      for (char* p = path; *p != 0; p++)
-      {
-         if (*p == '\\') *p = '/';
-      }
-   }
+		for (char* p = path; *p != 0; p++)
+		{
+			if (*p == '\\') *p = '/';
+		}
+	}
 }
 
 #include <rococo.window.h>
@@ -94,6 +94,11 @@ namespace Rococo
 		{
 			auto line =  GetCommandLineA();
 			return line;
+		}
+
+		void PollKeys(uint8 scanArray[256])
+		{
+			GetKeyboardState(scanArray);
 		}
 
 		bool IsFileExistant(const char* filename)
