@@ -679,6 +679,13 @@ namespace Rococo { namespace Script
 			AppendInvoke(ce, GetMapCallbacks(ce).MapClear, sequence);
 			return;
 		}
+		else if (AreEqual(s.Name(), "_Lock") && AreEqual(instanceName, "_array", 6))
+		{
+			char srcName[256];
+			SafeFormat(srcName, 256, "%s._lockSource", instanceName);
+			ce.Builder.AssignVariableToTemp(srcName, 9); // Lock source Goes to D13
+			ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUnlock);
+		}
 
 		AppendInvokeDestructorChildren(ce, s, instanceDef.SFOffset);
 		AppendInvokeCallDestructor(ce, s, instanceName, instanceDef.SFOffset);

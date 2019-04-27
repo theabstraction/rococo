@@ -1064,7 +1064,7 @@ namespace Rococo
 		   CompileExpressionSequence(ce, 4, s.NumberOfElements()-1, s);				
 	
 		   ce.Builder.AddSymbol(("...foreach)"));
-		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUnlock); // Enable popping of the array after enumeration has finished
+		//   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUnlock); // Enable popping of the array after enumeration has finished
 	   }
 
 	   void CompileEnumerateArray(CCompileEnvironment& ce, cr_sex s, int hashIndex)
@@ -1245,7 +1245,7 @@ namespace Rococo
 
 		   ce.Builder.AppendWhileDo(loopCriterion, CONDITION_IF_GREATER_OR_EQUAL, bodySection);
 		
-		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUnlock); // Enable popping of the array after enumeration has finished
+		//   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUnlock); // Enable popping of the array after enumeration has finished
 		   ce.Builder.AddSymbol(("...foreach)"));
 		   ce.Builder.Assembler().Append_NoOperation();
 	   }
