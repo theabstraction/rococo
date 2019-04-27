@@ -362,7 +362,7 @@ namespace Rococo { namespace Compiler
 		virtual void PushControlFlowPoint(const ControlFlowData& controlFlowData) = 0;
 		virtual bool TryGetControlFlowPoint(OUT ControlFlowData& data) = 0;
 
-		virtual void PopLastVariables(int count) = 0;
+		virtual void PopLastVariables(int count, bool expireVariables) = 0;
 		virtual const StackRecoveryData& GetRequiredStackCorrection(size_t codeOffset) const = 0;
 		virtual int GetDestructorFromInstancePos(int instancePosition) const = 0;
 		virtual const IStructure& GetTypeFromInstancePos(int instancePosition) const = 0;

@@ -178,7 +178,7 @@ namespace Rococo { namespace VM
 
    ROCOCOAPI ITraceOutput
    {
-      virtual void Report(const CPU& cpu) const = 0;
+      virtual void Report() = 0;
    };
 
 	ROCOCOAPI IVirtualMachine : IDebugger

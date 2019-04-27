@@ -19,6 +19,9 @@
     <Filter Include="ScriptGen Files\SXY">
       <UniqueIdentifier>{79101382-bda4-439e-a63f-27cac1b1df8b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Generated  Files">
+      <UniqueIdentifier>{55118b6c-5126-4b39-892c-e42c3ca3c1a6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -26,6 +29,9 @@
     </ClInclude>
     <ClInclude Include="mhost.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mhost.sxh.h">
+      <Filter>Generated  Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -64,6 +70,21 @@
       <Filter>ScriptGen Files\SXY</Filter>
     </None>
     <None Include="..\content\scripts\mhost\mplat.types.sxy">
+      <Filter>ScriptGen Files\SXY</Filter>
+    </None>
+    <None Include="mhost.os.inl">
+      <Filter>Generated  Files</Filter>
+    </None>
+    <None Include="mhost.sxh.inl">
+      <Filter>Generated  Files</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\mhost.include.sxy">
+      <Filter>ScriptGen Files\SXY</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\mhost.types.sxy">
+      <Filter>ScriptGen Files\SXY</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\keys.sxy">
       <Filter>ScriptGen Files\SXY</Filter>
     </None>
   </ItemGroup>

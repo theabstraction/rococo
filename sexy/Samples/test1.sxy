@@ -1,17 +1,16 @@
-(namespace EntryPoint)
-(using Sys.Maths)
-(using EntryPoint)
-(interface Sys.IFidelio
-	(Id -> (Int32 id))
-)
-(class Fidelio (implements Sys.IFidelio))
-(method Fidelio.Id -> (Int32 id): (id = 12))
-(method Fidelio.Construct -> : )
-(factory Sys.Fidelio Sys.IFidelio : (construct Fidelio))
+(namespace EntryPoint) 
+(using Sys) 
 
-(function Main -> (Int32 result):
-	(Sys.IFidelio f (Sys.Fidelio))
-	(Sys.IFidelio g = f)
-	(g.Id -> result)
+(using Sys.Type) 
+
+(function Main -> (Int32 result): 
+	(array Int32 indices 4)
+	(indices.Push 1)
+	(foreach i # indices
+		(Int32 j = 6)
+		(return)
+	)
+   (result = 7)
 )
+
 (alias Main EntryPoint.Main)

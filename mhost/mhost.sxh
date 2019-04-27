@@ -1,5 +1,9 @@
 (config mhost.xc) 
 
+(functions MHost.OS "mhost.os"
+	(IsKeyPressed (KeyState keys)(Int32 vKeyCode)->(Bool isPressed) : MHost::OS::IsKeyPressed)
+)
+
 (enum Int32
 	(as.sxy Rococo.AlignmentFlags "../content/scripts/mhost/mhost")
 	(as.cpp Rococo.AlignmentFlags "mhost")
@@ -13,7 +17,7 @@
 		(Flip 32)
 	)
 )
- 
+
 (interface
 	(as.sxy MHost.IScreenBuilder "../content/scripts/mhost/mhost")
 	(as.cpp MHost.IScreenBuilder "mhost")

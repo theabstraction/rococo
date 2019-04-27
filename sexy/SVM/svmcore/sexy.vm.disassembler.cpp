@@ -1087,22 +1087,21 @@ namespace
 	void FormatDereferenceD4(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		format(rep, (""));
-		rep.ByteCount += 1;
+		rep.ByteCount = 1;
 	}
 
 	void FormatSetSFValueFromSFValueLong(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		auto& args = (ArgsSetSFValueFromSFValue&)I;
 		format(rep, "SF(%d)=SF(%d) %d bytes", args.sfTargetOffset, args.sfSourceOffset, args.byteCount);
-		rep.ByteCount += sizeof(ArgsSetSFValueFromSFValue);
+		rep.ByteCount = sizeof(ArgsSetSFValueFromSFValue);
 	}
 
 	void FormatSetSFValueFromSFMemberByRef(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		auto& args = (ArgsSetSFValueFromSFMemberRef&)I;
-		rep.ByteCount += sizeof(args);
 		format(rep, "SF(%d)=SF(%d.%d) %d bytes", args.targetSFOffset, args.srcSFOffset, args.srcMemberOffset, args.nBytesSource);
-		rep.ByteCount += sizeof(args);
+		rep.ByteCount = sizeof(ArgsSetSFValueFromSFMemberRef);
 	}
 
 	void BuildFormatTable()

@@ -4049,6 +4049,24 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->ClearActions();
 	}
+	void NativeRococoIKeyboardGetVKeyFromName(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::IKeyboard* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 vkCode = _pObject->GetVKeyFromName(name);
+		_offset += sizeof(vkCode);
+		WriteOutput(vkCode, _sf, -_offset);
+	}
 	void NativeRococoIKeyboardSetKeyName(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -4120,6 +4138,7 @@ namespace Rococo {
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoKeyboard, _nceContext, ("GetHandleForIKeyboard0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeRococoIKeyboardClearActions, nullptr, ("IKeyboardClearActions (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoIKeyboardGetVKeyFromName, nullptr, ("IKeyboardGetVKeyFromName (Pointer hObject)(Sys.Type.IString name) -> (Int32 vkCode)"));
 		ss.AddNativeCall(ns, NativeRococoIKeyboardSetKeyName, nullptr, ("IKeyboardSetKeyName (Pointer hObject)(Sys.Type.IString name)(Int32 vkeyCode) -> "));
 		ss.AddNativeCall(ns, NativeRococoIKeyboardBindAction, nullptr, ("IKeyboardBindAction (Pointer hObject)(Sys.Type.IString keyName)(Sys.Type.IString actionName) -> "));
 		ss.AddNativeCall(ns, NativeRococoIKeyboardSaveCppHeader, nullptr, ("IKeyboardSaveCppHeader (Pointer hObject) -> "));

@@ -813,7 +813,7 @@ namespace Rococo
       void RepairStack(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, int extraArgs)
       {
 	      MarkStackRollback(ce, s);
-	      ce.Builder.PopLastVariables(callee.NumberOfInputs() + callee.NumberOfOutputs() + extraArgs);
+	      ce.Builder.PopLastVariables(callee.NumberOfInputs() + callee.NumberOfOutputs() + extraArgs, true);
       }
 
       int CompileVirtualCallKernel(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, const IInterface& interfaceRef)

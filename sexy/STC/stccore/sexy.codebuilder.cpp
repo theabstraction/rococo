@@ -248,7 +248,7 @@ namespace
 		virtual bool TryGetControlFlowPoint(OUT ControlFlowData& data);
 		virtual const bool NeedsParentsSF() const { return codeReferencesParentsSF; }
 
-		virtual void PopLastVariables(int count);
+		virtual void PopLastVariables(int count, bool expireVariables);
 		virtual const StackRecoveryData& GetRequiredStackCorrection(size_t codeOffset) const;
 		virtual void NoteStackCorrection(int stackCorrection);
 		virtual void NoteDestructorPosition(int instancePosition, const IStructure& type);
@@ -653,7 +653,7 @@ namespace
 		}
 	}
 
-	void CodeBuilder::PopLastVariables(int count)
+	void CodeBuilder::PopLastVariables(int count, bool expireVariables)
 	{
 		int bytesToFree = 0;
 
@@ -680,8 +680,12 @@ namespace
 			}
 			
 			v->SetPCEnd(Assembler().WritePosition());
-			variables.pop_back();
-			expiredVariables.push_back(v);
+
+			if (expireVariables)
+			{
+				variables.pop_back();
+				expiredVariables.push_back(v);
+			}
 
 			int tempDepth = v->TempDepthOnRelease();
 			if (tempDepth >= 0)

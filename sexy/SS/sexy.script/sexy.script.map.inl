@@ -744,7 +744,7 @@ namespace Rococo
 
          ConstructMemberByRef(ce, args, 6, type, 0);
 
-         ce.Builder.PopLastVariables(1);
+         ce.Builder.PopLastVariables(1, true);
       }
 
       void ConstructByRef(CCompileEnvironment& ce, cr_sex args, int tempDepth, const IStructure& type)
@@ -1137,7 +1137,7 @@ namespace Rococo
          ptrdiff_t endLoop = ce.Builder.Assembler().WritePosition();
          ce.Builder.Assembler().Append_BranchIf(Rococo::CONDITION_IF_NOT_EQUAL, (int32)(startLoop - endLoop));
 
-         ce.Builder.PopLastVariables(indexName != NULL ? 4 : 2); // Release the D10-D12 and the ref. We need to release the ref manually to stop the refcount decrement
+         ce.Builder.PopLastVariables(indexName != NULL ? 4 : 2, true); // Release the D10-D12 and the ref. We need to release the ref manually to stop the refcount decrement
 
          size_t exitPos = ce.Builder.Assembler().WritePosition();
          size_t bailoutToExit = exitPos - bailoutPos;
@@ -1145,7 +1145,7 @@ namespace Rococo
          ce.Builder.Assembler().Append_BranchIf(CONDITION_IF_EQUAL, (int32)bailoutToExit);
          ce.Builder.Assembler().SetWriteModeToAppend();
 
-         ce.Builder.PopLastVariables(1);
+         ce.Builder.PopLastVariables(1,true);
       }
    }// Script
 }// Sexy

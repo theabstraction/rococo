@@ -239,7 +239,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::KeyState* keys;
+		MHost::OS::KeyState* keys;
 		_offset += sizeof(keys);
 		ReadInput(keys, _sf, -_offset);
 
@@ -307,7 +307,7 @@ namespace MHost {
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForMHostEngine, _nceContext, ("GetHandleForIEngine0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeMHostIEnginePollKeyState, nullptr, ("IEnginePollKeyState (Pointer hObject)(MHost.KeyState keys) -> "));
+		ss.AddNativeCall(ns, NativeMHostIEnginePollKeyState, nullptr, ("IEnginePollKeyState (Pointer hObject)(MHost.OS.KeyState keys) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineScreenBuilder, nullptr, ("IEngineScreenBuilder (Pointer hObject) -> (MHost.IScreenBuilder s)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineIsRunning, nullptr, ("IEngineIsRunning (Pointer hObject) -> (Bool isRunning)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineYieldForSystemMessages, nullptr, ("IEngineYieldForSystemMessages (Pointer hObject)(Int32 sleepMS) -> "));

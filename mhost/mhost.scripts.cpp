@@ -13,9 +13,25 @@ namespace MHost
 	{
 		return _context;
 	}
+
+	namespace OS
+	{
+		boolean32 IsKeyPressed(const KeyState& keyState, int32 vkCode)
+		{
+			if (vkCode < 0 || vkCode >= 256)
+			{
+				return false;
+			}
+			else
+			{
+				return (keyState.keys[vkCode] & 0x80) != 0;
+			}
+		}
+	}
 }
 
 #include "mhost.sxh.inl"
+#include "mhost.os.inl"
 
 namespace MHost
 {
@@ -37,6 +53,7 @@ namespace MHost
 #endif
 				AddNativeCalls_MHostIScreenBuilder(args.ss, engine->ScreenBuilder());
 				AddNativeCalls_MHostIEngine(args.ss, engine);
+				MHost::OS::AddNativeCalls_MHostOS(args.ss);
 			}
 
 		public:

@@ -168,6 +168,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="mhost.h" />
+    <ClInclude Include="mhost.sxh.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>
   <ItemGroup>
@@ -182,9 +183,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\content\scripts\mhost\galaxians.sxy" />
+    <None Include="..\content\scripts\mhost\keys.sxy" />
+    <None Include="..\content\scripts\mhost\mhost.include.sxy" />
     <None Include="..\content\scripts\mhost\mhost.sxh.sxy" />
+    <None Include="..\content\scripts\mhost\mhost.types.sxy" />
     <None Include="..\content\scripts\mhost\mplat.types.sxy" />
+    <None Include="mhost.os.inl" />
     <None Include="mhost.sxh" />
+    <None Include="mhost.sxh.inl" />
     <None Include="mhost.xc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

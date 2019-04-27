@@ -470,7 +470,7 @@ namespace Rococo
             AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, bits);
             GetAtomicValue(ce, rightExpr, right, type);
             ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, GetBitCount(type));
-            ce.Builder.PopLastVariables(1);
+            ce.Builder.PopLastVariables(1,true);
 
             AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, Rococo::ROOT_TEMPDEPTH);
          }
@@ -506,7 +506,7 @@ namespace Rococo
 
             AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + A, Rococo::ROOT_TEMPDEPTH + A, bits);
             TryCompileArithmeticExpression(ce, s, true, type);
-            ce.Builder.PopLastVariables(1);
+            ce.Builder.PopLastVariables(1,true);
 
             ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + B, bits);
          }
@@ -528,7 +528,7 @@ namespace Rococo
          AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, bits);
          TryCompileArithmeticExpression(ce, right, true, type);
          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, bits);
-         ce.Builder.PopLastVariables(1);
+         ce.Builder.PopLastVariables(1,true);
          AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, Rococo::ROOT_TEMPDEPTH);
       }
 

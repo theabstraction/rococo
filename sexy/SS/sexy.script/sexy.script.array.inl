@@ -762,7 +762,7 @@ namespace Rococo
 			   ce.Builder.AssignVariableRefToTemp(value.String()->Buffer, Rococo::ROOT_TEMPDEPTH); // The value reference is in D7 
 		   }
 
-		   ce.Builder.PopLastVariables(1);
+		   ce.Builder.PopLastVariables(1, true);
 		   ce.Builder.AssignVariableRefToTemp(instance, 1, 0); // The array is in D5
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);

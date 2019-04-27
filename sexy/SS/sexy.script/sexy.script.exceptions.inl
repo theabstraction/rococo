@@ -67,7 +67,7 @@ namespace Rococo
 
          ce.Builder.AddSymbol(("end-catch"));
 
-         ce.Builder.PopLastVariables(1); // That pops the reference to the exception
+         ce.Builder.PopLastVariables(1,true); // That pops the reference to the exception
 
          size_t cleanupPos = ce.Builder.Assembler().WritePosition();
          size_t buildToCleanupDelta = cleanupPos - gotoCleanupPos;
@@ -165,7 +165,7 @@ namespace Rococo
 
          MarkStackRollback(ce, s);
 
-         ce.Builder.PopLastVariables(1); // Correct the stack - N.B, this allows continue strategy
+         ce.Builder.PopLastVariables(1,true); // Correct the stack - N.B, this allows continue strategy
       }
    }//Script
 }//Sexy

@@ -866,7 +866,7 @@ namespace
       {
          this->throwToQuit = false;
 
-         tracer.Report(cpu);
+         tracer.Report();
 
          while (status == EXECUTERESULT_RUNNING)
          {
@@ -875,7 +875,7 @@ namespace
             FN_VM fn = s_instructionTable[i];
             (this->*fn)();
 
-            tracer.Report(cpu);
+            tracer.Report();
          }
 
          return status;

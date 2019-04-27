@@ -2237,7 +2237,7 @@ namespace Rococo
 			ce.Builder.TryGetVariableByName(nameDef, toName->Buffer);
 			ce.Builder.Assembler().Append_SetStackFrameValue(nameDef.SFOffset, VM::REGISTER_D4, BITCOUNT_POINTER);
 
-			ce.Builder.PopLastVariables(2);
+			ce.Builder.PopLastVariables(2, true);
 		}
 
 		void CompileCast(CCompileEnvironment& ce, cr_sex s)

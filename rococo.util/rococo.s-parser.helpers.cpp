@@ -1228,8 +1228,49 @@ namespace Rococo
 	{
 		try
 		{
-			EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(true, false));
-			return result;
+			if (Rococo::OS::IsDebugging())
+			{
+				struct ANON : VM::ITraceOutput
+				{
+					Rococo::Script::IPublicScriptSystem& ss;
+					IVirtualMachine& vm;
+					AutoFree<VM::IDisassembler> disassembler;
+
+					ANON(Rococo::Script::IPublicScriptSystem& _ss, IVirtualMachine& _vm) : vm(_vm), ss(_ss)
+					{
+						disassembler = vm.Core().CreateDisassembler();
+					}
+
+					void Report() override
+					{
+						VM::IDisassembler::Rep rep;
+						disassembler->Disassemble(vm.Cpu().PC(), rep);
+
+						auto id = ss.PublicProgramObject().ProgramMemory().GetFunctionContaingAddress(vm.Cpu().PC() - vm.Cpu().ProgramStart);
+						auto* f = GetFunctionFromBytecode(ss.PublicProgramObject(), id);
+
+						char line[256];
+
+						if (f)
+						{
+							SafeFormat(line, 256, "[ %s ] %s: %s\n", f->Name(), rep.OpcodeText, rep.ArgText);
+						}
+						else
+						{
+							SafeFormat(line, 256, "[ ] %s: %s\n", rep.OpcodeText, rep.ArgText);
+						}
+
+						OutputDebugStringA(line);
+					}
+				} tracer(ss, vm);
+				EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(true, false), &tracer);
+				return result;
+			}
+			else
+			{
+				EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(true, false));
+				return result;
+			}
 		}
 		catch (IException& ex)
 		{
@@ -1328,7 +1369,7 @@ namespace Rococo
 			{
 				result = ExecuteAndCatchIException(vm, ss, debugger);
 			}
-				CATCH_PROTECTED
+			CATCH_PROTECTED
 			{
 				result = EXECUTERESULT_SEH;
 			}

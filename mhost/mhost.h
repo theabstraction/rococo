@@ -5,12 +5,15 @@
 
 using namespace Rococo;
 
-namespace Rococo
+namespace MHost 
 {
-	struct KeyState
+	namespace OS
 	{
-		uint8 keys[256];
-	};
+		struct KeyState
+		{
+			uint8 keys[256];
+		};
+	}
 }
 
 namespace MHost

@@ -13,6 +13,7 @@
 (using Sys.Type)
 (using Sys.MPlat)
 (using MHost)
+(using MHost.OS)
 (using Rococo)
 (using Rococo.Graphics)
 
@@ -33,6 +34,7 @@
 	(Int32 leftKey)
 	(Int32 rightKey)
 	(Int32 fireKey)
+	(Int32 playerDirection)
 )
 
 (struct World
@@ -45,7 +47,7 @@
 	(Controls controls)
 )
 
-(method World.Construct -> (construct aliens 40) (construct missiles 4) :
+(method World.Construct -> (construct aliens 1) (construct missiles 4) :
 	(this.direction = 1)
 )
 
@@ -62,9 +64,9 @@
 
 (function ForEachEntity (World world)(OnEntity onEntity)-> :
 	(foreach alien # world.aliens (onEntity alien))
-//	(foreach missile # world.missiles (onEntity missile))
+	(foreach missile # world.missiles (onEntity missile))
 	(onEntity world.player)
-//	(onEntity world.playerMissile)
+	(onEntity world.playerMissile)
 )
 
 (function Init (World world)(IEngine engine)-> :
@@ -73,9 +75,9 @@
 	(IString pawn1 = "!textures/mhost/pawn.1.tiff")
 	(IString pawn2 = "!textures/mhost/pawn.1.tiff")
 	
-	(#for (Int32 j = 0)(j < 4)(#inc j)
+	(#for (Int32 j = 0)(j < 1)(#inc j)
 		(Int32 y = (10 + (j * 40)))
-		(#for (Int32 i = 0)(i < 10)(#inc i)
+		(#for (Int32 i = 0)(i < 1)(#inc i)
 			(Int32 x = (10 + (i * 40)))
 			(Entity a0 = (x  y) (pawn1 defaultBmpLoc) (pawn2 defaultBmpLoc))
 			(world.aliens.Push a0)
@@ -83,20 +85,20 @@
 	)
 	
 	(world.player = (70  400) ("!textures/mhost/player.1.tiff" defaultBmpLoc) ("!textures/mhost/player.2.tiff" defaultBmpLoc))
-	(world.playerMissile = (70  300) ("!textures/mhost/missile.1.tiff" defaultBmpLoc) ("!textures/mhost/missile.2.tiff" defaultBmpLoc))
+	(world.playerMissile = (-100 -100) ("!textures/mhost/missile.1.tiff" defaultBmpLoc) ("!textures/mhost/missile.2.tiff" defaultBmpLoc))
 	
 	(IScreenBuilder s = (engine.ScreenBuilder))
 	(OnEntity initSprites = (closure (Entity e)-> : (InitEntitySprites s e)))
 	(ForEachEntity world initSprites)
 	
 	(IKeyboard keyboard (Keyboard))
-	(world.controls.leftKey = (keyboard.GetVKey "A"))
-	(world.controls.rightKey = (keyboard.GetVKey "D"))
-	(world.controls.fireKey = (keyboard.GetVKey "SPACE"))
+	(world.controls.leftKey = (keyboard.GetVKeyFromName "A"))
+	(world.controls.rightKey = (keyboard.GetVKeyFromName "D"))
+	(world.controls.fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
 )
 
 (function DrawEntity (Entity e)(IScreenBuilder sb) -> :
-	(Int32 alignmentFlags = ((#AlignmentFlagsLeft) + (#AlignmentFlagsTop)))
+	(Int32 alignmentFlags = 0) // centred
 	(sb.DrawSprite e.screenPosition alignmentFlags e.image1.location)
 )
 
@@ -106,20 +108,47 @@
 	(s.Render)
 )
 
+(function TryFireMissile (World world)-> :
+	(if (world.playerMissile.screenPosition.y < -30)
+		(world.playerMissile.screenPosition = world.player.screenPosition)
+	)
+)
+
 (function UpdatePlayer (World world)(IEngine engine)-> :
 	(KeyState keys)
 	(engine.PollKeyState keys)
 	
-	(Int32 playerDirection = 0)
-	(if (IsKeySet keys world.controls.leftKey)
-		(#dec playerDirection)
-	)
-	(if (IsKeySet keys world.controls.rightKey)
-		(#inc playerDirection)
+	(world.controls.playerDirection = 0)
+	(if (IsKeyPressed keys world.controls.leftKey)
+		(world.controls.playerDirection = -1)
 	)
 	
-	(if (IsKeySet keys world.controls.fireKey)
+	(if (IsKeyPressed keys world.controls.rightKey)
+		(world.controls.playerDirection = 1)
 	)
+	
+	(if (IsKeyPressed keys world.controls.fireKey)
+		(TryFireMissile world)
+	)
+)
+
+(function TestForAlienCollision (World world)-> :
+	(trip)
+	(Vec2i tip = world.playerMissile.screenPosition)
+	(tip.y = (tip.y - 16))
+	
+	(foreach alien # world.aliens
+		(Vec2i delta = alien.screenPosition - tip)
+		(if ((delta.x > -3) and (delta.x < 3))
+			(if ((delta.y > -16) and (delta.y < 16))
+				(alien.screenPosition.y = -100)
+				(world.playerMissile.screenPosition.y = -100)
+				(trip)
+				(return)
+			)
+		)
+	)
+	(trip)
 )
 
 (function Advance (World world)-> :
@@ -131,6 +160,19 @@
 		(if (alien.screenPosition.x < 10)
 			(world.direction = 1)
 		)
+	)
+	
+	(if ((world.player.screenPosition.x > 40) and (world.controls.playerDirection < 0))
+		(world.player.screenPosition.x = (world.player.screenPosition.x - 2) )
+	)
+	
+	(if ((world.player.screenPosition.x < 1040) and (world.controls.playerDirection > 0))
+		(world.player.screenPosition.x = (world.player.screenPosition.x + 2) )
+	)
+	
+	(if (world.playerMissile.screenPosition.y > -32)
+		(world.playerMissile.screenPosition.y = (world.playerMissile.screenPosition.y - 8))
+		(TestForAlienCollision world)
 	)
 )
 

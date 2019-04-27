@@ -12,6 +12,7 @@ namespace MHost
 	using namespace Rococo::Entities;
 	using namespace Rococo::Events;
 	using namespace Rococo::Textures;
+	using namespace MHost::OS;
 
 	auto evPopulateBusyCategoryId = "busy.category"_event;
 	auto evPopulateBusyResourceId = "busy.resource"_event;

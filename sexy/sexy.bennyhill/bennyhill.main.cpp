@@ -812,25 +812,25 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 
 		sexstring cmd = command.String();
 
-		if (AreEqual(("config"), cmd))
+		if (AreEqual("config", cmd))
 		{
 			if (hasConfig) Throw(command, ("Only one config entry permitted"));
 			ParseConfigSpec(topLevelItem, pc);
 			hasConfig = true;
 		}
-		else if (AreEqual(("functions"), cmd))
+		else if (AreEqual("functions", cmd))
 		{
 			if (hasFunctions) Throw(command, ("Only one set of functions can be defined in the generator file"));
 			if (!hasConfig) Throw(command, ("Must define a (config <config-path>) entry before all functions"));
 			ParseFunctions(topLevelItem, pc);
 			hasFunctions = true;
 		}
-		else if (AreEqual(("interface"), cmd))
+		else if (AreEqual("interface", cmd))
 		{
 			if (!hasConfig) Throw(command, ("Must define a (config <config-path>) entry before all interfaces"));
 			ParseInterface(topLevelItem, pc, interfaceDefOrder);
 		}
-		else if (AreEqual(("enum"), cmd))
+		else if (AreEqual("enum", cmd))
 		{
 			if (!hasConfig) Throw(command, ("Must define a (config <config-path>) entry before all enumerations"));
 			ParseEnum(topLevelItem, pc);

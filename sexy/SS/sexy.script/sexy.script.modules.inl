@@ -684,6 +684,38 @@ namespace Rococo { namespace Script
 		AppendInvokeCallDestructor(ce, s, instanceName, instanceDef.SFOffset);
 	}
 
+	void AppendDeconstructOneVariable(CCompileEnvironment& ce, cr_sex sequence, int index)
+	{
+		MemberDef def;
+		cstr instanceName;
+		ce.Builder.GetVariableByIndex(OUT def, OUT instanceName, index);
+
+		if (def.SFOffset < 0) Throw(sequence, ("Algorithmic error #2 in deconstruction logic"));
+
+		if (def.Usage == ARGUMENTUSAGE_BYVALUE && def.ResolvedType->VarType() == VARTYPE_Derivative && def.ResolvedType->InterfaceCount() == 0)
+		{
+			AppendInvokeDestructor(ce, instanceName, sequence, def);
+		}
+
+		if (*def.ResolvedType == ce.Object.Common().TypeNode())
+		{
+			// Expecting node to be by ARGUMENTUSAGE_BYVALUE and allocsize to be zero, as the only such here are pseudo variables
+			// After the pseudo variable we can expect the actual reference, a pointer type by value
+
+			ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+			AppendInvoke(ce, GetListCallbacks(ce).NodeReleaseRef, sequence); // release the ref to the node
+		}
+		else if (*def.ResolvedType == ce.Object.Common().TypeMapNode())
+		{
+			// Expecting node to be by ARGUMENTUSAGE_BYVALUE and allocsize to be zero, as the only such here are pseudo variables
+			// After the pseudo variable we can expect the actual reference, a pointer type by value
+
+			ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+			AppendInvoke(ce, GetMapCallbacks(ce).MapNodeReleaseRef, sequence); // release the ref to the node
+		}
+	}
+
+	/* Used to deconstruct all nested sequences. Typically when a return statement is hit*/
 	void AppendDeconstructAll(CCompileEnvironment& ce, cr_sex sequence)
 	{
 		int backRef = ce.Builder.GetVariableCount() - 1;
@@ -694,21 +726,12 @@ namespace Rococo { namespace Script
 		{
 			if (backRef < 0) Throw(sequence, ("Algorithmic error #1 in deconstruction logic"));
 
-			MemberDef def;
-			cstr instanceName;
-			ce.Builder.GetVariableByIndex(OUT def, OUT instanceName, backRef);
-
-			if (def.SFOffset < 0) Throw(sequence, ("Algorithmic error #2 in deconstruction logic"));
-
-			if (def.Usage == ARGUMENTUSAGE_BYVALUE && def.ResolvedType->VarType() == VARTYPE_Derivative && def.ResolvedType->InterfaceCount() != 0)
-			{
-				AppendInvokeDestructor(ce, instanceName, sequence, def);
-			}
+			AppendDeconstructOneVariable(ce, sequence, backRef);
 
 			backRef--;
 		}
 
-		ce.Builder.PopLastVariables(numberOfVariables);
+		ce.Builder.PopLastVariables(numberOfVariables, false);
 	}
 
 	void AppendDeconstruct(CCompileEnvironment& ce, cr_sex sequence)
@@ -720,38 +743,11 @@ namespace Rococo { namespace Script
 		for(int i = numberOfVariables; i > 0; i--)
 		{
 			if (backRef < 0) Throw(sequence, ("Algorithmic error #1 in deconstruction logic"));
-
-			MemberDef def;
-			cstr instanceName;
-			ce.Builder.GetVariableByIndex(OUT def, OUT instanceName, backRef);
-			
-			if (def.SFOffset < 0) Throw(sequence, ("Algorithmic error #2 in deconstruction logic"));
-
-			if (def.Usage == ARGUMENTUSAGE_BYVALUE && def.ResolvedType->VarType() == VARTYPE_Derivative && def.ResolvedType->InterfaceCount() == 0)
-			{
-				AppendInvokeDestructor(ce, instanceName, sequence, def);
-			}
-				
-			if (*def.ResolvedType == ce.Object.Common().TypeNode())
-			{
-				// Expecting node to be by ARGUMENTUSAGE_BYVALUE and allocsize to be zero, as the only such here are pseudo variables
-				// After the pseudo variable we can expect the actual reference, a pointer type by value
-				
-				ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
-				AppendInvoke(ce, GetListCallbacks(ce).NodeReleaseRef, sequence); // release the ref to the node
-			}
-			else if (*def.ResolvedType == ce.Object.Common().TypeMapNode())
-			{
-				// Expecting node to be by ARGUMENTUSAGE_BYVALUE and allocsize to be zero, as the only such here are pseudo variables
-				// After the pseudo variable we can expect the actual reference, a pointer type by value
-				
-				ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
-				AppendInvoke(ce, GetMapCallbacks(ce).MapNodeReleaseRef, sequence); // release the ref to the node
-			}
+			AppendDeconstructOneVariable(ce, sequence, backRef);
 			backRef--;			
 		}
 
-		ce.Builder.PopLastVariables(numberOfVariables);
+		ce.Builder.PopLastVariables(numberOfVariables, true);
 	}
 
 	void CompileExpressionSequenceProtected(CCompileEnvironment& ce, int start, int end, cr_sex sequence)
@@ -786,8 +782,6 @@ namespace Rococo { namespace Script
 		}
 
 		AppendDeconstruct(ce, sequence);
-		//AppendDeconstructAll(ce, sequence);
-
 		ce.Builder.LeaveSection();
 	}
 
@@ -935,7 +929,7 @@ namespace Rococo { namespace Script
 				// ToDo -> remove archiving when the assembly does not overwrite any registers, save D7
 				AddArchiveRegister(ce, tempDepth, tempDepth, BITCOUNT_POINTER);
 				CompileNumericExpression(ce, arg, mtype.VarType()); // Numeric value in D7
-				ce.Builder.PopLastVariables(1); // VM::REGISTER_D4 + tempDepth contains the value pointer
+				ce.Builder.PopLastVariables(1,true); // VM::REGISTER_D4 + tempDepth contains the value pointer
 				ce.Builder.Assembler().Append_Poke(VM::REGISTER_D7, GetBitCount(mtype.VarType()), VM::REGISTER_D4 + tempDepth, offset); // write the argument to the member	
 			}
 			else if (mtype.VarType() == VARTYPE_Derivative)

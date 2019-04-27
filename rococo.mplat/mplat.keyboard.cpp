@@ -15,6 +15,7 @@ namespace
    class Keyboard : public IKeyboardSupervisor
    {
       std::array<std::string, 512> codes;
+	  std::unordered_map<std::string, int32> mapNameToVkCode;
       std::unordered_map<std::string, std::string> actionBinds;
       HKL hLocale;
    public:
@@ -32,6 +33,12 @@ namespace
       {
          actionBinds[keyName.buffer] = actionName.buffer;
       }
+
+	  int32 GetVKeyFromName(const fstring& name)
+	  {
+		  auto i = mapNameToVkCode.find((cstr)name);
+		  return i == mapNameToVkCode.end() ? 0 : i->second;
+	  }
 
       virtual cstr GetAction(cstr keyName)
       {
@@ -100,6 +107,8 @@ namespace
          {
             Throw(0, "Bad scancode. 0 <= scancode < %u", codes.size());
          }
+
+		 mapNameToVkCode[(cstr)name] = vkeyCode;
 
          codes[vkeyCode] = name.buffer;
       }

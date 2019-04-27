@@ -2883,12 +2883,15 @@ namespace
       {
          IPublicScriptSystem* ss;
          VM::IDisassembler* dis;
-         virtual void Report(const VM::CPU& cpu) const
+		 VM::IVirtualMachine& vm;
+		 ANON(VM::IVirtualMachine& _vm) : vm(_vm) {}
+
+         virtual void Report()
          {
             VM::IDisassembler::Rep rep;
-            dis->Disassemble(cpu.PC(), rep);
+            dis->Disassemble(vm.Cpu().PC(), rep);
 
-            auto id = ss->PublicProgramObject().ProgramMemory().GetFunctionContaingAddress(cpu.PC() - cpu.ProgramStart);
+            auto id = ss->PublicProgramObject().ProgramMemory().GetFunctionContaingAddress(vm.Cpu().PC() - vm.Cpu().ProgramStart);
             auto* f = GetFunctionFromBytecode(ss->PublicProgramObject(), id);
 
             if (f)
@@ -2900,9 +2903,10 @@ namespace
                printf("[ ] %s: %s\n", rep.OpcodeText, rep.ArgText);
             }
 
-            printf("PC:%16.16llx SP:%16.16llx SF:%16.16llx D4:%16.16llx D5:%16.16llx D6:%16.16llx D7:%16.16llx D8:%16.16llx\n", cpu.D[0].uint64Value, cpu.D[1].uint64Value, cpu.D[2].uint64Value, cpu.D[4].uint64Value, cpu.D[5].uint64Value, cpu.D[6].uint64Value, cpu.D[7].uint64Value, cpu.D[8].uint64Value);
+			auto* D = vm.Cpu().D;
+            printf("PC:%16.16llx SP:%16.16llx SF:%16.16llx D4:%16.16llx D5:%16.16llx D6:%16.16llx D7:%16.16llx D8:%16.16llx\n", D[0].uint64Value, D[1].uint64Value, D[2].uint64Value, D[4].uint64Value, D[5].uint64Value, D[6].uint64Value, D[7].uint64Value, D[8].uint64Value);
          }
-      } tracer;
+      } tracer(vm);
 
       tracer.dis = dis;
       tracer.ss = &ss;
@@ -11752,6 +11756,57 @@ namespace
 	   validate(x == 5);
    }
 
+   void TestArrayWithEarlyReturn(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   "(namespace EntryPoint) \n"
+		   "(using Sys) \n"
+		   "(using Sys.Type) \n"
+		   "(function Main -> (Int32 result): \n"
+		   "		(array Int32 indices 4)\n"
+		   "		(indices.Push 1)\n"
+		   "        (result = 5)\n"
+		   "        (foreach i # indices (return))\n"
+		   "        (result = 7)\n"
+		   ")\n"
+		   "(alias Main EntryPoint.Main) \n";
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(1); // Allocate stack space for the int32 x
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+	   int32 x = vm.PopInt32();
+	   validate(x == 5);
+   }
+
+   void TestArrayWithEarlyReturn2(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   "(namespace EntryPoint) \n"
+		   "(using Sys) \n"
+		   "(using Sys.Type) \n"
+		   "(function Main -> (Int32 result): \n"
+		   "		(array Int32 indices 4)\n"
+		   "		(indices.Push 1)\n"
+		   "        (foreach i # indices  (if (1 == 0) (return)))\n"
+		   "        (result = 7)\n"
+		   ")\n"
+		   "(alias Main EntryPoint.Main) \n";
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(1); // Allocate stack space for the int32 x
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+	   int32 x = vm.PopInt32();
+	   validate(x == 7);
+   }
+
    void RunCollectionTests()
    {
 	   TEST(TestMap);
@@ -11911,6 +11966,8 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestArrayWithEarlyReturn);
+		TEST(TestArrayWithEarlyReturn2);
 		TEST(TestAssignStringToStruct);
 		TEST(TestCaptureStruct);
 		TEST(TestConstructFromInterface);
@@ -12203,6 +12260,7 @@ namespace
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
+		TEST(TestArrayWithEarlyReturn);
 		//TEST(TestStructWithCircularReferences); -> TODO: implement circular reference detection
 
 		RunPositiveSuccesses();

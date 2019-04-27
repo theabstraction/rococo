@@ -579,7 +579,7 @@ namespace Rococo
 
 		 AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + A, Rococo::ROOT_TEMPDEPTH + A, GetBitCount(type));
 		 TryCompileArithmeticExpression(ce, s, true, type);
-		 ce.Builder.PopLastVariables(1);
+		 ce.Builder.PopLastVariables(1,true);
 
          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + B, GetBitCount(type));
 
@@ -663,7 +663,7 @@ namespace Rococo
                   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, bits);
                   TryCompileArithmeticExpression(ce, right, true, guessType);
                   ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, GetBitCount(guessType));
-                  ce.Builder.PopLastVariables(1);
+                  ce.Builder.PopLastVariables(1,true);
 
                   AddBinaryComparison(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, guessType);
                }
@@ -801,7 +801,7 @@ namespace Rococo
          }
 
          if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
-         ce.Builder.PopLastVariables(1);
+         ce.Builder.PopLastVariables(1,true);
 
          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, BITCOUNT_32);
 

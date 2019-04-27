@@ -138,6 +138,7 @@
 	(context factory Rococo.IKeyboard)
 	(methods
 		(ClearActions)
+		(GetVKeyFromName (IString name)->(Int32 vkCode))
 		(SetKeyName (IString name)(Int32 vkeyCode))
 		(BindAction (IString keyName)(IString actionName))
 		(SaveCppHeader)
