@@ -657,11 +657,21 @@ namespace
 	{
 		int bytesToFree = 0;
 
-		for (int i = count; i > 0; i--)
+		if (variables.size() < count) Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Serious algorithmic error in compile. An attempt was made to deconstruct a temp variable that does not exist"));
+
+		for (int i = 0; i < count; i++)
 		{
-			if (variables.empty()) Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Serious algorithmic error in compile. An attempt was made to deconstruct a temp variable that does not exist"));
+			Variable* v;
 			
-			Variable* v = variables.back();
+			if (!expireVariables)
+			{
+				v = variables[variables.size() - 1 - i];
+			}
+			else
+			{
+				v = variables.back();
+			}
+
 			if (v->Offset() < 0)	Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Serious algorithmic error in compile. An attempt was made to deconstruct an argument to a function inside the function"));
 
 			int vOffset = v->Offset();
@@ -678,11 +688,10 @@ namespace
 			{
 				PopMembers(*this, &v->ResolvedType(), v->Name());
 			}
-			
-			v->SetPCEnd(Assembler().WritePosition());
 
 			if (expireVariables)
 			{
+				v->SetPCEnd(Assembler().WritePosition());
 				variables.pop_back();
 				expiredVariables.push_back(v);
 			}

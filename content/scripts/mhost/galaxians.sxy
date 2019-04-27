@@ -47,7 +47,7 @@
 	(Controls controls)
 )
 
-(method World.Construct -> (construct aliens 1) (construct missiles 4) :
+(method World.Construct -> (construct aliens 40) (construct missiles 4) :
 	(this.direction = 1)
 )
 
@@ -77,7 +77,7 @@
 	
 	(#for (Int32 j = 0)(j < 1)(#inc j)
 		(Int32 y = (10 + (j * 40)))
-		(#for (Int32 i = 0)(i < 1)(#inc i)
+		(#for (Int32 i = 0)(i < 4)(#inc i)
 			(Int32 x = (10 + (i * 40)))
 			(Entity a0 = (x  y) (pawn1 defaultBmpLoc) (pawn2 defaultBmpLoc))
 			(world.aliens.Push a0)
@@ -133,22 +133,20 @@
 )
 
 (function TestForAlienCollision (World world)-> :
-	(trip)
 	(Vec2i tip = world.playerMissile.screenPosition)
 	(tip.y = (tip.y - 16))
 	
 	(foreach alien # world.aliens
 		(Vec2i delta = alien.screenPosition - tip)
-		(if ((delta.x > -3) and (delta.x < 3))
-			(if ((delta.y > -16) and (delta.y < 16))
+		(if ((delta.x > -16) and (delta.x < 16))
+			(if ((delta.y > 0) and (delta.y < 32))
+				(trip)
 				(alien.screenPosition.y = -100)
 				(world.playerMissile.screenPosition.y = -100)
-				(trip)
 				(return)
 			)
 		)
 	)
-	(trip)
 )
 
 (function Advance (World world)-> :
