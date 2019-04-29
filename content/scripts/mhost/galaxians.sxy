@@ -45,9 +45,10 @@
 	(Int32 direction)
 	(Vec2 playerPos)
 	(Controls controls)
+	(Int32 killCount)
 )
 
-(method World.Construct -> (construct aliens 40) (construct missiles 4) :
+(method World.Construct -> (construct aliens 54) (construct missiles 4) :
 	(this.direction = 1)
 )
 
@@ -73,18 +74,65 @@
 	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1)
 	
 	(IString pawn1 = "!textures/mhost/pawn.1.tiff")
-	(IString pawn2 = "!textures/mhost/pawn.1.tiff")
+	(IString pawn2 = "!textures/mhost/pawn.2.tiff")
+	(IString pawn3 = "!textures/mhost/pawn.3.tiff")
+	(IString pawn4 = "!textures/mhost/pawn.4.tiff")
+	(IString missile2 = "!textures/mhost/missile.2.tiff")
 	
-	(#for (Int32 j = 0)(j < 1)(#inc j)
-		(Int32 y = (10 + (j * 40)))
+	(world.killCount = 0)
+	
+	// 4 enemy missiles
+	(
 		(#for (Int32 i = 0)(i < 4)(#inc i)
-			(Int32 x = (10 + (i * 40)))
-			(Entity a0 = (x  y) (pawn1 defaultBmpLoc) (pawn2 defaultBmpLoc))
+			(Entity a0 = (1  -40) (missile2 defaultBmpLoc) (missile2 defaultBmpLoc))
+			(world.missiles.Push a0)
+		)
+	)
+	
+	
+	// 2 yellow meanies
+	(
+		(Int32 y = 80)
+		(Int32 x0 = 130)
+		(Entity a0 = (x0  y) (pawn4 defaultBmpLoc) (pawn4 defaultBmpLoc))
+		(world.aliens.Push a0)
+		(Int32 x1 = 250)
+		(Entity a1 = (x1 y) (pawn4 defaultBmpLoc) (pawn4 defaultBmpLoc))
+		(world.aliens.Push a1)
+	)
+	
+	// 1 line of 6 red meanies
+	(
+		(Int32 y = 120)
+		(#for (Int32 i = 0)(i < 6)(#inc i)
+			(Int32 x = (90 + (i * 40)))
+			(Entity a0 = (x  y) (pawn3 defaultBmpLoc) (pawn3 defaultBmpLoc))
 			(world.aliens.Push a0)
 		)
 	)
 	
-	(world.player = (70  400) ("!textures/mhost/player.1.tiff" defaultBmpLoc) ("!textures/mhost/player.2.tiff" defaultBmpLoc))
+	// 1 line 8 purple meanies
+	(
+		(Int32 y = 160)
+		(#for (Int32 i = 0)(i < 8)(#inc i)
+			(Int32 x = (50 + (i * 40)))
+			(Entity a0 = (x  y) (pawn2 defaultBmpLoc) (pawn2 defaultBmpLoc))
+			(world.aliens.Push a0)
+		)
+	)
+	
+	
+	// 3 lines of 10 blue meanies
+	(#for (Int32 j = 3)(j < 6)(#inc j)
+		(Int32 y = (80 + (j * 40)))
+		(#for (Int32 i = 0)(i < 10)(#inc i)
+			(Int32 x = (10 + (i * 40)))
+			(Entity a0 = (x  y) (pawn1 defaultBmpLoc) (pawn1 defaultBmpLoc))
+			(world.aliens.Push a0)
+		)
+	)
+	
+	(world.player = (500 610) ("!textures/mhost/player.1.tiff" defaultBmpLoc) ("!textures/mhost/player.2.tiff" defaultBmpLoc))
 	(world.playerMissile = (-100 -100) ("!textures/mhost/missile.1.tiff" defaultBmpLoc) ("!textures/mhost/missile.2.tiff" defaultBmpLoc))
 	
 	(IScreenBuilder s = (engine.ScreenBuilder))
@@ -138,38 +186,86 @@
 	
 	(foreach alien # world.aliens
 		(Vec2i delta = alien.screenPosition - tip)
-		(if ((delta.x > -16) and (delta.x < 16))
-			(if ((delta.y > 0) and (delta.y < 32))
+		(if ((delta.x > -12) and (delta.x < 12))
+			(if ((delta.y > 0) and (delta.y < 16))
 				(alien.screenPosition.y = -100)
 				(world.playerMissile.screenPosition.y = -100)
+				(#inc world.killCount)
 				(return)
 			)
 		)
 	)
 )
 
+(function TryFireEnemyMissile (World world)-> :
+	(#for (Int32 i = 0)(i < 4)(#inc i)
+		(Entity missile = (world.missiles i))
+		(if (missile.screenPosition.y < 32)
+			(missile.screenPosition.y = 0)
+			(missile.screenPosition.x = world.player.screenPosition.x)
+			(return)
+		)
+	)
+)
+
 (function Advance (World world)-> :
 	(foreach alien # world.aliens
-		(alien.screenPosition.x = (alien.screenPosition.x + world.direction))
-		(if (alien.screenPosition.x > 1000)
-			(world.direction = -1)
-		)
-		(if (alien.screenPosition.x < 10)
-			(world.direction = 1)
+		(if (alien.screenPosition.y > 0)
+			(if (alien.screenPosition.x > 800)
+				(world.direction = -1)
+			)
+			(if (alien.screenPosition.x < 200)
+				(world.direction = 1)
+			)
 		)
 	)
 	
-	(if ((world.player.screenPosition.x > 40) and (world.controls.playerDirection < 0))
+	(Int32 straffeSpeed = 1)
+	
+	(if (world.killCount > 40)
+		(straffeSpeed = 5)
+	else 
+		(if (world.killCount > 30)
+			(straffeSpeed = 4)
+		else
+			(if (world.killCount > 20)
+				(straffeSpeed = 3)
+			else
+				(if (world.killCount > 10)
+					(straffeSpeed = 2)
+				)
+			)
+		)
+	)
+	
+	(Int32 delta = (world.direction * straffeSpeed))
+	
+	(foreach a # world.aliens
+		(a.screenPosition.x = (a.screenPosition.x + delta))
+	)
+	
+	(if ((world.player.screenPosition.x > 200) and (world.controls.playerDirection < 0))
 		(world.player.screenPosition.x = (world.player.screenPosition.x - 2) )
 	)
 	
-	(if ((world.player.screenPosition.x < 1040) and (world.controls.playerDirection > 0))
+	(if ((world.player.screenPosition.x < 800) and (world.controls.playerDirection > 0))
 		(world.player.screenPosition.x = (world.player.screenPosition.x + 2) )
 	)
 	
 	(if (world.playerMissile.screenPosition.y > -32)
 		(world.playerMissile.screenPosition.y = (world.playerMissile.screenPosition.y - 8))
 		(TestForAlienCollision world)
+	)
+	
+	(if ((Sys.Random.AnyFloat 0 1) > 0.9)
+		(TryFireEnemyMissile world)
+	)
+	
+	(#for (Int32 i = 0)(i < 4)(#inc i)
+		(Entity missile = (world.missiles i))
+		(if (missile.screenPosition.y > world.player.screenPosition.x)
+			(missile.screenPosition.y = -40)
+		)
 	)
 )
 

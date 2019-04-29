@@ -198,6 +198,9 @@ namespace MHost
 		AutoFree<IPaneBuilderSupervisor> busyPanel;
 		AppSceneBuilder sceneBuilder;
 
+		HString mainScript = "!scripts/mhost/galaxians.sxy";
+		bool queuedForExecute = true;
+
 		// Busy event handler responds to resource loading and renders progress panel
 		void OnBusy(const Rococo::Events::BusyEvent& be)
 		{
@@ -302,10 +305,10 @@ namespace MHost
 			{
 				platform.utilities.RefreshResource(pingname);
 
-				if (args.Matches("!scripts/hv/main.sxy"))
+				if (args.Matches(mainScript))
 				{
-					platform.gui.LogMessage("Running !scripts/hv/main.sxy");
-					MHost::RunEnvironmentScript(platform, this, "!scripts/hv/main.sxy", true);
+					platform.gui.LogMessage("Running %s", mainScript.c_str());
+					queuedForExecute = true;
 				}
 			}
 			else if (Eq(ext, ".ps"))
@@ -320,7 +323,8 @@ namespace MHost
 			}
 		}
 
-		bool isRunning = true;
+		bool isTerminated = false; // Set to false in YieldForSystemMessages if main window is closed
+		bool isScriptRunning = true; // Will be set to false in YieldForSystemMessages if script rerun required
 
 		IScreenBuilder* ScreenBuilder()
 		{
@@ -329,13 +333,18 @@ namespace MHost
 
 		boolean32 IsRunning()
 		{
-			return isRunning;
+			return !isTerminated && isScriptRunning;
 		}
 
 		void Run() override
 		{
 			RunEnvironmentScript(platform, this, "!scripts/mhost/keys.sxy", true);
-			RunEnvironmentScript(platform, this, "!scripts/mhost/galaxians.sxy", true);
+
+			while (!isTerminated)
+			{
+				isScriptRunning = true;
+				RunEnvironmentScript(platform, this, mainScript, true);
+			}
 		}
 
 		void YieldForSystemMessages(int32 sleepMS) override
@@ -345,7 +354,16 @@ namespace MHost
 
 			if (!control.TryRouteSysMessages(sleepMS))
 			{
-				isRunning = false;
+				isTerminated = true;
+			}
+			else
+			{
+				// Okay message queue is fine, no WM_QUIT yet, but script may have changed, and script must be rerun
+				if (queuedForExecute)
+				{
+					isScriptRunning = false; // Script should detect [isScriptRunning = false] and Run() allows new instance to execute
+					queuedForExecute = false; 
+				}
 			}
 		}
 
