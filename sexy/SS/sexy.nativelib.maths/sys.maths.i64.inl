@@ -124,7 +124,7 @@ namespace
 		_offset += sizeof(x);
 
 		ReadInput(x, _sf, -_offset);
-		int64 value = ToInt32(x);
+		int32 value = ToInt32(x);
 		_offset += sizeof(value);
 		WriteOutput(value, _sf, -_offset);
 	}
@@ -169,7 +169,7 @@ namespace Sys { namespace Maths { namespace I64 {
 		ss.AddNativeCall(ns, NativeSysMathsI64MinValue, nullptr, ("MinValue -> (Int64 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsI64MaxValue, nullptr, ("MaxValue -> (Int64 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsI64Mod, nullptr, ("Mod(Int64 numerator)(Int64 denominator) -> (Int64 remainder)"));
-		ss.AddNativeCall(ns, NativeSysMathsI64ToInt32, nullptr, ("ToInt32(Int64 x) -> (Int64 value)"));
+		ss.AddNativeCall(ns, NativeSysMathsI64ToInt32, nullptr, ("ToInt32(Int64 x) -> (Int32 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsI64ToFloat32, nullptr, ("ToFloat32(Int64 x) -> (Float32 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsI64ToFloat64, nullptr, ("ToFloat64(Int64 x) -> (Float64 value)"));
 	}

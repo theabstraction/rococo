@@ -392,13 +392,13 @@ namespace
 
 	void FormatIntDivide64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, ("%s %s=%s/%s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1+2), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
+		format(rep, ("%s=%s/%s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
 		rep.ByteCount = 4;
 	}
 
 	void FormatIntDivide32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, ("%s %% %s=%s/%s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1+2), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
+		format(rep, ("%s=%s/%s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
 		rep.ByteCount = 3;
 	}
 

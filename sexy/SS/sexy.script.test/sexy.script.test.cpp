@@ -10790,7 +10790,7 @@ namespace
 			"(alias Main EntryPoint.Main)"
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0},"TestRaw");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -10798,6 +10798,174 @@ namespace
 		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateLogs();
 		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+	}
+
+	void TestDeltaOperators(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = "(namespace EntryPoint)"
+			"(using Sys.Maths)"
+			"(using EntryPoint)"
+			"(function Main -> (Int32 result) :"
+			"(Int32 x = 5)"
+				"(Int32 y = 5)"
+				"(x -= 3)"
+				"(if (x != 2) (Sys.Throw 0 \"Bad delta subtract immediate\"))"
+				"(x += 4)"
+				"(if (x != 6) (Sys.Throw 0 \"Bad delta add immediate\"))"
+				"(x *= 2)"
+				"(if (x != 12) (Sys.Throw 0 \"Bad delta multiply immediate\"))"
+				"(x /= 3)"
+				"(if (x != 4) (Sys.Throw 0 \"Bad delta divide immediate\"))"
+				"(x += y)"
+				"(if (x != 9) (Sys.Throw 0 \"Bad delta add variable\"))"
+				"(x -= y)"
+				"(if (x != 4) (Sys.Throw 0 \"Bad delta subtract variable\"))"
+				"(x *= y)"
+				"(if (x != 20) (Sys.Throw 0 \"Bad delta multiply variable\"))"
+				"(x /= y)"
+				"(if (x != 4) (Sys.Throw 0 \"Bad delta divide variable\"))"
+				"(result = x)"
+				")"
+				"(alias Main EntryPoint.Main)"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0}, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateLogs();
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+		
+		int x = vm.PopInt32();
+		validate(x == 4);
+	}
+
+	void TestDeltaOperators3(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = "(namespace EntryPoint)"
+			"(using Sys.Maths)"
+			"(using EntryPoint)"
+			"(function Main -> (Int32 result) :"
+			"(Int64 x = 5)"
+			"(Int64 y = 5)"
+			"(x -= 3)"
+			"(if (x != 2) (Sys.Throw 0 \"Bad delta subtract immediate\"))"
+			"(x += 4)"
+			"(if (x != 6) (Sys.Throw 0 \"Bad delta add immediate\"))"
+			"(x *= 2)"
+			"(if (x != 12) (Sys.Throw 0 \"Bad delta multiply immediate\"))"
+			"(x /= 3)"
+			"(if (x != 4) (Sys.Throw 0 \"Bad delta divide immediate\"))"
+			"(x += y)"
+			"(if (x != 9) (Sys.Throw 0 \"Bad delta add variable\"))"
+			"(x -= y)"
+			"(if (x != 4) (Sys.Throw 0 \"Bad delta subtract variable\"))"
+			"(x *= y)"
+			"(if (x != 20) (Sys.Throw 0 \"Bad delta multiply variable\"))"
+			"(x /= y)"
+			"(if (x != 4) (Sys.Throw 0 \"Bad delta divide variable\"))"
+			"(Sys.Maths.I64.ToInt32 x -> result)"
+			")"
+			"(alias Main EntryPoint.Main)"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateLogs();
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+
+		int x = vm.PopInt32();
+		validate(x == 4);
+	}
+
+	void TestDeltaOperators4(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = "(namespace EntryPoint)"
+			"(using Sys.Maths)"
+			"(using EntryPoint)"
+			"(function Main -> (Int32 result) :"
+			"(Float64 x = 5)"
+			"(Float64 y = 5)"
+			"(x -= 3)"
+			"(if (x != 2) (Sys.Throw 0 \"Bad delta subtract immediate\"))"
+			"(x += 4)"
+			"(if (x != 6) (Sys.Throw 0 \"Bad delta add immediate\"))"
+			"(x *= 2)"
+			"(if (x != 12) (Sys.Throw 0 \"Bad delta multiply immediate\"))"
+			"(x /= 3)"
+			"(if (x != 4) (Sys.Throw 0 \"Bad delta divide immediate\"))"
+			"(x += y)"
+			"(if (x != 9) (Sys.Throw 0 \"Bad delta add variable\"))"
+			"(x -= y)"
+			"(if (x != 4) (Sys.Throw 0 \"Bad delta subtract variable\"))"
+			"(x *= y)"
+			"(if (x != 20) (Sys.Throw 0 \"Bad delta multiply variable\"))"
+			"(x /= y)"
+			"(if (x != 4) (Sys.Throw 0 \"Bad delta divide variable\"))"
+			"(Sys.Maths.F64.ToInt32 x -> result)"
+			")"
+			"(alias Main EntryPoint.Main)"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateLogs();
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+
+		int x = vm.PopInt32();
+		validate(x == 4);
+	}
+
+	void TestDeltaOperators2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = "(namespace EntryPoint)"
+			"(using Sys.Maths)"
+			"(using EntryPoint)"
+			"(function Main -> (Int32 result) :"
+			"(Float32 x = 5)"
+			"(Float32 y = 5)"
+			"(x -= 3)"
+			"(if (x != 2) (Sys.Throw 0 \"Bad delta subtract immediate\"))"
+			"(x += 4)"
+			"(if (x != 6) (Sys.Throw 0 \"Bad delta add immediate\"))"
+			"(x *= 2)"
+			"(if (x != 12) (Sys.Throw 0 \"Bad delta multiply immediate\"))"
+			"(x /= 3)"
+			"(if (x != 4) (Sys.Throw 0 \"Bad delta divide immediate\"))"
+			"(x += y)"
+			"(if (x != 9) (Sys.Throw 0 \"Bad delta add variable\"))"
+			"(x -= y)"
+			"(if (x != 4) (Sys.Throw 0 \"Bad delta subtract variable\"))"
+			"(x *= y)"
+			"(if (x != 20) (Sys.Throw 0 \"Bad delta multiply variable\"))"
+			"(x /= y)"
+			"(if (x != 4) (Sys.Throw 0 \"Bad delta divide variable\"))"
+			"(Sys.Maths.F32.ToInt32 x -> result)"
+			")"
+			"(alias Main EntryPoint.Main)"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateLogs();
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+
+		int x = vm.PopInt32();
+		validate(x == 4);
 	}
 
 	void TestGlobalInt32(IPublicScriptSystem& ss)
@@ -11965,6 +12133,11 @@ namespace
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+
+		TEST(TestDeltaOperators);
+		TEST(TestDeltaOperators2);
+		TEST(TestDeltaOperators3);
+		TEST(TestDeltaOperators4);
 
 		TEST(TestArrayWithEarlyReturn);
 		TEST(TestArrayWithEarlyReturn2);

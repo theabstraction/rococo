@@ -198,6 +198,7 @@
 )
 
 (function TryFireEnemyMissile (World world)-> :
+/*
 	(#for (Int32 i = 0)(i < 4)(#inc i)
 		(Entity missile = (world.missiles i))
 		(if (missile.screenPosition.y < 32)
@@ -206,6 +207,7 @@
 			(return)
 		)
 	)
+	*/
 )
 
 (function Advance (World world)-> :
@@ -261,12 +263,14 @@
 		(TryFireEnemyMissile world)
 	)
 	
+	/*
 	(#for (Int32 i = 0)(i < 4)(#inc i)
 		(Entity missile = (world.missiles i))
 		(if (missile.screenPosition.y > world.player.screenPosition.x)
 			(missile.screenPosition.y = -40)
 		)
 	)
+	*/
 )
 
 (function Main (Int32 id) -> (Int32 exitCode):

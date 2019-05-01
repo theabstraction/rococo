@@ -2655,6 +2655,175 @@ namespace Rococo
 			}
 		}
 
+		enum DeltaFunction
+		{
+			DELTA_SUBTRACT,
+			DELTA_ADD,
+			DELTA_MULTIPLY,
+			DELTA_DIVIDE
+		};
+
+		static const char* deltaOps[]  = { "-=", "+=", "*=", "/=" };
+
+		// Assume delta value is in D4, aggregate is in D5, and target will be D4
+		void Append_FloatDeltaOp(CCompileEnvironment& ce, DeltaFunction opIndex, BITCOUNT bc)
+		{
+			VM::FLOATSPEC spec = (bc == BITCOUNT_64) ? VM::FLOATSPEC_DOUBLE : VM::FLOATSPEC_SINGLE;
+
+			switch (opIndex)
+			{
+			case DELTA_SUBTRACT:
+				ce.Builder.Assembler().Append_FloatSubtract(VM::REGISTER_D5, VM::REGISTER_D4, spec);
+				break;
+			case DELTA_ADD:
+				ce.Builder.Assembler().Append_FloatAdd(VM::REGISTER_D5, VM::REGISTER_D4, spec);
+				break;
+			case DELTA_MULTIPLY:
+				ce.Builder.Assembler().Append_FloatMultiply(VM::REGISTER_D5, VM::REGISTER_D4, spec);
+				break;
+			case DELTA_DIVIDE:
+				ce.Builder.Assembler().Append_FloatDivide(VM::REGISTER_D5, VM::REGISTER_D4, spec);
+				break;
+			}
+		}
+
+		bool TryCompileAsDeltaStatement(CCompileEnvironment& ce, cr_sex s)
+		{
+			int nElements = s.NumberOfElements();
+			if (nElements != 3)
+			{
+				return false;
+			}
+
+			cr_sex lhs = s.GetElement(0);
+			cr_sex ops = s.GetElement(1);
+			cr_sex rhs = s.GetElement(2);
+
+			if (!IsAtomic(lhs) || !IsAtomic(ops)) return false;
+
+			cstr name = lhs.String()->Buffer;
+			cstr op = ops.String()->Buffer;
+
+			MemberDef def;
+			if (!ce.Builder.TryGetVariableByName(def, name))
+				return false;
+
+			int opIndex = -1;
+
+			for (int i = 0; i < 4; i++)
+			{
+				if (AreEqual(deltaOps[i], op))
+				{
+					opIndex = i;
+					break;
+				}
+			}
+
+			if (opIndex == -1)
+			{
+				return false;
+			}
+
+			if (!IsAtomic(rhs))
+			{
+				Throw(rhs, "Delta operator '%s' requires rhs is a variable or a literal value", deltaOps[opIndex]);
+			}
+
+			auto type = def.ResolvedType->VarType();
+
+			switch (type)
+			{
+			case VARTYPE_Int32:
+			case VARTYPE_Int64:
+			case VARTYPE_Float32:
+			case VARTYPE_Float64:
+				break;
+			default:
+				Throw(lhs, "Delta operator '%s' requires lhs is a numeric variable: Int32, Int64, Float32 or Float64", deltaOps[opIndex]);
+			}
+
+			auto bc = GetBitCount(type);
+
+			cstr src = rhs.String()->Buffer;
+
+			VariantValue value;
+			if (Parse::TryParse(value, type, src) == Parse::PARSERESULT_GOOD)
+			{
+				ce.Builder.AssignVariableToTemp(name, 1); // target variable value is now in D5
+
+				if (type == VARTYPE_Int32 || type == VARTYPE_Int64)
+				{
+					switch (opIndex)
+					{
+					case DELTA_SUBTRACT:
+						ce.Builder.Assembler().Append_SubtractImmediate(VM::REGISTER_D5, bc, VM::REGISTER_D4, value);
+						break;
+					case DELTA_ADD:
+						ce.Builder.Assembler().Append_AddImmediate(VM::REGISTER_D5, bc, VM::REGISTER_D4, value);
+						break;
+					case DELTA_MULTIPLY:
+						ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, value, bc);
+						ce.Builder.Assembler().Append_IntMultiply(VM::REGISTER_D5, bc, VM::REGISTER_D4); // result ends in D4
+						break;
+					case DELTA_DIVIDE:
+						ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, value, bc);
+						ce.Builder.Assembler().Append_IntDivide(VM::REGISTER_D5, bc, VM::REGISTER_D4); // result ends in D4
+						break;
+					}
+				}
+				else // F32 or F64
+				{
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, value, bc);
+					Append_FloatDeltaOp(ce, (DeltaFunction) opIndex, bc);
+				}
+			}
+			else
+			{
+				// Assume rhs argument is source variable
+				MemberDef sourceDef;
+				if (!ce.Builder.TryGetVariableByName(sourceDef, src))
+				{
+					Throw(rhs, "Delta operator '%s' requires rhs is a numeric variable or literal value", deltaOps[opIndex]);
+				}
+
+				auto srcType = sourceDef.ResolvedType->VarType();
+
+				if (srcType != type)
+				{
+					Throw(s, "%s and %s must be of the same type", name, src);
+				}
+
+				ce.Builder.AssignVariableToTemp(name, 1); // target variable value is now in D5
+				ce.Builder.AssignVariableToTemp(src, 0); // src variable value is now in D4
+
+				if (type == VARTYPE_Int32 || type == VARTYPE_Int64)
+				{
+					switch (opIndex)
+					{
+					case DELTA_SUBTRACT:
+						ce.Builder.Assembler().Append_IntSubtract(VM::REGISTER_D5, bc, VM::REGISTER_D4);  // result ends in D4
+						break;
+					case DELTA_ADD:
+						ce.Builder.Assembler().Append_IntAdd(VM::REGISTER_D5, bc, VM::REGISTER_D4);  // result ends in D4
+						break;
+					case DELTA_MULTIPLY:
+						ce.Builder.Assembler().Append_IntMultiply(VM::REGISTER_D5, bc, VM::REGISTER_D4); // result ends in D4
+						break;
+					case DELTA_DIVIDE:
+						ce.Builder.Assembler().Append_IntDivide(VM::REGISTER_D5, bc, VM::REGISTER_D4); // result ends in D4
+						break;
+					}
+				}
+				else // F32 or F64
+				{
+					Append_FloatDeltaOp(ce, (DeltaFunction)opIndex, bc);
+				}
+			}
+
+			ce.Builder.AssignTempToVariable(0, name); // D4 now assigned back to the target variable
+			return true;
+		}
+
 		bool TryCompileAsTrivialAssignment(CCompileEnvironment& ce, cr_sex s)
 		{
 			int nElements = s.NumberOfElements();
@@ -2812,6 +2981,9 @@ namespace Rococo
 					return;		
 
 				if (TryCompileAsKeyword(ce, token, s))
+					return;
+
+				if (TryCompileAsDeltaStatement(ce, s))
 					return;
 			}
 		

@@ -1271,10 +1271,8 @@ namespace
 			const VariantValue& A = cpu.D[I->Opmod1];
 			const VariantValue& B = cpu.D[I->Opmod2];
 			VariantValue& quotient = cpu.D[I->Opmod1-1];
-			VariantValue& remainder = cpu.D[I->Opmod2+1];
 
 			quotient.int32Value = A.int32Value / B.int32Value;
-			remainder.int32Value = A.int32Value % B.int32Value;
 		}
 
 		OPCODE_CALLBACK(LogicalAND32)
@@ -2625,10 +2623,8 @@ namespace
 			const VariantValue& A = cpu.D[I->Opmod1];
 			const VariantValue& B = cpu.D[I->Opmod2];
 			VariantValue& quotient = cpu.D[I->Opmod1-1];
-			VariantValue& remainder = cpu.D[I->Opmod2+1];
 
 			quotient.int64Value = A.int64Value / B.int64Value;
-			remainder.int64Value = A.int64Value % B.int64Value;
 		}
 
 		OPCODE_CALLBACK(GetStackFrameValue64)
