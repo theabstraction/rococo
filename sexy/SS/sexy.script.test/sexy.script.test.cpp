@@ -10996,6 +10996,43 @@ namespace
 		validate(x == 6);
 	}
 
+	void TestArrayRefMember(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(struct Entity (Int32 x y)(IString s))"
+			"(struct World (array Entity entities))"
+			"(method World.Construct -> (construct entities 2) : )"
+			"(function Main -> (Int32 result):"
+			"	(Entity e0 = 3 5 \"Hello World\")"
+			"	(Entity e1 = 7 9 \"Goodbye Universe\")"
+			"   (World world ())"
+			"   (world.entities.Push e0)"
+			"   (world.entities.Push e1)"
+			"   (foreach e # (world.entities 0)"
+			"		(result = e.x)"
+			"   )"
+			")"
+			"(alias Main EntryPoint.Main)"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0x3); // add our output to the stack
+
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+
+		int x = vm.PopInt32();
+
+		ValidateLogs();
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+
+		validate(x == 3);
+	}
+
 	void TestGlobalInt32_2(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -11181,25 +11218,6 @@ namespace
 
 	void TestClassDefinesInterface(IPublicScriptSystem& ss)
 	{
-		/*cstr srcCode = This is the equivalent code we want to achieve
-			"(using Sys.Type)\n"
-			"(interface Sys.IDog\n"
-			"	(Woof -> (IString bark))\n"
-			")\n"
-			"(class Dog (implements Sys.IDog)\n"
-			")\n"
-			"(method Dog.Woof -> (IString bark): \n"
-			"	(bark = \"&nWoof&n&n\")\n"
-			")\n"
-			"(method Dog.Construct : )\n"
-			"(factory Sys.Dog Sys.IDog  : (construct Dog))\n"
-			"(namespace EntryPoint)\n"
-			"(function Main -> :\n"
-			"	(Sys.IDog dog(Sys.Dog))\n"
-			"	(Sys.Print dog.Woof)\n"
-			")\n"
-			"(alias Main EntryPoint.Main)\n";*/
-
 		cstr srcCode =
 			"(using Sys.Type)\n"
 			"(class Dog (defines Sys.IDog)\n"
@@ -12134,6 +12152,10 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestMemberwiseInit);
+
+		TEST(TestArrayRefMember);
+
 		TEST(TestDeltaOperators);
 		TEST(TestDeltaOperators2);
 		TEST(TestDeltaOperators3);
@@ -12432,9 +12454,6 @@ namespace
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
-
-		TEST(TestArrayWithEarlyReturn);
-		//TEST(TestStructWithCircularReferences); -> TODO: implement circular reference detection
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

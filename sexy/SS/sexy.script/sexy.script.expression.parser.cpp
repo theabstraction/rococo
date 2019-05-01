@@ -1116,11 +1116,20 @@ namespace Rococo
 					   cr_sex ssource = directive[1 + offset];
 					   sexstring dsttext = ssource.String();
 					   sexstring srctext = secondarg.String();
-					   ce.Builder.AssignVariableToVariable(srctext->Buffer, dsttext->Buffer);
+
+					   if (!IsCapital(srctext->Buffer[0]))
+					   {
+						   ce.Builder.AssignVariableToVariable(srctext->Buffer, dsttext->Buffer);
+					   }
+					   else
+					   {
+						   // Potentially a get accessor function
+						   CompileAssignmentDirectiveFromAtomic(ce, directive, varStruct, explicitKeyword);
+					   }
 				   }
 				   else
 				   {
-					   CompileMemberwiseAssignment(ce, directive, varStruct, offset);
+					  CompileMemberwiseAssignment(ce, directive, varStruct, offset);
 				   }
 			   }
 			   else if (directive.NumberOfElements() == (6 + offset))
@@ -1849,8 +1858,6 @@ namespace Rococo
 
 		void AssertGetVariable(OUT MemberDef& def, cstr name, CCompileEnvironment& ce, cr_sex exceptionSource)
 		{
-			AssertLocalIdentifier(exceptionSource);
-
 			if (!ce.Builder.TryGetVariableByName(def, name))
 			{
 				NamespaceSplitter splitter(name);

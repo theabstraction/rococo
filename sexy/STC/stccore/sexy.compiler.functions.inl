@@ -153,7 +153,14 @@ namespace
 		{
 			if (resolvedType != NULL || _TryResolveArgument())
 			{
-				usage = (VARTYPE_Derivative == resolvedType->VarType()) ? ARGUMENTUSAGE_BYREFERENCE : ARGUMENTUSAGE_BYVALUE;
+				if (direction == ARGDIRECTION_INPUT)
+				{
+					usage = (VARTYPE_Derivative == resolvedType->VarType()) ? ARGUMENTUSAGE_BYREFERENCE : ARGUMENTUSAGE_BYVALUE;
+				}
+				else
+				{
+					usage = ARGUMENTUSAGE_BYVALUE;
+				}
 				return true;
 			}
 
@@ -302,6 +309,20 @@ namespace
 				if (!arg->TryResolveArgument())
 				{
 					return false;
+				}
+				else
+				{
+					if (arg->Direction() == ARGDIRECTION_OUTPUT)
+					{
+						auto* argType = arg->ResolvedType();
+						if (argType != nullptr)
+						{
+							if (argType->VarType() == VARTYPE_Derivative && argType->InterfaceCount() == 0)
+							{
+								Throw(0, "Output arguments cannot be of derived type. Error with output %s in %s", arg->Name(), name.c_str());
+							}
+						}			
+					}
 				}
 			}
 

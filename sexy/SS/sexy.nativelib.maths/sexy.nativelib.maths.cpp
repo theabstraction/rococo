@@ -231,6 +231,22 @@ int64 ToInt64(T t)
 	return (int64)t;
 }
 
+void ClockHz(NativeCallEnvironment& e)
+{
+	LARGE_INTEGER freq;
+	QueryPerformanceFrequency(&freq);
+	int offset = e.code.GetOffset(0);
+	WriteOutput(freq, e.cpu.SF(), offset);
+}
+
+void ClockTicks(NativeCallEnvironment& e)
+{
+	LARGE_INTEGER count;
+	QueryPerformanceCounter(&count);
+	int offset = e.code.GetOffset(0);
+	WriteOutput(count, e.cpu.SF(), offset);
+}
+
 #include "sys.maths.f32.inl"
 #include "sys.maths.f64.inl"
 #include "sys.maths.i32.inl"
@@ -280,6 +296,11 @@ extern "C"
 		private:
 			virtual void AddNativeCalls()
 			{
+				const INamespace& ns = ss.AddNativeNamespace("Sys.Time");
+
+				ss.AddNativeCall(ns, ClockHz, nullptr, "ClockHz -> (Int64 hz)");
+				ss.AddNativeCall(ns, ClockTicks, nullptr, "ClockTicks -> (Int64 count)");
+
 				Sys::Maths::F32::AddNativeCalls_SysMathsF32(ss);
 				Sys::Maths::F64::AddNativeCalls_SysMathsF64(ss);
 				Sys::Maths::I32::AddNativeCalls_SysMathsI32(ss);
