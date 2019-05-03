@@ -959,22 +959,35 @@ namespace Rococo
 
 	namespace OS
 	{
-		bool isRunning = true;
-
-		bool IsRunning()
+		IAppControlSupervisor* CreateAppControl()
 		{
-			return isRunning;
+			struct AppControl : public IAppControlSupervisor
+			{
+				void ShutdownApp() override
+				{
+					isRunning = false;
+					PostQuitMessage(0);
+				}
+
+				bool IsRunning() const
+				{
+					return isRunning;
+				}
+
+				void Free() override
+				{
+					delete this;
+				}
+
+				bool isRunning = true;
+			};
+
+			return new AppControl();
 		}
 
 		void BeepWarning()
 		{
 			MessageBeep(MB_ICONWARNING);
-		}
-
-		void ShutdownApp()
-		{
-			isRunning = false;
-			PostQuitMessage(0);
 		}
 
 		void PrintDebug(const char* format, ...)

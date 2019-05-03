@@ -323,7 +323,6 @@ namespace MHost
 			}
 		}
 
-		bool isTerminated = false; // Set to false in YieldForSystemMessages if main window is closed
 		bool isScriptRunning = true; // Will be set to false in YieldForSystemMessages if script rerun required
 
 		IScreenBuilder* ScreenBuilder()
@@ -331,16 +330,18 @@ namespace MHost
 			return &sceneBuilder;
 		}
 
-		boolean32 IsRunning()
+		// used by a script in Run() via IEngine.Run to determine if it should terminate gracefully
+		// termination should occur of the user interface has collapsed, or script queued for re-run
+		boolean32 IsRunning() override 
 		{
-			return !isTerminated && isScriptRunning;
+			return platform.appControl.IsRunning() && isScriptRunning;
 		}
 
 		void Run() override
 		{
 			RunEnvironmentScript(platform, this, "!scripts/mhost/keys.sxy", true);
 
-			while (!isTerminated)
+			while (platform.appControl.IsRunning())
 			{
 				isScriptRunning = true;
 				RunEnvironmentScript(platform, this, mainScript, true);
@@ -354,14 +355,14 @@ namespace MHost
 
 			if (!control.TryRouteSysMessages(sleepMS))
 			{
-				isTerminated = true;
+				platform.appControl.ShutdownApp();
 			}
 			else
 			{
 				// Okay message queue is fine, no WM_QUIT yet, but script may have changed, and script must be rerun
 				if (queuedForExecute)
 				{
-					isScriptRunning = false; // Script should detect [isScriptRunning = false] and Run() allows new instance to execute
+					isScriptRunning = false; // Script should detect [IEngine.IsRunning] and terminate to allow next script to run
 					queuedForExecute = false; 
 				}
 			}

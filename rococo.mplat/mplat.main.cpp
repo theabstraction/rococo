@@ -3738,7 +3738,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation));
 	AutoFree<IDebuggerEventHandler> debuggerEventHandler(CreateDebuggerEventHandler(*installation, mainWindow->Window()));
-	AutoFree<IDebuggerWindow> debuggerWindow(CreateDebuggerWindow(mainWindow->Window(), debuggerEventHandler->GetMenuCallback()));
+	AutoFree<OS::IAppControlSupervisor> appControl(OS::CreateAppControl());
+	AutoFree<IDebuggerWindow> debuggerWindow(CreateDebuggerWindow(mainWindow->Window(), debuggerEventHandler->GetMenuCallback(), *appControl));
 
 	Rococo::M::InitScriptSystem(*installation);
 
@@ -3762,7 +3763,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Graphics::IMessagingSupervisor> messaging = Graphics::CreateMessaging();
 
 	Tesselators tesselators{ *rimTesselator };
-	Platform platform{ *os, *installation, mainWindow->Renderer(), *rendererConfig, *messaging, *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor, title };
+	Platform platform{ *os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor, title };
 	gui.platform = &platform;
 	utils.SetPlatform(platform);
 	messaging->PostCreate(platform);
@@ -3787,7 +3788,7 @@ int Main(HINSTANCE hInstance, IAppFactory& appFactory, cstr title, HICON hLargeI
 			app->OnCreate();
 
 			AutoFree<IAppManager> appManager = CreateAppManager(mainWindow, *app);
-			appManager->Run(hInstanceLock, *app);
+			appManager->Run(hInstanceLock, *app, platform.appControl);
 		}
 	} proxy;
 

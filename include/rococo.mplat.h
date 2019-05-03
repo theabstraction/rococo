@@ -521,6 +521,9 @@ namespace Rococo
       // Content directory and raw binary file streaming
       IInstallation& installation;
 
+	  // Execution control
+	  OS::IAppControl& appControl;
+
       // Renderer
       IRenderer& renderer;
 

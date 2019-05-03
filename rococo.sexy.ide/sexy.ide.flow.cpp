@@ -203,14 +203,14 @@ namespace Rococo
 	{
 		namespace IDE
 		{
-			int32 ExecuteSexyScriptLoop(ScriptPerformanceStats& stats, size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler)
+			int32 ExecuteSexyScriptLoop(ScriptPerformanceStats& stats, size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler, OS::IAppControl& appControl)
 			{
 				ScriptLogger logger(debugger);
 
 				Auto<ISourceCode> src;
 				Auto<ISParserTree> tree;
 
-				while (OS::IsRunning())
+				while (appControl.IsRunning())
 				{
 					logger.lastError[0] = 0;
 					Script::CScriptSystemProxy ssp(Rococo::Compiler::ProgramInitParameters(maxBytes), logger);

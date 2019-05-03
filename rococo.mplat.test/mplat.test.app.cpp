@@ -152,7 +152,7 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
 
    void OnCommandQuit(cstr uiCommand)
    {
-      OS::ShutdownApp();
+      platform.appControl.ShutdownApp();
    }
 
    void OnCommandPushGraphics(cstr uiCommand)

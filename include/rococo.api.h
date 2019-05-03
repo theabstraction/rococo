@@ -186,8 +186,19 @@ namespace Rococo
 
 	namespace OS
 	{
-		bool IsRunning();
-		void ShutdownApp();
+		ROCOCOAPI IAppControl
+		{
+			virtual bool IsRunning() const = 0;
+			virtual void ShutdownApp() = 0;
+		};
+
+		ROCOCOAPI IAppControlSupervisor: public IAppControl
+		{
+			virtual void Free() = 0;
+		};
+
+		IAppControlSupervisor* CreateAppControl();
+
 		void BeepWarning();
 		void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack);
 		void CopyExceptionToClipboard(IException& ex);

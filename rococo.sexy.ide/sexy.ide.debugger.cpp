@@ -91,6 +91,7 @@ namespace
 		IDebugControl* debugControl;
 		Windows::IDE::ISpatialManager* spatialManager;
 		AutoFree<IWin32Menu> mainMenu;
+		OS::IAppControl& appControl;
 
 		bool isVisible;
 		IDEPANE_ID migratingId;
@@ -171,7 +172,7 @@ namespace
 			}
 		}
 
-		TabbedDebuggerWindowHandler(IEventCallback<MenuCommand>& _menuHandler) :
+		TabbedDebuggerWindowHandler(IEventCallback<MenuCommand>& _menuHandler, OS::IAppControl& _appControl) :
 			mainMenu(Windows::CreateMenu(false)),
 			dialog(nullptr),
 			isVisible(false),
@@ -179,7 +180,8 @@ namespace
 			spatialManager(nullptr),
 			disassemblyId(false), hFont(nullptr),
 			requiredDepth(1),
-			menuHandler(_menuHandler)
+			menuHandler(_menuHandler),
+			appControl(_appControl)
 		{
 			WM_DEBUGGER_TABCHANGED = RegisterWindowMessageA("WM_DEBUGGER_TABCHANGED");
 
@@ -249,6 +251,7 @@ namespace
 			{
 			case MENU_SYS_EXIT:
 				OnClose(hWnd);
+				appControl.ShutdownApp();
 				break;
 			case MENU_SYSFONT:
 				OnChooseFont();
@@ -473,9 +476,9 @@ namespace
 			}
 		}
 	public:
-		static TabbedDebuggerWindowHandler* Create(IWindow& parent, IEventCallback<MenuCommand>& menuHandler)
+		static TabbedDebuggerWindowHandler* Create(IWindow& parent, IEventCallback<MenuCommand>& menuHandler, OS::IAppControl& appControl)
 		{
-			auto m = new TabbedDebuggerWindowHandler(menuHandler);
+			auto m = new TabbedDebuggerWindowHandler(menuHandler, appControl);
 			m->PostConstruct(parent);
 			return m;
 		}
@@ -880,9 +883,9 @@ namespace Rococo
    {
       namespace IDE
       {
-         IDebuggerWindow* CreateDebuggerWindow(IWindow& parent, IEventCallback<MenuCommand>& menuHandler)
+         IDebuggerWindow* CreateDebuggerWindow(IWindow& parent, IEventCallback<MenuCommand>& menuHandler, OS::IAppControl& appControl)
          {
-            return TabbedDebuggerWindowHandler::Create(parent, menuHandler);
+            return TabbedDebuggerWindowHandler::Create(parent, menuHandler, appControl);
          }
 
 		 IDebuggerEventHandler* CreateDebuggerEventHandler(IInstallation& installation, IWindow& hOwner)

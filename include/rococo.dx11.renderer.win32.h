@@ -33,7 +33,7 @@ namespace Rococo
 	ROCOCOAPI IAppManager
 	{
 		virtual void Free() = 0;
-		virtual void Run(HANDLE hInstanceLock, IApp& app) = 0;
+		virtual void Run(HANDLE hInstanceLock, IApp& app, OS::IAppControl& appControl) = 0;
 	};
 
 	IAppManager* CreateAppManager(IDX11GraphicsWindow& window, IApp& app);

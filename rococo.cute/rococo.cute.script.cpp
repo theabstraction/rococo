@@ -34,8 +34,9 @@ namespace Rococo { namespace Cute
 		}
 
 		if (spec.debuggerParentWnd == nullptr) spec.debuggerParentWnd = &(Windows::NoParent());
+		AutoFree<OS::IAppControlSupervisor> appControl(OS::CreateAppControl());
 		AutoFree<IDebuggerEventHandler> debuggerEventHandler(CreateDebuggerEventHandler(installation, *spec.debuggerParentWnd));
-		AutoFree<IDebuggerWindow> debugger(CreateDebuggerWindow(*spec.debuggerParentWnd, debuggerEventHandler->GetMenuCallback()));
+		AutoFree<IDebuggerWindow> debugger(CreateDebuggerWindow(*spec.debuggerParentWnd, debuggerEventHandler->GetMenuCallback(), *appControl));
 		AutoFree<ISourceCache> sourceCache(CreateSourceCache(installation));
 		ExecuteSexyScriptLoop(
 			spec.stats,
@@ -46,7 +47,8 @@ namespace Rococo { namespace Cute
 			0,
 			(int32) spec.maxScriptSize,
 			onCompile,
-			exHandler
+			exHandler,
+			*appControl
 		);
 	}
 

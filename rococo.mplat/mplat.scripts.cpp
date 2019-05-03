@@ -135,6 +135,7 @@ namespace Rococo
             {
                platform.installation.OS().FireUnstable();
 
+			   /* uncomment if you want a dialog box to prompt continuation
                char msg[1024];
                SafeFormat(msg, sizeof(msg), "Error: Do you wish to debug?\n\t%s\n\t%s", source, message);
                if (QueryYesNo(platform.renderer.Window(), msg))
@@ -146,6 +147,10 @@ namespace Rococo
 				  if (shutdownOnFail) OS::ShutdownApp();
                   return IDE::EScriptExceptionFlow_Terminate;
                }
+			   
+			   */
+
+			   return IDE::EScriptExceptionFlow_Retry;
             }
 
             virtual void OnEvent(ScriptCompileArgs& args)
@@ -182,11 +187,11 @@ namespace Rococo
             {
                try
                {
-                  IDE::ExecuteSexyScriptLoop(stats, 1024_kilobytes, platform.sourceCache, platform.debuggerWindow, name, 0, (int32)128_kilobytes, *this, *this);
+                  IDE::ExecuteSexyScriptLoop(stats, 1024_kilobytes, platform.sourceCache, platform.debuggerWindow, name, 0, (int32)128_kilobytes, *this, *this, platform.appControl);
                }
                catch (IException&)
                {
-				  if (shutdownOnFail) Rococo::OS::ShutdownApp();
+				   if (shutdownOnFail) platform.appControl.ShutdownApp();
                   throw;
                }
             }

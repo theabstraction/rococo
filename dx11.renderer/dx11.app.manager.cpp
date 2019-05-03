@@ -70,7 +70,7 @@ namespace ANON
 		return true;
 	}
 
-	void MainLoop(HWND hWnd, HANDLE hInstanceLock, IApp& app)
+	void MainLoop(HWND hWnd, HANDLE hInstanceLock, IApp& app, OS::IAppControl& appControl)
 	{
 		UltraClock uc;
 		OS::ticks lastTick = uc.start;
@@ -80,7 +80,7 @@ namespace ANON
 
 		uint32 sleepMS = 5;
 		MSG msg = { 0 };
-		while (msg.message != WM_QUIT && OS::IsRunning())
+		while (msg.message != WM_QUIT && appControl.IsRunning())
 		{
 			int64 msCost = frameCost / (OS::CpuHz() / 1000);
 
@@ -162,10 +162,10 @@ namespace ANON
 			app.OnMouseEvent(me);
 		}
 
-		void Run(HANDLE hInstanceLock, IApp& app) override
+		void Run(HANDLE hInstanceLock, IApp& app, OS::IAppControl& appControl) override
 		{
 			window.CaptureEvents(this);
-			MainLoop(window.Window(), hInstanceLock, app);
+			MainLoop(window.Window(), hInstanceLock, app, appControl);
 			window.CaptureEvents(nullptr);
 		}
 
