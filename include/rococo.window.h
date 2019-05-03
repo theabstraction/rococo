@@ -304,6 +304,7 @@ namespace Rococo
 
 		ROCOCOAPI IListViewEvents : public IItemRenderer
 		{
+			virtual void OnItemChanged(int index) = 0;
 		};
 
 		ROCOCOAPI ITreeControlSupervisor : public IWindowSupervisor
@@ -419,7 +420,7 @@ namespace Rococo
 
 			IIDETextWindow* CreateTextWindow(IWindow& parent);
 			IIDETreeWindow* CreateTreeView(IWindow& parent, ITreeControlHandler* handler);
-			IIDEReportWindow* CreateReportView(IWindow& parent);
+			IIDEReportWindow* CreateReportView(IWindow& parent, IListViewEvents& eventHandler);
 			ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTA& logFont, cstr appName);
 		}
 

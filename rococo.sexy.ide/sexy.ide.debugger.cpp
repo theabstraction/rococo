@@ -37,6 +37,8 @@ namespace
 		EPaneId_ID_DISASSEMBLER,
 		EPaneId_ID_SOURCE,
 		EPaneId_ID_STACK,
+		EPaneId_ID_MEMBERS,
+		EPaneId_ID_CALLSTACK,
 		EPaneId_ID_REGISTER,
 		EPaneId_ID_LOG,
 		EPaneId_ID_API,
@@ -46,6 +48,8 @@ namespace
 	const IDEPANE_ID IDEPANE_ID_DISASSEMBLER(EPaneId_ID_DISASSEMBLER);
 	const IDEPANE_ID IDEPANE_ID_SOURCE(EPaneId_ID_SOURCE);
 	const IDEPANE_ID IDEPANE_ID_STACK(EPaneId_ID_STACK);
+	const IDEPANE_ID IDEPANE_ID_CALLSTACK(EPaneId_ID_CALLSTACK);
+	const IDEPANE_ID IDEPANE_ID_MEMBERS(EPaneId_ID_MEMBERS);
 	const IDEPANE_ID IDEPANE_ID_REGISTER(EPaneId_ID_REGISTER);
 	const IDEPANE_ID IDEPANE_ID_API(EPaneId_ID_API);
 	const IDEPANE_ID IDEPANE_ID_LOG(EPaneId_ID_LOG);
@@ -55,6 +59,8 @@ namespace
 	   IDEPANE_ID_DISASSEMBLER,
 	   IDEPANE_ID_SOURCE,
 	   IDEPANE_ID_STACK,
+	   IDEPANE_ID_CALLSTACK,
+	   IDEPANE_ID_MEMBERS,
 	   IDEPANE_ID_REGISTER,
 	   IDEPANE_ID_API,
 	   IDEPANE_ID_LOG
@@ -92,9 +98,78 @@ namespace
 		LOGFONTA logFont;
 		HFONT hFont;
 
-		int64 requiredDepth; // Function to view according to stack depth = 1 + stack depth
+		int32 requiredDepth; // Function to view according to stack depth 
 
 		UINT WM_DEBUGGER_TABCHANGED;
+
+		struct CallstackEventHandler : public IListViewEvents
+		{
+			TabbedDebuggerWindowHandler* This;
+			void OnDrawItem(DRAWITEMSTRUCT& dis) override
+			{
+
+			}
+
+			void OnMeasureItem(MEASUREITEMSTRUCT& mis) override
+			{
+
+			}
+
+			void OnItemChanged(int index) override
+			{
+				This->OnCallstackChanged(index);
+			}
+		} callstackEventHandler;
+
+		struct VariableEventHandler : public IListViewEvents
+		{
+			TabbedDebuggerWindowHandler* This;
+			void OnDrawItem(DRAWITEMSTRUCT& dis) override
+			{
+
+			}
+
+			void OnMeasureItem(MEASUREITEMSTRUCT& mis) override
+			{
+
+			}
+
+			void OnItemChanged(int index) override
+			{
+				
+			}
+		} variableEventHandler;
+
+		struct RegisterEventHandler : public IListViewEvents
+		{
+			TabbedDebuggerWindowHandler* This;
+			void OnDrawItem(DRAWITEMSTRUCT& dis) override
+			{
+
+			}
+
+			void OnMeasureItem(MEASUREITEMSTRUCT& mis) override
+			{
+
+			}
+
+			void OnItemChanged(int index) override
+			{
+
+			}
+		} registerEventHandler;
+
+		void OnCallstackChanged(int depth)
+		{
+			if (requiredDepth != depth)
+			{
+				requiredDepth = depth;
+				if (debugControl)
+				{
+					debugControl->RefreshAtDepth(requiredDepth);
+				}
+			}
+		}
 
 		TabbedDebuggerWindowHandler(IEventCallback<MenuCommand>& _menuHandler) :
 			mainMenu(Windows::CreateMenu(false)),
@@ -128,6 +203,10 @@ namespace
 			logFont.lfHeight = -11;
 
 			hFont = CreateFontIndirectA(&logFont);
+
+			callstackEventHandler.This = this;
+			registerEventHandler.This = this;
+			variableEventHandler.This = this;
 		}
 
 		void OnChooseFont()
@@ -144,22 +223,6 @@ namespace
 
 		virtual void OnItemSelected(int64 id, ITreeControlSupervisor& tree)
 		{
-			IIDETreeWindow* report = static_cast<IIDETreeWindow*>(spatialManager->FindPane(IDEPANE_ID_STACK));
-			if (report)
-			{
-				if (&report->GetTreeSupervisor() == &tree)
-				{
-					if (requiredDepth != id && id > 0)
-					{
-						requiredDepth = id;
-
-						if (debugControl)
-						{
-							debugControl->RefreshAtDepth((int32)(requiredDepth - 1));
-						}
-					}
-				}
-			}
 		}
 
 		virtual void ResetUI()
@@ -293,7 +356,9 @@ namespace
 				{
 				   { IDEPANE_ID_DISASSEMBLER, "Disassembly"},
 				   { IDEPANE_ID_SOURCE,       "Source"},
-				   { IDEPANE_ID_STACK,        "Stack" },
+				   { IDEPANE_ID_STACK,        "Variables" },
+				   { IDEPANE_ID_MEMBERS,      "Members" },
+				   { IDEPANE_ID_CALLSTACK,    "Call Stack" },
 				   { IDEPANE_ID_REGISTER,     "Registers" },
 				   { IDEPANE_ID_API,          "API" },
 				   { IDEPANE_ID_LOG,          "Log" }
@@ -339,13 +404,25 @@ namespace
 			}
 			case EPaneId_ID_STACK:
 			{
+				auto report = CreateReportView(parent, variableEventHandler);
+				report->SetFont(hFont);
+				return report;
+			}
+			case EPaneId_ID_MEMBERS:
+			{
 				auto report = CreateTreeView(parent, this);
+				report->SetFont(hFont);
+				return report;
+			}
+			case EPaneId_ID_CALLSTACK:
+			{
+				auto report = CreateReportView(parent, callstackEventHandler);
 				report->SetFont(hFont);
 				return report;
 			}
 			case EPaneId_ID_REGISTER:
 			{
-				auto report = CreateReportView(parent);
+				auto report = CreateReportView(parent, registerEventHandler);
 				report->SetFont(hFont);
 				return report;
 			}
@@ -609,29 +686,57 @@ namespace
 			}
 		}
 
-		virtual void PopulateStackView(ITreePopulator& populator)
+		void PopulateVariableView(IListPopulator& populator) override
 		{
-			IIDETreeWindow* report = static_cast<IIDETreeWindow*>(spatialManager->FindPane(IDEPANE_ID_STACK));
+			IIDEReportWindow* report = static_cast<IIDEReportWindow*>(spatialManager->FindPane(IDEPANE_ID_STACK));
+			if (report)
+			{
+				::ShowWindow(report->GetListViewSupervisor().ListViewHandle(), SW_HIDE);
+				RECT rect;
+				GetClientRect(report->GetListViewSupervisor(), &rect);
+
+				cstr columns[] = { "DSF", "Address", "Loc", "Type", "Name", "Value", nullptr };
+				int widths[] = { 40, 120, 60, 120, 120, 240, -1 };
+				report->GetListViewSupervisor().UIList().SetColumns(columns, widths);
+				report->GetListViewSupervisor().UIList().ClearRows();
+
+				ListView_SetExtendedListViewStyle(report->GetListViewSupervisor().ListViewHandle(), LVS_EX_FULLROWSELECT);
+
+				populator.Populate(report->GetListViewSupervisor().UIList());
+				::ShowWindow(report->GetListViewSupervisor().ListViewHandle(), SW_SHOW);
+			}
+		}
+
+		void PopulateMemberView(ITreePopulator& populator) override
+		{
+			IIDETreeWindow* report = static_cast<IIDETreeWindow*>(spatialManager->FindPane(IDEPANE_ID_MEMBERS));
 			if (report)
 			{
 				populator.Populate(report->GetTreeSupervisor().Tree());
 			}
 		}
 
-		virtual void BeginStackUpdate()
+
+		virtual void PopulateCallStackView(IListPopulator& populator)
 		{
-			IIDETreeWindow* report = static_cast<IIDETreeWindow*>(spatialManager->FindPane(IDEPANE_ID_STACK));
+			IIDEReportWindow* report = static_cast<IIDEReportWindow*>(spatialManager->FindPane(IDEPANE_ID_CALLSTACK));
 			if (report)
 			{
-				::ShowWindow(report->GetTreeSupervisor(), SW_HIDE);
-				report->GetTreeSupervisor().Tree().ResetContent();
-			}
-		}
+				::ShowWindow(report->GetListViewSupervisor().ListViewHandle(), SW_HIDE);
+				RECT rect;
+				GetClientRect(report->GetListViewSupervisor(), &rect);
 
-		virtual void EndStackUpdate()
-		{
-			IIDETreeWindow* report = static_cast<IIDETreeWindow*>(spatialManager->FindPane(IDEPANE_ID_STACK));
-			if (report) ::ShowWindow(report->GetTreeSupervisor(), SW_SHOW);
+				int width = max(rect.right - 120, 256);
+				cstr columns[] = { "Function", "Module", nullptr };
+				int widths[] = { 120, width, -1 };
+				ListView_SetExtendedListViewStyle(report->GetListViewSupervisor().ListViewHandle(), LVS_EX_FULLROWSELECT);
+				report->GetListViewSupervisor().UIList().SetColumns(columns, widths);
+				report->GetListViewSupervisor().UIList().ClearRows();
+				populator.Populate(report->GetListViewSupervisor().UIList());
+
+				::ShowWindow(report->GetListViewSupervisor().ListViewHandle(), SW_SHOW);
+				ListView_SetItemState(report->GetListViewSupervisor().ListViewHandle(), 0, LVIS_FOCUSED | LVIS_SELECTED, 0x000F);
+			}
 		}
 
 		virtual void PopulateRegisterView(IListPopulator& populator)

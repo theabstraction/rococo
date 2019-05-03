@@ -684,8 +684,6 @@ namespace Rococo
 		}
 	}
 
-
-
 	class SourceCache : public ISourceCache, private IMathsVenue
 	{
 	private:
@@ -798,14 +796,13 @@ namespace Rococo
 	using namespace Rococo::Visitors;
 	using namespace Rococo::Script;
 
-	void PopulateStackTree(IPublicScriptSystem& ss, IDebuggerWindow& debugger, int depth)
+	void PopulateCallstack(IPublicScriptSystem& ss, IDebuggerWindow& debugger)
 	{
-		struct : Visitors::ITreePopulator
+		struct : Visitors::IListPopulator
 		{
 			IPublicScriptSystem* ss;
-			int depth;
 
-			virtual void Populate(Visitors::IUITree& tree)
+			void Populate(Visitors::IUIList& list) override
 			{
 				auto& vm = ss->PublicProgramObject().VirtualMachine();
 
@@ -815,182 +812,307 @@ namespace Rococo
 
 				size_t fnOffset;
 				size_t pcOffset;
-				if (!GetCallDescription(sf, pc, f, fnOffset, *ss, depth, pcOffset) || !f)
+
+				int depth = 0;
+				while (GetCallDescription(sf, pc, f, fnOffset, *ss, depth++, pcOffset) && f)
+				{
+					cstr values[] = { f->Name(), f->Module().Name(), nullptr };
+					list.AddRow(values);
+				}
+			}
+		} callstackPopulator;
+
+		callstackPopulator.ss = &ss;
+		debugger.PopulateCallStackView(callstackPopulator);
+	}
+
+	using namespace Rococo::Debugger;
+
+	struct MemberEnumeratorPopulator: MemberEnumeratorCallback
+	{
+		TREE_NODE_ID parentId;
+		IUITree* tree;
+		int depth;
+		const uint8* instance;
+		const IStructure* parentStruct = nullptr;
+		const IStructure* concreteStruct = nullptr;
+		ObjectStub* parentHeader = nullptr;
+		int index = 0;
+		int firstUnkIndex = 1;
+
+		void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int recurseDepth) override
+		{
+			index++;
+
+			if (AreEqual(childName, "player.image1"))
+			{
+				index *= 1;
+			}
+
+			if (parentStruct)
+			{
+				if (index == 1)
+				{
+					auto* header = (ObjectStub*)sfItem;
+					auto* t = header->Desc;
+
+					concreteStruct = t->TypeInfo;
+					parentHeader = header;
+
+					char classDesc[256];
+					SafeFormat(classDesc, sizeof(classDesc), "[%+d] %s DestructorId: %lld. Refcount: %d", (sfItem - instance), concreteStruct->Name(), header->Desc->DestructorId, header->refCount);
+					auto node = tree->AddChild(parentId, classDesc, CheckState_NoCheckBox);
+
+					firstUnkIndex = 3 + concreteStruct->InterfaceCount();
+
+					for (int i = 0; i < concreteStruct->InterfaceCount(); ++i)
+					{
+						auto& interface = parentStruct->GetInterface(i);
+						auto* vTable = concreteStruct->GetVirtualTable(i + 1);
+						char interfaceDesc[256];
+						SafeFormat(interfaceDesc, sizeof(interfaceDesc), "Implements %s. vTable %p", interface.Name(), vTable);
+
+						auto inode = tree->AddChild(node, interfaceDesc, CheckState_NoCheckBox);
+
+						auto* instanceVTable = header->pVTables[i];
+						if (instanceVTable != (VirtualTable*)vTable)
+						{
+							char vTableDesc[256];
+							SafeFormat(vTableDesc, sizeof(vTableDesc), "vTable mismatch. Expecting %p, but found %p", vTable, instanceVTable);
+							auto vnode = tree->AddChild(inode, vTableDesc, CheckState_NoCheckBox);
+						}
+
+					}
+					return;
+				}
+				else if (index < firstUnkIndex)
 				{
 					return;
 				}
+			}
 
-				char desc[256];
-				SafeFormat(desc, sizeof(desc), "%p %s - %s", sf, f->Module().Name(), f->Name());
+			char value[256];
 
-				auto sfNode = tree.AddRootItem(desc, CheckState_Clear);
-				tree.SetId(sfNode, depth + 1);
-
-				using namespace Rococo::Debugger;
-
-				struct : public IVariableEnumeratorCallback
-				{
-					virtual void OnVariable(size_t index, const VariableDesc& v)
-					{
-						char desc[256];
-						if (v.Value[0] != 0)
-						{
-							SafeFormat(desc, sizeof(desc), "[%d] %p %s: %s %s = %s", v.Address, v.Address + SF, v.Location, v.Type, v.Name, v.Value);
-						}
-						else
-						{
-							SafeFormat(desc, sizeof(desc), "[%d] %p %s: %s %s", v.Address, v.Address + SF, v.Location, v.Type, v.Name);
-						}
-						auto node = tree->AddChild(sfNode, desc, CheckState_NoCheckBox);
-						tree->SetId(node, depth + 1);
-
-						struct MyMemberEnumeratorCallback : MemberEnumeratorCallback
-						{
-							TREE_NODE_ID parentId;
-							IUITree* tree;
-							int depth;
-							const uint8* instance;
-							const IStructure* parentStruct = nullptr;
-							const IStructure* concreteStruct = nullptr;
-							ObjectStub* parentHeader = nullptr;
-							int index = 0;
-							int firstUnkIndex = 1;
-
-							void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int recurseDepth) override
-							{
-								index++;
-
-								if (parentStruct)
-								{
-									if (index == 1)
-									{
-										auto* header = (ObjectStub*)sfItem;
-										auto* t = header->Desc;
-
-										concreteStruct = t->TypeInfo;
-										parentHeader = header;
-
-										char classDesc[256];
-										SafeFormat(classDesc, sizeof(classDesc), "[+%d] %s DestructorId: %lld. Refcount: %d", (sfItem - instance), concreteStruct->Name(), header->Desc->DestructorId, header->refCount);
-										auto node = tree->AddChild(parentId, classDesc, CheckState_NoCheckBox);
-
-										firstUnkIndex = 3 + concreteStruct->InterfaceCount();
-
-										for (int i = 0; i < concreteStruct->InterfaceCount(); ++i)
-										{
-											auto& interface = parentStruct->GetInterface(i);
-											auto* vTable = concreteStruct->GetVirtualTable(i+1);
-											char interfaceDesc[256];
-											SafeFormat(interfaceDesc, sizeof(interfaceDesc), "Implements %s. vTable %p", interface.Name(), vTable);
-
-											auto inode = tree->AddChild(node, interfaceDesc, CheckState_NoCheckBox);
-
-											auto* instanceVTable = header->pVTables[i];
-											if (instanceVTable != (VirtualTable*) vTable)
-											{
-												char vTableDesc[256];
-												SafeFormat(vTableDesc, sizeof(vTableDesc), "vTable mismatch. Expecting %p, but found %p", vTable, instanceVTable);
-												auto vnode = tree->AddChild(inode, vTableDesc, CheckState_NoCheckBox);
-											}
-
-										}
-										return;
-									}
-									else if (index < firstUnkIndex)
-									{
-										return;
-									}
-								}
-
-								char prefix[256] = { 0 };
-
-								char value[256];
-
-								auto* name = member.UnderlyingType()->Name();
-								if (Eq(name, "_Null_Sys_Type_IString"))
-								{
-									__try
-									{
-										auto* s = (CClassSysTypeStringBuilder*)sfItem;
-										SafeFormat(value, sizeof(value), s->buffer);
-									}
-									__except (EXCEPTION_EXECUTE_HANDLER)
-									{
-										SafeFormat(value, sizeof(value), "IString: <Bad pointer>");
-									}
-								}
-								else
-								{
-									FormatValue(ss, value, sizeof(value), member.UnderlyingType()->VarType(), sfItem);
-								}
-
-								char memberDesc[256];
-								SafeFormat(memberDesc, sizeof(memberDesc), "[+%d] %s%p %s: %s", (sfItem - instance), prefix, sfItem, member.Name(), value);
-
-								auto node = tree->AddChild(parentId, memberDesc, CheckState_NoCheckBox);
-								tree->SetId(node, depth + 1);
-
-								if (member.UnderlyingType()->VarType() == VARTYPE_Derivative)
-								{
-									MyMemberEnumeratorCallback subMember;
-									subMember.instance = instance;
-									subMember.parentId = node;
-									subMember.tree = tree;
-									subMember.depth = depth;
-
-									if (member.UnderlyingType()->InterfaceCount() != 0)
-									{
-										subMember.parentStruct = member.UnderlyingType();
-									}
-
-									GetMembers(ss, *member.UnderlyingType(), member.Name(), sfItem, 0, subMember, 1);
-								}
-							}
-						} addMember;
-
-						addMember.instance = v.instance;
-						addMember.parentId = node;
-						addMember.tree = tree;
-						addMember.depth = depth + 1;
-
-						__try
-						{
-							auto* instance = v.instance && v.s ? ( IsNullType(*v.s) ? *(const uint8**)v.instance : v.instance ) : nullptr;
-							if (v.s) GetMembers(*ss, *v.s, v.parentName, instance, 0, addMember, 1);
-						}
-						__except (1)
-						{
-
-						}
-					}
-
-					int32 depth;
-					TREE_NODE_ID sfNode;
-					IUITree* tree;
-					const uint8* SF;
-					Script::IPublicScriptSystem* ss;
-				} addToTree;
-
-				addToTree.tree = &tree;
-				addToTree.SF = sf;
-				addToTree.sfNode = sfNode;
-				addToTree.depth = depth;
-				addToTree.ss = ss;
-
+			auto* name = member.UnderlyingType()->Name();
+			if (Eq(name, "_Null_Sys_Type_IString"))
+			{
 				__try
 				{
-					Script::ForeachVariable(*ss, addToTree, depth);
+					InterfacePointer p = InterfacePointer(sfItem);
+					auto* s = (CClassSysTypeStringBuilder*)(sfItem + (*p)->OffsetToInstance);
+					SafeFormat(value, sizeof(value), "%s", s->buffer);
 				}
-				__except(1)
+				__except (EXCEPTION_EXECUTE_HANDLER)
 				{
-
+					SafeFormat(value, sizeof(value), "IString: <Bad pointer>");
 				}
 			}
-		} anon;
+			else
+			{
+				FormatValue(ss, value, sizeof(value), member.UnderlyingType()->VarType(), sfItem);
+			}
 
-		anon.ss = &ss;
-		anon.depth = depth;
-		debugger.PopulateStackView(anon);
+			char memberDesc[256];
+
+			if (member.UnderlyingType()->InterfaceCount() != 0)
+			{
+				SafeFormat(memberDesc, sizeof(memberDesc), "  ->  %p %s: %s", sfItem, member.Name(), value);
+			}
+			else
+			{
+				SafeFormat(memberDesc, sizeof(memberDesc), "[%+d] %p %s: %s", (sfItem - instance), sfItem, member.Name(), value);
+			}
+
+			auto node = tree->AddChild(parentId, memberDesc, CheckState_NoCheckBox);
+			tree->SetId(node, depth + 1);
+
+			if (member.UnderlyingType()->VarType() == VARTYPE_Derivative)
+			{
+				MemberEnumeratorPopulator subMember;
+
+				if (member.UnderlyingType()->InterfaceCount() != 0)
+				{
+					subMember.parentStruct = member.UnderlyingType();
+				}
+
+				auto* subInstance = sfItem;
+				// auto* subInstance = sfItem && member.UnderlyingType() ? (IsNullType(*member.UnderlyingType()) ? *(const uint8**)sfItem : sfItem) : nullptr;
+				if (member.UnderlyingType() && IsNullType(*member.UnderlyingType()))
+				{
+					subInstance = sfItem;
+				}
+				subMember.instance = subInstance;
+				subMember.parentId = node;
+				subMember.tree = tree;
+				subMember.depth = depth;
+
+				GetMembers(ss, *member.UnderlyingType(), member.Name(), subInstance, 0, subMember, 1);
+			}
+		}
+	};
+
+	struct VariableEnumeratorPopulator : public IVariableEnumeratorCallback
+	{
+		virtual void OnVariable(size_t index, const VariableDesc& v)
+		{
+			if (AreEqual(v.Location, "CPU"))
+			{
+				return;
+			}
+
+			char desc[256];
+			if (v.Value[0] != 0)
+			{
+				SafeFormat(desc, sizeof(desc), "[%d] %p: %s %s = %s", v.Address, v.Address + SF, v.Type, v.Name, v.Value);
+			}
+			else
+			{
+				SafeFormat(desc, sizeof(desc), "[%d] %p: %s %s", v.Address, v.Address + SF, v.Type, v.Name);
+			}
+			auto node = tree->AddRootItem(desc, CheckState_NoCheckBox);
+			tree->SetId(node, depth + 1);
+
+			// At this level of enumeration v.instance refers to a stack address
+			__try
+			{
+				auto* instance = v.instance && v.s ? (IsNullType(*v.s) ? *(const uint8**)v.instance : v.instance) : nullptr;
+
+				MemberEnumeratorPopulator addMember;
+				addMember.parentId = node;
+				addMember.tree = tree;
+				addMember.depth = depth + 1;
+				addMember.instance = instance;
+				if (v.s) GetMembers(*ss, *v.s, v.parentName, instance, 0, addMember, 1);
+			}
+			__except (1)
+			{
+
+			}
+		}
+
+		int32 depth;
+		TREE_NODE_ID sfNode;
+		IUITree* tree;
+		const uint8* SF;
+		Script::IPublicScriptSystem* ss;
+	};
+
+	void PopulateVariableList(Visitors::IUIList& list, IPublicScriptSystem& ss, int depth)
+	{
+		auto& vm = ss.PublicProgramObject().VirtualMachine();
+
+		const Rococo::uint8* sf = nullptr;
+		const Rococo::uint8* pc = nullptr;
+		const IFunction* f = nullptr;
+
+		size_t fnOffset;
+		size_t pcOffset;
+		if (!GetCallDescription(sf, pc, f, fnOffset, ss, depth, pcOffset) || !f)
+		{
+			return;
+		}
+
+		struct ANON : public IVariableEnumeratorCallback
+		{
+			virtual void OnVariable(size_t index, const VariableDesc& v)
+			{
+				char offset[32];
+				SafeFormat(offset, sizeof(offset), "%d", v.Address);
+				char descAddress[256];
+				SafeFormat(descAddress, sizeof(descAddress), "0x%llX", v.Address + SF);
+
+				cstr values[] = { offset, descAddress, v.Location, v.Type, v.Name, v.Value, nullptr };
+				list->AddRow(values);
+			}
+
+			int32 depth;
+			IUIList* list;
+			const uint8* SF;
+			Script::IPublicScriptSystem* ss;
+		} addToList;
+
+		addToList.ss = &ss;
+		addToList.depth = depth;
+		addToList.list = &list;
+		addToList.SF = sf;
+
+		__try
+		{
+			Script::ForeachVariable(ss, addToList, depth);
+		}
+		__except (1)
+		{
+
+		}
+	}
+
+	void PopulateMemberTree(Visitors::IUITree& tree, IPublicScriptSystem& ss, int depth)
+	{
+		auto& vm = ss.PublicProgramObject().VirtualMachine();
+
+		const Rococo::uint8* sf = nullptr;
+		const Rococo::uint8* pc = nullptr;
+		const IFunction* f = nullptr;
+
+		size_t fnOffset;
+		size_t pcOffset;
+		if (!GetCallDescription(sf, pc, f, fnOffset, ss, depth, pcOffset) || !f)
+		{
+			return;
+		}
+
+		VariableEnumeratorPopulator addToTree;
+
+		addToTree.tree = &tree;
+		addToTree.SF = sf;
+		addToTree.depth = depth;
+		addToTree.ss = &ss;
+
+		__try
+		{
+			Script::ForeachVariable(ss, addToTree, depth);
+		}
+		__except (1)
+		{
+
+		}
+	}
+
+	void PopulateMemberTree(IPublicScriptSystem& ss, IDebuggerWindow& debugger, int depth)
+	{
+		struct : Visitors::ITreePopulator
+		{
+			IPublicScriptSystem* ss;
+			int depth;
+
+			void Populate(Visitors::IUITree& tree) override
+			{
+				Rococo::PopulateMemberTree(tree, *ss, depth);
+			}
+		} memberPopulator;
+
+		memberPopulator.ss = &ss;
+		memberPopulator.depth = depth;
+		debugger.PopulateMemberView(memberPopulator);
+	}
+
+	void PopulateVariables(IPublicScriptSystem& ss, IDebuggerWindow& debugger, int depth)
+	{
+		struct : Visitors::IListPopulator
+		{
+			IPublicScriptSystem* ss;
+			int depth;
+
+			void Populate(Visitors::IUIList& list) override
+			{
+				Rococo::PopulateVariableList(list, *ss, depth);
+			}
+		} variablePopulator;
+
+		variablePopulator.ss = &ss;
+		variablePopulator.depth = depth;
+
+		debugger.PopulateVariableView(variablePopulator);
 	}
 
 	void PopulateSourceView(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, int64 stackDepth)
@@ -1158,29 +1280,27 @@ namespace Rococo
 
 		virtual void Populate(IDebuggerWindow& debugger)
 		{
-			struct : Visitors::IListPopulator
+			if (refreshAll)
 			{
-				Script::IPublicScriptSystem* ss;
-				IDebuggerWindow* debugger;
-
-				virtual void Populate(Visitors::IUIList& registerListView)
+				struct : Visitors::IListPopulator
 				{
-					PopulateRegisterWindow(*ss, registerListView);
-				}
-			} anon;
+					Script::IPublicScriptSystem* ss;
+					IDebuggerWindow* debugger;
 
-			anon.ss = ss;
-			anon.debugger = &debugger;
+					virtual void Populate(Visitors::IUIList& registerListView)
+					{
+						PopulateRegisterWindow(*ss, registerListView);
+					}
+				} anon;
 
-			debugger.PopulateRegisterView(anon);
+				anon.ss = ss;
+				anon.debugger = &debugger;
+
+				debugger.PopulateRegisterView(anon);
+			}
 
 			auto& vm = ss->PublicProgramObject().VirtualMachine();
 			AutoFree<VM::IDisassembler> disassembler(vm.Core().CreateDisassembler());
-
-			if (refreshAll)
-			{
-				debugger.BeginStackUpdate();
-			}
 
 			for (int depth = 0; depth < 10; depth++)
 			{
@@ -1207,21 +1327,20 @@ namespace Rococo
 					}
 				}
 
-				if (refreshAll)
-				{
-					PopulateStackTree(*ss, debugger, depth);
-				}
-
 				if (SF == nullptr) break;
 			}
 
+			PopulateMemberTree(*ss, debugger, stackDepth);
+			PopulateVariables(*ss, debugger, stackDepth);
+
 			if (refreshAll)
 			{
-				debugger.EndStackUpdate();
+				PopulateCallstack(*ss, debugger);
 			}
-
+				
 			PopulateSourceView(*ss, debugger, stackDepth);
 		}
+
 	};
 
 	EXECUTERESULT ExecuteAndCatchIException(IVirtualMachine& vm, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)

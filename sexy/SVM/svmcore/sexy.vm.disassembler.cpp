@@ -369,7 +369,7 @@ namespace
 	void FormatIntSubtract64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		format(rep, ("%s=%s-%s"), RegisterName(I.Opmod1-1), RegisterName(I.Opmod1), RegisterName(I.Opmod2));
-		rep.ByteCount = 4;
+		rep.ByteCount = 3;
 	}
 
 	void FormatIntSubtract32(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -1104,6 +1104,13 @@ namespace
 		rep.ByteCount = sizeof(ArgsSetSFValueFromSFMemberRef);
 	}
 
+	void FormatSetSFMemberRefFromSFValue(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+		auto& args = (ArgsSetSFMemberRefFromSFValue&)I;
+		format(rep, "SF(%d.%d)=SF(%d) %d bytes", args.targetSFOffset, args.targetMemberOffset, args.SFSourceValueOffset, args.nBytesSource);
+		rep.ByteCount = sizeof(ArgsSetSFMemberRefFromSFValue);
+	}
+
 	void BuildFormatTable()
 	{
 		EnableFormatter(SetSFValueFromSFMemberByRef);
@@ -1225,6 +1232,7 @@ namespace
 		EnableFormatter(CallVitualFunctionViaMemberOffsetOnStack);
 		EnableFormatter(GetStackFrameMemberPtrAndDeref);
 		EnableFormatter(SetSFValueFromSFValueLong);
+		EnableFormatter(SetSFMemberRefFromSFValue);
 	}
 
 	class Disassembler final: public IDisassembler

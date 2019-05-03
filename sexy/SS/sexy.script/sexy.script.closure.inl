@@ -135,8 +135,8 @@ namespace Rococo
          closure.Builder().GetCodeSection(OUT section);
 
          VariantValue closureRef;
-         closureRef.int32Value = (int32)section.Id;
-         ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, closureRef, BITCOUNT_32);
+         closureRef.int64Value = (int64) section.Id;
+         ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, closureRef, BITCOUNT_64);
 
          PostClosure(closureDef, closure, ce.Script);
       }

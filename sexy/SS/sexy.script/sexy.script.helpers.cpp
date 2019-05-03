@@ -193,7 +193,18 @@ namespace Rococo
             {
                SafeFormat(buffer, bufferCapacity, sizeof(char) == 1 ? "%s" : "%S", symbol);
             }
+			break;
          }
+		 case VARTYPE_Closure:
+		 {
+			 struct ArcheTypeObject
+			 {
+				 ID_BYTECODE byteCodeId;
+				 uint8* parentSF;
+			 };
+			 ArcheTypeObject* e = (ArcheTypeObject*)pVariableData;
+			 SafeFormat(buffer, bufferCapacity, "ID %lld - PSF %llx", e->byteCodeId, (int64) e->parentSF);
+		 }
          break;
          default:
             SafeFormat(buffer, bufferCapacity, "Unknown type");
@@ -705,10 +716,37 @@ namespace Rococo
 				   continue;
 			   }
 
-			   const void* pVariableData = sf + def.SFOffset;
+			   const uint8* pVariableData = sf + def.SFOffset;
 			   if (def.Usage == ARGUMENTUSAGE_BYVALUE)
 			   {
-				   FormatValue(ss, variable.Value, variable.VALUE_CAPACITY, def.ResolvedType->VarType(), pVariableData);
+				   if (def.ResolvedType->InterfaceCount() > 0)
+				   {
+					   auto* pInterface = *(const uint8**)pVariableData;
+					   auto* object = (ObjectStub*) (pInterface + (*(InterfacePointer)pInterface)->OffsetToInstance);
+
+					   const auto& i = def.ResolvedType->GetInterface(0);
+
+					   *variable.Value = 0;
+					   for (const Rococo::Compiler::IInterface* interface = &i; interface != nullptr; interface = interface->Base())
+					   {
+						   if (AreEqual(interface->NullObjectType().Name(), "_Null_Sys_Type_IString"))
+						   {
+							   auto* stringObjt = (CStringConstant*)object;
+							   SafeFormat(variable.Value, variable.VALUE_CAPACITY, "%s", stringObjt->pointer);
+							   break;
+						   }
+					   }
+
+					   if (*variable.Value == 0)
+					   {
+						   auto& concrete = *object->Desc->TypeInfo;
+						   SafeFormat(variable.Value, variable.VALUE_CAPACITY, "%s of %s", concrete.Name(), concrete.Module().Name());
+					   }
+				   }
+				   else
+				   {
+					   FormatValue(ss, variable.Value, variable.VALUE_CAPACITY, def.ResolvedType->VarType(), pVariableData);
+				   }
 
 				   variable.s = def.ResolvedType;
 				   variable.instance = (const uint8*)pVariableData;
@@ -747,7 +785,7 @@ namespace Rococo
 				   const void** ppData = (const void**)pVariableData;
 				   PROTECT
 				   {
-					   FormatVariableDesc(variable, "%1llX -> %1llX", (int64)pVariableData, (int64)*ppData);
+					   FormatVariableDesc(variable, "-> %1llX", (int64)*ppData);
 				   }
 				   CATCH
 				   {
@@ -759,6 +797,9 @@ namespace Rococo
 
 				   AsciiName asciiName(name);
 				   FormatVariableDescName(variable, "%s", asciiName.data);
+
+				   variable.s = def.ResolvedType;
+				   variable.instance = *(const uint8**)pVariableData;
 			   }
 
 			   switch (def.location)
@@ -822,7 +863,15 @@ namespace Rococo
 				   const Rococo::Compiler::IMember& member = specimen->GetMember(i);
 
 				   TokenBuffer childName;
-				   StringPrint(childName, ("%s.%s"), parentName, member.Name());
+
+				   if (parentName)
+				   {
+					   StringPrint(childName, ("%s.%s"), parentName, member.Name());
+				   }
+				   else
+				   {
+					   StringPrint(childName, ("%s"), member.Name());
+				   }
 
 				   if (member.IsInterfaceVariable())
 				   {

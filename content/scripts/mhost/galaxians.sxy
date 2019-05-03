@@ -49,6 +49,8 @@
 	(Int64 deathAt)
 	(Int32 lives)
 	(Entity playerExplosion)
+	(Entity enemyExplosion)
+	(Int64 enemyHitAt)
 )
 
 (method World.Construct -> (construct aliens 54) (construct missiles 4) :
@@ -84,8 +86,10 @@
 	(IString explosion = "!textures/mhost/explosion.tiff")
 	
 	(world.killCount = 0)
+	(world.enemyHitAt = 0)
 	
-	(world.playerExplosion = (0  0) (explosion defaultBmpLoc) (explosion defaultBmpLoc))
+	(world.playerExplosion = (0  -100) (explosion defaultBmpLoc) (explosion defaultBmpLoc))
+	(world.enemyExplosion = (0  -100) (explosion defaultBmpLoc) (explosion defaultBmpLoc))
 	
 	// 4 enemy missiles
 	(
@@ -94,7 +98,6 @@
 			(world.missiles.Push a0)
 		)
 	)
-	
 	
 	// 2 yellow meanies
 	(
@@ -144,9 +147,12 @@
 	(world.lives = 3)
 	
 	(IScreenBuilder s = (engine.ScreenBuilder))
+	
+	(trip)
 	(OnEntity initSprites = (closure (Entity e)-> : (InitEntitySprites s e)))
 	(ForEachEntityIn world initSprites)
 	(InitEntitySprites s world.playerExplosion)
+	(InitEntitySprites s world.enemyExplosion)
 	
 	(IKeyboard keyboard (Keyboard))
 	(world.controls.leftKey = (keyboard.GetVKeyFromName "A"))
@@ -193,6 +199,20 @@
 		)
 	)
 	
+	(if (world.enemyHitAt != 0)
+		(Int64 peakBoom = Sys.Time.ClockHz)
+		(Int64 delta = ((Sys.Time.ClockTicks) - world.enemyHitAt))
+		(if (delta < peakBoom)
+			(Int64 boomTick = ( peakBoom / 32 ))
+			(Int32 span = (32 - (delta / boomTick)))
+			(Recti rect)
+			(ExpandRect rect span world.enemyExplosion.screenPosition)
+			(s.StretchSprite rect world.enemyExplosion.image1.location)
+		else
+			(world.enemyHitAt = 0)
+		)
+	)
+	
 	(if (world.lives > 0)
 		(if (world.deathAt == 0)
 			(RenderLives world.player s (world.lives - 1))
@@ -236,9 +256,11 @@
 		(Vec2i delta = alien.screenPosition - tip)
 		(if ((delta.x > -12) and (delta.x < 12))
 			(if ((delta.y > 0) and (delta.y < 16))
+				(world.enemyExplosion.screenPosition = alien.screenPosition)
 				(alien.screenPosition.y = -100)
 				(world.playerMissile.screenPosition.y = -100)
 				(world.killCount += 1)
+				(Sys.Time.ClockTicks -> world.enemyHitAt)
 				(return)
 			)
 		)
@@ -353,9 +375,9 @@
 	)
 	
 	(if (world.deathAt != 0)
-		(Int64 now = (Sys.Time.ClockTicks))
+		(Int64 now = Sys.Time.ClockTicks)
 		(Int64 delta = (now - world.deathAt))
-		(Int64 spawnTime = (4 * (Sys.Time.ClockHz)))
+		(Int64 spawnTime = (4 * Sys.Time.ClockHz))
 		(if (delta > spawnTime)
 			(world.deathAt = 0)
 			(world.player.screenPosition = 500 610)

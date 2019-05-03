@@ -1323,79 +1323,85 @@ namespace
       }
    };
 
-   class IDEReportWindow : public StandardWindowHandler, public IIDEReportWindow
+   class IDEReportWindow : public StandardWindowHandler, public IIDEReportWindow, private IListViewEvents
    {
-      struct LogListEventHandler : IListViewEvents
-      {
-         virtual void OnDrawItem(DRAWITEMSTRUCT& dis)
-         {
-
-         }
-
-         virtual void OnMeasureItem(MEASUREITEMSTRUCT& mis)
-         {
-
-         }
-      } listEventHandler;
-
    private:
-      AutoFree<IListViewSupervisor> window;
+	   IListViewEvents& eventHandler;
 
-      IDEReportWindow()
-      {
+	   void OnDrawItem(DRAWITEMSTRUCT& dis) override
+	   {
 
-      }
+	   }
 
-      ~IDEReportWindow()
-      {
-      }
+	   void OnMeasureItem(MEASUREITEMSTRUCT& mis) override
+	   {
 
-      void PostConstruct(IWindow& parent)
-      {
-         window = Windows::AddListView(parent, GuiRect(0, 0, 0, 0), "", listEventHandler, LVS_REPORT, WS_BORDER, 0);
-      }
+	   }
 
-      void LayoutChildren()
-      {
-      }
+	   void OnItemChanged(int index) override
+	   {
+		   HRESULT hr = 1282;
+		   eventHandler.OnItemChanged(index);
+	   }
 
-      virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
-      {
-         LayoutChildren();
-      }
+	   AutoFree<IListViewSupervisor> window;
+
+	   IDEReportWindow(IListViewEvents& _eventHandler): 
+		   eventHandler(_eventHandler)
+	   {
+
+	   }
+
+	   ~IDEReportWindow()
+	   {
+	   }
+
+	   void PostConstruct(IWindow& parent)
+	   {
+		   window = Windows::AddListView(parent, GuiRect(0, 0, 0, 0), "", eventHandler, LVS_REPORT, WS_BORDER, 0);
+	   }
+
+	   void LayoutChildren()
+	   {
+	   }
+
+	   virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
+	   {
+		   LayoutChildren();
+	   }
 
    public:
-      static IDEReportWindow* Create(IWindow& parent)
-      {
-         auto node = new IDEReportWindow();
-         node->PostConstruct(parent);
-         return node;
-      }
+	   static IDEReportWindow* Create(IWindow& parent, IListViewEvents& eventHandler)
+	   {
+		   auto node = new IDEReportWindow(eventHandler);
+		   node->PostConstruct(parent);
+		   return node;
+	   }
 
-      virtual void SetFont(HFONT hFont)
-      {
-         SendMessage(window->ListViewHandle(), WM_SETFONT, (WPARAM)hFont, TRUE);
-      }
+	   virtual void SetFont(HFONT hFont)
+	   {
+		   SendMessage(window->ListViewHandle(), WM_SETFONT, (WPARAM)hFont, TRUE);
+	   }
 
-      IListViewSupervisor& GetListViewSupervisor()
-      {
-         return *window;
-      }
+	   IListViewSupervisor& GetListViewSupervisor()
+	   {
+		   return *window;
+	   }
 
-      void Free()
-      {
-         delete this;
-      }
+	   void Free()
+	   {
+		   delete this;
+	   }
 
-      virtual IWindow& GetWindow()
-      {
-         return *window;
-      }
+	   virtual IWindow& GetWindow()
+	   {
+		   return *window;
+	   }
 
-      virtual operator HWND () const
-      {
-         return *window;
-      }
+	   virtual operator HWND () const
+	   {
+		   return *window;
+	   }
    };
 
    class IDETextWindow : public StandardWindowHandler, public IRichEditorEvents, public IIDETextWindow
@@ -1640,9 +1646,9 @@ namespace Rococo
             return IDETreeView::Create(parent, handler);
          }
 
-         IIDEReportWindow* CreateReportView(IWindow& parent)
+         IIDEReportWindow* CreateReportView(IWindow& parent, IListViewEvents& eventHandler)
          {
-            return IDEReportWindow::Create(parent);
+            return IDEReportWindow::Create(parent, eventHandler);
          }
 
          ISpatialManager* CreateSpatialManager(IWindow& parent, IPaneDatabase& database)

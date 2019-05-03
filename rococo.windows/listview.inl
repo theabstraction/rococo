@@ -21,20 +21,16 @@ namespace
 		{
 			switch (uMsg)
 			{
-         case WM_ERASEBKGND:
-            return TRUE;
+			case WM_ERASEBKGND:
+				return TRUE;
 			case WM_SIZE:
 				return OnSize(hWnd, wParam, lParam);
 			case WM_DRAWITEM:
 				return OnDrawItem(hWnd, wParam, lParam);
 			case WM_MEASUREITEM:
 				return OnMeasureItem(hWnd, wParam, lParam);
-			case WM_COMMAND:
-			//	if (HIWORD(wParam) == LBN_SELCHANGE && (HWND)lParam == hWndListView)
-			//	{
-			//		itemRenderer.OnItemSelectionChanged(*this);
-			//		return 0L;
-			//	}
+			case WM_NOTIFY:
+				return OnNotify(hWnd, wParam, lParam);
 				break;
 			}
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
@@ -56,6 +52,19 @@ namespace
 			}
 
 			return 0L;
+		}
+
+		LRESULT OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam)
+		{
+			UINT_PTR id = wParam;
+			auto* header = (NMHDR*)lParam;
+			if (header->code == LVN_ITEMCHANGED)
+			{
+				auto& n = *(LPNMLISTVIEW)header;
+				eventHandler.OnItemChanged(n.iItem);
+				return TRUE;
+			}
+			return DefWindowProc(hWnd, WM_NOTIFY, wParam, lParam);
 		}
 
 		BOOL OnDrawItem(HWND hWnd, WPARAM wParam, LPARAM lParam)
