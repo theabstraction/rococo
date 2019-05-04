@@ -78,230 +78,238 @@ namespace Rococo
 	}
 }
 
-namespace Rococo { namespace Script
-{
-	ROCOCOAPI IFreeable
+namespace Rococo {
+	namespace Script
 	{
-		virtual void Free() = 0;
-	};
+		ROCOCOAPI IFreeable
+		{
+			virtual void Free() = 0;
+		};
 
-	using namespace Rococo::Compiler;
+		using namespace Rococo::Compiler;
 
-	struct IPublicScriptSystem;
+		struct IPublicScriptSystem;
 
-	struct NativeCallEnvironment
-	{
-		IPublicScriptSystem& ss;
-		const Compiler::IFunction& function;
-		const  Compiler::IFunctionCode& code;
-		VM::CPU& cpu;
-		void* context;
+		struct NativeCallEnvironment
+		{
+			IPublicScriptSystem& ss;
+			const Compiler::IFunction& function;
+			const  Compiler::IFunctionCode& code;
+			VM::CPU& cpu;
+			void* context;
 
-		NativeCallEnvironment(IPublicScriptSystem& _ss, const  Compiler::IFunction& _function, VM::CPU& _cpu, void* _context);
-	};
+			NativeCallEnvironment(IPublicScriptSystem& _ss, const  Compiler::IFunction& _function, VM::CPU& _cpu, void* _context);
+		};
 
-	typedef void (CALLTYPE_C *FN_NATIVE_CALL)(NativeCallEnvironment& e);
+		typedef void (CALLTYPE_C *FN_NATIVE_CALL)(NativeCallEnvironment& e);
 
-	void ThrowBadNativeArg(int index, cstr source, cstr message);	
+		void ThrowBadNativeArg(int index, cstr source, cstr message);
 
-	const Rococo::Sex::ISExpression* GetSourceExpression(Rococo::Compiler::IPublicProgramObject& po, const Rococo::Compiler::IFunction& f, size_t pcOffset);
+		const Rococo::Sex::ISExpression* GetSourceExpression(Rococo::Compiler::IPublicProgramObject& po, const Rococo::Compiler::IFunction& f, size_t pcOffset);
 
 #ifdef _DEBUG
-	inline void ValidateOutputIndex(int index, const Compiler::IFunctionCode& code)
-	{
-		if (index < 0 || index >= code.Owner().NumberOfOutputs())
+		inline void ValidateOutputIndex(int index, const Compiler::IFunctionCode& code)
 		{
-			ThrowBadNativeArg(index, code.Owner().Name(), ("Bad output argument"));
+			if (index < 0 || index >= code.Owner().NumberOfOutputs())
+			{
+				ThrowBadNativeArg(index, code.Owner().Name(), ("Bad output argument"));
+			}
 		}
-	}
 
-	inline void ValidateInputIndex(int index, const Compiler::IFunctionCode& code)
-	{
-		if (index < 0 || index >= code.Owner().NumberOfInputs())
+		inline void ValidateInputIndex(int index, const Compiler::IFunctionCode& code)
 		{
-			ThrowBadNativeArg(index, code.Owner().Name(), ("Bad input argument"));
+			if (index < 0 || index >= code.Owner().NumberOfInputs())
+			{
+				ThrowBadNativeArg(index, code.Owner().Name(), ("Bad input argument"));
+			}
 		}
-	}
 #else
-	inline void ValidateOutputIndex(int index, const Compiler::IFunctionCode& code) {}
-	inline void ValidateInputIndex(int index, const Compiler::IFunctionCode& code) {}
+		inline void ValidateOutputIndex(int index, const Compiler::IFunctionCode& code) {}
+		inline void ValidateInputIndex(int index, const Compiler::IFunctionCode& code) {}
 #endif
 
-	template<class T> void ReadInput(T& value, const uint8 *SF, ptrdiff_t offset)
-	{
-		const uint8* inputStart = SF + offset;
-		uint8* readPos = (uint8*) inputStart;
-		T* pValue = (T*) readPos;
-		value = *pValue;
-	}
+		template<class T> void ReadInput(T& value, const uint8 *SF, ptrdiff_t offset)
+		{
+			const uint8* inputStart = SF + offset;
+			uint8* readPos = (uint8*)inputStart;
+			T* pValue = (T*)readPos;
+			value = *pValue;
+		}
 
-	template<class T>void WriteOutput(T value, const uint8 *SF, ptrdiff_t offset)
-	{
-		const uint8* outputStart = SF + offset;
-		uint8* writePos = (uint8*) outputStart;
-		T* pValue = (T*) writePos;
-		*pValue = value;
-	}
+		template<class T>void WriteOutput(T value, const uint8 *SF, ptrdiff_t offset)
+		{
+			const uint8* outputStart = SF + offset;
+			uint8* writePos = (uint8*)outputStart;
+			T* pValue = (T*)writePos;
+			*pValue = value;
+		}
 
-	template<class T>void WriteOutput(int index, T value, NativeCallEnvironment& e)
-	{
-		ValidateOutputIndex(index, e.code);
-		int offset = e.code.GetOffset(index);
-		WriteOutput(value, e.cpu.SF(), offset);
-	}
+		template<class T>void WriteOutput(int index, T value, NativeCallEnvironment& e)
+		{
+			ValidateOutputIndex(index, e.code);
+			int offset = e.code.GetOffset(index);
+			WriteOutput(value, e.cpu.SF(), offset);
+		}
 
-	template<class T> void ReadInput(int index, T& value, Compiler::IPublicProgramObject& po, const Compiler::IFunction& f)
-	{
-		ValidateInputIndex(index, f.Code());
-		int offset = f.Code().GetOffset(index + f.NumberOfOutputs());
-		ReadInput(value,po.VirtualMachine().Cpu().SF(), offset);
-	}
+		template<class T> void ReadInput(int index, T& value, Compiler::IPublicProgramObject& po, const Compiler::IFunction& f)
+		{
+			ValidateInputIndex(index, f.Code());
+			int offset = f.Code().GetOffset(index + f.NumberOfOutputs());
+			ReadInput(value, po.VirtualMachine().Cpu().SF(), offset);
+		}
 
-	template<class T> void ReadInput(int index, T& value, NativeCallEnvironment& e)
-	{
-		ValidateInputIndex(index, e.code);
-		int offset = e.code.GetOffset(index + e.function.NumberOfOutputs());
-		ReadInput(value, e.cpu.SF(), offset);
-	}
+		template<class T> void ReadInput(int index, T& value, NativeCallEnvironment& e)
+		{
+			ValidateInputIndex(index, e.code);
+			int offset = e.code.GetOffset(index + e.function.NumberOfOutputs());
+			ReadInput(value, e.cpu.SF(), offset);
+		}
 
-	struct IScriptSystem;
-
-#pragma pack(push,1)
-	struct CClassExpression
-	{
-		ObjectStub Header;
-		Sex::ISExpression* ExpressionPtr;
-	};
-
-	struct CClassExpressionBuilder
-	{
-		ObjectStub Header;
-		Sex::ISExpressionBuilder* BuilderPtr;
-	};
-
-   struct CClassSysTypeStringBuilder
-   {
-	  ObjectStub header;
-      int32 length;
-      char* buffer;
-      int32 capacity;
-   };
-
-	struct CScriptSystemClass
-	{
-		ObjectStub header;
-	};
-
-	struct CReflectedClass
-	{
-		ObjectStub header;
-		void* context;
-	};
-#pragma pack(pop)
-
-	enum ENUM_REPRESENT
-	{
-		ENUM_REPRESENT_BREAK,
-		ENUM_REPRESENT_CONTINUE,
-		ENUM_REPRESENT_DELETE
-	};
-
-	ROCOCOAPI IRepresentationEnumeratorCallback
-	{
-		virtual ENUM_REPRESENT OnRepresentation(CReflectedClass* rep) = 0;
-	};
-
-	ROCOCOAPI IPublicScriptSystem : public IFreeable
-	{
-		virtual void AddCommonSource(const char* dynamicLinkLibOfNativeCalls) = 0;
-		virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, bool checkName = true) = 0; // Example: AddNativeCall(ns, ANON::CpuHz, NULL, "CpuHz -> (Int64 hz)");
-		virtual const Compiler::INamespace& AddNativeNamespace(cstr name) = 0;
-		virtual void AddNativeLibrary(const char *sexyLibraryFile) = 0;
-		virtual Compiler::IModule* AddTree(Sex::ISParserTree& tree) = 0;
-		virtual void Compile() = 0;
-		virtual cstr GetSymbol(const void* ptr) const = 0;
-		virtual Compiler::IPublicProgramObject& PublicProgramObject() = 0;
-		virtual Sex::ISParser& SParser() = 0;
-		virtual void ReleaseTree(Sex::ISParserTree* tree) = 0;
-		virtual void ThrowNative(int errorNumber, cstr source, cstr message) = 0;
-		virtual Sex::ISParserTree* GetSourceCode(const Compiler::IModule& module) const = 0;
-		virtual void ThrowFromNativeCode(int32 errorCode, cstr staticRefMessage) = 0;
-		virtual int32 GetIntrinsicModuleCount() const = 0;
-		virtual bool ValidateMemory() = 0;
-		virtual void SetGlobalVariablesToDefaults() = 0;
-
-		virtual void CancelRepresentation(void* pSourceInstance) = 0;
-		virtual void EnumRepresentations(IRepresentationEnumeratorCallback& callback) = 0;
-		virtual CReflectedClass* GetRepresentation(void* pSourceInstance) = 0;
-		virtual CReflectedClass* Represent(const Rococo::Compiler::IStructure& st, void* pSourceInstance) = 0;
-	};	
+		struct IScriptSystem;
 
 #pragma pack(push,1)
-   struct CStringConstant
-   {
-      ObjectStub header;
-      int32 length;
-      cstr pointer;
-      void* srcExpression;
-   };
+		struct CClassExpression
+		{
+			ObjectStub Header;
+			Sex::ISExpression* ExpressionPtr;
+		};
+
+		struct CClassExpressionBuilder
+		{
+			ObjectStub Header;
+			Sex::ISExpressionBuilder* BuilderPtr;
+		};
+
+		struct CClassSysTypeStringBuilder
+		{
+			ObjectStub header;
+			int32 length;
+			char* buffer;
+			int32 capacity;
+		};
+
+		struct CScriptSystemClass
+		{
+			ObjectStub header;
+		};
+
+		struct CReflectedClass
+		{
+			ObjectStub header;
+			void* context;
+		};
 #pragma pack(pop)
-		
-	ROCOCOAPI IScriptSystem : IPublicScriptSystem
-	{
-		virtual Compiler::IProgramObject& ProgramObject() = 0;
-		
-		virtual const CClassExpression* GetExpressionReflection(const Sex::ISExpression& s) = 0;
-		virtual CStringConstant* GetStringReflection(cstr s) = 0;
-		virtual CScriptSystemClass* GetScriptSystemClass() = 0;
-		virtual CReflectedClass* GetReflectedClass(void* ptr) = 0;
-		virtual CReflectedClass* CreateReflectionClass(cstr className, void* context) = 0;
-		virtual bool ConstructExpressionBuilder(CClassExpressionBuilder& builderContainer, Rococo::Sex::ISExpressionBuilder* builder) = 0;
-		virtual const void* GetMethodMap() = 0;
-		virtual void* AlignedMalloc(int32 alignment, int32 capacity) = 0;
-		virtual void AlignedFree(void* buffer) = 0;
-		virtual int NextID() = 0;
-	};	
 
-   void SetDefaultNativeSourcePath(cstr pathname);
+		enum ENUM_REPRESENT
+		{
+			ENUM_REPRESENT_BREAK,
+			ENUM_REPRESENT_CONTINUE,
+			ENUM_REPRESENT_DELETE
+		};
 
-	ROCOCOAPI INativeLib
-	{
-		virtual void AddNativeCalls() = 0;
-		virtual void ClearResources() = 0;
-		virtual void Release() = 0;
-	};
+		ROCOCOAPI IRepresentationEnumeratorCallback
+		{
+			virtual ENUM_REPRESENT OnRepresentation(CReflectedClass* rep) = 0;
+		};
 
-	typedef INativeLib* (*FN_CreateLib)(Rococo::Script::IScriptSystem& ss);
+		ROCOCOAPI IPublicScriptSystem : public IFreeable
+		{
+			virtual void AddCommonSource(const char* dynamicLinkLibOfNativeCalls) = 0;
+			virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, bool checkName = true) = 0; // Example: AddNativeCall(ns, ANON::CpuHz, NULL, "CpuHz -> (Int64 hz)");
+			virtual const Compiler::INamespace& AddNativeNamespace(cstr name) = 0;
+			virtual void AddNativeLibrary(const char *sexyLibraryFile) = 0;
+			virtual Compiler::IModule* AddTree(Sex::ISParserTree& tree) = 0;
+			virtual void Compile() = 0;
+			virtual cstr GetSymbol(const void* ptr) const = 0;
+			virtual Compiler::IPublicProgramObject& PublicProgramObject() = 0;
+			virtual Sex::ISParser& SParser() = 0;
+			virtual void ReleaseTree(Sex::ISParserTree* tree) = 0;
+			virtual void ThrowNative(int errorNumber, cstr source, cstr message) = 0;
+			virtual Sex::ISParserTree* GetSourceCode(const Compiler::IModule& module) const = 0;
+			virtual void ThrowFromNativeCode(int32 errorCode, cstr staticRefMessage) = 0;
+			virtual int32 GetIntrinsicModuleCount() const = 0;
+			virtual bool ValidateMemory() = 0;
+			virtual void SetGlobalVariablesToDefaults() = 0;
 
-	ROCOCOAPI MemberEnumeratorCallback
-	{
-		virtual void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int recurseDepth) = 0;
-	};
+			virtual void CancelRepresentation(void* pSourceInstance) = 0;
+			virtual void EnumRepresentations(IRepresentationEnumeratorCallback& callback) = 0;
+			virtual CReflectedClass* GetRepresentation(void* pSourceInstance) = 0;
+			virtual CReflectedClass* Represent(const Rococo::Compiler::IStructure& st, void* pSourceInstance) = 0;
+		};
 
-	// Debugging Helpers API
-	SCRIPTEXPORT_API void EnumerateRegisters(Rococo::VM::CPU& cpu, Rococo::Debugger::IRegisterEnumerationCallback& cb);
-	SCRIPTEXPORT_API const Rococo::Sex::ISExpression* GetSexSymbol(VM::CPU& cpu, const uint8* pcAddress, Rococo::Script::IPublicScriptSystem& ss);
-	SCRIPTEXPORT_API const Rococo::Compiler::IFunction* GetFunctionFromBytecode(const Rococo::Compiler::IModule& module, Rococo::ID_BYTECODE id);
-	SCRIPTEXPORT_API const Rococo::Compiler::IFunction* GetFunctionFromBytecode(Rococo::Compiler::IPublicProgramObject& obj, Rococo::ID_BYTECODE id);
-	SCRIPTEXPORT_API const Rococo::Compiler::IFunction* GetFunctionAtAddress(Rococo::Compiler::IPublicProgramObject& po, size_t pcOffset);
-	SCRIPTEXPORT_API const uint8* GetCallerSF(Rococo::VM::CPU& cpu, const uint8* sf);
-	SCRIPTEXPORT_API const uint8* GetReturnAddress(Rococo::VM::CPU& cpu, const uint8* sf);
-	SCRIPTEXPORT_API const uint8* GetPCAddress(Rococo::VM::CPU& cpu, int32 callDepth);
-	SCRIPTEXPORT_API const uint8* GetStackFrame(Rococo::VM::CPU& cpu, int32 callDepth);
-	SCRIPTEXPORT_API bool GetVariableByIndex(cstr& name, Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure*& pseudoType, const uint8*& SF, IPublicScriptSystem& ss, size_t index, size_t callOffset);
-	SCRIPTEXPORT_API bool GetCallDescription(const uint8*& sf, const uint8*& pc, const Rococo::Compiler::IFunction*& f, size_t& fnOffset, IPublicScriptSystem& ss, size_t callDepth, size_t& pcOffset);
-	SCRIPTEXPORT_API size_t GetCurrentVariableCount(IPublicScriptSystem& ss, size_t callDepth);
-	SCRIPTEXPORT_API void ForeachStackLevel(Rococo::Compiler::IPublicProgramObject& obj, Rococo::Debugger::ICallStackEnumerationCallback& cb);
-	SCRIPTEXPORT_API void ForeachVariable(Rococo::Script::IPublicScriptSystem& ss, Rococo::Debugger::IVariableEnumeratorCallback& variableEnum, size_t callOffset);
-	SCRIPTEXPORT_API void FormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, VARTYPE type, const void* pVariableData);
-	SCRIPTEXPORT_API void SkipJIT(Rococo::Compiler::IPublicProgramObject& po);
-	SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const Rococo::Compiler::IStructure& s, cstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback, int recurseDepth);
-	SCRIPTEXPORT_API const Rococo::uint8* GetInstance(const Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure* pseudoType, const uint8* SF);
-	SCRIPTEXPORT_API cstr GetShortName(const Rococo::Compiler::IStructure& s);
-	SCRIPTEXPORT_API cstr GetInstanceTypeName(const Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure* pseudoType);
-	SCRIPTEXPORT_API cstr GetInstanceVarName(cstr name, const Rococo::Compiler::IStructure* pseudoType);
-	SCRIPTEXPORT_API bool FindVariableByName(Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure*& pseudoType, const Rococo::uint8*& SF, IPublicScriptSystem& ss, cstr searchName, size_t callOffset);
-	SCRIPTEXPORT_API const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, cstr fullyQualifiedName);
+#pragma pack(push,1)
+		struct CStringConstant
+		{
+			ObjectStub header;
+			int32 length;
+			cstr pointer;
+			void* srcExpression;
+		};
+#pragma pack(pop)
+
+		struct ScriptCallbacks
+		{
+			ID_API_CALLBACK IdThrowNullRef;
+			ID_API_CALLBACK IdTestD4neqD5_retBoolD7;
+		};
+
+		ROCOCOAPI IScriptSystem : IPublicScriptSystem
+		{
+			virtual Compiler::IProgramObject& ProgramObject() = 0;
+
+			virtual const CClassExpression* GetExpressionReflection(const Sex::ISExpression& s) = 0;
+			virtual CStringConstant* GetStringReflection(cstr s) = 0;
+			virtual CScriptSystemClass* GetScriptSystemClass() = 0;
+			virtual CReflectedClass* GetReflectedClass(void* ptr) = 0;
+			virtual CReflectedClass* CreateReflectionClass(cstr className, void* context) = 0;
+			virtual bool ConstructExpressionBuilder(CClassExpressionBuilder& builderContainer, Rococo::Sex::ISExpressionBuilder* builder) = 0;
+			virtual const void* GetMethodMap() = 0;
+			virtual void* AlignedMalloc(int32 alignment, int32 capacity) = 0;
+			virtual void AlignedFree(void* buffer) = 0;
+			virtual int NextID() = 0;
+			virtual const ScriptCallbacks& GetScriptCallbacks() = 0;
+		};
+
+		void SetDefaultNativeSourcePath(cstr pathname);
+
+		ROCOCOAPI INativeLib
+		{
+			virtual void AddNativeCalls() = 0;
+			virtual void ClearResources() = 0;
+			virtual void Release() = 0;
+		};
+
+		typedef INativeLib* (*FN_CreateLib)(Rococo::Script::IScriptSystem& ss);
+
+		ROCOCOAPI MemberEnumeratorCallback
+		{
+			virtual void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int recurseDepth) = 0;
+		};
+
+		// Debugging Helpers API
+		SCRIPTEXPORT_API void EnumerateRegisters(Rococo::VM::CPU& cpu, Rococo::Debugger::IRegisterEnumerationCallback& cb);
+		SCRIPTEXPORT_API const Rococo::Sex::ISExpression* GetSexSymbol(VM::CPU& cpu, const uint8* pcAddress, Rococo::Script::IPublicScriptSystem& ss);
+		SCRIPTEXPORT_API const Rococo::Compiler::IFunction* GetFunctionFromBytecode(const Rococo::Compiler::IModule& module, Rococo::ID_BYTECODE id);
+		SCRIPTEXPORT_API const Rococo::Compiler::IFunction* GetFunctionFromBytecode(Rococo::Compiler::IPublicProgramObject& obj, Rococo::ID_BYTECODE id);
+		SCRIPTEXPORT_API const Rococo::Compiler::IFunction* GetFunctionAtAddress(Rococo::Compiler::IPublicProgramObject& po, size_t pcOffset);
+		SCRIPTEXPORT_API const uint8* GetCallerSF(Rococo::VM::CPU& cpu, const uint8* sf);
+		SCRIPTEXPORT_API const uint8* GetReturnAddress(Rococo::VM::CPU& cpu, const uint8* sf);
+		SCRIPTEXPORT_API const uint8* GetPCAddress(Rococo::VM::CPU& cpu, int32 callDepth);
+		SCRIPTEXPORT_API const uint8* GetStackFrame(Rococo::VM::CPU& cpu, int32 callDepth);
+		SCRIPTEXPORT_API bool GetVariableByIndex(cstr& name, Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure*& pseudoType, const uint8*& SF, IPublicScriptSystem& ss, size_t index, size_t callOffset);
+		SCRIPTEXPORT_API bool GetCallDescription(const uint8*& sf, const uint8*& pc, const Rococo::Compiler::IFunction*& f, size_t& fnOffset, IPublicScriptSystem& ss, size_t callDepth, size_t& pcOffset);
+		SCRIPTEXPORT_API size_t GetCurrentVariableCount(IPublicScriptSystem& ss, size_t callDepth);
+		SCRIPTEXPORT_API void ForeachStackLevel(Rococo::Compiler::IPublicProgramObject& obj, Rococo::Debugger::ICallStackEnumerationCallback& cb);
+		SCRIPTEXPORT_API void ForeachVariable(Rococo::Script::IPublicScriptSystem& ss, Rococo::Debugger::IVariableEnumeratorCallback& variableEnum, size_t callOffset);
+		SCRIPTEXPORT_API void FormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, VARTYPE type, const void* pVariableData);
+		SCRIPTEXPORT_API void SkipJIT(Rococo::Compiler::IPublicProgramObject& po);
+		SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const Rococo::Compiler::IStructure& s, cstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback, int recurseDepth);
+		SCRIPTEXPORT_API const Rococo::uint8* GetInstance(const Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure* pseudoType, const uint8* SF);
+		SCRIPTEXPORT_API cstr GetShortName(const Rococo::Compiler::IStructure& s);
+		SCRIPTEXPORT_API cstr GetInstanceTypeName(const Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure* pseudoType);
+		SCRIPTEXPORT_API cstr GetInstanceVarName(cstr name, const Rococo::Compiler::IStructure* pseudoType);
+		SCRIPTEXPORT_API bool FindVariableByName(Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure*& pseudoType, const Rococo::uint8*& SF, IPublicScriptSystem& ss, cstr searchName, size_t callOffset);
+		SCRIPTEXPORT_API const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, cstr fullyQualifiedName);
 }}
 
 namespace Rococo {

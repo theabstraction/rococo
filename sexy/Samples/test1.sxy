@@ -6,19 +6,15 @@
 (using Sys.Type.Formatters)
 (using Sys.Type)
 
-(archetype EntryPoint.VoidToVoid ->)
-
-(function Double(Int32 x)->(Int32 y) :
-	(y = (2 * x))
+(interface Sys.IDog (attribute essential)
+	(Id -> (Int32 id))
 )
 
 (function Main -> (Int32 result): 
-	(Int32 x = 17)
-	(VoidToVoid g =
-		(closure -> :
-			(Int32 z = (Double x))
-			(result = z)
-		)
+	(Sys.IDog dog)
+   (if (dog exists)
+		(return = 7)
+	else
+		(return = 9)
 	)
-	(g)
 )

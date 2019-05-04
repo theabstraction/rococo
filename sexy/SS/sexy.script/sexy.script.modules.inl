@@ -1225,27 +1225,71 @@ namespace Rococo { namespace Script
 
 	IFunctionBuilder& DeclareFunction(CScript& script, cr_sex source, FunctionPrototype& prototype);
 
-	void CompileNullMethod(const IArchetype& nullMethod, IInterface& interf, IStructureBuilder& nullObject, cr_sex source, INamespace& ns)
+	void CompileNullMethod_Throws(IScriptSystem& ss, const IInterface& interface, IFunctionBuilder& f)
+	{
+		VariantValue v;
+		v.vPtrValue = (IInterface*) &interface;
+		f.Builder().Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_POINTER);
+
+		v.vPtrValue = (IFunction*) &f;
+		f.Builder().Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, v, BITCOUNT_POINTER);
+
+		f.Builder().Assembler().Append_Invoke(ss.GetScriptCallbacks().IdThrowNullRef);
+	}
+
+	VM_CALLBACK(ThrowNullRef)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		auto* i = (const IInterface*) registers[4].vPtrValue;
+		auto *f = (const IFunction*) registers[5].vPtrValue;
+
+		NamespaceSplitter splitter(f->Name());
+		cstr body, tail;
+		splitter.SplitTail(body, tail);
+
+		char* message = (char*) ss.AlignedMalloc(8, 256);
+		SafeFormat(message, 256, "%s.%s: null reference", i->Name(), tail);
+
+		auto* sc = ss.GetStringReflection(message);
+		ss.ThrowFromNativeCode(0, sc->pointer);
+	}
+
+	void CompileNullMethod_NullsOutput(IFunctionBuilder& f)
+	{
+		// Set all outputs to zero
+		for (int i = 0; i < f.NumberOfOutputs(); i++)
+		{
+			const IArgument& arg = f.Arg(i);
+			if (!IsNullType(*arg.ResolvedType()))
+			{
+				f.Builder().AssignLiteral(NameString::From(arg.Name()), ("0"));
+			}
+		}
+
+		CompileSetOutputRefToUniversalNullObjects(f);
+	}
+
+	void CompileNullMethod(IScriptSystem& ss, const IArchetype& nullMethod, IInterface& interf, IStructureBuilder& nullObject, cr_sex source, INamespace& ns)
 	{
 		TokenBuffer qualifiedMethodName;
 		StringPrint(qualifiedMethodName, ("%s.%s"), nullObject.Name(), nullMethod.Name());
 
-      FunctionPrototype fp(qualifiedMethodName, true);
+		FunctionPrototype fp(qualifiedMethodName, true);
 		IFunctionBuilder& f = Rococo::Script::DeclareFunction(nullObject.Module(), source, fp);
-		
-		for(int i = 0; i < nullMethod.NumberOfOutputs(); ++i)
+
+		for (int i = 0; i < nullMethod.NumberOfOutputs(); ++i)
 		{
 			const IStructure& argStruct = nullMethod.GetArgument(i);
 			cstr argType = GetFriendlyName(argStruct);
 			cstr argName = nullMethod.GetArgName(i);
 			f.AddOutput(NameString::From(argName), argStruct, (void*)&source);
 		}
-      
-      TokenBuffer qualifiedInterfaceName;
-		StringPrint(qualifiedInterfaceName, ("%s.%s"), ns.FullName()->Buffer, interf.Name());
-      f.AddInput(NameString::From(THIS_POINTER_TOKEN), TypeString::From(qualifiedInterfaceName), (void*) &source);
 
-		for(int i = 0; i < nullMethod.NumberOfInputs()-1; ++i)
+		TokenBuffer qualifiedInterfaceName;
+		StringPrint(qualifiedInterfaceName, ("%s.%s"), ns.FullName()->Buffer, interf.Name());
+		f.AddInput(NameString::From(THIS_POINTER_TOKEN), TypeString::From(qualifiedInterfaceName), (void*)&source);
+
+		for (int i = 0; i < nullMethod.NumberOfInputs() - 1; ++i)
 		{
 			int index = nullMethod.NumberOfOutputs() + i;
 			const IStructure& argStruct = nullMethod.GetArgument(index);
@@ -1259,32 +1303,30 @@ namespace Rococo { namespace Script
 			Throw(source, streamer);
 		}
 
-      f.Builder().SetThisOffset(ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0);
+		f.Builder().SetThisOffset(ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0);
 
 		f.Builder().Begin();
 
-		// Set all outputs to zero
-		for(int i = 0; i < f.NumberOfOutputs(); i++)
+		const void* value;
+		if (interf.Attributes().FindAttribute("essential", value))
 		{
-			const IArgument& arg = f.Arg(i);
-			if (!IsNullType(*arg.ResolvedType()))
-			{
-				f.Builder().AssignLiteral(NameString::From(arg.Name()), ("0"));
-			}
+			CompileNullMethod_Throws(ss, interf, f);
 		}
-
-		CompileSetOutputRefToUniversalNullObjects(f);
+		else
+		{
+			CompileNullMethod_NullsOutput(f);
+		}
 
 		f.Builder().End();
 		f.Builder().Assembler().Clear();
 	}
 
-	void CompileNullObject(IInterface& interf, IStructureBuilder& nullObject, cr_sex source, INamespace& ns)
+	void CompileNullObject(IScriptSystem& ss, IInterface& interf, IStructureBuilder& nullObject, cr_sex source, INamespace& ns)
 	{
 		for(int i = 0; i < interf.MethodCount(); ++i)
 		{
 			const IArchetype& nullMethod = interf.GetMethod(i);
-			CompileNullMethod(nullMethod, interf, nullObject, source, ns);
+			CompileNullMethod(ss, nullMethod, interf, nullObject, source, ns);
 		}
 	}
 
@@ -2140,7 +2182,7 @@ namespace Rococo { namespace Script
    {
       for (auto n = nullDefs.begin(); n != nullDefs.end(); ++n)
       {
-         CompileNullObject(*n->Interface, *n->NullObject, *n->Source, *n->NS);
+         CompileNullObject(System(), *n->Interface, *n->NullObject, *n->Source, *n->NS);
          n->Interface->PostCompile();
       }
    }

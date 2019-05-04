@@ -381,6 +381,7 @@ namespace Rococo
 		CProgramObjectProxy progObjProxy;
 		CSParserProxy sexParserProxy;
 		CScripts* scripts;
+		ScriptCallbacks callbacks;
 
 		IStructureBuilder* nativeInt32;
 		IStructureBuilder* nativeInt64;
@@ -576,8 +577,16 @@ namespace Rococo
 			mapCallbacks.MapNodePop = core.RegisterCallback(OnInvokeMapNodePop, this, ("MapNodePop"));
 			mapCallbacks.MapNodeReleaseRef = core.RegisterCallback(OnInvokeMapNodeReleaseRef, this, ("MapNodeReleaseRef"));
 
+			callbacks.IdThrowNullRef = core.RegisterCallback(OnInvokeThrowNullRef, this, ("ThrowNullRef"));
+			callbacks.IdTestD4neqD5_retBoolD7 = core.RegisterCallback(OnInvokeTestD4neqD5_retBoolD7, &ProgramObject().VirtualMachine(), ("TestD4neqD5_retBoolD7"));
+
 			methodMap[("Capacity")] = ("_elementCapacity");
 			methodMap[("Length")] = ("_length");
+		}
+
+		const ScriptCallbacks& GetScriptCallbacks()
+		{
+			return callbacks;
 		}
 
 		~CScriptSystem()

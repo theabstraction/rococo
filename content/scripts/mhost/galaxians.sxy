@@ -37,7 +37,15 @@
 	(Int32 playerDirection)
 )
 
-(struct World
+(interface MHost.IWorld
+	(ForEachEntityInWorld (OnEntity onEntity)->)
+	(Init ->)
+	(Advance ->)
+	(Render (IScreenBuilder sb)->)
+)
+
+(class Galaxians (implements MHost.IWorld)
+	(IEngine engine)
 	(array Entity aliens)
 	(array Entity missiles)
 	(Entity player)
@@ -53,9 +61,12 @@
 	(Int64 enemyHitAt)
 )
 
-(method World.Construct -> (construct aliens 54) (construct missiles 4) :
+(method Galaxians.Construct (IEngine engine) -> (construct aliens 54) (construct missiles 4) :
 	(this.direction = 1)
+	(this.engine = engine)
 )
+
+(factory MHost.Galaxians MHost.IWorld (IEngine engine) : (construct Galaxians engine))
 
 (function InitSprite (IScreenBuilder s)(Sprite bmp)-> :
 	(s.GetSpriteSpec bmp.filename bmp.location)
@@ -68,14 +79,14 @@
 
 (archetype Galaxians.OnEntity (Entity e)->)
 
-(function ForEachEntityIn (World world)(OnEntity onEntity)-> :
-	(foreach alien # world.aliens (onEntity alien))
-	(foreach missile # world.missiles (onEntity missile))
-	(onEntity world.player)
-	(onEntity world.playerMissile)
+(method Galaxians.ForEachEntityInWorld (OnEntity onEntity)-> :
+	(foreach alien # this.aliens (onEntity alien))
+	(foreach missile # this.missiles (onEntity missile))
+	(onEntity this.player)
+	(onEntity this.playerMissile)
 )
 
-(function Init (World world)(IEngine engine)-> :
+(method Galaxians.Init -> :
 	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1)
 	
 	(IString pawn1 = "!textures/mhost/pawn.1.tiff")
@@ -85,17 +96,17 @@
 	(IString missile2 = "!textures/mhost/missile.2.tiff")
 	(IString explosion = "!textures/mhost/explosion.tiff")
 	
-	(world.killCount = 0)
-	(world.enemyHitAt = 0)
+	(this.killCount = 0)
+	(this.enemyHitAt = 0)
 	
-	(world.playerExplosion = (0  -100) (explosion defaultBmpLoc) (explosion defaultBmpLoc))
-	(world.enemyExplosion = (0  -100) (explosion defaultBmpLoc) (explosion defaultBmpLoc))
+	(this.playerExplosion = (0  -100) (explosion defaultBmpLoc) (explosion defaultBmpLoc))
+	(this.enemyExplosion = (0  -100) (explosion defaultBmpLoc) (explosion defaultBmpLoc))
 	
 	// 4 enemy missiles
 	(
 		(#for (Int32 i = 0)(i < 4)(i += 1)
 			(Entity a0 = (1  -40) (missile2 defaultBmpLoc) (missile2 defaultBmpLoc))
-			(world.missiles.Push a0)
+			(this.missiles.Push a0)
 		)
 	)
 	
@@ -104,10 +115,10 @@
 		(Int32 y = 80)
 		(Int32 x0 = 130)
 		(Entity a0 = (x0  y) (pawn4 defaultBmpLoc) (pawn4 defaultBmpLoc))
-		(world.aliens.Push a0)
+		(this.aliens.Push a0)
 		(Int32 x1 = 250)
 		(Entity a1 = (x1 y) (pawn4 defaultBmpLoc) (pawn4 defaultBmpLoc))
-		(world.aliens.Push a1)
+		(this.aliens.Push a1)
 	)
 	
 	// 1 line of 6 red meanies
@@ -116,7 +127,7 @@
 		(#for (Int32 i = 0)(i < 6)(i += 1)
 			(Int32 x = (90 + (i * 40)))
 			(Entity a0 = (x  y) (pawn3 defaultBmpLoc) (pawn3 defaultBmpLoc))
-			(world.aliens.Push a0)
+			(this.aliens.Push a0)
 		)
 	)
 	
@@ -126,7 +137,7 @@
 		(#for (Int32 i = 0)(i < 8)(i += 1)
 			(Int32 x = (50 + (i * 40)))
 			(Entity a0 = (x  y) (pawn2 defaultBmpLoc) (pawn2 defaultBmpLoc))
-			(world.aliens.Push a0)
+			(this.aliens.Push a0)
 		)
 	)
 	
@@ -137,27 +148,26 @@
 		(#for (Int32 i = 0)(i < 10)(i += 1)
 			(Int32 x = (10 + (i * 40)))
 			(Entity a0 = (x  y) (pawn1 defaultBmpLoc) (pawn1 defaultBmpLoc))
-			(world.aliens.Push a0)
+			(this.aliens.Push a0)
 		)
 	)
 	
-	(world.player = (500 8000) ("!textures/mhost/player.1.tiff" defaultBmpLoc) ("!textures/mhost/player.2.tiff" defaultBmpLoc))
-	(world.playerMissile = (-100 -100) ("!textures/mhost/missile.1.tiff" defaultBmpLoc) ("!textures/mhost/missile.2.tiff" defaultBmpLoc))
-	(world.deathAt = (Sys.Time.ClockTicks))
-	(world.lives = 3)
+	(this.player = (500 8000) ("!textures/mhost/player.1.tiff" defaultBmpLoc) ("!textures/mhost/player.2.tiff" defaultBmpLoc))
+	(this.playerMissile = (-100 -100) ("!textures/mhost/missile.1.tiff" defaultBmpLoc) ("!textures/mhost/missile.2.tiff" defaultBmpLoc))
+	(this.deathAt = (Sys.Time.ClockTicks))
+	(this.lives = 3)
 	
-	(IScreenBuilder s = (engine.ScreenBuilder))
+	(IScreenBuilder s = (this.engine.ScreenBuilder))
 	
-	(trip)
 	(OnEntity initSprites = (closure (Entity e)-> : (InitEntitySprites s e)))
-	(ForEachEntityIn world initSprites)
-	(InitEntitySprites s world.playerExplosion)
-	(InitEntitySprites s world.enemyExplosion)
+	(this.ForEachEntityInWorld initSprites)
+	(InitEntitySprites s this.playerExplosion)
+	(InitEntitySprites s this.enemyExplosion)
 	
 	(IKeyboard keyboard (Keyboard))
-	(world.controls.leftKey = (keyboard.GetVKeyFromName "A"))
-	(world.controls.rightKey = (keyboard.GetVKeyFromName "D"))
-	(world.controls.fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
+	(this.controls.leftKey = (keyboard.GetVKeyFromName "A"))
+	(this.controls.rightKey = (keyboard.GetVKeyFromName "D"))
+	(this.controls.fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
 )
 
 (function DrawEntity (Entity e)(IScreenBuilder sb) -> :
@@ -182,205 +192,207 @@
 	(rect.top += centre.y)
 )
 
-(function Render (World world)(IEngine engine)(IScreenBuilder s)-> :
+(method Galaxians.Render (IScreenBuilder s)-> :
 	(OnEntity drawSprites = (closure (Entity e)-> : (DrawEntity e s)))
-	(ForEachEntityIn world drawSprites)
+	(this.ForEachEntityInWorld drawSprites)
 	
-	(if (world.deathAt != 0)
+	(if (this.deathAt != 0)
 		(Int64 peakBoom = Sys.Time.ClockHz)
-		(Int64 delta = ((Sys.Time.ClockTicks) - world.deathAt))
+		(Int64 delta = ((Sys.Time.ClockTicks) - this.deathAt))
 		(if (delta < peakBoom)
-			(s.DrawSprite world.playerExplosion.screenPosition 0 world.player.image1.location)
+			(s.DrawSprite this.playerExplosion.screenPosition 0 this.player.image1.location)
 			(Int64 boomTick = ( peakBoom / 64 ))
 			(Int32 span = (delta / boomTick))
 			(Recti rect)
-			(ExpandRect rect span world.playerExplosion.screenPosition)
-			(s.StretchSprite rect world.playerExplosion.image1.location)
+			(ExpandRect rect span this.playerExplosion.screenPosition)
+			(s.StretchSprite rect this.playerExplosion.image1.location)
 		)
 	)
 	
-	(if (world.enemyHitAt != 0)
+	(if (this.enemyHitAt != 0)
 		(Int64 peakBoom = Sys.Time.ClockHz)
-		(Int64 delta = ((Sys.Time.ClockTicks) - world.enemyHitAt))
+		(Int64 delta = ((Sys.Time.ClockTicks) - this.enemyHitAt))
 		(if (delta < peakBoom)
 			(Int64 boomTick = ( peakBoom / 32 ))
 			(Int32 span = (32 - (delta / boomTick)))
 			(Recti rect)
-			(ExpandRect rect span world.enemyExplosion.screenPosition)
-			(s.StretchSprite rect world.enemyExplosion.image1.location)
+			(ExpandRect rect span this.enemyExplosion.screenPosition)
+			(s.StretchSprite rect this.enemyExplosion.image1.location)
 		else
-			(world.enemyHitAt = 0)
+			(this.enemyHitAt = 0)
 		)
 	)
 	
-	(if (world.lives > 0)
-		(if (world.deathAt == 0)
-			(RenderLives world.player s (world.lives - 1))
+	(if (this.lives > 0)
+		(if (this.deathAt == 0)
+			(RenderLives this.player s (this.lives - 1))
 		else
-			(RenderLives world.player s world.lives)
+			(RenderLives this.player s this.lives)
 		)
 	)
 	
 	(s.Render)
 )
 
-(function TryFireMissile (World world)-> :
-	(if (world.playerMissile.screenPosition.y < -30)
-		(world.playerMissile.screenPosition = world.player.screenPosition)
+(function TryFireMissile (Entity playerMissile)(Entity player)-> :
+	(if (playerMissile.screenPosition.y < -30)
+		(playerMissile.screenPosition = player.screenPosition)
 	)
 )
 
-(function UpdatePlayer (World world)(IEngine engine)-> :
+(function UpdatePlayer (Galaxians g)-> :
 	(KeyState keys)
-	(engine.PollKeyState keys)
+	(this.engine.PollKeyState keys)
 	
-	(world.controls.playerDirection = 0)
-	(if (IsKeyPressed keys world.controls.leftKey)
-		(world.controls.playerDirection = -1)
+	(g.controls.playerDirection = 0)
+	(if (IsKeyPressed keys g.controls.leftKey)
+		(g.controls.playerDirection = -1)
 	)
 	
-	(if (IsKeyPressed keys world.controls.rightKey)
-		(world.controls.playerDirection = 1)
+	(if (IsKeyPressed keys g.controls.rightKey)
+		(g.controls.playerDirection = 1)
 	)
 	
-	(if (IsKeyPressed keys world.controls.fireKey)
-		(TryFireMissile world)
+	(if (IsKeyPressed keys g.controls.fireKey)
+		(TryFireMissile g.playerMissile g.player)
 	)
 )
 
-(function TestForAlienCollision (World world)-> :
-	(Vec2i tip = world.playerMissile.screenPosition)
+(function TestForAlienCollision (Galaxians g)-> :
+	(Vec2i tip = g.playerMissile.screenPosition)
 	(tip.y -= 8)
 	
-	(foreach alien # world.aliens
+	(foreach alien # g.aliens
 		(Vec2i delta = alien.screenPosition - tip)
 		(if ((delta.x > -12) and (delta.x < 12))
 			(if ((delta.y > 0) and (delta.y < 16))
-				(world.enemyExplosion.screenPosition = alien.screenPosition)
+				(g.enemyExplosion.screenPosition = alien.screenPosition)
 				(alien.screenPosition.y = -100)
-				(world.playerMissile.screenPosition.y = -100)
-				(world.killCount += 1)
-				(Sys.Time.ClockTicks -> world.enemyHitAt)
+				(g.playerMissile.screenPosition.y = -100)
+				(g.killCount += 1)
+				(Sys.Time.ClockTicks -> g.enemyHitAt)
 				(return)
 			)
 		)
 	)
 )
 
-(function GetEnemyLaunchPosition (World world) (Vec2i pos)-> :
+(function GetEnemyLaunchPosition (Galaxians g) (Vec2i pos)-> :
 	(Float32 smallestDxi = 1000)
-	(foreach alien # world.aliens
-		(Float32 dx = (world.player.screenPosition.x - alien.screenPosition.x))
+	(foreach alien # g.aliens
+		(Float32 dx = (g.player.screenPosition.x - alien.screenPosition.x))
 		(Float32 dxi = (Sys.Maths.F32.Abs dx))
-		(if (((dxi < smallestDxi) and (world.player.screenPosition.y > 0)) and ((Sys.Random.AnyFloat 0 1) > 0.5))
+		(if (((dxi < smallestDxi) and (g.player.screenPosition.y > 0)) and ((Sys.Random.AnyFloat 0 1) > 0.5))
 			(smallestDxi = dxi)
 			(pos = alien.screenPosition)
 		)
 	)
 )
 
-(function TryFireEnemyMissile (World world)-> :
-	(if (world.player.screenPosition.y < 8000)
-		(foreach missile # world.missiles
+(function TryFireEnemyMissile (Galaxians g)-> :
+	(if (g.player.screenPosition.y < 8000)
+		(foreach missile # g.missiles
 			(if (missile.screenPosition.y < 32)
-				(GetEnemyLaunchPosition world missile.screenPosition)
+				(GetEnemyLaunchPosition this missile.screenPosition)
 				(return)
 			)
 		)
 	)
 )
 
-(function OnPlayerKilled (World world)-> :
-	(world.playerExplosion.screenPosition = world.player.screenPosition)
-	(world.player.screenPosition.y = -10000)
-	(Sys.Time.ClockTicks -> world.deathAt) 
-	(world.lives -= 1)
+(function OnPlayerKilled (Galaxians g)-> :
+	(g.playerExplosion.screenPosition = g.player.screenPosition)
+	(g.player.screenPosition.y = -10000)
+	(Sys.Time.ClockTicks -> g.deathAt) 
+	(g.lives -= 1)
 )
 
-(function TryHitPlayer (Entity missile) (World world) -> :
-	(Vec2i delta = world.player.screenPosition - missile.screenPosition)
+(function TryHitPlayer (Galaxians g)(Entity missile) -> :
+	(Vec2i delta = g.player.screenPosition - missile.screenPosition)
 	(Int32 dx = (Sys.Maths.I32.Abs delta.x))
 	(Int32 dy = (Sys.Maths.I32.Abs delta.y))
 	
-	(if (world.player.screenPosition.y < 8000)
+	(if (g.player.screenPosition.y < 8000)
 		(if ((dx < 16) and (dy < 16))
-			(OnPlayerKilled world)
+			(OnPlayerKilled g)
 		)
 	)
 )
 
-(function Advance (World world)-> :
-	(foreach alien # world.aliens
+(method Galaxians.Advance  -> :
+	(UpdatePlayer this)
+
+	(foreach alien # this.aliens
 		(if (alien.screenPosition.y > 0)
 			(if (alien.screenPosition.x > 800)
-				(world.direction = -1)
+				(this.direction = -1)
 			)
 			(if (alien.screenPosition.x < 200)
-				(world.direction = 1)
+				(this.direction = 1)
 			)
 		)
 	)
 	
 	(Int32 straffeSpeed = 1)
 	
-	(if (world.killCount > 40)
+	(if (this.killCount > 40)
 		(straffeSpeed = 5)
 	else 
-		(if (world.killCount > 30)
+		(if (this.killCount > 30)
 			(straffeSpeed = 4)
 		else
-			(if (world.killCount > 20)
+			(if (this.killCount > 20)
 				(straffeSpeed = 3)
 			else
-				(if (world.killCount > 10)
+				(if (this.killCount > 10)
 					(straffeSpeed = 2)
 				)
 			)
 		)
 	)
 	
-	(Int32 delta = (world.direction * straffeSpeed))
+	(Int32 delta = (this.direction * straffeSpeed))
 	
-	(foreach a # world.aliens
+	(foreach a # this.aliens
 		(a.screenPosition.x += delta)
 	)
 	
-	(if ((world.player.screenPosition.x > 200) and (world.controls.playerDirection < 0))
-		(world.player.screenPosition.x -= 2)
+	(if ((this.player.screenPosition.x > 200) and (this.controls.playerDirection < 0))
+		(this.player.screenPosition.x -= 2)
 	)
 	
-	(if ((world.player.screenPosition.x < 800) and (world.controls.playerDirection > 0))
-		(world.player.screenPosition.x += 2)
+	(if ((this.player.screenPosition.x < 800) and (this.controls.playerDirection > 0))
+		(this.player.screenPosition.x += 2)
 	)
 	
-	(if (world.playerMissile.screenPosition.y > -32)
-		(world.playerMissile.screenPosition.y -= 8)
-		(TestForAlienCollision world)
+	(if (this.playerMissile.screenPosition.y > -32)
+		(this.playerMissile.screenPosition.y -= 8)
+		(TestForAlienCollision this)
 	)
 	
 	(if ((Sys.Random.AnyFloat 0 1) > 0.9)
-		(TryFireEnemyMissile world)
+		(TryFireEnemyMissile this)
 	)
 	
-	(foreach missile # world.missiles
-		(if (missile.screenPosition.y > world.player.screenPosition.y)
+	(foreach missile # this.missiles
+		(if (missile.screenPosition.y > this.player.screenPosition.y)
 			(missile.screenPosition.y = -40)
 		)
 		
 		(if (missile.screenPosition.y >= 0)
 			(missile.screenPosition.y += 6)
 			
-			(TryHitPlayer missile world)
+			(TryHitPlayer this missile)
 		)
 	)
 	
-	(if (world.deathAt != 0)
+	(if (this.deathAt != 0)
 		(Int64 now = Sys.Time.ClockTicks)
-		(Int64 delta = (now - world.deathAt))
+		(Int64 delta = (now - this.deathAt))
 		(Int64 spawnTime = (4 * Sys.Time.ClockHz))
 		(if (delta > spawnTime)
-			(world.deathAt = 0)
-			(world.player.screenPosition = 500 610)
+			(this.deathAt = 0)
+			(this.player.screenPosition = 500 610)
 		)
 	)
 )
@@ -393,13 +405,12 @@
 	(IEngine engine (Engine))
 	(IScreenBuilder sb = (engine.ScreenBuilder))
 	
-	(World world ())
-	(Init world engine)
+	(IWorld world (Galaxians engine))
+	(world.Init)
 	
 	(while engine.IsRunning
-		(UpdatePlayer world engine)
-		(Advance world)
-		(Render world engine sb)
+		(world.Advance)
+		(world.Render sb)
 		(engine.YieldForSystemMessages 5)
 	)
 )

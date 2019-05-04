@@ -1182,6 +1182,26 @@ namespace Rococo
 	      return false;
       }
 
+	  bool TryCompileAsTestExistenceAndReturnBool(CCompileEnvironment& ce, cr_sex s, cstr instance, const IStructure& instanceType)
+	  {
+		  ce.Builder.AssignVariableToTemp(instance, 0);
+
+		  VariantValue v;
+		  v.vPtrValue = (uint8*)(instanceType.GetInterface(0).UniversalNullInstance()) + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0;
+		  ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, v, BITCOUNT_POINTER);
+
+		  AddSymbol(ce.Builder, "%s ?", instance);
+		  ce.Builder.Assembler().Append_Invoke(ce.SS.GetScriptCallbacks().IdTestD4neqD5_retBoolD7); 
+
+		  return true;
+	  }
+
+	  VM_CALLBACK(TestD4neqD5_retBoolD7)
+	  {
+		  auto diff = registers[4].int64Value - registers[5].int64Value;
+		  registers[7].int64Value = diff != 0 ? 1 : 0;
+	  }
+
       bool TryCompileMethodCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)
       {
 	      cr_sex firstArg = IsCompound(s) ? s.GetElement(0) : s;
@@ -1200,7 +1220,31 @@ namespace Rococo
 			      instanceStruct = ce.Builder.GetVarStructure(fname);
 			      instance = fname;
 			      methodName = GetIndexedMethod(ce, s, instanceStruct);
+
+				  if (methodName == nullptr)
+				  {
+					  if (IsAtomic(s[1]) && returnType == VARTYPE_Bool)
+					  {
+						  cstr arg = s[1].String()->Buffer;
+						  if (Eq(arg, "exists") && instanceStruct)
+						  {
+							  if (instanceStruct->InterfaceCount() > 0 && IsNullType(*instanceStruct))
+							  {
+								  return TryCompileAsTestExistenceAndReturnBool(ce, s, instance, *instanceStruct);
+							  }
+							  else
+							  {
+								  Throw(s[0], "(... exists) can only be applied to interface types");
+							  }
+						  }
+					  }
+					  return false;
+				  }
 		      }
+			  else
+			  {
+				  return false;
+			  }
 	      }
 	      else
 	      {
