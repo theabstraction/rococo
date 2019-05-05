@@ -261,7 +261,7 @@
 (interface Sys.Type.IStringBuilder
 	(extends Sys.Type.IString)
 	(attribute builder Append) // if we have a variable s of type IStringBuilder then (s X) calls (s.AppendTypeX X), e.g (s 1) calls (s.AppendInt32 1)
-
+	(attribute essential) // Can't think of any use cases in which a null IStringBuilder is what is wanted
 	(AppendInt32 (Int32 x) -> )
 	(AppendInt64 (Int64 x) -> )
 	(AppendFloat32 (Float32 x) -> )

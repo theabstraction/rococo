@@ -143,7 +143,7 @@ namespace Rococo { namespace Compiler
 		virtual void Clear() = 0;
 		virtual IStructure& DeclareClass(cstr name, const StructurePrototype& prototype, const void* definition) = 0;
 		virtual IFunctionBuilder& DeclareClosure(IFunctionBuilder& parent, bool mayUseParentSF, const void* definition) = 0;
-		virtual IFunctionBuilder& DeclareFunction(const FunctionPrototype& prototype, const void* definition) = 0;	
+		virtual IFunctionBuilder& DeclareFunction(const FunctionPrototype& prototype, const void* definition, int popBytes = 0) = 0;	
 		virtual IStructureBuilder& DeclareStructure(cstr name, const StructurePrototype& prototype, const void* definition) = 0;
 		virtual IFunctionBuilder* FindFunction(cstr name) = 0;
 		virtual IStructureBuilder* FindStructure(cstr name) = 0;

@@ -270,6 +270,7 @@ namespace Rococo
 				builder.Begin();
 				ID_API_CALLBACK idCallback = rootNS.Object().VirtualMachine().Core().RegisterCallback(RouteToNative, i->second, i->first.c_str());
 				builder.Assembler().Append_Invoke(idCallback);
+				builder.Assembler().Append_Pop(f->GetExtraPopBytes());
 				builder.End();
 				builder.Assembler().Clear();
 			}
@@ -307,14 +308,14 @@ namespace Rococo
 		nf->NativeCallback(nf->e);
 	}
 
-	void AddNativeCallViaTree(REF TMapFQNToNativeCall& nativeCalls, REF IModuleBuilder& module, REF IScriptSystem& ss, IN const INamespace& ns, IN FN_NATIVE_CALL callback, void* context, IN Sex::ISParserTree& tree, IN int nativeCallIndex, bool checkName)
+	void AddNativeCallViaTree(REF TMapFQNToNativeCall& nativeCalls, REF IModuleBuilder& module, REF IScriptSystem& ss, IN const INamespace& ns, IN FN_NATIVE_CALL callback, void* context, IN Sex::ISParserTree& tree, IN int nativeCallIndex, bool checkName, int popBytes)
 	{
 		cr_sex archetype = tree.Root();
 		AssertCompound(archetype);
 		if (archetype.NumberOfElements() == 1)
 		{
 			char fullError[512];
-         SafeFormat(fullError, 512, ("Element defined in %s had one element. Ensure that the native call spec is not encapsulated in parenthesis"), ns.FullName()->Buffer);
+			SafeFormat(fullError, 512, ("Element defined in %s had one element. Ensure that the native call spec is not encapsulated in parenthesis"), ns.FullName()->Buffer);
 			Throw(archetype, fullError);
 		}
 
@@ -333,13 +334,13 @@ namespace Rococo
 		if (mapIndex < 0)
 		{
 			char fullError[512];
-         SafeFormat(fullError, 512, ("Cannot find the mapping token -> in the archetype: %s.%s"), ns.FullName()->Buffer, publicName);
+			SafeFormat(fullError, 512, ("Cannot find the mapping token -> in the archetype: %s.%s"), ns.FullName()->Buffer, publicName);
 			Throw(archetype, fullError);
 		}
 
 		if (checkName) AssertValidFunctionName(fnameArg);
 
-		IFunctionBuilder& f = module.DeclareFunction(FunctionPrototype(nativeName, false), &archetype);
+		IFunctionBuilder& f = module.DeclareFunction(FunctionPrototype(nativeName, false), &archetype, popBytes);
 
 		for(int i = mapIndex+1; i < archetype.NumberOfElements(); ++i)
 		{
@@ -1128,7 +1129,7 @@ namespace Rococo
 			return scripts->GetSourceCode(module);
 		}
 
-		virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, bool checkName)
+		virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, bool checkName, int popBytes = 0)
 		{
 			enum { MAX_ARCHETYPE_LEN = 1024 };
 
@@ -1159,7 +1160,7 @@ namespace Rococo
 			{
 				Auto<ISParserTree> tree = SParser().CreateTree(src());
 
-				AddNativeCallViaTree(REF nativeCalls, REF ProgramObject().IntrinsicModule(), IN *this, IN ns, IN callback, IN context, IN tree(), IN nativeCallIndex, IN checkName);
+				AddNativeCallViaTree(REF nativeCalls, REF ProgramObject().IntrinsicModule(), IN *this, IN ns, IN callback, IN context, IN tree(), IN nativeCallIndex, IN checkName, IN popBytes);
 				nativeCallIndex++;
 			}
 			catch (ParseException& e)

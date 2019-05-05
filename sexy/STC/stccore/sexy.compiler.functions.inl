@@ -180,12 +180,13 @@ namespace
 		int outputCount;
 		const void *definition;
 		const IStructure* type;
+		int popBytes = 0;
 
 		typedef std::vector<FunctionArgument*> TFunctionArgs;
 		TFunctionArgs args;
 	public:
-		Function(const FunctionPrototype& fp, IModuleBuilder& _module, IFunctionBuilder* _parent, bool _mayUseParentSF, const void* _definition):
-			name(fp.Name), module(_module), inputCount(0), outputCount(0), definition(_definition), type(NULL)
+		Function(const FunctionPrototype& fp, IModuleBuilder& _module, IFunctionBuilder* _parent, bool _mayUseParentSF, const void* _definition, int _popBytes):
+			name(fp.Name), module(_module), inputCount(0), outputCount(0), definition(_definition), type(NULL), popBytes(_popBytes)
 		{
 			parent = (Function*) _parent;
 			builder = CreateBuilder(*this, _mayUseParentSF);
@@ -203,10 +204,15 @@ namespace
 		   builder->Free();
 		}
 
-      virtual void Free()
-      {
-         delete this;
-      }
+		const int32 GetExtraPopBytes() const
+		{
+			return popBytes;
+		}
+
+		virtual void Free()
+		{
+			delete this;
+		}
 
 		virtual cstr Name() const								{ return name.c_str(); }
 		const IStructure& GetArgument(int index) const				{ return *args[index]->ResolvedType(); }

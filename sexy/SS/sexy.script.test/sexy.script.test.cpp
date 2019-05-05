@@ -11853,58 +11853,6 @@ namespace
       validate(z == 18.0f);
    }
 
-   void TestNullStringBuilder(IPublicScriptSystem& ss)
-   {
-	   static char testBuffer[256];
-
-	   struct ANON
-	   {
-		   static void AppendStringToHost(NativeCallEnvironment& e)
-		   {
-			   int32 length;
-			   ReadInput(1, length, e);
-
-			   char* buffer;
-			   ReadInput(0, buffer, e);
-
-			   if (buffer != nullptr)
-			   {
-				   SafeFormat(testBuffer, sizeof(testBuffer), "%s", buffer);
-			   }
-			   else
-			   {
-				   testBuffer[0] = 0;
-			   }
-		   }
-	   };
-
-	   const INamespace& ns = ss.AddNativeNamespace("Sys.Test");
-	   ss.AddNativeCall(ns, ANON::AppendStringToHost, NULL, "AppendStringToHost (Pointer s)(Int32 length) ->");
-
-	   cstr srcCode =
-		   "(function AppendStringToHost (IString s)-> :\n"
-		   "	(Sys.Test.AppendStringToHost s.Buffer s.Length)\n"
-		   ")"
-		   "(using Sys.Type) \n"
-		   "(namespace EntryPoint) \n"
-		   "(function Main -> : \n"
-		   "	(IStringBuilder sb)\n"
-		   "	(sb.AppendIString \"fantastic\")\n"
-		   "    (AppendStringToHost sb)\n"
-		   ")\n"
-		   "(alias Main EntryPoint.Main) \n";
-	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestNullStringBuilder");
-	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
-
-	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
-
-	   SafeFormat(testBuffer, sizeof(testBuffer), "Hi Ho");
-	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-	   ValidateExecution(result);
-
-	   validate(Eq(testBuffer, ""));
-   }
-
    void TestReturnInterfaceEx(IPublicScriptSystem& ss)
    {
 	   cstr code =
@@ -12156,10 +12104,6 @@ namespace
 
    void TestMaths()
    {
-	   TEST(TestLimitsInt32);
-	   TEST(TestLimitsInt64);
-	   TEST(TestLimitsFloat32);
-	   TEST(TestLimitsFloat64);
 	   TEST(TestIsInfinity);
 	   TEST(TestIsFinite);
 	   TEST(TestIsNormal);
@@ -12221,20 +12165,25 @@ namespace
 	   TEST(TestMinMaxFloat64);
 
 	   TEST(TestConstruction);
+
+	   TEST(TestLimitsInt32);
+	   TEST(TestLimitsInt64);
+	   TEST(TestLimitsFloat32);
+	   TEST(TestLimitsFloat64);
    }
 
 	void RunPositiveSuccesses()
 	{
 		validate(true);
 
-		TEST(TestMemberwiseInit);
-
-		TEST(TestArrayRefMember);
-
 		TEST(TestDeltaOperators);
 		TEST(TestDeltaOperators2);
 		TEST(TestDeltaOperators3);
 		TEST(TestDeltaOperators4);
+
+		TEST(TestMemberwiseInit);
+
+		TEST(TestArrayRefMember);
 
 		TEST(TestArrayWithEarlyReturn);
 		TEST(TestArrayWithEarlyReturn2);
@@ -12259,7 +12208,6 @@ namespace
 		TEST(TestOperatorOverload);
 
 		TEST(TestNullArchetypeArg);
-		TEST(TestMacroAsArgument1);
 
 		//	TEST(TestArrayOfArchetypes); // -> currently disabled, since arrays are 32-bit and 64-bits only, and closures are 128 bits.
 		TEST(TestClosureCapture);
@@ -12280,8 +12228,6 @@ namespace
 		TEST(TestGlobalInt32);
 		TEST(TestGlobalInt32_2);
 		TEST(TestGlobalInt32_3);
-
-		TestMaths();
 
 		TEST(TestStructWithInterface);
 
@@ -12425,10 +12371,8 @@ namespace
 
 		TEST(TestDestructor);
 
-		TEST(TestNullStringBuilder);
 		TEST(TestStringBuilder);
 
-		TEST(TestMacro);
 		TEST(TestPrintModules);
 
 		TEST(TestExpressionArg);
@@ -12507,6 +12451,12 @@ namespace
 
 		TEST(TestEssentialInterface);
 		TEST(TestInterfaceForNull);
+
+		TEST(TestMacroAsArgument1);
+
+		TEST(TestMacro);
+
+		TestMaths();
 	}
 
 	void RunPositiveFailures()

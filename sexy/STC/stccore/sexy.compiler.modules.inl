@@ -103,12 +103,12 @@ namespace Rococo { namespace Compiler { namespace Impl
 		{
 			char name[32];
 			SafeFormat(name, 32, ("_Closure%s%u"), parent.Name(), closures.size());
-			Function* f = new Function(FunctionPrototype(name, false), *this, &parent, mayUseParentSF, definition);
+			Function* f = new Function(FunctionPrototype(name, false), *this, &parent, mayUseParentSF, definition, 0);
 			closures.push_back(f);
 			return *f;
 		}
 
-		virtual IFunctionBuilder& DeclareFunction(const FunctionPrototype& prototype, const void* definition)
+		virtual IFunctionBuilder& DeclareFunction(const FunctionPrototype& prototype, const void* definition, int popBytes)
 		{
 			Function* f = (Function*) functions.Get(prototype.Name);
 			if (f != NULL)
@@ -116,7 +116,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Function %s already defined in %s"), prototype.Name, name.c_str());
 			}
 
-			f = new Function(prototype, *this, NULL, false, definition);
+			f = new Function(prototype, *this, NULL, false, definition, popBytes);
 
 			functions.Register(f->Name(), *f);
 

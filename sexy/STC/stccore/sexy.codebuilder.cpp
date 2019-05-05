@@ -1528,6 +1528,86 @@ namespace
 		RestoreStackFrameFor(*this, def);
 	}
 
+	void AssignVariableToVariable_ByRefSlow(ICodeBuilder& builder, const MemberDef& sourceDef, const MemberDef& targetDef, cstr source, cstr target)
+	{
+		const IStructure& s = *sourceDef.ResolvedType;
+		const IStructure& t = *targetDef.ResolvedType;
+		VM::IAssembler& assembler = builder.Assembler();
+
+		if (sourceDef.location != VARLOCATION_OUTPUT && targetDef.location != VARLOCATION_OUTPUT)
+		{
+			if (&s != &t)
+			{
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot copy %s %s to %s %s. They must be the same type"), GetFriendlyName(s), source, GetFriendlyName(t), target);
+			}
+			if (s.Prototype().IsClass)
+			{
+				MemberDef refDef;
+				if (!builder.TryGetVariableByName(refDef, target))
+				{
+					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot copy %s %s. No associated reference to %s."), GetFriendlyName(s), source, target);
+				}
+				
+				UseStackFrameFor(builder, sourceDef);
+				assembler.Append_GetStackFrameValue(sourceDef.SFOffset + sourceDef.MemberOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
+				RestoreStackFrameFor(builder, sourceDef);
+				UseStackFrameFor(builder, refDef);
+				assembler.Append_SetSFMemberByRefFromRegister(VM::REGISTER_D5, refDef.SFOffset, refDef.MemberOffset, BITCOUNT_POINTER);
+				RestoreStackFrameFor(builder, refDef);
+				return;
+			}
+
+			UseStackFrameFor(builder, sourceDef);
+			assembler.Append_GetStackFrameMemberPtr(VM::REGISTER_D5, sourceDef.SFOffset, sourceDef.MemberOffset);
+			RestoreStackFrameFor(builder, sourceDef);
+			UseStackFrameFor(builder, targetDef);
+			assembler.Append_GetStackFrameMemberPtr(VM::REGISTER_D4, targetDef.SFOffset, targetDef.MemberOffset);
+			RestoreStackFrameFor(builder, targetDef);
+
+			size_t nBytesSource = sourceDef.AllocSize;
+			assembler.Append_CopyMemory(VM::REGISTER_D4, VM::REGISTER_D5, nBytesSource);
+		}
+		else if (sourceDef.location == VARLOCATION_TEMP && targetDef.location == VARLOCATION_OUTPUT)
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot return a reference of %s to %s. The source would be freed before the function returns"), source, target);
+		}
+		else if (sourceDef.location == VARLOCATION_OUTPUT)
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot copy a value from %s. It is an output value"), target);
+		}
+		else // Copy a reference of the input to the output
+		{
+			if (targetDef.MemberOffset != 0)
+			{
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Did not expect a member offset in the output %s"), target);
+			}
+
+			MemberDef refDef;
+			if (!builder.TryGetVariableByName(OUT refDef, source))
+			{
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not find the reference for %s for variable. %s"), (cstr)source, (cstr)source);
+			}
+
+			if (!(refDef.IsParentValue ^ targetDef.IsParentValue))
+			{
+				UseStackFrameFor(builder, refDef);
+				assembler.Append_SetSFValueFromSFMemberRef(refDef.SFOffset, refDef.MemberOffset, targetDef.SFOffset, sizeof(size_t));
+				RestoreStackFrameFor(builder, refDef);
+			}
+			else
+			{
+				UseStackFrameFor(builder, refDef);
+				assembler.Append_GetStackFrameMemberPtr(VM::REGISTER_D4, refDef.SFOffset, refDef.MemberOffset);
+				RestoreStackFrameFor(builder, refDef);
+
+				UseStackFrameFor(builder, targetDef);
+				assembler.Append_SetStackFrameValue(VM::REGISTER_D4, targetDef.SFOffset, BITCOUNT_POINTER);
+				RestoreStackFrameFor(builder, targetDef);
+			}
+		}
+	}
+
+
 	void AssignVariableToVariable_ByRef(ICodeBuilder& builder, const MemberDef& sourceDef, const MemberDef& targetDef, cstr source, cstr target)
 	{
 		const IStructure& s = *sourceDef.ResolvedType;
@@ -1584,37 +1664,24 @@ namespace
 		}
 	}
 
-	void AssignVariableToVariableBothByValue(VM::IAssembler& assembler, const MemberDef& src, const MemberDef& dest, BITCOUNT bitcount)
+	void AssignVariableToVariableBothByValue(ICodeBuilder& builder, const MemberDef& src, const MemberDef& dest, BITCOUNT bitcount)
 	{
-		if (src.IsParentValue) 
+		VM::IAssembler& assembler = builder.Assembler();
+
+		if (!(src.IsParentValue ^ dest.IsParentValue))
 		{
-			if (dest.IsParentValue)
-			{
-				assembler.Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
-				assembler.Append_SetSFValueFromSFValue(dest.SFOffset + dest.MemberOffset, src.SFOffset + src.MemberOffset, bitcount);
-				assembler.Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
-			}
-			else
-			{
-				assembler.Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
-				assembler.Append_GetStackFrameValue(src.SFOffset + src.MemberOffset, VM::REGISTER_D4, bitcount);
-				assembler.Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
-				assembler.Append_SetStackFrameValue(dest.SFOffset + dest.MemberOffset, VM::REGISTER_D4, bitcount);
-			}
+			UseStackFrameFor(builder, src);
+			assembler.Append_SetSFValueFromSFValue(dest.SFOffset + dest.MemberOffset, src.SFOffset + src.MemberOffset, bitcount);
+			RestoreStackFrameFor(builder, src);
 		}
 		else
 		{
-			if (dest.IsParentValue)
-			{
-				assembler.Append_GetStackFrameValue(src.SFOffset + src.MemberOffset, VM::REGISTER_D4, bitcount);
-				assembler.Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
-				assembler.Append_SetStackFrameValue(dest.SFOffset + dest.MemberOffset, VM::REGISTER_D4, bitcount);
-				assembler.Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
-			}
-			else
-			{
-				assembler.Append_SetSFValueFromSFValue(dest.SFOffset + dest.MemberOffset, src.SFOffset + src.MemberOffset, bitcount);
-			}
+			UseStackFrameFor(builder, src);
+			assembler.Append_GetStackFrameValue(src.SFOffset + src.MemberOffset, VM::REGISTER_D4, bitcount);
+			RestoreStackFrameFor(builder, src);
+			UseStackFrameFor(builder, dest);
+			assembler.Append_SetStackFrameValue(dest.SFOffset + dest.MemberOffset, VM::REGISTER_D4, bitcount);
+			RestoreStackFrameFor(builder, dest);
 		}
 	}
 
@@ -1696,11 +1763,11 @@ namespace
 			size_t nBytesSource = sourceDef.AllocSize;
 			if (nBytesSource == sizeof(uint32))
 			{
-				AssignVariableToVariableBothByValue(*assembler, sourceDef, targetDef, BITCOUNT_32);
+				AssignVariableToVariableBothByValue(*this, sourceDef, targetDef, BITCOUNT_32);
 			}
 			else if (nBytesSource == sizeof(uint64))
 			{
-				AssignVariableToVariableBothByValue(*assembler, sourceDef, targetDef, BITCOUNT_64);
+				AssignVariableToVariableBothByValue(*this, sourceDef, targetDef, BITCOUNT_64);
 			}
 			else
 			{
@@ -1725,7 +1792,7 @@ namespace
 
 				UseStackFrameFor(*this, sourceDef);
 				Assembler().Append_CopySFVariable(targetDef.SFOffset + targetDef.MemberOffset, sourceDef.SFOffset + sourceDef.MemberOffset, nBytesSource);
-				RestoreStackFrameFor(*this, targetDef);
+				RestoreStackFrameFor(*this, sourceDef);
 			}
 		}
 		else if (sourceDef.Usage == ARGUMENTUSAGE_BYREFERENCE && targetDef.Usage == ARGUMENTUSAGE_BYREFERENCE)
@@ -1734,44 +1801,68 @@ namespace
 
 			if (targetDef.IsParentValue || sourceDef.IsParentValue)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Cannot handle ref by ref assignment for a closure upvalue. Use local variables to mediate assignment");
+				AssignVariableToVariable_ByRefSlow(*this, sourceDef, targetDef, source, target);
 			}
-
-			AssignVariableToVariable_ByRef(*this, sourceDef, targetDef, source, target);
+			else
+			{
+				AssignVariableToVariable_ByRef(*this, sourceDef, targetDef, source, target);
+			}
 		}
 		else if (sourceDef.Usage == ARGUMENTUSAGE_BYREFERENCE && targetDef.Usage == ARGUMENTUSAGE_BYVALUE)
 		{
 			size_t nBytesSource = sourceDef.AllocSize;
-
-			if (targetDef.IsParentValue || sourceDef.IsParentValue)
-			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Cannot handle assignment for a closure upvalue. Use local variables to mediate assignment");
-			}
 
 			if (sourceDef.ResolvedType->VarType() != targetDef.ResolvedType->VarType())
 			{
 				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Type mismatch %s to %s (%s vs %s)", source, target, sourceDef.ResolvedType->Name(), targetDef.ResolvedType->Name());
 			}
 
-			if (sourceDef.ResolvedType->VarType() == VARTYPE_Derivative && (nBytesSource != 8 && nBytesSource != 4))
+			if (!(targetDef.IsParentValue ^ sourceDef.IsParentValue))
 			{
-				Assembler().Append_CopySFVariableFromRef(targetDef.SFOffset + targetDef.MemberOffset, sourceDef.SFOffset, sourceDef.MemberOffset, nBytesSource);			
+				UseStackFrameFor(*this, sourceDef);
+				if (sourceDef.ResolvedType->VarType() == VARTYPE_Derivative && (nBytesSource != 8 && nBytesSource != 4))
+				{
+					Assembler().Append_CopySFVariableFromRef(targetDef.SFOffset + targetDef.MemberOffset, sourceDef.SFOffset, sourceDef.MemberOffset, nBytesSource);
+				}
+				else
+				{
+					Assembler().Append_SetSFValueFromSFMemberRef(sourceDef.SFOffset, sourceDef.MemberOffset, targetDef.MemberOffset + targetDef.SFOffset, nBytesSource);
+				}
+				RestoreStackFrameFor(*this, sourceDef);
 			}
 			else
 			{
-				Assembler().Append_SetSFValueFromSFMemberRef(sourceDef.SFOffset, sourceDef.MemberOffset, targetDef.MemberOffset + targetDef.SFOffset, nBytesSource);
+				UseStackFrameFor(*this, sourceDef);
+				Assembler().Append_GetStackFrameMemberPtr(VM::REGISTER_D4, sourceDef.SFOffset, sourceDef.MemberOffset);
+				RestoreStackFrameFor(*this, sourceDef);
+				UseStackFrameFor(*this, targetDef);
+				Assembler().Append_GetStackFrameValue(targetDef.SFOffset + targetDef.MemberOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
+				RestoreStackFrameFor(*this, targetDef);
+
+				Assembler().Append_CopyMemory(VM::REGISTER_D5, VM::REGISTER_D4, nBytesSource);	
 			}
 		}
 		else // source is by value, target is by ref, oft used by set accessors
 		{
 			size_t nBytesSource = sourceDef.AllocSize;
 
-			if (targetDef.IsParentValue || sourceDef.IsParentValue)
+			if (!(targetDef.IsParentValue ^ sourceDef.IsParentValue))
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Cannot handle assignment for a closure upvalue. Use local variables to mediate assignment");
+				UseStackFrameFor(*this, sourceDef);
+				Assembler().Append_SetSFMemberRefFromSFValue(targetDef.SFOffset, targetDef.MemberOffset, sourceDef.MemberOffset + sourceDef.SFOffset, nBytesSource);
+				RestoreStackFrameFor(*this, sourceDef);
 			}
+			else
+			{
+				UseStackFrameFor(*this, sourceDef);
+				Assembler().Append_GetStackFrameValue(targetDef.SFOffset + targetDef.MemberOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
+				RestoreStackFrameFor(*this, sourceDef);
+				UseStackFrameFor(*this, targetDef);
+				Assembler().Append_GetStackFrameMemberPtr(VM::REGISTER_D5, targetDef.SFOffset, targetDef.MemberOffset);
+				RestoreStackFrameFor(*this, targetDef);
 
-			Assembler().Append_SetSFMemberRefFromSFValue(targetDef.SFOffset, targetDef.MemberOffset, sourceDef.MemberOffset + sourceDef.SFOffset, nBytesSource);			
+				Assembler().Append_CopyMemory(VM::REGISTER_D5, VM::REGISTER_D4, nBytesSource);
+			}
 		}
 	}
 
