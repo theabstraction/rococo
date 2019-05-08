@@ -704,6 +704,10 @@ namespace Rococo
 				cpu.SetSF(context);
 				cpu.D[VM::REGISTER_SP].uint8PtrValue = (uint8*)sp;
 			}
+			else
+			{
+				Throw(0, "Callback terminated prematurely");
+			}
 		}
 
 		bool ValidateMemory()

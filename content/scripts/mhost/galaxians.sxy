@@ -197,7 +197,6 @@
 )
 
 (method Galaxians.RenderGui (IGui gc) -> :
-	(gui.AdvanceFrame)
 	(OnEntity drawSprites = (closure (Entity e)-> : (DrawEntity e gc)))
 	(this.ForEachEntityInWorld drawSprites)
 	
