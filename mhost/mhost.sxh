@@ -19,16 +19,14 @@
 )
 
 (interface
-	(as.sxy MHost.IScreenBuilder "../content/scripts/mhost/mhost")
-	(as.cpp MHost.IScreenBuilder "mhost")
-	(context factory MHost.IScreenBuilder)
+	(as.sxy MHost.IGui "../content/scripts/mhost/mhost")
+	(as.cpp MHost.IGui "mhost")
+	(context factory MHost.IGui)
 	(methods
 		(PushTriangle (const GuiTriangle t))
 		(DrawSprite (const Vec2i pixelPos)(Int32 alignmentFlags)(const BitmapLocation loc))
 		(StretchSprite (const Recti screenQuad)(const BitmapLocation loc))
-		(TryGetSpriteSpec (IString resourceName)(BitmapLocation loc) -> (Bool isSuccessful))
-		(GetSpriteSpec (IString resourceName)(BitmapLocation loc) ->)
-		(Render)
+		(AdvanceFrame)
 	)
 )
 
@@ -38,9 +36,11 @@
 	(context factory MHost.IEngine)
 	(methods
 		(PollKeyState (KeyState keys))
-		(ScreenBuilder -> (MHost.IScreenBuilder s))
+		(Render (GuiPopulator populator))
 		(IsRunning -> (Bool isRunning))
 		(YieldForSystemMessages (Int32 sleepMS))
+		(TryGetSpriteSpec (IString resourceName)(BitmapLocation loc) -> (Bool isSuccessful))
+		(GetSpriteSpec (IString resourceName)(BitmapLocation loc) ->)
 	)
 	(factory MHost.Engine)
  )

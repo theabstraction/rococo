@@ -93,9 +93,7 @@ namespace Rococo
             const IStructure& neededType = closureArchetype.GetArgument(outputIndex);
             if (!AreEqual(neededType.Name(), type))
             {
-               sexstringstream<1024> streamer;
-               streamer.sb << ("The output type did not match that of the archetype: ") << neededType.Name();
-               Throw(outputType, *streamer.sb);
+               Throw(outputType, "The output type did not match that of the archetype: %s", neededType.Name());
             }
 
             closure.AddOutput(NameString::From(name), TypeString::From(type), (void*)&outputExpr);
@@ -134,9 +132,9 @@ namespace Rococo
          CodeSection section;
          closure.Builder().GetCodeSection(OUT section);
 
-         VariantValue closureRef;
-         closureRef.int64Value = (int64) section.Id;
-         ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, closureRef, BITCOUNT_64);
+         VariantValue closureBytecodeId;
+		 closureBytecodeId.int64Value = (int64) section.Id;
+         ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, closureBytecodeId, BITCOUNT_64);
 
          PostClosure(closureDef, closure, ce.Script);
       }

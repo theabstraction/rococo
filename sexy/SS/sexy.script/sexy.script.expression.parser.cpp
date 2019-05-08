@@ -1068,7 +1068,7 @@ namespace Rococo
 		  RepairStack(ce, directive, *overloadFn);
 		  int outputOffset = GetOutputSFOffset(ce, inputStackAllocCount, 0);
 		  PopOutputs(ce, directive, *overloadFn, outputOffset, false);
-		  ce.Builder.AssignClosureParentSF();
+		  ce.Builder.AssignClosureParentSFtoD6();
 	   }
 
 	   void CompileOperatorOverload(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, int offset)
@@ -1440,7 +1440,7 @@ namespace Rococo
 			ce.Builder.MarkExpression(args.Parent());
 
 			RepairStack(ce, *args.Parent(), *constructor);
-			ce.Builder.AssignClosureParentSF();
+			ce.Builder.AssignClosureParentSFtoD6();
 		}
 
 		void CompileContructorCall(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex constructorArgs)
@@ -2166,7 +2166,7 @@ namespace Rococo
 
 			ce.Builder.AssignVariableRefToTemp(instanceName, 0, interfaceOffset); // The instance ref is now in D4
 		
-			ce.Builder.AssignClosureParentSF();
+			ce.Builder.AssignClosureParentSFtoD6();
 		}
 
 		void CompileConstructInterfaceCall(CCompileEnvironment& ce, cr_sex s)

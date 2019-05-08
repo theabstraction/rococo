@@ -98,7 +98,7 @@ namespace Rococo {
 	}
 }// Rococo.AlignmentFlags
 
-// BennyHill generated Sexy native functions for MHost::IScreenBuilder 
+// BennyHill generated Sexy native functions for MHost::IGui 
 namespace
 {
 	using namespace Rococo;
@@ -106,7 +106,7 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeMHostIScreenBuilderPushTriangle(NativeCallEnvironment& _nce)
+	void NativeMHostIGuiPushTriangle(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -114,13 +114,13 @@ namespace
 		_offset += sizeof(t);
 		ReadInput(t, _sf, -_offset);
 
-		MHost::IScreenBuilder* _pObject;
+		MHost::IGui* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->PushTriangle(*t);
 	}
-	void NativeMHostIScreenBuilderDrawSprite(NativeCallEnvironment& _nce)
+	void NativeMHostIGuiDrawSprite(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -136,13 +136,13 @@ namespace
 		_offset += sizeof(pixelPos);
 		ReadInput(pixelPos, _sf, -_offset);
 
-		MHost::IScreenBuilder* _pObject;
+		MHost::IGui* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->DrawSprite(*pixelPos, alignmentFlags, *loc);
 	}
-	void NativeMHostIScreenBuilderStretchSprite(NativeCallEnvironment& _nce)
+	void NativeMHostIGuiStretchSprite(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -154,77 +154,33 @@ namespace
 		_offset += sizeof(screenQuad);
 		ReadInput(screenQuad, _sf, -_offset);
 
-		MHost::IScreenBuilder* _pObject;
+		MHost::IGui* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->StretchSprite(*screenQuad, *loc);
 	}
-	void NativeMHostIScreenBuilderTryGetSpriteSpec(NativeCallEnvironment& _nce)
+	void NativeMHostIGuiAdvanceFrame(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Textures::BitmapLocation* loc;
-		_offset += sizeof(loc);
-		ReadInput(loc, _sf, -_offset);
-
-		_offset += sizeof(IString*);
-		IString* _resourceName;
-		ReadInput(_resourceName, _sf, -_offset);
-		fstring resourceName { _resourceName->buffer, _resourceName->length };
-
-
-		MHost::IScreenBuilder* _pObject;
+		MHost::IGui* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		boolean32 isSuccessful = _pObject->TryGetSpriteSpec(resourceName, *loc);
-		_offset += sizeof(isSuccessful);
-		WriteOutput(isSuccessful, _sf, -_offset);
-	}
-	void NativeMHostIScreenBuilderGetSpriteSpec(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Textures::BitmapLocation* loc;
-		_offset += sizeof(loc);
-		ReadInput(loc, _sf, -_offset);
-
-		_offset += sizeof(IString*);
-		IString* _resourceName;
-		ReadInput(_resourceName, _sf, -_offset);
-		fstring resourceName { _resourceName->buffer, _resourceName->length };
-
-
-		MHost::IScreenBuilder* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetSpriteSpec(resourceName, *loc);
-	}
-	void NativeMHostIScreenBuilderRender(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		MHost::IScreenBuilder* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->Render();
+		_pObject->AdvanceFrame();
 	}
 
 }
 
 namespace MHost { 
-	void AddNativeCalls_MHostIScreenBuilder(Rococo::Script::IPublicScriptSystem& ss, MHost::IScreenBuilder* _nceContext)
+	void AddNativeCalls_MHostIGui(Rococo::Script::IPublicScriptSystem& ss, MHost::IGui* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
-		ss.AddNativeCall(ns, NativeMHostIScreenBuilderPushTriangle, nullptr, ("IScreenBuilderPushTriangle (Pointer hObject)(Sys.MPlat.GuiTriangle t) -> "));
-		ss.AddNativeCall(ns, NativeMHostIScreenBuilderDrawSprite, nullptr, ("IScreenBuilderDrawSprite (Pointer hObject)(Sys.Maths.Vec2i pixelPos)(Int32 alignmentFlags)(Sys.MPlat.BitmapLocation loc) -> "));
-		ss.AddNativeCall(ns, NativeMHostIScreenBuilderStretchSprite, nullptr, ("IScreenBuilderStretchSprite (Pointer hObject)(Sys.Maths.Recti screenQuad)(Sys.MPlat.BitmapLocation loc) -> "));
-		ss.AddNativeCall(ns, NativeMHostIScreenBuilderTryGetSpriteSpec, nullptr, ("IScreenBuilderTryGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(Sys.MPlat.BitmapLocation loc) -> (Bool isSuccessful)"));
-		ss.AddNativeCall(ns, NativeMHostIScreenBuilderGetSpriteSpec, nullptr, ("IScreenBuilderGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(Sys.MPlat.BitmapLocation loc) -> "));
-		ss.AddNativeCall(ns, NativeMHostIScreenBuilderRender, nullptr, ("IScreenBuilderRender (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiPushTriangle, nullptr, ("IGuiPushTriangle (Pointer hObject)(Sys.MPlat.GuiTriangle t) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawSprite, nullptr, ("IGuiDrawSprite (Pointer hObject)(Sys.Maths.Vec2i pixelPos)(Int32 alignmentFlags)(Sys.MPlat.BitmapLocation loc) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiStretchSprite, nullptr, ("IGuiStretchSprite (Pointer hObject)(Sys.Maths.Recti screenQuad)(Sys.MPlat.BitmapLocation loc) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiAdvanceFrame, nullptr, ("IGuiAdvanceFrame (Pointer hObject) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for MHost::IEngine 
@@ -249,19 +205,19 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->PollKeyState(*keys);
 	}
-	void NativeMHostIEngineScreenBuilder(NativeCallEnvironment& _nce)
+	void NativeMHostIEngineRender(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
+		MHost::GuiPopulator populator;
+		_offset += sizeof(populator);
+		ReadInput(populator, _sf, -_offset);
+
 		MHost::IEngine* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		MHost::IScreenBuilder* s = _pObject->ScreenBuilder();
-		_offset += sizeof(CReflectedClass*);
-		auto& _sStruct = Rococo::Helpers::GetDefaultProxy(("MHost"),("IScreenBuilder"), ("ProxyIScreenBuilder"), _nce.ss);
-		CReflectedClass* _sxys = _nce.ss.Represent(_sStruct, s);
-		WriteOutput(&_sxys->header.pVTables[0], _sf, -_offset);
+		_pObject->Render(populator);
 	}
 	void NativeMHostIEngineIsRunning(NativeCallEnvironment& _nce)
 	{
@@ -289,6 +245,48 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->YieldForSystemMessages(sleepMS);
 	}
+	void NativeMHostIEngineTryGetSpriteSpec(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Textures::BitmapLocation* loc;
+		_offset += sizeof(loc);
+		ReadInput(loc, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _resourceName;
+		ReadInput(_resourceName, _sf, -_offset);
+		fstring resourceName { _resourceName->buffer, _resourceName->length };
+
+
+		MHost::IEngine* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isSuccessful = _pObject->TryGetSpriteSpec(resourceName, *loc);
+		_offset += sizeof(isSuccessful);
+		WriteOutput(isSuccessful, _sf, -_offset);
+	}
+	void NativeMHostIEngineGetSpriteSpec(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Textures::BitmapLocation* loc;
+		_offset += sizeof(loc);
+		ReadInput(loc, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _resourceName;
+		ReadInput(_resourceName, _sf, -_offset);
+		fstring resourceName { _resourceName->buffer, _resourceName->length };
+
+
+		MHost::IEngine* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetSpriteSpec(resourceName, *loc);
+	}
 
 	void NativeGetHandleForMHostEngine(NativeCallEnvironment& _nce)
 	{
@@ -308,8 +306,10 @@ namespace MHost {
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForMHostEngine, _nceContext, ("GetHandleForIEngine0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeMHostIEnginePollKeyState, nullptr, ("IEnginePollKeyState (Pointer hObject)(MHost.OS.KeyState keys) -> "));
-		ss.AddNativeCall(ns, NativeMHostIEngineScreenBuilder, nullptr, ("IEngineScreenBuilder (Pointer hObject) -> (MHost.IScreenBuilder s)"));
+		ss.AddNativeCall(ns, NativeMHostIEngineRender, nullptr, ("IEngineRender (Pointer hObject)(MHost.GuiPopulator populator) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineIsRunning, nullptr, ("IEngineIsRunning (Pointer hObject) -> (Bool isRunning)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineYieldForSystemMessages, nullptr, ("IEngineYieldForSystemMessages (Pointer hObject)(Int32 sleepMS) -> "));
+		ss.AddNativeCall(ns, NativeMHostIEngineTryGetSpriteSpec, nullptr, ("IEngineTryGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(Sys.MPlat.BitmapLocation loc) -> (Bool isSuccessful)"));
+		ss.AddNativeCall(ns, NativeMHostIEngineGetSpriteSpec, nullptr, ("IEngineGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(Sys.MPlat.BitmapLocation loc) -> "));
 	}
 }

@@ -726,7 +726,7 @@ namespace Rococo
          ce.Builder.MarkExpression(&args);
 
          RepairStack(ce, *args.Parent(), constructor);
-         ce.Builder.AssignClosureParentSF();
+         ce.Builder.AssignClosureParentSFtoD6();
       }
 
       void ConstructMemberwiseByRef(CCompileEnvironment& ce, cr_sex args, int tempDepth, const IStructure& type)

@@ -403,7 +403,7 @@ namespace Rococo
       void GetVariableByName(ICodeBuilder& builder, OUT MemberDef& def, cstr name, cr_sex src);
       void AddCatchHandler(CScript& script, ID_BYTECODE id, size_t start, size_t end);
       IModuleBuilder& GetModule(CScript& script);
-      void AppendVirtualCallAssembly(cstr instanceName, int interfaceIndex, int methodIndex, ICodeBuilder& builder, const IInterface& interf, cr_sex s);
+      void AppendVirtualCallAssembly(cstr instanceName, int interfaceIndex, int methodIndex, ICodeBuilder& builder, const IInterface& interf, cr_sex s, cstr localName);
       int GetFirstOutputOffset(ICodeBuilder& builder);
       IModule& GetSysTypeMemoModule(CScript& script);
       INamespaceBuilder& GetNamespaceByFQN(CCompileEnvironment& ce, cstr ns, cr_sex s);

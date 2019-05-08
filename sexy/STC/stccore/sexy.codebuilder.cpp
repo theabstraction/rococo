@@ -50,9 +50,11 @@ namespace Rococo
 	{
 		void UseStackFrameFor(ICodeBuilder& builder, const MemberDef& def)
 		{
-			// The current function, if a closure, will put the parent's stack frame in register D6
-			// If the variable specified by <def> is from the parent's stack, then swap in D6 to SF
-			if (def.IsParentValue) { builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+			if (def.IsParentValue) 
+			{
+				builder.AssignClosureParentSFtoD6();
+				builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
+			}
 		}
 
 		void RestoreStackFrameFor(ICodeBuilder& builder, const MemberDef& def)
@@ -237,7 +239,7 @@ namespace
 		virtual void End();
 		virtual VARTYPE GetVarType(cstr name) const;
 		virtual const IStructure* GetVarStructure(cstr name) const;
-		virtual void AssignClosureParentSF();
+		virtual void AssignClosureParentSFtoD6();
 		virtual void EnableClosures(cstr targetVariable);
 		virtual void Free() { delete this; }
 		virtual bool TryGetVariableByName(OUT MemberDef& def, cstr name) const;
@@ -1235,7 +1237,7 @@ namespace
 		}
 	}
 
-	void CodeBuilder::AssignClosureParentSF()
+	void CodeBuilder::AssignClosureParentSFtoD6()
 	{
 		if (f.Parent() != NULL)
 		{
@@ -1278,7 +1280,7 @@ namespace
 		sectionIndex = 1;
 		functionStartPosition = Assembler().WritePosition();
 
-		AssignClosureParentSF();
+		AssignClosureParentSFtoD6();
 	}
 
 	void CodeBuilder::End()
@@ -1836,7 +1838,7 @@ namespace
 				Assembler().Append_GetStackFrameMemberPtr(VM::REGISTER_D4, sourceDef.SFOffset, sourceDef.MemberOffset);
 				RestoreStackFrameFor(*this, sourceDef);
 				UseStackFrameFor(*this, targetDef);
-				Assembler().Append_GetStackFrameValue(targetDef.SFOffset + targetDef.MemberOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
+				Assembler().Append_GetStackFrameAddress(VM::REGISTER_D5, targetDef.SFOffset + targetDef.MemberOffset);
 				RestoreStackFrameFor(*this, targetDef);
 
 				Assembler().Append_CopyMemory(VM::REGISTER_D5, VM::REGISTER_D4, nBytesSource);	
@@ -1855,7 +1857,7 @@ namespace
 			else
 			{
 				UseStackFrameFor(*this, sourceDef);
-				Assembler().Append_GetStackFrameValue(targetDef.SFOffset + targetDef.MemberOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
+				Assembler().Append_GetStackFrameAddress(VM::REGISTER_D5, targetDef.SFOffset + targetDef.MemberOffset);
 				RestoreStackFrameFor(*this, sourceDef);
 				UseStackFrameFor(*this, targetDef);
 				Assembler().Append_GetStackFrameMemberPtr(VM::REGISTER_D5, targetDef.SFOffset, targetDef.MemberOffset);

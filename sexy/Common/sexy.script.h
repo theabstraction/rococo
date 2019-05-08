@@ -89,6 +89,7 @@ namespace Rococo {
 		using namespace Rococo::Compiler;
 
 		struct IPublicScriptSystem;
+		struct ArchetypeCallback;
 
 		struct NativeCallEnvironment
 		{
@@ -220,6 +221,7 @@ namespace Rococo {
 			virtual void AddNativeLibrary(const char *sexyLibraryFile) = 0;
 			virtual Compiler::IModule* AddTree(Sex::ISParserTree& tree) = 0;
 			virtual void Compile() = 0;
+			virtual void DispatchToSexyClosure(void* pArgBuffer, const ArchetypeCallback& target) = 0;
 			virtual cstr GetSymbol(const void* ptr) const = 0;
 			virtual Compiler::IPublicProgramObject& PublicProgramObject() = 0;
 			virtual Sex::ISParser& SParser() = 0;

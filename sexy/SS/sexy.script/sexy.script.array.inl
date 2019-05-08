@@ -538,7 +538,7 @@ namespace Rococo
 		   ce.Builder.MarkExpression(&s);
 
 		   RepairStack(ce, *s.Parent(), *constructor);
-		   ce.Builder.AssignClosureParentSF();
+		   ce.Builder.AssignClosureParentSFtoD6();
 	   }
 
 	   void CompileAsPushToArrayByRef(CCompileEnvironment& ce, cr_sex s, cstr instanceName)

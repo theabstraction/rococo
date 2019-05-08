@@ -5,39 +5,41 @@
 
 namespace Rococo
 {
-   namespace Windows
-   {
-      struct IWindow;
+	using namespace Rococo::Script;
 
-	  namespace IDE
-	  {
-		  enum EScriptExceptionFlow
-		  {
-			  EScriptExceptionFlow_Terminate,
-			  EScriptExceptionFlow_Retry,
-			  EScriptExceptionFlow_Ignore
-		  };
+	namespace Windows
+	{
+		struct IWindow;
 
-		  ROCOCOAPI IScriptExceptionHandler
-		  {
-			 virtual void Free() = 0;
-			 virtual EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) = 0;
-		  };
+		namespace IDE
+		{
+			enum EScriptExceptionFlow
+			{
+				EScriptExceptionFlow_Terminate,
+				EScriptExceptionFlow_Retry,
+				EScriptExceptionFlow_Ignore
+			};
 
-		  ROCOCOAPI IPersistentScript
-		  {
-			 virtual void ExecuteFunction(ArchetypeCallback bytecodeId, IArgEnumerator& args, IScriptExceptionHandler& exceptionHandler) = 0;
-			 virtual void ExecuteFunction(cstr name, IArgEnumerator& arg, IScriptExceptionHandler& exceptionHandlers) = 0;
-			 virtual void Free() = 0;
-		  };
+			ROCOCOAPI IScriptExceptionHandler
+			{
+			   virtual void Free() = 0;
+			   virtual EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) = 0;
+			};
 
-		  ROCOCOAPI IDebuggerEventHandler
-		  {
-				virtual IEventCallback<MenuCommand>& GetMenuCallback() = 0;
-				virtual void Free() = 0;
-		  };
-	  }
-   }
+			ROCOCOAPI IPersistentScript
+			{
+			   virtual void ExecuteFunction(ArchetypeCallback bytecodeId, IArgEnumerator& args, IScriptExceptionHandler& exceptionHandler) = 0;
+			   virtual void ExecuteFunction(cstr name, IArgEnumerator& arg, IScriptExceptionHandler& exceptionHandlers) = 0;
+			   virtual void Free() = 0;
+			};
+
+			ROCOCOAPI IDebuggerEventHandler
+			{
+				  virtual IEventCallback<MenuCommand>& GetMenuCallback() = 0;
+				  virtual void Free() = 0;
+			};
+		}
+	}
 }
 
 namespace Rococo

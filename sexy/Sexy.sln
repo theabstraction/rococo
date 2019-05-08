@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{3B688E
 	ProjectSection(SolutionItems) = preProject
 		Common\sexy.compiler.public.h = Common\sexy.compiler.public.h
 		Common\sexy.debug.types.h = Common\sexy.debug.types.h
+		Common\sexy.dispatch.inl = Common\sexy.dispatch.inl
 		Common\sexy.lib.compiler.h = Common\sexy.lib.compiler.h
 		Common\sexy.lib.s-parser.h = Common\sexy.lib.s-parser.h
 		Common\sexy.lib.script.h = Common\sexy.lib.script.h

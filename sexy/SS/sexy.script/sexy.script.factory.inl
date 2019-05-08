@@ -148,7 +148,7 @@ namespace Rococo
 
 		 ce.Builder.AssignTempToVariable(0, interfaceRefName);
 
-         ce.Builder.AssignClosureParentSF();
+         ce.Builder.AssignClosureParentSFtoD6();
       }
 
       bool TryCompileAsLateFactoryCall(CCompileEnvironment& ce, const MemberDef& targetDef, cr_sex directive)

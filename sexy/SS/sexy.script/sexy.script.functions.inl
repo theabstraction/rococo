@@ -667,7 +667,7 @@ namespace Rococo
 	      else
 	      {
 		      BITCOUNT bits = GetBitCount(requiredOutputStruct.VarType());
-		      if (outputDef.Usage == ARGUMENTUSAGE_BYVALUE && outputDef.MemberOffset == 0)
+		      if (!outputDef.IsParentValue && outputDef.Usage == ARGUMENTUSAGE_BYVALUE && outputDef.MemberOffset == 0)
 		      {
 			      builder.Assembler().Append_SetSFValueFromSFValue(outputDef.SFOffset, sfOffset, bits);
 		      }
@@ -818,13 +818,28 @@ namespace Rococo
 
       int CompileVirtualCallKernel(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, const IInterface& interfaceRef)
       {
+		  MemberDef def;
+		  ce.Builder.TryGetVariableByName(def, instanceName);
+
+		  char localName[128] = "";
+
+		  if (def.IsParentValue)
+		  {
+			  static int64 index = 0;
+
+			  SafeFormat(localName, 128, "parentSF_%s_%llu", GetFriendlyName(*def.ResolvedType), index++);
+			  AddVariable(ce, NameString::From(localName), ce.Object.Common().TypePointer());
+			  ce.Builder.AssignVariableToTemp(instanceName, 0);
+			  ce.Builder.AssignTempToVariable(0, localName);
+		  }
+
 	      int outputStackAllocByteCount = AllocFunctionOutput(ce, callee, s);
 
 	      int inputStackAllocCount = callAtomic ? 0 : PushInputs(ce, s, callee, true, 1);
 	      inputStackAllocCount += sizeof(size_t); // Allow a few bytes for the instance pointer
 
 	      AddArgVariable(("input_interface"), ce, ce.Object.Common().TypePointer());
-	      AppendVirtualCallAssembly(instanceName, interfaceIndex, methodIndex, ce.Builder, interfaceRef, s);
+	      AppendVirtualCallAssembly(instanceName, interfaceIndex, methodIndex, ce.Builder, interfaceRef, s, localName);
 	      ce.Builder.MarkExpression(&s);
 
 	      RepairStack(ce, s, callee);
@@ -865,7 +880,7 @@ namespace Rococo
 
 	      int outputOffset = CompileFunctionCallKernel(ce, s, callee);
 	      ReturnOutput(ce, outputOffset, returnType);
-	      ce.Builder.AssignClosureParentSF();
+	      ce.Builder.AssignClosureParentSFtoD6();
       }
 
       void CompileVirtualCallAndReturnValue(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype, const IInterface& interfaceRef)
@@ -879,7 +894,7 @@ namespace Rococo
 
 	      int outputOffset = CompileVirtualCallKernel(ce, callAtomic, callee, s, interfaceIndex, methodIndex, instanceName, interfaceRef);
 	      ReturnOutput(ce, outputOffset, returnType);	
-	      ce.Builder.AssignClosureParentSF();
+	      ce.Builder.AssignClosureParentSFtoD6();
       }
 
       int CompileCloseCallHeader(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, cstr closureVariable)
@@ -944,7 +959,7 @@ namespace Rococo
 	      int outputOffset = GetOutputSFOffset(ce, inputStackAllocByteCount, outputAndSFstackAllocByteCount);	
 		
 	      ReturnOutput(ce, outputOffset, returnType);	
-	      ce.Builder.AssignClosureParentSF();
+	      ce.Builder.AssignClosureParentSFtoD6();
       }
 
       cstr GetIndexedMethod(CCompileEnvironment& ce, cr_sex invocation, const IStructure* s)
@@ -1437,7 +1452,7 @@ namespace Rococo
 	      }
       }
 
-      void AppendVirtualCallAssembly(cstr instanceName, int interfaceIndex, int methodIndex, ICodeBuilder& builder, const IInterface& interf, cr_sex s)
+      void AppendVirtualCallAssembly(cstr instanceName, int interfaceIndex, int methodIndex, ICodeBuilder& builder, const IInterface& interf, cr_sex s, cstr localName)
       {	
 	      MemberDef refDef;
 	      builder.TryGetVariableByName(OUT refDef, instanceName);
@@ -1452,13 +1467,22 @@ namespace Rococo
 
 	      if (IsNullType(*refDef.ResolvedType))
 	      {
-			  if (!refDef.IsContained || refDef.Usage == ARGUMENTUSAGE_BYVALUE)
+			  if (refDef.IsParentValue) 
 			  {
-				  builder.Assembler().Append_CallVitualFunctionViaRefOnStack(refDef.SFOffset + refDef.MemberOffset, vTableByteOffset);
+				  MemberDef localDef; // Local defs are copies of parent interface put onto the local stack by value
+				  builder.TryGetVariableByName(OUT localDef, localName);
+				  builder.Assembler().Append_CallVitualFunctionViaRefOnStack(localDef.SFOffset, vTableByteOffset);
 			  }
 			  else
 			  {
-				  builder.Assembler().Append_CallVitualFunctionViaMemberOffsetOnStack(refDef.SFOffset, refDef.MemberOffset, vTableByteOffset);
+				  if (!refDef.IsContained || refDef.Usage == ARGUMENTUSAGE_BYVALUE)
+				  {
+					  builder.Assembler().Append_CallVitualFunctionViaRefOnStack(refDef.SFOffset + refDef.MemberOffset, vTableByteOffset);
+				  }
+				  else
+				  {
+					  builder.Assembler().Append_CallVitualFunctionViaMemberOffsetOnStack(refDef.SFOffset, refDef.MemberOffset, vTableByteOffset);
+				  }
 			  }
 	      }
 		  else
@@ -1470,8 +1494,19 @@ namespace Rococo
 					if (&refDef.ResolvedType->GetInterface(i) == &interf)
 					{
 						// Concrete class
-						int instanceToInterfaceOffset = Compiler::GetInstanceToInterfaceOffset(i) + refDef.MemberOffset;
-						builder.Assembler().Append_CallVitualFunctionViaRefOnStack(refDef.SFOffset, vTableByteOffset, instanceToInterfaceOffset);
+
+						if (refDef.IsParentValue)
+						{
+							MemberDef localDef; // Local defs are copies of parent interface put onto the local stack by value
+							builder.TryGetVariableByName(OUT localDef, localName);
+							int instanceToInterfaceOffset = Compiler::GetInstanceToInterfaceOffset(i);
+							builder.Assembler().Append_CallVitualFunctionViaRefOnStack(localDef.SFOffset, vTableByteOffset);
+						}
+						else
+						{
+							int instanceToInterfaceOffset = Compiler::GetInstanceToInterfaceOffset(i) + refDef.MemberOffset;
+							builder.Assembler().Append_CallVitualFunctionViaRefOnStack(refDef.SFOffset, vTableByteOffset, instanceToInterfaceOffset);
+						}
 						return;
 					}
 				}
@@ -1493,7 +1528,7 @@ namespace Rococo
 	      int outputOffset = GetOutputSFOffset(ce, inputStackAllocByteCount, outputAndSFstackAllocByteCount);
 
 	      PopOutputs(ce, s, callee, outputOffset, false);		
-	      ce.Builder.AssignClosureParentSF();
+	      ce.Builder.AssignClosureParentSFtoD6();
       }
 
       void CompileVirtualCall(CCompileEnvironment& ce, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, const IInterface& interfaceRef)
@@ -1512,7 +1547,7 @@ namespace Rococo
 
 	      int outputOffset = CompileVirtualCallKernel(ce, false, callee, s, interfaceIndex, methodIndex, instanceName, interfaceRef);
 	      PopOutputs(ce, s, callee, outputOffset, true);		
-	      ce.Builder.AssignClosureParentSF();
+	      ce.Builder.AssignClosureParentSFtoD6();
       }
 
       int CompileInstancePointerArg(CCompileEnvironment& ce, cstr classInstance)
@@ -1569,7 +1604,7 @@ namespace Rococo
 	      // (<function-name> input1 input2 input3.... inputN -> output1...output2...outputN)		
 	      int outputOffset = CompileFunctionCallKernel(ce, s, callee);		
 	      PopOutputs(ce, s, callee, outputOffset, false);		
-	      ce.Builder.AssignClosureParentSF();
+	      ce.Builder.AssignClosureParentSFtoD6();
       }
 
       bool TryCompileFunctionCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, VARTYPE type, const IStructure* derivedType, const IArchetype* returnArchetype)

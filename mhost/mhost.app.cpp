@@ -12,111 +12,25 @@ namespace MHost
 	using namespace Rococo::Entities;
 	using namespace Rococo::Events;
 	using namespace Rococo::Textures;
+	using namespace Rococo::Script;
 	using namespace MHost::OS;
 
 	auto evPopulateBusyCategoryId = "busy.category"_event;
 	auto evPopulateBusyResourceId = "busy.resource"_event;
 
-	void RunEnvironmentScript(Platform& platform, IEngine* engine, cstr name, bool releaseAfterUse);
+	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse);
 
-	struct AppSceneBuilder : public IScene, public IScreenBuilder
+	struct AppSceneBuilder : public IScene
 	{
 		Platform& platform;
-
-		std::vector<GuiTriangle> triangles;
+		GuiPopulator populator;
+		IPublicScriptSystem* ss;
+		AutoFree<IScriptDispatcher> dispatcher;
 
 		AppSceneBuilder(Platform& _platform): platform(_platform)
 		{
+			dispatcher = CreateScriptDispatcher();
 			platform.camera.SetRHProjection(45_degrees, 0.1_metres, 1000_metres);
-		}
-
-		void AppendTriangles(const GuiTriangle* t, size_t nTriangles)
-		{
-			enum { MAX_TRIANGLES = 1000000 };
-			if (triangles.size() > MAX_TRIANGLES) Throw(0, "Maximum GUI triangles reached (%d)", MAX_TRIANGLES);
-
-			auto end = t + nTriangles;
-			while (t < end)
-			{
-				triangles.push_back(*t++);
-			}
-		}
-
-		void SetGuiQuadForBitmap(GuiTriangle t[2], const GuiRectf& txUV, int textureIndex)
-		{
-			t[0].a.colour = RGBAb(0xFFFFFFFF);
-			t[0].a.sd.lerpBitmapToColour = 0;
-			t[0].a.sd.matIndex = 0;
-			t[0].a.sd.textureIndex = (float) textureIndex;
-			t[0].a.sd.lerpBitmapToColour = 0;
-			t[0].a.sd.textureToMatLerpFactor = 0;
-			t[0].a.vd.fontBlend = 0;
-
-			t[0].b = t[0].c = t[0].a;
-			t[1] = t[0];
-
-			t[0].a.vd.uv = { txUV.left, txUV.top };
-			t[0].b.vd.uv = { txUV.right, txUV.top };
-			t[0].c.vd.uv = { txUV.left, txUV.bottom };
-
-			t[1].a.vd.uv = { txUV.right, txUV.bottom };
-			t[1].b.vd.uv = t[0].c.vd.uv;
-			t[1].c.vd.uv = t[0].b.vd.uv;
-		}
-
-		void DrawSprite(const Vec2i& pixelPos, int32 alignmentFlags, const Rococo::Textures::BitmapLocation& loc) override
-		{
-			//   a --- b
-			//   |   /
-			//   |  /  = t0
-			//   | /
-			//   |/
-			//   c
-
-			//         c
-			//       / |
-			//      /  | = t1
-			//     /   |
-			//    /    |
-			//   b-----a
-
-			GuiRectf txUV = { (float) loc.txUV.left,  (float) loc.txUV.top, (float) loc.txUV.right,  (float) loc.txUV.bottom };
-
-			Vec2 span = Span(txUV);
-
-			Vec2 pxPos = { (float)pixelPos.x, (float)pixelPos.y };
-			Vec2 topLeftPos = GetTopLeftPos(pxPos, span, alignmentFlags);
-
-			GuiTriangle t[2];
-			SetGuiQuadForBitmap(t, txUV, loc.textureIndex);
-
-			t[0].a.pos = topLeftPos;
-			t[0].b.pos = { topLeftPos.x + span.x, topLeftPos.y };
-			t[0].c.pos = { topLeftPos.x, topLeftPos.y + span.y };
-
-			t[1].a.pos = topLeftPos + span;
-			t[1].b.pos = t[0].c.pos;
-			t[1].c.pos = t[0].b.pos;
-
-			AppendTriangles(t, 2);
-		}
-
-		void StretchSprite(const GuiRect& quad, const Rococo::Textures::BitmapLocation& loc) override
-		{
-			GuiRectf txUV = { (float)loc.txUV.left,  (float)loc.txUV.top, (float)loc.txUV.right,  (float)loc.txUV.bottom };
-
-			GuiTriangle t[2];
-			SetGuiQuadForBitmap(t, txUV, loc.textureIndex);
-
-			t[0].a.pos = { (float) quad.left, (float) quad.top };
-			t[0].b.pos = { (float) quad.right, (float) quad.top };
-			t[0].c.pos = { (float) quad.left, (float) quad.bottom };
-
-			t[1].a.pos = { (float) quad.right, (float) quad.bottom };
-			t[1].b.pos = t[0].c.pos;
-			t[1].c.pos = t[0].b.pos;
-
-			AppendTriangles(t, 2);
 		}
 
 		void GetCamera(Matrix4x4& camera, Matrix4x4& world, Vec4& eye, Vec4& viewDir) override
@@ -134,14 +48,19 @@ namespace MHost
 			return platform.scene.OnGuiResize(screenSpan);
 		}
 
+		void OnCompile(IPublicScriptSystem& ss)
+		{
+			dispatcher->OnCompile(ss);
+		}
+
 		void RenderGui(IGuiRenderContext& grc)  override
 		{
-			for (auto& t : triangles)
-			{
-				grc.AddTriangle(&t.a);
-			}
-			triangles.clear();
-			return platform.scene.RenderGui(grc);
+			char guiBuffer[64];
+			IGui* gui = CreateGuiOnStack(guiBuffer, grc);
+
+			dispatcher->RouteGuiToScript(ss, gui, populator);
+
+			platform.scene.RenderGui(grc);
 		}
 
 		void RenderObjects(IRenderContext& rc)  override
@@ -158,38 +77,13 @@ namespace MHost
 		{
 			return platform.scene.RenderShadowPass(drd, rc);
 		}
-
-		boolean32 TryGetSpriteSpec(const fstring& resourceName, BitmapLocation& loc) override
-		{
-			return platform.renderer.SpriteBuilder().TryGetBitmapLocation(resourceName, loc);
-		}
-
-		void GetSpriteSpec(const fstring& resourceName, Rococo::Textures::BitmapLocation& loc) override
-		{
-			if (!TryGetSpriteSpec(resourceName, loc))
-			{
-				Throw(0, "Could not load bitmap: %s", (cstr)resourceName);
-			}
-		}
-
-		void PushTriangle(const Rococo::GuiTriangle& t) override
-		{
-			AppendTriangles(&t, 1);
-		}
-
-		void Render() override
-		{
-			Graphics::RenderPhaseConfig config;
-			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
-			platform.renderer.Render(config, *this);
-		}
 	};
 
 	class App : 
 		public IDirectApp, 
 		public IEventCallback<FileModifiedArgs>,
 		public IObserver, 
-		public IEngine
+		public IEngineSupervisor
 	{
 		Platform& platform;
 		IDirectAppControl& control;
@@ -248,6 +142,11 @@ namespace MHost
 			platform.gui.Pop();
 		}
 
+		void SetRunningScriptContext(IPublicScriptSystem* ss)
+		{
+			sceneBuilder.ss = ss;
+		}
+
 		virtual void OnEvent(Event& ev)
 		{
 			if (ev == Rococo::Events::evBusy)
@@ -267,6 +166,24 @@ namespace MHost
 
 			else if (ev == evPopulateBusyResourceId)
 			{
+			}
+		}
+
+		void OnCompile(IPublicScriptSystem& ss) override
+		{
+			sceneBuilder.OnCompile(ss);
+		}
+
+		boolean32 TryGetSpriteSpec(const fstring& resourceName, BitmapLocation& loc) override
+		{
+			return platform.renderer.SpriteBuilder().TryGetBitmapLocation(resourceName, loc);
+		}
+
+		void GetSpriteSpec(const fstring& resourceName, Rococo::Textures::BitmapLocation& loc) override
+		{
+			if (!TryGetSpriteSpec(resourceName, loc))
+			{
+				Throw(0, "Could not load bitmap: %s", (cstr)resourceName);
 			}
 		}
 	public:
@@ -325,11 +242,6 @@ namespace MHost
 
 		bool isScriptRunning = true; // Will be set to false in YieldForSystemMessages if script rerun required
 
-		IScreenBuilder* ScreenBuilder()
-		{
-			return &sceneBuilder;
-		}
-
 		// used by a script in Run() via IEngine.Run to determine if it should terminate gracefully
 		// termination should occur of the user interface has collapsed, or script queued for re-run
 		boolean32 IsRunning() override 
@@ -366,6 +278,18 @@ namespace MHost
 					queuedForExecute = false; 
 				}
 			}
+		}
+
+		void Render(MHost::GuiPopulator populator) override
+		{
+			Graphics::RenderPhaseConfig config;
+			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
+
+			sceneBuilder.populator = populator;
+
+			platform.renderer.Render(config, sceneBuilder);
+
+			sceneBuilder.populator = GuiPopulator{ 0,nullptr };
 		}
 
 		void PollKeyState(KeyState& keyState) override

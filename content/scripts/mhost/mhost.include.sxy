@@ -14,3 +14,7 @@
 (alias VectorI32x4 MHost.VectorI32x4)
 (alias MatrixI32x4x4 MHost.MatrixI32x4x4)
 (alias KeyState MHost.OS.KeyState)
+
+(using MHost)
+
+(archetype MHost.GuiPopulator (IGui gui) -> )

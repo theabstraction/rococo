@@ -99,3 +99,4 @@
 	)
 )
 
+(archetype Sys.Type.VoidToVoid -> )

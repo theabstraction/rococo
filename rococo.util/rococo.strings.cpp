@@ -368,6 +368,14 @@ namespace Rococo
 	   return strncmp(bigString, prefix, strlen(prefix)) == 0;
    }
 
+   bool EndsWith(cstr bigString, cstr suffix)
+   {
+	   size_t len = strlen(suffix);
+	   size_t lenBig = strlen(bigString);
+	   const char* t = bigString + lenBig - len;
+	   return Eq(suffix, t);
+   }
+
    StackStringBuilder::StackStringBuilder(char* _buffer, size_t _capacity) :
       buffer(_buffer), capacity(_capacity), length(0)
    {

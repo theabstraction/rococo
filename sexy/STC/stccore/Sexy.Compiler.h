@@ -356,7 +356,7 @@ namespace Rococo { namespace Compiler
 		virtual int GetVariableCount() const = 0;
 		virtual void GetVariableByIndex(OUT MemberDef& def, cstr& name, int index) const = 0;
 		virtual int GetOffset(size_t variableIndex) const = 0;
-		virtual void AssignClosureParentSF() = 0;
+		virtual void AssignClosureParentSFtoD6() = 0;
 
 		virtual void PopControlFlowPoint() = 0;
 		virtual void PushControlFlowPoint(const ControlFlowData& controlFlowData) = 0;

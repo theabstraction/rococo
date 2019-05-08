@@ -461,31 +461,39 @@ namespace
          }
       };
 
-		EXECUTERESULT Continue(const ExecutionFlags& ef, ITraceOutput* tracer)
-		{
-			if (status == EXECUTERESULT_YIELDED) status = EXECUTERESULT_RUNNING;
+	  ExecutionFlags currentFlags{ false, false, false };
+	  void GetLastFlags(ExecutionFlags& flags) const override
+	  {
+		  flags = currentFlags;
+	  }
 
-         TraceContext tc(*this, tracer);
+	  EXECUTERESULT Continue(const ExecutionFlags& ef, ITraceOutput* tracer)
+	  {
+		  if (status == EXECUTERESULT_YIELDED) status = EXECUTERESULT_RUNNING;
 
-			if (ef.RunProtected)
-			{
-				struct ANON
-				{
-					static EXECUTERESULT ProtectedContinue(void* context, bool throwToQuit)
-					{
-						CVirtualMachine* vm = (CVirtualMachine*) context;
-						return vm->ProtectedContinue(throwToQuit);
-					}
-				};
+		  currentFlags = ef;
 
-				return VM::OS::ExecuteProtected(*this, ANON::ProtectedContinue, this, OUT cpu.ExceptionCode, ef.ThrowToQuit);
-			}
-			else
-			{
-				cpu.ExceptionCode = EXCEPTIONCODE_DISABLED;
-				return ProtectedContinue(ef.ThrowToQuit);
-			}
-		}
+		  TraceContext tc(*this, tracer);
+
+		  if (ef.RunProtected)
+		  {
+			  struct ANON
+			  {
+				  static EXECUTERESULT ProtectedContinue(void* context, bool throwToQuit)
+				  {
+					  CVirtualMachine* vm = (CVirtualMachine*)context;
+					  return vm->ProtectedContinue(throwToQuit);
+				  }
+			  };
+
+			  return VM::OS::ExecuteProtected(*this, ANON::ProtectedContinue, this, OUT cpu.ExceptionCode, ef.ThrowToQuit);
+		  }
+		  else
+		  {
+			  cpu.ExceptionCode = EXCEPTIONCODE_DISABLED;
+			  return ProtectedContinue(ef.ThrowToQuit);
+		  }
+	  }
 
 		void InitCpu()
 		{
@@ -1613,7 +1621,6 @@ namespace
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 		}
 
-
 		OPCODE_CALLBACK(CallVitualFunctionViaMemberOffsetOnStack)
 		{
 			struct VirtualTable
@@ -1735,10 +1742,10 @@ namespace
 		OPCODE_CALLBACK(Copy32Bits)
 		{
 			const Ins* I = NextInstruction();
-			uint8* target = cpu.D[I->Opmod1].uint8PtrValue;
-			const uint8* source = cpu.D[I->Opmod2].uint8PtrValue;
+			int32* target = cpu.D[I->Opmod1].int32PtrValue;
+			const int32* source = cpu.D[I->Opmod2].int32PtrValue;
 			
-			*(int32*) target = *(const int32*) source;
+			*target = *source;
 
 			cpu.AdvancePC(3);			
 		}

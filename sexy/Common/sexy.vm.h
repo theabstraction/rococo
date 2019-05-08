@@ -160,6 +160,7 @@ namespace Rococo { namespace VM
 
 	struct ExecutionFlags
 	{
+		ExecutionFlags() { }
 		ExecutionFlags(bool throwToQuit, bool runProtected, bool correctSF = true):
 			ThrowToQuit(throwToQuit), RunProtected(runProtected), CorrectSF(correctSF) {}
 
@@ -187,8 +188,11 @@ namespace Rococo { namespace VM
 		virtual CPU& Cpu() = 0;
 		virtual ICore& Core() = 0;
 		
+		virtual void GetLastFlags(ExecutionFlags& flags) const = 0;
+
 		virtual EXECUTERESULT Execute(const ExecutionFlags& ef, ITraceOutput* tracer = nullptr) = 0;
 		virtual EXECUTERESULT ContinueExecution(const ExecutionFlags& ef, ITraceOutput* tracer = nullptr) = 0;
+
 		virtual void Pause() = 0;
 		virtual void InitCpu() = 0;
 		virtual void InitPC() = 0;

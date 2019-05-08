@@ -41,7 +41,7 @@
 	(ForEachEntityInWorld (OnEntity onEntity)->)
 	(Init ->)
 	(Advance ->)
-	(Render (IScreenBuilder sb)->)
+	(RenderGui (IGui gui)-> )
 )
 
 (class Galaxians (implements MHost.IWorld)
@@ -68,13 +68,13 @@
 
 (factory MHost.Galaxians MHost.IWorld (IEngine engine) : (construct Galaxians engine))
 
-(function InitSprite (IScreenBuilder s)(Sprite bmp)-> :
-	(s.GetSpriteSpec bmp.filename bmp.location)
+(function InitSprite (IEngine engine)(Sprite bmp)-> :
+	(engine.GetSpriteSpec bmp.filename bmp.location)
 )
 
-(function InitEntitySprites (IScreenBuilder s)(Entity e)-> :
-	(InitSprite s e.image1)
-	(InitSprite s e.image2)
+(function InitEntitySprites (IEngine engine)(Entity e)-> :
+	(InitSprite engine e.image1)
+	(InitSprite engine e.image2)
 )
 
 (archetype Galaxians.OnEntity (Entity e)->)
@@ -157,12 +157,16 @@
 	(this.deathAt = (Sys.Time.ClockTicks))
 	(this.lives = 3)
 	
-	(IScreenBuilder s = (this.engine.ScreenBuilder))
+	(IEngine engine = this.engine)
 	
-	(OnEntity initSprites = (closure (Entity e)-> : (InitEntitySprites s e)))
+	(OnEntity initSprites = 
+		(closure (Entity e)-> :
+			(InitEntitySprites engine e)
+		)
+	)
 	(this.ForEachEntityInWorld initSprites)
-	(InitEntitySprites s this.playerExplosion)
-	(InitEntitySprites s this.enemyExplosion)
+	(InitEntitySprites engine this.playerExplosion)
+	(InitEntitySprites engine this.enemyExplosion)
 	
 	(IKeyboard keyboard (Keyboard))
 	(this.controls.leftKey = (keyboard.GetVKeyFromName "A"))
@@ -170,16 +174,16 @@
 	(this.controls.fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
 )
 
-(function DrawEntity (Entity e)(IScreenBuilder sb) -> :
+(function DrawEntity (Entity e)(IGui gui) -> :
 	(Int32 alignmentFlags = 0) // centred
-	(sb.DrawSprite e.screenPosition alignmentFlags e.image1.location)
+	(gui.DrawSprite e.screenPosition alignmentFlags e.image1.location)
 )
 
-(function RenderLives (Entity player)(IScreenBuilder s)(Int32 count)-> :
+(function RenderLives (Entity player)(IGui gui)(Int32 count)-> :
 	(#for (Int32 i = 0)(i < count)(i += 1)
 		(Int32 x =  (100 + (i * 64)))
 		(Vec2i pos = x 640)
-		(s.DrawSprite pos 0 player.image1.location)
+		(gui.DrawSprite pos 0 player.image1.location)
 	)
 )
 
@@ -192,20 +196,21 @@
 	(rect.top += centre.y)
 )
 
-(method Galaxians.Render (IScreenBuilder s)-> :
-	(OnEntity drawSprites = (closure (Entity e)-> : (DrawEntity e s)))
+(method Galaxians.RenderGui (IGui gc) -> :
+	(gui.AdvanceFrame)
+	(OnEntity drawSprites = (closure (Entity e)-> : (DrawEntity e gc)))
 	(this.ForEachEntityInWorld drawSprites)
 	
 	(if (this.deathAt != 0)
 		(Int64 peakBoom = Sys.Time.ClockHz)
 		(Int64 delta = ((Sys.Time.ClockTicks) - this.deathAt))
 		(if (delta < peakBoom)
-			(s.DrawSprite this.playerExplosion.screenPosition 0 this.player.image1.location)
+			(gc.DrawSprite this.playerExplosion.screenPosition 0 this.player.image1.location)
 			(Int64 boomTick = ( peakBoom / 64 ))
 			(Int32 span = (delta / boomTick))
 			(Recti rect)
 			(ExpandRect rect span this.playerExplosion.screenPosition)
-			(s.StretchSprite rect this.playerExplosion.image1.location)
+			(gc.StretchSprite rect this.playerExplosion.image1.location)
 		)
 	)
 	
@@ -217,7 +222,7 @@
 			(Int32 span = (32 - (delta / boomTick)))
 			(Recti rect)
 			(ExpandRect rect span this.enemyExplosion.screenPosition)
-			(s.StretchSprite rect this.enemyExplosion.image1.location)
+			(gc.StretchSprite rect this.enemyExplosion.image1.location)
 		else
 			(this.enemyHitAt = 0)
 		)
@@ -225,13 +230,11 @@
 	
 	(if (this.lives > 0)
 		(if (this.deathAt == 0)
-			(RenderLives this.player s (this.lives - 1))
+			(RenderLives this.player gc (this.lives - 1))
 		else
-			(RenderLives this.player s this.lives)
+			(RenderLives this.player gc this.lives)
 		)
 	)
-	
-	(s.Render)
 )
 
 (function TryFireMissile (Entity playerMissile)(Entity player)-> :
@@ -403,14 +406,22 @@
 	(sprites.LoadAllSprites)
 	
 	(IEngine engine (Engine))
-	(IScreenBuilder sb = (engine.ScreenBuilder))
 	
 	(IWorld world (Galaxians engine))
 	(world.Init)
 	
 	(while engine.IsRunning
 		(world.Advance)
-		(world.Render sb)
+		
+		(GuiPopulator p =
+			(closure (IGui gui) -> : 
+				(gui.AdvanceFrame)
+				(world.RenderGui gui)
+			)
+		)
+		
+		(engine.Render p)
+		
 		(engine.YieldForSystemMessages 5)
 	)
 )

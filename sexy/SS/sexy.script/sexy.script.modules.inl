@@ -1038,7 +1038,7 @@ namespace Rococo { namespace Script
 		ce.Builder.MarkExpression(&conDef);
 
 		RepairStack(ce, *conDef.Parent(), *childConstructorFn);
-		ce.Builder.AssignClosureParentSF();
+		ce.Builder.AssignClosureParentSFtoD6();
 	}
 
 	void CompileConstructMember(CCompileEnvironment& ce, cr_sex conDef, const IMember& member, cstr instance)

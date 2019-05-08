@@ -65,6 +65,8 @@
 #include "sexy.compiler.h"
 #include <rococo.api.h>
 
+#include <sexy.dispatch.inl>
+
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 
 #define TEST(test) Test(#test, test)
@@ -10917,6 +10919,42 @@ namespace
 		validate(x == 4);
 	}
 
+	void TestMethodFromClosure(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+
+			"(class Robot (defines Sys.IRobot))"
+
+			"(method Robot.Id -> (Int32 id): (id = 5))"
+
+			"(method Robot.Construct : )"
+
+			"(factory Sys.NewRobot Sys.IRobot : (construct Robot))"
+
+			"(archetype Sys.VoidToVoid -> )"
+
+			"(function Main -> (Int32 result):\n"
+			"	(Sys.IRobot robot (Sys.NewRobot))\n"
+			"   (Sys.VoidToVoid c = (closure -> : (robot.Id -> result)))\n"
+			"   (c)\n"
+			")\n"
+
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		const IModule& m = ss.PublicProgramObject().GetModule(0);
+
+		vm.Push(100); // Allocate stack space for the int32 x
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 5);
+	}
+
 	void TestDeltaOperators3(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = "(namespace EntryPoint)"
@@ -12016,6 +12054,71 @@ namespace
 	   validate(x == 7);
    }
 
+#pragma pack(push,1)
+   struct Message
+   {
+	   void* hWnd;
+	   int32 uMsg;
+	   int32 result;
+	   void* lParam;
+	   void* wParam;
+   };
+#pragma pack(pop)
+
+
+   void TestCPPCallback(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   "(namespace EntryPoint)"
+		   "	(alias Main EntryPoint.Main)"
+
+		   "(struct Message"
+		   "	(Pointer hWnd)"
+		   "	(Int32 uMsg)"
+		   "    (Int32 result)"
+		   "	(Pointer lParam)"
+		   "	(Pointer wParam)"
+		   ")"
+
+		   "(archetype Sys.DispatchEventHandler (Message message)->)"
+		   "(function Main -> (Int32 result):"
+		   "    (Sys.DispatchEventHandler handler = "
+		   "		(closure (Message message)-> :"
+		   "			(result = message.uMsg)"
+		   "		)"
+		   "	)"
+		   "    (Sys.Native.DispatchMessage handler)"
+		   ")";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   auto& ns = ss.AddNativeNamespace("Sys.Native");
+
+	   struct MessageDispatcher
+	   {
+		   static void Dispatch(NativeCallEnvironment& nce)
+		   {
+			   ArchetypeCallback cb;
+			   ReadInput(0, cb, nce);
+
+			   Message msg{ nullptr, 1001, 0, nullptr, nullptr };
+			   nce.ss.DispatchToSexyClosure(&msg, cb);
+		   }
+	   };
+
+	   ss.AddNativeCall(ns, MessageDispatcher::Dispatch, nullptr, "DispatchMessage (Sys.DispatchEventHandler handler) -> ", true);
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(1815); // Allocate stack space for the int32 result
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+	   int32 x = vm.PopInt32();
+	   validate(x == 1001);
+   }
+
+
    void RunCollectionTests()
    {
 	   TEST(TestMap);
@@ -12175,6 +12278,12 @@ namespace
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+
+		TEST(TestMethodFromClosure);
+
+		TEST(TestMacro);
+
+		TEST(TestCPPCallback);
 
 		TEST(TestDeltaOperators);
 		TEST(TestDeltaOperators2);
@@ -12373,16 +12482,10 @@ namespace
 
 		TEST(TestStringBuilder);
 
-		TEST(TestPrintModules);
-
 		TEST(TestExpressionArg);
 		TEST(TestSubstitution);
 
 		TEST(TestReflectionGetCurrentExpression);
-		TEST(TestReflectionGetParent);
-
-		TEST(TestModuleCount);
-		TEST(TestPrintStructs);
 
 		TEST(TestInlinedFactory);
 
@@ -12420,9 +12523,6 @@ namespace
 
 		TEST(TestStructWithInterface);
 
-		TEST(TestReflectionGetChild);
-		TEST(TestReflectionGetAtomic);
-
 		TEST(TestThrowFromCatch);
 
 		TEST(TestCatchInstanceArg);
@@ -12432,15 +12532,6 @@ namespace
 
 		TEST(TestSysThrow);
 		TEST(TestSysThrow2);
-
-		TEST(TestMeshStruct4);
-		TEST(TestMeshStruct3);
-		TEST(TestMeshStruct2);
-		TEST(TestMeshStruct);
-
-		TEST(TestRefTypesInsideClosure);
-
-		TEST(TestStringBuilderBig);
 
 		TEST(TestSearchSubstring);
 		TEST(TestRightSearchSubstring);
@@ -12454,9 +12545,25 @@ namespace
 
 		TEST(TestMacroAsArgument1);
 
-		TEST(TestMacro);
-
 		TestMaths();
+
+		TEST(TestStringBuilderBig);
+
+		TEST(TestRefTypesInsideClosure);
+
+		TEST(TestMeshStruct4);
+		TEST(TestMeshStruct3);
+		TEST(TestMeshStruct2);
+		TEST(TestMeshStruct);
+
+		TEST(TestPrintModules);
+		TEST(TestReflectionGetParent);
+		TEST(TestReflectionGetChild);
+		TEST(TestReflectionGetAtomic);
+
+		TEST(TestModuleCount);
+
+		TEST(TestPrintStructs);
 	}
 
 	void RunPositiveFailures()
@@ -12482,6 +12589,8 @@ namespace
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
+
+		TEST(TestCPPCallback);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

@@ -41,6 +41,8 @@
 
 #include <string>
 
+#include <rococo.api.h>
+
 using namespace Rococo;
 using namespace Rococo::Script;
 using namespace Rococo::Compiler;
@@ -960,5 +962,5 @@ namespace Rococo
 		   const ISExpression* s = (const ISExpression*) f.Code().GetSymbol(fnOffset).SourceExpression;
 		   return s;
 	   }
-   } // Script
+	} // Script
 } // Rococo

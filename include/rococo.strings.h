@@ -38,6 +38,7 @@ namespace Rococo
    bool Eq(cstr a, cstr b);
    bool EqI(cstr a, cstr b);
    bool StartsWith(cstr bigString, cstr prefix);
+   bool EndsWith(cstr bigString, cstr suffix);
 
    void SetStringAllocator(IAllocator* a);
 

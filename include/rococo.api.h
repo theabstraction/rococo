@@ -267,11 +267,14 @@ namespace Rococo
 
 namespace Rococo
 {
-	struct ArchetypeCallback
+	namespace Script
 	{
-		ID_BYTECODE byteCodeId;
-		const uint8* callerSF;
-	};
+		struct ArchetypeCallback
+		{
+			ID_BYTECODE byteCodeId;
+			const uint8* callerSF;
+		};
+	}
 
 	struct IMathsVenue;
 
