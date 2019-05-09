@@ -92,17 +92,12 @@ namespace Rococo
 	{
 		IThreadSupervisor* CreateRococoThread(IThreadJob* job, uint32 stacksize)
 		{
-			struct ANON
+			struct Supervisor;
+
+			struct Context
 			{
-				static uint32 ThreadProc(void* argList)
-				{
-					ANON* anon = (ANON*) argList;
-					IThreadJob* thread = reinterpret_cast<IThreadJob*>(anon->job);
-					return thread->RunThread(*anon->supervisor);
-				}
-				
 				IThreadJob* job;
-				IThreadSupervisor* supervisor;
+				Supervisor* supervisor;
 			};
 
 			struct Supervisor : public IThreadSupervisor
@@ -126,12 +121,17 @@ namespace Rococo
 
 				}
 
-				void SetRealTimePriority()
+				cstr GetErrorMessage() const override
+				{
+					return threadErrorRaised ? threadErrorMessage.c_str() : nullptr;
+				}
+
+				void SetRealTimePriority() override
 				{
 					SetThreadPriority((HANDLE)hThread, THREAD_PRIORITY_TIME_CRITICAL);
 				}
 
-				void SleepUntilAysncEvent(uint32 milliseconds)
+				void SleepUntilAysncEvent(uint32 milliseconds) override
 				{
 					if (isRunning)
 					{
@@ -151,7 +151,7 @@ namespace Rococo
 
 				void Resume() override
 				{
-					ResumeThread((HANDLE) hThread);
+					ResumeThread((HANDLE)hThread);
 				}
 
 				void Lock() override
@@ -168,8 +168,31 @@ namespace Rococo
 				uint32 id;
 				uintptr_t hThread = 0;
 				bool isRunning = true;
-				ANON context;
+				Context context;
+				volatile bool threadErrorRaised = false;
+				HString threadErrorMessage;
 			} *supervisor = new Supervisor();
+
+
+			struct ANON
+			{
+				static uint32 ThreadProc(void* argList)
+				{
+					Context* c = (Context*)argList;
+					IThreadJob* thread = reinterpret_cast<IThreadJob*>(c->job);
+
+					try
+					{
+						return thread->RunThread(*c->supervisor);
+					}
+					catch (IException& ex)
+					{
+						c->supervisor->threadErrorMessage = ex.Message();
+						c->supervisor->threadErrorRaised = true;
+						return ex.ErrorCode();
+					}
+				}
+			};
 
 			supervisor->context = { job, supervisor };
 			supervisor->hThread = _beginthreadex(nullptr, stacksize, ANON::ThreadProc, &supervisor->context, CREATE_SUSPENDED, &supervisor->id);

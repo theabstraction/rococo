@@ -222,6 +222,7 @@ namespace Rococo
 			virtual void Resume() = 0;
 			virtual void SetRealTimePriority() = 0;
 			virtual void SleepUntilAysncEvent(uint32 milliseconds) = 0;
+			virtual cstr GetErrorMessage() const = 0;
 		};
 
 		ROCOCOAPI IThreadSupervisor: public IThreadControl
