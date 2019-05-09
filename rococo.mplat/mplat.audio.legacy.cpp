@@ -34,29 +34,111 @@ inline int16 float_to_int16(float x)
 	return (int16)(x * 32767.0f);
 }
 
+typedef int64 SampleTime;
+
+struct ADSR
+{
+	float attack;
+	float decay;
+	float sustain;
+	float release;
+	SampleTime startTime;
+	bool sustained;
+	bool released;
+	SampleTime sustainEnded;
+};
+
+void GetADSRModulation_ForAttackPhase(const ADSR& adsr, float& volume0, float& volume1, float tStart, float tEnd)
+{
+	volume0 = tStart / adsr.attack;
+	volume1 = tEnd >= adsr.attack ? 1.0f : tEnd / adsr.attack;
+}
+
+void GetADSRModulation_ForDecayPhase(const ADSR& adsr, float& volume0, float& volume1, float tStart, float tEnd)
+{
+	volume0 = Lerp(1.0f, adsr.sustain, (tStart - adsr.attack) / adsr.decay);
+	if (tEnd > adsr.attack + adsr.decay)
+	{
+		volume1 = adsr.sustain;
+	}
+	else
+	{
+		volume1 = Lerp(1.0f, adsr.sustain, (tEnd - adsr.attack) / adsr.decay);
+	}
+}
+
+void GetADSRModulation_ForSustainAndReleasePhase(const ADSR& adsr, float& volume0, float& volume1, float tStart, float tEnd, float sustainPeriod)
+{
+	if (adsr.sustained)
+	{
+		volume0 = volume1 = adsr.sustain;
+		return;
+	}
+
+	if (sustainPeriod >= adsr.release)
+	{
+		volume0 = volume1 = 0.0f;
+		return;
+	}
+	
+	volume0 = Lerp(adsr.sustain, 0.0f, sustainPeriod / adsr.release);
+
+	float sustainPeriodAtSampleEnd = sustainPeriod + tEnd - tStart;
+
+	if (sustainPeriodAtSampleEnd > adsr.release)
+	{
+		volume1 = 0.0f;
+	}
+	else
+	{
+		volume1 = Lerp(adsr.sustain, 0.0f, sustainPeriodAtSampleEnd / adsr.release);
+	}
+}
+
+void GetADSRModulation(const ADSR& adsr, float& volume0, float& volume1, SampleTime cursorTime, int64 nSamples)
+{
+	volume0 = volume1 = 1.0f;
+	return;
+
+	auto samplesPlayedSinceStart = cursorTime - adsr.startTime;
+
+	float tStart = (float) samplesPlayedSinceStart;
+	float tEnd = tStart + nSamples;
+
+	if (tStart < adsr.attack)
+	{
+		GetADSRModulation_ForAttackPhase(adsr, volume0, volume1, tStart, tEnd);
+	}
+	else if (tStart < (adsr.attack + adsr.decay))
+	{
+		GetADSRModulation_ForDecayPhase(adsr, volume0, volume1, tStart, tEnd);
+	}
+	else
+	{
+		float sustainPeriod = (float)(cursorTime - adsr.sustainEnded);
+		GetADSRModulation_ForSustainAndReleasePhase(adsr, volume0, volume1, tStart, tEnd, sustainPeriod);
+	}
+}
+
 struct LegacySoundControl : public ILegacySoundControlSupervisor, public OS::IThreadJob
 {
-	float masterVolume = 1.0f;
 	enum { CHANNEL_COUNT = 16 };
 	ALCdevice* device = nullptr;
 	ALCcontext* context = nullptr;
 	ALuint primarySource = 0;
 	OS::IThreadSupervisor* thread = nullptr;
 
-	std::array <ALuint,3> bufferCycle;
+	std::array<ALuint,3> bufferCycle;
 
 	std::array<StereoSampleF32, 4410> f32raw;
 
 	struct Channel
 	{
-		float leftVolume;
-		float rightVolume;
-		float freqHz;
-		float dutyCycle;
-		float attack;
-		float decay;
-		float sustain;
-		float release;
+		float leftVolume = 0;
+		float rightVolume = 0;
+		float freqHz = 0;
+		float dutyCycle = 0;
+		ADSR adsr = { 0 };
 		Rococo::Audio::ELegacySoundShape waveShape;
 	};
 	
@@ -128,6 +210,11 @@ struct LegacySoundControl : public ILegacySoundControlSupervisor, public OS::ITh
 			alBufferData(bufferId, AL_FORMAT_STEREO16, raw.data(), (ALsizei) (sizeof(StereoSample) * raw.size()), 44100);
 			AssertValidState("alBufferData");
 		}
+
+		for (auto c : channels)
+		{
+			c.adsr.released = true;
+		}
 		
 		alGenSources(1, &primarySource);
 		AssertValidState("alGenSources");
@@ -186,9 +273,9 @@ struct LegacySoundControl : public ILegacySoundControlSupervisor, public OS::ITh
 		delete this;
 	}
 
-	void SetMasterVolumne(float volume) override
+	void SetMasterVolumne(float gain) override
 	{
-		masterVolume = volume;
+		alSourcef(primarySource, AL_GAIN, gain);
 	}
 
 	void AssertChannelValid(int32 channel, cstr function)
@@ -207,27 +294,70 @@ struct LegacySoundControl : public ILegacySoundControlSupervisor, public OS::ITh
 		c.rightVolume = rightVolume;
 	}
 
-	void PlayWave(int32 channel, Rococo::Audio::ELegacySoundShape waveShape, float freqHz, float dutyCycle)  override
+	void SetWave(int32 channel, Rococo::Audio::ELegacySoundShape waveShape, float freqHz, float dutyCycle)  override
 	{
 		AssertChannelValid(channel, __FUNCTION__);
 		auto& c = channels[channel];
 		c.freqHz = freqHz;
 		c.dutyCycle = dutyCycle;
+		c.waveShape = waveShape;
 	}
 
-	void SetEnvelope(int32 channel, float attack, float decay, float sustain, float release) override
+	void SetEnvelope(int32 channel, float attackSecs, float decaySecs, float sustainLevel, float releaseSecs) override
 	{
 		AssertChannelValid(channel, __FUNCTION__);
 		auto& c = channels[channel];
-		c.attack = attack;
-		c.decay = decay;
-		c.sustain = sustain;
-		c.release = release;
+		c.adsr.attack = attackSecs * 44100.0f;
+		c.adsr.decay = decaySecs * 44100.0f;
+		c.adsr.sustain = sustainLevel;
+		c.adsr.release = releaseSecs * 44100.0f;
 	}
 
-	float cycle = 0;
+	void PlayWave(int32 channel) override
+	{
+		AssertChannelValid(channel, __FUNCTION__);
+		auto& c = channels[channel];
+		c.adsr.startTime = cursorTime;
+		c.adsr.sustained = false;
+		c.adsr.released = true;
+		c.adsr.sustainEnded = (SampleTime) (cursorTime + c.adsr.attack + c.adsr.decay);
+	}
 
-	void RenderSound(StereoSampleF32* samples, int32 nSamples)
+	void Sustain(int32 channel) override
+	{
+		AssertChannelValid(channel, __FUNCTION__);
+		auto& c = channels[channel];
+
+		if (c.adsr.released)
+		{
+			c.adsr.startTime = cursorTime;
+			c.adsr.released = false;
+		}
+
+		SampleTime leadTime = (SampleTime)(c.adsr.attack + c.adsr.decay);
+		
+		c.adsr.sustained = true;
+		c.adsr.sustainEnded = (cursorTime - c.adsr.startTime > leadTime) ? cursorTime : c.adsr.startTime + leadTime;
+	}
+
+	void Release(int32 channel) override
+	{
+		AssertChannelValid(channel, __FUNCTION__);
+		auto& c = channels[channel];
+
+		if (!c.adsr.released)
+		{
+			c.adsr.sustained = false;
+			c.adsr.released = true;
+			c.adsr.sustainEnded = cursorTime;
+		}
+	}
+
+	float cycleTime = 0;
+
+	SampleTime cursorTime = 0;
+
+	void AddSineWave(StereoSampleF32* samples, int32 nSamples, float freqHz, float volume0, float volume1, float leftVolume, float rightVolume)
 	{
 		StereoSampleF32* s = samples;
 
@@ -235,20 +365,76 @@ struct LegacySoundControl : public ILegacySoundControlSupervisor, public OS::ITh
 		// A sinewave of 1Hz takes R samples
 		// A sinewave of f Hz takes R / f samples
 
-		const float Middle_C = 261.625565f; // Hz
+		float dt = 1.0f / 44100.0f; // sample time step
 
-		float dt = Middle_C * 1.0f / 44100.0f; // sample time step
-			
 		const float TwoPi = 2.0f * 3.14159265358979f;
+
+		const float w = TwoPi * freqHz;
+
+		float t = cycleTime;
+
+		float volume = volume0;
+
+		float dv = (volume1 - volume0) * dt;
 
 		for (int32 i = 0; i < nSamples; ++i)
 		{
-			s->left = s->right = sinf(TwoPi * cycle);
-			cycle += dt;
+			float delta = volume * sinf(w * t);
+			s->left += leftVolume * delta;
+			s->right += rightVolume * delta;
+			t += dt;
+			volume += dv;
 			s++;
 		}
+	}
 
-		cycle = fmodf(cycle, 1.0f);
+	void MakeSilent(StereoSampleF32* samples, int32 nSamples)
+	{
+		memset(samples, 0, nSamples * sizeof(StereoSampleF32));
+	}
+
+	void AddChannelToBuffer(Channel& channel, StereoSampleF32* samples, int32 nSamples)
+	{
+		if (channel.adsr.startTime == 0)
+		{
+			return;
+		}
+
+		float volume0, volume1;
+		GetADSRModulation(channel.adsr, volume0, volume1, cursorTime, nSamples);
+
+		if ((channel.leftVolume <= 0 && channel.rightVolume <= 0) | (volume0 <= 0 && volume1 <= 0))
+		{
+			return;
+		}
+
+		switch (channel.waveShape)
+		{
+		case ELegacySoundShape_Sine:
+			AddSineWave(samples, nSamples, channel.freqHz, volume0, volume1, channel.leftVolume, channel.rightVolume);
+			break;
+		case ELegacySoundShape_Square:
+		case ELegacySoundShape_Triangle:
+		case ELegacySoundShape_Saw:
+		case ELegacySoundShape_Noise:
+		default:
+			break;
+		}
+	}
+
+	void RenderSound(StereoSampleF32* samples, int32 nSamples)
+	{
+		MakeSilent(samples, nSamples);
+
+		for (auto& channel : channels)
+		{
+			AddChannelToBuffer(channel, samples, nSamples);
+		}
+
+		float dt = 1.0f / 44100.0f; // sample time step
+		cycleTime = fmodf(cycleTime + nSamples * dt, 1.0f);
+
+		cursorTime += nSamples;
 	}
 
 	uint32 RunThread(OS::IThreadControl& tc) override
@@ -270,10 +456,9 @@ struct LegacySoundControl : public ILegacySoundControlSupervisor, public OS::ITh
 		alSourcePlay(primarySource);
 		AssertValidState("primarySource");
 
-		alListenerf(AL_GAIN, 0.25f);
-
-		alSourcef(primarySource, AL_GAIN, 0.25f);
 		alSourcef(primarySource, AL_PITCH, 1);
+
+		cursorTime = 0;
 
 		while (tc.IsRunning())
 		{

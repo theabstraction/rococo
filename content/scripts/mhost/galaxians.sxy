@@ -16,6 +16,7 @@
 (using MHost.OS)
 (using Rococo)
 (using Rococo.Graphics)
+(using Rococo.Audio)
 
 (namespace Galaxians)
 
@@ -34,6 +35,7 @@
 	(Int32 leftKey)
 	(Int32 rightKey)
 	(Int32 fireKey)
+	(Int32 key1)
 	(Int32 playerDirection)
 )
 
@@ -46,6 +48,7 @@
 
 (class Galaxians (implements MHost.IWorld)
 	(IEngine engine)
+	(ILegacySoundControl sound)
 	(array Entity aliens)
 	(array Entity missiles)
 	(Entity player)
@@ -61,12 +64,13 @@
 	(Int64 enemyHitAt)
 )
 
-(method Galaxians.Construct (IEngine engine) -> (construct aliens 54) (construct missiles 4) :
+(method Galaxians.Construct (IEngine engine) (ILegacySoundControl sound) -> (construct aliens 54) (construct missiles 4) :
 	(this.direction = 1)
 	(this.engine = engine)
+	(this.sound = sound)
 )
 
-(factory MHost.Galaxians MHost.IWorld (IEngine engine) : (construct Galaxians engine))
+(factory MHost.Galaxians MHost.IWorld (IEngine engine) (ILegacySoundControl sound) : (construct Galaxians engine sound))
 
 (function InitSprite (IEngine engine)(Sprite bmp)-> :
 	(engine.GetSpriteSpec bmp.filename bmp.location)
@@ -172,6 +176,23 @@
 	(this.controls.leftKey = (keyboard.GetVKeyFromName "A"))
 	(this.controls.rightKey = (keyboard.GetVKeyFromName "D"))
 	(this.controls.fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
+	(this.controls.key1 = (keyboard.GetVKeyFromName "1"))
+	
+	(this.sound.SetWave 0 (#ELegacySoundShapeSine) 1000 1.0)
+	(this.sound.SetWave 1 (#ELegacySoundShapeSine) 320 1.0)
+	(this.sound.SetWave 2 (#ELegacySoundShapeSine) 360 1.0)
+	(this.sound.SetWave 3 (#ELegacySoundShapeSine) 400 1.0)
+	(this.sound.SetWave 4 (#ELegacySoundShapeSine) 440 1.0)
+	(this.sound.SetWave 5 (#ELegacySoundShapeSine) 480 1.0)
+	(this.sound.SetWave 6 (#ELegacySoundShapeSine) 540 1.0)
+	(this.sound.SetWave 7 (#ELegacySoundShapeSine) 600 1.0)
+	(this.sound.SetWave 8 (#ELegacySoundShapeSine) 640 1.0)
+	(this.sound.SetWave 9 (#ELegacySoundShapeSine) 712 1.0)
+	
+	(#for (Int32 i = 0)(i < 10)(i += 1)
+		(this.sound.SetChannelVolume i 1.0 1.0)
+		(this.sound.SetEnvelope i 2.0 0.1 0.5 1.0)
+	)
 )
 
 (function DrawEntity (Entity e)(IGui gui) -> :
@@ -266,6 +287,14 @@
 	
 	(if (IsKeyPressed keys g.controls.fireKey)
 		(TryFireMissile g.playerMissile g.player)
+	)
+	
+	(#for (Int32 i = 0)(i < 9)(i += 1)
+		(if (IsKeyPressed keys (g.controls.key1 + i))
+			(this.sound.Sustain i)
+		else
+			(this.sound.Release i)
+		)
 	)
 )
 
@@ -414,8 +443,9 @@
 	(sprites.LoadAllSprites)
 	
 	(IEngine engine (Engine))
+	(ILegacySoundControl sound (Rococo.Audio.LegacySoundControl))
 	
-	(IWorld world (Galaxians engine))
+	(IWorld world (Galaxians engine sound))
 	(world.Init)
 	
 	(while engine.IsRunning

@@ -7611,15 +7611,15 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		float volumne;
-		_offset += sizeof(volumne);
-		ReadInput(volumne, _sf, -_offset);
+		float gain;
+		_offset += sizeof(gain);
+		ReadInput(gain, _sf, -_offset);
 
 		Rococo::Audio::ILegacySoundControl* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetMasterVolumne(volumne);
+		_pObject->SetMasterVolumne(gain);
 	}
 	void NativeRococoAudioILegacySoundControlSetChannelVolume(NativeCallEnvironment& _nce)
 	{
@@ -7643,7 +7643,7 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetChannelVolume(channel, leftVolume, rightVolume);
 	}
-	void NativeRococoAudioILegacySoundControlPlayWave(NativeCallEnvironment& _nce)
+	void NativeRococoAudioILegacySoundControlSetWave(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -7667,27 +7667,69 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->PlayWave(channel, waveShape, freqHz, dutyCycle);
+		_pObject->SetWave(channel, waveShape, freqHz, dutyCycle);
+	}
+	void NativeRococoAudioILegacySoundControlPlayWave(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 channel;
+		_offset += sizeof(channel);
+		ReadInput(channel, _sf, -_offset);
+
+		Rococo::Audio::ILegacySoundControl* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->PlayWave(channel);
+	}
+	void NativeRococoAudioILegacySoundControlSustain(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 channel;
+		_offset += sizeof(channel);
+		ReadInput(channel, _sf, -_offset);
+
+		Rococo::Audio::ILegacySoundControl* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Sustain(channel);
+	}
+	void NativeRococoAudioILegacySoundControlRelease(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 channel;
+		_offset += sizeof(channel);
+		ReadInput(channel, _sf, -_offset);
+
+		Rococo::Audio::ILegacySoundControl* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Release(channel);
 	}
 	void NativeRococoAudioILegacySoundControlSetEnvelope(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		float release;
-		_offset += sizeof(release);
-		ReadInput(release, _sf, -_offset);
+		float releaseSecs;
+		_offset += sizeof(releaseSecs);
+		ReadInput(releaseSecs, _sf, -_offset);
 
-		float sustain;
-		_offset += sizeof(sustain);
-		ReadInput(sustain, _sf, -_offset);
+		float sustainLevel;
+		_offset += sizeof(sustainLevel);
+		ReadInput(sustainLevel, _sf, -_offset);
 
-		float decay;
-		_offset += sizeof(decay);
-		ReadInput(decay, _sf, -_offset);
+		float decaySecs;
+		_offset += sizeof(decaySecs);
+		ReadInput(decaySecs, _sf, -_offset);
 
-		float attack;
-		_offset += sizeof(attack);
-		ReadInput(attack, _sf, -_offset);
+		float attackSecs;
+		_offset += sizeof(attackSecs);
+		ReadInput(attackSecs, _sf, -_offset);
 
 		int32 channel;
 		_offset += sizeof(channel);
@@ -7697,7 +7739,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetEnvelope(channel, attack, decay, sustain, release);
+		_pObject->SetEnvelope(channel, attackSecs, decaySecs, sustainLevel, releaseSecs);
 	}
 
 	void NativeGetHandleForRococoAudioLegacySoundControl(NativeCallEnvironment& _nce)
@@ -7717,9 +7759,12 @@ namespace Rococo { namespace Audio {
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Audio.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoAudioLegacySoundControl, _nceContext, ("GetHandleForILegacySoundControl0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoAudioILegacySoundControlSetMasterVolumne, nullptr, ("ILegacySoundControlSetMasterVolumne (Pointer hObject)(Float32 volumne) -> "));
+		ss.AddNativeCall(ns, NativeRococoAudioILegacySoundControlSetMasterVolumne, nullptr, ("ILegacySoundControlSetMasterVolumne (Pointer hObject)(Float32 gain) -> "));
 		ss.AddNativeCall(ns, NativeRococoAudioILegacySoundControlSetChannelVolume, nullptr, ("ILegacySoundControlSetChannelVolume (Pointer hObject)(Int32 channel)(Float32 leftVolume)(Float32 rightVolume) -> "));
-		ss.AddNativeCall(ns, NativeRococoAudioILegacySoundControlPlayWave, nullptr, ("ILegacySoundControlPlayWave (Pointer hObject)(Int32 channel)(Int32 waveShape)(Float32 freqHz)(Float32 dutyCycle) -> "));
-		ss.AddNativeCall(ns, NativeRococoAudioILegacySoundControlSetEnvelope, nullptr, ("ILegacySoundControlSetEnvelope (Pointer hObject)(Int32 channel)(Float32 attack)(Float32 decay)(Float32 sustain)(Float32 release) -> "));
+		ss.AddNativeCall(ns, NativeRococoAudioILegacySoundControlSetWave, nullptr, ("ILegacySoundControlSetWave (Pointer hObject)(Int32 channel)(Int32 waveShape)(Float32 freqHz)(Float32 dutyCycle) -> "));
+		ss.AddNativeCall(ns, NativeRococoAudioILegacySoundControlPlayWave, nullptr, ("ILegacySoundControlPlayWave (Pointer hObject)(Int32 channel) -> "));
+		ss.AddNativeCall(ns, NativeRococoAudioILegacySoundControlSustain, nullptr, ("ILegacySoundControlSustain (Pointer hObject)(Int32 channel) -> "));
+		ss.AddNativeCall(ns, NativeRococoAudioILegacySoundControlRelease, nullptr, ("ILegacySoundControlRelease (Pointer hObject)(Int32 channel) -> "));
+		ss.AddNativeCall(ns, NativeRococoAudioILegacySoundControlSetEnvelope, nullptr, ("ILegacySoundControlSetEnvelope (Pointer hObject)(Int32 channel)(Float32 attackSecs)(Float32 decaySecs)(Float32 sustainLevel)(Float32 releaseSecs) -> "));
 	}
 }}
