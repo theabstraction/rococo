@@ -90,6 +90,92 @@ namespace Rococo
 {
 	namespace OS
 	{
+		IThreadSupervisor* CreateRococoThread(IThreadJob* job, uint32 stacksize)
+		{
+			struct ANON
+			{
+				static uint32 ThreadProc(void* argList)
+				{
+					ANON* anon = (ANON*) argList;
+					IThreadJob* thread = reinterpret_cast<IThreadJob*>(anon->job);
+					return thread->RunThread(*anon->supervisor);
+				}
+				
+				IThreadJob* job;
+				IThreadSupervisor* supervisor;
+			};
+
+			struct Supervisor : public IThreadSupervisor
+			{
+				Supervisor()
+				{
+					InitializeCriticalSection(&sync);
+				}
+
+				~Supervisor()
+				{
+					Resume();
+					isRunning = false;
+					QueueUserAPC(WakeUp, (HANDLE)hThread, 0);
+					WaitForSingleObject((HANDLE)hThread, INFINITE);
+					DeleteCriticalSection(&sync);
+				}
+
+				static void WakeUp(ULONG_PTR data)
+				{
+
+				}
+
+				void SetRealTimePriority()
+				{
+					SetThreadPriority((HANDLE)hThread, THREAD_PRIORITY_TIME_CRITICAL);
+				}
+
+				void SleepUntilAysncEvent(uint32 milliseconds)
+				{
+					if (isRunning)
+					{
+						SleepEx(milliseconds, TRUE);
+					}
+				}
+
+				void Free() override
+				{
+					delete this;
+				}
+
+				bool IsRunning() const
+				{
+					return isRunning;
+				}
+
+				void Resume() override
+				{
+					ResumeThread((HANDLE) hThread);
+				}
+
+				void Lock() override
+				{
+					EnterCriticalSection(&sync);
+				}
+
+				void Unlock() override
+				{
+					LeaveCriticalSection(&sync);
+				}
+
+				CRITICAL_SECTION sync;
+				uint32 id;
+				uintptr_t hThread = 0;
+				bool isRunning = true;
+				ANON context;
+			} *supervisor = new Supervisor();
+
+			supervisor->context = { job, supervisor };
+			supervisor->hThread = _beginthreadex(nullptr, stacksize, ANON::ThreadProc, &supervisor->context, CREATE_SUSPENDED, &supervisor->id);
+			return supervisor;
+		}
+
 		cstr GetAsciiCommandLine()
 		{
 			auto line =  GetCommandLineA();

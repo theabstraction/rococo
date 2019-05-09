@@ -105,8 +105,13 @@ namespace Rococo
          ce.Builder.End();
          ce.Builder.Assembler().Clear();
 
-		 AutoFree<VM::IDisassembler> disassembler = ce.Object.VirtualMachine().Core().CreateDisassembler();
-		 Disassemble(*disassembler, f, ce.SS);
+#ifdef _DEBUG
+		 if (Rococo::OS::IsDebugging())
+		 {
+			 AutoFree<VM::IDisassembler> disassembler = ce.Object.VirtualMachine().Core().CreateDisassembler();
+			 Disassemble(*disassembler, f, ce.SS);
+		 }
+#endif
       }
 
       void CallMacro(CCompileEnvironment& ce, const IFunction& f, cr_sex s)

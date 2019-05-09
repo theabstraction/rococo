@@ -18,7 +18,7 @@ namespace MHost
 	auto evPopulateBusyCategoryId = "busy.category"_event;
 	auto evPopulateBusyResourceId = "busy.resource"_event;
 
-	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse);
+	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace);
 
 	struct AppSceneBuilder : public IScene
 	{
@@ -251,12 +251,12 @@ namespace MHost
 
 		void Run() override
 		{
-			RunEnvironmentScript(platform, this, "!scripts/mhost/keys.sxy", true);
+			RunEnvironmentScript(platform, this, "!scripts/mhost/keys.sxy", true, false);
 
 			while (platform.appControl.IsRunning())
 			{
 				isScriptRunning = true;
-				RunEnvironmentScript(platform, this, mainScript, true);
+				RunEnvironmentScript(platform, this, mainScript, true, false);
 			}
 		}
 

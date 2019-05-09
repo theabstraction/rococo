@@ -113,11 +113,11 @@ namespace
 			delete this;
 		}
 
-		virtual void ExecuteFunction(ArchetypeCallback fn, IArgEnumerator& args, IScriptExceptionHandler& exceptionHandler)
+		virtual void ExecuteFunction(ArchetypeCallback fn, IArgEnumerator& args, IScriptExceptionHandler& exceptionHandler, bool trace)
 		{
 			try
 			{
-				Rococo::ExecuteFunction(fn.byteCodeId, args, *ss, debugger);
+				Rococo::ExecuteFunction(fn.byteCodeId, args, *ss, debugger, trace);
 				return;
 			}
 			catch (ParseException& ex)
@@ -154,11 +154,11 @@ namespace
 			DebuggerLoop(*ss, debugger);
 		}
 
-		virtual void ExecuteFunction(cstr name, IArgEnumerator& args, IScriptExceptionHandler& exceptionHandler)
+		virtual void ExecuteFunction(cstr name, IArgEnumerator& args, IScriptExceptionHandler& exceptionHandler, bool trace)
 		{
 			try
 			{
-				Rococo::ExecuteFunction(name, args, *ss, debugger);
+				Rococo::ExecuteFunction(name, args, *ss, debugger, trace);
 				return;
 			}
 			catch (ParseException& ex)
@@ -203,7 +203,7 @@ namespace Rococo
 	{
 		namespace IDE
 		{
-			int32 ExecuteSexyScriptLoop(ScriptPerformanceStats& stats, size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler, OS::IAppControl& appControl)
+			int32 ExecuteSexyScriptLoop(ScriptPerformanceStats& stats, size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler, OS::IAppControl& appControl, bool trace)
 			{
 				ScriptLogger logger(debugger);
 
@@ -232,7 +232,7 @@ namespace Rococo
 						OS::ticks start = OS::CpuTicks();
 						ISParserTree* tree = sources.GetSource(resourcePath);
 						stats.loadTime = OS::CpuTicks() - start;
-						int32 exitCode = ExecuteSexyScript(stats, *tree, debugger, ss, sources, param, onCompile);
+						int32 exitCode = ExecuteSexyScript(stats, *tree, debugger, ss, sources, param, onCompile, trace);
 						return exitCode;
 					}
 					catch (ParseException& ex)

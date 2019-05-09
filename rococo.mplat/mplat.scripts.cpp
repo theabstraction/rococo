@@ -96,6 +96,11 @@ Rococo::Graphics::IMeshBuilder* FactoryConstructRococoGraphicsMeshBuilder(Rococo
    return _context;
 }
 
+Rococo::Audio::ILegacySoundControl* FactoryConstructRococoAudioLegacySoundControl(Rococo::Platform* platform)
+{
+	return &platform->legacySoundControl;
+}
+
 #include <..\rococo.mplat\mplat.sxh.inl>
 
 #include <rococo.sexy.ide.h>
@@ -118,7 +123,7 @@ namespace Rococo
          Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
       }
 
-      void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail)
+      void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace)
       {
          struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
          {
@@ -172,6 +177,7 @@ namespace Rococo
 				  Graphics::AddNativeCalls_RococoGraphicsIMessaging(args.ss, &platform);
                   AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
 				  Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
+				  Audio::AddNativeCalls_RococoAudioILegacySoundControl(args.ss, &platform);
 
 				  args.ss.AddNativeLibrary("rococo.sexy.mathsex");
                }
@@ -183,11 +189,11 @@ namespace Rococo
 
             ScriptContext(Platform& _platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent) : platform(_platform), onScriptEvent(_onScriptEvent) {}
 
-            void Execute(cstr name, ScriptPerformanceStats& stats)
+            void Execute(cstr name, ScriptPerformanceStats& stats, bool trace)
             {
                try
                {
-                  IDE::ExecuteSexyScriptLoop(stats, 1024_kilobytes, platform.sourceCache, platform.debuggerWindow, name, 0, (int32)128_kilobytes, *this, *this, platform.appControl);
+                  IDE::ExecuteSexyScriptLoop(stats, 1024_kilobytes, platform.sourceCache, platform.debuggerWindow, name, 0, (int32)128_kilobytes, *this, *this, platform.appControl, trace);
                }
                catch (IException&)
                {
@@ -202,7 +208,7 @@ namespace Rococo
          sc.addPlatform = addPlatform;
 		 sc.shutdownOnFail = shutdownOnFail;
 		 
-         sc.Execute(name, stats);
+         sc.Execute(name, stats, trace);
       }
    }
 }

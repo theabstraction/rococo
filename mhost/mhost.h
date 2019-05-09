@@ -36,7 +36,6 @@ namespace MHost
 	using namespace Rococo::Script;
 
 	// Returns the top left position, using alignment flags to interpret how the pos argument is interpreted
-	Vec2 GetTopLeftPos(Vec2 pos, Vec2 span, int32 alignmentFlags);
 	IGui* CreateGuiOnStack(char buffer[64], IGuiRenderContext& gc);
 
 	ROCOCOAPI IEngineSupervisor : public IEngine

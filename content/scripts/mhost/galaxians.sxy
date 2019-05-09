@@ -234,6 +234,15 @@
 			(RenderLives this.player gc this.lives)
 		)
 	)
+	
+	(IStringBuilder sbScore (StringBuilder 128))
+	(#build sbScore "Score: " this.killCount)
+	
+	(Vec2i screenSpan)
+	(gc.GetScreenSpan screenSpan)
+	(Int32 alignmentFlags = 0)
+	(Recti rect = 0 10 screenSpan.x 120)
+	(gc.DrawText rect alignmentFlags sbScore 1 0xFFFFFF80)
 )
 
 (function TryFireMissile (Entity playerMissile)(Entity player)-> :
@@ -414,7 +423,6 @@
 		
 		(GuiPopulator p =
 			(closure (IGui gui) -> : 
-				(gui.AdvanceFrame)
 				(world.RenderGui gui)
 			)
 		)

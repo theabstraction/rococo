@@ -398,6 +398,86 @@ namespace Rococo { namespace Graphics {
 	}
 }}// Rococo.Graphics.SampleIndex
 
+namespace Rococo { namespace Audio { 
+	bool TryParse(const Rococo::fstring& s, ELegacySoundShape& value)
+	{
+		if (s ==  "ELegacySoundShape_Sine"_fstring)
+		{
+			value = ELegacySoundShape_Sine;
+		}
+		else if (s ==  "ELegacySoundShape_Square"_fstring)
+		{
+			value = ELegacySoundShape_Square;
+		}
+		else if (s ==  "ELegacySoundShape_Triangle"_fstring)
+		{
+			value = ELegacySoundShape_Triangle;
+		}
+		else if (s ==  "ELegacySoundShape_Saw"_fstring)
+		{
+			value = ELegacySoundShape_Saw;
+		}
+		else if (s ==  "ELegacySoundShape_Noise"_fstring)
+		{
+			value = ELegacySoundShape_Noise;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool TryShortParse(const Rococo::fstring& s, ELegacySoundShape& value)
+	{
+		if (s ==  "Sine"_fstring)
+		{
+			value = ELegacySoundShape_Sine;
+		}
+		else if (s ==  "Square"_fstring)
+		{
+			value = ELegacySoundShape_Square;
+		}
+		else if (s ==  "Triangle"_fstring)
+		{
+			value = ELegacySoundShape_Triangle;
+		}
+		else if (s ==  "Saw"_fstring)
+		{
+			value = ELegacySoundShape_Saw;
+		}
+		else if (s ==  "Noise"_fstring)
+		{
+			value = ELegacySoundShape_Noise;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+	fstring ToShortString(ELegacySoundShape value)
+	{
+		switch(value)
+		{
+			case ELegacySoundShape_Sine:
+				return "Sine"_fstring;
+			case ELegacySoundShape_Square:
+				return "Square"_fstring;
+			case ELegacySoundShape_Triangle:
+				return "Triangle"_fstring;
+			case ELegacySoundShape_Saw:
+				return "Saw"_fstring;
+			case ELegacySoundShape_Noise:
+				return "Noise"_fstring;
+			default:
+				return {"",0};
+		}
+	}
+}}// Rococo.Audio.ELegacySoundShape
+
 // BennyHill generated Sexy native functions for Rococo::IPane 
 namespace
 {
@@ -7517,5 +7597,129 @@ namespace Rococo { namespace Graphics {
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsRendererConfig, _nceContext, ("GetHandleForIRendererConfig0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRendererConfigSetSampler, nullptr, ("IRendererConfigSetSampler (Pointer hObject)(Rococo.SampleStateDef ssd)(Int32 index) -> "));
+	}
+}}
+// BennyHill generated Sexy native functions for Rococo::Audio::ILegacySoundControl 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoAudioILegacySoundControlSetMasterVolumne(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float volumne;
+		_offset += sizeof(volumne);
+		ReadInput(volumne, _sf, -_offset);
+
+		Rococo::Audio::ILegacySoundControl* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetMasterVolumne(volumne);
+	}
+	void NativeRococoAudioILegacySoundControlSetChannelVolume(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float rightVolume;
+		_offset += sizeof(rightVolume);
+		ReadInput(rightVolume, _sf, -_offset);
+
+		float leftVolume;
+		_offset += sizeof(leftVolume);
+		ReadInput(leftVolume, _sf, -_offset);
+
+		int32 channel;
+		_offset += sizeof(channel);
+		ReadInput(channel, _sf, -_offset);
+
+		Rococo::Audio::ILegacySoundControl* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetChannelVolume(channel, leftVolume, rightVolume);
+	}
+	void NativeRococoAudioILegacySoundControlPlayWave(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float dutyCycle;
+		_offset += sizeof(dutyCycle);
+		ReadInput(dutyCycle, _sf, -_offset);
+
+		float freqHz;
+		_offset += sizeof(freqHz);
+		ReadInput(freqHz, _sf, -_offset);
+
+		Rococo::Audio::ELegacySoundShape waveShape;
+		_offset += sizeof(waveShape);
+		ReadInput(waveShape, _sf, -_offset);
+
+		int32 channel;
+		_offset += sizeof(channel);
+		ReadInput(channel, _sf, -_offset);
+
+		Rococo::Audio::ILegacySoundControl* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->PlayWave(channel, waveShape, freqHz, dutyCycle);
+	}
+	void NativeRococoAudioILegacySoundControlSetEnvelope(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float release;
+		_offset += sizeof(release);
+		ReadInput(release, _sf, -_offset);
+
+		float sustain;
+		_offset += sizeof(sustain);
+		ReadInput(sustain, _sf, -_offset);
+
+		float decay;
+		_offset += sizeof(decay);
+		ReadInput(decay, _sf, -_offset);
+
+		float attack;
+		_offset += sizeof(attack);
+		ReadInput(attack, _sf, -_offset);
+
+		int32 channel;
+		_offset += sizeof(channel);
+		ReadInput(channel, _sf, -_offset);
+
+		Rococo::Audio::ILegacySoundControl* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetEnvelope(channel, attack, decay, sustain, release);
+	}
+
+	void NativeGetHandleForRococoAudioLegacySoundControl(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Platform* nceContext = reinterpret_cast<Rococo::Platform*>(_nce.context);
+		// Uses: Rococo::Audio::ILegacySoundControl* FactoryConstructRococoAudioLegacySoundControl(Rococo::Platform* _context);
+		Rococo::Audio::ILegacySoundControl* pObject = FactoryConstructRococoAudioLegacySoundControl(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { namespace Audio { 
+	void AddNativeCalls_RococoAudioILegacySoundControl(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Audio.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoAudioLegacySoundControl, _nceContext, ("GetHandleForILegacySoundControl0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoAudioILegacySoundControlSetMasterVolumne, nullptr, ("ILegacySoundControlSetMasterVolumne (Pointer hObject)(Float32 volumne) -> "));
+		ss.AddNativeCall(ns, NativeRococoAudioILegacySoundControlSetChannelVolume, nullptr, ("ILegacySoundControlSetChannelVolume (Pointer hObject)(Int32 channel)(Float32 leftVolume)(Float32 rightVolume) -> "));
+		ss.AddNativeCall(ns, NativeRococoAudioILegacySoundControlPlayWave, nullptr, ("ILegacySoundControlPlayWave (Pointer hObject)(Int32 channel)(Int32 waveShape)(Float32 freqHz)(Float32 dutyCycle) -> "));
+		ss.AddNativeCall(ns, NativeRococoAudioILegacySoundControlSetEnvelope, nullptr, ("ILegacySoundControlSetEnvelope (Pointer hObject)(Int32 channel)(Float32 attack)(Float32 decay)(Float32 sustain)(Float32 release) -> "));
 	}
 }}

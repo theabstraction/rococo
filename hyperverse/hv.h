@@ -301,7 +301,7 @@ namespace HV
    IFPSGameModeSupervisor* CreateFPSGameLogic(Platform& platform, IPlayerSupervisor& players, ISectors& sectors);
 
    IApp* CreateHVApp(Cosmos& e);
-   void RunEnvironmentScript(Cosmos& e, cstr name, bool releaseSource = false);
+   void RunEnvironmentScript(Cosmos& e, cstr name, bool releaseSource = false, bool trace = false);
 
    namespace GraphicsEx
    {

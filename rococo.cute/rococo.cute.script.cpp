@@ -21,7 +21,7 @@ namespace Rococo { namespace Cute
 {
 	using namespace Rococo::Windows::IDE;
 
-	void ExecuteScript(cstr scriptFile, IInstallation& installation, ExecuteScriptSpec& spec, IEventCallback<ScriptCompileArgs>& onCompile, Rococo::Windows::IDE::IScriptExceptionHandler& exHandler)
+	void ExecuteScript(cstr scriptFile, IInstallation& installation, ExecuteScriptSpec& spec, IEventCallback<ScriptCompileArgs>& onCompile, Rococo::Windows::IDE::IScriptExceptionHandler& exHandler, bool trace)
 	{
 		if (scriptFile == nullptr || *scriptFile == 0)
 		{
@@ -48,7 +48,8 @@ namespace Rococo { namespace Cute
 			(int32) spec.maxScriptSize,
 			onCompile,
 			exHandler,
-			*appControl
+			*appControl,
+			trace
 		);
 	}
 
@@ -99,7 +100,7 @@ namespace Rococo { namespace Cute
 		} onScriptException;
 		onScriptException.factory = &factory;
 
-		ExecuteScript(scriptFile, installation, spec, onCompile, onScriptException);
+		ExecuteScript(scriptFile, installation, spec, onCompile, onScriptException, false);
 
 		factory.Commit();
 	}

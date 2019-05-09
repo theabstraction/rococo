@@ -160,15 +160,65 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->StretchSprite(*screenQuad, *loc);
 	}
-	void NativeMHostIGuiAdvanceFrame(NativeCallEnvironment& _nce)
+	void NativeMHostIGuiDrawText(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb colour;
+		_offset += sizeof(colour);
+		ReadInput(colour, _sf, -_offset);
+
+		int32 fontIndex;
+		_offset += sizeof(fontIndex);
+		ReadInput(fontIndex, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		int32 alignmentFlags;
+		_offset += sizeof(alignmentFlags);
+		ReadInput(alignmentFlags, _sf, -_offset);
+
+		Rococo::GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
 		MHost::IGui* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AdvanceFrame();
+		_pObject->DrawText(*rect, alignmentFlags, text, fontIndex, colour);
+	}
+	void NativeMHostIGuiGetScreenSpan(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2i* span;
+		_offset += sizeof(span);
+		ReadInput(span, _sf, -_offset);
+
+		MHost::IGui* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetScreenSpan(*span);
+	}
+	void NativeMHostIGuiGetCursorPos(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2i* pos;
+		_offset += sizeof(pos);
+		ReadInput(pos, _sf, -_offset);
+
+		MHost::IGui* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetCursorPos(*pos);
 	}
 
 }
@@ -180,7 +230,9 @@ namespace MHost {
 		ss.AddNativeCall(ns, NativeMHostIGuiPushTriangle, nullptr, ("IGuiPushTriangle (Pointer hObject)(Sys.MPlat.GuiTriangle t) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawSprite, nullptr, ("IGuiDrawSprite (Pointer hObject)(Sys.Maths.Vec2i pixelPos)(Int32 alignmentFlags)(Sys.MPlat.BitmapLocation loc) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiStretchSprite, nullptr, ("IGuiStretchSprite (Pointer hObject)(Sys.Maths.Recti screenQuad)(Sys.MPlat.BitmapLocation loc) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiAdvanceFrame, nullptr, ("IGuiAdvanceFrame (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawText, nullptr, ("IGuiDrawText (Pointer hObject)(Sys.Maths.Recti rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiGetScreenSpan, nullptr, ("IGuiGetScreenSpan (Pointer hObject)(Sys.Maths.Vec2i span) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiGetCursorPos, nullptr, ("IGuiGetCursorPos (Pointer hObject)(Sys.Maths.Vec2i pos) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for MHost::IEngine 

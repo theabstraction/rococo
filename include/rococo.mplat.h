@@ -480,7 +480,7 @@ namespace Rococo
 	   virtual bool GetLoadLocation(Windows::IWindow& parent, LoadDesc& sd) = 0;
 	   virtual bool QueryYesNo(Windows::IWindow& parent, cstr question, cstr caption = nullptr) = 0;
 	   virtual void RefreshResource(cstr pingPath) = 0;
-	   virtual void RunEnvironmentScript(IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail = true) = 0;
+	   virtual void RunEnvironmentScript(IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail = true, bool trace = false) = 0;
 	   virtual void SaveBinary(cstr pathname, const void* buffer, size_t nChars) = 0;
 	   virtual void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr message) = 0;
 	   virtual IVariableEditor* CreateVariableEditor(Windows::IWindow& parent, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler = nullptr, const Vec2i* topLeft = nullptr) = 0;
@@ -488,6 +488,17 @@ namespace Rococo
 	   virtual fstring ToShortString(Graphics::MaterialCategory value) const = 0;
 	   virtual IMathsVenue* Venue() = 0;
    };
+
+   namespace Audio
+   {
+	   ROCOCOAPI ILegacySoundControlSupervisor : public ILegacySoundControl
+	   {
+			virtual void EnumerateDeviceDesc(IEventCallback<StringKeyValuePairArg>& cb) = 0;
+			virtual void Free() = 0;
+	   };
+
+	   ILegacySoundControlSupervisor* CreateLegacySoundControl();
+   }
 
    namespace Graphics
    {
@@ -571,6 +582,8 @@ namespace Rococo
 	  Tesselators& tesselators;
 
       IMathsVisitorSupervisor& mathsVisitor;
+
+	  Audio::ILegacySoundControl& legacySoundControl;
 	
 	  // Application title
       const char* const title;

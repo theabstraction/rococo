@@ -478,7 +478,7 @@ namespace Rococo
 		typedef int64 ticks;
 	}
 
-	template<class T> bool IsFlagged(T flags, T flag) { return (flags & flag) != 0; }
+	template<class T, class U> bool IsFlagged(T flags, U flag) { return (flags & flag) != 0; }
 
 #if !defined(_W64)
 # if !defined(__midl) && (defined(_X86_) || defined(_M_IX86))

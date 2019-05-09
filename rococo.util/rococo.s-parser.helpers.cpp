@@ -1343,11 +1343,11 @@ namespace Rococo
 
 	};
 
-	EXECUTERESULT ExecuteAndCatchIException(IVirtualMachine& vm, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
+	EXECUTERESULT ExecuteAndCatchIException(IVirtualMachine& vm, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)
 	{
 		try
 		{
-			if (Rococo::OS::IsDebugging())
+			if (trace && Rococo::OS::IsDebugging())
 			{
 				struct ANON : VM::ITraceOutput
 				{
@@ -1478,7 +1478,7 @@ namespace Rococo
 		ss.Compile();
 	}
 
-	void Execute(VM::IVirtualMachine& vm, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
+	void Execute(VM::IVirtualMachine& vm, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)
 	{
 		EXECUTERESULT result = EXECUTERESULT_YIELDED;
 
@@ -1486,7 +1486,7 @@ namespace Rococo
 		{
 			TRY_PROTECTED
 			{
-				result = ExecuteAndCatchIException(vm, ss, debugger);
+				result = ExecuteAndCatchIException(vm, ss, debugger, trace);
 			}
 			CATCH_PROTECTED
 			{
@@ -1495,7 +1495,7 @@ namespace Rococo
 		}
 		else
 		{
-			result = ExecuteAndCatchIException(vm, ss, debugger);
+			result = ExecuteAndCatchIException(vm, ss, debugger, trace);
 		}
 
 		switch (result)
@@ -1537,7 +1537,7 @@ namespace Rococo
 		}
 	}
 
-	void ExecuteFunction(ID_BYTECODE bytecodeId, IArgEnumerator& args, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
+	void ExecuteFunction(ID_BYTECODE bytecodeId, IArgEnumerator& args, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)
 	{
 		ss.PublicProgramObject().SetProgramAndEntryPoint(bytecodeId);
 
@@ -1568,12 +1568,12 @@ namespace Rococo
 		argStack.vm = &vm;
 		args.PushArgs(argStack);
 
-		Execute(vm, ss, debugger);
+		Execute(vm, ss, debugger, trace);
 
 		args.PopOutputs(argStack);
 	};
 
-	void ExecuteFunction(cstr name, IArgEnumerator& args, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger)
+	void ExecuteFunction(cstr name, IArgEnumerator& args, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)
 	{
 		auto& module = ss.PublicProgramObject().GetModule(ss.PublicProgramObject().ModuleCount() - 1);
 		auto f = module.FindFunction(name);
@@ -1611,12 +1611,12 @@ namespace Rococo
 		argStack.vm = &vm;
 		args.PushArgs(argStack);
 
-		Execute(vm, ss, debugger);
+		Execute(vm, ss, debugger, trace);
 
 		args.PopOutputs(argStack);
 	};
 
-	int ExecuteSexyScript(ScriptPerformanceStats& stats, ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile)
+	int ExecuteSexyScript(ScriptPerformanceStats& stats, ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile, bool trace)
 	{
 		using namespace Rococo::Script;
 		using namespace Rococo::Compiler;
@@ -1646,7 +1646,7 @@ namespace Rococo
 
 		start = OS::CpuTicks();
 
-		Execute(vm, ss, debugger);
+		Execute(vm, ss, debugger, trace);
 
 		stats.executeTime = OS::CpuTicks() - start;
 

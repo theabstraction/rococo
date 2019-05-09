@@ -41,6 +41,12 @@ namespace Rococo
 	struct Metres;
 	struct Quat;
 
+	struct StringKeyValuePairArg
+	{
+		cstr key;
+		cstr value;
+	};
+
 #ifdef _WIN32
 	namespace Windows
 	{
@@ -202,6 +208,28 @@ namespace Rococo
 		void BeepWarning();
 		void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack);
 		void CopyExceptionToClipboard(IException& ex);
+
+		struct IThreadControl;
+
+		ROCOCOAPI IThreadJob
+		{
+			virtual uint32 RunThread(IThreadControl& control) = 0;
+		};
+
+		ROCOCOAPI IThreadControl : public ILock
+		{
+			virtual bool IsRunning() const = 0;
+			virtual void Resume() = 0;
+			virtual void SetRealTimePriority() = 0;
+			virtual void SleepUntilAysncEvent(uint32 milliseconds) = 0;
+		};
+
+		ROCOCOAPI IThreadSupervisor: public IThreadControl
+		{
+			virtual void Free() = 0;
+		};
+
+		IThreadSupervisor* CreateRococoThread(IThreadJob* thread, uint32 stacksize);
 	}
 
 	struct IDebuggerWindow;
@@ -319,9 +347,9 @@ namespace Rococo
 	};
 
 	void InitSexyScript(Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, IEventCallback<ScriptCompileArgs>& onCompile);
-	void ExecuteFunction(Rococo::ID_BYTECODE bytecodeId, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
-	void ExecuteFunction(cstr name, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
-	int32 ExecuteSexyScript(ScriptPerformanceStats& stats, Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile);
+	void ExecuteFunction(Rococo::ID_BYTECODE bytecodeId, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace);
+	void ExecuteFunction(cstr name, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace);
+	int32 ExecuteSexyScript(ScriptPerformanceStats& stats, Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile, bool trace);
 	ISourceCache* CreateSourceCache(IInstallation& installation);
 
 	void ThrowSex(Rococo::Sex::cr_sex s, cstr format, ...);

@@ -47,11 +47,13 @@
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName).debug</TargetName>
     <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\work\OpenAL\include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)lib\</OutDir>
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\work\OpenAL\include</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -97,6 +99,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="mplat.audio.legacy.cpp" />
     <ClCompile Include="mplat.bloody.cpp" />
     <ClCompile Include="mplat.config.cpp" />
     <ClCompile Include="mplat.entities.mobiles.cpp" />

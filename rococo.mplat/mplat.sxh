@@ -479,6 +479,18 @@
 	)
 )
 
+(enum Int32
+	(as.sxy Rococo.Audio.ELegacySoundShape "../content/scripts/mplat")
+	(as.cpp Rococo.Audio.ELegacySoundShape "mplat")
+	(
+		(Sine 0)
+		(Square 1)
+		(Triangle 2)
+		(Saw 3)
+		(Noise 4)
+	)
+)
+
 (interface (as.sxy Rococo.Graphics.IRendererConfig "../content/scripts/mplat")
 	(as.cpp Rococo.Graphics.IRendererConfig "mplat")
 	(context factory Rococo.Platform)
@@ -486,4 +498,16 @@
 		(SetSampler (const SampleStateDef ssd)(SampleIndex index))
 	)
 	(factory Rococo.Graphics.RendererConfig)
+)
+
+(interface (as.sxy Rococo.Audio.ILegacySoundControl "../content/scripts/mplat")
+	(as.cpp Rococo.Audio.ILegacySoundControl "mplat")
+	(context factory Rococo.Platform)
+	(methods
+		(SetMasterVolumne (Float32 volumne))
+		(SetChannelVolume (Int32 channel)(Float32 leftVolume)(Float32 rightVolume))
+		(PlayWave (Int32 channel)(ELegacySoundShape waveShape)(Float32 freqHz)(Float32 dutyCycle))
+		(SetEnvelope (Int32 channel)(Float32 attack)(Float32 decay)(Float32 sustain)(Float32 release))
+	)
+	(factory Rococo.Audio.LegacySoundControl)
 )

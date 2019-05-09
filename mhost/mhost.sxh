@@ -26,7 +26,9 @@
 		(PushTriangle (const GuiTriangle t))
 		(DrawSprite (const Vec2i pixelPos)(Int32 alignmentFlags)(const BitmapLocation loc))
 		(StretchSprite (const Recti screenQuad)(const BitmapLocation loc))
-		(AdvanceFrame)
+		(DrawText (const Recti rect)(Int32 alignmentFlags)(IString text)(Int32 fontIndex)(RGBAb colour))
+		(GetScreenSpan (Vec2i span))
+		(GetCursorPos (Vec2i pos))
 	)
 )
 

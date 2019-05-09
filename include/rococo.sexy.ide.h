@@ -28,8 +28,8 @@ namespace Rococo
 
 			ROCOCOAPI IPersistentScript
 			{
-			   virtual void ExecuteFunction(ArchetypeCallback bytecodeId, IArgEnumerator& args, IScriptExceptionHandler& exceptionHandler) = 0;
-			   virtual void ExecuteFunction(cstr name, IArgEnumerator& arg, IScriptExceptionHandler& exceptionHandlers) = 0;
+			   virtual void ExecuteFunction(ArchetypeCallback bytecodeId, IArgEnumerator& args, IScriptExceptionHandler& exceptionHandler, bool trace) = 0;
+			   virtual void ExecuteFunction(cstr name, IArgEnumerator& arg, IScriptExceptionHandler& exceptionHandlers, bool trace) = 0;
 			   virtual void Free() = 0;
 			};
 
@@ -63,7 +63,7 @@ namespace Rococo
 			IDebuggerEventHandler* CreateDebuggerEventHandler(IInstallation& installation, IWindow& hOwner);
 			IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent, IEventCallback<MenuCommand>& menuCallback, OS::IAppControl& appControl);
 			IPersistentScript* CreatePersistentScript(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler);
-			int32 ExecuteSexyScriptLoop(ScriptPerformanceStats& stats, size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler, OS::IAppControl& appControl);
+			int32 ExecuteSexyScriptLoop(ScriptPerformanceStats& stats, size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler, OS::IAppControl& appControl, bool trace);
 		}
 	}
 }

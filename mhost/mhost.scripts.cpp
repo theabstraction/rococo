@@ -38,7 +38,7 @@ namespace MHost
 {
 	using namespace Rococo;
 
-	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse)
+	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace)
 	{
 		class ScriptContext : public IEventCallback<ScriptCompileArgs>
 		{
@@ -65,14 +65,14 @@ namespace MHost
 			ScriptContext(Platform& _platform, IEngineSupervisor* _engine) :
 				platform(_platform), engine(_engine) {}
 
-			void Execute(cstr name)
+			void Execute(cstr name, bool trace)
 			{
-				platform.utilities.RunEnvironmentScript(*this, name, true);
+				platform.utilities.RunEnvironmentScript(*this, name, true, true, trace);
 				engine->SetRunningScriptContext(nullptr);
 			}
 		} sc(platform, engine);
 
-		sc.Execute(name);
+		sc.Execute(name, trace);
 
 		if (releaseAfterUse)
 		{

@@ -1217,8 +1217,13 @@ namespace Rococo { namespace Script
 
 		builder.End();
 
-		AutoFree<VM::IDisassembler> disassembler = ce.Object.VirtualMachine().Core().CreateDisassembler();
-		Disassemble(*disassembler, f, ce.SS);
+#ifdef _DEBUG
+		if (Rococo::OS::IsDebugging())
+		{
+			AutoFree<VM::IDisassembler> disassembler = ce.Object.VirtualMachine().Core().CreateDisassembler();
+			Disassemble(*disassembler, f, ce.SS);
+		}
+#endif
 
 		builder.Assembler().Clear();
 	}
@@ -3241,8 +3246,13 @@ namespace Rococo { namespace Script
 		builder.End();
 		builder.Assembler().Clear();
 
-		AutoFree<VM::IDisassembler> disassembler = ce.Object.VirtualMachine().Core().CreateDisassembler();
-		Disassemble(*disassembler, f, ce.SS);
+#ifdef _DEBUG
+		if (Rococo::OS::IsDebugging())
+		{
+			AutoFree<VM::IDisassembler> disassembler = ce.Object.VirtualMachine().Core().CreateDisassembler();
+			Disassemble(*disassembler, f, ce.SS);
+		}
+#endif
 	}
 
 	IFunctionBuilder& GetConcreteMethod(cr_sex src, sexstring className, cstr methodName, IModuleBuilder& module)

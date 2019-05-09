@@ -57,7 +57,7 @@ namespace Rococo
 {
 	namespace M
 	{
-		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail);
+		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace);
 	}
 }
 
@@ -260,10 +260,10 @@ public:
 		}
 	}
 
-	void RunEnvironmentScript(IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail) override
+	void RunEnvironmentScript(IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace) override
 	{
 		ScriptPerformanceStats stats = { 0 };
-		M::RunEnvironmentScript(stats, *platform, _onScriptEvent, name, addPlatform, shutdownOnFail);
+		M::RunEnvironmentScript(stats, *platform, _onScriptEvent, name, addPlatform, shutdownOnFail, trace);
 
 		auto i = nameToStats.find(name);
 		if (i == nameToStats.end())
@@ -3762,8 +3762,26 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	AutoFree<Graphics::IMessagingSupervisor> messaging = Graphics::CreateMessaging();
 
+	AutoFree<Audio::ILegacySoundControlSupervisor> legacySound = Audio::CreateLegacySoundControl();
+
+	OutputDebugStringA("\n\nLegacy Sound Description:");
+
+	struct ANON : public IEventCallback<StringKeyValuePairArg>
+	{
+		void OnEvent(StringKeyValuePairArg& arg)
+		{
+			char prefix[32];
+			SafeFormat(prefix, sizeof(prefix), "\n%s: ", arg.key);
+			OutputDebugStringA(prefix);
+			OutputDebugStringA(arg.value);
+		}
+	} logDesc;
+	legacySound->EnumerateDeviceDesc(logDesc);
+
+	OutputDebugStringA("\n\n");
+
 	Tesselators tesselators{ *rimTesselator };
-	Platform platform{ *os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor, title };
+	Platform platform{ *os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor, *legacySound, title };
 	gui.platform = &platform;
 	utils.SetPlatform(platform);
 	messaging->PostCreate(platform);
