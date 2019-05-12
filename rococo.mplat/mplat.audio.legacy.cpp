@@ -353,11 +353,9 @@ struct LegacySoundControl : public ILegacySoundControlSupervisor, public OS::ITh
 		}
 	}
 
-	float cycleTime = 0;
-
 	SampleTime cursorTime = 0;
 
-	void AddSineWave(StereoSampleF32* samples, int32 nSamples, float freqHz, float volume0, float volume1, float leftVolume, float rightVolume)
+	void AddSineWave(StereoSampleF32* samples, int32 nSamples, float freqHz, float volume0, float volume1, float leftVolume, float rightVolume, SampleTime start)
 	{
 		StereoSampleF32* s = samples;
 
@@ -371,18 +369,25 @@ struct LegacySoundControl : public ILegacySoundControlSupervisor, public OS::ITh
 
 		const float w = TwoPi * freqHz;
 
-		float t = cycleTime;
+		// float t = (float)(cursorTime - start) / 44100.0f;
 
 		float volume = volume0;
 
 		float dv = (volume1 - volume0) * dt;
 
-		for (int32 i = 0; i < nSamples; ++i)
+		float t0 = (cursorTime - start) / 44100.0f;
+		float t1 = (cursorTime - start + nSamples) / 44100.0f;
+
+		const float fSamples = (float)nSamples;
+
+		for (float i = 0; i < fSamples; i += 1.0f)
 		{
+			float t = Lerp(t0, t1, i / fSamples);
+
 			float delta = volume * sinf(w * t);
 			s->left += leftVolume * delta;
 			s->right += rightVolume * delta;
-			t += dt;
+			// t += dt;
 			volume += dv;
 			s++;
 		}
@@ -411,7 +416,7 @@ struct LegacySoundControl : public ILegacySoundControlSupervisor, public OS::ITh
 		switch (channel.waveShape)
 		{
 		case ELegacySoundShape_Sine:
-			AddSineWave(samples, nSamples, channel.freqHz, volume0, volume1, channel.leftVolume, channel.rightVolume);
+			AddSineWave(samples, nSamples, channel.freqHz, volume0, volume1, channel.leftVolume, channel.rightVolume, channel.adsr.startTime);
 			break;
 		case ELegacySoundShape_Square:
 		case ELegacySoundShape_Triangle:
@@ -430,9 +435,6 @@ struct LegacySoundControl : public ILegacySoundControlSupervisor, public OS::ITh
 		{
 			AddChannelToBuffer(channel, samples, nSamples);
 		}
-
-		float dt = 1.0f / 44100.0f; // sample time step
-		cycleTime = fmodf(cycleTime + nSamples * dt, 1.0f);
 
 		cursorTime += nSamples;
 	}

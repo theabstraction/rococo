@@ -12590,6 +12590,8 @@ namespace
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
+		TEST(TestLinkedListForeach6);
+
 		TEST(TestCPPCallback);
 
 		RunPositiveSuccesses();
@@ -12613,5 +12615,3 @@ int main(int argc, char* argv[])
 	RunTests();
 	return 0;
 }
-
-

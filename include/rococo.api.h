@@ -198,7 +198,7 @@ namespace Rococo
 			virtual void ShutdownApp() = 0;
 		};
 
-		ROCOCOAPI IAppControlSupervisor: public IAppControl
+		ROCOCOAPI IAppControlSupervisor : public IAppControl
 		{
 			virtual void Free() = 0;
 		};
@@ -225,12 +225,15 @@ namespace Rococo
 			virtual cstr GetErrorMessage() const = 0;
 		};
 
-		ROCOCOAPI IThreadSupervisor: public IThreadControl
+		ROCOCOAPI IThreadSupervisor : public IThreadControl
 		{
 			virtual void Free() = 0;
 		};
 
 		IThreadSupervisor* CreateRococoThread(IThreadJob* thread, uint32 stacksize);
+
+		void* AllocBoundedMemory(size_t nBytes);
+		void FreeBoundedMemory(void* pMemory);
 	}
 
 	struct IDebuggerWindow;

@@ -387,6 +387,18 @@ namespace Rococo
 		{
 			return IsDebuggerPresent() ? true : false;
 		}
+
+		void* AllocBoundedMemory(size_t nBytes)
+		{
+			auto* pMem = VirtualAlloc(NULL, nBytes, MEM_COMMIT, PAGE_READWRITE);
+			Throw(GetLastError(), "Could not allocate %ull bytes virtual memory", nBytes);
+			return pMem;
+		}
+
+		void FreeBoundedMemory(void* pMemory)
+		{
+			VirtualFree(pMemory, 0, MEM_RELEASE);
+		}
 	}
 
 	MemoryUsage ProcessMemory()

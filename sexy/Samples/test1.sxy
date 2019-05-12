@@ -1,16 +1,27 @@
 (namespace EntryPoint)
-	(alias Main EntryPoint.Main)
+ (alias Main EntryPoint.Main)
 
-(class Robot (defines Sys.IRobot))
-(method Robot.Id -> (Int32 id): (id = 5))
-(method Robot.Construct : )
-
-(factory Sys.NewRobot Sys.IRobot : (construct Robot))
-
-(archetype Sys.VoidToVoid -> )
+(using Sys.Type)
 
 (function Main -> (Int32 result):
-   (Sys.IRobot robot (Sys.NewRobot))
-   (Sys.VoidToVoid c = (closure -> : (robot.Id -> result)))
-   (c)
+
+	(list Int32 a)
+
+	(a.Append 17)
+	(a.Append 34)
+	(a.Append 333)
+
+	(foreach n # a 
+		(try
+			(
+				(Sys.Throw n.Value "thrown in foreach")
+			)
+		catch ex
+			(
+				(result += 1)
+				(Sys.Print ex.Message)
+			)
+		)
+		(result += 10)
+	)
 )

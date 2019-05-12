@@ -77,26 +77,34 @@ namespace Rococo
          SetPCToFunctionStart(ss, factory.Constructor());
       }
 
+#pragma pack(push,1)
+	  struct JITArgs
+	  {
+		  void* ptr;
+		  ISExpression* s;
+		  CScript* script;
+		  int32 type;
+	  };
+#pragma pack(pop)
+
       void CALLTYPE_C OnJITRoutineNeedsCompiling_Protected(VariantValue* registers, IScriptSystem& ss)
       {
-         void* pObj = registers[252].vPtrValue;
-         ISExpression* s = (ISExpression*)registers[253].vPtrValue;
-         CScript* script = (CScript*)registers[254].vPtrValue;
-         int32 type = registers[255].int32Value;
+		 registers[VM::REGISTER_SP].uint8PtrValue -= sizeof(JITArgs);
+		 auto* args = (JITArgs*)registers[VM::REGISTER_SP].uint8PtrValue;
 
-         switch (type)
+         switch (args->type)
          {
          case JIT_TYPE_FUNCTION:
-            CompileFunction(*(IFunctionBuilder*)pObj, *script, *s, ss);
+            CompileFunction(*(IFunctionBuilder*)args->ptr, *args->script, *args->s, ss);
             break;
          case JIT_TYPE_FACTORY:
-            CompileFactory(*(IFactoryBuilder*)pObj, *script, *s, ss);
+            CompileFactory(*(IFactoryBuilder*)args->ptr, *args->script, *args->s, ss);
             break;
          case JIT_TYPE_MACRO:
          {
-            IMacroBuilder& macro = *(IMacroBuilder*)pObj;
+            IMacroBuilder& macro = *(IMacroBuilder*)args->ptr;
             macro.Implementation().Builder().DeleteSymbols();
-            CompileMacroFromExpression(macro, *script, *s);
+            CompileMacroFromExpression(macro, *args->script, *args->s);
             SetPCToFunctionStart(ss, macro.Implementation());
          }
          break;
@@ -110,7 +118,7 @@ namespace Rococo
       void CALLTYPE_C OnJITRoutineNeedsCompiling(VariantValue* registers, void* context)
       {
          IScriptSystem& ss = *(IScriptSystem*)context;
-         ISExpression* s = (ISExpression*)registers[253].vPtrValue;
+         ISExpression* s = (ISExpression*)registers[14].vPtrValue;
 
          try
          {
@@ -139,20 +147,20 @@ namespace Rococo
          Ptr.vPtrValue = ptr;
 
          builder.AddSymbol(SKIPSTRING);
-         assembler.Append_SetRegisterImmediate(252, Ptr, BITCOUNT_POINTER);
+         assembler.Append_PushLiteral(BITCOUNT_POINTER, Ptr);
 
          exprPtr.vPtrValue = const_cast<ISExpression*>(&s);
          builder.AddSymbol(SKIPSTRING);
-         assembler.Append_SetRegisterImmediate(253, exprPtr, BITCOUNT_POINTER);
+		 assembler.Append_PushLiteral(BITCOUNT_POINTER, exprPtr);
 
          scrPtr.vPtrValue = &script;
          builder.AddSymbol(SKIPSTRING);
-         assembler.Append_SetRegisterImmediate(254, scrPtr, BITCOUNT_POINTER);
+		 assembler.Append_PushLiteral(BITCOUNT_POINTER, scrPtr);
 
          VariantValue typeVal;
          typeVal.int32Value = type;
          builder.AddSymbol(SKIPSTRING);
-         assembler.Append_SetRegisterImmediate(255, typeVal, BITCOUNT_32);
+		 assembler.Append_PushLiteral(BITCOUNT_32, typeVal);
 
          builder.AddSymbol(SKIPSTRING);
          assembler.Append_Invoke(JITCallbackId(ss));

@@ -475,22 +475,28 @@ namespace Rococo
 
 			scripts = new CScripts(progObjProxy(), *this);
 
-			nativeInt32 = &progObjProxy().AddIntrinsicStruct(("Int32"), sizeof(int32), VARTYPE_Int32, NULL);
-			nativeInt64 = &progObjProxy().AddIntrinsicStruct(("Int64"), sizeof(int64), VARTYPE_Int64, NULL);
-			nativeFloat32 = &progObjProxy().AddIntrinsicStruct(("Float32"), sizeof(float32), VARTYPE_Float32, NULL);
-			nativeFloat64 = &progObjProxy().AddIntrinsicStruct(("Float64"), sizeof(float64), VARTYPE_Float64, NULL);
-			nativeBool = &progObjProxy().AddIntrinsicStruct(("Bool"), sizeof(int32), VARTYPE_Bool, NULL);
-			nativePtr = &progObjProxy().AddIntrinsicStruct(("Pointer"), sizeof(size_t), VARTYPE_Pointer, NULL);
+			nativeInt32 = &progObjProxy().AddIntrinsicStruct("Int32", sizeof(int32), VARTYPE_Int32, NULL);
+			nativeInt64 = &progObjProxy().AddIntrinsicStruct("Int64", sizeof(int64), VARTYPE_Int64, NULL);
+			nativeFloat32 = &progObjProxy().AddIntrinsicStruct("Float32", sizeof(float32), VARTYPE_Float32, NULL);
+			nativeFloat64 = &progObjProxy().AddIntrinsicStruct("Float64", sizeof(float64), VARTYPE_Float64, NULL);
+			nativeBool = &progObjProxy().AddIntrinsicStruct("Bool", sizeof(int32), VARTYPE_Bool, NULL);
+			nativePtr = &progObjProxy().AddIntrinsicStruct("Pointer", sizeof(size_t), VARTYPE_Pointer, NULL);
 
 			try
 			{
-				AddCommonSource(("Sys.Type.Strings.sxy")); // Module 0 -> This comes first, as module 0 is directly used to get a concrete class for string literals
-				AddCommonSource(("Sys.Type.sxy")); // Module 1
-				AddCommonSource(("Sys.Maths.sxy")); // Module 2			
-				AddCommonSource(("Sys.Reflection.sxy")); // Module 3
+				AddCommonSource("Sys.Type.Strings.sxy"); // Module 0 -> This comes first, as module 0 is directly used to get a concrete class for string literals
+				AddCommonSource("Sys.Type.sxy"); // Module 1
+				AddCommonSource("Sys.Maths.sxy"); // Module 2			
+				AddCommonSource("Sys.Reflection.sxy"); // Module 3
 
-				AddNativeLibrary(("Sexy.NativeLib.Reflection"));
-				AddNativeLibrary(("Sexy.NativeLib.Maths"));
+				
+				AddNativeLibrary(pip.useDebugLibs ? "sexy.nativeLib.reflection.debug" : "sexy.nativeLib.reflection");
+				AddNativeLibrary(pip.useDebugLibs ? "sexy.nativeLib.maths.debug" : "sexy.nativeLib.maths");
+
+				if (pip.addCoroutineLib)
+				{
+					AddNativeLibrary(pip.useDebugLibs ? "sexy.nativelib.coroutines.debug" : "sexy.nativelib.coroutines");
+				}
 			}
 			catch (IException& ex)
 			{

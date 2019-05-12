@@ -60,7 +60,7 @@ namespace Rococo { namespace VM
 	// ALWAYS profile performance before changing the CPU structure in any way.
 	struct CPU
 	{
-		enum { DATA_REGISTER_COUNT = 256}; // If you have more than 256 registers then you need to change the instruction format, which uses 8-bit indices
+		enum { DATA_REGISTER_COUNT = 16}; // If you have more than 256 registers then you need to change the instruction format, which uses 8-bit indices
 		enum { FIRST_USER_REGISTER = 4};
 		VariantValue D[DATA_REGISTER_COUNT]; 
 		inline const uint8* PC() const	{ return D[REGISTER_PC].uint8PtrValue; }

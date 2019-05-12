@@ -27,8 +27,7 @@
 	
 (struct Entity 
 	(Vec2i screenPosition)
-	(Sprite image1)
-	(Sprite image2)
+	(Sprite image)
 )
 
 (struct Controls
@@ -76,11 +75,6 @@
 	(engine.GetSpriteSpec bmp.filename bmp.location)
 )
 
-(function InitEntitySprites (IEngine engine)(Entity e)-> :
-	(InitSprite engine e.image1)
-	(InitSprite engine e.image2)
-)
-
 (archetype Galaxians.OnEntity (Entity e)->)
 
 (method Galaxians.ForEachEntityInWorld (OnEntity onEntity)-> :
@@ -97,19 +91,17 @@
 	(IString pawn2 = "!textures/mhost/pawn.2.tiff")
 	(IString pawn3 = "!textures/mhost/pawn.3.tiff")
 	(IString pawn4 = "!textures/mhost/pawn.4.tiff")
-	(IString missile2 = "!textures/mhost/missile.2.tiff")
-	(IString explosion = "!textures/mhost/explosion.tiff")
 	
 	(this.killCount = 0)
 	(this.enemyHitAt = 0)
 	
-	(this.playerExplosion = (0  -100) (explosion defaultBmpLoc) (explosion defaultBmpLoc))
-	(this.enemyExplosion = (0  -100) (explosion defaultBmpLoc) (explosion defaultBmpLoc))
+	(this.playerExplosion = (0  -100) ("!textures/mhost/explosion.tiff" defaultBmpLoc))
+	(this.enemyExplosion = (0  -100) ("!textures/mhost/explosion.tiff" defaultBmpLoc))
 	
 	// 4 enemy missiles
 	(
 		(#for (Int32 i = 0)(i < 4)(i += 1)
-			(Entity a0 = (1  -40) (missile2 defaultBmpLoc) (missile2 defaultBmpLoc))
+			(Entity a0 = (1  -40) ("!textures/mhost/missile.2.tiff" defaultBmpLoc))
 			(this.missiles.Push a0)
 		)
 	)
@@ -118,10 +110,10 @@
 	(
 		(Int32 y = 80)
 		(Int32 x0 = 130)
-		(Entity a0 = (x0  y) (pawn4 defaultBmpLoc) (pawn4 defaultBmpLoc))
+		(Entity a0 = (x0  y) (pawn4 defaultBmpLoc))
 		(this.aliens.Push a0)
 		(Int32 x1 = 250)
-		(Entity a1 = (x1 y) (pawn4 defaultBmpLoc) (pawn4 defaultBmpLoc))
+		(Entity a1 = (x1 y) (pawn4 defaultBmpLoc))
 		(this.aliens.Push a1)
 	)
 	
@@ -130,7 +122,7 @@
 		(Int32 y = 120)
 		(#for (Int32 i = 0)(i < 6)(i += 1)
 			(Int32 x = (90 + (i * 40)))
-			(Entity a0 = (x  y) (pawn3 defaultBmpLoc) (pawn3 defaultBmpLoc))
+			(Entity a0 = (x  y) (pawn3 defaultBmpLoc))
 			(this.aliens.Push a0)
 		)
 	)
@@ -140,7 +132,7 @@
 		(Int32 y = 160)
 		(#for (Int32 i = 0)(i < 8)(i += 1)
 			(Int32 x = (50 + (i * 40)))
-			(Entity a0 = (x  y) (pawn2 defaultBmpLoc) (pawn2 defaultBmpLoc))
+			(Entity a0 = (x  y) (pawn2 defaultBmpLoc))
 			(this.aliens.Push a0)
 		)
 	)
@@ -151,13 +143,13 @@
 		(Int32 y = (80 + (j * 40)))
 		(#for (Int32 i = 0)(i < 10)(i += 1)
 			(Int32 x = (10 + (i * 40)))
-			(Entity a0 = (x  y) (pawn1 defaultBmpLoc) (pawn1 defaultBmpLoc))
+			(Entity a0 = (x  y) (pawn1 defaultBmpLoc))
 			(this.aliens.Push a0)
 		)
 	)
 	
-	(this.player = (500 8000) ("!textures/mhost/player.1.tiff" defaultBmpLoc) ("!textures/mhost/player.2.tiff" defaultBmpLoc))
-	(this.playerMissile = (-100 -100) ("!textures/mhost/missile.1.tiff" defaultBmpLoc) ("!textures/mhost/missile.2.tiff" defaultBmpLoc))
+	(this.player = (500 8000) ("!textures/mhost/player.1.tiff" defaultBmpLoc))
+	(this.playerMissile = (-100 -100) ("!textures/mhost/missile.1.tiff" defaultBmpLoc))
 	(this.deathAt = (Sys.Time.ClockTicks))
 	(this.lives = 3)
 	
@@ -165,12 +157,12 @@
 	
 	(OnEntity initSprites = 
 		(closure (Entity e)-> :
-			(InitEntitySprites engine e)
+			(InitSprite engine e.image)
 		)
 	)
 	(this.ForEachEntityInWorld initSprites)
-	(InitEntitySprites engine this.playerExplosion)
-	(InitEntitySprites engine this.enemyExplosion)
+	(InitSprite engine this.playerExplosion.image)
+	(InitSprite engine this.enemyExplosion.image)
 	
 	(IKeyboard keyboard (Keyboard))
 	(this.controls.leftKey = (keyboard.GetVKeyFromName "A"))
@@ -189,6 +181,8 @@
 	(this.sound.SetWave 8 (#ELegacySoundShapeSine) 640 1.0)
 	(this.sound.SetWave 9 (#ELegacySoundShapeSine) 712 1.0)
 	
+	(this.sound.SetMasterVolumne 0.8)
+	
 	(#for (Int32 i = 0)(i < 10)(i += 1)
 		(this.sound.SetChannelVolume i 1.0 1.0)
 		(this.sound.SetEnvelope i 2.0 0.1 0.5 1.0)
@@ -197,14 +191,14 @@
 
 (function DrawEntity (Entity e)(IGui gui) -> :
 	(Int32 alignmentFlags = 0) // centred
-	(gui.DrawSprite e.screenPosition alignmentFlags e.image1.location)
+	(gui.DrawSprite e.screenPosition alignmentFlags e.image.location)
 )
 
 (function RenderLives (Entity player)(IGui gui)(Int32 count)-> :
 	(#for (Int32 i = 0)(i < count)(i += 1)
 		(Int32 x =  (100 + (i * 64)))
 		(Vec2i pos = x 640)
-		(gui.DrawSprite pos 0 player.image1.location)
+		(gui.DrawSprite pos 0 player.image.location)
 	)
 )
 
@@ -225,12 +219,12 @@
 		(Int64 peakBoom = Sys.Time.ClockHz)
 		(Int64 delta = ((Sys.Time.ClockTicks) - this.deathAt))
 		(if (delta < peakBoom)
-			(gc.DrawSprite this.playerExplosion.screenPosition 0 this.player.image1.location)
+			(gc.DrawSprite this.playerExplosion.screenPosition 0 this.player.image.location)
 			(Int64 boomTick = ( peakBoom / 64 ))
 			(Int32 span = (delta / boomTick))
 			(Recti rect)
 			(ExpandRect rect span this.playerExplosion.screenPosition)
-			(gc.StretchSprite rect this.playerExplosion.image1.location)
+			(gc.StretchSprite rect this.playerExplosion.image.location)
 		)
 	)
 	
@@ -242,7 +236,7 @@
 			(Int32 span = (32 - (delta / boomTick)))
 			(Recti rect)
 			(ExpandRect rect span this.enemyExplosion.screenPosition)
-			(gc.StretchSprite rect this.enemyExplosion.image1.location)
+			(gc.StretchSprite rect this.enemyExplosion.image.location)
 		else
 			(this.enemyHitAt = 0)
 		)
