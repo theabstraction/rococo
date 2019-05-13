@@ -287,6 +287,8 @@ namespace SexyDotNet { namespace Host
 
 			ProgramInitParameters pip;
 			pip.MaxProgramBytes = 32768;
+			pip.addCoroutineLib = true;
+			pip.useDebugLibs = true;
 			nativeHandle = IntPtr(CreateScriptV_1_2_0_0(pip, *ToLog(logHandle)));
 			if (nativeHandle.ToPointer() == nullptr)
 			{

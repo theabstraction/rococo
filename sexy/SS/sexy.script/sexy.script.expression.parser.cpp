@@ -2326,8 +2326,58 @@ namespace Rococo
 		void CompileAsYield(CCompileEnvironment& ce, cr_sex s)
 		{
 			// (yield)
-			AssertNotTooManyElements(s, 1);
-			ce.Builder.Assembler().Append_Yield();
+
+			if (s.NumberOfElements() == 1)
+			{
+				AssertNotTooManyElements(s, 2);
+				ce.Builder.Assembler().Append_Yield();
+			}
+			else if (s.NumberOfElements() == 2)
+			{
+				AssertAtomic(s[1]);
+
+				cstr arg = s[1].String()->Buffer;
+
+				VariantValue waitPeriod;
+				if (Parse::PARSERESULT_GOOD == Parse::TryParse(waitPeriod, VARTYPE_Int64, arg))
+				{
+					if (waitPeriod.int64Value > 0)
+					{
+						AddSymbol(ce.Builder, "yield %lld us", waitPeriod.int64Value);
+						ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, waitPeriod, BITCOUNT_64);
+					}
+					else
+					{
+						Throw(s, "yield: negative yield period!");
+					}
+				}
+				else
+				{
+					MemberDef def;
+					if (!ce.Builder.TryGetVariableByName(def, arg))
+					{
+						Throw(s, "yield argument was neither a literal int64 nor a known variable");
+					}
+
+					if (def.ResolvedType->VarType() != VARTYPE_Int64)
+					{
+						Throw(s, "yield argument was neither a literal int64 nor an int64 variable");
+					}
+
+					ce.Builder.AssignVariableToTemp(arg, 0);
+				}
+
+				VariantValue nullVal;
+				nullVal.int64Value = 0;
+				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, nullVal, BITCOUNT_64);
+
+				ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_PC, VM::REGISTER_D7, BITCOUNT_POINTER);
+				ce.Builder.Assembler().Append_Invoke(ce.SS.GetScriptCallbacks().idYieldMicroseconds);
+			}
+			else
+			{
+				AssertNotTooManyElements(s, 2);
+			}
 		}
 
 		void CompileAsGlobalAccess(CCompileEnvironment& ce, cr_sex s)

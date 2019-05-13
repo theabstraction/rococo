@@ -253,6 +253,7 @@ namespace Rococo {
 		{
 			ID_API_CALLBACK IdThrowNullRef;
 			ID_API_CALLBACK IdTestD4neqD5_retBoolD7;
+			ID_API_CALLBACK idYieldMicroseconds;
 		};
 
 		ROCOCOAPI IScriptSystem : IPublicScriptSystem

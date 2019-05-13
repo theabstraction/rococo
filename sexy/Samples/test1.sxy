@@ -1,27 +1,42 @@
 (namespace EntryPoint)
  (alias Main EntryPoint.Main)
 
-(using Sys.Type)
+(using Sys)
+(using Sys.Maths)
+(using Sys.Reflection)
+
+(class PrintDogs (implements ICoroutine))
+(method PrintDogs.Construct :)
+(factory Sys.NewPrintDogs ICoroutine : (construct PrintDogs))
+(class PrintCats (implements ICoroutine))
+(method PrintCats.Construct :)
+(factory Sys.NewPrintCats ICoroutine : (construct PrintCats))
+
+(method PrintDogs.Run -> :
+	(Print "Rover")
+	(yield)
+	(Print "Spot")
+	(yield)
+	(Print "Scottie")
+)
+
+(method PrintCats.Run -> :
+	(Print "Fluffy")
+	(yield)
+	(Print "Cucumber")
+	(yield)
+	(Print "Mooncat")
+)
 
 (function Main -> (Int32 result):
-
-	(list Int32 a)
-
-	(a.Append 17)
-	(a.Append 34)
-	(a.Append 333)
-
-	(foreach n # a 
-		(try
-			(
-				(Sys.Throw n.Value "thrown in foreach")
-			)
-		catch ex
-			(
-				(result += 1)
-				(Sys.Print ex.Message)
-			)
-		)
-		(result += 10)
-	)
+	(ICoroutine dogs (NewPrintDogs))
+	(ICoroutine cats (NewPrintCats))
+	(ICoroutineControl coroutines (Coroutines))
+	(coroutines.Add dogs)
+	(coroutines.Add cats)
+	(while (coroutines.Continue != 0))
+	(Int64 dogId = (coroutines.Add dogs))
+	(coroutines.Add cats)
+	(coroutines.Release dogId)
+	(while (coroutines.Continue != 0))
 )

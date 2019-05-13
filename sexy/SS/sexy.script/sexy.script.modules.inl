@@ -1259,6 +1259,37 @@ namespace Rococo { namespace Script
 		ss.ThrowFromNativeCode(0, sc->pointer);
 	}
 
+	VM_CALLBACK(YieldMicroseconds)
+	{
+		IVirtualMachine& vm = *(IVirtualMachine*)context;
+		auto waitDuration = registers[4].int64Value;
+		auto startCount = registers[5].int64Value;
+		auto* pcResetPoint = registers[7].uint8PtrValue;
+
+		if (startCount == 0)
+		{
+			registers[5].int64Value = startCount = Rococo::OS::CpuTicks();
+
+			int64 hz = Rococo::OS::CpuHz();
+
+			int64 cyclesPerMillisecond = hz >> 10;
+			int64 cyclesWait = (waitDuration * cyclesPerMillisecond) >> 10;
+
+			registers[4].int64Value = waitDuration = (cyclesWait + startCount);
+		}
+		else
+		{
+			auto now = Rococo::OS::CpuTicks();
+			if (now >= waitDuration)
+			{
+				return;
+			}
+		}
+
+		registers[VM::REGISTER_PC].uint8PtrValue = pcResetPoint;
+		vm.SetStatus(EXECUTERESULT_YIELDED);
+	}
+
 	void CompileNullMethod_NullsOutput(IFunctionBuilder& f)
 	{
 		// Set all outputs to zero

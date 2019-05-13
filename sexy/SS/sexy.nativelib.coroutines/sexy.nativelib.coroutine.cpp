@@ -208,10 +208,6 @@ struct Coroutines : public Sys::ICoroutineControl
 		{
 		case EXECUTERESULT_YIELDED:
 		case EXECUTERESULT_BREAKPOINT:
-			if (next != specs.end())
-			{
-				next++;
-			}
 			break;
 		case EXECUTERESULT_TERMINATED:
 			// Co-routine completed
@@ -257,42 +253,46 @@ struct Coroutines : public Sys::ICoroutineControl
 
 	int64 Continue(CoSpec& spec)
 	{
-		Sync sync(spec); // Locks the coroutine to prevent it being released in the same chain of execution
-
 		auto& cpu = vm.Cpu();
 
-		if (!spec.isStarted)
-		{
-			cpu.D[5].byteCodeIdValue = spec.runId;
+		EXECUTERESULT result;
+		VM::ExecutionFlags flags;
 
-			cpu.D[VM::REGISTER_SP].uint8PtrValue = spec.registers[VM::REGISTER_SP].uint8PtrValue = spec.startOfStackMemory = stacks.AllocateBuffer();
-			spec.startOfStackMemory = spec.endOfStackMemory + StackPool::StackSize;
-
-			VM::ExecutionFlags flags;
+		{ // Spec lock zone
+			Sync sync(spec);
 			vm.GetLastFlags(flags);
 
-			spec.isStarted = false;
+			if (spec.isStarted)
+			{
+				cpu.SetPC(cpu.ProgramStart);
+				cpu.D[5].byteCodeIdValue = spec.runId;
 
-			auto result = vm.Execute(VM::ExecutionFlags(flags.ThrowToQuit, true, true), nullptr);
+				cpu.D[VM::REGISTER_SP].uint8PtrValue = spec.registers[VM::REGISTER_SP].uint8PtrValue = spec.startOfStackMemory = stacks.AllocateBuffer();
+				spec.endOfStackMemory = spec.startOfStackMemory + StackPool::StackSize;
+				cpu.StackStart = spec.startOfStackMemory;
+				cpu.StackEnd = spec.endOfStackMemory;
 
-			memcpy(spec.registers, &cpu.D, sizeof(VariantValue) * VM::CPU::DATA_REGISTER_COUNT);
+				spec.isStarted = false;
 
-			UpdateWithResult(spec, result);
-		}
-		else
-		{
-			memcpy(&cpu.D, spec.registers, sizeof(VariantValue) * VM::CPU::DATA_REGISTER_COUNT);
-			cpu.StackStart = spec.startOfStackMemory;
-			cpu.StackEnd = spec.endOfStackMemory;
+				cpu.Push((int32)0);
 
-			VM::ExecutionFlags flags;
-			vm.GetLastFlags(flags);
-			auto result = vm.ContinueExecution(VM::ExecutionFlags(flags.ThrowToQuit, true, true), nullptr);
+				cpu.Push(spec.coroutine);
 
-			memcpy(spec.registers, &cpu.D, sizeof(VariantValue) * VM::CPU::DATA_REGISTER_COUNT);
+				result = vm.Execute(VM::ExecutionFlags(flags.ThrowToQuit, true, true), nullptr);
+			}
+			else
+			{
+				memcpy(&cpu.D, spec.registers, sizeof(VariantValue) * VM::CPU::DATA_REGISTER_COUNT);
+				cpu.StackStart = spec.startOfStackMemory;
+				cpu.StackEnd = spec.endOfStackMemory;
 
-			UpdateWithResult(spec, result);
-		}
+				result = vm.ContinueExecution(VM::ExecutionFlags(flags.ThrowToQuit, true, true), nullptr);
+			}
+		} // Spec unlocked
+
+		memcpy(spec.registers, &cpu.D, sizeof(VariantValue) * VM::CPU::DATA_REGISTER_COUNT);
+
+		UpdateWithResult(spec, result);
 
 		return spec.id;
 	}
@@ -368,6 +368,8 @@ extern "C"
 			virtual void AddNativeCalls()
 			{
 				Sys::AddNativeCalls_SysICoroutineControl(ss, static_cast<Sys::ICoroutineControl*>(&coroutines));
+
+				auto& nsSys = ss.AddNativeNamespace("Sys");
 			}
 
 			virtual void ClearResources()

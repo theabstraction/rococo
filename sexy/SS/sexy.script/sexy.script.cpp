@@ -584,8 +584,9 @@ namespace Rococo
 			mapCallbacks.MapNodePop = core.RegisterCallback(OnInvokeMapNodePop, this, ("MapNodePop"));
 			mapCallbacks.MapNodeReleaseRef = core.RegisterCallback(OnInvokeMapNodeReleaseRef, this, ("MapNodeReleaseRef"));
 
-			callbacks.IdThrowNullRef = core.RegisterCallback(OnInvokeThrowNullRef, this, ("ThrowNullRef"));
-			callbacks.IdTestD4neqD5_retBoolD7 = core.RegisterCallback(OnInvokeTestD4neqD5_retBoolD7, &ProgramObject().VirtualMachine(), ("TestD4neqD5_retBoolD7"));
+			callbacks.IdThrowNullRef = core.RegisterCallback(OnInvokeThrowNullRef, this, "ThrowNullRef");
+			callbacks.IdTestD4neqD5_retBoolD7 = core.RegisterCallback(OnInvokeTestD4neqD5_retBoolD7, &ProgramObject().VirtualMachine(), "TestD4neqD5_retBoolD7");
+			callbacks.idYieldMicroseconds = core.RegisterCallback(OnInvokeYieldMicroseconds, &ProgramObject().VirtualMachine(), "YieldMicroseconds");
 
 			methodMap[("Capacity")] = ("_elementCapacity");
 			methodMap[("Length")] = ("_length");

@@ -44,6 +44,7 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\$(Platform)$(Configuration)\</OutDir>
     <IntDir>..\..\..\intermediate\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName).debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>

@@ -100,3 +100,30 @@
 )
 
 (archetype Sys.Type.VoidToVoid -> )
+
+(interface Sys.ICoroutine
+	(attribute essential)
+	(Run ->)
+)
+
+// Coroutines start here - copied and pasted from the coroutine.sxh.sxy file */
+(interface Sys.ICoroutineControl
+	(attribute essential)
+	(Add (Sys.ICoroutine coroutine) -> (Int64 id))
+	(Continue  -> (Int64 id))
+	(ContinueSpecific (Int64 id) -> (Bool isComplete))
+	(Release (Int64 id) -> (Bool success))
+)
+
+(class ProxyICoroutineControl (implements Sys.ICoroutineControl) (Pointer hObject))
+	(method ProxyICoroutineControl.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyICoroutineControl.Add (Sys.ICoroutine coroutine) -> (Int64 id) : (Sys.Native.ICoroutineControlAdd this.hObject coroutine -> id))
+	(method ProxyICoroutineControl.Continue  -> (Int64 id) : (Sys.Native.ICoroutineControlContinue this.hObject  -> id))
+	(method ProxyICoroutineControl.ContinueSpecific (Int64 id) -> (Bool isComplete) : (Sys.Native.ICoroutineControlContinueSpecific this.hObject id -> isComplete))
+	(method ProxyICoroutineControl.Release (Int64 id) -> (Bool success) : (Sys.Native.ICoroutineControlRelease this.hObject id -> success))
+
+(factory Sys.Coroutines Sys.ICoroutineControl  : /* requires PIP.addCoroutineLib = true or similar mechanism to add in nativelib */
+	(Pointer pObject = (Sys.Native.GetHandleForICoroutineControl0 ))
+	(construct ProxyICoroutineControl pObject)
+)
+// Coroutines end here

@@ -391,7 +391,10 @@ namespace Rococo
 		void* AllocBoundedMemory(size_t nBytes)
 		{
 			auto* pMem = VirtualAlloc(NULL, nBytes, MEM_COMMIT, PAGE_READWRITE);
-			Throw(GetLastError(), "Could not allocate %ull bytes virtual memory", nBytes);
+			if (pMem == nullptr)
+			{
+				Throw(GetLastError(), "Could not allocate %ull bytes virtual memory", nBytes);
+			}
 			return pMem;
 		}
 

@@ -69,7 +69,8 @@
 
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 
-#define TEST(test) Test(#test, test)
+#define TEST(test) Test(#test, test, false)
+#define TEST2(test) Test(#test, test, true)
 
 using namespace Rococo;
 using namespace Rococo::Sex;
@@ -290,11 +291,13 @@ namespace
 		disassembler->Free();
 	}
 
-	void Test(const char* name, FN_TEST fnTest)
+	void Test(const char* name, FN_TEST fnTest, bool addinCoroutines)
 	{
 		printf("<<<<<< %s\r\n", name);
 		
 		ProgramInitParameters pip;
+		pip.addCoroutineLib = addinCoroutines;
+		pip.useDebugLibs = addinCoroutines;
 		pip.MaxProgramBytes = 32768;
 		CScriptSystemProxy ssp(pip, s_logger);
 		
@@ -4735,6 +4738,68 @@ namespace
 
 		int x = vm.PopInt32();
 		validate(x == 49);
+	}
+
+	void TestCoroutine1(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys)"
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+
+			"(class PrintDogs (implements ICoroutine))"
+			"(method PrintDogs.Construct :)"
+			"(factory Sys.NewPrintDogs ICoroutine : (construct PrintDogs))"
+			"(class PrintCats (implements ICoroutine))"
+			"(method PrintCats.Construct :)"
+			"(factory Sys.NewPrintCats ICoroutine : (construct PrintCats))"
+
+			"(method PrintDogs.Run -> :"
+			" (Print \"Rover\")"
+			" (yield)"
+			" (Print \"Spot\")"
+			" (yield)"
+			" (Print \"Scottie\")"
+			")"
+
+			"(method PrintCats.Run -> :"
+			" (Print \"Fluffy\")"
+			" (yield 50)"
+			" (Print \"Cucumber\")"
+			" (yield)"
+			" (Print \"Mooncat\")"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"	(ICoroutine dogs (NewPrintDogs))"
+			"	(ICoroutine cats (NewPrintCats))"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"   (coroutines.Add dogs)"
+			"   (coroutines.Add cats)"
+			"   (while (coroutines.Continue != 0))"
+			"   (Sys.Print \"yo!\")"
+			"   (Int64 dogId = (coroutines.Add dogs))"
+			"   (coroutines.Add cats)"
+			"   (coroutines.Release dogId)"
+			"   (while (coroutines.Continue != 0))"
+			")"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 0);
 	}
 
 	void TestExpressionArg(IPublicScriptSystem& ss)
@@ -12279,6 +12344,9 @@ namespace
 	{
 		validate(true);
 
+		TEST2(TestCoroutine1);
+		TEST(TestCPPCallback);
+
 		TEST(TestMethodFromClosure);
 
 		TEST(TestMacro);
@@ -12589,10 +12657,6 @@ namespace
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
-
-		TEST(TestLinkedListForeach6);
-
-		TEST(TestCPPCallback);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	
