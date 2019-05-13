@@ -34,22 +34,6 @@ namespace
 		_offset += sizeof(id);
 		WriteOutput(id, _sf, -_offset);
 	}
-	void NativeSysICoroutineControlContinueSpecific(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		int64 id;
-		_offset += sizeof(id);
-		ReadInput(id, _sf, -_offset);
-
-		Sys::ICoroutineControl* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		boolean32 isComplete = _pObject->ContinueSpecific(id);
-		_offset += sizeof(isComplete);
-		WriteOutput(isComplete, _sf, -_offset);
-	}
 	void NativeSysICoroutineControlRelease(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -62,9 +46,17 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		boolean32 success = _pObject->Release(id);
-		_offset += sizeof(success);
-		WriteOutput(success, _sf, -_offset);
+		_pObject->Release(id);
+	}
+	void NativeSysICoroutineControlReleaseAll(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Sys::ICoroutineControl* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ReleaseAll();
 	}
 
 	void NativeGetHandleForSysCoroutines(NativeCallEnvironment& _nce)
@@ -86,7 +78,7 @@ namespace Sys {
 		ss.AddNativeCall(ns, NativeGetHandleForSysCoroutines, _nceContext, ("GetHandleForICoroutineControl0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeSysICoroutineControlAdd, nullptr, ("ICoroutineControlAdd (Pointer hObject)(Sys.ICoroutine coroutine) -> (Int64 id)"));
 		ss.AddNativeCall(ns, NativeSysICoroutineControlContinue, nullptr, ("ICoroutineControlContinue (Pointer hObject) -> (Int64 id)"));
-		ss.AddNativeCall(ns, NativeSysICoroutineControlContinueSpecific, nullptr, ("ICoroutineControlContinueSpecific (Pointer hObject)(Int64 id) -> (Bool isComplete)"));
-		ss.AddNativeCall(ns, NativeSysICoroutineControlRelease, nullptr, ("ICoroutineControlRelease (Pointer hObject)(Int64 id) -> (Bool success)"));
+		ss.AddNativeCall(ns, NativeSysICoroutineControlRelease, nullptr, ("ICoroutineControlRelease (Pointer hObject)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeSysICoroutineControlReleaseAll, nullptr, ("ICoroutineControlReleaseAll (Pointer hObject) -> "));
 	}
 }

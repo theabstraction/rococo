@@ -4,10 +4,22 @@
 	(as.sxy Sys.ICoroutineControl "coroutine") // This gives the fully qualified interface as published in the scripting language
 	(as.cpp Sys.ICoroutineControl "coroutine") // This gives the fully qualified struct name as published in the C++ header
 	(methods
+		// Add a new coroutine to the queue. Returns the id of the new coroutine
 		(Add (ICoroutine coroutine) -> (Int64 id))
+		
+		// Continue advances the next coroutine until it terminates or yields
+		// The id of the last executed coroutine is returned.
+		// In the case that the queue is empty a 0 is returned. If all coroutines are dormant -1 is returned.
+		// Coroutines become dormant if they yield for a wait period.
+		// Continue will awaken a dormant routine if the wait period is over.
+		
 		(Continue -> (Int64 id))
-		(ContinueSpecific (Int64 id) -> (Bool isComplete))
-		(Release (Int64 id) -> (Bool success))
+		
+		// Remove a coroutine of the given id from the queue.
+		(Release (Int64 id) ->)
+		
+		// Remove all coroutines frome execution
+		(ReleaseAll)
 	)
 	(context factory Sys.ICoroutineControl)
 	(factory Sys.Coroutines)

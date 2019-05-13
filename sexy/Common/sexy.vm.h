@@ -182,6 +182,12 @@ namespace Rococo { namespace VM
       virtual void Report() = 0;
    };
 
+   struct WaitArgs
+   {
+	   IVirtualMachine* vm;
+	   int64 nextWakeTime;
+   };
+
 	ROCOCOAPI IVirtualMachine : IDebugger
 	{
 		virtual IVirtualMachine* Clone(CPU& _cpu) = 0;
@@ -193,6 +199,8 @@ namespace Rococo { namespace VM
 		virtual EXECUTERESULT Execute(const ExecutionFlags& ef, ITraceOutput* tracer = nullptr) = 0;
 		virtual EXECUTERESULT ContinueExecution(const ExecutionFlags& ef, ITraceOutput* tracer = nullptr) = 0;
 
+		virtual void NotifyWaitEvent(int64 nextWakeTime) = 0; // Potentially tell the OS to sleep for a few 
+		virtual void SetWaitHandler(IEventCallback<WaitArgs>* waitHandler) = 0; // Handled by the calling envrionment to sleep for a few
 		virtual void Pause() = 0;
 		virtual void InitCpu() = 0;
 		virtual void InitPC() = 0;

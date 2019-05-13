@@ -1262,7 +1262,7 @@ namespace Rococo { namespace Script
 	VM_CALLBACK(YieldMicroseconds)
 	{
 		IVirtualMachine& vm = *(IVirtualMachine*)context;
-		auto waitDuration = registers[4].int64Value;
+		auto waitTime = registers[4].int64Value; // intially the wait period in microseconds, then becomes end time for timer
 		auto startCount = registers[5].int64Value;
 		auto* pcResetPoint = registers[7].uint8PtrValue;
 
@@ -1273,18 +1273,21 @@ namespace Rococo { namespace Script
 			int64 hz = Rococo::OS::CpuHz();
 
 			int64 cyclesPerMillisecond = hz >> 10;
-			int64 cyclesWait = (waitDuration * cyclesPerMillisecond) >> 10;
+			int64 cyclesWait = (waitTime * cyclesPerMillisecond) >> 10;
 
-			registers[4].int64Value = waitDuration = (cyclesWait + startCount);
+			registers[4].int64Value = waitTime = (cyclesWait + startCount);
 		}
 		else
 		{
 			auto now = Rococo::OS::CpuTicks();
-			if (now >= waitDuration)
+			if (now >= waitTime)
 			{
+				vm.NotifyWaitEvent(0);
 				return;
 			}
 		}
+
+		vm.NotifyWaitEvent(waitTime);
 
 		registers[VM::REGISTER_PC].uint8PtrValue = pcResetPoint;
 		vm.SetStatus(EXECUTERESULT_YIELDED);

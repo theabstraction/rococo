@@ -803,6 +803,21 @@ namespace
 			memcpy(&this->globalData[0], globalData, nBytes);
 		}
 
+		IEventCallback<WaitArgs>* waitHandler = nullptr;
+
+		virtual void SetWaitHandler(IEventCallback<WaitArgs>* waitHandler)
+		{
+			this->waitHandler = waitHandler;
+		}
+
+		virtual void NotifyWaitEvent(int64 nextWaitTime)
+		{
+			if (waitHandler)
+			{
+				waitHandler->OnEvent(WaitArgs{ this, nextWaitTime });
+			}
+		}
+
 		virtual void SetStatus(EXECUTERESULT status)
 		{
 			this->status = status;

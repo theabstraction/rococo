@@ -10,6 +10,7 @@
 
 #include <unordered_map>
 #include <vector>
+#include <algorithm>
 
 #include <rococo.api.h>
 
@@ -70,6 +71,7 @@ struct CoSpec: public ILock
 	VariantValue registers[VM::CPU::DATA_REGISTER_COUNT];
 	uint8* startOfStackMemory = nullptr;
 	uint8* endOfStackMemory = nullptr;
+	int64 nextWaitTrigger = 0;
 
 	bool isLocked = false;
 	bool isStarted = true;
@@ -138,6 +140,7 @@ struct StackPool
 
 struct Coroutines : public Sys::ICoroutineControl
 {
+	enum Constants: int64 { nextYear = 0x4001000100010001 };
 	int64 nextId = 1;
 	IScriptSystem& ss;
 	IProgramObject& object;
@@ -145,6 +148,9 @@ struct Coroutines : public Sys::ICoroutineControl
 	SpecMap specs;
 	SpecMap::iterator next;
 	StackPool stacks;
+	int64 nextWakeTime = Constants::nextYear;
+
+	std::vector<CoSpec> dormantCoSpecs;
 
 	Coroutines(IScriptSystem& _ss) :
 		ss(_ss), object(ss.ProgramObject()), vm(object.VirtualMachine())
@@ -167,27 +173,105 @@ struct Coroutines : public Sys::ICoroutineControl
 		return id;
 	}
 
+	void Wakeup(int64 now)
+	{
+		if (now > nextWakeTime)
+		{
+			// Wake up dormant jobs, by sticking them on the active map
+
+			int64 nearestWakeUpTime = nextYear;
+
+			for (auto& d : dormantCoSpecs)
+			{
+				if (now > d.nextWaitTrigger)
+				{
+					specs.insert(std::make_pair(d.id, d));
+					d.id = 0;
+				}
+				else
+				{
+					nearestWakeUpTime = min(d.nextWaitTrigger, nearestWakeUpTime);
+				}
+			}
+
+			nextWakeTime = nearestWakeUpTime;
+
+			// Anything that was awoken is now removed from the dormant queue
+
+			struct
+			{
+				bool operator()(CoSpec& spec)
+				{
+					return spec.id == 0;
+				}
+			} noLongerDormant;
+			auto erasePoint = std::remove_if(dormantCoSpecs.begin(), dormantCoSpecs.end(), noLongerDormant);
+			dormantCoSpecs.erase(erasePoint, dormantCoSpecs.end());
+		}
+	}
+
 	int64 Continue() override
 	{
+		int64 now = Rococo::OS::CpuTicks();
+
+		Wakeup(now);
+
 		if (next == specs.end())
 		{
 			next = specs.begin();
 		}
 
-		int64 id = 0;
+		// N.B the more work we do here the greater the cost of context switching,
+		// and the fewer the coroutines that can progress in a given time frame
 
 		if (next != specs.end())
 		{
-			id = next->first;
+			int64 id = next->first;
 			auto& spec = next->second;
-			next++;
 
 			auto& cpu = vm.Cpu();
 			CpuShadow shadow(cpu);
-			return Continue(spec);
-		}
 
-		return id;
+			struct Anon: IEventCallback<VM::WaitArgs>
+			{
+				VM::IVirtualMachine* vm;
+				int64 nextWaitTrigger = 0;
+				void OnEvent(VM::WaitArgs& args) override
+				{
+					nextWaitTrigger = args.nextWakeTime;
+				}
+
+				~Anon()
+				{
+					vm->SetWaitHandler(nullptr);
+				}
+			} waitMonitor;
+
+			waitMonitor.vm = &vm;
+
+			vm.SetWaitHandler(&waitMonitor);
+			id = Continue(spec);
+
+			if (waitMonitor.nextWaitTrigger > now)
+			{
+				// Coroutine is yielding for a bit
+				spec.nextWaitTrigger = waitMonitor.nextWaitTrigger;
+				dormantCoSpecs.push_back(spec);
+				next = specs.erase(next);
+
+				nextWakeTime = min(waitMonitor.nextWaitTrigger, nextWakeTime);
+			}
+			else
+			{
+				next++;
+			}
+
+			return id;
+		}
+		else // Nothing in the spec map
+		{
+			return dormantCoSpecs.empty() ? 0 : -1;
+		}
 	}
 
 	void Detach(CoSpec& spec)
@@ -297,23 +381,7 @@ struct Coroutines : public Sys::ICoroutineControl
 		return spec.id;
 	}
 
-	boolean32 ContinueSpecific(int64 id) override
-	{
-		auto i = specs.find(id);
-		if (i == specs.end())
-		{
-			return false;
-		}
-		else
-		{
-			auto& cpu = vm.Cpu();
-			CpuShadow shadow(cpu);
-			Continue(i->second);
-			return true;
-		}
-	}
-
-	boolean32 Release(int64 id) override
+	void Release(int64 id) override
 	{
 		auto i = specs.find(id);
 		if (i != specs.end())
@@ -330,22 +398,40 @@ struct Coroutines : public Sys::ICoroutineControl
 			{
 				next = specs.erase(i);
 			}
-			return true;
 		}
 		else
 		{
-			return false;
+			struct
+			{
+				int64 id;
+				bool operator()(CoSpec& spec)
+				{
+					return spec.id == id;
+				}
+			} matchesId;
+			matchesId.id = id;
+
+			auto erasePoint = std::remove_if(dormantCoSpecs.begin(), dormantCoSpecs.end(), matchesId);
+			dormantCoSpecs.erase(erasePoint, dormantCoSpecs.end());
 		}
 	}
 
-	void ReleaseAll()
+	void ReleaseAll() override
 	{
 		for (auto& i : specs)
 		{
 			object.DecrementRefCount(i.second.coroutine);
 		}
 
+		for (auto& d : dormantCoSpecs)
+		{
+			object.DecrementRefCount(d.coroutine);
+		}
+
 		specs.clear();
+		dormantCoSpecs.clear();
+
+		nextWakeTime = nextYear;
 	}
 };
 
