@@ -213,7 +213,17 @@ namespace Rococo
 				while (appControl.IsRunning())
 				{
 					logger.lastError[0] = 0;
-					Script::CScriptSystemProxy ssp(Rococo::Compiler::ProgramInitParameters(maxBytes), logger);
+					Rococo::Compiler::ProgramInitParameters pip;
+					pip.addCoroutineLib = true;
+					pip.MaxProgramBytes = maxBytes;
+					pip.NativeSourcePath = nullptr;
+
+#ifdef _DEBUG
+					pip.useDebugLibs = true;
+#else
+					pip.useDebugLibs = false;
+#endif
+					Script::CScriptSystemProxy ssp(pip, logger);
 					Script::IPublicScriptSystem& ss = ssp();
 					if (!IsPointerValid(&ss))
 					{

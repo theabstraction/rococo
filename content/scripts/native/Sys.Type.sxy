@@ -99,9 +99,11 @@
 	)
 )
 
+(archetype Sys.Type.VoidToVoid -> )
+
 (interface Sys.ICoroutine
 	(attribute essential)
-	(Run)
+	(Run ->)
 )
 
 // Coroutines start here - copied and pasted from the coroutine.sxh.sxy file */
