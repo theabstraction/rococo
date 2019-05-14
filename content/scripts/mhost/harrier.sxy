@@ -1,0 +1,242 @@
+(' #include 
+	"!scripts/mhost/mplat.types.sxy"
+	"!scripts/mhost/mhost.sxh.sxy"
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/types.sxy"
+	"!scripts/mhost/mhost.include.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Sys)
+(using Sys.Maths)
+(using Sys.Type)
+(using Sys.MPlat)
+(using MHost)
+(using MHost.OS)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+
+(namespace Harrier)
+(using Harrier)
+
+(struct Sprite
+	(IString filename)
+	(BitmapLocation location)
+	(Bool facingRight)
+)
+	
+(struct Entity 
+	(Vec2i screenPosition)
+	(Sprite image)
+)
+
+(interface Harrier.IWorldControl
+	(SetPlayerDirection (Vec2i direction)-> )
+)
+
+(class PlayerThread 
+	(implements Sys.ICoroutine)
+	(IEngine engine)
+	(IWorldControl worldControl)
+)
+
+(method PlayerThread.Construct (IEngine engine) (IWorldControl worldControl) : 
+	(this.engine = engine)
+	(this.worldControl = worldControl)
+)
+
+(factory Harrier.NewPlayerThread ICoroutine (IEngine engine) (IWorldControl worldControl):
+	(construct PlayerThread engine worldControl)
+)
+
+(method PlayerThread.Run -> :
+	(IKeyboard keyboard (Keyboard))
+	(Int32 leftKey = (keyboard.GetVKeyFromName "A"))
+	(Int32 rightKey = (keyboard.GetVKeyFromName "D"))
+	(Int32 fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
+	(Int32 upKey = (keyboard.GetVKeyFromName "W"))
+	(Int32 downKey = (keyboard.GetVKeyFromName "S"))
+	
+	(Vec2i oldPlayerDirection = 0 0)
+	
+	(while this.engine.IsRunning
+		(KeyState keys)
+		(this.engine.PollKeyState keys)
+		
+		(Vec2i playerDirection = 0 0)
+	
+		(if (IsKeyPressed keys leftKey)
+			(playerDirection.x = -1)
+		)
+		
+		(if (IsKeyPressed keys rightKey)
+			(playerDirection.x = 1)
+		)
+		
+		(if (IsKeyPressed keys upKey)
+			(playerDirection.y = -1)
+		)
+		
+		(if (IsKeyPressed keys downKey)
+			(playerDirection.y = 1)
+		)
+		
+		(if ((oldPlayerDirection.x != playerDirection.x) or (oldPlayerDirection.y != playerDirection.y))
+			(this.worldControl.SetPlayerDirection playerDirection)
+			(oldPlayerDirection = playerDirection)
+		)
+		
+		(yield 10000)
+	)
+)
+
+(interface MHost.IWorld
+	(ForEachEntityInWorld (OnEntity onEntity)->)
+	(Init ->)
+	(Advance ->)
+	(RenderGui (IGui gui)-> )
+)
+
+(class World 
+	(implements IWorld)
+	(implements IWorldControl)
+	
+	(Sprite explosion)
+	
+	(IEngine engine)
+	(ILegacySoundControl sound)
+
+	(Entity player)
+	
+	(Vec2i playerDirection)
+	(Vec2 playerPos)
+	
+	(Int32 score)
+	(Int32 lives)
+)
+
+(method World.Construct (IEngine engine) (ILegacySoundControl sound) ->  :
+	(this.engine = engine)
+	(this.sound = sound)
+)
+
+(factory Harrier.NewWorld IWorld (IEngine engine) (ILegacySoundControl sound) : 
+	(construct World engine sound)
+)
+
+(method World.SetPlayerDirection (Vec2i direction) -> :
+	(playerDirection = direction)
+)
+
+(function InitSprite (IEngine engine)(Sprite bmp)-> :
+	(engine.GetSpriteSpec bmp.filename bmp.location)
+)
+
+(archetype Harrier.OnEntity (Entity e)->)
+
+(method World.ForEachEntityInWorld (OnEntity onEntity)-> :
+	(onEntity this.player)
+)
+
+(method World.Init -> :
+	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1)
+	
+	(this.playerDirection = 0 0)
+	(this.score = 0)
+	(this.lives = 3)
+	
+	(this.explosion = "!textures/mhost/harrier/explosion.tiff" defaultBmpLoc true)
+	
+	(this.player = (322 322) ("!textures/mhost/harrier/av-8b_facing_right.tiff" defaultBmpLoc true))
+	
+	(IEngine engine = this.engine)
+	
+	(OnEntity initSprites = 
+		(closure (Entity e)-> :
+			(InitSprite engine e.image)
+		)
+	)
+	(this.ForEachEntityInWorld initSprites)
+	(InitSprite engine this.explosion)
+)
+
+(function DrawEntity (Entity e)(IGui gui) -> :
+	(Int32 alignmentFlags = 0) // centred
+	(gui.DrawSprite e.screenPosition alignmentFlags e.image.location)
+)
+
+(function RenderLives (Entity player)(IGui gui)(Int32 count)-> :
+	(#for (Int32 i = 0)(i < count)(i += 1)
+		(Int32 x =  (100 + (i * 64)))
+		(Vec2i pos = x 640)
+		(gui.DrawSprite pos 0 player.image.location)
+	)
+)
+
+(function ExpandRect (Recti rect)(Int32 span)(Vec2i centre)-> :
+	(Int32 negspan = (0 - span))
+	(rect = negspan negspan span span)
+	(rect.left += centre.x)
+	(rect.right += centre.x)
+	(rect.bottom += centre.y)
+	(rect.top += centre.y)
+)
+
+(method World.RenderGui (IGui gc) -> :
+	(OnEntity drawSprites = (closure (Entity e)-> : (DrawEntity e gc)))
+	(this.ForEachEntityInWorld drawSprites)
+	
+	(if (this.lives > 0)
+		(RenderLives this.player gc (this.lives - 1))
+	)
+	
+	(IStringBuilder sbScore (StringBuilder 128))
+	(#build sbScore "Score: " this.score)
+	
+	(Vec2i screenSpan)
+	(gc.GetScreenSpan screenSpan)
+	(Int32 alignmentFlags = 0)
+	(Recti rect = 0 10 screenSpan.x 120)
+	(gc.DrawText rect alignmentFlags sbScore 1 0xFFFFFF80)
+)
+
+(method World.Advance  -> :
+)
+
+(function Main (Int32 id) -> (Int32 exitCode):
+	(ISprites sprites (Sprites))
+	(sprites.AddEachSpriteInDirectory "!textures/mhost/harrier")
+	(sprites.LoadAllSprites)
+	
+	(IEngine engine (Engine))
+	(ILegacySoundControl sound (Rococo.Audio.LegacySoundControl))
+	
+	(IWorld world (NewWorld engine sound))
+	(world.Init)
+	
+	(ICoroutineControl coroutines (Coroutines))
+	
+	(cast world -> IWorldControl control)
+	
+	(ICoroutine playerThread (NewPlayerThread engine control))
+	(coroutines.Add playerThread)
+	
+	(while engine.IsRunning
+		(world.Advance)
+		
+		(while (coroutines.Continue > 0))
+		
+		(GuiPopulator p =
+			(closure (IGui gui) -> : 
+				(world.RenderGui gui)
+			)
+		)
+		
+		(engine.Render p)
+		
+		(engine.YieldForSystemMessages 5)
+	)
+)

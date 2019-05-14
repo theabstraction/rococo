@@ -92,7 +92,7 @@ namespace MHost
 		AutoFree<IPaneBuilderSupervisor> busyPanel;
 		AppSceneBuilder sceneBuilder;
 
-		HString mainScript = "!scripts/mhost/galaxians.sxy";
+		HString mainScript = "!scripts/mhost/mhost.init.sxy";
 		bool queuedForExecute = true;
 
 		// Busy event handler responds to resource loading and renders progress panel
@@ -295,6 +295,11 @@ namespace MHost
 		void PollKeyState(KeyState& keyState) override
 		{
 			Rococo::OS::PollKeys(keyState.keys);
+		}
+
+		void SetNextScript(const fstring& scriptName) override
+		{
+			mainScript = scriptName;
 		}
 	};
 }

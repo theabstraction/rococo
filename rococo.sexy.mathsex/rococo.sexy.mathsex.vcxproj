@@ -145,17 +145,6 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">config.xc</AdditionalInputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </CustomBuild>
-    <CustomBuild Include="mathsex.time.sxh">
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\sexy\Bin\x64Debug\sexy.bennyhill.exe    $(ProjectDir)   mathsex.time.sxh  mathsex.time.inl</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mathsex.time.inl</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">config.xc</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\sexy\Bin\x64Debug\sexy.bennyhill.exe    $(ProjectDir)   mathsex.time.sxh  mathsex.time.inl</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mathsex.time.inl</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">config.xc</AdditionalInputs>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-    </CustomBuild>
     <CustomBuild Include="mathsex.vectors.sxh">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\sexy\Bin\x64Debug\sexy.bennyhill.exe    $(ProjectDir)   mathsex.vectors.sxh  mathsex.vectors.inl</Command>

@@ -151,6 +151,26 @@ namespace Rococo {
 #include "sexy.script.JIT.inl"
 #include "sexy.script.stringbuilders.inl"
 
+void NativeSysOSClockHz(NativeCallEnvironment& _nce)
+{
+	Rococo::uint8* _sf = _nce.cpu.SF();
+	ptrdiff_t _offset = 2 * sizeof(size_t);
+
+	int64 value = Rococo::OS::CpuHz();
+	_offset += sizeof(value);
+	WriteOutput(value, _sf, -_offset);
+}
+
+void NativeSysOSClockTicks(NativeCallEnvironment& _nce)
+{
+	Rococo::uint8* _sf = _nce.cpu.SF();
+	ptrdiff_t _offset = 2 * sizeof(size_t);
+
+	int64 value = Rococo::OS::CpuTicks();
+	_offset += sizeof(value);
+	WriteOutput(value, _sf, -_offset);
+}
+
 namespace Rococo
 {
    namespace Script
@@ -1132,11 +1152,16 @@ namespace Rococo
 		{
 			Clear();
 
-			INamespaceBuilder& sysTypes = progObjProxy().GetRootNamespace().AddNamespace(("Sys.Type"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
+			INamespaceBuilder& sysOS = progObjProxy().GetRootNamespace().AddNamespace("Sys.OS", ADDNAMESPACEFLAGS_CREATE_ROOTS);
+
+			INamespaceBuilder& sysTypes = progObjProxy().GetRootNamespace().AddNamespace("Sys.Type", ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			DefinePrimitives(sysTypes);
 
-			INamespaceBuilder& sysNative = progObjProxy().GetRootNamespace().AddNamespace(("Sys.Native"), ADDNAMESPACEFLAGS_CREATE_ROOTS);
+			INamespaceBuilder& sysNative = progObjProxy().GetRootNamespace().AddNamespace("Sys.Native", ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			DefineSysNative(sysNative);
+
+			AddNativeCall(sysOS, NativeSysOSClockHz, nullptr, "ClockHz -> (Int64 hz)", false);
+			AddNativeCall(sysOS, NativeSysOSClockTicks, nullptr, "ClockTicks -> (Int64 tickCount)", false);
 
 			progObjProxy().ResolveNativeTypes();
 

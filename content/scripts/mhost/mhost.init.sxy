@@ -1,0 +1,25 @@
+(' #include 
+	"!scripts/mhost/mplat.types.sxy"
+	"!scripts/mhost/mhost.sxh.sxy"
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/types.sxy"
+	"!scripts/mhost/mhost.include.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Sys.Maths)
+(using Sys.Type)
+(using Sys.MPlat)
+(using MHost)
+(using MHost.OS)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+
+
+(function Main (Int32 id) -> (Int32 exitCode):
+	(IEngine engine (Engine))
+	(engine.SetNextScript "!scripts/mhost/harrier.sxy")
+)

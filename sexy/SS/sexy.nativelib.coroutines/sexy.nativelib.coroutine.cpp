@@ -454,8 +454,6 @@ extern "C"
 			virtual void AddNativeCalls()
 			{
 				Sys::AddNativeCalls_SysICoroutineControl(ss, static_cast<Sys::ICoroutineControl*>(&coroutines));
-
-				auto& nsSys = ss.AddNativeNamespace("Sys");
 			}
 
 			virtual void ClearResources()

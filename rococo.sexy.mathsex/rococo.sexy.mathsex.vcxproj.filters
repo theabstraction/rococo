@@ -19,9 +19,6 @@
     <CustomBuild Include="mathsex.random.sxh">
       <Filter>SXH</Filter>
     </CustomBuild>
-    <CustomBuild Include="mathsex.time.sxh">
-      <Filter>SXH</Filter>
-    </CustomBuild>
     <CustomBuild Include="mathsex.vectors.sxh">
       <Filter>SXH</Filter>
     </CustomBuild>

@@ -154,7 +154,6 @@ namespace
 		_offset += sizeof(value);
 		WriteOutput(value, _sf, -_offset);
 	}
-
 }
 
 namespace Sys { namespace Maths { namespace I64 { 

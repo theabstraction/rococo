@@ -197,7 +197,6 @@ using namespace Rococo::Compiler;
 
 #include "mathsex.vectors.inl"
 #include "mathsex.random.inl"
-#include "mathsex.time.inl"
 #include "mathsex.base.inl"
 
 extern "C"
@@ -219,7 +218,6 @@ extern "C"
          {
             Sys::Geometry::F32::AddNativeCalls_SysGeometryF32(ss, nullptr);
             Sys::Random::AddNativeCalls_SysRandom(ss, nullptr);
-            Sys::Time::AddNativeCalls_SysTime(ss, nullptr);
          }
 
          virtual void ClearResources()

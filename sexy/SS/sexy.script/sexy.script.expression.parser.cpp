@@ -2203,7 +2203,7 @@ namespace Rococo
 		{
 			sexstring toName = toNameExpr.String();
 			sexstring fromName = fromNameExpr.String();
-			AddVariableRef(ce, NameString::From(toName->Buffer), toType);
+			AddVariable(ce, NameString::From(toName->Buffer), toType);
 
 			IFunction& fnDynCast = GetFunctionByFQN(ce, *toNameExpr.Parent(), ("Sys.Native._DynamicCast"));
 

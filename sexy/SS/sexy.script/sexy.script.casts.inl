@@ -33,9 +33,9 @@
 
 namespace
 {	
-	void SetD4(VM::CPU& cpu, uint8* value)
+	void SetD4(VM::CPU& cpu, void* value)
 	{
-		cpu.D[VM::REGISTER_D4].uint8PtrValue = value;
+		cpu.D[VM::REGISTER_D4].vPtrValue = value;
 	}
 
 	ObjectStub* InterfaceToInstance(void* interf)
@@ -69,7 +69,7 @@ namespace
 			const IInterface& I = typeInfo.GetInterface(i);
 			if (&I == &castToInterf || (I.Base() != NULL && I.Base() == &castToInterf))
 			{
-				uint8* pCastedInterface =  (i * sizeof(void*) + GetInterfacePtr(*obj));
+				InterfacePointer pCastedInterface = (InterfacePointer) ( (i * sizeof(void*) + GetInterfacePtr(*obj)));
 				SetD4(e.cpu, pCastedInterface);
 				((IProgramObject&)typeInfo.Object()).IncrementRefCount(pSrcInterface);
 				return;

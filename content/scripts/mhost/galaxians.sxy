@@ -87,21 +87,21 @@
 (method Galaxians.Init -> :
 	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1)
 	
-	(IString pawn1 = "!textures/mhost/pawn.1.tiff")
-	(IString pawn2 = "!textures/mhost/pawn.2.tiff")
-	(IString pawn3 = "!textures/mhost/pawn.3.tiff")
-	(IString pawn4 = "!textures/mhost/pawn.4.tiff")
+	(IString pawn1 = "!textures/mhost/galaxians/pawn.1.tiff")
+	(IString pawn2 = "!textures/mhost/galaxians/pawn.2.tiff")
+	(IString pawn3 = "!textures/mhost/galaxians/pawn.3.tiff")
+	(IString pawn4 = "!textures/mhost/galaxians/pawn.4.tiff")
 	
 	(this.killCount = 0)
 	(this.enemyHitAt = 0)
 	
-	(this.playerExplosion = (0  -100) ("!textures/mhost/explosion.tiff" defaultBmpLoc))
-	(this.enemyExplosion = (0  -100) ("!textures/mhost/explosion.tiff" defaultBmpLoc))
+	(this.playerExplosion = (0  -100) ("!textures/mhost/galaxians/explosion.tiff" defaultBmpLoc))
+	(this.enemyExplosion = (0  -100) ("!textures/mhost/galaxians/explosion.tiff" defaultBmpLoc))
 	
 	// 4 enemy missiles
 	(
 		(#for (Int32 i = 0)(i < 4)(i += 1)
-			(Entity a0 = (1  -40) ("!textures/mhost/missile.2.tiff" defaultBmpLoc))
+			(Entity a0 = (1  -40) ("!textures/mhost/galaxians/missile.2.tiff" defaultBmpLoc))
 			(this.missiles.Push a0)
 		)
 	)
@@ -148,9 +148,9 @@
 		)
 	)
 	
-	(this.player = (500 8000) ("!textures/mhost/player.1.tiff" defaultBmpLoc))
-	(this.playerMissile = (-100 -100) ("!textures/mhost/missile.1.tiff" defaultBmpLoc))
-	(this.deathAt = (Sys.Time.ClockTicks))
+	(this.player = (500 8000) ("!textures/mhost/galaxians/player.1.tiff" defaultBmpLoc))
+	(this.playerMissile = (-100 -100) ("!textures/mhost/galaxians/missile.1.tiff" defaultBmpLoc))
+	(this.deathAt = (Sys.OS.ClockTicks))
 	(this.lives = 3)
 	
 	(IEngine engine = this.engine)
@@ -216,8 +216,8 @@
 	(this.ForEachEntityInWorld drawSprites)
 	
 	(if (this.deathAt != 0)
-		(Int64 peakBoom = Sys.Time.ClockHz)
-		(Int64 delta = ((Sys.Time.ClockTicks) - this.deathAt))
+		(Int64 peakBoom = Sys.OS.ClockHz)
+		(Int64 delta = ((Sys.OS.ClockTicks) - this.deathAt))
 		(if (delta < peakBoom)
 			(gc.DrawSprite this.playerExplosion.screenPosition 0 this.player.image.location)
 			(Int64 boomTick = ( peakBoom / 64 ))
@@ -229,8 +229,8 @@
 	)
 	
 	(if (this.enemyHitAt != 0)
-		(Int64 peakBoom = Sys.Time.ClockHz)
-		(Int64 delta = ((Sys.Time.ClockTicks) - this.enemyHitAt))
+		(Int64 peakBoom = Sys.OS.ClockHz)
+		(Int64 delta = ((Sys.OS.ClockTicks) - this.enemyHitAt))
 		(if (delta < peakBoom)
 			(Int64 boomTick = ( peakBoom / 32 ))
 			(Int32 span = (32 - (delta / boomTick)))
@@ -304,7 +304,7 @@
 				(alien.screenPosition.y = -100)
 				(g.playerMissile.screenPosition.y = -100)
 				(g.killCount += 1)
-				(Sys.Time.ClockTicks -> g.enemyHitAt)
+				(Sys.OS.ClockTicks -> g.enemyHitAt)
 				(return)
 			)
 		)
@@ -337,7 +337,7 @@
 (function OnPlayerKilled (Galaxians g)-> :
 	(g.playerExplosion.screenPosition = g.player.screenPosition)
 	(g.player.screenPosition.y = -10000)
-	(Sys.Time.ClockTicks -> g.deathAt) 
+	(Sys.OS.ClockTicks -> g.deathAt) 
 	(g.lives -= 1)
 )
 
@@ -421,9 +421,9 @@
 	)
 	
 	(if (this.deathAt != 0)
-		(Int64 now = Sys.Time.ClockTicks)
+		(Int64 now = Sys.OS.ClockTicks)
 		(Int64 delta = (now - this.deathAt))
-		(Int64 spawnTime = (4 * Sys.Time.ClockHz))
+		(Int64 spawnTime = (4 * Sys.OS.ClockHz))
 		(if (delta > spawnTime)
 			(this.deathAt = 0)
 			(this.player.screenPosition = 500 610)
@@ -433,7 +433,7 @@
 
 (function Main (Int32 id) -> (Int32 exitCode):
 	(ISprites sprites (Sprites))
-	(sprites.AddEachSpriteInDirectory "!textures/mhost")
+	(sprites.AddEachSpriteInDirectory "!textures/mhost/galaxians")
 	(sprites.LoadAllSprites)
 	
 	(IEngine engine (Engine))
