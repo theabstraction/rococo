@@ -15,6 +15,7 @@
 (using Sys.MPlat)
 (using MHost)
 (using MHost.OS)
+(using MHost.Graphics)
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Audio)
@@ -29,12 +30,12 @@
 )
 	
 (struct Entity 
-	(Vec2i screenPosition)
+	(Vec2 screenPosition)
 	(Sprite image)
 )
 
 (interface Harrier.IWorldControl
-	(SetPlayerDirection (Vec2i direction)-> )
+	(SetPlayerDirection (Vec2 direction)-> )
 )
 
 (class PlayerThread 
@@ -60,13 +61,13 @@
 	(Int32 upKey = (keyboard.GetVKeyFromName "W"))
 	(Int32 downKey = (keyboard.GetVKeyFromName "S"))
 	
-	(Vec2i oldPlayerDirection = 0 0)
+	(Vec2 oldPlayerDirection = 0 0)
 	
 	(while this.engine.IsRunning
 		(KeyState keys)
 		(this.engine.PollKeyState keys)
 		
-		(Vec2i playerDirection = 0 0)
+		(Vec2 playerDirection = 0 0)
 	
 		(if (IsKeyPressed keys leftKey)
 			(playerDirection.x = -1)
@@ -111,24 +112,28 @@
 
 	(Entity player)
 	
-	(Vec2i playerDirection)
-	(Vec2 playerPos)
+	(Vec2 playerDirection)
+	(Vec2 playerPosition) // The player's location in the world
+	(Vec2 worldPosition) // The top left of the screen in the worldv
+	
+	(Vec2 screenSpan)
 	
 	(Int32 score)
-	(Int32 lives)
+	(Float32 lives)
 )
 
 (method World.Construct (IEngine engine) (ILegacySoundControl sound) ->  :
 	(this.engine = engine)
 	(this.sound = sound)
+	(this.screenSpan = 0 0)
 )
 
 (factory Harrier.NewWorld IWorld (IEngine engine) (ILegacySoundControl sound) : 
 	(construct World engine sound)
 )
 
-(method World.SetPlayerDirection (Vec2i direction) -> :
-	(playerDirection = direction)
+(method World.SetPlayerDirection (Vec2 direction) -> :
+	(this.playerDirection = direction)
 )
 
 (function InitSprite (IEngine engine)(Sprite bmp)-> :
@@ -145,6 +150,8 @@
 	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1)
 	
 	(this.playerDirection = 0 0)
+	(this.playerPosition = 500 600)
+	(this.worldPosition = 0 0)
 	(this.score = 0)
 	(this.lives = 3)
 	
@@ -168,16 +175,16 @@
 	(gui.DrawSprite e.screenPosition alignmentFlags e.image.location)
 )
 
-(function RenderLives (Entity player)(IGui gui)(Int32 count)-> :
-	(#for (Int32 i = 0)(i < count)(i += 1)
-		(Int32 x =  (100 + (i * 64)))
-		(Vec2i pos = x 640)
+(function RenderLives (Entity player)(IGui gui)(Float32 count)-> :
+	(#for (Float32 i = 0)(i < count)(i += 1)
+		(Float32 x =  (100 + (i * 64)))
+		(Vec2 pos = x 640)
 		(gui.DrawSprite pos 0 player.image.location)
 	)
 )
 
-(function ExpandRect (Recti rect)(Int32 span)(Vec2i centre)-> :
-	(Int32 negspan = (0 - span))
+(function ExpandRect (Rectf rect)(Float32 span)(Vec2 centre)-> :
+	(Float32 negspan = (0 - span))
 	(rect = negspan negspan span span)
 	(rect.left += centre.x)
 	(rect.right += centre.x)
@@ -185,7 +192,39 @@
 	(rect.top += centre.y)
 )
 
+(function GetRowColour (Float32 z) -> (Int32 colour):
+	(if (z >= 0)
+		(Float32 f = (z / 1000))
+		(ToRGBAb 0 0.5 f 1.0 -> colour)
+	else
+		(trip)
+	//	(Float32 f = (1.0 - ((0 - z) / 2000)))
+		(ToRGBAb 0 0.5 0.5 1.0 -> colour)
+	)
+)
+
+(function RenderLandscape (Vec2 topLeftWorldPosition)(IGui gc)-> :
+	(Vec2 s)
+	(gc.GetScreenSpan s)
+	
+	(Int32 topRowColour = (GetRowColour topLeftWorldPosition.y))
+	(Int32 bottomRowColour = (GetRowColour (topLeftWorldPosition.y + s.y)))
+	
+	(GuiQuad quad = 
+		((0     0)((0 0) 0)(1 0 0 0) topRowColour)
+		((s.x   0)((0 0) 0)(1 0 0 0) topRowColour)
+		((0   s.y)((0 0) 0)(1 0 0 0) bottomRowColour)
+		((s.x s.y)((0 0) 0)(1 0 0 0) bottomRowColour)
+	)
+	
+	(gc.DrawQuad quad)
+)
+
 (method World.RenderGui (IGui gc) -> :
+	(gc.GetScreenSpan this.screenSpan)
+	
+	(RenderLandscape this.worldPosition gc)
+
 	(OnEntity drawSprites = (closure (Entity e)-> : (DrawEntity e gc)))
 	(this.ForEachEntityInWorld drawSprites)
 	
@@ -196,14 +235,38 @@
 	(IStringBuilder sbScore (StringBuilder 128))
 	(#build sbScore "Score: " this.score)
 	
-	(Vec2i screenSpan)
-	(gc.GetScreenSpan screenSpan)
 	(Int32 alignmentFlags = 0)
-	(Recti rect = 0 10 screenSpan.x 120)
+	(Rectf rect = 0 10 this.screenSpan.x 120)
 	(gc.DrawText rect alignmentFlags sbScore 1 0xFFFFFF80)
 )
 
+(function MultiplyVec2fFloat32 (Vec2 a)(Float32 b)(Vec2 output) -> :
+	(output.x = (a.x * b))
+	(output.y = (a.y * b))
+)
+
+(function AddVec2fVec2f (Vec2 a)(Vec2 b)(Vec2 output) -> :
+	(output.x = (a.x + b.x))
+	(output.y = (a.y + b.y))
+)
+
 (method World.Advance  -> :
+	(Vec2 delta = this.playerDirection * 4)
+	(this.playerPosition = this.playerPosition + delta)
+	
+	(Float32 centreX = (this.screenSpan.x / 2))	
+	(Float32 x = (this.playerPosition.x - centreX))
+	
+	(this.player.screenPosition.x = 500)
+	
+	(if (this.playerPosition.y > 300)
+		(this.player.screenPosition.y = this.playerPosition.y)
+		(this.worldPosition = x 0)
+	else
+		(this.player.screenPosition.y = 300)
+		(Float32 y = (300 - this.playerPosition.y))
+		(this.worldPosition = x y)
+	)
 )
 
 (function Main (Int32 id) -> (Int32 exitCode):
@@ -225,8 +288,6 @@
 	(coroutines.Add playerThread)
 	
 	(while engine.IsRunning
-		(world.Advance)
-		
 		(while (coroutines.Continue > 0))
 		
 		(GuiPopulator p =
@@ -236,6 +297,8 @@
 		)
 		
 		(engine.Render p)
+		
+		(world.Advance)
 		
 		(engine.YieldForSystemMessages 5)
 	)

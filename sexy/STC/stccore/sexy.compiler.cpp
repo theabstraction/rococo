@@ -158,17 +158,19 @@ namespace
 	{
 		auto destructorId = object->Desc->DestructorId;
 
+		EXECUTERESULT lastStatus = vm.Status();
+
+		vm.SetStatus(EXECUTERESULT_RUNNING);
+
 		vm.Push(object);
 		EXECUTERESULT status = vm.ExecuteFunction(destructorId);
 		vm.PopPointer();
 
-		if (status == EXECUTERESULT_RETURNED)
+		vm.SetStatus(lastStatus);
+
+		if (status != EXECUTERESULT_RETURNED)
 		{
-			vm.SetStatus(EXECUTERESULT_RUNNING);
-		}
-		else
-		{
-			Throw(0, "Error destructing %s at %P", object->Desc->TypeInfo->Name(), object);
+			Throw(0, "Error destructing %s at 0x%X", object->Desc->TypeInfo->Name(), object);
 		}
 	}
 
@@ -576,11 +578,11 @@ namespace Rococo
 	   void HighLightText(char* outputBuffer, size_t nBytesOutput, cstr highlightPos, cstr wholeString)
 	   {
 		   char charbuf[4];
-         SafeFormat(charbuf, 4, ("[%c]"), *highlightPos);
+		   SafeFormat(charbuf, 4, ("[%c]"), *highlightPos);
 		   int startChars = (int32)(highlightPos - wholeString);
 		   CopyString(outputBuffer, std::min<int32>((int32)nBytesOutput, startChars), wholeString);
-		   StringCat(outputBuffer, charbuf, (int32) nBytesOutput);
-		   StringCat(outputBuffer, highlightPos+1, (int32) nBytesOutput);
+		   StringCat(outputBuffer, charbuf, (int32)nBytesOutput);
+		   StringCat(outputBuffer, highlightPos + 1, (int32)nBytesOutput);
 	   }
 	
 	   bool IsCapital(char c) { return (c >= 'A' && c <= 'Z'); }

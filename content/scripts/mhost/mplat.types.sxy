@@ -25,7 +25,7 @@
 	(Vec2 pos)
 	(BaseVertexData vd) // 3 floats
 	(SpriteVertexData sd) // 4 floats
-	(Int32 rrggbbaa)
+	(Int32 aabbggrr)
 )
 
 (alias GuiVertex Sys.MPlat.GuiVertex)
@@ -37,7 +37,7 @@
 (alias GuiVertex Sys.MPlat.GuiTriangle)
 
 (struct GuiQuad
-	(GuiVertex a b c d)
+	(GuiVertex a b c d) // topleft, topRight, bottomLeft, bottomRight
 )
 
 (alias GuiQuad Sys.MPlat.GuiQuad)

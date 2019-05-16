@@ -29,10 +29,35 @@ namespace MHost
 			}
 		}
 	}
+
+	namespace Maths
+	{
+		float Clamp0to1(float f)
+		{
+			return f < 0 ? 0 : (f > 1.0f ? 1.0f : f);
+		}
+	}
+
+	namespace Graphics
+	{
+		int32 FloatToColourComponent(float f)
+		{
+			return (int32) (255.0f * Maths::Clamp0to1(f));
+		}
+
+		RGBAb ToRGBAb(float r, float g, float b, float a)
+		{
+			int32 R = FloatToColourComponent(r);
+			int32 G = FloatToColourComponent(g);
+			int32 B = FloatToColourComponent(b);
+			int32 A = FloatToColourComponent(a);
+			return RGBAb(R, G, B, A);
+		}
+	}
 }
 
 #include "mhost.sxh.inl"
-#include "mhost.os.inl"
+#include "mhost.inl"
 
 namespace MHost
 {
@@ -55,6 +80,7 @@ namespace MHost
 				AddNativeCalls_MHostIGui(args.ss, nullptr);
 				AddNativeCalls_MHostIEngine(args.ss, engine);
 				MHost::OS::AddNativeCalls_MHostOS(args.ss);
+				MHost::Graphics::AddNativeCalls_MHostGraphics(args.ss);
 
 				engine->SetRunningScriptContext(&args.ss);
 

@@ -233,7 +233,7 @@ namespace Rococo { namespace VM
 		virtual void Push(void* ptr) = 0;
 
 		virtual void PushBlob(void* ptr, int nBytes) = 0;
-		
+		virtual void YieldExecution() = 0;
 		virtual void Throw() = 0;
 	};
 

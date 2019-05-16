@@ -106,7 +106,7 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeMHostIGuiPushTriangle(NativeCallEnvironment& _nce)
+	void NativeMHostIGuiDrawTriangle(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -118,7 +118,21 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->PushTriangle(*t);
+		_pObject->DrawTriangle(*t);
+	}
+	void NativeMHostIGuiDrawQuad(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::GuiQuad* q;
+		_offset += sizeof(q);
+		ReadInput(q, _sf, -_offset);
+
+		MHost::IGui* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->DrawQuad(*q);
 	}
 	void NativeMHostIGuiDrawSprite(NativeCallEnvironment& _nce)
 	{
@@ -132,7 +146,7 @@ namespace
 		_offset += sizeof(alignmentFlags);
 		ReadInput(alignmentFlags, _sf, -_offset);
 
-		Vec2i* pixelPos;
+		Vec2* pixelPos;
 		_offset += sizeof(pixelPos);
 		ReadInput(pixelPos, _sf, -_offset);
 
@@ -150,7 +164,7 @@ namespace
 		_offset += sizeof(loc);
 		ReadInput(loc, _sf, -_offset);
 
-		Rococo::GuiRect* screenQuad;
+		Rococo::GuiRectf* screenQuad;
 		_offset += sizeof(screenQuad);
 		ReadInput(screenQuad, _sf, -_offset);
 
@@ -182,7 +196,7 @@ namespace
 		_offset += sizeof(alignmentFlags);
 		ReadInput(alignmentFlags, _sf, -_offset);
 
-		Rococo::GuiRect* rect;
+		Rococo::GuiRectf* rect;
 		_offset += sizeof(rect);
 		ReadInput(rect, _sf, -_offset);
 
@@ -196,7 +210,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Vec2i* span;
+		Vec2* span;
 		_offset += sizeof(span);
 		ReadInput(span, _sf, -_offset);
 
@@ -210,7 +224,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Vec2i* pos;
+		Vec2* pos;
 		_offset += sizeof(pos);
 		ReadInput(pos, _sf, -_offset);
 
@@ -227,12 +241,13 @@ namespace MHost {
 	void AddNativeCalls_MHostIGui(Rococo::Script::IPublicScriptSystem& ss, MHost::IGui* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
-		ss.AddNativeCall(ns, NativeMHostIGuiPushTriangle, nullptr, ("IGuiPushTriangle (Pointer hObject)(Sys.MPlat.GuiTriangle t) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawSprite, nullptr, ("IGuiDrawSprite (Pointer hObject)(Sys.Maths.Vec2i pixelPos)(Int32 alignmentFlags)(Sys.MPlat.BitmapLocation loc) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiStretchSprite, nullptr, ("IGuiStretchSprite (Pointer hObject)(Sys.Maths.Recti screenQuad)(Sys.MPlat.BitmapLocation loc) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawText, nullptr, ("IGuiDrawText (Pointer hObject)(Sys.Maths.Recti rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiGetScreenSpan, nullptr, ("IGuiGetScreenSpan (Pointer hObject)(Sys.Maths.Vec2i span) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiGetCursorPos, nullptr, ("IGuiGetCursorPos (Pointer hObject)(Sys.Maths.Vec2i pos) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawTriangle, nullptr, ("IGuiDrawTriangle (Pointer hObject)(Sys.MPlat.GuiTriangle t) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawQuad, nullptr, ("IGuiDrawQuad (Pointer hObject)(Sys.MPlat.GuiQuad q) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawSprite, nullptr, ("IGuiDrawSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(Sys.MPlat.BitmapLocation loc) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiStretchSprite, nullptr, ("IGuiStretchSprite (Pointer hObject)(Sys.Maths.Rectf screenQuad)(Sys.MPlat.BitmapLocation loc) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawText, nullptr, ("IGuiDrawText (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiGetScreenSpan, nullptr, ("IGuiGetScreenSpan (Pointer hObject)(Sys.Maths.Vec2 span) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiGetCursorPos, nullptr, ("IGuiGetCursorPos (Pointer hObject)(Sys.Maths.Vec2 pos) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for MHost::IEngine 

@@ -1052,14 +1052,16 @@ namespace Rococo
 		  const IStructure& atype = GetBestType(ce, sa, &varStruct);
 		  const IStructure& btype = GetBestType(ce, sb, &varStruct);
 
-		  cstr instrumentName = varStruct.Name();
+		  cstr instrumentName_a = atype.Name();
+		  cstr instrumentName_b = btype.Name();
+
 		  char functionName[Rococo::NAMESPACE_MAX_LENGTH];
 		  SafeFormat(functionName, sizeof(functionName), ("%s%s%s"), operation, atype.Name(), btype.Name());
 
 		  auto* overloadFn = FindFunction(directive, functionName, ce.Script.ProgramModule());
 		  if (!overloadFn)
 		  {
-			 Throw(directive, ("Could not find binary operator function (%s (%s a)(%s b)(%s output) -> ).\nBe sure to use the correct (using ...) directive and include any necessary modules in your script."), functionName, instrumentName, instrumentName, instrumentName);
+			 Throw(directive, ("Could not find binary operator function (%s (%s a)(%s b)(%s output) -> ).\nBe sure to use the correct (using ...) directive and include any necessary modules in your script."), functionName, instrumentName_a, instrumentName_b, varStruct.Name());
 		  }
 
 		  int inputStackAllocCount = PushBinaryOperatorInputs(ce, directive, varStruct, *overloadFn, offset, atype, btype);

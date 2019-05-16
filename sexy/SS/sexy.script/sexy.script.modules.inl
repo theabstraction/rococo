@@ -1290,7 +1290,7 @@ namespace Rococo { namespace Script
 		vm.NotifyWaitEvent(waitTime);
 
 		registers[VM::REGISTER_PC].uint8PtrValue = pcResetPoint;
-		vm.SetStatus(EXECUTERESULT_YIELDED);
+		vm.YieldExecution();
 	}
 
 	void CompileNullMethod_NullsOutput(IFunctionBuilder& f)

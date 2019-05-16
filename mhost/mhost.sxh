@@ -1,7 +1,10 @@
 (config mhost.xc) 
 
-(functions MHost.OS "mhost.os"
-	(IsKeyPressed (KeyState keys)(Int32 vKeyCode)->(Bool isPressed) : MHost::OS::IsKeyPressed)
+(functions "mhost"
+	(MHost.OS.IsKeyPressed (KeyState keys)(Int32 vKeyCode)->(Bool isPressed) : MHost::OS::IsKeyPressed)
+	(MHost.Maths.Clamp0to1(Float32 f)->(Float32 clampedValue): MHost::Maths::Clamp0to1)
+	(MHost.Graphics.ToRGBAb (Float32 r)(Float32 g)(Float32 b)(Float32 a)->(RGBAb colour) : MHost::Graphics::ToRGBAb)
+	(MHost.Graphics.FloatToColourComponent (Float32 c)->(Int32 ic) :  MHost::Graphics::FloatToColourComponent)
 )
 
 (enum Int32
@@ -23,12 +26,13 @@
 	(as.cpp MHost.IGui "mhost")
 	(context factory MHost.IGui)
 	(methods
-		(PushTriangle (const GuiTriangle t))
-		(DrawSprite (const Vec2i pixelPos)(Int32 alignmentFlags)(const BitmapLocation loc))
-		(StretchSprite (const Recti screenQuad)(const BitmapLocation loc))
-		(DrawText (const Recti rect)(Int32 alignmentFlags)(IString text)(Int32 fontIndex)(RGBAb colour))
-		(GetScreenSpan (Vec2i span))
-		(GetCursorPos (Vec2i pos))
+		(DrawTriangle (const GuiTriangle t))
+		(DrawQuad (const GuiQuad q))
+		(DrawSprite (const Vec2 pixelPos)(Int32 alignmentFlags)(const BitmapLocation loc))
+		(StretchSprite (const Rectf screenQuad)(const BitmapLocation loc))
+		(DrawText (const Rectf rect)(Int32 alignmentFlags)(IString text)(Int32 fontIndex)(RGBAb colour))
+		(GetScreenSpan (Vec2 span))
+		(GetCursorPos (Vec2 pos))
 	)
 )
 

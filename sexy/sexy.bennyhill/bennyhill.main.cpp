@@ -198,20 +198,47 @@ void GetFileSpec(char filename[_MAX_PATH], cstr root, cstr scriptName, cstr exte
    SafeFormat(filename, _MAX_PATH, ("%s%s%s"), root, scriptName, extension);
 }
 
-void AppendNativeFunction(cr_sex functionDef, sexstring ns, const ParseContext& pc, FileAppender& outputFile)
+struct FunctionDesc
 {
-	CppType nsType;
-	nsType.Set(ns->Buffer);
+	std::string name;
+	const Rococo::Sex::ISExpression* functionDef;
+};
 
-	cr_sex sfname = functionDef.GetElement(0);
+typedef std::unordered_map<std::string, std::vector<FunctionDesc>> TMapNSToFunctionDefs;
+
+void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppender& outputFile, TMapNSToFunctionDefs& defs)
+{
+	cr_sex sfname = functionDef[0];
 	if (!IsAtomic(sfname))
 	{
-		Throw(sfname, ("Expecting function name atomic argument"));
+		Throw(sfname, "Expecting function name atomic argument");
 	}
 
-	sexstring fname = sfname.String();
+	NamespaceSplitter splitter(sfname.String()->Buffer);
 
-	outputFile.Append(("\tvoid Native%s%s(NativeCallEnvironment& _nce)\n"), nsType.CompressedName(), fname->Buffer);
+	cstr ns, fname;
+	if (!splitter.SplitTail(ns, fname))
+	{
+		Throw(sfname, "Expecting function name to be prefixed with a namespace");
+	}
+
+	CppType nsType;
+	nsType.Set(ns);
+
+	FunctionDesc desc{ fname, &functionDef };
+
+	auto i = defs.find(ns);
+	if (i == defs.end())
+	{
+		std::vector<FunctionDesc> functions = { desc };
+		defs[ns] = functions;
+	}
+	else
+	{
+		i->second.push_back(desc);
+	}
+
+	outputFile.Append(("\tvoid Native%s%s(NativeCallEnvironment& _nce)\n"), nsType.CompressedName(), fname);
 	outputFile.Append(("\t{\n"));
 
 	outputFile.Append(("\t\tRococo::uint8* _sf = _nce.cpu.SF();\n"));
@@ -230,30 +257,30 @@ void AppendNativeFunction(cr_sex functionDef, sexstring ns, const ParseContext& 
 		Throw(functionDef, ("Expecting two elements after the output. The first : and the second the function name to be called in C++"));
 	}
 
-   int bodyIndicatorPos = outputStart;
+	int bodyIndicatorPos = outputStart;
 
-   if (functionDef.NumberOfElements() == outputStart + 3)
-   {
-      bodyIndicatorPos++;
-   }
-   
-   cr_sex bodyIndicator = functionDef[bodyIndicatorPos];
-   if (!IsAtomic(bodyIndicator) || !AreEqual(bodyIndicator.String(), (":")))
-   {
-      Throw(bodyIndicator, ("Expecting ':' body indicator at this position. Benny Hill functions have only one output. Check spaces between tokens."));
-   }
+	if (functionDef.NumberOfElements() == outputStart + 3)
+	{
+		bodyIndicatorPos++;
+	}
 
-   cr_sex sCppFunction = functionDef[functionDef.NumberOfElements() - 1];
-   if (!IsAtomic(sCppFunction) && !IsStringLiteral(sCppFunction))
-   {
-      Throw(sCppFunction, ("Expecting function name, atomic or string literal"));
-   }
+	cr_sex bodyIndicator = functionDef[bodyIndicatorPos];
+	if (!IsAtomic(bodyIndicator) || !AreEqual(bodyIndicator.String(), (":")))
+	{
+		Throw(bodyIndicator, ("Expecting ':' body indicator at this position. Benny Hill functions have only one output. Check spaces between tokens."));
+	}
 
-   sexstring cppFunction = sCppFunction.String();
+	cr_sex sCppFunction = functionDef[functionDef.NumberOfElements() - 1];
+	if (!IsAtomic(sCppFunction) && !IsStringLiteral(sCppFunction))
+	{
+		Throw(sCppFunction, ("Expecting function name, atomic or string literal"));
+	}
+
+	sexstring cppFunction = sCppFunction.String();
 
 	if (bodyIndicatorPos > outputStart)
 	{
-      cr_sex outputDef = functionDef[outputStart];
+		cr_sex outputDef = functionDef[outputStart];
 		cr_sex stype = outputDef.GetElement(0);
 		cr_sex svalue = outputDef.GetElement(1);
 
@@ -290,7 +317,7 @@ void AppendNativeFunction(cr_sex functionDef, sexstring ns, const ParseContext& 
 		{
 			if (inputCount > 1) outputFile.Append((", "));
 			inputCount++;
-		
+
 			if (AreEqual(type, ("IStringBuilder")) || AreEqual(type, ("Sys.Text.IStringBuilder")))
 			{
 				outputFile.Append("_%sPopulator", StringFrom(svalue));
@@ -315,7 +342,7 @@ void AppendNativeFunction(cr_sex functionDef, sexstring ns, const ParseContext& 
 
 	if (bodyIndicatorPos > outputStart)
 	{
-      cr_sex outputDef = functionDef[outputStart];
+		cr_sex outputDef = functionDef[outputStart];
 		cr_sex stype = outputDef.GetElement(0);
 		cr_sex svalue = outputDef.GetElement(1);
 
@@ -326,22 +353,24 @@ void AppendNativeFunction(cr_sex functionDef, sexstring ns, const ParseContext& 
 	outputFile.Append(("\t}\n\n"));
 }
 
-void AppendNativeRegistration(cr_sex functionDef, const CppType& ns, const ParseContext& pc, FileAppender& outputFile)
+void AppendNativeRegistration(const FunctionDesc& desc, const CppType& ns, const ParseContext& pc, FileAppender& outputFile)
 {
-	cr_sex sfname = functionDef.GetElement(0);
+	cr_sex sfname = desc.functionDef->GetElement(0);
 	sexstring fname = sfname.String();
-	outputFile.Append(("ss.AddNativeCall(ns, Native%s%s, nullptr, (\"%s"), ns.CompressedName(), fname->Buffer, fname->Buffer);
+	CppType nameType;
+	nameType.Set(fname->Buffer);
+	outputFile.Append(("ss.AddNativeCall(ns, Native%s, nullptr, (\"%s"), nameType.CompressedName(), desc.name.c_str());
 
-	int outputPos = GetOutputPosition(functionDef);
+	int outputPos = GetOutputPosition(*desc.functionDef);
 	for (int i = 1; i < outputPos - 1; i++)
 	{
-		cr_sex arg = functionDef.GetElement(i);
+		cr_sex arg = desc.functionDef->GetElement(i);
 		AppendInputPair(outputFile, arg, pc);
 	}
 
 	outputFile.Append((" -> "));
 	
-	cr_sex outputDef = functionDef.GetElement(outputPos);
+	cr_sex outputDef = desc.functionDef->GetElement(outputPos);
 
 	if (IsCompound(outputDef))
 	{
@@ -353,92 +382,90 @@ void AppendNativeRegistration(cr_sex functionDef, const CppType& ns, const Parse
 
 void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 {
-	if (functionSetDef.NumberOfElements() < 3)
+	if (functionSetDef.NumberOfElements() < 2)
 	{
-		Throw(functionSetDef, ("Expecting (functions <namespace> <file-prefix> ...)"));
+		Throw(functionSetDef, "Expecting (functions <file-prefix> ...)");
 	}
 
-	cr_sex sNS = functionSetDef.GetElement(1);
-	if (!IsAtomic(sNS))
-	{
-		Throw(sNS, ("Expecting atomic namespace expression"));
-	}
-
-	ValidateFQSexyInterface(sNS);	
-	sexstring ns = sNS.String();
-	
-	cr_sex sFilePrefix = functionSetDef.GetElement(2);
+	cr_sex sFilePrefix = functionSetDef[1];
 	if (!IsStringLiteral(sFilePrefix))
 	{
-		Throw(sNS, ("Expecting string literal for the file prefix"));
+		Throw(sFilePrefix, "Expecting string literal for the file prefix");
 	}
 
 	sexstring filePrefix = sFilePrefix.String();
 
 	char sexyFile[_MAX_PATH];
-   SafeFormat(sexyFile, _MAX_PATH, ("%s%s.inl"), pc.cppRootDirectory, filePrefix->Buffer);
+	SafeFormat(sexyFile, _MAX_PATH, ("%s%s.inl"), pc.cppRootDirectory, filePrefix->Buffer);
 
 	FileAppender sexyAppender(sexyFile);
 
 	sexyAppender.Append(("namespace\n{\n"));
 
-	for (int i = 3; i < functionSetDef.NumberOfElements(); ++i)
+	TMapNSToFunctionDefs nsMap;
+
+	for (int i = 2; i < functionSetDef.NumberOfElements(); ++i)
 	{
-		cr_sex functionDef = functionSetDef.GetElement(i);
+		cr_sex functionDef = functionSetDef[i];
 		if (!IsCompound(functionDef))
 		{
-			Throw(functionDef, ("Expecting function def of form (<sexy-function-name> (input1)...(inputN)->(output): <cpp-function-name>)"));
+			Throw(functionDef, "Expecting function def of form (<sexy-function-name> (input1)...(inputN)->(output): <cpp-function-name>)");
 		}
 
-		AppendNativeFunction(functionDef, ns, pc, sexyAppender);
+		AppendNativeFunction(functionDef, pc, sexyAppender, nsMap);
 	}
 
 	sexyAppender.Append(("}\n\n"));
 
-	char* nsBuffer = (char*)alloca(sizeof(char)* (StringLength(ns->Buffer) + 1));
-	CopyString(nsBuffer, StringLength(ns->Buffer) + 1, ns->Buffer);
+	for (auto n : nsMap)
+	{
+		cstr ns = n.first.c_str();
+		char* nsBuffer = (char*)alloca(sizeof(char)* (StringLength(ns) + 1));
+		CopyString(nsBuffer, StringLength(ns) + 1, ns);
 
-	char* token = nullptr;
-	char* context = nullptr;
+		char* token = nullptr;
+		char* context = nullptr;
 
 #ifndef char_IS_WIDE
 # define Tokenize strtok_s
 #else
 # define Tokenize wcstok_s
 #endif
-	token = Tokenize(nsBuffer, ("."), &context);
+		token = Tokenize(nsBuffer, ("."), &context);
 
-	int namespaceDepth = 0;
+		int namespaceDepth = 0;
 
-	while (token)
-	{
-		namespaceDepth++;
-		sexyAppender.Append(("namespace %s { "), token);
-		token = Tokenize(nullptr, ("."), &context);
-	}
+		while (token)
+		{
+			namespaceDepth++;
+			sexyAppender.Append(("namespace %s { "), token);
+			token = Tokenize(nullptr, ("."), &context);
+		}
 
-	CppType nsType;
-	nsType.Set(ns->Buffer);
+		CppType nsType;
+		nsType.Set(ns);
 
-	sexyAppender.Append(("\n\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)\n"), nsType.CompressedName());
-	sexyAppender.Append(("\t{\n"));
+		sexyAppender.Append(("\n\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)\n"), nsType.CompressedName());
+		sexyAppender.Append(("\t{\n"));
 
-	sexyAppender.Append(("\t\tconst INamespace& ns = ss.AddNativeNamespace((\"%s\"));\n"), nsType.SexyName());
+		sexyAppender.Append(("\t\tconst INamespace& ns = ss.AddNativeNamespace((\"%s\"));\n"), nsType.SexyName());
 
-	for (int i = 3; i < functionSetDef.NumberOfElements(); ++i)
-	{
-		cr_sex functionDef = functionSetDef.GetElement(i);
-		sexyAppender.Append(("\t\t"));
-		AppendNativeRegistration(functionDef, nsType, pc, sexyAppender);
+		for(auto functionDesc: n.second)
+		{
+			sexyAppender.Append(("\t\t"));
+			AppendNativeRegistration(functionDesc, nsType, pc, sexyAppender);
+			sexyAppender.Append(("\n"));
+		}
+
+		sexyAppender.Append(("\t}\n"));
+
+		while (namespaceDepth)
+		{
+			namespaceDepth--;
+			sexyAppender.Append(("}"));
+		}
+
 		sexyAppender.Append(("\n"));
-	}
-
-	sexyAppender.Append(("\t}\n"));
-
-	while (namespaceDepth)
-	{
-		namespaceDepth--;
-		sexyAppender.Append(("}"));
 	}
 }
 

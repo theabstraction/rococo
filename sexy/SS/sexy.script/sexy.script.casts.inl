@@ -38,12 +38,11 @@ namespace
 		cpu.D[VM::REGISTER_D4].vPtrValue = value;
 	}
 
-	ObjectStub* InterfaceToInstance(void* interf)
+	ObjectStub* InterfaceToInstance(InterfacePointer i)
 	{
-		VirtualTable** pvTable = (VirtualTable**) interf;
-		VirtualTable* vTable = *pvTable;
-		ObjectStub* instance = (ObjectStub*)(vTable->OffsetToInstance + (uint8*) interf);
-		return instance;
+		auto* p = ((uint8*)i) + (*i)->OffsetToInstance;
+		auto* obj = (ObjectStub*)p;
+		return obj;
 	}
 
 	// (DynamicCast to-interface from-instance ->) The result is held in D4, which indicates 

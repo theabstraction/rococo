@@ -461,39 +461,39 @@ namespace
          }
       };
 
-	  ExecutionFlags currentFlags{ false, false, false };
-	  void GetLastFlags(ExecutionFlags& flags) const override
-	  {
-		  flags = currentFlags;
-	  }
+		ExecutionFlags currentFlags{ false, false, false };
+		void GetLastFlags(ExecutionFlags& flags) const override
+		{
+			flags = currentFlags;
+		}
 
-	  EXECUTERESULT Continue(const ExecutionFlags& ef, ITraceOutput* tracer)
-	  {
-		  if (status == EXECUTERESULT_YIELDED) status = EXECUTERESULT_RUNNING;
+		EXECUTERESULT Continue(const ExecutionFlags& ef, ITraceOutput* tracer)
+		{
+			if (status == EXECUTERESULT_YIELDED) status = EXECUTERESULT_RUNNING;
 
-		  currentFlags = ef;
+			currentFlags = ef;
 
-		  TraceContext tc(*this, tracer);
+			TraceContext tc(*this, tracer);
 
-		  if (ef.RunProtected)
-		  {
-			  struct ANON
-			  {
-				  static EXECUTERESULT ProtectedContinue(void* context, bool throwToQuit)
-				  {
-					  CVirtualMachine* vm = (CVirtualMachine*)context;
-					  return vm->ProtectedContinue(throwToQuit);
-				  }
-			  };
+			if (ef.RunProtected)
+			{
+				struct ANON
+				{
+					static EXECUTERESULT ProtectedContinue(void* context, bool throwToQuit)
+					{
+						CVirtualMachine* vm = (CVirtualMachine*)context;
+						return vm->ProtectedContinue(throwToQuit);
+					}
+				};
 
-			  return VM::OS::ExecuteProtected(*this, ANON::ProtectedContinue, this, OUT cpu.ExceptionCode, ef.ThrowToQuit);
-		  }
-		  else
-		  {
-			  cpu.ExceptionCode = EXCEPTIONCODE_DISABLED;
-			  return ProtectedContinue(ef.ThrowToQuit);
-		  }
-	  }
+				return VM::OS::ExecuteProtected(*this, ANON::ProtectedContinue, this, OUT cpu.ExceptionCode, ef.ThrowToQuit);
+			}
+			else
+			{
+				cpu.ExceptionCode = EXCEPTIONCODE_DISABLED;
+				return ProtectedContinue(ef.ThrowToQuit);
+			}
+		}
 
 		void InitCpu()
 		{
@@ -531,7 +531,7 @@ namespace
 			size_t functionStart = program->GetFunctionAddress(codeId);
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 
-         PROTECT
+			PROTECT
 			{
 				while(cpu.SF() > context && status == EXECUTERESULT_RUNNING)
 				{
@@ -613,6 +613,12 @@ namespace
 			if (this->status == EXECUTERESULT_RUNNING) this->status = EXECUTERESULT_TERMINATED;
 			this->exitCode = exitCode;
 			if (throwToQuit) throw IllegalException();
+		}
+
+		void YieldExecution()
+		{
+			status = EXECUTERESULT_YIELDED;
+			if (throwToQuit) throw YieldException();
 		}
 
 		virtual EXECUTERESULT ContinueExecution(const ExecutionFlags& ef, ITraceOutput* tracer)

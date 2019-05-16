@@ -191,7 +191,7 @@ struct Gui : public MHost::IGui
 
 	Gui(Rococo::IGuiRenderContext& _gc) : gc(_gc) {}
 
-	void DrawSprite(const Vec2i& pixelPos, int32 alignmentFlags, const BitmapLocation& loc) override
+	void DrawSprite(const Vec2& pixelPos, int32 alignmentFlags, const BitmapLocation& loc) override
 	{
 		//   a --- b
 		//   |   /
@@ -211,8 +211,7 @@ struct Gui : public MHost::IGui
 
 		Vec2 span = Span(txUV);
 
-		Vec2 pxPos = { (float)pixelPos.x, (float)pixelPos.y };
-		Vec2 topLeftPos = GetTopLeftPos(pxPos, span, alignmentFlags);
+		Vec2 topLeftPos = GetTopLeftPos(pixelPos, span, alignmentFlags);
 
 		GuiTriangle t[2];
 		SetGuiQuadForBitmap(t, txUV, loc.textureIndex);
@@ -229,18 +228,18 @@ struct Gui : public MHost::IGui
 		gc.AddTriangle(&t[1].a);
 	}
 
-	void StretchSprite(const GuiRect& quad, const BitmapLocation& loc) override
+	void StretchSprite(const GuiRectf& quad, const BitmapLocation& loc) override
 	{
 		GuiRectf txUV = { (float)loc.txUV.left,  (float)loc.txUV.top, (float)loc.txUV.right,  (float)loc.txUV.bottom };
 
 		GuiTriangle t[2];
 		SetGuiQuadForBitmap(t, txUV, loc.textureIndex);
 
-		t[0].a.pos = { (float)quad.left, (float)quad.top };
-		t[0].b.pos = { (float)quad.right, (float)quad.top };
-		t[0].c.pos = { (float)quad.left, (float)quad.bottom };
+		t[0].a.pos = { quad.left, quad.top };
+		t[0].b.pos = { quad.right, quad.top };
+		t[0].c.pos = { quad.left, quad.bottom };
 
-		t[1].a.pos = { (float)quad.right, (float)quad.bottom };
+		t[1].a.pos = { quad.right, quad.bottom };
 		t[1].b.pos = t[0].c.pos;
 		t[1].c.pos = t[0].b.pos;
 
@@ -248,34 +247,41 @@ struct Gui : public MHost::IGui
 		gc.AddTriangle(&t[1].a);
 	}
 
-	void PushTriangle(const Rococo::GuiTriangle& t) override
+	void DrawQuad(const Rococo::GuiQuad& q) override
+	{
+		gc.AddTriangle(&q.topLeft);
+		gc.AddTriangle(&q.topRight);
+	}
+
+	void DrawTriangle(const Rococo::GuiTriangle& t) override
 	{
 		gc.AddTriangle(&t.a);
 	}
 
-	void DrawText(const GuiRect& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour) override
+	void DrawText(const GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour) override
 	{
+		GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
 		if (text.length)
 		{
 			BasicTextJob job(fontIndex, text, colour);
 			Vec2i span = gc.EvalSpan({ 0,0 }, job);
-			Vec2i topLeft = GetTopLeftPos(rect, span, alignmentFlags);
-			gc.RenderText(topLeft, job, &rect);
+			Vec2i topLeft = GetTopLeftPos(iRect, span, alignmentFlags);
+			gc.RenderText(topLeft, job, &iRect);
 		}
 	}
 
-	void GetScreenSpan(Vec2i& span) override
+	void GetScreenSpan(Vec2& span) override
 	{
 		GuiMetrics gm;
 		gc.Renderer().GetGuiMetrics(gm);
-		span = gm.screenSpan;
+		span = { (float)gm.screenSpan.x, (float)gm.screenSpan.y };
 	}
 
-	void GetCursorPos(Vec2i& pos) override
+	void GetCursorPos(Vec2& pos) override
 	{
 		GuiMetrics gm;
 		gc.Renderer().GetGuiMetrics(gm);
-		pos = gm.cursorPosition;
+		pos = { (float) gm.cursorPosition.x, (float)gm.screenSpan.y };
 	}
 };
 
