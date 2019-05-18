@@ -39,41 +39,32 @@ Sys::ICoroutineControl* FactoryConstructSysCoroutines(Sys::ICoroutineControl* _c
 
 #include "coroutine.sxh.inl"
 
-#ifdef _WIN32
-
-BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
-{
-	BOOLEAN bSuccess = TRUE;
-
-	switch (nReason)
-	{
-	case DLL_PROCESS_ATTACH:
-		DisableThreadLibraryCalls(hDllHandle);
-		break;
-	case DLL_PROCESS_DETACH:
-		break;
-	}
-
-	return bSuccess;
-}
-
-# define DLLEXPORT __declspec(dllexport)
-#else
-# define DLLEXPORT
-#endif
-
 struct CoSpec: public ILock
 {
+	// The id assigned by the coroutine control object when the coroutine is added to the coroutine list
 	int64 id;
+	// This is a pointer to the ICoroutine object within the sexy environment. It is offset from the coroutine interface
 	ObjectStub* stub;
+	// This is a pointer to the ICoroutine interface within the sexy environment. It is offset from the ObjectStub pointer
 	CoroutineRef coroutine;
+
+	// The id of the method ICoroutine.Run in the ICoroutine interface within the sexy environment
 	ID_BYTECODE runId;
+
+	// The coroutines private virtual machine register state
 	VariantValue registers[VM::CPU::DATA_REGISTER_COUNT];
+
+	// The coroutine's private stack
 	uint8* startOfStackMemory = nullptr;
 	uint8* endOfStackMemory = nullptr;
+
+	// The tick count when this coroutine is due to wake up. 0 implies the routine is currently active
 	int64 nextWaitTrigger = 0;
 
+	// The coroutine will lock during execution, preventing it from removing itself from the coroutine list
 	bool isLocked = false;
+
+	// True until the coroutine initializes itself before the first yields
 	bool isStarted = true;
 
 	CoSpec(int64 _id, ObjectStub* _stub, CoroutineRef _coroutine, ID_BYTECODE _runId):
@@ -179,6 +170,9 @@ struct Coroutines : public Sys::ICoroutineControl
 		{
 			// Wake up dormant jobs, by sticking them on the active map
 
+			// N.B the more work we do here the greater the cost of context switching,
+			// and the fewer the coroutines that can progress in a given time frame
+
 			int64 nearestWakeUpTime = nextYear;
 
 			for (auto& d : dormantCoSpecs)
@@ -216,13 +210,13 @@ struct Coroutines : public Sys::ICoroutineControl
 
 		Wakeup(now);
 
+		// N.B the more work we do here the greater the cost of context switching,
+		// and the fewer the coroutines that can progress in a given time frame
+
 		if (next == specs.end())
 		{
 			next = specs.begin();
 		}
-
-		// N.B the more work we do here the greater the cost of context switching,
-		// and the fewer the coroutines that can progress in a given time frame
 
 		if (next != specs.end())
 		{
@@ -251,6 +245,8 @@ struct Coroutines : public Sys::ICoroutineControl
 
 			vm.SetWaitHandler(&waitMonitor);
 			id = Continue(spec);
+
+			shadow.Restore();
 
 			if (waitMonitor.nextWaitTrigger > now)
 			{
@@ -327,7 +323,7 @@ struct Coroutines : public Sys::ICoroutineControl
 			endOfStackMemory = cpu.StackEnd;
 		}
 
-		~CpuShadow()
+		void Restore() // We could put this in a destructor, but sometime we dont want to restore, such as on a crash
 		{
 			memcpy(&cpu.D, mainCpuState, sizeof(VariantValue) * VM::CPU::DATA_REGISTER_COUNT);
 			cpu.StackStart = startOfStackMemory;
@@ -434,6 +430,29 @@ struct Coroutines : public Sys::ICoroutineControl
 		nextWakeTime = nextYear;
 	}
 };
+
+#ifdef _WIN32
+
+BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
+{
+	BOOLEAN bSuccess = TRUE;
+
+	switch (nReason)
+	{
+	case DLL_PROCESS_ATTACH:
+		DisableThreadLibraryCalls(hDllHandle);
+		break;
+	case DLL_PROCESS_DETACH:
+		break;
+	}
+
+	return bSuccess;
+}
+
+# define DLLEXPORT __declspec(dllexport)
+#else
+# define DLLEXPORT
+#endif
 
 extern "C"
 {

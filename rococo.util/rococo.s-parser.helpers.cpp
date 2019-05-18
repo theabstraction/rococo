@@ -1640,6 +1640,8 @@ namespace Rococo
 
 		auto& vm = ss.PublicProgramObject().VirtualMachine();
 
+		vm.Core().SetLogger(&ss.PublicProgramObject().Log());
+
 		vm.Push(param);
 
 		stats.compileTime = OS::CpuTicks() - start;
@@ -1651,6 +1653,8 @@ namespace Rococo
 		stats.executeTime = OS::CpuTicks() - start;
 
 		int exitCode = vm.PopInt32();
+
+		vm.Core().SetLogger(nullptr);
 		return exitCode;
 	}
 

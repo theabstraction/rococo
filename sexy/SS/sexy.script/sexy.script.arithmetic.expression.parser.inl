@@ -396,18 +396,22 @@ namespace Rococo
                      Throw(parent, streamer);
                   }
                }
-               else
-               {
-                  MemberDef def;
-                  if (ce.Builder.TryGetVariableByName(OUT def, id))
-                  {
-                     ce.Builder.AssignVariableToTemp(id, Rococo::ROOT_TEMPDEPTH);
-                  }
-                  else
-                  {
-                     ThrowTokenNotFound(parent, instance, ce.Builder.Owner().Name(), ("variable"));
-                  }
-               }
+			   else
+			   {
+				   MemberDef def;
+				   if (ce.Builder.TryGetVariableByName(OUT def, id))
+				   {
+					   if (def.ResolvedType->VarType() != type)
+					   {
+						   Throw(parent, "Exepecting %s, but %s is of type %s", Rococo::Script::GetTypeName(type), id, def.ResolvedType->Name());
+					   }
+					   ce.Builder.AssignVariableToTemp(id, Rococo::ROOT_TEMPDEPTH);
+				   }
+				   else
+				   {
+					   ThrowTokenNotFound(parent, instance, ce.Builder.Owner().Name(), ("variable"));
+				   }
+			   }
             }
             else
             {

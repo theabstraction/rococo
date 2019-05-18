@@ -4664,6 +4664,39 @@ namespace
 		ValidateExecution(result);
 	}
 
+	void TestTypeInference1(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"  (alias Main EntryPoint.Main)"
+			"(using Sys.Reflection)"
+			"(using Sys.Type)"
+
+			"(using Sys.Maths)"
+
+			"(struct Mat2x2 (Vec2i row1 row2))"
+
+			"(function Main -> (Int32 result):"
+			"	(Mat2x2 m = (4 3)(2 1))"
+			"   (Float32 x = (5 - (m.row1.x - m.row2.x)))"
+			"   (if (x == 3) (result = 12))"
+			")"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT r = vm.Execute(VM::ExecutionFlags(false, true));
+		
+		validate(r == EXECUTERESULT_THROWN);
+
+		s_logger.Clear();
+	}
+
 	void TestPrintStructs(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -12343,6 +12376,8 @@ namespace
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+
+		TEST(TestTypeInference1);
 
 		TEST2(TestCoroutine1);
 		TEST(TestCPPCallback);

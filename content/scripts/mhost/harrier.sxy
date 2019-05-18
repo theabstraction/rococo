@@ -13,6 +13,7 @@
 (using Sys.Maths)
 (using Sys.Type)
 (using Sys.MPlat)
+(using Sys.Random)
 (using MHost)
 (using MHost.OS)
 (using MHost.Graphics)
@@ -78,11 +79,11 @@
 		)
 		
 		(if (IsKeyPressed keys upKey)
-			(playerDirection.y = -1)
+			(playerDirection.y = 1)
 		)
 		
 		(if (IsKeyPressed keys downKey)
-			(playerDirection.y = 1)
+			(playerDirection.y = -1)
 		)
 		
 		(if ((oldPlayerDirection.x != playerDirection.x) or (oldPlayerDirection.y != playerDirection.y))
@@ -96,16 +97,23 @@
 
 (interface MHost.IWorld
 	(ForEachEntityInWorld (OnEntity onEntity)->)
-	(Init ->)
 	(Advance ->)
 	(RenderGui (IGui gui)-> )
+)
+
+(struct Star
+	(Float32 x y brightness size)
 )
 
 (class World 
 	(implements IWorld)
 	(implements IWorldControl)
+	(implements ICoroutine)
 	
 	(Sprite explosion)
+	(Sprite starSmall)
+	(Sprite starLarge)
+	(Sprite moon)
 	
 	(IEngine engine)
 	(ILegacySoundControl sound)
@@ -120,12 +128,23 @@
 	
 	(Int32 score)
 	(Float32 lives)
+	
+	(array Star stars)
 )
 
-(method World.Construct (IEngine engine) (ILegacySoundControl sound) ->  :
+(method World.Construct (IEngine engine) (ILegacySoundControl sound) -> (construct stars 1000) :
 	(this.engine = engine)
 	(this.sound = sound)
 	(this.screenSpan = 0 0)
+	
+	(#for (Int32 i = 0)(i < 1000)(i += 1)
+		(Star s)
+		(AnyFloat 5 950 -> s.x)
+		(AnyFloat 800 2400 -> s.y)
+		(AnyFloat 0.01 1.0 -> s.brightness)
+		(AnyFloat 0 3 -> s.size)
+		(this.stars.Push s)
+	)
 )
 
 (factory Harrier.NewWorld IWorld (IEngine engine) (ILegacySoundControl sound) : 
@@ -144,30 +163,6 @@
 
 (method World.ForEachEntityInWorld (OnEntity onEntity)-> :
 	(onEntity this.player)
-)
-
-(method World.Init -> :
-	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1)
-	
-	(this.playerDirection = 0 0)
-	(this.playerPosition = 500 600)
-	(this.worldPosition = 0 0)
-	(this.score = 0)
-	(this.lives = 3)
-	
-	(this.explosion = "!textures/mhost/harrier/explosion.tiff" defaultBmpLoc true)
-	
-	(this.player = (322 322) ("!textures/mhost/harrier/av-8b_facing_right.tiff" defaultBmpLoc true))
-	
-	(IEngine engine = this.engine)
-	
-	(OnEntity initSprites = 
-		(closure (Entity e)-> :
-			(InitSprite engine e.image)
-		)
-	)
-	(this.ForEachEntityInWorld initSprites)
-	(InitSprite engine this.explosion)
 )
 
 (function DrawEntity (Entity e)(IGui gui) -> :
@@ -193,22 +188,16 @@
 )
 
 (function GetRowColour (Float32 z) -> (Int32 colour):
-	(if (z >= 0)
-		(Float32 f = (z / 1000))
-		(ToRGBAb 0 0.5 f 1.0 -> colour)
-	else
-		(trip)
-	//	(Float32 f = (1.0 - ((0 - z) / 2000)))
-		(ToRGBAb 0 0.5 0.5 1.0 -> colour)
-	)
+	(Float32 f = (1 - (z / 1600)))
+	(ToRGBAb 0 0.5 1.0 f -> colour)
 )
 
-(function RenderLandscape (Vec2 topLeftWorldPosition)(IGui gc)-> :
+(function RenderSkyGlow  (Vec2 topLeftWorldPosition)(IGui gc)-> :
 	(Vec2 s)
 	(gc.GetScreenSpan s)
 	
 	(Int32 topRowColour = (GetRowColour topLeftWorldPosition.y))
-	(Int32 bottomRowColour = (GetRowColour (topLeftWorldPosition.y + s.y)))
+	(Int32 bottomRowColour = (GetRowColour (topLeftWorldPosition.y - s.y)))
 	
 	(GuiQuad quad = 
 		((0     0)((0 0) 0)(1 0 0 0) topRowColour)
@@ -220,9 +209,97 @@
 	(gc.DrawQuad quad)
 )
 
+(function RenderFields (Vec2 topLeftWorldPosition)(IGui gc)-> :
+	(Vec2 s)
+	(gc.GetScreenSpan s)
+	
+	(Float32 y0 = (topLeftWorldPosition.y - 300))
+	(Float32 y1 = s.y)
+	
+	(Int32 horizonColour = 0xFF00FF00)
+	(Int32 nearColour = 0xFF006000)
+	
+	(GuiQuad quad = 
+		((0   y0)((0 0) 0)(1 0 0 0) horizonColour)
+		((s.x y0)((0 0) 0)(1 0 0 0) horizonColour)
+		((0   y1)((0 0) 0)(1 0 0 0) nearColour)
+		((s.x y1)((0 0) 0)(1 0 0 0) nearColour)
+	)
+	
+	(gc.DrawQuad quad)
+)
+
+(function DrawStar (Vec3 p)(BitmapLocation location)(IGui gc)-> :
+	(SpriteVertexData svd)
+	(svd.lerpBitmapToColour = 0.5)
+	(svd.textureIndex = (I32.ToFloat32 location.arrayIndex))
+	(svd.matIndex = 0)
+	(svd.textureToMatLerpFactor = 0)
+	
+	(Float32 u0 = (I32.ToFloat32 location.rect.left))
+	(Float32 u1 = (I32.ToFloat32 location.rect.right))
+	(Float32 v0 = (I32.ToFloat32 location.rect.top))
+	(Float32 v1 = (I32.ToFloat32 location.rect.bottom))
+	
+	(Vec2 q)
+	(q.x = (p.x + (u1 - u0)))
+	(q.y = (p.y + (v1 - v0)))
+	
+	(Int32 colour = (ToRGBAb 1 1 1 (p.z * (AnyFloat 0.0 1.0))))
+
+	(GuiQuad quad = 
+		((p.x p.y)((u0 v0) 0) svd colour)
+		((q.x p.y)((u1 v0) 0) svd colour)
+		((p.x q.y)((u0 v1) 0) svd colour)
+		((q.x q.y)((u1 v1) 0) svd colour)
+	)
+	
+	(gc.DrawQuad quad)
+	
+//	(gc.DrawSprite q 0 location)
+)
+
+(function RenderSpace (World w) (IGui gc)-> :
+	(Int32 alignmentFlags = 0) // centred
+	
+	(Float32 y = (w.worldPosition.y - 800))
+	(Vec2 moonPos = 750 y)
+	(gc.DrawSprite moonPos alignmentFlags w.moon.location)
+	
+	(foreach star # w.stars
+		(Vec3 q)
+		(q.x = star.x)
+		(q.y = (w.worldPosition.y - star.y))
+		(q.z = star.brightness)
+		
+		(if (star.size > 0.025)
+			(DrawStar q w.starSmall.location gc)
+		else
+			(DrawStar q w.starLarge.location gc)
+		)
+	)
+)
+
+(function RenderLandscape (Vec2 topLeftWorldPosition)(IGui gc)-> :
+	(RenderSkyGlow topLeftWorldPosition gc)
+	(RenderFields topLeftWorldPosition gc)
+)
+
+(function DrawInfo(IGui gc)(World w) -> :
+	(IStringBuilder infoLine (StringBuilder 128))
+	(infoLine.SetFormat 2 0 false false)
+	(#build infoLine "Direction: (" this.playerDirection.x ", " this.playerDirection.y ")     ")  
+	(#build infoLine "Position: (" this.playerPosition.x ", " this.playerPosition.y ")     ")  
+	(#build infoLine "World - TopLeft: (" this.worldPosition.x ", " this.worldPosition.y ") ")  
+	
+	(Rectf rect = 0 0 this.screenSpan.x 40)
+	(gc.DrawText rect (#AlignmentFlagsLeft) infoLine 7 0xFFFFFFFF)
+)
+
 (method World.RenderGui (IGui gc) -> :
 	(gc.GetScreenSpan this.screenSpan)
 	
+	(RenderSpace this gc)
 	(RenderLandscape this.worldPosition gc)
 
 	(OnEntity drawSprites = (closure (Entity e)-> : (DrawEntity e gc)))
@@ -232,12 +309,7 @@
 		(RenderLives this.player gc (this.lives - 1))
 	)
 	
-	(IStringBuilder sbScore (StringBuilder 128))
-	(#build sbScore "Score: " this.score)
-	
-	(Int32 alignmentFlags = 0)
-	(Rectf rect = 0 10 this.screenSpan.x 120)
-	(gc.DrawText rect alignmentFlags sbScore 1 0xFFFFFF80)
+	(DrawInfo gc this)
 )
 
 (function MultiplyVec2fFloat32 (Vec2 a)(Float32 b)(Vec2 output) -> :
@@ -253,19 +325,56 @@
 (method World.Advance  -> :
 	(Vec2 delta = this.playerDirection * 4)
 	(this.playerPosition = this.playerPosition + delta)
+	(this.playerPosition.y = (F32.MaxOf this.playerPosition.y 150))
 	
 	(Float32 centreX = (this.screenSpan.x / 2))	
 	(Float32 x = (this.playerPosition.x - centreX))
 	
 	(this.player.screenPosition.x = 500)
 	
-	(if (this.playerPosition.y > 300)
-		(this.player.screenPosition.y = this.playerPosition.y)
-		(this.worldPosition = x 0)
+	(if (this.playerPosition.y <= 300)
+		(this.player.screenPosition.y = (this.screenSpan.y - this.playerPosition.y))
+		(this.worldPosition = x this.screenSpan.y)
 	else
-		(this.player.screenPosition.y = 300)
-		(Float32 y = (300 - this.playerPosition.y))
+		(this.player.screenPosition.y = (this.screenSpan.y - 300))
+		(Float32 y = (this.screenSpan.y + (this.playerPosition.y - 300)))
 		(this.worldPosition = x y)
+	)
+)
+
+(method World.Run -> :
+	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1)
+	
+	(this.playerDirection = 0 0)
+	(this.playerPosition = 500 150)
+	(this.worldPosition = 0 0)
+	(this.score = 0)
+	(this.lives = 3)
+	
+	(this.explosion = "!textures/mhost/harrier/explosion.tiff" defaultBmpLoc true)
+	(this.starSmall = "!textures/mhost/harrier/star.1.tiff" defaultBmpLoc true)
+	(this.starLarge = "!textures/mhost/harrier/star.3.tiff" defaultBmpLoc true)
+	(this.moon = "!textures/mhost/harrier/moon.tiff" defaultBmpLoc true)
+	
+	(this.player = (322 322) ("!textures/mhost/harrier/av-8b_facing_right.tiff" defaultBmpLoc true))
+	
+	(IEngine engine = this.engine)
+	
+	(OnEntity initSprites = 
+		(closure (Entity e)-> :
+			(InitSprite engine e.image)
+		)
+	)
+	
+	(this.ForEachEntityInWorld initSprites)
+	(InitSprite engine this.explosion)
+	(InitSprite engine this.starSmall)
+	(InitSprite engine this.starLarge)
+	(InitSprite engine this.moon)
+	
+	(while engine.IsRunning
+		(this.Advance)
+		(yield 1000)
 	)
 )
 
@@ -278,14 +387,15 @@
 	(ILegacySoundControl sound (Rococo.Audio.LegacySoundControl))
 	
 	(IWorld world (NewWorld engine sound))
-	(world.Init)
 	
 	(ICoroutineControl coroutines (Coroutines))
 	
 	(cast world -> IWorldControl control)
-	
 	(ICoroutine playerThread (NewPlayerThread engine control))
 	(coroutines.Add playerThread)
+	
+	(cast world -> ICoroutine worldThread)
+	(coroutines.Add worldThread)
 	
 	(while engine.IsRunning
 		(while (coroutines.Continue > 0))
@@ -297,8 +407,6 @@
 		)
 		
 		(engine.Render p)
-		
-		(world.Advance)
 		
 		(engine.YieldForSystemMessages 5)
 	)

@@ -213,6 +213,9 @@ struct Gui : public MHost::IGui
 
 		Vec2 topLeftPos = GetTopLeftPos(pixelPos, span, alignmentFlags);
 
+		topLeftPos.x = floorf(topLeftPos.x);
+		topLeftPos.y = floorf(topLeftPos.y);
+
 		GuiTriangle t[2];
 		SetGuiQuadForBitmap(t, txUV, loc.textureIndex);
 

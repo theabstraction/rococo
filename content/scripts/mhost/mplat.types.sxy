@@ -14,12 +14,16 @@
 	(Float32 fontBlend) // 0 -> normal triangle, 1 -> modulate with font texture
 )
 
+(alias BaseVertexData Sys.MPlat.BaseVertexData)
+
 (struct SpriteVertexData
 	(Float32 lerpBitmapToColour) // 1.0 -> use colour, 0.0 -> use bitmap texture
 	(Float32 textureIndex) // When used in sprite calls, this indexes the texture in the texture array.
 	(Float32 matIndex) // index the texture in the material array
 	(Float32 textureToMatLerpFactor) // 0 -> use textureIndex, 1 -> use matIndex, lerping in between
 )
+
+(alias SpriteVertexData Sys.MPlat.SpriteVertexData)
 
 (struct GuiVertex
 	(Vec2 pos)

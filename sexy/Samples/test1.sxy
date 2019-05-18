@@ -1,42 +1,16 @@
 (namespace EntryPoint)
- (alias Main EntryPoint.Main)
-
-(using Sys)
-(using Sys.Maths)
+  (alias Main EntryPoint.Main)
 (using Sys.Reflection)
+(using Sys.Type)
 
-(class PrintDogs (implements ICoroutine))
-(method PrintDogs.Construct :)
-(factory Sys.NewPrintDogs ICoroutine : (construct PrintDogs))
-(class PrintCats (implements ICoroutine))
-(method PrintCats.Construct :)
-(factory Sys.NewPrintCats ICoroutine : (construct PrintCats))
+(using Sys.Maths)
 
-(method PrintDogs.Run -> :
-	(Print "Rover")
-	(yield)
-	(Print "Spot")
-	(yield)
-	(Print "Scottie")
-)
-
-(method PrintCats.Run -> :
-	(Print "Fluffy")
-	(yield)
-	(Print "Cucumber")
-	(yield)
-	(Print "Mooncat")
+(struct Mat2x2i
+	(Vec2i row1 row2)
 )
 
 (function Main -> (Int32 result):
-	(ICoroutine dogs (NewPrintDogs))
-	(ICoroutine cats (NewPrintCats))
-	(ICoroutineControl coroutines (Coroutines))
-	(coroutines.Add dogs)
-	(coroutines.Add cats)
-	(while (coroutines.Continue != 0))
-	(Int64 dogId = (coroutines.Add dogs))
-	(coroutines.Add cats)
-	(coroutines.Release dogId)
-	(while (coroutines.Continue != 0))
+	(Mat2x2i m = (4 3)(2 1))
+	(Float32 x = (5 - (m.row1.x - m.row2.x)))
+	(if (x == 3) (result = 12))
 )
