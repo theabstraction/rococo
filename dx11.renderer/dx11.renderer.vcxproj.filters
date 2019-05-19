@@ -64,6 +64,9 @@
     <FxCompile Include="gui.texture.ps.hlsl">
       <Filter>HLSL\GUI</Filter>
     </FxCompile>
+    <FxCompile Include="gui.shadow.ps.hlsl">
+      <Filter>HLSL\GUI</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11.swapchain.cpp">

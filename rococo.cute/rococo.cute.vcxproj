@@ -96,7 +96,7 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\lib</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>..\sexy\Bin\x64Debug\sexy.bennyhill.exe $(ProjectDir) cute.sxh cute.sxh.h</Command>
+      <Command>..\sexy\Bin\x64Release\sexy.bennyhill.exe $(ProjectDir) cute.sxh cute.sxh.h</Command>
       <Outputs>cute.sxh.h;cute.sxh.inl</Outputs>
       <Inputs>cute.sxh;config.xc</Inputs>
     </CustomBuildStep>

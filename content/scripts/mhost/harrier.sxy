@@ -129,21 +129,32 @@
 	(Int32 score)
 	(Float32 lives)
 	
-	(array Star stars)
+	(array Star smallStars)
+	(array Star largeStars)
 )
 
-(method World.Construct (IEngine engine) (ILegacySoundControl sound) -> (construct stars 1000) :
+(method World.Construct (IEngine engine) (ILegacySoundControl sound) -> (construct smallStars 1000) (construct largeStars 10):
 	(this.engine = engine)
 	(this.sound = sound)
 	(this.screenSpan = 0 0)
 	
 	(#for (Int32 i = 0)(i < 1000)(i += 1)
 		(Star s)
-		(AnyFloat 5 950 -> s.x)
-		(AnyFloat 800 2400 -> s.y)
+		(AnyFloat 0 1366 -> s.x)
+		(AnyFloat 400 2400 -> s.y)
+		(Float32 f = (AnyFloat 0.01 1.0))
+		(s.brightness = (Sys.Maths.F32.Power f 4.0))
+		(s.size = 3)
+		(this.smallStars.Push s)
+	)
+	
+	(#for (Int32 i = 0)(i < 10)(i += 1)
+		(Star s)
+		(AnyFloat 0 1366 -> s.x)
+		(AnyFloat 400 2400 -> s.y)
 		(AnyFloat 0.01 1.0 -> s.brightness)
-		(AnyFloat 0 3 -> s.size)
-		(this.stars.Push s)
+		(s.size = 1)
+		(this.largeStars.Push s)
 	)
 )
 
@@ -189,7 +200,8 @@
 
 (function GetRowColour (Float32 z) -> (Int32 colour):
 	(Float32 f = (1 - (z / 1600)))
-	(ToRGBAb 0 0.5 1.0 f -> colour)
+	(RGBA c = 0 0.5 1.0 f)
+	(ToRGBAb c -> colour)
 )
 
 (function RenderSkyGlow  (Vec2 topLeftWorldPosition)(IGui gc)-> :
@@ -229,36 +241,6 @@
 	(gc.DrawQuad quad)
 )
 
-(function DrawStar (Vec3 p)(BitmapLocation location)(IGui gc)-> :
-	(SpriteVertexData svd)
-	(svd.lerpBitmapToColour = 0.5)
-	(svd.textureIndex = (I32.ToFloat32 location.arrayIndex))
-	(svd.matIndex = 0)
-	(svd.textureToMatLerpFactor = 0)
-	
-	(Float32 u0 = (I32.ToFloat32 location.rect.left))
-	(Float32 u1 = (I32.ToFloat32 location.rect.right))
-	(Float32 v0 = (I32.ToFloat32 location.rect.top))
-	(Float32 v1 = (I32.ToFloat32 location.rect.bottom))
-	
-	(Vec2 q)
-	(q.x = (p.x + (u1 - u0)))
-	(q.y = (p.y + (v1 - v0)))
-	
-	(Int32 colour = (ToRGBAb 1 1 1 (p.z * (AnyFloat 0.0 1.0))))
-
-	(GuiQuad quad = 
-		((p.x p.y)((u0 v0) 0) svd colour)
-		((q.x p.y)((u1 v0) 0) svd colour)
-		((p.x q.y)((u0 v1) 0) svd colour)
-		((q.x q.y)((u1 v1) 0) svd colour)
-	)
-	
-	(gc.DrawQuad quad)
-	
-//	(gc.DrawSprite q 0 location)
-)
-
 (function RenderSpace (World w) (IGui gc)-> :
 	(Int32 alignmentFlags = 0) // centred
 	
@@ -266,17 +248,21 @@
 	(Vec2 moonPos = 750 y)
 	(gc.DrawSprite moonPos alignmentFlags w.moon.location)
 	
-	(foreach star # w.stars
-		(Vec3 q)
-		(q.x = star.x)
-		(q.y = (w.worldPosition.y - star.y))
-		(q.z = star.brightness)
-		
-		(if (star.size > 0.025)
-			(DrawStar q w.starSmall.location gc)
-		else
-			(DrawStar q w.starLarge.location gc)
-		)
+	(Vec2 pos)
+	(RGBA colourF32 = 1 1 1 0)
+
+	(foreach star # w.smallStars
+		(pos.x = star.x)
+		(pos.y = (w.worldPosition.y - star.y))	
+		(colourF32.a = (star.brightness * (AnyFloat 0.5 1.0)))
+		(gc.DrawColouredSprite pos 0 w.starSmall.location 1.0 (ToRGBAb colourF32))
+	)
+	
+	(foreach star # w.largeStars
+		(pos.x = star.x)
+		(pos.y = (w.worldPosition.y - star.y))	
+		(colourF32.a = (star.brightness * (AnyFloat 0.5 1.0)))
+		(gc.DrawColouredSprite pos 0 w.starLarge.location 1.0 (ToRGBAb colourF32))
 	)
 )
 
@@ -301,6 +287,24 @@
 	
 	(RenderSpace this gc)
 	(RenderLandscape this.worldPosition gc)
+	
+	(gc.SetGuiShaders "!gui.shadow.ps")
+	
+	(Float32 alpha = 0)
+	
+	(if (this.playerPosition.y < 450)
+		(alpha = (1 - ((this.playerPosition.y - 150) / 200)))
+	)
+	
+	(RGBA shadowColour = 0 0 0 alpha)
+	
+	(Vec2 delta = 100 100)
+	(Float32 deltaQuotient = (1.1 - alpha))
+	(Vec2 deltaEx = delta * deltaQuotient)
+	(Vec2 shadowPos = this.player.screenPosition + deltaEx)
+	(gc.DrawScaledColouredSprite shadowPos 0 this.player.image.location 0.5 (ToRGBAb shadowColour) alpha)
+	
+	(gc.SetGuiShaders "")
 
 	(OnEntity drawSprites = (closure (Entity e)-> : (DrawEntity e gc)))
 	(this.ForEachEntityInWorld drawSprites)

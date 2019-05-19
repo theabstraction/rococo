@@ -2130,6 +2130,43 @@ namespace ANON
 
 	   Vec2i lastSpan{ -1,-1 };
 
+	   void SetGuiShader(cstr pixelShaderName)
+	   {
+		   FlushLayer();
+
+		   if (pixelShaderName == nullptr || pixelShaderName[0] == 0)
+		   {
+			   // Default
+			   if (!UseShaders(idGuiVS, idGuiPS))
+			   {
+				   Throw(0, "IGuiContext::SetGuiShader(<blank>) error setting Gui shader to default value");
+			   }
+
+			   return;
+		   }
+
+		   auto i = nameToPixelShader.find(pixelShaderName);
+		   if (i == nameToPixelShader.end())
+		   {
+			   // Try to load it
+			   try
+			   {
+				   installation.LoadResource(pixelShaderName, *scratchBuffer, 64_kilobytes);
+				   auto pxId = CreatePixelShader(pixelShaderName, scratchBuffer->GetData(), scratchBuffer->Length());
+				   i = nameToPixelShader.insert(std::make_pair(std::string(pixelShaderName), pxId)).first;
+			   }
+			   catch (IException& ex)
+			   {
+				   Throw(ex.ErrorCode(), "IGuiContext::SetGuiShader('%s') failed to load shader:\n %s", pixelShaderName, ex.Message());
+			   }
+		   }
+		  
+		   if (!UseShaders(idGuiVS, i->second))
+		   {
+			   Throw(0, "IGuiContext::SetGuiShader('%s') failed to use shader", pixelShaderName);
+		   }
+	   }
+
 	   void RenderGui(IScene& scene)
 	   {
 		   OS::ticks now = OS::CpuTicks();

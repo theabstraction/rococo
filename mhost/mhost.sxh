@@ -3,7 +3,7 @@
 (functions "mhost"
 	(MHost.OS.IsKeyPressed (KeyState keys)(Int32 vKeyCode)->(Bool isPressed) : MHost::OS::IsKeyPressed)
 	(MHost.Maths.Clamp0to1(Float32 f)->(Float32 clampedValue): MHost::Maths::Clamp0to1)
-	(MHost.Graphics.ToRGBAb (Float32 r)(Float32 g)(Float32 b)(Float32 a)->(RGBAb colour) : MHost::Graphics::ToRGBAb)
+	(MHost.Graphics.ToRGBAb (const RGBA colourF32x4)->(RGBAb colourB8x4) : MHost::Graphics::ToRGBAb)
 	(MHost.Graphics.FloatToColourComponent (Float32 c)->(Int32 ic) :  MHost::Graphics::FloatToColourComponent)
 )
 
@@ -28,11 +28,17 @@
 	(methods
 		(DrawTriangle (const GuiTriangle t))
 		(DrawQuad (const GuiQuad q))
+		
+		(DrawColouredSprite (const Vec2 pixelPos)(Int32 alignmentFlags)(const BitmapLocation loc)(Float32 blendFactor)(RGBAb colour))
+		(DrawScaledColouredSprite (const Vec2 pixelPos)(Int32 alignmentFlags)(const BitmapLocation loc)(Float32 blendFactor)(RGBAb colour)(Float32 scaleFactor))
 		(DrawSprite (const Vec2 pixelPos)(Int32 alignmentFlags)(const BitmapLocation loc))
 		(StretchSprite (const Rectf screenQuad)(const BitmapLocation loc))
 		(DrawText (const Rectf rect)(Int32 alignmentFlags)(IString text)(Int32 fontIndex)(RGBAb colour))
+		
 		(GetScreenSpan (Vec2 span))
 		(GetCursorPos (Vec2 pos))
+		
+		(SetGuiShaders (IString pixelShaderFilename))
 	)
 )
 

@@ -45,12 +45,12 @@ namespace MHost
 			return (int32) (255.0f * Maths::Clamp0to1(f));
 		}
 
-		RGBAb ToRGBAb(float r, float g, float b, float a)
+		RGBAb ToRGBAb(const RGBA& colour)
 		{
-			int32 R = FloatToColourComponent(r);
-			int32 G = FloatToColourComponent(g);
-			int32 B = FloatToColourComponent(b);
-			int32 A = FloatToColourComponent(a);
+			int32 R = FloatToColourComponent(colour.red);
+			int32 G = FloatToColourComponent(colour.green);
+			int32 B = FloatToColourComponent(colour.blue);
+			int32 A = FloatToColourComponent(colour.alpha);
 			return RGBAb(R, G, B, A);
 		}
 	}

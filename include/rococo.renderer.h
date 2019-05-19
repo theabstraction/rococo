@@ -108,6 +108,7 @@ namespace Rococo
 		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
 		virtual IRenderer& Renderer() = 0;
 		virtual auto SelectTexture(ID_TEXTURE id)->Vec2i = 0; // select texture and returns span
+		virtual void SetGuiShader(cstr pixelShader) = 0;
 	};
 
 	struct ObjectInstance

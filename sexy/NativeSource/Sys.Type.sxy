@@ -106,6 +106,12 @@
 	(Run ->)
 )
 
+(struct RGBAf32x4 
+	(Float32 r g b a)
+)
+
+(alias RGBAf32x4 Sys.Type.RGBA)
+
 // Coroutines start here - copied and pasted from the coroutine.sxh.sxy file */
 (interface Sys.ICoroutineControl
 	(attribute essential)
@@ -126,4 +132,5 @@
 	(Pointer pObject = (Sys.Native.GetHandleForICoroutineControl0 ))
 	(construct ProxyICoroutineControl pObject)
 )
+
 // Coroutines end here

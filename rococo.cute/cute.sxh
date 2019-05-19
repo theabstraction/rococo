@@ -84,11 +84,11 @@
 	)
 )
 
-(functions Rococo.Cute.Native "cute.functions"
-	(GetWindowRect (WindowRef hWnd)(Vec2i pos)(Vec2i span) -> : Rococo::Cute::Native::GetWindowRect)
-	(GetSpan (WindowRef hWnd)(Vec2i span) -> : Rococo::Cute::Native::GetSpan)
-	(SetText (WindowRef hWnd)(IString text) -> : Rococo::Cute::Native::SetText)
-	(GetText (WindowRef hWnd)(IStringBuilder sb) -> (Int32 stringLength): Rococo::Cute::Native::GetText)
-	(SetColourTarget (WindowRef hWnd) (ColourTarget target) (RGBAb colour) -> : Rococo::Cute::Native::SetColourTarget)
+(functions "cute.functions"
+	(Rococo.Cute.Native.GetWindowRect (WindowRef hWnd)(Vec2i pos)(Vec2i span) -> : Rococo::Cute::Native::GetWindowRect)
+	(Rococo.Cute.Native.GetSpan (WindowRef hWnd)(Vec2i span) -> : Rococo::Cute::Native::GetSpan)
+	(Rococo.Cute.Native.SetText (WindowRef hWnd)(IString text) -> : Rococo::Cute::Native::SetText)
+	(Rococo.Cute.Native.GetText (WindowRef hWnd)(IStringBuilder sb) -> (Int32 stringLength): Rococo::Cute::Native::GetText)
+	(Rococo.Cute.Native.SetColourTarget (WindowRef hWnd) (ColourTarget target) (RGBAb colour) -> : Rococo::Cute::Native::SetColourTarget)
 )
 

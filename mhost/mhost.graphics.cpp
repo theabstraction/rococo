@@ -100,6 +100,27 @@ void SetGuiQuadForBitmap(GuiTriangle t[2], const GuiRectf& txUV, int textureInde
 	t[1].c.vd.uv = t[0].b.vd.uv;
 }
 
+void SetGuiQuadForBitmapWithColour(GuiTriangle t[2], const GuiRectf& txUV, int textureIndex, float spriteToColourLerpFactor, RGBAb colour)
+{
+	t[0].a.colour = colour;
+	t[0].a.sd.matIndex = 0;
+	t[0].a.sd.textureIndex = (float)textureIndex;
+	t[0].a.sd.lerpBitmapToColour = spriteToColourLerpFactor;
+	t[0].a.sd.textureToMatLerpFactor = 0;
+	t[0].a.vd.fontBlend = 0;
+
+	t[0].b = t[0].c = t[0].a;
+	t[1] = t[0];
+
+	t[0].a.vd.uv = { txUV.left, txUV.top };
+	t[0].b.vd.uv = { txUV.right, txUV.top };
+	t[0].c.vd.uv = { txUV.left, txUV.bottom };
+
+	t[1].a.vd.uv = { txUV.right, txUV.bottom };
+	t[1].b.vd.uv = t[0].c.vd.uv;
+	t[1].c.vd.uv = t[0].b.vd.uv;
+}
+
 class BasicTextJob : public IDrawTextJob
 {
 private:
@@ -191,22 +212,22 @@ struct Gui : public MHost::IGui
 
 	Gui(Rococo::IGuiRenderContext& _gc) : gc(_gc) {}
 
+	//   a --- b
+	//   |   /
+	//   |  /  = t0
+	//   | /
+	//   |/
+	//   c
+
+	//         c
+	//       / |
+	//      /  | = t1
+	//     /   |
+	//    /    |
+	//   b-----a
+
 	void DrawSprite(const Vec2& pixelPos, int32 alignmentFlags, const BitmapLocation& loc) override
 	{
-		//   a --- b
-		//   |   /
-		//   |  /  = t0
-		//   | /
-		//   |/
-		//   c
-
-		//         c
-		//       / |
-		//      /  | = t1
-		//     /   |
-		//    /    |
-		//   b-----a
-
 		GuiRectf txUV = { (float)loc.txUV.left,  (float)loc.txUV.top, (float)loc.txUV.right,  (float)loc.txUV.bottom };
 
 		Vec2 span = Span(txUV);
@@ -218,6 +239,60 @@ struct Gui : public MHost::IGui
 
 		GuiTriangle t[2];
 		SetGuiQuadForBitmap(t, txUV, loc.textureIndex);
+
+		t[0].a.pos = topLeftPos;
+		t[0].b.pos = { topLeftPos.x + span.x, topLeftPos.y };
+		t[0].c.pos = { topLeftPos.x, topLeftPos.y + span.y };
+
+		t[1].a.pos = topLeftPos + span;
+		t[1].b.pos = t[0].c.pos;
+		t[1].c.pos = t[0].b.pos;
+
+		gc.AddTriangle(&t[0].a);
+		gc.AddTriangle(&t[1].a);
+	}
+
+	void DrawScaledColouredSprite(const Vec2& pixelPos, int32 alignmentFlags, const Rococo::Textures::BitmapLocation& loc, float blendFactor, RGBAb colour, float scaleFactor)
+	{
+		GuiRectf txUV = { (float)loc.txUV.left,  (float)loc.txUV.top, (float)loc.txUV.right,  (float)loc.txUV.bottom };
+
+		Vec2 span = Span(txUV);
+
+		span *= scaleFactor;
+
+		Vec2 topLeftPos = GetTopLeftPos(pixelPos, span, alignmentFlags);
+
+		topLeftPos.x = floorf(topLeftPos.x);
+		topLeftPos.y = floorf(topLeftPos.y);
+
+		GuiTriangle t[2];
+		SetGuiQuadForBitmapWithColour(t, txUV, loc.textureIndex, blendFactor, colour);
+
+		t[0].a.pos = topLeftPos;
+		t[0].b.pos = { topLeftPos.x + span.x, topLeftPos.y };
+		t[0].c.pos = { topLeftPos.x, topLeftPos.y + span.y };
+
+		t[1].a.pos = topLeftPos + span;
+		t[1].b.pos = t[0].c.pos;
+		t[1].c.pos = t[0].b.pos;
+
+		gc.AddTriangle(&t[0].a);
+		gc.AddTriangle(&t[1].a);
+	}
+
+	void DrawColouredSprite(const Vec2& pixelPos, int32 alignmentFlags, const BitmapLocation& loc, float spriteToColourLerpFactor, RGBAb colour) override
+	{
+		GuiRectf txUV = { (float)loc.txUV.left,  (float)loc.txUV.top, (float)loc.txUV.right,  (float)loc.txUV.bottom };
+
+		Vec2 span = Span(txUV);
+
+		Vec2 topLeftPos = GetTopLeftPos(pixelPos, span, alignmentFlags);
+
+		topLeftPos.x = floorf(topLeftPos.x);
+		topLeftPos.y = floorf(topLeftPos.y);
+
+		GuiTriangle t[2];
+		SetGuiQuadForBitmapWithColour(t, txUV, loc.textureIndex, spriteToColourLerpFactor, colour);
 
 		t[0].a.pos = topLeftPos;
 		t[0].b.pos = { topLeftPos.x + span.x, topLeftPos.y };
@@ -285,6 +360,11 @@ struct Gui : public MHost::IGui
 		GuiMetrics gm;
 		gc.Renderer().GetGuiMetrics(gm);
 		pos = { (float) gm.cursorPosition.x, (float)gm.screenSpan.y };
+	}
+
+	void SetGuiShaders(const fstring& pixelShaderFilename) override
+	{
+		gc.SetGuiShader(pixelShaderFilename);
 	}
 };
 

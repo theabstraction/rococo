@@ -34,25 +34,13 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		float a;
-		_offset += sizeof(a);
-		ReadInput(a, _sf, -_offset);
+		RGBA* colourF32x4;
+		_offset += sizeof(colourF32x4);
+		ReadInput(colourF32x4, _sf, -_offset);
 
-		float b;
-		_offset += sizeof(b);
-		ReadInput(b, _sf, -_offset);
-
-		float g;
-		_offset += sizeof(g);
-		ReadInput(g, _sf, -_offset);
-
-		float r;
-		_offset += sizeof(r);
-		ReadInput(r, _sf, -_offset);
-
-		RGBAb colour = MHost::Graphics::ToRGBAb(r, g, b, a);
-		_offset += sizeof(colour);
-		WriteOutput(colour, _sf, -_offset);
+		RGBAb colourB8x4 = MHost::Graphics::ToRGBAb(*colourF32x4);
+		_offset += sizeof(colourB8x4);
+		WriteOutput(colourB8x4, _sf, -_offset);
 	}
 
 	void NativeMHostGraphicsFloatToColourComponent(NativeCallEnvironment& _nce)
@@ -88,7 +76,7 @@ namespace MHost { namespace Graphics {
 	void AddNativeCalls_MHostGraphics(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Graphics"));
-		ss.AddNativeCall(ns, NativeMHostGraphicsToRGBAb, nullptr, ("ToRGBAb(Float32 r)(Float32 g)(Float32 b)(Float32 a) -> (Int32 colour)"));
+		ss.AddNativeCall(ns, NativeMHostGraphicsToRGBAb, nullptr, ("ToRGBAb(RGBA colourF32x4) -> (Int32 colourB8x4)"));
 		ss.AddNativeCall(ns, NativeMHostGraphicsFloatToColourComponent, nullptr, ("FloatToColourComponent(Float32 c) -> (Int32 ic)"));
 	}
 }}

@@ -307,11 +307,18 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 	// Append the input arguments to the method invocation
 	for (int i = 1; i < outputStart - 1; ++i)
 	{
-		cr_sex s = functionDef.GetElement(i);
+		cr_sex s = functionDef[i];
 
-		cr_sex stype = s.GetElement(0);
-		cr_sex svalue = s.GetElement(1);
-		cstr type = StringFrom(stype);
+		const ISExpression* stype = &s[0];
+		const ISExpression* svalue = &s[1];
+		cstr type = StringFrom(*stype);
+
+		if (Eq(type, "const"))
+		{
+			stype = &s[1];
+			type = StringFrom(*stype);
+			svalue = &s[2];
+		}
 
 		if (!AreEqual(type, ("#")))
 		{
@@ -320,7 +327,7 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 
 			if (AreEqual(type, ("IStringBuilder")) || AreEqual(type, ("Sys.Text.IStringBuilder")))
 			{
-				outputFile.Append("_%sPopulator", StringFrom(svalue));
+				outputFile.Append("_%sPopulator", StringFrom(*svalue));
 			}
 			else
 			{
@@ -329,7 +336,7 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 					outputFile.Append('*');
 				}
 
-				outputFile.Append("%s", StringFrom(svalue));
+				outputFile.Append("%s", StringFrom(*svalue));
 			}
 		}
 		else
