@@ -232,6 +232,16 @@ struct Gui : public MHost::IGui
 
 		Vec2 span = Span(txUV);
 
+		if (HasFlag(alignmentFlags, MHost::AlignmentFlags_Flip))
+		{
+			std::swap(txUV.top, txUV.bottom);
+		}
+
+		if (HasFlag(alignmentFlags, MHost::AlignmentFlags_Mirror))
+		{
+			std::swap(txUV.left, txUV.right);
+		}
+
 		Vec2 topLeftPos = GetTopLeftPos(pixelPos, span, alignmentFlags);
 
 		topLeftPos.x = floorf(topLeftPos.x);
@@ -257,6 +267,16 @@ struct Gui : public MHost::IGui
 		GuiRectf txUV = { (float)loc.txUV.left,  (float)loc.txUV.top, (float)loc.txUV.right,  (float)loc.txUV.bottom };
 
 		Vec2 span = Span(txUV);
+
+		if (HasFlag(alignmentFlags, MHost::AlignmentFlags_Flip))
+		{
+			std::swap(txUV.top, txUV.bottom);
+		}
+
+		if (HasFlag(alignmentFlags, MHost::AlignmentFlags_Mirror))
+		{
+			std::swap(txUV.left, txUV.right);
+		}
 
 		span *= scaleFactor;
 

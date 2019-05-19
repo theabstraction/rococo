@@ -96,13 +96,21 @@
 )
 
 (interface MHost.IWorld
-	(ForEachEntityInWorld (OnEntity onEntity)->)
 	(Advance ->)
 	(RenderGui (IGui gui)-> )
 )
 
 (struct Star
 	(Float32 x y brightness size)
+)
+
+(struct Cloud
+	(Vec2 position)
+	(Int32 alignment)
+	(Float32 scale)
+	(Int32 colour)
+	(RGBA baseColour)
+	(Vec2 velocity)
 )
 
 (class World 
@@ -114,15 +122,18 @@
 	(Sprite starSmall)
 	(Sprite starLarge)
 	(Sprite moon)
+	(Sprite cloud)
 	
 	(IEngine engine)
 	(ILegacySoundControl sound)
 
 	(Entity player)
 	
+	(Bool playerFacesRight)
+	
 	(Vec2 playerDirection)
 	(Vec2 playerPosition) // The player's location in the world
-	(Vec2 worldPosition) // The top left of the screen in the worldv
+	(Vec2 worldPosition) // The top left of the screen in the world
 	
 	(Vec2 screenSpan)
 	
@@ -131,12 +142,20 @@
 	
 	(array Star smallStars)
 	(array Star largeStars)
+	(array Cloud cloudsForeground)
+	(array Cloud cloudsBackground)
 )
 
-(method World.Construct (IEngine engine) (ILegacySoundControl sound) -> (construct smallStars 1000) (construct largeStars 10):
+(method World.Construct (IEngine engine) (ILegacySoundControl sound) ->
+	(construct smallStars 1000) 
+	(construct largeStars 10)
+	(construct cloudsBackground 150)
+	(construct cloudsForeground 150)
+	:
 	(this.engine = engine)
 	(this.sound = sound)
 	(this.screenSpan = 0 0)
+	(this.playerFacesRight = true)
 	
 	(#for (Int32 i = 0)(i < 1000)(i += 1)
 		(Star s)
@@ -156,6 +175,54 @@
 		(s.size = 1)
 		(this.largeStars.Push s)
 	)
+	
+	(Int32 alignMirror = (#AlignmentFlagsMirror))
+	(Int32 alignFlip = (#AlignmentFlagsFlip))
+	
+	(#for (Int32 i = 0)(i < 150)(i += 1)
+		(Cloud cloud = (-1000 -1000) 0 0 0xFFFFFFFF (1 1 1 1)(0 0))
+		
+		(cloud.alignment = 0)
+		
+		(if ((AnyFloat 0 1) > 0.5)
+			(cloud.alignment += alignMirror)
+		)
+		
+		(if ((AnyFloat 0 1) > 0.5)
+			(cloud.alignment += alignFlip)
+		)
+		
+		
+		(cloud.baseColour.a = (AnyFloat 0.05 0.1))
+		
+		(AnyFloat 0.25 2 -> cloud.scale)
+		
+		(ToRGBAb cloud.baseColour -> cloud.colour)
+		
+		(this.cloudsBackground.Push cloud)
+	)
+	
+	(#for (Int32 i = 0)(i < 150)(i += 1)
+		(Cloud cloud = (-1000 -1000) 0 0 0xFFFFFFFF (1 1 1 1)(0 0))
+		
+		(cloud.alignment = 0)
+		
+		(if ((AnyFloat 0 1) > 0.5)
+			(cloud.alignment += alignMirror)
+		)
+		
+		(if ((AnyFloat 0 1) > 0.5)
+			(cloud.alignment += alignFlip)
+		)
+		
+		(cloud.baseColour.a = (AnyFloat 0.05 0.1))
+		
+		(AnyFloat 0.5 2 -> cloud.scale)
+		
+		(ToRGBAb cloud.baseColour -> cloud.colour)
+		
+		(this.cloudsForeground.Push cloud)
+	)
 )
 
 (factory Harrier.NewWorld IWorld (IEngine engine) (ILegacySoundControl sound) : 
@@ -164,6 +231,7 @@
 
 (method World.SetPlayerDirection (Vec2 direction) -> :
 	(this.playerDirection = direction)
+	(this.playerFacesRight = (direction.x >= 0))
 )
 
 (function InitSprite (IEngine engine)(Sprite bmp)-> :
@@ -172,13 +240,14 @@
 
 (archetype Harrier.OnEntity (Entity e)->)
 
-(method World.ForEachEntityInWorld (OnEntity onEntity)-> :
-	(onEntity this.player)
-)
-
-(function DrawEntity (Entity e)(IGui gui) -> :
+(function DrawPlayer (World w)(IGui gui) -> :
 	(Int32 alignmentFlags = 0) // centred
-	(gui.DrawSprite e.screenPosition alignmentFlags e.image.location)
+	
+	(if (not w.playerFacesRight)
+		(alignmentFlags = (#AlignmentFlagsMirror))
+	)
+	
+	(gui.DrawSprite w.player.screenPosition alignmentFlags w.player.image.location)
 )
 
 (function RenderLives (Entity player)(IGui gui)(Float32 count)-> :
@@ -288,6 +357,27 @@
 	(RenderSpace this gc)
 	(RenderLandscape this.worldPosition gc)
 	
+	(gc.SetGuiShaders "!gui.cloud.ps")
+	
+	(foreach c # this.cloudsBackground
+		(Float32 x = ((c.position.x - this.playerPosition.x) + this.player.screenPosition.x))
+		(Float32 y = ((this.playerPosition.y - c.position.y) + this.player.screenPosition.y))
+		(Vec2 cloudPosition = x y)
+		
+		(Int32 colour)
+		
+		(if (c.position.y < 1056)
+			(Float32 alpha = ((1056 - c.position.y) / 256))
+			(RGBA adjustedColour = c.baseColour)
+			(adjustedColour.a *= alpha)
+			(ToRGBAb adjustedColour -> colour)
+		else	
+			(colour = c.colour)
+		)
+			
+		(gc.DrawScaledColouredSprite cloudPosition c.alignment this.cloud.location 0.5 colour c.scale)
+	)
+	
 	(gc.SetGuiShaders "!gui.shadow.ps")
 	
 	(Float32 alpha = 0)
@@ -302,12 +392,41 @@
 	(Float32 deltaQuotient = (1.1 - alpha))
 	(Vec2 deltaEx = delta * deltaQuotient)
 	(Vec2 shadowPos = this.player.screenPosition + deltaEx)
-	(gc.DrawScaledColouredSprite shadowPos 0 this.player.image.location 0.5 (ToRGBAb shadowColour) alpha)
+	
+	(Int32 alignmentFlags = 0) // centred
+	
+	(if (not this.playerFacesRight)
+		(alignmentFlags = (#AlignmentFlagsMirror))
+	)
+	
+	(gc.DrawScaledColouredSprite shadowPos alignmentFlags this.player.image.location 0.5 (ToRGBAb shadowColour) alpha)
 	
 	(gc.SetGuiShaders "")
 
-	(OnEntity drawSprites = (closure (Entity e)-> : (DrawEntity e gc)))
-	(this.ForEachEntityInWorld drawSprites)
+	(DrawPlayer this gc)
+	
+	(gc.SetGuiShaders "!gui.cloud.ps")
+	
+	(foreach c # this.cloudsForeground
+		(Float32 x = ((c.position.x - this.playerPosition.x) + this.player.screenPosition.x))
+		(Float32 y = ((this.playerPosition.y - c.position.y) + this.player.screenPosition.y))
+		(Vec2 cloudPosition = x y)
+		
+		(Int32 colour)
+		
+		(if (c.position.y < 1056)
+			(Float32 alpha = ((1056 - c.position.y) / 256))
+			(RGBA adjustedColour = c.baseColour)
+			(adjustedColour.a *= alpha)
+			(ToRGBAb adjustedColour -> colour)
+		else	
+			(colour = c.colour)
+		)
+		
+		(gc.DrawScaledColouredSprite cloudPosition c.alignment this.cloud.location 0.5 colour c.scale)
+	)
+	
+	(gc.SetGuiShaders "")
 	
 	(if (this.lives > 0)
 		(RenderLives this.player gc (this.lives - 1))
@@ -330,19 +449,103 @@
 	(Vec2 delta = this.playerDirection * 4)
 	(this.playerPosition = this.playerPosition + delta)
 	(this.playerPosition.y = (F32.MaxOf this.playerPosition.y 150))
+	(Float32 maxHeight = 2000)
+	(this.playerPosition.y = (F32.MinOf maxHeight this.playerPosition.y))
 	
 	(Float32 centreX = (this.screenSpan.x / 2))	
 	(Float32 x = (this.playerPosition.x - centreX))
 	
-	(this.player.screenPosition.x = 500)
+	(this.player.screenPosition.x = (this.screenSpan.x / 2))
 	
-	(if (this.playerPosition.y <= 300)
+	(Float32 scrollHeight = (this.screenSpan.y / 2))
+	(if (this.playerPosition.y <= scrollHeight)
 		(this.player.screenPosition.y = (this.screenSpan.y - this.playerPosition.y))
 		(this.worldPosition = x this.screenSpan.y)
 	else
-		(this.player.screenPosition.y = (this.screenSpan.y - 300))
-		(Float32 y = (this.screenSpan.y + (this.playerPosition.y - 300)))
+		(this.player.screenPosition.y = (this.screenSpan.y - scrollHeight))
+		(Float32 y = (this.screenSpan.y + (this.playerPosition.y - scrollHeight)))
 		(this.worldPosition = x y)
+	)
+	
+	(if (this.playerPosition.y > 0)
+		(Vec2 halfSpan = this.screenSpan * 0.5)
+		(Float32 maxY = (this.playerPosition.y + halfSpan.y))
+		(maxY += 512)
+		
+		(Float32 minY = (this.playerPosition.y - halfSpan.y))
+		(minY -= 512)
+		
+		(if (minY < 800)
+			(minY = 800)
+		)
+		
+		(Float32 maxX = (this.playerPosition.x + halfSpan.x))
+		(maxX += 512)
+		
+		(Float32 minX = (this.playerPosition.x - halfSpan.x))
+		(minX -= 512)
+		
+		(foreach cloud # this.cloudsBackground
+			(Vec2 pos = cloud.position)
+			(if (((pos.x < minX) or (pos.x > maxX)) or (((minY < maxY) and (pos.y < minY)) or (pos.y > maxY)))
+				(Float32 f = (AnyFloat 0 1))
+				(if (f < 0.25)
+					(pos.x = (minX + (AnyFloat 0 250)))
+					(pos.y = (AnyFloat minY maxY))
+				else
+					(if (f < 0.5)
+						(pos.x = (maxX - (AnyFloat 0 250)))
+						(pos.y = (AnyFloat minY maxY))
+					else
+						(if (f < 0.75)
+							(pos.x = (AnyFloat minX maxX))
+							(pos.y = (maxY - (AnyFloat 0 250)))
+						else
+							(pos.x = (AnyFloat minX maxX))
+							(pos.y = (minY + (AnyFloat 0 250)))
+						)
+					)
+				)
+				
+				(cloud.position = pos)
+				(cloud.velocity.x = (AnyFloat -0.3 0.3))
+				(cloud.velocity.y = (AnyFloat -0.3 0.3))
+			)
+			
+			(cloud.position = cloud.position + cloud.velocity)
+		)
+		
+		(foreach cloud # this.cloudsForeground
+			(Vec2 pos = cloud.position)
+			(if (((pos.x < minX) or (pos.x > maxX)) or (((minY < maxY) and (pos.y < minY)) or (pos.y > maxY)))
+				(Float32 f = (AnyFloat 0 1))
+				(if (f < 0.25)
+					(pos.x = (minX + (AnyFloat 0 250)))
+					(pos.y = (AnyFloat minY maxY))
+				else
+					(if (f < 0.5)
+						(pos.x = (maxX - (AnyFloat 0 250)))
+						(pos.y = (AnyFloat minY maxY))
+					else
+						(if (f < 0.75)
+							(pos.x = (AnyFloat minX maxX))
+							(pos.y = (maxY - (AnyFloat 0 250)))
+						else
+							(pos.x = (AnyFloat minX maxX))
+							(pos.y = (minY + (AnyFloat 0 250)))
+						)
+					)
+				)
+				
+				(cloud.position = pos)
+				(cloud.velocity.x = (AnyFloat -0.3 0.3))
+				(cloud.velocity.y = (AnyFloat -0.3 0.3))
+			)
+			
+			(cloud.position = cloud.position + cloud.velocity)
+			
+		//	(cloud.position = this.playerPosition)
+		)
 	)
 )
 
@@ -359,22 +562,18 @@
 	(this.starSmall = "!textures/mhost/harrier/star.1.tiff" defaultBmpLoc true)
 	(this.starLarge = "!textures/mhost/harrier/star.3.tiff" defaultBmpLoc true)
 	(this.moon = "!textures/mhost/harrier/moon.tiff" defaultBmpLoc true)
+	(this.cloud = "!textures/mhost/harrier/cloud.tiff" defaultBmpLoc true)
 	
 	(this.player = (322 322) ("!textures/mhost/harrier/av-8b_facing_right.tiff" defaultBmpLoc true))
 	
 	(IEngine engine = this.engine)
 	
-	(OnEntity initSprites = 
-		(closure (Entity e)-> :
-			(InitSprite engine e.image)
-		)
-	)
-	
-	(this.ForEachEntityInWorld initSprites)
+	(InitSprite engine this.player.image)
 	(InitSprite engine this.explosion)
 	(InitSprite engine this.starSmall)
 	(InitSprite engine this.starLarge)
 	(InitSprite engine this.moon)
+	(InitSprite engine this.cloud)
 	
 	(while engine.IsRunning
 		(this.Advance)
