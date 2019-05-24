@@ -123,8 +123,6 @@ namespace ANON
 		CSParserTree& tree;
 		Vec2i start;
 		Vec2i end;
-		size_t startOffset;
-		size_t endOffset;
 		EXPRESSION_TYPE type;
 		CSParserTree* transform; // 'this->transform' is the macro transform of 'this'
 		CSExpression* parent;
@@ -145,12 +143,10 @@ namespace ANON
 			type = EXPRESSION_TYPE_COMPOUND;
 		}
 	public:
-		CSExpression(CSParserTree& _tree, const Vec2i& _start, size_t _startOffset, CSExpression* _parent) :
+		CSExpression(CSParserTree& _tree, const Vec2i& _start, CSExpression* _parent) :
 			tree(_tree),
 			start(_start),
 			end(_start),
-			startOffset(_startOffset),
-			endOffset(0),
 			type(EXPRESSION_TYPE_NULL),
 			transform(NULL),
 			parent(_parent),
@@ -163,12 +159,10 @@ namespace ANON
 			}
 		}
 
-		CSExpression(CSParserTree& _tree, const Vec2i& _start, const Vec2i& _end, size_t _startOffset, size_t _endOffset, CSExpression* _parent, cstr data, int dataLen, bool isStringLiteral) :
+		CSExpression(CSParserTree& _tree, const Vec2i& _start, const Vec2i& _end, CSExpression* _parent, cstr data, int dataLen, bool isStringLiteral) :
 			tree(_tree),
 			start(_start),
 			end(_end),
-			startOffset(_startOffset),
-			endOffset(_endOffset),
 			type(isStringLiteral ? EXPRESSION_TYPE_STRING_LITERAL : EXPRESSION_TYPE_ATOMIC),
 			transform(NULL),
 			parent(_parent),
@@ -200,25 +194,23 @@ namespace ANON
 
 		virtual void AddAtomic(cstr token)
 		{
-			new CSExpression(tree, start, end, startOffset, endOffset, this, token, StringLength(token), false);
+			new CSExpression(tree, start, end, this, token, StringLength(token), false);
 		}
 
 		virtual void AddStringLiteral(cstr token)
 		{
-			new CSExpression(tree, start, end, startOffset, endOffset, this, token, StringLength(token), true);
+			new CSExpression(tree, start, end, this, token, StringLength(token), true);
 		}
 
 		virtual ISExpressionBuilder* AddChild()
 		{
-			CSExpression* child = new CSExpression(tree, start, startOffset, this);
-			child->SetEnd(end, endOffset);
+			CSExpression* child = new CSExpression(tree, start, this);
+			child->SetEnd(end);
 			return child;
 		}
 
 		virtual const Vec2i& Start() const { return start; }
 		virtual const Vec2i& End() const { return end; }
-		virtual size_t StartOffset() const { return startOffset; }
-		virtual size_t EndOffset() const { return endOffset; }
 		virtual EXPRESSION_TYPE Type() const { return type; }
 		virtual const sexstring String() const;
 		virtual const ISParserTree& Tree() const;
@@ -232,13 +224,12 @@ namespace ANON
 
 		CSExpression* ConcreteParent() { return parent; }
 
-		void AddAtomic(cstr sourceSegmentOrigin, int32 sourceSegmentLength, const Vec2i& start, const Vec2i& end, size_t startOffset, size_t endOffset);
-		void AddEscapedString(cstr sourceSegmentOrigin, int32 sourceSegmentLength, const Vec2i& start, const Vec2i& end, size_t startOffset, size_t endOffset);
+		void AddAtomic(cstr sourceSegmentOrigin, int32 sourceSegmentLength, const Vec2i& start, const Vec2i& end);
+		void AddEscapedString(cstr sourceSegmentOrigin, int32 sourceSegmentLength, const Vec2i& start, const Vec2i& end);
 
-		void SetEnd(const Vec2i& _end, size_t _endOffset)
+		void SetEnd(const Vec2i& _end)
 		{
 			end = _end;
-			endOffset = _endOffset;
 		}
 
 		virtual bool operator == (const char* token) const
@@ -302,8 +293,8 @@ namespace ANON
 			original(_original)
 		{
 			sourceCode.AddRef();
-			root = new CSExpression(*this, start, 0, NULL);
-			root->SetEnd(end, _sourceCode.SourceLength() - 1);
+			root = new CSExpression(*this, start, NULL);
+			root->SetEnd(end);
 		}
 
 		~CSParserTree()
@@ -360,14 +351,14 @@ namespace ANON
 		return s;
 	}
 
-	void CSExpression::AddAtomic(cstr sourceSegmentOrigin, int32 sourceSegmentLength, const Vec2i& start, const Vec2i& end, size_t startOffset, size_t endOffset)
+	void CSExpression::AddAtomic(cstr sourceSegmentOrigin, int32 sourceSegmentLength, const Vec2i& start, const Vec2i& end)
 	{
-		new CSExpression(tree, start, end, startOffset, endOffset, this, sourceSegmentOrigin, sourceSegmentLength, false);
+		new CSExpression(tree, start, end, this, sourceSegmentOrigin, sourceSegmentLength, false);
 	}
 
-	void CSExpression::AddEscapedString(cstr sourceSegmentOrigin, int32 sourceSegmentLength, const Vec2i& start, const Vec2i& end, size_t startOffset, size_t endOffset)
+	void CSExpression::AddEscapedString(cstr sourceSegmentOrigin, int32 sourceSegmentLength, const Vec2i& start, const Vec2i& end)
 	{
-		new CSExpression(tree, start, end, startOffset, endOffset, this, sourceSegmentOrigin, sourceSegmentLength, true);
+		new CSExpression(tree, start, end, this, sourceSegmentOrigin, sourceSegmentLength, true);
 	}
 
 	const ISParserTree& CSExpression::Tree() const
@@ -377,14 +368,14 @@ namespace ANON
 
 	void CSParserTree::AddToken(cstr start, cstr end)
 	{
-		generationNode->AddAtomic(start, (int32)(end - start), generationTokenStartPos, generationPrevCursorPos, start - sourceCode.SourceStart(), end - sourceCode.SourceStart() - 1);
+		generationNode->AddAtomic(start, (int32)(end - start), generationTokenStartPos, generationPrevCursorPos);
 	}
 
 	void CSParserTree::AddStringToken(cstr start, int32 length)
 	{
 		Vec2i theEnd = generationPrevCursorPos;
 		theEnd.x++;
-		generationNode->AddEscapedString(start, length, generationTokenStartPos, theEnd, start - sourceCode.SourceStart(), start - sourceCode.SourceStart() + (size_t)length);
+		generationNode->AddEscapedString(start, length, generationTokenStartPos, theEnd);
 	}
 
 	void CSParserTree::Generate()
@@ -401,11 +392,11 @@ namespace ANON
 			(this->*generationState)();
 		}
 
-		root->SetEnd(generationCursorPos, generationLength - 1);
+		root->SetEnd(generationCursorPos);
 
 		if (generationNode != root)
 		{
-			generationNode->SetEnd(generationCursorPos, generationLength - 1);
+			generationNode->SetEnd(generationCursorPos);
 			char specimen[64];
 			GetSpecimen(specimen, *generationNode);
 			throw ParseException(sourceCode.Origin(), generationPrevCursorPos, sourceCode.Name(), ("Syntax error: missing close parenthesis character: ')'"), specimen, NULL);
@@ -514,12 +505,12 @@ namespace ANON
 
 	void CSParserTree::OpenInnerExpression()
 	{
-		generationNode = new CSExpression(*this, generationPrevCursorPos, generationCurrentPtr - sourceCode.SourceStart() - 1, generationNode);
+		generationNode = new CSExpression(*this, generationPrevCursorPos, generationNode);
 	}
 
 	void CSParserTree::CloseInnerExpression()
 	{
-		generationNode->SetEnd(generationCursorPos, generationCurrentPtr - sourceCode.SourceStart() - 1);
+		generationNode->SetEnd(generationCursorPos);
 
 		CSExpression* parent = generationNode->ConcreteParent();
 		if (parent == NULL)

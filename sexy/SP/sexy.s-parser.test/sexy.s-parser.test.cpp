@@ -629,8 +629,6 @@ namespace
 		VALIDATE_EQUAL(tree->Root().NumberOfElements(), 1);
 
 		cr_sex a = tree->Root().GetElement(0);
-		VALIDATE_EQUAL(a.StartOffset(), 0ull);
-		VALIDATE_EQUAL(a.EndOffset(), 0ull);
 
 		VALIDATE(tree->Release() == 0);
 		VALIDATE(src->Release() == 0);
@@ -644,8 +642,6 @@ namespace
 		VALIDATE_EQUAL(tree->Root().NumberOfElements(), 1);
 
 		cr_sex a = tree->Root().GetElement(0);
-		VALIDATE_EQUAL(a.StartOffset(), 3ull);
-		VALIDATE_EQUAL(a.EndOffset(), 3ull);
 
 		VALIDATE(tree->Release() == 0);
 		VALIDATE(src->Release() == 0);
@@ -659,8 +655,6 @@ namespace
 		VALIDATE_EQUAL(tree->Root().NumberOfElements(), 1);
 
 		cr_sex a = tree->Root().GetElement(0);
-		VALIDATE_EQUAL(a.StartOffset(), 0ull);
-		VALIDATE_EQUAL(a.EndOffset(), 1ull);
 
 		VALIDATE(tree->Release() == 0);
 		VALIDATE(src->Release() == 0);
@@ -674,8 +668,6 @@ namespace
 		VALIDATE_EQUAL(tree->Root().NumberOfElements(), 1);
 
 		cr_sex a = tree->Root().GetElement(0);
-		VALIDATE_EQUAL(a.StartOffset(), 1ull);
-		VALIDATE_EQUAL(a.EndOffset(), 3ull);
 
 		VALIDATE(tree->Release() == 0);
 		VALIDATE(src->Release() == 0);
@@ -690,24 +682,14 @@ namespace
 
 		cr_sex achildcontainer = tree->Root().GetElement(0);
 		VALIDATE_EQUAL(achildcontainer.NumberOfElements(), 1);
-		VALIDATE_EQUAL(achildcontainer.StartOffset(), 0ull);
-		VALIDATE_EQUAL(achildcontainer.EndOffset(), 2ull);
 
 		cr_sex aexpr = achildcontainer.GetElement(0);
-		VALIDATE_EQUAL(aexpr.StartOffset(), 1ull);
-		VALIDATE_EQUAL(aexpr.EndOffset(), 1ull);
 
 		cr_sex bcdeContainerContainer = tree->Root().GetElement(1);
-		VALIDATE_EQUAL(bcdeContainerContainer.StartOffset(), 4ull);
-		VALIDATE_EQUAL(bcdeContainerContainer.EndOffset(), 13ull);
 
 		cr_sex bcdeContainer = bcdeContainerContainer.GetElement(0);
-		VALIDATE_EQUAL(bcdeContainer.StartOffset(), 5ull);
-		VALIDATE_EQUAL(bcdeContainer.EndOffset(), 11ull);
 
 		cr_sex bc = bcdeContainer.GetElement(0);
-		VALIDATE_EQUAL(bc.StartOffset(), 6ull);
-		VALIDATE_EQUAL(bc.EndOffset(), 7ull);
 
 		VALIDATE(tree->Release() == 0);
 		VALIDATE(src->Release() == 0);
