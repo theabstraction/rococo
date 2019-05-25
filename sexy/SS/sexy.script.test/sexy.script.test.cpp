@@ -12377,14 +12377,17 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestExpressionArg);
+		TEST(TestReflectionGetParent);
+		TEST(TestReflectionGetChild);
+		TEST(TestReflectionGetAtomic);
+
 		TEST(TestTypeInference1);
 
 		TEST2(TestCoroutine1);
 		TEST(TestCPPCallback);
 
 		TEST(TestMethodFromClosure);
-
-		TEST(TestMacro);
 
 		TEST(TestCPPCallback);
 
@@ -12585,11 +12588,6 @@ namespace
 
 		TEST(TestStringBuilder);
 
-		TEST(TestExpressionArg);
-		TEST(TestSubstitution);
-
-		TEST(TestReflectionGetCurrentExpression);
-
 		TEST(TestInlinedFactory);
 
 		TEST(TestBadClosureArg7);
@@ -12646,8 +12644,6 @@ namespace
 		TEST(TestEssentialInterface);
 		TEST(TestInterfaceForNull);
 
-		TEST(TestMacroAsArgument1);
-
 		TestMaths();
 
 		TEST(TestStringBuilderBig);
@@ -12660,13 +12656,17 @@ namespace
 		TEST(TestMeshStruct);
 
 		TEST(TestPrintModules);
-		TEST(TestReflectionGetParent);
-		TEST(TestReflectionGetChild);
-		TEST(TestReflectionGetAtomic);
 
 		TEST(TestModuleCount);
 
 		TEST(TestPrintStructs);
+
+		TEST(TestMacro);
+		TEST(TestMacroAsArgument1);
+
+		TEST(TestSubstitution);
+
+		TEST(TestReflectionGetCurrentExpression);
 	}
 
 	void RunPositiveFailures()

@@ -96,10 +96,11 @@ namespace
       uint32 allocCount{ 0 };
       uint32 freeCount{ 0 };
       uint32 reallocCount{ 0 };
+	  size_t maxBytes;
    public:
-      BlockAllocator(size_t kilobytes, size_t maxkilobytes)
+      BlockAllocator(size_t kilobytes, size_t _maxkilobytes): maxBytes(_maxkilobytes * 1024)
       {
-         hHeap = HeapCreate(HEAP_NO_SERIALIZE, kilobytes * 1024, maxkilobytes * 1024);
+         hHeap = HeapCreate(HEAP_NO_SERIALIZE, kilobytes * 1024, maxBytes);
          if (hHeap == nullptr) Throw(GetLastError(), "Error allocating heap");
       }
 
@@ -112,13 +113,17 @@ namespace
          HeapDestroy(hHeap);
       }
 
-      virtual void* Allocate(size_t capacity)
-      {
-         allocCount++;
-         auto* ptr = HeapAlloc(hHeap, 0, capacity);
-         if (ptr == nullptr) Throw(GetLastError(), "Insufficient memory in dedicated BlockAllocator heap for alloc operation");
-         return ptr;
-      }
+	  virtual void* Allocate(size_t capacity)
+	  {
+		  if (capacity > 0x7FFF8 && maxBytes != 0)
+		  {
+			  Throw(GetLastError(), "Heap max must be set to zero (growable heap for allocations this large)", maxBytes);
+		  }
+		  allocCount++;
+		  auto* ptr = HeapAlloc(hHeap, 0, capacity);
+		  if (ptr == nullptr) Throw(GetLastError(), "Insufficient memory in dedicated BlockAllocator heap for alloc operation. Heap max size is %llu bytes", maxBytes);
+		  return ptr;
+	  }
 
       virtual void FreeData(void* data)
       {

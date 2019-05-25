@@ -17,6 +17,9 @@
 
 #include <sexy.s-parser.h>
 
+#include <sexy.lib.s-parser.h>
+#include <sexy.lib.util.h>
+
 // Experimental s-parser. Motivation - be able to iterate through an s source file using functions without allocating heap mempry
 
 namespace
@@ -31,16 +34,16 @@ namespace
 
 	ROCOCOAPI ISExpressionLinkBuilder: ISExpression
 	{
-		virtual void AddLink(ISExpressionLinkBuilder* child) = 0;
-		virtual ISExpressionLinkBuilder* GetLinkTail() = 0;
-		virtual ISExpressionLinkBuilder* GetNextLink() = 0;
-		virtual ISExpressionLinkBuilder* GetLinkHead() = 0;
+		virtual void AddSibling(ISExpressionLinkBuilder* sibling) = 0;
+		virtual ISExpressionLinkBuilder* GetNextSibling() = 0;
 	};
 
 	ROCOCOAPI ICompoundSExpression : ISExpressionLinkBuilder
 	{
 		virtual void AddChild(ISExpressionLinkBuilder* child) = 0;
+		virtual ISExpressionLinkBuilder* GetFirstChild() = 0;
 		virtual void SetArrayStart(ISExpression** pArray) = 0;
+		virtual void SetOffsets(int32 startOffset, int32 endOffset) = 0;
 	};
 
 	ROCOCOAPI IExpressionBuilder
@@ -286,6 +289,8 @@ namespace
 			{
 				Throw(0, "Parser::Parse failed: too many close parenthesis characters");
 			}
+
+			builder.FinishCompound(sExpression, end, 0, root);
 		}
 
 		cstr ParseAtomic(cstr sAtomic, ICompoundSExpression* parent)
@@ -346,7 +351,7 @@ namespace
 				{
 				case '(':
 					{
-						auto* child = builder.AddCompound(sCompound, depth, parent);
+						auto* child = builder.AddCompound(sCompound, depth + 1, parent);
 						next = ParseCompound(next, depth + 1, child);
 					}
 					break;
@@ -453,12 +458,12 @@ namespace
 		RootExpression* root = nullptr;
 		ISourceCode* sourceCode = nullptr;
 		ISParser* sParser = nullptr;
-		std::shared_ptr<IAllocatorSupervisor> allocator;
+		IAllocator& allocator;
 		refcount_t refcount = 1;
 
 		size_t aIndex = 0;
 
-		ExpressionTree(std::shared_ptr<IAllocatorSupervisor> _allocator): allocator(_allocator)
+		ExpressionTree(IAllocator& _allocator): allocator(_allocator)
 		{
 
 		}
@@ -466,18 +471,50 @@ namespace
 		~ExpressionTree()
 		{
 			sParser->Release();
-
 			if (block)
 			{
-				allocator->FreeData(block);
+				allocator.FreeData(block);
 			}
+		}
+
+		Vec2i OffsetToPos(int32 offset)
+		{
+			if (offset < 0)
+			{
+				Throw(0, "ExpressionTree::OffsetToPos: Bad offset");
+				return { 0,0 };
+			}
+
+			auto* end = sourceCode->SourceStart() + sourceCode->SourceLength();
+			auto* finalPos = min(end, sourceCode->SourceStart() + offset);
+
+			Vec2i origin = sourceCode->Origin();
+			Vec2i pos = origin;
+
+			for (auto* p = sourceCode->SourceStart(); p <= finalPos; ++p)
+			{
+				switch (*p)
+				{
+				case '\r':
+					break;
+				case '\n':
+					pos.y++;
+					pos.x = origin.x;
+					break;
+				default:
+					pos.x++;	
+					break;
+				}
+			}
+
+			return pos;
 		}
 
 		void CovertListsToArrays(ICompoundSExpression& cs)
 		{
 			auto* a = arraySets + aIndex;
 			auto* startOfArray = a;
-			for (auto i = cs.GetLinkHead(); i != nullptr; i = i->GetNextLink())
+			for (auto i = cs.GetFirstChild(); i != nullptr; i = i->GetNextSibling())
 			{
 				*a++ = i;
 			}
@@ -527,66 +564,62 @@ namespace
 				return refcount;
 			}
 			else
-			{
+			{			
 				this->~ExpressionTree();
 				return 0;
 			}
 		}
 	};
 
-	union PosOrNext
+#pragma pack(push,1)
+	struct CodeOffsets
 	{
-		Vec2i pos;
-		ISExpressionLinkBuilder* next;
+		int32 startOffset;
+		int32 endOffset;
 	};
+#pragma pack(pop)
 
 	struct AtomicExpression: ISExpressionLinkBuilder
 	{
 		ISExpression* parent = nullptr;
-		PosOrNext startPos;
-		Vec2i endPos;
+		ISExpressionLinkBuilder* next;
+		CodeOffsets offsets;
 		sexstring_header header;
 
-		void AddLink(ISExpressionLinkBuilder* child) override
+		AtomicExpression(ptrdiff_t startOffset, ptrdiff_t endOffset): offsets{ (int32) startOffset, (int32) endOffset }
 		{
-			if (startPos.next == nullptr)
+		}
+
+		void AddSibling(ISExpressionLinkBuilder* sibling) override
+		{
+			if (next == nullptr)
 			{
-				startPos.next = child;
+				next = sibling;
+				return;
 			}
-			else
+
+			ISExpressionLinkBuilder* last = this;
+			for (auto i = next; i != nullptr; i = i->GetNextSibling())
 			{
-				auto i = GetLinkTail();
-				i->AddLink(child);
+				last = i;
 			}
+
+			last->AddSibling(sibling);
 		}
 
-		ISExpressionLinkBuilder* GetLinkHead() override
+		ISExpressionLinkBuilder* GetNextSibling() override
 		{
-			return startPos.next;
+			return next;
 		}
 
-		ISExpressionLinkBuilder* GetLinkTail() override
+		const Vec2i Start() const override
 		{
-			if (startPos.next == nullptr) return this;
-			else
-			{
-				return startPos.next->GetLinkTail();
-			}
+			return ((ExpressionTree&) Tree()).OffsetToPos(offsets.startOffset);
 		}
 
-		ISExpressionLinkBuilder* GetNextLink() override
+		const Vec2i End() const override
 		{
-			return startPos.next;
-		}
-
-		const Vec2i& Start() const override
-		{
-			return startPos.pos;
-		}
-
-		const Vec2i& End() const override
-		{
-			return endPos;
+			return ((ExpressionTree&)Tree()).OffsetToPos(offsets.endOffset);;
 		}
 
 		EXPRESSION_TYPE Type() const override
@@ -651,50 +684,44 @@ namespace
 	struct LiteralExpression : ISExpressionLinkBuilder
 	{
 		ISExpression* parent = nullptr;
-		PosOrNext startPos;
-		Vec2i endPos;
+		ISExpressionLinkBuilder* next;
+		CodeOffsets offsets;
 		sexstring_header header;
 
-		void AddLink(ISExpressionLinkBuilder* child) override
+		LiteralExpression(ptrdiff_t startOffset, ptrdiff_t endOffset): offsets { (int32) startOffset, (int32) endOffset }
 		{
-			if (startPos.next == nullptr)
+		}
+
+		void AddSibling(ISExpressionLinkBuilder* sibling) override
+		{
+			if (next == nullptr)
 			{
-				startPos.next = child;
+				next = sibling;
+				return;
 			}
-			else
+
+			ISExpressionLinkBuilder* last = this;
+			for (auto i = next; i != nullptr; i = i->GetNextSibling())
 			{
-				auto i = GetLinkTail();
-				i->AddLink(child);
+				last = i;
 			}
+
+			last->AddSibling(sibling);
 		}
 
-		ISExpressionLinkBuilder* GetLinkHead() override
+		ISExpressionLinkBuilder* GetNextSibling() override
 		{
-			return startPos.next;
+			return next;
 		}
 
-		ISExpressionLinkBuilder* GetLinkTail() override
+		const Vec2i Start() const override
 		{
-			if (startPos.next == nullptr) return this;
-			else
-			{
-				return startPos.next->GetLinkTail();
-			}
+			return ((ExpressionTree&)Tree()).OffsetToPos(offsets.startOffset);
 		}
 
-		ISExpressionLinkBuilder* GetNextLink() override
+		const Vec2i End() const override
 		{
-			return startPos.next;
-		}
-
-		const Vec2i& Start() const override
-		{
-			return startPos.pos;
-		}
-
-		const Vec2i& End() const override
-		{
-			return endPos;
+			return ((ExpressionTree&)Tree()).OffsetToPos(offsets.endOffset);
 		}
 
 		EXPRESSION_TYPE Type() const override
@@ -760,66 +787,66 @@ namespace
 	{
 		// When the expression is first created, the children are added as a linked list
 		// Once the list is complete, the list is converted to an array.
-		ISExpressionLinkBuilder* firstLink;
+		ISExpressionLinkBuilder* firstChild;
 		ISExpression** pArray;
 
-		LinkOrArray() : firstLink(nullptr) {}
+		LinkOrArray() : firstChild(nullptr) {}
 	};
 
 	struct RootExpression : ICompoundSExpression
 	{
 		ExpressionTree* tree = nullptr;
-		Vec2i startPos;
-		Vec2i endPos;
 		LinkOrArray children;
 		int32 numberOfChildren = 0;
+		ISExpressionLinkBuilder* lastChild = nullptr;
+
+		void SetOffsets(int32 startOffset, int32 endOffset)
+		{
+		}
 
 		void SetArrayStart(ISExpression** pArray) override
 		{
 			children.pArray = pArray;
 		}
 
-		void AddLink(ISExpressionLinkBuilder* child) override
+		void AddSibling(ISExpressionLinkBuilder* sibling) override
+		{
+			Throw(0, "Root cannnot have siblings");
+		}
+
+		ISExpressionLinkBuilder* GetNextSibling() override
+		{
+			return nullptr;
+		}
+
+		void AddChild(ISExpressionLinkBuilder* child) override
 		{
 			numberOfChildren++;
-			if (children.firstLink == nullptr)
+			if (children.firstChild == nullptr)
 			{
-				children.firstLink = child;
+				children.firstChild = child;
 			}
 			else
 			{
-				auto i = GetLinkTail();
-				i->AddLink(child);
+				lastChild->AddSibling(child);
 			}
+
+			lastChild = child;
 		}
 
-		ISExpressionLinkBuilder* GetLinkHead() override
+		ISExpressionLinkBuilder* GetFirstChild() override
 		{
-			return children.firstLink;
+			return children.firstChild;
 		}
 
-		ISExpressionLinkBuilder* GetLinkTail() override
+		const Vec2i Start() const override
 		{
-			if (children.firstLink == nullptr) return this;
-			else
-			{
-				return children.firstLink->GetLinkTail();
-			}
+			return tree->sourceCode->Origin();
 		}
 
-		ISExpressionLinkBuilder* GetNextLink() override
+		const Vec2i End() const override
 		{
-			return children.firstLink->GetLinkHead();
-		}
-
-		const Vec2i& Start() const override
-		{
-			return startPos;
-		}
-
-		const Vec2i& End() const override
-		{
-			return endPos;
+			return tree->OffsetToPos(tree->sourceCode->SourceLength());
 		}
 
 		EXPRESSION_TYPE Type() const override
@@ -857,7 +884,7 @@ namespace
 
 		ISExpressionBuilder* CreateTransform() override
 		{
-			Throw(0, "Cannot transform atomic nodes");
+			Throw(0, "Cannot transform root node");
 			return nullptr;
 		}
 
@@ -880,77 +907,96 @@ namespace
 		{
 			return token == nullptr;
 		}
-
-		// N.B the child's parent pointer has been set to this instance already
-		void AddChild(ISExpressionLinkBuilder* child) override
-		{
-			AddLink(child);
-		}
 	};
 
 	ISExpression& GetISExpression(RootExpression& root) { return root; }
 	cr_sex GetISExpression(const RootExpression& root) { return root; }
 
+	struct TransformedExpression : ISExpressionBuilder
+	{
+
+	};
+
 	struct CompoundExpression : ICompoundSExpression
 	{
 		ISExpression* parent = nullptr;
-		Vec2i startPos;
-		Vec2i endPos = { 0,0 };
+
+		union U
+		{
+			U() : nextSibling(nullptr) {}
+			ISExpressionLinkBuilder* nextSibling; // used in the generation phase, when expression form a linked list
+			TransformedExpression* transform; // used after the generation phase, when expressions are an array
+		} u;
+
+		CodeOffsets offsets;
 		LinkOrArray children;
 		int32 numberOfChildren;
+
+		void SetOffsets(int32 start, int32 end)
+		{ 
+			offsets = { start, end };
+		}
 
 		void SetArrayStart(ISExpression** pArray)
 		{
 			children.pArray = pArray;
+			u.transform = nullptr;
 		}
 
-		void AddLink(ISExpressionLinkBuilder* child) override
+		void AddChild(ISExpressionLinkBuilder* child) override
 		{
 			numberOfChildren++;
 
-			if (children.firstLink == nullptr)
+			if (children.firstChild == nullptr)
 			{
-				children.firstLink = child;
+				children.firstChild = child;
 			}
 			else
 			{
-				auto i = GetLinkTail();
-				i->AddLink(child);
+				children.firstChild->AddSibling(child);
 			}
 		}
 
-		ISExpressionLinkBuilder* GetLinkHead() override
+		void AddSibling(ISExpressionLinkBuilder* sibling) override
 		{
-			return children.firstLink;
-		}
-
-		ISExpressionLinkBuilder* GetNextLink() override
-		{
-			return children.firstLink->GetLinkHead();
-		}
-
-		ISExpressionLinkBuilder* GetLinkTail() override
-		{
-			if (children.firstLink == nullptr) return this;
-			else
+			if (u.nextSibling == nullptr)
 			{
-				return children.firstLink->GetLinkTail();
+				u.nextSibling = sibling;
+				return;
 			}
+
+			ISExpressionLinkBuilder* last = this;
+			for (auto i = u.nextSibling; i != nullptr; i = i->GetNextSibling())
+			{
+				last = i;
+			}
+
+			last->AddSibling(sibling);
 		}
 
-		const Vec2i& Start() const override
+		ISExpressionLinkBuilder* GetFirstChild() override
 		{
-			return startPos;
+			return children.firstChild;
 		}
 
-		const Vec2i& End() const override
+		ISExpressionLinkBuilder* GetNextSibling() override
 		{
-			return endPos;
+			return u.nextSibling;
+		}
+
+		const Vec2i Start() const override
+		{
+			return ((ExpressionTree&)Tree()).OffsetToPos(offsets.startOffset);
+		}
+
+		const Vec2i End() const override
+		{
+			return ((ExpressionTree&)Tree()).OffsetToPos(offsets.endOffset);
 		}
 
 		EXPRESSION_TYPE Type() const override
 		{
-			return EXPRESSION_TYPE_COMPOUND;
+			return numberOfChildren == 0 ? EXPRESSION_TYPE_NULL : EXPRESSION_TYPE_COMPOUND;
 		}
 
 		const sexstring String() const override
@@ -984,13 +1030,15 @@ namespace
 
 		ISExpressionBuilder* CreateTransform() override
 		{
-			Throw(0, "Cannot transform atomic nodes");
-			return nullptr;
+			delete u.transform;
+			u.transform = (TransformedExpression*) ((ExpressionTree&)Tree()).allocator.Allocate(sizeof(TransformedExpression));
+		//	new (u.transform) TransformedExpression();
+			return u.transform;
 		}
 
 		const ISExpression* GetTransform() const override
 		{
-			return nullptr;
+			return u.transform;
 		}
 
 		const ISExpression* GetOriginal() const override
@@ -1006,12 +1054,6 @@ namespace
 		bool operator == (const char* token) const override
 		{
 			return false;
-		}
-
-		// N.B the child's parent pointer has been set to this instance already
-		void AddChild(ISExpressionLinkBuilder* child) override
-		{
-			AddLink(child);
 		}
 	};
 
@@ -1067,6 +1109,12 @@ namespace
 
 		ICompoundSExpression* AddCompound(cstr beginPoint, int depth, ICompoundSExpression* parent) override
 		{
+			enum { MAX_S_DEPTH = 128 };
+			if (depth > MAX_S_DEPTH)
+			{
+				Throw(0, "Maximum compound expression depth of %u was reached.", MAX_S_DEPTH);
+			}
+
 			branchCount++;
 			return nullptr;
 		}
@@ -1123,6 +1171,8 @@ namespace
 		char* block;
 		char* writePos;
 
+		cstr sourceStart;
+
 		CompoundExpression* nextFreeCompoundSlot;
 
 		size_t totalSize;
@@ -1132,10 +1182,18 @@ namespace
 		enum { NO_MANS_LAND = 128 };
 
 		const SCostEvaluator& ce;
-		std::shared_ptr<IAllocatorSupervisor> allocator;
+		IAllocator& allocator;
 
-		SBlockAllocator(const SCostEvaluator& _ce, std::shared_ptr<IAllocatorSupervisor> _allocator): ce(_ce), allocator(_allocator)
+		SBlockAllocator(const SCostEvaluator& _ce, IAllocator& _allocator, cstr _sourceStart):
+			ce(_ce), allocator(_allocator), sourceStart(_sourceStart)
 		{	
+			/* Block
+			   Concrete atomic + literal expressions
+			   Concrete compound expressions
+			   Expression pointer array block
+			   Expression Tree
+			   Root Expression
+			*/
 			size_t sizeofAtomicExpression = sizeof(AtomicExpression);
 			totalSize = ce.atomicCount * sizeofAtomicExpression;
 			totalSize += ce.totalAtomicCost;
@@ -1147,13 +1205,23 @@ namespace
 
 			totalSize += ce.branchCount * sizeof(CompoundExpression);
 
+			size_t toArrayEntries = totalSize;
 			totalSize += (ce.branchCount + ce.atomicCount + ce.stringCount) * sizeof(ISExpression*);
 
 			totalSize += sizeof(ExpressionTree) + sizeof(RootExpression);
 
-			block = (char*) allocator->Allocate(totalSize + NO_MANS_LAND);
+			block = (char*) allocator.Allocate(totalSize + NO_MANS_LAND);
 
 #ifdef _DEBUG
+			if (totalSize < 10240)
+			{
+				printf("SBlockAllocator: %llu bytes\n", totalSize);
+			}
+			else
+			{
+				printf("SBlockAllocator: %llu kb\n", totalSize / 1024);
+			}
+
 			memset(block, 0xFE, NO_MANS_LAND + totalSize);
 #endif
 
@@ -1162,7 +1230,7 @@ namespace
 			compoundArray = (CompoundExpression*) (block + toCompounds);
 			nextFreeCompoundSlot = compoundArray;
 
-			arraySets = (ISExpression**) ( block + toCompounds + ce.branchCount * sizeof(CompoundExpression) );
+			arraySets = (ISExpression**) ( block + toArrayEntries);
 
 			auto* treeMemory = block + totalSize - sizeof(ExpressionTree) - sizeof(RootExpression);
 			auto* tree = new (treeMemory) ExpressionTree(allocator);
@@ -1207,7 +1275,7 @@ namespace
 			if (block)
 			{
 				ValidateMemory();
-				allocator->FreeData(block);
+				allocator.FreeData(block);
 			}
 		}
 
@@ -1233,7 +1301,7 @@ namespace
 			}
 #endif
 
-			auto* atomic = new (writePos) AtomicExpression();
+			auto* atomic = new (writePos) AtomicExpression(begin - sourceStart, end - sourceStart);
 			atomic->parent = parent;
 			parent->AddChild(atomic);
 
@@ -1263,6 +1331,7 @@ namespace
 
 		void FinishCompound(cstr beginPoint, cstr endPoint, int depth, ICompoundSExpression* parent) override
 		{
+			parent->SetOffsets((int32)(beginPoint - sourceStart), (int32) (endPoint - sourceStart));
 		}
 
 		cstr ParseString(cstr sStart, cstr sEnd, ICompoundSExpression* parent) override
@@ -1304,7 +1373,7 @@ namespace
 				Throw(0, "Literal token would overwrite block allocator inner bounds");
 			}
 #endif
-			auto* literal = new (writePos) LiteralExpression();
+			auto* literal = new (writePos) LiteralExpression(sStart - sourceStart, sEnd - sourceStart);
 			literal->parent = parent;
 			parent->AddChild(literal);
 
@@ -1335,9 +1404,9 @@ namespace
 			printf("compound count: %llu\n", ce.branchCount);
 		}
 
-		std::shared_ptr<IAllocatorSupervisor> allocator (Rococo::Memory::CreateBlockAllocator(16, 1024), FreeAllocator);
+		AutoFree<IAllocatorSupervisor> allocator (Rococo::Memory::CreateBlockAllocator(16, 0));
 
-		SBlockAllocator sba(ce, allocator);
+		SBlockAllocator sba(ce, *allocator, sExpression);
 		SParser parser(sExpression, sba);
 		parser.Parse(nullptr);
 
@@ -1348,7 +1417,7 @@ namespace
 		}
 	}
 
-	ISParser* CreateSParser(size_t maxStringLength)
+	ISParser* CreateSParser(IAllocator& allocator, size_t maxStringLength)
 	{
 		enum { ABS_MAX_STRING_LENGTH = 0x7FFFFFFFLL };
 		if (maxStringLength < 8 || maxStringLength > ABS_MAX_STRING_LENGTH)
@@ -1365,7 +1434,9 @@ namespace
 			char* name;
 			bool proxied;
 			refcount_t refcount = 1;
-			std::shared_ptr<IAllocator> allocator;
+			IAllocator& allocator;
+
+			SourceCode(IAllocator& _allocator) : allocator(_allocator) {}
 
 			const Vec2i& Origin() const override { return origin; }
 			cstr SourceStart() const override { return buffer; }
@@ -1377,7 +1448,7 @@ namespace
 				refcount--;
 				if (refcount == 0)
 				{
-					allocator->FreeData(block);
+					allocator.FreeData(block);
 					return 0;
 				}
 				else
@@ -1390,12 +1461,12 @@ namespace
 		struct ANON: public ISParser
 		{
 			refcount_t refcount = 1;
-			std::shared_ptr <IAllocatorSupervisor> allocator;
+			IAllocator& allocator;
 			size_t maxStringLength;
 
-			ANON(size_t _maxStringLength) :
+			ANON(IAllocator& _allocator, size_t _maxStringLength) :
 				maxStringLength(_maxStringLength),
-				allocator(Rococo::Memory::CreateBlockAllocator(16, 1024), FreeAllocator)
+				allocator(_allocator)
 			{
 			}
 
@@ -1406,12 +1477,18 @@ namespace
 			ISParserTree* CreateTree(ISourceCode& sourceCode) override
 			{
 				SCostEvaluator ce(maxStringLength, maxStringLength);
-				{
+
+				try
+				{ 
 					SParser parser(sourceCode.SourceStart(), ce);
 					parser.Parse(nullptr);
 				}
+				catch (IException& ex)
+				{
+					Throw(ex.ErrorCode(), "Error in file %s: %s", sourceCode.Name(), ex.Message());
+				}
 
-				SBlockAllocator sba(ce, allocator);
+				SBlockAllocator sba(ce, allocator, sourceCode.SourceStart());
 				SParser parser(sourceCode.SourceStart(), sba);
 				parser.Parse(sba.Root());
 
@@ -1435,8 +1512,8 @@ namespace
 				// This cuts down allocation and deallocation count from 6 to 2
 
 				size_t blockSize = sizeof(SourceCode) + segmentLength + 1 + strlen(name) + 1;
-				char* block = (char*) allocator->Allocate(blockSize);
-				auto* src = new (block) SourceCode();
+				char* block = (char*) allocator.Allocate(blockSize);
+				auto* src = new (block) SourceCode(allocator);
 				src->allocator = allocator;
 				src->buffer = block + sizeof(SourceCode);
 				memcpy(src->buffer, buffer, segmentLength);
@@ -1451,8 +1528,8 @@ namespace
 			ISourceCode* ProxySourceBuffer(cstr bufferRef, int segmentLength, const Vec2i& origin, cstr nameRef) override
 			{
 				size_t blockSize = sizeof(SourceCode);
-				char* block = (char*)allocator->Allocate(blockSize);
-				auto* src = new (block) SourceCode();
+				char* block = (char*)allocator.Allocate(blockSize);
+				auto* src = new (block) SourceCode(allocator);
 				src->allocator = allocator;
 				src->buffer = const_cast<char*>(bufferRef);
 				src->name = const_cast<char*>(nameRef);
@@ -1496,8 +1573,8 @@ namespace
 					}
 
 					size_t blockSize = sizeof(SourceCode) + filelen + 1 + strlen(filename) + 1;
-					char* block = (char*)allocator->Allocate(blockSize);
-					auto* src = new (block) SourceCode();
+					char* block = (char*)allocator.Allocate(blockSize);
+					auto* src = new (block) SourceCode(allocator);
 					src->allocator = allocator;
 					src->buffer = block + sizeof(SourceCode);
 
@@ -1505,7 +1582,7 @@ namespace
 					if (lenRead != filelen)
 					{
 						int err = errno;
-						allocator->FreeData(block);
+						allocator.FreeData(block);
 						Throw(0, "Could not read all file data - %s", strerror(err));
 					}
 
@@ -1550,7 +1627,7 @@ namespace
 			}
 		};
 
-		return new ANON(maxStringLength);
+		return new ANON(allocator, maxStringLength);
 	}
 }
 
@@ -1563,6 +1640,95 @@ void validate(bool condition, cstr function, int line)
 
 #define VALIDATE(x) validate(x, __FUNCTION__, __LINE__);
 
+void GenerateTestSFile(cstr filename, int rootChildren)
+{
+	FILE* fp = fopen(filename, "wb");
+	if (fp != nullptr)
+	{
+		for (int i = 0; i < rootChildren; ++i)
+		{
+			fprintf(fp, "%d (function baba (Float32 y) -> (Float32 x): (chip chap shot shop 1.224 \"ayup\"))\n", i);
+		}
+
+		fclose(fp);
+	}
+}
+
+void TestGenerated()
+{
+	cstr filename = "tmp_generated.sxy";
+//	GenerateTestSFile(filename, 300000);
+
+	using namespace std::experimental::filesystem;
+
+	path p = filename;
+	auto len = file_size(p);
+
+	AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0));
+
+	Auto<ISParser> sparser = CreateSParser(*allocator, 32768);
+	auto* s = sparser->LoadSource(filename, { 1,1 });
+
+	auto start = Rococo::OS::CpuTicks();
+
+	auto* tree = sparser->CreateTree(*s);
+
+	tree->Release();
+
+	auto now = Rococo::OS::CpuTicks();
+	double dt = (now - start) / (double)Rococo::OS::CpuHz();
+	printf("SBlockAllocator performance:\n");
+	printf("Cpu cost of processing %llu kb: %.3f seconds\n", len / 1024, dt);
+	printf("Through put: %.0f MB/s\n\n", len / (1048576.0 * dt));
+
+	s->Release();
+
+	Rococo::Sex::CSParserProxy ppp;
+	Auto<ISourceCode> src2 = ppp->LoadSource(filename, Vec2i{ 1,1 });
+
+	start = Rococo::OS::CpuTicks();
+	ISParserTree* tree2 = ppp->CreateTree(*src2);
+	tree2->Release();
+	now = Rococo::OS::CpuTicks();
+
+	dt = (now - start) / (double)Rococo::OS::CpuHz();
+	printf("Old School performance:\n");
+	printf("Cpu cost of processing %llu kb: %.3f seconds\n", len / 1024, dt);
+	printf("Through put: %.0f MB/s\n\n", len / (1048576.0 * dt));
+
+//	_unlink(filename);
+}
+
+void T5()
+{
+	AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0));
+
+	ISParser* sparser = CreateSParser(*allocator, 32768);
+
+	auto t1 = "\"&x20abcdef\" a b cd (qcumber)"_fstring;
+	ISourceCode* src = sparser->DuplicateSourceBuffer(t1.buffer, t1.length, Vec2i{ 1,1 }, "t1");
+	VALIDATE(Eq(src->Name(), "t1"));
+	VALIDATE(src->SourceLength() == t1.length);
+	VALIDATE(src->SourceStart() != t1.buffer);
+
+	auto* tree = sparser->CreateTree(*src);
+
+	VALIDATE(tree->Root().NumberOfElements() == 5);
+	VALIDATE(Eq(tree->Root()[0].String()->Buffer, " abcdef"));
+	VALIDATE(Eq(tree->Root()[1].String()->Buffer, "a"));
+	VALIDATE(Eq(tree->Root()[2].String()->Buffer, "b"));
+	VALIDATE(Eq(tree->Root()[3].String()->Buffer, "cd"));
+	auto& q = tree->Root()[4];
+	VALIDATE(q.NumberOfElements() == 1);
+	VALIDATE(Eq(q[0].String()->Buffer, "qcumber"));
+
+	VALIDATE(&tree->Source() == src);
+	VALIDATE(0 == tree->Release());
+
+	sparser->Release();
+	VALIDATE(0 == src->Release());
+}
+
 int main()
 {
 	try
@@ -1571,37 +1737,15 @@ int main()
 	//	T2();
 	//	T3();
 	//	Test("\"&x20abcdef\" a b cd (qcumber)");
-
-		ISParser* sparser = CreateSParser(32768);
-
-		auto t1 = "\"&x20abcdef\" a b cd (qcumber)"_fstring;
-		ISourceCode* src = sparser->DuplicateSourceBuffer(t1.buffer, t1.length, Vec2i{ 1,1 }, "t1");
-		VALIDATE(Eq(src->Name(), "t1"));
-		VALIDATE(src->SourceLength() == t1.length);
-		VALIDATE(src->SourceStart() != t1.buffer);
-
-		auto* tree = sparser->CreateTree(*src);
-
-		VALIDATE(tree->Root().NumberOfElements() == 5);
-		VALIDATE(Eq(tree->Root()[0].String()->Buffer, " abcdef"));
-		VALIDATE(Eq(tree->Root()[1].String()->Buffer, "a"));
-		VALIDATE(Eq(tree->Root()[2].String()->Buffer, "b"));
-		VALIDATE(Eq(tree->Root()[3].String()->Buffer, "cd"));
-		auto& q = tree->Root()[4];
-		VALIDATE(q.NumberOfElements() == 1);
-		VALIDATE(Eq(q[0].String()->Buffer, "qcumber"));
-
-		VALIDATE(&tree->Source() == src);
-		VALIDATE(0 == tree->Release());
-
-		sparser->Release();
-		VALIDATE(0 == src->Release());
-		return 0;
+	//	T5();
+		TestGenerated();
 	}
 	catch (IException& ex)
 	{
 		printf("Exception code %d:\n %s\n", ex.ErrorCode(), ex.Message());
 		return ex.ErrorCode();
 	}
+
+	return 0;
 }
 

@@ -209,8 +209,8 @@ namespace ANON
 			return child;
 		}
 
-		virtual const Vec2i& Start() const { return start; }
-		virtual const Vec2i& End() const { return end; }
+		virtual const Vec2i Start() const { return start; }
+		virtual const Vec2i End() const { return end; }
 		virtual EXPRESSION_TYPE Type() const { return type; }
 		virtual const sexstring String() const;
 		virtual const ISParserTree& Tree() const;

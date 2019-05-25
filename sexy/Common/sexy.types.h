@@ -258,8 +258,8 @@ namespace Rococo
 
 		ROCOCOAPI ISExpression
 		{
-			virtual const Vec2i& Start() const = 0; // (X.Y) of start relative to tree origin in source file
-			virtual const Vec2i& End() const = 0;// (X.Y) of end relative to tree origin in source file
+			virtual const Vec2i Start() const = 0; // (X.Y) of start relative to tree origin in source file
+			virtual const Vec2i End() const = 0;// (X.Y) of end relative to tree origin in source file
 			virtual EXPRESSION_TYPE Type() const = 0;
 			virtual const sexstring String() const = 0;
 			virtual const ISParserTree& Tree() const = 0;
