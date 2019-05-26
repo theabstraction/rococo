@@ -229,7 +229,8 @@ int main(int argc, char* argv[])
    {
       ProgramInitParameters pip;
       pip.MaxProgramBytes = 32768;
-      CScriptSystemProxy ssp(pip, s_logger);
+	  AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(16, 0);
+      CScriptSystemProxy ssp(pip, s_logger, *allocator);
       validate(&ssp() != NULL);
       validate(&ssp().PublicProgramObject() != NULL);
 

@@ -518,7 +518,8 @@ int _tmain(int argc, char* argv[])
 	CLogger logger;
 	ProgramInitParameters pip;
 	pip.MaxProgramBytes = 32768;
-	CScriptSystemProxy ss(pip, logger);
+	AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(16, 0);
+	CScriptSystemProxy ss(pip, logger, *allocator);
 	TFiles files;
 
 	int result;

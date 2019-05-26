@@ -33,6 +33,8 @@
 
 #pragma once
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <sexy.types.h>
 
 // #define IS_SPARSER_DLL 1

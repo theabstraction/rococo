@@ -400,7 +400,7 @@ namespace Rococo
 		TStringBuilders stringBuilders;
 		TMemoAllocator memoAllocator;
 		CProgramObjectProxy progObjProxy;
-		CSParserProxy sexParserProxy;
+		Auto<ISParser> sexParserProxy;
 		CScripts* scripts;
 		ScriptCallbacks callbacks;
 
@@ -466,7 +466,9 @@ namespace Rococo
 
 		int nextId;
 	public:
-		CScriptSystem(const ProgramInitParameters& pip, ILog& _logger) : progObjProxy(pip, _logger), nativeCallIndex(1), stringConstantStruct(NULL), reflectionRoot(NULL), nextId(0)
+		CScriptSystem(const ProgramInitParameters& pip, ILog& _logger, IAllocator& s_allocator) : 
+			progObjProxy(pip, _logger), nativeCallIndex(1), stringConstantStruct(NULL), reflectionRoot(NULL), nextId(0),
+			sexParserProxy(Sexy_CreateSexParser_2_0(s_allocator))
 		{
 			try
 			{
@@ -1407,11 +1409,11 @@ namespace Rococo
 	} // Script
 }//Rococo
 
-extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystem* CreateScriptV_1_2_0_0(const ProgramInitParameters& pip, ILog& logger)
+extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystem* CreateScriptV_1_4_0_0(const ProgramInitParameters& pip, ILog& logger, IAllocator& s_allocator)
 {
 	try
 	{
-		CScriptSystem* ss = new CScriptSystem(pip, logger);
+		CScriptSystem* ss = new CScriptSystem(pip, logger, s_allocator);
 		return ss;
 	}
 	catch(Rococo::IException& ex)

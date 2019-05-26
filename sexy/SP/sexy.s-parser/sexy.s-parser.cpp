@@ -117,14 +117,13 @@ namespace ANON
 		return !(x == y);
 	}
 
-	class CSExpression final : public ISExpressionBuilder
+	class CSExpression final : public ISExpression
 	{
 	private:
 		CSParserTree& tree;
 		Vec2i start;
 		Vec2i end;
 		EXPRESSION_TYPE type;
-		CSParserTree* transform; // 'this->transform' is the macro transform of 'this'
 		CSExpression* parent;
 		sexstring Symbol;
 
@@ -148,7 +147,6 @@ namespace ANON
 			start(_start),
 			end(_start),
 			type(EXPRESSION_TYPE_NULL),
-			transform(NULL),
 			parent(_parent),
 			Symbol(NULL)
 		{
@@ -164,7 +162,6 @@ namespace ANON
 			start(_start),
 			end(_end),
 			type(isStringLiteral ? EXPRESSION_TYPE_STRING_LITERAL : EXPRESSION_TYPE_ATOMIC),
-			transform(NULL),
 			parent(_parent),
 			Symbol(NULL)
 		{
@@ -183,44 +180,21 @@ namespace ANON
 				CSExpression* child = *i;
 				delete child;
 			}
-
-			Release(transform);
 		}
 
-		virtual const ISExpression* GetOriginal() const
+		const ISExpression* GetOriginal() const override
 		{
 			return ANON::GetOriginal(tree);
 		}
 
-		virtual void AddAtomic(cstr token)
-		{
-			new CSExpression(tree, start, end, this, token, StringLength(token), false);
-		}
-
-		virtual void AddStringLiteral(cstr token)
-		{
-			new CSExpression(tree, start, end, this, token, StringLength(token), true);
-		}
-
-		virtual ISExpressionBuilder* AddChild()
-		{
-			CSExpression* child = new CSExpression(tree, start, this);
-			child->SetEnd(end);
-			return child;
-		}
-
-		virtual const Vec2i Start() const { return start; }
-		virtual const Vec2i End() const { return end; }
-		virtual EXPRESSION_TYPE Type() const { return type; }
-		virtual const sexstring String() const;
-		virtual const ISParserTree& Tree() const;
-		virtual int NumberOfElements() const { return (int32)children.size(); }
-		virtual const ISExpression& GetElement(int index) const { return *children[index]; }
-		virtual const ISExpression* Parent() const { return parent; }
-		virtual const int TransformDepth() const;
-
-		virtual ISExpressionBuilder* CreateTransform();
-		virtual ISExpression* GetTransform() const;
+		const Vec2i Start() const override { return start; }
+		const Vec2i End() const override { return end; }
+		EXPRESSION_TYPE Type() const override { return type; }
+		const sexstring String() const override;
+		const ISParserTree& Tree() const override;
+		int NumberOfElements() const override { return (int32)children.size(); }
+		const ISExpression& GetElement(int index) const override { return *children[index]; }
+		const ISExpression* Parent() const override { return parent; }
 
 		CSExpression* ConcreteParent() { return parent; }
 
@@ -310,7 +284,6 @@ namespace ANON
 		virtual ISParser& Parser();
 		virtual ISExpression& Root() { return *root; }
 		virtual const ISExpression& Root() const { return *root; }
-		virtual ISExpressionBuilder* BuilderRoot() { return root; }
 		virtual const ISourceCode& Source()	const { return sourceCode; }
 		virtual refcount_t AddRef() { return ++refcount; }
 		virtual const ISExpression* const GetOriginal() { return original; }
@@ -328,22 +301,10 @@ namespace ANON
 		}
 	};
 
-	ISExpressionBuilder* CSExpression::CreateTransform()
-	{
-		Release(transform);
-		transform = NULL;
-		transform = ConstructTransform(tree, start, end, this);
-		return transform->BuilderRoot();
-	}
-
 	const sexstring CSExpression::String() const
 	{
 		return this->Symbol;
 	}
-
-	ISExpression* CSExpression::GetTransform() const { return transform == NULL ? NULL : &transform->Root(); }
-
-	const int CSExpression::TransformDepth() const { return tree.TransformDepth(); }
 
 	sexstring AddSymbol(CSParserTree& tree, cstr data, int dataLen)
 	{

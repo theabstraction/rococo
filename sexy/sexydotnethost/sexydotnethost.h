@@ -18,6 +18,8 @@ using namespace Rococo::Compiler;
 #include "char.to.unicode.conversions.h"
 #include <malloc.h>
 
+#include <rococo.api.h>
+
 namespace
 {  
 	inline void WriteLineToStandardOutput(const char* text) { puts(text); }
@@ -251,6 +253,7 @@ namespace SexyDotNet { namespace Host
 		String^ currentViewedSourceCode;
 		String^ currentViewedFilename;
 		IntPtr stepCallbackHandle;
+		IntPtr nativeAllocator;
 
 		bool goodstate;
 		bool initializedVM;
@@ -270,6 +273,7 @@ namespace SexyDotNet { namespace Host
 
 		GCHandle twiddler;
 		GCHandle twiddler2;
+
 	public:
 		SexyScriptLanguage(LogHandler^ _logHandler, RouteSysMessagesHandler^ _msgHandler)
 		{
@@ -289,7 +293,10 @@ namespace SexyDotNet { namespace Host
 			pip.MaxProgramBytes = 32768;
 			pip.addCoroutineLib = true;
 			pip.useDebugLibs = true;
-			nativeHandle = IntPtr(CreateScriptV_1_2_0_0(pip, *ToLog(logHandle)));
+
+			IAllocatorSupervisor* allocator = Rococo::Memory::CreateBlockAllocator(16, 0);
+			nativeAllocator = IntPtr(allocator);
+			nativeHandle = IntPtr(CreateScriptV_1_4_0_0(pip, *ToLog(logHandle), *allocator));
 			if (nativeHandle.ToPointer() == nullptr)
 			{
 				throw gcnew System::Exception("Error creating script system. Check logs");

@@ -359,7 +359,7 @@ namespace Rococo {
 
 #ifndef THIS_IS_THE_SEXY_CORE_LIBRARY
 
-extern "C" SCRIPTEXPORT_API Rococo::Script::IPublicScriptSystem* CreateScriptV_1_2_0_0(const Rococo::Compiler::ProgramInitParameters& pip, Rococo::ILog& logger);
+extern "C" SCRIPTEXPORT_API Rococo::Script::IPublicScriptSystem* CreateScriptV_1_4_0_0(const Rococo::Compiler::ProgramInitParameters& pip, Rococo::ILog& logger, Rococo::IAllocator& allocator);
 
 namespace Rococo { namespace Script
 {
@@ -371,9 +371,9 @@ namespace Rococo { namespace Script
 	public:
 		IPublicScriptSystem& operator()() { return *instance; }
 
-		CScriptSystemProxy(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger)
+		CScriptSystemProxy(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger, IAllocator& allocator)
 		{
-			instance = CreateScriptV_1_2_0_0(pip, logger);
+			instance = CreateScriptV_1_4_0_0(pip, logger, allocator);
 		}
 
 		~CScriptSystemProxy()

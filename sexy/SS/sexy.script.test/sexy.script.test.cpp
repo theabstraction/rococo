@@ -304,7 +304,8 @@ namespace
 #ifdef _DEBUG
 		pip.useDebugLibs = true;
 #endif
-		CScriptSystemProxy ssp(pip, s_logger);
+		IAllocator& allocator = Rococo::Memory::CheckedAllocator();
+		CScriptSystemProxy ssp(pip, s_logger, allocator);
 		
       auto& ss = ssp();
 		if (!IsPointerValid(&ss)) exit(-1);
@@ -361,7 +362,8 @@ namespace
 #ifdef _DEBUG
 			pip.useDebugLibs = true;
 #endif
-			CScriptSystemProxy ssp(pip, s_logger);
+			IAllocator& allocator = Rococo::Memory::CheckedAllocator();
+			CScriptSystemProxy ssp(pip, s_logger, allocator);
 			validate(&ssp() != NULL);
 			validate(&ssp().PublicProgramObject() != NULL);
 		}
@@ -2985,7 +2987,7 @@ namespace
 			"(namespace T234567890123456789012345678901234567890123456789012345678901234T234567890123456789012345678901234567890123456789012345678901234)" // 128 chars is not
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestBigNamespaceError");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 1,1 },"TestBigNamespaceError");
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		try
@@ -12385,18 +12387,16 @@ namespace
 	{
 		validate(true);
 
-		TEST(TestMacro);
+		TEST(TestBadClosureArg);
+		TEST(TestNullArchetypeArg);
+		TEST(TestBadClosureArg7);
+		TEST(TestBadClosureArg6);
+		TEST(TestBadClosureArg5);
+		TEST(TestBadClosureArg4);
+		TEST(TestBadClosureArg3);
+		TEST(TestBadClosureArg2);
 
-		TEST(TestExpressionArg);
-		TEST(TestReflectionGetParent);
-		TEST(TestReflectionGetChild);
-		TEST(TestReflectionGetAtomic);
-
-		TEST(TestMacroAsArgument1);
-		TEST(TestSubstitution);
-		TEST(TestReflectionGetCurrentExpression);
-
-		TEST(TestTypeInference1);
+		TEST(TestMemberwiseInit);
 
 		TEST2(TestCoroutine1);
 		TEST(TestCPPCallback);
@@ -12409,8 +12409,6 @@ namespace
 		TEST(TestDeltaOperators2);
 		TEST(TestDeltaOperators3);
 		TEST(TestDeltaOperators4);
-
-		TEST(TestMemberwiseInit);
 
 		TEST(TestArrayRefMember);
 
@@ -12435,8 +12433,6 @@ namespace
 		TEST(TestNullArchetype);
 		TEST(TestOperatorOverload3);
 		TEST(TestOperatorOverload);
-
-		TEST(TestNullArchetypeArg);
 
 		//	TEST(TestArrayOfArchetypes); // -> currently disabled, since arrays are 32-bit and 64-bits only, and closures are 128 bits.
 		TEST(TestClosureCapture);
@@ -12604,14 +12600,6 @@ namespace
 
 		TEST(TestInlinedFactory);
 
-		TEST(TestBadClosureArg7);
-		TEST(TestBadClosureArg6);
-		TEST(TestBadClosureArg5);
-		TEST(TestBadClosureArg4);
-		TEST(TestBadClosureArg3);
-		TEST(TestBadClosureArg);
-		TEST(TestBadClosureArg2);
-
 		TEST(TestDerivedInterfaces);
 
 		TEST(TestVirtualFromVirtual);
@@ -12674,6 +12662,17 @@ namespace
 		TEST(TestModuleCount);
 
 		TEST(TestPrintStructs);
+
+		TEST(TestMacro);
+
+		TEST(TestExpressionArg);
+		TEST(TestReflectionGetParent);
+		TEST(TestReflectionGetChild);
+		TEST(TestReflectionGetAtomic);
+
+		TEST(TestMacroAsArgument1);
+		TEST(TestSubstitution);
+		TEST(TestReflectionGetCurrentExpression);
 	}
 
 	void RunPositiveFailures()
@@ -12693,12 +12692,15 @@ namespace
 		TEST(TestDestructorThrows);
 		TEST(TestDoubleArrowsInFunction);
 		TEST(TestIgnoreOutputInterface);
+		TEST(TestTypeInference1);
 	}
 
 	void RunTests()
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
+
+		TEST(TestBigNamespaceError);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	
