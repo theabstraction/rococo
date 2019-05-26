@@ -884,7 +884,7 @@ namespace Rococo
 
 		virtual bool ConstructExpressionBuilder(CClassExpressionBuilder& builderContainer, Rococo::Sex::ISExpressionBuilder* builder)
 		{
-			IStructure* s = GetClassFromModuleElseLog(ReflectionModule(), ("ExpressionBuilder"));
+			IStructure* s = GetClassFromModuleElseLog(ReflectionModule(), "ExpressionBuilder");
 			if (s == NULL)
 			{
 				return false;

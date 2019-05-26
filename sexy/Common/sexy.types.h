@@ -265,12 +265,9 @@ namespace Rococo
 			virtual const ISParserTree& Tree() const = 0;
 			virtual int NumberOfElements() const = 0;
 			virtual const ISExpression& GetElement(int index) const = 0;
-			virtual const ISExpression& operator[](int index) const { return GetElement(index); }
+			const ISExpression& operator[](int index) const { return GetElement(index); }
 			virtual const ISExpression* Parent() const = 0;
-			virtual ISExpressionBuilder* CreateTransform() = 0;
-			virtual const ISExpression* GetTransform() const = 0;
 			virtual const ISExpression* GetOriginal() const = 0;
-			virtual const int TransformDepth() const = 0;
 			virtual bool operator == (const char* token) const = 0;
 		};
 
@@ -284,6 +281,12 @@ namespace Rococo
 			virtual ISExpressionBuilder* AddChild() = 0;
 			virtual void AddAtomic(cstr text) = 0;
 			virtual void AddStringLiteral(cstr text) = 0;
+		};
+
+		ROCOCOAPI IExpressionTransform
+		{
+			virtual ISExpressionBuilder& Root() = 0;
+			virtual void Free() = 0;
 		};
 
 		typedef const ISExpression& cr_sex;

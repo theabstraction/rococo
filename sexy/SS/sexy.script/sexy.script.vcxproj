@@ -110,6 +110,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="sexy.script.os.win32.cpp" />
+    <ClCompile Include="sexy.script.s-builder.cpp" />
     <ClCompile Include="sexy.script.stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Sexy.Script.StdAfx.h</PrecompiledHeaderFile>

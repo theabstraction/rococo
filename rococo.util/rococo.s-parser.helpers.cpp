@@ -669,9 +669,10 @@ namespace Rococo
 			}
 		} subLogger;
 
-		for (const ISExpression* s = ex.Source(); s != NULL; s = s->GetTransform())
+		int depth = 0;
+		for (const ISExpression* s = ex.Source(); s != NULL; s = s->GetOriginal())
 		{
-			if (s->TransformDepth() > 0)  debugger.Log("Macro expansion %d:\n", s->TransformDepth());
+			if (depth++ > 0)  debugger.Log("Macro expansion %d:\n", depth);
 
 			int totalOutput = 0;
 			PrintExpression(*s, totalOutput, 1024, subLogger);

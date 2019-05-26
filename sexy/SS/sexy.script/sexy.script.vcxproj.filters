@@ -36,6 +36,9 @@
     <ClCompile Include="sexy.script.os.mac.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sexy.script.s-builder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sexy.script.stdafx.h">

@@ -2997,7 +2997,7 @@ namespace Rococo
 		{
 			if (TryCompileMacroInvocation(ce, s, token))
 			{
-				const ISExpression* t = s.GetTransform();
+				const ISExpression* t = ce.Script.GetTransform(s);
 				if (t != NULL)
 				{
  					CompileExpression(ce, *t);

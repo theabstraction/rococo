@@ -153,9 +153,10 @@ void PrintParseException(const ParseException& e)
 {
    WriteToStandardOutput(("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n"), e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message());
 
+   int depth = 0;
    for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
    {
-      if (s->TransformDepth() > 0)  WriteToStandardOutput(("Macro expansion %d:\r\n"), s->TransformDepth());
+      if (depth++ > 0)  WriteToStandardOutput("Macro expansion %d:\r\n", depth);
 
       int totalOutput = 0;
       PrintExpression(*s, totalOutput, 1024);

@@ -116,15 +116,10 @@ namespace Rococo
 
       void CallMacro(CCompileEnvironment& ce, const IFunction& f, cr_sex s)
       {
-         if (s.TransformDepth() >= MAX_TRANSFORM_DEPTH)
-         {
-            Throw(s, ("Exceeded maximum macro evaluation depth"));
-         }
-
          VM::IVirtualMachine& vm = ce.SS.ProgramObject().VirtualMachine();
          const CClassExpression* input = ce.SS.GetExpressionReflection(s);
 
-         ISExpressionBuilder* outputRoot = const_cast<ISExpression&>(s).CreateTransform();
+		 ISExpressionBuilder* outputRoot = ce.Script.CreateMacroTransform(s);
 
          CClassExpressionBuilder output;
          if (!ce.SS.ConstructExpressionBuilder(output, outputRoot))

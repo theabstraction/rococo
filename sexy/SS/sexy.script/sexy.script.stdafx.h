@@ -239,6 +239,12 @@ namespace Rococo
       typedef std::unordered_map<BuilderAndNameKey, MapDef, hashBuilderAndNameKey> TMapNameToMapDef;
       typedef std::unordered_map<BuilderAndNameKey, MapNodeDef, hashBuilderAndNameKey> TMapNameToMapNodeDef;
       typedef std::unordered_map<CStringKey, GlobalValue, hashCStringKey> TGlobalVariables;
+
+	  struct TransformData
+	  {
+		  IExpressionTransform* transform;
+	  };
+	  typedef std::unordered_map<const ISExpression*, TransformData> TTransformMap;
       typedef std::vector<const ISExpression*> TExceptionBlocks;
 
       struct CBindNSExpressionToModule
@@ -279,6 +285,7 @@ namespace Rococo
          TMapNameToNodeDef mapNameToNodeDef;
          TMapNameToMapDef mapNameToMapDef;
          TMapNameToMapNodeDef mapNameToMapNodeDef;
+		 TTransformMap mapExpressionToTransform;
       public:
          CScript(ISParserTree& _tree, IProgramObject& _programObject, CScripts& _scripts);
          GlobalValue* GetGlobalValue(cstr name);
@@ -293,6 +300,8 @@ namespace Rococo
          void AddMapDef(ICodeBuilder& builder, cstr name, const IStructure& keyType, const IStructure& valueType, cr_sex s);
          void AddMapNodeDef(ICodeBuilder& builder, const MapDef& mapDef, cstr mapName, cstr nodeName, cr_sex s);
          void AddNodeDef(ICodeBuilder& builder, cstr nodeName, const IStructure& elementType, cr_sex s);
+		 ISExpressionBuilder* CreateMacroTransform(cr_sex src);
+		 const ISExpression* GetTransform(cr_sex src);
 
          const bool IsIStringInlined() const;
 

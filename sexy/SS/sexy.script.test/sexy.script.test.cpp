@@ -224,9 +224,10 @@ namespace
 	{
 		WriteToStandardOutput("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n", e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message());
 
+		int depth = 0;
 		for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
 		{
-			if (s->TransformDepth() > 0)  WriteToStandardOutput("Macro expansion %d:\r\n", s->TransformDepth());
+			if (depth++ > 0)  WriteToStandardOutput("Macro expansion %d:\r\n", depth);
 
 			int totalOutput = 0;
 			PrintExpression(*s, totalOutput, 1024);
@@ -299,6 +300,10 @@ namespace
 		pip.addCoroutineLib = addinCoroutines;
 		pip.useDebugLibs = addinCoroutines;
 		pip.MaxProgramBytes = 32768;
+
+#ifdef _DEBUG
+		pip.useDebugLibs = true;
+#endif
 		CScriptSystemProxy ssp(pip, s_logger);
 		
       auto& ss = ssp();
@@ -353,6 +358,9 @@ namespace
 		{
 			ProgramInitParameters pip;
 			pip.MaxProgramBytes = 32768;
+#ifdef _DEBUG
+			pip.useDebugLibs = true;
+#endif
 			CScriptSystemProxy ssp(pip, s_logger);
 			validate(&ssp() != NULL);
 			validate(&ssp().PublicProgramObject() != NULL);
@@ -12377,10 +12385,16 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestMacro);
+
 		TEST(TestExpressionArg);
 		TEST(TestReflectionGetParent);
 		TEST(TestReflectionGetChild);
 		TEST(TestReflectionGetAtomic);
+
+		TEST(TestMacroAsArgument1);
+		TEST(TestSubstitution);
+		TEST(TestReflectionGetCurrentExpression);
 
 		TEST(TestTypeInference1);
 
@@ -12660,13 +12674,6 @@ namespace
 		TEST(TestModuleCount);
 
 		TEST(TestPrintStructs);
-
-		TEST(TestMacro);
-		TEST(TestMacroAsArgument1);
-
-		TEST(TestSubstitution);
-
-		TEST(TestReflectionGetCurrentExpression);
 	}
 
 	void RunPositiveFailures()

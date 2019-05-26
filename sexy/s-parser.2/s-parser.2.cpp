@@ -7,8 +7,6 @@
 #include <memory>
 #include <malloc.h>
 
-#include <rococo.libs.inl>
-
 #include <sexy.types.h>
 
 #include <new>
@@ -654,25 +652,9 @@ namespace
 			return parent;
 		}
 
-		ISExpressionBuilder* CreateTransform() override
-		{
-			Throw(0, "Cannot transform atomic nodes");
-			return nullptr;
-		}
-
-		const ISExpression* GetTransform() const override
-		{
-			return nullptr;
-		}
-
 		const ISExpression* GetOriginal() const override
 		{
-			return this;
-		}
-
-		const int TransformDepth() const override
-		{
-			return 0;
+			return nullptr;
 		}
 
 		bool operator == (const char* token) const override
@@ -756,25 +738,9 @@ namespace
 			return parent;
 		}
 
-		ISExpressionBuilder* CreateTransform() override
-		{
-			Throw(0, "Cannot transform string literal nodes");
-			return nullptr;
-		}
-
-		const ISExpression* GetTransform() const override
-		{
-			return nullptr;
-		}
-
 		const ISExpression* GetOriginal() const override
 		{
-			return this;
-		}
-
-		const int TransformDepth() const override
-		{
-			return 0;
+			return nullptr;
 		}
 
 		bool operator == (const char* token) const override
@@ -882,25 +848,9 @@ namespace
 			return nullptr;
 		}
 
-		ISExpressionBuilder* CreateTransform() override
-		{
-			Throw(0, "Cannot transform root node");
-			return nullptr;
-		}
-
-		const ISExpression* GetTransform() const override
-		{
-			return nullptr;
-		}
-
 		const ISExpression* GetOriginal() const override
 		{
-			return this;
-		}
-
-		const int TransformDepth() const override
-		{
-			return 0;
+			return nullptr;
 		}
 
 		bool operator == (const char* token) const override
@@ -920,14 +870,8 @@ namespace
 	struct CompoundExpression : ICompoundSExpression
 	{
 		ISExpression* parent = nullptr;
-
-		union U
-		{
-			U() : nextSibling(nullptr) {}
-			ISExpressionLinkBuilder* nextSibling; // used in the generation phase, when expression form a linked list
-			TransformedExpression* transform; // used after the generation phase, when expressions are an array
-		} u;
-
+		ISExpressionLinkBuilder* nextSibling; // used in the generation phase, when expression form a linked list
+			
 		CodeOffsets offsets;
 		LinkOrArray children;
 		int32 numberOfChildren;
@@ -940,7 +884,6 @@ namespace
 		void SetArrayStart(ISExpression** pArray)
 		{
 			children.pArray = pArray;
-			u.transform = nullptr;
 		}
 
 		void AddChild(ISExpressionLinkBuilder* child) override
@@ -959,14 +902,14 @@ namespace
 
 		void AddSibling(ISExpressionLinkBuilder* sibling) override
 		{
-			if (u.nextSibling == nullptr)
+			if (nextSibling == nullptr)
 			{
-				u.nextSibling = sibling;
+				nextSibling = sibling;
 				return;
 			}
 
 			ISExpressionLinkBuilder* last = this;
-			for (auto i = u.nextSibling; i != nullptr; i = i->GetNextSibling())
+			for (auto i = nextSibling; i != nullptr; i = i->GetNextSibling())
 			{
 				last = i;
 			}
@@ -981,7 +924,7 @@ namespace
 
 		ISExpressionLinkBuilder* GetNextSibling() override
 		{
-			return u.nextSibling;
+			return nextSibling;
 		}
 
 		const Vec2i Start() const override
@@ -1028,27 +971,9 @@ namespace
 			return parent;
 		}
 
-		ISExpressionBuilder* CreateTransform() override
-		{
-			delete u.transform;
-			u.transform = (TransformedExpression*) ((ExpressionTree&)Tree()).allocator.Allocate(sizeof(TransformedExpression));
-		//	new (u.transform) TransformedExpression();
-			return u.transform;
-		}
-
-		const ISExpression* GetTransform() const override
-		{
-			return u.transform;
-		}
-
 		const ISExpression* GetOriginal() const override
 		{
-			return this;
-		}
-
-		const int TransformDepth() const override
-		{
-			return 0;
+			return nullptr;
 		}
 
 		bool operator == (const char* token) const override

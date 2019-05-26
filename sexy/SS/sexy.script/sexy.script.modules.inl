@@ -31,6 +31,14 @@
 	principal credit screen and its principal readme file.
 */
 
+namespace Rococo
+{
+	namespace Sex
+	{
+		IExpressionTransform* CreateExpressionTransform(cr_sex src);
+	}
+}
+
 namespace Rococo { namespace Script
 {
 	class CScript;
@@ -2037,6 +2045,26 @@ namespace Rococo { namespace Script
       tree.AddRef();
    }
 
+   ISExpressionBuilder* CScript::CreateMacroTransform(cr_sex src)
+   {
+	   auto i = mapExpressionToTransform.find(&src);
+	   if (i != mapExpressionToTransform.end())
+	   {
+		   i->second.transform->Free();
+	   }
+
+	   TransformData td;
+	   td.transform = Rococo::Sex::CreateExpressionTransform(src);
+	   mapExpressionToTransform[&src] = td;
+	   return &td.transform->Root();
+   }
+
+   const ISExpression* CScript::GetTransform(cr_sex src)
+   {
+	   auto i = mapExpressionToTransform.find(&src);
+	   return i == mapExpressionToTransform.end() ? nullptr : &i->second.transform->Root();
+   }
+
    GlobalValue* CScript::GetGlobalValue(cstr name)
    {
       CStringKey key(name);
@@ -2215,6 +2243,13 @@ namespace Rococo { namespace Script
       closureJobs.clear();
       stringConstants.clear();
       globalVariables.clear();
+
+	  for (auto& i : mapExpressionToTransform)
+	  {
+		  i.second.transform->Free();
+	  }
+
+	  mapExpressionToTransform.clear();
    }
 
    void  CScript::CompileNullObjects()

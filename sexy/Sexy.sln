@@ -146,6 +146,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.nativelib.coroutines", "SS\sexy.nativelib.coroutines\sexy.nativelib.coroutines.vcxproj", "{F98E6A1F-E0B9-44AE-8C05-3A6491A72F7D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "s-parser.2", "s-parser.2\s-parser.2.vcxproj", "{E395BC0D-506B-4869-88D4-675408F3A5B3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E1E12DF3-EF6B-4044-80DB-46CEF55AD628} = {E1E12DF3-EF6B-4044-80DB-46CEF55AD628}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
