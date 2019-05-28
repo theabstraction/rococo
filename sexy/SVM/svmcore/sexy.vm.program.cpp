@@ -39,7 +39,7 @@
 using namespace Rococo;
 using namespace Rococo::VM;
 
-namespace
+namespace Anon
 {
 	class ProgramMemory: public IProgramMemory
 	{
@@ -216,6 +216,6 @@ namespace Rococo { namespace VM
 {
 	IProgramMemory* CreateProgramMemory(size_t maxProgramSize)
 	{
-		return new ProgramMemory(maxProgramSize);
+		return new Anon::ProgramMemory(maxProgramSize);
 	}
 }}

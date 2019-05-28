@@ -5,6 +5,8 @@
 
 using namespace Rococo;
 
+#pragma pack(push,1)
+
 namespace MHost 
 {
 	namespace OS
@@ -13,8 +15,35 @@ namespace MHost
 		{
 			uint8 keys[256];
 		};
+
+		struct MouseEventInner
+		{
+			int16 flags;
+			int32 buttons;
+			int32 rawButtons;
+			int32 x;
+			int32 y;
+			int32 deviceSpecificInfo;
+		};
+
+		struct MouseEventEx
+		{
+			int16 zero;
+			MouseEventInner inner;
+		};
+	} // OS
+
+	namespace Graphics
+	{
+		struct FontDesc
+		{
+			float32 ascent;
+			float32 height;
+		};
 	}
-}
+} // MHost
+
+#pragma pack(pop)
 
 namespace MHost
 {

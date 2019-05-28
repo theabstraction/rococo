@@ -62,7 +62,7 @@ namespace
 			{
 				try
 				{
-					ss = CreateScriptV_1_2_0_0(Rococo::Compiler::ProgramInitParameters{ maxBytes }, logger);
+					ss = CreateScriptV_1_4_0_0(Rococo::Compiler::ProgramInitParameters{ maxBytes }, logger, _sources.Allocator());
 					if (ss == nullptr)
 					{
 						Rococo::Throw(0, "Failed to create script system -> probably an environment problem");
@@ -223,7 +223,7 @@ namespace Rococo
 #else
 					pip.useDebugLibs = false;
 #endif
-					Script::CScriptSystemProxy ssp(pip, logger);
+					Script::CScriptSystemProxy ssp(pip, logger, sources.Allocator());
 					Script::IPublicScriptSystem& ss = ssp();
 					if (!IsPointerValid(&ss))
 					{
@@ -262,6 +262,7 @@ namespace Rococo
 					}
 					catch (IException& ex)
 					{
+						debugger.Log("Exception thrown in script: %s", ex.Message());
 						switch (exceptionHandler.GetScriptExceptionFlow("--app--", ex.Message()))
 						{
 						case EScriptExceptionFlow_Ignore:

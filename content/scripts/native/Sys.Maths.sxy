@@ -183,6 +183,32 @@
 	(dif.y = (a.y - b.y))
 )
 
+(function AddVec2fVec2f (Vec2f a)(Vec2f b)(Vec2f sum)-> :
+	(sum.x = (a.x + b.x))
+	(sum.y = (a.y + b.y))
+)
+
+(function SubtractVec2fVec2f (Vec2f a)(Vec2f b)(Vec2f dif) -> :
+	(dif.x = (a.x - b.x))
+	(dif.y = (a.y - b.y))
+)
+
+(function MultiplyVec2fFloat32 (Vec2f a)(Float32 scaleFactor)(Vec2f product) -> :
+	(product.x = (a.x * scaleFactor))
+	(product.y = (a.y * scaleFactor))
+)
+
+(function DivideVec2fFloat32 (Vec2f a)(Float32 scaleFactor)(Vec2f product) -> :
+	(product.x = (a.x / scaleFactor))
+	(product.y = (a.y / scaleFactor))
+)
+
+(alias AddVec2fVec2f Sys.Maths.AddVec2fVec2f)
+(alias SubtractVec2fVec2f Sys.Maths.SubtractVec2fVec2f)
+
+(alias DivideVec2fFloat32 Sys.Maths.DivideVec2fFloat32)
+(alias MultiplyVec2fFloat32 Sys.Maths.MultiplyVec2fFloat32)
+
 (alias AddVec2iVec2i Sys.Maths.AddVec2iVec2i)
 (alias SubtractVec2iVec2i Sys.Maths.SubtractVec2iVec2i)
 

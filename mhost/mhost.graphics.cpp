@@ -25,7 +25,7 @@ Vec2i GetTopLeftPos(const GuiRect& rect, Vec2i span, int32 alignmentFlags)
 	}
 	else
 	{
-		pos.x = ((rect.left + rect.right) >> 1) - span.x;
+		pos.x = ((rect.left + rect.right - span.x) >> 1);
 	}
 
 	if (IsFlagged(alignmentFlags, AlignmentFlags_Top) && !IsFlagged(alignmentFlags, AlignmentFlags_Bottom))
@@ -38,7 +38,7 @@ Vec2i GetTopLeftPos(const GuiRect& rect, Vec2i span, int32 alignmentFlags)
 	}
 	else
 	{
-		pos.y = ((rect.top + rect.bottom) >> 1) - span.y;
+		pos.y = ((rect.top + rect.bottom + span.y) >> 1) - span.y;
 	}
 	
 	return pos;
@@ -326,6 +326,17 @@ struct Gui : public MHost::IGui
 		gc.AddTriangle(&t[1].a);
 	}
 
+	void FillRect(const Rococo::GuiRectf& rect, RGBAb colour) override
+	{
+		GuiQuad q;
+		q.topLeft = GuiVertex{ { rect.left, rect.top }, {{0, 0}, 0}, {1.0f, 0.0f, 0.0f, 0.0f}, colour };
+		q.bottomLeft = q.bottomRight = q.topRight = q.topLeft;
+		q.topRight.pos = { rect.right, rect.top };
+		q.bottomLeft.pos = { rect.left, rect.bottom };
+		q.bottomRight.pos = { rect.right, rect.bottom };
+		DrawQuad(q);
+	}
+
 	void StretchSprite(const GuiRectf& quad, const BitmapLocation& loc) override
 	{
 		GuiRectf txUV = { (float)loc.txUV.left,  (float)loc.txUV.top, (float)loc.txUV.right,  (float)loc.txUV.bottom };
@@ -379,12 +390,74 @@ struct Gui : public MHost::IGui
 	{
 		GuiMetrics gm;
 		gc.Renderer().GetGuiMetrics(gm);
-		pos = { (float) gm.cursorPosition.x, (float)gm.screenSpan.y };
+		pos = { (float) gm.cursorPosition.x, (float)gm.cursorPosition.y };
 	}
 
 	void SetGuiShaders(const fstring& pixelShaderFilename) override
 	{
 		gc.SetGuiShader(pixelShaderFilename);
+	}
+
+	void DrawBorder(const Rococo::GuiRectf& rect, float pxThickness, RGBAb tl, RGBAb tr, RGBAb bl, RGBAb br) override
+	{
+		GuiQuad top;
+		top.topLeft = GuiVertex{ { rect.left, rect.top }, {{0, 0}, 0}, {1.0f, 0.0f, 0.0f, 0.0f}, tl };
+		top.bottomLeft = top.bottomRight = top.topRight = top.topLeft;
+		top.topRight.pos = { rect.right, rect.top };
+		top.bottomLeft.pos = { rect.left + pxThickness, rect.top + pxThickness };
+		top.bottomRight.pos = { rect.right - pxThickness, rect.top + pxThickness };
+		top.bottomRight.colour = top.topRight.colour = tr;
+		DrawQuad(top);
+
+		GuiQuad bottom;
+		bottom.topLeft = GuiVertex{ { rect.left + pxThickness, rect.bottom - pxThickness }, {{0, 0}, 0}, {1.0f, 0.0f, 0.0f, 0.0f}, bl };
+		bottom.bottomLeft = bottom.bottomRight = bottom.topRight = bottom.topLeft;
+		bottom.topRight.pos = { rect.right - pxThickness, rect.bottom - pxThickness };
+		bottom.bottomLeft.pos = { rect.left, rect.bottom };
+		bottom.bottomRight.pos = { rect.right, rect.bottom };
+		bottom.bottomRight.colour = bottom.topRight.colour = br;
+		bottom.bottomLeft.colour = bl;
+		DrawQuad(bottom);
+
+		GuiQuad left;
+		left.topLeft = GuiVertex{ { rect.left, rect.top }, {{0, 0}, 0}, {1.0f, 0.0f, 0.0f, 0.0f}, tl };
+		left.bottomLeft = left.bottomRight = left.topRight = left.topLeft;
+		left.topRight.pos = { rect.left + pxThickness, rect.top + pxThickness};
+		left.bottomLeft.pos = { rect.left, rect.bottom };
+		left.bottomRight.pos = { rect.left + pxThickness, rect.bottom - pxThickness };
+		left.bottomLeft.colour = left.bottomRight.colour = bl;
+		DrawQuad(left);
+
+		GuiQuad right;
+		right.topLeft = GuiVertex{ { rect.right - pxThickness, rect.top + pxThickness }, {{0, 0}, 0}, {1.0f, 0.0f, 0.0f, 0.0f}, tr };
+		right.bottomLeft = right.bottomRight = right.topRight = right.topLeft;
+		right.topRight.pos = { rect.right, rect.top };
+		right.bottomLeft.pos = { rect.right - pxThickness, rect.bottom - pxThickness };
+		right.bottomRight.pos = { rect.right, rect.bottom };
+		right.bottomLeft.colour = right.bottomRight.colour = br;
+		DrawQuad(right);
+	}
+
+	void EvalTextSpan(const fstring& text, int32 fontIndex, Vec2& pixelSpan) override
+	{
+		BasicTextJob job(fontIndex, text, 0xFFFFFFFF);
+		auto iSpan = gc.EvalSpan({ 0,0 }, job);
+		pixelSpan.x = (float)iSpan.x;
+		pixelSpan.y = (float)iSpan.y;
+	}
+
+	void GetFontDescription(int32 fontIndex, Rococo::IStringPopulator& familyName, MHost::Graphics::FontDesc& desc) override
+	{
+		auto& font = gc.Renderer().FontMetrics();
+		auto& glyphSet = font[fontIndex];
+		desc.ascent = (float) glyphSet.FontAscent();
+		desc.height = (float) glyphSet.FontHeight();
+		familyName.Populate(glyphSet.Name());
+	}
+
+	int32 GetNumberOfFonts() override
+	{
+		return gc.Renderer().FontMetrics().NumberOfGlyphSets();
 	}
 };
 

@@ -1,16 +1,28 @@
 (namespace EntryPoint)
-  (alias Main EntryPoint.Main)
-(using Sys.Reflection)
+ (alias Main EntryPoint.Main)
+
 (using Sys.Type)
 
-(using Sys.Maths)
+(interface Sys.Type.IDog (Bark ->))
+(class Dog (implements Sys.Type.IDog))
+(method Dog.Bark -> :  (Sys.Print "woof"))
+(factory Sys.Type.BitchSpawn Sys.Type.IDog : (construct Dog))
 
-(struct Mat2x2i
-	(Vec2i row1 row2)
-)
+(method Dog.Construct -> : (Sys.Print "Dog created"))
+(method Dog.Destruct -> : (Sys.Print "Dog destroyed"))
+
+(struct Zoo (Int32 zookeeperId) (IDog dog))
 
 (function Main -> (Int32 result):
-	(Mat2x2i m = (4 3)(2 1))
-	(Float32 x = (5 - (m.row1.x - m.row2.x)))
-	(if (x == 3) (result = 12))
+	(try
+		(
+			(Zoo zoo)
+			(zoo.dog = (Sys.Type.BitchSpawn))
+			(zoo.dog.Bark)
+			(Sys.Throw -1 "Test")
+		)
+	catch ex
+		(
+		)
+	)
 )

@@ -312,6 +312,7 @@ namespace Rococo
 
 	ROCOCOAPI ISourceCache
 	{
+		virtual IAllocator& Allocator() = 0;
 		virtual Rococo::Sex::ISParserTree* GetSource(cstr resourceName) = 0;
 		virtual void Free() = 0;
 		virtual void Release(cstr resourceName) = 0;

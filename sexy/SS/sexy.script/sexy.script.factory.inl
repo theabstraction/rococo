@@ -153,7 +153,7 @@ namespace Rococo
 
       bool TryCompileAsLateFactoryCall(CCompileEnvironment& ce, const MemberDef& targetDef, cr_sex directive)
       {
-         cr_sex factoryCall = directive.GetElement(2);
+		  cr_sex factoryCall = directive[2];
 
          if (!IsCompound(factoryCall))
          {
@@ -165,7 +165,7 @@ namespace Rococo
             return false;
          }
 
-         cr_sex factoryNameExpr = factoryCall.GetElement(0);
+         cr_sex factoryNameExpr = factoryCall[0];
          if (!IsAtomic(factoryNameExpr))
          {
             return false;
@@ -177,18 +177,11 @@ namespace Rococo
             return false;
          }
 
-         cstr targetName = directive.GetElement(0).String()->Buffer;
+         cstr targetName = directive[0].String()->Buffer;
 
          const IFactory& factory = GetFactoryInModule(factoryNameExpr, GetModule(ce.Script));
-
-		 static int refId = 0;
-
-		 char refName[256];
-		 SafeFormat(refName, sizeof(refName), "_interfaceRef_%d", refId++);
-
-		 AddInterfaceVariable(ce, NameString::From(refName), targetStruct);
 		 
-         CompileFactoryCall(ce, factory, refName, factoryCall, targetStruct.GetInterface(0));
+         CompileFactoryCall(ce, factory, targetName, factoryCall, targetStruct.GetInterface(0));
 
          return true;
       }

@@ -714,8 +714,11 @@ namespace
 			{
 				bytesToFree += v->AllocSize();
 			}
-						
-			nextOffset = vOffset;			
+					
+			if (expireVariables)
+			{
+				nextOffset = vOffset;
+			}
 		}
 
 		Assembler().Append_StackAlloc(-bytesToFree);

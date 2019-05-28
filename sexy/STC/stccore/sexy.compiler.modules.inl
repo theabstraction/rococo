@@ -40,7 +40,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		IProgramObject& object;
 		FunctionRegistry functions;
 		StructRegistry structures;
-		typedef std::vector<Function*> TClosures;
+		typedef std::vector<Anon::Function*> TClosures;
 		TClosures closures;
 
 		typedef std::vector<INamespaceBuilder*> TPrefixes;
@@ -50,7 +50,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		{
 			for(auto i = closures.begin(); i != closures.end(); ++i)
 			{
-				Function* f = *i;
+				Anon::Function* f = *i;
 				delete f;
 			}
 
@@ -103,20 +103,20 @@ namespace Rococo { namespace Compiler { namespace Impl
 		{
 			char name[32];
 			SafeFormat(name, 32, ("_Closure%s%u"), parent.Name(), closures.size());
-			Function* f = new Function(FunctionPrototype(name, false), *this, &parent, mayUseParentSF, definition, 0);
+			Anon::Function* f = new Anon::Function(FunctionPrototype(name, false), *this, &parent, mayUseParentSF, definition, 0);
 			closures.push_back(f);
 			return *f;
 		}
 
 		virtual IFunctionBuilder& DeclareFunction(const FunctionPrototype& prototype, const void* definition, int popBytes)
 		{
-			Function* f = (Function*) functions.Get(prototype.Name);
+			Anon::Function* f = (Anon::Function*) functions.Get(prototype.Name);
 			if (f != NULL)
 			{
 				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Function %s already defined in %s"), prototype.Name, name.c_str());
 			}
 
-			f = new Function(prototype, *this, NULL, false, definition, popBytes);
+			f = new Anon::Function(prototype, *this, NULL, false, definition, popBytes);
 
 			functions.Register(f->Name(), *f);
 
@@ -241,7 +241,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			bool success = true;
 			for(int i = 0; i < functions.FunctionCount(); i++)
 			{
-				Function& f = (Function&) functions[i].GetFunction();
+				Anon::Function& f = (Anon::Function&) functions[i].GetFunction();
 				if (!f.TryResolveArguments())
 				{
 					success = false;

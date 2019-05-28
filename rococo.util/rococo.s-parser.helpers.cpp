@@ -699,13 +699,20 @@ namespace Rococo
 		AutoFree<IExpandingBuffer> unicodeBuffer;
 		Rococo::Sex::CSParserProxy spp;
 		IInstallation& installation;
+		AutoFree<IAllocatorSupervisor> allocator;
 
 	public:
 		SourceCache(IInstallation& _installation) :
 			fileBuffer(CreateExpandingBuffer(64_kilobytes)),
 			unicodeBuffer(CreateExpandingBuffer(64_kilobytes)),
-			installation(_installation)
+			installation(_installation),
+			allocator(Rococo::Memory::CreateBlockAllocator(1024, 0))
 		{
+		}
+
+		IAllocator& Allocator() override
+		{
+			return *allocator;
 		}
 
 		ISourceCache* GetInterface()
@@ -722,12 +729,12 @@ namespace Rococo
 			}
 		}
 
-		IMathsVenue* Venue()
+		IMathsVenue* Venue() override
 		{
 			return this;
 		}
 
-		virtual void ShowVenue(IMathsVisitor& visitor)
+		void ShowVenue(IMathsVisitor& visitor) override
 		{
 			visitor.ShowString("", "   File Length     Timestamp");
 

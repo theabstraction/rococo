@@ -116,6 +116,92 @@ namespace
 		WriteOutput(remainder, _sf, -_offset);
 	}
 
+	void NativeSysMathsI32BitwiseAnd(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 x;
+		_offset += sizeof(x);
+
+		ReadInput(x, _sf, -_offset);
+		int32 y;
+		_offset += sizeof(y);
+
+		ReadInput(y, _sf, -_offset);
+		int32 result = x & y;
+		_offset += sizeof(result);
+
+		WriteOutput(result, _sf, -_offset);
+	}
+
+	void NativeSysMathsI32BitwiseOr(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 x;
+		_offset += sizeof(x);
+
+		ReadInput(x, _sf, -_offset);
+		int32 y;
+		_offset += sizeof(y);
+
+		ReadInput(y, _sf, -_offset);
+		int32 result = x | y;
+		_offset += sizeof(result);
+
+		WriteOutput(result, _sf, -_offset);
+	}
+
+	void NativeSysMathsI32BitwiseXor(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 x;
+		_offset += sizeof(x);
+
+		ReadInput(x, _sf, -_offset);
+		int32 y;
+		_offset += sizeof(y);
+
+		ReadInput(y, _sf, -_offset);
+
+		int32 result = x ^ y;
+		_offset += sizeof(result);
+		WriteOutput(result, _sf, -_offset);
+	}
+
+	void NativeSysMathsI32HasFlags(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 x;
+		_offset += sizeof(x);
+
+		ReadInput(x, _sf, -_offset);
+		int32 y;
+		_offset += sizeof(y);
+
+		ReadInput(y, _sf, -_offset);
+
+		boolean32 result = (boolean32) ((x & y) != 0);
+		_offset += sizeof(result);
+		WriteOutput(result, _sf, -_offset);
+	}
+
+	void NativeSysMathsI32BitwiseNot(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		int32 x;
+		_offset += sizeof(x);
+		ReadInput(x, _sf, -_offset);
+		
+		int32 result = ~x;
+		_offset += sizeof(result);
+		WriteOutput(result, _sf, -_offset);
+	}
+
 	void NativeSysMathsI32ToInt64(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -172,5 +258,10 @@ namespace Sys { namespace Maths { namespace I32 {
 		ss.AddNativeCall(ns, NativeSysMathsI32ToInt64, nullptr, ("ToInt64(Int32 x) -> (Int64 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsI32ToFloat32, nullptr, ("ToFloat32(Int32 x) -> (Float32 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsI32ToFloat64, nullptr, ("ToFloat64(Int32 x) -> (Float64 value)"));
+		ss.AddNativeCall(ns, NativeSysMathsI32BitwiseAnd, nullptr, ("BitwiseAnd(Int32 x)(Int32 y) -> (Int32 result)"));
+		ss.AddNativeCall(ns, NativeSysMathsI32BitwiseOr, nullptr, ("BitwiseOr(Int32 x)(Int32 y) -> (Int32 result)"));
+		ss.AddNativeCall(ns, NativeSysMathsI32BitwiseNot, nullptr, ("BitwiseOr(Int32 x) -> (Int32 notX)"));
+		ss.AddNativeCall(ns, NativeSysMathsI32BitwiseXor, nullptr, ("BitwiseOr(Int32 x)(Int32 y) -> (Int32 result)"));
+		ss.AddNativeCall(ns, NativeSysMathsI32HasFlags, nullptr, ("HasFlags(Int32 flags)(Int32 flag) -> (Bool result)"));
 	}
 }}}

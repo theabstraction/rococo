@@ -31,7 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace
+namespace Anon
 {
 	class FunctionArgument: public IArgumentBuilder
 	{

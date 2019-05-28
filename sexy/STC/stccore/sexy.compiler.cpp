@@ -64,7 +64,7 @@ namespace Rococo { namespace Compiler {
 
 using namespace Rococo::Compiler::Impl;
 
-namespace
+namespace Anon
 {
 	ID_BYTECODE BuildStub(IAssembler& a, IProgramMemory& program)
 	{
@@ -334,8 +334,8 @@ namespace
 			
 			callbackIds.IdUpdateRefsOnSourceAndTarget = svmCore->RegisterCallback(UpdateRefsOnSourceAndTarget, nullptr, "-+ refs");
 			callbackIds.IdAllocate = svmCore->RegisterCallback(NewObject, nullptr, "new");
-			callbackIds.IdAddRef = svmCore->RegisterCallback(::IncrementRefCount, nullptr, "++ref");
-			callbackIds.IdReleaseRef = svmCore->RegisterCallback(::DecrementRefCount, (IAllocatorMap*) this, "--ref");
+			callbackIds.IdAddRef = svmCore->RegisterCallback(Anon::IncrementRefCount, nullptr, "++ref");
+			callbackIds.IdReleaseRef = svmCore->RegisterCallback(Anon::DecrementRefCount, (IAllocatorMap*) this, "--ref");
 			callbackIds.IdGetAllocSize = svmCore->RegisterCallback(GetAllocSize, nullptr, "sizeof");
 		}
 
@@ -530,7 +530,7 @@ namespace Rococo
    {
 	   IProgramObject* CreateProgramObject_1_0_0_0(const ProgramInitParameters& pip, ILog& log)
 	   {
-		   return new ProgramObject(pip, log);
+		   return new Anon::ProgramObject(pip, log);
 	   }
 
 	   void ValidateNotNull(void* p)

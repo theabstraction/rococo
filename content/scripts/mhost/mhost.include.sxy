@@ -11,9 +11,25 @@
 	(MatrixI32x4x4 a b c d) // This will create a 256 byte structure
 )
 
+(struct MouseEvent
+    (Int32 usFlags)
+	(Int32 buttons)
+	(Int32 rawButtons)
+	(Int32 x)
+	(Int32 y)
+)
+
+(struct FontDesc
+	(Float32 ascent)
+	(Float32 height)
+)
+
+(alias FontDesc MHost.Graphics.FontDesc)
+
 (alias VectorI32x4 MHost.VectorI32x4)
 (alias MatrixI32x4x4 MHost.MatrixI32x4x4)
 (alias KeyState MHost.OS.KeyState)
+(alias MouseEvent MHost.OS.MouseEvent)
 
 (using MHost)
 

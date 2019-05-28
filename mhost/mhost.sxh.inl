@@ -134,6 +134,58 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->DrawQuad(*q);
 	}
+	void NativeMHostIGuiDrawBorder(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb br;
+		_offset += sizeof(br);
+		ReadInput(br, _sf, -_offset);
+
+		RGBAb bl;
+		_offset += sizeof(bl);
+		ReadInput(bl, _sf, -_offset);
+
+		RGBAb tr;
+		_offset += sizeof(tr);
+		ReadInput(tr, _sf, -_offset);
+
+		RGBAb tl;
+		_offset += sizeof(tl);
+		ReadInput(tl, _sf, -_offset);
+
+		float pxThickness;
+		_offset += sizeof(pxThickness);
+		ReadInput(pxThickness, _sf, -_offset);
+
+		Rococo::GuiRectf* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		MHost::IGui* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->DrawBorder(*rect, pxThickness, tl, tr, bl, br);
+	}
+	void NativeMHostIGuiFillRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb colour;
+		_offset += sizeof(colour);
+		ReadInput(colour, _sf, -_offset);
+
+		Rococo::GuiRectf* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		MHost::IGui* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->FillRect(*rect, colour);
+	}
 	void NativeMHostIGuiDrawColouredSprite(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -228,15 +280,15 @@ namespace
 		_offset += sizeof(loc);
 		ReadInput(loc, _sf, -_offset);
 
-		Rococo::GuiRectf* screenQuad;
-		_offset += sizeof(screenQuad);
-		ReadInput(screenQuad, _sf, -_offset);
+		Rococo::GuiRectf* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
 
 		MHost::IGui* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->StretchSprite(*screenQuad, *loc);
+		_pObject->StretchSprite(*rect, *loc);
 	}
 	void NativeMHostIGuiDrawText(NativeCallEnvironment& _nce)
 	{
@@ -269,6 +321,64 @@ namespace
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->DrawText(*rect, alignmentFlags, text, fontIndex, colour);
+	}
+	void NativeMHostIGuiEvalTextSpan(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2* pixelSpan;
+		_offset += sizeof(pixelSpan);
+		ReadInput(pixelSpan, _sf, -_offset);
+
+		int32 fontIndex;
+		_offset += sizeof(fontIndex);
+		ReadInput(fontIndex, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		MHost::IGui* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->EvalTextSpan(text, fontIndex, *pixelSpan);
+	}
+	void NativeMHostIGuiGetFontDescription(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		MHost::Graphics::FontDesc* fd;
+		_offset += sizeof(fd);
+		ReadInput(fd, _sf, -_offset);
+
+		_offset += sizeof(VirtualTable**);
+		VirtualTable** familyName;
+		ReadInput(familyName, _sf, -_offset);
+		Rococo::Helpers::StringPopulator _familyNamePopulator(_nce, familyName);
+		int32 fontIndex;
+		_offset += sizeof(fontIndex);
+		ReadInput(fontIndex, _sf, -_offset);
+
+		MHost::IGui* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetFontDescription(fontIndex, _familyNamePopulator, *fd);
+	}
+	void NativeMHostIGuiGetNumberOfFonts(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		MHost::IGui* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 numberOfFonts = _pObject->GetNumberOfFonts();
+		_offset += sizeof(numberOfFonts);
+		WriteOutput(numberOfFonts, _sf, -_offset);
 	}
 	void NativeMHostIGuiGetScreenSpan(NativeCallEnvironment& _nce)
 	{
@@ -323,11 +433,16 @@ namespace MHost {
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawTriangle, nullptr, ("IGuiDrawTriangle (Pointer hObject)(Sys.MPlat.GuiTriangle t) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawQuad, nullptr, ("IGuiDrawQuad (Pointer hObject)(Sys.MPlat.GuiQuad q) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawBorder, nullptr, ("IGuiDrawBorder (Pointer hObject)(Sys.Maths.Rectf rect)(Float32 pxThickness)(Int32 tl)(Int32 tr)(Int32 bl)(Int32 br) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiFillRect, nullptr, ("IGuiFillRect (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 colour) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawColouredSprite, nullptr, ("IGuiDrawColouredSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(Sys.MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawScaledColouredSprite, nullptr, ("IGuiDrawScaledColouredSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(Sys.MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawSprite, nullptr, ("IGuiDrawSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(Sys.MPlat.BitmapLocation loc) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiStretchSprite, nullptr, ("IGuiStretchSprite (Pointer hObject)(Sys.Maths.Rectf screenQuad)(Sys.MPlat.BitmapLocation loc) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiStretchSprite, nullptr, ("IGuiStretchSprite (Pointer hObject)(Sys.Maths.Rectf rect)(Sys.MPlat.BitmapLocation loc) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawText, nullptr, ("IGuiDrawText (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiEvalTextSpan, nullptr, ("IGuiEvalTextSpan (Pointer hObject)(Sys.Type.IString text)(Int32 fontIndex)(Sys.Maths.Vec2 pixelSpan) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiGetFontDescription, nullptr, ("IGuiGetFontDescription (Pointer hObject)(Int32 fontIndex)(Sys.Type.IStringBuilder familyName)(MHost.Graphics.FontDesc fd) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiGetNumberOfFonts, nullptr, ("IGuiGetNumberOfFonts (Pointer hObject) -> (Int32 numberOfFonts)"));
 		ss.AddNativeCall(ns, NativeMHostIGuiGetScreenSpan, nullptr, ("IGuiGetScreenSpan (Pointer hObject)(Sys.Maths.Vec2 span) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiGetCursorPos, nullptr, ("IGuiGetCursorPos (Pointer hObject)(Sys.Maths.Vec2 pos) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiSetGuiShaders, nullptr, ("IGuiSetGuiShaders (Pointer hObject)(Sys.Type.IString pixelShaderFilename) -> "));
@@ -354,6 +469,22 @@ namespace
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->PollKeyState(*keys);
+	}
+	void NativeMHostIEngineGetNextMouseEvent(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		MHost::OS::MouseEventEx* me;
+		_offset += sizeof(me);
+		ReadInput(me, _sf, -_offset);
+
+		MHost::IEngine* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 wasPopped = _pObject->GetNextMouseEvent(*me);
+		_offset += sizeof(wasPopped);
+		WriteOutput(wasPopped, _sf, -_offset);
 	}
 	void NativeMHostIEngineRender(NativeCallEnvironment& _nce)
 	{
@@ -472,6 +603,7 @@ namespace MHost {
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForMHostEngine, _nceContext, ("GetHandleForIEngine0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeMHostIEnginePollKeyState, nullptr, ("IEnginePollKeyState (Pointer hObject)(MHost.OS.KeyState keys) -> "));
+		ss.AddNativeCall(ns, NativeMHostIEngineGetNextMouseEvent, nullptr, ("IEngineGetNextMouseEvent (Pointer hObject)(MHost.OS.MouseEvent me) -> (Bool wasPopped)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineRender, nullptr, ("IEngineRender (Pointer hObject)(MHost.GuiPopulator populator) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineIsRunning, nullptr, ("IEngineIsRunning (Pointer hObject) -> (Bool isRunning)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineYieldForSystemMessages, nullptr, ("IEngineYieldForSystemMessages (Pointer hObject)(Int32 sleepMS) -> "));

@@ -87,5 +87,11 @@
     <None Include="..\content\scripts\mhost\keys.sxy">
       <Filter>ScriptGen Files\SXY</Filter>
     </None>
+    <None Include="..\content\scripts\mhost\harrier.sxy">
+      <Filter>ScriptGen Files\SXY</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\rpg.sxy">
+      <Filter>ScriptGen Files\SXY</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -183,11 +183,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\content\scripts\mhost\galaxians.sxy" />
+    <None Include="..\content\scripts\mhost\harrier.sxy" />
     <None Include="..\content\scripts\mhost\keys.sxy" />
     <None Include="..\content\scripts\mhost\mhost.include.sxy" />
     <None Include="..\content\scripts\mhost\mhost.sxh.sxy" />
     <None Include="..\content\scripts\mhost\mhost.types.sxy" />
     <None Include="..\content\scripts\mhost\mplat.types.sxy" />
+    <None Include="..\content\scripts\mhost\rpg.sxy" />
     <None Include="mhost.os.inl" />
     <None Include="mhost.sxh" />
     <None Include="mhost.sxh.inl" />

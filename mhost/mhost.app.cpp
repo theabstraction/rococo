@@ -136,8 +136,8 @@ namespace MHost
 
 			platform.gui.PushTop(busyPanel->Supervisor(), true);
 
-			Graphics::RenderPhaseConfig config;
-			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
+			Rococo::Graphics::RenderPhaseConfig config;
+			config.EnvironmentalMap = Rococo::Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
 			platform.renderer.Render(config, platform.scene);
 			platform.gui.Pop();
 		}
@@ -282,8 +282,8 @@ namespace MHost
 
 		void Render(MHost::GuiPopulator populator) override
 		{
-			Graphics::RenderPhaseConfig config;
-			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
+			Rococo::Graphics::RenderPhaseConfig config;
+			config.EnvironmentalMap = Rococo::Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
 
 			sceneBuilder.populator = populator;
 
@@ -300,6 +300,13 @@ namespace MHost
 		void SetNextScript(const fstring& scriptName) override
 		{
 			mainScript = scriptName;
+		}
+
+		boolean32 GetNextMouseEvent(MHost::OS::MouseEventEx& me) override
+		{
+			me.zero = 0;
+
+			return (boolean32) control.TryGetNextMouseEvent((Rococo::MouseEvent&)me.inner);
 		}
 	};
 }

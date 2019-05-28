@@ -146,6 +146,7 @@ struct Coroutines : public Sys::ICoroutineControl
 	Coroutines(IScriptSystem& _ss) :
 		ss(_ss), object(ss.ProgramObject()), vm(object.VirtualMachine())
 	{
+		next = specs.end();
 	}
 
 	int64 Add(Rococo::Sex::CoroutineRef coroutine) override

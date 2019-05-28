@@ -128,6 +128,36 @@ namespace
 		}
 	}
 
+	void DecRefCountOnMembers(const IStructure& type, const uint8* pStruct, IProgramObject& po)
+	{
+		auto nMembers = type.MemberCount();
+
+		int offset = 0;
+
+		for (int i = 0; i < nMembers; ++i) // Ignore the first three members, they are part of the stub
+		{
+			auto& m = type.GetMember(i);
+			const int dm = m.SizeOfMember();
+
+			const uint8* child = ((const uint8*)pStruct) + offset;
+
+			if (m.IsInterfaceVariable())
+			{
+				InterfacePointer childObj = *(InterfacePointer*)child;
+				po.DecrementRefCount(childObj);
+			}
+			else
+			{
+				if (m.UnderlyingType())
+				{
+					DecRefCountOnMembers(*m.UnderlyingType(), child, po);
+				}
+			}
+
+			offset += dm;
+		}
+	}
+
 	void DeconstructLocalObjects(IScriptSystem& ss, size_t functionOffset, const uint8* sf, IFunctionBuilder& f, REF int& totalStackCorrection)
 	{
 		const StackRecoveryData& src = f.Builder().GetRequiredStackCorrection(functionOffset);
@@ -150,6 +180,10 @@ namespace
 			{
 				InterfacePointer pInterface = *(InterfacePointer*) instance;
 				ss.ProgramObject().DecrementRefCount(pInterface);
+			}
+			else if (type.HasInterfaceMembers())
+			{
+				DecRefCountOnMembers(type, instance, ss.ProgramObject());
 			}
 			else if (AreEqual(type.Name(), ("_Lock")))
 			{
