@@ -93,7 +93,7 @@ namespace Rococo
       }
 
       void CompileWhileLoop(CCompileEnvironment& ce, cr_sex s)
-      {
+	  {
          // (while (binary-predicate) (action1) ... (actionN))
 
          AssertCompound(s);
@@ -151,7 +151,8 @@ namespace Rococo
             Throw(s, ("'break' is only valid inside a loop construct"));
          }
 
-         int32 toBreak = ((int32)cfd.BreakPosition) - ((int32)ce.Builder.Assembler().WritePosition());
+		 AppendDeconstructTailVariables(ce, s, false, ce.Builder.SectionArgCount(cfd.SectionIndex));
+		 int32 toBreak = ((int32)cfd.BreakPosition) - ((int32)ce.Builder.Assembler().WritePosition());
          ce.Builder.Assembler().Append_Branch(toBreak);
       }
 
@@ -341,7 +342,7 @@ namespace Rococo
       {
          ce.Builder.EnterSection();
          CompileForEachCore(ce, s);
-         AppendDeconstruct(ce, s);
+         AppendDeconstruct(ce, s, true);
          ce.Builder.LeaveSection();
       }
    }//Script

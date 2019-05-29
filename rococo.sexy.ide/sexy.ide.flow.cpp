@@ -275,7 +275,7 @@ namespace Rococo
 						}
 					}
 
-					sources.Release(resourcePath);
+					sources.ReleaseAll();
 
 					DebuggerLoop(ss, debugger);
 				}

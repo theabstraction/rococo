@@ -52,6 +52,7 @@ namespace Rococo
 	namespace Script
 	{
 		void AppendInvokeCallDestructor(CCompileEnvironment& ce, const IStructure& s, cstr name, int SFoffset);
+		void AppendDeconstructAll(CCompileEnvironment& ce, cr_sex sequence);
 
 		size_t GetOffsetTo(cstr memberName, const IStructure& s)
 		{
@@ -2284,8 +2285,6 @@ namespace Rococo
 				Throw(toTypeExpr, ("Only interfaces can be the target type of a cast"));
 			}
 		}
-
-		void AppendDeconstructAll(CCompileEnvironment& ce, cr_sex sequence);
 
 		void CompileTrip(CCompileEnvironment& ce, cr_sex s)
 		{

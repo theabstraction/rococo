@@ -144,7 +144,7 @@ namespace
 	typedef std::vector<ControlFlowData> TControlStack;
 	typedef std::unordered_map<size_t,StackRecoveryData> TMapCodeOffsetToStackCorrection;
 	typedef std::vector<int> TInstancePositions;
-	typedef std::list<int> TSectionStack;
+	typedef std::vector<int> TSectionStack;
 
 	typedef std::unordered_map<size_t,SymbolValue> TPCSymbols;
 
@@ -203,6 +203,7 @@ namespace
 		const IModule& Module() const { return f.Module(); }
 
 		virtual int SectionArgCount() const { return sections.back(); }
+		virtual int SectionArgCount(size_t index) const { return sections[index]; }
 
 		virtual IFunctionBuilder& Owner() { return f; }
 		virtual const IFunction& Owner() const { return f; }
@@ -770,6 +771,7 @@ namespace
 
 	void CodeBuilder::PushControlFlowPoint(const ControlFlowData& controlFlowData)
 	{
+		controlFlowData.SectionIndex = sections.size();
 		controlStack.push_back(controlFlowData);
 	}
 

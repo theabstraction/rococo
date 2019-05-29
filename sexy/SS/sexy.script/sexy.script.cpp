@@ -77,6 +77,8 @@ namespace Rococo
 {
 	namespace Script
 	{
+		void AppendDeconstructAll(CCompileEnvironment& ce, cr_sex sequence);
+
 		void SetDefaultNativeSourcePath(cstr pathname)
 		{
 			if (pathname == nullptr)

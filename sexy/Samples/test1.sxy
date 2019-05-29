@@ -1,28 +1,11 @@
 (namespace EntryPoint)
- (alias Main EntryPoint.Main)
-
-(using Sys.Type)
-
-(interface Sys.Type.IDog (Bark ->))
-(class Dog (implements Sys.Type.IDog))
-(method Dog.Bark -> :  (Sys.Print "woof"))
-(factory Sys.Type.BitchSpawn Sys.Type.IDog : (construct Dog))
-
-(method Dog.Construct -> : (Sys.Print "Dog created"))
-(method Dog.Destruct -> : (Sys.Print "Dog destroyed"))
-
-(struct Zoo (Int32 zookeeperId) (IDog dog))
-
 (function Main -> (Int32 result):
-	(try
-		(
-			(Zoo zoo)
-			(zoo.dog = (Sys.Type.BitchSpawn))
-			(zoo.dog.Bark)
-			(Sys.Throw -1 "Test")
-		)
-	catch ex
-		(
-		)
-	)
+	(result = 10)
+	
+	(while true
+		(Int32 i)
+		(if true (break))
+	) 
+	
 )
+(alias Main EntryPoint.Main)

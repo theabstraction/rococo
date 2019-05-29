@@ -1,0 +1,152 @@
+(using MHost.Graphics)
+(using MHost)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.Type.Strings)
+
+(struct MenuItem
+	(IString text)
+	(Rectf rect)
+	(IWidgetContext wc)
+)
+
+(class VerticalMenu
+	(implements IMenu)
+	(array MenuItem items)
+	(Int32 alignment)
+	(Int32 fontIndex)
+	(Float32 borderThickness)
+	(QuadColour coloursLow)
+	(QuadColour coloursHigh)
+	(QuadColour bkLow)
+	(QuadColour bkHigh)
+	(Rectf outerRect)
+	(Vec2 cursorPos)
+	(IString fontFamily)
+)
+
+(method VerticalMenu.Construct (Int32 maxEntries) -> (construct items maxEntries) :
+	(this.alignment = 0)
+	(this.fontIndex = 0)
+	(this.fontFamily = "Courier New")
+	(UseDefaultColourScheme this.coloursLow this.coloursHigh)
+	(UseDefaultColourScheme this.bkLow this.bkHigh)
+)
+
+(method VerticalMenu.AddTextItem (IString text)(IWidgetContext wc)->(Int32 id):
+	(MenuItem item = text (0 0 0 0) wc)
+	(this.items.Push item)
+)
+
+(method VerticalMenu.SetColourScheme (QuadColour low)(QuadColour high)(QuadColour bkLow)(QuadColour bkHigh)-> :
+	(this.coloursLow = low)
+	(this.coloursHigh = high)
+	(this.bkLow = bkLow)
+	(this.bkHigh = bkHigh)
+	(this.alignment = 0)
+) 
+
+(method VerticalMenu.SetStyle (Int32 textAlignment)(Float32 borderThickness)(IString fontFamily)-> :
+	(this.alignment = textAlignment)
+	(this.borderThickness = borderThickness)
+	(this.fontFamily = fontFamily)
+)
+
+(factory MHost.NewVerticalMenu IMenu (Int32 maxEntries) :
+	(construct VerticalMenu maxEntries)
+)
+
+(function LayoutFixedRect (VerticalMenu menu)(Rectf rect)(IGui g)-> :
+	(Vec2 span)
+	(GetSpanRectf rect span)
+	
+	(Int32 nItems = (menu.items.Length))
+
+	(if (nItems == 0) (return))
+
+	(Float32 nItemsF32 = (Sys.Maths.I32.ToFloat32 nItems))
+	
+	(Float32 pxHeightPerRow = (Floor (span.y / nItemsF32)))
+	
+	(Float32 minHeight = (pxHeightPerRow - 2))
+
+	(menu.fontIndex = (GetLargestFontOfFamilyLessThanHeight g menu.fontFamily minHeight))
+		
+	(if (menu.fontIndex == -1)
+		(menu.fontIndex = (GetLargestFontOfFamilyLessThanHeight g "Courier New" minHeight))
+	)
+	
+	(if (menu.fontIndex == -1)
+		(IStringBuilder msg (StringBuilder 256))
+		(msg.SetFormat 0 0 false false)
+		(#build msg "LayoutFixedRect(VerticamMenu...): could not find a font small enough for the job&n")
+		(#build msg "Rect: (" rect.left " " rect.top " " rect.right " " rect.bottom ")&n")
+		(#build msg "MinHeight: " minHeight " pixels.&n")
+		(Sys.Throw 0 msg)
+	)
+	
+	(IStringBuilder unused (StringBuilder 128))
+	(FontDesc fd)
+	(g.GetFontDescription menu.fontIndex unused fd)
+	
+	(Float32 interalYSpan = (fd.height * nItemsF32))
+	
+	(Float32 idealButtonHeight = (1.25 * fd.height))
+	
+	(Float32 buttonYHeight)
+	(Float32 buttonYBorder)
+	
+	(if (idealButtonHeight > pxHeightPerRow)
+		(buttonYHeight = pxHeightPerRow)
+		(buttonYBorder = 1)
+	else
+		(buttonYHeight = idealButtonHeight)
+		(Float32 idealTotalYSpan = (idealButtonHeight * nItemsF32))
+		(Float32 borderYSpan = (span.y - idealTotalYSpan))
+		(buttonYBorder = ((borderYSpan / (nItemsF32 + 1))))
+	)
+	
+	(Float32 y = (rect.top + buttonYBorder))
+	
+	(foreach item # menu.items
+		(item.rect.left = (rect.left + buttonYBorder))
+		(item.rect.right = (rect.right - buttonYBorder))
+		(item.rect.top = y)
+		(item.rect.bottom = (y + buttonYHeight))
+		(y += buttonYHeight)
+		(y += buttonYBorder)
+	)
+)
+
+(method VerticalMenu.RenderToFixedRect (IGui g)(Rectf outerRect) -> :
+	(if (not (EqRectfRectf outerRect this.outerRect))
+		(LayoutFixedRect this outerRect g)
+	)
+	
+	(g.GetCursorPos this.cursorPos)
+	
+	(QuadColour colours)
+	
+	(if (IsPointInRect this.cursorPos outerRect)
+		(colours = this.bkHigh)
+	else	
+		(colours = this.bkLow)
+	)
+	
+	(g.FillRect outerRect colours.backColour)
+	(g.DrawBorder outerRect this.borderThickness colours.tl colours.tr colours.bl colours.br)
+	
+	(foreach item # this.items
+		(if (IsPointInRect this.cursorPos item.rect)
+			(colours = this.coloursHigh)
+		else	
+			(colours = this.coloursLow)
+		)
+		
+		(g.DrawBorder item.rect 1 colours.tl colours.tr colours.bl colours.br)
+		(g.DrawText item.rect this.alignment item.text this.fontIndex colours.fontColour)
+	)
+	
+	(this.outerRect = outerRect)
+)

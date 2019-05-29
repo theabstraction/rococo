@@ -12162,6 +12162,32 @@ namespace
 	   validate(x == 7);
    }
 
+   void TestLoopBreak(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   "(namespace EntryPoint) \n"
+		   "(using Sys) \n"
+		   "(using Sys.Type) \n"
+		   "(function Main -> (Int32 result): \n"
+		   "		(while (true)\n"
+		   "			(Int32 i)\n"
+		   "			(break)\n"
+		   "        )\n"
+		   "       (result = 7)\n"
+		   ")\n"
+		   "(alias Main EntryPoint.Main)\n";
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(1); // Allocate stack space for the int32 x
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+	   int32 x = vm.PopInt32();
+	   validate(x == 7);
+   }
+
 #pragma pack(push,1)
    struct Message
    {
@@ -12387,6 +12413,7 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestLoopBreak);
 		TEST(TestBadClosureArg);
 		TEST(TestNullArchetypeArg);
 		TEST(TestBadClosureArg7);
@@ -12699,8 +12726,6 @@ namespace
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
-
-		TEST(TestBigNamespaceError);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

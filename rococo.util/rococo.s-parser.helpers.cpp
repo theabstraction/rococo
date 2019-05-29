@@ -745,13 +745,13 @@ namespace Rococo
 				visitor.ShowString(i.first.c_str(), "%8d bytes      %8.8s", i.second.code->SourceLength(), theTime);
 			}
 		}
-
-		virtual void Free()
+		 
+		void Free() override
 		{
 			delete this;
 		}
 
-		virtual ISParserTree* GetSource(cstr resourceName)
+		ISParserTree* GetSource(cstr resourceName) override
 		{
 			auto i = sources.find(resourceName);
 			if (i != sources.end())
@@ -781,7 +781,7 @@ namespace Rococo
 			return tree;
 		}
 
-		virtual void Release(cstr resourceName)
+		void Release(cstr resourceName) override
 		{
 			auto i = sources.find(resourceName);
 			if (i != sources.end())
@@ -790,6 +790,17 @@ namespace Rococo
 				if (i->second.tree)i->second.tree->Release();
 				sources.erase(i);
 			}
+		}
+
+		void ReleaseAll() override
+		{
+			for (auto i : sources)
+			{
+				i.second.tree->Release();
+				i.second.code->Release();
+			}
+
+			sources.clear();
 		}
 	};
 

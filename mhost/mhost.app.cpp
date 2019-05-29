@@ -26,6 +26,7 @@ namespace MHost
 		GuiPopulator populator;
 		IPublicScriptSystem* ss;
 		AutoFree<IScriptDispatcher> dispatcher;
+		char guiBuffer[64];
 
 		AppSceneBuilder(Platform& _platform): platform(_platform)
 		{
@@ -55,11 +56,8 @@ namespace MHost
 
 		void RenderGui(IGuiRenderContext& grc)  override
 		{
-			char guiBuffer[64];
 			IGui* gui = CreateGuiOnStack(guiBuffer, grc);
-
 			dispatcher->RouteGuiToScript(ss, gui, populator);
-
 			platform.scene.RenderGui(grc);
 		}
 

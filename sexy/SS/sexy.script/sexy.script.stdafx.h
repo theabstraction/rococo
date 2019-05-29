@@ -375,7 +375,8 @@ namespace Rococo
       typedef std::unordered_map<void*, void*> TAllocationMap;
 
       void GetAtomicValue(CCompileEnvironment& ce, cr_sex parent, cstr id, VARTYPE type);
-      void AppendDeconstruct(CCompileEnvironment& ce, cr_sex sequence);
+	  void AppendDeconstructTailVariables(CCompileEnvironment& ce, cr_sex sequence, bool expire, int tailCount);
+      void AppendDeconstruct(CCompileEnvironment& ce, cr_sex sequence, bool expireVariables);
       void AddInterfaceVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& ts);
       void AddVariableAndSymbol(CCompileEnvironment& ce, cstr type, cstr name);
       void ValidateUnusedVariable(cr_sex identifierExpr, ICodeBuilder& builder);

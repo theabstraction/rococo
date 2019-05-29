@@ -1,0 +1,27 @@
+(using MHost.Graphics)
+(using MHost)
+(using Sys.Type)
+(using Sys.Type.Strings)
+
+// Assumes fonts are ordered by size, so that the tallest fonts appear with the smallest font index.
+(function GetLargestFontOfFamilyLessThanHeight (IGui gui)(IString family)(Float32 height)->(Int32 fontIndex):
+	(IStringBuilder fontFamily (StringBuilder 128))
+	
+	(Int32 nFonts = gui.GetNumberOfFonts)
+	
+	(Int32 i = 0)
+	(while (i < nFonts)
+		(fontFamily.Clear)
+		(FontDesc fd)
+		(gui.GetFontDescription i fontFamily fd)
+		
+		(if ((IsExactMatch family fontFamily) and (fd.height < height))
+			(fontIndex = i)
+			(break)
+		)
+		
+		(i += 1)
+	)
+)
+
+(alias GetLargestFontOfFamilyLessThanHeight MHost.Graphics.GetLargestFontOfFamilyLessThanHeight)

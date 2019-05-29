@@ -749,20 +749,25 @@ namespace Rococo { namespace Script
 		ce.Builder.PopLastVariables(numberOfVariables, false);
 	}
 
-	void AppendDeconstruct(CCompileEnvironment& ce, cr_sex sequence)
+	void AppendDeconstructTailVariables(CCompileEnvironment& ce, cr_sex sequence, bool expire, int tailCount)
 	{
 		int backRef = ce.Builder.GetVariableCount() - 1;
 
-		int numberOfVariables = ce.Builder.GetVariableCount() - ce.Builder.SectionArgCount();
+		int numberOfVariables = ce.Builder.GetVariableCount() - tailCount;
 
-		for(int i = numberOfVariables; i > 0; i--)
+		for (int i = numberOfVariables; i > 0; i--)
 		{
 			if (backRef < 0) Throw(sequence, ("Algorithmic error #1 in deconstruction logic"));
 			AppendDeconstructOneVariable(ce, sequence, backRef);
-			backRef--;			
+			backRef--;
 		}
 
-		ce.Builder.PopLastVariables(numberOfVariables, true);
+		ce.Builder.PopLastVariables(numberOfVariables, expire);
+	}
+
+	void AppendDeconstruct(CCompileEnvironment& ce, cr_sex sequence, bool expire)
+	{
+		AppendDeconstructTailVariables(ce, sequence, expire, ce.Builder.SectionArgCount());
 	}
 
 	void CompileExpressionSequenceProtected(CCompileEnvironment& ce, int start, int end, cr_sex sequence)
@@ -781,7 +786,7 @@ namespace Rococo { namespace Script
 			{
 				ce.Builder.EnterSection();
 				CompileExpression(ce, sequence); 
-				AppendDeconstruct(ce, sequence);
+				AppendDeconstruct(ce, sequence, true);
 				ce.Builder.LeaveSection();
 				return;
 			}
@@ -796,7 +801,7 @@ namespace Rococo { namespace Script
 			CompileExpression(ce, s); 
 		}
 
-		AppendDeconstruct(ce, sequence);
+		AppendDeconstruct(ce, sequence, true);
 		ce.Builder.LeaveSection();
 	}
 

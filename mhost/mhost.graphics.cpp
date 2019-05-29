@@ -467,6 +467,7 @@ namespace MHost
 
 	IGui* CreateGuiOnStack(char buffer[64], IGuiRenderContext& gc)
 	{
+		static_assert(sizeof(Gui) <= 64, "Increase buffer size for Gui");
 		return new (buffer) Gui(gc);
 	}
 }

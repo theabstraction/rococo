@@ -1,0 +1,79 @@
+(using Sys.Maths)
+(using Sys.Type)
+(using MHost.Graphics)
+(using MHost)
+
+(struct QuadColour
+	(Int32 fontColour)
+	(Int32 backColour)
+	(Int32 tl tr bl br)
+)
+
+(alias QuadColour MHost.Graphics.QuadColour)
+
+(interface MHost.Graphics.IMenu
+	(AddTextItem (IString text)(IWidgetContext wc)->(Int32 id))
+	(SetColourScheme (QuadColour itemLow)(QuadColour itemHigh)(QuadColour bkLow)(QuadColour bkHigh)->)
+	(SetStyle (Int32 textAlignment)(Float32 borderThickness)(IString fontFamily)->)
+	(RenderToFixedRect (IGui gui)(Rectf rect)->)
+)
+
+(function UseDefaultColourScheme (QuadColour low)(QuadColour high)-> :
+	(low  = 0xFFA0A0A0 0xFF000000 0xFF606060 0xFF808080 0xFFA0A0A0 0xFFC0C0C0)
+	(high = 0xFFFFFFFF 0xFF000000 0xFF808080 0xFFA0A0A0 0xFFC0C0C0 0xFFFFFFFF)
+)
+
+(alias UseDefaultColourScheme MHost.Graphics.UseDefaultColourScheme)
+
+(interface MHost.Graphics.IWidgetContext
+	(Exists -> (Bool exists))
+)
+
+(function EqRectfRectf (Rectf a)(Rectf b)->(Bool areEqual):
+	(areEqual = (((a.left == b.left) and (a.right == b.right)) and ((a.top == b.top) and (a.bottom == b.bottom))))
+)
+
+(function GetSpanRectf (Rectf rect)(Vec2 span)-> :
+	(span.x = (rect.right - rect.left))
+	(span.y = (rect.bottom - rect.top))
+)
+
+(alias EqRectfRectf MHost.EqRectfRectf)
+(alias GetSpanRectf MHost.GetSpanRectf)
+
+(interface MHost.IUIEventHandler
+	(OnLeftMouseDown ->)
+	(OnLeftMouseUp ->)
+)
+
+(function GetCentredRect (Vec2 screenSpan) (Float32 dx)(Float32 dy)(Rectf r)-> :
+	(Vec2 rectSpan = dx dy)
+	(Vec2 border = screenSpan - rectSpan)
+	(Vec2 halfBorder = border * 0.5)
+	(r.left = halfBorder.x)
+	(r.top = halfBorder.y)
+	(r.right = (screenSpan.x - halfBorder.x))
+	(r.bottom = (screenSpan.y - halfBorder.y))
+)
+
+(function CentreHorizontally (Rectf rect)(Rectf container)-> :
+	(Float32 containerDX = (container.right - container.left))
+	(Float32 childDX = (rect.right - rect.left))
+	(Float32 xBorder = ((containerDX - childDX) * 0.5))
+	(rect.left = (container.left + xBorder))
+	(rect.right = (container.right - xBorder))
+)
+
+(function IsPointInRect (Vec2 point)(Rectf rect)->(Bool result):
+	(result = false)
+	(if ((point.x > rect.left) and (point.x < rect.right))
+		(if ((point.y > rect.top) and (point.y < rect.bottom))
+			(result = true)
+		)
+	)
+)
+
+(alias IsPointInRect MHost.Graphics.IsPointInRect)
+(alias CentreHorizontally MHost.Graphics.CentreHorizontally)
+(alias GetCentredRect MHost.Graphics.GetCentredRect)
+

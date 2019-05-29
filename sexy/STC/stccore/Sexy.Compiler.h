@@ -62,6 +62,7 @@ namespace Rococo { namespace Compiler
 	{
 		size_t BreakPosition;
 		size_t ContinuePosition;
+		mutable size_t SectionIndex;
 	};
 
 	ROCOCOAPI ICompileSection
@@ -291,9 +292,9 @@ namespace Rococo { namespace Compiler
 
 	ROCOCOAPI ICodeBuilder : public IFunctionCode
 	{
-      virtual void Free() = 0;
+	  virtual void Free() = 0;
 		virtual IFunctionBuilder& Owner() = 0;
-		
+
 		virtual const bool NeedsParentsSF() const = 0;
 		virtual void AddExpression(IBinaryExpression& tree) = 0;
 		virtual void Begin() = 0;
@@ -314,15 +315,15 @@ namespace Rococo { namespace Compiler
 		/* if source and target are different, decrement target refcount and increment source refcount */
 		virtual void Append_UpdateRefsOnSourceAndTarget() = 0;
 
-		/* AddDynamicAllocateObject -> takes sizeof(obj) in D4 (int32), 
+		/* AddDynamicAllocateObject -> takes sizeof(obj) in D4 (int32),
 		   returns pointer to object in D4 (vPtr)
-	    */
+		*/
 		virtual void AddDynamicAllocateObject(const IStructure& structType) = 0;
 		virtual void AssignLiteral(const NameString& name, cstr literalValue) = 0;
 		virtual void AssignPointer(const NameString& name, const void* ptr) = 0;
 		virtual void AssignVariableToVariable(cstr source, cstr target, bool isConstructingTarget = false) = 0;
 		virtual void AssignVariableToTemp(cstr source, int tempIndex, int memberOffsetCorrection = 0) = 0;
-		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset = 0) = 0;	
+		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset = 0) = 0;
 		virtual void AssignTempToVariable(int srcIndex, cstr target) = 0;
 		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def) = 0;
 		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def) = 0;
@@ -341,10 +342,11 @@ namespace Rococo { namespace Compiler
 		virtual void AddArgVariable(cstr desc, const IStructure& type, void* userData) = 0;
 
 		virtual int SectionArgCount() const = 0;
+		virtual int SectionArgCount(size_t index) const = 0;
 		virtual void EnterSection() = 0;
 		virtual void LeaveSection() = 0;
 		virtual void End() = 0;
-		
+
 		virtual VM::IAssembler& Assembler() = 0;
 		virtual IModuleBuilder& Module() = 0;
 
@@ -368,7 +370,7 @@ namespace Rococo { namespace Compiler
 		virtual const IStructure& GetTypeFromInstancePos(int instancePosition) const = 0;
 
 		virtual void NoteStackCorrection(int stackCorrection) = 0;
-		virtual void NoteDestructorPosition(int instancePosition, const IStructure& type) = 0;	
+		virtual void NoteDestructorPosition(int instancePosition, const IStructure& type) = 0;
 
 		virtual void AddSymbol(cstr text) = 0;
 		virtual void MarkExpression(const void* sourceExpression) = 0;
