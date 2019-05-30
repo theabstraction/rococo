@@ -33,6 +33,9 @@
 
 (using RPG)
 
+(struct EventArgs
+)
+
 (interface RPG.IInputThread
 	(extends Sys.ICoroutine)
 	(SetScreen (IScreen screen)->)
@@ -43,17 +46,6 @@
 	(IEngine engine)
 	(IScreen activeScreen)
 )
-
-(class Script
-	(defines RPG.IScript)
-	(Bool isRunning)
-)
-
-(method Script.Construct -> : (this.isRunning = true))
-(method Script.IsRunning -> (Bool isRunning): (isRunning = this.isRunning))
-(method Script.Shutdown -> : (this.isRunning = false))
-
-(factory RPG.NewScript IScript : (construct Script))
 
 (method GuiInputThread.SetScreen (IScreen screen)-> :
 	(this.activeScreen = screen)
@@ -74,18 +66,12 @@
 	(Int32 fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
 	(Int32 upKey = (keyboard.GetVKeyFromName "W"))
 	(Int32 downKey = (keyboard.GetVKeyFromName "S")) */
-	
+			
 	(while this.engine.IsRunning
 		(KeyState keys)
 		(this.engine.PollKeyState keys)
 		
-		(MouseEvent ev)
-		(while (this.engine.GetNextMouseEvent ev)
-			(trip)
-			(this.activeScreen.OnMouse ev)
-		)
-		
-		(yield 10000)
+		(yield 1000)
 	)
 )
 
@@ -126,9 +112,8 @@
 	)
 )
 
-(interface RPG.IScreen (extends Sys.ICoroutine)
+(interface RPG.IScreen (extends MHost.IUIEventHandler)
 	(RenderGui (IGui g) ->)
-	(OnMouse (MouseEvent me)->)
 )
 
 (struct CommandButton
@@ -139,7 +124,6 @@
 (class OpeningScreen 
 	(implements IScreen)
 	(IEngine engine) // The CPP side of flow control
-	(IScript script) // The Sexy side of flow control
 	
 	(Vec2 screenSpan)
 	(Vec2 cursorPos)
@@ -147,19 +131,18 @@
 	(IMenu menu)
 )
 
-(method OpeningScreen.Construct (IEngine engine) (IScript script)-> : 
+(method OpeningScreen.Construct (IEngine engine) -> : 
 	(this.engine = engine)
-	(this.script = script)
 	
 	(this.menu = (NewVerticalMenu 10))
 	(this.menu.SetStyle 0 4 "Tahoma")
 	
 	(IWidgetContext nulWC)
-	(this.menu.AddTextItem "New Game" nulWC)
-	(this.menu.AddTextItem "Recruit Adventurerer" nulWC)
-	(this.menu.AddTextItem "Options" nulWC)
-	(this.menu.AddTextItem "Credits" nulWC)
-	(this.menu.AddTextItem "Exit Game" nulWC)
+	(this.menu.AddTextItem "New Game" nulWC) 				// 0
+	(this.menu.AddTextItem "Recruit Adventurerer" nulWC)	// 1
+	(this.menu.AddTextItem "Options" nulWC)					// 2
+	(this.menu.AddTextItem "Credits" nulWC)					// 3
+	(this.menu.AddTextItem "Exit Game" nulWC)				// 4
 )
 
 (method OpeningScreen.Run -> :
@@ -172,7 +155,7 @@
 	(match = ((a.x == b.x) and (a.y == b.y)))
 )
 
-(function ShowCursor (IGui g) -> :
+(function ShowCursor (IGui g)(Vec2 cursorPos) -> :
 	(IStringBuilder sb (StringBuilder 64))
 	(sb.SetFormat 0 0 false false)
 	(#build sb "(" cursorPos.x ", " cursorPos.y ")")
@@ -181,10 +164,21 @@
 	(g.DrawText cursorRect 0 sb 2 0xFFFFFFFF)
 )
 
-(method OpeningScreen.OnMouse (MouseEvent me)-> :
-	(if (HasFlags me.buttons 0x20000) // Left button up
-		(trip)
+(method OpeningScreen.OnMouseDown (Int32 button) (Float32 x)(Float32 y) -> :
+	(if (button == 0) 
+		(Int32 index = (this.menu.ClickAt x y))
+		(if (index == 4)
+			(this.engine.Shutdown)
+		)
 	)
+)
+
+(method OpeningScreen.OnMouseUp (Int32 button) (Float32 x)(Float32 y) -> :
+
+)
+
+(method OpeningScreen.OnWheel (Int32 spin) -> :
+
 )
 
 (method OpeningScreen.RenderGui (IGui g) -> :
@@ -195,12 +189,10 @@
 	(MHost.Graphics.GetCentredRect screenSpan 1100 620 menuRect)
 	
 	(this.menu.RenderToFixedRect g menuRect)
-
-	// (ShowCursor g)
 )
 
-(factory RPG.NewOpeningScreen IScreen (IEngine engine) (IScript script): 
-	(construct OpeningScreen engine script)
+(factory RPG.NewOpeningScreen IScreen (IEngine engine) : 
+	(construct OpeningScreen engine)
 )
 
 (function Main (Int32 id) -> (Int32 exitCode):
@@ -220,21 +212,23 @@
 	
 	(cast world -> ICoroutine worldThread)
 //	(coroutines.Add worldThread)
-
-	(IScript script (NewScript))
 	
-	(IScreen openingScreen (NewOpeningScreen engine script))
-//	(coroutines.Add openingScreen)
+	(IScreen openingScreen (NewOpeningScreen engine))
 
 	(guiThread.SetScreen openingScreen)
 	
-	(while ((engine.IsRunning) and (script.IsRunning))
+	(while engine.IsRunning
 		(while (coroutines.Continue > 0))
 		
 		(GuiPopulator p =
 			(closure (IGui gui) -> : 
 				(openingScreen.RenderGui gui)
 			)
+		)
+		
+		(MouseEvent ev)
+		(while (engine.GetNextMouseEvent ev)
+			(TranslateMouseEvent ev openingScreen)
 		)
 		
 		(engine.Render p)	

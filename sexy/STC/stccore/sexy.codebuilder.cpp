@@ -363,7 +363,7 @@ namespace
 	void CodeBuilder::AddArgVariable(cstr desc, const IStructure& type, void* userData)
 	{
 		TokenBuffer name;
-      SafeFormat(name.Text, TokenBuffer::MAX_TOKEN_CHARS, ("_arg_%s_%d"), desc, nextId++);
+		SafeFormat(name.Text, TokenBuffer::MAX_TOKEN_CHARS, ("_arg_%s_%d"), desc, nextId++);
 
 		const IStructure* argType = NULL;
 
@@ -378,7 +378,7 @@ namespace
 		}
 
 		Variable *v = new Variable(Assembler().WritePosition(), NameString::From(name), *argType, sectionIndex, userData, -1, VARLOCATION_TEMP, false);
-		int dx = AddVariableToVariables(v);			
+		int dx = AddVariableToVariables(v);
 	}
 
 	void CodeBuilder::AddArgVariable(cstr desc, const TypeString& typeName, void* userData)

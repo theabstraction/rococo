@@ -870,8 +870,7 @@ namespace Rococo { namespace Script
 		}
 
 		int interfIndex = GetInterfaceImplementingMethod(s, methodName);
-		if (interfIndex < 0)
-			Throw(fdef, ("Expecting method to be found amongst the interfaces of the class for which it is defined"));
+		if (interfIndex < 0) Throw(fdef, ("Expecting method to be found amongst the interfaces of the class for which it is defined"));
 
 		int correction =  ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + interfIndex * sizeof(VirtualTable*); 
 		return correction;
@@ -1270,6 +1269,71 @@ namespace Rococo { namespace Script
 
 		auto* sc = ss.GetStringReflection(message);
 		ss.ThrowFromNativeCode(0, sc->pointer);
+	}
+
+	VM_CALLBACK(DynamicDispatch)
+	{
+		struct DDArgs
+		{
+			void* pArg;
+			InterfacePointer pInterface;
+			const ISExpression* sourceCode;
+			cstr methodName;
+			const IStructure* pArgType;
+		};
+		
+		auto& sp = registers[VM::REGISTER_SP].uint8PtrValue;
+		sp -= sizeof(DDArgs);
+		auto* ddArgs = (DDArgs*)sp;
+
+		ObjectStub* stub = InterfaceToInstance(ddArgs->pInterface);
+		auto& type = *stub->Desc->TypeInfo;
+
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		MethodInfo m = ss.GetMethodByName(ddArgs->methodName, type);
+		auto* f = m.f;
+
+		sp += 2 * sizeof(size_t); // This leaves pArg and instance on the stack, just ripe for a hand rolled virtual call
+
+		if (f != nullptr)
+		{
+			// 1 arg input and 1 instance = 2 inputs
+			if (f->NumberOfInputs() != 2 || f->NumberOfOutputs() != 0)
+			{
+				Throw(*ddArgs->sourceCode, "Method must have 1 input and no output.\nDispatch mismatch in %s.%s of %s", type.Name(), ddArgs->methodName, type.Module().Name());
+			}
+
+			auto& arg = f->GetArgument(0);
+			if (&arg != ddArgs->pArgType)
+			{
+				Throw(*ddArgs->sourceCode, "Method must have 1 input and no output.\nDispatch mismatch in %s.%s of %s", type.Name(), ddArgs->methodName, type.Module().Name());
+			}
+
+			ptrdiff_t delta = (*ddArgs->pInterface)->OffsetToInstance + m.offset;
+
+			ddArgs->pInterface = (InterfacePointer)(((uint8*)ddArgs->pInterface) + delta);
+
+			CodeSection code;
+			f->Code().GetCodeSection(code);
+
+			auto& po = ss.ProgramObject();
+			size_t functionStart = po.ProgramMemory().GetFunctionAddress(code.Id);
+
+			auto& cpu = po.VirtualMachine().Cpu();
+
+			cpu.Push(registers[REGISTER_SF].vPtrValue);
+
+			const uint8 *returnAddress = cpu.PC();
+			cpu.Push(returnAddress);
+
+			registers[REGISTER_SF].charPtrValue = registers[REGISTER_SP].charPtrValue; // Create a new stack frame
+
+			cpu.SetPC(cpu.ProgramStart + functionStart);
+		}
+		else
+		{
+			// Throw(*ddArgs->sourceCode, "Dispatch failed - Cannot find method %s in %s of %s", ddArgs->methodName, type.Name(), type.Module().Name());
+		}
 	}
 
 	VM_CALLBACK(YieldMicroseconds)
@@ -3086,6 +3150,7 @@ namespace Rococo { namespace Script
 					if (classDirective.NumberOfElements() > 1 && IsAtomic(classDirective[0]) && AreEqual(classDirective[0].String(), ("defines")))
 					{	
 						auto classStruct = module.FindStructure(e[1].String()->Buffer);
+
 						if (classStruct->InterfaceCount() != 1)
 						{
 							Throw(e, ("Classes that define an interface may not implement more than one interface"));
@@ -3578,8 +3643,6 @@ namespace Rococo { namespace Script
 			cr_sex nameExpr = GetAtomicArg(inputExpression, 1);
 			factoryFunction.AddInput(NameString::From(nameExpr.String()), TypeString::From(typeExpr.String()), NULL);
 		}
-
-		// TODO - delete this comment, factoryFunction.AddInput(NameString::From(("this")), TypeString::From(factoryInterfaceExpr.String()), NULL);
 
 		factoryNS->RegisterFactory(shortName, factoryFunction, *interf, factoryInterfaceExpr.String());
 	}

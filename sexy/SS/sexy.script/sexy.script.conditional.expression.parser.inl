@@ -148,7 +148,7 @@ namespace Rococo
          ControlFlowData cfd;
          if (!ce.Builder.TryGetControlFlowPoint(OUT cfd))
          {
-            Throw(s, ("'break' is only valid inside a loop construct"));
+            Throw(s, "'break' is only valid inside a loop construct");
          }
 
 		 AppendDeconstructTailVariables(ce, s, false, ce.Builder.SectionArgCount(cfd.SectionIndex));

@@ -429,6 +429,8 @@ namespace Rococo
 		typedef std::unordered_map<const Sex::ISExpression*, Script::CClassExpression*> TSReflectMap;
 		TSReflectMap sreflectMap;
 
+		std::unordered_map<std::string, uint64> persistentStrings;
+
 		void InstallNullFunction()
 		{
 			IFunctionBuilder& nullFunction = progObjProxy().IntrinsicModule().DeclareFunction(FunctionPrototype(("_nothing"), false), NULL);
@@ -611,7 +613,7 @@ namespace Rococo
 			callbacks.IdThrowNullRef = core.RegisterCallback(OnInvokeThrowNullRef, this, "ThrowNullRef");
 			callbacks.IdTestD4neqD5_retBoolD7 = core.RegisterCallback(OnInvokeTestD4neqD5_retBoolD7, &ProgramObject().VirtualMachine(), "TestD4neqD5_retBoolD7");
 			callbacks.idYieldMicroseconds = core.RegisterCallback(OnInvokeYieldMicroseconds, &ProgramObject().VirtualMachine(), "YieldMicroseconds");
-
+			callbacks.idDynamicDispatch = core.RegisterCallback(OnInvokeDynamicDispatch, this, "Dispatch");
 			methodMap[("Capacity")] = ("_elementCapacity");
 			methodMap[("Length")] = ("_length");
 		}
@@ -636,6 +638,53 @@ namespace Rococo
 			}
 
 			delete scripts;
+		}
+
+		cstr GetPersistentString(cstr txt) override
+		{
+			auto i = persistentStrings.find(txt);
+			if (i != persistentStrings.end())
+			{
+				return i->first.c_str();
+			}
+			else
+			{
+				return persistentStrings.insert(std::make_pair(std::string(txt), 0)).first->first.c_str();
+			}
+		}
+
+		typedef std::unordered_map<std::string, MethodInfo> TMapNameToMethod;
+		typedef std::unordered_map<const Rococo::Compiler::IStructure*, TMapNameToMethod> TMapTypeToMethodMap;
+		TMapTypeToMethodMap typeToMethodMap;
+
+		const MethodInfo GetMethodByName(cstr methodName, const Rococo::Compiler::IStructure& concreteClassType)
+		{
+			auto i = typeToMethodMap.find(&concreteClassType);
+			if (i == typeToMethodMap.end())
+			{
+				TMapNameToMethod nameToMethod;
+				auto& module = concreteClassType.Module();
+
+				for (int j = 0; j < module.FunctionCount(); j++)
+				{
+					auto& f = module.GetFunction(j);
+					auto* ftype = f.GetType();
+					if (ftype == &concreteClassType)
+					{
+						NamespaceSplitter splitter(f.Name());
+						cstr instance, method;
+						splitter.SplitTail(instance, method);
+						ptrdiff_t offset = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + sizeof(VirtualTable*) * GetInterfaceImplementingMethod(concreteClassType, methodName);
+						nameToMethod[method] = MethodInfo{ &f, offset };
+					}
+				}
+
+				i = typeToMethodMap.insert(std::make_pair(&concreteClassType, nameToMethod)).first;
+			}
+
+			auto& nameToMethod = i->second;
+			auto k = nameToMethod.find(methodName);
+			return k != nameToMethod.end() ? k->second : MethodInfo{ nullptr,0 };
 		}
 
 		virtual CReflectedClass* GetRepresentation(void* pSourceInstance)
@@ -1125,6 +1174,8 @@ namespace Rococo
 
 			reflectedStrings.clear();
 
+			typeToMethodMap.clear();
+
 			for (auto j = sreflectMap.begin(); j != sreflectMap.end(); ++j)
 			{
 				FreeDynamicClass(&j->second->Header);
@@ -1256,6 +1307,7 @@ namespace Rococo
 						src.Release();
 						i.second->Release();
 					}
+					commonGlobalSources.clear();
 				}
 			};
 

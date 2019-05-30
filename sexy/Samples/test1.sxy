@@ -1,11 +1,18 @@
 (namespace EntryPoint)
+(interface Sys.IDog (Bark (BarkEventArgs args)-> ))
+(interface Sys.IDispatch (attribute dispatch) (LastHz -> (Int32 hz)))
+(class Dog (implements Sys.IDog) (implements Sys.IDispatch)(Int32 lastHz))
+(struct BarkEventArgs (Int32 hz))
+(method Dog.Bark (BarkEventArgs args)-> : (this.lastHz = args.hz))
+(method Dog.Construct -> :)
+(method Dog.LastHz -> (Int32 hz) : (hz = this.lastHz))
+(factory Sys.NewDog Sys.IDispatch : (construct Dog)) 
+
 (function Main -> (Int32 result):
-	(result = 10)
-	
-	(while true
-		(Int32 i)
-		(if true (break))
-	) 
-	
+	   (Sys.IDispatch dog (Sys.NewDog))
+	   (BarkEventArgs args)
+		(args.hz = 42)
+		(dog.Bark args) 
+	   (result = dog.LastHz)
 )
 (alias Main EntryPoint.Main)

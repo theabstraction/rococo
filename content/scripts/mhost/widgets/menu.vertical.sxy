@@ -119,6 +119,20 @@
 	)
 )
 
+(method VerticalMenu.ClickAt (Float32 x)(Float32 y) -> (Int32 index):
+	(Vec2 p = x y)
+	(if (IsPointInRect p this.outerRect)
+		(foreach i item # this.items
+			(if (IsPointInRect p item.rect)
+				(index = i)
+				(return)
+			)
+		)
+	)
+	
+	(index = -1)
+)
+
 (method VerticalMenu.RenderToFixedRect (IGui g)(Rectf outerRect) -> :
 	(if (not (EqRectfRectf outerRect this.outerRect))
 		(LayoutFixedRect this outerRect g)

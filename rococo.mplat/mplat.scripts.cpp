@@ -108,107 +108,107 @@ Rococo::Audio::ILegacySoundControl* FactoryConstructRococoAudioLegacySoundContro
 
 namespace Rococo
 {
-   using namespace Rococo::Windows;
+	using namespace Rococo::Windows;
 
-   namespace M
-   {
-      bool QueryYesNo(IWindow& ownerWindow, cstr message);
+	namespace M
+	{
+		bool QueryYesNo(IWindow& ownerWindow, cstr message);
 
-      void InitScriptSystem(IInstallation& installation)
-      {
-         char srcpath[Rococo::IO::MAX_PATHLEN];
-         SecureFormat(srcpath, sizeof(srcpath), "%sscripts\\native\\", (cstr) installation.Content());
+		void InitScriptSystem(IInstallation& installation)
+		{
+			char srcpath[Rococo::IO::MAX_PATHLEN];
+			SecureFormat(srcpath, sizeof(srcpath), "%sscripts\\native\\", (cstr)installation.Content());
 
-         Rococo::Script::SetDefaultNativeSourcePath(srcpath);
-         Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
-      }
+			Rococo::Script::SetDefaultNativeSourcePath(srcpath);
+			Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+		}
 
-      void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace)
-      {
-         struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
-         {
-            Platform& platform;
-            IEventCallback<ScriptCompileArgs>& onScriptEvent;
-			bool shutdownOnFail;
+		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace)
+		{
+			struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
+			{
+				Platform& platform;
+				IEventCallback<ScriptCompileArgs>& onScriptEvent;
+				bool shutdownOnFail;
 
-            virtual void Free()
-            {
+				virtual void Free()
+				{
 
-            }
+				}
 
-            virtual IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message)
-            {
-               platform.installation.OS().FireUnstable();
+				virtual IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message)
+				{
+					platform.installation.OS().FireUnstable();
 
-			   /* uncomment if you want a dialog box to prompt continuation
-               char msg[1024];
-               SafeFormat(msg, sizeof(msg), "Error: Do you wish to debug?\n\t%s\n\t%s", source, message);
-               if (QueryYesNo(platform.renderer.Window(), msg))
-               {
-                  return IDE::EScriptExceptionFlow_Retry;
-               }
-               else
-               {
-				  if (shutdownOnFail) OS::ShutdownApp();
-                  return IDE::EScriptExceptionFlow_Terminate;
-               }
-			   
-			   */
+					/* uncomment if you want a dialog box to prompt continuation
+					char msg[1024];
+					SafeFormat(msg, sizeof(msg), "Error: Do you wish to debug?\n\t%s\n\t%s", source, message);
+					if (QueryYesNo(platform.renderer.Window(), msg))
+					{
+					   return IDE::EScriptExceptionFlow_Retry;
+					}
+					else
+					{
+					   if (shutdownOnFail) OS::ShutdownApp();
+					   return IDE::EScriptExceptionFlow_Terminate;
+					}
 
-			   return IDE::EScriptExceptionFlow_Retry;
-            }
+					*/
 
-            virtual void OnEvent(ScriptCompileArgs& args)
-            {
-               if (addPlatform)
-               {
-                  Graphics::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.meshes);
-                  Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.instances);
-                  Entities::AddNativeCalls_RococoEntitiesIMobiles(args.ss, &platform.mobiles);
-                  Graphics::AddNativeCalls_RococoGraphicsICamera(args.ss, &platform.camera);
-                  Graphics::AddNativeCalls_RococoGraphicsISceneBuilder(args.ss, &platform.scene.Builder());
-                  Graphics::AddNativeCalls_RococoGraphicsISprites(args.ss, &platform.sprites);
-				  Graphics::AddNativeCalls_RococoGraphicsIRimTesselator(args.ss, &platform.tesselators.rim);
-				  Graphics::AddNativeCalls_RococoGraphicsIFieldTesselator(args.ss, nullptr);
-				  Graphics::AddNativeCalls_RococoGraphicsIQuadStackTesselator(args.ss, nullptr);
-				  Graphics::AddNativeCalls_RococoGraphicsIRodTesselator(args.ss, &platform);
-				  Graphics::AddNativeCalls_RococoGraphicsITextTesselator(args.ss, &platform);
-				  Graphics::AddNativeCalls_RococoGraphicsIRendererConfig(args.ss, &platform);
-				  Graphics::AddNativeCalls_RococoGraphicsIMessaging(args.ss, &platform);
-                  AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
-				  Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
-				  Audio::AddNativeCalls_RococoAudioILegacySoundControl(args.ss, &platform);
+					return IDE::EScriptExceptionFlow_Retry;
+				}
 
-				  args.ss.AddNativeLibrary("rococo.sexy.mathsex");
-               }
+				virtual void OnEvent(ScriptCompileArgs& args)
+				{
+					if (addPlatform)
+					{
+						Graphics::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.meshes);
+						Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.instances);
+						Entities::AddNativeCalls_RococoEntitiesIMobiles(args.ss, &platform.mobiles);
+						Graphics::AddNativeCalls_RococoGraphicsICamera(args.ss, &platform.camera);
+						Graphics::AddNativeCalls_RococoGraphicsISceneBuilder(args.ss, &platform.scene.Builder());
+						Graphics::AddNativeCalls_RococoGraphicsISprites(args.ss, &platform.sprites);
+						Graphics::AddNativeCalls_RococoGraphicsIRimTesselator(args.ss, &platform.tesselators.rim);
+						Graphics::AddNativeCalls_RococoGraphicsIFieldTesselator(args.ss, nullptr);
+						Graphics::AddNativeCalls_RococoGraphicsIQuadStackTesselator(args.ss, nullptr);
+						Graphics::AddNativeCalls_RococoGraphicsIRodTesselator(args.ss, &platform);
+						Graphics::AddNativeCalls_RococoGraphicsITextTesselator(args.ss, &platform);
+						Graphics::AddNativeCalls_RococoGraphicsIRendererConfig(args.ss, &platform);
+						Graphics::AddNativeCalls_RococoGraphicsIMessaging(args.ss, &platform);
+						AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
+						Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
+						Audio::AddNativeCalls_RococoAudioILegacySoundControl(args.ss, &platform);
 
-               AddNativeCalls_RococoIConfig(args.ss, &platform.config);
+						args.ss.AddNativeLibrary("rococo.sexy.mathsex");
+					}
 
-               onScriptEvent.OnEvent(args);
-            }
+					AddNativeCalls_RococoIConfig(args.ss, &platform.config);
 
-            ScriptContext(Platform& _platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent) : platform(_platform), onScriptEvent(_onScriptEvent) {}
+					onScriptEvent.OnEvent(args);
+				}
 
-            void Execute(cstr name, ScriptPerformanceStats& stats, bool trace)
-            {
-               try
-               {
-                  IDE::ExecuteSexyScriptLoop(stats, 1024_kilobytes, platform.sourceCache, platform.debuggerWindow, name, 0, (int32)128_kilobytes, *this, *this, platform.appControl, trace);
-               }
-               catch (IException&)
-               {
-				   if (shutdownOnFail) platform.appControl.ShutdownApp();
-                  throw;
-               }
-            }
+				ScriptContext(Platform& _platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent) : platform(_platform), onScriptEvent(_onScriptEvent) {}
 
-            bool addPlatform;
-         } sc(platform, _onScriptEvent);
+				void Execute(cstr name, ScriptPerformanceStats& stats, bool trace)
+				{
+					try
+					{
+						IDE::ExecuteSexyScriptLoop(stats, 1024_kilobytes, platform.sourceCache, platform.debuggerWindow, name, 0, (int32)128_kilobytes, *this, *this, platform.appControl, trace);
+					}
+					catch (IException&)
+					{
+						if (shutdownOnFail) platform.appControl.ShutdownApp();
+						throw;
+					}
+				}
 
-         sc.addPlatform = addPlatform;
-		 sc.shutdownOnFail = shutdownOnFail;
-		 
-         sc.Execute(name, stats, trace);
-      }
-   }
+				bool addPlatform;
+			} sc(platform, _onScriptEvent);
+
+			sc.addPlatform = addPlatform;
+			sc.shutdownOnFail = shutdownOnFail;
+
+			sc.Execute(name, stats, trace);
+		}
+	}
 }

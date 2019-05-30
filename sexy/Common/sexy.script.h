@@ -254,6 +254,13 @@ namespace Rococo {
 			ID_API_CALLBACK IdThrowNullRef;
 			ID_API_CALLBACK IdTestD4neqD5_retBoolD7;
 			ID_API_CALLBACK idYieldMicroseconds;
+			ID_API_CALLBACK idDynamicDispatch;
+		};
+
+		struct MethodInfo
+		{
+			const Rococo::Compiler::IFunction* f;
+			ptrdiff_t offset;
 		};
 
 		ROCOCOAPI IScriptSystem : IPublicScriptSystem
@@ -271,6 +278,8 @@ namespace Rococo {
 			virtual void AlignedFree(void* buffer) = 0;
 			virtual int NextID() = 0;
 			virtual const ScriptCallbacks& GetScriptCallbacks() = 0;
+			virtual cstr GetPersistentString(cstr txt) = 0;
+			virtual const MethodInfo GetMethodByName(cstr methodName,  const Rococo::Compiler::IStructure& concreteClassType) = 0;
 		};
 
 		void SetDefaultNativeSourcePath(cstr pathname);

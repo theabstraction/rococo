@@ -7,6 +7,8 @@
 
 #include <rococo.textures.h>
 
+#include <rococo.ui.h>
+
 namespace MHost
 {
 	using namespace Rococo::Entities;
@@ -240,11 +242,13 @@ namespace MHost
 
 		bool isScriptRunning = true; // Will be set to false in YieldForSystemMessages if script rerun required
 
+		bool isShutdown = false;
+
 		// used by a script in Run() via IEngine.Run to determine if it should terminate gracefully
 		// termination should occur of the user interface has collapsed, or script queued for re-run
 		boolean32 IsRunning() override 
 		{
-			return platform.appControl.IsRunning() && isScriptRunning;
+			return platform.appControl.IsRunning() && isScriptRunning && !isShutdown;
 		}
 
 		void Run() override
@@ -300,11 +304,14 @@ namespace MHost
 			mainScript = scriptName;
 		}
 
-		boolean32 GetNextMouseEvent(MHost::OS::MouseEventEx& me) override
+		void Shutdown() override
 		{
-			me.zero = 0;
+			isShutdown = true;
+		}
 
-			return (boolean32) control.TryGetNextMouseEvent((Rococo::MouseEvent&)me.inner);
+		boolean32 GetNextMouseEvent(Rococo::MouseEvent& me) override
+		{
+			return (boolean32)control.TryGetNextMouseEvent(me);
 		}
 	};
 }

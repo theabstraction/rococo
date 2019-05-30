@@ -17,6 +17,7 @@
 	(Int32 rawButtons)
 	(Int32 x)
 	(Int32 y)
+	(Sys.Maths.Vec2i cursorPos)
 )
 
 (struct FontDesc

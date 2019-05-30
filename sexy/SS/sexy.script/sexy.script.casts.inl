@@ -38,13 +38,6 @@ namespace
 		cpu.D[VM::REGISTER_D4].vPtrValue = value;
 	}
 
-	ObjectStub* InterfaceToInstance(InterfacePointer i)
-	{
-		auto* p = ((uint8*)i) + (*i)->OffsetToInstance;
-		auto* obj = (ObjectStub*)p;
-		return obj;
-	}
-
 	// (DynamicCast to-interface from-instance ->) The result is held in D4, which indicates 
 	void DynamicCast(NativeCallEnvironment& e)
 	{

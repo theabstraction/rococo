@@ -1,6 +1,7 @@
 #pragma once
 
 #include <rococo.api.h>
+#include <rococo.ui.h>
 #include <rococo.renderer.h>
 
 using namespace Rococo;
@@ -14,22 +15,6 @@ namespace MHost
 		struct KeyState
 		{
 			uint8 keys[256];
-		};
-
-		struct MouseEventInner
-		{
-			int16 flags;
-			int32 buttons;
-			int32 rawButtons;
-			int32 x;
-			int32 y;
-			int32 deviceSpecificInfo;
-		};
-
-		struct MouseEventEx
-		{
-			int16 zero;
-			MouseEventInner inner;
 		};
 	} // OS
 

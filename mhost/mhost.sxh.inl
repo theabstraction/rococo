@@ -474,7 +474,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		MHost::OS::MouseEventEx* me;
+		Rococo::MouseEvent* me;
 		_offset += sizeof(me);
 		ReadInput(me, _sf, -_offset);
 
@@ -511,6 +511,16 @@ namespace
 		boolean32 isRunning = _pObject->IsRunning();
 		_offset += sizeof(isRunning);
 		WriteOutput(isRunning, _sf, -_offset);
+	}
+	void NativeMHostIEngineShutdown(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		MHost::IEngine* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Shutdown();
 	}
 	void NativeMHostIEngineYieldForSystemMessages(NativeCallEnvironment& _nce)
 	{
@@ -606,6 +616,7 @@ namespace MHost {
 		ss.AddNativeCall(ns, NativeMHostIEngineGetNextMouseEvent, nullptr, ("IEngineGetNextMouseEvent (Pointer hObject)(MHost.OS.MouseEvent me) -> (Bool wasPopped)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineRender, nullptr, ("IEngineRender (Pointer hObject)(MHost.GuiPopulator populator) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineIsRunning, nullptr, ("IEngineIsRunning (Pointer hObject) -> (Bool isRunning)"));
+		ss.AddNativeCall(ns, NativeMHostIEngineShutdown, nullptr, ("IEngineShutdown (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineYieldForSystemMessages, nullptr, ("IEngineYieldForSystemMessages (Pointer hObject)(Int32 sleepMS) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineTryGetSpriteSpec, nullptr, ("IEngineTryGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(Sys.MPlat.BitmapLocation loc) -> (Bool isSuccessful)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineGetSpriteSpec, nullptr, ("IEngineGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(Sys.MPlat.BitmapLocation loc) -> "));

@@ -2,6 +2,10 @@
 (using Sys.Type)
 (using MHost.Graphics)
 (using MHost)
+(using MHost.OS)
+
+(using Sys.Maths.I32)
+(using Sys.Maths.F32)
 
 (struct QuadColour
 	(Int32 fontColour)
@@ -13,6 +17,7 @@
 
 (interface MHost.Graphics.IMenu
 	(AddTextItem (IString text)(IWidgetContext wc)->(Int32 id))
+	(ClickAt (Float32 x)(Float32 y)->(Int32 menuIndex))
 	(SetColourScheme (QuadColour itemLow)(QuadColour itemHigh)(QuadColour bkLow)(QuadColour bkHigh)->)
 	(SetStyle (Int32 textAlignment)(Float32 borderThickness)(IString fontFamily)->)
 	(RenderToFixedRect (IGui gui)(Rectf rect)->)
@@ -42,8 +47,9 @@
 (alias GetSpanRectf MHost.GetSpanRectf)
 
 (interface MHost.IUIEventHandler
-	(OnLeftMouseDown ->)
-	(OnLeftMouseUp ->)
+	(OnMouseDown (Int32 button) (Float32 x)(Float32 y) ->)
+	(OnMouseUp (Int32 button) (Float32 x)(Float32 y) ->)
+	(OnWheel (Int32 spin) ->)
 )
 
 (function GetCentredRect (Vec2 screenSpan) (Float32 dx)(Float32 dy)(Rectf r)-> :
@@ -72,6 +78,29 @@
 		)
 	)
 )
+
+(function TranslateMouseEvent (MHost.OS.MouseEvent me)(IUIEventHandler handler)-> :
+	(Float32 x = (ToFloat32 me.cursorPos.x))
+	(Float32 y = (ToFloat32 me.cursorPos.y))
+	
+	(if (HasFlags me.buttons 0x001) (handler.OnMouseDown 0 x y))
+	(if (HasFlags me.buttons 0x002) (handler.OnMouseUp   0 x y))
+	(if (HasFlags me.buttons 0x004) (handler.OnMouseDown 1 x y))
+	(if (HasFlags me.buttons 0x008) (handler.OnMouseUp   1 x y))
+	(if (HasFlags me.buttons 0x010) (handler.OnMouseDown 2 x y))
+	(if (HasFlags me.buttons 0x020) (handler.OnMouseUp   2 x y))
+	(if (HasFlags me.buttons 0x040) (handler.OnMouseDown 3 x y))
+	(if (HasFlags me.buttons 0x080) (handler.OnMouseUp   3 x y))
+	(if (HasFlags me.buttons 0x100) (handler.OnMouseDown 4 x y))
+	(if (HasFlags me.buttons 0x200) (handler.OnMouseUp   4 x y))
+	
+	(if (HasFlags me.buttons 0x400)
+		(Int32 spin = (RightShift me.buttons 16))
+		(handler.OnWheel spin)
+	)
+)
+
+(alias TranslateMouseEvent MHost.OS.TranslateMouseEvent)
 
 (alias IsPointInRect MHost.Graphics.IsPointInRect)
 (alias CentreHorizontally MHost.Graphics.CentreHorizontally)

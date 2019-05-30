@@ -290,6 +290,13 @@ namespace Rococo { namespace Compiler
 		virtual void operator()(cstr name, const GlobalValue& defaultValue) = 0;
 	};
 
+	inline ObjectStub* InterfaceToInstance(InterfacePointer i)
+	{
+		auto* p = ((uint8*)i) + (*i)->OffsetToInstance;
+		auto* obj = (ObjectStub*)p;
+		return obj;
+	}
+
 	ROCOCOAPI ICodeBuilder : public IFunctionCode
 	{
 	  virtual void Free() = 0;

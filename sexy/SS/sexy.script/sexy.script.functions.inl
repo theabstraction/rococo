@@ -1883,6 +1883,71 @@ namespace Rococo
 	      }
       }
 
+	  // We have a dispatch interface, marked with (attribute dispatch).
+	  // If it is used to call a method not part of the interface, then type info is used to route to the correct method
+	  // Generally very useful for writing strongly typed eventing interfaces.
+	  // Since an interface ref can be dynamically assigned to different objects, we have to determine whether methods exist at runtime
+	  void CompileDynamicDispatch(CCompileEnvironment& ce, cr_sex s, const IInterface& dispatcher, cstr instanceName, cstr methodName)
+	  {
+		  if (s.NumberOfElements() != 2)
+		  {
+			  Throw(s, "Cannot dispatch method %s. Dispatch methods have one and only one argument.", methodName);
+		  }
+
+		  cr_sex arg = s[1];
+		  if (arg.Type() != EXPRESSION_TYPE_ATOMIC)
+		  {
+			  Throw(arg, "Cannot dispatch call. Argument needs to be an atomic variable");
+		  }
+
+		  cstr argText = arg.String()->Buffer;
+
+		  MemberDef argDef;
+		  if (!ce.Builder.TryGetVariableByName(argDef, argText))
+		  {
+			  Throw(arg, "Cannot dispatch call. Argument needs to be a variable");
+		  }
+
+		  if (Eq(methodName, "Destruct") || Eq(methodName, "Construct"))
+		  {
+			  Throw(arg, "Cannot dispatch call. Method must not be Construct or Destruct");
+		  }
+
+		  if (argDef.ResolvedType->VarType() != VARTYPE_Derivative ||   argDef.ResolvedType->InterfaceCount() > 0)
+		  {
+			  Throw(arg, "Cannot dispatch call. Argument variable needs to be a structure");
+		  }
+
+		  MemberDef instanceDef;
+		  if (!ce.Builder.TryGetVariableByName(instanceDef, instanceName))
+		  {
+			  Throw(arg, "Cannot dispatch call. %s is not a variable", instanceName);
+		  }
+
+		  AddSymbol(ce.Builder, "Dispatch %s.%s", instanceName, methodName);
+
+		  ce.Builder.PushVariableRef(argText, 0);
+		  ce.Builder.PushVariable(instanceDef);
+
+		  // The three arguments below are popped off by the dynamic dispatch callback
+
+		  VariantValue srcValue;
+		  srcValue.vPtrValue = (ISExpression*) &s;
+		  ce.Builder.Assembler().Append_PushLiteral(BITCOUNT_POINTER, srcValue);
+
+		  VariantValue methodNameValue;
+		  methodNameValue.charPtrValue = (char*) ce.SS.GetPersistentString(methodName);
+		  ce.Builder.Assembler().Append_PushLiteral(BITCOUNT_POINTER, methodNameValue);
+
+		  VariantValue argTypeValue;
+		  argTypeValue.vPtrValue = (void*) argDef.ResolvedType;
+		  ce.Builder.Assembler().Append_PushLiteral(BITCOUNT_POINTER, argTypeValue);
+
+		  ce.Builder.Assembler().Append_Invoke(ce.SS.GetScriptCallbacks().idDynamicDispatch);
+
+		  ce.Builder.Assembler().Append_Pop(sizeof(size_t) * 2);
+	  }
+
       // Only safe to call from TryCompileAsFunctionCall(...)
       bool TryCompileAsMethodCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName)
       {
@@ -1938,7 +2003,14 @@ namespace Rococo
 		      return true;
 	      }
 
-	      ThrowTokenNotFound(s, methodName, GetFriendlyName(*def.ResolvedType), ("method"));
+		  const void* unused;
+		  if (IsNullType(c) && c.GetInterface(0).Attributes().FindAttribute("dispatch", unused))
+		  {
+			  CompileDynamicDispatch(ce, s, c.GetInterface(0), instanceName, methodName);
+			  return true;
+		  }
+
+	      ThrowTokenNotFound(s, methodName, GetFriendlyName(*def.ResolvedType), "method");
 
 	      return false; // No matching method in all the interfaces
       }
