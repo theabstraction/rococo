@@ -345,10 +345,13 @@ namespace Rococo
       {
          for (int i = 0; i < concreteClass.InterfaceCount(); ++i)
          {
-            if (concreteClass.GetInterface(i) == interf)
-            {
-               return i;
-            }
+			 for (auto* I = &concreteClass.GetInterface(i); I != nullptr; I = I->Base())
+			 {
+				 if (I == &interf)
+				 {
+					 return i;
+				 }
+			 }
          }
 
          return -1;

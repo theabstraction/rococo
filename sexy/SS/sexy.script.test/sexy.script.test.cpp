@@ -11404,6 +11404,36 @@ namespace
 		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 	}
 
+	void TestFactoryReturnsBaseInterface(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(interface Sys.IRobot)"
+			"(interface Sys.ISpiderRobot (extends Sys.IRobot))"
+			"(class Spider (implements Sys.ISpiderRobot))"
+			"(namespace EntryPoint)"
+			"(method Spider.Construct : )"
+			"(factory Sys.NewSpider Sys.IRobot : (construct Spider))"
+			"(function Main -> (Int32 exitCode):"
+			"	(Sys.IRobot spider (Sys.NewSpider))"
+			")"
+			"(alias Main EntryPoint.Main)"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0x00000001);
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateLogs();
+
+		int32 exitCode = vm.PopInt32();
+		validate(exitCode == 1);
+
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+	}
+
 	void TestMultipleDerivation(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -12446,6 +12476,7 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestFactoryReturnsBaseInterface);
 		TEST(TestDynamicDispatch);
 		TEST(TestLoopBreak);
 		TEST(TestBadClosureArg);

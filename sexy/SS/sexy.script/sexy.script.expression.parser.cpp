@@ -2191,11 +2191,13 @@ namespace Rococo
 
 			for(int j = 0; j < classType.InterfaceCount(); j++)
 			{
-				const IInterface& i = classType.GetInterface(j);
-				if (&i == &thisInterf)
-				{				
-					CompileConstructInterfaceCall(REF ce, IN constructor, IN thisInterf, IN classType, IN s);
-					return;
+				for (auto* i = &classType.GetInterface(j); i != nullptr; i = i->Base())
+				{
+					if (i == &thisInterf)
+					{
+						CompileConstructInterfaceCall(REF ce, IN constructor, IN thisInterf, IN classType, IN s);
+						return;
+					}
 				}
 			}
 

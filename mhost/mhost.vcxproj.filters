@@ -93,5 +93,14 @@
     <None Include="..\content\scripts\mhost\rpg.sxy">
       <Filter>ScriptGen Files\SXY</Filter>
     </None>
+    <None Include="..\content\scripts\mhost\widgets\fonts.sxy">
+      <Filter>ScriptGen Files\SXY</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\widgets\menu.vertical.sxy">
+      <Filter>ScriptGen Files\SXY</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\widgets\widgets.sxy">
+      <Filter>ScriptGen Files\SXY</Filter>
+    </None>
   </ItemGroup>
 </Project>

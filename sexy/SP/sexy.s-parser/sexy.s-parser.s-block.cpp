@@ -287,11 +287,41 @@ namespace Anon
 		}
 	};
 
+	Vec2i OffsetToPos(int32 offset, cstr start, cstr toOffsetPoint, Vec2i origin)
+	{
+		if (offset < 0)
+		{
+			Throw(0, "ExpressionTree::OffsetToPos: Bad offset");
+			return { 0,0 };
+		}
+
+		Vec2i pos = origin;
+
+		for (auto* p = start; p < toOffsetPoint; ++p)
+		{
+			switch (*p)
+			{
+			case '\r':
+				break;
+			case '\n':
+				pos.y++;
+				pos.x = origin.x;
+				break;
+			default:
+				pos.x++;
+				break;
+			}
+		}
+
+		return pos;
+	}
+
 	struct SParser
 	{
 		cstr sExpression;
 		cstr end;
 		size_t len;
+		cstr name;
 
 		cstr p;
 
@@ -306,14 +336,26 @@ namespace Anon
 
 		void Parse(ICompoundSExpression* root)
 		{
-			cstr next = ParseCompound(sExpression, 0, root);
-
-			if (next != end)
+			cstr next = sExpression;
+			
+			try
 			{
-				Throw(0, "Parser::Parse failed: too many close parenthesis characters");
-			}
+				next = ParseCompound(sExpression, 0, root);
 
-			builder.FinishCompound(sExpression, end, 0, root);
+				if (next != end)
+				{
+					Throw((int)(next - end), "Parser::Parse failed: too many close parenthesis characters");
+				}
+
+				builder.FinishCompound(sExpression, end, 0, root);
+			}
+			catch (IException& ex)
+			{
+				char specimen[64];
+				SafeFormat(specimen, sizeof(specimen), "");
+				Vec2i pos = OffsetToPos(ex.ErrorCode(), sExpression, next, { 1,1 });
+				throw ParseException(pos, pos, name, ex.Message(), specimen, nullptr);
+			}
 		}
 
 		cstr ParseAtomic(cstr sAtomic, ICompoundSExpression* parent)
@@ -353,7 +395,15 @@ namespace Anon
 
 		cstr ParseString(cstr sString, ICompoundSExpression* parent)
 		{
-			return builder.ParseString(sString, end, parent);
+			try
+			{
+				return builder.ParseString(sString, end, parent);
+			}
+			catch (IException& ex)
+			{
+				Throw((int)(sString - sExpression), "%s", ex.Message());
+				return sString;
+			}
 		}
 
 		cstr ParseCompound(cstr sCompound, int depth, ICompoundSExpression* parent)
@@ -406,7 +456,7 @@ namespace Anon
 
 			if (depth != 0)
 			{
-				Throw(0, "Missing close parenthesis character before end of s-expression");
+				Throw((int)(next - sExpression), "Missing close parenthesis character before end of s-expression");
 			}
 
 			return next;
@@ -502,35 +552,12 @@ namespace Anon
 
 		Vec2i OffsetToPos(int32 offset)
 		{
-			if (offset < 0)
-			{
-				Throw(0, "ExpressionTree::OffsetToPos: Bad offset");
-				return { 0,0 };
-			}
-
 			auto* end = sourceCode->SourceStart() + sourceCode->SourceLength();
 			auto* finalPos = min(end, sourceCode->SourceStart() + offset);
 
 			Vec2i origin = sourceCode->Origin();
-			Vec2i pos = origin;
 
-			for (auto* p = sourceCode->SourceStart(); p < finalPos; ++p)
-			{
-				switch (*p)
-				{
-				case '\r':
-					break;
-				case '\n':
-					pos.y++;
-					pos.x = origin.x;
-					break;
-				default:
-					pos.x++;
-					break;
-				}
-			}
-
-			return pos;
+			return Anon::OffsetToPos(offset, sourceCode->SourceStart(), finalPos, sourceCode->Origin());
 		}
 
 		void CovertListsToArrays(ICompoundSExpression& cs);
@@ -845,7 +872,7 @@ namespace Anon
 		const ISExpression& GetElement(int index) const override
 		{
 #ifdef _DEBUG
-			if (index < 0 || index >= numberOfChildren) Throw(0, "CompoundExpression.GetElement(index): index %d of %d out of range", index, numberOfChildren);
+			if (index < 0 || index >= numberOfChildren) Rococo::Throw(0, "CompoundExpression.GetElement(index): index %d of %d out of range", index, numberOfChildren);
 #endif
 			return *children.pArray[index];
 		}
@@ -946,7 +973,7 @@ namespace Anon
 
 		const sexstring String() const override
 		{
-			Throw(0, "Compound node has no string value");
+			Rococo::Sex::Throw(*this, "Compound node has no string value");
 			return nullptr;
 		}
 
@@ -963,7 +990,7 @@ namespace Anon
 		const ISExpression& GetElement(int index) const override
 		{
 #ifdef _DEBUG
-			if (index < 0 || index >= numberOfChildren) Throw(0, "CompoundExpression.GetElement(index): index %d of %d out of range", index, numberOfChildren);
+			if (index < 0 || index >= numberOfChildren) Rococo::Sex::Throw(*this, "CompoundExpression.GetElement(index): index %d of %d out of range", index, numberOfChildren);
 #endif
 			return *children.pArray[index];
 		}
@@ -1379,19 +1406,16 @@ namespace Anon
 		{
 			SCostEvaluator ce(maxStringLength, maxStringLength);
 
-			try
-			{
-				SParser parser(sourceCode.SourceStart(), ce);
-				parser.Parse(nullptr);
-			}
-			catch (IException& ex)
-			{
-				Rococo::Throw(ex.ErrorCode(), "Error in file %s: %s", sourceCode.Name(), ex.Message());
-			}
+			SParser parser(sourceCode.SourceStart(), ce);
+			parser.name = sourceCode.Name();
+			parser.Parse(nullptr);
 
 			SBlockAllocator sba(ce, allocator, sourceCode.SourceStart());
-			SParser parser(sourceCode.SourceStart(), sba);
-			parser.Parse(sba.Root());
+			{
+				SParser parser(sourceCode.SourceStart(), sba);
+				parser.name = sourceCode.Name();
+				parser.Parse(sba.Root());
+			}
 
 			auto* tree = sba.Detach();
 			tree->sParser = this;
@@ -1579,6 +1603,7 @@ namespace Rococo
 			Anon::SCostEvaluator ce(32768, 32768);
 			{
 				Anon::SParser parser(sExpression, ce);
+				parser.name = "test";
 				parser.Parse(nullptr);
 
 				printf("total string cost: %llu\n", ce.totalStringCost);
@@ -1596,6 +1621,7 @@ namespace Rococo
 
 			Anon::SBlockAllocator sba(ce, *allocator, sExpression);
 			Anon::SParser parser(sExpression, sba);
+			parser.name = "test";
 			parser.Parse(nullptr);
 
 			ptrdiff_t dp = sba.writePos - (char*)sba.compoundArray;

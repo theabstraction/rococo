@@ -694,7 +694,7 @@ namespace ANON
 				}
 				segmentLength = (int32)computedSegmentLength;
 			}
-			return new CSourceCodeCopy(buffer, segmentLength, origin, name);
+			return new Anon::CSourceCodeCopy(buffer, segmentLength, origin, name);
 		}
 
 		virtual ISourceCode* ProxySourceBuffer(cstr bufferRef, int segmentLength, const Vec2i& origin, cstr nameRef)
@@ -709,7 +709,7 @@ namespace ANON
 				}
 				segmentLength = (int32)computedSegmentLength;
 			}
-			return new CSourceCodeProxy(bufferRef, segmentLength, origin, nameRef);
+			return new Anon::CSourceCodeProxy(bufferRef, segmentLength, origin, nameRef);
 		}
 
 		virtual ISourceCode* LoadSource(cstr filename, const Vec2i& origin)

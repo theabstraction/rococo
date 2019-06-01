@@ -697,16 +697,17 @@ namespace Rococo
 		std::unordered_map<std::string, Binding> sources;
 		AutoFree<IExpandingBuffer> fileBuffer;
 		AutoFree<IExpandingBuffer> unicodeBuffer;
-		Rococo::Sex::CSParserProxy spp;
 		IInstallation& installation;
 		AutoFree<IAllocatorSupervisor> allocator;
+		Auto<ISParser> parser;
 
 	public:
 		SourceCache(IInstallation& _installation) :
 			fileBuffer(CreateExpandingBuffer(64_kilobytes)),
 			unicodeBuffer(CreateExpandingBuffer(64_kilobytes)),
 			installation(_installation),
-			allocator(Rococo::Memory::CreateBlockAllocator(1024, 0))
+			allocator(Rococo::Memory::CreateBlockAllocator(1024, 0)),
+			parser(Sexy_CreateSexParser_2_0(*allocator, 128))
 		{
 		}
 
@@ -770,12 +771,12 @@ namespace Rococo
 
 			installation.LoadResource(resourceName, *fileBuffer, 64_megabytes);
 
-			ISourceCode* src = DuplicateSourceCode(installation.OS(), *unicodeBuffer, spp(), *fileBuffer, resourceName);
+			ISourceCode* src = DuplicateSourceCode(installation.OS(), *unicodeBuffer, *parser, *fileBuffer, resourceName);
 			sources[resourceName] = Binding{ nullptr, src, 0 };
 
 			// We have cached the source, so that if tree generation creates an exception, the source codes is still existant
 
-			ISParserTree* tree = spp().CreateTree(*src);
+			ISParserTree* tree = parser->CreateTree(*src);
 			sources[resourceName] = Binding{ tree, src, OS::UTCTime() };
 
 			return tree;
@@ -796,7 +797,7 @@ namespace Rococo
 		{
 			for (auto i : sources)
 			{
-				i.second.tree->Release();
+				if (i.second.tree) i.second.tree->Release();
 				i.second.code->Release();
 			}
 

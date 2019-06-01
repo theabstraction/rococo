@@ -11,8 +11,13 @@
 	(IWidgetContext wc)
 )
 
+(interface MHost.Graphics.IVerticalMenu
+	(OnMouseUp (MouseClickArgs args)->)
+)
+
 (class VerticalMenu
 	(implements IMenu)
+	(implements IEventHandler)
 	(array MenuItem items)
 	(Int32 alignment)
 	(Int32 fontIndex)
@@ -57,7 +62,7 @@
 	(construct VerticalMenu maxEntries)
 )
 
-(function LayoutFixedRect (VerticalMenu menu)(Rectf rect)(IGui g)-> :
+(method VerticalMenu.LayoutFixedRect (Rectf rect)(IGui g)-> :
 	(Vec2 span)
 	(GetSpanRectf rect span)
 	
@@ -117,14 +122,16 @@
 		(y += buttonYHeight)
 		(y += buttonYBorder)
 	)
+	
+	(this.outerRect = rect)
 )
 
-(method VerticalMenu.ClickAt (Float32 x)(Float32 y) -> (Int32 index):
-	(Vec2 p = x y)
-	(if (IsPointInRect p this.outerRect)
+(method VerticalMenu.OnMouseUp (MouseClickArgs args)-> :
+	(if ((args.button == 0) and (IsPointInRect args.pos this.outerRect))
 		(foreach i item # this.items
-			(if (IsPointInRect p item.rect)
-				(index = i)
+			(if (IsPointInRect args.pos item.rect)
+				(MenuSelectArgs menuArgs = i item.text this)
+				(args.documentHandler.OnMenuSelect menuArgs)
 				(return)
 			)
 		)
@@ -133,11 +140,16 @@
 	(index = -1)
 )
 
-(method VerticalMenu.RenderToFixedRect (IGui g)(Rectf outerRect) -> :
-	(if (not (EqRectfRectf outerRect this.outerRect))
-		(LayoutFixedRect this outerRect g)
-	)
+(method VerticalMenu.GetRect (Rectf rect) -> :
+	(rect = this.outerRect)
+)
+
+(method VerticalMenu.GetEventHandler -> (IEventHandler handler):
+	(DynamicCast this -> IEventHandler thisHandler)
+	(handler = thisHandler)
+)
 	
+(method VerticalMenu.Render (IGui g)-> :
 	(g.GetCursorPos this.cursorPos)
 	
 	(QuadColour colours)

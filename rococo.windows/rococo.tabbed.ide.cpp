@@ -1586,7 +1586,8 @@ namespace
 
    ISpatialManager* _LoadSpatialManager(IWindow& parent, LOGFONTA& logFont, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, cstr appName)
    {
-      CSParserProxy parser;
+	  AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0));
+      Auto<ISParser> parser(Sexy_CreateSexParser_2_0(*allocator, 128));
 
       char savename[_MAX_PATH];
       SafeFormat(savename, sizeof(savename), "%s.ide.sxy", appName);

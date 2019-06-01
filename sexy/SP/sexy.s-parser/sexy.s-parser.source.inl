@@ -30,8 +30,8 @@
 	5. Any program that distributes this software in source or binary form must include an obvious credit to the the language, its copyright holder, and the language homepage. This must be the case in its
 	principal credit screen and its principal readme file.
 */
-
-namespace
+ 
+namespace Anon
 {
 	using namespace Rococo;
 	using namespace Rococo::Sex;

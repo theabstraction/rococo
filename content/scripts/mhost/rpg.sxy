@@ -7,6 +7,7 @@
 	"!scripts/mhost/widgets/fonts.sxy"
 	"!scripts/mhost/widgets/menu.vertical.sxy"
 	"!scripts/mhost/widgets/widgets.sxy"
+	"!scripts/mhost/widgets/uistack.sxy"
 )
 
 (namespace EntryPoint)
@@ -112,7 +113,7 @@
 	)
 )
 
-(interface RPG.IScreen (extends MHost.IUIEventHandler)
+(interface RPG.IScreen (extends MHost.IEventHandler)
 	(RenderGui (IGui g) ->)
 )
 
@@ -121,28 +122,55 @@
 	(IString text)
 )
 
+(interface RPG.IOpeningScreen (extends RPG.IScreen)
+	(OnMenuSelect (MenuSelectArgs args)->)
+	(GetDocHandler -> (IUIEventHandler handler))
+)
+
 (class OpeningScreen 
-	(implements IScreen)
+	(implements RPG.IOpeningScreen)
+	(implements MHost.IEventHandler)
+	
 	(IEngine engine) // The CPP side of flow control
 	
 	(Vec2 screenSpan)
 	(Vec2 cursorPos)
 	
 	(IMenu menu)
+	
+	(IUIStack uistack)
+)
+
+(method OpeningScreen.OnMenuSelect (MenuSelectArgs args)-> :
+	(if (args.index == 4)
+		(this.engine.Shutdown)
+	)
+)
+
+(method OpeningScreen.GetDocHandler -> (IUIEventHandler handler):
+	(DynamicCast this -> (IUIEventHandler thisHandler))
+	(handler = thisHandler)
 )
 
 (method OpeningScreen.Construct (IEngine engine) -> : 
 	(this.engine = engine)
 	
-	(this.menu = (NewVerticalMenu 10))
-	(this.menu.SetStyle 0 4 "Tahoma")
+	(IMenu menu (NewVerticalMenu 10))
+	(menu = (NewVerticalMenu 10))
+	(menu.SetStyle 0 4 "Tahoma")
 	
 	(IWidgetContext nulWC)
-	(this.menu.AddTextItem "New Game" nulWC) 				// 0
-	(this.menu.AddTextItem "Recruit Adventurerer" nulWC)	// 1
-	(this.menu.AddTextItem "Options" nulWC)					// 2
-	(this.menu.AddTextItem "Credits" nulWC)					// 3
-	(this.menu.AddTextItem "Exit Game" nulWC)				// 4
+	(menu.AddTextItem "New Game" nulWC) 				
+	(menu.AddTextItem "Recruit Adventurerer" nulWC)	
+	(menu.AddTextItem "Options" nulWC)					
+	(menu.AddTextItem "Credits" nulWC)					
+	(menu.AddTextItem "Exit Game" nulWC)	
+
+	(this.menu = menu)
+	
+	(this.uistack = (NewUIStack))
+	(this.uistack.AddTopLevelControl menu "menu")
+	(this.screenSpan = -1 -1)
 )
 
 (method OpeningScreen.Run -> :
@@ -165,30 +193,52 @@
 )
 
 (method OpeningScreen.OnMouseDown (Int32 button) (Float32 x)(Float32 y) -> :
-	(if (button == 0) 
-		(Int32 index = (this.menu.ClickAt x y))
-		(if (index == 4)
-			(this.engine.Shutdown)
+	(Vec2 pos = x y)
+	
+	(DynamicCast this -> (IUIEventHandler handler))
+	
+	(OnUIStackCallback q = 
+		(closure (UIStackItem item)->(bool terminate):
+			(MouseClickArgs args = pos handler button)
+			(item.handler.OnMouseDown args)
 		)
 	)
+	(uistack.RouteMouseEvent pos q)
 )
 
-(method OpeningScreen.OnMouseUp (Int32 button) (Float32 x)(Float32 y) -> :
-
+(method OpeningScreen.OnMouseUp (Int32 button)(Float32 x)(Float32 y) -> :
+	(Vec2 pos = x y)
+	
+	(DynamicCast this -> (IUIEventHandler handler))
+	
+	(OnUIStackCallback q = 
+		(closure (UIStackItem item)->(bool terminate):
+			(MouseClickArgs args = pos handler button)
+			(item.handler.OnMouseUp args)
+		)
+	)
+	(uistack.RouteMouseEvent pos q)
 )
 
 (method OpeningScreen.OnWheel (Int32 spin) -> :
+)
 
+(function Layout (OpeningScreen this)(IGui g)-> :
+	(Rectf menuRect)
+	(MHost.Graphics.GetCentredRect this.screenSpan 1100 620 menuRect)
+	(this.menu.LayoutFixedRect g menuRect)
 )
 
 (method OpeningScreen.RenderGui (IGui g) -> :
 	(Vec2 screenSpan)
 	(g.GetScreenSpan screenSpan)
 	
-	(Rectf menuRect)
-	(MHost.Graphics.GetCentredRect screenSpan 1100 620 menuRect)
+	(if (g.screenSpan != this.screenSpan)
+		(this.screenSpan = screenSpan)
+		(Layout this g)
+	)
 	
-	(this.menu.RenderToFixedRect g menuRect)
+	(RenderTree this.uitree g)
 )
 
 (factory RPG.NewOpeningScreen IScreen (IEngine engine) : 

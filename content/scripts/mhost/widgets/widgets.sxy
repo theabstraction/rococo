@@ -15,12 +15,36 @@
 
 (alias QuadColour MHost.Graphics.QuadColour)
 
-(interface MHost.Graphics.IMenu
+(interface MHost.IEventHandler (attribute dispatch))
+
+(interface MHost.Graphics.IControl
+	(GetRect (Rectf rect)->)
+	(GetEventHandler -> (IEventHandler handler))
+	(Render (IGui gui)->)
+)
+
+(struct MenuSelectArgs
+	(Int32 menuIndex)
+	(IString menuText)
+	(IMenu source)
+)
+
+(alias MenuSelectArgs MHost.Graphics.MenuSelectArgs)
+
+(struct MouseClickArgs
+	(Vec2 pos)
+	(IEventHandler documentHandler)
+	(Int32 button)
+)
+
+(alias MouseClickArgs MHost.Graphics.MouseClickArgs)
+
+(interface MHost.Graphics.IMenu (extends MHost.Graphics.IControl)
 	(AddTextItem (IString text)(IWidgetContext wc)->(Int32 id))
-	(ClickAt (Float32 x)(Float32 y)->(Int32 menuIndex))
+	(OnMouseUp (MouseClickArgs args)->)
 	(SetColourScheme (QuadColour itemLow)(QuadColour itemHigh)(QuadColour bkLow)(QuadColour bkHigh)->)
 	(SetStyle (Int32 textAlignment)(Float32 borderThickness)(IString fontFamily)->)
-	(RenderToFixedRect (IGui gui)(Rectf rect)->)
+	(LayoutFixedRect (Rectf rect)(IGui gui)->)
 )
 
 (function UseDefaultColourScheme (QuadColour low)(QuadColour high)-> :
@@ -46,7 +70,7 @@
 (alias EqRectfRectf MHost.EqRectfRectf)
 (alias GetSpanRectf MHost.GetSpanRectf)
 
-(interface MHost.IUIEventHandler
+(interface MHost.Graphics.IUIEventHandler
 	(OnMouseDown (Int32 button) (Float32 x)(Float32 y) ->)
 	(OnMouseUp (Int32 button) (Float32 x)(Float32 y) ->)
 	(OnWheel (Int32 spin) ->)

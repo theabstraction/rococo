@@ -190,6 +190,9 @@
     <None Include="..\content\scripts\mhost\mhost.types.sxy" />
     <None Include="..\content\scripts\mhost\mplat.types.sxy" />
     <None Include="..\content\scripts\mhost\rpg.sxy" />
+    <None Include="..\content\scripts\mhost\widgets\fonts.sxy" />
+    <None Include="..\content\scripts\mhost\widgets\menu.vertical.sxy" />
+    <None Include="..\content\scripts\mhost\widgets\widgets.sxy" />
     <None Include="mhost.os.inl" />
     <None Include="mhost.sxh" />
     <None Include="mhost.sxh.inl" />
