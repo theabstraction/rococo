@@ -979,7 +979,7 @@ namespace Rococo
             if (!IsAtomic(s) && s.NumberOfElements() != 1) return false;
 
             TokenBuffer field;
-            if (AreEqual(("Exists"), methodName))
+            if (AreEqual("Exists", methodName))
             {
                StringPrint(field, ("%s._exists"), instance);
                ValidateReturnType(s, returnType, VARTYPE_Bool);

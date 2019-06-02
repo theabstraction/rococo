@@ -108,6 +108,9 @@
       <Inputs>mhost.sxh.h;mhost.sxh.inl</Inputs>
       <Outputs>mhost.sxh.h;,mhost.sxh.inl;mhost.script.types.h</Outputs>
     </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>$(SolutionDir)copy.natives.from.sexy.bat</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -165,6 +168,9 @@
       <Inputs>mhost.sxh.h;mhost.sxh.inl</Inputs>
       <Outputs>mhost.sxh.h;,mhost.sxh.inl;mhost.script.types.h</Outputs>
     </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>cmd.exe $(SolutionDir)copy.natives.from.sexy.bat</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="mhost.h" />

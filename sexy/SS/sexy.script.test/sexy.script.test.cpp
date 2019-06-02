@@ -5257,7 +5257,7 @@ namespace
 
 			"(function Main -> (Int32 result): "
 			"	(Sys.IDog dog)"
-			"   (if (dog exists)"
+			"   (if (dog ?)"
 			"		(return = 7)"
 			"	else"
 			"		(result = 9)"
@@ -11376,6 +11376,38 @@ namespace
 		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 	}
 
+
+	void TestCompareStruct(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(function IsEqVec2fVec2f (Vec2 a)(Vec2 b)->(Bool isEqual) :"
+			"	(isEqual = ((a.x == b.x) and (a.y == b.y)))"
+			")"
+			"(using Sys.Maths)"
+			"(namespace EntryPoint)"
+			"(function Main -> (Int32 exitCode):"
+			"	(Vec2 a = 0 1)"
+			"	(Vec2 b = 0 1)"
+			"  (if (a == b) (exitCode = 7) else (exitCode = 9))"
+			")"
+			"(alias Main EntryPoint.Main)"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0x00000001);
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateLogs();
+
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+
+		int32 exitCode = vm.PopInt32();
+		validate(exitCode == 7);
+	}
+
 	void TestMacroAsArgument1(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -12476,6 +12508,8 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestCompareStruct);
+		TEST(TestInterfaceForNull);
 		TEST(TestFactoryReturnsBaseInterface);
 		TEST(TestDynamicDispatch);
 		TEST(TestLoopBreak);
@@ -12736,7 +12770,6 @@ namespace
 		TEST(TestReflectionGetChild_BadIndex);
 
 		TEST(TestEssentialInterface);
-		TEST(TestInterfaceForNull);
 
 		TestMaths();
 

@@ -41,7 +41,6 @@
 
 (interface MHost.Graphics.IMenu (extends MHost.Graphics.IControl)
 	(AddTextItem (IString text)(IWidgetContext wc)->(Int32 id))
-	(OnMouseUp (MouseClickArgs args)->)
 	(SetColourScheme (QuadColour itemLow)(QuadColour itemHigh)(QuadColour bkLow)(QuadColour bkHigh)->)
 	(SetStyle (Int32 textAlignment)(Float32 borderThickness)(IString fontFamily)->)
 	(LayoutFixedRect (Rectf rect)(IGui gui)->)

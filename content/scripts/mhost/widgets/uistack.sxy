@@ -19,7 +19,7 @@
 
 (struct UIStackItem
 	(IControl control)
-	(IUIEventHandler handler)
+	(IEventHandler handler)
 	(IString name)
 	(Bool isVisible)
 	(Bool isClippedByParent)
@@ -33,7 +33,7 @@
 	(UIStackItem root)
 )
 
-(method UIStack.Construct ->  (construct root.items ()) : 
+(method UIStack.Construct ->  (construct root) : 
 	(this.root.name = "~root~")
 	(this.root.isVisible = true)
 	(this.root.isClippedByParent = true)
@@ -41,14 +41,15 @@
 
 (factory MHost.Graphics.NewUIStack IUIStack : (construct UIStack))
 
-(method UIStack.AddTopLevelControl (IControl control) (IString name)-> :
-	(UIStackItem newItem)
+(method UIStack.AddTopLevelControl (MHost.Graphics.IControl control) (IString name)-> :
+	(this.root.children.Append ())
+	(node n = this.root.children.Tail)
+	(UIStackItem newItem = & n)
 	(newItem.control = control)
 	(newItem.name = name)
 	(newItem.isVisible = true)
-	(newItem.handler = (control.GetUIEventHandler))
+	(newItem.handler = (control.GetEventHandler))
 	(newItem.isClippedByParent = true)
-	(root.items.Append newItem)
 )
 
 (method UIStack.ForEachItem (OnUIStackItem callback)->(Bool continue):

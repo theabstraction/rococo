@@ -1,18 +1,14 @@
-(namespace EntryPoint)
-(interface Sys.IDog (Bark (BarkEventArgs args)-> ))
-(interface Sys.IDispatch (attribute dispatch) (LastHz -> (Int32 hz)))
-(class Dog (implements Sys.IDog) (implements Sys.IDispatch)(Int32 lastHz))
-(struct BarkEventArgs (Int32 hz))
-(method Dog.Bark (BarkEventArgs args)-> : (this.lastHz = args.hz))
-(method Dog.Construct -> :)
-(method Dog.LastHz -> (Int32 hz) : (hz = this.lastHz))
-(factory Sys.NewDog Sys.IDispatch : (construct Dog)) 
-
-(function Main -> (Int32 result):
-	   (Sys.IDispatch dog (Sys.NewDog))
-	   (BarkEventArgs args)
-		(args.hz = 42)
-		(dog.Bark args) 
-	   (result = dog.LastHz)
+(function IsEqVec2fVec2f (Vec2 a)(Vec2 b)->(Bool isEqual) :
+	(isEqual = ((a.x == b.x) and (a.y == b.y)))
 )
+
+(using Sys.Maths)
+(namespace EntryPoint)
+
+(function Main -> (Int32 exitCode):
+	(Vec2 a = 0 1)
+	(Vec2 b = 0 1)
+    (if (a == b) (exitCode = 7) else (exitCode = 9))
+)
+
 (alias Main EntryPoint.Main)

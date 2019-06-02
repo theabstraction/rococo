@@ -35,6 +35,8 @@ namespace Rococo
 {
    namespace Script
    {
+	  int GetIndexOfInterface(const IStructure& concreteClass, const IInterface& interf);
+
       const IFactory& GetFactoryInModuleByFQN(cr_sex factoryExpr, cstr ns, cstr shortName, IModule& module)
       {
          const INamespace* NS = module.Object().GetRootNamespace().FindSubspace(ns);
@@ -178,6 +180,12 @@ namespace Rococo
          }
 
          cstr targetName = directive[0].String()->Buffer;
+		 cstr factoryName = factoryNameExpr.String()->Buffer;
+
+		 if (!IsCapital(factoryName[0]))
+		 {
+			 return false;
+		 }
 
          const IFactory& factory = GetFactoryInModule(factoryNameExpr, GetModule(ce.Script));
 		 

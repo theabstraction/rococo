@@ -1294,18 +1294,10 @@ namespace Rococo
 					{
 						if (IsNullType(*memberType))
 						{
-							if (!member.IsInterfaceVariable())
-							{
-								ce.Builder.Assembler().Append_GetStackFrameAddress(VM::REGISTER_D4, sfMemberOffset + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0); // &interface1
-								ce.Builder.Assembler().Append_SetStackFrameValue(sfMemberOffset, VM::REGISTER_D4, BITCOUNT_POINTER); // _ref_instance = &interface1
-							}
-							else
-							{
-								VariantValue v;
-								auto& instance = *memberType->GetInterface(0).UniversalNullInstance();
-								v.vPtrValue = &instance.pVTables;
-								ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset, v, BITCOUNT_POINTER);
-							}
+							VariantValue v;
+							auto& instance = *memberType->GetInterface(0).UniversalNullInstance();
+							v.vPtrValue = &instance.pVTables;
+							ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset, v, BITCOUNT_POINTER);
 						}
 						else
 						{
@@ -2051,7 +2043,7 @@ namespace Rococo
 					{
 						if (!TryCompileAsLateFactoryCall(ce, def, directive))
 						{
-							Throw(directive, ("Cannot interpret RHS as late factory call"));
+							CompileAssignmentDirective(ce, directive, *varStruct, false);
 						}
 
 						return true;

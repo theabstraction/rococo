@@ -468,9 +468,7 @@ namespace Rococo { namespace Sex
 		int32 elementCount = e.NumberOfElements();
 		if (minElements > 0 && elementCount < minElements)
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Expression had fewer than the minimum of ") << minElements << (" element") << (minElements > 1 ? ("s") : (""));
-			Throw(e, streamer);
+			Throw(e, "Expression had fewer than the minimum of %d element%s", minElements, (minElements > 1) ? "s" : "");
 		}
 	}
 

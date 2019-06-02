@@ -113,7 +113,7 @@
 	)
 )
 
-(interface RPG.IScreen (extends MHost.IEventHandler)
+(interface RPG.IScreen (extends MHost.Graphics.IUIEventHandler)
 	(RenderGui (IGui g) ->)
 )
 
@@ -156,7 +156,6 @@
 	(this.engine = engine)
 	
 	(IMenu menu (NewVerticalMenu 10))
-	(menu = (NewVerticalMenu 10))
 	(menu.SetStyle 0 4 "Tahoma")
 	
 	(IWidgetContext nulWC)
@@ -168,7 +167,7 @@
 
 	(this.menu = menu)
 	
-	(this.uistack = (NewUIStack))
+	(this.uistack = (MHost.Graphics.NewUIStack))
 	(this.uistack.AddTopLevelControl menu "menu")
 	(this.screenSpan = -1 -1)
 )
@@ -233,7 +232,7 @@
 	(Vec2 screenSpan)
 	(g.GetScreenSpan screenSpan)
 	
-	(if (g.screenSpan != this.screenSpan)
+	(if (screenSpan != this.screenSpan)
 		(this.screenSpan = screenSpan)
 		(Layout this g)
 	)

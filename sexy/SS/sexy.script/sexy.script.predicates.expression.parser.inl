@@ -488,9 +488,109 @@ namespace Rococo
 
       void CompileBinaryCompareAtomicVsCompound(CCompileEnvironment& ce, cr_sex parent, cstr varName, CONDITION op, cr_sex s, bool leftToRight);
 
+	  bool TryCompileAsCompareStruct(CCompileEnvironment& ce, cr_sex parent, cr_sex leftExpr, cstr leftVarName, CONDITION op, cr_sex rightExpr)
+	  {
+		  MemberDef leftDef;
+		  if (ce.Builder.TryGetVariableByName(leftDef, leftVarName))
+		  {
+			  cstr rightVarName = rightExpr.String()->Buffer;
+
+			  MemberDef rightDef;
+			  if (ce.Builder.TryGetVariableByName(rightDef, rightVarName))
+			  {
+				  if (!leftDef.ResolvedType || !rightDef.ResolvedType) return false;
+
+				  if (leftDef.ResolvedType->VarType() == VARTYPE_Derivative && rightDef.ResolvedType->VarType() == VARTYPE_Derivative)
+				  {
+					  if (leftDef.ResolvedType->InterfaceCount() != 0 || rightDef.ResolvedType->InterfaceCount() != 0)
+					  {
+						  Throw(parent, "Cannot compare %s with %s", leftDef.ResolvedType->Name(), rightDef.ResolvedType->Name());
+					  }
+
+					  cstr sop;
+
+					  switch (op)
+					  {
+					  case CONDITION_IF_EQUAL:
+						  sop = "Eq";
+						  break;
+					  case CONDITION_IF_NOT_EQUAL:
+						  sop = "NotEq";
+						  break;
+					  case CONDITION_IF_GREATER_THAN:
+						  sop = "GT";
+						  break;
+					  case CONDITION_IF_GREATER_OR_EQUAL:
+						  sop = "GTE";
+						  break;
+					  case CONDITION_IF_LESS_THAN:
+						  sop = "LT";
+						  break;
+					  case CONDITION_IF_LESS_OR_EQUAL:
+						  sop = "LTE";
+						  break;
+					  default:
+						  Throw(parent, "Operator not supported");
+					  }
+
+					  char compareFunction[256];
+					  SafeFormat(compareFunction, 256, "Is%s%s%s", sop, leftDef.ResolvedType->Name(), rightDef.ResolvedType->Name());
+
+					  IFunctionBuilder& callee = MustMatchFunction(ce.Builder.Module(), parent, compareFunction);
+
+					  if (callee.NumberOfInputs() != 2 || callee.NumberOfOutputs() != 1)
+					  {
+						  Throw(parent, "Operator overload function %s must have 2 inputs and 1 output", compareFunction);
+					  }
+
+					  if (callee.GetArgument(0).VarType() != VARTYPE_Bool)
+					  {
+						  Throw(parent, "Operator overload function %s must have Bool as output", compareFunction);
+					  }
+
+					  if (&callee.GetArgument(1) != leftDef.ResolvedType)
+					  {
+						  Throw(parent, "Operator overload function %s first argument must be of type %s of %s. Not %s of %s", compareFunction,
+							  leftDef.ResolvedType->Name(), leftDef.ResolvedType->Module().Name(),
+							  callee.GetArgument(1).Name(), callee.GetArgument(1).Module().Name());
+					  }
+
+					  if (&callee.GetArgument(2) != rightDef.ResolvedType)
+					  {
+						  Throw(parent, "Operator overload function %s second argument must be of type %s of %s. Not %s of %s", compareFunction,
+							  rightDef.ResolvedType->Name(), rightDef.ResolvedType->Module().Name(),
+							  callee.GetArgument(2).Name(), callee.GetArgument(2).Module().Name());
+					  }
+					  
+					  const int outputStackAllocCount = AllocFunctionOutput(ce, callee, parent);
+
+					  AddArgVariable("input_left", ce, *leftDef.ResolvedType);
+					  ce.Builder.PushVariableRef(leftVarName, 0);
+
+					  AddArgVariable("input_right", ce, *rightDef.ResolvedType);
+					  ce.Builder.PushVariableRef(rightVarName, 0);
+
+					  AppendFunctionCallAssembly(ce, callee);
+
+					  ce.Builder.MarkExpression(&parent);
+					  RepairStack(ce, parent, callee);
+
+					  int outputOffset = GetOutputSFOffset(ce, sizeof(size_t) * 2, outputStackAllocCount);
+					  ReturnOutput(ce, outputOffset, VARTYPE_Bool);
+
+					  return true;
+				  }
+			  }
+		  }
+
+		  return false;
+	  }
+
       void CompileBinaryCompareVariableVsVariable(CCompileEnvironment& ce, cr_sex parent, cr_sex leftExpr, cstr leftVarName, CONDITION op, cr_sex rightExpr)
       {
          ICodeBuilder& builder = ce.Builder;
+
+		 if (TryCompileAsCompareStruct(ce, parent, leftExpr, leftVarName, op, rightExpr)) return;
 
          VARTYPE varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftVarName, Rococo::ROOT_TEMPDEPTH + 1);
          VARTYPE varRType = GetAtomicValueAnyNumeric(ce, rightExpr, rightExpr.String()->Buffer, Rococo::ROOT_TEMPDEPTH + 2);

@@ -1241,7 +1241,7 @@ namespace Rococo
 					  if (IsAtomic(s[1]) && returnType == VARTYPE_Bool)
 					  {
 						  cstr arg = s[1].String()->Buffer;
-						  if (Eq(arg, "exists") && instanceStruct)
+						  if (Eq(arg, "?") && instanceStruct)
 						  {
 							  if (instanceStruct->InterfaceCount() > 0 && IsNullType(*instanceStruct))
 							  {
@@ -1559,15 +1559,7 @@ namespace Rococo
 
 	      AddArgVariable(("instance"), ce, ce.Object.Common().TypePointer());
 
-	      if (def.ResolvedType == &ce.Object.Common().TypePointer() || def.Usage == ARGUMENTUSAGE_BYREFERENCE)
-	      {
-			  ce.Builder.AssignVariableToTemp(classInstance, 0);
-	      }
-	      else
-	      {
-		      ce.Builder.AssignVariableRefToTemp(classInstance, 0);	
-	      }
-
+		  ce.Builder.AssignVariableRefToTemp(classInstance, 0);	
 		  ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);
 			
 	      return (int) sizeof(void*);		

@@ -341,23 +341,6 @@ namespace Rococo
          }
       }
 
-      int GetIndexOfInterface(const IStructure& concreteClass, const IInterface& interf)
-      {
-         for (int i = 0; i < concreteClass.InterfaceCount(); ++i)
-         {
-			 for (auto* I = &concreteClass.GetInterface(i); I != nullptr; I = I->Base())
-			 {
-				 if (I == &interf)
-				 {
-					 return i;
-				 }
-			 }
-         }
-
-         return -1;
-      }
-
-
       IInterfaceBuilder* MatchInterface(cr_sex typeExpr, IModuleBuilder& module)
       {
          if (!IsAtomic(typeExpr))

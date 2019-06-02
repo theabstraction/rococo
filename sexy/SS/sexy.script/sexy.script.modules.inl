@@ -1075,7 +1075,7 @@ namespace Rococo { namespace Script
 
 	void CompileConstructChild(CCompileEnvironment& ce, cr_sex conDef, const IStructure& parentType, cstr parentInstance)
 	{
-		AssertNotTooFewElements(conDef, 3);
+		AssertNotTooFewElements(conDef, 2);
 		
 		cr_sex constructDirective = GetAtomicArg(conDef, 0);
 		if (!AreEqual(constructDirective.String(), ("construct")))
@@ -1136,8 +1136,8 @@ namespace Rococo { namespace Script
 
 			CCompileEnvironment ce(script, builder);
 
-			InitClassMembers(ce, ("this"));
-
+			InitClassMembers(ce, "this");
+		
 			CompileConstructChildren(ce, mapIndex+1, bodyIndex-1, constructorDef, *type);
 
 			CompileExpressionSequence(ce, bodyIndex+1, constructorDef.NumberOfElements()-1, constructorDef);

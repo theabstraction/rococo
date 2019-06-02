@@ -544,6 +544,7 @@ namespace Anon
 		~ExpressionTree()
 		{
 			sParser->Release();
+			if (sourceCode) sourceCode->Release();
 			if (block)
 			{
 				allocator.FreeData(block);
@@ -1422,6 +1423,7 @@ namespace Anon
 			tree->arraySets = sba.arraySets;
 			AddRef();
 			tree->sourceCode = &sourceCode;
+			sourceCode.AddRef();
 			tree->CovertListsToArrays(*tree->root);
 			return tree;
 		}

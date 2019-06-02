@@ -66,7 +66,29 @@ namespace Rococo
 	}
 }
 
-namespace
+namespace Rococo
+{
+	namespace Script
+	{
+		int GetIndexOfInterface(const IStructure& concreteClass, const IInterface& interf)
+		{
+			for (int i = 0; i < concreteClass.InterfaceCount(); ++i)
+			{
+				for (auto* I = &concreteClass.GetInterface(i); I != nullptr; I = I->Base())
+				{
+					if (I == &interf)
+					{
+						return i;
+					}
+				}
+			}
+
+			return -1;
+		}
+	}
+}
+
+namespace Anon
 {
 	class Variable
 	{
@@ -287,6 +309,8 @@ namespace
 		virtual void AddArgVariable(cstr desc, const IStructure& type, void* userData);
 
 		virtual void AddDynamicAllocateObject(const IStructure& structType);
+
+		bool TryAssignClassInterfaceToInterface(cstr source, cstr target, const IStructure* srcType, const IStructure*trgType);
 	};
 
 	CodeBuilder::CodeBuilder(IFunctionBuilder& _f, bool _mayUseParentsSF):
@@ -1724,6 +1748,36 @@ namespace
 		assembler->Append_Invoke(f.Object().GetCallbackIds().IdUpdateRefsOnSourceAndTarget);
 	}
 
+	bool CodeBuilder::TryAssignClassInterfaceToInterface(cstr source, cstr target, const IStructure* srcType, const IStructure* trgType)
+	{
+		if (!IsNullType(*trgType) || trgType->InterfaceCount() == 0)
+		{
+			return false;
+		}
+
+		if (srcType->InterfaceCount() == 0 || IsNullType(*srcType))
+		{
+			return false;
+		}
+
+		auto& interf0 = trgType->GetInterface(0);
+
+		int index = Rococo::Script::GetIndexOfInterface(*srcType, interf0);
+		if (index == -1)
+		{
+			Throw(0, "The class %s does not implement terface %s", srcType->Name(), interf0.Name());
+		}
+
+		int offset = GetThisOffset();
+		int targetOffset = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + index * sizeof(size_t);
+		int delta = (offset - targetOffset);
+
+		AssignVariableToTemp(source, 0, delta);
+		AssignTempToVariable(0, target);
+
+		return true;
+	}
+
 	void CodeBuilder::AssignVariableToVariable(cstr source, cstr target, bool isConstructingTarget)
 	{
 		if (source == nullptr || *source == 0) Rococo::Throw(0, "CodeBuilder::AssignVariableToVariable: source was blank");
@@ -1746,7 +1800,14 @@ namespace
 
 		if (srcType != trgType)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Type mismatch trying to assign [%s %s] to [%s %s]"), GetFriendlyName(*sourceDef.ResolvedType), source, GetFriendlyName(*targetDef.ResolvedType), target);
+			if (!TryAssignClassInterfaceToInterface(source, target, srcType, trgType))
+			{
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Type mismatch trying to assign [%s %s] to [%s %s]"), GetFriendlyName(*sourceDef.ResolvedType), source, GetFriendlyName(*targetDef.ResolvedType), target);
+			}
+			else
+			{
+				return;
+			}
 		}
 
 		if (sourceDef.CapturesLocalVariables && !targetDef.CapturesLocalVariables)
@@ -2096,7 +2157,12 @@ namespace
 
 		UseStackFrameFor(builder, sourceDef);
 
-		if (sourceDef.location != VARLOCATION_INPUT || sourceDef.Usage == ARGUMENTUSAGE_BYVALUE || !sourceDef.IsContained)
+		if (sourceDef.location == VARLOCATION_TEMP && sourceDef.Usage == ARGUMENTUSAGE_BYREFERENCE && sourceDef.IsContained)
+		{
+			// Assign from derefenced pointer to a deferenced pointer -> in this case a list node
+			builder.Assembler().Append_GetStackFrameMemberPtrAndDeref(VM::REGISTER_D4 + tempIndex, sourceDef.SFOffset, sourceDef.MemberOffset);
+		}
+		else if (sourceDef.location != VARLOCATION_INPUT || sourceDef.Usage == ARGUMENTUSAGE_BYVALUE || !sourceDef.IsContained)
 		{
 			// Assign from a value
 			builder.Assembler().Append_GetStackFrameValue(sourceDef.SFOffset + sourceDef.MemberOffset, tempIndex + VM::REGISTER_D4, BITCOUNT_POINTER);
@@ -2534,6 +2600,6 @@ namespace Rococo { namespace Compiler
 {
 	ICodeBuilder* CreateBuilder(IFunctionBuilder& f, bool _mayUseParentSF)
 	{
-		return new CodeBuilder(f, _mayUseParentSF);
+		return new Anon::CodeBuilder(f, _mayUseParentSF);
 	}
 }} // Rococo::Compiler

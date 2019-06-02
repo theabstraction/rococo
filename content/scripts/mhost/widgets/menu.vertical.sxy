@@ -58,7 +58,7 @@
 	(this.fontFamily = fontFamily)
 )
 
-(factory MHost.NewVerticalMenu IMenu (Int32 maxEntries) :
+(factory MHost.Graphics.NewVerticalMenu IMenu (Int32 maxEntries) :
 	(construct VerticalMenu maxEntries)
 )
 
@@ -145,8 +145,7 @@
 )
 
 (method VerticalMenu.GetEventHandler -> (IEventHandler handler):
-	(DynamicCast this -> IEventHandler thisHandler)
-	(handler = thisHandler)
+	(handler = this)
 )
 	
 (method VerticalMenu.Render (IGui g)-> :
