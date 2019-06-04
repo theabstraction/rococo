@@ -126,7 +126,16 @@ namespace Rococo
 
          if (!closure.TryResolveArguments())
          {
-            Throw(closureDef, ("Could not resolve all of the function arguments"));
+			 try
+			 {
+				 closure.ValidateArguments();
+			 }
+			 catch (IException& ex)
+			 {
+				 Throw(closureDef, "%s", ex.Message());
+			 }
+
+             Throw(closureDef, ("Could not resolve all of the function arguments"));
          }
 
          CodeSection section;

@@ -51,7 +51,8 @@ namespace Rococo
 	
 	template<typename CHARTYPE> inline bool AreEqual(const CHARTYPE* a, const CHARTYPE* b)
 	{
-		return Compare(a,b) == 0;
+		int delta = Compare(a, b);
+		return delta == 0;
 	}
 
 	template<typename CHARTYPE> inline bool AreEqual(sexstring a, const CHARTYPE* b)

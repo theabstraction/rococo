@@ -440,10 +440,12 @@ namespace Rococo
 						Throw(directive, "Could not find variable %s", sourceText);
 					}
 
+					/* TODO - delete this comment
 					if (def.ResolvedType != &varStruct)
 					{
 						Throw(directive, "Could not assign %s %s to %s %s", def.ResolvedType->Name(), sourceText, varStruct.Name(), targetVariable);
-					}
+					} 
+					*/
 
 					if (Eq(sourceText, targetVariable))
 					{

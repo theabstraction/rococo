@@ -12,7 +12,8 @@
 	(AddChild (IControl control)(IControl parent)(IString name)(Bool clipped)->)
 	(BringToTop (IControl control)->)
 	(SetVisible (IControl control)(Bool visible)-> )
-	(ForEachItem (OnUIStackItem callback)->(Bool shouldContinue))
+	(ForEachItemByZOrder (OnUIStackItem callback)->(Bool shouldContinue))
+	(RouteMouseEvent (Vec2 cursorPos)(OnUIStackItem callback)->)
 )
 
 (archetype MHost.Graphics.OnUIStackItem (UIStackItem item) -> (Bool terminateNow))
@@ -26,10 +27,12 @@
 	(list UIStackItem children)
 )
 
+(alias UIStackItem MHost.Graphics.UIStackItem)
+
 (method UIStackItem.Construct -> (construct children ()): 
 )
 
-(class UIStack (implements IUIStack)
+(class UIStack (implements MHost.Graphics.IUIStack)
 	(UIStackItem root)
 )
 
@@ -52,15 +55,31 @@
 	(newItem.isClippedByParent = true)
 )
 
-(method UIStack.ForEachItem (OnUIStackItem callback)->(Bool continue):
-	(callback item -> shouldContinue)
-	(if (shouldContinue)
-		(foreach c # item.children
-			(UIStackItem child = c.Value)
-			(callback child -> shouldContinue)
-			(if (not shouldContinue) (break))
+(function ForEachChildByZOrderRecursive (UIStackItem parent)(OnUIStackItem callback)->(Bool terminate):
+	(foreach c # parent.children
+		(UIStackItem child = & c)
+		(if (not child.isClippedByParent)
+			(callback child -> terminate)
+			(if (terminate) (return))
+			(ForEachChildByZOrderRecursive child callback -> terminate)
+			(if (terminate) (return))
 		)
 	)
+	(foreach c # parent.children
+		(UIStackItem child = & c)
+		(if (child.isClippedByParent)
+			(callback child -> terminate)
+			(if (terminate) (return))
+			(ForEachChildByZOrderRecursive child callback -> terminate)
+			(if (terminate) (return))
+		)
+	)
+)
+
+(method UIStack.ForEachItemByZOrder (OnUIStackItem callback)->(Bool terminate):
+	(callback this.root -> terminate)
+	
+	(if (not terminate) (ForEachChildByZOrderRecursive this.root callback -> terminate))
 )
 
 (method UIStack.BringToTop (IControl control)-> :
@@ -69,7 +88,7 @@
 
 (function BringChildToTop (UIStackItem parent)(IControl control) -> (Bool terminateNow) :
 	(foreach c # parent.children
-		(UIStackItem child = c.Value)
+		(UIStackItem child = & c)
 		(if (child.control == control)
 			(UIStackItem clone)
 			(clone = child)
@@ -89,7 +108,7 @@
 		(callback item -> terminateNow)
 	else
 		(foreach c # item.children
-			(UIStackItem child = c.Value)
+			(UIStackItem child = & c)
 			(FindItemAndExecute child target callback -> terminateNow)
 			(if terminateNow (break))
 		)
@@ -132,14 +151,14 @@
 		(callback item -> terminate)
 		(if (not terminate) 
 			(foreach c # item.children
-				(UIStackItem child = c.Value)
+				(UIStackItem child = & c)
 				(RouteMouseEventRecursive child pos callback -> terminate)
 				(if terminate (break))
 			)
 		)
 	else // The cursor event did not occur in the parent rect, but the children may be floating, outside of the parent rect, so check them
 		(foreach c # item.children
-			(UIStackItem child = c.Value)
+			(UIStackItem child = & c)
 			(if (not child.isClippedByParent)
 				(RouteMouseEventRecursive child pos callback -> terminate)
 				(if terminate (break))
@@ -148,8 +167,8 @@
 	)
 )
 
-(method UIStackItem.RouteMouseEvent (Vec2 pos) -> (OnUIStackItem callback):
-	(RouteMouseEventRecursive this.root pos callback -> terminate)
+(method UIStack.RouteMouseEvent (Vec2 cursorPos)(OnUIStackItem callback) -> :
+	(RouteMouseEventRecursive this.root cursorPos callback)
 )
 
 (function RenderTree (IUIStack tree)(IGui gui)-> :
@@ -159,7 +178,7 @@
 			(terminate = false)
 		)
 	)
-	(tree.ForEachItem renderControl)
+	(tree.ForEachItemByZOrder renderControl)
 )
 
 (alias RenderTree MHost.Graphics.RenderTree)

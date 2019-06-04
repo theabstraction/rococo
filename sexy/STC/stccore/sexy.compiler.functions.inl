@@ -307,6 +307,18 @@ namespace Anon
 			return NULL;
 		}
 
+		void ValidateArguments()
+		{
+			for (auto i = args.begin(); i != args.end(); i++)
+			{
+				FunctionArgument* arg = *i;
+				if (!arg->TryResolveArgument())
+				{
+					Throw(0, "Cannot resolve argument (%s %s) of %s defined in %s", arg->TypeString(), arg->Name(), Name(), module.Name());
+				}
+			}
+		}
+
 		bool TryResolveArguments()
 		{
 			for(auto i = args.begin(); i != args.end(); i++)

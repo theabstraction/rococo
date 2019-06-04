@@ -996,12 +996,21 @@ namespace Rococo
          StringPrint(collectionLength, ("%s._length"), collectionName);
          ce.Builder.AssignVariableToTemp(collectionLength, Rococo::ROOT_TEMPDEPTH);
          ce.Builder.Assembler().Append_Test(VM::REGISTER_D7, BITCOUNT_32);
+
+		 AddSymbol(ce.Builder, "if (list.length > 0) skip next two branches");
+		 ce.Builder.Assembler().Append_BranchIf(CONDITION_IF_NOT_EQUAL, sizeof(ArgsBranchIf) + 3 * (sizeof(int32) + 1)); // takes us just beyond the next two branch statements
          size_t bailoutPos = ce.Builder.Assembler().WritePosition();
-         ce.Builder.Assembler().Append_BranchIf(CONDITION_IF_EQUAL, 0);
+		 AddSymbol(ce.Builder, "branch to abort point");
+         ce.Builder.Assembler().Append_Branch(0); // if Eq, means counter = 0, and we branch here to the end
+		 size_t rearBreakPos = ce.Builder.Assembler().WritePosition();
+		 AddSymbol(ce.Builder, "branch to break point");
+		 ce.Builder.Assembler().Append_Branch(0); // if Eq, means counter = 0, and we we branch here to the end, this is where (break) is directed
+		 AddSymbol(ce.Builder, "branch to continue point");
+		 size_t continueRearPos = ce.Builder.Assembler().WritePosition(); // this is where (continue) is directed
+		 ce.Builder.Assembler().Append_Branch(0);
          ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-         AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 5, Rococo::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER);
-
+		 AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 5, Rococo::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER); // D12 to be used as node pointer
          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D13, VM::REGISTER_D7, BITCOUNT_POINTER);
          AppendInvoke(ce, GetListCallbacks(ce).ListGetHead, collection);
          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D12, BITCOUNT_POINTER); // D12 is current node pointer
@@ -1036,7 +1045,19 @@ namespace Rococo
             ce.Builder.Assembler().Append_AddImmediate(VM::REGISTER_D11, BITCOUNT_32, VM::REGISTER_D11, one);
          }
 
+		 ControlFlowData cfd;
+		 cfd.ContinuePosition = continueRearPos;
+		 cfd.BreakPosition = rearBreakPos;
+		 ce.Builder.PushControlFlowPoint(cfd);
          CompileExpressionSequence(ce, hashIndex + 2, s.NumberOfElements() - 1, s);
+		 ce.Builder.PopControlFlowPoint();
+
+		 size_t continueForwardPos = ce.Builder.Assembler().WritePosition();
+		 size_t rearToForward = continueForwardPos - continueRearPos;
+
+		 ce.Builder.Assembler().SetWriteModeToOverwrite(continueRearPos);
+		 ce.Builder.Assembler().Append_Branch((int32)rearToForward);
+		 ce.Builder.Assembler().SetWriteModeToAppend();
 
          AppendInvoke(ce, GetListCallbacks(ce).NodeEnumNext, s); // Gives the raw node next value from D12 to D12
 
@@ -1045,12 +1066,16 @@ namespace Rococo
          ptrdiff_t endLoop = ce.Builder.Assembler().WritePosition();
          ce.Builder.Assembler().Append_BranchIf(Rococo::CONDITION_IF_NOT_EQUAL, (int32)(startLoop - endLoop));
 
+		 size_t breakPos = ce.Builder.Assembler().WritePosition();
          ce.Builder.PopLastVariables(indexName != NULL ? 4 : 2, true); // Release the D10-D12 and the ref. We need to release the ref manually to stop the refcount decrement
-
-         size_t exitPos = ce.Builder.Assembler().WritePosition();
-         size_t bailoutToExit = exitPos - bailoutPos;
+		 size_t exitPos = ce.Builder.Assembler().WritePosition();
+		 size_t bailoutToExit = exitPos - bailoutPos;
          ce.Builder.Assembler().SetWriteModeToOverwrite(bailoutPos);
-         ce.Builder.Assembler().Append_BranchIf(CONDITION_IF_EQUAL, (int32)bailoutToExit);
+         ce.Builder.Assembler().Append_Branch((int32)bailoutToExit);
+
+		 size_t breakToExit = breakPos - rearBreakPos;
+		 ce.Builder.Assembler().SetWriteModeToOverwrite(rearBreakPos);
+		 ce.Builder.Assembler().Append_Branch((int32)breakToExit);
          ce.Builder.Assembler().SetWriteModeToAppend();
 
          ce.Builder.PopLastVariables(1, true);

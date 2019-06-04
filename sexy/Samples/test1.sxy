@@ -1,14 +1,18 @@
-(function IsEqVec2fVec2f (Vec2 a)(Vec2 b)->(Bool isEqual) :
-	(isEqual = ((a.x == b.x) and (a.y == b.y)))
-)
-
-(using Sys.Maths)
 (namespace EntryPoint)
+ (alias Main EntryPoint.Main)
 
-(function Main -> (Int32 exitCode):
-	(Vec2 a = 0 1)
-	(Vec2 b = 0 1)
-    (if (a == b) (exitCode = 7) else (exitCode = 9))
+(using Sys.Type)
+
+(function Main -> (Int32 result):
+
+	(list Int32 a)
+
+	(a.Append 17)
+	(a.Append 34)
+	(a.Append 333)
+
+	(foreach n # a
+		(result = n.Value)
+		(break)
+	)	
 )
-
-(alias Main EntryPoint.Main)

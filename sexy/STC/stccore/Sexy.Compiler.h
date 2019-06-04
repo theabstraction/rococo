@@ -87,6 +87,7 @@ namespace Rococo { namespace Compiler
 		virtual IArgumentBuilder& AddOutput(const NameString& name, const TypeString& type, void* userdata) = 0;
 		virtual IArgumentBuilder& AddOutput(const NameString& name, const IStructure& type, void* userdata) = 0;
 		virtual bool TryResolveArguments() = 0;		
+		virtual void ValidateArguments() = 0;
 
 		virtual ICodeBuilder& Builder() = 0;
 		virtual IModuleBuilder& Module() = 0;

@@ -156,7 +156,7 @@ namespace Rococo
                }
             }
 
-            if (f == NULL)
+            if (finalFunction == NULL)
             {
                ThrowTokenNotFound(s, name, module.Name(), ("function"));
             }

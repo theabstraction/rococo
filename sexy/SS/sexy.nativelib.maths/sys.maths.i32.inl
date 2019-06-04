@@ -1,5 +1,47 @@
 namespace
 {
+	void NativeSysMathsAddVec2iVec2i(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		Vec2i* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		Vec2i* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		Vec2i* c;
+		_offset += sizeof(c);
+		ReadInput(c, _sf, -_offset);
+
+		c->x = a->x + b->x;
+		c->y = a->y + b->y;
+	}
+
+	void NativeSysMathsSubtractVec2iVec2i(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		Vec2i* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		Vec2i* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		Vec2i* c;
+		_offset += sizeof(c);
+		ReadInput(c, _sf, -_offset);
+
+		c->x = a->x - b->x;
+		c->y = a->y - b->y;
+	}
+
 	void NativeSysMathsI32Abs(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -263,5 +305,8 @@ namespace Sys { namespace Maths { namespace I32 {
 		ss.AddNativeCall(ns, NativeSysMathsI32BitwiseNot, nullptr, ("BitwiseOr(Int32 x) -> (Int32 notX)"));
 		ss.AddNativeCall(ns, NativeSysMathsI32BitwiseXor, nullptr, ("BitwiseOr(Int32 x)(Int32 y) -> (Int32 result)"));
 		ss.AddNativeCall(ns, NativeSysMathsI32HasFlags, nullptr, ("HasFlags(Int32 flags)(Int32 flag) -> (Bool result)"));
+
+		ss.AddNativeCall(ns, NativeSysMathsAddVec2iVec2i, nullptr, ("AddVec2iVec2i(Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i sum)->"));
+		ss.AddNativeCall(ns, NativeSysMathsSubtractVec2iVec2i, nullptr, ("SubtractVec2iVec2i(Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i diff)->"));
 	}
 }}}

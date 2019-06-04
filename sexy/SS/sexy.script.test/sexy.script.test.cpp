@@ -7636,6 +7636,42 @@ namespace
 		validate(x == 11);
 	}
 
+	void TestLinkedListForeach8(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+
+			"	(list Int32 a)"
+
+			"	(a.Append 17)"
+			"	(a.Append 34)"
+			"	(a.Append 333)"
+
+			"	(foreach n # a"
+			"		(result = n.Value)"
+			"		(break)"
+			"	)"	
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 17);
+	}
+
 	void TestListStruct(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = 
@@ -12424,6 +12460,7 @@ namespace
 	   TEST(TestLinkedListForeach5);
 	   TEST(TestLinkedListForeach6);
 	   TEST(TestLinkedListForeach7);
+	   TEST(TestLinkedListForeach8);
 	   TEST(TestLinkedListOfArchetypes);
 	   TEST(TestLinkedListOfLists);
 
@@ -12507,6 +12544,8 @@ namespace
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+
+		TEST(TestLinkedListForeach8);
 
 		TEST(TestCompareStruct);
 		TEST(TestInterfaceForNull);

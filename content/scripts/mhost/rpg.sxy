@@ -130,6 +130,7 @@
 (class OpeningScreen 
 	(implements RPG.IOpeningScreen)
 	(implements MHost.IEventHandler)
+	(implements MHost.Graphics.IUIEventHandler)
 	
 	(IEngine engine) // The CPP side of flow control
 	
@@ -194,23 +195,23 @@
 (method OpeningScreen.OnMouseDown (Int32 button) (Float32 x)(Float32 y) -> :
 	(Vec2 pos = x y)
 	
-	(DynamicCast this -> (IUIEventHandler handler))
+	(IEventHandler evHandler = this)
 	
-	(OnUIStackCallback q = 
-		(closure (UIStackItem item)->(bool terminate):
-			(MouseClickArgs args = pos handler button)
+	(OnUIStackItem q =
+		(closure (UIStackItem item)->(Bool terminate):
+			(MouseClickArgs args = pos evHandler button)
 			(item.handler.OnMouseDown args)
 		)
 	)
-	(uistack.RouteMouseEvent pos q)
+	(this.uistack.RouteMouseEvent pos q)
 )
 
 (method OpeningScreen.OnMouseUp (Int32 button)(Float32 x)(Float32 y) -> :
 	(Vec2 pos = x y)
 	
-	(DynamicCast this -> (IUIEventHandler handler))
+	(IUIEventHandler eventHandler = this)
 	
-	(OnUIStackCallback q = 
+	(OnUIStackItem q = 
 		(closure (UIStackItem item)->(bool terminate):
 			(MouseClickArgs args = pos handler button)
 			(item.handler.OnMouseUp args)
@@ -222,10 +223,10 @@
 (method OpeningScreen.OnWheel (Int32 spin) -> :
 )
 
-(function Layout (OpeningScreen this)(IGui g)-> :
+(function Layout (OpeningScreen screen)(IGui g)-> :
 	(Rectf menuRect)
-	(MHost.Graphics.GetCentredRect this.screenSpan 1100 620 menuRect)
-	(this.menu.LayoutFixedRect g menuRect)
+	(MHost.Graphics.GetCentredRect screen.screenSpan 1100 620 menuRect)
+	(screen.menu.LayoutFixedRect menuRect g)
 )
 
 (method OpeningScreen.RenderGui (IGui g) -> :
@@ -237,7 +238,7 @@
 		(Layout this g)
 	)
 	
-	(RenderTree this.uitree g)
+	(RenderTree this.uistack g)
 )
 
 (factory RPG.NewOpeningScreen IScreen (IEngine engine) : 

@@ -66,7 +66,7 @@
 	(Vec2 span)
 	(GetSpanRectf rect span)
 	
-	(Int32 nItems = (menu.items.Length))
+	(Int32 nItems = (this.items.Length))
 
 	(if (nItems == 0) (return))
 
@@ -76,13 +76,13 @@
 	
 	(Float32 minHeight = (pxHeightPerRow - 2))
 
-	(menu.fontIndex = (GetLargestFontOfFamilyLessThanHeight g menu.fontFamily minHeight))
+	(this.fontIndex = (GetLargestFontOfFamilyLessThanHeight g this.fontFamily minHeight))
 		
-	(if (menu.fontIndex == -1)
-		(menu.fontIndex = (GetLargestFontOfFamilyLessThanHeight g "Courier New" minHeight))
+	(if (this.fontIndex == -1)
+		(this.fontIndex = (GetLargestFontOfFamilyLessThanHeight g "Courier New" minHeight))
 	)
 	
-	(if (menu.fontIndex == -1)
+	(if (this.fontIndex == -1)
 		(IStringBuilder msg (StringBuilder 256))
 		(msg.SetFormat 0 0 false false)
 		(#build msg "LayoutFixedRect(VerticamMenu...): could not find a font small enough for the job&n")
@@ -93,7 +93,7 @@
 	
 	(IStringBuilder unused (StringBuilder 128))
 	(FontDesc fd)
-	(g.GetFontDescription menu.fontIndex unused fd)
+	(g.GetFontDescription this.fontIndex unused fd)
 	
 	(Float32 interalYSpan = (fd.height * nItemsF32))
 	
@@ -114,7 +114,7 @@
 	
 	(Float32 y = (rect.top + buttonYBorder))
 	
-	(foreach item # menu.items
+	(foreach item # this.items
 		(item.rect.left = (rect.left + buttonYBorder))
 		(item.rect.right = (rect.right - buttonYBorder))
 		(item.rect.top = y)
@@ -153,14 +153,14 @@
 	
 	(QuadColour colours)
 	
-	(if (IsPointInRect this.cursorPos outerRect)
+	(if (IsPointInRect this.cursorPos this.outerRect)
 		(colours = this.bkHigh)
 	else	
 		(colours = this.bkLow)
 	)
 	
-	(g.FillRect outerRect colours.backColour)
-	(g.DrawBorder outerRect this.borderThickness colours.tl colours.tr colours.bl colours.br)
+	(g.FillRect this.outerRect colours.backColour)
+	(g.DrawBorder this.outerRect this.borderThickness colours.tl colours.tr colours.bl colours.br)
 	
 	(foreach item # this.items
 		(if (IsPointInRect this.cursorPos item.rect)
@@ -172,6 +172,4 @@
 		(g.DrawBorder item.rect 1 colours.tl colours.tr colours.bl colours.br)
 		(g.DrawText item.rect this.alignment item.text this.fontIndex colours.fontColour)
 	)
-	
-	(this.outerRect = outerRect)
 )

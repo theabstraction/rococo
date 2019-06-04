@@ -1,5 +1,129 @@
 namespace
 {
+	void NativeSysMathsAddVec2fVec2f(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		Vec2* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		Vec2* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		Vec2* c;
+		_offset += sizeof(c);
+		ReadInput(c, _sf, -_offset);
+
+		c->x = a->x + b->x;
+		c->y = a->y + b->y;
+	}
+
+	void NativeSysMathsSubtractVec2fVec2f(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		Vec2* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		Vec2* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		Vec2* c;
+		_offset += sizeof(c);
+		ReadInput(c, _sf, -_offset);
+
+		c->x = a->x - b->x;
+		c->y = a->y - b->y;
+	}
+
+	void NativeSysMathsMultiplyVec2fFloat32(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		Vec2* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		float scaleFactor;
+		_offset += sizeof(scaleFactor);
+		ReadInput(scaleFactor, _sf, -_offset);
+
+		Vec2* c;
+		_offset += sizeof(c);
+		ReadInput(c, _sf, -_offset);
+
+		c->x = a->x * scaleFactor;
+		c->y = a->y  * scaleFactor;
+	}
+
+	void NativeSysMathsDivideVec2fFloat32(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		Vec2* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		float scaleFactor;
+		_offset += sizeof(scaleFactor);
+		ReadInput(scaleFactor, _sf, -_offset);
+
+		Vec2* c;
+		_offset += sizeof(c);
+		ReadInput(c, _sf, -_offset);
+
+		c->x = a->x * scaleFactor;
+		c->y = a->y  * scaleFactor;
+	}
+
+	void NativeSysMathsIsNotEqVec2fVec2f(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		Vec2* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		Vec2* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		boolean32 result;
+		result = a->x != b->x || a->y != b->y;
+
+		_offset += sizeof(result);
+		WriteOutput(result, _sf, -_offset);
+	}
+
+	void NativeSysMathsIsEqVec2fVec2f(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		Vec2* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		Vec2* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		boolean32 result;
+		result = a->x == b->x && a->y == b->y;
+
+		_offset += sizeof(result);
+		WriteOutput(result, _sf, -_offset);
+	}
+						
 	void NativeSysMathsF32Sin(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -486,5 +610,12 @@ namespace Sys { namespace Maths { namespace F32 {
 		ss.AddNativeCall(ns, NativeSysMathsF32ToInt32, nullptr, ("ToInt32(Float32 x) -> (Int32 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsF32ToInt64, nullptr, ("ToInt64(Float32 x) -> (Int64 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsF32ToFloat64, nullptr, ("ToFloat64(Float32 x) -> (Float64 value)"));
+
+		ss.AddNativeCall(ns, NativeSysMathsAddVec2fVec2f, nullptr, ("AddVec2fVec2f(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 sum)->"));
+		ss.AddNativeCall(ns, NativeSysMathsSubtractVec2fVec2f, nullptr, ("SubtractVec2fVec2f(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 diff)->"));
+		ss.AddNativeCall(ns, NativeSysMathsMultiplyVec2fFloat32, nullptr, ("MultiplyVec2fFloat32(Sys.Maths.Vec2 a)(Float32 scale)(Sys.Maths.Vec2 product)->"));
+		ss.AddNativeCall(ns, NativeSysMathsDivideVec2fFloat32, nullptr, ("DivideVec2fFloat32(Sys.Maths.Vec2 a)(Float32 scale)(Sys.Maths.Vec2 product)->"));
+		ss.AddNativeCall(ns, NativeSysMathsIsNotEqVec2fVec2f, nullptr, ("IsNotEqVec2fVec2f(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)->(Bool result)"));
+		ss.AddNativeCall(ns, NativeSysMathsIsEqVec2fVec2f, nullptr, ("IsEqVec2fVec2f(Sys.Maths.Vec2 a)(Sys.Maths.Vec2  b)->(Bool result)"));
 	}
 }}}
