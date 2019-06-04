@@ -209,15 +209,15 @@
 (method OpeningScreen.OnMouseUp (Int32 button)(Float32 x)(Float32 y) -> :
 	(Vec2 pos = x y)
 	
-	(IUIEventHandler eventHandler = this)
+	(IEventHandler evHandler = this)
 	
 	(OnUIStackItem q = 
-		(closure (UIStackItem item)->(bool terminate):
-			(MouseClickArgs args = pos handler button)
+		(closure (UIStackItem item)->(Bool terminate):
+			(MouseClickArgs args = pos evHandler button)
 			(item.handler.OnMouseUp args)
 		)
 	)
-	(uistack.RouteMouseEvent pos q)
+	(this.uistack.RouteMouseEvent pos q)
 )
 
 (method OpeningScreen.OnWheel (Int32 spin) -> :

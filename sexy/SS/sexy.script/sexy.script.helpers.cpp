@@ -724,7 +724,17 @@ namespace Rococo
 				   if (def.ResolvedType->InterfaceCount() > 0)
 				   {
 					   auto* pInterface = *(const uint8**)pVariableData;
-					   auto* object = (ObjectStub*) (pInterface + (*(InterfacePointer)pInterface)->OffsetToInstance);
+
+					   ObjectStub* object;
+					   __try
+					   {
+						   object = (ObjectStub*)(pInterface + (*(InterfacePointer)pInterface)->OffsetToInstance);
+					   }
+					   __except(1)
+					   {
+						   SafeFormat(variable.Value, variable.VALUE_CAPACITY, "(bad interface) %p", pVariableData);
+						   continue;
+					   }
 
 					   const auto& i = def.ResolvedType->GetInterface(0);
 

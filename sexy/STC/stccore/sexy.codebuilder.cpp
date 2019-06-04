@@ -1770,9 +1770,12 @@ namespace Anon
 
 		int offset = GetThisOffset();
 		int targetOffset = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + index * sizeof(size_t);
-		int delta = (offset - targetOffset);
+		int delta = (targetOffset - offset);
 
-		AssignVariableToTemp(source, 0, delta);
+		AssignVariableRefToTemp(source, 0, delta); // D4
+		AssignVariableRefToTemp(target, 1, 0); // D5
+		this->Append_UpdateRefsOnSourceAndTarget();
+
 		AssignTempToVariable(0, target);
 
 		return true;

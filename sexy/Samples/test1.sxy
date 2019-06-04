@@ -3,16 +3,34 @@
 
 (using Sys.Type)
 
+(interface Sys.I1 
+	(GetI2 -> (Sys.I2 i2))
+)
+
+(interface Sys.I2 
+	(Get6 -> (Int32 value))
+)
+
+(class Apple 
+	(implements Sys.I1)
+	(implements Sys.I2)
+)
+
+(method Apple.Construct : )
+
+(factory Sys.NewApple Sys.I1 : 
+	(construct Apple)
+)
+
+(method Apple.GetI2 -> (Sys.I2 i2):
+	(i2 = this)
+ )
+(method Apple.Get6 -> (Int32 value): 
+	(value = 6)
+)
+
 (function Main -> (Int32 result):
-
-	(list Int32 a)
-
-	(a.Append 17)
-	(a.Append 34)
-	(a.Append 333)
-
-	(foreach n # a
-		(result = n.Value)
-		(break)
-	)	
+	(Sys.I1 apple (Sys.NewApple))
+	(Sys.I2 i2 = apple.GetI2)
+	(result = i2.Get6)
 )

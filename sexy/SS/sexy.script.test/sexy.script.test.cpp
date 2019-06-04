@@ -7672,6 +7672,43 @@ namespace
 		validate(x == 17);
 	}
 
+	void TestStaticCast(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(interface Sys.I1 (GetI2 -> (Sys.I2 i2)))"
+			"(interface Sys.I2 (Get6 -> (Int32 value)))"
+
+			"(class Apple (implements Sys.I1)(implements Sys.I2))"
+			"(method Apple.Construct : )"
+			"(factory Sys.NewApple Sys.I1 : (construct Apple))"
+			"(method Apple.GetI2 -> (Sys.I2 i2): (i2 = this))"
+			"(method Apple.Get6 -> (Int32 value): (value = 6))"
+
+			"(function Main -> (Int32 result):"
+			"	(Sys.I1 apple (Sys.NewApple))"
+			"	(Sys.I2 i2 = apple.GetI2)"
+			"	(result = i2.Get6)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 6);
+	}
+
 	void TestListStruct(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = 
@@ -12545,8 +12582,7 @@ namespace
 	{
 		validate(true);
 
-		TEST(TestLinkedListForeach8);
-
+		TEST(TestStaticCast);
 		TEST(TestCompareStruct);
 		TEST(TestInterfaceForNull);
 		TEST(TestFactoryReturnsBaseInterface);
