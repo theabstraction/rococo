@@ -507,6 +507,8 @@ namespace Rococo
          ID_API_CALLBACK NodeHasNext;
          ID_API_CALLBACK NodeHasPrevious;
          ID_API_CALLBACK NodeReleaseRef;
+		 ID_API_CALLBACK NodeGoNext;
+		 ID_API_CALLBACK NodeGoPrevious;
       };
 
       struct MapCallbacks

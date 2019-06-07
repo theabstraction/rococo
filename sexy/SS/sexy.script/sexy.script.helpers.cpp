@@ -213,35 +213,16 @@ namespace Rococo
          }
       }
 
-      struct VirtualTable
-      {
-         ptrdiff_t InterfaceToInstanceOffset;
-      };
-
-      struct Instance
-      {
-         const VirtualTable* VTableOrTypeDef;
-      };
-
       const Rococo::uint8* GetMemberPtr(const IStructure& s, const Rococo::uint8* sf, ptrdiff_t offset)
       {
 		 if (s.InterfaceCount() > 0)
 		 {
-			 ptrdiff_t instanceOffset = 0;
-
-			 const Instance* pInstance = (const Instance*)(sf + offset);
-			 if (pInstance->VTableOrTypeDef != NULL)
-			 {
-				 instanceOffset = pInstance->VTableOrTypeDef->InterfaceToInstanceOffset;
-				 return ((const uint8*)pInstance) + instanceOffset;
-			 }
-			 else
-			 {
-				 return NULL;
-			 }
+			 InterfacePointer pInstance = (InterfacePointer)(sf);
+			 ObjectStub* stub = InterfaceToInstance(pInstance);
+			 return ((const uint8*)stub) + offset;
 		 }
 
-		return sf + offset;
+		  return sf + offset;
       }
 
       const Rococo::Compiler::IStructure* GetConcreteType(const IStructure& s, const Rococo::uint8* instance, ptrdiff_t offset, ObjectStub*& header)
@@ -687,12 +668,14 @@ namespace Rococo
 
 		   VariableDesc variable = { 0 };
 
+		   MemberDef registerDef = { 0 };
+
 		   AddSFToVarEnum(variable, sf);
-		   variableEnum.OnVariable(0, variable);
+		   variableEnum.OnVariable(0, variable, registerDef);
 		   AddReturnAddressToVarEnum(variable, sf);
-		   variableEnum.OnVariable(1, variable);
+		   variableEnum.OnVariable(1, variable, registerDef);
 		   AddOldSFToVarEnum(variable, sf);
-		   variableEnum.OnVariable(2, variable);
+		   variableEnum.OnVariable(2, variable, registerDef);
 
 		   size_t count = 3;
 
@@ -837,7 +820,7 @@ namespace Rococo
 
 			   PROTECT
 			   {
-					variableEnum.OnVariable(count++, variable);
+					variableEnum.OnVariable(count++, variable, def);
 			   }
 			   CATCH
 			   {
@@ -889,11 +872,11 @@ namespace Rococo
 				   {
 					   // Interfaces that are part of structures are always references
 					   const uint8** ppInstance = (const uint8**)(instance + suboffset);
-					   enumCallback.OnMember(ss, childName, member, *ppInstance, recurseDepth + 1);
+					   enumCallback.OnMember(ss, childName, member, *ppInstance, (int) suboffset, recurseDepth + 1);
 				   }
 				   else
 				   {
-					   enumCallback.OnMember(ss, childName, member, instance + suboffset, recurseDepth + 1);
+					   enumCallback.OnMember(ss, childName, member, instance + suboffset, (int) suboffset, recurseDepth + 1);
 				   }
 
 				   const int sizeofMember = member.SizeOfMember();

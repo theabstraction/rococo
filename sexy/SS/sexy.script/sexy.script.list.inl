@@ -250,6 +250,42 @@ namespace Rococo
          ListClear(*l, ss);
       }
 
+	  VM_CALLBACK(NodeGoPrevious)
+	  {
+		  ListNode* n = (ListNode*)registers[VM::REGISTER_D4].vPtrValue;
+		  IScriptSystem& ss = *(IScriptSystem*)context;
+
+		  VariantValue boolResult;
+		  boolResult.int32Value = n->Previous == nullptr ? 0 : 1;
+		  registers[VM::REGISTER_D7] = boolResult;
+
+		  if (boolResult.int32Value != 0)
+		  {
+			  ReleaseNode(n, ss);
+			  n = n->Previous;
+			  AddRef(n);
+			  registers[VM::REGISTER_D4].vPtrValue = n;
+		  }
+	  }
+
+	  VM_CALLBACK(NodeGoNext)
+	  {
+		  ListNode* n = (ListNode*)registers[VM::REGISTER_D4].vPtrValue;
+		  IScriptSystem& ss = *(IScriptSystem*)context;
+
+		  VariantValue boolResult;
+		  boolResult.int32Value = n->Next == nullptr ? 0 : 1;
+		  registers[VM::REGISTER_D7] = boolResult;
+
+		  if (boolResult.int32Value != 0)
+		  {
+			  ReleaseNode(n, ss);
+			  n = n->Next;
+			  AddRef(n);
+			  registers[VM::REGISTER_D4].vPtrValue = n;
+		  }
+	  }
+
       VM_CALLBACK(NodeAppend)
       {
          void* src = registers[VM::REGISTER_D7].vPtrValue;
@@ -880,7 +916,7 @@ namespace Rococo
             {
                ce.Builder.AddSymbol(("head now in D7"));
                AppendInvoke(ce, GetListCallbacks(ce).ListGetHead, source); // tail is now in D7
-               AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
+               AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the head
             }
             else
             {

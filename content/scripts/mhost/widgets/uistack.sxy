@@ -9,6 +9,7 @@
 
 (interface MHost.Graphics.IUIStack
 	(AddTopLevelControl (IControl control) (IString name)->)
+	(RemoveFromTopLevel (IControl control)->)
 	(AddChild (IControl control)(IControl parent)(IString name)(Bool clipped)->)
 	(BringToTop (IControl control)->)
 	(SetVisible (IControl control)(Bool visible)-> )
@@ -55,24 +56,48 @@
 	(newItem.isClippedByParent = true)
 )
 
-(function ForEachChildByZOrderRecursive (UIStackItem parent)(OnUIStackItem callback)->(Bool terminate):
-	(foreach c # parent.children
-		(UIStackItem child = & c)
-		(if (not child.isClippedByParent)
-			(callback child -> terminate)
-			(if (terminate) (return))
-			(ForEachChildByZOrderRecursive child callback -> terminate)
-			(if (terminate) (return))
-		)
+(method UIStack.RemoveFromTopLevel (IControl control)-> :
+	(Int32 length = (this.root.children.Length))
+	(if (length > 0)
+		(node n = this.root.children.Head)
+		(do
+			(UIStackItem child = & n)
+			(if (child.control == control)
+				(n.Pop)
+				(return)
+			)
+		while n.GoNext)
 	)
-	(foreach c # parent.children
-		(UIStackItem child = & c)
-		(if (child.isClippedByParent)
-			(callback child -> terminate)
-			(if (terminate) (return))
-			(ForEachChildByZOrderRecursive child callback -> terminate)
-			(if (terminate) (return))
-		)
+)
+
+(function ForEachChildByZOrderRecursive (UIStackItem parent)(OnUIStackItem callback)->(Bool terminate):
+
+	(Int32 length = (parent.children.Length))
+	
+	(if (length > 0)
+		(node c = parent.children.Tail)
+		
+		(do
+			(UIStackItem child = & c)
+			(if (not child.isClippedByParent)
+				(callback child -> terminate)
+				(if (terminate) (return))
+				(ForEachChildByZOrderRecursive child callback -> terminate)
+				(if (terminate) (return))
+			)	
+		while c.GoPrevious)
+		
+		(node d = parent.children.Tail)
+		
+		(do
+			(UIStackItem child = & d)
+			(if (child.isClippedByParent)
+				(callback child -> terminate)
+				(if (terminate) (return))
+				(ForEachChildByZOrderRecursive child callback -> terminate)
+				(if (terminate) (return))
+			)
+		while d.GoPrevious)
 	)
 )
 
@@ -143,27 +168,41 @@
 	(FindItemAndExecute this.root control q -> terminateNow)
 )
 
-(function RouteMouseEventRecursive (UIStackItem item)(Vec2 pos)(OnUIStackItem callback)-> (Bool terminate):
-	(terminate = false)
-	(Rectf rect)
-	(item.control.GetRect rect)
-	(if (IsPointInRect pos rect) 
-		(callback item -> terminate)
-		(if (not terminate) 
-			(foreach c # item.children
-				(UIStackItem child = & c)
-				(RouteMouseEventRecursive child pos callback -> terminate)
-				(if terminate (break))
-			)
-		)
-	else // The cursor event did not occur in the parent rect, but the children may be floating, outside of the parent rect, so check them
-		(foreach c # item.children
+(function RouteMouseEventRecursive (UIStackItem item)(Vec2 pos)(OnUIStackItem callback)-> : (Bool wasHandled)
+	(Rectf rect = -10000 -10000 10000 10000)
+	(item.control.GetRect rect) // N.B if item.control is a null object rect is left unchanged
+	
+	// In the following we go in reverse order as rendered
+	
+	// First check the floating children, which are not bounded by the parent rectangle
+	(Int32 nChildren = (item.children.Length))
+	(if (nChildren > 0)
+		(node c = item.children.Tail)
+		(do
 			(UIStackItem child = & c)
 			(if (not child.isClippedByParent)
-				(RouteMouseEventRecursive child pos callback -> terminate)
-				(if terminate (break))
+				(RouteMouseEventRecursive child pos callback -> wasHandled)
+				(if wasHandled (return))
 			)
+		while c.GoPrevious)		
+	)
+		
+	(if (IsPointInRect pos rect) 
+		(if (nChildren > 0)
+			(node c = item.children.Tail)
+			(do
+				(UIStackItem child = & c)
+				(if child.isClippedByParent
+					(RouteMouseEventRecursive child pos callback -> wasHandled)
+					(if wasHandled (return))
+				)
+			while c.GoPrevious)
 		)
+	
+		(callback item)
+		(wasHandled = true)
+	else
+		(wasHandled = false)
 	)
 )
 

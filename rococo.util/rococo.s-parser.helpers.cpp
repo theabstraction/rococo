@@ -860,7 +860,7 @@ namespace Rococo
 		int index = 0;
 		int firstUnkIndex = 1;
 
-		void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int recurseDepth) override
+		void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int offset, int recurseDepth) override
 		{
 			index++;
 
@@ -880,7 +880,16 @@ namespace Rococo
 					parentHeader = header;
 
 					char classDesc[256];
-					SafeFormat(classDesc, sizeof(classDesc), "[%+d] %s DestructorId: %lld. Refcount: %d", (sfItem - instance), concreteStruct->Name(), header->Desc->DestructorId, header->refCount);
+					if (header->refCount == ObjectStub::NO_REF_COUNT)
+					{
+						SafeFormat(classDesc, sizeof(classDesc), "[%+d] %s DestructorId: %lld. Refcount: n/a", (sfItem - instance), concreteStruct->Name(), header->Desc->DestructorId);
+					}
+					else
+					{
+						SafeFormat(classDesc, sizeof(classDesc), "[%+d] %s DestructorId: %lld. Refcount: %lld", (sfItem - instance), concreteStruct->Name(), header->Desc->DestructorId, header->refCount);
+					}
+
+
 					auto node = tree->AddChild(parentId, classDesc, CheckState_NoCheckBox);
 
 					firstUnkIndex = 3 + concreteStruct->InterfaceCount();
@@ -936,7 +945,7 @@ namespace Rococo
 
 			if (member.UnderlyingType()->InterfaceCount() != 0)
 			{
-				SafeFormat(memberDesc, sizeof(memberDesc), "  ->  %p %s: %s", sfItem, member.Name(), value);
+				SafeFormat(memberDesc, sizeof(memberDesc), "[%+d] ->  %p %s: %s", offset, sfItem, member.Name(), value);
 			}
 			else
 			{
@@ -973,7 +982,7 @@ namespace Rococo
 
 	struct VariableEnumeratorPopulator : public IVariableEnumeratorCallback
 	{
-		virtual void OnVariable(size_t index, const VariableDesc& v)
+		virtual void OnVariable(size_t index, const VariableDesc& v, const MemberDef& def)
 		{
 			if (AreEqual(v.Location, "CPU"))
 			{
@@ -995,14 +1004,15 @@ namespace Rococo
 			// At this level of enumeration v.instance refers to a stack address
 			__try
 			{
-				auto* instance = v.instance && v.s ? (IsNullType(*v.s) ? *(const uint8**)v.instance : v.instance) : nullptr;
-
 				MemberEnumeratorPopulator addMember;
 				addMember.parentId = node;
 				addMember.tree = tree;
 				addMember.depth = depth + 1;
-				addMember.instance = instance;
-				if (v.s) GetMembers(*ss, *v.s, v.parentName, instance, 0, addMember, 1);
+				addMember.instance = v.instance;
+
+				VirtualTable* pTable = (VirtualTable*) (v.instance);
+				InterfacePointer pInterf = (InterfacePointer)(v.instance);
+				if (v.s) GetMembers(*ss, *v.s, v.parentName, v.instance, 0, addMember, 1);
 			}
 			__except (1)
 			{
@@ -1034,7 +1044,7 @@ namespace Rococo
 
 		struct ANON : public IVariableEnumeratorCallback
 		{
-			virtual void OnVariable(size_t index, const VariableDesc& v)
+			virtual void OnVariable(size_t index, const VariableDesc& v, const MemberDef& def)
 			{
 				char offset[32];
 				SafeFormat(offset, sizeof(offset), "%d", v.Address);

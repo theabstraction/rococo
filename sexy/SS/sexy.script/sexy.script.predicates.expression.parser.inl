@@ -309,7 +309,7 @@ namespace Rococo
                   }
                   else
                   {
-                     ThrowTokenNotFound(s, instance, ce.Builder.Owner().Name(), ("variable"));
+                     ThrowTokenNotFound(s, id, ce.Builder.Owner().Name(), "variable");
                   }
                }
             }
@@ -488,6 +488,30 @@ namespace Rococo
 
       void CompileBinaryCompareAtomicVsCompound(CCompileEnvironment& ce, cr_sex parent, cstr varName, CONDITION op, cr_sex s, bool leftToRight);
 
+	  void CompareObjects(CCompileEnvironment& ce, cr_sex parent, cr_sex leftExpr, cstr leftVarName, CONDITION op, cr_sex rightExpr, const MemberDef& leftDef, const MemberDef& rightDef)
+	  {
+		  if (leftDef.ResolvedType->InterfaceCount() == 0 || rightDef.ResolvedType->InterfaceCount() == 0)
+		  {
+			  Throw(parent, "Cannot compare %s to %s", GetFriendlyName(*leftDef.ResolvedType), GetFriendlyName(*rightDef.ResolvedType));
+		  }
+
+		  ce.Builder.PushVariable(leftDef);
+		  ce.Builder.PushVariable(rightDef);
+
+		  switch (op)
+		  {
+		  case CONDITION_IF_EQUAL:
+			  ce.Builder.Assembler().Append_Invoke(ce.SS.GetScriptCallbacks().idIsSameObject); // Returns boolean in D7
+			  break;
+		  case CONDITION_IF_NOT_EQUAL:
+			  ce.Builder.Assembler().Append_Invoke(ce.SS.GetScriptCallbacks().idIsDifferentObject); // Returns boolean in D7
+			  break;
+		  default:
+			  Throw(parent, "Only == and != supported for interface comparison");
+			  break;
+		  }
+	  }
+
 	  bool TryCompileAsCompareStruct(CCompileEnvironment& ce, cr_sex parent, cr_sex leftExpr, cstr leftVarName, CONDITION op, cr_sex rightExpr)
 	  {
 		  MemberDef leftDef;
@@ -504,7 +528,8 @@ namespace Rococo
 				  {
 					  if (leftDef.ResolvedType->InterfaceCount() != 0 || rightDef.ResolvedType->InterfaceCount() != 0)
 					  {
-						  Throw(parent, "Cannot compare %s with %s", leftDef.ResolvedType->Name(), rightDef.ResolvedType->Name());
+						  CompareObjects(ce, parent, leftExpr, leftVarName, op, rightExpr, leftDef, rightDef);
+						  return true;
 					  }
 
 					  cstr sop;

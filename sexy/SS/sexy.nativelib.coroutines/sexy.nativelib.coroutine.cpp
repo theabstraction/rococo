@@ -288,7 +288,9 @@ struct Coroutines : public Sys::ICoroutineControl
 		switch (result)
 		{
 		case EXECUTERESULT_YIELDED:
+			break;
 		case EXECUTERESULT_BREAKPOINT:
+			Throw(0, "%s %lld hit a breakpoint", spec.ClassName(), spec.id);
 			break;
 		case EXECUTERESULT_TERMINATED:
 			// Co-routine completed

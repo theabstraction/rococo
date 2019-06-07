@@ -118,9 +118,7 @@ namespace Rococo
 			 int interfaceIndex = GetIndexOfInterface(*inlineClass, interf);
 			 if (interfaceIndex < 0)
 			 {
-				 sexstringstream<1024> streamer;
-				 streamer.sb << inlineConstructor->Name() << (" does not support the interface ") << interf.Name();
-				 Throw(args, streamer);
+				 Throw(args, "%s does not support interface %s", inlineConstructor->Name(), interf.Name());
 			 }
 		 }
 

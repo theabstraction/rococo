@@ -3673,6 +3673,8 @@ struct HandleManager
 
 using namespace Rococo::Windows::IDE;
 
+extern "C" void Sexy_CleanupGlobalResources();
+
 int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
 	char filename[1024];
@@ -3787,6 +3789,16 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	messaging->PostCreate(platform);
 
 	PlatformTabs tabs(platform);
+
+	struct Cleanup
+	{
+		~Cleanup()
+		{
+			// This will clean up cached native source files that uses the SourceCache allocator before the allocator goes out of scope
+			Sexy_CleanupGlobalResources();
+		}
+	} cleanup;
+
 	mainloop.Invoke(platform, *mainWindow);
 
 	return 0;
@@ -3833,7 +3845,6 @@ int Main(HINSTANCE hInstance, IDirectAppFactory& appFactory, cstr title, HICON h
 
 	return Main(hInstance, proxy, title, hLargeIcon, hSmallIcon);
 }
-
 
 namespace Rococo
 {

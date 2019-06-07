@@ -251,10 +251,12 @@ namespace Rococo {
 
 		struct ScriptCallbacks
 		{
-			ID_API_CALLBACK IdThrowNullRef;
-			ID_API_CALLBACK IdTestD4neqD5_retBoolD7;
+			ID_API_CALLBACK idThrowNullRef;
+			ID_API_CALLBACK idTestD4neqD5_retBoolD7;
 			ID_API_CALLBACK idYieldMicroseconds;
 			ID_API_CALLBACK idDynamicDispatch;
+			ID_API_CALLBACK idIsSameObject;
+			ID_API_CALLBACK idIsDifferentObject;
 		};
 
 		struct MethodInfo
@@ -295,7 +297,7 @@ namespace Rococo {
 
 		ROCOCOAPI MemberEnumeratorCallback
 		{
-			virtual void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int recurseDepth) = 0;
+			virtual void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int offset, int recurseDepth) = 0;
 		};
 
 		// Debugging Helpers API
@@ -368,7 +370,9 @@ namespace Rococo {
 
 #ifndef THIS_IS_THE_SEXY_CORE_LIBRARY
 
+// Ensure the allocator used for CreateScriptV_1_4_0_0(...) is in scope when you call Sexy_CleanupGlobalSources to clean up global resources
 extern "C" SCRIPTEXPORT_API Rococo::Script::IPublicScriptSystem* CreateScriptV_1_4_0_0(const Rococo::Compiler::ProgramInitParameters& pip, Rococo::ILog& logger, Rococo::IAllocator& allocator);
+extern "C" SCRIPTEXPORT_API void Sexy_CleanupGlobalResources();
 
 namespace Rococo { namespace Script
 {

@@ -882,7 +882,7 @@ namespace Rococo { namespace Script
 		return &header->pVTables[0];
 	}
 
-	void CompileSetOutputRefToUniversalNullObjects(REF IFunctionBuilder& f)
+	void CompileSetOutputToNull(REF IFunctionBuilder& f)
 	{
 		// Initialize output refs to null objects
 		for(int i = 0; i < f.NumberOfOutputs(); ++i)
@@ -890,19 +890,36 @@ namespace Rococo { namespace Script
 			const IArgument& arg = f.Arg(i);
 			if (arg.Direction() == ARGDIRECTION_OUTPUT)
 			{
+				MemberDef def;
+				f.Builder().TryGetVariableByName(OUT def, arg.Name());
+
 				const IStructure& argType = *arg.ResolvedType();
 				if (IsNullType(argType))
 				{
-					MemberDef def;
-					f.Builder().TryGetVariableByName(OUT def, arg.Name());
-
-					VariantValue nullPtr;
-					nullPtr.vPtrValue =  GetInterfacePtrFromNullInstancePtr(argType.GetInterface(0).UniversalNullInstance());
-
+					VariantValue nullValue;
+					nullValue.vPtrValue = GetInterfacePtrFromNullInstancePtr(argType.GetInterface(0).UniversalNullInstance());
 					char symbol[128];
-               SafeFormat(symbol, 128, ("%s = null object"), arg.Name());
+					SafeFormat(symbol, 128, ("%s = null object"), arg.Name());
 					f.Builder().AddSymbol(symbol);
-					f.Builder().Assembler().Append_SetStackFrameImmediate(def.SFOffset, nullPtr, BITCOUNT_POINTER);
+					f.Builder().Assembler().Append_SetStackFrameImmediate(def.SFOffset, nullValue, BITCOUNT_POINTER);
+				}
+				else if (argType.VarType() == VARTYPE_Closure)
+				{
+					auto& member0 = def.ResolvedType->GetMember(0);
+					auto& member1 = def.ResolvedType->GetMember(0);
+
+					VariantValue nullValue;
+					nullValue.int64Value = 0;
+					auto bitcount = GetBitCount(argType.VarType());
+					f.Builder().Assembler().Append_SetStackFrameImmediate(def.SFOffset, nullValue, BITCOUNT_POINTER);
+					f.Builder().Assembler().Append_SetStackFrameImmediate(def.SFOffset + sizeof(size_t), nullValue, BITCOUNT_POINTER);
+				}
+				else
+				{
+					VariantValue nullValue;
+					nullValue.int64Value = 0;
+					auto bitcount = GetBitCount(argType.VarType());
+					f.Builder().Assembler().Append_SetStackFrameImmediate(def.SFOffset, nullValue, bitcount);
 				}
 			}
 			else
@@ -1224,7 +1241,7 @@ namespace Rococo { namespace Script
 		builder.Begin();
 
 			CCompileEnvironment ce(script, builder);
-			CompileSetOutputRefToUniversalNullObjects(REF f);
+			CompileSetOutputToNull(REF f);
 			CompileExpressionSequence(ce, bodyIndex+1, fdef.NumberOfElements()-1, fdef);
 
 		builder.End();
@@ -1251,7 +1268,7 @@ namespace Rococo { namespace Script
 		v.vPtrValue = (IFunction*) &f;
 		f.Builder().Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, v, BITCOUNT_POINTER);
 
-		f.Builder().Assembler().Append_Invoke(ss.GetScriptCallbacks().IdThrowNullRef);
+		f.Builder().Assembler().Append_Invoke(ss.GetScriptCallbacks().idThrowNullRef);
 	}
 
 	VM_CALLBACK(ThrowNullRef)
@@ -1269,6 +1286,36 @@ namespace Rococo { namespace Script
 
 		auto* sc = ss.GetStringReflection(message);
 		ss.ThrowFromNativeCode(0, sc->pointer);
+	}
+
+	VM_CALLBACK(IsDifferentObject)
+	{
+		auto& sp = registers[VM::REGISTER_SP].uint8PtrValue;
+		sp -= sizeof(InterfacePointer);
+		auto* rightArg = (InterfacePointer*)sp;
+
+		sp -= sizeof(InterfacePointer);
+		auto* leftArg = (InterfacePointer*)sp;
+
+		auto* rightObj = InterfaceToInstance(*rightArg);
+		auto* leftObj = InterfaceToInstance(*leftArg);
+
+		registers[VM::REGISTER_D7].int64Value = (leftObj != rightObj) ? 1 : 0;
+	}
+
+	VM_CALLBACK(IsSameObject)
+	{
+		auto& sp = registers[VM::REGISTER_SP].uint8PtrValue;
+		sp -= sizeof(InterfacePointer);
+		auto* rightArg = (InterfacePointer*)sp;
+
+		sp -= sizeof(InterfacePointer);
+		auto* leftArg = (InterfacePointer*)sp;
+
+		auto* rightObj = InterfaceToInstance(*rightArg);
+		auto* leftObj = InterfaceToInstance(*leftArg);
+
+		registers[VM::REGISTER_D7].int64Value = (leftObj == rightObj) ? 1 : 0;
 	}
 
 	VM_CALLBACK(DynamicDispatch)
@@ -1382,7 +1429,7 @@ namespace Rococo { namespace Script
 			}
 		}
 
-		CompileSetOutputRefToUniversalNullObjects(f);
+		CompileSetOutputToNull(f);
 	}
 
 	void CompileNullMethod(IScriptSystem& ss, const IArchetype& nullMethod, IInterface& interf, IStructureBuilder& nullObject, cr_sex source, INamespace& ns)

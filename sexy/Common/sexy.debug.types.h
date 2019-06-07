@@ -40,10 +40,11 @@
 
 namespace Rococo
 {
-   namespace Compiler
-   {
-      struct IStructure;
-   }
+	namespace Compiler
+	{
+		struct IStructure;
+		struct MemberDef;
+	}
 
 	namespace Debugger
 	{
@@ -61,20 +62,20 @@ namespace Rococo
 		{
 			enum { VALUE_CAPACITY = 128, TYPE_CAPACITY = 128, LOCATION_CAPACITY = 16, NAME_CAPACITY = 128 };
 
-			char Name[NAME_CAPACITY];		
+			char Name[NAME_CAPACITY];
 			char Type[TYPE_CAPACITY];
 			char Value[VALUE_CAPACITY];
 			char Location[LOCATION_CAPACITY];
 
 			ptrdiff_t Address;
-         const Compiler::IStructure* s;
-         cstr parentName;
-         const uint8* instance;
+			const Compiler::IStructure* s;
+			cstr parentName;
+			const uint8* instance;
 		};
 
-		 struct IVariableEnumeratorCallback
+		struct IVariableEnumeratorCallback
 		{
-			virtual void OnVariable(size_t index, const VariableDesc& variable) = 0;
+			virtual void OnVariable(size_t index, const VariableDesc& variable, const Rococo::Compiler::MemberDef& def) = 0;
 		};
 	}
 }

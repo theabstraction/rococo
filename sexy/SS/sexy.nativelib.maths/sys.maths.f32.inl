@@ -5,6 +5,10 @@ namespace
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 
+		Vec2* sum;
+		_offset += sizeof(sum);
+		ReadInput(sum, _sf, -_offset);
+
 		Vec2* a;
 		_offset += sizeof(a);
 		ReadInput(a, _sf, -_offset);
@@ -13,12 +17,8 @@ namespace
 		_offset += sizeof(b);
 		ReadInput(b, _sf, -_offset);
 
-		Vec2* c;
-		_offset += sizeof(c);
-		ReadInput(c, _sf, -_offset);
-
-		c->x = a->x + b->x;
-		c->y = a->y + b->y;
+		sum->x = a->x + b->x;
+		sum->y = a->y + b->y;
 	}
 
 	void NativeSysMathsSubtractVec2fVec2f(NativeCallEnvironment& _nce)
@@ -26,20 +26,20 @@ namespace
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 
-		Vec2* a;
-		_offset += sizeof(a);
-		ReadInput(a, _sf, -_offset);
+		Vec2* diff;
+		_offset += sizeof(diff);
+		ReadInput(diff, _sf, -_offset);
 
 		Vec2* b;
 		_offset += sizeof(b);
 		ReadInput(b, _sf, -_offset);
 
-		Vec2* c;
-		_offset += sizeof(c);
-		ReadInput(c, _sf, -_offset);
+		Vec2* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
 
-		c->x = a->x - b->x;
-		c->y = a->y - b->y;
+		diff->x = a->x - b->x;
+		diff->y = a->y - b->y;
 	}
 
 	void NativeSysMathsMultiplyVec2fFloat32(NativeCallEnvironment& _nce)
@@ -47,17 +47,17 @@ namespace
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 
-		Vec2* a;
-		_offset += sizeof(a);
-		ReadInput(a, _sf, -_offset);
+		Vec2* c;
+		_offset += sizeof(c);
+		ReadInput(c, _sf, -_offset);
 
 		float scaleFactor;
 		_offset += sizeof(scaleFactor);
 		ReadInput(scaleFactor, _sf, -_offset);
 
-		Vec2* c;
+		Vec2* a;
 		_offset += sizeof(c);
-		ReadInput(c, _sf, -_offset);
+		ReadInput(a, _sf, -_offset);
 
 		c->x = a->x * scaleFactor;
 		c->y = a->y  * scaleFactor;
@@ -68,20 +68,20 @@ namespace
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 
-		Vec2* a;
-		_offset += sizeof(a);
-		ReadInput(a, _sf, -_offset);
+		Vec2* sa;
+		_offset += sizeof(sa);
+		ReadInput(sa, _sf, -_offset);
 
 		float scaleFactor;
 		_offset += sizeof(scaleFactor);
 		ReadInput(scaleFactor, _sf, -_offset);
 
-		Vec2* c;
-		_offset += sizeof(c);
-		ReadInput(c, _sf, -_offset);
+		Vec2* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
 
-		c->x = a->x * scaleFactor;
-		c->y = a->y  * scaleFactor;
+		sa->x = a->x * scaleFactor;
+		sa->y = a->y  * scaleFactor;
 	}
 
 	void NativeSysMathsIsNotEqVec2fVec2f(NativeCallEnvironment& _nce)

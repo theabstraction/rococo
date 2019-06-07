@@ -1,0 +1,50 @@
+(using MHost.Graphics)
+(using MHost)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.Type.Strings)
+
+(interface MHost.Graphics.ICreditsControl
+	(extends MHost.Graphics.IControl)
+	(Centre (Float32 dx)(Float32 dy)(Vec2 screenSpan)->)
+	(OnMouseUp (MouseClickArgs args)->)
+)
+
+(class Credits 
+	(implements ICreditsControl)
+	(implements IEventHandler)
+	(Rectf outerRect)
+	(IUIStack uistack)
+)
+
+(method Credits.Construct (IUIStack uistack): 
+	(this.outerRect = 0 0 0 0)
+	(this.uistack = uistack)
+)
+
+(factory MHost.Graphics.NewCredits ICreditsControl (IUIStack uistack): (construct Credits uistack))
+
+(method Credits.GetRect (Rectf rect)-> :
+	(rect = this.outerRect)
+)
+
+(method Credits.GetEventHandler -> (IEventHandler handler):
+	(handler = this)
+)
+
+(method Credits.Centre (Float32 dx)(Float32 dy)(Vec2 screenSpan)-> :
+	(this.outerRect.left = dx)
+	(this.outerRect.right = (screenSpan.x - dx))
+	(this.outerRect.top = dy)
+	(this.outerRect.bottom = (screenSpan.y - dy))
+)
+
+(method Credits.Render (IGui gui)-> :
+	(gui.FillRect this.outerRect 0xF0000000)
+	(gui.DrawBorder this.outerRect 4 0xFF404040 0xFF606060 0xFF808080 0xFFA0A0A0)
+)
+
+(method Credits.OnMouseUp (MouseClickArgs args)-> :
+	(this.uistack.RemoveFromTopLevel this)
+)

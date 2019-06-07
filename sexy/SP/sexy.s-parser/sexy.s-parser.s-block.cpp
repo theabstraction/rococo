@@ -344,7 +344,7 @@ namespace Anon
 
 				if (next != end)
 				{
-					Throw((int)(next - end), "Parser::Parse failed: too many close parenthesis characters");
+					Throw((int)(end - next), "Parser::Parse failed: too many close parenthesis characters");
 				}
 
 				builder.FinishCompound(sExpression, end, 0, root);

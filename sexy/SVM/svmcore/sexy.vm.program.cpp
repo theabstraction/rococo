@@ -137,7 +137,8 @@ namespace Anon
 			}
 			else
 			{
-				return (size_t) -1;
+				Throw(0, "No such function: ID_BYTECODE #%lld", id);
+				return 0;
 			}
 		}
 

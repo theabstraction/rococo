@@ -5,9 +5,10 @@
 	"!scripts/types.sxy"
 	"!scripts/mhost/mhost.include.sxy"
 	"!scripts/mhost/widgets/fonts.sxy"
-	"!scripts/mhost/widgets/menu.vertical.sxy"
 	"!scripts/mhost/widgets/widgets.sxy"
+	"!scripts/mhost/widgets/menu.vertical.sxy"
 	"!scripts/mhost/widgets/uistack.sxy"
+	"!scripts/mhost/rpg/controls/credits.sxy"
 )
 
 (namespace EntryPoint)
@@ -33,9 +34,6 @@
 (namespace MHost.Graphics)
 
 (using RPG)
-
-(struct EventArgs
-)
 
 (interface RPG.IInputThread
 	(extends Sys.ICoroutine)
@@ -67,10 +65,16 @@
 	(Int32 fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
 	(Int32 upKey = (keyboard.GetVKeyFromName "W"))
 	(Int32 downKey = (keyboard.GetVKeyFromName "S")) */
+	
+	(MouseEvent ev)
+	(KeyState keys)
 			
 	(while this.engine.IsRunning
-		(KeyState keys)
 		(this.engine.PollKeyState keys)
+		
+		(while (this.engine.GetNextMouseEvent ev)
+			(TranslateMouseEvent ev this.activeScreen)
+		)
 		
 		(yield 1000)
 	)
@@ -124,13 +128,11 @@
 
 (interface RPG.IOpeningScreen (extends RPG.IScreen)
 	(OnMenuSelect (MenuSelectArgs args)->)
-	(GetDocHandler -> (IUIEventHandler handler))
 )
 
 (class OpeningScreen 
 	(implements RPG.IOpeningScreen)
 	(implements MHost.IEventHandler)
-	(implements MHost.Graphics.IUIEventHandler)
 	
 	(IEngine engine) // The CPP side of flow control
 	
@@ -138,25 +140,15 @@
 	(Vec2 cursorPos)
 	
 	(IMenu menu)
+	(ICreditsControl credits)
 	
 	(IUIStack uistack)
-)
-
-(method OpeningScreen.OnMenuSelect (MenuSelectArgs args)-> :
-	(if (args.index == 4)
-		(this.engine.Shutdown)
-	)
-)
-
-(method OpeningScreen.GetDocHandler -> (IUIEventHandler handler):
-	(DynamicCast this -> (IUIEventHandler thisHandler))
-	(handler = thisHandler)
 )
 
 (method OpeningScreen.Construct (IEngine engine) -> : 
 	(this.engine = engine)
 	
-	(IMenu menu (NewVerticalMenu 10))
+	(IMenu menu (MHost.Graphics.NewVerticalMenu 10))
 	(menu.SetStyle 0 4 "Tahoma")
 	
 	(IWidgetContext nulWC)
@@ -171,26 +163,20 @@
 	(this.uistack = (MHost.Graphics.NewUIStack))
 	(this.uistack.AddTopLevelControl menu "menu")
 	(this.screenSpan = -1 -1)
+	
+	(this.credits = (NewCredits this.uistack))
 )
 
-(method OpeningScreen.Run -> :
-	(while this.engine.IsRunning
-		(yield 1000)
+(method OpeningScreen.OnMenuSelect (MenuSelectArgs args)-> :
+	(if (args.menuIndex == 3)
+		(this.uistack.AddTopLevelControl this.credits "credits")
+	)
+	
+	(if (args.menuIndex == 4)
+		(this.engine.Shutdown)
 	)
 )
 
-(function Eq (Vec2 a)(Vec2 b)->(Bool match):
-	(match = ((a.x == b.x) and (a.y == b.y)))
-)
-
-(function ShowCursor (IGui g)(Vec2 cursorPos) -> :
-	(IStringBuilder sb (StringBuilder 64))
-	(sb.SetFormat 0 0 false false)
-	(#build sb "(" cursorPos.x ", " cursorPos.y ")")
-	
-	(Rectf cursorRect = 10 10 300 100)
-	(g.DrawText cursorRect 0 sb 2 0xFFFFFFFF)
-)
 
 (method OpeningScreen.OnMouseDown (Int32 button) (Float32 x)(Float32 y) -> :
 	(Vec2 pos = x y)
@@ -203,6 +189,7 @@
 			(item.handler.OnMouseDown args)
 		)
 	)
+	
 	(this.uistack.RouteMouseEvent pos q)
 )
 
@@ -235,6 +222,7 @@
 	
 	(if (screenSpan != this.screenSpan)
 		(this.screenSpan = screenSpan)
+		(this.credits.Centre 40 40 screenSpan)
 		(Layout this g)
 	)
 	
@@ -257,15 +245,15 @@
 	
 	(ICoroutineControl coroutines (Coroutines))
 	
-	(IInputThread guiThread (NewGuiInputThread engine))
-	(coroutines.Add guiThread)
+	(IInputThread inputThread (NewGuiInputThread engine))
+	(coroutines.Add inputThread)
 	
 	(cast world -> ICoroutine worldThread)
 //	(coroutines.Add worldThread)
 	
 	(IScreen openingScreen (NewOpeningScreen engine))
 
-	(guiThread.SetScreen openingScreen)
+	(inputThread.SetScreen openingScreen)
 	
 	(while engine.IsRunning
 		(while (coroutines.Continue > 0))
@@ -274,11 +262,6 @@
 			(closure (IGui gui) -> : 
 				(openingScreen.RenderGui gui)
 			)
-		)
-		
-		(MouseEvent ev)
-		(while (engine.GetNextMouseEvent ev)
-			(TranslateMouseEvent ev openingScreen)
 		)
 		
 		(engine.Render p)	

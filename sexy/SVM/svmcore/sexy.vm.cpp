@@ -69,7 +69,7 @@ using namespace Rococo::VM;
 
 static_assert(sizeof(Rococo::VariantValue) == 8, "The codebase assumes that sizeof(Rococo::VariantValue) is 8. Major changes are needed if this is not so.");
 
-namespace
+namespace Anon
 {
 	class TerminateException
 	{
@@ -2902,13 +2902,13 @@ namespace Rococo { namespace VM
 		enum { CACHE_LINE_ALIGN = 128 };
 
 #ifdef _WIN32
-		uint8* mem = (uint8*)_aligned_malloc(GetCpuToVMOffset() + sizeof(CVirtualMachine), CACHE_LINE_ALIGN);
+		uint8* mem = (uint8*)_aligned_malloc(Anon::GetCpuToVMOffset() + sizeof(Anon::CVirtualMachine), CACHE_LINE_ALIGN);
 #else
       uint8* mem = nullptr;
       posix_memalign((void**)&mem, CACHE_LINE_ALIGN, GetCpuToVMOffset() + sizeof(CVirtualMachine));
 #endif
 
 		CPU* cpu = new (mem) CPU();
-		return new (mem + GetCpuToVMOffset()) CVirtualMachine(core, *cpu);
+		return new (mem + Anon::GetCpuToVMOffset()) Anon::CVirtualMachine(core, *cpu);
 	}
 }} // Rococo::VM

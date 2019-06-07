@@ -1134,12 +1134,12 @@ namespace Rococo
 				      ce.Builder.Assembler().Append_Invoke(st.SizeOfStruct() == 4 ? GetListCallbacks(ce).NodeGet32 : GetListCallbacks(ce).NodeGet64); // value goes to D7
 				      break;
 			      default:
-				      Throw(s, ("Node.Value only supports primitive types and interfaces"));
+				      Throw(s, "Node.Value only supports primitive types and interfaces");
 			      }
 
 			      return true;
 		      }
-		      else if (AreEqual(("HasNext"), methodName))
+		      else if (AreEqual("HasNext", methodName))
 		      {
 			      ValidateReturnType(s, returnType, VARTYPE_Bool);
 
@@ -1148,7 +1148,7 @@ namespace Rococo
 
 			      return true;
 		      }
-		      else if (AreEqual(("HasPrevious"), methodName))
+		      else if (AreEqual("HasPrevious", methodName))
 		      {
 			      ValidateReturnType(s, returnType, VARTYPE_Bool);
 
@@ -1157,6 +1157,20 @@ namespace Rococo
 
 			      return true;
 		      }
+			  else if (AreEqual("GoPrevious", methodName))
+			  {
+				  ce.Builder.AssignVariableRefToTemp(instance, 0); // Node ptr goes to 4
+				  ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeGoPrevious); // Next node updates D4, D7 if previous exists
+				  AssignTempToVariableRef(ce, 0, instance);
+				  return true;
+			  }
+			  else if (AreEqual("GoNext", methodName))
+			  {
+				  ce.Builder.AssignVariableRefToTemp(instance, 0); // Node ptr goes to D4
+				  ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeGoNext); // Previous node updates D4, D7 if next exists
+				  AssignTempToVariableRef(ce, 0, instance);
+				  return true;
+			  }
 		      else
 		      {
 			      Throw(s, ("The property is not recognized for node types. Known properties for nodes: Value, Previous, Next, Exists"));
@@ -1206,7 +1220,7 @@ namespace Rococo
 		  ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, v, BITCOUNT_POINTER);
 
 		  AddSymbol(ce.Builder, "%s ?", instance);
-		  ce.Builder.Assembler().Append_Invoke(ce.SS.GetScriptCallbacks().IdTestD4neqD5_retBoolD7); 
+		  ce.Builder.Assembler().Append_Invoke(ce.SS.GetScriptCallbacks().idTestD4neqD5_retBoolD7); 
 
 		  return true;
 	  }

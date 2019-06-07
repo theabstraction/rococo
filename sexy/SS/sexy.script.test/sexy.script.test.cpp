@@ -2022,6 +2022,65 @@ namespace
 		validate(x == 42);
 	}
 
+	void TestListReverseEnumeration(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			"(alias Main EntryPoint.Main)\n"
+			"(function Main -> (Int32 result):\n"
+			"       (list Int32 a)\n"
+			"       (a.Append 6)\n"
+			"       (a.Append 7)\n"
+			"       (a.Append 8)\n"
+			"		(node n = a.Tail)\n"
+			"		(do\n"
+			"			(Int32 value = n.Value)\n"
+			"			(result += value)\n"
+			"		while n.GoPrevious) \n"
+			")\n";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(1); // Allocate stack space for the int32 x
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 21);
+	}
+
+	void TestCompareInterfaces(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			"(alias Main EntryPoint.Main)\n"
+
+			"(interface Sys.IRobot)\n"
+			"(interface Sys.ICat)\n"
+			"(class RobotCat (implements Sys.IRobot)(implements Sys.ICat))\n"
+			"(method RobotCat.Construct : )\n"
+			"(factory Sys.NewRobotCat Sys.IRobot : (construct RobotCat))\n"
+
+			"(function Main -> (Int32 result):\n"
+			"		(Sys.IRobot bot (Sys.NewRobotCat))\n"
+			"		(cast bot -> Sys.ICat cat)"
+			"		(if (bot != cat) (Sys.Throw 0 \"Bad cat\"))\n"
+			"		(if (bot == cat) (return)\n"
+			"		(Sys.Throw 0 \"Badder cat\"))\n"
+			")\n";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 x
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 0);
+	}
+
 	void TestWhileLoopBreak(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -2313,6 +2372,51 @@ namespace
 		validate(x == 36);
 	}
 
+	void TestStructArgFromStructArg(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(function OnMouseUp(MouseClicksArgs args)(Rectf rect)-> :"
+			"    (Bool isInRect = (IsPointInRect args.pos rect))"
+			"    (if (not isInRect) (Sys.Throw 0 \"not in rect\"))"
+			")"
+
+			"(function IsPointInRect(Vec2 point)(Rectf rect)->(Bool result) :"
+			"	(if ((point.x > rect.left) and (point.x < rect.right))"
+			"		(if ((point.y > rect.top) and (point.y < rect.bottom))"
+			"			(result = true)"
+			"		)"
+			"	)"
+			")"
+			
+			"(namespace EntryPoint) \n"
+			"(alias Main EntryPoint.Main)"
+			"(using EntryPoint) \n"
+			"(using Sys.Maths)\n"
+
+			"(struct MouseClicksArgs"
+			"   (Vec2 pos)"
+			")"
+			
+			"(function Main -> (Int32 result): \n"
+			"    (MouseClicksArgs args = (10 10))"
+			"    (Rectf rect = 0 0 100 100)"
+			"	 (OnMouseUp args rect) \n"
+			") \n"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(1); // Allocate stack space for the int32 x
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 0);
+	}
+
+
 	void TestArchetypeReturn(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -2320,7 +2424,7 @@ namespace
 			"(using EntryPoint) \n"
 			"(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y)) \n"
 			"(function Main -> (Int32 result): \n"
-			"		 (IntToInt f = (GetMathsFunction)) \n"
+			"	 (IntToInt f = (GetMathsFunction)) \n"
 			"    (result = (f 7)) \n"
 			") \n"
 			"(function Square (Int32 x) -> (Int32 result): \n"
@@ -11534,7 +11638,7 @@ namespace
 		ValidateLogs();
 
 		int32 exitCode = vm.PopInt32();
-		validate(exitCode == 1);
+		validate(exitCode == 0);
 
 		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 	}
@@ -12420,6 +12524,116 @@ namespace
 	   validate(x == 1001);
    }
 
+   void TestStructInClassSetFromMethod(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   "(namespace EntryPoint) \n"
+		   "(using Sys) \n"
+		   "(using Sys.Type) \n"
+		   "(using Sys.Maths)\n"
+		   "(class Bubble (defines Sys.IBubble)(Vec2i span))\n"
+		   "(method Bubble.Construct : )\n"
+		   "(factory Sys.NewBubble Sys.IBubble : (construct Bubble))\n"
+		   "(method Bubble.Expand -> : \n"
+		   "    (Vec2i newSpan = 82 93)\n"
+		   "	(this.span = newSpan)\n"
+		   ")\n"
+		   "(method Bubble.GetX -> (Int32 x) : \n"
+		   "	(x = this.span.x)\n"
+		   ")\n"
+		   "(function Main -> (Int32 result): \n"
+		   "		(Sys.IBubble bubble (Sys.NewBubble))\n"
+		   "        (bubble.Expand)\n"
+		   "        (result = bubble.GetX)\n"
+		   ")\n"
+		   "(alias Main EntryPoint.Main) \n";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(1); // Allocate stack space for the int32 x
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+	   int32 x = vm.PopInt32();
+	   validate(x == 82);
+   }
+
+   void TestMemberwiseConstructWithInterface(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   "(namespace EntryPoint) \n"
+		   "(using Sys) \n"
+		   "(using Sys.Type) \n"
+		   "(using Sys.Maths)\n"
+		   "(class Bubble (defines Sys.IBubble)(Vec2i span))\n"
+		   "(method Bubble.Construct : )\n"
+		   "(factory Sys.NewBubble Sys.IBubble : (construct Bubble))\n"
+		   "(method Bubble.Expand -> : \n"
+		   "    (Vec2i newSpan = 82 93)\n"
+		   "	(this.span = newSpan)\n"
+		   ")\n"
+		   "(method Bubble.GetX -> (Int32 x) : \n"
+		   "	(x = this.span.x)\n"
+		   ")\n"
+		   "(struct CosmicRay (Sys.IBubble bubble) (Int32 i))"
+		   "(function Main -> (Int32 result): \n"
+		   "		(Sys.IBubble bubble (Sys.NewBubble))\n"
+		   "		(CosmicRay ray = bubble 5)\n"
+		   "        (ray.bubble.Expand)\n"
+		   "        (result = ray.bubble.GetX)\n"
+		   ")\n"
+		   "(alias Main EntryPoint.Main) \n";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(1); // Allocate stack space for the int32 x
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+	   int32 x = vm.PopInt32();
+
+	   validate(x == 82);
+   }
+
+   void TestZeroDefaults(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   "(namespace EntryPoint) \n"
+		   "(using Sys) \n"
+		   "(using Sys.Type) \n"
+		   "(using Sys.Maths)\n"
+
+		   "(function NullResults -> (Sys.Type.IException ex)(Int32 value)(Bool bValue):\n"
+		   ")\n"
+
+		   "(function Main -> (Int32 result): \n"
+		   "        (Sys.Type.IException ex)\n"
+		   "        (Int32 value)\n"
+		   "        (Bool bValue)\n"
+		   "		(NullResults -> ex value bValue)\n"
+		   "        (if (ex ?) (Sys.Throw 0 \"Bad interface\"))\n"
+		   "        (if (value != 0) (Sys.Throw 0 \"Bad int32\"))\n"
+		   "        (if (bValue != false) (Sys.Throw 0 \"Bad boolean\"))\n"
+		   ")\n"
+		   "(alias Main EntryPoint.Main) \n";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(77); // Allocate stack space for the int32 x
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+	   int32 x = vm.PopInt32();
+
+	   validate(x == 0); // Should be set to zero by Main
+   }
+
 
    void RunCollectionTests()
    {
@@ -12582,11 +12796,17 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestCompareInterfaces);
+		TEST(TestListReverseEnumeration);
+		TEST(TestDynamicDispatch);
+		TEST(TestStructArgFromStructArg);
+		TEST(TestZeroDefaults);
+		TEST(TestMemberwiseConstructWithInterface);
+		TEST(TestStructInClassSetFromMethod);
 		TEST(TestStaticCast);
 		TEST(TestCompareStruct);
 		TEST(TestInterfaceForNull);
 		TEST(TestFactoryReturnsBaseInterface);
-		TEST(TestDynamicDispatch);
 		TEST(TestLoopBreak);
 		TEST(TestBadClosureArg);
 		TEST(TestNullArchetypeArg);

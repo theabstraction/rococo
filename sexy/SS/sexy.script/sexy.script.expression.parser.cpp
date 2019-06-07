@@ -724,7 +724,7 @@ namespace Rococo
 			}
 			else
 			{
-				Throw(src, ("Memberwise initialization of a string member requires the argument be an atomic string literal or variable"));
+				Throw(src, "Memberwise initialization of a string member requires the argument be an atomic string literal or variable");
 			}
 		}
 
@@ -750,6 +750,18 @@ namespace Rococo
 					{
 						CompileAssignToStringMember(ce, variableName, st, member, src);	
 						return;
+					}
+
+					if (isConstructing && member.UnderlyingType()->InterfaceCount() > 0)
+					{
+						auto& interf0 = member.UnderlyingType()->GetInterface(0);
+						auto* nullObj = interf0.UniversalNullInstance();
+						auto* nullInterface = static_cast<InterfacePointer>(nullObj->pVTables);
+
+						VariantValue nullInterfValue;
+						nullInterfValue.vPtrValue = nullInterface;
+						ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, nullInterfValue, BITCOUNT_POINTER);
+						ce.Builder.AssignTempToVariable(0, variableName);
 					}
 
 					if (IsAtomic(src))

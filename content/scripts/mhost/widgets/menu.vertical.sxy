@@ -11,12 +11,12 @@
 	(IWidgetContext wc)
 )
 
-(interface MHost.Graphics.IVerticalMenu
+(interface MHost.Graphics.IVerticalMenu (extends MHost.Graphics.IMenu)
 	(OnMouseUp (MouseClickArgs args)->)
 )
 
 (class VerticalMenu
-	(implements IMenu)
+	(implements IVerticalMenu)
 	(implements IEventHandler)
 	(array MenuItem items)
 	(Int32 alignment)
@@ -131,13 +131,11 @@
 		(foreach i item # this.items
 			(if (IsPointInRect args.pos item.rect)
 				(MenuSelectArgs menuArgs = i item.text this)
-				(args.documentHandler.OnMenuSelect menuArgs)
+				(args.eventHandler.OnMenuSelect menuArgs)
 				(return)
 			)
 		)
 	)
-	
-	(index = -1)
 )
 
 (method VerticalMenu.GetRect (Rectf rect) -> :

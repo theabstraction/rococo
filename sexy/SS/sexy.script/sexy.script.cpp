@@ -593,6 +593,8 @@ namespace Rococo
 			listCallbacks.NodeHasPrevious = core.RegisterCallback(OnInvokeNodeHasPrevious, this, ("NodeHasPrevious"));
 			listCallbacks.NodeReleaseRef = core.RegisterCallback(OnInvokeNodeReleaseRef, this, ("NodeReleaseRef"));
 			listCallbacks.ListClear = core.RegisterCallback(OnInvokeListClear, this, ("ListClear"));
+			listCallbacks.NodeGoPrevious = core.RegisterCallback(OnInvokeNodeGoPrevious, this, ("NodeGoPrevious"));
+			listCallbacks.NodeGoNext = core.RegisterCallback(OnInvokeNodeGoNext, this, ("NodeGoNext"));
 
 			mapCallbacks.MapClear = core.RegisterCallback(OnInvokeMapClear, this, ("MapClear"));
 			mapCallbacks.NodeEnumNext = core.RegisterCallback(OnInvokeMapNodeEnumNext, this, ("MapNodeEnumNext"));
@@ -610,10 +612,12 @@ namespace Rococo
 			mapCallbacks.MapNodePop = core.RegisterCallback(OnInvokeMapNodePop, this, ("MapNodePop"));
 			mapCallbacks.MapNodeReleaseRef = core.RegisterCallback(OnInvokeMapNodeReleaseRef, this, ("MapNodeReleaseRef"));
 
-			callbacks.IdThrowNullRef = core.RegisterCallback(OnInvokeThrowNullRef, this, "ThrowNullRef");
-			callbacks.IdTestD4neqD5_retBoolD7 = core.RegisterCallback(OnInvokeTestD4neqD5_retBoolD7, &ProgramObject().VirtualMachine(), "TestD4neqD5_retBoolD7");
+			callbacks.idThrowNullRef = core.RegisterCallback(OnInvokeThrowNullRef, this, "ThrowNullRef");
+			callbacks.idTestD4neqD5_retBoolD7 = core.RegisterCallback(OnInvokeTestD4neqD5_retBoolD7, &ProgramObject().VirtualMachine(), "TestD4neqD5_retBoolD7");
 			callbacks.idYieldMicroseconds = core.RegisterCallback(OnInvokeYieldMicroseconds, &ProgramObject().VirtualMachine(), "YieldMicroseconds");
 			callbacks.idDynamicDispatch = core.RegisterCallback(OnInvokeDynamicDispatch, this, "Dispatch");
+			callbacks.idIsSameObject = core.RegisterCallback(OnInvokeIsSameObject, this, "IsSameObject");
+			callbacks.idIsDifferentObject = core.RegisterCallback(OnInvokeIsDifferentObject, this, "IsDifferentObject");
 			methodMap[("Capacity")] = ("_elementCapacity");
 			methodMap[("Length")] = ("_length");
 		}
@@ -657,29 +661,47 @@ namespace Rococo
 		typedef std::unordered_map<const Rococo::Compiler::IStructure*, TMapNameToMethod> TMapTypeToMethodMap;
 		TMapTypeToMethodMap typeToMethodMap;
 
+		TMapTypeToMethodMap::iterator CacheAllMethods(const Rococo::Compiler::IStructure& concreteClassType)
+		{
+			TMapNameToMethod nameToMethod;
+			auto& module = concreteClassType.Module();
+
+			for (int j = 0; j < module.FunctionCount(); j++)
+			{
+				auto& f = module.GetFunction(j);
+				auto* ftype = f.GetType();
+				if (ftype == &concreteClassType)
+				{
+					NamespaceSplitter splitter(f.Name());
+					cstr instance, method;
+					splitter.SplitTail(instance, method);
+
+					if (AreEqual(method, "Construct") || AreEqual(method, "Destruct"))
+					{
+						// do not allow cache these methods
+					}
+					else
+					{
+						int index = GetInterfaceImplementingMethod(concreteClassType, method);
+						if (index < 0)
+						{
+							Throw(0, "GetInterfaceImplementingMethod( %s , %s ) - Unexpectedly returned negative", concreteClassType.Name(), method);
+						}
+						ptrdiff_t offset = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + sizeof(VirtualTable*) * index;
+						nameToMethod[method] = MethodInfo{ &f, offset };
+					}
+				}
+			}
+
+			return typeToMethodMap.insert(std::make_pair(&concreteClassType, nameToMethod)).first;
+		}
+
 		const MethodInfo GetMethodByName(cstr methodName, const Rococo::Compiler::IStructure& concreteClassType)
 		{
 			auto i = typeToMethodMap.find(&concreteClassType);
 			if (i == typeToMethodMap.end())
 			{
-				TMapNameToMethod nameToMethod;
-				auto& module = concreteClassType.Module();
-
-				for (int j = 0; j < module.FunctionCount(); j++)
-				{
-					auto& f = module.GetFunction(j);
-					auto* ftype = f.GetType();
-					if (ftype == &concreteClassType)
-					{
-						NamespaceSplitter splitter(f.Name());
-						cstr instance, method;
-						splitter.SplitTail(instance, method);
-						ptrdiff_t offset = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + sizeof(VirtualTable*) * GetInterfaceImplementingMethod(concreteClassType, methodName);
-						nameToMethod[method] = MethodInfo{ &f, offset };
-					}
-				}
-
-				i = typeToMethodMap.insert(std::make_pair(&concreteClassType, nameToMethod)).first;
+				i = CacheAllMethods(concreteClassType);
 			}
 
 			auto& nameToMethod = i->second;
@@ -1295,26 +1317,26 @@ namespace Rococo
 
 		static std::unordered_map<stdstring, ISParserTree*> commonGlobalSources;
 
+		static void StaticCleanupGlobalSources()
+		{
+			for (auto& i : commonGlobalSources)
+			{
+				// If you get a problem here you probably need to call Sexy_CleanupGlobalSources while the object
+				// s_allocator passed to CreateScriptV_1_4_0_0 s_allocator in in scope.
+				ISourceCode& src = const_cast<ISourceCode&>(i.second->Source());
+				src.Release();
+				i.second->Release();
+			}
+
+			commonGlobalSources.clear();
+		}
+
 		virtual void AddCommonSource(const char *sexySourceFile)
 		{
-			struct Anon
-			{
-				static void CleanupGlobalSources()
-				{
-					for (auto& i : commonGlobalSources)
-					{
-						ISourceCode& src = const_cast<ISourceCode&>(i.second->Source());
-						src.Release();
-						i.second->Release();
-					}
-					commonGlobalSources.clear();
-				}
-			};
-
 			static bool cleanupQueued = false;
 			if (!cleanupQueued)
 			{
-				atexit(Anon::CleanupGlobalSources);
+				atexit(StaticCleanupGlobalSources);
 				cleanupQueued = true;
 			}
 
@@ -1477,6 +1499,11 @@ extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystem* CreateScriptV_1_4_0_0
 		logger.Write(errLog);
 		return NULL;
 	}
+}
+
+extern "C" SCRIPTEXPORT_API void Sexy_CleanupGlobalResources()
+{
+	CScriptSystem::StaticCleanupGlobalSources();
 }
 
 namespace Rococo { namespace Script

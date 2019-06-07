@@ -255,7 +255,7 @@ namespace MHost
 		{
 			RunEnvironmentScript(platform, this, "!scripts/mhost/keys.sxy", true, false);
 
-			while (platform.appControl.IsRunning())
+			while (platform.appControl.IsRunning() && !isShutdown)
 			{
 				isScriptRunning = true;
 				RunEnvironmentScript(platform, this, mainScript, true, false);

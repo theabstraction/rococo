@@ -33,7 +33,7 @@
 
 (struct MouseClickArgs
 	(Vec2 pos)
-	(IEventHandler documentHandler)
+	(IEventHandler eventHandler)
 	(Int32 button)
 )
 
@@ -94,7 +94,6 @@
 )
 
 (function IsPointInRect (Vec2 point)(Rectf rect)->(Bool result):
-	(result = false)
 	(if ((point.x > rect.left) and (point.x < rect.right))
 		(if ((point.y > rect.top) and (point.y < rect.bottom))
 			(result = true)
@@ -106,21 +105,23 @@
 	(Float32 x = (ToFloat32 me.cursorPos.x))
 	(Float32 y = (ToFloat32 me.cursorPos.y))
 	
-	(if (HasFlags me.buttons 0x001) (handler.OnMouseDown 0 x y))
-	(if (HasFlags me.buttons 0x002) (handler.OnMouseUp   0 x y))
-	(if (HasFlags me.buttons 0x004) (handler.OnMouseDown 1 x y))
-	(if (HasFlags me.buttons 0x008) (handler.OnMouseUp   1 x y))
-	(if (HasFlags me.buttons 0x010) (handler.OnMouseDown 2 x y))
-	(if (HasFlags me.buttons 0x020) (handler.OnMouseUp   2 x y))
-	(if (HasFlags me.buttons 0x040) (handler.OnMouseDown 3 x y))
-	(if (HasFlags me.buttons 0x080) (handler.OnMouseUp   3 x y))
-	(if (HasFlags me.buttons 0x100) (handler.OnMouseDown 4 x y))
-	(if (HasFlags me.buttons 0x200) (handler.OnMouseUp   4 x y))
-	
-	(if (HasFlags me.buttons 0x400)
-		(Int32 spin = (RightShift me.buttons 16))
-		(handler.OnWheel spin)
-	)
+	(if (HasFlags me.buttons 0x3FF)
+		(if (HasFlags me.buttons 0x001) (handler.OnMouseDown 0 x y))
+		(if (HasFlags me.buttons 0x002) (handler.OnMouseUp   0 x y))
+		(if (HasFlags me.buttons 0x004) (handler.OnMouseDown 1 x y))
+		(if (HasFlags me.buttons 0x008) (handler.OnMouseUp   1 x y))
+		(if (HasFlags me.buttons 0x010) (handler.OnMouseDown 2 x y))
+		(if (HasFlags me.buttons 0x020) (handler.OnMouseUp   2 x y))
+		(if (HasFlags me.buttons 0x040) (handler.OnMouseDown 3 x y))
+		(if (HasFlags me.buttons 0x080) (handler.OnMouseUp   3 x y))
+		(if (HasFlags me.buttons 0x100) (handler.OnMouseDown 4 x y))
+		(if (HasFlags me.buttons 0x200) (handler.OnMouseUp   4 x y))
+
+		(if (HasFlags me.buttons 0x400)
+			(Int32 spin = (RightShift me.buttons 16))
+			(handler.OnWheel spin)
+		)
+	)	
 )
 
 (alias TranslateMouseEvent MHost.OS.TranslateMouseEvent)
