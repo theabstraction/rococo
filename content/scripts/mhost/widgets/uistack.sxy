@@ -75,7 +75,7 @@
 	(Int32 length = (parent.children.Length))
 	
 	(if (length > 0)
-		(node c = parent.children.Tail)
+		(node c = parent.children.Head)
 		
 		(do
 			(UIStackItem child = & c)
@@ -85,9 +85,9 @@
 				(ForEachChildByZOrderRecursive child callback -> terminate)
 				(if (terminate) (return))
 			)	
-		while c.GoPrevious)
+		while c.GoNext)
 		
-		(node d = parent.children.Tail)
+		(node d = parent.children.Head)
 		
 		(do
 			(UIStackItem child = & d)
@@ -97,7 +97,7 @@
 				(ForEachChildByZOrderRecursive child callback -> terminate)
 				(if (terminate) (return))
 			)
-		while d.GoPrevious)
+		while d.GoNext)
 	)
 )
 

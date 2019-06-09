@@ -170,13 +170,13 @@
 (method OpeningScreen.OnMenuSelect (MenuSelectArgs args)-> :
 	(if (args.menuIndex == 3)
 		(this.uistack.AddTopLevelControl this.credits "credits")
+		(this.credits.BeginScroll)
 	)
 	
 	(if (args.menuIndex == 4)
 		(this.engine.Shutdown)
 	)
 )
-
 
 (method OpeningScreen.OnMouseDown (Int32 button) (Float32 x)(Float32 y) -> :
 	(Vec2 pos = x y)
@@ -267,4 +267,6 @@
 		(engine.Render p)	
 		(engine.YieldForSystemMessages 5)
 	)
+	
+	(coroutines.ReleaseAll)
 )

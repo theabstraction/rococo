@@ -290,7 +290,7 @@ namespace Rococo
 
 		  if (varStruct.Prototype().IsClass)
 		  {
-			  int cii = GetCommonInterfaceIndex(varStruct, inputType);
+			  int cii = (&varStruct == &inputType) ? 0 : GetCommonInterfaceIndex(varStruct, inputType);
 			  if (cii < 0)
 			  {
 				  sexstringstream<1024> streamer;
@@ -377,9 +377,11 @@ namespace Rococo
 	      {
 	      case EXPRESSION_TYPE_STRING_LITERAL:
 		      {
-			      sexstringstream<1024> streamer;
-			      streamer.sb << ("Cannot yet handle string literal expression for ") << GetFriendlyName(inputType) << (" ") << name;
-			      Throw(s, streamer);
+				  auto* stringConstant = ce.SS.GetStringReflection(s.String()->Buffer);
+				  InterfacePointer pIString = &stringConstant->header.pVTables[0];
+				  VariantValue v;
+				  v.vPtrValue = pIString;
+				  ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, v, BITCOUNT_POINTER);
 		      }
 		      break;
 	      case EXPRESSION_TYPE_ATOMIC:
@@ -402,74 +404,84 @@ namespace Rococo
 	      }
       }
 
-      bool TryCompilePushStructRef(CCompileEnvironment& ce, cr_sex s, bool expectingStructRef, const IStructure& inputType, cstr name, const IStructure* genericArg1)
-      {
-	      switch(s.Type())
-	      {
-	      case EXPRESSION_TYPE_STRING_LITERAL:
-		      return TryCompileStringLiteralInput(ce, s, expectingStructRef, inputType);
-	      case EXPRESSION_TYPE_ATOMIC:
-		      break;
-	      case EXPRESSION_TYPE_COMPOUND:
-		      if (!TryCompileFunctionCallAndReturnValue(ce, s, VARTYPE_Derivative, &inputType, NULL))
-		      {
-			      return false;
-		      }			
+	  bool TryCompilePushStructRef(CCompileEnvironment& ce, cr_sex s, bool expectingStructRef, const IStructure& inputType, cstr name, const IStructure* genericArg1)
+	  {
+		  // TODO refactor all of this, its old and ugly
 
-		      AddArgVariable(("input_return_as_input_ref"), ce, inputType);
-		      ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4 + ROOT_TEMPDEPTH, BITCOUNT_POINTER);
-		      return true;
-	      default:
-		      if (expectingStructRef)
-		      {
-			      sexstringstream<1024> streamer;
-			      streamer.sb << ("Expecting atomic, compound or string literal expression for ") << GetFriendlyName(inputType) << (" ") << name;
-			      Throw(s, streamer);
-		      }
-		      return false;
-	      }
+		  switch (s.Type())
+		  {
+		  case EXPRESSION_TYPE_STRING_LITERAL:
+			  return TryCompileStringLiteralInput(ce, s, expectingStructRef, inputType);
+		  case EXPRESSION_TYPE_ATOMIC:
+			  break;
+		  case EXPRESSION_TYPE_COMPOUND:
+			  if (!TryCompileFunctionCallAndReturnValue(ce, s, VARTYPE_Derivative, &inputType, NULL))
+			  {
+				  return false;
+			  }
 
-	      cstr vname = s.String()->Buffer;
+			  AddArgVariable(("input_return_as_input_ref"), ce, inputType);
+			  ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4 + ROOT_TEMPDEPTH, BITCOUNT_POINTER);
+			  return true;
+		  default:
+			  if (expectingStructRef)
+			  {
+				  sexstringstream<1024> streamer;
+				  streamer.sb << ("Expecting atomic, compound or string literal expression for ") << GetFriendlyName(inputType) << (" ") << name;
+				  Throw(s, streamer);
+			  }
+			  return false;
+		  }
 
-	      if (!Rococo::IsAlphabetical(vname[0]))
-	      {
-		      sexstringstream<1024> streamer;
-		      streamer.sb << ("Could not interpret token as function or variable. Expected: ") << GetFriendlyName(inputType) << (" ") << name;
-		      Throw(s, streamer);
-	      }
+		  cstr vname = s.String()->Buffer;
 
-	      MemberDef def;
-	      if (!ce.Builder.TryGetVariableByName(OUT def, vname))
-	      {
-		      CompileInputRefFromGetAccessor(ce, s, inputType);
-		      return true;
-	      }
+		  if (!Rococo::IsAlphabetical(vname[0]))
+		  {
+			  sexstringstream<1024> streamer;
+			  streamer.sb << ("Could not interpret token as function or variable. Expected: ") << GetFriendlyName(inputType) << (" ") << name;
+			  Throw(s, streamer);
+		  }
 
-	      VARTYPE vType = def.ResolvedType->VarType();
-	      if (vType != VARTYPE_Derivative)
-	      {
-		      if (expectingStructRef)
-		      {
-			      sexstringstream<1024> streamer;
-			      streamer.sb << ("The variable is not a derived type. Expected: ") << GetFriendlyName(inputType) << (" ") << name;
-			      Throw(s, streamer);
-		      }
-	      }
+		  MemberDef def;
+		  if (!ce.Builder.TryGetVariableByName(OUT def, vname))
+		  {
+			  CompileInputRefFromGetAccessor(ce, s, inputType);
+			  return true;
+		  }
 
-	      const IStructure* varStruct = def.ResolvedType;
+		  VARTYPE vType = def.ResolvedType->VarType();
+		  if (vType != VARTYPE_Derivative)
+		  {
+			  if (expectingStructRef)
+			  {
+				  sexstringstream<1024> streamer;
+				  streamer.sb << ("The variable is not a derived type. Expected: ") << GetFriendlyName(inputType) << (" ") << name;
+				  Throw(s, streamer);
+			  }
+		  }
 
-	      int cii = GetCommonInterfaceIndex(*varStruct, inputType);
-	      if (cii < 0)
-	      {
-		      if (expectingStructRef)
-		      {
-			      sexstringstream<1024> streamer;
-			      streamer.sb << ("The input type '") << varStruct->Name() << ("' did not match the argument type '") << GetFriendlyName(inputType) << (" ") << name << ("'");
-			      Throw(s, streamer);
-		      }
+		  const IStructure* varStruct = def.ResolvedType;
 
-		      return false;
-	      }
+		  int cii;
+		  if (varStruct == &inputType)
+		  {
+			  cii = expectingStructRef ? -1 : 0;
+		  }
+		  else
+		  {
+			  cii = GetCommonInterfaceIndex(*varStruct, inputType);
+			  if (cii < 0)
+			  {
+				  if (expectingStructRef)
+				  {
+					  sexstringstream<1024> streamer;
+					  streamer.sb << ("The input type '") << varStruct->Name() << ("' did not match the argument type '") << GetFriendlyName(inputType) << (" ") << name << ("'");
+					  Throw(s, streamer);
+				  }
+
+				  return false;
+			  }
+		  }
 
 	      ce.Builder.AddSymbol(vname);
 
@@ -1932,7 +1944,7 @@ namespace Rococo
 
 		  AddSymbol(ce.Builder, "Dispatch %s.%s", instanceName, methodName);
 
-		  ce.Builder.PushVariableRef(argText, 0);
+		  ce.Builder.PushVariableRef(argText, -1);
 		  ce.Builder.PushVariable(instanceDef);
 
 		  // The three arguments below are popped off by the dynamic dispatch callback

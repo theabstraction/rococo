@@ -29,6 +29,10 @@ namespace Rococo {
 		{
 			value = AlignmentFlags_Flip;
 		}
+		else if (s ==  "AlignmentFlags_Clipped"_fstring)
+		{
+			value = AlignmentFlags_Clipped;
+		}
 		else
 		{
 			return false;
@@ -67,6 +71,10 @@ namespace Rococo {
 		{
 			value = AlignmentFlags_Flip;
 		}
+		else if (s ==  "Clipped"_fstring)
+		{
+			value = AlignmentFlags_Clipped;
+		}
 		else
 		{
 			return false;
@@ -92,6 +100,8 @@ namespace Rococo {
 				return "Mirror"_fstring;
 			case AlignmentFlags_Flip:
 				return "Flip"_fstring;
+			case AlignmentFlags_Clipped:
+				return "Clipped"_fstring;
 			default:
 				return {"",0};
 		}
@@ -290,6 +300,42 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->StretchSprite(*rect, *loc);
 	}
+	void NativeMHostIGuiDrawClippedText(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::GuiRectf* clipRect;
+		_offset += sizeof(clipRect);
+		ReadInput(clipRect, _sf, -_offset);
+
+		RGBAb colour;
+		_offset += sizeof(colour);
+		ReadInput(colour, _sf, -_offset);
+
+		int32 fontIndex;
+		_offset += sizeof(fontIndex);
+		ReadInput(fontIndex, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		int32 alignmentFlags;
+		_offset += sizeof(alignmentFlags);
+		ReadInput(alignmentFlags, _sf, -_offset);
+
+		Rococo::GuiRectf* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		MHost::IGui* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->DrawClippedText(*rect, alignmentFlags, text, fontIndex, colour, *clipRect);
+	}
 	void NativeMHostIGuiDrawText(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -439,6 +485,7 @@ namespace MHost {
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawScaledColouredSprite, nullptr, ("IGuiDrawScaledColouredSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(Sys.MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawSprite, nullptr, ("IGuiDrawSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(Sys.MPlat.BitmapLocation loc) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiStretchSprite, nullptr, ("IGuiStretchSprite (Pointer hObject)(Sys.Maths.Rectf rect)(Sys.MPlat.BitmapLocation loc) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawClippedText, nullptr, ("IGuiDrawClippedText (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawText, nullptr, ("IGuiDrawText (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiEvalTextSpan, nullptr, ("IGuiEvalTextSpan (Pointer hObject)(Sys.Type.IString text)(Int32 fontIndex)(Sys.Maths.Vec2 pixelSpan) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiGetFontDescription, nullptr, ("IGuiGetFontDescription (Pointer hObject)(Int32 fontIndex)(Sys.Type.IStringBuilder familyName)(MHost.Graphics.FontDesc fd) -> "));

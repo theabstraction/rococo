@@ -787,16 +787,12 @@ namespace Rococo
             {
                if (!TryCompileAssignArchetype(ce, value, elementType, false))
                {
-                  sexstringstream<1024> streamer;
-                  streamer.sb << ("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
-                  Throw(value, streamer);
+                  Throw(value, "Could not evaluate the expression as type %s", GetTypeName(elementType.VarType()));
                }
             }
             else if (!TryCompileArithmeticExpression(ce, value, true, elementType.VarType()))
             {
-               sexstringstream<1024> streamer;
-               streamer.sb << ("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
-               Throw(value, streamer);
+               Throw(value, "Could not evaluate the expression as type %s", GetTypeName(elementType.VarType()));
             } // The value is in D7
 
             ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // node goes to D4
@@ -816,7 +812,7 @@ namespace Rococo
                ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.NodePrepend : callbacks.NodeAppend);
                break;
             default:
-               Throw(value, ("Unhandled value element type"));
+               Throw(value, "Unhandled value element type");
             }
          }
       }

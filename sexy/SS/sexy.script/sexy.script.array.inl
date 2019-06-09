@@ -479,6 +479,30 @@ namespace Rococo
 
 	   }
 
+	   VM_CALLBACK(ArrayGetInterfaceUnchecked)
+	   {
+		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D13].vPtrValue;
+		   int32 index = registers[VM::REGISTER_D12].int32Value;
+		   uint8* pElement = ((uint8*)a->Start) + index * a->ElementLength;
+		   InterfacePointer* ppInterface = (InterfacePointer*)pElement;
+		   registers[VM::REGISTER_D7].vPtrValue = *ppInterface;
+
+#ifdef _DEBUG
+		   if (!IsLocked(*a))
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.ArrayGetRefUnchecked failed: array was unlocked, internal compiler error"));
+		   }
+
+		   if (index < 0 || index >= a->NumberOfElements)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(ERANGE, ("Array.ArrayGetRefUnchecked failed: index out of range, internal compiler error"));
+		   }
+#endif
+
+	   }
+
 	   VM_CALLBACK(ArrayLock)
 	   {
 		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D13].vPtrValue;
@@ -1117,7 +1141,14 @@ namespace Rococo
 
 		   const IStructure& elementType = GetArrayDef(ce, s, collectionName);
 
-		   AddVariableRef(ce, NameString::From(refName), elementType);
+		   if (elementType.InterfaceCount() == 0)
+		   {
+			   AddVariableRef(ce, NameString::From(refName), elementType);
+		   }
+		   else
+		   {
+			   AddVariable(ce, NameString::From(refName), elementType);
+		   }
 
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
 
@@ -1225,10 +1256,19 @@ namespace Rococo
 			   {
 				   ce.Builder.AddSymbol(("while..{ "));
 				   builder.PushControlFlowPoint(*controlFlowData);
-				   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayGetRefUnchecked); // returns pointer to element in D7, D12 is element index and D11 is array ref
-				
+		  
 				   MemberDef refDef;
 				   ce.Builder.TryGetVariableByName(OUT refDef, refName);
+
+				   if (refDef.ResolvedType->InterfaceCount() == 0)
+				   {
+					   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayGetRefUnchecked); // returns pointer to element in D7, D12 is element index and D11 is array ref
+				   }
+				   else
+				   {
+					   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayGetInterfaceUnchecked);
+				   }
+
 				   ce.Builder.Assembler().Append_SetStackFrameValue(refDef.SFOffset, VM::REGISTER_D7, BITCOUNT_POINTER);
 
 				   if (indexName != NULL) ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH + 5, indexName); // index is now = running index

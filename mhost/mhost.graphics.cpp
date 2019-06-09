@@ -367,6 +367,20 @@ struct Gui : public MHost::IGui
 		gc.AddTriangle(&t.a);
 	}
 
+	void DrawClippedText(const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect) override
+	{
+		GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
+		if (text.length)
+		{
+			BasicTextJob job(fontIndex, text, colour);
+			Vec2i span = gc.EvalSpan({ 0,0 }, job);
+			Vec2i topLeft = GetTopLeftPos(iRect, span, alignmentFlags);
+
+			GuiRect clipRecti{ (int32)clipRect.left, (int32)clipRect.top, (int32)clipRect.right, (int32)clipRect.bottom };
+			gc.RenderText(topLeft, job, &clipRecti);
+		}
+	}
+
 	void DrawText(const GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour) override
 	{
 		GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
@@ -375,7 +389,10 @@ struct Gui : public MHost::IGui
 			BasicTextJob job(fontIndex, text, colour);
 			Vec2i span = gc.EvalSpan({ 0,0 }, job);
 			Vec2i topLeft = GetTopLeftPos(iRect, span, alignmentFlags);
-			gc.RenderText(topLeft, job, &iRect);
+
+			if (HasFlag(alignmentFlags, AlignmentFlags_Clipped)) __debugbreak();
+
+			gc.RenderText(topLeft, job, HasFlag(alignmentFlags, AlignmentFlags_Clipped) ? &iRect : nullptr);
 		}
 	}
 

@@ -33,165 +33,168 @@
 
 namespace Rococo
 {
-   namespace Script
-   {
-      void AddVariableRef(CCompileEnvironment& ce, const NameString& ns, const IStructure& typeStruct)
-      {
-         void* hint = (void*)GetTryCatchExpression(ce.Script);
-         ce.Builder.AddVariableRef(ns, typeStruct, hint);
-      }
+	namespace Compiler
+	{
+		bool IsNullType(const IStructure& s);
+	}
+	namespace Script
+	{
+		void AddVariableRef(CCompileEnvironment& ce, const NameString& ns, const IStructure& typeStruct)
+		{
+			void* hint = (void*)GetTryCatchExpression(ce.Script);
+			ce.Builder.AddVariableRef(ns, typeStruct, hint);
+		}
 
-      void AssignTempToVariableRef(CCompileEnvironment& ce, int tempDepth, cstr name)
-      {
-         MemberDef def;
-         ce.Builder.TryGetVariableByName(def, name);
+		void AssignTempToVariableRef(CCompileEnvironment& ce, int tempDepth, cstr name)
+		{
+			MemberDef def;
+			ce.Builder.TryGetVariableByName(def, name);
 
-         if (def.IsParentValue)
-         {
-            ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_D6, VM::REGISTER_SF);
-            ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + tempDepth, BITCOUNT_POINTER);
-            ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_D6, VM::REGISTER_SF);
-         }
-         else
-         {
-            ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + tempDepth, BITCOUNT_POINTER);
-         }
-      }
+			if (def.IsParentValue)
+			{
+				ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_D6, VM::REGISTER_SF);
+				ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + tempDepth, BITCOUNT_POINTER);
+				ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_D6, VM::REGISTER_SF);
+			}
+			else
+			{
+				ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + tempDepth, BITCOUNT_POINTER);
+			}
+		}
 
-      void AddInterfaceVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& ts)
-      {
-         ce.Builder.AddInterfaceVariable(ns, ts, (void*)GetTryCatchExpression(ce.Script));
-      }
+		void AddInterfaceVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& ts)
+		{
+			ce.Builder.AddInterfaceVariable(ns, ts, (void*)GetTryCatchExpression(ce.Script));
+		}
 
-      void AddVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& typeStruct)
-      {
-         ce.Builder.AddVariable(ns, typeStruct, (void*)GetTryCatchExpression(ce.Script));
-      }
+		void AddVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& typeStruct)
+		{
+			ce.Builder.AddVariable(ns, typeStruct, (void*)GetTryCatchExpression(ce.Script));
+		}
 
-      void AddArgVariable(cstr desc, CCompileEnvironment& ce, const TypeString& type)
-      {
-         ce.Builder.AddArgVariable(desc, type, (void*)GetTryCatchExpression(ce.Script));
-      }
+		void AddArgVariable(cstr desc, CCompileEnvironment& ce, const TypeString& type)
+		{
+			ce.Builder.AddArgVariable(desc, type, (void*)GetTryCatchExpression(ce.Script));
+		}
 
-      void AddArgVariable(cstr desc, CCompileEnvironment& ce, const IStructure& type)
-      {
-         ce.Builder.AddArgVariable(desc, type, (void*)GetTryCatchExpression(ce.Script));
-      }
+		void AddArgVariable(cstr desc, CCompileEnvironment& ce, const IStructure& type)
+		{
+			ce.Builder.AddArgVariable(desc, type, (void*)GetTryCatchExpression(ce.Script));
+		}
 
-      bool IsAtomicMatch(cr_sex s, cstr value)
-      {
-         return IsAtomic(s) && AreEqual(s.String(), value);
-      }
+		bool IsAtomicMatch(cr_sex s, cstr value)
+		{
+			return IsAtomic(s) && AreEqual(s.String(), value);
+		}
 
-      bool RequiresDestruction(const IStructure& s)
-      {
-         if (IsPrimitiveType(s.VarType())) return false;
-         if (IsNullType(s)) return true;
+		bool RequiresDestruction(const IStructure& s)
+		{
+			if (IsPrimitiveType(s.VarType())) return false;
+			if (IsNullType(s)) return true;
 
-         TokenBuffer destrName;
-         SafeFormat(destrName.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.Destruct"), s.Name());
-         if (s.Module().FindFunction(destrName) != NULL) return true;
-         if (AreEqual(s.Name(), ("_Array"))) return true;
-         if (AreEqual(s.Name(), ("_Lock"))) return true;
-         if (AreEqual(s.Name(), ("_Node"))) return true;
-         if (AreEqual(s.Name(), ("_List"))) return true;
-         if (AreEqual(s.Name(), ("_Map"))) return true;
-         if (AreEqual(s.Name(), ("_MapNode"))) return true;
+			TokenBuffer destrName;
+			SafeFormat(destrName.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.Destruct"), s.Name());
+			if (s.Module().FindFunction(destrName) != NULL) return true;
+			if (AreEqual(s.Name(), ("_Array"))) return true;
+			if (AreEqual(s.Name(), ("_Lock"))) return true;
+			if (AreEqual(s.Name(), ("_Node"))) return true;
+			if (AreEqual(s.Name(), ("_List"))) return true;
+			if (AreEqual(s.Name(), ("_Map"))) return true;
+			if (AreEqual(s.Name(), ("_MapNode"))) return true;
 
-         for (int i = 0; i < s.MemberCount(); ++i)
-         {
-            const IMember& m = s.GetMember(i);
-            const IStructure& mType = *m.UnderlyingType();
-            if (RequiresDestruction(mType))
-            {
-               return true;
-            }
-         }
+			for (int i = 0; i < s.MemberCount(); ++i)
+			{
+				const IMember& m = s.GetMember(i);
+				const IStructure& mType = *m.UnderlyingType();
+				if (RequiresDestruction(mType))
+				{
+					return true;
+				}
+			}
 
-         return false;
-      }
+			return false;
+		}
 
-      void AppendInvoke(CCompileEnvironment& ce, ID_API_CALLBACK callback, cr_sex s)
-      {
-         ce.Builder.Assembler().Append_Invoke(callback);
-         MarkStackRollback(ce, s);
-      }
+		void AppendInvoke(CCompileEnvironment& ce, ID_API_CALLBACK callback, cr_sex s)
+		{
+			ce.Builder.Assembler().Append_Invoke(callback);
+			MarkStackRollback(ce, s);
+		}
 
-      void AddSymbol(ICodeBuilder& builder, cstr format, ...)
-      {
-         va_list args;
-         va_start(args, format);
+		void AddSymbol(ICodeBuilder& builder, cstr format, ...)
+		{
+			va_list args;
+			va_start(args, format);
 
-         char msg[128];
-         SafeVFormat(msg, sizeof(msg), format, args);
-         builder.AddSymbol(msg);
-      }
+			char msg[128];
+			SafeVFormat(msg, sizeof(msg), format, args);
+			builder.AddSymbol(msg);
+		}
 
-      struct ArrayImage;
-      struct ListImage;
-      struct MapImage;
+		struct ArrayImage;
+		struct ListImage;
+		struct MapImage;
 
-      void DestroyElements(ArrayImage& a, IScriptSystem& ss);
-      void ListClear(ListImage& l, IScriptSystem& ss);
-      void MapClear(MapImage* m, IScriptSystem& ss);
-      void ArrayDelete(ArrayImage* a, IScriptSystem& ss);
+		void DestroyElements(ArrayImage& a, IScriptSystem& ss);
+		void ListClear(ListImage& l, IScriptSystem& ss);
+		void MapClear(MapImage* m, IScriptSystem& ss);
+		void ArrayDelete(ArrayImage* a, IScriptSystem& ss);
 
-	  void DestroyObject(const IStructure& type, uint8* item, IScriptSystem& ss)
-	  {
-		  if (IsPrimitiveType(type.VarType())) return;
+		void DestroyObject(const IStructure& type, uint8* item, IScriptSystem& ss)
+		{
+			if (IsPrimitiveType(type.VarType())) return;
 
-		  if (AreEqual(type.Name(), ("_Array")))
-		  {
-			  ArrayImage* a = (ArrayImage*)item;
-			  DestroyElements(*a, ss);
-			  ArrayDelete(a, ss);
-			  return;
-		  }
-		  else if (AreEqual(type.Name(), ("_List")))
-		  {
-			  ListImage* l = (ListImage*)item;
-			  ListClear(*l, ss);
-			  return;
-		  }
-		  else if (AreEqual(type.Name(), ("_Map")))
-		  {
-			  MapImage* m = (MapImage*)item;
-			  MapClear(m, ss);
-			  return;
-		  }
-		  else if (type.InterfaceCount() > 0)
-		  {
-			  InterfacePointer pInterface = *(InterfacePointer*)item;
-			  ss.ProgramObject().DecrementRefCount(pInterface);
-		  }
-		  else
-		  {
-			  int offset = 0;
-			  for (int i = 0; i < type.MemberCount(); ++i)
-			  {
-				  const IMember& m = type.GetMember(i);
-				  const IStructure& mType = *m.UnderlyingType();
-				  DestroyObject(mType, item + offset, ss);
-				  offset += mType.SizeOfStruct();
+			if (AreEqual(type.Name(), ("_Array")))
+			{
+				ArrayImage* a = (ArrayImage*)item;
+				DestroyElements(*a, ss);
+				ArrayDelete(a, ss);
+				return;
+			}
+			else if (AreEqual(type.Name(), ("_List")))
+			{
+				ListImage* l = (ListImage*)item;
+				ListClear(*l, ss);
+				return;
+			}
+			else if (AreEqual(type.Name(), ("_Map")))
+			{
+				MapImage* m = (MapImage*)item;
+				MapClear(m, ss);
+				return;
+			}
+			else if (type.InterfaceCount() > 0)
+			{
+				InterfacePointer pInterface = *(InterfacePointer*)item;
+				ss.ProgramObject().DecrementRefCount(pInterface);
+			}
+			else
+			{
+				int offset = 0;
+				for (int i = 0; i < type.MemberCount(); ++i)
+				{
+					const IMember& m = type.GetMember(i);
+					const IStructure& mType = *m.UnderlyingType();
+					DestroyObject(mType, item + offset, ss);
+					offset += Rococo::Compiler::IsNullType(mType) ? sizeof(size_t) : mType.SizeOfStruct();
+				}
+			}
+		}
 
-			  }
-		  }
-	  }
+		// All our datatypes are multiples of 4-bytes and are allocated from aligned blocks, so this should generally be faster than memcpy which is bloated with alignment cases
+		void AlignedMemcpy(void* __restrict dest, const void* __restrict source, size_t nBytes)
+		{
+			// TODO -> Replace with SSE code
+			size_t nWords = nBytes >> 2;
 
-      // All our datatypes are multiples of 4-bytes and are allocated from aligned blocks, so this should generally be faster than memcpy which is bloated with alignment cases
-      void AlignedMemcpy(void* __restrict dest, const void* __restrict source, size_t nBytes)
-      {
-         // TODO -> Replace with SSE code
-         size_t nWords = nBytes >> 2;
+			const int* end = ((int*)source) + nWords;
+			int* target = (int*)dest;
 
-         const int* end = ((int*)source) + nWords;
-         int* target = (int*)dest;
-
-         const int* p = (const int*)source;
-         while (p < end)
-         {
-            *target++ = *p++;
-         }
-      }
-   }//Script
+			const int* p = (const int*)source;
+			while (p < end)
+			{
+				*target++ = *p++;
+			}
+		}
+	}//Script
 }//Sexy

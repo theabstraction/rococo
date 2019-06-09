@@ -67,6 +67,8 @@ struct CoSpec: public ILock
 	// True until the coroutine initializes itself before the first yields
 	bool isStarted = true;
 
+	bool isDormant = false;
+
 	CoSpec(int64 _id, ObjectStub* _stub, CoroutineRef _coroutine, ID_BYTECODE _runId):
 		id(_id), stub(_stub), coroutine(_coroutine), runId(_runId)
 	{
@@ -89,7 +91,7 @@ struct CoSpec: public ILock
 	}
 };
 
-typedef std::unordered_map<int64, CoSpec> SpecMap;
+typedef std::unordered_map<int64, CoSpec*> SpecMap;
 
 // A pool of virtual memory for use as stack memory by coroutines
 struct StackPool
@@ -141,7 +143,7 @@ struct Coroutines : public Sys::ICoroutineControl
 	StackPool stacks;
 	int64 nextWakeTime = Constants::nextYear;
 
-	std::vector<CoSpec> dormantCoSpecs;
+	std::vector<CoSpec*> dormantCoSpecs;
 
 	Coroutines(IScriptSystem& _ss) :
 		ss(_ss), object(ss.ProgramObject()), vm(object.VirtualMachine())
@@ -151,16 +153,16 @@ struct Coroutines : public Sys::ICoroutineControl
 
 	int64 Add(Rococo::Sex::CoroutineRef coroutine) override
 	{
-		uint8* pByteInterface = (uint8*)coroutine;
-		uint8* pInstance = pByteInterface + (*coroutine)->OffsetToInstance;
-		auto* stub = (ObjectStub*)pInstance;
+		InterfacePointer pInterface = (InterfacePointer)coroutine;
+
+		auto* stub = InterfaceToInstance(pInterface);
 
 		ss.ProgramObject().IncrementRefCount(coroutine);
 		
 		ID_BYTECODE runId = (*coroutine)->FirstMethodId;
 
 		int64 id = nextId++;
-		next = specs.insert(std::make_pair(id, CoSpec( id, stub, coroutine, runId))).first;
+		next = specs.insert(std::make_pair(id, new CoSpec( id, stub, coroutine, runId ))).first;
 
 		return id;
 	}
@@ -178,14 +180,14 @@ struct Coroutines : public Sys::ICoroutineControl
 
 			for (auto& d : dormantCoSpecs)
 			{
-				if (now > d.nextWaitTrigger)
+				if (now > d->nextWaitTrigger)
 				{
-					specs.insert(std::make_pair(d.id, d));
-					d.id = 0;
+					specs.insert(std::make_pair(d->id, d));
+					d->isDormant = false;
 				}
 				else
 				{
-					nearestWakeUpTime = min(d.nextWaitTrigger, nearestWakeUpTime);
+					nearestWakeUpTime = min(d->nextWaitTrigger, nearestWakeUpTime);
 				}
 			}
 
@@ -195,9 +197,9 @@ struct Coroutines : public Sys::ICoroutineControl
 
 			struct
 			{
-				bool operator()(CoSpec& spec)
+				bool operator()(CoSpec* spec)
 				{
-					return spec.id == 0;
+					return !spec->isDormant;
 				}
 			} noLongerDormant;
 			auto erasePoint = std::remove_if(dormantCoSpecs.begin(), dormantCoSpecs.end(), noLongerDormant);
@@ -222,7 +224,7 @@ struct Coroutines : public Sys::ICoroutineControl
 		if (next != specs.end())
 		{
 			int64 id = next->first;
-			auto& spec = next->second;
+			auto* spec = next->second;
 
 			auto& cpu = vm.Cpu();
 			CpuShadow shadow(cpu);
@@ -245,16 +247,26 @@ struct Coroutines : public Sys::ICoroutineControl
 			waitMonitor.vm = &vm;
 
 			vm.SetWaitHandler(&waitMonitor);
-			id = Continue(spec);
+			id = Continue(*spec);
 
 			shadow.Restore();
 
 			if (waitMonitor.nextWaitTrigger > now)
 			{
 				// Coroutine is yielding for a bit
-				spec.nextWaitTrigger = waitMonitor.nextWaitTrigger;
+				spec->nextWaitTrigger = waitMonitor.nextWaitTrigger;
+				spec->isDormant = true;
 				dormantCoSpecs.push_back(spec);
-				next = specs.erase(next);
+
+				if (spec->id == next->first)
+				{
+					next = specs.erase(next);
+				}
+				else
+				{
+					auto j = specs.find(spec->id);
+					next = specs.erase(j);
+				}
 
 				nextWakeTime = min(waitMonitor.nextWaitTrigger, nextWakeTime);
 			}
@@ -277,6 +289,7 @@ struct Coroutines : public Sys::ICoroutineControl
 		auto i = specs.find(spec.id);
 		if (i != specs.end())
 		{
+			delete i->second;
 			next = specs.erase(i);
 		}
 	}
@@ -385,16 +398,17 @@ struct Coroutines : public Sys::ICoroutineControl
 		auto i = specs.find(id);
 		if (i != specs.end())
 		{
-			if (i->second.isLocked)
+			if (i->second->isLocked)
 			{
-				Throw(0, "Coroutine %s %lld tried to release itself during execution", i->second.ClassName(), id);
+				Throw(0, "Coroutine %s %lld tried to release itself during execution", i->second->ClassName(), id);
 			}
-			int64 id = i->second.id;
-			object.DecrementRefCount(i->second.coroutine);
+			int64 id = i->second->id;
+			object.DecrementRefCount(i->second->coroutine);
 			// Possibly a destructor invalidated the iterator, so grab again
 			auto i = specs.find(id);
 			if (i != specs.end())
 			{
+				delete i->second;
 				next = specs.erase(i);
 			}
 		}
@@ -403,14 +417,18 @@ struct Coroutines : public Sys::ICoroutineControl
 			struct
 			{
 				int64 id;
-				bool operator()(CoSpec& spec)
+				bool operator()(CoSpec* spec)
 				{
-					return spec.id == id;
+					return spec->id == id;
 				}
 			} matchesId;
 			matchesId.id = id;
 
 			auto erasePoint = std::remove_if(dormantCoSpecs.begin(), dormantCoSpecs.end(), matchesId);
+			for (auto i = erasePoint; i != dormantCoSpecs.end(); ++i)
+			{
+				delete *i;
+			}
 			dormantCoSpecs.erase(erasePoint, dormantCoSpecs.end());
 		}
 	}
@@ -419,12 +437,14 @@ struct Coroutines : public Sys::ICoroutineControl
 	{
 		for (auto& i : specs)
 		{
-			object.DecrementRefCount(i.second.coroutine);
+			object.DecrementRefCount(i.second->coroutine);
+			delete i.second;
 		}
 
 		for (auto& d : dormantCoSpecs)
 		{
-			object.DecrementRefCount(d.coroutine);
+			object.DecrementRefCount(d->coroutine);
+			delete d;
 		}
 
 		specs.clear();
@@ -485,7 +505,6 @@ extern "C"
 
 			virtual void Release()
 			{
-				ClearResources();
 				delete this;
 			}
 		};

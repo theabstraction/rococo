@@ -142,8 +142,7 @@ namespace Anon
 
 	static void IncRefCount(InterfacePointer pInterface)
 	{
-		auto* pRawObject = ((uint8*)pInterface) + (*pInterface)->OffsetToInstance;
-		auto* object = (ObjectStub*)pRawObject;
+		ObjectStub* object = InterfaceToInstance(pInterface);
 		object->refCount += (object->refCount & ObjectStub::NO_REF_COUNT) ? 0 : 1;
 	}
 

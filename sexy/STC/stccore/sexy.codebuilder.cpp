@@ -2287,9 +2287,9 @@ namespace Anon
 			{
 				totalOffset += (sizeof(ObjectStub) - sizeof(void*));
 			}
-			else if (interfaceIndex > 0)
+			else if (interfaceIndex >= 0)
 			{
-				totalOffset += (sizeof(ObjectStub) - sizeof(void*) + (interfaceIndex - 1) * sizeof(size_t));
+				totalOffset += sizeof(ObjectStub) + interfaceIndex * sizeof(size_t);
 			}
 			
 			Assembler().Append_PushStackFrameAddress(totalOffset);
@@ -2297,7 +2297,7 @@ namespace Anon
 		else // by reference
 		{
 			// The reference (a pointer) is on the stack at def.SFOffset, but the place in the object is offset by def.MemberOffset
-			if (interfaceIndex > 0)
+			if (interfaceIndex >= 0)
 			{
 				int offset;
 				if (IsNullType(*def.ResolvedType))
@@ -2309,7 +2309,9 @@ namespace Anon
 					offset =  sizeof(ObjectStub) - sizeof(void*);
 				}
 
-				offset += (interfaceIndex-1) * sizeof(void*);
+				offset += interfaceIndex * sizeof(void*);
+
+				offset -= GetThisOffset();
 				
 				Assembler().Append_PushStackFrameMemberPtr(def.SFOffset, offset);
 			}

@@ -105,7 +105,7 @@ namespace Rococo
 
 		int GetCommonInterfaceIndex(const IStructure& object, const IStructure& argType)
 		{
-			if (&object == &argType) return 0; // 0 means same structures, 1 means interface 0 matches, 2 means interface 1 matches...
+			if (&object == &argType) return -1; 
 
 			if (argType.InterfaceCount() == 0) return -1; // -1 incompatable types
 
@@ -115,9 +115,12 @@ namespace Rococo
 			{
 				const IInterface& objectInterf = object.GetInterface(i);
 
-				if (&objectInterf == &argInterf || (objectInterf.Base() != NULL && objectInterf.Base() == &argInterf))
+				for (auto* I = &objectInterf; I != nullptr; I = I->Base())
 				{
-					return i + 1;
+					if (I == &argInterf)
+					{
+						return i;
+					}
 				}
 			}
 

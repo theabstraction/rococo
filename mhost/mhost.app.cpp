@@ -93,7 +93,7 @@ namespace MHost
 		AppSceneBuilder sceneBuilder;
 
 		HString mainScript = "!scripts/mhost/mhost.init.sxy";
-		bool queuedForExecute = true;
+		bool queuedForExecute = false;
 
 		// Busy event handler responds to resource loading and renders progress panel
 		void OnBusy(const Rococo::Events::BusyEvent& be)

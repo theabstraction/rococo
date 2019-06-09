@@ -1,15 +1,14 @@
 (namespace EntryPoint)
-	(alias Main EntryPoint.Main)
+(using Sys.Type)
 
-(interface Sys.IRobot)
-(interface Sys.ICat)
-(class RobotCat (implements Sys.IRobot)(implements Sys.ICat))
-(method RobotCat.Construct : )
-(factory Sys.NewRobotCat Sys.IRobot : (construct RobotCat))
-
-(function Main -> (Int32 result):
-		(Sys.IRobot bot (Sys.NewRobotCat))
-		(cast bot -> Sys.ICat cat)
-		(if (bot != cat) (Sys.Throw 0 "Bad cat"))
-		(if (not (bot == cat)) (Sys.Throw 0 "Badder cat"))
+(function Main -> (Int32 x):
+	(array IString s 12)
+	(s.Push "Hello world")
+	(IString txt = (s 0))
+	(Sys.Print txt)
+	(x = txt.Length)
+	(foreach string # s (Sys.Print string))
 )
+
+(alias Main EntryPoint.Main)
+			

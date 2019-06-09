@@ -18,6 +18,7 @@
 		(Top 8)
 		(Mirror 16)
 		(Flip 32)
+		(Clipped 64)
 	)
 )
 
@@ -34,6 +35,7 @@
 		(DrawScaledColouredSprite (const Vec2 pixelPos)(Int32 alignmentFlags)(const BitmapLocation loc)(Float32 blendFactor)(RGBAb colour)(Float32 scaleFactor))
 		(DrawSprite (const Vec2 pixelPos)(Int32 alignmentFlags)(const BitmapLocation loc))
 		(StretchSprite (const Rectf rect)(const BitmapLocation loc))
+		(DrawClippedText (const Rectf rect)(Int32 alignmentFlags)(IString text)(Int32 fontIndex)(RGBAb colour)(const Rectf clipRect))
 		(DrawText (const Rectf rect)(Int32 alignmentFlags)(IString text)(Int32 fontIndex)(RGBAb colour))
 		(EvalTextSpan (IString text)(Int32 fontIndex)(Vec2 pixelSpan))
 		(GetFontDescription (Int32 fontIndex)(IStringBuilder familyName)(FontDesc fd))

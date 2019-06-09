@@ -590,10 +590,10 @@ namespace Rococo
 					  const int outputStackAllocCount = AllocFunctionOutput(ce, callee, parent);
 
 					  AddArgVariable("input_left", ce, *leftDef.ResolvedType);
-					  ce.Builder.PushVariableRef(leftVarName, 0);
+					  ce.Builder.PushVariableRef(leftVarName, -1);
 
 					  AddArgVariable("input_right", ce, *rightDef.ResolvedType);
-					  ce.Builder.PushVariableRef(rightVarName, 0);
+					  ce.Builder.PushVariableRef(rightVarName, -1);
 
 					  AppendFunctionCallAssembly(ce, callee);
 

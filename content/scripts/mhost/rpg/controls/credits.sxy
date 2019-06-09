@@ -1,26 +1,50 @@
-(using MHost.Graphics)
-(using MHost)
+(using Sys)
 (using Sys.Maths)
-(using Sys.Maths.F32)
 (using Sys.Type)
+(using Sys.MPlat)
+(using Sys.Random)
 (using Sys.Type.Strings)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
 
 (interface MHost.Graphics.ICreditsControl
 	(extends MHost.Graphics.IControl)
 	(Centre (Float32 dx)(Float32 dy)(Vec2 screenSpan)->)
+	(BeginScroll ->)
 	(OnMouseUp (MouseClickArgs args)->)
 )
 
 (class Credits 
+	(array IString creditLines)
 	(implements ICreditsControl)
 	(implements IEventHandler)
+	(implements ICoroutine)
 	(Rectf outerRect)
 	(IUIStack uistack)
+	(Bool isScrolling)
+	(Float32 scrollHeight)
+	(IStringBuilder lastFontName)
 )
 
-(method Credits.Construct (IUIStack uistack): 
+(method Credits.Construct (IUIStack uistack)->(construct creditLines 20): 
 	(this.outerRect = 0 0 0 0)
 	(this.uistack = uistack)
+	(this.isScrolling = false)
+	(this.scrollHeight = 0)
+	(this.creditLines.Push "")
+	(this.creditLines.Push "Programmed by")
+	(this.creditLines.Push "Mark Anthony Taylor")
+	(this.creditLines.Push "")
+	(this.creditLines.Push "Original music composed by")
+	(this.creditLines.Push "Ludwig van Beethoven")
+	(this.creditLines.Push "")
+	(this.creditLines.Push "Graphics")
+	(this.creditLines.Push "Leondardo da Vinci")
+	(this.lastFontName = (StringBuilder 128))
 )
 
 (factory MHost.Graphics.NewCredits ICreditsControl (IUIStack uistack): (construct Credits uistack))
@@ -40,11 +64,69 @@
 	(this.outerRect.bottom = (screenSpan.y - dy))
 )
 
+(function ShrinkRectf (Rectf inputRect)(Rectf outputRect)(Float32 ds)-> :
+	(outputRect = inputRect)
+	(outputRect.left += ds)
+	(outputRect.top += ds)
+	(outputRect.right -= ds)
+	(outputRect.bottom -= ds)
+)
+
 (method Credits.Render (IGui gui)-> :
-	(gui.FillRect this.outerRect 0xF0000000)
+	(Rectf innerRect)
+	(ShrinkRectf this.outerRect innerRect 4)
+	
+	(gui.FillRect innerRect 0xF0000000)
 	(gui.DrawBorder this.outerRect 4 0xFF404040 0xFF606060 0xFF808080 0xFFA0A0A0)
+	
+	(Float32 y = (innerRect.top - this.scrollHeight))
+	
+	(IStringBuilder lastFontName (StringBuilder 64))
+	(Int32 font = 0)
+	(FontDesc desc)
+	(gui.GetFontDescription font lastFontName desc)
+	
+	(Float32 dy = desc.height)
+	
+	(Int32 visibleCount = 0)
+	
+	(foreach line # this.creditLines
+		(Float32 y1 = (y + dy))
+		(Rectf lineRect = innerRect.left y innerRect.right y1)
+		(if (line.Length != 0)
+			(if ((y1 > innerRect.top) and (y < innerRect.bottom))
+				(gui.DrawClippedText lineRect 0 line font 0xFFFFFFFF innerRect)
+				(visibleCount += 1)
+			)
+			(y += dy)
+		else 
+			(y = (y + (4 * dy)))
+		)
+	)
+	
+	(if (visibleCount == 0)
+		(this.scrollHeight = 1000000) // This will 'gracefully' abort the coroutines
+		(this.uistack.RemoveFromTopLevel this)
+	)
 )
 
 (method Credits.OnMouseUp (MouseClickArgs args)-> :
 	(this.uistack.RemoveFromTopLevel this)
+)
+
+(method Credits.BeginScroll -> :
+	(if (not (this.isScrolling))
+		(this.isScrolling = true)
+		(this.scrollHeight = 0)
+		(ICoroutineControl coroutines (Coroutines))
+		(coroutines.Add this)
+	)
+)
+
+(method Credits.Run -> :
+	(while (this.scrollHeight < 100000)
+		(this.scrollHeight += 2)
+		(yield 1100)
+	)
+	(this.isScrolling = false)
 )
