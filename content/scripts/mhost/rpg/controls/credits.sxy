@@ -35,7 +35,6 @@
 	(this.uistack = uistack)
 	(this.isScrolling = false)
 	(this.scrollHeight = 0)
-	(this.creditLines.Push "")
 	(this.creditLines.Push "Programmed by")
 	(this.creditLines.Push "Mark Anthony Taylor")
 	(this.creditLines.Push "")
@@ -79,12 +78,12 @@
 	(gui.FillRect innerRect 0xF0000000)
 	(gui.DrawBorder this.outerRect 4 0xFF404040 0xFF606060 0xFF808080 0xFFA0A0A0)
 	
-	(Float32 y = (innerRect.top - this.scrollHeight))
+	(Float32 y = (innerRect.bottom - this.scrollHeight))
+	(y -=  4)
 	
-	(IStringBuilder lastFontName (StringBuilder 64))
 	(Int32 font = 0)
 	(FontDesc desc)
-	(gui.GetFontDescription font lastFontName desc)
+	(gui.GetFontDescription font this.lastFontName desc)
 	
 	(Float32 dy = desc.height)
 	

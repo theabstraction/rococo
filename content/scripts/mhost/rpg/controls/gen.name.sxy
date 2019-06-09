@@ -1,0 +1,50 @@
+(using Sys.Reflection)
+(using Sys.Type)
+
+(function AppendRandomAtomicFrom (IExpression s)(IStringBuilder sb)-> :
+	(Int32 maxIndex = ((s.ChildCount) - 1))
+	(Int32 index = (Sys.Random.AnyInt 0 maxIndex))
+	(IExpression atomic = (s.Child index))
+	(#build sb atomic.Text)
+)
+
+(function AppendRandomBritishSurname (IStringBuilder sb) -> :
+	(IExpression britishSurnames = ' (
+		Smith Taylor Cooper Green Brown Jones Williams Hill Davies Evans Willson Edward Wright Walker Thompson Roberts Robertson Green 
+		Hughes Lewis Moore Morris Ward Clark Lee King Baker Harrison Morgan Allen James Scott Phillips Watson Davis Price Bennet Young
+		Griffith Mitchell Kelly Cook Carter Richardson Bailey Bell Shaw Carpenter Cox Marshall Simpson Anderson Adams Foster Powell Webb
+		Rogers Gray Hunt Campbell Palmer Holmes Lloyd Knight Russel Fisher Stevens Jenkins Murray Dixon Harvey Fletcher Walsh 
+		Gilbert Howard Andrews Eiliott Reynolds Saunders Payne Fox Ford Pearce Daw Brooks Lawrence Cole Atkinson Bradley Spencer Gill
+		Dawson Ball Burton O'Brien Watts Rose Booth Perry Ryan Grant Wells Armstrong Francis Carr Marsh Riley
+	))
+	
+	(AppendRandomAtomicFrom britishSurnames sb)
+)
+
+(function AppendRandomMaleBritishName (IStringBuilder sb)-> :
+	(IExpression maleBritish1stName = ' (
+		Aldous Adrian Aaron Alan Adam Alec Alex Arnold Archibald Anthony Antony Archie Abe Abraham Addison Alistair Alexander Augustus
+		Boris Bo Bob Beau Bill Brad Bram Burt Baird Basil Blair Blain Bobby BobinBrian Brant Brion Bruco Bruno Buddy Bud Barney Ben Bennet
+		Burney Barnaby Barrett Brandon Beaumont Benedict Benny Benjamin Bertrand Bartholemew
+		Chris Christopher Carl Chad Chaz Chip Clemp Chippy Curt Casey Cecil Claud Claudius Claudio Clive Coady Cosmo Callum
+		Caesar Colin Connor Cameron Charles Charlie Chuck Chucky Coleman Callahan Clifford Cuthbert Churchill Constantine
+		David Dave Dan Danny Derek Doug
+	))
+	
+	(AppendRandomAtomicFrom maleBritish1stName sb)
+	(#build sb " ")
+	(AppendRandomBritishSurname sb)
+)
+
+(function AppendRandomFemaleBritishName (IStringBuilder sb)-> :
+	(IExpression femaleBritish1stName = ' (
+		Alexandra Alice Sarah Carrol Susan Mary Bobbie Helen Jane Anya Anne Marie-Anne Janet
+	))
+	
+	(AppendRandomAtomicFrom femaleBritish1stName sb)
+	(#build sb " ")
+	(AppendRandomBritishSurname sb)
+)
+
+(alias AppendRandomMaleBritishName RPG.AppendRandomMaleBritishName)
+(alias AppendRandomFemaleBritishName RPG.AppendRandomFemaleBritishName)

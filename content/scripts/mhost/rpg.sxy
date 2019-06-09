@@ -9,6 +9,8 @@
 	"!scripts/mhost/widgets/menu.vertical.sxy"
 	"!scripts/mhost/widgets/uistack.sxy"
 	"!scripts/mhost/rpg/controls/credits.sxy"
+	"!scripts/mhost/rpg/controls/add.character.sxy"
+	"!scripts/mhost/rpg/controls/gen.name.sxy"
 )
 
 (namespace EntryPoint)
@@ -80,43 +82,6 @@
 	)
 )
 
-(interface RPG.IWorld
-	(Advance ->)
-	(RenderGui (IGui gui)-> )
-)
-
-(class World 
-	(implements IWorld)
-	(implements ICoroutine)
-	
-	(IEngine engine)
-	(ILegacySoundControl sound)
-	(Vec2 screenSpan)
-)
-
-(method World.Construct (IEngine engine) (ILegacySoundControl sound) -> :
-	(this.engine = engine)
-	(this.sound = sound)
-)
-
-(factory RPG.NewWorld IWorld (IEngine engine) (ILegacySoundControl sound) : 
-	(construct World engine sound)
-)
-
-(method World.Advance  -> :
-)
-
-(method World.RenderGui (IGui g) -> :
-	(g.GetScreenSpan this.screenSpan)
-)
-
-(method World.Run -> :
-	(while this.engine.IsRunning
-		(this.Advance)
-		(yield 1000)
-	)
-)
-
 (interface RPG.IScreen (extends MHost.Graphics.IUIEventHandler)
 	(RenderGui (IGui g) ->)
 )
@@ -143,10 +108,12 @@
 	(ICreditsControl credits)
 	
 	(IUIStack uistack)
+	(IBundle bundle)
 )
 
-(method OpeningScreen.Construct (IEngine engine) -> : 
+(method OpeningScreen.Construct (IEngine engine)(IBundle bundle) -> : 
 	(this.engine = engine)
+	(this.bundle = bundle)
 	
 	(IMenu menu (MHost.Graphics.NewVerticalMenu 10))
 	(menu.SetStyle 0 4 "Tahoma")
@@ -171,6 +138,10 @@
 	(if (args.menuIndex == 3)
 		(this.uistack.AddTopLevelControl this.credits "credits")
 		(this.credits.BeginScroll)
+	)
+	
+	(if (args.menuIndex == 1)
+		(this.bundle.SetActiveScreen (#IdScreenAddCharacter))
 	)
 	
 	(if (args.menuIndex == 4)
@@ -229,44 +200,95 @@
 	(RenderTree this.uistack g)
 )
 
-(factory RPG.NewOpeningScreen IScreen (IEngine engine) : 
-	(construct OpeningScreen engine)
+(factory RPG.NewOpeningScreen IScreen (IEngine engine) (IBundle bundle): 
+	(construct OpeningScreen engine bundle)
 )
 
-(function Main (Int32 id) -> (Int32 exitCode):
+(macro Rococo.IdScreenOpening in out (out.AddAtomic "1"))
+(macro Rococo.IdScreenAddCharacter in out (out.AddAtomic "2"))
+
+(class GameBundle (defines RPG.IBundle)
+	(ISprites sprites)
+	(IEngine engine)
+	(ILegacySoundControl sound)
+	(IInputThread inputThread)
+	(ICoroutineControl coroutines)
+	(IScreen openingScreen)
+	(IScreen addCharacterScreen)
+	(IScreen activeScreen)
+)
+
+(method GameBundle.Construct : 
 	(ISprites sprites (Sprites))
 	(sprites.AddEachSpriteInDirectory "!textures/mhost/rpg")
 	(sprites.LoadAllSprites)
+	(this.sprites = sprites)
 	
-	(IEngine engine (Engine))
-	(ILegacySoundControl sound (Rococo.Audio.LegacySoundControl))
+	(this.engine = (Engine))
+	(this.sound = (Rococo.Audio.LegacySoundControl))
 	
-	(IWorld world (NewWorld engine sound))
+	(this.coroutines = (Coroutines))
 	
-	(ICoroutineControl coroutines (Coroutines))
+	(this.inputThread = (NewGuiInputThread this.engine))
+	(this.coroutines.Add this.inputThread)
 	
-	(IInputThread inputThread (NewGuiInputThread engine))
-	(coroutines.Add inputThread)
-	
-	(cast world -> ICoroutine worldThread)
-//	(coroutines.Add worldThread)
-	
-	(IScreen openingScreen (NewOpeningScreen engine))
+	(this.openingScreen = (NewOpeningScreen this.engine this))
+	(this.addCharacterScreen = (NewAddCharacterScreen this.engine))
+)
 
-	(inputThread.SetScreen openingScreen)
-	
-	(while engine.IsRunning
-		(while (coroutines.Continue > 0))
+(method GameBundle.Engine -> (IEngine engine):
+	(engine = this.engine)
+)
+
+(method GameBundle.Sound -> (ILegacySoundControl sound):
+	(sound = this.sound)
+)
+
+(method GameBundle.AddCoroutine -> (ICoroutine coroutine):
+	(coroutines.Add coroutine)
+)
+
+(factory RPG.NewGameBundle RPG.IBundle : (construct GameBundle))
+
+(method GameBundle.Run -> :
+	(while this.engine.IsRunning
+		(while (this.coroutines.Continue > 0))
+		
+		(IScreen screen = this.activeScreen)
 		
 		(GuiPopulator p =
 			(closure (IGui gui) -> : 
-				(openingScreen.RenderGui gui)
+				(screen.RenderGui gui)
 			)
 		)
 		
-		(engine.Render p)	
-		(engine.YieldForSystemMessages 5)
+		(this.engine.Render p)	
+		(this.engine.YieldForSystemMessages 5)
 	)
 	
-	(coroutines.ReleaseAll)
+	(this.coroutines.ReleaseAll)
+)
+
+(method GameBundle.SetActiveScreen (Int32 idScreen)-> :
+	(IScreen screen)
+	
+	(if (idScreen == (#IdScreenOpening))
+		(screen = this.openingScreen)
+	else 
+		(if (idScreen == (#IdScreenAddCharacter))
+			(screen = this.addCharacterScreen)
+		else
+			(Sys.Throw 0 "Bad screen id")
+		)
+	)
+	
+	(this.inputThread.SetScreen screen)
+	(this.activeScreen = screen)
+)
+
+(function Main (Int32 id) -> (Int32 exitCode):
+	(Sys.Random.Seed 0)
+	(IBundle bundle (NewGameBundle))
+	(bundle.SetActiveScreen (#IdScreenOpening))
+	(bundle.Run)
 )

@@ -2729,7 +2729,7 @@ namespace Rococo { namespace Script
 		NamespaceSplitter splitter(name);
 
 		cstr body, tail;
-		INamespaceBuilder& ns = ValidateSplitTail(REF splitter, OUT body, OUT tail, IN s, IN programObject);	
+		INamespaceBuilder& ns = ValidateSplitTail(REF splitter, OUT body, OUT tail, IN nameExpr, IN programObject);
 
 		AssertValidInterfaceName(nameExpr, tail);
 

@@ -221,12 +221,7 @@ namespace MHost
 			else if (Eq(ext, ".sxy"))
 			{
 				platform.utilities.RefreshResource(pingname);
-
-				if (args.Matches(mainScript))
-				{
-					platform.gui.LogMessage("Running %s", mainScript.c_str());
-					queuedForExecute = true;
-				}
+				queuedForExecute = true;
 			}
 			else if (Eq(ext, ".ps"))
 			{

@@ -1,0 +1,236 @@
+(using Sys)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.MPlat)
+(using Sys.Random)
+(using Sys.Type.Strings)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+(using RPG)
+
+(struct AttributeCell
+	(IString name)
+	(Int32 value)
+)
+
+(interface RPG.IAttributeControl (extends MHost.Graphics.IControl)
+	(SetRect (Rectf outerRect)-> )
+)
+
+(class AttributeControl (implements IAttributeControl)
+	(Rectf outerRect)
+	(array AttributeCell cells)
+	(Int32 fontIndex)
+	(IStringBuilder tempSB)
+)
+
+(method AttributeControl.Construct -> (construct cells 6): 
+	(this.outerRect = -1 -1 -1 -1)
+	
+	(AttributeCell strength = "Strength" 100)
+	(AttributeCell agi      = "Agility" 100)
+	(AttributeCell wellness = "Wellness" 100)
+	(AttributeCell psyche   = "Psyche" 100)
+	(AttributeCell ego      = "Ego" 100)
+	(AttributeCell maths 	= "Maths" 100)
+	
+	(this.cells.Push strength)
+	(this.cells.Push agi)
+	(this.cells.Push wellness)
+	(this.cells.Push psyche)
+	(this.cells.Push ego)
+	(this.cells.Push maths)
+	
+	(this.tempSB = (StringBuilder 64))
+	
+	(this.fontIndex = -1)
+)
+
+(method AttributeControl.SetRect (Rectf outerRect)-> :
+	(this.outerRect = outerRect)
+)
+
+(method AttributeControl.GetRect (Rectf outerRect)-> :
+	(outerRect = this.outerRect)
+)
+
+(method AttributeControl.Render (IGui g)-> :
+	(Float32 x0 = (this.outerRect.left + 16))
+	(Float32 x1 = (this.outerRect.right - 16))
+	(Float32 y = (this.outerRect.top + 4))
+	(Float32 y1 )
+	
+	(if (this.fontIndex == -1)
+		(GetLargestFontOfFamilyLessThanHeight g "Courier New" 30 -> this.fontIndex)
+	)
+	
+	(Float32 rectHeight = (this.outerRect.bottom - this.outerRect.top))
+	(Float32 dy = (rectHeight / 6))
+	
+	(Float32 xV = (x1 - 60))
+	
+	(foreach cell # this.cells
+		(y1 = (y + dy))
+		(Rectf nameRect = x0 y x1 y1)
+		(g.DrawClippedText nameRect (#AlignmentFlagsLeft) cell.name this.fontIndex 0xFFFFFFFF this.outerRect)
+		
+		(this.tempSB.Clear)
+		(#build this.tempSB cell.value)
+		(Rectf valueRect = xV y x1 y1)
+		(g.DrawClippedText valueRect (#AlignmentFlagsRight) this.tempSB this.fontIndex 0xFFFFFFFF this.outerRect)
+		(y += dy)
+	)
+	
+	(g.DrawBorder this.outerRect 1 0xFFFFFFFF 0xFFFFFFFF 0xFFFFFFFF 0xFFFFFFFF)
+)
+
+(method AttributeControl.GetEventHandler -> (IEventHandler handler):
+	
+)
+
+(factory RPG.NewAttributeControl IAttributeControl : (construct AttributeControl))
+
+
+(interface RPG.ILineEditorControl (extends MHost.Graphics.IControl)
+	(SetRect (IString fontName) (Rectf outerRect)-> )
+	(SetText (IString text)-> )
+)
+
+(class LineEditor (implements ILineEditorControl)
+	(Rectf outerRect)
+	(Rectf innerRect)
+	(Int32 fontIndex)
+	(IStringBuilder text)
+	(IStringBuilder fontName)
+)
+
+(method LineEditor.Construct (Int32 maxTextLength) -> : 
+	(this.outerRect = -1 -1 -1 -1)
+	(this.fontIndex = -1)
+	(this.text = (StringBuilder maxTextLength))
+	(this.fontName = (StringBuilder 64))
+	(#build this.fontName "Tahoma")
+)
+
+(method LineEditor.SetRect (IString fontName) (Rectf outerRect)-> :
+	(this.outerRect = outerRect)
+	(this.fontIndex = -1)
+	(this.fontName.Clear)
+	(#build this.fontName fontName)
+	
+	(Float32 dy = (this.outerRect.bottom - this.outerRect.top))
+	(Float32 x = (this.outerRect.left + (dy * 0.25)))
+	(Float32 x1 = (this.outerRect.right -  (dy * 0.25)))
+	(Float32 y0 = (this.outerRect.top + 2))
+	(Float32 y1 = (this.outerRect.bottom - 2))
+	
+	(this.innerRect = x y0 x1 y1)
+)
+
+(method LineEditor.GetRect (Rectf outerRect)-> :
+	(outerRect = this.outerRect)
+)
+
+(method LineEditor.SetText (IString text) -> :
+	(this.text.Clear)
+	(#build this.text text)
+)
+
+(method LineEditor.Render (IGui g)-> :
+	(if (this.fontIndex < 0)
+		(Float32 dy = (this.outerRect.bottom - this.outerRect.top))
+		(GetLargestFontOfFamilyLessThanHeight g this.fontName dy -> this.fontIndex)
+	)
+	
+	(g.DrawClippedText this.innerRect (#AlignmentFlagsLeft) this.text this.fontIndex 0xFFFFFFFF this.outerRect)
+	
+	(Vec2 cursorPos)
+	(g.GetCursorPos cursorPos)
+	
+	(if (IsPointInRect cursorPos this.outerRect)
+		(g.DrawBorder this.outerRect 1 0xFF404040 0xFF404040 0xFF606060 0xFF606060)
+	)
+)
+
+(method LineEditor.GetEventHandler -> (IEventHandler handler):
+	
+)
+
+(factory RPG.NewLineEditor ILineEditorControl (Int32 maxTextLength): (construct LineEditor maxTextLength))
+
+(class AddCharacterScreen 
+	(implements RPG.IScreen)
+	
+	(IEngine engine) // The CPP side of flow control
+	(IUIStack uistack)
+	
+	(Vec2 screenSpan)
+	(Vec2 cursorPos)
+	
+	(IAttributeControl attributeControl)
+	(ILineEditorControl nameEditor)
+)
+
+(method AddCharacterScreen.Construct (IEngine engine) -> : 
+	(this.engine = engine)
+	
+	(this.uistack = (MHost.Graphics.NewUIStack))
+	(this.screenSpan = -1 -1)
+	(this.cursorPos = -1 -1)
+	
+	(this.attributeControl = (NewAttributeControl))
+	(this.uistack.AddTopLevelControl this.attributeControl "attributes")
+	
+	(this.nameEditor = (NewLineEditor 30))
+	(this.uistack.AddTopLevelControl this.nameEditor "name")
+)
+
+(method AddCharacterScreen.OnMouseDown (Int32 button) (Float32 x)(Float32 y) -> :
+)
+
+(method AddCharacterScreen.OnMouseUp (Int32 button)(Float32 x)(Float32 y) -> :
+)
+
+(method AddCharacterScreen.OnWheel (Int32 spin) -> :
+)
+
+(function Layout (AddCharacterScreen screen)(IGui g) -> :
+	(Rectf attributeRect = 10 10 250 310)
+	(screen.attributeControl.SetRect attributeRect)
+	
+	(Vec2 span)
+	(g.GetScreenSpan span)
+	
+	(Rectf nameRect)
+	(nameRect.left = (attributeRect.right + 10))
+	(nameRect.top = attributeRect.top)
+	(nameRect.right = (span.x - 10))
+	(nameRect.bottom = (nameRect.top + 50))
+	
+	(screen.nameEditor.SetRect "Tahoma" nameRect)
+	
+	(IStringBuilder newName (StringBuilder 128))
+	(AppendRandomMaleBritishName newName)
+	(screen.nameEditor.SetText newName)
+)
+
+(method AddCharacterScreen.RenderGui (IGui g) -> :
+	(Vec2 screenSpan)
+	(g.GetScreenSpan screenSpan)
+	
+	(if (screenSpan != this.screenSpan)
+		(this.screenSpan = screenSpan)
+		(Layout this g)
+	)
+	
+	(RenderTree this.uistack g)
+)
+
+(factory RPG.NewAddCharacterScreen IScreen (IEngine engine) : 
+	(construct AddCharacterScreen engine)
+)
