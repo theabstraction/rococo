@@ -59,7 +59,7 @@ namespace ANON
 		IAppEventHandler* handler = nullptr;
 		AutoFree<IExpandingBuffer> eventBuffer;
 		AutoFree<IRenderer> renderer;
-
+		HKL keyboardLayout = nullptr;
 		bool hasFocus = true;
 
 		void CaptureEvents(IAppEventHandler* handler)
@@ -95,7 +95,7 @@ namespace ANON
 				}
 				else if (raw.header.dwType == RIM_TYPEKEYBOARD)
 				{
-					if (handler) handler->OnKeyboardEvent(raw.data.keyboard);
+					if (handler) handler->OnKeyboardEvent(raw.data.keyboard, keyboardLayout);
 				}
 
 				return 0;
@@ -146,6 +146,9 @@ namespace ANON
 					auto* m = (MINMAXINFO*)lParam;
 					m->ptMinTrackSize = POINT{ ws.minSpan.x, ws.minSpan.y };
 				}
+				return 0L;
+			case WM_INPUTLANGCHANGE:
+				keyboardLayout = GetKeyboardLayout(0);
 				return 0L;
 			case WM_SIZE:
 				renderer->OnSize(Vec2i{ LOWORD(lParam), HIWORD(lParam) } );
@@ -204,6 +207,8 @@ namespace ANON
 			{
 				Throw(GetLastError(), "DX11GraphicsWindow::CreateWindowExA failed");
 			}
+
+			keyboardLayout = GetKeyboardLayout(0);
 
 			SetWindowLongPtrA(hWnd, GWLP_USERDATA, (LONG_PTR) this);
 		}

@@ -8,6 +8,17 @@ using namespace Rococo;
 
 #pragma pack(push,1)
 
+namespace Rococo
+{
+	struct MHostKeyboardEvent
+	{
+		int32 scancode;
+		int32 vkeyCode;
+		int32 asciiCode;
+		boolean32 isUp;
+	};
+}
+
 namespace MHost 
 {
 	namespace OS

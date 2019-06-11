@@ -9,6 +9,7 @@
 
 (interface MHost.Graphics.IUIStack
 	(AddTopLevelControl (IControl control) (IString name)->)
+	(AddTopLevelFloater (MHost.Graphics.IControl control) (IString name)-> )
 	(RemoveFromTopLevel (IControl control)->)
 	(AddChild (IControl control)(IControl parent)(IString name)(Bool clipped)->)
 	(BringToTop (IControl control)->)
@@ -56,6 +57,17 @@
 	(newItem.isClippedByParent = true)
 )
 
+(method UIStack.AddTopLevelFloater (MHost.Graphics.IControl control) (IString name)-> :
+	(this.root.children.Append ())
+	(node n = this.root.children.Tail)
+	(UIStackItem newItem = & n)
+	(newItem.control = control)
+	(newItem.name = name)
+	(newItem.isVisible = true)
+	(newItem.handler = (control.GetEventHandler))
+	(newItem.isClippedByParent = false)
+)
+
 (method UIStack.RemoveFromTopLevel (IControl control)-> :
 	(Int32 length = (this.root.children.Length))
 	(if (length > 0)
@@ -75,18 +87,6 @@
 	(Int32 length = (parent.children.Length))
 	
 	(if (length > 0)
-		(node c = parent.children.Head)
-		
-		(do
-			(UIStackItem child = & c)
-			(if (not child.isClippedByParent)
-				(callback child -> terminate)
-				(if (terminate) (return))
-				(ForEachChildByZOrderRecursive child callback -> terminate)
-				(if (terminate) (return))
-			)	
-		while c.GoNext)
-		
 		(node d = parent.children.Head)
 		
 		(do
@@ -98,6 +98,17 @@
 				(if (terminate) (return))
 			)
 		while d.GoNext)
+		
+		(node c = parent.children.Head)
+		(do
+			(UIStackItem child = & c)
+			(if (not child.isClippedByParent)
+				(callback child -> terminate)
+				(if (terminate) (return))
+				(ForEachChildByZOrderRecursive child callback -> terminate)
+				(if (terminate) (return))
+			)	
+		while c.GoNext)
 	)
 )
 
@@ -168,7 +179,7 @@
 	(FindItemAndExecute this.root control q -> terminateNow)
 )
 
-(function RouteMouseEventRecursive (UIStackItem item)(Vec2 pos)(OnUIStackItem callback)-> : (Bool wasHandled)
+(function RouteMouseEventRecursive (UIStackItem item)(Vec2 pos)(OnUIStackItem callback)-> (Bool wasHandled) :
 	(Rectf rect = -10000 -10000 10000 10000)
 	(item.control.GetRect rect) // N.B if item.control is a null object rect is left unchanged
 	

@@ -13,9 +13,55 @@
 	(Int32 tl tr bl br)
 )
 
+(struct PassEventHandlerArgs
+	(IEventHandler sink)
+)
+
+(struct KeyboardCharArgs
+	(Int32 asciiValue)
+	(IEventHandler source)
+)
+
+(struct KeyboardVKeyArgs
+	(Bool isUp)
+	(Int32 virtualKeyCode)
+	(IEventHandler source)
+)
+
+(struct BoolArgs
+	(Bool value)
+	(IEventHandler source)
+)
+
+(alias BoolArgs MHost.BoolArgs)
+(alias KeyboardCharArgs MHost.KeyboardCharArgs)
+(alias KeyboardVKeyArgs MHost.KeyboardVKeyArgs)
+(alias PassEventHandlerArgs MHost.PassEventHandlerArgs)
+
 (alias QuadColour MHost.Graphics.QuadColour)
 
-(interface MHost.IEventHandler (attribute dispatch))
+(interface MHost.IEventHandler 
+	(attribute dispatch)
+	
+	/* known optional methods called by dispatch on this interface (these should be commented out, later versions of sexy may implement optional method syntax)
+	(OnMouseDown (MouseClickArgs args) -> )
+	(OnMouseUp (MouseClickArgs args) -> )
+	(SetKeyboardFocus (PassEventHandlerArgs peh) ->)
+	(OnAsciiChar (KeyboardCharArgs args)->)
+	(OnVirtualKey (KeyboardVKeyArgs args)->)
+	(SetHasFocus (BoolArgs args)->)
+	 */
+)
+
+(function ShrinkRectf (Rectf inputRect)(Rectf outputRect)(Float32 ds)-> :
+	(outputRect = inputRect)
+	(outputRect.left += ds)
+	(outputRect.top += ds)
+	(outputRect.right -= ds)
+	(outputRect.bottom -= ds)
+)
+
+(alias ShrinkRectf MHost.ShrinkRectf)
 
 (interface MHost.Graphics.IControl
 	(GetRect (Rectf rect)->)
@@ -53,8 +99,20 @@
 
 (alias UseDefaultColourScheme MHost.Graphics.UseDefaultColourScheme)
 
+(function DrawStandardControlBorder (IGui gui)(Rectf rect)-> :
+	(Vec2 cursorPos)
+	(gui.GetCursorPos cursorPos)
+	(if (IsPointInRect cursorPos rect)
+		(gui.DrawBorder rect 1 0xFFC0C0C0 0xFFA0A0A0 0xFF808080 0xFF606060)
+	else
+		(gui.DrawBorder rect 1 0xFFA0A0A0 0xFF808080 0xFF606060 0xFF404040)
+	)
+)
+
+(alias DrawStandardControlBorder MHost.Graphics.DrawStandardControlBorder)
+
 (interface MHost.Graphics.IWidgetContext
-	(Exists -> (Bool exists))
+	(attribute dispatch)
 )
 
 (function EqRectfRectf (Rectf a)(Rectf b)->(Bool areEqual):
@@ -73,6 +131,12 @@
 	(OnMouseDown (Int32 button) (Float32 x)(Float32 y) ->)
 	(OnMouseUp (Int32 button) (Float32 x)(Float32 y) ->)
 	(OnWheel (Int32 spin) ->)
+	(OnAsciiChar (Int32 asciiValue)->)
+	(OnSysKey (Bool isUp) (Int32 virtualKeyCode)->)
+)
+
+(interface MHost.IScreen (extends MHost.Graphics.IUIEventHandler)
+	(RenderGui (IGui g) ->)
 )
 
 (function GetCentredRect (Vec2 screenSpan) (Float32 dx)(Float32 dy)(Rectf r)-> :
@@ -125,6 +189,16 @@
 )
 
 (alias TranslateMouseEvent MHost.OS.TranslateMouseEvent)
+
+(function TranslateKeyboardEvent (MHost.OS.KeyboardEvent key)(IUIEventHandler handler)-> :
+	(if ((not key.isUp) and (key.asciiValue != 0))
+		(handler.OnAsciiChar key.asciiValue)
+	)
+	
+	(handler.OnSysKey key.isUp key.virtualKeyCode)
+)
+
+(alias TranslateKeyboardEvent MHost.OS.TranslateKeyboardEvent)
 
 (alias IsPointInRect MHost.Graphics.IsPointInRect)
 (alias CentreHorizontally MHost.Graphics.CentreHorizontally)

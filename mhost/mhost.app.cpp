@@ -308,6 +308,24 @@ namespace MHost
 		{
 			return (boolean32)control.TryGetNextMouseEvent(me);
 		}
+
+		boolean32 GetNextKeyboardEvent(MHostKeyboardEvent& k) override
+		{
+			KeyboardEvent key;
+			if (control.TryGetNextKeyboardEvent(key))
+			{
+				k.asciiCode = (key.unicode > 0 && key.unicode < 128) ? key.unicode : 0;
+				k.isUp = key.IsUp();
+				k.scancode = key.scanCode;
+				k.vkeyCode = key.VKey;
+				return 1;
+			}
+			else
+			{
+				k = { 0 };
+				return 0;
+			}
+		}
 	};
 }
 

@@ -150,7 +150,7 @@ namespace ANON
 					return true;
 				}
 
-				char c = platform.keyboard.TryGetAscii(key);
+				char c = (key.unicode > 0 && key.unicode < 128) ? key.unicode : 0;
 
 				if (!validator.IsLegal(c, cursorPos))
 				{
@@ -717,7 +717,7 @@ namespace ANON
 				return true;
 				}
 
-				char c = platform.keyboard.TryGetAscii(key);
+				char c = (key.unicode > 0 && key.unicode < 128) ? key.unicode : 0;
 				if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
 				{
 					for (size_t i = 0; i < orderedByName.size(); ++i)

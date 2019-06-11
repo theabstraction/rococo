@@ -336,6 +336,46 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->DrawClippedText(*rect, alignmentFlags, text, fontIndex, colour, *clipRect);
 	}
+	void NativeMHostIGuiDrawTextWithCaret(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 caretPos;
+		_offset += sizeof(caretPos);
+		ReadInput(caretPos, _sf, -_offset);
+
+		Rococo::GuiRectf* clipRect;
+		_offset += sizeof(clipRect);
+		ReadInput(clipRect, _sf, -_offset);
+
+		RGBAb colour;
+		_offset += sizeof(colour);
+		ReadInput(colour, _sf, -_offset);
+
+		int32 fontIndex;
+		_offset += sizeof(fontIndex);
+		ReadInput(fontIndex, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		int32 alignmentFlags;
+		_offset += sizeof(alignmentFlags);
+		ReadInput(alignmentFlags, _sf, -_offset);
+
+		Rococo::GuiRectf* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		MHost::IGui* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->DrawTextWithCaret(*rect, alignmentFlags, text, fontIndex, colour, *clipRect, caretPos);
+	}
 	void NativeMHostIGuiDrawText(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -486,6 +526,7 @@ namespace MHost {
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawSprite, nullptr, ("IGuiDrawSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(Sys.MPlat.BitmapLocation loc) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiStretchSprite, nullptr, ("IGuiStretchSprite (Pointer hObject)(Sys.Maths.Rectf rect)(Sys.MPlat.BitmapLocation loc) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawClippedText, nullptr, ("IGuiDrawClippedText (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawTextWithCaret, nullptr, ("IGuiDrawTextWithCaret (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect)(Int32 caretPos) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawText, nullptr, ("IGuiDrawText (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiEvalTextSpan, nullptr, ("IGuiEvalTextSpan (Pointer hObject)(Sys.Type.IString text)(Int32 fontIndex)(Sys.Maths.Vec2 pixelSpan) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiGetFontDescription, nullptr, ("IGuiGetFontDescription (Pointer hObject)(Int32 fontIndex)(Sys.Type.IStringBuilder familyName)(MHost.Graphics.FontDesc fd) -> "));
@@ -530,6 +571,22 @@ namespace
 
 		ReadInput(_pObject, _sf, -_offset);
 		boolean32 wasPopped = _pObject->GetNextMouseEvent(*me);
+		_offset += sizeof(wasPopped);
+		WriteOutput(wasPopped, _sf, -_offset);
+	}
+	void NativeMHostIEngineGetNextKeyboardEvent(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::MHostKeyboardEvent* ke;
+		_offset += sizeof(ke);
+		ReadInput(ke, _sf, -_offset);
+
+		MHost::IEngine* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 wasPopped = _pObject->GetNextKeyboardEvent(*ke);
 		_offset += sizeof(wasPopped);
 		WriteOutput(wasPopped, _sf, -_offset);
 	}
@@ -661,6 +718,7 @@ namespace MHost {
 		ss.AddNativeCall(ns, NativeGetHandleForMHostEngine, _nceContext, ("GetHandleForIEngine0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeMHostIEnginePollKeyState, nullptr, ("IEnginePollKeyState (Pointer hObject)(MHost.OS.KeyState keys) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineGetNextMouseEvent, nullptr, ("IEngineGetNextMouseEvent (Pointer hObject)(MHost.OS.MouseEvent me) -> (Bool wasPopped)"));
+		ss.AddNativeCall(ns, NativeMHostIEngineGetNextKeyboardEvent, nullptr, ("IEngineGetNextKeyboardEvent (Pointer hObject)(MHost.OS.KeyboardEvent ke) -> (Bool wasPopped)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineRender, nullptr, ("IEngineRender (Pointer hObject)(MHost.GuiPopulator populator) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineIsRunning, nullptr, ("IEngineIsRunning (Pointer hObject) -> (Bool isRunning)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineShutdown, nullptr, ("IEngineShutdown (Pointer hObject) -> "));

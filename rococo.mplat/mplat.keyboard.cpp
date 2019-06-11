@@ -17,11 +17,9 @@ namespace
       std::array<std::string, 512> codes;
 	  std::unordered_map<std::string, int32> mapNameToVkCode;
       std::unordered_map<std::string, std::string> actionBinds;
-      HKL hLocale;
    public:
       Keyboard()
       {
-         hLocale = GetKeyboardLayout(0);
       }
 
       virtual void ClearActions()
@@ -53,23 +51,6 @@ namespace
 
          return nullptr;
       }
-
-	  char TryGetAscii(const KeyboardEvent& ke) const
-	  {
-		  BYTE keyState[256];
-		  GetKeyboardState(keyState);
-
-		  wchar_t buffer[8] = { 0 };
-		  if (1 == ToUnicodeEx(ke.VKey, ke.scanCode, keyState, buffer, 8, 0, hLocale))
-		  {
-			  if (buffer[0] >= 0 && buffer[0] <= 127)
-			  {
-				  return (char) buffer[0];
-			  }
-		  }
-
-		  return 0;
-	  }
 
       virtual void Free()
       {

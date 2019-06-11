@@ -18,7 +18,7 @@ namespace Rococo
 	struct IAppEventHandler
 	{
 		virtual void OnWindowClose() = 0;
-		virtual void OnKeyboardEvent(const RAWKEYBOARD& k) = 0;
+		virtual void OnKeyboardEvent(const RAWKEYBOARD& k, HKL hKeyboardEvent) = 0;
 		virtual void OnMouseEvent(const RAWMOUSE& m) = 0;
 	};
 

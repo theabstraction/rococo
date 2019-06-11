@@ -11,6 +11,10 @@
 	"!scripts/mhost/rpg/controls/credits.sxy"
 	"!scripts/mhost/rpg/controls/add.character.sxy"
 	"!scripts/mhost/rpg/controls/gen.name.sxy"
+	"!scripts/mhost/rpg/controls/surnames.sxy"
+	"!scripts/mhost/rpg/controls/female.names.sxy"
+	"!scripts/mhost/rpg/controls/line.editor.sxy"
+	"!scripts/mhost/rpg/controls/attribute.control.sxy"
 )
 
 (namespace EntryPoint)
@@ -69,6 +73,8 @@
 	(Int32 downKey = (keyboard.GetVKeyFromName "S")) */
 	
 	(MouseEvent ev)
+	(KeyboardEvent key)
+	
 	(KeyState keys)
 			
 	(while this.engine.IsRunning
@@ -78,12 +84,12 @@
 			(TranslateMouseEvent ev this.activeScreen)
 		)
 		
+		(while (this.engine.GetNextKeyboardEvent key)
+			(TranslateKeyboardEvent key this.activeScreen)
+		)
+		
 		(yield 1000)
 	)
-)
-
-(interface RPG.IScreen (extends MHost.Graphics.IUIEventHandler)
-	(RenderGui (IGui g) ->)
 )
 
 (struct CommandButton
@@ -91,7 +97,7 @@
 	(IString text)
 )
 
-(interface RPG.IOpeningScreen (extends RPG.IScreen)
+(interface RPG.IOpeningScreen (extends MHost.IScreen)
 	(OnMenuSelect (MenuSelectArgs args)->)
 )
 
@@ -179,6 +185,13 @@
 )
 
 (method OpeningScreen.OnWheel (Int32 spin) -> :
+)
+
+(method OpeningScreen.OnAsciiChar (Int32 asciiValue)-> :
+	
+)
+
+(method OpeningScreen.OnSysKey (Bool isUp) (Int32 virtualKeyCode)-> :
 )
 
 (function Layout (OpeningScreen screen)(IGui g)-> :

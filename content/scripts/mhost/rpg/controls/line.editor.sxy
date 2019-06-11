@@ -1,0 +1,127 @@
+(using Sys)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.MPlat)
+(using Sys.Random)
+(using Sys.Type.Strings)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+
+(interface MHost.Graphics.ILineEditorControl (extends MHost.Graphics.IControl)
+	(SetRect (IString fontName) (Rectf outerRect)-> )
+	(SetText (IString text)-> )
+	(OnMouseUp (MouseClickArgs args) -> )
+	(OnAsciiChar (KeyboardCharArgs args)-> )
+	(OnVirtualKey (KeyboardVKeyArgs args)-> )
+	(SetHasFocus (BoolArgs args)->)
+)
+
+(class LineEditor (implements ILineEditorControl)
+	(implements IEventHandler)
+	(Rectf outerRect)
+	(Rectf innerRect)
+	(Int32 fontIndex)
+	(IStringBuilder text)
+	(IStringBuilder fontName)
+	(Bool hasFocus)
+)
+
+(method LineEditor.Construct (Int32 maxTextLength) -> : 
+	(this.outerRect = -1 -1 -1 -1)
+	(this.fontIndex = -1)
+	(this.text = (StringBuilder maxTextLength))
+	(this.fontName = (StringBuilder 64))
+	(this.hasFocus = false)
+	(#build this.fontName "Tahoma")
+)
+
+(method LineEditor.SetHasFocus (BoolArgs args)-> :
+	(this.hasFocus = args.value)
+)
+
+(method LineEditor.SetRect (IString fontName) (Rectf outerRect)-> :
+	(this.outerRect = outerRect)
+	(this.fontIndex = -1)
+	(this.fontName.Clear)
+	(#build this.fontName fontName)
+	
+	(Float32 dy = (this.outerRect.bottom - this.outerRect.top))
+	(Float32 x = (this.outerRect.left + (dy * 0.25)))
+	(Float32 x1 = (this.outerRect.right -  (dy * 0.25)))
+	(Float32 y0 = (this.outerRect.top + 2))
+	(Float32 y1 = (this.outerRect.bottom - 2))
+	
+	(this.innerRect = x y0 x1 y1)
+)
+
+(method LineEditor.GetRect (Rectf outerRect)-> :
+	(outerRect = this.outerRect)
+)
+
+(method LineEditor.SetText (IString text) -> :
+	(this.text.Clear)
+	(#build this.text text)
+)
+
+(method LineEditor.OnMouseUp (MouseClickArgs args) -> :
+	(PassEventHandlerArgs peh)
+	(if (not this.hasFocus)
+		(peh.sink = this)
+	)
+	(args.eventHandler.SetKeyboardFocus peh)
+)
+
+
+(method LineEditor.OnAsciiChar (KeyboardCharArgs args)-> :
+	(Int32 c = args.asciiValue)
+	(if (c == 0x8) // backspace
+		(Int32 length = this.text.Length)
+		(if (length > 0)
+			(length -= 1)
+			(this.text.SetLength length)
+		)
+	else 
+		(if ((c > 31) and (c < 127))
+			(this.text.AppendChar args.asciiValue)
+		else 
+			(if (c == 13)
+				(PassEventHandlerArgs peh)
+				(args.source.SetKeyboardFocus peh) // Should null the source keyboard sink
+			)
+		)
+	)
+)
+
+(method LineEditor.OnVirtualKey (KeyboardVKeyArgs args)-> :
+)
+
+(method LineEditor.Render (IGui g)-> :
+	(if (this.fontIndex < 0)
+		(Float32 dy = (this.outerRect.bottom - this.outerRect.top))
+		(GetLargestFontOfFamilyLessThanHeight g this.fontName dy -> this.fontIndex)
+	)
+	
+	(Int32 caretPos = this.text.Length)
+	
+	(if (this.hasFocus)
+		(g.DrawTextWithCaret this.innerRect (#AlignmentFlagsLeft) this.text this.fontIndex 0xFFFFFFFF this.outerRect caretPos)
+	else
+		(g.DrawClippedText this.innerRect (#AlignmentFlagsLeft) this.text this.fontIndex 0xFFFFFFFF this.outerRect)
+	)
+	
+	(Vec2 cursorPos)
+	(g.GetCursorPos cursorPos)
+	
+	(DrawStandardControlBorder g this.outerRect)
+)
+
+(method LineEditor.GetEventHandler -> (IEventHandler handler):
+	(handler = this)
+)
+
+(factory MHost.Graphics.NewLineEditor ILineEditorControl (Int32 maxTextLength): (construct LineEditor maxTextLength))

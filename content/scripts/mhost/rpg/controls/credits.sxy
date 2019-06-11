@@ -63,14 +63,6 @@
 	(this.outerRect.bottom = (screenSpan.y - dy))
 )
 
-(function ShrinkRectf (Rectf inputRect)(Rectf outputRect)(Float32 ds)-> :
-	(outputRect = inputRect)
-	(outputRect.left += ds)
-	(outputRect.top += ds)
-	(outputRect.right -= ds)
-	(outputRect.bottom -= ds)
-)
-
 (method Credits.Render (IGui gui)-> :
 	(Rectf innerRect)
 	(ShrinkRectf this.outerRect innerRect 4)

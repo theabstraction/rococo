@@ -1765,7 +1765,7 @@ namespace Anon
 		int index = Rococo::Script::GetIndexOfInterface(*srcType, interf0);
 		if (index == -1)
 		{
-			Throw(0, "The class %s does not implement terface %s", srcType->Name(), interf0.Name());
+			Throw(0, "The class %s does not implement interface %s", srcType->Name(), interf0.Name());
 		}
 
 		int offset = GetThisOffset();

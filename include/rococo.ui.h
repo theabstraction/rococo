@@ -24,6 +24,8 @@ namespace Rococo
 		uint16 Reserved;
 		uint16 VKey;
 		uint32 Message;
+		int32 extraInfo;
+		int32 unicode;
 
 		bool IsUp() const { return (Flags & 0x0001) != 0; }
 	};

@@ -60,6 +60,7 @@
 (struct Recti Sys.Maths.Recti Rococo.GuiRect)
 (struct KeyState MHost.OS.KeyState MHost.OS.KeyState)
 (struct MouseEvent MHost.OS.MouseEvent Rococo.MouseEvent)
+(struct KeyboardEvent MHost.OS.KeyboardEvent Rococo.MHostKeyboardEvent)
 (struct RGBA RGBA RGBA)
 (struct FontDesc MHost.Graphics.FontDesc MHost.Graphics.FontDesc)
 

@@ -20,6 +20,13 @@
 	(Sys.Maths.Vec2i cursorPos)
 )
 
+(struct KeyboardEvent 
+	(Int32 scancode)
+	(Int32 virtualKeyCode)
+	(Int32 asciiValue)
+	(Bool isUp)
+)
+
 (struct FontDesc
 	(Float32 ascent)
 	(Float32 height)
@@ -31,6 +38,7 @@
 (alias MatrixI32x4x4 MHost.MatrixI32x4x4)
 (alias KeyState MHost.OS.KeyState)
 (alias MouseEvent MHost.OS.MouseEvent)
+(alias KeyboardEvent MHost.OS.KeyboardEvent)
 
 (using MHost)
 

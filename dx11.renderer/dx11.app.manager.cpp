@@ -142,8 +142,9 @@ namespace ANON
 			window.Renderer().SwitchToWindowMode();
 		}
 
-		void OnKeyboardEvent(const RAWKEYBOARD& k)
+		void OnKeyboardEvent(const RAWKEYBOARD& k, HKL hKeyboardLayout)
 		{
+
 			app.OnKeyboardEvent((const KeyboardEvent&)k);
 		}
 
@@ -196,11 +197,9 @@ namespace ANON
 	{
 		AutoFree<IDirectApp> app;
 		IDX11GraphicsWindow& window;
-		OneReaderOneWriterCircleBuffer<RAWKEYBOARD> keyBuffer;
+		OneReaderOneWriterCircleBuffer<KeyboardEvent> keyBuffer;
 		OneReaderOneWriterCircleBuffer<MouseEvent> mouseBuffer;
 		HANDLE hInstanceLock;
-
-
 
 		DirectAppManager(Platform& platform, IDX11GraphicsWindow& _window, IDirectAppFactory& _factory) : 
 			window(_window),
@@ -215,10 +214,27 @@ namespace ANON
 			window.Renderer().SwitchToWindowMode();
 		}
 
-		void OnKeyboardEvent(const RAWKEYBOARD& k) override
+		static int32 VcodeToUnicode(int32 virtualKeyCode, int32 scancode, HKL layout)
 		{
+			BYTE keystate[256];
+			GetKeyboardState(keystate);
+
+			WCHAR buffer[4] = { 0,0,0,0 };
+			UINT flags = 0;
+			int charsRead = ToUnicodeEx(virtualKeyCode, scancode, keystate, buffer, 4, flags, layout);
+			return (charsRead == 1) ? buffer[0] : 0;
+		}
+
+		void OnKeyboardEvent(const RAWKEYBOARD& rawKey, HKL hKeyboardLayout) override
+		{
+			static_assert(sizeof(KeyboardEvent) == sizeof(RAWKEYBOARD) + sizeof(int32), "Bad Keyboard Event size");
+
+			KeyboardEvent ke;
+			((RAWKEYBOARD&)(ke)) = rawKey;
+			ke.unicode = VcodeToUnicode(ke.VKey, ke.scanCode, hKeyboardLayout);
+
 			auto* b = keyBuffer.GetBackSlot();
-			if (b) *b = k;
+			if (b) *b = ke;
 			keyBuffer.WriteBack();
 		}
 
@@ -241,7 +257,7 @@ namespace ANON
 
 		bool TryGetNextKeyboardEvent(KeyboardEvent& k) override
 		{
-			return keyBuffer.TryPopFront((RAWKEYBOARD&)k);
+			return keyBuffer.TryPopFront(k);
 		}
 
 		bool TryGetNextMouseEvent(MouseEvent& m) override

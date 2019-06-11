@@ -432,6 +432,24 @@ namespace
 		sb->Header.spec = (SPEC) value;
 	}
 
+	void StringBuilderAppendChar(NativeCallEnvironment& e)
+	{
+		CStringBuilder* sb = ReadStringBuilder(e, 0);
+
+		int32 asciiValue;
+		ReadInput(1, asciiValue, e);
+
+		if (asciiValue > 0)
+		{
+			char data[2];
+			data[0] = asciiValue;
+			data[1] = 0;
+			AppendString(*sb, data, 1);
+		}
+
+		WriteOutput(0, sb->Header.length, e);
+	}
+
 	void StringBuilderAppendInt32(NativeCallEnvironment& e)
 	{
 		

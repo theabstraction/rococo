@@ -153,7 +153,6 @@ namespace Rococo
    {
       virtual cstr GetAction(cstr keyName) = 0;
       virtual Key GetKeyFromEvent(const KeyboardEvent& ke) = 0;
-	  virtual char TryGetAscii(const KeyboardEvent& ke) const = 0;
       virtual void Free() = 0;
    };
 

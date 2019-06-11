@@ -1121,6 +1121,7 @@ namespace Rococo
 			AddNativeCall(sysNative, CreateStringBuilder, &stringBuilders, ("CreateStringBuilder (Int32 capacity) -> (Pointer sbHandle)"), false);
 			AddNativeCall(sysNative, FreeStringBuilder, &stringBuilders, ("FreeStringBuilder (Pointer sbHandle) ->"), false);
 			AddNativeCall(sysNative, StringBuilderAppendIString, &stringBuilders, ("StringBuilderAppendIString (Pointer buffer) (Pointer src) (Int32 srclength) -> (Int32 newLength)"), false);
+			AddNativeCall(sysNative, StringBuilderAppendChar, &stringBuilders, ("StringBuilderAppendChar (Pointer buffer) (Int32 asciiValue) -> (Int32 newLength)"), false);
 			AddNativeCall(sysNative, StringBuilderAppendInt32, &stringBuilders, ("StringBuilderAppendInt32 (Pointer buffer) (Int32 x) -> (Int32 newLength)"), false);
 			AddNativeCall(sysNative, StringBuilderAppendInt64, &stringBuilders, ("StringBuilderAppendInt64 (Pointer buffer) (Int64 x) -> (Int32 newLength)"), false);
 			AddNativeCall(sysNative, StringBuilderAppendFloat32, &stringBuilders, ("StringBuilderAppendFloat32 (Pointer buffer) (Float32 x) -> (Int32 newLength)"), false);

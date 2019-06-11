@@ -87,11 +87,8 @@ namespace Rococo
 	  };
 #pragma pack(pop)
 
-      void CALLTYPE_C OnJITRoutineNeedsCompiling_Protected(VariantValue* registers, IScriptSystem& ss)
+      void CALLTYPE_C OnJITRoutineNeedsCompiling_Protected(VariantValue* registers, IScriptSystem& ss, JITArgs* args)
       {
-		 registers[VM::REGISTER_SP].uint8PtrValue -= sizeof(JITArgs);
-		 auto* args = (JITArgs*)registers[VM::REGISTER_SP].uint8PtrValue;
-
          switch (args->type)
          {
          case JIT_TYPE_FUNCTION:
@@ -118,11 +115,13 @@ namespace Rococo
       void CALLTYPE_C OnJITRoutineNeedsCompiling(VariantValue* registers, void* context)
       {
          IScriptSystem& ss = *(IScriptSystem*)context;
-         ISExpression* s = (ISExpression*)registers[14].vPtrValue;
+		 registers[VM::REGISTER_SP].uint8PtrValue -= sizeof(JITArgs);
+		 auto* args = (JITArgs*)registers[VM::REGISTER_SP].uint8PtrValue;
+		 auto* s = args->s;
 
          try
          {
-            OnJITRoutineNeedsCompiling_Protected(registers, ss);
+            OnJITRoutineNeedsCompiling_Protected(registers, ss, args);
          }
          catch (ParseException& ex)
          {

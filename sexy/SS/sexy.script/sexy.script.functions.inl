@@ -1023,6 +1023,38 @@ namespace Rococo
 	      MemberDef instanceDef;
 	      ce.Builder.TryGetVariableByName(OUT instanceDef, instance);
 
+		  if (instanceDef.IsContained && IsNullType(*instanceDef.ResolvedType))
+		  {
+			  static int index = 0;
+			  char tempString[64];
+			  SafeFormat(tempString, sizeof(tempString), "_inlineStringArg%d", index++);
+
+			  AddVariable(ce, NameString::From(tempString), ce.Object.Common().TypePointer());
+
+			  UseStackFrameFor(ce.Builder, instanceDef);
+			  ce.Builder.AssignVariableToTemp(instance, 0); // This gives IString.VTable1 in D4
+			  RestoreStackFrameFor(ce.Builder, instanceDef);
+
+			  MemberDef tempDef;
+			  ce.Builder.TryGetVariableByName(OUT tempDef, tempString);
+
+			  // We create a weak reference in tempString
+			  ce.Builder.Assembler().Append_SetStackFrameValue(tempDef.SFOffset, VM::REGISTER_D4, BITCOUNT_POINTER);
+
+			  int offset = 0;
+			  const IMember* member = FindMember(*instanceDef.ResolvedType, item, OUT offset);
+			  if (member == nullptr)
+			  {
+				  Throw(0, "Cannot find %s of %s", item, instance);
+			  }
+
+			  offset -= ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0;
+
+			  BITCOUNT bitCount = GetBitCount(returnType);
+			  ce.Builder.Assembler().Append_GetStackFrameMember(VM::REGISTER_D7, tempDef.SFOffset, offset, bitCount);
+			  return;
+		  }
+
 	      if (instanceDef.location == VARLOCATION_TEMP && instanceDef.ResolvedType->Name()[0] == '_')
 	      {
 		      TokenBuffer fqItemName;
@@ -1033,11 +1065,9 @@ namespace Rococo
 
 		      BITCOUNT bitCount = GetBitCount(returnType);
 
-		      if (itemDef.IsParentValue)	{	ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
-
+			  UseStackFrameFor(ce.Builder, itemDef);
 			  ce.Builder.Assembler().Append_GetStackFrameMember(VM::REGISTER_D7, itemDef.SFOffset, itemDef.MemberOffset - interfaceToInstanceOffsetByRef, (BITCOUNT) (8 * itemDef.ResolvedType->SizeOfStruct()));
-			
-		      if (itemDef.IsParentValue)	{	ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6); }
+			  RestoreStackFrameFor(ce.Builder, itemDef);
 	      }
 	      else
 	      {

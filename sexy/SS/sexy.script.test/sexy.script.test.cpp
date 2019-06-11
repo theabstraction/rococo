@@ -5048,6 +5048,47 @@ namespace
 		validate(x == 3);
 	}
 
+	void TestStringBuilderLength1(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+			"(using Sys.Type)"
+
+			"(class Apple (defines Sys.IApple)(IStringBuilder sb))"
+			"(method Apple.Construct : "
+			"	(this.sb = (StringBuilder 64))"
+			"	(#build this.sb \"12345678!\")"
+			")"
+
+			"(method Apple.GetLength -> (Int32 length):"
+			"	(length = this.sb.Length)"
+			")"
+
+			"(factory Sys.NewApple Sys.IApple : (construct Apple))"
+
+			"(function Main -> (Int32 result):"
+			"	(Sys.IApple apple (Sys.NewApple))"
+			"	(apple.GetLength -> result)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 9);
+	}
+
 	void TestSubstitution(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -12867,6 +12908,7 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestStringBuilderLength1);
 		TEST2(TestCoroutine1);
 		TEST(TestDynamicDispatch);
 		TEST(TestPushSecondInterface);

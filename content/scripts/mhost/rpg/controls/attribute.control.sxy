@@ -1,0 +1,100 @@
+(using Sys)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.MPlat)
+(using Sys.Random)
+(using Sys.Type.Strings)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+(using RPG)
+
+(struct AttributeCell
+	(IString name)
+	(Int32 value)
+)
+
+(interface RPG.IAttributeControl (extends MHost.Graphics.IControl)
+	(SetRect (Rectf outerRect)-> )
+)
+
+(class AttributeControl (implements IAttributeControl)
+	(Rectf outerRect)
+	(array AttributeCell cells)
+	(Int32 fontIndex)
+	(IStringBuilder tempSB)
+)
+
+(method AttributeControl.Construct -> (construct cells 6): 
+	(this.outerRect = -1 -1 -1 -1)
+	
+	(AttributeCell strength = "Strength" 100)
+	(AttributeCell agi      = "Agility" 100)
+	(AttributeCell wellness = "Wellness" 100)
+	(AttributeCell psyche   = "Psyche" 100)
+	(AttributeCell ego      = "Ego" 100)
+	(AttributeCell maths 	= "Maths" 100)
+	
+	(this.cells.Push strength)
+	(this.cells.Push agi)
+	(this.cells.Push wellness)
+	(this.cells.Push psyche)
+	(this.cells.Push ego)
+	(this.cells.Push maths)
+	
+	(this.tempSB = (StringBuilder 64))
+	
+	(this.fontIndex = -1)
+)
+
+(method AttributeControl.SetRect (Rectf outerRect)-> :
+	(this.outerRect = outerRect)
+)
+
+(method AttributeControl.GetRect (Rectf outerRect)-> :
+	(outerRect = this.outerRect)
+)
+
+(method AttributeControl.Render (IGui g)-> :
+	(Float32 x0 = (this.outerRect.left + 16))
+	(Float32 x1 = (this.outerRect.right - 16))
+	(Float32 y = (this.outerRect.top + 4))
+	(Float32 y1 )
+	
+	(if (this.fontIndex == -1)
+		(GetLargestFontOfFamilyLessThanHeight g "Courier New" 30 -> this.fontIndex)
+	)
+	
+	(Float32 rectHeight = (this.outerRect.bottom - this.outerRect.top))
+	(Float32 dy = (rectHeight / 6))
+	
+	(Float32 xV = (x1 - 60))
+	
+	(foreach cell # this.cells
+		(y1 = (y + dy))
+		(Rectf nameRect = x0 y x1 y1)
+		(g.DrawClippedText nameRect (#AlignmentFlagsLeft) cell.name this.fontIndex 0xFFFFFFFF this.outerRect)
+		
+		(this.tempSB.Clear)
+		(#build this.tempSB cell.value)
+		(Rectf valueRect = xV y x1 y1)
+		(g.DrawClippedText valueRect (#AlignmentFlagsRight) this.tempSB this.fontIndex 0xFFFFFFFF this.outerRect)
+		(y += dy)
+	)
+	
+	(g.DrawBorder this.outerRect 1 0xFFFFFFFF 0xFFFFFFFF 0xFFFFFFFF 0xFFFFFFFF)
+)
+
+(method AttributeControl.GetEventHandler -> (IEventHandler handler):
+	
+)
+
+(factory RPG.NewAttributeControl IAttributeControl : (construct AttributeControl))
+
+(interface RPG.IAddCharacterScreen (extends MHost.IScreen)
+	(SetKeyboardFocus (PassEventHandlerArgs peh) -> )
+)

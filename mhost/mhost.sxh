@@ -36,6 +36,7 @@
 		(DrawSprite (const Vec2 pixelPos)(Int32 alignmentFlags)(const BitmapLocation loc))
 		(StretchSprite (const Rectf rect)(const BitmapLocation loc))
 		(DrawClippedText (const Rectf rect)(Int32 alignmentFlags)(IString text)(Int32 fontIndex)(RGBAb colour)(const Rectf clipRect))
+		(DrawTextWithCaret (const Rectf rect)(Int32 alignmentFlags)(IString text)(Int32 fontIndex)(RGBAb colour)(const Rectf clipRect)(Int32 caretPos))
 		(DrawText (const Rectf rect)(Int32 alignmentFlags)(IString text)(Int32 fontIndex)(RGBAb colour))
 		(EvalTextSpan (IString text)(Int32 fontIndex)(Vec2 pixelSpan))
 		(GetFontDescription (Int32 fontIndex)(IStringBuilder familyName)(FontDesc fd))
@@ -53,6 +54,7 @@
 	(methods
 		(PollKeyState (KeyState keys))
 		(GetNextMouseEvent (MouseEvent me)->(Bool wasPopped))
+		(GetNextKeyboardEvent(KeyboardEvent ke)->(Bool wasPopped))
 		(Render (GuiPopulator populator))
 		(IsRunning -> (Bool isRunning))
 		(Shutdown ->)
