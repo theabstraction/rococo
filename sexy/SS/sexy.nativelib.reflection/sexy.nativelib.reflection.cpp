@@ -14,6 +14,8 @@
 #include "sexy.lib.util.h"
 #include "sexy.native.sys.type.h"
 
+#include "../STC/stccore/Sexy.Compiler.h"
+
 #ifdef char_IS_WIDE
 # define UNICODE
 # define _UNICODE

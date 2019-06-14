@@ -581,42 +581,78 @@
 	(IExpression nullExpression = ' ())
 	
 	(IDropValueMenu physTraits1 (NewDropValueMenu 3))
-	(physTraits1.AddItem "Stout" nullExpression)
-	(physTraits1.AddItem "Slim" nullExpression)
-	(physTraits1.AddItem "Athletic" nullExpression)
+	
+	(IExpression sStout = '((+ Strength 1 d 10)(+ Psyche 1 d 10)))
+	(physTraits1.AddItem "Stout" sStout)
+	
+	(IExpression sSlim = '((+ Agility 1 d 10)(+ Wellness 2 d 10)))
+	(physTraits1.AddItem "Slim" sSlim)
+	
+	(IExpression sAthletic = '((+ Strength 3 d 10)(+ Wellness 1 d 10)))
+	(physTraits1.AddItem "Athletic" sAthletic)
+	
 	(physTraits1.SetUndefinedText "--Build--")	
 	(this.physTraits1 = physTraits1)
 	(this.uistack.AddTopLevelControl this.physTraits1 "phy_1")
 	
 	(IDropValueMenu physTraits2 (NewDropValueMenu 4))
-	(physTraits2.AddItem "Giant" nullExpression)
-	(physTraits2.AddItem "Tall" nullExpression)
-	(physTraits2.AddItem "Short" nullExpression)
-	(physTraits2.AddItem "Midget" nullExpression)
+	
+	(IExpression sGiant = '((+ Strength 5 d 10)))
+	(physTraits2.AddItem "Giant" sGiant)
+	
+	(IExpression sTall = '((+ Strength 4 d 10)))
+	(physTraits2.AddItem "Tall" sTall)
+	
+	(IExpression sShort = '((+ Agility 1 d 10)(+ Wellness 1 d 10)))
+	(physTraits2.AddItem "Short" sShort)
+	
+	(IExpression sMidget = '((+ Agility 2 d 10)))
+	(physTraits2.AddItem "Midget" sMidget)
 	(physTraits2.SetUndefinedText "--Stature--")
 	(this.physTraits2 = physTraits2)
 	(this.uistack.AddTopLevelControl this.physTraits2 "phy_2")
 	
 	(IDropValueMenu physTraits3 (NewDropValueMenu 7))
-	(physTraits3.AddItem "Bodybuilder" nullExpression)
-	(physTraits3.AddItem "Gymnast" nullExpression)
-	(physTraits3.AddItem "Pugilist" nullExpression)
-	(physTraits3.AddItem "Dancer" nullExpression)
-	(physTraits3.AddItem "Cerebral" nullExpression)
+	
+	(IExpression sBodyBuilder = ' ((+ Strength 5 d 100)(+ Strength 10 d 10)))
+	(physTraits3.AddItem "Bodybuilder" sBodyBuilder)
+	
+	(IExpression sGynmast = ' ((+ Strength 1 d 100)(+ Strength 4 d 10)(+ Agility 5 d 100)(+ Agility 10 d 10)(+ Wellness 10 d 10)))
+	(physTraits3.AddItem "Gymnast" sGynmast)
+	
+	(IExpression sPugilist = ' ((+ Strength 2 d 100)(+ Strength 4 d 10)(+ Agility 2 d 100)(+ Agility 10 d 10)(+ Wellness 20 d 10)))
+	(physTraits3.AddItem "Pugilist" sPugilist)
+	
+	(IExpression sDancer = ' ((+ Strength 1 d 50)(+ Strength 4 d 10)(+ Agility 3 d 100)(+ Agility 10 d 10)(+ Wellness 40 d 10)))
+	(physTraits3.AddItem "Dancer" sDancer)
+	
+	(IExpression sCerebral = ' ((+ Psyche 2 d 10)(+ Ego 2 d 10)(+ Maths 2 d 10)(+ Wellness 2 d 10)))
+	(physTraits3.AddItem "Cerebral" sCerebral)
+	
 	(physTraits3.SetUndefinedText "--Sports--")
 	(this.physTraits3 = physTraits3)
 	(this.uistack.AddTopLevelControl this.physTraits3 "phy_3")
 	
 	(IDropValueMenu mentalTraits1 (NewDropValueMenu 4))
-	(mentalTraits1.AddItem "Dominant" nullExpression)
-	(mentalTraits1.AddItem "Extrovert" nullExpression)
-	(mentalTraits1.AddItem "Introvert" nullExpression)
-	(mentalTraits1.AddItem "Independent" nullExpression)
+	
+	(IExpression sDominant = ' ((+ Psyche 2 d 10)(+ Ego 2 d 10)))
+	(mentalTraits1.AddItem "Dominant" sDominant)
+	
+	(IExpression sExtrovert = ' ((+ Psyche 2 d 10)(+ Wellness 2 d 10)))
+	(mentalTraits1.AddItem "Extrovert" sExtrovert)
+	
+	(IExpression sIntrovert = ' ((+ Ego 4 d 10)(+ Maths 2 d 10)))
+	(mentalTraits1.AddItem "Introvert" sIntrovert)
+	
+	(IExpression sIndependent = ' ((+ Psyche 1 d 10)(+ Ego 3 d 10)(+ Maths 1 d 10)))
+	(mentalTraits1.AddItem "Independent" sIndependent)
+	
 	(mentalTraits1.SetUndefinedText "--Persona--")
 	(this.mentalTraits1 = mentalTraits1)
 	(this.uistack.AddTopLevelControl this.mentalTraits1 "ment_1")
 	
 	(IDropValueMenu mentalTraits2 (NewDropValueMenu 4))
+	
 	(mentalTraits2.AddItem "Miser" nullExpression)
 	(mentalTraits2.AddItem "Charitable" nullExpression)
 	(mentalTraits2.AddItem "Greedy" nullExpression)
@@ -666,11 +702,20 @@
 	(this.uistack.AddTopLevelControl profession "profession")
 	
 	(IDropValueMenu hobby (NewDropValueMenu 8))
-	(hobby.AddItem "Engineer" nullExpression)
-	(hobby.AddItem "Linguist" nullExpression)
-	(hobby.AddItem "Labourer" nullExpression)
-	(hobby.AddItem "Diplomat" nullExpression)
-	(hobby.AddItem "Manager" nullExpression)
+	(IExpression sEngineer = ' ((+ Maths 2 d 10)(+ Ego 2 d 10)))
+	(hobby.AddItem "Engineer" sEngineer)
+	
+	(IExpression sLinguist = ' ((+ Maths 1 d 10)(+ Ego 2 d 10)(+ Psyche 2 d 10)))
+	(hobby.AddItem "Linguist" sLinguist)
+	
+	(IExpression sLabourer = ' ((+ Strength 3 d 10)(+ Agility 3 d 10)(+ Wellness 4 d 10)))
+	(hobby.AddItem "Labourer" sLabourer)
+	
+	(IExpression sDiplomat = ' ((+ Ego 3 d 10)(+ Psysche 1 d 10)))
+	(hobby.AddItem "Diplomat" sDiplomat)
+	
+	(IExpression sManager = ' ((+ Ego 1 d 10)(+ Psysche 3 d 10)))
+	(hobby.AddItem "Manager" sManager)
 	(hobby.SetUndefinedText "--Weekend Job--")
 	(this.hobby = hobby)
 	(this.uistack.AddTopLevelControl hobby "profession")
@@ -682,17 +727,98 @@
 	(this.uistack.AddTopLevelControl rollButton "roll")
 )
 
-(function ApplyModifiers (IAttributeControl control) (IExpression s)-> :
-	(Int32 nElements = s.ChildCount)
-	(if (nElements > 1)
-		(#for (Int32 i = 0)   (i < (nElements - 1))   (i += 1)
-			(IExpression child = (s i))
-			
-			(Int32 type = child.Type)
-			(if (type == (#ExpressionTypeAtomic))
-				(IString text = child.Text)
+(function IsAtomic (IExpression s)-> (Bool isSo):
+	(Int32 type = s.Type)
+	(isSo = (type == (#ExpressionTypeAtomic)))
+)
+
+(function AssertAtomic (IExpression s)-> :
+	(if (not (IsAtomic s))
+		(s.Throw 0 "Expecting an atomic expression")
+	)
+)
+
+(function IsCompound (IExpression s)-> (Bool isSo):
+	(Int32 type = s.Type)
+	(isSo = (type == (#ExpressionTypeCompound)))
+)
+
+(struct FindNextDirectiveArgs
+	(IExpression s)
+	(IString cmd)
+	(Int32 startIndex) 
+	(Int32 findIndex)
+)
+
+(function FindNextDirective (FindNextDirectiveArgs args) -> (IExpression directive):
+	(Int32 nElements = args.s.ChildCount)
+	(IExpression s = args.s)
+	
+	(IStringBuilder sb (StringBuilder 128))
+	(Int32 i = args.startIndex)
+	(while (i < nElements)
+		(IExpression c = (s i))
+		
+		(if (IsCompound c)
+			(IExpression sCmd = (c 0))
+			(if (IsAtomic sCmd)
+				(sb.Clear)
+				(sCmd.AppendTextTo sb)
+				(if (IsExactMatch sb args.cmd)
+					(directive = c)
+					(args.findIndex = i)
+					(return)
+				)
 			)
 		)
+		
+		(i += 1)
+	)
+	
+	(args.findIndex = -1)
+)
+
+/*  (+ Strength 3 d 6)
+*/
+
+(function AssertChildCount (IExpression s)(Int32 count)-> :
+	(if (count != s.ChildCount)
+		(IStringBuilder sb (StringBuilder 256))
+		(#build sb "AssertChildCount: Expecting " count " children")
+		(s.Throw 0 sb)
+	)
+)
+
+(function ExpressionToInt32 (IExpression s)->(Int32 value):
+	(IString text = s.Text)
+	(Bool isOK)
+	(Sys.Maths.I32.FromString text -> value isOK)
+	(if (not isOK)
+		(s.Throw 0 "Expecting integer")
+	)
+)
+
+(function ApplyAddDice (IAttributeControl control) (IExpression s)-> :
+	(AssertChildCount s 5)
+	(IExpression sstat = (s 1))
+	(IExpression sNDice = (s 2))
+	(IExpression sNSides = (s 4))
+	
+	(Int32 nDice = (ExpressionToInt32 sNDice))
+	(Int32 nSides = (ExpressionToInt32 sNSides))
+	(IString stat = sstat.Text)
+	
+	(control.AddValue stat (Sys.Random.RollDice nDice nSides))
+)
+
+(function ApplyModifiers (IAttributeControl control) (IExpression s)-> :
+	(FindNextDirectiveArgs args = s "+" 0 -1)
+	
+	(IExpression boost = (FindNextDirective args))
+	(while (args.findIndex != -1)
+		(ApplyAddDice control boost)
+		(args.startIndex = (args.findIndex + 1))
+		(boost = (FindNextDirective args))
 	)
 )
 

@@ -34,6 +34,10 @@
 #include "sexy.vm.stdafx.h"
 #include "sexy.vm.os.h"
 
+#include "../../Common/Sexy.S-Parser.h"
+
+#include <rococo.strings.h>
+
 #include <rococo.win32.target.win7.h>
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -68,6 +72,20 @@ namespace Rococo { namespace VM { namespace OS
 		try
 		{
 			return fnCode(context, arg);
+		}
+		catch (Rococo::Sex::ParseException& e)
+		{
+			auto start = e.Start();
+			auto end = e.End();
+
+			cstr sourceFile;
+			auto* s = e.Source();
+			sourceFile = (s != nullptr) ? s->Tree().Source().Name() : "<unknown>";
+	
+			char fullMessage[1024];
+			SafeFormat(fullMessage, 1024, "(%d.%d) to (%d.%d). Source: %s.\n%s", start.x, start.y, end.x, end.y, sourceFile, e.Message());
+			vm.Core().Log(fullMessage);
+			return EXECUTERESULT_THROWN;
 		}
 		catch (IException& ex)
 		{

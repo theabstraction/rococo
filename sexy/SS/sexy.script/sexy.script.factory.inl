@@ -37,7 +37,7 @@ namespace Rococo
    {
 	  int GetIndexOfInterface(const IStructure& concreteClass, const IInterface& interf);
 
-      const IFactory& GetFactoryInModuleByFQN(cr_sex factoryExpr, cstr ns, cstr shortName, IModule& module)
+      const IFactory* GetFactoryInModuleByFQN(cr_sex factoryExpr, cstr ns, cstr shortName, IModule& module, bool throwIfNotFound = false)
       {
          const INamespace* NS = module.Object().GetRootNamespace().FindSubspace(ns);
          if (NS == NULL)
@@ -48,17 +48,17 @@ namespace Rococo
          }
 
          const IFactory* factory = NS->FindFactory(shortName);
-         if (factory == NULL)
+         if (factory == NULL && throwIfNotFound)
          {
             sexstringstream<1024> streamer;
             streamer.sb << ("Cannot find the factory in the namespace: ") << shortName;
             Throw(factoryExpr, streamer);
          }
 
-         return *factory;
+         return factory;
       }
 
-      IFactory& GetFactoryInModuleByPrefix(cr_sex factoryExpr, IModuleBuilder& module)
+      IFactory* GetFactoryInModuleByPrefix(cr_sex factoryExpr, IModuleBuilder& module, bool throwOnNotFound = true)
       {
          IFactory* uniqueFactory = NULL;
          INamespace* NS = NULL;
@@ -81,17 +81,17 @@ namespace Rococo
             }
          }
 
-         if (uniqueFactory == NULL)
+         if (uniqueFactory == NULL && throwOnNotFound)
          {
             sexstringstream<1024> streamer;
             streamer.sb << ("Cannot find the factory in any namespace used by the module");
             Throw(factoryExpr, *streamer.sb);
          }
 
-         return *uniqueFactory;
+         return uniqueFactory;
       }
 
-      const IFactory& GetFactoryInModule(cr_sex factoryExpr, IModuleBuilder& module)
+      const IFactory* GetFactoryInModule(cr_sex factoryExpr, IModuleBuilder& module)
       {
          sexstring factoryName = factoryExpr.String();
          NamespaceSplitter splitter(factoryName->Buffer);
@@ -99,11 +99,11 @@ namespace Rococo
          cstr ns, shortName;
          if (splitter.SplitTail(OUT ns, OUT shortName))
          {
-            return GetFactoryInModuleByFQN(factoryExpr, ns, shortName, module);
+            return GetFactoryInModuleByFQN(factoryExpr, ns, shortName, module, false);
          }
          else
          {
-            return GetFactoryInModuleByPrefix(factoryExpr, module);
+            return GetFactoryInModuleByPrefix(factoryExpr, module, false);
          }
       }
 
@@ -203,11 +203,17 @@ namespace Rococo
 			 return false;
 		 }
 
-         const IFactory& factory = GetFactoryInModule(factoryNameExpr, GetModule(ce.Script));
-		 
-         CompileFactoryCall(ce, factory, targetName, factoryCall, targetStruct.GetInterface(0));
+         const IFactory* factory = GetFactoryInModule(factoryNameExpr, GetModule(ce.Script));
 
-         return true;
+		 if (factory)
+		 {
+			 CompileFactoryCall(ce, *factory, targetName, factoryCall, targetStruct.GetInterface(0));
+			 return true;
+		 }
+		 else
+		 {
+			 return false;
+		 }
       }
 
       void CompileConstructFromFactory(CCompileEnvironment& ce, const IStructure& nullType, cstr interfaceRefName, cr_sex args)
@@ -219,9 +225,13 @@ namespace Rococo
 		 AddInterfaceVariable(ce, NameString::From(interfaceRefName), nullType);
 
          cr_sex factoryExpr = GetAtomicArg(args, 0);
-         const IFactory& factory = GetFactoryInModule(factoryExpr, GetModule(ce.Script));
+         const IFactory* factory = GetFactoryInModule(factoryExpr, GetModule(ce.Script));
+		 if (factory == nullptr)
+		 {
+			 Throw(args, "Cannot identify factory");
+		 }
 
-         CompileFactoryCall(ce, factory, interfaceRefName, args, nullType.GetInterface(0));
+         CompileFactoryCall(ce, *factory, interfaceRefName, args, nullType.GetInterface(0));
       }
    }//Script
 }//Sexy

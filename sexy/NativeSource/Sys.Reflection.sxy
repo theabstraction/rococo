@@ -10,11 +10,12 @@
 	(attribute indexed IExpression Child ChildCount) // (s 1) calls (s.Child 1) and we can use foreach(i s in expression (...))
 
 	(Child (Int32 index) -> (IExpression child))
-	(Exists -> (Bool exists))
 	(Text -> (IString text))
+	(AppendTextTo (IStringBuilder sb)-> )
 	(ChildCount -> (Int32 count))
 	(Parent -> (IExpression parent))
 	(Handle -> (Pointer hExpr))	
+	(Throw (Int32 errorCode)(IString message)->)
 	(Type -> (Int32 type))
 )
 
@@ -83,7 +84,15 @@
 )
 
 (method Expression.Type -> (Int32 type) :
-	(Sys.Reflection.Native.GetExpressionType this.exprPtr -> text)
+	(Sys.Reflection.Native.GetExpressionType this.exprPtr -> type)
+)
+
+(method Expression.AppendTextTo (IStringBuilder sb) -> :
+	(Sys.Reflection.Native.ExpressionAppendTextTo this.exprPtr sb ->)
+)
+
+(method Expression.Throw (Int32 errorCode)(IString message) -> :
+	(Sys.Reflection.Native.ExpressionThrow this.exprPtr errorCode (message.Buffer) ->)
 )
 
 (interface Sys.Reflection.IScriptSystem

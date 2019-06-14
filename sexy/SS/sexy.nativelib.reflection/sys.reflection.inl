@@ -57,6 +57,56 @@ namespace
 		WriteString(sc, 0, e);
 	}
 
+	void NativeExpressionAppendTextTo(NativeCallEnvironment& e)
+	{
+		ISExpression* pExpression;
+		ReadInput(0, (void*&)pExpression, e);
+
+		auto type = pExpression->Type();
+		if (type != EXPRESSION_TYPE_ATOMIC && type != EXPRESSION_TYPE_STRING_LITERAL)
+		{
+			Throw(0, "IExpression.AppendTextTo failed. The expression was neither atomic nor a string literal");
+		}
+
+		InterfacePointer pStringBuilderVTable0;
+		ReadInput(1, pStringBuilderVTable0, e);
+
+		ObjectStub* object = InterfaceToInstance(pStringBuilderVTable0);
+		if (&object->Desc->TypeInfo->Module() != &e.ss.PublicProgramObject().GetModule(0))
+		{
+			Throw(0, "IExpression.AppendTextTo failed. The concrete StringBuilder has to be that from 'Sys.Type.Strings.sxy'");
+		}
+
+		CClassSysTypeStringBuilder* builder = (CClassSysTypeStringBuilder*)object;
+
+		StackStringBuilder sb(builder->buffer, builder->capacity, StringBuilder::BUILD_EXISTING);
+		sb << pExpression->String()->Buffer;
+		builder->length = sb.Length();
+	}
+
+	void NativeExpressionThrow(NativeCallEnvironment& e)
+	{
+		ISExpression* pExpression;
+		ReadInput(0, (void*&)pExpression, e);
+
+		int errorCode;
+		ReadInput(1, errorCode, e);
+
+		char* message;
+		ReadInput(2, message, e);
+
+		if (errorCode != 0)
+		{
+			char buf[1024];
+			SafeFormat(buf, sizeof(buf), "%d: %s", errorCode, message);
+			Throw(*pExpression, "%s", buf);
+		}
+		else
+		{
+			Throw(*pExpression, "%s", message);
+		}
+	}
+
 	void NativeGetExpressionType(NativeCallEnvironment& e)
 	{
 		ISExpression* pExpression;
@@ -343,8 +393,10 @@ namespace
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetChild, &ss, ("ExpressionGetChild (Pointer sPtr) (Int32 index) ->  (Sys.Reflection.IExpression child)"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetParent, &ss, ("ExpressionGetParent (Pointer sPtr) -> (Sys.Reflection.IExpression parent)"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionChildCount, &ss, ("ExpressionChildCount (Pointer sPtr) -> (Int32 count)"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionAppendTextTo, &ss, "ExpressionAppendTextTo  (Pointer sPtr) (Sys.Type.IStringBuilder sb)->)");
 		ss.AddNativeCall(sysReflectionNative, NativeGetExpressionText, &ss, ("GetExpressionText  (Pointer sPtr) -> (Sys.Type.IString name)"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeGetExpressionType, &ss, ("GetExpressionType  (Pointer sPtr) -> (Sys.Type.Int32 type)"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionThrow, &ss, ("ExpressionThrow  (Pointer sPtr)(Int32 errorCode)(Sys.Type.Pointer buffer) ->"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeGetScriptSystem, &ss, ("GetScriptSystem -> (Sys.Reflection.IScriptSystem ss)"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeModuleCount, &ss, ("ModuleCount -> (Int32 count)"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeGetModule, &ss, ("GetModule (Int32 index) -> (Sys.Reflection.IModule module)"), true);

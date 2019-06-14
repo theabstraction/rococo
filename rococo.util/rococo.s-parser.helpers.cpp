@@ -1421,6 +1421,21 @@ namespace Rococo
 				return result;
 			}
 		}
+		catch (ParseException& pex)
+		{
+			auto* s = pex.Source();
+			cstr sourceFile = "unknown source";
+			if (s != nullptr)
+			{
+				sourceFile = s->Tree().Source().Name();
+			}
+			debugger.SetCodeHilight(sourceFile, pex.Start(), pex.End(), pex.Message());
+			UpdateDebugger(ss, debugger, 0, true);
+			ss.PublicProgramObject().Log().Write(pex.Message());
+			if (s) Throw(*s, pex.Message());
+			else Throw(pex.ErrorCode(), "%s", pex.Message());
+			return EXECUTERESULT_THROWN;
+		}
 		catch (IException& ex)
 		{
 			UpdateDebugger(ss, debugger, 0, true);

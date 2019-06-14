@@ -5048,6 +5048,41 @@ namespace
 		validate(x == 3);
 	}
 
+	void TestExpressionAppendTo(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+			"	(IExpression s = ' (Hello \" \" world))"
+			"   (IStringBuilder sb (StringBuilder 64))"
+			"	(#for  (Int32 i = 0)   (i < s.ChildCount)  (i += 1)" 
+			"       (IExpression child = (s i))"
+			"		(child.AppendTextTo sb)"
+			"   )"
+			"   (Sys.Print sb -> result)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 11);
+	}
+
 	void TestStringBuilderLength1(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -12966,6 +13001,8 @@ namespace
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+
+		TEST(TestExpressionAppendTo);
 
 		TEST2(TestCoroutine1);
 

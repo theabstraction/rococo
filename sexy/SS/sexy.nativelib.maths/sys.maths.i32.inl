@@ -283,6 +283,28 @@ namespace
 		WriteOutput(value, _sf, -_offset);
 	}
 
+	void NativeSysMathsI32FromString(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		InterfacePointer pString;
+		_offset += sizeof(pString);
+		ReadInput(pString, _sf, -_offset);
+
+		ObjectStub* obj = Rococo::Compiler::InterfaceToInstance(pString);
+		CStringConstant* sc = (CStringConstant*)obj;
+
+		VariantValue val;
+		Rococo::Parse::PARSERESULT result = Rococo::Parse::TryParse(val, VARTYPE_Int32, sc->pointer);
+
+		boolean32 bSuccess = result == Parse::PARSERESULT_GOOD;
+		_offset += sizeof(bSuccess);
+		WriteOutput(bSuccess, _sf, -_offset);
+
+		int32 iValue = val.int32Value;
+		_offset += sizeof(iValue);
+		WriteOutput(iValue, _sf, -_offset);
+	}
 }
 
 namespace Sys { namespace Maths { namespace I32 { 
@@ -305,7 +327,7 @@ namespace Sys { namespace Maths { namespace I32 {
 		ss.AddNativeCall(ns, NativeSysMathsI32BitwiseNot, nullptr, ("BitwiseOr(Int32 x) -> (Int32 notX)"));
 		ss.AddNativeCall(ns, NativeSysMathsI32BitwiseXor, nullptr, ("BitwiseOr(Int32 x)(Int32 y) -> (Int32 result)"));
 		ss.AddNativeCall(ns, NativeSysMathsI32HasFlags, nullptr, ("HasFlags(Int32 flags)(Int32 flag) -> (Bool result)"));
-
+		ss.AddNativeCall(ns, NativeSysMathsI32FromString, nullptr, "FromString (IString text)->(Int32 value)(Bool isOk)");
 		ss.AddNativeCall(ns, NativeSysMathsAddVec2iVec2i, nullptr, ("AddVec2iVec2i(Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i sum)->"));
 		ss.AddNativeCall(ns, NativeSysMathsSubtractVec2iVec2i, nullptr, ("SubtractVec2iVec2i(Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i diff)->"));
 	}
