@@ -1,0 +1,16 @@
+(config "../sys.native.xc") 
+
+(interface
+	(as.sxy Sys.Reflection.IExpression "sys.reflection")
+	(as.cpp Sys.Reflection.IExpression "sys.reflection")
+	(context factory Rococo.Sex.ISExpression)
+	(methods
+		(Child (Int32 index) -> (IExpression child))
+		(ChildCount -> (Int32 count))
+		(Text -> (IString text))
+		(Parent -> (IExpression parent))
+		(Root -> (IExpression root))
+		(Type -> (Int32 type))
+		(Throw (Int32 errorCode)(IString message)->)
+	)
+ )

@@ -502,19 +502,6 @@ namespace Rococo
          return interfaceType;
       }
 
-      int GetInterfaceIndex(const IInterface& interf, const IStructure& classType)
-      {
-         for (int i = 0; i < classType.InterfaceCount(); ++i)
-         {
-            if (&classType.GetInterface(i) == &interf)
-            {
-               return i;
-            }
-         }
-
-         return 0;
-      }
-
       int GetInterfaceOffset(int index)
       {
          return sizeof(size_t) * (index + 1) + sizeof(size_t);

@@ -58,12 +58,9 @@ namespace
 
 		void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance) 
 		{
-			Write(exceptionType);
-			Write((": code "));
-
-			TokenBuffer txt;
-			StringPrint(txt, ("%s: code %d\n"), exceptionType, errorCode);
-			Write(message);
+			char text[256];
+			SafeFormat(text, sizeof(text), "%s: code %d\nMessage: %s\n", exceptionType, errorCode, message);
+			Write(text);
 		}
 
 		void OnJITCompileException(Sex::ParseException& ex)

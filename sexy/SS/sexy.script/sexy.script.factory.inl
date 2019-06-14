@@ -107,23 +107,39 @@ namespace Rococo
          }
       }
 
+	  void PushAddress(CCompileEnvironment& ce, const MemberDef& def)
+	  {
+		  if (def.location == VARLOCATION_TEMP)
+		  {
+			  UseStackFrameFor(ce.Builder, def);
+			  ce.Builder.Assembler().Append_PushStackFrameAddress(def.SFOffset + def.MemberOffset);
+			  RestoreStackFrameFor(ce.Builder, def);
+		  }
+		  else if (def.location == VARLOCATION_INPUT)
+		  {
+			  if (def.IsContained)
+			  {
+				  UseStackFrameFor(ce.Builder, def);
+				  ce.Builder.Assembler().Append_PushStackFrameMemberPtr(def.SFOffset, def.MemberOffset);
+				  RestoreStackFrameFor(ce.Builder, def);
+			  }
+			  else
+			  {
+				  Throw(0, "Not implemented");
+			  }
+		  }
+		  else
+		  {
+			  Throw(0, "Not implemented");
+		  }
+	  }
+
       void CompileFactoryCall(CCompileEnvironment& ce, const IFactory& factory, cstr interfaceRefName, cr_sex args, const IInterface& interf)
       {
          const IFunction& factoryFunction = factory.Constructor();
-         const IFunction* inlineConstructor = factory.InlineConstructor();
-         const IStructure* inlineClass = factory.InlineClass();
 
-		 if (inlineConstructor != NULL)
-		 {
-			 int interfaceIndex = GetIndexOfInterface(*inlineClass, interf);
-			 if (interfaceIndex < 0)
-			 {
-				 Throw(args, "%s does not support interface %s", inlineConstructor->Name(), interf.Name());
-			 }
-		 }
-
-		 MemberDef def;
-		 if (!ce.Builder.TryGetVariableByName(OUT def, interfaceRefName))
+		 MemberDef instancedef;
+		 if (!ce.Builder.TryGetVariableByName(OUT instancedef, interfaceRefName))
 		 {
 			 Throw(0, "Error, cannot find variable %s ", interfaceRefName);
 		 }
@@ -131,13 +147,17 @@ namespace Rococo
          CodeSection section;
          factoryFunction.Code().GetCodeSection(OUT section);
 
-         int explicitInputCount = ArgCount(factoryFunction);
+         int explicitInputCount = ArgCount(factoryFunction) - 1;
          int mapIndex = GetIndexOf(1, args, ("->"));
          if (mapIndex > 0) Throw(args, ("Mapping token are not allowed in constructor calls, which have no output"));
          if (args.NumberOfElements() - 1 < explicitInputCount) Throw(args, ("Too few arguments to factory call"));
          if (args.NumberOfElements() - 1 > explicitInputCount) Throw(args, ("Too many arguments to factory call"));
 
-         int inputStackAllocCount = PushInputs(ce, args, factoryFunction, false, 1);
+         int inputStackAllocCount = PushInputs(ce, args, factoryFunction, true, 1);
+
+		 AddArgVariable("instancePtr", ce, ce.Object.Common().TypePointer());
+
+		 PushAddress(ce, instancedef);
         
          ce.Builder.AddSymbol(factoryFunction.Name());
          ce.Builder.Assembler().Append_CallById(section.Id); // pointer to interface should now be in D4
@@ -145,8 +165,6 @@ namespace Rococo
          ce.Builder.MarkExpression(args.Parent());
 
          RepairStack(ce, *args.Parent(), factoryFunction);
-
-		 ce.Builder.AssignTempToVariable(0, interfaceRefName);
 
          ce.Builder.AssignClosureParentSFtoD6();
       }

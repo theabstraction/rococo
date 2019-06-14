@@ -57,6 +57,16 @@ namespace
 		WriteString(sc, 0, e);
 	}
 
+	void NativeGetExpressionType(NativeCallEnvironment& e)
+	{
+		ISExpression* pExpression;
+		ReadInput(0, (void*&)pExpression, e);
+
+		const EXPRESSION_TYPE type = pExpression->Type();
+
+		WriteOutput(0, type, e);
+	}
+
 	void NativeGetScriptSystem(NativeCallEnvironment& e)
 	{
 		CScriptSystemClass* instance = ((IScriptSystem&)e.ss).GetScriptSystemClass();
@@ -334,6 +344,7 @@ namespace
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetParent, &ss, ("ExpressionGetParent (Pointer sPtr) -> (Sys.Reflection.IExpression parent)"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionChildCount, &ss, ("ExpressionChildCount (Pointer sPtr) -> (Int32 count)"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeGetExpressionText, &ss, ("GetExpressionText  (Pointer sPtr) -> (Sys.Type.IString name)"), true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetExpressionType, &ss, ("GetExpressionType  (Pointer sPtr) -> (Sys.Type.Int32 type)"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeGetScriptSystem, &ss, ("GetScriptSystem -> (Sys.Reflection.IScriptSystem ss)"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeModuleCount, &ss, ("ModuleCount -> (Int32 count)"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeGetModule, &ss, ("GetModule (Int32 index) -> (Sys.Reflection.IModule module)"), true);
@@ -344,7 +355,7 @@ namespace
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddAtomic, &ss, ("ExpressionBuilderAddAtomic (Pointer builderPtr) (Pointer strBuffer) ->"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCompound, &ss, ("ExpressionBuilderAddCompound (Pointer builderPtr) -> (Sys.Reflection.IExpressionBuilder child)"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCopy, &ss, ("ExpressionBuilderAddCopy (Pointer builderPtr) (Pointer xpressPtr) ->"), true);
-      ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCopyToString, &ss, ("ExpressionBuilderAddCopyToString (Pointer builderPtr) (Pointer xpressPtr) ->"), true);
+        ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCopyToString, &ss, ("ExpressionBuilderAddCopyToString (Pointer builderPtr) (Pointer xpressPtr) ->"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderSubstitute, &ss, ("ExpressionBuilderSubstitute (Pointer builderPtr) (Pointer inputPtr) (Pointer formatPtr) -> (Int32 errorCount)"), true);
 	}
 }

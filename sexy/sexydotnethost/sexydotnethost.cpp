@@ -562,6 +562,8 @@ namespace SexyDotNet { namespace Host
 			delete i;
 		}
 
+		Sexy_CleanupGlobalResources();
+
 		ToDisassembler(disassemblerHandle)->Free();
 
 		ToSS(nativeHandle)->Free();

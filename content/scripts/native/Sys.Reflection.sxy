@@ -1,6 +1,11 @@
 (using Sys.Reflection)
 (using Sys.Type)
 
+(macro Sys.Reflection.ExpressionTypeNull     in out (out.AddAtomic "0x0"))
+(macro Sys.Reflection.ExpressionTypeString   in out (out.AddAtomic "0x1"))
+(macro Sys.Reflection.ExpressionTypeAtomic   in out (out.AddAtomic "0x2"))
+(macro Sys.Reflection.ExpressionTypeCompound in out (out.AddAtomic "0x3"))
+
 (interface Sys.Reflection.IExpression
 	(attribute indexed IExpression Child ChildCount) // (s 1) calls (s.Child 1) and we can use foreach(i s in expression (...))
 
@@ -10,6 +15,7 @@
 	(ChildCount -> (Int32 count))
 	(Parent -> (IExpression parent))
 	(Handle -> (Pointer hExpr))	
+	(Type -> (Int32 type))
 )
 
 (interface Sys.Reflection.IExpressionBuilder
@@ -74,6 +80,10 @@
 
 (method Expression.Text -> (IString text) :
 	(Sys.Reflection.Native.GetExpressionText this.exprPtr -> text)
+)
+
+(method Expression.Type -> (Int32 type) :
+	(Sys.Reflection.Native.GetExpressionType this.exprPtr -> text)
 )
 
 (interface Sys.Reflection.IScriptSystem

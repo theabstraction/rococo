@@ -244,6 +244,7 @@ namespace Anon
 		virtual void AssignPointer(const NameString& name, const void* ptr);
 		virtual void AssignVariableToVariable(cstr source, cstr value, bool isConstructingTarget);
 		virtual void AssignVariableToTemp(cstr source, int tempIndex, int offsetCorrection);
+		virtual void AssignVariableAddressToTemp(cstr sourceVariable, int tempDepth);
 		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset);
 		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def);
 		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def);
@@ -308,7 +309,7 @@ namespace Anon
 		virtual void AddArgVariable(cstr desc, const TypeString& typeName, void* userData);
 		virtual void AddArgVariable(cstr desc, const IStructure& type, void* userData);
 
-		virtual void AddDynamicAllocateObject(const IStructure& structType);
+		virtual void AddDynamicAllocateObject(const IStructure& structType, const IInterface& interface);
 
 		bool TryAssignClassInterfaceToInterface(cstr source, cstr target, const IStructure* srcType, const IStructure*trgType);
 	};
@@ -344,17 +345,31 @@ namespace Anon
 		}
 	}
 
-	void CodeBuilder::AddDynamicAllocateObject(const IStructure& structType)
+	void CodeBuilder::AddDynamicAllocateObject(const IStructure& structType, const IInterface& interface)
 	{
 		char sym[256];
-		SafeFormat(sym, sizeof(sym), "Allocator for %s", structType.Name());
-		AddSymbol(sym);
 
 		auto* binding = f.Object().AllocatorMap().GetAllocator(structType);
 
+		int index = Rococo::Script::GetIndexOfInterface(structType, interface);
+		if (index < 0) Throw(0, "%s does not support interface %s", structType, interface);
+
+		AssignVariableToTemp("_this", 0, 0); // Interface pointer variable is now in D4
+
 		VariantValue v;
-		v.vPtrValue = binding;
-		Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, v, BITCOUNT_POINTER);
+		v.ptrDiffValue = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + sizeof(size_t) * index;
+
+		SafeFormat(sym, sizeof(sym), "Instance offset for %s", structType.Name());
+		AddSymbol(sym);
+		Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, v, BITCOUNT_POINTER);
+	
+
+		SafeFormat(sym, sizeof(sym), "Allocator for %s", structType.Name());
+		AddSymbol(sym);
+
+		VariantValue varBinding;
+		varBinding.vPtrValue = binding;
+		Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, varBinding, BITCOUNT_POINTER);
 		Assembler().Append_Invoke(f.Object().GetCallbackIds().IdAllocate);
 	}
 
@@ -1959,6 +1974,7 @@ namespace Anon
 	void CodeBuilder::AssignTempToVariable(int srcIndex, cstr target)
 	{
 		if (target == nullptr || *target == 0) Rococo::Throw(0, "CodeBuilder::AssignTempToVariable: target was blank");
+
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, target))
 		{
@@ -1976,6 +1992,30 @@ namespace Anon
 		else
 		{
 			Assembler().Append_SetSFMemberByRefFromRegister(srcIndex + VM::REGISTER_D4, def.SFOffset, def.MemberOffset, bitCount);
+		}
+
+		RestoreStackFrameFor(*this, def);
+	}
+
+	void CodeBuilder::AssignVariableAddressToTemp(cstr sourceVariable, int tempDepth)
+	{
+		if (sourceVariable == nullptr || *sourceVariable == 0) Rococo::Throw(0, "CodeBuilder::AssignVariableAddressToTemp: sourceVariable was blank");
+
+		MemberDef def;
+		if (!TryGetVariableByName(OUT def, sourceVariable))
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Cannot find variable %s", sourceVariable);
+		}
+
+		UseStackFrameFor(*this, def);
+
+		if (def.location == VARLOCATION_OUTPUT || def.Usage != ARGUMENTUSAGE_BYREFERENCE)
+		{
+			Assembler().Append_GetStackFrameAddress(VM::REGISTER_D4 + tempDepth, def.SFOffset + def.MemberOffset);
+		}
+		else
+		{
+			Assembler().Append_GetStackFrameMemberPtr(tempDepth + VM::REGISTER_D4, def.SFOffset, def.MemberOffset);
 		}
 
 		RestoreStackFrameFor(*this, def);

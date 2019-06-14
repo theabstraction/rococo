@@ -4976,17 +4976,17 @@ namespace
 			"(factory Sys.NewPrintCats ICoroutine : (construct PrintCats))"
 
 			"(method PrintDogs.Run -> :"
-			" (Print \"Rover\")"
+			" (Print \"RobotDog\")"
 			" (yield)"
-			" (Print \"Spot\")"
+			" (Print \"ToyDog\")"
 			" (yield)"
-			" (Print \"Scottie\")"
+			" (Print \"BigDog\")"
 			")"
 
 			"(method PrintCats.Run -> :"
-			" (Print \"Fluffy\")"
+			" (Print \"FluffyCat\")"
 			" (yield 50)"
-			" (Print \"Cucumber\")"
+			" (Print \"MagicCat\")"
 			" (yield)"
 			" (Print \"Mooncat\")"
 			")"
@@ -6126,7 +6126,66 @@ namespace
 		validate(x == 6);
 	}
 
-	
+	void TestArrayPushOverflow(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(struct Haha (Float64 a b c d))"
+
+			"(function Main -> (Int32 result):"
+			"	(array Haha laughs 2)"
+			"	(Haha haha = 1 2 3 4)"
+			"	(laughs.Push haha)"
+			"	(laughs.Push haha)"
+			"	(laughs.Push haha)"
+			"	(result = laughs.Length)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },  __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_THROWN);
+		s_logger.Clear();
+	}
+
+	void TestThrowInConstructor(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+			"(using Sys)"
+
+			"(using Sys.Type)"
+
+			"(class Cat (defines Sys.ICat))"
+			"(method Cat.Construct : (Throw 0 \"Boo\"))"
+			"(factory Sys.NewCat Sys.ICat : (construct Cat))"
+
+			"(function Main -> (Int32 result):"
+			"	(Sys.ICat cat (Sys.NewCat))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_THROWN);
+		s_logger.Clear();
+	}
+
 	void TestArrayInt32_9(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = 
@@ -12908,8 +12967,10 @@ namespace
 	{
 		validate(true);
 
-		TEST(TestStringBuilderLength1);
 		TEST2(TestCoroutine1);
+
+		TEST(TestStringBuilderLength1);
+
 		TEST(TestDynamicDispatch);
 		TEST(TestPushSecondInterface);
 		TEST(TestMapValueInterface);
@@ -13213,6 +13274,8 @@ namespace
 
 	void RunPositiveFailures()
 	{
+		TEST(TestThrowInConstructor);
+		TEST(TestArrayPushOverflow);
 		TEST(TestMissingMethod);
 		TEST(TestDuplicateVariable);
 		TEST(TestDuplicateFunctionError);

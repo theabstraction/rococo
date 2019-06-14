@@ -12,7 +12,7 @@
 (alias AppendRandomAtomicFrom MHost.AppendRandomAtomicFrom)
 
 (function AppendRandomLetter (IStringBuilder sb) -> :
-	(IExpression letters = ' ( A B C D E F G H I J K L M N P R S T V W Y ))
+	(IExpression letters = ' ( A B C D E F G H I J K L M N P R S T V W Y )) // Q, O and Z not often found in names
 	(AppendRandomAtomicFrom letters sb)
 )
 

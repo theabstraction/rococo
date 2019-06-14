@@ -451,6 +451,7 @@ namespace
 			if (!CatchException(exceptionHandlers, ss))
 			{
 				WriteUnhandledException(ss, object);
+				po.DecrementRefCount((InterfacePointer)object);
 				po.VirtualMachine().Throw();
 			}
 			else

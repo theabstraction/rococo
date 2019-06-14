@@ -14,6 +14,91 @@
 (using Rococo.Audio)
 (using RPG)
 
+(interface MHost.Graphics.ILabelButton
+	(extends MHost.Graphics.IControl)
+	(SetRect (IString fontName) (Rectf rect)(IGui g) -> )
+	(OnMouseDown (MouseClickArgs args)-> )
+	(OnMouseUp (MouseClickArgs args)-> )
+	(SetLabel (IString label)-> )
+	(Enable ->)
+	(Disable ->)
+)
+
+(class LabelButton
+	(implements ILabelButton)
+	(implements IEventHandler)
+	(Rectf outerRect)
+	(Rectf innerRect)
+	(Bool isEnabled)
+	(IString text)
+	(Int32 fontIndex)
+)
+
+(method LabelButton.Construct :
+	(this.outerRect = -1 -1 -1 -1)
+	(this.innerRect = -1 -1 -1 -1)
+	(this.isEnabled = true)
+	(this.text = "button")
+	(this.fontIndex = -1)
+)
+
+(factory MHost.Graphics.NewLabelButton ILabelButton : (construct LabelButton))
+
+(method LabelButton.SetRect (IString fontName) (Rectf rect)(IGui g) -> :
+	(this.outerRect = rect)
+	
+	(Float32 dy = (this.outerRect.bottom - this.outerRect.top))
+	(Float32 x = (this.outerRect.left + (dy * 0.25)))
+	(Float32 x1 = (this.outerRect.right -  (dy * 0.25)))
+	(Float32 y0 = (this.outerRect.top + 2))
+	(Float32 y1 = (this.outerRect.bottom - 2))
+	
+	(this.innerRect = x y0 x1 y1)
+	
+	(GetLargestFontOfFamilyLessThanHeight g fontName dy -> this.fontIndex)
+)
+
+(struct ButtonClickArgs
+	(IString text)
+	(ILabelButton button)
+)
+
+(method LabelButton.OnMouseDown (MouseClickArgs args)-> :
+	(ButtonClickArgs buttonArgs = this.text this)
+	(args.eventHandler.OnButtonDown buttonArgs)
+)
+
+(method LabelButton.OnMouseUp (MouseClickArgs args)-> :
+	(ButtonClickArgs buttonArgs = this.text this)
+	(args.eventHandler.OnButtonUp buttonArgs)
+)
+
+(method LabelButton.SetLabel (IString text)-> :
+	(this.text = text)
+)
+
+(method LabelButton.Enable -> :
+	(this.isEnabled = true)
+)
+
+(method LabelButton.Disable -> :
+	(this.isEnabled = false)
+)
+
+(method LabelButton.GetRect (Rectf rect)-> :
+	(rect = this.outerRect)
+)
+
+(method LabelButton.GetEventHandler -> (IEventHandler handler):
+	(handler = this)
+)
+
+(method LabelButton.Render (IGui gui)-> :
+	(Int32 textColour = (GetTextColour this.outerRect gui))
+	(gui.DrawClippedText this.innerRect 0 this.text this.fontIndex textColour this.outerRect)
+	(DrawStandardControlBorder gui this.outerRect)
+)
+
 (interface MHost.Graphics.IToggleLabel
 	(extends MHost.Graphics.IControl)
 	(SetRect (IString fontName) (Rectf rect)(IGui g) -> )
@@ -153,12 +238,13 @@
 	(extends MHost.Graphics.IControl)
 	(AddItem (IString text)(IExpression value)->)
 	(SetLine (IString fontFamily)(Rectf rect)(IGui g)->)
-	(SetUndefined (IString text)->)
+	(SetUndefinedText (IString text)->)
 	(Select (Int32 index)-> )
 	(SetOverlay (IOverlayControl overlay)->)
 	(RenderOverlay (OverlayProxyArgs args)->)
 	(OnMouseUp (MouseClickArgs args)->)
 	(OnMouseUpInOverlay (MouseClickArgs args)->)
+	(GetValue -> (IExpression s))
 )
 
 (struct ValueCell
@@ -181,7 +267,7 @@
 	(IString undefinedText)
 )
 
-(method DropValueMenu.SetUndefined (IString text)-> :
+(method DropValueMenu.SetUndefinedText (IString text)-> :
 	(this.undefinedText = text)
 )
 
@@ -192,18 +278,29 @@
 (method DropValueMenu.SetOverlay (IOverlayControl overlay)-> :
 	(this.overlay = overlay)
 	(overlay.SetHost this)
-	(this.isActive = false)
+	(this.isActive = true)
 )
 
 (method DropValueMenu.Construct (Int32 maxItems) -> (construct items maxItems):
 	(this.outerRect = -1 -1 -1 -1)
 	(this.selection = -1)
 	(this.fontIndex = 0)
+	(this.isActive = false)
 )
 
-(method DropValueMenu.OnMouseUp (MouseClickArgs args)-> :
-	(if (args.button == 0)
-		(this.isActive = true)
+(struct ActivateOverlayArgs
+	(IDropValueMenu menu)
+)
+
+(method DropValueMenu.OnMouseUp (MouseClickArgs mouseClickArgs)-> :
+	(if (mouseClickArgs.button == 0)
+		(if (this.isActive)
+			(this.isActive = false)
+		else
+			(ActivateOverlayArgs aoArgs)
+			(aoArgs.menu = this)
+			(mouseClickArgs.eventHandler.ActivateOverlay aoArgs)
+		)
 	)
 )
 
@@ -319,6 +416,14 @@
 	)
 )
 
+(method DropValueMenu.GetValue -> (IExpression s):
+	(Int32 length = this.items.Length)
+	
+	(if ((this.selection < length) and (this.selection >= 0))
+		(s = (this.items this.selection value))
+	)
+)
+
 (method DropValueMenu.Render (IGui g)-> :
 	(DrawSelectedItem this g)
 	(DrawStandardControlBorder g this.outerRect)
@@ -330,6 +435,12 @@
 )
 
 (factory MHost.Graphics.NewDropValueMenu MHost.Graphics.IDropValueMenu (Int32 maxItems): (construct DropValueMenu maxItems))
+
+(interface RPG.IAddCharacterScreen (extends MHost.IScreen)
+	(SetKeyboardFocus (PassEventHandlerArgs peh) -> )
+	(ActivateOverlay (ActivateOverlayArgs args) -> )
+	(OnButtonUp (ButtonClickArgs args)-> )
+)
 
 (class AddCharacterScreen 
 	(implements RPG.IAddCharacterScreen)
@@ -355,6 +466,30 @@
 	(IDropValueMenu mentalTraits3)
 	(IDropValueMenu mentalTraits4)
 	(IDropValueMenu mentalTraits5)
+	(IDropValueMenu profession)
+	(IDropValueMenu hobby)
+	
+	(ILabelButton rollButton)
+)
+
+(archetype Sys.Reflection.CallbackWithExpression (IExpression expression) ->)
+
+(function ForDropMenuValue (IDropValueMenu menu) (CallbackWithExpression callback)-> :
+	(IExpression s = menu.GetValue)
+	(callback s)
+)
+
+(function ForEachSelectedDropMenuValue (AddCharacterScreen screen) (CallbackWithExpression callback)-> :
+	(ForDropMenuValue screen.physTraits1 callback)
+	(ForDropMenuValue screen.physTraits2 callback)
+	(ForDropMenuValue screen.physTraits3 callback)
+	(ForDropMenuValue screen.mentalTraits1 callback)
+	(ForDropMenuValue screen.mentalTraits2 callback)
+	(ForDropMenuValue screen.mentalTraits3 callback)
+	(ForDropMenuValue screen.mentalTraits4 callback)
+	(ForDropMenuValue screen.mentalTraits5 callback)
+	(ForDropMenuValue screen.profession callback)
+	(ForDropMenuValue screen.hobby callback) 
 )
 
 (method AddCharacterScreen.Construct (IEngine engine) -> : 
@@ -417,6 +552,10 @@
 			"either that or they 'work' in Law. Behind every great fortune lies a great fraud...")
 			silver: 200000))
 			
+	(IOverlayControl overlay (NewOverlay))
+	(this.dropOverlay = overlay)
+	(this.uistack.AddTopLevelFloater overlay "dropOverlay")
+			
 	(classEditor.AddItem "Untouchable" classDC)
 	(classEditor.AddItem "Lower Working Class" classLWC)
 	(classEditor.AddItem "Middle Working Class" classMWC)
@@ -424,17 +563,9 @@
 	(classEditor.AddItem "Lower Middle Class" classLMC)
 	(classEditor.AddItem "Upper Middle Class" classUMC)
 	(classEditor.AddItem "Lower Upper Class" classLUC)
-	
+	(classEditor.SetUndefinedText "--Social Class--")	
 	(this.classEditor = classEditor)
 	(this.uistack.AddTopLevelControl this.classEditor "class")
-	
-	(IOverlayControl overlay (NewOverlay))
-	(this.dropOverlay = overlay)
-	(this.uistack.AddTopLevelFloater overlay "dropOverlay")
-	
-	(classEditor.SetOverlay overlay)
-	
-	(classEditor.SetUndefined "--Social Class--")
 	
 	(IToggleLabel sexButton (NewToggleLabel 2))
 	
@@ -453,38 +584,46 @@
 	(physTraits1.AddItem "Stout" nullExpression)
 	(physTraits1.AddItem "Slim" nullExpression)
 	(physTraits1.AddItem "Athletic" nullExpression)
-	(physTraits1.SetUndefinedText "--Build--")
+	(physTraits1.SetUndefinedText "--Build--")	
+	(this.physTraits1 = physTraits1)
+	(this.uistack.AddTopLevelControl this.physTraits1 "phy_1")
 	
-	(IDropValueMenu physTraits2 (NewDropValueMenu 3))
+	(IDropValueMenu physTraits2 (NewDropValueMenu 4))
 	(physTraits2.AddItem "Giant" nullExpression)
 	(physTraits2.AddItem "Tall" nullExpression)
 	(physTraits2.AddItem "Short" nullExpression)
 	(physTraits2.AddItem "Midget" nullExpression)
 	(physTraits2.SetUndefinedText "--Stature--")
+	(this.physTraits2 = physTraits2)
+	(this.uistack.AddTopLevelControl this.physTraits2 "phy_2")
 	
 	(IDropValueMenu physTraits3 (NewDropValueMenu 7))
-	(physTraits3.AddItem "Bodybuilding" nullExpression)
-	(physTraits3.AddItem "Gymnastics" nullExpression)
-	(physTraits3.AddItem "Pugilism" nullExpression)
-	(physTraits3.AddItem "Climbing" nullExpression)
-	(physTraits3.AddItem "Ballet" nullExpression)
-	(physTraits3.AddItem "Couch Potato" nullExpression)
+	(physTraits3.AddItem "Bodybuilder" nullExpression)
+	(physTraits3.AddItem "Gymnast" nullExpression)
+	(physTraits3.AddItem "Pugilist" nullExpression)
+	(physTraits3.AddItem "Dancer" nullExpression)
+	(physTraits3.AddItem "Cerebral" nullExpression)
 	(physTraits3.SetUndefinedText "--Sports--")
+	(this.physTraits3 = physTraits3)
+	(this.uistack.AddTopLevelControl this.physTraits3 "phy_3")
 	
 	(IDropValueMenu mentalTraits1 (NewDropValueMenu 4))
 	(mentalTraits1.AddItem "Dominant" nullExpression)
 	(mentalTraits1.AddItem "Extrovert" nullExpression)
 	(mentalTraits1.AddItem "Introvert" nullExpression)
 	(mentalTraits1.AddItem "Independent" nullExpression)
-	(physTraits3.SetUndefinedText "--Persona--")
+	(mentalTraits1.SetUndefinedText "--Persona--")
+	(this.mentalTraits1 = mentalTraits1)
+	(this.uistack.AddTopLevelControl this.mentalTraits1 "ment_1")
 	
-	(IDropValueMenu mentalTraits2 (NewDropValueMenu 5))
+	(IDropValueMenu mentalTraits2 (NewDropValueMenu 4))
 	(mentalTraits2.AddItem "Miser" nullExpression)
 	(mentalTraits2.AddItem "Charitable" nullExpression)
 	(mentalTraits2.AddItem "Greedy" nullExpression)
 	(mentalTraits2.AddItem "Altruistic" nullExpression)
-	(mentalTraits2.AddItem "Cold" nullExpression)
-	(mentalTraits2.SetUndefinedText "--Ambition--")
+	(mentalTraits2.SetUndefinedText "--Sociability--")
+	(this.mentalTraits2 = mentalTraits2)
+	(this.uistack.AddTopLevelControl this.mentalTraits2 "ment_2")
 	
 	(IDropValueMenu mentalTraits3 (NewDropValueMenu 5))
 	(mentalTraits3.AddItem "Stubborn" nullExpression)
@@ -493,22 +632,88 @@
 	(mentalTraits3.AddItem "Cynical" nullExpression)
 	(mentalTraits3.AddItem "Contrarion" nullExpression)
 	(mentalTraits3.SetUndefinedText "--Disposition--")
+	(this.mentalTraits3 = mentalTraits3)
+	(this.uistack.AddTopLevelControl this.mentalTraits3 "ment_3")
 	
 	(IDropValueMenu mentalTraits4 (NewDropValueMenu 5))
-	(mentalTraits4.AddItem "Happiness" nullExpression)
-	(mentalTraits4.AddItem "Truth" nullExpression)
-	(mentalTraits4.AddItem "Wealth" nullExpression)
-	(mentalTraits4.AddItem "Power" nullExpression)
-	(mentalTraits4.AddItem "Fame" nullExpression)
-	(mentalTraits4.SetUndefinedText "--Priorities--")
+	(mentalTraits4.AddItem "Hedonist" nullExpression)
+	(mentalTraits4.AddItem "Egoist" nullExpression)
+	(mentalTraits4.AddItem "Gold-digger" nullExpression)
+	(mentalTraits4.AddItem "Snob" nullExpression)
+	(mentalTraits4.AddItem "Ostentatious" nullExpression)
+	(mentalTraits4.SetUndefinedText "--Vice--")
+	(this.mentalTraits4 = mentalTraits4)
+	(this.uistack.AddTopLevelControl this.mentalTraits4 "ment_4")
 	
 	(IDropValueMenu mentalTraits5 (NewDropValueMenu 5))
-	(mentalTraits5.AddItem "Rage" nullExpression)
-	(mentalTraits5.AddItem "Aggression" nullExpression)
-	(mentalTraits5.AddItem "Compassion" nullExpression)
-	(mentalTraits5.AddItem "Mellow" nullExpression)
+	(mentalTraits5.AddItem "Angry" nullExpression)
+	(mentalTraits5.AddItem "Compassionate" nullExpression)
+	(mentalTraits5.AddItem "Giddy" nullExpression)
+	(mentalTraits5.AddItem "Insouciant" nullExpression)
 	(mentalTraits5.AddItem "Serene" nullExpression)
 	(mentalTraits5.SetUndefinedText "--Attitude--")
+	(this.mentalTraits5 = mentalTraits5)
+	(this.uistack.AddTopLevelControl this.mentalTraits5 "ment_5")
+	
+	(IDropValueMenu profession (NewDropValueMenu 8))
+	(profession.AddItem "Soldier" nullExpression)
+	(profession.AddItem "Scout" nullExpression)
+	(profession.AddItem "Sniper" nullExpression)
+	(profession.AddItem "Monk" nullExpression)
+	(profession.AddItem "Tactician" nullExpression)
+	(profession.SetUndefinedText "--Role--")
+	(this.profession = profession)
+	(this.uistack.AddTopLevelControl profession "profession")
+	
+	(IDropValueMenu hobby (NewDropValueMenu 8))
+	(hobby.AddItem "Engineer" nullExpression)
+	(hobby.AddItem "Linguist" nullExpression)
+	(hobby.AddItem "Labourer" nullExpression)
+	(hobby.AddItem "Diplomat" nullExpression)
+	(hobby.AddItem "Manager" nullExpression)
+	(hobby.SetUndefinedText "--Weekend Job--")
+	(this.hobby = hobby)
+	(this.uistack.AddTopLevelControl hobby "profession")
+	
+	(ILabelButton rollButton (NewLabelButton))
+	(rollButton.SetLabel "Roll!")
+	(this.rollButton = rollButton)
+	
+	(this.uistack.AddTopLevelControl rollButton "roll")
+)
+
+(function ApplyModifiers (IAttributeControl control) (IExpression s)-> :
+	(Int32 nElements = s.ChildCount)
+	(if (nElements > 1)
+		(#for (Int32 i = 0)   (i < (nElements - 1))   (i += 1)
+			(IExpression child = (s i))
+			
+			(Int32 type = child.Type)
+			(if (type == (#ExpressionTypeAtomic))
+				(IString text = child.Text)
+			)
+		)
+	)
+)
+
+(method AddCharacterScreen.OnButtonUp (ButtonClickArgs args) -> :
+	(if (args.button == this.rollButton)
+		(this.attributeControl.SetAttributeByName "Strength" (RollDice 18 10))
+		(this.attributeControl.SetAttributeByName "Agility"  (RollDice 18 10))
+		(this.attributeControl.SetAttributeByName "Wellness" (RollDice 18 10))
+		(this.attributeControl.SetAttributeByName "Psyche"   (RollDice 18 10))
+		(this.attributeControl.SetAttributeByName "Ego"      (RollDice 18 10))
+		(this.attributeControl.SetAttributeByName "Maths"    (RollDice 18 10))
+		
+		(IAttributeControl ac = this.attributeControl)
+		
+		(CallbackWithExpression onValue =
+			(closure (IExpression s) -> :
+				(ApplyModifiers ac s)
+			)
+		)
+		(ForEachSelectedDropMenuValue this onValue)
+	)
 )
 
 (method AddCharacterScreen.SetKeyboardFocus (PassEventHandlerArgs args) -> :
@@ -539,6 +744,17 @@
 )
 
 (method AddCharacterScreen.OnMouseDown (Int32 button) (Float32 x)(Float32 y) -> :
+	(Vec2 pos = x y)
+	
+	(IEventHandler evHandler = this)
+		
+	(OnUIStackItem q = 
+		(closure (UIStackItem item)->(Bool terminate):
+			(MouseClickArgs args = pos evHandler button)
+			(item.handler.OnMouseDown args)
+		)
+	)
+	(this.uistack.RouteMouseEvent pos q)
 )
 
 (method AddCharacterScreen.OnMouseUp (Int32 button)(Float32 x)(Float32 y) -> :
@@ -571,35 +787,33 @@
 )
 
 (function Layout (AddCharacterScreen screen)(IGui g) -> :
-	(Rectf attributeRect = 10 10 250 310)
+	(Float32 dy = 8)
+	(Rectf attributeRect = 10 dy 250 310)
 	(screen.attributeControl.SetRect attributeRect)
 	
 	(Vec2 span)
 	(g.GetScreenSpan span)
 	
+	(Rectf rollRect)
+	(rollRect.left = attributeRect.left)
+	(rollRect.top = (attributeRect.bottom + dy))
+	(rollRect.right = (rollRect.left +  140))
+	(rollRect.bottom = (rollRect.top + 50))
+	(screen.rollButton.SetRect "Tahoma" rollRect g)
+	
 	(Rectf sexRect)
-	(sexRect.left = (attributeRect.right + 10))
+	(sexRect.left = (attributeRect.right + dy))
 	(sexRect.top = attributeRect.top)
 	(sexRect.right = (sexRect.left +  140))
 	(sexRect.bottom = (sexRect.top + 50))
-	
 	(screen.sexButton.SetRect "Tahoma" sexRect g)
 	
 	(Rectf nameRect)
-	(nameRect.left = (sexRect.right + 10))
+	(nameRect.left = (sexRect.right + dy))
 	(nameRect.top = attributeRect.top)
 	(nameRect.right = (span.x - 10))
 	(nameRect.bottom = (nameRect.top + 50))
-	
 	(screen.nameEditor.SetRect "Tahoma" nameRect)
-	
-	(Rectf classRect)
-	(classRect.left = nameRect.left)
-	(classRect.top = (nameRect.bottom + 20))
-	(classRect.right = (span.x - 350))
-	(classRect.bottom = (classRect.top + 50))
-	
-	(screen.classEditor.SetLine "Tahoma" classRect g)
 	
 	(Rectf overlayRect)
 	(overlayRect.left = (span.x - 355))
@@ -608,6 +822,83 @@
 	(overlayRect.bottom = (span.y - 5))
 	
 	(screen.dropOverlay.SetRect overlayRect)
+	
+	(Rectf professionRect)
+	(professionRect.left = nameRect.left )
+	(professionRect.top = (nameRect.bottom + dy))
+	(professionRect.right = (overlayRect.left + 4))
+	(professionRect.bottom = (professionRect.top + 50))
+	(screen.profession.SetLine "Tahoma" professionRect g)
+	
+	(Rectf hobbyRect)
+	(hobbyRect.left = nameRect.left )
+	(hobbyRect.top = (professionRect.bottom + dy))
+	(hobbyRect.right = professionRect.right)
+	(hobbyRect.bottom = (hobbyRect.top + 50))
+	(screen.hobby.SetLine "Tahoma" hobbyRect g)
+	
+	(Rectf classRect)
+	(classRect.left = hobbyRect.left)
+	(classRect.top = (hobbyRect.bottom + dy))
+	(classRect.right = hobbyRect.right)
+	(classRect.bottom = (classRect.top + 50))	
+	(screen.classEditor.SetLine "Tahoma" classRect g)
+	
+	(Rectf phys1Rect)
+	(phys1Rect.left = classRect.left)
+	(phys1Rect.top = (classRect.bottom + dy))
+	(phys1Rect.right = classRect.right)
+	(phys1Rect.bottom = (phys1Rect.top + 50))
+	(screen.physTraits1.SetLine "Tahoma" phys1Rect g)
+	
+	(Rectf phys2Rect)
+	(phys2Rect.left = phys1Rect.left)
+	(phys2Rect.top = (phys1Rect.bottom + dy))
+	(phys2Rect.right = phys1Rect.right)
+	(phys2Rect.bottom = (phys2Rect.top + 50))
+	(screen.physTraits2.SetLine "Tahoma" phys2Rect g)
+	
+	(Rectf phys3Rect)
+	(phys3Rect.left = phys2Rect.left)
+	(phys3Rect.top = (phys2Rect.bottom + dy))
+	(phys3Rect.right = phys2Rect.right)
+	(phys3Rect.bottom = (phys3Rect.top + 50))
+	(screen.physTraits3.SetLine "Tahoma" phys3Rect g)
+	
+	(Rectf mentalTraits1Rect)
+	(mentalTraits1Rect.left = phys3Rect.left)
+	(mentalTraits1Rect.top = (phys3Rect.bottom + dy))
+	(mentalTraits1Rect.right = phys3Rect.right)
+	(mentalTraits1Rect.bottom = (mentalTraits1Rect.top + 50))
+	(screen.mentalTraits1.SetLine "Tahoma" mentalTraits1Rect g)
+	
+	(Rectf mentalTraits2Rect)
+	(mentalTraits2Rect.left = mentalTraits1Rect.left)
+	(mentalTraits2Rect.top = (mentalTraits1Rect.bottom + dy))
+	(mentalTraits2Rect.right = mentalTraits1Rect.right)
+	(mentalTraits2Rect.bottom = (mentalTraits2Rect.top + 50))
+	(screen.mentalTraits2.SetLine "Tahoma" mentalTraits2Rect g)
+	
+	(Rectf mentalTraits3Rect)
+	(mentalTraits3Rect.left = mentalTraits2Rect.left)
+	(mentalTraits3Rect.top = (mentalTraits2Rect.bottom + dy))
+	(mentalTraits3Rect.right = mentalTraits2Rect.right)
+	(mentalTraits3Rect.bottom = (mentalTraits3Rect.top + 50))
+	(screen.mentalTraits3.SetLine "Tahoma" mentalTraits3Rect g)
+	
+	(Rectf mentalTraits4Rect)
+	(mentalTraits4Rect.left = mentalTraits3Rect.left)
+	(mentalTraits4Rect.top = (mentalTraits3Rect.bottom + dy))
+	(mentalTraits4Rect.right = mentalTraits3Rect.right)
+	(mentalTraits4Rect.bottom = (mentalTraits4Rect.top + 50))
+	(screen.mentalTraits4.SetLine "Tahoma" mentalTraits4Rect g)
+	
+	(Rectf mentalTraits5Rect)
+	(mentalTraits5Rect.left = mentalTraits4Rect.left)
+	(mentalTraits5Rect.top = (mentalTraits4Rect.bottom + dy))
+	(mentalTraits5Rect.right = mentalTraits4Rect.right)
+	(mentalTraits5Rect.bottom = (mentalTraits5Rect.top + 50))
+	(screen.mentalTraits5.SetLine "Tahoma" mentalTraits5Rect g)
 )
 
 (method AddCharacterScreen.RenderGui (IGui g) -> :
@@ -638,6 +929,10 @@
 	(g.DrawText toolTip align "right-click *here* to generate a random name" 5 0xFFC0C0C0)
 	
 	(RenderTree this.uistack g)
+)
+
+(method AddCharacterScreen.ActivateOverlay (ActivateOverlayArgs args)-> :
+	(args.menu.SetOverlay this.dropOverlay)
 )
 
 (factory RPG.NewAddCharacterScreen IScreen (IEngine engine) : 

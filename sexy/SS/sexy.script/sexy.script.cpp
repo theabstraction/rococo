@@ -1503,6 +1503,7 @@ extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystem* CreateScriptV_1_4_0_0
 	}
 }
 
+// TODO -> put this function in a sexy script system factory, and use factory deconstruct to clean up global resources
 extern "C" SCRIPTEXPORT_API void Sexy_CleanupGlobalResources()
 {
 	CScriptSystem::StaticCleanupGlobalSources();

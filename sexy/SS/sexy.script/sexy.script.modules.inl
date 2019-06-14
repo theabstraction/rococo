@@ -3691,6 +3691,8 @@ namespace Rococo { namespace Script
 			factoryFunction.AddInput(NameString::From(nameExpr.String()), TypeString::From(typeExpr.String()), NULL);
 		}
 
+		factoryFunction.AddInput(NameString::From("_this"), TypeString::From("Sys.Type.Pointer"), NULL);
+
 		factoryNS->RegisterFactory(shortName, factoryFunction, *interf, factoryInterfaceExpr.String());
 	}
 

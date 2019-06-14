@@ -20,6 +20,7 @@
 
 (interface RPG.IAttributeControl (extends MHost.Graphics.IControl)
 	(SetRect (Rectf outerRect)-> )
+	(SetAttributeByName (IString name)(Int32 value)->)
 )
 
 (class AttributeControl (implements IAttributeControl)
@@ -49,6 +50,21 @@
 	(this.tempSB = (StringBuilder 64))
 	
 	(this.fontIndex = -1)
+)
+
+(method AttributeControl.SetAttributeByName (IString name)(Int32 value) -> :
+	(foreach cell # this.cells
+		(if (IsExactMatch name cell.name)
+			(cell.value = value)
+			(return)
+		)
+	)
+	
+	(IStringBuilder sb (StringBuilder 512))
+	(#build sb 
+		"AttributeControl.SetAttributeByName: Could not find attribute named '" name "'&n"
+		"Known attributes: Strength, Agility, Wellness, Psyche, Ego, Maths")
+	(Sys.Throw 0 sb)
 )
 
 (method AttributeControl.SetRect (Rectf outerRect)-> :
@@ -95,6 +111,4 @@
 
 (factory RPG.NewAttributeControl IAttributeControl : (construct AttributeControl))
 
-(interface RPG.IAddCharacterScreen (extends MHost.IScreen)
-	(SetKeyboardFocus (PassEventHandlerArgs peh) -> )
-)
+

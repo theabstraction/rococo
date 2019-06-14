@@ -1205,7 +1205,7 @@ namespace Rococo
 			}
 		}	
 
-		int CompileThisToInstancePointerArg(CCompileEnvironment& ce, cr_sex s, cstr classInstance, const IInterface& interfaceRef)
+		int CompileThisToInstancePointerArg(CCompileEnvironment& ce, cr_sex s, cstr classInstance)
 		{
 			MemberDef refDef;
 			ce.Builder.TryGetVariableByName(OUT refDef, classInstance);
@@ -2145,16 +2145,16 @@ namespace Rococo
 		void CompileConstructInterfaceCall(CCompileEnvironment& ce, const IFunction& constructor, const IInterface& targetInterface, const IStructure& classType, cr_sex s)
 		{
 			// (construct class-name arg1 arg2 ... argN)
-
-			cstr instanceName = "instance";
-			AddVariableRef(ce, NameString::From(instanceName), classType);
-
+			// D4 contained InterfacePointer*, the effective output variable
 			// First allocate space for the concrete class and copy address to the instance ref
-			ce.Builder.AddDynamicAllocateObject(classType); 
+			ce.Builder.AddDynamicAllocateObject(classType, targetInterface);
 
-			MemberDef def;
-			ce.Builder.TryGetVariableByName(def, instanceName);
-			ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset, VM::REGISTER_D4, BITCOUNT_POINTER);
+			AddVariable(ce, NameString::From("_instance"), ce.Object.Common().TypePointer());
+
+			AssignTempToVariableRef(ce, 0, "_instance");
+
+			MemberDef instanceDef;
+			ce.Builder.TryGetVariableByName(instanceDef, "_instance");
 
 			int inputCount = constructor.NumberOfInputs() - 1;
 			int nRequiredElements = 2 + inputCount;
@@ -2165,21 +2165,19 @@ namespace Rococo
 			if (s.NumberOfElements() > nRequiredElements) Throw(s, ("Too many arguments to constructor call"));
 				
 			int inputStackAllocCount = PushInputs(ce, s, constructor, true, 2);	
-		
-			ce.Builder.AddSymbol(instanceName);
-			inputStackAllocCount += CompileThisToInstancePointerArg(ce, s, instanceName, targetInterface);
+			inputStackAllocCount += sizeof(size_t);
+
+			AddArgVariable("instance", ce, ce.Object.Common().TypePointer());
+
+			ce.Builder.Assembler().Append_PushStackVariable(instanceDef.SFOffset, BITCOUNT_POINTER);
 
 			AppendFunctionCallAssembly(ce, constructor);
 			RepairStack(ce, s, constructor);
 	
-			// 'construct' terminates a factory call and puts the interface pointer into D4
-			int interfaceIndex = GetInterfaceIndex(targetInterface, classType);
-			int interfaceOffset = GetInterfaceOffset(interfaceIndex);
-
-			ce.Builder.AssignVariableRefToTemp(instanceName, 0, interfaceOffset); // The instance ref is now in D4
-		
 			ce.Builder.AssignClosureParentSFtoD6();
 		}
+
+		int GetIndexOfInterface(const IStructure& concreteClass, const IInterface& interf);
 
 		void CompileConstructInterfaceCall(CCompileEnvironment& ce, cr_sex s)
 		{
@@ -2198,19 +2196,16 @@ namespace Rococo
 			const IInterface& thisInterf = ce.factory->ThisInterface();
 			const IFunction& constructor = GetConstructor(classType, classNameExpr);
 
-			for(int j = 0; j < classType.InterfaceCount(); j++)
-			{
-				for (auto* i = &classType.GetInterface(j); i != nullptr; i = i->Base())
-				{
-					if (i == &thisInterf)
-					{
-						CompileConstructInterfaceCall(REF ce, IN constructor, IN thisInterf, IN classType, IN s);
-						return;
-					}
-				}
-			}
+			int index = Rococo::Script::GetIndexOfInterface(classType, thisInterf);
 
-			Throw(s, ("The class does not implement the interface associated with the local variable"));
+			if (index >= 0)
+			{
+				CompileConstructInterfaceCall(REF ce, IN constructor, IN thisInterf, IN classType, IN s);
+			}
+			else
+			{
+				Throw(s, "The class does not implement the interface associated with the local variable");
+			}
 		}
 
 		void CompileInterfaceCast(CCompileEnvironment& ce, IStructure& toType, cr_sex toNameExpr, cr_sex fromNameExpr)

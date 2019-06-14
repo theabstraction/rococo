@@ -569,7 +569,6 @@ namespace Rococo
       bool IsAtomicMatch(cr_sex s, cstr value);
       bool TryCompileAsLateFactoryCall(CCompileEnvironment& ce, const MemberDef& targetDef, cr_sex directive);
       bool RequiresDestruction(const IStructure& s);
-      int GetInterfaceIndex(const IInterface& interf, const IStructure& classType);
       int GetInterfaceOffset(int index);
       const IStructure& GetClass(cr_sex classExpr, CScript& script);
       const IStructure& GetThisInterfaceRefDef(OUT MemberDef& def, ICodeBuilder& builder, cr_sex s);

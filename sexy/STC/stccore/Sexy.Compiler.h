@@ -326,13 +326,14 @@ namespace Rococo { namespace Compiler
 		/* AddDynamicAllocateObject -> takes sizeof(obj) in D4 (int32),
 		   returns pointer to object in D4 (vPtr)
 		*/
-		virtual void AddDynamicAllocateObject(const IStructure& structType) = 0;
+		virtual void AddDynamicAllocateObject(const IStructure& structType, const IInterface& interface) = 0;
 		virtual void AssignLiteral(const NameString& name, cstr literalValue) = 0;
 		virtual void AssignPointer(const NameString& name, const void* ptr) = 0;
 		virtual void AssignVariableToVariable(cstr source, cstr target, bool isConstructingTarget = false) = 0;
 		virtual void AssignVariableToTemp(cstr source, int tempIndex, int memberOffsetCorrection = 0) = 0;
 		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset = 0) = 0;
 		virtual void AssignTempToVariable(int srcIndex, cstr target) = 0;
+		virtual void AssignVariableAddressToTemp(cstr sourceVariable, int tempDepth) = 0;
 		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def) = 0;
 		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def) = 0;
 		virtual void AssignLiteralToGlobal(const GlobalValue& g, const VariantValue& value) = 0;

@@ -1,27 +1,43 @@
 (namespace EntryPoint)
  (alias Main EntryPoint.Main)
 
+(using Sys)
 (using Sys.Maths)
 (using Sys.Reflection)
-(using Sys.Type)
 
-(class Apple
-	(defines Sys.IApple)
-	(IStringBuilder sb)
+(class PrintDogs (implements ICoroutine))
+(method PrintDogs.Construct :)
+(factory Sys.NewPrintDogs ICoroutine : (construct PrintDogs))
+(class PrintCats (implements ICoroutine))
+(method PrintCats.Construct :)
+(factory Sys.NewPrintCats ICoroutine : (construct PrintCats))
+
+(method PrintDogs.Run -> :
+ (Print "RobotDog")
+ (yield)
+ (Print "ToyDog")
+ (yield)
+ (Print "BigDog")
 )
 
-(method Apple.Construct : 
-	(this.sb = (StringBuilder 64))
-	(#build this.sb "12345678!")
+(method PrintCats.Run -> :
+ (Print "FluffyCat")
+ (yield 50)
+ (Print "MagicCat")
+ (yield)
+ (Print "Mooncat")
 )
-
-(method Apple.GetLength -> (Int32 length):
-	(length = this.sb.Length)
-)
-
-(factory Sys.NewApple Sys.IApple : (construct Apple))
 
 (function Main -> (Int32 result):
-	(Sys.IApple apple (Sys.NewApple))
-	(apple.GetLength -> result)
+	(ICoroutine dogs (NewPrintDogs))
+	//(ICoroutine cats (NewPrintCats))
+	(ICoroutineControl coroutines (Coroutines))
+	(coroutines.Add dogs)
+//	(coroutines.Add cats)
+	(while (coroutines.Continue != 0))
+	(Sys.Print "yo!")
+//	(Int64 dogId = (coroutines.Add dogs))
+//	(coroutines.Add cats)
+//	(coroutines.Release dogId)
+//	(while (coroutines.Continue != 0))
 )

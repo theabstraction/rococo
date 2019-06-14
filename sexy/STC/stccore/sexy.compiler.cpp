@@ -123,6 +123,7 @@ namespace Anon
 		}
 	};
 
+	// D4 points to address that holds ObjectStub, i.e an ObjectStub**, and D5 points to Allocator binding
 	static void NewObject(VariantValue* registers, void* context)
 	{
 		auto* binding = (AllocatorBinding*)registers[VM::REGISTER_D5].vPtrValue;
@@ -136,6 +137,14 @@ namespace Anon
 		{
 			object->pVTables[i] = (VirtualTable*)type->GetVirtualTable(i + 1);
 		}
+
+		ptrdiff_t delta = registers[VM::REGISTER_D7].ptrDiffValue;
+
+		uint8* pObjectByByte = (uint8*) object;
+		auto pInterface = (InterfacePointer)(pObjectByByte + delta);
+
+		auto *pInterfaceVariable = (InterfacePointer*) (registers[VM::REGISTER_D4].uint8PtrValue);
+		*pInterfaceVariable = pInterface;
 
 		registers[VM::REGISTER_D4].vPtrValue = object;
 	};
