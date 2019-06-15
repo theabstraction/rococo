@@ -19,6 +19,10 @@
 	(OnAsciiChar (KeyboardCharArgs args)-> )
 	(OnVirtualKey (KeyboardVKeyArgs args)-> )
 	(SetHasFocus (BoolArgs args)->)
+	(Disable ->)
+	(Enable ->)
+	(DisableGlow ->)
+	(EnableGlow ->)
 )
 
 (class LineEditor (implements ILineEditorControl)
@@ -29,15 +33,32 @@
 	(IStringBuilder text)
 	(IStringBuilder fontName)
 	(Bool hasFocus)
+	(Bool isEnabled)
+	(Bool isGlowing)
+	(IEventHandler subscriber)
 )
 
-(method LineEditor.Construct (Int32 maxTextLength) -> : 
+(method LineEditor.DisableGlow -> : (this.isGlowing = false))
+(method LineEditor.EnableGlow -> : (this.isGlowing = true))
+
+(method LineEditor.Construct (Int32 maxTextLength)(IEventHandler subscriber) -> : 
 	(this.outerRect = -1 -1 -1 -1)
 	(this.fontIndex = -1)
 	(this.text = (StringBuilder maxTextLength))
 	(this.fontName = (StringBuilder 64))
 	(this.hasFocus = false)
+	(this.isEnabled = true)
+	(this.isGlowing = false)
 	(#build this.fontName "Tahoma")
+	(this.subscriber = subscriber)
+)
+
+(method LineEditor.Disable -> :
+	(this.isEnabled = false)
+)
+
+(method LineEditor.Enable -> :
+	(this.isEnabled = true)
 )
 
 (method LineEditor.SetHasFocus (BoolArgs args)-> :
@@ -63,19 +84,32 @@
 	(outerRect = this.outerRect)
 )
 
+(struct EditBufferChangedArgs
+	(IEventHandler bufferHost)
+	(IString text)
+)
+
+(alias EditBufferChangedArgs MHost.Graphics.EditBufferChangedArgs)
+
 (method LineEditor.SetText (IString text) -> :
 	(this.text.Clear)
 	(#build this.text text)
+	
+	(EditBufferChangedArgs args)
+	(args.bufferHost = this)
+	(args.text = text)
+	(this.subscriber.OnEditUpdated args)
 )
 
 (method LineEditor.OnMouseUp (MouseClickArgs args) -> :
-	(PassEventHandlerArgs peh)
-	(if (not this.hasFocus)
-		(peh.sink = this)
+	(if (this.isEnabled)
+		(PassEventHandlerArgs peh)
+		(if (not this.hasFocus)
+			(peh.sink = this)
+		)
+		(args.eventHandler.SetKeyboardFocus peh)
 	)
-	(args.eventHandler.SetKeyboardFocus peh)
 )
-
 
 (method LineEditor.OnAsciiChar (KeyboardCharArgs args)-> :
 	(Int32 c = args.asciiValue)
@@ -95,6 +129,13 @@
 			)
 		)
 	)
+	
+	(EditBufferChangedArgs args)
+	(args.bufferHost = this)
+	(IStringBuilder text = this.text)
+	(cast text -> IString stringRef)
+	(args.text = stringRef)
+	(this.subscriber.OnEditUpdated args)
 )
 
 (method LineEditor.OnVirtualKey (KeyboardVKeyArgs args)-> :
@@ -108,20 +149,24 @@
 	
 	(Int32 caretPos = this.text.Length)
 	
-	(if (this.hasFocus)
-		(g.DrawTextWithCaret this.innerRect (#AlignmentFlagsLeft) this.text this.fontIndex 0xFFFFFFFF this.outerRect caretPos)
+	(Int32 txColour = (GetTextColour this.outerRect g this.isEnabled))
+	
+	(if (this.hasFocus and this.isEnabled)
+		(g.DrawTextWithCaret this.innerRect (#AlignmentFlagsLeft) this.text this.fontIndex txColour this.outerRect caretPos)
 	else
-		(g.DrawClippedText this.innerRect (#AlignmentFlagsLeft) this.text this.fontIndex 0xFFFFFFFF this.outerRect)
+		(g.DrawClippedText this.innerRect (#AlignmentFlagsLeft) this.text this.fontIndex txColour this.outerRect)
 	)
 	
 	(Vec2 cursorPos)
 	(g.GetCursorPos cursorPos)
 	
-	(DrawStandardControlBorder g this.outerRect)
+	(DrawStandardControlBorder g this.outerRect this.isEnabled this.isGlowing)
 )
 
 (method LineEditor.GetEventHandler -> (IEventHandler handler):
 	(handler = this)
 )
 
-(factory MHost.Graphics.NewLineEditor ILineEditorControl (Int32 maxTextLength): (construct LineEditor maxTextLength))
+(factory MHost.Graphics.NewLineEditor ILineEditorControl (Int32 maxTextLength)(IEventHandler subscriber): 
+	(construct LineEditor maxTextLength subscriber)
+)

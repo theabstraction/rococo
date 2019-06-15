@@ -707,7 +707,7 @@ namespace Rococo
 			unicodeBuffer(CreateExpandingBuffer(64_kilobytes)),
 			installation(_installation),
 			allocator(Rococo::Memory::CreateBlockAllocator(1024, 0)),
-			parser(Sexy_CreateSexParser_2_0(*allocator, 128))
+			parser(Sexy_CreateSexParser_2_0(*allocator))
 		{
 		}
 

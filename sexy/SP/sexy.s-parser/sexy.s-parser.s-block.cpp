@@ -1045,7 +1045,7 @@ namespace Anon
 		size_t largestCommentSize = 0;
 		size_t largestStringSize = 0;
 		size_t maxStringSize; // Max bytes in a literal string before an exception is thrown
-		size_t maxAtomicSize; // Max bytes in a literal string before an exception is thrown
+		size_t maxAtomicSize; // Max bytes in an atomic string before an exception is thrown
 		size_t branchCount = 0; // Number of compound expression (branches)
 		size_t atomicCount = 0; // Number of atomic expressions 
 		size_t stringCount = 0; // Number of literal strings
@@ -1325,9 +1325,9 @@ namespace Anon
 
 			size_t nBytes = x.writePos - buffer;
 #ifdef _DEBUG
-			if (nBytes >= ce.maxAtomicSize)
+			if (nBytes >= ce.maxStringSize)
 			{
-				Throw(0, "Stack corruption SBlockAllocator::ParseString");
+				Throw(0, "SBlockAllocator::ParseString. String overflow. Max %d characters reached.\n'%64.64s...'", ce.maxStringSize, buffer);
 			}
 #endif
 

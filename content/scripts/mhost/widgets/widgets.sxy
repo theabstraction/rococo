@@ -99,17 +99,50 @@
 
 (alias UseDefaultColourScheme MHost.Graphics.UseDefaultColourScheme)
 
-(function DrawStandardControlBorder (IGui gui)(Rectf rect)-> :
+(function DrawStandardControlBorder (IGui gui)(Rectf rect)(Bool isEnabled)(Bool isGlowing)-> :
 	(Vec2 cursorPos)
 	(gui.GetCursorPos cursorPos)
-	(if (IsPointInRect cursorPos rect)
-		(gui.DrawBorder rect 1 0xFFC0C0C0 0xFFA0A0A0 0xFF808080 0xFF606060)
+	
+	(if (isGlowing)
+		(Int64 tickHz = (Sys.OS.ClockHz))
+		(Int64 tickCount = (Sys.OS.ClockTicks))
+		(Int64 ticksPerDelta = (tickHz / 145))
+		(Int64 t = (tickCount / ticksPerDelta))
+		(Int32 i = ((Sys.Maths.I64.ToInt32 (Sys.Maths.I64.Mod t 128)) + 127))
+		(Int32 colour = (Sys.Maths.I32.FromARGB 0xFF i i i))
+		
+		(gui.DrawBorder rect 2 colour colour colour colour)
 	else
-		(gui.DrawBorder rect 1 0xFFA0A0A0 0xFF808080 0xFF606060 0xFF404040)
+		(if (not isEnabled)
+			(gui.DrawBorder rect 1 0xFF101010 0xFF101010 0xFF101010 0xFF101010)
+		else
+			(if (IsPointInRect cursorPos rect)
+				(gui.DrawBorder rect 1 0xFFC0C0C0 0xFFA0A0A0 0xFF808080 0xFF606060)
+			else
+				(gui.DrawBorder rect 1 0xFFA0A0A0 0xFF808080 0xFF606060 0xFF404040)
+			)
+		)
 	)
 )
 
 (alias DrawStandardControlBorder MHost.Graphics.DrawStandardControlBorder)
+
+(function GetTextColour (Rectf rect)(IGui g)(Bool isEnabled)-> (Int32 colour):
+	(Vec2 cursorPos)
+	(g.GetCursorPos cursorPos)
+	
+	(if (not isEnabled)
+		(colour = 0xFF101010)
+	else 
+		(if (IsPointInRect cursorPos rect)
+			(colour = 0xFFFFFFFF)
+		else
+			(colour = 0xFFC0C0C0)
+		)
+	)
+)
+
+(alias GetTextColour MHost.GetTextColour)
 
 (interface MHost.Graphics.IWidgetContext
 	(attribute dispatch)

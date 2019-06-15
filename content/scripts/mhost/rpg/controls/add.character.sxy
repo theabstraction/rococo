@@ -14,6 +14,62 @@
 (using Rococo.Audio)
 (using RPG)
 
+(interface MHost.Graphics.ITooltip
+	(extends MHost.Graphics.IControl)
+	(SetRect (Rectf rect) -> )
+	(SetText (IString text)-> )
+	(SetTarget (IControl control)->)
+	(GetTarget -> (IControl control))
+)
+
+(class Tooltip
+	(implements ITooltip)
+	(Rectf outerRect)
+	(Rectf innerRect)
+	(IString text)
+	(Int32 fontIndex)
+	(IControl target)
+)
+
+(method Tooltip.Construct :
+	(this.outerRect = -1 -1 -1 -1)
+	(this.innerRect = -1 -1 -1 -1)
+	(this.text = "--undefined--")
+	(this.fontIndex = -1)
+)
+
+(method Tooltip.SetTarget (IControl control)-> :
+	(this.target = control)
+)
+
+(method Tooltip.GetTarget -> (IControl control) :
+	(control = this.target)
+)
+
+(factory MHost.NewToolTip MHost.Graphics.ITooltip : (construct Tooltip))
+
+(method Tooltip.GetRect (Rectf rect) -> :
+	(rect = this.outerRect)
+)
+
+(method Tooltip.SetRect (Rectf newRect) -> :
+	(this.outerRect = newRect)
+	(this.innerRect = newRect)
+	(ShrinkRectf this.outerRect this.innerRect 4)
+	(this.fontIndex = 4)
+)
+
+(method Tooltip.SetText (IString text) -> :
+	(this.text = text)
+)
+
+(method Tooltip.GetEventHandler -> (IEventHandler handler) : )
+
+(method Tooltip.Render (IGui g)-> :
+	(g.DrawLeftAligned this.innerRect this.text this.fontIndex 0xFFFFFFFF 20 100)
+	(DrawStandardControlBorder g this.outerRect true false)
+)
+
 (interface MHost.Graphics.ILabelButton
 	(extends MHost.Graphics.IControl)
 	(SetRect (IString fontName) (Rectf rect)(IGui g) -> )
@@ -94,9 +150,9 @@
 )
 
 (method LabelButton.Render (IGui gui)-> :
-	(Int32 textColour = (GetTextColour this.outerRect gui))
+	(Int32 textColour = (GetTextColour this.outerRect gui true))
 	(gui.DrawClippedText this.innerRect 0 this.text this.fontIndex textColour this.outerRect)
-	(DrawStandardControlBorder gui this.outerRect)
+	(DrawStandardControlBorder gui this.outerRect this.isEnabled false)
 )
 
 (interface MHost.Graphics.IToggleLabel
@@ -105,6 +161,9 @@
 	(OnMouseUp (MouseClickArgs args)-> )
 	(SetUndefinedText (IString text)-> )
 	(AddItem (IString text)(IExpression s)-> )
+	(GetSelectedValue -> (IExpression s))
+	(DisableGlow ->)
+	(EnableGlow ->)
 )
 
 (class ToggleLabel
@@ -116,12 +175,24 @@
 	(Int32 selection)
 	(IString undefinedText)
 	(Int32 fontIndex)
+	(Bool glowing)
 )
+
+(method ToggleLabel.GetSelectedValue -> (IExpression s) :
+	(Int32 nItems = (this.items.Length))
+	(if ((this.selection >= 0) and (this.selection < nItems))
+		(s = (this.items this.selection value))
+	)
+)
+
+(method ToggleLabel.DisableGlow -> : (this.glowing = false))
+(method ToggleLabel.EnableGlow -> : (this.glowing = true))
 
 (method ToggleLabel.Construct (Int32 nItems)->(construct items nItems):
 	(this.outerRect = -1 -1 -1 -1)
 	(this.selection = -1)
 	(this.innerRect = -1 -1 -1 -1)
+	(this.glowing = false)
 )
 
 (method ToggleLabel.GetRect (Rectf rect)-> :
@@ -147,6 +218,9 @@
 		(this.selection += 1)
 		(Int32 length = this.items.Length)
 		(this.selection = (Sys.Maths.I32.Mod this.selection length))
+		(PassEventHandlerArgs pehArgs)
+		(pehArgs.sink = this)
+		(args.eventHandler.OnToggled pehArgs)
 	)
 )
 
@@ -164,10 +238,10 @@
 		(text = this.undefinedText)
 	)
 	
-	(Int32 textColour = (GetTextColour this.outerRect gui))
+	(Int32 textColour = (GetTextColour this.outerRect gui true))
 	(gui.DrawClippedText this.innerRect (#AlignmentFlagsLeft) text this.fontIndex textColour this.outerRect)
 	
-	(DrawStandardControlBorder gui this.outerRect)
+	(DrawStandardControlBorder gui this.outerRect true this.glowing)
 )
 
 (method ToggleLabel.AddItem (IString text)(IExpression s)-> :
@@ -234,6 +308,10 @@
 
 (factory MHost.Graphics.NewOverlay MHost.Graphics.IOverlayControl : (construct Overlay))
 
+(struct SelectionChangedArgs
+	(IEventHandler control)
+)
+
 (interface MHost.Graphics.IDropValueMenu
 	(extends MHost.Graphics.IControl)
 	(AddItem (IString text)(IExpression value)->)
@@ -245,6 +323,10 @@
 	(OnMouseUp (MouseClickArgs args)->)
 	(OnMouseUpInOverlay (MouseClickArgs args)->)
 	(GetValue -> (IExpression s))
+	(Enable -> )
+	(Disable -> )
+	(DisableGlow ->)
+	(EnableGlow ->)
 )
 
 (struct ValueCell
@@ -265,7 +347,13 @@
 	(FontDesc fontDesc)
 	(Bool isActive)
 	(IString undefinedText)
+	(Bool isEnabled)
+	(Bool isGlowing)
+	(IEventHandler subscriber)
 )
+
+(method DropValueMenu.DisableGlow -> : (this.isGlowing = false))
+(method DropValueMenu.EnableGlow -> : (this.isGlowing = true))
 
 (method DropValueMenu.SetUndefinedText (IString text)-> :
 	(this.undefinedText = text)
@@ -281,11 +369,22 @@
 	(this.isActive = true)
 )
 
-(method DropValueMenu.Construct (Int32 maxItems) -> (construct items maxItems):
+(method DropValueMenu.Construct (Int32 maxItems) (IEventHandler subscriber)-> (construct items maxItems):
 	(this.outerRect = -1 -1 -1 -1)
 	(this.selection = -1)
 	(this.fontIndex = 0)
 	(this.isActive = false)
+	(this.isEnabled = true)
+	(this.isGlowing = false)
+	(this.subscriber = subscriber)
+)
+
+(method DropValueMenu.Disable -> :
+	(this.isEnabled = false)
+)
+
+(method DropValueMenu.Enable -> :
+	(this.isEnabled = true)
 )
 
 (struct ActivateOverlayArgs
@@ -293,29 +392,20 @@
 )
 
 (method DropValueMenu.OnMouseUp (MouseClickArgs mouseClickArgs)-> :
-	(if (mouseClickArgs.button == 0)
-		(if (this.isActive)
-			(this.isActive = false)
-		else
-			(ActivateOverlayArgs aoArgs)
-			(aoArgs.menu = this)
-			(mouseClickArgs.eventHandler.ActivateOverlay aoArgs)
+	(if (this.isEnabled)
+		(if (mouseClickArgs.button == 0)
+			(if (this.isActive)
+				(this.isActive = false)
+			else
+				(ActivateOverlayArgs aoArgs)
+				(aoArgs.menu = this)
+				(mouseClickArgs.eventHandler.ActivateOverlay aoArgs)
+			)
 		)
 	)
 )
 
-(function GetTextColour (Rectf rect)(IGui g)-> (Int32 colour):
-	(Vec2 cursorPos)
-	(g.GetCursorPos cursorPos)
-	
-	(if (IsPointInRect cursorPos rect)
-		(colour = 0xFFFFFFFF)
-	else
-		(colour = 0xFFC0C0C0)
-	)
-)
-
-(function DrawSelectedItem (DropValueMenu menu)(IGui g)-> :
+(function DrawSelectedItem (DropValueMenu menu)(IGui g)(Bool isEnabled)-> :
 	(Int32 length = menu.items.Length)
 	
 	(IString text)
@@ -325,7 +415,7 @@
 		(text = menu.undefinedText)
 	)
 	
-	(Int32 textColour = (GetTextColour menu.outerRect g))
+	(Int32 textColour = (GetTextColour menu.outerRect g menu.isEnabled))
 	
 	(g.DrawClippedText menu.textRect (#AlignmentFlagsLeft) text menu.fontIndex textColour menu.outerRect)
 )
@@ -333,15 +423,15 @@
 (method DropValueMenu.RenderOverlay (OverlayProxyArgs args)-> :
 	(if (this.isActive)
 		(args.g.FillRect args.rect 0xFF000030)
-		(DrawStandardControlBorder args.g args.rect)
+		(DrawStandardControlBorder args.g args.rect this.isEnabled this.isGlowing)
 		
 		(args.g.FillRect this.innerRect 0xFF000030)
-		(DrawSelectedItem this args.g)
+		(DrawSelectedItem this args.g this.isEnabled)
 	
 		(Rectf overlayInnerRect)
 		(ShrinkRectf args.rect overlayInnerRect 8)
 		
-		(DrawStandardControlBorder args.g overlayInnerRect)
+		(DrawStandardControlBorder args.g overlayInnerRect this.isEnabled false)
 		
 		(Float32 y = overlayInnerRect.top)
 		
@@ -355,7 +445,7 @@
 			(itemRect.bottom = y1)
 			(y = y1)
 			
-			(Int32 textColour = (GetTextColour itemRect args.g))
+			(Int32 textColour = (GetTextColour itemRect args.g this.isEnabled))
 			(args.g.DrawClippedText itemRect (#AlignmentFlagsLeft) item.text this.fontIndex textColour itemRect)
 		)
 	)
@@ -411,6 +501,10 @@
 		(if (IsPointInRect args.pos itemRect)
 			(this.selection = i)
 			(this.isActive = false)
+			
+			(SelectionChangedArgs oscArgs)
+			(oscArgs.control = this)
+			(this.subscriber.OnSelectionChanged oscArgs)
 			(break)
 		)
 	)
@@ -425,8 +519,8 @@
 )
 
 (method DropValueMenu.Render (IGui g)-> :
-	(DrawSelectedItem this g)
-	(DrawStandardControlBorder g this.outerRect)
+	(DrawSelectedItem this g this.isEnabled)
+	(DrawStandardControlBorder g this.outerRect this.isEnabled this.isGlowing)
 )
 
 (method DropValueMenu.AddItem (IString text)(IExpression value)-> :
@@ -434,12 +528,17 @@
 	(this.items.Push item)
 )
 
-(factory MHost.Graphics.NewDropValueMenu MHost.Graphics.IDropValueMenu (Int32 maxItems): (construct DropValueMenu maxItems))
+(factory MHost.Graphics.NewDropValueMenu MHost.Graphics.IDropValueMenu (Int32 maxItems)(IEventHandler subscriber):
+	(construct DropValueMenu maxItems subscriber)
+)
 
 (interface RPG.IAddCharacterScreen (extends MHost.IScreen)
 	(SetKeyboardFocus (PassEventHandlerArgs peh) -> )
 	(ActivateOverlay (ActivateOverlayArgs args) -> )
 	(OnButtonUp (ButtonClickArgs args)-> )
+	(OnToggled (PassEventHandlerArgs args)->)
+	(OnEditUpdated (EditBufferChangedArgs args)->)
+	(OnSelectionChanged (SelectionChangedArgs args)->)
 )
 
 (class AddCharacterScreen 
@@ -453,11 +552,11 @@
 	(Vec2 cursorPos)
 	
 	(IAttributeControl attributeControl)
-	(ILineEditorControl nameEditor)
-	(IDropValueMenu classEditor)
 	(IEventHandler keyboardSink)
 	(IOverlayControl dropOverlay)
 	(IToggleLabel sexButton)
+	(ILineEditorControl nameEditor)
+	(IDropValueMenu classEditor)
 	(IDropValueMenu physTraits1)
 	(IDropValueMenu physTraits2)
 	(IDropValueMenu physTraits3)
@@ -468,8 +567,12 @@
 	(IDropValueMenu mentalTraits5)
 	(IDropValueMenu profession)
 	(IDropValueMenu hobby)
-	
 	(ILabelButton rollButton)
+	(ITooltip toolTip)
+	(Int32 sysFont)
+	
+	(IExpression sMale)
+	(IExpression sFemale)
 )
 
 (archetype Sys.Reflection.CallbackWithExpression (IExpression expression) ->)
@@ -492,6 +595,69 @@
 	(ForDropMenuValue screen.hobby callback) 
 )
 
+(method AddCharacterScreen.OnToggled (PassEventHandlerArgs args)-> :
+	(if (args.sink == this.sexButton)
+		(IControl target = this.toolTip.GetTarget)
+		(if (target == this.sexButton)
+			(this.nameEditor.Enable)
+			(this.nameEditor.EnableGlow)
+			(this.sexButton.DisableGlow)
+			(this.toolTip.SetText "Now that you are done picking the sexual organs, you can choose a name. Right click in the box to generate a random name. Left click in the box to manually edit a name")
+			(this.toolTip.SetTarget this.nameEditor)
+		)
+	)
+)
+
+(method AddCharacterScreen.OnEditUpdated (EditBufferChangedArgs args)-> :
+	(IControl target = this.toolTip.GetTarget)
+	(if (target == this.nameEditor)
+		(this.toolTip.SetText "When you are satisfied with a name choose a profession for this character. Profession reflects one's martial training.")
+		(this.toolTip.SetTarget this.profession)
+		(this.nameEditor.DisableGlow)
+		(this.profession.EnableGlow)
+		(this.profession.Enable)
+	)
+)
+
+(method AddCharacterScreen.OnSelectionChanged (SelectionChangedArgs args)-> :
+	(IControl target = this.toolTip.GetTarget)
+	(if (target == this.profession)
+		(this.profession.DisableGlow)
+		(this.toolTip.SetText "When you are done selecting all of the traits you can click 'Roll' to generate the character")
+		(this.hobby.Enable)
+		(this.hobby.EnableGlow)	
+		(this.toolTip.SetTarget this.hobby)
+	else
+		(if (target == this.hobby)
+			(this.toolTip.SetTarget this.rollButton)
+			(this.hobby.DisableGlow)	
+			(this.uistack.RemoveFromTopLevel this.toolTip)
+			(this.classEditor.EnableGlow)
+			(this.physTraits1.EnableGlow)
+			(this.physTraits2.EnableGlow)
+			(this.physTraits3.EnableGlow)
+			(this.mentalTraits1.EnableGlow)
+			(this.mentalTraits2.EnableGlow)
+			(this.mentalTraits3.EnableGlow)
+			(this.mentalTraits4.EnableGlow)
+			(this.mentalTraits5.EnableGlow)
+			(this.classEditor.Enable)
+			(this.physTraits1.Enable)
+			(this.physTraits2.Enable)
+			(this.physTraits3.Enable)
+			(this.mentalTraits1.Enable)
+			(this.mentalTraits2.Enable)
+			(this.mentalTraits3.Enable)
+			(this.mentalTraits4.Enable)
+			(this.mentalTraits5.Enable)
+		else
+			(IEventHandler src = args.control)
+			(cast src -> IDropValueMenu menu)
+			(menu.DisableGlow)
+		)
+	)
+)
+
 (method AddCharacterScreen.Construct (IEngine engine) -> : 
 	(this.engine = engine)
 	
@@ -502,14 +668,12 @@
 	(this.attributeControl = (NewAttributeControl))
 	(this.uistack.AddTopLevelControl this.attributeControl "attributes")
 	
-	(this.nameEditor = (NewLineEditor 30))
+	(this.nameEditor = (NewLineEditor 30 this))
 	(this.uistack.AddTopLevelControl this.nameEditor "name")
 	
-	(IStringBuilder newName (StringBuilder 128))
-	(AppendRandomMaleBritishName newName)
-	(this.nameEditor.SetText newName)
+	(this.sysFont = -1)
 	
-	(IDropValueMenu classEditor (NewDropValueMenu 7))
+	(IDropValueMenu classEditor (NewDropValueMenu 7 this))
 	
 	// Expression are #ClassQuanitifier #description-strings #starting-currency
 	(IExpression classDC = '
@@ -571,6 +735,10 @@
 	
 	(IExpression sMale = ' ("male" "man" "boy" "he" "him" "his"))
 	(IExpression sFemale = '("female" "woman" "girl" "she" "her" "hers"))
+	
+	(this.sMale = sMale)
+	(this.sFemale = sFemale)
+	
 	(sexButton.AddItem "Male" sMale)
 	(sexButton.AddItem "Female" sFemale)
 	(sexButton.SetUndefinedText "--Sex--")
@@ -580,7 +748,7 @@
 	
 	(IExpression nullExpression = ' ())
 	
-	(IDropValueMenu physTraits1 (NewDropValueMenu 3))
+	(IDropValueMenu physTraits1 (NewDropValueMenu 3 this))
 	
 	(IExpression sStout = '((+ Strength 1 d 10)(+ Psyche 1 d 10)))
 	(physTraits1.AddItem "Stout" sStout)
@@ -595,7 +763,7 @@
 	(this.physTraits1 = physTraits1)
 	(this.uistack.AddTopLevelControl this.physTraits1 "phy_1")
 	
-	(IDropValueMenu physTraits2 (NewDropValueMenu 4))
+	(IDropValueMenu physTraits2 (NewDropValueMenu 4 this))
 	
 	(IExpression sGiant = '((+ Strength 5 d 10)))
 	(physTraits2.AddItem "Giant" sGiant)
@@ -612,7 +780,7 @@
 	(this.physTraits2 = physTraits2)
 	(this.uistack.AddTopLevelControl this.physTraits2 "phy_2")
 	
-	(IDropValueMenu physTraits3 (NewDropValueMenu 7))
+	(IDropValueMenu physTraits3 (NewDropValueMenu 7 this))
 	
 	(IExpression sBodyBuilder = ' ((+ Strength 5 d 100)(+ Strength 10 d 10)))
 	(physTraits3.AddItem "Bodybuilder" sBodyBuilder)
@@ -633,7 +801,7 @@
 	(this.physTraits3 = physTraits3)
 	(this.uistack.AddTopLevelControl this.physTraits3 "phy_3")
 	
-	(IDropValueMenu mentalTraits1 (NewDropValueMenu 4))
+	(IDropValueMenu mentalTraits1 (NewDropValueMenu 4 this))
 	
 	(IExpression sDominant = ' ((+ Psyche 2 d 10)(+ Ego 2 d 10)))
 	(mentalTraits1.AddItem "Dominant" sDominant)
@@ -651,7 +819,7 @@
 	(this.mentalTraits1 = mentalTraits1)
 	(this.uistack.AddTopLevelControl this.mentalTraits1 "ment_1")
 	
-	(IDropValueMenu mentalTraits2 (NewDropValueMenu 4))
+	(IDropValueMenu mentalTraits2 (NewDropValueMenu 4 this))
 	
 	(mentalTraits2.AddItem "Miser" nullExpression)
 	(mentalTraits2.AddItem "Charitable" nullExpression)
@@ -661,7 +829,7 @@
 	(this.mentalTraits2 = mentalTraits2)
 	(this.uistack.AddTopLevelControl this.mentalTraits2 "ment_2")
 	
-	(IDropValueMenu mentalTraits3 (NewDropValueMenu 5))
+	(IDropValueMenu mentalTraits3 (NewDropValueMenu 5 this))
 	(mentalTraits3.AddItem "Stubborn" nullExpression)
 	(mentalTraits3.AddItem "Rational" nullExpression)
 	(mentalTraits3.AddItem "Spiritual" nullExpression)
@@ -671,7 +839,7 @@
 	(this.mentalTraits3 = mentalTraits3)
 	(this.uistack.AddTopLevelControl this.mentalTraits3 "ment_3")
 	
-	(IDropValueMenu mentalTraits4 (NewDropValueMenu 5))
+	(IDropValueMenu mentalTraits4 (NewDropValueMenu 5 this))
 	(mentalTraits4.AddItem "Hedonist" nullExpression)
 	(mentalTraits4.AddItem "Egoist" nullExpression)
 	(mentalTraits4.AddItem "Gold-digger" nullExpression)
@@ -681,7 +849,7 @@
 	(this.mentalTraits4 = mentalTraits4)
 	(this.uistack.AddTopLevelControl this.mentalTraits4 "ment_4")
 	
-	(IDropValueMenu mentalTraits5 (NewDropValueMenu 5))
+	(IDropValueMenu mentalTraits5 (NewDropValueMenu 5 this))
 	(mentalTraits5.AddItem "Angry" nullExpression)
 	(mentalTraits5.AddItem "Compassionate" nullExpression)
 	(mentalTraits5.AddItem "Giddy" nullExpression)
@@ -691,7 +859,7 @@
 	(this.mentalTraits5 = mentalTraits5)
 	(this.uistack.AddTopLevelControl this.mentalTraits5 "ment_5")
 	
-	(IDropValueMenu profession (NewDropValueMenu 8))
+	(IDropValueMenu profession (NewDropValueMenu 8 this))
 	(profession.AddItem "Soldier" nullExpression)
 	(profession.AddItem "Scout" nullExpression)
 	(profession.AddItem "Sniper" nullExpression)
@@ -701,7 +869,7 @@
 	(this.profession = profession)
 	(this.uistack.AddTopLevelControl profession "profession")
 	
-	(IDropValueMenu hobby (NewDropValueMenu 8))
+	(IDropValueMenu hobby (NewDropValueMenu 8 this))
 	(IExpression sEngineer = ' ((+ Maths 2 d 10)(+ Ego 2 d 10)))
 	(hobby.AddItem "Engineer" sEngineer)
 	
@@ -725,6 +893,31 @@
 	(this.rollButton = rollButton)
 	
 	(this.uistack.AddTopLevelControl rollButton "roll")
+	
+	(this.toolTip = (NewToolTip))
+	(this.uistack.AddTopLevelControl this.toolTip "toolTip")
+	
+	(Prep this)
+)
+
+(function Prep (AddCharacterScreen screen)-> :
+	(screen.nameEditor.Disable)
+	(screen.classEditor.Disable)
+	(screen.physTraits1.Disable)
+	(screen.physTraits2.Disable)
+	(screen.physTraits3.Disable)
+	(screen.mentalTraits1.Disable)
+	(screen.mentalTraits2.Disable)
+	(screen.mentalTraits3.Disable)
+	(screen.mentalTraits4.Disable)
+	(screen.mentalTraits5.Disable)
+	(screen.profession.Disable)
+	(screen.hobby.Disable)
+	(screen.rollButton.Disable)
+	
+	(screen.toolTip.SetTarget screen.sexButton)
+	(screen.toolTip.SetText "Character generation begins with....sex.&nSo click on the sex button a few times until you are happy with the private parts.")
+	(screen.sexButton.EnableGlow)
 )
 
 (function IsAtomic (IExpression s)-> (Bool isSo):
@@ -892,7 +1085,13 @@
 		
 		(if (IsPointInRect pos nameRect)
 			(IStringBuilder newName (StringBuilder 128))
-			(AppendRandomFemaleBritishName newName)
+			
+			(IExpression s = (this.sexButton.GetSelectedValue))
+			(if (s == this.sFemale)
+				(AppendRandomFemaleBritishName newName)
+			else
+				(AppendRandomMaleBritishName newName)
+			)
 			(this.nameEditor.SetText newName)
 		)
 	else	
@@ -1025,6 +1224,13 @@
 	(mentalTraits5Rect.right = mentalTraits4Rect.right)
 	(mentalTraits5Rect.bottom = (mentalTraits5Rect.top + 50))
 	(screen.mentalTraits5.SetLine "Tahoma" mentalTraits5Rect g)
+	
+	(Rectf toolTipRect)
+	(toolTipRect.left = (sexRect.right - 120))
+	(toolTipRect.top = (hobbyRect.bottom + 20))
+	(toolTipRect.right = (toolTipRect.left + 500))
+	(toolTipRect.bottom = (toolTipRect.top + 300))
+	(screen.toolTip.SetRect toolTipRect)
 )
 
 (method AddCharacterScreen.RenderGui (IGui g) -> :
@@ -1048,11 +1254,17 @@
 	(Rectf nameRect)
 	(this.nameEditor.GetRect nameRect)
 	
-	(Rectf toolTip = nameRect)
-	(toolTip.right -= 4)
-	(toolTip.bottom -= 4)
-	(Int32 align = ((#AlignmentFlagsRight) + (#AlignmentFlagsBottom)))
-	(g.DrawText toolTip align "right-click *here* to generate a random name" 5 0xFFC0C0C0)
+	(IControl target = this.toolTip.GetTarget)
+	(if (target != this.sexButton)
+		(Rectf toolTip = nameRect)
+		(toolTip.right -= 4)
+		(toolTip.bottom -= 4)
+		(Int32 align = ((#AlignmentFlagsRight) + (#AlignmentFlagsBottom)))
+		(if (this.sysFont < 0)
+			(this.sysFont = (GetLargestFontOfFamilyLessThanHeight g "Courier New" 18))
+		)
+		(g.DrawText toolTip align "right-click here to generate a random name" this.sysFont 0xFFC0C0C0)
+	)
 	
 	(RenderTree this.uistack g)
 )

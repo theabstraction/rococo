@@ -208,6 +208,122 @@ public:
 	}
 };
 
+class LeftAlignedTextJob : public IDrawTextJob
+{
+private:
+	cstr text;
+	FontColour colour;
+	int fontIndex;
+	float lastCellHeight;
+	IEventCallback<GlyphArgs>* cb;
+	int count = 0;
+	GuiRectf bounds;
+
+	float rightMaxReturnX;
+	float rightAlignX;
+public:
+	GuiRectf target;
+
+	LeftAlignedTextJob(int _fontIndex, float hardRightEdge, float softRightEdge, cstr _text, RGBAb _colour, const GuiRectf& _bounds, IEventCallback<GlyphArgs>* _cb = nullptr) :
+		text(_text), colour((FontColour&)_colour), fontIndex(_fontIndex), lastCellHeight(10.0f), cb(_cb), bounds(_bounds)
+	{
+		float minFloat = std::numeric_limits<float>::min();
+		float maxFloat = std::numeric_limits<float>::max();
+		target = GuiRectf(maxFloat, maxFloat, minFloat, minFloat);
+		rightMaxReturnX = bounds.right - hardRightEdge;
+		rightAlignX = bounds.right - softRightEdge;
+	}
+
+	void Reset(IEventCallback<GlyphArgs>* cb)
+	{
+		count = 0;
+		this->cb = cb;
+	}
+
+	void DrawNextGlyph(char c, Fonts::IGlyphBuilder& builder)
+	{
+		GuiRectf outputRect;
+		builder.AppendChar(c, outputRect);
+
+		if (cb)
+		{
+			GlyphArgs args;
+			args.index = count++;
+			args.rect = outputRect;
+			cb->OnEvent(args);
+		}
+
+		lastCellHeight = outputRect.bottom - outputRect.top;
+
+		if (outputRect.left < target.left) target.left = outputRect.left;
+		if (outputRect.right > target.right) target.right = outputRect.right;
+		if (outputRect.bottom > target.bottom) target.bottom = outputRect.bottom;
+		if (outputRect.top < target.top) target.top = outputRect.top;
+	}
+
+	virtual void OnDraw(Fonts::IGlyphBuilder& builder)
+	{
+		builder.SetTextColour(colour);
+		builder.SetShadow(false);
+		builder.SetFontIndex(fontIndex);
+
+		Vec2 firstGlyphPos = builder.GetCursor();
+
+		for (cstr p = text; *p != 0; p++)
+		{
+			char c = *p;
+
+			if (c >= 255) c = '?';
+
+			Vec2 pos = builder.GetCursor();
+
+			if (pos.x >= rightAlignX)
+			{
+				if (c <= 32)
+				{
+					pos.x = bounds.left;
+					pos.y += lastCellHeight;
+					builder.SetCursor(pos);
+					continue;
+				}
+				else if (pos.x >= rightMaxReturnX)
+				{
+					pos.x = bounds.left;
+					pos.y += lastCellHeight;
+					builder.SetCursor(pos);
+				}
+			}
+
+			if (c == '\t')
+			{
+				for (int i = 0; i < 4; ++i)
+				{
+					DrawNextGlyph(' ', builder);
+				}
+
+				pos = builder.GetCursor();
+
+				if (pos.x >= rightAlignX)
+				{
+					pos.x = bounds.left;
+					pos.y += lastCellHeight;
+					builder.SetCursor(pos);
+				}
+			}
+			else if (c == '\n')
+			{
+				pos.x = bounds.left;
+				pos.y += lastCellHeight;
+				builder.SetCursor(pos);
+			}
+			else
+			{
+				DrawNextGlyph((char)c, builder);
+			}
+		}
+	}
+};
+
 struct Gui : public MHost::IGui
 {
 	Rococo::IGuiRenderContext& gc;
@@ -447,6 +563,18 @@ struct Gui : public MHost::IGui
 
 			Vec2i caretEnd = { caretStart.x + (int32)span, caretStart.y };
 			Rococo::Graphics::DrawLine(gc, 2, caretStart, caretEnd, 0xFFFFFFFF);
+		}
+	}
+
+	void DrawLeftAligned(const Rococo::GuiRectf& rect, const fstring& text, int32 fontIndex, RGBAb colour, float32 softRightEdge, float32 hardRightEdge) override
+	{
+		GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
+		if (text.length)
+		{
+			LeftAlignedTextJob job(fontIndex, softRightEdge, hardRightEdge, text, colour, rect);
+
+			Vec2i topLeft = { iRect.left, iRect.top };
+			gc.RenderText(topLeft, job, &iRect);
 		}
 	}
 
