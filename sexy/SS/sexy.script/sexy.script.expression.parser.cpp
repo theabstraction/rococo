@@ -2225,20 +2225,12 @@ namespace Rococo
 			ce.Builder.Assembler().Append_PushLiteral(BITCOUNT_POINTER, v);
 
 			MemberDef refDef;
-			ce.Builder.TryGetVariableByName(refDef, fromName->Buffer);
-			if (refDef.Usage == ARGUMENTUSAGE_BYREFERENCE)
+			if (!ce.Builder.TryGetVariableByName(refDef, fromName->Buffer))
 			{
-				ce.Builder.PushVariableRef(fromName->Buffer, 0);
+				Throw(fromNameExpr, "Cannot interpret argument as a variable. Only variables can be cast. Check spelling.");
 			}
-			else
-			{
-				if (!ce.Builder.TryGetVariableByName(refDef, fromName->Buffer))
-				{
-					Throw(fromNameExpr, "Could not resolve variable %s", fromName->Buffer);
-				}
 
-				ce.Builder.PushVariable(refDef);
-			}
+			ce.Builder.PushVariable(refDef);
 
 			ce.Builder.AddSymbol(("_DynamicCast to D4"));
 
@@ -2274,8 +2266,6 @@ namespace Rococo
 
 			AssertQualifiedIdentifier(toTypeExpr);
 			AssertLocalIdentifier(toName);
-			AssertLocalIdentifier(fromName);
-
 			IStructure* toType = MatchStructure(toTypeExpr, ce.Builder.Module());
 			if (toType == NULL)
 			{

@@ -1743,6 +1743,21 @@ namespace Anon
 
 	void AssignInterfaceToInterface(ICodeBuilder& builder, const MemberDef& sourceDef, const MemberDef& targetDef, cstr source, cstr target, bool isConstructingTarget)
 	{
+		bool bFoundBase = false;
+		for (auto* I = &sourceDef.ResolvedType->GetInterface(0); I != nullptr; I = I->Base())
+		{
+			if (I == &targetDef.ResolvedType->GetInterface(0))
+			{
+				bFoundBase = true;
+				break;
+			}
+		}
+
+		if (!bFoundBase)
+		{
+			Throw(0, "Cannot assign %s to %s. Target interface %s was not derived from the source %s", source, target, targetDef.ResolvedType->GetInterface(0).Name(), sourceDef.ResolvedType->GetInterface(0).Name());
+		}
+
 		if (isConstructingTarget)
 		{
 			builder.AssignVariableToTemp(source, 0); // D4
@@ -1820,7 +1835,15 @@ namespace Anon
 		{
 			if (!TryAssignClassInterfaceToInterface(source, target, srcType, trgType))
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Type mismatch trying to assign [%s %s] to [%s %s]"), GetFriendlyName(*sourceDef.ResolvedType), source, GetFriendlyName(*targetDef.ResolvedType), target);
+				if (IsNullType(*srcType) && IsNullType(*trgType))
+				{
+					AssignInterfaceToInterface(*this, sourceDef, targetDef, source, target, isConstructingTarget);
+					return;
+				}
+				else
+				{
+					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Type mismatch trying to assign [%s %s] to [%s %s]"), GetFriendlyName(*sourceDef.ResolvedType), source, GetFriendlyName(*targetDef.ResolvedType), target);
+				}
 			}
 			else
 			{

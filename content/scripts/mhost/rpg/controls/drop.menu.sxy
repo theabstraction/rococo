@@ -1,0 +1,292 @@
+(using Sys)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.MPlat)
+(using Sys.Random)
+(using Sys.Reflection)
+(using Sys.Type.Strings)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+
+(interface MHost.Graphics.IOverlayControl 
+	(extends MHost.Graphics.IControl)
+	(SetRect (Rectf rect) -> )
+	(SetHost (IEventHandler host) -> )
+	(OnMouseUp (MouseClickArgs args)-> )
+)
+
+(class Overlay
+	(implements IOverlayControl)
+	(implements IEventHandler)
+	(Rectf outerRect)
+	(IEventHandler host)
+)
+
+(method Overlay.SetHost (IEventHandler host)-> :
+	(this.host = host)
+)
+
+(method Overlay.Construct -> :
+	(this.outerRect = -1 -1 -1 -1)
+)
+
+(method Overlay.GetRect (Rectf rect)-> :
+	(rect = this.outerRect)
+)
+
+(method Overlay.GetEventHandler -> (IEventHandler handler):
+	(handler = this)
+)
+
+(method Overlay.OnMouseUp (MouseClickArgs args)-> :
+	(this.host.OnMouseUpInOverlay args)
+)
+
+(method Overlay.SetRect (Rectf rect)-> :
+	(this.outerRect = rect)
+)
+
+(struct OverlayProxyArgs
+	(IGui g)
+	(Rectf rect)
+	(IEventHandler overlay)
+)
+
+(alias OverlayProxyArgs MHost.OverlayProxyArgs)
+
+(method Overlay.Render (IGui g)-> :
+	(OverlayProxyArgs args = g this.outerRect this)
+	(this.host.RenderOverlay args)
+)
+
+(factory MHost.Graphics.NewOverlay MHost.Graphics.IOverlayControl : (construct Overlay))
+
+(struct SelectionChangedArgs
+	(IEventHandler control)
+)
+
+(alias SelectionChangedArgs MHost.Graphics.SelectionChangedArgs)
+
+(interface MHost.Graphics.IDropValueMenu
+	(extends MHost.Graphics.IControl)
+	(AddItem (IString text)(IExpression value)->)
+	(SetLine (IString fontFamily)(Rectf rect)(IGui g)->)
+	(SetUndefinedText (IString text)->)
+	(Select (Int32 index)-> )
+	(SetOverlay (IOverlayControl overlay)->)
+	(RenderOverlay (OverlayProxyArgs args)->)
+	(OnMouseUp (MouseClickArgs args)->)
+	(OnMouseUpInOverlay (MouseClickArgs args)->)
+	(GetValue -> (IExpression s))
+	(Enable -> )
+	(Disable -> )
+	(DisableGlow ->)
+	(EnableGlow ->)
+	(GetSelection -> (Int32 index))
+)
+
+(class DropValueMenu 
+	(implements MHost.Graphics.IDropValueMenu)
+	(implements IEventHandler)
+	(Rectf outerRect)
+	(Rectf innerRect)
+	(Rectf textRect)
+	(array ValueCell items)
+	(Int32 selection)
+	(Int32 fontIndex)
+	(IOverlayControl overlay)
+	(FontDesc fontDesc)
+	(Bool isActive)
+	(IString undefinedText)
+	(Bool isEnabled)
+	(Bool isGlowing)
+	(IEventHandler subscriber)
+)
+
+(method DropValueMenu.GetSelection -> (Int32 index) : (index = this.selection))
+(method DropValueMenu.DisableGlow -> : (this.isGlowing = false))
+(method DropValueMenu.EnableGlow -> : (this.isGlowing = true))
+
+(method DropValueMenu.SetUndefinedText (IString text)-> :
+	(this.undefinedText = text)
+)
+
+(method DropValueMenu.Select (Int32 index)-> :
+	(this.selection = index)
+)
+
+(method DropValueMenu.SetOverlay (IOverlayControl overlay)-> :
+	(this.overlay = overlay)
+	(overlay.SetHost this)
+	(this.isActive = true)
+)
+
+(method DropValueMenu.Construct (Int32 maxItems) (IEventHandler subscriber)-> (construct items maxItems):
+	(this.outerRect = -1 -1 -1 -1)
+	(this.selection = -1)
+	(this.fontIndex = 0)
+	(this.isActive = false)
+	(this.isEnabled = true)
+	(this.isGlowing = false)
+	(this.subscriber = subscriber)
+)
+
+(method DropValueMenu.Disable -> :
+	(this.isEnabled = false)
+)
+
+(method DropValueMenu.Enable -> :
+	(this.isEnabled = true)
+)
+
+(struct ActivateOverlayArgs
+	(IDropValueMenu menu)
+)
+
+(alias ActivateOverlayArgs MHost.Graphics.ActivateOverlayArgs)
+
+(method DropValueMenu.OnMouseUp (MouseClickArgs mouseClickArgs)-> :
+	(if (this.isEnabled)
+		(if (mouseClickArgs.button == 0)
+			(if (this.isActive)
+				(this.isActive = false)
+			else
+				(ActivateOverlayArgs aoArgs)
+				(aoArgs.menu = this)
+				(mouseClickArgs.eventHandler.ActivateOverlay aoArgs)
+			)
+		)
+	)
+)
+
+(function DrawSelectedItem (DropValueMenu menu)(IGui g)(Bool isEnabled)-> :
+	(Int32 length = menu.items.Length)
+	
+	(IString text)
+	(if ((menu.selection < length) and (menu.selection >= 0))
+		(text = (menu.items menu.selection text))
+	else
+		(text = menu.undefinedText)
+	)
+	
+	(Int32 textColour = (GetTextColour menu.outerRect g menu.isEnabled))
+	
+	(g.DrawClippedText menu.textRect (#AlignmentFlagsLeft) text menu.fontIndex textColour menu.outerRect)
+)
+
+(method DropValueMenu.RenderOverlay (OverlayProxyArgs args)-> :
+	(if (this.isActive)
+		(args.g.FillRect args.rect 0xFF000030)
+		(DrawStandardControlBorder args.g args.rect this.isEnabled this.isGlowing)
+		
+		(args.g.FillRect this.innerRect 0xFF000030)
+		(DrawSelectedItem this args.g this.isEnabled)
+	
+		(Rectf overlayInnerRect)
+		(ShrinkRectf args.rect overlayInnerRect 8)
+		
+		(DrawStandardControlBorder args.g overlayInnerRect this.isEnabled false)
+		
+		(Float32 y = overlayInnerRect.top)
+		
+		(foreach item # this.items
+			(Rectf itemRect)
+			(itemRect.left = (overlayInnerRect.left + (this.fontDesc.height * 0.25)))
+			(itemRect.right = (overlayInnerRect.right - (this.fontDesc.height * 0.25)))
+			(itemRect.top = y)
+			
+			(Float32 y1 = (y + this.fontDesc.height))
+			(itemRect.bottom = y1)
+			(y = y1)
+			
+			(Int32 textColour = (GetTextColour itemRect args.g this.isEnabled))
+			(args.g.DrawClippedText itemRect (#AlignmentFlagsLeft) item.text this.fontIndex textColour itemRect)
+		)
+	)
+)
+
+(method DropValueMenu.GetRect (Rectf rect)-> :
+	(rect = this.outerRect)
+)
+
+(method DropValueMenu.GetEventHandler -> (IEventHandler handler):
+	(handler = this)
+)
+
+(method DropValueMenu.SetLine (IString fontName) (Rectf rect)(IGui g) -> :
+	(this.outerRect = rect)
+	
+	(Float32 dy = (this.outerRect.bottom - this.outerRect.top))
+	(GetLargestFontOfFamilyLessThanHeight g fontName dy -> this.fontIndex)
+	
+	(Float32 x = (this.outerRect.left + 2))
+	(Float32 x1 = (this.outerRect.right -  2))
+	(Float32 y0 = (this.outerRect.top + 2))
+	(Float32 y1 = (this.outerRect.bottom - 2))
+	
+	(this.innerRect = x y0 x1 y1)
+	
+	(this.textRect = this.innerRect)
+	(this.textRect.left = (this.outerRect.left + (0.25 * dy)))
+	
+	(IStringBuilder fontName (StringBuilder 64))
+	(g.GetFontDescription this.fontIndex fontName this.fontDesc)
+)
+
+(method DropValueMenu.OnMouseUpInOverlay (MouseClickArgs args)-> :
+	(Rectf overlayRect)
+	(this.overlay.GetRect overlayRect)
+	
+	(Rectf overlayInnerRect)
+	(ShrinkRectf overlayRect overlayInnerRect 8)
+		
+	(Float32 y = overlayInnerRect.top)
+		
+	(foreach i item # this.items
+		(Rectf itemRect)
+		(itemRect.left = (overlayInnerRect.left + (this.fontDesc.height * 0.25)))
+		(itemRect.right = (overlayInnerRect.right - (this.fontDesc.height * 0.25)))
+		(itemRect.top = y)
+		
+		(Float32 y1 = (y + this.fontDesc.height))
+		(itemRect.bottom = y1)
+		(y = y1)
+		
+		(if (IsPointInRect args.pos itemRect)
+			(this.selection = i)
+			(this.isActive = false)
+			
+			(SelectionChangedArgs oscArgs)
+			(oscArgs.control = this)
+			(this.subscriber.OnSelectionChanged oscArgs)
+			(break)
+		)
+	)
+)
+
+(method DropValueMenu.GetValue -> (IExpression s):
+	(Int32 length = this.items.Length)
+	
+	(if ((this.selection < length) and (this.selection >= 0))
+		(s = (this.items this.selection value))
+	)
+)
+
+(method DropValueMenu.Render (IGui g)-> :
+	(DrawSelectedItem this g this.isEnabled)
+	(DrawStandardControlBorder g this.outerRect this.isEnabled this.isGlowing)
+)
+
+(method DropValueMenu.AddItem (IString text)(IExpression value)-> :
+	(ValueCell item = text value)
+	(this.items.Push item)
+)
+
+(factory MHost.Graphics.NewDropValueMenu MHost.Graphics.IDropValueMenu (Int32 maxItems)(IEventHandler subscriber):
+	(construct DropValueMenu maxItems subscriber)
+)

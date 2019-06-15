@@ -1,0 +1,70 @@
+(using Sys)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.MPlat)
+(using Sys.Random)
+(using Sys.Reflection)
+(using Sys.Type.Strings)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+
+(interface MHost.Graphics.ITooltip
+	(extends MHost.Graphics.IControl)
+	(SetRect (Rectf rect) -> )
+	(SetText (IString text)-> )
+	(SetTarget (IControl control)->)
+	(GetTarget -> (IControl control))
+)
+
+(class Tooltip
+	(implements ITooltip)
+	(Rectf outerRect)
+	(Rectf innerRect)
+	(IString text)
+	(Int32 fontIndex)
+	(IControl target)
+)
+
+(method Tooltip.Construct :
+	(this.outerRect = -1 -1 -1 -1)
+	(this.innerRect = -1 -1 -1 -1)
+	(this.text = "--undefined--")
+	(this.fontIndex = -1)
+)
+
+(method Tooltip.SetTarget (IControl control)-> :
+	(this.target = control)
+)
+
+(method Tooltip.GetTarget -> (IControl control) :
+	(control = this.target)
+)
+
+(factory MHost.NewToolTip MHost.Graphics.ITooltip : (construct Tooltip))
+
+(method Tooltip.GetRect (Rectf rect) -> :
+	(rect = this.outerRect)
+)
+
+(method Tooltip.SetRect (Rectf newRect) -> :
+	(this.outerRect = newRect)
+	(this.innerRect = newRect)
+	(ShrinkRectf this.outerRect this.innerRect 4)
+	(this.fontIndex = 4)
+)
+
+(method Tooltip.SetText (IString text) -> :
+	(this.text = text)
+)
+
+(method Tooltip.GetEventHandler -> (IEventHandler handler) : )
+
+(method Tooltip.Render (IGui g)-> :
+	(g.DrawLeftAligned this.innerRect this.text this.fontIndex 0xFFFFFFFF 20 100)
+	(DrawStandardControlBorder g this.outerRect true false)
+)

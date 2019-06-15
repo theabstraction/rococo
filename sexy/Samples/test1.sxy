@@ -1,43 +1,39 @@
 (namespace EntryPoint)
  (alias Main EntryPoint.Main)
 
-(using Sys)
-(using Sys.Maths)
-(using Sys.Reflection)
-
-(class PrintDogs (implements ICoroutine))
-(method PrintDogs.Construct :)
-(factory Sys.NewPrintDogs ICoroutine : (construct PrintDogs))
-(class PrintCats (implements ICoroutine))
-(method PrintCats.Construct :)
-(factory Sys.NewPrintCats ICoroutine : (construct PrintCats))
-
-(method PrintDogs.Run -> :
- (Print "RobotDog")
- (yield)
- (Print "ToyDog")
- (yield)
- (Print "BigDog")
-)
-
-(method PrintCats.Run -> :
- (Print "FluffyCat")
- (yield 50)
- (Print "MagicCat")
- (yield)
- (Print "Mooncat")
-)
+(namespace Stuff) (using Stuff)
 
 (function Main -> (Int32 result):
-	(ICoroutine dogs (NewPrintDogs))
-	//(ICoroutine cats (NewPrintCats))
-	(ICoroutineControl coroutines (Coroutines))
-	(coroutines.Add dogs)
-//	(coroutines.Add cats)
-	(while (coroutines.Continue != 0))
-	(Sys.Print "yo!")
-//	(Int64 dogId = (coroutines.Add dogs))
-//	(coroutines.Add cats)
-//	(coroutines.Release dogId)
-//	(while (coroutines.Continue != 0))
+  (IExistence robby (NewRobot 9000))
+  (Moomoo moomoo = 1 robby)
+  (Foobar moomoo -> result)
+)
+
+(interface Stuff.IRobot
+  (Id -> (Int32 id))
+)
+
+(interface Stuff.IExistence
+  (ExistenceNumber -> (Int32 value))
+)
+
+(class Robot
+  (implements Stuff.IExistence)
+  (implements Stuff.IRobot)
+  (Int32 id)
+)
+
+(struct Moomoo (Int32 id) (Stuff.IExistence entity))
+
+(function Foobar (Moomoo m) -> (Int32 result):
+  (cast m.entity -> IRobot robot)
+  (result = ((robot.Id) + (m.entity.ExistenceNumber)))
+)
+
+(method Robot.Construct (Int32 id): (this.id = id))
+(method Robot.Id -> (Int32 id): (id = this.id))
+(method Robot.ExistenceNumber -> (Int32 value): (value = 1234))
+
+(factory Stuff.NewRobot IExistence (Int32 id): 
+	(construct Robot id)
 )

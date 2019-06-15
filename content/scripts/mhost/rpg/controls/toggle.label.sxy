@@ -1,0 +1,114 @@
+(using Sys)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.MPlat)
+(using Sys.Random)
+(using Sys.Reflection)
+(using Sys.Type.Strings)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+
+(interface MHost.Graphics.IToggleLabel
+	(extends MHost.Graphics.IControl)
+	(SetRect (IString fontName) (Rectf rect)(IGui g) -> )
+	(OnMouseUp (MouseClickArgs args)-> )
+	(SetUndefinedText (IString text)-> )
+	(AddItem (IString text)(IExpression s)-> )
+	(GetSelectedValue -> (IExpression s))
+	(DisableGlow ->)
+	(EnableGlow ->)
+)
+
+(class ToggleLabel
+	(implements IToggleLabel)
+	(implements IEventHandler)
+	(Rectf outerRect)
+	(Rectf innerRect)
+	(array ValueCell items)
+	(Int32 selection)
+	(IString undefinedText)
+	(Int32 fontIndex)
+	(Bool glowing)
+)
+
+(method ToggleLabel.GetSelectedValue -> (IExpression s) :
+	(Int32 nItems = (this.items.Length))
+	(if ((this.selection >= 0) and (this.selection < nItems))
+		(s = (this.items this.selection value))
+	)
+)
+
+(method ToggleLabel.DisableGlow -> : (this.glowing = false))
+(method ToggleLabel.EnableGlow -> : (this.glowing = true))
+
+(method ToggleLabel.Construct (Int32 nItems)->(construct items nItems):
+	(this.outerRect = -1 -1 -1 -1)
+	(this.selection = -1)
+	(this.innerRect = -1 -1 -1 -1)
+	(this.glowing = false)
+)
+
+(method ToggleLabel.GetRect (Rectf rect)-> :
+	(rect = this.outerRect)
+)
+
+(method ToggleLabel.SetRect (IString fontName) (Rectf rect)(IGui g)-> :
+	(this.outerRect = rect)
+	
+	(Float32 dy = (this.outerRect.bottom - this.outerRect.top))
+	(Float32 x = (this.outerRect.left + (dy * 0.25)))
+	(Float32 x1 = (this.outerRect.right -  (dy * 0.25)))
+	(Float32 y0 = (this.outerRect.top + 2))
+	(Float32 y1 = (this.outerRect.bottom - 2))
+	
+	(this.innerRect = x y0 x1 y1)
+	
+	(GetLargestFontOfFamilyLessThanHeight g fontName dy -> this.fontIndex)
+)
+
+(method ToggleLabel.OnMouseUp (MouseClickArgs args)-> :
+	(if (args.button == 0)
+		(this.selection += 1)
+		(Int32 length = this.items.Length)
+		(this.selection = (Sys.Maths.I32.Mod this.selection length))
+		(PassEventHandlerArgs pehArgs)
+		(pehArgs.sink = this)
+		(args.eventHandler.OnToggled pehArgs)
+	)
+)
+
+(method ToggleLabel.SetUndefinedText (IString text)-> :
+	(this.undefinedText = text)
+)
+
+(method ToggleLabel.Render (IGui gui)-> :
+	(Int32 length = this.items.Length)
+	
+	(IString text)
+	(if ((this.selection >= 0) and (this.selection < length))
+		(text = (this.items this.selection text))
+	else
+		(text = this.undefinedText)
+	)
+	
+	(Int32 textColour = (GetTextColour this.outerRect gui true))
+	(gui.DrawClippedText this.innerRect (#AlignmentFlagsLeft) text this.fontIndex textColour this.outerRect)
+	
+	(DrawStandardControlBorder gui this.outerRect true this.glowing)
+)
+
+(method ToggleLabel.AddItem (IString text)(IExpression s)-> :
+	(ValueCell value = text s)
+	(this.items.Push value)
+)
+
+(method ToggleLabel.GetEventHandler -> (IEventHandler handler):
+	(handler = this)
+)
+
+(factory MHost.Graphics.NewToggleLabel MHost.Graphics.IToggleLabel (Int32 nMaxItems): (construct ToggleLabel nMaxItems))

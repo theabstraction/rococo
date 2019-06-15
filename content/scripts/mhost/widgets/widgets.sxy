@@ -237,3 +237,9 @@
 (alias CentreHorizontally MHost.Graphics.CentreHorizontally)
 (alias GetCentredRect MHost.Graphics.GetCentredRect)
 
+(struct ValueCell
+	(Sys.Type.IString text)
+	(Sys.Reflection.IExpression value)
+)
+
+(alias ValueCell MHost.ValueCell)

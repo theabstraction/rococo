@@ -15,6 +15,10 @@
 	"!scripts/mhost/rpg/controls/female.names.sxy"
 	"!scripts/mhost/rpg/controls/line.editor.sxy"
 	"!scripts/mhost/rpg/controls/attribute.control.sxy"
+	"!scripts/mhost/rpg/controls/drop.menu.sxy"
+	"!scripts/mhost/rpg/controls/tooltip.sxy"
+	"!scripts/mhost/rpg/controls/toggle.label.sxy"
+	"!scripts/mhost/rpg/controls/label.button.sxy"
 )
 
 (namespace EntryPoint)

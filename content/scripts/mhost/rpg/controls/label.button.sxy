@@ -1,0 +1,112 @@
+(using Sys)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.MPlat)
+(using Sys.Random)
+(using Sys.Reflection)
+(using Sys.Type.Strings)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+
+(interface MHost.Graphics.ILabelButton
+	(extends MHost.Graphics.IControl)
+	(SetRect (IString fontName) (Rectf rect)(IGui g) -> )
+	(OnMouseDown (MouseClickArgs args)-> )
+	(OnMouseUp (MouseClickArgs args)-> )
+	(SetLabel (IString label)-> )
+	(Enable ->)
+	(Disable ->)
+	(EnableGlow ->)
+	(DisableGlow ->)
+)
+
+(class LabelButton
+	(implements ILabelButton)
+	(implements IEventHandler)
+	(Rectf outerRect)
+	(Rectf innerRect)
+	(Bool isEnabled)
+	(Bool isGlowing)
+	(IString text)
+	(Int32 fontIndex)
+)
+
+(method LabelButton.EnableGlow -> : (this.isGlowing = true))
+(method LabelButton.DisableGlow -> : (this.isGlowing = false))
+
+(method LabelButton.Construct :
+	(this.outerRect = -1 -1 -1 -1)
+	(this.innerRect = -1 -1 -1 -1)
+	(this.isEnabled = true)
+	(this.text = "button")
+	(this.fontIndex = -1)
+	(this.isGlowing = false)
+)
+
+(factory MHost.Graphics.NewLabelButton ILabelButton : (construct LabelButton))
+
+(method LabelButton.SetRect (IString fontName) (Rectf rect)(IGui g) -> :
+	(this.outerRect = rect)
+	
+	(Float32 dy = (this.outerRect.bottom - this.outerRect.top))
+	(Float32 x = (this.outerRect.left + (dy * 0.25)))
+	(Float32 x1 = (this.outerRect.right -  (dy * 0.25)))
+	(Float32 y0 = (this.outerRect.top + 2))
+	(Float32 y1 = (this.outerRect.bottom - 2))
+	
+	(this.innerRect = x y0 x1 y1)
+	
+	(GetLargestFontOfFamilyLessThanHeight g fontName dy -> this.fontIndex)
+)
+
+(struct ButtonClickArgs
+	(IString text)
+	(ILabelButton button)
+)
+
+(alias ButtonClickArgs MHost.Graphics.ButtonClickArgs)
+
+(method LabelButton.OnMouseDown (MouseClickArgs args)-> :
+	(if (this.isActive)
+		(ButtonClickArgs buttonArgs = this.text this)
+		(args.eventHandler.OnButtonDown buttonArgs)
+	)
+)
+
+(method LabelButton.OnMouseUp (MouseClickArgs args)-> :
+	(if (this.isActive)
+		(ButtonClickArgs buttonArgs = this.text this)
+		(args.eventHandler.OnButtonUp buttonArgs)
+	)
+)
+
+(method LabelButton.SetLabel (IString text)-> :
+	(this.text = text)
+)
+
+(method LabelButton.Enable -> :
+	(this.isEnabled = true)
+)
+
+(method LabelButton.Disable -> :
+	(this.isEnabled = false)
+)
+
+(method LabelButton.GetRect (Rectf rect)-> :
+	(rect = this.outerRect)
+)
+
+(method LabelButton.GetEventHandler -> (IEventHandler handler):
+	(handler = this)
+)
+
+(method LabelButton.Render (IGui gui)-> :
+	(Int32 textColour = (GetTextColour this.outerRect gui this.isEnabled))
+	(gui.DrawClippedText this.innerRect 0 this.text this.fontIndex textColour this.outerRect)
+	(DrawStandardControlBorder gui this.outerRect this.isEnabled this.isGlowing)
+)

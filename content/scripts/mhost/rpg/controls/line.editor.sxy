@@ -132,9 +132,7 @@
 	
 	(EditBufferChangedArgs args)
 	(args.bufferHost = this)
-	(IStringBuilder text = this.text)
-	(cast text -> IString stringRef)
-	(args.text = stringRef)
+	(args.text = this.text)
 	(this.subscriber.OnEditUpdated args)
 )
 

@@ -4168,6 +4168,83 @@ namespace
 		validate(x == 10234);
 	}
 
+	void TestDynamicCast2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+			""
+			"(namespace Stuff) (using Stuff)"
+			""
+			"(function Main -> (Int32 result):"
+			"  (IExistence robby (NewRobot 9000))"
+			"  (Moomoo moomoo = 1 robby)"
+			"  (Foobar moomoo -> result)"
+			")"
+			"(interface Stuff.IRobot"
+			"  (Id -> (Int32 id))"
+			")"
+			"(interface Stuff.IExistence"
+			"  (ExistenceNumber -> (Int32 value))"
+			")"
+			"(class Robot"
+			"  (implements Stuff.IExistence)"
+			"  (implements Stuff.IRobot)"
+			"  (Int32 id)"
+			")"
+
+			"(struct Moomoo (Int32 id) (Stuff.IExistence entity))"
+			"(function Foobar (Moomoo m) -> (Int32 result):"
+			"	 (cast m.entity -> IRobot robot)"
+			"  (result = ((robot.Id) + (m.entity.ExistenceNumber)))"
+			")"
+			"(method Robot.Construct (Int32 id): (this.id = id))"
+			"(method Robot.Id -> (Int32 id): (id = this.id))"
+			"(method Robot.ExistenceNumber -> (Int32 value): (value = 1234))"
+			"(factory Stuff.NewRobot IExistence (Int32 id): (construct Robot id))"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestDynamicCast2");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 10234);
+	}
+
+	void TestStaticCast1(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+			""
+			"(using Sys.Type)"
+			""
+			"(function Main -> (Int32 result):"
+			"  (IStringBuilder sb (StringBuilder 128))"
+			"  (#build sb \"Hello World\")"
+			"  (IString text = sb)"
+			"  (Sys.Print text -> result)"
+			")"
+			
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 11);
+	}
+
 	void TestInlinedFactory(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -13002,6 +13079,8 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestStaticCast1);
+		TEST(TestDynamicCast2);
 		TEST(TestExpressionAppendTo);
 
 		TEST2(TestCoroutine1);
