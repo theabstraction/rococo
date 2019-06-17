@@ -32,6 +32,8 @@
 */
 
 #include "sexy.script.stdafx.h"
+
+#include <rococo.strings.h>
 #include "sexy.compiler.helpers.h"
 #include "sexy.s-parser.h"
 
@@ -299,7 +301,7 @@ namespace Rococo
 			catch (IException& e)
 			{
 				char fullError[2048];
-            SafeFormat(fullError, 2048, ("%s: %s"), nf.Archetype.c_str(), e.Message());
+				SafeFormat(fullError, 2048, ("%s: %s"), nf.Archetype.c_str(), e.Message());
 				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
 				Throw(nativeError);
 			}							
@@ -1142,6 +1144,246 @@ namespace Rococo
 			AddNativeCall(sysNative, StringBuilderSetCase, NULL, ("StringBuilderSetCase (Pointer builder) (Int32 start) (Int32 end) (Bool toUpper)->"), false);
 			AddNativeCall(sysNative, ::AlignedMalloc, this, ("AlignedMalloc (Int32 capacity) (Int32 alignment)-> (Pointer data)"), false);
 			AddNativeCall(sysNative, ::AlignedFree, this, ("AlignedFree (Pointer data)->"), false);
+			AddNativeCall(sysNative, CScriptSystem::_PublishAPI, this, ("PublishAPI ->"), false);
+		}
+
+		static void _PublishAPI(NativeCallEnvironment& nce)
+		{
+			CScriptSystem* ss = (CScriptSystem*) nce.context;
+			ss->PublishAPI(nce);
+		}
+
+		void PublishAPI(NativeCallEnvironment& nce)
+		{
+			auto& nsRoot = progObjProxy().GetRootNamespace();
+
+			for (int i = 0; i < nsRoot.ChildCount(); ++i)
+			{
+				Publish_NS_API(nsRoot.GetChild(i), nce, 1);
+			}
+		}
+
+		void Publish_NS_API(const INamespace& ns, NativeCallEnvironment& nce, int depth)
+		{
+			AutoFree<IStringBuilder> sbc = CreateDynamicStringBuilder(65536);
+			sbc->Builder() << "<html><style>" <<
+				"ul { font-family: \"Courier New\"; }" <<
+				".factory { color:blue; font-weight: bold; } " <<
+				".interface { color:green; font-weight: bold; }" <<
+				".struct { color:darkblue; font-weight: bold; }" <<
+				".function { color:red; font-weight: bold; }" <<
+				"</style><body>";
+
+			auto& sb = sbc->Builder();
+
+			struct : ICallback<const IFunction, cstr>
+			{
+				StringBuilder* sb;
+				const INamespace* ns;
+				CALLBACK_CONTROL operator()(const IFunction& f, cstr name) override
+				{
+					if (strstr(ns->FullName()->Buffer, "Native") == 0 && name[0] != '_')
+					{
+						sb->AppendFormat("<li><span class=\"function\">function</span> %s.%s\n", ns->FullName()->Buffer, name);
+						int nInputs = f.NumberOfInputs();
+						int nOutputs = f.NumberOfOutputs();
+						int nArgs = nInputs + nOutputs;
+
+						for (int i = 0; i < nInputs; i++)
+						{
+							cstr argName = f.GetArgName(i + nOutputs);
+							auto& argType = f.GetArgument(i + nOutputs);
+
+							sb->AppendFormat(" (<span class=\"struct\">%s</span> %s)", GetFriendlyName(argType), argName);
+						}
+
+						if (nOutputs > 0)
+						{
+							*sb << " ->";
+						}
+
+						for (int i = 0; i < nOutputs; i++)
+						{
+							cstr argName = f.GetArgName(i);
+							auto& argType = f.GetArgument(i);
+							sb->AppendFormat(" (<span class=\"struct\">%s</span> %s)", GetFriendlyName(argType), argName);
+						}
+
+						*sb << "</li>\n";
+					}
+					return CALLBACK_CONTROL_CONTINUE;
+				}
+			} forEachFunction;
+			forEachFunction.sb = &sb;
+			forEachFunction.ns = &ns;
+
+			sb.AppendFormat("<b>%s</b>\n", ns.FullName()->Buffer);
+
+			sb << "<ul>\n";
+			ns.EnumerateFunctions(forEachFunction);
+
+			sb << "<p></p>\n";
+
+			for (int i = 0; i < ns.InterfaceCount(); i++)
+			{
+				auto& I = ns.GetInterface(i);
+
+				sb.AppendFormat("<li><span class=\"interface\">interface</span> %s\n<ul>", I.Name());
+
+				for (int j = 0; j < I.MethodCount(); j++)
+				{
+					auto& m = I.GetMethod(j);
+					sb.AppendFormat("<li>(method %s", m.Name());
+					int nInputs = m.NumberOfInputs();
+					int nOutputs = m.NumberOfOutputs();
+					int nArgs = nInputs + nOutputs;
+
+					for (int k = 0; k < nInputs - 1; k++)
+					{
+						cstr argName = m.GetArgName(k + nOutputs);
+						auto& argType = m.GetArgument(k + nOutputs);
+
+						sb.AppendFormat(" (<span class=\"struct\">%s</span> %s)", GetFriendlyName(argType), argName);
+					}
+
+					if (nOutputs > 0)
+					{
+						sb << " ->";
+					}
+
+					for (int k = 0; k < nOutputs; k++)
+					{
+						cstr argName = m.GetArgName(k);
+						auto& argType = m.GetArgument(k);
+						sb.AppendFormat(" (<span class=\"struct\">%s</span> %s)", GetFriendlyName(argType), argName);
+					}
+					
+					sb << ")</li>";
+				}
+				sb << "<p></p></ul></li>";
+			}
+
+			struct : ICallback<const IFactory, cstr>
+			{
+				StringBuilder* sb;
+				const INamespace* ns;
+				CALLBACK_CONTROL operator()(const IFactory& fac, cstr name) override
+				{
+					sb->AppendFormat("<li><span class=\"factory\">factory</span> %s.%s <span class=\"interface\">%s</span>", ns->FullName()->Buffer, name, fac.ThisInterface().Name());
+					auto& f = fac.Constructor();
+
+					for (int i = 0; i < f.NumberOfInputs() - 1; ++i)
+					{
+						cstr argName = f.GetArgName(i);
+						auto& argType = f.GetArgument(i);
+						sb->AppendFormat(" (<span class=\"struct\">%s</span> %s)", GetFriendlyName(argType), argName);
+					}
+
+					*sb << "</li><p></p>";
+
+					return CALLBACK_CONTROL_CONTINUE;
+				}
+			} foreachFactory;
+			foreachFactory.sb = &sb;
+			foreachFactory.ns = &ns;
+
+
+			ns.EnumerateFactories(foreachFactory);
+
+			struct : ICallback<const IStructure, cstr>
+			{
+				StringBuilder* sb;
+				const INamespace* ns;
+				CALLBACK_CONTROL operator()(const IStructure& s, cstr name) override
+				{
+					auto type = s.VarType();
+
+					if (!IsNullType(s) && type != VARTYPE_Closure)
+					{
+						if (type != VARTYPE_Derivative)
+						{
+							sb->AppendFormat("<li><span class=\"struct\">alias</span> %s.%s for ", ns->FullName()->Buffer, name);
+							
+							switch (type)
+							{
+							case VARTYPE_Bool:
+								*sb << "Bool (32-bit boolean)";
+								break;
+							case VARTYPE_Float32:
+								*sb << "Float32";
+								break;
+							case VARTYPE_Float64:
+								*sb << "Float64";
+								break;
+							case VARTYPE_Int32:
+								*sb << "Int32";
+								break;
+							case VARTYPE_Int64:
+								*sb << "Int64";
+								break;
+							case VARTYPE_Pointer:
+								*sb << "Pointer";
+								break;
+							default:
+								*sb << "Type unknown ???";
+								break;
+							}
+
+							*sb << "</li>";
+						}
+						else
+						{
+							sb->AppendFormat("<li><span class=\"struct\">struct</span> %s.%s</li>", ns->FullName()->Buffer, name);
+							*sb << "<ul>";
+
+							for (int i = 0; i < s.MemberCount(); i++)
+							{
+								auto& m = s.GetMember(i);
+								if (m.UnderlyingType() != nullptr) sb->AppendFormat("<li><span class=\"struct\">%s</span> %s</li>", GetFriendlyName(*m.UnderlyingType()), m.Name());
+							}
+
+							*sb << "</ul>";
+						}
+
+						*sb << "<p>";
+					}
+
+					return CALLBACK_CONTROL_CONTINUE;
+				}
+			} forEachStruct;
+			forEachStruct.sb = &sb;
+			forEachStruct.ns = &ns;
+
+			ns.EnumerateStrutures(forEachStruct);
+
+			sb << "</ul>\n";
+
+			sb << "<table>";
+
+			auto* parent = ((INamespaceBuilder&)ns).Parent();
+			if (parent != &this->progObjProxy().GetRootNamespace())
+			{
+				sb.AppendFormat("<tr><td><a href=\"%s.html\"><b>%s (parent)</b></a></td></tr>", parent->FullName()->Buffer, parent->FullName()->Buffer);
+			}
+
+			for (int i = 0; i < ns.ChildCount(); ++i)
+			{
+				auto& nsc = ns.GetChild(i);
+				sb.AppendFormat("<tr><td><a href=\"%s.html\"><b>%s</b></a></td></tr>", nsc.FullName()->Buffer, nsc.FullName()->Buffer);
+			}
+
+			sb << "</table>";
+
+			sbc->Builder() << "</body></html>";
+
+			char filename[256];
+			SafeFormat(filename, 256, "sexydoc\\%s.html", ns.FullName()->Buffer);
+			Rococo::OS::SaveAsciiTextFile(OS::TargetDirectory_UserDocuments, filename, *sbc->Builder());
+
+			for (int i = 0; i < ns.ChildCount(); ++i)
+			{
+				Publish_NS_API(ns.GetChild(i), nce, depth + 1);
+			}
 		}
 
 		void AddSymbol(cstr symbol, const void* ptr)

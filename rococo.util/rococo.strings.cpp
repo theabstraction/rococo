@@ -53,6 +53,124 @@ namespace
 			delete this;
 		}
 	};
+
+	struct DynamicStringBuilder : StringBuilder, public IStringBuilder
+	{
+		std::vector<char> internalBuffer;
+
+		DynamicStringBuilder(size_t initCapacity)
+		{
+			internalBuffer.resize(initCapacity);
+			Clear();
+		}
+
+		StringBuilder& Builder() override
+		{
+			return *this;
+		}
+
+		StringBuilder& AppendFormat(const char* format, ...) override
+		{
+			size_t startSize = internalBuffer.size()-1;
+
+			internalBuffer.pop_back(); // Get rid of the zero
+
+			bool isDone = false;
+
+			for (size_t sublen = 256; sublen <= 128_megabytes; sublen *= 2)
+			{
+				internalBuffer.resize(startSize + sublen);
+
+				va_list args;
+				va_start(args, format);
+				int nChars = SafeVFormat(internalBuffer.data() + startSize, sublen, format, args);
+
+				if (nChars < 0 || nChars >= (sublen - 1))
+				{
+					// overflow, so retry
+					continue;
+				}
+				else
+				{
+					internalBuffer.resize(startSize + nChars);
+					internalBuffer.push_back(0);
+					isDone = true;
+					break;
+				}
+			}
+
+			if (!isDone)
+			{
+				Throw(0, "Cannot append formatted string. It was in excess of 128 megabytes");
+			}
+
+			return *this;
+		}
+
+		StringBuilder& operator << (cstr text) override
+		{
+			size_t len = strlen(text);
+			size_t containerLen = internalBuffer.size();
+
+			internalBuffer.resize(containerLen + len);
+			memcpy(internalBuffer.data() + containerLen - 1, text, len);
+			internalBuffer[containerLen + len - 1] = 0;
+
+			return *this;
+		}
+
+		StringBuilder& operator << (int32 value) override
+		{
+			return AppendFormat("%d", value);
+		}
+
+		StringBuilder& operator << (uint32 value) override
+		{
+			return AppendFormat("%u", value);
+		}
+
+		StringBuilder& operator << (int64 value) override
+		{
+			return AppendFormat("%lld", value);
+		}
+
+		StringBuilder& operator << (uint64 value)  override
+		{
+			return AppendFormat("%llu", value);
+		}
+
+		StringBuilder& operator << (float value) override
+		{
+			return AppendFormat("%f", value);
+		}
+
+		StringBuilder& operator << (double value)  override
+		{
+			return AppendFormat("%lf", value);
+		}
+
+		fstring operator * () const override
+		{
+			if (internalBuffer.size() >= 0x80000000LL) Throw(0, "DynamicStringBuilder: Cannot convert to fstring. Buffer too large ");
+			return fstring{ internalBuffer.data(), (int32) internalBuffer.size() };
+		}
+
+		void Clear() override
+		{
+			internalBuffer.resize(0);
+			internalBuffer.push_back(0);
+		}
+
+		int32 Length() const override
+		{
+			return (int32)(internalBuffer.size()-1);
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+	};
 }
 
 namespace Rococo
@@ -545,4 +663,9 @@ namespace Rococo
    int32 Compare(cstr a, cstr b, int64 count) { return strncmp(a, b, count); }
 
    const char* GetSubString(const char* s, const char *subString) { return strstr(s, subString); }
+
+   IStringBuilder* CreateDynamicStringBuilder(size_t initialCapacity)
+   {
+	   return new DynamicStringBuilder(initialCapacity);
+   }
 } // Rococo

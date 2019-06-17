@@ -12917,6 +12917,32 @@ namespace
 	   validate(x == 0); // Should be set to zero by Main
    }
 
+   void TestPublishAPI(IPublicScriptSystem& ss)
+   {
+	   cstr src = 
+		   "(namespace EntryPoint) \n"
+		   "(using Sys) \n"
+		   "(using Sys.Type) \n"
+		   "(using Sys.Maths)\n"
+
+		   "(function Main -> (Int32 result): \n"
+		   "	(Sys.Native.PublishAPI)\n"
+		   ")\n"
+		   "(alias Main EntryPoint.Main) \n";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(77); // Allocate stack space for the int32 x
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+	   int32 x = vm.PopInt32();
+
+	   validate(x == 0); // Should be set to zero by Main
+	   
+   }
 
    void RunCollectionTests()
    {
@@ -13079,6 +13105,7 @@ namespace
 	{
 		validate(true);
 
+	//	TEST(TestPublishAPI);
 		TEST(TestStaticCast1);
 		TEST(TestDynamicCast2);
 		TEST(TestExpressionAppendTo);

@@ -234,6 +234,13 @@ namespace Rococo
 
 		void* AllocBoundedMemory(size_t nBytes);
 		void FreeBoundedMemory(void* pMemory);
+
+		enum TargetDirectory
+		{
+			TargetDirectory_UserDocuments = 0
+		};
+
+		void SaveAsciiTextFile(TargetDirectory target, cstr filename, const fstring& text);
 	}
 
 	struct IDebuggerWindow;
