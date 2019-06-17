@@ -13105,7 +13105,7 @@ namespace
 	{
 		validate(true);
 
-	//	TEST(TestPublishAPI);
+		TEST(TestPublishAPI);
 		TEST(TestStaticCast1);
 		TEST(TestDynamicCast2);
 		TEST(TestExpressionAppendTo);
