@@ -44,6 +44,7 @@ using namespace Rococo::Script;
 namespace
 {
 	struct ExpressionBuilder;
+	const ISParserTree& ToTree(ExpressionBuilder& builder);
 
 	template<EXPRESSION_TYPE type> struct LeafExpression: public ISExpression
 	{
@@ -72,7 +73,7 @@ namespace
 
 		const ISParserTree& Tree() const override
 		{
-			return parent->Tree();
+			return ToTree(*parent);
 		}
 
 		int NumberOfElements() const override
@@ -217,6 +218,11 @@ namespace
 		delete eb;
 	}
 
+	const ISParserTree& ToTree(ExpressionBuilder& builder)
+	{
+		return builder.Tree();
+	}
+
 	struct RootExpression: public ExpressionBuilder, public ISParserTree, public ISParser, public ISourceCode
 	{
 		refcount_t ref = 1;
@@ -265,7 +271,7 @@ namespace
 		ISExpression& Root() override { return *this; }
 		cr_sex Root() const override { return *this; }
 
-		const Vec2i& Origin() const
+		const Vec2i& Origin() const override
 		{
 			static Vec2i origin{ 0,0 };
 			return origin;
@@ -286,7 +292,7 @@ namespace
 			return 0;
 		}
 
-		cstr Name() const
+		cstr Name() const override
 		{
 			return name;
 		}
@@ -319,6 +325,14 @@ namespace
 			Throw(0, "Not implemented on Expression Builder");
 			return nullptr;
 		}
+
+#ifdef _WIN32
+		ISourceCode* LoadSource(const wchar_t* filename, const Vec2i& origin) override
+		{
+			Throw(0, "Not implemented on Expression Builder");
+			return nullptr;
+		}
+#endif
 
 		ISourceCode* LoadSource(cstr moduleName, const Vec2i& origin, const char* buffer, long len) override
 		{

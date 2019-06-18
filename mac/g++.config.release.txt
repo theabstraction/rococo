@@ -1,3 +1,3 @@
--O3 -c -std=c++11 -stdlib=libc++ -mmacosx-version-min=10.10 -fvisibility=hidden
+-O3 -c -std=c++11 -stdlib=libc++ -mmacosx-version-min=10.8
 -I./../include/ 
 -I../sexy/Common/

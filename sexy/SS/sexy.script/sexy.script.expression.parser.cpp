@@ -1285,8 +1285,9 @@ namespace Rococo
 			{
 				if (i == iString)
 				{
+					cstr blank = "";
 					VariantValue nullPtr;
-					nullPtr.charPtrValue = "";
+					nullPtr.charPtrValue = const_cast<char*>(blank);
 					ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + sizeof(size_t) + sizeof(int32), nullPtr, BITCOUNT_POINTER);
 
 					VariantValue zeroInt32;

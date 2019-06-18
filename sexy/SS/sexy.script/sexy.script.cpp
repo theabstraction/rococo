@@ -627,7 +627,7 @@ namespace Rococo
 			methodMap[("Length")] = ("_length");
 		}
 
-		const ScriptCallbacks& GetScriptCallbacks()
+		const ScriptCallbacks& GetScriptCallbacks() override
 		{
 			return callbacks;
 		}
@@ -701,7 +701,7 @@ namespace Rococo
 			return typeToMethodMap.insert(std::make_pair(&concreteClassType, nameToMethod)).first;
 		}
 
-		const MethodInfo GetMethodByName(cstr methodName, const Rococo::Compiler::IStructure& concreteClassType)
+		const MethodInfo GetMethodByName(cstr methodName, const Rococo::Compiler::IStructure& concreteClassType) override
 		{
 			auto i = typeToMethodMap.find(&concreteClassType);
 			if (i == typeToMethodMap.end())
@@ -714,13 +714,13 @@ namespace Rococo
 			return k != nameToMethod.end() ? k->second : MethodInfo{ nullptr,0 };
 		}
 
-		virtual CReflectedClass* GetRepresentation(void* pSourceInstance)
+		virtual CReflectedClass* GetRepresentation(void* pSourceInstance) override
 		{
 			auto i = representations.find(pSourceInstance);
 			return (i != representations.end()) ? i->second : NULL;
 		}
 
-		virtual CReflectedClass* Represent(const Rococo::Compiler::IStructure& st, void* pSourceInstance)
+		virtual CReflectedClass* Represent(const Rococo::Compiler::IStructure& st, void* pSourceInstance) override
 		{
 			auto i = representations.find(pSourceInstance);
 			if (i == representations.end())
@@ -749,7 +749,7 @@ namespace Rococo
 			return i->second;
 		}
 
-		virtual void CancelRepresentation(void* pSourceInstance)
+		void CancelRepresentation(void* pSourceInstance) override
 		{
 			auto i = representations.find(pSourceInstance);
 			if (i != representations.end())
@@ -760,7 +760,7 @@ namespace Rococo
 			}
 		}
 
-		virtual void EnumRepresentations(IRepresentationEnumeratorCallback& callback)
+		void EnumRepresentations(IRepresentationEnumeratorCallback& callback) override
 		{
 			for (auto i = representations.begin(); i != representations.end();)
 			{
@@ -817,7 +817,7 @@ namespace Rococo
 			}
 		}
 
-		bool ValidateMemory()
+		bool ValidateMemory() override
 		{
 			if (!alignedAllocationMap.empty())
 			{
@@ -828,23 +828,23 @@ namespace Rococo
 			return true;
 		}
 
-		virtual void SetGlobalVariablesToDefaults()
+		void SetGlobalVariablesToDefaults() override
 		{
 			auto& vm = progObjProxy().VirtualMachine();
 			scripts->SetGlobalVariablesToDefaults(vm);
 		}
 
-		virtual int NextID()
+		virtual int NextID() override
 		{
 			return nextId++;
 		}
 
-		void ThrowFromNativeCode(int32 errorCode, cstr staticRefMessage)
+		void ThrowFromNativeCode(int32 errorCode, cstr staticRefMessage) override
 		{
 			scripts->ExceptionLogic().ThrowFromNativeCode(errorCode, staticRefMessage);
 		}
 
-		void* AlignedMalloc(int32 alignment, int32 capacity)
+		void* AlignedMalloc(int32 alignment, int32 capacity) override
 		{
 			uint8* alignedData;
 
@@ -881,7 +881,7 @@ namespace Rococo
 			return alignedData;
 		}
 
-		void AlignedFree(void* alignedData)
+		void AlignedFree(void* alignedData) override
 		{
 			if (alignedData == NULL) return;
 
@@ -900,7 +900,7 @@ namespace Rococo
 			}
 		}
 
-		virtual const void* GetMethodMap()
+		const void* GetMethodMap() override
 		{
 			return &methodMap;
 		}
@@ -925,7 +925,7 @@ namespace Rococo
 			return mapCallbacks;
 		}
 
-		virtual CReflectedClass* GetReflectedClass(void* ptr)
+		virtual CReflectedClass* GetReflectedClass(void* ptr) override
 		{
 			auto i = reflectedPointers.find(ptr);
 			return i != reflectedPointers.end() ? i->second : NULL;
@@ -944,7 +944,7 @@ namespace Rococo
 			return s;
 		}
 
-		virtual CReflectedClass* CreateReflectionClass(cstr className, void* context)
+		CReflectedClass* CreateReflectionClass(cstr className, void* context) override
 		{
 			IStructure* s = GetClassFromModuleElseLog(ReflectionModule(), className);
 
@@ -962,7 +962,7 @@ namespace Rococo
 			return instance;
 		}
 
-		virtual bool ConstructExpressionBuilder(CClassExpressionBuilder& builderContainer, Rococo::Sex::ISExpressionBuilder* builder)
+		bool ConstructExpressionBuilder(CClassExpressionBuilder& builderContainer, Rococo::Sex::ISExpressionBuilder* builder) override
 		{
 			IStructure* s = GetClassFromModuleElseLog(ReflectionModule(), "ExpressionBuilder");
 			if (s == NULL)
@@ -1022,7 +1022,7 @@ namespace Rococo
 			return express;
 		}
 
-		virtual const CClassExpression* GetExpressionReflection(cr_sex s)
+		const CClassExpression* GetExpressionReflection(cr_sex s) override
 		{
 			auto i = sreflectMap.find(&s);
 			if (i == sreflectMap.end())
@@ -1037,7 +1037,7 @@ namespace Rococo
 			}
 		}
 
-		virtual CStringConstant* GetStringReflection(cstr s)
+		CStringConstant* GetStringReflection(cstr s) override
 		{
 			auto i = reflectedStrings.find(s);
 			if (i == reflectedStrings.end())
@@ -1063,7 +1063,7 @@ namespace Rococo
 			}
 		}
 
-		virtual CScriptSystemClass* GetScriptSystemClass()
+		CScriptSystemClass* GetScriptSystemClass() override
 		{
 			if (reflectionRoot == NULL)
 			{
@@ -1074,28 +1074,28 @@ namespace Rococo
 			return reflectionRoot;
 		}
 
-		virtual IProgramObject& ProgramObject()
+		IProgramObject& ProgramObject() override
 		{
 			return progObjProxy();
 		}
 
-		virtual IPublicProgramObject& PublicProgramObject()
+		IPublicProgramObject& PublicProgramObject() override
 		{
 			return progObjProxy();
 		}
 
-		virtual Sex::ISParser& SParser()
+		Sex::ISParser& SParser() override
 		{
 			return sexParserProxy();
 		}
 
-		virtual IModule* AddTree(ISParserTree& tree)
+		IModule* AddTree(ISParserTree& tree) override
 		{
 			CScript* m = scripts->CreateModule(tree);
 			return &m->ProgramModule();
 		}
 
-		virtual void ReleaseTree(Sex::ISParserTree* tree)
+	    void ReleaseTree(Sex::ISParserTree* tree) override
 		{
 			scripts->ReleaseModule(*tree);
 		}
@@ -1112,7 +1112,7 @@ namespace Rococo
 			AddNativeCall(sysTypes, Print, NULL, ("NativePrint (Sys.Type.Pointer s) -> (Int32 charCount)"), false);
 		}
 
-		const INamespace& AddNativeNamespace(cstr name)
+		const INamespace& AddNativeNamespace(cstr name) override
 		{
 			return progObjProxy().GetRootNamespace().AddNamespace(name, Compiler::ADDNAMESPACEFLAGS_CREATE_ROOTS);
 		}
@@ -1159,7 +1159,7 @@ namespace Rococo
 		{
 			auto& nsRoot = progObjProxy().GetRootNamespace();
 
-			AutoFree<IStringBuilder> sbc = CreateDynamicStringBuilder(65536);
+			AutoFree<IStringBuilder> sbc ( CreateDynamicStringBuilder(65536) );
 
 			auto& sb = sbc->Builder();
 
@@ -1189,7 +1189,7 @@ namespace Rococo
 
 		void Publish_NS_API(const INamespace& ns, NativeCallEnvironment& nce, int depth)
 		{
-			AutoFree<IStringBuilder> sbc = CreateDynamicStringBuilder(65536);
+			AutoFree<IStringBuilder> sbc ( CreateDynamicStringBuilder(65536) );
 			sbc->Builder() << "<html><style>" <<
 				"ul { font-family: \"Courier New\"; }" <<
 				".factory { color:blue; font-weight: bold; } " <<
@@ -1417,7 +1417,7 @@ namespace Rococo
 			symbols.insert(std::make_pair(ptr, symbol));
 		}
 
-		virtual cstr GetSymbol(const void* ptr) const
+		cstr GetSymbol(const void* ptr) const override
 		{
 			auto i = symbols.find(ptr);
 			return i == symbols.end() ? NULL : i->second.c_str();
@@ -1495,7 +1495,7 @@ namespace Rococo
 			}
 		}
 
-		virtual void Compile()
+		void Compile() override
 		{
 			Clear();
 
@@ -1534,17 +1534,17 @@ namespace Rococo
 			scripts->SetGlobalVariablesToDefaults(this->progObjProxy().VirtualMachine());
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
 		}
 
-		virtual Sex::ISParserTree* GetSourceCode(const IModule& module) const
+		Sex::ISParserTree* GetSourceCode(const IModule& module) const override
 		{
 			return scripts->GetSourceCode(module);
 		}
 
-		virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, bool checkName, int popBytes = 0)
+		void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, bool checkName, int popBytes = 0) override
 		{
 			enum { MAX_ARCHETYPE_LEN = 1024 };
 
@@ -1601,7 +1601,7 @@ namespace Rococo
 			commonGlobalSources.clear();
 		}
 
-		virtual void AddCommonSource(const char *sexySourceFile)
+		void AddCommonSource(const char *sexySourceFile) override
 		{
 			static bool cleanupQueued = false;
 			if (!cleanupQueued)
@@ -1648,7 +1648,7 @@ namespace Rococo
 			// commonSources.push_back(src);
 		}
 
-		virtual void AddNativeLibrary(const char* dynamicLinkLibOfNativeCalls)
+		void AddNativeLibrary(const char* dynamicLinkLibOfNativeCalls) override
 		{
 			char srcEnvironmentDll[_MAX_PATH];
 			SafeFormat(srcEnvironmentDll, sizeof(srcEnvironmentDll), ("%s%s"), srcEnvironment, dynamicLinkLibOfNativeCalls);
@@ -1663,12 +1663,12 @@ namespace Rococo
 			nativeLibs.push_back(lib);
 		}
 
-		virtual int32 GetIntrinsicModuleCount() const
+		int32 GetIntrinsicModuleCount() const override
 		{
 			return 4;
 		}
 
-		virtual void ThrowNative(int errorNumber, cstr source, cstr message)
+		void ThrowNative(int errorNumber, cstr source, cstr message) override
 		{
 			sexstringstream<1024> streamer;
 			streamer.sb << ("Native Error (") << source << ("): ") << message;

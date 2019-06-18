@@ -108,7 +108,7 @@ namespace Rococo
 #ifdef _DEBUG
 		 if (Rococo::OS::IsDebugging())
 		 {
-			 AutoFree<VM::IDisassembler> disassembler = ce.Object.VirtualMachine().Core().CreateDisassembler();
+			 AutoFree<VM::IDisassembler> disassembler ( ce.Object.VirtualMachine().Core().CreateDisassembler() );
 			 Disassemble(*disassembler, f, ce.SS);
 		 }
 #endif

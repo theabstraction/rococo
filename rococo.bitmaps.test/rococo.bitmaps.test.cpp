@@ -23,17 +23,22 @@ class MainWindow : StandardWindowHandler, public IListViewEvents
    IDialogSupervisor* dialogWindow;
    IListViewSupervisor* imageView;
 
-   virtual void OnDrawItem(DRAWITEMSTRUCT& dis)
+   void OnDrawItem(DRAWITEMSTRUCT& dis) override
    {
 
    }
 
-   virtual void OnMeasureItem(MEASUREITEMSTRUCT& mis)
+   void OnMeasureItem(MEASUREITEMSTRUCT& mis) override
    {
 
    }
 
-   virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
+   void OnItemChanged(int index) override
+   {
+
+   }
+
+   void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type) override
    {
       if (type != RESIZE_TYPE_MINIMIZED)
       {
@@ -53,12 +58,12 @@ class MainWindow : StandardWindowHandler, public IListViewEvents
       Rococo::Free(dialogWindow);
    }
 
-   virtual void OnClose(HWND hWnd)
+   void OnClose(HWND hWnd) override
    {
       modalHandler.TerminateDialog(IDCANCEL);
    }
 
-   virtual void OnMenuCommand(HWND hWnd, DWORD id)
+   void OnMenuCommand(HWND hWnd, DWORD id) override
    {
    }
 

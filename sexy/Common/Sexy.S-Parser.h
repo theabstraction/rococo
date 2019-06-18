@@ -132,8 +132,6 @@ namespace Rococo { namespace Sex
 	};
 }}
 
-SEXY_SPARSER_API Rococo::Sex::ISParser* Sexy_CreateSexParser(); // Creates an instance of an ISParser with a reference count of 1
-
 enum { SEXY_STANDARD_MAX_ATOMIC_STRING_LENGTH = 32768 }; 
 
 // N.B f you override the default maxStringLength value, you are using a non-standard dialect of sexy s-expressions. 
@@ -150,23 +148,6 @@ namespace Rococo
 
 namespace Rococo { namespace Sex
 {
-	// Usage:
-	// CSParserProxy spp;
-	// ISParser& sp = spp();
-
-	class CSParserProxy
-	{
-	private:
-		ISParser* instance;
-
-	public:
-		CSParserProxy() { instance = Sexy_CreateSexParser(); }
-		~CSParserProxy() { instance->Release(); }
-
-		ISParser& operator()() { return *instance; }
-		ISParser* operator->() { return instance; }
-	};
-
 	void EscapeScriptStringToAnsi(Rococo::IO::IBinaryWriter& writer, cstr text);
 	void EscapeScriptStringToUnicode(Rococo::IO::IUnicode16Writer& writer, cstr text);
 }}

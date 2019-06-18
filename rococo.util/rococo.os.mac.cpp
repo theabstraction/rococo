@@ -924,3 +924,51 @@ namespace Rococo
       }
    }
 }
+
+
+namespace Rococo
+{
+	namespace OS
+	{
+		void SaveAsciiTextFile(TargetDirectory target, cstr filename, const fstring& text)
+		{
+			if (text.length > 1024_megabytes)
+			{
+				Throw(0, "Rococo::OS::SaveAsciiTextFile(%s): Sanity check. String was > 1 gigabyte in length", filename);
+			}
+
+			switch (target)
+			{
+			case TargetDirectory_UserDocuments:
+				{
+					char fullpath[Rococo::IO::MAX_PATHLEN];
+				
+					SafeFormat(fullpath, Rococo::IO::MAX_PATHLEN, "~/%s", filename);
+
+					FILE* fp = fopen(fullpath, "wb");
+
+					struct FPCLOSER
+					{
+						FILE* fp;
+
+						~FPCLOSER()
+						{
+							fclose(fp);
+						}
+					} fpCloser { fp };
+
+					size_t writeSize = fwrite(text, 1, text.length, fp);
+
+					if (writeSize != (size_t) text.length)
+					{
+						Throw(errno, "Rococo::OS::SaveAsciiTextFile(%s) : failed to write text to file", filename);
+					}
+				}
+				break;
+			default:
+				Throw(0, "Rococo::OS::SaveAsciiTextFile(... %s): Unrecognized target directory", filename);
+				break;
+			}
+		}
+	}
+}

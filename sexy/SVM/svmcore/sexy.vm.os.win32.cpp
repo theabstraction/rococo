@@ -153,8 +153,9 @@ namespace Rococo { namespace VM { namespace OS
 		return hz.QuadPart;
 	}
 
-	void* AllocAlignedMemory(size_t nBytes)
+	void* AllocAlignedMemory(size_t nBytes, size_t alignment)
 	{
+		// Can assume alignment is not going to be so large it will larger than the VirtualAlloc default
 		void* ptr = VirtualAlloc(NULL, nBytes, MEM_COMMIT, PAGE_READWRITE); 
 #ifdef _DEBUG
       memset(ptr, 0xFE, nBytes);

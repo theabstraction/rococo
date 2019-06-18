@@ -22,6 +22,8 @@
 #include "sexy.s-parser.h"
 #include "sexy.lib.s-parser.h"
 
+#include <rococo.api.h>
+
 using namespace Rococo;
 using namespace Rococo::Sex;
 
@@ -95,8 +97,8 @@ void RunTests()
 		
 	try
 	{
-		CSParserProxy spp;
-		RunTest(spp());
+		Auto<ISParser> parser = Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
+		RunTest(*parser);
 	}
 	catch (ParseException& e)
 	{

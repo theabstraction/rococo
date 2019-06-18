@@ -37,6 +37,8 @@
 #include "sexy.vm.os.h"
 #include <rococo.api.h>
 
+#include <rococo.allocators.h> // provides _aligned_malloc
+
 #ifdef _WIN32
 # include <excpt.h>
 #else
@@ -60,6 +62,7 @@ namespace Rococo
 
 using namespace Rococo;
 using namespace Rococo::VM;
+using namespace Rococo::Memory;
 
 #define MERGE_TOKENS(a, b) a##b
 #define FoobarActivateInstruction(x) s_instructionTable[MERGE_TOKENS(Opcodes::,x) ] = &CVirtualMachine::MERGE_TOKENS(OnOpcode,x)
@@ -295,7 +298,7 @@ namespace Anon
 			static_assert(BITCOUNT_POINTER == sizeof(size_t) * 8, "Bad BITCOUNT_POINTER");
 		}
 
-		IVirtualMachine* Clone(CPU& _cpu)
+		IVirtualMachine* Clone(CPU& _cpu) override
 		{
 			/*
 			auto clone = new CVirtualMachine(core, _cpu);
@@ -318,30 +321,30 @@ namespace Anon
 			SetStackSize(0);
 		}
 
-		void OnStep(IDebugger& debugger)
+		void OnStep(IDebugger& debugger) override
 		{
 		}
 
-		void StepNext()
+		void StepNext() override
 		{
 		}
 
-		void SetStepCallback(IStepCallback* stepCallback)
+		void SetStepCallback(IStepCallback* stepCallback) override
 		{
 			this->stepCallback = stepCallback != NULL ? stepCallback : this;
 		}
 
-		virtual void Pause()
+		void Pause() override
 		{
 			if (status == EXECUTERESULT_RUNNING) status = EXECUTERESULT_YIELDED;
 		}
 
-		virtual bool IsRunning() const
+		bool IsRunning() const override
 		{
 			return status == EXECUTERESULT_RUNNING;
 		}
 
-		virtual void ClearBreakpoint(size_t offset)
+		void ClearBreakpoint(size_t offset) override
 		{
 			if (offset < breakpoints.size())
 			{
@@ -349,7 +352,7 @@ namespace Anon
 			}
 		}
 
-		virtual void SetBreakpoint(size_t offset)
+		void SetBreakpoint(size_t offset) override
 		{
 			if (offset < breakpoints.size())
 			{
@@ -363,7 +366,7 @@ namespace Anon
 			return breakpoints[offset] != 0;
 		}
 
-		virtual EXECUTERESULT Debug()
+		EXECUTERESULT Debug() override
 		{
 			struct ANON
 			{
@@ -384,13 +387,13 @@ namespace Anon
 			return VM::OS::ExecuteProtected(*this, ANON::ProtectedDebug, this, OUT cpu.ExceptionCode);
 		}
 
-		virtual void Throw()
+		void Throw() override
 		{
 			status = EXECUTERESULT_THROWN;
 			TerminateByIllegal(0);
 		}
 
-		virtual void GetStackTrace(FN_OnStackTrace fnCallback, void* context)
+		void GetStackTrace(FN_OnStackTrace fnCallback, void* context) override
 		{
 			uint8* SFlevel = (uint8*) cpu.SF();
 			uint8* PClevel = (uint8*) cpu.PC();
@@ -431,7 +434,7 @@ namespace Anon
 			} while (true);
 		}
 
-		virtual void EnumBreakpoints(FN_BREAKPOINT_CALLBACK fnCallback, void* context)
+		void EnumBreakpoints(FN_BREAKPOINT_CALLBACK fnCallback, void* context) override
 		{		
 			for(size_t i = 0; i < breakpoints.size(); ++i)
 			{
@@ -495,7 +498,7 @@ namespace Anon
 			}
 		}
 
-		void InitCpu()
+		void InitCpu() override
 		{
 			cpu.StackStart = stack;
 			cpu.StackEnd = stack + stackSize;
@@ -512,12 +515,12 @@ namespace Anon
 			cpu.Push(NULL); // fake return address
 		}
 
-		void InitPC()
+		void InitPC() override
 		{
 			cpu.D[REGISTER_PC].uint8PtrValue = cpu.ProgramStart;
 		}
 
-		EXECUTERESULT ExecuteFunction(ID_BYTECODE codeId)
+		EXECUTERESULT ExecuteFunction(ID_BYTECODE codeId) override
 		{
 			const uint8* context = cpu.SF();
 			cpu.Push(context);
@@ -569,7 +572,7 @@ namespace Anon
 			}
 		}
 
-		virtual EXECUTERESULT ExecuteFunctionProtected(ID_BYTECODE codeId)
+		virtual EXECUTERESULT ExecuteFunctionProtected(ID_BYTECODE codeId) override
 		{
 			try
 			{
@@ -615,18 +618,18 @@ namespace Anon
 			if (throwToQuit) throw IllegalException();
 		}
 
-		void YieldExecution()
+		void YieldExecution() override
 		{
 			status = EXECUTERESULT_YIELDED;
 			if (throwToQuit) throw YieldException();
 		}
 
-		virtual EXECUTERESULT ContinueExecution(const ExecutionFlags& ef, ITraceOutput* tracer)
+		EXECUTERESULT ContinueExecution(const ExecutionFlags& ef, ITraceOutput* tracer) override
 		{
 			return Continue(ef, tracer);
 		}
 
-		virtual void StepNextSymbol(ISymbols& symbols)
+		void StepNextSymbol(ISymbols& symbols) override
 		{
 			struct ANON
 			{
@@ -668,7 +671,7 @@ namespace Anon
 			}
 		}
 
-		virtual void StepInto(bool ignoreCallbacks)
+		void StepInto(bool ignoreCallbacks) override
 		{
 			if (!ignoreCallbacks && isBeingStepped)
 			{
@@ -697,7 +700,7 @@ namespace Anon
 			}
 		}
 
-		virtual void StepOver()
+		void StepOver() override
 		{
 			const Ins* I = NextInstruction();
 			if (!IsOpcodeCall((Opcodes::OPCODE) I->Opcode))
@@ -740,7 +743,7 @@ namespace Anon
 			}
 		}
 
-		virtual void StepOut()
+		void StepOut() override
 		{
 			struct ANON
 			{
@@ -772,12 +775,11 @@ namespace Anon
 			}
 		}
 
-		virtual CPU& Cpu() { return cpu; }
-		virtual int ExitCode() const { return exitCode; }
-		virtual ICore& Core()	{ return core;	}
-		virtual void Free();
+		CPU& Cpu()  override { return cpu; }
+		int ExitCode() const override  { return exitCode; }
+		ICore& Core() override { return core;	}
 
-		virtual void SetStackSize(size_t nBytes)
+		void SetStackSize(size_t nBytes) override
 		{ 
 			if (stack != NULL)
 			{
@@ -789,7 +791,7 @@ namespace Anon
 
 			if (stack == NULL && stackSize > 0)
 			{
-				stack = (uint8*) VM::OS::AllocAlignedMemory(stackSize); 
+				stack = (uint8*) VM::OS::AllocAlignedMemory(stackSize, 2048); 
 			}
 
 			// N.B in 64-mode we need to convert parentSF to and from 32-bit uint32. This can only work if the maximum stack value is less than 32-bits
@@ -803,7 +805,7 @@ namespace Anon
 			}
 		}
 
-		virtual void SetGlobalData(const uint8* globalData, size_t nBytes)
+		void SetGlobalData(const uint8* globalData, size_t nBytes) override
 		{
 			this->globalData.resize(nBytes);
 			memcpy(&this->globalData[0], globalData, nBytes);
@@ -811,25 +813,26 @@ namespace Anon
 
 		IEventCallback<WaitArgs>* waitHandler = nullptr;
 
-		virtual void SetWaitHandler(IEventCallback<WaitArgs>* waitHandler)
+		void SetWaitHandler(IEventCallback<WaitArgs>* waitHandler) override
 		{
 			this->waitHandler = waitHandler;
 		}
 
-		virtual void NotifyWaitEvent(int64 nextWaitTime)
+		void NotifyWaitEvent(int64 nextWaitTime) override
 		{
 			if (waitHandler)
 			{
-				waitHandler->OnEvent(WaitArgs{ this, nextWaitTime });
+				WaitArgs args { this, nextWaitTime };
+				waitHandler->OnEvent(args);
 			}
 		}
 
-		virtual void SetStatus(EXECUTERESULT status)
+		void SetStatus(EXECUTERESULT status) override
 		{
 			this->status = status;
 		}
 
-		virtual EXECUTERESULT Status() const
+		EXECUTERESULT Status() const override
 		{
 			return status;
 		}
@@ -839,7 +842,7 @@ namespace Anon
 			return reinterpret_cast<const Ins*>(cpu.PC());
 		}
 
-		virtual void SetProgram(IProgramMemory* program)
+		void SetProgram(IProgramMemory* program) override
 		{
 			if (program == this->program)
 			{
@@ -866,7 +869,7 @@ namespace Anon
 			memset(&breakpoints[0], 0, cpu.ProgramEnd - cpu.ProgramStart);
 		}
 
-		virtual EXECUTERESULT Execute(const ExecutionFlags& ef, ITraceOutput* tracer)
+		EXECUTERESULT Execute(const ExecutionFlags& ef, ITraceOutput* tracer) override
 		{
 			if (program == NULL)
 			{
@@ -2811,42 +2814,42 @@ namespace Anon
 			cpu.D[target].sizetValue = (size_t) *pValue;
 		}
 
-		virtual int64 PopInt64()
+		int64 PopInt64() override
 		{
 			return cpu.Pop<int64>();
 		}
 
-		virtual double PopFloat64()
+		double PopFloat64() override
 		{
 			return cpu.Pop<float64>();
 		}
 
-		virtual void Push(double value)
+		void Push(double value) override
 		{
 			cpu.Push(value);
 		}
 
-		virtual void Push(int64 value)
+		void Push(int64 value) override
 		{
 			cpu.Push(value);
 		}
 
-		virtual float PopFloat32()
+		float PopFloat32() override
 		{
 			return cpu.Pop<float32>();
 		}
 
-		virtual int32 PopInt32()
+		int32 PopInt32() override
 		{
 			return cpu.Pop<int32>();
 		}
 
-		virtual void* PopPointer()
+		void* PopPointer() override
 		{
 			return cpu.Pop<void*>();
 		}
 
-		virtual void PushBlob(void* ptr, int nBytes)
+		void PushBlob(void* ptr, int nBytes) override
 		{			
 			uint8* sp = (uint8*) cpu.SP();
 			memcpy(sp, ptr, nBytes);
@@ -2854,20 +2857,22 @@ namespace Anon
 			cpu.D[REGISTER_SP].uint8PtrValue = sp;
 		}
 
-		virtual void Push(float value)
+		void Push(float value) override
 		{
 			cpu.Push(value);
 		}
 
-		virtual void Push(int32 value)
+		void Push(int32 value) override
 		{
 			cpu.Push(value);
 		}
 		
-		virtual void Push(void* ptr)
+		void Push(void* ptr) override
 		{
 			cpu.Push(ptr);
 		}
+
+		void Free() override;
 	};
 
 	CVirtualMachine::FN_VM* CVirtualMachine::s_instructionTable = NULL;  
@@ -2887,11 +2892,7 @@ namespace Anon
 		
 		uint8* pCpu = mem - GetCpuToVMOffset();
 
-#ifdef _WIN32
-		_aligned_free(pCpu);
-#else
-      free(pCpu);
-#endif
+		Rococo::VM::OS::FreeAlignedMemory(pCpu, Anon::GetCpuToVMOffset() + sizeof(Anon::CVirtualMachine));
 	}
 }
 
@@ -2901,13 +2902,7 @@ namespace Rococo { namespace VM
 	{
 		enum { CACHE_LINE_ALIGN = 128 };
 
-#ifdef _WIN32
-		uint8* mem = (uint8*)_aligned_malloc(Anon::GetCpuToVMOffset() + sizeof(Anon::CVirtualMachine), CACHE_LINE_ALIGN);
-#else
-      uint8* mem = nullptr;
-      posix_memalign((void**)&mem, CACHE_LINE_ALIGN, GetCpuToVMOffset() + sizeof(CVirtualMachine));
-#endif
-
+		uint8* mem = (uint8*) Rococo::VM::OS::AllocAlignedMemory(Anon::GetCpuToVMOffset() + sizeof(Anon::CVirtualMachine), CACHE_LINE_ALIGN);
 		CPU* cpu = new (mem) CPU();
 		return new (mem + Anon::GetCpuToVMOffset()) Anon::CVirtualMachine(core, *cpu);
 	}

@@ -58,6 +58,9 @@ $(BIN_DIR)sexy.nativelib.reflection.mac.dylib: nativelibs.reflection.mak
 $(BIN_DIR)sexy.nativelib.maths.mac.dylib: nativelibs.maths.mak
 	make -f nativelibs.maths.mak
 	
+$(BIN_DIR)sexy.nativelib.coroutines.mac.dylib: nativelibs.coroutines.mak
+	make -f nativelibs.coroutines.mak
+	
 clean:
 	make -f vm.mak        clean
 	make -f utilities.mak clean
@@ -65,6 +68,7 @@ clean:
 	make -f compiler.mak  clean
 	make -f script.mak    clean
 	make -f nativelibs.reflection.mak clean
+	make -f nativelibs.coroutines.mak clean
 	make -f nativelibs.maths.mak      clean
 	make -f vm.test.mak            clean
 	make -f compiler.test.mak      clean

@@ -925,13 +925,13 @@ namespace Rococo
 			auto* name = member.UnderlyingType()->Name();
 			if (Eq(name, "_Null_Sys_Type_IString"))
 			{
-				__try
+				TRY_PROTECTED
 				{
 					InterfacePointer p = InterfacePointer(sfItem);
 					auto* s = (CClassSysTypeStringBuilder*)(sfItem + (*p)->OffsetToInstance);
 					SafeFormat(value, sizeof(value), "%s", s->buffer);
 				}
-				__except (EXCEPTION_EXECUTE_HANDLER)
+				CATCH_PROTECTED
 				{
 					SafeFormat(value, sizeof(value), "IString: <Bad pointer>");
 				}
@@ -1002,7 +1002,7 @@ namespace Rococo
 			tree->SetId(node, depth + 1);
 
 			// At this level of enumeration v.instance refers to a stack address
-			__try
+			TRY_PROTECTED
 			{
 				MemberEnumeratorPopulator addMember;
 				addMember.parentId = node;
@@ -1014,7 +1014,7 @@ namespace Rococo
 				InterfacePointer pInterf = (InterfacePointer)(v.instance);
 				if (v.s) GetMembers(*ss, *v.s, v.parentName, v.instance, 0, addMember, 1);
 			}
-			__except (1)
+			CATCH_PROTECTED
 			{
 
 			}
@@ -1066,11 +1066,11 @@ namespace Rococo
 		addToList.list = &list;
 		addToList.SF = sf;
 
-		__try
+		TRY_PROTECTED
 		{
 			Script::ForeachVariable(ss, addToList, depth);
 		}
-		__except (1)
+		CATCH_PROTECTED
 		{
 
 		}
@@ -1098,11 +1098,11 @@ namespace Rococo
 		addToTree.depth = depth;
 		addToTree.ss = &ss;
 
-		__try
+		TRY_PROTECTED
 		{
 			Script::ForeachVariable(ss, addToTree, depth);
 		}
-		__except (1)
+		CATCH_PROTECTED
 		{
 
 		}
@@ -1409,7 +1409,14 @@ namespace Rococo
 							SafeFormat(line, 256, "[ ] %s: %s\n", rep.OpcodeText, rep.ArgText);
 						}
 
-						OutputDebugStringA(line);
+						if (OS::IsDebugging())
+						{
+#ifdef _WIN32
+							OutputDebugStringA(line);
+#else
+							printf("%s", line);
+#endif
+						}
 					}
 				} tracer(ss, vm);
 				EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(true, false), &tracer);

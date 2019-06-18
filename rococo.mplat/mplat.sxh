@@ -42,7 +42,7 @@
 
 (interface 
 	(as.sxy Rococo.IPaneContainer "../content/scripts/mplat.pane" Rococo.IPane)
-	(as.cpp Rococo.IPaneContainer "mplat" Rococo.IPane)
+	(as.cpp Rococo.IPaneContainer "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.IPaneContainer)
 	(methods
 		(AddContainer (const Rect rect)->(Rococo.IPaneContainer container))
@@ -58,7 +58,7 @@
 
 (interface 
 	(as.sxy Rococo.ITabContainer "../content/scripts/mplat.pane" Rococo.IPane)
-	(as.cpp Rococo.ITabContainer "mplat" Rococo.IPane)
+	(as.cpp Rococo.ITabContainer "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.ITabContainer)
 	(methods
 		(AddTab (Int32 tabWidth)(IString caption)(IString panelText))
@@ -68,7 +68,7 @@
 
 (interface 
 	(as.sxy Rococo.IFramePane "../content/scripts/mplat.pane" Rococo.IPaneContainer)
-	(as.cpp Rococo.IFramePane "mplat" Rococo.IPaneContainer)
+	(as.cpp Rococo.IFramePane "mplat" "virtual public Rococo::IPaneContainer")
 	(context factory Rococo.IFramePane)
 	(methods
 		(GetChildRect (Rect rect))
@@ -81,7 +81,7 @@
 
 (interface 
 	(as.sxy Rococo.IRadioButton "../content/scripts/mplat.pane" Rococo.IPane)
-	(as.cpp Rococo.IRadioButton "mplat" Rococo.IPane)
+	(as.cpp Rococo.IRadioButton "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.IRadioButton)
 	(methods
 		(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY))
@@ -90,7 +90,7 @@
 
 (interface 
 	(as.sxy Rococo.ILabelPane "../content/scripts/mplat.pane" Rococo.IPane)
-	(as.cpp Rococo.ILabelPane "mplat"  Rococo.IPane)
+	(as.cpp Rococo.ILabelPane "mplat"  "virtual public Rococo::IPane")
 	(context factory Rococo.ILabelPane)
 	(methods
 		(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY))
@@ -99,7 +99,7 @@
 
 (interface 
 	(as.sxy Rococo.ISlider "../content/scripts/mplat.pane" Rococo.IPane)
-	(as.cpp Rococo.ISlider "mplat" Rococo.IPane)
+	(as.cpp Rococo.ISlider "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.ISlider)
 	(methods
 	)
@@ -107,7 +107,7 @@
 
 (interface 
 	(as.sxy Rococo.IScroller "../content/scripts/mplat.pane" Rococo.IPane)
-	(as.cpp Rococo.IScroller "mplat" Rococo.IPane)
+	(as.cpp Rococo.IScroller "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.IScroller)
 	(methods
 	)
@@ -115,7 +115,7 @@
 
 (interface 
 	(as.sxy Rococo.ITextOutputPane "../content/scripts/mplat.pane" Rococo.IPane)
-	(as.cpp Rococo.ITextOutputPane "mplat" Rococo.IPane)
+	(as.cpp Rococo.ITextOutputPane "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.ITextOutputPane)
 	(methods
 		(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY))
@@ -124,7 +124,7 @@
 
 (interface 
 	(as.sxy Rococo.IPaneBuilder "../content/scripts/mplat.pane")
-	(as.cpp Rococo.IPaneBuilder "mplat" Rococo.IPane)
+	(as.cpp Rococo.IPaneBuilder "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.IPaneBuilder)
 	(methods
 		(Root -> (Rococo.IPaneContainer container))

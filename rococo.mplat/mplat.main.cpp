@@ -1198,9 +1198,8 @@ bool operator != (const GuiRect& a, const GuiRect& b)
    return a.left != b.left || a.right != b.right || a.bottom != b.bottom || a.top != b.top;
 }
 
-class PanelContainer : public BasePanel, virtual public IPaneContainer
+struct PanelContainer : public BasePanel, virtual public IPaneContainer
 {
-public:
 	Platform& platform;
 
 	PanelContainer(Platform& _platform) : platform(_platform)

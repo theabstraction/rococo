@@ -714,7 +714,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<std::stri
 			if (directive.NumberOfElements() == 4)
 			{
 				cr_sex sbaseClass = directive[3];
-				if (!IsStringLiteral(sbaseClass) && !IsAtomic(sbaseClass)) Throw(sbaseClass, ("Expecting string literal base class"));
+				if (!IsStringLiteral(sbaseClass) && !IsAtomic(sbaseClass)) Throw(sbaseClass, ("Expecting string literal or atomic base class"));
 				ic.cppBase = sbaseClass.String()->Buffer;
 			}
 
@@ -1008,14 +1008,14 @@ int main(int argc, char* argv[])
 
 	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 
-	CSParserProxy spp;
+	Auto<ISParser> parser = Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
 	Auto<ISourceCode> src;
 	Auto<ISParserTree> tree;
 
 	try
 	{
-		src = spp->LoadSource(pc.scriptInput, Vec2i{ 1,1 });
-		tree = spp->CreateTree(src());
+		src = parser->LoadSource(pc.scriptInput, Vec2i{ 1,1 });
+		tree = parser->CreateTree(src());
 
 		if (tree->Root().NumberOfElements() == 0)
 		{

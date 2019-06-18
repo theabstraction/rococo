@@ -65,7 +65,7 @@ namespace Anon
 		ProgramMemory(size_t maxProgramSize)
 		{
 			allocSize = maxProgramSize + 32768 - (maxProgramSize % 32768);
-			memory = (uint8*) VM::OS::AllocAlignedMemory(allocSize);
+			memory = (uint8*) VM::OS::AllocAlignedMemory(allocSize, 32768);
 			nextStartIndex = 0;
 			nextId = 1;
 			refCount = 1;

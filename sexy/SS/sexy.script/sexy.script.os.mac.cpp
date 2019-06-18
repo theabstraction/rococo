@@ -46,6 +46,7 @@
 #include <mach-o/dyld.h>
 
 #include <rococo.api.h>
+#include <rococo.allocators.h>
 
 #define BREAK_ON_THROW
 
@@ -95,23 +96,23 @@ namespace Rococo { namespace OS
 
 	typedef void (*FN_AddNativeSexyCalls)(Rococo::Script::IScriptSystem& ss);
 
-   Rococo::Script::FN_CreateLib GetLibCreateFunction(const char* dynamicLinkLibOfNativeCalls, bool throwOnError)
+	Rococo::Script::FN_CreateLib GetLibCreateFunction(const char* dynamicLinkLibOfNativeCalls, bool throwOnError)
 	{
-	   char linkLib[_MAX_PATH];
-      SafeFormat(linkLib, _MAX_PATH, ("%s.mac.dylib"), dynamicLinkLibOfNativeCalls);
-      void* lib = dlopen(linkLib, RTLD_NOW | RTLD_GLOBAL);
-      if (lib == nullptr)
+		char linkLib[_MAX_PATH];
+		SafeFormat(linkLib, _MAX_PATH, ("%s.mac.dylib"), dynamicLinkLibOfNativeCalls);
+		void* lib = dlopen(linkLib, RTLD_NOW | RTLD_GLOBAL);
+		if (lib == nullptr)
 		{
-         if (throwOnError) Rococo::Throw(errno, ("Could not load %s"), (const char*) linkLib);
-         return nullptr;
+			if (throwOnError) Rococo::Throw(errno, ("Could not load %s"), (const char*)linkLib);
+			return nullptr;
 		}
 
-      Rococo::Script::FN_CreateLib fp;
-      *(void **)(&fp) = dlsym(lib, "CreateLib");
+		Rococo::Script::FN_CreateLib fp;
+		*(void **)(&fp) = dlsym(lib, "CreateLib");
 		if (fp == nullptr)
 		{
-         if (throwOnError) Rococo::Throw(errno, ("Could not find INativeLib* CreateLib(...) in %s"), linkLib);
-         return nullptr;
+			if (throwOnError) Rococo::Throw(errno, ("Could not find INativeLib* CreateLib(...) in %s"), linkLib);
+			return nullptr;
 		}
 
 		return fp;

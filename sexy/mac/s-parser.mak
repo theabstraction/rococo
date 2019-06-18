@@ -1,6 +1,6 @@
 # Make file for s-parser module in the Rococo.Sexy library
 
-S_OBJS = sexy.s-parser.obj
+S_OBJS = sexy.s-parser.obj sexy.s-parser.s-block.obj
 S_SRCS = $(S_OBJS,.obj=.cpp) 
 
 OBJ_DIR = ../../intermediate.mac/

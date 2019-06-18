@@ -1,3 +1,3 @@
--g -c -std=c++11 -stdlib=libc++ -mmacosx-version-min=10.10 -fvisibility=hidden -D_DEBUG=1
+-g -c -std=c++11 -stdlib=libc++ -mmacosx-version-min=10.8 -D_DEBUG=1
 -I./../include/
 -I../sexy/Common/

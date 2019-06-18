@@ -40,10 +40,15 @@
 
 #include <stdio.h>
 #include <memory>
+
+#ifdef _WIN32
 #include <malloc.h>
+#else
+#include <stdlib.h>
+#include <errno.h>
+#endif
 
 #include <new>
-#include <filesystem>
 
 namespace Anon
 {
@@ -563,22 +568,22 @@ namespace Anon
 
 		void CovertListsToArrays(ICompoundSExpression& cs);
 
-		ISExpression& Root()
+		ISExpression& Root() override
 		{
 			return GetISExpression(*root);
 		}
 
-		const ISExpression& Root() const
+		const ISExpression& Root() const override
 		{
 			return GetISExpression(*root);
 		}
 
-		ISParser& Parser()
+		ISParser& Parser() override
 		{
 			return *sParser;
 		}
 
-		const ISourceCode& Source() const
+		const ISourceCode& Source() const override
 		{
 			return *sourceCode;
 		}
@@ -801,7 +806,7 @@ namespace Anon
 		int32 numberOfChildren = 0;
 		ISExpressionLinkBuilder* lastChild = nullptr;
 
-		void SetOffsets(int32 startOffset, int32 endOffset)
+		void SetOffsets(int32 startOffset, int32 endOffset) override
 		{
 		}
 
@@ -906,12 +911,12 @@ namespace Anon
 		LinkOrArray children;
 		int32 numberOfChildren;
 
-		void SetOffsets(int32 start, int32 end)
+		void SetOffsets(int32 start, int32 end) override
 		{
 			offsets = { start, end };
 		}
 
-		void SetArrayStart(ISExpression** pArray)
+		void SetArrayStart(ISExpression** pArray) override
 		{
 			children.pArray = pArray;
 		}
@@ -1371,8 +1376,8 @@ namespace Anon
 		cstr SourceStart() const override { return buffer; }
 		const int SourceLength() const override { return srcLength; }
 		cstr Name() const override { return name; }
-		refcount_t AddRef() { return ++refcount; }
-		refcount_t Release()
+		refcount_t AddRef()  override { return ++refcount; }
+		refcount_t Release()  override
 		{
 			refcount--;
 			if (refcount == 0)
@@ -1387,19 +1392,19 @@ namespace Anon
 		}
 	};
 
-	struct ANON : public ISParser
+	struct SParser_2_0 : public ISParser
 	{
 		refcount_t refcount = 1;
 		IAllocator& allocator;
 		size_t maxStringLength;
 
-		ANON(IAllocator& _allocator, size_t _maxStringLength) :
+		SParser_2_0(IAllocator& _allocator, size_t _maxStringLength) :
 			maxStringLength(_maxStringLength),
 			allocator(_allocator)
 		{
 		}
 
-		~ANON()
+		~SParser_2_0()
 		{
 		}
 
@@ -1498,28 +1503,14 @@ namespace Anon
 		{
 			if (filename == nullptr || *filename == 0) Rococo::Throw(0, "ISParser::LoadSource: Blank filename");
 
-			using namespace std::experimental::filesystem;
-
-			path srcPath(filename);
-
 			try
 			{
-				if (!exists(srcPath))
+				if (!Rococo::OS::IsFileExistant(filename))
 				{
 					Rococo::Throw(0, "file does not exist");
 				}
-				auto filelen = file_size(srcPath);
-				if (filelen == -1)
-				{
-					Rococo::Throw(0, "Could not get file size");
-				}
 
 				enum { MAX_FILELEN = 0x7FFFFFFELL }; // +1 byte for the nul char gives int32.max, which is our hard limit
-
-				if (filelen >= MAX_FILELEN)
-				{
-					Rococo::Throw(0, "File length for source code greater than maximum file size: %llu bytes", MAX_FILELEN);
-				}
 
 				FILE* fp = fopen(filename, "rb");
 				if (fp == nullptr)
@@ -1527,6 +1518,22 @@ namespace Anon
 					int err = errno;
 					Rococo::Throw(0, "Could not open file - %s", strerror(err));
 				}
+
+				struct FPANON
+				{
+					FILE* fp;
+
+					~FPANON()
+					{
+						fclose(fp);
+					}
+				} fpCloser{ fp };
+
+				fseek(fp, 0, SEEK_END);
+
+				long filelen = ftell(fp);
+
+				fseek(fp, 0, SEEK_SET);
 
 				size_t blockSize = sizeof(SourceCode) + filelen + 1 + strlen(filename) + 1;
 				char* block = (char*)allocator.Allocate(blockSize);
@@ -1558,6 +1565,79 @@ namespace Anon
 				return nullptr;
 			}
 		}
+
+#ifdef _WIN32 // UNICODE for Win32
+		ISourceCode* LoadSource(const wchar_t* filename, const Vec2i& origin) override
+		{
+			if (filename == nullptr || *filename == 0) Rococo::Throw(0, "ISParser::LoadSource: Blank filename");
+
+			try
+			{
+				FILE* fp = _wfopen(filename, L"rb");
+				if (fp == nullptr)
+				{
+					int err = errno;
+					Rococo::Throw(0, "Could not open file - %s", strerror(err));
+				}
+
+				struct FPANON
+				{
+					FILE* fp;
+
+					~FPANON()
+					{
+						fclose(fp);
+					}
+				} fpCloser{ fp };
+
+				fseek(fp, 0, SEEK_END);
+
+				long filelen = ftell(fp);
+
+				fseek(fp, 0, SEEK_SET);
+
+				char* asciifilename = (char*)alloca(wcslen(filename) + 1);
+
+				auto* pSrc = filename;
+				auto* pDst = asciifilename;
+
+				do
+				{
+					wchar_t c = *pSrc++;
+					*pDst++ = c > 127 ? '?' : c;
+				} while (*pSrc != 0);
+
+				size_t blockSize = sizeof(SourceCode) + filelen + 1 + strlen(asciifilename) + 1;
+				char* block = (char*)allocator.Allocate(blockSize);
+				auto* src = new (block) SourceCode(allocator);
+				src->allocator = allocator;
+				src->buffer = block + sizeof(SourceCode);
+
+				size_t lenRead = fread(src->buffer, 1, filelen, fp);
+				if (lenRead != filelen)
+				{
+					int err = errno;
+					allocator.FreeData(block);
+					Rococo::Throw(0, "Could not read all file data - %s", strerror(err));
+				}
+
+				src->buffer[filelen] = 0;
+				src->name = src->buffer + filelen + 1;
+				src->srcLength = (int32)filelen;
+				src->origin = origin;
+				src->block = block;
+
+				memcpy(src->name, asciifilename, strlen(asciifilename) + 1);
+
+				return src;
+			}
+			catch (IException& ex)
+			{
+				Rococo::Throw(ex.ErrorCode(), "ISParser::LoadSource( %s ,...) failed - %s", filename, ex.Message());
+				return nullptr;
+			}
+		}
+#endif
 
 		ISourceCode* LoadSource(cstr moduleName, const Vec2i& origin, const char* buffer, long len) override
 		{
@@ -1597,7 +1677,7 @@ namespace Rococo
 				Rococo::Throw(0, "CreateSParser: %llu must not be less than 8 nor more than %llu. Recommended size is 32768", maxStringLength, ABS_MAX_STRING_LENGTH);
 			}
 
-			return new Anon::ANON(allocator, maxStringLength);
+			return new Anon::SParser_2_0(allocator, maxStringLength);
 		}
 
 		void TestBlockAllocator(cstr sExpression)

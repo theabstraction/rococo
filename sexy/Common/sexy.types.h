@@ -311,6 +311,10 @@ namespace Rococo
 			virtual ISourceCode* DuplicateSourceBuffer(cstr buffer, int segmentLength, const Vec2i& origin, cstr name) = 0; // Duplicates a source segment and exposes as an instance
 			virtual ISourceCode* ProxySourceBuffer(cstr bufferRef, int segmentLength, const Vec2i& origin, cstr nameRef) = 0; // Duplicates the pointers defining the source code and its name and exposes as an instance
 			virtual ISourceCode* LoadSource(cstr filename, const Vec2i& origin) = 0; // Loads source code, converts it to chars and returns a reference to it
+
+#ifdef _WIN32 // Windows can also use UNICODE paths
+			virtual ISourceCode* LoadSource(const wchar_t* filename, const Vec2i& origin) = 0; // Loads source code, converts it to chars and returns a reference to it
+#endif
 			virtual ISourceCode* LoadSource(cstr moduleName, const Vec2i& origin, const char* buffer, long len) = 0;
 		};
 

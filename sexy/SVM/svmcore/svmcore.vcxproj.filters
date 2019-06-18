@@ -42,6 +42,9 @@
     <ClCompile Include="sexy.vm.main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sexy.vm.os.mac.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sexy.vm.stdafx.h">

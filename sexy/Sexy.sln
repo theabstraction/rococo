@@ -144,6 +144,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.test.gen", "sexy.test.
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.nativelib.coroutines", "SS\sexy.nativelib.coroutines\sexy.nativelib.coroutines.vcxproj", "{F98E6A1F-E0B9-44AE-8C05-3A6491A72F7D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B4C417E3-79C5-4A07-A713-F3BC2A1D30FF} = {B4C417E3-79C5-4A07-A713-F3BC2A1D30FF}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "s-parser.2", "s-parser.2\s-parser.2.vcxproj", "{E395BC0D-506B-4869-88D4-675408F3A5B3}"
 	ProjectSection(ProjectDependencies) = postProject

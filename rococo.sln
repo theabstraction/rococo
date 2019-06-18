@@ -36,8 +36,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Content", "Content", "{BF61
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.sexy.ide", "rococo.sexy.ide\rococo.sexy.ide.vcxproj", "{B9B1C849-B75F-4C56-AD56-01D36F3FDA05}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.widgets", "rococo.widgets\rococo.widgets.vcxproj", "{673E7B16-B3C8-48D9-915B-A8E82900691C}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperverse", "hyperverse\hyperverse.vcxproj", "{E98664C0-72C3-4E38-BACD-444DF2288DC9}"
 	ProjectSection(ProjectDependencies) = postProject
 		{673E7B16-B3C8-48D9-915B-A8E82900691C} = {673E7B16-B3C8-48D9-915B-A8E82900691C}
@@ -103,6 +101,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mhost", "mhost\mhost.vcxpro
 		{8C99B5D5-A98C-4233-B0FE-889D8B26D72E} = {8C99B5D5-A98C-4233-B0FE-889D8B26D72E}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.fonts", "rococo.fonts\fonts.vcxproj", "{31024025-C99F-45A4-A4EA-BCEB32794477}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.widgets", "rococo.widgets\rococo.widgets.vcxproj", "{673E7B16-B3C8-48D9-915B-A8E82900691C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -161,14 +163,6 @@ Global
 		{B9B1C849-B75F-4C56-AD56-01D36F3FDA05}.Release|x64.ActiveCfg = Release|x64
 		{B9B1C849-B75F-4C56-AD56-01D36F3FDA05}.Release|x64.Build.0 = Release|x64
 		{B9B1C849-B75F-4C56-AD56-01D36F3FDA05}.Release|x86.ActiveCfg = Release|x64
-		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Debug|x64.ActiveCfg = Debug|x64
-		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Debug|x64.Build.0 = Debug|x64
-		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Debug|x86.ActiveCfg = Debug|x64
-		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Release|Any CPU.ActiveCfg = Release|x64
-		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Release|x64.ActiveCfg = Release|x64
-		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Release|x64.Build.0 = Release|x64
-		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Release|x86.ActiveCfg = Release|x64
 		{E98664C0-72C3-4E38-BACD-444DF2288DC9}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{E98664C0-72C3-4E38-BACD-444DF2288DC9}.Debug|x64.ActiveCfg = Debug|x64
 		{E98664C0-72C3-4E38-BACD-444DF2288DC9}.Debug|x64.Build.0 = Debug|x64
@@ -241,6 +235,22 @@ Global
 		{1EA74CEB-5E30-4B16-BDDF-8523A5F23DF8}.Release|x64.ActiveCfg = Release|x64
 		{1EA74CEB-5E30-4B16-BDDF-8523A5F23DF8}.Release|x64.Build.0 = Release|x64
 		{1EA74CEB-5E30-4B16-BDDF-8523A5F23DF8}.Release|x86.ActiveCfg = Release|x64
+		{31024025-C99F-45A4-A4EA-BCEB32794477}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{31024025-C99F-45A4-A4EA-BCEB32794477}.Debug|x64.ActiveCfg = Debug|x64
+		{31024025-C99F-45A4-A4EA-BCEB32794477}.Debug|x64.Build.0 = Debug|x64
+		{31024025-C99F-45A4-A4EA-BCEB32794477}.Debug|x86.ActiveCfg = Debug|x64
+		{31024025-C99F-45A4-A4EA-BCEB32794477}.Release|Any CPU.ActiveCfg = Release|x64
+		{31024025-C99F-45A4-A4EA-BCEB32794477}.Release|x64.ActiveCfg = Release|x64
+		{31024025-C99F-45A4-A4EA-BCEB32794477}.Release|x64.Build.0 = Release|x64
+		{31024025-C99F-45A4-A4EA-BCEB32794477}.Release|x86.ActiveCfg = Release|x64
+		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Debug|x64.ActiveCfg = Debug|x64
+		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Debug|x64.Build.0 = Debug|x64
+		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Debug|x86.ActiveCfg = Debug|x64
+		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Release|Any CPU.ActiveCfg = Release|x64
+		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Release|x64.ActiveCfg = Release|x64
+		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Release|x64.Build.0 = Release|x64
+		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

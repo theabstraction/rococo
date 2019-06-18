@@ -36,7 +36,7 @@ namespace
 		CSVCursor cursor;
 		const char* buffer;
 		const size_t nBytes;
-		rchar filename[_MAX_PATH];
+		char filename[_MAX_PATH];
 	public:
 		CSVStream(cstr _filename, const char* buffer, size_t nBytes);
 

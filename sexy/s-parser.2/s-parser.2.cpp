@@ -5,7 +5,12 @@
 
 #include <stdio.h>
 #include <memory>
+
+#ifdef _WIN32
 #include <malloc.h>
+#else
+#define <stdlib.h>
+#endif
 
 #include <sexy.types.h>
 
@@ -73,19 +78,6 @@ void TestGenerated()
 	printf("Through put: %.0f MB/s\n\n", len / (1048576.0 * dt));
 
 	s->Release();
-
-	Rococo::Sex::CSParserProxy ppp;
-	Auto<ISourceCode> src2 = ppp->LoadSource(filename, Vec2i{ 1,1 });
-
-	start = Rococo::OS::CpuTicks();
-	ISParserTree* tree2 = ppp->CreateTree(*src2);
-	tree2->Release();
-	now = Rococo::OS::CpuTicks();
-
-	dt = (now - start) / (double)Rococo::OS::CpuHz();
-	printf("Old School performance:\n");
-	printf("Cpu cost of processing %llu kb: %.3f seconds\n", len / 1024, dt);
-	printf("Through put: %.0f MB/s\n\n", len / (1048576.0 * dt));
 
 //	_unlink(filename);
 }

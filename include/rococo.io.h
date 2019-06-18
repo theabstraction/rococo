@@ -146,7 +146,11 @@ namespace Rococo
       enum { MAX_PATHLEN = 260 };
       char GetFileSeparator();
       void EndDirectoryWithSlash(char* pathname, size_t capacity);
-      void GetUserPath(char* fullpath, size_t capacity, cstr shortname);
+#ifdef _WIN32 // Windows may have UNICODE16 characters in the username, so ascii insufficient to hold the user path
+      void GetUserPath(wchar_t* fullpath, size_t capacity, cstr shortname);
+#else
+	  void GetUserPath(char* fullpath, size_t capacity, cstr shortname);
+#endif
       void DeleteUserFile(cstr filename);
    }
 }

@@ -97,7 +97,7 @@ namespace
 
 		try
 		{		
-			CSParserProxy parser;
+			Auto<ISParser> parser = Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
 			test(parser());
 		}
 		catch (std::exception& e)
@@ -116,7 +116,7 @@ namespace
 
 	void TestGoodReferenceCounts()
 	{
-		ISParser* parser = Sexy_CreateSexParser();
+		ISParser* parser = Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
 		VALIDATE(parser != NULL);
 		VALIDATE(parser->AddRef() == 2);
 		VALIDATE(parser->Release() == 1);

@@ -324,11 +324,19 @@ namespace Rococo
 		AppendStructShortName(appender, ic.asCppInterface.SexyName());
 		if (ic.cppBase)
 		{
-			char cppCompressedNSName[256];
-			char cppNSName[256];
-			GetFQCppStructName(cppCompressedNSName, cppNSName, 256, ic.cppBase);
-
-			appender.Append(": virtual public %s", cppNSName);
+			NamespaceSplitter splitter(ic.cppBase);
+			cstr head, tail;
+			if (splitter.SplitHead(head, tail))
+			{
+				char cppCompressedNSName[256];
+				char cppNSName[256];
+				GetFQCppStructName(cppCompressedNSName, cppNSName, 256, ic.cppBase);
+				appender.Append(": %s", cppNSName);
+			}
+			else
+			{
+				appender.Append(": %s", ic.cppBase);
+			}
 		}
 		appender.Append(nsDepth > 0 ? ("\n\t{\n") : ("\n{\n"));
 

@@ -48,7 +48,7 @@ namespace
 		}
 		else
 		{
-         SafeFormat(pc.cppRootDirectory, _MAX_PATH, ("%s"), cppPath);
+			SafeFormat(pc.cppRootDirectory, _MAX_PATH, ("%s"), cppPath);
 		}
 	}
 
@@ -58,7 +58,7 @@ namespace
 		if (sconfigItem.NumberOfElements() != 2) Throw(sconfigItem, ("Expecting (cpp.exception <cpp-exception name>)."));
 
 		cstr cppException = StringFrom(sconfigItem.GetElement(1));
-      SafeFormat(pc.cppException, 128, ("%s"), cppException);
+		SafeFormat(pc.cppException, 128, ("%s"), cppException);
 	}
 
 	void ParseTypeFile(cr_sex sconfigItem, ParseContext& pc)
@@ -73,26 +73,26 @@ namespace
 		cstr cppPrefix = ("$cpp$");
 		if (AreEqual(cppTypesPath, projectPrefix, StringLength(projectPrefix)))
 		{
-         SafeFormat(pc.cppTypesFilename, _MAX_PATH, ("%s%s"), pc.projectRoot, cppTypesPath + StringLength(projectPrefix));
+			SafeFormat(pc.cppTypesFilename, _MAX_PATH, ("%s%s"), pc.projectRoot, cppTypesPath + StringLength(projectPrefix));
 		}
 		else if (AreEqual(cppTypesPath, cppPrefix, StringLength(cppPrefix)))
 		{
-         SafeFormat(pc.cppTypesFilename, _MAX_PATH, ("%s%s"), pc.cppRootDirectory, cppTypesPath + StringLength(cppPrefix));
+			SafeFormat(pc.cppTypesFilename, _MAX_PATH, ("%s%s"), pc.cppRootDirectory, cppTypesPath + StringLength(cppPrefix));
 		}
 		else
 		{
-         SafeFormat(pc.cppTypesFilename, _MAX_PATH, ("%s"), cppTypesPath);
+			SafeFormat(pc.cppTypesFilename, _MAX_PATH, ("%s"), cppTypesPath);
 		}
 
 		cstr sexyTypesPath = StringFrom(sconfigItem.GetElement(1));
 
 		if (AreEqual(sexyTypesPath, projectPrefix, StringLength(projectPrefix)))
 		{
-         SafeFormat(pc.sexyTypesFilename, _MAX_PATH, ("%s%s"), pc.projectRoot, sexyTypesPath + StringLength(projectPrefix));
+			SafeFormat(pc.sexyTypesFilename, _MAX_PATH, ("%s%s"), pc.projectRoot, sexyTypesPath + StringLength(projectPrefix));
 		}
 		else
 		{
-         SafeFormat(pc.sexyTypesFilename, _MAX_PATH, ("%s"), sexyTypesPath);
+			SafeFormat(pc.sexyTypesFilename, _MAX_PATH, ("%s"), sexyTypesPath);
 		}
 	}
 
@@ -171,14 +171,14 @@ namespace
 
 		cppTypeAppender.Append(("\tstruct %s\n\t{\n"), cppTypeShortName);
 
-		for(int i = 4; i < sprimitiveDef.NumberOfElements(); ++i)
+		for (int i = 4; i < sprimitiveDef.NumberOfElements(); ++i)
 		{
 			cr_sex field = sprimitiveDef.GetElement(i);
 			if (field.NumberOfElements() != 2) Throw(field, ("Expecting two elements in a field definition (<field-type> <field-name>)"));
 
 			cstr fieldType = StringFrom(field, 0);
 			cstr fieldName = StringFrom(field, 1);
-			
+
 			ValidateSexyVariable(field, fieldName);
 
 			cppTypeAppender.Append(("\t\t"));
@@ -189,8 +189,8 @@ namespace
 		cppTypeAppender.Append(("\t};\n"));
 
 		if (nsDepth > 0)
-		{		
-			for(int i = 0; i < nsDepth; i++)
+		{
+			for (int i = 0; i < nsDepth; i++)
 			{
 				cppTypeAppender.Append('}');
 			}
@@ -210,7 +210,7 @@ namespace
 
 		sexyTypeAppender.Append(("(struct %s\n"), shortName);
 
-		for(int i = 4; i < sprimitiveDef.NumberOfElements(); ++i)
+		for (int i = 4; i < sprimitiveDef.NumberOfElements(); ++i)
 		{
 			cr_sex field = sprimitiveDef.GetElement(i);
 			if (field.NumberOfElements() != 2) Throw(field, ("Expecting two elements in a field definition (<field-type> <field-name>)"));
@@ -218,13 +218,13 @@ namespace
 			cstr fieldType = StringFrom(field, 0);
 			cstr fieldName = StringFrom(field, 1);
 
-			auto j = pc.primitives.find(fieldType);			
+			auto j = pc.primitives.find(fieldType);
 			if (j == pc.primitives.end())
 			{
 				j = pc.structs.find(fieldType);
 				if (j == pc.structs.end())
 				{
-					Throw(field.GetElement(0), ("Cannot find corresponding sexy type")); 
+					Throw(field.GetElement(0), ("Cannot find corresponding sexy type"));
 				}
 			}
 
@@ -245,10 +245,10 @@ namespace
 		cstr sxhType = StringFrom(sprimitiveDef, 1);
 		cstr sxyType = StringFrom(sprimitiveDef, 2);
 		cstr cppType = StringFrom(sprimitiveDef, 3);
-			
+
 		ValidateCPPType(sprimitiveDef.GetElement(3), cppType);
 		ValidateSexyType(sprimitiveDef.GetElement(2), sxyType);
-		
+
 		AppendStructDefToCppTypeFile(cppTypeAppender, cppType, sprimitiveDef, pc);
 		AppendStructDefToSexyTypeFile(sexyTypeAppender, sxyType, sprimitiveDef, pc);
 
@@ -269,7 +269,7 @@ namespace
 	{
 		int nStructDefs = 0;
 
-		for(int i = 0; i < configDef.NumberOfElements(); ++i)
+		for (int i = 0; i < configDef.NumberOfElements(); ++i)
 		{
 			cr_sex sconfigItem = configDef.GetElement(i);
 			if (!IsCompound(sconfigItem)) Throw(sconfigItem, ("Expecting compound item in config definition"));
@@ -315,7 +315,7 @@ namespace
 			FileAppender cppTypeAppender(pc.cppTypesFilename);
 			FileAppender sexyTypeAppender(pc.sexyTypesFilename);
 
-			for(int i = 0; i < configDef.NumberOfElements(); ++i)
+			for (int i = 0; i < configDef.NumberOfElements(); ++i)
 			{
 				cr_sex sconfigItem = configDef.GetElement(i);
 				cstr configCommand = StringFrom(sconfigItem, 0);
@@ -333,9 +333,9 @@ namespace
 	void ParseConfigSpec(cr_sex configSpec, ParseContext& pc)
 	{
 		if (configSpec.NumberOfElements() != 2) Throw(configSpec, ("Expecting two elements in a config spec (config <config_path>). The <config_path> can be prefixed with $, which if found, is substituted with the project root"));
-	
+
 		cstr configPath = StringFrom(configSpec.GetElement(1));
-		
+
 		char fullconfigPath[_MAX_PATH];
 
 		if (*configPath == '$')
@@ -344,24 +344,24 @@ namespace
 		}
 		else
 		{
-         SafeFormat(fullconfigPath, _MAX_PATH, ("%s"), configPath);
+			SafeFormat(fullconfigPath, _MAX_PATH, ("%s"), configPath);
 		}
 
-		CSParserProxy spp;
-      Auto<ISourceCode> configSrc;
-      Auto<ISParserTree> tree;
+		Auto<ISParser> parser = Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
+		Auto<ISourceCode> configSrc;
+		Auto<ISParserTree> tree;
 
 		try
 		{
-         configSrc = spp().LoadSource(fullconfigPath, Vec2i{ 1,1 });
-			tree = spp().CreateTree(configSrc());
+			configSrc = parser->LoadSource(fullconfigPath, Vec2i{ 1,1 });
+			tree = parser->CreateTree(configSrc());
 
 			ParseConfig(tree().Root(), pc);
 		}
-		catch(ParseException& ex)
+		catch (ParseException& ex)
 		{
-			WriteToStandardOutput(("%s: %s. Specimen: %s"), fullconfigPath, ex.Message(), ex.Specimen());
-			Rococo::Throw(0, ("Error parsing config"));
+			WriteToStandardOutput("%s: %s. Specimen: %s", fullconfigPath, ex.Message(), ex.Specimen());
+			Rococo::Throw(0, "Error parsing config");
 		}
 	}
 }

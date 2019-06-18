@@ -320,7 +320,7 @@ namespace Rococo { namespace Compiler
 		virtual void Append_IncDerivativeRefs(cstr value) = 0;
 
 		/* D4 = source, D5 = target
-		/* if source and target are different, decrement target refcount and increment source refcount */
+		   if source and target are different, decrement target refcount and increment source refcount */
 		virtual void Append_UpdateRefsOnSourceAndTarget() = 0;
 
 		/* AddDynamicAllocateObject -> takes sizeof(obj) in D4 (int32),

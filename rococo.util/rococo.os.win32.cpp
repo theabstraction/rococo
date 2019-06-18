@@ -1257,33 +1257,48 @@ namespace Rococo
 
 	namespace IO
 	{
-		void GetUserPath(char* fullpath, size_t capacity, cstr shortname)
+		void GetUserPath(wchar_t* fullpath, size_t capacity, cstr shortname)
 		{
-			wchar_t* path;
-			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
-			SafeFormat(fullpath, capacity, "%S\\%s", path, shortname);
+			wchar_t* userDocPath;
+			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &userDocPath);
+
+			size_t nChars = wcslen(userDocPath) + 2 + strlen(shortname);
+
+			if (nChars > capacity) Throw(0, "Rococo::IO::GetUserPath -> Insufficient capacity in result buffer");
+
+			_snwprintf_s(fullpath, capacity, capacity, L"%s\\%S", userDocPath, shortname);
+
+			CoTaskMemFree(userDocPath);
 		}
 
 		void DeleteUserFile(cstr filename)
 		{
-			wchar_t* path;
-			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
+			wchar_t* userDocPath;
+			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &userDocPath);
 
-			char fullpath[_MAX_PATH];
-			SafeFormat(fullpath, sizeof(fullpath), "%S\\%s", path, filename);
+			size_t nChars = wcslen(userDocPath) + 2 + strlen(filename);
+			size_t sizeOfBuffer = sizeof(wchar_t) * nChars;
+			wchar_t* fullPath = (wchar_t*)alloca(sizeOfBuffer);
+			_snwprintf_s(fullPath, nChars, nChars, L"%s\\%S", userDocPath, filename);
+			CoTaskMemFree(userDocPath);
 
-			DeleteFileA(fullpath);
+			BOOL success = DeleteFileW(fullPath);
+			HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
+			if (success) {}
 		}
 
 		void SaveUserFile(cstr filename, cstr s)
 		{
-			wchar_t* path;
-			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
+			wchar_t* userDocPath;
+			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &userDocPath);
 
-			char fullpath[_MAX_PATH];
-			SafeFormat(fullpath, sizeof(fullpath), "%S\\%s", path, filename);
+			size_t nChars = wcslen(userDocPath) + 2 + strlen(filename);
+			size_t sizeOfBuffer = sizeof(wchar_t) * nChars;
+			wchar_t* fullPath = (wchar_t*)alloca(sizeOfBuffer);
+			_snwprintf_s(fullPath, nChars, nChars, L"%s\\%S", userDocPath, filename);
+			CoTaskMemFree(userDocPath);
 
-			HANDLE hFile = CreateFileA(fullpath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+			HANDLE hFile = CreateFileW(fullPath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 			if (hFile != INVALID_HANDLE_VALUE)
 			{
 				DWORD writeLength;

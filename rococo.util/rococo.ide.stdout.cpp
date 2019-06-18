@@ -14,81 +14,53 @@ namespace
 {
    struct StdoutDebugger : public IDebuggerWindow
    {
-      virtual void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor = RGBAb(255, 255, 255), bool bringToView = false)
+      void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor = RGBAb(255, 255, 255), bool bringToView = false) override
       {
          printf("%s\n", text);
       }
 
-      virtual void BeginStackUpdate()
-      {
-         printf("Begin-Stack:\n");
-      }
-
-      virtual void EndStackUpdate()
-      {
-         printf("End-Stack:\n");
-      }
-
-      virtual void InitDisassembly(size_t codeId)
+      void InitDisassembly(size_t codeId) override
       {
          printf("Disassembly for id %llu\n", (unsigned long long) codeId);
       }
 
-      virtual void AddSourceCode(cstr name, cstr sourceCode)
+      void AddSourceCode(cstr name, cstr sourceCode) override
       {
          printf("Source: %s\n%s\n", name, sourceCode);
       }
 
-      virtual void Free()
+      void Free() override
       {
          delete this;
       }
 
-      virtual Windows::IWindow& GetDebuggerWindowControl()
+      Windows::IWindow& GetDebuggerWindowControl() override
       {
          return Windows::NoParent();
       }
 
-      virtual void PopulateStackView(Visitors::ITreePopulator& populator)
-      {  
-         using namespace Rococo::Visitors;
+	  void PopulateMemberView(Visitors::ITreePopulator& populator) override
+	  {
 
-         struct anon : IUITree
-         {
-            virtual TREE_NODE_ID AddChild(TREE_NODE_ID parentId, cstr text, CheckState state)
-            {
-               printf("%s\n", text);
-               return TREE_NODE_ID();
-            }
+	  }
 
-            virtual TREE_NODE_ID AddRootItem(cstr text, CheckState state)
-            {
-               printf("%s\n", text);
-               return TREE_NODE_ID();
-            }
+	  void PopulateVariableView(Visitors::IListPopulator& populator) override
+	  {
 
-            virtual void ResetContent()
-            {
+	  }
 
-            }
+	  void PopulateCallStackView(Visitors::IListPopulator& populator) override
+	  {
 
-            virtual void SetId(TREE_NODE_ID nodeId, int64 id)
-            {
+	  }
 
-            }
-
-         } anonTree;
-
-         populator.Populate(anonTree);
-      }
-
-      virtual void PopulateRegisterView(Visitors::IListPopulator& populator)
+      void PopulateRegisterView(Visitors::IListPopulator& populator) override
       {
          using namespace Rococo::Visitors;
 
          struct anon : IUIList
          {
-            virtual void AddRow(cstr values[])
+            void AddRow(cstr values[]) override
             {
                cstr* value = values;
                int count = 0;
@@ -107,22 +79,22 @@ namespace
                printf("\n");
             }
 
-            virtual void ClearRows()
+            void ClearRows() override
             {
 
             }
 
-            virtual void SetColumns(cstr columnNames[], int widths[])
+            void SetColumns(cstr columnNames[], int widths[]) override
             {
 
             }
 
-            virtual int NumberOfRows() const
+            int NumberOfRows() const override
             {
                return 0;
             }
 
-            virtual void DeleteRow(int rowIndex)
+            void DeleteRow(int rowIndex) override
             {
 
             }
@@ -131,24 +103,24 @@ namespace
          populator.Populate(anonList);
       }
 
-      virtual void Run(IDebuggerPopulator& populator, IDebugControl& control)
+      void Run(IDebuggerPopulator& populator, IDebugControl& control) override
       {
          populator.Populate(*this);
 
          OS::UILoop(1000);
       }
 
-      virtual void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message)
+      void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message) override
       {
          printf("Code Highlight: %s (%d,%d) to (%d,%d)\n\t%s\n", source, start.x, start.y, end.x, end.y, message);
       }
 
-      virtual void ShowWindow(bool show, IDebugControl* debugControl)
+      void ShowWindow(bool show, IDebugControl* debugControl) override
       {
          
       }
 
-      virtual void AddLogSection(RGBAb colour, cstr format, ...)
+      void AddLogSection(RGBAb colour, cstr format, ...) override
       {
          char msg[4096];
 
@@ -158,12 +130,12 @@ namespace
          printf("%s\n", msg);
       }
 
-      virtual void ClearLog()
+      void ClearLog() override
       {
 
       }
 
-      virtual int Log(cstr format, ...)
+      int Log(cstr format, ...) override
       {
          char msg[4096];
 
@@ -181,7 +153,7 @@ namespace Rococo
 	{
 		namespace IDE
 		{
-			IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent)
+			IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent, IEventCallback<MenuCommand>& menuHandler, OS::IAppControl& appControl)
 			{
 				return new StdoutDebugger();
 			}

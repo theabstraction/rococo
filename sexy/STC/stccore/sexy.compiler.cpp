@@ -44,9 +44,14 @@
 #include <list>
 #include <unordered_set>
 
+#include <rococo.api.h>
+
+#include <rococo.allocators.h> // Provides _alliged_maloc
+
 using namespace Rococo;
 using namespace Rococo::Compiler;
 using namespace Rococo::VM;
+using namespace Rococo::Memory;
 
 namespace Rococo { namespace Compiler {
 	ICodeBuilder* CreateBuilder(IFunctionBuilder& f, bool mayUseParentsSF);
@@ -90,7 +95,8 @@ namespace Anon
 		{
 			for (ObjectStub* p : objects)
 			{
-				if (leakCallback) leakCallback->OnEvent(LeakArgs{ p });
+				LeakArgs args{ p };
+				if (leakCallback) leakCallback->OnEvent(args);
 				_aligned_free(p);
 			}
 
@@ -213,7 +219,7 @@ namespace Anon
 		}
 	}
 
-	static void DecRefCountOnCircularReferences(ObjectStub* object, IAllocatorMap& map)
+	void DecRefCountOnCircularReferences(ObjectStub* object, IAllocatorMap& map)
 	{
 		if (object->Desc->TypeInfo->HasInterfaceMembers())
 		{
@@ -221,7 +227,7 @@ namespace Anon
 		}
 	}
 
-	static void DecObjRefCount(ObjectStub* object, IAllocatorMap& map)
+	void DecObjRefCount(ObjectStub* object, IAllocatorMap& map)
 	{
 		if (object->refCount & ObjectStub::NO_REF_COUNT) return;
 		object->refCount -= 1;
@@ -251,7 +257,7 @@ namespace Anon
 		}
 	}
 
-	static void DecrementRefCount(VariantValue* registers, void* allocatorContext)
+	void DecrementRefCount(VariantValue* registers, void* allocatorContext)
 	{
 		uint8* rawInterface = registers[VM::REGISTER_D4].uint8PtrValue;
 		auto pInterface = (InterfacePointer)rawInterface;
@@ -261,7 +267,7 @@ namespace Anon
 		DecObjRefCount(object, map);
 	}
 
-	static void UpdateRefsOnSourceAndTarget(VariantValue* registers, void* allocatorContext)
+	void UpdateRefsOnSourceAndTarget(VariantValue* registers, void* allocatorContext)
 	{
 		auto* src = (InterfacePointer)registers[VM::REGISTER_D4].uint8PtrValue;
 		auto* target = (InterfacePointer)registers[VM::REGISTER_D5].uint8PtrValue;
@@ -278,7 +284,7 @@ namespace Anon
 		}
 	}
 
-	static void GetAllocSize(VariantValue* registers, void* context)
+	void GetAllocSize(VariantValue* registers, void* context)
 	{
 		uint8* pInterface = (uint8*)registers[VM::REGISTER_D7].vPtrValue;
 		VirtualTable** pTables = (VirtualTable**)pInterface;
@@ -308,19 +314,19 @@ namespace Anon
 
 		CallbackIds callbackIds;
 	public:
-		virtual ILog& Log() { return log; }
-		virtual void Free() { delete this; }
-		virtual IModuleBuilder& GetModule(int index) { return *modules[index]; }
-		virtual const IModule& GetModule(int index) const { return *modules[index]; }
-		virtual int ModuleCount() const { return (int32)modules.size(); }
-		virtual const INamespace& GetRootNamespace() const { return *rootNS; }
-		virtual INamespaceBuilder& GetRootNamespace() { return *rootNS; }
-		virtual IVirtualMachine& VirtualMachine() { return *virtualMachine; }
-		virtual IProgramMemory& ProgramMemory() { return *program; }
-		virtual const IProgramMemory& ProgramMemory() const { return *program; }
-		virtual IModuleBuilder& IntrinsicModule() { return *intrinsics; }
-		virtual const IModule& IntrinsicModule() const { return *intrinsics; }
-		virtual CommonStructures& Common() { return *common; }
+		ILog& Log() override { return log; }
+		void Free() override { delete this; }
+		IModuleBuilder& GetModule(int index) override { return *modules[index]; }
+		const IModule& GetModule(int index)  const override { return *modules[index]; }
+		int ModuleCount() const override { return (int32)modules.size(); }
+		const INamespace& GetRootNamespace() const override { return *rootNS; }
+		INamespaceBuilder& GetRootNamespace() override { return *rootNS; }
+		IVirtualMachine& VirtualMachine() override { return *virtualMachine; }
+		IProgramMemory& ProgramMemory() override { return *program; }
+		const IProgramMemory& ProgramMemory() const override { return *program; }
+		IModuleBuilder& IntrinsicModule() override { return *intrinsics; }
+		const IModule& IntrinsicModule() const override { return *intrinsics; }
+		CommonStructures& Common() override { return *common; }
 
 		ProgramObject(const ProgramInitParameters& pip, ILog& _log) : log(_log)
 		{
@@ -359,14 +365,14 @@ namespace Anon
 			IncRefCount(pInterface);
 		}
 
-		const CallbackIds& GetCallbackIds() const
+		const CallbackIds& GetCallbackIds() const override
 		{
 			return callbackIds;
 		}
 
 		size_t lastLeakCount = 0;
 
-		void ClearCustomAllocators()
+		void ClearCustomAllocators() override
 		{
 			lastLeakCount = FreeLeakedObjects(nullptr);
 
@@ -437,17 +443,17 @@ namespace Anon
 			}
 		}
 
-		void InitCommon()
+		void InitCommon() override
 		{
 			common = new CommonStructures(*this);
 		}
 
-		cstr RegisterSymbol(cstr text)
+		cstr RegisterSymbol(cstr text) override
 		{
 			return AddSymbol(symbols, text);
 		}
 
-		IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, VARTYPE underlyingType, const IArchetype* archetype)
+		IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, VARTYPE underlyingType, const IArchetype* archetype) override
 		{
 			StructurePrototype prototype(MEMBERALIGN_1, INSTANCEALIGN_1, true, archetype, false);
 
@@ -460,28 +466,28 @@ namespace Anon
 			return *s;
 		}
 
-		virtual IModuleBuilder& AddModule(cstr name)
+		IModuleBuilder& AddModule(cstr name) override
 		{
 			Module* m = new Module(*this, name);
 			modules.push_back(m);
 			return *m;
 		}
 
-		virtual void SetProgramAndEntryPoint(const IFunction& f)
+		void SetProgramAndEntryPoint(const IFunction& f) override
 		{
 			CodeSection cs;
 			f.Code().GetCodeSection(cs);
 			SetProgramAndEntryPoint(cs.Id);
 		}
 
-		virtual void SetProgramAndEntryPoint(ID_BYTECODE bytecodeId)
+		void SetProgramAndEntryPoint(ID_BYTECODE bytecodeId) override
 		{
 			virtualMachine->SetProgram(program);
 			virtualMachine->InitCpu();
 			virtualMachine->Cpu().D[VM::REGISTER_D5].byteCodeIdValue = bytecodeId;
 		}
 
-		virtual const IStructure* GetSysType(SEXY_CLASS_ID id)
+		const IStructure* GetSysType(SEXY_CLASS_ID id) override
 		{
 			if (systemStructures.empty())
 			{
@@ -498,12 +504,12 @@ namespace Anon
 			return id >= systemStructures.size() ? nullptr : systemStructures[id];
 		}
 
-		virtual void ResolveNativeTypes()
+		void ResolveNativeTypes() override
 		{
 			ResolveTypesInIntrinsics(*this);
 		}
 
-		virtual bool ResolveDefinitions()
+		bool ResolveDefinitions() override
 		{
 			if (!ResolveStructures(*this))
 			{

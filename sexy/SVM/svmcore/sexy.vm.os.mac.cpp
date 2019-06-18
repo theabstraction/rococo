@@ -38,6 +38,9 @@
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 
+#include <sexy.s-parser.h>
+#include <rococo.strings.h>
+
 using namespace Rococo;
 using namespace Rococo::VM;
 
@@ -73,47 +76,108 @@ namespace
    };
 }
 
-namespace Rococo { namespace VM { namespace OS 
-{
-   EXECUTERESULT ExecuteProtected(FN_CODE1 fnCode, void* context, EXCEPTIONCODE& exceptionCode)
-   {
-      ThrowOnSignal ev(SIGSEGV);
+namespace Rococo {
+	namespace VM   {
+		namespace OS
+		{
+			EXECUTERESULT ExecuteProtectedLayer0(IVirtualMachine& vm, FN_CODE fnCode, void* context, EXCEPTIONCODE& exceptionCode, bool arg)
+			{
+				exceptionCode = EXCEPTIONCODE_NONE;
 
-      try
-      {
-         return fnCode(context);
-      }
-      catch (SignalException&)
-      {
-         OUT exceptionCode = EXCEPTIONCODE_BAD_ADDRESS;
-         return EXECUTERESULT_SEH;
-      }
-   }
+				try
+				{
+					return fnCode(context, arg);
+				}
+				catch (Rococo::Sex::ParseException& parseEx)
+				{
+					auto start = parseEx.Start();
+					auto end = parseEx.End();
 
-   EXECUTERESULT ExecuteProtected(FN_CODE fnCode, void* context, EXCEPTIONCODE& exceptionCode, bool arg)
-   {  
-      ThrowOnSignal ev(SIGSEGV);
+					cstr sourceFile;
+					auto* s = parseEx.Source();
+					sourceFile = (s != nullptr) ? s->Tree().Source().Name() : "<unknown>";
 
-      try
-      {
-         return fnCode(context, arg);
-      }
-      catch (SignalException&)
-      {
-         OUT exceptionCode = EXCEPTIONCODE_BAD_ADDRESS;
-         return EXECUTERESULT_SEH;
-      }
-   }
+					char fullMessage[1024];
+					SafeFormat(fullMessage, 1024, "(%d.%d) to (%d.%d). Source: %s.\n%s", start.x, start.y, end.x, end.y, sourceFile, parseEx.Message());
+					vm.Core().Log(fullMessage);
+					return EXECUTERESULT_THROWN;
+				}
+				catch (IException& ex)
+				{
+					vm.Core().Log(ex.Message());
+					return EXECUTERESULT_THROWN;
+				}
+			}
 
-   void* AllocAlignedMemory(size_t nBytes)
-   {
-      void* pMemory = nullptr;
-      posix_memalign(&pMemory, 128, nBytes);
-      return pMemory;
-   }
+			EXECUTERESULT ExecuteProtected(IVirtualMachine& vm, FN_CODE fnCode, void* context, EXCEPTIONCODE& exceptionCode, bool arg)
+			{
+				ThrowOnSignal ev(SIGSEGV);
 
-   void FreeAlignedMemory(void* data, size_t nBytes)
-   {
-      free(data);
-   }
-}}} // Rococo::VM::OS
+				try
+				{
+					return ExecuteProtectedLayer0(vm, fnCode, context, exceptionCode, arg);
+				}
+				catch (SignalException&)
+				{
+					OUT exceptionCode = EXCEPTIONCODE_BAD_ADDRESS;
+					return EXECUTERESULT_SEH;
+				}
+			}
+
+			EXECUTERESULT ExecuteProtectedLayer0(IVirtualMachine& vm, FN_CODE1 fnCode, void* context, EXCEPTIONCODE& exceptionCode)
+			{
+				exceptionCode = EXCEPTIONCODE_NONE;
+
+				try
+				{
+					return ExecuteProtected(vm, fnCode, context, exceptionCode);
+				}
+				catch (IException& ex)
+				{
+					vm.Core().Log(ex.Message());
+					return EXECUTERESULT_THROWN;
+				}
+			}
+
+			EXECUTERESULT ExecuteProtected(IVirtualMachine& vm, FN_CODE1 fnCode, void* context, EXCEPTIONCODE& exceptionCode)
+			{
+				ThrowOnSignal ev(SIGSEGV);
+
+				try
+				{
+					return ExecuteProtectedLayer0(vm, fnCode, context, exceptionCode);
+				}
+				catch (SignalException&)
+				{
+					OUT exceptionCode = EXCEPTIONCODE_BAD_ADDRESS;
+					return EXECUTERESULT_SEH;
+				}
+			}
+
+			void* AllocAlignedMemory(size_t nBytes, size_t alignment)
+			{
+				void* pMemory = nullptr;
+				posix_memalign(&pMemory, alignment, nBytes);
+				return pMemory;
+			}
+
+			void FreeAlignedMemory(void* data, size_t nBytes)
+			{
+				free(data);
+			}
+
+			int64 TimerTicks()
+			{
+				return mach_absolute_time();
+			}
+
+			int64 TimerHz()
+			{
+				mach_timebase_info_data_t theTimeBaseInfo;
+				mach_timebase_info(&theTimeBaseInfo);
+
+				return (int64)(1.0e9 * ((double)theTimeBaseInfo.denom / (double)theTimeBaseInfo.numer));
+			}
+		}
+	}
+} // Rococo::VM::OS

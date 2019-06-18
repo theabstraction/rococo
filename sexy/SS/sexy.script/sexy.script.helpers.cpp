@@ -43,6 +43,53 @@
 
 #include <rococo.api.h>
 
+#ifdef _WIN32
+# include <malloc.h>
+# include <excpt.h>
+# define TRY_PROTECTED __try
+# define CATCH_PROTECTED __except (EXCEPTION_EXECUTE_HANDLER)
+#else
+# define TRY_PROTECTED try
+# define CATCH_PROTECTED catch (SignalException& sigEx)
+
+# define COMBINE1(X,Y) X##Y  // helper macro
+# define COMBINE(X,Y) COMBINE1(X,Y)
+# define PROTECT ThrowOnSignal COMBINE(ev_segv_,__LINE__)(SIGSEGV);ThrowOnSignal COMBINE(ev_bus_,__LINE__)(SIGBUS); try
+# define CATCH  catch(SignalException& ex)
+
+namespace
+{
+	typedef void(*FN_SignalHandler)(int);
+
+	struct SignalException
+	{
+		int signalCode;
+	};
+
+	struct ThrowOnSignal
+	{
+		FN_SignalHandler previousHandler;
+		int code;
+
+		static void OnSignal(int code)
+		{
+			throw SignalException{ code };
+		}
+
+		ThrowOnSignal(int code)
+		{
+			this->previousHandler = signal(code, ThrowOnSignal::OnSignal);
+			this->code = code;
+		}
+
+		~ThrowOnSignal()
+		{
+			signal(code, previousHandler);
+		}
+	};
+}
+#endif
+
 using namespace Rococo;
 using namespace Rococo::Script;
 using namespace Rococo::Compiler;
@@ -234,70 +281,20 @@ namespace Rococo
    }
 }
 
-#ifdef _WIN32
-# define PROTECT  __try
-# define CATCH  __except(1)
-#else
-namespace Rococo
-{
-   struct SignalException
-   {
-      int dummy;
-   };
-}
-
-# define COMBINE1(X,Y) X##Y  // helper macro
-# define COMBINE(X,Y) COMBINE1(X,Y)
-# define PROTECT ThrowOnSignal COMBINE(ev_segv_,__LINE__)(SIGSEGV);ThrowOnSignal COMBINE(ev_bus_,__LINE__)(SIGBUS); try
-# define CATCH  catch(SignalException& ex)
-
-namespace
-{
-	typedef void(*FN_SignalHandler)(int);
-
-	struct SignalException
-	{
-		int signalCode;
-	};
-
-	struct ThrowOnSignal
-	{
-		FN_SignalHandler previousHandler;
-		int code;
-
-		static void OnSignal(int code)
-		{
-			throw SignalException{ code };
-		}
-
-		ThrowOnSignal(int code)
-		{
-			this->previousHandler = signal(code, ThrowOnSignal::OnSignal);
-			this->code = code;
-		}
-
-		~ThrowOnSignal()
-		{
-			signal(code, previousHandler);
-		}
-	};
-}
-#endif
-
 namespace Rococo
 { 
    namespace Script
    {
 	   SCRIPTEXPORT_API void FormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, VARTYPE type, const void* pVariableData)
 	   {
-         PROTECT
-		   {
-			   ProtectedFormatValue(ss, buffer, bufferCapacity, type, pVariableData);
-		   }
-         CATCH
-		   {
-			   CopyString(buffer, bufferCapacity, "Bad pointer");
-		   }
+			TRY_PROTECTED
+			{
+				ProtectedFormatValue(ss, buffer, bufferCapacity, type, pVariableData);
+			}
+			CATCH_PROTECTED
+			{
+				CopyString(buffer, bufferCapacity, "Bad pointer");
+			}
 	   }
 
 	   SCRIPTEXPORT_API void ForeachStackLevel(Rococo::Compiler::IPublicProgramObject& obj, ICallStackEnumerationCallback& cb)
@@ -451,24 +448,24 @@ namespace Rococo
 
 	   SCRIPTEXPORT_API const uint8* GetReturnAddress(CPU& cpu, const uint8* sf)
 	   {
-         PROTECT
-		   {
-			   if (sf >= cpu.StackStart + 4 && sf < cpu.StackEnd)
-			   {
-				   uint8* pValue = ((Rococo::uint8*) sf) - sizeof(size_t) ;
-				   void** ppValue = (void**) pValue;
-				   const uint8* caller = (const uint8*) *ppValue;
-				   if (caller >= cpu.ProgramStart && caller < cpu.ProgramEnd)
-				   {
-					   return caller;
-				   }
-			   }
-		   }
-         CATCH
-		   {
-		   }
+			TRY_PROTECTED
+			{
+				if (sf >= cpu.StackStart + 4 && sf < cpu.StackEnd)
+				{
+					uint8* pValue = ((Rococo::uint8*) sf) - sizeof(size_t) ;
+					void** ppValue = (void**) pValue;
+					const uint8* caller = (const uint8*) *ppValue;
+					if (caller >= cpu.ProgramStart && caller < cpu.ProgramEnd)
+					{
+						return caller;
+					}
+				}
+			}
+			CATCH_PROTECTED
+			{
+			}
 
-		   return NULL;		
+			return NULL;		
 	   }
 
 	   SCRIPTEXPORT_API const uint8* GetStackFrame(Rococo::VM::CPU& cpu, int32 callDepth)
@@ -709,11 +706,11 @@ namespace Rococo
 					   auto* pInterface = *(const uint8**)pVariableData;
 
 					   ObjectStub* object;
-					   __try
+					   TRY_PROTECTED
 					   {
 						   object = (ObjectStub*)(pInterface + (*(InterfacePointer)pInterface)->OffsetToInstance);
 					   }
-					   __except(1)
+					   CATCH_PROTECTED
 					   {
 						   SafeFormat(variable.Value, variable.VALUE_CAPACITY, "(bad interface) %p", pVariableData);
 						   continue;
@@ -778,11 +775,11 @@ namespace Rococo
 			   else
 			   {
 				   const void** ppData = (const void**)pVariableData;
-				   PROTECT
+				   TRY_PROTECTED
 				   {
 					   FormatVariableDesc(variable, "-> %1llX", (int64)*ppData);
 				   }
-				   CATCH
+				   CATCH_PROTECTED
 				   {
 					   FormatVariableDesc(variable, "Bad pointer");
 				   }
@@ -818,11 +815,11 @@ namespace Rococo
 				   break;
 			   }
 
-			   PROTECT
+			   TRY_PROTECTED
 			   {
 					variableEnum.OnVariable(count++, variable, def);
 			   }
-			   CATCH
+			   CATCH_PROTECTED
 			   {
 					FormatVariableDescLocation(variable, "Bad");
 					variable.Address = 0xBADBADBADBADBAD0;
@@ -834,7 +831,7 @@ namespace Rococo
 	   {
 		   if (s.VarType() != VARTYPE_Derivative) return true;
 
-		   PROTECT
+		   TRY_PROTECTED
 		   {
 
 			   ObjectStub* concreteInstancePtr = NULL;
@@ -885,7 +882,7 @@ namespace Rococo
 
 			   return true;
 		   }
-		   CATCH
+		   CATCH_PROTECTED
 		   {
 			   return false;
 		   }

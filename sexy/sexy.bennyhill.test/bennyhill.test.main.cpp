@@ -17,6 +17,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
+#include <rococo.api.h>
+
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 
 #define TEST(test) Test(#test, test)
@@ -244,12 +246,12 @@ namespace
 
 	void ValidateEquivalentSExpression(cstr target, cr_sex s)
 	{
-		CSParserProxy spp;
+		Auto<ISParser> parser = Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
 
 		try
 		{
-         Auto<ISourceCode> src = spp().ProxySourceBuffer(target, -1, Vec2i{ 0,0 }, ("target"));
-			Auto<ISParserTree> tree = spp().CreateTree(src());
+			Auto<ISourceCode> src = parser->ProxySourceBuffer(target, -1, Vec2i{ 0,0 }, ("target"));
+			Auto<ISParserTree> tree = parser->CreateTree(src());
 
 			ValidateEquivalentSExpression(tree().Root(), s);
 		}

@@ -1591,7 +1591,7 @@ namespace
 
       char savename[_MAX_PATH];
       SafeFormat(savename, sizeof(savename), "%s.ide.sxy", appName);
-      char fullpath[_MAX_PATH];
+      wchar_t fullpath[_MAX_PATH];
       IO::GetUserPath(fullpath, _MAX_PATH, savename);
 
       Auto<Rococo::Sex::ISourceCode> src;
@@ -1601,6 +1601,7 @@ namespace
 
       try
       {
+
          src = parser->LoadSource(fullpath, Vec2i{ 1, 1 });
          tree = parser->CreateTree(*src);
 

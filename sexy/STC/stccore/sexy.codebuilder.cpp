@@ -352,7 +352,7 @@ namespace Anon
 		auto* binding = f.Object().AllocatorMap().GetAllocator(structType);
 
 		int index = Rococo::Script::GetIndexOfInterface(structType, interface);
-		if (index < 0) Throw(0, "%s does not support interface %s", structType, interface);
+		if (index < 0) Throw(0, "%s does not support interface %s", GetFriendlyName(structType), interface.Name());
 
 		AssignVariableToTemp("_this", 0, 0); // Interface pointer variable is now in D4
 

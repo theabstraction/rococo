@@ -11,12 +11,12 @@ namespace Rococo
 {
    namespace Memory
    {
-      void _aligned_free(void* pData)
+      inline void _aligned_free(void* pData)
       {
          free(pData);
       }
 
-      void* _aligned_malloc(size_t nBytes, size_t alignmentByteCount)
+      inline void* _aligned_malloc(size_t nBytes, size_t alignmentByteCount)
       {
          void* pMem = nullptr;
          posix_memalign(&pMem, alignmentByteCount, nBytes);
