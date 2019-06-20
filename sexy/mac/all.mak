@@ -4,7 +4,7 @@ LIB_DIR = ../../lib/
 BIN_DIR = ../bin/mac/
 ROCOCO_DIR = ../../rococo.util/
 
-$(BIN_DIR)sexy.script.test: $(LIB_DIR)rococo.util.mac.lib $(LIB_DIR)rococo.maths.mac.lib $(LIB_DIR)rococo.fonts.mac.lib $(LIB_DIR)rococo.zlib.mac.lib $(LIB_DIR)rococo.tiff.mac.lib $(LIB_DIR)rococo.jpg.mac.lib $(LIB_DIR)rococo.tiff.mac.lib $(LIB_DIR)sexy.utilities.mac.lib $(LIB_DIR)sexy.s-parser.mac.lib $(LIB_DIR)sexy.vm.mac.lib $(LIB_DIR)sexy.compiler.mac.lib $(LIB_DIR)sexy.script.mac.lib $(BIN_DIR)sexy.nativelib.maths.mac.dylib $(BIN_DIR)sexy.nativelib.reflection.mac.dylib $(BIN_DIR)sexy.vm.test $(BIN_DIR)sexy.compiler.test $(BIN_DIR)sexy.parser.test			
+$(BIN_DIR)sexy.script.test: $(LIB_DIR)rococo.util.mac.lib $(LIB_DIR)rococo.maths.mac.lib $(LIB_DIR)rococo.fonts.mac.lib $(LIB_DIR)rococo.zlib.mac.lib $(LIB_DIR)rococo.tiff.mac.lib $(LIB_DIR)rococo.jpg.mac.lib $(LIB_DIR)rococo.tiff.mac.lib $(LIB_DIR)sexy.utilities.mac.lib $(LIB_DIR)sexy.s-parser.mac.lib $(LIB_DIR)sexy.vm.mac.lib $(LIB_DIR)sexy.compiler.mac.lib $(LIB_DIR)sexy.script.mac.lib $(BIN_DIR)sexy.nativelib.maths.mac.dylib $(BIN_DIR)sexy.nativelib.reflection.mac.dylib $(BIN_DIR)sexy.nativelib.coroutines.mac.dylib $(BIN_DIR)sexy.vm.test $(BIN_DIR)sexy.compiler.test $(BIN_DIR)sexy.parser.test			
 	make -f script.test.mak
 	
 $(LIB_DIR)sexy.utilities.mac.lib: utilities.mak

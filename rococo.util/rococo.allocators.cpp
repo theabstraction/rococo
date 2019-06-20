@@ -18,7 +18,7 @@ namespace
 
       HANDLE HeapCreate(int unused, size_t start, size_t capacity)
       {
-         return nullptr;
+         return (void*) 1;
       }
 
       int GetLastError()

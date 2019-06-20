@@ -1688,15 +1688,15 @@ namespace Rococo
 				parser.name = "test";
 				parser.Parse(nullptr);
 
-				printf("total string cost: %llu\n", ce.totalStringCost);
-				printf("total atomic cost: %llu\n", ce.totalAtomicCost);
-				printf("total comment cost: %llu\n", ce.totalCommentCost);
-				printf("largest string size: %llu\n", ce.largestStringSize);
-				printf("larget atomic size: %llu\n", ce.largestAtomicSize);
-				printf("larget comment size: %llu\n", ce.totalCommentCost);
-				printf("atomic count: %llu\n", ce.atomicCount);
-				printf("literal count: %llu\n", ce.stringCount);
-				printf("compound count: %llu\n", ce.branchCount);
+				printf("total string cost: %llu\n", (uint64) ce.totalStringCost);
+				printf("total atomic cost: %llu\n", (uint64) ce.totalAtomicCost);
+				printf("total comment cost: %llu\n", (uint64) ce.totalCommentCost);
+				printf("largest string size: %llu\n", (uint64) ce.largestStringSize);
+				printf("larget atomic size: %llu\n", (uint64) ce.largestAtomicSize);
+				printf("larget comment size: %llu\n", (uint64) ce.totalCommentCost);
+				printf("atomic count: %llu\n", (uint64) ce.atomicCount);
+				printf("literal count: %llu\n", (uint64) ce.stringCount);
+				printf("compound count: %llu\n", (uint64) ce.branchCount);
 			}
 
 			AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0));

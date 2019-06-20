@@ -29,6 +29,8 @@
 #include <execinfo.h>
 #include <cxxabi.h>
 
+#include <rococo.allocators.h>
+
 namespace
 {
    int breakFlags = 0;
@@ -445,6 +447,16 @@ namespace Rococo
 			}
 
 			return *q == 0;
+		}
+
+		void* AllocBoundedMemory(size_t nBytes)
+		{
+			return Rococo::Memory::_aligned_malloc(nBytes, 2048);
+		}
+
+		void FreeBoundedMemory(void* pMemory)
+		{
+			Rococo::Memory::_aligned_free(pMemory);
 		}
 	} // OS
 } // Rococo

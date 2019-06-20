@@ -519,13 +519,18 @@ namespace Rococo
 				AddCommonSource("Sys.Maths.sxy"); // Module 2			
 				AddCommonSource("Sys.Reflection.sxy"); // Module 3
 
+#ifdef _WIN32
+				bool useDebug = pip.useDebugLibs;
+#else
+				bool useDebug = false;
+#endif
 				
-				AddNativeLibrary(pip.useDebugLibs ? "sexy.nativeLib.reflection.debug" : "sexy.nativeLib.reflection");
-				AddNativeLibrary(pip.useDebugLibs ? "sexy.nativeLib.maths.debug" : "sexy.nativeLib.maths");
+				AddNativeLibrary(useDebug ? "sexy.nativeLib.reflection.debug" : "sexy.nativeLib.reflection");
+				AddNativeLibrary(useDebug ? "sexy.nativeLib.maths.debug" : "sexy.nativeLib.maths");
 
 				if (pip.addCoroutineLib)
 				{
-					AddNativeLibrary(pip.useDebugLibs ? "sexy.nativelib.coroutines.debug" : "sexy.nativelib.coroutines");
+					AddNativeLibrary(useDebug ? "sexy.nativelib.coroutines.debug" : "sexy.nativelib.coroutines");
 				}
 			}
 			catch (IException& ex)
