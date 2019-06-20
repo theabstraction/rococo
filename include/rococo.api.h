@@ -30,7 +30,7 @@ namespace Rococo
 
 	ROCOCO_ID(ID_BITMAP, uint64, -1)
 
-		struct Sphere
+	struct Sphere
 	{
 		Vec3 centre;
 		float radius;
@@ -102,6 +102,8 @@ namespace Rococo
 	struct MouseEvent;
 
 	void SplitString(cstr text, size_t length, cstr seperators, IEventCallback<cstr>& onSubString);
+
+	void GetTimestamp(char str[26]);
 
 	struct IGuiRenderContext;
 

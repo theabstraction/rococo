@@ -14,8 +14,6 @@
 
 #include <rococo.window.h>
 
-extern "C" void Sexy_CleanupGlobalResources();
-
 namespace Rococo
 {
 	using namespace Rococo::Windows;

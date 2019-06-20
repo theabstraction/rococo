@@ -25,6 +25,8 @@
 
 #include <mplat.to.app.events.inl>
 
+#include <sexy.script.h>
+
 #pragma warning (disable : 4250)
 
 using namespace Rococo;
@@ -3672,8 +3674,6 @@ struct HandleManager
 
 using namespace Rococo::Windows::IDE;
 
-extern "C" void Sexy_CleanupGlobalResources();
-
 int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
 	char filename[1024];
@@ -3765,6 +3765,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	AutoFree<Audio::ILegacySoundControlSupervisor> legacySound = Audio::CreateLegacySoundControl();
 
+	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0(sourceCache->Allocator());
+
 	OutputDebugStringA("\n\nLegacy Sound Description:");
 
 	struct ANON : public IEventCallback<StringKeyValuePairArg>
@@ -3782,21 +3784,12 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	OutputDebugStringA("\n\n");
 
 	Tesselators tesselators{ *rimTesselator };
-	Platform platform{ *os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor, *legacySound, title };
+	Platform platform{ *os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, *sourceCache, *debuggerWindow, *publisher, utils, gui, *keyboard, *config, *meshes, *instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor, *legacySound, *ssFactory, title };
 	gui.platform = &platform;
 	utils.SetPlatform(platform);
 	messaging->PostCreate(platform);
 
 	PlatformTabs tabs(platform);
-
-	struct Cleanup
-	{
-		~Cleanup()
-		{
-			// This will clean up cached native source files that uses the SourceCache allocator before the allocator goes out of scope
-			Sexy_CleanupGlobalResources();
-		}
-	} cleanup;
 
 	mainloop.Invoke(platform, *mainWindow);
 

@@ -239,6 +239,11 @@ namespace Rococo {
 			virtual CReflectedClass* Represent(const Rococo::Compiler::IStructure& st, void* pSourceInstance) = 0;
 		};
 
+		ROCOCOAPI IScriptSystemFactory : public IFreeable
+		{
+			virtual IPublicScriptSystem* CreateScriptSystem(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger) = 0;
+		};
+
 #pragma pack(push,1)
 		struct CStringConstant
 		{
@@ -371,27 +376,29 @@ namespace Rococo {
 #ifndef THIS_IS_THE_SEXY_CORE_LIBRARY
 
 // Ensure the allocator used for CreateScriptV_1_4_0_0(...) is in scope when you call Sexy_CleanupGlobalSources to clean up global resources
-extern "C" SCRIPTEXPORT_API Rococo::Script::IPublicScriptSystem* CreateScriptV_1_4_0_0(const Rococo::Compiler::ProgramInitParameters& pip, Rococo::ILog& logger, Rococo::IAllocator& allocator);
-extern "C" SCRIPTEXPORT_API void Sexy_CleanupGlobalResources();
+extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystemFactory* CreateScriptSystemFactory_1_5_0_0(Rococo::IAllocator& allocator);
 
 namespace Rococo { namespace Script
 {
 	class CScriptSystemProxy
 	{
 	private:
-		IPublicScriptSystem* instance;
+		IScriptSystemFactory* factory;
+		IPublicScriptSystem* ss;
 
 	public:
-		IPublicScriptSystem& operator()() { return *instance; }
+		IPublicScriptSystem& operator()() { return *ss; }
 
 		CScriptSystemProxy(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger, IAllocator& allocator)
 		{
-			instance = CreateScriptV_1_4_0_0(pip, logger, allocator);
+			factory = CreateScriptSystemFactory_1_5_0_0(allocator);
+			ss = factory->CreateScriptSystem(pip, logger);
 		}
 
 		~CScriptSystemProxy()
 		{
-			if (instance) instance->Free();
+			if (ss) ss->Free();
+			if (factory) factory->Free();
 		}
 	};	
 }}

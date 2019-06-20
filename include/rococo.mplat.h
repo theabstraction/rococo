@@ -523,6 +523,11 @@ namespace Rococo
 	   Graphics::IRimTesselatorSupervisor& rim;
    };
 
+   namespace Script
+   {
+	   struct IScriptSystemFactory;
+   }
+
    struct Platform
    {
       // Operating system functions
@@ -583,6 +588,8 @@ namespace Rococo
       IMathsVisitorSupervisor& mathsVisitor;
 
 	  Audio::ILegacySoundControl& legacySoundControl;
+
+	  Rococo::Script::IScriptSystemFactory& ssFactory;
 	
 	  // Application title
       const char* const title;

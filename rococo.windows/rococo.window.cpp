@@ -358,7 +358,7 @@ namespace Rococo
 				Throw(GetLastError(), "Rococo::CreateWindowIndirect(...): CreateWindowExW failed");
 			}
 
-			if (className == (cstr)customAtom || className == customClassName)
+			if (className == (cstr)customAtom || Eq(className, customClassName))
 			{
 				SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)(VOID*)DefCustomWindowProc);
 				SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) static_cast<IWindowHandler*>(_handler));

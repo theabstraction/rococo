@@ -243,7 +243,8 @@ namespace SexyDotNet { namespace Host
 
 		IntPtr routeSysMessagesHandle;
 		IntPtr logHandle;
-		IntPtr nativeHandle;
+		IntPtr nativeFactory;
+		IntPtr nativeSS;
 		IntPtr disassemblerHandle;
 		IntPtr currentlyViewedModule;
 		IntPtr currentlyViewedExpression;
@@ -293,13 +294,19 @@ namespace SexyDotNet { namespace Host
 
 			IAllocatorSupervisor* allocator = Rococo::Memory::CreateBlockAllocator(16, 0);
 			nativeAllocator = IntPtr(allocator);
-			nativeHandle = IntPtr(CreateScriptV_1_4_0_0(pip, *ToLog(logHandle), *allocator));
-			if (nativeHandle.ToPointer() == nullptr)
+
+			auto* factory = CreateScriptSystemFactory_1_5_0_0(*allocator);
+			nativeFactory = IntPtr(factory);
+			if (nativeFactory.ToPointer() == nullptr)
 			{
-				throw gcnew System::Exception("Error creating script system. Check logs");
+				throw gcnew System::Exception("Error creating script system factory. Check logs");
 			}
+
+			auto* ss = factory->CreateScriptSystem(pip, *ToLog(logHandle));
+			nativeSS = IntPtr(ss);
+
 			sourceModules = gcnew Dictionary<String^,SourceModule^>();
-			disassemblerHandle = IntPtr(ToSS(nativeHandle)->PublicProgramObject().VirtualMachine().Core().CreateDisassembler());
+			disassemblerHandle = IntPtr(ss->PublicProgramObject().VirtualMachine().Core().CreateDisassembler());
 			currentlyViewedModule = IntPtr::Zero;
 
 			IntPtr ptrRouter =  Marshal::GetFunctionPointerForDelegate(routeSysMessagesHandler);
@@ -343,9 +350,9 @@ namespace SexyDotNet { namespace Host
 
 		property String ^ Filename { String ^ get() {return currentViewedFilename;	}	}	
 		property String ^ SourceCode { String ^ get() {return currentViewedSourceCode;	}	}	
-		property IntPtr NativeHandle { IntPtr get() {return nativeHandle;	}	}	
+		property IntPtr NativeHandle { IntPtr get() {return nativeSS;	}	}	
 		property IntPtr DisassemblerHandle { IntPtr get() {return disassemblerHandle;	}	}	
-		Int64 GetRegisterValue(int index) {	return ToSS(nativeHandle)->PublicProgramObject().VirtualMachine().Cpu().D[index].int64Value; }
+		Int64 GetRegisterValue(int index) {	return ToSS(nativeSS)->PublicProgramObject().VirtualMachine().Cpu().D[index].int64Value; }
 		bool StepInto();
 		bool StepOver();
 		bool StepOut();

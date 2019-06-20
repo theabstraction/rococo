@@ -63,7 +63,7 @@ namespace SexyDotNet { namespace Host
 
 		try
 		{
-			ToSS(nativeHandle)->Compile();
+			ToSS(nativeSS)->Compile();
 			goodstate = true;
 			BeginExecution();
 		}
@@ -89,7 +89,7 @@ namespace SexyDotNet { namespace Host
 		if (!initializedVM)
 		{
 			if (!goodstate) throw gcnew Exception("The program object is not in an executable state");
-			IScriptSystem& ss = *ToSS(nativeHandle);
+			IScriptSystem& ss = *ToSS(nativeSS);
 			IPublicProgramObject& po = ss.PublicProgramObject();
 
 			const INamespace* ns = po.GetRootNamespace().FindSubspace(("EntryPoint"));
@@ -164,7 +164,7 @@ namespace SexyDotNet { namespace Host
 	{
 		BeginExecution();
 		
-		IScriptSystem& ss = *ToSS(nativeHandle);
+		IScriptSystem& ss = *ToSS(nativeSS);
 		IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 		EXECUTERESULT result = vm.Execute(ExecutionFlags(false, true, false));
 
@@ -189,7 +189,7 @@ namespace SexyDotNet { namespace Host
 	{
 		BeginExecution();
 
-		IScriptSystem& ss = *ToSS(nativeHandle);
+		IScriptSystem& ss = *ToSS(nativeSS);
 		IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 		vm.StepInto();
 
@@ -204,7 +204,7 @@ namespace SexyDotNet { namespace Host
 	{
 		BeginExecution();
 
-		IScriptSystem& ss = *ToSS(nativeHandle);
+		IScriptSystem& ss = *ToSS(nativeSS);
 		IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 		vm.StepOver();
 
@@ -219,7 +219,7 @@ namespace SexyDotNet { namespace Host
 	{
 		BeginExecution();
 
-		IScriptSystem& ss = *ToSS(nativeHandle);
+		IScriptSystem& ss = *ToSS(nativeSS);
 		IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
 		vm.StepOut();
 
@@ -230,7 +230,7 @@ namespace SexyDotNet { namespace Host
 
 	SourceModule^ SexyScriptLanguage::AddModule(String^ moduleFullPath)
 	{
-		IScriptSystem& ss = *ToSS(nativeHandle);
+		IScriptSystem& ss = *ToSS(nativeSS);
 
 		if (sourceModules->ContainsKey(moduleFullPath))
 		{
@@ -342,7 +342,7 @@ namespace SexyDotNet { namespace Host
 
 	List<VariableDesc>^ SexyScriptLanguage::GetVariables(Int32 callDepth)
 	{
-		IScriptSystem& ss = *ToSS(nativeHandle);
+		IScriptSystem& ss = *ToSS(nativeSS);
 
 		List<VariableDesc>^ vars = gcnew List<VariableDesc>();
 
@@ -465,7 +465,7 @@ namespace SexyDotNet { namespace Host
 
 	List<VariableDesc>^ SexyScriptLanguage::GetElements(String^ variableName, Int32 callDepth)
 	{
-		IScriptSystem& ss = *ToSS(nativeHandle);
+		IScriptSystem& ss = *ToSS(nativeSS);
 
 		List<VariableDesc>^ vars = gcnew List<VariableDesc>();
 
@@ -529,28 +529,28 @@ namespace SexyDotNet { namespace Host
 
 	IntPtr SexyScriptLanguage::GetCallerSF(IntPtr sf)
 	{
-		CPU& cpu = ToSS(nativeHandle)->PublicProgramObject().VirtualMachine().Cpu();
+		CPU& cpu = ToSS(nativeSS)->PublicProgramObject().VirtualMachine().Cpu();
 		const uint8* callerSF = Rococo::Script::GetCallerSF(cpu, (const uint8*) sf.ToPointer());
 		return IntPtr((void*)callerSF);
 	}
 
 	IntPtr SexyScriptLanguage::GetPCAddress(Int32 callDepth)
 	{
-		CPU& cpu = ToSS(nativeHandle)->PublicProgramObject().VirtualMachine().Cpu();
+		CPU& cpu = ToSS(nativeSS)->PublicProgramObject().VirtualMachine().Cpu();
 		const uint8* pc = Rococo::Script::GetPCAddress(cpu, callDepth);
 		return IntPtr((void*)pc);
 	}
 
 	IntPtr SexyScriptLanguage::GetReturnAddress(IntPtr sf)
 	{
-		CPU& cpu = ToSS(nativeHandle)->PublicProgramObject().VirtualMachine().Cpu();
+		CPU& cpu = ToSS(nativeSS)->PublicProgramObject().VirtualMachine().Cpu();
 		const uint8* returnAddress = Rococo::Script::GetReturnAddress(cpu, (const uint8*) sf.ToPointer());
 		return IntPtr((void*)returnAddress);
 	}
 
 	IntPtr SexyScriptLanguage::GetStackFrame(Int32 callDepth)
 	{
-		CPU& cpu = ToSS(nativeHandle)->PublicProgramObject().VirtualMachine().Cpu();
+		CPU& cpu = ToSS(nativeSS)->PublicProgramObject().VirtualMachine().Cpu();
 		const uint8* SF = Rococo::Script::GetStackFrame(cpu, callDepth);
 		return IntPtr((void*)SF);
 	}
@@ -562,11 +562,13 @@ namespace SexyDotNet { namespace Host
 			delete i;
 		}
 
-		Sexy_CleanupGlobalResources();
-
 		ToDisassembler(disassemblerHandle)->Free();
 
-		ToSS(nativeHandle)->Free();
+		ToSS(nativeSS)->Free();
+
+		IScriptSystemFactory* factory = (IScriptSystemFactory*)nativeFactory.ToPointer();
+		factory->Free();
+
 		delete ToLog(logHandle);
 
 		twiddler.Free();

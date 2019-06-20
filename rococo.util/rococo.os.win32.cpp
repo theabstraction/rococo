@@ -37,8 +37,17 @@
 #pragma comment(lib, "DbgHelp.lib")
 #pragma comment(lib, "Winmm.lib")
 
+#include <ctime>
+
 namespace Rococo
 {
+	void GetTimestamp(char str[26])
+	{
+		time_t t;
+		time(&t);
+		ctime_s(str, 26, &t);
+	}
+
 	namespace IO
 	{
 		void UseBufferlessStdout()

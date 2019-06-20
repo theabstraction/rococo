@@ -1,8 +1,11 @@
 #include <rococo.cute.h>
 #include <rococo.io.h>
-#include <rococo.cute.h>
 #include "rococo.cute.post.h"
 #include <rococo.strings.h>
+#include <sexy.types.h>
+#include <sexy.vm.h>
+#include <sexy.vm.cpu.h>
+#include <sexy.script.h>
 
 using namespace Rococo;
 using namespace Rococo::Cute;
@@ -47,8 +50,12 @@ int Main(IInstallation& installation, IMasterWindowFactory& factory)
 
 	factory.Postbox().Subscribe(PostType_PopulateTree, &q);
 
+	using namespace Rococo::Script;
+
+	AutoFree<IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0(Rococo::Memory::CheckedAllocator());
+
 	ExecuteScriptSpec spec;
-	ExecuteWindowScript("!scripts/create.main.window.sxy", installation, spec, factory);
+	ExecuteWindowScript("!scripts/create.main.window.sxy", installation, *ssFactory, spec, factory);
 
 	factory.Postbox().Unsubscribe<PopulateTree>(&q);
 

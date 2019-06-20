@@ -162,7 +162,7 @@ namespace SexyDotNet { namespace Host
 			}
 		}
 
-		IScriptSystem& ss = *ToSS(nativeHandle);
+		IScriptSystem& ss = *ToSS(nativeSS);
 		IPublicProgramObject& po = ss.PublicProgramObject();
 
 		size_t programOffset, pcOffset;

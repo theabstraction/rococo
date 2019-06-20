@@ -154,6 +154,11 @@ namespace Rococo
 		struct IStackFrameEnumerator;
 	}
 
+	namespace Script
+	{
+		struct IScriptSystemFactory;
+	}
+
 	ROCOCOAPI IException
 	{
 		virtual cstr Message() const = 0;

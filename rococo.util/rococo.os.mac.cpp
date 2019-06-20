@@ -54,8 +54,18 @@ int _stricmp(const char* a, const char* b)
 	return P - Q;
 }
 
+#include <ctime>
+
 namespace Rococo
 {
+	void GetTimestamp(char str[26])
+	{
+		time_t t;
+		time(&t);
+		cstr buf = ctime(&t);
+		strcpy(str, buf);
+	}
+
    ThreadLock::ThreadLock()
    {
       static_assert(sizeof(implementation) >= sizeof(os_unfair_lock), "Increase backing store for OSSpinLock");

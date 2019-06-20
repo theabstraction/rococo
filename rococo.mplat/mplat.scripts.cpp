@@ -193,7 +193,7 @@ namespace Rococo
 				{
 					try
 					{
-						IDE::ExecuteSexyScriptLoop(stats, 1024_kilobytes, platform.sourceCache, platform.debuggerWindow, name, 0, (int32)128_kilobytes, *this, *this, platform.appControl, trace);
+						IDE::ExecuteSexyScriptLoop(stats, 1024_kilobytes, platform.ssFactory, platform.sourceCache, platform.debuggerWindow, name, 0, (int32)128_kilobytes, *this, *this, platform.appControl, trace);
 					}
 					catch (IException&)
 					{

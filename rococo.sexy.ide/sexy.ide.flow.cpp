@@ -51,7 +51,7 @@ namespace
 		AutoFree<Rococo::Script::IPublicScriptSystem> ss;
 		size_t maxBytes;
 	public:
-		PersistentScript(size_t _maxBytes, ISourceCache& _sources, IDebuggerWindow& _debugger, cstr resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& _exceptionHandler) :
+		PersistentScript(size_t _maxBytes, IScriptSystemFactory& factory, ISourceCache& _sources, IDebuggerWindow& _debugger, cstr resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& _exceptionHandler) :
 			logger(_debugger),
 			debugger(_debugger),
 			sources(_sources),
@@ -62,7 +62,7 @@ namespace
 			{
 				try
 				{
-					ss = CreateScriptV_1_4_0_0(Rococo::Compiler::ProgramInitParameters{ maxBytes }, logger, _sources.Allocator());
+					ss = factory.CreateScriptSystem(Rococo::Compiler::ProgramInitParameters{ maxBytes }, logger);
 					if (ss == nullptr)
 					{
 						Rococo::Throw(0, "Failed to create script system -> probably an environment problem");
@@ -203,7 +203,7 @@ namespace Rococo
 	{
 		namespace IDE
 		{
-			int32 ExecuteSexyScriptLoop(ScriptPerformanceStats& stats, size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler, OS::IAppControl& appControl, bool trace)
+			int32 ExecuteSexyScriptLoop(ScriptPerformanceStats& stats, size_t maxBytes, IScriptSystemFactory& factory, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler, OS::IAppControl& appControl, bool trace)
 			{
 				ScriptLogger logger(debugger);
 
@@ -223,8 +223,9 @@ namespace Rococo
 #else
 					pip.useDebugLibs = false;
 #endif
-					Script::CScriptSystemProxy ssp(pip, logger, sources.Allocator());
-					Script::IPublicScriptSystem& ss = ssp();
+
+					AutoFree<IPublicScriptSystem> pSS = factory.CreateScriptSystem(pip, logger);
+					Script::IPublicScriptSystem& ss = *pSS;
 					if (!IsPointerValid(&ss))
 					{
 						switch (exceptionHandler.GetScriptExceptionFlow("SexyScriptSystem", logger.lastError))
@@ -283,9 +284,9 @@ namespace Rococo
 				return 0;
 			}
 
-			IPersistentScript* CreatePersistentScript(size_t maxBytes, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler)
+			IPersistentScript* CreatePersistentScript(size_t maxBytes, IScriptSystemFactory& factory, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler)
 			{
-				return new PersistentScript(maxBytes, sources, debugger, resourcePath, maxScriptSizeBytes, onCompile, exceptionHandler);
+				return new PersistentScript(maxBytes, factory, sources, debugger, resourcePath, maxScriptSizeBytes, onCompile, exceptionHandler);
 			}
 		}// IDE
 	}
