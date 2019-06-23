@@ -221,8 +221,8 @@
 	(construct OpeningScreen engine bundle)
 )
 
-(macro Rococo.IdScreenOpening in out (out.AddAtomic "1"))
-(macro Rococo.IdScreenAddCharacter in out (out.AddAtomic "2"))
+(macro RPG.IdScreenOpening in out (out.AddAtomic "1"))
+(macro RPG.IdScreenAddCharacter in out (out.AddAtomic "2"))
 
 (class GameBundle (defines RPG.IBundle)
 	(ISprites sprites)
@@ -250,7 +250,7 @@
 	(this.coroutines.Add this.inputThread)
 	
 	(this.openingScreen = (NewOpeningScreen this.engine this))
-	(this.addCharacterScreen = (NewAddCharacterScreen this.engine))
+	(this.addCharacterScreen = (NewAddCharacterScreen this))
 )
 
 (method GameBundle.Engine -> (IEngine engine):

@@ -1996,6 +1996,65 @@ namespace Rococo
 		  ce.Builder.Assembler().Append_Pop(sizeof(size_t) * 2);
 	  }
 
+	  void PushPrivateInstance(CCompileEnvironment& ce, cr_sex s, const MemberDef& instanceDef)
+	  {
+		  // Scencarios -> we are calling the method from an interface, or from a class
+
+		  ce.Builder.PushVariable(instanceDef);
+	  }
+
+	  bool TryCompilePrivateMethodCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName)
+	  {
+		  MemberDef def;
+		  if (!ce.Builder.TryGetVariableByName(OUT def, IN instanceName))
+		  {
+			  return false;
+		  }
+
+		  auto& c = *def.ResolvedType;
+		  
+		  auto& classModule = c.Module();
+
+		  char fullMethodName[128];
+		  SafeFormat(fullMethodName, sizeof(fullMethodName), "%s.%s", c.Name(), methodName);
+
+		  auto* method = classModule.FindFunction(fullMethodName);
+
+		  if (!method) return false;
+
+		  if (def.IsContained)
+		  {
+			  Throw(s, "Calling a private method on an instance referenced on a structure is not implemented. Copy instance to a local variable first");
+		  }
+
+		  if (def.IsParentValue)
+		  {
+			  Throw(s, "Calling a private method on an instance referenced via a parent variable is not implemented. Copy instance to a local variable first");
+		  }
+
+		  const int outputStackAllocCount = AllocFunctionOutput(ce, *method, s);
+		  int inputStackAllocCount = PushInputs(ce, s, *method, true, 1);
+
+		  ce.Builder.Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4, BITCOUNT_POINTER);
+		  ce.Builder.Assembler().Append_IncrementPtr(VM::REGISTER_D4, def.MemberOffset);
+		  ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);
+
+		  AddArgVariable("_instance", ce, ce.Object.Common().TypePointer());
+
+		  inputStackAllocCount += sizeof(size_t);
+
+		  AppendFunctionCallAssembly(ce, *method);
+		  ce.Builder.MarkExpression(&s);
+		  RepairStack(ce, s, *method);
+
+		  int outputOffset = GetOutputSFOffset(ce, inputStackAllocCount, outputStackAllocCount);
+	
+		  PopOutputs(ce, s, *method, outputOffset, true);
+		  ce.Builder.AssignClosureParentSFtoD6();
+
+		  return true;
+	  }
+
       // Only safe to call from TryCompileAsFunctionCall(...)
       bool TryCompileAsMethodCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName)
       {
@@ -2055,6 +2114,11 @@ namespace Rococo
 		  if (IsNullType(c) && c.GetInterface(0).Attributes().FindAttribute("dispatch", unused))
 		  {
 			  CompileDynamicDispatch(ce, s, c.GetInterface(0), instanceName, methodName);
+			  return true;
+		  }
+
+		  if (TryCompilePrivateMethodCall(ce, s, instanceName, methodName))
+		  {
 			  return true;
 		  }
 

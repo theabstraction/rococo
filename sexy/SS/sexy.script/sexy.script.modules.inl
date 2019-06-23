@@ -848,29 +848,34 @@ namespace Rococo { namespace Script
 
 		NamespaceSplitter splitter(f.Name());
 		if (!splitter.SplitTail(OUT className, OUT methodName))
-			Throw(fdef, ("Internal compiler error. Expecting function name to be splittable"));
+			Throw(fdef, "Internal compiler error. Expecting function name to be splittable");
 
 		if (f.NumberOfInputs() <= 0) Throw(fdef, ("No inputs found in method!"));
 
 		const IStructure& s = f.GetArgument(ArgCount(f)-1);
 
 		if (!IsPointerValid(&s))
-			Throw(fdef, ("Expecting class to be defined in the same module in which the class-method is defined"));
+			Throw(fdef, "Expecting class to be defined in the same module in which the class-method is defined");
 
-		if (AreEqual(methodName, ("Destruct")))
+		if (AreEqual(methodName, "Destruct"))
 		{
 			// Destructors are from the vTable aligned to the instance, ergo no correction
 			return 0;
 		}
 
-		if (AreEqual(methodName, ("Construct")))
+		if (AreEqual(methodName, "Construct"))
 		{
 			// Concrete constructors always take the instance in the this pointer, never an interface, ergo no correction
 			return 0;
 		}
 
 		int interfIndex = GetInterfaceImplementingMethod(s, methodName);
-		if (interfIndex < 0) Throw(fdef, ("Expecting method to be found amongst the interfaces of the class for which it is defined"));
+		if (interfIndex < 0)
+		{
+			return 0;
+		}
+			
+		// TODO - delete this comment Throw(fdef, ("Expecting method to be found amongst the interfaces of the class for which it is defined"));
 
 		int correction =  ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + interfIndex * sizeof(VirtualTable*); 
 		return correction;

@@ -1,39 +1,42 @@
+(interface Sys.ICat
+	(Mew -> (Int32 len))
+)
+
+(interface Sys.IPet 
+	(Pet -> (Int32 len))
+)
+
+(class Cat
+	(implements Sys.ICat)
+	(implements Sys.IPet) 
+	(Int32 id)
+)
+
+(method Cat.Construct (Int32 id):
+	(this.id = id)
+)
+
+(factory Sys.NewCat Sys.IPet (Int32 id) : 
+	(construct Cat id)
+)
+
+(method Cat.Mew -> (Int32 id): 
+	(this.PrintMew -> id)
+)
+
+(method Cat.Pet ->  (Int32 id): 
+	(this.Mew -> id)
+)
+
+(method Cat.PrintMew ->  (Int32 result):
+ (result = this.id)
+)
+
 (namespace EntryPoint)
- (alias Main EntryPoint.Main)
 
-(namespace Stuff) (using Stuff)
-
-(function Main -> (Int32 result):
-  (IExistence robby (NewRobot 9000))
-  (Moomoo moomoo = 1 robby)
-  (Foobar moomoo -> result)
+(function Main -> (Int32 exitCode): 
+   (Sys.IPet cat (Sys.NewCat 774))
+   (cat.Pet -> exitCode)
 )
 
-(interface Stuff.IRobot
-  (Id -> (Int32 id))
-)
-
-(interface Stuff.IExistence
-  (ExistenceNumber -> (Int32 value))
-)
-
-(class Robot
-  (implements Stuff.IExistence)
-  (implements Stuff.IRobot)
-  (Int32 id)
-)
-
-(struct Moomoo (Int32 id) (Stuff.IExistence entity))
-
-(function Foobar (Moomoo m) -> (Int32 result):
-  (cast m.entity -> IRobot robot)
-  (result = ((robot.Id) + (m.entity.ExistenceNumber)))
-)
-
-(method Robot.Construct (Int32 id): (this.id = id))
-(method Robot.Id -> (Int32 id): (id = this.id))
-(method Robot.ExistenceNumber -> (Int32 value): (value = 1234))
-
-(factory Stuff.NewRobot IExistence (Int32 id): 
-	(construct Robot id)
-)
+(alias Main EntryPoint.Main)

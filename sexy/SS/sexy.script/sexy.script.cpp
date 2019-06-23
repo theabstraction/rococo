@@ -1771,7 +1771,7 @@ namespace Anon
 			return ss;
 		}
 
-		void Free()
+		void Free() override
 		{
 			IAllocator& allocator = this->allocator;
 			this->~SSFactory();

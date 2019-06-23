@@ -224,7 +224,7 @@ namespace Rococo
 					pip.useDebugLibs = false;
 #endif
 
-					AutoFree<IPublicScriptSystem> pSS = factory.CreateScriptSystem(pip, logger);
+					AutoFree<IPublicScriptSystem> pSS (factory.CreateScriptSystem(pip, logger));
 					Script::IPublicScriptSystem& ss = *pSS;
 					if (!IsPointerValid(&ss))
 					{

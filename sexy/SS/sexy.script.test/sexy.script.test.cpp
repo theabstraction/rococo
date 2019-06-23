@@ -485,6 +485,58 @@ namespace
 		validate(result2/1.0e15f == 1.0f);
 	}
 
+	void TestCallPrivateMethod(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(interface Sys.ICat (Mew -> (Int32 len)))"
+			"(class Cat (implements Sys.ICat))"
+			"(method Cat.Construct : )"
+			"(factory Sys.NewCat Sys.ICat : (construct Cat))"
+			"(method Cat.Mew ->  (Int32 len): (this.PrintMew -> len))"
+			"(method Cat.PrintMew ->  (Int32 len): (Sys.Print \"Mew\" -> len))"
+			"(namespace EntryPoint)\n"
+			"(function Main -> (Int32 exitCode): "
+			"   (Sys.ICat cat (Sys.NewCat))"
+			"   (cat.Mew -> exitCode)"
+			")"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		vm.Push(100); // Allocate stack space for the int32 exitCode
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		int32 result2 = vm.PopInt32();
+		validate(result2 == 3);
+	}
+
+	void TestCallPrivateMethod2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(interface Sys.ICat (Mew -> (Int32 len)))"
+			"(interface Sys.IPet (Pet -> (Int32 len)))"
+			"(class Cat (implements Sys.ICat)(implements Sys.IPet) (Int32 id))"
+			"(method Cat.Construct (Int32 id): (this.id = id))"
+			"(factory Sys.NewCat Sys.IPet (Int32 id) : (construct Cat id))"
+			"(method Cat.Mew -> (Int32 id): (this.PrintMew -> id))"
+			"(method Cat.Pet ->  (Int32 id): (this.Mew -> id))"
+			"(method Cat.PrintMew ->  (Int32 result): (result = this.id))"
+			"(namespace EntryPoint)\n"
+			"(function Main -> (Int32 exitCode): "
+			"   (Sys.IPet cat (Sys.NewCat 774))"
+			"   (cat.Pet -> exitCode)"
+			")"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		vm.Push(100); // Allocate stack space for the int32 exitCode
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		int32 result2 = vm.PopInt32();
+		validate(result2 == 774);
+	}
+
 	void TestAssignFloat64Literal(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -13105,6 +13157,8 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestCallPrivateMethod);
+		TEST(TestCallPrivateMethod2);
 		TEST(TestPublishAPI);
 		TEST(TestStaticCast1);
 		TEST(TestDynamicCast2);

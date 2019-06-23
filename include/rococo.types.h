@@ -327,6 +327,11 @@ namespace Rococo
 		return min(highestBound, max(lowestBound, a));
 	}
 
+	inline int32 clamp(int32 a, int32 lowestBound, int32 highestBound)
+	{
+		return min(highestBound, max(lowestBound, a));
+	}
+
 	template<class T> inline T Sq(T a)
 	{
 		return a * a;

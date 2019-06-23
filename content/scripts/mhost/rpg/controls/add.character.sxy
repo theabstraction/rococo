@@ -21,13 +21,14 @@
 	(OnToggled (PassEventHandlerArgs args)->)
 	(OnEditUpdated (EditBufferChangedArgs args)->)
 	(OnSelectionChanged (SelectionChangedArgs args)->)
+	(Save ->)
 )
 
 (class AddCharacterScreen 
 	(implements RPG.IAddCharacterScreen)
 	(implements IEventHandler)
 	
-	(IEngine engine) // The CPP side of flow control
+	(IBundle bundle) 
 	(IUIStack uistack)
 	
 	(Vec2 screenSpan)
@@ -50,6 +51,8 @@
 	(IDropValueMenu profession)
 	(IDropValueMenu hobby)
 	(ILabelButton rollButton)
+	(ILabelButton saveButton)
+	(ILabelButton cancelButton)
 	(ITooltip toolTip)
 	(Int32 sysFont)
 	
@@ -64,17 +67,20 @@
 	(callback s)
 )
 
-(function ForEachSelectedDropMenuValue (AddCharacterScreen screen) (CallbackWithExpression callback)-> :
-	(ForDropMenuValue screen.physTraits1 callback)
-	(ForDropMenuValue screen.physTraits2 callback)
-	(ForDropMenuValue screen.physTraits3 callback)
-	(ForDropMenuValue screen.mentalTraits1 callback)
-	(ForDropMenuValue screen.mentalTraits2 callback)
-	(ForDropMenuValue screen.mentalTraits3 callback)
-	(ForDropMenuValue screen.mentalTraits4 callback)
-	(ForDropMenuValue screen.mentalTraits5 callback)
-	(ForDropMenuValue screen.profession callback)
-	(ForDropMenuValue screen.hobby callback) 
+(method AddCharacterScreen.ForEachSelectedDropMenuValue (CallbackWithExpression callback)-> :
+	(ForDropMenuValue this.physTraits1 callback)
+	(ForDropMenuValue this.physTraits2 callback)
+	(ForDropMenuValue this.physTraits3 callback)
+	(ForDropMenuValue this.mentalTraits1 callback)
+	(ForDropMenuValue this.mentalTraits2 callback)
+	(ForDropMenuValue this.mentalTraits3 callback)
+	(ForDropMenuValue this.mentalTraits4 callback)
+	(ForDropMenuValue this.mentalTraits5 callback)
+	(ForDropMenuValue this.profession callback)
+	(ForDropMenuValue this.hobby callback) 
+)
+
+(method AddCharacterScreen.Save -> :
 )
 
 (method AddCharacterScreen.OnToggled (PassEventHandlerArgs args)-> :
@@ -156,8 +162,8 @@
 	(screen.rollButton.Enable)
 )
 
-(method AddCharacterScreen.Construct (IEngine engine) -> : 
-	(this.engine = engine)
+(method AddCharacterScreen.Construct (IBundle bundle) -> : 
+	(this.bundle = bundle)
 	
 	(this.uistack = (MHost.Graphics.NewUIStack))
 	(this.screenSpan = -1 -1)
@@ -390,7 +396,17 @@
 	(rollButton.SetLabel "Roll!")
 	(this.rollButton = rollButton)
 	
+	(ILabelButton saveButton (NewLabelButton))
+	(saveButton.SetLabel "Save")
+	(this.saveButton = saveButton)
+	
+	(ILabelButton cancelButton (NewLabelButton))
+	(cancelButton.SetLabel "Cancel")
+	(this.cancelButton = cancelButton)
+	
 	(this.uistack.AddTopLevelControl rollButton "roll")
+	(this.uistack.AddTopLevelControl saveButton "save")
+	(this.uistack.AddTopLevelControl cancelButton "cancel")
 	
 	(this.toolTip = (NewToolTip))
 	(this.uistack.AddTopLevelControl this.toolTip "toolTip")
@@ -412,6 +428,7 @@
 	(screen.profession.Disable)
 	(screen.hobby.Disable)
 	(screen.rollButton.Disable)
+	(screen.saveButton.Disable)
 	
 	(screen.toolTip.SetTarget screen.sexButton)
 	(screen.toolTip.SetText "Character generation begins with....sex.&nSo click on the sex button a few times until you are happy with the private parts.")
@@ -515,12 +532,15 @@
 
 (method AddCharacterScreen.OnButtonUp (ButtonClickArgs args) -> :
 	(if (args.button == this.rollButton)
-		(this.attributeControl.SetAttributeByName "Strength" (RollDice 18 10))
-		(this.attributeControl.SetAttributeByName "Agility"  (RollDice 18 10))
-		(this.attributeControl.SetAttributeByName "Wellness" (RollDice 18 10))
-		(this.attributeControl.SetAttributeByName "Psyche"   (RollDice 18 10))
-		(this.attributeControl.SetAttributeByName "Ego"      (RollDice 18 10))
-		(this.attributeControl.SetAttributeByName "Maths"    (RollDice 18 10))
+		(this.attributeControl.SetAttributeByName "Strength" (RollDice 10 18))
+		(this.attributeControl.SetAttributeByName "Agility"  (RollDice 10 18))
+		(this.attributeControl.SetAttributeByName "Wellness" (RollDice 10 18))
+		(this.attributeControl.SetAttributeByName "Psyche"   (RollDice 10 18))
+		(this.attributeControl.SetAttributeByName "Ego"      (RollDice 10 18))
+		(this.attributeControl.SetAttributeByName "Maths"    (RollDice 10 18))
+		
+		(this.saveButton.Enable)
+		(this.saveButton.EnableGlow)
 		
 		(IAttributeControl ac = this.attributeControl)
 		
@@ -529,7 +549,16 @@
 				(ApplyModifiers ac s)
 			)
 		)
-		(ForEachSelectedDropMenuValue this onValue)
+		(ForEachSelectedDropMenuValue onValue)
+	else
+		(if (args.button == this.cancelButton)
+			(this.bundle.SetActiveScreen (#IdScreenOpening))
+		else
+			(if (args.button == this.saveButton)
+				(this.Save)
+				(this.bundle.SetActiveScreen (#IdScreenOpening))
+			)
+		)
 	)
 )
 
@@ -623,6 +652,20 @@
 	(rollRect.right = (rollRect.left +  140))
 	(rollRect.bottom = (rollRect.top + 50))
 	(screen.rollButton.SetRect "Tahoma" rollRect g)
+	
+	(Rectf saveRect)
+	(saveRect.left = attributeRect.left)
+	(saveRect.top = (rollRect.bottom + dy))
+	(saveRect.right = (saveRect.left +  140))
+	(saveRect.bottom = (saveRect.top + 50))
+	(screen.saveButton.SetRect "Tahoma" saveRect g)
+	
+	(Rectf cancelRect)
+	(cancelRect.left = attributeRect.left)
+	(cancelRect.top = (saveRect.bottom + dy))
+	(cancelRect.right = (cancelRect.left +  140))
+	(cancelRect.bottom = (cancelRect.top + 50))
+	(screen.cancelButton.SetRect "Tahoma" cancelRect g)
 	
 	(Rectf sexRect)
 	(sexRect.left = (attributeRect.right + dy))
@@ -771,6 +814,6 @@
 	(args.menu.SetOverlay this.dropOverlay)
 )
 
-(factory RPG.NewAddCharacterScreen IScreen (IEngine engine) : 
-	(construct AddCharacterScreen engine)
+(factory RPG.NewAddCharacterScreen IScreen (IBundle bundle): 
+	(construct AddCharacterScreen bundle)
 )

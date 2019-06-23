@@ -72,14 +72,14 @@
 (alias ButtonClickArgs MHost.Graphics.ButtonClickArgs)
 
 (method LabelButton.OnMouseDown (MouseClickArgs args)-> :
-	(if (this.isActive)
+	(if (this.isEnabled)
 		(ButtonClickArgs buttonArgs = this.text this)
 		(args.eventHandler.OnButtonDown buttonArgs)
 	)
 )
 
 (method LabelButton.OnMouseUp (MouseClickArgs args)-> :
-	(if (this.isActive)
+	(if (this.isEnabled)
 		(ButtonClickArgs buttonArgs = this.text this)
 		(args.eventHandler.OnButtonUp buttonArgs)
 	)
