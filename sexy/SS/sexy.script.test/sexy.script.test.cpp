@@ -537,6 +537,36 @@ namespace
 		validate(result2 == 774);
 	}
 
+	void TestCallPrivateMethodviaDispatch(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(interface Sys.ICat (attribute dispatch))"
+
+			"(class Cat (implements Sys.ICat) (Int32 id))"
+			"(method Cat.Construct (Int32 id): (this.id = id))"
+			"(factory Sys.NewCat Sys.ICat (Int32 id) : (construct Cat id))"
+
+			"(struct MewArgs (Int32 id))"
+			"(method Cat.Mew (MewArgs args) -> : (args.id = this.id))"
+
+			"(namespace EntryPoint)"
+			"(function Main -> (Int32 exitCode): "
+			"   (Sys.ICat cat (Sys.NewCat 773))"
+			"   (MewArgs args)"
+			"   (cat.Mew args)"
+			"   (exitCode = args.id)"
+			")"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		vm.Push(100); // Allocate stack space for the int32 exitCode
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		int32 result2 = vm.PopInt32();
+		validate(result2 == 773);
+	}
+
 	void TestAssignFloat64Literal(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -13157,8 +13187,10 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestCallPrivateMethodviaDispatch);
 		TEST(TestCallPrivateMethod);
 		TEST(TestCallPrivateMethod2);
+
 		TEST(TestPublishAPI);
 		TEST(TestStaticCast1);
 		TEST(TestDynamicCast2);

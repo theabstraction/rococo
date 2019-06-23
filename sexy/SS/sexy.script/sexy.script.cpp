@@ -694,12 +694,19 @@ namespace Rococo
 					}
 					else
 					{
+						ptrdiff_t offset;
+
 						int index = GetInterfaceImplementingMethod(concreteClassType, method);
 						if (index < 0)
-						{
-							Throw(0, "GetInterfaceImplementingMethod( %s , %s ) - Unexpectedly returned negative", concreteClassType.Name(), method);
+						{				
+							// method does not contribute to an implementation of an interface. so use instance
+							offset = 0;
 						}
-						ptrdiff_t offset = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + sizeof(VirtualTable*) * index;
+						else
+						{
+							offset = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + sizeof(VirtualTable*) * index;
+						}
+
 						nameToMethod[method] = MethodInfo{ &f, offset };
 					}
 				}

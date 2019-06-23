@@ -1,42 +1,27 @@
-(interface Sys.ICat
-	(Mew -> (Int32 len))
-)
+(interface Sys.ICat (attribute dispatch))
 
-(interface Sys.IPet 
-	(Pet -> (Int32 len))
-)
+(class Cat (implements Sys.ICat) (Int32 id))
 
-(class Cat
-	(implements Sys.ICat)
-	(implements Sys.IPet) 
-	(Int32 id)
-)
-
-(method Cat.Construct (Int32 id):
+(method Cat.Construct (Int32 id): 
 	(this.id = id)
 )
-
-(factory Sys.NewCat Sys.IPet (Int32 id) : 
+(factory Sys.NewCat Sys.ICat (Int32 id) :
 	(construct Cat id)
 )
 
-(method Cat.Mew -> (Int32 id): 
-	(this.PrintMew -> id)
-)
+(struct MewArgs (Int32 id))
 
-(method Cat.Pet ->  (Int32 id): 
-	(this.Mew -> id)
-)
-
-(method Cat.PrintMew ->  (Int32 result):
- (result = this.id)
+(method Cat.Mew (MewArgs args) -> : 
+	(args.id = this.id)
 )
 
 (namespace EntryPoint)
 
 (function Main -> (Int32 exitCode): 
-   (Sys.IPet cat (Sys.NewCat 774))
-   (cat.Pet -> exitCode)
+   (Sys.ICat cat (Sys.NewCat 773))
+   (MewArgs args)
+   (cat.Mew args)
+   (exitCode = args.id)
 )
 
 (alias Main EntryPoint.Main)
