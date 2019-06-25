@@ -55,6 +55,9 @@
     <ClCompile Include="mhost.graphics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mhost.serializers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="mhost.sxh">
@@ -71,9 +74,6 @@
     </None>
     <None Include="..\content\scripts\mhost\mplat.types.sxy">
       <Filter>ScriptGen Files\SXY</Filter>
-    </None>
-    <None Include="mhost.os.inl">
-      <Filter>Generated  Files</Filter>
     </None>
     <None Include="mhost.sxh.inl">
       <Filter>Generated  Files</Filter>

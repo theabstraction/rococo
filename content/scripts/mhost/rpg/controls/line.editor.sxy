@@ -15,10 +15,7 @@
 (interface MHost.Graphics.ILineEditorControl (extends MHost.Graphics.IControl)
 	(SetRect (IString fontName) (Rectf outerRect)-> )
 	(SetText (IString text)-> )
-	(OnMouseUp (MouseClickArgs args) -> )
-	(OnAsciiChar (KeyboardCharArgs args)-> )
-	(OnVirtualKey (KeyboardVKeyArgs args)-> )
-	(SetHasFocus (BoolArgs args)->)
+	(GetBuilder -> (IStringBuilder text))
 	(Disable ->)
 	(Enable ->)
 	(DisableGlow ->)
@@ -37,6 +34,8 @@
 	(Bool isGlowing)
 	(IEventHandler subscriber)
 )
+
+(method LineEditor.GetBuilder -> (IStringBuilder sb) : (sb = this.text))
 
 (method LineEditor.DisableGlow -> : (this.isGlowing = false))
 (method LineEditor.EnableGlow -> : (this.isGlowing = true))

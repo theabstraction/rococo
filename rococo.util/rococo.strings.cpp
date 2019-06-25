@@ -152,7 +152,7 @@ namespace
 		fstring operator * () const override
 		{
 			if (internalBuffer.size() >= 0x80000000LL) Throw(0, "DynamicStringBuilder: Cannot convert to fstring. Buffer too large ");
-			return fstring{ internalBuffer.data(), (int32) internalBuffer.size() };
+			return fstring{ internalBuffer.data(), Length() };
 		}
 
 		void Clear() override

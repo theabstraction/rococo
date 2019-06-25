@@ -202,5 +202,61 @@ namespace Rococo
 
 			writer.Append(L"%S", segment);
 		}
+
+		SEXY_SPARSER_API cr_sex GetAtomicArg(cr_sex e, int argIndex)
+		{
+			AssertCompound(e);
+			AssertNotTooFewElements(e, argIndex + 1);
+			cr_sex arg = e.GetElement(argIndex);
+			AssertAtomic(arg);
+			return arg;
+		}
+
+		SEXY_SPARSER_API cstr ToString(EXPRESSION_TYPE type)
+		{
+			switch (type)
+			{
+			case EXPRESSION_TYPE_ATOMIC: return ("atomic");
+			case EXPRESSION_TYPE_STRING_LITERAL: return ("string-literal");
+			case EXPRESSION_TYPE_COMPOUND: return ("compound");
+			case EXPRESSION_TYPE_NULL: return ("null");
+			default: return ("unknown");
+			}
+		}
+
+		SEXY_SPARSER_API void AssertExpressionType(cr_sex e, EXPRESSION_TYPE type)
+		{
+			if (e.Type() != type)
+			{
+				sexstringstream<1024> streamer;
+				streamer.sb << ("Expecting ") << ToString(type) << " expression, but found " << ToString(e.Type()) << " expression";
+				Throw(e, *streamer.sb);
+			}
+		}
+
+		SEXY_SPARSER_API void AssertCompound(cr_sex e) { AssertExpressionType(e, EXPRESSION_TYPE_COMPOUND); }
+		SEXY_SPARSER_API void AssertAtomic(cr_sex e) { AssertExpressionType(e, EXPRESSION_TYPE_ATOMIC); }
+		SEXY_SPARSER_API void AssertStringLiteral(cr_sex e) { AssertExpressionType(e, EXPRESSION_TYPE_STRING_LITERAL); }
+		SEXY_SPARSER_API void AssertNull(cr_sex e) { AssertExpressionType(e, EXPRESSION_TYPE_NULL); }
+
+		SEXY_SPARSER_API void AssertNotTooManyElements(cr_sex e, int32 maxElements)
+		{
+			int32 elementCount = e.NumberOfElements();
+			if (maxElements > 0 && elementCount > maxElements)
+			{
+				sexstringstream<1024> streamer;
+				streamer.sb << ("Expression had more than the maximum of ") << maxElements << " element" << (maxElements > 1 ? ("s") : (""));
+				Throw(e, streamer);
+			}
+		}
+
+		SEXY_SPARSER_API void AssertNotTooFewElements(cr_sex e, int32 minElements)
+		{
+			int32 elementCount = e.NumberOfElements();
+			if (minElements > 0 && elementCount < minElements)
+			{
+				Throw(e, "Expression had fewer than the minimum of %d element%s", minElements, (minElements > 1) ? "s" : "");
+			}
+		}
 	}
 }

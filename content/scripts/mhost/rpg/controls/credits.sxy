@@ -15,7 +15,6 @@
 	(extends MHost.Graphics.IControl)
 	(Centre (Float32 dx)(Float32 dy)(Vec2 screenSpan)->)
 	(BeginScroll ->)
-	(OnMouseUp (MouseClickArgs args)->)
 )
 
 (class Credits 

@@ -46,28 +46,6 @@ namespace Rococo { namespace Sex
 		Throw(s, *streamer.sb);
 	}
 
-	cstr ToString(EXPRESSION_TYPE type)
-	{
-		switch(type)
-		{
-		case EXPRESSION_TYPE_ATOMIC: return ("atomic");
-		case EXPRESSION_TYPE_STRING_LITERAL: return ("string-literal");
-		case EXPRESSION_TYPE_COMPOUND: return ("compound");
-		case EXPRESSION_TYPE_NULL: return ("null");
-		default: return ("unknown");
-		}
-	}
-
-	void AssertExpressionType(cr_sex e, EXPRESSION_TYPE type)
-	{
-		if (e.Type() != type)
-		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Expecting ") << ToString(type) << " expression, but found " << ToString(e.Type()) << " expression";
-			Throw(e, *streamer.sb);
-		}
-	}
-
 	void AssertAtomicMatch(cr_sex s, cstr value)
 	{
 		if (!IsAtomic(s) || !AreEqual(s.String(), ("=")))
@@ -135,11 +113,6 @@ namespace Rococo { namespace Sex
 			}
 		}
 	}
-
-	SCRIPTEXPORT_API void AssertCompound(cr_sex e) { AssertExpressionType(e, EXPRESSION_TYPE_COMPOUND);	}
-	SCRIPTEXPORT_API void AssertAtomic(cr_sex e) { AssertExpressionType(e, EXPRESSION_TYPE_ATOMIC);	}
-	SCRIPTEXPORT_API void AssertStringLiteral(cr_sex e) { AssertExpressionType(e, EXPRESSION_TYPE_STRING_LITERAL);	}
-	void AssertNull(cr_sex e) { AssertExpressionType(e, EXPRESSION_TYPE_NULL);	}
 
 	void AssertQualifiedIdentifier(cr_sex e)
 	{
@@ -450,35 +423,6 @@ namespace Rococo { namespace Sex
 			streamer.sb << ("Archetype name was greater than the maximum length of ") << ARCHETYPE_NAME_MAX_TOTAL_LENGTH << (" characters");
 			Throw(src, streamer);
 		}
-	}
-
-	SCRIPTEXPORT_API void AssertNotTooManyElements(cr_sex e, int32 maxElements)
-	{
-		int32 elementCount = e.NumberOfElements();
-		if (maxElements > 0 && elementCount > maxElements)
-		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Expression had more than the maximum of ") << maxElements << " element" << (maxElements > 1 ? ("s") : (""));
-			Throw(e, streamer);
-		}
-	}
-
-	SCRIPTEXPORT_API void AssertNotTooFewElements(cr_sex e, int32 minElements)
-	{
-		int32 elementCount = e.NumberOfElements();
-		if (minElements > 0 && elementCount < minElements)
-		{
-			Throw(e, "Expression had fewer than the minimum of %d element%s", minElements, (minElements > 1) ? "s" : "");
-		}
-	}
-
-	SCRIPTEXPORT_API cr_sex GetAtomicArg(cr_sex e, int argIndex)
-	{
-		AssertCompound(e);
-		AssertNotTooFewElements(e, argIndex+1);
-		cr_sex arg =	e.GetElement(argIndex);
-		AssertAtomic(arg);
-		return arg;
 	}
 
 	void AssertKeyword(cr_sex e, int arg, cstr name)

@@ -262,6 +262,20 @@ namespace
 		WriteOutput(result, _sf, -_offset);
 	}
 
+	void NativeSysTextIsAlphaNumeric(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 c;
+		_offset += sizeof(c);
+
+		ReadInput(c, _sf, -_offset);
+
+		boolean32 result = (boolean32) IsAlphaNumeric((char)c) ? 1 : 0;
+		_offset += sizeof(result);
+		WriteOutput(result, _sf, -_offset);
+	}
+
 	void NativeSysMathsI32BitwiseNot(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -363,5 +377,8 @@ namespace Sys { namespace Maths { namespace I32 {
 		ss.AddNativeCall(ns, NativeSysMathsAddVec2iVec2i, nullptr, ("AddVec2iVec2i(Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i sum)->"));
 		ss.AddNativeCall(ns, NativeSysMathsSubtractVec2iVec2i, nullptr, ("SubtractVec2iVec2i(Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i diff)->"));
 		ss.AddNativeCall(ns, NativeSysMathsI32FromARGB, nullptr, "FromARGB (Int32 alphaByte)(Int32 redByte)(Int32 greenByte)(Int32 blueByte)->(Int32 argb))");
+
+		const INamespace& nsText = ss.AddNativeNamespace(("Sys.Type"));
+		ss.AddNativeCall(nsText, NativeSysTextIsAlphaNumeric, nullptr, "IsAlphaNumeric (Int32 c) -> (Bool isSo)");
 	}
 }}}

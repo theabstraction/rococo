@@ -177,6 +177,52 @@ void NativeSysOSClockTicks(NativeCallEnvironment& _nce)
 	WriteOutput(value, _sf, -_offset);
 }
 
+void NativeAppendCTime(NativeCallEnvironment& _nce)
+{
+	InterfacePointer interfacePtr;
+	ReadInput(0, interfacePtr, _nce);
+	auto* stub = InterfaceToInstance(interfacePtr);
+	auto& ss = (IScriptSystem&)_nce.ss;
+
+	auto* sbType = ss.ProgramObject().GetModule(0).FindStructure("StringBuilder");
+
+	if (stub->Desc->TypeInfo != sbType)
+	{
+		Throw(0, "NativeSysOSClockTicks -> The string builder must be Sys.Type.StringBuilder");
+	}
+
+#pragma pack(push,1)
+	struct SysMathsStringBuilder
+	{
+		ObjectStub stub;
+		int32 length;
+		char* buffer;
+		int32 capacity;
+	};
+#pragma pack(pop)
+
+	auto& sb = *(SysMathsStringBuilder*)stub;
+
+	char timestamp[26];
+	Rococo::GetTimestamp(timestamp);
+
+	int32 nMax = sb.capacity - sb.length;
+
+	int32 chars;
+	if (nMax > 0)
+	{
+		chars = SafeFormat(sb.buffer, (size_t)nMax, "%.24s", timestamp);
+		sb.length += chars;
+	}
+	else
+	{
+		chars = 0;
+	}
+
+	WriteOutput(0, chars, _nce);
+	
+}
+
 namespace Rococo
 {
    namespace Script
@@ -630,6 +676,7 @@ namespace Rococo
 			callbacks.idDynamicDispatch = core.RegisterCallback(OnInvokeDynamicDispatch, this, "Dispatch");
 			callbacks.idIsSameObject = core.RegisterCallback(OnInvokeIsSameObject, this, "IsSameObject");
 			callbacks.idIsDifferentObject = core.RegisterCallback(OnInvokeIsDifferentObject, this, "IsDifferentObject");
+			callbacks.idStringIndexToChar = core.RegisterCallback(OnInvokeStringIndexToChar, this, "StringIndexToChar");
 			methodMap[("Capacity")] = ("_elementCapacity");
 			methodMap[("Length")] = ("_length");
 		}
@@ -1160,7 +1207,7 @@ namespace Rococo
 			AddNativeCall(sysNative, StringBuilderSetCase, NULL, ("StringBuilderSetCase (Pointer builder) (Int32 start) (Int32 end) (Bool toUpper)->"), false);
 			AddNativeCall(sysNative, ::AlignedMalloc, this, ("AlignedMalloc (Int32 capacity) (Int32 alignment)-> (Pointer data)"), false);
 			AddNativeCall(sysNative, ::AlignedFree, this, ("AlignedFree (Pointer data)->"), false);
-			AddNativeCall(sysNative, CScriptSystem::_PublishAPI, this, ("PublishAPI ->"), false);
+			AddNativeCall(sysNative, CScriptSystem::_PublishAPI, this, "PublishAPI ->", false);
 		}
 
 		static void _PublishAPI(NativeCallEnvironment& nce)
@@ -1516,6 +1563,7 @@ namespace Rococo
 			Clear();
 
 			INamespaceBuilder& sysOS = progObjProxy().GetRootNamespace().AddNamespace("Sys.OS", ADDNAMESPACEFLAGS_CREATE_ROOTS);
+			AddNativeCall(sysOS, NativeAppendCTime, NULL, "AppendCTime (Sys.Type.IStringBuilder sb)->(Int32 nChars)", false);
 
 			INamespaceBuilder& sysTypes = progObjProxy().GetRootNamespace().AddNamespace("Sys.Type", ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			DefinePrimitives(sysTypes);

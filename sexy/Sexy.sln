@@ -95,6 +95,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.util", "Utilities\Utilities.vcxproj", "{B4C417E3-79C5-4A07-A713-F3BC2A1D30FF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.nativelib.maths", "SS\sexy.nativelib.maths\sexy.nativelib.maths.vcxproj", "{98F13A73-3C79-43EA-89AC-3A3B97B6EF05}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B4C417E3-79C5-4A07-A713-F3BC2A1D30FF} = {B4C417E3-79C5-4A07-A713-F3BC2A1D30FF}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.bennyhill", "sexy.bennyhill\sexy.bennyhill.vcxproj", "{533268CF-080B-4167-9CD6-E4370E982554}"
 	ProjectSection(ProjectDependencies) = postProject

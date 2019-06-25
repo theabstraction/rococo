@@ -346,6 +346,7 @@ namespace Rococo
 
 	namespace Sex
 	{
+		cstr ToString(EXPRESSION_TYPE type);
 		void AssertCompound(cr_sex e);
 		void AssertAtomic(cr_sex e);
 		void AssertStringLiteral(cr_sex e);

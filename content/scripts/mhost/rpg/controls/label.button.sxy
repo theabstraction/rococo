@@ -16,8 +16,6 @@
 (interface MHost.Graphics.ILabelButton
 	(extends MHost.Graphics.IControl)
 	(SetRect (IString fontName) (Rectf rect)(IGui g) -> )
-	(OnMouseDown (MouseClickArgs args)-> )
-	(OnMouseUp (MouseClickArgs args)-> )
 	(SetLabel (IString label)-> )
 	(Enable ->)
 	(Disable ->)

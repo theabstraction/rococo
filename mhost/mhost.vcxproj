@@ -117,6 +117,7 @@
     <ClCompile Include="mhost.graphics.cpp" />
     <ClCompile Include="mhost.os.win32.cpp" />
     <ClCompile Include="mhost.scripts.cpp" />
+    <ClCompile Include="mhost.serializers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="mhost.ico" />
@@ -134,7 +135,6 @@
     <None Include="..\content\scripts\mhost\widgets\fonts.sxy" />
     <None Include="..\content\scripts\mhost\widgets\menu.vertical.sxy" />
     <None Include="..\content\scripts\mhost\widgets\widgets.sxy" />
-    <None Include="mhost.os.inl" />
     <None Include="mhost.sxh" />
     <None Include="mhost.sxh.inl" />
     <None Include="mhost.xc" />

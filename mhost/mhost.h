@@ -51,6 +51,8 @@ namespace MHost
 	struct IEngine;
 
 	typedef Rococo::Script::ArchetypeCallback GuiPopulator;
+
+	struct IDictionaryStream;
 }
 
 #include "mhost.sxh.h"
@@ -59,6 +61,13 @@ namespace MHost
 {
 	using namespace Rococo;
 	using namespace Rococo::Script;
+
+	ROCOCOAPI IDicionaryStreamSupervisor: public IDictionaryStream
+	{
+		virtual void Free() = 0;
+	};
+
+	IDicionaryStreamSupervisor* CreateDictionaryStream(IInstallation& installation);
 
 	// Returns the top left position, using alignment flags to interpret how the pos argument is interpreted
 	IGui* CreateGuiOnStack(char buffer[64], IGuiRenderContext& gc);

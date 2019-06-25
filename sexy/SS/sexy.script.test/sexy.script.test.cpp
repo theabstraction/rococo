@@ -13022,8 +13022,63 @@ namespace
 	   ValidateExecution(result);
 	   int32 x = vm.PopInt32();
 
-	   validate(x == 0); // Should be set to zero by Main
-	   
+	   validate(x == 0); // Should be set to zero by Main   
+   }
+
+   void TestStringToChar(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   "(namespace EntryPoint) \n"
+		   "(using Sys) \n"
+		   "(using Sys.Type) \n"
+		   "(using Sys.Maths)\n"
+
+		   "(function Main -> (Int32 result): \n"
+		   "	(IString meToo = \"Harvey, what have you been up to?\")\n"
+		   "    (Int32 c = (meToo 5))\n"
+		   "    (result = c)\n"
+		   ")\n"
+		   "(alias Main EntryPoint.Main) \n";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(77); // Allocate stack space for the int32 x
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+	   int32 x = vm.PopInt32();
+
+	   validate(x == 'y'); // Should be set to zero by Main   
+   }
+
+   void TestStringToCharFail (IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   "(namespace EntryPoint) \n"
+		   "(using Sys) \n"
+		   "(using Sys.Type) \n"
+		   "(using Sys.Maths)\n"
+
+		   "(function Main -> (Int32 result): \n"
+		   "	(IString meToo = \"Harvey, what have you been up to?\")\n"
+		   "    (Int32 c = (meToo 75))\n"
+		   "    (result = c)\n"
+		   ")\n"
+		   "(alias Main EntryPoint.Main) \n";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(77); // Allocate stack space for the int32 x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_THROWN);
+	   ValidateLogs();
    }
 
    void RunCollectionTests()
@@ -13187,6 +13242,8 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestStringToChar);
+		TEST(TestStringToCharFail);
 		TEST(TestCallPrivateMethodviaDispatch);
 		TEST(TestCallPrivateMethod);
 		TEST(TestCallPrivateMethod2);

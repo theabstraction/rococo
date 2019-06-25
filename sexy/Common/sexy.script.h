@@ -262,6 +262,7 @@ namespace Rococo {
 			ID_API_CALLBACK idDynamicDispatch;
 			ID_API_CALLBACK idIsSameObject;
 			ID_API_CALLBACK idIsDifferentObject;
+			ID_API_CALLBACK idStringIndexToChar;
 		};
 
 		struct MethodInfo

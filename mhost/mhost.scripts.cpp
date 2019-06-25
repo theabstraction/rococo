@@ -15,6 +15,11 @@ namespace MHost
 		return _context;
 	}
 
+	MHost::IDictionaryStream* FactoryConstructMHostDictionaryStream(Rococo::IInstallation* installation)
+	{
+		return CreateDictionaryStream(*installation);
+	}
+
 	namespace OS
 	{
 		boolean32 IsKeyPressed(const KeyState& keyState, int32 vkCode)
@@ -56,6 +61,8 @@ namespace MHost
 	}
 }
 
+using namespace MHost;
+
 #include "mhost.sxh.inl"
 #include "mhost.inl"
 
@@ -81,6 +88,7 @@ namespace MHost
 				AddNativeCalls_MHostIEngine(args.ss, engine);
 				MHost::OS::AddNativeCalls_MHostOS(args.ss);
 				MHost::Graphics::AddNativeCalls_MHostGraphics(args.ss);
+				AddNativeCalls_MHostIDictionaryStream(args.ss, &platform.installation);
 
 				engine->SetRunningScriptContext(&args.ss);
 

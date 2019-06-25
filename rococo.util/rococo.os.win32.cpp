@@ -1225,9 +1225,11 @@ namespace Rococo
 				Throw(0, "Rococo::OS::SaveAsciiTextFile(%s): Sanity check. String was > 1 gigabyte in length", filename);
 			}
 
+			HANDLE hFile = INVALID_HANDLE_VALUE;
+
 			switch (target)
 			{
-			case TargetDirectory_UserDocuments:
+				case TargetDirectory_UserDocuments:
 				{
 					PWSTR path;
 					HRESULT hr = SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &path);
@@ -1240,26 +1242,29 @@ namespace Rococo
 					wnsprintfW(fullpath, MAX_PATH, L"%s\\%S", path, filename);
 					CoTaskMemFree(path);
 
-					HANDLE hFile = CreateFileW(fullpath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-					if (hFile == INVALID_HANDLE_VALUE)
-					{
-						Throw(GetLastError(), "Cannot create file %s in user directory", filename);
-					}
-
-					DWORD bytesWritten;
-					bool status = WriteFile(hFile, text.buffer, (DWORD)text.length, &bytesWritten, NULL);
-					int err = GetLastError();
-					CloseHandle(hFile);
-
-					if (!status)
-					{
-						Throw(err, "Rococo::OS::SaveAsciiTextFile(%s) : failed to write text to file", filename);
-					}
+					hFile = CreateFileW(fullpath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 				}
+				break;
+			case TargetDirectory_Root:
+				hFile = CreateFileA(filename, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 				break;
 			default:
 				Throw(0, "Rococo::OS::SaveAsciiTextFile(... %s): Unrecognized target directory", filename);
 				break;
+			}
+
+			if (hFile == INVALID_HANDLE_VALUE)
+			{
+				Throw(GetLastError(), "Cannot create file %s in user directory", filename);
+			}
+			DWORD bytesWritten;
+			bool status = WriteFile(hFile, text.buffer, (DWORD)text.length, &bytesWritten, NULL);
+			int err = GetLastError();
+			CloseHandle(hFile);
+
+			if (!status)
+			{
+				Throw(err, "Rococo::OS::SaveAsciiTextFile(%s) : failed to write text to file", filename);
 			}
 		}
 	}

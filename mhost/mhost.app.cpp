@@ -334,6 +334,7 @@ namespace MHost
 	IDirectApp* CreateApp(Platform& p, IDirectAppControl& control)
 	{
 		p.installation.Macro("#bitmaps", "!scripts/mhost/bitmaps/");
+		p.installation.Macro("#chaps", "!scripts/mhost/rpg/chaps/");
 		return new MHost::App(p, control);
 	}
 }

@@ -17,7 +17,6 @@
 	(extends MHost.Graphics.IControl)
 	(SetRect (Rectf rect) -> )
 	(SetHost (IEventHandler host) -> )
-	(OnMouseUp (MouseClickArgs args)-> )
 )
 
 (class Overlay
@@ -79,9 +78,6 @@
 	(SetUndefinedText (IString text)->)
 	(Select (Int32 index)-> )
 	(SetOverlay (IOverlayControl overlay)->)
-	(RenderOverlay (OverlayProxyArgs args)->)
-	(OnMouseUp (MouseClickArgs args)->)
-	(OnMouseUpInOverlay (MouseClickArgs args)->)
 	(GetValue -> (IExpression s))
 	(Enable -> )
 	(Disable -> )

@@ -239,7 +239,8 @@ namespace Rococo
 
 		enum TargetDirectory
 		{
-			TargetDirectory_UserDocuments = 0
+			TargetDirectory_UserDocuments = 0,
+			TargetDirectory_Root
 		};
 
 		void SaveAsciiTextFile(TargetDirectory target, cstr filename, const fstring& text);

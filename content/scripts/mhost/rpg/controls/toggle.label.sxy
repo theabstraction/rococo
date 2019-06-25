@@ -16,7 +16,6 @@
 (interface MHost.Graphics.IToggleLabel
 	(extends MHost.Graphics.IControl)
 	(SetRect (IString fontName) (Rectf rect)(IGui g) -> )
-	(OnMouseUp (MouseClickArgs args)-> )
 	(SetUndefinedText (IString text)-> )
 	(AddItem (IString text)(IExpression s)-> )
 	(GetSelectedValue -> (IExpression s))
