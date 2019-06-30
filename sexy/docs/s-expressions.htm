@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - S-Expressions</title>
+</head>
+
+<body>
+	<div>
+		<h1>Sexy Scripting Language - S-Expressions</h1>
+	</div>
+	
+	<div>
+		An S-expression is the basic syntax of Sexy, which is based on LISP S-expressions but is made to be more C++ friendly.
+		Every S-expression is a sequence of tokens separated by blank space. This is different from C++, in which tokens
+		are separated by semantic analysis, so that <b>x=y;</b>, for example, in C++ corresponds to 4 different tokens but in
+		an S-expression langauge corresponds to only one token. Blank space in Sexy includes space, tabs, linefeed and newline
+		characters.
+		
+		Compound expressions are encapsulated with parenthesis ( and ) and contain S-expression within. 
+		
+		<p>(the quick brown fox) is a compound expression with four child elements 'the', 'quick', 'brown' and 'fox'
+		<p>(catches (his meal)) is a compond expression with two children 'catches' and the compound expression (his meal).
+		
+		This introduces the concepts of compound expression, and the first compound expression above (the quick brown fox) 
+		has four elements which are called atomic expressions. Atomic expressions may not include the parenthesis characters,
+		blank space or quotation marks (").
+	<p><b>Compound and atomic expressions - the core of S syntax</b></p>
+		Since any compound S-expression may have a compound S-expression as a child, it should be obvious that the term
+		recursive grammar is appropriate. The first job of an S-parser is to extract these tokens and put them in arrays
+		in a recursive structure - this is what is called an expression tree. C++ also has expression trees, as does any
+		decent language, but with the freedom of C++ to eliminate blank space it is harder to see what is a leaf
+		in C++'s tree and what is a branch.
+	<p>
+	<div>
+	<p><b>String literals</b></p>
+		<p>Encoding blank space in single tokens is done by the use of the <i>string literal</i>. Enclose a region with double
+		quotes and the blank space and parenthesis no longer separate out different expressions:
+		<p><b>(IString s = "This is (considered) one token.")</b> defines a compound expression with 4 elements. The fourth 
+		element is a string in which parenthesis and space are part of the one string.
+		<p>As with C++ escapement rules are needed to encode special characters. The escape character in Sexy is 
+		the ampersand (&) which was chosen because of its popularity in XML and HTML, and also because the C++ escape character
+		backslash (/) happens to coincide with MS-DOS path character which is annoying when programming Windows.
+		The escapement rules are designed to match those of C++:
+		<ul>
+		<li>&& escapes to &</li>
+		<li>&" escapes to "</li>
+		<li>&t escapes to tab</li>
+		<li>&r escapes to linefeed</li>
+		<li>&n escapes to newline</li>
+		<li>&xHH escapes to ascii character with hexadecimal value HH</li>
+		(Sys.Print "&tHello World!&n")
+	</div>
+	<div>
+		<p><b>Comments</b></p>
+		<p>Comment rules match those of C++ exactly. You can use /* and */ to enclose regions or // for single line comments.
+		<p>/* this is a comment in Sexy */
+		<p>// And this is another comment
+	</div>
+	<div>
+		<p><b>The Root Expression</b></p>
+		<p>Any S-expression source file has something called the root expression. If the source file is blank or full of blank
+		space the root expression is null. If at least one token is within it then it is a compound expression. Although the root
+		is compound its parenthesis can be considered implicit. The root is the starting point for the expression tree.
+	</div>
+	<div>
+		<p><b>Conclusion</b></p>
+		That is pretty much the entire defintion of S-expressions. You can see that it is very simple, yet at the same time
+		allows representation of arbitrary complex data and it clearly demarkates token parsing, expression tree building 
+		from any S-language. The Sexy S-Parser is a stand-alone module that can be used by linking in the S-Parser library
+		and can construct S-trees. You can use this to tokenize your own S-expression languages.
+	</div>
+	<div>
+		<a href="start.htm">Start Page</a>
+	</div>
+</body>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Derivative types #2 Part 3 - Static and dynamic cast</title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Derivatives types #2 Part 3 - Static and dynamic cast</h1>
+	
+	<p>Classes can implement more than one interface and it becomes necessary to switch between interfaces. From outside
+	a class, the list of internal interfaces is an implementation detail, and it requires a run-time cast, otherwise known as a 
+	Dynamic cast:
+	
+	<pre><code>
+(class RobotDog (implements Sys.IDog)(implements Sys.IRobot) ...)
+(factory Sys.NewRobotDog Sys.IDog : (construct RobotDog))
+....
+(Sys.IDog dog (Sys.NewRobotDog))
+(cast dog Sys.IRobot robot)
+	</pre></code>
+</body>
+
+In the above snippet, a RobotDog is created and initialies an interface variable dog to it. We use <b>cast</b> to dynamically
+select the Sys.IRobot interface and initiazes a new variable robot. If the instance of a casted interface does not implement 
+the target of the cast, the cast sets its output interface to the universal null object for the output interface.
+
+<p>Inside of a class it is possible to cast <b>this</b> to any interface the class implements at compile time. This is called
+static casting.
+
+	<pre><code>
+(class RobotDog (implements Sys.IDog)(implements Sys.IRobot) ...)
+(factory Sys.NewRobotDog Sys.IDog : (construct RobotDog))
+....
+(method RobotDog.GetRobot -> (Sys.IRobot robot):
+	(robot = this)
+)
+	</pre></code>
+	
+Static casting is faster than dynamic casting, and in the event that the target interface is not implemented by the class
+prevents compilation of the cast.
+
+	<h3><a href="start.htm">Contents</a></h3>
+</body>
+

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Derivatives #2 - Classes, Factories and Interfaces</title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Derivatives #1 - Classes, Factories and Interfaces</h1>
+	<p>
+	<p>	The art of object-oriented programming is to package up data together with related functions in such a way
+	that emphasizes the functionality, but masks the data. The purpose is to simplify programming. In practice many
+	languages that were first to implement object-orientation did not do a good job. Some, such as Small-Talk, made
+	everything an object, which creates performance problems, and others such as C++ allowed the programmer to make
+	too much of a mess of program architecture. With C++ methodologies arose that limited how the language is used
+	to manage objects, and it is up to the coder to learn those methodologies or end up repeating the same mistakes
+	we made in the 90s. Sexy to an extent has the methodologies built into the syntax and the compiler, reducing the
+	degree with which one can make a mess. Managing complexity is what makes for a good software architect. Most of
+	us veteran programmers have gone through decades thinking we were on the right track and ending up losing control.
+	<p>
+	In Sexy object-orientation is all about interfaces - not about classes. Interfaces are where you define functionality.
+	<code><pre>
+(interface Sys.Type.IInt32Stream
+	(Save (Int32 value)->)
+	(Next -> (Int32 value)(Bool success))
+)
+	</code></pre>
+	
+	Here we have defined an interface, which provides two functions, or methods - functions that belong to an interface or class
+	are called methods. The interface is called IInt32Stream. Interface must begin with capital letters and then have any
+	combination of alphanumeric characters. By convention interfaces begin with capital I, though it is not enforced by the
+	Sexy compiler. The method declarations in the interface are similar to function definitions, but need no body indicator
+	token, nor any special keyword. Interfaces must always be defined in a particular namespace.
+	
+	<p>To implement an interface one defines a class. As Aristotle would have said if he had learned C++ '
+	Classes exist to implement interfaces - and for no other reason.'
+	
+	<code><pre>
+(class OneItemMemoryInt32Stream (implements Sys.Type.IInt32Stream)
+	(Int32 item)
+	(Bool stored)
+)
+
+(method OneItemMemoryInt32Stream.Construct -> :
+   (this.item = 0)
+   (this.stored = false)
+)
+
+(method OneItemMemoryInt32Stream.Save (Int32 value)-> :
+   (item = value)
+   (stored = true)
+)
+
+(method OneItemMemoryInt32Stream.Next -> (Int32 value) (Bool success):
+	(if this.stored
+		(value = this.item)
+		(this.stored = false)
+		(success = true)
+	else
+		(success = false)
+	)
+)
+</code></pre>
+	
+We have introduced a few ideas here. First a class definition. This defines what interfaces a class implements and what internal
+variables are used. Then we have three methods of that class - Construct, Save and Next. Construct initializes class variables,
+Save in the example stores an integer and Next extracts it. The <b>this</b> keyword extracts the class variables. Unlike C++
+you always have to be explicitly use <b>this</b>. Each of the methods Save and Next match those defined by IInt32Stream. The
+Sexy compiler will not let you compile a class unless you have correctly defined all methods of all the interfaces which it is
+has said it will implement. You can think of an interface as a contract between the class and the consumer of the interface that
+guarantees that functions are available. Every class must provide a Construct method. Construct methods do not have output and
+so do not use the mapping token. They can also have an optional Destruct method to clean up resources, which likewise has no output.
+
+<p>
+
+<code><pre>
+(factory Sys.Type.NewOneItemMemoryInt32Stream Sys.Type.IInt32Stream :
+	(construct OneItemMemoryInt32Stream)
+)
+</code></pre>
+
+Here we see how objects are constructed - a <b>factory</b> is defined that declares a name for itself in some namespace as its
+first parameter. The second parameter gives the interface that it initializes, and the body eventually constructs the target
+class instance. <b>construct</b> first allocates memory, then initializes the memory by calling the class Construct method, 
+then it terminates the factory call. Since the factory and the interface are both publicly accessible via the namespaces,
+then any module can create and operate objects. Classes cannot be aliased in namespaces by design. This clearly demarkates 
+implementation from interface.
+
+<code><pre>
+(interface Sys.Type.IInt32StreamAndCount (extends IInt32Stream)
+	(Count -> (Int32 count)
+)
+</code></pre>
+
+As in the above example, interfaces can extend existing interfaces, adding extra functions. In the case where one class
+is the sole implementor of an interface, and only implements that interface, the class can specify that it <i>defines</i>
+the interface:
+
+
+<code><pre>
+(class Cat (defines Sys.Type.ICat)
+)
+
+(method Cat.Construct: )
+
+(method Cat.Mew: (Sys.Print "Meow!"))
+</code></pre>
+
+In this example Cat defines Sys.Type.ICat. Any methods defined for Cat extend the Sys.Type.ICat interface. The Sys.Type.ICat
+interface will now expose method Mew.
+
+<h3>Interface variables</h3>
+
+Up until this point we have seen primitivs and structs. Interfaces can be used as a type for variables.
+
+<code><pre>
+(IInt32Stream s)
+</code></pre>
+
+An interface declared without explicit initialisation is implicitly set to refer to a null object. Null objects fully
+implement every method declared in the interface as null methods. Null methods ignore all inputs and set default null values
+on all outputs - they do nothing else. You can modify this behaviour by adding <b>(attribute essential)</b> to an interface
+definition, that causes all null methods to issue an error exception.
+
+<code><pre>
+(interface Sys.Type.IEssentialInt32Stream (extends Sys.Type.IInt32Stream)
+	(attribute essential)
+)
+</code></pre>
+
+
+<code><pre>
+(IInt32Stream s (Sys.Type.NewOneItemMemoryInt32Stream))
+</code></pre>
+
+In this syntax we declare an interface with name s, that is initialized with the factory call defined in the page above.
+After the factory returns, s refers to the class instance. Class instances are refence counted. When they are created the
+reference count is set to 1. Each time a reference to an instance is created the count increases by 1, and when the reference
+goes out of scope the refence count is decremented. Once it hits zero the Destruct function of the class is invoked, if it
+exists - and then the instance memory is deallocated. (<b>Advanced:</b> a class can specify an interface variable as a member. If two or more class instances
+refer to each other a ring is created and this is what is known as circular dependancy. A ring that goes out of scope may
+not destruct until script execution terminates. This is called a leak. You can prevent it by explicitly breaking the ring by
+setting internal references to null objects before letting the ring fall out of scope).
+
+<p>
+Finally, interfaces can be assigned after their point of declaration. This is called a <i>late factory call</i>.
+
+<code><pre>
+(IInt32Stream s)
+(s = (Sys.Type.NewOneItemMemoryInt32Stream))
+</code></pre>
+
+	<h3><a href="start.htm">Contents</a></h3>
+</body>
+

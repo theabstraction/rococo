@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Exceptions</title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Exceptions</h1>
+
+	In order to propagate complex error information one uses exceptions. Exceptions classes all implement the Sys.Type.IException 
+	interface. Once you have have a reference to an exception object use keyword <b>throw</b> to trigger it. As in <b>(throw ex)</b>
+
+	For convenience a function (Sys.Throw &lt;error_code&gt; &lt;message&gt;) exists that already creates an
+	IException and throws it.
+	
+	Error handlers use a <b>(try...catch...finally)</b> block to receive and process the exception. At the point
+	that an exception is thrown, function calls are undone until such a block is found. Otherwise script execution 
+	terminates and an error is logged to the script debugger.
+	
+	<pre><code>
+	(try
+		(Sys.Throw 0 "An error occured")
+	catch e
+		(
+			(Sys.Print e.Message)
+		)
+	finally
+		...
+	)
+	</pre></code>
+	
+	In this snippet Sys.Throw invokes a throw. You can see the source code for Sys.Throw in Sys.Type.sxy. At the point
+	throw is called the stack is unwound - functions return prematurely, variables are destructed and cleaned up,
+	and execution resumes at the catch point, where we can see in this example the message is printed. Whether or not
+	an exception is thrown, the code in the section after keyword <b>finally</b> is executed. (<b>Advanced</b> since Sexy allows
+	dynamic casting from an IException interface, you can create exception objects with arbitrary error data and use casts in the
+	catch handler to process that extra data).
+	
+	<p>
+	N.B - do not let Destruct methods throw an exception.
+	
+	<h3><a href="start.htm">Contents</a></h3>
+</body>

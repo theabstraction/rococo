@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Start Page</title>
+</head>
+
+<body>
+	<div>
+		<h1>Sexy Scripting Language - Start Page</h1>
+	</div>
+	<div>
+		<h2>by</h2>
+	</div>
+	<div>
+		<h2>Mark Anthony Taylor - The Man Who Invented Sexy</h2>
+	</div>
+	<div>
+		<h3>FAQ</h1>
+	</div>
+		<div>
+		<p><b>What does SEXY stand for?</b><p>(S)ymbolic (EX)pression lang(Y)uage.
+	</div>
+	<div>
+		<p><b>What inspired the development of the language?</b><p>After working in the games industry for a number of years, coding largely with C++
+		I came to recognize that many project failures were down to the large compile times of huge codebases. When developing
+		game play it is essential to have a fast iteration time of no more than a few seconds. This is why we use scripting languages.
+		The most popular of such languages is LUA, but LUA was really developed for the oil industry to parse table data, it is not
+		suited for object-oriented programming, and so it does not gel too well with C++. Even marshalling between C and LUA is relatively expensive.
+		I wanted a language that would encode its internal objects in a way that C could manipulate with pointers, that would map C++ methods
+		to scripting language methods and back, and would also offer the power of some very high languages including LISP - power that even
+		most modern languages cannot compete with. Such a language was so sexy, it could only be named Sexy.
+	</div>
+	<div>
+		<p><b>Is Sexy sexist?</b><p>Only misanthropes who wish to end the human race would spread such an ideology. No, my dear friend, sexy is not sexist.
+		Sexy is sexy-ist.
+	</div>
+	<div>
+		<p><b>Is Sexy LISP?</b><p>Sexy programs are built in something called S-expressions, which is very similar to XML,
+		but a lot less verbose. This is the same basis as LISP, but it is not LISP. S-expressions have the advantage of being
+		able to encode arbitrarily deep and recursive data structures, but with a trivial parser. C++ in comparison requires
+		a massively complex parser, in which parsing tokens requires an intimate implementation of the language. S-expressions
+	    almost completely separate tokenization from the language standard. Sexy is more like C++ than LISP in its semantics - it has
+		classes, structures, static typing and interfaces.  By design it mirrors and simplifies the C++ firewall model for
+		object-orientation, in which abstract base classes are used as the core of any API and factory functions are used
+		to instantiate objects. 
+	</div>
+	<div>
+		<p><b>How fast is Sexy?</b><p>The language compiles to bytecode running on a virtual machine that executes roughly
+		90 million instructions per second on my Core i5-8250U laptop. Many of the language semantics are compiled to one 
+		or two bytecodes. Marhshalling between C++ and Sexy requires a few pointer operations and rarely needs dynamic
+		memory allocation. On the same computer the S-Parser can compile up to 66MB of S-expressions per second.
+	</div>
+	<div>
+		<p><b>Will it ever feature full compilation to machine code?</b><p> While a full JIT compiler is possible, it is quite a
+		lot of work and I believe at this time it is the wrong emphasis of where efforts should be focused. With the ease
+		of calling C++ methods from within the language performance is not really the issue.
+	</div>
+	<div>
+		<p><b>What is the key LISP like killer language feature?</b><p> Being an S-expression language it was natural to implement 
+		its macro system to treat inputs as trees rather than string-tokens as you see in C++. It is thus possible to pass
+		arbitrarily complex data to a macro or other Sexy function, and even analyze the parent structure, so that macros can
+		figure out what is in the calling function or even the entire module. Macro expansion has full access to the language.
+		Compare with C++ in which macro expansion is done with a pre-processor using a very limited set of operations. C++
+		templates still do not have the power and flexibility of those of LISP and Sexy.
+	</div>
+	<div>
+		<p><b>What is the key LUA like killer language feature?</b><p> Co-routines are now supported from within the language itself.
+		Games very often have to trigger operations that evolve over time - such as explosions, or objects moving around a path -
+		with a coroutine these can be implemented as a sequence of operations that loop advance-then-yield until completion. Coroutines
+		make it easy to manage thousands of such operations - it is perfect for AI and real-time game programming.
+	</div>
+	<div>
+		<p><b>What is <i>dynamic dispatch</i> and where is it used?</b><p> In Sexy an interface can be marked with a <i>dispatch</i>
+		attribute which means if a method call is not matched at compile time, an attempt is made to find a match at run-time
+		by looking at a matching method in the class that implements the interface. So this allows one to call any method
+		from the dispatch interface, which might have no methods of its own. This was developed to solve the GUI problem where objects
+		may have to implement one or more methods to handle GUI changes, such as mouse movement or keyboard presses, but ignore
+		anything irrelevant. In C++ to achieve this one would typically use a hashtable to map between event identifiers and method handlers.
+		In Sexy the hard work is done by the compiler so simplifying syntax greatly and eliminating the need for the script programmer
+		to manage a hash table.
+	</div>
+	<div>
+		<p><b>Why no public, private, protected keywords?</b><p> The model in Sexy for object-orientation is to expose
+		interfaces and factories as the base API, along-side standaline functions. Interfaces and factories must be given
+		a namespace, and all namespaces are accessible from all modules, so we do not need a <i>public</i>  keyword. Classes
+		are an implementation detail - they exist to implement interfaces, and for no other reason. Classes can only be
+		manipulated directly in the source module in which they are defined. Thus keywords <i>private</i> and <i>protected</i>
+		are redundant.
+	</div>
+	<div>
+		<p><b>How efficient are Sexy fuction calls?</b><p> In Sexy data types are either primitive, such as Int32 or Float64,
+		or derivative of these such as structs, which contain more than one primitive type as fields. Primitives are passed by value
+		and structs are always passed by mutable reference. Structs are thus propagated by the bytecode moving
+		a pointer value around, allowing for efficient processing of large structures. Compare C# in which passes structures by
+		value. Only primitive values and interface references can be output from a function. These protocols were all designed
+		to maximize efficiency of handling vectors and matrices.
+	</div>
+	<div>
+		<p><b>How efficient is operator overloading?</b><p> If two struct types are involved in certain binary operation semantics
+		the compiler replaces the operation with a call to an overload function and passes references to all arguments to that
+		function allowing for streamlined execution of the overloaded operation. An overload function is merely a regular functions with a 
+		suitable name and arguments that match those in a compatible expression.
+	</div>
+	<div>
+		<p><b>How efficient are Sexy structs?</b><p> The layout of Sexy structures is determined at code time, that is, even before
+		compile time. This means C++ programmers can directly access Sexy structure fields without having to use reflection. The
+		bytecode treats fields as offsets rather than strings, so can perform very fast structure operations at run-time.
+	</div>
+	<div>
+		<p><b>What are the basics of Sexy objects?</b><p> Every object is defined by a class definition in a module alongside
+		its methods. The class defintions wrap interfaces and private data into the underlying structure. Every method in the
+		module either implements a method in one of the interfaces or adds a so-called 'private' method to the class to be used
+		internally. All methods, apart from Construct and Destruct can be called by dynamic dispatch if an interface for a class
+		is marked with the dispatch attribute. For every class there will be a factory defined, which is a special function
+		for allocating memory and invoking the class constructor. The factory can potentially choose which object to instantiate.
+		Once a factory instanties an object the function call returns and an interface to the object has been created. Reference
+		counts are done automatically. Once all references are out of scope the object is destructed and memory freed. It is
+		possible to create circular dependencies, causing objects to leak. These are cleared up when a script terminates.
+		Dynamic and static casting allows one to switch between the different interfaces implemented on an object.
+	</div>
+	<div>
+		<p><b>How does Sexy handle null references?</b><p> In Sexy, rather than allowing null pointers, interfaces are implicitly
+		set to point to default null-object implementations. For every interface there is a special null object, which is termed
+		the Univeral-Null-Object for that interface. Null objects implement a full set of null methods for their interface. The default null method,
+		by definition, ignores all inputs and returns null to all its outputs. An interface can be marked with the <i>essential</i>
+		attribute which caused all methods to throw a null object exception. Using null objects rather than null references
+		can eliminate many null reference checks that would be otherwise required for many algorithms.
+	</div>
+	<div>
+		<p><b>How does Sexy implement interfaces under the hood?</b><p> As is the case for C++, sexy uses virtual tables
+		for each interface. Interfaces can be derived from base interfaces, in which case virtual tables are stacked upon each 
+		other for the full implementation of the derived interface.
+	</div>
+	<div>
+		<p><b>How is a Sexy object structured under the hood?</b><p> The compiler treats classes as structs with some fields
+		inaccessible to the scripting language - these fields consist of the virtual table pointers, the type defintion and the 
+		refence count. Altogether a class that implements one interface and has no members requires 24-bytes of data on a 64-bit
+		addressed system. The greatest cost associated with an object is creation and destruciton which require heap memory
+		manipulation. Therefore consider using structures rather that classes for very short-lived operations.
+	</div>
+	<div>
+		<p><b>Why does the Sexy API seem to prefer the cumbersome IStringBuilder to IString?</b><p>IString was designed to 
+		present the minimal representation of a string - it provides a pointer and a length - and nothing else. It tells you
+		nothing about the lifetime or mutability of the string implementation. This allows IString to be the most efficient
+		and universal represention of a string through an interface. However many operations require persisting a string. In this
+		case IStringBuilder is the preferred choice. As speed is central to Sexy's existence, most core string operations
+		involve appending to an existing string, rather than creating a new one from scratch. Ultimately this saves a lot of
+		CPU time. Sexy may not be as succinct as other languages when it comes to string processing, but having IStringBuilder
+		as the base API interface should allow it to be amongst the fastest.
+	</div>
+	<div>
+		<p><b>Why can classes that implement an IString have no other interfaces, except to derive from IString?</b><p> To speed
+		up IString operations the compiler inlines method calls to content and length fields. This requires that all implementations
+		of IString have them in the same relative location in the class. Adding extra interfaces would prevent the inlining.
+	</div>
+	<div>
+		<p><b>How do I marshall from Sexy to C++</b> One writes an SXH file that defines structs, functions and interfaces that are 
+		implemented both Sexy and C++. Use Sexy.BennyHill.exe tool to convert that file to .h .inl and .sxy files. The tool
+		creates all the marshalling code required. You just need to implement the C++ side.		
+	</div>
+	<div>
+		<p><b>How do I marshall from C++ to Sexy</b> This is a little more convoluted. If you look at the sexy.test.exe program
+		you will see countless examples of C++ invoking Sexy. By using IPublicProgramObject you can search for modules,
+		namespaces and functions. Once you have identified an entry point IPublicProgramObject::SetProgramAndEntryPoint(*f)
+		can be used to set the execution point. IVirtualMachine::ExecuteFunction can be used to invoke a particular function.
+		Use IVirtualMachine::PushXX and IVirtualMachine::PopXX to push and pop arguments off the stack.
+	</div>
+	<div>
+		<p><b>How do I debug Sexy?</b> The Rococo library provides MHost platform that hosts scripts, provides graphics
+		output and uses the Rococo Sexy IDE debugger. MHost is built upon MPlatform. You can tailor the source code to 
+		create your own script hosting. You can use the (trip) command in any function to trigger a script breakpoint and use
+		step-by-step debugging in the IDE. Debugging macros is not yet fully supported. It is recommended you code macros
+		one baby-step at a time.
+	</div>
+	<div>
+		<h3>Contents</h3>
+	</div>
+	<div>
+		<ul>
+		<li><h3><a href="s-expressions.htm">S-Expressions - a must read</a></h3></li>
+		<li><h3><a href="primitives.htm">The Primitives - Integers, Floats, Bools and Pointers</a></h3></li>
+		<li><h3><a href="structs.htm">Derivative types #1 - Structures</a></h3></li>
+		<li><h3><a href="functions.htm">Functions and Function calls</a></h3></li>
+		<li><h3><a href="arithmetic.htm">Arithmetic operations</a></h3></li>
+		<li><h3><a href="flow.htm">Program flow</a></h3></li>
+		<li><h3><a href="derivatives2.htm">Derivate types #2 Part 1 - Classes, factories and interfaces</a></h3></li>
+		<li><h3><a href="derivatives2_2.htm">Derivate types #2 Part 2 - Dynamic dispatch</a></h3></li>
+		<li><h3><a href="derivatives2_3.htm">Derivate types #2 Part 3 - Static and dynamic cast</a></h3></li>
+		<li><h3><a href="exceptions.htm">Excepton handling</a></h3></li>
+		<li><h3><a href="primitives.htm">Macros #1 - Using macros</a></h3></li>
+		<li><h3><a href="primitives.htm">Macros #2 - Writing macros</a></h3></li>
+		<li><h3><a href="primitives.htm">The Devil's Idea - Global variables</a></h3></li>
+		<li><h3><a href="primitives.htm">Containers Part 1 - doubly linked lists</a></h3></li>
+		<li><h3><a href="primitives.htm">Containers Part 2 - arrays</a></h3></li>
+		<li><h3><a href="primitives.htm">Containers Part 3 - maps</a></h3></li>
+		<li><h3><a href="primitives.htm">Containers Part 4 - enumerating elements</a></h3></li>
+		<li><h3><a href="primitives.htm">IString and IStringBuilder</a></h3></li>
+		<li><h3><a href="primitives.htm">IStringBuilder and co - Builder attributes</a></h3></li>
+		<li><h3><a href="primitives.htm">Derivate types #2 Part 4 - Null objects</a></h3></li>
+		<li><h3><a href="primitives.htm">Coroutines</a></h3></li>
+		<li><h3><a href="primitives.htm">Binary arithmetic operators and overloading</a></h3></li>
+		<li><h3><a href="primitives.htm">Delta operators</a></h3></li>
+		<li><h3><a href="primitives.htm">Comparison operators and overloading</a></h3></li>
+		<li><h3><a href="primitives.htm">Closures</a></h3></li>
+		<li><h3><a href="primitives.htm">MHost</a></h3></li>
+		<li><h3><a href="primitives.htm">Rococo-Sexy IDE Debugger</a></h3></li>
+		<li><h3><a href="primitives.htm">Marshalling to C++ the Benny Hill way</a></h3></li>
+		</ul>
+	</div>
+</body>
+
+

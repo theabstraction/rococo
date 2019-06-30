@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Primitives</title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Primitives</h1>
+	As with all programming languages high level operations are created from the arithmetic of low level operations. In Sexy
+	the lowest level data types are called <i>primitives</i>. They are:
+	
+	<table>
+		<tr><td><b>Int32</b></td><td>32-bit signed integer</td></tr>
+		<tr><td><b>Int64</b></td><td>64-bit signed integer</td></tr>
+		<tr><td><b>Float32</b></td><td>32-bit single precision floating point number in IEEE 754 format</td></tr>
+		<tr><td><b>Float64</b></td><td>64-bit double precision floating point number in IEEE 754 format</td></tr>
+		<tr><td><b>Bool</b></td><td>32-bit boolean value, 1 meaning true and 0 false. Any other value is undefined</td></tr>
+		<tr><td><b>Pointer</b></td><td>An atomic type whose size is system dependent. Used to liaise with C++</td></tr>
+	</table>
+	
+	As you can see all the types begin with a capital letter. This is true for all types in Sexy.
+	<p>
+		You create variables of primitive type by using variable declaration syntax:
+	<p>
+		([primitive_type] [name] = [start_value])
+	<p>
+		Example: (Int64 baryonNumber = 2) // This creates a variable called baryonNumber, of type Int64 and initializes the start value to 2
+	<p>
+		Bool values can be initialized with either <i>true</i> or <i>false</i>:
+	<p>
+		(Bool isHappy = true)
+	<p>
+		Sexy evaluates from left to right, so in the expression (Int64 baryonNumber = 2) the compiler will expect the value
+		on the right side of the assignment operator to be an Int64 literal of value 2. Unlike C++ there is thus no need
+		to add suffices to numbers to indicate their type. Sexy variable names all begin with lower case letters and may 
+		contain any mixture of alphanumeric characters. Underscore is not supported.
+	<h3><a href="start.htm">Contents</a></h3>
+</body>
+

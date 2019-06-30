@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Functions and Function calls</title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Functions and Function calls</h1>
+	We have introduced primitives, variables and derived types - structures. But we need to know in which context to use them.
+	In Sexy, as in C++, code is broken down into small units called functions, which are entities that transform input to output.
+	
+	<pre><code>
+	(function PassThrough (Float32 x)->(Float32 y):
+		(y = x)
+	)
+	</code></pre>
+	
+	In the above example we have defined a function that takes a single input x and transforms it to a single output y. The function
+	is very elementary and assigns the value of x to y. The single token <i>-></i> tells the compiler where the list of inputs
+	stops and where the list of outputs begin. In mathematics it is called the mapping symbol or morphism. If you forget to include
+	the symbol the compiler will tell you that it cannot find the mapping token.
+	<p>
+	Following the final output is a colon, which in Sexy is called the body indicator. Again, if you miss this out the compiler
+	will tell you. If a function has no outputs be sure to put blank space between the mapping token and the body indicator. After
+	the body indicator you encode the actual logic of the function.
+	<pre><code>
+	(function PrintNumber (Float32 x)-> :
+		... // logic goes here
+	)
+	</code></pre>
+	
+	Functions all begin with capital letters and may have any combination of alphanumeric characters afterwords. Functions can
+	be used from other functions. This is known as calling the function. To do this begin an expression with the name of the
+	function and assign suitable values to the remainder of the expression:
+	
+	<pre><code>
+	(function PassThroughInvoker (Float32 x)->(Float32 y):
+		(PassThrough x -> y)
+	)
+	</code></pre>
+	
+	In this example we defined a function PassThroughInvoker that 'calls' PassThrough to transform x to y. You will notice
+	the mapping operator used in the function call. If a function maps to only one output, it is said to return the output
+	and the call evaluates to the output and can be used to assign values.
+	
+	<pre><code>
+	(function PassThroughInvoker (Float32 x)->(Float32 y):
+		(y = (PassThrough x))
+	)
+	</code></pre>
+	
+	Such return values can be directly passed to other functions:
+	<pre><code>
+	(function PrintPassThroughNumber (Float32 x):
+		(PrintNumber (PassThrough x)))
+	)
+	</code></pre>
+	
+	If a function returns only one output and has no input it is called a <i>get-accessor</i> and it can often be used
+	without parenthesis. Its semantics now resemble that of a variable.
+	
+	<pre><code>
+	(function Pi -> (Float32 pi):
+		(pi = 3.14159)
+	)
+	
+	(function PrintPi -> :
+		(PrintNumber Pi) // We do not need to enclose Pi in parenthesis because it is a get-accessor
+	)
+	</code></pre>
+	
+	In Sexy primitive variables are passed by value, so that functions see values to passed to them, not the variables.
+	Derived variables are passed by mutable reference, allowing the callee to manipulate the variables of the caller.
+	
+	<pre><code>
+	(function SetToIdentity (Matrix3x3 m)-> :
+		(m = 
+			 (1 0 0)
+			 (0 1 0)
+			 (0 0 1)
+		)
+	)
+	</code></pre>
+	
+	Since functions can modify the values of input structs, it was deemed unnecessary to have the language output structs.
+	Thus output variables are limited to to primitive types (also archetyeps and interfaces which we will see later).
+	
+	<h3><a href="start.htm">Contents</a></h3>
+</body>

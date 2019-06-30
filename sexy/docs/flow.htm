@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Program Flow</title>
+</head>
+
+<body>
+<h1>Sexy Scripting Language - Program Flow</h1>
+
+With any sufficiently complex program it is necessary to test variables and then execute code dependent on the result of the
+tests. The <b>(if [condition]...)</b> statement can be used to this effect:
+
+<pre><code>
+
+(function Test5 (Bool alsoDivide) -> (Float32 s):
+	(Vector3 v = 1 2 3)
+	(s = (v.x + v.y))
+	(s *= v.z)  // equivalent to (s = (s * v.z))
+	(s -= v.z)
+	(if alsoDivide 
+		(s /= v.z)
+	)
+)
+</code></pre>
+
+The last expression in the Test5 snippet only divides s by v.z if the alsoDivide parameter is set to true. You can see the
+first parameter of an if statement is a boolean valued expression, called the condition. If the expression evaluates to true then the remainder of the
+<b>(if [condition]...)</b> statement is executed.
+
+You can also handle the case when the condition is false by using the <b>else</b> keyword:
+
+<code><pre>
+
+(function Test5B (Bool divideElseMultiply) -> (Float32 s):
+	(Vector3 v = 1 2 3)
+	(s = (v.x + v.y))
+	(s *= v.z)  // equivalent to (s = (s * v.z))
+	(s -= v.z)
+	(if divideElseMultiply 
+		(s /= v.z)
+	else
+		(s *= v.z)
+	)
+)
+
+</code></pre>
+
+Conditions are also used in loops:
+
+<code><pre>
+
+(function Test6 -> (Float32 s):
+	(Vector3 v = 1 2 3)
+	
+	(s = 1)
+
+	(while (s < 100)
+		(s *= v.z)
+	)
+)
+
+</code></pre>
+
+In the above code s is set to 1, then as long as s is less than 100 it is multiplied by v.z. It progressively increases
+to 3, 9, 81 and finally 243.  The <b>(while [condition]...)</b> expression means loop through code while a condition is true.
+As an alternative to <b>(while [condition]...)</b> you can also use <b>(do ... while [condition])</b>:
+
+<code><pre>
+
+(function Test7 -> (Float32 s):
+	(Vector3 v = 1 2 3)
+	
+	(s = 1)
+
+	(do (s *= v.z) 
+		while (s < 100)
+	)
+)
+
+</code></pre>
+
+<b>(do...while condition)</b> loops perform their operations <i>before</i> the condition test is carried out. You can terminate
+a <b>(while ...)</b> or <b>(do...while)</b> loop early by using <b>(break)</b>, and you can take execution to the top of the loop with a <b>(continue)</b>:
+
+<code><pre>
+
+(function Test8 (Bool divideElseMultiply) -> (Float32 s):
+	(Vector3 v = 1 2 3)
+	
+	(s = 1)
+
+	(do (s *= v.z) 
+		(if (s > 100) (break))
+		while true
+	)
+)
+
+</code></pre>
+
+<code><pre>
+
+(function Test9 (Bool divideElseMultiply) -> (Float32 s):
+	(Vector3 v = 1 2 3)
+	
+	(s = 1)
+
+	(do 
+		(if (s &lt; 100)
+		else 
+			(s *= v.y)
+			(continue)
+		)
+		(s *= 3)
+		while (s &lt; 1000)
+	)
+)
+
+</code></pre>
+
+In Test9 s progresses as 1, 3, 9, 27, 81, 243, 486, 972. 
+
+In any function you can use <b>(return)</b> to terminate a function:
+<code><pre>
+(function Test10 (Bool divideElseMultiply) -> (Float32 s):
+	(Vector3 v = 1 2 3)
+	
+	(s = 1)
+
+	(do 
+		(if (s &lt; 100)
+		else 
+			(s *= v.y)
+			(return)
+		)
+		(s *= 3)
+		while (s &lt; 1000)
+	)
+)
+</code></pre>
+
+In Test10 s progreses as 1, 3, 9, 27, 81, 243, 486. 
+
+<h3>Binary condition operators</h3>
+
+Where any Bool valued expression is expected one can provide a Bool variable, one of the Bool constants - 
+<i>true</i> or <i>false</i>, a Bool valued function, or a Bool valued binary comparison. In the latter case
+two values are compared using one of the following operators:
+
+<table>
+<tr><td>&lt;</td><td>less than</td></tr>
+<tr><td>&gt;</td><td>greater than</td></tr>
+<tr><td>&lt;=</td><td>less than or equal to</td></tr>
+<tr><td>&gt;=</td><td>greater than or equal to</td></tr>
+<tr><td>==</td><td>equal to</td></tr>
+<tr><td>!=</td><td>not equal to</td></tr>
+</table>
+
+<p>
+
+<code><pre>
+(function Validate (Bool x) -> :
+	...
+)
+
+(function Test11 -> :
+	(Validate true)
+	
+	(Bool isTrue = true)
+	(Validate isTrue)
+	
+	(Validate (1 == 1))
+	(Validate (1 >= 0))
+)
+</code></pre>
+
+You can also use boolean arithmetic operators <b>and</b>, <b>or</b> and <b>xor</b> for more complex binary expression:
+
+<code><pre>
+(function Test12 -> :
+	(Bool isTrue = ((1 == 1) and (2 == 2))
+	(Bool onlyOneIsTrue = ((1 == 2) xor (2 == 2))
+)
+</code></pre>
+
+You can use <b>(not [expression])</b> to invert the boolean value of an expression:
+
+<code><pre>
+(function Test13 -> :
+	(Float32 darkMatterRatio = 2.7)
+	(if (not (darkMatterRatio > 3 ) (return))
+)
+</code></pre>
+
+
+<h3><a href="start.htm">Contents</a></h3>
+</body>
+

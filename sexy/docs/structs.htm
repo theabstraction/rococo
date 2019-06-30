@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Derivatives #1 - Structs</title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Derivatives #1 - Structs</h1>
+	<p>
+	<p>	Related data can be packaged together in structures, using <i>struct</i> keyword:
+	<code><pre>
+(struct Vector3
+	(Float32 x)
+	(Float32 y)
+	(Float32 z)
+)
+	</code></pre>
+	The example above creates a new type derived by stacking 3 32-bit IEEE-754 single precision numbers. The components
+	are labelled x, y and z. As a shorthand, when components all have the same type they can put into the same declaration line thus:
+	<code><pre>
+(struct Vector3
+	(Float32 x y z)
+)
+	</code></pre>
+	Structs can also define members of other structs:
+	<code><pre>
+(struct Matrix3x3
+	(Vector3 v1 v2 v3)
+)
+	</code></pre>	
+	<p>
+	The memory layout of Sexy primitives, structs and objects corresponds to that equivalent structures in C++ with a
+	field alignment of 4 bytes.
+	<h3><a href="start.htm">Contents</a></h3>
+</body>
+

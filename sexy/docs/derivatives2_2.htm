@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Derivatives #2 Part 2 - Dynamic Dispatch</title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Derivatives #2 Part 2 - Dynamic Dispatch</h1>
+	
+	<p>
+	In Graphics User Interface programming (GUI) there are typically many kinds of events, such as Right-Mouse-Button down
+	or Alt-X up. For some APIs, such as Windows, there can literally be hundreds GUI event types. This creates
+	a problem for classes that handles such messages. In C++ the solution is generally to map event types to methods by
+	use of a hash table or similar structure. This can be quite cumbersome when there are a lot of classes and requires
+	writing code in multiple places to handle messages. Sexy uses the Objective C and SmallTalk messaging model as a 
+	solution. We begin by adding <b>(attribute dispatch)</b> to an interface. Any interface that adds this attribute is called
+	a dispatch interface and any class that implements it is a message handler.
+	
+	<pre><code>
+(interface Sys.IWidget
+	(attribute dispatch)
+)
+	</code></pre>
+	
+	Any class that implments Sys.IWidget exposes its methods to the dispatch interface.
+	
+		<pre><code>
+(struct ClickArgs 
+	(Vector2 mouseLocation)
+)
+
+(class BigWidget (implements Sys.IWidget)
+)
+
+(method BigWidget.OnLeftButtonUp (ClickArgs args)-> : ... )
+	</code></pre>
+	
+	In the example above any reference to a BigWidget via Sys.IWidget can call OnLeftButtonUp using the dispatch interface.
+	If an attempt is made to call a method through a dispatch interface, and the method is not implemented by the instance
+	to which the interface refers the method call is ignored.
+	
+	<p>All dispatch methods have one input - a struct, and return no output. Since structs are passed by mutable refernce
+	the single argument can use any of its fields to serve as either input our output or both. By convention dispatch method
+	arguments have types with suffix Args.
+
+	<h3><a href="start.htm">Contents</a></h3>
+</body>
+

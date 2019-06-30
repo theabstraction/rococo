@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Arithmetic</title>
+</head>
+
+<body>
+<h1>Sexy Scripting Language - Arithmetic</h1>
+<p>
+	At the heart of every program line is simple arithmetic. We start by initializing variables. We have seen initialization of
+	primitives from numeric literal values. But it is also possible to initialize derived variables at the point of declaration:
+	
+	<pre><code>
+(struct Vector3 
+	(Float32 x y z)
+)
+
+(function Test -> :
+	(Vector3 v = 1 2 3)
+)
+	</code></pre>
+	
+	Here we see a function Test that initializes a struct variable called v.It has one atomic expression on the right
+	hand side of the assignment operator for every member in the structure. This is called memberwise construction. If a struct
+	has other structs as fields we must use compound expressions to initialize submembers:
+	
+<pre><code>
+(struct Time 
+	(Int64 tickCount)
+)
+
+(struct Vector3AndTime
+	(Float32 x y z)
+	(Time t)
+)
+
+(function Test2 -> :
+	(Vector3AndTime v = 1 2 3 (5)) // t is a struct, hence final member wrapped in parenthesis
+)
+</code></pre>
+
+We can assign new values to primitives and struct members at any time. Struct members are accessed using the dot (.) character:
+
+<pre><code>
+(struct Time 
+	(Int64 tickCount)
+)
+
+(struct Vector3AndTime
+	(Float32 x y z)
+	(Time t)
+)
+
+(function Test3 -> :
+	(Vector3 v = 1 2 3)
+	(Float32 x = 5)
+	(x = v.x) // Assigns the x component of v to the x variable, overwriting the previous value of 5.
+	...
+)
+</code></pre>
+
+<p>Arithmetic is done using binary arithmetic operators in an assignment:
+
+<pre><code>
+(function Test4 -> (Float32 s):
+	(Vector3 v = 1 2 3)
+	(s = (v.x + v.y))
+	(s = (s * v.z))
+	(s = (s - v.z))
+	(s = (s / v.z))
+	...
+)
+</code></pre>
+
+You can see that each binary operation is surrounded by parenthesis. The Sexy compiler uses the left hand side of the assignment
+operator to figure out the type to which that the right side must evaluate. As a convenience when you are adjusting a variable
+which depends only on the variable itself and one other value, you can use a delta operator, one of -=, +=, *= and /=:
+
+<pre><code>
+(function Test4 -> (Float32 s):
+	(Vector3 v = 1 2 3)
+	(s = (v.x + v.y))
+	(s *= v.z)  // equivalent to (s = (s * v.z))
+	(s -= v.z)
+	(s /= v.z)
+	...
+)
+</code></pre>
+
+<h3><a href="start.htm">Contents</a></h3>
+</body>
+
