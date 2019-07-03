@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Binary Arithmetic Operators and Overloading </title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Binary Arithmetic Operators &amp; Overloading</h1>
+
+	We have already seen the use of arithmetic operators for primitive types:
+	
+<pre><code>
+	(Int32 j = 7)
+	(Int32 i = (5 * j))
+</pre><code>
+
+	With struct types one has access to <i>operator overloading</i>. If we take a struct type and perform
+	arithmetic in an assignment with a single binary operation while removing parenthesis the compiler will attempt
+	to substitute a function call:
+	
+<pre><code>
+	(function MultiplyVec3fFloat32 (Vec3 a)(Float32 b)(Vec3 ab):
+		(ab.x = (a.x * b))
+		(ab.y = (a.y * b))
+		(ab.z = (a.z * b))
+	)
+	
+	(Vec3 i = 1 0 0.2)
+	(Float32 scale = 5)
+	(Vec3 q = i * scale) // q is initialized with (5 0 1)
+</pre><code>
+
+	In the example (Vec3 q = i * 5) satisfies operator overloading rules - the left side of an assignment is a struct,
+	and the parenthesis of the arithmetic operation are missing. This triggers the compiler to search for a matching
+	function name MultiplyVec3fFloat32. You will see * is mapped to <i>Multiply</i>, while i is matched to <i>Vec3f</i>
+	and <i>scale</i> matches to Float32. The type names specified in the modules in which the types are defined are used
+	to append names to the function. The compiler will search namespaces for a matching function if you specify them 
+	with a (using ...) directive. Otherwise the search is confined to local functions. If no match is found the compiler
+	will instruct you in the error log how to compose a overload function.
+
+	<h3><a href="start.htm">Contents</a></h3>
+</body>

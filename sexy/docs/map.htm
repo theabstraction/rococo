@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Maps</title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Maps</h1>
+	
+	Maps are containers that use keys to identify values. They are also known as dictionaries or hash-tables. Look up, insert
+	and delete are in constant time, that is independent on the length of the map. The syntax for defining a map is <b>(map
+	&lt;key-type&gt; &lt;value-type&gt; &lt;map-name&gt;)</b>. Key types can be any one of the following: Float32, Float64,
+	Int32, Int64, IString.
+	Almost any type can be used for the values.
+	
+<pre><code>
+	// Example map definitions
+	(map Int32 Int32 idToValue)
+	(idToValue.Insert 5 50)
+</pre></code>
+
+	Here we see idToValue defined as an Int32 to Int32 map. An element 50 is inserted with 5 as the look-up key. The first
+	argument for map.Insert is the key, and the second argument the value. To retrieve the value one use does a lookup to
+	get the appropriate node in the map, and then call the node.Value method just so:
+	
+<pre><code>
+	(node n = (idToValue 5))  // (&lt;map-name&gt; &lt;key&gt;) is used to lookup a map value by key
+	(Int32 value = n.Value)
+</pre></code>
+
+	After these operations value is 50. Nodes support an Exists method that evaluates to Bool true if the node identifies
+	a match, or Bool false if the key was not found.
+	
+<pre><code>
+	(node n = (idToValue 6)) 
+	(Bool was6found = n.Exists) // was6Found should have value *false* because 6 is not a key in the map
+</pre></code>
+	
+	Entries can be deleted from the map by calling Pop on their nodes:
+	
+<pre><code>
+	(node n = (idToValue 5)) 
+	(n.Pop) // Element indexed by 5 no longer exists
+</pre></code>
+
+	In the case where a value type is a struct, one can obtain a reference to the struct using node reference semantics:
+	
+<pre><code>
+	(map IString Vec3 nameToVec3)
+	(Vec3 origin = 0 0 0)
+	(Vec3 i = 1 0 0)
+	(nameToVec3.Insert "origin" origin)
+	(nameToVec3.Insert "I" i)
+	(node n = (nameToVec3 "origin"))
+	(Vec3 originRef = &amp; n)
+</pre></code>
+
+	Enumeration through a map container can be done with <b>(foreach...)</b> semantic:
+	
+<pre><code>
+	(map IString Vec3 nameToVec3)
+	...
+	(foreach n # map
+		(Vec3 point = & n)  // n in the enumeration advances though all the map nodes. Note *point* here is a reference, not a value
+	)
+</pre></code>
+
+	<h3><a href="start.htm">Contents</a></h3>
+</body>

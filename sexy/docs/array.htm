@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Arrays</title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Arrays</h1>
+	
+	An array is a sequence of densely packed elements. Elements can be indexed by a number and the array permits fast
+	random-access to data. The first argument of an array definition is the element type, the second argument is the array name,
+	and the third argument is the array capacity.
+	
+<pre><code>
+	// Example array definitions
+	(array Int32 indices 4)
+	(array IString names 12)
+	(array Vec2i points 7)
+</pre></code>
+
+	Almost any type is valid as an array element type. Note that you can have structs as element types, as well as interfaces,
+	and both structs and classes can have lists, arrays and maps as members:
+	
+<pre><code>
+	(struct Curve 
+		(array Vec2i points)
+	)
+	
+	(method Curve.Construct (Int32 capacity) -> (construct points capacity): )
+	
+	(array Curve curves 134) // curves is an array of point arrays
+</pre></code>
+
+	As is shown in the Curve example, if a struct contains an array, one must implement the Construct method for that
+	struct, and use <b>(construct &lt;array-name&gt; &lt;capacity&gt;)</b> to initialize the array. This semantic
+	requires adding a mapping token <b>'->'</b> to the contructor. The semantic appears after the mapping token and
+	before the body indicator token. Structs that have containers as members all require a <b>(construct ...)</b> for each
+	such member.
+	
+<pre><code>
+	(array Float64 omega 50)
+	(omega.Push 77)
+	(Int32 len = omega.Length)
+	(Float64 v = (omega 0)) 
+	(omega.Clear)
+</pre></code>
+
+	In the above example, omega is an array of double precision floating point numbers with a capacity of 50 elements. The
+	first element 77 is pushed on to the array. The expression <b>(Float64 v = (omega 0))</b> looks up the 0th element (the first,
+	since array indices start at zero), then initializes variable v with it. <b>v</b> after the operation evaluates to 77.
+	
+<pre><code>
+	(array Vec3 points)
+	(Vec3 p = 1 2 3)
+	(points.Push p)
+	(Vec3 q = 4 5 7)
+	(points.Push q)
+	
+	(foreach point # points
+		(...)
+	)
+</pre></code>
+
+	In the example point is a reference to a Vec3 that advances through the elements of the array. If the array type
+	is primitive rather that struct, the iteration variable is by value, rather than reference. One can also iterate
+	through an array efficiently by advancing an Int32 index variable:
+	
+<pre><code>
+	(array Int32 alpha)
+	(alpha.Push 1)
+	(alpha.Push 2)
+	(alpha.Push 3)
+	
+	(Int32 length = points.Length)
+	(#for (Int32 i = 0) (i < length) (i += 1)
+		(Int32 k = (alpha i))
+	)
+</pre></code>
+
+	When element types are structs, and element access is required, one uses member access syntax:
+	
+<pre><code>
+	(array Vec3 points 17)
+	
+	(Vec3 p = 1 2 3)
+	(Vec3 q = 2 4 3)
+	(Vec3 r = 5 7 8)
+	(points.Push p)
+	(points.Push q)
+	(points.Push r)
+	
+	(Int32 length = points.Length)
+	(#for (Int32 i = 0) (i < length) (i += 1)
+		(Float32 x = (points i x))  // N.B member access syntax (&lt;type&gt; &lt;variable-name&gt; = (&lt;array-name&gt; &lt;index&gt; &lt;member name&gt;))
+	)
+</pre></code>
+
+	In the example member access syntax is used to extract the x-component of the Vec3 at index i: <b>(Float32 x = (points i x))</b>
+	It is possible to construct an object in place inside the array, without having to copy data. The technique is shown below:
+	
+<pre><code>
+	(array Vec3 points)
+	
+	(points.Push Vec3 1 2 3)
+	(points.Push Vec3 4 5 6)
+	(points.Push Vec3 7 8 9)
+	
+	(Int32 length = points.Length)
+	(#for (Int32 i = 0) (i < length) (i += 1)
+		(Float32 x = (points i x))
+	)
+</pre></code>
+
+	Finally, if the element type is struct one can obtain a reference to an element with a slightly modified version of the <b>(foreach ...)</b> semantic:
+
+<pre><code>
+	(array Vec3 points)
+	
+	(points.Push Vec3 1 2 3)
+	(points.Push Vec3 4 5 6)
+	(points.Push Vec3 7 8 9)
+	
+	(foreach v # (points 1) 
+		(...)
+	)
+</pre></code>
+
+	 The argument after the hash code specifies the array and the index, v will then contain a reference to Vec3, the element type,
+	 which can be used to set or get members.
+
+	<h3><a href="start.htm">Contents</a></h3>
+</body>

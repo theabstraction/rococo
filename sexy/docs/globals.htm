@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Global variables</title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Global variables</h1>
+	
+	Sometimes it is convenient to pass variables between functions without creating explicit arguments. These are what are
+	called global variables. In Sexy global only goes as far as the module in which they are defined. If you wish to share
+	variables outside of a module then wrap global variable access in functions and alias the functions in a namespace.
+	
+	Global variables are defined in a root expression, outside of any function.
+	
+	<pre><code>
+(global Int32 i = 6)
+	</code></pre>
+	
+	As you can see the <b>global</b> keyword is used followed by the global variable's type, it's name and then an assignment operator and default value. Only primitive
+	types can be used as global variables.
+	
+	Inside of a function the <b>global</b> keyword is used to assign to and from a global value.
+	
+	<pre><code>
+(global i -> x) // .....1
+(global i <- x) // .....2
+	</code></pre>
+	
+	In the first case here we are assigning the value of global variable named i to the local variable x. In the second case 
+	the operation is reversed with local variable x overwriting the value of global variabled named i.
+	
+	
+	<h3><a href="start.htm">Contents</a></h3>
+</body>

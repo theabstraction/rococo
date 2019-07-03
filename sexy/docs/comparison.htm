@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Binary Comparison Operators and Overloading </title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Binary Comparison Operators &amp; Overloading</h1>
+
+	We have already seen the use of comparison operators for primitive number types:
+	
+<pre><code>
+	(Float32 j = 7)
+	(if (j > 6) ...)
+</pre><code>
+
+	With struct types one has access to <i>operator overloading</i>. If we take an object of struct type and perform
+	a binary comparison against objects of the same type, the compiler will attempt to substitute for a Bool valued
+	function:
+	
+<pre><code>
+	(function IsEqVec2fVec2f (Vec2 a)(Vec2 b)->(Bool isEqual) :"
+		(isEqual = ((a.x == b.x) and (a.y == b.y)))
+	)
+	
+	(Vec2 a = 1 0)
+	(Vec2 b = 2 0)
+	(if (a == b) ... ) 
+</pre><code>
+
+	In the example (a == b) triggers a substitution for a Bool valued function IsEqVec2fVec2f. Operator ==
+	is replaced with <i>IsEq</i> and the Vec2 type maps to <i>Vec2f</i> which is the name of the Vec2f in the module
+	in which Vec2f is defined. (N.B Vec2 is short hand for Sys.Type.Vec2, which is an alias for Vec2f in Sys.Maths.sxy).
+	The operators !=, &lt;, &gt; &lt;= and &gt;= can all be overloaded. If no match is found the compiler log will instruct
+	you how to compose the correct overload function. The compiler will search all namespaces given by (using...) directives
+	to find a matching overload function, or default to looking for local functions.
+
+	<h3><a href="start.htm">Contents</a></h3>
+</body>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Coroutines </title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Coroutines</h1>
+
+	With many programming languages one of the difficulties of handling AI or simulating other time-dependent phenomena is
+	that the language semantics are not optimized for many different threads. Threads are not just memory intensize, they require much effort to
+	get synchronization logic correct. Alternatively a thread free model may repeatedly cycle over time though a loop and
+	perdiodically advance counters and activate callback mechanisms for a sections of code. It all gets difficult to maintain.
+	With Sexy the problem is largely solved with <i>coroutines</i>.  In a coroutine, a small section 
+	of code advances its code and then performs a co-operative yield. Other coroutines can then get a chance to execute until 
+	they yield. Each yield is chosen to be timed to minimize conflicts with other co-routones. The switching cost between 
+	coroutines allows many yields per microsecond, enabling thousands of time-dependent algorithms to advance execution
+	turn by turn.
+	
+	Every coroutine is implemented as an object that implements <b>ICoroutine</b> and its single method <b>Run</b>. The <b>Run</b> method
+	is where execution begins. Once the <b>Run</b> method returns the coroutine has finished. To co-operatively yield call 
+	<b>(yield &lt;DT&gt;)</b> where DT is the minimum number of microseconds to wait before the coroutine can resume. 
+	
+	Sexy provides a default coroutine management system as a dynamic link library. The interface it exports is
+	ICoroutineControl.
+	
+	<pre><code>
+	(ICoroutine myCoroutine = ...)
+	(ICoroutineControl control (Coroutines))
+	(control.Add myCoroutine)
+	</pre></code>
+	
+	Here <b>(ICoroutineControl control (Coroutines))</b> retrieves a reference to the global coroutines object and was
+	followed by a statement to add the myCoroutine instance to it.
+	
+	Using ICoroutineControl one would call <b>(control.Continue)</b> to give each coroutine a slice of execution. 
+	<b>(control.Continue)</b> returns the id of the last coroutine that yielded since the method was called. If it 
+	returns zero, it means all routines are in a yielded state and waiting for a future time to wake up. If it returns a 
+	negative value, no coroutines are awaiting a time slice.  Generally each cycle of a user-interface loop in a script that 
+	calls coroutines should spin until the result is zero or negative:
+	
+	<pre><code>
+	(ICoroutineControl control (Coroutines))
+	(while (control.Continue > 0)) // causes coroutines to execute until all are in a wait state or completed.
+	</pre></code>
+	
+	Since coroutine control is an interface it is easy for a script to substitute alternative implementations of coroutine
+	management.
+
+	<h3><a href="start.htm">Contents</a></h3>
+</body>

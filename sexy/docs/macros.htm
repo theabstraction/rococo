@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Macros</title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Macros</h1>
+	
+	Sexy macros were inspired by LISP macros, which are far more powerful than those of C++ and many other languages. The key to
+	their power is that the input to LISP and Sexys macros are expression trees, rather than arrays of tokens. The full power of the language
+	is used to parse and map the tree to the final output expression. Compare with C++, in which both pre-processor macros and 
+	template metaprogramming have their own special language.
+	
+	<pre><code>
+// Macro Snippet
+(macro Sys.Type.for in out
+	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (#for (init-condition)   (while-test-boolean-valued-expression)   (loop-increment)   (body1)...(bodyN)  )")
+	(out.Copy (in 1))
+	(IExpressionBuilder whileLoop = out.AddCompound)
+	(whileLoop.AddAtomic "while")
+	(whileLoop.Copy (in 2))
+
+	(Int32 i = 4)
+	(while (i < in.ChildCount) 
+		(whileLoop.Copy (in i))
+		(i = (i + 1))
+	)
+
+	(whileLoop.Copy (in 3))
+) 
+	</code></pre>
+	
+	The macro above is taken from Sys.Type.sxy. It defines the #for macro, which is used to simulate a C++ for loop statement.
+The first argument of a macro establishes the namespace in which it is defined, and gives it a name that begins with a lower
+case letter followed by a string of alphanumeric characters. Two subsequent parameters <b>in</b> and <b>out</b> declare
+variables of type Sys.Reflection.IExpression and Sys.Reflection.IExpressionBuilder respectively.  Everything after <b>out</b> is
+part of the macro body. Although one is free to choose other variable names, <i>in</i> and <i>out</i> establish a convention.
+
+Macros take input expressions and substitute an output expression. The output is built token by token using the expression
+builder interface. 
+
+<p>To invoke a macro an expression is exampled thus:
+
+<pre><code>
+(#Sys.Type.for (Int32 i = 0)(i < 5)(i += 1)
+	(PushInt32 i)
+)
+</pre></code>
+
+The first parameter begins with #, indicating a macro substitution, this is followed by the macro name without blank space
+between # and the name. The subsequent tokens form the expression passed to <b>in</b>. Note the zeroth indexed element of input
+gives the macro name itself. Upon macro expansion the code is recompiled using the subtitute expression.
+
+	<h3><a href="start.htm">Contents</a></h3>
+</body>

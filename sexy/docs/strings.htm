@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Strings and Builders </title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Strings &amp; Bulders</h1>
+
+No modern language would be complete without support for strings. Sexy does things a little difference from most languages,
+in that strings are interfaces, rather than special types. The base interface is <b>Sys.Type.IString</b> that supports only
+two methods <b>(Length -> (Int32 length))</b> and <b>(Buffer -> (Pointer buffer))</b>.
+<p>
+<b>Length</b> returns the number of characters in the string, while <b>Buffer</b> returns a pointer to a null terminated
+character array with the string contents. The buffer is a C-compatible string.
+<p>
+A Sys.Type.IString in itself tells one nothing about the lifetime or mutability of the string object to which it interfaces,
+only that a buffer and length can be accessed. This contrasts to many languages that have a highly bloated string type.
+IString interface can be constructed directly from string literals, where they are referred to as string constants:
+
+<pre><code>
+	(IString hw = "Hello World!")
+</pre></code>
+
+String constants are immutable.<p>
+Any class that implements an IString can only have one interface and its first member is <b>(Int32 length)</b>, and its 
+second member is <b>(Pointer buffer)</b>. <b>(Length -> (Int32 length))</b> must return <b>this.length</b> while <b>(Buffer ->
+(Pointer buffer))</b> returns <b>this.buffer</b>. This allows the sexy compiler optimize all string interfaces as member offsets
+without rendering the members mutable. It is perfectly legal to have an interface derive from IString and use that as the
+one interface supported by the string implementation. One such example is IStringBuilder which facilitates creation of
+string data.
+
+<pre><code>
+	(IStringBuilder sb (StringBuilder 256)) // Here init sb, an IStringBuilder interface to a StringBuilder object with 256 byte capacity
+	(sb.AppendInt32 15)
+	(sb.AppendIString " to go")
+	(Sys.Print sb) // '15 to go' will be written to the script log
+</pre></code>
+
+	IStringBuilder supports a number of append operations for creating a string. The attribute 'builder Append' is marked 
+	for the IStringBuilder interface. This has the effect of adding type inference semantics. 
+	
+<pre><code>
+	(IStringBuilder sb (StringBuilder 256))
+	(sb 15)  //  type inference (1)
+	(sb " to go") //  type inference (2)
+	(Sys.Print sb) // '15 to go' will be written to the script log
+</pre></code>
+
+	In the above example we see two instances of type inference. The semantic is such: (&lt;IStringBuilder-name&gt; &lt;object&gt;).
+	Since the interface is marked <i>builder Append</i> the type for any given argument is appended to the word <i>Append</i>
+	drawn from the attribute, so that <b>(sb 15)</b> is transformed by the Sexy compiler as <b>(sb.AppendInt32 15)</b>. Note the type
+	name of the object is that defined in the module in which the object type is defined, not the any namespace alias given to the type,
+	so that Sys.Type.Int32 lends only <i>Int32</i> to the suffix in the append operation.
+	
+	Furthermore a <b>build</b> macro is available in Sys.Type that transforms a linear sequence of arguments to a vertical sequence of
+	expressions:
+	
+	<pre><code>
+	(IStringBuilder sb (StringBuilder 256))
+	(#build sb 15 " to go") 
+	(Sys.Print sb) // '15 to go' will be written to the script log
+</pre></code>
+
+	If you follow the macro code from Sys.Type.sxy you can see (#build sb 15 " to go") is re-expressed as (sb 15)(sb " to go")
+	which then maps to (sb.AppendInt32 15)(sb.AppendIString "to go").
+	
+	The Sys.Type.build macro and the (append builder &lt;prefix&gt;) pattern can be applied to any interface that require
+	stream like semantics.
+	<p>
+	
+	For further string functionality see namespace Sys.Type.Strings.
+
+	<h3><a href="start.htm">Contents</a></h3>
+</body>

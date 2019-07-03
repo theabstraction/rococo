@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Closures</title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Closures</h1>
+	
+	Very often a function requires functionality itself as an argument, and pure data does not provide enough generality to do
+	the job. In this case one can specify that an interface is required as an input, to be implemented by the caller of the 
+	function, but in many situations this is quite cumbersome if only one method is used by the function. The solution is to
+	use a closure, which defines a function within a function. The closure has access to all the local variables of the
+	calling function, except the <b>this</b> reference.
+	
+	To define the function argument, we use the <b>archetype</b> semantic, which defines a function type name and the
+	arguments it takes. This is exampled here:
+	
+	<pre><code>
+	(namespace EntryPoint)
+		(alias Main EntryPoint.Main)
+
+	(archetype Sys.GetInt32 -> (Int32 value))
+
+	(function Main -> (Int32 value):
+		(Int32 i = 417)
+		(Sys.GetInt32 f = 
+			(closure -> (Int32 y):
+				(y = i)
+			)
+		)
+		(value = (f) //..................invoke (f) triggers closure call 
+	)		
+	</pre></code>
+	
+	We define a function archetype Sys.GetInt32 which will match any function that has no input and returns a single Int32
+	as output. In our Main function we assigned a function to a variable of type Sys.GetInt32 which was a closure. Note
+	that <b>closure</b> is used to define the closure. The final expression in the Main function invokes the archetype
+	by wrapping it in parenthesis. The variable i, in the parent function Main, is accessible by the closure.
+
+	<h3><a href="start.htm">Contents</a></h3>
+</body>

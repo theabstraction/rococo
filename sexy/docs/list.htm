@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Doubly Linked Lists</title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Doubly Linked Lists</h1>
+	
+	In many programs one needs to manage a set of objects and rapidly add and remove elements from any location in the set
+	without changing order of the set. A doubly linked list is often the ideal structure for this task. In Sexy this is achieved
+	by using the <b>list</b> keyword. 
+	
+	To define a list inside a function use <b>(list &lt;element-type&gt; &lt;list-name&gt;)</b>
+	
+<pre><code>
+	// Example list definitions
+	(list Int32 indices)
+	(list IString names)
+	(list Vec2i points)
+</pre></code>
+
+	Any type is valid as a list element type. Note that you can have structs as element types, as well as interfaces,
+	and both structs and classes can have lists, arrays and maps as members:
+	
+<pre><code>
+	(struct Curve 
+		(list Vec2i points)
+	)
+	
+	(list Curve curves) // curves is a list of lists of points
+</pre></code>
+
+	Lists are built using Append and Prepend methods. Append takes the first argument and attaches it to the tail of the list. Prepend
+	takes the first argument and pushes it to the head. The Length method returns the number of elements in the list. The
+	Clear method deletes all entries in the list.
+	
+<pre><code>
+	(list Int32 indices)
+	(indices.Append 77)
+	(indices.Prepend 64)
+	(Int32 len = indices.Length)
+	(indices.Clear)
+</pre></code>
+
+	A linked list comprises a sequence of nodes, each of which contains the linked list data value, but also a reference
+	to a predecessor and a successor. The nodes can be individually extracted by using the <b>node</b> keyword.
+	
+<pre><code>
+	(node tail = indices.Tail) // create a node variable called tail and refernce the tail of the list
+	(node head = indices.Head) // create a node variable called head and reference the head of the list
+	(Int32 tailValue = tail.Value) // copy the tail value to the local variable
+	(Int32 tailhead = head.Value) // copy the head value to the local variable
+</pre></code>
+
+	Above are examples of how to use node to extract head and tail data. You can advance through the list by calling method
+	Next and Previous on a node. Nodes can be deleted with method Pop. You can test whether a node has precessor or successor
+	by calling HasNext and HasPrevious methods. Altogether these allow you to traverse a list in any direction.
+	
+<pre><code>
+	(node tail = indices.Tail) 
+	(node head = indices.Head) 
+	(if (head.HasNext)
+		(node second = head.Next)
+	)
+</pre></code>
+
+	In the case that element types are structs, you can obtain a reference to the struct by using the &amp; operator on a 
+	node reference, such as in this example:
+	
+<pre><code>
+	(list Vec3 points)
+	(Vec3 p = 1 2 3)
+	(points.Append p)
+	(node n = points.Tail)
+	(Vec3 val = &amp; n) // val is a mutable reference to the Vec3 referenced by the node.
+</pre></code>
+
+	You can also enumerate through a list using <b>foreach</b>:
+	
+<pre><code>
+	(list Vec3 points)
+	(Vec3 p = 1 2 3)
+	(points.Append p)
+	(Vec3 q = 4 5 7)
+	(points.Append q)
+	
+	(foreach n # points
+		(Vec3 p = &amp; n)
+	)
+</pre></code>
+
+	The second parameter gives a variable name to the interation node. The third parameter is a #, and the fourth parameter
+	gives the list name. Everything that follows is executed for each element in the node and the node reference is advanced
+	each iteration.
+
+	<h3><a href="start.htm">Contents</a></h3>
+</body>
