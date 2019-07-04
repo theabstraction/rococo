@@ -1,0 +1,143 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Benny Hill</title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Benny Hill - Marshalling to and from C++</h1>
+	
+	While marshing to C++ can be done by hand, as you can see in any of the native library implementations, it can
+	be error prone and tedious. For this reason the BennyHill script generator was developed to simplify the procedure.
+	
+	<p>Benny Hill is a command line tool that compiles in the ./rococo/sexy/bin directory or subfolder thereof depending on 
+	configuration. The syntax is thus:
+	
+	<pre><code>sexy.bennyhill.exe &lt;project-root&gt; &lt;script-input-file&gt; &lt;touch-file&gt;</code></pre>
+	
+	<ul>
+	<li><b>project-root</b> gives the root directory, relative to which files are read and files are to be generated.</li>
+	<li><b>script-input-file</b> specifies the sxh file which defines which code is generated</li>
+	<li><b>touch-file</b> names a file the datestamp of which is tested to prevent compilation unless the sxh file is more recent. Specify <i>null</i> to ignore</li>
+	</ul>
+	
+	Example:
+	<pre><code>sexy.bennyhill.exe c:/work/rococo/mhost mhost.sxh null</code></pre>
+	
+	<h2>Sexy Scripting Language - sxh file format</h2>
+	
+	(N.B It is <i>strongly</i> recommended that you peruse a fully working sxh file when studying this document, such as mhost.sxh).
+	<p>
+	Benny Hill sxh files are plaintext sequences of S-expressions. The first element is 
+	<pre><code>(config &lt;config-name&gt;) </code></pre>
+	
+	where 
+	<ul>
+	<li><b>config-name</b> specifies a config file relative to the project-root directory.</li>
+	</ul>
+	
+	<p>
+	Click <a href="benny.hill.config.htm">here<a> for documentation on Benny Hill config files
+	<p>
+	
+	Function expressions can be defined in any sxh file:
+	
+	<pre><code>
+	(functions &lt;function-target-prefix;&gt;
+		(function-def #1)...(function-def #N)
+	)
+	</code></pre>
+	
+	<ul>
+	<li><b>function-target-prefix</b> specifies the output file prefix relative to the project-root directory. Extensions .h and .inl and are appended. So that, for example,
+	if the prefix is "mhost", then generated files would be "mhost.h" and "mhost.inl"</li>
+	</ul>
+	
+	Each <b>function-def</b> has the following syntax:
+	<pre><code>
+	(&lt;fully-qualified-Sexy-function-name&gt; (&lt;Input-type1&gt; &lt;Input-name1&gt; ...  &lt;Input-typeN&gt; &lt;Input-nameN&gt; -> 
+		(&lt;output-type> &lt;output-name>) : &lt;fully-qualified-C++-function-name&gt;)
+	</code></pre>
+	
+	where 
+	<ul>
+	<li><b>fully-qualified-Sexy-function-name</b> - defines the Sexy namespace and function name.</li>
+	<li><b>Input-type1...N</b> - one of the N input argument types. Types are defined in the Benny Hill <a href="benny.hill.config.htm">config file</a></li>
+	<li><b>Input-name1...N</b> - one of the N input argument names. Names begin with lowercase letters, then any alphanumeric sequence.</li>
+	<li><b>Output-type</b> - the type of the output argument. Must be a primitive, archetype or interface type defined in the Benny Hill <a href="benny.hill.config.htm">config file</a></li>
+	<li><b>fully-qualified-C++-function-name</b> - the C++ function to invoke. Arguments are passed from Sexy to the C++ function and output value set to the return value of the C++ function call.</li>
+	</ul>
+	
+	Enumeratons in Benny Hill sxh files use this syntax:
+	
+	<pre><code>
+	(enum &lt;underlying-type;&gt;
+		(as.sxy &lt;sexy-enum-name&gt; &lt;sexy-target-directory-prefix&gt;)
+		(as.cpp &lt;C++-enum-name&gt; &lt;c++-target-directory-prefix&gt;)
+		(
+			(&lt;name1&gt; &lt;value1&gt;)
+			...
+			(&lt;nameN&gt; &lt;valueN&gt;)
+		)
+	)
+	</code></pre>
+	
+	where 
+	<ul>
+	<li><b>underlying-type</b> - the integer type. Any integer type defined in in the Benny Hill <a href="benny.hill.config.htm">config file</a>. Int32 and Int64 are typical values.</li>
+	<li><b>sexy-enum-name</b> - Fully qualified name which forms the namespace and prefix of the enum. Sexy enums are implemented as macros that substitute names for integer literals</li>
+	<li><b>sexy-target-directory-prefix</b> - Sexy enum impementation code is written to this directory, appended to the project-root and given extension .sxh.sxy</li>
+	<li><b>C++-enum-name</b> - Fully qualified name which forms the namespace and enum type of the enum as seen by C++.</li>
+	<li><b>c++-target-directory-prefix</b> - the C++ target directory, appended to the project root. .h and .inl are appended. </li>
+	</ul>
+	
+	Interface definitions in Benny Hill sxh files use this syntax:
+	<pre><code>
+	(interface
+		(as.sxy &lt;sexy-interface-name&gt; &lt;sexy-target-directory-prefix&gt;)
+		(as.cpp &lt;C++-interface-name&gt; &lt;C++-target-directory-prefix&gt;)
+		(context factory &lt;C++-factory-ref&gt;)
+		(methods
+			&lt;method-def #1&gt; 
+			&lt;method-def #N&gt; 
+		)
+		(factory &lt;factory-name&gt;)
+	)
+	</code></pre>
+	
+	where 
+	<ul>
+	<li><b>sexy-interface-name</b> - fully qualified name which forms the Sexy namespace and name of the interface</li>
+	<li><b>sexy-target-directory-prefix</b> - Sexy interface code is written to this directory, appended to the project-root and given extension .sxh.sxy. Marshals interfaces to proxies that call C++</li>
+	<li><b>C++-interface-name</b> - fully qualified name which forms the C++ namespace and name of the interface.</li>
+	<li><b>C++-target-directory-prefix</b> - the C++ target directory, appended to the project root. .h and .inl are appended. Marshals Sexy to C++</li>
+	<li><b>C++-factory-ref</b> - in C++ the object exposed to Sexy may require a pointer type for construction. The type is specified here.</li>
+	<li><b>factory-name</b> - in Sexy, a factory may be specified to construct instances of the interface. If required, the factory name is specified here. Otherwise no factory is defined</li>
+	</ul>
+	
+	Methods are defined pretty much as they are in Sexy interfaces:
+	<pre><code>
+		(&lt;name&gt; (&lt;arg-type-1&gt; &lt;arg-name-1&gt;)...(&lt;arg-type-N&gt; &lt;arg-name-N&gt;)->
+			(&lt;output-type&gt; &lt;output-name&gt;))
+	</code></pre>
+	
+	where 
+	<ul>
+	<li><b>name</b> - any legal method name, i.e begins with a capital letter then any alphanumeric sequence.</li>
+	<li><b>arg-type-i</b> - any type defined in in in the Benny Hill <a href="benny.hill.config.htm">config file</a>. If <b>const</b> is used in front of a struct type, C++ will implement the argument as a const reference to a struct.</li>
+	<li><b>arg-name-i</b> - any legal argument name, i.e begins with a lower case letter then any alphanumeric sequence</li>
+	<li><b>output-type</b> - any legal output type defined in in in the Benny Hill <a href="benny.hill.config.htm">config file</a></li>
+	<li><b>output-name</b> - any legal argument name, i.e begins with a lower case letter then any alphanumeric sequence</li>
+	</ul>
+	
+	(N.B: Unlike Sexy, Sxh method definitions with no outputs allow you to ommit the mapping token in the method definition).
+
+	<h3><a href="start.htm">Contents</a></h3>
+</body>
